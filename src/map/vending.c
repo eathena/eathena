@@ -125,7 +125,7 @@ void vending_purchasereq(struct map_session_data *sd,int len,int id,unsigned cha
 		//Logs sold (V)ending items [Lupus]
 		if(log_config.pick > 0 ) {
 			log_pick(vsd, "V", 0, vsd->status.cart[index].nameid, -amount, (struct item*)&vsd->status.cart[index]);
-			log_pick(sd, "V", 0, sd->status.cart[index].nameid, amount, (struct item*)&sd->status.cart[index]);
+			log_pick(sd, "V", 0, vsd->status.cart[index].nameid, amount, (struct item*)&vsd->status.cart[index]);
 		}
 		//Logs
 

@@ -2651,6 +2651,13 @@ int buildin_getitem(struct script_state *st)
 			if(pc_candrop(sd,nameid))
 				map_addflooritem(&item_tmp,amount,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);
 		}
+
+		//Logs items, got from (N)PC scripts [Lupus]
+		if(log_config.pick > 0 ) {
+			log_pick(sd, "N", 0, nameid, amount, NULL);
+		}
+		//Logs
+
 	}
 
 	return 0;
@@ -2732,6 +2739,12 @@ int buildin_getitem2(struct script_state *st)
 			clif_additem(sd,0,0,flag);
 			map_addflooritem(&item_tmp,amount,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);
 		}
+
+		//Logs items, got from (N)PC scripts [Lupus]
+		if(log_config.pick > 0 ) {
+			log_pick(sd, "N", 0, nameid, amount, &item_tmp);
+		}
+		//Logs
 	}
 
 	return 0;
@@ -2803,6 +2816,12 @@ int buildin_getnameditem(struct script_state *st)
 		push_val(st->stack,C_INT,0);
 		return 0;	//Failed to add item, we will not drop if they don't fit
 	}
+
+	//Logs items, got from (N)PC scripts [Lupus]
+	if(log_config.pick > 0 ) {
+		log_pick(sd, "N", 0, item_tmp.nameid, item_tmp.amount, &item_tmp);
+	}
+	//Logs
 
 	push_val(st->stack,C_INT,1);
 	return 0;
@@ -2929,10 +2948,24 @@ int buildin_delitem(struct script_state *st)
 		}
 
 		if(sd->status.inventory[i].amount>=amount){
+
+			//Logs items, got from (N)PC scripts [Lupus]
+			if(log_config.pick > 0 ) {
+				log_pick(sd, "N", 0, sd->status.inventory[i].nameid, -amount, &sd->status.inventory[i]);
+			}
+			//Logs
+
 			pc_delitem(sd,i,amount,0);
 			return 0; //we deleted exact amount of items. now exit
 		} else {
 			amount-=sd->status.inventory[i].amount;
+
+			//Logs items, got from (N)PC scripts [Lupus]
+			if(log_config.pick > 0 ) {
+				log_pick(sd, "N", 0, sd->status.inventory[i].nameid, -sd->status.inventory[i].amount, &sd->status.inventory[i]);
+			}
+			//Logs
+
 			pc_delitem(sd,i,sd->status.inventory[i].amount,0);
 		}
 	}
@@ -2946,10 +2979,24 @@ int buildin_delitem(struct script_state *st)
 				continue;
 
 			if(sd->status.inventory[i].amount>=amount){
+
+				//Logs items, got from (N)PC scripts [Lupus]
+				if(log_config.pick > 0 ) {
+					log_pick(sd, "N", 0, sd->status.inventory[i].nameid, -amount, &sd->status.inventory[i]);
+				}
+				//Logs
+
 				pc_delitem(sd,i,amount,0);
 				return 0; //we deleted exact amount of items. now exit
 			} else {
 				amount-=sd->status.inventory[i].amount;
+
+				//Logs items, got from (N)PC scripts [Lupus]
+				if(log_config.pick > 0 ) {
+					log_pick(sd, "N", 0, sd->status.inventory[i].nameid, -sd->status.inventory[i].amount, &sd->status.inventory[i]);
+				}
+				//Logs
+
 				pc_delitem(sd,i,sd->status.inventory[i].amount,0);
 			}
 		}
@@ -3013,10 +3060,24 @@ int buildin_delitem2(struct script_state *st)
 		}
 
 		if(sd->status.inventory[i].amount>=amount){
+
+			//Logs items, got from (N)PC scripts [Lupus]
+			if(log_config.pick > 0 ) {
+				log_pick(sd, "N", 0, sd->status.inventory[i].nameid, -amount, &sd->status.inventory[i]);
+			}
+			//Logs
+
 			pc_delitem(sd,i,amount,0);
 			return 0; //we deleted exact amount of items. now exit
 		} else {
 			amount-=sd->status.inventory[i].amount;
+
+			//Logs items, got from (N)PC scripts [Lupus]
+			if(log_config.pick > 0 ) {
+				log_pick(sd, "N", 0, sd->status.inventory[i].nameid, -sd->status.inventory[i].amount, &sd->status.inventory[i]);
+			}
+			//Logs
+
 			pc_delitem(sd,i,sd->status.inventory[i].amount,0);
 		}
 	}
@@ -3518,10 +3579,24 @@ int buildin_successrefitem(struct script_state *st)
 		if(log_config.refine > 0)
 			log_refine(sd, i, 1);
 
+		//Logs items, got from (N)PC scripts [Lupus]
+		if(log_config.pick > 0 ) {
+			log_pick(sd, "N", 0, sd->status.inventory[i].nameid, -1, &sd->status.inventory[i]);
+		}
+		//Logs
+
 		sd->status.inventory[i].refine++;
 		pc_unequipitem(sd,i,2);
+
 		clif_refine(sd->fd,sd,0,i,sd->status.inventory[i].refine);
 		clif_delitem(sd,i,1);
+
+		//Logs items, got from (N)PC scripts [Lupus]
+		if(log_config.pick > 0 ) {
+			log_pick(sd, "N", 0, sd->status.inventory[i].nameid, 1, &sd->status.inventory[i]);
+		}
+		//Logs
+
 		clif_additem(sd,i,1,0);
 		pc_equipitem(sd,i,ep);
 		clif_misceffect(&sd->bl,3);
@@ -3559,10 +3634,17 @@ int buildin_failedrefitem(struct script_state *st)
 		if(log_config.refine > 0)
 			log_refine(sd, i, 0);
 
+		//Logs items, got from (N)PC scripts [Lupus]
+		if(log_config.pick > 0 ) {
+			log_pick(sd, "N", 0, sd->status.inventory[i].nameid, -1, &sd->status.inventory[i]);
+		}
+		//Logs
+
 		sd->status.inventory[i].refine = 0;
 		pc_unequipitem(sd,i,3);
 		// 精錬失敗エフェクトのパケット
 		clif_refine(sd->fd,sd,1,i,sd->status.inventory[i].refine);
+
 		pc_delitem(sd,i,1,0);
 		// 他の人にも失敗を通知
 		clif_misceffect(&sd->bl,2);
@@ -5916,6 +5998,12 @@ int buildin_successremovecards(struct script_state *st)
 			for (j = 0; j < MAX_SLOTS; j++)
 				item_tmp.card[j]=0;
 
+			//Logs items, got from (N)PC scripts [Lupus]
+			if(log_config.pick > 0 ) {
+				log_pick(sd, "N", 0, item_tmp.nameid, 1, NULL);
+			}
+			//Logs
+
 			if((flag=pc_additem(sd,&item_tmp,1))){	// 持てないならドロップ
 				clif_additem(sd,0,0,flag);
 				map_addflooritem(&item_tmp,1,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);
@@ -5928,9 +6016,23 @@ int buildin_successremovecards(struct script_state *st)
 		item_tmp.id=0,item_tmp.nameid=sd->status.inventory[i].nameid;
 		item_tmp.equip=0,item_tmp.identify=1,item_tmp.refine=sd->status.inventory[i].refine;
 		item_tmp.attribute=sd->status.inventory[i].attribute;
+
+		//Logs items, got from (N)PC scripts [Lupus]
+		if(log_config.pick > 0 ) {
+			log_pick(sd, "N", 0, sd->status.inventory[i].nameid, -1, &sd->status.inventory[i]);
+		}
+		//Logs
+
 		for (j = 0; j < MAX_SLOTS; j++)
 			item_tmp.card[j]=0;
 		pc_delitem(sd,i,1,0);
+
+		//Logs items, got from (N)PC scripts [Lupus]
+		if(log_config.pick > 0 ) {
+			log_pick(sd, "N", 0, item_tmp.nameid, 1, &item_tmp);
+		}
+		//Logs
+
 		if((flag=pc_additem(sd,&item_tmp,1))){	// もてないならドロップ
 			clif_additem(sd,0,0,flag);
 			map_addflooritem(&item_tmp,1,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);
@@ -5973,6 +6075,13 @@ int buildin_failedremovecards(struct script_state *st)
 				item_tmp.attribute=0;
 				for (j = 0; j < MAX_SLOTS; j++)
 					item_tmp.card[j]=0;
+
+				//Logs items, got from (N)PC scripts [Lupus]
+				if(log_config.pick > 0 ) {
+					log_pick(sd, "N", 0, item_tmp.nameid, 1, NULL);
+				}
+				//Logs
+
 				if((flag=pc_additem(sd,&item_tmp,1))){
 					clif_additem(sd,0,0,flag);
 					map_addflooritem(&item_tmp,1,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);
@@ -5984,6 +6093,12 @@ int buildin_failedremovecards(struct script_state *st)
 	if(cardflag == 1){
 
 		if(typefail == 0 || typefail == 2){	// 武具損失
+			//Logs items, got from (N)PC scripts [Lupus]
+			if(log_config.pick > 0 ) {
+				log_pick(sd, "N", 0, sd->status.inventory[i].nameid, -1, &sd->status.inventory[i]);
+			}
+			//Logs
+
 			pc_delitem(sd,i,1,0);
 			clif_misceffect(&sd->bl,2);
 			return 0;
@@ -5993,9 +6108,23 @@ int buildin_failedremovecards(struct script_state *st)
 			item_tmp.id=0,item_tmp.nameid=sd->status.inventory[i].nameid;
 			item_tmp.equip=0,item_tmp.identify=1,item_tmp.refine=sd->status.inventory[i].refine;
 			item_tmp.attribute=sd->status.inventory[i].attribute;
+
+			//Logs items, got from (N)PC scripts [Lupus]
+			if(log_config.pick > 0 ) {
+				log_pick(sd, "N", 0, sd->status.inventory[i].nameid, -1, &sd->status.inventory[i]);
+			}
+			//Logs
+
 			for (j = 0; j < MAX_SLOTS; j++)
 				item_tmp.card[j]=0;
 			pc_delitem(sd,i,1,0);
+
+			//Logs items, got from (N)PC scripts [Lupus]
+			if(log_config.pick > 0 ) {
+				log_pick(sd, "N", 0, item_tmp.nameid, 1, &item_tmp);
+			}
+			//Logs
+
 			if((flag=pc_additem(sd,&item_tmp,1))){
 				clif_additem(sd,0,0,flag);
 				map_addflooritem(&item_tmp,1,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);
@@ -6512,8 +6641,16 @@ int buildin_clearitem(struct script_state *st)
 	int i;
 	if(sd==NULL) return 0;
 	for (i=0; i<MAX_INVENTORY; i++) {
-		if (sd->status.inventory[i].amount)
+		if (sd->status.inventory[i].amount) {
+
+			//Logs items, got from (N)PC scripts [Lupus]
+			if(log_config.pick > 0 ) {
+				log_pick(sd, "N", 0, sd->status.inventory[i].nameid, -sd->status.inventory[i].amount, &sd->status.inventory[i]);
+			}
+			//Logs
+
 			pc_delitem(sd, i, sd->status.inventory[i].amount, 0);
+		}
 	}
 	return 0;
 }

@@ -2,16 +2,21 @@ Date	Added
 =======
 
 09/28
+	* Added 'scripts items operations' and 'vending' into pick_log: [Lupus]
+	  Tested with refine, getitem, getnameditem, removecards, etc commands. They are all supported.
+	  Now you can see if a player breaks his armor in NPC Cards Remover, etc.
+	  You can track down any item within a single DB.
+	  You can make a SQL query to find which items are most popular, which quests are most popular, etc
+	  Of course, it could help you to find your local items exploits, cheaters and unfail admins ^_-
+	- Added 'Autolooted' and 'Stolen' items into pick_log
+	- TODO: Add TXT logs
 	* Fixed JobMaster NPC. Thanks Amada [Kayla]
 	* Removed card-fix flag from Cart Termination. [Skotlex]
 	* Updated battle_check_target so that a mob will consither another mob an
 	  enemy if either one has special mob ai (is a @summon or summoned alchemist
 	  mob). Summons from the same master should not be attacking each other,
 	  however I do think they will attack summons from another player. [Skotlex]
-	* Fixed Autolooted and Stolen items info for logs [Lupus]
 	* Removed 10 chances to pick an item from STEAL skill (it should have only 1 chance) [Lupus]
-	* Added Autolooted and Stolen items into pick_log [Lupus]
-	- TODO: Scripts logs aren't implemented yet
 09/27
 	* Corrected again Wind Walk. Just +5 flee at lv10, walk bonus does not
 	  stacks with other speed giving skills. [Skotlex]
