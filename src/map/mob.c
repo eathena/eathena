@@ -1814,9 +1814,9 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 					if (md->lootitem_count < LOOTITEM_SIZE) {
 						memcpy (&md->lootitem[md->lootitem_count++], &fitem->item_data, sizeof(md->lootitem[0]));
 						//Logs items, taken by (L)ooter Mobs [Lupus]
-						struct map_session_data *asd;
-						if(log_config.pick > 0 && (asd = map_id2sd(md->attacked_id)))
-							log_pick(asd, "L", md->class_, md->lootitem[md->lootitem_count-1].nameid, md->lootitem[md->lootitem_count-1].amount, &md->lootitem[md->lootitem_count-1]);
+						if(log_config.pick > 0) {
+							log_pick((struct map_session_data*)md, "L", md->class_, md->lootitem[md->lootitem_count-1].nameid, md->lootitem[md->lootitem_count-1].amount, &md->lootitem[md->lootitem_count-1]);
+						}
 						//Logs
 					} else if (battle_config.monster_loot_type == 1 && md->lootitem_count >= LOOTITEM_SIZE) {
 						mob_unlocktarget(md,tick);
@@ -2038,15 +2038,17 @@ static int mob_delay_item_drop(int tid,unsigned int tick,int id,int data)
 		if(ditem->first_sd->state.autoloot){//Autoloot added by Upa-Kun
 			drop_flag = 0;
 			if((flag = pc_additem(ditem->first_sd,&temp_item,ditem->amount))){
+			//you can autoloot this item, it's going to be dropped on the ground
+				clif_additem(ditem->first_sd,0,0,flag);
+				drop_flag = 1;
+			} else {
+			//you succesfully autolooted that item
 
 				//Logs items, Autolooted by Players [Lupus]
 				if(ditem->first_sd && log_config.pick > 0 ) {
-						log_pick(ditem->first_sd, "P", 0, ditem->nameid, 1, NULL);
+					log_pick(ditem->first_sd, "N", 0, ditem->nameid, 1, NULL);
 				}
 				//Logs
-
-				clif_additem(ditem->first_sd,0,0,flag);
-				drop_flag = 1;
 			}
 		}
 	}
@@ -2098,15 +2100,17 @@ static int mob_delay_item_drop2(int tid,unsigned int tick,int id,int data)
 		if(ditem->first_sd->state.autoloot){//Autoloot added by Upa-Kun
 			drop_flag = 0;
 			if((flag = pc_additem(ditem->first_sd,&ditem->item_data,ditem->item_data.amount))){
+			//you can't autoloot this item, it drops on the ground
+				clif_additem(ditem->first_sd,0,0,flag);
+				drop_flag = 1;
+			} else {
+			//you succesfully autolooted that item
 
 				//Logs items, Autolooted by Players [Lupus]
 				if(ditem->first_sd && log_config.pick > 0 ) {
-						log_pick(ditem->first_sd, "P", 0, ditem->item_data.nameid, ditem->item_data.amount, &ditem->item_data);
+						log_pick(ditem->first_sd, "N", 0, ditem->item_data.nameid, ditem->item_data.amount, &ditem->item_data);
 				}
 				//Logs
-
-				clif_additem(ditem->first_sd,0,0,flag);
-				drop_flag = 1;
 			}
 		}
 	}
@@ -2620,8 +2624,8 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 			add_timer(tick+500+i, mob_delay_item_drop, (int)ditem, 0);
 
 			//Logs items, dropped by mobs [Lupus]
-			if(sd && log_config.pick > 0 )
-				log_pick(sd, "M", md->class_, ditem->nameid, -1, NULL);
+			if(log_config.pick > 0 )
+				log_pick((struct map_session_data*)md, "M", md->class_, ditem->nameid, -1, NULL);
 			//Logs
 
 			//A Rare Drop Global Announce by Lupus
@@ -2653,8 +2657,8 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 			add_timer(tick+500+i,mob_delay_item_drop,(int)ditem,0);
 
 			//Logs items, dropped by mobs [Lupus]
-			if(sd && log_config.pick > 0 )
-				log_pick(sd, "M", md->class_, ditem->nameid, -1, NULL);
+			if(log_config.pick > 0 )
+				log_pick((struct map_session_data*)md, "M", md->class_, ditem->nameid, -1, NULL);
 			//Logs
 		}
 
@@ -2689,8 +2693,8 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 					add_timer(tick+520+i,mob_delay_item_drop,(int)ditem,0);
 
 					//Logs items, dropped by mobs [Lupus]
-					if(sd && log_config.pick > 0 )
-						log_pick(sd, "M", md->class_, ditem->nameid, -1, NULL);
+					if(log_config.pick > 0 )
+						log_pick((struct map_session_data*)md, "M", md->class_, ditem->nameid, -1, NULL);
 					//Logs
 				}
 			}
@@ -2712,8 +2716,8 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 				add_timer(tick+540+i,mob_delay_item_drop2,(int)ditem,0);
 
 				//Logs LOOTED items, dropped by looter mobs [Lupus]
-				if(sd && log_config.pick > 0 )
-					log_pick(sd, "L", md->class_, md->lootitem[i].nameid, -md->lootitem[i].amount, &md->lootitem[i]);
+				if(log_config.pick > 0 )
+					log_pick((struct map_session_data*)md, "L", md->class_, md->lootitem[i].nameid, -md->lootitem[i].amount, &md->lootitem[i]);
 				//Logs
 			}
 		}

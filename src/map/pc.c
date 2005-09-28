@@ -2849,7 +2849,7 @@ int pc_steal_item(struct map_session_data *sd,struct block_list *bl)
 	int log_item[10]; //for stolen items logging Lupus
 
 	if(sd != NULL && bl != NULL && bl->type == BL_MOB) {
-		int i,skill,itemid,flag, count;
+		int i,skill,itemid,flag;
 		struct mob_data *md;
 		md=(struct mob_data *)bl;
 
@@ -2866,67 +2866,61 @@ int pc_steal_item(struct map_session_data *sd,struct block_list *bl)
 
 			if(0 < skill)
 			{
-				//I removed this exploit. Because THIEF has only 1 chance to steal per skill usage, not 10
-				//for(count = 10; count <= 10 && count != 0; count--) //8 -> 10 Lupus
-				//{
-					i = rand()%10; //8 -> 10 Lupus
-					itemid = md->db->dropitem[i].nameid;
+				i = rand()%10; //8 -> 10 Lupus
+				itemid = md->db->dropitem[i].nameid;
 
-					if(itemid > 0 && (itemdb_type(itemid) != 6 || pc_checkskill(sd,TF_STEAL) > 5))
+				if(itemid > 0 && (itemdb_type(itemid) != 6 || pc_checkskill(sd,TF_STEAL) > 5))
+				{
+					//fixed rate. From Freya [Lupus]
+					if (rand() % 10000 < ((md->db->dropitem[i].p * skill) / 100 + sd->add_steal_rate))
 					{
-						//fixed rate. From Freya [Lupus]
-						if (rand() % 10000 < ((md->db->dropitem[i].p * skill) / 100 + sd->add_steal_rate))
+						struct item tmp_item;
+						memset(&tmp_item,0,sizeof(tmp_item));
+						tmp_item.nameid = itemid;
+						tmp_item.amount = 1;
+						tmp_item.identify = !itemdb_isequip3(itemid);
+						flag = pc_additem(sd,&tmp_item,1);
+
+						//Logs items, Stolen from mobs [Lupus]
+						if(sd && log_config.pick > 0 ) {
+							log_pick(sd, "M", md->class_, itemid, -1, NULL);
+							log_pick(sd, "P", 0, itemid, 1, NULL);
+						}
+						//Logs
+
+						//this drop log contains ALL stolen items [Lupus]
+						if(log_config.steal) { //we check were there any drops.. and if not - don't write the log
+							memset(&log_item,0,sizeof(log_item));
+							log_item[i] = itemid; //i == monster's drop slot
+							log_drop(sd, md->class_, log_item);
+						}
+
+						//A Rare Steal Global Announce by Lupus
+						if(md->db->dropitem[i].p<=battle_config.rare_drop_announce) {
+							struct item_data *i_data;
+							char message[128];
+							i_data = itemdb_exists(itemid);
+							sprintf (message, msg_txt(542), (sd->status.name != NULL)?sd->status.name :"GM", md->db->jname, i_data->jname, (float)md->db->dropitem[i].p/100);
+							//MSG: "'%s' stole %s's %s (chance: %%%0.02f)"
+							intif_GMmessage(message,strlen(message)+1,0);
+						}
+
+						if(battle_config.show_steal_in_same_party)
 						{
-							struct item tmp_item;
-							memset(&tmp_item,0,sizeof(tmp_item));
-							tmp_item.nameid = itemid;
-							tmp_item.amount = 1;
-							tmp_item.identify = !itemdb_isequip3(itemid);
-							flag = pc_additem(sd,&tmp_item,1);
-
-							//Logs items, Stolen from mobs [Lupus]
-							if(sd && log_config.pick > 0 ) {
-								log_pick(sd, "M", md->class_, itemid, -1, NULL);
-								log_pick(sd, "P", 0, itemid, 1, NULL);
-							}
-							//Logs
-
-							//this drop log contains ALL stolen items [Lupus]
-							if(log_config.steal) { //we check were there any drops.. and if not - don't write the log
-								memset(&log_item,0,sizeof(log_item));
-								log_item[i] = itemid; //i == monster's drop slot
-								log_drop(sd, md->class_, log_item);
-							}
-
-							//A Rare Steal Global Announce by Lupus
-							if(md->db->dropitem[i].p<=battle_config.rare_drop_announce) {
-								struct item_data *i_data;
-								char message[128];
-								i_data = itemdb_exists(itemid);
-								sprintf (message, msg_txt(542), (sd->status.name != NULL)?sd->status.name :"GM", md->db->jname, i_data->jname, (float)md->db->dropitem[i].p/100);
-								//MSG: "'%s' stole %s's %s (chance: %%%0.02f)"
-								intif_GMmessage(message,strlen(message)+1,0);
-							}
-
+							party_foreachsamemap(pc_show_steal,sd,1,sd,tmp_item.nameid,0);
+						}
+							if(flag)
+						{
 							if(battle_config.show_steal_in_same_party)
 							{
-								party_foreachsamemap(pc_show_steal,sd,1,sd,tmp_item.nameid,0);
+								party_foreachsamemap(pc_show_steal,sd,1,sd,tmp_item.nameid,1);
 							}
-
-							if(flag)
-							{
-								if(battle_config.show_steal_in_same_party)
-								{
-									party_foreachsamemap(pc_show_steal,sd,1,sd,tmp_item.nameid,1);
-								}
-
 								clif_additem(sd,0,0,flag);
-							}
-							md->state.steal_flag = 1;
-							return 1;
 						}
+						md->state.steal_flag = 1;
+						return 1;
 					}
-				//}
+				}
 			}
 		}
 	}

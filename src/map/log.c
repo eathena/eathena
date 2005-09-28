@@ -97,6 +97,7 @@ int log_branch(struct map_session_data *sd)
 int log_pick(struct map_session_data *sd, char *type, int mob_id, int nameid, int amount, struct item *itm)
 {
 	FILE *logfp;
+	char *mapname;
 
 	if(log_config.enable_logs <= 0)
 		return 0;
@@ -113,18 +114,21 @@ int log_pick(struct map_session_data *sd, char *type, int mob_id, int nameid, in
 		//either PLAYER or MOB
 		if(mob_id) {
 			obj_id = mob_id;
+			struct mob_data *md = (struct mob_data*)sd;
+			mapname = map[md->m].name;
 		} else {
 			obj_id = sd->char_id;
+			mapname = sd->mapname;
 		}
 
 		if (itm==NULL) {
 		//We log common item
 			sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`time`, `char_id`, `type`, `nameid`, `amount`, `map`) VALUES (NOW(), '%d', '%s', '%d', '%d', '%s')",
-			 log_config.log_pick_db, obj_id, type, nameid, amount, sd->mapname);
+			 log_config.log_pick_db, obj_id, type, nameid, amount, mapname);
 		} else {
 		//We log Extended item
 			sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`time`, `char_id`, `type`, `nameid`, `amount`, `refine`, `card0`, `card1`, `card2`, `card3`, `map`) VALUES (NOW(), '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%s')",
-			 log_config.log_pick_db, obj_id, type, itm->nameid, amount, itm->refine, itm->card[0], itm->card[1], itm->card[2], itm->card[3], sd->mapname);
+			 log_config.log_pick_db, obj_id, type, itm->nameid, amount, itm->refine, itm->card[0], itm->card[1], itm->card[2], itm->card[3], mapname);
 		}
 
 		if(mysql_query(&logmysql_handle, tmp_sql))

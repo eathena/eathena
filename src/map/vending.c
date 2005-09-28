@@ -121,6 +121,21 @@ void vending_purchasereq(struct map_session_data *sd,int len,int id,unsigned cha
 		amount = *(short*)(p + 4 *i);
 		index = *(short*)(p + 2 + 4 * i) - 2;
 		//if (amount < 0) break; // tested at start of the function
+
+		//Logs sold (V)ending items [Lupus]
+		if(log_config.pick > 0 ) {
+			log_pick(vsd, "V", 0, vsd->status.cart[index].nameid, -amount, (struct item*)&vsd->status.cart[index]);
+			log_pick(sd, "V", 0, sd->status.cart[index].nameid, amount, (struct item*)&sd->status.cart[index]);
+		}
+		//Logs
+
+		//log added by Lupus
+		if(log_config.vend > 0) {
+			log_vend(sd,vsd, index, amount, z); // for Item + Zeny. log.
+			//we log ZENY only with the 1st item. Then zero it for the rest items 8).
+			z = 0;
+		}
+
 		pc_additem(sd,&vsd->status.cart[index],amount);
 		vsd->vending[vend_list[i]].amount -= amount;
 		pc_cart_delitem(vsd, index, amount, 0);
@@ -129,13 +144,6 @@ void vending_purchasereq(struct map_session_data *sd,int len,int id,unsigned cha
 			char temp[256];
 			sprintf(temp, msg_txt(265), sd->status.name);
 			clif_disp_onlyself(vsd,temp,strlen(temp));
-		}
-
-		//log added by Lupus
-		if(log_config.vend > 0) {
-			log_vend(sd,vsd, index, amount, z); // for Item + Zeny. log.
-			//we log ZENY only with the 1st item. Then zero it for the rest items 8).
-			z = 0;
 		}
 	}
 
