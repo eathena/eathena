@@ -2,6 +2,7 @@ Date	Added
 =======
 
 09/28
+	* Fixed JobMaster NPC. Thanks Amada [Kayla]
 	* Removed card-fix flag from Cart Termination. [Skotlex]
 	* Updated battle_check_target so that a mob will consither another mob an
 	  enemy if either one has special mob ai (is a @summon or summoned alchemist
