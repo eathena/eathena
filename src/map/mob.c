@@ -2046,7 +2046,7 @@ static int mob_delay_item_drop(int tid,unsigned int tick,int id,int data)
 
 				//Logs items, Autolooted by Players [Lupus]
 				if(ditem->first_sd && log_config.pick > 0 ) {
-					log_pick(ditem->first_sd, "N", 0, ditem->nameid, 1, NULL);
+					log_pick(ditem->first_sd, "P", 0, ditem->nameid, 1, NULL);
 				}
 				//Logs
 			}
@@ -2108,7 +2108,7 @@ static int mob_delay_item_drop2(int tid,unsigned int tick,int id,int data)
 
 				//Logs items, Autolooted by Players [Lupus]
 				if(ditem->first_sd && log_config.pick > 0 ) {
-						log_pick(ditem->first_sd, "N", 0, ditem->item_data.nameid, ditem->item_data.amount, &ditem->item_data);
+						log_pick(ditem->first_sd, "P", 0, ditem->item_data.nameid, ditem->item_data.amount, &ditem->item_data);
 				}
 				//Logs
 			}
