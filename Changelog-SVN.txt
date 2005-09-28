@@ -2,6 +2,11 @@ Date	Added
 =======
 
 09/28
+	* Removed card-fix flag from Cart Termination. [Skotlex]
+	* Updated battle_check_target so that a mob will consither another mob an
+	  enemy if either one has special mob ai (is a @summon or summoned alchemist
+	  mob). Summons from the same master should not be attacking each other,
+	  however I do think they will attack summons from another player. [Skotlex]
 	* Fixed Autolooted and Stolen items info for logs [Lupus]
 	* Removed 10 chances to pick an item from STEAL skill (it should have only 1 chance) [Lupus]
 	* Added Autolooted and Stolen items into pick_log [Lupus]

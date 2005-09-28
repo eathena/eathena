@@ -1473,6 +1473,7 @@ static struct Damage battle_calc_weapon_attack(
 						skillratio += sd->cart_weight / (10 * (16 - skill_lv)) - 100;
 					else if (!sd)
 						skillratio += battle_config.max_cart_weight / (10 * (16 - skill_lv));
+					flag.cardfix = 0;
 					break;
 				case TK_DOWNKICK:
 					skillratio += 60 + (20*skill_lv);
@@ -2871,6 +2872,8 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 				return 0; //Disable guardians on non-woe times.
 			if (md->state.special_mob_ai == 2) 
 				return (flag&BCT_ENEMY)?1:-1; //Mines are sort of universal enemies.
+			if (md->state.special_mob_ai && src->type == BL_MOB)
+				state |= BCT_ENEMY;	//Summoned creatures can target other mobs.
 			if (md->master_id && (t_bl = map_id2bl(md->master_id)) == NULL)
 				t_bl = &md->bl; //Fallback on the mob itself, otherwise consider this a "versus master" scenario.
 			break;
@@ -2924,6 +2927,8 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 				return 0;
 			if (!agit_flag && md->guardian_data)
 				return 0; //Disable guardians on non-woe times.
+			if (md->state.special_mob_ai && target->type == BL_MOB)
+				state |= BCT_ENEMY;	//Summoned creatures can target other mobs.
 			if (md->master_id && (s_bl = map_id2bl(md->master_id)) == NULL)
 				s_bl = &md->bl; //Fallback on the mob itself, otherwise consider this a "from master" scenario.
 			break;
