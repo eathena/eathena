@@ -81,6 +81,7 @@ int server_fd[MAX_SERVERS];
 
 int login_fd;
 
+static int online_check=1; //When set to 1, login server rejects incoming players that are already registered as online. [Skotlex]
 //Account flood protection [Kevin]
 unsigned int new_reg_tick=0;
 int allowed_regs=1;
@@ -124,6 +125,12 @@ struct {
 	int ip, sex, delflag;
 } auth_fifo[AUTH_FIFO_SIZE];
 int auth_fifo_pos = 0;
+
+struct online_login_data {
+	int account_id;
+	short char_server;
+	short waiting_disconnect;
+};
 
 struct auth_dat {
 	int account_id, sex;
@@ -211,26 +218,45 @@ static int online_db_final(void *key,void *data,va_list ap)
 	if (p) aFree(p);
 	return 0;
 }
-void add_online_user (int account_id) {
-	int *p = (int*)numdb_search(online_db, account_id);
+void add_online_user (int char_server, int account_id) {
+	struct online_login_data *p;
+	if (!online_check)
+		return;
+	p = numdb_search(online_db, account_id);
 	if (p == NULL) {
-		p = (int *)aMalloc(sizeof(int));
-		*p = account_id;
+		p = aCalloc(1, sizeof(struct online_login_data));
+		p->account_id = account_id;
+		p->char_server = char_server;
 		numdb_insert(online_db, account_id, p);
+	} else {
+		p->char_server = char_server;
+		p->waiting_disconnect = 0;
 	}
 }
 int is_user_online (int account_id) {
-	int *p = (int*)numdb_search(online_db, account_id);
+	struct online_login_data *p;
+	p = numdb_search(online_db, account_id);
 	return (p != NULL);
 }
 void remove_online_user (int account_id) {
-	int *p;
+	struct online_login_data *p;
+	if(!online_check)
+		return;
 	if (account_id == 99) {	// reset all to offline
 		numdb_final(online_db, online_db_final);	// purge db
 		online_db = numdb_init();	// reinitialise
+		return;
 	}
-	p = (int*)numdb_erase(online_db, account_id);
-	aFree(p);
+	p = numdb_erase(online_db,account_id);
+	if (p) aFree(p);
+}
+
+int waiting_disconnect_timer(int tid, unsigned int tick, int id, int data)
+{
+	struct online_login_data *p;
+	if ((p= numdb_search(online_db, id)) != NULL && p->waiting_disconnect)
+		remove_online_user(p->account_id);
+	return 0;
 }
 
 //----------------------------------------------------------------------
@@ -1237,8 +1263,19 @@ int mmo_auth(struct mmo_account* account, int fd) {
 			}
 		}
 
-		if (is_user_online(auth_dat[i].account_id)) {
-			return 3; // Rejected
+		if (online_check) {
+			struct online_login_data* data = numdb_search(online_db,auth_dat[i].account_id);
+			unsigned char buf[8];
+			if (data) {
+				//Request char servers to kick this account out. [Skotlex]
+				ShowWarning("User [%d] is already online - Rejected.\n",auth_dat[i].account_id);
+				data->waiting_disconnect = 1;
+				WBUFW(buf,0) = 0x2734;
+				WBUFL(buf,2) = auth_dat[i].account_id;
+				charif_sendallwos(-1, buf, 6);
+				add_timer(gettick()+30000, waiting_disconnect_timer,auth_dat[i].account_id, 0);
+				return 3; // Rejected
+			}
 		}
 
 		if (auth_dat[i].ban_until_time != 0) { // if account is banned
@@ -1787,7 +1824,7 @@ int parse_fromchar(int fd) {
 		case 0x272b:    // Set account_id to online [Wizputer]
 			if (RFIFOREST(fd) < 6)
 				return 0;
-			add_online_user(RFIFOL(fd,2));
+			add_online_user(id, RFIFOL(fd,2));
 			RFIFOSKIP(fd,6);
 			break;
 		
@@ -3591,16 +3628,19 @@ int login_config_read(const char *cfgName) {
 			}else if(strcmpi(w1, "client_version_to_connect") == 0){	//Added by Sirius for client version check
 				client_version_to_connect = atoi(w2);			//Added by Sirius for client version check
 			} else if (strcmpi(w1, "console") == 0) {
-			    if(strcmpi(w2,"on") == 0 || strcmpi(w2,"yes") == 0 )
-			        console = 1;
-            } else if (strcmpi(w1, "allowed_regs") == 0) { //account flood protection system [Kevin]
-	            
-	            allowed_regs = atoi(w2);
-	            
+				if(strcmpi(w2,"on") == 0 || strcmpi(w2,"yes") == 0 )
+					console = 1;
+			} else if (strcmpi(w1, "allowed_regs") == 0) { //account flood protection system [Kevin]
+				allowed_regs = atoi(w2);
 			} else if (strcmpi(w1, "time_allowed") == 0) {
-	            
-	            time_allowed = atoi(w2);
-	            
+				time_allowed = atoi(w2);
+			} else if (strcmpi(w1, "online_check") == 0) {
+				if(strcmpi(w2,"on") == 0 || strcmpi(w2,"yes") == 0 )
+					online_check = 1;
+				else if(strcmpi(w2,"off") == 0 || strcmpi(w2,"no") == 0 )
+					online_check = 0;
+				else
+					online_check = atoi(w2);
 			}
 		}
 	}
@@ -3960,7 +4000,8 @@ int do_init(int argc, char **argv) {
 	read_gm_account();
 	set_defaultparse(parse_login);
 	// Online user database init
-    online_db = numdb_init();
+	online_db = numdb_init();
+	add_timer_func_list(waiting_disconnect_timer, "waiting_disconnect_timer");
 
         if (bind_ip_str[0] != '\0')
             bind_ip = inet_addr(bind_ip_str);

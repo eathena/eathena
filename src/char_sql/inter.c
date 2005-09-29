@@ -472,6 +472,19 @@ void mapif_send_maxid(int account_id, int char_id)
 	mapif_sendall(buf, 10);
 }
 
+//Request to kick char from a certain map server. [Skotlex]
+int mapif_disconnectplayer(int fd, int account_id, int char_id, int reason)
+{
+	if (fd < 0)
+		return -1;
+	
+	WFIFOW(fd,0) = 0x2b1f;
+	WFIFOL(fd,2) = account_id;
+	WFIFOB(fd,6) = reason;
+	WFIFOSET(fd,7);
+	return 0;
+}
+
 //--------------------------------------------------------
 
 // Existence check of WISP data

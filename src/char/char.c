@@ -100,6 +100,7 @@ struct {
 int auth_fifo_pos = 0;
 
 int check_ip_flag = 1; // It's to check IP of a player between char-server and other servers (part of anti-hacking system)
+static int online_check = 1; //If one, it won't let players connect when their account is already registered online and will send the relevant map server a kick user request. [Skotlex]
 
 int char_id_count = START_CHAR_NUM;
 struct mmo_charstatus *char_dat;
@@ -123,17 +124,20 @@ char online_txt_filename[1024] = "online.txt";
 char online_html_filename[1024] = "online.html";
 int online_sorting_option = 0; // sorting option to display online players in online files
 int online_display_option = 1; // display options: to know which columns must be displayed
-int online_players_max;
 int online_refresh_html = 20; // refresh time (in sec) of the html file in the explorer
 int online_gm_display_min_level = 20; // minimum GM level to display 'GM' when we want to display it
 
 //These are used to aid the map server in identifying valid clients. [Skotlex]
 static int max_account_id = DEFAULT_MAX_ACCOUNT_ID, max_char_id = DEFAULT_MAX_CHAR_ID;
 
-struct online_chars {
+struct online_char_data {
+	int account_id;
 	int char_id;
-	int server;
-} *online_chars;
+	short server;
+	short waiting_disconnect;
+};
+
+struct dbt *online_char_db; //Holds all online characters.
 
 time_t update_online; // to update online files when we receiving information from a server (not less than 8 seconds)
 
@@ -225,12 +229,15 @@ char * search_character_name(int index) {
 	return unknown_char_name;
 }
 
+static int chardb_waiting_disconnect(int tid, unsigned int tick, int id, int data);
+
 //-------------------------------------------------
 // Set Character online/offline [Wizputer]
 //-------------------------------------------------
 
-void set_char_online(int char_id, int account_id) {
-	//char id not used by TXT
+void set_char_online(int map_id, int char_id, int account_id) {
+	struct online_char_data* character;
+
 	if ( char_id != 99 && (max_account_id < account_id || max_char_id < char_id))
 	{	//Notify map-server of the new max IDs [Skotlex]
 		if (account_id > max_account_id)
@@ -239,6 +246,23 @@ void set_char_online(int char_id, int account_id) {
 			max_char_id = char_id;
 		mapif_send_maxid(max_account_id, max_char_id);
 	}
+	character = numdb_search(online_char_db, account_id);
+	if (character == NULL)
+	{
+		character = aCalloc(1, sizeof(struct online_char_data));
+		character->account_id = account_id;
+		numdb_insert(online_char_db, account_id, character);
+	} else {
+		if (online_check && character->char_id != -1 && character->server > -1 && character->server != map_id)
+		{
+			ShowNotice("Character (%d:%d) registered on map server %d, but map server %d claims to have (%d:%d) online!\n",
+				character->account_id, character->char_id, character->server, account_id, char_id, map_id);
+			mapif_disconnectplayer(server_fd[character->server], character->account_id, character->char_id, 2);
+		}
+		character->waiting_disconnect = 0;
+	}
+	character->char_id = (char_id==99)?-1:char_id;
+	character->server = (char_id==99)?-1:map_id;
 
 	if (login_fd <= 0 || session[login_fd]->eof)
 		return;
@@ -249,14 +273,20 @@ void set_char_online(int char_id, int account_id) {
 	//printf ("set online\n");
 }
 void set_char_offline(int char_id, int account_id) {
-	//char id not used by TXT
-    if (login_fd <= 0 || session[login_fd]->eof)
+	struct online_char_data* character;
+
+	if ((character = numdb_search(online_char_db, account_id)) != NULL)
+	{	//We don't free yet to avoid aCalloc/aFree spamming during char change. [Skotlex]
+		character->char_id = -1;
+		character->server = -1;
+		character->waiting_disconnect = 0;
+	}
+	if (login_fd <= 0 || session[login_fd]->eof)
 		return;
 	WFIFOW(login_fd,0) = 0x272c;
 	WFIFOL(login_fd,2) = account_id;
 	WFIFOSET(login_fd,6);
 
-	//printf ("set offline\n");
 }
 void set_all_offline(void) {
 	if (login_fd <= 0 || session[login_fd]->eof)
@@ -758,7 +788,6 @@ int parse_friend_txt(struct mmo_charstatus *p)
 //---------------------------------
 int mmo_char_init(void) {
 	char line[65536];
-	int i;
 	int ret, line_count;
 	FILE *fp;
 
@@ -768,12 +797,6 @@ int mmo_char_init(void) {
 		ShowFatalError("out of memory: mmo_char_init (calloc of char_dat).\n");
 		exit(1);
 	}
-	for(i = 0; i < char_max; i++)
-	{
-		online_chars[i].char_id = -1;
-		online_chars[i].server = -1;
-	}
-
 	char_num = 0;
 
 	fp = fopen(char_txt, "r");
@@ -808,17 +831,6 @@ int mmo_char_init(void) {
 				ShowFatalError("Out of memory: mmo_char_init (realloc of char_dat).\n");
 				char_log("Out of memory: mmo_char_init (realloc of char_dat)." RETCODE);
 				exit(1);
-			}
-			online_chars = (struct online_chars*)aRealloc(online_chars, sizeof(struct online_chars) * char_max);
-			if (!online_chars) {
-				ShowFatalError("Out of memory: mmo_char_init (realloc of online_chars).\n");
-				char_log("Out of memory: mmo_char_init (realloc of online_chars)." RETCODE);
-				exit(1);
-			}
-			for(i = char_max - 256; i < char_max; i++)
-			{
-				online_chars[i].char_id = -1;
-				online_chars[i].server = -1;
 			}
 		}
 
@@ -970,7 +982,7 @@ int mmo_char_sync_timer(int tid, unsigned int tick, int id, int data) {
 // Function to create a new character
 //-----------------------------------
 int make_new_char(int fd, unsigned char *dat) {
-	int i, j;
+	int i;
 	struct char_session_data *sd;
 
 	sd = (struct char_session_data*)session[fd]->session_data;
@@ -1062,16 +1074,6 @@ int make_new_char(int fd, unsigned char *dat) {
 			ShowFatalError("Out of memory: make_new_char (realloc of char_dat).\n");
 			char_log("Out of memory: make_new_char (realloc of char_dat)." RETCODE);
 			exit(1);
-		}
-		online_chars = (struct online_chars*)aRealloc(online_chars, sizeof(struct online_chars) * char_max);
-		if (!online_chars) {
-			ShowFatalError("Out of memory: make_new_char (realloc of online_chars).\n");
-			char_log("Out of memory: make_new_char (realloc of online_chars)." RETCODE);
-			exit(1);
-		}
-		for(j = char_max - 256; j < char_max; j++) {
-			online_chars[j].char_id = -1;
-			online_chars[j].server = -1;
 		}
 	}
 
@@ -1209,6 +1211,110 @@ char * job_name(int class_) {
 	return "Unknown Job";
 }
 
+static int create_online_files_sub(void* key, void* data, va_list va)
+{
+	struct online_char_data *character;
+	character = (struct online_char_data*) data;
+	int* players;
+	int *id;
+	int j,k,l;
+	players = va_arg(va, int*);
+	id = va_arg(va, int*);
+	
+	// check if map-server is online
+	if (character->server == -1 || character->char_id == -1) { //Character not currently online.
+		return -1;
+	}
+	
+	j = character->server;
+	if (server_fd[j] < 0) {
+		server[j].users = 0;
+		if (kick_on_disconnect)
+		{
+			character->char_id = -1;
+			character->server = -1;
+		}
+		return -1;
+	}
+	// search position of character in char_dat and sort online characters.
+	for(j = 0; j < char_num; j++) {
+		if (char_dat[j].char_id != character->char_id)
+			continue;
+		id[*players] = j;
+		// use sorting option
+		switch (online_sorting_option) {
+		case 1: // by name (without case sensitive)
+			for(k = 0; k < *players; k++)
+				if (stricmp(char_dat[j].name, char_dat[id[k]].name) < 0 ||
+					// if same name, we sort with case sensitive.
+					(stricmp(char_dat[j].name, char_dat[id[k]].name) == 0 &&
+					 strcmp(char_dat[j].name, char_dat[id[k]].name) < 0)) {
+					for(l = *players; l > k; l--)
+						id[l] = id[l-1];
+					id[k] = j; // id[*players]
+					break;
+				}
+			break;
+		case 2: // by zeny
+			for(k = 0; k < *players; k++)
+				if (char_dat[j].zeny < char_dat[id[k]].zeny ||
+					// if same number of zenys, we sort by name.
+					(char_dat[j].zeny == char_dat[id[k]].zeny &&
+					 stricmp(char_dat[j].name, char_dat[id[k]].name) < 0)) {
+					for(l = *players; l > k; l--)
+						id[l] = id[l-1];
+					id[k] = j; // id[*players]
+					break;
+				}
+			break;
+		case 3: // by base level
+			for(k = 0; k < *players; k++)
+				if (char_dat[j].base_level < char_dat[id[k]].base_level ||
+					// if same base level, we sort by base exp.
+					(char_dat[j].base_level == char_dat[id[k]].base_level &&
+					 char_dat[j].base_exp < char_dat[id[k]].base_exp)) {
+					for(l = *players; l > k; l--)
+						id[l] = id[l-1];
+					id[k] = j; // id[*players]
+					break;
+				}
+			break;
+		case 4: // by job (and job level)
+			for(k = 0; k < *players; k++)
+				if (char_dat[j].class_ < char_dat[id[k]].class_ ||
+					// if same job, we sort by job level.
+					(char_dat[j].class_ == char_dat[id[k]].class_ &&
+					 char_dat[j].job_level < char_dat[id[k]].job_level) ||
+					// if same job and job level, we sort by job exp.
+					(char_dat[j].class_ == char_dat[id[k]].class_ &&
+					 char_dat[j].job_level == char_dat[id[k]].job_level &&
+					 char_dat[j].job_exp < char_dat[id[k]].job_exp)) {
+					for(l = *players; l > k; l--)
+						id[l] = id[l-1];
+					id[k] = j; // id[*players]
+					break;
+				}
+			break;
+		case 5: // by location map name
+			for(k = 0; k < *players; k++)
+				if (stricmp(char_dat[j].last_point.map, char_dat[id[k]].last_point.map) < 0 ||
+					// if same map name, we sort by name.
+					(stricmp(char_dat[j].last_point.map, char_dat[id[k]].last_point.map) == 0 &&
+					 stricmp(char_dat[j].name, char_dat[id[k]].name) < 0)) {
+					for(l = *players; l > k; l--)
+						id[l] = id[l-1];
+					id[k] = j; // id[*players]
+					break;
+				}
+			break;
+		default: // 0 or invalid value: no sorting
+			break;
+		}
+	(*players)++;
+	break;
+	}
+	return 0;
+}
 //-------------------------------------------------------------
 // Function to create the online files (txt and html). by [Yor]
 //-------------------------------------------------------------
@@ -1222,115 +1328,12 @@ void create_online_files(void) {
 	struct tm *datetime; // variable for time in structure ->tm_mday, ->tm_sec, ...
 	int id[4096];
 
-	// don't return here if we display nothing, because server[j].users is updated in the first loop.
+	if (online_display_option == 0) // we display nothing, so return
+		return;
 
 	// Get number of online players, id of each online players, and verify if a server is offline
 	players = 0;
-	for (i = 0; i < online_players_max; i++) {
-		if (online_chars[i].char_id != -1) {
-			// check if map-server is online
-			j = online_chars[i].server;
-			if (j == -1) {
-				online_chars[i].char_id = -1;
-				continue;
-			} else if (server_fd[j] < 0) {
-				server[j].users = 0;
-				online_chars[i].char_id = -1;
-				online_chars[i].server = -1;
-				continue;
-			}
-			// check if the character is twice or more in the list
-			// (multiple map-servers and player have successfully connected twice!)
-			for(j = i + 1; j < online_players_max; j++)
-				if (online_chars[i].char_id == online_chars[j].char_id) {
-					k = online_chars[j].server;
-					if (k != -1 && server_fd[k] >= 0 && server[k].users > 0)
-						server[k].users--;
-					online_chars[j].char_id = -1;
-					online_chars[j].server = -1;
-				}
-			// search position of character in char_dat and sort online characters.
-			for(j = 0; j < char_num; j++) {
-				if (char_dat[j].char_id == online_chars[i].char_id) {
-					id[players] = j;
-					// use sorting option
-					switch (online_sorting_option) {
-					case 1: // by name (without case sensitive)
-						for(k = 0; k < players; k++)
-							if (stricmp(char_dat[j].name, char_dat[id[k]].name) < 0 ||
-							   // if same name, we sort with case sensitive.
-							   (stricmp(char_dat[j].name, char_dat[id[k]].name) == 0 &&
-							    strcmp(char_dat[j].name, char_dat[id[k]].name) < 0)) {
-								for(l = players; l > k; l--)
-									id[l] = id[l-1];
-								id[k] = j; // id[players]
-								break;
-							}
-						break;
-					case 2: // by zeny
-						for(k = 0; k < players; k++)
-							if (char_dat[j].zeny < char_dat[id[k]].zeny ||
-							   // if same number of zenys, we sort by name.
-							   (char_dat[j].zeny == char_dat[id[k]].zeny &&
-							    stricmp(char_dat[j].name, char_dat[id[k]].name) < 0)) {
-								for(l = players; l > k; l--)
-									id[l] = id[l-1];
-								id[k] = j; // id[players]
-								break;
-							}
-						break;
-					case 3: // by base level
-						for(k = 0; k < players; k++)
-							if (char_dat[j].base_level < char_dat[id[k]].base_level ||
-							   // if same base level, we sort by base exp.
-							   (char_dat[j].base_level == char_dat[id[k]].base_level &&
-							    char_dat[j].base_exp < char_dat[id[k]].base_exp)) {
-								for(l = players; l > k; l--)
-									id[l] = id[l-1];
-								id[k] = j; // id[players]
-								break;
-							}
-						break;
-					case 4: // by job (and job level)
-						for(k = 0; k < players; k++)
-							if (char_dat[j].class_ < char_dat[id[k]].class_ ||
-							   // if same job, we sort by job level.
-							   (char_dat[j].class_ == char_dat[id[k]].class_ &&
-							    char_dat[j].job_level < char_dat[id[k]].job_level) ||
-							   // if same job and job level, we sort by job exp.
-							   (char_dat[j].class_ == char_dat[id[k]].class_ &&
-							    char_dat[j].job_level == char_dat[id[k]].job_level &&
-							    char_dat[j].job_exp < char_dat[id[k]].job_exp)) {
-								for(l = players; l > k; l--)
-									id[l] = id[l-1];
-								id[k] = j; // id[players]
-								break;
-							}
-						break;
-					case 5: // by location map name
-						for(k = 0; k < players; k++)
-							if (stricmp(char_dat[j].last_point.map, char_dat[id[k]].last_point.map) < 0 ||
-							   // if same map name, we sort by name.
-							   (stricmp(char_dat[j].last_point.map, char_dat[id[k]].last_point.map) == 0 &&
-							    stricmp(char_dat[j].name, char_dat[id[k]].name) < 0)) {
-								for(l = players; l > k; l--)
-									id[l] = id[l-1];
-								id[k] = j; // id[players]
-								break;
-							}
-						break;
-					default: // 0 or invalid value: no sorting
-						break;
-					}
-					players++;
-					break;
-				}
-			}
-		}
-	}
-
-	if (online_display_option == 0) // we display nothing, so return
-		return;
+	db_foreach(online_char_db, create_online_files_sub, &players, &id);
 
 	// write files
 	fp = fopen(online_txt_filename, "w");
@@ -1536,7 +1539,7 @@ int mmo_char_send006b(int fd, struct char_session_data *sd) {
 //	const int offset = 4;
 //#endif
 
-	set_char_online(99,sd->account_id);
+	set_char_online(0, 99,sd->account_id);
 
 	found_num = 0;
 	for(i = 0; i < char_num; i++) {
@@ -2212,6 +2215,39 @@ int parse_tologin(int fd) {
 			RFIFOSKIP(fd,7);
 			break;
 
+		//Login server request to kick a character out. [Skotlex]
+		case 0x2734:
+			if (RFIFOREST(fd) < 6)
+				return 0;
+			{
+				struct online_char_data* character;
+				int aid = RFIFOL(fd,2);
+				if ((character = numdb_search(online_char_db, aid)) != NULL)
+				{	//Kick out this player.
+					if (character->server > -1)
+					{	//Kick it from the map server it is on.
+						mapif_disconnectplayer(server_fd[character->server], character->account_id, character->char_id, 2);
+						add_timer(gettick()+15000, chardb_waiting_disconnect, character->account_id, 0);
+						character->waiting_disconnect = 1;
+					} else { //Manual kick from char server.
+						struct char_session_data *tsd;
+						int i;
+						for(i = 0; i < fd_max; i++) {
+							if (session[i] && (tsd = (struct char_session_data*)session[i]->session_data) && tsd->account_id == aid)
+							{
+								WFIFOW(i,0) = 0x81;
+								WFIFOL(i,2) = 2;
+								WFIFOSET(i,3);
+								break;
+							}
+						}
+						if (i == fd_max) //Shouldn't happen, but just in case.
+							set_char_offline(99, aid);
+					}
+				}
+				RFIFOSKIP(fd,6);
+			}
+			break;
 		default:
 			ShowWarning("Unknown packet 0x%04x received from login-server, disconnecting.\n", RFIFOW(fd,0));
 			session[fd]->eof = 1;
@@ -2366,39 +2402,30 @@ int parse_frommap(int fd) {
 			if (RFIFOREST(fd) < 6 || RFIFOREST(fd) < RFIFOW(fd,2))
 				return 0;
 			server[id].users = RFIFOW(fd,4);
-			// remove all previously online players of the server
-			for(i = 0; i < online_players_max; i++)
-				if (online_chars[i].server == id) {
-					online_chars[i].char_id = -1;
-					online_chars[i].server = -1;
-				}
-			// add online players in the list by [Yor]
+			// add online players in the list by [Yor], adapted to use dbs by [Skotlex]
 			j = 0;
 			for(i = 0; i < server[id].users; i++) {
-				for(; j < online_players_max; j++)
-					if (online_chars[j].char_id == -1) {
-						online_chars[j].char_id = RFIFOL(fd,6+i*4);
-						online_chars[j].server = id;
-						//printf("%d\n", online_chars[j].char_id);
-						break;
+				int aid, cid;
+				struct online_char_data* character;
+				aid = RFIFOL(fd,6+i*8);
+				cid = RFIFOL(fd,6+i*8+4);
+				character = numdb_search(online_char_db, aid);
+				if (character == NULL)
+				{
+					character = aCalloc(1, sizeof(struct online_char_data));
+					character->account_id = aid;
+					character->char_id = cid;
+					character->server = id;
+					numdb_insert(online_char_db, aid, character);
+				} else {
+					if (online_check && character->server > -1 && character->server != id)
+					{
+						ShowNotice("Character (%d:%d) registered on map server %d, but map server %d claims to have (%d:%d) online!\n",
+							character->account_id, character->char_id, character->server, aid, cid, id);
+						mapif_disconnectplayer(server_fd[character->server], character->account_id, character->char_id, 2);
 					}
-				// no available slots...
-				if (j == online_players_max) {
-					// create 256 new slots
-					online_players_max += 256;
-					online_chars = (struct online_chars*)aRealloc(online_chars, sizeof(struct online_chars) * online_players_max);
-					if (!online_chars) {
-						ShowFatalError("out of memory: parse_frommap - online_chars (realloc).\n");
-						exit(1);
-					}
-					for( ; j < online_players_max; j++) {
-						online_chars[j].char_id = -1;
-						online_chars[j].server = -1;
-					}
-					// save data
-					j = online_players_max - 256;
-					online_chars[j].char_id = RFIFOL(fd,6+i*4);
-					online_chars[j].server = id;
+					character->server = id;
+					character->char_id = cid;
 				}
 			}
 			if (update_online < time(NULL)) { // Time is done
@@ -2406,7 +2433,7 @@ int parse_frommap(int fd) {
 				create_online_files(); // only every 8 sec. (normally, 1 server send users every 5 sec.) Don't update every time, because that takes time, but only every 2 connection.
 				                       // it set to 8 sec because is more than 5 (sec) and if we have more than 1 map-server, informations can be received in shifted.
 			}
-			RFIFOSKIP(fd,6+i*4);
+			RFIFOSKIP(fd,6+i*8);
 			break;
 
 		// キャラデータ保存
@@ -2688,7 +2715,7 @@ int parse_frommap(int fd) {
 			if (RFIFOREST(fd) < 6)
 				return 0;
 			//printf("Setting %d char online\n",RFIFOL(fd,2));
-			set_char_online(RFIFOL(fd,2),RFIFOL(fd,6));
+			set_char_online(id, RFIFOL(fd,2),RFIFOL(fd,6));
 			RFIFOSKIP(fd,10);
 			break;
 
@@ -2876,7 +2903,11 @@ int parse_char(int fd) {
 		if (fd == login_fd)
 			login_fd = -1;
 		if (sd != NULL)
-			set_char_offline(99,sd->account_id);
+		{
+			struct online_char_data* data = numdb_search(online_char_db, sd->account_id);
+			if (!data || data->server== -1) //If it is not in any server, send it offline. [Skotlex]
+				set_char_offline(99,sd->account_id);
+		}
 		do_close(fd);
 		return 0;
 	}
@@ -2945,6 +2976,43 @@ int parse_char(int fd) {
 				    (!check_ip_flag || auth_fifo[i].ip == session[fd]->client_addr.sin_addr.s_addr) &&
 				    auth_fifo[i].delflag == 2) {
 					auth_fifo[i].delflag = 1;
+						
+					if (online_check)
+					{	// check if character is not online already. [Skotlex]
+						struct online_char_data* character;
+						character = numdb_search(online_char_db, sd->account_id);
+
+						if (character)
+						{
+							if(character->server > -1)
+							{	//Kick it from the map server it is on.
+								mapif_disconnectplayer(server_fd[character->server], character->account_id, character->char_id, 2);
+								add_timer(gettick()+15000, chardb_waiting_disconnect, character->account_id, 0);
+								character->waiting_disconnect = 1;
+						/* Not a good idea because this would trigger when you do a char-change from the map server! [Skotlex]
+							} else { //Manual kick from char server.
+								struct char_session_data *tsd;
+								int i;
+								for(i = 0; i < fd_max; i++) {
+									if (session[i] && i!=fd && (tsd = (struct char_session_data*)session[i]->session_data) && tsd->account_id == sd->account_id)
+									{
+										WFIFOW(i,0) = 0x81;
+										WFIFOL(i,2) = 2;
+										WFIFOSET(i,3);
+										break;
+									}
+								}
+								if (i == fd_max) //Shouldn't happen, but just in case.
+									set_char_offline(99, sd->account_id);
+						*/
+								WFIFOW(fd,0) = 0x81;
+								WFIFOL(fd,2) = 8;
+								WFIFOSET(fd,3); //TODO: This is fishy, how can this packet be length 3, yet it has a long in field 2? [Skotlex]
+								break;
+							}
+						}
+					}
+
 					if (max_connect_user == 0 || count_users() < max_connect_user) {
 						if (login_fd > 0) { // don't send request if no login-server
 							// request to login-server to obtain e-mail/time limit
@@ -2986,118 +3054,131 @@ int parse_char(int fd) {
 		case 0x66:	// キャラ選択
 			if (RFIFOREST(fd) < 3)
 				return 0;
+		{
+			int char_num = RFIFOB(fd,2);
+			RFIFOSKIP(fd,3);
+			if (sd == NULL)
+			{
+				RFIFOSKIP(fd,3);
+				return 0;
+			}
 
 			// if we activated email creation and email is default email
 			if (email_creation != 0 && strcmp(sd->email, "a@a.com") == 0 && login_fd > 0) { // to modify an e-mail, login-server must be online
 				WFIFOW(fd, 0) = 0x70;
 				WFIFOB(fd, 2) = 0; // 00 = Incorrect Email address
 				WFIFOSET(fd, 3);
-
+				break;
+			}
 			// otherwise, load the character
-			} else {
-				for (ch = 0; ch < 9; ch++)
-					if (sd->found_char[ch] >= 0 && char_dat[sd->found_char[ch]].char_num == RFIFOB(fd,2))
-						break;
-				if (ch != 9) {
-					set_char_online(char_dat[sd->found_char[ch]].char_id, char_dat[sd->found_char[ch]].account_id);
-					char_log("Character Selected, Account ID: %d, Character Slot: %d, Character Name: %s." RETCODE,
-					         sd->account_id, RFIFOB(fd,2), char_dat[sd->found_char[ch]].name);
-					// searching map server
-					i = search_mapserver(char_dat[sd->found_char[ch]].last_point.map);
-					// if map is not found, we check major cities
-					if (i < 0) {
-						if ((i = search_mapserver("prontera.gat")) >= 0) { // check is done without 'gat'.
-							memcpy(char_dat[sd->found_char[ch]].last_point.map, "prontera.gat", MAP_NAME_LENGTH-1);
-							char_dat[sd->found_char[ch]].last_point.x = 273; // savepoint coordonates
-							char_dat[sd->found_char[ch]].last_point.y = 354;
-						} else if ((i = search_mapserver("geffen.gat")) >= 0) { // check is done without 'gat'.
-							memcpy(char_dat[sd->found_char[ch]].last_point.map, "geffen.gat", MAP_NAME_LENGTH-1);
-							char_dat[sd->found_char[ch]].last_point.x = 120; // savepoint coordonates
-							char_dat[sd->found_char[ch]].last_point.y = 100;
-						} else if ((i = search_mapserver("morocc.gat")) >= 0) { // check is done without 'gat'.
-							memcpy(char_dat[sd->found_char[ch]].last_point.map, "morocc.gat", MAP_NAME_LENGTH-1);
-							char_dat[sd->found_char[ch]].last_point.x = 160; // savepoint coordonates
-							char_dat[sd->found_char[ch]].last_point.y = 94;
-						} else if ((i = search_mapserver("alberta.gat")) >= 0) { // check is done without 'gat'.
-							memcpy(char_dat[sd->found_char[ch]].last_point.map, "alberta.gat", MAP_NAME_LENGTH-1);
-							char_dat[sd->found_char[ch]].last_point.x = 116; // savepoint coordonates
-							char_dat[sd->found_char[ch]].last_point.y = 57;
-						} else if ((i = search_mapserver("payon.gat")) >= 0) { // check is done without 'gat'.
-							memcpy(char_dat[sd->found_char[ch]].last_point.map, "payon.gat", MAP_NAME_LENGTH-1);
-							char_dat[sd->found_char[ch]].last_point.x = 87; // savepoint coordonates
-							char_dat[sd->found_char[ch]].last_point.y = 117;
-						} else if ((i = search_mapserver("izlude.gat")) >= 0) { // check is done without 'gat'.
-							memcpy(char_dat[sd->found_char[ch]].last_point.map, "izlude.gat", MAP_NAME_LENGTH-1);
-							char_dat[sd->found_char[ch]].last_point.x = 94; // savepoint coordonates
-							char_dat[sd->found_char[ch]].last_point.y = 103;
-						} else {
-							int j;
-							// get first online server (with a map)
-							i = 0;
-							for(j = 0; j < MAX_MAP_SERVERS; j++)
-								if (server_fd[j] >= 0 && server[j].map[0][0]) { // change save point to one of map found on the server (the first)
-									i = j;
-									memcpy(char_dat[sd->found_char[ch]].last_point.map, server[j].map[0], MAP_NAME_LENGTH-1);
-									ShowInfo("Map-server #%d found with a map: '%s'.\n", j, server[j].map[0]);
-									// coordonates are unknown
-									break;
-								}
-							// if no map-server is connected, we send: server closed
-							if (j == MAX_MAP_SERVERS) {
-								WFIFOW(fd,0) = 0x81;
-								WFIFOL(fd,2) = 1; // 01 = Server closed
-								WFIFOSET(fd,3);
-								RFIFOSKIP(fd,3);
-								break;
-							}
+			for (ch = 0; ch < 9; ch++)
+				if (sd->found_char[ch] >= 0 && char_dat[sd->found_char[ch]].char_num == char_num)
+					break;
+			if (ch == 9)
+			{	//Not found?? May be forged packet.
+				break;
+			}
+			char_log("Character Selected, Account ID: %d, Character Slot: %d, Character Name: %s." RETCODE,
+	         sd->account_id, char_num, char_dat[sd->found_char[ch]].name);
+
+			char_dat[sd->found_char[ch]].sex = sd->sex;
+			
+			// searching map server
+			i = search_mapserver(char_dat[sd->found_char[ch]].last_point.map);
+			// if map is not found, we check major cities
+			if (i < 0) {
+				if ((i = search_mapserver("prontera.gat")) >= 0) { // check is done without 'gat'.
+					memcpy(char_dat[sd->found_char[ch]].last_point.map, "prontera.gat", MAP_NAME_LENGTH-1);
+					char_dat[sd->found_char[ch]].last_point.x = 273; // savepoint coordonates
+					char_dat[sd->found_char[ch]].last_point.y = 354;
+				} else if ((i = search_mapserver("geffen.gat")) >= 0) { // check is done without 'gat'.
+					memcpy(char_dat[sd->found_char[ch]].last_point.map, "geffen.gat", MAP_NAME_LENGTH-1);
+					char_dat[sd->found_char[ch]].last_point.x = 120; // savepoint coordonates
+					char_dat[sd->found_char[ch]].last_point.y = 100;
+				} else if ((i = search_mapserver("morocc.gat")) >= 0) { // check is done without 'gat'.
+					memcpy(char_dat[sd->found_char[ch]].last_point.map, "morocc.gat", MAP_NAME_LENGTH-1);
+					char_dat[sd->found_char[ch]].last_point.x = 160; // savepoint coordonates
+					char_dat[sd->found_char[ch]].last_point.y = 94;
+				} else if ((i = search_mapserver("alberta.gat")) >= 0) { // check is done without 'gat'.
+					memcpy(char_dat[sd->found_char[ch]].last_point.map, "alberta.gat", MAP_NAME_LENGTH-1);
+					char_dat[sd->found_char[ch]].last_point.x = 116; // savepoint coordonates
+					char_dat[sd->found_char[ch]].last_point.y = 57;
+				} else if ((i = search_mapserver("payon.gat")) >= 0) { // check is done without 'gat'.
+					memcpy(char_dat[sd->found_char[ch]].last_point.map, "payon.gat", MAP_NAME_LENGTH-1);
+					char_dat[sd->found_char[ch]].last_point.x = 87; // savepoint coordonates
+					char_dat[sd->found_char[ch]].last_point.y = 117;
+				} else if ((i = search_mapserver("izlude.gat")) >= 0) { // check is done without 'gat'.
+					memcpy(char_dat[sd->found_char[ch]].last_point.map, "izlude.gat", MAP_NAME_LENGTH-1);
+					char_dat[sd->found_char[ch]].last_point.x = 94; // savepoint coordonates
+					char_dat[sd->found_char[ch]].last_point.y = 103;
+				} else {
+					int j;
+					// get first online server (with a map)
+					i = 0;
+					for(j = 0; j < MAX_MAP_SERVERS; j++)
+						if (server_fd[j] >= 0 && server[j].map[0][0]) { // change save point to one of map found on the server (the first)
+							i = j;
+							memcpy(char_dat[sd->found_char[ch]].last_point.map, server[j].map[0], MAP_NAME_LENGTH-1);
+							ShowInfo("Map-server #%d found with a map: '%s'.\n", j, server[j].map[0]);
+							// coordinates are unknown
+							break;
 						}
-					}
-					WFIFOW(fd,0) = 0x71;
-					WFIFOL(fd,2) = char_dat[sd->found_char[ch]].char_id;
-					memcpy(WFIFOP(fd,6), char_dat[sd->found_char[ch]].last_point.map, MAP_NAME_LENGTH);
-					ShowInfo("Character selection '%s' (account: %d, slot: %d).\n", char_dat[sd->found_char[ch]].name, sd->account_id, ch);
-					if (lan_ip_check(p))
-						WFIFOL(fd, 22) = inet_addr(lan_map_ip);
-					else
-						WFIFOL(fd, 22) = server[i].ip;
-					WFIFOW(fd,26) = server[i].port;
-					WFIFOSET(fd,28);
-					if (auth_fifo_pos >= AUTH_FIFO_SIZE)
-						auth_fifo_pos = 0;
-					auth_fifo[auth_fifo_pos].account_id = sd->account_id;
-					auth_fifo[auth_fifo_pos].char_id = char_dat[sd->found_char[ch]].char_id;
-					auth_fifo[auth_fifo_pos].login_id1 = sd->login_id1;
-					auth_fifo[auth_fifo_pos].login_id2 = sd->login_id2;
-					auth_fifo[auth_fifo_pos].delflag = 0;
-					auth_fifo[auth_fifo_pos].char_pos = sd->found_char[ch];
-					auth_fifo[auth_fifo_pos].sex = sd->sex;
-					auth_fifo[auth_fifo_pos].connect_until_time = sd->connect_until_time;
-					auth_fifo[auth_fifo_pos].ip = session[fd]->client_addr.sin_addr.s_addr;
-
-					//Send NEW auth packet [Kevin]
-					if ((map_fd = server_fd[i]) < 1 || session[map_fd] == NULL)
-					{	//0 Should not be a valid server_fd [Skotlex]
-						ShowError("parse_char: Attempting to write to invalid session %d! Map Server #%d disconnected.\n", map_fd, i);
-						server_fd[i] = -1;
-						memset(&server[i], 0, sizeof(struct mmo_map_server));
+					// if no map-server is connected, we send: server closed
+					if (j == MAX_MAP_SERVERS) {
+						WFIFOW(fd,0) = 0x81;
+						WFIFOL(fd,2) = 1; // 01 = Server closed
+						WFIFOSET(fd,3);
 						break;
-					}	
-					WFIFOW(map_fd,0) = 0x2afd;
-					WFIFOW(map_fd,2) = 20 + sizeof(struct mmo_charstatus);
-					WFIFOL(map_fd,4) = auth_fifo[auth_fifo_pos].account_id;
-					WFIFOL(map_fd,8) = auth_fifo[auth_fifo_pos].login_id1;
-					WFIFOL(map_fd,16) = auth_fifo[auth_fifo_pos].login_id2;
-					WFIFOL(map_fd,12) = (unsigned long)auth_fifo[auth_fifo_pos].connect_until_time;
-					set_char_online(auth_fifo[auth_fifo_pos].char_id, auth_fifo[auth_fifo_pos].account_id);
-					char_dat[auth_fifo[auth_fifo_pos].char_pos].sex = auth_fifo[auth_fifo_pos].sex;
-					memcpy(WFIFOP(map_fd,20), &char_dat[auth_fifo[auth_fifo_pos].char_pos], sizeof(struct mmo_charstatus));
-					WFIFOSET(map_fd, WFIFOW(map_fd,2));
-
-					auth_fifo_pos++;
+					}
 				}
 			}
-			RFIFOSKIP(fd,3);
-			break;
+			WFIFOW(fd,0) = 0x71;
+			WFIFOL(fd,2) = char_dat[sd->found_char[ch]].char_id;
+			memcpy(WFIFOP(fd,6), char_dat[sd->found_char[ch]].last_point.map, MAP_NAME_LENGTH);
+			ShowInfo("Character selection '%s' (account: %d, slot: %d).\n", char_dat[sd->found_char[ch]].name, sd->account_id, ch);
+			if (lan_ip_check(p))
+				WFIFOL(fd, 22) = inet_addr(lan_map_ip);
+			else
+				WFIFOL(fd, 22) = server[i].ip;
+			WFIFOW(fd,26) = server[i].port;
+			WFIFOSET(fd,28);
+			if (auth_fifo_pos >= AUTH_FIFO_SIZE)
+				auth_fifo_pos = 0;
+			auth_fifo[auth_fifo_pos].account_id = sd->account_id;
+			auth_fifo[auth_fifo_pos].char_id = char_dat[sd->found_char[ch]].char_id;
+			auth_fifo[auth_fifo_pos].login_id1 = sd->login_id1;
+			auth_fifo[auth_fifo_pos].login_id2 = sd->login_id2;
+			auth_fifo[auth_fifo_pos].delflag = 0;
+			auth_fifo[auth_fifo_pos].char_pos = sd->found_char[ch];
+			auth_fifo[auth_fifo_pos].sex = sd->sex;
+			auth_fifo[auth_fifo_pos].connect_until_time = sd->connect_until_time;
+			auth_fifo[auth_fifo_pos].ip = session[fd]->client_addr.sin_addr.s_addr;
+
+			//Send NEW auth packet [Kevin]
+			if ((map_fd = server_fd[i]) < 1 || session[map_fd] == NULL)
+			{	//0 Should not be a valid server_fd [Skotlex]
+				ShowError("parse_char: Attempting to write to invalid session %d! Map Server #%d disconnected.\n", map_fd, i);
+				server_fd[i] = -1;
+				memset(&server[i], 0, sizeof(struct mmo_map_server));
+				//Send server closed.
+				WFIFOW(fd,0) = 0x81;
+				WFIFOL(fd,2) = 1; // 01 = Server closed
+				WFIFOSET(fd,3);
+				break;
+			}	
+			WFIFOW(map_fd,0) = 0x2afd;
+			WFIFOW(map_fd,2) = 20 + sizeof(struct mmo_charstatus);
+			WFIFOL(map_fd,4) = auth_fifo[auth_fifo_pos].account_id;
+			WFIFOL(map_fd,8) = auth_fifo[auth_fifo_pos].login_id1;
+			WFIFOL(map_fd,16) = auth_fifo[auth_fifo_pos].login_id2;
+			WFIFOL(map_fd,12) = (unsigned long)auth_fifo[auth_fifo_pos].connect_until_time;
+			set_char_online(i, auth_fifo[auth_fifo_pos].char_id, auth_fifo[auth_fifo_pos].account_id);
+			memcpy(WFIFOP(map_fd,20), &char_dat[auth_fifo[auth_fifo_pos].char_pos], sizeof(struct mmo_charstatus));
+			WFIFOSET(map_fd, WFIFOW(map_fd,2));
+
+			auth_fifo_pos++;
+		}
+		break;
 
 		case 0x67:	// 作成
 			if (RFIFOREST(fd) < 37)
@@ -3489,6 +3570,20 @@ int check_connect_login_server(int tid, unsigned int tick, int id, int data) {
 	return 0;
 }
 
+//------------------------------------------------
+//Invoked 15 seconds after mapif_disconnectplayer in case the map server doesn't
+//replies/disconnect the player we tried to kick. [Skotlex]
+//------------------------------------------------
+static int chardb_waiting_disconnect(int tid, unsigned int tick, int id, int data)
+{
+	struct online_char_data* character;
+	if ((character = numdb_search(online_char_db, id)) != NULL && character->waiting_disconnect)
+	{	//Mark it offline due to timeout.
+		set_char_offline(character->char_id, character->account_id);
+	}
+	return 0;
+}
+
 //----------------------------------------------------------
 // Return numerical value of a switch configuration by [Yor]
 // on/off, english, fran軋is, deutsch, espal
@@ -3681,6 +3776,8 @@ int char_config_read(const char *cfgName) {
 				gm_allow_level = 99;
 		} else if (strcmpi(w1, "check_ip_flag") == 0) {
 			check_ip_flag = config_switch(w2);
+		} else if (strcmpi(w1, "online_check") == 0) {
+			online_check = config_switch(w2);
 		} else if (strcmpi(w1, "autosave_time") == 0) {
 			autosave_interval = atoi(w2)*1000;
 			if (autosave_interval <= 0)
@@ -3752,17 +3849,17 @@ int char_config_read(const char *cfgName) {
 	return 0;
 }
 
+int chardb_final(void* key, void* data, va_list va)
+{
+	aFree(data);
+	return 0;
+}
 void do_final(void) {
-	int i;
 	ShowStatus("Terminating server.\n");
 	// write online players files with no player
-	for(i = 0; i < online_players_max; i++) {
-		online_chars[i].char_id = -1;
-		online_chars[i].server = -1;
-	}
+	numdb_final(online_char_db, chardb_final);
 
 	create_online_files();
-	if(online_chars) aFree(online_chars);
 
 	mmo_char_sync();
 	inter_save();
@@ -3786,6 +3883,24 @@ void set_server_type(void)
 {
 	SERVER_TYPE = ATHENA_SERVER_CHAR;
 }
+
+static int online_data_cleanup_sub(void *key, void *data, va_list ap)
+{
+	struct online_char_data *character= (struct online_char_data*)data;
+	if (character->server == -1)
+	{	//Free data from players that have not been online for a while.
+		numdb_erase(online_char_db, character->account_id);
+		aFree(data);
+	}
+	return 0;
+}
+
+static int online_data_cleanup(int tid, unsigned int tick, int id, int data)
+{
+	db_foreach(online_char_db, online_data_cleanup_sub);
+	return 0;
+}
+
 int do_init(int argc, char **argv) {
 	int i;
 
@@ -3825,16 +3940,8 @@ int do_init(int argc, char **argv) {
 		server_fd[i] = -1;
 	}
 
-	online_players_max = 256;
-	online_chars = (struct online_chars*)aCalloc(sizeof(struct online_chars) * 256, 1);
-	if (!online_chars) {
-		ShowFatalError("out of memory: do_init (calloc).\n");
-		exit(1);
-	}
-	for(i = 0; i < online_players_max; i++) {
-		online_chars[i].char_id = -1;
-		online_chars[i].server = -1;
-	}
+	online_char_db = numdb_init();
+
 	mmo_char_init();
 #ifdef ENABLE_SC_SAVING
 	status_init();
@@ -3854,10 +3961,13 @@ int do_init(int argc, char **argv) {
 	add_timer_func_list(check_connect_login_server, "check_connect_login_server");
 	add_timer_func_list(send_users_tologin, "send_users_tologin");
 	add_timer_func_list(mmo_char_sync_timer, "mmo_char_sync_timer");
-
-	i = add_timer_interval(gettick() + 1000, check_connect_login_server, 0, 0, 10 * 1000);
-	i = add_timer_interval(gettick() + 1000, send_users_tologin, 0, 0, 5 * 1000);
-	i = add_timer_interval(gettick() + autosave_interval, mmo_char_sync_timer, 0, 0, autosave_interval);
+	add_timer_func_list(chardb_waiting_disconnect, "chardb_waiting_disconnect");
+	add_timer_func_list(online_data_cleanup, "online_data_cleanup");
+	
+	add_timer_interval(gettick() + 600*1000, online_data_cleanup, 0, 0, 600 * 1000);
+	add_timer_interval(gettick() + 1000, check_connect_login_server, 0, 0, 10 * 1000);
+	add_timer_interval(gettick() + 1000, send_users_tologin, 0, 0, 5 * 1000);
+	add_timer_interval(gettick() + autosave_interval, mmo_char_sync_timer, 0, 0, autosave_interval);
 
 	if(console) {
 	    set_defaultconsoleparse(parse_console);

@@ -2,6 +2,28 @@ Date	Added
 =======
 
 09/29
+	* Removed some of the unnecessary verbose messages from the char server
+	  during data saving. [Skotlex]
+	* Added the new "online check" system (more of a fixing of a system that
+	  was already there but was half working) [Skotlex]
+	  it is turned on/off by using the online_check config options for the
+	  login and char servers.
+	- char server: When the check is on, players are kicked out of the char
+	  server when their character is already online, and the map servers are
+	  instructed to kick the account out as well. If there's no reply from the
+	  map servers, the char is automatically set offline after 15 secs.
+	- login server: When the check is on, players get "rejected from server"
+	  when the account is online already, and afterwards the char servers are
+	  told to kick that account out (like in the first case), if after 30 secs
+	  there is no reply from the char servers logging off the account, the login
+	  server sets it offline on it's  own.
+	- The checks are by default on as they are meant to prevent possible
+	  exploits on multi-map servers.
+	- However, I have not figured out where exactly a char server gets to know
+	  that a player has changed map-servers, so this could cause trouble in said
+	  enviroments until I figure it out (it won't go out of sync forever since
+	  the map servers do update their list of online characters every then
+	  seconds) :/
 	* Fixed crash, related to STEAL logs [Lupus]
 	* Added TXT logs for Pick_log [Lupus]
 09/28

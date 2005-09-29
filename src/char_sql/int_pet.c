@@ -30,7 +30,7 @@ int inter_pet_tosql(int pet_id, struct s_pet *p) {
 	//`pet` (`pet_id`, `class`,`name`,`account_id`,`char_id`,`level`,`egg_id`,`equip`,`intimate`,`hungry`,`rename_flag`,`incuvate`)
 	char t_name[NAME_LENGTH*2];
 
-	ShowInfo("Saving pet (%d)...\n",pet_id);
+//	ShowInfo("Saving pet (%d)...\n",pet_id);
 
 	jstrescapecpy(t_name, p->name);
 
@@ -63,7 +63,7 @@ int inter_pet_tosql(int pet_id, struct s_pet *p) {
 		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 	}
 
-	ShowInfo("Pet saved (%d). \n", pet_id);
+	ShowInfo("Pet saved %d - %d.\n", pet_id, p->name);
 	return 0;
 }
 

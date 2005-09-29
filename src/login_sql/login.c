@@ -91,7 +91,7 @@ int min_level_to_connect = 0; // minimum level of player/GM (0: player, 1-99: gm
 int check_ip_flag = 1; // It's to check IP of a player between login-server and char-server (part of anti-hacking system)
 int check_client_version = 0; //Client version check ON/OFF .. (sirius)
 int client_version_to_connect = 20; //Client version needed to connect ..(sirius)
-int register_users_online = 1;
+static int online_check=1; //When set to 1, login server rejects incoming players that are already registered as online. [Skotlex]
 
 MYSQL mysql_handle;
 
@@ -136,6 +136,11 @@ struct {
 
 int auth_fifo_pos = 0;
 
+struct online_login_data {
+	int account_id;
+	short char_server;
+	short waiting_disconnect;
+};
 
 //-----------------------------------------------------
 
@@ -143,40 +148,60 @@ static char md5key[20], md5keylen = 16;
 
 struct dbt *online_db;
 
+static int online_db_final(void *key,void *data,va_list ap)
+{
+	int *p = (int *) data;
+	if (p) aFree(p);
+	return 0;
+}
+
 //-----------------------------------------------------
 // Online User Database [Wizputer]
 //-----------------------------------------------------
 
-void add_online_user(int account_id) {
-	int *p;
-	if (register_users_online <= 0)
+void add_online_user(int char_server, int account_id) {
+	struct online_login_data *p;
+	if (!online_check)
 		return;
-	p = (int*)numdb_search(online_db, account_id);
+	p = numdb_search(online_db, account_id);
 	if (p == NULL) {
-		p = (int*)aMalloc(sizeof(int));
-		*p = account_id;
+		p = aCalloc(1, sizeof(struct online_login_data));
+		p->account_id = account_id;
+		p->char_server = char_server;
 		numdb_insert(online_db, account_id, p);
+	} else {
+		p->char_server = char_server;
+		p->waiting_disconnect = 0;
 	}
 }
 
 int is_user_online(int account_id) {
-	int *p;
-	if(register_users_online <= 0)
-		return 0;
+	struct online_login_data *p;
 
-	p = (int*)numdb_search(online_db, account_id);
-	//if (p != NULL)
-	//	printf("Acccount %d\n",*p);
+	p = numdb_search(online_db, account_id);
 	
 	return (p != NULL);
 }
 
 void remove_online_user(int account_id) {
-	int *p;
-	if(register_users_online <= 0)
+	struct online_login_data *p;
+	if(!online_check)
 		return;
-	p = (int*)numdb_erase(online_db,account_id);
+	if (account_id == 99) {	// reset all to offline
+		numdb_final(online_db, online_db_final);	// purge db
+		online_db = numdb_init();	// reinitialise
+		return;
+	}
+	p = numdb_erase(online_db,account_id);
 	if (p) aFree(p);
+}
+
+int waiting_disconnect_timer(int tid, unsigned int tick, int id, int data)
+{
+	struct online_login_data *p;
+	if ((p= numdb_search(online_db, id)) != NULL && p->waiting_disconnect)
+		remove_online_user(p->account_id);
+	return 0;
 }
 
 //-----------------------------------------------------
@@ -434,6 +459,23 @@ int mmo_auth_new(struct mmo_account* account, char sex)
 extern void gettimeofday(struct timeval *t, struct timezone *dummy);
 #endif
 
+// Send to char
+int charif_sendallwos(int sfd, unsigned char *buf, unsigned int len) {
+	int i, c;
+	int fd;
+
+	c = 0;
+	for(i = 0; i < MAX_SERVERS; i++) {
+		if ((fd = server_fd[i]) > 0 && fd != sfd) {
+			memcpy(WFIFOP(fd,0), buf, len);
+			WFIFOSET(fd,len);
+			c++;
+		}
+	}
+
+	return c;
+}
+
 //-----------------------------------------------------
 // Auth
 //-----------------------------------------------------
@@ -677,11 +719,19 @@ int mmo_auth( struct mmo_account* account , int fd){
 		return 2; // 2 = This ID is expired
 	}
 
-	if (register_users_online > 0 && is_user_online(atol(sql_row[0]))) {
-	        ShowWarning("User [%s] is already online - Rejected.\n",sql_row[1]);
-#ifndef TWILIGHT
-		return 3; // Rejected
-#endif
+	if (online_check) {
+		struct online_login_data* data = numdb_search(online_db,atol(sql_row[0]));
+		unsigned char buf[8];
+		if (data) {
+			//Request char servers to kick this account out. [Skotlex]
+			ShowWarning("User [%s] is already online - Rejected.\n",sql_row[1]);
+			data->waiting_disconnect = 1;
+			WBUFW(buf,0) = 0x2734;
+			WBUFL(buf,2) = atol(sql_row[0]);
+			charif_sendallwos(-1, buf, 6);
+			add_timer(gettick()+30000, waiting_disconnect_timer, atol(sql_row[0]), 0);
+			return 3; // Rejected
+		}
 	}
 
 	account->account_id = atoi(sql_row[0]);
@@ -702,23 +752,6 @@ int mmo_auth( struct mmo_account* account , int fd){
 	}
 
 	return -1;
-}
-
-// Send to char
-int charif_sendallwos(int sfd, unsigned char *buf, unsigned int len) {
-	int i, c;
-	int fd;
-
-	c = 0;
-	for(i = 0; i < MAX_SERVERS; i++) {
-		if ((fd = server_fd[i]) > 0 && fd != sfd) {
-			memcpy(WFIFOP(fd,0), buf, len);
-			WFIFOSET(fd,len);
-			c++;
-		}
-	}
-
-	return c;
 }
 
 //-----------------------------------------------------
@@ -1156,7 +1189,7 @@ int parse_fromchar(int fd){
     case 0x272b:    // Set account_id to online [Wizputer]
         if (RFIFOREST(fd) < 6)
             return 0;
-        add_online_user(RFIFOL(fd,2));
+        add_online_user(id, RFIFOL(fd,2));
         RFIFOSKIP(fd,6);
         break;
 
@@ -1812,17 +1845,23 @@ int login_config_read(const char *cfgName){
 			        console = 1;
         }
     	else if (strcmpi(w1, "case_sensitive") == 0) {
-			    if(strcmpi(w2,"on") == 0 || strcmpi(w2,"yes") == 0 )
-			        case_sensitive = 1;
-			    if(strcmpi(w2,"off") == 0 || strcmpi(w2,"no") == 0 )
-			        case_sensitive = 0;
-        }
-		else if(strcmpi(w1, "register_users_online") == 0) {
-			register_users_online = config_switch(w2);
+			if(strcmpi(w2,"on") == 0 || strcmpi(w2,"yes") == 0 )
+				case_sensitive = 1;
+			if(strcmpi(w2,"off") == 0 || strcmpi(w2,"no") == 0 )
+				case_sensitive = 0;
+			else
+				case_sensitive = atoi(w2);
 		} else if (strcmpi(w1, "allowed_regs") == 0) { //account flood protection system [Kevin]
 			allowed_regs = atoi(w2);
 		} else if (strcmpi(w1, "time_allowed") == 0) {
 			time_allowed = atoi(w2);
+		} else if (strcmpi(w1, "online_check") == 0) {
+			if(strcmpi(w2,"on") == 0 || strcmpi(w2,"yes") == 0 )
+				online_check = 1;
+			else if(strcmpi(w2,"off") == 0 || strcmpi(w2,"no") == 0 )
+				online_check = 0;
+			else
+				online_check = atoi(w2);
 		} else if (strcmpi(w1, "log_login") == 0) {
 			if(strcmpi(w2,"on") == 0 || strcmpi(w2,"yes") == 0 )
 				log_login = 1;
@@ -1905,12 +1944,6 @@ void sql_config_read(const char *cfgName){ /* Kalaspuff, to get login_db */
 //--------------------------------------
 // Function called at exit of the server
 //--------------------------------------
-static int online_db_final(void *key,void *data,va_list ap)
-{
-	int *p = (int *) data;
-	if (p) aFree(p);
-	return 0;
-}
 void do_final(void) {
 	//sync account when terminating.
 	//but no need when you using DBMS (mysql)
@@ -1952,6 +1985,7 @@ int do_init(int argc,char **argv){
 
 	// Online user database init
     online_db = numdb_init();
+	add_timer_func_list(waiting_disconnect_timer, "waiting_disconnect_timer");
 
 	if (bind_ip_str[0] != '\0')
 		bind_ip = inet_addr(bind_ip_str);

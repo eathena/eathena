@@ -1012,37 +1012,42 @@ int chrif_accountban(int fd)
 //packet.w AID.L WHY.B 2+4+1 = 7byte
 int chrif_disconnectplayer(int fd){
 	struct map_session_data *sd;
-
 	sd = map_id2sd(RFIFOL(fd, 2));
 
-	if(RFIFOL(fd, 2) <= 0 || sd == NULL){
+	if(sd == NULL){
 		return -1;
 	}
 
-	//change sessid1
-	sd->login_id1++;
+	if (!sd->fd)
+	{	//No connection
+		if (sd->state.autotrade)
+			map_quit(sd); //Remove it.
+		//Else we don't remove it because the char should have a timer to remove the player because it force-quit before,
+		//and we don't want them kicking their previous instance before the 10 secs penalty time passes. [Skotlex]
+		return 0;
+	}
 
 	switch(RFIFOB(fd, 6)){
 		//clif_authfail_fd
 		case 1: //server closed
-			clif_authfail_fd(fd, 1);
+			clif_authfail_fd(sd->fd, 1);
 		break;
 
 		case 2: //someone else logged in
-			clif_authfail_fd(fd, 2);
+			clif_authfail_fd(sd->fd, 2);
 		break;
 
 		case 3: //server overpopulated
-			clif_authfail_fd(fd, 4);
+			clif_authfail_fd(sd->fd, 4);
 
 		break;
 
 		case 4: //out of time payd for .. (avail)
-			clif_authfail_fd(fd, 10);
+			clif_authfail_fd(sd->fd, 10);
 		break;
 
 		case 5: //forced to dc by gm
-			clif_authfail_fd(fd, 15);
+			clif_authfail_fd(sd->fd, 15);
 		break;
 	}
 
@@ -1318,8 +1323,10 @@ int chrif_char_online(struct map_session_data *sd)
  *------------------------------------------
  */
 int chrif_disconnect_sub(struct map_session_data* sd,va_list va) {
-	clif_authfail_fd(sd->fd,1);
-	//map_quit(sd);
+	if (sd->fd)
+		clif_authfail_fd(sd->fd,1);
+	else
+		map_quit(sd);
 	return 0;
 }
 
@@ -1442,13 +1449,14 @@ int send_users_tochar(int tid, unsigned int tick, int id, int data) {
 		if (all_sd[i] && 
 			!((battle_config.hide_GM_session || (all_sd[i]->status.option & OPTION_HIDE)) && pc_isGM(all_sd[i])))
 		{
-			WFIFOL(char_fd,6+4*users) = all_sd[i]->status.char_id;
+			WFIFOL(char_fd,6+8*users) = all_sd[i]->status.account_id;
+			WFIFOL(char_fd,6+8*users+4) = all_sd[i]->status.char_id;
 			users++;
 		}
 	}
-	WFIFOW(char_fd,2) = 6 + 4 * users;
+	WFIFOW(char_fd,2) = 6 + 8 * users;
 	WFIFOW(char_fd,4) = users;
-	WFIFOSET(char_fd,6+4*users);
+	WFIFOSET(char_fd,6+8*users);
 
 	return 0;
 }
