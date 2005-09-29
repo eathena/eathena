@@ -2,10 +2,16 @@ Date	Added
 =======
 
 09/29
+	* Modified the new auth login system to take into consideration when the
+	  client tries to connect before the character data arrives from the char
+	  server. [Skotlex]
+	  (use at your own risk as I have not been able to test it yet, but seeing
+	  how many servers have connection problems as it is already, you may as
+	  well want to help try it out)
 	* Corrected the description of the 'skill_add_range' switches and made them
 	  default to 5. Still pending further tuning (the official value of these
 	  switches should have is still unknown) [Skotlex]
-	* Added Acid Demonstration to list of skills affected by
+	* Added Demonstration to list of skills affected by
 	  'gvg_traps_target_all' [Skotlex]
 	* Likely fixed Firepillar triggering multiple times when many characters
 	  step unto it. [Skotlex]

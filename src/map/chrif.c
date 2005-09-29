@@ -50,11 +50,10 @@ static const int packet_len_table[0x3d] = {
 //2afa: Outgoing, chrif_sendmap -> 'sending our maps'
 //2afb: Incomming, chrif_sendmapack -> 'Maps received successfully / or not ..'
 
-//2afc: Outgoing, chrif_authreq -> 'check auth_db for client and de/authenticate' <- obsoleted by Kevin's new auth system.
 //2afc: Outgoing, chrif_scdata_request -> request sc_data for pc_authok'ed char. <- new command reuses previous one.
-
 //2afd: Incomming, chrif_authok -> 'character selected, add to auth db'
-//2afe: Incomming, pc_authfail -> 'fail awnser of the 2afc' ? (not sure)
+//2afe: FREE (packet deprecated by Kevin's new login system)
+
 //2aff: Outgoing, send_users_tochar -> 'sends all actual connected charactersids to charserver'
 //2b00: Incomming, map_setusers -> 'set the actual usercount? PACKET.2B COUNT.L.. ?' (not sure)
 //2b01: Outgoing, chrif_save -> 'charsave of char XY account XY (complete struct)'
@@ -329,7 +328,7 @@ int chrif_changemapserverack(int fd)
 	if (RFIFOL(fd,6) == 1) {
 		if (battle_config.error_log)
 			ShowError("map server change failed.\n");
-		pc_authfail(sd->fd);
+		pc_authfail(sd);
 		return 0;
 	}
 	clif_changemapserver(sd, (char*)RFIFOP(fd,18), RFIFOW(fd,34), RFIFOW(fd,36), RFIFOL(fd,38), RFIFOW(fd,42));
@@ -407,63 +406,88 @@ int chrif_scdata_request(int account_id, int char_id)
 
 /*==========================================
  * new auth system [Kevin]
- * Returns -1: internal error. 0: auth failed, 1: auth ok.
  *------------------------------------------
  */
-int chrif_authreq(struct map_session_data *sd)
+void chrif_authreq(struct map_session_data *sd)
 {
-	struct auth_node *search_node;
-	int result = 0;
+	struct auth_node *auth_data;
+	auth_data=(struct auth_node *)numdb_search(auth_db, sd->bl.id);
 
-	nullpo_retr(-1, sd);
-
-	if(!sd || !sd->bl.id || !sd->login_id1)
-		return -1;
-	chrif_check(-1);
-
-	search_node=(struct auth_node *)numdb_search(auth_db, sd->bl.id);
-
-	if(search_node) {
-
-		if(search_node->account_id==sd->bl.id &&
-			search_node->login_id1 == sd->login_id1) {
-
-			pc_authok(search_node->account_id, search_node->login_id2, search_node->connect_until_time, &search_node->char_dat);
-			chrif_scdata_request(search_node->account_id, search_node->char_dat.char_id);
-			result = 1;
-		} else {
-			pc_authfail(sd->bl.id);
+	if(auth_data) {
+		if(auth_data->char_dat &&
+			auth_data->account_id== sd->bl.id &&
+			auth_data->login_id1 == sd->login_id1)
+		{	//auth ok
+			pc_authok(sd, auth_data->login_id2, auth_data->connect_until_time, auth_data->char_dat);
+			chrif_scdata_request(auth_data->account_id, auth_data->char_dat->char_id);
+		} else { //auth failed
+			pc_authfail(sd);
+			chrif_char_offline(sd); //Set him offline, the char server likely has it set as online already.
 		}
-		aFree(search_node);
-		numdb_erase(auth_db, sd->bl.id);
-	} else {
-		pc_authfail(sd->bl.id);
+		numdb_erase(auth_db, auth_data->account_id);
+		if (auth_data->char_dat)
+			aFree(auth_data->char_dat);
+		aFree(auth_data);
+	} else { //data from char server has not arrived yet.
+		auth_data = aCalloc(1, sizeof(struct auth_node));
+		auth_data->sd = sd;
+		auth_data->fd = sd->fd;
+		auth_data->account_id = sd->bl.id;
+		auth_data->login_id1 = sd->login_id1;
+		auth_data->node_created = gettick();
+		numdb_insert(auth_db, sd->bl.id, auth_data);
 	}
-	return result;
+	return;
 }
 
 //character selected, insert into auth db
 void chrif_authok(int fd) {
-	struct auth_node *new_node;
+	struct auth_node *auth_data;
 	
 	if (map_id2sd(RFIFOL(fd, 4)) != NULL)
 	//Someone with this account is already in! Do not store the info to prevent possible sync exploits. [Skotlex]
 		return;
 	
-	if ((new_node =numdb_search(auth_db, RFIFOL(fd, 4))) != NULL)
-	{ //Delete the previously received node.
-		aFree(new_node);
+	if ((auth_data =numdb_search(auth_db, RFIFOL(fd, 4))) != NULL)
+	{	//Is the character already awaiting authorization?
+		if (auth_data->sd)
+		{
+			//First, check to see if the session data still exists (avoid dangling pointers)
+			if(session[auth_data->fd] && session[auth_data->fd]->session_data == auth_data->sd)
+			{	
+				if (auth_data->char_dat == NULL &&
+					auth_data->account_id == RFIFOL(fd, 4) &&
+					auth_data->login_id1 == RFIFOL(fd, 8))
+				{ //Auth Ok
+					pc_authok(auth_data->sd, RFIFOL(fd, 16), RFIFOL(fd, 12), (struct mmo_charstatus*)RFIFOP(fd, 20));
+					chrif_scdata_request(auth_data->account_id, auth_data->sd->status.char_id);
+				} else { //Auth Failed
+					pc_authfail(auth_data->sd);
+					chrif_char_offline(auth_data->sd); //Set him offline, the char server likely has it set as online already.
+				}
+			} else {
+			 //Character no longer exists, just go through.
+			}
+		}
+		//Delete the data of this node...
+		if (auth_data->char_dat)
+			aFree (auth_data->char_dat);
+		aFree(auth_data);
+		numdb_erase(auth_db, RFIFOL(fd, 4));
+		return;
 	}
-	new_node = (struct auth_node *)aCalloc(1, sizeof(struct auth_node));
+	// Awaiting for client to connect.
 
-	new_node->account_id=RFIFOL(fd, 4);
-	new_node->login_id1=RFIFOL(fd, 8);
-	new_node->connect_until_time=RFIFOL(fd, 12);
-	new_node->login_id2=RFIFOL(fd, 16);
-	memcpy(&new_node->char_dat,RFIFOP(fd, 20),sizeof(struct mmo_charstatus));
-	new_node->node_created=gettick();
+	auth_data = (struct auth_node *)aCalloc(1, sizeof(struct auth_node));
+	auth_data->char_dat = (struct mmo_charstatus *) aCalloc(1, sizeof(struct mmo_charstatus));
 
-	numdb_insert(auth_db, RFIFOL(fd, 4), new_node);
+	auth_data->account_id=RFIFOL(fd, 4);
+	auth_data->login_id1=RFIFOL(fd, 8);
+	auth_data->connect_until_time=RFIFOL(fd, 12);
+	auth_data->login_id2=RFIFOL(fd, 16);
+	memcpy(auth_data->char_dat,RFIFOP(fd, 20),sizeof(struct mmo_charstatus));
+	auth_data->node_created=gettick();
+	numdb_insert(auth_db, RFIFOL(fd, 4), auth_data);
 }
 
 int auth_db_cleanup_sub(void *key,void *data,va_list ap)
@@ -471,8 +495,10 @@ int auth_db_cleanup_sub(void *key,void *data,va_list ap)
 	struct auth_node *node=(struct auth_node*)data;
 
 	if(gettick()>node->node_created+30000) {
-		ShowNotice("Character not authed within 30 seconds of character select!\n");
+		ShowNotice("Character (aid: %d) not authed within 30 seconds of character select!\n", node->account_id);
 		numdb_erase(auth_db, node->account_id);
+		if (node->char_dat)
+			aFree(node->char_dat);
 		aFree(node);
 	}
 
@@ -1399,7 +1425,6 @@ int chrif_parse(int fd)
 		case 0x2af9: chrif_connectack(fd); break;
 		case 0x2afb: chrif_sendmapack(fd); chrif_reqfamelist(); break;
 		case 0x2afd: chrif_authok(fd); break;
-		case 0x2afe: pc_authfail(RFIFOL(fd,2)); break;
 		case 0x2b00: map_setusers(fd); break;
 		case 0x2b03: clif_charselectok(RFIFOL(fd,2)); break;
 		case 0x2b04: chrif_recvmap(fd); break;
@@ -1510,6 +1535,8 @@ int check_connect_char_server(int tid, unsigned int tick, int id, int data) {
 
 int auth_db_final(void *k,void *d,va_list ap) {
 	struct auth_node *node=(struct auth_node*)d;
+	if (node->char_dat)
+		aFree(node->char_dat);
 	aFree (node);
 	return 0;
 }

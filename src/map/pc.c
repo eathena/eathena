@@ -640,22 +640,12 @@ int pc_break_equip(struct map_session_data *sd, unsigned short where)
  * char鯖から送られてきたステ?タスを設定
  *------------------------------------------
  */
-int pc_authok(int id, int login_id2, time_t connect_until_time, struct mmo_charstatus *st)
+int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_time, struct mmo_charstatus *st)
 {
-	struct map_session_data *sd = NULL;
-
 	struct party *p;
 	struct guild *g;
 	int i;
 	unsigned long tick = gettick();
-
-	sd = map_id2sd(id);
-	if (sd == NULL)
-	{
-		ShowDebug("pc_authok: Player with account %d not found!\n", id);
-		return 1;	
-	//	nullpo_retr(1, sd);
-	}
 
 	if (sd->state.auth) //Temporary debug. [Skotlex]
 	{
@@ -672,17 +662,11 @@ int pc_authok(int id, int login_id2, time_t connect_until_time, struct mmo_chars
 	}
 
 	//Initializations to null/0 unneeded since map_session_data was filled with 0 upon allocation.
-//	memset(&sd->state, 0, sizeof(sd->state));
 	// 基本的な初期化
 	sd->state.connect_new = 1;
-//	sd->bl.prev = sd->bl.next = NULL;
 
-//	sd->weapontype1 = sd->weapontype2 = 0;
 	sd->view_class = sd->status.class_;
 	sd->speed = DEFAULT_WALK_SPEED;
-//	sd->state.dead_sit = 0;
-//	sd->dir = 0;
-//	sd->head_dir = 0;
 	sd->state.auth = 1;
 	sd->walktimer = -1;
 	sd->next_walktime = -1;
@@ -693,42 +677,17 @@ int pc_authok(int id, int login_id2, time_t connect_until_time, struct mmo_chars
 	sd->skillitemlv = -1;
 	sd->invincible_timer = -1;
 	
-//	sd->deal_locked = 0;
-//	sd->trade_partner = 0;
-
-//	sd->inchealhptick = 0;
-//	sd->inchealsptick = 0;
-//	sd->hp_sub = 0;
-//	sd->sp_sub = 0;
-//	sd->inchealspirithptick = 0;
-//	sd->inchealspiritsptick = 0;
 	sd->canact_tick = tick;
 	sd->canmove_tick = tick;
 	sd->canregen_tick = tick;
 	sd->attackabletime = tick;
-//	sd->reg = NULL;
-//	sd->reg_num = 0;
-//	sd->doridori_counter = 0;
 	sd->change_level = pc_readglobalreg(sd,"jobchange_level");
 
-//#ifndef TXT_ONLY // mail system [Valaris]
-//	if(battle_config.mail_system)
-//		sd->mail_counter = 0;
-//#endif
-//	sd->spiritball = 0;
 	for(i = 0; i < MAX_SKILL_LEVEL; i++)
 		sd->spirit_timer[i] = -1;
 	for(i = 0; i < MAX_SKILLTIMERSKILL; i++)
 		sd->skilltimerskill[i].timer = -1;
-//	sd->timerskill_count=0;
 
-//	memset(sd->blockskill,0,sizeof(sd->blockskill));
-
-//	memset(&sd->dev,0,sizeof(struct square));
-//	for(i = 0; i < 5; i++) {
-//		sd->dev.val1[i] = 0;
-//		sd->dev.val2[i] = 0;
-//	}
 
 	if (battle_config.item_auto_get)
 		sd->state.autoloot = 1;
@@ -741,15 +700,11 @@ int pc_authok(int id, int login_id2, time_t connect_until_time, struct mmo_chars
 	pc_checkitem(sd);
 
 	// pet
-//	sd->petDB = NULL;
-//	sd->pd = NULL;
 	sd->pet_hungry_timer = -1;
-//	memset(&sd->pet, 0, sizeof(struct s_pet));
 
 	// ステ?タス異常の初期化
 	for(i = 0; i < MAX_STATUSCHANGE; i++) {
 		sd->sc_data[i].timer=-1;
-//		sd->sc_data[i].val1 = sd->sc_data[i].val2 = sd->sc_data[i].val3 = sd->sc_data[i].val4 = 0;
 	}
 	sd->sc_count=0;
 	if ((battle_config.atc_gmonly == 0 || pc_isGM(sd)) &&
@@ -758,27 +713,14 @@ int pc_authok(int id, int login_id2, time_t connect_until_time, struct mmo_chars
 	else
 		sd->status.option &= OPTION_MASK;
 
-	// スキルユニット?係の初期化
-//	memset(sd->skillunit, 0, sizeof(sd->skillunit));
-//	memset(sd->skillunittick, 0, sizeof(sd->skillunittick));	
-
 	// パ?ティ??係の初期化
-//	sd->party_sended = 0;
-//	sd->party_invite = 0;
 	sd->party_x = -1;
 	sd->party_y = -1;
 	sd->party_hp = -1;
 
-	// ギルド?係の初期化
-//	sd->guild_sended = 0;
-//	sd->guild_invite = 0;
-//	sd->guild_alliance = 0;
-
 	// イベント?係の初期化
-//	memset(sd->eventqueue, 0, sizeof(sd->eventqueue));
 	for(i = 0; i < MAX_EVENTTIMER; i++)
 		sd->eventtimer[i] = -1;
-//	sd->eventcount=0;
 
 	// 位置の設定
 	if (pc_setpos(sd,sd->status.last_point.map, sd->status.last_point.x, sd->status.last_point.y, 0) != 0) {
@@ -814,15 +756,12 @@ int pc_authok(int id, int login_id2, time_t connect_until_time, struct mmo_chars
 	}
 
 	// pvpの設定
-//	sd->pvp_rank = 0;
-//	sd->pvp_point = 0;
 	sd->pvp_timer = -1;
-//	sd->pvp_won = 0;
-//	sd->pvp_lost = 0;
 
 	// 通知
 
 	clif_authok(sd);
+	map_addiddb(&sd->bl);
 	map_addnickdb(sd);
 	if (map_charid2nick(sd->status.char_id) == NULL)
 		map_addchariddb(sd->status.char_id, sd->status.name);
@@ -936,21 +875,18 @@ int pc_authok(int id, int login_id2, time_t connect_until_time, struct mmo_chars
 }
 
 /*==========================================
- * session idに問題ありなので後始末
+ * Closes a connection because it failed to be authenticated from the char server.
  *------------------------------------------
  */
-int pc_authfail(int id) {
-	struct map_session_data *sd;
-
-	sd = map_id2sd(id);
-	if (sd == NULL)
-		return 1;
+int pc_authfail(struct map_session_data *sd) {
 
 	if (sd->state.auth) //Temporary debug. [Skotlex]
-		ShowDebug("pc_authfail: Received auth fail for already authentified client (account id %d!)\n", sd->bl.id);
+		ShowDebug("pc_authfail: Received auth fail for already authentified client (account id %d)!\n", sd->bl.id);
 
+	if (!sd->fd)
+		ShowDebug("pc_authfail: Received auth fail for a player with no connection (account id %d)!\n", sd->bl.id);
+	
 	clif_authfail_fd(sd->fd, 0);
-
 	return 0;
 }
 

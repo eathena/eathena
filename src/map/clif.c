@@ -8005,6 +8005,7 @@ void clif_parse_WantToConnection(int fd, struct map_session_data *sd)
 			clif_authfail_fd(fd, 8); // still recognizes last connection
 		} else {
 			sd = (struct map_session_data*)aCalloc(1, sizeof(struct map_session_data));
+
 			sd->fd = fd;
 			sd->packet_ver = packet_ver;
 			session[fd]->session_data = sd;
@@ -8013,6 +8014,8 @@ void clif_parse_WantToConnection(int fd, struct map_session_data *sd)
 			WFIFOL(fd,0) = sd->bl.id;
 			WFIFOSET(fd,4);
 
+			chrif_authreq(sd);
+		/*	
 			map_addiddb(&sd->bl);
 			if (chrif_authreq(sd) != 1)
 			{	//Remove player.
@@ -8021,6 +8024,7 @@ void clif_parse_WantToConnection(int fd, struct map_session_data *sd)
 				aFree(sd);
 				session[fd]->session_data = NULL;
 			}
+		*/
 		}
 	}
 	return;
