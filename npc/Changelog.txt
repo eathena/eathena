@@ -29,6 +29,8 @@ TODO:
 
 Date		Added
 ======
+09/29
+	* Added temp warps of Thanatos Tower by Moryagorn [Lupus]
 09/28
 	* Fixed Super Novice quest. Now BABY can be a SUPER BABY. Finally 8) [Lupus]
 	* Updated some warps (Payon / Guilds) thanks to Yor
