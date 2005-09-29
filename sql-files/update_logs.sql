@@ -8,7 +8,7 @@ CREATE TABLE `picklog` (
   `id` int(11) NOT NULL auto_increment,
   `time` datetime NOT NULL default '0000-00-00 00:00:00',
   `char_id` int(11) NOT NULL default '0',
-  `type` enum('M','P','L','T','V','S','N','‘','A') NOT NULL default 'M',
+  `type` enum('M','P','L','T','V','S','N','C','A') NOT NULL default 'M',
   `nameid` int(11) NOT NULL default '0',
   `amount` int(11) NOT NULL default '1',
   `refine` tinyint(3) unsigned NOT NULL default '0',
