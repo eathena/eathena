@@ -2652,6 +2652,13 @@ int pc_useitem(struct map_session_data *sd,int n)
 			clif_useitemack(sd,n,amount,1);
 		else {
 			clif_useitemack(sd,n,amount-1,1);
+
+			//Logs (C)onsumable items [Lupus]
+			if(log_config.pick > 0 ) {
+				log_pick(sd, "C", 0, sd->status.inventory[n].nameid, -1, &sd->status.inventory[n]);
+			}
+			//Logs
+
 			pc_delitem(sd,n,1,1);
 		}
 		if(sd->status.inventory[n].card[0]==0x00fe && pc_istop10fame(MakeDWord(sd->status.inventory[n].card[2],sd->status.inventory[n].card[3]),JOB_ALCHEMIST))
@@ -6477,7 +6484,7 @@ int pc_checkitem(struct map_session_data *sd)
 			continue;
 		if( battle_config.item_check && !itemdb_available(id) ){
 			if(battle_config.error_log)
-				ShowWarning("illeagal item id %d in %d[%s] inventory.\n",id,sd->bl.id,sd->status.name);
+				ShowWarning("illegal item id %d in %d[%s] inventory.\n",id,sd->bl.id,sd->status.name);
 			pc_delitem(sd,i,sd->status.inventory[i].amount,3);
 			continue;
 		}

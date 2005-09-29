@@ -1,3 +1,25 @@
+#Pick_Log types (M)onsters Drop, (P)layers Drop/Take, Mobs Drop (L)oot Drop/Take,
+# Players (T)rade Give/Take, Players (V)ending Sell/Take, (S)hop Sell/Take, (N)PC Give/Take,
+# (C)onsumable Items, (A)dministrators Create/Delete
+
+#Database: log
+#Table: picklog
+CREATE TABLE `picklog` (
+  `id` int(11) NOT NULL auto_increment,
+  `time` datetime NOT NULL default '0000-00-00 00:00:00',
+  `char_id` int(11) NOT NULL default '0',
+  `type` enum('M','P','L','T','V','S','N','‘','A') NOT NULL default 'M',
+  `nameid` int(11) NOT NULL default '0',
+  `amount` int(11) NOT NULL default '1',
+  `refine` tinyint(3) unsigned NOT NULL default '0',
+  `card0` int(11) NOT NULL default '0',
+  `card1` int(11) NOT NULL default '0',
+  `card2` int(11) NOT NULL default '0',
+  `card3` int(11) NOT NULL default '0',
+  `map` varchar(20) NOT NULL default '',
+  PRIMARY KEY  (`id`)
+) TYPE=MyISAM AUTO_INCREMENT=1 ;
+
 #Database: log
 #Table: branchlog
 CREATE TABLE `branchlog` (
@@ -108,7 +130,7 @@ CREATE TABLE `tradelog` (
   `des_char_id` int(11) NOT NULL default '0',
   `des_char_name` varchar(30) NOT NULL default '',
   `nameid` int(11) NOT NULL default '0',
-  `amount` int(11) NOT NULL default '0',
+  `amount` int(11) NOT NULL default '1',
   `refine` tinyint(4) NOT NULL default '0',
   `card0` int(11) NOT NULL default '0',
   `card1` int(11) NOT NULL default '0',
@@ -131,7 +153,7 @@ CREATE TABLE `vendlog` (
   `buy_char_id` int(11) NOT NULL default '0',
   `buy_char_name` varchar(30) NOT NULL default '',
   `nameid` int(11) NOT NULL default '0',
-  `amount` int(11) NOT NULL default '0',
+  `amount` int(11) NOT NULL default '1',
   `refine` tinyint(4) NOT NULL default '0',
   `card0` int(11) NOT NULL default '0',
   `card1` int(11) NOT NULL default '0',
@@ -184,6 +206,3 @@ CREATE TABLE `chatlog` (
   `message` varchar(150) NOT NULL default '',
   PRIMARY KEY  (`id`)
 ) ENGINE=MyISAM AUTO_INCREMENT=1 ;
-
-
-

@@ -2367,10 +2367,18 @@ int atcommand_item(
 				memset(&item_tmp, 0, sizeof(item_tmp));
 				item_tmp.nameid = item_id;
 				item_tmp.identify = 1;
+
 				if ((flag = pc_additem((struct map_session_data*)sd, &item_tmp, get_count)))
 					clif_additem((struct map_session_data*)sd, 0, 0, flag);
 			}
 		}
+
+		//Logs (A)dmins items [Lupus]
+		if(log_config.pick > 0 ) {
+			log_pick(sd, "A", 0, item_id, number, NULL);
+		}
+		//Logs
+
 		clif_displaymessage(fd, msg_table[18]); // Item created.
 	} else {
 		clif_displaymessage(fd, msg_table[19]); // Invalid item ID or name.
@@ -2446,6 +2454,13 @@ int atcommand_item2(
 			if ((flag = pc_additem(sd, &item_tmp, get_count)))
 				clif_additem(sd, 0, 0, flag);
 		}
+
+		//Logs (A)dmins items [Lupus]
+		if(log_config.pick > 0 ) {
+			log_pick(sd, "A", 0, item_tmp.nameid, number, &item_tmp);
+		}
+		//Logs
+
 		clif_displaymessage(fd, msg_table[18]); // Item created.
 	} else {
 		clif_displaymessage(fd, msg_table[19]); // Invalid item ID or name.
@@ -2467,8 +2482,16 @@ int atcommand_itemreset(
 	nullpo_retr(-1, sd);
 
 	for (i = 0; i < MAX_INVENTORY; i++) {
-		if (sd->status.inventory[i].amount && sd->status.inventory[i].equip == 0)
+		if (sd->status.inventory[i].amount && sd->status.inventory[i].equip == 0) {
+
+			//Logs (A)dmins items [Lupus]
+			if(log_config.pick > 0 ) {
+				log_pick(sd, "A", 0, sd->status.inventory[i].nameid, -sd->status.inventory[i].amount, &sd->status.inventory[i]);
+			}
+			//Logs
+
 			pc_delitem(sd, i, sd->status.inventory[i].amount, 0);
+		}
 	}
 	clif_displaymessage(fd, msg_table[20]); // All of your items have been removed.
 
@@ -3650,6 +3673,13 @@ int atcommand_produce(
 		tmp_item.card[3] = GetWord(sd->char_id, 1);
 		clif_produceeffect(sd, 0, item_id); // 製造エフェクトパケット
 		clif_misceffect(&sd->bl, 3); // 他人にも成功を通知
+
+		//Logs (A)dmins items [Lupus]
+		if(log_config.pick > 0 ) {
+			log_pick(sd, "A", 0, item_tmp.nameid, 1, &item_tmp);
+		}
+		//Logs
+
 		if ((flag = pc_additem(sd, &tmp_item, 1)))
 			clif_additem(sd, 0, 0, flag);
 	} else {
@@ -6005,6 +6035,13 @@ int atcommand_chardelitem(const int fd, struct map_session_data* sd,
 				if (item_position >= 0) {
 					count = 0;
 					for(i = 0; i < number && item_position >= 0; i++) {
+
+						//Logs (A)dmins items [Lupus]
+						if(log_config.pick > 0 ) {
+							log_pick(pl_sd, "A", 0, pl_sd->status.inventory[item_position].nameid, -1, &pl_sd->status.inventory[item_position]);
+						}
+						//Logs
+
 						pc_delitem(pl_sd, item_position, 1, 0);
 						count++;
 						item_position = pc_search_inventory(pl_sd, item_id); // for next loop
@@ -7044,8 +7081,7 @@ atcommand_skilltree(const int fd, struct map_session_data* sd,
 }
 
 // Hand a ring with partners name on it to this char
-void getring (
-		struct map_session_data *sd)
+void getring (struct map_session_data *sd)
 {
 	int flag,item_id = 0;
 	struct item item_tmp;
@@ -7060,6 +7096,12 @@ void getring (
 	item_tmp.card[0]=255;
 	item_tmp.card[2]=sd->status.partner_id;
 	item_tmp.card[3]=sd->status.partner_id >> 16;
+
+	//Logs (A)dmins items [Lupus]
+	if(log_config.pick > 0 ) {
+		log_pick(sd, "A", 0, item_id, 1, &item_tmp);
+	}
+	//Logs
 
 	if((flag = pc_additem(sd,&item_tmp,1))) {
 		clif_additem(sd,0,0,flag);

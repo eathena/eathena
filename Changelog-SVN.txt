@@ -2,6 +2,9 @@ Date	Added
 =======
 
 09/29
+	* Added Consumable items log into pick_log [Lupus]
+	- You can see logs when someone uses items (boxes, potions, etc)
+	* Added AtCommands/CharCommands items deletion/creation log into pick_log [Lupus]
 	* Removed some of the unnecessary verbose messages from the char server
 	  during data saving. [Skotlex]
 	* Added the new "online check" system (more of a fixing of a system that

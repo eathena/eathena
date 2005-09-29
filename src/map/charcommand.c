@@ -954,10 +954,17 @@ charcommand_giveitem_sub(struct map_session_data *sd,struct item_data *item_data
 			memset(&item_tmp, 0, sizeof(item_tmp));
 			item_tmp.nameid = item_data->nameid;
 			item_tmp.identify = 1;
+
 			if ((flag = pc_additem((struct map_session_data*)sd,
 					&item_tmp, get_count)))
 				clif_additem((struct map_session_data*)sd, 0, 0, flag);
 		}
+		//Logs (A)dmins items [Lupus]
+		if(log_config.pick > 0 ) {
+			log_pick(sd, "A", 0, item_tmp.nameid, number, &item_tmp);
+		}
+		//Logs
+
 	}
 }
 /*==========================================
@@ -1017,10 +1024,18 @@ int charcommand_item(
 						memset(&item_tmp, 0, sizeof(item_tmp));
 						item_tmp.nameid = item_id;
 						item_tmp.identify = 1;
+
 						if ((flag = pc_additem(pl_sd, &item_tmp, get_count)))
 							clif_additem(pl_sd, 0, 0, flag);
 					}
 				}
+
+				//Logs (A)dmins items [Lupus]
+				if(log_config.pick > 0 ) {
+					log_pick(sd, "A", 0, item_tmp.nameid, number, &item_tmp);
+				}
+				//Logs
+
 				clif_displaymessage(fd, msg_table[18]); // Item created.
 			} else {
 				clif_displaymessage(fd, msg_table[81]); // Your GM level don't authorise you to do this action on this player.
