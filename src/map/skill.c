@@ -5537,7 +5537,6 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 	range = skill_get_range(sd->skillid,sd->skilllv);
 	if(range < 0)
 		range = status_get_range(&sd->bl) - (range + 1);
-	range += battle_config.pc_skill_add_range;
 
 	/* This piece of code is quite broken... it was originally meant to add range to follow up your enemy when
 	 * Combo Finish used to knock back. No longer needed. [Skotlex]
@@ -5551,7 +5550,7 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 		range += skill_get_blewcount(MO_COMBOFINISH,sd->sc_data[SC_COMBO].val2);
 	*/
 
-	if(range < distance(sd->bl.x,sd->bl.y,bl->x,bl->y))
+	if(range+battle_config.pc_skill_add_range < distance(sd->bl.x,sd->bl.y,bl->x,bl->y))
 	{
 		clif_skill_fail(sd,sd->skillid,0,0);
 		if(battle_config.skill_out_range_consume) //Consume items anyway. [Skotlex]
@@ -5669,9 +5668,8 @@ int skill_castend_pos( int tid, unsigned int tick, int id,int data )
 	range = skill_get_range(sd->skillid,sd->skilllv);
 	if(range < 0)
 		range = status_get_range(&sd->bl) - (range + 1);
-	range += battle_config.pc_skill_add_range;
 	
-	if(range < distance(sd->bl.x,sd->bl.y,sd->skillx,sd->skilly)) {
+	if(range+battle_config.pc_skill_add_range < distance(sd->bl.x,sd->bl.y,sd->skillx,sd->skilly)) {
 		clif_skill_fail(sd,sd->skillid,0,0);
 		if(battle_config.skill_out_range_consume) //Consume items anyway.
 			skill_check_condition(sd,1);

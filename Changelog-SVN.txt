@@ -2,6 +2,9 @@ Date	Added
 =======
 
 09/29
+	* Corrected the description of the 'skill_add_range' switches and made them
+	  default to 5. Still pending further tuning (the official value of these
+	  switches should have is still unknown) [Skotlex]
 	* Added Acid Demonstration to list of skills affected by
 	  'gvg_traps_target_all' [Skotlex]
 	* Likely fixed Firepillar triggering multiple times when many characters
