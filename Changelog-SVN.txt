@@ -2,6 +2,12 @@ Date	Added
 =======
 
 09/29
+	* Added Acid Demonstration to list of skills affected by
+	  'gvg_traps_target_all' [Skotlex]
+	* Likely fixed Firepillar triggering multiple times when many characters
+	  step unto it. [Skotlex]
+	* Increased the damage delay randomizer to be +/-10% rather than +/-5%, may
+	  fix 'stun-lock'. [Skotlex]
 	* Added Consumable items log into pick_log [Lupus]
 	- You can see logs when someone uses items (boxes, potions, etc)
 	* Added AtCommands/CharCommands items deletion/creation log into pick_log [Lupus]

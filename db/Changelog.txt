@@ -35,6 +35,8 @@
 	--
 
 09/27
+	* Changed lord of vermillion times to make it hit four times at times 0,
+	  1250ms, 2500ms and 3750ms. [Skotlex]
 	* Fixed Thanatos Mobs. Thanks to andz [Nexon]
 	* Added missing bonus +5 Int to Excalibur [Lupus]
 	* Fixed drop rate of Emperium: [Lupus]

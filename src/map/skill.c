@@ -6180,6 +6180,7 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 			range = 25;
 		break;
 	case WZ_QUAGMIRE:	//The target changes to "all" if used in a gvg map. [Skotlex]
+	case AM_DEMONSTRATION:
 		if (map[src->m].flag.gvg && battle_config.gvg_traps_bctall)
 			target = BCT_ALL;
 		break;
@@ -6573,7 +6574,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 	sc_data = status_get_sc_data(bl);
 	type = SkillStatusChangeTable[sg->skill_id];
 
-	if (sg->interval == -1 && (sg->unit_id == UNT_ANKLESNARE || sg->unit_id == UNT_SPIDERWEB))
+	if (sg->interval == -1 && (sg->unit_id == UNT_ANKLESNARE || sg->unit_id == UNT_SPIDERWEB || sg->unit_id == UNT_FIREPILLAR_ACTIVE))
 		//Ok, this case only happens with Ankle Snare/Spider Web (only skills that sets its interval to -1), 
 		//and only happens when more than one target is stepping on the trap at the moment it was triggered
 		//(yet only the first mob standing on the trap will be captured) [Skotlex]
@@ -6655,6 +6656,8 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 	case UNT_FIREPILLAR_ACTIVE:
 		map_foreachinarea(skill_attack_area,bl->m,bl->x-1,bl->y-1,bl->x+1,bl->y+1,0,
 			BF_MAGIC,ss,&src->bl,sg->skill_id,sg->skill_lv,tick,0,BCT_ENEMY);  // area damage [Celest]
+		sg->interval = -1; //Mark it used up so others can't trigger it for massive splash damage. [Skotlex]
+		sg->limit=DIFF_TICK(tick,sg->tick) + sec;
 		break;
 
 	case UNT_SKIDTRAP:
