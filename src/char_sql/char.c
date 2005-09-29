@@ -3935,7 +3935,9 @@ int char_config_read(const char *cfgName) {
 
 		remove_control_chars((unsigned char *) w1);
 		remove_control_chars((unsigned char *) w2);
-		if (strcmpi(w1, "userid") == 0) {
+		if(strcmpi(w1,"timestamp_format")==0) {
+			strncpy(timestamp_format, w2, 20);
+		} else if (strcmpi(w1, "userid") == 0) {
 			memcpy(userid, w2, 24);
 		} else if (strcmpi(w1, "passwd") == 0) {
 			memcpy(passwd, w2, 24);
@@ -4033,14 +4035,14 @@ int char_config_read(const char *cfgName) {
 			strcpy(char_name_letters, w2);
 		} else if (strcmpi(w1, "check_ip_flag") == 0) {
 			check_ip_flag = config_switch(w2);
-                } else if (strcmpi(w1, "chars_per_account") == 0) { //maxchars per account [Sirius]
-                        char_per_account = atoi(w2);
+		} else if (strcmpi(w1, "chars_per_account") == 0) { //maxchars per account [Sirius]
+			char_per_account = atoi(w2);
+		} else if (strcmpi(w1, "console") == 0) {
+			if(strcmpi(w2,"on") == 0 || strcmpi(w2,"yes") == 0 )
+				console = 1;
 		} else if (strcmpi(w1, "import") == 0) {
 			char_config_read(w2);
-		} else if (strcmpi(w1, "console") == 0) {
-			    if(strcmpi(w2,"on") == 0 || strcmpi(w2,"yes") == 0 )
-			        console = 1;
-        }
+		}
 	}
 	fclose(fp);
 	

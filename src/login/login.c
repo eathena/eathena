@@ -3449,7 +3449,9 @@ int login_config_read(const char *cfgName) {
 			remove_control_chars((unsigned char *)w1);
 			remove_control_chars((unsigned char *)w2);
 
-			if (strcmpi(w1, "admin_state") == 0) {
+			if(strcmpi(w1,"timestamp_format") == 0) {
+				strncpy(timestamp_format, w2, 20);
+			} else if (strcmpi(w1, "admin_state") == 0) {
 				admin_state = config_switch(w2);
 			} else if (strcmpi(w1, "admin_pass") == 0) {
 				memset(admin_pass, 0, sizeof(admin_pass));
@@ -3616,8 +3618,6 @@ int login_config_read(const char *cfgName) {
 				dynamic_pass_failure_ban_how_many = atoi(w2);
 			} else if (strcmpi(w1, "dynamic_pass_failure_ban_how_long") == 0) {
 				dynamic_pass_failure_ban_how_long = atoi(w2);
-			} else if (strcmpi(w1, "import") == 0) {
-				login_config_read(w2);
 			} else if(strcmpi(w1, "check_client_version") == 0){		//Added by Sirius for client version check
 				if(strcmpi(w2,"on") == 0 || strcmpi(w2,"yes") == 0 ){
 					check_client_version = 1;
@@ -3641,6 +3641,8 @@ int login_config_read(const char *cfgName) {
 					online_check = 0;
 				else
 					online_check = atoi(w2);
+			} else if (strcmpi(w1, "import") == 0) {
+				login_config_read(w2);
 			}
 		}
 	}

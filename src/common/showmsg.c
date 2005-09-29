@@ -1,48 +1,57 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
+#include <time.h>
 #include "showmsg.h"
 
 char tmp_output[1024] = {"\0"};
-
+char timestamp_format[20] = ""; //For displaying Timestamps
 // by MC Cameri
 int _vShowMessage(enum msg_type flag, const char *string, va_list ap)
 {
 	// _ShowMessage MUST be used instead of printf as of 10/24/2004.
 	// Return: 0 = Successful, 1 = Failed.
 //	int ret = 0;
-	char prefix[40];
+	char prefix[100];
 	
 	if (!string || strlen(string) <= 0) {
 		ShowError("Empty string passed to _vShowMessage().\n");
 		return 1;
 	}
+
+	if (timestamp_format)
+	{	//Display time format. [Skotlex]
+		time_t t = time(NULL);
+		strftime(prefix, 80, timestamp_format, localtime(&t));
+	} else prefix[0]='\0';
+
+
 	switch (flag) {
 		case MSG_NONE: // direct printf replacement
 			break;
 		case MSG_STATUS: //Bright Green (To inform about good things)
-			strcpy(prefix,CL_GREEN"[Status]"CL_RESET":");
+			strcat(prefix,CL_GREEN"[Status]"CL_RESET":");
 			break;
 		case MSG_SQL: //Bright Violet (For dumping out anything related with SQL) <- Actually, this is mostly used for SQL errors with the database, as successes can as well just be anything else... [Skotlex]
-			strcpy(prefix,CL_MAGENTA"[SQL]"CL_RESET":");
+			strcat(prefix,CL_MAGENTA"[SQL]"CL_RESET":");
 			break;
 		case MSG_INFORMATION: //Bright White (Variable information)
-			strcpy(prefix,CL_WHITE"[Info]"CL_RESET":");
+			strcat(prefix,CL_WHITE"[Info]"CL_RESET":");
 			break;
 		case MSG_NOTICE: //Bright White (Less than a warning)
-			strcpy(prefix,CL_WHITE"[Notice]"CL_RESET":");
+			strcat(prefix,CL_WHITE"[Notice]"CL_RESET":");
 			break;
 		case MSG_WARNING: //Bright Yellow
-			strcpy(prefix,CL_YELLOW"[Warning]"CL_RESET":");
+			strcat(prefix,CL_YELLOW"[Warning]"CL_RESET":");
 			break;
 		case MSG_DEBUG: //Bright Cyan, important stuff!
-			strcpy(prefix,CL_CYAN"[Debug]"CL_RESET":");
+			strcat(prefix,CL_CYAN"[Debug]"CL_RESET":");
 			break;
 		case MSG_ERROR: //Bright Red  (Regular errors)
-			strcpy(prefix,CL_RED"[Error]"CL_RESET":");
+			strcat(prefix,CL_RED"[Error]"CL_RESET":");
 			break;
 		case MSG_FATALERROR: //Bright Red (Fatal errors, abort(); if possible)
-			strcpy(prefix,CL_RED"[Fatal Error]"CL_RESET":");
+			strcat(prefix,CL_RED"[Fatal Error]"CL_RESET":");
 			break;
 		default:
 			ShowError("In function _vShowMessage() -> Invalid flag passed.\n");
@@ -50,6 +59,7 @@ int _vShowMessage(enum msg_type flag, const char *string, va_list ap)
 	}
 
 	if (!(flag == MSG_DEBUG && !SHOW_DEBUG_MSG)) {
+
 		if (flag == MSG_ERROR || flag == MSG_FATALERROR || flag == MSG_SQL)
 		{	//Send Errors to StdErr [Skotlex]
 			fprintf (stderr, "%s ", prefix);

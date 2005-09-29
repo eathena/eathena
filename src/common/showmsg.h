@@ -57,6 +57,7 @@
 	#define CL_PASS			"\033[0;32;42m"	// green on green
 #endif
 
+extern char timestamp_format[20]; //For displaying Timestamps [Skotlex]
 extern char tmp_output[1024];
 
 enum msg_type {

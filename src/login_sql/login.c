@@ -1755,7 +1755,10 @@ int login_config_read(const char *cfgName){
 		i=sscanf(line,"%[^:]: %[^\r\n]",w1,w2);
 		if(i!=2)
 			continue;
-		else if (strcmpi(w1, "bind_ip") == 0) {
+
+		if(strcmpi(w1,"timestamp_format") == 0) {
+			strncpy(timestamp_format, w2, 20);
+		} else if (strcmpi(w1, "bind_ip") == 0) {
 			//bind_ip_set_ = 1;
 			h = gethostbyname (w2);
 			if (h != NULL) {
@@ -1796,9 +1799,6 @@ int login_config_read(const char *cfgName){
 		else if(strcmpi(w1,"dynamic_pass_failure_ban_how_long")==0){
 			dynamic_pass_failure_ban_how_long=atoi(w2);
 			ShowStatus("set dynamic_pass_failure_ban_how_long : %d\n",dynamic_pass_failure_ban_how_long);
-		}		
-		else if (strcmpi(w1, "import") == 0) {
-			login_config_read(w2);
 		} else if(strcmpi(w1, "new_account") == 0){ 	//Added by Sirius for new account _M/_F
 			new_account_flag = atoi(w2);		//Added by Sirius for new account _M/_F		
 		} else if(strcmpi(w1, "check_client_version") == 0){ 		//Added by Sirius for client version check
@@ -1869,8 +1869,9 @@ int login_config_read(const char *cfgName){
 				log_login = 0;
 			else
 				log_login = atoi(w2);
+		} else if (strcmpi(w1, "import") == 0) {
+			login_config_read(w2);
 		}
-
  	}
 	fclose(fp);
 	ShowInfo("done reading %s.\n", cfgName);

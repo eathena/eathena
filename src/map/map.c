@@ -3259,7 +3259,9 @@ int map_config_read(char *cfgName) {
 		if (line[0] == '/' && line[1] == '/')
 			continue;
 		if (sscanf(line, "%[^:]: %[^\r\n]", w1, w2) == 2) {
-			if (strcmpi(w1, "userid")==0){
+			if(strcmpi(w1,"timestamp_format")==0){
+				strncpy(timestamp_format, w2, 20);
+			} else if (strcmpi(w1, "userid")==0){
 				chrif_setuserid(w2);
 			} else if (strcmpi(w1, "passwd") == 0) {
 				chrif_setpasswd(w2);
@@ -3323,14 +3325,14 @@ int map_config_read(char *cfgName) {
 				strncpy(map_cache_file,w2,255);
 			} else if(strcmpi(w1,"afm_dir") == 0) {
 				strcpy(afm_dir, w2);
-			} else if (strcmpi(w1, "import") == 0) {
-				map_config_read(w2);
 			} else if (strcmpi(w1, "console") == 0) {
-			    if(strcmpi(w2,"on") == 0 || strcmpi(w2,"yes") == 0 ) {
-			        console = 1;
+				if(strcmpi(w2,"on") == 0 || strcmpi(w2,"yes") == 0 ) {
+					console = 1;
 					ShowNotice("Console Commands is enabled.\n");
 				}
-            }
+			} else if (strcmpi(w1, "import") == 0) {
+				map_config_read(w2);
+			}
 		}
 	}
 	fclose(fp);

@@ -2,6 +2,10 @@ Date	Added
 =======
 
 09/29
+	* Added timestamp support. Set timestamp_format to whatever you want, and
+	  it will print a timestamp in said format before every Show* message. They
+	  can be set independently for each server (defined at login_athena.conf,
+	  char_athena.conf and map_athena.conf). Default is using no timestamps. [Skotlex]
 	* Modified the new auth login system to take into consideration when the
 	  client tries to connect before the character data arrives from the char
 	  server. [Skotlex]
