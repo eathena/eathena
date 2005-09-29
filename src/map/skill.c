@@ -6655,7 +6655,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 		map_foreachinarea(skill_attack_area,bl->m,bl->x-1,bl->y-1,bl->x+1,bl->y+1,0,
 			BF_MAGIC,ss,&src->bl,sg->skill_id,sg->skill_lv,tick,0,BCT_ENEMY);  // area damage [Celest]
 		sg->interval = -1; //Mark it used up so others can't trigger it for massive splash damage. [Skotlex]
-		sg->limit=DIFF_TICK(tick,sg->tick) + sec;
+		sg->limit=DIFF_TICK(tick,sg->tick) + 1500;
 		break;
 
 	case UNT_SKIDTRAP:

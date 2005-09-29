@@ -3676,7 +3676,7 @@ int atcommand_produce(
 
 		//Logs (A)dmins items [Lupus]
 		if(log_config.pick > 0 ) {
-			log_pick(sd, "A", 0, item_tmp.nameid, 1, &item_tmp);
+			log_pick(sd, "A", 0, tmp_item.nameid, 1, &tmp_item);
 		}
 		//Logs
 
