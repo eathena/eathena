@@ -1840,7 +1840,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 			clif_skillinfoblock(tsd);
 		}
 	}
-	if (damage > 0) //Counter status effects [Skotlex] 
+	if (dmg.dmg_lv == ATK_DEF || damage > 0) //Counter status effects [Skotlex] 
 		skill_counter_additional_effect(src,bl,skillid,skilllv,attack_type,tick);
 	
 	/* ダメ?ジがあるなら追加?果判定 */	
@@ -4719,16 +4719,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 
 	case NPC_CALLSLAVE:		//取り巻き呼び戻し
-		if(md) {
-			int mobcount;
-			md->recallcount = 0;//初期化
-			md->recall_flag = 0;
-			mobcount = mob_countslave(md);
-			if(mobcount > 0) {
-				md->recall_flag = 1; //mob.cの[取り巻きモンスターの処理]で利用
-				md->recallmob_count = mobcount;
-			}
-		}
+		mob_warpslave(src,AREA_SIZE/2);
 		break;
 
 	case NPC_RANDOMMOVE:

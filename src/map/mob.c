@@ -27,6 +27,7 @@
 #include "atcommand.h"
 
 #define MIN_MOBTHINKTIME 100
+#define MIN_MOBLINKTIME 1000
 
 #define MOB_LAZYMOVEPERC 50	// Move probability in the negligent mode MOB (rate of 1000 minute)
 #define MOB_LAZYWARPPERC 20	// Warp probability in the negligent mode MOB (rate of 1000 minute)
@@ -981,6 +982,7 @@ int mob_spawn (int id)
 	md->next_walktime = tick+rand()%50+5000;
 	md->attackabletime = tick;
 	md->canmove_tick = tick;
+	md->last_linktime = tick;
 
 	/* Guardians should be spawned using mob_spawn_guardian! [Skotlex]
 	 * and the Emperium is spawned using mob_once_spawn.
@@ -1308,39 +1310,33 @@ static int mob_ai_sub_hard_lootsearch(struct block_list *bl,va_list ap)
 }
 
 /*==========================================
- * The ?? routine of a link monster
+ * Links nearby mobs (supportive mobs)
  *------------------------------------------
  */
 static int mob_ai_sub_hard_linksearch(struct block_list *bl,va_list ap)
 {
-	struct mob_data *tmd;
-	struct mob_data* md;
+	struct mob_data *md;
+	int class_;
 	struct block_list *target;
-
+	unsigned int tick;
+	
 	nullpo_retr(0, bl);
 	nullpo_retr(0, ap);
-	nullpo_retr(0, tmd=(struct mob_data *)bl);
-	nullpo_retr(0, md=va_arg(ap,struct mob_data *));
-	nullpo_retr(0, target=va_arg(ap,struct block_list *));
+	md=(struct mob_data *)bl;
+	class_ = va_arg(ap, int);
+	target = va_arg(ap, struct block_list *);
+	tick=va_arg(ap, unsigned int);
 
-	// same family free in a range at a link monster -- it will be made to lock if MOB is
-/*	if( (md->target_id > 0 && md->state.targettype == ATTACKABLE) && md->db->mode&0x08){
-		if( tmd->class_==md->class_ && (!tmd->target_id || md->state.targettype == NONE_ATTACKABLE) && tmd->bl.m == md->bl.m){
-			if( mob_can_reach(tmd,target,12) ){	// Reachability judging
-				tmd->target_id=md->target_id;
-				tmd->state.targettype = ATTACKABLE;
-				tmd->min_chase=13;
-			}
-		}
-	}*/
-	if( md->attacked_id > 0 && md->db->mode&0x08){
-		if (tmd->class_ == md->class_ && tmd->bl.m == md->bl.m && (!tmd->target_id || md->state.targettype == NONE_ATTACKABLE)){
-			if( mob_can_reach(tmd,target,12) ){	// Reachability judging
-				tmd->target_id = md->attacked_id;
-				md->attacked_count = 0;
-				tmd->state.targettype = ATTACKABLE;
-				tmd->min_chase=13;
-			}
+	if (md->class_ == class_ && DIFF_TICK(md->last_linktime, tick) < MIN_MOBLINKTIME
+		&& (!md->target_id || md->state.targettype == NONE_ATTACKABLE))
+	{
+		md->last_linktime = tick;
+		if( mob_can_reach(md,target,12) ){	// Reachability judging
+			md->target_id = target->id;
+			md->attacked_count = 0;
+			md->state.targettype = ATTACKABLE;
+			md->min_chase=13;
+			return 1;
 		}
 	}
 
@@ -1370,34 +1366,12 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 			mob_damage(NULL,md,md->hp,0,0);
 		return 0;
 	}
-/* //Unneeded check.
-	if(md->state.special_mob_ai>0)		// 主がPCの場合は、以降の処理は要らない
-		return 0;
-
-	// It is not main monster/leader.
-	if (bl->type != BL_MOB || bl->id != md->master_id)
-		return 0;
-*/
-	// 呼び戻し
-	if(mmd && mmd->recall_flag == 1){
-		if (mmd->recallcount < (mmd->recallmob_count+2) ){
-			mob_warp(md,-1,bl->x,bl->y,3);
-			mmd->recallcount += 1;
-		} else{
-			mmd->recall_flag = 0;
-			mmd->recallcount=0;
-		}
-		md->state.master_check = 1;
-		return 0;
-	}
 
 	if(mode&0x01)
 	{	//If the mob can move, follow around. [Check by Skotlex]
 		// Since it is in the map on which the master is not, teleport is carried out and it pursues.
-
 		if(bl->m != md->bl.m){
 			mob_warp(md,bl->m,bl->x,bl->y,3);
-			md->state.master_check = 1;
 			return 0;
 		}
 
@@ -1408,7 +1382,6 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 		// Since the master was in near immediately before, teleport is carried out and it pursues.
 		if(old_dist<10 && md->master_dist>18){
 			mob_warp(md,-1,bl->x,bl->y,3);
-			md->state.master_check = 1;
 			return 0;
 		}
 
@@ -1449,7 +1422,6 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 			}
 
 			md->next_walktime=tick+500;
-			md->state.master_check = 1;
 		}
 	}
 	
@@ -1466,7 +1438,6 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 				md->target_id=sd->bl.id;
 				md->state.targettype = ATTACKABLE;
 				md->min_chase=5+distance(md->bl.x,md->bl.y,sd->bl.x,sd->bl.y);
-				md->state.master_check = 1;
 			}
 		}
 	}
@@ -1594,16 +1565,17 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 	if (!(mode & 0x80) && md->target_id > 0)
 		md->target_id = 0;
 
-	if (md->attacked_id > 0 && mode & 0x08){	// Link monster/ if target is not dead [Skotlex]
-		struct map_session_data *asd = map_id2sd (md->attacked_id);
-		//If the invincible timer is active, then players are exploiting this,
-		//because how could they have attacked the mob and still have it? [Skotlex]
-		if (asd && !pc_isdead(asd) && !pc_isinvisible(asd)) {
+	if (md->attacked_id && mode&0x08 && DIFF_TICK(md->last_linktime, gettick()) < MIN_MOBLINKTIME)
+	{	// Link monster/ if target is not dead [Skotlex]
+		struct map_session_data *asd = map_id2sd(md->attacked_id);
+		unsigned int tick = gettick();
+		md->last_linktime = tick;
+		if (asd && !pc_isdead(asd))
 			map_foreachinarea(mob_ai_sub_hard_linksearch, md->bl.m,
 				md->bl.x-13, md->bl.y-13, md->bl.x+13, md->bl.y+13,
-				BL_MOB, md, &asd->bl);
-		} else //If the target is not reachable, unlock it. [Skotlex]
-			mob_unlocktarget(md, tick);
+				BL_MOB, md->class_, &asd->bl, tick);
+		else
+			md->attacked_id = 0;
 	}
 
 	// It checks to see it was attacked first (if active, it is target change at 25% of probability).
@@ -1658,13 +1630,12 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 		}
 	}
 
-	md->state.master_check = 0;
 	// Processing of slave monster
 	if (md->master_id > 0)
 		mob_ai_sub_hard_slavemob(md, tick);
 
 	// アクティヴモンスターの策敵 (?? of a bitter taste TIVU monster)
-	if ((!md->target_id || md->state.targettype == NONE_ATTACKABLE) && mode & 0x04 && !md->state.master_check &&
+	if ((!md->target_id || md->state.targettype == NONE_ATTACKABLE) && mode & 0x04 &&
 		battle_config.monster_active_enable) {
 		i = 0;
 		search_size = (blind_flag) ? 3 : AREA_SIZE*2;
@@ -1680,7 +1651,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 	}
 
 	// The item search of a route monster
-	if (!md->target_id && mode & 0x02 && !md->state.master_check){
+	if (!md->target_id && mode & 0x02){
 		i = 0;
 		search_size = (blind_flag) ? 3 : AREA_SIZE*2;
 		map_foreachinarea (mob_ai_sub_hard_lootsearch, md->bl.m,
@@ -2386,6 +2357,16 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 		mobskill_use(md, tick, MSC_ALCHEMIST);
 	}
 
+/* Uncomment this to enable supportive mobs calling for support when attacked as well as during their AI. [Skotlex]
+	if (src && status_get_mode(&md->bl) & 0x08 && DIFF_TICK(md->last_linktime, gettick()) < MIN_MOBLINKTIME)
+	{	// Link monster/ if target is not dead [Skotlex]
+		unsigned int tick = gettick();
+		md->last_linktime = tick;
+		map_foreachinarea(mob_ai_sub_hard_linksearch, md->bl.m,
+			md->bl.x-13, md->bl.y-13, md->bl.x+13, md->bl.y+13,
+			BL_MOB, md->class_, src, tick);
+	}
+*/
 	if (battle_config.show_mob_hp)
 		clif_charnameack (0, &md->bl);
 		
@@ -2952,6 +2933,7 @@ int mob_class_change (struct mob_data *md, int class_)
 	md->next_walktime = tick+rand()%50+5000;
 	md->attackabletime = tick;
 	md->canmove_tick = tick;
+	md->last_linktime = tick;
 
 	for(i=0,c=tick-1000*3600*10;i<MAX_MOBSKILL;i++)
 		md->skilldelay[i] = c;
@@ -3010,28 +2992,39 @@ int mob_heal(struct mob_data *md,int heal)
 int mob_warpslave_sub(struct block_list *bl,va_list ap)
 {
 	struct mob_data *md=(struct mob_data *)bl;
-	int id,x,y;
-	id=va_arg(ap,int);
-	x=va_arg(ap,int);
-	y=va_arg(ap,int);
-	if( md->master_id==id ) {
-		mob_warp(md,-1,x,y,2);
-	}
-	return 0;
+	struct block_list *master;
+	int x,y,range,i=0;
+	master = va_arg(ap, struct block_list*);
+	range = va_arg(ap, int);
+	
+	if(md->master_id!=master->id)
+		return 0;
+
+	do {
+		x = master->x - range/2 + rand()%range;
+		y = master->y - range/2 + rand()%range;
+	} while (map_getcell(master->m,x,y,CELL_CHKNOPASS) && i<25);
+	
+	if (i == 100)
+		mob_warp(md, master->m, master->x, master->y,2);
+	else
+		mob_warp(md, master->m, x, y,2);
+
+	return 1;
 }
 
 /*==========================================
  * Added by RoVeRT
+ * Warps slaves. Range is the area around the master that they can
+ * appear in randomly.
  *------------------------------------------
  */
-int mob_warpslave(struct mob_data *md,int x, int y)
+int mob_warpslave(struct block_list *bl, int range)
 {
-//printf("warp slave\n");
-	map_foreachinarea(mob_warpslave_sub, md->bl.m,
-		x-AREA_SIZE,y-AREA_SIZE,
-		x+AREA_SIZE,y+AREA_SIZE,BL_MOB,
-		md->bl.id, md->bl.x, md->bl.y );
-	return 0;
+	if (range < 1)
+		range = 1; //Min range needed to avoid crashes and stuff. [Skotlex]
+	
+	return map_foreachinarea(mob_warpslave_sub, bl->m, 0, 0, map[bl->m].xs,map[bl->m].ys, BL_MOB, bl, range);
 }
 
 /*==========================================
@@ -3098,7 +3091,7 @@ int mob_warp(struct mob_data *md,int m,int x,int y,int type)
 	if(type>0)
 	{
 		clif_spawnmob(md);
-		mob_warpslave(md,md->bl.x,md->bl.y);
+		mob_warpslave(&md->bl,AREA_SIZE);
 	}
 
 	return 0;

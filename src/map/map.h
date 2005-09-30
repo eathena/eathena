@@ -586,7 +586,6 @@ struct mob_data {
 		unsigned steal_flag : 1;
 		unsigned steal_coin_flag : 1;
 		unsigned skillcastcancel : 1;
-		unsigned master_check : 1;
 		unsigned change_walk_target : 1;
 		unsigned walk_easy : 1;
 		unsigned special_mob_ai : 3;
@@ -605,9 +604,10 @@ struct mob_data {
 	short target_lv;
 	struct walkpath_data walkpath;
 	unsigned int next_walktime;
+	unsigned int canmove_tick;
 	unsigned int attackabletime;
 	unsigned int last_deadtime,last_spawntime,last_thinktime;
-	unsigned int canmove_tick;
+	unsigned int last_linktime;
 	short move_fail_count;
 	struct {
 		int id;
@@ -620,7 +620,6 @@ struct mob_data {
 	short sc_count;
 	short opt1,opt2,opt3,option;
 	short min_chase;
-//	int guild_id;
 	struct guardian_data* guardian_data; 
 	int deletetimer;
 
@@ -636,9 +635,6 @@ struct mob_data {
 	struct skill_unit_group_tickset skillunittick[MAX_SKILLUNITGROUPTICKSET];
 	char npc_event[50];
 	unsigned char size;
-	short recall_flag;
-	int recallmob_count;
-	short recallcount;
 	unsigned char cached; //Cached mobs for dynamic mob unloading [Skotlex]
 };
 struct pet_data {

@@ -2,6 +2,12 @@ Date	Added
 =======
 
 09/30
+	* Updated the slave warp code. Now when a master recalls their slaves,
+	  these will be placed 'randomly' around the master in an area_size/2 range.
+	  [Skotlex]
+	* Cleaned up the mob link (supportive mode) code to prevent wasting time
+	  trying to link friends every 100ms. Now the interval for linking friends is
+	  MOB_MINLINKTIME (1 sec currently) [Skotlex]
 	* Updated mob code so when a mob hits another, they set their 'attacked id'
 	  to the mob in question, and not the mob's master. [Skotlex]
 	* Some cleaning up of the Taekwon stance skills. Added a attack delay when
