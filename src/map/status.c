@@ -2952,12 +2952,20 @@ int status_get_size(struct block_list *bl)
 int status_get_mode(struct block_list *bl)
 {
 	nullpo_retr(0x01, bl);
+	if(bl->type==BL_PC)
+		return 0x81; //Default player mode: Can move + can attack.
 	if(bl->type==BL_MOB && (struct mob_data *)bl)
+	{
+		if (((struct mob_data *)bl)->mode)
+			return ((struct mob_data *)bl)->mode;
 		return ((struct mob_data *)bl)->db->mode;
-	else if(bl->type==BL_PET && (struct pet_data *)bl)
+	}
+	if(bl->type==BL_PET && (struct pet_data *)bl)
 		return ((struct pet_data *)bl)->db->mode;
-	else
-		return 0x01;	// ‚Æ‚è‚ ‚¦‚¸“®‚­‚Æ‚¢‚¤‚±‚Æ‚Å1
+	if (bl->type==BL_SKILL)
+		return 0x81;	//Default mode for skills: Can attack, can move (think dances).
+	//Default universal mode, can move
+	return 0x01;	// ‚Æ‚è‚ ‚¦‚¸“®‚­‚Æ‚¢‚¤‚±‚Æ‚Å1
 }
 
 int status_get_mexp(struct block_list *bl)
@@ -3769,21 +3777,30 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			break;
 // Taekwon kicks SCs, waiting to know how they should work [Dralnu]
 		case SC_STORMKICK:
-		    tick = 1000;
-		    clif_displaymessage(sd->fd,"Whirlwind Kick now !!");
-		    break;
   		case SC_DOWNKICK:
-		    tick = 1000;
-		    clif_displaymessage(sd->fd,"Axe Kick now !!");
-		    break;
-    	case SC_COUNTER:
-		    tick = 1000;
-		    clif_displaymessage(sd->fd,"Counter Kick now !!");
-		    break;
  		case SC_TURNKICK:
-		    tick = 1000;
-		    clif_displaymessage(sd->fd,"Round Kick now !!");
-		    break;
+		case SC_COUNTER:
+			if (sd)
+			{
+				switch (type)
+				{
+				case SC_STORMKICK:
+					clif_displaymessage(sd->fd,"Whirlwind Kick now !!");
+					break;
+		  		case SC_DOWNKICK:
+					clif_displaymessage(sd->fd,"Axe Kick now !!");
+					break;
+		 		case SC_TURNKICK:
+					clif_displaymessage(sd->fd,"Round Kick now !!");
+					break;
+    			case SC_COUNTER:
+					clif_displaymessage(sd->fd,"Counter Kick now !!");
+					break;
+				}
+				sd->attackabletime = gettick()+tick;
+			}
+			break;
+			
 		case SC_AUTOGUARD:
 			if (!flag)
 			{

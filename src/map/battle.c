@@ -2808,6 +2808,70 @@ int battle_check_undead(int race,int element)
 }
 
 /*==========================================
+ * Checks whether if target is attackable by src using
+ * the current status into consideration. [Skotlex]
+ *------------------------------------------
+ */
+int battle_check_attackable(struct block_list *src, struct block_list *target)
+{
+	int mode, race;
+	struct status_change *sc_data, *tsc_data;
+	short *option, *opt1;
+
+	if (status_isdead(src) || status_isdead(target))
+		return 0;
+
+	mode = status_get_mode(src);
+	if (!(mode&0x80))
+		return 0;
+	
+	option = status_get_option(src);
+	opt1 = status_get_opt1(src);
+	
+	if ((*opt1 >0  && *opt1 != 6) || option&2)
+		return 0;
+
+	sc_data = status_get_sc_data(src);
+	tsc_data = status_get_sc_data(target);
+	
+	if(sc_data && (sc_data[SC_BASILICA].timer != -1 || sc_data[SC_BLADESTOP].timer != -1
+		|| sd->sc_data[SC_AUTOCOUNTER].timer != -1 || sd->sc_data[SC_GRAVITATION].timer != -1
+		|| (sd->sc_data[SC_GOSPEL].timer != -1 && sd->sc_data[SC_GOSPEL].val4 == BCT_SELF)
+	))
+		return 0;
+	
+	if(tsc_data &&!(mode & 0x20))
+	{	
+		if (tsc_data[SC_BASILICA].timer != -1
+			|| tsc_data[SC_TRICKDEAD].timer != -1
+		)
+			return 0;
+	}
+
+	if (src->type == BL_PC)
+	{
+		struct map_session_data *sd = (struct map_session_data*) target;
+		if (pc_ischasewalk(sd))
+			return 0;
+	}
+	
+	if (target->type == BL_PC)
+	{
+		struct map_session_data *sd = (struct map_session_data*) target;
+		if (pc_isinvisible(sd))
+			return 0;
+		if (!(mode & 0x20)
+			&& (pc_ishiding(sd) || sd->state.gangsterparadise)
+			&& !(race == 4 || race == 6 || mode&0x100)
+			&& !sd->perfect_hiding
+		)
+			return 0;
+	}
+	
+	return 1;
+}
+
+/*==========================================
  * Checks the state between two targets (rewritten by Skotlex)
  * (enemy, friend, party, guild, etc)
  * See battle.h for possible values/combinations

@@ -813,15 +813,15 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 				status_change_start(bl,SC_DPOISON,sd->sc_data[SC_EDP].val1,0,0,0,skill_get_time2(ASC_EDP,sd->sc_data[SC_EDP].val1),0);
 			// Chance to trigger Taekwon kicks
 			if (sd->sc_data[SC_READYSTORM].timer != -1 && rand()%100 < 15) // Storm Kick Stance [Dralnu]
-				status_change_start(src,SC_STORMKICK,1,0,0,0,0,0);
+				status_change_start(src,SC_STORMKICK,1,bl->id,0,0,1000,0);
 			if(sd->sc_data[SC_READYDOWN].timer != -1 && rand()%100 < 15) // Axe Kick Stance [Dralnu]
-				status_change_start(src,SC_DOWNKICK,1,bl->id,0,0,0,0);
+				status_change_start(src,SC_DOWNKICK,1,bl->id,0,0,1000,0);
 			if(sd->sc_data[SC_READYTURN].timer != -1 && rand()%100 < 15) // Round Kick Stance [Dralnu]
-				status_change_start(src,SC_TURNKICK,1,bl->id,0,0,0,0);
+				status_change_start(src,SC_TURNKICK,1,bl->id,0,0,1000,0);
 		}
 		if(dstsd){
         	if (dstsd->sc_data[SC_READYCOUNTER].timer != -1 && rand()%100 < 20) // Counter Kick Stance [Dralnu]
-				status_change_start(bl,SC_COUNTER,1,src->id,0,0,0,0);
+				status_change_start(bl,SC_COUNTER,1,src->id,0,0,1000,0);
 		}
 		break;
 

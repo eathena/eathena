@@ -3826,7 +3826,6 @@ int pc_attack(struct map_session_data *sd,int target_id,int type)
 		return 1;
 
 	if(bl->type==BL_NPC) { // monster npcs [Valaris]
-		//npc_click(sd,RFIFOL(sd->fd,2));
 		npc_click(sd,target_id); // submitted by leinsirk10 [Celest]
 		return 0;
 	}
