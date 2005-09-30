@@ -2822,21 +2822,23 @@ int battle_check_attackable(struct block_list *src, struct block_list *target)
 		return 0;
 
 	mode = status_get_mode(src);
+	race = status_get_race(src);
+	
 	if (!(mode&0x80))
 		return 0;
 	
 	option = status_get_option(src);
 	opt1 = status_get_opt1(src);
 	
-	if ((*opt1 >0  && *opt1 != 6) || option&2)
+	if (((*opt1) >0 && (*opt1) != 6) || (*option)&2)
 		return 0;
 
 	sc_data = status_get_sc_data(src);
 	tsc_data = status_get_sc_data(target);
 	
 	if(sc_data && (sc_data[SC_BASILICA].timer != -1 || sc_data[SC_BLADESTOP].timer != -1
-		|| sd->sc_data[SC_AUTOCOUNTER].timer != -1 || sd->sc_data[SC_GRAVITATION].timer != -1
-		|| (sd->sc_data[SC_GOSPEL].timer != -1 && sd->sc_data[SC_GOSPEL].val4 == BCT_SELF)
+		|| sc_data[SC_AUTOCOUNTER].timer != -1 || sc_data[SC_GRAVITATION].timer != -1
+		|| (sc_data[SC_GOSPEL].timer != -1 && sc_data[SC_GOSPEL].val4 == BCT_SELF)
 	))
 		return 0;
 	
