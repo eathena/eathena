@@ -4135,15 +4135,13 @@ int status_change_clear(struct block_list *bl,int type)
 
 		if (type == 1 && sc_data[i].timer != -1)
 		{	//If for some reason status_change_end decides to still keep the status when quitting. [Skotlex]
+			(*sc_count)--;
 			delete_timer(sc_data[i].timer, status_change_timer);
 			sc_data[i].timer = -1;
 		}
 	}
-	for(i = 0; i < MAX_STATUSCHANGE; i++)
-	{	//We can't assume the count is 0, some status don't end even when dead! [Skotlex]
-		if(sc_data[i].timer != -1)
-			(*sc_count)++;
-	}
+	//We can't assume the count is 0, some status don't end even when dead! [Skotlex]
+	//(*sc_count) = 0;
 	*opt1 = 0;
 	*opt2 = 0;
 	*opt3 = 0;
@@ -4178,7 +4176,7 @@ int status_change_end( struct block_list* bl , int type,int tid )
 	nullpo_retr(0, opt2 = status_get_opt2(bl));
 	nullpo_retr(0, opt3 = status_get_opt3(bl));
 
-	if ((*sc_count) > 0 && sc_data[type].timer != -1 && (sc_data[type].timer == tid || tid == -1)) {
+	if (sc_data[type].timer != -1 && (sc_data[type].timer == tid || tid == -1)) {
 
 		if (tid == -1)	// タイマから呼ばれていないならタイマ削除をする
 			delete_timer(sc_data[type].timer,status_change_timer);

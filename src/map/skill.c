@@ -6948,18 +6948,6 @@ int skill_unit_onout(struct skill_unit *src,struct block_list *bl,unsigned int t
 		if (sc_data && sc_data[type].timer!=-1)
 			status_change_end(bl,type,-1);
 		break;
-/*
-	case UNT_PNEUMA:
-	case UNT_QUAGMIRE:
-	case UNT_VOLCANO:
-	case UNT_DELUGE:
-	case UNT_VIOLENTGALE:
-		if (type==SC_QUAGMIRE && bl->type==BL_MOB)
-			return 0;
-		if (sc_data && sc_data[type].timer!=-1 && sc_data[type].val2==sg->group_id)
-			status_change_end(bl,type,-1);
-		break;
-*/
 	case UNT_ANKLESNARE:
 	{
 		struct block_list *target = map_id2bl(sg->val2);
@@ -6971,63 +6959,10 @@ int skill_unit_onout(struct skill_unit *src,struct block_list *bl,unsigned int t
 			return 0;
 		break;
 	}
-/*
-	case UNT_RICHMANKIM:
-	case UNT_ETERNALCHAOS:
-	case UNT_DRUMBATTLEFIELD:
-	case UNT_RINGNIBELUNGEN:
-	case UNT_ROKISWEIL:
-	case UNT_INTOABYSS:
-	case UNT_SIEGFRIED:
-	case UNT_HERMODE:
-		if (sc_data[type].timer!=-1 && sc_data[type].val4==sg->group_id)
-			status_change_end(bl,type,-1);
-		break;	
-*/
-/*
-	case UNT_WHISTLE:
-	case UNT_ASSASSINCROSS:
-	case UNT_POEMBRAGI:
-	case UNT_APPLEIDUN:
-	case UNT_HUMMING:
-	case UNT_FORTUNEKISS:
-	case UNT_DONTFORGETME:
-	case UNT_SERVICEFORYOU:
-		if (sg->src_id==bl->id) {
-			status_change_end(bl,type,-1); //Silly check, the owner/caster cannot be affected by their own song/dance!
-			break;
-		}
-*/
-/*
-		if (sc_data[type].timer!=-1)
-		{
-			delete_timer(sc_data[type].timer, status_change_timer);
-			sc_data[type].timer = add_timer(20000+tick, status_change_timer, bl->id, type);
-		}
-*/
-		break;		
 	case UNT_BASILICA: //Clear basilica if the owner moved [Skotlex]
 		if(sc_data[type].timer!=-1 && sc_data[type].val3==BCT_SELF)
 			status_change_end(bl,type,-1);
 		break;
-/*
-	case UNT_GRAVITATION:
-		if (sc_data[type].timer!=-1 && sc_data[type].val4==sg->group_id)
-			status_change_end(bl,type,-1);
-		break;
-*/
-/*
-	case UNT_FOGWALL:
-		if (sc_data[type].timer!=-1 && sc_data[type].val4==sg->group_id) {
-			status_change_end(bl,SC_FOGWALL,-1);
-			if (sc_data && sc_data[SC_BLIND].timer!=-1)
-			{
-				delete_timer(sc_data[type].timer, status_change_timer);
-				sc_data[type].timer = add_timer(30000+tick, status_change_timer, bl->id, type);
-			}
-			break;
-		}
-*/
 	case UNT_SPIDERWEB:	/* スパイダ?ウェッブ */
 		{
 			struct block_list *target = map_id2bl(sg->val2);
@@ -7112,8 +7047,8 @@ static int skill_unit_onleft(int skill_id, struct block_list *bl,unsigned int ti
 				status_change_end(bl,type,-1);
 				if (sc_data[SC_BLIND].timer!=-1)
 				{
-					delete_timer(sc_data[type].timer, status_change_timer);
-					sc_data[type].timer = add_timer(30000+tick, status_change_timer, bl->id, type);
+					delete_timer(sc_data[SC_BLIND].timer, status_change_timer);
+					sc_data[SC_BLIND].timer = add_timer(30000+tick, status_change_timer, bl->id, SC_BLIND);
 				}
 			}
 			break;
@@ -9480,13 +9415,11 @@ void skill_stop_dancing(struct block_list *src)
 	struct status_change* sc_data;
 	struct skill_unit_group* group;
 	struct map_session_data* dsd = NULL;
-	short* sc_count;
 
 	nullpo_retv(src);
 	nullpo_retv(sc_data = status_get_sc_data(src));
-	nullpo_retv(sc_count = status_get_sc_count(src));
 
-	if((*sc_count) == 0 || sc_data[SC_DANCING].timer == -1)
+	if(sc_data[SC_DANCING].timer == -1)
 		return;
 	
 	group = (struct skill_unit_group *)sc_data[SC_DANCING].val2;

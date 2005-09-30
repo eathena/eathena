@@ -827,6 +827,13 @@ int pet_remove_map(struct map_session_data *sd)
 			aFree(pd->s_skill);
 			pd->s_skill = NULL;
 		}
+		if(pd->recovery)
+		{
+			if(pd->recovery->timer != -1)
+				delete_timer(pd->bonus->recovery->timer, pet_recovery_timer);
+			aFree(pd->recovery);
+			pd->recovery = NULL;
+		}
 		if(pd->bonus)
 		{
 			if (pd->bonus->timer != -1)

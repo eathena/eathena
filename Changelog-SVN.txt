@@ -2,6 +2,9 @@ Date	Added
 =======
 
 09/29
+	* Some tweaks and fixes around status.c, may fix the timer mismatches of
+	  status_change_timer. [Skotlex]
+	* Fixed a memory leak regarding pet status recovery scripts. [Skotlex]
 	* Added timestamp support. Set timestamp_format to whatever you want, and
 	  it will print a timestamp in said format before every Show* message. They
 	  can be set independently for each server (defined at login_athena.conf,
@@ -9,9 +12,7 @@ Date	Added
 	* Modified the new auth login system to take into consideration when the
 	  client tries to connect before the character data arrives from the char
 	  server. [Skotlex]
-	  (use at your own risk as I have not been able to test it yet, but seeing
-	  how many servers have connection problems as it is already, you may as
-	  well want to help try it out)
+	  (seems to work well, but could use more testing)
 	* Corrected the description of the 'skill_add_range' switches and made them
 	  default to 5. Still pending further tuning (the official value of these
 	  switches should have is still unknown) [Skotlex]
