@@ -503,10 +503,23 @@ int map_foreachinarea(int (*func)(struct block_list*,va_list),int m,int x0,int y
 	if (m < 0)
 		return 0;
 	va_start(ap,type);
+	if (x1 < x0)
+	{	//Swap range
+		bx = x0;
+		x0 = x1;
+		x1 = bx;
+	}
+	if (y1 < y0)
+	{
+		bx = y0;
+		y0 = y1;
+		y1 = bx;
+	}
 	if (x0 < 0) x0 = 0;
 	if (y0 < 0) y0 = 0;
 	if (x1 >= map[m].xs) x1 = map[m].xs-1;
 	if (y1 >= map[m].ys) y1 = map[m].ys-1;
+	
 	if (type == 0 || type != BL_MOB)
 		for (by = y0 / BLOCK_SIZE; by <= y1 / BLOCK_SIZE; by++) {
 			for(bx=x0/BLOCK_SIZE;bx<=x1/BLOCK_SIZE;bx++){
