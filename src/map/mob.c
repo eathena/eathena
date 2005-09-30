@@ -2331,11 +2331,12 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 			if(md->attacked_id <= 0 && md->state.special_mob_ai==0)
 				md->attacked_id = pd->msd->bl.id;
 		}
-		if(src && src->type == BL_MOB && ((struct mob_data*)src)->state.special_mob_ai){
+		if(src && src->type == BL_MOB)
+		{
 			struct mob_data *md2 = (struct mob_data *)src;
-			struct map_session_data *msd = map_id2sd(md2->master_id);
-			//nullpo_retr(0, md2); <- this check is ridiculous, see the above if! [Skotlex]
-			//nullpo_retr(0, msd);
+			struct map_session_data *msd = NULL;
+			if (md2->state.special_mob_ai && md2->master_id)
+				msd = map_id2sd(md2->master_id);
 			if (msd)	
 			{	//If master is not logged on, we just make his share of exp be lost. [Skotlex]
 				for(i=0,minpos=0,mindmg=0x7fffffff;i<DAMAGELOG_SIZE;i++){
@@ -2355,11 +2356,10 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 				else {
 					md->dmglog[minpos].id=msd->status.char_id;
 					md->dmglog[minpos].dmg=damage;
-
-				if(md->attacked_id <= 0 && md->state.special_mob_ai==0)
-					md->attacked_id = md2->master_id;
 				}
 			}
+			if(md->attacked_id <= 0)
+				md->attacked_id = md2->bl.id; //People want mobs to revenge on the mob, not the master. [Skotlex]
 		}
 	}
 

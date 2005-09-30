@@ -2,6 +2,8 @@ Date	Added
 =======
 
 09/30
+	* Updated mob code so when a mob hits another, they set their 'attacked id'
+	  to the mob in question, and not the mob's master. [Skotlex]
 	* Some cleaning up of the Taekwon stance skills. Added a attack delay when
 	  they trigger (same way as triple attack delays your continous attack) [Skotlex]
 	* Modified the range check in skill_use_id/skill_use_pos so that if you try

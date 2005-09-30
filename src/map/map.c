@@ -579,6 +579,18 @@ int map_foreachinmovearea(int (*func)(struct block_list*,va_list),int m,int x0,i
 	int blockcount=bl_list_count,i,c;
 
 	va_start(ap,type);
+	if (x1 < x0)
+	{	//Swap range
+		bx = x0;
+		x0 = x1;
+		x1 = bx;
+	}
+	if (y1 < y0)
+	{
+		bx = y0;
+		y0 = y1;
+		y1 = bx;
+	}
 	if(dx==0 || dy==0){
 		// ‹éŒ`—Ìˆæ‚Ìê‡
 		if(dx==0){
