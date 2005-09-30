@@ -3374,7 +3374,7 @@ int pc_walktoxy (struct map_session_data *sd, int x, int y)
 	sd->to_x = x;
 	sd->to_y = y;
 
-	if (sd->walktimer != -1 /*&& sd->state.change_walk_target == 0*/)
+	if (sd->walktimer != -1)
 	{	//There was a timer-mismatch here. pc_walktoxy_sub does not clears previous pc_walk timers! [Skotlex]
 		sd->state.change_walk_target = 1;
 	} else {

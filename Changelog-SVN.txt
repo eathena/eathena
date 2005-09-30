@@ -2,6 +2,10 @@ Date	Added
 =======
 
 09/30
+	* Modified the range check in skill_use_id/skill_use_pos so that if you try
+	  to use a skill while moving, it will change your path to move one cell towards the
+	  target before casting (as long as you are within one tile of being in
+	  range). [Skotlex]
 	* Moved the bleeding reduction formula to status_change_start, modified the
 	  formula to be (lv/5+vit)% reduction. [Skotlex]
 	* Fixed the blind duration reduction formula. [Skotlex]

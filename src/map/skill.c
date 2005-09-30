@@ -7944,7 +7944,7 @@ int skill_delayfix( struct block_list *bl, int time )
  */
 int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int skill_lv)
 {
-	int casttime = 0, delay = 0, skill, range;
+	int casttime = 0, delay = 0, skill;
 	struct map_session_data* tsd = NULL;
 	struct block_list *bl = NULL;
 	struct status_change *sc_data;
@@ -8092,24 +8092,28 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 	if (!skill_check_condition(sd,0)) return 0;	
 
 	{
-		int check_range_flag = 0;
+		int check_range_flag = 0, range;
 
 		/* 射程と障害物チェック */
 		range = skill_get_range(skill_num,skill_lv);
 		if(range < 0)
 			range = status_get_range(&sd->bl) - (range + 1);
-		// be lenient if the skill was cast before we have moved to the correct position [Celest]
+		
 		if (sd->walktimer != -1)
+		{	//Because of the sync issues between map and client, we increase the range by one
+			//and make the char move towards the target one cell. [Skotlex]
 			range++;
-		else check_range_flag = 1;
-		if(!battle_check_range(&sd->bl,bl,range)) {
-			if (check_range_flag && battle_check_range(&sd->bl,bl,range + 1)) {
-				int mask[8][2] = {{0,1},{-1,1},{-1,0},{-1,-1},{0,-1},{1,-1},{1,0},{1,1}};
-				int dir = map_calc_dir(&sd->bl,bl->x,bl->y);
-				pc_walktoxy (sd, sd->bl.x + mask[dir][0], sd->bl.y + mask[dir][1]);
-			} else
-				return 0;
+			check_range_flag = 1;
 		}
+		
+		if(!battle_check_range(&sd->bl,bl,range))
+			return 0;
+		
+		if (check_range_flag) {
+			int mask[8][2] = {{0,1},{-1,1},{-1,0},{-1,-1},{0,-1},{1,-1},{1,0},{1,1}};
+			int dir = map_calc_dir(&sd->bl,bl->x,bl->y);
+			pc_walktoxy (sd, sd->bl.x + mask[dir][0], sd->bl.y + mask[dir][1]);
+		} 
 	}
 
 	if ((skill_num != MO_CHAINCOMBO &&
@@ -8308,7 +8312,7 @@ int skill_use_pos (struct map_session_data *sd, int skill_x, int skill_y, int sk
 {
 	struct block_list bl;
 	struct status_change *sc_data;
-	int casttime = 0, delay = 0, skill, range;
+	int casttime = 0, delay = 0, skill;
 	unsigned int tick = gettick();
 
 	nullpo_retr(0, sd);
@@ -8368,9 +8372,33 @@ int skill_use_pos (struct map_session_data *sd, int skill_x, int skill_y, int sk
 	bl.y = skill_y;
 
 	{
-		int check_range_flag = 0;
+		int check_range_flag = 0, range;
 
 		/* 射程と障害物チェック */
+		range = skill_get_range(skill_num,skill_lv);
+		if(range < 0)
+			range = status_get_range(&sd->bl) - (range + 1);
+		
+		if (sd->walktimer != -1)
+		{	//Because of the sync issues between map and client, we increase the range by one
+			//and make the char move towards the target one cell. [Skotlex]
+			range++;
+			check_range_flag = 1;
+		}
+		
+		if(!battle_check_range(&sd->bl,&bl,range))
+			return 0;
+		
+		if (check_range_flag) {
+			int mask[8][2] = {{0,1},{-1,1},{-1,0},{-1,-1},{0,-1},{1,-1},{1,0},{1,1}};
+			int dir = map_calc_dir(&sd->bl,bl.x,bl.y);
+			pc_walktoxy (sd, sd->bl.x + mask[dir][0], sd->bl.y + mask[dir][1]);
+		} 
+	}
+/* Previous code body, left here in case we have to rollback. [Skotlex]
+	{
+		int check_range_flag = 0;
+
 		range = skill_get_range(skill_num,skill_lv);
 		if(range < 0)
 			range = status_get_range(&sd->bl) - (range + 1);
@@ -8387,7 +8415,7 @@ int skill_use_pos (struct map_session_data *sd, int skill_x, int skill_y, int sk
 				return 0;
 		}
 	}
-
+*/
 	pc_stopattack(sd);
 
 	casttime = skill_castfix(&sd->bl, skill_get_cast( skill_num,skill_lv) );
