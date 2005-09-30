@@ -30,6 +30,8 @@ TODO:
 Date		Added
 ======
 09/29
+	* Added missing Niflheim warps to the INN and house needed to complete the
+	  Piano Key Quest. [Skotlex]
 	* Added temp warps of Thanatos Tower by Moryagorn [Lupus]
 09/28
 	* Fixed Super Novice quest. Now BABY can be a SUPER BABY. Finally 8) [Lupus]

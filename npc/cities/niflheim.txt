@@ -16,7 +16,7 @@
 //=	in Piano Keys quest
 //=     fixed zeny/item, exploit in Sairin, some optimizations [Lupus]
 //= 1.06 some typos in some variables fixed (thx 2 Dr.Evil) [Lupus]
-//= 1.07 Fixed typo’s [Nexon]
+//= 1.07 Fixed typos [Nexon]
 //=
 //=  TODO: remove any save points from Niflheim (from Kafra)
 //=        remove or commetn Warpers (they make Niflheim Piano Quest meaningless)
@@ -554,6 +554,7 @@ nif_in.gat,188,168,3	script	Witch	792,{
 	mes "[Kilgana]";
 	mes "I shall use my powers to send you back";
 	mes "but you should not return in the future.";
+	close2;
 	warp "umbala.gat",138,208;
-	close;
+	end;
 }

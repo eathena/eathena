@@ -3,13 +3,15 @@
 //===== By: ==================================================
 //= PKGINGO (1.0)
 //===== Current Version: =====================================
-//= 1.0
+//= 1.1
 //===== Compatible With: =====================================
 //= Any Athena Version; RO Episode 6+
 //===== Description: =========================================
 //= Warp Points for Niflheim
 //===== Additional Comments: =================================
 //= Extracted from Vidar -> Athena
+//= V1.1: Added Inn and House warps needed for the Piano
+//=       Quest. [Skotlex
 //============================================================
 
 //Niflheim Fields
@@ -27,6 +29,16 @@ nif_in.gat,11,88,0	warp	nwarp12	1,1,niflheim.gat,218,170
 //Item shop: 134,12
 niflheim.gat,219,199,0	warp	nwarp13	1,1,nif_in.gat,136,14
 nif_in.gat,134,12,0	warp	nwarp14	1,1,niflheim.gat,218,197
+
+//House
+niflheim.gat,190,241,0	warp	nwarp19	1,1,nif_in.gat,81,77
+nif_in.gat,78,74,0	warp	nwarp20	1,1,niflheim.gat,187,241
+
+//Inn
+niflheim.gat,189,211,0	warp	nwarp21	1,1,nif_in.gat,20,14
+nif_in.gat,23,12,0	warp	nwarp22	1,1,niflheim.gat,189,207
+nif_in.gat,34,34,0	warp	nwarp23	1,1,nif_in.gat,88,31
+nif_in.gat,88,29,0	warp	nwarp24	1,1,nif_in.gat,34,31
 
 //House on the hill
 niflheim.gat,255,194,0	warp	nwarp15	1,1,nif_in.gat,20,156
