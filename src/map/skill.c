@@ -949,10 +949,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 
 	case AM_ACIDTERROR:
 		if (rand()%100 < (skilllv*3)*sc_def_vit/100 ) {
-			int bleed_time = skill_get_time2(skillid,skilllv) - status_get_vit(bl) * 1000;
-			if (bleed_time < 50000)
-				bleed_time = 50000;	// minimum 50 seconds
-			status_change_start(bl,SC_BLEEDING,skilllv,0,0,0,bleed_time,0);
+			status_change_start(bl,SC_BLEEDING,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
 		}
 		if (dstsd && rand()%100 < skill_get_time(skillid,skilllv) * battle_config.equip_skill_break_rate / 100) { //fixed
 			if(pc_breakarmor(dstsd))
@@ -975,13 +972,10 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		{
 			/* Official servers seem to indicate this causes neither stun nor bleeding. [Skotlex]
 			int race = status_get_race(bl);
-			int bleed_time = skill_get_time2(skillid,skilllv) - status_get_vit(bl) * 1000;
-			if (bleed_time < 60000)
-				bleed_time = 60000;	// minimum time for pressure is?
 			if (rand()%100 < 50 * sc_def_vit / 100)	// is chance 50%?
 				status_change_start(bl, SC_STAN, skilllv, 0, 0, 0, skill_get_time2(PA_PRESSURE,skilllv), 0);
 			if (!(battle_check_undead(race, status_get_elem_type(bl)) || race == 6) && rand()%100 < 50 * sc_def_vit / 100)
-				status_change_start(bl, SC_BLEEDING, skilllv, 0, 0, 0, bleed_time, 0);
+				status_change_start(bl, SC_BLEEDING, skilllv, 0, 0, 0, skill_get_time2(skillid,skilllv), 0);
 				*/
 			if (dstsd) {
 				dstsd->status.sp -= dstsd->status.sp * (15 + 5 * skilllv) / 100;
@@ -1094,11 +1088,8 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		{
 			//?件が良く分からないので適?に
 			int race = status_get_race(bl);
-			int bleed_time = skill_get_time2(skillid,skilllv) - status_get_vit(bl) * 1000;
-			if (bleed_time < 90000)
-				bleed_time = 90000;	// minimum 90 seconds
 			if (!(battle_check_undead(race, status_get_elem_type(bl)) || race == 6) && rand()%100 < 50 * sc_def_vit/100)
-				status_change_start(bl, SC_BLEEDING, skilllv, 0, 0, 0, bleed_time, 0);
+				status_change_start(bl, SC_BLEEDING, skilllv, 0, 0, 0, skill_get_time2(skillid,skilllv), 0);
 		}
 			break;
 	case LK_JOINTBEAT:				/* ジョイントビ?ト */
@@ -1120,18 +1111,13 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		if( rand()%100 < (5+skilllv*5) ) //5%+5*SkillLV%
 			switch(rand()%3) {
 				case 0:
-					status_change_start(bl,SC_STAN,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
+					status_change_start(bl,SC_BLIND,skilllv,0,0,0,skill_get_time2(skillid,1),0);
 					break;
 				case 1:
-					{
-					int bleed_time = skill_get_time2(skillid,skilllv) - status_get_vit(bl) * 1000;
-					if (bleed_time < 30000)
-					bleed_time = 30000;	// minimum 30 seconds (it could be up to 60 sec.. but no info yet)
-					status_change_start(bl,SC_BLEEDING,skilllv,0,0,0,bleed_time,0);
-					}
+					status_change_start(bl,SC_STAN,skilllv,0,0,0,skill_get_time2(skillid,2),0);
 					break;
 				default:
-					status_change_start(bl,SC_BLIND,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
+					status_change_start(bl,SC_BLEEDING,skilllv,0,0,0,skill_get_time2(skillid,3),0);
   			}
 		break;
 	case HW_NAPALMVULCAN:			/* ナパ?ムバルカン */
@@ -2598,7 +2584,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 	case PA_SACRIFICE:	// Sacrifice, Aru's style.
 	case WS_CARTTERMINATION:	// Cart Termination
 	case AM_ACIDTERROR:		/* アシッドテラ? */
-	case TK_JUMPKICK:	// Taekwon Jump kick waiting to be coded [Dralnu]
 		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
 		break;
 	case TK_STORMKICK: // Taekwon kicks [Dralnu]
@@ -2709,6 +2694,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 				status_change_end(src,SC_BLADESTOP,-1);
 		}
 		break;
+	case TK_JUMPKICK:
 	case MO_EXTREMITYFIST:	/* 阿修羅覇鳳拳 */
 		{
 			if(sd) {
@@ -2741,13 +2727,17 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 				if(sd->canact_tick < sd->canmove_tick)
 					sd->canact_tick = sd->canmove_tick;
 				pc_movepos(sd,sd->to_x,sd->to_y,1);
-				status_change_end(&sd->bl,SC_COMBO,-1);
+				if (skillid == MO_EXTREMITYFIST)
+					status_change_end(&sd->bl,SC_COMBO,-1);
 			}
 			else
 				skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
-			status_change_end(src, SC_EXPLOSIONSPIRITS, -1);
-			if (sc_data && sc_data[SC_BLADESTOP].timer != -1)
-				status_change_end(src,SC_BLADESTOP,-1);
+			if (skillid == MO_EXTREMITYFIST)
+			{
+				status_change_end(src, SC_EXPLOSIONSPIRITS, -1);
+				if (sc_data && sc_data[SC_BLADESTOP].timer != -1)
+					status_change_end(src,SC_BLADESTOP,-1);
+			}
 		}
 		break;
 

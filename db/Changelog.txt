@@ -34,6 +34,12 @@
 
 	--
 
+09/30
+	* Changed Acid Terror's bleed time to 120 secs (seems to be the official
+	  value) [Skotlex]
+	* Updated Meteor Assaults upkeep time2. Lv1 is the duration of blind, Lv2
+	  is the duration of stun, and Lv3 is the duration of bleeding. However, the
+	  true duration for these stats is as of yet unknown. [Skotlex]
 09/27
 	* Changed lord of vermillion times to make it hit four times at times 0,
 	  1250ms, 2500ms and 3750ms. [Skotlex]

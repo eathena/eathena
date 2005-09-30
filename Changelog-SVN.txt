@@ -1,6 +1,14 @@
 Date	Added
 =======
 
+09/30
+	* Moved the bleeding reduction formula to status_change_start, modified the
+	  formula to be (lv/5+vit)% reduction. [Skotlex]
+	* Fixed the blind duration reduction formula. [Skotlex]
+	* Upgraded Meteor Assault so you can specify the duration of
+	  blind/stun/bleeding independently in skill_cast_db.txt [Skotlex]
+	* Made TK_JUMPKICK share the same code as Ashura Strike (just to see what
+	  happens, both seem like they behave the same way, no?) [Skotlex]
 09/29
 	* Some tweaks and fixes around status.c, may fix the timer mismatches of
 	  status_change_timer. [Skotlex]

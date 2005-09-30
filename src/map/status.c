@@ -3141,7 +3141,7 @@ int status_get_sc_def(struct block_list *bl, int type)
  * Tick is base duration
  * flag:
  * &1: Cannot be avoided (it has to start)
- * &2: Tick should not be altered
+ * &2: Tick should not be reduced (by vit, luk, lv, etc)
  * &4: sc_data loaded, no value has to be altered.
  *------------------------------------------
  */
@@ -3279,7 +3279,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			break;
 		case SC_AUTOBERSERK:
 			{
-				if (!(flag&2))
+				if (!(flag&4))
 					tick = 60*1000;
 				if (bl->type == BL_PC && sd->status.hp<sd->status.max_hp>>2 &&
 					(sc_data[SC_PROVOKE].timer==-1 || sc_data[SC_PROVOKE].val2==0))
@@ -3310,7 +3310,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_SIGNUMCRUCIS:		/* ÉVÉOÉiÉÄÉNÉãÉVÉX */
 			calc_flag = 1;
 			val2 = 10 + val1*2;
-			if (!(flag&2))
+			if (!(flag&4))
 				tick = 600*1000;
 			clif_emotion(bl,4);
 			break;
@@ -3344,7 +3344,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			*opt3 |= 2;
 			break;
 		case SC_MAXIMIZEPOWER:		/* É}ÉLÉVÉ}ÉCÉYÉpÉè?(SPÇ™1å∏ÇÈéûä‘,val2Ç…Ç‡) */
-			if (!(flag&2))
+			if (!(flag&4))
 			{
 				if(bl->type == BL_PC)
 					val2 = tick;
@@ -3553,9 +3553,11 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_ASPDPOTION2:
 		case SC_ASPDPOTION3:
 			calc_flag = 1;
-			if (!(flag&2))
+			if (!(flag&4))
+			{
 				tick = 1000 * tick;
-			val2 = 5*(2+type-SC_ASPDPOTION0);
+				val2 = 5*(2+type-SC_ASPDPOTION0);
+			}			
 			// Since people complain so much about the various icons showing up, here we disable the visual of any other potions [Skotlex] 
 			if (sc_data[SC_ASPDPOTION0].timer != -1)
 				clif_status_change(bl,SC_ASPDPOTION0,0);
@@ -3592,7 +3594,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 				if(!battle_config.muting_players)
 					return 0;
 				
-				if (!(flag&2))
+				if (!(flag&4))
 					tick = 60000;
 				if(!val2)
 					val2 = (int)time(&timer);
@@ -3614,7 +3616,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			val2 = 1;
 			break;
 		case SC_SLEEP:				/* êáñ∞ */
-			if(!(flag&2)) {
+			if(!(flag&4)) {
 				tick = 30000;//êáñ∞ÇÕÉXÉe?É^ÉXëœê´Ç…?ÇÌÇÁÇ∏30ïb
 			}
 			break;
@@ -3690,9 +3692,13 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			break;
 		case SC_BLIND:				/* à√? */
 			calc_flag = 1;
+			if(!(flag&4) && tick < 1000)
+				tick = 30000;
 			if(!(flag&2)) {
-				int sc_def = status_get_lv(bl)/10 + status_get_int(bl)/15;
-				tick = 30000 - sc_def;
+				int sc_def = 100 - (status_get_lv(bl)/10 + status_get_int(bl)/15);
+				tick = tick*sc_def/100;
+				if (tick < 5000) //Minimum 5 secs?
+					tick = 5000;
 			}
 			break;
 		case SC_CURSE:
@@ -3701,6 +3707,17 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 				int sc_def = 100 - status_get_vit(bl);
 				tick = tick * sc_def / 100;
 			}
+			break;
+
+		case SC_BLEEDING:
+			if(!(flag&2)) {
+				int sc_def = 100 - (status_get_lv(bl)/5 +status_get_vit(bl));
+				tick = tick * sc_def / 100;
+			}
+			if(!(flag&4) && tick < 10000) //Minimum bleed time is 10 secs or this sc does nothing! [Skotlex]
+				tick = 10000;
+			val4 = tick;
+			tick = 10000;
 			break;
 
 		/* option */
@@ -3890,13 +3907,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 
 		case SC_HERMODE:
 			status_change_clear_buffs(bl);
-			break;
-
-		case SC_BLEEDING:
-			{
-				val4 = tick;
-				tick = 10000;
-			}
 			break;
 
 		case SC_REGENERATION:
@@ -4750,7 +4760,7 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 		// - 10ı©™¥™»™ÀHP™¨ ı·¥
 		// - ıÛ˙Ï™Œ™ﬁ™ﬁ´µ?´–Ïπ‘—™‰´Í´Ì´∞™∑™∆™‚?Õ˝™œ·º™®™ ™§
 		// To-do: bleeding effect increases damage taken?
-		if ((sc_data[type].val4 -= 10000) > 0) {
+		if ((sc_data[type].val4 -= 10000) >= 0) {
 			int hp = rand()%300 + 400;
 			if(sd) {
 				pc_heal(sd,-hp,0);
