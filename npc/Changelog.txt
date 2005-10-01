@@ -19,16 +19,13 @@ Massdriller
 	* Level 4 forge (MRO Lvl 4 Forging Quest) - 1% - resources only from MRO Official
 	  guide book so, probably unofficial
 
-TODO:
-	* Re-check how does it work (any client crashes)
-		(Super Baby + CART, Baby Merchant + Cart, Baby Blacksmith + Cart, Baby alchemist +Cart = client crash)
-		It's not a script, but the server issue.
-		
-
 == Changelog ==
 
 Date		Added
 ======
+10/01
+	* Updated Crusader job quest a bit, thanks to vicious_pucca for reminding us this quest
+	  is only a temp one... [DracoRPG]
 09/29
 	* Added missing Niflheim warps to the INN and house needed to complete the
 	  Piano Key Quest. [Skotlex]

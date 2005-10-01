@@ -34,6 +34,8 @@
 
 	--
 
+01/01
+	* Added Orc Baby to Orcs in mob_race2_db [DracoRPG]
 09/30
 	* Changed Acid Terror's bleed time to 120 secs (seems to be the official
 	  value) [Skotlex]
