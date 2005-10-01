@@ -2,6 +2,7 @@ Date	Added
 =======
 
 10/01
+	* Expanded NPC shop log info of sold items (cards, refine, etc) [Lupus]
 	* Fixed compile errors in converters [celest]
 	* Updating built-in zlib to 1.2.3 [celest]
 	* Added unzip functions to grfio.c [celest]
