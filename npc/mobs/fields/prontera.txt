@@ -115,11 +115,11 @@ prt_fild10.gat,155,179,10,10	monster	Shining Plant	1083,1,1800000,900000,1
 
 // prt_fild11 (lv4)
 
-prt_fild11.gat,0,0,0,0	monster	Goblin 1	1122,10,0,0,0
-prt_fild11.gat,0,0,0,0	monster	Goblin 2	1123,20,0,0,0
-prt_fild11.gat,0,0,0,0	monster	Goblin 3	1124,20,0,0,0
-prt_fild11.gat,0,0,0,0	monster	Goblin 4	1125,30,0,0,0
-prt_fild11.gat,0,0,0,0	monster	Goblin 5	1126,30,0,0,0
+prt_fild11.gat,0,0,0,0	monster	Goblin	1122,10,0,0,0
+prt_fild11.gat,0,0,0,0	monster	Goblin	1123,20,0,0,0
+prt_fild11.gat,0,0,0,0	monster	Goblin	1124,20,0,0,0
+prt_fild11.gat,0,0,0,0	monster	Goblin	1125,30,0,0,0
+prt_fild11.gat,0,0,0,0	monster	Goblin	1126,30,0,0,0
 prt_fild11.gat,0,0,0,0	monster	Goblin Archer	1258,10,0,0,0
 prt_fild11.gat,0,0,0,0	monster	Panzer Goblin	1308,1,1800000,1200000,0
 prt_fild11.gat,0,0,0,0	monster	Steam Goblin	1280,30,0,0,0

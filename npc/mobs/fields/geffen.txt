@@ -104,9 +104,9 @@ gef_fild05.gat,130,293,0,0	monster	Red Plant	1078,1,180000,90000,1
 
 // gef_fild06 (lv4)
 
-gef_fild06.gat,0,0,0,0	monster	Kobold 1	1133,20,0,0,0
-gef_fild06.gat,0,0,0,0	monster	Kobold 2	1134,10,0,0,0
-gef_fild06.gat,0,0,0,0	monster	Kobold 3	1135,10,0,0,0
+gef_fild06.gat,0,0,0,0	monster	Kobold	1133,20,0,0,0
+gef_fild06.gat,0,0,0,0	monster	Kobold	1134,10,0,0,0
+gef_fild06.gat,0,0,0,0	monster	Kobold	1135,10,0,0,0
 gef_fild06.gat,0,0,0,0	monster	Sky Petite	1156,50,0,0,0
 gef_fild06.gat,0,0,0,0	monster	Poporing	1031,10,0,0,0
 gef_fild06.gat,0,0,0,0	monster	Mantis	1139,20,0,0,0
@@ -125,9 +125,9 @@ gef_fild07.gat,269,289,3,3	monster	Green Plant	1080,3,360000,180000,1
 
 // gef_fild08 (lv3)
 
-gef_fild08.gat,0,0,0,0	monster	Kobold 1	1133,20,0,0,0
-gef_fild08.gat,0,0,0,0	monster	Kobold 2	1134,40,0,0,0
-gef_fild08.gat,0,0,0,0	monster	Kobold 3	1135,20,0,0,0
+gef_fild08.gat,0,0,0,0	monster	Kobold	1133,20,0,0,0
+gef_fild08.gat,0,0,0,0	monster	Kobold	1134,40,0,0,0
+gef_fild08.gat,0,0,0,0	monster	Kobold	1135,20,0,0,0
 gef_fild08.gat,0,0,0,0	monster	Golem	1040,40,0,0,0
 gef_fild08.gat,0,0,0,0	monster	Steel ChonChon	1042,20,0,0,0
 gef_fild08.gat,0,0,0,0	monster	Poison Spore	1077,20,0,0,0
@@ -171,11 +171,11 @@ gef_fild10.gat,300,253,5,5	monster	Green Plant	1080,3,360000,180000,1
 // gef_fild11 (lv4)
 
 gef_fild11.gat,0,0,0,0	monster	Goblin Leader	1299,1,1800000,1200000,0
-gef_fild11.gat,0,0,0,0	monster	Goblin 1	1122,30,0,0,0
-gef_fild11.gat,0,0,0,0	monster	Goblin 2	1123,20,0,0,0
-gef_fild11.gat,0,0,0,0	monster	Goblin 3	1124,20,0,0,0
-gef_fild11.gat,0,0,0,0	monster	Goblin 4	1125,20,0,0,0
-gef_fild11.gat,0,0,0,0	monster	Goblin 5	1126,20,0,0,0
+gef_fild11.gat,0,0,0,0	monster	Goblin	1122,30,0,0,0
+gef_fild11.gat,0,0,0,0	monster	Goblin	1123,20,0,0,0
+gef_fild11.gat,0,0,0,0	monster	Goblin	1124,20,0,0,0
+gef_fild11.gat,0,0,0,0	monster	Goblin	1125,20,0,0,0
+gef_fild11.gat,0,0,0,0	monster	Goblin	1126,20,0,0,0
 gef_fild11.gat,0,0,0,0	monster	Goblin Archer	1258,20,0,0,0
 gef_fild11.gat,0,0,0,0	monster	Poporing	1031,15,0,0,0
 gef_fild11.gat,0,0,0,0	monster	Rotar Zairo	1392,10,0,0,0
@@ -189,9 +189,9 @@ gef_fild11.gat,283,100,4,1	monster	Black Mushroom	1084,3,360000,180000,1
 
 // gef_fild12 (lv4)
 
-gef_fild12.gat,0,0,0,0	monster	Kobold 1	1133,20,0,0,0
-gef_fild12.gat,0,0,0,0	monster	Kobold 2	1134,30,0,0,0
-gef_fild12.gat,0,0,0,0	monster	Kobold 3	1135,30,0,0,0
+gef_fild12.gat,0,0,0,0	monster	Kobold	1133,20,0,0,0
+gef_fild12.gat,0,0,0,0	monster	Kobold	1134,30,0,0,0
+gef_fild12.gat,0,0,0,0	monster	Kobold	1135,30,0,0,0
 gef_fild12.gat,0,0,0,0	monster	Kobold Archer	1282,40,0,0,0
 gef_fild12.gat,0,0,0,0	monster	Poporing	1031,20,0,0,0
 

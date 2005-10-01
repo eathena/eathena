@@ -24,6 +24,8 @@ Massdriller
 Date		Added
 ======
 10/01
+	* Fixed spwan mobs names Kobold N -> Kobold, Goblin - >Goblin [Lupus]
+	* Added missing close; in blacksmith JQm thanx2palasx [Lupus]
 	* Updated Crusader job quest a bit, thanks to vicious_pucca for reminding us this quest
 	  is only a temp one... [DracoRPG]
 09/29

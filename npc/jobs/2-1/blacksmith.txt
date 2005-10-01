@@ -993,6 +993,7 @@ L_Start:
 	getitem 1073,1;
 	mes "[Wickebine]";
 	mes "Here's the receipt and thanks for the delivery.";
+	close;
 
 	L_NoItem:
 		mes "[Wickebine]";

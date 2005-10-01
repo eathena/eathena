@@ -1085,7 +1085,7 @@
 2611,Silver_Ring,Silver Ring,5,20000,,100,,0,,0,10477567,2,136,,0,0,0,{},{}
 2612,Flower_Ring,Flower Ring,5,1500,,100,,0,,0,10477567,2,136,,0,0,0,{},{}
 2613,Diamond_Ring,Diamond Ring,5,45000,,100,,0,,0,10477567,2,136,,0,0,0,{},{}
-2614,Eye_of_Dullahan,Eye of Dullahan,5,90000,,100,,0,,0,10477567,2,136,,50,0,0,{},{ bonus2 bResEff,Eff_Poison,1000; bonus2 bResEff,Eff_Curse,1000; bonus2 bResEff,Eff_Silence,1000; bonus2 bResEff,Eff_Confusion,1000; bonus2 bResEff,Eff_Blind,1000;  }
+2614,Eye_of_Dullahan,Eye of Dullahan,5,90000,,100,,0,,0,10477567,2,136,,50,0,0,{},{ bonus2 bResEff,Eff_Poison,10000; }
 2615,Safety_Ring,Safety Ring,5,75000,,100,,3,,0,10477567,2,136,,40,0,0,{},{ bonus bMdef,3; }
 2616,Critical_Ring,Critical Ring,5,75000,,100,,0,,0,10477567,2,136,,40,0,0,{},{ bonus bCritical,5; }
 2617,Celebrant's_Mitten,Celebrant's Mitten,5,,10,100,,1,,0,10477567,2,136,,35,0,0,{},{ bonus bInt,1; }
