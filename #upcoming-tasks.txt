@@ -25,7 +25,7 @@ data interface (sql only)  // CLOWNISIUS is working on this section, hands off o
 * checking database structure, cleaning unnecessary fields
   [some data fields are quite useless though and could be removed] (25% done... login complete working on char now)
 * adding missing data fields to login table
-  [account is stored completely including the login_id's]
+  [account is stored completely including the login_id's] (been complete, needs review for removing from this file)
 * implementation of the sql part of the char_db
   [functional interface is ready, tested and already used in the char server, so just need to copy the CCharDB_txt to CCharDB_sql and implement the functions]
 * integrating check/update of database for missing tables/columns
@@ -46,6 +46,7 @@ other code
   {conception/case study in progress} 
   (from CLOWNISIUS: Please send me, clownisius, a copy of what ever white papers you have on this please, i would like to keep track of what is going on.)
   (Shinomori: I prepare something readable when patching the material together, maybe this or within next week)
+  (clownisius: THanks, i will be review what is going on, will continue to work on testing char server with new tables structs)
 
 ///////////////////////////////////////////////////////////////////////////////
 login:
