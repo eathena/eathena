@@ -24,6 +24,10 @@ Massdriller
 Date		Added
 ======
 10/01
+	* Aldebaran, fixed missing label. Optimized [Lupus]
+	* Fixed some Headgears coords, sprites, names, ingridients. [Lupus]
+	  Thanks to Vicious_Pucca for info
+10/01
 	* Fixed spwan mobs names Kobold N -> Kobold, Goblin - >Goblin [Lupus]
 	* Added missing close; in blacksmith JQm thanx2palasx [Lupus]
 	* Updated Crusader job quest a bit, thanks to vicious_pucca for reminding us this quest

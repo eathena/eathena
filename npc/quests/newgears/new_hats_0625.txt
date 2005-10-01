@@ -3,7 +3,7 @@
 //===== By: =========================
 //= Lorky, Lupus
 //===== Current Version: ===================
-//= 0.3
+//= 0.4
 //===== Compatible With: =====================
 //= eAthena 1.0
 //===== Description: ============================================
@@ -24,6 +24,7 @@
 // 0.1c Fixed hats shop. It shouldn't sell slotted hats.
 // 0.2 Fixed Detective Hat items (by Ishizu-chan) [Lupus]
 // 0.3 Added Zealotus mask quest with correct items [Lupus]
+// 0.4 Fixed some sprites, npc names and coords [Lupus]
 //=====================================================================
 
 //Links (some info related to these headgears)
@@ -75,7 +76,7 @@ L_EXIT:
 
 //-------------------------------------------------------------------------------------------------
 //Detective hat (Hat_of_the_Investigator) ID 5108
-lighthalzen.gat,140,68,4 script Morris 818,{
+lighthalzen.gat,140,68,4	script	Morris	818,{
 	mes "[Morris]";
 	mes "Do you want a ^FF3300Hat of the Investigator^000000?"; 
 	next;
@@ -100,10 +101,10 @@ lighthalzen.gat,140,68,4 script Morris 818,{
 L_NOITEM:
 	mes "[Morris]";
 	mes "Bring me:";
-	mes "^FF3300 10 Magnifiers,^000000";
-	mes "^FF3300 1887 Tassel,^000000";
-	mes "^FF3300 1 Wide Bunker Hat [1],^000000";
-	mes "^FF3300 50.000 zeny. ^000000";
+	mes "^FF3300 10 Magnifiers^000000,";
+	mes "^FF3300 1887 Tassel^000000,";
+	mes "^FF3300 1 Wide Bunker Hat [1]^000000,";
+	mes "and ^FF3300 50,000 zeny.^000000";
 	close;
 
 L_EXIT:
@@ -114,20 +115,20 @@ L_EXIT:
 
 //-------------------------------------------------------------------------------------------------
 //Mystic rose ID 5117
-lighthalzen.gat,97,109,4	script	Rouse	818,{	//!!! WRONG Location and name of NPC
-	mes "[Rouse]";
+lhz_in02.gat,103,31,4	script	Margaret Mary	818,{
+	mes "[Margaret Mary]";
 	mes "Wheee! Don't you just love making youself look pretty!?";
 	mes "I love glamourising myself with all the best accessories!";
 	next;
 
-	mes "[Rouse]";
-	mes "Have you ever heard of a ^FF3300Mystic rose^000000?";
+	mes "[Margaret Mary]";
+	mes "Have you ever heard of a ^FF3300Mystic Rose^000000?";
 	mes "I can make you one, and you could be fashionable and mysticly, too!";
 	next;
 	menu "Make me a ^670000Mystic rose^000000.",-,"No, I dont want one.",L_EXIT;
 	
 	if ((countitem(731) < 10) || (countitem(748) < 3) || (countitem(982) < 1) || Zeny<50000) goto L_NOITEM;//Items: 2_Carat_Diamond, Witherless_Rose, White_Dyestuff,
-	mes "[Rouse]";
+	mes "[Margaret Mary]";
 	mes "Wow, thank you! Hand me your items, please.";
 	delitem 731,10;//Items: 2_Carat_Diamond,
 	delitem 748,3;//Items: Witherless_Rose,
@@ -136,20 +137,20 @@ lighthalzen.gat,97,109,4	script	Rouse	818,{	//!!! WRONG Location and name of NPC
 	getitem 5117,1;//Items: Mystic_Rose,
 	next;
 
-	mes "[Rouse]";
+	mes "[Margaret Mary]";
 	mes "Enjoy being pretty and mystic!";
 	close;
 L_NOITEM:
-	mes "[Rouse]";
+	mes "[Margaret Mary]";
 	mes "Well, for me to make you my Mystic rose...";
 	mes "I need these materials:";
-	mes "^FF3300 10 2-Carat Diamonds. ^000000";
-	mes "^FF3300 3 Witherless Roses. ^000000";
-	mes "^FF3300 1 White Dyestuff. ^000000";
-	mes "^FF3300 50.000 zeny. ^000000";
+	mes "^FF3300 10 2-Carat Diamonds^000000,";
+	mes "^FF3300 3 Witherless Roses^000000,";
+	mes "^FF3300 1 White Dyestuff^000000,";
+	mes "and ^FF3300 50,000 zeny.^000000";
 	close;
 L_EXIT:
-	mes "[Rouse]";
+	mes "[Margaret Mary]";
 	mes "Aww... well, OK then!";
 	mes "Be pretty some other time";
 	close;
@@ -193,11 +194,11 @@ lighthalzen.gat,180,88,4	script	Rich Girl	818,{
 L_NOITEM:
 	mes "[Rich Girl]";
 	mes "Give me:";
-	mes "^FF3300 Green Lace^000000";
-	mes "^FF3300 Scarlet Dyestuff ^000000";
-	mes "^FF3300 Silk Ribbon^000000";
-	mes "^FF3300 Sunday Hat ^000000";
-	mes "^FF3300 50.000 zeny. ^000000";
+	mes "^FF3300 Green Lace^000000,";
+	mes "^FF3300 Scarlet Dyestuff ^000000,";
+	mes "^FF3300 Silk Ribbon^000000,";
+	mes "^FF3300 Sunday Hat ^000000,";
+	mes "and ^FF3300 50,000 zeny.^000000";
 	close;
 
 L_EXIT:
@@ -208,14 +209,14 @@ L_EXIT:
 
 //-------------------------------------------------------------------------------------------------
 //Well-Baked Toast ID 5107
-lighthalzen.gat,224,116,4	script	Juneau Cho	818,{	//!!! WRONG name of NPC
-	mes "[Juneau Cho]";
+yuno.gat,224,116,4	script	Kacis	818,{
+	mes "[Kacis]";
 	mes "Do you want a ^FF3300 Well-Baked Toast ^000000?";
 	next;
 	menu "Please, make one for me",-,"No, thanks. I'm so full",L_EXIT;
 
 	if ((countitem(519) < 50) || (countitem(548) < 50) || (countitem(539) < 50) || (countitem(7031)<50)) goto L_NOITEM;//Items: Milk, Cheese, Piece_of_Cake, Old_Frying_Pan,
-	mes "[Juneau Cho]";
+	mes "[Kacis]";
 	mes "Good, thank you! Let me just take your items.";
 	delitem 519,50;//Items: Milk,
 	delitem 548,50;//Items: Cheese,
@@ -223,12 +224,12 @@ lighthalzen.gat,224,116,4	script	Juneau Cho	818,{	//!!! WRONG name of NPC
 	delitem 7031,50;//Items: Old_Frying_Pan,
 	getitem 5107,1;//Items: Well_Done_Toast,
 	next;
-	mes "[Juneau Cho]";	
+	mes "[Kacis]";	
 	mes "Well done. Be careful, it's hot.";
 	close;
 
 L_NOITEM:
-	mes "[Juneau Cho]";
+	mes "[Kacis]";
 	mes "Well, for me to make you ^FF3300 Well-Baked Toast ^000000...";
 	mes "I require these materials:";
 	mes "^FF3300 50 Milk, ^000000";
@@ -237,25 +238,25 @@ L_NOITEM:
 	mes "^FF3300 50 Old Frying Pan. ^000000";
 	close;
 L_EXIT:
-	mes "[Juneau Cho]";
+	mes "[Kacis]";
 	mes "Ok. I more to get tasty toasts.";
 	close;
 	
 }
 //-------------------------------------------------------------------------------------------------
-// Mask_of_Zealotus id 5121	!!! items are correct!, but WRONG Location and name of NPC.
-lighthalzen.gat,200,200,4	script	Gill Tass	818,{
+// Mask_of_Zealotus id 5121
+gl_prison1.gat,138,141,4	script	Zealotus	1200,{
 	mes "[Gill Tass]";
 	mes "Do you want an unique ^FF3300Mask of Zealotus^000000 ?";
 	next;
 	menu "Yes, I do!",-,"No, thanks",L_EXIT;
 
-	if (countitem(7205) < 369//Items: Black_Piece_of_Cloth,
+	if (countitem(7315) < 369//Items: Black_Piece_of_Cloth,
 		|| countitem(660) < 1//Items: Forbidden_Red_Candle,
 		|| countitem(7263) < 1//Items: Cat's_Eye,
 		|| countitem(7099) < 30) goto L_NOITEM;//Items: Worn-out_Magic_Scroll,
 
-	delitem 7205,369;//Items: Black_Piece_of_Cloth,
+	delitem 7315,369;//Items: Black_Piece_of_Cloth,
 	delitem 660,1;//Items: Forbidden_Red_Candle,
 	delitem 7263,1;//Items: Cat's_Eye,
 	delitem 7099,30;//Items: Worn-out_Magic_Scroll,
@@ -268,7 +269,7 @@ lighthalzen.gat,200,200,4	script	Gill Tass	818,{
 	close;
 
 L_NOITEM:
-	mes "[Gugex]";
+	mes "[Gill Tass]";
 	mes "All right. Bring me these items:";
 	mes "^FF3300 369 Black Pieces of Cloth^000000,";
 	mes "^FF3300 1 Forbidden Red Candle^000000,";
@@ -283,8 +284,8 @@ L_EXIT:
 }
 //-------------------------------------------------------------------------------------------------
 //Fashionable Warm Hat ID 5115
-lighthalzen.gat,70,200,4	script	Gugex	818,{	//!!! WRONG Location and name of NPC
-	mes "[Gugex]";
+einbech.gat,70,200,7	script	Mater	818,{
+	mes "[Mater]";
 	mes "Aren't you cold?";
 	mes "I can make you a ^FF3300Winter Hat^000000";
 	next;
@@ -292,26 +293,27 @@ lighthalzen.gat,70,200,4	script	Gugex	818,{	//!!! WRONG Location and name of NPC
 
 	if ((countitem(7267) < 999) || (countitem(983) < 1) || (countitem(749) < 1) || Zeny<50000) goto L_NOITEM;//Items: Tigerskin_Underwear, Black_Dyestuff, Frozen_Rose,
 
-	mes "[Gugex]";
+	mes "[Mater]";
 	mes "Exellent! Now give me the items.";
 	delitem 7267,999;//Items: Tigerskin_Underwear,
 	delitem 983,1;//Items: Black_Dyestuff,
 	delitem 749,1;//Items: Frozen_Rose,
 	set Zeny,Zeny-50000;
 	next;
-	mes "[Gugex]";
+	mes "[Mater]";
 	mes "Here you are.";
 	getitem 5115,1;//Items: Fashionable_Fur_Hat,
 	close;
 L_NOITEM:
-	mes "[Gugex]";
+	mes "[Mater]";
 	mes "Please, correct these materials:";	
-	mes "^FF3300 999 Tigerskin Underwears,^000000";
-	mes "^FF3300 Black Dyestuff,^000000";
-	mes "^FF3300 Frozen Rose.^000000";
+	mes "^FF3300 999 Tigerskin Underwears^000000,";
+	mes "^FF3300 Black Dyestuff^000000,";
+	mes "^FF3300 Frozen Rose^000000,";
+	mes "and ^FF3300 50,000 zeny.^000000";
 	close;
 L_EXIT:
-	mes "[Gugex]";
+	mes "[Mater]";
 	mes "Azzz youu wishhhh... Brr-r.";
 	close;
 }

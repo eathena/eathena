@@ -4,7 +4,7 @@
 //= Halca (1.0)
 //= Mass Zero (1.1)
 //===== Current Version: ===================================== 
-//= 1.4
+//= 1.4a
 //===== Compatible With: ===================================== 
 //= Any eAthena Version.
 //===== Description: ========================================= 
@@ -14,9 +14,10 @@
 //=	added missing delitem, fixed names, item amount [Lupus]
 //= 1.3 Fixed possible exploit [Lupus]
 //= 1.4 Fixed ingredients: Sashimi knife->Raw Fish (Sashimi) [Lupus]
+//= 1.4a fixed coords [Lupus]
 //============================================================
 
-morocc.gat,274,79,6	script	Traveler	807,{ 
+morocc.gat,273,78,6	script	Traveler	807,{ 
  mes "[Traveler]";
  if (BaseJob == 0) GOTO L_NOVICE;
  mes "What kind of hat do you want from me?";

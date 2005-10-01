@@ -4,17 +4,17 @@
 //= Halca (1.0)
 //= Mass Zero (1.1)
 //===== Current Version: ===================================== 
-//= 1.3
+//= 1.3a
 //===== Compatible With: ===================================== 
 //= Any eAthena Version.
 //===== Description: ========================================= 
 //= Seperate Ears Of Angel & Ears Of Demon quests.
 //===== Additional Comments: ================================= 
 //= 1.2 Fixed wrong labels, added missing text, wrong ID! [Lupus]
-//= 1.3 Fixed possible exploit [Lupus]
+//= 1.3 Fixed possible exploit, 1.3a coords fixed [Lupus]
 //============================================================
 
-yuno.gat,246,51,4	script	Old Blacksmith	813,{
+yuno.gat,240,52,4	script	Old Blacksmith	813,{
  mes "[Old Blacksmith]";
  mes "Well then my good man!";
  mes "What can I do for you?";
