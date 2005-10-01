@@ -1,21 +1,30 @@
 
 STATICLIB = libz.a
 SHAREDLIB = zlib.dll
+UNZLIB = libunz.a
 
-OBJS = adler32.o compress.o crc32.o deflate.o gzio.o infback.o \
-       inffast.o inflate.o inftrees.o trees.o uncompr.o zutil.o
+Z_OBJS = adler32.o compress.o crc32.o deflate.o gzio.o infback.o \
+	 inffast.o inflate.o inftrees.o trees.o uncompr.o zutil.o
 
-all: $(SHAREDLIB) $(STATICLIB)
+UNZ_OBJS = unzip.o ioapi.o
 
-$(SHAREDLIB): zlib.def $(OBJS)
-	dllwrap --driver-name $(CC) --def zlib.def -o ../../$@ $(OBJS)
+.c.o:
+	$(CC) -c $(CFLAGS) $*.c
+
+all: $(SHAREDLIB) $(STATICLIB) $(UNZLIB)
+
+$(SHAREDLIB): zlib.def $(Z_OBJS)
+	dllwrap --driver-name $(CC) --def zlib.def -o ../../$@ $(Z_OBJS)
 	strip ../../$@
 
-$(STATICLIB): $(OBJS)
-	ar rcs ../common/$@ $(OBJS)
+$(STATICLIB): $(Z_OBJS)
+	ar rcs ../common/$@ $(Z_OBJS)
+
+$(UNZLIB): $(UNZ_OBJS)
+	ar rcs ../common/$@ $(UNZ_OBJS)
 
 clean:
-	rm -f *.o ../../$(SHAREDLIB) ../common/$(STATICLIB)
+	rm -f *.o ../../$(SHAREDLIB) ../common/$(STATICLIB) ../common/$(UNZLIB)
 
 # DO NOT DELETE
 
