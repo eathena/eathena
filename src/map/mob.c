@@ -4514,7 +4514,7 @@ static int mob_read_sqldb(void)
 				// 37 - 44
 				"`Drop5id`,`Drop5per`,`Drop6id`,`Drop6per`,`Drop7id`,`Drop7per`,`Drop8id`,`Drop8per`,"
 				// 45 - 48
-				"`Drop9id`,`Drop9per`,`Dropcardid`,`dropcardper`"
+				"`Drop9id`,`Drop9per`,`Dropcardid`,`dropcardper`,"
 				"`MEXP`,`ExpPer`,`MVP1id`,`MVP1per`,`MVP2id`,`MVP2per`,`MVP3id`,`MVP3per`"
 		"FROM %s",mob_db_db);
 		if (mysql_query(&mmysql_handle, tmp_sql)) {

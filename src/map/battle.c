@@ -1964,15 +1964,15 @@ static struct Damage battle_calc_pc_weapon_attack(
 
 	if (skill_num == 0) {
 		//ダブルアタック判定
-		int da_rate = pc_checkskill(sd,TF_DOUBLE) * 5;
-		if (sd->weapontype1 == 0x01 && da_rate > 0)
-			da = (rand()%100 < da_rate) ? 1 : 0;
+		int da_rate = 0; 
+		if(sd->weapontype1 == 0x01) da_rate += pc_checkskill(sd,TF_DOUBLE) * 5;
+		da_rate += sd->double_rate; 
 		//三段掌	 // triple blow works with bows ^^ [celest]
 		if (sd->status.weapon <= 16 && (skill = pc_checkskill(sd,MO_TRIPLEATTACK)) > 0)
 			da = (rand()%100 < (30 - skill)) ? 2 : 0;
 		if (da == 0 && sd->double_rate > 0)
 			// success rate from Double Attack is counted in
-			da = (rand()%100 < sd->double_rate + da_rate) ? 1 : 0;
+			da = (rand()%100 < da_rate) ? 1 : 0;
 	}
 
 	// 過剰精錬ボーナス
@@ -4710,21 +4710,7 @@ struct Damage battle_calc_attack(	int attack_type,
 	struct block_list *bl,struct block_list *target,int skill_num,int skill_lv,int flag)
 {
 	struct Damage d;
-#if 1
-	if(skill_num == 0 && bl->type == BL_PC)
-	{
-		struct status_change *sc_data = status_get_sc_data(bl);
-		if(sc_data && sc_data[SC_SACRIFICE].val1);
-		{
-			attack_type = BF_MISC;
-			skill_num = PA_SACRIFICE;
-			skill_lv = sc_data[SC_SACRIFICE].val1;
-			sc_data[SC_SACRIFICE].val2--;			
-			if(sc_data[SC_SACRIFICE].val2 < 1)
-				status_change_end(bl, SC_SACRIFICE, -1);
-		}
-	}
-#endif
+
 	switch(attack_type){
 	case BF_WEAPON:
 		return battle_calc_weapon_attack(bl,target,skill_num,skill_lv,flag);
@@ -4812,6 +4798,15 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 			wd = battle_calc_weapon_attack(src, target, AS_POISONREACT, sc_data[SC_POISONREACT].val1, 0);
 		else
 			wd = battle_calc_weapon_attack(src,target,0,0,0);
+
+		if (sc_data && sc_data[SC_SACRIFICE].timer != -1)
+		{
+			sc_data[SC_SACRIFICE].val2--;			
+			if(sc_data[SC_SACRIFICE].val2 < 1)
+				status_change_end(src, SC_SACRIFICE, -1);
+			skill_castend_damage_id(src, target, PA_SACRIFICE, sc_data[SC_SACRIFICE].val1, tick, flag);
+			return 0;	//skip normal weapon damage
+		}
 	
 		if ((damage = wd.damage + wd.damage2) > 0 && src != target) {
 			if(battle_config.pet_attack_support && sd && sd->status.pet_id > 0 && sd->pd && sd->petDB)
