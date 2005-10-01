@@ -1,7 +1,7 @@
 
 CACHED = $(shell ls | grep Makefile.cache)
 ifeq ($(findstring Makefile.cache,$(CACHED)), Makefile.cache)
-   MKDEF = $(shell cat Makefile.cache)
+MKDEF = $(shell cat Makefile.cache)
 else
 
 CC = gcc -pipe
@@ -32,6 +32,7 @@ OPT += -Wall -Wno-sign-compare
 # LIBS += -lgc
 # LIBS += -ldmalloc
 # LIBS += -L/usr/local/lib -lpcre
+LIBS += -L../common -lunz
 
 PLATFORM = $(shell uname)
 
@@ -145,7 +146,7 @@ converters: src/txt-converter/GNUmakefile common
 	$(MAKE) -C src/txt-converter $(MKDEF)
 
 zlib:
-	$(MAKE) -C src/$@ $(MKDEF)	
+	$(MAKE) -C src/$@ $(MKDEF)
 
 clean: src/common/GNUmakefile src/login/GNUmakefile src/login_sql/GNUmakefile \
 	src/char/GNUmakefile src/char_sql/GNUmakefile src/map/GNUmakefile \
@@ -159,6 +160,7 @@ clean: src/common/GNUmakefile src/login/GNUmakefile src/login_sql/GNUmakefile \
 	$(MAKE) -C src/map $@
 	$(MAKE) -C src/ladmin $@
 	$(MAKE) -C src/plugins $@
+	$(MAKE) -C src/zlib $@
 	$(MAKE) -C src/txt-converter $@
 
 depend: src/common/GNUmakefile src/login/GNUmakefile src/login_sql/GNUmakefile \

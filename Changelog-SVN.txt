@@ -1,6 +1,15 @@
 Date	Added
 =======
 
+10/01
+	* Fixed compile errors in converters [celest]
+	* Updating built-in zlib to 1.2.3 [celest]
+	* Added unzip functions to grfio.c [celest]
+	* Finished Fusion/Prometheus AF2 maps support - just put the .af2 files in the
+	  afm folder and start the map server as usual [celest]
+	  NOTE: It will need a new unzip library, so do 'make clean', or delete
+	  'Makefile.cache' before recompiling!
+
 09/30
 	* Updated the slave warp code. Now when a master recalls their slaves,
 	  these will be placed 'randomly' around the master in an area_size/2 range.

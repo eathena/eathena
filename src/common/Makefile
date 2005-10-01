@@ -5,7 +5,8 @@ obj:
 
 common: obj/core.o obj/socket.o obj/timer.o obj/db.o obj/plugins.o obj/lock.o \
 	obj/nullpo.o obj/malloc.o obj/showmsg.o  obj/strlib.o obj/utils.o \
-	obj/graph.o obj/grfio.o obj/minicore.o obj/minisocket.o obj/minimalloc.o
+	obj/graph.o obj/grfio.o obj/minicore.o obj/minisocket.o obj/minimalloc.o \
+	libunz.a
 
 
 obj/%.o: %.c
@@ -13,6 +14,9 @@ obj/%.o: %.c
 
 obj/mini%.o: %.c
 	$(COMPILE.c) -DMINICORE $(OUTPUT_OPTION) $<
+
+libunz.a:
+	$(MAKE) -C ../zlib $@
 
 
 clean:

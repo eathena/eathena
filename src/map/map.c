@@ -132,7 +132,7 @@ char *MSG_CONF_NAME;
 char *GRF_PATH_FILENAME;
 
 #define USE_AFM
-//#define USE_AF2
+#define USE_AF2
 
 // ã…óÕ staticÇ≈Éç?ÉJÉãÇ…?ÇﬂÇÈ
 static struct dbt * id_db=NULL;
@@ -2911,30 +2911,22 @@ static int map_readafm(int m,char *fn) {
 #ifdef USE_AF2
 static int map_readaf2(int m, char *fn)
 {
-	FILE *af2_file, *dest;
-	char buf[256];
-	int ret = 0;
+	char out_file[256];
+	char *p, *out;
 
-	af2_file = fopen(fn, "r");
-	if (af2_file != NULL) {
-		strncpy (buf, fn, strlen(fn) - 4);
-		strcat(buf, ".out");
+	p = out = fn;
+	while ((p = strchr(p, '/')) != NULL)
+		out = ++p;
+	
+	strncpy (out_file, out, strlen(out));
+	p = strrchr (out_file, '.');
+	if (p) *p++ = 0;
+	strcat(out_file, ".out");
 
-		dest = fopen(buf, "w");
-		if (dest == NULL) {
-			ShowError("cant open %s\n", fn);
-			fclose(af2_file);
-			return 0;
-		}
-		// AF2's zip archive is not supported yet
-		//ret = decode_file (af2_file, dest);
-		fclose(af2_file);
-		fclose(dest);
-
-		if (ret) map_readafm(m, buf);
-		unlink (buf);
-
-		return ret;
+	if (deflate_file(fn, out_file)) {
+		map_readafm(m, out_file);
+		unlink (out_file);
+		return 1;
 	}
 
 	return 0;
