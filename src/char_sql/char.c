@@ -569,7 +569,6 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 	int count = 0;
 	int diff = 0;
 	char temp_str[1024];
-	char *tmp_p = tmp_sql;
 	struct mmo_charstatus *cp;
 	struct itemtmp mapitem[MAX_GUILD_STORAGE];
 
@@ -885,8 +884,8 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 // [Ilpalazzo-sama]
 int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tableswitch)
 {
-	int i, flag, id;
-	char *tablename;
+	int i;
+.	char *tablename;
 	char selectoption[16];
 
 	switch (tableswitch) {
@@ -946,7 +945,6 @@ int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tab
 //=====================================================================================================
 int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 	int i, n;
-	char *tmp_p = tmp_sql;
 	struct mmo_charstatus *cp;
 
 	cp = (struct mmo_charstatus*)numdb_search(char_db_,char_id);
@@ -1541,15 +1539,6 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 		sprintf(tmp_sql, "DELETE FROM `%s` WHERE `char_id` = '%d'", inventory_db, char_id);
 		mysql_query(&mysql_handle, tmp_sql);
 		return -2; //end....
-	}
-
-	if(!insert_friends(char_id)){
-		printf("fail (friendlist entrys..)\n");
-			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `char_id` = '%d'", char_db, char_id);
-			mysql_query(&mysql_handle, tmp_sql);
-			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `char_id` = '%d'", inventory_db, char_id);
-			mysql_query(&mysql_handle, tmp_sql);
-			return -2; //end.. charcreate failed
 	}
 
 	//printf("making new char success - id:(\033[1;32m%d\033[0m\tname:\033[1;32%s\033[0m\n", char_id, t_name);
