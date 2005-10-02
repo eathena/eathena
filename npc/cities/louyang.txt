@@ -1,0 +1,313 @@
+//===== eAthena Script =======================================
+//= Lou Yang placeholder NPCs
+//===== By: ==================================================
+//= Arutema
+//= Guards origionally written for vidar by Shadow of Death
+//===== Current Version: =====================================
+//= 1.1
+//===== Compatible With: =====================================
+//= Any eAthena Version which supports the duplicate() function; 
+//= kRO Sakray 2004-04-27 or newer
+//===== Description: =========================================
+//= Unoffical NPCs for the Town of Lou Yang
+//= for use until someone translates and scripts the offical ones
+//===== Additional Comments: =================================
+//= v 1.1: updated to official Louyang NPC sprites
+//============================================================ 
+
+// Imperial Guard - Guards of Lou Yang
+
+louyang.gat,224,39,0	script	Imperial Guard#01::lou_guard	825,{
+	mes "[^000080Imperial Guard^000000]";
+	mes "What can I help you with?";
+	next;
+MN2:
+	menu "Tell me the rules and regulations.",RULES,
+		"I'm trying to find something.",LOC,
+		"Never mind.",EX;
+	close;
+
+EX:
+  	mes "[^000080Imperial Guard^000000]";
+  	mes "All right then.  If you're in need of help, don't worry about coming back to ask.";
+	close;
+
+
+RULES:
+    mes "[^000080Imperial Guard^000000]";
+    mes "The rules here are rather simple.";
+    mes "There is to be no robbing within the city, or your hands will be cut off.";
+  	next;
+    mes "[^000080Imperial Guard^000000]";
+    mes "Gambling is prohibited outside of the restaurant and the winery.";
+    mes "Also, you should not be out on the streets with alcohol late at night.";
+  	next;
+    mes "[^000080Imperial Guard^000000]";
+    mes "Of course, there is to be no killing under any circumstance within the city unless it is an enemy.";
+    mes "However, it is usually best to warn a guard of any intruders so that we may take care of it.";
+  	next;
+    mes "[^000080Imperial Guard^000000]";
+    mes "As you can see, the rules are pretty straight forward.";
+    mes "If you are unsure whether it is against the law, it is better off that you do not do it.";
+  	next;
+    mes "[^000080Imperial Guard^000000]";
+    mes "Is there anything else that I can help you with?";
+  	next;
+    menu "Yes, please.",MN2,"No, I'm fine now.",;
+      mes "[^000080Imperial Guard^000000]";
+      mes "Good!  The people of ^008000Lou Yang^000000 prize the safety and security of those within the city.";
+      mes "I hope that you have a nice day!";
+    	close;
+
+LOC:
+  	mes "[^000080Imperial Guard^000000]";
+  	mes "All right, what are you trying to look for?";
+  next;
+MNU:
+  	menu "Lou Yang's armoury.",ARM,
+		"The restaurant.",RES,
+		"The inn.",ALC,
+		"The temple",TEM,
+		"The marketplace.",MAR,
+		"The city hall.",HAL,
+		"The landlord's house.",PAL,
+		"Wipe all markers.",EX1;
+	close;
+  ARM:
+    	mes "[^000080Imperial Guard^000000]";
+    	mes "The armoury of ^008000Lou Yang^000000 can be found right here.";
+    	mes "I've placed a blue marking on your mini-map for you to find it easier.";
+    	viewpoint 1,145,180,1,0x0000FF;
+  	ASK:
+    next;
+    	mes "[Imperial Guard]";
+    	mes "Is there any other locations that you would like me to indicate the location of to you?";
+    next;
+    	menu "Yes, please.",MNU,"No, I'm all right now.",-;
+      	mes "[Imperial Guard]";
+      	mes "Good, good!";
+      	mes "If you need help still, don't worry.";
+      close;
+  RES:
+    mes "[^000080Imperial Guard^000000]";
+    mes "The restaurant can be found right there.";
+    mes "I've placed a red marker on your map to help you find it easier.";
+    viewpoint 1,138,89,2,0xFF0000;
+  	goto ASK;
+  ALC:
+    mes "[^000080Imperial Guard^000000]";
+    mes "The inn can be found right there where I placed that orange marker.";
+    viewpoint 1,280,173,3,0xFF8000;
+  	goto ASK;
+  TEM:
+    mes "[^000080Imperial Guard^000000]";
+    viewpoint 1,126,246,4,0x800000;
+  	goto ASK;
+  MAR:
+    mes "[^000080Imperial Guard^000000]";
+    mes "The marketplace is actually spread out throughout the area, but I've marked done where the majority of the marketplace is.";
+    viewpoint 1,172,90,7,0x008000;
+    viewpoint 1,246,147,8,0x008000;
+    viewpoint 1,187,138,9,0x008000;
+    viewpoint 1,254,126,10,0x008000;
+    viewpoint 1,181,128,11,0x008000;
+    viewpoint 1,161,90,12,0x008000;
+  	goto ASK;
+  HAL:
+    mes "[^000080Imperial Guard^000000]";
+    viewpoint 1,321,85,13,0x004040;
+  	goto ASK;
+  PAL:
+    mes "[^000080Imperial Guard^000000]";
+    viewpoint 1,218,256,14,0xFFFF00;
+  	goto ASK;
+  EX1:
+    mes "[^000080Imperial Guard^000000]";
+    mes "Very well, then.  All markers have been removed.";
+    viewpoint 2,145,180,1,0x0000FF;
+    viewpoint 2,138,89,2,0xFF0000;
+    viewpoint 2,280,173,3,0xFF8000;
+    viewpoint 2,126,246,4,0x800000;
+    //viewpoint 2,x,y,5,0x00FF00;
+    //viewpoint 2,x,y,6,0x00FF00;
+    viewpoint 2,172,90,7,0x008000;
+    viewpoint 2,246,147,8,0x008000;
+    viewpoint 2,187,138,9,0x008000;
+    viewpoint 2,251,129,10,0x008000;
+    viewpoint 2,167,96,11,0x008000;
+    viewpoint 2,118,111,12,0x008000;
+    viewpoint 2,321,85,13,0x004040;
+    viewpoint 2,218,256,14,0xFFFF00;
+  	goto ASK;
+}
+
+louyang.gat,210,39,0	duplicate(lou_guard)	Imperial Guard#02	825
+louyang.gat,186,103,6	duplicate(lou_guard)	Imperial Guard#05	825
+louyang.gat,211,68,4	duplicate(lou_guard)	Imperial Guard#06	825
+louyang.gat,224,68,4	duplicate(lou_guard)	Imperial Guard#07	825
+louyang.gat,264,49,2	duplicate(lou_guard)	Imperial Guard#08	825
+louyang.gat,264,58,2	duplicate(lou_guard)	Imperial Guard#09	825
+louyang.gat,305,77,4	duplicate(lou_guard)	Imperial Guard#10	825
+louyang.gat,314,77,4	duplicate(lou_guard)	Imperial Guard#11	825
+louyang.gat,273,140,4	duplicate(lou_guard)	Imperial Guard#12	825
+louyang.gat,281,140,4	duplicate(lou_guard)	Imperial Guard#13	825
+louyang.gat,301,135,2	duplicate(lou_guard)	Imperial Guard#14	825
+louyang.gat,301,126,2	duplicate(lou_guard)	Imperial Guard#15	825
+louyang.gat,211,163,4	duplicate(lou_guard)	Imperial Guard#16	825
+louyang.gat,224,163,4	duplicate(lou_guard)	Imperial Guard#17	825
+louyang.gat,213,211,4	duplicate(lou_guard)	Imperial Guard#18	825
+louyang.gat,222,211,4	duplicate(lou_guard)	Imperial Guard#19	825
+louyang.gat,213,247,4	duplicate(lou_guard)	Imperial Guard#20	825
+louyang.gat,222,247,4	duplicate(lou_guard)	Imperial Guard#21	825
+louyang.gat,225,248,4	duplicate(lou_guard)	Imperial Guard#22	825
+louyang.gat,210,248,4	duplicate(lou_guard)	Imperial Guard#23	825
+louyang.gat,241,210,2	duplicate(lou_guard)	Imperial Guard#24	825
+louyang.gat,241,199,2	duplicate(lou_guard)	Imperial Guard#25	825
+
+lou_fild01.gat,188,102,1	script	Sailor	100,{
+	mes "[Sailor]";
+	mes "We run a line to Alberta, we could take you there if you like.";
+	next;
+	menu "Let me travel to alberta.",L_Menu1,"No thanks.",;
+	close;
+		L_Menu1:
+			warp "alberta.gat",247,44;
+}
+
+//
+// End conversions from Shadow of Death's VIDAR NPCs
+//
+// New NPCs by Aru:
+//
+
+louyang.gat,187,148,5	shop	Baker Wei Yin	824,552:250,553:50,550:10,549:-1
+louyang.gat,254,126,2	shop	Butcher Zhou Ling	822,544:30,551:55,517:-1,528:-1,537:-1
+louyang.gat,181,128,6	shop	Jeweler Mei Sing	816,730:-1,721:-1,722:-1,725:-1,726:-1,728:-1,729:-1
+louyang.gat,161,90,0	shop	Merchant Dai Hin	819,611:-1,1750:-1,501:-1,502:-1,503:-1,504:-1,506:-1,525:-1,601:-1,602:-1,1065:-1,645:-1,656:-1,657:-1
+louyang.gat,172,90,0	shop	Grocer Hong Ran 	822,512:-1,513:-1,514:-1,515:-1,516:-1,535:-1
+louyang.gat,247,147,3	shop	Herbalist Huang Xing	814,507:40,508:500,511:10,610:4000
+
+lou_in02.gat,116,36,4	script	Imperial Guard#i1::house_guard	825,{
+	mes "[Imperial Guard]";
+	mes "Away with you! Civilians are not allowed in the guardhouse.";
+	close;
+}
+
+lou_in02.gat,76,36,4	duplicate(house_guard)	Imperial Guard#i2	825
+
+louyang.gat,42,269,6	duplicate(lou_guard)	Imperial Guard#d1	825
+}
+
+louyang.gat,38,277,6	duplicate(lou_guard)	Imperial Guard#d2	825
+
+lou_in02.gat,58,183,4	script	Innkeeper	824,{
+	mes "[Innkeeper]";
+	mes "After 20 years... I'm having to close the inn.";
+	next;
+	menu "Listen",Inn_Whine,"Don't",Inn_Boring;
+	close;
+
+Inn_Whine:
+	mes "[Innkeeper]";
+	mes "When I first inherited this inn from my father, Lou Yang was a large and prosperous city.  We did good business with Amatsu and Gon-Ryun and had many visitors.";
+	next;
+	mes "[Innkeeper]";
+	mes "Ten years ago, monsters awoke on Gon-Ryun island. Travel to or from Gon-Ryun became too dangerous and we lost their business.";
+	next;
+	mes "[Innkeeper]";
+	mes "Then three years ago ships from Alberta reached Amatsu for the first time. Amatsu prospered from trade with Rune-Midgard, but at the expense of their trade with us in Lou Yang. Our loss was made worse when The Emperor forbid all contact between Lou Yang and Rune-Midgard.";
+	next;
+	mes "[Innkeeper]";
+	mes "Despite the emperor's decree, many left Lou Yang for Amatsu, which was still allowed, then left Amatsu for Rune-midgard, never to return.";
+	next;
+	mes "[Innkeeper]";
+	mes "Now the old emperor is dead and the ban rescinded, but there is nothing left here to attract business from the outside world. Only adventurers come here, seeking treasures in our catacombs, and few come out alive.";
+	next;
+	mes "[Innkeeper]";
+	mes "I have had so few visitors these last few years, I am forced to sell the inn that has been in my family for 500 years. I will likely use the money to retire in Amatsu, there is nothing left for anyone here in Lou Yang.";
+	close;
+
+Inn_Boring:
+	mes "[Innkeeper]";
+	mes "Then I will not pain you with the ramblings of an old man.";
+	close;
+}
+
+louyang.gat,110,215,6	script	Young Woman	815,{
+	mes "[Girl]";
+	mes "Isn't the view here wonderful? You can see the whole city from here.";
+	close;
+}
+
+louyang.gat,304,211,3	script	Woman	817,{
+	mes "[Woman]";
+	mes "These reflecting pools are so calming. I just stare into them and feel all tension and troubles leave me.";
+	close;
+}
+
+// Chun Hua - Restaurant Owner's Daughter
+// Vidar Origional by Shadow of Death
+
+louyang.gat,146,100,7	script	Chun Hua	815,{
+  mes "[Chun Hua]";
+  mes "Welcome traveler, you must be hungry and thirsty.";
+  mes "Please come inside, there is much to eat.";
+	next;
+  mes "[Chun Hua]";
+  mes "Do not be afraid about how much you ask for, there is much to go around.";
+	close;
+}
+
+// Remaining restaurant NPCs by Aru
+
+lou_in02.gat,235,176,4	script	Chun Sing	818,{
+	mes "[Chun Sing]";
+	mes "Welcome traveler, would you like to try our tea? It is said to be the best in Lou Yang.";
+	next;
+	mes "[Chun Sing]";
+	mes "Oh, how I miss the days when it was said to be the best in the world.";
+	close;
+}
+
+lou_in02.gat,240,176,4	script	Chun Fong	820,{
+	mes "[Chun Fong]";
+	mes "Welcome to Chun's Restaurant, the only--er best in Lou Yang!";
+	next;
+	mes "[Chun Fong]";
+	mes "Sit anywhere you like, and I will take your order whenever you are ready.";
+	close;
+}
+
+lou_in02.gat,240,168,6	script	Diner	107,{
+	mes "[Diner]";
+	mes "Hello stranger! You look like you're from the mainland. Me? I'm from Payon myself. Where you from?";
+	next;
+	mes "[Diner]";
+	mes "Nevermind that, sit down and have a bite. The food here is excellent, and the tea's to die for.";
+	close;
+}
+
+louyang.gat,133,244,6	script	Monk	823,{
+	mes "[Priest]";
+	mes "There is a ceremony in progress right now.";
+	next;
+	mes "[Priest]";
+	mes "We cannot open the temple doors until it is concluded.";
+	close;
+}
+
+lou_in02.gat,203,86,6	script	Beurocrat	824,{
+	mes "[Beurocrat]";
+	mes "We are closed for the day.";
+	mes "If you have business here, please return at 9 o' clock on Monday moring.";
+	close;
+}
+
+lou_in01.gat,100,161,4	script	Lord	821,{
+	mes "[Lord Lou]";
+	mes "Welcome to what little remains of the once mighty realm of Lou Yang.";
+	next;
+	mes "[Lord Lou]";
+	mes "Have you also come to explore our catacombs? If so, I warn you, our ancestors do not tolerate intruders.";
+	close;
+}

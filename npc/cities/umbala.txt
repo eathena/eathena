@@ -1,0 +1,189 @@
+//===== eAthena script =======================================
+//= Umbala Town script
+//===== By: ==================================================
+//= jAthena (1.0)
+//= Fusion Dev Team (1.1)
+//= Muad Dib (1.2)
+//= Darkchild (1.3) 
+//===== Current Version: =====================================
+//= 1.4
+//===== Compatible With: =====================================
+//= Any eAthena Version; RO Episode XX
+//===== Description: =========================================
+//= Umbala Town Npcs
+//==================================================
+
+function	script	um_langcheck	{
+	set @um_rand,rand(1,4);
+	if (@um_rand==2) goto um_2;
+	if (@um_rand==3) goto um_3;
+	if (@um_rand==4) goto um_4;
+	mes "Umbaba!  Umbaumbaugaga";
+	mes "Ugugumubaugaumuumu.";
+	mes "Umbabababababababa.";
+	return;
+um_2:
+	mes "...Umba, Umbaumbaumba.";
+	mes "Umbaumbaumbababa.";
+	mes "Umbabawaumbaumbaba.";
+	mes "Umbaumba.";
+	mes "...Umbaumbamabababumba.";
+	return;
+um_3:
+	mes "Umbaumbaumbaba Utan Umbaba";
+	mes "Umbaumbaumbafumbabauma...";
+	mes "Umbabaumbaumbabaumbabaumba";
+	mes "Umbabaumbabaumbaumbabaumba";
+	mes "Fumbaumba.";
+	return;
+um_4:
+	mes "Umbaumbaumbabaumbaba.";
+	mes "Umbaumbabaumbababaumufumuba.";
+	return;
+}
+
+
+//==================================================================
+//	Umbala NPCs and Quests
+//==================================================================
+
+//==================================================================
+umbala.gat,70,106,3	script	Utan Child#1	781,{
+	mes "[Child]";
+	callfunc "um_langcheck";
+	close;
+}
+
+//==================================================================
+umbala.gat,59,243,5	script	Utan Child#4	787,{
+	mes "[Child]";
+	callfunc "um_langcheck";
+	close;
+}
+
+um_in.gat,39,122,5	script	Utan Tribal Elder	784,{
+	mes "[Elder]";
+	callfunc "um_langcheck";
+	close;
+}
+
+//=====================================================================
+um_in.gat,44,71,2	script	Utan Tribe Shaman	782,{
+	mes "[Shaman]";
+	callfunc "um_langcheck";
+	close;
+}
+
+//=====================================================================
+umbala.gat,177,153,3	script	Bast	97,{
+	if(two_qset == 5) callfunc "THQ_leaf";
+	mes "[Bast]";
+	callfunc "um_langcheck";
+	next;
+	mes "[Bast]";
+	mes "I'm trying to learn the language here.";
+	mes "Am I any good?";
+	close;
+}
+
+//=====================================================================
+umbala.gat,80,146,4	script	Yuki	753,{
+	mes "[Yuki]";
+	callfunc "um_langcheck";
+	next;
+	mes "[Yuki]";
+	mes "I'm trying to learn the language here.";
+	mes "Am I any good?";
+	close;
+}
+
+//=====================================================================
+um_in.gat,101,73,3	script	Yunatan 	783,{
+	mes "[Yunatan]";
+	callfunc "um_langcheck";
+	close;
+}
+
+//=====================================================================
+um_in.gat,94,123,5	script	Bartsutan	783,{
+	mes "[Bartsutan]";
+	callfunc "um_langcheck";
+	close;
+}
+
+//=====================================================================
+umbala.gat,140,157,6	script	Utan Tribe Young Adult#1	785,{
+	mes "[Seirutan]";
+	callfunc "um_langcheck";
+	close;
+}
+
+//=====================================================================
+umbala.gat,146,157,4	script	Utan Young Adult#2	786,{
+	mes "[Arotan]";
+	callfunc "um_langcheck";
+	close;
+}
+
+//=====================================================================
+umbala.gat,149,165,4	script	Utan Young Adult#3	781,{
+	mes "[Kryubatan]";
+	callfunc "um_langcheck";
+	close;
+}
+
+//=====================================================================
+umbala.gat,92,159,4	script	Hartan	785,{
+	mes "[Hartan]";
+	callfunc "um_langcheck";
+	close;
+}
+
+//=====================================================================
+umbala.gat,194,104,4	script	Utan Tribe Child#2	787,{
+	mes "[Burkatan]";
+	callfunc "um_langcheck";
+	close;
+}
+
+//=====================================================================
+umbala.gat,193,208,6	script	Utan Child#3	789,{
+	mes "[Fuitan]";
+	callfunc "um_langcheck";
+	close;
+}
+
+//=====================================================================
+umbala.gat,139,205,4	script	Utan Tribe Young Adult#5	785,{
+	mes "[Tsunitan]";
+	callfunc "um_langcheck";
+	close;
+}
+
+//=====================================================================
+um_in.gat,158,71,3	script	Utan Tribesman	787,{
+	mes "[Mutakutan]";
+	callfunc "um_langcheck";
+	close;
+}
+
+//=====================================================================
+umbala.gat,145,217,3	script	Chibibatan	783,{
+	mes "[Chibibatan]";
+	callfunc "um_langcheck";
+	close;
+}
+
+//=====================================================================
+um_in.gat,139,48,5	script	Purenotan	783,{
+	mes "[Purenotan]";
+	callfunc "um_langcheck";
+	close;
+}
+
+//=====================================================================
+um_in.gat,144,45,5	script	Wambokoriotan	789,{
+	mes "[Wambokoriotan]";
+	callfunc "um_langcheck";
+	close;
+}
