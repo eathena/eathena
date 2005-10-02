@@ -1,6 +1,13 @@
 Date	Added
 =======
 
+10/02
+	* Fixed STEAL issue. [Lupus]
+	- Any Mob has 10 drop slots. If we pick an empty one, then we check previous slot, until we find a slot with an item.
+	  Then we apply STEAL FORMULA for the item. (During the tests I managed to steal 2 poring cards 8)
+	  If a mod doesn't have any slots then STEAL fails.
+	- Possible exploit: If a mob (e.g. NEW MOBS) has only one rare drop, then STEAL would always try to steal that the only slot 8)
+	  How to fix: I suggest to fill other empty slots with Jellopies or Apples with zero chance.
 10/01
 	* Expanded NPC shop log info of sold items (cards, refine, etc) [Lupus]
 	* Fixed compile errors in converters [celest]

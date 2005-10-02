@@ -2792,7 +2792,7 @@ int pc_steal_item(struct map_session_data *sd,struct block_list *bl)
 	int log_item[10]; //for stolen items logging Lupus
 
 	if(sd != NULL && bl != NULL && bl->type == BL_MOB) {
-		int i,skill,itemid,flag;
+		int i,j,skill,itemid,flag;
 		struct mob_data *md;
 		md=(struct mob_data *)bl;
 
@@ -2809,8 +2809,14 @@ int pc_steal_item(struct map_session_data *sd,struct block_list *bl)
 
 			if(0 < skill)
 			{
-				i = rand()%10; //8 -> 10 Lupus
-				itemid = md->db->dropitem[i].nameid;
+				j = i = rand()%10; //Pick one mobs drop slot.
+				do {
+					//if it's empty, we check one by one, till find an item
+					i--;
+					if(i<0)
+						i=9; //9th slot
+					itemid = md->db->dropitem[i].nameid;
+				} while(!itemid && i!=j); //we have to check I and J to prevent endless loop on a mob w/o any drops
 
 				if(itemid > 0 && (itemdb_type(itemid) != 6 || pc_checkskill(sd,TF_STEAL) > 5))
 				{
