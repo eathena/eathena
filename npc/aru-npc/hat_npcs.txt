@@ -1,4 +1,176 @@
 // NPCs for newer headgears
+// some of these are my own, some are copy-pasted from stable. it's a bit of a jumble ATM
+
+//-------------------------------------------------------------------------------------------------
+//Detective hat (Hat_of_the_Investigator) ID 5108
+lighthalzen.gat,140,68,4	script	Morris	804,{
+	mes "[Morris]";
+	mes "Do you want a ^FF3300Hat of the Investigator^000000?"; 
+	next;
+	menu "Of course, I do",-,"No, thanks",L_EXIT;
+
+	mes "[Morris]";
+	mes "Ok then, I shall make one for you.";
+
+	if (countitem(611)<10 || countitem(7301)<1887 || countitem(5120)<1 || Zeny<50000) goto L_NOITEM;//Items: Magnifier, Tassel, Fashionable_Fur_Hat,
+	mes "[Morris]";
+	mes "Very well. Now I can make it...";
+	next;
+	mes "[Morris]";
+	mes "Enjoy.";
+	delitem 611,10;   //Items: Magnifier,
+	delitem 7301,1887;  //Tassel//Items: Tassel,
+	delitem 5120,1;   //Items: Fashionable_Fur_Hat,
+	set Zeny,Zeny-50000;
+	getitem 5108,1;//Items: Detective_Hat,
+	close;
+
+L_NOITEM:
+	mes "[Morris]";
+	mes "Bring me:";
+	mes "^FF3300 10 Magnifiers^000000,";
+	mes "^FF3300 1887 Tassel^000000,";
+	mes "^FF3300 1 Wide Bunker Hat [1]^000000,";
+	mes "and ^FF3300 50,000 zeny.^000000";
+	close;
+
+L_EXIT:
+	mes "[Morris]";
+	mes "Bye.";
+	close;
+}
+
+//-------------------------------------------------------------------------------------------------
+//Red hood (Red Bonnet) ID 5109
+lighthalzen.gat,180,88,4	script	Rich Girl	864,{
+	mes "[Rich Girl]";
+	mes "Hello there! Please, answer my questions.";
+	next;
+	mes "[Rich Girl]";
+	mes "Do you have a grandma?";
+	emotion 20;
+	next;
+	mes "[Rich Girl]";
+	mes "Really? I'm sorry. Do you like wolves?";
+	next;
+	mes "[Rich Girl]";
+	mes "Ha! I knew it! And... my last question. Would you like to put on something reddish?";
+	emotion 1;
+	next;
+	mes "[Rich Girl]";
+	mes "Just kidding, Have you ever read 'Red-Hood'? I can make to you the very same ^FF3300Red Bonnet^000000.";
+	next;
+	menu "Please, make it!",-,"No, thanks",L_EXIT;
+	if ((countitem(10015) < 1) || (countitem(975) < 1) || (countitem(10007) < 1) || (countitem(5032)<1) || Zeny<50000) goto L_NOITEM;//Items: Green_Lace, Scarlet_Dyestuffs, Silk_Ribbon, Sunday_Hat,
+	mes "[Rich Girl]";
+	mes "Ok then, I shall make one for you.";
+	delitem 10015,1;//Items: Green_Lace,
+	delitem 975,1;//Items: Scarlet_Dyestuffs,
+	delitem 10007,1;//Items: Silk_Ribbon,
+	delitem 5032,1;//Items: Sunday_Hat,
+	getitem 5109,1;//Items: Red_Bonnet,
+	set Zeny,Zeny-50000;
+	next;
+	mes "[Rich Girl]";
+	mes "Now you can drink tea with your grannie and have fun with wolves.";
+	close;
+
+L_NOITEM:
+	mes "[Rich Girl]";
+	mes "Give me:";
+	mes "^FF3300 Green Lace^000000,";
+	mes "^FF3300 Scarlet Dyestuff ^000000,";
+	mes "^FF3300 Silk Ribbon^000000,";
+	mes "^FF3300 Sunday Hat ^000000,";
+	mes "and ^FF3300 50,000 zeny.^000000";
+	close;
+
+L_EXIT:
+	mes "[Rich Girl]";
+	mes "Well done. Bye.";
+	close;
+}
+
+//-------------------------------------------------------------------------------------------------
+//Mystic rose ID 5117
+lhz_in02.gat,105,21,4	script	Margaret Mary	838,{
+	mes "[Margaret Mary]";
+	mes "Wheee! Don't you just love making youself look pretty!?";
+	mes "I love glamourising myself with all the best accessories!";
+	next;
+
+	mes "[Margaret Mary]";
+	mes "Have you ever heard of a ^FF3300Mystic Rose^000000?";
+	mes "I can make you one, and you could be fashionable and mysticly, too!";
+	next;
+	menu "Make me a ^670000Mystic rose^000000.",-,"No, I dont want one.",L_EXIT;
+	
+	if ((countitem(731) < 10) || (countitem(748) < 3) || (countitem(982) < 1) || Zeny<50000) goto L_NOITEM;//Items: 2_Carat_Diamond, Witherless_Rose, White_Dyestuff,
+	mes "[Margaret Mary]";
+	mes "Wow, thank you! Hand me your items, please.";
+	delitem 731,10;//Items: 2_Carat_Diamond,
+	delitem 748,3;//Items: Witherless_Rose,
+	delitem 982,1;//Items: White_Dyestuff,
+	set Zeny,Zeny-50000;
+	getitem 5117,1;//Items: Mystic_Rose,
+	next;
+
+	mes "[Margaret Mary]";
+	mes "Enjoy being pretty and mystic!";
+	close;
+L_NOITEM:
+	mes "[Margaret Mary]";
+	mes "Well, for me to make you my Mystic rose...";
+	mes "I need these materials:";
+	mes "^FF3300 10 2-Carat Diamonds^000000,";
+	mes "^FF3300 3 Witherless Roses^000000,";
+	mes "^FF3300 1 White Dyestuff^000000,";
+	mes "and ^FF3300 50,000 zeny.^000000";
+	close;
+L_EXIT:
+	mes "[Margaret Mary]";
+	mes "Aww... well, OK then!";
+	mes "Be pretty some other time";
+	close;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+//Well-Baked Toast ID 5107
+lighthalzen.gat,224,116,4	script	Juneau Cho	862,{	//!!! WRONG name of NPC
+	mes "[Juneau Cho]";
+	mes "Do you want ^FF3300 Well-Baked Toast ^000000?";
+	next;
+	menu "Please, make one for me",-,"No, thanks. I'm so full",L_EXIT;
+
+	if ((countitem(519) < 50) || (countitem(548) < 50) || (countitem(539) < 50) || (countitem(7031)<50)) goto L_NOITEM;//Items: Milk, Cheese, Piece_of_Cake, Old_Frying_Pan,
+	mes "[Juneau Cho]";
+	mes "Good, thank you! Let me just take your ingredients.";
+	delitem 519,50;//Items: Milk,
+	delitem 548,50;//Items: Cheese,
+	delitem 539,50;//Items: Piece_of_Cake,
+	delitem 7031,50;//Items: Old_Frying_Pan,
+	getitem 5107,1;//Items: Well_Done_Toast,
+	next;
+	mes "[Juneau Cho]";	
+	mes "Well done. Be careful, it's hot.";
+	close;
+
+L_NOITEM:
+	mes "[Juneau Cho]";
+	mes "Well, for me to make you ^FF3300 Well-Baked Toast ^000000...";
+	mes "I require these ingredients:";
+	mes "^FF3300 50 Milk, ^000000";
+	mes "^FF3300 50 Cheese, ^000000";
+	mes "^FF3300 50 Piece of Cake, ^000000";
+	mes "^FF3300 50 Old Frying Pan. ^000000";
+	close;
+L_EXIT:
+	mes "[Juneau Cho]";
+	mes "Ok. I get more tasty toast.";
+	close;
+	
+}
 
 einbroch.gat,70,200,4	script	Ganya	852,{
 	set @npcname$,"Ganya";
