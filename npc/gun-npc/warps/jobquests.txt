@@ -1,0 +1,42 @@
+//===== Athena Script ========================================
+//= Job Quest Warp Script
+//===== By: ==================================================
+//= Athena (1.0)
+//===== Current Version: =====================================
+//= 1.0
+//===== Compatible With: =====================================
+//= Any Athena Version; RO Version Ep4+
+//===== Description: =========================================
+//= Warp Points for Job Quest Maps
+//===== Additional Comments: =================================
+//= Split off npc_warp.txt
+//============================================================
+
+//Wizard
+//job_wiz.gat,0,0,0	warp	jwiz	3,3,job_wiz.gat,0,0
+job_wiz.gat,99,160,0	warp	jwiz01	3,3,job_wiz.gat,0,0
+job_wiz.gat,128,169,0	warp	jwiz02	3,3,job_wiz.gat,0,0
+job_wiz.gat,114,154,0	warp	jwiz03	3,3,job_wiz.gat,0,0
+job_wiz.gat,60,165,0	warp	jwiz04	3,3,job_wiz.gat,0,0
+job_wiz.gat,48,177,0	warp	jwiz05	3,3,job_wiz.gat,0,0
+job_wiz.gat,115,82,0	warp	jwiz06	3,3,job_wiz.gat,0,0
+job_wiz.gat,100,97,0	warp	jwiz07	3,3,job_wiz.gat,0,0
+job_wiz.gat,116,97,0	warp	jwiz08	3,3,job_wiz.gat,0,0
+job_wiz.gat,116,113,0	warp	jwiz09	3,3,job_wiz.gat,0,0
+job_wiz.gat,131,98,0	warp	jwiz10	3,3,job_wiz.gat,0,0
+
+//Priest
+//job_prist.gat,0,0,0	warp	warp4	0,0,hoge.gat,0,0
+job_prist.gat,97,104,0	warp	jpri	0,0,job_prist.gat,0,0
+job_prist.gat,24,109,0	warp	jpri	4,3,job_prist.gat,168,17
+
+//Knight
+job_knt.gat,165,151,0	warp	jknt01	3,3,job_knt.gat,0,0
+job_knt.gat,122,151,0	warp	jknt02	3,3,job_knt.gat,0,0
+job_knt.gat,65,145,0	warp	jknt03	3,3,job_knt.gat,0,0
+job_knt.gat,22,145,0	warp	jknt04	3,3,job_knt.gat,0,0
+
+//Hunter
+//job_hunte.gat,0,0,0	warp	jhun	3,3,hoge.gat,0,0
+job_hunte.gat,89,139,0	warp	jhun	3,3,job_hunte.gat,0,0
+job_hunte.gat,89,68,0	warp	jhun	3,3,job_hunte.gat,0,0

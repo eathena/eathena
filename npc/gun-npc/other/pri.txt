@@ -1,0 +1,20 @@
+//sec_pri.gat,30,30,4	script	#Wisp	111,1,1{
+//if (@punish==1) goto PunMsg;
+//savepoint "sec_prigat",31,31;
+//mes "[Mysterious Voice]";
+//mes "Have fun!";
+//set @punish,1;
+//close;
+//PunMsg:
+//mes "[Wisp]";
+//mes "If you whisper a GM about being warped out, you will be";
+//mes "banned for a day. The GM will warp you back when your";
+//mes "punish time is up, no sooner.";
+//close;
+//}
+
+sec_pri.gat	mapflag	nomemo	dummy
+sec_pri.gat	mapflag	noteleport	dummy
+sec_pri.gat	mapflag	noreturn	dummy
+sec_pri.gat	mapflag	nobranch
+//sec_pri.gat,0,0,0,0	monster	LOL??	1998,30,0,0,0

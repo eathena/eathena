@@ -1,0 +1,32 @@
+//アマツフィールド(ama_fild01)
+ama_fild01.gat,0,0,0,0	monster	Poporing	1031,13,0,0,0
+ama_fild01.gat,0,0,0,0	monster	Bigfoot	1060,8,0,0,0
+ama_fild01.gat,0,0,0,0	monster	Hydra	1068,8,0,0,0
+ama_fild01.gat,0,0,0,0	monster	Karakasa	1400,10,0,0,0
+ama_fild01.gat,0,0,0,0	monster	Poison Toad	1402,2,0,0,0
+ama_fild01.gat,0,0,0,0	monster	Miyabi Ningyo	1404,2,0,0,0
+ama_fild01.gat,0,0,0,0	monster	Kappa	1406,13,0,0,0
+
+//畳の迷宮(ama_dun01)
+ama_dun01.gat,0,0,0,0	monster	Shinobi	1401,1,0,0,0
+ama_dun01.gat,0,0,0,0	monster	Antique Firelock	1403,30,0,0,0
+ama_dun01.gat,0,0,0,0	monster	Miyabi Ningyo	1404,20,0,0,0
+
+//地下戦場跡(ama_dun02)
+ama_dun02.gat,0,0,0,0	monster	Horong	1129,5,0,0,0
+ama_dun02.gat,0,0,0,0	monster	The Paper	1375,3,0,0,0
+ama_dun02.gat,0,0,0,0	monster	Shinobi	1401,1,0,0,0
+ama_dun02.gat,0,0,0,0	monster	Poison Toad	1402,8,0,0,0
+ama_dun02.gat,0,0,0,0	monster	Antique Firelock	1403,8,0,0,0
+ama_dun02.gat,0,0,0,0	monster	Miyabi Ningyo	1404,5,0,0,0
+
+//アマツ地下神社(ama_dun03)
+ama_dun03.gat,0,0,0,0	monster	Horong	1129,20,0,0,0
+ama_dun03.gat,0,0,0,0	monster	Mimic	1191,10,0,0,0
+ama_dun03.gat,0,0,0,0	monster	The Paper	1375,15,0,0,0
+ama_dun03.gat,0,0,0,0	monster	Shinobi	1401,8,0,0,0
+ama_dun03.gat,0,0,0,0	monster	Poison Toad	1402,15,0,0,0
+ama_dun03.gat,0,0,0,0	monster	Antique Firelock	1403,20,0,0,0
+ama_dun03.gat,0,0,0,0	monster	Miyabi Ningyo	1404,15,0,0,0
+ama_dun03.gat,0,0,0,0	monster	Tengu	1405,15,0,0,0
+ama_dun03.gat,0,0,0,0	monster	Incantation Samurai	1492,1,3600000,7200000,0

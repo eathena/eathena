@@ -1,0 +1,21 @@
+geffen.gat,124,105,3	script	Kafra	112,{
+	//Options
+	set @savemap$,"geffen.gat";
+	set @savex,115+rand(9);
+	set @savey,94+rand(9);
+	set @pic$,"kafra_06";
+	set @savepoints,1;
+	callfunc "gunstar_kafra";
+}
+geffen.gat,203,123,3	script	Kafra	117,{
+	//Options
+	set @savemap$,"gef_fild00.gat";
+	set @savex,51;
+	set @savey,194;
+	set @savemap2$,"geffen.gat";
+	set @savex2,200;
+	set @savey2,124;
+	set @pic$,"kkafra_01";
+	set @savepoints,2;
+	callfunc "gunstar_kafra";
+}

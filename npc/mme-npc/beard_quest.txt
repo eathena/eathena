@@ -1,0 +1,228 @@
+// The only way I could of run the NPCs was putting them in the Citys Txt files.
+// feel free to change what you want with the quest. E-mail me at: mamichalske@prodigy.net for any help.
+
+umbala.gat,126,129,4	script	Beard Quest	120,{
+	
+	if(BEARD_QUEST == 5 ) goto Make;
+	if(BEARD_QUEST == 6 ) goto Done;
+	
+	mes "[Bearded Man]";
+	mes "Beards! Get your wonderful beards!";
+	mes "Would you like a beard?";
+	next;
+	menu "Yes I would like some facial hair!",quest,"Thats gross! No thank you.",no;
+	
+		quest:
+		mes "[Bearded Man]";
+		mes "HoHo~ So you want some whiskers.";
+		emotion 18;
+		mes "Well I would give you my beards but there not cheap.";
+		mes "Matter of fact I have only one left...";
+		mes "but I'm not selling it.";
+		mes "But don't get mad! I can make you one.";
+		next;
+		mes "[Bearded Man]";
+		mes "I would need you to get me some things for the beard.";
+		mes "They are:";
+		mes "^8080FFElastic Band^000000";
+		mes "^8080FF5 Animal Skins^000000";
+		mes "^8080FFBlack Dye Stuff^000000";
+		mes "^8080FFGranpa Beard^000000";
+		mes "^8080FF100 sticky Mucus^000000";
+		mes "^8080FFCounteragent^000000";
+		mes " and one ^8080FF2 Carat Diamond^000000";
+		next;
+		mes "[Bearded Man]";
+		mes "Also I would need some ^8080FFThread^000000 for the Beard.";
+		mes "Talk to my friend in Izlude for some ^8080FFThread^000000.";
+		set BEARD_QUEST,1;
+		close;
+		
+		no:
+		mes "[Bearded Man]";
+		mes "Fine be that way!";
+		emotion 7;
+		close;
+		
+		Done:
+		mes "[Bearded Man]";
+		mes "Sorry I can only make one per person";
+		mes "We dont want to meny beards now, Right?";
+		emotion 29;
+		close;
+		
+		Make:
+		
+		mes "[Bearded Man]";
+		mes "Lets make you your beard!";
+		next;
+		if(countitem(7200) < 1) goto noItems;
+		if(countitem(919) < 1) goto noItems;
+		if(countitem(983) < 1) goto noItems;
+		if(countitem(2241) < 1) goto noItems;
+		if(countitem(938) < 100) goto noItems;
+		if(countitem(973) < 1) goto noItems;
+		if(countitem(731) < 1) goto noItems;
+		delitem 7200, 1;
+		delitem 919, 1;
+		delitem 983, 1;
+		delitem 2241, 1;
+		delitem 938, 100;
+		delitem 973, 1;
+		delitem 731, 1;
+		mes "^8080FF~You see him cutting and sewing the beard together~^000000";
+		next;
+		mes "^8080FF~He hands you the finished beard~^000000";
+		next;
+		getitem 2237, 1;
+		set BEARD_QUEST, 6;
+		mes "Have a nice day!";
+		emotion 29;
+		close;
+		
+		noItems:
+		
+		mes "[Bearded Man]";
+		mes "What the hell! I can't make a beard without the items!";
+		emotion 23;
+		mes "Here is the list again:";
+		mes "^8080FFElastic Band^000000";
+		mes "^8080FF5 Animal Skins^000000";
+		mes "^8080FFBlack Dye Stuff^000000";
+		mes "^8080FFGranpa Beard^000000";
+		mes "^8080FF100 sticky Mucus^000000";
+		mes "^8080FFCounteragent^000000";
+		mes "and a^8080FF2 Carat Diamond^000000";
+		close;
+}		
+		//Master Tailor-------------------------------------------------------------------------------
+izlude_in.gat,118,175,4	script	Master Tailor	50,{
+	mes "[Master Tailor]";
+	mes "Good evening! I am the Master tailor!";
+	next;
+	if(BEARD_QUEST == 1 ) goto Problem;
+	close;
+	
+		Problem:
+		
+		next;
+		mes "[Master Tailor]";
+		mes "I guess the Bearded Man sent you...";
+		mes "Well I'm sorry to say that I am out of thread.";
+		mes "But I have the address to where I get the shipments.";
+		mes "It is in Aldebaran Karfa Inc. warehouse area.";
+		mes "The address is: Aldebaran 59, 221";
+		mes "See you latter.";
+		set BEARD_QUEST, 2;
+		close;
+}
+// Karfa Thread Clerk------------------------------------------------------------------------
+aldeba_in.gat,70,179,5	script	Karfa Thread Clerk	113,{
+	mes "[Karfa Thread Clerk]";
+	mes "What can I do for you?";
+	next;
+	if(BEARD_QUEST == 2 ) goto Delvery;
+	
+	menu "what's in the boxs?",box,"Nothing.",nothing;
+	
+		box:
+		
+		mes "[Karfa Thread Clerk]";
+		mes "There empty.";
+		close;
+		
+		nothing:
+		
+		close;
+		
+		Delvery:
+		
+		mes "[Karfa Thread Clerk]";
+		mes "Sorry but we have not received any thread.";
+		mes "Our shipments have been put off until its safe.";
+		mes "You see we get our thread from Alberta and a monsters keeps attacking our merchents.";
+		next;
+		mes "[Karfa Thread Clerk]";
+		mes "Now this monsters has not been doing this before.";
+		mes "It may have to do with the warmer months.";
+		mes "Please help us out!";
+		set BEARD_QUEST,3;
+		mes "Thank You!";
+		mes "Oh by the way he is some where around aberta 60 and 100";
+		close;
+}
+		
+//Thread Merchent---------------------------------------------------------------------------
+alberta.gat,65,123,6	script	Delivery Man	85,{
+	
+	if(BEARD_QUEST == 4) goto killed;
+
+	mes "[Thread Merchant]";
+	mes "ARGGG!! I can never get my stuff to Aldebaran!";
+	mes "I keep getting mobbed by some bugs.";
+	mes "They steal all my supplies and thread.";
+	next;
+	if(BEARD_QUEST == 3) goto fight;
+	mes "what am I to do?";
+	close;
+
+	fight:
+	
+	mes "Are you here to help me?";
+	next;
+	menu "Yes",yes,"No",no;
+	
+	yes:
+	
+	mes "[Thread Merchant]";
+	mes "Oh thank the Gods!";
+	mes "If you can only just kill the bugs I would be able to make my delivery.";
+	next;
+	mes "Oh NO! Here they come!!";
+	emotion 19;
+	donpcevent "Beardquest";
+	close;
+
+		Killed:		
+		mes "[Thread Merchant]";
+		mes "thanks you for killing the Thief Bugs.";
+		mes "As a token of my gratitude here is a box full of thread.";
+		set BEARD_QUEST,5;
+		mes "Thank you again!";
+		emotion 15;
+		close;
+
+		no:
+
+		mes "[Thread Merchant]";
+		mes "What to do...";
+		close;
+}
+	
+//mobsummons----------------------------------------------------------------------------
+alberta.gat,1,1,1	script	Beardquest	-1,
+{
+	
+	set $@beardRm, 1;
+	set $@beardMob,10;
+	monster "alberta.gat",65,120,"Thef Bug Males",1054,1,"Beardquest::OnMyMobDead";
+	monster "alberta.gat",66,120,"Thef Bug Males",1054,1,"Beardquest::OnMyMobDead";
+	monster "alberta.gat",67,120,"Thef Bug Males",1054,1,"Beardquest::OnMyMobDead";
+	monster "alberta.gat",68,120,"Thef Bug Males",1054,1,"Beardquest::OnMyMobDead";
+	monster "alberta.gat",66,121,"Thef Bug Males",1054,1,"Beardquest::OnMyMobDead";
+	monster "alberta.gat",67,121,"Thef Bug Males",1054,1,"Beardquest::OnMyMobDead";
+	monster "alberta.gat",68,121,"Thef Bug Males",1054,1,"Beardquest::OnMyMobDead";
+	monster "alberta.gat",66,122,"Thef Bug Males",1054,1,"Beardquest::OnMyMobDead";
+	monster "alberta.gat",67,122,"Thef Bug Males",1054,1,"Beardquest::OnMyMobDead";
+	monster "alberta.gat",68,122,"Thef Bug Males",1054,1,"Beardquest::OnMyMobDead";
+	end;
+	
+OnMyMobDead:
+	set $@beardmob, $@beardmob - 1;
+	if($@beardmob > 0) end;
+	set $@beardmob, 0;
+	set BEARD_QUEST,4;
+	end;
+
+
+}

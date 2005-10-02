@@ -1,0 +1,45 @@
+//Knight Quest for Athena by RoVeRT
+
+prt_in.gat,88,101,4	script	Knight	56,{
+	mes "[Prontera Knight]";
+	mes "Good Day, This is the Prontera Chivarly.";
+        next;
+	menu "Change a Job into a Knight.",M0,"The Requirements.",M1,"Quit.",MEnd;
+
+	M0:
+		mes "[Prontera Knight]";
+		if(Class==7) goto JobKni;
+		if(Class !=1) goto NotSwo;
+		if(JobLevel < 40) goto NotLvl;
+		mes "Now you become a Knight.";
+		JobChange 7;
+		close;
+
+		NotSwo:
+			if(Class==0) goto JobNov;
+			mes "Sorry other jobs except 'Swordman' are not permitted to be Knights.";
+			mes "..... Everybody can't be a 'Knight'.";
+			close;
+			
+			JobNov:
+				mes "Please be a 'Swordman' first.";
+				close;
+		NotLvl:
+			mes "You must be at least Job Level 40 before everything.";
+			close;
+		JobKni:
+			mes "Your Honor,you are already a Knight.";
+			close;
+	M1:
+		mes "[Prontera Knight]";
+		mes "His Majesty Tristram 3rd has been encouraging people to be Knights without any difficult requirements except Job Level 40 or above.";
+		next;
+		mes "[Prontera Knight]";
+		mes "Anyway according to the Rumor, people say another requirements would be added soon when the Society become stabilized. If it were so,you got to become a Knight now.";
+		next;
+		mes "[Prontera Knight]";
+		mes "Please keep in mind.";
+		close;
+	MEnd:
+		close;
+}

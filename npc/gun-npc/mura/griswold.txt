@@ -1,0 +1,143 @@
+prt_in.gat,63,54,5	script	Griswold	63,{
+if ((mura==1)||(mura==2)) goto Murasa_Q;
+if (mura>=3) goto Busy;
+if ((countitem(1165)>=1)&&(mura==0)) goto Murasa;
+mes "[Griswold]";
+mes "...?";
+mes "I'm quite busy.. unless you have business with me please see your own way out.";
+close;
+
+Murasa:
+mes "[Griswold]";
+mes "What a fine sword you have!";
+mes "I wonder if thats the same as the legendary sword forged by the swordsmith in";
+mes "mt mjolnir...";
+close;
+
+Murasa_Q:
+if ((mura==2)&&(countitem(11003)>0)&&(getequipname(4)!="Right hand-[Mythril Hammer]")) goto HaveHammer1;
+if ((mura==2)&&(getequipname(4)=="Right hand-[Mythril Hammer]")&&(getequiprefinerycnt(4)==0)) goto HaveHammer2;
+if ((mura==2)&&(countitem(11000)>0)&&(countitem(11001)>0)&&(countitem(11002)>0)) goto AllItems;
+if (mura==2) goto Ite_List;
+mes "[Griswold]";
+mes "What?";
+next;
+mes "[Griswold]";
+mes "A Mythril hammer you say?";
+mes "You've been talking to that crazy man Muramasa havent you?";
+next;
+menu "Yeah",-,"No",-;
+mes "[Griswold]";
+mes "Hmm...";
+mes "He agreed to teach you to use his sword if you brought him a Mythril Hammer huh?";
+mes "I'm surprised...";
+next;
+Ite_List:
+mes "[Griswold]";
+mes "Well then... there are three items you will need to bring for me in order to forge it";
+mes "A bar of Mythril, made from Bloody Knight's armor.";
+next;
+mes "[Griswold]";
+mes "A Sacred Flame Stone, from a Fire Poring's heart.";
+next;
+mes "[Griswold]";
+mes "And finally the Iron Staff of Osiris";
+next;
+if (mura==2) goto EndQ;
+mes "[Griswold]";
+mes "All of those monsters will drop the items you need.";
+mes "But be warned that theese items are indeed quite rare";
+mes "They will not be a simple task to obtain.";
+next;
+mes "[Griswold]";
+mes "After you retrieve all of the items I will make you a simple, untempered hammer";
+mes "After that you must equip the item and I will refine it.";
+next;
+mes "[Griswold]";
+mes "There will be a 50% chance that the refining fails and all of the ingredients are lost";
+mes "Although if it fails, you may try again.";
+mes "Once you successfully acquire a hammer you may not get another";
+next;
+EndQ:
+mes "[Griswold]";
+mes "I wish you luck on your quest";
+if (mura==1) set mura,2;
+close;
+
+AllItems:
+mes "[Griswold]";
+mes "Wow! You have brought all of the items needed.";
+mes "Very well done indeed.";
+next;
+mes "[Griswold]";
+mes "Are you prepared to create the Mythril Hammer?";
+mes "Remember that this product will be untempered and wont be good enough for Muramasa.";
+mes "You will have to let me refine it first.";
+next;
+menu "Yes",-,"No",ForgNo;
+delitem 11000,1;
+delitem 11001,1;
+delitem 11002,1;
+getitem 11003,1;
+mes "[Griswold]";
+mes "Excellent.";
+mes "There is your hammer.";
+next;
+
+HaveHammer1:
+mes "[Griswold]";
+mes "Now, equip the hammer so that I may refine it.";
+close;
+
+HaveHammer2:
+mes "[Griswold]";
+mes "Are you prepared to refine the untempered Mythril Hammer?";
+mes "Remember that there is a 50% chance that the hammer will be lost.";
+next;
+menu "Yes",-,"No",ForgNo;
+mes "[Griswold]";
+mes "Are you absolutely sure?";
+mes "If it fails, you may try again.";
+mes "But if it succeeds you may not get another hammer.";
+next;
+menu "Yes",-,"No",ForgNo;
+if (getequipname(4)!="Right hand-[Mythril Hammer]") goto HaveHammer1;
+set @forg,rand(1,2);
+mes ""+@forg+"";
+if (@forg==1) goto ForgSucc;
+if (@forg==2) goto ForgFail;
+close;
+
+ForgSucc:
+successrefitem 4;
+mes "[Griswold]";
+mes "Excellent!";
+mes "A perfect refine!";
+mes "Damn I'm good...";
+set mura,3;
+next;
+goto HaveHammer3;
+
+ForgFail:
+failedrefitem 4;
+mes "[Griswold]";
+mes "Sorry.. even the legendary smith Griswold makes mistakes from time to time.";
+mes "Collect the items again and I'll have another go at it.";
+close;
+
+HaveHammer3:
+mes "[Griswold]";
+mes "Now, you should probably bring the hammer to Muramasa";
+close;
+
+ForgNo:
+mes "[Griswold]";
+mes "Maybe some other time...";
+mes "Come back when you are prepared.";
+close;
+
+Busy:
+mes "[Griswold]";
+mes "Hello there,  I'm still very busy so I'm sorry to say I can't help you anymore.";
+close;
+}

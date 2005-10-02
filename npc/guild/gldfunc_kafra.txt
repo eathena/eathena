@@ -1,0 +1,63 @@
+//===== eAthena Script =======================================
+//= War of Emperium Kafras Function
+//===== By: ==================================================
+//= jAthena - kalen (1.0)
+//= 1.1 by Akaru, ho|yAnge|X, and Valaris
+//===== Current Version: =====================================
+//= 1.2
+//===== Compatible With: =====================================
+//= eAthena 0.1+; RO Episode 4+
+//===== Description: =========================================
+//= Kafra service for guild members
+//======================================
+//= Break down of arguments used in the function:
+//=   arg(0): name of City.
+//=   arg(1): name of guild castle.
+//=   arg(2): x1 coordinate for warp
+//=   arg(3): y1 coordinate for warp
+//===== Additional Comments: =================================
+//= v1.2: All Guild kafra scripts use this function. [kobra_k88]
+//============================================================
+
+function	script	F_GKafra	{
+	set @GID, GetCastleData(getarg(0)+".gat",1);
+	if (@GID==0) close;
+	if (getcharid(2) == @GID) goto L_StartG;
+
+	mes "[Kafra Service]";
+	mes "I am here to serve only ^5533FF" + GetGuildName(@GID) + "^000000 members. Please use different Kafra Service. Thank you.";
+	close;
+L_StartG:
+	set @pic$,"kafra_01";
+	callfunc "gunstar_guild_kafra";
+	close;
+}
+
+- script GKaf_Event -1,{
+
+OnAgitInit:
+	if (GetCastleData("prtg_cas01.gat",9) == 1) enablenpc "Kafra Service#Pt01";
+	if (GetCastleData("prtg_cas02.gat",9) == 1) enablenpc "Kafra Service#Pt02";
+	if (GetCastleData("prtg_cas03.gat",9) == 1) enablenpc "Kafra Service#Pt03";
+	if (GetCastleData("prtg_cas04.gat",9) == 1) enablenpc "Kafra Service#Pt04";
+	if (GetCastleData("prtg_cas05.gat",9) == 1) enablenpc "Kafra Service#Pt05";
+
+	if (GetCastleData("aldeg_cas01.gat",9) == 1) enablenpc "Kafra Service#A01";
+	if (GetCastleData("aldeg_cas02.gat",9) == 1) enablenpc "Kafra Service#A02";
+	if (GetCastleData("aldeg_cas03.gat",9) == 1) enablenpc "Kafra Service#A03";
+	if (GetCastleData("aldeg_cas04.gat",9) == 1) enablenpc "Kafra Service#A04";
+	if (GetCastleData("aldeg_cas05.gat",9) == 1) enablenpc "Kafra Service#A05";
+
+	if (GetCastleData("gefg_cas01.gat",9) == 1) enablenpc "Kafra Service#G01";
+	if (GetCastleData("gefg_cas02.gat",9) == 1) enablenpc "Kafra Service#G02";
+	if (GetCastleData("gefg_cas03.gat",9) == 1) enablenpc "Kafra Service#G03";
+	if (GetCastleData("gefg_cas04.gat",9) == 1) enablenpc "Kafra Service#G04";
+	if (GetCastleData("gefg_cas05.gat",9) == 1) enablenpc "Kafra Service#G05";
+
+	if (GetCastleData("payg_cas01.gat",9) == 1) enablenpc "Kafra Service#Py01";
+	if (GetCastleData("payg_cas02.gat",9) == 1) enablenpc "Kafra Service#Py02";
+	if (GetCastleData("payg_cas03.gat",9) == 1) enablenpc "Kafra Service#Py03";
+	if (GetCastleData("payg_cas04.gat",9) == 1) enablenpc "Kafra Service#Py04";
+	if (GetCastleData("payg_cas05.gat",9) == 1) enablenpc "Kafra Service#Py05";
+	break;
+}

@@ -1,0 +1,18 @@
+aldebaran.gat,143,119,4	script	Kafra	835,{
+	//Options
+	set @savemap$,"aldebaran.gat";
+	set @savex,136+rand(7);
+	set @savey,112+rand(5);
+	set @pic$,"kafra_08";
+	set @savepoints,1;
+	callfunc "gunstar_kafra";
+}
+aldeba_in.gat,96,181,4	script	Kafra Service	836,{
+	//Options
+	set @savemap$,"aldeba_in.gat";
+	set @savex,96;
+	set @savey,179;
+	set @pic$,"kafra_09";
+	set @savepoints,1;
+	callfunc "gunstar_kafra";
+}

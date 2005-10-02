@@ -1,0 +1,9 @@
+gonryun.gat,159,122,4	script	Kafra	116,{
+	//Options
+	set @savemap$,"gonryun.gat";
+	set @savex,160;
+	set @savey,62;
+	set @pic$,"kkafra_02";
+	set @savepoints,1;
+	callfunc "gunstar_kafra";
+}

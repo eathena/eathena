@@ -1,0 +1,35 @@
+prontera.gat,147,175,5	script	Dr.Heals-a-lot	110,{	
+	mes "[Dr.Heals-a-lot]";
+	mes "What do you want?";
+	next;
+	menu "Heal",L_HEAL,"Quit",CANCEL;
+	
+	L_HEAL:
+		mes "[Dr.Heals-a-lot]";
+		mes "Want healed??";
+		next;
+		menu "Yes",-,"No",L_HEAL_LV100_N;
+		
+		if(Zeny>=0) goto L_HEALING;
+	L_HEALING:
+		set Zeny,zeny-0;
+		heal 30000,30000;
+		mes "[Dr.Heals-a-lot]";
+		mes "Your all healed! Be careful!";
+		close;
+			
+			L_HEAL_LV100_F:
+			mes "[Dr.Heals-a-lot]";
+			mes "Fine then.";
+			close;
+			
+			L_HEAL_LV100_N:
+			mes "[Dr.Heals-a-lot]";
+			mes "Fine then.";
+			close;
+					
+	CANCEL:
+	mes "[Dr.Heals-a-lot]";
+	mes "Come to me when you get wounded!";
+	close;
+}

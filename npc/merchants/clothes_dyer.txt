@@ -1,0 +1,131 @@
+//===== eAthena Script ======================================= 
+//= Clothes Dyer
+//===== By: ================================================== 
+//= kobra_k88
+//===== Current Version: ===================================== 
+//= 1.0 
+//===== Compatible With: ===================================== 
+//= eAthena 7.15 +
+//===== Description: ========================================= 
+//= Clothes dyer with standard palletes
+//===== Additional Comments: ================================= 
+//= Fully working
+//============================================================ 
+
+
+
+// Dyer Ginedin Rephere ---------------------------------------------------
+prt_in.gat,284,168,2	script	Dyer Ginedin Rephere	55,{
+	mes "[Dyer Ginedin Rephere]";
+	mes "11... 12... Mmm... good.  I think I'll be able ot finish before tonights party.  Oh! I didn't notice that you were here.   Anyway how may I assist you?";
+M_Menu:
+	next;
+	menu "-Talk",M_0, "-Dye Clothing",M_1, "-Price list",M_2, "-Cancel",M_End;
+	
+	M_0:
+		mes "[Dyer Ginedin Rephere]";
+		mes "Life may have gotten a little better.... but when I look at all of the orders I've recieved... Whew!";
+		mes "It seems that the young women of Rune Midgard must be very well off these days.";
+		next;
+		mes "[Dyer Ginedin Rephere]";
+		mes "Not that I think that they are indulging in anything luxurious mind you.";
+		mes "I don't think there is anything wrong with the pursuit of beauty and being fashionable.";
+		next;
+		mes "[Dyer Ginedin Rephere]";
+		mes "For us humans, who have no colorful fur or decorative scales, clothes are one of the few ways we have to display our personality, style, and beauty.";
+		next;
+		mes "[Dyer Ginedin Rephere]";
+		mes "Haha... When I think about it, I really feel that my job is worthwhile.  I believe that I provide a service that the people desire.";
+		next;
+		mes "[Dyer Ginedin Rephere]";
+		mes "Can you feel it too? The energy that is released when rough fabric and leather are brought to life with color?.....";
+		next;
+		mes "[Dyer Ginedin Rephere]";
+		mes "Although the process is very tedious and time consuming, the joy and happiness I feel when a dress is finished.....";
+		mes "more than makes up for all of the hard work!!";
+		goto M_Menu;
+
+	M_1:
+		mes "[Dyer Ginedin Rephere]";
+		mes "Oh... you need my work? Well... okay sounds good.";
+		next;
+		mes "[Dyer Ginedin Rephere]";
+		mes "Please choose a color that suits you.";
+		next;
+		menu	"-Red please.",sM_a, "-Yellow please.",sM_b,  "-Violet please.",sM_c, "-Orange please.",sM_d,
+			"-Blue please.",sM_e, "-Sorry, I changed my mind.",LEnd;
+
+		sM_a:
+			mes "[Dyer Ginedin Rephere]";
+			if(countitem(975) < 1) goto sL_NoDye;
+			if(Zeny < 5000) goto sL_Zeny;
+			mes "Ok. I will dye you clothes red.";
+			setlook 7,2;
+			delitem 975,1;
+			set Zeny, Zeny - 5000;
+			close;
+
+		sM_b:
+			mes "[Dyer Ginedin Rephere]";
+			if(countitem(976) < 1) goto sL_NoDye;
+			if(Zeny < 5000) goto sL_Zeny;
+			mes "Ok. I will dye you clothes yellow.";
+			setlook 7,0;
+			delitem 976,1;
+			set Zeny, Zeny - 5000;
+			close;
+
+		sM_c:
+			mes "[Dyer Ginedin Rephere]";
+			if(countitem(981) < 1) goto  sL_NoDye;
+			if(Zeny < 5000) goto sL_Zeny;
+			mes "Ok. I will dye you clothes Violet.";
+			setlook 7,4;
+			delitem 981,1;
+			set Zeny, Zeny - 5000;
+			close;
+
+		sM_d:
+			mes "[Dyer Ginedin Rephere]";
+			if(countitem(980) < 1) goto sL_NoDye;
+			if(Zeny < 5000) goto sL_Zeny;
+			mes "Ok. I will dye you clothes Orange.";
+			setlook 7,1;
+			delitem 980,1;
+			set Zeny, Zeny - 5000;
+			close;
+
+		sM_e:
+			mes "[Dyer Ginedin Rephere]";
+			if(countitem(978) < 1) goto sL_NoDye;
+			if(Zeny < 5000) goto sL_Zeny;
+			mes "Ok. I will dye you clothes blue.";
+			setlook 7,2;
+			delitem 978,1;
+			set Zeny, Zeny - 5000;
+			close;
+
+		sL_NoDye:
+			mes "For me to dye your clothes, I'll need the appropriate Dyestuff.  Please check my price list for the information.";
+			close;
+
+		sL_Zeny:
+			mes "I'm sorry but you don't have enough money.";
+			close;
+
+	M_2:
+		mes "[Dyer Ginedin Rephere]";
+		mes "Here is the list of colors you can choose from and their prices:";
+		mes " - Red: 5000 zeny, 1 Scarlet Dyestuff";
+		mes " - Yellow: 5000 zeny, 1 Lemon Dyestuff";
+		mes " - Violet: 5000 zeny, 1 Violet Dyestuff";
+		mes " - Orange: 5000 zeny, 1 Orange Dyestuff";
+		mes " - Blue: 5000 zeny, 1 CobaltBlue Dyestuff";
+		goto M_Menu;
+
+	Cancel:
+		mes "[Dyer Ginedin Rephere]";
+		mes "Make yourself at home. Even though I don't have time for you.";
+		close;
+}
+

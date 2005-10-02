@@ -1,0 +1,107 @@
+//temp Wizzard quest cause old one is bugged!!
+//================== Wizard's Guild: Cartlin Medichi ======================
+//======== Registration, Mission 1 Item Quest, etc =======
+gef_tower.gat,111,37,4	script	Wizard's Guild Worker	70,{
+//======== Other Jobs
+   	if (Class == 2) goto Part2;
+		if (Class == 9) goto IsWizard;
+		if (Class == 0) goto IsNovice;
+		goto IsOther;
+		IsWizard:
+			if (Sex == 1) goto IsMale;
+				mes "[Cartlin]";
+				mes "What do you need comrade Wizard?";
+				mes "If nothing, please leave..";
+				next;
+				mes "[Cartlin]";
+				mes "Of course, asking me out is another thing, heh.";
+				close;
+				break;
+			IsMale:
+				mes "[Cartlin]";
+				mes "What does a wizard need of us?";
+				mes "Please leave.";
+				next;
+				mes "[Cartlin]";
+				mes "If you get yourself a boyfriend, return though. XD.";
+				close;
+				break;
+		IsNovice:
+			mes "[Guild Clerk]";
+			mes "Awwww, a little novice!.";
+			mes "How cute! This place is for wizards only!";
+			next;
+			mes "[Guild Clerk]";
+			mes "If you're interested in magic,";
+			mes "^0000FFMagician's^000000 Guild is the place for you.";
+			goto DontFall;
+		IsOther:
+			mes "[Guild Clerk]";
+			mes "Hmm? What brings you to climb all the way up here?";
+			mes "If you have nothing to do here, leave.";
+			mes "This place is for wizards only =P";
+	DontFall:
+		next;
+		mes "[Guild Clerk]";
+		mes "Don't fall while going down!";
+		close;
+		break;
+
+//======== Registration
+Part2:
+		mes "[Guild Clerk]";
+		mes "Hey! What brings you all the way up here?";
+		mes "You want to be a wizard, right?";
+		next;
+		menu "Of course!",BeWiz, "Not really",NotBeWiz;
+			BeWiz:
+				mes "[Guild Clerk]";
+				mes "Of course, that's always the reason.";
+				mes "I'll guide you along!.";
+				next;
+				mes "[Guild Clerk]";
+				mes "My name's Cartlin Medichi, I'm a noob wizard -.-;.";
+				mes "Relax, you can call me Cartlin.";
+				next;
+				mes "[Cartlin]";
+				mes "Even thought many people want to be wizards.";												
+				mes "Many fail because of the test.";
+				next;
+				mes "[Cartlin]";
+				mes "Job level 40 is required like all 2nd jobs.";
+				mes "Besides, any below that and you won't have";
+				mes "enough magic power.";
+				next;
+				mes "[Cartlin]";
+				mes "Well, I'll tell you about the test.";
+				mes "After you register.";
+				next;
+				menu "Sign the form",SignUp, "Let me think about it........",Think;
+					SignUp:
+						if (JobLevel >= 40) goto SkPointChk;
+							mes "[Cartlin]";
+							mes "Hey, I told you. You have to be at least job lvl 40";
+							mes "Don't you remember me telling you -.-;";
+							next;
+							mes "[Cartlin]";
+							mes "You're not in a hurry, go train more.";
+							mes "I'll let you apply after job 40.";
+							close;
+							break;
+					   SkPointChk:
+       						if (SkillPoint == 0) goto StartTest;
+							mes "[Cartlin]";
+       							mes "Everything looks good, but it seems you have skill points left over.";
+	       						mes "Reapply after spending them all.";
+       							close;
+       							break;
+					   StartTest:
+       						mes "[Cartlin]";
+						mes "Okay, I'll take good care of this form.";
+						mes "You're name is " + strcharinfo(0) + " right?";
+						next;
+						mes "[Cartlin]";
+						mes "Cause the quest is bugged I will change you right away.";
+						jobchange 9;
+						close;
+}

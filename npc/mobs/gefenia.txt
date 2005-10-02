@@ -1,0 +1,8 @@
+gefenia01.gat,0,0,0,0	monster	Beetle	1494,25,0,0,0
+//gefenia01.gat,0,0,0,0	monster	Filamentous	1210,15,0,0,0
+gefenia01.gat,0,0,0,0	monster	Caterpillar	1300,20,0,0,0
+gefenia01.gat,0,0,0,0	monster	Giant Hornet	1303,10,0,0,0
+gefenia01.gat,0,0,0,0	monster	Giant Spider	1304,10,0,0,0
+gefenia01.gat,0,0,0,0	monster	Killer Mantis	1294,10,0,0,0
+gefenia01.gat,0,0,0,0	monster	Creamy Fear	1293,10,0,0,0
+gefenia01.gat,0,0,0,0	monster	Ancient Worm	1305,10,0,0,0

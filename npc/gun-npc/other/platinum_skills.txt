@@ -1,0 +1,70 @@
+//-------------------------------------------------------------------------------------------------------------------------\\
+//                                PLATINUM SKILL NPC MADE BY KEIICHI AND EDITED BY DARKCHILD                                                     \\
+//-------------------------------------------------------------------------------------------------------------------------\\
+prontera.gat,147,165,5	script	Platinum Skill NPC	73,{
+mes "[Platinum Skill NPC]";
+mes "I can give you the special skills available to your job. Would you like these skills now?";
+
+menu "Yes",Lgetskills,"No",LskillsEND;
+
+Lgetskills:
+mes "[Platinum Skill NPC]";
+mes "I will now add the special skills available to your job.";
+next;
+mes "[Platinum Skill NPC]";
+mes "Enjoy your skills...";
+if ((Class==0) || (Class==4001)) goto Lskillsnovice;
+if ((Class==1) || (Class==7) || (Class==14) || (Class==4002) || (Class==4008) || (Class==4015)) goto Lskillsswordie;
+if ((Class==2) || (Class==9) || (Class==16) || (Class==4003) || (Class==4010) || (Class==4017)) goto Lskillsmage;
+if ((Class==3) || (Class==11) || (Class==19) || (Class==20) || (Class==4004) || (Class==4012) || (Class==4020) || (Class==4021)) goto Lskillsarcher;
+if ((Class==4) || (Class==8) || (Class==15) || (Class==4005) || (Class==4009) || (Class==4016)) goto Lskillsaco;
+if ((Class==5) || (Class==10) || (Class==18) || (Class==4006) || (Class==4011) || (Class==4019)) goto Lskillsmerchie;
+if ((Class==6) || (Class==12) || (Class==17) || (Class==4007) || (Class==4013) || (Class==4018)) goto Lskillsthief;
+Lskillsnovice:
+skill 142,1,0;
+skill 143,1,0;
+goto LskillsEND;
+
+Lskillsswordie:
+skill 142,1,0;
+skill 144,1,0;
+skill 145,1,0;
+skill 146,1,0;
+goto LskillsEND;
+
+Lskillsmage:
+skill 142,1,0;
+skill 157,1,0;
+goto LskillsEND;
+
+Lskillsarcher:
+skill 142,1,0;
+skill 147,1,0;
+skill 148,1,0;
+goto LskillsEND;
+
+Lskillsaco:
+skill 142,1,0;
+skill 156,1,0;
+goto LskillsEND;
+
+Lskillsmerchie:
+skill 142,1,0;
+skill 153,1,0;
+skill 154,1,0;
+skill 155,1,0;
+goto LskillsEND;
+
+Lskillsthief:
+skill 142,1,0;
+skill 149,1,0;
+skill 150,1,0;
+skill 151,1,0;
+skill 152,1,0;
+goto LskillsEND;
+LskillsEND:
+mes "[Platinum Skill NPC]";
+mes "Have a nice day.";
+close;
+}
+

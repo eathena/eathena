@@ -1,0 +1,77 @@
+//===== Athena Script ========================================
+//= Gon Ryun Warp Script
+//===== By: ==================================================
+//= SORK (1.0)
+//===== Current Version: =====================================
+//= 1.0
+//===== Compatible With: =====================================
+//= Any Athena Version; RO Episode 6+
+//===== Description: =========================================
+//= Warp Points for Gon Ryun
+//===== Additional Comments: =================================
+//= Split off npc_warp.txt
+//============================================================
+
+// Field --> gonryun
+gon_fild01.gat,191,266,0	warp	gon_fild01	1,1,gonryun.gat,160,31
+gonryun.gat,160,24,0	warp	gonryun	1,1,gon_fild01.gat,191,261
+
+// Town --> Inside
+// Bar|Restraunt
+gonryun.gat,216,114,0	warp	gonryun	1,1,gon_in.gat,152,23
+gon_in.gat,148,23,0	warp	gon_in	1,1,gonryun.gat,212,114
+gon_in.gat,185,34,0	warp	warp8016	1,1,gon_in.gat,181,85
+gon_in.gat,185,13,0	warp	warp8017	1,1,gon_in.gat,181,106
+// Upstairs
+gon_in.gat,179,85,0	warp	warp8018	1,1,gon_in.gat,183,34
+gon_in.gat,179,106,0	warp	warp8019	1,1,gon_in.gat,183,13
+
+
+//House 1 --------------------------------------------------------------------------------
+gonryun.gat,108,131,0	warp	warp8020	1,1,gon_in.gat,42,23
+gon_in.gat,47,23,0	warp	warp8021	1,1,gonryun.gat,112,131
+//Uptairs
+gon_in.gat,43,34,0	warp	gon_in	1,1,gon_in.gat,28,97
+gon_in.gat,24,97,0	warp	gon_in	1,1,gon_in.gat,38,34
+//----------------------------------------------------------------------------------------
+//House 2 --------------------------------------------------------------------------------
+gonryun.gat,122,162,0	warp	warp8024	1,1,gon_in.gat,95,25
+gon_in.gat,95,27,0	warp	warp8025	1,1,gonryun.gat,124,162
+//----------------------------------------------------------------------------------------
+//House 3 --------------------------------------------------------------------------------
+gonryun.gat,221,148,0	warp	warp8026	1,1,gon_in.gat,111,99
+gon_in.gat,109,99,0	warp	warp8027	1,1,gonryun.gat,219,148
+//----------------------------------------------------------------------------------------
+//Tool Shop-----------------------------------------------------------------------------
+gonryun.gat,102,153,0	warp	warp8028	1,1,gon_in.gat,72,69
+gon_in.gat,72,67,0	warp	warp8029	1,1,gonryun.gat,105,153
+
+gonryun.gat,211,176,0	warp	gonryun	1,1,gon_in.gat,42,23
+
+// Town --> Dungeon 1
+gonryun.gat,159,202,0	warp	gonryun	1,1,gon_dun01.gat,155,45
+gon_dun01.gat,151,41,0	warp	gon_dun01	1,1,gonryun.gat,159,199
+
+// Dungeon 1 --> Dungeon 2
+gon_dun01.gat,165,274,0	warp	gon_dun01	1,1,gon_dun02.gat,251,264
+gon_dun02.gat,251,269,0	warp	gon_dun02	1,1,gon_dun01.gat,166,270
+
+// Dungeon 2 --> Dungeon 2
+gon_dun02.gat,200,180,0	warp	gon_dun02	1,1,gon_dun02.gat,192,169
+gon_dun02.gat,194,172,0	warp	gon_dun02	1,1,gon_dun02.gat,200,183
+gon_dun02.gat,160,173,0	warp	gon_dun02	1,1,gon_dun02.gat,167,183
+gon_dun02.gat,164,180,0	warp	gon_dun02	1,1,gon_dun02.gat,157,169
+gon_dun02.gat,172,197,0	warp	gon_dun02	1,1,gon_dun02.gat,172,228
+gon_dun02.gat,172,224,0	warp	gon_dun02	1,1,gon_dun02.gat,172,193
+gon_dun02.gat,151,271,0	warp	gon_dun02	1,1,gon_dun02.gat,221,134
+gon_dun02.gat,221,139,0	warp	gon_dun02	1,1,gon_dun02.gat,151,267
+gon_dun02.gat,251,60,0	warp	gon_dun02	1,1,gon_dun02.gat,250,49
+gon_dun02.gat,245,49,0	warp	gon_dun02	1,1,gon_dun02.gat,251,64
+gon_dun02.gat,195,19,0	warp	gon_dun02	1,1,gon_dun02.gat,51,244
+gon_dun02.gat,51,248,0	warp	gon_dun02	1,1,gon_dun02.gat,199,19
+gon_dun02.gat,50,154,0	warp	gon_dun02	1,1,gon_dun02.gat,48,134
+gon_dun02.gat,48,138,0	warp	gon_dun02	1,1,gon_dun02.gat,50,159
+
+// Dungeon 2 --> Dungeon 3
+gon_dun02.gat,23,113,0	warp	gon_dun02	1,1,gon_dun03.gat,68,11
+gon_dun03.gat,68,7,0	warp	gon_dun03	1,1,gon_dun02.gat,28,113

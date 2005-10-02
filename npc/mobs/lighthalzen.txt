@@ -1,0 +1,80 @@
+//===== eAthena Script =======================================
+//= Lighthalzen Fields - Monster Spawn Locations
+//===== By: ==================================================
+//= Athena (1.0)
+//===== Current Version: =====================================
+//= 1.1
+//===== Compatible With: =====================================
+//= Any Athena Version
+//===== Additional Comments: =================================
+//= 1.0 by Muad_Dib (Prometheus Project)
+//= 1.1 Added Porcellio by MasterOfMuppets
+//============================================================
+
+
+//========================================================================================
+// - Lighthalzen Field 01
+//========================================================================================
+
+lhz_fild01.gat,0,0,0,0	monster	Metaling	1613,35,0,0,0
+lhz_fild01.gat,0,0,0,0	monster	Mole	1628,20,0,0,0
+lhz_fild01.gat,0,0,0,0	monster	Caramel	1103,30,0,0,0
+lhz_fild01.gat,0,0,0,0	monster	Yellow Plant	1081,15,0,0,0
+lhz_fild01.gat,0,0,0,0	monster	Red Plant	1078,15,0,0,0
+lhz_fild01.gat,0,0,0,0	monster	Green Plant	1080,15,0,0,0
+
+//========================================================================================
+// - Lighthalzen Field 02
+//========================================================================================
+
+lhz_fild02.gat,0,0,0,0	monster	Metaling	1613,25,0,0,0
+lhz_fild02.gat,0,0,0,0	monster	Horn	1128,20,0,0,0
+lhz_fild02.gat,0,0,0,0	monster	Caramel	1103,15,0,0,0
+lhz_fild02.gat,0,0,0,0	monster	Mole	1628,20,0,0,0
+lhz_fild02.gat,0,0,0,0	monster	Venomous	1621,5,0,0,0
+lhz_fild02.gat,0,0,0,0	monster	Yellow Plant	1081,15,0,0,0
+lhz_fild02.gat,0,0,0,0	monster	Red Plant	1078,15,0,0,0
+lhz_fild02.gat,0,0,0,0	monster	Green Plant	1080,15,0,0,0
+
+//========================================================================================
+// - Lighthalzen Field 03
+//========================================================================================
+
+lhz_fild03.gat,0,0,0,0	monster	Metaling	1613,15,0,0,0
+lhz_fild03.gat,0,0,0,0	monster	Hill Wind	1629,20,0,0,0
+lhz_fild03.gat,0,0,0,0	monster	Horn	1128,15,0,0,0
+lhz_fild03.gat,0,0,0,0	monster	Caramel	1103,15,0,0,0
+lhz_fild03.gat,0,0,0,0	monster	Rafflesia	1162,10,0,0,0
+lhz_fild03.gat,0,0,0,0	monster	Venomous	1621,5,0,0,0
+lhz_fild03.gat,0,0,0,0	monster	Yellow Plant	1081,15,0,0,0
+lhz_fild03.gat,0,0,0,0	monster	Red Plant	1078,15,0,0,0
+lhz_fild03.gat,0,0,0,0	monster	Green Plant	1080,15,0,0,0
+lhz_fild03.gat,0,0,0,0	monster	Porcellio	1619,10,0,0,0
+
+//========================================================================================
+// - Lighthalzen Dungeon 01
+//========================================================================================
+lhz_dun01.gat,0,0,0,0	monster	Metaling	1613,50,0,0,0
+lhz_dun01.gat,0,0,0,0	monster	Venomous	1621,30,0,0,0
+lhz_dun01.gat,0,0,0,0	monster	Gemini		1681,5,0,0,0
+lhz_dun01.gat,0,0,0,0	monster	Remover		1682,50,0,0,0
+lhz_dun01.gat,0,0,0,0	monster	--ja--		1652,7,0,0,0
+lhz_dun01.gat,0,0,0,0	monster	--ja--		1653,7,0,0,0
+lhz_dun01.gat,0,0,0,0	monster	--ja--		1654,7,0,0,0
+lhz_dun01.gat,0,0,0,0	monster	--ja--		1655,7,0,0,0
+lhz_dun01.gat,0,0,0,0	monster	--ja--		1656,7,0,0,0
+lhz_dun01.gat,0,0,0,0	monster	--ja--		1657,7,0,0,0
+
+//========================================================================================
+// - Lighthalzen Dungeon 02
+//========================================================================================
+lhz_dun02.gat,0,0,0,0	monster	Gemini		1681,10,0,0,0
+lhz_dun02.gat,0,0,0,0	monster	Remover		1682,25,0,0,0
+lhz_dun02.gat,0,0,0,0	monster	--ja--		1652,12,0,0,0
+lhz_dun02.gat,0,0,0,0	monster	--ja--		1653,12,0,0,0
+lhz_dun02.gat,0,0,0,0	monster	--ja--		1654,12,0,0,0
+lhz_dun02.gat,0,0,0,0	monster	--ja--		1655,12,0,0,0
+lhz_dun02.gat,0,0,0,0	monster	--ja--		1656,12,0,0,0
+lhz_dun02.gat,0,0,0,0	monster	--ja--		1657,12,0,0,0
+lhz_dun02.gat,0,0,0,0	monster	--ja--		1658,1,7200000,3600000,1
+

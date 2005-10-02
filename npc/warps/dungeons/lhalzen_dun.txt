@@ -1,0 +1,51 @@
+//===== Athena Script ========================================
+//= Lighthalzen Dungeon Warp Script
+//===== By: ==================================================
+//= Sara-chan (1.0)
+//===== Current Version: =====================================
+//= 1.1
+//===== Compatible With: =====================================
+//= Any Athena Version; RO Episode 8+
+//===== Description: =========================================
+//= Warp Points for Lighthalzen Dungeon
+//===== Additional Comments: =================================
+//= No Comment!
+//= 1.1 Added temp restriction by Azazel [Lupus]
+//============================================================
+
+lhz_dun03.gat,140,139,0	warp	lhz003	1,1,lhz_dun02.gat,150,147
+lhz_dun02.gat,18,150,0	warp	lhz004	1,1,lhz_dun01.gat,18,148
+lhz_dun01.gat,18,146,0	warp	lhz004a	1,1,lhz_dun02.gat,18,148
+lhz_dun02.gat,382,155,0	warp	lhz005	1,1,lhz_dun01.gat,281,152
+lhz_dun01.gat,281,150,0	warp	lhz005a	1,1,lhz_dun02.gat,382,153
+lhz_dun02.gat,148,18,0	warp	lhz006	1,1,lhz_dun01.gat,146,10
+lhz_dun01.gat,148,10,0	warp	lhz006a	1,1,lhz_dun02.gat,150,18
+lhz_dun01.gat,150,290,0	warp	lhz007	1,1,lighthalzen.gat,73,54
+lighthalzen.gat,73,52,0	warp	lhz007a	1,1,lhz_dun01.gat,150,288
+
+
+//lhz_dun02.gat,150,149,0	warp	lhz003a	1,1,lhz_dun03.gat,140,137
+lhz_dun02.gat,150,149,4	script	lhz-warp	45,2,2,{
+
+OnTouch:
+	if(Upper == 0 || Upper == 2)goto s_Upper0;
+	if(Upper == 1)goto s_Upper1;
+
+s_Upper0:
+	if (BaseLevel < 95)goto s_Noentry0;
+	warp "lhz_dun03.gat",140,137;
+	end;
+
+s_Upper1:
+	if (BaseLevel < 90)goto s_Noentry1;
+	warp "lhz_dun03.gat",140,137;
+	end;
+
+s_Noentry0:
+	mes "Non-Advanced class characters must be at least base level 95 to enter level 3 of the Bio Lab Dungeon";
+	close; 
+
+s_Noentry1:
+	mes "Advanced class characters must be at least base level 90 to enter level 3 of the Bio Lab Dungeon";
+	close;
+}

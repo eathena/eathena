@@ -1,0 +1,27 @@
+izlu2dun.gat,106,58,8	script	Kafra	115,{
+	if(Class==Job_Novice && job_merchant_q3>0) goto M_Test;
+       	//Options
+	set @savemap$,"izlu2dun.gat";
+	set @savex,87;
+	set @savey,170;
+	set @savepoints,1;
+	set @pic$,"kkafra_03";
+	callfunc "gunstar_kafra";
+
+M_Test:
+	cutin "kkafra_03",2;
+	callfunc "F_MercKafra";
+	close;	
+}
+izlude.gat,124,115,6	script	Kafra	114,{
+	//Options
+	set @savemap$,"prt_fild08.gat";
+	set @savex,349;
+	set @savey,202;
+	set @pic$,"kkafra_04";
+	set @savemap2$,"izlude.gat";
+	set @savex2,128;
+	set @savey2,110;
+	set @savepoints,2;
+	callfunc "gunstar_kafra";
+}

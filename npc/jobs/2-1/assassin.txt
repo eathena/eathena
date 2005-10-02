@@ -1,0 +1,45 @@
+//Assassin NPC for Athena by RoVeRT
+//1.1 Added SkillPoint check [Lupus]
+
+in_moc_16.gat,71,88,4	script	Assassin Clan Member	99,{
+	mes "[Assassin Clan Member]";
+	mes "Welcome to Assassin Clan, the Fang of Desert.";
+	next;
+	menu "Change a job into an Assassin.",M0,"The Requirements.",M1,"Quit.",MEnd;
+
+	M0:
+		mes "[Assassin Clan Member]";
+		if(Class==12) goto JobAsa;
+		if(Class !=6) goto NotThi;
+		if(JobLevel < 40) goto NotLvl;
+		if(SkillPoint > 0) mes "You need to use up all of your skill points before I can make you an Assassin.";
+		if(SkillPoint > 0) close;
+		mes "Now you become an Assassin.";
+		JobChange 12;
+		close;
+		
+		NotThi:
+			if(Class==0) goto JobNov;
+			mes "Other jobs except `Thief' are not permitted to be Assassins.";
+			close;
+
+			JobNov:
+				mes "Be a `Thief' First.";
+				close;
+		NotLvl:
+			mes "You must be at least Job Level 40 before everything.";
+			close;
+		JobAsa:
+			mes "You're already an Assassin.";
+			close;
+	M1:
+		mes "[Assassin Clan Member]";
+		mes "Hmm...You can't make the Living only with Robbery. We, Assasins are Guiding Lights of Thiefs who reached the Highest Limit,being at Job Level 40 or above.";
+		next;
+		mes "[Assassin Clan Member]";
+		mes "For now we just stay out of People's Sight... In no time,we will enlighten the Assassin Clan. And then It will be no good to try to become one of us, just because of our fame. We will restrict people to join.";
+		mes "We think the real comrades are whom helping each other when Hard time. Don't you agree?";
+		close;
+	MEnd:
+		close;
+}

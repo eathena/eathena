@@ -1,0 +1,13 @@
+//Prontera PVP
+pvp_y_5-1.gat	mapflag	nobranch
+pvp_y_5-1.gat	mapflag	pvp	dummy
+pvp_y_5-1.gat,155,212,0	warp	prtpv02	1,1,prontera.gat,155,184
+pvp_y_5-1.gat	mapflag	nopenalty
+prontera.gat,147,204,0	script	prtpv01	45,1,1,{
+	set @temp,rand(2);
+	if(@temp==0) warp "pvp_y_5-1.gat",144,204;
+	if(@temp==1) warp "pvp_y_5-1.gat",167,204;
+	if(@temp==2) warp "pvp_y_5-1.gat",155,195;
+
+	break;
+}

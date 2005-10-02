@@ -1,0 +1,112 @@
+prt_maze02.gat,100,79,4	script	Muramasa	813,{
+if (mura==1) goto TTG;
+if (mura==2) goto Mura;
+if (mura==3) goto Mura2;
+if (mura==4) goto Finished;
+mes "[Muramasa]";
+mes "What do you want?  Yes I am the 'Great' Muramasa.. forger of the legendary masamune sword.";
+mes "What do you want.. my autograph?";
+next;
+menu "Yes",-,"No",AnsNo,"End Conversation",EC;
+mes "[Muramasa]";
+mes "Well too bad.. I'm all out of pen and paper.";
+mes "Now if you don't mind I would like to stand here without moving a little while longer...";
+close;
+
+AnsNo:
+mes "[Muramasa]";
+mes "I see..";
+next;
+mes "[Muramasa]";
+mes "What a novice you are there with the masamune sword!";
+mes "You dont have any clue as to how to use its true power do you?";
+next;
+menu "Yes",-,"No",-;
+mes "[Muramasa]";
+mes "You want me to teach you how to use that Masamune I made to it's full powers.. don't you?";
+next;
+mes "[Muramasa]";
+mes "How did someone as scrawny as you get that sword anyway?";
+mes "Oh well..  I lost my will to teach all of you wannabes how to fight.. so there better be something in it for me.";
+next;
+menu "Yes, of course!",-,"No!",EC;
+mes "[Muramasa]";
+mes "I do alot of forging that not even the greatest of 'Blacksmiths' could imagine.";
+mes "But this requires items you cant buy from some old man in Geffen.";
+next;
+mes "[Muramasa]";
+mes "Bring me a Mythril Hammer.. I keep breaking them while forging my legendary equipment..";
+mes "They are hard to come by even for someone as great as myself.";
+mes "If you bring me one of them then I will show you how to use the blade.";
+next;
+mes "[Muramasa]";
+mes "Though... the only person I ever knew who could forge them was Griswold,";
+mes "so talk to him about it.";
+set mura,1;
+close;
+
+TTG:
+mes "[Muramasa]";
+mes "Go see Griswold about my hammer.";
+close;
+
+Mura:
+mes "[Muramasa]";
+mes "Well?";
+mes "Wheres my hammer...";
+close;
+
+Mura2:
+if ((countitem(11003)>0)&&(getequipname(4)!="Right hand-[Mythril Hammer]")) goto HaveHammer1;
+if ((getequipname(4)=="Right hand-[Mythril Hammer]")&&(getequiprefinerycnt(4)==0)) goto HaveHammer2;
+if ((getequipname(4)=="Right hand-[Mythril Hammer]")&&(getequiprefinerycnt(4)==1)) goto HaveHammer3;
+HaveHammer1:
+mes "[Muramasa]";
+mes "Equip that hammer!";
+mes "Let me see that!";
+close;
+
+HaveHammer2:
+mes "[Muramasa]";
+mes "What do you expect me to do with that untampered piece of junk??";
+mes "Get out of here!";
+close;
+
+HaveHammer3:
+mes "[Muramasa]";
+mes "Wow griswold forged you a Mythril Hammer..";
+mes "I am quite impressed that you were able to gather the items for him to make this fine tool.";
+mes "Very well I will show you how to use the sword.";
+next;
+mes "[Muramasa]";
+mes "Close your eyes.. now stand on one foot and hop up and down.. now spin in circles.";
+next;
+mes "[Muramasa]";
+mes "Good good you look like an idiot!";
+next;
+mes "[Muramasa]";
+mes "Haha now I will show you how to swing the sword.";
+if ((getequipname(4)!="Right hand-[Mythril Hammer]")||(getequiprefinerycnt(4)!=1)) goto Wtf;
+delitem 11003,1;
+set mura,4;
+mes "Make sure to re-equip the Masamune to use its new powers.";
+next;
+mes "[Muramasa]";
+mes "I hope that you make good use of your newfound skills.";
+close;
+
+Finished:
+mes "[Muramasa]";
+mes "Ah it's "+strcharinfo(0)+" !  How is the murasame treating you lately? =]";
+mes "Come back some day and I might have something more to teach you.";
+close;
+
+Wtf:
+mes "What are you trying to pull?";
+close;
+
+EC:
+mes "[Muramasa]";
+mes "Come back some other time then.";
+close;
+}

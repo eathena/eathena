@@ -1,0 +1,115 @@
+//===== Athena Script ========================================
+//= Yuno Warp Script
+//===== By: ==================================================
+//= Athena (1.0)
+//===== Current Version: =====================================
+//= 1.0
+//===== Compatible With: =====================================
+//= Any Athena Version; RO Episode 5+
+//===== Description: =========================================
+//= Warp Points for Yuno
+//===== Additional Comments: =================================
+//= Split off npc_warp.txt
+//============================================================
+
+//Yuno City
+yuno.gat,117,135,0	warp	warpy1001	1,1,yuno_in01.gat,116,37
+yuno.gat,158,15,0	warp	ttl01	1,1,yuno_fild04.gat,231,209
+yuno.gat,196,138,0	warp	warpy1011	1,1,yuno_in01.gat,32,33
+yuno.gat,264,87,0	warp	warpy1013	1,1,yuno_in01.gat,168,101
+yuno.gat,278,293,0	warp	warpy1043	1,1,yuno_in03.gat,25,15
+yuno.gat,284,366,0	warp	warpy1047	1,1,yuno_in03.gat,224,23
+yuno.gat,323,284,0	warp	warpy1029	1,1,yuno_in03.gat,167,22
+yuno.gat,342,203,0	warp	warpy1015	1,1,yuno_in04.gat,32,58
+yuno.gat,48,105,0	warp	warpy1003	1,1,yuno_in01.gat,37,176
+yuno.gat,48,151,0	warp	warpy1007	1,1,yuno_in01.gat,30,100
+yuno.gat,87,321,0	warp	warpy1057	1,1,yuno_in02.gat,168,61
+yuno.gat,93,180,0	warp	warpy1009	1,1,yuno_in04.gat,33,127
+yuno_in01.gat,116,40,0	warp	warpy1002	1,1,yuno.gat,120,138
+yuno_in01.gat,168,104,0	warp	warpy1014	1,1,yuno.gat,264,90
+yuno_in01.gat,176,34,0	warp	warpy1075	1,1,yuno_in01.gat,91,36
+yuno_in01.gat,32,182,0	warp	warpy1005	1,1,yuno_in01.gat,86,164
+yuno_in01.gat,32,36,0	warp	warpy1012	1,1,yuno.gat,193,142
+yuno_in01.gat,34,100,0	warp	warpy1008	1,1,yuno.gat,51,151
+yuno_in01.gat,40,176,0	warp	warpy1004	1,1,yuno.gat,51,105
+yuno_in01.gat,82,164,0	warp	warpy1006	1,1,yuno_in01.gat,28,182
+yuno_in01.gat,88,36,0	warp	warpy1074	1,1,yuno_in01.gat,173,34
+yuno_in02.gat,172,61,0	warp	warpy1058	1,1,yuno.gat,90,321
+yuno_in02.gat,82,14,0	warp	warpy1059	1,1,yuno_in05.gat,192,194
+yuno_in03.gat,104,115,0	warp	warpy1050	1,1,yuno_in03.gat,219,47
+yuno_in03.gat,111,192,0	warp	warpy1039	1,1,yuno_in03.gat,162,132
+yuno_in03.gat,124,178,0	warp	warpy1038	1,1,yuno_in03.gat,176,118
+yuno_in03.gat,153,134,0	warp	warpy1041	1,1,yuno_in03.gat,62,186
+yuno_in03.gat,161,170,0	warp	warpy1034	1,1,yuno_in03.gat,183,119
+yuno_in03.gat,161,187,0	warp	warpy1036	1,1,yuno_in03.gat,183,131
+yuno_in03.gat,162,129,0	warp	warpy1040	1,1,yuno_in03.gat,111,189
+yuno_in03.gat,167,19,0	warp	warpy1030	1,1,yuno.gat,323,280
+yuno_in03.gat,167,72,0	warp	warpy1031	1,1,yuno_in03.gat,179,113
+yuno_in03.gat,172,118,0	warp	warpy1037	1,1,yuno_in03.gat,120,178
+yuno_in03.gat,179,109,0	warp	warpy1032	1,1,yuno_in03.gat,167,69
+yuno_in03.gat,186,119,0	warp	warpy1033	1,1,yuno_in03.gat,163,174
+yuno_in03.gat,186,131,0	warp	warpy1035	1,1,yuno_in03.gat,163,187
+yuno_in03.gat,219,50,0	warp	warpy1045	1,1,yuno_in03.gat,32,92
+yuno_in03.gat,219,50,0	warp	warpy1049	1,1,yuno_in03.gat,104,118
+yuno_in03.gat,223,167,0	warp	warpy1055	1,1,yuno_in03.gat,96,59
+yuno_in03.gat,224,19,0	warp	warpy1048	1,1,yuno.gat,284,363
+yuno_in03.gat,231,58,0	warp	warpy1053	1,1,yuno_in03.gat,239,144
+yuno_in03.gat,235,91,0	warp	warpy1052	1,1,yuno_in03.gat,244,49
+yuno_in03.gat,239,141,0	warp	warpy1054	1,1,yuno_in03.gat,231,59
+yuno_in03.gat,244,52,0	warp	warpy1051	1,1,yuno_in03.gat,235,94
+yuno_in03.gat,25,11,0	warp	warpy1044	1,1,yuno.gat,278,290
+yuno_in03.gat,32,89,0	warp	warpy1046	1,1,yuno_in03.gat,25,53
+yuno_in03.gat,66,186,0	warp	warpy1042	1,1,yuno_in03.gat,155,134
+yuno_in03.gat,96,58,0	warp	warpy1056	1,1,yuno_in03.gat,223,170
+yuno_in04.gat,103,22,0	warp	warpy1026	1,1,yuno_in04.gat,103,53
+yuno_in04.gat,103,51,0	warp	warpy1025	1,1,yuno_in04.gat,103,20
+yuno_in04.gat,103,64,0	warp	warpy1019	1,1,yuno_in04.gat,103,95
+yuno_in04.gat,103,93,0	warp	warpy1020	1,1,yuno_in04.gat,103,62
+yuno_in04.gat,115,22,0	warp	warpy1024	1,1,yuno_in04.gat,115,53
+yuno_in04.gat,115,51,0	warp	warpy1023	1,1,yuno_in04.gat,115,20
+yuno_in04.gat,115,64,0	warp	warpy1021	1,1,yuno_in04.gat,115,95
+yuno_in04.gat,115,93,0	warp	warpy1022	1,1,yuno_in04.gat,115,62
+yuno_in04.gat,122,57,0	warp	warpy1027	1,1,yuno_in04.gat,164,110
+yuno_in04.gat,161,110,0	warp	warpy1028	1,1,yuno_in04.gat,120,57
+yuno_in04.gat,28,58,0	warp	warpy1016	1,1,yuno.gat,338,203
+yuno_in04.gat,33,130,0	warp	warpy1010	1,1,yuno.gat,95,184
+yuno_in04.gat,52,58,0	warp	warpy1017	1,1,yuno_in04.gat,97,58
+yuno_in04.gat,95,58,0	warp	warpy1018	1,1,yuno_in04.gat,50,58
+yuno_in05.gat,125,83,0	warp	warpy1069	1,1,yuno_in05.gat,193,102
+yuno_in05.gat,137,71,0	warp	warpy1063	1,1,yuno_in05.gat,15,185
+yuno_in05.gat,148,83,0	warp	warpy1062	1,1,yuno_in05.gat,156,142
+yuno_in05.gat,153,142,0	warp	warpy1061	1,1,yuno_in05.gat,145,83
+yuno_in05.gat,16,188,0	warp	warpy1064	1,1,yuno_in05.gat,137,74
+yuno_in05.gat,165,103,0	warp	warpy1068	1,1,yuno_in05.gat,145,83
+yuno_in05.gat,177,52,0	warp	warpy1066	1,1,yuno_in05.gat,181,94
+yuno_in05.gat,177,9,0	warp	warpy1067	1,1,yuno_in05.gat,177,49
+yuno_in05.gat,181,116,0	warp	warpy1070	1,1,yuno_in05.gat,177,12
+yuno_in05.gat,181,91,0	warp	warpy1065	1,1,yuno_in05.gat,177,49
+yuno_in05.gat,196,194,0	warp	warpy1060	1,1,yuno_in02.gat,85,14
+yuno_in05.gat,197,102,0	warp	warpy1076	1,1,yuno_in05.gat,168,103
+yuno_in05.gat,31,167,0	warp	warpy1072	1,1,yuno_in05.gat,50,85
+yuno_in05.gat,47,185,0	warp	warpy1071	1,1,yuno_in05.gat,181,94
+yuno_in05.gat,50,87,0	warp	warpy1073	1,1,yuno_in02.gat,85,14
+
+//Al de Baran <-> Yuno Connection
+aldebaran.gat,140,244,0	warp	ttl01	1,1,yuno_fild01.gat,208,19
+
+//Magma Dungeon
+mag_dun01.gat,126,66,0	warp	ttl01	1,1,yuno_fild03.gat,34,139
+mag_dun01.gat,242,241,0	warp	ttl01	1,1,mag_dun02.gat,47,30
+mag_dun02.gat,47,28,0	warp	ttl01	1,1,mag_dun01.gat,242,239
+
+
+yuno_fild01.gat,208,17,0	warp	ttl01	1,1,aldebaran.gat,140,242
+yuno_fild01.gat,286,368,0	warp	ttl01	1,1,yuno_fild02.gat,294,26
+yuno_fild01.gat,70,378,0	warp	ttl01	1,1,yuno_fild02.gat,70,25
+yuno_fild02.gat,18,337,0	warp	ttl01	1,1,yuno_fild03.gat,381,331
+yuno_fild02.gat,294,24,0	warp	ttl01	1,1,yuno_fild01.gat,286,366
+yuno_fild02.gat,70,23,0	warp	ttl01	1,1,yuno_fild01.gat,70,376
+yuno_fild03.gat,19,79,0	warp	ttl01	1,1,yuno_fild04.gat,373,84
+yuno_fild03.gat,20,155,0	warp	ttl01	1,1,yuno_fild04.gat,373,150
+yuno_fild03.gat,32,139,0	warp	ttl01	1,1,mag_dun01.gat,126,68
+yuno_fild03.gat,383,331,0	warp	ttl01	1,1,yuno_fild02.gat,20,337
+yuno_fild04.gat,231,211,0	warp	ttl01	1,1,yuno.gat,158,17
+yuno_fild04.gat,375,150,0	warp	ttl01	1,1,yuno_fild03.gat,22,155
+yuno_fild04.gat,375,84,0	warp	ttl01	1,1,yuno_fild03.gat,21,79

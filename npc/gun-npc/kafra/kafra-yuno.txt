@@ -1,0 +1,9 @@
+yuno.gat,148,176,6	script	Kafra	835,{
+	//Options
+	set @savemap$,"yuno.gat";
+	set @savex,158;
+	set @savey,168;
+	set @pic$,"kafra_08";
+	set @savepoints,1;
+	callfunc "gunstar_kafra";
+}

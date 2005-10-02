@@ -1,0 +1,55 @@
+//Rogue NPC for Athena by DiaDz
+//No Quests, just npc on location
+//1.1 Added SkillPoint check [Lupus]
+
+//Rogue Moc_fild19 23 48 4_F_ROGUE 4_F_JOB_ASSASSIN
+moc_fild19.gat,26,48,5	script	Rogue's Lady	747,{
+	   if(Class==17) goto Rogue;
+	   if(Class !=6) goto notthief;
+
+	mes "[Lady Rogue]";
+	mes "Welcome to the Deserts of Morroc.";
+       next;
+       mes "[Lady Rogue]";
+       mes "How may I be of Service to you?";
+       next;
+       menu "Change Job into a Rogue.",case1,"The Requirements.",case2,"Quit.",case3;
+        		case1:
+        			if(JobLevel < 40) goto notlvl;
+					mes "[Lady Rogue]";	
+					if(SkillPoint > 0) mes "You need to use up all of your skill points before I can make you a Rogue.";
+					if(SkillPoint > 0) close;
+	                		mes "Since you are now a Rogue you may call Morroc your Home.";
+					jobchange 17;
+       					close;
+        			
+						notlvl:
+        				mes "[Lady Rogue]";
+        				mes "you need to be at least Job level 40";
+        				close;
+
+        		case2:
+        			mes "[Lady Rogue]";
+        			mes "You need to be a Theif of Job Level 40 to become a Rogue";
+        			next;
+        			mes "[Lady Rogue]";	
+        			mes "Rogues unlike Asassins are not professional killers";
+        			mes "We are more interested in helping to ourselves to some of that money all those rich merchants have";
+					close;
+        		
+        		case3:
+	        		mes "[Lady Rogue]";
+        			mes "Please come again sometime";
+        			close;
+        	
+	Rogue:
+		mes "[Lady Rogue]";
+		mes "You are already a Skilled Rogue";
+		close;
+	
+	notthief: 
+		mes "[Lady Rogue]";
+		mes "I'm sorry but there is nothing I can help you with.";
+		mes "Hah, only a Thief class is capable of learning our elite 'Rogue' skills.";
+		close;
+}

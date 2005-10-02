@@ -1,0 +1,30 @@
+morocc.gat,156,97,4	script	Kafra	113,{
+	//Options
+	set @savemap$,"morocc.gat";
+	set @savex,156;
+	set @savey,46;
+	set @pic$,"kkafra_05";
+	set @savepoints,1;
+	callfunc "gunstar_kafra";
+}
+moc_ruins.gat,61,156,5	script	Kafra	112,{
+	//Options
+	set @savemap$,"moc_ruins.gat";
+	set @savex,41;
+	set @savey,141;
+	set @pic$,"kkafra_06";
+	set @savepoints,1;
+	callfunc "gunstar_kafra";
+}
+morocc.gat,163,260,4	script	Kafra	117,{
+	//Options
+	set @savemap$,"moc_fild07.gat";
+	set @savex,212;
+	set @savey,30;
+	set @savemap2$,"morocc.gat";
+	set @savex2,187;
+	set @savey2,281;
+	set @pic$,"ukafra_01";
+	set @savepoints,2;
+	callfunc "gunstar_kafra";
+}

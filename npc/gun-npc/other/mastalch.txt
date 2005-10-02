@@ -1,0 +1,317 @@
+//Alchemist script by Gunstar -- Edited from Geffen Blacksmith
+//2004-08-11 Edited my Aru to reflect the latest alchemy tables
+
+prt_in.gat,89,72,3	script	Master Alchemist	749,{
+	mes "[Master Alchemist]";
+	mes "Welcome to the Alchemist's Lab.";
+	mes "You can get everything you need for your pharmacy here.";
+	next;
+	mes "[Master Alchemist]";
+	mes "What is it that you need?";
+	next;
+	menu "Purchase Manual",PurManual, "Purchase Medicine Bowl", PurBowl, "Get Pharmacy Information", PharmInfo,"Cancel",CancelOne;
+	
+	PurManual:
+		mes "[Master Alchemist]";
+		mes "Besides the required ingredients you need to know how to make your items!";
+		mes "In order to make items you must have the appropriate manual.";
+		next;
+		mes "[Master Alchemist]";
+		mes "Please choose which manual you need. All manuals are 100,000 zeny";
+		mes "except for Slim Potion Manual which is 240,000 zeny.";
+		next;
+		menu "General Potion Manual",GenPotManu,"Slim Potion Manual",SliPotManu,"Alcohol Manual",AlcManu,"Acid Bottle Manual",AciBotManu,"Fire Bottle Manual",FirBotManu,"Mine Bottle Manual",MinBotManu,"Water Bottle Manu",WatBotManu,"Coating Wax Manual",WaxManu,"Cancel",CancelOne;
+
+//Manual Buy Confirmation
+		GenPotManu:
+			if(Zeny<100000) goto NoZeny;
+			mes "[Master Alchemist]";
+			mes "This manual is required for making generic potions.";
+		next;
+		menu "Buy", BuyGenPotManu, "Cancel", DealCanc;
+
+		SliPotManu:
+			if(Zeny<240000) goto NoZeny;
+			mes "[Master Alchemist]";
+			mes "This manual is required for making slim potions.";
+			mes "They have the same effect as generic, but are far lighter.";
+		next;
+		menu "Buy", BuySliPotManu, "Cancel", DealCanc;
+
+		AlcManu:
+			if(Zeny<100000) goto NoZeny;
+			mes "[Master Alchemist]";
+			mes "This manual is required for making Alcohol.";
+			mes "Alcohol is required for some other potions.";
+		next;
+		menu "Buy", BuyAlcManu, "Cancel", DealCanc;
+
+		AciBotManu:
+			if(Zeny<100000) goto NoZeny;
+			mes "[Master Alchemist]";
+			mes "This manual is required for making Acid Bottles.";
+			mes "Acid Bottles are used for the skill Acid Terror.";
+		next;
+		menu "Buy", BuyAciBotManu, "Cancel", DealCanc;
+
+		FirBotManu:
+			if(Zeny<100000) goto NoZeny;
+			mes "[Master Alchemist]";
+			mes "This manual is required for making Fire Bottles.";
+			mes "Fire Bottles are used for the skill Demonstration.";
+		next;
+		menu "Buy", BuyFirBotManu, "Cancel", DealCanc;
+
+		MinBotManu:
+			if(Zeny<100000) goto NoZeny;
+			mes "[Master Alchemist]";
+			mes "This manual is required for making Mine Bottles.";
+			mes "Mine Bottles are used for the skill Sphere Mine.";
+		next;
+		menu "Buy", BuyMinBotManu, "Cancel", DealCanc;
+
+		WatBotManu:
+			if(Zeny<100000) goto NoZeny;
+			mes "[Master Alchemist]";
+			mes "This manual is required for making Water Bottles.";
+			mes "Water Bottles are used for the skill Demonstration.";
+		next;
+		menu "Buy", BuyWatBotManu, "Cancel", DealCanc;
+
+		WaxManu:
+			if(Zeny<100000) goto NoZeny;
+			mes "[Master Alchemist]";
+			mes "This manual is required for making Coating Wax.";
+			mes "Coating Wax is used for the Chemical Protection skills.";
+		next;
+		menu "Buy", BuyWaxManu, "Cancel", DealCanc;
+
+
+
+//Purchase Manual
+
+		BuyGenPotManu:
+			set Zeny,zeny-100000;
+			getitem 7144,1;
+			goto ThankYou;
+
+		BuySliPotManu:
+			set Zeny,zeny-240000;
+			getitem 7133,1;
+			goto ThankYou;
+		BuyAlcManu:
+			set Zeny,zeny-100000;
+			getitem 7127,1;
+			goto ThankYou;
+
+		BuyAciBotManu:
+			set Zeny,zeny-100000;
+			getitem 7129,1;
+			goto ThankYou;
+		BuyFirBotManu:
+			set Zeny,zeny-100000;
+			getitem 7128,1;
+			goto ThankYou;
+
+		BuyMinBotManu:
+			set Zeny,zeny-100000;
+			getitem 7131,1;
+			goto ThankYou;
+
+		BuyWatBotManu:
+			set Zeny,zeny-100000;
+			getitem 7130,1;
+			goto ThankYou;
+
+		BuyWaxManu:
+			set Zeny,zeny-100000;
+			getitem 7132,1;
+			goto ThankYou;
+
+
+		PurMCancel:
+			mes "[Master Alchemist]";
+			mes "Ok, Feel free to come anytime whenever you need something. Farewell.";
+			close;
+
+//Buy Medicine Bowl
+	PurBowl:
+		mes "[Master Alchemist]";
+		mes "In order to do any sort of Pharmacy work for must have Medicine Bowls first!.";
+		mes "Medicine Bowls are disposeable and youll have to buy one for each use.";
+		next;
+		mes "[Master Alchemist]";
+		mes "They are 8 zeny each. Would you like to buy some?";
+		menu "Buy", BuyBowl, "Cancel", CancelOne;
+		
+		BuyBowl:
+			mes "[Master Alchemist]";
+			mes "So, how many do you wish to buy? If you want to quit, please note the number as '0'.";
+			next;
+			input @input;
+			if(@input !=0) goto inputMF;
+			goto DealCanc;
+			
+			inputMF:
+				if (!(checkweight(7134,@input))) goto OverWeight;
+				if(Zeny < 8 * @input) goto NoZeny;
+				mes "[Master Alchemist]";
+				set Zeny,zeny-8 * @input;
+				getitem 7134,@input;
+				goto ThankYou;
+
+//Pharmacy Info
+
+	PharmInfo:
+		mes "[Master Alchemist]";
+		mes "Even the greatest of Alchemists forget thier forumlas sometimes.";
+		next;
+		goto PharmStart;
+
+		PharmStart:
+		mes "[Master Alchemist]";
+		mes "What do you need help with?";
+		next;
+		menu "Generic Potions", GenPotInfo, 
+			"Slim Potions", SliPotInfo, 
+			"Fire and Acid Bottles", FABotInfo, 
+			"Mine and Water Bottles", MWBotInfo, 
+			"Wax Coating and Alcohol", WCAInfo, 
+			"Anodyne amd Aloevera", StimInfo,
+			"Cancel", CancelOne;
+		
+		GenPotInfo:
+			mes "[Master Alchemist]";
+			mes "Red Potion:";
+			mes "1 Empty Potion Bottle";
+			mes "1 Red Herb";
+			next;
+			mes "[Master Alchemist]";
+			mes "Yellow Potion:";
+			mes "1 Empty Potion Bottle";
+			mes "1 Yellow Herb";
+			next;
+			mes "[Master Alchemist]";
+			mes "White Potion:";
+			mes "1 Empty Potion Bottle";
+			mes "1 White Herb";
+			next;
+			mes "[Master Alchemist]";
+			mes "Blue Potion:";
+			mes "1 Empty Potion Bottle";
+			mes "1 Blue Herb";
+			mes "1 Scell";
+			next;
+			goto PharmStart;
+
+		SliPotInfo:
+			mes "[Master Alchemist]";
+			mes "Red Slim Potion:";
+			mes "1 Empty Potion Bottle";
+			mes "1 Red Potion";
+			mes "1 Cactus Needle";
+			next;
+			mes "[Master Alchemist]";
+			mes "Yellow Slim Potion:";
+			mes "1 Empty Potion Bottle";
+			mes "1 Yellow Potion";
+			mes "1 Mole Whisker";
+			next;
+			mes "[Master Alchemist]";
+			mes "White Slim Potion:";
+			mes "1 Empty Potion Bottle";
+			mes "1 White Potion";
+			mes "1 Witched Starsand";
+			next;
+			goto PharmStart;
+
+		FABotInfo:
+			mes "[Master Alchemist]";
+			mes "Fire Bottle:";
+			mes "1 Empty Bottle";
+			mes "1 Alcohol";
+			mes "1 Fabric";
+			next;
+			mes "[Master Alchemist]";
+			mes "Acid Bottle:";
+			mes "1 Empty Bottle";
+			mes "1 Immortal Heart";
+			next;
+			goto PharmStart;
+
+		MWBotInfo:
+			mes "[Master Alchemist]";
+			mes "Mine Bottle:";
+			mes "1 Empty Bottle";
+			mes "1 Tendon";
+			mes "1 Detonator";
+			next;
+			mes "[Master Alchemist]";
+			mes "Water Bottle:";
+			mes "1 Empty Bottle";
+			mes "2 Maneater Blossom";
+			next;
+			goto PharmStart;
+
+		WCAInfo:
+			mes "[Master Alchemist]";
+			mes "Wax Coating:";
+			mes "1 Empty Bottle";
+			mes "1 Alcohol";
+			mes "1 Zenorc's Fang";
+			mes "1 Heart of Mermaid";
+			next;
+			mes "[Master Alchemist]";
+			mes "Alcohol:";
+			mes "1 Empty Bottle";
+			mes "1 Empty Test Tube";
+			mes "5 Stem";
+			mes "5 Poison Spore";
+			next;
+			goto PharmStart;
+
+		StimInfo:
+			mes "[Master Alchemist]";
+			mes "Anodyne:";
+			mes "1 Ment";
+			mes "1 Alcohol";
+			mes "1 Empty Bottle";
+			next;
+			mes "[Master Alchemist]";
+			mes "Aloevera:";
+			mes "1 Aloe";
+			mes "1 Honey";
+			mes "1 Empty Bottle";
+			next;
+			mes "[Master Alchemist]";
+			mes "These use the Generality Manual by the way.";
+			next;
+			goto PharmStart;
+
+	CancelOne:
+		mes "[Master Alchemist]";
+		mes "Please visit again sometime.";
+		close;
+
+	DealCanc:
+		mes "[Master Alchemist]";
+		mes "Deal has Canceled. Farewell.";
+		close;
+
+	NoZeny:
+		mes "[Master Alchemist]";
+		mes "Im sorry but you dont have enough zeny for this.";
+		mes "Please come back later when you have more cash.";
+		close;
+
+	OverWeight:
+		mes "[Master Alchemist]";
+		mes "Im sorry but you cannot buy items because you are overweight.";
+		close;
+
+	ThankYou:
+		mes "[Master Alchemist]";
+		mes "Thank you for shopping at my lab. Feel free to come anytime whenever you need.";
+		close;
+
+}

@@ -1,0 +1,59 @@
+prontera.gat,164,175,3	script	Kafra	115,{
+	set @pic$,"ukafra_03";
+	set @savemap$,"prontera.gat";
+	set @savex,149+rand(12);
+	set @savey,164+rand(21);
+	set @savepoints,1;
+	callfunc "gunstar_kafra";
+}
+prt_fild01.gat,198,47,8	script	Kafra	114,{
+	//Options
+	set @savemap$,"prt_fild01.gat";
+	set @savex,197;
+	set @savey,50;
+	set @pic$,"ukafra_04";
+	set @savepoints,1;
+	callfunc "gunstar_kafra";
+}
+prt_fild05.gat,290,224,1	script	Kafra	113,{
+	//Options
+	set @savemap$,"prt_fild05.gat";
+	set @savex,274;
+	set @savey,243;
+	set @pic$,"ukafra_05";
+	set @savepoints,1;
+	callfunc "gunstar_kafra";
+}
+prontera.gat,29,207,6	script	Kafra	112,{
+	//Options
+	set @savemap$,"prt_fild05.gat";
+	set @savex,367;
+	set @savey,205;
+	set @savemap2$,"prontera.gat";
+	set @savex2,33;
+	set @savey2,208;
+	set @pic$,"ukafra_06";
+	set @savepoints,2;
+	callfunc "gunstar_kafra";
+}
+prontera.gat,146,89,6	script	Kafra	117,{
+	//Options
+	set @savemap$,"prontera.gat";
+	set @savex,117;
+	set @savey,73;
+	set @pic$,"kafra_01";
+	set @savepoints,1;
+	callfunc "gunstar_kafra";
+}
+prontera.gat,151,29,8	script	Kafra	116,{
+	//Options
+	set @savemap$,"prt_fild08.gat";
+	set @savex,170;
+	set @savey,369;
+	set @savemap2$,"prontera.gat";
+	set @savex2,150;
+	set @savey2,33;
+	set @pic$,"kafra_02";
+	set @savepoints,2;
+	callfunc "gunstar_kafra";
+}

@@ -1,0 +1,21 @@
+prt_in.gat,129,31,0	script	Sir Tests Alot	48,{
+initnpctimer;
+break;
+OnTimer1000:
+monster "prt_in.gat",129,31,"1 Sec",1002,1;
+break;
+OnTimer3000:
+monster "prt_in.gat",129,31,"3 Sec",1002,1;
+break;
+OnTimer5000:
+monster "prt_in.gat",129,31,"5 Sec",1002,1;
+break;
+OnTimer8000:
+monster "prt_in.gat",129,31,"8 Sec",1002,1;
+break;
+OnTimer19000:
+monster "prt_in.gat",129,31,"10 Sec",1002,1;
+break;
+}
+
+

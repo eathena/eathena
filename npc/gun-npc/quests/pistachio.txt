@@ -1,0 +1,45 @@
+//Pistachio AKA sunglass bitch stuff
+prt_in.gat,42,113,4	script	Pistachio	98,{
+
+//Pistachio: When you talk to him
+mes "[Pistachio]";
+mes "Yeah yeah I know all your friends told you to come to me for the coolest shades out there..";
+next;
+mes "[Pistachio]";
+mes "What do you mean you just 'clicked' me because I was here?!?";
+mes "Anyway.. I know you want a pair of my special sunglasses!";
+next;
+//NEXT_
+mes "[Pistachio]";
+mes "They're not cheap though, I charge:";
+mes "1 Skirt of Virgin";
+mes "1 Diver Goggles";
+mes "100 Reins";
+mes "500,000 Zeny";
+next;
+mes "[Pistachio]";
+mes "So do you want one?";
+next;
+menu "Yes",YES_HAVE,"No",NO;
+
+YES_HAVE:
+if ((countitem(1049)<1)||(countitem(2205)<1)||(countitem(1064)<100)||(Zeny<500000)) goto YES_DONT;
+delitem 1049,1; //Skirt
+delitem 2205,1; //Diver Goggles
+delitem 1064,100; //Reins
+set Zeny,Zeny-500000;
+getitem 2202,1;
+mes "[Pistachio]";
+mes "NICE I SOLD ONE... I mean uhh... enjoy your quality product!";
+close;
+
+YES_DONT:
+mes "[Pistachio]";
+mes "Sorry dude.. You're a little short there.";
+close;
+
+NO:
+mes "[Pistachio]";
+mes "Guess not everyone has a sense of fashion...";
+close;
+}

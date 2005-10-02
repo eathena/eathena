@@ -1,0 +1,35 @@
+//===== eAthena Script =======================================
+//= Beach Dungeon Monster Spawn Script
+//===== By: ==================================================
+//= Athena (1.0)
+//= Poki#3 (2.0)
+//===== Current Version: =====================================
+//= 2.0
+//===== Compatible With: =====================================
+//= Any Athena Version
+//===== Description: =========================================
+//= Monster Spawns for Beach Dungeon
+//===== Additional Comments: =================================
+//= Updated up to Umbala Spawns (v.2.0 by Poki#3)
+//============================================================
+
+//beach_dun (Karu,the West cave)
+beach_dun.gat,0,0,0,0	monster	Medusa	1148,20,0,0,0
+beach_dun.gat,0,0,0,0	monster	Penomena	1216,5,0,0,0
+beach_dun.gat,0,0,0,0	monster	Merman	1264,3,0,20,0
+beach_dun.gat,0,0,0,0	monster	Neraid	1255,15,0,0,0
+beach_dun.gat,0,0,0,0	monster	Pest	1256,15,0,0,0
+
+//beach_dun2 (Ruande the northern cave)
+beach_dun2.gat,0,0,0,0	monster	Stalactic Golem	1278,40,0,0,0
+beach_dun2.gat,0,0,0,0	monster	Megalith	1274,30,0,0,0
+beach_dun2.gat,0,0,0,0	monster	Neraid	1255,5,0,0,0
+beach_dun2.gat,0,0,0,0	monster	Tri Joint	1279,20,0,0,0
+beach_dun2.gat,0,0,0,0	monster	Hydra	1068,15,0,0,0
+
+//beach_dun3 (Mao,the East Cave)
+beach_dun3.gat,0,0,0,0	monster	Penomena	1216,3,0,0,0
+beach_dun3.gat,0,0,0,0	monster	Neraid	1255,1,0,0,0
+beach_dun3.gat,0,0,0,0	monster	Megalodon	1064,30,0,0,0
+beach_dun3.gat,0,0,0,0	monster	Thara Frog	1034,50,0,0,0
+beach_dun3.gat,0,0,0,0	monster	Hydra	1068,30,0,0,0

@@ -1,0 +1,109 @@
+//===== Athena Script ========================================
+//= Hunter Job Quest Script
+//===== By: ==================================================
+//= Darkchild
+//===== Current Version: =====================================
+//= 1.0
+//===== Compatible With: =====================================
+//= Any Athena Version
+//===== Description: =========================================
+//= Jobchanger for Hunter, warper for guide, falcon master and warp to get out
+//===== Additional Comments: =================================
+//= None
+//============================================================
+
+
+//Jobchanger
+in_hunter.gat,99,98,4	script	Hunter Guildsman	98,{
+	mes "[Hunter Guildsman]";
+	mes "Good Day, This is the Hunter Guild.";
+	next;
+	menu "Change a Job into a Hunter.",M0,"The Requirements.",M1,"Quit.",MEnd;
+
+	M0:
+		mes "[Hunter Guildsman]";
+		if(Class==11) goto JobHun;
+		if(Class !=3) goto NotArc;
+		if(JobLevel < 40) goto NotLvl;
+		if(SkillPoint != 0) goto Lskillpt;
+		mes "Now you become a Hunter.";
+		JobChange 11;
+		close;
+		
+		Lskillpt:
+			mes "[Hunter Guildsman]";
+			mes "Please use up all your skill points before changing into the next job! ^_^";
+			close;
+
+		NotLvl:
+			mes "You must be at least Job Level 40 before everything.";
+			close;
+		NotArc:
+			if(Class==0) goto JobNov;
+			mes "Other jobs except 'Archer' are not permitted to be Hunters.";
+			close;
+
+			JobNov:
+				mes "Be an 'Archer' First.";
+				close;
+		JobHun:
+			mes "You're already a Cool Hunter.";
+			close;
+	M1:
+		mes "[Hunter Guildsman]";
+		mes "It seems the King needs more Hunters! So he established a new constitution of Hunters, so you can be a Hunter anytime if you reach at Job Level 40 or above.";
+		next;
+		mes "[Hunter Guildsman]";
+		mes "This is the good chance to become a Hunter! I assume the Government will introduce many Strict requirements for Hunter later if there are too many people want to be Hunters!";
+		next;
+		mes "[Hunter Guildsman]";
+		mes "You can't miss the perfect chance!";
+		close;
+	MEnd:
+		close;
+}
+
+//Guy to warp in
+pay_fild10.gat,148,253,4	script	Hunter	96,{
+	if(Class == 3) goto Arc;
+	if(Class == 11) goto Arc;
+	mes "[Hunter]";
+	mes "You are no archer or Hunter, GO AWAY";
+	close;
+
+	Arc:
+	warp "in_hunter.gat",100,22;
+	close;
+}
+
+//Falcon Breeder
+in_hunter.gat,134,101,4	script	Falcon Breeder	97,{
+	if(Class != 11) goto NoHunt;
+	mes "[Falcon Breeder]";
+	mes "Hi there!";
+	mes "You want to rent a falcon for 2500 zeny??";
+	next;
+	menu "Yes!!",Lfalc,"NO! What a rip off",Lnofalc;
+	Lfalc:
+	if(Zeny<2500) goto Lnocash;
+	set Zeny,zeny-2500;
+	setfalcon;
+	mes "[Falcon Breeder]";
+	mes "OkaY here is one of our finist Falcons";
+	close;
+
+	Lnocash:
+	mes "[Falcon Breeder]";
+	mes "I know they are super sweet and all but you need to pay";
+	mes "Their training costed us lotsa cash you know!!";
+	close;
+
+	NoHunt:
+	mes "[Falcon Breeder]";
+	mes "Only hunters can use Falcons, sorry";
+	close;
+}
+
+
+//Warp to get out
+in_hunter.gat,100,16,0	warp	warphuntO	2,2,pay_fild10.gat,146,253

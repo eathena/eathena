@@ -1,0 +1,217 @@
+payon.gat,173,238,4	script	Jade	727,{
+mes "[Jade]";
+mes "Greetings! What brings you here today?";
+next;
+menu "I am in need of arrows",ArrowPur,"Just came to visit",Leave;
+
+ArrowPur:
+mes "[Jade]";
+mes "What sort of arrows will you be needing?";
+next;
+menu "Elemental",EleArro,"Status Effect",StatArro,"Fine Tipped",FineArro,"None",Leave;
+
+EleArro:
+mes "[Jade]";
+mes "Well we have quite a few nice elemental arrows.";
+mes "Never know when youll be needing to take out a ghost!";
+next;
+menu "Fire Arrow - 3z",PurArro1,
+	"Arrow of Wind - 3z",PurArro2,
+	"Shadow Arrow - 3z",PurArro3,
+	"Rusty Arrow - 3z",PurArro4,
+	"Crystal Arrow - 3z",PurArro5,
+	"Stone Arrow - 3z",PurArro6,
+	"Immaterial Arrow - 6z",PurArro7,
+	//"Arrow of Counter-Evil - <pric>z",PurArro17,
+	"None, thank you",Leave;	
+	
+StatArro:
+mes "[Jade]";
+mes "With a fine status inflicting arrow your bow can help you";
+mes "out of dire situations easily!";
+next;
+menu "Freezing Arrow - 7z",PurArro8,
+	"Flash Arrow - 7z",PurArro9,
+	"Curse Arrow - 7z",PurArro10,
+	"Poison Arrow - 7z",PurArro11,
+	"Sleep Arrow - 7z",PurArro12,
+	"Silence Arrow - 7z",PurArro13,
+	"Stun Arrow - 8z",PurArro18,
+	"Sharp Arrow - 5z",PurArro19,
+	"None, thank you",Leave;
+	
+FineArro:
+mes "[Jade]";
+mes "Plain and true! Theese fine tipped arrows are the way to go";
+mes "if you want high damage and high efficency.";
+mes "Though... they are the most expensive of all.";
+next;
+menu "Iron Arrow - 2z",PurArro14,
+	"Steel Arrow - 3z",PurArro15,
+
+	//"Oridecon Arrow - 400z",PurArro16,
+	"None, thank you",Leave;	
+
+PurArro1:
+set @arrowprice,3;
+set @arrowid,1752; //Fire Arrow
+mes "[Jade]";
+mes "Sear your enemies!";
+goto PurArroNum;
+PurArro2:
+set @arrowprice,3;
+set @arrowid,1755; //Arrow of Wind
+mes "[Jade]";
+mes "Attack with the graceful power of wind!";
+goto PurArroNum;
+PurArro3:
+set @arrowprice,3;
+set @arrowid,1767; //Shadow Arrow
+mes "[Jade]";
+mes "Strike with the power of darkness...";
+goto PurArroNum;
+PurArro4:
+set @arrowprice,3;
+set @arrowid,1762; //Rusted Arrow
+mes "[Jade]";
+mes "Plan to poison with jagged rusty metal eh...";
+goto PurArroNum;
+PurArro5:
+set @arrowprice,3;
+set @arrowid,1754; //Crystal Arrow
+mes "[Jade]";
+mes "Beautiful, but deadly.";
+goto PurArroNum;
+PurArro6:
+set @arrowprice,3;
+set @arrowid,1756; //Stone Arrow
+mes "[Jade]";
+mes "Hit with the rock hard power of earth!";
+goto PurArroNum;
+PurArro7:
+set @arrowprice,6;
+set @arrowid,1757; //Immaterial Arrow
+mes "[Jade]";
+goto PurArroNum;
+PurArro8:
+set @arrowprice,7;
+set @arrowid,1759; //Freeze Arrow
+mes "[Jade]";
+mes "Fire shards of ice into the enemy's heart!";
+goto PurArroNum;
+PurArro9:
+set @arrowprice,7;
+set @arrowid,1760; //Flash Arrow
+mes "[Jade]";
+mes "Blind your opponent with a bright flash!";
+goto PurArroNum;
+PurArro10:
+set @arrowprice,7;
+set @arrowid,1761; //Curse Arrow
+mes "[Jade]";
+mes "Bring a deadly curse upon the enemy...";
+goto PurArroNum;
+PurArro11:
+set @arrowprice,7;
+set @arrowid,1763; //Poison Arrow
+mes "[Jade]";
+mes "Strike the enemy with a deadly venom...";
+goto PurArroNum;
+PurArro12:
+set @arrowprice,7;
+set @arrowid,1768; //Sleep Arrow
+mes "[Jade]";
+mes "Send the enemy into a deep slumber!";
+goto PurArroNum;
+PurArro13:
+set @arrowprice,7;
+set @arrowid,1769; //Mute Arrow
+mes "[Jade]";
+mes "Silence the chanting of spells!";
+goto PurArroNum;
+PurArro14:
+set @arrowprice,2;
+set @arrowid,1770; //Iron Arrow
+mes "[Jade]";
+mes "Pierce the enemy's heart with iron!";
+goto PurArroNum;
+PurArro15:
+set @arrowprice,3;
+set @arrowid,1753; //Steel Arrow
+mes "[Jade]";
+mes "Fill the enemy with cold hard steel!";
+goto PurArroNum;
+PurArro16:
+set @arrowprice,400;
+set @arrowid,1765; //Oridecon Arrow
+mes "[Jade]";
+mes "Destroy the enemy with the finely refined element of oridecon!";
+goto PurArroNum;
+PurArro17:
+set @arrowprice,7;
+set @arrowid,1766; //Arrow of Counter Evil
+mes "[Jade]";
+mes "";
+goto PurArroNum;
+PurArro18:
+set @arrowprice,8;
+set @arrowid,1758; //Stun Arrow
+mes "[Jade]";
+mes "Stun the enemy with a powerful blow!";
+goto PurArroNum;
+PurArro19:
+set @arrowprice,5;
+set @arrowid,1764; //Sharp Arrow
+mes "[Jade]";
+mes "Give the enemy a critical piercing!";
+goto PurArroNum;
+
+
+PurArroNum:
+mes "How many of them would you like?";
+mes "Enter 0 to cancel";
+next;
+input @arrownum;
+if (@arrownum<=0) goto CancelPur;
+if (@arrownum>10000) goto Cancel10;
+set @total,@arrownum*@arrowprice;
+if (Zeny<@total) goto NoZeny;
+if (!(checkweight(@arrowid,@arrownum))) goto NoWeight;
+mes "[Jade]";
+mes "Are you sure?";
+mes "You will only have "+(Zeny - @total)+" zeny left.";
+next;
+menu "Yes",-,"No",Leave;
+set Zeny,Zeny - @total;
+getitem @arrowid,@arrownum;
+mes "[Jade]";
+mes "Thank you! Come again.";
+close;
+
+NoZeny:
+mes "[Jade]";
+mes "I'm sorry, but you dont have enough zeny.";
+mes "You need "+(@total-Zeny)+" zeny.";
+close;
+
+NoWeight:
+mes "[Jade]";
+mes "I'm sorry, but that would put you overweight.";
+close;
+
+Cancel10:
+mes "[Jade]";
+mes "You cannot buy more than ten thousand at a time.";
+close;
+
+CancelPur:
+mes "[Jade]";
+mes "Too bad...";
+close;
+
+Leave:
+mes "[Jade]";
+mes "Well I am quite busy importing arrows from around the world...";
+mes "No time to sit and talk!";
+close;
+}

@@ -1,0 +1,45 @@
+//===================================================
+// Hugel Field Warps [ New Patch Data for 8/23/2005 ]
+//===================================================
+// By Akira` for Yakuza Ragnarok Online
+//===================================================
+// Note:
+// For use with new maps from the patch data of
+// Sakray Patch 8/23/2005. 
+// --------------------------------------------------
+// Maps:
+// yuno_fild06.gat hu_fild01.gat hu_fild04.gat
+// hu_fild05.gat hu_fild07.gat
+//===================================================
+
+
+
+yuno_fild03.gat,215,383,0	warp	huf001	4,2,yuno_fild06.gat,220,30
+yuno_fild06.gat,217,27,0	warp	huf002	4,2,yuno_fild03.gat,215,380
+
+yuno_fild05.gat,372,323,0	warp	huf003	4,2,yuno_fild06.gat,44,320
+yuno_fild06.gat,40,319,0	warp	huf004	4,2,yuno_fild05.gat,369,321
+
+yuno_fild06.gat,151,370,0	warp	huf005	4,2,hu_fild01.gat,137,39
+hu_fild01.gat,140,35,0	warp	huf006	4,2,yuno_fild06.gat,155,369
+
+yuno_fild06.gat,369,132,0	warp	huf007	4,2,hu_fild04.gat,30,126
+hu_fild04.gat,26,126,0	warp	huf008	4,2,yuno_fild06.gat,366,135
+
+yuno_fild02.gat,118,376,0	warp	huf009	4,2,hu_fild04.gat,119,29
+hu_fild04.gat,121,26,0	warp	huf010	4,2,yuno_fild02.gat,116,373
+
+hu_fild04.gat,381,188,0	warp	huf011	4,2,hu_fild05.gat,35,201
+hu_fild05.gat,32,198,0	warp	huf012	4,2,hu_fild04.gat,377,188
+
+hu_fild05.gat,88,42,0	warp	huf013	4,2,hu_fild07.gat,80,367
+hu_fild07.gat,80,371,0	warp	huf014	4,2,hu_fild05.gat,88,47
+
+hu_fild07.gat,35,351,0	warp	huf015	4,2,yuno_fild02.gat,381,338
+yuno_fild02.gat,384,340,0	warp	huf016	4,2,hu_fild07.gat,39,351
+
+hu_fild07.gat,226,36,0	warp	huf017	4,2,yuno_fild09.gat,220,370
+yuno_fild09.gat,220,374,0	warp	huf018	4,2,hu_fild07.gat,225,40
+
+hu_fild07.gat,57,36,0	warp	huf019	4,2,yuno_fild09.gat,48,373
+yuno_fild09.gat,47,377,0	warp	huf020	4,2,hu_fild07.gat,58,40

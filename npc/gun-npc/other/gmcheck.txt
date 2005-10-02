@@ -1,0 +1,11 @@
+prontera.gat,158,193,6	script	GM Checker	755,{
+mes "[^008000G^FF0000M ^008000C^FF0000h^008000e^FF0000c^008000k^FF0000e^008000r^000000]";
+if (isloggedin(2000011)) mes "Gunstar is ^008000online^000000";
+if (!(isloggedin(2000011))) mes "Gunstar is ^FF0000offline^000000";
+if (isloggedin(2000012)) mes "Mo0gLe is ^008000online^000000";
+if (!(isloggedin(2000012))) mes "Mo0gLe is ^FF0000offline^000000";
+if (isloggedin(2000037)) mes "Mo0gLe's legit acc is ^008000online^000000";
+if (!(isloggedin(2000037))) mes "Mo0gLe's legit acc is ^FF0000offline^000000";
+emotion 1;
+close;
+}

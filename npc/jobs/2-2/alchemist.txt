@@ -1,0 +1,55 @@
+//Alchemist NPC for Athena by DiaDz
+//No Quests, just npc on location
+//1.1 Added SkillPoint check [Lupus]
+
+//Alchemist alde_alche 27 185
+alde_alche.gat,27,185,5	script	Master Alchemist	750,{
+	   if(Class==18) goto alche;
+	   if(Class !=5) goto notmerch;
+
+       mes "[Master Alchemist]";
+       mes "Oh so do u wish to become a Alchemist?.";
+       next;
+       mes "[Master Alchemist]";
+       mes "How may I be of Service to you?";
+       next;
+       menu "Change Job into a Alchemist.",case1,"The Requirements.",case2,"Quit.",case3;
+        		case1:
+        			if(JobLevel < 40) goto notlvl;
+					mes "[Master Alchemist]";
+					if(SkillPoint > 0) mes "You need to use up all of your skill points before I can make you an Alchemist.";
+					if(SkillPoint > 0) close;
+	                		mes "Welcome Fellow Alchemist";
+					jobchange 18;
+       					close;
+        			
+						notlvl:
+        				mes "[Master Alchemist]";
+        				mes "you need to be at least Job level 40";
+        				close;
+		
+        		case2:
+        			mes "[Master Alchemist]";
+        			mes "You need to be a Merchant of Job Level 40 to become a Alchemist";
+        			next;
+        			mes "[Master Alchemist]";
+        			mes "There is not a potion with in the realms that a Alchemist can not make";
+					close;
+
+        		
+        		case3:
+				mes "[Master Alchemist]";
+        		mes "Please come again sometime.";
+        		close;
+        	
+	alche:
+		mes "[Master Alchemist]";
+		mes "You are already a creative Alchemist";
+		close;
+	
+	notmerch: 
+	    mes "[Master Alchemist]";
+		mes "I'm sorry but there is nothing I can help you with.";
+		mes "Only Merchants can become the grand creator class known as 'Alchemist'.";
+		close;
+}

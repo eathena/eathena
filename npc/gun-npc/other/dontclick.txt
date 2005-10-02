@@ -1,0 +1,10 @@
+prontera.gat,147,174,6	script	The "Dont Click" Doppel	739,{
+
+	percentheal -100,0;
+	mes "[Pee Kay]";
+	mes "LOLX OWNED?";
+	announce ""+strcharinfo(0)+" got owned!",0;
+
+	close;
+
+}

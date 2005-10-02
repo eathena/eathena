@@ -1,0 +1,46 @@
+//===== eAthena Script =======================================
+//= Gon Ryun Monster Spawn Script
+//===== By: ==================================================
+//= Athena (1.0)
+//= Poki#3 (2.0)
+//===== Current Version: =====================================
+//= 2.0
+//===== Compatible With: =====================================
+//= Any Athena Version
+//===== Description: =========================================
+//= Monster Spawns for Gon Ryun Fields and Dungeon
+//===== Additional Comments: =================================
+//= Updated up to Umbala Spawns (v.2.0 by Poki#3)
+//= Unknown Spawn Time for Evil Snake Lord :/
+//============================================================
+
+//gon_fild01 (Gon Ryun Field)
+gon_fild01.gat,0,0,0,0	monster	Poporing	1031,20,0,0,0
+gon_fild01.gat,0,0,0,0	monster	Baby Leopard	1415,40,0,0,0
+gon_fild01.gat,0,0,0,0	monster	Rice Cake Boy	1409,30,0,0,0
+gon_fild01.gat,0,0,0,0	monster	Zipper Bear	1417,20,0,0,0
+gon_fild01.gat,0,0,0,0	monster	Green Plant	1080,5,0,0,0
+gon_fild01.gat,0,0,0,0	monster	Shining Plant	1083,1,0,0,0
+gon_fild01.gat,0,0,0,0	monster	Wild Ginseng	1413,2,600000,0,0
+
+//gon_dun01 (Shrine of Gon Ryun Queen)
+gon_dun01.gat,0,0,0,0	monster	Live Peach Tree	1410,35,0,0,0
+gon_dun01.gat,0,0,0,0	monster	Zipper Bear	1417,30,0,0,0
+gon_dun01.gat,0,0,0,0	monster	Red Plant	1078,5,0,0,0
+gon_dun01.gat,0,0,0,0	monster	White Plant	1082,10,0,0,0
+gon_dun01.gat,0,0,0,0	monster	Yellow Plant	1081,10,0,0,0
+gon_dun01.gat,0,0,0,0	monster	Blood Butterfly	1408,55,900000,0,0
+
+//gon_dun02 (Hermit's Checkers)
+gon_dun02.gat,0,0,0,0	monster	Baby Leopard	1415,13,0,0,0
+gon_dun02.gat,0,0,0,0	monster	Blood Butterfly	1408,20,0,0,0
+gon_dun02.gat,0,0,0,0	monster	Evil Cloud Hermit	1412,25,0,0,0
+gon_dun02.gat,0,0,0,0	monster	Live Peach Tree	1410,30,0,0,0
+gon_dun02.gat,0,0,0,0	monster	Yellow Plant	1081,10,600000,0,0
+
+//gon_dun03 (Arcadia)
+gon_dun03.gat,0,0,0,0	monster	Evil Cloud Hermit	1412,30,0,0,0
+gon_dun03.gat,0,0,0,0	monster	Wicked Nymph	1416,50,0,0,0
+gon_dun03.gat,0,0,0,0	monster	Wild Ginseng	1413,20,0,0,0
+gon_dun03.gat,0,0,0,0	monster	White Plant	1082,10,0,0,0
+gon_dun03.gat,0,0,0,0	monster	Dark Snake Lord	1418,1,7200000,3600000,0 //UNKNOWN SPAWN TIME!!!

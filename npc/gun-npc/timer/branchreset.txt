@@ -1,0 +1,6 @@
+prontera.gat,147,174,4	script	BranchReset	-1,{
+break;
+OnMinute01:
+set $branch,0;
+break;
+}

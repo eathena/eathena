@@ -1,0 +1,28 @@
+alberta.gat,28,229,8	script	Kafra	117,{
+	//Options
+	set @savemap$,"pay_fild03.gat";
+	set @savex,386;
+	set @savey,76;
+	set @savemap2$,"alberta.gat";
+	set @savex2,31;
+	set @savey2,231;
+	set @pic$,"kafra_01";
+	set @savepoints,2;
+	callfunc "gunstar_kafra";
+}
+alberta.gat,113,60,5	script	Kafra	116,{
+	set @pic$,"kafra_02";
+	set @savex,117;
+	set @savey,57;
+	set @savemap$,"alberta.gat";
+	set @savepoints,1;
+	callfunc "gunstar_kafra";
+}
+alb2trea.gat,59,69,1	script	Kafra	115,{
+	set @savemap$,"alb2trea.gat";
+	set @savex,92;
+	set @savey,64;
+	set @pic$,"kafra_03";
+	set @savepoints,1;
+	callfunc "gunstar_kafra";
+}

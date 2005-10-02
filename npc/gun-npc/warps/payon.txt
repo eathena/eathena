@@ -1,0 +1,151 @@
+//===== Athena Script ========================================
+//= Payon Warp Script
+//===== By: ==================================================
+//= Athena (1.0)
+//===== Current Version: =====================================
+//= 1.0
+//===== Compatible With: =====================================
+//= Any Athena Version
+//===== Description: =========================================
+//= Warp Points for Payon, Payon Cave, Payon Fields
+//===== Additional Comments: =================================
+//= Split off npc_warp.txt
+//============================================================
+
+//Payon City
+payon.gat,111,173,0	warp	pay01	1,2,payon_in01.gat,15,68	
+payon.gat,133,81,0	warp	pay02	2,2,payon_in01.gat,134,171	
+payon.gat,141,91,0	warp	pay03	2,2,payon_in01.gat,98,173	
+payon.gat,172,133,0	warp	pay04	1,2,payon_in01.gat,163,108	
+payon.gat,175,189,0	warp	pay001	4,2,pay_arche.gat,81,22	
+payon.gat,189,69,0	warp	pay002	2,4,pay_fild08.gat,20,74	
+payon.gat,22,174,0	warp	pay09	2,1,payon_in01.gat,98,25	
+payon.gat,30,176,0	warp	pay05	2,1,payon_in01.gat,80,63	
+payon.gat,38,174,0	warp	pay06	2,1,payon_in01.gat,142,45	
+payon.gat,68,173,0	warp	pay07	1,2,payon_in01.gat,44,138	
+payon.gat,90,167,0	warp	pay08	2,1,payon_in01.gat,72,89	
+payon.gat,90,25,0	warp	pay003	5,3,pay_fild01.gat,333,356	
+payon_in01.gat,101,25,0	warp	pay09-1	1,3,payon.gat,22,171	
+payon_in01.gat,111,177,0	warp	pay11	2,3,payon_in01.gat,129,177	
+payon_in01.gat,113,107,0	warp	pay12	1,2,payon_in01.gat,63,107	
+payon_in01.gat,113,143,0	warp	pay13	1,2,payon_in01.gat,63,145	
+payon_in01.gat,113,77,0	warp	pay14	1,2,payon_in01.gat,63,99	
+payon_in01.gat,12,68,0	warp	pay01-1	1,3,payon.gat,108,173	
+payon_in01.gat,122,107,0	warp	pay15	1,2,payon_in01.gat,80,107	
+payon_in01.gat,122,77,0	warp	pay10	1,2,payon_in01.gat,80,99	
+payon_in01.gat,124,143,0	warp	pay16	1,2,payon_in01.gat,80,145	
+payon_in01.gat,126,177,0	warp	pay11-1	2,3,payon_in01.gat,108,177	
+payon_in01.gat,130,36,0	warp	pay17	3,2,payon_in01.gat,70,72	
+payon_in01.gat,134,168,0	warp	pay02-1	3,1,payon.gat,129,81	
+payon_in01.gat,143,179,0	warp	pay18	1,3,payon_in01.gat,167,179	
+payon_in01.gat,145,45,0	warp	pay06-1	1,3,payon.gat,38,171	
+payon_in01.gat,160,108,0	warp	pay04-1	1,3,payon.gat,169,133	
+payon_in01.gat,164,179,0	warp	pay18-1	1,2,payon_in01.gat,140,179	
+payon_in01.gat,167,74,0	warp	pay19	1,2,payon_in01.gat,168,50	
+payon_in01.gat,168,53,0	warp	pay19-1	1,2,payon_in01.gat,167,77	
+payon_in01.gat,170,100,0	warp	pay20	1,2,payon_in01.gat,170,83	
+payon_in01.gat,170,119,0	warp	pay21	1,2,payon_in01.gat,170,136	
+payon_in01.gat,170,132,0	warp	pay21-1	1,2,payon_in01.gat,170,115	
+payon_in01.gat,170,87,0	warp	pay20-1	1,2,payon_in01.gat,170,104	
+payon_in01.gat,22,26,0	warp	pay22	3,2,payon_in01.gat,30,78	
+payon_in01.gat,26,115,0	warp	pay23	3,2,payon_in01.gat,30,129	
+payon_in01.gat,26,164,0	warp	pay24	3,2,payon_in01.gat,30,148	
+payon_in01.gat,30,126,0	warp	pay23-1	3,2,payon_in01.gat,26,112	
+payon_in01.gat,30,151,0	warp	pay24-1	3,2,payon_in01.gat,26,167	
+payon_in01.gat,30,59,0	warp	pay25	3,1,payon_in01.gat,52,32	
+payon_in01.gat,30,81,0	warp	pay22-1	3,2,payon_in01.gat,22,29	
+payon_in01.gat,47,138,0	warp	pay07-1	1,3,payon.gat,71,173	
+payon_in01.gat,52,35,0	warp	pay25-1	3,1,payon_in01.gat,30,62	
+payon_in01.gat,60,107,0	warp	pay12-1	1,2,payon_in01.gat,110,107	
+payon_in01.gat,60,145,0	warp	pay13-1	1,2,payon_in01.gat,110,143	
+payon_in01.gat,60,170,0	warp	pay26	3,1,payon_in01.gat,72,156	
+payon_in01.gat,60,99,0	warp	pay14-1	1,2,payon_in01.gat,110,77	
+payon_in01.gat,70,52,0	warp	pay27	3,2,payon_in01.gat,86,34	
+payon_in01.gat,70,75,0	warp	pay17-1	3,2,payon_in01.gat,130,39	
+payon_in01.gat,72,121,0	warp	pay28	3,1,payon_in01.gat,72,137	
+payon_in01.gat,72,134,0	warp	pay28-1	3,1,payon_in01.gat,72,118	
+payon_in01.gat,72,159,0	warp	pay26-1	3,1,payon_in01.gat,60,173	
+payon_in01.gat,72,86,0	warp	pay08-1	3,1,payon.gat,90,164	
+payon_in01.gat,83,107,0	warp	pay15-1	1,2,payon_in01.gat,125,107	
+payon_in01.gat,83,145,0	warp	pay16-1	1,2,payon_in01.gat,127,143	
+payon_in01.gat,83,63,0	warp	pay05-1	1,3,payon.gat,30,173	
+payon_in01.gat,83,99,0	warp	pay10-1	1,2,payon_in01.gat,124,77	
+payon_in01.gat,86,37,0	warp	pay27-1	3,2,payon_in01.gat,70,55	
+payon_in01.gat,98,170,0	warp	pay03-1	3,1,payon.gat,141,95	
+payon_in02.gat,10,25,0	warp	pay29	2,2,payon_in02.gat,72,67	
+payon_in02.gat,35,67,0	warp	pay30	2,2,payon_in02.gat,55,67	
+payon_in02.gat,50,4,0	warp	pay33	3,1,pay_arche.gat,92,166	
+payon_in02.gat,52,67,0	warp	pay30-1	2,2,payon_in02.gat,32,67	
+payon_in02.gat,61,33,0	warp	pay31	2,2,payon_in02.gat,73,33	
+payon_in02.gat,64,56,0	warp	pay32	2,2,pay_arche.gat,141,161	
+payon_in02.gat,70,33,0	warp	pay31-1	2,2,payon_in02.gat,58,33	
+payon_in02.gat,75,67,0	warp	pay29-1	2,2,payon_in02.gat,13,25	
+payon_in02.gat,82,45,0	warp	pay34	2,2,pay_arche.gat,74,153	
+
+//Payon Archer Field
+pay_arche.gat,145,165,0	warp	pay32-1	2,2,payon_in02.gat,64,60	
+pay_arche.gat,36,131,0	warp	pay004	2,2,pay_dun00.gat,21,183	
+pay_arche.gat,71,156,0	warp	pay34-1	2,2,payon_in02.gat,82,41	
+pay_arche.gat,81,17,0	warp	pay006	5,2,payon.gat,175,185	
+pay_arche.gat,92,170,0	warp	pay33-1	2,2,payon_in02.gat,50,7	
+
+//Payon Cave
+pay_dun00.gat,184,33,0	warp	payd01	2,7,pay_dun01.gat,19,33	
+pay_dun00.gat,21,186,0	warp	pay005	2,2,pay_arche.gat,39,131	
+pay_dun01.gat,15,33,0	warp	payd01-1	2,6,pay_dun00.gat,181,33	
+pay_dun01.gat,286,25,0	warp	payd02	2,7,pay_dun02.gat,19,63	
+pay_dun02.gat,137,128,0	warp	payd03	4,1,pay_dun03.gat,155,159	
+pay_dun02.gat,16,63,0	warp	payd02-1	2,7,pay_dun01.gat,283,28	
+pay_dun03.gat,155,161,0	warp	payd03-1	2,1,pay_dun02.gat,137,126	
+//pay_dun03.gat,127,62,0	warp	payd04	1,2,pay_dun04.gat,201,204
+pay_dun03.gat,127,62,4	script	payd04r	45,2,2,{
+	set @l0,rand(4);
+	if(@l0==0) goto w1;
+	if(@l0==1) goto w2;
+	if(@l0==2) goto w3;
+	if(@l0==3) goto w4;
+w1:	warp "pay_dun04.gat",201,204; end;
+w2:	warp "pay_dun04.gat",193,43; end;
+w3:	warp "pay_dun04.gat",43,40; end;
+w4:	warp "pay_dun04.gat",34,202; end;
+}		
+pay_dun04.gat,191,41,0	warp	payd04-2	1,1,pay_dun03.gat,125,62	
+pay_dun04.gat,202,206,0	warp	payd04-3	1,1,pay_dun03.gat,125,62	
+pay_dun04.gat,32,204,0	warp	payd04-4	2,1,pay_dun03.gat,125,62	
+pay_dun04.gat,40,37,0	warp	payd04-1	2,2,pay_dun03.gat,125,62	
+
+//Payon Fields
+pay_fild01.gat,13,152,0	warp	payf001	2,7,moc_fild03.gat,299,170	
+pay_fild01.gat,278,14,0	warp	payf01	13,2,pay_fild02.gat,83,382	
+pay_fild01.gat,333,361,0	warp	payf005	5,3,payon.gat,90,29	
+pay_fild01.gat,353,14,0	warp	payf02	20,3,pay_fild02.gat,160,381	
+pay_fild01.gat,379,201,0	warp	payf03	2,6,pay_fild07.gat,23,207	
+pay_fild02.gat,134,16,0	warp	payf04	5,2,pay_fild05.gat,127,375	
+pay_fild02.gat,16,175,0	warp	payf06	2,4,pay_fild11.gat,294,135	
+pay_fild02.gat,167,390,0	warp	payf02-1	20,3,pay_fild01.gat,354,18	
+pay_fild02.gat,284,108,0	warp	payf07	2,7,pay_fild03.gat,20,110	
+pay_fild02.gat,83,386,0	warp	payf01-1	13,2,pay_fild01.gat,278,18	
+pay_fild03.gat,15,110,0	warp	payf07-1	2,10,pay_fild02.gat,280,108	
+pay_fild03.gat,172,281,0	warp	payf08	5,2,pay_fild07.gat,167,20	
+pay_fild03.gat,313,16,0	warp	payf09	4,2,pay_fild06.gat,305,372	
+pay_fild03.gat,392,63,0	warp	payf005	2,7,alberta.gat,19,233	
+pay_fild04.gat,17,165,0	warp	payf002	2,8,moc_fild01.gat,376,162	
+pay_fild04.gat,194,17,0	warp	payf003	7,2,moc_fild02.gat,350,336	
+pay_fild05.gat,127,378,0	warp	payf04-1	4,2,pay_fild02.gat,134,19	
+pay_fild05.gat,271,284,0	warp	payf10	2,4,pay_fild06.gat,31,288	
+pay_fild06.gat,28,288,0	warp	payf10-1	2,2,pay_fild05.gat,268,284	
+pay_fild06.gat,305,375,0	warp	payf09-1	6,2,pay_fild03.gat,313,19	
+pay_fild07.gat,16,200,0	warp	payf03-1	3,3,pay_fild01.gat,371,205	
+pay_fild07.gat,163,17,0	warp	payf08-1	5,2,pay_fild03.gat,177,275	
+pay_fild07.gat,280,382,0	warp	payf11	4,2,pay_fild08.gat,160,19	
+pay_fild07.gat,382,290,0	warp	payf12	2,5,pay_fild10.gat,19,290	
+pay_fild08.gat,160,16,0	warp	payf11-1	4,2,pay_fild07.gat,280,379	
+pay_fild08.gat,17,75,0	warp	payf006	2,4,payon.gat,186,69	
+pay_fild08.gat,262,91,0	warp	payf13	2,4,pay_fild09.gat,19,91	
+pay_fild09.gat,112,16,0	warp	pay14	4,2,pay_fild10.gat,112,379	
+pay_fild09.gat,16,91,0	warp	payf13-1	2,4,pay_fild08.gat,259,91	
+pay_fild10.gat,112,382,0	warp	pay14-1	3,2,pay_fild09.gat,112,19	
+pay_fild10.gat,16,290,0	warp	payf12-1	2,5,pay_fild07.gat,379,290	
+pay_fild10.gat,99,13,0	warp	w1034	1,1,pay_fild10.gat,148,252	
+pay_fild11.gat,297,135,0	warp	payf06-1	2,4,pay_fild02.gat,19,175	
+pay_fild11.gat,38,330,0	warp	payf004	4,2,moc_fild03.gat,179,19	

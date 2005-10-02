@@ -1,0 +1,2 @@
+valkyrie.gat,48,66,0	warp	vlkwrp	1,1,valkyrie.gat,49,76
+valkyrie.gat,48,73,0	warp	vlkwrp2	1,1,valkyrie.gat,48,63

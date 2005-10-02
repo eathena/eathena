@@ -1,0 +1,310 @@
+
+prt_in.gat,130,30,8	script	Kafra	115,{
+	cutin "kafra_03",2;
+	callfunc "F_Kafra";
+
+	M_Save:
+		set @save, 1;
+		menu "-Save Outside City.",sM_Out, "-Save inside City",sM_In;
+		
+		sM_Out:
+			savepoint "pay_fild03.gat",386,76;
+			callfunc "F_KafEnd";
+		sM_In:
+			savepoint "alberta.gat",31,231;
+			callfunc "F_KafEnd";
+}
+
+
+// $Id: functions_kafras.txt,v 1.6 2004/07/30 22:42:53 Darkchild Exp $
+//===== By: ================================================== 
+//= Lotsa People (1.0)
+//= Darlskies
+//= Darkchild
+//= Syrus22
+//= Lupus
+//= kobra_k88 (3.0)
+//===== Current Version: ===================================== 
+//= 3.2
+//===== Compatible With: ===================================== 
+//= eAthena 1.0
+//===== Description: ========================================= 
+//=
+//===== Additional Comments: ================================= 
+//= Fully working except for kafra passes.
+//= v1.1 Now using functions :)
+//= v1.1a Minor changes to save option
+//= v2.0 - v3.0 Arrays implementation, Kafra Pass Working!
+//= Added Cart Rent for Classes:4006,4011,4019,Whitesmith, Professor [Lupus]
+//= Replaced checkoption(x) into checkcart(0) [Lupus]
+//= Fixed getcart bug, Fixed Kafra Pass Func [Kobra_k88]
+//= Added Super Novice class in the rent cart part
+//============================================================ 
+
+
+
+// Main Functin ------------------------------------------------------------------
+function	script	F_Kafra	{
+	set @kafPass, 0;
+	mes "[Kafra]";
+	mes "Welcome to Kafra Corp.  We will stay with you wherever you go.";
+	M_Menu:
+	next;
+	menu "-Save",M_Save, "-Use Storage",M_Storage, "-Rent a Service",M_Rent, "-Kafra Pass",M_Pass,
+			"-Cancel",M_End;
+
+	//menu	"-Save",M_Save, "-Use Storage",M_Storage, "-Use Teleport Service",M_Teleport, "-Rent a Cart",M_Cart, "-Kafra Pass",M_Pass, 
+	//	"-Other Information Check",M_Info, "-Cancel",M_End;
+
+	M_Save:
+		return;
+	M_Storage:
+		callfunc "F_KafStor";
+		goto M_Menu;
+	M_Teleport:
+		callfunc "F_KafTele";
+		goto M_Menu;
+	M_Rent:
+		callfunc "F_KafRent";
+		goto M_Menu;
+	M_Pass:
+		callfunc "F_KafPass";
+		goto M_Menu;
+	M_End:
+		callfunc "F_KafEnd";
+		end;
+	
+}
+
+
+// Storage Function--------------------------------------------------------
+function	script	F_KafStor	{
+	//if((class ==Job_Novice) && (JobLevel<6)) goto sL_JbLvl;
+	if (getskilllv(1) < 6) goto sL_JbLvl;
+	if(Class == Job_Novice) set @fee, 30;
+	if(Class != Job_Novice) set @fee, 60;
+	//if(@kafPass==1) set @fee, 0;
+	if(Zeny<@fee) goto sL_Zeny;
+	set Zeny, Zeny-@fee;
+	//set RESRVPTS, RESRVPTS + (@fee/5);
+	openstorage;
+	callfunc "F_KafEnd";
+	end;
+
+	sL_JbLvl:
+		mes "[Kafra]";
+		mes "I am sorry but you have to have at least basic skill level 6 if you want to use the storage.";
+		return;
+	sL_Zeny:
+		mes "[Kafra]";
+		mes "Dear you don't have enough money. The Storage fee is "+@fee+" Zeny.";
+		return;
+}
+
+
+// Cart Function---------------------------------------------------------------
+function	script	F_KafRent	{
+	mes "[Kafra]";
+	mes "What would you like to rent?";
+	next;
+	menu "Rent a PecoPeco",R_Peco,"Rent a Cart",R_Cart,"Rent a Falcon",R_Falcon,"Cancel",K_Close;
+	
+	R_Peco:
+	callfunc "F_KafPeco";
+	return;
+	
+	R_Cart:
+	callfunc "F_KafCart";
+	return;
+	
+	R_Falcon:
+	callfunc "F_KafFalcon";
+	return;
+	
+	K_Close:
+	break;
+	end;
+	
+	}
+function	script	F_KafCart	{
+	if(Class!=Job_Merchant && Class!=Job_Blacksmith && Class!=Job_Alchem && Class!=Job_SuperNovice && Class!=4006 && Class!=4011 && Class!=4019 && Class!=Job_Whitesmith) goto sL_CantRent;
+        if(getskilllv(39)==0) goto sL_NeedSkill;
+
+	if(getskilllv(39)==0) goto sL_NeedSkill;
+	if(checkcart(0)!=0) goto sL_GotCart;
+	mes "[Kafra]";
+	if(@kafPass==0) mes "The Cart Fee is 800 Zeny.  Do you want to Rent a Cart?";
+	if(@kafPass==1) mes "Since you're using a Kafra Pass, you can rent a cart for free!";
+	next;
+	menu "-Rent a Cart.",-, "-Cancel.",M_End;
+
+		if(Zeny<800 && kafPass==0) goto sL_CartFee;
+		if(@kafPass==0) set Zeny,Zeny-800;
+		//if(@kafPass==0) set RESRVPTS, RESRVPTS + 48;
+		setcart;
+		mes "[Kafra]";
+		mes "Here you go...";
+		//if(@kafPass==1) return;
+		return;
+
+	sL_CantRent:
+		mes "[Kafra]";
+		mes "I'm sorry dear.  The Cart service is only provided for the Merchant and Blacksmith Class.";
+		return;
+	sL_NeedSkill:
+		mes "[Kafra]";
+		mes "I'm sorry but you need the skill ^0000FF'Pushcart'^000000 to rent a cart.";
+		return;
+	sL_GotCart:
+		mes "[Kafra]";
+		mes "Excuse me... but you already have a cart....";
+		emotion 4;
+		return;
+	sL_CartFee:
+		mes "[Kafra]";
+		mes "Dear, you don't have enough Money. You need 800 Zeny.";
+		return;
+
+	M_End:
+		return;
+}
+function	script	F_KafPeco	{
+	if(Class!=Job_Knight && Class!=Job_Crusader && Class!=Job_Lord_Knight && Class!=Job_Paladin) goto sL_CantRent;
+        
+	if(getskilllv(63)==0) goto sL_NeedSkill;
+	if(checkriding(0)!=0) goto sL_GotPeco;
+	mes "[Kafra]";
+	mes "The PecoPeco Fee is 2500 Zeny.  Do you want to Rent a PecoPeco?";
+	next;
+	menu "-Rent a PecoPeco.",-, "-Cancel.",M_End;
+
+		if(Zeny<2500 && kafPass==0) goto sL_PecoFee;
+		if(@kafPass==0) set Zeny,Zeny-2500;
+		//if(@kafPass==0) set RESRVPTS, RESRVPTS + 48;
+		setriding;
+		mes "[Kafra]";
+		mes "Here you go...";
+		//if(@kafPass==1) return;
+		return;
+
+	sL_CantRent:
+		mes "[Kafra]";
+		mes "I'm sorry dear.  The PecoPeco rental service is only provided for the Knight and Crusader Class.";
+		return;
+	sL_NeedSkill:
+		mes "[Kafra]";
+		mes "I'm sorry but you need the skill ^0000FF'PecoPeco Riding'^000000 to rent a PecoPeco.";
+		return;
+	sL_GotPeco:
+		mes "[Kafra]";
+		mes "Not to be rude but... the thing you are sitting on... its a PecoPeco.";
+		emotion 4;
+		return;
+	sL_PecoFee:
+		mes "[Kafra]";
+		mes "Dear, you don't have enough Money. You need 2500 Zeny.";
+		return;
+
+	M_End:
+		return;
+}
+
+function	script	F_KafFalcon	{
+	if(Class!=Job_Sniper && Class!=Job_Hunter) goto sL_CantRent;
+        
+	if(getskilllv(127)==0) goto sL_NeedSkill;
+	if(checkfalcon(0)!=0) goto sL_GotFalcon;
+	mes "[Kafra]";
+	mes "I can train a Falcon for you, but you need to be a Hunter and have mastered the ^5555FF'Falcon Taming' skill^000000.";
+	next;
+	menu "-Rent a Falcon.",-, "-Cancel.",M_End;
+
+		//if(Zeny<2500 && kafPass==0) goto sL_PecoFee;
+		//if(@kafPass==0) set Zeny,Zeny-2500;
+		//if(@kafPass==0) set RESRVPTS, RESRVPTS + 48;
+		setfalcon;
+		mes "[Kafra]";
+		mes "Here you go...";
+		//if(@kafPass==1) return;
+		return;
+
+	sL_CantRent:
+		mes "[Kafra]";
+		mes "I'm sorry dear.  The Falcon rental service is only provided for the Hunter Class.";
+		return;
+	sL_NeedSkill:
+		mes "[Kafra]";
+		mes "I'm sorry but you need the skill ^0000FF'Falcon Taming'^000000 to rent a Falcon.";
+		return;
+	sL_GotFalcon:
+		mes "[Kafra]";
+		mes "Im sorry but you have already tamed a Falcon.";
+		emotion 4;
+		return;
+
+	M_End:
+		return;
+}
+function	script	F_KafPass	{
+				mes "[Kafra]";
+				mes "Kafra passes allow you to use the kafra storage service anywhere!";
+				mes "Though very convenient, they cost 3000 zeny.";
+				mes "Would you like to buy some passes?";
+				next;
+				menu "Buy Passes",BuyPass,"No",K_Close;
+				
+					BuyPass:
+					mes "[Kafra]";
+					mes "How many would you like to buy?";
+					mes "Enter 0 to cancel";
+					next;
+					input @passes;
+					if (@passes > 0) goto PassCheck;
+					goto K_Close;
+					
+					PassCheck:
+					set @total,3000*@passes;
+					mes "[Kafra]";
+					mes "You want to buy "+@passes+ " passes.";
+					mes "This will cost "+@total+" zeny.";
+					mes "Are you sure you want to buy?";
+					next;
+					menu "Yes",GetPass,"No",K_Close;
+					
+					GetPass:
+						if (!(checkweight(1084,@passes))) goto OverWeight;
+						if (zeny<@total) goto PassZeny;
+						set Zeny,Zeny-@total;
+						getitem 1084,@passes;
+						mes "[Kafra]";
+						mes "There you go...";
+						mes "Enjoy the passes!";
+						goto K_Close;
+						
+					
+						OverWeight:
+							mes "[Kafra]";
+							mes "I am sorry, but that would put you overweight.";
+							mes "Please buy fewer passes.";
+							goto K_Close;
+							
+						PassZeny:
+							mes "[Kafra]";
+							mes "Dear, you don't have enough money. You need "+@total+" zeny.";
+							goto K_Close;
+							
+							
+							K_Close:
+							return;
+}
+
+// End Function---------------------------------------------------------------
+function	script	F_KafEnd	{
+	mes "[Kafra]";
+	if(@save==1) mes "Your respawn point has been saved.";		// only shown when a player uses save
+	mes "Thank you for using Kafra Services.  We hope to see you again soon.";
+	emotion 15;
+	cutin "", 255;
+	set @save, 0;
+	close;
+}

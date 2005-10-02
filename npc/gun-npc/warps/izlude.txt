@@ -1,0 +1,69 @@
+//===== Athena Script ========================================
+//= Izlude Warp Script
+//===== By: ==================================================
+//= Athena (1.0)
+//===== Current Version: =====================================
+//= 1.0
+//===== Compatible With: =====================================
+//= Any Athena Version
+//===== Description: =========================================
+//= Warp Points for Izlude, Bibilyn Island & Undersea Cave
+//===== Additional Comments: =================================
+//= Split off npc_warp.txt
+//============================================================
+
+//Izlude City
+izlude.gat,109,151,0	warp	iz01	3,3,izlude_in.gat,65,87
+izlude.gat,128,225,0	warp	iz431	1,1,prt_are_in.gat,100,28
+izlude.gat,148,148,0	warp	iz02	2,2,izlude_in.gat,116,49
+izlude.gat,216,129,0	warp	iz03	3,2,izlude_in.gat,151,127
+izlude.gat,30,78,0	warp	iz001	3,3,prt_fild08.gat,367,212
+izlude.gat,52,140,0	warp	iz04	2,2,izlude_in.gat,74,161
+izlude_in.gat,108,169,0	warp	iz05	2,3,izlude_in.gat,84,169
+izlude_in.gat,116,46,0	warp	iz02-1	3,2,izlude.gat,145,145
+izlude_in.gat,148,127,0	warp	iz03-1	2,5,izlude.gat,212,129
+izlude_in.gat,171,97,0	warp	iz06	3,2,izlude_in.gat,172,119
+izlude_in.gat,172,116,0	warp	iz06-1	3,2,izlude_in.gat,172,94
+izlude_in.gat,172,139,0	warp	iz07	3,2,izlude_in.gat,172,161
+izlude_in.gat,172,158,0	warp	iz07-1	3,2,izlude_in.gat,172,136
+izlude_in.gat,43,169,0	warp	w219	2,3,izlude_in.gat,63,169
+izlude_in.gat,62,170,0	warp	w1039	1,1,izlude_in.gat,68,165
+izlude_in.gat,65,84,0	warp	iz01-1	5,2,izlude.gat,113,147
+izlude_in.gat,74,158,0	warp	iz04-1	3,2,izlude.gat,52,136
+izlude_in.gat,87,169,0	warp	iz05-1	2,3,izlude_in.gat,111,169
+
+//Swordsman Guild
+sword_1-1.gat,65,117,0	warp	swd101	1,1,sword_1-1.gat,10,245
+sword_1-1.gat,98,27,0	warp	swd102	1,1,sword_1-1.gat,11,207
+sword_1-1.gat,161,27,0	warp	swd103	1,1,sword_1-1.gat,11,207
+sword_1-1.gat,223,205,0	warp	swd104	1,1,sword_1-1.gat,11,168
+sword_1-1.gat,223,243,0	warp	swd105	1,1,sword_1-1.gat,11,206
+sword_1-1.gat,239,117,0	warp	swd106	1,1,sword_1-1.gat,11,169
+sword_2-1.gat,65,117,0	warp	swd201	1,1,sword_2-1.gat,10,245
+sword_2-1.gat,98,27,0	warp	swd202	1,1,sword_2-1.gat,11,207
+sword_2-1.gat,161,27,0	warp	swd203	1,1,sword_2-1.gat,11,207
+sword_2-1.gat,223,205,0	warp	swd204	1,1,sword_2-1.gat,11,168
+sword_2-1.gat,223,243,0	warp	swd205	1,1,sword_2-1.gat,11,206
+sword_2-1.gat,239,117,0	warp	swd206	1,1,sword_2-1.gat,11,169
+sword_3-1.gat,65,117,0	warp	swd301	1,1,sword_3-1.gat,10,245
+sword_3-1.gat,98,27,0	warp	swd302	1,1,sword_3-1.gat,11,207
+sword_3-1.gat,161,27,0	warp	swd303	1,1,sword_3-1.gat,11,207
+sword_3-1.gat,223,205,0	warp	swd304	1,1,sword_3-1.gat,11,168
+sword_3-1.gat,223,243,0	warp	swd305	1,1,sword_3-1.gat,11,206
+sword_3-1.gat,239,117,0	warp	swd306	1,1,sword_3-1.gat,11,169
+
+//Bibilyn Island
+izlu2dun.gat,108,83,0	warp	izd01	3,2,iz_dun00.gat,168,168
+
+//Undersea Cave
+iz_dun00.gat,168,173,0	warp	izd01-1	3,3,izlu2dun.gat,108,88
+iz_dun00.gat,352,342,0	warp	izd02	5,2,iz_dun01.gat,253,252
+iz_dun00.gat,39,41,0	warp	izd03	5,2,iz_dun01.gat,41,37
+iz_dun01.gat,118,170,0	warp	izd04	5,2,iz_dun02.gat,236,204
+iz_dun01.gat,253,258,0	warp	izd02-1	2,2,iz_dun00.gat,352,337
+iz_dun01.gat,41,32,0	warp	izd03-1	2,2,iz_dun00.gat,39,46
+iz_dun02.gat,236,198,0	warp	izd04-1	5,3,iz_dun01.gat,118,165
+iz_dun02.gat,339,331,0	warp	izd05	2,2,iz_dun03.gat,32,63
+iz_dun03.gat,264,245,0	warp	izd06	1,2,iz_dun04.gat,26,27
+iz_dun03.gat,29,63,0	warp	izd05-1	2,2,iz_dun02.gat,339,328
+iz_dun04.gat,26,24,0	warp	izd06-1	2,2,iz_dun03.gat,261,245

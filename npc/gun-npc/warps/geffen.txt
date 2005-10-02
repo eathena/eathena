@@ -1,0 +1,156 @@
+//===== Athena Script ========================================
+//= Geffen Warp Script
+//===== By: ==================================================
+//= Athena (1.0)
+//===== Current Version: =====================================
+//= 1.0
+//===== Compatible With: =====================================
+//= Any Athena Version
+//===== Description: =========================================
+//= Warp Points for Geffen, Geffen Fields, Geffen Tower &
+//= Orc Dungeon
+//===== Additional Comments: =================================
+//= Split off npc_warp.txt
+//============================================================
+
+//Geffen City
+geffen.gat,119,213,0	warp	gef001	3,2,gef_fild04.gat,187,42
+geffen.gat,120,114,0	warp	gef002	3,1,gef_tower.gat,52,177
+geffen.gat,217,119,0	warp	gef003	2,4,gef_fild00.gat,46,199
+geffen.gat,26,119,0	warp	gef004	2,3,gef_fild07.gat,336,187
+geffen.gat,138,138,0	warp	gef01	1,1,geffen_in.gat,28,110
+geffen.gat,172,174,0	warp	gef02	2,2,geffen_in.gat,70,52
+geffen.gat,182,59,0	warp	gef03	2,2,geffen_in.gat,106,177
+geffen.gat,43,85,0	warp	gef04	2,2,geffen_in.gat,70,138
+geffen.gat,61,180,0	warp	gef05	3,3,geffen_in.gat,162,97
+geffen.gat,98,141,0	warp	gef06	2,2,geffen_in.gat,28,160
+geffen_in.gat,28,156,0	warp	gef06-1	3,1,geffen.gat,101,138
+geffen_in.gat,100,67,0	warp	gef07	2,3,geffen_in.gat,84,65
+geffen_in.gat,87,66,0	warp	gef07-1	2,3,geffen_in.gat,103,67
+geffen_in.gat,104,109,0	warp	gef08	2,2,geffen_in.gat,76,107
+geffen_in.gat,79,107,0	warp	gef08-1	2,2,geffen_in.gat,107,109
+geffen_in.gat,113,163,0	warp	gef09	2,2,geffen_in.gat,139,169
+geffen_in.gat,136,169,0	warp	gef09-1	2,2,geffen_in.gat,110,163
+geffen_in.gat,114,37,0	warp	gef10	1,1,geffen_in.gat,114,63
+geffen_in.gat,114,60,0	warp	gef10-1	1,2,geffen_in.gat,114,34
+geffen_in.gat,138,149,0	warp	gef11	2,2,geffen_in.gat,138,165
+geffen_in.gat,138,162,0	warp	gef11-1	2,2,geffen_in.gat,138,146
+geffen_in.gat,26,60,0	warp	gef12	1,2,geffen_in.gat,26,34
+geffen_in.gat,26,37,0	warp	gef12-1	1,1,geffen_in.gat,26,63
+geffen_in.gat,52,65,0	warp	gef13	2,3,geffen_in.gat,38,67
+geffen_in.gat,41,67,0	warp	gef13-1	2,3,geffen_in.gat,55,65
+geffen_in.gat,70,149,0	warp	gef14	3,2,geffen_in.gat,70,161
+geffen_in.gat,70,158,0	warp	gef14-1	3,2,geffen_in.gat,70,146
+geffen_in.gat,70,83,0	warp	gef15	3,2,geffen_in.gat,72,101
+geffen_in.gat,72,98,0	warp	gef15-1	3,2,geffen_in.gat,70,80
+geffen_in.gat,163,94,0	warp	gef05-1	4,2,geffen.gat,65,176
+geffen_in.gat,70,132,0	warp	gef04-1	3,1,geffen.gat,46,88
+geffen_in.gat,106,181,0	warp	gef03-1	2,2,geffen.gat,180,61
+geffen_in.gat,28,106,0	warp	gef01-1	1,3,geffen.gat,136,136
+geffen_in.gat,70,48,0	warp	gef02-1	3,2,geffen.gat,168,170
+
+//Geffen Tower
+gef_tower.gat,106,115,0	warp	geft01	1,1,gef_tower.gat,106,72
+gef_tower.gat,106,69,0	warp	geft01-1	1,1,gef_tower.gat,106,112
+gef_tower.gat,44,36,0	warp	geft02	1,1,gef_tower.gat,106,162
+gef_tower.gat,106,158,0	warp	geft02-1	1,1,gef_tower.gat,44,33
+gef_tower.gat,118,68,0	warp	geft03	1,1,gef_tower.gat,116,28
+gef_tower.gat,116,31,0	warp	geft03-1	1,1,gef_tower.gat,118,71
+gef_tower.gat,120,158,0	warp	geft04	1,1,gef_tower.gat,118,111
+gef_tower.gat,118,114,0	warp	geft04-1	1,1,gef_tower.gat,120,161
+gef_tower.gat,158,104,0	warp	geft05	2,2,gef_tower.gat,156,90
+gef_tower.gat,156,93,0	warp	geft05-1	2,2,gef_tower.gat,158,107
+gef_tower.gat,158,150,0	warp	geft06	1,2,gef_tower.gat,158,124
+gef_tower.gat,158,128,0	warp	geft06-1	2,1,gef_tower.gat,158,153
+gef_tower.gat,158,174,0	warp	geft07	2,1,gef_tower.gat,52,140
+gef_tower.gat,52,136,0	warp	geft07-1	2,1,gef_tower.gat,158,169
+gef_tower.gat,38,160,0	warp	geft08	2,1,gef_tower.gat,42,90
+gef_tower.gat,42,86,0	warp	geft08-1	1,1,gef_tower.gat,38,157
+gef_tower.gat,66,156,0	warp	geft08-2	2,1,gef_tower.gat,42,90
+gef_tower.gat,153,28,0	warp	gef005	4,2,gef_dun00.gat,104,99
+gef_tower.gat,52,181,0	warp	gef006	4,1,geffen.gat,120,110
+gef_tower.gat,60,32,0	warp	geft09	1,1,gef_tower.gat,62,90
+gef_tower.gat,62,87,0	warp	geft09-1	1,1,gef_tower.gat,60,30
+
+gef_fild00.gat,267,382,0	warp	gef007	4,2,mjolnir_06.gat,265,32
+gef_fild00.gat,381,137,0	warp	gef008	3,9,prt_fild00.gat,24,125
+gef_fild00.gat,40,199,0	warp	gef009	2,7,geffen.gat,213,119
+gef_fild01.gat,382,111,0	warp	gef010	2,9,prt_fild04.gat,20,114
+gef_fild01.gat,16,102,0	warp	geff01	2,4,gef_fild09.gat,368,92
+gef_fild01.gat,69,17,0	warp	geff02	4,2,gef_fild03.gat,66,379
+gef_fild02.gat,380,156,0	warp	gef011	3,7,prt_fild07.gat,21,143
+gef_fild02.gat,380,289,0	warp	gef012	3,12,prt_fild07.gat,18,289
+gef_fild02.gat,380,68,0	warp	gef013	3,10,prt_fild07.gat,17,64
+gef_fild02.gat,266,18,0	warp	gef026	5,2,prt_fild10.gat,227,296
+gef_fild02.gat,14,78,0	warp	geff03	2,4,gef_fild03.gat,379,77
+gef_fild02.gat,16,275,0	warp	geff04	2,4,gef_fild03.gat,379,277
+gef_fild03.gat,312,16,0	warp	gef014	5,2,prt_fild11.gat,302,298
+gef_fild03.gat,66,382,0	warp	geff02-1	4,2,gef_fild01.gat,69,20
+gef_fild03.gat,382,77,0	warp	geff03-1	2,4,gef_fild02.gat,17,78
+gef_fild03.gat,382,277,0	warp	geff04-1	2,4,gef_fild02.gat,19,275
+gef_fild03.gat,18,52,0	warp	geff05	2,4,gef_fild10.gat,367,56
+gef_fild04.gat,187,39,0	warp	gef015	4,2,geffen.gat,119,210
+gef_fild04.gat,261,362,0	warp	gef016	4,2,mjolnir_01.gat,284,21
+gef_fild04.gat,362,322,0	warp	gef017	2,4,mjolnir_06.gat,21,331
+gef_fild04.gat,16,309,0	warp	geff06	2,6,gef_fild05.gat,361,309
+gef_fild05.gat,364,309,0	warp	geff06-1	2,8,gef_fild04.gat,19,309
+gef_fild05.gat,15,201,0	warp	geff07	2,4,gef_fild06.gat,379,211
+gef_fild05.gat,64,15,0	warp	geff08	4,2,gef_fild07.gat,64,360
+gef_fild06.gat,382,211,0	warp	geff07-1	2,4,gef_fild05.gat,18,201
+gef_fild06.gat,218,17,0	warp	geff09	4,2,gef_fild08.gat,200,352
+gef_fild07.gat,339,187,0	warp	gef025	2,4,geffen.gat,29,119
+gef_fild07.gat,64,363,0	warp	geff08-1	4,2,gef_fild05.gat,64,18
+gef_fild07.gat,18,191,0	warp	geff10	2,4,gef_fild08.gat,357,187
+gef_fild08.gat,200,355,0	warp	geff09-1	4,2,gef_fild06.gat,218,20
+gef_fild08.gat,360,187,0	warp	geff10-1	2,4,gef_fild07.gat,21,191
+gef_fild09.gat,225,25,0	warp	geff11	3,2,gef_fild10.gat,251,368
+gef_fild09.gat,368,95,0	warp	geff01-1	4,2,gef_fild01.gat,19,102
+gef_fild10.gat,251,371,0	warp	geff11-1	5,2,gef_fild09.gat,225,28
+gef_fild10.gat,104,21,0	warp	geff12	5,2,gef_fild11.gat,114,360
+gef_fild10.gat,370,56,0	warp	geff05-1	2,5,gef_fild03.gat,21,52
+gef_fild10.gat,136,331,0	warp	gef018	1,1,in_orcs01.gat,122,171
+gef_fild10.gat,138,284,0	warp	gef019	1,1,in_orcs01.gat,29,114
+gef_fild10.gat,215,51,0	warp	gef020	1,1,in_orcs01.gat,162,53
+gef_fild10.gat,223,205,0	warp	gef021	1,1,in_orcs01.gat,108,89
+gef_fild10.gat,63,337,0	warp	gef022	1,1,in_orcs01.gat,30,157
+gef_fild11.gat,377,293,0	warp	gef023	2,4,prt_fild11.gat,20,281
+gef_fild11.gat,111,364,0	warp	geff12-1	6,3,gef_fild10.gat,104,24
+
+//Additional Geffen Field Warps
+gef_fild07.gat,40,19,0	warp	geff13	1,1,gef_fild13.gat,41,369
+gef_fild08.gat,215,18,0	warp	geff14	1,1,gef_fild12.gat,221,369
+gef_fild09.gat,23,56,0	warp	geff18-1	1,1,gef_fild13.gat,376,56
+gef_fild10.gat,27,219,0	warp	geff19-1	1,1,gef_fild14.gat,367,219
+gef_fild12.gat,221,374,0	warp	geff14-1	1,1,gef_fild08.gat,215,25
+gef_fild12.gat,368,180,0	warp	geff15	1,1,gef_fild13.gat,29,202
+gef_fild12.gat,372,50,0	warp	geff16	1,1,gef_fild13.gat,29,59
+gef_fild13.gat,200,25,0	warp	geff17	1,1,gef_fild14.gat,180,357
+gef_fild13.gat,25,202,0	warp	geff15-1	1,1,gef_fild12.gat,364,180
+gef_fild13.gat,26,59,0	warp	geff16-1	1,1,gef_fild12.gat,370,50
+gef_fild13.gat,380,56,0	warp	geff18	1,1,gef_fild09.gat,27,56
+gef_fild13.gat,41,373,0	warp	geff13-1	1,1,gef_fild07.gat,40,23
+gef_fild14.gat,180,360,0	warp	geff17-1	1,1,gef_fild13.gat,200,29
+gef_fild14.gat,371,219,0	warp	geff19	1,1,gef_fild10.gat,31,219
+
+
+//Geffen Tower
+gef_dun00.gat,104,103,0	warp	gef024	3,3,gef_tower.gat,153,31
+gef_dun00.gat,107,169,0	warp	gefd01	2,1,gef_dun01.gat,115,236
+gef_dun01.gat,115,240,0	warp	gefd01-1	2,2,gef_dun00.gat,107,165
+gef_dun01.gat,197,38,0	warp	gefd02	2,1,gef_dun02.gat,106,132
+gef_dun02.gat,106,134,0	warp	gefd02-1	2,1,gef_dun01.gat,197,40
+gef_dun02.gat,215,67,0	warp	gefd03	2,1,gef_dun03.gat,203,200
+gef_dun03.gat,203,204,0	warp	gefd03-1	2,1,gef_dun02.gat,215,63
+
+//Orc Dungeon
+in_orcs01.gat,108,86,0	warp	orc001	3,2,gef_fild10.gat,223,203
+in_orcs01.gat,124,171,0	warp	orc002	1,3,gef_fild10.gat,138,329
+in_orcs01.gat,162,55,0	warp	orc003	4,1,gef_fild10.gat,214,53
+in_orcs01.gat,29,116,0	warp	orc004	4,1,gef_fild10.gat,137,286
+in_orcs01.gat,30,154,0	warp	orc005	3,2,gef_fild10.gat,65,335
+in_orcs01.gat,30,182,0	warp	orc01	2,1,orcsdun01.gat,32,170
+orcsdun01.gat,32,172,0	warp	orc01-1	3,1,in_orcs01.gat,30,180
+in_orcs01.gat,108,114,0	warp	orc02	2,1,orcsdun02.gat,180,17
+orcsdun02.gat,180,15,0	warp	orc02-1	2,1,in_orcs01.gat,108,112
+orcsdun01.gat,183,8,0	warp	orc03	4,2,orcsdun02.gat,21,185
+orcsdun02.gat,21,188,0	warp	orc03-1	8,2,orcsdun01.gat,183,11

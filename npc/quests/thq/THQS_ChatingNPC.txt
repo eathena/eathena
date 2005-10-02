@@ -1,0 +1,108 @@
+//===== Athena Script =====================================
+//= Treasure Hunter Script
+//===== Converted By ======================================
+//= Fredzilla
+//= Original
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                    Treasure Hunter Quests                                          //
+//                                                         By: Ezekial                                                //
+//                                                for the use on nRO run by Newbe5                                    //
+//                                                      revised By Warlock                                            //
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//===== Version ===========================================
+//= 1.0 - Straight conversion of Aegis NPC file
+//===== Compatible With ===================================
+//= eAthena 1.0
+//===== Description =======================================
+//= Start for Treasure hunter quests
+//===== Comments ==========================================
+//= Event_THQS - Used to check if you have already registerd
+//= #Treasure_Token - used to keep track of tokens
+//////////////////////////////////////////////////////////
+
+
+//Entrance Flags
+yuno.gat,48,101,6	script	Notice	837,{
+	mes "^FF0000[ Treasure Hunter Guild House ]^000000";
+	mes " ";
+	mes "Welcome to the Treasure Hunter's Guild House.";
+	mes "Feel free to drop in and look around";
+	mes "and feel free to become a memeber if you wish.";
+	mes " ";
+	mes "For membership applications please talk to Keegan";
+	mes "up the stairs and down the hall.";
+	close;
+}
+//Retired Smile mask girl;
+yuno_in01.gat,33,162,3	script	Smile Helper	92,{
+	mes "[Smile Gal]";
+	mes "Oh man...I am so sick of";
+	mes "trading Mr. Smile masks for crap.";
+	mes " ";
+	mes "You ask me for one and you'll find yourself 10 pounds lighter!";
+	close;
+}
+//Usless Female Assasin;
+yuno_in01.gat,22,162,6	script	Sharlet	725,{
+	mes "[Sharlet]";
+	if (Event_THQS > 0) goto N_Member;
+	mes "Umm sorry I'm not gona waste my time talking to you if you arn't even a member!";
+	close;
+N_Member:
+	set @TEMP,rand(1,2);
+	if (@TEMP == 1) goto N_Chat1;
+	if (@TEMP == 2) goto N_Chat2;
+	mes "How are you reading this???";
+	mes "Well unless you are reading the code :)";
+	close;
+N_Chat1:
+	mes "I stole this diary off some girl, I'll let you have it for 10 Treasure tokens.";
+	next;
+	menu "Sure",N_Girl,"Nah",N_No;
+	end;
+N_Chat2:
+	mes "I stole this diary off some ancient wise man, I'll let you have it for 100 Treasure tokens.";
+	next;
+	menu "Sure",N_Magi,"Nah",N_No;
+	end;
+N_No:
+	mes "[Sharlet]";
+	mes "Suit yourself.";
+	close;
+N_Cheat:
+	mes "[Sharlet]";
+	mes "You trying to cheat me? You only have ^FF0000"+#Treasure_Token+"^000000.";
+	close;
+N_Girl:
+	if(#Treasure_Token < 10) goto N_Cheat;
+	set #Treasure_Token,#Treasure_Token-10;
+	getitem 1558,1;
+	mes "[Sharlet]";
+	mes "Just don't tell anybody.";
+	close;
+N_Magi:
+	if(#Treasure_Token < 100) goto N_Cheat;
+	set #Treasure_Token,#Treasure_Token-100;
+	getitem 1560,1;
+	mes "[Sharlet]";
+	mes "Don't tell anyone, but I'm just obsessed with stealing diaries.";
+	close;
+}
+//another usless member
+yuno_in01.gat,25,162,6	script	Sasha	123,{
+	mes "[Sasha]";
+	if (Event_THQS > 0) goto N_Member;
+	mes "Umm sorry I'm not gona waste my time talking to you if you arn't even a member!";
+	close;
+N_Member:
+	set @TEMP,rand(2);
+	if (@TEMP == 1) goto N_Chat;
+	mes "Ahh welcome fellow Treasure Hunter "+strcharinfo(0)+".";
+	mes "Did you hear about that goat man running around in the trees?";
+	mes " ";
+	mes "Aperently his name is Baphomet and he has been runing around the Forest Maze out side of prontera for quite some time now.";
+	close;
+N_Chat:
+	mes ""+strcharinfo(0)+" don't you have something better you could be doing? Like a quest.";
+	close;
+}

@@ -1,0 +1,30 @@
+lou_fild01.gat,0,0,0,0	monster	Soil	1516,20,0,0,0
+lou_fild01.gat,0,0,0,0	monster	Mantis	1139,20,0,0,0
+lou_fild01.gat,0,0,0,0	monster	Black Mushroom	1084,10,0,0,0
+lou_fild01.gat,0,0,0,0	monster	Yellow Plant	1081,10,0,0,0
+lou_fild01.gat,0,0,0,0	monster	Caramel	1103,25,0,0,0
+lou_fild01.gat,0,0,0,0	monster	Anacondaq	1030,25,0,0,0
+lou_fild01.gat,0,0,0,0	monster	Bigfoot	1060,15,0,0,0
+
+// Level 1
+lou_dun01.gat,0,0,0,0	monster	Horong	1129,10,0,0,0
+lou_dun01.gat,0,0,0,0	monster	Black Mushroom	1084,10,0,0,0
+lou_dun01.gat,0,0,0,0	monster	Shining Plant	1083,2,0,0,0
+lou_dun01.gat,0,0,0,0	monster	Leib Olmai	1306,1,0,0,0
+lou_dun01.gat,0,0,0,0	monster	Grizzly	1381,3,0,0,0
+lou_dun01.gat,0,0,0,0	monster	Soil	1516,20,0,0,0
+lou_dun01.gat,0,0,0,0	monster	Li Me Mang Ryang	1517,15,0,0,0
+lou_dun01.gat,0,0,0,0	monster	Sidewinder	1037,15,0,0,0
+// level 2
+lou_dun02.gat,0,0,0,0	monster	Munak	1026,30,0,0,0
+lou_dun02.gat,0,0,0,0	monster	Munak	1975,20,0,0,0
+lou_dun02.gat,0,0,0,0	monster	Mimic	1191,5,0,0,0
+lou_dun02.gat,0,0,0,0	monster	Dancing Dragon	1514,20,0,0,0
+lou_dun02.gat,0,0,0,0	monster	Hyegun	1512,30,0,0,0
+// Level 3
+lou_dun03.gat,0,0,0,0	monster	Gajomart	1309,10,0,0,0
+lou_dun03.gat,0,0,0,0	monster	Civil Servant	1513,20,0,0,0
+lou_dun03.gat,0,0,0,0	monster	Dancing Dragon	1514,20,0,0,0
+lou_dun03.gat,0,0,0,0	monster	Hyegun	1512,30,0,0,0
+lou_dun03.gat,0,0,0,0	monster	Chung-E	1519,10,0,0,0
+lou_dun03.gat,0,0,0,0	monster	Bacsojin	1518,1,3600000,7200000,0

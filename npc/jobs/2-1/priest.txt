@@ -1,0 +1,50 @@
+//Knight Quest for Athena by RoVeRT
+
+prt_church.gat,16,41,4	script	High Priest	60,{
+	mes "[High Priest]";
+	mes "Welcome to the Church of Prontera.";
+	mes "How may I aid you?";
+        next;
+	menu "I'm ready to become a Priest.",M0,"The Requirements.",M1,"Quit.",MEnd;
+
+	M0:
+		mes "[High Priest]";
+		if(Class==8) goto JobPri;
+		if(Class !=4) goto NotAco;
+		if(JobLevel < 40) goto NotLvl;
+		if(SkillPoint != 0) goto Lskpt;
+		mes "Now you become a Priest.";
+		JobChange 8;
+		close;
+
+		NotAco:
+			if(Class==0) goto JobNov;
+			mes "Sorry other jobs except 'Acolyte' are not permitted to be Priests.";
+			mes "..... Everybody can't be a 'Priest'.";
+			close;
+			
+			JobNov:
+				mes "Please be a 'Acolyte' first.";
+				close;
+		NotLvl:
+			mes "You must be at least Job Level 40 before everything.";
+			close;
+		Lskpt:
+			mes "You must use all your skill points first.";
+			close;
+		JobPri:
+			mes "Your holiness,you are already a Priest.";
+			close;
+	M1:
+		mes "[High Priest]";
+		mes "To serve God your spirit must be strong Job Level 40 or above.";
+		next;
+		mes "[High Priest]";
+		mes "In the future we may add more requirements but thats all for now.";
+		next;
+		mes "[High Priest]";
+		mes "Good luck.";
+		close;
+	MEnd:
+		close;
+}

@@ -1,0 +1,86 @@
+//===== Athena Script ========================================
+//= Umbala Warp Script
+//===== By: ==================================================
+//= Darkchild (1.0vA); Athena (1.0vB)
+//===== Current Version: =====================================
+//= 1.1 (Akaru)
+//===== Compatible With: =====================================
+//= Any Athena Version; RO Episode 6+
+//===== Description: =========================================
+//= Warp Points for Umbala
+//===== Additional Comments: =================================
+//= Split off npc_warp.txt
+//============================================================
+
+//Witch House
+umbala.gat,220,190,0	warp	umba0027	1,1,um_in.gat,32,70
+um_in.gat,28,70,0	warp	umba0028	1,1,umbala.gat,217,187
+
+//Weapons
+umbala.gat,125,157,0	warp	umba0029	1,1,um_in.gat,155,114
+um_in.gat,155,110,0	warp	umba0030	1,1,umbala.gat,126,152
+
+//Fan Shack
+umbala.gat,138,129,0	warp	umba0031	1,1,um_in.gat,99,114
+um_in.gat,99,110,0	warp	umba0032	1,1,umbala.gat,136,127
+
+//Lower Double Shack 
+umbala.gat,95,186,0	warp	umba0033	1,1,um_in.gat,142,42
+um_in.gat,141,39,0	warp	umba0034	1,1,umbala.gat,95,183
+
+//Upper Double Shack 
+umbala.gat,100,202,0	warp	umba0035	1,1,um_in.gat,163,70
+um_in.gat,166,70,0	warp	umba0036	1,1,umbala.gat,102,204
+
+//Small Shack 
+umbala.gat,156,249,0	warp	umba0037	1,1,um_in.gat,99,67
+um_in.gat,99,63,0	warp	umba0038	1,1,umbala.gat,160,247
+
+//Large Shack 
+umbala.gat,108,164,0	warp	umba0039	1,1,um_in.gat,38,112
+um_in.gat,38,110,0	warp	umba0040	1,1,umbala.gat,104,163
+
+//Dungeon Level 1
+umbala.gat,106,286,0	warp	umba0011	1,1,um_dun01.gat,42,31
+um_dun01.gat,150,198,0	warp	umba0013	1,1,um_dun02.gat,48,30
+um_dun01.gat,42,26,0	warp	umba0012	1,1,umbala.gat,111,283
+
+//Dungeon Level 2
+um_dun02.gat,103,208,0	warp	umba0020	1,1,um_dun02.gat,116,208
+um_dun02.gat,113,208,0	warp	umba0019	1,1,um_dun02.gat,100,208
+um_dun02.gat,169,38,0	warp	umba0025	1,1,um_dun02.gat,180,38
+um_dun02.gat,177,38,0	warp	umba0026	1,1,um_dun02.gat,166,38
+um_dun02.gat,216,77,0	warp	umba0018	1,1,um_dun02.gat,217,88
+um_dun02.gat,216,84,0	warp	umba0017	1,1,um_dun02.gat,214,74
+um_dun02.gat,222,259,0	warp	umba0015	1,1,um_dun02.gat,234,255
+um_dun02.gat,231,255,0	warp	umba0016	1,1,um_dun02.gat,219,260
+um_dun02.gat,25,244,0	warp	umba0022	1,1,um_dun02.gat,35,251
+um_dun02.gat,33,249,0	warp	umba0021	1,1,um_dun02.gat,23,242
+um_dun02.gat,51,26,0	warp	umba0022	1,1,um_dun01.gat,153,201 
+um_dun02.gat,60,88,0	warp	umba0023	1,1,um_dun02.gat,66,77
+um_dun02.gat,63,80,0	warp	umba0024	1,1,um_dun02.gat,59,92
+
+//Umbala-Umbala Fields Connection
+um_fild04.gat,215,340,0	warp	umba0055	1,1,umbala.gat,130,80
+umbala.gat,129,78,0	warp	umba0001	1,1,um_fild04.gat,215,337
+
+//Umbala-Comodo Connection
+beach_dun2.gat,258,244,0	warp	umba0052	1,1,um_fild01.gat,35,276
+cmd_fild01.gat,179,370,0	warp	umba0041	1,1,um_fild03.gat,239,27
+cmd_fild01.gat,78,367,0	warp	umba0043	1,1,um_fild03.gat,117,51
+um_fild01.gat,30,274,0	warp	umba0051	1,1,beach_dun2.gat,255,244
+um_fild03.gat,119,50,0	warp	umba0044	1,1,cmd_fild01.gat,78,365
+um_fild03.gat,239,25,0	warp	umba0042	1,1,cmd_fild01.gat,179,368
+
+//Umbala Fields
+um_fild01.gat,368,275,0	warp	umba0010	1,1,um_fild02.gat,24,271
+um_fild02.gat,191,374,0	warp	umba0053	1,1,um_fild04.gat,179,13
+um_fild02.gat,21,270,0	warp	umba0009	1,1,um_fild01.gat,365,275
+um_fild02.gat,374,149,0	warp	umba0008	1,1,um_fild03.gat,35,146
+um_fild02.gat,374,326,0	warp	umba0005	1,1,um_fild03.gat,21,334
+um_fild03.gat,18,334,0	warp	umba0006	1,1,um_fild02.gat,371,326
+um_fild03.gat,30,146,0	warp	umba0007	1,1,um_fild02.gat,371,149
+um_fild04.gat,179,10,0	warp	umba0054	1,1,um_fild02.gat,191,372
+
+
+

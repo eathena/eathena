@@ -1,0 +1,53 @@
+//Sage NPC for Athena by DiaDz
+//No Quests, just npc on location
+//1.1 Added SkillPoint check [Lupus]
+
+yuno_in03.gat,106,177,4	script	Cleitos Berdo	752,{
+	   if(Class==16) goto sage;
+	   if(Class !=2) goto notmage;
+
+       mes "[Cleitos Berdo]";
+       mes "Welcome to Yuno Home City of the Sages.";
+       next;
+       mes "[Cleitos Berdo]";
+       mes "How may I be of Service to you?";
+       next;
+       menu "Change Job into a Sage.",case1,"The Requirements.",case2,"Quit.",case3;
+        		case1:
+        			if(JobLevel < 40) goto notlvl;
+					mes "[Cleitos Berdo]";	
+					if(SkillPoint > 0) mes "You need to use up all of your skill points before I can make you a Sage.";
+					if(SkillPoint > 0) close;
+	                		mes "Since you are now a Sage you may call Yuno your Home.";
+					jobchange 16;
+       					close;
+        			
+				notlvl:
+        				mes "[Cleitos Berdo]";
+        				mes "you need to be at least Job level 40";
+        				close;
+
+        		case2:
+        			mes "[Cleitos Berdo]";
+        			mes "You need to be a Mage of Job Level 40 to become a Sage";
+        			next;
+        			mes "[Cleitos Berdo]";	
+        			mes "We Sages Strive to unravel to the secrets of the universe";
+				close;
+        		
+        		case3:
+        		mes "[Cleitos Berdo]";
+        		mes "Please come again sometime";
+        		close;
+        	
+	sage:
+		mes "[Cleitos Berdo]";
+		mes "You are already a Powerful Sage";
+		close;
+	
+	notmage: 
+		mes "[Cleitos Berdo]";
+		mes "I'm sorry but there is nothing I can help you with.";
+		mes "Only a young Mage willing to furthur themself in knowledge can become a 'Sage'.";
+		close;
+}

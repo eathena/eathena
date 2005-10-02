@@ -1,0 +1,30 @@
+//===== eAthena Script =======================================
+//= Magma Dungeon Monster Spawn Script
+//===== By: ==================================================
+//= Athena (1.0)
+//===== Current Version: =====================================
+//= 1.1
+//===== Compatible With: =====================================
+//= Any Athena Version
+//===== Description: =========================================
+//= Monster Spawns for Magma Dungeon
+//===== Additional Comments: =================================
+//= 1.1 fixed 2,3,4 tabs instead of 1... and wrong mob names [Lupus]
+//============================================================
+
+//mag_dun01
+mag_dun01.gat,0,0,0,0	monster	Explosion	1383,10,0,0,0
+mag_dun01.gat,0,0,0,0	monster	Blazer	1367,10,0,0,0
+mag_dun01.gat,0,0,0,0	monster	Diabolic	1382,10,0,0,0
+mag_dun01.gat,0,0,0,0	monster	Grizzly	1381,5,0,0,0
+mag_dun01.gat,0,0,0,0	monster	Lava Golem	1366,3,0,0,0
+mag_dun01.gat,0,0,0,0	monster	Kaho	1072,10,0,0,0
+
+//mag_dun02 
+mag_dun02.gat,0,0,0,0	monster	Gig	1387,10,0,0,0
+mag_dun02.gat,0,0,0,0	monster	Blazer	1367,10,0,0,0
+mag_dun02.gat,0,0,0,0	monster	Diabolic	1382,10,0,0,0
+mag_dun02.gat,0,0,0,0	monster	Nightmare Terror	1379,3,0,0,0
+mag_dun02.gat,0,0,0,0	monster	Sky Deleter	1384,5,0,0,0
+mag_dun02.gat,0,0,0,0	monster	Earth Deleter	1385,5,0,0,0
+mag_dun02.gat,0,0,0,0	monster	Kaho	1072,10,0,0,0

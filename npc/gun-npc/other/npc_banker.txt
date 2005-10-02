@@ -1,0 +1,162 @@
+prt_in.gat,38,103,6	script	Kafra Banker	721,{
+	set @fee,750;
+	set @rlv,20;
+	set @regfee,3000;
+
+	cutin "banker",2;
+	if (BaseLevel<@rlv), goto TooLow;
+	Main:
+	mes "[^FF8000Kafra Banker^000000]";
+	mes "Hello, what would you like to do?";
+	next;
+	MainMenu:
+	menu "Deposit Zeny",Z_D1,"Withdraw Zeny",Z_W1,"Open Account",Open,"Learn More",LM,"Close",Exit;
+	
+	Z_D1:
+	if (#bankreg==0) goto NotReg;
+	mes "[^FF8000Kafra Banker^000000]";
+	mes "You have "+#ZenyBank+" zeny in your account.";
+	mes "How much would you like to deposit?";
+	//mes "Remember, there is a "+@fee+" zeny fee for each deposit.";
+	mes "Enter 0 to cancel.";
+	next;
+	input @deposit;
+	goto Z_D2;
+	
+	Z_D2:
+	if (@deposit<0), goto Error;
+	if (@deposit==0), goto MainMenu;
+	if (@deposit>Zeny), goto NoZeny;
+	mes "[^FF8000Kafra Banker^000000]";
+	mes "Are you sure you want to deposit "+@deposit+" zeny?";
+	mes "You will have "+(Zeny-@deposit)+" zeny with you after depositing.";
+	//mes "Your account will have "+(#ZenyBank+@deposit-@fee)+" zeny after the fee.";
+	next;
+	menu "Yes",Z_D3,"No",MainMenu;
+	
+	Z_D3:
+	set #ZenyBank,#ZenyBank+@deposit;
+	set Zeny,Zeny-@deposit;
+	mes "[^FF8000Kafra Banker^000000]";
+	mes "You now have "+#ZenyBank+" zeny in your account.";
+	emotion 8;
+	next;
+	goto TY;
+	
+	Z_W1:
+	if (#bankreg==0) goto NotReg;
+	mes "[^FF8000Kafra Banker^000000]";
+	mes "You have "+#ZenyBank+" zeny in your account.";
+	mes "How much would you like to withdraw?";
+	mes "Remember, there is a "+@fee+" zeny fee for each withdraw.";
+	mes "Enter 0 to cancel.";
+	next;
+	input @withdraw;
+	goto Z_W2;
+	
+	Z_W2:
+	if (@withdraw<0), goto Error;
+	if (@withdraw==0), goto MainMenu;
+	if ((@withdraw>#ZenyBank)||(Zeny+@withdraw-@fee<0)), goto NoZeny2;
+	mes "[^FF8000Kafra Banker^000000]";
+	mes "Are you sure that you want to withdraw "+@withdraw+" zeny?";
+	mes "You will have "+(Zeny+@withdraw-@fee)+" zeny with you after the fee ";
+	mes "and will have "+(#ZenyBank-@withdraw)+" zeny in your account.";
+	next;
+	menu "Yes",Z_W3,"No",MainMenu;
+	
+	Z_W3:
+	set #ZenyBank,#ZenyBank-@withdraw;
+	set Zeny,Zeny+@withdraw-@fee;
+	mes "[^FF8000Kafra Banker^000000]";
+	mes "Thank you for using the Kafra Bank.";
+	mes "You now have "+#ZenyBank+" zeny in your account.";
+	emotion 8;
+	next;
+	goto TY;
+	
+	LM:
+	mes "[^FF8000Kafra Banker^000000]";
+	mes "Using the bank allows you to store away zeny.";
+	mes "Your bank account can be accessed from any character on your account.";
+	mes "Also, zeny inside the bank will not be lost upon death.";
+	next;
+	mes "[^FF8000Kafra Banker^000000]";
+	mes "The only drawbacks are the character must be at least base";
+	mes "level "+@rlv+" to use the bank, there is a "+@fee+" zeny fee each withdrawl, and"; 
+	mes "there is a one time fee of "+@regfee+" zeny to open an account.";
+	next;
+	goto MainMenu;
+	
+	Open:
+	if (#bankreg==1) goto HaveAcc;
+	mes "[^FF8000Kafra Banker^000000]";
+	mes "In order to use the banking service you must register for a bank account.";
+	mes "This will cost "+@regfee+" zeny. Are you sure you want to open an account?";
+	next;
+	menu "Yes",O_R,"No",MainMenu;
+	
+	O_R:
+	if (zeny<@regfee) goto NoZeny;
+	set zeny,zeny-@regfee;
+	set #bankreg,1;
+	mes "[^FF8000Kafra Banker^000000]";
+	mes "Thank you for registering at the Kafra Bank.";
+	emotion 30;
+	next;
+	mes "[^FF8000Kafra Banker^000000]";
+	mes "You may use your bank account anytime from any character, as long as";
+	mes "they meet the requirements and you can pay the fee.";
+	next;
+	goto MainMenu;
+	
+	NoZeny:
+	mes "[^FF8000Kafra Banker^000000]";
+	mes "You do not have enough zeny to do that.";
+	next;
+	goto MainMenu;
+
+	NoZeny2:
+	mes "[^FF8000Kafra Banker^000000]";
+	mes "You do not have enough zeny in your bank to do that.";
+	next;
+	goto MainMenu;
+	
+	Error:
+	mes "[^FF8000Kafra Banker^000000]";
+	mes "You cannot do that.";
+	emotion 36;
+	next;
+	goto MainMenu;
+	
+	TooLow:
+	mes "[^FF8000Kafra Banker^000000]";
+	mes "I am sorry, but you are too inexperienced to use the bank.";
+	mes "You must be level "+@rlv+".";
+	emotion 17;
+	goto Exit;
+	
+	NotReg:
+	mes "[^FF8000Kafra Banker^000000]";
+	mes "I am sorry but you must open an account before you can use";
+	mes "the kafra bank.";
+	next;
+	goto MainMenu;
+
+	HaveAcc:
+	mes "[^FF8000Kafra Banker^000000]";
+	mes "You already registered for an account!";
+	mes "You dont need another.";
+	next;
+	goto MainMenu;
+	emotion 22;
+	
+	TY:
+	mes "[^FF8000Kafra Banker^000000]";
+	mes "Thank you for using the Kafra Bank.";
+	emotion 30;
+	
+	Exit:
+	cutin "banker",255;
+	close;
+}

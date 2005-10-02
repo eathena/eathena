@@ -1,0 +1,15 @@
+prontera.gat,156,197,6	script	Npc Messageboard	111,{
+mes "~~Message Board~~";
+mes "I will keep you informed on changes in npcs.";
+mes "This way, if an npc is added in a remote place you will";
+mes "know to look for it!.";
+next;
+menu "5-22",NPCMS_5_18,"Exit",-;
+close;
+
+NPCMS_5_18:
+mes "~~Message Board~~";
+mes "Add pistacio, a slotted sunglasses dealer near banker";
+mes "Added jade, an arrow seller in payon. Is in a building to the right of the center of town.";
+close;
+}

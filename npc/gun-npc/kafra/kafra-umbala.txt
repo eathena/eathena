@@ -1,0 +1,9 @@
+umbala.gat,128,133,4	script	Kafra	115,{
+	//Options
+	set @savemap$,"umbala.gat";
+	set @savex,161;
+	set @savey,131;
+	set @pic$,"kafra_03";
+	set @savepoints,1;
+	callfunc "gunstar_kafra";
+}

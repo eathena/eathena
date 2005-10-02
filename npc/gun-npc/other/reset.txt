@@ -1,0 +1,46 @@
+prontera.gat,164,169,3	script	Status Goddess	811,{
+	mes "[Status Goddess]";
+	mes "Hello there mortal!";
+	next;
+	mes "[Status Goddess]";
+	mes "I am the goddess of stats, I can reset ither your skills or stats.";
+	mes "For a limit time I shall offer my services for a very small fee.";
+	mes "Soon though, it shall be a much higher price.";
+	next;
+	mes "[Status Goddess]";
+	mes "Reset Stats: 5,000z";
+	mes "Reset Skills: 5,000z";
+	mes "Reset Both: 9,000z";
+	next;
+	mes "Please select the service you want:";
+	menu "^FF3355Reset Skills",L0,"Reset Stats",L1,"Reset Both^000000",L2,"Quit",LEnd;
+	
+	L0:
+		mes "[Status Goddess]";
+		if (Zeny < 5000) goto NeedZenys;
+		mes "Alright, here we go now..";
+		set Zeny,zeny-5000;
+		ResetSkill;
+		close;
+	L1:
+		mes "[Status Goddess]";
+		if (Zeny < 5000) goto NeedZenys;
+		mes "Alright, here we go now..";
+		set Zeny,zeny-5000;
+		ResetStatus;
+		close;
+	L2:
+		mes "[Status Goddess]";
+		if (Zeny < 9000) goto NeedZenys;
+		mes "Alright, here we go now..";
+		set Zeny,zeny-9000;
+		ResetSkill;
+		ResetStatus;
+		close;
+
+		NeedZenys:
+			mes "Sorry, you don't have enough Zeny.";
+			close;
+	LEnd:
+		close;	
+}

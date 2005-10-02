@@ -1,0 +1,57 @@
+//===== eAthena Script ======================================= 
+//= Umbala Monster Spawn 
+//===== By: ================================================== 
+//= Darkchild (1.0)
+//= Akaru (1.1)
+//= jAthena (1.2)
+//= Poki#3 (2.0)
+//===== Current Version: ===================================== 
+//= 2.0 
+//===== Compatible With: ===================================== 
+//= Any eAthena Version; RO Ep6+
+//===== Description: ========================================= 
+//= Umbala field and dungeon monster spawn
+//===== Additional Comments: ================================= 
+//= Updated up to Umbala Spawns (v.2.0 by Poki#3)
+//= ...Umbala updated to umbala...LOL! Whel, there where off ;P
+//============================================================ 
+
+//um_fild01 (Luluka Forest)
+um_fild01.gat,0,0,0,0	monster	Dryad	1493,15,0,0,0
+um_fild01.gat,0,0,0,0	monster	Harpy	1376,2,0,0,0
+um_fild01.gat,0,0,0,0	monster	Stem Worm	1215,45,0,0,0
+um_fild01.gat,0,0,0,0	monster	Wootan Fighter	1499,55,0,0,0
+
+//um_fild02 (Hoomga Forest)
+um_fild02.gat,0,0,0,0	monster	Beetle	1494,30,0,0,0
+um_fild02.gat,0,0,0,0	monster	Dustiness	1114,20,0,0,0
+um_fild02.gat,0,0,0,0	monster	Wootan Fighter	1499,42,0,0,0
+um_fild02.gat,0,0,0,0	monster	Wootan Shooter	1498,44,0,0,0
+
+//um_fild03 (Kalala Swamp)
+um_fild03.gat,0,0,0,0	monster	Alligator	1271,30,0,0,0
+um_fild03.gat,0,0,0,0	monster	Dragon Tail	1321,25,0,0,0
+um_fild03.gat,0,0,0,0	monster	Parasite	1500,55,0,0,0
+um_fild03.gat,0,0,0,0	monster	Pest	1256,10,0,0,0
+um_fild03.gat,0,0,0,0	monster	Gryphon	1259,1,3600000,3600000,1
+
+//um_fild04 (Hoomga Jungle)
+um_fild04.gat,0,0,0,0	monster	Beetle	1494,30,0,0,0
+um_fild04.gat,0,0,0,0	monster	Choco	1214,11,0,0,0
+um_fild04.gat,0,0,0,0	monster	Stainer	1174,30,0,0,0
+um_fild04.gat,0,0,0,0	monster	Wootan Shooter	1498,10,0,0,0
+um_fild04.gat,0,0,0,0	monster	Wootan Fighter	1499,29,0,0,0
+
+//um_dun01 (Carpenter's Shop in the Tree)
+um_dun01.gat,0,0,0,0	monster	Dustiness	1114,30,0,0,0
+um_dun01.gat,0,0,0,0	monster	Stainer	1174,30,0,0,0
+um_dun01.gat,0,0,0,0	monster	Stone Shooter	1495,10,0,0,0
+um_dun01.gat,0,0,0,0	monster	Wooden Golem	1497,5,0,0,0
+um_dun01.gat,0,0,0,0	monster	Wootan Fighter	1499,30,0,0,0
+
+//um_dun02 (Passage to a Forein World)
+um_dun02.gat,0,0,0,0	monster	Dryad	1493,30,0,0,0
+um_dun02.gat,0,0,0,0	monster	Stone Shooter	1495,20,0,0,0
+um_dun02.gat,0,0,0,0	monster	Wooden Golem	1497,30,0,0,0
+um_dun02.gat,0,0,0,0	monster	Wootan Fighter	1499,20,0,0,0
+um_dun02.gat,0,0,0,0	monster	Wootan Shooter	1498,10,0,0,0

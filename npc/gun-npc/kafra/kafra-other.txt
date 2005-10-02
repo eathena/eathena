@@ -1,0 +1,87 @@
+niflheim.gat,202,189,3	script	Kafra	791,{
+	//Options
+	set @savemap$,"niflheim.gat";
+	set @savex,193;
+	set @savey,186;
+	set @niflheim,1;
+	set @savepoints,1;
+	callfunc "gunstar_kafra";
+}
+
+niflheim.gat,82,147,1	script	Kafra	791,{
+	set @savemap$,"nif_fild02";
+	set @savex,371;
+	set @savey,237;
+	set @savemap2$,"niflheim.gat";
+	set @savex2,80;
+	set @savey2,153;
+	set @savepoints,2;
+	set @niflheim,1;
+	callfunc "gunstar_kafra";
+}
+
+louyang.gat,225,106,3	script	Kafra	116,{
+	//Options
+	set @savemap$,"louyang.gat";
+	set @savex,218;
+	set @savey,107;
+	set @pic$,"ukafra_02";
+	set @savepoints,1;
+	callfunc "gunstar_kafra";
+}
+
+amatsu.gat,205,97,3	script	Kafra	115,{
+	//Options
+	set @savemap$,"amatsu.gat";
+	set @savex,197;
+	set @savey,86;
+	set @pic$,"ukafra_03";
+	callfunc "gunstar_kafra";
+}
+
+amatsu.gat,251,284,3	script	Kafra	114,{
+	//Options
+	set @savemap$,"ama_fild01.gat";
+	set @savex,72;
+	set @savey,37;
+	set @savemap2$,"amatsu.gat";
+	set @savex2,247;
+	set @savey2,281;
+	set @pic$,"ukafra_02";
+	set @savepoints,2;
+	callfunc "gunstar_kafra";
+}
+
+comodo.gat,183,158,5	script	Kafra	113,{
+	//Options
+	set @savemap$,"comodo.gat";
+	set @savex,189;
+	set @savey,156;
+	set @pic$,"ukafra_05";
+	callfunc "gunstar_kafra";
+}
+
+xmas.gat,143,138,3	script	Kafra	112,{
+	//Options
+	set @savemap$,"xmas.gat";
+	set @savex,148;
+	set @savey,131;
+	set @pic$,"ukafra_06";
+	callfunc "gunstar_kafra";
+}
+
+einbroch.gat,226,195,5	script	Kafra	835,{
+	set @savemap$,"einbroch.gat";
+	set @savex,230;
+	set @savey,190;
+	set @pic$,"kafra_08";
+	callfunc "gunstar_kafra";
+}
+
+lighthalzen.gat,153,100,5	script	Kafra	835,{
+	set @savemap$,"lighthalzen.gat";
+	set @savex,159;
+	set @savey,93;
+	set @pic$,"kafra_08";
+	callfunc "gunstar_kafra";
+}

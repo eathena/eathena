@@ -1,0 +1,21 @@
+payon.gat,181,104,4	script	Kafra	117,{
+	//Options
+	set @savemap$,"pay_fild01.gat";
+	set @savex,340;
+	set @savey,347;
+	set @savemap2$,"payon.gat";
+	set @savex2, 170+rand(5);
+	set @savey2, 105+rand(5);
+	set @pic$,"ukafra_01";
+	set @savepoints,2;
+	callfunc "gunstar_kafra";
+}
+pay_arche.gat,55,123,8	script	Kafra	116,{
+	//Options
+	set @savemap$,"pay_arche.gat";
+	set @savex,49;
+	set @savey,114;
+	set @pic$,"ukafra_02";
+	set @savepoints,1;
+	callfunc "gunstar_kafra";
+}

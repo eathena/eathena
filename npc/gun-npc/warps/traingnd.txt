@@ -1,0 +1,74 @@
+//===== Athena Script ========================================
+//= Training Ground Warp Script
+//===== By: ==================================================
+//= Athena (1.0)
+//===== Current Version: =====================================
+//= 1.0
+//===== Compatible With: =====================================
+//= Any Athena Version
+//===== Description: =========================================
+//= Warp Points for Training Ground
+//===== Additional Comments: =================================
+//= Split off npc_warp.txt
+//============================================================
+
+new_1-1.gat,148,112,0	warp	new11	2,3,new_1-2.gat,100,9
+new_1-1.gat,166,112,0	warp	new12	2,2,new_1-2.gat,100,153
+new_1-1.gat,169,147,0	warp	new14	2,2,new_1-2.gat,18,163
+new_1-1.gat,169,75,0	warp	new13	2,2,new_1-2.gat,182,163
+new_1-2.gat,100,122,0	warp	new15	2,1,new_1-2.gat,100,162
+new_1-2.gat,100,150,0	warp	new12-1	2,1,new_1-1.gat,162,112
+new_1-2.gat,100,165,0	warp	new15-1	2,1,new_1-2.gat,100,119
+new_1-2.gat,126,106,0	warp	new16	2,4,new_1-2.gat,156,171
+new_1-2.gat,153,171,0	warp	new16-1	2,4,new_1-2.gat,123,106
+new_1-2.gat,18,159,0	warp	new14-1	2,2,new_1-1.gat,165,147
+new_1-2.gat,182,159,0	warp	new13-1	2,2,new_1-1.gat,165,75
+new_1-3.gat,96,175,0	warp	new17	3,2,new_1-4.gat,100,14
+new_2-1.gat,148,112,0	warp	new21	2,3,new_2-2.gat,100,9
+new_2-1.gat,166,112,0	warp	new22	2,2,new_2-2.gat,100,153
+new_2-1.gat,169,147,0	warp	new24	2,2,new_2-2.gat,18,163
+new_2-1.gat,169,75,0	warp	new23	2,2,new_2-2.gat,182,163
+new_2-2.gat,100,122,0	warp	new25	2,1,new_2-2.gat,100,162
+new_2-2.gat,100,150,0	warp	new22-1	2,1,new_2-1.gat,162,112
+new_2-2.gat,100,165,0	warp	new25-1	2,1,new_2-2.gat,100,119
+new_2-2.gat,126,106,0	warp	new26	2,4,new_2-2.gat,156,171
+new_2-2.gat,153,171,0	warp	new26-1	2,4,new_2-2.gat,123,106
+new_2-2.gat,18,159,0	warp	new24-1	2,2,new_2-1.gat,165,147
+new_2-2.gat,182,159,0	warp	new23-1	2,2,new_2-1.gat,165,75
+new_2-3.gat,96,175,0	warp	new27	3,2,new_2-4.gat,100,14
+new_3-1.gat,148,112,0	warp	new31	2,3,new_3-2.gat,100,9
+new_3-1.gat,166,112,0	warp	new32	2,2,new_3-2.gat,100,153
+new_3-1.gat,169,147,0	warp	new34	2,2,new_3-2.gat,18,163
+new_3-1.gat,169,75,0	warp	new33	2,2,new_3-2.gat,182,163
+new_3-2.gat,100,122,0	warp	new35	2,1,new_3-2.gat,100,162
+new_3-2.gat,100,150,0	warp	new32-1	2,1,new_3-1.gat,162,112
+new_3-2.gat,100,165,0	warp	new35-1	2,1,new_3-2.gat,100,119
+new_3-2.gat,126,106,0	warp	new36	2,4,new_3-2.gat,156,171
+new_3-2.gat,153,171,0	warp	new36-1	2,4,new_3-2.gat,123,106
+new_3-2.gat,18,159,0	warp	new34-1	2,2,new_3-1.gat,165,147
+new_3-2.gat,182,159,0	warp	new33-1	2,2,new_3-1.gat,165,75
+new_3-3.gat,96,175,0	warp	new37	3,2,new_3-4.gat,100,14
+new_4-1.gat,148,112,0	warp	new41	2,3,new_4-2.gat,100,9
+new_4-1.gat,166,112,0	warp	new42	2,2,new_4-2.gat,100,153
+new_4-1.gat,169,147,0	warp	new44	2,2,new_4-2.gat,18,163
+new_4-1.gat,169,75,0	warp	new43	2,2,new_4-2.gat,182,163
+new_4-2.gat,100,122,0	warp	new45	2,1,new_4-2.gat,100,162
+new_4-2.gat,100,150,0	warp	new42-1	2,1,new_4-1.gat,162,112
+new_4-2.gat,100,165,0	warp	new45-1	2,1,new_4-2.gat,100,119
+new_4-2.gat,126,106,0	warp	new46	2,4,new_4-2.gat,156,171
+new_4-2.gat,153,171,0	warp	new46-1	2,4,new_4-2.gat,123,106
+new_4-2.gat,18,159,0	warp	new44-1	2,2,new_4-1.gat,165,147
+new_4-2.gat,182,159,0	warp	new43-1	2,2,new_4-1.gat,165,75
+new_4-3.gat,96,175,0	warp	new47	3,2,new_4-4.gat,100,14
+new_5-1.gat,148,112,0	warp	new51	2,3,new_5-2.gat,100,9
+new_5-1.gat,166,112,0	warp	new52	2,2,new_5-2.gat,100,153
+new_5-1.gat,169,147,0	warp	new54	2,2,new_5-2.gat,18,163
+new_5-1.gat,169,75,0	warp	new53	2,2,new_5-2.gat,182,163
+new_5-2.gat,100,122,0	warp	new55	2,1,new_5-2.gat,100,162
+new_5-2.gat,100,150,0	warp	new52-1	2,1,new_5-1.gat,162,112
+new_5-2.gat,100,165,0	warp	new55-1	2,1,new_5-2.gat,100,119
+new_5-2.gat,126,106,0	warp	new56	2,4,new_5-2.gat,156,171
+new_5-2.gat,153,171,0	warp	new56-1	2,4,new_5-2.gat,123,106
+new_5-2.gat,18,159,0	warp	new54-1	2,2,new_5-1.gat,165,147
+new_5-2.gat,182,159,0	warp	new53-1	2,2,new_5-1.gat,165,75
+new_5-3.gat,96,175,0	warp	new57	3,2,new_5-4.gat,100,14

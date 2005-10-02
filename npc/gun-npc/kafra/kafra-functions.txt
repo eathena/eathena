@@ -1,0 +1,529 @@
+function	script	gunstar_kafra	{
+	if(@niflheim==1) goto NF_Intro;
+	cutin @pic$,2;
+	mes "[Kafra]";
+	mes "Welcome to Kafra Corp. We will stay with you wherever you go.";
+K_Menu:
+	next;
+	menu "Save",K_Save,
+		"Use Storage",K_Storage,
+		"Rent a Service",K_Rent,
+		"Use Bank Service",K_Bank,
+		"Buy Kafra Pass",K_Pass,
+		"Change Options",K_Options,
+		"Cancel",K_Close;
+
+NF_Intro:
+	set @niflheim,0;
+	mes "[Kafra]";
+	mes "Welcome to Kafra Corp. Even in death, we will stay with you wherever you go.";
+	goto K_Menu;
+
+	K_Save:
+		if(@savepoints==2) goto K_Save2;
+		savepoint @savemap$,@savex,@savey;
+		mes "[Kafra]";
+		mes "Your respawn point has saved. Thank you.";
+		goto K_Close;
+
+	K_Save2:
+		menu "Save Outside City.",SaveOut,"Save inside City",SaveIn;
+						
+		SaveOut:
+			savepoint @savemap$,@savex,@savey;
+			mes "[Kafra]";
+			mes "Your respawn point has saved. Thank you.";
+			goto K_Close;
+
+		SaveIn:
+			savepoint @savemap2$,@savex2,@savey2;
+			mes "[Kafra]";
+			mes "Your respawn point has saved. Thank you.";
+			goto K_Close;
+
+	K_Storage:
+//		if((class ==Job_Novice) && (JobLevel<6)) goto NeedJobLevel;
+		if(getskilllv(1) < 6) goto NeedBasic;
+		if(Zeny<30) goto NeedZenys;
+		set Zeny, Zeny-30;
+		openstorage;
+		goto K_Close;
+
+		NeedBasic:
+			mes "[Kafra]";
+			mes "I am sorry but you need ^0000FFBasic Skill^000000 level 6 to use storage.";
+			goto K_Close;
+
+                NeedJobLevel:
+                	mes "[Kafra]";
+                	mes "I am sorry but you have to be at least Novice level 6 if you want to use the storage.";
+                	goto K_Close;
+                	                	
+                NeedZenys:
+	                mes "[Kafra]";
+                	mes "Dear, you don't have enough Money. The storage fee is 30 Zeny.";
+                	goto K_Close;
+	K_Rent:
+		callfunc "gunkaf_rent";
+		goto K_Close;
+
+	K_Pass:
+		callfunc "gunkaf_pass";
+		goto K_Close;
+
+	K_Bank:
+		if(#PC_TRADE_LOCK) goto K_Locked;
+		callfunc "gunkaf_bank";
+		goto K_Close;
+
+	K_Locked:
+		mes "The GMs have disabled your ability to use the bank.";
+		goto K_Close;
+
+	K_Options:
+		mes "[Kafra]";
+		mes "Options are:";
+		callfunc "F_Options";
+
+	K_Close:
+		cutin @pic$,255;
+		close;
+}
+
+function	script	gunstar_guild_kafra	{
+	cutin @pic$,2;
+	mes "[Kafra]";
+	mes "Welcome to Kafra Corp. We will stay with you wherever you go.";
+K_Menu:
+	next;
+	menu "Use Storage",K_Storage,
+		"Rent a Service",K_Rent,
+		"Use Bank Service",K_Bank,
+		"Buy Kafra Pass",K_Pass,
+		"Cancel",K_Close;
+
+	K_Storage:
+//		if((class ==Job_Novice) && (JobLevel<6)) goto NeedJobLevel;
+		if(getskilllv(1) < 6) goto NeedBasic;
+		if(Zeny<30) goto NeedZenys;
+		set Zeny, Zeny-30;
+		openstorage;
+		goto K_Close;
+
+		NeedBasic:
+			mes "[Kafra]";
+			mes "I am sorry but you need ^0000FFBasic Skill^000000 level 6 to use storage.";
+			goto K_Close;
+
+                NeedJobLevel:
+                	mes "[Kafra]";
+                	mes "I am sorry but you have to be at least Novice level 6 if you want to use the storage.";
+                	goto K_Close;
+                	                	
+                NeedZenys:
+	                mes "[Kafra]";
+                	mes "Dear, you don't have enough Money. The storage fee is 30 Zeny.";
+                	goto K_Close;
+
+	K_GStorage:
+		if(getskilllv(1) < 6) goto NeedBasic;
+		if(Zeny<30) goto NeedZenys;
+		set Zeny, Zeny-30;
+		guildopenstorage;
+		goto K_Close;
+
+	K_Rent:
+		callfunc "gunkaf_rent";
+		goto K_Close;
+
+	K_Pass:
+		callfunc "gunkaf_pass";
+		goto K_Close;
+
+	K_Bank:
+		callfunc "gunkaf_bank";
+		goto K_Close;
+
+	K_Close:
+		cutin @pic$,255;
+		close;
+}
+
+
+function	script	gunkaf_pass	{
+		mes "[Kafra]";
+		mes "Kafra passes allow you to use the kafra storage service anywhere!";
+		mes "Though very convenient, they cost 3000 zeny.";
+		mes "Would you like to buy some passes?";
+		next;
+		menu "Buy Passes",BuyPass,"No",K_Close;
+		
+			BuyPass:
+			mes "[Kafra]";
+			mes "How many would you like to buy?";
+			mes "Enter 0 to cancel";
+			next;
+			input @passes;
+			if (@passes > 0) goto PassCheck;
+			if (@passes < 0) goto Exploiter;
+			if (@passes > 5000) goto Exploiter;
+			goto K_Close;
+			
+			PassCheck:
+			set @total,3000*@passes;
+			mes "[Kafra]";
+			mes "You want to buy "+@passes+ " passes.";
+			mes "This will cost "+@total+" zeny.";
+			mes "Are you sure you want to buy?";
+			next;
+			menu "Yes",GetPass,"No",K_Close;
+			
+			GetPass:
+				if (!(checkweight(1084,@passes))) goto OverWeight;
+				if (zeny<@total) goto PassZeny;
+				set Zeny,Zeny-@total;
+				getitem 1084,@passes;
+				mes "[Kafra]";
+				mes "There you go...";
+				mes "Enjoy the passes!";
+				goto K_Close;
+				
+			
+				OverWeight:
+					mes "[Kafra]";
+					mes "I am sorry, but that would put you overweight.";
+					mes "Please buy fewer passes.";
+					goto K_Close;
+					
+				PassZeny:
+					mes "[Kafra]";
+					mes "Dear, you don't have enough money. You need "+@total+" zeny.";
+					goto K_Close;
+			
+			
+	K_Close:
+		return;
+
+	Exploiter:
+		set #exploiter,1;
+}
+
+function	script	gunkaf_rent	{
+	mes "[Kafra]";
+	mes "What would you like to rent?";
+	next;
+	menu "Rent a PecoPeco",R_Peco,"Rent a Cart",R_Cart,"Rent a Falcon",R_Falcon,"Cancel",-;
+	return;
+		
+	R_Peco:
+		callfunc "gunkaf_rentpeco";
+		return;
+
+	R_Cart:
+		callfunc "gunkaf_rentcart";
+		return;		
+						
+	R_Falcon:
+		callfunc "gunkaf_rentfalcon";
+		return;
+
+}
+
+function	script	gunkaf_rentpeco	{
+	if((class==13) || (class==21) || (class==4014) || (class==4022)) goto HavePeco;
+	if((class==7) || (class==14) || (class==4008) || (class==4015)) goto UsePeco;
+					
+	mes "[Kafra]";
+	mes "I am sorry, PecoPecos are only provided for Knight and Crusader classes.";
+	return;
+
+	HavePeco:
+		mes "[Kafra]";
+		mes "I am sorry but you already have a peco.";
+		mes "You may not rent another one";
+		return;
+			
+	UsePeco:
+		mes "[Kafra]";
+		mes "The PecoPeco fee is 1000 Zeny. Do you want to rent a PecoPeco?";
+		next;
+		menu "Rent a PecoPeco",RentPeco,"Cancel",-;
+		return;
+			
+		RentPeco:
+			if(Zeny<1000) goto RPNeedZenys;
+			if(getskilllv(63) > 0) goto GetPeco;
+			goto NoPecoSkill;
+				
+		GetPeco:
+			set Zeny,Zeny-1000;
+			setriding;
+			mes "[Kafra]";
+			mes "There you go.";
+			return;
+
+		NoPecoSkill:
+			mes "[Kafra]";
+			mes "I am sorry but you do not have the required skills to rent a peco.";
+			return;
+						
+		RPNeedZenys:
+			mes "[Kafra]";
+			mes "Dear, you don't have enough Money. You need 1000 Zeny.";
+			return;
+}
+
+function	script	gunkaf_rentcart	{
+	if((class==5) || (class==4006) || (class==10) || (class==4011) ||
+		(class==18) || (class==4019)) goto UseCart;
+	if((class==23) && (getskilllv(39) > 0)) goto ThatsStrange;
+
+	mes "[Kafra]";
+	mes "I am sorry, the Cart service is only provided for Merchant Blacksmith and Alchemist Classes.";
+	return;
+
+ThatsStrange:
+	mes "[Kafra]";
+	mes "That's strange.";
+	mes "You look like a novice, but you have the skill to rent a cart?";
+	next;
+UseCart:
+	mes "[Kafra]";
+	mes "The Cart Fee is 800 Zeny. Do you want to Rent a Cart?";
+	next;
+	menu "Rent a Cart",RentCart,"Cancel",-;
+	return;
+	
+	RentCart:
+		if (checkoption(8)==1) goto HaveCart;
+//check for the change cart carts too
+		if (checkoption(128)==1) goto HaveCart;
+		if (checkoption(256)==1) goto HaveCart;
+		if (checkoption(512)==1) goto HaveCart;
+		if (checkoption(1024)==1) goto HaveCart;
+		if(Zeny<800) goto RCNeedZenys;
+		if(getskilllv(39) > 0) goto GetCart;
+		goto NoCartSkill;
+				
+	GetCart:
+		set Zeny,Zeny-800;
+		setcart;
+		mes "[Kafra]";
+		mes "There you go.";
+		return;
+						
+	HaveCart:
+		mes "[Kafra]";
+		mes "I am sorry but you already have a cart.";
+		mes "You may not rent another one";
+		return;
+
+	NoCartSkill:
+		mes "[Kafra]";
+		mes "I am sorry but you do not have the required skills to rent a cart.";
+		return;
+	
+	RCNeedZenys:
+		mes "[Kafra]";
+		mes "Dear, you don't have enough Money. You need 800 Zeny.";
+		return;
+}
+
+function	script	gunkaf_rentfalcon	{
+	if((class==11) || (class==4012)) goto UseFalcon;
+
+	mes "[Kafra]";
+	mes "I am sorry, falcons are only provided for Hunters.";
+	return;
+				
+UseFalcon:
+	mes "[Kafra]";
+	mes "The Falcon fee is 1000 Zeny. Do you want to rent a Falcon?";
+	next;
+	menu "Rent a Falcon",RentFalcon,"Cancel",-;
+	return;
+					
+	RentFalcon:
+		if (checkoption(16)==1) goto HaveFalcon;
+		if(Zeny<1000) goto RFNeedZenys;
+		if(getskilllv(127) > 0) goto GetFalcon;				
+		goto NoFalconSkill;
+						
+	GetFalcon:
+		set Zeny,Zeny-1000;
+		setfalcon;
+		mes "[Kafra]";
+		mes "There you go.";
+		return;
+							
+	HaveFalcon:
+		mes "[Kafra]";
+		mes "I am sorry but you already have a falcon.";
+		mes "You may not rent another one";
+		return;
+								
+	NoFalconSkill:
+		mes "[Kafra]";
+		mes "I am sorry but you do not have the required skills to rent a falcon.";
+		return;
+			
+	RFNeedZenys:
+		mes "[Kafra]";
+		mes "Dear, you don't have enough Money. You need 1000 Zeny.";
+		return;
+}
+
+function	script	gunkaf_bank	{
+	set @fee,750;
+	set @regfee,3000;
+
+	if(getskilllv(1) < 9) goto TooLow;
+	Main:
+	mes "[Kafra]";
+	mes "Hello, what would you like to do?";
+	next;
+	MainMenu:
+	menu "Deposit Zeny",Z_D1,
+		"Withdraw Zeny",Z_W1,
+		"Open Account",Open,
+		"Learn More",LM,
+		"Quit",-;
+	return;
+		
+	Z_D1:
+	if (#bankreg==0) goto NotReg;
+	mes "[Kafra]";
+	mes "You have "+#ZenyBank+" zeny in your account.";
+	mes "How much would you like to deposit?";
+	//mes "Remember, there is a "+@fee+" zeny fee for each deposit.";
+	mes "Enter 0 to cancel.";
+	next;
+	input @deposit;
+	goto Z_D2;
+	
+	Z_D2:
+	if (@deposit<0), goto Error;
+	if (@deposit==0), goto MainMenu;
+	if (@deposit>Zeny), goto NoZeny;
+	mes "[Kafra]";
+	mes "Are you sure you want to deposit "+@deposit+" zeny?";
+	mes "You will have "+(Zeny-@deposit)+" zeny with you after depositing.";
+	//mes "Your account will have "+(#ZenyBank+@deposit-@fee)+" zeny after the fee.";
+	next;
+	menu "Yes",Z_D3,"No",MainMenu;
+	
+	Z_D3:
+	set #ZenyBank,#ZenyBank+@deposit;
+	set Zeny,Zeny-@deposit;
+	mes "[Kafra]";
+	mes "You now have "+#ZenyBank+" zeny in your account.";
+	next;
+	goto TY;
+	
+	Z_W1:
+	if (#bankreg==0) goto NotReg;
+	mes "[Kafra]";
+	mes "You have "+#ZenyBank+" zeny in your account.";
+	mes "How much would you like to withdraw?";
+	mes "Remember, there is a "+@fee+" zeny fee for each withdraw.";
+	mes "Enter 0 to cancel.";
+	next;
+	input @withdraw;
+	goto Z_W2;
+	
+	Z_W2:
+	if (@withdraw<0), goto Error;
+	if (@withdraw==0), goto MainMenu;
+	if ((@withdraw>#ZenyBank)||(Zeny+@withdraw-@fee<0)), goto NoZeny2;
+	mes "[Kafra]";
+	mes "Are you sure that you want to withdraw "+@withdraw+" zeny?";
+	mes "You will have "+(Zeny+@withdraw-@fee)+" zeny with you after the fee ";
+	mes "and will have "+(#ZenyBank-@withdraw)+" zeny in your account.";
+	next;
+	menu "Yes",Z_W3,"No",MainMenu;
+	
+	Z_W3:
+	set #ZenyBank,#ZenyBank-@withdraw;
+	set Zeny,Zeny+@withdraw-@fee;
+	mes "[Kafra]";
+	mes "Thank you for using the Kafra Bank.";
+	mes "You now have "+#ZenyBank+" zeny in your account.";
+	next;
+	goto TY;
+	
+	LM:
+	mes "[Kafra]";
+	mes "Using the bank allows you to store away zeny.";
+	mes "Your bank account can be accessed from any character on your account.";
+//	mes "Also, zeny inside the bank will not be lost upon death.";
+	next;
+	mes "[Kafra]";
+	mes "The only drawbacks are the character must be at least base";
+	mes "level "+@rlv+" to use the bank, there is a "+@fee+" zeny fee each withdrawl, and"; 
+	mes "there is a one time fee of "+@regfee+" zeny to open an account.";
+	next;
+	goto MainMenu;
+	
+	Open:
+	if (#bankreg==1) goto HaveAcc;
+	mes "[Kafra]";
+	mes "In order to use the banking service you must register for a bank account.";
+	mes "This will cost "+@regfee+" zeny. Are you sure you want to open an account?";
+	next;
+	menu "Yes",O_R,"No",MainMenu;
+	
+	O_R:
+	if (zeny<@regfee) goto NoZeny;
+	set zeny,zeny-@regfee;
+	set #bankreg,1;
+	mes "[Kafra]";
+	mes "Thank you for registering at the Kafra Bank.";
+	next;
+	mes "[Kafra]";
+	mes "You may use your bank account anytime from any character, as long as";
+	mes "they meet the requirements and you can pay the fee.";
+	next;
+	goto MainMenu;
+	
+	NoZeny:
+	mes "[Kafra]";
+	mes "You do not have enough zeny to do that.";
+	next;
+	goto MainMenu;
+
+	NoZeny2:
+	mes "[Kafra]";
+	mes "You do not have enough zeny in your account to do that.";
+	next;
+	goto MainMenu;
+	
+	Error:
+	mes "[Kafra]";
+	mes "You cannot do that.";
+	next;
+	goto MainMenu;
+	
+	TooLow:
+	mes "[Kafra]";
+	mes "I am sorry, but you need ^0000FFBasic Skill^000000 Level 9 to use the bank.";
+	return;
+	
+	NotReg:
+	mes "[Kafra]";
+	mes "I am sorry but you must open an account before you can use";
+	mes "the kafra bank.";
+	next;
+	goto MainMenu;
+
+	HaveAcc:
+	mes "[Kafra]";
+	mes "You already registered for an account!";
+	mes "You dont need another.";
+	next;
+	goto MainMenu;
+	
+	TY:
+	mes "[Kafra]";
+	mes "Thank you for using the Kafra Bank.";
+	return;
+}

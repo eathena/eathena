@@ -1,0 +1,43 @@
+//===== eAthena Script =======================================
+//= Hugel Field Monster Spawn Script
+//===== By: ==================================================
+//= Athena (1.0)
+//===== Current Version: =====================================
+//= 0.1
+//===== Compatible With: =====================================
+//= Any Athena Version
+//===== Additional Comments: =================================
+//= Spawns for hu_fild05 and hu_fild04, numbers may not be correct [MasterOfMuppets]
+//============================================================
+
+//yuno_fild06
+yuno_fild06.gat,0,0,0,0	monster	Rafflesia	1162,30,0,0,0
+yuno_fild06.gat,0,0,0,0	monster	Beetle	1494,20,0,0,0
+yuno_fild06.gat,0,0,0,0	monster	Sky Petit	1156,20,0,0,0
+yuno_fild06.gat,0,0,0,0	monster	Petit	1992,20,0,0,0
+
+//hu_fild01
+hu_fild01.gat,0,0,0,0	monster	Gremlin	1632,25,0,0,0
+hu_fild01.gat,0,0,0,0	monster	Beholder	1633,25,0,0,0
+
+//(hu_fild05.gat)
+hu_fild05.gat,0,0,0,0	monster	Sky Petit	1156,10,60000,30000,0
+hu_fild05.gat,0,0,0,0	monster	Sky Deleter	1384,30,120000,60000,0
+hu_fild05.gat,0,0,0,0	monster	Petit	1992,10,60000,30000,0
+hu_fild05.gat,0,0,0,0	monster	Earth Deleter	1385,10,120000,60000,0
+hu_fild05.gat,0,0,0,0	monster	Earth Deleter	1385,30,0,0,0
+hu_fild05.gat,0,0,0,0	monster	Mutant Dragonoid	1262,1,7200000,3600000,0
+
+//(hu_fild04.gat)
+hu_fild04.gat,0,0,0,0	monster	Sky Petit	1156,10,60000,30000,0
+hu_fild04.gat,0,0,0,0	monster	Sky Deleter	1384,30,120000,60000,0
+hu_fild04.gat,0,0,0,0	monster	Petit	1992,10,60000,30000,0
+hu_fild04.gat,0,0,0,0	monster	Earth Deleter	1385,10,120000,60000,0
+hu_fild04.gat,0,0,0,0	monster	Earth Deleter	1385,30,0,0,0
+hu_fild04.gat,0,0,0,0	monster	Red Plant	1078,10,180000,90000,0
+
+//hu_fild07
+hu_fild07.gat,0,0,0,0	monster	Beholder	1633,20,0,0,0
+hu_fild07.gat,0,0,0,0	monster	Gargoyle	1253,20,0,0,0
+hu_fild07.gat,0,0,0,0	monster	Sky Petit	1156,20,0,0,0
+hu_fild07.gat,0,0,0,0	monster	Dustiness	1114,20,0,0,0
