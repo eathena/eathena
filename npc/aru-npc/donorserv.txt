@@ -1,0 +1,109 @@
+prt_in.gat,38,103,6	script	Donor Services::DSFace	836,{
+	callfunc "F_DonorServ";
+	OnInit:
+		disablenpc "DSFace";
+}
+
+prt_in.gat,38,103,2	script	Donor Services::DSRest	836,{
+	callfunc "F_DonorServ";
+}
+
+function	script	F_DonorServ	{
+	disablenpc "DSRest";
+	enablenpc "DSFace";
+	cutin "kafra_09",2;
+	mes "[Kafra]";
+	mes "I can exchange your ^0000FFdonor points^000000 (^00FF00DP^000000) for items.";
+	next;
+
+M_Exchange:
+	mes "[Kafra]";
+	mes "You have ^0000FF"+#PC_DONOR_POINT+"^000000 points, what would you like?";
+	mes "More prizes may be added later.";
+	next;
+	menu "1 DP - 100 Aloe Leaflet",L_Aloe,
+		"2 DP - Old Blue Box",L_OBB,
+		"5 DP - Old Purple Box",L_OPB,
+		"10 DP - Old Card Album",L_OCA,
+		"25 DP - Prize Bag",L_Bag,
+		"100 DP - Valkyrie Helm",L_Valk,
+		"-done-",L_End;
+
+L_Done:
+	mes "[Kafra]";
+	mes "There you go.";
+	next;
+	if(#PC_DONOR_POINT>0) goto M_Exchange;
+	mes "[Kafra]";
+	mes "You have now used up your donor points.";
+	goto L_End;
+
+L_Low:
+	mes "[Kafra]";
+	mes "You don't have enough points.";
+	goto L_End;
+
+L_End:
+	cutin "kafra_09",255;
+	disablenpc "DSFace";
+	enablenpc "DSRest";
+	close;
+
+L_Aloe:
+	if(#PC_DONOR_POINT < 1) goto L_Low;
+	getitem 521,100;
+	set #PC_DONOR_POINT, #PC_DONOR_POINT-1;
+	set #PC_DONOR_USED, #PC_DONOR_USED+1;
+	goto L_Done;
+
+L_OBB:
+	if(#PC_DONOR_POINT < 2) goto L_Low;
+	getitem 603,1;
+	set #PC_DONOR_POINT, #PC_DONOR_POINT-2;
+	set #PC_DONOR_USED, #PC_DONOR_USED+2;
+	goto L_Done;
+
+L_OPB:
+	if(#PC_DONOR_POINT < 5) goto L_Low;
+	getitem 617,1;
+	set #PC_DONOR_POINT, #PC_DONOR_POINT-5;
+	set #PC_DONOR_USED, #PC_DONOR_USED+5;
+	goto L_Done;
+
+L_OCA:
+	if(#PC_DONOR_POINT < 10) goto L_Low;
+	getitem 616,1;
+	set #PC_DONOR_POINT, #PC_DONOR_POINT-10;
+	set #PC_DONOR_USED, #PC_DONOR_USED+10;
+	goto L_Done;
+
+L_Bag:
+	if(#PC_DONOR_POINT < 25) goto L_Low;
+	getitem 11500,1;
+	set #PC_DONOR_POINT, #PC_DONOR_POINT-25;
+	set #PC_DONOR_USED, #PC_DONOR_USED+25;
+	goto L_Done;
+
+L_Valk:
+	mes "[Kafra]";
+	mes "Here's its stats:";
+	mes "Helm of the valkryie.";
+	mes "+2 to all stats.";
+	mes "Cannot be damaged or stripped.";
+	mes "Equipped On : ^777777Upper^000000";
+	mes "Defence Rate : ^7777776^000000";
+	mes "Required lvl : ^777777NA^000000";
+	mes "Available Job : ^777777Every Job^000000";
+	mes "Weight : ^77777710^000000";
+	next;
+	mes "[Kafra]";
+	mes "You sure you want it?";
+	next;
+	menu "Yes",-,
+		"No",M_Exchange;
+	if(#PC_DONOR_POINT < 100) goto L_Low;
+        getitem2 8007,1,1,0,0,255,0,getcharid(0),2;
+	set #PC_DONOR_POINT, #PC_DONOR_POINT-100;
+	set #PC_DONOR_USED, #PC_DONOR_USED+100;
+	goto L_Done;
+}

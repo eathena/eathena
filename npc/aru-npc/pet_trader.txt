@@ -1,0 +1,331 @@
+// Prontera Master pet trader by Aru
+
+prontera.gat,220,209,3	script	Pet Master	702,{
+	mes "[Pet Master]";
+	mes "How can I help you?";
+	next;
+	menu "Trade for taming item",P_Tame,
+		"Trade for pet accessory",P_Armor,
+		"Pet care information",P_Care,
+		"Nothing, nevermind",P_NiceDay;
+	close;
+
+	P_NiceDay:
+		mes "[Pet Master]";
+		mes "Well then have a nice day.";
+		close;
+
+//	P_Buy:
+//		mes "[Pet Master]";
+//		mes "I believe a dealer somewhere east of the fountain sells incubators, pet food, and basic accessories.";
+//		close;
+
+	P_Lacking:
+		mes "[Pet Master]";
+		mes "I'm sorry, but you don't seem to have what I need.";
+		close;
+
+	P_Care:
+		menu "How to capture",P_Capture,"How to raise",P_Raise,"What to feed",P_Feed,"Nevermind",P_NiceDay;
+		close;
+
+		P_Capture:
+			mes "[Pet Master]";
+			mes "To capture a pet, simply use your taming item on the appropriate wild creature.";
+			mes "For the best chance of success, reduce the wild creature's health as much as possible before using your taming item.";
+			mes "If you are successful, you will get an egg, which you can hatch using a pet incubator.";
+			mes "Anything else you need to know?";
+			next;
+			goto P_Care;
+			close;
+	
+		P_Raise:
+			mes "[Pet Master]";
+			mes "When you first capture a pet, it will have little loyalty to you.";
+			mes "Be sure to feed it right away. Use ^00FF00Alt+J^000000 to open the pet status window and check its hunger.";
+			mes "From the status window you can also have your pet do tricks, remove its accessory, or return it to an egg.";
+			next;
+			mes "[Pet Master]";
+			mes "If you continue to feed your pet when it becomes hungry, or when its hunger is normal, it will become more loyal to you.";
+			mes "If you let it go hungry, overfeed it, or if it sees you perish in battle, hovever, your pet will lose loyalty to you.";
+			next;
+			mes "[Pet Master]";
+			mes "Once your pet has reached the highest level of loyalty, it will both talk to you and fight for you!";
+			mes "Anything else you need to know?";
+			next;
+			goto P_Care;
+			close;
+
+		P_Feed:
+			mes "[Pet Master]";
+			mes "Here are the appropriate foods for each pet:";
+			next;
+			mes "[Pet Master]";
+			mes "Poring - ^FF0000Apple Juice^000000";
+			mes "Drops - ^0000FFYellow Herb^000000";
+			mes "Poporing - ^0000FFGreen Herb^000000";
+			mes "Lunatic - ^FF0000Carrot Juice^000000";
+			mes "Steel Chonchon - ^0000FFIron Ore^000000";
+			mes "Hunter Fly - ^0000FFRed Gemstone^000000";
+			mes "Picky - ^0000FFRed Herb^000000";
+			mes "Yoyo - ^FF0000Banana Juice^000000";
+			mes "Baphomet Jr. - ^0000FFHoney^000000";
+			mes "Deviruchi - ^0000FFShoot^000000";
+			next;
+			mes "[Pet Master]";
+			mes "Chonchon, Savage Babe, Rocker, Smokie, Pecopeco, Spore, Poison Spore, Desert Wolf Puppy, Isis, Munak, Bongun, Sohee, Dokebi, Orc Warrior and Petite - ^00FF00Pet Food^000000";
+			next;
+			mes "[Pet Master]";
+			mes "Anything else you need to know?";
+			next;
+			goto P_Care;
+			close;
+
+	P_Tame:
+		mes "[Pet Master]";
+		mes "What pet would you like to tame?";
+		next;
+		menu "Rocker",T_Rocker,
+			"Munak",T_Munak,
+			"Bongun",T_Bongun,
+			"Hunter Fly",T_Fly,
+			"Orc Warrior",T_Orc,
+			"Baphomet Jr.",T_BaphoJr,
+			"something else",T_DontHave;
+		close;
+
+		T_DontHave:
+			mes "[Pet Master]";
+			mes "I know that there are other animals that can be tamed. However, I don't have the taming items for them.";
+			close;
+
+		T_Rocker:
+			mes "[Pet Master]";
+			mes "Rockers can be tamed with a ^0000FFSinging Flower^000000, the bloom of the ^00FF00Singing Plant^000000.";
+			mes "If you have a ^00FF00Singing Plant^000000, I can produce a flower from it.";
+			next;
+			menu "Trade",T_Rocker2,"Tame something else",P_Tame,"Nevermind",P_NiceDay;
+			close;
+	
+			T_Rocker2:
+				if(countitem(707) < 1) goto P_Lacking;
+				delitem 707,1;
+				getitem 629,1;
+				mes "[Pet Master]";
+				mes "Here you go, ^0000FF1 Singing Flower^000000.";
+				close;
+
+		T_Munak:
+			mes "[Pet Master]";
+			mes "A munak may be tamed by her lover's undelivered letter, ^0000FFNo Recipient^000000.";
+			mes "To get one, I must have an ^00FF00Old Portrait^000000 of her. Do you have one?";
+			next;
+			menu "Trade",T_Munak2,"Tame something else",P_Tame,"Nevermind",P_NiceDay;
+			close;
+
+			T_Munak2:
+				if(countitem(7014) < 1) goto P_Lacking;
+				delitem 7014,1;
+				getitem 636,1;
+				mes "[Pet Master]";
+				mes "Here you are, a ^0000FFNo Recipient^000000.";
+				close;
+
+		T_Bongun:
+			mes "[Pet Master]";
+			mes "To make the ^0000FFBlue Diary^000000 which can tame a bongun, I need his lover's diary, and a some locks of her hair.";
+			mes "Do you have a ^00FF00Girl's Diary^000000 and 5 ^00FF00Daenggie^000000?";
+			next;
+			menu "Trade",T_Bongun2,"Tame something else",P_Tame,"Nevermind",P_NiceDay;
+			close;
+
+			T_Bongun2:
+				if(countitem(1558) < 1) goto P_Lacking;
+				if(countitem(901) < 5) goto P_Lacking;
+				delitem 1558,1;
+				delitem 901,5;
+				getitem 659,1;
+				mes "[Pet Master]";
+				mes "There you go, a ^0000FFBlue Diary^000000.";
+				close;
+
+		T_Fly:
+			mes "[Pet Master]";
+			mes "To make the foul-smelling ^0000FFMonster Juice^000000 that attracts Hunter Flies, you need ^00FF00Animal Gore^000000, and 2 ^00FF00Apples^000000.";
+			next;
+			menu "Trade",T_Fly2,"Tame something else",P_Tame,"Nevermind",P_NiceDay;
+			close;
+
+			T_Fly2:
+				if(countitem(702) < 1) goto P_Lacking;
+				if(countitem(512) < 2) goto P_Lacking;
+				delitem 702,1;
+				delitem 512,2;
+				getitem 626,1;
+				mes "[Pet Master]";
+				mes "Uuugh, ^0000FFMonster Juice^000000. Take it. Quick! Dear god, that smell!";
+				close;
+
+		T_Orc:
+			mes "[Pet Master]";
+			mes "To make the ^0000FFHorror of Tribe^000000, which commands an Orc Warior's obedience, you need a ^00FF00Chivalry Emblem^000000 and a ^00FF00Scorpion Tail^000000.";
+			next;
+			menu "Trade",T_Orc2,"Tame something else",P_Tame,"Nevermind",P_NiceDay;
+			close;
+
+			T_Orc2:
+				if(countitem(1004) < 1) goto P_Lacking;
+				if(countitem(904) < 1) goto P_Lacking;
+				delitem 1004,1;
+				delitem 904,1;
+				getitem 635,1;
+				mes "[Pet Master]";
+				mes "This ^0000FFHorror of Tribe^000000 is now yours.";
+				close;
+
+		T_BaphoJr:
+			mes "[Pet Master]";
+			mes "The ^0000FFBook of Devil^000000 is a powerful tome which binds a demon to you as a familiar.";
+			mes "To create this book, you must have an ^00FF00Old Magic Book^000000 and 2 ^00FF00Horrendous Mouths^000000.";
+			next;
+			menu "Trade",T_Bapho2,"Tame something else",P_Tame,"Nevermind",P_NiceDay;
+			close;
+
+			T_Bapho2:
+				if(countitem(1006) < 1) goto P_Lacking;
+				if(countitem(958) < 2) goto P_Lacking;
+				delitem 1006,1;
+				delitem 958,2;
+				getitem 642,1;
+				mes "[Pet Master]";
+				mes "Here's your ^0000FFBook of Devil^000000. Be careful with it.";
+				close;
+
+	P_Armor:
+		mes "[Pet Master]";
+		mes "What kind of pet do you want to equip?";
+		next;
+		menu "Poring, Drops or Poporing",A_NotHere,
+			"Rocker",A_NotHere,
+			"Lunatic",A_SilkRibbon,
+			"(Steel) Chonchon or Hunter Fly",A_OxyMask,
+			"Picky",A_EggShell,
+			"Petit",A_Stellar,
+			"Orc Warrior",A_WildFlower,
+			"Baphomet Jr.",A_SkullHelm,
+			"something else",A_DontHave;
+
+		A_NotHere:
+			mes "[Pet Master]";
+			mes "I don't have ^0000FFBackpacks^000000 or ^0000FFRocker Glasses^000000, but I believe the merchant next to me does.";
+			close;
+
+		A_DontHave:
+			mes "[Pet Master]";
+			mes "I know there are accessories for other pets, but those are the only ones I have the accessories for.";
+			close;
+
+		A_SilkRibbon:
+			mes "[Pet Master]";
+			mes "To make a Lunatic's ^0000FFSilk Ribbon^000000, I need a ^00FF00Slotted Ribbon^000000.";
+			next;
+			menu "Trade",A_SilkRibbon2,"Cancel",P_NiceDay;
+			close;
+
+			A_SilkRibbon2:
+				if(countitem(2209) < 1) goto R_CheckUnslot;
+				delitem 2209,1;
+				getitem 10007,1;
+				mes "[Pet Master]";
+				mes "There you are, a ^0000FFSilk Ribbon^000000 for your Lunatic.";
+				close;
+
+			R_CheckUnslot:
+				if(countitem(2208) < 1) goto P_Lacking;
+				mes "[Pet Master]";
+				mes "I need a slotted ^00FF00Ribbon^000000, I'm afraid yours isn't slotted.";
+				close;
+
+		A_OxyMask:
+			mes "[Pet Master]";
+			mes "To make a ^0000FFMonster Oxygen Mask^000000 for your pet fly, I'll need a ^00FF00Gas Mask^000000 or an ^00FF00Oxygen Mask^000000.";
+			next;
+			menu "Trade Gas Mask",A_OxyMask2,"Trade Oxygen Mask",A_OxyMask3,"Cancel",P_NiceDay;
+			close;
+
+			A_OxyMask2:
+				if(countitem(5005) < 1) goto P_Lacking;
+				delitem 5005,1;
+				goto Got_OxyMask;
+				close;
+
+			A_OxyMask3:
+				if(countitem(5004) < 1) goto P_Lacking;
+				delitem 5004,1;
+			Got_OxyMask:
+				getitem 10002,1;
+				mes "[Pet Master]";
+				mes "Here you are, one ^0000FFMonster Oxygen Mask^000000.";
+				close;
+
+		A_EggShell:
+			mes "[Pet Master]";
+			mes "I need one ^00FF00Egg Shell^000000 to make a ^0000FFTiny Egg Shell^000000 just the right size for a Picky.";
+			next;
+			menu "Trade",A_EggShell2,"Cancel",P_NiceDay;
+
+			A_EggShell2:
+				if(countitem(5015) < 1) goto P_Lacking;
+				delitem 5015,1;
+				getitem 10012,1;
+				mes "[Pet Master]";
+				mes "Here, a ^0000FFTiny Egg Shell^000000 for your adorable little picky.";
+				close;
+
+		A_Stellar:
+			mes "[Pet Master]";
+			mes "To make a ^0000FFStellar Hairpin^000000 for your Petit, I need a ^00FF00Stellar^000000.";
+			next;
+			menu "Trade",A_Stellar2,"Cancel",P_NiceDay;
+			close;
+
+			A_Stellar2:
+				if(countitem(2294) < 1) goto P_Lacking;
+				delitem 2294,1;
+				getitem 10011,1;
+				mes "[Pet Master]";
+				mes "There you are, a ^0000FFStellar Haripin^000000, perfect adormnent for a petit.";
+				close;
+
+		A_WildFlower:
+			mes "[Pet Master]";
+			mes "As strange as it may seem, Orc Warriors prefer to decorate their helmets with ^0000FFWild Flowers^000000.";
+			mes "If you get me a ^00FF00Fancy Flower^000000, I'll trade you my ^0000FFWild Flower^000000 for it.";
+			next;
+			menu "Trade",A_Flower2,"Cancel",P_NiceDay;
+			close;
+
+			A_Flower2:
+				if(countitem(2207) < 1) goto P_Lacking;
+				delitem 2207,1;
+				getitem 10009,1;
+				mes "[Pet Master]";
+				mes "A pretty ^0000FFWild Flower^000000, loved by humans and orcs alike.";
+				close;
+
+		A_SkullHelm:
+			mes "[Pet Master]";
+			mes "To make a ^0000FFSkull Helm^000000 for one of those creepy litle things, you need a ^00FF00Bone Helm^000000.";
+			next;
+			menu "Trade",A_SkullHelm2,"Cancel",P_NiceDay;
+			close;
+
+			A_SkullHelm2:
+				if(countitem(5017) < 1) goto P_Lacking;
+				delitem 5017,1;
+				getitem 10001,1;
+				mes "[Pet Master]";
+				mes "Here, take it. It gives me the creeps.";
+				close;
+
+}

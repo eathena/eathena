@@ -1,0 +1,270 @@
+prontera.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+alberta.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+alde_dun01.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+alde_dun02.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+alde_dun03.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+alde_dun04.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+aldebaran.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+anthell01.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+anthell02.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+c_tower1.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+c_tower2.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+c_tower3.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+c_tower4.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+gef_dun00.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+gef_dun01.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+gef_dun02.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+gef_dun03.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+gef_fild00.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+gef_fild01.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+gef_fild02.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+gef_fild03.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+gef_fild04.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+gef_fild05.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+gef_fild06.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+gef_fild07.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+gef_fild08.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+gef_fild09.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+gef_fild10.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+gef_fild11.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+geffen.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+gl_cas01.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+gl_cas02.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+gl_church.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+gl_chyard.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+gl_dun01.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+gl_dun02.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+gl_knt01.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+gl_knt02.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+gl_prison.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+gl_prison1.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+gl_sew01.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+gl_sew02.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+gl_sew03.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+gl_sew04.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+gl_step.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+glast_01.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+in_sphinx1.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+in_sphinx2.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+in_sphinx3.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+in_sphinx4.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+in_sphinx5.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+iz_dun00.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+iz_dun01.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+iz_dun02.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+iz_dun03.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+iz_dun04.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+izlu2dun.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+izlude.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+mjo_dun01.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+mjo_dun02.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+mjo_dun03.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+mjolnir_01.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+mjolnir_02.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+mjolnir_03.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+mjolnir_04.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+mjolnir_05.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+mjolnir_06.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+mjolnir_07.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+mjolnir_08.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+mjolnir_09.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+mjolnir_10.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+mjolnir_11.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+mjolnir_12.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+moc_castle.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+moc_fild01.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+moc_fild02.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+moc_fild03.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+moc_fild04.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+moc_fild05.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+moc_fild06.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+moc_fild07.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+moc_fild08.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+moc_fild09.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+moc_fild10.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+moc_fild11.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+moc_fild12.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+moc_fild13.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+moc_fild14.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+moc_fild15.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+moc_fild16.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+moc_fild17.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+moc_fild18.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+moc_fild19.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+moc_pryd01.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+moc_pryd02.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+moc_pryd03.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+moc_pryd04.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+moc_pryd05.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+moc_pryd06.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+moc_prydb1.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+moc_ruins.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+morocc.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+orcsdun01.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+orcsdun02.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+pay_dun00.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+pay_dun01.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+pay_dun02.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+pay_dun03.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+pay_dun04.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+pay_fild01.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+pay_fild02.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+pay_fild03.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+pay_fild04.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+pay_fild05.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+pay_fild06.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+pay_fild07.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+pay_fild08.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+pay_fild09.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+pay_fild10.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+pay_fild11.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+payon.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+pay_arche.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+prt_fild00.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+prt_fild01.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+prt_fild02.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+prt_fild03.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+prt_fild04.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+prt_fild05.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+prt_fild06.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+prt_fild07.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+prt_fild08.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+prt_fild09.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+prt_fild10.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+prt_fild11.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+prt_maze01.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+prt_maze02.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+prt_maze03.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+prt_monk.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+prt_sewb1.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+prt_sewb2.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+prt_sewb3.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+prt_sewb4.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+pvp_y_5-1.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+treasure01.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+treasure02.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+xmas.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+xmas_dun01.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+xmas_dun02.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+xmas_fild01.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+beach_dun.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+beach_dun2.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+beach_dun3.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+cmd_fild01.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+cmd_fild02.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+cmd_fild03.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+cmd_fild04.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+cmd_fild05.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+cmd_fild06.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+cmd_fild07.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+cmd_fild08.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+cmd_fild09.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+comodo.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+gef_fild12.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+gef_fild13.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+gef_fild14.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+tur_dun01.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+tur_dun02.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+tur_dun03.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+tur_dun04.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+tur_dun05.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+tur_dun06.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+prt_gld.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+mag_dun01.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+mag_dun02.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+yuno.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+yuno_fild01.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+yuno_fild02.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+yuno_fild03.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+yuno_fild04.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+ama_dun01.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+ama_dun02.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+ama_dun03.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+ama_fild01.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+amatsu.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+gon_dun01.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+gon_dun02.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+gon_dun03.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+gon_fild01.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+gonryun.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+umbala.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+um_dun01.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+um_dun02.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+um_fild01.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+um_fild02.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+um_fild03.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+um_fild04.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+niflheim.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+nif_fild01.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+nif_fild02.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+yggdrasil01.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+lou_dun03.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+lou_dun02.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+lou_dun01.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+lou_fild01.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+louyang.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+jawaii.gat,0,0,0,0	monster	Christmas Poring	1925,1,0,0,0
+
+function	script	f_giftbox1	{
+	if(#gifts < 2) goto Gift_Rare;
+	set @wealth,zeny+#ZenyBank;
+	set @mil,@wealth/1000000;
+	set @mil,@mil+#gifts;
+	set @xmas_r,rand(1,200);
+	if(@xmas_r>@mil) goto Gift_Good;
+	getitem 1003,1;
+	end;
+
+	Gift_Good:
+		getitem -4,1;
+		set #gifts, #gifts+1;
+		end;
+
+	Gift_Rare:
+		getitem -5,1;
+		set #gifts, #gifts+1;
+		end;
+}
+
+function	script	f_giftbox2	{
+	if(#gifts < 2) goto Gift_Rare;
+	set @wealth,zeny+#ZenyBank;
+	set @mil,@wealth/1000000;
+	set @mil,@mil+#gifts;
+	set @xmas_r,rand(1,200);
+	if(@xmas_r>@mil) goto Gift_Good;
+	getitem 1003,1;
+	end;
+
+	Gift_Good:
+		getitem -1,1;
+		set #gifts, #gifts+2;
+		end;
+
+	Gift_Rare:
+		getitem -5,1;
+		set #gifts, #gifts+1;
+		end;
+}
+
+function	script	f_giftbox3	{
+	if(#gifts < 2) goto Gift_Rare;
+	set @wealth,zeny+#ZenyBank;
+	set @mil,@wealth/1000000;
+	set @mil,@mil+#gifts;
+	set @xmas_r,rand(1,200);
+	if(@xmas_r>@mil) goto Gift_Good;
+	getitem 1003,1;
+	end;
+
+	Gift_Good:
+		getitem -2,1;
+		set #gifts, #gifts+3;
+		end;
+		
+	Gift_Rare:
+		getitem -5,1;
+		set #gifts, #gifts+1;
+		end;
+}
+

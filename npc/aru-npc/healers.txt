@@ -1,0 +1,15 @@
+prontera.gat,147,175,5	script	Shaman::healer	784,{
+	mes "[Shaman]";
+	heal 30000, 30000;
+	set @heal_mes,rand(1,5);
+	if (@heal_mes == 1) mes "I wish you good health.";
+	if (@heal_mes == 2) mes "Be healed, brave one.";
+	if (@heal_mes == 3) mes "Health and long life upon you.";
+	if (@heal_mes == 4) mes "There, I have healed you.";
+	if (@heal_mes == 5) mes "Be healed and take care.";
+	close;
+}
+
+payon.gat,179,112,3	duplicate(healer)	Shaman	783
+aldebaran.gat,136,119,5	duplicate(healer)	Shaman	782
+geffen.gat,117,107,5	duplicate(healer)	Shaman	788

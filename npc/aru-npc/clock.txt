@@ -1,0 +1,109 @@
+- script Server Clock -1,{
+	end;
+
+OnClock0000:
+	Announce "Current Time: Midnight",0;
+	Break;
+
+OnClock0100:
+	Announce "Current Time: 1 AM",0;
+	Break;
+
+OnClock0200:
+	Announce "Current Time: 2 AM",0;
+	Break;
+
+OnClock0300:
+	Announce "Current Time: 3 AM",0;
+	Break;
+
+OnClock0400:
+	Announce "Current Time: 4 AM",0;
+	Break;
+
+OnClock0500:
+	Announce "Current Time: 5 AM",0;
+	Break;
+
+OnClock0600:
+	Announce "Current Time: 6 AM",0;
+	Break;
+
+OnClock0700:
+	Announce "Current Time: 7 AM",0;
+	Break;
+
+OnClock0800:
+	Announce "Current Time: 8 AM",0;
+	Break;
+
+OnClock0900:
+	Announce "Current Time: 9 AM",0;
+	Break;
+
+OnClock1000:
+	Announce "Current Time: 10 AM",0;
+	Break;
+
+OnClock1100:
+	Announce "Current Time: 11 AM",0;
+	Break;
+
+OnClock1200:
+	Announce "Current Time: Noon",0;
+	Break;
+
+OnClock1300:
+	Announce "Current Time: 1 PM",0;
+	Break;
+
+OnClock1400:
+	Announce "Current Time: 2 PM",0;
+	Break;
+
+OnClock1500:
+	Announce "Current Time: 3 PM",0;
+	if(GetTime(4)==6) AgitStart;
+	Break;
+
+OnClock1600:
+	Announce "Current Time: 4 PM",0;
+	Break;
+
+OnClock1630:
+	if(GetTime(4)==6) AgitEnd;
+	Break;
+
+OnClock1700:
+	Announce "Current Time: 5 PM",0;
+	Break;
+
+OnClock1800:
+	Announce "Current Time: 6 PM",0;
+	Break;
+
+OnClock1900:
+	Announce "Current Time: 7 PM",0;
+	Break;
+
+OnClock2000:
+	Announce "Current Time: 8 PM",0;
+	if(GetTime(4)==2) AgitStart;
+	Break;
+
+OnClock2100:
+	Announce "Current Time: 9 PM",0;
+	Break;
+
+OnClock2130:
+	if(GetTime(4)==2) AgitEnd;
+	Break;
+
+OnClock2200:
+	Announce "Current Time: 10 PM",0;
+	Break;
+
+OnClock2300:
+	Announce "Current Time: 11 PM",0;
+	Break;
+}

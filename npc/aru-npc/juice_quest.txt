@@ -1,0 +1,252 @@
+payon_in01.gat,5,48,6	script	Marx Hansen	86,{
+	if(mother_marienu==1) goto FJL0;
+	mes "[Merchant Marx Hansen]";
+	mes "Welcome to my shop. What brings you here?";
+	next;
+	menu "Conversation",L0,"I am just looking around",L1;
+		
+	L0:
+		mes "[Merchant Marx Hansen]";
+		mes "Before the world civilized, there was nothing but fruits for food to human-begin.";
+		mes "Everyone had to take fruit for surviving, otherwise all must've been dead for hunger.";
+		mes "In that age, everybody thanked Mother Nature for provinding food for free.";
+		next;
+		mes "[Merchant Marx Hansen]";
+		mes "Nowadays as everything is getting flooded enough in the world, young people doesn't seem to enjoy fruits like the past.";
+		mes "So I wanted to let them realise how much fruits are good for thier health";
+		mes "And I figured out when we grind fruits to make them into liquid ones, they become more digestive and more tasty.";
+		close;
+	L1:
+		mes "[Merchant Marx Hansen]";
+		mes "Hello, there. Come to the point at once.";
+		close;
+
+	FJL0:
+		mes "[Merchant Marx Hansen]";
+		mes "Welcome to my shop. Did you come here to process fruit like the rest?";
+		next;
+		menu "Yes, I did.",FJL00,"Please let me know the requirements.",FJL01,"No, I didn't.",FJL02;
+		
+		FJL00:
+			mes "[Merchant Marx Hansen]";
+			mes "So what kind of fruit juice would you like to process?";
+			next;
+			menu "Apple Juice",L_Apple,"Banana Juice",L_Banana,"Carrot Juice",L_Carrot,"Grape Juice",L_Grape,"Nope, I'm fine.",LEnd;
+		LEnd:
+			mes "[Merchant Marx Hansen]";
+			mes "Oh well... see you next time.";
+			close;
+		L_Apple:
+			mes "[Merchant Marx Hansen]";
+			mes "How many bottles do you want?";
+			mes "Each bottle of juice requires ^0000FF1 apple^000000, ^0000FF1 empty bottle^000000, and a fee of ^0000FF3 zeny^000000.";
+			next;
+			input @input;
+			if(@input==0) goto LEnd;
+			if(countitem(512)<@input) goto L_No_Fruit;
+			if(countitem(713)<@input) goto L_No_Bottles;
+			if(zeny<3*@input) goto L_No_Money;
+			delitem 512,@input;
+			delitem 713,@input;
+			set Zeny,zeny-3*@input;
+			getitem 531,@input;
+			mes "[Merchant Marx Hansen]";
+			mes "Here you are, fresh apple juice.";
+			close;
+		L_Banana:
+			mes "[Merchant Marx Hansen]";
+			mes "How many bottles would you like?";
+			mes "I need ^0000FF1 banana^000000, ^0000FF1 empty bottle^000000, and a fee of ^0000FF3 zeny^000000 for each bottle of juice.";
+			next;
+			input @input;
+			if(@input==0) goto LEnd;
+			if(countitem(513)<@input) goto L_No_Fruit;
+			if(countitem(713)<@input) goto L_No_Bottles;
+			if(zeny<3*@input) goto L_No_Money;
+			delitem 513,@input;
+			delitem 713,@input;
+			set Zeny,zeny-3*@input;
+			getitem 532,@input;
+			mes "[Merchant Marx Hansen]";
+			mes "Here you are, refreshing banana juice.";
+			close;
+		L_Carrot:
+			mes "[Merchant Marx Hansen]";
+			if(sex==1) goto L_Carrot_Male;
+			mes "Many people dislike the taste of carrot juice, but it's extremely nutritious. I'm glad to meet someone who takes an interest in her health.";
+			goto L_Carrot_Quan;
+		L_Carrot_Male:
+			mes "Many people dislike the taste of carrot juice, but it's extremely nutritious. I'm glad to meet someone who takes an interest in his health.";
+		L_Carrot_Quan:
+			next;
+			mes "[Merchant Marx Hansen]";
+			mes "Anyway, how many bottles should I make?";
+			mes "You need ^0000FF1 carrot^000000, ^0000FF1 empty bottle^000000, and a fee of ^0000FF3 zeny^000000 per bottle.";
+			next;
+			input @input;
+			if(@input==0) goto LEnd;
+			if(countitem(515)<@input) goto L_No_Fruit;
+			if(countitem(713)<@input) goto L_No_Bottles;
+			if(zeny<3*@input) goto L_No_Money;
+			delitem 515,@input;
+			delitem 713,@input;
+			set Zeny,zeny-3*@input;
+			getitem 534,@input;
+			mes "[Merchant Marx Hansen]";
+			mes "Here you are, vitamin-rich carrot juice.";
+			close;
+		L_Grape:
+			mes "[Merchant Marx Hansen]";
+			mes "How many bottles do you need?";
+			mes "For each bottle, I need ^0000FF1 grape^000000, ^0000FF1 empty bottle^000000, and a fee of^0000FF 3 zeny^000000.";
+			next;
+			input @input;
+			if(@input==0) goto LEnd;
+			if(countitem(514)<@input) goto L_No_Fruit;
+			if(countitem(713)<@input) goto L_No_Bottles;
+			if(zeny<3*@input) goto L_No_Money;
+			delitem 514,@input;
+			delitem 713,@input;
+			set Zeny,zeny-3*@input;
+			getitem 533,@input;
+			mes "[Merchant Marx Hansen]";
+			mes "Here you are, tasty grape juice.";
+			close;
+		L_No_Fruit:
+			mes "[Merchant Marx Hansen]";
+			mes "I'm sorry, but you don't have that many fruit.";
+			close;
+		L_No_Bottles:
+			mes "[Merchant Marx Hansen]";
+			mes "I'm afraid you don't have enough bottles to hold it. I can't let you drink it all here.";
+			close;
+		L_No_Money:
+			mes "[Merchant Marx Hansen]";
+			mes "You don't seem to have enough money to pay me. I'm afraid I don't do work on credit.";
+			close;
+		FJL01:
+			mes "[Merchant Marx Hansen]";
+			mes "Before the world civilized, there was nothing but fruits for food to human-begin.";
+			mes "Everyone had to take fruit for surviving, otherwise all must've been dead for hunger.";
+			mes "In that age, everybody thanked Mother Nature for provinding food for free.";
+			next;
+			mes "[Merchant Marx Hansen]";
+			mes "Nowadays as everything is getting flooded enough in the world, young people doesn't seem to enjoy fruits like the past.";
+			mes "So I wanted to let them realise how much fruits are good for thier health";
+			mes "And I figured out when we grind fruits to make them into liquid ones, they become more digestive and more tasty.";
+			next;
+			mes "# Fruit Juice Info #";
+			mes "Apple Juice - Apple x 1 ea, Empty Bottle x 1 ea, 3 zeny.";
+			mes "Banane Juice - Banana x 1 ea, Empty Bottle x 1 ea, 3 zeny.";
+			mes "Carrot Juice - Carrot x 1 ea, Empty Bottle x 1 ea, 3 zeny.";
+			mes "Grape Juice - Grape x 1 ea, Empty Bottle x 1 ea, 3 zeny.";
+			close;
+		FJL02:
+			goto L1;
+			close;
+}
+
+prt_in.gat,47,173,2	script	Morrison	97,{
+	if(morison_meat > 10) goto LeaveMe;
+	if(morison_meat==10) goto GetCandy;
+	mes "[Little Morrison]";
+	mes "Wahhhhh!!! Wahh... No I won't";
+	mes "I won't... eat Stupid gumballhead";
+	mes "Fruit things!!";
+	next;
+	if(countitem(517) < 1) goto NoMeat;
+	menu "Talk",YMTalk,"Show him meat",ShowMeat,"Cancel",Cancel;
+
+	YMTalk:
+		goto NMTalk;
+		close;
+	ShowMeat:
+		mes "[Little Morrison]";
+		mes "Oh! Meat... Meat!!!";
+		mes "Umm... Hungry... I am getting hungry again... this smell";
+		mes "Hmmmm... Umm... excuse me, could you give me some of those meat, Please?";
+		next;
+		menu "Give him",Give,"Ignore him",Ignore;
+		
+		Give:
+			delitem 517,1;
+			set morison_meat,1;
+			mes "[Little Morrison]";
+			mes "Whoah~!!! It's real Meat, Meat!";
+			mes "Wahhh It makes my mouth water.";
+			mes "Oh thank you. Now I feel safe. Yum Yum...";
+			close;
+		Ignore:
+			mes "[Little Morrison]";
+			mes "Boo...";
+			mes "Boo... Fine... Alright, Alright~!!! What a Great Adulthood you have!";
+			set mother_marienu,1;
+			close;
+	NoMeat:
+		menu "Talk",NMTalk,"Cancel",Cancel;
+
+		NMTalk:
+			mes "[Little Morrison]";
+			mes "Ahhhh!! It's enough!!! I can't eat Fruit Stuff any more!";
+			mes "And... They are... so sour on my taste, and have to peel before Eating... it is really annoying. Even felling bad they are sticky with water inside!!!";
+			mes "I hate them... Furthermore thye can't satisfy my tummy as full as I want.";
+			mes "Give me some more edible, I want Meat~";
+			close;
+		Cancel:
+			mes "[Little Morrison]";
+			mes "Wahhhhh!!! No matter how I try,I can't eat Vegetable and Fruit! They are disgusting!!";
+			close;
+	LeaveMe:
+		mes "[Little Morrison]";
+		mes "Poof... Leave me alone. Don't care about me. I am gonna die because of there stupid Veggies so Mind your own business";
+		close;
+	GetCandy:
+		mes "[Little Morrison]";
+		mes "Ah..I am full now.";
+		mes "You don't have to feed me any more. I think I am gonna burst up if i keep eating more.";
+		next;
+		mes "[Little Morrison]";
+		mes "And... um... Take this.";
+		mes "It is my Candies, I hide them for a secret to Mom. But you gave me some Meat, I will give you these." ;
+		getitem 529,3;
+		getitem 530,1;
+		close;
+}
+
+prt_in.gat,49,172,2	script	Marianne	53,{
+	if(mother_marienu==1) goto FruitLiquid;
+	if(morison_meat==1) goto DontFeedSon;
+	mes "[Housewife Marianne]";
+	mes "Morrison!! Please eat some fruit will ya? Fruit~!";
+	mes "*Sob*~!! Like father like son...";
+	next;
+	menu "Talk",Talk,"Cancel",Cancel;
+	
+	Talk:
+		mes "[Housewife Marianne]";
+		mes "Sigh... This is Morrison... My one and only son.";
+		mes "The stage thing is this kid doesn't want to eat Fruit for thesedays. Look at his face, it turns into bad...";
+		mes "All he wants to eat is Nothing but Meat... Gasp... I should feed himsome vegetable or fruit for Vitamin ingestion...";
+		close;
+	Cancel:
+		mes "[Housewife Marianne]";
+		mes "Morrison!! I will get mad at you if you keep doing this!";
+		close;
+	
+	DontFeedSon:
+		mes "[Housewife Marianne]";
+		mes "Oh my god!!... Oh my god...";
+		mes "Look what you've done!! Don't feed up my son strange things!";
+		mes "Arrrgh~~!! Get Lost right now!";
+		close;
+
+	FruitLiquid:
+		mes "[Housewife Marianne]";
+		mes "This kid doesn't want to eatanything except Meat...";
+		mes "What if I could make Fruits into Liquid... for example... Squashed one... Would my kid like it?";
+		next;
+		mes "[Housewife Marianne]";
+		mes "Ah! Now I recall a Town Towners eat fruits as Squashed ones.";
+		mes "... Was is... Payon... or Morroc...?";
+		close;
+}

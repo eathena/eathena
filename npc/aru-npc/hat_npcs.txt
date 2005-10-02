@@ -1,0 +1,370 @@
+// NPCs for newer headgears
+
+einbroch.gat,70,200,4	script	Ganya	852,{
+	set @npcname$,"Ganya";
+	if(Event_Rose > 0) goto L_Hat;
+	if(countitem(749) > 0) goto L_Rose;
+	mes "[Ganya]";
+	mes "I miss my homeland.";
+	mes " ";
+	mes "If only I had a ^0000FFFrozen Rose^000000 like we used to have.";
+	close;
+
+L_Rose:
+	mes "[Ganya]";
+	mes "Oh- !";
+	mes " ";
+	mes "That is a Frozen Rose like we used to have in our garden!";
+	next;
+	mes "[Ganya]";
+	mes "Can I please have it?";
+	next;
+	menu "Da",L_Rose2,"Nyet",-;
+	mes "[Ganya]";
+	mes "You are quite the heartless one.";
+	close;
+
+L_Rose2:
+	delitem 749,1;
+	set Event_Rose,1;
+L_Hat:
+	callfunc "F_Russian_Hat";
+	close;
+}
+
+lighthalzen.gat,360,310,4	script	Baby	4023,{
+	mes "OMG Haxor!";
+	close;
+}
+lighthalzen.gat,360,310,4	script	Baby	111,{
+	set @npcname$,"Baby";
+	if(Event_Jelly > 0) goto L_MakeHat;
+	mes "[Baby]";
+	mes "Wan jelly!";
+	if(countitem(526)>0) goto L_Jelly;
+	close;
+
+L_Jelly:
+	next;
+	menu "Give royal jelly",L_Jelly2,"Don't",L_Cry;
+	close;
+
+L_Jelly2:
+	delitem 526,1;
+	mes "[Baby]";
+	mes "Th-anke...";
+	set Event_Jelly,1;
+	emotion 43;
+	next;
+
+L_MakeHat:
+	callfunc "F_BabySuckle";
+
+L_Cry:
+	mes "[Baby]";
+	mes "Waaah!";
+	emotion 28;
+	close;
+}
+
+yuno.gat,246,51,4	script	Old Blacksmith	813,{
+	set @npcname$,"Old Blacksmith";
+	set @sexname$,"fair lady";
+	if(sex==1) set @sexname$,"good man";
+L_Menu:
+	mes "[Old Blacksmith]";
+	mes "Well then my "+@sexname$+"!";
+	mes "What can I do for you?";
+	next;
+	menu "Angel Ears",L_AngelEar,
+		"Demon Ears",L_Demon,
+		"Nothing, thanks",-;
+	
+	mes "[Old Blacksmith]";
+	mes "Fair yee well!";
+	close;
+
+	L_AngelEar:
+	callfunc "F_AngelEar";
+	goto L_Menu;
+
+	L_Demon:
+	callfunc "F_DemonEar";
+	goto L_Menu;	
+}
+
+yuno.gat,353,282,7	script	Neris	806,{
+	set @npcname$,"Neris";
+	mes "[Neris]";
+	mes "I'm a hatmaker specializing in headgears modeled after those worn by monsters.";
+	next;
+L_Menu:
+	mes "[Neris]";
+	mes "So what can I do for you?";
+	menu "Big Golden Bell",L_Bell,
+		"Crown of Mistress",L_Mistress,
+		"Queen's Crown",L_IsisCrown,
+		"Nothing, thanks.",-;
+
+	mes "[Neris]";
+	mes "Bye! Come again.";
+	close;
+
+	L_Bell:
+	callfunc "F_GoldenBell";
+	goto L_Menu;
+
+	L_Mistress:
+	callfunc "F_MistressCrown";
+	goto L_Menu;
+
+	L_IsisCrown:
+	callfunc "F_QueenCrown";
+	goto L_Menu;
+}
+
+geffen.gat,128,148,6	script	Arjen	807,{ 
+	set @npcname$,"Arjen";
+	mes "[Arjen]";
+	mes "I specialize in quality head adornments.";
+	next;
+L_Menu:
+	mes "[Arjen]";
+	mes "What you interested in?";
+	next;
+	menu "X-Shaped Hairpin.",M_1,
+		"Bandage",M_2,
+		"Flower Hairpin.",M_3,
+		"Quit.",-;
+	close;
+
+	M_1:
+		callfunc "F_X_Pin";
+		goto L_Menu;
+	
+	M_2:
+		callfunc "F_Bandage";
+		goto L_Menu;
+
+	M_3:
+		callfunc "F_Flower";
+		goto L_Menu;
+
+	M_EXIT:
+		mes "[Arjen]";
+		mes "Okay, have a nice day!";
+		close;
+}
+
+prontera.gat,141,169,4	script	Tara	759,{
+	set @npcname$,"Tara";
+	mes "[Tara]";
+	mes "Hi, I'm the youngest and cutest of the 4 sisters that make the new headgears.";
+	next;
+L_Menu:
+	mes "[Tara]";
+	mes "Which hat would you like information on?";
+	next;
+	menu "Alarm Mask",L_Alarm,
+		"Assassin Mask",L_SinMask,
+		"Back Ribbon",L_Back,
+		"Bear Hat",L_Bear,
+		"Black Blindfold",L_Blindfold,
+		"Burning Blood Bandana",L_Blood,
+		"cancel",-;
+	close;
+
+	L_Blindfold:
+	callfunc "F_Black_Blindfold";
+	goto L_Menu;
+
+	L_Blood:
+	callfunc "F_Blood";
+	goto L_Menu;
+
+	L_Alarm:
+	callfunc "F_Alarm";
+	goto L_Menu;
+
+	L_Back:
+	callfunc "F_BackRibbon";
+	goto L_Menu;
+
+	L_Bear:
+	callfunc "F_BearHat";
+	goto L_Menu;
+
+	L_SinMask:
+	callfunc "F_SinMask";
+	goto L_Menu;
+}
+
+
+prontera.gat,142,170,4	script	Cara	726,{
+	set @npcname$,"Cara";
+	mes "[Cara]";
+	mes "...";
+	mes "Hi.";
+	mes "...";
+	mes "I'm the second youngest and shyest of the sisters that make the new headgears.";
+	next;
+L_Menu:
+	mes "[Cara]";
+	mes "Which hat would you like to talk about?";
+	next;
+	menu "Cat Ears",L_Ears,
+		"Cowboy Hat",L_Cowboy,
+		"Drooping Cat",L_Cat,
+		"Fox Mask",L_Fox,
+		"Fresh Bluish Fish",L_Fish,
+		"cancel",-;
+	close;
+
+	L_Cowboy:
+	callfunc "F_Cowboy";
+	goto L_Menu;
+
+	L_Cat:
+	callfunc "F_Drooping_Cat";
+	goto L_Menu;
+
+	L_Fish:
+	callfunc "F_Fish";
+	goto L_Menu;
+
+	L_Fox:
+	callfunc "F_Fox";
+	goto L_Menu;
+
+	L_Ears:
+	callfunc "F_CatEars";
+	goto L_Menu;
+
+}
+
+prontera.gat,143,171,4	script	Lara	724,{
+	set @npcname$,"Lara";
+	mes "[Lara]";
+	if (sex==0) goto L_Female;
+	mes "Hello handsome.";
+	mes "I'm the second oldest and sexiest of the sisters that make the new headgears.";
+	next;
+	mes "[Lara]";
+	mes "Which hat do you want, sweetie?";
+	next;
+	goto L_Menu2;
+
+L_Female:
+	mes "Hi, I'm the second oldest and sexiest of the sisters that make the new headgears.";
+	next;
+L_Menu:
+	mes "[Lara]";
+	mes "Which hat would you like to make?";
+	next;
+L_Menu2:
+	menu "Lazy Raccoon Hat",L_Raccoon,
+		"Mushroom Hat",L_Mushroom,
+		"Native's Headband",L_Native,
+		"Neko Mimi",L_Neko,
+		"Panda Hat",L_Panda,
+		"Party Hat",L_Party,
+		"Poring Hat",L_Poring,
+		"Posture Hat",L_Posture,
+		"cancel",-;
+	close;
+
+	L_Neko:
+	callfunc "F_Neko_Mimi";
+	goto L_Menu;
+
+	L_Panda:
+	callfunc "F_Panda";
+	goto L_Menu;
+
+	L_Poring:
+	callfunc "F_Poring";
+	goto L_Menu;
+
+	L_Native:
+	callfunc "F_Native";
+	goto L_Menu;
+
+	L_Party:
+	callfunc "F_Party";
+	goto L_Menu;
+
+	L_Posture:
+	callfunc "F_Posture";
+	goto L_Menu;
+
+	L_Nun:
+	callfunc "F_Nun";
+	goto L_Menu;
+
+	L_Mushroom:
+	callfunc "F_Mushroom";
+	goto L_Menu;
+
+	L_Raccoon:
+	callfunc "F_Raccoon";
+	goto L_Menu;
+}
+
+prontera.gat,144,172,4	script	Sara	816,{
+	set @npcname$,"Sara";
+	mes "[Sara]";
+	mes "Hello.";
+	mes "I'm the oldest and calmest of us four hat sisters.";
+	next;
+L_Menu:
+	mes "[Sara]";
+	mes "Which hat would you like?";
+	next;
+	menu "Sale Sign",L_Sale,
+		"Salvation Army Pin",L_Army,
+		"Sea Otter Hat",L_Otter,
+		"Sombrero",L_Sombrero,
+		"Straw Hat",L_Straw,
+		"Sunflower Pin",L_Sunflower,
+		"Transformation Leaf",L_Leaf,
+		"Tulip Hairpin",L_Tulip,
+		"Wool Hat",L_Wool,
+		"cancel",-;
+	close;
+
+	L_Sunflower:
+	callfunc "F_Sunflower_Pin";
+	goto L_Menu;
+
+	L_Sale:
+	callfunc "F_Sale_Sign";
+	goto L_Menu;
+
+	L_Wool:
+	callfunc "F_WoolHat";
+	goto L_Menu;
+
+	L_Sombrero:
+	callfunc "F_Sombrero";
+	goto L_Menu;
+
+	L_Straw:
+	callfunc "F_Straw";
+	goto L_Menu;
+
+	L_Army:
+	callfunc "F_ArmyPin";
+	goto L_Menu;
+
+	L_Otter:
+	callfunc "F_Otter";
+	goto L_Menu;
+
+	L_Leaf:
+	callfunc "F_Leaf";
+	goto L_Menu;
+
+	L_Tulip:
+	callfunc "F_Tulip";
+	goto L_Menu;
+}

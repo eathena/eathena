@@ -1,0 +1,142 @@
+// Dyer with 77 palettes 
+// 77 palettes support by hyunkell aka angel
+// you need 77 palettes patch in order to use this 
+//Apple Remake
+
+prontera.gat,164,204,6	script	Stylist	700,{
+mes "[Stylist]";
+mes "Hi, I'm a hairstylist.";
+mes "Would you like to change your hairstyle, or perhaps dye it a different color?";
+next;
+menu "Dye Clothes",Lcloth,"Dye Hair",Lhair,"Change Hairstyle",Lstyle,"Nothing",-;
+
+mes "[Stylist]";
+mes "Well come again.";
+close;
+
+Lhair:
+mes "[Stylist]";
+mes "Lets see...hmmm";
+mes "What color do shall we change to?";
+next;
+menu "Default",LH1,
+"Blonde",LH2,
+"Lavender",LH3,
+"Brown",LH4,
+"Green",LH5,
+"Blue",LH6,
+"White",LH7,
+"Black",LH8,
+"Red",LH9,
+"Cancel",-;
+close;
+LH1:
+mes "[Stylist]";
+mes "Wow you look good.";
+setlook 6,0;
+close;
+LH2:
+mes "[Stylist]";
+mes "Hot Blonde, indeed!";
+setlook 6,1;
+close;
+LH3:
+mes "[Stylist]";
+mes "Lavender, great choice.";
+setlook 6,2;
+close;
+LH4:
+mes "[Stylist]";
+mes "Brown, a bit common, but works.";
+setlook 6,3;
+close;
+LH5:
+mes "[Stylist]";
+mes "Crazy, green look....alright.";
+setlook 6,4;
+close;
+LH6:
+mes "[Stylist]";
+mes "Wow you look good.";
+setlook 6,5;
+close;
+LH7:
+mes "[Stylist]";
+mes "Wow you look good.";
+setlook 6,6;
+close;
+LH8:
+mes "[Stylist]";
+mes "Wow you look good.";
+setlook 6,7;
+close;
+LH9:
+mes "[Stylist]";
+mes "Wow you look good.";
+setlook 6,8;
+close;
+
+Lstyle:
+mes "[Stylist]";
+mes "A new hairstyle, huh.";
+mes "I'm afraid I don't have any decscription or pictures for you to reference.";
+mes "You just have to choose a style and see if you like it.";
+mes "Choose one from 1 to 23.";
+next;
+input @pal;
+if (@pal>23) close;
+if (@pal<1) close;
+
+setlook 1,@pal;
+close;
+
+Lcloth:
+	if(class < 7) goto BadJob;
+	if(class > 23 && class < 4008) goto BadJob;
+	if(class==4013) goto Sorry;
+	if(class==4022) goto Sorry;
+	if(sex==1 && class==12) goto Sorry;
+	if(sex==1 && class==16) goto Sorry;
+	if(sex==1 && class==17) goto Sorry;
+	if(sex==1 && class==4017) goto Sorry;
+	if(sex==0 && class==15) goto Sorry;
+	if(sex==0 && class==4009) goto Sorry;
+	if(sex==0 && class==4016) goto Sorry;
+	mes "[Stylist]";
+	mes "I can't keep track of which colors are which, so you'll have to pick your dye by number.";
+	next;
+	menu "Default",Dye0,
+		"Color 1",Dye1,
+		"Color 2",Dye2,
+		"Color 3",Dye3,
+		"Color 4",Dye4;
+Dye0:
+	setlook 7,0;
+	goto DyeDone;
+
+Dye1:
+	setlook 7,1;
+	goto DyeDone;
+Dye2:
+	setlook 7,2;
+	goto DyeDone;
+Dye3:
+	setlook 7,3;
+	goto DyeDone;
+Dye4:
+	setlook 7,4;
+DyeDone:
+	mes "[Stylist]";
+	mes "There you go.";
+	close;
+
+BadJob:
+	mes "[Stylist]";
+	mes "Sorry, only second-job clothes may be dyed.";
+	close;
+
+Sorry:
+	mes "[Stylist]";
+	mes "Sorry, I don't have dyes for your clothes.";
+	close;
+}

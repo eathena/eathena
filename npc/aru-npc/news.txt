@@ -1,0 +1,102 @@
+//===== eAthena Script =======================================
+//= News for Legend RO Server
+//===== By: ==================================================
+//= Arutema
+//===== Current Version: =====================================
+//= 2004-09-28
+//===== Compatible With: =====================================
+//= any
+//===== Description: =========================================
+//= Tells players about chances, and encourges them to read forums
+//===== Additional Comments: =================================
+//============================================================
+
+prontera.gat,164,165,3	script	News	739,{
+	set @npcname$, "News";
+	mes "["+@npcname$+"]";
+	mes "...";
+	mes "^FF0000(Updated January 20th)^000000";
+	next;
+	menu "'PvP Changed Again'",L_PvP,
+		"'War of Emperium in Testing'",L_Guild,
+		"old news",M_Old,
+		"cancel",L_End;
+	close;
+
+M_Old:
+	menu "'Lord of Death Leaves Town'",L_LoD,
+		"'Hat Brothers Retire'",L_Hat,
+		"'Humans Honored as Orc Heros?'",L_Orc,
+		"Novice Shop Ad",L_Novice,
+		"cancel",L_End;
+	close;
+
+L_End:
+	mes "["+@npcname$+"]";
+	mes "....";
+	close;
+
+L_PvP:
+	mes "["+@npcname$+"]";
+	mes "^0000FFPvP Changed Again^000000";
+	mes "The old PvP arena is back, just click the NPCs like this one in Geffen, Payon, or Aldebaran to enter.";
+	close;
+
+L_LoD:
+	mes "["+@npcname$+"]";
+	mes "^0000FFLord of Death leaves town^000000";
+	mes "Lord of Death announced today that he was leaving Niflheim for the baren hills west of town.";
+	mes "^00A000\"I'm sick of being tricked into coming to the town square just so some priest could 'farm' me.\"^000000 said the undead abomination.";
+	mes "Lord of Death also says he has no plans to return.";
+	close;
+
+L_Guild:
+	mes "["+@npcname$+"]";
+	mes "^0000FFWar of Emperium in Testing^000000";
+	mes "Guild warfare is currently being bug-tested.";
+	mes "For the testing period, guild will gain levels at 1000 times the normal rate.";
+	mes "Siege times during the testing period will be at ^FF0000Bloodyangel's^000000 discression.";
+	close;
+
+L_Novice:
+	mes "["+@npcname$+"]";
+	mes "^0000FFVisit Our New Location^000000";
+	mes "^00A000Nicole's Novice Goods^000000 has relocated.";
+	mes "Visit our spacious new store at number 2 Sakura Way in scenic Amatsu.";
+	close;
+
+
+L_Donate:
+	mes "["+@npcname$+"]";
+	mes "^0000FFDonors Still Needed!^000000";
+	mes "Legend continues to need donations from its players to pay nearly $200 a month in hosting costs.";
+	mes "GMs are at work on a system to reward donors in-game. Donate now and you'll get your reward when it's implemented.";
+	next;
+	mes "["+@npcname$+"]";
+	mes "You can donate via PayPal at ^00A000www.clownphobia.com^000000.";
+	mes "Information on donating by mail can be found in the ^00A000'Questions and Answers'^000000 section of the Clownphobia forums.";
+	close;
+
+L_Hat:
+	mes "["+@npcname$+"]";
+	mes "^0000FFHat Brothers Retire^000000";
+	mes "After many long years, Prontera's famous hat brothers have called it quits.";
+	mes "The family has given no explanation for their sudden retirement, and has refused our requests for interviews.";
+	next;
+	mes "["+@npcname$+"]";
+	mes "In addition to their sudden retirement, the family has sold off their secret their secret hat formulas.";
+	mes "The 'Hat Sisters' franchise has confirmed their purchase of the Poring Hat, Panda Hat, and Bongun Hat formulas.";
+	next;
+	mes "["+@npcname$+"]";
+	mes "The other formulas are rumored to have been bought by people claiming to be 'official NPCs' for those hats.";
+	mes "Readers are encouraged to look in the 'Mixing' section of ^00A000www.ragnamart.tk^000000 to learn the locations of these 'official NPCs.'";
+	close;
+
+L_Orc:
+	mes "["+@npcname$+"]";
+	mes "^0000FFHumans Honored as Orc Heros?^000000";
+	mes "Rumors are flying around that a few brave humans have been awarded the helmet of an orcish hero for their valor.";
+	mes "Unfortunately, Orc Village is too dangerous for our reporters to investigate further.";
+	close;
+	
+}

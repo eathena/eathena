@@ -1,0 +1,2146 @@
+//===== eAthena Script =======================================
+//= Quest For Episode 6 Hats
+//===== By: ==================================================
+//= Arutema
+//===== Current Version: =====================================
+//= 1.1
+//===== Compatible With: =====================================
+//= eAthena 1.0
+//= 425 sakexe with up-to-date restables
+//===== Description: =========================================
+//= 4 sisters give you quests to get 32 new hats
+//===== Additional Comments: =================================
+//============================================================
+
+prontera.gat,141,169,4	script	Tara	759,{
+	set @npcname$,"Tara";
+	mes "[Tara]";
+	mes "Hi, I'm the youngest and cutest of the 4 sisters that make the new headgears.";
+	next;
+L_Menu:
+	mes "[Tara]";
+	mes "Which hat would you like information on?";
+	next;
+	menu "Alarm Mask",L_Alarm,
+		"Angel Ears",L_AngelEar,
+		"Assassin Mask",L_SinMask,
+		"Back Ribbon",L_Back,
+		"Bandage",L_Bandage,
+		"Bear Hat",L_Bear,
+		"Big Golden Bell",L_Bell,
+		"Black Blindfold",L_Blindfold,
+		"Burning Blood Bandana",L_Blood,
+		"cancel",-;
+	close;
+
+	L_Blindfold:
+	callfunc "F_Black_Blindfold";
+	goto L_Menu;
+
+	L_Blood:
+	callfunc "F_Blood";
+	goto L_Menu;
+
+	L_Alarm:
+	callfunc "F_Alarm";
+	goto L_Menu;
+
+	L_Back:
+	callfunc "F_BackRibbon";
+	goto L_Menu;
+
+	L_Bandage:
+	callfunc "F_Bandage";
+	goto L_Menu;
+
+	L_AngelEar:
+	callfunc "F_AngelEar";
+	goto L_Menu;
+
+	L_Bear:
+	callfunc "F_BearHat";
+	goto L_Menu;
+
+	L_SinMask:
+	callfunc "F_SinMask";
+	goto L_Menu;
+
+	L_Bell:
+	callfunc "F_GoldenBell";
+	goto L_Menu;
+
+}
+
+
+prontera.gat,142,170,4	script	Cara	726,{
+	set @npcname$,"Cara";
+	mes "[Cara]";
+	mes "...";
+	mes "Hi.";
+	mes "...";
+	mes "I'm the second youngest and shyest of the sisters that make the new headgears.";
+	next;
+L_Menu:
+	mes "[Cara]";
+	mes "Which hat would you like to talk about?";
+	next;
+	menu "Cat Ears",L_Ears,
+		"Cowboy Hat",L_Cowboy,
+		"Crown of Mistress",L_Mistress,
+		"Demon Ears",L_Demon,
+		"Drooping Cat",L_Cat,
+		"Fox Mask",L_Fox,
+		"Flower Pin",L_Flower,
+		"Fresh Bluish Fish",L_Fish,
+		"cancel",-;
+	close;
+
+	L_Cowboy:
+	callfunc "F_Cowboy";
+	goto L_Menu;
+
+	L_Cat:
+	callfunc "F_Drooping_Cat";
+	goto L_Menu;
+
+	L_Flower:
+	callfunc "F_Flower";
+	goto L_Menu;
+
+	L_Fish:
+	callfunc "F_Fish";
+	goto L_Menu;
+
+	L_Fox:
+	callfunc "F_Fox";
+	goto L_Menu;
+
+	L_Demon:
+	callfunc "F_DemonEar";
+	goto L_Menu;
+
+	L_Mistress:
+	callfunc "F_MistressCrown";
+	goto L_Menu;
+
+	L_Ears:
+	callfunc "F_CatEars";
+	goto L_Menu;
+
+}
+
+prontera.gat,143,171,4	script	Lara	724,{
+	set @npcname$,"Lara";
+	mes "[Lara]";
+	if (sex==0) goto L_Female;
+	mes "Hello handsome.";
+	mes "I'm the second oldest and sexiest of the sisters that make the new headgears.";
+	next;
+	mes "[Lara]";
+	mes "Which hat do you want, sweetie?";
+	next;
+	goto L_Menu2;
+
+L_Female:
+	mes "Hi, I'm the second oldest and sexiest of the sisters that make the new headgears.";
+	next;
+L_Menu:
+	mes "[Lara]";
+	mes "Which hat would you like to make?";
+	next;
+L_Menu2:
+	menu "Lazy Raccoon Hat",L_Raccoon,
+		"Mushroom Hat",L_Mushroom,
+		"Native's Headband",L_Native,
+		"Neko Mimi",L_Neko,
+		"Panda Hat",L_Panda,
+		"Party Hat",L_Party,
+		"Poring Hat",L_Poring,
+		"Posture Hat",L_Posture,
+		"Queen's Crown",L_IsisCrown,
+		"cancel",-;
+	close;
+
+	L_Neko:
+	callfunc "F_Neko_Mimi";
+	goto L_Menu;
+
+	L_Panda:
+	callfunc "F_Panda";
+	goto L_Menu;
+
+	L_Poring:
+	callfunc "F_Poring";
+	goto L_Menu;
+
+	L_Native:
+	callfunc "F_Native";
+	goto L_Menu;
+
+	L_Party:
+	callfunc "F_Party";
+	goto L_Menu;
+
+	L_IsisCrown:
+	callfunc "F_QueenCrown";
+	goto L_Menu;
+
+	L_Posture:
+	callfunc "F_Posture";
+	goto L_Menu;
+
+	L_Nun:
+	callfunc "F_Nun";
+	goto L_Menu;
+
+	L_Mushroom:
+	callfunc "F_Mushroom";
+	goto L_Menu;
+
+	L_Raccoon:
+	callfunc "F_Raccoon";
+	goto L_Menu;
+}
+
+prontera.gat,144,172,4	script	Sara	816,{
+	set @npcname$,"Sara";
+	mes "[Sara]";
+	mes "Hello.";
+	mes "I'm the oldest and calmest of us four hat sisters.";
+	next;
+L_Menu:
+	mes "[Sara]";
+	mes "Which hat would you like?";
+	next;
+	menu "Sale Sign",L_Sale,
+		"Salvation Army Pin",L_Army,
+		"Sea Otter Hat",L_Otter,
+		"Sombrero",L_Sombrero,
+		"Straw Hat",L_Straw,
+		"Sunflower Pin",L_Sunflower,
+		"Transformation Leaf",L_Leaf,
+		"Tulip Hairpin",L_Tulip,
+		"Wool Hat",L_Wool,
+		"X-Shaped Hairpin",L_X,
+		"cancel",-;
+	close;
+
+	L_Sunflower:
+	callfunc "F_Sunflower_Pin";
+	goto L_Menu;
+
+	L_Sale:
+	callfunc "F_Sale_Sign";
+	goto L_Menu;
+
+	L_Wool:
+	callfunc "F_WoolHat";
+	goto L_Menu;
+
+	L_Sombrero:
+	callfunc "F_Sombrero";
+	goto L_Menu;
+
+	L_Straw:
+	callfunc "F_Straw";
+	goto L_Menu;
+
+	L_Army:
+	callfunc "F_ArmyPin";
+	goto L_Menu;
+
+	L_Otter:
+	callfunc "F_Otter";
+	goto L_Menu;
+
+	L_X:
+	callfunc "F_X_Pin";
+	goto L_Menu;
+
+	L_Leaf:
+	callfunc "F_Leaf";
+	goto L_Menu;
+
+	L_Tulip:
+	callfunc "F_Tulip";
+	goto L_Menu;
+}
+
+
+function	script	F_AngelEar	{
+	mes "["+@npcname$+"]";
+	mes "You're interested in Angel Ears?";
+	next;
+L_Menu:
+	menu "Headgear Properties",L_Stats,"Required Items",L_Reqs,"Make Angel Ears!",L_Make,"cancel",-;
+	return;
+
+L_Stats:
+	mes "["+@npcname$+"]";
+	mes "An ear accessory made with beautiful, white, and holy wing of the angel. The wings seem to give you mysterious strength upon equipping.";
+	mes "STR + 1";
+	mes "Defence Rate : ^7777771^000000";
+	mes "Equipped On : ^777777Mid^000000";
+	mes "Required lvl : ^77777770^000000";
+	mes "Available Job : ^777777Every Job^000000";
+	next;
+	goto L_Menu;
+
+L_Reqs:
+	mes "["+@npcname$+"]";
+	mes "To make Angel Ears you need an ^0000FFAngel Wing^000000 and ^0000FFElven Ears^000000.";
+	mes "There is also a small fee of 20,000 zeny.";
+	next;
+	goto L_Menu;
+
+L_Make:
+	mes "["+@npcname$+"]";
+	if (countitem(2286)<1)goto No_Ears;
+	if (countitem(2254)<1)goto No_Wings;
+	if (Zeny<20000)	goto No_Zeny;
+	delitem 2286,1;
+	delitem 2254,1;
+	set Zeny, Zeny-20000;
+	getitem 5074,1;
+	mes "Congrats! Here's your Angel ears.";
+	close;
+
+No_Ears:
+	mes "Hey! I can't make them without Elven Ears.";
+	close;
+
+No_Wings:
+	mes "Hey! I can't make them without an Angel Wing.";
+	close;
+
+No_Zeny:
+	mes "Hey! I can't work for free! Where's my cash?";
+	close;	
+}
+
+
+function	script	F_DemonEar	{
+	mes "["+@npcname$+"]";
+	mes "You're interested in Demon Ears?";
+	next;
+L_Menu:
+	menu "Headgear Properties",L_Stats,"Required Items",L_Reqs,"Make Demon Ears!",L_Make,"cancel",-;
+	return;
+
+L_Stats:
+	mes "["+@npcname$+"]";
+	mes "An ear accessory made with black wings, you can feel devil's refined nobility and charisma. The wing seems to give you mysterious power when you equip it.";
+	mes "STR + 1";
+	mes "Defence Rate : ^7777771^000000";
+	mes "Equipped On : ^777777Mid^000000";
+	mes "Required lvl : ^77777770^000000";
+	mes "Available Job : ^777777Every Job^000000";
+	next;
+	goto L_Menu;
+
+L_Reqs:
+	mes "["+@npcname$+"]";
+	mes "To make Demon Ears you need an ^0000FFEvil Wing^000000 and ^0000FFElven Ears^000000.";
+	mes "There's also a fe of 20,000 zeny.";
+	next;
+	goto L_Menu;
+
+L_Make:
+	mes "["+@npcname$+"]";
+	if (countitem(2286)<1)goto No_Ears;
+	if (countitem(2255)<1)goto No_Wings;
+	if (Zeny<20000)	goto No_Zeny;
+	delitem 2286,1;
+	delitem 2255,1;
+	set Zeny, Zeny-20000;
+	getitem 5068,1;
+	mes "Umm, here's your Demon ears.";
+	close;
+
+No_Ears:
+	mes "Umm, I can't make them without Elven Ears.";
+	close;
+
+No_Wings:
+	mes "Umm, I can't make them without an Evil Wing.";
+	close;
+
+No_Zeny:
+	mes "Umm, You're a little short on funds.";
+	close;
+}
+
+
+function	script	F_Posture	{
+	mes "["+@npcname$+"]";
+	mes "The 'Posture Hat', or as it's sometimes called 'The Teacher's Pet'...";
+	next;
+L_Menu:
+	menu "Hat Properties",L_Stats,"Required Items",L_Reqs,"Make Posture Hat!",L_Make,"cancel",-;
+	return;
+
+L_Stats:
+	mes "["+@npcname$+"]";
+	mes "You put a book, then an apple at top of it, and you walk with it on top of your head to learn how to have a proper posture when you walk. You have to walk without dropping the apple or the book. Maybe it'll be a great way for people who are careless to become careful.";
+	mes "DEX + 2";
+	mes "Defence Rate : ^7777772^000000";
+	mes "Equipped On : ^777777Upper^000000";
+	mes "Required lvl : ^777777NA^000000";
+	mes "Available Job : ^777777Every Job Except Novice^000000";
+	next;
+	goto L_Menu;
+
+L_Reqs:
+	mes "["+@npcname$+"]";
+	mes "All you need is a simple ^0000FFBook^000000 and a ^0000FFApple o' Archer^000000.";
+	next;
+	goto L_Menu;
+
+L_Make:
+	mes "["+@npcname$+"]";
+	if (countitem(2285)<1) goto No_Apple;
+	if (countitem(1550)<1) goto No_Book;
+	delitem 2285,1;
+	delitem 1550,1;
+	getitem 5073,1;
+	mes "Here you are, a 'Teacher's Pet,' or is it called a 'Posture Hat?' I forget.";
+	close;
+
+No_Apple:
+	mes "Did you get hungry and eat your ^0000FFApple o' Archer^000000? Cause you certainly haven't got one now.";
+	close;
+
+No_Book:
+	mes "Where's your ^0000FFBook^000000? How do you expect to get anywhere in this class without it? ^00FF00*giggle*^000000.";
+	close;
+}
+
+
+function	script	F_GoldenBell	{
+	mes "["+@npcname$+"]";
+	mes "You want to wear a Sohee's Golden Bell yourself?";
+	next;
+L_Menu:
+	menu "Headgear Properties",L_Stats,"Required Items",L_Reqs,"Make Big Golden Bell!",L_Make,"cancel",-;
+	return;
+
+L_Stats:
+	mes "["+@npcname$+"]";
+	mes "This is based upon accessory that popular monster Sohee wears on her head. The large bell signifies extreme cuteness of this.";
+	mes "Defence Rate : ^7777772^000000";
+	mes "Equipped On : ^777777Upper, Mid^000000";
+	mes "Required lvl : ^77777735^000000";
+	mes "Available Job : ^777777Every Job Except Novice^000000";
+	next;
+	goto L_Menu;
+
+L_Reqs:
+	mes "["+@npcname$+"]";
+	mes "To make the Big Golden Bell you need:";
+	mes "A Golden Bell,";
+	mes "3 Gold,";
+	mes "an Emperium,";
+	mes "and 20,000 zeny";
+	next;
+	goto L_Menu;
+
+L_Make:
+	mes "["+@npcname$+"]";
+	if (countitem(10016)<1) goto No_Bell;
+	if (countitem(969)<3) goto No_Gold;
+	if (countitem(714)<1) goto No_Emp;
+	if (Zeny<20000)	goto No_Zeny;
+	delitem 10016,1;
+	delitem 969,3;
+	delitem 714,1;
+	set Zeny,Zeny-20000;
+	getitem 5091,1;
+	mes "A Big Golden Bell, I'm sure it will look cute on you.";
+	close;
+	
+
+No_Bell:
+	mes "You don't seem to have a Golden Bell.";
+	close;
+
+No_Gold:
+	mes "You need "+(3-countitem(969))+" more gold.";
+	close;
+
+No_Emp:
+	mes "You don't have an Emperium";
+	close;
+
+No_Zeny:
+	mes "Sorry, you're "+(20000-Zeny)+" zeny short.";
+	close;
+}
+
+
+function	script	F_MistressCrown	{
+	mes "["+@npcname$+"]";
+	mes "You want the Crown of Mistress?";
+	next;
+L_Menu:
+	menu "Crown's Properties",L_Stats,"Required Items",L_Reqs,"Make Crown of Mistress!",L_Make,"cancel",-;
+	return;
+
+L_Stats:
+	mes "["+@npcname$+"]";
+	mes "This is based upon the very crown that Mistress wears to show that she is indeed the queen of her hive. The crown itself seems to give the feeling of refinement.";
+	mes "INT + 2, Max SP + 100, Impossible to destroy.";
+	mes "Defence Rate : ^7777770^000000";
+	mes "Equipped On : ^777777Upper^000000";
+	mes "Required lvl : ^77777775^000000";
+	mes "Available Job : ^777777Female Only, Every Job Except Novice^000000";
+	next;
+	goto L_Menu;
+
+L_Reqs:
+	mes "["+@npcname$+"]";
+	mes "To make the Crown of Mistress you need:";
+	mes "A Coronet,";
+	mes "3 Gold,";
+	mes "an Emperium,";
+	mes "and 40,000 zeny";
+	next;
+	goto L_Menu;
+
+L_Make:
+	mes "["+@npcname$+"]";
+	if (countitem(2249)<1) goto No_Coronet;
+	if (countitem(969)<3) goto No_Gold;
+	if (countitem(714)<1) goto No_Emp;
+	if (Zeny<40000)	goto No_Zeny;
+	delitem 2249,1;
+	delitem 969,3;
+	delitem 714,1;
+	set Zeny,Zeny-40000;
+	getitem 5081,1;
+	mes "You've got everything I need, so here's the Crown of Mistress.";
+	close;
+	
+
+No_Coronet:
+	mes "You're don't have the Coronet I need.";
+	close;
+
+No_Gold:
+	mes "You need "+(3-countitem(969))+" more gold.";
+	close;
+
+No_Emp:
+	mes "You don't have an Emperium";
+	close;
+
+No_Zeny:
+	mes "Sorry, you're "+(40000-Zeny)+" zeny short.";
+	close;
+}
+
+function	script	F_SinMask	{
+	mes "["+@npcname$+"]";
+	if((class==12) || (class==4013)) goto L_Sin;
+	mes "You do realize this mask is only for Assassins, right?";
+	next;
+	goto L_Menu;
+
+L_Sin:
+	mes "So you want an Assassin Mask?";
+	next;
+L_Menu:
+	menu "Mask Properties",L_Stats,"Required Items",L_Reqs,"Make Assassin Mask!",L_Make,"cancel",-;
+	return;
+
+L_Stats:
+	mes "["+@npcname$+"]";
+	mes "An exclusive mask for assassins. Covers most of the face.";
+	mes "Defence Rate : ^7777770^000000";
+	mes "Location : ^777777Lower^000000";
+	mes "Required lvl : ^77777770^000000";
+	mes "Available Job : ^777777Assassin^000000";
+	next;
+	goto L_Menu;
+
+L_Reqs:
+	mes "["+@npcname$+"]";
+	mes "To make the Assassin Mask, all you need are a ^0000FFGangster Mask^000000 and ^0000FFBlack Dyestuffs^000000.";
+	next;
+	goto L_Menu;
+
+L_Make:
+	mes "["+@npcname$+"]";
+	if (countitem(2265)<1) goto No_Mask;
+	if (countitem(983)<1) goto No_Dye;
+	delitem 2265,1;
+	delitem 983,1;
+	getitem 5054,1;
+	if ((class==12) || (class==4013)) goto L_Sin2;
+	mes "Well, here's your Assassin Mask. You can't wear it though.";
+	close;
+
+L_Sin2:
+	mes "Here's your mask. I'm sure it'll make you look truly menacing.";
+	close;
+
+No_Mask:
+	mes "You don't really have a ^0000FFGangster Mask^000000, do you?";
+	next;
+	mes "["+@npcname$+"]";
+	mes "I didn't think so.";
+	close;
+
+No_Dye:
+	mes "How am I going to dye this with no ^0000FFBlack Dyestuffs^000000?";
+	close;
+}
+
+function	script	F_QueenCrown	{
+	mes "["+@npcname$+"]";
+	mes "You want to know about the Queen's Crown?";
+	next;
+L_Menu:
+	menu "Crown's Properties",L_Stats,"Required Items",L_Reqs,"Make Queen's Crown!",L_Make,"cancel",-;
+	return;
+
+L_Stats:
+	mes "["+@npcname$+"]";
+	mes "A hair ornament for the ancient queen, it was made to give feelings of high refinement of the queen. It is decorated with gold, and other fine jewelry.";
+	mes "Defence Rate : ^7777774^000000";
+	mes "Equipped On : ^777777Upper^000000";
+	mes "Required lvl : ^77777745^000000";
+	mes "Available Job : ^777777Every Job^000000";
+	next;
+	goto L_Menu;
+
+L_Reqs:
+	mes "["+@npcname$+"]";
+	mes "To make a Queen's Crown you need:";
+	mes "A Queen's Hair Ornament,";
+	mes "3 Gold,";
+	mes "an Emperium,";
+	mes "and 20,000 zeny";
+	next;
+	goto L_Menu;
+
+L_Make:
+	mes "["+@npcname$+"]";
+	if (countitem(10006)<1) goto No_IsisCrown;
+	if (countitem(969)<3) goto No_Gold;
+	if (countitem(714)<1) goto No_Emp;
+	if (Zeny<20000)	goto No_Zeny;
+	delitem 10006,1;
+	delitem 969,3;
+	delitem 714,1;
+	set Zeny,Zeny-20000;
+	getitem 5080,1;
+	mes "You've got everything I need, so here's your Queen's Crown.";
+	close;
+	
+
+No_IsisCrown:
+	mes "You're missing the Queen's Hair Ornament.";
+	close;
+
+No_Gold:
+	mes "You need "+(3-countitem(969))+" more gold.";
+	close;
+
+No_Emp:
+	mes "You don't have an Emperium";
+	close;
+
+No_Zeny:
+	mes "Sorry, you're "+(20000-Zeny)+" zeny short.";
+	close;
+}
+
+function	script	F_BearHat	{
+	mes "["+@npcname$+"]";
+	mes "What can I tell you about the ^FF0000Bear Hat^000000?";
+	next;
+L_Menu:
+	menu "Hat Properties",L_Stats,"Required Items",L_Reqs,"Make Bear Hat!",L_Make,"cancel",-;
+	return;
+
+L_Stats:
+	mes "["+@npcname$+"]";
+	mes "A hat that shows very cute facial expression of a cute little bear. Would make a great gift.";
+	mes "Defence Rate : ^7777773^000000";
+	mes "Equipped On : ^777777Upper^000000";
+	mes "Required lvl : ^77777750^000000";
+	mes "Available Job : ^777777Every Job^000000";
+	next;
+	goto L_Menu;
+
+L_Reqs:
+	mes "["+@npcname$+"]";
+	mes "To make a bear hat you need:";
+	mes "Panda Hat";
+	mes "300 Bear Skin";
+	mes "100 Pincusion";
+	mes "100 Bobbin";
+	mes "The bear skins I need are the black ones Zipper Bears drop, not the Bigfoot's Bear Footskin.";
+	next;
+	goto L_Menu;
+
+L_Make:
+	mes "["+@npcname$+"]";
+	if(countitem(5030)<1) goto No_Panda;
+	if(countitem(7161)<300) goto No_Skin;
+	if(countitem(7213)<100) goto No_Other;
+	if(countitem(7217)<100) goto No_Other;
+	delitem 5030,1;
+	delitem 7161,300;
+	delitem 7213,100;
+	delitem 7217,100;
+	getitem 5059,1;
+	mes "Congratulations!";
+	mes "You're now the proud owner of a Bear Hat!";
+	close;
+
+No_Panda:
+	mes "I can't make a Bear hat without a ^0000FFPanda Hat^000000.";
+	close;
+
+No_Skin:
+	mes "You need 300 ^0000FFBear Skin^000000, you only have "+countitem(7161)+".";
+	close;
+
+No_Other:
+	mes "You don't have the pincusions and bobbins I need.";
+	close;
+}
+
+function	script	F_CatEars	{
+	mes "["+@npcname$+"]";
+	mes "What can I tell you about the ^FF0000Cat Ears^000000?";
+	next;
+L_Menu:
+	menu "Headgear Properties",L_Stats,"Required Items",L_Reqs,"Make Cat Ears!",L_Make,"cancel",-;
+	return;
+
+L_Stats:
+	mes "["+@npcname$+"]";
+	mes "Black, small hairband representing the look of a ear of a cat. This is based upon hair ornament Morroc's Hwikebain had. It doesn't move.";
+	mes "Defence Rate : ^7777772^000000";
+	mes "Equipped On : ^777777Upper^000000";
+	mes "Required lvl : ^77777745^000000";
+	mes "Available Job : ^777777Every Job^000000";
+	next;
+	goto L_Menu;
+
+L_Reqs:
+	mes "["+@npcname$+"]";
+	mes "To make cat ears you need:";
+	mes "Kitty Band";
+	mes "200 Fluff";
+	mes "Black Dyestuffs";
+	mes "10,000 Zeny";
+	next;
+	goto L_Menu;
+
+L_Make:
+	mes "["+@npcname$+"]";
+	if(countitem(2213)<1) goto No_Band;
+	if(countitem(914)<200) goto No_Fluff;
+	if(countitem(983)<1) goto No_Dye;
+	if(Zeny<10000) goto No_Money;
+	delitem 2213,1;
+	delitem 914,200;
+	delitem 983,1;
+	set Zeny, Zeny-10000;
+	getitem 5057,1;
+	mes "Congratulations!";
+	mes "You're the owner of a brand-new pair of Cat Ears!";
+	close;
+
+No_Band:
+	mes "You're need a ^0000FFKitty Band^000000, you don't have one.";
+	close;
+
+No_Fluff:
+	mes "You're short "+(200-countitem(914))+" ^0000FFfluff^000000.";
+	close;
+
+No_Dye:
+	mes "You need ^0000FFBlack Dyestuffs^000000.";
+	close;
+
+No_Money:
+	mes "You need 10,000 Zeny. I can't work for free, you know.";
+	close;
+}
+
+function	script	F_Mushroom	{
+	mes "["+@npcname$+"]";
+	mes "What can I tell you about the ^FF0000Mushroom Hat^000000?";
+	next;
+L_Menu:
+	menu "Hat Properties",L_Stats,"Required Items",L_Reqs,"Make Mushroom Hat!",L_Make,"cancel",-;
+	return;
+
+L_Stats:
+	mes "["+@npcname$+"]";
+	mes "Made with a ... head of the mushroom that somehow grew on its own in a cold, damp place. Obviously, you can't eat it.";
+	mes "Defence Rate : ^7777772^000000";
+	mes "Equipped On : ^777777Upper^000000";
+	mes "Required lvl : ^777777NA^000000";
+	mes "Available Job : ^777777Every Job^000000";
+	next;
+	goto L_Menu;
+
+L_Reqs:
+	mes "["+@npcname$+"]";
+	mes "To make a Mushroom Hat, all you need is 300 Mushroom Spores.";
+	next;
+	goto L_Menu;
+
+L_Make:
+	mes "["+@npcname$+"]";
+	if(countitem(921)<300) goto No_Spores;
+	delitem 921,300;
+	getitem 5082,1;
+	mes "Here you go, one Mushroom Hat.";
+	close;
+
+No_Spores:
+	mes "You're short "+(300-countitem(921))+" spores.";
+	close;
+}
+
+function	script	F_Tulip	{
+	mes "["+@npcname$+"]";
+	mes "What can I tell you about the ^FF0000Tulip Hairpin^000000?";
+	next;
+L_Menu:
+	menu "Hairpin Properties",L_Stats,"Required Items",L_Reqs,"Make Tulip Hairpin!",L_Make,"cancel",-;
+	return;
+
+L_Stats:
+	mes "["+@npcname$+"]";
+	mes "A cute red hairpin with a shape of a tulip.";
+	mes "Defence Rate : ^7777771^000000";
+	mes "Equipped On : ^777777Upper^000000";
+	mes "Required lvl : ^777777NA^000000";
+	mes "Available Job : ^777777Every Job^000000";
+	next;
+	goto L_Menu;
+
+L_Reqs:
+	mes "["+@npcname$+"]";
+	mes "To make a Tulip Hairpin, you need Mr. Smile and Red Dyestuffs.";
+	next;
+	goto L_Menu;
+
+L_Make:
+	mes "["+@npcname$+"]";
+	if(countitem(2278)<1) goto No_Smile;
+	if(countitem(975)<1) goto No_Dye;
+	delitem 2278,1;
+	delitem 975,1;
+	getitem 5077,1;
+	mes "Here you go, a Tulip Hairpin.";
+	close;
+
+No_Smile:
+	mes "Where's your Mr. Smile?";
+	close;
+
+No_Dye:
+	mes "You don't have the red dye I need.";
+	close;
+}
+
+function	script	F_Fox	{
+	mes "["+@npcname$+"]";
+	mes "You want a ^0000FFFox Mask?^000000";
+	next;
+L_Menu:
+	menu "Mask Properties",L_Stats,"Required Items",L_Reqs,"Make Fox Mask!",L_Make,"cancel",-;
+	return;
+
+L_Stats:
+	mes "["+@npcname$+"]";
+	mes "This is a mask based upon masks some assassination group wears to hide their identity. It gives you that strange feeling of speed when you wear it.";
+	mes "AGI + 1, LUK + 1";
+	mes "Defence Rate : ^7777771^000000";
+	mes "Equipped On : ^777777Upper^000000";
+	mes "Required lvl : ^777777NA^000000";
+	mes "Available Job : ^777777Every Job Except Novice^000000";
+	next;
+	goto L_Menu;
+
+L_Reqs:
+	mes "["+@npcname$+"]";
+	mes "To make a Fox Mask, you need 999 'Nine-Tails'.";
+	mes "Tough, huh?";
+	next;
+	goto L_Menu;
+
+L_Make:
+	mes "["+@npcname$+"]";
+	if(countitem(1022)<999) goto No_Tails;
+	delitem 1022,999;
+	getitem 5069,1;
+	mes "At last, a Fox Mask.";
+	close;
+
+No_Tails:
+	mes "You're short "+(999-countitem(1022))+" 'nine-tails'.";
+	close;
+}
+
+function	script	F_Bandage	{
+	mes "["+@npcname$+"]";
+	mes "You want a bandage? Are you hurt?";
+	next;
+L_Menu:
+	menu "Bandage Properties",L_Stats,"Required Items",L_Reqs,"Make Bandage!",L_Make,"cancel",-;
+	return;
+
+L_Stats:
+	mes "["+@npcname$+"]";
+	mes "Made by putting two white bandages in a cross shape. Try to use this to act like you are hurt.";
+	mes "Defence Rate : ^7777771^000000";
+	mes "Equipped On : ^777777Upper^000000";
+	mes "Required lvl : ^777777NA^000000";
+	mes "Available Job : ^777777Every Job Except Novice^000000";
+	next;
+	goto L_Menu;
+
+L_Reqs:
+	mes "["+@npcname$+"]";
+	mes "To make a bandage, you need Alcohol and 500 Rotten Bandages.";
+	next;
+	goto L_Menu;
+
+L_Make:
+	mes "["+@npcname$+"]";
+	if(countitem(970)<1) goto No_Alcohol;
+	if(countitem(930)<500) goto No_Bandage;
+	delitem 930,500;
+	delitem 970,1;
+	getitem 5063,1;
+	mes "Here you go, a bandage. Now everyone will think you've been wounded.";
+	close;
+
+No_Alcohol:
+	mes "No Alcohol? Don't tell me you can't get it cause you're under 21.";
+	close;
+
+No_Bandage:
+	mes "You only have "+(countitem(930))+" of the 500 Rotten Bandages I need.";
+	close;
+}
+
+function	script	F_Fish	{
+	mes "["+@npcname$+"]";
+	mes "Fish? Are you hungry?";
+	next;
+L_Menu:
+	menu "Fish Properties",L_Stats,"Required Items",L_Reqs,"Make Fish!",L_Make,"cancel",-;
+	return;
+
+L_Stats:
+	mes "["+@npcname$+"]";
+	mes "A helm that looks like a tasty, fat, bluish-colored fish. It feels like it smells... if it does, it's probably just you.";
+	mes "10% Bonus Damage vs. Fish-type Monsters.";
+	mes "Defence Rate : ^7777772^000000";
+	mes "Equipped On : ^777777Upper^000000";
+	mes "Required lvl : ^77777750^000000";
+	mes "Available Job : ^777777Every Job^000000";
+	next;
+	goto L_Menu;
+
+L_Reqs:
+	mes "["+@npcname$+"]";
+	mes "To make the Fresh Bluish Fish you need:";
+	mes "Rotten Fish";
+	mes "300 Stinky Scale";
+	mes "50 Sushi";
+	mes "Fish Tail";
+	mes "100 Sticky Mucus";
+	next;
+	goto L_Menu;
+
+L_Make:
+	mes "["+@npcname$+"]";
+	if(countitem(624)<1) goto No_Fish;
+	if(countitem(959)<300) goto No_Scale;
+	if(countitem(551)<50) goto No_Sushi;
+	if(countitem(1023)<1) goto No_Tail;
+	if(countitem(938)<100) goto No_Mucus;
+	delitem 624,1;
+	delitem 959,300;
+	delitem 551,50;
+	delitem 1023,1;
+	delitem 938,100;
+	getitem 5065,1;
+	mes "Here's a nice yummy fresh fish.";
+	mes "Just kidding, its not edible.";
+	close;
+
+No_Fish:
+	mes "Come on, you need a Rotten Fish.";
+	close;
+
+No_Scale:
+	mes "You're a little short on the Stinky Scales.";
+	close;
+
+No_Sushi:
+	mes "Did you get hungry? You don't have the sushi I want.";
+	close;
+
+No_Tail:
+	mes "You don't have a Fish Tail.";
+	close;
+
+No_Mucus:
+	mes "You haven't got enough Sticky Mucus.";
+	close;
+}
+
+function	script	F_Flower	{
+	mes "["+@npcname$+"]";
+	if(sex==1) goto L_Male;
+	mes "I'm sure a Flower Pin will look cute on you.";
+	next;
+L_Menu:
+	menu "Pin Properties",L_Stats,
+		"Required Items",L_Reqs,
+		"Make Flower Pin",L_Make,
+		"cancel",-;
+	return;
+
+L_Male:
+	mes "You want a Flower Pin for your girlfriend? How sweet.";
+	next;
+	goto L_Menu;
+
+L_Stats:
+	mes "["+@npcname$+"]";
+	mes "A hairpin with bright red flower on top of it. Used to stop your hair from falling down.";
+	mes "Defence Rate : ^7777771^000000";
+	mes "Equipped On : ^777777Upper^000000";
+	mes "Required lvl : ^777777NA^000000";
+	mes "Available Job : ^777777Every Job^000000";
+	next;
+	goto L_Menu;
+
+L_Reqs:
+	mes "["+@npcname$+"]";
+	mes "To make a Flower pin you need a ^0000FFRomantic Flower^000000 and 10 ^0000FFSteel^000000.";
+	next;
+	goto L_Menu;
+
+L_Make:
+	mes "["+@npcname$+"]";
+	if (countitem(2269)<1) goto No_Flower;
+	if (countitem(999)<10) goto No_Steel;
+	delitem 2269,1;
+	delitem 999,10;
+	getitem 5061,1;
+	if(sex==1) goto L_Male2;
+	mes "Here, a Flower Pin for you.";
+	close;
+L_Male2:
+	mes "Here, a Flower Pin for your sweetie.";
+	close;
+
+No_Flower:
+	mes "You don't seem to have a Romantic Flower.";
+	close;
+
+No_Steel:
+	mes "You don't have enough Steel.";
+	close;
+}
+
+function	script	F_BackRibbon	{
+	mes "["+@npcname$+"]";
+	mes "The Back Ribbon is a ribbon for the back of your head. Duh!";
+	next;
+L_Menu:
+	menu "Ribbon Properties",L_Stats,
+		"Required Items",L_Reqs,
+		"Make Back Ribbon!",L_Make,
+		"cancel",-;
+	return;
+
+L_Stats:
+	mes "["+@npcname$+"]";
+	mes "This big red ribbon is based upon the same ribbon a nature-loving dancer used to wear.";
+	mes "MDEF + 10";
+	mes "Defence Rate : ^7777771^000000";
+	mes "Equipped On : ^777777Upper^000000";
+	mes "Required lvl : ^77777745^000000";
+	mes "Available Job : ^777777Female Only, Every Job^000000";
+	next;
+	goto L_Menu;
+
+L_Reqs:
+	mes "["+@npcname$+"]";
+	mes "You need all these ribbons to make a Back Ribbon:";
+	mes "Slotted Ribbon";
+	mes "Silk Ribbon";
+	mes "Big Ribbon";
+	next;
+	goto L_Menu;
+
+L_Make:
+	mes "["+@npcname$+"]";
+	if (countitem(2209)<1) goto No_Slot;
+	if (countitem(2244)<1) goto No_Big;
+	if (countitem(10007)<1) goto No_Silk;
+	delitem 2209,1;
+	delitem 2244,1;
+	delitem 10007,1;
+	getitem 5083,1;
+	if(sex==1) goto L_Male;
+	mes "Here you go. I'm sure it will look cute on you.";
+	close;
+L_Male:
+	mes "Here you go. I'm sure your sweetheart will love it.";
+	close;
+
+No_Slot:
+	if(countitem(2208)>0) goto Not_Slot;
+	mes "You haven't got a Ribbon, slotted or no.";
+	close;
+
+Not_Slot:
+	mes "Hey, this Ribbon isn't slotted. I can't use this.";
+	close;
+
+No_Big:
+	mes "You haven't got the Big Ribbon I need.";
+	close;
+
+No_Silk:
+	mes "You don't have the Silk Ribbon I need.";
+	close;
+}
+
+function	script	F_Alarm	{
+	mes "["+@npcname$+"]";
+	mes "You want an Alarm Mask?";
+	next;
+L_Menu:
+	menu "Mask Properties",L_Stats,"Required Items",L_Reqs,"Make Alarm Mask!",L_Make,"cancel",-;
+	return;
+
+L_Stats:
+	mes "["+@npcname$+"]";
+	mes "This is a mask of the clocktower's popular monster, Alarm. It is very tough-built.";
+	mes "Add 50% resistance against darkness.";
+	mes "Defence Rate : ^7777772^000000";
+	mes "Equipped On : ^777777Mid, Lower^000000";
+	mes "Available Job : ^777777Every Job^000000";
+	next;
+	goto L_Menu;
+
+L_Reqs:
+	mes "["+@npcname$+"]";
+	mes "To make an Alarm Mask, you need ^0000FFMr. Scream^000000 aaaand 3000 ^0000FFNeedle of Alarm^000000.";
+	next;
+	goto L_Menu;
+
+L_Make:
+	mes "["+@npcname$+"]";
+	if(countitem(2288)<1) goto No_Scream;
+	if(countitem(1095)<3000) goto No_Needles;
+	delitem 2288,1;
+	delitem 1095,3000;
+	getitem 5086,1;
+	mes "Wow! You collected all those needles! Here's your mask.";
+	close;
+
+No_Scream:
+	mes "Where's your Mr. Scream?";
+	close;
+
+No_Needles:
+	mes "You need "+(3000-countitem(1095))+ " more needles.";
+	close;
+}
+
+function	script	F_Blood	{
+	mes "["+@npcname$+"]";
+	mes "The Burning Blood Bandana is the symbol of a great warrior.";
+	next;
+L_Menu:
+	menu "Bandana Properties",L_Stats,
+		"Required Items",L_Reqs,
+		"Make Bandana!",L_Make,
+		"cancel",-;
+	return;
+
+L_Stats:
+	mes "["+@npcname$+"]";
+	mes "Created with burning desire and determination, when you wear this, it makes you suddenly clench your fist without you knowing.";
+	mes "STR + 2";
+	mes "Defence Rate : ^7777771^000000";
+	mes "Equipped On : ^777777Upper^000000";
+	mes "Required lvl : ^777777NA^000000";
+	mes "Available Job : ^777777Every Job Except Novice^000000";
+	next;
+	goto L_Menu;
+
+L_Reqs:
+	mes "["+@npcname$+"]";
+	mes "To make the Burning Blood Bandana, you need:";
+	mes "A Bandana";
+	mes "White Dyestuffs";
+	mes "300 Burning Heart, this is not the same as Flame Heart";
+	mes "300 Red Muffler, this is not the same as Smokie's Red Scarf";
+	next;
+	goto L_Menu;
+
+L_Make:
+	mes "["+@npcname$+"]";
+	if (countitem(2211)<1) goto No_Bandana;
+	if (countitem(982)<1) goto No_Dye;
+	if (countitem(7097)<300) goto No_Hearts;
+	if (countitem(7216)<300) goto No_Mufflers;
+	delitem 2211,1;
+	delitem 982,1;
+	delitem 7097,300;
+	delitem 7216,300;
+	getitem 5070,1;
+	mes "Wow, you got all that stuff! you're definitely worthy of the Burning Blood Bandana.";
+	close;
+
+No_Bandana:
+	mes "You don't even hava a Bandana. Did you think I said 'banana' or something?";
+	close;
+
+No_Dye:
+	mes "You don't have white dye.";
+	close;
+
+No_Hearts:
+	mes "You only have "+(countitem(7097))+" Burning Hearts, you need 300.";
+	close;
+
+No_Mufflers:
+	mes "You haven't got all the red mufflers you need.";
+	close;
+}
+
+function	script	F_Leaf	{
+	mes "["+@npcname$+"]";
+	mes "You'd like a ^0000FFTransformation Leaf^000000?";
+	next;
+L_Menu:
+	menu "Leaf Properties",L_Stats,"Required Items",L_Reqs,"Make Transformation Leaf!",L_Make,"cancel",-;
+	return;
+
+L_Stats:
+	mes "["+@npcname$+"]";
+	mes "A same leaf a Smokey uses to transform itself. Although... it seems the transformation power is only for Smokies.";
+	mes "Defence Rate : ^7777771^000000";
+	mes "Equipped On : ^777777Upper^000000";
+	mes "Required lvl : ^777777NA^000000";
+	mes "Available Job : ^777777Every Job^000000";
+	next;
+	goto L_Menu;
+
+L_Reqs:
+	mes "["+@npcname$+"]";
+	mes "It's easy, all you need are 600 ^0000FFRaccoon Leaves.^000000";
+	mes "If you've been hunting for a Kitty Band you probably have that many.";
+	next;
+	goto L_Menu;
+
+L_Make:
+	mes "["+@npcname$+"]";
+	if(countitem(945)<600) goto No_Leaves;
+	delitem 945,600;
+	getitem 5064,1;
+	mes "Here's your leaf.";
+	mes "Did you find that Kitty Band you were looking for?";
+	close;
+
+No_Leaves:
+	mes "You only have "+countitem(945)+" out of 600 ^0000FFRaccoon Leaves^000000.";
+	close;
+}
+
+function	script	F_Cowboy	{
+	mes "["+@npcname$+"]";
+	mes "A Cowboy Hat, huh?";
+	next;
+L_Menu:
+	menu "Hat Properties",L_Stats,
+		"Required Items",L_Reqs,
+		"Make Cowboy Hat!",L_Make,
+		"cancel",-;
+	return;
+
+L_Stats:
+	mes "["+@npcname$+"]";
+	mes "A hat that gives you feeling of sand wind in the vast nothingness in Wild West. Gives you that desire to suddenly act all tragic around.";
+	mes "Defence Rate : ^7777774^000000";
+	mes "Equipped On : ^777777Upper^000000";
+	mes "Required lvl : ^777777NA^000000";
+	mes "Available Job : ^777777Every Job^000000";
+	next;
+	goto L_Menu;
+
+L_Reqs:
+	mes "["+@npcname$+"]";
+	mes "For a Cowboy Hat you need:";
+	mes "Western Grace";
+	mes "108 Claw of Desert Wolf";
+	mes "108 Blade of Grass";
+	mes "4 Burning Horseshoe";
+	next;
+	goto L_Menu;
+
+L_Make:
+	mes "["+@npcname$+"]";
+	if (countitem(2248)<1) goto No_Hat;
+	if (countitem(7030)<108) goto No_Claws;
+	if (countitem(7194)<108) goto No_Grass;
+	if (countitem(7120)<4) goto No_Shoes;
+	delitem 2248,1;
+	delitem 7030,108;
+	delitem 7194,108;
+	delitem 7120,4;
+	getitem 5075,1;
+	mes "Wow! You go all that stuff.";
+	mes "You deserve this hat.";
+	close;
+
+No_Hat:
+	mes "You don't seem to have a Western Grace.";
+	close;
+
+No_Claws:
+	mes "You haven't got enough Claws of Desert Wolf.";
+	close;
+
+No_Grass:
+	mes "You haven't got enough Blades of Grass.";
+	close;
+
+No_Shoes:
+	mes "You don't seem to have enough Burning Horseshoes.";
+	close;
+}
+function	script	F_ArmyPin	{
+	mes "["+@npcname$+"]";
+	mes "The Salvation Army Pin is pretty, but doesn't do much.";
+	next;
+L_Menu:
+	menu "Pin Properties",L_Stats,
+		"Required Items",L_Reqs,
+		"Make Pin!",L_Make,
+		"cancel",-;
+	return;
+
+L_Stats:
+	mes "["+@npcname$+"]";
+	mes "Fruits of Love.";
+	mes "Defence Rate : ^7777770^000000";
+	mes "Equipped On : ^777777Upper^000000";
+	mes "Required lvl : ^777777none^000000";
+	mes "Available Job : ^777777Every Job except Novice^000000";
+	next;
+	goto L_Menu;
+
+L_Reqs:
+	mes "["+@npcname$+"]";
+	mes "To make this, you need:";
+	mes "1 Sardonyx";
+	mes "3 Unripe Apple";
+	next;
+	goto L_Menu;
+
+L_Make:
+	mes "["+@npcname$+"]";
+	if (countitem(725)<1) goto No_Jewel;
+	if (countitem(619)<3) goto No_Apples;
+	delitem 725,1;
+	delitem 619,3;
+	getitem 5056,1;
+	mes "Well, here you go. Don't ask me what it's good for.";
+	close;
+
+No_Jewel:
+	mes "You don't seem to have any Sardonyx.";
+	close;
+
+No_Apples:
+	mes "You haven't got enough Unripe Apples.";
+	close;
+}
+
+function	script	F_Otter	{
+L_Reqs:
+	mes "["+@npcname$+"]";
+	mes "Ever wondered what would happen if you put a ^0000FFTransformation Leaf^000000 on a ^0000FFSmokie Hat^000000?";
+	mes "My research shows that it should turn into a ^FF0000Sea Otter Hat^000000.";
+	next;
+L_Menu:
+	menu "Hat Properties",L_Stats,
+		"Required Items",L_Reqs,
+		"Make Otter Hat!",L_Make,
+		"cancel",-;
+	return;
+
+L_Stats:
+	mes "["+@npcname$+"]";
+	mes "A hat based upon the look of a cute sea otter. There's a strange power vested within, maybe because process of making this hat is magical.";
+	mes "VIT + 1";
+	mes "Defence Rate : ^7777773^000000";
+	mes "Equipped On : ^777777Upper^000000";
+	mes "Required lvl : ^77777750^000000";
+	mes "Available Job : ^777777Every Job^000000";
+	next;
+	goto L_Menu;
+
+L_Make:
+	if (countitem(5033)<1) goto No_Hat;
+	if (countitem(5064)<1) goto No_Leaf;
+	mes "^00FFFF*poof*^000000";
+	next;
+	delitem 5064,1;
+	delitem 5033,1;
+	getitem 5078,1;
+	mes "["+@npcname$+"]";
+	mes "I was right, it did become a Sea Otter Hat!";
+	close;
+
+No_Hat:
+	mes "["+@npcname$+"]";
+	mes "You don't have a ^0000FFSmokie Hat^000000 for me to transform.";
+	close;
+
+No_Leaf:
+	mes "["+@npcname$+"]";
+	mes "How can I transform your hat without a ^0000FFTransformation Leaf^000000?";
+	close;
+}
+
+function	script	F_Party	{
+	mes "["+@npcname$+"]";
+	mes "Yeah! Let's party!";
+	next;
+L_Menu:
+	menu "Hat Properties",L_Stats,
+		"Required Items",L_Reqs,
+		"Make Party Hat",L_Make,
+		"cancel",-;
+	return;
+
+L_Stats:
+	mes "["+@npcname$+"]";
+	mes "A hat used in parties where everyone gathers, when you wear it, it gives you that happy feeling.";
+	mes "LUK + 1";
+	mes "Defence Rate : ^7777773^000000";
+	mes "Equipped On : ^777777Upper^000000";
+	mes "Required lvl : ^777777NA^000000";
+	mes "Available Job : ^777777Every Job^000000";
+	next;
+	goto L_Menu;
+
+L_Reqs:
+	mes "["+@npcname$+"]";
+	mes "To make the Party Hat, you need:";
+	mes "Santa Hat";
+	mes "100 String Paper";
+	mes "100 Oiled Paper";
+	next;
+	goto L_Menu;
+
+L_Make:
+	mes "["+@npcname$+"]";
+	if (countitem(2236)<1) goto No_Santa;
+	if (countitem(7111)<100) goto No_Papers;
+	if (countitem(7151)<100) goto No_Papers;
+	delitem 2236,1;
+	delitem 7111,100;
+	delitem 7151,100;
+	getitem 5060,1;
+	mes "Alright! Now you've got a hat to wear for parties!";
+	close;
+
+No_Santa:
+	mes "You don't have a Santa Hat.";
+	close;
+
+No_Papers:
+	mes "You only have";
+	mes countitem(7111)+"/100 String Paper and";
+	mes countitem(7151)+"/100 Oiled Paper";
+	close;
+}
+
+function	script	F_Straw	{
+	mes "["+@npcname$+"]";
+	mes "Sakkats get boring after a while. Why not upgrade yours to a Straw Hat?";
+	next;
+L_Menu:
+	menu "Hat Properties",L_Stats,
+		"Required Items",L_Reqs,
+		"Make Straw Hat!",L_Make,
+		"cancel",-;
+	return;
+
+L_Stats:
+	mes "["+@npcname$+"]";
+	mes "A cool hat made with straws. Somehow, it gives you the wish to go out, and do some farm work.";
+	mes "AGI + 1";
+	mes "Defence Rate : ^7777773^000000";
+	mes "Equipped On : ^777777Upper^000000";
+	mes "Required lvl : ^77777750^000000";
+	mes "Available Job : ^777777Every Job^000000";
+	next;
+	goto L_Menu;
+
+L_Reqs:
+	mes "["+@npcname$+"]";
+	mes "You need a Sakkat of course, and also:";
+	mes "300 Bamboo Trunks";
+	mes "300 Durable Vine";
+	next;
+	goto L_Menu;
+
+L_Make:
+	mes "["+@npcname$+"]";
+	if (countitem(2280)<1) goto No_Sak;
+	if (countitem(7150)<300) goto No_Bamboo;
+	if (countitem(7197)<300) goto No_Vines;
+	delitem 2280,1;
+	delitem 7150,300;
+	delitem 7197,300;
+	getitem 5062,1;
+	mes "There, isn't that more interesting than a Sakkat?";
+	close;
+
+No_Sak:
+	mes "You don't even have a Sakkat.";
+	close;
+
+No_Bamboo:
+	mes "You only have "+countitem(1750)+" of the 300 Bamboo Trunks I need.";
+	close;
+
+No_Vines:
+	mes "You only have "+countitem(7197)+" of the 300 Durable Vines I need.";
+	close;
+}
+
+function	script	F_Sombrero	{
+	// En español =)
+	// Shouldn't be too hard to figure out, 
+	// all the menu entries and item names are still in english.
+	mes "["+@npcname$+"]";
+	mes "¿Quiere usted un sombrero?";
+	next;
+L_Menu:
+	menu "Hat properties",L_Stats,
+		"Required Items",L_Reqs,
+		"Make Sombero",L_Make,
+		"cancel",-;
+	close;
+
+L_Stats:
+	mes "["+@npcname$+"]";
+	mes "A traditional hat of a race of people living in a very hot region. It has a small round horn-like top.";
+	mes "AGI + 1";
+	mes "Defence Rate : ^7777774^000000";
+	mes "Equipped On : ^777777Upper^000000";
+	mes "Required lvl : ^777777NA^000000";
+	mes "Available Job : ^777777Every Job Except Novice^000000";
+	next;
+	goto L_Menu;
+
+L_Reqs:
+	mes "["+@npcname$+"]";
+	mes "Usted necesita:";
+	mes "Straw hat";
+	mes "Guitar";
+	mes "50 Cactus Needle";
+	next;
+	goto L_Menu;
+
+L_Make:
+	mes "["+@npcname$+"]";
+	if (countitem(5062)<1) goto No_Hat;
+	if (countitem(1907)<1) goto No_Guitar;
+	if (countitem(952)<50) goto No_Needles;
+	delitem 5062,1;
+	delitem 1907,1;
+	delitem 952,50;
+	getitem 5067,1;
+	mes "¡Excelente! Por favor, tome su Sombrero.";
+	close;
+
+No_Hat:
+	mes "A usted se falta un 'Straw Hat.'";
+	close;
+
+No_Guitar:
+	mes "Usted no tiene una guitara.";
+	close;
+
+No_Needles:
+	mes "Necesito 50 'Cactus Needle.'";
+	mes "Usted tiene "+countitem(952)+".";
+	close;
+}
+
+function	script	F_WoolHat	{
+	mes "["+@npcname$+"]";
+	mes "A Wool Hat? Are you cold?";
+	next;
+L_Menu:
+	menu "Hat Properties",L_Stats,"Required Items",L_Reqs,"Make Wool Hat!",L_Make,"cancel",-;
+	return;
+
+L_Stats:
+	mes "["+@npcname$+"]";
+	mes "A furry hat designed to keep your head warm and comfortable... but there seems to be people who just wears this for the coolness factor of it.";
+	mes "LUK + 1";
+	mes "Defence Rate : ^7777772^000000";
+	mes "Equipped On : ^777777Upper^000000";
+	mes "Required lvl : ^777777NA^000000";
+	mes "Available Job : ^777777Every Job^000000";
+	next;
+	goto L_Menu;
+
+L_Reqs:
+	mes "["+@npcname$+"]";
+	mes "For the Wool Hat, you need:";
+	mes "Cap";
+	mes "White Dyestuffs";
+	mes "500 Blue Hair";
+	mes "Be warned: the reqired items for this hat are ^FF0000subject to change without notice^000000.";
+	next;
+	goto L_Menu;
+
+L_Make:
+	mes "["+@npcname$+"]";
+	if (countitem(2226)<1) goto No_Cap;
+	if (countitem(982)<1) goto No_Dye;
+	if (countitem(1034)<500) goto No_Hair;
+	delitem 2226,1;
+	delitem 982,1;
+	delitem 1034,500;
+	getitem 5076,1;
+	mes "Here you go, a nice warm hat for your next trip to Lutie.";
+	close;
+
+No_Cap:
+	mes "Umm, I need a Cap. A plain storebought one is OK.";
+	close;
+
+No_Dye:
+	mes "I need white dye.";
+	close;
+
+No_Hair:
+	mes "You need "+(500-countitem(1034))+" more Blue Hair.";
+	close;
+}
+
+function	script	F_Native	{
+	mes "["+@npcname$+"]";
+	mes "The Native's Headband, eh?";
+	next;
+L_Menu:
+	menu "Headband Properties",L_Stats,
+		"Required Items",L_Reqs,
+		"Make Headband!",L_Make,
+		"cancel",-;
+	return;
+
+L_Stats:
+	mes "["+@npcname$+"]";
+	mes "A hairband of specific race, it has a blue triangle shape, with a large white feather. When you yell while wearing this, you could feel the great nature.";
+	mes "DEX + 1";
+	mes "Defence Rate : ^7777771^000000";
+	mes "Equipped On : ^777777Upper^000000";
+	mes "Required lvl : ^777777NA^000000";
+	mes "Available Job : ^777777Every Job Except Novice^000000";
+	next;
+	goto L_Menu;
+
+L_Reqs:
+	mes "["+@npcname$+"]";
+	mes "You'll need:";
+	mes "Indian Fillet";
+	mes "Striped Bandana";
+	mes "10 Peco Feather";
+	mes "10,000z";
+	next;
+	goto L_Menu;
+
+L_Make:
+	mes "["+@npcname$+"]";
+	if (countitem(5010)<1) goto No_Headbands;
+	if (countitem(5049)<1) goto No_Headbands;
+	if (countitem(7101)<10) goto No_Feathers;
+	if (zeny<10000) goto No_Money;
+	delitem 5010,1;
+	delitem 5049,1;
+	delitem 7101,10;
+	set zeny,zeny-10000;
+	getitem 5071,1;
+	mes "There you go, wear it with pride.";
+	close;
+
+No_Headbands:
+	mes "You're missing one of the headbands I need.";
+	close;
+
+No_Feathers:
+	mes "You don't have 10 Peco Feathers.";
+	close;
+
+No_Money:
+	mes "You're a little short on funds, you need 10,000 zeny.";
+	close;
+
+}
+
+function	script	F_Raccoon	{
+	mes "["+@npcname$+"]";
+	mes "The Lazy Raccoon Hat is so cute!";
+	next;
+L_Menu:
+	menu "Hat Properties",L_Stats,
+		"Required Items",L_Reqs,
+		"Make Lazy Raccoon Hat!",L_Make,
+		"cancel",-;
+	return;
+
+L_Stats:
+	mes "["+@npcname$+"]";
+	mes "A doll based upon the look of bored and tired Smokey in the hot summer.";
+	mes "Add 20% resistance against sleep.";
+	mes "Defence Rate : ^7777771^000000";
+	mes "Equipped On : ^777777Upper^000000";
+	mes "Required lvl : ^777777NA^000000";
+	mes "Available Job : ^777777Every Job Except Novice^000000";
+	next;
+	goto L_Menu;
+
+L_Reqs:
+	mes "["+@npcname$+"]";
+	mes "To make the Lazy Raccoon at, you'll need:";
+	mes "1000 ^800000Acorns^000000";
+	mes "100 ^0000FFSea Otter's Fur^000000";
+	mes "10 ^008000Raccoon Leaves";
+	next;
+	goto L_Menu;
+
+L_Make:
+	mes "["+@npcname$+"]";
+	mes "Let's see, you have:";
+	mes countitem(1026)+"/1000 ^800000Acorns^000000";
+	mes countitem(7065)+"/100 ^0000FFSea Otter's Fur^000000";
+	mes countitem(945)+"/10 ^008000Raccoon Leaves^000000";
+	if ((countitem(1026)<1000) || (countitem(7065)<100) || (countitem(945)<10)) goto L_Nomake;
+	mes "That's all you need.";
+	next;
+	delitem 1026,1000;
+	delitem 7065,100;
+	delitem 945,10;
+	getitem 5084,1;
+	mes "["+@npcname$+"]";
+	mes "Here's your hat.";
+	close;
+
+L_Nomake:
+	mes "That's not enough.";
+	close;
+
+}
+
+function	script	F_Poring	{
+	mes "["+@npcname$+"]";
+	mes "^800080Poring™ soft-gel head massager. Only $9.95 + shipping and handling, order today!^000000";
+	next;
+	mes "["+@npcname$+"]";
+	mes "Just kidding.";
+	next;
+L_Menu:
+	menu "Hat Properties",L_Stats,
+		"Required Items",L_Reqs,
+		"Make Poring Hat!",L_Make,
+		"cancel",-;
+	return;
+
+L_Stats:
+	mes "["+@npcname$+"]";
+	mes "A hat created in the form of the Poring monster.";
+	mes "Defence Rate : ^7777772^000000";
+	mes "Equipped on : ^777777Upper^000000";
+	mes "Required lvl : ^77777738^000000";
+	mes "Available Job : ^777777Every Job Except Novice^000000";
+	next;
+	goto L_Menu;
+
+L_Reqs:
+	mes "["+@npcname$+"]";
+	mes "It's simple really, all you need is a ^0000FFPoring Doll^000000 and 300 ^0000FFJellopies^000000.";
+	next;
+	goto L_Menu;
+
+L_Make:
+	mes "["+@npcname$+"]";
+	if (countitem(741)<1) goto No_Doll;
+	if (countitem(909)<300) goto No_Jello;
+	delitem 741,1;
+	delitem 909,300;
+	getitem 5035,1;
+	mes "Here's your Poring Hat. Now don't go looting people just because you wear it.";
+	close;
+
+No_Doll:
+	mes "You ... um ... need a Poring Doll.";
+	close;
+
+No_Jello:
+	mes "You're short a few Jellopies there.";
+	close;
+}
+
+function	script	F_Panda	{
+	mes "["+@npcname$+"]";
+	mes "I love Pandas, especially in a good sauce.";
+	next;
+	mes "["+@npcname$+"]";
+	mes "Relax! I'm just kidding!";
+	next;
+L_Menu:
+	menu "Hat Properties",L_Stats,
+		"Required Items",L_Reqs,
+		"Make Panda Hat",L_Make,
+		"cancel",-;
+	return;
+
+L_Stats:
+	mes "["+@npcname$+"]";
+	mes "A hat in the shape of a Panda head.";
+	mes "Defence Rate : ^7777773^000000";
+	mes "Equipped on : ^777777Upper^000000";
+	mes "Required lvl : ^77777740^000000";
+	mes "Available Job : ^777777Every Job Except Novice^000000";
+	next;
+	goto L_Menu;
+
+L_Reqs:
+	mes "["+@npcname$+"]";
+	mes "It's not hard, you just need need 50 ^800000Bear's Footskin^000000 and 10 ^808080Steel^000000.";
+	next;
+	goto L_Menu;
+
+L_Make:
+	mes "["+@npcname$+"]";
+	mes "Let's see, you have "+countitem(948)+" ^800000Bear's Footskin^000000, and "+countitem(999)+" ^808080Steel^000000.";
+	next;
+	if ((countitem(948)<50) || (countitem(999)<10)) goto L_NotEnough;
+	delitem 948, 50;
+	delitem 999, 10;
+	getitem 5030, 1;
+	mes "["+@npcname$+"]";
+	mes "Very good, here's your Panda Hat.";
+	close;
+
+L_NotEnough:
+	mes "["+@npcname$+"]";
+	mes "That's not enough,you need 50 ^800000Bear's Footskin^000000 and 10 ^808080Steel^000000.";
+	close;
+}
+
+function	script	F_Drooping_Cat	{
+	mes "["+@npcname$+"]";
+	mes "This hat perfectly simulates the look of a cat sleeping on your head.";
+	next;
+L_Menu:
+	menu "Cat Properties",L_Stats,
+		"Required Items",L_Reqs,
+		"Make Drooping Cat!",L_Make,
+		"cancel",-;
+	return;
+
+L_Stats:
+	mes "["+@npcname$+"]";
+	mes "A doll made to allow users to carry it above their head. If you somehow hear a cat crying or feeling something's moving on your head... it's just you.";
+	mes "MDEF + 15, 30% resistance against curse.";
+	mes "Defence Rate : ^7777771^000000";
+	mes "Equipped On : ^777777Upper^000000";
+	mes "Required lvl : ^777777NA^000000";
+	mes "Available Job : ^777777Every Job Except Novice^000000";
+	next;
+	goto L_Menu;
+
+L_Reqs:
+	mes "["+@npcname$+"]";
+	mes "You'll need:";
+	mes "^0000FFSlotted Circlet^000000";
+	mes "^0000FFBlack Dyestuffs^000000";
+	mes "300 ^0000FFCat Dolls^000000";
+	next;
+	goto L_Menu;
+
+L_Make:
+	mes "["+@npcname$+"]";
+	if (countitem(7206)<300) goto No_Dolls;
+	if (countitem(2233)<1) goto No_Other;
+	if (countitem(983)<1) goto No_Other;
+	getitem 5058, 1;
+	delitem 7206, 300;
+	delitem 2233, 1;
+	delitem 983, 1;
+	mes "I give you... the ^FF0000Drooping Cat^000000.";
+	close;
+
+No_Dolls:
+	mes "You need "+(300-countitem(7206))+" more ^0000FFCat Dolls.";
+	close;
+
+No_Other:
+	mes "You have all the ^0000FFCat Dolls^000000, now bring me a ^0000FFSlotted Circlet^000000 and ^0000FFBlack Dyestuffs^000000.";
+	close;
+}
+
+function	script	F_X_Pin	{
+L_Reqs:
+	mes "["+@npcname$+"]";
+	mes "The ^FF0000X-Shaped Hairpin^000000 is basically just for looks.";
+	mes "It's made from ^0000FFA Stellar^000000 and ^0000FF400 Ectoplasm^000000";
+	next;
+L_Menu:
+	menu "Pin Properties",L_Stats,
+		"Required Items",L_Reqs,
+		"Make X Hairpin!",L_Make,
+		"cancel",-;
+	return;
+
+L_Stats:
+	mes "["+@npcname$+"]";
+	mes "A cute hairpin in the shape of X.";
+	mes "Defence Rate : ^7777771^000000";
+	mes "Equipped On : ^777777Upper^000000";
+	mes "Required lvl : ^777777NA^000000";
+	mes "Available Job : ^777777Every Job^000000";
+	next;
+	goto L_Menu;
+
+L_Make:
+	mes "["+@npcname$+"]";
+	if (countitem(7220)<400) goto No_Ectoplasm;
+	if (countitem(2294)<1) goto No_Stellar;
+	getitem 5079, 1;
+	delitem 2294, 1;
+	delitem 7220, 400;
+	mes "Here's your ^FF0000X-Shaped Hairpin^000000. Hope it looks good on you.";
+	close;
+
+No_Stellar:
+	mes "You haven't got a ^0000FFStellar^000000.";
+	close;
+
+No_Ectoplasm:
+	mes "You're short by "+(400-countitem(7220))+" ^0000FFEctoplasm^000000.";
+	close;
+}
+
+//===========================================================================
+//Every thing here modefied by Mega Man Expert
+//===========================================================================
+
+function	script	F_Neko_Mimi	{
+L_Reqs:
+	mes "["+@npcname$+"]";
+	mes "If you ask me, the ^FF0000Neko Mimi^000000 is the cutest hat ever.";
+	mes "It's made from ^0000FF5 Tiger Skins ^000000, and ^0000FF500 Leopard Skins ^000000";
+	next;
+L_Menu:
+	menu "Hat Properties",L_Stats,
+		"Required Items",L_Reqs,
+		"Make Neko Mimi!",L_Make,
+		"cancel",-;
+	return;
+
+L_Stats:
+	mes "["+@npcname$+"]";
+	mes "A cute cat-looking hat which enhances its wearer's appearance. The cat tail emphasizes its bestial charisma.";
+	mes "LUK + 2, MDEF + 10";
+	mes "Reduce 5% of damage taken from Brute monsters.";
+	mes "Defence Rate : ^7777771^000000";
+	mes "Equipped On : ^777777Upper^000000";
+	mes "Required lvl : ^777777NA^000000";
+	mes "Available Job : ^777777Every Job^000000";
+	next;
+	goto L_Menu;
+
+L_Make:
+	mes "["+@npcname$+"]";
+	if (countitem(7171)<500) goto No_Leopard_Skin;
+//	if (countitem(7267)<500) goto No_Tiger_Pantie;
+	if (countitem(1029)<5) goto No_Tiger_Skin;
+	getitem 5099, 1;
+	delitem 1029, 5;
+	delitem 7171, 500;
+//	delitem 7267, 500;
+	mes "Here's your ^FF0000Neko Mimi^000000. Hope it looks good on you.";
+	close;
+
+No_Tiger_Skin:
+	mes "You're short by "+(5-countitem(1029))+" ^0000FFTiger Skin ^000000.";
+	close;
+
+No_Leopard_Skin:
+	mes "You're short by "+(500-countitem(7171))+" ^0000FFLeopard Skin^000000.";
+	close;
+
+No_Tiger_Pantie:
+	mes "You're short by "+(500-countitem(7267))+" ^0000FFTiger Pantie ^000000.";
+
+	close;
+}
+
+function	script	F_Sunflower_Pin	{
+L_Reqs:
+	mes "["+@npcname$+"]";
+	mes "The ^FF0000Sunflower Pin^000000 is from ^0000FFA Flower Pin^000000 and ^0000FFA Sunflower^000000";
+	next;
+L_Menu:
+	menu "Pin Properties",L_Stats,
+		"Required Items",L_Reqs,
+		"Make Sunflower Pin!",L_Make,
+		"cancel",-;
+	return;
+
+L_Stats:
+	mes "["+@npcname$+"]";
+	mes "A cute hairpin in the shape of Sunflower.";
+	mes "Agi + 2, Crit + 5";
+	mes "Impossible to refine";
+	mes "Defence Rate : ^7777771^000000";
+	mes "Equipped On : ^777777Upper^000000";
+	mes "Required lvl : ^777777NA^000000";
+	mes "Available Job : ^777777Every Job^000000";
+	next;
+	goto L_Menu;
+
+L_Make:
+	mes "["+@npcname$+"]";
+	if (countitem(5061)<1) goto No_Flower_Pin;
+	if (countitem(2253)<1) goto No_Sunflower_Hat;
+	getitem 5103, 1;
+	delitem 5061, 1;
+	delitem 2253, 1;
+	mes "Here's your ^FF0000Sunflower Pin^000000. Hope it looks good on you.";
+	close;
+
+No_Flower_Pin:
+	mes "You haven't got a ^0000FFFlower Pin^000000.";
+	close;
+
+No_Sunflower_Hat:
+	mes "You haven't got a ^0000FFSunflower^000000.";
+	close;
+}
+
+function	script	F_Black_Blindfold	{
+	mes "["+@npcname$+"]";
+	mes "The Black Blindfold is made from ^0000FFA Blinker^000000, ^0000FFBlack Dyestuffs^000000, for a fee of 500,000 zeny.";
+	next;
+L_Menu:
+	menu "More Information",L_Stats,"Make Black Blindfold",L_Make,"cancel",-;
+	return;
+
+L_Stats:
+	mes "["+@npcname$+"]";
+	mes "A face mask worn to aid in meditation.";
+	mes "Resistant to Blind.";
+	mes "Defence Rate : ^7777770^000000";
+	mes "Equipped On : ^777777Mid^000000";
+	mes "Required lvl : ^777777N/A^000000";
+	mes "Available Job : ^777777Every Job Except Novice^000000";
+	next;
+	goto L_Menu;
+
+L_Make:
+	mes "["+@npcname$+"]";
+	if(Zeny < 500000) goto No_Money;
+	if (countitem(2295)<1) goto No_Blinker;
+	if (countitem(983)<1) goto No_Black_Dyestuffs;
+	set Zeny, Zeny-500000;
+	getitem 5104,1;
+	delitem 2295, 1;
+	delitem 983, 1;
+	mes "Thank you, here is your Blindfold.";
+	close;
+
+No_Money:
+	mes "Sorry, you're a little short on funds.";
+	close;
+
+No_Blinker:
+	mes "You haven't got a ^0000FFBlinker^000000.";
+	close;
+
+No_Black_Dyestuffs:
+	mes "You haven't got a ^0000FFBlack Dyestuffs^000000.";
+	close;
+}
+
+function	script	F_Sale_Sign	{
+	mes "["+@npcname$+"]";
+	mes "The Sale Sign is made from ^0000FFA Stop Post^000000, ^0000FFHand of God^000000, ^0000FFWhite Dyestuffs^000000, and a fee of 200,000 zeny.";
+	next;
+L_Menu:
+	menu "More Information",L_Stats,"Make Sale Sign",L_Make,"cancel",-;
+	return;
+
+L_Stats:
+	mes "["+@npcname$+"]";
+	mes "A banner which has the word 'Sale' written on the surface. Seems to be useful for opening vending shops.";
+	mes "STR + 1, AGI + 1, LUK + 1";
+	mes "Defence Rate : ^7777771^000000";
+	mes "Equipped On : ^777777Upper^000000";
+	mes "Required lvl : ^77777775^000000";
+	mes "Available Job : ^777777Every Job^000000";
+	next;
+	goto L_Menu;
+
+L_Make:
+	mes "["+@npcname$+"]";
+	if(Zeny < 200000) goto No_Money;
+	if (countitem(2272)<1) goto No_Stop_Post;
+	if (countitem(1009)<1) goto No_Hand_of_God;
+	if (countitem(982)<1) goto No_White_Diestuffs;
+	set Zeny, Zeny-200000;
+	getitem 5100,1;
+	delitem 2272, 1;
+	delitem 1009, 1;
+	delitem 982, 1;
+	mes "Thank you, here is your Sale Sign.";
+	close;
+
+No_Money:
+	mes "Sorry, you're a little short on funds.";
+	close;
+
+No_White_Diestuffs:
+	mes "You haven't got a ^0000FFWhite Dyestuffs^000000.";
+	close;
+
+No_Hand_of_God:
+	mes "You haven't got a ^0000FFHand of God^000000.";
+	close;
+
+No_Stop_Post:
+	mes "You haven't got a ^0000FFStop Post^000000.";
+	close;
+}

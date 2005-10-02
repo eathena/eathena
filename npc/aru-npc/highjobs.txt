@@ -1,0 +1,273 @@
+valkyrie.gat,57,48,3	script	Godess of Rebirth	811,{
+	if(class>4000) goto L_Reborn;
+	if(class==23) goto L_SuperNovice;
+	if((class>6) && (BaseLevel>98) && (JobLevel>49)) goto L_Rebirth;
+	mes "[Godess]";
+	mes "Only those who reach the limit of earthly power may be reborn.";
+	next;
+	menu "What do you mean?",L_Explain,"close",-;
+	close;
+
+L_Rebirth:
+	mes "[Godess]";
+	mes "Will you be reborn as a High Novice, to once again walk the path of destiny?";
+	next;
+	menu "Yes",L_Change,"No",-;
+	mes "[Godess]";
+	mes "Then return when you are ready.";
+	close;
+
+L_Change:
+	if(class==13) goto L_Dismount;
+	if(class==21) goto L_Dismount;
+	set SavedJob,class;
+	//Lose all skills
+	ResetSkill;
+	set SkillPoint,0;
+	setlook 7,0;
+	jobchange 24;
+	resetlvl(1);
+	//Strip cart, falcon, and peco
+	setoption 0x00;	
+	mes "[Godess]";
+	mes "You are reborn!";
+	mes "Once you have reached job level 10, return here and my sister shall aid you.";
+	close;
+
+L_Dismount:
+	mes "[Godess]";
+	mes "You must dismount your Peco first.";
+	close;
+
+L_Explain:
+	mes "[Godess]";
+	if(class>6) goto L_Explain2;
+	mes "To be reborn, you must first be your second job.";
+L_Explain2:
+	mes "You must reach job level 50 and base level 99 to be reborn.";
+	close;
+
+L_SuperNovice:
+	mes "[Godess]";
+	mes "Sorry, Super Novices may not be reborn.";
+	close;
+
+L_Reborn:
+	mes "[Godess]";
+	mes "You have been reborn. Speak to my sister for further aid.";
+	close;
+}
+
+valkyrie.gat,40,48,5	script	Godess of Power	811,{
+	if(class<4000) goto L_NotReborn;
+	if(SavedJob == 0) goto L_Register;
+	if(class>4007) goto L_NoMore;
+	if(SkillPoint>0) goto L_UseUp;
+	if(class==4001) goto L_NoviceHigh;
+
+// Only high 1st jobs should reach here
+	mes "[Godess]";
+	if(JobLevel < 39) goto L_NotReady2;
+	mes "Are you ready to advance to the final stage?";
+	next;
+	menu "Yes",L_ChangeFinal,"No",-;
+	mes "[Godess]";
+	mes "Return when you are prepared.";
+	close;
+
+L_UseUp:
+	mes "[Godess]";
+	mes "You must use up your skill points before you can change jobs.";
+	close;
+
+L_ChangeFinal:
+	jobchange (SavedJob+24);
+	mes "[Goddess]";
+	mes "Congratulations.";
+	close;
+
+L_Register:
+	callfunc "F_Memory";
+	close;
+
+L_NotReborn:
+	mes "[Godess]";
+	mes "I can aid only the reborn, speak to my sister if you wish to be reborn.";
+	close;
+
+L_NoMore:
+	mes "[Godess]";
+	mes "I can aid you no more. I wish you good fortune in your training.";
+	close;
+
+L_NotReady:
+	mes "You are not yet ready, return at job level 10.";
+	close;
+
+L_NotReady2:
+	mes "You are not yet ready, return at least job level 40.";
+	close;
+
+L_Return:
+	mes "[Godess]";
+	mes "Return when you reach job level 40.";
+	close;
+
+L_NoviceHigh:
+	mes "[Godess]";
+	if (JobLevel < 10) goto L_NotReady;
+	mes "You are ready for the next level.";
+	next;
+	if ((SavedJob==7) || (SavedJob==14)) goto L_SwordHigh;
+	if ((SavedJob==8) || (SavedJob==15)) goto L_AcoHigh;
+	if ((SavedJob==9) || (SavedJob==16)) goto L_MageHigh;
+	if ((SavedJob==10) || (SavedJob==18)) goto L_MerchHigh;
+	if ((SavedJob==11) || (SavedJob==19) || (SavedJob==20)) goto L_ArcherHigh;
+	if ((SavedJob==12) || (SavedJob==17)) goto L_ThiefHigh;
+	mes "error";
+	close;
+
+L_SwordHigh:
+	jobchange 25;
+	goto L_Return;
+
+L_AcoHigh:
+	jobchange 28;
+	goto L_Return;
+
+L_MageHigh:
+	jobchange 26;
+	goto L_Return;
+
+L_MerchHigh:
+	jobchange 29;
+	goto L_Return;
+
+L_ArcherHigh:
+	jobchange 27;
+	goto L_Return;
+
+L_ThiefHigh:
+	jobchange 30;
+	goto L_Return;
+}
+
+function	script	F_Memory	{
+	mes "[Godess]";
+	mes "I have no memory of your past life. Tell me, what were you in your past life?";
+	next;
+	menu "A Knight",L_Knight,"A Crusader",L_Crusader,
+		"A Priest",L_Priest,"A Monk",L_Monk,
+		"A Wizard",L_Wizard,"A Sage",L_Sage,
+		"A Hunter",L_Hunter,"A Bard",L_Bard,"A Dancer",L_Dancer,
+		"An Assassin",L_Assassin,"A Rogue",L_Rogue,
+		"A Blacksmith",L_Blacksmith,"An Alchemist",L_Alchemist,
+		"Umm, I don't remember",-;
+	
+	mes "[Godess]";
+	mes "Then I cannot help.";
+	close;
+
+	L_Knight:
+		if((class!=4001) && (class!=4002)) goto L_Wrath;
+		set @job$,"A Knight";
+		set @oldjob,7;
+		goto L_Verify;
+
+	L_Crusader:
+		if((class!=4001) && (class!=4002)) goto L_Wrath;
+		set @job$,"A Crusader";
+		set @oldjob,14;
+		goto L_Verify;
+
+	L_Priest:
+		if((class!=4001) && (class!=4005)) goto L_Wrath;
+		set @job$,"A Priest";
+		set @oldjob,8;
+		goto L_Verify;
+
+	L_Monk:
+		if((class!=4001) && (class!=4005)) goto L_Wrath;
+		set @job$,"A Monk";
+		set @oldjob,15;
+		goto L_Verify;
+
+	L_Wizard:
+		if((class!=4001) && (class!=4003)) goto L_Wrath;
+		set @job$,"A Wizard";
+		set @oldjob,9;
+		goto L_Verify;
+
+	L_Sage:
+		if((class!=4001) && (class!=4003)) goto L_Wrath;
+		set @job$,"A sage";
+		set @oldjob,16;
+		goto L_Verify;
+
+	L_Hunter:
+		if((class!=4001) && (class!=4004)) goto L_Wrath;
+		set @job$,"A Hunter";
+		set @oldjob,11;
+		goto L_Verify;
+
+	L_Dancer:
+		//not even female
+		if(sex==1) got L_Wrath;
+		if((class!=4001) && (class!=4004)) goto L_Wrath;
+		set @job$,"A Dancer";
+		set @oldjob,20;
+		goto L_Verify;
+
+	L_Bard:
+		//not even male
+		if(sex==0) got L_Wrath;
+		if((class!=4001) && (class!=4004)) goto L_Wrath;
+		set @job$,"A Bard";
+		set @oldjob,19;
+		goto L_Verify;
+
+	L_Assassin:
+		if((class!=4001) && (class!=4007)) goto L_Wrath;
+		set @job$,"An Assassin";
+		set @oldjob,12;
+		goto L_Verify;
+
+	L_Rogue:
+		if((class!=4001) && (class!=4007)) goto L_Wrath;
+		set @job$,"A Rogue";
+		set @oldjob,17;
+		goto L_Verify;
+
+	L_Blacksmith:
+		if((class!=4001) && (class!=4006)) goto L_Wrath;
+		set @job$,"A Blacksmith";
+		set @oldjob,10;
+		goto L_Verify;
+
+	L_Alchemist:
+		if((class!=4001) && (class!=4006)) goto L_Wrath;
+		set @job$,"An Alchemist";
+		set @oldjob,18;
+		goto L_Verify;
+
+	L_Wrath:
+		mes "[Godess]";
+		mes "Liar! Know divine wrath!";
+		//Fry 'em
+		heal -99999,-99999;
+
+	L_Verify:
+		mes "[Godess]";
+		mes @job$ + "? Are you certain?";
+		next;
+		menu "Yes",L_Record,"No",-;
+		mes "[Godess]";
+		mes "Then return when you have found certainty.";
+		close;
+
+	L_Record:
+		set SavedJob,@oldjob;
+		mes "[Godess]";
+		mes "Then it is recorded.";
+		return;
+}
