@@ -12,6 +12,7 @@ CMySQL::CMySQL() {
 	mysqldb_port=3306;
 	safestrcpy(mysqldb_id, "ragnarok", sizeof(mysqldb_id));
 	safestrcpy(mysqldb_pw, "ragnarok", sizeof(mysqldb_pw));
+	safestrcpy(mysqldb_db, "ragnarok", sizeof(mysqldb_db));
 }
 
 // CMySQL Class Destructor
@@ -70,12 +71,11 @@ inline const char* CMySQL::escape_string(char *target, const char* source, size_
 //////////////////////////////////////////////////////////////////////////////////////
 CAccountDB_sql::CAccountDB_sql(const char* configfile)
 {
-	safestrcpy(login_db,"login",sizeof(login_db));
-	safestrcpy(log_db,"loginlog",sizeof(log_db));
-	safestrcpy(login_db_userid,"userid",sizeof(login_db_userid));
-	safestrcpy(login_db_account_id,"account_id",sizeof(login_db_account_id));
-	safestrcpy(login_db_user_pass,"user_pass",sizeof(login_db_user_pass));
-	safestrcpy(login_db_level,"level",sizeof(login_db_level));
+	safestrcpy(login_auth_db,"login_auth",sizeof(login_auth_db));
+	safestrcpy(login_reg_db,"login_reg",sizeof(login_reg_db));
+	safestrcpy(login_status_db,"login_status",sizeof(login_status_db));
+	safestrcpy(login_log_db,"login_log",sizeof(login_log_db));
+
 	case_sensitive=true;
 	log_login=false;
 	init(configfile);
@@ -85,10 +85,21 @@ bool CAccountDB_sql::ProcessConfig(const char*w1, const char*w2)
 {
 	if(w1 && w2)
 	{
-		if (strcasecmp(w1, "login_db") == 0) {
-			safestrcpy(login_db, w2,sizeof(login_db));
+		// All Tables in Database
+		if (strcasecmp(w1, "login_auth_db") == 0) {
+			safestrcpy(login_auth_db, w2,sizeof(login_auth_db));
 		}
-		//add for DB connection
+		else if (strcasecmp(w1, "login_reg_db") == 0) {
+			safestrcpy(login_reg_db, w2,sizeof(login_reg_db));
+		}
+		else if (strcasecmp(w1, "login_log_db") == 0) {
+			safestrcpy(login_log_db, w2,sizeof(login_log_db));
+		}
+		else if (strcasecmp(w1, "login_status_db") == 0) {
+			safestrcpy(login_status_db, w2,sizeof(login_status_db));
+		}
+
+		// Database Connection Settings
 		else if(strcasecmp(w1,"login_server_ip")==0){
 			safestrcpy(this->mysqldb_ip, w2, sizeof(this->mysqldb_ip));
 			ShowMessage ("set login_server_ip : %s\n",w2);
@@ -106,26 +117,11 @@ bool CAccountDB_sql::ProcessConfig(const char*w1, const char*w2)
 			ShowMessage ("set login_server_pw : %s\n",w2);
 		}
 		else if(strcasecmp(w1,"login_server_db")==0){
-			safestrcpy(login_db, w2,sizeof(login_db));
+			safestrcpy(this->mysqldb_db, w2,sizeof(this->mysqldb_db));
 			ShowMessage ("set login_server_db : %s\n",w2);
 		}
-		//added for custom column names for custom login table
-		else if(strcasecmp(w1,"login_db_account_id")==0){
-			safestrcpy(login_db_account_id, w2,sizeof(login_db_account_id));
-		}
-		else if(strcasecmp(w1,"login_db_userid")==0){
-			safestrcpy(login_db_userid, w2,sizeof(login_db_userid));
-		}
-		else if(strcasecmp(w1,"login_db_user_pass")==0){
-			safestrcpy(login_db_user_pass, w2,sizeof(login_db_user_pass));
-		}
-		else if(strcasecmp(w1,"login_db_level")==0){
-			safestrcpy(login_db_level, w2, sizeof(login_db_level));
-		}
+
 		//end of custom table config
-		else if (strcasecmp(w1, "loginlog_db") == 0) {
-			safestrcpy(log_db, w2,sizeof(log_db));
-		}
 		else if (strcasecmp(w1, "log_login") == 0) {
 			log_login = Switch(w2);
 		}
@@ -143,7 +139,7 @@ bool CAccountDB_sql::existAccount(const char* userid)
 		MYSQL_RES* sql_res=NULL;
 
 		escape_string(uid, userid, sizeof(userid));
-		size_t sz=sprintf(query, "SELECT `%s` FROM `%s` WHERE %s `%s` = '%s'", login_db_userid, login_db, case_sensitive ? "BINARY" : "", login_db_userid, uid);
+		size_t sz=sprintf(query, "SELECT `userid` FROM `%s` WHERE %s `userid` = '%s'", login_auth_db, case_sensitive ? "BINARY" : "", uid);
 		if( this->mysql_SendQuery(sql_res, query, sz) )
 		{
 			ret = (mysql_num_rows(sql_res) == 1);
@@ -164,8 +160,8 @@ bool CAccountDB_sql::searchAccount(const char* userid, CLoginAccount& account)
 		MYSQL_RES *sql_res1=NULL, *sql_res2=NULL;
 //!! get auth from db
 		escape_string(uid, userid, strlen(userid));
-		sz=sprintf(query, "SELECT `%s`,`%s`,`%s`,`lastlogin`,`logincount`,`sex`,`connect_until`,`last_ip`,`ban_until`,`state`,`%s`,`email`"
-						" FROM `%s` WHERE %s `%s`='%s'", login_db_account_id, login_db_userid, login_db_user_pass, login_db_level, login_db, case_sensitive ? "BINARY" : "", login_db_userid, uid);
+		sz=sprintf(query, "SELECT `account_id`,`user_id`,`user_pass`,`lastlogin`,`logincount`,`sex`,`connect_until`,`last_ip`,`ban_until`,`state`,`level`,`email`"
+						" FROM `%s` WHERE %s `userid`='%s'", login_auth_db, case_sensitive ? "BINARY" : "", uid);
 		//login {0-account_id/1-userid/2-user_pass/3-lastlogin/4-logincount/5-sex/6-connect_untl/7-last_ip/8-ban_until/9-state/10-gmlevel/11-email}
 		if( this->mysql_SendQuery(sql_res1, query, sz) )
 		{
@@ -186,7 +182,7 @@ bool CAccountDB_sql::searchAccount(const char* userid, CLoginAccount& account)
 				account.gm_level = sql_row[10]?atoi( sql_row[10]):0;
 				safestrcpy(account.email, sql_row[11]?sql_row[11]:"" , 40);
 
-				sz = sprintf(query, "SELECT `str`,`value` FROM `global_reg_value` WHERE `type`='1' AND `account_id`='%ld'", (unsigned long)account.account_id);
+				sz = sprintf(query, "SELECT `str`,`value` FROM `%s` WHERE `account_id`='%ld'", login_reg_db, (unsigned long)account.account_id);
 				if( this->mysql_SendQuery(sql_res2, query, sz) )
 				{
 					size_t i=0;
@@ -214,8 +210,8 @@ bool CAccountDB_sql::searchAccount(uint32 accid, CLoginAccount& account)
 	char query[4096];
 	MYSQL_RES *sql_res1=NULL, *sql_res2=NULL;
 //!! get auth from db
-	sz=sprintf(query, "SELECT `%s`,`%s`,`%s`,`lastlogin`,`logincount`,`sex`,`connect_until`,`last_ip`,`ban_until`,`state`,`%s`,`email`"
-	                " FROM `%s` WHERE `%s`='%s'", login_db_account_id, login_db_userid, login_db_user_pass, login_db_level, login_db, login_db_account_id, accid);
+	sz=sprintf(query, "SELECT `account_id`,`userid`,`user_pass`,`lastlogin`,`logincount`,`sex`,`connect_until`,`last_ip`,`ban_until`,`state`,`level`,`email`"
+	                " FROM `%s` WHERE `account_id`='%s'", login_auth_db, accid);
 	//login {0-account_id/1-userid/2-user_pass/3-lastlogin/4-logincount/5-sex/6-connect_untl/7-last_ip/8-ban_until/9-state/10-gmlevel/11-email}
 	if( this->mysql_SendQuery(sql_res1, query, sz) )
 	{
@@ -237,7 +233,7 @@ bool CAccountDB_sql::searchAccount(uint32 accid, CLoginAccount& account)
 			safestrcpy(account.email, sql_row[11]?sql_row[11]:"" , 40);
 
 
-			sz = sprintf(query, "SELECT `str`,`value` FROM `login_reg` WHERE `account_id`='%ld'", (unsigned long)account.account_id);
+			sz = sprintf(query, "SELECT `str`,`value` FROM `%s` WHERE `account_id`='%ld'", login_reg_db, (unsigned long)account.account_id);
 			if( this->mysql_SendQuery(sql_res2, query, sz) )
 			{
 				size_t i=0;
@@ -265,7 +261,7 @@ bool CAccountDB_sql::insertAccount(const char* userid, const char* passwd, unsig
 
 	escape_string(uid, userid, strlen(userid));
 	escape_string(pwd, passwd, strlen(passwd));
-	sz = sprintf(query, "INSERT INTO `%s` (`%s`, `%s`, `sex`, `email`) VALUES ('%s', '%s', '%c', '%s')", login_db, login_db_userid, login_db_user_pass, uid, pwd, sex, email);
+	sz = sprintf(query, "INSERT INTO `%s` (`userid`, `user_pass`, `sex`, `email`) VALUES ('%s', '%s', '%c', '%s')", login_auth_db, uid, pwd, sex, email);
 	if( this->mysql_SendQuery(query, sz) )
 	{
 		// read the complete account back from db
@@ -280,10 +276,10 @@ bool CAccountDB_sql::removeAccount(uint32 accid)
 	size_t sz;
 	char query[1024];
 
-	sz=sprintf(query,"DELETE FROM `%s` WHERE `account_id`='%d';",login_db, accid);
+	sz=sprintf(query,"DELETE FROM `%s` WHERE `account_id`='%d';",login_auth_db, accid);
 	ret = this->mysql_SendQuery(query, sz);
 
-	sz=sprintf(query,"DELETE FROM `login_reg` WHERE `account_id`='%d';",accid); // must update with the variable login_reg_db
+	sz=sprintf(query,"DELETE FROM `%s` WHERE `account_id`='%d';",login_reg_db, accid); // must update with the variable login_reg_db
 	ret &=this->mysql_SendQuery(query, sz);
 	return ret;
 }
@@ -375,13 +371,13 @@ bool CAccountDB_sql::init(const char* configfile)
 
 	// DB connection start
 	ShowMessage("Connect Database Server on %s%u....\n", mysqldb_ip, mysqldb_port);
-	if( mysql_real_connect(&mysqldb_handle, mysqldb_ip, mysqldb_id, mysqldb_pw, login_db, mysqldb_port, (char *)NULL, 0) )
+	if( mysql_real_connect(&mysqldb_handle, mysqldb_ip, mysqldb_id, mysqldb_pw, mysqldb_db, mysqldb_port, (char *)NULL, 0) )
 	{
 		ShowMessage("connect success!\n");
 		if (log_login)
 		{
 			char query[512];
-			size_t sz = sprintf(query, "INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '', 'Login', '100','login server started')", log_db);
+			size_t sz = sprintf(query, "INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '', 'Login', '100','login server started')", login_log_db);
 			//query
 			this->mysql_SendQuery(query, sz);
 		}
@@ -401,12 +397,12 @@ bool CAccountDB_sql::close()
 	//set log.
 	if (log_login)
 	{
-		sz = sprintf(query,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '', 'lserver','100', 'login server shutdown')", log_db);
+		sz = sprintf(query,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '', 'lserver','100', 'login server shutdown')", login_log_db);
 		this->mysql_SendQuery(query, sz);
 	}
 
 	//delete all server status
-	sz = sprintf(query,"DELETE FROM `sstatus`");
+	sz = sprintf(query,"DELETE FROM `%s`", login_status_db);
 	this->mysql_SendQuery(query, sz);
 
 	mysql_close(&mysqldb_handle);
@@ -421,35 +417,38 @@ bool CAccountDB_sql::saveAccount(const CLoginAccount& account)
 	char query[1024], tempstr[64];
 //!! store auth in db
 	sz = sprintf(query, "UPDATE `%s` SET "
-		"`%s` = '%s', "
-		"`%s` = '%d', "
+		"`userid` = '%s', "
+		"`user_pass` = '%d', "
+		"`level` = '%d', "
 		"`logincount` = '%ld', "
 		"`sex` = '%c', "
 		"`last_ip` = '%s', "
 		"`connect_until` = '%ld', "
 		"`ban_until` = '%ld', "
 		"`email` = '%s', "
-		"WHERE `%s` = '%ld'",
-		login_db,
-		login_db_user_pass, account.passwd,
-		login_db_level, account.gm_level,
+		"WHERE `account_id` = '%ld'",
+		login_auth_db,
+		account.userid,
+		account.passwd,
+		account.gm_level,
 		(unsigned long)account.login_count,
 		(account.sex==1)? 'M':'F',
 		account.last_ip,
 		(unsigned long)account.valid_until,
 		(unsigned long)account.ban_until,
 		account.email,
-		login_db_account_id, (unsigned long)account.account_id);
+		(unsigned long)account.account_id);
+
 	ret = this->mysql_SendQuery(query, sz);
 
-	sz=sprintf(query,"DELETE FROM `login_reg` WHERE `account_id`='%d';",account.account_id);
+	sz=sprintf(query,"DELETE FROM `%s` WHERE `account_id`='%d';",login_reg_db, account.account_id);
 	if( this->mysql_SendQuery(query, sz) )
 	{
 		size_t i;
 		for(i=0; i<account.account_reg2_num; i++)
 		{
 			jstrescapecpy(tempstr,account.account_reg2[i].str);
-			sz=sprintf(query,"INSERT INTO `login_reg` (`account_id`, `str`, `value`) VALUES ( '%d' , '%s' , '%d');",  account.account_id, tempstr, account.account_reg2[i].value);
+			sz=sprintf(query,"INSERT INTO `%s` (`account_id`, `str`, `value`) VALUES ( '%d' , '%s' , '%d');",  login_reg_db, account.account_id, tempstr, account.account_reg2[i].value);
 			ret &= this->mysql_SendQuery(query, sz);
 		}
 	}

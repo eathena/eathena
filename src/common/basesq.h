@@ -21,11 +21,12 @@ public:
 
 protected:
 	MYSQL mysqldb_handle;			// Connection ID
-	
+
 	char mysqldb_ip[32];			// Server IP
 	unsigned short mysqldb_port;	// Server Port
 	char mysqldb_id[32];			// Username
 	char mysqldb_pw[32];			// Password
+	char mysqldb_db[32];			// Database to use
 };
 
 
@@ -56,14 +57,10 @@ protected:
 	// data
 
 	// table names
-	char login_db[128];
-	char log_db[128];
-
-	// field names
-	char login_db_userid[128];
-	char login_db_account_id[128];
-	char login_db_user_pass[128];
-	char login_db_level[128];
+	char login_auth_db[128];
+	char login_reg_db[128];
+	char login_log_db[128];
+	char login_status_db[128];
 
 	// options
 	bool case_sensitive;
