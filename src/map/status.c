@@ -4870,8 +4870,10 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 					sd->status.sp -= sp;
 					clif_updatestatus(sd,SP_SP);
 					if (sd->status.sp <= 0)
-					skill_stop_dancing(bl,0);
+					{
+						skill_stop_dancing(bl,0);
 						break;
+					}
 				}
 				sc_data[type].timer=add_timer(	/* ƒ^ƒCƒ}?Äİ’è */
 					1000+tick, status_change_timer,
