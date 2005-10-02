@@ -1,0 +1,2 @@
+comodo.gat	mapflag	fireworks
+amatsu.gat	mapflag	sakura

@@ -1,0 +1,11 @@
+einbroch.gat	mapflag	pkmode
+einbech.gat	mapflag	pkmode
+ein_fild03.gat	mapglag pkmode
+ein_fild04.gat  mapglag pkmode
+ein_fild05.gat  mapglag pkmode
+ein_fild06.gat  mapglag pkmode
+ein_fild07.gat  mapglag pkmode
+ein_fild08.gat  mapglag pkmode
+ein_fild09.gat  mapglag pkmode
+ein_fild10.gat  mapglag pkmode
+

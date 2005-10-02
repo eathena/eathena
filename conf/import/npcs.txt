@@ -1,0 +1,409 @@
+npc: npc/cities/alberta.txt
+npc: npc/cities/aldebaran.txt
+npc: npc/cities/amatsu.txt
+npc: npc/cities/comodo.txt
+npc: npc/cities/geffen.txt
+npc: npc/cities/izlude.txt
+npc: npc/cities/lutie.txt
+npc: npc/cities/morocc.txt
+npc: npc/cities/payon.txt
+npc: npc/cities/prontera.txt
+npc: npc/cities/yuno.txt
+npc: npc/cities/gonryun.txt
+npc: npc/cities/umbala.txt
+npc: npc/cities/niflheim.txt
+
+//------------------------------ Jobs --------------------------------------
+//Novice Training Ground
+npc: npc/jobs/novice.txt
+//1-1
+npc: npc/jobs/thief.txt
+npc: npc/jobs/archer.txt
+npc: npc/jobs/mage.txt
+npc: npc/jobs/merchant.txt
+npc: npc/jobs/acolyte.txt
+npc: npc/jobs/swordsman.txt
+
+//2nd Job quests are disabled on Legend till ALL are implemented
+
+//2-1 With Quest
+//npc: npc/jobs/2-1/blacksmith.txt
+//npc: npc/jobs/2-1/knight.txt
+//npc: npc/jobs/2-1/hunter.txt
+//npc: npc/jobs/2-1/priest.txt
+//npc: npc/jobs/2-1/wizard.txt
+//2-1 Without Quest
+npc: npc/jobs/assassin.txt
+npc: npc/jobs/2-1-noquest/blacksmith.txt
+npc: npc/jobs/2-1-noquest/knight.txt
+npc: npc/jobs/2-1-noquest/hunter.txt
+npc: npc/jobs/2-1-noquest/priest.txt
+npc: npc/jobs/2-1-noquest/wizard.txt
+
+//2-2 Without Quest
+npc: npc/jobs/crusader.txt
+npc: npc/jobs/alchemist.txt
+npc: npc/jobs/dancer-bard.txt
+npc: npc/jobs/monk.txt
+npc: npc/jobs/rogue.txt
+npc: npc/jobs/sage.txt
+
+//Adv classes
+//2-1-1 Job Npc
+//npc: npc/jobs/2-1-1/AssassinCross.txt
+//npc: npc/jobs/2-1-1/LordKnight.txt
+//npc: npc/jobs/2-1-1/HighPriest.txt
+//npc: npc/jobs/2-1-1/HighWizard.txt
+//npc: npc/jobs/2-1-1/WhiteSmith.txt
+//npc: npc/jobs/2-1-1/Sniper.txt
+//2-2-1 Job Npc
+//npc: npc/jobs/2-2-1/Champion.txt
+//npc: npc/jobs/2-2-1/Clown.txt
+//npc: npc/jobs/2-2-1/Creator.txt
+//npc: npc/jobs/2-2-1/Gypsy.txt
+//npc: npc/jobs/2-2-1/Paladin.txt
+//npc: npc/jobs/2-2-1/Professor.txt
+//npc: npc/jobs/2-2-1/Stalker.txt
+
+//---------------------- Merchants --------------------------
+//Shops
+npc: npc/merchants/shops.txt
+//towns have good shops for 2-2 now
+//npc: npc/merchants/2-2shop.txt
+// Other sellers
+npc: npc/merchants/refine.txt
+npc: npc/merchants/dye_maker.txt
+//Aru: Clothes dyes aren't supported clientside!
+//npc: npc/merchants/clothes_dyer.txt
+//Aru: We don't need this, we have a free stylist
+//npc: npc/merchants/hair_dyer.txt
+npc: npc/merchants/grandpa_pharmacist.txt
+npc: npc/merchants/inns.txt
+npc: npc/merchants/milk_trader.txt
+npc: npc/merchants/renters.txt
+// Free Falcon & Peco breeder, Free Carts
+//npc: npc/merchants/custom/breeder.txt
+
+
+//------------------------------- Quests ------------------------------------
+// Cities Quests
+npc: npc/quests/alberta_quests.txt
+npc: npc/quests/aldebaran_quests.txt
+npc: npc/quests/geffen_quests.txt
+npc: npc/quests/morocc_quests.txt
+npc: npc/quests/payon_quests.txt
+npc: npc/quests/prontera_quests.txt
+
+// ARU: These are commented out till I have time to test them
+// = not urgent, since out hat brothers make them too
+// npc: npc/quests/comodo_quests.txt
+// npc: npc/quests/lutie_quests.txt
+
+// Extra Item Making
+npc: npc/quests/mrsmile.txt
+npc: npc/quests/bunnyband.txt
+npc: npc/quests/juice_maker.txt
+npc: npc/quests/counteragent_mixture.txt
+npc: npc/quests/doomed_swords.txt
+npc: npc/quests/bongun.txt
+npc: npc/quests/munak.txt
+npc: npc/quests/bongunsword.txt
+// Monster Taming
+//npc: npc/quests/monstertamers.txt
+
+// Custom Quests, might be balance breaking (Enable if you want)
+//npc: npc/quests/all_quest.txt
+//npc: npc/quests/magicalhatquest.txt
+//npc: npc/quests/fashion.txt
+//npc: npc/quests/custom/excalibur.txt
+//npc: npc/quests/custom/elvenear.txt
+//npc: npc/quests/custom/ironcane.txt
+//npc: npc/quests/custom/sunglasses.txt
+//npc: npc/quests/custom/berzebub.txt
+//npc: npc/quests/custom//event_32_new_hats.txt
+//both Lord Kaho, but different and quest.txt has balmung to:
+//npc: npc/quests/custom/kaho_balmung.txt
+//npc: npc/quests/custom/kahohorn.txt
+
+//-------------------------- Skill Quests ---------------------------------
+npc: npc/quests/skills/novice_skills.txt
+npc: npc/quests/skills/acolyte_skills.txt
+npc: npc/quests/skills/mage_skills.txt
+npc: npc/quests/skills/merchant_skills.txt
+npc: npc/quests/skills/swordsman_skills.txt
+npc: npc/quests/skills/thief_skills.txt
+// Extra Skills NPC (Not required anymore since skill quests are done)
+//npc: npc/quests/skills/platinum_skills.txt
+
+// -------------------------- Guides -------------------------------
+npc: npc/guides/guides_alb.txt
+npc: npc/guides/guides_alde.txt
+npc: npc/guides/guides_com.txt
+npc: npc/guides/guides_gef.txt
+npc: npc/guides/guides_izl.txt
+npc: npc/guides/guides_mor.txt
+npc: npc/guides/guides_pay.txt
+npc: npc/guides/guides_pron.txt
+//more to come
+
+// -------------------------- Kafras -------------------------------------
+//npc: npc/kafras/functions_kafras.txt
+//npc: npc/kafras/kafras_alb.txt
+//npc: npc/kafras/kafras_alde.txt
+//npc: npc/kafras/kafras_com.txt
+//npc: npc/kafras/kafras_dungeons.txt
+//npc: npc/kafras/kafras_gef.txt
+//npc: npc/kafras/kafras_izl.txt
+//npc: npc/kafras/kafras_mor.txt
+//npc: npc/kafras/kafras_pay.txt
+//npc: npc/kafras/kafras_pron.txt
+//npc: npc/kafras/kafras_new.txt
+//more to come
+
+//---------------------------- Others -----------------------------------
+npc: npc/other/books.txt
+npc: npc/other/msg_boards.txt
+//Aru: Legend uses it's own PvP system
+//npc: npc/other/pvp.txt
+
+//npc: npc/other/arena.txt
+//npc: npc/other/ctower.txt
+npc: npc/other/IceCream.txt
+//Banker
+//npc: npc/other/bank.txt
+//npc: npc/other/wedding.txt
+//npc: npc/other/Valkyrie.txt
+//npc: npc/other/gefenia.txt
+// MVP Arena doesn't work if you've monster skills, because they teleport away
+//npc: npc/other/arena_mvp.txt
+//npc: npc/other/event_valentine.txt
+//npc: npc/other/event_alchemist.txt
+//npc: npc/other/momotaro.txt
+//npc: npc/other/tougijou.txt
+//npc: npc/other/card_remover.txt
+// mRO NPC: Twin Towers (Free Warp to several dungeons)
+//npc: npc/other/event_tw_towers.txt
+
+//-------------------------- Non-Official NPCs ------------------------------
+// Warper NPC (Enable for free warp service)
+// 1st is Warper with only option for cities and dungeons
+//npc: npc/other/warper.txt
+// 2nd you can choose which lvl of the dungeon (you have to disabled 1 if you use 2!)
+//npc: npc/other/warper2.txt
+// Reset NPC (Enable for special reset events)
+//npc: npc/jobs/custom/reset.txt
+//Multi-Jobchanger
+//npc: npc/jobs/custom/jobchange.txt
+// Free Stylist NPC - Cloths/Hair Dye - (Requires 77 dye palletes)
+//npc: npc/merchants/custom/dye.txt
+// Free healing
+//npc: npc/other/heal.txt
+// Payment healings
+//npc: npc/other/heal_payment.txt
+
+//--------------------------- Guild Wars ------------------------------------
+//Guild Wars: General
+//npc: npc/guild/ev_agit_event.txt
+
+//Guild Wars: Al de Baran
+//npc: npc/guild/aldeg_flag.txt
+//npc: npc/guild/ev_agit_aldeg.txt
+//npc: npc/guild/aldeg_cas01.txt
+//npc: npc/guild/guardian/aldeg_cas01_guardian.txt
+//npc: npc/guild/treasure/aldeg_cas01_treasure.txt
+//npc: npc/guild/aldeg_cas02.txt
+//npc: npc/guild/guardian/aldeg_cas02_guardian.txt
+//npc: npc/guild/treasure/aldeg_cas02_treasure.txt
+//npc: npc/guild/aldeg_cas03.txt
+//npc: npc/guild/guardian/aldeg_cas03_guardian.txt
+//npc: npc/guild/treasure/aldeg_cas03_treasure.txt
+//npc: npc/guild/aldeg_cas04.txt
+//npc: npc/guild/guardian/aldeg_cas04_guardian.txt
+//npc: npc/guild/treasure/aldeg_cas04_treasure.txt
+//npc: npc/guild/aldeg_cas05.txt
+//npc: npc/guild/guardian/aldeg_cas05_guardian.txt
+//npc: npc/guild/treasure/aldeg_cas05_treasure.txt
+
+//Guild Wars: Geffen
+//npc: npc/guild/gefg_flag.txt
+//npc: npc/guild/ev_agit_gefg.txt
+//npc: npc/guild/gefg_cas01.txt
+//npc: npc/guild/guardian/gefg_cas01_guardian.txt
+//npc: npc/guild/treasure/gefg_cas01_treasure.txt
+//npc: npc/guild/gefg_cas02.txt
+//npc: npc/guild/guardian/gefg_cas02_guardian.txt
+//npc: npc/guild/treasure/gefg_cas02_treasure.txt
+//npc: npc/guild/gefg_cas03.txt
+//npc: npc/guild/guardian/gefg_cas03_guardian.txt
+//npc: npc/guild/treasure/gefg_cas03_treasure.txt
+//npc: npc/guild/gefg_cas04.txt
+//npc: npc/guild/guardian/gefg_cas04_guardian.txt
+//npc: npc/guild/treasure/gefg_cas04_treasure.txt
+//npc: npc/guild/gefg_cas05.txt
+//npc: npc/guild/guardian/gefg_cas05_guardian.txt
+//npc: npc/guild/treasure/gefg_cas05_treasure.txt
+
+//Guild Wars: Payon
+//npc: npc/guild/payg_flag.txt
+//npc: npc/guild/ev_agit_payg.txt
+//npc: npc/guild/payg_cas01.txt
+//npc: npc/guild/guardian/payg_cas01_guardian.txt
+//npc: npc/guild/treasure/payg_cas01_treasure.txt
+//npc: npc/guild/payg_cas02.txt
+//npc: npc/guild/guardian/payg_cas02_guardian.txt
+//npc: npc/guild/treasure/payg_cas02_treasure.txt
+//npc: npc/guild/payg_cas03.txt
+//npc: npc/guild/guardian/payg_cas03_guardian.txt
+//npc: npc/guild/treasure/payg_cas03_treasure.txt
+//npc: npc/guild/payg_cas04.txt
+//npc: npc/guild/guardian/payg_cas04_guardian.txt
+//npc: npc/guild/treasure/payg_cas04_treasure.txt
+//npc: npc/guild/payg_cas05.txt
+//npc: npc/guild/guardian/payg_cas05_guardian.txt
+//npc: npc/guild/treasure/payg_cas05_treasure.txt
+
+//Guild Wars: Prontera
+//npc: npc/guild/prtg_flag.txt
+//npc: npc/guild/ev_agit_prtg.txt
+//npc: npc/guild/prtg_cas01.txt
+//npc: npc/guild/guardian/prtg_cas01_guardian.txt
+//npc: npc/guild/treasure/prtg_cas01_treasure.txt
+//npc: npc/guild/prtg_cas02.txt
+//npc: npc/guild/guardian/prtg_cas02_guardian.txt
+//npc: npc/guild/treasure/prtg_cas02_treasure.txt
+//npc: npc/guild/prtg_cas03.txt
+//npc: npc/guild/guardian/prtg_cas03_guardian.txt
+//npc: npc/guild/treasure/prtg_cas03_treasure.txt
+//npc: npc/guild/prtg_cas04.txt
+//npc: npc/guild/guardian/prtg_cas04_guardian.txt
+//npc: npc/guild/treasure/prtg_cas04_treasure.txt
+//npc: npc/guild/prtg_cas05.txt
+//npc: npc/guild/guardian/prtg_cas05_guardian.txt
+//npc: npc/guild/treasure/prtg_cas05_treasure.txt
+
+//--------------------- Warps ---------------------------
+npc: npc/warps/alberta.txt
+npc: npc/warps/aldebaran.txt
+npc: npc/warps/amatsu.txt
+npc: npc/warps/comodo.txt
+npc: npc/warps/geffen.txt
+npc: npc/warps/glastheim.txt
+npc: npc/warps/gonryun.txt
+npc: npc/warps/guildcastles.txt
+npc: npc/warps/izlude.txt
+npc: npc/warps/jobquests.txt
+npc: npc/warps/lutie.txt
+npc: npc/warps/mjolnir.txt
+npc: npc/warps/morroc.txt
+npc: npc/warps/other.txt
+npc: npc/warps/payon.txt
+npc: npc/warps/prontera.txt
+npc: npc/warps/pvp.txt
+npc: npc/warps/traingnd.txt
+npc: npc/warps/umbala.txt
+npc: npc/warps/yuno.txt
+npc: npc/warps/niflheim.txt
+npc: npc/warps/yggdrasil.txt
+npc: npc/warps/louyang.txt
+npc: npc/warps/jawaii.txt
+//npc: npc/warps/gefenia.txt
+
+//--------------------- Mobs ---------------------------
+npc: npc/mobs/monster.txt
+npc: npc/mobs/amatsu.txt
+npc: npc/mobs/anthell.txt
+npc: npc/mobs/beachdun.txt
+npc: npc/mobs/clocktower.txt
+npc: npc/mobs/cmdfild.txt
+npc: npc/mobs/geffild.txt
+npc: npc/mobs/glastheim.txt
+npc: npc/mobs/glddun.txt
+npc: npc/mobs/gonryun.txt
+npc: npc/mobs/louyang.txt
+npc: npc/mobs/magmadun.txt
+npc: npc/mobs/niflheim.txt
+npc: npc/mobs/payoncave.txt
+npc: npc/mobs/sunkenship.txt
+npc: npc/mobs/toyfactory.txt
+npc: npc/mobs/turtleisland.txt
+npc: npc/mobs/umbala.txt
+npc: npc/mobs/yunofild.txt
+npc: npc/mobs/job.txt
+
+//Timers
+//npc: ../gun-npc/timer/branchreset.txt
+//Other
+//npc: ../gun-npc/other/gmcheck.txt
+npc: ../gun-npc/other/npc_banker.txt
+npc: ../gun-npc/other/mastalch.txt
+//npc: ../gun-npc/other/jobchange.txt
+npc: ../gun-npc/other/dog.txt
+//npc: ../gun-npc/other/warper.txt
+//npc: ../gun-npc/other/msgboard.txt
+
+//Aru 2004-08-10 added a few more cities and other features to warpers
+npc: ../aru-npc/warper.txt
+npc: ../aru-npc/tux.txt
+npc: ../aru-npc/highjobs.txt
+
+npc: ../gun-npc/other/platinum_skills.txt
+
+npc: ../gun-npc/other/pri.txt
+
+//Kafrass
+npc: ../gun-npc/kafra/kafra-functions.txt
+npc: ../gun-npc/kafra/kafra-alberta.txt
+npc: ../gun-npc/kafra/kafra-aldebaran.txt
+npc: ../gun-npc/kafra/kafra-geffen.txt
+npc: ../gun-npc/kafra/kafra-gonryun.txt
+npc: ../gun-npc/kafra/kafra-izlude.txt
+npc: ../gun-npc/kafra/kafra-morroc.txt
+npc: ../gun-npc/kafra/kafra-payon.txt
+npc: ../gun-npc/kafra/kafra-prontera.txt
+npc: ../gun-npc/kafra/kafra-umbala.txt
+npc: ../gun-npc/kafra/kafra-yuno.txt
+npc: ../gun-npc/kafra/kafra-other.txt
+
+//Quests
+npc: ../gun-npc/quests/jade.txt
+//npc: ../gun-npc/quests/pistachio.txt
+npc: ../gun-npc/quests/stgoddess.txt
+
+npc: ../gun-npc/other/pvp.txt
+
+// npc: ../gun-npc/testkafra.txt
+
+npc: ../gun-npc/other/valk.txt
+npc: ../aru-npc/Valkyrie.txt
+
+npc: ../halla-npc/confessionspriest.txt
+npc: ../halla-npc/dye.txt
+//Aru: This one's redundant now, it's been put in the official eAthen acripts
+//npc: ../halla-npc/dye_maker.txt
+npc: ../halla-npc/Doomed_Swords.txt
+npc: ../halla-npc/newhats.txt
+npc: ../halla-npc/newhats1.txt
+npc: ../halla-npc/newhats2.txt
+npc: ../halla-npc/newhats3.txt
+npc: ../halla-npc/counteragent_mixture.txt
+npc: ../halla-npc/noviceshop.txt
+npc: ../halla-npc/suicidenpc.txt
+npc: ../halla-npc/petmaster.txt
+npc: ../halla-npc/juice.txt
+//npc: ../halla-npc/news.txt
+//npc: ../halla-npc/inns.txt
+npc: ../halla-npc/supernovice.txt
+
+//Casino
+//npc: ../npc/other/TokenExchanger.txt
+//npc: ../npc/other/SlotMachines.txt
+//npc: ../npc/other/PickIt.txt
+
+//How the hell did this guy get left out
+npc: ../aru-npc/blacksmith-shop.txt
+
+//Some people for Louyang
+//npc: ../aru-npc/louyang.txt
+
+//New Hats!
+npc: ../aru-npc/event_ep6_hats.txt

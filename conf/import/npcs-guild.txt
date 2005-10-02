@@ -1,0 +1,44 @@
+npc: npc/guild/gldfunc_manager.txt
+npc: npc/guild/gldfunc_dunsw.txt
+npc: npc/guild/gldfunc_flag.txt
+npc: npc/guild/gldfunc_treasure.txt
+npc: npc/guild/gldfunc_kafra.txt
+npc: npc/guild/gldfunc_ev_agit.txt
+npc: npc/guild/ev_agit_event.txt
+
+// Guild Wars: Al De Baran
+npc: npc/guild/aldeg/aldeg_ev_agit.txt
+npc: npc/guild/aldeg/aldeg_flags.txt
+npc: npc/guild/aldeg/aldeg_managers.txt
+npc: npc/guild/aldeg/aldeg_kafras.txt
+npc: npc/guild/aldeg/aldeg_treas.txt
+npc: npc/guild/aldeg/aldeg_dunsw.txt
+npc: npc/guild/aldeg/aldeg_guardians.txt
+
+// Guild Wars: Geffen
+npc: npc/guild/gefg/gefg_ev_agit.txt
+npc: npc/guild/gefg/gefg_flags.txt
+npc: npc/guild/gefg/gefg_managers.txt
+npc: npc/guild/gefg/gefg_kafras.txt
+npc: npc/guild/gefg/gefg_treas.txt
+npc: npc/guild/gefg/gefg_dunsw.txt
+npc: npc/guild/gefg/gefg_guardians.txt
+
+// Guild Wars: Payon
+npc: npc/guild/payg/payg_ev_agit.txt
+npc: npc/guild/payg/payg_flags.txt
+npc: npc/guild/payg/payg_managers.txt
+npc: npc/guild/payg/payg_kafras.txt
+npc: npc/guild/payg/payg_dunsw.txt
+npc: npc/guild/payg/payg_treas.txt
+npc: npc/guild/payg/payg_guardians.txt
+
+// Guild Wars: Prontera
+npc: npc/guild/prtg/prtg_ev_agit.txt
+npc: npc/guild/prtg/prtg_flags.txt
+npc: npc/guild/prtg/prtg_managers.txt
+npc: npc/guild/prtg/prtg_kafras.txt
+npc: npc/guild/prtg/prtg_dunsw.txt
+npc: npc/guild/prtg/prtg_treas.txt
+npc: npc/guild/prtg/prtg_guardians.txt
+

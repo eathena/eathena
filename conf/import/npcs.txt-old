@@ -1,0 +1,251 @@
+//Cities
+npc: ../npc/cities/alberta.txt
+npc: ../npc/cities/aldebaran.txt
+npc: ../npc/cities/amatsu.txt
+npc: ../npc/cities/comodo.txt
+npc: ../npc/cities/geffen.txt
+npc: ../npc/cities/izlude.txt
+npc: ../npc/cities/lutie.txt
+npc: ../npc/cities/morroc.txt
+npc: ../npc/cities/payon.txt
+npc: ../npc/cities/prontera.txt
+npc: ../npc/cities/yuno.txt
+npc: ../npc/cities/gonryun.txt
+npc: ../npc/cities/umbala.txt
+//npc: ../npc/cities/niflheim.txt
+
+//Jobs
+//Novice Training Ground
+npc: ../npc/jobs/novice.txt
+//1-1
+npc: ../npc/jobs/thief.txt
+npc: ../npc/jobs/archer.txt
+npc: ../npc/jobs/magican.txt
+npc: ../npc/jobs/merchant.txt
+npc: ../npc/jobs/acolyte.txt
+npc: ../npc/jobs/swordsman.txt
+//2-1 Without Quest
+npc: ../npc/jobs/hunter.txt
+npc: ../npc/jobs/assassin.txt
+npc: ../npc/jobs/blacksmith.txt
+npc: ../npc/jobs/knight.txt
+//2-1 With Quest
+npc: ../npc/jobs/priest.txt
+
+//wizard quest disabled cause it is totaly bugged
+//npc: ../npc/jobs/wizard.txt
+//this is a temp quest till the real one is fixed, just npc at top of tower to jobchange
+npc: ../npc/jobs/temp_wizard.txt
+//2-2 Without Quest
+npc: ../npc/jobs/crusader.txt
+npc: ../npc/jobs/alchemist.txt
+npc: ../npc/jobs/dancer-bard.txt
+npc: ../npc/jobs/monk.txt
+npc: ../npc/jobs/rogue.txt
+npc: ../npc/jobs/sage.txt
+//Adv classes
+//2-1-1 Job Npc
+npc: ../npc/jobs/AssassinCross.txt
+npc: ../npc/jobs/LordKnight.txt
+npc: ../npc/jobs/HighPriest.txt
+npc: ../npc/jobs/HighWizard.txt
+npc: ../npc/jobs/Whitesmith.txt
+npc: ../npc/jobs/Sniper.txt
+//2-2-1 Job Npc
+npc: ../npc/jobs/Champion.txt
+npc: ../npc/jobs/Clown.txt
+npc: ../npc/jobs/Creator.txt
+npc: ../npc/jobs/Gypsy.txt
+npc: ../npc/jobs/Paladin.txt
+npc: ../npc/jobs/Professor.txt
+npc: ../npc/jobs/Stalker.txt
+
+//Multi-Jobchanger
+//npc: ../npc/jobs/jobchange.txt
+
+//Quests
+//npc: ../npc/quests/all_quest.txt
+npc: ../npc/quests/Event_ElvenEar.txt
+//npc: ../npc/quests/Excalibur.txt
+npc: ../npc/quests/fashion.txt
+npc: ../npc/quests/headgearquest.txt
+npc: ../npc/quests/ironcane_quest.txt
+//npc: ../npc/quests/quest.txt
+npc: ../npc/quests/bunnyband.txt
+npc: ../npc/quests/bongun.txt
+npc: ../npc/quests/munak.txt
+npc: ../npc/quests/bongunsword.txt
+//npc: ../npc/quests/magicalhatquest.txt
+//npc: ../npc/quests/kahoquest.txt
+
+//Skill Quests
+//npc: ../npc/skillquests/arrowcraft.txt
+//npc: ../npc/skillquests/arrowrepel.txt
+//npc: ../npc/skillquests/autoberserk.txt
+//npc: ../npc/skillquests/backslide.txt
+//npc: ../npc/skillquests/cartrevolution.txt
+//npc: ../npc/skillquests/changecart.txt
+//npc: ../npc/skillquests/energycoat.txt
+//npc: ../npc/skillquests/fatalblow.txt
+//npc: ../npc/skillquests/holylight.txt
+//npc: ../npc/skillquests/loud.txt
+//npc: ../npc/skillquests/movinghp.txt
+//npc: ../npc/skillquests/pickstone.txt
+//npc: ../npc/skillquests/throwstone.txt
+
+//Guild Wars
+//npc: ../woe/ev_agit_event.txt
+//npc: ../woe/payg_flag.txt
+//npc: ../woe/aldeg_flag.txt
+//npc: ../woe/gefg_flag.txt
+
+//npc: ../woe/ev_agit_aldeg.txt
+//npc: ../woe/aldeg_cas01.txt
+//npc: ../woe/aldeg_cas02.txt
+//npc: ../woe/aldeg_cas03.txt
+//npc: ../woe/aldeg_cas04.txt
+//npc: ../woe/aldeg_cas05.txt
+
+//npc: ../woe/ev_agit_gefg.txt
+//npc: ../woe/gefg_cas01.txt
+//npc: ../woe/gefg_cas02.txt
+//npc: ../woe/gefg_cas03.txt
+//npc: ../woe/gefg_cas04.txt
+//npc: ../woe/gefg_cas05.txt
+
+//npc: ../woe/ev_agit_payg.txt
+//npc: ../woe/payg_cas01.txt
+//npc: ../woe/payg_cas02.txt
+//npc: ../woe/payg_cas03.txt
+//npc: ../woe/payg_cas04.txt
+//npc: ../woe/payg_cas05.txt
+
+//Prontera (Valkyrie Realms)
+//npc: ../woe/prtg_flag.txt
+//npc: ../woe/ev_agit_prtg.txt
+
+//Prontera Castle 01 - Creamhilt (Under Testing)
+
+//npc: ../woe/prtg_cas01.txt
+//npc: ../woe/guardian/prtg_cas01_guardian.txt
+//npc: ../woe/treasure/prtg_cas01_treasure.txt
+
+//Prontera Castle 02 - Sbanhealt (Under Testing)
+//npc: ../woe/prtg_cas02.txt
+//npc: ../woe/guardian/prtg_cas02_guardian.txt
+//npc: ../woe/treasure/prtg_cas02_treasure.txt
+
+//npc: ../woe/prtg_cas03.txt
+//npc: ../woe/guardian/prtg_cas03_guardian.txt
+
+//npc: ../woe/prtg_cas02.txt
+//npc: ../woe/prtg_cas03.txt
+//npc: ../woe/prtg_cas04.txt
+//npc: ../woe/prtg_cas05.txt
+
+//##GVG TEST Script##
+//npc: ../woe/gswitch.txt
+
+//warps
+npc: ../npc/warps/alberta.txt
+npc: ../npc/warps/aldebaran.txt
+npc: ../npc/warps/amatsu.txt
+npc: ../npc/warps/comodo.txt
+npc: ../npc/warps/geffen.txt
+npc: ../npc/warps/glastheim.txt
+npc: ../npc/warps/gonryun.txt
+npc: ../npc/warps/guildcastles.txt
+npc: ../npc/warps/izlude.txt
+npc: ../npc/warps/jobquests.txt
+npc: ../npc/warps/lutie.txt
+npc: ../npc/warps/mjolnir.txt
+npc: ../npc/warps/morroc.txt
+npc: ../npc/warps/other.txt
+npc: ../npc/warps/payon.txt
+npc: ../npc/warps/prontera.txt
+//npc: ../npc/warps/pvp.txt
+npc: ../npc/warps/traingnd.txt
+npc: ../npc/warps/umbala.txt
+npc: ../npc/warps/yuno.txt
+npc: ../npc/warps/niflheim.txt
+npc: ../npc/warps/yggdrasil.txt
+npc: ../npc/warps/louyang.txt
+
+//Others
+//npc: ../npc/other/arena.txt
+//npc: ../npc/other/pvp.txt
+npc: ../npc/other/books.txt
+npc: ../npc/other/ctower.txt
+npc: ../npc/other/IceCream.txt
+//npc: ../npc/other/kafra.txt
+//npc: ../npc/other/msg_boards.txt
+npc: ../npc/other/refine.txt
+//npc: ../npc/other/breeder.txt
+//npc: ../npc/other/wedding.txt
+npc: ../npc/other/Valkyrie.txt
+
+//Non-Standard NPCs
+//Warper NPC (Enable for free warp service)
+npc: ../npc/other/warper.txt
+//Reset NPC (Enable for special reset events)
+//npc: ../npc/jobs/reset.txt
+//Extra Skills NPC (Not required anymore since skill quests are done)
+npc: ../npc/skillquests/Platinum_Skills.txt
+//Hair Stylist NPC (Requires 77 dye palletes)
+npc: ../npc/other/dye.txt
+
+//Timers
+npc: ../gun-npc/timer/branchreset.txt
+//Other
+//npc: ../gun-npc/other/gmcheck.txt
+npc: ../gun-npc/other/npc_banker.txt
+npc: ../gun-npc/other/mastalch.txt
+//npc: ../gun-npc/other/jobchange.txt
+npc: ../gun-npc/other/dog.txt
+//npc: ../gun-npc/other/warper.txt
+//npc: ../gun-npc/other/msgboard.txt
+
+npc: ../gun-npc/other/pri.txt
+
+//Kafras
+npc: ../gun-npc/kafra/kafra-alberta.txt
+npc: ../gun-npc/kafra/kafra-aldebaran.txt
+npc: ../gun-npc/kafra/kafra-geffen.txt
+npc: ../gun-npc/kafra/kafra-gonryun.txt
+npc: ../gun-npc/kafra/kafra-izlude.txt
+npc: ../gun-npc/kafra/kafra-morroc.txt
+npc: ../gun-npc/kafra/kafra-payon.txt
+npc: ../gun-npc/kafra/kafra-prontera.txt
+npc: ../gun-npc/kafra/kafra-umbala.txt
+npc: ../gun-npc/kafra/kafra-yuno.txt
+
+//Quests
+npc: ../gun-npc/quests/jade.txt
+//npc: ../gun-npc/quests/pistachio.txt
+npc: ../gun-npc/quests/stgoddess.txt
+
+npc: ../gun-npc/other/pvp.txt
+
+npc: ../gun-npc/other/valk.txt
+
+npc: ../halla-npc/confessionspriest.txt
+npc: ../halla-npc/dye.txt
+npc: ../halla-npc/dye_maker.txt
+npc: ../halla-npc/Doomed_Swords.txt
+npc: ../halla-npc/newhats.txt
+npc: ../halla-npc/newhats1.txt
+npc: ../halla-npc/newhats2.txt
+npc: ../halla-npc/newhats3.txt
+npc: ../halla-npc/counteragent_mixture.txt
+npc: ../halla-npc/noviceshop.txt
+npc: ../halla-npc/suicidenpc.txt
+npc: ../halla-npc/petmaster.txt
+npc: ../halla-npc/juice.txt
+//npc: ../halla-npc/news.txt
+//npc: ../halla-npc/inns.txt
+npc: ../halla-npc/supernovice.txt
+
+//Casino
+npc: ../npc/other/TokenExchanger.txt
+npc: ../npc/other/SlotMachines.txt
+npc: ../npc/other/PickIt.txt

@@ -1,0 +1,2 @@
+npc: ../gun-npc/shops/shop.txt
+npc: ../gun-npc/shops/2-2shop.txt
