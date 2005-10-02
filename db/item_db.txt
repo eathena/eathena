@@ -2029,7 +2029,7 @@
 7417,Written_Request_A,Written Request A,3,,10,0,,,,,,,,,,,,{},{}
 7418,Written_Request_B,Written Request B,3,,10,0,,,,,,,,,,,,{},{}
 7419,Embryo_Creation_Guide,Embryo Creation Book,3,,10,0,,,,,,,,,,,,{},{}
-7420,Skull,Skull,3,,10,0,,,,,,,,,,,,{},{}
+7420,Skull_,Skull,3,,0,0,,,,,,,,,,,,{},{}
 7421,Red_Key,Red Key,3,,10,0,,,,,,,,,,,,{},{}
 7422,Yellow_Key,Yellow Key,3,,10,0,,,,,,,,,,,,{},{}
 7423,Blue_Key,Blue Key,3,,10,0,,,,,,,,,,,,{},{}

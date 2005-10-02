@@ -30,11 +30,10 @@
 	1771,Venom_Knife: For new Asassins skill
 		Item type: Throwing Dagger. Has to be equipped as an arrow, is consumed
 		like gemstones when the skill is used.
-	7420,Skull //PvP Item(maybe drop item?) maybe like that custom bone drop?
-
 	--
 
 10/02
+	* PVP drop item - 7420 Skull... costs 0z. Replaced exploitable bone drop with skull drop [Lupus]
 	* Fixed effect of #5092,Coif (aka Blue Coif) (removed +100 SP) and set its sell price (it's sold in Pront.church) [Lupus]
 10/01
 	* Fixed Effect of #2614,Eye of Dullahan (100% Poison Protection) according to some FAQ and tests [Lupus]

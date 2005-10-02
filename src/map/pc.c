@@ -4806,7 +4806,7 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage, int
 		|| (battle_config.bone_drop==1 && map[sd->bl.m].flag.pvp)){	// ドクロドロップ
 		struct item item_tmp;
 		memset(&item_tmp,0,sizeof(item_tmp));
-		item_tmp.nameid=7005;
+		item_tmp.nameid=7420; //PVP Skull item ID
 		item_tmp.identify=1;
 		item_tmp.card[0]=0x00fe;
 		item_tmp.card[1]=0;
