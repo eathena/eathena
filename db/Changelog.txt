@@ -34,7 +34,9 @@
 
 	--
 
-01/01
+10/02
+	* Fixed effect of #5092,Coif (aka Blue Coif) (removed +100 SP) and set its sell price (it's sold in Pront.church) [Lupus]
+10/01
 	* Fixed Effect of #2614,Eye of Dullahan (100% Poison Protection) according to some FAQ and tests [Lupus]
 	- Don't add it into the item desc (that should remain as '....')
 	* Added Orc Baby to Orcs in mob_race2_db [DracoRPG]

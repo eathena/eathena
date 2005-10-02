@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= eAthena Dev Team
 //===== Current Version: ===================================== 
-//= 1.12
+//= 1.13
 //===== Compatible With: ===================================== 
 //= eAthena 7.15 +
 //===== Description: ========================================= 
@@ -21,6 +21,7 @@
 //= 1.10 Lutie Tools coords [Yor]
 //= 1.11 Added Belts to Prontera/Aldebaran shops, thanks to reddozen [Lupus]
 //= 1.12 official Ayothaya Shops, thanks to MasterOfMuppets [Lupus]
+//= 1.13 Added 5092 Coif into Prontera Church shop [Lupus]
 //============================================================ 
 
 
@@ -182,7 +183,7 @@ prontera.gat,113,42,1	shop	Flower Lady	90,712:-1,744:-1
 prontera.gat,105,87,1	shop	Gift Merchant	91,734:-1,735:-1,736:-1,737:-1,746:-1
 prontera.gat,218,211,4	shop	Pet Merchant	125,537:-1,643:-1,10013:-1,10014:-1
 prontera.gat,248,153,1	shop	Doll Merchant	85,740:-1,741:-1,742:-1
-prt_church.gat,108,124,1 	shop	Nun	79,2608:-1,2216:-1,2323:-1,2325:-1,1501:-1,1504:-1,1507:-1,1510:-1,1513:-1,1519:-1
+prt_church.gat,108,124,1 	shop	Nun	79,2608:-1,2216:-1,2323:-1,2325:-1,1501:-1,1504:-1,1507:-1,1510:-1,1513:-1,1519:-1,5092:-1
 prt_fild05.gat,290,221,1	shop	Tool Dealer	83,1750:-1,611:-1,501:-1,502:-1,506:-1,601:-1,602:-1,645:-1,656:-1,657:-1
 prt_in.gat,211,169,1	shop	Wedding Goods Merchant	71,744:-1,745:-1,2338:-1,2206:-1,7170:-1
 prt_in.gat,126,76,1	shop	Tool Dealer	53,611:-1,1750:-1,501:-1,502:-1,503:-1,504:-1,506:-1,525:-1,601:-1,602:-1,1065:-1,2239:-1,645:-1,656:-1,657:-1
