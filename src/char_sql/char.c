@@ -1182,14 +1182,13 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 	}
 
 	sql_res = mysql_store_result(&mysql_handle);
-	sql_row = mysql_fetch_row(sql_res);
 
 	if (sql_res)
 	{
-		for(i=0;i<20;i++)
+		for(i=0;(sql_row = mysql_fetch_row(sql_res));i++)
 		{
-			p->friend_id[i] = atoi(sql_row[i*2 +2]);
-			sprintf(p->friend_name[i], "%s", sql_row[i*2 +3]);
+			p->friend_id[i] = atoi(sql_row[0]);
+			sprintf(p->friend_name[i], "%s", sql_row[1]);
 		}
 		mysql_free_result(sql_res);
 	}
