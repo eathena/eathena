@@ -63,7 +63,7 @@ char guild_storage_db[256] = "guild_storage";
 char party_db[256] = "party";
 char pet_db[256] = "pet";
 char login_db[256] = "login";
-char friend_db[256] = "lege2_friend";
+char friend_db[256] = "friend";
 int db_use_sqldbs;
 
 char login_db_account_id[32] = "account_id";
@@ -546,30 +546,6 @@ void read_gm_account(void) {
 	mapif_send_gmaccounts();
 }
 
-// Insert friends list
-int insert_friends(int char_id){
-	int i;
-	char *tmp_p = tmp_sql;
-
-	tmp_p += sprintf(tmp_p, "REPLACE INTO `%s` (`id`, `account_id`",friend_db);
-
-	for (i=0;i<20;i++)
-		tmp_p += sprintf(tmp_p, ", `friend_id%d`, `name%d`", i, i);
-
-	tmp_p += sprintf(tmp_p, ") VALUES (NULL, '%d'", char_id);
-
-	for (i=0;i<20;i++)
-		tmp_p += sprintf(tmp_p, ", '0', ''");
-
-	tmp_p += sprintf(tmp_p, ")");
-
-	if (mysql_query(&mysql_handle, tmp_sql)) {
-		printf("DB server Error (insert `friend`)- %s\n", mysql_error(&mysql_handle));
-         	return 0;
-         }
-return 1;
-}
-
 int compare_item(struct item *a, struct item *b) {
   return (
 	  (a->id == b->id) &&
@@ -857,45 +833,44 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 	}
 	}
 
-	// Friends list
-	// account_id, friend_id0, name0, ...
-	#if 0
-		tmp_p += sprintf(tmp_p, "REPLACE INTO `%s` (`id`, `account_id`",friend_db);
 
-		diff = 0;
+	diff = 0;
 
-		for (i=0;i<20;i++)
-			tmp_p += sprintf(tmp_p, ", `friend_id%d`, `name%d`", i, i);
-
-		tmp_p += sprintf(tmp_p, ") VALUES (NULL, '%d'", char_id);
-
-		for (i=0;i<20;i++) {
-			tmp_p += sprintf(tmp_p, ", '%d', '%s'", p->friend_id[i], p->friend_name[i]);
-			if ((p->friend_id[i] != cp->friend_id[i]) ||
-				strcmp(p->friend_name[i], cp->friend_name[i]))
-			  diff = 1;
+	for (i=0;i<20;i++) {
+		if (p->friend_id[i] != cp->friend_id[i])
+		{
+			diff = 1;
+			break;
 		}
-
-		tmp_p += sprintf(tmp_p, ")");
-	#else	// [Dino9021]
-		tmp_p += sprintf(tmp_p, "UPDATE `%s` SET ",friend_db);
-
-		diff = 0;
-
-		for (i=0;i<20;i++) {
-			if (i>0)
-				tmp_p += sprintf(tmp_p, ", ");
-
-			tmp_p += sprintf(tmp_p, "`friend_id%d`='%d', `name%d`='%s'", i, p->friend_id[i], i, p->friend_name[i]);
-
-			if ((p->friend_id[i] != cp->friend_id[i]) || strcmp(p->friend_name[i], cp->friend_name[i]))
-				diff = 1;
-		}
-
-		tmp_p += sprintf(tmp_p, " where account_id='%d';", char_id);
-	#endif
+	}
 
 	if (diff)
+	{
+
+		//printf("- Save global_reg_value data to MySQL!\n");
+		//`friends` (`char_id`, `char_id`)
+		sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",friend_db, p->char_id);
+
+		if (mysql_query(&mysql_handle, tmp_sql))
+		{
+				printf("DB server Error (delete `friends`)- %s\n", mysql_error(&mysql_handle));
+		}
+
+		//insert here.
+		for(i=0;i<20;i++)
+		{
+			if(p->friend_id[i] !=0)
+			{
+				sprintf(tmp_sql,"INSERT INTO `%s` (`char_id`, `friend_id`) VALUES ('%d', '%d')", friend_db, p->char_id,p->friend_id[i] );
+				if(mysql_query(&mysql_handle, tmp_sql))
+				{
+					printf("DB server Error (insert `friends`)- %s\n", mysql_error(&mysql_handle));
+				}
+			}
+		}
+	}
+
+
 	  mysql_query(&mysql_handle, tmp_sql);
 #ifdef CHAR_DEBUG_INFO
 	printf("saving char is done.\n");
@@ -1201,40 +1176,26 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 		p->friend_name[i][0] = '\0';
 	}
 
-	tmp_p += sprintf(tmp_p, "SELECT `id`, `account_id`");
+	sprintf(tmp_sql,"SELECT f.`friend_id`, c.`name` FROM `%s` f JOIN `%s` c ON f.`friend_id`=c.`char_id` WHERE f.`char_id` = '%d'",friend_db, char_db,char_id);
 
-	for(i=0;i<20;i++)
-		tmp_p += sprintf(tmp_p, ", `friend_id%d`, `name%d`", i, i);
-
-	tmp_p += sprintf(tmp_p, " FROM `%s` WHERE `account_id`='%d' ", friend_db, char_id); // TBR
-
-	if (mysql_query(&mysql_handle, tmp_sql)) {
+	if (mysql_query(&mysql_handle, tmp_sql))
+	{
 		printf("DB server Error (select `friends list`)- %s\n", mysql_error(&mysql_handle));
 	}
 
 	sql_res = mysql_store_result(&mysql_handle);
 	sql_row = mysql_fetch_row(sql_res);
 
-	i=mysql_num_rows(sql_res);
-
-	// debugg
-	//printf("mysql: %d\n",i);
-
-	// Create an entry for the character if it doesnt already have one
-	if(!i) {
-
-		insert_friends(char_id);
-
-	} else {
-
-		if (sql_res) {
-			for(i=0;i<20;i++) {
-				p->friend_id[i] = atoi(sql_row[i*2 +2]);
-				sprintf(p->friend_name[i], "%s", sql_row[i*2 +3]);
-			}
-			mysql_free_result(sql_res);
+	if (sql_res)
+	{
+		for(i=0;i<20;i++)
+		{
+			p->friend_id[i] = atoi(sql_row[i*2 +2]);
+			sprintf(p->friend_name[i], "%s", sql_row[i*2 +3]);
 		}
+		mysql_free_result(sql_res);
 	}
+
 #ifdef CHAR_DEBUG_INFO
 	printf("friends ");
 #endif
@@ -3664,6 +3625,8 @@ void sql_config_read(const char *cfgName){ /* Kalaspuff, to get login_db */
 			strcpy(memo_db,w2);
 		}else if(strcmpi(w1,"guild_db")==0){
 			strcpy(guild_db,w2);
+		}else if(strcmpi(w1,"friend_db")==0){
+			strcpy(friend_db,w2);
 		}else if(strcmpi(w1,"guild_alliance_db")==0){
 			strcpy(guild_alliance_db,w2);
 		}else if(strcmpi(w1,"guild_castle_db")==0){
