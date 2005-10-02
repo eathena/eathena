@@ -4798,7 +4798,7 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 			if (!status_isdead(bl)) {
 				// walking and casting effect is lost
 				battle_stopwalking (bl, 1);
-				skill_castcancel (bl, 0);
+				// skill_castcancel (bl, 0);
 				sc_data[type].timer = add_timer(10000 + tick, status_change_timer, bl->id, data );
 			}
 			// hmm setting up a timer and breaking then to call status_change_end just right away?
@@ -4870,6 +4870,7 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 					sd->status.sp -= sp;
 					clif_updatestatus(sd,SP_SP);
 					if (sd->status.sp <= 0)
+					skill_stop_dancing(bl,0);
 						break;
 				}
 				sc_data[type].timer=add_timer(	/* ƒ^ƒCƒ}?Äİ’è */

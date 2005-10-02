@@ -1964,13 +1964,13 @@ static struct Damage battle_calc_pc_weapon_attack(
 
 	if (skill_num == 0) {
 		//ダブルアタック判定
-		int da_rate = 0; 
-		if(sd->weapontype1 == 0x01) da_rate += pc_checkskill(sd,TF_DOUBLE) * 5;
-		da_rate += sd->double_rate; 
+		int da_rate = sd->double_rate; 
+		if(sd->weapontype1 == 0x01) 
+			da_rate += pc_checkskill(sd,TF_DOUBLE) * 5;
 		//三段掌	 // triple blow works with bows ^^ [celest]
 		if (sd->status.weapon <= 16 && (skill = pc_checkskill(sd,MO_TRIPLEATTACK)) > 0)
 			da = (rand()%100 < (30 - skill)) ? 2 : 0;
-		if (da == 0 && sd->double_rate > 0)
+		if (da == 0 && da_rate > 0)
 			// success rate from Double Attack is counted in
 			da = (rand()%100 < da_rate) ? 1 : 0;
 	}
