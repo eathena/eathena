@@ -23,7 +23,9 @@ Massdriller
 
 Date		Added
 ======
-10/01
+10/02
+	* Added Gotanblue#2 to Turtle Island (to be able to return back) [Lupus]
+	- Optimized Alberta, fixed typos
 	* Aldebaran, fixed missing label. Optimized [Lupus]
 	* Fixed some Headgears coords, sprites, names, ingridients. [Lupus]
 	  Thanks to Vicious_Pucca for info

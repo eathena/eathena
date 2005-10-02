@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.5
+//= 1.6
 //===== Compatible With: ===================================== 
 //= eAthena 7.15 +
 //===== Description: ========================================= 
@@ -15,6 +15,7 @@
 //= 1.3 Ran through spellcheck system [massdriller]
 //= 1.4 Someone forget a .gat in an NPC header [Fredzilla]
 //= 1.5 Fixed typo in script. [massdriller]
+//= 1.6 Fixed some typos, optimized, added Gotanblue#2 to be able to return back to Alberta [Lupus]
 //============================================================ 
 
 
@@ -61,12 +62,8 @@ alberta.gat,53,39,8	script	Merchant	74,{
 
 // Merchant -------------------------------------------------
 alberta.gat,58,80,8	script	Merchant	99,{
-	set @TEMP,0;
 	mes "[Merchant]";
-	set @TEMP,rand(2);
-	if(@TEMP == 1) goto R_1;
-
-	R_0:
+	if(rand(2)) goto R_1;
 		mes "We merchants can open a roadside stand and do business.  With the ^0000ffDiscount skill^000000 we can buy goods from stores for low prices.";
 		next;
 		mes "[Merchant]";
@@ -83,17 +80,10 @@ alberta.gat,58,80,8	script	Merchant	99,{
 
 // Phina -------------------------------------------------------
 alberta.gat,62,156,2	script	Phina	102,{
-	
-	set @TEMP,3;
 	set @TEMP,rand(3);
-
 	mes "[Phina]";
-
-	if(@TEMP == 2) goto R_2;
 	if(@TEMP == 1) goto R_1;
 	if(@TEMP == 0) goto R_0;
-
-	R_2:
 		mes "This one time, I was walking in the forest and I saw a long, slender piece of green grass sticking out on the ground.";
 		next;
 		mes "[Phina]";
@@ -106,7 +96,6 @@ alberta.gat,62,156,2	script	Phina	102,{
 		mes "[Phina]";
 		mes "Even calm monsters can be very dangerous when they feel threatened.  So don't startle them by mistake.";
 		close;
-
 	R_1:
 		mes "You know those dumb-looking bears that live in the forest connecting Alberta and Payon?";
 		mes "You know... the ones that play around with the flies that make that buzzing noise.";
@@ -121,12 +110,11 @@ alberta.gat,62,156,2	script	Phina	102,{
 		mes "[Phina]";
 		mes "I sure learned my lesson that day.  NEVER taught any creature cause if they get angry, you'll be in a world of hurt.";
 		close;
-
 	R_0:
-    		mes "Did you know? Wolves are much more cooperative than they might seem.  If one of them is attacked, then others will come to help him.";
+   		mes "Did you know? Wolves are much more cooperative than they might seem.  If one of them is attacked, then others will come to help him.";
 		next;
 		mes "[Phina]";
-    		mes "So be careful if you ever decide to fight one.";
+   		mes "So be careful if you ever decide to fight one.";
 		close;
 }
 
@@ -166,18 +154,16 @@ alberta.gat,131,139,4	script	Drunken old man	709,{
 	mes "[Drunken old man]";
 	mes "(~hiccup~)... Huh?... Wh-what are you staring at? Get lost!!";
 	next;
-	menu "Stay",M_0,"Leave him alone",M_1;
+	menu "Stay",-,"Leave him alone",M_1;
 	
-	M_0:
 		mes "[Drunken old man]";
 		mes "Hahahaha (~hiccup~)... So you got some nerve...";
 		next;
 		mes "[Drunken old man]";
 		mes "Heh... I may look worthless now, but back in the day I was a handsome sailor on board the `Going Mary'.";
 		next;
-		menu "Is that a ship?",sM_0,"Really? No kidding!",sM_1;
+		menu "Is that a ship?",-,"Really? No kidding!",sM_1;
 		
-		sM_0:
 			mes "[Drunken old man]";
 			mes "What? Ya never heard of it? Stupid! Everybody knows the notorious pirate ship `Going Mary'! (~hiccup~)";
 			emotion 1;
@@ -197,7 +183,6 @@ alberta.gat,131,139,4	script	Drunken old man	709,{
 			mes "(~sigh!~) (~sob, sob~)... God I miss everyone... Now I'm depressed.  Just go away and leave me be.....";
 			emotion 28;
 			close;
-
 	M_1:
 		mes "[Drunken old man]";
 		mes "That's right! Go AWAY~";
@@ -239,22 +224,19 @@ alberta.gat,189,151,5	script	Sailor Fisk	100,{
 	mes "[Sailor Fisk]";
 	mes "Ahoy matey, where'd ya wanna go?";
 	next;
-	menu "Izlude Marina -> 500 Zeny.",M0,"Quit",M_End;
+	menu "Izlude Marina -> 500 Zeny.",-,"Quit",M_End;
 	
-	M0:
-		if(Zeny < 500) goto NoZenyM1;
+		if(Zeny < 500) goto L_NoZeny;
 		set Zeny, Zeny - 500;
 		warp "izlude.gat",176,182;
 		close;
 
-		NoZenyM1:
+		L_NoZeny:
 			mes "[Sailor Fisk]";
 			mes "I'm sorry but i told you i would need 500 Zeny, and it looks like you don't have it.";
 			close;
-
 	M_End:
 		close;
-
 }
 
 // Phelix ------------------------------------------------------------------
@@ -274,15 +256,14 @@ alberta.gat,190,173,4	script	Phelix	85,{
 	mes "[Phelix]";
 	mes "How does that sound?";
 	next;
-	menu "Sounds good",M_Yes,"Na",M_End;
+	menu "Sounds good",-,"Nah",M_End;
 	
 	M_Yes:
 		mes "[Phelix]";
 		mes "What do you want to exchange your jellopies for?";
 		next;
-		menu "Red Potion please.",M_0,"Sweet Potato please.",M_1,"Cancel",M_End;
+		menu "Red Potion please.",-,"Sweet Potato please.",M_1,"Cancel",M_End;
 
-		M_0:
 			set @item, 501;
 			goto L_Get;
 
@@ -295,7 +276,7 @@ alberta.gat,190,173,4	script	Phelix	85,{
 				next;
 				set @input,0;
 				input @input;
-				if(@input < 1) goto M_Yes; //fixed by Lupus
+				if(@input < 1) goto M_Yes;
 
 				if(@item == 501) set @amount, @input*10;
 				if(@item == 516) set @amount, @input*3;
@@ -329,9 +310,8 @@ alberta.gat,195,151,3	script	Paul	86,{
 	mes "[Paul]";
 	mes "So what do you say?  It only cost 200 zeny to participate and you'll get a ton of experience, guaranteed.";
 	next;
-	menu "Enter",M_0,"Quit",M_End;
+	menu "Enter",-,"Quit",M_End;
 	
-	M_0:
 		if(Zeny < 200) goto L_NoZeny;
 		set Zeny, Zeny - 200;
 		warp "alb2trea.gat",62,69;
@@ -341,11 +321,11 @@ alberta.gat,195,151,3	script	Paul	86,{
 		mes "Come back anytime.";
 		close;
 
-		L_NoZeny:
-			mes "[Paul]";
-			mes "I'm sorry but i told you I would need 200 Zeny, and it looks like you don't have it.";
-			mes "Please come back later when you have enough.";
-			close;
+	L_NoZeny:
+		mes "[Paul]";
+		mes "I'm sorry but i told you I would need 200 Zeny, and it looks like you don't have it.";
+		mes "Please come back later when you have enough.";
+		close;
 }
 
 // Sailor --------------------------------------------------
@@ -353,15 +333,12 @@ alb2trea.gat,39,50,5	script	Sailor	100,{
 	mes "[Sailor]";
 	mes "Do you wanna return?";
 	next;
-	menu "Return to Alberta",M0,"Quit",MEnd;
+	menu "Return to Alberta",-,"Quit",MEnd;
 
-	M0:
-		warp "alberta.gat",192,169;
-		close;
-	MEnd:
-		close;
+	warp "alberta.gat",192,169;
+MEnd:
+	close;
 }
-
 
 //<====================================================== Turtle Island ========================================================>\\
 // Gotanblue --------------------------------------------------------------------------
@@ -379,9 +356,8 @@ L_Turtle:
 	mes "Oh! Your eyes.... they tell me everything!! You must have been sent from that drunken old man!";
 M_Menu:
 	next;
-	menu "-Tell me about Turtle Island.",M_1, "-How Can I get there?",M_2, "-End Conversation",M_End;
+	menu "-Tell me about Turtle Island.",-, "-How Can I get there?",M_2, "-End Conversation",M_End;
 
-	M_1:
 		mes "[Gotanblue]";
 		mes "So you wanna know about Turtle Island?... You think it's a great place?... Do you like it that much?...";
 		next;
@@ -488,7 +464,6 @@ M_Menu:
 		mes "(~sob~sob~sob)... I apologize. I'm am still very emotional about it after all these years... well that is all I have to say about Turtle Island.";
 		emotion 28;
 		goto M_Menu;
-
 	M_2:
 		mes "[Gotanblue]";
 		mes "What's this? After my terrifying story about Turtle Island you still want to got there? You're not at all scared??";
@@ -497,15 +472,14 @@ M_Menu:
 		mes "[Gotanblue]";
 		mes "So be it... but you will need me as your guide and that will cost 10,000 zeny!";
 		next;
-		menu "Turtle Island -> 10000 zeny",sM_1, "Cancel",sM_End;
+		menu "Turtle Island -> 10000 zeny",-, "Cancel",sM_End;
 
-		sM_1:
 			if(Zeny < 10000) goto sL_Zeny;
 			mes "[Gotanblue]";
 			mes "Alright!! You've made your choice! With my experience we will get to Turtle Island without any problems.";
 			mes "I admire your fighting spirit.  Carry it with you always!";
 			next;
-			mes "^5555FF(you and Gotanblue climb on board his little steamboat)^000000";
+			mes "^5555FF(You and Gotanblue climb on board his little steamboat)^000000";
 			next;
 			mes "[Gotanblue]";
 			mes "We are now heading towards Turtle Island.  Let us go without fear!!";
@@ -515,23 +489,39 @@ M_Menu:
 			set Zeny, Zeny - 10000;
 			warp "tur_dun01.gat",154,39;
 			close;
-
-			sL_Zeny:
-				mes "[Gotanblue]";
-				mes "What's this? I said 10000 zeny.  I will not guide you for less.  Good day!";
-				emotion 1;
-				close;
+		sL_Zeny:
+			mes "[Gotanblue]";
+			mes "What's this? I said 10000 zeny.  I will not guide you for less.  Good day!";
+			emotion 1;
+			close;
 		sM_End:
 			mes "[Gotanblue]";
 			mes "A very good choice!! Turtle Island is a DREADFULL and EVIL place!";
 			mes "When I take people there, I feel as if I'm leading them to their DEATHS!";
 			close;
-
 	M_End:
 		mes "[Gotanblue]";
 		mes "To this day, Turtle Island is shrouded in mystery.  It is extremely hard to find, and almost impossible to escape from.";
 		mes "If you do not want to suffer great despair, then leave the truth behind Turtle Island as it is.... unknown....";
 		close; 
+}
+
+//Go back to Alberta
+tur_dun01.gat,166,29,1	script	Gotanblue#2	709,{
+	mes "[Gotanblue]";
+	mes "Going back to Alberta?";
+	next;
+	menu "Yep.",-, "Cancel",M_End;
+
+	mes "^5555FF(You and Gotanblue climb on board his little steamboat)^000000";
+	next;
+	warp "alberta.gat",244,123;
+	close;
+
+M_End:
+	mes "[Gotanblue]";
+	mes "A very good choice!!";
+	close;
 }
 
 // Turtle Grandpa -------------------------------------------------------------------
@@ -549,9 +539,8 @@ alberta_in.gat,23,104,2	script	Turtle Grandpa	120,{
 	mes "Why is it that I have to resort to drinking in a place like this??";
 	emotion 1;
 	next;
-	menu "-Tell me about Turtle Island.",M_0, "-How can I get there?",M_1, "-End conversation.",M_End;
+	menu "-Tell me about Turtle Island.",-, "-How can I get there?",M_1, "-End conversation.",M_End;
 
-	M_0:
 		mes "[Turtle Grandpa]";
 		mes "There is an enormous stash of treasure hidden on Turtle Island.";
 		mes "There is also a special potion that can increase a person's lifespan on that island......";
@@ -567,9 +556,8 @@ alberta_in.gat,23,104,2	script	Turtle Grandpa	120,{
 		mes "If you are any sort of seaman, if you have a spirit for adventure, and if you have the heart to become a great treasure hunter....";
 		mes "Then you may be worthy of the information I have to offer...";
 		next;
-		menu "-(~eyes twinkle~)",sM_0, "-Heck Ya! Gimme that information.",sM_1;
+		menu "-(~eyes twinkle~)",-, "-Heck Ya! Gimme that information.",sM_1;
 
-		sM_0:
 			mes "[Turtle Grandpa]";
 			mes "His name was ^5555FFJornadan Niliria^000000.  Jornadan and his ten comrades set off on a journey to find the legendary Turtle Island.";
 			next;
@@ -614,7 +602,6 @@ alberta_in.gat,23,104,2	script	Turtle Grandpa	120,{
 			mes "What's this?? You're still here?..... GO! GO AWAY!!............";
 			emotion 27;
 			close;
-
 	M_1:
 		mes "[Turtle Grandpa]";
 		mes "It's is extremely hard to find, and even more difficult to reach.  The likelihood of returning home is slim at best....";
@@ -634,7 +621,6 @@ alberta_in.gat,23,104,2	script	Turtle Grandpa	120,{
 		mes "Any who, if you go the docks you'll find a fat, old, sailor.  His name is ^5555FFGotanblue^000000.";
 		mes "Tell him I sent you and maybe he'll tell you how to get to Turtle Island.  Well good luck.";
 		close;
-
 	M_End:
 		mes "[Turtle Grandpa]";
 		mes "whooops......";
@@ -678,9 +664,8 @@ alberta.gat,248,90,1	script	Jornadan Niliria	121,{
 	mes "[Jornadan Niliria]";
 	mes "The way that Alberta and Turtle Island are different.  Hah hah hah....";
 	next;
-	menu "-About Turtle Island.",M_0, "-Um, did you get confused with Al De Baran?",M_1, "-End Conversation.",M_End;
+	menu "-About Turtle Island.",-, "-Um, did you get confused with Al De Baran?",M_1, "-End Conversation.",M_End;
 
-	M_0:
 		mes "[Jornadan Niliria]";
 		mes "Ah yes..... Turtle Island.... Do you know why it's named, 'Turtle' Island? Would you like to know? Haha......";
 		next;
@@ -712,12 +697,10 @@ alberta.gat,248,90,1	script	Jornadan Niliria	121,{
 		mes "[Jornadan Niliria]";
 		mes "I am still not certain about what it really is.  In the mean time I will continue to pursue the matter until I discover the truth! Hahaha!!";
 		close;
-
 	M_1:
 		mes "[Jornadan Niliria]";
 		mes "Whoops ! Oh that's right !! Confused !.... Yipe !..... WOOOOO !!!";		//have NO idea what this means.....
 		close;
-
 	M_End:
 		mes "[Jornadan Niliria]";
 		mes "When you're searching for the truth, make sure to keep trying.  Someday you will find the answers you seek...";
@@ -861,10 +844,10 @@ L_OpenBox:
 	mes "^5555FF(~click!~click!~)^000000";
 	next;
 	mes "^5555FF(Suddenly the top of the stone opens with many things coming out!)^000000";
+	set SKULLKEY, 0;
 	next;
 	mes "^5555FF(You got 5 Bananas, and 5 Banana Juices.)^000000";
 	getitem 634, 5;
 	getitem 532, 5;
-	set SKULLKEY, 0;
 	close;
 }
