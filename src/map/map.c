@@ -3057,7 +3057,11 @@ int map_readallmap(void) {
 		map_read_flag == READ_FROM_AFM ? " (w/ AFM)" : ""));
 
 	// 先に全部のャbプの存在を確認
-	for (i = 0; i < map_num; i++){
+	for (i = 0; i < map_num; i++)
+	{
+		memset(map[i].moblist, 0, sizeof(map[i].moblist));	//Initialize moblist [Skotlex]
+		map[i].mob_delete_timer = -1;	//Initialize timer [Skotlex]
+		
 #ifdef USE_AFM
 		char afm_name[256] = "";
 		// set it by default first
@@ -3107,8 +3111,6 @@ int map_readallmap(void) {
 				i--;
 			}
 		}
-		memset (map[i].moblist, 0, sizeof(map[i].moblist));	//Initialize moblist [Skotlex]
-		map[i].mob_delete_timer = -1;	//Initialize timer [Skotlex]
 	}
 
 	aFree(waterlist);
