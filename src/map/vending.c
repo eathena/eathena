@@ -151,6 +151,13 @@ void vending_purchasereq(struct map_session_data *sd,int len,int id,unsigned cha
 	{	//check for @AUTOTRADE users [durf]
 		chrif_save(sd);
 		chrif_save(vsd);
+		//Close Vending (this was automatically done by the client, we have to do it manually for autovenders) [Skotlex]
+		for(i = 0; i < vsd->vend_num && vsd->vending[i].amount < 1; i++);
+		if (i == vsd->vend_num)
+		{
+			vending_closevending(vsd);
+			map_quit(vsd);	//They have no reason to stay around anymore, do they?
+		}
 	}
 }
 

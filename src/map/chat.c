@@ -23,6 +23,9 @@ int chat_createchat(struct map_session_data *sd,int limit,int pub,char* pass,cha
 
 	nullpo_retr(0, sd);
 
+	if (sd->chatID)
+		return 0;	//Prevent people abusing the chat system by creating multiple chats, as pointed out by End of Exam. [Skotlex]
+	
 	cd = (struct chat_data *) aCalloc(1,sizeof(struct chat_data));
 
 	cd->limit = limit;
@@ -70,7 +73,7 @@ int chat_joinchat (struct map_session_data *sd, int chatid, char* pass)
  //a wrong chat id can be received. [Skotlex]
 	if (cd == NULL)
 		return 1;
-	if (cd->bl.m != sd->bl.m || sd->vender_id || cd->limit <= cd->users) {
+	if (cd->bl.m != sd->bl.m || sd->vender_id || sd->chatID || cd->limit <= cd->users) {
 		clif_joinchatfail(sd,0);
 		return 0;
 	}

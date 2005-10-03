@@ -8015,16 +8015,6 @@ void clif_parse_WantToConnection(int fd, struct map_session_data *sd)
 			WFIFOSET(fd,4);
 
 			chrif_authreq(sd);
-		/*	
-			map_addiddb(&sd->bl);
-			if (chrif_authreq(sd) != 1)
-			{	//Remove player.
-				chrif_char_offline(sd); //Set him offline, the char server likely has it set as online already.
-				map_deliddb(&sd->bl);
-				aFree(sd);
-				session[fd]->session_data = NULL;
-			}
-		*/
 		}
 	}
 	return;

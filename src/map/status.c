@@ -1711,7 +1711,7 @@ int status_calc_flee(struct block_list *bl, int flee)
 		if(sc_data[SC_WHISTLE].timer!=-1)
 			flee += sc_data[SC_WHISTLE].val2;
 		if(sc_data[SC_WINDWALK].timer!=-1)
-			flee += sc_data[SC_WINDWALK].val2;
+			flee += flee * sc_data[SC_WINDWALK].val2/100;
 		if(sc_data[SC_INCFLEERATE].timer!=-1)
 			flee += flee * sc_data[SC_INCFLEERATE].val1/100;
 		if(sc_data[SC_VIOLENTGALE].timer!=-1 && status_get_elem_type(bl)==4)

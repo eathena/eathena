@@ -1,6 +1,18 @@
 Date	Added
 =======
 
+10/03
+	* Small fixes to updating the guild master's name during a guild master
+	  change. [Skotlex]
+	* Some corrections to the mob ai to enable mobs to attack other mobs
+	  (summoned ones, of course) [Skotlex]
+	* Updated autotrading so that the char will close the shop and quit the map
+	  server automatically when there's nothing left to vend. [Skotlex]
+	* Added checks to prevent a char from joining/creating multiple chat rooms
+	  (anti-crash fix, it is). [Skotlex]
+	* Cleaned up and restructured the mob item drop code. It also fixes a
+	  possible crash during the autoloot check. [Skotlex]
+	* Reupdated Wind Walk to add +5% flee bonus... AGAIN. [Skotlex]
 10/02
 	* Fixed STEAL issue. [Lupus]
 	- Any Mob has 10 drop slots. If we pick an empty one, then we check previous slot, until we find a slot with an item.

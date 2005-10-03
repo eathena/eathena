@@ -3059,9 +3059,6 @@ int map_readallmap(void) {
 	// 先に全部のャbプの存在を確認
 	for (i = 0; i < map_num; i++)
 	{
-		memset(map[i].moblist, 0, sizeof(map[i].moblist));	//Initialize moblist [Skotlex]
-		map[i].mob_delete_timer = -1;	//Initialize timer [Skotlex]
-		
 #ifdef USE_AFM
 		char afm_name[256] = "";
 		// set it by default first
@@ -3111,6 +3108,8 @@ int map_readallmap(void) {
 				i--;
 			}
 		}
+		memset(map[i].moblist, 0, sizeof(map[i].moblist));	//Initialize moblist [Skotlex]
+		map[i].mob_delete_timer = -1;	//Initialize timer [Skotlex]
 	}
 
 	aFree(waterlist);
@@ -3562,8 +3561,7 @@ void char_online_check(void)
 
 	for (i = 0; i < users; i++) {
 		if ((sd = all_sd[i]) && !(battle_config.hide_GM_session && pc_isGM(sd)))
-			if(sd->status.char_id && sd->fd) //Avoid setting chars with no fd online, it will block them from further logons! [Skotlex]
-				 chrif_char_online(sd);
+			 chrif_char_online(sd);
 	}
 }
 int online_timer (int tid,unsigned int tick,int id,int data)
