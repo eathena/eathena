@@ -2,6 +2,7 @@ Date	Added
 =======
 
 10/03
+	* Fixed Endure to make it add armor mdef. [Skotlex]
 	* Small fixes to updating the guild master's name during a guild master
 	  change. [Skotlex]
 	* Some corrections to the mob ai to enable mobs to attack other mobs

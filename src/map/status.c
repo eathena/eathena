@@ -1805,7 +1805,9 @@ int status_calc_mdef(struct block_list *bl, int mdef)
 
 	if(sc_data){
 		if(sc_data[SC_BERSERK].timer!=-1)
-		    return 0;
+			return 0;
+		if(sc_data[SC_ENDURE].timer!=-1)
+			mdef += sc_data[SC_ENDURE].val1;
 	}
 
 	return mdef;
@@ -1820,8 +1822,6 @@ int status_calc_mdef2(struct block_list *bl, int mdef2)
 	if(sc_data){
 		if(sc_data[SC_BERSERK].timer!=-1)
 			return 0;
-		if(sc_data[SC_ENDURE].timer!=-1)
-			mdef2 += sc_data[SC_ENDURE].val1;
 		if(sc_data[SC_MINDBREAKER].timer!=-1)
 			mdef2 -= mdef2 * 12*sc_data[SC_MINDBREAKER].val1/100;
 	}
