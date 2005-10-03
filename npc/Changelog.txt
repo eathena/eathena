@@ -25,6 +25,8 @@ Massdriller
 Date		Added
 ======
 10/03
+	* Updated some of the Lighthalzen mobs as pointed out by Master of Puppets.
+	  [Skotlex]
 	* Added 5092 Coif into Prontera Church Shop. Thanx 2 andz  [Lupus]
 10/02
 	* Added Gotanblue#2 to Turtle Island (to be able to return back) [Lupus]

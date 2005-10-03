@@ -2567,7 +2567,7 @@
 1658,Ygnizem@SM_BASH,attack,5,10,3000,0,15000,yes,target,always,0,,,,,,
 1658,Ygnizem@SM_PROVOKE,chase,6,10,500,600,5000,no,target,always,0,,,,,,
 1658,Ygnizem@NPC_FIREATTACK,attack,186,3,500,500,5000,no,target,always,0,,,,,,
-1658,Ygnizem@NPC_SUMMONSLAVE,idle,196,5,10000,2000,60000,no,self,slavele,3,1652,,,,,
+1658,Ygnizem@NPC_SUMMONSLAVE,idle,196,5,10000,2000,60000,no,self,slavele,3,1653,1654,1655,1656,1657,
 1658,Ygnizem@KN_TWOHANDQUICKEN,attack,60,10,10000,0,120000,yes,self,myhpltmaxrate,30,,,,,,
 1658,Ygnizem@NPC_CHANGEWIND,attack,165,1,10000,2000,600000,no,self,myhpltmaxrate,5,,,,,,
 1658,Ygnizem@NPC_CHANGEWATER,attack,162,1,10000,2000,600000,no,self,myhpltmaxrate,20,,,,,,

@@ -32,6 +32,8 @@
 		like gemstones when the skill is used.
 	--
 
+10/03
+	* Updated Ygnizem's slaves to be the other 5 first classes. [Skotlex]
 10/02
 	* PVP drop item - 7420 Skull... costs 0z. Replaced exploitable bone drop with skull drop [Lupus]
 	* Fixed effect of #5092,Coif (aka Blue Coif) (removed +100 SP) and set its sell price (it's sold in Pront.church) [Lupus]
