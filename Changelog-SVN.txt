@@ -2,6 +2,8 @@ Date	Added
 =======
 
 10/03
+	* Made NPC_DARKCROSS work (it's just a copy of Holy Cross with dark
+	  attribute) [Skotlex]
 	* Removed resetting the manner when a player is saved. [Skotlex]
 	* Cleaned up map reading code to make it remove maps that could not be
 	  loaded. It prevents crashes related to maps that weren't correctly loaded

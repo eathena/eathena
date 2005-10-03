@@ -933,6 +933,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 			status_change_start(bl,SC_BLIND,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
 		break;
 
+	case NPC_DARKCROSS:
 	case CR_HOLYCROSS:		/* ホ?リ?クロス */
 		if( rand()%100 < 3*skilllv*sc_def_int/100 )
 			status_change_start(bl,SC_BLIND,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
@@ -2533,6 +2534,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 	case DC_THROWARROW:		/* 矢?ち */
 	case BA_DISSONANCE:		/* 不協和音 */
 	case CR_HOLYCROSS:		/* ホ?リ?クロス */
+	case NPC_DARKCROSS:
 	case CR_SHIELDCHARGE:
 	case CR_SHIELDBOOMERANG:
 	/* 以下MOB?用 */

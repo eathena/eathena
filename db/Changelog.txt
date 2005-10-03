@@ -33,6 +33,7 @@
 	--
 
 10/03
+	* Updated the skill info on NPC_DARKCROSS [Skotlex]
 	* Updated Lighthalzen mobs and mob skills as per Master of Puppets provided
 	  info. [Skotlex]
 	* Updated Ygnizem's slaves to be the other 5 first classes. [Skotlex]

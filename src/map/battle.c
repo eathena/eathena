@@ -1363,6 +1363,7 @@ static struct Damage battle_calc_weapon_attack(
 				case CR_SHIELDBOOMERANG:
 					skillratio+= 30*skill_lv;
 					break;
+				case NPC_DARKCROSS:
 				case CR_HOLYCROSS:
 					skillratio+= 35*skill_lv;
 					break;
