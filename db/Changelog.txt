@@ -33,6 +33,8 @@
 	--
 
 10/03
+	* Updated Lighthalzen mobs and mob skills as per Master of Puppets provided
+	  info. [Skotlex]
 	* Updated Ygnizem's slaves to be the other 5 first classes. [Skotlex]
 10/02
 	* PVP drop item - 7420 Skull... costs 0z. Replaced exploitable bone drop with skull drop [Lupus]
