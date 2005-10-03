@@ -3034,6 +3034,17 @@ static int map_readmap(int m,char *fn, char *alias, int *map_cache, int maxmap) 
 }
 
 /*==========================================
+ * Removes the map in the index passed.
+ *------------------------------------------
+ */
+static void map_delmapid(int id)
+{
+	ShowNotice("Removing map [ %s ] from maplist\n",map[id].name);
+	memmove(map+id, map+id+1, sizeof(map[0])*(map_num-id-1));
+	map_num--;
+}
+
+/*==========================================
  * ‘S‚Ä‚Ìmapƒf?ƒ^‚ð?‚Ý?‚Þ
  *------------------------------------------
  */
@@ -3061,9 +3072,13 @@ int map_readallmap(void) {
 	{
 #ifdef USE_AFM
 		char afm_name[256] = "";
+#endif
 		// set it by default first
 		map[i].alias = NULL;
+		memset(map[i].moblist, 0, sizeof(map[i].moblist));	//Initialize moblist [Skotlex]
+		map[i].mob_delete_timer = -1;	//Initialize timer [Skotlex]
 
+#ifdef USE_AFM
 		if(!strstr(map[i].name, ".afm")) {
 		// check if it's necessary to replace the extension - speeds up loading abit
 			strncpy(afm_name, map[i].name, strlen(map[i].name) - 4);
@@ -3102,14 +3117,13 @@ int map_readallmap(void) {
 				map[i].alias = NULL;
 
 			sprintf(fn,"data\\%s",map[i].name);
-			if(map_readmap(i,fn, p, &map_cache, map_num) == -1) {
-				map_delmap(map[i].name);
-				maps_removed++;
-				i--;
-			}
+			if(map_readmap(i,fn, p, &map_cache, map_num) != -1)
+				continue;
 		}
-		memset(map[i].moblist, 0, sizeof(map[i].moblist));	//Initialize moblist [Skotlex]
-		map[i].mob_delete_timer = -1;	//Initialize timer [Skotlex]
+		//If the code reached this point, the map couldn't be loaded.
+		map_delmapid(i);
+		maps_removed++;
+		i--;
 	}
 
 	aFree(waterlist);
@@ -3162,9 +3176,8 @@ int map_delmap(char *mapname) {
 
 	for(i = 0; i < map_num; i++) {
 		if (strcmp(map[i].name, mapname) == 0) {
-		    ShowNotice("Removing map [ %s ] from maplist\n",map[i].name);
-			memmove(map+i, map+i+1, sizeof(map[0])*(map_num-i-1));
-			map_num--;
+			map_delmapid(i);
+			return 1;
 		}
 	}
 	return 0;

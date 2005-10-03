@@ -2,6 +2,9 @@ Date	Added
 =======
 
 10/03
+	* Cleaned up map reading code to make it remove maps that could not be
+	  loaded. It prevents crashes related to maps that weren't correctly loaded
+	  on startup. [Skotlex]
 	* Fixed Endure to make it add armor mdef. [Skotlex]
 	* Small fixes to updating the guild master's name during a guild master
 	  change. [Skotlex]
