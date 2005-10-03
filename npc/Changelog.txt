@@ -25,6 +25,7 @@ Massdriller
 Date		Added
 ======
 10/03
+	* Fixed 2 wrong Achemist test answers, thanx to zlider for info [Lupus]
 	* Updated some of the Lighthalzen mobs as pointed out by Master of Puppets.
 	  [Skotlex]
 	* Added 5092 Coif into Prontera Church Shop. Thanx 2 andz  [Lupus]

@@ -4,7 +4,7 @@
 //= nestor_zulueta (Fusion)
 //= converted by Darkchild
 //===== Current Version: ===================================== 
-//= 1.6
+//= 1.6a
 //===== Compatible With: ===================================== 
 //= eAthena 1.0 +
 //===== Description: ========================================= 
@@ -21,6 +21,7 @@
 //= 1.6 Added a func which prevent advanced classes passing
 //= 2nd Job Quests again. It also guides adv classes where
 //= to go. [Lupus]
+//= 1.6a fixed some wrong answers, thanks to zlider for info [Lupus]
 //============================================================ 
 
 
@@ -304,7 +305,7 @@ L_Start:
 		mes "Muffler, Boots, and Ear Muffs?";
 		next;
 		input @num;
-		if(@num == 22) set @score,@score+10;
+		if(@num == 19) set @score,@score+10;
 	q8:	
 		mes "[Rasputin Gregory]";
 		mes "If you buy 5 Helms with a 24%";
@@ -361,7 +362,7 @@ L_ReTest:
 		mes "(35*19) - (1792/7) =?";
 		next;
 		input @num;
-		if(@num == 400) set @score,@score+10;
+		if(@num == 409) set @score,@score+10;
 	q16:
 		mes "[Rasputin Gregory]";
 		mes "(2368/8) + (24*17) = ?";
@@ -386,7 +387,7 @@ L_ReTest:
 	q19:
 		mes "[Rasputin Gregory]";
 		mes "What is the total weight of ";
-		mes "3 Ring Pommels Saber,";
+		mes "3 Ring Pommel Sabers,";
 		mes "4 Caps and 2 Boots?";
 		next;
 		input @num;
@@ -394,7 +395,7 @@ L_ReTest:
 	q20:
 		mes "[Rasputin Gregory]";
 		mes "What is the total defense of a ";
-		mes "Bucler, Coat, Gas Mask, Big";
+		mes "Buckler, Coat, Gas Mask, Big";
 		mes "Ribbon, Ribbon, Sakkat and";
 		mes "Glasses?";
 		next;

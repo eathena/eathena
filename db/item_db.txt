@@ -945,7 +945,7 @@
 2280,Sakkat,Sakkat,5,,10,300,,3,,0,10477567,2,256,,0,1,67,{},{ bonus bAgi,1; }
 2281,Opera_Masque,Opera Masque,5,8000,,200,,2,,0,2088958,2,513,,0,0,68,{},{}
 2282,Heaven_Ring,Heaven Ring,5,,10,100,,0,,0,10477567,2,256,,0,0,69,{},{ bonus2 bSubEle,Ele_Holy,10; }
-2283,Ear_Mufs,Ear Mufs,5,,10,200,,3,,0,10477567,2,256,,0,1,70,{},{ bonus2 bResEff,Eff_Curse,1000; }
+2283,Ear_Muffs,Ear Muffs,5,,10,200,,3,,0,10477567,2,256,,0,1,70,{},{ bonus2 bResEff,Eff_Curse,1000; }
 2284,Antler,Antler,5,,10,500,,4,,0,2088958,2,256,,0,1,71,{},{}
 2285,Apple_o'_Archer,Apple o' Archer,5,,10,200,,0,,0,2088958,2,256,,30,1,72,{},{ bonus bDex,3; }
 2286,Elven_Ears,Elven Ears,5,,10,100,,0,,0,2088958,2,512,,70,0,73,{},{}
