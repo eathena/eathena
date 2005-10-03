@@ -2,6 +2,7 @@ Date	Added
 =======
 
 10/03
+	* Removed resetting the manner when a player is saved. [Skotlex]
 	* Cleaned up map reading code to make it remove maps that could not be
 	  loaded. It prevents crashes related to maps that weren't correctly loaded
 	  on startup. [Skotlex]
