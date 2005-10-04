@@ -439,7 +439,8 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 		
 		if(sc_data[SC_AETERNA].timer!=-1 && damage>0 && skill_num != PA_PRESSURE){
 			damage<<=1;
-			status_change_end( bl,SC_AETERNA,-1 );
+			if (skill_num != ASC_BREAKER || flag & BF_MAGIC) //Only end it on the second attack of breaker. [Skotlex]
+				status_change_end( bl,SC_AETERNA,-1 );
 		}
 
 		if(sc_data[SC_ENERGYCOAT].timer!=-1 && damage>0  && flag&BF_WEAPON){
