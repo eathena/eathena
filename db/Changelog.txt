@@ -33,6 +33,7 @@
 	--
 
 10/03
+	* Updated Thanatos/Abyss monster info. Still in need of stats. [Nexon]
 	* Updated the skill info on NPC_DARKCROSS [Skotlex]
 	* Updated Lighthalzen mobs and mob skills as per Master of Puppets provided
 	  info. [Skotlex]
