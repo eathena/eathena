@@ -2,6 +2,8 @@ Date	Added
 =======
 
 10/03
+	* Some cleaning of the mob ai. May help with some of the current exploits.
+	  [Skotlex]
 	* Corrected Mob_ai code to make supportive mobs properly gang up on
 	  summons. [Skotlex]
 	* Moved the plagiarize code to execute it before dealing damage (because on

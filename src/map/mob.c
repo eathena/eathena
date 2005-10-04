@@ -555,10 +555,8 @@ static int mob_walk(struct mob_data *md,unsigned int tick,int data)
 static int mob_attack(struct mob_data *md,unsigned int tick,int data)
 {
 	struct block_list *tbl=NULL;
-	struct map_session_data *tsd=NULL;
-	struct mob_data *tmd=NULL;
 
-	int mode,race,range;
+	int range;
 
 	nullpo_retr(0, md);
 
@@ -569,69 +567,25 @@ static int mob_attack(struct mob_data *md,unsigned int tick,int data)
 	if( md->skilltimer!=-1 )	// スキル使用中
 		return 0;
 
-	if(md->opt1>0 || md->option&2)
-		return 0;
-
-	if(md->sc_data[SC_AUTOCOUNTER].timer != -1)
-		return 0;
-
-	if(md->sc_data[SC_BLADESTOP].timer != -1)
-		return 0;
-
-	if((tbl=map_id2bl(md->target_id))==NULL){
+	if((tbl=map_id2bl(md->target_id))==NULL || !battle_check_attackable(&md->bl, tbl)){
 		md->target_id=0;
 		md->state.targettype = NONE_ATTACKABLE;
 		return 0;
 	}
 
-	if(tbl->type==BL_PC)
-		tsd=(struct map_session_data *)tbl;
-	else if(tbl->type==BL_MOB)
-		tmd=(struct mob_data *)tbl;
-	else
-		return 0;
-
-	if(tsd){
-		if( pc_isdead(tsd) || tsd->invincible_timer != -1 ||  pc_isinvisible(tsd) || md->bl.m != tbl->m || tbl->prev == NULL || distance(md->bl.x,md->bl.y,tbl->x,tbl->y)>=13 ){
-			mob_stopattack(md); //Stop attacking once target has been defeated/unreachable.[Skotlex]
-			return 0;
-		}
-	}
-	if(tmd){
-		if(md->bl.m != tbl->m || tbl->prev == NULL || distance(md->bl.x,md->bl.y,tbl->x,tbl->y)>=13){
-			mob_stopattack(md);
-			return 0;
-		}
-	}
-
-
-	if(!md->mode)
-		mode=md->db->mode;
-	else
-		mode=md->mode;
-
-	race=md->db->race;
-	if(!(mode&0x80)){
-		md->target_id=0;
-		md->state.targettype = NONE_ATTACKABLE;
-		return 0;
-	}
-	if(tsd && !(mode&0x20) && (tsd->sc_data[SC_TRICKDEAD].timer != -1 || tsd->sc_data[SC_BASILICA].timer != -1 ||
-		 ((pc_ishiding(tsd) || tsd->state.gangsterparadise) && !((race == 4 || race == 6 || mode&0x100) && !tsd->perfect_hiding) ) ) ) {
-		md->target_id=0;
-		md->state.targettype = NONE_ATTACKABLE;
+	if (distance(md->bl.x,md->bl.y,tbl->x,tbl->y)>=13 ){
+		mob_stopattack(md);
 		return 0;
 	}
 
 	range = md->db->range;
-	if(mode&1)
+	
+	if(status_get_mode(&md->bl)&1 && md->state.state == MS_WALK)
 		range++;
 	if(distance(md->bl.x,md->bl.y,tbl->x,tbl->y) > range)
 		return 0;
 	if(battle_config.monster_attack_direction_change)
 		md->dir=map_calc_dir(&md->bl, tbl->x,tbl->y );	// 向き設定
-
-	//clif_fixmobpos(md);
 
 	md->state.skillstate=MSS_ATTACK;
 	if( mobskill_use(md,tick,-2) )	// スキル使用
@@ -1586,6 +1540,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 			if (md->bl.m != abl->m || abl->prev == NULL ||
 				(dist = distance(md->bl.x, md->bl.y, abl->x, abl->y)) >= 32 ||
 				battle_check_target(bl, abl, BCT_ENEMY) <= 0 ||
+				!battle_check_attackable(bl, abl) ||
 				!mob_can_reach(md, abl, distance(md->bl.x, md->bl.y, abl->x, abl->y))) //added
 			{
 				md->attacked_id = 0;
