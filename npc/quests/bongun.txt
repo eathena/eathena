@@ -9,7 +9,7 @@ next;
 mes "[Sherri]";
 mes "...so why am I sad?";
 mes " ";
-mes "It's because I don't even know how his personality is...say, if you can find me a 'Girl's Diary' about him, I'll give you his diary!";
+mes "It's because I don't even know how his personality is... say, if you can find me a 'Girl's Diary' about him, I'll give you his diary!";
 next;
 mes "[Sherri]";
 mes "Can you please help me?";
@@ -46,7 +46,7 @@ mes "Can you please help me?";
 		mes "Here is his diary as promised! Again - Thank you!";
 		next;
 		mes "[Sherri]";
-		mes "Wait! Here's his sword, I found it next to him. But it's broken...I know of a old man just west of Geffen who can fix such a sword!";
+		mes "Wait! Here's his sword, I found it next to him. But it's broken... I know of a old man just west of Geffen who can fix such a sword!";
 		getitem 7110,1;
 		close;
 

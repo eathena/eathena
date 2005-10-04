@@ -29,6 +29,8 @@ Date		Added
 	* Updated some of the Lighthalzen mobs as pointed out by Master of Puppets.
 	  [Skotlex]
 	* Added 5092 Coif into Prontera Church Shop. Thanx 2 andz  [Lupus]
+	* Fixed Thanatos and Abyss Dungeon Spawns. Thanks to Azazel. [Nexon] 
+	* Fixed 700+ spelling mistakes. I have alot of time on my hands for some reason... [Nexon]
 10/02
 	* Added Gotanblue#2 to Turtle Island (to be able to return back) [Lupus]
 	- Optimized Alberta, fixed typos

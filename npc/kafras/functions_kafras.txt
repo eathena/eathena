@@ -30,6 +30,7 @@
 //= 2.6 Reverted Dungeons Kafras (they should offer only Storage). Added temp Ayothaya Kafra
 //= 2.7 Added correct Ayothaya, Louyang & Amatsu Kafras. [Lupus]
 //= 2.8 Fixed Amatsu Storage problems [Lupus]
+//= 2.9 Fixed spelling mistakes. [Nexon]
 //============================================================ 
 
 
@@ -139,7 +140,7 @@ L_Guild:
 	L_InUse:
 		mes "[Kafra]";
 		mes "I'm sorry but another guild member is using the guild storage";
-		mes "right now.  Please wait untill that person is finished.";
+		mes "right now.  Please wait until that person is finished.";
 		close2;
 		cutin "", 255;
 		end;
@@ -308,7 +309,7 @@ function	script	F_KafPass	{
 		mes "Your pass number will be entered into our database, and you will then be able to use the Teleport, and Cart Rental Kafra services free of charge.";
 		next;
 		mes "[Kafra]";
-		mes "Once you have finished using the desired services, and have stoped interacting with the Kafra, your 'free use' session will end.";
+		mes "Once you have finished using the desired services, and have stopped interacting with the Kafra, your 'free use' session will end.";
 		mes "You will have a total of ^5533FF 3 'free use' sessions^000000 available upon activation of your Kafra Pass.";
 		next;
 		mes "[Kafra]";
@@ -339,7 +340,7 @@ function	script	F_KafInfo	{
 		mes "Remember to continue using Kafra services such as Storage and Teleport, to earn more special reserve points.";
 		next;
 		mes "[Kafra]";
-		mes "You can trade them in at the Kafra Main Office in Al De Baran for usefull items and cool prizes.";
+		mes "You can trade them in at the Kafra Main Office in Al De Baran for useful items and cool prizes.";
 		next;
 		if(getarg(0) == 1) return;
 		goto sM_Menu;
@@ -363,7 +364,7 @@ function	script	F_KafInfo	{
 
 // End Function =====================================================
 //  arg(0): used to determine what message to display.
-//  arg(1): used to determine if save message is diplayed.
+//  arg(1): used to determine if save message is displayed.
 //===================================================================
 function	script	F_KafEnd	{
 	mes "[Kafra]";

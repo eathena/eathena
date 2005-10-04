@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= MasterOfMuppets (1.1)
 //===== Current Version: =====================================
-//= 1.2
+//= 1.3
 //===== Compatible With: =====================================
 //= Any Athena Version
 //===== Additional Comments: =================================
@@ -11,6 +11,7 @@
 //= 	Archer Village, Payon Cave and Coal Mine
 //= 1.1 Geffen, Orc Dungeon
 //= 1.2 Added 5 more Boards [MasterOfMuppets]
+//= 1.3 Fixed spelling mistakes. [Nexon]
 //============================================================
 
 alberta.gat,111,59,5	script	Bulletin Board	837,{
@@ -87,7 +88,7 @@ izlu2dun.gat,104,92,5	script	Bulletin Board	837,{
 	
 izlude.gat,131,116,4	script	Bulletin Board	837,{
 	mes "[Izlude: The Satellite City]";
-	mes "Welcome to Izlude, the sattelite of Prontera. Izlude was built to support Prontera's defense and to accomodate its burgeoning population";
+	mes "Welcome to Izlude, the satellite of Prontera. Izlude was built to support Prontera's defense and to accommodate its burgeoning population";
 	next;
 	mes "[Izlude: The Satellite City]";
 	mes "Points of interest include the Swordsman Association building which allows adventurers to change their job to Swordsman, and the Battle Area that is North of Izlude.";
@@ -147,31 +148,31 @@ pay_arche.gat,40,135,5	script	Bulletin Board	837,{
 	
 prontera.gat,148,49,5	script	Bulletin Board	837,{
 	mes "[Prontera: Capital of the]";
-	mes "[Rune-Midgarts Kingdom]";
-	mes "Welcome to Prontera, the capital city of Rune-Midgart.";
+	mes "[Rune-Midgards Kingdom]";
+	mes "Welcome to Prontera, the capital city of Rune-Midgard.";
 	next;
 	mes "[Prontera: Capital of the]";
-	mes "[Rune-Midgarts Kingdom]";
+	mes "[Rune-Midgards Kingdom]";
 	mes "Prontera is located in the center of the Rune-Midgard continent and is very well-known as a city of flourishing commerce.";
 	next;
 	mes "[Prontera: Capital of the]";
-	mes "[Rune-Midgarts Kingdom]";
+	mes "[Rune-Midgards Kingdom]";
 	mes "In this city, you can fint the Sanctuary, where people can change their jobs to Acolyte and Priest.";
 	next;
 	mes "[Prontera: Capital of the]";
-	mes "[Rune-Midgarts Kingdom]";
+	mes "[Rune-Midgards Kingdom]";
 	mes "You can also find the Castle, where people can change their jobs to Crusader.";
 	next;
 	mes "[Prontera: Capital of the]";
-	mes "[Rune-Midgarts Kingdom]";
+	mes "[Rune-Midgards Kingdom]";
 	mes "Please feel free to explore the streets of Prontera, as there are various tourist attractions within the city.";
 	next;
 	mes "[Prontera: Capital of the]";
-	mes "[Rune-Midgarts Kingdom]";
+	mes "[Rune-Midgards Kingdom]";
 	mes "When you need to upgrade your weapons and armors, please visit the building in the 5 o'clock direction from the fountain in the center of Prontera.";
 	next;
 	mes "[Prontera: Capital of the]";
-	mes "[Rune-Midgarts Kingdom]";
+	mes "[Rune-Midgards Kingdom]";
 	mes "From Prontera, ^5E5C69Izlude^000000 is located to the Southeast, ^1F3A11Payon^000000 to the far South, ^683C1FGeffen^000000 to the far West and ^2D3832Al De Baran^000000 to the far North.";
 	mes "Enjoy Your time in Prontera.";
 	close;
@@ -191,7 +192,7 @@ morocc.gat,152,110,5	script	Bulletin Board	837,{
 	mes "[Morroc: The Frontier Town]";
 	mes "Welcome to Morroc, the City of the";
 	mes "Desert. Morroc was built on an";
-	mes "on an oasis, so this town can accomodate";
+	mes "on an oasis, so this town can accommodate";
 	mes "its many visitors and travelers.";
 	next;
 	mes "[Morroc: The Frontier Town]";
@@ -323,7 +324,7 @@ prt_fild05.gat,278,220,5	script	Bulletin Board	837,{
 	mes "swarms.";
 	next;
 	mes "[Culvert]";
-	mes "In the foruth level of the Prontera";
+	mes "In the fourth level of the Prontera";
 	mes "Culvert, you may encounter the boss";
 	mes "monster known as the ^6B1312Golden Thief";
 	mes "^6B1312Bug^000000. New adventurers should";

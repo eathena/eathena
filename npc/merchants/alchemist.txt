@@ -43,7 +43,7 @@ alde_alche.gat,24,188,3	script	Gever AI Sharp	740,{
 		mes "Manuals are generally 100,000 zeny.";
 		mes "Except for a couple of special manuals.";
 		next;
-		menu 	"Potion Creation Guide",sM_Pot,	"Alchohol Creation Guide",sM_Alc, "Bottle Grenade Creation Guide",sM_Gren, 
+		menu 	"Potion Creation Guide",sM_Pot,	"Alcohol Creation Guide",sM_Alc, "Bottle Grenade Creation Guide",sM_Gren, 
 			"Acid Bottle Creation Guide",sM_Acid,	"Plant Bottle Creation Guide",sM_Plant, "Marine Sphere Bottle Creation Guide",sM_Mar,
 			"Glistening Coat Creation Guide",sM_Coat, "Concentration Potion Creation Guide",sM_Con, "Cancel Deal.",M_Bye;
 		sM_Pot:
@@ -105,7 +105,7 @@ alde_alche.gat,24,188,3	script	Gever AI Sharp	740,{
 			close;
 
 			sL_NoZeny:
-				mes "You dont seem to have enough money.";
+				mes "You don’t seem to have enough money.";
 				close;
 			sL_OverW:
 				mes "Hmm.... it seems that you are overweight...";

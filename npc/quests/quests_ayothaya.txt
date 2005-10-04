@@ -3,7 +3,7 @@
 //===== By ================================================
 //= Fredzilla
 //===== Version ===========================================
-//= 1.1
+//= 1.2
 //===== Compatible With ===================================
 //= eAthena 1.0
 //===== Description =======================================
@@ -21,6 +21,7 @@
 //=		    get the same quest again.
 //= 1.0 - First Release, made with infomation from RagnaInfo
 //= 1.1 - added anti-novice protection [Lupus]
+//= 1.2 – Fixed spelling mistakes
 
 ayo_dun02.gat,277,178,1	script	OBB	139,4,4,{
 	if (AyoOBB==1 || weddingring!=3) goto L_Cancel;
@@ -89,7 +90,7 @@ L_Cancel:
 }
 ayo_dun02.gat,169,212,1	script	Clue	139,5,5,{
 	if (weddingring!=3) goto L_Cancel;
-	npctalk "Look's like there are foot print going to the West.";
+	npctalk "Looks like there are foot print going to the West.";
 	set @footprints7,1;
 	close;
 L_Cancel:
@@ -154,7 +155,7 @@ N_Yes:
 	mes "Come back to me when you have time, I need you to do something else for me.";
 	close;
 L_Quest2:
-	mes "It seems even though I have my ring back my partner ^FF0000Anon^000000 doesnt seem to want to come back to me";
+	mes "It seems even though I have my ring back my partner ^FF0000Anon^000000 doesn't seem to want to come back to me";
 	mes "Maybe he has gotten lost somewhere";
 	mes "";
 	mes "Will you please go and look for him";
@@ -182,7 +183,7 @@ L_QuestComplete:
 	next;
 	mes "[Shuda]";
 	mes "Well, I thought he was my one.";
-	mes "I dont think I will ever find another like him.";
+	mes "I don't think I will ever find another like him.";
 	mes "*tear*";
 	next;
 	set weddingring,5;
@@ -202,7 +203,7 @@ ayothaya.gat,208,102,4	script	Fisher Man	100,{
 	mes "I can let you use my rod to fish if you want to.";
 	next;
 	mes "[Fisher Man]";
-	mes "Ofcourse for a small cost, if you give me 50z, and a monster feed as bait, I will let you use my rod.";
+	mes "Of course for a small cost, if you give me 50z, and a monster feed as bait, I will let you use my rod.";
 	mes " ";
 	mes "So, do you want to have a go?";
 	next;
@@ -225,11 +226,11 @@ L_No:
 	close;
 L_Fail:
 	mes "[Fisher Man]";
-	mes "Seems you dont have what I need";
+	mes "Seems you don't have what I need";
 	mes "Come back when you have some Monster Feed, and 50 zeny.";
 	close;
 L_Nothing:
-	mes "Sorry it seems like you didnt get anything, try again anytime.";
+	mes "Sorry it seems like you didn't get anything, try again anytime.";
 	close;
 L_Fish:
 	getitem 544,1;
@@ -250,14 +251,14 @@ L_RingCheck:
 ayothaya.gat,192,171,4	script	Old Man	824,{
 	mes "[Old Man]";
 	if (weddingring==3) goto L_OnQ2;
-	mes "What a nice day it is today, dont you agree?";
+	mes "What a nice day it is today, don't you agree?";
 	close;
 L_OnQ2:
 	mes "What! Anon is missing, I only saw him a few minutes ago.";
 	next;
 	mes "[Old Man]";
-	mes "He was heading for Ayothaya's dungeon, I thought this kind of odd, and now you say he hasnt come back?!?";
-	mes "I think you should follow him in there, just incase something has happened to him";
+	mes "He was heading for Ayothaya's dungeon, I thought this kind of odd, and now you say he hasn't come back?!?";
+	mes "I think you should follow him in there, just in case something has happened to him";
 	next;
 	mes "[Old Man]";
 	mes "Maybe he has left something inside the dungeon, something that can lead you to him";

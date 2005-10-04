@@ -575,7 +575,7 @@ OnTimer60000:
 	if ($wed_bride_progress == 1)
 		set $@msg$, $wed_bride$;
 
-	npctalk "Registration timed out. Is it that noone wants to marry "+$@msg$+"..?";
+	npctalk "Registration timed out. Is it that no one wants to marry "+$@msg$+"..?";
 	emotion e_hmm;
 	
 	set $wed_groom$,"";

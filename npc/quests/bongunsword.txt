@@ -18,7 +18,7 @@ mes "Hmm, it seems as if you need something. What would that be?";
 
 	    NoItem:
 		mes "[Old Smith]";
-		mes "Hmm, you seem to be missing something...probably that 'Oridecon'.";
+		mes "Hmm, you seem to be missing something... probably that 'Oridecon'.";
 		close;
 
 	    NoItemS:

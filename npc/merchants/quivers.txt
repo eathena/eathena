@@ -12,6 +12,7 @@
 //= 07/06/05 : Added 1st Version. [Muad_Dib]
 //= Converted to eAthena format by Dr.Evil
 //= added prize to quest - 500 Zeny
+//= Fixed a few spelling errors. [Nexon]
 //============================================================
 
 
@@ -25,14 +26,14 @@ payon_in01.gat,5,134,4	script	Inventor Jaax	89,{
 	mes "[Inventor Jaax]";
 	mes "This time, I've";
 	mes "created something";
-	mes "truly exstraordinary. I call them...";
+	mes "truly extraordinary. I call them...";
 	mes "^996600Magic Quivers^000000 !! This will be";
 	mes "remembered in history as an";
 	mes "arrow revolution!";
 	next;
 	mes "[Inventor Jaax]";
 	mes "I've studied magic and quivers for";
-	mes "years, working night anf day untill";
+	mes "years, working night and day until";
 	mes "I finally figured out how to condense";
 	mes "arrows with magic! With magic";
 	mes "quivers, you'll be carrying more";

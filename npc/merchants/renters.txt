@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88, mod by Lupus
 //===== Current Version: ===================================== 
-//= 1.4
+//= 1.5
 //===== Compatible With: ===================================== 
 //= eAthena 7.15 +
 //===== Description: ========================================= 
@@ -15,6 +15,7 @@
 //= 1.3: Added support Adv Classes + Baby Class [Lupus]
 //= 1.4: Added different prices for normal, advanced and baby classes
 //= but you could set them to the same [Lupus]
+//= 1.5: Fixed spelling mistakes [Nexon]
 //============================================================ 
 
 // PecoPeco Breeder (for Knights)-------------------------------------------
@@ -56,7 +57,7 @@ L_Start:
 			close;
 		sL_Zeny:
 			mes "[PecoPeco Breeder]";
-			mes "As I said before it will be "+@price+"z. Come back when you aquire enough zeny.";
+			mes "As I said before it will be "+@price+"z. Come back when you have enough zeny.";
 			close;
 		sL_GotPeco:
 			mes "[PecoPeco Breeder]";
@@ -109,7 +110,7 @@ L_Start:
 			close;
 		sL_Zeny:
 			mes "[Grand PecoPeco Breeder]";
-			mes "As I said before it will be "+@price+"z. Come back when you aquire enough zeny.";
+			mes "As I said before it will be "+@price+"z. Come back when you have enough zeny.";
 			close;
 		sL_GotPeco:
 			mes "[Grand PecoPeco Breeder]";
@@ -153,7 +154,7 @@ in_hunter.gat,146,100,2	script	Falcon Master	59,{
 			setfalcon;
 			next;
 			mes "[Falcon Master]";
-			mes "Please take very good care of it.  It will prove to be a valuble companion.";
+			mes "Please take very good care of it.  It will prove to be a valuable companion.";
 			close;
 			
 			sL_NotHunter:

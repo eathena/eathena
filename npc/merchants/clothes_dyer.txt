@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= Usnul
 //===== Current Version: ===================================== 
-//= 2.1a
+//= 2.2a
 //===== Compatible With: ===================================== 
 //= eAthena 1.0+
 //===== Description: ========================================= 
@@ -13,20 +13,21 @@
 //= 2.1 Shortened some labels to make this script loading,
 //= Added Black+White Colors desc [Lupus]
 //= 2.1a - added adv classes + abby class support [Lupus]
+//= 2.2 – Spell checked. [Nexon]
 //============================================================ 
 
 
 // Dyer Ginedin Rephere ---------------------------------------------------
 prt_in.gat,284,168,2	script	Dyer Ginedin Rephere	55,{
 	mes "[Dyer Ginedin Rephere]";
-	mes "11... 12... Mmm... good.  I think I'll be able ot finish before tonights party.  Oh! I didn't notice that you were here.   Anyway how may I assist you?";
+	mes "11... 12... Mmm... good.  I think I'll be able to finish before tonight’s party.  Oh! I didn't notice that you were here.   Anyway how may I assist you?";
 M_Menu:
 	next;
 	menu "-Talk",L_Talk, "-Dye Clothing",L_Dye, "-Price list",L_PriceList, "-Cancel",L_End;
 	
 	L_Talk:
 		mes "[Dyer Ginedin Rephere]";
-		mes "Life may have gotten a little better.... but when I look at all of the orders I've recieved... Whew!";
+		mes "Life may have gotten a little better.... but when I look at all of the orders I've received... Whew!";
 		mes "It seems that the young women of Rune Midgard must be very well off these days.";
 		next;
 		mes "[Dyer Ginedin Rephere]";

@@ -3,13 +3,14 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.0 
+//= 1.1 
 //===== Compatible With: ===================================== 
 //= eAthena 7.15 +
 //===== Description: ========================================= 
 //=
 //===== Additional Comments: ================================= 
 //= Fully working
+//= 1.1 Spell Checked [Nexon] 
 //============================================================ 
 
 
@@ -40,11 +41,11 @@ morocc_in.gat,146,99,2	script	Dye Maker JavaDullihan	122,{
 			mes "I can still picture him making dyestuffs all day long.";
 			next;
 			mes "[Dye Maker JavaDullihan]";
-			mes "Even durring the time of my mother's passing, my father kept making dyestuffs without end.";
+			mes "Even during the time of my mother's passing, my father kept making dyestuffs without end.";
 			mes "This made me angry at him.  How could he keep making dyestuffs at a time like that?";
 			next;
 			mes "[Dye Maker JavaDullihan]";
-			mes "I just couldn't understand what my father was thinking.  I became very disapointed in him.";
+			mes "I just couldn't understand what my father was thinking.  I became very disappointed in him.";
 			mes "My fathers actions made me despise Dye Making, so I ran away from home.  I survived by doing a variety of odd jobs.";
 			next;
 			mes "[Dye Maker JavaDullihan]";
@@ -58,8 +59,8 @@ morocc_in.gat,146,99,2	script	Dye Maker JavaDullihan	122,{
 			mes "Why he sacrificed everything he had for this job...";
 			next;
 			mes "[Dye Maker JavaDullihan]";
-			mes "Maybe it was because of how the colors got more and more beautifull each time...";
-			mes "Maybe he wanted to find his own perfet color...";
+			mes "Maybe it was because of how the colors got more and more beautiful each time...";
+			mes "Maybe he wanted to find his own perfect color...";
 			next;
 			mes "[Dye Maker JavaDullihan]";
 			mes "I now have his feel for the colors... because... I am working with the same passion he had when he was living.";

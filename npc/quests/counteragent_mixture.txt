@@ -4,7 +4,7 @@
 //= kobra_k88
 //= added some dialogs for Morgenstein by Komurka
 //===== Current Version: ===================================== 
-//= 1.4
+//= 1.5
 //===== Compatible With: ===================================== 
 //= eAthena 7.15 +
 //===== Description: ========================================= 
@@ -15,6 +15,7 @@
 //= 1.2 added check for Empty Bottle [Lupus]
 //= Fixed some lil thingys [Darkchild]
 //= More li'l thing, added comments for items IDs [Lupus]
+//= 1.5 Fixed Spelling mistakes. [Nexon]
 //============================================================ 
 
 
@@ -35,7 +36,7 @@ M_Menu2:
 	M_Talk:
 		mes "[Merchant Louitz]";
 		mes "I was in Geffen for a while trying to find magic tools when I heard some rumors about a Mad Scientist.";
-		mes "I became very interested in the man and tried to meet with him on serveral occasions.";
+		mes "I became very interested in the man and tried to meet with him on several occasions.";
 		next;
 		mes "[Merchant Louitz]";
 		mes "After many attempts, I finally got to meet him.  Unfortunately he was too immersed in his work and didn't even take notice of me.";
@@ -83,13 +84,13 @@ M_Menu2:
 	
 	M_Talk:
 		mes "[Aure Dupon]";
-		mes "It's true that I'm a little excentric because of my quest to gain the power of magic, but I assure that there are others out there that are even stranger than myself.";
+		mes "It's true that I'm a little eccentric because of my quest to gain the power of magic, but I assure that there are others out there that are even stranger than myself.";
 		next;
 		mes "[Aure Dupon]";
 		mes "Like that mad scientist ^0000ddMorgenstein^000000.  Anyway, if it were up to you, would you be able to devote your ENTIRE life to one single purpose?";
 		next;
 		mes "[Aure Dupon]";
-		mes "Would you be able to give up everthing else in your life to achieve that goal? Even if it meant risking insanity??";
+		mes "Would you be able to give up everything else in your life to achieve that goal? Even if it meant risking insanity??";
 		if(MORGEN == 1) goto M_Menu2;
 		goto M_Menu;
 
@@ -190,8 +191,8 @@ M_Menu2:
 			mes "and ^5533FF1 Empty Bottle^000000....";
 			next;
 			mes "[Chemist Morgenstein]";
-			mes "With these 3 things I'll be able to make you a counteragent.  It won't be a big deal to make..... Kekekekekekeke....";
-			mes "Oh, and there will be a fee of ^5533FF3000 zeny^000000 okay? Heheheheheh..... Oh, surely you don'ty think it's rip-off?...";
+			mes "With these 3 things I'll be able to make you a counter agent.  It won't be a big deal to make..... Kekekekekekeke....";
+			mes "Oh, and there will be a fee of ^5533FF3000 zeny^000000 okay? Heheheheheh..... Oh, surely you don't think it's rip-off?...";
 			next;
 			mes "[Chemist Morgenstein]";
 			mes "Alright?....";
@@ -228,7 +229,7 @@ M_Menu2:
 			next;
 			mes "[Chemist Morgenstein]";
 			mes "With these 3 things I'll be able to make you a mixture.  It won't be a big deal to make..... Kekekekekekeke....";
-			mes "Oh, and there will be a fee of ^5533FF4000 zeny^000000 okay? Heheheheheh..... Oh, surely you don'ty think it's rip-off?...";
+			mes "Oh, and there will be a fee of ^5533FF4000 zeny^000000 okay? Heheheheheh..... Oh, surely you don't think it's rip-off?...";
 			next;
 			mes "[Chemist Morgenstein]";
 			mes "Alright??...";

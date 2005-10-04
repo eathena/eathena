@@ -3,13 +3,14 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.1
+//= 1.2
 //===== Compatible With: ===================================== 
 //= eAthena 7.15 +
 //===== Description: ========================================= 
 //=
 //===== Additional Comments: ================================= 
 //= Rearranged [Lupus]
+//= Fixed spelling mistakes. [Nexon]
 //============================================================ 
 
 
@@ -65,7 +66,7 @@ alberta.gat,37,39,1	script	Merchant Guild	111,{
 // Welcome Sign ----------------------------------------------
 geffen.gat,116,58,1	script	Welcome Sign	111,{
   mes "~sign reads...~";
-  mes "Greetings!! You are in the wonderfull city of Geffen! Geffen is the city of Magic and home to Mages and Wizards!.";
+  mes "Greetings!! You are in the wonderful city of Geffen! Geffen is the city of Magic and home to Mages and Wizards!.";
   close;
 }
 
@@ -86,7 +87,7 @@ geffen.gat,61,174,1	script	Mage Association	111,{
 // Sign: Geffen Tower Sign ----------------------------------------------
 geffen.gat,113,104,1	script	Geffen Tower	111,{
   mes "~sign reads...~";
-  mes "This is the Geffen Tower, home to the Wizard Academey as well as the infamous Geffen Dungeon.  Novices beware!!!";
+  mes "This is the Geffen Tower, home to the Wizard Academy as well as the infamous Geffen Dungeon.  Novices beware!!!";
   close;
 }
 
@@ -101,13 +102,13 @@ geffen.gat,184,61,1	script	Blacksmith Guild	111,{
 geffen.gat,119,190,0	script	Sign Post	111,{
   mes "~sign reads...~";
   mes "North to Geffen Fields";
-  mes "NorthEast to Al De Baran";
-  mes "NorthWest to Glast Heim";
+  mes "Northeast to Al De Baran";
+  mes "Northwest to Glast Heim";
   mes "East to Geffen Fields";
   mes "South to Morroc";
-  mes "SouthEast to Prontera";
-  mes "Further SouthEast to Alberta";
-  mes "Further SouthWest to Comodo";
+  mes "Southeast to Prontera";
+  mes "Further Southeast to Alberta";
+  mes "Further Southwest to Comodo";
   mes "West to Geffen Fields";
   close;
 }
@@ -119,7 +120,7 @@ geffen.gat,119,190,0	script	Sign Post	111,{
 // Welcome Sign ---------------------------------------------------
 morocc.gat,168,264,1	script	Welcome Sign	111,{
  mes "~sign reads...~";
- mes "Morocc welcomes you! Morocc is the city of the desert and home to Thieves, Assassins, and alls sorts of Egyption temptations!";
+ mes "Morocc welcomes you! Morocc is the city of the desert and home to Thieves, Assassins, and alls sorts of Egyptian temptations!";
  close;
 }
 
@@ -155,6 +156,6 @@ prontera.gat,158,213,1	script	Sign Post	111,{
 	mes "Northwest to Geffen";
 	mes "East to Prontera Fields";
 	mes "South to Prontera Fields";
-	mes "Farther SouthEast to Alberta";
+	mes "Farther Southeast to Alberta";
 	close;
 }

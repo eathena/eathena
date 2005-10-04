@@ -13,6 +13,7 @@
 //= Converted to eAthena format by Dr.Evil
 //= Change NPC coords according to 
 //= http://www.nattsumi.com/roquest/miscellaneousquest.html
+//= Fixed typos [Nexon]
 //============================================================
 
 alberta.gat,137,37,6	script	Stylist	91,{
@@ -77,7 +78,7 @@ mhair2show:
 		cutin "hair_m_02",4;
 	mes "[Veronica]";
 	mes "Oh~'Two-Handed Sword Mastery' style!";
-	mes "It's style is very similar to one of the famous Swordman.";
+	mes "It's style is very similar to one of the famous Swordsman.";
 	mes "How do you think? Do you like it?";
 	close;
 mhair3show:
@@ -147,7 +148,7 @@ mhair12show:
 		cutin "hair_m_12",4;
 	mes "[Veronica]";
 	mes "Oh~'Mace Mastery' style!";
-	mes "It looks very hard and atractive.";
+	mes "It looks very hard and attractive.";
 	mes "How do you think? Do you like it?";
 	close;
 mhair13show:
@@ -182,7 +183,7 @@ mhair17show:
 		cutin "hair_m_17",4;
 	mes "[Veronica]";
 	mes "Oh~'Ore Discovery' style!";
-	mes "It feels like pickung up things while walking.";
+	mes "It feels like picking up things while walking.";
 	mes "How do you think? Do you like it?";
 	close;
 mhair18show:
@@ -273,7 +274,7 @@ fhair8show:
 		cutin "hair_f_08",4;
 	mes "[Veronica]";
 	mes "Oh~'Gloria' style!";
-	mes "Its nobneless and holiness moods are great.";
+	mes "Its nobleness and holiness moods are great.";
 	mes "How do you think? Do you like it?";
 	close;
 fhair9show:
@@ -287,7 +288,7 @@ fhair10show:
 		cutin "hair_f_10",4;
 	mes "[Veronica]";
 	mes "Oh~'Prepare Potion' style!";
-	mes "It feels a wound is healed allready.";
+	mes "It feels a wound is healed already.";
 	mes "How do you think? Do you like it?";
 	close;
 fhair11show:
@@ -301,7 +302,7 @@ fhair12show:
 		cutin "hair_f_12",4;
 	mes "[Veronica]";
 	mes "Oh~'Intimidate' style!";
-	mes "It seems you saw this stye somewhere...?";
+	mes "It seems you saw this style somewhere...?";
 	mes "How do you think? Do you like it?";
 	close;
 fhair13show:
@@ -403,7 +404,7 @@ mhair1:
 	mes "I will change your Hair with this Again.";
 	mes "Is that OK for you??";
 	next;
-	menu "Yaeh~ I'd love to.",-,"No..I don't like it..",M_NO1;
+	menu "Yeah~ I'd love to.",-,"No..I don't like it..",M_NO1;
 		cutin "",255;
 	mes "[Veronica]";
 	mes "Now it begins~. Hold still~";
@@ -428,7 +429,7 @@ mhair1:
 	mes "Wow~ it came out very well~~";
 	mes "I hope you like this (1) style.";
 	mes "If you'd like to have another hair style,";
-	mes "you are welcome welcome to vitis me anytime~ HoHoHo";
+	mes "you are welcome welcome to vi tis me anytime~ HoHoHo";
 	close;
 M_NO1:
 		cutin "",255;
@@ -485,7 +486,7 @@ mhair3:
 	mes "I will change your Hair with this Again.";
 	mes "Is that OK for you??";
 	next;
-	menu "Yaeh~ I'd love to.",-,"No..I don't like it..",M_NO3;
+	menu "Yeah~ I'd love to.",-,"No..I don't like it..",M_NO3;
 		cutin "",255;
 	mes "[Veronica]";
 	mes "Now it begins~. Hold still~";
@@ -510,7 +511,7 @@ mhair3:
 	mes "Wow~ it came out very well~~";
 	mes "I hope you like this (3) style.";
 	mes "If you'd like to have another hair style,";
-	mes "you are welcome welcome to vitis me anytime~ HoHoHo";
+	mes "you are welcome welcome to vi tis me anytime~ HoHoHo";
 	close;
 M_NO3:
 		cutin "",255;
@@ -551,7 +552,7 @@ mhair4:
 	mes "Wow~ it came out very well~~";
 	mes "I hope you like this (4) style.";
 	mes "If you'd like to have another hair style,";
-	mes "you are welcome welcome to vitis me anytime~ HoHoHo";
+	mes "you are welcome welcome to vi tis me anytime~ HoHoHo";
 	close;
 M_NO4:
 		cutin "",255;
@@ -592,7 +593,7 @@ mhair5:
 	mes "Wow~ it came out very well~~";
 	mes "I hope you like this (5) style.";
 	mes "If you'd like to have another hair style,";
-	mes "you are welcome welcome to vitis me anytime~ HoHoHo";
+	mes "you are welcome welcome to vi tis me anytime~ HoHoHo";
 	close;
 M_NO5:
 		cutin "",255;
@@ -633,7 +634,7 @@ mhair6:
 	mes "Wow~ it came out very well~~";
 	mes "I hope you like this (6) style.";
 	mes "If you'd like to have another hair style,";
-	mes "you are welcome welcome to vitis me anytime~ HoHoHo";
+	mes "you are welcome welcome to vi tis me anytime~ HoHoHo";
 	close;
 M_NO6:
 		cutin "",255;
@@ -674,7 +675,7 @@ mhair7:
 	mes "Wow~ it came out very well~~";
 	mes "I hope you like this (7) style.";
 	mes "If you'd like to have another hair style,";
-	mes "you are welcome welcome to vitis me anytime~ HoHoHo";
+	mes "you are welcome welcome to vi tis me anytime~ HoHoHo";
 	close;
 M_NO7:
 		cutin "",255;
@@ -715,7 +716,7 @@ mhair8:
 	mes "Wow~ it came out very well~~";
 	mes "I hope you like this (8) style.";
 	mes "If you'd like to have another hair style,";
-	mes "you are welcome welcome to vitis me anytime~ HoHoHo";
+	mes "you are welcome welcome to vi tis me anytime~ HoHoHo";
 	close;
 M_NO8:
 		cutin "",255;
@@ -756,7 +757,7 @@ mhair9:
 	mes "Wow~ it came out very well~~";
 	mes "I hope you like this (9) style.";
 	mes "If you'd like to have another hair style,";
-	mes "you are welcome welcome to vitis me anytime~ HoHoHo";
+	mes "you are welcome welcome to vi tis me anytime~ HoHoHo";
 	close;
 M_NO9:
 		cutin "",255;
@@ -797,7 +798,7 @@ mhair10:
 	mes "Wow~ it came out very well~~";
 	mes "I hope you like this (10) style.";
 	mes "If you'd like to have another hair style,";
-	mes "you are welcome welcome to vitis me anytime~ HoHoHo";
+	mes "you are welcome welcome to vi tis me anytime~ HoHoHo";
 	close;
 M_NO10:
 		cutin "",255;
@@ -838,7 +839,7 @@ mhair11:
 	mes "Wow~ it came out very well~~";
 	mes "I hope you like this (11) style.";
 	mes "If you'd like to have another hair style,";
-	mes "you are welcome welcome to vitis me anytime~ HoHoHo";
+	mes "you are welcome welcome to vi tis me anytime~ HoHoHo";
 	close;
 M_NO11:
 		cutin "",255;
@@ -879,7 +880,7 @@ mhair12:
 	mes "Wow~ it came out very well~~";
 	mes "I hope you like this (12) style.";
 	mes "If you'd like to have another hair style,";
-	mes "you are welcome welcome to vitis me anytime~ HoHoHo";
+	mes "you are welcome welcome to vi tis me anytime~ HoHoHo";
 	close;
 M_NO12:
 		cutin "",255;
@@ -920,7 +921,7 @@ mhair13:
 	mes "Wow~ it came out very well~~";
 	mes "I hope you like this (13) style.";
 	mes "If you'd like to have another hair style,";
-	mes "you are welcome welcome to vitis me anytime~ HoHoHo";
+	mes "you are welcome welcome to vi tis me anytime~ HoHoHo";
 	close;
 M_NO13:
 		cutin "",255;
@@ -961,7 +962,7 @@ mhair14:
 	mes "Wow~ it came out very well~~";
 	mes "I hope you like this (14) style.";
 	mes "If you'd like to have another hair style,";
-	mes "you are welcome welcome to vitis me anytime~ HoHoHo";
+	mes "you are welcome welcome to vi tis me anytime~ HoHoHo";
 	close;
 M_NO14:
 		cutin "",255;
@@ -1002,7 +1003,7 @@ mhair15:
 	mes "Wow~ it came out very well~~";
 	mes "I hope you like this (15) style.";
 	mes "If you'd like to have another hair style,";
-	mes "you are welcome welcome to vitis me anytime~ HoHoHo";
+	mes "you are welcome welcome to vi tis me anytime~ HoHoHo";
 	close;
 M_NO15:
 		cutin "",255;
@@ -1043,7 +1044,7 @@ mhair16:
 	mes "Wow~ it came out very well~~";
 	mes "I hope you like this (16) style.";
 	mes "If you'd like to have another hair style,";
-	mes "you are welcome welcome to vitis me anytime~ HoHoHo";
+	mes "you are welcome welcome to vi tis me anytime~ HoHoHo";
 	close;
 M_NO16:
 		cutin "",255;
@@ -1084,7 +1085,7 @@ mhair17:
 	mes "Wow~ it came out very well~~";
 	mes "I hope you like this (17) style.";
 	mes "If you'd like to have another hair style,";
-	mes "you are welcome welcome to vitis me anytime~ HoHoHo";
+	mes "you are welcome welcome to vi tis me anytime~ HoHoHo";
 	close;
 M_NO17:
 		cutin "",255;
@@ -1125,7 +1126,7 @@ mhair18:
 	mes "Wow~ it came out very well~~";
 	mes "I hope you like this (18) style.";
 	mes "If you'd like to have another hair style,";
-	mes "you are welcome welcome to vitis me anytime~ HoHoHo";
+	mes "you are welcome welcome to vi tis me anytime~ HoHoHo";
 	close;
 M_NO18:
 		cutin "",255;
@@ -1166,7 +1167,7 @@ mhair19:
 	mes "Wow~ it came out very well~~";
 	mes "I hope you like this (19) style.";
 	mes "If you'd like to have another hair style,";
-	mes "you are welcome welcome to vitis me anytime~ HoHoHo";
+	mes "you are welcome welcome to vi tis me anytime~ HoHoHo";
 	close;
 M_NO19:
 		cutin "",255;
@@ -1231,7 +1232,7 @@ fhair1:
 	mes "Wow~ it came out very well~~";
 	mes "I hope you like this (1) style.";
 	mes "If you'd like to have another hair style,";
-	mes "you are welcome welcome to vitis me anytime~ HoHoHo";
+	mes "you are welcome welcome to vi tis me anytime~ HoHoHo";
 	close;
 F_NO1:
 		cutin "",255;
@@ -1247,7 +1248,7 @@ fhair2:
 	mes "I will change your Hair with this Again.";
 	mes "Is that OK for you??";
 	next;
-	menu "Yaeh~ I'd love to.",-,"No..I don't like it..",F_NO2;
+	menu "Yeah~ I'd love to.",-,"No..I don't like it..",F_NO2;
 		cutin "",255;
 	mes "[Veronica]";
 	mes "Now it begins~. Hold still~";
@@ -1272,7 +1273,7 @@ fhair2:
 	mes "Wow~ it came out very well~~";
 	mes "I hope you like this (2) style.";
 	mes "If you'd like to have another hair style,";
-	mes "you are welcome welcome to vitis me anytime~ HoHoHo";
+	mes "you are welcome welcome to vi tis me anytime~ HoHoHo";
 	close;
 F_NO2:
 		cutin "",255;
@@ -1288,7 +1289,7 @@ fhair3:
 	mes "I will change your Hair with this Again.";
 	mes "Is that OK for you??";
 	next;
-	menu "Yaeh~ I'd love to.",-,"No..I don't like it..",F_NO3;
+	menu "Yeah~ I'd love to.",-,"No..I don't like it..",F_NO3;
 		cutin "",255;
 	mes "[Veronica]";
 	mes "Now it begins~. Hold still~";
@@ -1313,7 +1314,7 @@ fhair3:
 	mes "Wow~ it came out very well~~";
 	mes "I hope you like this (3) style.";
 	mes "If you'd like to have another hair style,";
-	mes "you are welcome welcome to vitis me anytime~ HoHoHo";
+	mes "you are welcome welcome to vi tis me anytime~ HoHoHo";
 	close;
 F_NO3:
 		cutin "",255;
@@ -1354,7 +1355,7 @@ fhair4:
 	mes "Wow~ it came out very well~~";
 	mes "I hope you like this (4) style.";
 	mes "If you'd like to have another hair style,";
-	mes "you are welcome welcome to vitis me anytime~ HoHoHo";
+	mes "you are welcome welcome to vi tis me anytime~ HoHoHo";
 	close;
 F_NO4:
 		cutin "",255;
@@ -1395,7 +1396,7 @@ fhair5:
 	mes "Wow~ it came out very well~~";
 	mes "I hope you like this (5) style.";
 	mes "If you'd like to have another hair style,";
-	mes "you are welcome welcome to vitis me anytime~ HoHoHo";
+	mes "you are welcome welcome to vi tis me anytime~ HoHoHo";
 	close;
 F_NO5:
 		cutin "",255;
@@ -1436,7 +1437,7 @@ fhair6:
 	mes "Wow~ it came out very well~~";
 	mes "I hope you like this (6) style.";
 	mes "If you'd like to have another hair style,";
-	mes "you are welcome welcome to vitis me anytime~ HoHoHo";
+	mes "you are welcome welcome to vi tis me anytime~ HoHoHo";
 	close;
 F_NO6:
 		cutin "",255;
@@ -1477,7 +1478,7 @@ fhair7:
 	mes "Wow~ it came out very well~~";
 	mes "I hope you like this (7) style.";
 	mes "If you'd like to have another hair style,";
-	mes "you are welcome welcome to vitis me anytime~ HoHoHo";
+	mes "you are welcome welcome to vi tis me anytime~ HoHoHo";
 	close;
 F_NO7:
 		cutin "",255;
@@ -1518,7 +1519,7 @@ fhair8:
 	mes "Wow~ it came out very well~~";
 	mes "I hope you like this (8) style.";
 	mes "If you'd like to have another hair style,";
-	mes "you are welcome welcome to vitis me anytime~ HoHoHo";
+	mes "you are welcome welcome to vi tis me anytime~ HoHoHo";
 	close;
 F_NO8:
 		cutin "",255;
@@ -1559,7 +1560,7 @@ fhair9:
 	mes "Wow~ it came out very well~~";
 	mes "I hope you like this (9) style.";
 	mes "If you'd like to have another hair style,";
-	mes "you are welcome welcome to vitis me anytime~ HoHoHo";
+	mes "you are welcome welcome to vi tis me anytime~ HoHoHo";
 	close;
 F_NO9:
 		cutin "",255;
@@ -1600,7 +1601,7 @@ fhair10:
 	mes "Wow~ it came out very well~~";
 	mes "I hope you like this (10) style.";
 	mes "If you'd like to have another hair style,";
-	mes "you are welcome welcome to vitis me anytime~ HoHoHo";
+	mes "you are welcome welcome to vi tis me anytime~ HoHoHo";
 	close;
 F_NO10:
 		cutin "",255;
@@ -1641,7 +1642,7 @@ fhair11:
 	mes "Wow~ it came out very well~~";
 	mes "I hope you like this (11) style.";
 	mes "If you'd like to have another hair style,";
-	mes "you are welcome welcome to vitis me anytime~ HoHoHo";
+	mes "you are welcome welcome to vi tis me anytime~ HoHoHo";
 	close;
 F_NO11:
 		cutin "",255;
@@ -1682,7 +1683,7 @@ fhair12:
 	mes "Wow~ it came out very well~~";
 	mes "I hope you like this (12) style.";
 	mes "If you'd like to have another hair style,";
-	mes "you are welcome welcome to vitis me anytime~ HoHoHo";
+	mes "you are welcome welcome to vi tis me anytime~ HoHoHo";
 	close;
 F_NO12:
 		cutin "",255;
@@ -1723,7 +1724,7 @@ fhair13:
 	mes "Wow~ it came out very well~~";
 	mes "I hope you like this (13) style.";
 	mes "If you'd like to have another hair style,";
-	mes "you are welcome welcome to vitis me anytime~ HoHoHo";
+	mes "you are welcome welcome to vi tis me anytime~ HoHoHo";
 	close;
 F_NO13:
 		cutin "",255;
@@ -1764,7 +1765,7 @@ fhair14:
 	mes "Wow~ it came out very well~~";
 	mes "I hope you like this (14) style.";
 	mes "If you'd like to have another hair style,";
-	mes "you are welcome welcome to vitis me anytime~ HoHoHo";
+	mes "you are welcome welcome to vi tis me anytime~ HoHoHo";
 	close;
 F_NO14:
 		cutin "",255;
@@ -1805,7 +1806,7 @@ fhair15:
 	mes "Wow~ it came out very well~~";
 	mes "I hope you like this (15) style.";
 	mes "If you'd like to have another hair style,";
-	mes "you are welcome welcome to vitis me anytime~ HoHoHo";
+	mes "you are welcome welcome to vi tis me anytime~ HoHoHo";
 	close;
 F_NO15:
 		cutin "",255;
@@ -1846,7 +1847,7 @@ fhair16:
 	mes "Wow~ it came out very well~~";
 	mes "I hope you like this (16) style.";
 	mes "If you'd like to have another hair style,";
-	mes "you are welcome welcome to vitis me anytime~ HoHoHo";
+	mes "you are welcome welcome to vi tis me anytime~ HoHoHo";
 	close;
 F_NO16:
 		cutin "",255;
@@ -1887,7 +1888,7 @@ fhair17:
 	mes "Wow~ it came out very well~~";
 	mes "I hope you like this (17) style.";
 	mes "If you'd like to have another hair style,";
-	mes "you are welcome welcome to vitis me anytime~ HoHoHo";
+	mes "you are welcome welcome to vi tis me anytime~ HoHoHo";
 	close;
 F_NO17:
 		cutin "",255;
@@ -1928,7 +1929,7 @@ fhair18:
 	mes "Wow~ it came out very well~~";
 	mes "I hope you like this (18) style.";
 	mes "If you'd like to have another hair style,";
-	mes "you are welcome welcome to vitis me anytime~ HoHoHo";
+	mes "you are welcome welcome to vi tis me anytime~ HoHoHo";
 	close;
 F_NO18:
 		cutin "",255;
@@ -1969,7 +1970,7 @@ fhair19:
 	mes "Wow~ it came out very well~~";
 	mes "I hope you like this (19) style.";
 	mes "If you'd like to have another hair style,";
-	mes "you are welcome welcome to vitis me anytime~ HoHoHo";
+	mes "you are welcome welcome to vi tis me anytime~ HoHoHo";
 	close;
 F_NO19:
 		cutin "",255;

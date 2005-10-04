@@ -10,6 +10,7 @@
 //= Just some quests
 //===== Additional Comments: ================================= 
 //= Don't use it.
+//= Spell checked just in case. [Nexon]
 //============================================================ 
 
 prontera.gat,147,204,4	script	Quest Assistant	93,{
@@ -63,7 +64,7 @@ L10:
 	mes "^3355FF10 Jellopy";
 	mes "^3355FF10 Fluff";
 	mes "^3355FF10 Clover";
-	mes "Please check the requirementes above.";
+	mes "Please check the requirements above.";
 	close;
 LEnd:
 	mes "[Quest Assistant]";
@@ -112,16 +113,16 @@ LYes1:
 	mes "[Quest Assistant]";
 	mes "Oh Thank you so much!";
 	mes "Ah.. Wait.. I almost forgot. Well, I was a quite popular actress back in my younger days...";
-	mes "My members gave me a ^3355FF'Pretend Murder'^000000 for my wedding present when I left the Troupe...I've kept it for the precious memory of my youth.";
+	mes "My members gave me a ^3355FF'Pretend Murder'^000000 for my wedding present when I left the Troupe... I've kept it for the precious memory of my youth.";
 	close;
 LNo1:
 	mes "[Quest Assistant]";
-	mes "Sigh..How can I get ^3355FF'Skirt of Virgin'^000000 by myself...I am so weak and tired ..Sigh..";
+	mes "Sigh..How can I get ^3355FF'Skirt of Virgin'^000000 by myself... I am so weak and tired ..Sigh..";
 	mes "I really wanted to make my Babies Happy .....";
 	close;
 LNoHat:
 	mes "[Quest Assistant]";
-	mes "I gather Mushrooms on the Mountin of Payon Everyday.I didn't even noticed time has come because of my bad memory....";
+	mes "I gather Mushrooms on the Mountain of Payon Everyday. I didn't even noticed time has come because of my bad memory....";
 	mes ".. Hmm..Now I remember of a festive season in next month.";
 	mes "I wish I could make clothings for my family in this season.";
 	mes "For that, I need 4 ^3355FF'Skirt of Virgin'^000000..";
@@ -142,7 +143,7 @@ LILoveTo:
 	mes "[Quest Assistant]";
 	mes "We always make various Metal products with welding Steel under horribly hot conditions.";
 	mes "So we have to face the hot-air heating and metallic fluid. Our faces are almost burnt down and sometimes injured while working...";
-	mes "But with this, You dont have to be worried! The so-called .. ^3355FF' Welding Mask '^000000 !!";
+	mes "But with this, You don't have to be worried! The so-called .. ^3355FF' Welding Mask '^000000 !!";
 	next;
 	mes "[Quest Assistant]";
 	mes "This one keeps your face out of the heat.";
@@ -169,8 +170,8 @@ LHeyDork:
 	close;
 LNoThx:
 	mes "[Quest Assistant]";
-	mes "Oh Man ! You'll probably regret this. I recommanded it for you, not me !";
-	mes "Man, Everyone gets older and older. You should take care of your bloody face before it starts shirinking!";
+	mes "Oh Man ! You'll probably regret this. I recommend it for you, not me !";
+	mes "Man, Everyone gets older and older. You should take care of your bloody face before it starts shrinking!";
 	close;
 LIDont:
 	mes "[Quest Assistant]";
@@ -215,13 +216,13 @@ LNoThx1:
 // Antlers
 Antler:
 	mes "[Quest Assistant]";
-	mes "Hey I am a Horn Collector. Sonds Great, Huh?";
+	mes "Hey I am a Horn Collector. Sounds Great, Huh?";
 	mes "What do you think about Animal horns? I think they are worth it to collect.";
 	mes "Besides you can decorate your house with them.";
 	next;
 	mes "[Quest Assistant]";
-	mes "By the way..I realised there are horns I couldn't get yet. They're called ^3355FF'Evil Horn'^000000..";
-	mes "And some might say ^3355FF'Evil Horn'^000000 is not the sort of Animal horn but the Devil Horn..Still I really really wish I could have it.";
+	mes "By the way.. I realized there are horns I couldn't get yet. They're called ^3355FF'Evil Horn'^000000..";
+	mes "And some might say ^3355FF'Evil Horn'^000000 is not the sort of Animal horn but the Devil Horn.. Still I really really wish I could have it.";
 	mes "Do you....? Do you have  the ^3355FF'Evil Horn'^000000?";
 	mes "If you offer me ^3355FF'20 Evil Horn'^000000, I will give you my precious collectible, ^3355FF'Antlers'^000000. So Deal?";
 	next;
@@ -309,7 +310,7 @@ LSure:
 CantMake:
 	mes "[Quest Assistant]";
 	mes "You Dullard. Check this requirements again.";
-	mes "You Don't look like an idiot though....C'Mon Man. Get real!";
+	mes "You Don't look like an idiot though.... C'Mon Man. Get real!";
 	close;
 LNo3:
 	mes "[Quest Assistant]";
@@ -342,7 +343,7 @@ LSure1:
 CantMake1:
 	mes "[Quest Assistant]";
 	mes "You Dullard. Check this requirements again.";
-	mes "You Don't look like an idiot though....C'Mon Man. Get real!";
+	mes "You Don't look like an idiot though.... C'Mon Man. Get real!";
 	close;
 LNo4:
 	mes "[Quest Assistant]";
@@ -376,7 +377,7 @@ LSure2:
 CantMake2:
 	mes "[Quest Assistant]";
 	mes "You Dullard. Check this requirements again.";
-	mes "You Don't look like an idiot though....C'Mon Man. Get real!";
+	mes "You Don't look like an idiot though.... C'Mon Man. Get real!";
 	close;
 LNo5:
 	mes "[Quest Assistant]";
@@ -400,13 +401,13 @@ LSure3:
 	getitem 2280,1;
 	mes "[Quest Assistant]";
 	mes "If you have a chance to, visit the Uplander Village, Payon.";
-	mes "The ^3355FFSakkat^000000 Dealer has never sold ^3355FFSakkat^000000 to other Dealers but to me. Because only I can recognise its quality. Due to its rarity, ^3355FFSakkat^000000 becomes a very Unique and Exceptional product.";
+	mes "The ^3355FFSakkat^000000 Dealer has never sold ^3355FFSakkat^000000 to other Dealers but to me. Because only I can recognize its quality. Due to its rarity, ^3355FFSakkat^000000 becomes a very Unique and Exceptional product.";
 	mes "OK! Take it!";
 	close;
 CantMake3:
 	mes "[Quest Assistant]";
 	mes "You Dullard. Check this requirements again.";
-	mes "You Don't look like an idiot though....C'Mon Man. Get real!";
+	mes "You Don't look like an idiot though.... C'Mon Man. Get real!";
 	close;
 LNo6:
 	mes "[Quest Assistant]";
@@ -415,9 +416,9 @@ LNo6:
 // Boy's Cap
 BoyCap:
 	mes "[Quest Assistant]";
-	mes "Ohhh !! Th ..This is the one..by hearsay ..";
+	mes "Ohhh !! Th ..This is the one.. by hearsay ..";
 	mes "Gain Strength even taking a look at it! Inflame the Blood even smelling once!";
-	mes "80 year-old Grampa becomes a Boy after grabbing one bite of it!!!!";
+	mes "80 year-old Grandpa becomes a Boy after grabbing one bite of it!!!!";
 	mes "It is the ^3355FFTiger's Footskin^000000!!";
 	mes "Please bring me that.. I need 10 of them..";
 	next;
@@ -443,8 +444,8 @@ LCancel2:
 // Ph.D Hat
 PhdHat:
 	mes "[Quest Assistant]";
-	mes "Ah .. Definately ..They are  4 kinds of Flowers I was looking for ..";
-	mes "I need 1 ^3355FFIllusion Flower^000000 ,1 ^3355FFHinalle^000000,1 ^3355FFAloe^000000 and 1 ^3355FFMent^000000... If you can bring them to me, I could give you my treasue...";
+	mes "Ah .. Definitely ..They are  4 kinds of Flowers I was looking for ..";
+	mes "I need 1 ^3355FFIllusion Flower^000000 ,1 ^3355FFHinalle^000000,1 ^3355FFAloe^000000 and 1 ^3355FFMent^000000... If you can bring them to me, I could give you my treasure...";
 	next;
 	menu "Sure",LYes2,"Cancel",LCancel1;
 LYes2:
@@ -470,7 +471,7 @@ LNoHat1:
 	close;
 LCancel1:
 	mes "[Quest Assistant]";
-	mes "One of thesedays I will cover whole world with Flowers.";
+	mes "One of these days I will cover whole world with Flowers.";
 	close;
 // Oxygen Mask
 OxyMask:
@@ -495,7 +496,7 @@ LNoMask:
 LCancel6:
 	mes "[Quest Assistant]";
 	mes "Huhuhuhuhu... What If I could not get rid of Thief Bugs...";
-	mes "Only one thing I could do is to Fall in Love with them..Hehehehehehe...";
+	mes "Only one thing I could do is to Fall in Love with them.. Hehehehehehe...";
 	close;
 // Headset
 Headset:

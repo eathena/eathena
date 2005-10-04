@@ -25,3 +25,97 @@ tha_t02.gat,0,0,0,0	monster	Plasma Blue	1697,10,0,0,0
 tha_t02.gat,0,0,0,0	monster	Alice	1275,1,0,0,0
 tha_t02.gat,0,0,0,0	monster	Retribution	1702,10,0,0,0
 tha_t02.gat,0,0,0,0	monster	Ancient Mimic	1699,20,0,0,0
+tha_t02.gat,0,0,0,0	monster	Plasma Yellow	1693,5,0,0,0
+tha_t02.gat,0,0,0,0	monster	Plasma Red	1694,5,0,0,0
+tha_t02.gat,0,0,0,0	monster	Plasma Purple	1696,5,0,0,0
+
+// tha_t03
+tha_t03.gat,0,0,0,0	monster	Rideword	1195,20,0,0,0
+tha_t03.gat,0,0,0,0	monster	Death Word	1698,25,0,0,0
+tha_t03.gat,0,0,0,0	monster	Mimic	1191,35,0,0,0
+tha_t03.gat,0,0,0,0	monster	Plasma Purple	1696,10,0,0,0
+tha_t03.gat,0,0,0,0	monster	Shelter	1701,10,0,0,0
+tha_t03.gat,0,0,0,0	monster	Ancient Mimic	1699,20,0,0,0
+
+// tha_t04
+tha_t04.gat,0,0,0,0	monster	Rideword	1195,20,0,0,0
+tha_t04.gat,0,0,0,0	monster	Death Word	1698,25,0,0,0
+tha_t04.gat,0,0,0,0	monster	Mimic	1191,35,0,0,0
+tha_t04.gat,0,0,0,0	monster	Plasma Red	1694,10,0,0,0
+tha_t04.gat,0,0,0,0	monster	Observation	1700,10,0,0,0
+tha_t04.gat,0,0,0,0	monster	Ancient Mimic	1699,20,0,0,0
+
+// tha_t05
+tha_t05.gat,0,0,0,0	monster	Rideword	1195,20,0,0,0
+tha_t05.gat,0,0,0,0	monster	Death Word	1698,25,0,0,0
+tha_t05.gat,0,0,0,0	monster	Mimic	1191,35,0,0,0
+tha_t05.gat,0,0,0,0	monster	Plasma Red	1694,5,0,0,0
+tha_t05.gat,0,0,0,0	monster	Dolor	1707,10,0,0,0
+tha_t05.gat,0,0,0,0	monster	Ancient Mimic	1699,20,0,0,0
+tha_t05.gat,0,0,0,0	monster	Plasma Blue	1697,5,0,0,0
+tha_t05.gat,0,0,0,0	monster	Plasma Green	1695,5,0,0,0
+tha_t05.gat,0,0,0,0	monster	Plasma Purple	1696,5,0,0,0
+
+// tha_t06
+tha_t06.gat,0,0,0,0	monster	Rideword	1195,20,0,0,0
+tha_t06.gat,0,0,0,0	monster	Death Word	1698,25,0,0,0
+tha_t06.gat,0,0,0,0	monster	Mimic	1191,35,0,0,0
+tha_t06.gat,0,0,0,0	monster	Plasma Red	1694,5,0,0,0
+tha_t06.gat,0,0,0,0	monster	Dolor	1707,10,0,0,0
+tha_t06.gat,0,0,0,0 	monster	Ancient Mimic	1699,20,0,0,0
+tha_t06.gat,0,0,0,0	monster	Plasma Blue	1697,5,0,0,0
+tha_t06.gat,0,0,0,0	monster	Plasma Green	1695,5,0,0,0
+tha_t06.gat,0,0,0,0	monster	Plasma Purple	1696,5,0,0,0
+
+// tha_t07
+tha_t07.gat,0,0,0,0	monster	Rideword	1195,20,0,0,0
+tha_t07.gat,0,0,0,0	monster	Death Word	1698,25,0,0,0
+tha_t07.gat,0,0,0,0	monster	Mimic	1191,35,0,0,0
+tha_t07.gat,0,0,0,0	monster	Observation	1700,10,0,0,0
+tha_t07.gat,0,0,0,0	monster	Ancient Mimic	1699,20,0,0,0
+tha_t07.gat,0,0,0,0	monster	Retribution	1702,10,0,0,0
+tha_t07.gat,0,0,0,0	monster	Shelter	1701,10,0,0,0
+tha_t07.gat,0,0,0,0	monster	Odium	1704,1,0,0,0
+
+// tha_t08
+tha_t08.gat,0,0,0,0	monster	Rideword	1195,20,0,0,0
+tha_t08.gat,0,0,0,0	monster	Death Word	1698,25,0,0,0
+tha_t08.gat,0,0,0,0	monster	Mimic	1191,35,0,0,0
+tha_t08.gat,0,0,0,0	monster	Observation	1700,10,0,0,0
+tha_t08.gat,0,0,0,0	monster	Ancient Mimic	1699,20,0,0,0
+tha_t08.gat,0,0,0,0	monster	Retribution	1702,10,0,0,0
+tha_t08.gat,0,0,0,0	monster	Shelter	1701,10,0,0,0
+tha_t08.gat,0,0,0,0	monster	Odium	1704,1,1800000,0,0
+
+// tha_t09
+tha_t09.gat,0,0,0,0	monster	Observation	1700,15,0,0,0
+tha_t09.gat,0,0,0,0	monster	Retribution	1702,20,0,0,0
+tha_t09.gat,0,0,0,0	monster	Shelter	1701,15,0,0,0
+tha_t09.gat,0,0,0,0	monster	Dolor	1707,25,0,0,0
+tha_t05.gat,0,0,0,0	monster	Plasma Red	1694,15,0,0,0
+
+// tha_t10
+tha_t10.gat,0,0,0,0	monster	Observation	1700,20,0,0,0
+tha_t10.gat,0,0,0,0	monster	Retribution	1702,25,0,0,0
+tha_t10.gat,0,0,0,0	monster	Shelter	1701,20,0,0,0
+tha_t10.gat,0,0,0,0	monster	Dolor	1707,30,0,0,0
+tha_t10.gat,0,0,0,0	monster	Plasma Blue	1697,15,0,0,0
+
+// tha_t11
+tha_t11.gat,0,0,0,0	monster	Observation	1700,20,0,0,0
+tha_t11.gat,0,0,0,0	monster	Retribution	1702,25,0,0,0
+tha_t11.gat,0,0,0,0	monster	Shelter	1701,20,0,0,0
+tha_t11.gat,0,0,0,0	monster	Odium	1704,2,0,0,0
+tha_t11.gat,0,0,0,0	monster	Plasma Green	1695,15,0,0,0
+tha_t12.gat,0,0,0,0	monster	Despero	1705,2,1800000,0,0
+
+// tha_t12
+tha_t12.gat,0,0,0,0	monster	Observation	1700,20,0,0,0
+tha_t12.gat,0,0,0,0	monster	Retribution	1702,25,0,0,0
+tha_t12.gat,0,0,0,0	monster	Shelter	1701,20,0,0,0
+tha_t12.gat,0,0,0,0	monster	Odium	1704,5,0,0,0
+tha_t12.gat,0,0,0,0	monster	Plasma Yellow	1693,15,0,0,0
+tha_t12.gat,0,0,0,0	monster	Maero	1706,2,1800000,0,0
+
+// thana_boss
+thana_boss.gat,0,0,0,0	monster	Thanatos	1708,1,3600000,7200000,0

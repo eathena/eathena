@@ -5,7 +5,7 @@
 //= dafide18 (1.4)
 //= Skotlex (1.5)
 //===== Current Version: =====================================
-//= 1.5a
+//= 1.5b
 //===== Compatible With: =====================================
 //= Any Freya Version
 //===== Description: =========================================
@@ -19,7 +19,7 @@
 //=       Christopher the blacksmith in Geffen. Edited some dialogue [kobra_k88]
 //= 1.3 - New Payon Locations [Darkchild]
 //=       Corrected zeny subtraction thx to jpnmania77.[kobra_k88]
-//= 1.3a - Temporary corrected an expliot. Need to check sources
+//= 1.3a - Temporary corrected an exploit. Need to check sources
 //=        to fully fix bug [Shinigami]
 //=        Fixed repairman prices [shadowlady]
 //=        Fixed bug that skips requirements thanks to sir_loon [massdriller]
@@ -30,6 +30,7 @@
 //        Lupus, don't rollback this important fix again! >.<
 //= 1.5a - Corrected an unneeded callfunc, fixed the anti-bot 
 //=       exploit ruining the safe refine loop. [Skotlex]
+//= 1.5b - Fixed Spelling mistakes. [Nexon] 
 //============================================================
 
 
@@ -245,7 +246,7 @@ function	script	refinemain	{
 		set @part,6;
 		if (getequipisequiped(6)) goto CHECK1;
 		mes "[" + @name$ + "]";
-		mes "Ack!! Those are some stinky feet. I definately can't refine those... uck!!";
+		mes "Ack!! Those are some stinky feet. I definitely can't refine those... uck!!";
 		emotion 16;
 		goto M_Menu;
 	//Accessory1
@@ -268,14 +269,14 @@ function	script	refinemain	{
 		set @part,9;
 		if (getequipisequiped(9)) goto CHECK1;
 		mes "[" + @name$ + "]";
-		mes "What do you want from me? There's nothing equiped there...";
+		mes "What do you want from me? There's nothing equipped there...";
 		emotion 20;
 		goto M_Menu;
 	PART10:
 		set @part,10;
 		if (getequipisequiped(10)) goto CHECK1;
 		mes "[" + @name$ + "]";
-		mes "What do you want from me? There's nothing equiped there...";
+		mes "What do you want from me? There's nothing equipped there...";
 		emotion 20;
 		goto M_Menu;
 
@@ -297,7 +298,7 @@ CHECK2:
 CHECK3:
 	if(getequiprefinerycnt(@part) < 10) goto REFINE0;
 	mes "[" + @name$ + "]";
-	mes "This weapon is allready at its maximum level and can no longer be refined.";
+	mes "This weapon is already at its maximum level and can no longer be refined.";
 	close;
 
 //Refine Armor
@@ -393,7 +394,7 @@ Lfail:
 	emotion 16;
 	next;
 	mes "["+@name$+"]";
-	mes "Eh..Ehem... I'm sorry but the refining proccess ^ff0000failed^000000.";
+	mes "Eh..Ehem... I'm sorry but the refining process ^ff0000failed^000000.";
 	next;
 	mes "["+@name$+"]";
 	mes "I am deeply ashamed of what I've done... but I DID warn you earlier about the risks.";
@@ -419,7 +420,7 @@ Lcancel:
 Lcancel1:
 	mes "[" + @name$ + "]";
 	mes "Good Choice.";
-	mes "Ah... good choice. I'd feel awfull if I'd destroyed another persons piece of equipment with my own hands.";
+	mes "Ah... good choice. I'd feel awful if I'd destroyed another persons piece of equipment with my own hands.";
 	close;
 
 Lcancel2:
@@ -571,7 +572,7 @@ function	script	phramain	{
 	M_Menu:
 	set @chris, 0;
 	next;
-	menu"Pharacon - 200z",PHARA,"Emveretarcon - 1000z",EMVER;
+	menu"Pharacon - 200z",PHARA,"Emvertacon - 1000z",EMVER;
 
 	PHARA:
 		set @itemid,1010;
@@ -688,16 +689,16 @@ function	script	orimain	{
 		mes "Enchanted stones, huh...";
 		next;
 		mes "[" + @name$ + "]";
-		mes "Well, in the 20 years that I've been a stonesmith I've heard of them many times... though I've never actually seen them before.";
+		mes "Well, in the 20 years that I've been a stone smith I've heard of them many times... though I've never actually seen them before.";
 		next;
 		mes "[" + @name$ + "]";
 		mes "I've been told that enchanted stones possess different elemental properties such as ^5533FFWater, Earth, Fire, and Wind^000000.";
 		next;
 		mes "[" + @name$ + "]";
-		mes "If someone combines an Enchanted Stone with a weapon durring the refining process, that weapon will possess the same property as the stone.";
+		mes "If someone combines an Enchanted Stone with a weapon during the refining process, that weapon will possess the same property as the stone.";
 		next;
 		mes "[" + @name$ + "]";
-		mes "Of course, that person needs to be skillfull enough to work on it.";
+		mes "Of course, that person needs to be skillful enough to work on it.";
 		goto M_Menu;
 }
 
