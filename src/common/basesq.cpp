@@ -286,87 +286,15 @@ bool CAccountDB_sql::removeAccount(uint32 accid)
 
 bool CAccountDB_sql::init(const char* configfile)
 {	// init db
+	size_t sz; // Used for size of queries
+	bool wipe=false; // i dont know how a bool is set..
+	char query[512]; // used for the queries themselves
+
 	CConfig::LoadConfig(configfile);
 
 	mysql_init(&mysqldb_handle);
 
-/*
 	// All tables used for login: login_auth, login_reg, login_log, login_status
-
-//	bool wipe=false; // i dont know how a bool is set..
-	char query[512];
-
-	if (wipe){
-		size_t sz = sprintf(query, "DROP TABLE IF EXISTS login_auth");
-		this->mysql_SendQuery(query, sz);
-	}
-
-	size_t sz = sprintf(query,
-		"CREATE TABLE `login_auth` ("
-		"`account_id` INTEGER UNSIGNED AUTO_INCREMENT,"
-		"`user` VARCHAR(24) NOT NULL,"
-		"`passwd` VARCHAR(34) NOT NULL,"
-		"`sex` ENUM('M','F','S') default 'M',"
-		"`gm_level` INT(3) UNSIGNED NOT NULL,"
-		"`online` BOOL default 'false',"
-		"`email` VARCHAR(40) NOT NULL,"
-		"`login_ip` VARCHAR(16) NOT NULL,"
-		"`login_id1` INTEGER UNSIGNED NOT NULL,"
-		"`login_id2` INTEGER UNSIGNED NOT NULL,"
-		"`last_login` INTEGER UNSIGNED NOT NULL,"
-		"`ban_until` INTEGER UNSIGNED NOT NULL,"
-		"`valid_until` INTEGER UNSIGNED NOT NULL,"
-		"PRIMARY KEY(`account_id`)"
-		");" );
-	this->mysql_SendQuery(query, sz);
-
-
-
-
-
-	if (wipe){
-		size_t sz = sprintf(query, "DROP TABLE IF EXISTS login_reg");
-		this->mysql_SendQuery(query, sz);
-	}
-	size_t sz = sprintf(query,
-		"CREATE TABLE `login_reg` ("
-		"`account_id` INTEGER UNSIGNED AUTO_INCREMENT,"
-		"`str` VARCHAR(34) NOT NULL,"  // Not sure on the length needed.
-		"`value` INTEGER UNSIGNED NOT NULL,"
-		"PRIMARY KEY(`account_id`,`str`)"
-		")" );
-	this->mysql_SendQuery(query, sz);
-
-	if (wipe){
-		size_t sz = sprintf(query, "DROP TABLE IF EXISTS login_log");
-		this->mysql_SendQuery(query, sz);
-	}
-
-	size_t sz = sprintf(query,
-		"CREATE TABLE `login_log` ("
-		"`time` INTEGER UNSIGNED,"
-		"`ip` VARCHAR(16) NOT NULL,"
-		"`user` VARCHAR(24) NOT NULL,"
-		"`rcode` INTEGER(3) UNSIGNED NOT NULL,"
-		"`log` VARCHAR(100) NOT NULL"
-		")" );
-	this->mysql_SendQuery(query, sz);
-
-	if (wipe){
-		size_t sz = sprintf(query, "DROP TABLE IF EXISTS login_sstatus");
-		this->mysql_SendQuery(query, sz);
-	}
-
-	size_t sz = sprintf(query,
-		"CREATE TABLE `login_log` ("
-		"`index` INTEGER UNSIGNED NOT NULL,"
-		"`name` VARCHAR(24) NOT NULL,"
-		"`user` INTEGER UNSIGNED NOT NULL,"
-		"PRIMARY KEY(`index`)"
-		")" );
-	this->mysql_SendQuery(query, sz);
-
-*/
 
 
 	// DB connection start
@@ -381,13 +309,89 @@ bool CAccountDB_sql::init(const char* configfile)
 			//query
 			this->mysql_SendQuery(query, sz);
 		}
-		return true;
 	}
 	else
 	{	// pointer check
 		ShowMessage("%s\n", mysql_error(&mysqldb_handle));
 		return false;
 	}
+
+	if (wipe)
+	{
+		sz = sprintf(query, "DROP TABLE IF EXISTS login_auth");
+		this->mysql_SendQuery(query, sz);
+	}
+
+	sz = sprintf(query,
+		"CREATE TABLE IF NOT EXISTS `login_auth` ("
+		"`account_id` INTEGER UNSIGNED AUTO_INCREMENT,"
+		"`user` VARCHAR(24) NOT NULL,"
+		"`passwd` VARCHAR(34) NOT NULL,"
+		"`sex` ENUM('M','F','S') default 'M',"
+		"`gm_level` INT(3) UNSIGNED NOT NULL,"
+		"`online` BOOL default 'false',"
+		"`email` VARCHAR(40) NOT NULL,"
+		"`login_ip` VARCHAR(16) NOT NULL,"
+		"`login_id1` INTEGER UNSIGNED NOT NULL,"
+		"`login_id2` INTEGER UNSIGNED NOT NULL,"
+		"`last_login` INTEGER UNSIGNED NOT NULL,"
+		"`ban_until` INTEGER UNSIGNED NOT NULL,"
+		"`valid_until` INTEGER UNSIGNED NOT NULL,"
+		"PRIMARY KEY(`account_id`)"
+		")" );
+	this->mysql_SendQuery(query, sz);
+
+
+
+
+
+	if (wipe)
+	{
+		size_t sz = sprintf(query, "DROP TABLE IF EXISTS login_reg");
+		this->mysql_SendQuery(query, sz);
+	}
+
+	sz = sprintf(query,
+		"CREATE TABLE IF NOT EXISTS `login_reg` ("
+		"`account_id` INTEGER UNSIGNED AUTO_INCREMENT,"
+		"`str` VARCHAR(34) NOT NULL,"  // Not sure on the length needed.
+		"`value` INTEGER UNSIGNED NOT NULL,"
+		"PRIMARY KEY(`account_id`,`str`)"
+		")" );
+	this->mysql_SendQuery(query, sz);
+
+	if (wipe)
+	{
+		size_t sz = sprintf(query, "DROP TABLE IF EXISTS login_log");
+		this->mysql_SendQuery(query, sz);
+	}
+
+	sz = sprintf(query,
+		"CREATE TABLE IF NOT EXISTS `login_log` ("
+		"`time` INTEGER UNSIGNED,"
+		"`ip` VARCHAR(16) NOT NULL,"
+		"`user` VARCHAR(24) NOT NULL,"
+		"`rcode` INTEGER(3) UNSIGNED NOT NULL,"
+		"`log` VARCHAR(100) NOT NULL"
+		")" );
+	this->mysql_SendQuery(query, sz);
+
+	if (wipe)
+	{
+		sz = sprintf(query, "DROP TABLE IF EXISTS login_sstatus");
+		this->mysql_SendQuery(query, sz);
+	}
+
+	sz = sprintf(query,
+		"CREATE TABLE IF NOT EXISTS `login_log` ("
+		"`index` INTEGER UNSIGNED NOT NULL,"
+		"`name` VARCHAR(24) NOT NULL,"
+		"`user` INTEGER UNSIGNED NOT NULL,"
+		"PRIMARY KEY(`index`)"
+		")" );
+	this->mysql_SendQuery(query, sz);
+
+	return true;
 }
 
 bool CAccountDB_sql::close()
