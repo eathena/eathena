@@ -1038,7 +1038,7 @@
 2412,Greaves_,Greaves,5,48000,,750,,5,,1,16512,2,64,,65,1,0,{},{}
 2413,Safety_Shoes,Safety Shoes,5,,10,350,,6,,0,16514,2,64,,30,0,0,{},{}
 2414,Sandal_For_Novice,Novice Sandals,5,,10,1,,2,,0,8388609,2,64,,0,0,0,{},{}
-2415,Bunny_Slippers,Bunny Slippers,5,,10,300,,0,,0,10477567,0,64,,0,1,0,{},{ bonus bLuk,3; }
+2415,Bunny_Slippers,Bunny Slippers,5,34000,,300,,3,,1,2088958,0,64,0,30,0,0,{},{ bonus bLuk,3; }
 2416,Novice_Shoes,Novice Shoes,5,,10,500,,2,,1,8388609,2,64,,40,1,0,{},{ bonus bMaxHPrate,5; }
 2417,Frico_Shoes,Frico Shoes,5,,10,500,,3,,0,2088958,2,64,,65,1,0,{},{ bonus bAgi,2; }
 2418,Boots_of_Vidar,Boots of Vidar,5,,10,650,,4,,0,2088958,2,64,,65,1,0,{},{ bonus bMaxHPrate,9; bonus bMaxSPrate,9; }

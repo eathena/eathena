@@ -32,6 +32,8 @@
 		like gemstones when the skill is used.
 	--
 
+10/05
+	* Updated #2415,Bunny_Slippers. Thanx to noobs [Lupus]
 10/03
 	* Updated Thanatos/Abyss monster info. Still in need of stats. [Nexon]
 	* Updated the skill info on NPC_DARKCROSS [Skotlex]
