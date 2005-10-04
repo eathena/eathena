@@ -683,7 +683,6 @@ static int clif_clearchar_delay_sub(int tid, unsigned int tick, int id, int data
 	struct block_list *bl = (struct block_list *)id;
 
 	clif_clearchar(bl,data);
-	map_freeblock(bl);
 
 	return 0;
 }

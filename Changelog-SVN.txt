@@ -1,7 +1,8 @@
 Date	Added
 =======
 
-10/03	* Fixed often occurring memory leak in clif.c. [Kevin]
+10/03	* Fixed a mistake with my last fix. [Kevin]
+	* Fixed often occurring memory leak in clif.c. [Kevin]
 	* Made NPC_DARKCROSS work (it's just a copy of Holy Cross with dark
 	  attribute) [Skotlex]
 	* Removed resetting the manner when a player is saved. [Skotlex]
