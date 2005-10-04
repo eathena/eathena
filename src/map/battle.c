@@ -431,10 +431,12 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 			damage=0;
 		}
 
+		/* No no no, ROKISWEIL only prevents people from using skills, it does not blocks any skill that was casted on it! [Skotlex]
 		if(sc_data[SC_ROKISWEIL].timer!=-1 && damage>0 && flag&BF_MAGIC ){
 			damage=0;
 		}
-
+		*/
+		
 		if(sc_data[SC_AETERNA].timer!=-1 && damage>0 && skill_num != PA_PRESSURE){
 			damage<<=1;
 			status_change_end( bl,SC_AETERNA,-1 );

@@ -1787,6 +1787,33 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 	}
 	
 	map_freeblock_lock();
+
+	if(damage > 0 && dmg.flag&BF_SKILL && bl->type==BL_PC
+		&& pc_checkskill((struct map_session_data *)bl,RG_PLAGIARISM) && sc_data[SC_PRESERVE].timer == -1
+		&& damage < ((struct map_session_data *)bl)->status.hp)
+	{	//Updated to not be able to copy skills if the blow will kill you. [Skotlex]
+		struct map_session_data *tsd = (struct map_session_data *)bl;
+		if (tsd && (!tsd->status.skill[skillid].id || tsd->status.skill[skillid].flag >= 13) &&
+			can_copy(tsd,skillid))	// Split all the check into their own function [Aru]
+		{
+			//?に?んでいるスキルがあれば該?スキルを消す
+			if (tsd->cloneskill_id && tsd->status.skill[tsd->cloneskill_id].flag == 13){
+				tsd->status.skill[tsd->cloneskill_id].id = 0;
+				tsd->status.skill[tsd->cloneskill_id].lv = 0;
+				tsd->status.skill[tsd->cloneskill_id].flag = 0;
+			}
+			tsd->cloneskill_id = skillid;
+			tsd->status.skill[skillid].id = skillid;
+			tsd->status.skill[skillid].lv = skilllv;
+			if ((lv = pc_checkskill(tsd,RG_PLAGIARISM)) < skilllv)
+				tsd->status.skill[skillid].lv = lv;
+			tsd->status.skill[skillid].flag = 13;//cloneskill flag
+			pc_setglobalreg(tsd, "CLONE_SKILL", tsd->cloneskill_id);
+			pc_setglobalreg(tsd, "CLONE_SKILL_LV", tsd->status.skill[skillid].lv);
+			clif_skillinfoblock(tsd);
+		}
+	}
+
 	/* ?際にダメ?ジ?理を行う */
 	if ((skillid || flag) && !(skillid == ASC_BREAKER && attack_type&BF_WEAPON)) {  // do not really deal damage for ASC_BREAKER's 1st attack
 		if (attack_type&BF_WEAPON)
@@ -1816,31 +1843,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		if(rand()%100 < rate)
 			skill_addtimerskill(src,tick + 800,bl->id,0,0,skillid,skilllv,0,flag);
 	}
-	if(damage > 0 && dmg.flag&BF_SKILL && bl->type==BL_PC && 
-		pc_checkskill((struct map_session_data *)bl,RG_PLAGIARISM) &&
-		!pc_isdead((struct map_session_data *)bl) &&	//Updated to not be able to copy skills while dead. [Skotlex]
-		sc_data[SC_PRESERVE].timer == -1){
-		struct map_session_data *tsd = (struct map_session_data *)bl;
-		if (tsd && (!tsd->status.skill[skillid].id || tsd->status.skill[skillid].flag >= 13) &&
-			can_copy(tsd,skillid))	// Split all the check into their own function [Aru]
-		{
-			//?に?んでいるスキルがあれば該?スキルを消す
-			if (tsd->cloneskill_id && tsd->status.skill[tsd->cloneskill_id].flag == 13){
-				tsd->status.skill[tsd->cloneskill_id].id = 0;
-				tsd->status.skill[tsd->cloneskill_id].lv = 0;
-				tsd->status.skill[tsd->cloneskill_id].flag = 0;
-			}
-			tsd->cloneskill_id = skillid;
-			tsd->status.skill[skillid].id = skillid;
-			tsd->status.skill[skillid].lv = skilllv;
-			if ((lv = pc_checkskill(tsd,RG_PLAGIARISM)) < skilllv)
-				tsd->status.skill[skillid].lv = lv;
-			tsd->status.skill[skillid].flag = 13;//cloneskill flag
-			pc_setglobalreg(tsd, "CLONE_SKILL", tsd->cloneskill_id);
-			pc_setglobalreg(tsd, "CLONE_SKILL_LV", tsd->status.skill[skillid].lv);
-			clif_skillinfoblock(tsd);
-		}
-	}
+
 	if (dmg.dmg_lv == ATK_DEF || damage > 0) //Counter status effects [Skotlex] 
 		skill_counter_additional_effect(src,bl,skillid,skilllv,attack_type,tick);
 	
@@ -6864,7 +6867,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 		break;
 */
 	case UNT_SPIDERWEB:
-		if(sg->val2==0){
+		if(sg->val2==0 && (!sc_data || sc_data[type].timer==-1 )){
 			int moveblock = ( bl->x/BLOCK_SIZE != src->bl.x/BLOCK_SIZE || bl->y/BLOCK_SIZE != src->bl.y/BLOCK_SIZE);
 			skill_additional_effect(ss,bl,sg->skill_id,sg->skill_lv,BF_MISC,tick);
 			skill_unit_move(bl,tick,2);
@@ -7974,12 +7977,11 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 		return 0;
 	if (sc_data) {
 		if ((sc_data[SC_VOLCANO].timer != -1 && skill_num == WZ_ICEWALL) ||
-				(sc_data[SC_ROKISWEIL].timer != -1 && skill_num == BD_ADAPTATION) ||
+				(sc_data[SC_ROKISWEIL].timer != -1 && skill_num != BD_ADAPTATION) ||
 				(sc_data[SC_AUTOCOUNTER].timer != -1 && sd->skillid != KN_AUTOCOUNTER) ||
 				(sc_data[SC_MARIONETTE].timer != -1 && sd->skillid != CG_MARIONETTE) ||
 				(sc_data[SC_MARIONETTE2].timer != -1 && sd->skillid == CG_MARIONETTE) ||
 				sc_data[SC_SILENCE].timer != -1 ||
-				sc_data[SC_ROKISWEIL].timer != -1 ||			
 				sc_data[SC_STEELBODY].timer != -1 ||
 				sc_data[SC_BERSERK].timer != -1 ||
 				sc_data[SC_HERMODE].timer != -1)

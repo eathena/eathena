@@ -34,6 +34,9 @@
 
 10/05
 	* Updated #2415,Bunny_Slippers. Thanx to noobs [Lupus]
+10/04
+	* Removed the flags from Spider Web, now it can be stacked and placed
+	  underneath characters. [Skotlex]
 10/03
 	* Updated Thanatos/Abyss monster info. Still in need of stats. [Nexon]
 	* Updated the skill info on NPC_DARKCROSS [Skotlex]

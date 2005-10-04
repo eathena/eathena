@@ -1567,13 +1567,13 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 
 	if (md->attacked_id && mode&0x08 && DIFF_TICK(md->last_linktime, gettick()) < MIN_MOBLINKTIME)
 	{	// Link monster/ if target is not dead [Skotlex]
-		struct map_session_data *asd = map_id2sd(md->attacked_id);
+		struct block_list *abl = map_id2bl(md->attacked_id);
 		unsigned int tick = gettick();
 		md->last_linktime = tick;
-		if (asd && !pc_isdead(asd))
+		if (abl && !status_isdead(abl))
 			map_foreachinarea(mob_ai_sub_hard_linksearch, md->bl.m,
 				md->bl.x-13, md->bl.y-13, md->bl.x+13, md->bl.y+13,
-				BL_MOB, md->class_, &asd->bl, tick);
+				BL_MOB, md->class_, abl, tick);
 		else
 			md->attacked_id = 0;
 	}
