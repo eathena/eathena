@@ -830,7 +830,7 @@ static struct Damage battle_calc_weapon_attack(
 			return wd;
 	}
 
-	if(sd && skill_num != CR_GRANDCROSS)
+	if(sd)
 		sd->state.attack_type = BF_WEAPON;
 
 	//Set miscellaneous data that needs be filled regardless of hit/miss
@@ -1000,8 +1000,6 @@ static struct Damage battle_calc_weapon_attack(
 			{
 				case NPC_GUIDEDATTACK:
 				case RG_BACKSTAP:
-				case CR_GRANDCROSS:
-				case NPC_GRANDDARKNESS:
 				case AM_ACIDTERROR:
 				case MO_INVESTIGATE:
 				case MO_EXTREMITYFIST:
@@ -1077,7 +1075,7 @@ static struct Damage battle_calc_weapon_attack(
 			flag.hit =1;
 	}	//End hit/miss calculation
 
-	if(tsd && tsd->special_state.no_weapon_damage && skill_num != CR_GRANDCROSS)	
+	if(tsd && tsd->special_state.no_weapon_damage)	
 		return wd;
 
 	if (flag.hit && !flag.infdef) //No need to do the math for plants
@@ -1370,11 +1368,6 @@ static struct Damage battle_calc_weapon_attack(
 				case CR_HOLYCROSS:
 					skillratio+= 35*skill_lv;
 					break;
-				case CR_GRANDCROSS:
-				case NPC_GRANDDARKNESS:
-					if(!battle_config.gx_cardfix)
-						flag.cardfix = 0;
-					break;
 				case AM_DEMONSTRATION:
 					skillratio+= 20*skill_lv;
 					flag.cardfix = 0;
@@ -1636,7 +1629,7 @@ static struct Damage battle_calc_weapon_attack(
 		if (flag.rh && wd.damage < 1) wd.damage = 1;
 		if (flag.lh && wd.damage2 < 1) wd.damage2 = 1;
 
-		if (sd && skill_num != MO_INVESTIGATE && skill_num != MO_EXTREMITYFIST && skill_num != CR_GRANDCROSS)
+		if (sd && skill_num != MO_INVESTIGATE && skill_num != MO_EXTREMITYFIST)
 		{	//Add mastery damage
 			wd.damage = battle_addmastery(sd,target,wd.damage,0);
 			if (flag.lh) wd.damage2 = battle_addmastery(sd,target,wd.damage2,1);
@@ -1852,7 +1845,7 @@ static struct Damage battle_calc_weapon_attack(
 		}
 	}
 
-	if(skill_num != CR_GRANDCROSS && skill_num != NPC_GRANDDARKNESS && (wd.damage > 0 || wd.damage2 > 0) )
+	if(wd.damage > 0 || wd.damage2 > 0)
 	{
 		if(wd.damage2<1)
 			wd.damage=battle_calc_damage(src,target,wd.damage,wd.div_,skill_num,skill_lv,wd.flag);
@@ -2099,6 +2092,11 @@ struct Damage battle_calc_magic_attack(
 		case AL_RUWACH:
 			skillratio+= 45;
 			break;
+
+		case NPC_GRANDDARKNESS:
+		case CR_GRANDCROSS:
+			skillratio+= 40*skill_lv;
+			break;
 		case HW_NAPALMVULCAN:	// ナパームビート（分散計算込み）
 			skillratio+= skill_lv*10-30;
 			if(flag>0){
@@ -2180,6 +2178,17 @@ struct Damage battle_calc_magic_attack(
 			damage=1;
 	}
 
+	if(skill_num == CR_GRANDCROSS || skill_num == NPC_GRANDDARKNESS)
+	{	//Apply the physical part of the skill's damage. [Skotlex]
+		int damage2 = status_get_batk(bl);
+		damage2 += damage2*40*skill_lv/100;
+		damage2 = damage2*status_get_def(target)/100 - status_get_def2(target);
+		if (damage2 < 1) damage2 = 1;
+		damage+=damage2;
+		if(bl==target && bl->type == BL_MOB)
+			damage = 0;
+	}
+
 	if (sd && !no_cardfix) {
 		cardfix=100;
 		cardfix=cardfix*(100+sd->magic_addrace[t_race])/100;
@@ -2230,18 +2239,6 @@ struct Damage battle_calc_magic_attack(
 	if (!no_elefix)
 		damage=battle_attr_fix(bl, target, damage, ele, status_get_element(target) );		// 属 性修正
 
-	if(skill_num == CR_GRANDCROSS || skill_num == NPC_GRANDDARKNESS) {	// グランドクロス
-		struct Damage wd;
-		wd=battle_calc_weapon_attack(bl,target,skill_num,skill_lv,flag);
-		damage = (damage + wd.damage) * (100 + 40*skill_lv)/100;
-		if(battle_config.gx_dupele) damage=battle_attr_fix(bl, target, damage, ele, status_get_element(target) );	//属性2回かかる
-		if(bl==target){
-			if(bl->type == BL_MOB)
-				damage = 0;		//MOBが使う場合は反動無し
-			else
-				damage=damage/2;	//反動は半分
-		}
-	}
 
 	if(div_>1 && skill_num != WZ_VERMILION)
 		damage*=div_;
@@ -3522,8 +3519,6 @@ static const struct battle_data_short {
 	{ "mob_ghostring_fix",                 &battle_config.mob_ghostring_fix		},
 	{ "pc_attack_attr_none",               &battle_config.pc_attack_attr_none		},
 	{ "gx_allhit",                         &battle_config.gx_allhit				},
-	{ "gx_cardfix",                        &battle_config.gx_cardfix				},
-	{ "gx_dupele",                         &battle_config.gx_dupele				},
 	{ "gx_disptype",                       &battle_config.gx_disptype				},
 	{ "devotion_level_difference",         &battle_config.devotion_level_difference	},
 	{ "player_skill_partner_check",        &battle_config.player_skill_partner_check},
@@ -3875,8 +3870,6 @@ void battle_set_defaults() {
 	battle_config.mob_attack_attr_none = 0;
 	battle_config.mob_ghostring_fix = 1;
 	battle_config.gx_allhit = 1;
-	battle_config.gx_cardfix = 0;
-	battle_config.gx_dupele = 1;
 	battle_config.gx_disptype = 1;
 	battle_config.devotion_level_difference = 10;
 	battle_config.player_skill_partner_check = 1;

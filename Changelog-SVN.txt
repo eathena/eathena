@@ -2,6 +2,14 @@ Date	Added
 =======
 
 10/05
+	* Simplified the Grand Cross code. [Skotlex]
+	  It is now entirely a magical attack with extra damage of the form base
+	  atk * skill%  - armor def% - vit def. Note that weapon properties won't
+	  apply now as well as many of the offensive cards (those that do not apply
+	  to both magic and weapon attacks, that is), and the def penalty from
+	  having many mobs targeted on one is not applying neither (so the full
+	  def is being taken into consideration). Report any corrections further
+	  needed.
 	* Cleaned up, organized and improved somewhat the mob ai code. [Skotlex]
 	  (update and test at your own risk as I can't test it currently)
 	* Some corrections to the way the guild master's name is updated during a

@@ -294,8 +294,6 @@ extern struct Battle_Config {
 	unsigned short vit_penalty_count_lv;
 
 	unsigned short gx_allhit;
-	unsigned short gx_cardfix;
-	unsigned short gx_dupele;
 	unsigned short gx_disptype;
 	unsigned short devotion_level_difference;
 	unsigned short player_skill_partner_check;
