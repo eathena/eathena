@@ -2,6 +2,12 @@ Date	Added
 =======
 
 10/05
+	* Updated alchemist_summon_reward [Skotlex]
+	- Summons now never give exp, and they may drop items according to setting:
+	  0: Never drop items
+	  1: Only Marine spheres drop items (default)
+	  2: All summons drop items.
+	  (maybe a different battle option can be made to make summons give exp?)
 	* Simplified the Grand Cross code. [Skotlex]
 	  It is now entirely a magical attack with extra damage of the form base
 	  atk * skill%  - armor def% - vit def. Note that weapon properties won't

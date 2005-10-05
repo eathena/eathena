@@ -2333,7 +2333,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 			per *=2.;
 		if(md->master_id) {
 			if(((master = map_id2bl(md->master_id)) && status_get_mode(master)&0x20) ||	// check if its master is a boss (MVP's and minibosses)
-				(md->state.special_mob_ai >= 1 && battle_config.alchemist_summon_reward != 1)) { // for summoned creatures [Valaris]
+				md->state.special_mob_ai) { // for summoned creatures [Valaris]
 				per = 0;
 			}
 		} else {
@@ -2418,7 +2418,10 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 			struct delay_item_drop *ditem;
 
 			if ((master && status_get_mode(master) & 0x20) ||	// check if its master is a boss (MVP's and minibosses)
-				(md->state.special_mob_ai >= 1 && battle_config.alchemist_summon_reward != 1))	// Added [Valaris]
+				(md->state.special_mob_ai &&
+					(battle_config.alchemist_summon_reward == 0 || //Noone gives items
+					(md->class_ != 1142 && battle_config.alchemist_summon_reward == 1) //Non Marine spheres don't drop items
+				)))	// Added [Valaris]
 				break;	// End
 			//mapflag: noloot check [Lorky]
 			if (map[md->bl.m].flag.nomobloot) break;; 
