@@ -2860,20 +2860,28 @@ int battle_check_attackable(struct block_list *src, struct block_list *target)
 		if (pc_ischasewalk(sd))
 			return 0;
 	}
-	
-	if (target->type == BL_PC)
+
+	switch (target->type)
 	{
-		struct map_session_data *sd = (struct map_session_data*) target;
-		if (pc_isinvisible(sd))
-			return 0;
-		if (!(mode & 0x20)
-			&& (pc_ishiding(sd) || sd->state.gangsterparadise)
-			&& !(race == 4 || race == 6 || mode&0x100)
-			&& !sd->perfect_hiding
-		)
-			return 0;
+	case BL_PC:
+		{
+			struct map_session_data *sd = (struct map_session_data*) target;
+			if (pc_isinvisible(sd))
+				return 0;
+			if (!(mode & 0x20)
+				&& (pc_ishiding(sd) || sd->state.gangsterparadise)
+				&& !(race == 4 || race == 6 || mode&0x100)
+				&& !sd->perfect_hiding
+			)
+				return 0;
+		}
+		break;
+	case BL_PET:
+		return 0;
+	case BL_ITEM:	//Allow targetting of items to pick'em up (or in the case of mobs, to loot them).
+		//TODO: Would be nice if this could be used to judge whether the player can or not pick up the item it targets. [Skotlex]
+		return 1;
 	}
-	
 	return 1;
 }
 

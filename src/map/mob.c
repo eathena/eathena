@@ -1163,67 +1163,31 @@ int mob_target(struct mob_data *md,struct block_list *bl,int dist)
  */
 static int mob_ai_sub_hard_activesearch(struct block_list *bl,va_list ap)
 {
-	struct map_session_data *tsd=NULL;
-	struct mob_data *smd,*tmd=NULL;
-	int mode,race,dist,*pcc;
+	struct mob_data *md;
+	int dist,*pcc;
 
 	nullpo_retr(0, bl);
 	nullpo_retr(0, ap);
-	nullpo_retr(0, smd=va_arg(ap,struct mob_data *));
+	nullpo_retr(0, md=va_arg(ap,struct mob_data *));
 	nullpo_retr(0, pcc=va_arg(ap,int *));
 
-	if(bl->type==BL_PC)
-		tsd=(struct map_session_data *)bl;
-	else if(bl->type==BL_MOB)
-		tmd=(struct mob_data *)bl;
-	else
+	//If not an enemy, or you can't attack it, skip.
+	if(battle_check_target(&md->bl,bl,BCT_ENEMY)<=0 || !battle_check_attackable(&md->bl, bl))
 		return 0;
 
-	//敵味方判定
-	if(battle_check_target(&smd->bl,bl,BCT_ENEMY)<=0)
-		return 0;
-
-	if(!smd->mode)
-		mode=smd->db->mode;
-	else
-		mode=smd->mode;
-
-	// アクティブでターゲット射程内にいるなら、ロックする
-	if( mode&0x04 ){
-		race=smd->db->race;
-		//対象がPCの場合
-		if(tsd &&
-				!pc_isdead(tsd) &&
-				tsd->bl.m == smd->bl.m &&
-				tsd->invincible_timer == -1 &&
-				!pc_isinvisible(tsd) &&
-				(dist=distance(smd->bl.x,smd->bl.y,tsd->bl.x,tsd->bl.y))<9
-			)
+	switch (bl->type)
+	{
+	case BL_PC:
+	case BL_MOB:
+		if((dist=distance(md->bl.x,md->bl.y,bl->x,bl->y)) < md->db->range2
+			&& (md->db->range > 6 || mob_can_reach(md,bl,dist)) && rand()%1000<1000/(++(*pcc)))
 		{
-			if(mode&0x20 ||
-				(tsd->sc_data[SC_TRICKDEAD].timer == -1 && tsd->sc_data[SC_BASILICA].timer == -1 &&
-				((!pc_ishiding(tsd) && !tsd->state.gangsterparadise) || ((race == 4 || race == 6 || mode&0x100) && !tsd->perfect_hiding) ))){	// 妨害がないか判定
-				if((smd->db->range > 6 || mob_can_reach(smd,bl,12)) &&	// 到達可能性判定
-					rand()%1000<1000/(++(*pcc)) ){	// 範囲内PCで等確率にする
-					smd->target_id=tsd->bl.id;
-					smd->state.targettype = ATTACKABLE;
-					smd->min_chase=13;
-				}
-			}
+			md->target_id=bl->id;
+			md->state.targettype = ATTACKABLE;
+			md->min_chase= md->db->range3;
+			return 1;
 		}
-		//対象がMobの場合
-		else if(tmd &&
-				tmd->bl.m == smd->bl.m &&
-				(dist=distance(smd->bl.x,smd->bl.y,tmd->bl.x,tmd->bl.y))<9
-			)
-		{
-			if( mob_can_reach(smd,bl,12) && 		// 到達可能性判定
-				rand()%1000<1000/(++(*pcc)) ){	// 範囲内で等確率にする
-				smd->target_id=bl->id;
-				smd->state.targettype = ATTACKABLE;
-				smd->min_chase=13;
-			}
-		}
+		break;
 	}
 	return 0;
 }
@@ -1235,30 +1199,22 @@ static int mob_ai_sub_hard_activesearch(struct block_list *bl,va_list ap)
 static int mob_ai_sub_hard_lootsearch(struct block_list *bl,va_list ap)
 {
 	struct mob_data* md;
-	int mode,dist,*itc;
+	int dist,*itc;
 
 	nullpo_retr(0, bl);
 	nullpo_retr(0, ap);
 	nullpo_retr(0, md=va_arg(ap,struct mob_data *));
 	nullpo_retr(0, itc=va_arg(ap,int *));
 
-	if(!md->mode)
-		mode=md->db->mode;
-	else
-		mode=md->mode;
-
-
-	if( !md->target_id && mode&0x02){
-		if(!md->lootitem || (battle_config.monster_loot_type == 1 && md->lootitem_count >= LOOTITEM_SIZE) )
-			return 0;
-		if(bl->m == md->bl.m && (dist=distance(md->bl.x,md->bl.y,bl->x,bl->y))<9){
-			if( mob_can_reach(md,bl,12) && 		// Reachability judging
-				rand()%1000<1000/(++(*itc)) ){	// It is made a probability, such as within the limits PC.
-				md->target_id=bl->id;
-				md->state.targettype = NONE_ATTACKABLE;
-				md->min_chase=13;
-			}
-		}
+	if(!md->lootitem || (battle_config.monster_loot_type == 1 && md->lootitem_count >= LOOTITEM_SIZE))
+		return 0;
+	
+	if((dist=distance(md->bl.x,md->bl.y,bl->x,bl->y))<md->db->range2 &&
+		mob_can_reach(md,bl,dist) && rand()%1000<1000/(++(*itc)))
+	{	// It is made a probability, such as within the limits PC.
+		md->target_id=bl->id;
+		md->state.targettype = NONE_ATTACKABLE;
+		md->min_chase=md->db->range3;
 	}
 	return 0;
 }
@@ -1311,7 +1267,7 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 	if((bl=map_id2bl(md->master_id)) != NULL && bl->type == BL_MOB)
 		mmd=(struct mob_data *)bl;
 
-	if (!bl || (mmd && mmd->hp <= 0)) {	//主が死亡しているか見つからない
+	if (!bl || status_isdead(bl)) {	//主が死亡しているか見つからない
 		if(md->state.special_mob_ai>0)
 			mob_timer_delete(0, 0, md->bl.id, 0);
 		else
@@ -1340,7 +1296,7 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 
 		// Although there is the master, since it is somewhat far, it approaches.
 		if((!md->target_id || md->state.targettype == NONE_ATTACKABLE) && mob_can_move(md) &&
-			md->master_dist<15 && (md->walkpath.path_pos>=md->walkpath.path_len || md->walkpath.path_len==0)){
+			md->master_dist<md->db->range3 && (md->walkpath.path_pos>=md->walkpath.path_len || md->walkpath.path_len==0)){
 			int i=0,dx,dy,ret;
 			if(md->master_dist>AREA_SIZE/2) {
 				do {
@@ -1360,6 +1316,7 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 					i++;
 				} while(ret && i<10);
 			}
+			/* Else do nothing. Let mob_random_walk take care of this. [Skotlex]
 			else {
 				do {
 					dx = rand()%(AREA_SIZE/2 +1) - AREA_SIZE/2;
@@ -1373,7 +1330,7 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 					i++;
 				} while(ret && i<10);
 			}
-
+			*/
 			md->next_walktime=tick+500;
 		}
 	}
@@ -1468,21 +1425,19 @@ int mob_randomwalk(struct mob_data *md,int tick)
  */
 static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 {
-	struct mob_data *md, *tmd = NULL;
-	struct map_session_data *tsd = NULL;
-	struct block_list *tbl = NULL;
-	struct flooritem_data *fitem;
+	struct mob_data *md;
+	struct block_list *tbl = NULL, *abl = NULL;
 	unsigned int tick;
-	int i, dx, dy, ret, dist;
+	int i, dx, dy, dist;
 	int attack_type = 0;
-	int mode, race;
+	int mode;
 	int search_size = AREA_SIZE*2;
 	int blind_flag = 0;
 
 	nullpo_retr(0, bl);
 	nullpo_retr(0, ap);
-	nullpo_retr(0, md = (struct mob_data*)bl);
 
+	md = (struct mob_data*)bl;
 	tick = va_arg(ap, unsigned int);
 
 	if (DIFF_TICK(tick, md->last_thinktime) < MIN_MOBTHINKTIME)
@@ -1506,14 +1461,10 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 		mode = md->db->mode;
 	else
 		mode = md->mode;
-	race = md->db->race;	
-
-	if (!(mode & 0x80) && md->target_id > 0)
-		md->target_id = 0;
 
 	if (md->attacked_id && mode&0x08 && DIFF_TICK(md->last_linktime, gettick()) < MIN_MOBLINKTIME)
 	{	// Link monster/ if target is not dead [Skotlex]
-		struct block_list *abl = map_id2bl(md->attacked_id);
+		abl = map_id2bl(md->attacked_id);
 		unsigned int tick = gettick();
 		md->last_linktime = tick;
 		if (abl && !status_isdead(abl))
@@ -1521,24 +1472,34 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 				md->bl.x-13, md->bl.y-13, md->bl.x+13, md->bl.y+13,
 				BL_MOB, md->class_, abl, tick);
 		else
+		{
+			abl = NULL;
 			md->attacked_id = 0;
+		}
 	}
 
+	if (md->target_id) //Check validity of current target. [Skotlex]
+		tbl = map_id2bl(md->target_id);
+	if (!tbl || tbl->m != md->bl.m || !battle_check_attackable(&md->bl, tbl)) //Unlock current target.
+		mob_unlocktarget(md, tick);
+			
 	// It checks to see it was attacked first (if active, it is target change at 25% of probability).
-	if (mode > 0 && md->attacked_id > 0 && (!md->target_id || md->state.targettype == NONE_ATTACKABLE
-		|| (mode & 0x04 && rand() % 100 < 25))) {
-		struct block_list *abl = map_id2bl(md->attacked_id);
+	if (md->attacked_id && mode&0x80 && md->attacked_id != md->target_id &&
+		(!md->target_id || md->state.targettype == NONE_ATTACKABLE || (mode&0x04 && rand()%100 < 25)))
+	{
+		if (!abl) //Avoid seeking it if we had it from before (friend scan).
+			abl = map_id2bl(md->attacked_id);
 		if (abl){
 			if (md->bl.m != abl->m || abl->prev == NULL ||
 				(dist = distance(md->bl.x, md->bl.y, abl->x, abl->y)) >= 32 ||
 				battle_check_target(bl, abl, BCT_ENEMY) <= 0 ||
 				!battle_check_attackable(bl, abl) ||
-				!mob_can_reach(md, abl, distance(md->bl.x, md->bl.y, abl->x, abl->y))) //added
-			{
+				!mob_can_reach(md, abl, dist))
+			{	//Can't attack back
 				md->attacked_id = 0;
 				if (md->attacked_count++ > 3) {
 					if (mobskill_use(md, tick, MSC_RUDEATTACKED) == 0 &&
-						mode & 1 && mob_can_move(md))
+						mode&1 && mob_can_move(md))
 					{
 						int dist = rand() % 10 + 1;//後退する距離
 						int dir = map_calc_dir(abl, bl->x, bl->y);
@@ -1548,27 +1509,28 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 					}
 					md->attacked_count = 0;
 				}
-			} else if (blind_flag && dist > 2 && DIFF_TICK(tick,md->next_walktime) < 0) {
+			} else if (blind_flag && dist > 2 && DIFF_TICK(tick,md->next_walktime) < 0) { //Blinded, but can reach 
+				//FIXME: Shouldn't the mob continue attacking? It may have a target within range... [Skotlex]
 				md->target_id = 0;
 				md->attacked_id = 0;
 				md->state.targettype = NONE_ATTACKABLE;
-				if (mode & 1 && mob_can_move(md)) {
+				if (mode&1 && mob_can_move(md)) {	// why is it moving to the target when the mob can't see the player? o.o
 					dx = abl->x - md->bl.x;
 					dy = abl->y - md->bl.y;
 					md->next_walktime = tick + 1000;
-					ret = mob_walktoxy(md, md->bl.x+dx, md->bl.y+dy, 0);
-				}				
-			} else {
-				//距離が遠い場合はタゲを変更しない
-
-				if (!md->target_id || (distance(md->bl.x, md->bl.y, abl->x, abl->y) < 3)) {
+					mob_walktoxy(md, md->bl.x+dx, md->bl.y+dy, 0);
+				}
+			} else { //Attackable
+				if (!tbl || dist < 3 || distance(md->bl.x, md->bl.y, tbl->x, tbl->y) < dist)
+				{	//Change if the new target is closer than the actual one. [Skotlex]
 					md->target_id = md->attacked_id; // set target
 					md->state.targettype = ATTACKABLE;
 					attack_type = 1;
 					md->attacked_id = md->attacked_count = 0;
-					md->min_chase = dist + 13;
+					md->min_chase = dist + md->db->range3;
 					if (md->min_chase > 26)
 						md->min_chase = 26;
+					tbl = abl; //Set the new target
 				}
 			}
 		}
@@ -1578,11 +1540,11 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 	if (md->master_id > 0)
 		mob_ai_sub_hard_slavemob(md, tick);
 
-	// アクティヴモンスターの策敵 (?? of a bitter taste TIVU monster)
-	if ((!md->target_id || md->state.targettype == NONE_ATTACKABLE) && mode & 0x04 &&
+	// Scan area for targets (aggressive mob)
+	if ((!md->target_id || md->state.targettype == NONE_ATTACKABLE) && mode&0x04 &&
 		battle_config.monster_active_enable) {
 		i = 0;
-		search_size = (blind_flag) ? 3 : AREA_SIZE*2;
+		search_size = (blind_flag) ? 3 : md->db->range2;
 		if (md->state.special_mob_ai)
 			map_foreachinarea (mob_ai_sub_hard_activesearch, md->bl.m,
 					md->bl.x-search_size, md->bl.y-search_size,
@@ -1594,175 +1556,159 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 					BL_PC, md, &i);
 	}
 
-	// The item search of a route monster
-	if (!md->target_id && mode & 0x02){
+	// Scan area for items to loot, avoid trying to loot of the mob is full and can't consume the items.
+	if (!md->target_id && mode&0x02 && md->lootitem && (md->lootitem_count < LOOTITEM_SIZE || battle_config.monster_loot_type != 1))
+	{
 		i = 0;
-		search_size = (blind_flag) ? 3 : AREA_SIZE*2;
+		search_size = (blind_flag) ? 3 : md->db->range2;
 		map_foreachinarea (mob_ai_sub_hard_lootsearch, md->bl.m,
 					md->bl.x-search_size, md->bl.y-search_size,
 					md->bl.x+search_size, md->bl.y+search_size,
 					BL_ITEM, md, &i);
 	}
 
-	// It will attack, if the candidate for an attack is.
-	if (md->target_id > 0) {
-		if ((tbl = map_id2bl(md->target_id))) {
-			if (tbl->type == BL_PC)
-				tsd = (struct map_session_data *)tbl;
-			else if(tbl->type == BL_MOB)
-				tmd = (struct mob_data *)tbl;
-			if (tsd || tmd) {
-				if (tbl->m != md->bl.m || tbl->prev == NULL ||
-					(dist = distance(md->bl.x, md->bl.y, tbl->x, tbl->y)) >= search_size ||
-					(status_isdead(tbl)) //Unlock when target died. [Skotlex]
-					)
-				{
-					mob_unlocktarget(md,tick);	// 別マップか、視界外
-				} else if (blind_flag && dist > 2 && DIFF_TICK(tick,md->next_walktime) < 0) {
-					md->target_id = 0;
-					md->attacked_id = 0;
-					md->state.targettype = NONE_ATTACKABLE;
-					if (!(mode & 1) || !mob_can_move(md))
-						return 0;
-					dx = tbl->x - md->bl.x;
-					dy = tbl->y - md->bl.y;
-					md->next_walktime = tick + 1000;
-					ret = mob_walktoxy(md, md->bl.x+dx, md->bl.y+dy, 0);
-				} else if (tsd && !(mode & 0x20) &&
-					(tsd->sc_data[SC_TRICKDEAD].timer != -1 ||
-					tsd->sc_data[SC_BASILICA].timer != -1 ||
-					((pc_ishiding(tsd) || tsd->state.gangsterparadise) &&
-					!((race == 4 || race == 6 || mode&0x100) && !tsd->perfect_hiding))))
-				{
-					mob_unlocktarget(md,tick);	// スキルなどによる策敵妨害
-				}
-				else if (!battle_check_range (&md->bl, tbl, md->db->range)) {
-					// 攻撃範囲外なので移動
-					if (!(mode & 1)){	// 移動しないモード
-						mob_unlocktarget(md,tick);
-						return 0;
-					}
-					if (!mob_can_move(md))	// 動けない状態にある
-						return 0;
-					md->state.skillstate = MSS_CHASE;	// 突撃時スキル
-					mobskill_use (md, tick, -1);
-					if (md->timer != -1 && md->state.state != MS_ATTACK &&
-						(DIFF_TICK (md->next_walktime, tick) < 0 ||
-						distance(md->to_x, md->to_y, tbl->x, tbl->y) < 2)) {
-						return 0; // 既に移動中
-					}
-					search_size = (blind_flag) ? 3 :
-						((md->min_chase > 13) ? md->min_chase : 13);
-					if (!mob_can_reach(md, tbl, search_size))
-						mob_unlocktarget(md,tick);	// 移動できないのでタゲ解除（IWとか？）
-					else {
-						// 追跡
-						md->next_walktime = tick + 500;
-						i = 0;
-						do {
-							if (i == 0){	// 最初はAEGISと同じ方法で検索
-								dx = tbl->x - md->bl.x;
-								dy = tbl->y - md->bl.y;
-								if (dx < 0) dx++;
-								else if (dx > 0) dx--;
-								if (dy < 0) dy++;
-								else if (dy > 0) dy--;
-							} else {	// だめならAthena式(ランダム)
-								dx = tbl->x - md->bl.x + rand()%3 - 1;
-								dy = tbl->y - md->bl.y + rand()%3 - 1;
-							}
-							ret = mob_walktoxy(md, md->bl.x + dx, md->bl.y + dy, 0);
-							i++;
-						} while (ret && i < 5);
-
-						if (ret) { // 移動不可能な所からの攻撃なら2歩下る
-							if (dx < 0) dx = 2;
-							else if (dx > 0) dx = -2;
-							if (dy < 0) dy = 2;
-							else if (dy > 0) dy = -2;
-							mob_walktoxy (md, md->bl.x+dx, md->bl.y+dy, 0);
-						}
-					}
-				} else { // 攻撃射程範囲内
-					md->state.skillstate = MSS_ATTACK;
-					if (md->state.state == MS_WALK)
-						mob_stop_walking (md, 1);	// 歩行中なら停止
-					if (md->state.state == MS_ATTACK)
-						return 0; // 既に攻撃中
-					mob_changestate(md, MS_ATTACK, attack_type);
-				}
+	if (tbl)
+	{	//Target exists, attack or loot as applicable.
+		if (tbl->type != BL_ITEM)
+		{	//Attempt to attack.
+			//At this point we know the target is attackable, we just gotta check if the range matches.
+			if (blind_flag && DIFF_TICK(tick,md->next_walktime) < 0 && distance(md->bl.x, md->bl.y, tbl->x, tbl->y) > 2)
+			{	//Run towards the enemy when out of range?
+				md->target_id = 0;
+				md->attacked_id = 0;
+				md->state.targettype = NONE_ATTACKABLE;
+				if (!(mode & 1) || !mob_can_move(md))
+					return 0;
+				dx = tbl->x - md->bl.x;
+				dy = tbl->y - md->bl.y;
+				md->next_walktime = tick + 1000;
+				mob_walktoxy(md, md->bl.x+dx, md->bl.y+dy, 0);
 				return 0;
-			} else {	// ルートモンスター処理
-				if (tbl == NULL || tbl->type != BL_ITEM || tbl->m != md->bl.m ||
-					(dist = distance(md->bl.x, md->bl.y, tbl->x, tbl->y)) >= md->min_chase || !md->lootitem ||
-					(blind_flag && dist >= 4)){
-					 // 遠すぎるかアイテムがなくなった
-					mob_unlocktarget (md, tick);
-					if (md->state.state == MS_WALK)
-						mob_stop_walking(md,1);	// 歩行中なら停止
-				} else if (dist) {
-					if (!(mode & 1)) {	// 移動しないモード
-						mob_unlocktarget(md,tick);
-						return 0;
-					}
-					if (!mob_can_move(md))	// 動けない状態にある
-						return 0;
-					md->state.skillstate = MSS_LOOT;	// ルート時スキル使用
-					mobskill_use(md, tick, -1);
-					if (md->timer != -1 && md->state.state != MS_ATTACK &&
-						(DIFF_TICK(md->next_walktime,tick) < 0 ||
-						distance(md->to_x, md->to_y, tbl->x, tbl->y) <= 0)) {
-						return 0; // 既に移動中
-					}
-					md->next_walktime = tick + 500;
-					dx = tbl->x - md->bl.x;
-					dy = tbl->y - md->bl.y;
-					ret = mob_walktoxy(md, md->bl.x+dx, md->bl.y+dy, 0);
-					if (ret)
-						mob_unlocktarget(md, tick);// 移動できないのでタゲ解除（IWとか？）
-				} else {	// アイテムまでたどり着いた
-					if (md->state.state == MS_ATTACK)
-						return 0; // 攻撃中
-					if (md->state.state == MS_WALK)
-						mob_stop_walking(md,1);	// 歩行中なら停止
-					fitem = (struct flooritem_data *)tbl;
-					if (md->lootitem_count < LOOTITEM_SIZE) {
-						memcpy (&md->lootitem[md->lootitem_count++], &fitem->item_data, sizeof(md->lootitem[0]));
-						//Logs items, taken by (L)ooter Mobs [Lupus]
-						if(log_config.pick > 0) {
-							log_pick((struct map_session_data*)md, "L", md->class_, md->lootitem[md->lootitem_count-1].nameid, md->lootitem[md->lootitem_count-1].amount, &md->lootitem[md->lootitem_count-1]);
-						}
-						//Logs
-					} else if (battle_config.monster_loot_type == 1 && md->lootitem_count >= LOOTITEM_SIZE) {
-						mob_unlocktarget(md,tick);
-						return 0;
-					} else {
-						if (md->lootitem[0].card[0] == (short)0xff00)
-							intif_delete_petdata( MakeDWord(md->lootitem[0].card[1],md->lootitem[0].card[2]) );
-						for (i = 0; i < LOOTITEM_SIZE - 1; i++)
-							memcpy (&md->lootitem[i], &md->lootitem[i+1], sizeof(md->lootitem[0]));
-						memcpy (&md->lootitem[LOOTITEM_SIZE-1], &fitem->item_data, sizeof(md->lootitem[0]));
-					}
-					map_clearflooritem (tbl->id);
-					mob_unlocktarget (md,tick);
+			}
+			if (!battle_check_range (&md->bl, tbl, md->db->range))
+			{	//Out of range...
+				if (!(mode & 1))
+				{	//Can't chase.
+					mob_unlocktarget(md,tick);
+					return 0;
+				}
+				if (!mob_can_move(md)) //Wait until you can move?
+					return 0;
+				//Follow up
+				md->state.skillstate = MSS_CHASE;
+				mobskill_use (md, tick, -1);
+				if (md->timer != -1 && md->state.state != MS_ATTACK &&
+					(DIFF_TICK (md->next_walktime, tick) < 0 ||
+					distance(md->to_x, md->to_y, tbl->x, tbl->y) < 2)) {
+					return 0; //No need to follow, already doing it?
+				}
+				search_size = (blind_flag) ? 3 : ((md->min_chase > md->db->range3) ? md->min_chase : md->db->range3);
+				if (!mob_can_reach(md, tbl, search_size))
+				{	//Can't reach
+					mob_unlocktarget(md,tick);
+					return 0;
+				}
+				//Target reachable. Locate suitable spot to move to.
+				md->next_walktime = tick + 500;
+				i = 0;
+				dx = tbl->x - md->bl.x;
+				dy = tbl->y - md->bl.y;
+				if (dx < 0) dx++;
+				else if (dx > 0) dx--;
+				if (dy < 0) dy++;
+				else if (dy > 0) dy--;
+				while (i < 5 && mob_walktoxy(md, md->bl.x + dx, md->bl.y + dy, 0))
+				{	//Attempt to chase to nearby blocks
+					dx = tbl->x - md->bl.x + rand()%3 - 1;
+					dy = tbl->y - md->bl.y + rand()%3 - 1;
+					i++;
+				}
+				if (i==5)
+				{	//Failed? Try going away from the target before retrying.
+					if (dx < 0) dx = 2;
+					else if (dx > 0) dx = -2;
+					if (dy < 0) dy = 2;
+					else if (dy > 0) dy = -2;
+					mob_walktoxy (md, md->bl.x+dx, md->bl.y+dy, 0);
 				}
 				return 0;
 			}
-		} else {
-			mob_unlocktarget(md,tick);
+			//Target within range, engage
+			md->state.skillstate = MSS_ATTACK;
 			if (md->state.state == MS_WALK)
-				mob_stop_walking(md,4); //<- what is this FOUR for? It does nothing.... [Skotlex]
+				mob_stop_walking (md, 1);
+			if (md->state.state == MS_ATTACK)
+				return 0; //Ah, we are already attacking.
+			mob_changestate(md, MS_ATTACK, attack_type);
+			return 0;
+		} else {	//Target is BL_ITEM, attempt loot.
+			struct flooritem_data *fitem;
+			
+			if ((dist = distance(md->bl.x, md->bl.y, tbl->x, tbl->y)) >= md->min_chase || (blind_flag && dist >= 4))
+			{	//Can't loot...
+				mob_unlocktarget (md, tick);
+				if (md->state.state == MS_WALK)
+					mob_stop_walking(md,1);
+				return 0;
+			}
+			if (dist)
+			{	//Still not within loot range.
+				if (!(mode & 1))
+				{	//A looter that can't move? Real smart.
+					mob_unlocktarget(md,tick);
+					return 0;
+				}
+				if (!mob_can_move(md))	// 動けない状態にある
+					return 0;
+				md->state.skillstate = MSS_LOOT;	// ルート時スキル使用
+				mobskill_use(md, tick, -1);
+				if (md->timer != -1 && md->state.state != MS_ATTACK &&
+					(DIFF_TICK(md->next_walktime,tick) < 0 ||
+					distance(md->to_x, md->to_y, tbl->x, tbl->y) <= 0))
+				{	//Already on the way to looting.
+					return 0;
+				}
+				md->next_walktime = tick + 500;
+				dx = tbl->x - md->bl.x;
+				dy = tbl->y - md->bl.y;
+				if (mob_walktoxy(md, md->bl.x+dx, md->bl.y+dy, 0))
+					mob_unlocktarget(md, tick); //Can't loot...
+				return 0;
+			}
+			//Within looting range.
+			if (md->state.state == MS_ATTACK)
+				return 0; //Busy attacking?
+			if (md->state.state == MS_WALK)
+				mob_stop_walking(md,1);
+
+			fitem = (struct flooritem_data *)tbl;
+			if (md->lootitem_count < LOOTITEM_SIZE) {
+				memcpy (&md->lootitem[md->lootitem_count++], &fitem->item_data, sizeof(md->lootitem[0]));
+				if(log_config.pick > 0)	//Logs items, taken by (L)ooter Mobs [Lupus]
+					log_pick((struct map_session_data*)md, "L", md->class_, md->lootitem[md->lootitem_count-1].nameid, md->lootitem[md->lootitem_count-1].amount, &md->lootitem[md->lootitem_count-1]);
+			} else if (battle_config.monster_loot_type == 1) { //Can't loot, stuffed!
+				mob_unlocktarget(md,tick);
+				return 0;
+			} else {	//Destroy first looted item...
+				if (md->lootitem[0].card[0] == (short)0xff00)
+					intif_delete_petdata( MakeDWord(md->lootitem[0].card[1],md->lootitem[0].card[2]) );
+				for (i = 0; i < LOOTITEM_SIZE - 1; i++)
+					memcpy (&md->lootitem[i], &md->lootitem[i+1], sizeof(md->lootitem[0]));
+				memcpy (&md->lootitem[LOOTITEM_SIZE-1], &fitem->item_data, sizeof(md->lootitem[0]));
+			}
+			//Clear item.
+			map_clearflooritem (tbl->id);
+			mob_unlocktarget (md,tick);
 			return 0;
 		}
 	}
 
-	// It is skill use at the time of /standby at the time of a walk. 
+	// When there's no target, it is idling.
 	if (mobskill_use(md, tick, -1))
 		return 0;
 
-	// 歩行処理
-	if (mode & 1 && mob_can_move(md) &&	// 移動可能MOB&動ける状態にある
-		(md->master_id == 0 || /*md->state.special_mob_ai ||*/ md->master_dist > 10))	//取り巻きMOBじゃない
+	// Nothing else to do... except random walking.
+	if (mode&1 && mob_can_move(md))
 	{
 		if (DIFF_TICK(md->next_walktime, tick) > 7000 &&
 			(md->walkpath.path_len == 0 || md->walkpath.path_pos >= md->walkpath.path_len))

@@ -8029,13 +8029,9 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 	case GD_RESTORE:
 	case GD_EMERGENCYCALL:
 		{
-			struct guild *g;
-			if (!sd->status.guild_id)
+			if (!sd->status.guild_id || !sd->state.gmaster_flag)
 				return 0;
-			if ((g = guild_search(sd->status.guild_id)) == NULL)
-				return 0;
-			if (strcmp(sd->status.name,g->master))
-				return 0;
+			g = (struct guild*) sd->state.gmaster_flag;
 			skill_lv = guild_checkskill(g, skill_num);
 			if (skill_lv <= 0) return 0;
 		}
@@ -8216,13 +8212,14 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 			}
 		}
 		break;
-
+/* This shouldn't be needed anymore o.O [Skotlex]
 	case GD_BATTLEORDER:
 	case GD_REGENERATION:
 	case GD_RESTORE:
 	case GD_EMERGENCYCALL:
 		casttime = 1000; // temporary [Celest]
 		break;
+*/
 	}
 
 	//メモライズ?態ならキャストタイムが1/3
