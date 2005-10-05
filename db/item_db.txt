@@ -1155,7 +1155,7 @@
 4014,Roda_Frog_Card,Roda Frog Card,6,,10,10,,,,,,,16,,,,,{},{ bonus bMaxHP,400; bonus bMaxSP,50; }
 4015,Condor_Card,Condor Card,6,,10,10,,,,,,,4,,,,,{},{ bonus bFlee,10; }
 4016,Thief_Bug_Card,Thief Bug Card,6,,10,10,,,,,,,16,,,,,{},{ bonus bAgi,1; }
-4017,Savage_Babe_Card,Savage Babe Card,6,,10,10,,,,,,,2,,,,,{},{ bonus2 bAddEff,Eff_Stan,500; }
+4017,Savage_Babe_Card,Savage Bebe Card,6,,10,10,,,,,,,2,,,,,{},{ bonus2 bAddEff,Eff_Stan,500; }
 4018,Andre_Larva_Card,Andre Larva Card,6,,10,10,,,,,,,2,,,,,{},{ bonus bInt,1; bonus bMaxSP,10; }
 4019,Hornet_Card,Hornet Card,6,,10,10,,,,,,,2,,,,,{},{ bonus bStr,1; bonus bBaseAtk,3; }
 4020,Farmiliar_Card,Farmiliar Card,6,,10,10,,,,,,,2,,,,,{},{ bonus2 bAddEff,Eff_Blind,500; bonus bBaseAtk,5; }

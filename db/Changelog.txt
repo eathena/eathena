@@ -36,6 +36,7 @@
 	* Updated #2415,Bunny_Slippers. Thanx to noobs [Lupus]
 10/04
 	* Fixed some items with wrong weight/ stats. Thanks to mrmagoo [Nexon]
+	* Changed Savage Babe Card and Savage Babe to Savage Bebe Card and Savage Bebe. [Nexon]
 	* Removed the flags from Spider Web, now it can be stacked and placed
 	  underneath characters. [Skotlex]
 10/03
