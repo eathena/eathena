@@ -4635,7 +4635,7 @@ struct Damage  battle_calc_misc_attack(
 		aflag |= (flag&~BF_RANGEMASK)|BF_LONG;
 		break;
 	case PA_SACRIFICE:
-		ele = status_get_attack_element(bl);
+//		ele = status_get_attack_element(bl);
 		self_damage = status_get_max_hp(bl)/10;
 		self_damage -= self_damage/10;
 		if(status_get_mexp(target))
@@ -4796,18 +4796,17 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 		}
 		else if (flag & AS_POISONREACT && sc_data && sc_data[SC_POISONREACT].timer != -1)
 			wd = battle_calc_weapon_attack(src, target, AS_POISONREACT, sc_data[SC_POISONREACT].val1, 0);
-		else
-			wd = battle_calc_weapon_attack(src,target,0,0,0);
-
-		if (sc_data && sc_data[SC_SACRIFICE].timer != -1)
+		else if (sc_data && sc_data[SC_SACRIFICE].timer != -1)
 		{
+			wd = battle_calc_misc_attack(src, target, PA_SACRIFICE, sc_data[SC_SACRIFICE].val1, 0);
 			sc_data[SC_SACRIFICE].val2--;			
 			if(sc_data[SC_SACRIFICE].val2 < 1)
 				status_change_end(src, SC_SACRIFICE, -1);
-			skill_castend_damage_id(src, target, PA_SACRIFICE, sc_data[SC_SACRIFICE].val1, tick, flag);
-			return 0;	//skip normal weapon damage
-		}
-	
+		}			
+		else
+			wd = battle_calc_weapon_attack(src,target,0,0,0);
+
+
 		if ((damage = wd.damage + wd.damage2) > 0 && src != target) {
 			if(battle_config.pet_attack_support && sd && sd->status.pet_id > 0 && sd->pd && sd->petDB)
 				pet_target_check(sd,target,0);

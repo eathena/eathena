@@ -137,7 +137,7 @@ L_EXIT:
 
 //-------------------------------------------------------------------------------------------------
 //Well-Baked Toast ID 5107
-lighthalzen.gat,224,116,4	script	Juneau Cho	862,{	//!!! WRONG name of NPC
+lighthalzen.gat,224,116,4	script	Juneau Cho	862,{
 	mes "[Juneau Cho]";
 	mes "Do you want ^FF3300 Well-Baked Toast ^000000?";
 	next;
