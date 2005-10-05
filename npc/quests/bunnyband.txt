@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= eAthena Dev Team
 //===== Current Version: ===================================== 
-//= v1.2
+//= v1.3
 //===== Compatible With: ===================================== 
 //= eAthena 7.15 +
 //===== Description: ========================================= 
@@ -11,6 +11,7 @@
 //===== Additional Comments: ================================= 
 //= v1.1 using duplicate command
 //= 1.2 Fixed NPC location, removed NPC dupes [Lupus]
+//= 1.3 Fixed exploit on giving the band, and taking items away. [Nexon]
 //============================================================ 
 
 
@@ -60,18 +61,14 @@ alberta.gat,23,232,1	script	Kafra Corp. Rep.#1::KCRep	83,{
 
 	L_Check:
 		if(countitem(949)<100 || countitem(706)<1 || countitem(722)<1 || countitem(2213)<1) goto sL_NoItems;
-
 		mes "Wow! Well-done, well-done! You've got every single item! I will make the Bunny Band for you right away...";
 		emotion 21;
 		next;
-		mes "~ A few minutes later ~";
+		mes "Tah dah!!! Here is your ^FF0000Bunny Band^000000... Please take it!";
 		delitem 949,100;
 		delitem 706,1;
 		delitem 722,1;
 		delitem 2213,1;
-		next;
-		mes "[Kafra Corp. Rep.]";
-		mes "Tah dah!!! Here is your ^FF0000Bunny Band^000000... Please take it!";
 		getitem 2214,1;
 		next;
 		mes "[Kafra Corp. Rep.]";
