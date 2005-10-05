@@ -8207,7 +8207,7 @@ void clif_parse_WalkToXY(int fd, struct map_session_data *sd) {
 	     sd->sc_data[SC_TRICKDEAD].timer !=-1 || //死んだふり
 	     sd->sc_data[SC_BLADESTOP].timer !=-1 || //白刃取り
 	     sd->sc_data[SC_SPIDERWEB].timer !=-1 || //スパイダーウェッブ
-	     (sd->sc_data[SC_DANCING].timer !=-1 && sd->sc_data[SC_DANCING].val4) || //合奏スキル演奏中は動けない
+	     (sd->sc_data[SC_DANCING].timer !=-1 && sd->sc_data[SC_DANCING].val4 && sd->sc_data[SC_LONGING].timer == -1) ||
 		 (sd->sc_data[SC_GOSPEL].timer !=-1 && sd->sc_data[SC_GOSPEL].val4 == BCT_SELF) ||	// cannot move while gospel is in effect
 		 sd->sc_data[SC_CONFUSION].timer !=-1)
 		return;
@@ -8243,16 +8243,6 @@ void clif_parse_QuitGame(int fd, struct map_session_data *sd) {
 
 	WFIFOW(fd,0) = 0x18b;
 
-	/* sc_data saving makes this check unnecessary. [Skotlex]
-	if ((!pc_isdead(sd) && (sd->opt1 || (sd->opt2 && !(night_flag == 1 && sd->opt2 == STATE_BLIND)))) ||
-	    sd->skilltimer != -1 ||
-	    (DIFF_TICK(tick, sd->canact_tick) < 0) ||
-	    (sd->sc_data && sd->sc_data[SC_DANCING].timer!=-1 && sd->sc_data[SC_DANCING].val4 && (sg=(struct skill_unit_group *)sd->sc_data[SC_DANCING].val2) && sg->src_id == sd->bl.id)) {
-		WFIFOW(fd,2)=1;
-		WFIFOSET(fd,packet_len_table[0x18b]);
-		return;
-	}
-	*/
 	/*	Rovert's prevent logout option fixed [Valaris]	*/
 	if (!battle_config.prevent_logout ||
 		(gettick() - sd->canlog_tick) >= 10000 ||
@@ -8617,11 +8607,11 @@ void clif_parse_ActionRequest(int fd, struct map_session_data *sd) {
 		return;
 	}
 	if (sd->npc_id != 0 || sd->opt1 > 0 || sd->status.option & 2 || sd->state.storage_flag ||
-	    (sd->sc_data &&
-	     (sd->sc_data[SC_TRICKDEAD].timer != -1 ||
-		  sd->sc_data[SC_AUTOCOUNTER].timer != -1 || //オートカウンター
-	      sd->sc_data[SC_BLADESTOP].timer != -1 || //白刃取り
-	      sd->sc_data[SC_DANCING].timer != -1))) //ダンス中
+		(sd->sc_data &&
+			(sd->sc_data[SC_TRICKDEAD].timer != -1 ||
+			sd->sc_data[SC_AUTOCOUNTER].timer != -1 || //オートカウンター
+			sd->sc_data[SC_BLADESTOP].timer != -1 || //白刃取り
+			sd->sc_data[SC_DANCING].timer != -1))) //ダンス中
 		return;
 
 	tick = gettick();
@@ -8652,8 +8642,6 @@ void clif_parse_ActionRequest(int fd, struct map_session_data *sd) {
 		}
 		if (sd->invincible_timer != -1)
 			pc_delinvincibletimer(sd);
-//		if (sd->attacktarget > 0) // [Valaris] <- removed because I am gonna try a new system... [Skotlex]
-//			sd->attacktarget = 0;
 		pc_attack(sd, target_id, action_type != 0);
 		break;
 	case 0x02: // sitdown

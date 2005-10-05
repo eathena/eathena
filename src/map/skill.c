@@ -5176,8 +5176,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case CG_LONGINGFREEDOM:
 		{
 			struct status_change *sc_data = status_get_sc_data(src);
-			if (sc_data && sc_data[SC_LONGING].timer == -1 && sc_data[SC_DANCING].timer != -1 &&
-				skill_get_unit_flag(sc_data[SC_DANCING].val1)&UF_ENSEMBLE) {
+			if (sc_data && sc_data[SC_LONGING].timer == -1 && sc_data[SC_DANCING].timer != -1 && sc_data[SC_DANCING].val4)
+			{
 				clif_skill_nodamage(src,bl,skillid,skilllv,1);
 				status_change_start(src,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
 			}
@@ -7989,12 +7989,9 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 			else return 0;
 		}
 		/* ‰‰‘t/ƒ_ƒ“ƒX’† */
-		if (sc_data[SC_DANCING].timer != -1) {
-//			if (sc_data[SC_DANCING].val4 && skill_num != BD_ADAPTATION) //Viccious reported that this restriction does not applies. [Skotlex]
-//				return 0;
-			if (skill_num != BD_ADAPTATION && skill_num != BA_MUSICALSTRIKE && skill_num != DC_THROWARROW)
+		if (sc_data[SC_DANCING].timer != -1 &&
+			(skill_num != BD_ADAPTATION && skill_num != BA_MUSICALSTRIKE && skill_num != DC_THROWARROW && skill_num != CG_LONGINGFREEDOM))
 				return 0;
-		}
 		if (sc_data[SC_GOSPEL].timer != -1 && sc_data[SC_GOSPEL].val4 == BCT_SELF && skill_num != PA_GOSPEL)
 			return 0;
 	}
