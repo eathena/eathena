@@ -615,12 +615,13 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		clif_spawnpc(sd);
 	}
 
+	/* Unnecessary overhead, moved to where the sd logs on. [Skotlex]
 	if (sd->status.guild_id > 0) {
 		struct guild *g = guild_search(sd->status.guild_id);
 		if (g && strcmp(sd->status.name,g->master)==0)
 			sd->state.gmaster_flag = (int)g;
 	}
-
+	*/
 	for(i=0;i<10;i++) {
 		current_equip_item_index = index = sd->equip_index[i]; //We pass INDEX to current_equip_item_index - for EQUIP_SCRIPT (new cards solution) [Lupus]
 		if(index < 0)

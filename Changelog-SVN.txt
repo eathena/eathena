@@ -1,6 +1,11 @@
 Date	Added
 =======
 
+10/05
+	* Some fixes to the way the guildmaster flag is being set and checked. [Skotlex]
+	* Made the skilllv be 1 if the client sends less than that (this is why
+	  active guild skills were not working. For some reason the client was
+	  sending a request to do the skill at level 0!) [Skotlex]
 10/04
 	* Likely fixed Aeterna + Soul Breaker/Destroyer. [Skotlex]
 	* Some cleaning of the mob ai. May help with some of the current exploits.

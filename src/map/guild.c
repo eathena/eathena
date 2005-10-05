@@ -498,6 +498,8 @@ int guild_recv_info(struct guild *sg)
 			for (i = 0; i < 4; i++)
 				if (guild_checkskill(sg, skill_num[i]))
 					pc_blockskill_start(sd, skill_num[i], 300000);
+			//Also set the guild master flag.
+			sd->state.gmaster_flag = (int) g;
 		}
 	}else
 		before=*g;
@@ -1491,11 +1493,16 @@ int guild_gm_changed(int guild_id, int pos)
 	memcpy(g->master, g->member[0].name, NAME_LENGTH);
 
 	if (g->member[pos].sd && g->member[pos].sd->fd)
+	{
 		clif_displaymessage(g->member[pos].sd->fd, "You no longer are the Guild Master.");
+		g->member[pos].sd->state.gmaster_flag = 0;
+	}
 	
 	if (g->member[0].sd && g->member[0].sd->fd)
+	{
 		clif_displaymessage(g->member[0].sd->fd, "You have become the Guild Master!");
-		
+		g->member[0].sd->state.gmaster_flag = (int) g;
+	}	
 	return 1;
 }
 

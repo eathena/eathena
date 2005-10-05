@@ -753,6 +753,8 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 			for (i = 0; i < 4; i++)
 				if (guild_checkskill(g, skill_num[i]))
 					pc_blockskill_start(sd, skill_num[i], 300000);
+			//Also set the Guild Master flag.
+			sd->state.gmaster_flag = (int) g;
 		}
 	}
 
@@ -3388,7 +3390,7 @@ int pc_walktoxy (struct map_session_data *sd, int x, int y)
 		pc_walktoxy_sub(sd);
 	}
 
-	if (sd->state.gmaster_flag > 0) {
+	if (sd->state.gmaster_flag) {
 		struct guild *g = (struct guild *)sd->state.gmaster_flag;
 		if (g) {
 			int skill, guildflag = 0;
