@@ -3601,6 +3601,7 @@ static const struct battle_data_short {
 	{ "mob_clear_delay",                   &battle_config.mob_clear_delay}, // [Valaris]
 	{ "character_size",						&battle_config.character_size}, // [Lupus]
 	{ "mob_max_skilllvl",				&battle_config.mob_max_skilllvl}, // [Lupus]
+	{ "retaliate_to_master",			&battle_config.retaliate_to_master}, // [Skotlex]
 	{ "rare_drop_announce",				&battle_config.rare_drop_announce}, // [Lupus]
 	{ "firewall_hits_on_undead",			&battle_config.firewall_hits_on_undead}, // [Skotlex]
 	{ "title_lvl1",				&battle_config.title_lvl1}, // [Lupus]
@@ -3962,6 +3963,7 @@ void battle_set_defaults() {
 	battle_config.mob_clear_delay = 0;
 	battle_config.character_size = 3; //3: Peco riders Size=2, Baby Class Riders Size=1 [Lupus]
 	battle_config.mob_max_skilllvl = 11; //max possible level of monsters skills [Lupus]
+	battle_config.retaliate_to_master = 1; //Make mobs retaliate against the master rather than the mob that attacked them. [Skotlex]
 	battle_config.rare_drop_announce = 1; //show global announces for rare items drops (<= 0.01% chance) [Lupus]
 	battle_config.firewall_hits_on_undead = 1;
 	battle_config.title_lvl1 = 1;	//Players Titles for @who, etc commands [Lupus]

@@ -1189,7 +1189,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 
 	//Reports say that autospell effects get triggered on skills and pretty much everything including splash attacks. [Skotlex]
 	//Here we use the nk value to trigger spells only on damage causing skills (otherwise stuff like AL_HEAL will trigger them)
-	if(sd && !status_isdead(bl) && src != bl &&(!skillid || skill_get_nk(skillid)!=NK_NO_DAMAGE)) 
+	if(sd && !status_isdead(bl) && src != bl &&(!skillid || skillid == KN_AUTOCOUNTER || skill_get_nk(skillid)!=NK_NO_DAMAGE)) 
 	{
 		struct block_list *tbl;
 		int i, auto_skillid, auto_skilllv, rate;
@@ -8249,7 +8249,9 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 			clif_skillcasting(&sd->bl,sd->bl.id, target_id, 0,0, skill_num,casttime);
 		/* ‰r¥”½?ƒ‚ƒ“ƒXƒ^? */
 		if (bl->type == BL_MOB && (md = (struct mob_data *)bl) && md->db->mode & 0x10 &&
-			md->state.state != MS_ATTACK && sd->invincible_timer == -1){
+			md->state.state != MS_ATTACK && sd->invincible_timer == -1 && 
+			(!md->state.special_mob_ai || skill_get_inf(skill_num) != INF_SUPPORT_SKILL))
+		{	//Avoid having summons target master from supportive skills. [Skotlex]
 				md->target_id = sd->bl.id;
 				md->state.targettype = ATTACKABLE;
 				md->min_chase = 13;

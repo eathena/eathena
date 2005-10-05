@@ -2,6 +2,15 @@ Date	Added
 =======
 
 10/05
+	* Added the water levels to ayo_dun01, gon_dun01 and lhz_dun03, thanks to
+	  Master of Puppets [Skotlex]
+	* Made Autocounter trigger autospells (was not doing so because it's NK
+	  defines it as a no-damage skill) [Skotlex]
+	* Some cleanups on the mob slave AI code. [Skotlex]
+	* Added battle config retaliate_to_master, defaults to yes. [Skotlex]
+	- Why? Because in official, summoned mobs are not attacked by other mobs
+	  (speaking about alchemists), if you set this to no, then mobs will
+	  retaliate against the summon (both @summon and alchemist ones).
 	* Some fixes to the way the guildmaster flag is being set and checked. [Skotlex]
 	* Made the skilllv be 1 if the client sends less than that (this is why
 	  active guild skills were not working. For some reason the client was

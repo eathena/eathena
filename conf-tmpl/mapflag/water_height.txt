@@ -66,6 +66,7 @@ gefg_cas02.gat	8
 gefg_cas04.gat	15
 gefg_cas05.gat	5
 prtg_cas05.gat	13
+gon_dun01.gat	5
 tur_dun01.gat	-65
 ama_fild01.gat	5
 yuno_fild09.gat	10
@@ -73,4 +74,6 @@ yuno_fild11.gat	-19
 jawaii.gat	-10
 sec_in02.gat	5 
 ayothaya.gat	20
+ayo_dun01.gat	20
 ayo_dun02.gat	15
+lhz_dun03.gat	30

@@ -33,6 +33,10 @@
 	--
 
 10/05
+	* Updated Grandcross's Casting time, and Blast Mine's duration. [Skotlex]
+	* Updated meltdown's cast time to 0.5 at lv1, 1.0 secs at lv 10. Still
+	  unconfirmed, but it's much more likely than the alleged 0.05~0.10secs.
+	  [Skotlex]
 	* Updated #2415,Bunny_Slippers. Thanx to noobs [Lupus]
 10/04
 	* Fixed some items with wrong weight/ stats. Thanks to mrmagoo [Nexon]

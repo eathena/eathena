@@ -1323,8 +1323,9 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 
 	if(mode&0x01)
 	{	//If the mob can move, follow around. [Check by Skotlex]
-		// Since it is in the map on which the master is not, teleport is carried out and it pursues.
-		if(bl->m != md->bl.m){
+		
+		if(bl->m != md->bl.m || md->master_dist > 30)
+		{	// Since it is not in the same map (or is way to far), just warp it
 			mob_warp(md,bl->m,bl->x,bl->y,3);
 			return 0;
 		}
@@ -1382,17 +1383,10 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 	// There is the master, the master locks a target and he does not lock.
 	if( mmd && (mmd->target_id>0 && mmd->state.targettype == ATTACKABLE) && (!md->target_id || md->state.targettype == NONE_ATTACKABLE) ){
 		struct map_session_data *sd=map_id2sd(mmd->target_id);
-		if(sd!=NULL && !pc_isdead(sd) && sd->invincible_timer == -1 && !pc_isinvisible(sd)){
-
-			race=md->db->race;
-			if(mode&0x20 ||
-				(sd->sc_data[SC_TRICKDEAD].timer == -1 && sd->sc_data[SC_BASILICA].timer == -1 &&
-				( (!pc_ishiding(sd) && !sd->state.gangsterparadise) || ((race == 4 || race == 6 || mode&0x100) && !sd->perfect_hiding) ) ) ){	// –WŠQ‚ª‚È‚¢‚©”»’è
-
-				md->target_id=sd->bl.id;
-				md->state.targettype = ATTACKABLE;
-				md->min_chase=5+distance(md->bl.x,md->bl.y,sd->bl.x,sd->bl.y);
-			}
+		if(sd && battle_check_attackable(&md->bl, &sd->bl)) {
+			md->target_id=sd->bl.id;
+			md->state.targettype = ATTACKABLE;
+			md->min_chase=5+distance(md->bl.x,md->bl.y,sd->bl.x,sd->bl.y);
 		}
 	}
 
@@ -1823,7 +1817,6 @@ static int mob_ai_hard(int tid,unsigned int tick,int id,int data)
 static int mob_ai_sub_lazy(void * key,void * data,va_list app)
 {
 	struct mob_data *md = (struct mob_data *)data;
-	struct mob_data *mmd = NULL;
 	va_list ap;
 	unsigned int tick;
 
@@ -1833,10 +1826,6 @@ static int mob_ai_sub_lazy(void * key,void * data,va_list app)
 	if(md->bl.type!=BL_MOB)
 		return 0;
 
-	if (md->master_id > 0) {
-		struct block_list *mbl = map_id2bl(md->master_id);
-		if (mbl && mbl->type == BL_MOB) mmd = (struct mob_data *)mbl;	//©•ª‚ÌBOSS‚Ìî•ñ
-	}
 	ap = va_arg(app, va_list);
 	tick=va_arg(ap,unsigned int);
 
@@ -1851,7 +1840,6 @@ static int mob_ai_sub_lazy(void * key,void * data,va_list app)
 	}
 
 	// æ‚èŠª‚«ƒ‚ƒ“ƒXƒ^[‚Ìˆ—iŒÄ‚Ñ–ß‚µ‚³‚ê‚½j
-//	if(mmd && md->state.special_mob_ai == 0 && mmd->recall_flag == 1) {
 	if (md->master_id > 0) {
 		mob_ai_sub_hard_slavemob (md,tick);
 		return 0;
@@ -2250,7 +2238,12 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 				}
 			}
 			if(md->attacked_id <= 0)
-				md->attacked_id = md2->bl.id; //People want mobs to revenge on the mob, not the master. [Skotlex]
+			{	//Let players decide whether to retaliate versus the master or the mob. [Skotlex]
+				if (md2->master_id && battle_config.retaliate_to_master)
+					md->attacked_id = md2->master_id;
+				else
+					md->attacked_id = md2->bl.id;
+			}
 		}
 	}
 
