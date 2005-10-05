@@ -1304,14 +1304,12 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 {
 	struct mob_data *mmd=NULL;
 	struct block_list *bl;
-	int mode,race,old_dist;
+	int old_dist;
 
 	nullpo_retr(0, md);
 
 	if((bl=map_id2bl(md->master_id)) != NULL && bl->type == BL_MOB)
 		mmd=(struct mob_data *)bl;
-
-	mode=md->db->mode;
 
 	if (!bl || (mmd && mmd->hp <= 0)) {	//Žå‚ªŽ€–S‚µ‚Ä‚¢‚é‚©Œ©‚Â‚©‚ç‚È‚¢
 		if(md->state.special_mob_ai>0)
@@ -1321,7 +1319,7 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 		return 0;
 	}
 
-	if(mode&0x01)
+	if(status_get_mode(&md->bl)&0x01)
 	{	//If the mob can move, follow around. [Check by Skotlex]
 		
 		if(bl->m != md->bl.m || md->master_dist > 30)
