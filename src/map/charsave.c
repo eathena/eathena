@@ -450,6 +450,12 @@ int charsave_load_scdata(int account_id, int char_id)
 	{
 		while ((sql_row = mysql_fetch_row(sql_res)))
 		{
+			if (atoi(sql_row[1]) < 1)
+			{	//Protection against invalid tick values. [Skotlex]
+				ShowWarning("charsave_load_scdata: Received invalid duration (%d ms) for status change %d (character %s)\n", atoi(sql_row[1]), sd->status.name);
+				continue;
+			}
+
 			status_change_start(&sd->bl, atoi(sql_row[0]), atoi(sql_row[2]), atoi(sql_row[3]),
 				atoi(sql_row[4]), atoi(sql_row[5]), atoi(sql_row[1]), 7);
 		}
@@ -477,11 +483,11 @@ void charsave_save_scdata(int account_id, int char_id, struct status_change* sc_
 		if (sc_data[i].timer == -1)
 			continue;
 		timer = get_timer(sc_data[i].timer);
-		if (timer == NULL || timer->func != status_change_timer || timer->tick < tick)
+		if (timer == NULL || timer->func != status_change_timer || DIFF_TICK(timer->tick,tick) < 0)
 			continue;
 		
 		sprintf (tmp_sql, "%s ('%d','%d','%hu','%d','%d','%d','%d','%d'),", tmp_sql, account_id, char_id,
-			i, timer->tick- tick, sc_data[i].val1, sc_data[i].val2, sc_data[i].val3, sc_data[i].val4);
+			i, DIFF_TICK(timer->tick,tick), sc_data[i].val1, sc_data[i].val2, sc_data[i].val3, sc_data[i].val4);
 		
 		count++;
 	}

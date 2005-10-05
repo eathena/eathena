@@ -1836,11 +1836,7 @@ int mapif_parse_GuildMasterChange(int fd, int guild_id, const char* name, int le
 
 	g->member[pos].position = g->member[0].position;
 	g->member[0].position = 0; //Position 0: guild Master.
-	memcpy(g->master, name, len);
-	if (len < NAME_LENGTH) //Add terminator or name gets messed up.
-		g->master[len] = '\0';
-	else
-		g->master[NAME_LENGTH-1] = '\0';
+	strcpy(g->master, name);
 
 	ShowInfo("int_guild: Guildmaster Changed to %s (Guild %d - %s)\n",name, guild_id, g->name);
 	add_guild_save_timer(g,5); //Save main data and member data.

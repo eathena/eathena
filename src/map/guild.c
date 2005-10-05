@@ -1490,7 +1490,7 @@ int guild_gm_changed(int guild_id, int pos)
 
 	g->member[pos].position = g->member[0].position;
 	g->member[0].position = 0; //Position 0: guild Master.
-	memcpy(g->master, g->member[0].name, NAME_LENGTH);
+	strcpy(g->master, g->member[0].name);
 
 	if (g->member[pos].sd && g->member[pos].sd->fd)
 	{

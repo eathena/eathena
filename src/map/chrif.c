@@ -1193,9 +1193,9 @@ int chrif_save_scdata(struct map_session_data *sd)
 		if (sd->sc_data[i].timer == -1)
 			continue;
 		timer = get_timer(sd->sc_data[i].timer);
-		if (timer == NULL || timer->func != status_change_timer || timer->tick < tick)
+		if (timer == NULL || timer->func != status_change_timer || DIFF_TICK(timer->tick,tick) < 0)
 			continue;
-		data.tick = timer->tick - tick; //Duration that is left before ending.
+		data.tick = DIFF_TICK(timer->tick,tick); //Duration that is left before ending.
 		data.type = i;
 		data.val1 = sd->sc_data[i].val1;
 		data.val2 = sd->sc_data[i].val2;
@@ -1239,6 +1239,11 @@ int chrif_load_scdata(int fd)
 	for (i = 0; i < count; i++)
 	{
 		memcpy(&data, RFIFOP(fd,14 + i*sizeof(struct status_change_data)), sizeof(struct status_change_data));
+		if (data.tick < 1)
+		{	//Protection against invalid tick values. [Skotlex]
+			ShowWarning("chrif_load_scdata: Received invalid duration (%d ms) for status change %d (character %s)\n", data.tick, sd->status.name);
+			continue;
+		}
 		status_change_start(&sd->bl, data.type, data.val1, data.val2, data.val3, data.val4, data.tick, 7);
 	}
 #endif
