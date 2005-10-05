@@ -8031,8 +8031,7 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 		{
 			if (!sd->status.guild_id || !sd->state.gmaster_flag)
 				return 0;
-			g = (struct guild*) sd->state.gmaster_flag;
-			skill_lv = guild_checkskill(g, skill_num);
+			skill_lv = guild_checkskill((struct guild*)sd->state.gmaster_flag, skill_num);
 			if (skill_lv <= 0) return 0;
 		}
 		break;
