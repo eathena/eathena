@@ -1465,7 +1465,7 @@
 4324,Garm_Card,Garm Card,6,,10,10,,,,,,,16,,,,,{},{ bonus2 bAddEffWhenHit,Eff_Freeze,5000; }
 4325,Harpy_Card,Harpy Card,6,,10,10,,,,,,,4,,,,,{},{ bonus2 bSubEle,Ele_Neutral,15; bonus2 bSkillAtk,11,5; if(isequipped(4191,4208,4258,4309,4327)==0) end; bonus bMaxHP,500; bonus bDef,5; bonus bMDef,5; bonus2 bSkillAtk,14,10; bonus2 bSkillAtk,19,10; bonus2 bSkillAtk,20,10; if(callfunc("Is_Magic_Class")==0) end; bonus bMatkRate,3; bonus bCastrate,-15; }
 4326,Sea_Otter_Card,Sea Otter Card,6,,10,10,,,,,,,136,,,,,{},{ bonus2 bAddItemHealRate,7,50; bonus3 bAddMonsterDropItem,544,5,5000; bonus3 bAddMonsterDropItem,551,5,5000; }
-4327,Bloody_Butterfly_Card,Bloody Butterfly Card,6,,10,10,,,,,,,136,,,,,{},{ bonus bCastrate,30; bonus bNoCastCancel2,0; bonus2 bSkillAtk,18,5; }
+4327,Bloody_Butterfly_Card,Bloody Butterfly Card,6,,10,10,,,,,,,136,,,,,{},{ bonus bCastrate,30; bonus bNoCastCancel,0; bonus2 bSkillAtk,18,5; }
 4328,Hyegun_Card,Hyegun Card,6,,10,10,,,,,,,4,,,,,{},{ bonus bFlee,15; bonus bCritical,1; if(isequipped(4090,4212)) bonus bAllStats,1; }
 4329,Phendark_Card,Phendark Card,6,,10,10,,,,,,,2,,,,,{},{ bonus2 bSPGainRace,RC_DemiHuman,5; bonus bLoseSPWhenUnequip,5; }
 4330,Evil_Snake_Lord_Card,Evil Snake Lord Card,6,,10,10,,,,,,,769,,,,,{},{ bonus bInt,3; bonus2 bResEff,Eff_Blind,10000; bonus2 bResEff,Eff_Curse,10000; }

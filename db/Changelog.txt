@@ -33,6 +33,8 @@
 	--
 
 10/06
+	* Corrected Bloody Butterfly card so it doesn't makes spells
+	  uninterruptable in WoE. [Skotlex]
 	* Added skill data for various skills (second class quest skills and
 	  several Tae-Kwon related jobs. All the info was acquired by Draco from
 	  jA's information. [Skotlex]

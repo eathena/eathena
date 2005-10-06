@@ -5375,10 +5375,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			int dy[9]={ 0, 0, 1,-1, 1,-1,-1, 1, 0};
 			int j = 0;
 			struct guild *g = NULL;
-			// Only usable during WoE
-			if (!agit_flag ||
-				(sd && map[sd->bl.m].flag.nowarpto &&	// if not allowed to warp to the map
-				guild_mapname2gc(sd->mapname) == NULL)) {	// and it's not a castle...
+			//Reports say this particular skill is usable anywhere! o.o [Skotlex]
+			if	(sd && map[sd->bl.m].flag.nowarpto) //if not allowed to warp to the map
+			{	
 				clif_skill_fail(sd,skillid,0,0);
 				map_freeblock_unlock();
 				return 0;
