@@ -24,6 +24,10 @@ Massdriller
 
 Date		Added
 ======
+10/06
+	* Thanks to Justin84: [Lupus]
+	- Fixed ingridients typo in Acolyte Skill Quest
+	- Fixed Arena MVP (custom script), Lighthalzen warps coords
 10/04
 	* Fixed explot in bunnyband quest on giving and taking items away being seperated. [Nexon]
 	* Fixed a missing close; in the bulletin boards. [Nexon]

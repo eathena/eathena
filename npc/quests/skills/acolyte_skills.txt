@@ -60,7 +60,7 @@ L_Start:
 			mes "Very good.  You will need to find these items in order to learn the";
 			mes "skill:";
 			mes "^5555FF1 Opal^000000,";
-			mes "^5555FF1 Crystal Bule^000000,";
+			mes "^5555FF1 Crystal Blue^000000,";
 			mes "and ^5555FF1 Rosary^000000.";
 			next;
 			mes "[Acolyte Klift]";
@@ -114,7 +114,7 @@ L_Check:
 		mes "I'm sorry but you don't have the required items for Holy Light.";
 		mes "You need:";
 		mes "^5555FF1 Opal^000000,";
-		mes "^5555FF1 Crystal Bule^000000,";
+		mes "^5555FF1 Crystal Blue^000000,";
 		mes "and ^5555FF1 Rosary^000000.";
 		close;
 

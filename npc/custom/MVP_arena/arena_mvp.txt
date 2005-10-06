@@ -8,7 +8,7 @@ mes "Would you like to go to the MVP Arena ?...";
 menu "Yes!",L_MVP,"No thanks.",L_No;
 
 L_MVP:
-warp "quiz_00",44,24;
+warp "quiz_00",50,24;
 close;
 L_No:
 close;
