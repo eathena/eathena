@@ -3897,16 +3897,21 @@ static int mob_readdb(void)
 				int rate = 0,rate_adjust,type,ratemin,ratemax;
 				mob_db_data[class_]->dropitem[i].nameid=atoi(str[29+i*2]);
 				type = itemdb_type(mob_db_data[class_]->dropitem[i].nameid);
-				switch (type)
+				rate = atoi(str[30+i*2]);
+				if (class_ >= 1324 && class_ <= 1363)
+				{	//Treasure box drop rates [Skotlex]
+					rate_adjust = battle_config.item_rate_treasure;
+					ratemin = battle_config.item_drop_treasure_min;
+					ratemax = battle_config.item_drop_treasure_max;
+				}
+				else switch (type)
 				{
 				case 0:
-					rate = atoi(str[30+i*2]);
 					rate_adjust = battle_config.item_rate_heal; 
 					ratemin = battle_config.item_drop_heal_min;
 					ratemax = battle_config.item_drop_heal_max;
 					break;
 				case 2:
-					rate = atoi(str[30+i*2]);
 					rate_adjust = battle_config.item_rate_use;
 					ratemin = battle_config.item_drop_use_min;
 					ratemax = battle_config.item_drop_use_max;
@@ -3914,19 +3919,16 @@ static int mob_readdb(void)
 				case 4:
 				case 5:
 				case 8:		// Changed to include Pet Equip
-					rate = atoi(str[30+i*2]);
 					rate_adjust = battle_config.item_rate_equip;
 					ratemin = battle_config.item_drop_equip_min;
 					ratemax = battle_config.item_drop_equip_max;
 					break;
 				case 6:
-					rate = atoi(str[30+i*2]);
 					rate_adjust = battle_config.item_rate_card;
 					ratemin = battle_config.item_drop_card_min;
 					ratemax = battle_config.item_drop_card_max;
 					break;
 				default:
-					rate = atoi(str[30+i*2]);
 					rate_adjust = battle_config.item_rate_common;
 					ratemin = battle_config.item_drop_common_min;
 					ratemax = battle_config.item_drop_common_max;
@@ -3954,7 +3956,7 @@ static int mob_readdb(void)
 			for(i=0;i<3;i++){
 				int rate=atoi(str[52+i*2]);
 				mob_db_data[class_]->mvpitem[i].nameid=atoi(str[51+i*2]);
-				mob_db_data[class_]->mvpitem[i].p= mob_drop_adjust(rate, battle_config.mvp_item_rate,
+				mob_db_data[class_]->mvpitem[i].p= mob_drop_adjust(rate, battle_config.item_rate_mvp,
 					battle_config.item_drop_mvp_min, battle_config.item_drop_mvp_max);
 			}
 
@@ -4389,36 +4391,47 @@ static int mob_read_sqldb(void)
 				mob_db_data[class_]->dmotion = TO_INT(28);
 
 				for (j = 0; j < 10; j++){ // 8 -> 10 Lupus
-					int rate = 0, type, ratemin, ratemax;
+					int rate = 0, rate_adjust, type, ratemin, ratemax;
 					mob_db_data[class_]->dropitem[j].nameid=TO_INT(29+j*2);
 					type = itemdb_type(mob_db_data[class_]->dropitem[j].nameid);
-					if (type == 0) {							// Added by Valaris
-						rate = battle_config.item_rate_heal * TO_INT(30+j*2) / 100;
+					rate = TO_INT(30+j*2);
+					if (class_ >= 1324 && class_ <= 1363)
+					{	//Treasure box drop rates [Skotlex]
+						rate_adjust = battle_config.item_rate_treasure;
+						ratemin = battle_config.item_drop_treasure_min;
+						ratemax = battle_config.item_drop_treasure_max;
+					}
+					else switch(type)
+					{
+					case 0:							// Added by Valaris
+						rate_adjust = battle_config.item_rate_heal;
 						ratemin = battle_config.item_drop_heal_min;
 						ratemax = battle_config.item_drop_heal_max;
-					}
-					else if (type == 2) {
-						rate = battle_config.item_rate_use * TO_INT(30+j*2) / 100;
+						break;
+					case 2:
+						rate_adjust = battle_config.item_rate_use;
 						ratemin = battle_config.item_drop_use_min;
 						ratemax = battle_config.item_drop_use_max;	// End
-					}
-					else if (type == 4 || type == 5 || type == 8) {		// Changed to include Pet Equip
-						rate = battle_config.item_rate_equip * TO_INT(30+j*2) / 100;
+						break;
+					case 4:
+					case 5:
+					case 8:	// Changed to include Pet Equip
+						rate_adjust = battle_config.item_rate_equip;
 						ratemin = battle_config.item_drop_equip_min;
 						ratemax = battle_config.item_drop_equip_max;
-					}
-					else if (type == 6) {
-						rate = battle_config.item_rate_card * TO_INT(30+j*2) / 100;
+						break;
+					case 6:
+						rate_adjust = battle_config.item_rate_card;
 						ratemin = battle_config.item_drop_card_min;
 						ratemax = battle_config.item_drop_card_max;
-					}
-					else {
-						rate = battle_config.item_rate_common * TO_INT(30+j*2) / 100;
+						break;
+					default:
+						rate_adjust = battle_config.item_rate_common;
 						ratemin = battle_config.item_drop_common_min;
 						ratemax = battle_config.item_drop_common_max;
+						break;
 					}
-
-					mob_db_data[class_]->dropitem[j].p = (rate < ratemin) ? ratemin : (rate > ratemax) ? ratemax: rate;
+					mob_db_data[class_]->dropitem[i].p = mob_drop_adjust(rate, rate_adjust, ratemin, ratemax);
 				}
 				// MVP EXP Bonus, Chance: MEXP,ExpPer
 				mob_db_data[class_]->mexp = TO_INT(49) * battle_config.mvp_exp_rate / 100;
@@ -4439,7 +4452,8 @@ static int mob_read_sqldb(void)
 				// MVP Drops: MVP1id,MVP1per,MVP2id,MVP2per,MVP3id,MVP3per
 				for (j = 0; j < 3; j++) {
 					mob_db_data[class_]->mvpitem[j].nameid = TO_INT(51+j*2);
-					mob_db_data[class_]->mvpitem[j].p = TO_INT(52+j*2) * battle_config.mvp_item_rate / 100;
+					mob_db_data[class_]->mvpitem[j].p = mob_drop_adjust(TO_INT(52+j*2),
+						battle_config.item_rate_mvp, battle_config.item_drop_mvp_min, battle_config.item_drop_mvp_max);
 				}
 				if (mob_db_data[class_]->max_hp <= 0) {
 					ShowWarning ("Mob %d (%s) has no HP, using poring data for it\n", class_, mob_db_data[class_]->jname);

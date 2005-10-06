@@ -2,6 +2,14 @@ Date	Added
 =======
 
 10/06
+	* Cleaned up item_db.txt, updated sql-files/item_db.sql to match. [Skotlex]
+	* Added logarithmic drops support for TXT itemdb loading (how could I had
+	  forgotten that?) [Skotlex]
+	* Added battle options item_rate_treasure, item_drop_treasure_min,
+	  item_drop_treasure_max, these override all other rate options when it comes
+	  to Treasure box drops. [Skotlex]
+	* Cleaned up battle_athena.conf regarding drop rates. mvp_item_rate has
+	  been changed to item_rate_mvp. [Skotlex]
 	* Implemented Maya Purple card effect (you can see any hidden mob). Thanks to jA [Lupus]
 	* Updated functions: pc_calc_base_job,pc_calc_base_job2 [Lupus]
 	- They return 24:Taekwon, 25:StarGladiator, 27:Soul Linker

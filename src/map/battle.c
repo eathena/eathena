@@ -3545,6 +3545,12 @@ static const struct battle_data_short {
 	{ "item_drop_card_max",                &battle_config.item_drop_card_max	},
 	{ "item_drop_mvp_min",                 &battle_config.item_drop_mvp_min	},
 	{ "item_drop_mvp_max",                 &battle_config.item_drop_mvp_max	},	// End Addition
+	{ "item_drop_heal_min",                &battle_config.item_drop_heal_min },
+	{ "item_drop_heal_max",                &battle_config.item_drop_heal_max },
+	{ "item_drop_use_min",                 &battle_config.item_drop_use_min },
+	{ "item_drop_use_max",                 &battle_config.item_drop_use_max },
+	{ "item_drop_treasure_min",            &battle_config.item_drop_treasure_min },
+	{ "item_drop_treasure_max",            &battle_config.item_drop_treasure_max },
 	{ "prevent_logout",                    &battle_config.prevent_logout		},	// Added by RoVeRT
 	{ "alchemist_summon_reward",           &battle_config.alchemist_summon_reward	},	// [Valaris]
 	{ "max_base_level",                    &battle_config.max_base_level	},	// [Valaris]
@@ -3636,7 +3642,6 @@ static const struct battle_data_int {
 	{ "base_exp_rate",                     &battle_config.base_exp_rate			},
 	{ "job_exp_rate",                      &battle_config.job_exp_rate				},
 	{ "zeny_penalty",                      &battle_config.zeny_penalty				},
-	{ "mvp_item_rate",                     &battle_config.mvp_item_rate			},
 	{ "mvp_exp_rate",                      &battle_config.mvp_exp_rate				},
 	{ "natural_healhp_interval",           &battle_config.natural_healhp_interval	},
 	{ "natural_healsp_interval",           &battle_config.natural_healsp_interval	},
@@ -3647,11 +3652,13 @@ static const struct battle_data_int {
 	{ "gvg_eliminate_time",                &battle_config.gvg_eliminate_time		},
 	{ "vending_max_value",                 &battle_config.vending_max_value		},
 // eAthena additions
+	{ "item_rate_mvp",                     &battle_config.item_rate_mvp		},
 	{ "item_rate_common",                  &battle_config.item_rate_common	},	// Added by RoVeRT
 	{ "item_rate_equip",                   &battle_config.item_rate_equip	},
 	{ "item_rate_card",                    &battle_config.item_rate_card	},	// End Addition
 	{ "item_rate_heal",                    &battle_config.item_rate_heal	},	// Added by Valaris
 	{ "item_rate_use",                     &battle_config.item_rate_use	},	// End
+	{ "item_rate_treasure",                &battle_config.item_rate_treasure }, // End
 	{ "day_duration",                      &battle_config.day_duration	}, // added by [Yor]
 	{ "night_duration",                    &battle_config.night_duration	}, // added by [Yor]
 	{ "mob_remove_delay",                  &battle_config.mob_remove_delay	},
@@ -3727,7 +3734,6 @@ void battle_set_defaults() {
 	battle_config.zeny_penalty=0;
 	battle_config.restart_hp_rate=0;
 	battle_config.restart_sp_rate=0;
-	battle_config.mvp_item_rate=100;
 	battle_config.mvp_exp_rate=100;
 	battle_config.mvp_hp_rate=100;
 	battle_config.monster_hp_rate=100;
@@ -3888,11 +3894,13 @@ void battle_set_defaults() {
 	battle_config.buyer_name = 1;
 
 // eAthena additions
+	battle_config.item_rate_mvp=100;
 	battle_config.item_rate_common = 100;
 	battle_config.item_rate_equip = 100;
 	battle_config.item_rate_card = 100;
 	battle_config.item_rate_heal = 100;		// Added by Valaris
 	battle_config.item_rate_use = 100;		// End
+	battle_config.item_rate_treasure = 100;
 	battle_config.logarithmic_drops = 0;
 	battle_config.item_drop_common_min=1;	// Added by TyrNemesis^
 	battle_config.item_drop_common_max=10000;
@@ -3906,6 +3914,8 @@ void battle_set_defaults() {
 	battle_config.item_drop_heal_max=10000;
 	battle_config.item_drop_use_min=1;
 	battle_config.item_drop_use_max=10000;	// End
+	battle_config.item_drop_treasure_min=1;
+	battle_config.item_drop_treasure_max=10000;	// End
 	battle_config.prevent_logout = 1;	// Added by RoVeRT
 	battle_config.max_base_level = 255;	// Added by Valaris
 	battle_config.max_job_level = 50;
