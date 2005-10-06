@@ -2,6 +2,11 @@ Date	Added
 =======
 
 10/06
+	* Added a bunch of code related to the 2nd job quest skills and Tae -second
+	  classes skills, as provided by Draco and acquired from jA [Skotlex]
+	* Merged Draco's implementation of battle_calc_magic_attack. [Skotlex]
+	* Modifications to the mob AI to more accurately use Range2 (mob's sight
+	  range) and Range3 (mob's chase distance ability) [Skotlex]
 	* Cleaned up item_db.txt, updated sql-files/item_db.sql to match. [Skotlex]
 	* Added logarithmic drops support for TXT itemdb loading (how could I had
 	  forgotten that?) [Skotlex]

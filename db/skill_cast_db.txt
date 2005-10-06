@@ -6,17 +6,20 @@
 //==========================================
 // Rough list of Contents:
 //==========================================
-//  1.  1st Job Skills
-//  2.  2-2 Job Skills
-//  3.  1-1 Job Quest Skills
-//  4.  NPC Skills, Part 1
-//  5.  2-2 Job Skills
+//  1.  1st Jobs Skills
+//  2.  2-1 Jobs Skills
+//  3.  1st Jobs Quest Skills
+//  4.  NPC Skills (1)
+//  5.  2-2 Jobs Skills
 //  6.  Wedding Skills
-//  7.  NPC Skills, Part 2
-//  8.  Advanced Job Skills
-//  9.  Mixed Skills, Part 1 : Advanced Job Skills
-// 10.  Adoption Skills
-// 11.  Mixed Skills, Part 2 : Taekwon and Advanced Job Skills
+//  7.  NPC Skills (2)
+//  8.  Advanced Jobs Skills (1)
+//  9.  Adoption Skills
+// 10.  Taekwon Jobs Skills (1)
+// 11.  Advanced Jobs Skills (2)
+// 12.  Taekwon Jobs Skills (2)
+// 13.  2nd Jobs Quest Skills
+// 14.  Guild Skills
 //==========================================
 // This is just a rough overview to help
 // giving an overview on the document and
@@ -252,7 +255,7 @@
 //==========================================
 
 
-//===== Quest Skills =======================
+//===== 1st Jobs Quest Skills===============
 //-- NV_TRICKDEAD
 143,0,0,600000,0
 
@@ -601,13 +604,16 @@
 //==========================================
 
 
-//===== Mixed Skills Part 1 / Advanced =====
+//===== Clown / Gypsy ======================
 //-- CG_ARROWVULCAN
 394,2000:2200:2400:2600:2800:3000:3200:3400:3600:3800,800:800:800:800:800:1000:1000:1000:1000:1000,0,0
 //-- CG_MOONLIT
 395,0,0,20000:25000:30000:35000:40000,0
 //-- CG_MARIONETTE
 396,0,0,300000,0
+//==========================================
+
+//===== Mixed Advanced Skills ==============
 //-- LK_SPIRALPIERCE
 397,300:500:700:900:1000,1200:1400:1600:1800:2000,0,0
 //-- LK_HEADCRUSH
@@ -643,7 +649,7 @@
 //==========================================
 
 
-//===== Mixed Part 2 / Taekwon + Advanced ==
+//===== Taekwon ============================
 //-- TK_RUN
 411,6:5:4:3:2:1:0:0:0:0,0,1000,150000
 
@@ -654,7 +660,9 @@
 425,0,0,300000,0
 //-- TK_HIGHJUMP
 426,5000:4000:3000:2000:1000,0,0,0
+//==========================================
 
+//===== Mixed Advanced Skills ==============
 //-- ST_PRESERVE
 475,1000,0,600000,0
 //-- ST_FULLSTRIP
@@ -684,6 +692,59 @@
 489,1000,3000,0,0
 //-- CR_ACIDDEMONSTRATION
 490,1000,1000,0,0
+//==========================================
+
+//===== Mixed Taekwon Skills ===============
+//-- SL_HIGH
+494,0,0,150000:200000:250000:300000:350000,0
+//-- KN_ONEHAND
+495,0,0,300000,0
+//-- AM_TWILIGHT1
+496,3000,10000,50,0
+//-- AM_TWILIGHT2
+497,3000,10000,50,0
+//-- AM_TWILIGHT3
+498,3000,10000,50,0
+//-- HT_POWER
+499,0,100,0,0
+//==========================================
+
+//===== 2nd Jobs Quest Skills ==============
+//-- KN_CHARGEATK
+1001,1000,1000,0,0
+//-- CR_SHRINK
+1002,0,0,300000,0
+
+//-- AS_VENOMKNIFE
+1004,0,200,0,0
+//-- RG_CLOSECONFINE
+1005,0,0,10000,0
+//-- WZ_SIGHTBLASTER
+1006,0,0,120000,0
+
+//-- SA_ELEMENTWATER
+1008,3000,0,1800000,0
+//-- HT_PHANTASMIC
+1009,0,200,0,0
+//-- BA_PANGVOICE
+1010,0,2000,10000,0
+//-- DC_WINKCHARM
+1011,0,2000,10000,0
+
+//-- BS_GREED
+1013,0,1000,0,0
+//-- PR_REDEMPTIO
+1014,4000,0,0,0
+//-- MO_KITRANSLATION
+1015,1000,0,0,0
+//-- MO_BALKYOUNG
+1016,0,2000,0,0
+//-- SA_ELEMENTGROUND
+1017,3000,0,1800000,0
+//-- SA_ELEMENTFIRE
+1018,3000,0,1800000,0
+//-- SA_ELEMENTWIND
+1019,3000,0,1800000,0
 //==========================================
 
 

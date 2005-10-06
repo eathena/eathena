@@ -394,10 +394,6 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 
 	nullpo_retr(0, bl);
 
-/* Redundant, already checked on the skill attack and weapon attack routines.
-	if(src->m != bl->m) // [ShAPoNe] Src and target same map check.
-		return 0;
-*/
 	class_ = status_get_class(bl);
 
 	if (bl->type == BL_MOB) {
@@ -850,6 +846,7 @@ static struct Damage battle_calc_weapon_attack(
 			case BA_MUSICALSTRIKE:
 			case DC_THROWARROW:
 			case CG_ARROWVULCAN:
+			case AS_VENOMKNIFE:
 				wd.flag=(wd.flag&~BF_RANGEMASK)|BF_LONG;
 				flag.arrow = 1;
 				break;
@@ -1734,12 +1731,11 @@ static struct Damage battle_calc_weapon_attack(
 
 	//Card Fix, tsd side
 	if (tsd && flag.cardfix) {
-		short s_size,s_race2,s_mode,s_class;
+		short s_size,s_race2,s_class;
 		short cardfix=1000;
 		
 		s_size = status_get_size(src);
 		s_race2 = status_get_race2(src);
-		s_mode = status_get_mode(src);
 		s_class = status_get_class(src);
 		
 		cardfix=cardfix*(100-tsd->subrace[s_race])/100;
@@ -1923,354 +1919,368 @@ static struct Damage battle_calc_weapon_attack(
 }
 
 /*==========================================
- * 魔法ダメージ計算
+ * battle_calc_magic_attack [DracoRPG]
  *------------------------------------------
  */
 struct Damage battle_calc_magic_attack(
-	struct block_list *bl,struct block_list *target,int skill_num,int skill_lv,int flag)
+	struct block_list *src,struct block_list *target,int skill_num,int skill_lv,int mflag)
 	{
-	int mdef1, mdef2, matk1, matk2, damage = 0, div_ = 1, blewcount;
-	int ele=0, race=7, size=1, race2=7, t_ele=0, t_race=7, t_mode = 0, cardfix, t_class, i;
-	struct map_session_data *sd = NULL, *tsd = NULL;
-	struct mob_data *tmd = NULL;
-	struct Damage md;
-	int aflag;	
-	int normalmagic_flag = 1;
-	int matk_flag = 1;
-	int no_cardfix = 0;
-	int no_elefix = 0;
-	int skillratio = 100;
+	struct map_session_data *sd=NULL, *tsd=NULL;
+	struct mob_data *md=NULL, *tmd=NULL;
+	struct pet_data *pd=NULL;//, *tpd=NULL; (Noone can target pets)
+	struct Damage ad;
+	unsigned short skillratio = 100;	//Skill dmg modifiers.
 
-	//return前の処理があるので情報出力部のみ変更
-	if( bl == NULL || target == NULL ){
+	short i;
+	short t_mode = status_get_mode(target);
+	short t_race=0, t_ele=0, s_race=0;	//Set to 0 because the compiler does not notices they are NOT gonna be used uninitialized
+	short s_ele;
+	short mdef1, mdef2;
+	struct {
+		unsigned imdef : 1;
+		unsigned infdef : 1;
+		unsigned elefix : 1;
+		unsigned cardfix : 1;
+	}	flag;	
+
+	memset(&ad,0,sizeof(ad));
+	memset(&flag,0,sizeof(flag));
+
+	if(src==NULL || target==NULL)
+	{
 		nullpo_info(NLP_MARK);
-		memset(&md,0,sizeof(md));
-		return md;
+		return ad;
+	}
+	//Initial flag
+	flag.elefix=1;
+	flag.cardfix=1;
+
+	//Initial Values
+	ad.div_=skill_get_num(skill_num,skill_lv);
+	ad.amotion=status_get_amotion(src);
+	ad.dmotion=status_get_dmotion(target);
+	ad.blewcount = skill_get_blewcount(skill_num,skill_lv);
+
+	switch (src->type)
+	{
+		case BL_PC:
+			sd=(struct map_session_data *)src;
+			break;
+		case BL_MOB:
+			md=(struct mob_data *)src;
+			break;
+		case BL_PET:
+			pd=(struct pet_data *)src;
+			break;
+	}
+	switch (target->type)
+	{
+		case BL_PC:	
+			tsd=(struct map_session_data *)target;
+			if (pd) { //Pets can't target players
+				memset(&ad,0,sizeof(ad));	
+				return ad;
+			}
+			break;
+		case BL_MOB:
+			tmd=(struct mob_data *)target;
+			break;
+		case BL_PET://Cannot target pets
+			memset(&ad,0,sizeof(ad));	
+			return ad;
 	}
 
-	if(target->type == BL_PET) {
-		memset(&md,0,sizeof(md));
-		return md;
-	}
-
-	blewcount = skill_get_blewcount(skill_num,skill_lv);
-	div_=skill_get_num(skill_num,skill_lv);
-
-	matk1=status_get_matk1(bl);
-	matk2=status_get_matk2(bl);
-	ele = skill_get_pl(skill_num);
-	if (ele == -1) //Attack that takes weapon's element for magical attacks? Make it neutral (applies to ASC_BREAKER at least) [Skotlex]
-		ele = 0;
-	race = status_get_race(bl);
-	size = status_get_size(bl);
-	race2 = status_get_race2(bl);
-	mdef1 = status_get_mdef(target);
-	mdef2 = status_get_mdef2(target);
-	t_ele = status_get_elem_type(target);
-	t_race = status_get_race(target);
-	t_mode = status_get_mode(target);
-
-	md.amotion=status_get_amotion(bl);
-	md.dmotion=status_get_dmotion(target);
-
-#define MATK_FIX( a,b ) { matk1=matk1*(a)/(b); matk2=matk2*(a)/(b); }
-	if( bl->type==BL_PC && (sd=(struct map_session_data *)bl) ){
+	//Set miscellaneous data that needs be filled
+	if(sd) {
 		sd->state.attack_type = BF_MAGIC;
 		sd->state.arrow_atk = 0;
 	}
-	if( target->type==BL_PC )
-		tsd=(struct map_session_data *)target;
-	else if( target->type==BL_MOB )
-		tmd=(struct mob_data *)target;
 
-	aflag=BF_MAGIC|BF_LONG|BF_SKILL;
+	ad.flag=BF_MAGIC|BF_LONG|BF_SKILL;
 
-	if(skill_num > 0){
-		switch(skill_num){	// 基本ダメージ計算(スキルごとに処理)
-					// ヒールor聖体
-		case AL_HEAL:
-		case PR_BENEDICTIO:
-			damage = skill_calc_heal(bl,skill_lv)/2;
-			normalmagic_flag=0;
+	switch(skill_num)
+	{
+		case MG_FIREWALL:
+			if(mflag > 1 || t_ele==3 || battle_check_undead(t_race,t_ele)) {
+					ad.div_ = mflag; // mflag contains the number of hits against undead. [Skotlex]
+					ad.blewcount = 0;
+				} else
+					ad.blewcount |= 0x10000;
+					//ad.dmotion=0; // Firewall's delay is always none. [Skotlex], or maybe not?
 			break;
-		case PR_ASPERSIO:		/* アスペルシオ */
-			damage = 40; //固定ダメージ
-			normalmagic_flag=0;
+		case WZ_FIREPILLAR:
+			flag.imdef = 1;
 			break;
-		case PR_SANCTUARY:	// サンクチュアリ
-			damage = (skill_lv>6)?388:skill_lv*50;
-			normalmagic_flag=0;
-			blewcount|=0x10000;
+		case PR_SANCTUARY:
+			ad.blewcount|=0x10000;
 			break;
-		case ALL_RESURRECTION:
-		case PR_TURNUNDEAD:	// 攻撃リザレクションとターンアンデッド
-			if(target->type != BL_PC && battle_check_undead(t_race,t_ele)){
-				int hp, mhp, thres;
-				hp = status_get_hp(target);
-				mhp = status_get_max_hp(target);
-				thres = (skill_lv * 20) + status_get_luk(bl)+
-						status_get_int(bl) + status_get_lv(bl)+
-						((200 - hp * 200 / mhp));
-				if(thres > 700) thres = 700;
-//				if(battle_config.battle_log)
-//					printf("ターンアンデッド！ 確率%d ‰(千分率)\n", thres);
-				if(rand()%1000 < thres && !(t_mode&0x20))	// 成功
-					damage = hp;
-				else					// 失敗
-					damage = status_get_lv(bl) + status_get_int(bl) + skill_lv * 10;
-			}
-			normalmagic_flag=0;
-			break;
-
-		case MG_NAPALMBEAT:	// ナパームビート（分散計算込み）
-			skillratio+= skill_lv*10-30;
-			if(flag>0){
-				MATK_FIX(1,flag);
-			}else {
-				if(battle_config.error_log)
-					ShowError("battle_calc_magic_attack(): napalm enemy count=0 !\n");
-			}
-			break;
-
-		case MG_SOULSTRIKE:			/* ソウルストライク （対アンデッドダメージ補正）*/
-			if (battle_check_undead(t_race,t_ele))
-				skillratio+= 5*skill_lv;//MATKに補正じゃ駄目ですかね？
-			break;
-
-		case MG_FIREBALL:	// ファイヤーボール
-			{
-				const int drate[]={100,90,70};
-				if(flag>2)
-					matk1=matk2=0;
-				else
-					MATK_FIX( (70+skill_lv*10)*drate[flag] ,10000 );
-			}
-			break;
-
-		case MG_FIREWALL:	// ファイヤーウォール
-			if(flag > 1 || t_ele==3 || battle_check_undead(t_race,t_ele))
-			{	//flag contains the number of hits against undead. [Skotlex]
-				div_ = flag;
-				blewcount = 0;
-			}
-			else
-				blewcount |= 0x10000;
-//			md.dmotion=0; //Firewall's delay is always none. [Skotlex], or maybe not?
-			skillratio-= 50;
-			break;
-		case MG_THUNDERSTORM:	// サンダーストーム
-			skillratio-= 20;
-			break;
-		case MG_FROSTDIVER:	// フロストダイバ
-			skillratio+= skill_lv*10;
-			break;
-		case WZ_FROSTNOVA:	// フロストダイバ
-			skillratio+= (100+skill_lv*10)*2/3-100;
-			break;
-		case WZ_FIREPILLAR:	// ファイヤーピラー
-			mdef1=mdef2=0;	// MDEF無視
-			skillratio-= 80;
-			break;
-		case WZ_SIGHTRASHER:
-			skillratio+= skill_lv*20;
-			break;
-		case WZ_METEOR:
-		case WZ_JUPITEL:	// ユピテルサンダー
-			break;
-		case WZ_VERMILION:	// ロードオブバーミリオン
-			skillratio+= skill_lv*20-20;
-			break;
-		case WZ_WATERBALL:	// ウォーターボール
-			skillratio+= skill_lv*30;
-			break;
-		case WZ_STORMGUST:	// ストームガスト
-			skillratio+= skill_lv*40;
-			break;
-		case AL_HOLYLIGHT:	// ホーリーライト
-			skillratio+= 25;
-			break;
-		case AL_RUWACH:
-			skillratio+= 45;
-			break;
-
 		case NPC_GRANDDARKNESS:
 		case CR_GRANDCROSS:
 			skillratio+= 40*skill_lv;
 			break;
-		case HW_NAPALMVULCAN:	// ナパームビート（分散計算込み）
-			skillratio+= skill_lv*10-30;
-			if(flag>0){
-				MATK_FIX(1,flag);
-			}else {
-				if(battle_config.error_log)
-					ShowError("battle_calc_magic_attack(): napalmvulcan enemy count=0 !\n");
-			}
-			break;
-		case PF_SOULBURN: // Celest
-			if (target->type != BL_PC || skill_lv < 5) {
-				memset(&md,0,sizeof(md));
-				return md;
-			} else if (target->type == BL_PC) {
-				damage = ((struct map_session_data *)target)->status.sp * 2;
-				matk_flag = 0; // don't consider matk and matk2
-			}
-			break;
+		case PR_ASPERSIO:
 		case ASC_BREAKER:
-			damage = rand()%500 + 500 + skill_lv * status_get_int(bl) * 5;
-			matk_flag = 0; // don't consider matk and matk2
-			break;
+		case PF_SOULBURN:
 		case HW_GRAVITATION:
-			damage = 200 + skill_lv * 200;
-			normalmagic_flag = 0;
-			no_cardfix = 1;
-			no_elefix = 1;
+			flag.elefix = 0;
+			flag.cardfix = 0;
 			break;
-		}
 	}
 
-	if (sd && sd->skillatk[0] != 0)
+	if(is_boss(target)) //Bosses can't be knocked-back
+		ad.blewcount = 0;
+
+	//Initialize variables that will be used afterwards
+	t_race = status_get_race(target);
+	t_ele = status_get_elem_type(target);
+		
+	s_race = status_get_race(src);
+	s_ele = skill_get_pl(skill_num);
+
+	if (s_ele == -1) // pl=-1 : the skill takes the weapon's element
+		s_ele = status_get_attack_element(src);
+
+	if (skill_num == ASC_BREAKER) // Soul Breaker's magical part is neutral, although pl=-1 for the physical part to take weapon element
+		s_ele = 0;
+
+	if (!flag.infdef) //No need to do the math for plants
 	{
-		for (i = 0; i < 5 && sd->skillatk[i][0] != 0 && sd->skillatk[i][0] != skill_num; i++);
-		if (i < 5 && sd->skillatk[i][0] == skill_num)
-			//If we apply skillatk[] as ATK_RATE, it will also affect other skills,
-			//unfortunately this way ignores a skill's constant modifiers...
-			skillratio += sd->skillatk[i][1];
-	}
 
-	MATK_FIX(skillratio,100);
+//MATK_RATE scales the damage. 100 = no change. 50 is halved, 200 is doubled, etc
+#define MATK_RATE( a ) { ad.damage= ad.damage*(a)/100; }
+//Adds dmg%. 100 = +100% (double) damage. 10 = +10% damage
+#define MATK_ADDRATE( a ) { ad.damage+= ad.damage*(a)/100; }
+//Adds an absolute value to damage. 100 = +100 damage
+#define MATK_ADD( a ) { ad.damage+= a; }
 
-	//Constant/misc additions from skills
-	if (skill_num == WZ_FIREPILLAR) {
-			matk1+=50;
-			matk2+=50;
-	}
-
-	if(normalmagic_flag){	// 一般魔法ダメージ計算
-		int imdef_flag=0;
-		if (matk_flag) {
-			if(matk1>matk2)
-				damage= matk2+rand()%(matk1-matk2+1);
-			else
-				damage= matk2;
-		}
-		if(sd) {
-			if(sd->ignore_mdef_ele & (1<<t_ele) || sd->ignore_mdef_race & (1<<t_race))
-				imdef_flag = 1;
-			if(is_boss(target)) {
-				if(sd->ignore_mdef_race & (1<<10))
-					imdef_flag = 1;
+		mdef1 = status_get_mdef(target);
+		mdef2 = status_get_mdef2(target);
+	
+		switch (skill_num)
+			{	//Calc base damage according to skill
+				case AL_HEAL:
+				case PR_BENEDICTIO:
+					ad.damage = skill_calc_heal(src,skill_lv)/2;
+					break;
+				case PR_ASPERSIO:
+					ad.damage = 40;
+					break;
+				case PR_SANCTUARY:
+					ad.damage = (skill_lv>6)?388:skill_lv*50;
+					break;
+				case ALL_RESURRECTION:
+				case PR_TURNUNDEAD:
+					if(target->type != BL_PC && battle_check_undead(t_race,t_ele)){
+						int hp, mhp, thres;
+						hp = status_get_hp(target);
+						mhp = status_get_max_hp(target);
+						thres = (skill_lv * 20) + status_get_luk(src) + status_get_int(src) + status_get_lv(src) + ((200 - hp * 200 / mhp));
+						if(thres > 700) thres = 700;
+						if(rand()%1000 < thres && !(t_mode&0x20))
+							ad.damage = hp;
+						else
+							ad.damage = status_get_lv(src) + status_get_int(src) + skill_lv * 10;
+					}
+					break;
+				case PF_SOULBURN:
+					if (!sd || skill_lv < 5) {
+						memset(&ad,0,sizeof(ad));
+						return ad;
+					} else if (sd)
+						ad.damage = sd->status.sp * 2;
+					break;
+				case ASC_BREAKER:
+					ad.damage = rand()%500 + 500 + skill_lv * status_get_int(src) * 5;
+					break;
+				case HW_GRAVITATION:
+					ad.damage = 200+200*skill_lv;
+					break;
+				default:
+				{
+					unsigned short matkmin,matkmax;
+	
+					matkmin = status_get_matk2(src);
+					matkmax = status_get_matk1(src);
+	
+					MATK_ADD(matkmin);
+					if(matkmax>matkmin)
+						MATK_ADD(rand()%(matkmax-matkmin+1));
+	
+					if(skill_num == MG_NAPALMBEAT || skill_num == HW_NAPALMVULCAN){ // Divide MATK in case of multiple targets skill
+						if(mflag>0)
+							ad.damage/= mflag;
+						else if(battle_config.error_log)
+							ShowError("0 enemies targeted by Napalm Beat/Vulcan, divide per 0 avoided!\n");
+					}
+	
+					switch(skill_num){
+						case MG_NAPALMBEAT:
+							skillratio += skill_lv*10-30;
+							break;
+						case MG_SOULSTRIKE:
+							if (battle_check_undead(t_race,t_ele))
+								skillratio += 5*skill_lv;
+							break;
+						case MG_FIREBALL:
+							if(mflag>2)
+								ad.damage = 0;
+							else {
+								int drate[]={100,90,70};
+								MATK_RATE(drate[mflag]/100);
+								skillratio += 70+10*skill_lv;
+							}
+							break;
+						case MG_FIREWALL:
+							skillratio -= 50;
+							break;
+						case MG_THUNDERSTORM:
+							skillratio -= 20;
+							break;
+						case MG_FROSTDIVER:
+							skillratio += 10*skill_lv;
+							break;
+						case AL_HOLYLIGHT:
+							skillratio += 25;
+							break;
+						case AL_RUWACH:
+							skillratio += 45;
+							break;
+						case WZ_FROSTNOVA:
+							skillratio += (100+skill_lv*10)*2/3-100;
+							break;
+						case WZ_FIREPILLAR:
+							skillratio -= 80;
+							break;
+						case WZ_SIGHTRASHER:
+							skillratio += 20*skill_lv;
+							break;
+						case WZ_VERMILION:
+							skillratio += 20*skill_lv-20;
+							break;
+						case WZ_WATERBALL:
+							skillratio += 30*skill_lv;
+							break;
+						case WZ_STORMGUST:
+							skillratio += 40*skill_lv;
+							break;
+						case HW_NAPALMVULCAN:
+							skillratio += 10*skill_lv-30;
+							break;
+					}
+	
+					if (sd && sd->skillatk[0] != 0)
+					{
+						for (i = 0; i < 5 && sd->skillatk[i][0] != 0 && sd->skillatk[i][0] != skill_num; i++);
+						if (i < 5 && sd->skillatk[i][0] == skill_num)
+							//If we apply skillatk[] as ATK_RATE, it will also affect other skills,
+							//unfortunately this way ignores a skill's constant modifiers...
+							skillratio += sd->skillatk[i][1];
+					}
+	
+					MATK_RATE(skillratio);
+				
+					//Constant/misc additions from skills
+					if (skill_num == WZ_FIREPILLAR)
+						MATK_ADD(50);
+				}
 			}
-			else {
-				if(sd->ignore_mdef_race & (1<<11))
-					imdef_flag = 1;
+
+
+			if(sd) {
+				//Ignore Defense?
+				if (!flag.imdef && (
+					sd->ignore_mdef_ele & (1<<t_ele) ||
+					sd->ignore_mdef_race & (1<<t_race) ||
+					sd->ignore_mdef_race & (is_boss(target)?1<<10:1<<11)
+					))
+					flag.imdef = 1;
+			}
+
+			if(!flag.imdef){
+				if(battle_config.magic_defense_type)
+					ad.damage = ad.damage - (mdef1 * battle_config.magic_defense_type) - mdef2;
+				else
+					ad.damage = (ad.damage*(100-mdef1))/100 - mdef2;
+			}
+
+			if(ad.damage<1)
+				ad.damage=1;
+
+			if(skill_num == CR_GRANDCROSS || skill_num == NPC_GRANDDARKNESS)
+			{	//Apply the physical part of the skill's damage. [Skotlex]
+				int damage2 = status_get_batk(src);
+				damage2 += damage2*40*skill_lv/100;
+				damage2 = damage2*status_get_def(target)/100 - status_get_def2(target);
+				if (damage2 < 1) damage2 = 1;
+				ad.damage+=damage2;
+				if(src==target && src->type == BL_MOB)
+					ad.damage = 0;
+			}
+
+			if (flag.elefix)
+				ad.damage=battle_attr_fix(src, target, ad.damage, s_ele, t_ele);
+
+			if (sd && flag.cardfix) {
+				short t_class = status_get_class(target);
+				short cardfix=100;
+
+				cardfix=cardfix*(100+sd->magic_addrace[t_race])/100;
+				cardfix=cardfix*(100+sd->magic_addele[t_ele])/100;
+				cardfix=cardfix*(100+sd->magic_addrace[is_boss(target)?10:11])/100;
+				for(i=0;i<sd->add_magic_damage_class_count;i++) {
+					if(sd->add_magic_damage_classid[i] == t_class) {
+						cardfix=cardfix*(100+sd->add_magic_damage_classrate[i])/100;
+						break;
+					}
+				}
+				MATK_RATE(cardfix);
+			}
+
+			if (tsd && flag.cardfix) {
+				short s_size,s_race2,s_class;
+				short cardfix=100;
+
+				s_size = status_get_size(src);
+				s_race2 = status_get_race2(src);
+				s_class = status_get_class(src);
+
+				cardfix=cardfix*(100-tsd->subele[s_ele])/100;
+				cardfix=cardfix*(100-tsd->subrace[s_race])/100;
+				cardfix=cardfix*(100-tsd->subsize[s_size])/100;
+				cardfix=cardfix*(100-tsd->magic_subrace[s_race])/100;
+				cardfix=cardfix*(100-tsd->subrace2[s_race2])/100;
+				cardfix=cardfix*(100-tsd->magic_subrace[is_boss(src)?10:11])/100;
+				for(i=0;i<tsd->add_mdef_class_count;i++) {
+					if(tsd->add_mdef_classid[i] == s_class) {
+						cardfix=cardfix*(100-tsd->add_mdef_classrate[i])/100;
+						break;
+					}
+				}
+				cardfix=cardfix*(100-tsd->magic_def_rate)/100;
+				MATK_RATE(cardfix);
 			}
 		}
-		if(!imdef_flag){
-			if(battle_config.magic_defense_type) {
-				damage = damage - (mdef1 * battle_config.magic_defense_type) - mdef2;
-			}
-			else{
-			damage = (damage*(100-mdef1))/100 - mdef2;
-			}
-		}
 
-		if(damage<1)
-			damage=1;
-	}
-
-	if(skill_num == CR_GRANDCROSS || skill_num == NPC_GRANDDARKNESS)
-	{	//Apply the physical part of the skill's damage. [Skotlex]
-		int damage2 = status_get_batk(bl);
-		damage2 += damage2*40*skill_lv/100;
-		damage2 = damage2*status_get_def(target)/100 - status_get_def2(target);
-		if (damage2 < 1) damage2 = 1;
-		damage+=damage2;
-		if(bl==target && bl->type == BL_MOB)
-			damage = 0;
-	}
-
-	if (sd && !no_cardfix) {
-		cardfix=100;
-		cardfix=cardfix*(100+sd->magic_addrace[t_race])/100;
-		cardfix=cardfix*(100+sd->magic_addele[t_ele])/100;
-		if(is_boss(target))
-			cardfix=cardfix*(100+sd->magic_addrace[10])/100;
-		else
-			cardfix=cardfix*(100+sd->magic_addrace[11])/100;
-		t_class = status_get_class(target);
-		for(i=0;i<sd->add_magic_damage_class_count;i++) {
-			if(sd->add_magic_damage_classid[i] == t_class) {
-				cardfix=cardfix*(100+sd->add_magic_damage_classrate[i])/100;
-				break;
-			}
-		}
-		damage=damage*cardfix/100;
-		if (skill_num > 0 && sd->skillatk[0][0] != 0)
-		{
-			for (i = 0; i < 5 && sd->skillatk[i][0] != 0 && sd->skillatk[i][0] != skill_num; i++);
-			if (i < 5 && sd->skillatk[i][0] == skill_num)
-				damage += damage*sd->skillatk[i][1]/100;
-		}
-	}
-
-	if (tsd && !no_cardfix) {
-		int s_class = status_get_class(bl);
-		cardfix=100;
-		cardfix=cardfix*(100-tsd->subele[ele])/100;	// 属 性によるダメージ耐性
-		cardfix=cardfix*(100-tsd->subrace[race])/100;	// 種族によるダメージ耐性
-		cardfix=cardfix*(100-tsd->subsize[size])/100;
-		cardfix=cardfix*(100-tsd->magic_subrace[race])/100;
-		cardfix=cardfix*(100-tsd->subrace2[race2])/100;	// 種族によるダメージ耐性
-		if(is_boss(bl))
-			cardfix=cardfix*(100-tsd->magic_subrace[10])/100;
-		else
-			cardfix=cardfix*(100-tsd->magic_subrace[11])/100;
-		for(i=0;i<tsd->add_mdef_class_count;i++) {
-			if(tsd->add_mdef_classid[i] == s_class) {
-				cardfix=cardfix*(100-tsd->add_mdef_classrate[i])/100;
-				break;
-			}
-		}
-		cardfix=cardfix*(100-tsd->magic_def_rate)/100;
-		damage=damage*cardfix/100;
-	}
-	if(damage < 0) damage = 0;
-
-	if (!no_elefix)
-		damage=battle_attr_fix(bl, target, damage, ele, status_get_element(target) );		// 属 性修正
-
-
-	if(div_>1 && skill_num != WZ_VERMILION)
-		damage*=div_;
-
-	if(t_mode&0x40 && damage > 0) //Ishizu pointed out that magical attacks do as much damage as their div on plants. [Skotlex]
-		damage = div_;
-
-	if(is_boss(target))
-		blewcount = 0;
+	if(flag.infdef && ad.damage > 0) //Ishizu pointed out that magical attacks do as much damage as their div on plants. [Skotlex]
+		ad.damage = ad.div_;
+	else if(ad.div_>1 && skill_num != WZ_VERMILION)
+		ad.damage *= ad.div_;
 
 	if (tsd && status_isimmune(target)) {
 		if (sd && battle_config.gtb_pvp_only != 0)  { // [MouseJstr]
-			damage = (damage * (100 - battle_config.gtb_pvp_only)) / 100;
-		} else damage = 0;	// 黄 金蟲カード（魔法ダメージ０）
+			MATK_RATE(100 - battle_config.gtb_pvp_only);
+		} else ad.damage = 0;
 	}
 
-	damage=battle_calc_damage(bl,target,damage,div_,skill_num,skill_lv,aflag);	// 最終修正
+	ad.damage=battle_calc_damage(src,target,ad.damage,ad.div_,skill_num,skill_lv,mflag);
 
 	// magic_damage_return by [AppleGirl] and [Valaris] - changed to x% chance to return 100% dmg instead of 100% chance to return x% dmg [DracoRPG]
-	if(damage > 0 && target->type==BL_PC && tsd && tsd->magic_damage_return > 0 && rand()%100 < tsd->magic_damage_return){
-			clif_damage(target,bl,gettick(),0,0,damage,0,0,0);
-			battle_damage(target,bl,damage,1,0);
+	if(ad.damage > 0 && target->type==BL_PC && tsd && tsd->magic_damage_return > 0 && rand()%100 < tsd->magic_damage_return){
+			clif_damage(target,src,gettick(),0,0,ad.damage,0,0,0);
+			battle_damage(target,src,ad.damage,1,0);
 	}
 
-	md.damage=damage;
-	md.div_=div_;
-	md.damage2=0;
-	md.type=0;
-	md.blewcount=blewcount;
-	md.flag=aflag;
-
-	return md;
+	return ad;
 }
 
 /*==========================================

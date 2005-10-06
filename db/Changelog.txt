@@ -33,6 +33,10 @@
 	--
 
 10/06
+	* Added skill data for various skills (second class quest skills and
+	  several Tae-Kwon related jobs. All the info was acquired by Draco from
+	  jA's information. [Skotlex]
+	* Made Spiral Pierce non-interruptable. [Skotlex]
 	* Implemented 4198,Maya_Purple_Card effect. Thanks to jA team! [Lupus]
 	- There's a special Intravision timer also. So that "Box to see hidden mobs" could be implemented now
 10/05

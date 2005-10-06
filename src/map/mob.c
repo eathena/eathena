@@ -519,7 +519,7 @@ static int mob_walk(struct mob_data *md,unsigned int tick,int data)
 
 		x += dx;
 		y += dy;
-		if(md->min_chase>13)
+		if(md->min_chase>md->db->range2)
 			md->min_chase--;
 
 		skill_unit_move(&md->bl,tick,2);
@@ -560,7 +560,7 @@ static int mob_attack(struct mob_data *md,unsigned int tick,int data)
 
 	nullpo_retr(0, md);
 
-	md->min_chase=13;
+	md->min_chase=md->db->range3;
 	md->state.state=MS_IDLE;
 	md->state.skillstate=MSS_IDLE;
 
@@ -573,7 +573,7 @@ static int mob_attack(struct mob_data *md,unsigned int tick,int data)
 		return 0;
 	}
 
-	if (distance(md->bl.x,md->bl.y,tbl->x,tbl->y)>=13 ){
+	if (distance(md->bl.x,md->bl.y,tbl->x,tbl->y)>=md->db->range3){
 		mob_stopattack(md);
 		return 0;
 	}
@@ -1105,55 +1105,35 @@ int mob_can_reach(struct mob_data *md,struct block_list *bl,int range)
  */
 int mob_target(struct mob_data *md,struct block_list *bl,int dist)
 {
-	struct map_session_data *sd;
-	struct status_change *sc_data;
-	short *option;
-	int mode,race;
+	int mode;
 
 	nullpo_retr(0, md);
 	nullpo_retr(0, bl);
-
-	sc_data = status_get_sc_data(bl);
-	option = status_get_option(bl);
-	race= md->db->race;
 
 	if(!md->mode)
 		mode=md->db->mode;
 	else
 		mode=md->mode;
 
-	if(!(mode&0x80)) {
-		md->target_id = 0;
-		return 0;
-	}
 	// Nothing will be carried out if there is no mind of changing TAGE by TAGE ending.
 	if( (md->target_id > 0 && md->state.targettype == ATTACKABLE) && (!(mode&0x04) || rand()%100>25) &&
 		// if the monster was provoked ignore the above rule [celest]
 		!(md->state.provoke_flag && md->state.provoke_flag == bl->id))
 		return 0;
 
-	if(mode&0x20 ||	// Coercion is exerted if it is MVPMOB.
-		(sc_data && sc_data[SC_TRICKDEAD].timer == -1 && sc_data[SC_BASILICA].timer == -1 &&
-		 ( (option && !(*option&0x06) ) || race==4 || race==6 || mode&0x100 ) ) ) {
-		if(bl->type == BL_PC) {
-			nullpo_retr(0, sd = (struct map_session_data *)bl);
-			if(sd->invincible_timer != -1 || pc_isinvisible(sd))
-				return 0;
-			if(!(mode&0x20) && race!=4 && race!=6 && !(mode&0x100) && sd->state.gangsterparadise)
-				return 0;
-		}
+	if(!battle_check_attackable(&md->bl, bl))
+		return 0;
 
-		md->target_id = bl->id;	// Since there was no disturbance, it locks on to target.
-		if(bl->type == BL_PC || bl->type == BL_MOB)
-			md->state.targettype = ATTACKABLE;
-		else
-			md->state.targettype = NONE_ATTACKABLE;
-		if (md->state.provoke_flag)
-			md->state.provoke_flag = 0;
-		md->min_chase=dist+13;
-		if(md->min_chase>26)
-			md->min_chase=26;
-	}
+	md->target_id = bl->id;	// Since there was no disturbance, it locks on to target.
+	if(bl->type == BL_PC || bl->type == BL_MOB)
+		md->state.targettype = ATTACKABLE;
+	else
+		md->state.targettype = NONE_ATTACKABLE;
+	if (md->state.provoke_flag)
+		md->state.provoke_flag = 0;
+	md->min_chase=dist+md->db->range2;
+	if(md->min_chase>26)
+		md->min_chase=26;
 	return 0;
 }
 
@@ -1245,7 +1225,7 @@ static int mob_ai_sub_hard_linksearch(struct block_list *bl,va_list ap)
 			md->target_id = target->id;
 			md->attacked_count = 0;
 			md->state.targettype = ATTACKABLE;
-			md->min_chase=13;
+			md->min_chase=md->db->range3;
 			return 1;
 		}
 	}
@@ -1341,7 +1321,7 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 		if(sd && battle_check_attackable(&md->bl, &sd->bl)) {
 			md->target_id=sd->bl.id;
 			md->state.targettype = ATTACKABLE;
-			md->min_chase=5+distance(md->bl.x,md->bl.y,sd->bl.x,sd->bl.y);
+			md->min_chase=md->db->range2+distance(md->bl.x,md->bl.y,sd->bl.x,sd->bl.y);
 		}
 	}
 
@@ -1530,7 +1510,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 					md->state.targettype = ATTACKABLE;
 					attack_type = 1;
 					md->attacked_id = md->attacked_count = 0;
-					md->min_chase = dist + md->db->range3;
+					md->min_chase = dist + md->db->range2;
 					if (md->min_chase > 26)
 						md->min_chase = 26;
 					tbl = abl; //Set the new target
@@ -1605,7 +1585,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 					distance(md->to_x, md->to_y, tbl->x, tbl->y) < 2)) {
 					return 0; //No need to follow, already doing it?
 				}
-				search_size = (blind_flag) ? 3 : ((md->min_chase > md->db->range3) ? md->min_chase : md->db->range3);
+				search_size = (blind_flag) ? 3 : ((md->min_chase > md->db->range2) ? md->min_chase : md->db->range2);
 				if (!mob_can_reach(md, tbl, search_size))
 				{	//Can't reach
 					mob_unlocktarget(md,tick);
