@@ -24,7 +24,7 @@ public:
 
 	static int SwitchValue(const char *str, int defaultmin=INT_MIN, int defaultmax=INT_MAX);  // Return 0/1 for no/yes
 	static bool Switch(const char *str, bool defaultval=false);		// Return true/false for yes/no, if unknown return defaultval
-	
+
 	static bool CleanControlChars(char *str);						// Replace control chars with '_' and return location of change
 };
 
@@ -141,7 +141,7 @@ public:
 	CCharAccount()	{}
 	CCharAccount(uint32 aid):CMapAccount(aid)	{}
 	~CCharAccount()	{}
-	
+
 	///////////////////////////////////////////////////////////////////////////
 	// buffer transfer
 	size_t size() const	{ return sizeof(email)+CMapAccount::size();	}	// Return size of class
@@ -161,9 +161,7 @@ class CLoginAccount : public CCharAccount
 public:
 	char userid[24];
 	char passwd[34];
-	unsigned char state;
 	unsigned char online;
-	uint32 login_count;
 	char last_ip[16];
 	char last_login[24];
 	char error_message[24];
@@ -184,7 +182,6 @@ public:
 		else
 			safestrcpy(this->email, em, 40);
 		this->gm_level=0;
-		this->login_count=0;
 		*this->last_login= 0;
 		this->ban_until = 0;
 		this->valid_until = 0;
@@ -201,12 +198,12 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// compare for Multilist
-	int compare(const CLoginAccount& c, size_t i=0) const	
+	int compare(const CLoginAccount& c, size_t i=0) const
 	{
 		if(i==0)
 			return (account_id - c.account_id);
 		else
-			return strcmp(this->userid, c.userid); 
+			return strcmp(this->userid, c.userid);
 	}
 
 	// no buffer transfer necessary
@@ -225,7 +222,7 @@ public:
 	CCharCharAccount()		{}
 	~CCharCharAccount()		{}
 	CCharCharAccount(const CCharAccount& c) : CCharAccount(c)	{ memset(charlist,0,sizeof(charlist)); }
-	
+
 
 	///////////////////////////////////////////////////////////////////////////
 	// creation and sorting by accountid
@@ -264,12 +261,12 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// compare for Multilist
-	int compare(const CCharCharacter& c, size_t i=0) const	
+	int compare(const CCharCharacter& c, size_t i=0) const
 	{
 		if(i==0)
 			return (this->char_id - c.char_id);
 		else
-			return strcmp(this->name, c.name); 
+			return strcmp(this->name, c.name);
 	}
 
 };
@@ -323,7 +320,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 // Dynamic Account Database Implementation
 // does create a realisation of a specific database implementation internally
-//!! todo remove the txtonly/sqlonly options and combine it for config choosing; 
+//!! todo remove the txtonly/sqlonly options and combine it for config choosing;
 //!! todo integrate it with the txt->sql/sql->txt converters
 ///////////////////////////////////////////////////////////////////////////////
 class CAccountDB : public CAccountDBInterface
@@ -401,7 +398,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 // Dynamic Account Database Implementation
 // does create a realisation of a specific database implementation internally
-//!! todo remove the txtonly/sqlonly options and combine it for config choosing; 
+//!! todo remove the txtonly/sqlonly options and combine it for config choosing;
 //!! todo integrate it with the txt->sql/sql->txt converters
 ///////////////////////////////////////////////////////////////////////////////
 class CCharDB : public CCharDBInterface

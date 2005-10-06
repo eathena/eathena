@@ -739,7 +739,7 @@ int parse_fromchar(int fd)
 
 			if( account_db.searchAccount(accid, account) )
 			{
-				if(account.state != status)
+				if(0)
 				{
 					login_log("Char-server '%s': Status change (account: %d, new status %d, ip: %s)." RETCODE,
 						server[id].name, accid, status, ip_str);
@@ -755,7 +755,6 @@ int parse_fromchar(int fd)
 						account.login_id1++; // to avoid reconnection error when come back from map-server (char-server will ask again the authentification)
 					}
 
-					account.state = status;
 					// Save
 					account_db.saveAccount(account);
 				}
@@ -1137,11 +1136,11 @@ int parse_admin(int fd)
 					WFIFOB(fd,len+4) = account.gm_level;
 					memcpy(WFIFOP(fd,len+5), account.userid, 24);
 					WFIFOB(fd,len+29) = account.sex;
-					WFIFOL(fd,len+30) = account.login_count;
-					if(account.state == 0 && account.ban_until != 0) // if no state and banished
+					WFIFOL(fd,len+30) = 0;
+					if(account.ban_until != 0) // if banished
 						WFIFOL(fd,len+34) = 7; // 6 = Your are Prohibited to log in until %s
 					else
-						WFIFOL(fd,len+34) = account.state;
+						WFIFOL(fd,len+34) = 0;
 					len += 38;
 				}
 			}
@@ -1319,7 +1318,7 @@ int parse_admin(int fd)
 					memcpy(WFIFOP(fd,6), account.userid, 24);
 					WFIFOL(fd,2) = account.account_id;
 
-					if( account.state == status && 0==strcmp(account.error_message, error_message) )
+					if( 0==strcmp(account.error_message, error_message) )
 					{
 						login_log("'ladmin': Modification of a state, but the state of the account is already the good state (account: %s, received state: %d, ip: %s)" RETCODE,
 							userid, status, ip_str);
@@ -1336,7 +1335,7 @@ int parse_admin(int fd)
 							login_log("'ladmin': Modification of a state (account: %s, new state: %d, ip: %s)" RETCODE,
 								account.userid, status, ip_str);
 						}
-						if( account.state == 0)
+						if(0)
 						{
 							unsigned char buf[16];
 							WBUFW(buf,0) = 0x2731;
@@ -1346,7 +1345,6 @@ int parse_admin(int fd)
 							charif_sendallwos(-1, buf, 11);
 							account.login_id1++; // to avoid reconnection error when come back from map-server (char-server will ask again the authentification)
 						}
-						account.state = status;
 						safestrcpy(account.error_message, error_message, sizeof(account.error_message));
 						account_db.saveAccount(account);
 					}
@@ -2027,8 +2025,8 @@ int parse_admin(int fd)
 				WFIFOB(fd,6) = account.gm_level;
 				memcpy(WFIFOP(fd,7), account.userid, 24);
 				WFIFOB(fd,31) = account.sex;
-				WFIFOL(fd,32) = account.login_count;
-				WFIFOL(fd,36) = account.state;
+				WFIFOL(fd,32) = 0;
+				WFIFOL(fd,36) = 0;
 				memcpy(WFIFOP(fd,40), account.error_message, 20);
 				memcpy(WFIFOP(fd,60), account.last_login, 24);
 				memcpy(WFIFOP(fd,84), account.last_ip, 16);
@@ -2075,8 +2073,8 @@ int parse_admin(int fd)
 				WFIFOB(fd,6) = account.gm_level;
 				memcpy(WFIFOP(fd,7), account.userid, 24);
 				WFIFOB(fd,31) = account.sex;
-				WFIFOL(fd,32) = account.login_count;
-				WFIFOL(fd,36) = account.state;
+				WFIFOL(fd,32) = 0;
+				WFIFOL(fd,36) = 0;
 				memcpy(WFIFOP(fd,40), account.error_message, 20);
 				memcpy(WFIFOP(fd,60), account.last_login, 24);
 				memcpy(WFIFOP(fd,84), account.last_ip, 16);
@@ -2311,8 +2309,6 @@ int parse_login(int fd)
 						// update account information
 						timestamp2string(account.last_login, sizeof(account.last_login));
 						ipaddress(client_ip).getstring(account.last_ip);
-						account.login_count++;
-						account.state = 0;
 
 						// save
 						account_db.saveAccount(account);

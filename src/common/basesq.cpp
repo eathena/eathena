@@ -160,9 +160,9 @@ bool CAccountDB_sql::searchAccount(const char* userid, CLoginAccount& account)
 		MYSQL_RES *sql_res1=NULL, *sql_res2=NULL;
 //!! get auth from db
 		escape_string(uid, userid, strlen(userid));
-		sz=sprintf(query, "SELECT `account_id`,`userid`,`user_pass`,`lastlogin`,`logincount`,`sex`,`connect_until`,`last_ip`,`ban_until`,`state`,`level`,`email`"
+		sz=sprintf(query, "SELECT `account_id`,`userid`,`user_pass`,`last_login`,`sex`,`valid_until`,`login_ip`,`ban_until`,`gm_level`,`email`"
 						" FROM `%s` WHERE %s `userid`='%s'", login_auth_db, case_sensitive ? "BINARY" : "", uid);
-		//login {0-account_id/1-userid/2-user_pass/3-lastlogin/4-logincount/5-sex/6-connect_untl/7-last_ip/8-ban_until/9-state/10-gmlevel/11-email}
+		//login {0-account_id/1-userid/2-user_pass/3-last_login/4-sex/5-connect_untl/6-login_ip/7-ban_until/8-gmlevel/9-email}
 		if( this->mysql_SendQuery(sql_res1, query, sz) )
 		{
 			MYSQL_ROW sql_row = mysql_fetch_row(sql_res1);	//row fetching
@@ -173,14 +173,12 @@ bool CAccountDB_sql::searchAccount(const char* userid, CLoginAccount& account)
 				safestrcpy(account.userid, userid, 24);
 				safestrcpy(account.passwd, sql_row[2]?sql_row[2]:"", 32);
 				safestrcpy(account.last_login, sql_row[3]?sql_row[3]:"" , 24);
-				account.login_count = sql_row[4]?atol( sql_row[4]):0;
-				account.sex = sql_row[5][0] == 'S' ? 2 : sql_row[5][0]=='M';
-				account.valid_until = (time_t)(sql_row[6]?atol(sql_row[6]):0);
-				safestrcpy(account.last_ip, sql_row[7], 16);
-				account.ban_until = (time_t)(sql_row[8]?atol(sql_row[8]):0);;
-				account.state = sql_row[9]?atol(sql_row[9]):0;;
-				account.gm_level = sql_row[10]?atoi( sql_row[10]):0;
-				safestrcpy(account.email, sql_row[11]?sql_row[11]:"" , 40);
+				account.sex = sql_row[4][0] == 'S' ? 2 : sql_row[4][0]=='M';
+				account.valid_until = (time_t)(sql_row[5]?atol(sql_row[5]):0);
+				safestrcpy(account.last_ip, sql_row[6], 16);
+				account.ban_until = (time_t)(sql_row[7]?atol(sql_row[7]):0);;
+				account.gm_level = sql_row[8]?atoi( sql_row[8]):0;
+				safestrcpy(account.email, sql_row[9]?sql_row[9]:"" , 40);
 
 				sz = sprintf(query, "SELECT `str`,`value` FROM `%s` WHERE `account_id`='%ld'", login_reg_db, (unsigned long)account.account_id);
 				if( this->mysql_SendQuery(sql_res2, query, sz) )
@@ -210,9 +208,9 @@ bool CAccountDB_sql::searchAccount(uint32 accid, CLoginAccount& account)
 	char query[4096];
 	MYSQL_RES *sql_res1=NULL, *sql_res2=NULL;
 //!! get auth from db
-	sz=sprintf(query, "SELECT `account_id`,`userid`,`user_pass`,`lastlogin`,`logincount`,`sex`,`connect_until`,`last_ip`,`ban_until`,`state`,`level`,`email`"
+	sz=sprintf(query, "SELECT `account_id`,`userid`,`user_pass`,`last_login`,`sex`,`valid_until`,`login_ip`,`ban_until`,`gm_level`,`email`"
 	                " FROM `%s` WHERE `account_id`='%s'", login_auth_db, accid);
-	//login {0-account_id/1-userid/2-user_pass/3-lastlogin/4-logincount/5-sex/6-connect_untl/7-last_ip/8-ban_until/9-state/10-gmlevel/11-email}
+	//login {0-account_id/1-userid/2-user_pass/3-last_login/4-sex/5-connect_untl/6-login_ip/7-ban_until/8-gmlevel/9-email}
 	if( this->mysql_SendQuery(sql_res1, query, sz) )
 	{
 		MYSQL_ROW sql_row = mysql_fetch_row(sql_res1);	//row fetching
@@ -223,14 +221,12 @@ bool CAccountDB_sql::searchAccount(uint32 accid, CLoginAccount& account)
 			safestrcpy(account.userid, sql_row[1]?sql_row[1]:"", 24);
 			safestrcpy(account.passwd, sql_row[2]?sql_row[2]:"", 32);
 			safestrcpy(account.last_login, sql_row[3]?sql_row[3]:"" , 24);
-			account.login_count = sql_row[4]?atol( sql_row[4]):0;
-			account.sex = sql_row[5][0] == 'S' ? 2 : sql_row[5][0]=='M';
-			account.valid_until = (time_t)(sql_row[6]?atol(sql_row[6]):0);
-			safestrcpy(account.last_ip, sql_row[7], 16);
-			account.ban_until = (time_t)(sql_row[8]?atol(sql_row[8]):0);;
-			account.state = sql_row[9]?atol(sql_row[9]):0;;
-			account.gm_level = sql_row[10]?atoi( sql_row[10]):0;
-			safestrcpy(account.email, sql_row[11]?sql_row[11]:"" , 40);
+			account.sex = sql_row[4][0] == 'S' ? 2 : sql_row[4][0]=='M';
+			account.valid_until = (time_t)(sql_row[5]?atol(sql_row[5]):0);
+			safestrcpy(account.last_ip, sql_row[6], 16);
+			account.ban_until = (time_t)(sql_row[7]?atol(sql_row[7]):0);;
+			account.gm_level = sql_row[9]?atoi( sql_row[9]):0;
+			safestrcpy(account.email, sql_row[10]?sql_row[10]:"" , 40);
 
 
 			sz = sprintf(query, "SELECT `str`,`value` FROM `%s` WHERE `account_id`='%ld'", login_reg_db, (unsigned long)account.account_id);
@@ -423,11 +419,10 @@ bool CAccountDB_sql::saveAccount(const CLoginAccount& account)
 	sz = sprintf(query, "UPDATE `%s` SET "
 		"`userid` = '%s', "
 		"`user_pass` = '%d', "
-		"`level` = '%d', "
-		"`logincount` = '%ld', "
+		"`gm_level` = '%d', "
 		"`sex` = '%c', "
-		"`last_ip` = '%s', "
-		"`connect_until` = '%ld', "
+		"`login_ip` = '%s', "
+		"`valid_until` = '%ld', "
 		"`ban_until` = '%ld', "
 		"`email` = '%s', "
 		"WHERE `account_id` = '%ld'",
@@ -435,7 +430,6 @@ bool CAccountDB_sql::saveAccount(const CLoginAccount& account)
 		account.userid,
 		account.passwd,
 		account.gm_level,
-		(unsigned long)account.login_count,
 		(account.sex==1)? 'M':'F',
 		account.last_ip,
 		(unsigned long)account.valid_until,
