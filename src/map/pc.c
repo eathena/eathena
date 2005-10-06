@@ -2526,21 +2526,27 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 
 	if(item == NULL)
 		return 0;
+	//Not consumable item
 	if(item->type != 0 && item->type != 2)
 		return 0;
+	//Anodyne (can't use Anodyne's Endure at GVG)
 	if((nameid == 605) && map[sd->bl.m].flag.gvg)
 		return 0;
+	//Fly Wing (can't use at GVG and when noteleport flag is on)
 	if(nameid == 601 && (map[sd->bl.m].flag.noteleport || map[sd->bl.m].flag.gvg)) {
 		clif_skill_teleportmessage(sd,0);
 		return 0;
 	}
+	//Butterfly Wing (can't use noreturn flag is on)
 	if(nameid == 602 && map[sd->bl.m].flag.noreturn)
 		return 0;
-	//Dead Branch & Bloody Branch
-	if((nameid == 604 || nameid == 12103) && (map[sd->bl.m].flag.nobranch || map[sd->bl.m].flag.gvg))
+	//Dead Branch & Bloody Branch & Porings Box (can't use at GVG and when nobranch flag is on)
+	if((nameid == 604 || nameid == 12103 || nameid == 12109) && (map[sd->bl.m].flag.nobranch || map[sd->bl.m].flag.gvg))
 		return 0;
+	//Gender check
 	if(item->sex != 2 && sd->status.sex != item->sex)
 		return 0;
+	//Required level check
 	if(item->elv > 0 && sd->status.base_level < item->elv)
 		return 0;
 
@@ -2548,8 +2554,8 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 	//Note that items for mounted chars alone will never be usable as items for non-mounted chars apply to both mounted/non-mounted chars.
 	if ((1<<(pc_calc_base_job2(sd->status.class_)) & item->class_) == 0)
 		return 0;
-	//Dead Branch & Bloody Branch
-	if((log_config.branch > 0) && (nameid == 604 || nameid == 12103))
+	//Dead Branch & Bloody Branch & Porings Box
+	if((log_config.branch > 0) && (nameid == 604 || nameid == 12103 || nameid == 12109))
 		log_branch(sd);
 
 	return 1;
@@ -3612,7 +3618,7 @@ int pc_checkequip(struct map_session_data *sd,int pos)
 struct pc_base_job pc_calc_base_job(int b_class)
 {
 	struct pc_base_job bj;
-	if(b_class < JOB_NOVICE_HIGH || (b_class >= JOB_TAEKWON && b_class <= JOB_SOUL_LINKER)){
+	if(b_class < JOB_NOVICE_HIGH){
 		if (b_class == JOB_KNIGHT2)
 			bj.job = JOB_KNIGHT;
 		else if (b_class == JOB_CRUSADER2)
@@ -3628,6 +3634,12 @@ struct pc_base_job pc_calc_base_job(int b_class)
 		else
 			bj.job = b_class - JOB_NOVICE_HIGH;
 		bj.upper = 1;
+	}else if(b_class >= JOB_TAEKWON && b_class <= JOB_SOUL_LINKER){
+		if (b_class == JOB_STAR_GLADIATOR2)
+			bj.job = 24 + JOB_STAR_GLADIATOR - JOB_TAEKWON;
+		else
+			bj.job = 24 + b_class - JOB_TAEKWON;
+		bj.upper = 0;
 	}else{	//Baby Classes
 		if (b_class == JOB_SUPER_BABY)
 			bj.job = JOB_SUPER_NOVICE;
@@ -3657,7 +3669,7 @@ struct pc_base_job pc_calc_base_job(int b_class)
  */
 int pc_calc_base_job2 (int b_class)
 {
-	if(b_class < JOB_NOVICE_HIGH || (b_class >= JOB_TAEKWON && b_class <= JOB_SOUL_LINKER))
+	if(b_class < JOB_NOVICE_HIGH)
 	{
 		if (b_class == JOB_KNIGHT2)
 			return JOB_KNIGHT;
@@ -3673,6 +3685,12 @@ int pc_calc_base_job2 (int b_class)
 			return JOB_CRUSADER;
 		return b_class - JOB_NOVICE_HIGH;
 	}
+	if(b_class >= JOB_TAEKWON && b_class <= JOB_SOUL_LINKER	)
+	{
+		if (b_class == JOB_STAR_GLADIATOR2)
+			return 24 + JOB_STAR_GLADIATOR - JOB_TAEKWON;
+		return 24 + b_class - JOB_TAEKWON;
+	}
 	//Baby Classes
 	{
 		if (b_class == JOB_SUPER_BABY)
@@ -3687,10 +3705,13 @@ int pc_calc_base_job2 (int b_class)
 
 int pc_calc_upper(int b_class)
 {
+	//Common Class + Taekwon+
 	if(b_class < JOB_NOVICE_HIGH || (b_class >= JOB_TAEKWON && b_class <= JOB_SOUL_LINKER))
 		return 0;
+	//Advanced Class
 	else if(b_class >= JOB_NOVICE_HIGH && b_class < JOB_BABY)
 		return 1;
+	//Baby Class
 	return 2;
 }
 
