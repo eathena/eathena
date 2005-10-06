@@ -8232,6 +8232,7 @@ void clif_parse_WalkToXY(int fd, struct map_session_data *sd) {
 	     sd->sc_data[SC_BLADESTOP].timer !=-1 || //白刃取り
 	     sd->sc_data[SC_SPIDERWEB].timer !=-1 || //スパイダーウェッブ
 	     (sd->sc_data[SC_DANCING].timer !=-1 && sd->sc_data[SC_DANCING].val4 && sd->sc_data[SC_LONGING].timer == -1) ||
+		  (sd->sc_data[SC_DANCING].timer !=-1 && sd->sc_data[SC_DANCING].val1 == CG_HERMODE) || //cannot move while Hermod is active.
 		 (sd->sc_data[SC_GOSPEL].timer !=-1 && sd->sc_data[SC_GOSPEL].val4 == BCT_SELF) ||	// cannot move while gospel is in effect
 		 sd->sc_data[SC_CONFUSION].timer !=-1)
 		return;
