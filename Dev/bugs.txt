@@ -65,6 +65,7 @@ Problem:	Exp Party Sharing Bug.
 		of EXP (like it was collecting... all the time he was sitting next to H.)
 Assigned:	N/A
 Progress:	0%
+Notes:		Unable to reproduce in 3385 [Foruken]
 
 Problem:	Guilds alliances
 		You can have any number of alliances entried in SQL db. Sometimes it glitches and you get > 4 alliances
@@ -80,6 +81,7 @@ Problem:	Disguise Stats Bonus bug.
 		So Wedding Class has been fixed, but not the source of the bug.
 Assigned:	N/A
 Progress:	0%
+Note:		Can't reproduce it on 3385+ [Foruken]
 
 Problem:	You can put in Cart goods more than Cart Max Weight limit allows
 		(it's an old good bug about Named / Unnamed Stackable items)
@@ -113,6 +115,9 @@ Note:		Perhaps we can create an array of the maps we have loaded (during loading
 Assigned:	N/A
 Progress:	0%
 Notes: Still exists? I thought this was a non-issue currently. [Skotlex]
+       - It seems that the crash is gone, client keeps crashing tho' but in next
+         login it goes to the default location defined in char.c (prontera)
+         [Foruken]
 
 Problem:	[item exploit] Trade Window + Blacksmith's/Alchemist's MAKE skills -> item exploit
 Assigned:	N/A
@@ -128,6 +133,7 @@ Problem:	When 2 players try to pickup one dropped item at the same time
 		and another one gets Apple - Unknown item (with random stats, random upgrade, etc)
 Assigned:	N/A
 Progress:	0%
+Notes:		Unable to reproduce it after 100+ tries in 3385 [Foruken]
 
 Problem:	[script.c] script command DOEVENT now doesn't work...
 		so Knight JOB Quest is unpassable now, Monks Job Quest is too easy (traps don't work)
@@ -164,6 +170,8 @@ Problem:	Arrows Dupe (or random amount change)
 		You should prepare/remove arrows while trade. And have both - names and unnamed arrows ^_-
 Assigned:	N/A
 Progress:	0%
+Note:	Unable to reproduce in 3385, you can't prepare arrows while trading
+	[Foruken]
 
 Problem:	ICE WALL
 		When you set a diagonal wall - in its middle sometimes a segment's dropped. So monsters can walk trough it.
@@ -179,6 +187,7 @@ Problem:	Party EXP share bug
 			* SQL parties have been fixed in Freya (but the whole file int_party.c has been rewritten there)
 Assigned:	N/A
 Progress:	0%
+Notes:		Unable to reproduce in 3385 [Foruken]
 
 Problem:	Character global VARS save with delay. (BTW Account #vars are fine!)
 			It cause multi exploits in all quests (you can leave the game - changing character
@@ -222,6 +231,8 @@ Progress:	0%
 Note:		When breaking the guild, make sure to delete it completely from the guild table and such. [Codemaster]
 			The guild was deleted from memory on the char_sql server some
 			revisions ago, this is probably fixed now? [Skotlex]
+		- It's fixed, we even created the guild just after breaking
+		  the upgraded one [Foruken]
 
 Problem:	Disconnected from server
 			Some players recieve this note and can't re-connect the server till its reboot.
@@ -315,3 +326,4 @@ Progress:	0%
 Note: Recent SVN revisions printout SQL errors including their file/line where
 	it was caused. Any and all future sql-query based errors should be reported
 	and fixed briefly afterwards. [Skotlex]
+
