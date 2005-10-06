@@ -830,9 +830,7 @@ int mob_setdelayspawn(int id)
 
 	// Processing of MOB which is not revitalized
 	if (md->spawndelay1 == -1 && md->spawndelay2 == -1 && md->n == 0) {
-		map_deliddb(&md->bl);
 		if (md->lootitem) {
-			//map_freeblock(md->lootitem); //Can't use map_freeblock anymore... [Skotlex]
 			aFree(md->lootitem);
 			md->lootitem = NULL;
 		}
@@ -843,6 +841,7 @@ int mob_setdelayspawn(int id)
 			aFree (md->guardian_data);
 			md->guardian_data = NULL;
 		}
+		map_deliddb(&md->bl);
 		map_delblock(bl); //In case it wasn't done before invoking the function.
 		map_freeblock(bl);
 		return 0;

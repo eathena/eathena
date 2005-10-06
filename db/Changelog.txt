@@ -33,6 +33,8 @@
 	--
 
 10/06
+	* Corrected Envenom's max skill level (7->10), and changed the attribute to
+	  poison. [Skotlex]
 	* Corrected Bloody Butterfly card so it doesn't makes spells
 	  uninterruptable in WoE. [Skotlex]
 	* Added skill data for various skills (second class quest skills and
