@@ -378,12 +378,12 @@ bool CAccountDB_sql::init(const char* configfile)
 
 	if (wipe)
 	{
-		sz = sprintf(query, "DROP TABLE IF EXISTS login_sstatus");
+		sz = sprintf(query, "DROP TABLE IF EXISTS login_status");
 		this->mysql_SendQuery(query, sz);
 	}
 
 	sz = sprintf(query,
-		"CREATE TABLE IF NOT EXISTS `login_log` ("
+		"CREATE TABLE IF NOT EXISTS `login_status` ("
 		"`index` INTEGER UNSIGNED NOT NULL,"
 		"`name` VARCHAR(24) NOT NULL,"
 		"`user` INTEGER UNSIGNED NOT NULL,"
