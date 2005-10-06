@@ -24,6 +24,8 @@ Massdriller
 
 Date		Added
 ======
+10/07
+	* Added official Old Blue Box quest to Comodo. Thanks to Celestia (it's another girl, not Celest) for help. [Lupus]
 10/06
 	* Thanks to Justin84: [Lupus]
 	- Fixed ingridients typo in Acolyte Skill Quest
