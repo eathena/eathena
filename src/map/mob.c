@@ -1298,7 +1298,7 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 		if((!md->target_id || md->state.targettype == NONE_ATTACKABLE) && mob_can_move(md) &&
 			md->master_dist<md->db->range3 && (md->walkpath.path_pos>=md->walkpath.path_len || md->walkpath.path_len==0)){
 			int i=0,dx,dy,ret;
-			if(md->master_dist>AREA_SIZE/2) {
+			if(md->master_dist>AREA_SIZE/2 && DIFF_TICK(md->next_walktime,tick)<0) {
 				do {
 					if(i<=5){
 						dx=bl->x - md->bl.x;
@@ -1315,6 +1315,7 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 					ret=mob_walktoxy(md,md->bl.x+dx,md->bl.y+dy,0);
 					i++;
 				} while(ret && i<10);
+				md->next_walktime=tick+500;
 			}
 			/* Else do nothing. Let mob_random_walk take care of this. [Skotlex]
 			else {
@@ -1331,7 +1332,6 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 				} while(ret && i<10);
 			}
 			*/
-			md->next_walktime=tick+500;
 		}
 	}
 	
@@ -1359,7 +1359,7 @@ int mob_unlocktarget(struct mob_data *md,int tick)
 	md->target_id=0;
 	md->state.targettype = NONE_ATTACKABLE;
 	md->state.skillstate=MSS_IDLE;
-	md->next_walktime=tick+rand()%3000+3000;
+	md->next_walktime=tick+rand()%3000;
 	return 0;
 }
 /*==========================================
@@ -1478,10 +1478,13 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 		}
 	}
 
-	if (md->target_id) //Check validity of current target. [Skotlex]
+	if (md->target_id)
+	{	//Check validity of current target. [Skotlex]
 		tbl = map_id2bl(md->target_id);
-	if (!tbl || tbl->m != md->bl.m || !battle_check_attackable(&md->bl, tbl)) //Unlock current target.
-		mob_unlocktarget(md, tick);
+		if (!tbl || tbl->m != md->bl.m || !battle_check_attackable(&md->bl, tbl))
+		//Unlock current target.
+			mob_unlocktarget(md, tick);
+	}
 			
 	// It checks to see it was attacked first (if active, it is target change at 25% of probability).
 	if (md->attacked_id && mode&0x80 && md->attacked_id != md->target_id &&
@@ -1609,7 +1612,6 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 					return 0;
 				}
 				//Target reachable. Locate suitable spot to move to.
-				md->next_walktime = tick + 500;
 				i = 0;
 				dx = tbl->x - md->bl.x;
 				dy = tbl->y - md->bl.y;
@@ -1629,8 +1631,9 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 					else if (dx > 0) dx = -2;
 					if (dy < 0) dy = 2;
 					else if (dy > 0) dy = -2;
-					mob_walktoxy (md, md->bl.x+dx, md->bl.y+dy, 0);
 				}
+				md->next_walktime = tick + 500;
+				mob_walktoxy (md, md->bl.x+dx, md->bl.y+dy, 0);
 				return 0;
 			}
 			//Target within range, engage
@@ -2887,6 +2890,8 @@ int mob_warp(struct mob_data *md,int m,int x,int y,int type)
 	md->target_id=0;	// ƒ^ƒQ‚ð‰ðœ‚·‚é
 	md->state.targettype=NONE_ATTACKABLE;
 	md->attacked_id=0;
+	if (md->master_id)
+		md->master_dist = 0; //Assume mob warped to leader. [Skotlex]
 	md->state.skillstate=MSS_IDLE;
 	mob_changestate(md,MS_IDLE,0);
 
