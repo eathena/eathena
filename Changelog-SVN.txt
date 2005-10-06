@@ -2,6 +2,7 @@ Date	Added
 =======
 
 10/06
+	* Implemented Maya Purple card effect (you can see any hidden mob). Thanks to jA [Lupus]
 	* Updated functions: pc_calc_base_job,pc_calc_base_job2 [Lupus]
 	- They return 24:Taekwon, 25:StarGladiator, 27:Soul Linker
 	  Now someone should UPDATE Job fields of item_db.txt for TK,SL,SG classes

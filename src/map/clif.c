@@ -253,6 +253,7 @@ int clif_send_sub(struct block_list *bl, va_list ap)
 	struct block_list *src_bl;
 	struct map_session_data *sd;
 	unsigned char *buf;
+	short *src_option = NULL;
 	int len, type;
 	
 	nullpo_retr(0, bl);
@@ -284,6 +285,29 @@ int clif_send_sub(struct block_list *bl, va_list ap)
 		}
 		break;
 	}
+
+	//Check if hidden
+	src_option = status_get_option(src_bl);
+	if(src_option && bl != src_bl && /*(sd->sc_data[SC_INTRAVISION].timer!=-1 ||*/ sd->special_state.intravision /*)*/ )
+	{
+		//optionÇÃèCê≥
+		switch(((unsigned short*)buf)[0])
+		{
+			case 0x119:
+				WBUFW(buf,10) &= ~6;
+				break;
+#if PACKETVER < 4
+			case 0x78;
+				WBUFW(buf,12) &=~6;
+				break;
+#else
+			case 0x1da:
+				WBUFW(buf,12) &=~6;
+				break;
+#endif
+		}
+	}
+
 
 	if (session[sd->fd] != NULL) {
 		if (WFIFOP(sd->fd,0) == buf) {

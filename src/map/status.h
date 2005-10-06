@@ -247,6 +247,9 @@ enum {
 	SC_INTFOOD			= 239,
 	SC_DEXFOOD			= 240,
 	SC_LUKFOOD			= 241,
+	//
+	SC_INTRAVISION		= 337
+
 };
 extern int SkillStatusChangeTable[];
 

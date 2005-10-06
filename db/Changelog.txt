@@ -32,6 +32,9 @@
 		like gemstones when the skill is used.
 	--
 
+10/06
+	* Implemented 4198,Maya_Purple_Card effect. Thanks to jA team! [Lupus]
+	- There's a special Intravision timer also. So that "Box to see hidden mobs" could be implemented now
 10/05
 	* Updated new items from kRO. Thanks to Landarma. [Nexon]
 	* Fixed 2 Mobs, thanks to MasterOfMuppets [Nexon]
