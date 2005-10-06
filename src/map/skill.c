@@ -688,9 +688,6 @@ int skillnotok(int skillid, struct map_session_data *sd)
 	if (battle_config.pk_mode && !map[sd->bl.m].flag.nopvp && skill_get_nocast (skillid) & 16)
 		return 1;
 
-//	if(skillid == LK_BERSERK && sd->canregen_tick>gettick())
-//		return 1;
-	
 	switch (skillid) {
 		case AL_WARP:
 		case AL_TELEPORT:
@@ -6218,10 +6215,6 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 	case BA_DISSONANCE:
 	case DC_UGLYDANCE:
 		val1 = 10;	//FIXME: This value is not used anywhere, what is it for? [Skotlex]
-/*
-		if (map[src->m].flag.gvg || map[src->m].flag.pvp)
-			target = BCT_ALL;	//On versus grounds it affects everyone. [Skotlex]
-*/
 		break;
 	case BA_WHISTLE:
 		val1 = skilllv+(status_get_agi(src)/10); // Flee increase
@@ -6251,10 +6244,6 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 			val1 += pc_checkskill((struct map_session_data *)src,DC_DANCINGLESSON);
 			val2 += pc_checkskill((struct map_session_data *)src,DC_DANCINGLESSON);
 		}
-/*
-		if (map[src->m].flag.gvg || map[src->m].flag.pvp)
-			target = BCT_ALL;	//On versus grounds it affects everyone. [Skotlex]
-*/
 		break;
 	case BA_APPLEIDUN:
 		val1 = 5+2*skilllv+(status_get_vit(src)/10); // MaxHP percent increase
@@ -8023,9 +8012,12 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 				(sc_data[SC_MARIONETTE2].timer != -1 && sd->skillid == CG_MARIONETTE) ||
 				sc_data[SC_SILENCE].timer != -1 ||
 				sc_data[SC_STEELBODY].timer != -1 ||
-				sc_data[SC_BERSERK].timer != -1 ||
-				sc_data[SC_HERMODE].timer != -1)
+				sc_data[SC_BERSERK].timer != -1)
 			return 0;	/* ?‘ÔˆÙí‚â’¾?‚È‚Ç */
+
+		if (sc_data[SC_HERMODE].timer != -1 && skill_get_inf(skill_num) & INF_SUPPORT_SKILL)
+			return 0;	//Wand of Hermod blocks only supportive skills. [Skotlex]
+		
 		if (sc_data[SC_BLADESTOP].timer != -1) {
 			switch (sc_data[SC_BLADESTOP].val1) {
 				case 1: return 0;
@@ -8047,6 +8039,8 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 		if (sc_data[SC_DANCING].timer != -1 &&
 			(skill_num != BD_ADAPTATION && skill_num != BA_MUSICALSTRIKE && skill_num != DC_THROWARROW && skill_num != CG_LONGINGFREEDOM))
 				return 0;
+		if (sc_data[SC_DANCING].timer != 1 && sc_data[SC_DANCING].val1 == CG_HERMODE && skill_num == BD_ADAPTATION)
+			return 0;	//Can't amp out of Wand of Hermode :/ [Skotlex]
 		if (sc_data[SC_GOSPEL].timer != -1 && sc_data[SC_GOSPEL].val4 == BCT_SELF && skill_num != PA_GOSPEL)
 			return 0;
 	}
@@ -8379,11 +8373,13 @@ int skill_use_pos (struct map_session_data *sd, int skill_x, int skill_y, int sk
 				sc_data[SC_BERSERK].timer != -1  ||
 				sc_data[SC_MARIONETTE].timer != -1 ||
 				sc_data[SC_BLADESTOP].timer != -1 ||
-				sc_data[SC_HERMODE].timer != -1 ||
 				sc_data[SC_CHASEWALK].timer != -1 ||
 				sc_data[SC_BASILICA].timer != -1 ||
 				(sc_data[SC_GOSPEL].timer != -1 && sc_data[SC_GOSPEL].val4 == BCT_SELF))
 			return 0;
+
+		if (sc_data[SC_HERMODE].timer != -1 && skill_get_inf(skill_num) & INF_SUPPORT_SKILL)
+			return 0;	//Wand of Hermod blocks only supportive skills. [Skotlex]
 	}
 
 	if(sd->status.option & 2)

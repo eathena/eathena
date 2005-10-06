@@ -2,6 +2,10 @@ Date	Added
 =======
 
 10/06
+	* Updated Wand of Hermod [Skotlex]
+	- Can't amp out of it.
+	- Affects everyone
+	- Only prevents people from casting supportive skills.
 	* Fixed mobs not doing their "rude-attacked" skill. [Skotlex]
 	* Corrected casters being able to walk during Wand of Hermod [Skotlex]
 	* Made Guild Recall be usable outside of WoE. [Skotlex]
