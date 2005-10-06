@@ -33,6 +33,13 @@
 	--
 
 10/06
+	* Updated the HP level of the normal second class mobs (as per info
+	  provided through Viccious Pucca) [Skotlex]
+	* Added "The Sign" to item_trade.txt (as per info provided through
+	  Viccious), also made it add +5% atk. [Skotlex]
+	* Corrected the item_trade.txt restrictions for Novice Potion (why you
+	  couldn't place it in your cart, or sell it? o.O) [Skotlex]
+	* Corrected G_Magaleta's elemental mode. [Skotlex]
 	* Corrected Envenom's max skill level (7->10), and changed the attribute to
 	  poison. [Skotlex]
 	* Corrected Bloody Butterfly card so it doesn't makes spells

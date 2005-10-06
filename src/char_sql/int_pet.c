@@ -63,7 +63,7 @@ int inter_pet_tosql(int pet_id, struct s_pet *p) {
 		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 	}
 
-	ShowInfo("Pet saved %d - %d.\n", pet_id, p->name);
+	ShowInfo("Pet saved %d - %s.\n", pet_id, p->name);
 	return 0;
 }
 

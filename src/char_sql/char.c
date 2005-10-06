@@ -721,7 +721,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 
 	}
 
-	if (save_status)
+	if (save_status[0]!='\0')
 		ShowInfo("Saved char %d - %s:%s.\n", char_id, char_dat[0].name, save_status);
 	memcpy(cp, p, sizeof(struct mmo_charstatus));
 

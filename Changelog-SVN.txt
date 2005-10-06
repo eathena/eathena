@@ -2,6 +2,9 @@ Date	Added
 =======
 
 10/06
+	* Minor corrections to the screen output of the char_sql server when
+	  saving. [Skotlex]
+	* Corrected authorisation issues in msg_athena.conf [Skotlex]
 	* Updated Wand of Hermod [Skotlex]
 	- Can't amp out of it.
 	- Affects everyone

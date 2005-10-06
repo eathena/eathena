@@ -1112,7 +1112,7 @@
 2641,Fashion_Hip_Sack,Fashion Hip Sack,5,,10,700,,0,,0,263200,2,136,,50,0,0,{},{ bonus bStr,2; }
 2642,Celines_Ring,Celine's Ring,5,,10,100,,0,,0,10477567,2,136,,0,0,0,{},{}
 2643,Celines_Ring_,Celine's Ring,5,,10,100,,0,,0,10477567,2,136,,0,0,0,{},{}
-2644,The_Sign_,The Sign,5,,10,0,,0,,0,10477567,2,136,,0,0,0,{},{ bonus bMatkRate,5; }
+2644,The_Sign_,The Sign,5,,10,0,,0,,0,10477567,2,136,,0,0,0,{},{ bonus bMatkRate,5; bonus bAtkRate,5; }
 2645,Moonlight_Ring,Moonlight Ring,5,,10,200,,0,,0,135232,2,136,,60,0,0,{},{}
 2646,Bouquet_,Bunch of Carnations,5,,10,100,,0,,0,10477567,2,136,,0,0,0,{},{ bonus bAllStats,3; }
 2647,Nile_Rose,Nile Rose,5,,10,100,,0,,0,10477567,2,136,,0,0,0,{},{ bonus bMaxHP,10; }
