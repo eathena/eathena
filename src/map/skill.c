@@ -6846,18 +6846,6 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 		}
 		break;
 
-/* This is not needed, handled on skill_unit_onplace. [Skotlex]
-	case UNT_BASILICA:
-		if (battle_check_target(&src->bl,bl,BCT_ENEMY)>0 &&
-			!(status_get_mode(bl)&0x20))
-			skill_blown(&src->bl,bl,1,2);
-		if (sg->src_id==bl->id)
-			break;
-		if (battle_check_target(&src->bl,bl,BCT_NOENEMY)>0 && sc_data && sc_data[type].timer == -1)
-			status_change_start(bl,type,sg->skill_lv,sg->group_id,0,0,
-				skill_get_time2(sg->skill_id,sg->skill_lv),0);
-		break;
-*/
 	case UNT_SPIDERWEB:
 		if(sg->val2==0 && (!sc_data || sc_data[type].timer==-1 )){
 			int moveblock = ( bl->x/BLOCK_SIZE != src->bl.x/BLOCK_SIZE || bl->y/BLOCK_SIZE != src->bl.y/BLOCK_SIZE);
