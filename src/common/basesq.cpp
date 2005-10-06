@@ -160,7 +160,7 @@ bool CAccountDB_sql::searchAccount(const char* userid, CLoginAccount& account)
 		MYSQL_RES *sql_res1=NULL, *sql_res2=NULL;
 //!! get auth from db
 		escape_string(uid, userid, strlen(userid));
-		sz=sprintf(query, "SELECT `account_id`,`user_id`,`user_pass`,`lastlogin`,`logincount`,`sex`,`connect_until`,`last_ip`,`ban_until`,`state`,`level`,`email`"
+		sz=sprintf(query, "SELECT `account_id`,`userid`,`user_pass`,`lastlogin`,`logincount`,`sex`,`connect_until`,`last_ip`,`ban_until`,`state`,`level`,`email`"
 						" FROM `%s` WHERE %s `userid`='%s'", login_auth_db, case_sensitive ? "BINARY" : "", uid);
 		//login {0-account_id/1-userid/2-user_pass/3-lastlogin/4-logincount/5-sex/6-connect_untl/7-last_ip/8-ban_until/9-state/10-gmlevel/11-email}
 		if( this->mysql_SendQuery(sql_res1, query, sz) )
