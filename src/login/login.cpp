@@ -3103,7 +3103,7 @@ int do_init(int argc, char **argv)
 	display_conf_warnings(); // not in login_config_read, because we can use 'import' option, and display same message twice or more
 	save_config_in_log(); // not before, because log file name can be changed
 
-	if (!account_db.init( (argc > 1) ? argv[1] : LOGIN_CONF_NAME )) exit();
+	if (!account_db.init( (argc > 1) ? argv[1] : LOGIN_CONF_NAME )) exit(0);
 
 
 
