@@ -326,7 +326,7 @@ bool CAccountDB_sql::init(const char* configfile)
 		"CREATE TABLE IF NOT EXISTS `login_auth` ("
 		"`account_id` INTEGER UNSIGNED AUTO_INCREMENT,"
 		"`userid` VARCHAR(24) NOT NULL,"
-		"`passwd` VARCHAR(34) NOT NULL,"
+		"`user_pass` VARCHAR(34) NOT NULL,"
 		"`sex` ENUM('M','F','S') default 'M',"
 		"`gm_level` INT(3) UNSIGNED NOT NULL,"
 		"`online` BOOL default 'false',"
