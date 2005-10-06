@@ -325,7 +325,7 @@ bool CAccountDB_sql::init(const char* configfile)
 	sz = sprintf(query,
 		"CREATE TABLE IF NOT EXISTS `login_auth` ("
 		"`account_id` INTEGER UNSIGNED AUTO_INCREMENT,"
-		"`user` VARCHAR(24) NOT NULL,"
+		"`userid` VARCHAR(24) NOT NULL,"
 		"`passwd` VARCHAR(34) NOT NULL,"
 		"`sex` ENUM('M','F','S') default 'M',"
 		"`gm_level` INT(3) UNSIGNED NOT NULL,"
