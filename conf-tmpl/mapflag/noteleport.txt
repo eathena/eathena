@@ -56,6 +56,8 @@ airplane_01.gat	mapflag	noteleport
 yuno_pre.gat	mapflag	noteleport
 y_airport.gat	mapflag	noteleport
 lhz_airport.gat	mapflag	noteleport
+einbroch.gat	mapflag noteleport
+einbech.gat	mapflag noteleport
 lhz_in01.gat	mapflag	noteleport
 lhz_in02.gat	mapflag	noteleport
 lhz_in03.gat	mapflag	noteleport

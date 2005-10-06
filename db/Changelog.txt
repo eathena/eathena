@@ -33,6 +33,8 @@
 	--
 
 10/05
+	* Updated new items from kRO. Thanks to Landarma. [Nexon]
+	* Fixed 2 Mobs, thanks to MasterOfMuppets [Nexon]
 	* Added back Grandcross's 20% HP cost. [Skotlex]
 	* Updated Grandcross's Casting time, and Blast Mine's duration. [Skotlex]
 	* Updated meltdown's cast time to 0.5 at lv1, 1.0 secs at lv 10. Still

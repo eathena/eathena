@@ -2,6 +2,7 @@ Date	Added
 =======
 
 10/05
+	* Updated nomemo and noteleports for Lighthalzen/Einbroch/Einbech maps and others. [Nexon]
 	* Fixed the mob AI. [Skotlex]
 	* Updated alchemist_summon_reward [Skotlex]
 	- Summons now never give exp, and they may drop items according to setting:

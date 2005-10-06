@@ -37,6 +37,8 @@ mjolnir_07.gat	mapflag	nomemo
 mjolnir_10.gat	mapflag	nomemo
 niflheim.gat	mapflag	nomemo
 nif_in.gat	mapflag	nomemo
+nif_fild01.gat	mapflag	nomemo
+nif_fild02.gat	mapflag	nomemo
 new_1-1.gat	mapflag	nomemo
 new_1-2.gat	mapflag	nomemo
 new_1-3.gat	mapflag	nomemo
@@ -68,6 +70,8 @@ airplane_01.gat	mapflag	nomemo
 yuno_pre.gat	mapflag	nomemo
 y_airport.gat	mapflag	nomemo
 lhz_airport.gat	mapflag	nomemo
+einbroch.gat	mapflag	nomemo
+einbech.gat	mapflag	nomemo
 lhz_in01.gat	mapflag	nomemo
 lhz_in02.gat	mapflag	nomemo
 lhz_in03.gat	mapflag	nomemo
@@ -250,6 +254,36 @@ gefenia01.gat	mapflag	nomemo
 gefenia02.gat	mapflag	nomemo
 gefenia03.gat	mapflag	nomemo
 gefenia04.gat	mapflag	nomemo
+// Bio Lab Dungeon -----------
+lhz_dun01.gat	mapflag	nomemo
+lhz_dun02.gat	mapflag	nomemo
+lhz_dun03.gat	mapflag	nomemo
+// Juperos Dungeon -----------
+juperos_01.gat	mapflag	nomemo
+juperos_02.gat	mapflag	nomemo
+jupe_area1.gat	mapflag	nomemo
+jupe_area2.gat	mapflag	nomemo
+jupe_core.gat	mapflag	nomemo
+jupe_ele.gat	mapflag	nomemo
+jupe_ele_r.gat	mapflag	nomemo
+jupe_gate.gat	mapflag	nomemo
+jupe_cave.gat	mapflag	nomemo
+// Thanatos Tower ------------
+thana_boss.gat	mapflag	nomemo
+tha_scene01.gat	mapflag	nomemo
+tha_t01.gat	mapflag	nomemo
+tha_t02.gat	mapflag	nomemo
+tha_t03.gat	mapflag	nomemo
+tha_t04.gat	mapflag	nomemo
+tha_t07.gat	mapflag	nomemo
+tha_t05.gat	mapflag	nomemo
+tha_t06.gat	mapflag	nomemo
+tha_t08.gat	mapflag	nomemo
+thana_step.gat	mapflag	nomemo
+// Abyss Lake Dungeon --------
+abyss_01.gat	mapflag	nomemo
+abyss_02.gat	mapflag	nomemo
+abyss_03.gat	mapflag	nomemo
 
 // Guild Castles =============
 //alde_gld.gat	mapflag	nomemo
