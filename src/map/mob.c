@@ -1220,7 +1220,7 @@ static int mob_ai_sub_hard_linksearch(struct block_list *bl,va_list ap)
 		&& (!md->target_id || md->state.targettype == NONE_ATTACKABLE))
 	{
 		md->last_linktime = tick;
-		if( mob_can_reach(md,target,12) ){	// Reachability judging
+		if( mob_can_reach(md,target,md->db->range2) ){	// Reachability judging
 			md->target_id = target->id;
 			md->attacked_count = 0;
 			md->state.targettype = ATTACKABLE;
@@ -1478,7 +1478,6 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 				!battle_check_attackable(bl, abl) ||
 				!mob_can_reach(md, abl, dist))
 			{	//Can't attack back
-				md->attacked_id = 0;
 				if (md->attacked_count++ > 3) {
 					if (mobskill_use(md, tick, MSC_RUDEATTACKED) == 0 &&
 						mode&1 && mob_can_move(md))
@@ -1489,7 +1488,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 						mob_walktoxy(md, md->bl.x + dist * mask[dir][0], md->bl.y + dist * mask[dir][1], 0);
 						md->next_walktime = tick + 500;
 					}
-					md->attacked_count = 0;
+					md->attacked_id = 0;
 				}
 			} else if (blind_flag && dist > 2 && DIFF_TICK(tick,md->next_walktime) < 0) { //Blinded, but can reach 
 				//FIXME: Shouldn't the mob continue attacking? It may have a target within range... [Skotlex]

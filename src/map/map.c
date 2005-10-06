@@ -216,7 +216,7 @@ int map_getusers(void) {
 int map_freeblock (struct block_list *bl)
 {
 	if (block_free_lock == 0 || block_free_count >= block_free_max)
-	{	//Directly calling aFree shouldn't be a leak, as Free remembers the size the original pointed to memory was allocated with? [Skotlex]
+	{
 		aFree(bl);
 		bl = NULL;
 		if (block_free_count >= block_free_max)

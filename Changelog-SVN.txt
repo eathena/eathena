@@ -2,6 +2,7 @@ Date	Added
 =======
 
 10/06
+	* Fixed mobs not doing their "rude-attacked" skill. [Skotlex]
 	* Corrected casters being able to walk during Wand of Hermod [Skotlex]
 	* Made Guild Recall be usable outside of WoE. [Skotlex]
 	* Changed the default gvg_traps_target_all to yes. [Skotlex]
