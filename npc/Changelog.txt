@@ -27,6 +27,7 @@ Date		Added
 10/08
 	* Due to added Magic Scrolls drops... finally removed the temp shop [Lupus]
 10/07
+	* Added Lighthalzen shops. Thanks to Maud_Dib. [Nexon]
 	* Returned back Mr.Smile quest (it's still up in kRO) [Lupus]
 	* Updated official Bard Job Quest: Flowers Part now is quite easy to pass trough [Lupus]
 	  (thanks to Vicious Pucca for info)

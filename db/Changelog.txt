@@ -31,9 +31,12 @@
 		Item type: Throwing Dagger. Has to be equipped as an arrow, is consumed
 		like gemstones when the skill is used.
 	--
-
 10/08
 	* Added Magic Scrolls drops, updated walkspeed of Kaho thanks to  MasterOfMuppets [Lupus]
+10/07
+	* Updated Mob drops and Lighthalzen exp gain. Thanks to MasterOfMuppets and Viccious_Pucca [Nexon]
+	* Updated Item sell/buy price. [Nexon]
+	* Added a new skill to a mob. [Nexon]
 10/06
 	* Updated the HP level of the normal second class mobs (as per info
 	  provided through Viccious Pucca) [Skotlex]
