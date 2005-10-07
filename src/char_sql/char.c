@@ -2607,20 +2607,11 @@ int parse_frommap(int fd) {
 			break;
 		*/
 
-		// account_reg保存要求
+		// account_reg2 saving, forward to login server
 		case 0x2b10:
 			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < RFIFOW(fd,2))
 				return 0;
 		  {
-			struct global_reg reg[ACCOUNT_REG2_NUM];
-			int j,p,acc;
-			acc=RFIFOL(fd,4);
-			for(p=8,j=0;p<RFIFOW(fd,2) && j<ACCOUNT_REG2_NUM;p+=36,j++){
-				memcpy(reg[j].str,RFIFOP(fd,p),32);
-				reg[j].value=RFIFOL(fd,p+32);
-			}
-			// set_account_reg2(acc,j,reg);
-			// loginサーバーへ送る
 			if (login_fd > 0) { // don't send request if no login-server
 				WFIFOW(login_fd, 0) = 0x2728;
 				memcpy(WFIFOP(login_fd,0), RFIFOP(fd,0), RFIFOW(fd,2));
@@ -2631,7 +2622,6 @@ int parse_frommap(int fd) {
 			//WBUFW(buf,0)=0x2b11;
 			//mapif_sendall(buf,WBUFW(buf,2));
 			RFIFOSKIP(fd,RFIFOW(fd,2));
-//			printf("char: save_account_reg (from map)\n");
 		  }
 			break;
 

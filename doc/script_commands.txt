@@ -429,13 +429,15 @@ Variable scope is defined by a prefix before the variable name:
        is, not triggered by a specific character object.
 "#"  - A permanent account-based variable.
        They are stored with all the account data in "save\accreg.txt" in TXT 
-       versions and in the SQL versions in the 'global_reg_value' table.
-
-There's also a '##' variable prefix, which denotes some kind of account-based 
-variable, (it gets sent to the char server for storage too) but it is not 
-certain just what makes it different from a regular '#' variable and whether it 
-works completely at all. There is no such thing as a temporary account-based 
-variable.
+       versions and in the SQL versions in the 'global_reg_value' table using
+		 type 2.
+"##" - A permanent account-based variable stored by the login server.
+       They are stored in "save\account.txt" and in the SQL versions in the
+		 'global_reg_value' table, using type 1. The only difference you will
+		 note from normal # variables is when you have multiple char-servers
+		 connected to the same login server. The # variables are unique to each
+		 char-server, while the ## variables are shared by all these
+		 char-servers.
 
 Some variables are special, that is, they are already defined for you by the 
 scripting engine. You can see the full list somewhere in 'db/const.txt', which 

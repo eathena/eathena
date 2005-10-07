@@ -2,6 +2,8 @@ Date	Added
 =======
 
 10/07
+	* Figured out what ## variables are, and documented it on
+	  doc/script_commands.txt [Skotlex]
 	* Foruken pointed out that the actual script problem was a certain
 	  acalloc() that was changed to realloc(), so undid the last revert and
 	  reverted this one instead.  [Skotlex]
