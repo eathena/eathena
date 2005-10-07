@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= Lupus, kobra_k88
 //===== Current Version: ===================================== 
-//= 1.5
+//= 1.5a
 //===== Compatible With: ===================================== 
 //= eAthena 1.0
 //===== Description: ========================================= 
@@ -14,7 +14,7 @@
 //= 1.3 Added Job Change Function for Baby/Normal Classes
 //= 1.3b a fix, due to const.txt change [Lupus]
 //= 1.4 Added Is_Taekwon_Class: Taekwondo, Star Knight(Gladiator),Soul Linker [Lupus]
-//= 1.5 Added clear of Bard Quest variables [Lupus]
+//= 1.5 Added clear of Bard Quest variables. 1.5a updated [Lupus]
 //============================================================ 
 
 
@@ -47,7 +47,7 @@ function	script	F_ClearJobVar	{
 	set MONK_Q,0;
 	set SAGE_Q,0; set SAGE_Q2,0;
 	set DANC_Q,0;
-	set BARD_Q,0; set BARD_Q2,0;
+	set BARD_Q,0;
 	return;
 }
 

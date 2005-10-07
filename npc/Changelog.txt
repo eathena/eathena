@@ -25,10 +25,16 @@ Massdriller
 Date		Added
 ======
 10/07
+	* Returned back Mr.Smile quest (it's still up in kRO) [Lupus]
+	* Updated official Bard Job Quest: Flowers Part now is quite easy to pass trough [Lupus]
+	  (thanks to Vicious Pucca for info)
+	* Thanks to MasterOfMuppats for some Kafra changes: [Lupus]
+	- Updated teleport destinations of Aldebaran,Comodo, Izlude and Morroc Kafras
+	* More Bulletin Boards [MasterOfMuppets]
 	* Added Einbech and Einbroch Item NPC's. [Nexon]
 	* Updated all scripts to work with the script engine update (changed break
 	  to end, changed some If to if) [Skotlex]
-	* Added official Old Blue Box quest to Comodo. Thanks to Celestia (it's another girl, not Celest) for help. [Lupus]
+	* Added official (iRO) Old Blue Box quest to Comodo. Thanks to Celestia (it's another girl, not Celest) for help. [Lupus]
 10/06
 	* Thanks to Justin84: [Lupus]
 	- Fixed ingridients typo in Acolyte Skill Quest

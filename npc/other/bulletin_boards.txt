@@ -1,9 +1,9 @@
 //===== eAthena Script =======================================
 //= Official scripts for beginners from iRO
 //===== By: ==================================================
-//= MasterOfMuppets (1.1)
+//= MasterOfMuppets (1.4)
 //===== Current Version: =====================================
-//= 1.3a
+//= 1.4
 //===== Compatible With: =====================================
 //= Any Athena Version
 //===== Additional Comments: =================================
@@ -13,6 +13,7 @@
 //= 1.2 Added 5 more Boards [MasterOfMuppets]
 //= 1.3 Fixed spelling mistakes. [Nexon]
 //= 1.3a Fixed a missing close; [Nexon]
+//= 1.4 Added more BBS MasterOfMuppets
 //============================================================
 
 alberta.gat,111,59,5	script	Bulletin Board	837,{
@@ -331,5 +332,122 @@ prt_fild05.gat,278,220,5	script	Bulletin Board	837,{
 	mes "monster known as the ^6B1312Golden Thief";
 	mes "^6B1312Bug^000000. New adventurers should";
 	mes "exercise caution.";
+	close;
+}
+
+yuno.gat,154,112,5	script	Bulletin Board	837,{
+	mes "[Juno: Capital of]";
+	mes "[The Schwartzwald Republic]";
+	mes "Welcome to Juno, the City of Sages.";
+	mes "Juno is kept aloft in the air by";
+	mes "the power of the Ymir Heart";
+	mes "Pieces";
+	next;
+	mes "[Juno: Capital of]";
+	mes "[The Schwartzwald Republic]";
+	mes "Those interested in becoming Sages";
+	mes "should visit the Sage Castle for";
+	mes "more information on the Sage job";
+	mes "and its requirements.";
+	next;
+	mes "[Juno: Capital of]";
+	mes "[The Schwartzwald Republic]";
+	mes "Other notable places include the";
+	mes "Monster Museum, Magic Academy";
+	mes "and the Juno Library.";
+	next;
+	mes "[Juno: Capital of]";
+	mes "[The Schwartzwald Republic]";
+	mes "Somewhere around Juno, there is";
+	mes "information regarding secret access";
+	mes "to the world where adventurers may";
+	mes "be reborn with newfound strength.";
+	next;
+	mes "[Juno: Capital of]";
+	mes "[The Schwartzwald Republic]";
+	mes "To the Southeast of Juno lies ^6B1312Nogg";
+	mes "^6B1312Road^000000, the Magma Dungeon. Nogg Road";
+	mes "is infamous for its aggressive";
+	mes "creatures, so be careful";
+	next;
+	mes "[Juno: Capital of]";
+	mes "[The Schwartzwald Republic]";
+	mes "From Juno, ^2D3832Al De Baran^000000, a city of";
+	mes "the Rune-Midgarts Kingdom, is";
+	mes "located to the South.";
+	close;
+}
+
+aldebaran.gat,145,105,5	script	Bulletin Board	837,{
+	mes "[Al De Baran: The Border City]";
+	mes "Welcome to Al De Baran, the border";
+	mes "city of the Rune-Midgarts Kingdom.";
+	mes "Al De Baran's beautiful canals and";
+	mes "majestic Clock Tower are a source";
+	mes "of pride for its citizens.";
+	next;
+	mes "[Al De Baran: The Border City]";
+	mes "Adventurers can explore the Clock";
+	mes "Tower located in the city's center.";
+	mes "Other notable places are the Kafra";
+	mes "Corporation Headquarters, and the";
+	mes "Alchemist Guild which provides the";
+	mes "Alchemist job change.";
+	next;
+	mes "[Al De Baran: The Border City]";
+	mes "There is a fully trained Santa";
+	mes "Claus somewhere in Al De Baran who";
+	mes "can send you to the magical town of";
+	mes "^1D2585Lutie^000000. If you're interested in";
+	mes "seeing it for yourself, you must";
+	mes "seek Santa Claus.";
+	next;
+	mes "[Al De Baran: The Border City]";
+	mes "From this city, ^60D5FDJuno^000000 is located to";
+	mes "the North, and ^6D6FE0Prontera^000000 is located";
+	mes "to the South.";
+	close;
+}
+
+aldebaran.gat,136,133,5	script	Bulletin Board	837,{
+	mes "[Clock Tower]";
+	mes "^6B1312Caution!^000000";
+	mes "Only well-experienced adventurers";
+	mes "should consider entering the Clock";
+	mes "Tower. There are a total of 8";
+	mes "levels: 4 beneath the ground and 4 above the earth.";
+	next;
+	mes "[Clock Tower]";
+	mes "The main monsters of the Clock";
+	mes "Tower are Clocks, Alarms and";
+	mes "Bathories. Beware of the Clock";
+	mes "Tower Keepers on patrol.";
+	next;
+	mes "[Clock Tower]";
+	mes "The paths in the Clock Tower are";
+	mes "winding and complicated, so please";
+	mes "be careful and avoid getting";
+	mes "lost.";
+	close;
+}
+
+moc_fild19,107,101,5	script	Bulletin Board	837,{
+	mes "[Sphinx]";
+	mes "^6B1312Caution!^000000";
+	mes "The Sphinx consists of 5 levels.";
+	mes "This dungeon is suited for training";
+	mes "well-experienced adventurers.";
+	next;
+	mes "[Sphinx]";
+	mes "There are many aggressive monsters";
+	mes "residing in the Sphinx, and it is";
+	mes "advised to run away if you happen";
+	mes "to be surrounded by them.";
+	next;
+	mes "[Sphinx]";
+	mes "In the fifth level, the boss";
+	mes "monster ^6B1312Pharaoh^000000 will appear at";
+	mes "certain times. Exorcise with";
+	mes "extreme prejudice.";
 	close;
 }
