@@ -44,20 +44,31 @@
  40:@heal [<HP> <SP>] - Heals the desired amount of HP and SP. No value specified will do a full heal.
  20: 
  40:@job/@jobchange <job ID> - Changes your job
- 40:   0 Novice          7 Knight          14 Crusader    22 Formal
- 40:   1 Swordman        8 Priest          15 Monk        23 Super Novice
- 40:   2 Mage            9 Wizard          16 Sage
- 40:   3 Archer         10 Blacksmith      17 Rogue
- 40:   4 Acolyte        11 Hunter          18 Alchem
- 40:   5 Merchant       12 Assassin        19 Bard
- 40:   6 Thief          13 Peco-Knight     20 Dancer      21 Peco-Crusader
- 40:  24 Novice High    31 Lord Knight     38 Paladin
- 40:  25 Swordman High  32 High Priest     39 Monk
- 40:  26 Mage High      33 High Wizard     40 Professor
- 40:  27 Archer High    34 Whitesmith      41 Stalker
- 40:  28 Acolyte High   35 Sniper          42 Creator
- 40:  29 Merchant High  36 Assassin Cross  43 Clown
- 40:  30 Thief High     37 Peco Knight     44 Gypsy       45 Peco-Paladin
+ 40:   0: Novice           18: Alchemist      4015: Paladin
+ 40:   1: Swordman         19: Bard           4016: Champion
+ 40:   2: Mage             20: Dancer         4017: Professor
+ 40:   3: Archer           23: Super Novice   4018: Stalker
+ 40:   4: Acolyte        4001: High Novice    4019: Creator
+ 40:   5: Merchant       4002: High Swordman  4020: Clown
+ 40:   6: Thief          4003: High Mage      4021: Gypsy
+ 40:   7: Knight         4004: High Archer    4046: Taekwon
+ 40:   8: Priest         4005: High Acolyte   4047: Star Gladiator
+ 40:   9: Wizard         4006: High Merchant  4049: Soul Linker
+ 40:  10: Blacksmith     4007: High Thief
+ 40:  11: Hunter         4008: Lord Knight
+ 40:  12: Assassin       4009: High Priest
+ 40:  14: Crusader       4010: High Wizard
+ 40:  15: Monk           4011: Whitesmith
+ 40:  16: Sage           4012: Sniper
+ 40:  17: Rogue          4013: Assassin Cross
+ 40: ---- Baby Classes ----
+ 40: 4023: Baby          4024: Baby Swordman   4025: Baby Mage
+ 40: 4026: Baby Archer   4027: Baby Acolyte    4028: Baby Merchant
+ 40: 4029: Baby Thief    4030: Baby Knight     4031: Baby Priest
+ 40: 4032: Baby Wizard   4033: Baby Blacksmith 4034: Baby Hunter
+ 40: 4035: Baby Assassin 4037: Baby Crusader   4038: Baby Monk
+ 40: 4039: Baby Sage     4040: Baby Rogue      4041: Baby Alchemist
+ 40: 4042: Baby Bard     4043: Baby Dancer     4045: Super Baby
  60:@lvup/@blevel/@baselvlup <number of levels> - Raises your base level the desired number of levels. The max is 255 (User Defined).
  60:@joblvup/@jlevel/@joblvlup <number of levels> -Raises your job level the desired number of levels. The max is 50 For Basic Classes. For Super Novice and Advanced Classes it is 70.
  60:@allskill/@allskills/@skillall/@skillsall - Give you all skills.
@@ -195,8 +206,10 @@
  99:@reloadgmdb - Reload GM levels (admin command)
  99:@adjgmlvl - Do a temporary adjustment of the GM level of a player (admin command)
  99:@adjcmdlvl - Do a temporary adjustment of the GM level of a command (admin command)
- 80:@enablenpc <NPC_name> - Enable a NPC (admin command)
- 80:@disablenpc <NPC_name> - Disable a NPC (admin command)
+ 80:@shownpc <NPC_name> - Enable a NPC (admin command)
+ 80:@hidenpc <NPC_name> - Disable a NPC (admin command)
+ 80:@loadnpc <path_to_script> - Load script (admin command)
+ 80:@unloadnpc <path_to_script - Unload script (admin command)
  80: 
  99:@gat - For debugging (you inspect around gat)
  99:@packet - For debugging (packet variety)

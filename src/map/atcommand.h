@@ -142,8 +142,6 @@ enum AtCommandType {
 	AtCommand_EMail, // by Yor
 	AtCommand_Hatch,
 	AtCommand_Effect, // by Apple
-// 	AtCommand_Char_Item_List, // by Yor, now #itemlist
-//	AtCommand_Char_Storage_List, // by Yor, now #storagelist
 	AtCommand_Char_Cart_List, // by Yor
 	AtCommand_AddWarp, // by MouseJstr
 	AtCommand_Follow, // by MouseJstr
@@ -153,7 +151,6 @@ enum AtCommandType {
 	AtCommand_NpcMove, // by MouseJstr
 	AtCommand_Killable, // by MouseJstr
 	AtCommand_CharKillable, // by MouseJstr
-//	AtCommand_Chareffect, // by MouseJstr, now #effect
 	AtCommand_Dropall, // by MouseJstr
 	AtCommand_Chardropall, // by MouseJstr
 	AtCommand_Storeall, // by MouseJstr
@@ -199,7 +196,6 @@ enum AtCommandType {
 	AtCommand_SendMail, // [Valaris]
 	AtCommand_DeleteMail, // [Valaris]
 	AtCommand_SendPriorityMail, // [Valaris]
-//	AtCommand_Sound, // [Valaris]
 	AtCommand_RefreshOnline, // [Valaris]
 	// SQL-only commands end
 #endif

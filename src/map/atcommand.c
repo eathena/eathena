@@ -220,7 +220,6 @@ ACMD_FUNC(readmail); // [Valaris]
 ACMD_FUNC(sendmail); // [Valaris]
 ACMD_FUNC(sendprioritymail); // [Valaris]
 ACMD_FUNC(deletemail); // [Valaris]
-//ACMD_FUNC(sound); // [Valaris]
 ACMD_FUNC(refreshonline); // [Valaris]
 #endif /* TXT_ONLY */
 
@@ -337,7 +336,6 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_Go,					"@go",				10, atcommand_go },
 	{ AtCommand_Spawn,				"@monster",			50, atcommand_spawn },
 	{ AtCommand_Spawn,				"@spawn",			50, atcommand_spawn },
-//	{ AtCommand_Spawn,				"@summon",			50, atcommand_spawn },
 	{ AtCommand_Monster,			"@monster2",		50, atcommand_monster },
 	{ AtCommand_MonsterSmall,		"@monstersmall",	50, atcommand_monstersmall },
 	{ AtCommand_MonsterBig,			"@monsterbig",		50, atcommand_monsterbig },
@@ -436,8 +434,6 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_Hidenpc,			"@hidenpc",			80, atcommand_hidenpc }, // []
 	{ AtCommand_Loadnpc,			"@loadnpc",			80, atcommand_loadnpc }, // []
 	{ AtCommand_Unloadnpc,			"@unloadnpc",		80, atcommand_unloadnpc }, // []
-//	{ AtCommand_Enablenpc,			"@enablenpc",		80, atcommand_enablenpc }, // []
-//	{ AtCommand_Disablenpc,			"@disablenpc",		80, atcommand_disablenpc }, // []
 	{ AtCommand_ServerTime,			"@time",			 0, atcommand_servertime }, // by Yor
 	{ AtCommand_ServerTime,			"@date",			 0, atcommand_servertime }, // by Yor
 	{ AtCommand_ServerTime,			"@server_date",		 0, atcommand_servertime }, // by Yor
@@ -454,8 +450,6 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_CharUnDisguise,		"@charundisguise",	60, atcommand_charundisguise }, // Kalaspuff
 	{ AtCommand_EMail,				"@email",			 0, atcommand_email }, // by Yor
 	{ AtCommand_Effect,				"@effect",			40, atcommand_effect }, // by Apple
-//	{ AtCommand_Char_Item_List,		"@charitemlist",	40, atcommand_character_item_list }, // by Yor, now #itemlist
-//	{ AtCommand_Char_Storage_List,	"@charstoragelist",	40, atcommand_character_storage_list }, // by Yor, now #storagelist
 	{ AtCommand_Char_Cart_List,		"@charcartlist",	40, atcommand_character_cart_list }, // by Yor
 	{ AtCommand_Follow,				"@follow",			10, atcommand_follow }, // by MouseJstr
 	{ AtCommand_AddWarp,			"@addwarp",			20, atcommand_addwarp }, // by MouseJstr
@@ -487,7 +481,7 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_UnMute,				"@unmute",			60, atcommand_unmute }, // [Valaris]
 	{ AtCommand_Clearweather,		"@clearweather",	99, atcommand_clearweather }, // Dexity
 	{ AtCommand_UpTime,				"@uptime",			 0, atcommand_uptime }, // by MC Cameri
-//	{ AtCommand_ChangeSex,			"@changesex",		 1, atcommand_changesex }, // by MC Cameri
+//	{ AtCommand_ChangeSex,			"@changesex",		 1, atcommand_changesex }, // by MC Cameri <- do we still need this? [Foruken]
 	{ AtCommand_Mute,				"@mute",			99, atcommand_mute }, // [celest]
 	{ AtCommand_Mute,				"@red",				99, atcommand_mute }, // [celest]
 	{ AtCommand_WhoZeny,			"@whozeny",			20, atcommand_whozeny }, // [Valaris]
