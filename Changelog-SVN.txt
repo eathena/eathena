@@ -2,6 +2,9 @@ Date	Added
 =======
 
 10/07
+	* Removed a free() that was added on R3421 that was supposed to fix a
+	  memory leak but instead causes crashes :/ (so the memory leak is back in
+	  there, but no more crash) [Skotlex] 
 	* Applied End of Exam's script engine patch. [Skotlex]
 	- This adds support for nested blocks, if/else, fors, switches. See
 	  <http://eathena.deltaanime.net/board/index.php?showtopic=50037>

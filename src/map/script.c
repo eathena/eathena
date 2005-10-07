@@ -9382,12 +9382,14 @@ int run_script(unsigned char *script,int pos,int rid,int oid)
 		sd->npc_script      = st.script;
 		sd->npc_scriptroot  = rootscript;
 		sd->npc_scriptstate = st.state;
+		/* TODO: This free seems to cause a crash, yet not doing it causes memory leaks! :/
 		if (sd->stack)
 		{	//There was a stack? Remove it. [Skotlex]
 			if (sd->stack->stack_data)
 				aFree(sd->stack->stack_data);
 			aFree(sd->stack);
 		}
+		*/
 		sd->stack           = st.stack;
 
 	} else {
