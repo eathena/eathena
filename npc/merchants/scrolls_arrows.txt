@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= Lupus
 //===== Current Version: ===================================== 
-//= 1.3
+//= 1.4
 //===== Compatible With: ===================================== 
 //= eAthena 7.15 +
 //===== Description: ========================================= 
@@ -19,6 +19,7 @@
 //= 1.2 Removed Horse Crest from this temp shop. Because this item has been added to Sohee/Grtst General drops [Lupus]
 //= TODO: Arrows shop should be transformed to Quivers Maker NPC
 //= 1.3 Removed Quivers Shop due to Quiver Maker NPC Jaax [Lupus]
+//= 1.4 Due to added Magic Scrolls drops... removed the temp shop [Lupus]
 //============================================================ 
 
 

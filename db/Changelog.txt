@@ -32,6 +32,8 @@
 		like gemstones when the skill is used.
 	--
 
+10/08
+	* Added Magic Scrolls drops, updated walkspeed of Kaho thanks to  MasterOfMuppets [Lupus]
 10/06
 	* Updated the HP level of the normal second class mobs (as per info
 	  provided through Viccious Pucca) [Skotlex]
