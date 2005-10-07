@@ -25,6 +25,7 @@ Massdriller
 Date		Added
 ======
 10/07
+	* Added Einbech and Einbroch Item NPC's. [Nexon]
 	* Updated all scripts to work with the script engine update (changed break
 	  to end, changed some If to if) [Skotlex]
 	* Added official Old Blue Box quest to Comodo. Thanks to Celestia (it's another girl, not Celest) for help. [Lupus]

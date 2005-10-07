@@ -1,0 +1,26 @@
+//===== eAthena Script ======================================= 
+//= Einbroch Town
+//===== By: ================================================== 
+//= Nexon
+//===== Current Version: ===================================== 
+//= 1.0
+//===== Compatible With: ===================================== 
+//= eAthena Revision 3000+
+//===== Description: ========================================= 
+//=
+//===== Additional Comments: ================================= 
+//= Fully working
+//============================================================
+einbroch.gat,220,208,5 script Notice Board 858,{
+
+mes "[Weapon Shop Entrance]";
+close;
+
+}
+
+einbech.gat,180,136,5 script Notice Board 858,{
+
+mes "[Tool Shop Entrance]";
+close;
+
+}
