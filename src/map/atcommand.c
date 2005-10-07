@@ -9476,30 +9476,28 @@ int atcommand_showexp(
        const int fd, struct map_session_data* sd,
        const char* command, const char* message)
 {
-       if (sd->noexp) {
-               sd->noexp = 0;
-               clif_displaymessage(fd, "Gained exp is now shown");
-               return 0;
-       }
-       else {
-               sd->noexp = 1;
-               clif_displaymessage(fd, "Gained exp is now NOT shown");
-               return 0;
-       }
+	if (sd->state.showexp) {
+		sd->state.showexp = 0;
+		clif_displaymessage(fd, "Gained exp will not be shown.");
+		return 0;
+	}
+
+	sd->state.showexp = 1;
+	clif_displaymessage(fd, "Gained exp is now shown");
+	return 0;
 }
 
 int atcommand_showdelay(
        const int fd, struct map_session_data* sd,
        const char* command, const char* message)
 {
-       if (sd->nodelay) {
-               sd->nodelay = 0;
-               clif_displaymessage(fd, "Skill delay failure is now shown");
-               return 0;
-       }
-       else {
-               sd->nodelay = 1;
-               clif_displaymessage(fd, "Skill delay failure is NOT now shown");
-               return 0;
-       }
+	if (sd->state.showdelay) {
+		sd->state.showdelay = 0;
+		clif_displaymessage(fd, "Skill delay failures won't be shown.");
+		return 0;
+	}
+	
+	sd->state.showdelay = 1;
+	clif_displaymessage(fd, "Skill delay failures are shown now.");
+	return 0;
 }

@@ -360,6 +360,8 @@ struct map_session_data {
 		unsigned autotrade : 1;	//By Fantik
 		unsigned perfect_hiding : 1; // [Valaris]
 		unsigned accreg_dirty : 1; //By Skotlex (marks whether Account variables have been saved or not yet)
+		unsigned showdelay :1;
+		unsigned showexp :1;
 	} state;
 	struct {
 		unsigned killer : 1;
@@ -577,8 +579,6 @@ struct map_session_data {
 	int last_skillid,last_skilllv;		// Added by RoVeRT
 
 	unsigned char change_level; // [celest]
-	unsigned nodelay :1;
-	unsigned noexp :1;
 	unsigned detach :1;
 
 	short monster_ignore;	// for monsters to ignore a character [Valaris]

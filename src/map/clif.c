@@ -4654,9 +4654,8 @@ int clif_skill_fail(struct map_session_data *sd,int skill_id,int type,int btype)
 	sd->skillid = sd->skilllv = -1;
 	sd->skillitem = sd->skillitemlv = -1;
 
-	if(type==0x4 && (battle_config.display_delay_skill_fail==0 || sd->nodelay)){
+	if(type==0x4 && !sd->state.showdelay)
 		return 0;
-	}
 
 	WFIFOW(fd,0) = 0x110;
 	WFIFOW(fd,2) = skill_id;

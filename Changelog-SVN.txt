@@ -2,6 +2,8 @@ Date	Added
 =======
 
 10/07
+	* Modified @showexp and @showdelay so they will work as people would expect
+	  them to. [Skotlex]
 	* Figured out what ## variables are, and documented it on
 	  doc/script_commands.txt [Skotlex]
 	* Foruken pointed out that the actual script problem was a certain

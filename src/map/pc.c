@@ -692,7 +692,13 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 
 	if (battle_config.item_auto_get)
 		sd->state.autoloot = 1;
-	
+
+	if (battle_config.disp_experience)
+		sd->state.showexp = 1;
+		
+	if (battle_config.display_delay_skill_fail)
+		sd->state.showdelay = 1;
+		
 	// アカウント??の送信要求
 	intif_request_accountreg(sd);
 
@@ -4102,7 +4108,7 @@ int pc_gainexp(struct map_session_data *sd,int base_exp,int job_exp)
 
 	clif_updatestatus(sd,SP_JOBEXP);
 
-	if(battle_config.disp_experience && !sd->noexp){
+	if(sd->state.showexp){
 		sprintf(output,
 			"Experienced Gained Base:%d (%.2f%%) Job:%d (%.2f%%)",base_exp,nextbp*(float)100,job_exp,nextjp*(float)100);
 		clif_disp_onlyself(sd,output,strlen(output));
