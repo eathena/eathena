@@ -1431,7 +1431,7 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 		break;
 	case SP_PERFECT_HIDE: // [Valaris]
 		if(sd->state.lr_flag!=2) {
-			sd->perfect_hiding=1;
+			sd->state.perfect_hiding=1;
 		}
 		break;
 	case SP_DISGUISE: // Disguise script for items [Valaris]

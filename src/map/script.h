@@ -28,8 +28,10 @@ struct script_data {
 	} u;
 };
 
+// Moved defsp from script_state to script_stack since
+// it must be saved when script state is RERUNLINE. [Eoe / jA 1094]
 struct script_stack {
-	int sp,sp_max;
+	int sp,sp_max,defsp;
 	struct script_data *stack_data;
 };
 struct script_state {
@@ -38,7 +40,7 @@ struct script_state {
 	int pos,state;
 	int rid,oid;
 	unsigned char *script,*new_script;
-	int defsp,new_pos,new_defsp;
+	int new_pos,new_defsp;
 };
 
 unsigned char * parse_script(unsigned char *,int);

@@ -2878,7 +2878,7 @@ int battle_check_attackable(struct block_list *src, struct block_list *target)
 			if (!(mode & 0x20)
 				&& (pc_ishiding(sd) || sd->state.gangsterparadise)
 				&& !(race == 4 || race == 6 || mode&0x100)
-				&& !sd->perfect_hiding
+				&& !sd->state.perfect_hiding
 			)
 				return 0;
 		}

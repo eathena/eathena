@@ -851,7 +851,7 @@ int pet_remove_map(struct map_session_data *sd)
 			pd->loot = NULL;
 		}
 		pd->state.skillbonus=-1;
-		if(sd->perfect_hiding==1) sd->perfect_hiding=0;	// end additions
+		if(sd->state.perfect_hiding) sd->state.perfect_hiding=0;	// end additions
 
 		pet_changestate(sd->pd,MS_IDLE,0);
 		if(sd->pet_hungry_timer != -1)

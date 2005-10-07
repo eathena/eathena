@@ -358,7 +358,8 @@ struct map_session_data {
 		unsigned abra_flag : 1;
 		unsigned autoloot : 1; //by Upa-Kun <- Ya know, I originally wrote this code... [Skotlex]
 		unsigned autotrade : 1;	//By Fantik
-		unsigned accreg_dirty: 1; //By Skotlex (marks whether Account variables have been saved or not yet)
+		unsigned perfect_hiding : 1; // [Valaris]
+		unsigned accreg_dirty : 1; //By Skotlex (marks whether Account variables have been saved or not yet)
 	} state;
 	struct {
 		unsigned killer : 1;
@@ -524,7 +525,6 @@ struct map_session_data {
 	int spirit_timer[MAX_SKILL_LEVEL];
 	int magic_damage_return; // AppleGirl Was Here
 	int random_attack_increase_add,random_attack_increase_per; // [Valaris]
-	int perfect_hiding; // [Valaris]
 	int classchange; // [Valaris]
 
 	int die_counter;
