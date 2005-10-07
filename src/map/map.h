@@ -36,7 +36,7 @@
 #define MAX_VENDING 12
 #define MOBID_EMPERIUM 1288
 
-//Definitions for Jobs, this should help code be more readable. [Skotlex]
+//These mark the ID of the jobs, as expected by the client. [Skotlex]
 enum {
 	JOB_NOVICE,
 	JOB_SWORDMAN,
@@ -116,7 +116,9 @@ enum {
 	JOB_SOUL_LINKER,
 };
 
-/* Nevermind these... it's an idea for a more flexible Job ID system that ain't yet into production. [Skotlex]
+//The following system marks a different job ID system used by the map server,
+//which makes a lot more sense than the normal one. [Skotlex]
+//
 //These marks the "level" of the job.
 #define JOBL_2_1 0x100
 #define JOBL_2_2 0x200
@@ -125,85 +127,88 @@ enum {
 #define JOBL_ADV 0x1000
 #define JOBL_BABY 0x2000
 
-#define JOB_BASEMASK 0xff00
+//for filtering and quick checking.
+#define MAPID_UPPERMASK 0xf000
+#define MAPID_BASEMASK 0xff00
 //First Jobs
+//Note the oddity of the novice:
+//Super Novices are considered the 2-1 version of the novice! Novices are considered a first class type, too...
 enum {
-	JOB_NOVICE = 0x0,
-	JOB_SWORDMAN,
-	JOB_MAGE,
-	JOB_ARCHER,
-	JOB_ACOLYTE,
-	JOB_MERCHANT,
-	JOB_THIEF,
-	JOB_TAEKWON,
-	JOB_WEDDING,
+	MAPID_NOVICE = 0x0,
+	MAPID_SWORDMAN,
+	MAPID_MAGE,
+	MAPID_ARCHER,
+	MAPID_ACOLYTE,
+	MAPID_MERCHANT,
+	MAPID_THIEF,
+	MAPID_TAEKWON,
+	MAPID_WEDDING,
 //2_1 classes
-	JOB_SUPER_NOVICE = JOBL_2_1|0x0,
-	JOB_KNIGHT,
-	JOB_WIZARD,
-	JOB_HUNTER,
-	JOB_PRIEST,
-	JOB_BLACKSMITH,
-	JOB_ASSASSIN,
-	JOB_STAR_GLADIATOR,
+	MAPID_SUPER_NOVICE = JOBL_2_1|0x0,
+	MAPID_KNIGHT,
+	MAPID_WIZARD,
+	MAPID_HUNTER,
+	MAPID_PRIEST,
+	MAPID_BLACKSMITH,
+	MAPID_ASSASSIN,
+	MAPID_STAR_GLADIATOR,
 //2_2 classes
-	JOB_CRUSADER = JOBL_2_2|0x1,
-	JOB_SAGE,
-	JOB_BARDDANCER,
-	JOB_MONK,
-	JOB_ALCHEMIST,
-	JOB_ROGUE,
-	JOB_SOUL_LINKER,
+	MAPID_CRUSADER = JOBL_2_2|0x1,
+	MAPID_SAGE,
+	MAPID_BARDDANCER,
+	MAPID_MONK,
+	MAPID_ALCHEMIST,
+	MAPID_ROGUE,
+	MAPID_SOUL_LINKER,
 //1-1, advanced
-	JOB_NOVICE_HIGH = JOBL_ADV|0x0,
-	JOB_SWORDMAN_HIGH,
-	JOB_MAGE_HIGH,
-	JOB_ARCHER_HIGH,
-	JOB_ACOLYTE_HIGH,
-	JOB_MERCHANT_HIGH,
-	JOB_THIEF_HIGH,
+	MAPID_NOVICE_HIGH = JOBL_ADV|0x0,
+	MAPID_SWORDMAN_HIGH,
+	MAPID_MAGE_HIGH,
+	MAPID_ARCHER_HIGH,
+	MAPID_ACOLYTE_HIGH,
+	MAPID_MERCHANT_HIGH,
+	MAPID_THIEF_HIGH,
 //2_1 advanced
-	JOB_LORD_KNIGHT = JOBL_ADV|JOBL_2_1|0x1,
-	JOB_HIGH_WIZARD,
-	JOB_SNIPER,
-	JOB_HIGH_PRIEST,
-	JOB_WHITESMITH,
-	JOB_ASSASSIN_CROSS,
+	MAPID_LORD_KNIGHT = JOBL_ADV|JOBL_2_1|0x1,
+	MAPID_HIGH_WIZARD,
+	MAPID_SNIPER,
+	MAPID_HIGH_PRIEST,
+	MAPID_WHITESMITH,
+	MAPID_ASSASSIN_CROSS,
 //2_2 advanced
-	JOB_PALADIN = JOBL_ADV|JOBL_2_2|0x1,
-	JOB_PROFESSOR,
-	JOB_CLOWNGYPSY,
-	JOB_CHAMPION,
-	JOB_CREATOR,
-	JOB_STALKER,
+	MAPID_PALADIN = JOBL_ADV|JOBL_2_2|0x1,
+	MAPID_PROFESSOR,
+	MAPID_CLOWNGYPSY,
+	MAPID_CHAMPION,
+	MAPID_CREATOR,
+	MAPID_STALKER,
 //1-1 baby
-	JOB_BABY = JOBL_BABY|0x0,
-	JOB_BABY_SWORDMAN,
-	JOB_BABY_MAGE,
-	JOB_BABY_ARCHER,
-	JOB_BABY_ACOLYTE,
-	JOB_BABY_MERCHANT,
-	JOB_BABY_THIEF,
-	JOB_BABY_TAEKWON,
+	MAPID_BABY = JOBL_BABY|0x0,
+	MAPID_BABY_SWORDMAN,
+	MAPID_BABY_MAGE,
+	MAPID_BABY_ARCHER,
+	MAPID_BABY_ACOLYTE,
+	MAPID_BABY_MERCHANT,
+	MAPID_BABY_THIEF,
+	MAPID_BABY_TAEKWON,
 //2_1 baby
-	JOB_SUPER_BABY = JOBL_BABY|JOBL_2_1|0x0,
-	JOB_BABY_KNIGHT,
-	JOB_BABY_WIZARD,
-	JOB_BABY_HUNTER,
-	JOB_BABY_PRIEST,
-	JOB_BABY_BLACKSMITH,
-	JOB_BABY_ASSASSIN,
-	JOB_BABY_STAR_GLADIATOR,
+	MAPID_SUPER_BABY = JOBL_BABY|JOBL_2_1|0x0,
+	MAPID_BABY_KNIGHT,
+	MAPID_BABY_WIZARD,
+	MAPID_BABY_HUNTER,
+	MAPID_BABY_PRIEST,
+	MAPID_BABY_BLACKSMITH,
+	MAPID_BABY_ASSASSIN,
+	MAPID_BABY_STAR_GLADIATOR,
 //2_2 baby
-	JOB_BABY_CRUSADER = JOBL_BABY|JOBL_2_2|0x1,
-	JOB_BABY_SAGE,
-	JOB_BABY_BARDDANCER,
-	JOB_BABY_MONK,
-	JOB_BABY_ALCHEMIST,
-	JOB_BABY_ROGUE,
-	JOB_BABY_SOUL_LINKER,
+	MAPID_BABY_CRUSADER = JOBL_BABY|JOBL_2_2|0x1,
+	MAPID_BABY_SAGE,
+	MAPID_BABY_BARDDANCER,
+	MAPID_BABY_MONK,
+	MAPID_BABY_ALCHEMIST,
+	MAPID_BABY_ROGUE,
+	MAPID_BABY_SOUL_LINKER,
 };
-*/
 
 //Don't change this, as the client seems to always send/receive 80 characters as it currently is. [Skotlex]
 #define MESSAGE_SIZE 80
@@ -377,6 +382,7 @@ struct map_session_data {
 		unsigned intravision : 1; // Maya Purple Card effect allowing to see Hiding/Cloaking people [DracoRPG]
 	} special_state;
 	int char_id, login_id1, login_id2, sex;
+	unsigned short class_;	//This is the internal job ID used by the map server to simplify comparisons/queries/etc. [Skotlex]
 
 	int packet_ver;  // 5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 ... 18
 	struct mmo_charstatus status;

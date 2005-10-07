@@ -662,6 +662,9 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 		return 1;
 	}
 
+	//Set the map-server used job id. [Skotlex]
+	sd->class_ =  pc_jobid2mapid((unsigned short) sd->status.class_);
+
 	//Initializations to null/0 unneeded since map_session_data was filled with 0 upon allocation.
 	// Šî–{“I‚È‰Šú‰»
 	sd->state.connect_new = 1;
@@ -3723,6 +3726,92 @@ int pc_calc_upper(int b_class)
 	return 2;
 }
 
+/*==========================================
+ * Convert's from the client's lame Job ID system
+ * to the map server's 'makes sense' system. [Skotlex]
+ *------------------------------------------
+ */
+unsigned short pc_jobid2mapid(unsigned short b_class)
+{
+	int class_ = 0;
+	if (b_class >= JOB_BABY && b_class <= JOB_SUPER_BABY)
+	{
+		if (b_class == JOB_SUPER_BABY)
+			b_class = JOB_SUPER_NOVICE;
+		else
+			b_class -= JOB_BABY;
+		class_|= JOBL_BABY;
+	}
+	else if (b_class >= JOB_NOVICE_HIGH && b_class <= JOB_PALADIN2)
+	{
+		b_class -= JOB_NOVICE_HIGH;
+		class_|= JOBL_ADV;
+	}
+	if (b_class >= JOB_KNIGHT && b_class <= JOB_KNIGHT2)
+		class_|= JOBL_2_1;
+	else if (b_class >= JOB_CRUSADER && b_class <= JOB_CRUSADER2)
+		class_|= JOBL_2_2;
+	switch (b_class)
+	{
+		case JOB_NOVICE:
+		case JOB_SWORDMAN:
+		case JOB_MAGE:
+		case JOB_ARCHER:
+		case JOB_ACOLYTE:
+		case JOB_MERCHANT:
+		case JOB_THIEF:
+			class_ |= b_class;
+			break;
+		case JOB_KNIGHT:
+		case JOB_KNIGHT2:
+		case JOB_CRUSADER:
+		case JOB_CRUSADER2:
+			class_ |= MAPID_SWORDMAN;
+			break;
+		case JOB_PRIEST:
+		case JOB_MONK:
+			class_ |= MAPID_ACOLYTE;
+			break;
+		case JOB_WIZARD:
+		case JOB_SAGE:
+			class_ |= MAPID_MAGE;
+			break;
+		case JOB_BLACKSMITH:
+		case JOB_ALCHEMIST:
+			class_ |= MAPID_MERCHANT;
+			break;
+		case JOB_HUNTER:
+		case JOB_BARD:
+		case JOB_DANCER:
+			class_ |= MAPID_ARCHER;
+			break;
+		case JOB_ASSASSIN:
+		case JOB_ROGUE:
+			class_ |= MAPID_THIEF;
+			break;
+			
+		case JOB_STAR_GLADIATOR:
+		case JOB_STAR_GLADIATOR2:
+			class_ |= JOBL_2_1;
+			class_ |= MAPID_TAEKWON;
+			break;	
+		case JOB_SOUL_LINKER:
+			class_ |= JOBL_2_2;
+		case JOB_TAEKWON:
+			class_ |= MAPID_TAEKWON;
+			break;
+		case JOB_WEDDING:
+			class_ = MAPID_WEDDING;
+			break;
+		case JOB_SUPER_NOVICE: //Super Novices are considered 2-1 novices. [Skotlex]
+			class_ |= JOBL_2_1;
+			break;
+		default:
+			ShowError("pc_jobid2mapid: Unrecognized job %d!\n", b_class);
+			return 0;
+	}
+	return class_;
+}
 /*==========================================
  * PC‚ÌU? (timer??)
  *------------------------------------------

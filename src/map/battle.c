@@ -2006,24 +2006,26 @@ struct Damage battle_calc_magic_attack(
 					ad.blewcount = 0;
 				} else
 					ad.blewcount |= 0x10000;
-					//ad.dmotion=0; // Firewall's delay is always none. [Skotlex], or maybe not?
-			break;
-		case WZ_FIREPILLAR:
-			flag.imdef = 1;
+				//ad.dmotion=0; // Firewall's delay is always none. [Skotlex], or maybe not?
 			break;
 		case PR_SANCTUARY:
 			ad.blewcount|=0x10000;
+		case AL_HEAL:
+		case WZ_FIREPILLAR:
+			flag.imdef = 1;
 			break;
 		case NPC_GRANDDARKNESS:
 		case CR_GRANDCROSS:
 			skillratio+= 40*skill_lv;
 			break;
+		case PR_TURNUNDEAD:
 		case PR_ASPERSIO:
 		case ASC_BREAKER:
 		case PF_SOULBURN:
 		case HW_GRAVITATION:
 			flag.elefix = 0;
 			flag.cardfix = 0;
+			flag.imdef = 1;
 			break;
 	}
 
