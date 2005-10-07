@@ -27,6 +27,8 @@ Date		Added
 10/08
 	* Due to added Magic Scrolls drops... finally removed the temp shop [Lupus]
 10/07
+	* Added more Einbroch shop NPC's. Thanks to MasterOfMuppets and Vicious_Pucca. [Nexon]
+	* Fixed Niffelheim warps. Thanks to MasterOfMuppets. [Nexon]
 	* Added Lighthalzen shops. Thanks to Maud_Dib. [Nexon]
 	* Returned back Mr.Smile quest (it's still up in kRO) [Lupus]
 	* Updated official Bard Job Quest: Flowers Part now is quite easy to pass trough [Lupus]
