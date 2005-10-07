@@ -2,6 +2,11 @@ Date	Added
 =======
 
 10/07
+	* Foruken pointed out that the actual script problem was a certain
+	  acalloc() that was changed to realloc(), so undid the last revert and
+	  reverted this one instead.  [Skotlex]
+	* Fixed a char-sql issue where character variables seemed to be saving
+	  incorrectly. [Skotlex]
 	* Removed a free() that was added on R3421 that was supposed to fix a
 	  memory leak but instead causes crashes :/ (so the memory leak is back in
 	  there, but no more crash) [Skotlex] 

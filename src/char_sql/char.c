@@ -642,13 +642,13 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 
 		//insert here.
 		tmp_ptr = tmp_sql;
-		tmp_ptr += sprintf(tmp_ptr,"INSERT INTO `%s` (`char_id`, `str`, `value`) VALUES", reg_db);
+		tmp_ptr += sprintf(tmp_ptr,"INSERT INTO `%s` (`type`, `char_id`, `str`, `value`) VALUES", reg_db);
 		count = 0;
 		for(i=0;i<p->global_reg_num;i++)
 		{
 			if (p->global_reg[i].str && p->global_reg[i].value !=0)
 			{
-				tmp_ptr += sprintf(tmp_ptr,"('%d','%s','%d'),",
+				tmp_ptr += sprintf(tmp_ptr,"('3','%d','%s','%d'),",
 					char_id, jstrescapecpy(temp_str,p->global_reg[i].str), p->global_reg[i].value);
 				if (++count%100 == 0)
 				{ //Save every X registers to avoid overflowing tmp_sql [Skotlex]
@@ -661,7 +661,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 						strcat(save_status, " global_reg");
 						
 					tmp_ptr = tmp_sql;
-					tmp_ptr += sprintf(tmp_ptr,"INSERT INTO `%s` (`char_id`, `str`, `value`) VALUES", reg_db);
+					tmp_ptr += sprintf(tmp_ptr,"INSERT INTO `%s` (`type`, `char_id`, `str`, `value`) VALUES", reg_db);
 					count = 0;
 				}
 			}

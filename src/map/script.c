@@ -2027,8 +2027,9 @@ unsigned char* parse_script(unsigned char *src,int line)
 		return NULL;
 	}
 ////////////////////////////////////////////
-
-	script_buf = (unsigned char *) aRealloc(script_buf, SCRIPT_BLOCK_SIZE*sizeof(unsigned char));
+//	TODO: There is a memory leak on this aCallocA, gotta figure out when it's safe to aFree script_buf! [Skotlex]
+//	script_buf = (unsigned char *) aRealloc(script_buf, SCRIPT_BLOCK_SIZE*sizeof(unsigned char));
+	script_buf = (unsigned char *) aCallocA(SCRIPT_BLOCK_SIZE, sizeof(unsigned char));
 	script_pos = 0;
 	script_size = SCRIPT_BLOCK_SIZE;
 	str_data[LABEL_NEXTLINE].type = C_NOP;
@@ -9382,14 +9383,12 @@ int run_script(unsigned char *script,int pos,int rid,int oid)
 		sd->npc_script      = st.script;
 		sd->npc_scriptroot  = rootscript;
 		sd->npc_scriptstate = st.state;
-		/* TODO: This free seems to cause a crash, yet not doing it causes memory leaks! :/
 		if (sd->stack)
 		{	//There was a stack? Remove it. [Skotlex]
 			if (sd->stack->stack_data)
 				aFree(sd->stack->stack_data);
 			aFree(sd->stack);
 		}
-		*/
 		sd->stack           = st.stack;
 
 	} else {

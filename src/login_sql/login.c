@@ -817,7 +817,7 @@ int parse_fromchar(int fd){
 				}
 			}
 
-			if (i != AUTH_FIFO_SIZE) { // send account_reg
+			if (i != AUTH_FIFO_SIZE) { // send account_reg2
 				int p;
 				time_t connect_until_time = 0;
 				char email[40] = "";
