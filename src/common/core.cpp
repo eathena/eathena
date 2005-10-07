@@ -193,7 +193,7 @@ void init_signal()
 // revision
 // would make it inline but dll wants it on a fixed position
 // to get it's function pointer
-const char* get_svn_revision()	{ return "Shinomori's Modified Version (2005-09-22)"; }
+const char* get_svn_revision()	{ return "Shinomori's Modified Version (2005-10-01)"; }
 /*
 {
 	static char version[10]="";
@@ -250,10 +250,12 @@ void display_title(void)
  *	CORE : MAINROUTINE
  *--------------------------------------
  */
+void parameertest();
+
 int main (int argc, char **argv)
 {
 	int next;
-
+parameertest();
 	///////////////////////////////////////////////////////////////////////////
 	// startup
 	init_signal();

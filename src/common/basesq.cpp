@@ -158,27 +158,51 @@ bool CAccountDB_sql::searchAccount(const char* userid, CLoginAccount& account)
 		char query[4096];
 		char uid[64];
 		MYSQL_RES *sql_res1=NULL, *sql_res2=NULL;
-//!! get auth from db
+
 		escape_string(uid, userid, strlen(userid));
-		sz=sprintf(query, "SELECT `account_id`,`userid`,`user_pass`,`last_login`,`sex`,`valid_until`,`login_ip`,`ban_until`,`gm_level`,`email`"
-						" FROM `%s` WHERE %s `userid`='%s'", login_auth_db, case_sensitive ? "BINARY" : "", uid);
-		//login {0-account_id/1-userid/2-user_pass/3-last_login/4-sex/5-connect_untl/6-login_ip/7-ban_until/8-gmlevel/9-email}
+		sz=sprintf(query, "SELECT"
+			"`account_id`,"		//  0
+			"`userid`,"			//  1
+			"`user_pass`,"		//  2
+			"`sex`,"			//  3
+			"`gm_level`,"		//  4
+			"`online`,"			//  5
+			"`email`,"			//  6
+			"`login_id1`,"		//  7
+			"`login_id2`,"		//  8
+			"`client_ip`,"		//  9
+			"`last_login`,"		// 10
+			"`login_count`,"	// 11
+			"`ban_until`"		// 12
+			"`valid_until`"		// 13
+			" FROM `%s` WHERE %s `userid`='%s'", login_auth_db, case_sensitive ? "BINARY" : "", uid);
+
 		if( this->mysql_SendQuery(sql_res1, query, sz) )
 		{
 			MYSQL_ROW sql_row = mysql_fetch_row(sql_res1);	//row fetching
 			if(sql_row)
 			{
 
-				account.account_id = sql_row[0]?atol(sql_row[0]):0;
-				safestrcpy(account.userid, userid, 24);
-				safestrcpy(account.passwd, sql_row[2]?sql_row[2]:"", 32);
-				safestrcpy(account.last_login, sql_row[3]?sql_row[3]:"" , 24);
-				account.sex = sql_row[4][0] == 'S' ? 2 : sql_row[4][0]=='M';
-				account.valid_until = (time_t)(sql_row[5]?atol(sql_row[5]):0);
-				safestrcpy(account.last_ip, sql_row[6], 16);
-				account.ban_until = (time_t)(sql_row[7]?atol(sql_row[7]):0);;
-				account.gm_level = sql_row[8]?atoi( sql_row[8]):0;
-				safestrcpy(account.email, sql_row[9]?sql_row[9]:"" , 40);
+				account.account_id	= sql_row[0]?atol(sql_row[0]):0;
+				safestrcpy(account.userid, sql_row[1]?sql_row[1]:"", sizeof(account.userid));
+				safestrcpy(account.passwd, sql_row[2]?sql_row[2]:"", sizeof(account.passwd));
+				account.sex			= sql_row[3][0] == 'S' ? 2 : sql_row[3][0]=='M';
+				account.gm_level	= sql_row[4]?atol(sql_row[4]):0;
+				account.online		= sql_row[5]?atol(sql_row[5]):0;
+				safestrcpy(account.email, sql_row[6]?sql_row[6]:"" , sizeof(account.email));
+				account.login_id1	= sql_row[7]?atol(sql_row[7]):0;
+				account.login_id2	= sql_row[8]?atol(sql_row[8]):0;
+				account.client_ip	= ipaddress(sql_row[9]);
+				safestrcpy(account.last_login, sql_row[10]?sql_row[10]:"" , sizeof(account.last_login));
+				account.login_count	= sql_row[11]?atol(sql_row[11]):0;
+				account.valid_until	= (time_t)(sql_row[12]?atol(sql_row[12]):0);
+				account.ban_until	= (time_t)(sql_row[13]?atol(sql_row[13]):0);
+
+				// clear unused fields until they got removed from all implementations
+				account.state = 0;
+				account.error_message[0]=0;
+				account.memo[0]=0;
+				account.last_ip[0]=0;
 
 				sz = sprintf(query, "SELECT `str`,`value` FROM `%s` WHERE `account_id`='%ld'", login_reg_db, (unsigned long)account.account_id);
 				if( this->mysql_SendQuery(sql_res2, query, sz) )
@@ -207,27 +231,49 @@ bool CAccountDB_sql::searchAccount(uint32 accid, CLoginAccount& account)
 	size_t sz;
 	char query[4096];
 	MYSQL_RES *sql_res1=NULL, *sql_res2=NULL;
-//!! get auth from db
-	sz=sprintf(query, "SELECT `account_id`,`userid`,`user_pass`,`last_login`,`sex`,`valid_until`,`login_ip`,`ban_until`,`gm_level`,`email`"
-	                " FROM `%s` WHERE `account_id`='%s'", login_auth_db, accid);
-	//login {0-account_id/1-userid/2-user_pass/3-last_login/4-sex/5-connect_untl/6-login_ip/7-ban_until/8-gmlevel/9-email}
+
+	sz=sprintf(query, "SELECT "
+			"`account_id`,"		//  0
+			"`userid`,"			//  1
+			"`user_pass`,"		//  2
+			"`sex`,"			//  3
+			"`gm_level`,"		//  4
+			"`online`,"			//  5
+			"`email`,"			//  6
+			"`login_id1`,"		//  7
+			"`login_id2`,"		//  8
+			"`client_ip`,"		//  9
+			"`last_login`,"		// 10
+			"`login_count`,"	// 11
+			"`ban_until`"		// 12
+			"`valid_until`"		// 13
+			" FROM `%s` WHERE `account_id`='%s'", login_auth_db, accid);
+
 	if( this->mysql_SendQuery(sql_res1, query, sz) )
 	{
 		MYSQL_ROW sql_row = mysql_fetch_row(sql_res1);	//row fetching
 		if(sql_row)
 		{
+			account.account_id	= sql_row[0]?atol(sql_row[0]):0;
+			safestrcpy(account.userid, sql_row[1]?sql_row[1]:"", sizeof(account.userid));
+			safestrcpy(account.passwd, sql_row[2]?sql_row[2]:"", sizeof(account.passwd));
+			account.sex			= sql_row[3][0] == 'S' ? 2 : sql_row[3][0]=='M';
+			account.gm_level	= sql_row[4]?atol(sql_row[4]):0;
+			account.online		= sql_row[5]?atol(sql_row[5]):0;
+			safestrcpy(account.email, sql_row[6]?sql_row[6]:"" , sizeof(account.email));
+			account.login_id1	= sql_row[7]?atol(sql_row[7]):0;
+			account.login_id2	= sql_row[8]?atol(sql_row[8]):0;
+			account.client_ip	= ipaddress(sql_row[9]);
+			safestrcpy(account.last_login, sql_row[10]?sql_row[10]:"" , sizeof(account.last_login));
+			account.login_count	= sql_row[11]?atol(sql_row[11]):0;
+			account.valid_until	= (time_t)(sql_row[12]?atol(sql_row[12]):0);
+			account.ban_until	= (time_t)(sql_row[13]?atol(sql_row[13]):0);
 
-			account.account_id = sql_row[0]?atol(sql_row[0]):0;
-			safestrcpy(account.userid, sql_row[1]?sql_row[1]:"", 24);
-			safestrcpy(account.passwd, sql_row[2]?sql_row[2]:"", 32);
-			safestrcpy(account.last_login, sql_row[3]?sql_row[3]:"" , 24);
-			account.sex = sql_row[4][0] == 'S' ? 2 : sql_row[4][0]=='M';
-			account.valid_until = (time_t)(sql_row[5]?atol(sql_row[5]):0);
-			safestrcpy(account.last_ip, sql_row[6], 16);
-			account.ban_until = (time_t)(sql_row[7]?atol(sql_row[7]):0);;
-			account.gm_level = sql_row[9]?atoi( sql_row[9]):0;
-			safestrcpy(account.email, sql_row[10]?sql_row[10]:"" , 40);
-
+			// clear unused fields until they got removed from all implementations
+			account.state = 0;
+			account.error_message[0]=0;
+			account.memo[0]=0;
+			account.last_ip[0]=0;
 
 			sz = sprintf(query, "SELECT `str`,`value` FROM `%s` WHERE `account_id`='%ld'", login_reg_db, (unsigned long)account.account_id);
 			if( this->mysql_SendQuery(sql_res2, query, sz) )
@@ -282,7 +328,7 @@ bool CAccountDB_sql::removeAccount(uint32 accid)
 
 bool CAccountDB_sql::init(const char* configfile)
 {	// init db
-	size_t sz; // Used for size of queries
+	size_t sz;		 // Used for size of queries
 	bool wipe=false; // i dont know how a bool is set..
 	char query[512]; // used for the queries themselves
 
@@ -291,7 +337,6 @@ bool CAccountDB_sql::init(const char* configfile)
 	mysql_init(&mysqldb_handle);
 
 	// All tables used for login: login_auth, login_reg, login_log, login_status
-
 
 	// DB connection start
 	ShowMessage("Connect Database Server on %s%u....\n", mysqldb_ip, mysqldb_port);
@@ -314,77 +359,77 @@ bool CAccountDB_sql::init(const char* configfile)
 
 	if (wipe)
 	{
-		sz = sprintf(query, "DROP TABLE IF EXISTS login_auth");
+		sz = sprintf(query, "DROP TABLE IF EXISTS %s", login_auth_db);
 		this->mysql_SendQuery(query, sz);
 	}
 
 	sz = sprintf(query,
-		"CREATE TABLE IF NOT EXISTS `login_auth` ("
+		"CREATE TABLE IF NOT EXISTS `%s` ("
 		"`account_id` INTEGER UNSIGNED AUTO_INCREMENT,"
-		"`userid` VARCHAR(24) NOT NULL,"
+		"`user_id` VARCHAR(24) NOT NULL,"
 		"`user_pass` VARCHAR(34) NOT NULL,"
 		"`sex` ENUM('M','F','S') default 'M',"
 		"`gm_level` INT(3) UNSIGNED NOT NULL,"
 		"`online` BOOL default 'false',"
 		"`email` VARCHAR(40) NOT NULL,"
-		"`login_ip` VARCHAR(16) NOT NULL,"
 		"`login_id1` INTEGER UNSIGNED NOT NULL,"
 		"`login_id2` INTEGER UNSIGNED NOT NULL,"
+		"`client_ip` VARCHAR(16) NOT NULL,"
 		"`last_login` INTEGER UNSIGNED NOT NULL,"
+		"`login_count` INTEGER UNSIGNED NOT NULL,"
 		"`ban_until` INTEGER UNSIGNED NOT NULL,"
 		"`valid_until` INTEGER UNSIGNED NOT NULL,"
 		"PRIMARY KEY(`account_id`)"
-		")" );
+		")", login_auth_db);
 	this->mysql_SendQuery(query, sz);
-
-
-
-
 
 	if (wipe)
 	{
-		size_t sz = sprintf(query, "DROP TABLE IF EXISTS login_reg");
+		size_t sz = sprintf(query, "DROP TABLE IF EXISTS %s", login_reg_db);
 		this->mysql_SendQuery(query, sz);
 	}
 
 	sz = sprintf(query,
-		"CREATE TABLE IF NOT EXISTS `login_reg` ("
+		"CREATE TABLE IF NOT EXISTS `%s` ("
 		"`account_id` INTEGER UNSIGNED AUTO_INCREMENT,"
-		"`str` VARCHAR(34) NOT NULL,"  // Not sure on the length needed.
+		"`str` VARCHAR(34) NOT NULL,"  // Not sure on the length needed. (struct global_reg::str[32]) but better read the size from the struct later
 		"`value` INTEGER UNSIGNED NOT NULL,"
 		"PRIMARY KEY(`account_id`,`str`)"
-		")" );
+		")", login_reg_db	
+		);
 	this->mysql_SendQuery(query, sz);
 
 	if (wipe)
 	{
-		size_t sz = sprintf(query, "DROP TABLE IF EXISTS login_log");
+		size_t sz = sprintf(query, "DROP TABLE IF EXISTS %s", login_log_db);
 		this->mysql_SendQuery(query, sz);
 	}
 
 	sz = sprintf(query,
-		"CREATE TABLE IF NOT EXISTS `login_log` ("
+		"CREATE TABLE IF NOT EXISTS `%s` ("
 		"`time` INTEGER UNSIGNED,"
 		"`ip` VARCHAR(16) NOT NULL,"
 		"`user` VARCHAR(24) NOT NULL,"
 		"`rcode` INTEGER(3) UNSIGNED NOT NULL,"
 		"`log` VARCHAR(100) NOT NULL"
-		")" );
+		")", login_log_db
+		);
 	this->mysql_SendQuery(query, sz);
 
 	if (wipe)
 	{
-		sz = sprintf(query, "DROP TABLE IF EXISTS login_status");
+		sz = sprintf(query, "DROP TABLE IF EXISTS %s", login_status_db);
 		this->mysql_SendQuery(query, sz);
 	}
 
 	sz = sprintf(query,
-		"CREATE TABLE IF NOT EXISTS `login_status` ("
+		"CREATE TABLE IF NOT EXISTS `%s` ("
 		"`index` INTEGER UNSIGNED NOT NULL,"
 		"`name` VARCHAR(24) NOT NULL,"
 		"`user` INTEGER UNSIGNED NOT NULL,"
 		"PRIMARY KEY(`index`)"
-		")" );
+		")", login_status_db
+		);
 	this->mysql_SendQuery(query, sz);
 
 	return true;
@@ -415,26 +460,36 @@ bool CAccountDB_sql::saveAccount(const CLoginAccount& account)
 	bool ret = false;
 	size_t sz;
 	char query[1024], tempstr[64];
-//!! store auth in db
+
 	sz = sprintf(query, "UPDATE `%s` SET "
-		"`userid` = '%s', "
-		"`user_pass` = '%d', "
-		"`gm_level` = '%d', "
+		"`user_id` = '%s', "
+		"`user_pass` = '%s', "
 		"`sex` = '%c', "
-		"`login_ip` = '%s', "
+		"`gm_level` = '%d', "
+		"`online` = '%ld', "
+		"`email` = '%s', "
+		"`login_id1` = '%ld', "
+		"`login_id2` = '%ld', "
+		"`client_ip` = '%s', "
+		"`last_login` = '%s', "
+		"`login_count` = '%ld', "
 		"`valid_until` = '%ld', "
 		"`ban_until` = '%ld', "
-		"`email` = '%s', "
 		"WHERE `account_id` = '%ld'",
 		login_auth_db,
 		account.userid,
 		account.passwd,
-		account.gm_level,
 		(account.sex==1)? 'M':'F',
-		account.last_ip,
+		account.gm_level,
+		account.online,
+		account.email,
+		(unsigned long)account.login_id1,
+		(unsigned long)account.login_id2,
+		((ipaddress)account.client_ip).getstring(tempstr),
+		account.last_login,
+		(unsigned long)account.login_count,
 		(unsigned long)account.valid_until,
 		(unsigned long)account.ban_until,
-		account.email,
 		(unsigned long)account.account_id);
 
 	ret = this->mysql_SendQuery(query, sz);

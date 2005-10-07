@@ -26,12 +26,16 @@ data interface (sql only)  // CLOWNISIUS is working on this section, hands off o
   [some data fields are quite useless though and could be removed] (25% done... login complete working on char now)
 * adding missing data fields to login table
   [account is stored completely including the login_id's] (been complete, needs review for removing from this file)
+  (Shinomori: I changes some field names and reorder them to match the same scheme in all usages; for functionality reasons it is necessary to always read/store complete data sets; so I added the missing fields at the search/save functions). If you don't mind, you could have a corrective look at the sql stuff.)
+
 * implementation of the sql part of the char_db
   [functional interface is ready, tested and already used in the char server, so just need to copy the CCharDB_txt to CCharDB_sql and implement the functions]
+  (also valid for the databases of Party, Guild, Storage etc.)
 * integrating check/update of database for missing tables/columns
   [adding functionality that the server can itself check and add their db structure]
 * implementing size() and operator[] for sql
   [see conversion above, size() gives the number of elements, operator[] accesses a specific element, optionally it there could be forEach tempate function, that takes a function pointer]
+  (revised: better and the size() and operator[] replaced by iterators on the databases which have better characteristics and are easier to implement on both sql and txt database layout)
 * adding embedded sql base class 
   [basically deriving from existing class and modifying the sql startup function]
 
@@ -39,6 +43,9 @@ other code
 * capsualting and reworking the current code
   [just as topic, also need to check what functions are really necessary and what not, a lot of the current stuff is not threadsafe and could be dome far more efficient]
   {grfio in progress}
+* replace the red-black-tree from db.cpp with sorted-list classes from base.h,
+  add necessary functionality to make the conversion as simple as possible
+  [the tree is nice, a simple pointer list a suitable replacement, maybe think on having a tree class but then a order-N btree instead of the red-black-tree because of better performance and storage]
   {db in progress, 80% rewrite; interface might change, 50% testing, benchmarking with other trees missing}
 
 * addign real server control with webinterface for ie. managing accounts/editing chars etc
@@ -67,12 +74,10 @@ all
 * when fully converted, modify malloc.cpp to managed memory for overloading new/delete operators
   and desiging a managed-memory class (concept ready)
   [not much to mention now, it will just give the same functionality on c++ objects whith additional support for automatic construction/destruction, bye bye, memory leaks]
-* replace the red-black-tree from db.cpp with sorted-list classes from base.h,
-  add necessary functionality to make the conversion as simple as possible
-  [the tree is nice, a simple pointer list a suitable replacement, maybe think on having a tree class but then a order-N btree instead of the red-black-tree because of better performance and storage]
 * check on remove the variable arguments whenever possible (exeption could be the print class)
   maybe exchange it with suitable template functions or whatever, proofen concept needed
   [variable arguments only work with POD so using them with classes is not possible]
+  [100%, need cleaning of fallback code]
 
 clif/chrif/packets
 * cleaning on current code
@@ -95,10 +100,10 @@ script engine conversion
   {100%, run in parallel right now, need some more testing before swapping}
 * adding a class for scripts with all suitable things
   [script itself should not be just char* but something with more functionality to allow automatic deallocation and usage of smart pointer (which is currently implemented in c-style)]
-  {50%, but final structure depends on the interface}
+  {70%, but final structure depends on the interface}
 * deriving virtual interfaces by comparing with /devel/shinomori/eacompiler
   [building an interface for how a script is called, how a script can call other things and how the other things can access data from the script environment]
-  {0%, not really but still need to work on that}
+  {10%, interface ready but will need to completely rewrite the string buffer since it parts of it like as temporary variables and jump labels are already integrated in the nwe scipt engine}
 
 data reading
 * move all sql/txt stuff to baseio, encapsulate to classes, adding conversion

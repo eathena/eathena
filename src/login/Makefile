@@ -1,5 +1,6 @@
 all: login-server
 txt: login-server
+sql: login-server
 
 ##########################################################
 # stupid make does not know .cpp suffix by default

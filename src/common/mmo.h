@@ -30,6 +30,7 @@
 #define MAX_REFINE 10
 #define MAX_REFINE_BONUS 5
 #define MAX_MEMO 10
+#define MAX_GUARDIAN 8
 #define GLOBAL_REG_NUM 96
 #define ACCOUNT_REG_NUM 16
 #define ACCOUNT_REG2_NUM 16
@@ -944,7 +945,7 @@ struct gm_account {
 struct party_member {
 	uint32 account_id;
 	char name[24];
-	char map[24];
+	char mapname[24];
 	uchar leader;
 	uchar online;
 	unsigned short lv;
@@ -955,7 +956,7 @@ extern inline void _party_member_tobuffer(const struct party_member &p, uchar *&
 	if( NULL==buf )	return;
 	_L_tobuffer( (p.account_id),	buf);
 	_S_tobuffer( (p.name),			buf, 24);
-	_S_tobuffer( (p.map),			buf, 24);
+	_S_tobuffer( (p.mapname),		buf, 24);
 	_B_tobuffer( (p.leader),		buf);
 	_B_tobuffer( (p.online),		buf);
 	_W_tobuffer( (p.lv),			buf);
@@ -972,7 +973,7 @@ extern inline void _party_member_frombuffer(struct party_member &p, const uchar 
 	if( NULL==buf )	return;
 	_L_frombuffer( (p.account_id),	buf);
 	_S_frombuffer( (p.name),		buf, 24);
-	_S_frombuffer( (p.map),			buf, 24);
+	_S_frombuffer( (p.mapname),		buf, 24);
 	_B_frombuffer( (p.leader),		buf);
 	_B_frombuffer( (p.online),		buf);
 	_W_frombuffer( (p.lv),			buf);
@@ -1333,9 +1334,38 @@ extern inline void guild_frombuffer(struct guild &p, const uchar *buf)
 }
 /////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
-struct guild_castle {
+struct guild_castle_guardian
+{
+	uint32	guardian_id;
+	uint32	guardian_hp;
+	uchar	visible;
+};
+extern inline void _guild_castle_guardian_tobuffer(const struct guild_castle_guardian &p, uchar *&buf)
+{
+	if( NULL==buf )	return;
+	_L_tobuffer( (p.guardian_id),		buf);
+	_L_tobuffer( (p.guardian_hp),		buf);
+	_B_tobuffer( (p.visible),			buf);
+}
+extern inline void guild_castle_guardian_tobuffer(const struct guild_castle_guardian &p, uchar *buf)
+{
+	_guild_castle_guardian_tobuffer(p, buf);
+}
+extern inline void _guild_castle_guardian_frombuffer(struct guild_castle_guardian &p, const uchar *&buf)
+{
+	if( NULL==buf )	return;
+	_L_frombuffer( (p.guardian_id),		buf);
+	_L_frombuffer( (p.guardian_hp),		buf);
+	_B_frombuffer( (p.visible),			buf);
+}
+extern inline void guild_castle_guardiane_frombuffer(struct guild_castle_guardian &p, const uchar *buf)
+{
+	_guild_castle_guardian_frombuffer(p, buf);
+}
+struct guild_castle
+{
 	unsigned short castle_id;
-	char map_name[24];
+	char mapname[24];
 	char castle_name[24];
 	char castle_event[24];
 	uint32 guild_id;
@@ -1347,36 +1377,14 @@ struct guild_castle {
 	uint32 payTime;
 	uint32 createTime;
 	uint32 visibleC;
-	uint32 visibleG0;
-	uint32 visibleG1;
-	uint32 visibleG2;
-	uint32 visibleG3;
-	uint32 visibleG4;
-	uint32 visibleG5;
-	uint32 visibleG6;
-	uint32 visibleG7;
-	uint32 Ghp0;	// added Guardian HP [Valaris]
-	uint32 Ghp1;
-	uint32 Ghp2;
-	uint32 Ghp3;
-	uint32 Ghp4;
-	uint32 Ghp5;
-	uint32 Ghp6;
-	uint32 Ghp7;	
-	uint32 GID0;	
-	uint32 GID1;
-	uint32 GID2;
-	uint32 GID3;
-	uint32 GID4;
-	uint32 GID5;
-	uint32 GID6;
-	uint32 GID7;	// end addition [Valaris]
+	struct guild_castle_guardian guardian[MAX_GUARDIAN];
 };
 extern inline void _guild_castle_tobuffer(const struct guild_castle &p, uchar *&buf)
 {
+	size_t i;
 	if( NULL==buf )	return;
 	_W_tobuffer( (p.castle_id),		buf);
-	_S_tobuffer( (p.map_name),		buf, 24);
+	_S_tobuffer( (p.mapname),		buf, 24);
 	_S_tobuffer( (p.castle_name),	buf, 24);
 	_S_tobuffer( (p.castle_event),	buf, 24);
 	_L_tobuffer( (p.guild_id),		buf);
@@ -1388,30 +1396,9 @@ extern inline void _guild_castle_tobuffer(const struct guild_castle &p, uchar *&
 	_L_tobuffer( (p.payTime),		buf);
 	_L_tobuffer( (p.createTime),	buf);
 	_L_tobuffer( (p.visibleC),		buf);
-	_L_tobuffer( (p.visibleG0),		buf);
-	_L_tobuffer( (p.visibleG1),		buf);
-	_L_tobuffer( (p.visibleG2),		buf);
-	_L_tobuffer( (p.visibleG3),		buf);
-	_L_tobuffer( (p.visibleG4),		buf);
-	_L_tobuffer( (p.visibleG5),		buf);
-	_L_tobuffer( (p.visibleG6),		buf);
-	_L_tobuffer( (p.visibleG7),		buf);
-	_L_tobuffer( (p.Ghp0),			buf);
-	_L_tobuffer( (p.Ghp1),			buf);
-	_L_tobuffer( (p.Ghp2),			buf);
-	_L_tobuffer( (p.Ghp3),			buf);
-	_L_tobuffer( (p.Ghp4),			buf);
-	_L_tobuffer( (p.Ghp5),			buf);
-	_L_tobuffer( (p.Ghp6),			buf);
-	_L_tobuffer( (p.Ghp7),			buf);
-	_L_tobuffer( (p.GID0),			buf);
-	_L_tobuffer( (p.GID1),			buf);
-	_L_tobuffer( (p.GID2),			buf);
-	_L_tobuffer( (p.GID3),			buf);
-	_L_tobuffer( (p.GID4),			buf);
-	_L_tobuffer( (p.GID5),			buf);
-	_L_tobuffer( (p.GID6),			buf);
-	_L_tobuffer( (p.GID7),			buf);
+
+	for(i=0; i<MAX_GUARDIAN; i++)
+		_guild_castle_guardian_tobuffer(p.guardian[i],buf);
 }
 extern inline void guild_castle_tobuffer(const struct guild_castle &p, uchar *buf)
 {
@@ -1419,9 +1406,10 @@ extern inline void guild_castle_tobuffer(const struct guild_castle &p, uchar *bu
 }
 extern inline void _guild_castle_frombuffer(struct guild_castle &p, const uchar *&buf)
 {
+	size_t i;
 	if( NULL==buf )	return;
 	_W_frombuffer( (p.castle_id),	buf);
-	_S_frombuffer( (p.map_name),	buf, 24);
+	_S_frombuffer( (p.mapname),		buf, 24);
 	_S_frombuffer( (p.castle_name),	buf, 24);
 	_S_frombuffer( (p.castle_event),buf, 24);
 	_L_frombuffer( (p.guild_id),	buf);
@@ -1433,30 +1421,8 @@ extern inline void _guild_castle_frombuffer(struct guild_castle &p, const uchar 
 	_L_frombuffer( (p.payTime),		buf);
 	_L_frombuffer( (p.createTime),	buf);
 	_L_frombuffer( (p.visibleC),	buf);
-	_L_frombuffer( (p.visibleG0),	buf);
-	_L_frombuffer( (p.visibleG1),	buf);
-	_L_frombuffer( (p.visibleG2),	buf);
-	_L_frombuffer( (p.visibleG3),	buf);
-	_L_frombuffer( (p.visibleG4),	buf);
-	_L_frombuffer( (p.visibleG5),	buf);
-	_L_frombuffer( (p.visibleG6),	buf);
-	_L_frombuffer( (p.visibleG7),	buf);
-	_L_frombuffer( (p.Ghp0),		buf);
-	_L_frombuffer( (p.Ghp1),		buf);
-	_L_frombuffer( (p.Ghp2),		buf);
-	_L_frombuffer( (p.Ghp3),		buf);
-	_L_frombuffer( (p.Ghp4),		buf);
-	_L_frombuffer( (p.Ghp5),		buf);
-	_L_frombuffer( (p.Ghp6),		buf);
-	_L_frombuffer( (p.Ghp7),		buf);
-	_L_frombuffer( (p.GID0),		buf);
-	_L_frombuffer( (p.GID1),		buf);
-	_L_frombuffer( (p.GID2),		buf);
-	_L_frombuffer( (p.GID3),		buf);
-	_L_frombuffer( (p.GID4),		buf);
-	_L_frombuffer( (p.GID5),		buf);
-	_L_frombuffer( (p.GID6),		buf);
-	_L_frombuffer( (p.GID7),		buf);
+	for(i=0; i<MAX_GUARDIAN; i++)
+		_guild_castle_guardian_frombuffer(p.guardian[i],buf);
 }
 extern inline void guild_castle_frombuffer(struct guild_castle &p, const uchar *buf)
 {

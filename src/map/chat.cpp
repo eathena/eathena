@@ -19,42 +19,41 @@ int chat_triggerevent(struct chat_data &cd);
  */
 int chat_createchat(struct map_session_data &sd,unsigned short limit,unsigned char pub,char* pass,char* title,size_t titlelen)
 {
-	struct chat_data *cd;
-
-	cd = (struct chat_data *) aCalloc(1,sizeof(struct chat_data));
-
-	cd->bl.id	= map_addobject(cd->bl);
-	if(cd->bl.id==0)
+	if( !sd.chatID )
 	{
-		clif_createchat(sd,1);
-		aFree(cd);
-		return 0;
+		struct chat_data *cd = (struct chat_data *) aCalloc(1,sizeof(struct chat_data));
+
+		cd->bl.id	= map_addobject(cd->bl);
+		if(cd->bl.id==0)
+		{
+			clif_createchat(sd,1);
+			aFree(cd);
+			return 0;
+		}
+
+		cd->bl.m	= sd.bl.m;
+		cd->bl.x	= sd.bl.x;
+		cd->bl.y	= sd.bl.y;
+		cd->bl.type	= BL_CHAT;
+
+		cd->owner	= &sd.bl;
+		cd->usersd[0] = &sd;
+		
+		cd->limit = limit;
+		cd->pub = pub;
+		cd->users = 1;
+
+		memcpy(cd->pass,pass,sizeof(pass)-1);
+		pass[sizeof(pass)-1]=0;
+
+		if( titlelen+1>=sizeof(cd->title)) titlelen=sizeof(cd->title)-1;
+		memcpy(cd->title,title,titlelen);
+		cd->title[titlelen]=0;
+
+		pc_setchatid(sd,cd->bl.id);
+		clif_createchat(sd,0);
+		clif_dispchat(*cd,0);
 	}
-
-	cd->bl.m	= sd.bl.m;
-	cd->bl.x	= sd.bl.x;
-	cd->bl.y	= sd.bl.y;
-	cd->bl.type	= BL_CHAT;
-
-	cd->owner	= &sd.bl;
-	cd->usersd[0] = &sd;
-	
-	cd->limit = limit;
-	cd->pub = pub;
-	cd->users = 1;
-
-	memcpy(cd->pass,pass,sizeof(pass)-1);
-	pass[sizeof(pass)-1]=0;
-
-	if( titlelen+1>=sizeof(cd->title)) titlelen=sizeof(cd->title)-1;
-	memcpy(cd->title,title,titlelen);
-	cd->title[titlelen]=0;
-
-
-	pc_setchatid(sd,cd->bl.id);
-	clif_createchat(sd,0);
-	clif_dispchat(*cd,0);
-
 	return 0;
 }
 
@@ -64,14 +63,14 @@ int chat_createchat(struct map_session_data &sd,unsigned short limit,unsigned ch
  */
 int chat_joinchat(struct map_session_data &sd,uint32 chatid,const char* pass)
 {
-	struct chat_data *cd;
+	struct chat_data *cd = (struct chat_data*)map_id2bl(chatid);
 
-	nullpo_retr(1, cd = (struct chat_data*)map_id2bl(chatid));
-
-	if(cd->bl.m != sd.bl.m || cd->limit <= cd->users){
+	if( !cd || cd->bl.m != sd.bl.m || sd.chatID || cd->limit <= cd->users )
+	{
 		clif_joinchatfail(sd,0);
 		return 0;
 	}
+
 	//Allows Gm access to protected room with any password they want by valaris
 	if( (cd->pub == 0 && 0!=strncmp(pass, (char *)cd->pass, 8) && (pc_isGM(sd)<battle_config.gm_join_chat || !battle_config.gm_join_chat)) 
 		|| chatid == sd.chatID ) //Double Chat fix by Alex14, thx CHaNGeTe

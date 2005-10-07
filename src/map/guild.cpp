@@ -122,15 +122,8 @@ int guild_read_castledb(void)
 		if( str[0] )	// we have at least something for an ID string
 		{
 			gc=(struct guild_castle *)aCalloc(1,sizeof(struct guild_castle));
-			// would be not necessary, calloc has cleared the memory already
-			gc->guild_id=0; // <Agit> Clear Data for Initialize
-			gc->economy=0; gc->defense=0; gc->triggerE=0; gc->triggerD=0; gc->nextTime=0; gc->payTime=0;
-			gc->createTime=0; gc->visibleC=0; gc->visibleG0=0; gc->visibleG1=0; gc->visibleG2=0;
-			gc->visibleG3=0; gc->visibleG4=0; gc->visibleG5=0; gc->visibleG6=0; gc->visibleG7=0;
-			gc->Ghp0=0; gc->Ghp1=0; gc->Ghp2=0; gc->Ghp3=0; gc->Ghp4=0; gc->Ghp5=0; gc->Ghp6=0; gc->Ghp7=0; // guardian HP [Valaris]
-
 			if(str[0]) gc->castle_id=atoi(str[0]);
-			if(str[1]) memcpy(gc->map_name,str[1],24); 
+			if(str[1]) memcpy(gc->mapname,str[1],24); 
 			if(str[2]) memcpy(gc->castle_name,str[2],24);
 			if(str[3]) memcpy(gc->castle_event,str[3],24);
 
@@ -200,7 +193,7 @@ struct guild_castle *guild_mapname2gc(const char *mapname)
 	for(i=0;i<MAX_GUILDCASTLE;i++){
 		gc=guild_castle_search(i);
 		if(!gc) continue;
-		if(strcmp(gc->map_name,mapname)==0) return gc;
+		if(strcmp(gc->mapname,mapname)==0) return gc;
 	}
 	return NULL;
 }
@@ -1546,22 +1539,24 @@ int guild_castledataloadack(unsigned short castle_id,int index,int value)
 	case 7: gc->payTime = value; break;
 	case 8: gc->createTime = value; break;
 	case 9: gc->visibleC = value; break;
-	case 10: gc->visibleG0 = value; break;
-	case 11: gc->visibleG1 = value; break;
-	case 12: gc->visibleG2 = value; break;
-	case 13: gc->visibleG3 = value; break;
-	case 14: gc->visibleG4 = value; break;
-	case 15: gc->visibleG5 = value; break;
-	case 16: gc->visibleG6 = value; break;
-	case 17: gc->visibleG7 = value; break;
-	case 18: gc->Ghp0 = value; break;	// guardian HP [Valaris]
-	case 19: gc->Ghp1 = value; break;
-	case 20: gc->Ghp2 = value; break;
-	case 21: gc->Ghp3 = value; break;
-	case 22: gc->Ghp4 = value; break;
-	case 23: gc->Ghp5 = value; break;
-	case 24: gc->Ghp6 = value; break;
-	case 25: gc->Ghp7 = value; break;	// end additions [Valaris]
+	case 10: 
+	case 11: 
+	case 12: 
+	case 13: 
+	case 14: 
+	case 15: 
+	case 16: 
+	case 17: 
+		gc->guardian[index-10].visible = (value!=0); break;
+	case 18: 
+	case 19: 
+	case 20: 
+	case 21: 
+	case 22: 
+	case 23: 
+	case 24: 
+	case 25: 
+		gc->guardian[index-18].guardian_hp = value; break;
 	default:
 		ShowError("guild_castledataloadack ERROR!! (Not found index=%d, castle %d)\n", index,castle_id);
 		return 0;
@@ -1602,22 +1597,24 @@ int guild_castledatasaveack(unsigned short castle_id,int index,int value)
 	case 7: gc->payTime = value; break;
 	case 8: gc->createTime = value; break;
 	case 9: gc->visibleC = value; break;
-	case 10: gc->visibleG0 = value; break;
-	case 11: gc->visibleG1 = value; break;
-	case 12: gc->visibleG2 = value; break;
-	case 13: gc->visibleG3 = value; break;
-	case 14: gc->visibleG4 = value; break;
-	case 15: gc->visibleG5 = value; break;
-	case 16: gc->visibleG6 = value; break;
-	case 17: gc->visibleG7 = value; break;
-	case 18: gc->Ghp0 = value; break;	// guardian HP [Valaris]
-	case 19: gc->Ghp1 = value; break;
-	case 20: gc->Ghp2 = value; break;
-	case 21: gc->Ghp3 = value; break;
-	case 22: gc->Ghp4 = value; break;
-	case 23: gc->Ghp5 = value; break;
-	case 24: gc->Ghp6 = value; break;
-	case 25: gc->Ghp7 = value; break;	// end additions [Valaris]
+	case 10: 
+	case 11: 
+	case 12: 
+	case 13: 
+	case 14: 
+	case 15: 
+	case 16: 
+	case 17: 
+		gc->guardian[index-10].visible = (value!=0); break;
+	case 18: 
+	case 19: 
+	case 20: 
+	case 21: 
+	case 22: 
+	case 23: 
+	case 24: 
+	case 25: 
+		gc->guardian[index-18].guardian_hp = value; break;
 	default:
 		ShowError("guild_castledatasaveack ERROR!! (Not found index=%d)\n", index);
 		return 0;
@@ -1654,7 +1651,7 @@ int guild_castlealldataload(int len, unsigned char *buf)
 			continue;
 		}
 		// copy values of the struct guildcastle that are included in the char server packet
-		memcpy(gctmp.map_name,c->map_name,24 );
+		memcpy(gctmp.mapname,c->mapname,24 );
 		memcpy(gctmp.castle_name,c->castle_name,24 );
 		memcpy(gctmp.castle_event,c->castle_event,24 );
 		// and copy the whole thing back
@@ -1713,10 +1710,10 @@ int guild_gvg_eliminate_timer(int tid, unsigned long tick, int id, intptr data)
 
 int guild_save_sub(int tid, unsigned long tick, int id, intptr data)
 {
-	static uint32 Ghp[MAX_GUILDCASTLE][8];	// so save only if HP are changed // experimental code [Yor]
+	static uint32 Ghp[MAX_GUILDCASTLE][MAX_GUARDIAN];	// so save only if HP are changed // experimental code [Yor]
 	static uint32 Gid[MAX_GUILDCASTLE];
 	struct guild_castle *gc;
-	int i;
+	int i, k;
 
 	for(i = 0; i < MAX_GUILDCASTLE; i++)
 	{	// [Yor]
@@ -1729,38 +1726,14 @@ int guild_save_sub(int tid, unsigned long tick, int id, intptr data)
 			guild_castledatasave(gc->castle_id, 1, gc->guild_id);
 			Gid[i] = gc->guild_id;
 		}
-		if (gc->visibleG0 == 1 && Ghp[i][0] != gc->Ghp0) {
-			guild_castledatasave(gc->castle_id, 18, gc->Ghp0);
-			Ghp[i][0] = gc->Ghp0;
+		for(k=0; k<MAX_GUARDIAN; k++)
+		{
+			if(gc->guardian[k].visible && Ghp[i][0] != gc->guardian[k].guardian_hp)
+			{
+				guild_castledatasave(gc->castle_id, 18+k, gc->guardian[k].guardian_hp);
+				Ghp[i][k] = gc->guardian[k].guardian_hp;
+			}
 		}
-		if (gc->visibleG1 == 1 && Ghp[i][1] != gc->Ghp1) {
-			guild_castledatasave(gc->castle_id, 19, gc->Ghp1);
-			Ghp[i][1] = gc->Ghp1;
-		}
-		if (gc->visibleG2 == 1 && Ghp[i][2] != gc->Ghp2) {
-			guild_castledatasave(gc->castle_id, 20, gc->Ghp2);
-			Ghp[i][2] = gc->Ghp2;
-		}
-		if (gc->visibleG3 == 1 && Ghp[i][3] != gc->Ghp3) {
-			guild_castledatasave(gc->castle_id, 21, gc->Ghp3);
-			Ghp[i][3] = gc->Ghp3;
-		}
-		if (gc->visibleG4 == 1 && Ghp[i][4] != gc->Ghp4) {
-			guild_castledatasave(gc->castle_id, 22, gc->Ghp4);
-			Ghp[i][4] = gc->Ghp4;
-		}
-		if (gc->visibleG5 == 1 && Ghp[i][5] != gc->Ghp5) {
-			guild_castledatasave(gc->castle_id, 23, gc->Ghp5);
-			Ghp[i][5] = gc->Ghp5;
-		}
-		if (gc->visibleG6 == 1 && Ghp[i][6] != gc->Ghp6) {
-			guild_castledatasave(gc->castle_id, 24, gc->Ghp6);
-			Ghp[i][6] = gc->Ghp6;
-		}
-		if (gc->visibleG7 == 1 && Ghp[i][7] != gc->Ghp7) {
-			guild_castledatasave(gc->castle_id, 25, gc->Ghp7);
-			Ghp[i][7] = gc->Ghp7;
-		}		
 	}
 	return 0;
 }

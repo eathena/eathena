@@ -301,7 +301,7 @@ int chrif_save_sc(struct map_session_data &sd)
 				data.val2 = sd.sc_data[i].val2.num;
 				data.val3 = sd.sc_data[i].val3.num;
 				data.val4 = sd.sc_data[i].val4.num;
-				data.tick = td->tick - tick; //Duration that is left before ending.
+				data.tick = DIFF_TICK(td->tick, tick); //Duration that is left before ending.
 				scdata_tobuffer(data, RFIFOP(char_fd,p));
 				p+=sizeof(struct sc_data);
 				cnt++;

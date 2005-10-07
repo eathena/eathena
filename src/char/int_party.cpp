@@ -170,7 +170,7 @@ int inter_party_save() {
 	}
 	numdb_foreach(party_db, CDBparty_save(fp) );
 //	numdb_foreach(party_db, inter_party_save_sub, fp);
-//	fprintf(fp, "%d\t%%newid%%\n", party_newid);
+	fprintf(fp, "%d\t%%newid%%\n", party_newid);
 	lock_fclose(fp,party_txt, &lock);
 //	ShowMessage("int_party: %s saved.\n", party_txt);
 
@@ -246,8 +246,8 @@ bool party_check_exp_share(struct party *p)
 
 	// check for party with parents with child
 	if( (cnt_hi >= 2) && (cnt_lo == 3) &&
-		(0==strcmp(p->member[0].map,p->member[1].map)) &&
-		(0==strcmp(p->member[1].map,p->member[2].map)) )
+		(0==strcmp(p->member[0].mapname,p->member[1].mapname)) &&
+		(0==strcmp(p->member[1].mapname,p->member[2].mapname)) )
 	{
 		//ShowMessage("PARTY: group of 3 Id1 %d lv %d name %s Id2 %d lv %d name %s Id3 %d lv %d name %s\n",pl1,p->member[0].lv,p->member[0].name,pl2,p->member[1].lv,p->member[1].name,pl3,p->member[2].lv,p->member[2].name);
 		if( (char_married(p->member[0].name,p->member[1].name) && char_child(p->member[0].name,p->member[2].name)) ||
@@ -459,7 +459,7 @@ int mapif_party_membermoved(struct party *p, int idx) {
 	WBUFW(buf,0) = 0x3825;
 	WBUFL(buf,2) = p->party_id;
 	WBUFL(buf,6) = p->member[idx].account_id;
-	memcpy(WBUFP(buf,10), p->member[idx].map, 16);
+	memcpy(WBUFP(buf,10), p->member[idx].mapname, 16);
 	WBUFB(buf,26) = p->member[idx].online;
 	WBUFW(buf,27) = p->member[idx].lv;
 	mapif_sendall(buf, 29);
@@ -526,7 +526,7 @@ int mapif_parse_CreateParty(int fd, uint32 account_id, char *name, char *nick, c
 	p->itemshare = 0;
 	p->member[0].account_id = account_id;
 	memcpy(p->member[0].name, nick, 24);
-	memcpy(p->member[0].map, map, 24);
+	memcpy(p->member[0].mapname, map, 24);
 	p->member[0].leader = 1;
 	p->member[0].online = 1;
 	p->member[0].lv = lv;
@@ -568,7 +568,7 @@ int mapif_parse_PartyAddMember(int fd, uint32 party_id, uint32 account_id, char 
 		if (p->member[i].account_id == 0) {
 			p->member[i].account_id = account_id;
 			memcpy(p->member[i].name, nick, 24);
-			memcpy(p->member[i].map, map, 24);
+			memcpy(p->member[i].mapname, map, 24);
 			p->member[i].leader = 0;
 			p->member[i].online = 1;
 			p->member[i].lv = lv;
@@ -681,7 +681,7 @@ int mapif_parse_PartyChangeMap(int fd, uint32 party_id, uint32 account_id, char 
 		if (p->member[i].account_id == account_id) {
 			int flag = 0;
 
-			memcpy(p->member[i].map, map, 24);
+			memcpy(p->member[i].mapname, map, 24);
 			p->member[i].online = online;
 			p->member[i].lv = lv;
 			mapif_party_membermoved(p, i);

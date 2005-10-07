@@ -6416,7 +6416,7 @@ int clif_party_info(struct party &p,int fd)
 			if(sd==NULL) sd=m.sd;
 			WBUFL(buf,28+c*46)=m.account_id;
 			memcpy(WBUFP(buf,28+c*46+ 4),m.name,24);
-			memcpy(WBUFP(buf,28+c*46+28),m.map,16);
+			memcpy(WBUFP(buf,28+c*46+28),m.mapname,16);
 			WBUFB(buf,28+c*46+44)=(m.leader)?0:1;
 			WBUFB(buf,28+c*46+45)=(m.online)?0:1;
 			c++;
@@ -8588,6 +8588,7 @@ int clif_parse_WalkToXY(int fd, struct map_session_data &sd)
 	     sd.sc_data[SC_SPIDERWEB].timer !=-1 || //スパイダーウェッブ
 	     (sd.sc_data[SC_DANCING].timer !=-1 && sd.sc_data[SC_DANCING].val4.num) || //合奏スキル演奏中は動けない
 		 (sd.sc_data[SC_GOSPEL].timer !=-1 && sd.sc_data[SC_GOSPEL].val4.num == BCT_SELF) ||	// cannot move while gospel is in effect
+		 (sd.sc_data[SC_DANCING].timer !=-1 && sd.sc_data[SC_DANCING].val1.num == CG_HERMODE) || //cannot move while Hermod is active.
 		 sd.sc_data[SC_CONFUSION].timer !=-1)
 		return 0;
 	if ((sd.status.option & 2) && pc_checkskill(sd, RG_TUNNELDRIVE) <= 0)
@@ -9662,6 +9663,7 @@ int clif_parse_UseSkillToId(int fd, struct map_session_data &sd) {
 		return 0;
 
 	skilllv = RFIFOW(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[0]);
+	if (skilllv < 1) skilllv = 1; //No clue, I have seen the client do this with guild skills :/ [Skotlex]
 	skillnum = RFIFOW(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[1]);
 	target_id = RFIFOL(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[2]);
 

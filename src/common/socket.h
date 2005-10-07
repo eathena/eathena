@@ -247,7 +247,7 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// ip2string
-	virtual const char *getstring(char *buffer=NULL)
+	virtual const char *getstring(char *buffer=NULL) const
 	{	// usage of the static buffer is not threadsafe
 		static char tmp[16];
 		char *buf = (buffer) ? buffer : tmp;
@@ -266,15 +266,19 @@ public:
 	// converts a string to an ip (host byte order)
 	static ipaddress str2ip(const char *str)
 	{	// format: <ip>
-		struct hostent*h;
-		while( isspace( ((unsigned char)(*str)) ) ) str++;
-		// look up the name
-		// this can take long time (i.e. until timeout looking up non-existing addresses)
-		h = gethostbyname(str);
-		if (h != NULL)
-			return ipaddress( MakeDWord((unsigned char)h->h_addr[3], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[0]) );
-		else
-			return ipaddress( ntohl(inet_addr(str)) );
+		if(str)
+		{
+			struct hostent*h;
+			while( isspace( ((unsigned char)(*str)) ) ) str++;
+			// look up the name
+			// this can take long time (i.e. until timeout looking up non-existing addresses)
+			h = gethostbyname(str);
+			if (h != NULL)
+				return ipaddress( MakeDWord((unsigned char)h->h_addr[3], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[0]) );
+			else
+				return ipaddress( ntohl(inet_addr(str)) );
+		}
+		return GetSystemIP();
 	}
 	static bool str2ip(const char* str, ipaddress &addr, ipaddress &mask, ushort &port)
 	{	// format: <ip>/<mask>:<port>
@@ -388,7 +392,7 @@ public:
 	virtual ushort& port()		 { return cPort; }
 	///////////////////////////////////////////////////////////////////////////
 	// networkaddr2string
-	virtual const char *getstring(char *buffer=NULL)
+	virtual const char *getstring(char *buffer=NULL) const
 	{	// usage of the static buffer is not threadsafe
 		static char tmp[32];
 		char *buf = (buffer) ? buffer : tmp;
@@ -443,7 +447,7 @@ public:
 	virtual uint32& mask() { return cMask.cAddr; }
 	///////////////////////////////////////////////////////////////////////////
 	// networkaddr2string
-	virtual const char *getstring(char *buffer=NULL)
+	virtual const char *getstring(char *buffer=NULL) const
 	{	// usage of the static buffer is not threadsafe
 		static char tmp[64];
 		char *buf = (buffer) ? buffer : tmp;
@@ -637,7 +641,7 @@ public:
 	netaddress& WANAddr()	{ return wanaddr; }
 
 	///////////////////////////////////////////////////////////////////////////
-	virtual const char *getstring(char *buffer=NULL)
+	virtual const char *getstring(char *buffer=NULL) const
 	{	// usage of the static buffer is not threadsafe
 		static char tmp[64];
 		char *buf = (buffer) ? buffer : tmp;

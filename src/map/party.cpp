@@ -434,8 +434,8 @@ int party_recv_movemap(uint32 party_id,uint32 account_id,const char *map,int onl
 		struct party_member *m=&p->member[i];
 
 		if(m->account_id==account_id){
-			memcpy(m->map,map,24);
-			m->map[23]=0;
+			memcpy(m->mapname,map,24);
+			m->mapname[23]=0;
 			m->online=online;
 			m->lv=lv;
 			break;

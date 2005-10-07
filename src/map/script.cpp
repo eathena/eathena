@@ -844,7 +844,8 @@ void CParser::setLabel(size_t l, size_t pos)
 	cStrData[l].label=pos;
 
 	// and store a text label at the script
-	if(cStrData[l].str)
+	// if it is an "On..." Label
+	if(cStrData[l].str && tolower( ((uchar)cStrData[l].str[0]) ) == 'o' && tolower( ((uchar)cStrData[l].str[1]) ) == 'n' )
 		this->cScript->cLabels.append( CLabel(cStrData[l].str,pos) );
 
 	// if there are waiting jumps already, 
@@ -861,7 +862,7 @@ void CParser::setLabel(size_t l, size_t pos)
 		cScript->cProgramm[i+2]=pos>>16;
 		i=next;
 	}
-	// mark that the lable has been processed
+	// mark that the label has been processed
 	cStrData[l].backpatch = -1;
 }
 
@@ -3607,7 +3608,24 @@ int buildin_input(CScriptEngine &st)
 	}
 	return 0;
 }
-
+/*==========================================
+ *
+ *------------------------------------------
+ */
+int buildin_viewpoint(CScriptEngine &st)
+{
+	if(st.sd)
+	{
+		int type=st.GetInt(st[2]);
+		int x	=st.GetInt(st[3]);
+		int y	=st.GetInt(st[4]);
+		int id	=st.GetInt(st[5]);
+		int color=st.GetInt(st[6]);
+		
+		clif_viewpoint(*st.sd, st.send_defaultnpc(), type, x, y, id, color);
+	}
+	return 0;
+}
 
 
 /*==========================================
@@ -3616,8 +3634,7 @@ int buildin_input(CScriptEngine &st)
  */
 int buildin_goto(CScriptEngine &st)
 {
-
-	if (st[2].type != CScriptEngine::C_POS)
+	if(st[2].type != CScriptEngine::C_POS)
 	{
 		int func = st.GetInt(st[2]);
 		ShowMessage("script: goto '"CL_WHITE"%s"CL_RESET"': not label!\n", str_buf + str_data[func].str);
@@ -3625,7 +3642,6 @@ int buildin_goto(CScriptEngine &st)
 		return 0;
 	}
 	st.Goto( st.GetInt(st[2]) );
-
 	return 0;
 }
 
@@ -4289,24 +4305,7 @@ int buildin_cutincard(CScriptEngine &st)
 	return 0;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
-int buildin_viewpoint(CScriptEngine &st)
-{
-	if(st.sd)
-	{
-		int type=st.GetInt(st[2]);
-		int x	=st.GetInt(st[3]);
-		int y	=st.GetInt(st[4]);
-		int id	=st.GetInt(st[5]);
-		int color=st.GetInt(st[6]);
-		
-		clif_viewpoint(*st.sd, st.oid, type, x, y, id, color);
-	}
-	return 0;
-}
+
 
 /*==========================================
  *
@@ -6377,7 +6376,6 @@ int buildin_getareausers(CScriptEngine &st)
 	//!! broadcast command if not on this mapserver
 	int users = ( m>=map_num )? -1 : 
 		CMap::foreachinarea( CBuildinCountObject(BL_PC), m,x0,y0,x1,y1,BL_PC);
-
 //	map_foreachinarea(buildin_getareausers_sub,
 //		m,x0,y0,x1,y1,BL_PC,&users);
 	st.push_val(CScriptEngine::C_INT,users);
@@ -7459,7 +7457,7 @@ int buildin_getcastlename(CScriptEngine &st)
 	{
 		if( (gc=guild_castle_search(i)) != NULL )
 		{
-			if( strcasecmp(mapname,gc->map_name)==0 )
+			if( strcasecmp(mapname,gc->mapname)==0 )
 			{
 				buf=(char *)aMalloc(24*sizeof(char));
 				memcpy(buf,gc->castle_name,24);//EOS included
@@ -7483,7 +7481,7 @@ int buildin_getcastledata(CScriptEngine &st)
 
 	for(i=0;i<MAX_GUILDCASTLE;i++)
 	{
-		if( (gc=guild_castle_search(i)) != NULL && 0==strcmp(mapname,gc->map_name) )
+		if( (gc=guild_castle_search(i)) != NULL && 0==strcmp(mapname,gc->mapname) )
 		{
 			switch(index)
 			{
@@ -7505,22 +7503,24 @@ int buildin_getcastledata(CScriptEngine &st)
 			case  7: val = gc->payTime; break;
 			case  8: val = gc->createTime; break;
 			case  9: val = gc->visibleC; break;
-			case 10: val = gc->visibleG0; break;
-			case 11: val = gc->visibleG1; break;
-			case 12: val = gc->visibleG2; break;
-			case 13: val = gc->visibleG3; break;
-			case 14: val = gc->visibleG4; break;
-			case 15: val = gc->visibleG5; break;
-			case 16: val = gc->visibleG6; break;
-			case 17: val = gc->visibleG7; break;
-			case 18: val = gc->Ghp0; break;
-			case 19: val = gc->Ghp1; break;
-			case 20: val = gc->Ghp2; break;
-			case 21: val = gc->Ghp3; break;
-			case 22: val = gc->Ghp4; break;
-			case 23: val = gc->Ghp5; break;
-			case 24: val = gc->Ghp6; break;
-			case 25: val = gc->Ghp7; break;
+			case 10: 
+			case 11:
+			case 12:
+			case 13:
+			case 14:
+			case 15:
+			case 16:
+			case 17:
+				val = gc->guardian[index-10].visible; break;
+			case 18:
+			case 19:
+			case 20:
+			case 21:
+			case 22:
+			case 23:
+			case 24:
+			case 25:
+				val = gc->guardian[index-18].guardian_hp; break;
 			}// end switch
 		break; // the for loop
 		}
@@ -7539,7 +7539,7 @@ int buildin_setcastledata(CScriptEngine &st)
 
 	for(i=0;i<MAX_GUILDCASTLE;i++){
 		if( (gc=guild_castle_search(i)) != NULL ){
-			if(strcmp(mapname,gc->map_name)==0){
+			if(strcmp(mapname,gc->mapname)==0){
 				// Save Data byself First
 				switch(index){
 				case 1: gc->guild_id = value; break;
@@ -7551,23 +7551,26 @@ int buildin_setcastledata(CScriptEngine &st)
 				case 7: gc->payTime = value; break;
 				case 8: gc->createTime = value; break;
 				case 9: gc->visibleC = value; break;
-				case 10: gc->visibleG0 = value; break;
-				case 11: gc->visibleG1 = value; break;
-				case 12: gc->visibleG2 = value; break;
-				case 13: gc->visibleG3 = value; break;
-				case 14: gc->visibleG4 = value; break;
-				case 15: gc->visibleG5 = value; break;
-				case 16: gc->visibleG6 = value; break;
-				case 17: gc->visibleG7 = value; break;
-				case 18: gc->Ghp0 = value; break;
-				case 19: gc->Ghp1 = value; break;
-				case 20: gc->Ghp2 = value; break;
-				case 21: gc->Ghp3 = value; break;
-				case 22: gc->Ghp4 = value; break;
-				case 23: gc->Ghp5 = value; break;
-				case 24: gc->Ghp6 = value; break;
-				case 25: gc->Ghp7 = value; break;
-				default: return 0;
+				case 10:
+				case 11:
+				case 12:
+				case 13:
+				case 14:
+				case 15:
+				case 16:
+				case 17:
+					gc->guardian[index-10].visible = (value!=0); break;
+				case 18:
+				case 19:
+				case 20:
+				case 21:
+				case 22:
+				case 23:
+				case 24:
+				case 25:
+					gc->guardian[index-18].guardian_hp = value; break;
+				default:
+					return 0;
 				}
 				guild_castledatasave(gc->castle_id,index,value);
 				return 0;
@@ -7993,20 +7996,13 @@ int buildin_guardian(CScriptEngine &st)
  */
 int buildin_guardianinfo(CScriptEngine &st)
 {
-	int guardian=st.GetInt(st[2]);
+	int index=st.GetInt(st[2]);
 	struct map_session_data *sd=st.sd;
 	struct guild_castle *gc=guild_mapname2gc(map[sd->bl.m].mapname);
-
-	if(guardian==0 && gc->visibleG0 == 1) st.push_val(CScriptEngine::C_INT,gc->Ghp0);
-	if(guardian==1 && gc->visibleG1 == 1) st.push_val(CScriptEngine::C_INT,gc->Ghp1);
-	if(guardian==2 && gc->visibleG2 == 1) st.push_val(CScriptEngine::C_INT,gc->Ghp2);
-	if(guardian==3 && gc->visibleG3 == 1) st.push_val(CScriptEngine::C_INT,gc->Ghp3);
-	if(guardian==4 && gc->visibleG4 == 1) st.push_val(CScriptEngine::C_INT,gc->Ghp4);
-	if(guardian==5 && gc->visibleG5 == 1) st.push_val(CScriptEngine::C_INT,gc->Ghp5);
-	if(guardian==6 && gc->visibleG6 == 1) st.push_val(CScriptEngine::C_INT,gc->Ghp6);
-	if(guardian==7 && gc->visibleG7 == 1) st.push_val(CScriptEngine::C_INT,gc->Ghp7);
-	else st.push_val(CScriptEngine::C_INT,-1);
-
+	st.push_val(CScriptEngine::C_INT,
+		(index>=0 && index<MAX_GUARDIAN && gc && gc->guardian[index].visible) ?
+		gc->guardian[index].guardian_hp : -1		
+		);
 	return 0;
 }
 /*==========================================

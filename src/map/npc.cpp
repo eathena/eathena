@@ -2780,7 +2780,7 @@ void npc_parsesrcfiles()
 			aFree(marker);
 		}
 	}
-	ShowMessage("\r");
+	ShowMessage("\r"CL_CLL);
 	ShowStatus("Done loading '"CL_WHITE"%d"CL_RESET"' NPCs:%30s\n\t\t-'"
 		CL_WHITE"%d"CL_RESET"' Warps\n\t\t-'"
 		CL_WHITE"%d"CL_RESET"' Shops\n\t\t-'"
@@ -2814,6 +2814,8 @@ void npc_parsesrcfile(const char*filename)
 			aFree(marker);
 		}
 	}
+	ShowMessage("\r"CL_CLL);
+
 	return;
 }
 

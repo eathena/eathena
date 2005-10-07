@@ -963,7 +963,7 @@ int status_calc_pc(struct map_session_data& sd, int first)
 			}
 		}
 		if(sd.sc_data[SC_ENDURE].timer!=-1)
-			sd.mdef += sd.sc_data[SC_ENDURE].val1.num; //Endure should add mdef, not mdef2! [Skotlex]
+			sd.mdef += sd.sc_data[SC_ENDURE].val1.num;
 	}
 
 	// If Super Novice / Super Baby Never Died till Job70 they get bonus: AllStats +10

@@ -239,19 +239,19 @@ void decode_des_etc(unsigned char *buf, size_t len, int type, size_t cycle)
  *	Grf data decode sub : zip
  *------------------------------------------
  */
-int decode_zip(unsigned char *dest, unsigned long* destLen, const unsigned char* source, unsigned long sourceLen)
+int decode_zip(unsigned char *dest, unsigned long& destLen, const unsigned char* source, unsigned long sourceLen)
 {
 	z_stream stream;
 	int err;
 
 	stream.next_in = (Bytef*)source;
 	stream.avail_in = (uInt)sourceLen;
-	/* Check for source > 64K on 16-bit machine: */
+	// Check for source > 64K on 16-bit machine:
 	if ((uLong)stream.avail_in != sourceLen) return Z_BUF_ERROR;
 
 	stream.next_out = (Bytef*) dest;
-	stream.avail_out = (uInt)*destLen;
-	if ((unsigned long)stream.avail_out != *destLen) return Z_BUF_ERROR;
+	stream.avail_out = (uInt)destLen;
+	if ((unsigned long)stream.avail_out != destLen) return Z_BUF_ERROR;
 
 	stream.zalloc = (alloc_func)0;
 	stream.zfree = (free_func)0;
@@ -264,13 +264,14 @@ int decode_zip(unsigned char *dest, unsigned long* destLen, const unsigned char*
 		inflateEnd(&stream);
 		return err == Z_OK ? Z_BUF_ERROR : err;
 	}
-	*destLen = stream.total_out;
+	destLen = stream.total_out;
 
 	err = inflateEnd(&stream);
 	return err;
 }
 
-int encode_zip(unsigned char *dest, unsigned long* destLen, const unsigned char* source, unsigned long sourceLen) {
+int encode_zip(unsigned char *dest, unsigned long& destLen, const unsigned char* source, unsigned long sourceLen)
+{
 	z_stream stream;
 	int err;
 
@@ -280,8 +281,8 @@ int encode_zip(unsigned char *dest, unsigned long* destLen, const unsigned char*
 	if ((uLong)stream.avail_in != sourceLen) return Z_BUF_ERROR;
 
 	stream.next_out = (Bytef*) dest;
-	stream.avail_out = (uInt)*destLen;
-	if ((uLong)stream.avail_out != *destLen) return Z_BUF_ERROR;
+	stream.avail_out = (uInt)destLen;
+	if ((uLong)stream.avail_out != destLen) return Z_BUF_ERROR;
 
 	stream.zalloc = (alloc_func)0;
 	stream.zfree = (free_func)0;
@@ -294,7 +295,7 @@ int encode_zip(unsigned char *dest, unsigned long* destLen, const unsigned char*
 		deflateEnd(&stream);
 		return err == Z_OK ? Z_BUF_ERROR : err;
 	}
-	*destLen = stream.total_out;
+	destLen = stream.total_out;
 
 	err = deflateEnd(&stream);
 	return err;
@@ -373,6 +374,7 @@ int decode_file (FILE *source, FILE *dest)
 	inflateEnd(&strm);
 	return err == Z_STREAM_END ? 1 : 0;
 }
+
 /***********************************************************
  ***                File List Sobroutines                ***
  ***********************************************************/
@@ -665,7 +667,7 @@ void* grfio_reads(const char *fname, int *size)
 				decode_des_etc(buf,entry->srclen_aligned,entry->cycle==0,entry->cycle);
 			}
 			len=entry->declen;
-			err=decode_zip(buf2,&len,buf,entry->srclen);
+			err=decode_zip(buf2,len,buf,entry->srclen);
 
 			if((long)len!=entry->declen) {
 				ShowError("decode_zip size miss match err: %d != %d\n", len,entry->declen);
@@ -839,7 +841,7 @@ int grfio_entryread(const char *gfname, int gentry)
 		fread(rBuf,1,rSize,fp);
 		fclose(fp);
 
-		decode_zip(grf_filelist,&eSize,rBuf,rSize);	// Decode function
+		decode_zip(grf_filelist,eSize,rBuf,rSize);	// Decode function
 		list_size = eSize;
 		aFree(rBuf);
 

@@ -2216,6 +2216,7 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl,unsign
 
 		break;
 
+	case NPC_DARKCROSS:
 	case CR_HOLYCROSS:		/* ホ?リ?クロス */
 		if( rand()%100 < 3*skilllv*sc_def_int/100 )
 			status_change_start(bl,SC_BLIND,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
@@ -2973,20 +2974,7 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 
 
 	map_freeblock_lock();
-	/* ?際にダメ?ジ?理を行う */
-	if (skillid || flag) {
-		if (attack_type&BF_WEAPON)
-			battle_delay_damage(tick+dmg.amotion,*src,*bl,damage,0);
-		else
-			battle_damage(src,bl,damage,0);
-	}
-	if(skillid == RG_INTIMIDATE && damage > 0 && !(status_get_mode(bl)&0x20) && !map[src->m].flag.gvg ) {
-		int s_lv = status_get_lv(src),t_lv = status_get_lv(bl);
-		int rate = 50 + skilllv * 5;
-		rate = rate + (s_lv - t_lv);
-		if(rand()%100 < rate)
-			skill_addtimerskill(src,tick + 800,bl->id,0,0,skillid,skilllv,0,flag);
-	}
+
 	if(damage > 0 && dmg.flag&BF_SKILL && bl->type==BL_PC && pc_checkskill(*((struct map_session_data *)bl),RG_PLAGIARISM) && sc_data[SC_PRESERVE].timer == -1){
 		struct map_session_data *tsd = (struct map_session_data *)bl;
 		if (tsd && (!tsd->status.skill[skillid].id || tsd->status.skill[skillid].flag >= 13) &&
@@ -3011,6 +2999,22 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 
 		}
 	}
+
+	/* ?際にダメ?ジ?理を行う */
+	if (skillid || flag) {
+		if (attack_type&BF_WEAPON)
+			battle_delay_damage(tick+dmg.amotion,*src,*bl,damage,0);
+		else
+			battle_damage(src,bl,damage,0);
+	}
+	if(skillid == RG_INTIMIDATE && damage > 0 && !(status_get_mode(bl)&0x20) && !map[src->m].flag.gvg ) {
+		int s_lv = status_get_lv(src),t_lv = status_get_lv(bl);
+		int rate = 50 + skilllv * 5;
+		rate = rate + (s_lv - t_lv);
+		if(rand()%100 < rate)
+			skill_addtimerskill(src,tick + 800,bl->id,0,0,skillid,skilllv,0,flag);
+	}
+
 	/* ダメ?ジがあるなら追加?果判定 */
 	if(bl->prev != NULL && !status_isdead(bl) )
 	{
@@ -3844,6 +3848,7 @@ int skill_castend_damage_id( struct block_list* src, struct block_list *bl, unsi
 	case BA_MUSICALSTRIKE:	/* ミュ?ジカルストライク */
 	case DC_THROWARROW:		/* 矢?ち */
 	case BA_DISSONANCE:		/* 不協和音 */
+	case NPC_DARKCROSS:
 	case CR_HOLYCROSS:		/* ホ?リ?クロス */
 	case CR_SHIELDCHARGE:
 	case CR_SHIELDBOOMERANG:
@@ -8066,7 +8071,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 		break;
 
 	case UNT_SPIDERWEB:	/* スパイダ?ウェッブ */
-		if(sg->val2==0){
+		if(sg->val2==0 && (!sc_data || sc_data[type].timer==-1 )){
 			int moveblock = ( bl->x/BLOCK_SIZE != src->bl.x/BLOCK_SIZE || bl->y/BLOCK_SIZE != src->bl.y/BLOCK_SIZE);
 			skill_additional_effect(ss,bl,sg->skill_id,sg->skill_lv,BF_MISC,tick);
 			skill_unit_move(*bl,tick,0);
@@ -8967,16 +8972,20 @@ int skill_use_id(struct map_session_data *sd, uint32 target_id,unsigned short sk
 	if( sc_data )
 	{
 		if ((sc_data[SC_VOLCANO].timer != -1 && skill_num == WZ_ICEWALL) ||
-				(sc_data[SC_ROKISWEIL].timer != -1 && skill_num == BD_ADAPTATION) ||
+//				(sc_data[SC_ROKISWEIL].timer != -1 && skill_num == BD_ADAPTATION) ||
+//				sc_data[SC_ROKISWEIL].timer != -1 ||
+				(sc_data[SC_ROKISWEIL].timer != -1 && skill_num != BD_ADAPTATION) ||
 				(sc_data[SC_AUTOCOUNTER].timer != -1 && sd->skillid != KN_AUTOCOUNTER) ||
 				(sc_data[SC_MARIONETTE].timer != -1 && sd->skillid != CG_MARIONETTE) ||
 				(sc_data[SC_MARIONETTE2].timer != -1 && sd->skillid == CG_MARIONETTE) ||
 				sc_data[SC_DIVINA].timer != -1 ||
-				sc_data[SC_ROKISWEIL].timer != -1 ||			
 				sc_data[SC_STEELBODY].timer != -1 ||
-				sc_data[SC_BERSERK].timer != -1 ||
-				sc_data[SC_HERMODE].timer != -1)
+				sc_data[SC_BERSERK].timer != -1)
 			return 0;	/* ?態異常や沈?など */
+
+		if (sc_data[SC_HERMODE].timer != -1 && skill_get_inf(skill_num) & INF_SUPPORT_SKILL)
+			return 0;	//Wand of Hermod blocks only supportive skills. [Skotlex]
+		
 		if (sc_data[SC_BLADESTOP].timer != -1) {
 			if (sc_data[SC_BLADESTOP].val2.num == 1) return 0;//白羽された側なのでダメ
 			switch (sc_data[SC_BLADESTOP].val1.num) {
@@ -9354,9 +9363,11 @@ int skill_use_pos( struct map_session_data *sd, int skill_x, int skill_y, unsign
 				sc_data[SC_DANCING].timer!=-1 ||
 				sc_data[SC_BERSERK].timer != -1  ||
 				sc_data[SC_MARIONETTE].timer != -1 ||
-				sc_data[SC_BLADESTOP].timer != -1 ||
-				sc_data[SC_HERMODE].timer != -1)
+				sc_data[SC_BLADESTOP].timer != -1)
 			return 0;
+
+		if (sc_data[SC_HERMODE].timer != -1 && skill_get_inf(skill_num) & INF_SUPPORT_SKILL)
+			return 0;	//Wand of Hermod blocks only supportive skills. [Skotlex]
 
 		if (sc_data[SC_BASILICA].timer != -1) {
 			struct skill_unit_group *sg = (struct skill_unit_group *)sc_data[SC_BASILICA].val4.ptr;

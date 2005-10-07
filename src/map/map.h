@@ -1086,6 +1086,7 @@ struct map_data
 	unsigned short ys;
 	unsigned short bxs;
 	unsigned short bys;
+	int wh;
 	size_t npc_num;
 	size_t users;
 	struct

@@ -460,15 +460,17 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 			damage=0;
 		}
 
-		if(sc_data[SC_ROKISWEIL].timer!=-1 && damage>0 &&
-			flag&BF_MAGIC ){
+		/*
+		if(sc_data[SC_ROKISWEIL].timer!=-1 && damage>0 && flag&BF_MAGIC ){
 			// ニューマ
 			damage=0;
 		}
+		*/
 
-		if(sc_data[SC_AETERNA].timer!=-1 && damage>0){	// レックスエーテルナ
+		if(sc_data[SC_AETERNA].timer!=-1 && damage>0 && skill_num != PA_PRESSURE){
 			damage<<=1;
-			status_change_end( bl,SC_AETERNA,-1 );
+			if (skill_num != ASC_BREAKER || flag & BF_MAGIC) //Only end it on the second attack of breaker. [Skotlex]
+				status_change_end( bl,SC_AETERNA,-1 );
 		}
 
 		//属性場のダメージ増加
@@ -1065,6 +1067,7 @@ static struct Damage battle_calc_pet_weapon_attack(
 				flag=(flag&~BF_RANGEMASK)|BF_LONG;
 				s_ele = 0;
 				break;
+			case NPC_DARKCROSS:
 			case CR_HOLYCROSS:	// ホーリークロス
 				damage = damage*(100+ 35*skill_lv)/100;
 				break;
@@ -1597,6 +1600,7 @@ struct Damage battle_calc_mob_weapon_attack(struct block_list *src,struct block_
 				flag=(flag&~BF_RANGEMASK)|BF_LONG;
 				s_ele = 0;
 				break;
+			case NPC_DARKCROSS:
 			case CR_HOLYCROSS:	// ホーリークロス
 				damage = damage*(100+ 35*skill_lv)/100;
 				break;
@@ -2349,6 +2353,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 				flag=(flag&~BF_RANGEMASK)|BF_LONG;
 				s_ele = 0;
 				break;
+			case NPC_DARKCROSS:
 			case CR_HOLYCROSS:	// ホーリークロス
 				damage_rate += 35*skill_lv;
 				break;
@@ -3681,6 +3686,7 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 					skillratio+= 30*skill_lv;
 					ele_flag=1;
 					break;
+				case NPC_DARKCROSS:
 				case CR_HOLYCROSS:
 					skillratio+= 35*skill_lv;
 					break;
@@ -3799,6 +3805,7 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 						skillratio += sd->cart_weight / (10 * (16 - skill_lv)) - 100;
 					else if (!sd)
 						skillratio += battle_config.max_cart_weight / (10 * (16 - skill_lv));
+					flag.cardfix = 0;
 					break;
 			}
 			if (ele_flag)
@@ -5321,6 +5328,8 @@ int battle_check_target(struct block_list *src, struct block_list *target,int fl
 				return 0;
 			if (md->state.special_mob_ai == 2) 
 				return (flag&BCT_ENEMY)?1:-1; //Mines are sort of universal enemies.
+			if (md->state.special_mob_ai && src->type == BL_MOB)
+				state |= BCT_ENEMY;	//Summoned creatures can target other mobs.
 			//Don't fallback on the master in the case of summoned creaturess to enable hitting them.
 			if (md->master_id && !md->state.special_mob_ai && (t_bl = map_id2bl(md->master_id)) == NULL)
 				t_bl = &md->bl; //Fallback on the mob itself, otherwise consider this a "versus master" scenario.
@@ -5372,6 +5381,8 @@ int battle_check_target(struct block_list *src, struct block_list *target,int fl
 				return 0;
 			if (!agit_flag && md->guild_id)
 				return 0; //Disable guardians on non-woe times.
+			if (md->state.special_mob_ai && target->type == BL_MOB)
+				state |= BCT_ENEMY;	//Summoned creatures can target other mobs.
 			if (md->master_id && (s_bl = map_id2bl(md->master_id)) == NULL)
 				s_bl = &md->bl; //Fallback on the mob itself, otherwise consider this a "from master" scenario.
 			break;

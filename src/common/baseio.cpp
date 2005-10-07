@@ -55,6 +55,10 @@ public:
 	// construction/destruction
 	txt_database() : cName(NULL),cDB(NULL), cIX(NULL), cOpCount(0)
 	{}
+	txt_database(const char *name) : cName(NULL),cDB(NULL), cIX(NULL), cOpCount(0)
+	{
+		open(name);
+	}
 	~txt_database()
 	{
 		close();
@@ -305,6 +309,7 @@ public:
 		}
 		// replace the index
 		cIndex = inx;
+		flush(true);
 
 		// cut the file name back to default
 		*ip=0;
@@ -406,7 +411,7 @@ bool CConfig::Switch(const char *str, bool defaultval)
 	return defaultval;
 }
 
-// Replace control chars with '_' and return location of change
+// Replace control chars with '_' and return if changed
 bool CConfig::CleanControlChars(char *str)
 {
 	bool change = false;
@@ -618,57 +623,7 @@ protected:
 #endif// SQL
 ///////////////////////////////////////////////////////////////////////////////
 
-///////////////////////////////////////////////////////////////////////////////
-// Account Database
-// for storing accounts stuff in login
-///////////////////////////////////////////////////////////////////////////////
 
-/*
-	currently there is a bunch of more or less usefull data stored
-	which also differs between current versions
-	_useful_ data is
-	///////////////////////////////////////////////////////////////////////////
-*	Authentification Data used to authentify that clients are going from
-	login through char to map.
-
-	uint32 login_id1;	// just a random id given by login
-	uint32 login_id2;	// just a random id given by login
-	uint32 client_ip;	// the current ip of the client
-
-	a client has to show these three values to get autentified
-	(gets it in login process)
-
-	///////////////////////////////////////////////////////////////////////////
-*	Account Data which holds the necessary data for an account
-
-	uint32 account_id;			// id to identify an account
-	char userid[24];			// user name
-	char passwd[34];			// user password
-	unsigned char sex;			// gender
-	unsigned char gm_level;		// gm_level
-	unsigned char online;		// true when online (actually only usefull when adding datamining onto the storing data and not onto the server)
-	char email[40];				// email address for confiming char deletion
-	uint32 login_count;			// number of logins
-	char last_ip[16];			// ip from last login (as string)
-	char last_login[24];		// timestamp of last login
-	time_t ban_until;			// set to time(NULL)+delta for temporary ban
-	time_t valid_until;			// set to time(NULL) for disabling
-
-	the values state, error_message, memo are quite useless,
-	state might be usefull for debugging login of accounts
-	but it is easier to read the output then to dig in the db for that
-
-	///////////////////////////////////////////////////////////////////////////
-*	Account Reg for account wide variables:
-
-	unsigned short account_reg2_num;
-	struct global_reg account_reg2[ACCOUNT_REG2_NUM];
-	///////////////////////////////////////////////////////////////////////////
-
-*	new database table created for this design
-
-	The new tables are in basesq
-*/
 
 ///////////////////////////////////////////////////////////////////////////////
 #ifdef TXT_ONLY
@@ -1149,8 +1104,7 @@ private:
 
 		if(new_time != creation_time_GM_account_file)
 		{
-
-
+			//!! re-read GM-File
 		}
 		return true;
 	}
@@ -2552,5 +2506,1487 @@ CCharDBInterface* CCharDB::getDB(const char *dbcfgfile)
 
 
 
+///////////////////////////////////////////////////////////////////////////////
+#ifdef TXT_ONLY
+///////////////////////////////////////////////////////////////////////////////
+
+class CGuildDB_txt : public CTimerBase, private CConfig, public CGuildDBInterface
+{
+	bool string2guild(const char *str, CGuild &g)
+	{
+		int i, j, c;
+		int tmp_int[16];
+		char tmp_str[4][256];
+		char tmp_str2[4096];
+		char *pstr;
+
+		// 基本データ
+		if( 8 > sscanf(str, 
+			"%d\t%[^\t]\t%[^\t]\t%d,%d,%d,%d,%d\t%[^\t]\t%[^\t]\t", 
+			&tmp_int[0],
+			tmp_str[0], tmp_str[1],
+			&tmp_int[1], &tmp_int[2], &tmp_int[3], &tmp_int[4], &tmp_int[5],
+			tmp_str[2], tmp_str[3]) )
+		{
+			return false;
+		}
+
+		g.guild_id = tmp_int[0];
+		g.guild_lv = tmp_int[1];
+		g.max_member = tmp_int[2];
+		g.exp = tmp_int[3];
+		g.skill_point = tmp_int[4];
+		g.castle_id = tmp_int[5];
+		safestrcpy(g.name, tmp_str[0], sizeof(g.name));
+		safestrcpy(g.master, tmp_str[1], sizeof(g.master));
+		safestrcpy(g.mes1, tmp_str[2], sizeof(g.mes1));
+		safestrcpy(g.mes2, tmp_str[3], sizeof(g.mes2));
+
+		for(j=0; j<6 && str!=NULL; j++)	// 位置スキップ
+			str = strchr(str + 1, '\t');
+
+		// メンバー
+		if(g.max_member>MAX_GUILD) 
+			g.max_member=0;
+		for(i=0; i<g.max_member; i++)
+		{
+			struct guild_member &m = g.member[i];
+
+			if( sscanf(str+1, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\t%[^\t]\t",
+				&tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3], &tmp_int[4],
+				&tmp_int[5], &tmp_int[6], &tmp_int[7], &tmp_int[8], &tmp_int[9],
+				tmp_str[0]) < 11)
+				return false;
+
+			m.account_id = tmp_int[0];
+			m.char_id = tmp_int[1];
+			m.hair = tmp_int[2];
+			m.hair_color = tmp_int[3];
+			m.gender = tmp_int[4];
+			m.class_ = tmp_int[5];
+			m.lv = tmp_int[6];
+			m.exp = tmp_int[7];
+			m.exp_payper = tmp_int[8];
+			m.position = tmp_int[9];
+			safestrcpy(m.name, tmp_str[0], sizeof(m.name));
+			
+			for(j=0; j<2 && str!=NULL; j++)	// 位置スキップ
+				str = strchr(str+1, '\t');
+		}
+
+		// 役職
+		i = 0;
+		while( sscanf(str+1, "%d,%d%n", &tmp_int[0], &tmp_int[1], &j) == 2 && 
+			str[1+j] == '\t')
+		{
+			struct guild_position &p = g.position[i];
+			if( sscanf(str+1, "%d,%d\t%[^\t]\t", &tmp_int[0], &tmp_int[1], tmp_str[0]) < 3)
+				return false;
+			p.mode = tmp_int[0];
+			p.exp_mode = tmp_int[1];
+			safestrcpy(p.name, tmp_str[0], sizeof(p.name));
+			
+			for(j=0; j<2 && str!=NULL; j++)	// 位置スキップ
+				str = strchr(str+1, '\t');
+			i++;
+		}
+
+		// エンブレム
+		tmp_int[1] = 0;
+		if( sscanf(str + 1, "%d,%d,%[^\t]\t", &tmp_int[0], &tmp_int[1], tmp_str2)< 3 &&
+			sscanf(str + 1, "%d,%[^\t]\t", &tmp_int[0], tmp_str2) < 2 )
+			return false;
+		g.emblem_len = tmp_int[0];
+		g.emblem_id = tmp_int[1];
+		for(i=0, pstr=tmp_str2; i<g.emblem_len; i++, pstr+=2)
+		{
+			int c1 = pstr[0], c2 = pstr[1], x1 = 0, x2 = 0;
+			if (c1 >= '0' && c1 <= '9') x1 = c1 - '0';
+			if (c1 >= 'a' && c1 <= 'f') x1 = c1 - 'a' + 10;
+			if (c1 >= 'A' && c1 <= 'F') x1 = c1 - 'A' + 10;
+			if (c2 >= '0' && c2 <= '9') x2 = c2 - '0';
+			if (c2 >= 'a' && c2 <= 'f') x2 = c2 - 'a' + 10;
+			if (c2 >= 'A' && c2 <= 'F') x2 = c2 - 'A' + 10;
+			g.emblem_data[i] = (x1<<4) | x2;
+		}
+
+		str=strchr(str+1, '\t');	// 位置スキップ
+
+		// 同盟リスト
+		if (sscanf(str+1, "%d\t", &c) < 1)
+			return false;
+
+		str = strchr(str + 1, '\t');	// 位置スキップ
+		for(i = 0; i < c; i++)
+		{
+			struct guild_alliance &a = g.alliance[i];
+			if( sscanf(str + 1, "%d,%d\t%[^\t]\t", &tmp_int[0], &tmp_int[1], tmp_str[0]) < 3)
+				return false;
+			a.guild_id = tmp_int[0];
+			a.opposition = tmp_int[1];
+			safestrcpy(a.name, tmp_str[0], sizeof(a.name));
+			
+			for(j=0; j<2 && str!=NULL; j++)	// 位置スキップ
+				str = strchr(str + 1, '\t');
+		}
+
+		// 追放リスト
+		if (sscanf(str+1, "%d\t", &c) < 1)
+			return false;
+		
+		str = strchr(str + 1, '\t');	// 位置スキップ
+		for(i=0; i<c; i++)
+		{
+			struct guild_explusion &e = g.explusion[i];
+			if( sscanf(str + 1, "%d,%d,%d,%d\t%[^\t]\t%[^\t]\t%[^\t]\t",
+				&tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3],
+				tmp_str[0], tmp_str[1], tmp_str[2]) < 6)
+				return false;
+			e.account_id = tmp_int[0];
+			e.rsv1 = tmp_int[1];
+			e.rsv2 = tmp_int[2];
+			e.rsv3 = tmp_int[3];
+			safestrcpy(e.name, tmp_str[0], sizeof(e.name));
+			safestrcpy(e.acc, tmp_str[1], sizeof(e.acc));
+			safestrcpy(e.mes, tmp_str[2], sizeof(e.mes));
+
+			for(j=0; j<4 && str!=NULL; j++)	// 位置スキップ
+				str = strchr(str+1, '\t');
+		}
+
+		// ギルドスキル
+		for(i=0; i<MAX_GUILDSKILL; i++)
+		{
+			if (sscanf(str+1,"%d,%d ", &tmp_int[0], &tmp_int[1]) < 2)
+				break;
+			g.skill[i].id = tmp_int[0];
+			g.skill[i].lv = tmp_int[1];
+			str = strchr(str+1, ' ');
+		}
+		str = strchr(str + 1, '\t');
+
+		return true;
+	}
+
+	ssize_t guild2string(char *str, size_t maxlen, const CGuild &g)
+	{
+		ssize_t i, c, len;
+	
+		// 基本データ
+		len = sprintf(str, "%ld\t%s\t%s\t%d,%d,%ld,%d,%d\t%s#\t%s#\t",
+					  (unsigned long)g.guild_id, g.name, g.master,
+					  g.guild_lv, g.max_member, (unsigned long)g.exp, g.skill_point, g.castle_id,
+					  g.mes1, g.mes2);
+		// メンバー
+		for(i = 0; i < g.max_member; i++) {
+			const struct guild_member &m = g.member[i];
+			len += sprintf(str + len, "%ld,%ld,%d,%d,%d,%d,%d,%ld,%ld,%d\t%s\t",
+						   (unsigned long)m.account_id, (unsigned long)m.char_id,
+						   m.hair, m.hair_color, m.gender,
+						   m.class_, m.lv, (unsigned long)m.exp, (unsigned long)m.exp_payper, m.position,
+						   ((m.account_id > 0) ? m.name : "-"));
+		}
+		// 役職
+		for(i = 0; i < MAX_GUILDPOSITION; i++) {
+			const struct guild_position &p = g.position[i];
+			len += sprintf(str + len, "%ld,%ld\t%s#\t", (unsigned long)p.mode, (unsigned long)p.exp_mode, p.name);
+		}
+		// エンブレム
+		len += sprintf(str + len, "%d,%ld,", g.emblem_len, (unsigned long)g.emblem_id);
+		for(i = 0; i < g.emblem_len; i++) {
+			len += sprintf(str + len, "%02x", (unsigned char)(g.emblem_data[i]));
+		}
+		len += sprintf(str + len, "$\t");
+		// 同盟リスト
+		c = 0;
+		for(i = 0; i < MAX_GUILDALLIANCE; i++)
+			if (g.alliance[i].guild_id > 0)
+				c++;
+		len += sprintf(str + len, "%d\t", c);
+		for(i = 0; i < MAX_GUILDALLIANCE; i++) {
+			const struct guild_alliance &a = g.alliance[i];
+			if (a.guild_id > 0)
+				len += sprintf(str + len, "%ld,%ld\t%s\t", (unsigned long)a.guild_id, (unsigned long)a.opposition, a.name);
+		}
+		// 追放リスト
+		c = 0;
+		for(i = 0; i < MAX_GUILDEXPLUSION; i++)
+			if (g.explusion[i].account_id > 0)
+				c++;
+		len += sprintf(str + len, "%d\t", c);
+		for(i = 0; i < MAX_GUILDEXPLUSION; i++) {
+			const struct guild_explusion &e = g.explusion[i];
+			if (e.account_id > 0)
+				len += sprintf(str + len, "%ld,%ld,%ld,%ld\t%s\t%s\t%s#\t",
+							   (unsigned long)e.account_id, (unsigned long)e.rsv1, (unsigned long)e.rsv2, (unsigned long)e.rsv3,
+							   e.name, e.acc, e.mes );
+		}
+		// ギルドスキル
+		for(i = 0; i < MAX_GUILDSKILL; i++) {
+			len += sprintf(str + len, "%d,%d ", g.skill[i].id, g.skill[i].lv);
+		}
+		len += sprintf(str+len, "\t"RETCODE);
+		return len;
+	}
+
+	ssize_t castle2string(char *str, size_t maxlen, const CCastle &gc)
+	{
+		ssize_t len;
+		len = snprintf(str, maxlen, "%d,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld"RETCODE,	// added Guardian HP [Valaris]
+					  gc.castle_id, (unsigned long)gc.guild_id, (unsigned long)gc.economy, (unsigned long)gc.defense, (unsigned long)gc.triggerE,
+					  (unsigned long)gc.triggerD, (unsigned long)gc.nextTime, (unsigned long)gc.payTime, (unsigned long)gc.createTime, (unsigned long)gc.visibleC,
+					  (unsigned long)gc.guardian[0].visible, (unsigned long)gc.guardian[1].visible, (unsigned long)gc.guardian[2].visible, (unsigned long)gc.guardian[3].visible, 
+					  (unsigned long)gc.guardian[4].visible, (unsigned long)gc.guardian[5].visible, (unsigned long)gc.guardian[6].visible, (unsigned long)gc.guardian[7].visible,
+					  (unsigned long)gc.guardian[0].guardian_hp, (unsigned long)gc.guardian[1].guardian_hp, (unsigned long)gc.guardian[2].guardian_hp, (unsigned long)gc.guardian[3].guardian_hp, 
+					  (unsigned long)gc.guardian[4].guardian_hp, (unsigned long)gc.guardian[5].guardian_hp, (unsigned long)gc.guardian[6].guardian_hp, (unsigned long)gc.guardian[7].guardian_hp);
+		return len;
+	}
+
+	// ギルド城データの文字列からの変換
+	bool string2castle(char *str, CCastle &gc)
+	{
+		int tmp_int[26];
+		memset(tmp_int, 0, sizeof(tmp_int));
+		if (sscanf(str, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
+				   &tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3], &tmp_int[4], &tmp_int[5], &tmp_int[6],
+				   &tmp_int[7], &tmp_int[8], &tmp_int[9], &tmp_int[10], &tmp_int[11], &tmp_int[12], &tmp_int[13],
+				   &tmp_int[14], &tmp_int[15], &tmp_int[16], &tmp_int[17], &tmp_int[18], &tmp_int[19], &tmp_int[20],
+				   &tmp_int[21], &tmp_int[22], &tmp_int[23], &tmp_int[24], &tmp_int[25]) == 26) {
+			gc.castle_id = tmp_int[0];
+			gc.guild_id = tmp_int[1];
+			gc.economy = tmp_int[2];
+			gc.defense = tmp_int[3];
+			gc.triggerE = tmp_int[4];
+			gc.triggerD = tmp_int[5];
+			gc.nextTime = tmp_int[6];
+			gc.payTime = tmp_int[7];
+			gc.createTime = tmp_int[8];
+			gc.visibleC = tmp_int[9];
+			gc.guardian[0].visible = tmp_int[10];
+			gc.guardian[1].visible = tmp_int[11];
+			gc.guardian[2].visible = tmp_int[12];
+			gc.guardian[3].visible = tmp_int[13];
+			gc.guardian[4].visible = tmp_int[14];
+			gc.guardian[5].visible = tmp_int[15];
+			gc.guardian[6].visible = tmp_int[16];
+			gc.guardian[7].visible = tmp_int[17];
+			gc.guardian[0].guardian_hp = tmp_int[18];
+			gc.guardian[1].guardian_hp = tmp_int[19];
+			gc.guardian[2].guardian_hp = tmp_int[20];
+			gc.guardian[3].guardian_hp = tmp_int[21];
+			gc.guardian[4].guardian_hp = tmp_int[22];
+			gc.guardian[5].guardian_hp = tmp_int[23];
+			gc.guardian[6].guardian_hp = tmp_int[24];
+			gc.guardian[7].guardian_hp = tmp_int[25];	// end additions [Valaris]
+		// old structure of guild castle
+		} else if (sscanf(str, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
+						  &tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3], &tmp_int[4], &tmp_int[5], &tmp_int[6],
+						  &tmp_int[7], &tmp_int[8], &tmp_int[9], &tmp_int[10], &tmp_int[11], &tmp_int[12], &tmp_int[13],
+						  &tmp_int[14], &tmp_int[15], &tmp_int[16], &tmp_int[17]) == 18) {
+			gc.castle_id = tmp_int[0];
+			gc.guild_id = tmp_int[1];
+			gc.economy = tmp_int[2];
+			gc.defense = tmp_int[3];
+			gc.triggerE = tmp_int[4];
+			gc.triggerD = tmp_int[5];
+			gc.nextTime = tmp_int[6];
+			gc.payTime = tmp_int[7];
+			gc.createTime = tmp_int[8];
+			gc.visibleC = tmp_int[9];
+			gc.guardian[0].visible = tmp_int[10];
+			gc.guardian[1].visible = tmp_int[11];
+			gc.guardian[2].visible = tmp_int[12];
+			gc.guardian[3].visible = tmp_int[13];
+			gc.guardian[4].visible = tmp_int[14];
+			gc.guardian[5].visible = tmp_int[15];
+			gc.guardian[6].visible = tmp_int[16];
+			gc.guardian[7].visible = tmp_int[17];
+			gc.guardian[0].guardian_hp = (gc.guardian[0].visible) ? 15670 + 2000 * gc.defense : 0;
+			gc.guardian[1].guardian_hp = (gc.guardian[1].visible) ? 15670 + 2000 * gc.defense : 0;
+			gc.guardian[2].guardian_hp = (gc.guardian[2].visible) ? 15670 + 2000 * gc.defense : 0;
+			gc.guardian[3].guardian_hp = (gc.guardian[3].visible) ? 30214 + 2000 * gc.defense : 0;
+			gc.guardian[4].guardian_hp = (gc.guardian[4].visible) ? 30214 + 2000 * gc.defense : 0;
+			gc.guardian[5].guardian_hp = (gc.guardian[5].visible) ? 28634 + 2000 * gc.defense : 0;
+			gc.guardian[6].guardian_hp = (gc.guardian[6].visible) ? 28634 + 2000 * gc.defense : 0;
+			gc.guardian[7].guardian_hp = (gc.guardian[7].visible) ? 28634 + 2000 * gc.defense : 0;
+		}
+		else
+		{
+			return false;
+		}
+		return true;
+	}
+	bool readGuildsCastles()
+	{
+		char line[16384];
+		FILE *fp;
+		int i, j, c;
+		
+		///////////////////////////////////////////////////////////////////////
+		fp = safefopen(guild_filename,"r");
+		if(fp == NULL)
+		{
+			ShowError("can't read %s\n", guild_filename);
+			return false;
+		}
+
+		c=0;
+		while(fgets(line, sizeof(line), fp))
+		{
+			c++;
+			if( !skip_empty_line(line) )
+				continue;
+
+			CGuild g;
+			j = 0;
+			if (sscanf(line, "%d\t%%newid%%\n%n", &i, &j) == 1 && j > 0 && next_guild_id <= (uint32)i) {
+				next_guild_id = i;
+				continue;
+			}
+			if( string2guild(line, g) && g.guild_id > 0 )
+			{
+				g.calcInfo();
+				if(g.max_member>0 && g.max_member < MAX_GUILD)
+				{
+					for(i=0;i<g.max_member;i++)
+					{
+						if(g.member[i].account_id>0)
+							break;
+					}
+					if(i<g.max_member)
+					{
+						
+
+						if( g.guild_id >= next_guild_id )
+							next_guild_id = g.guild_id + 1;
+
+						cGuilds.insert(g);
+					}
+				}
+			}
+			else
+			{
+				ShowError("Guild: broken data [%s] line %d\n", guild_filename, c);
+			}
+		}
+		fclose(fp);
+		ShowStatus("Guild: %s read done (%d guilds)\n", guild_filename, cGuilds.size());
+		///////////////////////////////////////////////////////////////////////
+
+
+		///////////////////////////////////////////////////////////////////////
+		fp = safefopen(castle_filename, "r");
+		if( fp==NULL )
+		{
+			ShowError("GuildCastle: cannot open %s\n", castle_filename);
+			return false;
+		}
+		c = 0;
+		while(fgets(line, sizeof(line), fp))
+		{
+			c++;
+
+			if( !skip_empty_line(line) )
+				continue;
+
+			size_t pos;
+			CCastle gc;
+			if( string2castle(line, gc) )
+			{	// clear guildcastles with removed guilds
+				if( gc.guild_id && !cGuilds.find(CGuild(gc.guild_id), pos, 0) )
+					gc.guild_id = 0;
+
+				cCastles.insert(gc);
+			}
+			else
+				ShowError("GuildCastle: broken data [%s] line %d\n", castle_filename, c);
+			
+		}
+		fclose(fp);
+		ShowStatus("GuildCastle: %s read done (%d castles)\n", castle_filename, cCastles.size());
+
+		for(i = 0; i < MAX_GUILDCASTLE; i++)
+		{	// check if castle exists
+			size_t pos;
+			if( !cCastles.find( CCastle(i), 0, pos) )
+			{	// construct a new one if not
+				cCastles.insert( CCastle(i) ); // constructor takes care of all settings
+			}
+		}
+		///////////////////////////////////////////////////////////////////////
+		return true;
+	}
+	bool saveGuildsCastles()
+	{
+		bool ret=true;
+		char line[65536];
+		FILE *fp;
+		int lock;
+		size_t i, sz;
+		///////////////////////////////////////////////////////////////////////
+		fp = lock_fopen(guild_filename,&lock);
+		if( fp == NULL) {
+			ShowError("Guild: cannot open [%s]\n", guild_filename);
+			ret = false;
+		}
+		else
+		{
+			for(i=0; i<cGuilds.size(); i++)
+			{
+				sz=guild2string(line, sizeof(line), cGuilds[i]);
+				//fprintf(fp, "%s" RETCODE, line); // retcode integrated to line generation
+				if(sz>0) 
+					fwrite(line, sz,1,fp);
+			}
+			lock_fclose(fp, guild_filename, &lock);
+		}
+
+
+		///////////////////////////////////////////////////////////////////////
+		fp = lock_fopen(castle_filename,&lock);
+		if( fp == NULL) {
+			ShowError("Guild: cannot open [%s]\n", castle_filename);
+			ret = false;
+		}
+		else
+		{
+			for(i=0; i<cCastles.size(); i++)
+			{
+				sz=castle2string(line, sizeof(line), cCastles[i]);
+				//fprintf(fp, "%s" RETCODE, line);	// retcode integrated to line generation
+				if(sz>0) fwrite(line, sz,1,fp);
+			}
+			lock_fclose(fp, castle_filename, &lock);
+		}
+		///////////////////////////////////////////////////////////////////////
+		return ret;
+	}
+
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// construct/destruct
+	CGuildDB_txt(const char *configfile) :
+		CTimerBase(60000),		// 60sec save interval
+		next_guild_id(10000),
+		savecount(0)
+	{
+		safestrcpy(guild_filename,"save/guild.txt",sizeof(guild_filename));
+		safestrcpy(castle_filename,"save/castle.txt",sizeof(castle_filename));
+		safestrcpy(guildexp_filename,"db/exp_guild.txt",sizeof(guildexp_filename));
+		init(configfile);
+	}
+	virtual ~CGuildDB_txt()
+	{
+		close();
+	}
+private:
+	///////////////////////////////////////////////////////////////////////////
+	// data
+	TMultiListP<CGuild, 2>	cGuilds;
+	TslistDST<CCastle>		cCastles;
+	uint32					next_guild_id;
+	uint					savecount;
+	char					guild_filename[1024];
+	char					castle_filename[1024];
+	char					guildexp_filename[1024];
+	
+	
+	///////////////////////////////////////////////////////////////////////////
+	// Config processor
+	virtual bool ProcessConfig(const char*w1, const char*w2)
+	{
+
+		return true;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// normal function
+	bool init(const char* configfile)
+	{	// init db
+		CConfig::LoadConfig(configfile);
+		CGuild::cGuildExp.init(guildexp_filename);
+		return readGuildsCastles();
+	}
+	bool close()
+	{
+		return saveGuildsCastles();
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// timer function
+	virtual bool timeruserfunc(unsigned long tick)
+	{
+		// we only save if necessary:
+		// we have do some authentifications without do saving
+		if( savecount > 10 )
+		{
+			savecount=0;
+			saveGuildsCastles();
+		}
+		return true;
+	}
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// access interface
+	virtual size_t size()					{ return cGuilds.size(); }
+	virtual CGuild& operator[](size_t i)	{ return cGuilds[i]; }
+
+	virtual bool searchGuild(const char* name, CGuild& guild)
+	{
+		size_t pos;
+		if( cGuilds.find( CGuild(name), pos, 1) )
+		{
+			guild = cGuilds[pos];
+			return true;
+		}
+		return false;
+	}
+	virtual bool searchGuild(uint32 guildid, CGuild& guild)
+	{
+		size_t pos;
+		if( cGuilds.find( CGuild(guildid), pos, 0) )
+		{
+			guild = cGuilds[pos];
+			return true;
+		}
+		return false;
+	}
+	virtual bool insertGuild(const struct guild_member &member, const char *name, CGuild &guild)
+	{
+		CGuild tmp(name);
+		size_t pos, i;
+		if( !cGuilds.find( tmp, pos, 1) )
+		{
+			//tmp.name[24];
+			tmp.guild_id = next_guild_id++;
+
+			tmp.member[0] = member;
+			safestrcpy(tmp.master, member.name, sizeof(tmp.master));
+			tmp.position[0].mode=0x11;
+			safestrcpy(tmp.position[0].name,"GuildMaster", sizeof(tmp.position[0].name));
+			safestrcpy(tmp.position[MAX_GUILDPOSITION-1].name,"Newbie", sizeof(tmp.position[0].name));
+			for(i=1; i<MAX_GUILDPOSITION-1; i++)
+				snprintf(tmp.position[i].name,sizeof(tmp.position[0].name),"Position %d",i+1);
+			
+			tmp.max_member=16;
+			tmp.average_lv=tmp.member[0].lv;
+			tmp.castle_id=0xFFFF;
+			for(i=0;i<MAX_GUILDSKILL;i++)
+				tmp.skill[i].id = i+GD_SKILLBASE;
+			
+			guild = tmp;
+			return cGuilds.insert(tmp); 
+		}
+		return false;
+	}
+	virtual bool removeGuild(uint32 guildid)
+	{
+		size_t pos;
+		if( cGuilds.find( CGuild(guildid), pos, 0) )
+		{
+			return cGuilds.removeindex(pos,0); 
+		}
+		return false;
+	}
+	virtual bool saveGuild(const CGuild& guild)
+	{
+		size_t pos;
+		if( cGuilds.find( guild, pos, 0) )
+		{
+			cGuilds[pos] = guild;
+			savecount++;
+			return true;
+		}
+		return false;
+	}
+
+	virtual bool searchCastle(ushort cid, CCastle& castle)
+	{
+		size_t pos;
+		if( cCastles.find( CCastle(cid), 0, pos) )
+		{
+			castle = cCastles[pos];
+			return true;
+		}
+		return false;
+	}
+	virtual bool saveCastle(CCastle& castle)
+	{
+		size_t pos;
+		if( cCastles.find( castle, 0, pos) )
+		{
+			cCastles[pos] = castle;
+			return true;
+		}
+		return false;
+	}
+	virtual bool removeCastle(ushort cid)
+	{
+		size_t pos;
+		if( cCastles.find( CCastle(cid), 0, pos) )
+		{
+			cCastles.removeindex(pos);
+			return true;
+		}
+		return false;
+	}
+};
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+#else// SQL
+///////////////////////////////////////////////////////////////////////////////
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+#endif// SQL
+///////////////////////////////////////////////////////////////////////////////
+
+CGuildDBInterface* CGuildDB::getDB(const char *dbcfgfile)
+{
+#ifdef TXT_ONLY
+	return new CGuildDB_txt(dbcfgfile);
+#else
+	return NULL;
+//	return new CGuildDB_sql(dbcfgfile);
+#endif// SQL
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Guild Experience
+void CGuildExp::init(const char* filename)
+{
+	FILE* fp=safefopen(filename,"r");
+	memset(exp,0,sizeof(exp));
+	if(fp==NULL)
+	{
+		ShowError("can't read %s\n", filename);
+	}
+	else
+	{
+		char line[1024];
+		int c=0;
+		while(fgets(line,sizeof(line),fp) && c<100)
+		{
+			if( !skip_empty_line(line) )
+				continue;
+			exp[c]=atoi(line);
+			c++;
+		}
+		fclose(fp);
+	}
+}
+// static member of CGuild
+CGuildExp CGuild::cGuildExp;
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+#ifdef TXT_ONLY
+///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+// Party Database
+///////////////////////////////////////////////////////////////////////////////
+class CPartyDB_txt : public CTimerBase, private CConfig, public CPartyDBInterface
+{
+
+	ssize_t party_to_string(char *str, size_t maxlen, const CParty &p)
+	{
+		ssize_t i, len;
+		len = sprintf(str, "%ld\t%s\t%d,%d\t", (unsigned long)p.party_id, p.name, p.expshare, p.itemshare);
+		for(i = 0; i < MAX_PARTY; i++)
+		{
+			const struct party_member &m = p.member[i];
+			len += sprintf(str+len, "%ld,%ld\t%s\t", (unsigned long)m.account_id, (unsigned long)m.leader, ((m.account_id > 0) ? m.name : "NoMember"));
+		}
+		sprintf(str+len, RETCODE);
+		return len;
+	}
+	bool party_from_string(const char *str, CParty &p)
+	{
+		int i, j;
+		int tmp_int[16];
+		char tmp_str[256];
+		
+		if (sscanf(str, "%d\t%255[^\t]\t%d,%d\t", &tmp_int[0], tmp_str, &tmp_int[1], &tmp_int[2]) != 4)
+			return false;
+		
+		p.party_id = tmp_int[0];
+		safestrcpy(p.name, tmp_str, sizeof(p.name));
+		p.expshare = tmp_int[1];
+		p.itemshare = tmp_int[2];
+		for(j=0; j<3 && str != NULL; j++)
+			str = strchr(str+1, '\t');
+		
+		for(i=0; i<MAX_PARTY; i++)
+		{
+			struct party_member &m = p.member[i];
+			if(str == NULL)
+				return false;
+			if(sscanf(str + 1, "%d,%d\t%255[^\t]\t", &tmp_int[0], &tmp_int[1], tmp_str) != 3)
+				return false;
+			
+			m.account_id = tmp_int[0];
+			m.leader = tmp_int[1];
+			safestrcpy(m.name, tmp_str, sizeof(m.name));
+			for(j=0; j<2 && str != NULL; j++)
+				str = strchr(str + 1, '\t');
+		}
+		return true;
+	}
+	bool readParties()
+	{
+		char line[8192];
+		int c = 0;
+		int i, j;
+		FILE *fp = safefopen(party_filename, "r");
+
+		if( fp == NULL )
+		{
+			ShowError("Party: cannot open %s\n", party_filename);
+			return false;
+		}
+		while(fgets(line, sizeof(line), fp))
+		{
+			c++;
+			if( !skip_empty_line(line) )
+				continue;
+
+			j = 0;
+			if (sscanf(line, "%d\t%%newid%%\n%n", &i, &j) == 1 && j > 0 && next_party_id <= (uint32)i)
+			{
+				next_party_id = i;
+			}
+			else
+			{
+				CParty p;
+				if( party_from_string(line, p) && p.party_id > 0)
+				{
+					if( !p.isempty() )
+					{
+						if(p.party_id >= next_party_id)
+							next_party_id = p.party_id + 1;
+
+						cParties.insert(p);
+					}
+				}
+				else
+				{
+					ShowError("int_party: broken data [%s] line %d\n", party_filename, c);
+				}
+			}
+		}
+		fclose(fp);
+		ShowStatus("Party: %s read done (%d parties)\n", party_filename, c);
+		return true;
+	}
+	bool saveParties()
+	{
+		char line[65536];
+		FILE *fp;
+		int lock;
+		size_t i;
+		ssize_t sz;
+
+		if ((fp = lock_fopen(party_filename, &lock)) == NULL) {
+			ShowError("Party: cannot open [%s]\n", party_filename);
+			return false;
+		}
+		for(i=0; i<cParties.size(); i++)
+		{
+			sz = party_to_string(line, sizeof(line), cParties[i]);
+			if(sz>0) fwrite(line, sz,1, fp);
+		}
+		fprintf(fp, "%d\t%%newid%%\n", next_party_id);
+		lock_fclose(fp,party_filename, &lock);
+		return 0;
+	}
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// construct/destruct
+	CPartyDB_txt(const char *configfile) :
+		CTimerBase(60000),		// 60sec save interval
+		next_party_id(1000),
+		savecount(0)
+	{
+		safestrcpy(party_filename,"save/party.txt",sizeof(party_filename));
+		init(configfile);
+	}
+	virtual ~CPartyDB_txt()
+	{
+		close();
+	}
+private:
+	///////////////////////////////////////////////////////////////////////////
+	// data
+	TMultiListP<CParty, 2>	cParties;
+	uint32					next_party_id;
+	uint					savecount;
+	char					party_filename[1024];
+	
+	///////////////////////////////////////////////////////////////////////////
+	// Config processor
+	virtual bool ProcessConfig(const char*w1, const char*w2)
+	{
+
+		return true;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// normal function
+	bool init(const char* configfile)
+	{	// init db
+		CConfig::LoadConfig(configfile);
+		return readParties();
+	}
+	bool close()
+	{
+		return saveParties();
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// timer function
+	virtual bool timeruserfunc(unsigned long tick)
+	{
+		// we only save if necessary:
+		// we have do some authentifications without do saving
+		if( savecount > 10 )
+		{
+			savecount=0;
+			saveParties();
+		}
+		return true;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// access interface
+	virtual size_t size()					{ return cParties.size(); }
+	virtual CParty& operator[](size_t i)	{ return cParties[i]; }
+
+	virtual bool searchParty(const char* name, CParty& party)
+	{
+		size_t pos;
+		if( cParties.find( CParty(name), pos, 1) )
+		{
+			party = cParties[pos];
+			return true;
+		}
+		return false;
+	}
+	virtual bool searchParty(uint32 pid, CParty& party)
+	{
+		size_t pos;
+		if( cParties.find( CParty(pid), pos, 0) )
+		{
+			party = cParties[pos];
+			return true;
+		}
+		return false;
+	}
+	virtual bool insertParty(uint32 accid, const char *nick, const char *map, ushort lv, const char *name, CParty &party)
+	{
+		size_t pos;
+		CParty temp(name);
+		if( !cParties.find( temp, pos, 0) )
+		{
+			//temp.name[24];
+			temp.party_id = next_party_id++;
+			temp.expshare = 0;
+			temp.itemshare = 0;
+			temp.member[0].account_id = accid;
+			safestrcpy(temp.member[0].name, nick, sizeof(temp.member[0].name));
+			safestrcpy(temp.member[0].mapname, map, sizeof(temp.member[0].mapname));
+			temp.member[0].leader = 1;
+			temp.member[0].online = 1;
+			temp.member[0].lv = lv;
+
+			cParties.insert(temp);
+			party = temp;
+			return true;
+		}
+		return false;
+	}
+	virtual bool removeParty(uint32 pid)
+	{
+		size_t pos;
+		if( cParties.find( CParty(pid), pos, 0) )
+		{
+			cParties.removeindex(pos);
+			return true;
+		}
+		return false;
+	}
+	virtual bool saveParty(const CParty& party)
+	{
+		size_t pos;
+		if( cParties.find( party, pos, 0) )
+		{
+			cParties[pos] = party;
+			return true;
+		}
+		return false;
+	}
+};
+
+///////////////////////////////////////////////////////////////////////////////
+#else// SQL
+///////////////////////////////////////////////////////////////////////////////
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+#endif// SQL
+///////////////////////////////////////////////////////////////////////////////
+
+CPartyDBInterface* CPartyDB::getDB(const char *dbcfgfile)
+{
+#ifdef TXT_ONLY
+	return new CPartyDB_txt(dbcfgfile);
+#else
+	return NULL;
+//	return new CPartyDB_sql(dbcfgfile);
+#endif// SQL
+}
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+#ifdef TXT_ONLY
+///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+// Storage Database Interface
+///////////////////////////////////////////////////////////////////////////////
+class CPCStorageDB_txt : public CTimerBase, private CConfig, public CPCStorageDBInterface
+{
+	ssize_t storage_to_string(char *str, size_t maxlen, const CPCStorage &stor)
+	{
+		int i,f=0;
+		char *str_p = str;
+		str_p += sprintf(str_p,"%ld,%d\t",(unsigned long)stor.account_id, stor.storage_amount);
+		for(i=0;i<MAX_STORAGE;i++)
+		{
+			if( (stor.storage[i].nameid) && (stor.storage[i].amount) )
+			{
+				str_p += sprintf(str_p,"%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d ",
+					stor.storage[i].id,stor.storage[i].nameid,stor.storage[i].amount,stor.storage[i].equip,
+					stor.storage[i].identify,stor.storage[i].refine,stor.storage[i].attribute,
+					stor.storage[i].card[0],stor.storage[i].card[1],stor.storage[i].card[2],stor.storage[i].card[3]);
+				f++;
+			}
+		}
+		*(str_p++)='\t';
+		*str_p='\0';
+		if(!f)
+		{
+			str[0]=0;
+			str_p=str;
+		}
+		return (str_p-str);
+	}
+	int storage_from_string(const char *str, CPCStorage &stor)
+	{
+		int tmp_int[256];
+		int set,next,len,i;
+
+		set=sscanf(str,"%d,%d%n",&tmp_int[0],&tmp_int[1],&next);
+		stor.storage_amount=tmp_int[1];
+
+		if(set!=2)
+			return false;
+		if(str[next]=='\n' || str[next]=='\r')
+			return false;
+		next++;
+		for(i=0;str[next] && str[next]!='\t';i++)
+		{
+			if(sscanf(str + next, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d%n",
+				&tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3],
+				&tmp_int[4], &tmp_int[5], &tmp_int[6],
+				&tmp_int[7], &tmp_int[8], &tmp_int[9], &tmp_int[10], &tmp_int[10], &len) == 12)
+			{
+				stor.storage[i].id = tmp_int[0];
+				stor.storage[i].nameid = tmp_int[1];
+				stor.storage[i].amount = tmp_int[2];
+				stor.storage[i].equip = tmp_int[3];
+				stor.storage[i].identify = tmp_int[4];
+				stor.storage[i].refine = tmp_int[5];
+				stor.storage[i].attribute = tmp_int[6];
+				stor.storage[i].card[0] = tmp_int[7];
+				stor.storage[i].card[1] = tmp_int[8];
+				stor.storage[i].card[2] = tmp_int[9];
+				stor.storage[i].card[3] = tmp_int[10];
+				next += len;
+				if (str[next] == ' ')
+					next++;
+			}
+			else if(sscanf(str + next, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d%n",
+				&tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3],
+				&tmp_int[4], &tmp_int[5], &tmp_int[6],
+				&tmp_int[7], &tmp_int[8], &tmp_int[9], &tmp_int[10], &len) == 11)
+			{
+				stor.storage[i].id = tmp_int[0];
+				stor.storage[i].nameid = tmp_int[1];
+				stor.storage[i].amount = tmp_int[2];
+				stor.storage[i].equip = tmp_int[3];
+				stor.storage[i].identify = tmp_int[4];
+				stor.storage[i].refine = tmp_int[5];
+				stor.storage[i].attribute = tmp_int[6];
+				stor.storage[i].card[0] = tmp_int[7];
+				stor.storage[i].card[1] = tmp_int[8];
+				stor.storage[i].card[2] = tmp_int[9];
+				stor.storage[i].card[3] = tmp_int[10];
+				next += len;
+				if (str[next] == ' ')
+					next++;
+			}
+			else
+				return false;
+		}
+		return true;
+	}
+	bool readPCStorage()
+	{
+		char line[65536];
+		int c=0;
+		unsigned long tmp;
+		CPCStorage s;
+		FILE *fp=safefopen(pcstorage_filename,"r");
+
+		if(fp==NULL)
+		{
+			ShowError("Storage: cannot open %s\n", pcstorage_filename);
+			return false;
+		}
+		while(fgets(line,sizeof(line),fp))
+		{
+			c++;
+			if( !skip_empty_line(line) )
+				continue;
+
+			sscanf(line,"%ld",&tmp);
+			s.account_id=tmp;
+			if(s.account_id > 0 && storage_from_string(line,s) )
+			{
+				cPCStorList.insert(s);
+			}
+			else
+			{
+				ShowError("Storage: broken data [%s] line %d\n",pcstorage_filename,c);
+			}
+		}
+		fclose(fp);
+		return true;
+	}
+	bool savePCStorage()
+	{
+		char line[65536];
+		int lock;
+		size_t i, sz;
+		FILE *fp=lock_fopen(pcstorage_filename,&lock);
+
+		if( fp==NULL )
+		{
+			ShowError("Storage: cannot open [%s]\n",pcstorage_filename);
+			return false;
+		}
+		for(i=0; i<cPCStorList.size(); i++)
+		{
+			sz = storage_to_string(line, sizeof(line), cPCStorList[i]);
+			if(sz>0) fprintf(fp,"%s"RETCODE,line);
+		}
+		lock_fclose(fp, pcstorage_filename, &lock);
+		return true;
+	}
+
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// construct/destruct
+	CPCStorageDB_txt(const char *dbcfgfile) :
+		CTimerBase(60000),		// 60sec save interval
+		savecount(0)
+	{
+		safestrcpy(pcstorage_filename, "save/storage.txt", sizeof(pcstorage_filename));
+		init(dbcfgfile);
+	}
+	virtual ~CPCStorageDB_txt()
+	{
+		close();
+	}
+
+private:
+	///////////////////////////////////////////////////////////////////////////
+	// data
+	TslistDST<CPCStorage>	cPCStorList;
+	uint savecount;
+	char pcstorage_filename[1024];
+	
+	
+	///////////////////////////////////////////////////////////////////////////
+	// Config processor
+	virtual bool ProcessConfig(const char*w1, const char*w2)
+	{
+
+		return true;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// normal function
+	bool init(const char* configfile)
+	{	// init db
+		CConfig::LoadConfig(configfile);
+		return readPCStorage();
+	}
+	bool close()
+	{
+		return savePCStorage();
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// timer function
+	virtual bool timeruserfunc(unsigned long tick)
+	{
+		// we only save if necessary:
+		// we have do some authentifications without do saving
+		if( savecount > 10 )
+		{
+			savecount=0;
+			savePCStorage();
+		}
+		return true;
+	}
+
+
+	///////////////////////////////////////////////////////////////////////////
+	// access interface
+	virtual size_t size()	{ return cPCStorList.size(); }
+	virtual CPCStorage& operator[](size_t i)	{ return cPCStorList[i]; }
+
+	virtual bool searchStorage(uint32 accid, CPCStorage& stor)
+	{
+		size_t pos;
+		if( cPCStorList.find( CPCStorage(accid), 0, pos) )
+		{
+			stor = cPCStorList[pos];
+			return true;
+		}
+		return false;
+	}
+	virtual bool removeStorage(uint32 accid)
+	{
+		size_t pos;
+		if( cPCStorList.find( CPCStorage(accid), 0, pos) )
+		{
+			cPCStorList.removeindex(pos);
+			return true;
+		}
+		return false;
+	}
+	virtual bool saveStorage(const CPCStorage& stor)
+	{
+		size_t pos;
+		if( cPCStorList.find( stor, 0, pos) )
+		{
+			cPCStorList[pos] = stor;
+			return true;
+		}
+		else
+			return cPCStorList.insert(stor);
+	}
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+#else// SQL
+///////////////////////////////////////////////////////////////////////////////
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+#endif// SQL
+///////////////////////////////////////////////////////////////////////////////
+
+CPCStorageDBInterface* CPCStorageDB::getDB(const char *dbcfgfile)
+{
+#ifdef TXT_ONLY
+	return new CPCStorageDB_txt(dbcfgfile);
+#else
+	return NULL;
+//	return new CPCStorageDB_sql(dbcfgfile);
+#endif// SQL
+}
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+#ifdef TXT_ONLY
+///////////////////////////////////////////////////////////////////////////////
+
+class CGuildStorageDB_txt : public CTimerBase, private CConfig, public CGuildStorageDBInterface
+{
+
+	ssize_t guild_storage_to_string(char *str, size_t maxlen, const CGuildStorage &stor)
+	{
+		int i,f=0;
+		char *str_p = str;
+		str_p+=sprintf(str,"%ld,%d\t",(unsigned long)stor.guild_id, stor.storage_amount);
+
+		for(i=0;i<MAX_GUILD_STORAGE;i++)
+		{
+			if( (stor.storage[i].nameid) && (stor.storage[i].amount) )
+			{
+				str_p += sprintf(str_p,"%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d ",
+					stor.storage[i].id,stor.storage[i].nameid,stor.storage[i].amount,stor.storage[i].equip,
+					stor.storage[i].identify,stor.storage[i].refine,stor.storage[i].attribute,
+					stor.storage[i].card[0],stor.storage[i].card[1],stor.storage[i].card[2],stor.storage[i].card[3]);
+				f++;
+			}
+			*(str_p++)='\t';
+			*str_p='\0';
+		}
+		if(!f)
+		{
+			str[0]=0;
+			str_p=str;
+		}
+		return (str_p-str);
+	}
+	bool guild_storage_from_string(const char *str, CGuildStorage &stor)
+	{
+		int tmp_int[256];
+		int set,next,len,i;
+		
+		set=sscanf(str,"%d,%d%n",&tmp_int[0],&tmp_int[1],&next);
+		if(set!=2)
+			return false;
+		if(str[next]=='\n' || str[next]=='\r')
+			return false;
+		next++;
+
+		stor.storage_amount = (((ushort)tmp_int[1])<MAX_GUILD_STORAGE) ? tmp_int[1] : MAX_GUILD_STORAGE;
+		for(i=0; str[next] && str[next]!='\t'; i++)
+		{
+			if(sscanf(str + next, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d%n",
+				&tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3],
+				&tmp_int[4], &tmp_int[5], &tmp_int[6],
+				&tmp_int[7], &tmp_int[8], &tmp_int[9], &tmp_int[10], &tmp_int[10], &len) == 12)
+			{
+				stor.storage[i].id = tmp_int[0];
+				stor.storage[i].nameid = tmp_int[1];
+				stor.storage[i].amount = tmp_int[2];
+				stor.storage[i].equip = tmp_int[3];
+				stor.storage[i].identify = tmp_int[4];
+				stor.storage[i].refine = tmp_int[5];
+				stor.storage[i].attribute = tmp_int[6];
+				stor.storage[i].card[0] = tmp_int[7];
+				stor.storage[i].card[1] = tmp_int[8];
+				stor.storage[i].card[2] = tmp_int[9];
+				stor.storage[i].card[3] = tmp_int[10];
+				next += len;
+				while(str[next] == ' ') next++;
+			}
+			else if(sscanf(str + next, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d%n",
+				  &tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3],
+				  &tmp_int[4], &tmp_int[5], &tmp_int[6],
+				  &tmp_int[7], &tmp_int[8], &tmp_int[9], &tmp_int[10], &len) == 11) {
+				stor.storage[i].id = tmp_int[0];
+				stor.storage[i].nameid = tmp_int[1];
+				stor.storage[i].amount = tmp_int[2];
+				stor.storage[i].equip = tmp_int[3];
+				stor.storage[i].identify = tmp_int[4];
+				stor.storage[i].refine = tmp_int[5];
+				stor.storage[i].attribute = tmp_int[6];
+				stor.storage[i].card[0] = tmp_int[7];
+				stor.storage[i].card[1] = tmp_int[8];
+				stor.storage[i].card[2] = tmp_int[9];
+				stor.storage[i].card[3] = tmp_int[10];
+				next += len;
+				while(str[next] == ' ')	next++;
+			}
+			else
+				return false;
+		}
+		return true;
+	}
+
+	bool readGuildStorage()
+	{
+		char line[65536];
+		int c=0;
+		unsigned long tmp;
+		CGuildStorage gs;
+		FILE *fp=safefopen(guildstorage_filename,"r");
+		if(fp==NULL){
+			ShowMessage("cant't read : %s\n",guildstorage_filename);
+			return 1;
+		}
+		while(fgets(line,sizeof(line),fp))
+		{
+			c++;
+			if( !skip_empty_line(line) )
+				continue;
+
+			sscanf(line,"%ld",&tmp);
+			gs.guild_id=tmp;
+			if(gs.guild_id > 0 && guild_storage_from_string(line,gs) )
+			{
+				cGuildStorList.insert(gs);
+			}
+			else
+			{
+				ShowError("Storage: broken data [%s] line %d\n", guildstorage_filename, c);
+			}
+		}
+		fclose(fp);
+		return true;
+	}
+	bool saveGuildStorage()
+	{
+		char line[65536];
+		int lock;
+		size_t i, sz;
+		FILE *fp=lock_fopen(guildstorage_filename,&lock);
+
+		if( fp==NULL )
+		{
+			ShowError("Storage: cannot open [%s]\n",guildstorage_filename);
+			return false;
+		}
+		for(i=0; i<cGuildStorList.size(); i++)
+		{
+			sz = guild_storage_to_string(line, sizeof(line), cGuildStorList[i]);
+			if(sz>0) fprintf(fp,"%s"RETCODE,line);
+		}
+		lock_fclose(fp, guildstorage_filename, &lock);
+		return true;
+	}
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// construct/destruct
+	CGuildStorageDB_txt(const char *dbcfgfile) :
+		CTimerBase(60000),		// 60sec save interval
+		savecount(0)
+	{
+		safestrcpy(guildstorage_filename, "save/g_storage.txt", sizeof(guildstorage_filename));
+		init(dbcfgfile);
+	}
+	virtual ~CGuildStorageDB_txt()
+	{
+		close();
+	}
+
+
+private:
+	///////////////////////////////////////////////////////////////////////////
+	// data
+	TslistDST<CGuildStorage> cGuildStorList;
+	uint savecount;
+	char guildstorage_filename[1024];
+	
+	
+	///////////////////////////////////////////////////////////////////////////
+	// Config processor
+	virtual bool ProcessConfig(const char*w1, const char*w2)
+	{
+
+		return true;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// normal function
+	bool init(const char* configfile)
+	{	// init db
+		CConfig::LoadConfig(configfile);
+		return readGuildStorage();
+	}
+	bool close()
+	{
+		return saveGuildStorage();
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// timer function
+	virtual bool timeruserfunc(unsigned long tick)
+	{
+		// we only save if necessary:
+		// we have do some authentifications without do saving
+		if( savecount > 10 )
+		{
+			savecount=0;
+			saveGuildStorage();
+		}
+		return true;
+	}
+
+
+	///////////////////////////////////////////////////////////////////////////
+	// access interface
+	virtual size_t size()	{ return cGuildStorList.size(); }
+	virtual CGuildStorage& operator[](size_t i)	{ return cGuildStorList[i]; }
+
+	virtual bool searchStorage(uint32 gid, CGuildStorage& stor)
+	{
+		size_t pos;
+		if( cGuildStorList.find( CGuildStorage(gid), 0, pos) )
+		{
+			stor = cGuildStorList[pos];
+			return true;
+		}
+		return false;
+	}
+	virtual bool removeStorage(uint32 gid)
+	{
+		size_t pos;
+		if( cGuildStorList.find( CGuildStorage(gid), 0, pos) )
+		{
+			cGuildStorList.removeindex(pos);
+			return true;
+		}
+		return false;
+	}
+	virtual bool saveStorage(const CGuildStorage& stor)
+	{
+		size_t pos;
+		if( cGuildStorList.find( stor, 0, pos) )
+		{
+			cGuildStorList[pos] = stor;
+			return true;
+		}
+		else
+			return cGuildStorList.insert(stor);
+	}
+};
+
+///////////////////////////////////////////////////////////////////////////////
+#else// SQL
+///////////////////////////////////////////////////////////////////////////////
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+#endif// SQL
+///////////////////////////////////////////////////////////////////////////////
+
+CGuildStorageDBInterface* CGuildStorageDB::getDB(const char *dbcfgfile)
+{
+#ifdef TXT_ONLY
+	return new CGuildStorageDB_txt(dbcfgfile);
+#else
+	return NULL;
+//	return new CGuildStorageDB_sql(dbcfgfile);
+#endif// SQL
+}
 
 

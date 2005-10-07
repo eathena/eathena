@@ -7,7 +7,7 @@
 
 
 #define BASE_TICK 5
-#define DIFF_TICK(a,b) (((ssize_t)(a)-(ssize_t)(b)))
+#define DIFF_TICK(a,b) (((long)(a)-(long)(b)))
 
 
 extern time_t start_time;

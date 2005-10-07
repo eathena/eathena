@@ -1,5 +1,14 @@
 Date	Added
-09/27	* replaced varargs with callback objects providing type safe argument passing
+10/07
+	* added database interace and txt implementation for party, guild, castle,
+	  pcstorage and guildstorage, 
+	  still need to make use of them in char server, sql part is also missing
+	* slight modification of some field names in the login sql database interface 
+	  (sry for conflicting with your work CLOWNISIUS)
+	* restructured map reading
+	* testing of named parameter storage for simplified configuration
+09/27
+	* replaced varargs with callback objects providing type safe argument passing
 	  additionally it is a bit faster since it does not copy the passed variables
 	  though, readability might be strange for habitual C programmers
 	* started class wrapping for general map management and the database subsystem

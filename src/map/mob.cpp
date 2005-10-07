@@ -315,17 +315,11 @@ int mob_spawn_guardian(struct map_session_data *sd,const char *mapname,
 		mob_spawn(md->bl.id);
 
 		gc=guild_mapname2gc(map[m].mapname);
-		if(gc)
+		if(gc && guardian>=0 && guardian<MAX_GUARDIAN)
 		{
 			md->max_hp += 2000 * gc->defense;
-			if(guardian==0) { md->hp=gc->Ghp0; gc->GID0=md->bl.id; }
-			if(guardian==1) { md->hp=gc->Ghp1; gc->GID1=md->bl.id; }
-			if(guardian==2) { md->hp=gc->Ghp2; gc->GID2=md->bl.id; }
-			if(guardian==3) { md->hp=gc->Ghp3; gc->GID3=md->bl.id; }
-			if(guardian==4) { md->hp=gc->Ghp4; gc->GID4=md->bl.id; }
-			if(guardian==5) { md->hp=gc->Ghp5; gc->GID5=md->bl.id; }
-			if(guardian==6) { md->hp=gc->Ghp6; gc->GID6=md->bl.id; }
-			if(guardian==7) { md->hp=gc->Ghp7; gc->GID7=md->bl.id; }
+			md->hp = gc->guardian[guardian].guardian_hp;
+			gc->guardian[guardian].guardian_id = md->bl.id;
 		}
 	}
 
@@ -2158,10 +2152,12 @@ public:
 
 		if( md.attacked_id > 0 && (mode&0x08) )
 		{	// Link monster
-			struct map_session_data *asd = map_id2sd (md.attacked_id);
-			if( asd && !pc_isdead(*asd) && !pc_isinvisible(*asd) )
+			struct block_list *abl = map_id2bl(md.attacked_id);
+			struct map_session_data *asd = (abl && abl->type==BL_PC) ? (struct map_session_data *)abl : NULL;
+
+			if( abl && !status_isdead(abl) && !(asd && pc_isinvisible(*asd)) )
 			{
-				CMap::foreachinarea(CMobAiHardLinksearch(md, asd->bl),
+				CMap::foreachinarea(CMobAiHardLinksearch(md, *abl),
 					md.bl.m, ((int)md.bl.x)-AREA_SIZE, ((int)md.bl.y)-AREA_SIZE, ((int)md.bl.x)+AREA_SIZE, ((int)md.bl.y)+AREA_SIZE, BL_MOB);
 	//			map_foreachinarea(mob_ai_sub_hard_linksearch,
 	//				md.bl.m, ((int)md.bl.x)-AREA_SIZE, ((int)md.bl.y)-AREA_SIZE, ((int)md.bl.x)+AREA_SIZE, ((int)md.bl.y)+AREA_SIZE, BL_MOB,
@@ -2176,16 +2172,11 @@ public:
 			(!md.target_id || md.state.targettype == NONE_ATTACKABLE || ( (mode&0x04) && rand()%100<25)) )
 		{
 			struct block_list *abl = map_id2bl(md.attacked_id);
-			struct map_session_data *asd = NULL;
-			
 			if (abl)
 			{
 				dist = distance(md.bl.x, md.bl.y, abl->x, abl->y);
-
-				if (abl->type == BL_PC)
-					asd = (struct map_session_data *)abl;
-				
-				if (asd == NULL || md.bl.m != abl->m || abl->prev == NULL ||
+				               
+				if (md.bl.m != abl->m || abl->prev == NULL ||
 					dist>= 32 ||
 					battle_check_target(&bl, abl, BCT_ENEMY) <= 0 ||
 					!mob_can_reach(md, *abl, dist) )
@@ -3087,66 +3078,23 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 
 	if(md.class_ >= 1285 && md.class_ <=1287)
 	{	// guardian hp update [Valaris]
+		size_t k;
 		struct guild_castle *gc=guild_mapname2gc(map[md.bl.m].mapname);
-		if(gc) {
-
-				if(md.bl.id==gc->GID0) {
-					gc->Ghp0=md.hp;
-					if(gc->Ghp0<=0) {
-					        guild_castledatasave(gc->castle_id,10,0);
-						guild_castledatasave(gc->castle_id,18,0);
+		if(gc)
+		{
+			for(k=0; k<MAX_GUARDIAN; k++)
+			{
+				if(md.bl.id==gc->guardian[k].guardian_id)
+				{
+					gc->guardian[k].guardian_hp = md.hp;
+					if(md.hp<=0)
+					{
+						guild_castledatasave(gc->castle_id,10+k,0);
+						guild_castledatasave(gc->castle_id,18+k,0);
 					}
+					break;
 				}
-				if(md.bl.id==gc->GID1) {
-					gc->Ghp1=md.hp;
-					if(gc->Ghp1<=0) {
-					        guild_castledatasave(gc->castle_id,11,0);
-						guild_castledatasave(gc->castle_id,19,0);
-					}
-				}
-				if(md.bl.id==gc->GID2) {
-					gc->Ghp2=md.hp;
-					if(gc->Ghp2<=0) {
-					        guild_castledatasave(gc->castle_id,12,0);
-						guild_castledatasave(gc->castle_id,20,0);
-					}
-				}
-				if(md.bl.id==gc->GID3) {
-					gc->Ghp3=md.hp;
-					if(gc->Ghp3<=0) {
-					        guild_castledatasave(gc->castle_id,13,0);
-						guild_castledatasave(gc->castle_id,21,0);
-					}
-				}
-				if(md.bl.id==gc->GID4) {
-					gc->Ghp4=md.hp;
-					if(gc->Ghp4<=0) {
-					        guild_castledatasave(gc->castle_id,14,0);
-						guild_castledatasave(gc->castle_id,22,0);
-					}
-				}
-				if(md.bl.id==gc->GID5) {
-					gc->Ghp5=md.hp;
-					if(gc->Ghp5<=0) {
-					        guild_castledatasave(gc->castle_id,15,0);
-						guild_castledatasave(gc->castle_id,23,0);
-					}
-				}
-				if(md.bl.id==gc->GID6) {
-					gc->Ghp6=md.hp;
-					if(gc->Ghp6<=0) {
-					        guild_castledatasave(gc->castle_id,16,0);
-						guild_castledatasave(gc->castle_id,24,0);
-					}
-				}
-				if(md.bl.id==gc->GID7) {
-					gc->Ghp7=md.hp;
-					if(gc->Ghp7<=0) {
-					        guild_castledatasave(gc->castle_id,17,0);
-						guild_castledatasave(gc->castle_id,25,0);
-
-					}
-				}
+			}
 		}
 	}	// end addition [Valaris]
 
@@ -3642,7 +3590,7 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 		}
 		else
 		{
-			int evt = npc_event_doall_id("OnNPCKillEvent", mvp_sd->bl.id, sd->bl.m);
+			int evt = npc_event_doall_id("OnNPCKillEvent", mvp_sd->bl.id, mvp_sd->bl.m);
 			if(evt) ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n", evt, "OnNPCKillEvent");
 		}
 	}
@@ -3754,17 +3702,20 @@ int mob_heal(struct mob_data &md,int heal)
 	if( max_hp < md.hp )
 		md.hp = max_hp;
 
-	if(md.class_ >= 1285 && md.class_ <=1287) {	// guardian hp update [Valaris]
+	if(md.class_ >= 1285 && md.class_ <=1287)
+	{	// guardian hp update [Valaris]
+		size_t k;
 		struct guild_castle *gc=guild_mapname2gc(map[md.bl.m].mapname);
-		if(gc) {
-			if(md.bl.id==gc->GID0) gc->Ghp0=md.hp;
-			if(md.bl.id==gc->GID1) gc->Ghp1=md.hp;
-			if(md.bl.id==gc->GID2) gc->Ghp2=md.hp;
-			if(md.bl.id==gc->GID3) gc->Ghp3=md.hp;
-			if(md.bl.id==gc->GID4) gc->Ghp4=md.hp;
-			if(md.bl.id==gc->GID5) gc->Ghp5=md.hp;
-			if(md.bl.id==gc->GID6) gc->Ghp6=md.hp;
-			if(md.bl.id==gc->GID7) gc->Ghp7=md.hp;
+		if(gc)
+		{
+			for(k=0; k<MAX_GUARDIAN; k++)
+			{
+				if(md.bl.id==gc->guardian[k].guardian_id)
+				{
+					gc->guardian[k].guardian_hp = md.hp;
+					break;
+				}
+			}
 		}
 	}	// end addition [Valaris]
 

@@ -18,16 +18,13 @@ const char* get_svn_revision();
 
 ///////////////////////////////////////////////////////////////////////////////
 // uptime
-class uptime
+class uptime : public noncopyable
 {
 	static time_t starttime;
-
-	uptime(const uptime&);					// prevent copy
-	const uptime& operator=(const uptime&);	// prevent assign
 public:
 	static const char *getstring(char *buffer=NULL);
 	static void getvalues(unsigned long& days,unsigned long& hours,unsigned long& minutes,unsigned long& seconds);
-	double gettime()	{ return difftime(time(NULL),starttime); }
+	double gettime() const	{ return difftime(time(NULL),starttime); }
 };
 
 

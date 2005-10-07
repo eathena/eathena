@@ -93,16 +93,6 @@
 //////////////////////////////
 #ifdef WIN32
 //////////////////////////////
-#pragma warning(disable : 4996)	// disable deprecated warnings
-#pragma warning(disable : 4100) // unreferenced formal parameter
-#pragma warning(disable : 4244) // converting type on return will shorten
-#pragma warning(disable : 4310)	// converting constant will shorten
-#pragma warning(disable : 4706) // assignment within conditional
-#pragma warning(disable : 4127)	// constant assignment
-#pragma warning(disable : 4710)	// is no inline function
-#pragma warning(disable : 4511)	// no copy constructor
-#pragma warning(disable : 4512)	// no assign operator
-
 #include <windows.h>
 #include <winsock2.h>
 #include <conio.h>
@@ -138,10 +128,6 @@
 #endif
 //////////////////////////////
 
-
-
-
-
 //////////////////////////////////////////////////////////////////////////
 // no c support anymore
 //////////////////////////////////////////////////////////////////////////
@@ -150,8 +136,29 @@
 #endif
 
 
+//////////////////////////////////////////////////////////////////////////
+// c++ header 
+//////////////////////////////////////////////////////////////////////////
+#include <typeinfo>		//!! this is poisoning the global namespace
 
 
+
+
+//////////////////////////////
+#ifdef WIN32
+//////////////////////////////
+#pragma warning(disable : 4996)	// disable deprecated warnings
+#pragma warning(disable : 4100) // unreferenced formal parameter
+#pragma warning(disable : 4244) // converting type on return will shorten
+#pragma warning(disable : 4310)	// converting constant will shorten
+#pragma warning(disable : 4706) // assignment within conditional
+#pragma warning(disable : 4127)	// constant assignment
+#pragma warning(disable : 4710)	// is no inline function
+#pragma warning(disable : 4511)	// no copy constructor
+#pragma warning(disable : 4512)	// no assign operator
+//////////////////////////////
+#endif
+//////////////////////////////
 
 
 
@@ -510,7 +517,7 @@ namespace eapp
 #ifdef isalpha	// get the function form, not the macro
 #undef isalpha
 #endif
-static inline char isalpha(char val)	{ return isalpha((int)((unsigned char)val)); }
+static inline char isalpha(char val)	{ return (char)::isalpha((int)((unsigned char)val)); }
 #ifdef isupper	// get the function form, not the macro
 #undef isupper
 #endif
@@ -746,8 +753,13 @@ class noncopyable
 {
 // looks like some gcc really insists on having this members readable
 // even if not used and not disturbing in any way, 
-// stupid move, but ok, go on, read it
+// stupid move, but ok, go on, read it 
+// (but protected declaration will then generate linker errors instead of compiler errors)
+#ifdef __GNUC__
 protected:
+#else
+private:
+#endif
 	noncopyable(const noncopyable&);					// no copy
 	const noncopyable& operator=(const noncopyable&);	// no assign
 public:
@@ -794,12 +806,12 @@ public:
 //////////////////////////////////////////////////////////////////////////
 // the basic exception class. 
 //////////////////////////////////////////////////////////////////////////
-class exception : public global
+class CException : public global
 {
 protected:
     char *message;
 public:
-    exception(const char*   e):message(NULL)
+    CException(const char*   e):message(NULL)
 	{
 		if(e)
 		{	// c function will just fail on memory error
@@ -807,38 +819,38 @@ public:
 		}
 	}
 
-    virtual ~exception()				{ free(this->message); }
-	operator const char *()				{ return this->message; }
+    virtual ~CException()		{ free(this->message); }
+	operator const char *()		{ return this->message; }
 };
 
 
 //////////////////////////////////////////////////////////////////////////
 // exception for 'out of bound array access'
 //////////////////////////////////////////////////////////////////////////
-class exception_bound : public exception
+class exception_bound : public CException
 {
 public:
-	exception_bound(const char*   e) : exception(e) {}
+	exception_bound(const char*   e) : CException(e) {}
 	virtual ~exception_bound()						{}
 };
 
 //////////////////////////////////////////////////////////////////////////
 // exception for 'memory allocation failed'
 //////////////////////////////////////////////////////////////////////////
-class exception_memory : public exception
+class exception_memory : public CException
 {
 public:
-	exception_memory(const char*   e) : exception(e)	{}
+	exception_memory(const char*   e) : CException(e)	{}
 	virtual ~exception_memory()							{}
 };
 
 //////////////////////////////////////////////////////////////////////////
 // exception for 'failed conversion'
 //////////////////////////////////////////////////////////////////////////
-class exception_convert: public exception
+class exception_convert: public CException
 {
 public:
-	exception_convert(const char*   e) : exception(e)	{}
+	exception_convert(const char*   e) : CException(e)	{}
     virtual ~exception_convert()						{}
 };
 
@@ -849,20 +861,20 @@ public:
 // may be thrown when a variant is being typecasted to 32-bit int 
 // and the value is out of range
 //////////////////////////////////////////////////////////////////////////
-class exception_variant: public exception
+class exception_variant: public CException
 {
 public:
-	exception_variant(const char*   e) : exception(e)	{}
+	exception_variant(const char*   e) : CException(e)	{}
     virtual ~exception_variant()						{}
 };
 
 //////////////////////////////////////////////////////////////////////////
 // exception for 'socket failed'
 //////////////////////////////////////////////////////////////////////////
-class exception_socket : public exception
+class exception_socket : public CException
 {
 public:
-	exception_socket(const char*   e) : exception(e)	{}
+	exception_socket(const char*   e) : CException(e)	{}
 	virtual ~exception_socket()							{}
 };
 
@@ -3573,6 +3585,31 @@ public:
 		return ok;
 	}
 	///////////////////////////////////////////////////////////////////////////
+	// add and take over the element pointer
+	virtual bool insert(T* elem)
+	{
+		bool ok=false;
+		if(elem)
+		{
+			size_t i;
+			size_t ipos[CNT];
+			ok = true;
+			for(i=0; i<CNT; i++)
+			{
+				ok &= !binsearch(*elem, 0, i, ipos[i], true, &T::compare);
+			}
+			if(ok)
+			{
+				for(i=0; i<CNT; i++)
+				{
+					ok &= cIndex[i].insert(elem, 1, ipos[i]);
+				}
+			}
+		}
+		return ok;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
 	// add an element at position pos (at the end by default)
 	virtual bool insert(const T* elem, size_t cnt)
 	{
@@ -3924,7 +3961,7 @@ public:
 
 	const size_t getRefCount() const { return (this->itsCounter) ? this->itsCounter->count : 1;}
 	bool clear()					{ this->release(); return this->itsCounter==NULL; }
-	bool exists() const				{ return NULL!=this->itsCounter; }
+	bool exists() const				{ return NULL!=this->itsCounter && NULL!=this->itsCounter->ptr; }
 	bool isunique()	const throw()	{ return (this->itsCounter ? (itsCounter->count == 1):true);}
 	bool make_unique()	  throw()
 	{
@@ -4044,6 +4081,7 @@ public:
 /////////////////////////////////////////////////////////////////////////////
 class MiniString : public global
 {
+
 	TPtrAutoRef< TArrayDST<char> > cStrPtr;
 
 	void copy(const char *c, size_t len=~0)
@@ -4060,7 +4098,7 @@ class MiniString : public global
 		}
 		cStrPtr->append(0);
 	}
-
+protected:
 	int compareTo(const MiniString &s) const 
 	{	// compare with memcmp including the End-of-String
 		// which is faster than doing a strcmp

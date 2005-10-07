@@ -24,15 +24,68 @@ public:
 
 	static int SwitchValue(const char *str, int defaultmin=INT_MIN, int defaultmax=INT_MAX);  // Return 0/1 for no/yes
 	static bool Switch(const char *str, bool defaultval=false);		// Return true/false for yes/no, if unknown return defaultval
-
+	
 	static bool CleanControlChars(char *str);						// Replace control chars with '_' and return location of change
 };
 
 
 
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Account Database
+// for storing accounts stuff in login
+///////////////////////////////////////////////////////////////////////////////
+
+/*
+	currently there is a bunch of more or less usefull data stored
+	which also differs between current versions
+	_useful_ data is
+	///////////////////////////////////////////////////////////////////////////
+*	Authentification Data used to authentify that clients are going from
+	login through char to map.
+
+	uint32 login_id1;	// just a random id given by login
+	uint32 login_id2;	// just a random id given by login
+	uint32 client_ip;	// the current ip of the client
+
+	a client has to show these three values to get autentified
+	(gets it in login process)
+
+	///////////////////////////////////////////////////////////////////////////
+*	Account Data which holds the necessary data for an account
+
+	uint32 account_id;			// id to identify an account
+	char userid[24];			// user name
+	char passwd[34];			// user password
+	unsigned char sex;			// gender
+	unsigned char gm_level;		// gm_level
+	unsigned char online;		// true when online (actually only usefull when adding datamining onto the storing data and not onto the server)
+	char email[40];				// email address for confiming char deletion
+	uint32 login_count;			// number of logins
+	char last_login[24];		// timestamp of last login
+	time_t ban_until;			// set to time(NULL)+delta for temporary ban
+	time_t valid_until;			// set to time(NULL)+delta for temporary valid account or time(NULL) for complete disable
+
+	the values last_ip, state, error_message, memo are quite useless,
+	state might be usefull for debugging login of accounts
+	but it is easier to read the output then to dig in the db for that
+
+	///////////////////////////////////////////////////////////////////////////
+*	Account Reg for account wide variables:
+
+	unsigned short account_reg2_num;
+	struct global_reg account_reg2[ACCOUNT_REG2_NUM];
+	///////////////////////////////////////////////////////////////////////////
+*/
+
+
 ///////////////////////////////////////////////////////////////////////////////
 // common structures
 ///////////////////////////////////////////////////////////////////////////////
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // Authentification
@@ -141,7 +194,7 @@ public:
 	CCharAccount()	{}
 	CCharAccount(uint32 aid):CMapAccount(aid)	{}
 	~CCharAccount()	{}
-
+	
 	///////////////////////////////////////////////////////////////////////////
 	// buffer transfer
 	size_t size() const	{ return sizeof(email)+CMapAccount::size();	}	// Return size of class
@@ -162,10 +215,15 @@ public:
 	char userid[24];
 	char passwd[34];
 	unsigned char online;
-	char last_ip[16];
+	uint32 login_count;
 	char last_login[24];
+////////////////////////////
+	// marked for deletion
+	unsigned char state;
+	char last_ip[16];
 	char error_message[24];
 	char memo[256];
+//////////////////////////
 
 	CLoginAccount()	{}
 	~CLoginAccount()	{}
@@ -182,6 +240,7 @@ public:
 		else
 			safestrcpy(this->email, em, 40);
 		this->gm_level=0;
+		this->login_count=0;
 		*this->last_login= 0;
 		this->ban_until = 0;
 		this->valid_until = 0;
@@ -198,12 +257,12 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// compare for Multilist
-	int compare(const CLoginAccount& c, size_t i=0) const
+	int compare(const CLoginAccount& c, size_t i=0) const	
 	{
 		if(i==0)
 			return (account_id - c.account_id);
 		else
-			return strcmp(this->userid, c.userid);
+			return strcmp(this->userid, c.userid); 
 	}
 
 	// no buffer transfer necessary
@@ -222,7 +281,7 @@ public:
 	CCharCharAccount()		{}
 	~CCharCharAccount()		{}
 	CCharCharAccount(const CCharAccount& c) : CCharAccount(c)	{ memset(charlist,0,sizeof(charlist)); }
-
+	
 
 	///////////////////////////////////////////////////////////////////////////
 	// creation and sorting by accountid
@@ -261,12 +320,12 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// compare for Multilist
-	int compare(const CCharCharacter& c, size_t i=0) const
+	int compare(const CCharCharacter& c, size_t i=0) const	
 	{
 		if(i==0)
 			return (this->char_id - c.char_id);
 		else
-			return strcmp(this->name, c.name);
+			return strcmp(this->name, c.name); 
 	}
 
 };
@@ -320,7 +379,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 // Dynamic Account Database Implementation
 // does create a realisation of a specific database implementation internally
-//!! todo remove the txtonly/sqlonly options and combine it for config choosing;
+//!! todo remove the txtonly/sqlonly options and combine it for config choosing; 
 //!! todo integrate it with the txt->sql/sql->txt converters
 ///////////////////////////////////////////////////////////////////////////////
 class CAccountDB : public CAccountDBInterface
@@ -398,7 +457,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 // Dynamic Account Database Implementation
 // does create a realisation of a specific database implementation internally
-//!! todo remove the txtonly/sqlonly options and combine it for config choosing;
+//!! todo remove the txtonly/sqlonly options and combine it for config choosing; 
 //!! todo integrate it with the txt->sql/sql->txt converters
 ///////////////////////////////////////////////////////////////////////////////
 class CCharDB : public CCharDBInterface
@@ -449,8 +508,474 @@ public:
 
 
 
+///////////////////////////////////////////////////////////////////////////////
+// Guild Class Definition
+///////////////////////////////////////////////////////////////////////////////
+class CGuildExp
+{
+	uint32 exp[100];
+public:
+	CGuildExp()	{ memset(exp,0,sizeof(exp)); }
+	void init(const char* filename);
+
+	uint32 operator[](size_t i)	{ i--; return (i<100) ? exp[i] : 0; }
+};
+
+class CGuild : public guild
+{
+public:
+	CGuild()					{  }
+	CGuild(const char* n)		{ memset(this, 0, sizeof(CGuild)); safestrcpy(this->name, n, sizeof(this->name)); }
+	CGuild(uint32 gid)			{ memset(this, 0, sizeof(CGuild)); this->guild_id=gid; }
+
+	///////////////////////////////////////////////////////////////////////////
+	// creation and sorting by guildid
+
+	bool operator==(const CGuild& c) const { return this->guild_id==c.guild_id; }
+	bool operator!=(const CGuild& c) const { return this->guild_id!=c.guild_id; }
+	bool operator> (const CGuild& c) const { return this->guild_id> c.guild_id; }
+	bool operator>=(const CGuild& c) const { return this->guild_id>=c.guild_id; }
+	bool operator< (const CGuild& c) const { return this->guild_id< c.guild_id; }
+	bool operator<=(const CGuild& c) const { return this->guild_id<=c.guild_id; }
 
 
+	///////////////////////////////////////////////////////////////////////////
+	// compare for Multilist
+	int compare(const CGuild& c, size_t i=0) const	
+	{
+		if(i==0)
+			return (this->guild_id - c.guild_id);
+		else
+			return strcmp(this->name, c.name); 
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// class internal functions
+
+	unsigned short checkSkill(unsigned short id)
+	{
+		unsigned short idx = id - GD_SKILLBASE;
+		if(idx < MAX_GUILDSKILL)
+			return skill[idx].lv;
+		return 0;
+	}
+
+	static CGuildExp cGuildExp;
+
+	bool calcInfo()
+	{
+		size_t i,c;
+		uint32 nextexp;
+		unsigned short before_max_member = this->max_member;
+		unsigned short before_guild_lv = this->guild_lv;
+		unsigned short before_skill_point = this->skill_point;
+
+		// スキルIDの設定
+		for(i=0;i<MAX_GUILDSKILL;i++)
+			this->skill[i].id=i+GD_SKILLBASE;
+
+		// ギルドレベル
+		if(this->guild_lv<=0) this->guild_lv=1;
+		nextexp = cGuildExp[this->guild_lv];
+		while(this->exp >= nextexp && nextexp > 0)
+		{
+			this->exp-=nextexp;
+			this->guild_lv++;
+			this->skill_point++;
+			nextexp = cGuildExp[this->guild_lv];
+		}
+
+		// ギルドの次の経験値
+		this->next_exp = cGuildExp[this->guild_lv];
+
+		// メンバ上限（ギルド拡張適用）
+		this->max_member = 16 + this->checkSkill(GD_EXTENSION) * 6; //  Guild Extention skill - adds by 6 people per level to Max Member [Lupus]
+
+		// 平均レベルとオンライン人数
+		this->average_lv=0;
+		this->connect_member=0;
+		for(i=0,c=0; i<this->max_member; i++){
+			if(this->member[i].account_id>0){
+				this->average_lv+=this->member[i].lv;
+				c++;
+
+				if(this->member[i].online>0)
+					this->connect_member++;
+			}
+		}
+		if(c) this->average_lv/=c;
+
+		// return true on changing a value
+		return ( before_max_member != this->max_member ||
+				 before_guild_lv != this->guild_lv ||
+				 before_skill_point != this->skill_point );
+	}
+
+};
+///////////////////////////////////////////////////////////////////////////////
+// Guild Castle Class Definition
+///////////////////////////////////////////////////////////////////////////////
+class CCastle : public guild_castle
+{
+public:
+	CCastle()	{}
+	CCastle(ushort cid)				{ memset(this, 0, sizeof(CCastle)); this->castle_id=cid; }
+
+	///////////////////////////////////////////////////////////////////////////
+	// creation and sorting by id
+	bool operator==(const CCastle& c) const { return this->castle_id==c.castle_id; }
+	bool operator!=(const CCastle& c) const { return this->castle_id!=c.castle_id; }
+	bool operator> (const CCastle& c) const { return this->castle_id> c.castle_id; }
+	bool operator>=(const CCastle& c) const { return this->castle_id>=c.castle_id; }
+	bool operator< (const CCastle& c) const { return this->castle_id< c.castle_id; }
+	bool operator<=(const CCastle& c) const { return this->castle_id<=c.castle_id; }
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// Guild Database Interface
+///////////////////////////////////////////////////////////////////////////////
+class CGuildDBInterface : public global, public noncopyable
+{
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// construct/destruct
+	CGuildDBInterface()				{}
+	virtual ~CGuildDBInterface()	{}
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// access interface
+	virtual size_t size()=0;
+	virtual CGuild& operator[](size_t i)=0;
+
+	virtual bool searchGuild(const char* name, CGuild& guild) =0;
+	virtual bool searchGuild(uint32 guildid, CGuild& guild) =0;
+	virtual bool insertGuild(const struct guild_member &member, const char *name, CGuild &guild) =0;
+	virtual bool removeGuild(uint32 guildid) =0;
+	virtual bool saveGuild(const CGuild& guild) =0;
+
+	virtual bool searchCastle(ushort castleid, CCastle& castle) =0;
+	virtual bool saveCastle(CCastle& castle) =0;
+	virtual bool removeCastle(ushort castleid)=0;
+};
+///////////////////////////////////////////////////////////////////////////////
+// Dynamic Database Implementation
+///////////////////////////////////////////////////////////////////////////////
+class CGuildDB : public CGuildDBInterface
+{
+	CGuildDBInterface *db;
+
+	CGuildDBInterface* getDB(const char *dbcfgfile);
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// construct/destruct
+	CGuildDB():db(NULL)	{}
+	CGuildDB(const char *dbcfgfile):db(getDB(dbcfgfile))	{}
+	virtual ~CGuildDB()										{ delete db; }
+
+public:
+
+	bool init(const char *dbcfgfile)
+	{
+		if(db) delete db;
+		db = getDB(dbcfgfile);
+		return (NULL!=db);
+	}
+	bool close()
+	{
+		if(db)
+		{	delete db;
+			db=NULL;
+		}
+		return true;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// access interface
+	virtual size_t size()					{ return db->size(); }
+	virtual CGuild& operator[](size_t i)	{ return (*db)[i]; }
+
+	virtual bool searchGuild(const char* name, CGuild& guild)	{ return db->searchGuild(name, guild); }
+	virtual bool searchGuild(uint32 guildid, CGuild& guild)	{ return db->searchGuild(guildid, guild); }
+	virtual bool insertGuild(const struct guild_member &member, const char *name, CGuild &guild)	{ return db->insertGuild(member, name, guild); }
+	virtual bool removeGuild(uint32 guildid)	{ return db->removeGuild(guildid); }
+	virtual bool saveGuild(const CGuild& guild)	{ return db->saveGuild(guild); }
+
+	virtual bool searchCastle(ushort cid, CCastle& castle)	{ return db->searchCastle(cid, castle); }
+	virtual bool saveCastle(CCastle& castle)	{ return db->saveCastle(castle); }
+	virtual bool removeCastle(ushort cid)	{ return db->removeCastle(cid); }
+};
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Party Class Definition
+///////////////////////////////////////////////////////////////////////////////
+class CParty : public party
+{
+public:
+	CParty()					{}
+	CParty(const char* n)		{ memset(this, 0, sizeof(CParty)); safestrcpy(this->name, n, sizeof(this->name)); }
+	CParty(uint32 pid)			{ memset(this, 0, sizeof(CParty)); this->party_id=pid; }
+
+	///////////////////////////////////////////////////////////////////////////
+	// creation and sorting by guildid
+
+	bool operator==(const CParty& c) const { return this->party_id==c.party_id; }
+	bool operator!=(const CParty& c) const { return this->party_id!=c.party_id; }
+	bool operator> (const CParty& c) const { return this->party_id> c.party_id; }
+	bool operator>=(const CParty& c) const { return this->party_id>=c.party_id; }
+	bool operator< (const CParty& c) const { return this->party_id< c.party_id; }
+	bool operator<=(const CParty& c) const { return this->party_id<=c.party_id; }
+
+
+	///////////////////////////////////////////////////////////////////////////
+	// compare for Multilist
+	int compare(const CParty& c, size_t i=0) const	
+	{
+		if(i==0)
+			return (this->party_id - c.party_id);
+		else
+			return strcmp(this->name, c.name); 
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// class internal functions
+	bool isempty() 
+	{
+		int i;
+		for(i = 0; i < MAX_PARTY; i++) {
+			if (this->member[i].account_id > 0) {
+				return false;
+			}
+		}
+		return true;
+	}
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// Party Database Interface
+///////////////////////////////////////////////////////////////////////////////
+class CPartyDBInterface : public global, public noncopyable
+{
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// construct/destruct
+	CPartyDBInterface()				{}
+	virtual ~CPartyDBInterface()	{}
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// access interface
+	virtual size_t size()=0;
+	virtual CParty& operator[](size_t i)=0;
+
+	virtual bool searchParty(const char* name, CParty& party) =0;
+	virtual bool searchParty(uint32 pid, CParty& party) =0;
+	virtual bool insertParty(uint32 accid, const char *nick, const char *map, ushort lv, const char *name, CParty &party) =0;
+	virtual bool removeParty(uint32 pid) =0;
+	virtual bool saveParty(const CParty& party) =0;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// Dynamic Database Implementation
+///////////////////////////////////////////////////////////////////////////////
+class CPartyDB : public CPartyDBInterface
+{
+	CPartyDBInterface *db;
+
+	CPartyDBInterface* getDB(const char *dbcfgfile);
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// construct/destruct
+	CPartyDB():db(NULL)	{}
+	CPartyDB(const char *dbcfgfile):db(getDB(dbcfgfile))	{}
+	virtual ~CPartyDB()										{ delete db; }
+
+public:
+
+	bool init(const char *dbcfgfile)
+	{
+		if(db) delete db;
+		db = getDB(dbcfgfile);
+		return (NULL!=db);
+	}
+	bool close()
+	{
+		if(db)
+		{	delete db;
+			db=NULL;
+		}
+		return true;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// access interface
+	virtual size_t size()					{ return db->size(); }
+	virtual CParty& operator[](size_t i)	{ return (*db)[i]; }
+
+	virtual bool searchParty(const char* name, CParty& party)	{ return db->searchParty(name, party); }
+	virtual bool searchParty(uint32 pid, CParty& party)	{ return db->searchParty(pid, party); }
+	virtual bool insertParty(uint32 accid, const char *nick, const char *map, ushort lv, const char *name, CParty &party)	{ return db->insertParty(accid, nick, map, lv, name, party); }
+	virtual bool removeParty(uint32 pid)	{ return db->removeParty(pid); }
+	virtual bool saveParty(const CParty& party)	{ return db->saveParty(party); }
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Storage Class Definitions
+///////////////////////////////////////////////////////////////////////////////
+class CPCStorage : public pc_storage
+{
+public:
+	CPCStorage()						{}
+	CPCStorage(uint32 accid)			{ memset(this, 0, sizeof(CPCStorage)); this->account_id=accid; }
+
+	///////////////////////////////////////////////////////////////////////////
+	// creation and sorting by accountid
+
+	bool operator==(const CPCStorage& c) const { return this->account_id==c.account_id; }
+	bool operator!=(const CPCStorage& c) const { return this->account_id!=c.account_id; }
+	bool operator> (const CPCStorage& c) const { return this->account_id> c.account_id; }
+	bool operator>=(const CPCStorage& c) const { return this->account_id>=c.account_id; }
+	bool operator< (const CPCStorage& c) const { return this->account_id< c.account_id; }
+	bool operator<=(const CPCStorage& c) const { return this->account_id<=c.account_id; }
+};
+class CGuildStorage : public guild_storage
+{
+public:
+	CGuildStorage()						{}
+	CGuildStorage(uint32 gid)			{ memset(this, 0, sizeof(CGuildStorage)); this->guild_id=gid; }
+
+	///////////////////////////////////////////////////////////////////////////
+	// creation and sorting by guildid
+
+	bool operator==(const CGuildStorage& c) const { return this->guild_id==c.guild_id; }
+	bool operator!=(const CGuildStorage& c) const { return this->guild_id!=c.guild_id; }
+	bool operator> (const CGuildStorage& c) const { return this->guild_id> c.guild_id; }
+	bool operator>=(const CGuildStorage& c) const { return this->guild_id>=c.guild_id; }
+	bool operator< (const CGuildStorage& c) const { return this->guild_id< c.guild_id; }
+	bool operator<=(const CGuildStorage& c) const { return this->guild_id<=c.guild_id; }
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// Storage Database Interface
+///////////////////////////////////////////////////////////////////////////////
+class CPCStorageDBInterface : public global, public noncopyable
+{
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// construct/destruct
+	CPCStorageDBInterface()				{}
+	virtual ~CPCStorageDBInterface()	{}
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// access interface
+	virtual size_t size()=0;
+	virtual CPCStorage& operator[](size_t i)=0;
+
+	virtual bool searchStorage(uint32 accid, CPCStorage& stor) =0;
+	virtual bool removeStorage(uint32 accid) =0;
+	virtual bool saveStorage(const CPCStorage& stor) =0;
+};
+class CGuildStorageDBInterface : public global, public noncopyable
+{
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// construct/destruct
+	CGuildStorageDBInterface()				{}
+	virtual ~CGuildStorageDBInterface()	{}
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// access interface
+	virtual size_t size()=0;
+	virtual CGuildStorage& operator[](size_t i)=0;
+
+	virtual bool searchStorage(uint32 gid, CGuildStorage& stor) =0;
+	virtual bool removeStorage(uint32 gid) =0;
+	virtual bool saveStorage(const CGuildStorage& stor) =0;
+};
+///////////////////////////////////////////////////////////////////////////////
+// Dynamic Database Implementation
+///////////////////////////////////////////////////////////////////////////////
+class CPCStorageDB : public CPCStorageDBInterface
+{
+	CPCStorageDBInterface *db;
+
+	CPCStorageDBInterface* getDB(const char *dbcfgfile);
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// construct/destruct
+	CPCStorageDB():db(NULL)	{}
+	CPCStorageDB(const char *dbcfgfile):db(getDB(dbcfgfile))	{}
+	virtual ~CPCStorageDB()										{ delete db; }
+
+public:
+
+	bool init(const char *dbcfgfile)
+	{
+		if(db) delete db;
+		db = getDB(dbcfgfile);
+		return (NULL!=db);
+	}
+	bool close()
+	{
+		if(db)
+		{	delete db;
+			db=NULL;
+		}
+		return true;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// access interface
+	virtual size_t size()						{ return db->size(); }
+	virtual CPCStorage& operator[](size_t i) 	{ return (*db)[i]; }
+
+	virtual bool searchStorage(uint32 accid, CPCStorage& stor)	{ return db->searchStorage(accid, stor); }
+	virtual bool removeStorage(uint32 accid)	{ return removeStorage(accid); }
+	virtual bool saveStorage(const CPCStorage& stor)	{ saveStorage(stor); }
+};
+class CGuildStorageDB : public CGuildStorageDBInterface
+{
+	CGuildStorageDBInterface *db;
+
+	CGuildStorageDBInterface* getDB(const char *dbcfgfile);
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// construct/destruct
+	CGuildStorageDB():db(NULL)	{}
+	CGuildStorageDB(const char *dbcfgfile):db(getDB(dbcfgfile))	{}
+	virtual ~CGuildStorageDB()										{ delete db; }
+
+public:
+
+	bool init(const char *dbcfgfile)
+	{
+		if(db) delete db;
+		db = getDB(dbcfgfile);
+		return (NULL!=db);
+	}
+	bool close()
+	{
+		if(db)
+		{	delete db;
+			db=NULL;
+		}
+		return true;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// access interface
+	virtual size_t size()						{ return db->size(); }
+	virtual CGuildStorage& operator[](size_t i) { return (*db)[i]; }
+
+	virtual bool searchStorage(uint32 gid, CGuildStorage& stor)	{ return db->searchStorage(gid, stor); }
+	virtual bool removeStorage(uint32 gid)	{ return removeStorage(gid); }
+	virtual bool saveStorage(const CGuildStorage& stor)	{ saveStorage(stor); }
+};
 
 
 

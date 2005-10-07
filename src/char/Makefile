@@ -1,5 +1,6 @@
 all: char-server
 txt: char-server
+sql: char-server
 
 ##########################################################
 # stupid make does not know .cpp suffix by default

@@ -3039,8 +3039,13 @@ int pc_steal_item(struct map_session_data &sd,struct block_list *bl)
 			{
 				for(count = 10; count <= 10 && count != 0; count--) //8 -> 10 Lupus
 				{
-					i = rand()%10; //8 -> 10 Lupus
-					itemid = mob_db[md->class_].dropitem[i].nameid;
+					i=0; 
+					// count the items
+					while( mob_db[md->class_].dropitem[i].nameid && i<10) //8 -> 10 Lupus
+						i++;
+					// choose a random item
+					itemid = mob_db[md->class_].dropitem[rand()%i].nameid;
+
 					if(itemid > 0 && (itemdb_type(itemid) != 6 || pc_checkskill(sd,TF_STEAL) > 5))
 					{
 						//fixed rate. From Freya [Lupus]
@@ -5126,7 +5131,7 @@ int pc_damage(struct map_session_data &sd, long damage, struct block_list *src)
 		|| (battle_config.bone_drop==1 && map[sd.bl.m].flag.pvp)){	// ドクロドロップ
 		struct item item_tmp;
 		memset(&item_tmp,0,sizeof(item_tmp));
-		item_tmp.nameid=7005;
+		item_tmp.nameid=7420; //PVP Skull item ID
 		item_tmp.identify=1;
 		item_tmp.card[0]=0x00fe;
 		item_tmp.card[1]=0;

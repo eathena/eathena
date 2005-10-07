@@ -132,14 +132,14 @@ public:
 	iterator& operator++()		{ next(); return *this; }
 	iterator  operator--(int)	{ iterator temp(*this); prev(); return temp; }
 	iterator& operator--()		{ prev(); return *this;}
-	bool next()				{ if(curr) curr=curr->next; return NULL!=curr; }
-	bool prev()				{ if(curr) curr=curr->prev; return NULL!=curr; }
+	bool next()					{ if(curr) curr=curr->next; return NULL!=curr; }
+	bool prev()					{ if(curr) curr=curr->prev; return NULL!=curr; }
 
 	operator const bool() const { return NULL!=curr; }
-	bool isValid() const	{ return NULL!=curr; }
+	bool isValid() const		{ return NULL!=curr; }
 
-	void* key() const		{ return (curr) ? curr->key  : NULL; }
-	void* data() const		{ return (curr) ? curr->data : NULL; }
+	void* key() const			{ return (curr) ? curr->key  : NULL; }
+	void* data() const			{ return (curr) ? curr->data : NULL; }
 };
 
 
@@ -181,47 +181,6 @@ protected:
 			size_t cPos;
 		public:
 			///////////////////////////////////////////////////
-			// request a node
-			CDBNode* aquire(void)
-			{
-				CDBNode* ret;
-				if(cFree == NULL)
-				{	// get an unused node from allocation array
-					if(cPos >= ROOT_SIZE)
-					{	// all used up, need to alloc a new array
-						if(cInx>=ROOT_FIELD)
-						{	// storage full (2'097'152 objects reached)
-							ShowError("Database: no more memory, %i nodes used", ROOT_FIELD*ROOT_SIZE);
-							return NULL;
-						}
-						cRoot[cInx] = new CDBNode[ROOT_SIZE];
-						cInx++;
-						cPos = 0;
-					}
-					ret = &(cRoot[cInx-1][cPos++]);
-				}
-				else
-				{	// reuse some freed node
-					ret = cFree;
-					cFree = ret->parent;	
-				}
-				return ret;
-			}
-			///////////////////////////////////////////////////
-			// put a node back
-			void release(CDBNode* node)
-			{
-				if(node->parent)
-				{
-					ShowError("DB released node not freed properly");
-				}
-				else
-				{
-					node->parent = cFree;
-					cFree = node;
-				}
-			}
-			///////////////////////////////////////////////////
 			// construct/destruct
 			CDBMemory() : cFree(NULL), cInx(0), cPos(ROOT_SIZE)
 			{}
@@ -240,6 +199,48 @@ protected:
 				cPos = ROOT_SIZE;
 				return;
 			}
+			///////////////////////////////////////////////////
+			// request a node
+			CDBNode* aquire(void)
+			{
+				CDBNode* ret;
+				if(cFree == NULL)
+				{	// reuse some freed node
+					ret = cFree;
+					cFree = ret->parent;	
+				}
+				else
+				{	// get an unused node from allocation array
+					if(cPos >= ROOT_SIZE)
+					{	// all used up, need to alloc a new array
+						if(cInx>=ROOT_FIELD)
+						{	// storage full (2'097'152 objects reached)
+							ShowError("Database: no more memory, %i nodes used", ROOT_FIELD*ROOT_SIZE);
+							return NULL;
+						}
+						cRoot[cInx] = new CDBNode[ROOT_SIZE];
+						cInx++;
+						cPos = 0;
+					}
+					ret = &(cRoot[cInx-1][cPos++]);
+				}
+				return ret;
+			}
+			///////////////////////////////////////////////////
+			// put a node back
+			void release(CDBNode* node)
+			{
+				if(node->parent)
+				{
+					ShowError("DB released node not freed properly");
+				}
+				else
+				{
+					node->parent = cFree;
+					cFree = node;
+				}
+			}
+
 		};
 		// CDBMemory
 		///////////////////////////////////////////////////
@@ -278,11 +279,10 @@ protected:
 	// friends
 	friend class CIterator;
 
-
 	///////////////////////////////////////////////////////////////////////////
 	// tree data
 	CDBNode *ht[HASH_SIZE];	// list of tree roots
-	CDBNode *head;			// start if linked list
+	CDBNode *head;			// start of linked list
 	CDBNode *tail;			// end of linked list
 
 	CDBNode *cFreeList;		// temp storage of deleted elements
@@ -300,6 +300,7 @@ protected:
 	{	// calling clear from the derived function is not possible
 		// since the pure virtual releasenode/key/data cannot be called 
 		// after having been destructed
+		ScopeLock sl(*this);
 		if(head)
 		{
 			ShowError("database: memory leak, call clear from derived class destructor\n");
@@ -318,7 +319,7 @@ protected:
 			freeunlock();
 		}
 
-		// clear the hashlist
+		// erase the hashlist
 		memset(this->ht,0,sizeof(this->ht));
 
 		// use linked list to release the nodes
@@ -752,8 +753,8 @@ protected:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	// virtual interface for derived classes
-	virtual ssize_t cmp(void*k1, void*k2) = 0;	// compares two keys
-	virtual size_t hash(void*k) = 0;			// calculate hash
+	virtual ssize_t cmp(void*k1, void*k2) = 0;		// compares two keys
+	virtual size_t hash(void*k) = 0;				// calculate hash
 	virtual void releasenode(CDBNode& node) = 0;	// release key/data of a node
 public:
 
