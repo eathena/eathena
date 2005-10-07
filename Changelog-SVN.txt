@@ -2,6 +2,7 @@ Date	Added
 =======
 
 10/07
+	* Took out Lighthalzen's noteleport mapflag. Added it by accident. [Nexon]
 	* Some commented code cleanup and help.txt update [Foruken]
 	* Applied Draco's fixes to battle_calc_magic_attack. [Skotlex]
 	* Modified @showexp and @showdelay so they will work as people would expect
