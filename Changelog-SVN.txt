@@ -2,6 +2,8 @@ Date	Added
 =======
 
 10/06
+	* Some corrections to the script engine, should fix a few memory leaks.
+	  [Skotlex]
 	* Minor corrections to the screen output of the char_sql server when
 	  saving. [Skotlex]
 	* Corrected authorisation issues in msg_athena.conf [Skotlex]

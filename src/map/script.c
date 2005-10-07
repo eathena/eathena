@@ -1266,7 +1266,7 @@ unsigned char* parse_script(unsigned char *src,int line)
 	}
 ////////////////////////////////////////////
 
-	script_buf = (unsigned char *) aCallocA (SCRIPT_BLOCK_SIZE,sizeof(unsigned char));
+	script_buf = (unsigned char *) aRealloc(script_buf, SCRIPT_BLOCK_SIZE*sizeof(unsigned char));
 	script_pos = 0;
 	script_size = SCRIPT_BLOCK_SIZE;
 	str_data[LABEL_NEXTLINE].type = C_NOP;
@@ -7496,7 +7496,8 @@ int buildin_getmapxy(struct script_state *st){
 	char prefix;
 
 	int x,y,type;
-	char *mapname;
+	char mapname[MAP_NAME_LENGTH];
+	memset(mapname, 0, sizeof(mapname));
 
         if( st->stack->stack_data[st->start+2].type!=C_NAME ){
                 ShowWarning("script: buildin_getmapxy: not mapname variable\n");
@@ -7516,7 +7517,6 @@ int buildin_getmapxy(struct script_state *st){
 
 //??????????? >>>  Possible needly check function parameters on C_STR,C_INT,C_INT <<< ???????????//
 	type=conv_num(st,& (st->stack->stack_data[st->start+5]));
-	mapname=(char *) aCallocA(MAP_NAME_LENGTH, sizeof(char));
 
         switch (type){
             case 0:                                             //Get Character Position
@@ -8566,7 +8566,7 @@ int run_script(unsigned char *script,int pos,int rid,int oid)
 	if ((sd = map_id2sd(rid)) && sd->stack && sd->npc_scriptroot == rootscript){
 		// 前回のスタックを復帰
 		script = st.script = sd->npc_script;
-		st.stack  = sd->stack;
+		st.stack = sd->stack;
 		sd->stack = NULL;
 		sd->npc_script      = NULL;
 		sd->npc_scriptroot  = NULL;
@@ -8588,6 +8588,12 @@ int run_script(unsigned char *script,int pos,int rid,int oid)
 		// 再開するためにスタック情報を保存
 		sd->npc_script      = st.script;
 		sd->npc_scriptroot  = rootscript;
+		if (sd->stack)
+		{	//There was a stack? Remove it. [Skotlex]
+			if (sd->stack->stack_data)
+				aFree(sd->stack->stack_data);
+			aFree(sd->stack);
+		}
 		sd->stack           = st.stack;
 
 	} else {
