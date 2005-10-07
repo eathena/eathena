@@ -65,7 +65,7 @@ L1:
 //		warp "ama_test",52,35;
 		warp "ama_fild01",330,130;
 //end modification
-		break;
+		end;
 L2:
 		mes "[Publisher]";
 		mes "There are also premium presents, you know....... (wink)";
@@ -125,7 +125,7 @@ ama_test.gat,52,44,4	script	Event Hall Staff	109,{
 		mes "The Story is told by the publisher outside. Well then...... Goodby.";
 		next;
 		warp "amatsu.gat",223,230;
-		break;
+		end;
 L1:
 		mes "[Satoshi]";
 		mes "Hmm......";
@@ -169,7 +169,7 @@ OnInit:
 	killmonsterall "ama_test.gat";
 	stopnpctimer "roomtimer";
 //end modification
-	break;
+	end;
 OnMax:
 //modification
 //	doevent "roomt";
@@ -180,7 +180,7 @@ OnMax:
 	disablenpc "Manager";
 	enablenpc "Grandfather";
 	enablenpc "Grandmother";
-	break;
+	end;
 }
 
 ama_test.gat,49,95,4	script	Grandfather	766,{
@@ -280,7 +280,7 @@ L1:
 	disablenpc "Manager";
 	enablenpc "Event Hall Staff";
 	warp "amatsu.gat",223,230;
-	break;
+	end;
 L2:
 	mes "[Manager]";
 	mes "!!!!!";
@@ -309,7 +309,7 @@ L2_1:
 	set event_momo,2;
 //modification
 	goto LWarpOut;
-//	break;
+//	end;
 //end modification
 L2_2:
 	mes "[Manager]";
@@ -342,7 +342,7 @@ LWarpOut:
 	stopnpctimer "roomtimer";
 	enablenpc "Event Hall Staff";
 	donpcevent "Event Hall Staff::OnInit";
-	break;
+	end;
 Onstart:
 	mes "[Manager]";
 	mes "Hohoho......";
@@ -357,13 +357,13 @@ ama_test.gat,0,1,0	script	mobcount	-1,{
 	if (@mobrand == 2) goto Lrand3;
 	if (@mobrand == 3) goto Lrand4;
 Lrand1:
-	areaannounce "ama_test.gat",30,78,68,120,"Small Demon: I havn't done anything!",8;break;
+	areaannounce "ama_test.gat",30,78,68,120,"Small Demon: I havn't done anything!",8;end;
 Lrand2:
-	areaannounce "ama_test.gat",30,78,68,120,"Small Demon: Excuse me, Excuse me",8;break;
+	areaannounce "ama_test.gat",30,78,68,120,"Small Demon: Excuse me, Excuse me",8;end;
 Lrand3:
-	areaannounce "ama_test.gat",30,78,68,120,"Small Demon: Ahhh......",8;break;
+	areaannounce "ama_test.gat",30,78,68,120,"Small Demon: Ahhh......",8;end;
 Lrand4:
-	areaannounce "ama_test.gat",30,78,68,120,"Small Demon: I've been hit on surprise...",8;break;
+	areaannounce "ama_test.gat",30,78,68,120,"Small Demon: I've been hit on surprise...",8;end;
 Lfin:
 	areaannounce "ama_test.gat",30,78,68,120,"Small Demon: Uhhaaa......",8;
 	addtimer 5000, "mobcount2::OnTimer5000";
@@ -379,7 +379,7 @@ Lfin:
 ama_test.gat,50,101,0	script	mobcount2	-1,{
 	if (@mobdie2 == 2) goto Lfin;
 	set @mobdie2,@mobdie2+1;
-	areaannounce "ama_test.gat",30,78,68,120,"Demon: Uhaaa...",8;break;
+	areaannounce "ama_test.gat",30,78,68,120,"Demon: Uhaaa...",8;end;
 Lfin:
 	set event_momo,4;
 //modification
@@ -404,24 +404,24 @@ OnTimer5000:
 //
 //OnTestTime:
 //	mapannounce "ama_test.gat","Time left: "+temp_time+"sec ",8;
-//	break;
+//	end;
 //
 //On180000:
 //	deltimer "roomt";
 //	mapannounce "ama_test.gat","3 Minutes left.",8;
 //	addtimer 120000,"roomt::On300000";
-//	break;
+//	end;
 //On300000:
 //	deltimer "roomt";
 //	mapannounce "ama_test.gat","One Minute left.",8;
 //	addtimer 60000,"roomt::On360000";
-//	break;
+//	end;
 //On360000:
 //	mapannounce "ama_test.gat","Hohoho - Time limit is exceeded.",8;
 //	disablenpc "Manager";
 //	enablenpc "Event Hall Staff";
 //	areawarp "ama_test.gat",30,78,68,120,"amatsu.gat",223,230;
-//	break;
+//	end;
 //}
 
 ama_test.gat,50,102,0	script	roomtimer	-1,{

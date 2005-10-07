@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= Nana (1.0)
 //===== Current Version: ===================================== 
-//= 1.0
+//= 1.1
 //===== Compatible With: ===================================== 
 //= Any eAthena Mod
 //===== Description: ========================================= 
@@ -26,10 +26,10 @@ pay_dun03.gat,127,62,4	script	payd04r	45,2,2,{
 	if(@r==1) goto w2;
 	if(@r==2) goto w3;
 	if(@r==3) goto w4;
-	w1:	warp "pay_dun04.gat",201,204; break;
-	w2:	warp "pay_dun04.gat",193,43; break;
-	w3:	warp "pay_dun04.gat",43,40; break;
-	w4:	warp "pay_dun04.gat",34,202; break;
+	w1:	warp "pay_dun04.gat",201,204; end;
+	w2:	warp "pay_dun04.gat",193,43; end;
+	w3:	warp "pay_dun04.gat",43,40; end;
+	w4:	warp "pay_dun04.gat",34,202; end;
 }		
 pay_dun04.gat,191,41,0	warp	payd04-2	1,1,pay_dun03.gat,125,62	
 pay_dun04.gat,202,206,0	warp	payd04-3	1,1,pay_dun03.gat,125,62	

@@ -44,26 +44,26 @@ doitagain:
 Lquote0:
 	npctalk "Brb.. my baby is throwing up on my leg.";
 	setnpctimer 0;
-	break;
+	end;
 Lquote1:
 	npctalk "The only difference between a hurricane and skydiving is which direction the tree's come at you from..";
 	setnpctimer 0;
-	break;
+	end;
 Lquote2:
 	npctalk "Wanna be a GM?  Write me a C routine that reverses a string in place..";
 	setnpctimer 0;
-	break;
+	end;
 Lquote3:
 	npctalk "Wanna be a GM?  Write me a C routine that finds me the highest bit set in a network order 32 bit integer...";
 	setnpctimer 0;
-	break;
+	end;
 Lquote4:
 	npctalk "I am the dark angel of eAthena.. withen weeks of my arrival, almost everybody was gone or dead..  fear me...";
 	setnpctimer 0;
-	break;
+	end;
 OnInit:
  	initnpctimer;
-        break;
+        end;
 }
 
 // MC Cameri =========================================================>\\
@@ -103,49 +103,49 @@ Lmctalk:
 Lquote0:
 	npctalk "OMGWTFBBQ";
 	setnpctimer 0;
-	break;
+	end;
 Lquote1:
 	npctalk "I owns you all, under my commands. *lol*";
 	setnpctimer 0;
-	break;
+	end;
 Lquote2:
 	npctalk "I forgot my script, what do I have to say again? *_*U";
 	setnpctimer 0;
-	break;
+	end;
 Lquote3:
 	npctalk "¿Donde estoy? *wonders* (<-- Means, where am I?)";
 	setnpctimer 0;
-	break;
+	end;
 Lquote4:
 	npctalk "Are you guys my friends?";
 	setnpctimer 0;
-	break;
+	end;
 Lquote5:
 	npctalk "My mom told me not to talk to strangers. *stares*";
 	setnpctimer 0;
-	break;
+	end;
 Lquote6:
 	npctalk "How can you be SO ugly!?";
 	setnpctimer 0;
-	break;
+	end;
 Lquote7:
 	npctalk "I need a friend to play with =(. *sobs*";
 	setnpctimer 0;
-	break;
+	end;
 Lquote8:
 	npctalk "I've been kicking this rock for as long as I can remember.";
 	setnpctimer 0;
-	break;
+	end;
 Lquote9:
 	npctalk "My computer just broke, and I don't know how to format. *sobs*";
 	setnpctimer 0;
-	break;
+	end;
 Lquote10:
 	setnpctimer 0;
-	break;
+	end;
 OnInit:
  	initnpctimer;
-        break;
+        end;
 }
 
 
@@ -172,33 +172,33 @@ Ldavidtalk:
 Lquote0:
 	npctalk "OMGWTFBBQ";
 	setnpctimer 0;
-	break;
+	end;
 Lquote1:
 	npctalk "Wud are you looking at?";
 	setnpctimer 0;
-	break;
+	end;
 Lquote2:
 	npctalk "baka...";
 	setnpctimer 0;
-	break;
+	end;
 Lquote3:
 	npctalk "¿Donde estoy? *wonders* (<-- Means, where am I?)";
 	setnpctimer 0;
-	break;
+	end;
 Lquote4:
 	npctalk "*drops 100 Mjolnirs on the floor*";
 	setnpctimer 0;
-	break;
+	end;
 Lquote5:
 	npctalk "There ya go ;)";
 	setnpctimer 0;
-	break;
+	end;
 Lquote6:
 	setnpctimer 0;
-	break;
+	end;
 OnInit:
  	initnpctimer;
-        break;
+        end;
 }
 
 //Aria\\
@@ -231,59 +231,59 @@ Lariatalk:
 
 Lquote0:
 	npctalk "OMGWTFBBQ";
-	break;
+	end;
 Lquote1:
 	npctalk "So its u -> 0";
 	npctalk "... That did not look right";
-	break;
+	end;
 Lquote2:
 	npctalk "????";
-	break;
+	end;
 
 Lquote3:
 	npctalk "OMGITSJEEBUS!#!@%!";
 	setnpctimer 0;
-	break;
+	end;
 
 Lquote4:
 	npctalk "Evera died. I guess.";
 	setnpctimer 0;
-	break;
+	end;
 
 Lquote5:
 	npctalk "I CLICK THE BUTTON AND THEY DON'T DIE!";
 	setnpctimer 0;
-	break;
+	end;
 
 Lquote6:
 	npctalk "RO? wtf?";
 	npctalk "Oh yeah.";
 	setnpctimer 0;
-	break;
+	end;
 
 Lquote7:
 	npctalk "omgnoob. DIE!";
 	setnpctimer 0;
-	break;
+	end;
 
 Lquote8:
 	npctalk "WooT!";
 	setnpctimer 0;
-	break;
+	end;
 
 Lquote9:
 	npctalk "is that why u bought windows";
 	npctalk "cuz bill has red hair";
 	setnpctimer 0;
-	break;
+	end;
 
 Lquote10:
 	setnpctimer 0;
-	break;
+	end;
 
 OnInit:
  	initnpctimer;
-        break;
+        end;
 }
 
 // Evera =========================================================>\\
@@ -312,26 +312,26 @@ doitagain:
 Lquote0:
 	npctalk "Does anyone actually remember who I am?";
 	setnpctimer 0;
-	break;
+	end;
 Lquote1:
 	npctalk "O_o";
 	setnpctimer 0;
-	break;
+	end;
 Lquote2:
 	npctalk "Hey, wanna go meet in a dark room and do something fun?";
 	setnpctimer 0;
-	break;
+	end;
 Lquote3:
 	npctalk "Guild Wars is better than RO. Infact, none of the eAthena devs actually play RO";
 	setnpctimer 0;
-	break;
+	end;
 Lquote4:
 	npctalk "I don't really do anything anymore...";
 	setnpctimer 0;
-	break;
+	end;
 OnInit:
  	initnpctimer;
-        break;
+        end;
 }
 
 // Kevin =========================================================>\\
@@ -363,42 +363,42 @@ doitagain:
 Lquote0:
 	npctalk "OMFGLMFAO I HAVE PWNED SO MANY PEOPLE!";
 	setnpctimer 0;
-	break;
+	end;
 Lquote1:
 	npctalk "GO EA DEVS!";
 	setnpctimer 0;
-	break;
+	end;
 Lquote2:
 	npctalk "WATCH OUT FOR ME ON THE IRC CHANNEL! HAHAHA!";
 	setnpctimer 0;
-	break;
+	end;
 Lquote3:
 	npctalk "WANNA SEE MY NEW MIRC SCRIPT?!?";
 	setnpctimer 0;
-	break;
+	end;
 Lquote4:
 	npctalk "w00t! YOU ARE SUCH A N00B YOU... N00B";
 	setnpctimer 0;
-	break;
+	end;
 Lquote5:
 	npctalk "d00d! i r l337!";
 	setnpctimer 0;
-	break;
+	end;
 Lquote6:
 	npctalk "pssst: what do you think of my evil plot to take over the da irc network?";
 	setnpctimer 0;
-	break;
+	end;
 Lquote7:
 	npctalk "ORANGE COUNTY LIBERATION FRONT!";
 	setnpctimer 0;
-	break;
+	end;
 Lquote8:
 	npctalk "OMFG YOU ARE SO UGLY!";
 	setnpctimer 0;
-	break;
+	end;
 OnInit:
  	initnpctimer;
-        break;
+        end;
 }
 
 
@@ -432,42 +432,42 @@ doitagain:
 Lquote0:
 	npctalk "Hmm....What script needs to be fixed...";
 	setnpctimer 0;
-	break;
+	end;
 Lquote1:
 	npctalk "OMFG...you suck!";
 	setnpctimer 0;
-	break;
+	end;
 Lquote2:
 	npctalk "The worst kind of noobs are the heal! zeny! items plz! type.";
 	setnpctimer 0;
-	break;
+	end;
 Lquote3:
 	npctalk "What happens when you die of boredom?";
 	setnpctimer 0;
-	break;
+	end;
 Lquote4:
 	npctalk "I'm such a kewl Person...";
 	setnpctimer 0;
-	break;
+	end;
 Lquote5:
 	npctalk "OMFGWTFBBQ...I'm also known as MadDawg";
 	setnpctimer 0;
-	break;
+	end;
 Lquote6:
 	npctalk "Gimme your items...I'll eat them and eat you...";
 	setnpctimer 0;
-	break;
+	end;
 Lquote7:
 	npctalk "Aren't porings cute?";
 	setnpctimer 0;
-	break;
+	end;
 Lquote8:
 	npctalk "Omfg..you are full of shit....";
 	setnpctimer 0;
-	break;
+	end;
 OnInit:
  	initnpctimer;
-        break;
+        end;
 }
 aldebaran.gat,137,118,5	script	Fredzilla	4020,0,0,{
  	npcspeed 140;

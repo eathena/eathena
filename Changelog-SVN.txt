@@ -1,6 +1,12 @@
 Date	Added
 =======
 
+10/07
+	* Applied End of Exam's script engine patch. [Skotlex]
+	- This adds support for nested blocks, if/else, fors, switches. See
+	  <http://eathena.deltaanime.net/board/index.php?showtopic=50037>
+	  for more information. Note that he admits it is not fully tested, so be
+	  careful when trying out the new commands!
 10/06
 	* Some corrections to the script engine, should fix a few memory leaks.
 	  [Skotlex]

@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= Some people & eAthena Dev Team
 //===== Current Version: ===================================== 
-//= 1.04
+//= 1.05
 //===== Compatible With: ===================================== 
 //= Any eAthena Version; Niflheim Required
 //===== Description: ========================================= 
@@ -15,6 +15,7 @@
 // 1.02 Fixed & Spell Checked [massdriller]
 // 1.03 Fixed 2 NPC names, slight optimization [Lupus]
 // 1.04 Fixed a few typo's [Nexon]
+// 1.05 Changed all breaks to ends. [Skotlex] 
 //=====================================================================
 alberta.gat,245,93,4	script	Captain	709,{
 	mes "[Carter Moores]";
@@ -112,7 +113,7 @@ alberta.gat,245,93,4	script	Captain	709,{
 			mes "All aboard!";
 			next;
 			warp "amatsu",197,83;
-			break;
+			end;
 		Lzeny:
 			mes "[Carter Moores]";
 			mes "Did you forget what I said?";
@@ -141,7 +142,7 @@ amatsu.gat,194,79,4	script	Captain	709,{
 		mes "souvenirs.";
 		next;
 		warp "alberta",243,91;
-		break;
+		end;
 }
 //=====================================================================
 // Amatsu Citizen
@@ -586,7 +587,7 @@ ama_in01.gat,22,111,0	script	Old Lady	761,{
 	mes "Stop bothering me and get out! Clang Clannng!^000000";
 	next;
 	warp "amatsu",167,197;
-	break;
+	end;
 LStart2:
 	mes "[...]";
 	mes "^FF0066Clang Clannng! Clang Clannng! Here comes another one!";
@@ -628,7 +629,7 @@ Lfail:
 	mes "Get out of here!! Clang Clannng!^000000";
 	next;
 	warp "amatsu",167,197;
-	break;
+	end;
 LStart3:
 	mes "[Ishida Sauk]";
 	mes "...*Sigh* Where from young man...?";
@@ -983,7 +984,7 @@ L2:
 			mes "Please take care...";
 			next;
 			warp "ama_dun01.gat",229,10;
-			break;
+			end;
 L2_2:
 			mes "[Juro]";
 			mes "The inner space seems to be ";
@@ -1017,7 +1018,7 @@ L2_2:
 			mes "Please be careful...";
 			next;
 			warp "ama_dun01.gat",229,10;
-			break;
+			end;
 Llost:
 		mes "[Juro]";
 		mes "You don't have the pass";
@@ -1045,7 +1046,7 @@ ama_dun01.gat,229,7,0	script	Soldier	767,{
 		mes "Gogo!!";
 		next;
 		warp "ama_in02.gat",119,181;
-		break;
+		end;
 L1:
 		mes "[Juro]";
 		mes "Take care of yourself!";

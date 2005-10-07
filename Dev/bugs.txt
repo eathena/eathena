@@ -64,7 +64,7 @@ Problem:	Exp Party Sharing Bug.
 		Then H. teleports to another map and hunts there. Now, M. kills a poring and get a huuuuuuuuuuuuuuuuge amount
 		of EXP (like it was collecting... all the time he was sitting next to H.)
 Assigned:	N/A
-Progress:	0%
+Progress:	100%
 Notes:		Unable to reproduce in 3385 [Foruken]
 
 Problem:	Guilds alliances
@@ -113,7 +113,7 @@ Problem:	If a char has been saved with non-existing map name
 Note:		Perhaps we can create an array of the maps we have loaded (during loading, maybe?)
 		And check the map names against that [Codemaster]
 Assigned:	N/A
-Progress:	0%
+Progress:	100%
 Notes: Still exists? I thought this was a non-issue currently. [Skotlex]
        - It seems that the crash is gone, client keeps crashing tho' but in next
          login it goes to the default location defined in char.c (prontera)
@@ -227,7 +227,7 @@ Problem:	Guilds Breaking
 		Then new GULD would have LEVEL, EXP, STATS of the broken guild
 			Probably it isn't being deleted from memory.
 Assigned:	N/A
-Progress:	0%
+Progress:	100%
 Note:		When breaking the guild, make sure to delete it completely from the guild table and such. [Codemaster]
 			The guild was deleted from memory on the char_sql server some
 			revisions ago, this is probably fixed now? [Skotlex]

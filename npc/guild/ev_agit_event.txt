@@ -49,12 +49,12 @@ if((gettime(4)==6) && (gettime(3)==18)) goto L_End;
 L_End:
 Announce "The War Of Emperium is over!",8;
 AgitEnd;
-Break;
+end;
 
 L_Start:
 	Announce "The War Of Emperium has begun!",8;
 	AgitStart;
-	Break;
+	end;
 }
 
 // Treasure Spawn Time

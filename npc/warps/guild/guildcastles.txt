@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= Athena (1.0)
 //===== Current Version: =====================================
-//= 2.1
+//= 2.2
 //===== Compatible With: =====================================
 //= Any Athena Version
 //===== Description: =========================================
@@ -14,6 +14,7 @@
 //= fixed aldg504-1 warp [Lupus]
 //= 2.0 Added Novice Guilds warps, optimized aldg408r warp [Lupus]
 //= 2.1 Fixed some warps positions [Yor]
+//= 2.2 Changed all breaks to end as per the new script engine. [Skotlex]
 //============================================================
 
 
@@ -97,10 +98,10 @@ aldeg_cas04.gat,132,231,4	script	aldg408r	45,1,1,{
 	if(@l0==1) goto w2;
 	if(@l0==2) goto w3;
 	if(@l0==3) goto w4;
-	warp "aldeg_cas04.gat",170,100; break;
-w2:	warp "aldeg_cas04.gat",186,88; break;
-w3:	warp "aldeg_cas04.gat",129,212; break;
-w4:	warp "aldeg_cas04.gat",132,209; break;
+	warp "aldeg_cas04.gat",170,100; end;
+w2:	warp "aldeg_cas04.gat",186,88; end;
+w3:	warp "aldeg_cas04.gat",129,212; end;
+w4:	warp "aldeg_cas04.gat",132,209; end;
 }
 aldeg_cas05.gat,194,71,0	warp	aldg501	1,1,aldeg_cas05.gat,129,194
 aldeg_cas05.gat,125,194,0	warp	aldg501-1	1,1,aldeg_cas05.gat,199,70
@@ -418,8 +419,8 @@ nguild_alde.gat,31,197,0	warp	naldg108-1	1,1,nguild_alde.gat,175,175
 //Novices Guild: Geffen Castles Map		
 n_castle.gat,183,183,0	script	ngefg01	45,1,1,{
 	if(rand(2)) goto w2;
-	warp "nguild_gef.gat",34,140; break;
-w2:	warp "nguild_gef.gat",95,178; break;
+	warp "nguild_gef.gat",34,140; end;
+w2:	warp "nguild_gef.gat",95,178; end;
 }
 nguild_gef.gat,34,136,0	warp	ngefg01-1	1,1,n_castle.gat,183,180
 nguild_gef.gat,99,178,0	warp	ngefg02-1	1,1,n_castle.gat,183,180

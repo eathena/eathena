@@ -85,8 +85,26 @@ static char pos[11][100] = {"頭","体","左手","右手","ローブ","靴","アクセサリー1
 
 struct Script_Config script_config;
 
-static int parse_cmd_if=0;
 static int parse_cmd;
+
+// for advanced scripting support ( nested if, switch, while, for, do-while, function, etc )
+// [Eoe / jA 1080, 1081, 1094, 1164]
+enum { TYPE_NULL = 0 , TYPE_IF , TYPE_SWITCH , TYPE_WHILE , TYPE_FOR , TYPE_DO , TYPE_USERFUNC};
+static struct {
+	struct {
+		int type;
+		int index;
+		int count;
+		int flag;
+	} curly[256];		// 右カッコの情報
+	int curly_count;	// 右カッコの数
+	int index;			// スクリプト内で使用した構文の数
+} syntax;
+unsigned char* parse_curly_close(unsigned char *p);
+unsigned char* parse_syntax_close(unsigned char *p);
+unsigned char* parse_syntax_close_sub(unsigned char *p,int *flag);
+unsigned char* parse_syntax(unsigned char *p);
+static int parse_syntax_for_flag = 0;
 
 extern int current_equip_item_index; //for New CARS Scripts. It contains Inventory Index of the EQUIP_SCRIPT caller item. [Lupus]
 
@@ -434,7 +452,7 @@ struct {
 	{buildin_basicskillcheck,"basicskillcheck","*"},
 	{buildin_getgmlevel,"getgmlevel","*"},
 	{buildin_end,"end",""},
-	{buildin_end,"break",""},
+//	{buildin_end,"break",""}, this might confuse advanced scripting support [Eoe]
 	{buildin_checkoption,"checkoption","i"},
 	{buildin_setoption,"setoption","i"},
 	{buildin_setcart,"setcart",""},
@@ -620,6 +638,7 @@ struct {
 enum {
 	C_NOP,C_POS,C_INT,C_PARAM,C_FUNC,C_STR,C_CONSTSTR,C_ARG,
 	C_NAME,C_EOL, C_RETINFO,
+	C_USERFUNC, C_USERFUNC_POS, // user defined functions
 
 	C_LOR,C_LAND,C_LE,C_LT,C_GE,C_GT,C_EQ,C_NE,   //operator
 	C_XOR,C_OR,C_AND,C_ADD,C_SUB,C_MUL,C_DIV,C_MOD,C_NEG,C_LNOT,C_NOT,C_R_SHIFT,C_L_SHIFT
@@ -774,12 +793,14 @@ static void add_scriptl(int l)
 
 	switch(str_data[l].type){
 	case C_POS:
+	case C_USERFUNC_POS:
 		add_scriptc(C_POS);
 		add_scriptb(str_data[l].label);
 		add_scriptb(str_data[l].label>>8);
 		add_scriptb(str_data[l].label>>16);
 		break;
 	case C_NOP:
+	case C_USERFUNC:
 		// ラベルの可能性があるのでbackpatch用データ埋め込み
 		add_scriptc(C_NAME);
 		str_data[l].backpatch=script_pos;
@@ -808,11 +829,11 @@ void set_label(int l,int pos)
 {
 	int i,next;
 
-	str_data[l].type=C_POS;
+	str_data[l].type=(str_data[l].type == C_USERFUNC ? C_USERFUNC_POS : C_POS);
 	str_data[l].label=pos;
 	for(i=str_data[l].backpatch;i>=0 && i!=0x00ffffff;){
 		next=(*(int*)(script_buf+i)) & 0x00ffffff;
-		script_buf[i-1]=C_POS;
+		script_buf[i-1]=(str_data[l].type == C_USERFUNC ? C_USERFUNC_POS : C_POS);
 		script_buf[i]=pos;
 		script_buf[i+1]=pos>>8;
 		script_buf[i+2]=pos>>16;
@@ -972,8 +993,6 @@ unsigned char* parse_simpleexpr(unsigned char *p)
 		l=add_str(p);
 
 		parse_cmd=l;	// warn_*_mismatch_paramnumのために必要
-		if(l== search_str((unsigned char *) "if"))	// warn_cmd_no_commaのために必要
-			parse_cmd_if++;
 
 		*p2=c;	
 		p=(unsigned char *) p2;
@@ -990,6 +1009,10 @@ unsigned char* parse_simpleexpr(unsigned char *p)
 				exit(1);
 			}
 			add_scriptc(C_FUNC);
+		} else if(str_data[l].type == C_USERFUNC || str_data[l].type == C_USERFUNC_POS) {
+			add_scriptl(search_str("callsub"));
+			add_scriptc(C_ARG);
+			add_scriptl(l);
 		}else
 			add_scriptl(l);
 
@@ -1056,12 +1079,21 @@ unsigned char* parse_subexpr(unsigned char *p,int limit)
 			int i=0,func=parse_cmd;
 			const char *plist[128];
 
-			if( str_data[func].type!=C_FUNC ){
-				disp_error_message("expect function",(unsigned char *) tmpp);
+			if(str_data[parse_cmd].type == C_FUNC){
+				// 通常の関数
+				add_scriptc(C_ARG);
+			} else if(str_data[parse_cmd].type == C_USERFUNC || str_data[parse_cmd].type == C_USERFUNC_POS) {
+				// ユーザー定義関数呼び出し
+				parse_cmd = search_str("callsub");
+				i++;
+			} else {
+				disp_error_message(
+					"expect command, missing function name or calling undeclared function",(unsigned char *) tmpp
+				);
 				exit(0);
 			}
+			func=parse_cmd;
 
-			add_scriptc(C_ARG);
 			do {
 				plist[i]=(char *) p;
 				p=parse_subexpr(p,-1);
@@ -1133,44 +1165,82 @@ unsigned char* parse_line(unsigned char *p)
 	int i=0,cmd;
 	const char *plist[128];
 	char *p2;
+	char end;
 
 	p=skip_space(p);
 	if(*p==';')
-		return p;
+		return p + 1;
 
-	parse_cmd_if=0;	// warn_cmd_no_commaのために必要
+	p = skip_space(p);
+	if(p[0] == '{') {
+		syntax.curly[syntax.curly_count].type  = TYPE_NULL;
+		syntax.curly[syntax.curly_count].count = -1;
+		syntax.curly[syntax.curly_count].index = -1;
+		syntax.curly_count++;
+		return p + 1;
+	} else if(p[0] == '}') {
+		return parse_curly_close(p);
+	}
+
+	// 構文関連の処理
+	p2 = parse_syntax(p);
+	if(p2 != NULL) { return p2; }
 
 	// 最初は関数名
 	p2=(char *) p;
 	p=parse_simpleexpr(p);
 	p=skip_space(p);
 
-	cmd=parse_cmd;
-	if( str_data[cmd].type!=C_FUNC ){
-		disp_error_message("expect command",(unsigned char *) p2);
+	if(str_data[parse_cmd].type == C_FUNC){
+		// 通常の関数
+		add_scriptc(C_ARG);
+	} else if(str_data[parse_cmd].type == C_USERFUNC || str_data[parse_cmd].type == C_USERFUNC_POS) {
+		// ユーザー定義関数呼び出し
+		parse_cmd = search_str("callsub");
+		i++;
+	} else {
+		disp_error_message(
+			"expect command, missing function name or calling undeclared function", (unsigned char *)p2
+		);
 //		exit(0);
 	}
+	cmd=parse_cmd;
 
-	add_scriptc(C_ARG);
-	while(p && *p && *p!=';' && i<128){
+	if(parse_syntax_for_flag) {
+		end = ')';
+	} else {
+		end = ';';
+	}
+	while(p && *p && *p!=end && i<128){
 		plist[i]=(char *) p;
 
 		p=parse_expr(p);
 		p=skip_space(p);
 		// 引数区切りの,処理
 		if(*p==',') p++;
-		else if(*p!=';' && script_config.warn_cmd_no_comma && parse_cmd_if*2<=i ){
-			disp_error_message("expect ',' or ';' at cmd params",p);
+		else if(*p!=end && script_config.warn_cmd_no_comma && 0 <= i ){
+			if(parse_syntax_for_flag) {
+				disp_error_message("expect ',' or ')' at cmd params",p);
+			} else {
+				disp_error_message("expect ',' or ';' at cmd params",p);
+			}
 		}
 		p=skip_space(p);
 		i++;
 	}
 	plist[i]=(char *) p;
-	if(!p || *(p++)!=';'){
-		disp_error_message("need ';'",p);
+	if(!p || *(p++)!=end){
+		if(parse_syntax_for_flag) {
+			disp_error_message("need ')'",p);
+		} else {
+			disp_error_message("need ';'",p);
+		}
 		exit(1);
 	}
 	add_scriptc(C_FUNC);
+
+	// if, for , while の閉じ判定
+	p = parse_syntax_close(p);
 
 	if( str_data[cmd].type==C_FUNC && script_config.warn_cmd_mismatch_paramnum){
 		const char *arg=buildin_func[str_data[cmd].val].arg;
@@ -1183,6 +1253,698 @@ unsigned char* parse_line(unsigned char *p)
 
 
 	return p;
+}
+
+
+// { ... } の閉じ処理
+unsigned char* parse_curly_close(unsigned char *p) {
+	if(syntax.curly_count <= 0) {
+		disp_error_message("unexpected string",p);
+		return p + 1;
+	} else if(syntax.curly[syntax.curly_count-1].type == TYPE_NULL) {
+		syntax.curly_count--;
+		// if, for , while の閉じ判定
+		p = parse_syntax_close(p + 1);
+		return p;
+	} else if(syntax.curly[syntax.curly_count-1].type == TYPE_SWITCH) {
+		// switch() 閉じ判定
+		int pos = syntax.curly_count-1;
+		char label[256];
+		int l;
+		// 一時変数を消す
+		sprintf(label,"set $@__SW%x_VAL,0;",syntax.curly[pos].index);
+		syntax.curly[syntax.curly_count++].type = TYPE_NULL;
+		parse_line(label);
+		syntax.curly_count--;
+
+		// 無条件で終了ポインタに移動
+		sprintf(label,"goto __SW%x_FIN;",syntax.curly[pos].index);
+		syntax.curly[syntax.curly_count++].type = TYPE_NULL;
+		parse_line(label);
+		syntax.curly_count--;
+
+		// 現在地のラベルを付ける
+		sprintf(label,"__SW%x_%x",syntax.curly[pos].index,syntax.curly[pos].count);
+		l=add_str(label);
+		if(str_data[l].label!=-1){
+			disp_error_message("dup label ",p);
+			exit(1);
+		}
+		set_label(l,script_pos);
+
+		if(syntax.curly[pos].flag) {
+			// default が存在する
+			sprintf(label,"goto __SW%x_DEF;",syntax.curly[pos].index);
+			syntax.curly[syntax.curly_count++].type = TYPE_NULL;
+			parse_line(label);
+			syntax.curly_count--;
+		}
+
+		// 終了ラベルを付ける
+		sprintf(label,"__SW%x_FIN",syntax.curly[pos].index);
+		l=add_str(label);
+		if(str_data[l].label!=-1){
+			disp_error_message("dup label ",p);
+			exit(1);
+		}
+		set_label(l,script_pos);
+
+		syntax.curly_count--;
+		return p+1;
+	} else {
+		disp_error_message("unexpected string",p);
+		return p + 1;
+	}
+}
+
+// 構文関連の処理
+//     break, case, continue, default, do, for, function,
+//     if, switch, while をこの内部で処理します。
+unsigned char* parse_syntax(unsigned char *p) {
+	switch(p[0]) {
+	case 'b':
+		if(!strncmp(p,"break",5) && !isalpha(*(p + 5))) {
+			// break の処理
+			char label[256];
+			int pos = syntax.curly_count - 1;
+			while(pos >= 0) {
+				if(syntax.curly[pos].type == TYPE_DO) {
+					sprintf(label,"goto __DO%x_FIN;",syntax.curly[pos].index);
+					break;
+				} else if(syntax.curly[pos].type == TYPE_FOR) {
+					sprintf(label,"goto __FR%x_FIN;",syntax.curly[pos].index);
+					break;
+				} else if(syntax.curly[pos].type == TYPE_WHILE) {
+					sprintf(label,"goto __WL%x_FIN;",syntax.curly[pos].index);
+					break;
+				} else if(syntax.curly[pos].type == TYPE_SWITCH) {
+					sprintf(label,"goto __SW%x_FIN;",syntax.curly[pos].index);
+					break;
+				}
+				pos--;
+			}
+			if(pos < 0) {
+				disp_error_message("unexpected 'break'",p);
+			} else {
+				syntax.curly[syntax.curly_count++].type = TYPE_NULL;
+				parse_line(label);
+				syntax.curly_count--;
+			}
+			p = skip_word(p);
+			p++;
+			// if, for , while の閉じ判定
+			p = parse_syntax_close(p + 1);
+			return p;
+		}
+		break;
+	case 'c':
+		if(!strncmp(p,"case",4) && !isalpha(*(p + 4))) {
+			// case の処理
+			if(syntax.curly_count <= 0 || syntax.curly[syntax.curly_count - 1].type != TYPE_SWITCH) {
+				disp_error_message("unexpected 'case' ",p);
+				return p+1;
+			} else {
+				char *p2;
+				char label[256];
+				int  l;
+				int pos = syntax.curly_count-1;
+				if(syntax.curly[pos].count != 1) {
+					// FALLTHRU 用のジャンプ
+					sprintf(label,"goto __SW%x_%xJ;",syntax.curly[pos].index,syntax.curly[pos].count);
+					syntax.curly[syntax.curly_count++].type = TYPE_NULL;
+					parse_line(label);
+					syntax.curly_count--;
+
+					// 現在地のラベルを付ける
+					sprintf(label,"__SW%x_%x",syntax.curly[pos].index,syntax.curly[pos].count);
+					l=add_str(label);
+					if(str_data[l].label!=-1){
+						disp_error_message("dup label ",p);
+						exit(1);
+					}
+					set_label(l,script_pos);
+				}
+				// switch 判定文
+				p = skip_word(p);
+				p = skip_space(p);
+				p2 = p;
+				p = skip_word(p);
+				p = skip_space(p);
+				if(*p != ':') {
+					disp_error_message("expect ':'",p);
+					exit(1);
+				}
+				*p = 0;
+				sprintf(label,"if(%s != $@__SW%x_VAL) goto __SW%x_%x;",
+					p2,syntax.curly[pos].index,syntax.curly[pos].index,syntax.curly[pos].count+1);
+				syntax.curly[syntax.curly_count++].type = TYPE_NULL;
+				*p = ':';
+				// ２回parse しないとダメ
+				p2 = parse_line(label);
+				parse_line(p2);
+				syntax.curly_count--;
+				if(syntax.curly[pos].count != 1) {
+					// FALLTHRU 終了後のラベル
+					sprintf(label,"__SW%x_%xJ",syntax.curly[pos].index,syntax.curly[pos].count);
+					l=add_str(label);
+					if(str_data[l].label!=-1){
+						disp_error_message("dup label ",p);
+						exit(1);
+					}
+					set_label(l,script_pos);
+				}
+				// 一時変数を消す
+				sprintf(label,"set $@__SW%x_VAL,0;",syntax.curly[pos].index);
+				syntax.curly[syntax.curly_count++].type = TYPE_NULL;
+				parse_line(label);
+				syntax.curly_count--;
+				syntax.curly[pos].count++;
+			}
+			return p + 1;
+		} else if(!strncmp(p,"continue",8) && !isalpha(*(p + 8))) {
+			// continue の処理
+			char label[256];
+			int pos = syntax.curly_count - 1;
+			while(pos >= 0) {
+				if(syntax.curly[pos].type == TYPE_DO) {
+					sprintf(label,"goto __DO%x_NXT;",syntax.curly[pos].index);
+					syntax.curly[pos].flag = 1; // continue 用のリンク張るフラグ
+					break;
+				} else if(syntax.curly[pos].type == TYPE_FOR) {
+					sprintf(label,"goto __FR%x_NXT;",syntax.curly[pos].index);
+					break;
+				} else if(syntax.curly[pos].type == TYPE_WHILE) {
+					sprintf(label,"goto __WL%x_NXT;",syntax.curly[pos].index);
+					break;
+				}
+				pos--;
+			}
+			if(pos < 0) {
+				disp_error_message("unexpected 'continue'",p);
+			} else {
+				syntax.curly[syntax.curly_count++].type = TYPE_NULL;
+				parse_line(label);
+				syntax.curly_count--;
+			}
+			p = skip_word(p);
+			p++;
+			// if, for , while の閉じ判定
+			p = parse_syntax_close(p + 1);
+			return p;
+		}
+		break;
+	case 'd':
+		if(!strncmp(p,"default",7) && !isalpha(*(p + 7))) {
+			// switch - default の処理
+			if(syntax.curly_count <= 0 || syntax.curly[syntax.curly_count - 1].type != TYPE_SWITCH) {
+				disp_error_message("unexpected 'delault'",p);
+				return p+1;
+			} else if(syntax.curly[syntax.curly_count - 1].flag) {
+				disp_error_message("dup 'delault'",p);
+				return p+1;
+			} else {
+				char label[256];
+				int l;
+				int pos = syntax.curly_count-1;
+				// 現在地のラベルを付ける
+				p = skip_word(p);
+				p = skip_space(p);
+				if(*p != ':') {
+					disp_error_message("need ':'",p);
+				}
+				p++;
+				sprintf(label,"__SW%x_%x",syntax.curly[pos].index,syntax.curly[pos].count);
+				l=add_str(label);
+				if(str_data[l].label!=-1){
+					disp_error_message("dup label ",p);
+					exit(1);
+				}
+				set_label(l,script_pos);
+
+				// 無条件で次のリンクに飛ばす
+				sprintf(label,"goto __SW%x_%x;",syntax.curly[pos].index,syntax.curly[pos].count+1);
+				syntax.curly[syntax.curly_count++].type = TYPE_NULL;
+				parse_line(label);
+				syntax.curly_count--;
+
+				// default のラベルを付ける
+				sprintf(label,"__SW%x_DEF",syntax.curly[pos].index);
+				l=add_str(label);
+				if(str_data[l].label!=-1){
+					disp_error_message("dup label ",p);
+					exit(1);
+				}
+				set_label(l,script_pos);
+
+				syntax.curly[syntax.curly_count - 1].flag = 1;
+				syntax.curly[pos].count++;
+
+				p = skip_word(p);
+				return p + 1;
+			}
+		} else if(!strncmp(p,"do",2) && !isalpha(*(p + 2))) {
+			int l;
+			char label[256];
+			p=skip_word(p);
+			p=skip_space(p);
+
+			syntax.curly[syntax.curly_count].type  = TYPE_DO;
+			syntax.curly[syntax.curly_count].count = 1;
+			syntax.curly[syntax.curly_count].index = syntax.index++;
+			syntax.curly[syntax.curly_count].flag  = 0;
+			// 現在地のラベル形成する
+			sprintf(label,"__DO%x_BGN",syntax.curly[syntax.curly_count].index);
+			l=add_str(label);
+			if(str_data[l].label!=-1){
+				disp_error_message("dup label ",p);
+				exit(1);
+			}
+			set_label(l,script_pos);
+			syntax.curly_count++;
+			return p;
+		}
+		break;
+	case 'f':
+		if(!strncmp(p,"for",3) && !isalpha(*(p + 3))) {
+			int l;
+			char label[256];
+			int  pos = syntax.curly_count;
+			syntax.curly[syntax.curly_count].type  = TYPE_FOR;
+			syntax.curly[syntax.curly_count].count = 1;
+			syntax.curly[syntax.curly_count].index = syntax.index++;
+			syntax.curly[syntax.curly_count].flag  = 0;
+			syntax.curly_count++;
+
+			p=skip_word(p);
+			p=skip_space(p);
+
+			if(*p != '(') {
+				disp_error_message("need '('",p);
+				return p+1;
+			}
+			p++;
+
+			// 初期化文を実行する
+			syntax.curly[syntax.curly_count++].type = TYPE_NULL;
+			p=parse_line(p);
+			syntax.curly_count--;
+
+			// 条件判断開始のラベル形成する
+			sprintf(label,"__FR%x_J",syntax.curly[pos].index);
+			l=add_str(label);
+			if(str_data[l].label!=-1){
+				disp_error_message("dup label ",p);
+				exit(1);
+			}
+			set_label(l,script_pos);
+
+			if(*p == ';') {
+				// for(;;) のパターンなので必ず真
+				;
+			} else {
+				// 条件が偽なら終了地点に飛ばす
+				sprintf(label,"__FR%x_FIN",syntax.curly[pos].index);
+				add_scriptl(add_str("jump_zero"));
+				add_scriptc(C_ARG);
+				p=parse_expr(p);
+				p=skip_space(p);
+				add_scriptl(add_str(label));
+				add_scriptc(C_FUNC);
+			}
+			if(*p != ';') {
+				disp_error_message("need ';'",p);
+				return p+1;
+			}
+			p++;
+
+			// ループ開始に飛ばす
+			sprintf(label,"goto __FR%x_BGN;",syntax.curly[pos].index);
+			syntax.curly[syntax.curly_count++].type = TYPE_NULL;
+			parse_line(label);
+			syntax.curly_count--;
+
+			// 次のループへのラベル形成する
+			sprintf(label,"__FR%x_NXT",syntax.curly[pos].index);
+			l=add_str(label);
+			if(str_data[l].label!=-1){
+				disp_error_message("dup label ",p);
+				exit(1);
+			}
+			set_label(l,script_pos);
+
+			// 次のループに入る時の処理
+			// for 最後の '(' を ';' として扱うフラグ
+			parse_syntax_for_flag = 1;
+			syntax.curly[syntax.curly_count++].type = TYPE_NULL;
+			p=parse_line(p);
+			syntax.curly_count--;
+			parse_syntax_for_flag = 0;
+
+			// 条件判定処理に飛ばす
+			sprintf(label,"goto __FR%x_J;",syntax.curly[pos].index);
+			syntax.curly[syntax.curly_count++].type = TYPE_NULL;
+			parse_line(label);
+			syntax.curly_count--;
+
+			// ループ開始のラベル付け
+			sprintf(label,"__FR%x_BGN",syntax.curly[pos].index);
+			l=add_str(label);
+			if(str_data[l].label!=-1){
+				disp_error_message("dup label ",p);
+				exit(1);
+			}
+			set_label(l,script_pos);
+			return p;
+		} else if(!strncmp(p,"function",8) && !isalpha(*(p + 8))) {
+			unsigned char *func_name;
+			// function
+			p=skip_word(p);
+			p=skip_space(p);
+			// function - name
+			func_name = p;
+			p=skip_word(p);
+			if(*skip_space(p) == ';') {
+				// 関数の宣言 - 名前を登録して終わり
+				unsigned char c = *p;
+				int l;
+				*p = 0;
+				l=add_str(func_name);
+				*p = c;
+				if(str_data[l].type == C_NOP) {
+					str_data[l].type = C_USERFUNC;
+				}
+				return skip_space(p) + 1;
+			} else {
+				// 関数の中身
+				char label[256];
+				unsigned char c = *p;
+				int l;
+				syntax.curly[syntax.curly_count].type  = TYPE_USERFUNC;
+				syntax.curly[syntax.curly_count].count = 1;
+				syntax.curly[syntax.curly_count].index = syntax.index++;
+				syntax.curly[syntax.curly_count].flag  = 0;
+				syntax.curly_count++;
+
+				// 関数終了まで飛ばす
+				sprintf(label,"goto __FN%x_FIN;",syntax.curly[syntax.curly_count-1].index);
+				syntax.curly[syntax.curly_count++].type = TYPE_NULL;
+				parse_line(label);
+				syntax.curly_count--;
+
+				// 関数名のラベルを付ける
+				*p = 0;
+				l=add_str(func_name);
+				if(str_data[l].type == C_NOP) {
+					str_data[l].type = C_USERFUNC;
+				}
+				if(str_data[l].label!=-1){
+					*p=c;
+					disp_error_message("dup label ",p);
+					exit(1);
+				}
+				set_label(l,script_pos);
+				strdb_insert(scriptlabel_db,func_name,script_pos);	// 外部用label db登録
+				*p = c;
+				return skip_space(p);
+			}
+		}
+		break;
+	case 'i':
+		if(!strncmp(p,"if",2) && !isalpha(*(p + 2))) {
+			// if() の処理
+			char label[256];
+			p=skip_word(p);
+			p=skip_space(p);
+
+			syntax.curly[syntax.curly_count].type  = TYPE_IF;
+			syntax.curly[syntax.curly_count].count = 1;
+			syntax.curly[syntax.curly_count].index = syntax.index++;
+			syntax.curly[syntax.curly_count].flag  = 0;
+			sprintf(label,"__IF%x_%x",syntax.curly[syntax.curly_count].index,syntax.curly[syntax.curly_count].count);
+			syntax.curly_count++;
+			add_scriptl(add_str("jump_zero"));
+			add_scriptc(C_ARG);
+			p=parse_expr(p);
+			p=skip_space(p);
+			add_scriptl(add_str(label));
+			add_scriptc(C_FUNC);
+			return p;
+		}
+		break;
+	case 's':
+		if(!strncmp(p,"switch",6) && !isalpha(*(p + 6))) {
+			// switch() の処理
+			char label[256];
+			syntax.curly[syntax.curly_count].type  = TYPE_SWITCH;
+			syntax.curly[syntax.curly_count].count = 1;
+			syntax.curly[syntax.curly_count].index = syntax.index++;
+			syntax.curly[syntax.curly_count].flag  = 0;
+			sprintf(label,"$@__SW%x_VAL",syntax.curly[syntax.curly_count].index);
+			syntax.curly_count++;
+			add_scriptl(add_str("set"));
+			add_scriptc(C_ARG);
+			add_scriptl(add_str(label));
+			p=skip_word(p);
+			p=skip_space(p);
+			p=parse_expr(p);
+			p=skip_space(p);
+			if(*p != '{') {
+				disp_error_message("need '{'",p);
+			}
+			add_scriptc(C_FUNC);
+			return p + 1;
+		}
+		break;
+	case 'w':
+		if(!strncmp(p,"while",5) && !isalpha(*(p + 5))) {
+			int l;
+			char label[256];
+			p=skip_word(p);
+			p=skip_space(p);
+
+			syntax.curly[syntax.curly_count].type  = TYPE_WHILE;
+			syntax.curly[syntax.curly_count].count = 1;
+			syntax.curly[syntax.curly_count].index = syntax.index++;
+			syntax.curly[syntax.curly_count].flag  = 0;
+			// 条件判断開始のラベル形成する
+			sprintf(label,"__WL%x_NXT",syntax.curly[syntax.curly_count].index);
+			l=add_str(label);
+			if(str_data[l].label!=-1){
+				disp_error_message("dup label ",p);
+				exit(1);
+			}
+			set_label(l,script_pos);
+
+			// 条件が偽なら終了地点に飛ばす
+			sprintf(label,"__WL%x_FIN",syntax.curly[syntax.curly_count].index);
+			add_scriptl(add_str("jump_zero"));
+			add_scriptc(C_ARG);
+			p=parse_expr(p);
+			p=skip_space(p);
+			add_scriptl(add_str(label));
+			add_scriptc(C_FUNC);
+			syntax.curly_count++;
+			return p;
+		}
+		break;
+	}
+	return NULL;
+}
+
+unsigned char* parse_syntax_close(unsigned char *p) {
+	// if(...) for(...) hoge(); のように、１度閉じられたら再度閉じられるか確認する
+	int flag;
+
+	do {
+		p = parse_syntax_close_sub(p,&flag);
+	} while(flag);
+	return p;
+}
+
+// if, for , while , do の閉じ判定
+//     flag == 1 : 閉じられた
+//     flag == 0 : 閉じられない
+unsigned char* parse_syntax_close_sub(unsigned char *p,int *flag) {
+	char label[256];
+	int pos = syntax.curly_count - 1;
+	int l;
+	*flag = 1;
+
+	if(syntax.curly_count <= 0) {
+		*flag = 0;
+		return p;
+	} else if(syntax.curly[pos].type == TYPE_IF) {
+		char *p2 = p;
+		// if 最終場所へ飛ばす
+		sprintf(label,"goto __IF%x_FIN;",syntax.curly[pos].index);
+		syntax.curly[syntax.curly_count++].type = TYPE_NULL;
+		parse_line(label);
+		syntax.curly_count--;
+
+		// 現在地のラベルを付ける
+		sprintf(label,"__IF%x_%x",syntax.curly[pos].index,syntax.curly[pos].count);
+		l=add_str(label);
+		if(str_data[l].label!=-1){
+			disp_error_message("dup label ",p);
+			exit(1);
+		}
+		set_label(l,script_pos);
+
+		syntax.curly[pos].count++;
+		p = skip_space(p);
+		if(!syntax.curly[pos].flag && !strncmp(p,"else",4) && !isalpha(*(p + 4))) {
+			// else  or else - if
+			p = skip_word(p);
+			p = skip_space(p);
+			if(!strncmp(p,"if",2) && !isalpha(*(p + 2))) {
+				// else - if
+				p=skip_word(p);
+				p=skip_space(p);
+				sprintf(label,"__IF%x_%x",syntax.curly[pos].index,syntax.curly[pos].count);
+				add_scriptl(add_str("jump_zero"));
+				add_scriptc(C_ARG);
+				p=parse_expr(p);
+				p=skip_space(p);
+				add_scriptl(add_str(label));
+				add_scriptc(C_FUNC);
+				*flag = 0;
+				return p;
+			} else {
+				// else
+				if(!syntax.curly[pos].flag) {
+					syntax.curly[pos].flag = 1;
+					*flag = 0;
+					return p;
+				}
+			}
+		}
+		// if 閉じ
+		syntax.curly_count--;
+		// 最終地のラベルを付ける
+		sprintf(label,"__IF%x_FIN",syntax.curly[pos].index);
+		l=add_str(label);
+		if(str_data[l].label!=-1){
+			disp_error_message("dup label ",p);
+			exit(1);
+		}
+		set_label(l,script_pos);
+		if(syntax.curly[pos].flag == 1) {
+			// このifに対するelseじゃないのでポインタの位置は同じ
+			return p2;
+		}
+		return p;
+	} else if(syntax.curly[pos].type == TYPE_DO) {
+		int l;
+		char label[256];
+		unsigned char *p2;
+
+		if(syntax.curly[pos].flag) {
+			// 現在地のラベル形成する(continue でここに来る)
+			sprintf(label,"__DO%x_NXT",syntax.curly[pos].index);
+			l=add_str(label);
+			if(str_data[l].label!=-1){
+				disp_error_message("dup label ",p);
+				exit(1);
+			}
+			set_label(l,script_pos);
+		}
+
+		// 条件が偽なら終了地点に飛ばす
+		p = skip_space(p);
+		p2 = skip_word(p);
+		if(p2 - p != 5 || strncmp("while",p,5)) {
+			disp_error_message("need 'while'",p);
+		}
+		p = p2;
+
+		sprintf(label,"__DO%x_FIN",syntax.curly[pos].index);
+		add_scriptl(add_str("jump_zero"));
+		add_scriptc(C_ARG);
+		p=parse_expr(p);
+		p=skip_space(p);
+		add_scriptl(add_str(label));
+		add_scriptc(C_FUNC);
+
+		// 開始地点に飛ばす
+		sprintf(label,"goto __DO%x_BGN;",syntax.curly[pos].index);
+		syntax.curly[syntax.curly_count++].type = TYPE_NULL;
+		parse_line(label);
+		syntax.curly_count--;
+
+		// 条件終了地点のラベル形成する
+		sprintf(label,"__DO%x_FIN",syntax.curly[pos].index);
+		l=add_str(label);
+		if(str_data[l].label!=-1){
+			disp_error_message("dup label ",p);
+			exit(1);
+		}
+		set_label(l,script_pos);
+		p = skip_space(p);
+		if(*p != ';') {
+			disp_error_message("need ';'",p);
+			return p+1;
+		}
+		p++;
+		syntax.curly_count--;
+		return p;
+	} else if(syntax.curly[pos].type == TYPE_FOR) {
+		// 次のループに飛ばす
+		sprintf(label,"goto __FR%x_NXT;",syntax.curly[pos].index);
+		syntax.curly[syntax.curly_count++].type = TYPE_NULL;
+		parse_line(label);
+		syntax.curly_count--;
+
+		// for 終了のラベル付け
+		sprintf(label,"__FR%x_FIN",syntax.curly[pos].index);
+		l=add_str(label);
+		if(str_data[l].label!=-1){
+			disp_error_message("dup label ",p);
+			exit(1);
+		}
+		set_label(l,script_pos);
+		syntax.curly_count--;
+		return p;
+	} else if(syntax.curly[pos].type == TYPE_WHILE) {
+		// while 条件判断へ飛ばす
+		sprintf(label,"goto __WL%x_NXT;",syntax.curly[pos].index);
+		syntax.curly[syntax.curly_count++].type = TYPE_NULL;
+		parse_line(label);
+		syntax.curly_count--;
+
+		// while 終了のラベル付け
+		sprintf(label,"__WL%x_FIN",syntax.curly[pos].index);
+		l=add_str(label);
+		if(str_data[l].label!=-1){
+			disp_error_message("dup label ",p);
+			exit(1);
+		}
+		set_label(l,script_pos);
+		syntax.curly_count--;
+		return p;
+	} else if(syntax.curly[syntax.curly_count-1].type == TYPE_USERFUNC) {
+		int pos = syntax.curly_count-1;
+		char label[256];
+		int l;
+		// 戻す
+		sprintf(label,"return;");
+		syntax.curly[syntax.curly_count++].type = TYPE_NULL;
+		parse_line(label);
+		syntax.curly_count--;
+
+		// 現在地のラベルを付ける
+		sprintf(label,"__FN%x_FIN",syntax.curly[pos].index);
+		l=add_str(label);
+		if(str_data[l].label!=-1){
+			disp_error_message("dup label ",p);
+			exit(1);
+		}
+		set_label(l,script_pos);
+		syntax.curly_count--;
+		return p + 1;
+	} else {
+		*flag = 0;
+		return p;
+	}
 }
 
 /*==========================================
@@ -1273,7 +2035,10 @@ unsigned char* parse_script(unsigned char *src,int line)
 	str_data[LABEL_NEXTLINE].backpatch = -1;
 	str_data[LABEL_NEXTLINE].label = -1;
 	for (i = LABEL_START; i < str_num; i++) {
-		if (str_data[i].type == C_POS || str_data[i].type == C_NAME) {
+		if (
+			str_data[i].type == C_POS || str_data[i].type == C_NAME ||
+			str_data[i].type == C_USERFUNC || str_data[i].type == C_USERFUNC_POS
+		) {
 			str_data[i].type = C_NOP;
 			str_data[i].backpatch = -1;
 			str_data[i].label = -1;
@@ -1289,11 +2054,11 @@ unsigned char* parse_script(unsigned char *src,int line)
 	startptr = src;
 	startline = line;
 
-	while (p && *p && *p != '}') {
+	while (p && *p && (*p != '}' || syntax.curly_count != 0)) {
 		p = skip_space(p);
 		// labelだけ特殊処理
 		tmpp = skip_space(skip_word(p));
-		if (*tmpp == ':') {
+		if (*tmpp == ':' && !(!strncmp(p,"default",7) && !isalpha(*(p + 7)))) {
 			int l, c;
 			c = *skip_word(p);
 			*skip_word(p) = 0;
@@ -1357,7 +2122,7 @@ unsigned char* parse_script(unsigned char *src,int line)
 //
 // 実行系
 //
-enum {STOP=1,END,RERUNLINE,GOTO,RETFUNC};
+enum {RUN = 0,STOP,END,RERUNLINE,GOTO,RETFUNC};
 
 /*==========================================
  * ridからsdへの解決
@@ -1679,13 +2444,13 @@ int buildin_callfunc(struct script_state *st)
 			push_copy(st->stack,i);
 
 		push_val(st->stack,C_INT,j);				// 引数の数をプッシュ
-		push_val(st->stack,C_INT,st->defsp);	// 現在の基準スタックポインタをプッシュ
+		push_val(st->stack,C_INT,st->stack->defsp);	// 現在の基準スタックポインタをプッシュ
 		push_val(st->stack,C_INT,(int)st->script);	// 現在のスクリプトをプッシュ
 		push_val(st->stack,C_RETINFO,st->pos);		// 現在のスクリプト位置をプッシュ
 
 		st->pos=0;
 		st->script=scr;
-		st->defsp=st->start+4+j;
+		st->stack->defsp=st->start+4+j;
 		st->state=GOTO;
 	}else{
 		ShowWarning("script:callfunc: function not found! [%s]\n",str);
@@ -1701,17 +2466,23 @@ int buildin_callsub(struct script_state *st)
 {
 	int pos=conv_num(st,& (st->stack->stack_data[st->start+2]));
 	int i,j;
-	for(i=st->start+3,j=0;i<st->end;i++,j++)
-		push_copy(st->stack,i);
+	if(st->stack->stack_data[st->start+2].type != C_POS && st->stack->stack_data[st->start+2].type != C_USERFUNC_POS) {
+		ShowError("script: callsub: not label !\n");
+		st->state=END;
+		return 0;
+	} else {
+		for(i=st->start+3,j=0;i<st->end;i++,j++)
+			push_copy(st->stack,i);
 
-	push_val(st->stack,C_INT,j);				// 引数の数をプッシュ
-	push_val(st->stack,C_INT,st->defsp);	// 現在の基準スタックポインタをプッシュ
-	push_val(st->stack,C_INT,(int)st->script);	// 現在のスクリプトをプッシュ
-	push_val(st->stack,C_RETINFO,st->pos);		// 現在のスクリプト位置をプッシュ
+		push_val(st->stack,C_INT,j);				// 引数の数をプッシュ
+		push_val(st->stack,C_INT,st->stack->defsp);	// 現在の基準スタックポインタをプッシュ
+		push_val(st->stack,C_INT,(int)st->script);	// 現在のスクリプトをプッシュ
+		push_val(st->stack,C_RETINFO,st->pos);		// 現在のスクリプト位置をプッシュ
 
-	st->pos=pos;
-	st->defsp=st->start+4+j;
-	st->state=GOTO;
+		st->pos=pos;
+		st->stack->defsp=st->start+4+j;
+		st->state=GOTO;
+	}
 	return 0;
 }
 
@@ -1723,13 +2494,13 @@ int buildin_getarg(struct script_state *st)
 {
 	int num=conv_num(st,& (st->stack->stack_data[st->start+2]));
 	int max,stsp;
-	if( st->defsp<4 || st->stack->stack_data[st->defsp-1].type!=C_RETINFO ){
+	if( st->stack->defsp<4 || st->stack->stack_data[st->stack->defsp-1].type!=C_RETINFO ){
 		ShowWarning("script:getarg without callfunc or callsub!\n");
 		st->state=END;
 		return 0;
 	}
-	max=conv_num(st,& (st->stack->stack_data[st->defsp-4]));
-	stsp=st->defsp - max -4;
+	max=conv_num(st,& (st->stack->stack_data[st->stack->defsp-4]));
+	stsp=st->stack->defsp - max -4;
 	if( num >= max ){
 		ShowWarning("script:getarg arg1(%d) out of range(%d) !\n",num,max);
 		st->state=END;
@@ -2366,9 +3137,15 @@ int buildin_copyarray(struct script_state *st)
 	if( prefix!='$' || prefix2!='$' )
 		sd=script_rid2sd(st);
 
+	// if two array is the same and (num > num2), bottom-up copy is required [Eoe / jA 1116]
+	if((num & 0x00FFFFFF) == (num2 & 0x00FFFFFF) && (num & 0xFF000000) > (num2 & 0xFF000000)) {
+		for(i=sz-1;i>=0;i--)
+			set_reg(sd,num+(i<<24),name, get_val2(st,num2+(i<<24)) );
+	} else {
+		for(i=0;i<sz;i++)
+			set_reg(sd,num+(i<<24),name, get_val2(st,num2+(i<<24)) );
+	}
 
-	for(i=0;i<sz;i++)
-		set_reg(sd,num+(i<<24),name, get_val2(st,num2+(i<<24)) );
 	return 0;
 }
 /*==========================================
@@ -2379,7 +3156,8 @@ static int getarraysize(struct script_state *st,int num,int postfix)
 {
 	int i=(num>>24),c=i;
 	for(;i<128;i++){
-		void *v=get_val2(st,num+(i<<24));
+		// num must be the first elements of array [Eoe / jA 1127]
+		void *v=get_val2(st,(num & 0x00FFFFFF)+(i<<24));
 		if(postfix=='$' && *((char*)v) ) c=i;
 		if(postfix!='$' && (int)v )c=i;
 	}
@@ -8403,23 +9181,26 @@ int run_func(struct script_state *st)
 		push_val(st->stack,C_INT,0);
 	}
 
-	pop_stack(st->stack,start_sp,end_sp);
+	// Stack's datum are used when re-run functions [Eoe]
+	if(st->state != RERUNLINE) {
+		pop_stack(st->stack,start_sp,end_sp);
+	}
 
 	if(st->state==RETFUNC){
 		// ユーザー定義関数からの復帰
-		int olddefsp=st->defsp;
+		int olddefsp=st->stack->defsp;
 		int i;
 
-		pop_stack(st->stack,st->defsp,start_sp);	// 復帰に邪魔なスタック削除
-		if(st->defsp<4 || st->stack->stack_data[st->defsp-1].type!=C_RETINFO){
+		pop_stack(st->stack,st->stack->defsp,start_sp);	// 復帰に邪魔なスタック削除
+		if(st->stack->defsp<4 || st->stack->stack_data[st->stack->defsp-1].type!=C_RETINFO){
 			ShowWarning("script:run_func(return) return without callfunc or callsub!\n");
 			st->state=END;
 			return 0;
 		}
-		i = conv_num(st,& (st->stack->stack_data[st->defsp-4]));				// 引数の数所得
-		st->pos=conv_num(st,& (st->stack->stack_data[st->defsp-1]));			// スクリプト位置の復元
-		st->script=(char*)conv_num(st,& (st->stack->stack_data[st->defsp-2]));	// スクリプトを復元
-		st->defsp=conv_num(st,& (st->stack->stack_data[st->defsp-3]));			// 基準スタックポインタを復元
+		i = conv_num(st,& (st->stack->stack_data[st->stack->defsp-4]));					// 引数の数所得
+		st->pos=conv_num(st,& (st->stack->stack_data[st->stack->defsp-1]));				// スクリプト位置の復元
+		st->script=(char*)conv_num(st,& (st->stack->stack_data[st->stack->defsp-2]));	// スクリプトを復元
+		st->stack->defsp=conv_num(st,& (st->stack->stack_data[st->stack->defsp-3]));	// 基準スタックポインタを復元
 
 		pop_stack(st->stack,olddefsp-4-i,olddefsp);		// 要らなくなったスタック(引数と復帰用データ)削除
 
@@ -8433,47 +9214,51 @@ int run_func(struct script_state *st)
  * スクリプトの実行メイン部分
  *------------------------------------------
  */
-int run_script_main(char *script,int pos,int rid,int oid,struct script_state *st,char *rootscript)
+int run_script_main(struct script_state *st)
 {
-	int c,rerun_pos;
+	int c/*,rerun_pos*/;
 	int cmdcount=script_config.check_cmdcount;
 	int gotocount=script_config.check_gotocount;
 	struct script_stack *stack=st->stack;
 
-	st->defsp=stack->sp;
-	st->script=script;
-
-	rerun_pos=st->pos;
-	for(st->state=0;st->state==0;){
-		switch(c= get_com((unsigned char *) script,&st->pos)){
+	if(st->state == RERUNLINE) {
+		st->state = RUN;
+		run_func(st);
+		if(st->state == GOTO){
+			st->state = RUN;
+		}
+	} else {
+		st->state = RUN;
+	}
+	while( st->state == RUN) {
+		switch(c= get_com((unsigned char *) st->script,&st->pos)){
 		case C_EOL:
-			if(stack->sp!=st->defsp){
+			if(stack->sp!=stack->defsp){
 				if(battle_config.error_log)
-					ShowError("stack.sp(%d) != default(%d)\n",stack->sp,st->defsp);
-				stack->sp=st->defsp;
+					ShowError("stack.sp(%d) != default(%d)\n",stack->sp,stack->defsp);
+				stack->sp=stack->defsp;
 			}
-			rerun_pos=st->pos;
+			// rerun_pos=st->pos;
 			break;
 		case C_INT:
-			push_val(stack,C_INT,get_num((unsigned char *) script,&st->pos));
+			push_val(stack,C_INT,get_num((unsigned char *) st->script,&st->pos));
 			break;
 		case C_POS:
 		case C_NAME:
-			push_val(stack,c,(*(int*)(script+st->pos))&0xffffff);
+			push_val(stack,c,(*(int*)(st->script+st->pos))&0xffffff);
 			st->pos+=3;
 			break;
 		case C_ARG:
 			push_val(stack,c,0);
 			break;
 		case C_STR:
-			push_str(stack,C_CONSTSTR,(unsigned char *) (script+st->pos));
-			while(script[st->pos++]);
+			push_str(stack,C_CONSTSTR,(unsigned char *) (st->script+st->pos));
+			while(st->script[st->pos++]);
 			break;
 		case C_FUNC:
 			run_func(st);
 			if(st->state==GOTO){
-				rerun_pos=st->pos;
-				script=st->script;
+				// rerun_pos=st->pos;
 				st->state=0;
 				if( gotocount>0 && (--gotocount)<=0 ){
 					ShowError("run_script: infinity loop !\n");
@@ -8539,9 +9324,13 @@ int run_script_main(char *script,int pos,int rid,int oid,struct script_state *st
 		}
 		break;
 	case RERUNLINE:
-		{
-			st->pos=rerun_pos;
-		}
+		// Do not call function of commands two time! [ Eoe / jA 1094 ]
+		// For example: select "1", "2", callsub(...);
+		// If current script position is changed, callsub will be called two time.
+		// 
+		// {
+		// 	st->pos=rerun_pos;
+		// }
 		break;
 	}
 
@@ -8565,29 +9354,34 @@ int run_script(unsigned char *script,int pos,int rid,int oid)
 
 	if ((sd = map_id2sd(rid)) && sd->stack && sd->npc_scriptroot == rootscript){
 		// 前回のスタックを復帰
-		script = st.script = sd->npc_script;
+		st.script = sd->npc_script;
 		st.stack = sd->stack;
+		st.state  = sd->npc_scriptstate;
 		sd->stack = NULL;
 		sd->npc_script      = NULL;
 		sd->npc_scriptroot  = NULL;
+		sd->npc_scriptstate = 0;
 	} else {
 		// スタック初期化
 		st.stack = aCalloc (1, sizeof(struct script_stack));
 		st.stack->sp = 0;
 		st.stack->sp_max = 64;
 		st.stack->stack_data = (struct script_data *) aCalloc (st.stack->sp_max,sizeof(st.stack->stack_data[0]));
-		//st.script = rootscript;
+		st.stack->defsp = st.stack->sp;
+		st.state  = RUN;
+		st.script = rootscript;
 	}
 	st.pos = pos;
 	st.rid = rid;
 	st.oid = oid;
-	run_script_main(script, pos, rid, oid, &st, rootscript);
+	run_script_main(&st);
 
 	sd = map_id2sd(st.rid);
 	if (st.state != END && sd) {
 		// 再開するためにスタック情報を保存
 		sd->npc_script      = st.script;
 		sd->npc_scriptroot  = rootscript;
+		sd->npc_scriptstate = st.state;
 		if (sd->stack)
 		{	//There was a stack? Remove it. [Skotlex]
 			if (sd->stack->stack_data)

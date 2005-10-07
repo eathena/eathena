@@ -1642,7 +1642,8 @@ int npc_convertlabel_db (void *key, void *data, va_list ap)
 	struct npc_data *nd;
 	struct npc_label_list *lst;
 	int num;
-	char *p = strchr(lname,':');
+	char *p;
+	char c;
 
 	nullpo_retr(0, ap);
 	nullpo_retr(0, nd = va_arg(ap,struct npc_data *));
@@ -1655,16 +1656,20 @@ int npc_convertlabel_db (void *key, void *data, va_list ap)
 	} else
 		lst = (struct npc_label_list *) aRealloc (lst, sizeof(struct npc_label_list)*(num+1));
 
-	*p = '\0';
-	
+	// In case of labels not terminated with ':', for user defined function support
+	p = lname;
+	while(isalnum(*p) || *p == '_') { p++; }
+	c = *p;
+	*p='\0';
+
 	// here we check if the label fit into the buffer
 	if (strlen(lname) > 23) { 
 		ShowError("npc_parse_script: label name longer than 23 chars! '%s'\n (%s)", lname, current_file);
 		exit(1);
 	}
 	memcpy(lst[num].name, lname, strlen(lname)+1); //including EOS
-	
-	*p = ':';
+
+	*p = c;
 	lst[num].pos = pos;
 	nd->u.scr.label_list = lst;
 	nd->u.scr.label_list_num = num+1;
@@ -1676,6 +1681,53 @@ int npc_convertlabel_db (void *key, void *data, va_list ap)
  * script行解析
  *------------------------------------------
  */
+static void npc_parse_script_line(unsigned char *p,int *curly_count,int line) {
+	int i = strlen(p),j;
+	int string_flag = 0;
+	static int comment_flag = 0;
+	for(j = 0; j < i ; j++) {
+		if(comment_flag) {
+			if(p[j] == '*' && p[j+1] == '/') {
+				// マルチラインコメント終了
+				j++;
+				(*curly_count)--;
+				comment_flag = 0;
+			}
+		} else if(string_flag) {
+			if(p[j] == '"') {
+				string_flag = 0;
+			} else if(p[j] == '\\' && p[j-1]<=0x7e) {
+				// エスケープ
+				j++;
+			}
+		} else {
+			if(p[j] == '"') {
+				string_flag = 1;
+			} else if(p[j] == '}') {
+				if(*curly_count == 0) {
+					break;
+				} else {
+					(*curly_count)--;
+				}
+			} else if(p[j] == '{') {
+				(*curly_count)++;
+			} else if(p[j] == '/' && p[j+1] == '/') {
+				// コメント
+				break;
+			} else if(p[j] == '/' && p[j+1] == '*') {
+				// マルチラインコメント
+				j++;
+				(*curly_count)++;
+				comment_flag = 1;
+			}
+		}
+	}
+	if(string_flag) {
+		printf("Missing '\"' at line %d\n",line);
+		exit(1);
+	}
+}
+
 static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_line,FILE *fp,int *lines)
 {
 	int x, y, dir = 0, m, xs = 0, ys = 0, class_ = 0;	// [Valaris] thanks to fov
@@ -1706,20 +1758,19 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 	}
 
 	if (strcmp(w2, "script") == 0){
-		// スクリプトの解析
+		// parsing script with curly
+		int curly_count = 0;
 		srcbuf = (unsigned char *)aCallocA(srcsize, sizeof(char));
 		if (strchr(first_line, '{')) {
 			strcpy((char *)srcbuf, strchr(first_line, '{'));
 			startline = *lines;
 		} else
 			srcbuf[0] = 0;
-		while (1) {
-			for (i = strlen((const char *)srcbuf) - 1; i >= 0 && isspace(srcbuf[i]); i--)
-				;
-			if (i >= 0 && srcbuf[i] == '}')
-				break;
+		npc_parse_script_line(srcbuf,&curly_count,*lines);
+		while (curly_count > 0) {
 			fgets ((char *)line, 1020, fp);
 			(*lines)++;
+			npc_parse_script_line(line,&curly_count,*lines);
 			if (feof(fp))
 				break;
 			if (strlen((char *)srcbuf) + strlen((char *)line) + 1 >= srcsize) {
@@ -1735,7 +1786,13 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 			} else
 				strcat((char *) srcbuf, (const char *) line);
 		}
-		script = (unsigned char *) parse_script((unsigned char *) srcbuf, startline);
+		if(curly_count > 0) {
+			ShowError("Missing right curly at line %d\n",*lines);
+			script = NULL;
+		} else {
+			// printf("Ok line %d\n",*lines);
+			script = (unsigned char *) parse_script((unsigned char *) srcbuf, startline);
+		}
 		if (script == NULL) {
 			// script parse error?
 			aFree(srcbuf);
@@ -1984,7 +2041,7 @@ static int npc_parse_function (char *w1, char *w2, char *w3, char *w4, char *fir
 	int srcsize = 65536;
 	int startline = 0;
 	char line[1024];
-	int i;
+	int curly_count = 0;
 
 	// スクリプトの解析
 	srcbuf = (char *) aCallocA (srcsize, sizeof(char));
@@ -1993,13 +2050,12 @@ static int npc_parse_function (char *w1, char *w2, char *w3, char *w4, char *fir
 		startline = *lines;
 	} else
 		srcbuf[0] = 0;
+	npc_parse_script_line(srcbuf,&curly_count,*lines);
 
-	while (1) {
-		for (i = strlen(srcbuf)-1; i >= 0 && isspace(srcbuf[i]); i--);
-		if (i >= 0 && srcbuf[i] == '}')
-			break;
+	while (curly_count > 0) {
 		fgets(line, sizeof(line) - 1, fp);
 		(*lines)++;
+		npc_parse_script_line(line,&curly_count,*lines);
 		if (feof(fp))
 			break;
 		if (strlen(srcbuf)+strlen(line)+1 >= srcsize) {
@@ -2015,8 +2071,12 @@ static int npc_parse_function (char *w1, char *w2, char *w3, char *w4, char *fir
 		} else
 			strcat(srcbuf,line);
 	}
-
-	script = parse_script((unsigned char *)srcbuf, startline);
+	if(curly_count > 0) {
+		ShowError("Missing right curly at line %d\n",*lines);
+		script = NULL;
+	} else {
+		script = parse_script((unsigned char *)srcbuf, startline);
+	}
 	if (script == NULL) {
 		// script parse error?
 		aFree(srcbuf);

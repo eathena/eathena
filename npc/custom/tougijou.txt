@@ -53,7 +53,7 @@ LStart2:
 		mes "Well then, have fun!";
 		next;
 		warp "gon_test.gat",53,6;
-		break;
+		end;
 	Lno:
 		mes "[Son Mudo]";
 		mes "What, you hesitate? Well, it's ok. See you later then.";
@@ -71,7 +71,7 @@ gon_test.gat,50,14,4	script	Gonryun Arena Staff	780,{
 	close;
 OnInit:
 	waitingroom "Please enter here!!",1,"Gonryun Arena Staff::OnMax";
-	break;
+	end;
 OnMax:
 	warpwaitingpc "gon_test.gat",44,86;
 	killmonsterall "gon_test.gat";
@@ -79,7 +79,7 @@ OnMax:
 	disablenpc "Gonryun Arena Staff";
 	set $@addmon,0;
 	set $@kengaku,0;
-	break;
+	end;
 }
 //===============================================================================
 gon_test.gat,46,14,4	script	Arena Guide	770,{
@@ -111,13 +111,13 @@ L3:
 	next;
 	set $@kengaku,1;
 	warp "gon_test.gat",25,99;
-	break;
+	end;
 L4:
 	mes "[Son Fiyon]";
 	mes "Thank you. Please use our service again.";
 	next;
 	warp "gonryun.gat",177,112;
-	break;
+	end;
 L5:
 	mes "[Son Fiyon]";
 	mes "......";
@@ -300,12 +300,12 @@ gon_test.gat,58,87,0	script	mobend	-1,{
 	mapannounce "gon_test.gat","Summoner: Congratulations.",0;
 	stopnpctimer "gontimer";
 	addtimer 5000, "mobend::OnReturn";
-	break;
+	end;
 OnReturn:
 	enablenpc "Gonryun Arena Staff";
 	donpcevent "Gonryun Arena Staff::OnInit";
 	warp "gon_test.gat",44,4;
-	break;
+	end;
 }
 //===============================================================================
 gon_test.gat,70,103,4	script	Gateway Staff	773,{
@@ -318,7 +318,7 @@ gon_test.gat,70,103,4	script	Gateway Staff	773,{
 		next;
 		warp "gon_test.gat",44,4;
 		set $@kengaku,0;
-		break;
+		end;
 	Lno:
 		mes "[Che En'en]";
 		mes "Thank you. ";

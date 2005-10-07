@@ -16,12 +16,12 @@
 
 geffen.gat,66,87,6	script	Aipo	819,{
  mes "[Aipo]";
- If (BaseJob == 0) GOTO L_NOVICE;
+ if (BaseJob == 0) GOTO L_NOVICE;
  mes "Heeeeee.";
  next;
  mes "[Aipo]";
  mes "Have you ever wondered what you would look like with a ^000080Mushroom Hairband^000000?";
- mes "Well, I can make you one If you like, just give me 300 Mushroom Spores!";
+ mes "Well, I can make you one if you like, just give me 300 Mushroom Spores!";
  next;
  mes "[Aipo]";
  mes "This wondrous item grew in the depths of a gave and needs the spores for the final";
@@ -54,6 +54,6 @@ L_NOVICE:
 
 M_EXIT:
  mes "[Aipo]";
- mes "Well, I'm always here If you change your mind!";
+ mes "Well, I'm always here if you change your mind!";
  close;
 }

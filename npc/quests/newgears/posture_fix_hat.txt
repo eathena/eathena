@@ -16,18 +16,18 @@
 //============================================================
 
 payon_in01.gat,143,8,5	script	Nan Hyang	814,{
- If (getequipisequiped(5073)) GOTO L_GOOD;
- If (BaseJob == 0) GOTO L_NOVICE;
+ if (getequipisequiped(5073)) GOTO L_GOOD;
+ if (BaseJob == 0) GOTO L_NOVICE;
  mes "[Nan Hyang]";
  mes "Tut tut! you have terrible posture!";
  mes "You need to correct it immediately!";
  next;
  mes "[Nan Hyang]";
- mes "I could correct it for you If you brought me some materials to make you a Posture Fix Hat.";
+ mes "I could correct it for you if you brought me some materials to make you a Posture Fix Hat.";
  next;
  menu "Please, make me one.",-,"What do I need to get?",M_REQ,"No thanks!",M_EXIT;
 
- If ((countitem(1550) <1) || (countitem(2285) < 1 )) GOTO L_NOITEM;//Items: Book, Apple o' Archer,
+ if ((countitem(1550) <1) || (countitem(2285) < 1 )) GOTO L_NOITEM;//Items: Book, Apple o' Archer,
  mes "[Nan Hyang]";
  mes "Ahh at last, someone who is serious!";
  delitem 1550,1;//Items: Book,

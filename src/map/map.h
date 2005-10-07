@@ -399,6 +399,7 @@ struct map_session_data {
 	int npc_amount;
 	struct script_stack *stack;
 	unsigned char *npc_script,*npc_scriptroot;
+	int  npc_scriptstate;
 	char npc_str[256];
 	unsigned int chatID;
 	unsigned long idletime;

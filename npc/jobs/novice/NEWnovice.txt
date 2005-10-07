@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= eAthena Dev Team
 //===== Current Version: ===================================== 
-//= 1.0 
+//= 1.1 
 //===== Compatible With: ===================================== 
 //= eAthena SVN 1695+
 //===== Description: ========================================= 
@@ -78,35 +78,35 @@ check1:
 	warp "new_1-1.gat",53,111;
 	set novicegro,1;
 	set novarea,1;
-	break;
+	end;
 
 check2:
 	savepoint "new_2-1.gat",53,111;
 	warp "new_2-1.gat",53,111;
 	set novicegro,1;
 	set novarea,2;
-	break;
+	end;
 
 check3:
 	savepoint "new_3-1.gat",53,111;
 	warp "new_3-1.gat",53,111;
 	set novicegro,1;
 	set novarea,3;
-	break;
+	end;
 
 check4:
 	savepoint "new_4-1.gat",53,111;
 	warp "new_4-1.gat",53,111;
 	set novicegro,1;
 	set novarea,4;
-	break;
+	end;
 
 check5:
 	savepoint "new_5-1.gat",53,111;
 	warp "new_5-1.gat",53,111;
 	set novicegro,1;
 	set novarea,5;
-	break;
+	end;
 
 }
 
@@ -265,7 +265,7 @@ Warped:
 	mes "Training Grounds.";
 	next;
 	callfunc "warpcheck1";
-	break;
+	end;
 
 T_oper:
 	mes "[Xi En]";
@@ -339,7 +339,7 @@ C_direct:
 	if (@TEMP == 0) callsub M2_S4;
 	if (@TEMP == 0) callsub M2_S5;
 	if (@TEMP == 0) callsub M2_S6;
-	break;
+	end;
 
 	M2_S1:
 	savepoint "prontera.gat",273,354;

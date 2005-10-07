@@ -26,7 +26,7 @@ xmas.gat,152,176,3	script	Bora	826,{
  next;
  menu "Yes, make me one now!",-,"What are the requirements?",M_REQ,"No, thanks.",M_EXIT;
 
- If ((countitem(5030) < 1) || (countitem(7213) < 100) || (countitem(7217) < 100) || (countitem(7161) < 300)) GOTO L_NOITEM;//Items: Panda Hat, Pin Cusion, Spool of Thread, Bear Skin,
+ if ((countitem(5030) < 1) || (countitem(7213) < 100) || (countitem(7217) < 100) || (countitem(7161) < 300)) GOTO L_NOITEM;//Items: Panda Hat, Pin Cusion, Spool of Thread, Bear Skin,
  mes "[Bora]";
  mes "Yay! now I can make my famous Bear Hat!";
  mes "Now, give me your items!";

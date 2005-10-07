@@ -5,7 +5,7 @@
 //= dafide18 (1.4)
 //= Skotlex (1.5)
 //===== Current Version: =====================================
-//= 1.5b
+//= 1.6
 //===== Compatible With: =====================================
 //= Any Freya Version
 //===== Description: =========================================
@@ -31,6 +31,7 @@
 //= 1.5a - Corrected an unneeded callfunc, fixed the anti-bot 
 //=       exploit ruining the safe refine loop. [Skotlex]
 //= 1.5b - Fixed Spelling mistakes. [Nexon] 
+//= 1.6	- Replaced all breaks for ends as per the new script engine [Skotlex]
 //============================================================
 
 
@@ -162,27 +163,27 @@ geffen_in.gat,110,172,2	script	Christopher	63,{
 prt_in.gat,63,60,4	script	Hollengrhen	85,{
 	set @name$,"Hollengrhen";
 	callfunc "refinemain";
-	break;
+	end;
 }
 morocc_in.gat,73,38,4	script	Aragham	99,{
 	set @name$,"Aragham";
 	callfunc "refinemain";
-	break;
+	end;
 }
 payon.gat,144,173,4	script	Antonio	88,{
 	set @name$,"Antonio";
 	callfunc "refinemain";
-	break;
+	end;
 }
 alberta_in.gat,28,58,4	script	Fredrik	85,{
 	set @name$,"Fredrik";
 	callfunc "refinemain";
-	break;
+	end;
 }
 yuno_in01.gat,164,26,6	script	Disturb	88,{
 	set @name$,"Disturb";
 	callfunc "refinemain";
-	break;
+	end;
 }
 
 //============================================================
@@ -466,7 +467,7 @@ Lnosafe:
 		delitem @material,@refinecnt;
 		set Zeny,Zeny - @fullprice;
 		goto L_refinenumber;
-		break;
+		end;
 
 		Lwarn:
 			set @refinecheck,@refinecheck - @safe;
@@ -537,27 +538,27 @@ L_refinenumber:
 prt_in.gat,56,69,4	script	Vurewell	86,{
 	set @name$,"Vurewell";
 	callfunc "phramain";
-	break;
+	end;
 }
 payon.gat,145,178,4	script	Begnahd	88,{
 	set @name$,"Begnahd";
 	callfunc "phramain";
-	break;
+	end;
 }
 morocc_in.gat,65,37,4	script	Sade	99,{
 	set @name$,"Sade";
 	callfunc "phramain";
-	break;
+	end;
 }
 alberta_in.gat,18,59,5	script	Kahlamanlith	86,{
 	set @name$,"Kahlamanlith";
 	callfunc "phramain";
-	break;
+	end;
 }
 yuno_in01.gat,171,26,6	script	Dillemat	88,{
 	set @name$,"Dillemat";
 	callfunc "phramain";
-	break;
+	end;
 }
 
 //============================================================
@@ -620,27 +621,27 @@ L_ABOVE:
 prt_in.gat,63,69,4	script	Dietrich	84,{
 	set @name$,"Dietrich";
 	callfunc "orimain";
-	break;
+	end;
 }
 payon.gat,137,178,4	script	Hakhim	88,{
 	set @name$,"Hakhim";
 	callfunc "orimain";
-	break;
+	end;
 }
 morocc_in.gat,72,32,4	script	Abdul	99,{
 	set @name$,"Abdul";
 	callfunc "orimain";
-	break;
+	end;
 }
 alberta_in.gat,21,63,5	script	Xenophon	84,{
 	set @name$,"Xenophon";
 	callfunc "orimain";
-	break;
+	end;
 }
 yuno_in01.gat,171,22,6	script	Delayt	88,{
 	set @name$,"Delayt";
 	callfunc "orimain";
-break;
+end;
 }
 
 //============================================================
@@ -710,20 +711,20 @@ function	script	orimain	{
 prt_in.gat,62,54,2	script	Grendal	84,{
 	set @name$,"Grendal";
 	callfunc "repairmain";
-	break;
+	end;
 }
 
 //Temp Spot, Not Shure Where To place
 payon.gat,149,182,2	script	Repairman	88,{
 	set @name$,"Repairman";
 	callfunc "repairmain";
-	break;
+	end;
 }
 
 morocc_in.gat,71,40,2	script	Repairman	99,{
 	set @name$,"Repairman";
 	callfunc "repairmain";
-	break;
+	end;
 }
 
 //============================================================

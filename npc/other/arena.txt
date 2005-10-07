@@ -50,7 +50,7 @@ L_GOLV1:
 	disablenpc "fc107";
 	addtimer 5000,"arenalv1st";
 	warp "force_1-1.gat",99,12;
-	break;
+	end;
 L_GOLV2:
 	if( getmapusers("force_1-1.gat")>0 ) goto L_WAIT;
 	disablenpc "fc103-1";
@@ -58,7 +58,7 @@ L_GOLV2:
 	disablenpc "fc107";
 	addtimer 5000,"arenalv2st";
 	warp "force_1-1.gat",99,12;
-	break;	
+	end;	
 L_GOLV3:
 	if( getmapusers("force_1-1.gat")>0 ) goto L_WAIT;
 	disablenpc "fc103-1";
@@ -66,7 +66,7 @@ L_GOLV3:
 	disablenpc "fc107";
 	addtimer 5000,"arenalv3st";
 	warp "force_1-1.gat",99,12;
-	break;	
+	end;	
 L_WAIT:
 	mes "Since the arena is in use,";
 	mes "please wait for a while.";
@@ -230,7 +230,7 @@ force_1-1.gat,25,26,0	script	arenalv1mon	-1,{
 		strcharinfo(0) + " cleared Time Attack Level 1.",0;
 	addtimer 5000,"arenareturn";
 L_CONT:
-	break;
+	end;
 }
 
 force_1-1.gat,25,26,0 	script	arenalv2mon	-1,{
@@ -296,7 +296,7 @@ force_1-1.gat,25,26,0 	script	arenalv2mon	-1,{
 		strcharinfo(0) + " cleared Time Attack Level 2.",0;
 	addtimer 5000,"arenareturn";
 L_CONT:
-	break;
+	end;
 }
 
 
@@ -363,7 +363,7 @@ force_1-1.gat,25,26,0 	script	arenalv3mon	-1,{
 		strcharinfo(0) + " cleared Time Attack Level 3.",0;
 	addtimer 5000,"arenareturn";
 L_CONT:
-	break;
+	end;
 }
 
 // Timeout
