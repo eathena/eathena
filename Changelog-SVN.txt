@@ -2,6 +2,11 @@ Date	Added
 =======
 
 10/08
+	* Made the gender check to not be ignored by default [Skotlex]
+	- This is necessary because the new job ID system makes both Dancer and
+	  Bard be treated as the same job, so all bard/dancer comparisons were
+	  changed to be gender comparisons, thus, the gender check is indispensable
+	  for their weapons.
 	* Updated item_db structure. new column upper (after equip_jobs) defines
 	  the type of job that can equip the item (1: Normal jobs, 2: Upper jobs,
 	  4: Baby jobs), merged the use_script and equip_script columns into one.
