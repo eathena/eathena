@@ -89,8 +89,7 @@ goto L_Broadcast;
 }
 
 // BEGIN LOTTERY SCRIPT
--	script	lottery	76,
-{
+-	script	lottery	76,{
 L_Begin:
 mes "[Lottery]";
 mes "Winning Lotto Numbers ("+$LID2+"):";
