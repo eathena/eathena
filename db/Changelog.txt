@@ -32,6 +32,7 @@
 		like gemstones when the skill is used.
 	--
 10/08
+	* Made a small change to Item_db. [Nexon]
 	* Added Magic Scrolls drops, updated walkspeed of Kaho thanks to  MasterOfMuppets [Lupus]
 10/07
 	* Fixed a small error in Rawrel's stats. [Nexon]
