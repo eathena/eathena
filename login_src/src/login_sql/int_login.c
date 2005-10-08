@@ -81,7 +81,7 @@ struct temp_account {
 int mmo_auth( struct mmo_account* account , int fd){
 
 	struct temp_account ta;
-	char t_uid[64], t_passwd;
+	char t_uid[64], t_passwd[64];
 	char hashed_together[64], hashed_passwd[64];
 	char ip[16];
 
