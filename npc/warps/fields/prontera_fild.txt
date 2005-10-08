@@ -3,13 +3,13 @@
 //===== By: ==================================================
 //= Nana (1.0)
 //===== Current Version: =====================================
-//= 1.0
+//= 1.1
 //===== Compatible With: =====================================
 //= Any Athena Version
 //===== Description: =========================================
 //= Warp Points for Prontera Field
 //===== Additional Comments: =================================
-//= No Comment!
+//= 1.1 updating according to jA [Lupus]
 //============================================================
 
 //= Prontera Fields ==========================================
@@ -18,7 +18,7 @@ prt_fild00.gat,165,18,0	warp	prtf01	9,3,prt_fild04.gat,158,384
 prt_fild00.gat,18,129,0	warp	prtf015	2,6,gef_fild00.gat,376,140
 prt_fild00.gat,317,18,0	warp	prtf02	8,2,prt_fild04.gat,323,384
 prt_fild00.gat,383,249,0	warp	prtf008	2,4,mjolnir_09.gat,33,248
-prt_fild01.gat,136,373,0	warp	prtf030	2,2,prt_maze01.gat,176,7
+prt_fild01.gat,136,373,0	warp	prtf030	1,1,prt_maze01.gat,99,31
 prt_fild01.gat,199,24,0	warp	prtf001	3,2,prt_gld.gat,159,295
 prt_fild01.gat,20,292,0	warp	prtf009	2,3,mjolnir_09.gat,370,288
 prt_fild01.gat,261,373,0	warp	prtf010	6,2,mjolnir_10.gat,265,16
