@@ -25,75 +25,77 @@ LIBS = -lz -lm
 PLATFORM = $(shell uname)
 
 ifeq ($(findstring Linux,$(PLATFORM)), Linux)
-LIBS += -ldl
+	LIBS += -ldl
 endif
 
 ifeq ($(findstring SunOS,$(PLATFORM)), SunOS)
-LIBS += -lsocket -lnsl -ldl
+	LIBS += -lsocket -lnsl -ldl
 endif
 
 ifeq ($(findstring FreeBSD,$(PLATFORM)), FreeBSD)
-MAKE = gmake
+	MAKE = gmake
 else
-MAKE = make
+	MAKE = make
 endif
 
 ifeq ($(findstring NetBSD,$(PLATFORM)), NetBSD)
-MAKE = gmake
-CC += -D__NETBSD__
+	MAKE = gmake
+	CC += -D__NETBSD__
 endif
 
 OPT = -g -O2 -ffast-math -Wall -Wno-sign-compare
 # OPT += -DDUMPSTACK -rdynamic
 
 ifeq ($(findstring CYGWIN,$(PLATFORM)), CYGWIN)
-OS_TYPE = -DCYGWIN
-CFLAGS =  $(OPT) -DFD_SETSIZE=4096 -I../common $(PACKETDEF) $(OS_TYPE)
+	OS_TYPE = -DCYGWIN
+	CFLAGS =  $(OPT) -DFD_SETSIZE=4096 -I../common $(PACKETDEF) $(OS_TYPE)
+
 else
-OS_TYPE =
-CFLAGS =  $(OPT) -I../common $(PACKETDEF) $(OS_TYPE)
-# CFLAGS = -DTWILIGHT  $(OPT) -Wall -I../common $(PACKETDEF) $(OS_TYPE)
+	OS_TYPE =
+	CFLAGS =  $(OPT) -I../common $(PACKETDEF) $(OS_TYPE)
+	# CFLAGS = -DTWILIGHT  $(OPT) -Wall -I../common $(PACKETDEF) $(OS_TYPE)
 endif
 
 MYSQLFLAG_INCLUDE_DEFAULT = /usr/local/include/mysql
 
-ifdef SQLFLAG
 MYSQLFLAG_CONFIG = $(shell which mysql_config)
 ifeq ($(findstring /,$(MYSQLFLAG_CONFIG)), /)
-MYSQLFLAG_VERSION = $(shell $(MYSQLFLAG_CONFIG) --version | sed s:\\..*::) 
+	MYSQLFLAG_VERSION = $(shell $(MYSQLFLAG_CONFIG) --version | sed s:\\..*::) 
 endif
 
 ifeq ($(findstring 4,$(MYSQLFLAG_VERSION)), 4)
-MYSQLFLAG_CONFIG_ARGUMENT = --cflags
+	MYSQLFLAG_CONFIG_ARGUMENT = --cflags
 endif
 ifeq ($(findstring 5,$(MYSQLFLAG_VERSION)), 5)
 MYSQLFLAG_CONFIG_ARGUMENT = --include
 endif
+
 ifndef MYSQLFLAG_CONFIG_ARGUMENT
-MYSQLFLAG_CONFIG_ARGUMENT = --cflags
+	MYSQLFLAG_CONFIG_ARGUMENT = --cflags
 endif
 
 ifeq ($(findstring /,$(MYSQLFLAG_CONFIG)), /)
-MYSQLFLAG_INCLUDE = $(shell $(MYSQLFLAG_CONFIG) $(MYSQLFLAG_CONFIG_ARGUMENT))
+	MYSQLFLAG_INCLUDE = $(shell $(MYSQLFLAG_CONFIG) $(MYSQLFLAG_CONFIG_ARGUMENT))
 else
-MYSQLFLAG_INCLUDE = -I$(MYSQLFLAG_INCLUDE_DEFAULT)
+	MYSQLFLAG_INCLUDE = -I$(MYSQLFLAG_INCLUDE_DEFAULT)
 endif
 
 LIB_S_DEFAULT = -L/usr/local/lib/mysql -lmysqlclient
 MYSQLFLAG_CONFIG = $(shell which mysql_config)
 ifeq ($(findstring /,$(MYSQLFLAG_CONFIG)), /)
-LIB_S = $(shell $(MYSQLFLAG_CONFIG) --libs)
+	LIB_S = $(shell $(MYSQLFLAG_CONFIG) --libs)
 else
-LIB_S = $(LIB_S_DEFAULT)
+	LIB_S = $(LIB_S_DEFAULT)
 endif
 
 MYLIB = CC="$(CC)" CFLAGS="$(CFLAGS) $(MYSQLFLAG_INCLUDE)" LIB_S="$(LIB_S) $(GCLIB) $(LIBS)"
 
-endif
 
-MKDEF = CC="$(CC)" CFLAGS="$(CFLAGS)" LIB_S="$(GCLIB) $(LIBS)"
-
-all: sql
+all: src/common/GNUmakefile src/char_sql/GNUmakefile src/map/GNUmakefile conf
+	cd login_src ; $(MAKE) $@ ; cd ..
+	cd src ; cd common ; $(MAKE) $(MYLIB) $@ ; cd ..
+	cd src ; cd char_sql ; $(MAKE) $(MYLIB) $@ ; cd ..
+	cd src ; cd map ; $(MAKE) $(MYLIB) $@ ; cd ..
 
 conf:
 	cp -r conf-tmpl conf
@@ -102,39 +104,20 @@ conf:
 	rm -rf save/.svn
 
 
-ifdef SQLFLAG
-sql: src/common/GNUmakefile src/char_sql/GNUmakefile src/map/GNUmakefile conf
-	cd src ; cd common ; $(MAKE) $(MKDEF) $@ ; cd ..
-	cd src ; cd char_sql ; $(MAKE) $(MYLIB) $@ ; cd ..
-	cd src ; cd map ; $(MAKE) $(MYLIB) $@ ; cd ..
-	cd src ; cd addons ; $(MAKE) $(MKDEF) $@ ; cd ..
-else
-sql: 
-	$(MAKE) CC="$(CC)" OPT="$(OPT)" SQLFLAG=1 $@
-endif
 
-tools: 
-	cd src ; cd tool && $(MAKE) $(MKDEF) && cd ..
+clean: src/common/GNUmakefile src/char_sql/GNUmakefile src/map/GNUmakefile
+	cd login_src; $(MAKE) $@ ; cd ..
+	cd src ; cd common ; $(MAKE) $@ ; cd ..
+	cd src ; cd char_sql ; $(MAKE) $@ ; cd ..
+	cd src ; cd map ; $(MAKE) $@ ; cd ..
 
-webserver:
-	cd src ; cd webserver && $(MAKE) $(MKDEF) && cd ..
-
-
-clean: src/common/GNUmakefile src/map/GNUmakefile
-	cd src ; cd common ; $(MAKE) $(MKDEF) $@ ; cd ..
-	cd src ; cd char_sql ; $(MAKE) $(MKLIB) $@ ; cd ..
-	cd src ; cd map ; $(MAKE) $(MKLIB) $@ ; cd ..
-	cd src ; cd addons ; $(MAKE) $(MKDEF) $@ ; cd ..
 
 src/common/GNUmakefile: src/common/Makefile 
 	sed -e 's/$$>/$$^/' src/common/Makefile > src/common/GNUmakefile
-src/char/GNUmakefile: src/char/Makefile 
-	sed -e 's/$$>/$$^/' src/char/Makefile > src/char/GNUmakefile
+
 src/char_sql/GNUmakefile: src/char_sql/Makefile 
 	sed -e 's/$$>/$$^/' src/char_sql/Makefile > src/char_sql/GNUmakefile
+
 src/map/GNUmakefile: src/map/Makefile 
 	sed -e 's/$$>/$$^/' src/map/Makefile > src/map/GNUmakefile
-src/addons/GNUmakefile: src/addons/Makefile 
-	sed -e 's/$$>/$$^/' src/addons/Makefile > src/addons/GNUmakefile
-src/ladmin/GNUmakefile: src/ladmin/Makefile 
-	sed -e 's/$$>/$$^/' src/ladmin/Makefile > src/ladmin/GNUmakefile
+
