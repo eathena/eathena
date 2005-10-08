@@ -1311,9 +1311,7 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 	//aphostropy error check! - fixed!
 	jstrescapecpy(t_name, (char*)dat);
 
-	// disabled until fixed >.>
-	// Note: escape characters should be added to jstrescape()!
-	//mysql_real_escape_string(&mysql_handle, t_name, t_name_temp, sizeof(t_name_temp));
+	//mysql_real_escape_string(&mysql_handle, t_name, t_name_temp, strlen(t_name_temp));
 
 	if (!session_isValid(fd) || !(sd = (struct char_session_data*)session[fd]->session_data))
 		return -2;
