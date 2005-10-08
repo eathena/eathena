@@ -395,12 +395,8 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	int skill,wele,wele_,def_ele,refinedef=0;
 	int pele=0,pdef_ele=0;
 	int str,dstr,dex;
-	struct pc_base_job s_class;
 
 	nullpo_retr(0, sd);
-
-	//Calculate Common Class and Baby/High/Common flags
-	s_class = pc_calc_base_job(sd->status.class_);
 
 	b_speed = sd->speed;
 	b_max_hp = sd->status.max_hp;
@@ -432,7 +428,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 
 	pc_calc_skilltree(sd);	// スキルツリ?の計算
 
-	sd->max_weight = max_weight_base[s_class.job]+sd->status.str*300;
+	sd->max_weight = max_weight_base[sd->status.class_]+sd->status.str*300;
 
 	if(first&1) {
 		sd->weight=0;
@@ -702,7 +698,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 					}
 					sd->attackrange_ += sd->inventory_data[index]->range;
 					sd->state.lr_flag = 1;
-					run_script(sd->inventory_data[index]->equip_script,0,sd->bl.id,0);
+					run_script(sd->inventory_data[index]->script,0,sd->bl.id,0);
 					sd->state.lr_flag = 0;
 				}
 				else {	// Right-hand weapon
@@ -719,13 +715,13 @@ int status_calc_pc(struct map_session_data* sd,int first)
 						sd->right_weapon.fameflag = pc_istop10fame( MakeDWord(sd->status.inventory[index].card[2],sd->status.inventory[index].card[3]) ,JOB_BLACKSMITH);
 					}
 					sd->attackrange += sd->inventory_data[index]->range;
-					run_script(sd->inventory_data[index]->equip_script,0,sd->bl.id,0);
+					run_script(sd->inventory_data[index]->script,0,sd->bl.id,0);
 				}
 			}
 			else if(sd->inventory_data[index]->type == 5) {
 				sd->right_weapon.watk += sd->inventory_data[index]->atk;
 				refinedef += sd->status.inventory[index].refine*refinebonus[0][0];
-				run_script(sd->inventory_data[index]->equip_script,0,sd->bl.id,0);
+				run_script(sd->inventory_data[index]->script,0,sd->bl.id,0);
 			}
 		}
 	}
@@ -734,7 +730,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		index = sd->equip_index[10];
 		if(sd->inventory_data[index]){		// Arrows
 			sd->state.lr_flag = 2;
-			run_script(sd->inventory_data[index]->equip_script,0,sd->bl.id,0);
+			run_script(sd->inventory_data[index]->script,0,sd->bl.id,0);
 			sd->state.lr_flag = 0;
 			sd->arrow_atk += sd->inventory_data[index]->atk;
 		}
@@ -784,7 +780,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	}
 
 	// If a Super Novice has never died and is at least joblv 70, he gets all stats +10
-	if(s_class.job == JOB_SUPER_NOVICE && sd->die_counter == 0 && sd->status.job_level >= 70){
+	if((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE && sd->die_counter == 0 && sd->status.job_level >= 70){
 		sd->paramb[0] += 10;
 		sd->paramb[1] += 10;
 		sd->paramb[2] += 10;
@@ -988,7 +984,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 
 	// Absolute modifiers from passive skills
 	if((skill=pc_checkskill(sd,TF_MISS))>0)
-		sd->flee += skill*((s_class.job == JOB_ASSASSIN || s_class.job == JOB_ROGUE)? 4 : 3);
+		sd->flee += skill*(sd->class_&JOBL_2 && (sd->class_&MAPID_BASEMASK) == MAPID_THIEF? 4 : 3);
 	if((skill=pc_checkskill(sd,MO_DODGE))>0)
 		sd->flee += (skill*3)>>1;
 
@@ -1112,7 +1108,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	sd->speed = status_calc_speed(&sd->bl,sd->speed);
 
 	// Relative modifiers from passive skills
-	if((skill=pc_checkskill(sd,TF_MISS))>0 && s_class.job==JOB_ASSASSIN && sd->sc_count && sd->sc_data[SC_CLOAKING].timer==-1)
+	if((skill=pc_checkskill(sd,TF_MISS))>0 && (sd->class_&MAPID_UPPERMASK) == MAPID_ASSASSIN && sd->sc_count && sd->sc_data[SC_CLOAKING].timer==-1)
 		sd->speed -= sd->speed * skill/100;
 	if(pc_isriding(sd) && pc_checkskill(sd,KN_RIDING)>0)
 		sd->speed -= sd->speed * 25/100;
@@ -1123,7 +1119,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
  	if(sd->skilltimer != -1 && (skill=pc_checkskill(sd,SA_FREECAST))>0)
 		sd->speed += sd->speed * (75-5*skill)/100;
 	if(sd->sc_count && sd->sc_data[SC_DANCING].timer!=-1){
-			int s_rate = 500-40*pc_checkskill(sd,((s_class.job==JOB_BARD)?BA_MUSICALLESSON:DC_DANCINGLESSON));
+			int s_rate = 500-40*pc_checkskill(sd,(sd->status.sex?BA_MUSICALLESSON:DC_DANCINGLESSON));
 			if (sd->sc_data[SC_LONGING].timer!=-1)
 				s_rate -= 20 * sd->sc_data[SC_LONGING].val1;
 			sd->speed += sd->speed * s_rate/100;
@@ -1141,11 +1137,11 @@ int status_calc_pc(struct map_session_data* sd,int first)
 
 	// Basic ASPD value
 	if (sd->status.weapon <= 16)
-		sd->aspd += aspd_base[s_class.job][sd->status.weapon]-(sd->paramc[1]*4+sd->paramc[4])*aspd_base[s_class.job][sd->status.weapon]/1000;
+		sd->aspd += aspd_base[sd->status.class_][sd->status.weapon]-(sd->paramc[1]*4+sd->paramc[4])*aspd_base[sd->status.class_][sd->status.weapon]/1000;
 	else
 		sd->aspd += (
-			(aspd_base[s_class.job][sd->weapontype1]-(sd->paramc[1]*4+sd->paramc[4])*aspd_base[s_class.job][sd->weapontype1]/1000) +
-			(aspd_base[s_class.job][sd->weapontype2]-(sd->paramc[1]*4+sd->paramc[4])*aspd_base[s_class.job][sd->weapontype2]/1000)
+			(aspd_base[sd->status.class_][sd->weapontype1]-(sd->paramc[1]*4+sd->paramc[4])*aspd_base[sd->status.class_][sd->weapontype1]/1000) +
+			(aspd_base[sd->status.class_][sd->weapontype2]-(sd->paramc[1]*4+sd->paramc[4])*aspd_base[sd->status.class_][sd->weapontype2]/1000)
 			) *2/3; //From what I read in rodatazone, 2/3 should be more accurate than 0.7 -> 140 / 200; [Skotlex]
 
 	// Relative modifiers from passive skills
@@ -1168,14 +1164,14 @@ int status_calc_pc(struct map_session_data* sd,int first)
 
 	// Basic MaxHP value
 	bl = sd->status.base_level;
-	sd->status.max_hp += (3500 + bl*hp_coefficient2[s_class.job] +
-		hp_sigma_val[s_class.job][(bl > 0)? bl-1:0])/100 *
+	sd->status.max_hp += (3500 + bl*hp_coefficient2[sd->status.class_] +
+		hp_sigma_val[sd->status.class_][(bl > 0)? bl-1:0])/100 *
 		(100 + sd->paramc[2])/100 + (sd->parame[2] - sd->paramcard[2]);
-	if (s_class.upper==1)
+	if (sd->class_&JOBL_UPPER)
 		sd->status.max_hp = sd->status.max_hp * 130/100;
-	else if (s_class.upper==2)
+	else if (sd->class_&JOBL_BABY)
 		sd->status.max_hp = sd->status.max_hp * 70/100;
-	if(s_class.job == JOB_SUPER_NOVICE && sd->status.base_level >= 99)
+	if((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE && sd->status.base_level >= 99)
 		sd->status.max_hp = sd->status.max_hp + 2000;
 
 	// Absolute modifiers from passive skills
@@ -1220,10 +1216,10 @@ int status_calc_pc(struct map_session_data* sd,int first)
 // ----- SP MAX AND REGEN CALCULATION -----
 
 	// Basic MaxSP value
-	sd->status.max_sp += ((sp_coefficient[s_class.job] * bl) + 1000)/100 * (100 + sd->paramc[3])/100 + (sd->parame[3] - sd->paramcard[3]);
-	if (s_class.upper == 1)
+	sd->status.max_sp += ((sp_coefficient[sd->status.class_] * bl) + 1000)/100 * (100 + sd->paramc[3])/100 + (sd->parame[3] - sd->paramcard[3]);
+	if (sd->class_&JOBL_UPPER)
 		sd->status.max_sp = sd->status.max_sp * 130/100;
-	else if (s_class.upper==2)
+	else if (sd->class_&JOBL_BABY)
 		sd->status.max_sp = sd->status.max_sp * 70/100;
 
 	// Absolute modifiers from passive skills
@@ -1656,8 +1652,6 @@ int status_calc_critical(struct block_list *bl, int critical)
 	if(sc_data){
 		if (sc_data[SC_EXPLOSIONSPIRITS].timer!=-1)
 			critical += sc_data[SC_EXPLOSIONSPIRITS].val2;
-			//if(s_class.job==JOB_SUPER_NOVICE)
-			//	sd->critical += sd->sc_data[SC_EXPLOSIONSPIRITS].val1*100;
 		if (sc_data[SC_FORTUNE].timer!=-1)
 			critical += sc_data[SC_FORTUNE].val2*10;
 		if (sc_data[SC_TRUESIGHT].timer!=-1)
@@ -2937,7 +2931,7 @@ int status_get_size(struct block_list *bl)
 		return ((struct pet_data *)bl)->db->size;
 	else if(bl->type==BL_PC) {
 		struct map_session_data *sd = (struct map_session_data *)bl;
-		if (pc_calc_upper(sd->status.class_)==2) //[Lupus]
+		if (sd->class_&JOBL_BABY) //[Lupus]
 			return (pc_isriding(sd)!=0 && battle_config.character_size&2); //Baby Class Peco Rider + enabled option -> size = 1, else 0
 		return 1+(pc_isriding(sd)!=0 && battle_config.character_size&1);	//Peco Rider + enabled option -> size = 2, else 1
 	} else

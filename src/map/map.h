@@ -120,16 +120,16 @@ enum {
 //which makes a lot more sense than the normal one. [Skotlex]
 //
 //These marks the "level" of the job.
-#define JOBL_2_1 0x100
-#define JOBL_2_2 0x200
+#define JOBL_2_1 0x100 //256
+#define JOBL_2_2 0x200 //512
 #define JOBL_2 0x300
 
-#define JOBL_ADV 0x1000
-#define JOBL_BABY 0x2000
+#define JOBL_UPPER 0x1000 //4096
+#define JOBL_BABY 0x2000  //8192
 
 //for filtering and quick checking.
-#define MAPID_UPPERMASK 0xf000
-#define MAPID_BASEMASK 0xff00
+#define MAPID_UPPERMASK 0x0fff
+#define MAPID_BASEMASK 0x00ff
 //First Jobs
 //Note the oddity of the novice:
 //Super Novices are considered the 2-1 version of the novice! Novices are considered a first class type, too...
@@ -161,7 +161,7 @@ enum {
 	MAPID_ROGUE,
 	MAPID_SOUL_LINKER,
 //1-1, advanced
-	MAPID_NOVICE_HIGH = JOBL_ADV|0x0,
+	MAPID_NOVICE_HIGH = JOBL_UPPER|0x0,
 	MAPID_SWORDMAN_HIGH,
 	MAPID_MAGE_HIGH,
 	MAPID_ARCHER_HIGH,
@@ -169,14 +169,14 @@ enum {
 	MAPID_MERCHANT_HIGH,
 	MAPID_THIEF_HIGH,
 //2_1 advanced
-	MAPID_LORD_KNIGHT = JOBL_ADV|JOBL_2_1|0x1,
+	MAPID_LORD_KNIGHT = JOBL_UPPER|JOBL_2_1|0x1,
 	MAPID_HIGH_WIZARD,
 	MAPID_SNIPER,
 	MAPID_HIGH_PRIEST,
 	MAPID_WHITESMITH,
 	MAPID_ASSASSIN_CROSS,
 //2_2 advanced
-	MAPID_PALADIN = JOBL_ADV|JOBL_2_2|0x1,
+	MAPID_PALADIN = JOBL_UPPER|JOBL_2_2|0x1,
 	MAPID_PROFESSOR,
 	MAPID_CLOWNGYPSY,
 	MAPID_CHAMPION,

@@ -12,7 +12,8 @@ struct item_data {
 	int value_buy;
 	int value_sell;
 	int type;
-	int class_;
+	unsigned short class_base[3];	//Specifies if the base can wear this item (split in 3 indexes per type: 1-1, 2-1, 2-2)
+	unsigned class_upper : 3; //Specifies if the upper-type can equip it (1: normal, 2: upper, 3: baby)
 	int sex;
 	int equip;
 	int weight;
@@ -23,8 +24,7 @@ struct item_data {
 	int look;
 	int elv;
 	int wlv;
-	unsigned char *use_script;	// ‰ñ•œ‚Æ‚©‚à‘S•”‚±‚Ì’†‚Å‚â‚ë‚¤‚©‚È‚Æ
-	unsigned char *equip_script;	// UŒ‚,–hŒä‚Ì‘®«Ý’è‚à‚±‚Ì’†‚Å‰Â”\‚©‚È?
+	unsigned char *script;	// UŒ‚,–hŒä‚Ì‘®«Ý’è‚à‚±‚Ì’†‚Å‰Â”\‚©‚È?
 	struct {
 		unsigned available : 1;
 		unsigned value_notdc : 1;
@@ -58,8 +58,8 @@ struct item_data* itemdb_exists(int nameid);
 #define itemdb_look(n) itemdb_search(n)->look
 #define itemdb_weight(n) itemdb_search(n)->weight
 #define itemdb_equip(n) itemdb_search(n)->equip
-#define itemdb_usescript(n) itemdb_search(n)->use_script
-#define itemdb_equipscript(n) itemdb_search(n)->equip_script
+#define itemdb_usescript(n) itemdb_search(n)->script
+#define itemdb_equipscript(n) itemdb_search(n)->script
 #define itemdb_wlv(n) itemdb_search(n)->wlv
 #define itemdb_range(n) itemdb_search(n)->range
 #define itemdb_slot(n) itemdb_search(n)->slot

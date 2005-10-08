@@ -4245,12 +4245,6 @@ int buildin_getequipisenableref(struct script_state *st)
 	sd=script_rid2sd(st);
 	i=pc_checkequip(sd,equip[num-1]);
 	if(i >= 0 && num<7 && sd->inventory_data[i] && !sd->inventory_data[i]->flag.no_refine)
-			// replaced by Celest
-			/*(num!=1
-				 || sd->inventory_data[i]->def > 1
-	             || (sd->inventory_data[i]->def==1 && sd->inventory_data[i]->equip_script==NULL)
-	             || (sd->inventory_data[i]->def<=0 && sd->inventory_data[i]->equip_script!=NULL)))*/
-
 	{
 		push_val(st->stack,C_INT,1);
 	} else {
@@ -5868,7 +5862,7 @@ int buildin_changebase(struct script_state *st)
 	if(vclass == 22)
 	{
 		if (!battle_config.wedding_modifydisplay ||	//Do not show the wedding sprites
-			(sd->status.class_ >= JOB_BABY && sd->status.class_ <= JOB_SUPER_BABY) //Baby classes screw up when showing wedding sprites. [Skotlex]
+			sd->class_&JOBL_BABY //Baby classes screw up when showing wedding sprites. [Skotlex]
 			) 
 		return 0;
 	}
@@ -5893,12 +5887,12 @@ int buildin_changesex(struct script_state *st) {
 	if (sd->status.sex == 0) {
 		sd->status.sex = 1;
 		sd->sex = 1;
-		if (pc_calc_base_job2(sd->status.class_) == JOB_DANCER)
+		if ((sd->class_&MAPID_UPPERMASK) == MAPID_BARDDANCER)
 			sd->status.class_ -= 1;
 	} else if (sd->status.sex == 1) {
 		sd->status.sex = 0;
 		sd->sex = 0;
-		if (pc_calc_base_job2(sd->status.class_) == JOB_BARD)
+		if ((sd->class_&MAPID_UPPERMASK) == MAPID_BARDDANCER)
 			sd->status.class_ += 1;
 	}
 	chrif_char_ask_name(-1, sd->status.name, 5, 0, 0, 0, 0, 0, 0); // type: 5 - changesex

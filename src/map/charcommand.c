@@ -1312,7 +1312,6 @@ int charcommand_joblevel(
 	char player[NAME_LENGTH];
 	int level = 0;
 	//ì]ê∂Ç‚ó{éqÇÃèÍçáÇÃå≥ÇÃêEã∆ÇéZèoÇ∑ÇÈ
-	struct pc_base_job pl_s_class;
 	nullpo_retr(-1, sd);
 
 	if (!message || !*message || sscanf(message, "%d %23[^\n]", &level, player) < 2 || level == 0) {
@@ -1321,14 +1320,12 @@ int charcommand_joblevel(
 	}
 
 	if ((pl_sd = map_nick2sd(player)) != NULL) {
-		pl_s_class = pc_calc_base_job(pl_sd->status.class_);
 		if (pc_isGM(sd) >= pc_isGM(pl_sd)) { // you can change job level only lower or same gm level
-			if (pl_s_class.job == JOB_NOVICE)
+			if ((pl_sd->class_&MAPID_UPPERMASK) == MAPID_NOVICE)
 				max_level = 10; //Novice
-			// super novices can go up to 99 [celest]
-			else if (pl_s_class.job == JOB_SUPER_NOVICE)
+			else if ((pl_sd->class_&MAPID_BASEMASK) == MAPID_NOVICE)
 				max_level = battle_config.max_sn_level; //S. Novice
-			else if (pl_s_class.upper == 1 && pl_s_class.type == 2)
+			else if (pl_sd->class_&JOBL_UPPER && pl_sd->class_&JOBL_2)
 				max_level = battle_config.max_adv_level; //Adv. Class
 
 			if (level > 0) {
@@ -1566,18 +1563,19 @@ int charcommand_model(
 		if (hair_style >= MIN_HAIR_STYLE && hair_style <= MAX_HAIR_STYLE &&
 			hair_color >= MIN_HAIR_COLOR && hair_color <= MAX_HAIR_COLOR &&
 			cloth_color >= MIN_CLOTH_COLOR && cloth_color <= MAX_CLOTH_COLOR) {
-
+			/* Removed this check for being too strange. [Skotlex]
 			if (cloth_color != 0 &&
 				pl_sd->status.sex == 1 &&
 				(pl_sd->status.class_ == JOB_ASSASSIN ||  pl_sd->status.class_ == JOB_ROGUE)) {
 				clif_displaymessage(fd, msg_table[35]); // You can't use this command with this class.
 				return -1;
 			} else {
+			*/
 				pc_changelook(pl_sd, LOOK_HAIR, hair_style);
 				pc_changelook(pl_sd, LOOK_HAIR_COLOR, hair_color);
 				pc_changelook(pl_sd, LOOK_CLOTHES_COLOR, cloth_color);
 				clif_displaymessage(fd, msg_table[36]); // Appearence changed.
-			}
+//			}
 		} else {
 			clif_displaymessage(fd, msg_table[37]); // An invalid number was specified.
 			return -1;

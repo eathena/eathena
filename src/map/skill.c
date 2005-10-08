@@ -3205,7 +3205,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				if ((skill = pc_checkskill(sd, HP_MEDITATIO)) > 0) // メディテイティオ
 					heal += heal * skill * 2 / 100;
 				if (sd && dstsd && sd->status.partner_id == dstsd->status.char_id &&
-					pc_calc_base_job2(sd->status.class_) == JOB_SUPER_NOVICE && sd->status.sex == 0) //自分も?象もPC、?象が自分のパ?トナ?、自分がスパノビ、自分が♀なら
+					(sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE && sd->status.sex == 0) //自分も?象もPC、?象が自分のパ?トナ?、自分がスパノビ、自分が♀なら
 					heal = heal*2;	//スパノビの嫁が旦那にヒ?ルすると2倍になる
 			}
 
@@ -3448,7 +3448,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		else {
 			if(sd && dstsd){ //Check they are not another crusader [Skotlex]
-				if (pc_calc_base_job2(dstsd->status.class_) == JOB_CRUSADER) {	
+				if ((dstsd->class_&MAPID_UPPERMASK) == MAPID_CRUSADER) {	
 					clif_skill_fail(sd,skillid,0,0);
 					map_freeblock_unlock();
 					return 1;
@@ -3725,7 +3725,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			int lv = sd->status.base_level - dstsd->status.base_level;
 			if (lv < 0) lv = -lv;
 			if (lv > battle_config.devotion_level_difference ||
-				pc_calc_base_job2 (dstsd->status.class_) == JOB_CRUSADER) {
+				(dstsd->class_&MAPID_UPPERMASK) == MAPID_CRUSADER) {
 				clif_skill_fail(sd,skillid,0,0);
 				map_freeblock_unlock();
 				return 1;
@@ -4395,7 +4395,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				sd->state.potion_flag = 1;
 				sd->potion_hp = sd->potion_sp = sd->potion_per_hp = sd->potion_per_sp = 0;
 				sd->skilltarget = bl->id;
-				run_script(sd->inventory_data[i]->use_script,0,sd->bl.id,0);
+				run_script(sd->inventory_data[i]->script,0,sd->bl.id,0);
 				pc_delitem(sd,i,skill_db[skillid].amount[x],0);
 				sd->state.potion_flag = 0;
 				if(sd->potion_per_hp > 0 || sd->potion_per_sp > 0) {
@@ -5913,7 +5913,7 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 				}
 				sd->state.potion_flag = 1;
 				sd->potion_hp = 0;
-				run_script(sd->inventory_data[j]->use_script,0,sd->bl.id,0);
+				run_script(sd->inventory_data[j]->script,0,sd->bl.id,0);
 				pc_delitem(sd,j,skill_db[skillid].amount[i],0);
 				sd->state.potion_flag = 0;
 				clif_skill_poseffect(src,skillid,skilllv,x,y,tick);
@@ -7148,7 +7148,6 @@ static int skill_check_condition_char_sub (struct block_list *bl, va_list ap)
 	struct map_session_data *sd;
 	struct map_session_data *tsd;
 	int *p_sd;	//Contains the list of characters found.
-	int s_class;
 	unsigned int tick = gettick();
 
 	nullpo_retr(0, bl);
@@ -7172,23 +7171,20 @@ static int skill_check_condition_char_sub (struct block_list *bl, va_list ap)
 
 	if (tsd->sc_count && (tsd->sc_data[SC_SILENCE].timer != -1 || tsd->sc_data[SC_STAN].timer != -1))
 		return 0;
-		
-	s_class = pc_calc_base_job2(tsd->status.class_);
 	
 	switch(skillid)
 	{
 		case PR_BENEDICTIO:				/* 聖?降福 */
-			if ((s_class == JOB_ACOLYTE || s_class == JOB_PRIEST || s_class == JOB_MONK) &&
+			if ((tsd->class_&MAPID_BASEMASK) == MAPID_ACOLYTE &&
 //				(sd->bl.x == tsd->bl.x - 1 || sd->bl.x == tsd->bl.x + 1) && <- the heck? This check seems unnecessary, and even if it is necessary, where's the parallel check on the y axis? [Skotlex]
 				sd->status.sp >= 10)
 				p_sd[(*c)++]=tsd->bl.id;
 			return 1;
 		default: //Warning: Assuming Ensemble Dance/Songs for code speed. [Skotlex]
 			{
-				int t_class = pc_calc_base_job2(sd->status.class_);
 				int skilllv;
-				if (((t_class == JOB_BARD && s_class == JOB_DANCER) ||
-						(t_class == JOB_DANCER && s_class == JOB_BARD)) &&
+				if (sd->status.sex != tsd->status.sex &&
+						(tsd->class_&MAPID_UPPERMASK) == MAPID_BARDDANCER &&
 						(skilllv = pc_checkskill(tsd, skillid)) > 0 &&
 						(tsd->weapontype1==13 || tsd->weapontype1==14) &&
 						sd->status.party_id && tsd->status.party_id &&
@@ -9057,16 +9053,11 @@ int skill_frostjoke_scream(struct block_list *bl,va_list ap)
 		if (sd && sd->status.option & OPTION_HIDE && pc_isGM(sd) > 0)
 			return 0;
 	}
-	if (map[src->m].flag.gvg || map[src->m].flag.pvp)
-		// we freeze everybody except of ourselfes on pvp/gvg [veider]
+	//It has been reported that Scream/Joke works the same regardless of woe-setting. [Skotlex]
+	if(battle_check_target(src,bl,BCT_ENEMY) > 0)
 		skill_additional_effect(src,bl,skillnum,skilllv,BF_MISC,tick);
-	else {
-		if(battle_check_target(src,bl,BCT_ENEMY) > 0)
-			skill_additional_effect(src,bl,skillnum,skilllv,BF_MISC,tick);
-		else if(battle_check_target(src,bl,BCT_PARTY) > 0 && rand()%100 < 10)
-			skill_additional_effect(src,bl,skillnum,skilllv,BF_MISC,tick);
-	}
-	// so on non-pvp/gvg we are just freezing as freezed before
+	else if(battle_check_target(src,bl,BCT_PARTY) > 0 && rand()%100 < 10)
+		skill_additional_effect(src,bl,skillnum,skilllv,BF_MISC,tick);
 
 	return 0;
 }
@@ -10162,12 +10153,8 @@ int skill_produce_mix( struct map_session_data *sd,
 {
 	int slot[3];
 	int i,sc,ele,idx,equip,wlv,make_per,flag;
-	struct pc_base_job s_class;
 
 	nullpo_retr(0, sd);
-
-	//Calculate Common Class and Baby/High/Common flags
-	s_class = pc_calc_base_job(sd->status.class_);
 
 	if( !(idx=skill_can_produce_mix(sd,nameid,-1)) )	/* ?件不足 */
 		return 0;
@@ -10291,7 +10278,7 @@ int skill_produce_mix( struct map_session_data *sd,
 			make_per = make_per * battle_config.wp_rate / 100;
 	}
 // - Baby Class Penalty = 80% (from adult's chance) ----//
-	if (s_class.upper==2) //if it's a Baby Class
+	if (sd->class_&JOBL_BABY) //if it's a Baby Class
 		make_per = (make_per * 80) / 100; //Lupus
 
 	if(make_per < 1) make_per = 1;

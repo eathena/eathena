@@ -2212,7 +2212,11 @@ struct Damage battle_calc_magic_attack(
 			{	//Apply the physical part of the skill's damage. [Skotlex]
 				int damage2 = status_get_batk(src);
 				damage2 += damage2*40*skill_lv/100;
-				damage2 = damage2*status_get_def(target)/100 - status_get_def2(target);
+				if(battle_config.player_defense_type)
+					damage2 -= battle_config.player_defense_type*status_get_def(target);
+				else
+					damage2 -= damage2*status_get_def(target)/100;
+				damage2 -= status_get_def2(target);
 				if (damage2 < 1) damage2 = 1;
 				ad.damage+=damage2;
 				if(src==target && src->type == BL_MOB)
@@ -2249,8 +2253,8 @@ struct Damage battle_calc_magic_attack(
 				cardfix=cardfix*(100-tsd->subele[s_ele])/100;
 				cardfix=cardfix*(100-tsd->subrace[s_race])/100;
 				cardfix=cardfix*(100-tsd->subsize[s_size])/100;
-				cardfix=cardfix*(100-tsd->magic_subrace[s_race])/100;
 				cardfix=cardfix*(100-tsd->subrace2[s_race2])/100;
+				cardfix=cardfix*(100-tsd->magic_subrace[s_race])/100;
 				cardfix=cardfix*(100-tsd->magic_subrace[is_boss(src)?10:11])/100;
 				for(i=0;i<tsd->add_mdef_class_count;i++) {
 					if(tsd->add_mdef_classid[i] == s_class) {
@@ -3073,10 +3077,10 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 				{	//Prevent novice engagement on pk_mode (feature by Valaris)
 					struct map_session_data* sd;
 					if ((sd = (struct map_session_data*)s_bl) != NULL &&
-						(pc_calc_base_job2(sd->status.class_) == JOB_NOVICE || sd->status.base_level < battle_config.pk_min_level))
+						((sd->class_&MAPID_UPPERMASK) == MAPID_NOVICE || sd->status.base_level < battle_config.pk_min_level))
 						state&=~BCT_ENEMY;
 					else if ((sd = (struct map_session_data*)t_bl) != NULL &&
-						(pc_calc_base_job2(sd->status.class_) == JOB_NOVICE || sd->status.base_level < battle_config.pk_min_level))
+						((sd->class_&MAPID_UPPERMASK) == MAPID_NOVICE || sd->status.base_level < battle_config.pk_min_level))
 						state&=~BCT_ENEMY;
 				}
 			}
@@ -3109,214 +3113,6 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 		state&=~BCT_ENEMY;
 
 	return (flag&state)?1:-1;
-
-/* The previous implementation is left here for reference in case something breaks :X [Skotlex]
-	int s_p,s_g,t_p,t_g;
-	struct block_list *ss=src;
-	struct status_change *sc_data;
-	struct status_change *tsc_data;
-	struct map_session_data *srcsd = NULL;
-	struct map_session_data *tsd = NULL;
-
-	nullpo_retr(0, src);
-	nullpo_retr(0, target);
-
-	if (flag & BCT_ENEMY){	// 反転フラグ
-		int ret = battle_check_target(src,target,flag&0x30000);
-		if (ret != -1)
-			return !ret;
-		return -1;
-	}
-
-	if (flag & BCT_ALL){
-		if (target->type == BL_MOB || target->type == BL_PC)
-			return 1;
-		else
-			return -1;
-	}
-
-	if (src->type == BL_SKILL && target->type == BL_SKILL)	// 対象がスキルユニットなら無条件肯定
-		return -1;
-
-	if (target->type == BL_PET)
-		return -1;
-
-	if (src->type == BL_PC) {
-		nullpo_retr(-1, srcsd = (struct map_session_data *)src);
-	}
-	if (target->type == BL_PC) {
-		nullpo_retr(-1, tsd = (struct map_session_data *)target);
-	}
-	
-	if(tsd && (tsd->invincible_timer != -1 || pc_isinvisible(tsd)))
-		return -1;
-
-	// Celest
-	sc_data = status_get_sc_data(src);
-	tsc_data = status_get_sc_data(target);
-	if ((sc_data && sc_data[SC_BASILICA].timer != -1) ||
-		(tsc_data && tsc_data[SC_BASILICA].timer != -1))
-		return -1;
-
-	if (target->type == BL_SKILL) {
-		struct skill_unit *tsu = (struct skill_unit *)target;
-		if (tsu && tsu->group) {
-			switch (tsu->group->unit_id) {
-			case 0x8d: //IceWall
-			case 0x8f: //Blastmine
-			case 0x98: //Claymore trap
-				return 0;
-				break;
-			}
-		}
-	}
-
-	// スキルユニットの場合、親を求める
-	if (src->type == BL_SKILL) {
-		struct skill_unit *su = (struct skill_unit *)src;
-		if (su && su->group) {
-			int skillid, inf2;		
-			skillid = su->group->skill_id;
-			inf2 = skill_get_inf2(skillid);
-			if ((ss = map_id2bl(su->group->src_id)) == NULL)
-				return -1;
-			if (ss->prev == NULL)
-				return -1;
-			if (inf2&INF2_TRAP &&
-				(map[src->m].flag.pvp ||
-				(skillid >= 115 && skillid <= 125 && map[src->m].flag.gvg)) &&
-				!(target->type == BL_PC && pc_isinvisible(tsd)))
-					return 0;
-			if (ss == target) {
-				if (inf2&INF2_TARGET_SELF)
-					return 0;
-				if (inf2&INF2_NO_TARGET_SELF)
-					return -1;
-			}
-		}
-	}
-	
-	if (src->type == BL_MOB) {
-		struct mob_data *md = (struct mob_data *)src;
-		nullpo_retr (-1, md);
-
-		if (tsd) {
-			if(md->class_ >= 1285 && md->class_ <= 1287){
-				struct guild_castle *gc = guild_mapname2gc (map[target->m].name);
-				if(gc && agit_flag==0)	// Guardians will not attack during non-woe time [Valaris]
-					return 1;  // end addition [Valaris]
-				if(gc && tsd->status.guild_id > 0) {
-					struct guild *g=guild_search(tsd->status.guild_id);	// don't attack guild members [Valaris]
-					if(g && g->guild_id == gc->guild_id)
-						return 1;
-					if(g && guild_isallied(g,gc))
-						return 1;
-				}
-			}
-			// option to have monsters ignore GMs [Valaris]
-			if (tsd->monster_ignore)
-				return 1;
-		}
-		// Mobでmaster_idがあってspecial_mob_aiなら、召喚主を求める
-		if (md->master_id > 0) {
-			if (md->master_id == target->id)	// 主なら肯定
-				return 1;
-			if (md->state.special_mob_ai){
-				if (target->type == BL_MOB){	//special_mob_aiで対象がMob
-					struct mob_data *tmd = (struct mob_data *)target;
-					if (tmd){
-						if(tmd->master_id != md->master_id)	//召喚主が一緒でなければ否定
-							return 0;
-						else{	//召喚主が一緒なので肯定したいけど自爆は否定
-							if(md->state.special_mob_ai>2)
-								return 0;
-							else
-								return 1;
-						}
-					}
-				}
-			}
-			if((ss = map_id2bl(md->master_id)) == NULL)
-				return -1;
-		}
-	}
-
-	if (src == target || ss == target)	// 同じなら肯定
-		return 1;
-
-	if (src->prev == NULL ||	// 死んでるならエラー
-		(srcsd && pc_isdead(srcsd)))
-		return -1;
-
-	if ((ss->type == BL_PC && target->type == BL_MOB) ||
-		(ss->type == BL_MOB && target->type == BL_PC) )
-		return 0;	// PCvsMOBなら否定
-
-	if (ss->type == BL_PET && target->type == BL_MOB)
-		return 0;
-
-	s_p = status_get_party_id(ss);
-	s_g = status_get_guild_id(ss);
-
-	t_p = status_get_party_id(target);
-	t_g = status_get_guild_id(target);
-
-	if (flag & 0x10000) {
-		if (s_p && t_p && s_p == t_p)	// 同じパーティなら肯定（味方）
-			return 1;
-		else		// パーティ検索なら同じパーティじゃない時点で否定
-			return 0;
-	}
-
-	if (ss->type == BL_MOB && s_g > 0 && t_g > 0 && s_g == t_g )	// 同じギルド/mobクラスなら肯定（味方）
-		return 1;
-
-//printf("ss:%d src:%d target:%d flag:0x%x %d %d ",ss->id,src->id,target->id,flag,src->type,target->type);
-//printf("p:%d %d g:%d %d\n",s_p,t_p,s_g,t_g);
-
-	if (ss->type == BL_PC && target->type == BL_PC) { // 両方PVPモードなら否定（敵）
-		struct map_session_data *ssd = (struct map_session_data *)ss;		
-		struct skill_unit *su = NULL;
-		if (src->type == BL_SKILL)
-			su = (struct skill_unit *)src;
-		if (map[ss->m].flag.pvp || pc_iskiller(ssd, tsd)) { // [MouseJstr]
-			if(su && su->group->target_flag == BCT_NOENEMY)
-				return 1;
-			else if (battle_config.pk_mode &&
-				(pc_calc_base_job2(ssd->status.class_) == JOB_NOVICE || pc_calc_base_job2(tsd->status.class_) == JOB_NOVICE ||
-				ssd->status.base_level < battle_config.pk_min_level ||
-				tsd->status.base_level < battle_config.pk_min_level))
-				return 1; // prevent novice engagement in pk_mode [Valaris]
-			else if (map[ss->m].flag.pvp_noparty && s_p > 0 && t_p > 0 && s_p == t_p)
-				return 1;
-			else if (map[ss->m].flag.pvp_noguild && s_g > 0 && t_g > 0 && s_g == t_g)
-				return 1;
-			return 0;
-		}
-		if (map[src->m].flag.gvg || map[src->m].flag.gvg_dungeon) {
-			struct guild *g;
-			if (su && su->group->target_flag == BCT_NOENEMY)
-				return 1;
-			if (s_g > 0 && s_g == t_g)
-				return 1;
-			if (map[src->m].flag.gvg_noparty && s_p > 0 && t_p > 0 && s_p == t_p)
-				return 1;
-			if ((g = guild_search(s_g))) {
-				int i;
-				for (i = 0; i < MAX_GUILDALLIANCE; i++) {
-					if (g->alliance[i].guild_id > 0 && g->alliance[i].guild_id == t_g) {
-						if (g->alliance[i].opposition)
-							return 0;//敵対ギルドなら無条件に敵
-						else
-							return 1;//同盟ギルドなら無条件に味方
-					}
-				}
-			}
-			return 0;
-		}
-	}
-	return 1;	// 該当しないので無関係人物（まあ敵じゃないので味方）
-*/
 }
 /*==========================================
  * 射程判定

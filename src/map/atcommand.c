@@ -2575,9 +2575,7 @@ int atcommand_joblevelup(
 {
 	unsigned int up_level = battle_config.max_job_level;
 	int level=0;
-	struct pc_base_job s_class;
 	nullpo_retr(-1, sd);
-	s_class = pc_calc_base_job(sd->status.class_);
 	
 	level = atoi(message);
 
@@ -2586,13 +2584,12 @@ int atcommand_joblevelup(
 		return -1;
 	}
 
-	if (s_class.job == JOB_NOVICE)
-		up_level = 10; //Novice
-	// super novices can go up to 99 [celest]
-	else if (s_class.job == JOB_SUPER_NOVICE)
-		up_level = battle_config.max_sn_level; //S. Novice
-	else if (s_class.upper == 1 && s_class.type == 2)
-		up_level = battle_config.max_adv_level; //Adv Class
+	if ((sd->class_&MAPID_UPPERMASK) == MAPID_NOVICE) //Novice
+		up_level = 10;
+	else if ((sd->class_&MAPID_BASEMASK) == MAPID_NOVICE) //S. Novice
+		up_level = battle_config.max_sn_level;
+	else if (sd->class_&JOBL_UPPER && sd->class_&JOBL_2)
+		up_level = battle_config.max_adv_level; //2nd Adv Class
 
 	if (level > 0) {
 		if (sd->status.job_level == up_level) {
@@ -2845,6 +2842,7 @@ int atcommand_model(
 	if (hair_style >= MIN_HAIR_STYLE && hair_style <= MAX_HAIR_STYLE &&
 		hair_color >= MIN_HAIR_COLOR && hair_color <= MAX_HAIR_COLOR &&
 		cloth_color >= MIN_CLOTH_COLOR && cloth_color <= MAX_CLOTH_COLOR) {
+		/* Removed because this check is TOO strange. [Skotlex]
 		//•bÌF•ÏX
 		if (cloth_color != 0 && sd->status.sex == 1 && (sd->status.class_ == JOB_ASSASSIN ||  sd->status.class_ == JOB_ROGUE)) {
 			//The hell? Why Rogue/Assassins can't... change their option if they have clothes colors and are males? o.O [Skotlex]
@@ -2852,11 +2850,12 @@ int atcommand_model(
 			clif_displaymessage(fd, msg_table[35]); // You can't use this command with this class.
 			return -1;
 		} else {
+		*/
 			pc_changelook(sd, LOOK_HAIR, hair_style);
 			pc_changelook(sd, LOOK_HAIR_COLOR, hair_color);
 			pc_changelook(sd, LOOK_CLOTHES_COLOR, cloth_color);
 			clif_displaymessage(fd, msg_table[36]); // Appearence changed.
-		}
+//		}
 	} else {
 		clif_displaymessage(fd, msg_table[37]); // An invalid number was specified.
 		return -1;
@@ -2911,13 +2910,15 @@ int atcommand_hair_style(const int fd, struct map_session_data* sd, const char* 
 	}
 
 	if (hair_style >= MIN_HAIR_STYLE && hair_style <= MAX_HAIR_STYLE) {
+		/* Removed because this check is TOO strange. [Skotlex]
 		if (hair_style != 0 && sd->status.sex == 1 && (sd->status.class_ == JOB_ASSASSIN || sd->status.class_ == JOB_ROGUE)) { //???
 			clif_displaymessage(fd, msg_table[35]); // You can't use this command with this class.
 			return -1;
 		} else {
+		*/
 			pc_changelook(sd, LOOK_HAIR, hair_style);
 			clif_displaymessage(fd, msg_table[36]); // Appearence changed.
-		}
+//		}
 	} else {
 		clif_displaymessage(fd, msg_table[37]); // An invalid number was specified.
 		return -1;
@@ -2956,13 +2957,15 @@ int atcommand_hair_color(const int fd, struct map_session_data* sd, const char* 
 	}
 
 	if (hair_color >= MIN_HAIR_COLOR && hair_color <= MAX_HAIR_COLOR) {
+		/* Removed for being such a strange check. [Skotlex]
 		if (hair_color != 0 && sd->status.sex == 1 && (sd->status.class_ == JOB_ASSASSIN || sd->status.class_ == JOB_ROGUE)) {
 			clif_displaymessage(fd, msg_table[35]); // You can't use this command with this class.
 			return -1;
 		} else {
+		*/
 			pc_changelook(sd, LOOK_HAIR_COLOR, hair_color);
 			clif_displaymessage(fd, msg_table[36]); // Appearence changed.
-		}
+//		}
 	} else {
 		clif_displaymessage(fd, msg_table[37]); // An invalid number was specified.
 		return -1;
@@ -9094,7 +9097,7 @@ int atcommand_iteminfo(
 		sprintf(atcmd_output, "Item: '%s'/'%s'[%d] (%d) Type: %s | Extra Effect: %s",
 			item_data->name,item_data->jname,item_data->slot,item_id,
 			item_data->type < 12 ? itype[item_data->type] : "BUG!", 
-			(item_data->use_script==NULL && item_data->equip_script==NULL) ? "None" : (item_data->use_script==NULL ? "On Equip" : "On Usage")
+			(item_data->script==NULL)? "None" : "with script"
 		);
 		clif_displaymessage(fd, atcmd_output);
 
@@ -9105,42 +9108,6 @@ int atcommand_iteminfo(
 
 	clif_displaymessage(fd, "Item not found.");
 	return -1;
-/*
-struct item_data {
-	int nameid;
-	char name[24],jname[24];
-	char prefix[24],suffix[24];
-	char cardillustname[64];
-	int value_buy;
-	int value_sell;
-	int type;
-	int class_;
-	int sex;
-	int equip;
-	int weight;
-	int atk;
-	int def;
-	int range;
-	int slot;
-	int look;
-	int elv;
-	int wlv;
-	char *use_script;	// %ñ_'Æ'c'à'S"'+'Ì'+'Å'â'ë'¤'c'È'Æ
-	char *equip_script;	// _U_',-h_ä'Ì'R_<_Ý'è'à'+'Ì'+'Å%Â"\'c'È?
-	struct {
-		unsigned available : 1;
-		unsigned value_notdc : 1;
-		unsigned value_notoc : 1;
-		unsigned no_equip : 3;
-		unsigned no_use : 1;
-		unsigned no_refine : 1;	// [celest]
-		unsigned delay_consume : 1;	// Signifies items that are not consumed inmediately upon double-click [Skotlex]
-	} flag;
-	int view_id;
-};
-
-*/
-
 }
 
 /*==========================================

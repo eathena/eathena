@@ -142,6 +142,60 @@ struct item_data* itemdb_exists(int nameid)
 {
 	return (struct item_data *) numdb_search(item_db,nameid);
 }
+
+/*==========================================
+ * Converts the jobid from the format in itemdb 
+ * to the format used by the map server. [Skotlex]
+ *------------------------------------------
+ */
+static void itemdb_jobid2mapid(unsigned short *bclass, int jobmask)
+{
+	int i;
+	bclass[0]= bclass[1]= bclass[2]= 0;
+	//Base classes
+	for (i = JOB_NOVICE; i <= JOB_THIEF; i++)
+	{
+		if (jobmask & 1<<i)
+			bclass[0] |= 1<<(MAPID_NOVICE+i);
+	}
+	//2-1 classes
+	if (jobmask & 1<<JOB_KNIGHT)
+		bclass[1] |= 1<<MAPID_SWORDMAN;
+	if (jobmask & 1<<JOB_PRIEST)
+		bclass[1] |= 1<<MAPID_ACOLYTE;
+	if (jobmask & 1<<JOB_WIZARD)
+		bclass[1] |= 1<<MAPID_MAGE;
+	if (jobmask & 1<<JOB_BLACKSMITH)
+		bclass[1] |= 1<<MAPID_MERCHANT;
+	if (jobmask & 1<<JOB_HUNTER)
+		bclass[1] |= 1<<MAPID_ARCHER;
+	if (jobmask & 1<<JOB_ASSASSIN)
+		bclass[1] |= 1<<MAPID_THIEF;
+	//2-2 classes
+	if (jobmask & 1<<JOB_CRUSADER)
+		bclass[2] |= 1<<MAPID_SWORDMAN;
+	if (jobmask & 1<<JOB_MONK)
+		bclass[2] |= 1<<MAPID_ACOLYTE;
+	if (jobmask & 1<<JOB_SAGE)
+		bclass[2] |= 1<<MAPID_MAGE;
+	if (jobmask & 1<<JOB_ALCHEMIST)
+		bclass[2] |= 1<<MAPID_MERCHANT;
+	if (jobmask & 1<<JOB_BARD)
+		bclass[2] |= 1<<MAPID_ARCHER;
+	if (jobmask & 1<<JOB_DANCER)
+		bclass[2] |= 1<<MAPID_ARCHER;
+	if (jobmask & 1<<JOB_ROGUE)
+		bclass[2] |= 1<<MAPID_THIEF;
+	//Special classes that don't fit above.
+	if (jobmask & 1<<JOB_SUPER_NOVICE)
+		bclass[1] |= 1<<MAPID_NOVICE;
+	if (jobmask & 1<<24) //Taekwon boy
+		bclass[0] |= 1<<MAPID_TAEKWON;
+	if (jobmask & 1<<25) //Star Gladiator
+		bclass[1] |= 1<<MAPID_TAEKWON;
+	if (jobmask & 1<<26) //Soul Linker
+		bclass[2] |= 1<<MAPID_TAEKWON;
+}
 /*==========================================
  * DB‚ÌŒŸõ
  *------------------------------------------
@@ -161,17 +215,11 @@ struct item_data* itemdb_search(int nameid)
 	id->value_sell=id->value_buy/2;
 	id->weight=10;
 	id->sex=2;
-//	id->elv=0;
-	id->class_=0xffffffff;
-/*	
-	id->flag.available=0;
-	id->flag.value_notdc=0;  //ˆê‰žEEE
-	id->flag.value_notoc=0;
-	id->flag.no_equip=0;
-	id->flag.no_refine=0;
-	id->flag.delay_consume=0;
-	id->view_id=0;
-*/
+	id->class_base[0]=0xff;
+	id->class_base[1]=0xff;
+	id->class_base[2]=0xff;
+	id->class_upper=5;
+
 	if(nameid>500 && nameid<600)
 		id->type=0;   //heal item
 	else if(nameid>600 && nameid<700)
@@ -786,39 +834,31 @@ static int itemdb_read_sqldb(void)
 						ShowWarning("itemdb_read_sqldb: Item %d (%s) specifies %d slots, but the server only supports up to %d\n", nameid, id->jname, id->slot, MAX_SLOTS);
 						id->slot = MAX_SLOTS;
 					}
-					id->class_	= (sql_row[11] != NULL) ? atoi(sql_row[11]) : 0;
+					itemdb_jobid2mapid(id->class_base, (sql_row[11] != NULL) ? atoi(sql_row[11]) : 0);
+					id->class_upper= (sql_row[12] != NULL) ? atoi(sql_row[12]) : 0;
 					id->sex	= (battle_config.ignore_items_gender && nameid!=2634 && nameid!=2635) ? 2 :
-									( (sql_row[12] != NULL) ? atoi(sql_row[12]) : 0);
-					id->equip	= (sql_row[13] != NULL) ? atoi(sql_row[13]) : 0;
-					id->wlv		= (sql_row[14] != NULL) ? atoi(sql_row[14]) : 0;
-					id->elv		= (sql_row[15] != NULL)	? atoi(sql_row[15]) : 0;
-					id->flag.no_refine = (sql_row[16] == NULL || atoi(sql_row[16]) == 1)?0:1;
-					id->look	= (sql_row[17] != NULL) ? atoi(sql_row[17]) : 0;
+									( (sql_row[13] != NULL) ? atoi(sql_row[13]) : 0);
+					id->equip	= (sql_row[14] != NULL) ? atoi(sql_row[14]) : 0;
+					id->wlv		= (sql_row[15] != NULL) ? atoi(sql_row[15]) : 0;
+					id->elv		= (sql_row[16] != NULL)	? atoi(sql_row[16]) : 0;
+					id->flag.no_refine = (sql_row[17] == NULL || atoi(sql_row[17]) == 1)?0:1;
+					id->look	= (sql_row[18] != NULL) ? atoi(sql_row[18]) : 0;
 					id->view_id	= 0;
 
 					// ----------
 
-					if (sql_row[18] != NULL) {
-						if (sql_row[18][0] == '{')
-							id->use_script = parse_script((unsigned char *) sql_row[18], 0);
-						else {
-							sprintf(script, "{%s}", sql_row[18]);
-							id->use_script = parse_script((unsigned char *) script, 0);
-						}
-					} else id->use_script = NULL;
-
 					if (sql_row[19] != NULL) {
 						if (sql_row[19][0] == '{')
-							id->equip_script = parse_script((unsigned char *) sql_row[19], 0);
+							id->script = parse_script((unsigned char *) sql_row[19], 0);
 						else {
 							sprintf(script, "{%s}", sql_row[19]);
-							id->equip_script = parse_script((unsigned char *) script, 0);
+							id->script = parse_script((unsigned char *) script, 0);
 						}
-					} else id->equip_script = NULL;
+					} else id->script = NULL;
 
 					// ----------
 
-					id->flag.available		= 1;
+					id->flag.available	= 1;
 					id->flag.value_notdc	= 0;
 					id->flag.value_notoc	= 0;
 				}
@@ -873,7 +913,7 @@ static int itemdb_readdb(void)
 			if(line[0]=='/' && line[1]=='/')
 				continue;
 			memset(str,0,sizeof(str));
-			for(j=0,np=p=line;j<18 && p;j++){
+			for(j=0,np=p=line;j<19 && p;j++){
 				str[j]=p;
 				p=strchr(p,',');
 				if(p){ *p++=0; np=p; }
@@ -884,7 +924,7 @@ static int itemdb_readdb(void)
 			nameid=atoi(str[0]);
 			if(nameid<=0 || nameid>=20000)
 				continue;
-			if (j < 18)
+			if (j < 19)
 			{	//Crash-fix on broken item lines. [Skotlex]
 				ShowWarning("Reading %s: Insufficient fields for item with id %d, skipping.\n", filename[i], nameid);
 				continue;
@@ -935,30 +975,26 @@ static int itemdb_readdb(void)
 				ShowWarning("itemdb_readdb: Item %d (%s) specifies %d slots, but the server only supports up to %d\n", nameid, id->jname, id->slot, MAX_SLOTS);
 				id->slot = MAX_SLOTS;
 			}
-			id->class_=atoi(str[11]);
-			id->sex=atoi(str[12]);
-			id->sex	= (battle_config.ignore_items_gender && nameid!=2634 && nameid!=2635) ? 2 : atoi(str[12]);
-			if(id->equip != atoi(str[13])){
-				id->equip=atoi(str[13]);
+			itemdb_jobid2mapid(id->class_base, atoi(str[11]));
+			id->class_upper = atoi(str[12]);
+			id->sex	= (battle_config.ignore_items_gender && nameid!=2634 && nameid!=2635) ? 2 : atoi(str[13]);
+			if(id->equip != atoi(str[14])){
+				id->equip=atoi(str[14]);
 			}
-			id->wlv=atoi(str[14]);
-			id->elv=atoi(str[15]);
-			id->flag.no_refine = atoi(str[16])?0:1;	//If the refine column is 1, no_refine is 0
-			id->look=atoi(str[17]);
+			id->wlv=atoi(str[15]);
+			id->elv=atoi(str[16]);
+			id->flag.no_refine = atoi(str[17])?0:1;	//If the refine column is 1, no_refine is 0
+			id->look=atoi(str[18]);
 			id->flag.available=1;
 			id->flag.value_notdc=0;
 			id->flag.value_notoc=0;
 			id->view_id=0;
 
-			id->use_script=NULL;
-			id->equip_script=NULL;
+			id->script=NULL;
 
 			if((p=strchr(np,'{'))==NULL)
 				continue;
-			id->use_script = parse_script((unsigned char *) p,lines);
-			if((p=strchr(p+1,'{'))==NULL)
-				continue;
-			id->equip_script = parse_script((unsigned char *) p,lines);
+			id->script = parse_script((unsigned char *) p,lines);
 		}
 		fclose(fp);
 		if (ln > 0) {
@@ -1009,10 +1045,8 @@ static int itemdb_final_sub (void *key,void *data,va_list ap)
 	if (id == NULL)
 		return 0;
 	flag = va_arg(ap, int);
-	if (id->use_script)
-		aFree(id->use_script);
-	if (id->equip_script)
-		aFree(id->equip_script);
+	if (id->script)
+		aFree(id->script);
 	// Whether to clear the item data
 	if (flag)
 		aFree(id);

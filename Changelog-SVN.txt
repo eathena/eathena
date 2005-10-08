@@ -1,6 +1,19 @@
 Date	Added
 =======
 
+10/08
+	* Updated item_db structure. new column upper (after equip_jobs) defines
+	  the type of job that can equip the item (1: Normal jobs, 2: Upper jobs,
+	  4: Baby jobs), merged the use_script and equip_script columns into one.
+	  Also the equip_jobs column now has support for the following classes:
+	  Taekwon (2^24), Star Gladiator (2^25) and Soul Linker (2^26)
+	  The provided db/item_db.txt and sql-files/item_db,sql are already updated
+	  with all the necessary changes (all equipable/usable items have their
+	  upper set to 7)..
+	- Lupus, Nexus, get working on updating the item_db.
+	* Made FrostJoke/Scream work the same way out and inside woe grounds.
+	  [Skotlex]
+	* Corrected Grand Cross Damage [Skotlex]
 10/07
 	* Took out Lighthalzen's noteleport mapflag. Added it by accident. [Nexon]
 	* Some commented code cleanup and help.txt update [Foruken]

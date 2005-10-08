@@ -798,7 +798,6 @@ int chrif_changedsex(int fd)
 {
 	int acc, sex, i;
 	struct map_session_data *sd;
-	int s_class;
 
 	acc = RFIFOL(fd,2);
 	sex = RFIFOL(fd,6);
@@ -807,7 +806,6 @@ int chrif_changedsex(int fd)
 	sd = map_id2sd(acc);
 	if (acc > 0) {
 		if (sd != NULL && sd->status.sex != sex) {
-			s_class = pc_calc_base_job2(sd->status.class_);
 			if (sd->status.sex == 0) {
 				sd->status.sex = 1;
 				sd->sex = 1;
@@ -821,7 +819,7 @@ int chrif_changedsex(int fd)
 					pc_unequipitem((struct map_session_data*)sd, i, 2);
 			}
 			// reset skill of some job
-			if (s_class == JOB_BARD || s_class == JOB_DANCER) {
+			if ((sd->class_&MAPID_UPPERMASK) == MAPID_BARDDANCER) {
 				// remove specifical skills of Bard classes 
 				for(i = 315; i <= 322; i++) {
 					if (sd->status.skill[i].id > 0 && !sd->status.skill[i].flag) {
@@ -840,10 +838,11 @@ int chrif_changedsex(int fd)
 				}
 				clif_updatestatus(sd, SP_SKILLPOINT);
 				// change job if necessary
-				if (s_class == JOB_DANCER)
+				if (sd->status.sex) //Changed from Dancer
 					sd->status.class_ -= 1;
-				else if (s_class == JOB_BARD)
+				else	//Changed from Bard
 					sd->status.class_ += 1;
+				//sd->class_ needs not be updated as both Dancer/Bard are the same.
 			}
 			// save character
 			chrif_save(sd);
