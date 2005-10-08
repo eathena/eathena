@@ -25,6 +25,9 @@ Massdriller
 Date		Added
 ======
 10/08
+	* Updated Payon and Morroc (Jellopy->Scell) shops, thanks to Muad-Dib and andz [Lupus]
+	* Added Lighthalzen,Einbroch,Einbech shops. Updated Prontera,Morroc,Payon shops [Lupus]
+	- Thanks to Muad-dib, Nexon, andz, MasterOfMuppets
 	* Due to added Magic Scrolls drops... finally removed the temp shop [Lupus]
 10/07
 	* Added more shops. Thanks to Vicious_Pucca. [Nexon]
