@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= acky - god@acky.com
 //===== Current Version: =====================================
-//= 1.2.1
+//= 1.2.1a
 //===== Compatible With: =====================================
 //= Any eAthena Version
 //===== Description: =========================================
@@ -14,10 +14,10 @@
 //= *Ability to renew ticket
 //= *Improved interface
 //= *Fixed minor bug where first load didn't work.
+//= 1.2.1a fix due to new script engine
 //============================================================
 
-prontera.gat,1,1,1	script	lotterygenerator	111,
-{
+prontera.gat,1,1,1	script	lotterygenerator	111,{
 OnInit:
 set $L_TicketPrice,4750; // TICKET COST
 set $L_Prize_Money,5000000; // JACKPOT AMOUNT
