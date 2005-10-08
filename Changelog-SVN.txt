@@ -1,4 +1,12 @@
 Changes are Aru's unless noted.
+2005-10-08:
+	Login server added but in a different folder called login_sql/
+	has its own makefile, but can be compiled in the same root folder
+	this is our last fix for the login server, and will be converting to EAPP
+	since that is where i've done most of my work =D
+	
+	expect better performance, and real help from a real programmer Shinomori and Arutema.
+	(posted by CuTeBoi(
 
 2005-10-04:
 	Login server added to the branch, and cleaned up the int_login.c and main.c (CuTeBoi)
