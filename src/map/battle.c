@@ -2224,7 +2224,7 @@ struct Damage battle_calc_magic_attack(
 			}
 
 			if (flag.elefix)
-				ad.damage=battle_attr_fix(src, target, ad.damage, s_ele, t_ele);
+				ad.damage=battle_attr_fix(src, target, ad.damage, s_ele, status_get_element(target));
 
 			if (sd && flag.cardfix) {
 				short t_class = status_get_class(target);
