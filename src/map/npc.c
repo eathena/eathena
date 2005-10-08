@@ -162,7 +162,7 @@ int npc_event_dequeue(struct map_session_data *sd)
 			for(i=1;i<MAX_EVENTQUEUE;i++)
 				memcpy(sd->eventqueue[i-1],sd->eventqueue[i],50);
 			// clear the last event
-			sd->eventqueue[MAX_EVENTQUEUE-1][0]=0; 
+			sd->eventqueue[MAX_EVENTQUEUE-1][0]=0;
 			// add the timer
 			sd->eventtimer[ev]=add_timer(gettick()+100,pc_eventtimer,sd->bl.id,(int)name);//!!todo!!
 
@@ -188,7 +188,7 @@ int npc_event_timer(int tid,unsigned int tick,int id,int data)
 	{
 		if(battle_config.error_log)
 			ShowWarning("npc_event: event not found [%s]\n",eventname);
-	}	
+	}
 	else
 	{
 		for(i=0;i<MAX_EVENTTIMER;i++) {
@@ -1375,7 +1375,7 @@ int npc_unload (struct npc_data *nd)
 		struct chat_data *cd = (struct chat_data*)map_id2bl(nd->chat_id);
 		if (cd) aFree (cd);
 		cd = NULL;
-	}	
+	}
 	if (nd->bl.subtype == SCRIPT) {
 		if (nd->u.scr.timerid != -1)
 			delete_timer(nd->u.scr.timerid, npc_timerevent);
@@ -1497,7 +1497,7 @@ int npc_parse_warp (char *w1,char *w2,char *w3,char *w4)
 	m = map_mapname2mapid(mapname);
 
 	nd = (struct npc_data *) aCalloc (1, sizeof(struct npc_data));
-	
+
 	nd->bl.id = npc_get_new_npc_id();
 	nd->n = map_addnpc(m, nd);
 	nd->bl.prev = nd->bl.next = NULL;
@@ -1510,7 +1510,7 @@ int npc_parse_warp (char *w1,char *w2,char *w3,char *w4)
 */
 	memcpy(nd->name, w3, NAME_LENGTH-1);
 	memcpy(nd->exname, w3, NAME_LENGTH-1);
-	
+
 //	nd->chat_id = 0;
 	if (!battle_config.warp_point_debug)
 		nd->class_ = WARP_CLASS;
@@ -1581,7 +1581,7 @@ static int npc_parse_shop (char *w1, char *w2, char *w3, char *w4)
 			break;
 		nd->u.shop_item[pos].nameid = nameid;
 		id = itemdb_search(nameid);
-		if (value < 0)			
+		if (value < 0)
 			value = id->value_buy;
 		nd->u.shop_item[pos].value = value;
 		// check for bad prices that can possibly cause exploits
@@ -1663,7 +1663,7 @@ int npc_convertlabel_db (void *key, void *data, va_list ap)
 	*p='\0';
 
 	// here we check if the label fit into the buffer
-	if (strlen(lname) > 23) { 
+	if (strlen(lname) > 23) {
 		ShowError("npc_parse_script: label name longer than 23 chars! '%s'\n (%s)", lname, current_file);
 		exit(1);
 	}
@@ -1751,7 +1751,7 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 		// 引数の個数チェック
 		if (sscanf(w1, "%15[^,],%d,%d,%d", mapname, &x, &y, &dir) != 4 ||
 			(strcmp(w2, "script") == 0 && strchr(w4,',') == NULL)) {
-			ShowError("bad script line : %s\n", w3);
+			ShowError("bad script line (in file %s): %s\n", current_file, w3);
 			return 1;
 		}
 		m = map_mapname2mapid(mapname);
@@ -1787,7 +1787,7 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 				strcat((char *) srcbuf, (const char *) line);
 		}
 		if(curly_count > 0) {
-			ShowError("Missing right curly at line %d\n",*lines);
+			ShowError("Missing right curly at file %s, line %d\n",current_file, *lines);
 			script = NULL;
 		} else {
 			// printf("Ok line %d\n",*lines);
@@ -1939,7 +1939,7 @@ I rearrange the code so this is just for commenting; remove it if you have enoug
 			ev=(struct event_data *)aCalloc(1,sizeof(struct event_data));
 why allocing 50 chars ?
 			buf=(char *)aCallocA(50,sizeof(char));
-why checking here? 
+why checking here?
 lname is identical to nd->u.scr.label_list[i].name which is only 24 chars so check for strlen should be 23
 			if (strlen(lname)>24) {
 				printf("npc_parse_script: label name error (%s) !\n", current_file);
@@ -1958,12 +1958,12 @@ you are sure reentering the same database key will overwrite the existing entry?
 				strdb_insert(ev_db,buf,ev);
 anyway instead of removing data from the db and inserting a new one
 wouldn't it be easier just not to insert the new duplicate event, it is a duplicate anyway?
-			}	
+			}
 */
-			// this check is useless here because the buffer is only 24 chars 
+			// this check is useless here because the buffer is only 24 chars
 			// and already overwritten if this is here is reached
 			// I leave the check anyway but place it correctly to npc_convertlabel_db
-			if (strlen(lname)>NAME_LENGTH-1) { 
+			if (strlen(lname)>NAME_LENGTH-1) {
 				ShowError("npc_parse_script: label name longer than %d chars! '%s' (%s)\n", NAME_LENGTH-1, lname, current_file);
 				exit(1);
 			} else {
@@ -1971,19 +1971,19 @@ wouldn't it be easier just not to insert the new duplicate event, it is a duplic
 				struct event_data *ev2;
 				char *buf;
 				// エクスポートされる
-				
+
 				// 51 comes from: 24 for npc name + 24 for label + 2 for a "::" and 1 for EOS
-				//buf=(char *)aMalloc(51,sizeof(char)); 
+				//buf=(char *)aMalloc(51,sizeof(char));
 				// but to save some memory we alloc only the really necessary space
 				buf=(char *)aMalloc( (3+strlen(nd->exname)+strlen(lname))*sizeof(char));
 				sprintf(buf,"%s::%s",nd->exname,lname);
-				
-				// search the label in ev_db; 
+
+				// search the label in ev_db;
 				// remember the label is max 50 chars + eos; see the strdb_init below
 				ev2 = (struct event_data *)strdb_search(ev_db,buf);
 				if(ev2 != NULL) {
 					ShowError("npc_parse_script : duplicate event %s (%s)\n",buf, current_file);
-					
+
 					// just skip the label insertion and free the alloced buffer
 					aFree(buf);
 				}
@@ -2228,7 +2228,7 @@ int npc_parse_mob (char *w1, char *w2, char *w3, char *w4)
 	// parse MOB_NAME,[MOB LEVEL]
 	if (sscanf(w3, "%23[^,],%d", mobname, &level) > 1)
 		mob.level = level;
-	
+
 	if (strcmp(mobname, "--en--") == 0)
 		memcpy(mob.mobname, mob_db(mob.class_)->name, NAME_LENGTH-1);
 	else if (strcmp(mobname, "--ja--") == 0)
@@ -2279,7 +2279,7 @@ static int npc_parse_mapflag (char *w1, char *w2, char *w3, char *w4)
 	// 引数の個数チェック
 	if (sscanf(w1, "%15[^,]",mapname) != 1)
 		return 1;
-	
+
 	m = map_mapname2mapid(mapname);
 	if (m < 0)
 		return 1;
@@ -2515,7 +2515,7 @@ void npc_parsesrcfile (char *name)
 		// マップの存在確認
 		if (strcmp(w1,"-") !=0 && strcmpi(w1,"function") != 0 ){
 			sscanf(w1,"%[^,]",mapname);
-			if (strlen(mapname)>MAP_NAME_LENGTH-1 || 
+			if (strlen(mapname)>MAP_NAME_LENGTH-1 ||
 				(m = map_mapname2mapid(mapname)) < 0)
 			// "mapname" is not assigned to this server
 				continue;
@@ -2595,7 +2595,7 @@ static int npcname_db_final (void *key,void *data,va_list ap)
 	return 0;
 }
 /*==========================================
- * 
+ *
  *------------------------------------------
  */
 int npc_cleanup_sub (struct block_list *bl, va_list ap) {
@@ -2641,7 +2641,7 @@ int npc_reload (void)
 	ev_db->release = ev_release;
 	npc_warp = npc_shop = npc_script = 0;
 	npc_mob = npc_cache_mob = npc_delay_mob = 0;
-	
+
 	for (nsl = npc_src_first; nsl; nsl = nsl->next) {
 		npc_parsesrcfile(nsl->name);
 		printf("\r");
@@ -2728,7 +2728,7 @@ int do_init_npc(void)
 
 	// comparing only the first 24 chars of labels that are 50 chars long isn't that nice
 	// will cause "duplicated" labels where actually no dup is...
-	//ev_db=strdb_init(24); 
+	//ev_db=strdb_init(24);
 	ev_db = strdb_init(51);
 	npcname_db = strdb_init(NAME_LENGTH);
 	ev_db->release = ev_release;
@@ -2765,7 +2765,7 @@ int do_init_npc(void)
 		CL_WHITE"%d"CL_RESET"' Mobs Cached\n\t-'"
 		CL_WHITE"%d"CL_RESET"' Mobs Not Cached\n",
 		npc_id - START_NPC_NUM, "", npc_warp, npc_shop, npc_script, npc_mob, npc_cache_mob, npc_delay_mob);
-	
+
 	add_timer_func_list(npc_walktimer,"npc_walktimer"); // [Valaris]
 	add_timer_func_list(npc_event_timer,"npc_event_timer");
 	add_timer_func_list(npc_event_do_clock,"npc_event_do_clock");
