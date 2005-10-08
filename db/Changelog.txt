@@ -34,6 +34,7 @@
 10/08
 	* Added Magic Scrolls drops, updated walkspeed of Kaho thanks to  MasterOfMuppets [Lupus]
 10/07
+	* Fixed a small error in Rawrel's stats. [Nexon]
 	* Added a small change to Whikebain's drops. [Nexon]
 	* Updated Mob drops and Lighthalzen exp gain. Thanks to MasterOfMuppets and Viccious_Pucca [Nexon]
 	* Updated Item sell/buy price. [Nexon]

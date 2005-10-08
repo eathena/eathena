@@ -72,22 +72,7 @@ y_airport.gat	mapflag	nomemo
 lhz_airport.gat	mapflag	nomemo
 einbroch.gat	mapflag	nomemo
 einbech.gat	mapflag	nomemo
-lhz_in01.gat	mapflag	nomemo
-lhz_in02.gat	mapflag	nomemo
-lhz_in03.gat	mapflag	nomemo
-lhz_que01.gat	mapflag	nomemo
-lhz_dun01.gat	mapflag	nomemo
-lhz_dun02.gat	mapflag	nomemo
-lhz_dun03.gat	mapflag	nomemo
 lhz_cube.gat	mapflag	nomemo
-juperos_01.gat	mapflag	nomemo
-juperos_02.gat	mapflag	nomemo
-jupe_area1.gat	mapflag	nomemo
-jupe_area2.gat	mapflag	nomemo
-jupe_core.gat	mapflag	nomemo
-jupe_ele.gat	mapflag	nomemo
-jupe_ele_r.gat	mapflag	nomemo
-jupe_gate.gat	mapflag	nomemo
 
 // Job quests ================
 sword_1-1.gat	mapflag	nomemo

@@ -27,6 +27,7 @@ Date		Added
 10/08
 	* Due to added Magic Scrolls drops... finally removed the temp shop [Lupus]
 10/07
+	* Added more shops. Thanks to Vicious_Pucca. [Nexon]
 	* Added more Einbroch shop NPC's. Thanks to MasterOfMuppets and Vicious_Pucca. [Nexon]
 	* Fixed Niffelheim warps. Thanks to MasterOfMuppets. [Nexon]
 	* Added Lighthalzen shops. Thanks to Maud_Dib. [Nexon]
