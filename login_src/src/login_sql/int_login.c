@@ -81,7 +81,7 @@ struct temp_account {
 int mmo_auth( struct mmo_account* account , int fd){
 
 	struct temp_account ta;
-	char t_uid[64];
+	char t_uid[64], t_passwd;
 	char hashed_together[64], hashed_passwd[64];
 	char ip[16];
 
@@ -110,7 +110,9 @@ int mmo_auth( struct mmo_account* account , int fd){
 
 //	printf("uid: %d | uname: %s | pass_hash: %s | salt: %s | group: %d | sex: %d \n input username: %s || before escaping: %s\n", ta.id, ta.userid, ta.pass_hash, ta.pass_salt, ta.mgroup,ta.sex,t_uid,account->userid);
 
-	sql_query("SELECT MD5('%s')",account->passwd);
+	mysql_real_escape_string(&mysql_handle,t_passwd,account->passwd,strlen(account->passwd));
+
+	sql_query("SELECT MD5('%s')",t_passwd);
 	sql_res = mysql_store_result(&mysql_handle);
 	if ((sql_row = mysql_fetch_row(sql_res))){
 		strcpy(hashed_passwd,sql_row[0]);
