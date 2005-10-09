@@ -2,6 +2,8 @@ Date	Added
 =======
 
 10/08
+	* Some improvements to the mob ai. [Skotlex]
+	* Fixed summoned marine spheres exploding on their own. [Skotlex]
 	* Probably fixed the attribute fix for magical attacks. [Skotlex]
 	* Made the gender check to not be ignored by default [Skotlex]
 	- This is necessary because the new job ID system makes both Dancer and

@@ -1448,7 +1448,8 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 		md->last_linktime = tick;
 		if (abl && !status_isdead(abl))
 			map_foreachinarea(mob_ai_sub_hard_linksearch, md->bl.m,
-				md->bl.x-13, md->bl.y-13, md->bl.x+13, md->bl.y+13,
+				md->bl.x-md->db->range2, md->bl.y-md->db->range2,
+				md->bl.x+md->db->range2, md->bl.y+md->db->range2,
 				BL_MOB, md->class_, abl, tick);
 		else
 		{
@@ -1502,7 +1503,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 					mob_walktoxy(md, md->bl.x+dx, md->bl.y+dy, 0);
 				}
 			} else { //Attackable
-				if (!tbl || dist < 3 || distance(md->bl.x, md->bl.y, tbl->x, tbl->y) < dist)
+				if (!tbl || dist < md->db->range || distance(md->bl.x, md->bl.y, tbl->x, tbl->y) > dist)
 				{	//Change if the new target is closer than the actual one. [Skotlex]
 					md->target_id = md->attacked_id; // set target
 					md->state.targettype = ATTACKABLE;
