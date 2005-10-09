@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= MasterOfMuppets
 //===== Current Version: =====================================
-//= 1.0a
+//= 1.1
 //===== Compatible With: ===================================== 
 //= Any eAthena +
 //===== Description: ========================================= 
@@ -18,6 +18,7 @@
 //= 1.0 Added most of the official npcs. The following quests were added: [MasterOfMuppets]
 //=     Tom Yum Goong quest, Holy Threads quest and Holier threads quest.
 //= 1.0a some checks, optimization [Lupus]
+//= 1.1 Missing delitem fixed by Poki#3 [Lupus]
 //============================================================ 
 
 ayothaya.gat,152,68,1	script	Aibakthing	843,{
@@ -1088,6 +1089,7 @@ s_Pause2:
 	mes "while you're taking a rest.";
 	close;	
 s_Okay:
+	mes "[Mali the Spicy]";
 	mes "See you in a bit~";
 	set ayopause,0;
 	set tomyumgoong,4;
@@ -1099,6 +1101,7 @@ s_Chilee:
 	mes "You should talk to the Merchants in the Market, they'll know what you want.";
 	close;
 s_EnoughChilee:
+	delitem 7286,30;
 	mes "[Mali the Spicy]";
 	mes "Now...";
 	mes "Everything is all set!";
