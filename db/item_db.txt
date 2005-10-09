@@ -1920,20 +1920,20 @@
 7309,Crows_Wing,Crow's Wing,3,,10,10,,,,,,,,,,,,,{}
 7310,Peco_Coupon,Pecopeco Free Coupon,3,,10,10,,,,,,,,,,,,,{}
 7311,Airship_Coupon,Airship Free Coupon,3,,10,10,,,,,,,,,,,,,{}
-7312,Jubile,Jubilaeum,3,,10,10,,,,,,,,,,,,,{}
+7312,Jubile,Jubilee,3,,32,10,,,,,,,,,,,,,{}
 7313,Witch's_Voucher,Witch's Voucher,3,,10,10,,,,,,,,,,,,,{}
 7314,The_Sign,The Sign,3,,10,10,,,,,,,,,,,,,{}
 7315,Black_Quartz_Piece,Piece of Black Quartz,3,,10,10,,,,,,,,,,,,,{}
 7316,Insect_Long_leg,Insect's Long Leg,3,,10,10,,,,,,,,,,,,,{}
-7317,Rusted_Bolt,Rusted Bolt,3,,10,10,,,,,,,,,,,,,{}
-7318,Old_Pick,Old Pick,3,,10,10,,,,,,,,,,,,,{}
-7319,Old_Iron_Plate,Old Iron Plate,3,,10,10,,,,,,,,,,,,,{}
-7320,Dust,Dust,3,,10,10,,,,,,,,,,,,,{}
-7321,Quartz_Piece,Piece of Quartz,3,,10,10,,,,,,,,,,,,,{}
+7317,Rusted_Bolt,Rusty Screw,3,534,,10,,,,,,,,,,,,,{}
+7318,Old_Pick,Old Pick,3,512,,10,,,,,,,,,,,,,{}
+7319,Old_Iron_Plate,Used Iron Plate,3,1024,,10,,,,,,,,,,,,,{}
+7320,Dust,Dust Pollutant,3,256,,10,,,,,,,,,,,,,{}
+7321,Quartz_Piece,Crystal Fragment,3,552,,10,,,,,,,,,,,,,{}
 7322,Poison_Gas,Poison Gas,3,,10,10,,,,,,,,,,,,,{}
 7323,Battered_Kettle,Battered Kettle,3,,10,10,,,,,,,,,,,,,{}
 7324,Toothed_Wheel,Gear,3,,10,10,,,,,,,,,,,,,{}
-7325,Tube,Tube,3,,10,10,,,,,,,,,,,,,{}
+7325,Tube,Flexible Tube,3,,102,10,,,,,,,,,,,,,{}
 7326,Fluorescent_Colored_Liquid,Fluorescent Liquid,3,,10,10,,,,,,,,,,,,,{}
 7327,Flashlight,Flashlight,3,,10,10,,,,,,,,,,,,,{}
 7328,Songkran_Legend,Songkran Legend,3,,10,10,,,,,,,,,,,,,{}

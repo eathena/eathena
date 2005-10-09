@@ -2464,7 +2464,7 @@
 1615,Obsidian@NPC_GROUNDATTACK,attack,185,3,500,500,5000,no,target,always,0,,,,,,
 
 1616,Pitman@TF_SPRINKLESAND,attack,149,1,500,0,5000,yes,target,always,0,,,,,,
-1616,Pitman@HT_CLAYMORETRAP,idle,123,3,50,0,300000,yes,self,always,0,,,,,,
+1616,Pitman@HT_CLAYMORETRAP,idle,123,3,50,0,300000,yes,self,always,0,,,,,,18
 1616,Pitman@NPC_COMBOATTACK,attack,171,1,1000,700,5000,no,target,always,0,,,,,,
 1616,Pitman@NPC_POWERUP,attack,349,1,1500,0,100000,yes,self,myhpltmaxrate,30,,,,,,
 
@@ -2497,7 +2497,7 @@
 1622,Teddy Bear@SA_DISPELL,chase,289,5,500,0,30000,yes,target,always,0,,,,,,
 1622,Teddy Bear@NPC_CRITICALSLASH,attack,170,1,500,500,5000,no,target,always,0,,,,,,
 1622,Teddy Bear@NPC_CURSEATTACK,attack,181,3,500,800,5000,no,target,always,0,,,,,,
-1622,Teddy Bear@NPC_EMOTION,chase,197,1,10000,0,360000,yes,self,always,0,23,,,,,,
+1622,Teddy Bear@NPC_EMOTION,attack,197,1,200,0,5000,yes,self,always,0,1,,,,,,
 
 1623,RSX 0806@NPC_SUMMONSLAVE,attack,196,2,5000,3000,36000,no,self,myhpltmaxrate,5,1624,,,,,
 1623,RSX 0806@NPC_SUMMONSLAVE,chase,196,2,10000,3000,36000,no,self,slavele,0,1624,,,,,
