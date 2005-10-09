@@ -656,7 +656,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 	    memitemdata_to_sql(mapitem, count, p->char_id,TABLE_CART);
 
 //=====================================================================================================
-
+#if 0
 	if ((p->base_exp != cp->base_exp) || (p->class_ != cp->class_) ||
 	    (p->base_level != cp->base_level) || (p->job_level != cp->job_level) ||
 	    (p->job_exp != cp->job_exp) || (p->zeny != cp->zeny) ||
@@ -674,6 +674,9 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 	    (p->head_mid != cp->head_mid) || (p->head_bottom != cp->head_bottom) ||
 	    (p->partner_id != cp->partner_id) || (p->father != cp->father) ||
 	    (p->mother != cp->mother) || (p->child != cp->child) || (p->fame != cp->fame)) {
+#else
+	if (1) {
+#endif
 
 //}//---------------------------test count------------------------------
 	//check party_exist
@@ -881,12 +884,16 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 	return 0;
 }
 
+#define localtempsql tmp_sql
+
 // [Ilpalazzo-sama]
 int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tableswitch)
 {
 	int i;
 	char *tablename;
 	char selectoption[16];
+//	char localtempsql[65536];
+
 
 	switch (tableswitch) {
 	case TABLE_INVENTORY:
@@ -913,9 +920,9 @@ int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tab
 	}
 	//printf("Working Table : %s \n",tablename);
 
-	sprintf(tmp_sql,"DELETE from `%s` where `%s` = '%d'",
+	sprintf(localtempsql,"DELETE from `%s` where `%s` = '%d'",
 		tablename, selectoption, char_id);
-	if(mysql_query(&mysql_handle, tmp_sql))
+	if(mysql_query(&mysql_handle, localtempsql))
 	{
 		printf("DB server Error (DELETE `equ %s`)- %s\n", tablename, mysql_error(&mysql_handle));
 		return 1;
@@ -923,21 +930,23 @@ int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tab
 	if(!count)
 		return 0;
 
-	sprintf(tmp_sql,"INSERT INTO `%s`(`%s`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`,`gm_made` ) VALUES",
+	sprintf(localtempsql,"INSERT INTO `%s`(`%s`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`,`gm_made` ) VALUES",
 		tablename, selectoption);
 
 	for(i = 0; (i < count) && (i < 300); i++) {
 		if(1) {
-			sprintf(eos(tmp_sql),"( '%d','%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d' ) ",
+			sprintf(eos(localtempsql),"( '%d','%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d' ) ",
 				  char_id, mapitem[i].nameid, mapitem[i].amount, mapitem[i].equip, mapitem[i].identify, mapitem[i].refine,
 				mapitem[i].attribute, mapitem[i].card[0], mapitem[i].card[1], mapitem[i].card[2], mapitem[i].card[3], mapitem[i].gm_made);
-			if(i!=(count-1)) sprintf (eos(tmp_sql),",");
+			if(i!=(count-1)) sprintf (eos(localtempsql),",");
 		}
 	}
 //	printf("%d\n",strlen(tmp_sql));
-	if(mysql_query(&mysql_handle, tmp_sql))
+	if(mysql_query(&mysql_handle, localtempsql))
 		printf("DB server Error (INSERT `equ %s`)- %s\n", tablename, mysql_error(&mysql_handle));
-
+#ifdef NOISY_SAVE
+	printf("saved %d items to %s\n",i,tablename);
+#endif
 	return 0;
 }
 
@@ -3721,8 +3730,8 @@ int char_config_read(const char *cfgName) {
 			char_new = atoi(w2);
 		} else if (strcmpi(w1, "max_connect_user") == 0) {
 			max_connect_user = atoi(w2);
-			if (max_connect_user < 0)
-				max_connect_user = 0; // unlimited online players
+//			if (max_connect_user < 0)
+//				max_connect_user = 0; // unlimited online players
 		} else if(strcmpi(w1, "gm_allow_level") == 0) {
 			gm_allow_level = atoi(w2);
 			if(gm_allow_level < 0)
