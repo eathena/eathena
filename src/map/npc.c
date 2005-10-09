@@ -1590,6 +1590,10 @@ static int npc_parse_shop (char *w1, char *w2, char *w3, char *w4)
 			ShowWarning ("Item %s [%d] buying price (%d) is less than selling price (%d)\n",
 				id->name, id->nameid, value*75/100, id->value_sell*124/100);
 		}
+		//for logs filrers, atcommands and iteminfo script command
+		if (id->maxchance<=0)
+			id->maxchance = -value; //negative number would show that the item's sold in NPC Shop
+
 		pos++;
 		p = strchr(p, ',');
 	}

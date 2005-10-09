@@ -1,6 +1,17 @@
 Date	Added
 =======
 
+10/09
+	* At last finished 2 last logs filters options: [Lupus]
+		- Implemented 'Rare' items option (you can set rare_items_log value)
+		- Implemented 'Big amount' of items option (it would always log big set amount of items (per 1 action!) despite on the other filter option)
+	* Updated @iteminfo ATcommand. It would show you additional item info. [Lupus]
+		- Monsters drop this item with ?.?% chance
+		- Monsters don't drop this item
+		- This item is available in the shops only
+	- Tip: When you Trade/Vend goods, use @iteminfo to check items price and even rareness ^_-
+	* Rearranged item_data struct units to make it compatible with some old script commands after Skotlex's changes
+	- Tip: Now you can use GetItemInfo script command to find out if the item is rare or not
 10/08
 	* Some improvements to the mob ai. [Skotlex]
 	* Fixed summoned marine spheres exploding on their own. [Skotlex]

@@ -42,7 +42,7 @@ time_t curtime;
 //12 - Log rare items (if their drop chance <= rare_log )
 
 //check if this item should be logged according the settings
-int should_log_item(int filter, int nameid) {
+int should_log_item(int filter, int nameid, int amount) {
 	struct item_data *item_data;
 	if (nameid<501 || (item_data= itemdb_search(nameid)) == NULL) return 0;
 	if ( (filter&1) || // Filter = 1, we log any item
@@ -53,7 +53,9 @@ int should_log_item(int filter, int nameid) {
 		(filter&32 && item_data->type == 5 ) ||	//armor
 		(filter&64 && item_data->type == 6 ) ||	//cards
 		(filter&128 && (item_data->type == 7 || item_data->type == 8) ) ||	//eggs+pet access
-		(filter&256 && item_data->value_buy >= log_config.price_items_log )
+		(filter&256 && item_data->value_buy >= log_config.price_items_log ) ||		//expensive items
+		(filter&512 && amount >= log_config.amount_items_log ) ||			//big amount of items
+		(filter&2048 && ((item_data->maxchance <= log_config.rare_items_log) || item_data->nameid == 714) ) //Rare items or Emperium
 	) return item_data->nameid;
 
 	return 0;
@@ -104,7 +106,7 @@ int log_pick(struct map_session_data *sd, char *type, int mob_id, int nameid, in
 		return 0;
 	nullpo_retr(0, sd);
 	//Should we log this item? [Lupus]
-	if (!should_log_item(log_config.pick,nameid))
+	if (!should_log_item(log_config.pick,nameid, amount))
 		return 0; //we skip logging this items set - they doesn't met our logging conditions [Lupus]
 
 	//either PLAYER or MOB (here we get map name and objects ID)
@@ -171,7 +173,7 @@ int log_drop(struct map_session_data *sd, int monster_id, int *log_drop)
 		return 0;
 	nullpo_retr(0, sd);
 	for (i = 0; i<10; i++) { //Should we log these items? [Lupus]
-		flag += should_log_item(log_config.drop,log_drop[i]);
+		flag += should_log_item(log_config.drop,log_drop[i],1);
 	}
 	if (flag==0) return 0; //we skip logging this items set - they doesn't met our logging conditions [Lupus]
 
@@ -241,7 +243,7 @@ int log_present(struct map_session_data *sd, int source_type, int nameid)
 	if(log_config.enable_logs <= 0)
 		return 0;
 	nullpo_retr(0, sd);
-	if(!should_log_item(log_config.present,nameid)) return 0;	//filter [Lupus]
+	if(!should_log_item(log_config.present,nameid,1)) return 0;	//filter [Lupus]
 #ifndef TXT_ONLY
 	if(log_config.sql_logs > 0)
 	{
@@ -276,7 +278,7 @@ int log_produce(struct map_session_data *sd, int nameid, int slot1, int slot2, i
 	if(log_config.enable_logs <= 0)
 		return 0;
 	nullpo_retr(0, sd);
-	if(!should_log_item(log_config.produce,nameid)) return 0;	//filter [Lupus]
+	if(!should_log_item(log_config.produce,nameid,1)) return 0;	//filter [Lupus]
 #ifndef TXT_ONLY
 	if(log_config.sql_logs > 0)
 	{
@@ -320,7 +322,7 @@ int log_refine(struct map_session_data *sd, int n, int success)
 		item_level = sd->status.inventory[n].refine; //leaving there 0 wasn't informative! we have SUCCESS field anyways
 	else
 		item_level = sd->status.inventory[n].refine + 1;
-	if(!should_log_item(log_config.refine,sd->status.inventory[n].nameid) || log_config.refine_items_log<item_level) return 0;	//filter [Lupus]
+	if(!should_log_item(log_config.refine,sd->status.inventory[n].nameid,1) || log_config.refine_items_log<item_level) return 0;	//filter [Lupus]
 	for(i=0;i<MAX_SLOTS;i++)
 		log_card[i] = sd->status.inventory[n].card[i];
 
@@ -450,7 +452,7 @@ int log_trade(struct map_session_data *sd, struct map_session_data *target_sd, i
 
 	if(sd->status.inventory[n].amount < 0)
 		return 1;
-	if(!should_log_item(log_config.trade,sd->status.inventory[n].nameid)) return 0;	//filter [Lupus]
+	if(!should_log_item(log_config.trade,sd->status.inventory[n].nameid,sd->status.inventory[n].amount)) return 0;	//filter [Lupus]
 	log_nameid = sd->status.inventory[n].nameid;
 	log_amount = sd->status.inventory[n].amount;
 	log_refine = sd->status.inventory[n].refine;
@@ -522,7 +524,7 @@ int log_vend(struct map_session_data *sd,struct map_session_data *vsd,int n,int 
 		return 1;
 	if(sd->status.inventory[n].amount< 0)
 		return 1;
-	if(!should_log_item(log_config.vend,sd->status.inventory[n].nameid)) return 0;	//filter [Lupus]
+	if(!should_log_item(log_config.vend,sd->status.inventory[n].nameid,sd->status.inventory[n].amount)) return 0;	//filter [Lupus]
 	log_nameid = sd->status.inventory[n].nameid;
 	log_amount = sd->status.inventory[n].amount;
 	log_refine = sd->status.inventory[n].refine;

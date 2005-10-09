@@ -9097,12 +9097,21 @@ int atcommand_iteminfo(
 		sprintf(atcmd_output, "Item: '%s'/'%s'[%d] (%d) Type: %s | Extra Effect: %s",
 			item_data->name,item_data->jname,item_data->slot,item_id,
 			item_data->type < 12 ? itype[item_data->type] : "BUG!", 
-			(item_data->script==NULL)? "None" : "with script"
+			(item_data->script==NULL)? "None" : "With script"
 		);
 		clif_displaymessage(fd, atcmd_output);
 
 		sprintf(atcmd_output, "NPC Buy:%dz%s, Sell:%dz%s | Weight: %d ", item_data->value_buy, item_data->flag.value_notdc ? "(No Discount!)":"", item_data->value_sell, item_data->flag.value_notoc ? "(No Overcharge!)":"", item_data->weight );
 		clif_displaymessage(fd, atcmd_output);
+
+		if (item_data->maxchance<0)
+			strcpy(atcmd_output, " - Available in the shops");
+		else if (item_data->maxchance)
+			sprintf(atcmd_output, " - Maximal monsters drop chance: %02.02f%%", (float)item_data->maxchance / 100 );
+		else
+			strcpy(atcmd_output, " - Monsters don't drop this item");
+		clif_displaymessage(fd, atcmd_output);
+
 		return 0;
 	}
 

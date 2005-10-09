@@ -28,6 +28,8 @@ int log_chat(char *type, int type_id, int src_charid, int src_accid, char *map, 
 
 int log_config_read(char *cfgName);
 
+int should_log_item(int filter, int nameid, int amount); //log filter check
+
 extern struct Log_Config {
 	int enable_logs;
 	int sql_logs;

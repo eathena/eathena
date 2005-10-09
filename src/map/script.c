@@ -7247,11 +7247,12 @@ int buildin_getitemslots(struct script_state *st)
 /*==========================================
  * Returns some values of an item [Lupus]
  * Price, Weight, etc...
-	iteminfo(itemID,n), where n
+	getiteminfo(itemID,n), where n
 		0 value_buy;
 		1 value_sell;
 		2 type;
-		3 class;
+		3 maxchance = Max drop chance of this item (e.g. 0.01% , etc.. if it = 0, then monsters don't drop it)
+				might have negative value = -value_buy (if sold in NPC shops only)
 		4 sex;
 		5 equip;
 		6 weight;

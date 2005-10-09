@@ -3874,6 +3874,7 @@ static int mob_readdb(void)
 
 			for(i=0;i<10;i++){ // 8 -> 10 Lupus
 				int rate = 0,rate_adjust,type,ratemin,ratemax;
+				struct item_data *id;
 				mob_db_data[class_]->dropitem[i].nameid=atoi(str[29+i*2]);
 				type = itemdb_type(mob_db_data[class_]->dropitem[i].nameid);
 				rate = atoi(str[30+i*2]);
@@ -3914,6 +3915,15 @@ static int mob_readdb(void)
 					break;
 				}
 				mob_db_data[class_]->dropitem[i].p = mob_drop_adjust(rate, rate_adjust, ratemin, ratemax);
+
+				//calculate and store Max available drop chance of the item
+				id = itemdb_search(mob_db_data[class_]->dropitem[i].nameid);
+				if (mob_db_data[class_]->dropitem[i].p) {
+					if (id->maxchance<=0 || (id->maxchance < mob_db_data[class_]->dropitem[i].p) ) {
+					//item has bigger drop chance or sold in shops
+						id->maxchance = mob_db_data[class_]->dropitem[i].p;
+					}			
+				}
 			}
 			// MVP EXP Bonus, Chance: MEXP,ExpPer
 			mob_db_data[class_]->mexp=atoi(str[49])*battle_config.mvp_exp_rate/100;
@@ -3933,10 +3943,20 @@ static int mob_readdb(void)
 
 			// MVP Drops: MVP1id,MVP1per,MVP2id,MVP2per,MVP3id,MVP3per
 			for(i=0;i<3;i++){
+				struct item_data *id;
 				int rate=atoi(str[52+i*2]);
 				mob_db_data[class_]->mvpitem[i].nameid=atoi(str[51+i*2]);
 				mob_db_data[class_]->mvpitem[i].p= mob_drop_adjust(rate, battle_config.item_rate_mvp,
 					battle_config.item_drop_mvp_min, battle_config.item_drop_mvp_max);
+
+				//calculate and store Max available drop chance of the MVP item
+				id = itemdb_search(mob_db_data[class_]->mvpitem[i].nameid);
+				if (mob_db_data[class_]->mvpitem[i].p) {
+					if (id->maxchance<=0 || (id->maxchance < mob_db_data[class_]->mvpitem[i].p) ) {
+					//item has bigger drop chance or sold in shops
+						id->maxchance = mob_db_data[class_]->mvpitem[i].p/10+1; //reduce MVP drop info to not spoil common drop rate
+					}			
+				}
 			}
 
 			if (mob_db_data[class_]->max_hp <= 0) {
@@ -4371,6 +4391,7 @@ static int mob_read_sqldb(void)
 
 				for (j = 0; j < 10; j++){ // 8 -> 10 Lupus
 					int rate = 0, rate_adjust, type, ratemin, ratemax;
+					struct item_data *id;
 					mob_db_data[class_]->dropitem[j].nameid=TO_INT(29+j*2);
 					type = itemdb_type(mob_db_data[class_]->dropitem[j].nameid);
 					rate = TO_INT(30+j*2);
@@ -4411,6 +4432,16 @@ static int mob_read_sqldb(void)
 						break;
 					}
 					mob_db_data[class_]->dropitem[i].p = mob_drop_adjust(rate, rate_adjust, ratemin, ratemax);
+
+					mob_db_data[class_]->dropitem[i].p = 22;
+					//calculate and store Max available drop chance of the item
+					id = itemdb_search(mob_db_data[class_]->dropitem[i].nameid);
+					if (mob_db_data[class_]->dropitem[i].p) {
+						if (id->maxchance<=0 || (id->maxchance < mob_db_data[class_]->dropitem[i].p) ) {
+						//item has bigger drop chance or sold in shops
+							id->maxchance = mob_db_data[class_]->dropitem[i].p;
+						}			
+					}
 				}
 				// MVP EXP Bonus, Chance: MEXP,ExpPer
 				mob_db_data[class_]->mexp = TO_INT(49) * battle_config.mvp_exp_rate / 100;
@@ -4429,10 +4460,20 @@ static int mob_read_sqldb(void)
 				mob_db_data[class_]->max_hp = (int)maxhp;
 
 				// MVP Drops: MVP1id,MVP1per,MVP2id,MVP2per,MVP3id,MVP3per
-				for (j = 0; j < 3; j++) {
-					mob_db_data[class_]->mvpitem[j].nameid = TO_INT(51+j*2);
-					mob_db_data[class_]->mvpitem[j].p = mob_drop_adjust(TO_INT(52+j*2),
+				for (i = 0; i < i; i++) {
+					struct item_data *id;
+					mob_db_data[class_]->mvpitem[i].nameid = TO_INT(51+i*2);
+					mob_db_data[class_]->mvpitem[i].p = mob_drop_adjust(TO_INT(52+i*2),
 						battle_config.item_rate_mvp, battle_config.item_drop_mvp_min, battle_config.item_drop_mvp_max);
+
+					//calculate and store Max available drop chance of the MVP item
+					id = itemdb_search(mob_db_data[class_]->mvpitem[i].nameid);
+					if (mob_db_data[class_]->mvpitem[i].p) {
+						if (id->maxchance<=0 || (id->maxchance < mob_db_data[class_]->mvpitem[i].p) ) {
+						//item has bigger drop chance or sold in shops
+							id->maxchance = mob_db_data[class_]->mvpitem[i].p/10+1; //reduce MVP drop info to not spoil common drop rate
+						}			
+					}
 				}
 				if (mob_db_data[class_]->max_hp <= 0) {
 					ShowWarning ("Mob %d (%s) has no HP, using poring data for it\n", class_, mob_db_data[class_]->jname);
