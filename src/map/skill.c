@@ -1552,6 +1552,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 {
 	struct Damage dmg;
 	struct status_change *sc_data;
+	struct map_session_data *sd=NULL, *tsd=NULL;
 	int type,lv,damage;
 	static int tmpdmg = 0;
 
@@ -1581,6 +1582,11 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 //	if(src != dsrc && status_isdead(src))
 //		return 0;
 
+	if (src->type == BL_PC)
+		sd = (struct map_session_data *)dsrc;
+	if (bl->type == BL_PC)
+		tsd = (struct map_session_data *)bl;
+		
 	if(dsrc->type == BL_PC && skillnotok(skillid, (struct map_session_data *)dsrc))
 		return 0; // [MouseJstr]
 	if(sc_data && sc_data[SC_HIDING].timer != -1) { //ハイディング?態で
@@ -1595,7 +1601,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 	}
 	if(skillid == WZ_FROSTNOVA && dsrc->x == bl->x && dsrc->y == bl->y) //使用スキルがフロストノヴァで、dsrcとblが同じ場所なら何もしない
 		return 0;
-	if(src->type == BL_PC && ((struct map_session_data *)src)->chatID) //術者がPCでチャット中なら何もしない
+	if(sd && sd->chatID) //術者がPCでチャット中なら何もしない
 		return 0;
 
 //何もしない判定ここまで
@@ -1604,31 +1610,6 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 	lv=(flag>>20)&0xf;
 	dmg=battle_calc_attack(attack_type,src,bl,skillid,skilllv,flag&0xff ); //ダメ?ジ計算
 
-//マジックロッド?理ここから
-	if(attack_type&BF_MAGIC && sc_data && sc_data[SC_MAGICROD].timer != -1 && src == dsrc) { //魔法攻?でマジックロッド?態でsrc=dsrcなら
-		dmg.damage = dmg.damage2 = 0; //ダメ?ジ0
-		if(bl->type == BL_PC) { //?象がPCの場合
-			struct map_session_data *sd = (struct map_session_data *)bl;
-			if (sd) {
-				int sp = skill_get_sp(skillid,skilllv); //使用されたスキルのSPを吸?
-				sp = sp * sc_data[SC_MAGICROD].val2 / 100; //吸?率計算
-				if(skillid == WZ_WATERBALL && skilllv > 1) //ウォ?タ?ボ?ルLv1以上
-					sp = sp/((skilllv|1)*(skilllv|1)); //さらに計算？
-				if(sp > 0x7fff) sp = 0x7fff; //SP多すぎの場合は理論最大値
-				else if(sp < 1) sp = 1; //1以下の場合は1
-				if(sd->status.sp + sp > sd->status.max_sp) { //回復SP+現在のSPがMSPより大きい場合
-					sp = sd->status.max_sp - sd->status.sp; //SPをMSP-現在SPにする
-					sd->status.sp = sd->status.max_sp; //現在のSPにMSPを代入
-				}
-				else //回復SP+現在のSPがMSPより小さい場合は回復SPを加算
-					sd->status.sp += sp;
-				clif_heal(sd->fd,SP_SP,sp); //SP回復エフェクトの表示
-				sd->canact_tick = tick + skill_delayfix(bl, skill_get_delay(SA_MAGICROD,sc_data[SC_MAGICROD].val1)); //
-			}
-		}
-		clif_skill_nodamage(bl,bl,SA_MAGICROD,sc_data[SC_MAGICROD].val1,1); //マジックロッドエフェクトを表示
-	}
-//マジックロッド?理ここまで
 	//Skotlex: Adjusted to the new system
 	if(src->type==BL_PET && (struct pet_data *)src)
 	{ // [Valaris]
@@ -1640,6 +1621,29 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 			dmg.div_= pd->a_skill->div_;
 		}
 	}
+
+//マジックロッド?理ここから
+	if(attack_type&BF_MAGIC && sc_data && sc_data[SC_MAGICROD].timer != -1 && src == dsrc) { //魔法攻?でマジックロッド?態でsrc=dsrcなら
+		dmg.damage = dmg.damage2 = 0; //ダメ?ジ0
+		if(tsd) {
+			int sp = skill_get_sp(skillid,skilllv); //使用されたスキルのSPを吸?
+			sp = sp * sc_data[SC_MAGICROD].val2 / 100; //吸?率計算
+			if(skillid == WZ_WATERBALL && skilllv > 1) //ウォ?タ?ボ?ルLv1以上
+				sp = sp/((skilllv|1)*(skilllv|1)); //さらに計算？
+			if(sp > 0x7fff) sp = 0x7fff; //SP多すぎの場合は理論最大値
+			else if(sp < 1) sp = 1; //1以下の場合は1
+			if(sd->status.sp + sp > sd->status.max_sp) { //回復SP+現在のSPがMSPより大きい場合
+				sp = sd->status.max_sp - sd->status.sp; //SPをMSP-現在SPにする
+				sd->status.sp = sd->status.max_sp; //現在のSPにMSPを代入
+			}
+			else //回復SP+現在のSPがMSPより小さい場合は回復SPを加算
+				sd->status.sp += sp;
+			clif_heal(tsd->fd,SP_SP,sp); //SP回復エフェクトの表示
+			tsd->canact_tick = tick + skill_delayfix(bl, skill_get_delay(SA_MAGICROD,sc_data[SC_MAGICROD].val1)); //
+		}
+		clif_skill_nodamage(bl,bl,SA_MAGICROD,sc_data[SC_MAGICROD].val1,1); //マジックロッドエフェクトを表示
+	}
+//マジックロッド?理ここまで
 
 	damage = dmg.damage + dmg.damage2;
 
@@ -1655,13 +1659,11 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 
 	if(skillid == CR_GRANDCROSS||skillid == NPC_GRANDDARKNESS) {//グランドクロス
 		if(battle_config.gx_disptype) dsrc = src;	// 敵ダメ?ジ白文字表示
-		if( src == bl) type = 4;	// 反動はダメ?ジモ?ションなし
+		if(src == bl) type = 4;	// 反動はダメ?ジモ?ションなし
 	}
 
 //使用者がPCの場合の?理ここから
-	if(src->type == BL_PC) {
-		struct map_session_data *sd = (struct map_session_data *)src;
-		nullpo_retr(0, sd);
+	if(sd) {
 		//Sorry for removing the Japanese comments, but they were actually distracting 
 		//from the actual code and I couldn't understand a thing anyway >.< [Skotlex]
 		switch(skillid)
@@ -1729,15 +1731,13 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 			}
 		}	//Switch End
 	}
-	if(attack_type&BF_WEAPON && damage > 0 && src != bl && src == dsrc) { //武器スキル＆ダメ?ジあり＆使用者と?象者が違う＆src=dsrc
+	if(attack_type&BF_WEAPON && damage > 0 && src != bl && src == dsrc)
+	{ //武器スキル＆ダメ?ジあり＆使用者と?象者が違う＆src=dsrc
 		if(dmg.flag&BF_SHORT) { //近距離攻?時？※
-			if(bl->type == BL_PC) { //?象がPCの時
-				struct map_session_data *tsd = (struct map_session_data *)bl;
-				nullpo_retr(0, tsd);
-				if(tsd->short_weapon_damage_return > 0) { //近距離攻?跳ね返し？※
-					rdamage += damage * tsd->short_weapon_damage_return / 100;
-					if(rdamage < 1) rdamage = 1;
-				}
+			if(tsd && tsd->short_weapon_damage_return > 0)
+			{ //近距離攻?跳ね返し？※
+				rdamage += damage * tsd->short_weapon_damage_return / 100;
+				if(rdamage < 1) rdamage = 1;
 			}
 			if(sc_data && sc_data[SC_REFLECTSHIELD].timer != -1) { //リフレクトシ?ルド時
 				rdamage += damage * sc_data[SC_REFLECTSHIELD].val2 / 100; //跳ね返し計算
@@ -1745,20 +1745,24 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 			}
 		}
 		else if(dmg.flag&BF_LONG) { //遠距離攻?時？※
-			if(bl->type == BL_PC) { //?象がPCの時
-				struct map_session_data *tsd = (struct map_session_data *)bl;
-				nullpo_retr(0, tsd);
-				if(tsd->long_weapon_damage_return > 0) { //遠距離攻?跳ね返し？※
-					rdamage += damage * tsd->long_weapon_damage_return / 100;
-					if(rdamage < 1) rdamage = 1;
-				}
+			if(tsd && tsd->long_weapon_damage_return > 0)
+			{ //遠距離攻?跳ね返し？※
+				rdamage += damage * tsd->long_weapon_damage_return / 100;
+				if(rdamage < 1) rdamage = 1;
 			}
 		}
-		if(rdamage > 0)
-			clif_damage(src,src,tick, dmg.amotion,0,rdamage,1,4,0);
+	} else
+	// magic_damage_return by [AppleGirl] and [Valaris]
+	if(attack_type&BF_MAGIC && damage > 0 && src != bl && src == dsrc)
+	{
+		if(tsd && tsd->magic_damage_return > 0 )
+		{
+			rdamage += damage * tsd->magic_damage_return / 100;
+			if(rdamage < 1) rdamage = 1;
+		}
 	}
-//武器スキル？ここまで
 
+//武器スキル？ここまで
 	switch(skillid){
 	case AS_SPLASHER:
 		clif_skill_damage(dsrc,bl,tick,dmg.amotion,dmg.dmotion, damage, dmg.div_, skillid, -1, 5);
@@ -1789,12 +1793,11 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 	
 	map_freeblock_lock();
 
-	if(damage > 0 && dmg.flag&BF_SKILL && bl->type==BL_PC
-		&& pc_checkskill((struct map_session_data *)bl,RG_PLAGIARISM) && sc_data[SC_PRESERVE].timer == -1
-		&& damage < ((struct map_session_data *)bl)->status.hp)
+	if(damage > 0 && dmg.flag&BF_SKILL && tsd
+		&& pc_checkskill(tsd,RG_PLAGIARISM) && sc_data[SC_PRESERVE].timer == -1
+		&& damage < tsd->status.hp)
 	{	//Updated to not be able to copy skills if the blow will kill you. [Skotlex]
-		struct map_session_data *tsd = (struct map_session_data *)bl;
-		if (tsd && (!tsd->status.skill[skillid].id || tsd->status.skill[skillid].flag >= 13) &&
+		if ((!tsd->status.skill[skillid].id || tsd->status.skill[skillid].flag >= 13) &&
 			can_copy(tsd,skillid))	// Split all the check into their own function [Aru]
 		{
 			//?に?んでいるスキルがあれば該?スキルを消す
@@ -1849,31 +1852,24 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		skill_counter_additional_effect(src,bl,skillid,skilllv,attack_type,tick);
 	
 	/* ダメ?ジがあるなら追加?果判定 */	
-	if(bl->prev != NULL){
-		if(!status_isdead(bl)) {
-			if(bl->type==BL_MOB && src!=bl)	/* スキル使用?件のMOBスキル */
-			{
-				struct mob_data *md=(struct mob_data *)bl;
-				nullpo_retr(0, md);
-				if(battle_config.mob_changetarget_byskill == 1)
-				{
-					int target;
-					target=md->target_id;
-					if(src->type == BL_PC)
-						md->target_id=src->id;
-					mobskill_use(md,tick,MSC_SKILLUSED|(skillid<<16));
-					md->target_id=target;
-				}
-				else
-					mobskill_use(md,tick,MSC_SKILLUSED|(skillid<<16));
-			}
+	if(!status_isdead(bl) && bl->type==BL_MOB && src!=bl)	/* スキル使用?件のMOBスキル */
+	{
+		struct mob_data *md=(struct mob_data *)bl;
+//		nullpo_retr(0, md); //Just so you know.. these are useless. When you cast a pointer, the pointer still is the same, so if bl is not null, the after-casted pointer will never be nulll :/ [Skotlex]
+		if(battle_config.mob_changetarget_byskill && sd)
+		{
+			int target ;
+			target=md->target_id;
+			md->target_id=src->id;
+			mobskill_use(md,tick,MSC_SKILLUSED|(skillid<<16));
+			md->target_id=target;
 		}
+		else
+			mobskill_use(md,tick,MSC_SKILLUSED|(skillid<<16));
 	}
 
-	if(src->type == BL_PC && dmg.flag&BF_WEAPON && src != bl && src == dsrc && damage > 0) {
-		struct map_session_data *sd = (struct map_session_data *)src;
+	if(sd && dmg.flag&BF_WEAPON && src != bl && src == dsrc && damage > 0) {
 		int hp = 0,sp = 0;
-		nullpo_retr(0, sd);
 		if(sd->right_weapon.hp_drain_rate && sd->right_weapon.hp_drain_per > 0 && dmg.damage > 0 && rand()%1000 < sd->right_weapon.hp_drain_rate) {
 			hp += (dmg.damage * sd->right_weapon.hp_drain_per)/100;
 			if(sd->right_weapon.hp_drain_rate > 0 && hp < 1) hp = 1;
@@ -1900,11 +1896,12 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 			battle_heal(NULL,bl,0,-sp,0);
 	}
 
-	if ((skillid || flag) && rdamage>0) {
+	if (/*(skillid || flag) &&*/ rdamage>0) { //Is the skillid/flag check really necessary? [Skotlex]
 		if (attack_type&BF_WEAPON)
 			battle_delay_damage(tick+dmg.amotion,bl,src,0,0,0,rdamage,dmg.dmotion,ATK_DEF,0);
 		else
 			battle_damage(bl,src,rdamage,dmg.dmotion,0);
+		clif_damage(src,src,tick, dmg.amotion,0,rdamage,1,4,0);
 	}
 
 	if (!(flag & 1) &&
@@ -1917,7 +1914,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		sc_data[SC_DOUBLECAST].timer != -1 &&
 		rand() % 100 < 40+10*skilllv)
 	{
-			skill_castend_delay (src, bl, skillid, skilllv, tick + dmg.div_*dmg.amotion, flag|1);
+		skill_castend_delay (src, bl, skillid, skilllv, tick + dmg.div_*dmg.amotion, flag|1);
 	}
 
 	map_freeblock_unlock();

@@ -2279,13 +2279,6 @@ struct Damage battle_calc_magic_attack(
 	}
 
 	ad.damage=battle_calc_damage(src,target,ad.damage,ad.div_,skill_num,skill_lv,mflag);
-
-	// magic_damage_return by [AppleGirl] and [Valaris] - changed to x% chance to return 100% dmg instead of 100% chance to return x% dmg [DracoRPG]
-	if(ad.damage > 0 && target->type==BL_PC && tsd && tsd->magic_damage_return > 0 && rand()%100 < tsd->magic_damage_return){
-			clif_damage(target,src,gettick(),0,0,ad.damage,0,0,0);
-			battle_damage(target,src,ad.damage,1,0);
-	}
-
 	return ad;
 }
 
@@ -2881,10 +2874,9 @@ int battle_check_attackable(struct block_list *src, struct block_list *target)
 			struct map_session_data *sd = (struct map_session_data*) target;
 			if (pc_isinvisible(sd))
 				return 0;
-			if (!(mode & 0x20)
-				&& (pc_ishiding(sd) || sd->state.gangsterparadise)
+			if ((pc_ishiding(sd) || sd->state.gangsterparadise)
 				&& !(race == 4 || race == 6 || mode&0x100)
-				&& !sd->state.perfect_hiding
+				&& !((mode & 0x20) || sd->state.perfect_hiding)
 			)
 				return 0;
 		}
