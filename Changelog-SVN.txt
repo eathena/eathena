@@ -2,6 +2,11 @@ Date	Added
 =======
 
 10/09
+	* Probably fixed Waterball so it does max number of hits when casted by a
+	  non-player regardless of water availability. [Skotlex]
+	* Fixed perfect hiding. [Skotlex]
+	* Corrected magic damage return to only work on targetted skills [Skotlex]
+	* Some cleaning up of the skill_attack function. [Skotlex]
 	* At last finished 2 last logs filters options: [Lupus]
 		- Implemented 'Rare' items option (you can set rare_items_log value)
 		- Implemented 'Big amount' of items option (it would always log big set amount of items (per 1 action!) despite on the other filter option)
@@ -13,9 +18,6 @@ Date	Added
 	* Rearranged item_data struct units to make it compatible with some old script commands after Skotlex's changes
 	- Tip: Now you can use GetItemInfo script command to find out if the item is rare or not
 10/08
-	* Fixed perfect hiding. [Skotlex]
-	* Corrected magic damage return to only work on targetted skills [Skotlex]
-	* Some cleaning up of the skill_attack function. [Skotlex]
 	* Some improvements to the mob ai. [Skotlex]
 	* Fixed summoned marine spheres exploding on their own. [Skotlex]
 	* Probably fixed the attribute fix for magical attacks. [Skotlex]
