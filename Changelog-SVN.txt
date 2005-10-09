@@ -1,4 +1,9 @@
 Changes are Aru's unless noted.
+2005-10-09:
+        Fixed a cart-dupe bug in char-server, and added new feature:
+         set max_connect_users to a negative value to allow only GMs of
+         the level configured to bypass the limit in.
+
 2005-10-08:
 	Login server added but in a different folder called login_sql/
 	has its own makefile, but can be compiled in the same root folder
