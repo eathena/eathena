@@ -2128,7 +2128,7 @@ struct Damage battle_calc_magic_attack(
 								ad.damage = 0;
 							else {
 								int drate[]={100,90,70};
-								MATK_RATE(drate[mflag]/100);
+								MATK_RATE(drate[mflag]);
 								skillratio += 70+10*skill_lv;
 							}
 							break;

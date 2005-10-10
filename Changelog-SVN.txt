@@ -2,6 +2,7 @@ Date	Added
 =======
 
 10/10
+	* Fixed Fireball's damage. [Skotlex]
 	* Now the Wedding Dress and Tuxedo will always check for the correct
 	  gender. [Skotlex]
 	* Cleaned up the code for Potion Pitcher. [Skotlex]
