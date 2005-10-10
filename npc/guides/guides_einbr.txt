@@ -3,26 +3,27 @@
 //===== By: ================================================== 
 //= Reddozen
 //===== Current Version: ===================================== 
-//= 1.0a
+//= 1.0b
 //===== Compatible With: ===================================== 
 //= eAthena 7.15 +
 //===== Description: ========================================= 
 //=
 //===== Additional Comments: ================================= 
-//= 
+//= 1.0b missing tabs [Lupus]
 //============================================================
 
-einbroch.gat,72,201,4 script Guide 852,{
-cutin "ein_soldier",2;
-mes "[Einbroch Guide]";
-mes "Welcome to Einbroch,";
-mes "the City of Steel.";
-mes "Please ask me if you";
-mes "have any questions";
+
+einbroch.gat,72,201,4	script	Guide	852,{
+  cutin "ein_soldier",2;
+  mes "[Einbroch Guide]";
+  mes "Welcome to Einbroch,";
+  mes "the City of Steel.";
+  mes "Please ask me if you";
+  mes "have any questions";
 
 M_Menu:
-next;
-menu "City Guide",M_1, "Remove Marks from Mini-Map",M_2, "Notice",M_3, "Cancel",M_End;
+  next;
+  menu "City Guide",M_1, "Remove Marks from Mini-Map",M_2, "Notice",M_3, "Cancel",M_End;
 
 M_1:
   mes "[Einbroch Guide]";
@@ -216,4 +217,5 @@ M_End:
   cutin "ein_soldier",255;
   close;
 }
-einbroch.gat,155,43,4 duplicate(Guide) Guide 852
+
+einbroch.gat,155,43,4	duplicate(Guide)	Guide	852

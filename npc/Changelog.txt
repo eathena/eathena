@@ -24,6 +24,7 @@ Massdriller
 Date		Added
 ======
 10/10
+	* Yet again fixed some missing tabs in Enbech, Enbech/Einbroch Guides [Luups]
 	* Fixed missing tabs in Enbech Town. [Mass Zero]
 	* Added Einbech Guides, thanks to Muad_Dib and MasterOfMuppets. [Mass Zero]
 	* Added Einbroch Guides, thanks to Reddozen and MasterOfMuppets. [Mass Zero]
