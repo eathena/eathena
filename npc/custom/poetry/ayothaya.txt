@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= by MouseJstr
 //===== Current Version: =====================================
-//= 0.2
+//= 0.2a
 //===== Compatible With: =====================================
 //= eAthena 1.0 Final +
 //===== Description: =========================================
@@ -99,7 +99,7 @@ ayothaya.gat,212,276,0	script	Romeo	50,{
   npctalk "He jests at scars that never felt a wound.";
   end;
  OnTimer6000:
-  npctalk "But, soft! what light through yonder window ends?";
+  npctalk "But, soft! what light through yonder window breaks?";
   end;
  OnTimer8000:
   npctalk "It is the east, and Juliet is the sun.";

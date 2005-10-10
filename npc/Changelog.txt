@@ -5,8 +5,7 @@ Lupus
 	* Adding new cards, checking/adding mobs/items
 	* Yuno Monsters Museum - 0%
 Mass Zero
-	* Fixing gramatical errors.
-		^^^^^^^^^^^^^^^^^^^ it's graMMatical [Lupus]
+	* Fixing grammatical errors.
 	* Fixing small bugs.
 	* Adding small stuff.
 	* Redoing lots of the custom scripts.
@@ -24,6 +23,13 @@ Massdriller
 
 Date		Added
 ======
+10/10
+	* Fixed missing tabs in Enbech Town. [Mass Zero]
+	* Added Einbech Guides, thanks to Muad_Dib and MasterOfMuppets. [Mass Zero]
+	* Added Einbroch Guides, thanks to Reddozen and MasterOfMuppets. [Mass Zero]
+	* Added Einbech warps, thanks to Muad_Dib. [Mass Zerp]
+	* Added Einbech Town, thanks to Muad_Dib and MasterOfMuppets. [Mass Zero]
+	* Changed 'ends' into 'breaks' in the Wandering Poet NPC, thanks to IVBela. [Mass Zero]
 10/08
 	* Fixed Ayothaya town script, thanks to Poki#3 [Lupus]
 	* Total warps update of Hidden Temple (Forest Labyrinth), thanks to jA and Dr.Evil for info [Lupus]
