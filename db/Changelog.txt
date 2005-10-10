@@ -32,6 +32,7 @@
 		like gemstones when the skill is used.
 	--
 10/10
+	* Changed Mirror Shield's mdef to 5. [Skotlex]
 	* Changed GrandCross's duration to 900ms (changes nothing as the three hits
 	  still happen at 0, 400 and 800ms) [Skotlex]
 10/09

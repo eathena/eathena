@@ -746,6 +746,23 @@ static int itemdb_read_itemtrade(void)
 	return 0;
 }
 
+/*======================================
+ * Applies gender restrictions according to settings. [Skotlex]
+ *======================================
+ */
+static int itemdb_gendercheck(struct item_data *id)
+{
+	if (id->nameid == WEDDING_RING_M)
+		return 1;
+	if (id->nameid == WEDDING_RING_F)
+		return 0;
+	if (id->look == 13) //Musical instruments are always male-only
+		return 1;
+	if (id->look == 14) //Whips are always female-only
+		return 0;
+
+	return (battle_config.ignore_items_gender?2:id->sex);
+}
 #ifndef TXT_ONLY
 
 /*======================================
@@ -836,14 +853,14 @@ static int itemdb_read_sqldb(void)
 					}
 					itemdb_jobid2mapid(id->class_base, (sql_row[11] != NULL) ? atoi(sql_row[11]) : 0);
 					id->class_upper= (sql_row[12] != NULL) ? atoi(sql_row[12]) : 0;
-					id->sex	= (battle_config.ignore_items_gender && nameid!=2634 && nameid!=2635) ? 2 :
-									( (sql_row[13] != NULL) ? atoi(sql_row[13]) : 0);
+					id->sex		= (sql_row[13] != NULL) ? atoi(sql_row[13]) : 0;
 					id->equip	= (sql_row[14] != NULL) ? atoi(sql_row[14]) : 0;
 					id->wlv		= (sql_row[15] != NULL) ? atoi(sql_row[15]) : 0;
 					id->elv		= (sql_row[16] != NULL)	? atoi(sql_row[16]) : 0;
 					id->flag.no_refine = (sql_row[17] == NULL || atoi(sql_row[17]) == 1)?0:1;
 					id->look	= (sql_row[18] != NULL) ? atoi(sql_row[18]) : 0;
 					id->view_id	= 0;
+					id->sex = itemdb_gendercheck(id); //Apply gender filtering.
 
 					// ----------
 
@@ -977,7 +994,7 @@ static int itemdb_readdb(void)
 			}
 			itemdb_jobid2mapid(id->class_base, atoi(str[11]));
 			id->class_upper = atoi(str[12]);
-			id->sex	= (battle_config.ignore_items_gender && nameid!=2634 && nameid!=2635) ? 2 : atoi(str[13]);
+			id->sex	= atoi(str[13]);
 			if(id->equip != atoi(str[14])){
 				id->equip=atoi(str[14]);
 			}
@@ -989,6 +1006,7 @@ static int itemdb_readdb(void)
 			id->flag.value_notdc=0;
 			id->flag.value_notoc=0;
 			id->view_id=0;
+			id->sex = itemdb_gendercheck(id); //Apply gender filtering.
 
 			id->script=NULL;
 
