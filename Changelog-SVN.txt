@@ -2,6 +2,7 @@ Date	Added
 =======
 
 10/10
+	* Fixed "rare drop filter" considering "available in shops only items" as RARE items [Lupus]
 	* The GM can drop level now also determines whether a GM can store items in
 	  the Guild Storage or not. Thanks to Kayla for pointing it out :P [Skotlex]
 	* Fixed Grimtooth so that it's slowdown works on both players and mobs.

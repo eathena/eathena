@@ -1592,7 +1592,7 @@ static int npc_parse_shop (char *w1, char *w2, char *w3, char *w4)
 		}
 		//for logs filrers, atcommands and iteminfo script command
 		if (id->maxchance<=0)
-			id->maxchance = -value; //negative number would show that the item's sold in NPC Shop
+			id->maxchance = 10000; //10000 (100% drop chance)would show that the item's sold in NPC Shop
 
 		pos++;
 		p = strchr(p, ',');

@@ -9104,8 +9104,8 @@ int atcommand_iteminfo(
 		sprintf(atcmd_output, "NPC Buy:%dz%s, Sell:%dz%s | Weight: %d ", item_data->value_buy, item_data->flag.value_notdc ? "(No Discount!)":"", item_data->value_sell, item_data->flag.value_notoc ? "(No Overcharge!)":"", item_data->weight );
 		clif_displaymessage(fd, atcmd_output);
 
-		if (item_data->maxchance<0)
-			strcpy(atcmd_output, " - Available in the shops");
+		if (item_data->maxchance == 10000)
+			strcpy(atcmd_output, " - Available in the shops only");
 		else if (item_data->maxchance)
 			sprintf(atcmd_output, " - Maximal monsters drop chance: %02.02f%%", (float)item_data->maxchance / 100 );
 		else
