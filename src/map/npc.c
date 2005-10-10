@@ -2645,6 +2645,7 @@ int npc_reload (void)
 	ev_db->release = ev_release;
 	npc_warp = npc_shop = npc_script = 0;
 	npc_mob = npc_cache_mob = npc_delay_mob = 0;
+	npc_id=START_NPC_NUM;
 
 	for (nsl = npc_src_first; nsl; nsl = nsl->next) {
 		npc_parsesrcfile(nsl->name);

@@ -2,6 +2,7 @@ Date	Added
 =======
 
 10/10
+	* The npc_counter is now reset in a @reloadscript. [Skotlex]
 	* Cleaned up Falcon Assault and made it's %dmg increase be an addition on
 	  top of Blitz Beat (altough I am not so sure that's right) [Skotlex]
 	* Hardcoded the gender restrictions for items with view 13 & 14 (Musical
