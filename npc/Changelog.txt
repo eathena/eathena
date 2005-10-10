@@ -24,6 +24,7 @@ Massdriller
 Date		Added
 ======
 10/11
+	* Added some Einbech NPCs [reddozen]
 	* Added some Einbroch NPCs [MasterOfMuppets]
 	* Added 2 Kafras to Einbroch (thanx to MasterOfMuppets 4info), fixed NPC coords of Guide [Lupus]
 	* Fixed Lighthalzen Dungeon Entrance conditions check, thanx to Daegaladh [Lupus]
