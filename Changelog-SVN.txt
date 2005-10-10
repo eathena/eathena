@@ -2,6 +2,7 @@ Date	Added
 =======
 
 10/10
+	* Reverted Falcon Assault to be 5x Blitz Beat's damage at level 5. [Skotlex]
 	* The npc_counter is now reset in a @reloadscript. [Skotlex]
 	* Cleaned up Falcon Assault and made it's %dmg increase be an addition on
 	  top of Blitz Beat (altough I am not so sure that's right) [Skotlex]

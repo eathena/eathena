@@ -1150,7 +1150,7 @@ int mmo_auth(struct mmo_account* account, int fd) {
 	if (account->passwdenc == 0 && account->userid[len] == '_' &&
 		(account->userid[len+1] == 'F' || account->userid[len+1] == 'M' ||
 		account->userid[len+1] == 'f' || account->userid[len+1] == 'm')
-		&& new_account_flag == 1 && account_id_count <= END_ACCOUNT_NUM && len >= 4 && strlen(account->passwd) >= 4) {
+		&& new_account_flag && account_id_count <= END_ACCOUNT_NUM && len >= 4 && strlen(account->passwd) >= 4) {
 						
 		//only continue if amount in this time limit is allowed (account registration flood protection)[Kevin]
 		if(gettick() <= new_reg_tick && num_regs >= allowed_regs) {
@@ -1176,12 +1176,12 @@ int mmo_auth(struct mmo_account* account, int fd) {
 			break;
 	}
 	// if there is no creation request and strict account search fails, we do a no sensitive case research for index
-	if (newaccount == 0 && i == auth_num) {
+	if (!newaccount && i == auth_num) {
 		i = search_account_index(account->userid);
 		if (i == -1)
 			i = auth_num;
 		else
-			memcpy(account->userid, auth_dat[i].userid, 24); // for the possible tests/checks afterwards (copy correcte sensitive case).
+			memcpy(account->userid, auth_dat[i].userid, NAME_LENGTH); // for the possible tests/checks afterwards (copy correcte sensitive case).
 	}
 
 	if (i != auth_num) {
@@ -1300,7 +1300,7 @@ int mmo_auth(struct mmo_account* account, int fd) {
 
 		login_log("Authentification accepted (account: %s (id: %d), ip: %s)" RETCODE, account->userid, auth_dat[i].account_id, ip);
 	} else {
-		if (newaccount == 0) {
+		if (!newaccount) {
 			login_log("Unknown account (account: %s, received pass: %s, ip: %s)" RETCODE,
 			          account->userid, account->passwd, ip);
 			return 0; // 0 = Unregistered ID
