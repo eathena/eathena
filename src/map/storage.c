@@ -465,6 +465,12 @@ int storage_guild_storageopen(struct map_session_data *sd)
 
 	if(sd->status.guild_id <= 0)
 		return 2;
+
+	if(pc_isGM(sd) && pc_isGM(sd) < battle_config.gm_can_drop_lv) {
+		clif_displaymessage(sd->fd, msg_txt(246));
+		return 1;
+	}
+
 	if((gstor = guild2storage2(sd->status.guild_id)) != NULL) {
 		if(gstor->storage_status)
 			return 1;
