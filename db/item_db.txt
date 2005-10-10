@@ -689,7 +689,7 @@
 1525,Long_Mace,Long Mace,4,,10,800,135,,3,0,33040,7,2,2,4,40,1,8,{ bonus bLongAtkDef,10; bonus bAtkRange,3; }
 1526,Slash,Slash,4,,10,1000,145,,1,0,33040,7,2,2,4,40,1,8,{ bonus2 bAddRace,RC_Undead,15; bonus2 bWeaponComaRace,RC_Undead,50; bonus2 bExpAddRace,RC_Undead,5; }
 1527,Quadrille,Quadrille,4,,10,900,165,,1,0,33040,7,2,2,4,40,1,8,{ bonus2 bAddRace,RC_Undead,10; bonus2 bAddRace,RC_DemiHuman,10; bonus2 bAddEle,Ele_Earth,10; }
-1528,Grand_Cross,Grand Cross,4,,10,1500,140,,1,0,33040,7,2,2,4,40,1,8,{ bonus bAtkEle,Ele_Holy; bonus3 bAutoSpell,77,3,90; bonus2 bHPDrainRate,1000,1; }
+1528,Grand_Cross,Grand Cross,4,,10,1500,140,,1,0,33040,7,2,2,4,40,1,8,{ bonus bAtkEle,Ele_Holy; bonus3 bAutoSpell,77,3,90; bonus2 bSPDrainRate,1000,1; }
 1529,Iron_Driver,Iron Driver,4,,10,3000,155,,1,0,33024,7,2,2,3,78,1,8,{}
 1530,Mjolnir,Mjolnir,4,,10,6000,250,,1,0,8701363,7,2,2,4,95,0,8,{ bonus bAtkEle,Ele_Wind; bonus bDex,40; bonus bStr,15; bonus bAspdRate,30; }
 1531,Spanner,Spanner,4,,10,2500,115,,1,0,33040,7,2,2,3,55,1,8,{ bonus2 bAddEff,Eff_Blind,100; bonus2 bAddEff,Eff_Stan,100; bonus2 bAddEff,Eff_Poison,100; bonus2 bAddEff,Eff_Freeze,100; }
@@ -1284,7 +1284,7 @@
 4143,Orc_Hero_Card,Orc Hero Card,6,,10,10,,,,,,,,769,,,,,{ bonus bVit,3; bonus2 bResEff,Eff_Stan,10000; }
 4144,Osiris_Card,Osiris Card,6,,10,10,,,,,,,,136,,,,,{ bonus bRestartFullRecover,0; }
 4145,Berzebub_Card,Berzebub Card,6,,10,10,,,,,,,,136,,,,,{ bonus bCastrate,-30; bonus bMaxSPrate,-15; bonus bMaxHPrate,-5; }
-4146,Maya_Card,Maya Card,6,,10,10,,,,,,,,32,,,,,{ bonus bMagicDamageReturn,30; }
+4146,Maya_Card,Maya Card,6,,10,10,,,,,,,,32,,,,,{ bonus bMagicDamageReturn,50; }
 4147,Baphomet_Card,Baphomet Card,6,,10,10,,,,,,,,2,,,,,{ bonus bHit,-10; bonus bSplashRange,1; }
 4148,Pharaoh_Card,Pharaoh Card,6,,10,10,,,,,,,,769,,,,,{ bonus bUseSPrate,-30; }
 4149,Gargoyle_Card,Gargoyle Card,6,,10,10,,,,,,,,136,,,,,{ bonus3 bAddMonsterDropItem,12028,4,10; }
@@ -1379,7 +1379,7 @@
 4238,Owl_Baron_Card,Owl Baron Card,6,,10,10,,,,,,,,136,,,,,{ bonus3 bAutoSpell,78,1,10; }
 4239,Iron_Fist_Card,Iron Fist Card,6,,10,10,,,,,,,,64,,,,,{ bonus2 bSubRace,RC_Formless,-20; bonus2 bExpAddRace,RC_Formless,10; }
 4240,Arclouze_Card,Arclouze Card,6,,10,10,,,,,,,,32,,,,,{ if (getrefine()>=6) end; bonus bDef,2; bonus bMdef,3; }
-4241,Archangeling_Card,Archangeling Card,6,,10,10,,,,,,,,769,,,,,{ bonus bMaxHP,300; if(readparam(bLuk)<=77) end; bonus bHPrecovRate,100; bonus bSPrecovRate,100; }
+4241,Archangeling_Card,Archangeling Card,6,,10,10,,,,,,,,769,,,,,{ bonus bMaxHP,300; if(readparam(bLuk)<77) end; bonus bHPrecovRate,100; bonus bSPrecovRate,100; }
 4242,Apocalipse_Card,Apocalipse Card,6,,10,10,,,,,,,,16,,,,,{ bonus bVit,2; if(getrefine()>8) bonus bMaxHP,800; }
 4243,Antonio_Card,Antonio Card,6,,10,10,,,,,,,,16,,,,,{ bonus4 bAutoSpellWhenHit,26,1,10,0; }
 4244,Alarm_Card,Alarm Card,6,,10,10,,,,,,,,64,,,,,{ bonus4 bAutoSpellWhenHit,10,1,10,0; bonus bMaxHP,300; bonus bVit,1; }

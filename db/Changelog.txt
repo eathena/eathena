@@ -32,6 +32,9 @@
 		like gemstones when the skill is used.
 	--
 10/10
+	* Corrected ArchAngeling card (needing 78 instead of 77 luk), Maya Card
+	  (magic damage return 30->50%) and Grand Cross (HP Drain -> SP Drain)
+	  [Skotlex]
 	* Changed Mirror Shield's mdef to 5. [Skotlex]
 	* Changed GrandCross's duration to 900ms (changes nothing as the three hits
 	  still happen at 0, 400 and 800ms) [Skotlex]
