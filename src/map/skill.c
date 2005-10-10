@@ -4386,29 +4386,29 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					map_freeblock_unlock();
 					return 1;
 				}
-				sd->state.potion_flag = 1;
-				sd->potion_hp = sd->potion_sp = sd->potion_per_hp = sd->potion_per_sp = 0;
-				sd->skilltarget = bl->id;
+				potion_flag = 1;
+				potion_hp = potion_sp = potion_per_hp = potion_per_sp = 0;
+				potion_target = bl->id;
 				run_script(sd->inventory_data[i]->script,0,sd->bl.id,0);
 				pc_delitem(sd,i,skill_db[skillid].amount[x],0);
-				sd->state.potion_flag = 0;
-				if(sd->potion_per_hp > 0 || sd->potion_per_sp > 0) {
-					hp = status_get_max_hp(bl) * sd->potion_per_hp / 100;
+				potion_flag = potion_target = 0;
+				if(potion_per_hp > 0 || potion_per_sp > 0) {
+					hp = status_get_max_hp(bl) * potion_per_hp / 100;
 					hp = hp * (100 + pc_checkskill(sd,AM_POTIONPITCHER)*10 + pc_checkskill(sd,AM_LEARNINGPOTION)*5)/100;
 					if(dstsd) {
-						sp = dstsd->status.max_sp * sd->potion_per_sp / 100;
+						sp = dstsd->status.max_sp * potion_per_sp / 100;
 						sp = sp * (100 + pc_checkskill(sd,AM_POTIONPITCHER)*10 + pc_checkskill(sd,AM_LEARNINGPOTION)*5)/100;
 					}
 				}
 				else {
-					if(sd->potion_hp > 0) {
-						hp = sd->potion_hp * (100 + pc_checkskill(sd,AM_POTIONPITCHER)*10 + pc_checkskill(sd,AM_LEARNINGPOTION)*5)/100;
+					if(potion_hp > 0) {
+						hp = potion_hp * (100 + pc_checkskill(sd,AM_POTIONPITCHER)*10 + pc_checkskill(sd,AM_LEARNINGPOTION)*5)/100;
 						hp = hp * (100 + (status_get_vit(bl)<<1)) / 100;
 						if(dstsd)
 							hp = hp * (100 + pc_checkskill(dstsd,SM_RECOVERY)*10) / 100;
 					}
-					if(sd->potion_sp > 0) {
-						sp = sd->potion_sp * (100 + pc_checkskill(sd,AM_POTIONPITCHER)*10 + pc_checkskill(sd,AM_LEARNINGPOTION)*5)/100;
+					if(potion_sp > 0) {
+						sp = potion_sp * (100 + pc_checkskill(sd,AM_POTIONPITCHER)*10 + pc_checkskill(sd,AM_LEARNINGPOTION)*5)/100;
 						sp = sp * (100 + (status_get_int(bl)<<1)) / 100;
 						if(dstsd)
 							sp = sp * (100 + pc_checkskill(dstsd,MG_SRECOVERY)*10) / 100;
@@ -5130,7 +5130,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		{
 			if (sd && flag&1) {
 				struct block_list tbl;
-				int hp = sd->potion_hp * (100 + pc_checkskill(sd,CR_SLIMPITCHER)*10 + pc_checkskill(sd,AM_POTIONPITCHER)*10 + pc_checkskill(sd,AM_LEARNINGPOTION)*5)/100;
+				int hp = potion_hp * (100 + pc_checkskill(sd,CR_SLIMPITCHER)*10 + pc_checkskill(sd,AM_POTIONPITCHER)*10 + pc_checkskill(sd,AM_LEARNINGPOTION)*5)/100;
 				hp = hp * (100 + (status_get_vit(bl)<<1))/100;
 				if (dstsd) {
 					hp = hp * (100 + pc_checkskill(dstsd,SM_RECOVERY)*10)/100;
@@ -5906,13 +5906,13 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 					clif_skill_fail(sd,skillid,0,0);
 					return 1;
 				}
-				sd->state.potion_flag = 1;
-				sd->potion_hp = 0;
+				potion_flag = 1;
+				potion_hp = 0;
 				run_script(sd->inventory_data[j]->script,0,sd->bl.id,0);
 				pc_delitem(sd,j,skill_db[skillid].amount[i],0);
-				sd->state.potion_flag = 0;
+				potion_flag = 0;
 				clif_skill_poseffect(src,skillid,skilllv,x,y,tick);
-				if(sd->potion_hp > 0) {
+				if(potion_hp > 0) {
 					map_foreachinarea(skill_area_sub,
 						src->m,x-3,y-3,x+3,y+3,0,
 						src,skillid,skilllv,tick,flag|BCT_PARTY|BCT_GUILD|1,

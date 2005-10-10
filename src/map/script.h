@@ -2,6 +2,10 @@
 #ifndef _SCRIPT_H_
 #define _SCRIPT_H_
 
+extern int potion_flag; //For use on Alchemist improved potions/Potion Pitcher. [Skotlex]
+extern int potion_hp, potion_per_hp, potion_sp, potion_per_sp;
+extern int potion_target;
+
 extern struct Script_Config {
 	unsigned verbose_mode : 1;
 	unsigned warn_func_no_comma : 1;

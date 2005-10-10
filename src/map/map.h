@@ -351,7 +351,6 @@ struct map_session_data {
 		unsigned gangsterparadise : 1;
 		unsigned rest : 1;
 		unsigned produce_flag : 1;
-		unsigned potion_flag : 2;
 		unsigned storage_flag : 2; //0: closed, 1: Normal Storage open, 2: guild storage open [Skotlex]
 		unsigned snovice_flag : 4;
 		int gmaster_flag;
@@ -444,7 +443,6 @@ struct map_session_data {
 	//unsigned int skillstatictimer[MAX_SKILL];
 	unsigned short timerskill_count; // [celest]
 	int cloneskill_id;
-	int potion_hp,potion_sp,potion_per_hp,potion_per_sp;
 	struct map_session_data *repair_target;
 
 	int invincible_timer;

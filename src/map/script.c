@@ -107,6 +107,9 @@ unsigned char* parse_syntax(unsigned char *p);
 static int parse_syntax_for_flag = 0;
 
 extern int current_equip_item_index; //for New CARS Scripts. It contains Inventory Index of the EQUIP_SCRIPT caller item. [Lupus]
+int potion_flag=0; //For use on Alchemist improved potions/Potion Pitcher. [Skotlex]
+int potion_hp=0, potion_per_hp=0, potion_sp=0, potion_per_sp=0;
+int potion_target=0;
 
 /*==========================================
  * ローカルプロトタイプ宣言 (必要な物のみ)
@@ -2903,6 +2906,13 @@ int buildin_itemheal(struct script_state *st)
 
 	hp=conv_num(st,& (st->stack->stack_data[st->start+2]));
 	sp=conv_num(st,& (st->stack->stack_data[st->start+3]));
+
+	if(potion_flag==1) {
+		potion_hp = hp;
+		potion_sp = sp;
+		return 0;
+	}
+
 	pc_itemheal(script_rid2sd(st),hp,sp);
 	return 0;
 }
@@ -2916,6 +2926,13 @@ int buildin_percentheal(struct script_state *st)
 
 	hp=conv_num(st,& (st->stack->stack_data[st->start+2]));
 	sp=conv_num(st,& (st->stack->stack_data[st->start+3]));
+
+	if(potion_flag==1) {
+		potion_per_hp = hp;
+		potion_per_sp = sp;
+		return 0;
+	}
+
 	pc_percentheal(script_rid2sd(st),hp,sp);
 	return 0;
 }
@@ -5659,13 +5676,13 @@ int buildin_sc_start(struct script_state *st)
 	if( st->end>st->start+5 ) //指定したキャラを状態異常にする
 		bl = map_id2bl(conv_num(st,& (st->stack->stack_data[st->start+5])));
 	else
-	bl = map_id2bl(st->rid);
+		bl = map_id2bl(st->rid);
 
-	if (bl != 0) {
-		if(bl->type == BL_PC && ((struct map_session_data *)bl)->state.potion_flag==1)
-			bl = map_id2bl(((struct map_session_data *)bl)->skilltarget);
+	if (potion_flag==1 && potion_target)
+		bl = map_id2bl(potion_target);
+
+	if (bl)
 		status_change_start(bl,type,val1,0,0,0,tick,0);
-	}
 	return 0;
 }
 
@@ -5684,11 +5701,13 @@ int buildin_sc_start2(struct script_state *st)
 	if( st->end>st->start+6 ) //指定したキャラを状態異常にする
 		bl = map_id2bl(conv_num(st,& (st->stack->stack_data[st->start+6])));
 	else
-	bl = map_id2bl(st->rid);
-	if(bl->type == BL_PC && ((struct map_session_data *)bl)->state.potion_flag==1)
-		bl = map_id2bl(((struct map_session_data *)bl)->skilltarget);
-	if(rand()%10000 < per)
-	status_change_start(bl,type,val1,0,0,0,tick,0);
+		bl = map_id2bl(st->rid);
+
+	if (potion_flag==1 && potion_target)
+		bl = map_id2bl(potion_target);
+
+	if(bl && rand()%10000 < per)
+		status_change_start(bl,type,val1,0,0,0,tick,0);
 	return 0;
 }
 
@@ -5713,11 +5732,11 @@ int buildin_sc_start4(struct script_state *st)
 	else
 		bl = map_id2bl(st->rid);
 
-	if (bl) {
-		if(bl->type == BL_PC && ((struct map_session_data *)bl)->state.potion_flag==1)
-			bl = map_id2bl(((struct map_session_data *)bl)->skilltarget);
+	if (potion_flag==1 && potion_target)
+		bl = map_id2bl(potion_target);
+
+	if (bl)
 		status_change_start(bl,type,val1,val2,val3,val4,tick,0);
-	}
 	return 0;
 }
 
@@ -5732,13 +5751,11 @@ int buildin_sc_end(struct script_state *st)
 	type=conv_num(st,& (st->stack->stack_data[st->start+2]));
 	bl = map_id2bl(st->rid);
 	
-	nullpo_retr(0,bl);  //Fixed null pointer right here [Kevin]
+	if (potion_flag==1 && potion_target)
+		bl = map_id2bl(potion_target);
 
-	if(bl->type == BL_PC && ((struct map_session_data *)bl)->state.potion_flag==1)
-		bl = map_id2bl(((struct map_session_data *)bl)->skilltarget);
-	status_change_end(bl,type,-1);
-//	if(battle_config.etc_log)
-//		printf("sc_end : %d %d\n",st->rid,type);
+	if (bl)
+		status_change_end(bl,type,-1);
 	return 0;
 }
 /*==========================================

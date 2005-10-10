@@ -2,6 +2,9 @@ Date	Added
 =======
 
 10/10
+	* Now the Wedding Dress and Tuxedo will always check for the correct
+	  gender. [Skotlex]
+	* Cleaned up the code for Potion Pitcher. [Skotlex]
 	* Reverted Falcon Assault to be 5x Blitz Beat's damage at level 5. [Skotlex]
 	* The npc_counter is now reset in a @reloadscript. [Skotlex]
 	* Cleaned up Falcon Assault and made it's %dmg increase be an addition on
