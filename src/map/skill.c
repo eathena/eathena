@@ -864,11 +864,12 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		break;
 
 	case AS_GRIMTOOTH:
-		struct status_change *sc_data = status_get_sc_data(bl);
-		if (sc_data && sc_data[SC_SLOWDOWN].timer == -1)
-			status_change_start(bl,SC_SLOWDOWN,0,0,0,0,1000,0);
-		break;
-
+		{
+			struct status_change *sc_data = status_get_sc_data(bl);
+			if (sc_data && sc_data[SC_SLOWDOWN].timer == -1)
+				status_change_start(bl,SC_SLOWDOWN,0,0,0,0,1000,0);
+			break;
+		}
 	case MG_FROSTDIVER:		/* フロストダイバ? */
 	case WZ_FROSTNOVA:		/* フロストノヴァ */
 		{
@@ -6337,7 +6338,7 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 		}
 		//直上スキルの場合設置座標上にランドプロテクタ?がないかチェック
 		if(range<=0)
-			map_foreachinarea(skill_landprotector,src->m,ux,uy,ux,uy,BL_SKILL,skillid,&alive);
+			map_foreachincell(skill_landprotector,src->m,ux,uy,BL_SKILL,skillid,&alive);
 
 		if(skillid==WZ_ICEWALL && alive){
 			if(src->x == x && src->y==y) // Ice Wall not allowed on self [DracoRPG]
@@ -6352,6 +6353,9 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 				}
 			}
 		}
+
+		if(alive && map_getcell(src->m,ux,uy,CELL_CHKWALL))
+			alive = 0;
 
 		if(alive){
 			nullpo_retr(NULL, unit=skill_initunit(group,i,ux,uy));
@@ -6922,6 +6926,10 @@ int skill_unit_onout(struct skill_unit *src,struct block_list *bl,unsigned int t
 		if(sc_data[type].timer!=-1 && sc_data[type].val3==BCT_SELF)
 			status_change_end(bl,type,-1);
 		break;
+	case UNT_HERMODE:
+		if (sg->src_id==bl->id) //Clear Hermode if the owner moved.
+			skill_delunitgroup(sg);
+			
 	case UNT_SPIDERWEB:	/* スパイダ?ウェッブ */
 		{
 			struct block_list *target = map_id2bl(sg->val2);

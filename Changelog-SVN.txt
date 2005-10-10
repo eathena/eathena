@@ -2,6 +2,8 @@ Date	Added
 =======
 
 10/10
+	* Made Wand of Hermod end when the caster is moved for whatever reason. [Skotlex]
+	* Increased the random damage delay modifier to +/-15% [Skotlex]
 	* Fixed "rare drop filter" considering "available in shops only items" as RARE items [Lupus]
 	* The GM can drop level now also determines whether a GM can store items in
 	  the Guild Storage or not. Thanks to Kayla for pointing it out :P [Skotlex]
