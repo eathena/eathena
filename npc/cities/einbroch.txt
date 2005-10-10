@@ -3,21 +3,311 @@
 //===== By: ================================================== 
 //= Nexon
 //===== Current Version: ===================================== 
-//= 1.0
+//= 0.2
 //===== Compatible With: ===================================== 
 //= eAthena Revision 3000+
 //===== Description: ========================================= 
 //=
 //===== Additional Comments: ================================= 
-//= Fully working
+//= 0.2 Added some NPCs [MasterOfMuppets]
 //============================================================
+
+
+//== some boards, signs ======================
 einbroch.gat,220,208,5	script	Notice Board	858,{
 	mes "[Weapon Shop Entrance]";
 	close;
 }
 
-einbech.gat,180,136,5	script	Notice Board	858,{
-	mes "[Tool Shop Entrance]";
+einbroch.gat,183,174,5	script	Bulletin Board	858,{
+	mes "East - Weapon Shop, Hotel";
+	mes "South - Factory";
+	mes "Southwest - Airship Repair Shop,";
+	mes "Laboratory";
+	mes "Northwest - Airport";
 	close;
 }
 
+einbroch.gat,244,255,5	script	Bulletin Board	858,{
+	mes " ";
+	mes " Train Station";
+	close;
+}
+	
+einbroch.gat,68,206,5	script	Bulletin Board	858,{
+	mes " ";
+	mes " Airship Airport";
+	close;
+}
+	
+einbroch.gat,162,256,5	script	Bulletin Board	858,{
+	mes "East - Train Station";
+	mes "Southeast - Hotel";
+	mes "South - Weapon Shop, Factory";
+	mes "Southwest - Airport, Airship Repair";
+	mes "Shop, Laboratory";
+	close;
+}
+
+//===== Town NPC ===========================================
+function	script	Ein_Tower	{
+	mes "["+ @Tower_Name$ +"]";
+	mes "Good day~";
+	mes "I'm " + @Tower_Name$ +", your";
+	mes "guide to exploring";
+	mes "the Einbroch Tower.";
+	next;
+	mes "["+ @Tower_Name$ +"]";
+	mes "Einbroch Tower offers";
+	mes "the best view of our city";
+	mes "and it's a great place to";
+	mes "meet with friends or take";
+	mes "a date. The Einbroch Tower";
+	mes "admission fee is 10 zeny.";
+	next;
+	mes "["+ @Tower_Name$ +"]";
+	mes "Right now, we're offering";
+	mes "a special promotion called";
+	mes "the Apple Combo Set for only";
+	mes "20 zeny. This set includes";
+	mes "Einbroch Tower admission";
+	mes "and an Apple to snack on.";
+	next;
+	menu "Tower Admission Only",s_Tower,"Apple Combo Set",s_Apple,"Cancel",-;
+
+	mes "["+ @Tower_Name$ +"]";
+	mes "I see.";
+	mes "Feel free to";
+	mes "come back any";
+	mes "time. Thank you.";
+	close2;
+	return;
+	
+s_Tower:
+	if(Zeny < 10)goto s_NEnough;
+	set Zeny,Zeny - 10;
+s_Tower2:
+	mes "["+ @Tower_Name$ +"]";
+	mes "Thank you for";
+	mes "using our services.";
+	mes "Let me guide you to";
+	mes "the tower right away.";
+	close2;
+	warp "einbroch.gat",174,204;
+	return;
+	
+s_Apple:
+	if(Zeny < 20)goto s_NEnough;
+	mes "["+ @Tower_Name$ +"]";
+	mes "Before I guide you to";
+	mes "the tower, let me check";
+	mes "your status to insure";
+	mes "your safety before I give";
+	mes "you the Apple Combo Set.";
+	next;
+	set Zeny,Zeny - 20;
+	getitem 512,1;
+	goto s_Tower2;
+	
+s_NEnough:
+	mes "["+ @Tower_Name$ +"]";
+	mes "I'm sorry but you don't";
+	mes "have enough zeny for the";
+	mes "requested service.";
+	close2;
+	return;
+}
+	
+einbroch.gat,176,172,5	script	Khemko	855,{
+	set @Tower_Name$,"Khemko";
+	callfunc "Ein_Tower";
+	end;
+}
+	
+einbroch.gat,218,198,5	script	Mark	855,{
+	set @Tower_Name$,"Mark";
+	callfunc "Ein_Tower";
+	end;
+}
+	
+einbroch.gat,174,228,5	script	Oberu	855,{
+	set @Tower_Name$,"Oberu";
+	callfunc "Ein_Tower";
+	end;
+}
+	
+einbroch.gat,175,196,5	script	Morei	854,{
+	mes "[Morei]";
+	mes "Greetings,";
+	mes "I am Morei,";
+	mes "Assistant Guide";
+	mes "of Einbroch Tower.";
+	next;
+	mes "[Morei]";
+	mes "If you wish to return";
+	mes "to the ground floor,";
+	mes "please let me know.";
+	mes "Would you like to go";
+	mes "back to ground level?";
+	next;
+	menu "Yes.",s_Goback,"No.",-;
+
+	mes "[Morei]";
+	mes "I see.";
+	mes "I hope you";
+	mes "enjoy your time";
+	mes "in Einbroch Tower.";
+	close;
+s_Goback:
+	mes "[Morei]";
+	mes "I see.";
+	mes "Let me lead you";
+	mes "to the ground floor.";
+	mes "Thank you for using";
+	mes "our services.";
+	close2;
+	set @towerwarp,rand(1,3);
+	if(@towerwarp == 0)warp "einbroch.gat",218,196;
+	if(@towerwarp == 1)warp "einbroch.gat",178,172;
+	if(@towerwarp == 3)warp "einbroch.gat",172,228;
+	end;
+}
+	
+einbroch.gat,208,208,3	script	Kesunboss	850,{
+	mes "[Kesunboss]";
+	mes "Lady Calla is the";
+	mes "epitome of elegance,";
+	mes "a veritable goddess";
+	mes "of Einbroch";
+	next;
+	mes "[Kesunboss]";
+	mes "Her gentle voice,";
+	mes "that angelic smile, her";
+	mes "kindness and warmth";
+	mes "towards other people";
+	mes "and above all...";
+	next;
+	mes "[Kesunboss]";
+	mes "Calla's family";
+	mes "is wealthy beyond";
+	mes "imagination! She's";
+	mes "perfect! I don't know who";
+	mes "she'll marry, but he'd be";
+	mes "a lucky gentleman, I'm sure.";
+	next;
+	mes "[Kesunboss]";
+	mes "Lady Calla lives in a magnificent";
+	mes "mansion that makes other houses";
+	mes "look like schacks in comparison.";
+	mes "Head north and then west from";
+	mes "here if you wish to marvel in its";
+	mes "beauty and elegance.";
+	close;
+}
+
+einbroch.gat,232,255,5	script	Khowropher	847,{
+	mes "[Khowropher]";
+	mes "^6A6A6A*Cough cough*^000000";
+	mes "Jiminy! The air here";
+	mes "is so thick and grimy!";
+	mes "And it's worse for us old";
+	mes "people with breathing";
+	mes "problems! ^111111*Haaack*^000000";
+	next;
+	mes "[Khowropher]";
+	mes "I don't care if they keep";
+	mes "building more and more";
+	mes "factories and homes in this";
+	mes "town. Still, I'd like to spend";
+	mes "the rest of my life somewhere";
+	mes "quiet and with clean air...";
+	next;
+	mes "[Khowropher]";
+	mes "Then again, Einbroch is my";
+	mes "hometown and I can't just up";
+	mes "and leave. I suppose it's my";
+	mes "fate to suffer from this fould air";
+	mes "until the day I die.^6A6A6A*Sigh...*";
+	close;
+}
+
+einbroch.gat,259,327,5	script	Leslie	846,{
+	mes "[Leslie]";
+	mes "^6A6A6A*Cough cough*^000000";
+	mes "Laaaand sakes!";
+	next;
+	mes "[Leslie]";
+	mes "An old woman like me";
+	mes "can't breathe this air! How";
+	mes "do people even live in all this";
+	mes "smog? Sure, the air in Einbech";
+	mes "isn't pristine, but the air here in";
+	mes "Einbroch is much worse! ^111111*Cough~!*^000000";
+	next;
+	mes "[Leslie]";
+	mes "I hate coming here";
+	mes "sometimes! The air is";
+	mes "totally polluted and this";
+	mes "city is full of stuck up";
+	mes "pricks! But they sell stuff";
+	mes "here I can't buy back home...";
+	close;
+}
+
+einbroch.gat,232,272,3	script	Train Station Staff::EinbrochTrain	852,{
+	mes "[Staff]";
+	mes "Welcome to";
+	mes "the Train Station.";
+	mes "Trains to Einbech";
+	mes "are always running";
+	mes "so if you miss one,";
+	mes "it's no problem.";
+	next;
+	mes "[Staff]";
+	mes "The fare to board the";
+	mes "train that runs the Einbroch";
+	mes "to Einbech line is 200 zeny.";
+	mes "Would you like to buy a ticket?";
+	next;
+	menu "Yes.",s_Yes,"No.",-,"About the Enviroment...",s_Enviroment;
+
+	mes "[Staff]";
+	mes "Very well, then.";
+	mes "Please enjoy your";
+	mes "stay in Einbroch.";
+	close;
+s_Yes:
+	if(Zeny < 200)goto s_NEnough;
+	mes "[Staff]";
+	mes "Thank you";
+	mes "very much.";
+	mes "Have a safe trip.";
+	mes "^111111*Ahem*^000000 All aboard!";
+	close2;
+	set Zeny,Zeny - 200;
+	warp "einbech.gat",43,215;
+	end;
+s_NEnough:
+	mes "[Staff]";
+	mes "I'm sorry but you";
+	mes "do not have enough";
+	mes "money to pay the fee.";
+	close;
+s_Enviroment:
+	mes "[Staff]";
+	mes "Einbroch is infamous for";
+	mes "its air pollution, no doubt";
+	mes "caused by the industrial";
+	mes "facilities located here.";
+	mes "it's really horrible...";
+	next;
+	mes "[Staff]";
+	mes "Sometimes the air pollution";
+	mes "gets so bad that it becomes";
+	mes "hard to breathe. If you hear";
+	mes "the Einbroch Smog Alert, you";
+	mes "should find shelter immediately!";
+	close;
+}
+	
+einbroch.gat,252,301,3	duplicate(EinbrochTrain)	Train Station Staff	852
