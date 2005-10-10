@@ -9,11 +9,11 @@
 //===== Description: ========================================= 
 //=
 //===== Additional Comments: ================================= 
-//= 1.0b missing tabs [Lupus]
+//= 1.0b missing tabs, fixed Guide coords [Lupus]
 //============================================================
 
 
-einbroch.gat,72,201,4	script	Guide	852,{
+einbroch.gat,72,202,4	script	Guide	852,{
   cutin "ein_soldier",2;
   mes "[Einbroch Guide]";
   mes "Welcome to Einbroch,";

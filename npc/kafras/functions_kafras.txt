@@ -5,32 +5,26 @@
 //= eAthena Dev Team
 //= Darlskies, Darkchild, Syrus22, Lupus, kobra_k88 (2.0)
 //===== Current Version: ===================================== 
-//= 2.8
+//= 3.0
 //===== Compatible With: ===================================== 
 //= eAthena 1.0
-//===== Description: ===============================================
+//===== Description: =========================================
 //= These functions  handle save, storage, cart rental, teleport,
 //= and Kafra pass options for all Kafra NPCs.
 //===== Additional Comments: ================================= 
-//= v1.1 Now using functions :)
-//= v2.1 Added Cart Rent for Classes: Whitesmith, Professor.
-//= Replaced checkoption(x) into checkcart(0) [Lupus]
-//= v2.1b Added Fix Kafra Pass Func [Kobra_k88]
+//= v1.1 Now using functions v2.1 Added Cart Rent for Classes: Whitesmith, Professor.
+//= Replaced checkoption(x) into checkcart(0) [Lupus] v2.1b Added Fix Kafra Pass Func [Kobra_k88]
 //= 2.2 Final fix of the Kafra Pass Exploit! [Lupus] a -Izlude[4] fix
 //= 2.2a Minor changes to function calls.  Using agruments. Added Guild options. [kobra_k88]
-//= 2.2b This version uses arrays for the teleport option.
-//= Rearranged next statements to make menu transitions smoother. [kobra_k88]
+//= 2.2b This version uses arrays for the teleport option. Rearranged next statements to make menu transitions smoother. [kobra_k88]
 //= 2.3 Removed SAVE from Niflheim. [Lupus]
-//= 2.3 removed "fix" by HawkMoon RTFM and check supernovice.txt . There's a SPECIAL Kafra
-//= which gives CARTS to SN for a special proce. [Lupus]
-//= 2.4 Added Baby Class Support (Baby Novice check)
-//= Removed annoying storage feature where u had to close dialog
-//= window to be able to use your storage [Lupus]
+//= 2.3 removed "fix" by HawkMoon RTFM and check supernovice.txt . There's a SPECIAL Kafra which gives CARTS to SN for a special proce. [Lupus]
+//= 2.4 Added Baby Class Support (Baby Novice check) Removed annoying storage feature where u had to close dialog window to be able to use your storage [Lupus]
 //= 2.5 Added Louyang official Kafra, fixes some Kafras, not letting you to Save your position [Lupus]
 //= 2.6 Reverted Dungeons Kafras (they should offer only Storage). Added temp Ayothaya Kafra
 //= 2.7 Added correct Ayothaya, Louyang & Amatsu Kafras. [Lupus]
-//= 2.8 Fixed Amatsu Storage problems [Lupus]
-//= 2.9 Fixed spelling mistakes. [Nexon]
+//= 2.8 Fixed Amatsu Storage problems [Lupus] 2.9 Fixed spelling mistakes. [Nexon]
+//= 3.0 Added special "not working teleport menu" for Einbroch Kafras [Lupus]
 //============================================================ 
 
 
@@ -68,6 +62,9 @@ function	script	F_Kafra	{
 //Common w/o teleport
 	if(getarg(1)==3) menu	"-Save",M_Save, "-Use Storage",M_Storage, "-Rent a Cart",M_Cart, "-Kafra Pass",M_Pass, 
 		"-Other Information Check",M_Info, "-Cancel",M_End;
+//Common Kafra (with Teleport Notice in Einbroch)
+	if(getarg(1)==4) menu	"-Save",M_Save, "-Use Storage",M_Storage, "-Use Teleport Service",M_NoTeleport, "-Rent a Cart",M_Cart, "-Kafra Pass",M_Pass, 
+		"-Other Information Check",M_Info, "-Cancel",M_End;
 //Common Kafra
 	menu	"-Save",M_Save, "-Use Storage",M_Storage, "-Use Teleport Service",M_Teleport, "-Rent a Cart",M_Cart, "-Kafra Pass",M_Pass, 
 		"-Other Information Check",M_Info, "-Cancel",M_End;
@@ -102,6 +99,17 @@ function	script	F_Kafra	{
 	M_End:
 		callfunc "F_KafEnd",getarg(0),0;
 		end;
+	M_NoTeleport:
+		mes "[Kafra]";
+		mes "Because of the ^FF0000Limited Transport Agreement^000000, the Kafra Corporation cannot provide Teleport Services in the Shwaltzvalt Republic.";
+		next;
+		mes "[Kafra]";
+		mes "We ask that you please";
+		mes "use the Airship Service";
+		mes "instead. Thank you for your";
+		mes "understanding and cooperation.";
+		next;
+		goto M_Menu;
 }
 
 

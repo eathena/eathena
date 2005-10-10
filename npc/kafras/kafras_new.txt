@@ -3,7 +3,7 @@
 //===== By: =========================
 //= eAthena Dev Team
 //===== Current Version: ===================
-//= 2.3
+//= 2.5
 //===== Compatible With: =====================
 //= eAthena 1.0
 //===== Description: ============================================
@@ -21,9 +21,10 @@
 //= 2.2 Added Louyang Kafra, fixed other kafras not saving players coords [Lupus]
 //= 2.3 Added temp Amatsu + Ayothaya Kafra (wrong coords and sprite) [Lupus]
 //= 2.4 Added correct Ayothaya, Louyang & Amatsu Kafras. [Lupus]
+//= 2.5 Added 2 Einbroch Kafras. [Lupus]
 //==========================================================================
 
-// Amatsu -----------------------------------------------------------------
+// Amatsu ------------------------------------------------------------------
 amatsu.gat,102,149,4	script	Kafra	116,{
 	cutin "kafra_02",2;
 	callfunc "F_Kafra",3,3,1;
@@ -33,13 +34,33 @@ amatsu.gat,102,149,4	script	Kafra	116,{
 		callfunc "F_KafEnd",0,1;
 }
 
-// Ayothaya -----------------------------------------------------------------
+// Ayothaya ----------------------------------------------------------------
 ayothaya.gat,212,169,5	script	Kafra	116,{
 	cutin "kafra_02",2;
 	callfunc "F_Kafra",4,3,1;
 
 	M_Save:
 		savepoint "ayothaya.gat",149,69;
+		callfunc "F_KafEnd",0,1;
+}
+
+// Einbroch (North-East) ---------------------------------------------------
+einbroch.gat,242,205,4	script	Kafra	115,{
+	cutin "kafra_03",2;
+	callfunc "F_Kafra",0,4,1;
+
+	M_Save:
+		savepoint "einbroch.gat",240,197;
+		callfunc "F_KafEnd",0,1;
+}
+
+// Einbroch (East) ---------------------------------------------------------
+einbroch.gat,59,203,4	script	Kafra	117,{
+	cutin "kafra_01",2;
+	callfunc "F_Kafra",0,4,1;
+
+	M_Save:
+		savepoint "einbroch.gat",240,197;
 		callfunc "F_KafEnd",0,1;
 }
 

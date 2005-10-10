@@ -23,6 +23,9 @@ Massdriller
 
 Date		Added
 ======
+10/11
+	* Added 2 Kafras to Einbroch (thanx to MasterOfMuppets 4info), fixed NPC coords of Guide [Lupus]
+	* Fixed Lighthalzen Dungeon Entrance conditions check, thanx to Daegaladh [Lupus]
 10/10
 	* Updated Geffenia spawns, thanks to Master of Muppets [Skotlex]
 	  (Poring V is commented out for now since it collides with Fire Poring)
