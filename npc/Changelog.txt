@@ -28,7 +28,6 @@ Date		Added
 	* Fixed Lighthalzen Dungeon Entrance conditions check, thanx to Daegaladh [Lupus]
 10/10
 	* Updated Geffenia spawns, thanks to Master of Muppets [Skotlex]
-	  (Poring V is commented out for now since it collides with Fire Poring)
 	* Yet again fixed some missing tabs in Enbech, Enbech/Einbroch Guides [Luups]
 	* Fixed missing tabs in Enbech Town. [Mass Zero]
 	* Added Einbech Guides, thanks to Muad_Dib and MasterOfMuppets. [Mass Zero]
