@@ -864,11 +864,9 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		break;
 
 	case AS_GRIMTOOTH:
-		if (dstmd) {
-			struct status_change *sc_data = status_get_sc_data(bl);
-			if (sc_data && sc_data[SC_SLOWDOWN].timer == -1)
-				status_change_start(bl,SC_SLOWDOWN,0,0,0,0,1000,0);
-		}
+		struct status_change *sc_data = status_get_sc_data(bl);
+		if (sc_data && sc_data[SC_SLOWDOWN].timer == -1)
+			status_change_start(bl,SC_SLOWDOWN,0,0,0,0,1000,0);
 		break;
 
 	case MG_FROSTDIVER:		/* フロストダイバ? */

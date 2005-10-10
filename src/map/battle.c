@@ -2006,7 +2006,6 @@ struct Damage battle_calc_magic_attack(
 					ad.blewcount = 0;
 				} else
 					ad.blewcount |= 0x10000;
-				//ad.dmotion=0; // Firewall's delay is always none. [Skotlex], or maybe not?
 			break;
 		case PR_SANCTUARY:
 			ad.blewcount|=0x10000;
