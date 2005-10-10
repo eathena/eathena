@@ -32,6 +32,8 @@
 		like gemstones when the skill is used.
 	--
 10/10
+	* Added Poring V to the mob db, altough it is currently commented as it
+	  collides with Fire Poring's ID. [Skotlex]
 	* Corrected ArchAngeling card (needing 78 instead of 77 luk), Maya Card
 	  (magic damage return 30->50%) and Grand Cross (HP Drain -> SP Drain)
 	  [Skotlex]
@@ -86,7 +88,7 @@
 10/03
 	* Updated Thanatos/Abyss monster info. Still in need of stats. [Nexon]
 	* Updated the skill info on NPC_DARKCROSS [Skotlex]
-	* Updated Lighthalzen mobs and mob skills as per Master of Puppets provided
+	* Updated Lighthalzen mobs and mob skills as per Master of Muppets provided
 	  info. [Skotlex]
 	* Updated Ygnizem's slaves to be the other 5 first classes. [Skotlex]
 10/02

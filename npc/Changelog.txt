@@ -24,6 +24,8 @@ Massdriller
 Date		Added
 ======
 10/10
+	* Updated Geffenia spawns, thanks to Master of Muppets [Skotlex]
+	  (Poring V is commented out for now since it collides with Fire Poring)
 	* Yet again fixed some missing tabs in Enbech, Enbech/Einbroch Guides [Luups]
 	* Fixed missing tabs in Enbech Town. [Mass Zero]
 	* Added Einbech Guides, thanks to Muad_Dib and MasterOfMuppets. [Mass Zero]
@@ -62,7 +64,7 @@ Date		Added
 	* Fixed a missing close; in the bulletin boards. [Nexon]
 10/03
 	* Fixed 2 wrong Achemist test answers, thanx to zlider for info [Lupus]
-	* Updated some of the Lighthalzen mobs as pointed out by Master of Puppets.
+	* Updated some of the Lighthalzen mobs as pointed out by Master of Muppets.
 	  [Skotlex]
 	* Added 5092 Coif into Prontera Church Shop. Thanx 2 andz  [Lupus]
 	* Fixed Thanatos and Abyss Dungeon Spawns. Thanks to Azazel. [Nexon] 

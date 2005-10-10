@@ -144,7 +144,7 @@ Date	Added
 	* Various cleanups to ensemble related code, Longing For Freedom may be
 	  working now. [Skotlex]
 	* Added the water levels to ayo_dun01, gon_dun01 and lhz_dun03, thanks to
-	  Master of Puppets [Skotlex]
+	  Master of Muppets [Skotlex]
 	* Made Autocounter trigger autospells (was not doing so because it's NK
 	  defines it as a no-damage skill) [Skotlex]
 	* Some cleanups on the mob slave AI code. [Skotlex]
