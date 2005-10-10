@@ -27,7 +27,7 @@ Date		Added
 	* Fixed missing tabs in Enbech Town. [Mass Zero]
 	* Added Einbech Guides, thanks to Muad_Dib and MasterOfMuppets. [Mass Zero]
 	* Added Einbroch Guides, thanks to Reddozen and MasterOfMuppets. [Mass Zero]
-	* Added Einbech warps, thanks to Muad_Dib. [Mass Zerp]
+	* Added Einbech warps, thanks to Muad_Dib. [Mass Zero]
 	* Added Einbech Town, thanks to Muad_Dib and MasterOfMuppets. [Mass Zero]
 	* Changed 'ends' into 'breaks' in the Wandering Poet NPC, thanks to IVBela. [Mass Zero]
 10/08

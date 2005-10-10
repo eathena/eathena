@@ -3571,7 +3571,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_ATKPOTION: // Valaris
 		case SC_MATKPOTION:
 			calc_flag = 1;
-			tick = 1000 * tick;
+			if (!(flag&4))
+				tick = 1000 * tick;
 			break;
 		case SC_WEDDING:	//結婚用(結婚衣裳になって?くのが?いとか)
 			{
@@ -3608,7 +3609,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			if (!(flag&4))
 				val3 = tick/1000;
 			if(val3 < 1) val3 = 1;
-			tick = 5000;
+			if (!(flag&4))
+				tick = 5000;
 			val2 = 1;
 			break;
 		case SC_SLEEP:				/* 睡眠 */
@@ -3660,7 +3662,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			if(!(flag&4))
 				val3 = tick/1000;
 			if(val3 < 1) val3 = 1;
-			tick = 1000;
+			if (!(flag&4))
+				tick = 1000;
 			break;
 		case SC_SILENCE:			/* 沈?（レックスデビ?ナ） */
 			if (sc_data && sc_data[SC_GOSPEL].timer!=-1) {
@@ -3885,6 +3888,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 
 		case SC_MARIONETTE:		/* マリオネットコントロ?ル */
 		case SC_MARIONETTE2:
+			if (flag&4)
+				break;
 			val2 = tick;
 			if (!val3)
 				return 0;

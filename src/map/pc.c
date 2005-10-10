@@ -2971,14 +2971,6 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 			status_change_end(&sd->bl,SC_BLADESTOP,-1);
 		if(sd->sc_data[SC_DANCING].timer!=-1) // clear dance effect when warping [Valaris]
 			skill_stop_dancing(&sd->bl);
-		/* No need, the skill_onout event will handle ending basilica. [Skotlex]
-		if (sd->sc_data[SC_BASILICA].timer!=-1) {
-			struct skill_unit_group *sg = (struct skill_unit_group *)sd->sc_data[SC_BASILICA].val4;
-			if (sg && sg->src_id == sd->bl.id)
-				skill_delunitgroup (sg);
-			status_change_end(&sd->bl,SC_BASILICA,-1);
-		}
-		*/
 		if (sd->sc_data[SC_DEVOTION].timer!=-1)
 			status_change_end(&sd->bl,SC_DEVOTION,-1);
 	}

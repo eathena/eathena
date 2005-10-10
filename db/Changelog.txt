@@ -31,6 +31,9 @@
 		Item type: Throwing Dagger. Has to be equipped as an arrow, is consumed
 		like gemstones when the skill is used.
 	--
+10/10
+	* Changed GrandCross's duration to 900ms (changes nothing as the three hits
+	  still happen at 0, 400 and 800ms) [Skotlex]
 10/09
 	* Fixed a few mob skills and mob stats. Thanks to MasterOfMuppets. [Nexon]
 	* Fixed a few items having wrong stats. Thanks to Maud Dib. [Nexon]

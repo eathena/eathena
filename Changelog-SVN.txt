@@ -1,6 +1,10 @@
 Date	Added
 =======
 
+10/10
+	* Changed GX duration to 900ms. [Skotlex]
+	* Cleared up the item get times descriptions in battle_athena.conf [Skotlex]
+	* Some timer fixes in status_change_start regarding sc_data loading. [Skotlex]
 10/09
 	* Probably fixed Waterball so it does max number of hits when casted by a
 	  non-player regardless of water availability. [Skotlex]

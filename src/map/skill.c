@@ -3020,9 +3020,9 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 		/* スキルユニット配置 */
 		skill_castend_pos2(src,bl->x,bl->y,skillid,skilllv,tick,0);
 		if(sd)
-			sd->canmove_tick = tick + 1000;
+			sd->canmove_tick = tick + 900;
 		else if(src->type == BL_MOB)
-			mob_changestate((struct mob_data *)src,MS_DELAY,1000);
+			mob_changestate((struct mob_data *)src,MS_DELAY,900);
 		break;
 
 	case TF_THROWSTONE:			/* 石投げ */
