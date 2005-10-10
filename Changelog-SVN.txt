@@ -2,6 +2,8 @@ Date	Added
 =======
 
 10/10
+	* Cleaned up Falcon Assault and made it's %dmg increase be an addition on
+	  top of Blitz Beat (altough I am not so sure that's right) [Skotlex]
 	* Hardcoded the gender restrictions for items with view 13 & 14 (Musical
 	  Instruments and Whips), changed ignore_item_genders to yes as default. [Skotlex]
 	* Changed GX duration to 900ms. [Skotlex]

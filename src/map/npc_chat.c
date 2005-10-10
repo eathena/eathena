@@ -271,10 +271,11 @@ static void delete_pcreset(struct npc_data *nd,int setid) {
         pcreset->next_->prev_ = pcreset->prev_;
     if (pcreset->prev_ != NULL)
         pcreset->prev_->next_ = pcreset->next_;
-    else if(active == 1)
-        npcParse->active_ = pcreset->next_;
-     else
-        npcParse->inactive_ = pcreset->next_;
+
+	if(active)
+		npcParse->active_ = pcreset->next_;
+	else
+		npcParse->inactive_ = pcreset->next_;
 
     pcreset->prev_ = NULL;
     pcreset->next_ = NULL;

@@ -2384,17 +2384,13 @@ struct Damage  battle_calc_misc_attack(
 		break;
 
 	case SN_FALCONASSAULT:			/* ファルコンアサルト */
-		{
-		static int falcasspercent[]={
-			0,220,290,360,430,500 };
-
 		if( sd==NULL || (skill = pc_checkskill(sd,HT_STEELCROW)) <= 0)
 			skill=0;
-		damage=(falcasspercent[skill_lv]*(dex/10+int_/2+skill*3+40)*2)/100; // [Lupus] according desc
+		damage=(dex/10+int_/2+skill*3+40)*2;	//Blitz Beat Damage
+		damage+=damage*(150+70*skill_lv)/100;	//Damage Increase Over Blitz Beat
 		if(flag > 1)
 			damage /= flag;
 		aflag |= (flag&~BF_RANGEMASK)|BF_LONG;
-		}
 		break;
 
 	case PA_PRESSURE:
