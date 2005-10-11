@@ -73,7 +73,7 @@
 567,Shrimp,Shrimp,0,500,,40,,,,,127918079,7,2,,,,,,{ itemheal rand(50,100),0; }
 568,Lemon,Lemon,0,60,,40,,,,,127918079,7,2,,,,,,{ itemheal 0,rand(20,30); }
 569,Novice's_Red_Potion,Novices Red Potion,0,50,,10,,,,,127918079,7,2,,,,,,{ itemheal rand(34,46),0; }
-// St.Valentine's Day Items,,,,0,,,,,,,,,,,,,,,{}
+// St.Valentine's Day Items
 570,Fortune_Candy,Fortune Candy,0,10,,30,,,,,127918079,7,2,,,,,,{ itemheal rand(45,64),0; }
 571,Fortune_Candy_Cane,Fortune Candy Cane,0,,10,40,,,,,127918079,7,2,,,,,,{ itemheal rand(105,144),0; }
 572,Fortune_Cookie,Fortune Cookie,0,15,,30,,,,,127918079,7,2,,,,,,{ itemheal rand(45,64),0; }
@@ -111,7 +111,7 @@
 616,Old_Card_Album,Old Card Album,2,10000,,50,,,,,127918079,7,2,,,,,,{ getitem -3,1; }
 617,Old_Violet_Box,Old Violet Box,2,10000,,200,,,,,127918079,7,2,,,,,,{ getitem -2,1; }
 618,Worn_Out_Scroll,Worn Out Scroll,2,50,,20,,,,,127918079,7,2,,,,,,{ getitem -5,1; }
-// Pet Tames,,,,0,,,,,,,,,,,,,,,{}
+// Pet Tames
 619,Unripe_Apple,Unripe Apple,11,1000,,50,,,,,127918079,7,2,,,,,,{ pet 1002; }
 620,Orange_Juice,Orange Juice,11,1500,,50,,,,,127918079,7,2,,,,,,{ pet 1113; }
 621,Bitter_Herb,Bitter Herb,11,,10,50,,,,,127918079,7,2,,,,,,{ pet 1031; }
@@ -138,9 +138,9 @@
 642,Book_of_Devil,Book of Devil,11,1800,,50,,,,,127918079,7,2,,,,,,{ pet 1101; }
 643,Pet_Incubator,Pet Incubator,2,3000,,30,,,,,127918079,7,2,,,,,,{ bpet; }
 644,Gift_Box,Gift Box,2,2,,200,,,,,127918079,7,2,,,,,,{ getitem -4,1; }
-// ASPD Potions,,,,0,,,,,,,,,,,,,,,{}
+// ASPD Potions
 645,Concentration_Potion,Concentration Potion,2,800,,100,,,,,127918079,7,2,,,,,,{ sc_start SC_SpeedPot0,1800,0; }
-656,Awakening_Potion,Awakening Potion,2,1500,,150,,,,,1263449438,7,2,,,40,,,{ sc_end SC_Sleep; sc_start SC_SpeedPot1,1800,0; }
+656,Awakening_Potion,Awakening Potion,2,1500,,150,,,,,126344943,7,2,,,40,,,{ sc_end SC_Sleep; sc_start SC_SpeedPot1,1800,0; }
 657,Berserk_Potion,Berserk Potion,2,3000,,200,,,,,411302,7,2,,,85,,,{ sc_start SC_SpeedPot2,1800,0; }
 658,Tribal_Solidarity,Tribal Solidarity,2,1000,,500,,,,,127918079,7,2,,,,,,{ guildgetexp rand(1,10000); }
 // New Pet Tames

@@ -1064,7 +1064,10 @@ static int itemdb_final_sub (void *key,void *data,va_list ap)
 		return 0;
 	flag = va_arg(ap, int);
 	if (id->script)
+	{
 		aFree(id->script);
+		id->script = NULL;
+	}
 	// Whether to clear the item data
 	if (flag)
 		aFree(id);
