@@ -204,7 +204,7 @@ extern struct Battle_Config {
 	int max_hp;
 	int max_sp;
 	unsigned short max_lv;
-	unsigned short max_parameter;
+	unsigned short max_parameter, max_baby_parameter;
 	int max_cart_weight;
 	unsigned short pc_skill_log;
 	unsigned short mob_skill_log;

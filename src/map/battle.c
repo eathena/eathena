@@ -3253,6 +3253,7 @@ static const struct battle_data_short {
 	{ "max_walk_speed",                    &battle_config.max_walk_speed			},
 	{ "max_lv",                            &battle_config.max_lv					},
 	{ "max_parameter",                     &battle_config.max_parameter			},
+	{ "max_baby_parameter",                &battle_config.max_baby_parameter	},
 	{ "max_def",                           &battle_config.max_def					},
 	{ "over_def_bonus",                    &battle_config.over_def_bonus			},
 	{ "player_skill_log",                  &battle_config.pc_skill_log			},
@@ -3607,6 +3608,7 @@ void battle_set_defaults() {
 	battle_config.max_sp = 32500;
 	battle_config.max_lv = 99; // [MouseJstr]
 	battle_config.max_parameter = 99;
+	battle_config.max_baby_parameter = 80;
 	battle_config.max_cart_weight = 8000;
 	battle_config.max_def = 99;	// [Skotlex]
 	battle_config.over_def_bonus = 0;	// [Skotlex]
@@ -3842,6 +3844,10 @@ void battle_validate_conf() {
 		battle_config.max_parameter = 10;
 	if(battle_config.max_parameter > 10000)
 		battle_config.max_parameter = 10000;
+	if(battle_config.max_baby_parameter < 10)
+		battle_config.max_baby_parameter = 10;
+	if(battle_config.max_baby_parameter > 10000)
+		battle_config.max_baby_parameter = 10000;
 	if(battle_config.max_cart_weight > 1000000)
 		battle_config.max_cart_weight = 1000000;
 	if(battle_config.max_cart_weight < 100)

@@ -2,7 +2,10 @@ Date	Added
 =======
 
 10/11
-	* Fixed Firewall not doing knockback on the undead. [Skotlex]
+	* Added max_baby_parameter to define the max parameter for baby classes.
+	  Also fixed some instances where the baby parameter restriction was not
+	  being taken into account. [Skotlex]
+	* Fixed Firewall doing knockback on the undead. [Skotlex]
 	* Fixed Waterball count when casted by non-players, thanks to Orn [Skotlex]
 	* Fixed the instrument/whips gender restriction being applied to Cap. [Skotlex]
 	* Damn typo: Fixed Mobs Drops with the same % droprate. thanx 2rover 4bugreport [Lupus]

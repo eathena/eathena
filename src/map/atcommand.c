@@ -3986,9 +3986,9 @@ int atcommand_param(
 	}
 
 	new_value = (int)*status[index] + value;
-	if (value > 0 && ((unsigned int)value > battle_config.max_parameter || (unsigned int)new_value > battle_config.max_parameter)) // fix positiv overflow
-		new_value = battle_config.max_parameter;
-	else if (value < 0 && (value < -(int)battle_config.max_parameter || new_value < 1)) // fix negativ overflow
+	if (value > 0 && ((unsigned int)value > pc_maxparameter(sd) || (unsigned int)new_value > pc_maxparameter(sd))) // fix positiv overflow
+		new_value = pc_maxparameter(sd); 
+	else if (value < 0 && (value < -(int)pc_maxparameter(sd) || new_value < 1)) // fix negativ overflow
 		new_value = 1;
 
 	if (new_value != (int)*status[index]) {
@@ -4025,15 +4025,15 @@ int atcommand_stat_all(
 	nullpo_retr(-1, sd);
 
 	if (!message || !*message || sscanf(message, "%d", &value) < 1 || value == 0)
-		value = battle_config.max_parameter;
+		value = pc_maxparameter(sd);
 
 	count = 0;
 	for (index = 0; index < (int)(sizeof(status) / sizeof(status[0])); index++) {
 
 		new_value = (int)*status[index] + value;
-		if (value > 0 && ((unsigned int)value > battle_config.max_parameter || (unsigned int)new_value > battle_config.max_parameter)) // fix positiv overflow
-			new_value = battle_config.max_parameter;
-		else if (value < 0 && (value < -(int)battle_config.max_parameter || new_value < 1)) // fix negativ overflow
+		if (value > 0 && ((unsigned int)value > pc_maxparameter(sd) || (unsigned int)new_value > pc_maxparameter(sd))) // fix positiv overflow
+			new_value = pc_maxparameter(sd);
+		else if (value < 0 && (value < -(int)pc_maxparameter(sd) || new_value < 1)) // fix negativ overflow
 			new_value = 1;
 
 		if (new_value != (int)*status[index]) {

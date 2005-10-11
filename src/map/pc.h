@@ -27,6 +27,7 @@
 #define pc_isinvisible(sd) ((sd)->status.option&0x0040)
 #define pc_is50overweight(sd) (sd->weight*2 >= sd->max_weight) 
 #define pc_is90overweight(sd) (sd->weight*10 >= sd->max_weight*9)
+#define pc_maxparameter(sd) ((sd->class_&JOBL_BABY) ? battle_config.max_baby_parameter : battle_config.max_parameter)
 
 int pc_isGM(struct map_session_data *sd);
 int pc_iskiller(struct map_session_data *src, struct map_session_data *target); // [MouseJstr]

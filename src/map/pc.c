@@ -39,7 +39,6 @@
 #endif
 
 #define PVP_CALCRANK_INTERVAL 1000	// PVP‡ˆÊŒvŽZ‚ÌŠÔŠu
-
 static int exp_table[14][MAX_LEVEL];
 static short statp[MAX_LEVEL];
 
@@ -4324,7 +4323,7 @@ int pc_statusup(struct map_session_data *sd,int type)
 
 	nullpo_retr(0, sd);
 
-	max = (sd->class_&JOBL_BABY) ? 80 : battle_config.max_parameter;
+	max = pc_maxparameter(sd);
 
 	need=pc_need_status_point(sd,type);
 	if(type<SP_STR || type>SP_LUK || need<0 || need>sd->status.status_point){
@@ -4393,16 +4392,19 @@ int pc_statusup(struct map_session_data *sd,int type)
  */
 int pc_statusup2(struct map_session_data *sd,int type,int val)
 {
+	int max;
 	nullpo_retr(0, sd);
 
+	max = pc_maxparameter(sd);
+	
 	if(type<SP_STR || type>SP_LUK){
 		clif_statusupack(sd,type,0,0);
 		return 1;
 	}
 	switch(type){
 	case SP_STR:
-		if(sd->status.str + val >= battle_config.max_parameter)
-			val = battle_config.max_parameter;
+		if(sd->status.str + val >= max)
+			val = max;
 		else if(sd->status.str + val < 1)
 			val = 1;
 		else
@@ -4410,8 +4412,8 @@ int pc_statusup2(struct map_session_data *sd,int type,int val)
 		sd->status.str = val;
 		break;
 	case SP_AGI:
-		if(sd->status.agi + val >= battle_config.max_parameter)
-			val = battle_config.max_parameter;
+		if(sd->status.agi + val >= max)
+			val = max;
 		else if(sd->status.agi + val < 1)
 			val = 1;
 		else
@@ -4419,8 +4421,8 @@ int pc_statusup2(struct map_session_data *sd,int type,int val)
 		sd->status.agi = val;
 		break;
 	case SP_VIT:
-		if(sd->status.vit + val >= battle_config.max_parameter)
-			val = battle_config.max_parameter;
+		if(sd->status.vit + val >= max)
+			val = max;
 		else if(sd->status.vit + val < 1)
 			val = 1;
 		else
@@ -4428,8 +4430,8 @@ int pc_statusup2(struct map_session_data *sd,int type,int val)
 		sd->status.vit = val;
 		break;
 	case SP_INT:
-		if(sd->status.int_ + val >= battle_config.max_parameter)
-			val = battle_config.max_parameter;
+		if(sd->status.int_ + val >= max)
+			val = max;
 		else if(sd->status.int_ + val < 1)
 			val = 1;
 		else
@@ -4437,8 +4439,8 @@ int pc_statusup2(struct map_session_data *sd,int type,int val)
 		sd->status.int_ = val;
 		break;
 	case SP_DEX:
-		if(sd->status.dex + val >= battle_config.max_parameter)
-			val = battle_config.max_parameter;
+		if(sd->status.dex + val >= max)
+			val = max;
 		else if(sd->status.dex + val < 1)
 			val = 1;
 		else
@@ -4446,8 +4448,8 @@ int pc_statusup2(struct map_session_data *sd,int type,int val)
 		sd->status.dex = val;
 		break;
 	case SP_LUK:
-		if(sd->status.luk + val >= battle_config.max_parameter)
-			val = battle_config.max_parameter;
+		if(sd->status.luk + val >= max)
+			val = max;
 		else if(sd->status.luk + val < 1)
 			val = 1;
 		else
