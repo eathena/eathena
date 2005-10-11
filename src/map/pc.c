@@ -3241,8 +3241,6 @@ int pc_runtodir(struct map_session_data *sd)
 	{
 		if(sd->sc_data && sd->sc_data[SC_RUN].timer!=-1)
 			status_change_end(&sd->bl,SC_RUN,-1);
-		if(sd->sc_data && sd->sc_data[SC_SPURT].timer!=-1)
-			status_change_end(&sd->bl,SC_SPURT,-1);
 	} else {
 		pc_walktoxy(sd, sd->to_x, sd->to_y);
 	}

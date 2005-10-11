@@ -209,6 +209,10 @@ void pc_addfame(struct map_session_data *sd,int count);
 int pc_istop10fame(int char_id, int job);
 int pc_eventtimer(int tid,unsigned int tick,int id,int data); // for npc_dequeue
 
+int pc_runtodir(struct map_session_data *sd);
+int pc_highjumptoxy(struct map_session_data *sd,int x,int y);
+int pc_highjumptodir(struct map_session_data *sd,int distance);
+
 extern struct fame_list smith_fame_list[10];
 extern struct fame_list chemist_fame_list[10];
 

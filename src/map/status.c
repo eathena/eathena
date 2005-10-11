@@ -823,11 +823,6 @@ int status_calc_pc(struct map_session_data* sd,int first)
 				guildflag ^= skill << i;
 			}
 		}
-
-		//駆け足のSTR +10
-		if(sd->sc_data[SC_SPURT].timer!=-1)
-			sd->paramb[0] += 10;
-
 	}
 
 	// Absolute, then relative modifiers from status changes (shared between PC and NPC)
@@ -3252,7 +3247,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 	if(sc_data[type].timer != -1){	/* すでに同じ異常になっている場合タイマ解除 */
 		if(sc_data[type].val1 > val1 && type != SC_COMBO && type != SC_DANCING && type != SC_DEVOTION &&
 			type != SC_ASPDPOTION0 && type != SC_ASPDPOTION1 && type != SC_ASPDPOTION2 && type != SC_ASPDPOTION3
-			&& type != SC_ATKPOTION && type != SC_MATKPOTION && type!=SC_SPURT) // added atk and matk potions [Valaris]
+			&& type != SC_ATKPOTION && type != SC_MATKPOTION) // added atk and matk potions [Valaris]
 			return 0;
 
 		if ((type >=SC_STAN && type <= SC_BLIND) || type == SC_DPOISON)
@@ -4030,7 +4025,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_ARMOR_ELEMENT:
 		case SC_HIGHJUMP:
 			break;
-		case SC_SPURT://駆け足用STR
 		case SC_RUN://駆け足
 			calc_flag = 1;
 			break;
@@ -4315,7 +4309,6 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			case SC_BATTLEORDERS:
 			case SC_REGENERATION:
 			case SC_GUILDAURA:
-			case SC_SPURT:
 				calc_flag = 1;
 				break;
 			case SC_ASPDPOTION0:		/* ?速ポ?ション */

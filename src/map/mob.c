@@ -4441,7 +4441,6 @@ static int mob_read_sqldb(void)
 					}
 					mob_db_data[class_]->dropitem[i].p = mob_drop_adjust(rate, rate_adjust, ratemin, ratemax);
 
-					mob_db_data[class_]->dropitem[i].p = 22;
 					//calculate and store Max available drop chance of the item
 					id = itemdb_search(mob_db_data[class_]->dropitem[i].nameid);
 					if (mob_db_data[class_]->dropitem[i].p) {

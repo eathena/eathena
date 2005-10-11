@@ -3983,12 +3983,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		{
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 			if(sd->sc_data[SC_RUN].timer!=-1)
-			{
 				status_change_end(bl,SC_RUN,-1);
-			}else{
+			else{
 				status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
 				if(skilllv>=7 && sd->weapontype1 == 0 && sd->weapontype2 == 0)
-					status_change_start(&dstsd->bl,SC_SPURT,10,0,0,0,150000,0);
+					status_change_start(&dstsd->bl,SC_INCSTR,10,0,0,0,skill_get_time2(skillid,skilllv),0);
 			}
 		}
 		break;

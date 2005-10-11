@@ -2,6 +2,8 @@ Date	Added
 =======
 
 10/11
+	* Removed the mysterious 2.2% drop chance for all items when read from the
+	  sql db. [Skotlex]
 	* Updated targeted skills and normal attacking to fail when targetting
 	  hidden characters. [Skotlex]
 	* Merged reddozen and Draco's code regarding TK skills. [Skotlex]
