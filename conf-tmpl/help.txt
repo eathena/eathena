@@ -209,7 +209,7 @@
  80:@shownpc <NPC_name> - Enable a NPC (admin command)
  80:@hidenpc <NPC_name> - Disable a NPC (admin command)
  80:@loadnpc <path_to_script> - Load script (admin command)
- 80:@unloadnpc <path_to_script - Unload script (admin command)
+ 80:@unloadnpc <NPC_name> - Unload script (admin command)
  80: 
  99:@gat - For debugging (you inspect around gat)
  99:@packet - For debugging (packet variety)
