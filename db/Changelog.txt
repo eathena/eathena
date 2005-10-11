@@ -32,6 +32,17 @@
 		like gemstones when the skill is used.
 	--
 10/11
+	* Updated the whole item_db to allow TaekWon, Star Gladiator and Soul
+	  Linker to use items. [Skotlex]
+	- Weapons were not touched.
+	- The following job_codes were updated to include all 3 new classes:
+	- All Jobs but Novice (2088958 -> 119529470)
+	- All Jobs but novice+acolyte class (2055918 -> 119496430)
+	- All Jobs (10477567 -> 127918079)
+	- All Jobs but acolyte class (10444527 -> 127885039)
+	- Also added them to awakening potion's job listing.
+	- Lupus's previous updated had to be reverted so this replacement worked :P
+	- Someone tell me which weapons these classes could use so I can update that too?
 	* Fixed some item classes restrictions, fixed Concentration Potion, Awakening Potion, thanks to andz [Lupus]
 	- there's one prob left: Cap and Cap_ headgears
 	* Added new items [Landarma]
