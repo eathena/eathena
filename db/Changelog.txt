@@ -32,6 +32,8 @@
 		like gemstones when the skill is used.
 	--
 10/11
+	* Fixed some item classes restrictions, fixed Concentration Potion, Awakening Potion, thanks to andz [Lupus]
+	- there's one prob left: Cap and Cap_ headgears
 	* Added new items [Landarma]
 10/10
 	* Enabled Poring V and commented out Fire Poring in the mob db. [Skotlex]
