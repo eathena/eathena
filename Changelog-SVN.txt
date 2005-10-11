@@ -2,6 +2,7 @@ Date	Added
 =======
 
 10/10
+	* Probably fixed the peco-riding issue. [Skotlex]
 	* Fixed clif_clearchar_delay (cause of the ghost mobs from my tests). [Skotlex]
 	* Small fix on the mob ai (attacked_id was never being reset if the
 	  attacker no longer exists). [Skotlex]

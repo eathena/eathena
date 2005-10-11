@@ -5681,7 +5681,7 @@ int pc_changelook(struct map_session_data *sd,int type,int val)
 int pc_setoption(struct map_session_data *sd,int type)
 {
 	nullpo_retr(0, sd);
-	if (type&0x0020 && !(sd->status.option&0x0020) && (sd->class_&MAPID_UPPERMASK) == MAPID_SWORDMAN)
+	if (type&0x0020 && !(sd->status.option&0x0020) && (sd->class_&MAPID_BASEMASK) == MAPID_SWORDMAN)
 	{	//We are going to mount. [Skotlex]
 		switch (sd->status.class_)
 		{
