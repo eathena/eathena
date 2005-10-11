@@ -1998,6 +1998,10 @@ struct Damage battle_calc_magic_attack(
 
 	ad.flag=BF_MAGIC|BF_LONG|BF_SKILL;
 
+	//Initialize variables that will be used afterwards
+	t_race = status_get_race(target);
+	t_ele = status_get_elem_type(target);
+		
 	switch(skill_num)
 	{
 		case MG_FIREWALL:
@@ -2031,10 +2035,6 @@ struct Damage battle_calc_magic_attack(
 	if(is_boss(target)) //Bosses can't be knocked-back
 		ad.blewcount = 0;
 
-	//Initialize variables that will be used afterwards
-	t_race = status_get_race(target);
-	t_ele = status_get_elem_type(target);
-		
 	s_race = status_get_race(src);
 	s_ele = skill_get_pl(skill_num);
 
