@@ -2,6 +2,7 @@ Date	Added
 =======
 
 10/11
+	* Damn typo: Fixed Mobs Drops with the same % droprate. thanx 2rover 4bugreport [Lupus]
 	* Fixed SQL Mob DB reading(no drops issue, etc) thanx to yoanykim for pointing it out [Lupus]
 10/10
 	* Probably fixed the peco-riding issue. [Skotlex]

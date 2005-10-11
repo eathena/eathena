@@ -4468,7 +4468,7 @@ static int mob_read_sqldb(void)
 				mob_db_data[class_]->max_hp = (int)maxhp;
 
 				// MVP Drops: MVP1id,MVP1per,MVP2id,MVP2per,MVP3id,MVP3per
-				for (i = 0; i < i; i++) {
+				for (i=0; i<3; i++) {
 					struct item_data *id;
 					mob_db_data[class_]->mvpitem[i].nameid = TO_INT(51+i*2);
 					mob_db_data[class_]->mvpitem[i].p = mob_drop_adjust(TO_INT(52+i*2),
