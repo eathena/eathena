@@ -24,6 +24,7 @@ Massdriller
 Date		Added
 ======
 10/11
+	* Fixed Zealotus Mask NPC (->Piece of Black Quartz) thanx to vicious_pucca for info [Lupus]
 	* Added some Einbech NPCs [reddozen]
 	* Added some Einbroch NPCs [MasterOfMuppets]
 	* Added 2 Kafras to Einbroch (thanx to MasterOfMuppets 4info), fixed NPC coords of Guide [Lupus]

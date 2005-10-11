@@ -3,7 +3,7 @@
 //===== By: =========================
 //= Lorky, Lupus
 //===== Current Version: ===================
-//= 0.4
+//= 0.5
 //===== Compatible With: =====================
 //= eAthena 1.0
 //===== Description: ============================================
@@ -15,8 +15,7 @@
 //	Well-Baked Toast
 //	Mask of Zealotus (done!)
 //	Fashionable Warm Hat
-//	Super Novice Hat (shop item)
-//	Soldier's Felt Hat (shop item)
+//	Super Novice Hat (shop item) Soldier's Felt Hat (shop item?)
 //===== Additional Comments: ==========================================
 // 03.06.2005	:: Lorky ::	First release 0.1a
 // 0.1b Fixed some missing things with temp IDs. [Lupus]
@@ -25,17 +24,13 @@
 // 0.2 Fixed Detective Hat items (by Ishizu-chan) [Lupus]
 // 0.3 Added Zealotus mask quest with correct items [Lupus]
 // 0.4 Fixed some sprites, npc names and coords [Lupus]
+// 0.5 Removed temp shops, Black Clothes -> Piece of Black Quartz, thx to vicious_Pucca for note [Lupus]
 //=====================================================================
 
 //Links (some info related to these headgears)
 //http://translate.google.com/translate?hl=en&sl=ja&u=http://www11.big.or.jp/~top/2005/0625/head.htm
 //http://eathena.deltaanime.net/board/index.php?showtopic=34214
 //http://www.ragnainfo.net/forums/viewtopic.php?t=79677&start=0&postdays=0&postorder=asc&highlight=
-
-//- Hats Shop -----------------------------------------------------------
-//ID 5112 Super Novice Hat[0] , ID 5114 Soldier's Felt Hat[0]
-//!!! WRONG Location and NPC name
-lighthalzen.gat,100,100,1	shop	Hat Merchant	90,5112:-1,5114:-1
 
 
 //Quest Hats
@@ -271,7 +266,7 @@ gl_prison1.gat,138,141,4	script	Zealotus	1200,{
 L_NOITEM:
 	mes "[Gill Tass]";
 	mes "All right. Bring me these items:";
-	mes "^FF3300 369 Black Pieces of Cloth^000000,";
+	mes "^FF3300 369 Pieces of Black Quartz^000000,";
 	mes "^FF3300 1 Forbidden Red Candle^000000,";
 	mes "^FF3300 1 Cat's Eye^000000";
 	mes "and ^FF3300 30 Worn-out Magic scrolls.^000000";
