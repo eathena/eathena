@@ -1838,7 +1838,7 @@ int status_calc_speed(struct block_list *bl, int speed)
 			else if(sc_data[SC_WINDWALK].timer!=-1)
 				speed -= speed * 4*sc_data[SC_WINDWALK].val2/100;
 			if(sc_data[SC_WEDDING].timer!=-1)
-				speed -= speed * 50/100;
+				speed += speed * 50/100;
 			if(sc_data[SC_SLOWDOWN].timer!=-1)
 				speed += speed * 50/100;
 			if(sc_data[SC_DECREASEAGI].timer!=-1)

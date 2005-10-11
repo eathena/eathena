@@ -756,9 +756,9 @@ static int itemdb_gendercheck(struct item_data *id)
 		return 1;
 	if (id->nameid == WEDDING_RING_F || id->nameid == 2338) //Bride Ring/Wedding Dress
 		return 0;
-	if (id->look == 13) //Musical instruments are always male-only
+	if (id->look == 13 && id->type == 4) //Musical instruments are always male-only
 		return 1;
-	if (id->look == 14) //Whips are always female-only
+	if (id->look == 14 && id->type == 4) //Whips are always female-only
 		return 0;
 
 	return (battle_config.ignore_items_gender?2:id->sex);
@@ -793,9 +793,9 @@ static int itemdb_read_sqldb(void)
 				while ((sql_row = mysql_fetch_row(sql_res)))
 				{
 					/* +----+--------------+---------------+------+-----------+------------+--------+--------+---------+-------+-------+------------+---------------+-----------------+--------------+-------------+------+------------+--------------+
-					   |  0 |            1 |             2 |    3 |         4 |          5 |      6 |      7 |       8 |     9 |    10 |         11 |            12 |              13 |           14 |          15 |   16       |   17 |         18 |           19 |
+					   |  0 |            1 |             2 |    3 |         4 |          5 |      6 |      7 |       8 |     9 |    10 |         11 |          12 |            13 |              14 |           15 |   16        |         17 |   18 |     19 |
 					   +----+--------------+---------------+------+-----------+------------+--------+--------+---------+-------+-------+------------+---------------+-----------------+--------------+-------------+------+------------+--------------+
-					   | id | name_english | name_japanese | type | price_buy | price_sell | weight | attack | defence | range | slots | equip_jobs | equip_genders | equip_locations | weapon_level | equip_level | refineable | view | script_use | script_equip |
+					   | id | name_english | name_japanese | type | price_buy | price_sell | weight | attack | defence | range | slots | equip_jobs | equip_upper | equip_genders | equip_locations | weapon_level | equip_level | refineable | view | script |
 					   +----+--------------+---------------+------+-----------+------------+--------+--------+---------+-------+-------+------------+---------------+-----------------+--------------+-------------+------+------------+--------------+ */
 
 					nameid = atoi(sql_row[0]);
@@ -948,7 +948,7 @@ static int itemdb_readdb(void)
 			}
 			ln++;
 
-			//ID,Name,Jname,Type,Price,Sell,Weight,ATK,DEF,Range,Slot,Job,Gender,Loc,wLV,eLV,refineable,View
+			//ID,Name,Jname,Type,Price,Sell,Weight,ATK,DEF,Range,Slot,Job,Job Upper,Gender,Loc,wLV,eLV,refineable,View
 			id=itemdb_search(nameid);
 			memcpy(id->name, str[1], ITEM_NAME_LENGTH-1);
 			memcpy(id->jname, str[2], ITEM_NAME_LENGTH-1);
