@@ -2,6 +2,11 @@ Date	Added
 =======
 
 10/10
+	* Fixed clif_clearchar_delay (cause of the ghost mobs from my tests). [Skotlex]
+	* Small fix on the mob ai (attacked_id was never being reset if the
+	  attacker no longer exists). [Skotlex]
+	* Added a couple of checks to prevent the mob_ai from executing if the mob
+	  is dead. [Skotlex]
 	* Fixed a typo in skill_attack which causes all sort of unpredictable
 	  behaviour, such as firewall never hitting. [Skotlex]
 	* Fixed a memory leak involving pets and cast cancel. [Skotlex]

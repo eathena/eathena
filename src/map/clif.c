@@ -707,12 +707,15 @@ static int clif_clearchar_delay_sub(int tid, unsigned int tick, int id, int data
 	struct block_list *bl = (struct block_list *)id;
 
 	clif_clearchar(bl,data);
-
+	aFree(bl);
 	return 0;
 }
 
 int clif_clearchar_delay(unsigned int tick, struct block_list *bl, int type) {
-	add_timer(tick, clif_clearchar_delay_sub, (int)bl, type);
+	struct block_list *tbl;
+	tbl = aCalloc(1, sizeof (struct block_list));
+	memcpy (tbl, bl, sizeof (struct block_list));
+	add_timer(tick, clif_clearchar_delay_sub, (int)tbl, type);
 
 	return 0;
 }

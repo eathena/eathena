@@ -1419,11 +1419,14 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 	md = (struct mob_data*)bl;
 	tick = va_arg(ap, unsigned int);
 
+	if(md->bl.prev == NULL || md->state.state == MS_DEAD)
+		return 1;
+		
 	if (DIFF_TICK(tick, md->last_thinktime) < MIN_MOBTHINKTIME)
 		return 0;
 	md->last_thinktime = tick;
 
-	if (md->skilltimer != -1 || md->bl.prev == NULL ){	// Casting skill, or has died
+	if (md->skilltimer != -1){	// Casting skill, or has died
 		if (DIFF_TICK (tick, md->next_walktime) > MIN_MOBTHINKTIME)
 			md->next_walktime = tick;
 		return 0;
@@ -1472,7 +1475,9 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 	{
 		if (!abl) //Avoid seeking it if we had it from before (friend scan).
 			abl = map_id2bl(md->attacked_id);
-		if (abl){
+		if (!abl) //Target gone.
+			md->attacked_id = 0;
+		else {
 			if (md->bl.m != abl->m || abl->prev == NULL ||
 				(dist = distance(md->bl.x, md->bl.y, abl->x, abl->y)) >= 32 ||
 				battle_check_target(bl, abl, BCT_ENEMY) <= 0 ||
@@ -1759,7 +1764,10 @@ static int mob_ai_sub_lazy(void * key,void * data,va_list app)
 		return 0;
 	md->last_thinktime=tick;
 
-	if(md->bl.prev==NULL || md->skilltimer!=-1){
+	if (md->bl.prev==NULL || md->state.state == MS_DEAD)
+		return 1;
+
+	if(md->skilltimer!=-1){
 		if(DIFF_TICK(tick,md->next_walktime)>MIN_MOBTHINKTIME*10)
 			md->next_walktime=tick;
 		return 0;
@@ -2603,8 +2611,9 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 		npc_event_doall_id("NPCKillEvent", mvp_sd->bl.id), "NPCKillEvent");
 	}
 }
-//[lordalfa], let's consider the default damage delay too [Skotlex] 
-	(battle_config.mob_clear_delay || delay) ? clif_clearchar_delay(tick+delay+battle_config.mob_clear_delay,&md->bl,1) : clif_clearchar_area(&md->bl,1);
+//[lordalfa]
+	(battle_config.mob_clear_delay) ? clif_clearchar_delay(tick+battle_config.mob_clear_delay,&md->bl,1) : clif_clearchar_area(&md->bl,1);
+	clif_clearchar_area(&md->bl,1);
 	
 	if(md->level) md->level=0;
 	map_delblock(&md->bl);
