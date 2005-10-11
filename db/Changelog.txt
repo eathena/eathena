@@ -31,6 +31,8 @@
 		Item type: Throwing Dagger. Has to be equipped as an arrow, is consumed
 		like gemstones when the skill is used.
 	--
+10/11
+	* Added new items [Landarma]
 10/10
 	* Enabled Poring V and commented out Fire Poring in the mob db. [Skotlex]
 	* Added Poring V to the mob db, altough it is currently commented as it

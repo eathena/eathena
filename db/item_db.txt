@@ -2081,6 +2081,17 @@
 7469,Blue_U_Card,Blue U Card,3,,10,10,,,,,,,,,,,,,{}
 7470,Blue_W_Card,Blue W Card,3,,10,10,,,,,,,,,,,,,{}
 7471,Blue_Y_Card,Blue Y Card,3,,10,10,,,,,,,,,,,,,{}
+7472,Lv1_Cookery_Book,Lv1 Cookbook,3,,,10,,,,,,,,,,,,,{}
+7473,Lv2_Cookery_Book,Lv2 Cookbook,3,,,10,,,,,,,,,,,,,{}
+7474,Lv3_Cookery_Book,Lv3 Cookbook,3,,,10,,,,,,,,,,,,,{}
+7475,Lv4_Cookery_Book,Lv4 Cookbook,3,,,10,,,,,,,,,,,,,{}
+7476,Lv5_Cookery_Book,Lv5 Cookbook,3,,,10,,,,,,,,,,,,,{}
+7477,Lv6_Cookery_Book,Lv6 Cookbook,3,,,10,,,,,,,,,,,,,{}
+7478,LV7_Cookery_Book,Lv7 Cookbook,3,,,10,,,,,,,,,,,,,{}
+7479,Lv8_Cookery_Book,Lv8 Cookbook,3,,,10,,,,,,,,,,,,,{}
+7480,LV9_Cookery_Book,Lv9 Cookbook,3,,,10,,,,,,,,,,,,,{}
+7481,Lv10_Cookery_Book,Lv10 Cookbook,3,,,10,,,,,,,,,,,,,{}
+7482,Pot,Pot,3,,,10,,,,,,,,,,,,,{}
 
 //THQ Quest Items
 7500,THG_Membership,THG Membership,3,,10,10,,,,,,,,,,,,,{}

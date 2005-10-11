@@ -27,6 +27,7 @@ Date		Added
 	* Fixed Zealotus Mask NPC (->Piece of Black Quartz) thanx to vicious_pucca for info [Lupus]
 	* Added some Einbech NPCs [reddozen]
 	* Added some Einbroch NPCs [MasterOfMuppets]
+	- fixed alchemist.txt (Bowl issue)
 	* Added 2 Kafras to Einbroch (thanx to MasterOfMuppets 4info), fixed NPC coords of Guide [Lupus]
 	* Fixed Lighthalzen Dungeon Entrance conditions check, thanx to Daegaladh [Lupus]
 10/10
