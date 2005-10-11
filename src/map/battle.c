@@ -2583,15 +2583,15 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 		if ((damage = wd.damage + wd.damage2) > 0 && src != target) {
 			rdamage = 0;
 			if (wd.flag & BF_SHORT) {
-				if (tsd && tsd->short_weapon_damage_return > 0 && rand()%100 < tsd->short_weapon_damage_return)
-					rdamage = damage;
+				if (tsd && tsd->short_weapon_damage_return)
+					rdamage += damage * tsd->short_weapon_damage_return / 100;
 				if (tsc_data && tsc_data[SC_REFLECTSHIELD].timer != -1) {
 					rdamage += damage * tsc_data[SC_REFLECTSHIELD].val2 / 100;
 					if (rdamage < 1) rdamage = 1;
 				}
 			} else if (wd.flag & BF_LONG) {
-				if (tsd && tsd->long_weapon_damage_return > 0 && rand()%100 < tsd->long_weapon_damage_return)
-					rdamage = damage;
+				if (tsd && tsd->long_weapon_damage_return)
+					rdamage += damage * tsd->long_weapon_damage_return / 100;
 			}
 			if (rdamage > 0)
 				clif_damage(src, src, tick, wd.amotion, wd.dmotion, rdamage, 1, 4, 0);
@@ -2658,42 +2658,6 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 			}
 		}
 		if (sd) {
-/* Moved to skill_additional_effect [Skotlex]
-			int i;
-			for (i = 0; i < 10; i++) {
-				if (sd->autospell_id[i] != 0) {
-					struct block_list *tbl;
-					int skillid = (sd->autospell_id[i] > 0) ? sd->autospell_id[i] : -sd->autospell_id[i];
-					int skilllv = (sd->autospell_lv[i] > 0) ? sd->autospell_lv[i] : 1;
-					int rate = (!sd->state.arrow_atk) ? sd->autospell_rate[i] : sd->autospell_rate[i] / 2;
-					
-					if (rand()%100 > rate)
-						continue;
-					if (sd->autospell_id[i] < 0)
-						tbl = src;
-					else tbl = target;
-					
-					if (skill_get_inf(skillid) & INF_GROUND_SKILL)
-						skill_castend_pos2(src, tbl->x, tbl->y, skillid, skilllv, tick, flag);
-					else {
-						switch (skill_get_nk(skillid)) {
-							case NK_NO_DAMAGE:
-								if ((skillid == AL_HEAL || (skillid == ALL_RESURRECTION && tbl->type != BL_PC)) &&
-									battle_check_undead(status_get_race(tbl),status_get_elem_type(tbl)))
-									skill_castend_damage_id(src, tbl, skillid, skilllv, tick, flag);
-								else
-									skill_castend_nodamage_id(src, tbl, skillid, skilllv, tick, flag);
-								break;
-							case NK_SPLASH_DAMAGE:
-							default:
-								skill_castend_damage_id(src, tbl, skillid, skilllv, tick, flag);
-								break;
-
-						}
-					}
-				} else break;
-			}
-*/
 			if (wd.flag & BF_WEAPON && src != target && (wd.damage > 0 || wd.damage2 > 0)) {
 				int hp = 0, sp = 0;
 				if (!battle_config.left_cardfix_to_right) { // “ñ“—¬¶ŽèƒJ[ƒh‚Ì‹zŽûŒnŒø‰Ê‚ð‰EŽè‚É’Ç‰Á‚µ‚È‚¢ê‡
@@ -2730,44 +2694,6 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 				if (tsd && sd->sp_drain_type)
 					pc_heal(tsd, 0, -sp);
 			}
-		}
-		if (tsd) {
-/* Moved to skill_counter_additional_effect [Skotlex]
-			int i;
-			for (i = 0; i < 10; i++) {
-				if (tsd->autospell2_id[i] != 0) {
-					struct block_list *tbl;
-					int skillid = (tsd->autospell2_id[i] > 0) ? tsd->autospell2_id[i] : -tsd->autospell2_id[i];
-					int skilllv = (tsd->autospell2_lv[i] > 0) ? tsd->autospell2_lv[i] : 1;
-					int rate = ((sd && !sd->state.arrow_atk) || (status_get_range(src)<=2)) ?
-						tsd->autospell2_rate[i] : tsd->autospell2_rate[i] / 2;
-					
-					if (rand()%100 > rate)
-						continue;
-					if (tsd->autospell2_id[i] < 0)
-						tbl = target;
-					else tbl = src;
-
-					if (skill_get_inf(skillid) & INF_GROUND_SKILL)
-						skill_castend_pos2(target, tbl->x, tbl->y, skillid, skilllv, tick, flag);
-					else {
-						switch (skill_get_nk(skillid)) {
-							case NK_NO_DAMAGE:
-								if ((skillid == AL_HEAL || (skillid == ALL_RESURRECTION && tbl->type != BL_PC)) &&
-									battle_check_undead(status_get_race(tbl), status_get_elem_type(tbl)))
-									skill_castend_damage_id(target, tbl, skillid, skilllv, tick, flag);
-								else
-									skill_castend_nodamage_id(target, tbl, skillid, skilllv, tick, flag);
-								break;
-							case NK_SPLASH_DAMAGE:
-							default:
-								skill_castend_damage_id(target, tbl, skillid, skilllv, tick, flag);
-								break;
-						}
-					}
-				} else break;
-			}
-*/
 		}
 		if (rdamage > 0) //By sending attack type "none" skill_additional_effect won't be invoked. [Skotlex]
 			battle_delay_damage(tick+wd.amotion, target, src, 0, 0, 0, rdamage, 0, ATK_DEF, 0);

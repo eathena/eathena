@@ -1282,6 +1282,24 @@ int mapif_parse_GuildSkillUp(int fd, int guild_id, int skill_num, int account_id
 	return 0;
 }
 
+//Manual deletion of an alliance when partnering guild does not exists. [Skotlex]
+static int mapif_parse_GuildDeleteAlliance(struct guild *g, int guild_id, int account_id1, int account_id2, int flag)
+{
+	int i;
+	char name[NAME_LENGTH];
+	for(i=0;i<MAX_GUILDALLIANCE;i++)
+		if(g->alliance[i].guild_id == guild_id)
+		{
+			strcpy(name, g->alliance[i].name);
+			g->alliance[i].guild_id=0;
+			break;
+		}
+	if (i == MAX_GUILDALLIANCE)
+		return -1;
+	
+	mapif_guild_alliance(g->guild_id,guild_id,account_id1,account_id2,flag,g->name,name);
+	return 0;
+}
 // ƒMƒ‹ƒh“¯–¿—v‹
 int mapif_parse_GuildAlliance(int fd, int guild_id1, int guild_id2, int account_id1, int account_id2, int flag) {
 	struct guild *g[2];
@@ -1289,6 +1307,11 @@ int mapif_parse_GuildAlliance(int fd, int guild_id1, int guild_id2, int account_
 
 	g[0] = (struct guild *) numdb_search(guild_db, guild_id1);
 	g[1] = (struct guild *) numdb_search(guild_db, guild_id2);
+
+	if(g[0] && g[1]==NULL && (flag&0x8)) //Requested to remove an alliance with a not found guild.
+		return mapif_parse_GuildDeleteAlliance(g[0], guild_id2,
+			account_id1, account_id2, flag); //Try to do a manual removal of said guild.
+
 	if (g[0] == NULL || g[1] == NULL)
 		return 0;
 

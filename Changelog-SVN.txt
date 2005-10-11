@@ -2,6 +2,10 @@ Date	Added
 =======
 
 10/11
+	* Added a function to allow guilds to delete alliances with nonexisting
+	  guilds. [Skotlex]
+	* Corrected the weapon damage return in battle_weapon_attack, thanks to PeF
+	  for pointing it out. [Skotlex]
 	* Added max_baby_parameter to define the max parameter for baby classes.
 	  Also fixed some instances where the baby parameter restriction was not
 	  being taken into account. [Skotlex]
