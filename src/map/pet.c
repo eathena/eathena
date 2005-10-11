@@ -538,12 +538,12 @@ int pet_changestate(struct pet_data *pd,int state,int type)
 
 	Assert((pd->msd == 0) || (pd->msd->pd == pd));
 
+	if (pd->state.casting_flag)
+		skill_castcancel(&pd->bl, 0);
 	if(pd->timer != -1)
 		delete_timer(pd->timer,pet_timer);
 	pd->timer=-1;
 	pd->state.state=state;
-	if (pd->state.casting_flag)
-		skill_castcancel(&pd->bl, 0);
 
 	switch(state) {
 		case MS_WALK:

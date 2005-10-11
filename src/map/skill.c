@@ -1581,7 +1581,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 //	if(src != dsrc && status_isdead(src))
 //		return 0;
 
-	if (src->type == BL_PC)
+	if (dsrc->type == BL_PC)
 		sd = (struct map_session_data *)dsrc;
 	if (bl->type == BL_PC)
 		tsd = (struct map_session_data *)bl;

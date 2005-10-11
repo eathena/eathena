@@ -2,6 +2,9 @@ Date	Added
 =======
 
 10/10
+	* Fixed a typo in skill_attack which causes all sort of unpredictable
+	  behaviour, such as firewall never hitting. [Skotlex]
+	* Fixed a memory leak involving pets and cast cancel. [Skotlex]
 	* Made Wand of Hermod end when the caster is moved for whatever reason. [Skotlex]
 	* Increased the random damage delay modifier to +/-15% [Skotlex]
 	* Fixed "rare drop filter" considering "available in shops only items" as RARE items [Lupus]
