@@ -2,6 +2,9 @@ Date	Added
 =======
 
 10/11
+	* Rewrote/optimized the hp updating code (both party hp and disp_hpmeter),
+	  this should lower bandwidth a bit from all the unnecessary packets that
+	  were previously being sent. [Skotlex]
 	* Removed the mysterious 2.2% drop chance for all items when read from the
 	  sql db. [Skotlex]
 	* Updated targeted skills and normal attacking to fail when targetting

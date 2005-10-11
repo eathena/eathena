@@ -728,7 +728,6 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 	// パ?ティ??係の初期化
 	sd->party_x = -1;
 	sd->party_y = -1;
-	sd->party_hp = -1;
 
 	// イベント?係の初期化
 	for(i = 0; i < MAX_EVENTTIMER; i++)
@@ -3441,18 +3440,6 @@ static int pc_walk(int tid,unsigned int tick,int id,int data)
 			-dx, -dy, 0, sd);
 		sd->walktimer = -1;	// set back so not to disturb future pc_stop_walking calls
 
-		if (sd->status.party_id > 0) {	// パ?ティのＨＰ情報通知?査
-			struct party *p = party_search(sd->status.party_id);
-			if (p != NULL) {
-				int p_flag = 0;
-				map_foreachinmovearea (party_send_hp_check, sd->bl.m,
-					x-AREA_SIZE, y-AREA_SIZE, x+AREA_SIZE, y+AREA_SIZE,
-					-dx, -dy, BL_PC, sd->status.party_id, &p_flag);
-				if (p_flag)
-					sd->party_hp = -1;
-			}
-		}
-
 		if (pc_iscloaking(sd))	// クロ?キングの消滅?査
 			skill_check_cloaking(&sd->bl);
 		/* 被ディボ?ション?査 */
@@ -3499,9 +3486,6 @@ static int pc_walk(int tid,unsigned int tick,int id,int data)
 
 	}
 
-	if (battle_config.disp_hpmeter)
-		clif_hpmeter(sd);
-
 	return 0;
 }
 
@@ -3516,8 +3500,8 @@ static int pc_walktoxy_sub (struct map_session_data *sd)
 
 	nullpo_retr(1, sd);
 
-	if(sd && sd->sc_data && sd->sc_data[SC_HIGHJUMP].timer!=-1) {
-		if(path_search2(&wpd, sd->bl.m, sd->bl.x, sd->bl.y, sd->to_x, sd->to_y, 0))
+	if(sd->sc_data[SC_HIGHJUMP].timer!=-1) {
+		if(path_search(&wpd, sd->bl.m, sd->bl.x, sd->bl.y, sd->to_x, sd->to_y, 0x20001))
 			return 1;
 	} else {
 	if (path_search(&wpd, sd->bl.m, sd->bl.x, sd->bl.y, sd->to_x, sd->to_y, 0))
@@ -3642,7 +3626,7 @@ int pc_movepos(struct map_session_data *sd,int dst_x,int dst_y,int checkpath)
 	nullpo_retr(0, sd);
 
 if(sd && sd->sc_data && sd->sc_data[SC_HIGHJUMP].timer!=-1) {
-		if(path_search2(&wpd,sd->bl.m,sd->bl.x,sd->bl.y,dst_x,dst_y,0))
+		if(path_search(&wpd,sd->bl.m,sd->bl.x,sd->bl.y,dst_x,dst_y,0x20001))
 			return 1;
 	} else {
 	if(checkpath && path_search(&wpd,sd->bl.m,sd->bl.x,sd->bl.y,dst_x,dst_y,0))
@@ -3667,16 +3651,6 @@ if(sd && sd->sc_data && sd->sc_data[SC_HIGHJUMP].timer!=-1) {
 	skill_unit_move(&sd->bl,tick,3);
 
 	map_foreachinmovearea(clif_pcinsight,sd->bl.m,sd->bl.x-AREA_SIZE,sd->bl.y-AREA_SIZE,sd->bl.x+AREA_SIZE,sd->bl.y+AREA_SIZE,-dx,-dy,0,sd);
-
-	if(sd->status.party_id>0){	// パ?ティのＨＰ情報通知?査
-		struct party *p=party_search(sd->status.party_id);
-		if(p!=NULL){
-			int flag=0;
-			map_foreachinmovearea(party_send_hp_check,sd->bl.m,sd->bl.x-AREA_SIZE,sd->bl.y-AREA_SIZE,sd->bl.x+AREA_SIZE,sd->bl.y+AREA_SIZE,-dx,-dy,BL_PC,sd->status.party_id,&flag);
-			if(flag)
-				sd->party_hp=-1;
-		}
-	}
 
 	if (pc_iscloaking(sd)) // クロ?キングの消滅?査
 		skill_check_cloaking(&sd->bl);
@@ -4905,7 +4879,11 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage, int
 	if(damage > sd->status.max_hp>>2)
 		skill_stop_dancing(&sd->bl);
 
-	sd->status.hp-=damage;
+	if (damage > sd->status.hp)
+		sd->status.hp-=damage;
+	else
+		sd->status.hp = 0;
+	
 	if(sd->status.pet_id > 0 && sd->pd && sd->petDB && battle_config.pet_damage_support)
 		pet_target_check(sd,src,1);
 
@@ -4918,10 +4896,9 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage, int
 	if(pc_ischasewalk(sd))
 		status_change_end(&sd->bl, SC_CHASEWALK, -1);
 
-	if(sd->status.hp>0){
-		// まだ生きているならHP更新
-		clif_updatestatus(sd,SP_HP);
+	clif_updatestatus(sd,SP_HP);
 
+	if(sd->status.hp>0){
 		//if(sd->status.hp<sd->status.max_hp>>2 && pc_checkskill(sd,SM_AUTOBERSERK)>0 &&
 		if(sd->status.hp<sd->status.max_hp>>2 && sd->sc_data[SC_AUTOBERSERK].timer != -1 &&
 			(sd->sc_data[SC_PROVOKE].timer==-1 || sd->sc_data[SC_PROVOKE].val2==0 ))
@@ -4929,11 +4906,6 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage, int
 			status_change_start(&sd->bl,SC_PROVOKE,10,1,0,0,0,0);
 
 		sd->canlog_tick = gettick();
-
-		if(sd->status.party_id>0) {	// on-the-fly party hp updates [Valaris]
-			struct party *p=party_search(sd->status.party_id);
-			if(p!=NULL) clif_party_hp(p,sd);
-		}	// end addition [Valaris]
 
 		return damage;
 	}
@@ -5515,11 +5487,6 @@ int pc_heal(struct map_session_data *sd,int hp,int sp)
 		clif_updatestatus(sd,SP_HP);
 	if(sp)
 		clif_updatestatus(sd,SP_SP);
-
-	if(sd->status.party_id>0) {	// on-the-fly party hp updates [Valaris]
-		struct party *p=party_search(sd->status.party_id);
-		if(p!=NULL) clif_party_hp(p,sd);
-	}	// end addition [Valaris]
 
 	return hp + sp;
 }

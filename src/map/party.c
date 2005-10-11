@@ -281,6 +281,8 @@ int party_member_added(int party_id,int account_id,int flag)
 	// いちおう競合確認
 	party_check_conflict(sd);
 	clif_charnameupdate(sd); //Update char name's display [Skotlex]
+	clif_party_hp(sd);
+	clif_party_xy(sd);
 	return 0;
 }
 // パーティ除名要求
@@ -528,16 +530,10 @@ int party_send_xyhp_timer_sub(void *key,void *data,va_list ap)
 		if((sd=p->member[i].sd)!=NULL){
 			// 座標通知
 			if(sd->party_x!=sd->bl.x || sd->party_y!=sd->bl.y){
-				clif_party_xy(p,sd);
+				clif_party_xy(sd);
 				sd->party_x=sd->bl.x;
 				sd->party_y=sd->bl.y;
 			}
-			// ＨＰ通知
-			if(sd->party_hp!=sd->status.hp){
-				clif_party_hp(p,sd);
-				sd->party_hp=sd->status.hp;
-			}
-			
 		}
 	}
 	return 0;
@@ -561,28 +557,7 @@ int party_send_xy_clear(struct party *p)
 		if((sd=p->member[i].sd)!=NULL){
 			sd->party_x=-1;
 			sd->party_y=-1;
-			sd->party_hp=-1;
 		}
-	}
-	return 0;
-}
-// HP通知の必要性検査用（map_foreachinmoveareaから呼ばれる）
-int party_send_hp_check(struct block_list *bl,va_list ap)
-{
-	int party_id;
-	int *flag;
-	struct map_session_data *sd;
-
-	nullpo_retr(0, bl);
-	nullpo_retr(0, ap);
-	nullpo_retr(0, sd=(struct map_session_data *)bl);
-
-	party_id=va_arg(ap,int);
-	flag=va_arg(ap,int *);
-	
-	if(sd->status.party_id==party_id){
-		*flag=1;
-		sd->party_hp=-1;
 	}
 	return 0;
 }

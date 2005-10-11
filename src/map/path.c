@@ -8,9 +8,8 @@
 #include "nullpo.h"
 #include "../common/showmsg.h"
 
-//#define PATH_STANDALONETEST
-
 #define MAX_HEAP 150
+
 struct tmp_path { short x,y,dist,before,cost; char dir,flag;};
 #define calc_index(x,y) (((x)+(y)*MAX_WALKPATH) & (MAX_WALKPATH*MAX_WALKPATH-1))
 
@@ -169,7 +168,7 @@ static int can_place(struct map_data *m,int x,int y,int flag)
 
 	if(map_getcellp(m,x,y,CELL_CHKPASS))
 		return 1;
-	else if((flag&0x10000)&&map_getcellp(m,x,y,CELL_CHKGROUND))
+	if((flag&0x10000)&&map_getcellp(m,x,y,CELL_CHKGROUND))
 		return 1;
 	return 0;
 }
@@ -186,6 +185,8 @@ static int can_move(struct map_data *m,int x0,int y0,int x1,int y1,int flag)
 		return 0;
 	if(x1<0 || y1<0 || x1>=m->xs || y1>=m->ys)
 		return 0;
+	if(flag&0x20000) //Flag to ignore everything, for use with Taekwon's Jump skill currently. [Skotlex] 
+		return 1;
 	if(!can_place(m,x0,y0,flag))
 		return 0;
 	if(!can_place(m,x1,y1,flag))
@@ -194,23 +195,6 @@ static int can_move(struct map_data *m,int x0,int y0,int x1,int y1,int flag)
 		return 1;
 	if(!can_place(m,x0,y1,flag) || !can_place(m,x1,y0,flag))
 		return 0;
-	return 1;
-}
-
-#ifdef _WIN32
-static int can_move2(struct map_data *m,int x0,int y0,int x1,int y1,int flag)
-#else
-static inline int can_move2(struct map_data *m,int x0,int y0,int x1,int y1,int flag)
-#endif
-{
-	nullpo_retr(0, m);
-
-	if(x0-x1<-1 || x0-x1>1 || y0-y1<-1 || y0-y1>1)
-		return 0;
-	if(x1<0 || y1<0 || x1>=m->xs || y1>=m->ys)
-		return 0;
-	if(x0==x1 || y0==y1)
-		return 1;
 	return 1;
 }
 
@@ -444,209 +428,6 @@ int path_search(struct walkpath_data *wpd,int m,int x0,int y0,int x1,int y1,int 
  *------------------------------------------
  
  */
-
-int path_search2(struct walkpath_data *wpd,int m,int x0,int y0,int x1,int y1,int flag)
-
-{
-
-	int heap[MAX_HEAP+1];
-
-	struct tmp_path tp[MAX_WALKPATH*MAX_WALKPATH];
-
-	int i,rp,x,y;
-
-	struct map_data *md;
-
-	int dx,dy;
-
-
-	nullpo_retr(0, wpd);
-
-
-	if(!map[m].gat)
-
-		return -1;
-
-	md=&map[m];
-
-	if(x1<0 || x1>=md->xs || y1<0 || y1>=md->ys)
-
-		return -1;
-
-
-	// easy
-	dx = (x1-x0<0) ? -1 : 1;
-
-	dy = (y1-y0<0) ? -1 : 1;
-
-	for(x=x0,y=y0,i=0;x!=x1 || y!=y1;){
-
-		if(i>=sizeof(wpd->path))
-
-			return -1;
-
-		if(x!=x1 && y!=y1){
-
-			if(!can_move2(md,x,y,x+dx,y+dy,flag))
-
-				break;
-
-			x+=dx;
-
-			y+=dy;
-
-			wpd->path[i++]=(dx<0) ? ((dy>0)? 1 : 3) : ((dy<0)? 5 : 7);
-
-		} else if(x!=x1){
-
-			if(!can_move2(md,x,y,x+dx,y   ,flag))
-
-				break;
-			x+=dx;
-
-			wpd->path[i++]=(dx<0) ? 2 : 6;
-
-		} else { // y!=y1
-
-			if(!can_move2(md,x,y,x   ,y+dy,flag))
-
-				break;
-
-			y+=dy;
-
-			wpd->path[i++]=(dy>0) ? 0 : 4;
-
-		}
-
-		if(x==x1 && y==y1){
-
-			wpd->path_len=i;
-
-			wpd->path_pos=0;
-
-			wpd->path_half=0;
-
-			return 0;
-
-		}
-
-	}
-
-	if(flag&1)
-
-		return -1;
-
-
-	memset(tp,0,sizeof(tp));
-
-
-	i=calc_index(x0,y0);
-
-	tp[i].x=x0;
-
-	tp[i].y=y0;
-
-	tp[i].dist=0;
-
-	tp[i].dir=0;
-
-	tp[i].before=0;
-
-	tp[i].cost=calc_cost(&tp[i],x1,y1);
-
-	tp[i].flag=0;
-
-	heap[0]=0;
-
-	push_heap_path(heap,tp,calc_index(x0,y0));
-
-	while(1){
-
-		int e=0,fromdir;
-
-
-		if(heap[0]==0)
-
-			return -1;
-
-		rp=pop_heap_path(heap,tp);
-
-		x=tp[rp].x;
-
-		y=tp[rp].y;
-
-		if(x==x1 && y==y1){
-
-			int len,j;
-
-
-			for(len=0,i=rp;len<100 && i!=calc_index(x0,y0);i=tp[i].before,len++);
-
-			if(len==100 || len>=sizeof(wpd->path))
-
-				return -1;
-
-			wpd->path_len=len;
-
-			wpd->path_pos=0;
-
-			wpd->path_half=0;
-
-			for(i=rp,j=len-1;j>=0;i=tp[i].before,j--)
-				wpd->path[j]=tp[i].dir;
-
-
-			return 0;
-
-		}
-
-		fromdir=tp[rp].dir;
-
-		if(can_move2(md,x,y,x+1,y-1,flag))
-
-			e+=add_path(heap,tp,x+1,y-1,tp[rp].dist+14,5,rp,x1,y1);
-
-		if(can_move2(md,x,y,x+1,y  ,flag))
-
-			e+=add_path(heap,tp,x+1,y  ,tp[rp].dist+10,6,rp,x1,y1);
-
-		if(can_move2(md,x,y,x+1,y+1,flag))
-
-			e+=add_path(heap,tp,x+1,y+1,tp[rp].dist+14,7,rp,x1,y1);
-
-		if(can_move2(md,x,y,x  ,y+1,flag))
-
-			e+=add_path(heap,tp,x  ,y+1,tp[rp].dist+10,0,rp,x1,y1);
-
-		if(can_move2(md,x,y,x-1,y+1,flag))
-
-			e+=add_path(heap,tp,x-1,y+1,tp[rp].dist+14,1,rp,x1,y1);
-
-		if(can_move2(md,x,y,x-1,y  ,flag))
-
-			e+=add_path(heap,tp,x-1,y  ,tp[rp].dist+10,2,rp,x1,y1);
-
-		if(can_move2(md,x,y,x-1,y-1,flag))
-
-			e+=add_path(heap,tp,x-1,y-1,tp[rp].dist+14,3,rp,x1,y1);
-
-		if(can_move2(md,x,y,x  ,y-1,flag))
-
-			e+=add_path(heap,tp,x  ,y-1,tp[rp].dist+10,4,rp,x1,y1);
-
-		tp[rp].flag=1;
-
-		if(e || heap[0]>=MAX_HEAP-5)
-
-			return -1;
-
-	}
-
-	return -1;
-
-}
-
-
 
 #ifdef PATH_STANDALONETEST
 char gat[64][64]={

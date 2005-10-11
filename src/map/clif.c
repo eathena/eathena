@@ -158,6 +158,7 @@ static int max_account_id = DEFAULT_MAX_ACCOUNT_ID;
 static int max_char_id = DEFAULT_MAX_CHAR_ID;
 
 int clif_parse (int fd);
+static void clif_hpmeter_single(int fd, struct map_session_data *sd);
 
 /*==========================================
  * map鯖のip設定
@@ -2640,6 +2641,8 @@ int clif_updatestatus(struct map_session_data *sd,int type)
 		break;
 	case SP_HP:
 		WFIFOL(fd,4)=sd->status.hp;
+		if (sd->status.party_id)
+			clif_party_hp(sd);
 		if (battle_config.disp_hpmeter)
 			clif_hpmeter(sd);
 		break;
@@ -2810,6 +2813,7 @@ int clif_changestatus(struct block_list *bl,int type,int val)
 	}
 	return 0;
 }
+
 /*==========================================
  *
  *------------------------------------------
@@ -3809,7 +3813,13 @@ void clif_getareachar_pc(struct map_session_data* sd,struct map_session_data* ds
 		dstsd->status.clothes_color > 0 &&
 		(dstsd->view_class != 22 || !battle_config.wedding_ignorepalette)
 		)
-		clif_changelook(&dstsd->bl,LOOK_CLOTHES_COLOR,dstsd->status.clothes_color);
+		clif_changelook(&dstsd->bl, LOOK_CLOTHES_COLOR, dstsd->status.clothes_color);
+
+	if((sd->status.party_id && dstsd->status.party_id == sd->status.party_id) || //Party-mate, or hpdisp setting.
+		(battle_config.disp_hpmeter && (len = pc_isGM(sd)) >= battle_config.disp_hpmeter && len >= pc_isGM(dstsd))
+		)
+		clif_hpmeter_single(sd->fd, dstsd);
+
 	if(sd->status.manner < 0)
 		clif_changestatus(&sd->bl,SP_MANNER,sd->status.manner);
 		
@@ -6163,7 +6173,7 @@ int clif_party_message(struct party *p,int account_id,char *mes,int len)
  * パーティ座標通知
  *------------------------------------------
  */
-int clif_party_xy(struct party *p,struct map_session_data *sd)
+int clif_party_xy(struct map_session_data *sd)
 {
 	unsigned char buf[16];
 
@@ -6175,15 +6185,13 @@ int clif_party_xy(struct party *p,struct map_session_data *sd)
 	WBUFW(buf,8)=sd->bl.y;
 	clif_send(buf,packet_len_table[0x107],&sd->bl,PARTY_SAMEMAP_WOS);
 	
-//	if(battle_config.etc_log)
-//		printf("clif_party_xy %d\n",sd->status.account_id);
 	return 0;
 }
 /*==========================================
  * パーティHP通知
  *------------------------------------------
  */
-int clif_party_hp(struct party *p,struct map_session_data *sd)
+int clif_party_hp(struct map_session_data *sd)
 {
 	unsigned char buf[16];
 
@@ -6194,10 +6202,22 @@ int clif_party_hp(struct party *p,struct map_session_data *sd)
 	WBUFW(buf,6)=(sd->status.hp > 0x7fff)? 0x7fff:sd->status.hp;
 	WBUFW(buf,8)=(sd->status.max_hp > 0x7fff)? 0x7fff:sd->status.max_hp;
 	clif_send(buf,packet_len_table[0x106],&sd->bl,PARTY_AREA_WOS);
-//	if(battle_config.etc_log)
-//		printf("clif_party_hp %d\n",sd->status.account_id);
 	return 0;
 }
+
+/*==========================================
+ * Sends HP bar to a single fd. [Skotlex]
+ *------------------------------------------
+ */
+static void clif_hpmeter_single(int fd, struct map_session_data *sd)
+{
+	WBUFW(fd,0) = 0x106;
+	WBUFL(fd,2) = sd->status.account_id;
+	WBUFW(fd,6) = (sd->status.hp > 0x7fff) ? 0x7fff : sd->status.hp;
+	WBUFW(fd,8) = (sd->status.max_hp > 0x7fff) ? 0x7fff : sd->status.max_hp;
+	WFIFOSET (fd, packet_len_table[0x106]);
+}
+
 /*==========================================
  * GMへ場所とHP通知
  *------------------------------------------
@@ -6206,7 +6226,6 @@ int clif_hpmeter(struct map_session_data *sd)
 {
 	struct map_session_data *sd2;
 	unsigned char buf[16];
-	unsigned char buf2[16];
 	int i, x0, y0, x1, y1;
 	int level;
 
@@ -6217,11 +6236,10 @@ int clif_hpmeter(struct map_session_data *sd)
 	x1 = sd->bl.x + AREA_SIZE;
 	y1 = sd->bl.y + AREA_SIZE;
 
-	WBUFW(buf,0) = 0x107;
-	WBUFL(buf,2) = sd->bl.id;
-	WBUFW(buf,6) = sd->bl.x;
-	WBUFW(buf,8) = sd->bl.y;
-
+	WBUFW(buf,0) = 0x106;
+	WBUFL(buf,2) = sd->status.account_id;
+	WBUFW(buf,6) = (sd->status.hp > 0x7fff) ? 0x7fff : sd->status.hp;
+	WBUFW(buf,8) = (sd->status.max_hp > 0x7fff) ? 0x7fff : sd->status.max_hp;
 	for (i = 0; i < fd_max; i++) {
 		if (session[i] && (sd2 = (struct map_session_data*)session[i]->session_data) &&  sd != sd2 && sd2->state.auth) {
 			if (sd2->bl.m != sd->bl.m || 
@@ -6230,24 +6248,7 @@ int clif_hpmeter(struct map_session_data *sd)
 				(level = pc_isGM(sd2)) < battle_config.disp_hpmeter ||
 				level < pc_isGM(sd))
 				continue;
-			memcpy (WFIFOP(i,0), buf, packet_len_table[0x107]);
-			WFIFOSET (i, packet_len_table[0x107]);
-		}
-	}
-
-	WBUFW(buf2,0) = 0x106;
-	WBUFL(buf2,2) = sd->status.account_id;
-	WBUFW(buf2,6) = (sd->status.hp > 0x7fff) ? 0x7fff : sd->status.hp;
-	WBUFW(buf2,8) = (sd->status.max_hp > 0x7fff) ? 0x7fff : sd->status.max_hp;
-	for (i = 0; i < fd_max; i++) {
-		if (session[i] && (sd2 = (struct map_session_data*)session[i]->session_data) &&  sd != sd2 && sd2->state.auth) {
-			if (sd2->bl.m != sd->bl.m || 
-				sd2->bl.x < x0 || sd2->bl.y < y0 ||
-				sd2->bl.x > x1 || sd2->bl.y > y1 ||
-				(level = pc_isGM(sd2)) < battle_config.disp_hpmeter ||
-				level < pc_isGM(sd))
-				continue;
-			memcpy (WFIFOP(i,0), buf2, packet_len_table[0x106]);
+			memcpy (WFIFOP(i,0), buf, packet_len_table[0x106]);
 			WFIFOSET (i, packet_len_table[0x106]);
 		}
 	}

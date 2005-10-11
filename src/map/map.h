@@ -554,7 +554,7 @@ struct map_session_data {
 	short deal_locked;
 
 	int party_sended,party_invite,party_invite_account;
-	int party_hp,party_x,party_y;
+	int party_x,party_y;
 
 	int guild_sended,guild_invite,guild_invite_account;
 	int guild_emblem_id,guild_alliance,guild_alliance_account;
@@ -1092,7 +1092,6 @@ int map_calc_dir( struct block_list *src,int x,int y);
 
 // path.c‚æ‚è
 int path_search(struct walkpath_data*,int,int,int,int,int,int);
-int path_search2(struct walkpath_data*,int,int,int,int,int,int);
 int path_search_long(struct shootpath_data *,int,int,int,int,int);
 int path_blownpos(int m,int x0,int y0,int dx,int dy,int count);
 

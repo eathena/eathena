@@ -4420,9 +4420,6 @@ int status_change_end( struct block_list* bl , int type,int tid )
 				}
 				break;
 
-			case SC_HIGHJUMP:
-				break;
-
 			case SC_RUN://‹ì‚¯‘«
 				pc_stop_walking((struct map_session_data *)bl,0);
 				calc_flag = 1;

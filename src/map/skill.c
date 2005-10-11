@@ -3954,19 +3954,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case TK_READYTURN:
 	case TK_READYCOUNTER:
 	case TK_DODGE:
-		{
-			struct status_change *tsc_data = status_get_sc_data(bl);
-
-           	int sc = SkillStatusChangeTable[skillid];
-			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			if (tsc_data && tsc_data[sc].timer != -1)
-				status_change_end(bl, sc, -1);
-			else
-				status_change_start(bl,sc,skilllv,0,0,0,0,0);
-		}
-		break;
 	case TF_HIDING:			/* ハイディング */
 	case ST_CHASEWALK:			/* ハイディング */
+	case TK_RUN://駆け足
 		{
 			struct status_change *tsc_data = status_get_sc_data(bl);
 			int sc = SkillStatusChangeTable[skillid];
@@ -3974,24 +3964,13 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			if (tsc_data && tsc_data[sc].timer != -1)
 				status_change_end(bl, sc, -1);
 			else
-				status_change_start(bl,sc,skilllv,0,0,0,skill_get_time(skillid,skilllv),0);		
-		}
-		break;
-
-	case TK_RUN://駆け足
-		if(sd && sd->sc_data)
-		{
-			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			if(sd->sc_data[SC_RUN].timer!=-1)
-				status_change_end(bl,SC_RUN,-1);
-			else{
-				status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
-				if(skilllv>=7 && sd->weapontype1 == 0 && sd->weapontype2 == 0)
+			{
+				status_change_start(bl,sc,skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
+				if(skillid == TK_RUN && skilllv>=7 && sd->weapontype1 == 0 && sd->weapontype2 == 0)
 					status_change_start(&dstsd->bl,SC_INCSTR,10,0,0,0,skill_get_time2(skillid,skilllv),0);
 			}
 		}
 		break;
-
 
 	case AS_CLOAKING:		/* クロ?キング */
 		{
