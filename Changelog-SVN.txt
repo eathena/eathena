@@ -1,6 +1,8 @@
 Date	Added
 =======
 
+10/11
+	* Fixed SQL Mob DB reading(no drops issue, etc) thanx to yoanykim for pointing it out [Lupus]
 10/10
 	* Probably fixed the peco-riding issue. [Skotlex]
 	* Fixed clif_clearchar_delay (cause of the ghost mobs from my tests). [Skotlex]

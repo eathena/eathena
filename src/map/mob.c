@@ -3799,18 +3799,17 @@ static int mob_readdb(void)
 	FILE *fp;
 	char line[1024];
 	char *filename[]={ "db/mob_db.txt","db/mob_db2.txt" };
-	int i;
+	int class_, i, fi;
 
-	for(i=0;i<2;i++){
+	for(fi=0;fi<2;fi++){
 
-		fp=fopen(filename[i],"r");
+		fp=fopen(filename[fi],"r");
 		if(fp==NULL){
-			if(i>0)
+			if(fi>0)
 				continue;
 			return -1;
 		}
 		while(fgets(line,1020,fp)){
-			int class_, i;
 			double exp, maxhp;
 			char *str[60], *p, *np; // 55->60 Lupus
 
@@ -3974,7 +3973,7 @@ static int mob_readdb(void)
 			}
 		}
 		fclose(fp);
-		ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n",filename[i]);
+		ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n",filename[fi]);
 	}
 	return 0;
 }
@@ -4325,7 +4324,7 @@ static int mob_readdb_race(void)
 static int mob_read_sqldb(void)
 {
 	const char unknown_str[NAME_LENGTH] ="unknown";
-	int i, j, class_;
+	int i, fi, class_;
 	double exp, maxhp;
 	long unsigned int ln = 0;
 	char *mob_db_name[] = { mob_db_db, mob_db2_db };
@@ -4334,10 +4333,10 @@ static int mob_read_sqldb(void)
 #define TO_INT(a) (sql_row[a]==NULL?0:atoi(sql_row[a]))
 #define TO_STR(a) (sql_row[a]==NULL?unknown_str:sql_row[a])
 	
-    for (i = 0; i < 2; i++) {
-		sprintf (tmp_sql, "SELECT * FROM `%s`", mob_db_name[i]);
+    for (fi = 0; fi < 2; fi++) {
+		sprintf (tmp_sql, "SELECT * FROM `%s`", mob_db_name[fi]);
 		if (mysql_query(&mmysql_handle, tmp_sql)) {
-			ShowSQL("DB error (%s) - %s\n", mob_db_name[i], mysql_error(&mmysql_handle));
+			ShowSQL("DB error (%s) - %s\n", mob_db_name[fi], mysql_error(&mmysql_handle));
 			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 			continue;
 		}
@@ -4398,12 +4397,12 @@ static int mob_read_sqldb(void)
 				mob_db_data[class_]->amotion = TO_INT(27);
 				mob_db_data[class_]->dmotion = TO_INT(28);
 
-				for (j = 0; j < 10; j++){ // 8 -> 10 Lupus
+				for (i = 0; i < 10; i++){ // 8 -> 10 Lupus
 					int rate = 0, rate_adjust, type, ratemin, ratemax;
 					struct item_data *id;
-					mob_db_data[class_]->dropitem[j].nameid=TO_INT(29+j*2);
-					type = itemdb_type(mob_db_data[class_]->dropitem[j].nameid);
-					rate = TO_INT(30+j*2);
+					mob_db_data[class_]->dropitem[i].nameid=TO_INT(29+i*2);
+					type = itemdb_type(mob_db_data[class_]->dropitem[i].nameid);
+					rate = TO_INT(30+i*2);
 					if (class_ >= 1324 && class_ <= 1363)
 					{	//Treasure box drop rates [Skotlex]
 						rate_adjust = battle_config.item_rate_treasure;
@@ -4491,7 +4490,7 @@ static int mob_read_sqldb(void)
 			}
 
 			mysql_free_result(sql_res);
-			ShowStatus("Done reading '"CL_WHITE"%lu"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", ln, mob_db_name[i]);
+			ShowStatus("Done reading '"CL_WHITE"%lu"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", ln, mob_db_name[fi]);
 			ln = 0;
 		}
 	}
