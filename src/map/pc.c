@@ -2968,6 +2968,8 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 			status_change_end(&sd->bl, SC_TRICKDEAD, -1);
 		if(sd->sc_data[SC_BLADESTOP].timer!=-1)
 			status_change_end(&sd->bl,SC_BLADESTOP,-1);
+		if(sd->sc_data && sd->sc_data[SC_RUN].timer!=-1)
+			status_change_end(&sd->bl,SC_RUN,-1);
 		if(sd->sc_data[SC_DANCING].timer!=-1) // clear dance effect when warping [Valaris]
 			skill_stop_dancing(&sd->bl);
 		if (sd->sc_data[SC_DEVOTION].timer!=-1)
@@ -3206,6 +3208,125 @@ int pc_memo(struct map_session_data *sd, int i) {
 }
 
 /*==========================================
+ * pc駆け足要求
+ *------------------------------------------
+ */
+int pc_runtodir(struct map_session_data *sd)
+{
+	int i,to_x,to_y,dir_x,dir_y;
+
+	nullpo_retr(0, sd);
+
+	to_x = sd->bl.x;
+	to_y = sd->bl.y;
+	dir_x = dirx[(int)sd->dir];
+	dir_y = diry[(int)sd->dir];
+
+	for(i=0;i<AREA_SIZE;i++)
+	{
+		if(map_getcell(sd->bl.m,to_x+dir_x,to_y+dir_y,CELL_CHKNOPASS))
+			break;
+
+		if(map_getcell(sd->bl.m,to_x+dir_x,to_y+dir_y,CELL_CHKPASS))
+		{
+			to_x += dir_x;
+			to_y += dir_y;
+			continue;
+		}
+		break;
+	}
+
+	//進めない場合　駆け足終了　障害物で止まった場合スパート状態解除
+	if(to_x == sd->bl.x && to_y == sd->bl.y)
+	{
+		if(sd->sc_data && sd->sc_data[SC_RUN].timer!=-1)
+			status_change_end(&sd->bl,SC_RUN,-1);
+		if(sd->sc_data && sd->sc_data[SC_SPURT].timer!=-1)
+			status_change_end(&sd->bl,SC_SPURT,-1);
+	} else {
+		pc_walktoxy(sd, sd->to_x, sd->to_y);
+	}
+
+	return 1;
+}
+/*==========================================
+ * PCの向居ているほうにstep分歩く
+ *------------------------------------------
+ */
+int pc_walktodir(struct map_session_data *sd,int step)
+{
+	int i,to_x,to_y,dir_x,dir_y;
+
+	nullpo_retr(0, sd);
+
+	to_x = sd->bl.x;
+	to_y = sd->bl.y;
+	dir_x = dirx[(int)sd->dir];
+	dir_y = diry[(int)sd->dir];
+
+	for(i=0;i<step;i++)
+	{
+		if(map_getcell(sd->bl.m,to_x+dir_x,to_y+dir_y,CELL_CHKNOPASS))
+			break;
+
+		if(map_getcell(sd->bl.m,to_x+dir_x,to_y+dir_y,CELL_CHKPASS))
+		{
+			to_x += dir_x;
+			to_y += dir_y;
+			continue;
+		}
+		break;
+	}
+	pc_walktoxy(sd, sd->to_x, sd->to_y);
+
+	return 1;
+}
+/*==========================================
+ * pc走り高跳び要求
+ *------------------------------------------
+ */
+int pc_highjumptoxy(struct map_session_data *sd,int x,int y)
+{
+	nullpo_retr(0, sd);
+
+	pc_walktoxy(sd, sd->to_x, sd->to_y);
+
+	return 1;
+}
+
+int pc_highjumptodir(struct map_session_data *sd,int distance)
+{
+	int i,to_x,to_y,dir_x,dir_y;
+
+	nullpo_retr(0, sd);
+
+	to_x = sd->bl.x;
+	to_y = sd->bl.y;
+	dir_x = dirx[(int)sd->dir];
+	dir_y = diry[(int)sd->dir];
+
+	for(i=distance;i>1;i--)
+	{
+		if(map_getcell(sd->bl.m,sd->bl.x+dir_x*i,sd->bl.y+dir_y*i,CELL_CHKPASS))
+		{
+			to_x = sd->bl.x+dir_x*(i-1);
+			to_y = sd->bl.y+dir_y*(i-1);
+			break;
+		}
+	}
+	
+	{
+		if(sd->sc_data)
+			sd->sc_data[SC_HIGHJUMP].val4=0;
+
+		pc_walktoxy(sd, sd->to_x, sd->to_y);
+	}
+
+	return 1;
+}
+
+
+/*==========================================
  *
  *------------------------------------------
  */
@@ -3352,6 +3473,32 @@ static int pc_walk(int tid,unsigned int tick,int id,int data)
 		if (i < 1 && sd->walkpath.path_half == 0)
 			i = 1;
 		sd->walktimer = add_timer (tick+i, pc_walk, id, sd->walkpath.path_pos);
+	} else {
+		// 目的地に着いた
+		if(sd && sd->sc_data){
+			//継続判定
+			if(sd->sc_data[SC_RUN].timer!=-1)
+			{
+				pc_runtodir(sd);
+				return 0;
+			}
+			if(sd->sc_data[SC_HIGHJUMP].timer!=-1 && sd->sc_data[SC_HIGHJUMP].val4==0)
+			{
+				sd->sc_data[SC_HIGHJUMP].val4++;
+				pc_walktodir(sd,1);
+				return 0;
+			}
+			
+			if(sd->sc_data[SC_HIGHJUMP].timer!=-1 && 
+				sd->sc_data[SC_HIGHJUMP].val4==1){
+				sd->sc_data[SC_HIGHJUMP].val4++;
+			//	status_change_end(&sd->bl,SC_HIGHJUMP,-1);
+			}
+		}
+
+		// とまったときの位置の再送信は不要（カクカクするため）
+		// clif_fixwalkpos(bl);
+
 	}
 
 	if (battle_config.disp_hpmeter)
@@ -3371,8 +3518,13 @@ static int pc_walktoxy_sub (struct map_session_data *sd)
 
 	nullpo_retr(1, sd);
 
+	if(sd && sd->sc_data && sd->sc_data[SC_HIGHJUMP].timer!=-1) {
+		if(path_search2(&wpd, sd->bl.m, sd->bl.x, sd->bl.y, sd->to_x, sd->to_y, 0))
+			return 1;
+	} else {
 	if (path_search(&wpd, sd->bl.m, sd->bl.x, sd->bl.y, sd->to_x, sd->to_y, 0))
 		return 1;
+	}
 	memcpy(&sd->walkpath, &wpd, sizeof(wpd));
 
 	clif_walkok(sd);
@@ -3491,8 +3643,14 @@ int pc_movepos(struct map_session_data *sd,int dst_x,int dst_y,int checkpath)
 
 	nullpo_retr(0, sd);
 
+if(sd && sd->sc_data && sd->sc_data[SC_HIGHJUMP].timer!=-1) {
+		if(path_search2(&wpd,sd->bl.m,sd->bl.x,sd->bl.y,dst_x,dst_y,0))
+			return 1;
+	} else {
 	if(checkpath && path_search(&wpd,sd->bl.m,sd->bl.x,sd->bl.y,dst_x,dst_y,0))
 		return 1;
+
+	}
 
 	sd->dir = sd->head_dir = map_calc_dir(&sd->bl, dst_x,dst_y);
 
@@ -3828,15 +3986,8 @@ int pc_attack_timer(int tid,unsigned int tick,int id,int data)
 		return 0;
 
 	bl=map_id2bl(sd->attacktarget);
-	if(bl==NULL || bl->prev == NULL)
+	if(bl==NULL || bl->prev == NULL || status_isdead(bl))
 		return 0;
-
-	if(bl->type == BL_PC) {
-		if (pc_isdead((struct map_session_data *)bl))
-			return 0;
-		else if (pc_ishiding((struct map_session_data *)bl))
-			return 0;
-	}
 
 	// 同じmapでないなら攻?しない
 	// PCが死んでても攻?しない
@@ -3853,8 +4004,9 @@ int pc_attack_timer(int tid,unsigned int tick,int id,int data)
 		(sd->sc_data[SC_GOSPEL].timer != -1 && sd->sc_data[SC_GOSPEL].val4 == BCT_SELF)))
 			return 0;
 
-	if((opt = status_get_option(bl)) != NULL && *opt&0x42)
+	if((opt = status_get_option(bl)) != NULL && (*opt)&0x42 && !sd->special_state.intravision)
 		return 0;
+	
 	if((sc_data = status_get_sc_data(bl)) != NULL) {
 		if (sc_data[SC_TRICKDEAD].timer != -1 ||
 			sc_data[SC_BASILICA].timer != -1)

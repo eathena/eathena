@@ -266,7 +266,7 @@ int SkillStatusChangeTable[]={	/* status.hのenumのSC_***とあわせること */
 	SC_COUNTER,
 /* 420- */
 	SC_DODGE,
-	-1,-1,-1,-1,-1,-1,-1,-1,-1,
+	-1,-1,-1,-1,-1,SC_HIGHJUMP,-1,-1,-1,
 /* 430- */
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
 /* 440- */
@@ -823,6 +823,11 @@ int status_calc_pc(struct map_session_data* sd,int first)
 				guildflag ^= skill << i;
 			}
 		}
+
+		//駆け足のSTR +10
+		if(sd->sc_data[SC_SPURT].timer!=-1)
+			sd->paramb[0] += 10;
+
 	}
 
 	// Absolute, then relative modifiers from status changes (shared between PC and NPC)
@@ -1863,6 +1868,9 @@ int status_calc_speed(struct block_list *bl, int speed)
 				speed = speed * (sc_data[SC_CLOAKING].val3-3*sc_data[SC_CLOAKING].val1) /100;
 			if(sc_data[SC_CHASEWALK].timer!=-1)
 				speed = speed * sc_data[SC_CHASEWALK].val3/100;
+			if(sc_data[SC_RUN].timer!=-1)/*駆け足による速度変化*/
+				speed -= speed * 25/100;
+
 		}
 
 	return speed;
@@ -3244,7 +3252,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 	if(sc_data[type].timer != -1){	/* すでに同じ異常になっている場合タイマ解除 */
 		if(sc_data[type].val1 > val1 && type != SC_COMBO && type != SC_DANCING && type != SC_DEVOTION &&
 			type != SC_ASPDPOTION0 && type != SC_ASPDPOTION1 && type != SC_ASPDPOTION2 && type != SC_ASPDPOTION3
-			&& type != SC_ATKPOTION && type != SC_MATKPOTION) // added atk and matk potions [Valaris]
+			&& type != SC_ATKPOTION && type != SC_MATKPOTION && type!=SC_SPURT) // added atk and matk potions [Valaris]
 			return 0;
 
 		if ((type >=SC_STAN && type <= SC_BLIND) || type == SC_DPOISON)
@@ -4018,9 +4026,13 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_MAXOVERTHRUST:
 		case SC_AURABLADE:		/* オ?ラブレ?ド */
 		case SC_BABY:
-		case SC_RUN:
 		case SC_WATK_ELEMENT:
 		case SC_ARMOR_ELEMENT:
+		case SC_HIGHJUMP:
+			break;
+		case SC_SPURT://駆け足用STR
+		case SC_RUN://駆け足
+			calc_flag = 1;
 			break;
 
 		default:
@@ -4123,6 +4135,24 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 
 	if (bl->type==BL_PC && sd->pd)
 		pet_sc_check(sd, type); //Skotlex: Pet Status Effect Healing
+
+	switch(type){
+		case SC_RUN://駆け足
+			if(bl->type==BL_PC)
+			{
+				struct map_session_data * sd = (struct map_session_data *)bl;
+				pc_runtodir(sd);
+			}
+			return 0;
+
+		case SC_HIGHJUMP:
+			if(bl->type==BL_PC)
+			{
+				struct map_session_data * sd = (struct map_session_data *)bl;
+				pc_highjumptodir(sd,val4);
+			}
+			break;
+	}
 	return 0;
 }
 /*==========================================
@@ -4285,6 +4315,7 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			case SC_BATTLEORDERS:
 			case SC_REGENERATION:
 			case SC_GUILDAURA:
+			case SC_SPURT:
 				calc_flag = 1;
 				break;
 			case SC_ASPDPOTION0:		/* ?速ポ?ション */
@@ -4395,9 +4426,13 @@ int status_change_end( struct block_list* bl , int type,int tid )
 					}
 				}
 				break;
-			case SC_RUN:
-				if (sc_data[SC_RUN].val1 >= 7 && !sc_data[SC_RUN].val2 && (bl->type != BL_PC || ((struct map_session_data *)bl)->status.weapon == 0))
-					status_change_start(bl, SC_INCSTR,10,0,0,0,skill_get_time2(TK_RUN,sc_data[SC_RUN].val1),0);
+
+			case SC_HIGHJUMP:
+				break;
+
+			case SC_RUN://駆け足
+				pc_stop_walking((struct map_session_data *)bl,0);
+				calc_flag = 1;
 				break;
 
 		/* option1 */
@@ -4806,11 +4841,6 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 	case SC_READYTURN:
 	case SC_READYCOUNTER:
 	case SC_DODGE:
-		sc_data[type].timer=add_timer( 1000*600+tick,status_change_timer, bl->id, data );
-		return 0;
-
-	case SC_RUN:
-		sc_data[type].val2 = 1; // Once the first second is spent, no more STR bonus when stopping
 		sc_data[type].timer=add_timer( 1000*600+tick,status_change_timer, bl->id, data );
 		return 0;
 

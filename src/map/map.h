@@ -1092,6 +1092,7 @@ int map_calc_dir( struct block_list *src,int x,int y);
 
 // path.c‚æ‚è
 int path_search(struct walkpath_data*,int,int,int,int,int,int);
+int path_search2(struct walkpath_data*,int,int,int,int,int,int);
 int path_search_long(struct shootpath_data *,int,int,int,int,int);
 int path_blownpos(int m,int x0,int y0,int dx,int dy,int count);
 

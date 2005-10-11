@@ -248,6 +248,8 @@ enum {
 	SC_DEXFOOD			= 240,
 	SC_LUKFOOD			= 241,
 	//
+	SC_HIGHJUMP		= 242,
+	SC_SPURT		= 243,
 	SC_INTRAVISION		= 337
 
 };

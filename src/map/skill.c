@@ -1594,6 +1594,8 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 	}
 	if(sc_data && sc_data[SC_TRICKDEAD].timer != -1) //死んだふり中は何もしない
 		return 0;
+	if(sc_data && sc_data[SC_HIGHJUMP].timer != -1) //高跳び中は何もしない
+		return 0;
 	if(skillid == WZ_STORMGUST) { //使用スキルがスト?ムガストで
 		if(sc_data && sc_data[SC_FREEZE].timer != -1) //凍結?態なら何もしない
 			return 0;
@@ -3965,7 +3967,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 	case TF_HIDING:			/* ハイディング */
 	case ST_CHASEWALK:			/* ハイディング */
- 	case TK_RUN:
 		{
 			struct status_change *tsc_data = status_get_sc_data(bl);
 			int sc = SkillStatusChangeTable[skillid];
@@ -3976,6 +3977,22 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				status_change_start(bl,sc,skilllv,0,0,0,skill_get_time(skillid,skilllv),0);		
 		}
 		break;
+
+	case TK_RUN://駆け足
+		if(sd && sd->sc_data)
+		{
+			clif_skill_nodamage(src,bl,skillid,skilllv,1);
+			if(sd->sc_data[SC_RUN].timer!=-1)
+			{
+				status_change_end(bl,SC_RUN,-1);
+			}else{
+				status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
+				if(skilllv>=7 && sd->weapontype1 == 0 && sd->weapontype2 == 0)
+					status_change_start(&dstsd->bl,SC_SPURT,10,0,0,0,150000,0);
+			}
+		}
+		break;
+
 
 	case AS_CLOAKING:		/* クロ?キング */
 		{
@@ -4065,6 +4082,49 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			sprintf(temp,"%s : %s !!",md->name,skill_db[skillid].desc);
 			clif_GlobalMessage(&md->bl,temp);
 		}
+		break;
+
+
+	case BA_PANGVOICE://パンボイス
+			clif_skill_nodamage(src,bl,skillid,skilllv,1);
+			if(dstmd && dstmd->mode&0x20){
+				if(sd)
+					clif_skill_fail(sd,skillid,0,0);
+				break;
+			}
+			if(rand()%10000 < 5000){
+				status_change_start(bl,SC_CONFUSION,7,0,0,0,10000+7000,0);
+			}else{
+				if(sd)
+					clif_skill_fail(sd,skillid,0,0);
+			}
+		break;
+
+	case DC_WINKCHARM://魅惑のウィンク
+			clif_skill_nodamage(src,bl,skillid,skilllv,1);
+			if(dstsd){
+				if(rand()%10000 < 3000)
+					status_change_start(bl,SC_CONFUSION,7,0,0,0,10000+7000,0);
+				{
+					if(sd)
+						clif_skill_fail(sd,skillid,0,0);
+				}
+			}else if(dstmd)
+			{
+				int race = status_get_race(bl);
+				if(!dstmd->mode&0x20 && (race == 6 || race == 7 || race == 8))
+				{
+					if(rand()%10000 < 5000){
+						status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,10000,0);
+					}else{
+						if(sd)
+							clif_skill_fail(sd,skillid,0,0);
+					}
+				}else{
+					if(sd)
+						clif_skill_fail(sd,skillid,0,0);
+				}
+			}
 		break;
 
 	case TF_STEAL:			// スティ?ル
@@ -5408,6 +5468,7 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 	struct map_session_data* sd = map_id2sd(id)/*,*target_sd=NULL*/;
 	struct block_list *bl;
 	int range,inf2;
+	short *opt;
 
 	nullpo_retr(0, sd);
 
@@ -5437,7 +5498,8 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 		sd->skilltimer=-1;
 
 	if(pc_isdead(sd) || (bl=map_id2bl(sd->skilltarget))==NULL ||
-		bl->prev==NULL || sd->bl.m != bl->m
+		bl->prev==NULL || sd->bl.m != bl->m || status_isdead(bl) ||
+		((opt = status_get_option(bl)) && ((*opt)&0x42) && !sd->special_state.intravision) //Hiding characters cannot have skills targetted at them. [Skotlex]
 		) {
 		sd->canact_tick = tick;
 		sd->canmove_tick = tick;
@@ -5445,6 +5507,7 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 		return 0;
 	}
 
+	
 	if(sd->skillid == PR_LEXAETERNA) {
 		struct status_change *sc_data = status_get_sc_data(bl);
 		if(sc_data && (sc_data[SC_FREEZE].timer != -1 || (sc_data[SC_STONE].timer != -1 && sc_data[SC_STONE].val2 == 0))) {
@@ -5837,19 +5900,16 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 		}
 		break;
 	case TK_HIGHJUMP:
-	    if (sd) {
-            if(map_getcell(src->m,x,y,CELL_CHKNOPASS))
-                clif_skill_nodamage(src,src,skillid,skilllv,1);
-            else {
-				pc_movepos(sd, x, y, 0);
-				clif_skill_nodamage(src,src,skillid,skilllv,1);
-			}
-        } else if (src->type == BL_MOB && !map_getcell(src->m,x,y,CELL_CHKNOPASS)) {
-			struct mob_data *md = (struct mob_data *)src;
-			mob_warp(md, -1, x, y, 0);
-			clif_spawnmob(md);
-		}
-     	break;
+		if(sd){
+			int jump_distance = distance(sd->bl.x,sd->bl.y,x,y);
+			int jump_tick	  = 7500;//distance(sd->bl.x,sd->bl.y,x,y)*333;
+			int jump_lv		  = jump_distance/2+jump_distance%2;
+			//clif_skill_poseffect(src,skillid,jump_lv,x,y,jump_tick);
+			sd->dir = sd->head_dir = map_calc_dir( &sd->bl, x, y);
+			status_change_start(src,SkillStatusChangeTable[skillid],jump_lv,x,y,distance(sd->bl.x,sd->bl.y,x,y),jump_tick,0);
+		}else if( src->type==BL_MOB )//mobは手抜き
+			mob_warp((struct mob_data *)src,-1,x,y,0);
+		break;
 	case AM_CANNIBALIZE:	// バイオプラント
 		if(sd) {
 			int id;

@@ -32,6 +32,7 @@
 		like gemstones when the skill is used.
 	--
 10/11
+	* Changed Envenom's range to 2. [Skotlex]
 	* Fixed Awakening Potion's usable jobs, I think. [Skotlex]
 	* Updated the whole item_db to allow TaekWon, Star Gladiator and Soul
 	  Linker to use items. [Skotlex]
