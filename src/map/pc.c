@@ -5235,6 +5235,34 @@ int pc_readparam(struct map_session_data *sd,int type)
 	case SP_UPPER:
 		val= s_class.upper;
 		break;
+	case SP_BASECLASS: //Extract base class. [Skotlex]
+		switch(sd->class_&MAPID_BASEMASK)
+		{
+			case MAPID_NOVICE:
+				val= JOB_NOVICE;
+				break;
+			case MAPID_SWORDMAN:
+				val= JOB_SWORDMAN;
+				break;
+			case MAPID_ARCHER:
+				val= JOB_ARCHER;
+				break;
+			case MAPID_MERCHANT:
+				val= JOB_MERCHANT;
+				break;
+			case MAPID_MAGE:
+				val= JOB_MAGE;
+				break;
+			case MAPID_THIEF:
+				val= JOB_THIEF;
+				break;
+			case MAPID_TAEKWON:
+				val= JOB_TAEKWON;
+				break;
+			default: //Is this even possible?
+				val= 0;
+		}
+		break;
 	case SP_SEX:
 		val= sd->sex;
 		break;

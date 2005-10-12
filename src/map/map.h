@@ -915,7 +915,8 @@ enum {
 	SP_CARTINFO=99,	// 99
 
 	SP_BASEJOB=119,	// 100+19 - celest
-
+	SP_BASECLASS=120,	//Hmm.. why 100+19? I just use the next one... [Skotlex]
+	
 	// original 1000-
 	SP_ATTACKRANGE=1000,	SP_ATKELE,SP_DEFELE,	// 1000-1002
 	SP_CASTRATE, SP_MAXHPRATE, SP_MAXSPRATE, SP_SPRATE, // 1003-1006

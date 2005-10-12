@@ -2,6 +2,16 @@ Date	Added
 =======
 
 2005/10/12
+	* Added script constant baseClass. [Skotlex]
+	- Example: if (baseClass == Job_Novice) will match on all novices and super
+	  novices. if (baseClass == Job_Swordman) will match on all Swordmen, Knights
+	  and Crusaders. Once tested several item scripts can be simplified in the
+	  item_db.
+	- In contrast, the already defined baseJob works by stripping the upper
+	  kind only. (eg: baseJob == Job_Swordman matches on swordman classes, but
+	  not Crusader/Knight)
+	- I know the names can be confusing, but anyone has a better suggestion for
+	  a name?
 	* Added a fix to prevent people from buying equipment in stackable from by
 	  hexing the packets and specifying an amount greater than 1. [Skotlex]
 	- Thanks to End of Exam for pointing out the exploit.
