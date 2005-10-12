@@ -2,6 +2,9 @@ Date	Added
 =======
 
 2005/10/12
+	* Modified REVERSEORCISH to make it a status change (SC_ORCISH), since
+	  there's no data about duration, defense, or if any stat reduces it's
+	  duration, it currently is fixed to 5 minutes. [Skotlex]
 	* Fixed crash when sending the insert card packet with an invalid index. [Skotlex]
 	* Added script constant baseClass. [Skotlex]
 	- Example: if (baseClass == Job_Novice) will match on all novices and super

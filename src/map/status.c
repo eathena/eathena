@@ -178,7 +178,9 @@ int SkillStatusChangeTable[]={	/* status.hÇÃenumÇÃSC_***Ç∆Ç†ÇÌÇπÇÈÇ±Ç∆ */
 	SC_LANDPROTECTOR,
 	-1,
 /* 290- */
-	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+	-1,-1,-1,-1,
+	SC_ORCISH,
+	-1,-1,-1,-1,-1,
 /* 300- */
 	-1,-1,-1,-1,-1,-1,
 	SC_LULLABY,
@@ -4103,6 +4105,11 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_WEDDING:
 			*option |= 4096;
 			opt_flag = 1;
+			break;
+		case SC_ORCISH:
+			*option |= 2048;
+			opt_flag = 1;
+			break;
 	}
 
 	if(opt_flag)	/* optionÇÃ?çX */
@@ -4541,6 +4548,10 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			break;
 		case SC_WEDDING:	//åãç•óp(åãç•àﬂè÷Ç…Ç»Ç¡Çƒ?Ç≠ÇÃÇ™?Ç¢Ç∆Ç©)
 			*option &= ~4096;
+			opt_flag = 1;
+			break;
+		case SC_ORCISH:
+			*option &= ~2048;
 			opt_flag = 1;
 			break;
 		case SC_RUWACH:

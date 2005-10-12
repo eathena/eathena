@@ -139,7 +139,7 @@ enum {
 	SC_SACRIFICE		= 131,
 	SC_STEELBODY		= 132,
 // 133 = empty
-// 134 = wobbles the character's sprite when SC starts or ends
+	SC_ORCISH			= 134,// 134 = wobbles the character's sprite when SC starts or ends
 	SC_READYSTORM		= 135,
 	SC_STORMKICK		= 136,
 	SC_READYDOWN		= 137,
