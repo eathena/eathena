@@ -267,7 +267,7 @@ Date	Added
 	  NOTE: It will need a new unzip library, so do 'make clean', or delete
 	  'Makefile.cache' before recompiling!
 
-2005/2005/09/30
+2005/09/30
 	* Updated the slave warp code. Now when a master recalls their slaves,
 	  these will be placed 'randomly' around the master in an area_size/2 range.
 	  [Skotlex]
@@ -289,7 +289,7 @@ Date	Added
 	  blind/stun/bleeding independently in skill_cast_db.txt [Skotlex]
 	* Made TK_JUMPKICK share the same code as Ashura Strike (just to see what
 	  happens, both seem like they behave the same way, no?) [Skotlex]
-2005/2005/09/29
+2005/09/29
 	* Some tweaks and fixes around status.c, may fix the timer mismatches of
 	  status_change_timer. [Skotlex]
 	* Fixed a memory leak regarding pet status recovery scripts. [Skotlex]
@@ -337,7 +337,7 @@ Date	Added
 	  seconds) :/
 	* Fixed crash, related to STEAL logs [Lupus]
 	* Added TXT logs for Pick_log [Lupus]
-2005/2005/09/28
+2005/09/28
 	* Added 'scripts items operations' and 'vending' into pick_log: [Lupus]
 	  Tested with refine, getitem, getnameditem, removecards, etc commands. They are all supported.
 	  Now you can see if a player breaks his armor in NPC Cards Remover, etc.
@@ -353,7 +353,7 @@ Date	Added
 	  mob). Summons from the same master should not be attacking each other,
 	  however I do think they will attack summons from another player. [Skotlex]
 	* Removed 10 chances to pick an item from STEAL skill (it should have only 1 chance) [Lupus]
-2005/2005/09/27
+2005/09/27
 	* Corrected again Wind Walk. Just +5 flee at lv10, walk bonus does not
 	  stacks with other speed giving skills. [Skotlex]
 	* Corrected Wind Walk's walk and flee bonus (walk was a +4*skill_lv%
@@ -366,7 +366,7 @@ Date	Added
 	* Removed the check that prevented chars from logging out during status
 	  changes, as the current system should save and restore these correctly.
 	  [Skotlex]
-2005/2005/09/26
+2005/09/26
 	* Fixed MAX GUILD capasity in mmo.h to allow correct +6 Guild Extension [Lupus]
 	* Changed back the TIMER_MIN_INTERVAL to 50. Who changed it back to 25?
 	  (svn3015 skotlex: Changed TIMER_MIN_INTERVAL to 25 (from 10), it probably needs to be bumped even higher, awaiting results from testers to see if a higher value would be needed.
@@ -418,11 +418,11 @@ Date	Added
 	- TODO: Add Mobs Looters DROP items in the log. (Now only attacked mobs log loot drops)
 	- TODO: Add Scripts/Vending logs
 
-2005/2005/09/25
+2005/09/25
 	* Modified battle_weapon_delay so that additional status effects are
 	  invoked even if the attack does no damage, as long as the attack connects
 	  (that is, it is not a miss/lucky dodge) [Skotlex]
-2005/2005/09/24
+2005/09/24
 	* Updated several mob stats for the Lighthalzen and later mobs from the
 	  data provided by Viccious Pucca. [Skotlex]
 	* Updated sql-files/mob_db.sql to contain the most recent mob_db. [Skotlex]
@@ -452,7 +452,7 @@ Date	Added
 	* Fixed TXT char login with new auth system. [Kevin]
 	* Done: Adjustable players titles for @who, @who2, @who3 commands [Lupus]
 	- Check msg_athena.conf for new lines
-2005/2005/09/23
+2005/09/23
 	* Software Caused Connection Abort errors will now cause said socket to be
 	  removed inmediately from the listening list of sockets, this may help with
 	  the lag issues that arise when said error occurs. [Skotlex]
@@ -463,7 +463,7 @@ Date	Added
 	  there's a shortcut for @WHO: @W
 	* Started adding adjustable players titles for @who, etc commands [Lupus]
 	- e.g. Super Player, GM, GM+, etc
-2005/2005/09/22
+2005/09/22
 	* Updated sql-files/item_db.sql to have the most current version. [Skotlex]
 	* Finished first part of new auth system, fully tested. Will reduce char->map
 	  lag by whatever it is you are haveing. [Kevin]

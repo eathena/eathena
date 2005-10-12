@@ -32,6 +32,8 @@
 		like gemstones when the skill is used.
 	--
 10/12
+	* Fixed typo AllStat -> Allstats,  thanx 2L0wFlea_sq [Lupus]
+	* Fixed: LunarBow[1]->[2], Coif Req/Jobs, Cinquedia Req/Equip Lvl thanx 2 persian69 [Lupus]
 	* Corrected g_katrinn and g_shecil's element. [Skotlex]
 10/11
 	* Fixed Zherlthsh + Injustice Combo bonus (was giving that bonus 2 times... +1 more bug V_V ) [Lupus]

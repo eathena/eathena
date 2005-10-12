@@ -563,8 +563,8 @@
 1242,Counter_Dagger,Counter Dagger,4,,10,550,140,,1,0,66052,7,2,2,4,55,1,1,{ bonus bCritical,90; bonus3 bAutoSpell,61,1,250; }
 1243,Main_Gauche_For_Novice,Novice Main Gauche,4,,10,1,45,,1,0,8388609,7,2,2,1,1,0,1,{}
 1244,Holy_Dagger,Holy Dagger,4,,10,800,100,,1,0,135232,7,2,2,4,55,1,1,{ bonus bAtkEle,Ele_Holy; }
-1245,Cinquedia,Cinquedia,4,40000,,700,110,,1,1,8388609,7,2,2,3,55,1,1,{}
-1246,Cinquedia_,Cinquedia,4,40000,,700,110,,1,2,8388609,7,2,2,3,55,1,1,{}
+1245,Cinquedia,Cinquedia,4,40000,,700,110,,1,1,8388609,7,2,2,3,30,1,1,{}
+1246,Cinquedia_,Cinquedia,4,40000,,700,110,,1,2,8388609,7,2,2,3,30,1,1,{}
 1247,Kindling_Dagger,Kindling Dagger,4,,10,600,39,,1,0,10444527,7,2,2,1,0,1,1,{ bonus bAtkEle,Ele_Fire; }
 1248,Obsidian_Dagger,Obsidian Dagger,4,,10,600,39,,1,0,10444527,7,2,2,1,0,1,1,{ bonus bAtkEle,Ele_Earth; }
 1249,Fisherman's_Knife,Fisherman's Knife,4,,10,600,39,,1,0,10444527,7,2,2,1,0,1,1,{ bonus bAtkEle,Ele_Water; }
@@ -1564,11 +1564,11 @@
 5089,Annoyed_Mask,Annoyed Mask,5,,10,100,,1,,0,127918079,7,2,513,,0,0,173,{}
 5090,Goblin_Leader_Mask,Goblin Leader Mask,5,,10,100,,2,,0,127918079,7,2,513,,0,0,174,{}
 5091,Golden_Bells,Golden Bells,5,,10,200,,2,,0,127918079,7,2,768,,35,1,175,{}
-5092,Coif,Coif,5,12000,,300,,5,,0,33024,7,0,768,,65,1,176,{}
-5093,Coif_,Coif,5,12000,,300,,5,,1,33024,7,0,768,,65,1,177,{ bonus bMaxSP,100; }
+5092,Coif,Coif,5,12000,,300,,5,,0,4352,7,0,768,,65,1,176,{}
+5093,Coif_,Coif,5,12000,,300,,5,,1,4352,7,0,768,,65,1,177,{ bonus bMaxSP,100; }
 5094,Orc_Hero_Helm,Orc Hero Helm,5,,10,900,,5,,0,127918079,7,2,768,,55,1,178,{ bonus bStr,2; bonus bVit,1; }
 5096,Assassin_Mask,Assassin Mask,5,,10,100,,0,,0,4352,7,2,1,,70,0,180,{}
-5097,Annual_Commemoration_Hat,3rd Annual Commemoration Hat,5,,10,300,,3,,0,127918079,7,2,256,,0,1,144,{ bonus bAllStat,3; bonus bMdef,3; }
+5097,Annual_Commemoration_Hat,3rd Annual Commemoration Hat,5,,10,300,,3,,0,127918079,7,2,256,,0,1,144,{ bonus bAllStats,3; bonus bMdef,3; }
 5098,Tiger_Mask,Tiger Mask,5,,10,400,,2,,0,127918079,7,2,768,,0,0,181,{ bonus bStr,3; bonus bMaxHP,100; }
 5099,Neko_Mimi,Neko Mimi,5,,10,300,,1,,0,127918079,7,2,256,,0,1,182,{ bonus bLuk,2; bonus bMdef,10; bonus2 bSubRace,RC_Brute,5; }
 5100,Sale_Sign,Sale Sign,5,,10,800,,1,,0,127918079,7,2,256,,75,1,183,{ bonus bStr,1; bonus bAgi,1; bonus bLuk,1; }
