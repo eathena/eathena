@@ -1386,7 +1386,7 @@
 4245,Am_Mut_Card,Am Mut Card,6,,10,10,,,,,,,,64,,,,,{ bonus2 bSubRace,RC_DemiHuman,-20; bonus2 bExpAddRace,RC_DemiHuman,10; }
 4246,Assulter_Card,Assulter Card,6,,10,10,,,,,,,,2,,,,,{ bonus bCritAtkRate,10; bonus2 bCriticalAddRace,RC_DemiHuman,7; }
 4247,Aster_Card,Aster Card,6,,10,10,,,,,,,,2,,,,,{ bonus bAtk,5; bonus2 bAddDamageClass,1074,30; }
-4248,Ancient_Mummy_Card,Ancient Mummy Card,6,,10,10,,,,,,,,32,,,,,{ bonus4 bAutoSpellWhenHit,32,5,10,0; if(isequipped(4106)==0) end; bonus bAtk,20; bonus bPerfectHitAddRate,20; }
+4248,Ancient_Mummy_Card,Ancient Mummy Card,6,,10,10,,,,,,,,32,,,,,{ bonus4 bAutoSpellWhenHit,32,5,10,0; if(isequipped(4106)==0) end; bonus bPerfectHitAddRate,20; }
 4249,Ancient_Worm_Card,Ancient Worm Card,6,,10,10,,,,,,,,64,,,,,{ bonus2 bSubRace,RC_Demon,-20; bonus2 bExpAddRace,RC_Demon,10; }
 4250,Executioner_Card,Executioner Card,6,,10,10,,,,,,,,32,,,,,{ bonus2 bSubSize,2,25; bonus bDef,1; }
 4251,Elder_Card,Elder Card,6,,10,10,,,,,,,,2,,,,,{ bonus2 bAddRace2,5,40; }
@@ -1415,7 +1415,7 @@
 4274,Zombie_Master_Card,Zombie Master Card,6,,10,10,,,,,,,,2,,,,,{ bonus2 bSPGainRace,RC_Undead,5; bonus bLoseSPWhenUnequip,5; }
 4275,Zombie_Prisoner_Card,Zombie Prisoner Card,6,,10,10,,,,,,,,64,,,,,{ bonus2 bSubRace,RC_Undead,-20; bonus2 bExpAddRace,RC_Undead,10; }
 4276,Lord_of_Death_Card,Lord of Death Card,6,,10,10,,,,,,,,2,,,,,{ bonus2 bAddEff,Eff_Stan,100; bonus2 bAddEff,Eff_Curse,100; bonus2 bAddEff,Eff_Poison,100; bonus2 bAddEff,Eff_Bleeding,100; bonus2 bAddWeaponComaRace,RC_NonBoss,30; }
-4277,Zherlthsh_Card,Zherlthsh Card,6,,10,10,,,,,,,,32,,,,,{ bonus bLuk,2; bonus2 bSkillAtk,316,10; bonus2 bSkillAtk,324,10; if(isequipped(4268)) bonus bLuk,3; bonus bAtk,20; }
+4277,Zherlthsh_Card,Zherlthsh Card,6,,10,10,,,,,,,,32,,,,,{ bonus bLuk,2; bonus2 bSkillAtk,316,10; bonus2 bSkillAtk,324,10; }
 4278,Gibbet_Card,Gibbet Card,6,,10,10,,,,,,,,769,,,,,{ if(getrefine()<6) bonus bMdef,5; }
 4279,Earth_Deleter_Card,Earth Deleter Card,6,,10,10,,,,,,,,16,,,,,{ bonus bSPrecovRate,-100; bonus bSPGainValue,10; bonus bLoseSPWhenUnequip,100; }
 4280,Geographer_Card,Geographer Card,6,,10,10,,,,,,,,16,,,,,{ bonus4 bAutoSpellWhenHit,34,2+8*(getskilllv(34)==10),10,0; }
