@@ -2,6 +2,8 @@ Date	Added
 =======
 
 10/12
+	* Probably corrected npc load count when using reloadscript. [Skotlex]
+	* Likely fixed petheal [Skotlex]
 	* Fixed PVP client crash bug. By a new cadidate into eA coders LuzZza [Lupus]
 	* Updated maps comments, thanks to Justin84 [Lupus]
 10/11

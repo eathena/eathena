@@ -7569,7 +7569,12 @@ int buildin_petheal(struct script_state *st)
 	if (pd->s_skill)
 	{ //Clear previous skill
 		if (pd->s_skill->timer != -1)
-			delete_timer(pd->s_skill->timer, pet_skill_support_timer);
+		{
+			if (pd->s_skill->id)
+				delete_timer(pd->s_skill->timer, pet_skill_support_timer);
+			else
+				delete_timer(pd->s_skill->timer, pet_heal_timer);
+		}
 	} else //init memory
 		pd->s_skill = (struct pet_skill_support *) aCalloc(1, sizeof(struct pet_skill_support)); 
 	
@@ -7589,34 +7594,6 @@ int buildin_petheal(struct script_state *st)
 	return 0;
 }
 
-/*==========================================
- * pet magnificat [Valaris]
- *------------------------------------------
- */
-/*
-int buildin_petmag(struct script_state *st)
-{
-	struct pet_data *pd;
-	struct map_session_data *sd=script_rid2sd(st);
-
-	if(sd==NULL || sd->pd==NULL)
-		return 0;
-
-	pd=sd->pd;
-
-	if(pd==NULL)
-		return 0;
-
-	pd->skilltype=conv_num(st,& (st->stack->stack_data[st->start+2]));
-	pd->skillduration=conv_num(st,& (st->stack->stack_data[st->start+3]));
-	pd->skillval=conv_num(st,& (st->stack->stack_data[st->start+4]));
-	pd->skilltimer=conv_num(st,& (st->stack->stack_data[st->start+5]));
-
-	pd->skillbonustimer=add_timer(gettick()+pd->skilltimer*1000,pet_mag_timer,sd->bl.id,0);
-
-	return 0;
-}
-*/
 /*==========================================
  * pet attack skills [Valaris] //Rewritten by [Skotlex]
  *------------------------------------------
@@ -7683,7 +7660,12 @@ int buildin_petskillsupport(struct script_state *st)
 	if (pd->s_skill)
 	{ //Clear previous skill
 		if (pd->s_skill->timer != -1)
-			delete_timer(pd->s_skill->timer, pet_skill_support_timer);
+		{
+			if (pd->s_skill->id)
+				delete_timer(pd->s_skill->timer, pet_skill_support_timer);
+			else
+				delete_timer(pd->s_skill->timer, pet_heal_timer);
+		}
 	} else //init memory
 		pd->s_skill = (struct pet_skill_support *) aCalloc(1, sizeof(struct pet_skill_support)); 
 	

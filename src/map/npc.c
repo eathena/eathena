@@ -2621,7 +2621,7 @@ int npc_reload (void)
 	struct npc_src_list *nsl;
 	int m, i;
 	time_t last_time = time(0);
-	int busy = 0;
+	int busy = 0, npc_new_min = npc_id;
 	char c = '-';
 
 	for (m = 0; m < map_num; m++) {
@@ -2645,7 +2645,6 @@ int npc_reload (void)
 	ev_db->release = ev_release;
 	npc_warp = npc_shop = npc_script = 0;
 	npc_mob = npc_cache_mob = npc_delay_mob = 0;
-	npc_id=START_NPC_NUM;
 
 	for (nsl = npc_src_first; nsl; nsl = nsl->next) {
 		npc_parsesrcfile(nsl->name);
@@ -2675,7 +2674,7 @@ int npc_reload (void)
 		CL_WHITE"%d"CL_RESET"' Mobs\n\t-'"
 		CL_WHITE"%d"CL_RESET"' Mobs Cached\n\t-'"
 		CL_WHITE"%d"CL_RESET"' Mobs Not Cached\n",
-		npc_id - START_NPC_NUM, "", npc_warp, npc_shop, npc_script, npc_mob, npc_cache_mob, npc_delay_mob);
+		npc_id - npc_new_min, "", npc_warp, npc_shop, npc_script, npc_mob, npc_cache_mob, npc_delay_mob);
 
 	return 0;
 }

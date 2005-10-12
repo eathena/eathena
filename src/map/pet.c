@@ -819,10 +819,10 @@ int pet_remove_map(struct map_session_data *sd)
 		{
 			if (pd->s_skill->timer != -1)
 			{
-				if (sd->pd->s_skill->id == 0)
-					delete_timer(sd->pd->s_skill->timer, pet_heal_timer);
-				else
+				if (sd->pd->s_skill->id)
 					delete_timer(sd->pd->s_skill->timer, pet_skill_support_timer);
+				else
+					delete_timer(sd->pd->s_skill->timer, pet_heal_timer);
 			}
 			aFree(pd->s_skill);
 			pd->s_skill = NULL;
@@ -1287,7 +1287,12 @@ int pet_equipitem(struct map_session_data *sd,int index)
 		if (battle_config.pet_equip_required)
 		{ 	//Skotlex: start support timers if needd
 			if (sd->pd->s_skill && sd->pd->s_skill->timer == -1)
-				sd->pd->s_skill->timer=add_timer(gettick()+sd->pd->s_skill->delay*1000, pet_skill_support_timer, sd->bl.id, 0);
+			{
+				if (sd->pd->s_skill->id)
+					sd->pd->s_skill->timer=add_timer(gettick()+sd->pd->s_skill->delay*1000, pet_skill_support_timer, sd->bl.id, 0);
+				else
+					sd->pd->s_skill->timer=add_timer(gettick()+sd->pd->s_skill->delay*1000, pet_heal_timer, sd->bl.id, 0);
+			}
 			if (sd->pd->bonus && sd->pd->bonus->timer == -1)
 				sd->pd->bonus->timer=add_timer(gettick()+sd->pd->bonus->delay*1000, pet_skill_bonus_timer, sd->bl.id, 0);
 		}
@@ -1323,10 +1328,10 @@ int pet_unequipitem(struct map_session_data *sd)
 	{ 	//Skotlex: halt support timers if needed
 		if (sd->pd->s_skill && sd->pd->s_skill->timer != -1)
 		{
-			if (sd->pd->s_skill->id == 0)
-				delete_timer(sd->pd->s_skill->timer, pet_heal_timer);
-			else
+			if (sd->pd->s_skill->id)
 				delete_timer(sd->pd->s_skill->timer, pet_skill_support_timer);
+			else
+				delete_timer(sd->pd->s_skill->timer, pet_heal_timer);
 			sd->pd->s_skill->timer = -1;
 		}
 		if (sd->pd->bonus && sd->pd->bonus->timer != -1)
