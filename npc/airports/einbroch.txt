@@ -49,7 +49,7 @@ airport.gat,156,43,4	duplicate(Airport)	Airport Staff#3	90,{
 //	script Airport_Staff_In;
 }
 
-airport.gat,126,51,4	Airport Staff#1::Airport2	90,{
+airport.gat,126,51,4	script	Airport Staff#1::Airport2	90,{
 	mes "[Airport Staff]";
 	mes "Welcome~";
 	mes "Please head this";
