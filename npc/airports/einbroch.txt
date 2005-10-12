@@ -3,13 +3,13 @@
 //===== By: ================================================== 
 //= Muad_Dib (The Prometheus Project)
 //===== Current Version: ===================================== 
-//= 1.0
+//= 1.0a
 //===== Compatible With: ===================================== 
 //= eAthena Revision 3000+
 //===== Description: ========================================= 
 //= Einbroch Airport Staff
 //===== Additional Comments: ================================= 
-//= Converted by Dr.Evil
+//= Converted by Dr.Evil, 1.0a fixed typos [Lupus]
 //============================================================
 
 
@@ -27,7 +27,7 @@ airport.gat,126,43,4	script	Airport Staff#1::Airport	90,{
 		mes "you board the Airship?";
 		next;
 		menu "Yes",-,"No",L_Cancel;
-		if((countitem(7311) < 1) goto GotTicket;
+		if(countitem(7311) < 1) goto GotTicket;
 			set Zeny,zeny-1200;
 			warp "airport.gat",148,51;
 			close;
@@ -55,7 +55,7 @@ airport.gat,126,51,4	Airport Staff#1::Airport2	90,{
 	mes "Please head this";
 	mes "was to board the Airship.";
 	next;
-	menu "Exit to Main Terminal",-,Cancel,L_Cancel;
+	menu "Exit to Main Terminal",-,"Cancel",L_Cancel;
 		mes "[Airport Staff]";
 		mes "If you leave the";
 		mes "main terminal, you'll";
