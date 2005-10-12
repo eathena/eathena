@@ -2,6 +2,10 @@ Date	Added
 =======
 
 10/12
+	* Modified skill_min_damage so that it defines the minimum damage for
+	  skills IF the skill does not misses/is blocked. Can be used to specify
+	  to any of weapon attacks, magic attacks, or misc attacks. Defaults to 6
+	  (magic + misc attacks) as that is what was set up previously. [Skotlex]
 	* Fixed Wand of Hermod and a potential crash related to ground based
 	  skills. [Skotlex]
 	* Probably corrected npc load count when using reloadscript. [Skotlex]

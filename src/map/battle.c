@@ -573,8 +573,12 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 		if(damage < 1) damage  = 1;
 	}
 
-	if(battle_config.skill_min_damage) {
-		if(damage > 0 && damage < div_)
+	if(battle_config.skill_min_damage && damage > 0 && damage < div_)
+	{
+		if ((flag&BF_WEAPON && battle_config.skill_min_damage&1)
+			|| (flag&BF_MAGIC && battle_config.skill_min_damage&2)
+			|| (flag&BF_MISC && battle_config.skill_min_damage&4)
+		)
 			damage = div_;
 	}
 
@@ -1956,6 +1960,7 @@ struct Damage battle_calc_magic_attack(
 	flag.cardfix=1;
 
 	//Initial Values
+	ad.damage = 1;
 	ad.div_=skill_get_num(skill_num,skill_lv);
 	ad.amotion=status_get_amotion(src);
 	ad.dmotion=status_get_dmotion(target);
@@ -2266,9 +2271,7 @@ struct Damage battle_calc_magic_attack(
 			}
 		}
 
-	if(flag.infdef && ad.damage > 0) //Ishizu pointed out that magical attacks do as much damage as their div on plants. [Skotlex]
-		ad.damage = ad.div_;
-	else if(ad.div_>1 && skill_num != WZ_VERMILION)
+	if(!flag.infdef && ad.div_>1 && skill_num != WZ_VERMILION)
 		ad.damage *= ad.div_;
 
 	if (tsd && status_isimmune(target)) {
@@ -2436,8 +2439,8 @@ struct Damage  battle_calc_misc_attack(
 	if(div_>1)
 		damage*=div_;
 
-	if(damage > 0 && (damage < div_ || t_mode&0x40))
-		damage = div_;	//Again, Ishizu noted that MISC skills do div damage to plants.
+	if(damage > 0 && t_mode&0x40)
+		damage = 1;
 
 	if(is_boss(target))
 		blewcount = 0;
@@ -3507,7 +3510,7 @@ void battle_set_defaults() {
 	battle_config.pet_max_atk1=750;	//Skotlex
 	battle_config.pet_max_atk2=1000;	//Skotlex
 	battle_config.pet_no_gvg=0;	//Skotlex
-	battle_config.skill_min_damage=0;
+	battle_config.skill_min_damage=6; //Ishizu claims that magic and misc attacks always do at least div_ damage. [Skotlex]
 	battle_config.finger_offensive_type=0;
 	battle_config.heal_exp=0;
 	battle_config.resurrection_exp=0;
