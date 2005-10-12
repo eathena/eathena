@@ -591,6 +591,7 @@ int	skill_get_blewcount( int id ,int lv ){ skill_get (skill_db[id].blewcount[lv-
 int	skill_get_mhp( int id ,int lv ){ skill_get (skill_db[id].mhp[lv-1], id, lv); }
 int	skill_get_castnodex( int id ,int lv ){ skill_get (skill_db[id].castnodex[lv-1], id, lv); }
 int	skill_get_delaynodex( int id ,int lv ){ skill_get (skill_db[id].delaynodex[lv-1], id, lv); }
+int	skill_get_delaynowalk( int id ,int lv ){ skill_get (skill_db[id].delaynowalk[lv-1], id, lv); }
 int	skill_get_nocast ( int id ){ skill_get (skill_db[id].nocast, id, 1); }
 int	skill_get_type( int id ){ skill_get (skill_db[id].skill_type, id, 1); }
 int	skill_get_unit_id ( int id, int flag ){ skill_get (skill_db[id].unit_id[flag], id, 1); }
@@ -5447,7 +5448,7 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 {
 	struct map_session_data* sd = map_id2sd(id)/*,*target_sd=NULL*/;
 	struct block_list *bl;
-	int range,inf2;
+	int delay,range,inf2;
 	short *opt;
 
 	nullpo_retr(0, sd);
@@ -5593,6 +5594,14 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 		ShowInfo("PC %d skill castend skill=%d\n",sd->bl.id,sd->skillid);
 	pc_stop_walking(sd,0);
 
+	if (sd->skillid == SA_MAGICROD)
+		delay = 0;
+	else
+		delay = skill_delayfix(&sd->bl, skill_get_delay(sd->skillid, sd->skilllv));
+		
+	sd->canact_tick = tick + delay;
+	if (skill_get_delaynowalk(sd->skillid, sd->skilllv)) //Skills that block you from moving until delay ends. [Skotlex]
+		sd->canmove_tick = tick + delay;
 	switch( skill_get_nk(sd->skillid) )
 	{
 	case NK_NO_DAMAGE:
@@ -5619,7 +5628,7 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 int skill_castend_pos( int tid, unsigned int tick, int id,int data )
 {
 	struct map_session_data* sd=map_id2sd(id)/*,*target_sd=NULL*/;
-	int range,maxcount;
+	int delay,range,maxcount;
 
 	nullpo_retr(0, sd);
 
@@ -5710,6 +5719,11 @@ int skill_castend_pos( int tid, unsigned int tick, int id,int data )
 	if(battle_config.pc_skill_log)
 		ShowInfo("PC %d skill castend skill=%d\n",sd->bl.id,sd->skillid);
 	pc_stop_walking(sd,0);
+
+	delay = skill_delayfix(&sd->bl, skill_get_delay(sd->skillid, sd->skilllv));
+	sd->canact_tick = tick + delay;
+	if (skill_get_delaynowalk(sd->skillid, sd->skilllv)) //Skills that block you from moving until delay ends. [Skotlex]
+		sd->canmove_tick = tick + delay;
 
 	skill_castend_pos2(&sd->bl,sd->skillx,sd->skilly,sd->skillid,sd->skilllv,tick,0);
 
@@ -7991,11 +8005,10 @@ int skill_delayfix( struct block_list *bl, int time )
  */
 int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int skill_lv)
 {
-	int casttime = 0, delay = 0, skill;
 	struct map_session_data* tsd = NULL;
 	struct block_list *bl = NULL;
 	struct status_change *sc_data;
-	int forcecast = 0;	
+	int casttime, forcecast = 0;	
 	unsigned int tick = gettick();
 
 	nullpo_retr(0, sd);
@@ -8168,8 +8181,6 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 		pc_stopattack(sd);
 
 	casttime = skill_castfix(&sd->bl, skill_get_cast(skill_num, skill_lv));
-	if (skill_num != SA_MAGICROD)
-		delay = skill_delayfix(&sd->bl, skill_get_delay(skill_num, skill_lv));
 	sd->state.skillcastcancel = skill_get_castcancel(skill_num);
 
 	switch (skill_num) {	/* ‰½‚©“ÁŽê‚È?—‚ª•K—v */
@@ -8312,21 +8323,23 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 		}
 	}
 
-	sd->skilltarget = target_id;
-	sd->skillx = 0;
-	sd->skilly = 0;
-	sd->canact_tick = tick + casttime + delay;
-	sd->canmove_tick = tick;
-
 	if (!(battle_config.pc_cloak_check_type&2) &&
 		sc_data && sc_data[SC_CLOAKING].timer != -1 &&
 		sd->skillid != AS_CLOAKING)
 		status_change_end(&sd->bl,SC_CLOAKING,-1);
+
+	sd->skilltarget = target_id;
+	sd->skillx = 0;
+	sd->skilly = 0;
+	sd->canact_tick = tick + casttime + 100;
+	//Recycling forcecast to store the skill's level. [Skotlex]
+	sd->canmove_tick = tick + (casttime>0 && (forcecast = pc_checkskill(sd,SA_FREECAST)) > 0?0:casttime);
+
 	if (casttime > 0) {
 		{
 			sd->skilltimer = add_timer (tick + casttime, skill_castend_id, sd->bl.id, 0);
-			if ((skill = pc_checkskill(sd,SA_FREECAST)) > 0)
-				status_quick_recalc_speed (sd, SA_FREECAST, skill, 1);
+			if (forcecast > 0)
+				status_quick_recalc_speed (sd, SA_FREECAST, forcecast, 1);
 			else
 				pc_stop_walking(sd,0);
 		}
@@ -8348,7 +8361,7 @@ int skill_use_pos (struct map_session_data *sd, int skill_x, int skill_y, int sk
 {
 	struct block_list bl;
 	struct status_change *sc_data;
-	int casttime = 0, delay = 0, skill;
+	int casttime, skill = 0;
 	unsigned int tick = gettick();
 
 	nullpo_retr(0, sd);
@@ -8457,7 +8470,6 @@ int skill_use_pos (struct map_session_data *sd, int skill_x, int skill_y, int sk
 	pc_stopattack(sd);
 
 	casttime = skill_castfix(&sd->bl, skill_get_cast( skill_num,skill_lv) );
-	delay = skill_delayfix(&sd->bl, skill_get_delay( skill_num,skill_lv) );
 	sd->state.skillcastcancel = skill_db[skill_num].castcancel;
 
 	if (battle_config.pc_skill_log)
@@ -8479,17 +8491,18 @@ int skill_use_pos (struct map_session_data *sd, int skill_x, int skill_y, int sk
 		else
 			clif_skillcasting(&sd->bl,sd->bl.id, 0, skill_x,skill_y, skill_num,casttime);
 	}
-	
-	sd->skilltarget	= 0;
-	sd->canact_tick = tick + casttime + delay;
-	sd->canmove_tick = tick;
+
 	if (!(battle_config.pc_cloak_check_type&2) &&
 		sc_data && sc_data[SC_CLOAKING].timer != -1)
 		status_change_end(&sd->bl,SC_CLOAKING,-1);
 
+	sd->skilltarget	= 0;
+	sd->canact_tick = tick + casttime + 100;
+	sd->canmove_tick = tick + (casttime>0 && (skill = pc_checkskill(sd,SA_FREECAST)>0?0:casttime));
+
 	if (casttime > 0) {
 		sd->skilltimer = add_timer(tick + casttime, skill_castend_pos, sd->bl.id, 0);
-		if ((skill = pc_checkskill(sd,SA_FREECAST)) > 0)
+		if (skill > 0)
 			status_quick_recalc_speed (sd, SA_FREECAST, skill, 1);
 		else
 			pc_stop_walking(sd,0);
@@ -10991,7 +11004,7 @@ int skill_readdb(void)
 		if(line[0]=='/' && line[1]=='/')
 			continue;
 		memset(split,0,sizeof(split));
-		j = skill_split_str(line,split,3);
+		j = skill_split_str(line,split,4);
 		if(split[0]==0) //fixed by Lupus
 			continue;
 		i=atoi(split[0]);
@@ -11004,6 +11017,9 @@ int skill_readdb(void)
 		if (!split[2])
 			continue;
 		skill_split_atoi(split[2],skill_db[i].delaynodex);
+		if(!split[3])
+			continue;
+		skill_split_atoi(split[3],skill_db[i].delaynowalk);
 	}
 	fclose(fp);
 	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/skill_castnodex_db.txt");

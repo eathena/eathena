@@ -2,6 +2,10 @@ Date	Added
 =======
 
 2005/10/12
+	* Added flag "move delay" to skill_castnodex_db.txt [Skotlex]
+	- By setting this flag to 1, players won't be able to move during the skill
+	  delay time. Some reorganization was needed in skill.c to make room for
+	  this, so some testing is required.
 	* Fixed the Char SQL server unnecessarily loading AND saving parties each
 	  time a party-member changed maps. [Skotlex]
 	* Modified skill_min_damage so that it defines the minimum damage for
