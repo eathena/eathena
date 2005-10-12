@@ -2,6 +2,9 @@ Date	Added
 =======
 
 2005/10/12
+	* Added a fix to prevent people from buying equipment in stackable from by
+	  hexing the packets and specifying an amount greater than 1. [Skotlex]
+	- Thanks to End of Exam for pointing out the exploit.
 	* Added flag "move delay" to skill_castnodex_db.txt [Skotlex]
 	- By setting this flag to 1, players won't be able to move during the skill
 	  delay time. Some reorganization was needed in skill.c to make room for
