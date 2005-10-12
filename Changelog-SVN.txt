@@ -4,6 +4,7 @@ Date	Added
 2005/10/13
 	* Fixed stealing. Now it works like aegis one. [Lupus]
 2005/10/12
+	* Corrected the magical part of Soul Breaker ignoring mdef. [Skotlex]
 	* Updated Reverse Orcish to use the duration specified for the skill in
 	  skill_cast_db.txt [Skotlex]
 	* Modified REVERSEORCISH to make it a status change (SC_ORCISH), since

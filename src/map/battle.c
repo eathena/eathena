@@ -2028,12 +2028,12 @@ struct Damage battle_calc_magic_attack(
 			break;
 		case PR_TURNUNDEAD:
 		case PR_ASPERSIO:
-		case ASC_BREAKER:
 		case PF_SOULBURN:
 		case HW_GRAVITATION:
+			flag.imdef = 1;
+		case ASC_BREAKER:
 			flag.elefix = 0;
 			flag.cardfix = 0;
-			flag.imdef = 1;
 			break;
 	}
 
