@@ -2812,92 +2812,83 @@ int pc_show_steal(struct block_list *bl,va_list ap)
 //** pc.c: Small Steal Item fix by fritz
 int pc_steal_item(struct map_session_data *sd,struct block_list *bl)
 {
-	int log_item[10]; //for stolen items logging Lupus
+	int i,j,skill,itemid,flag;
+	struct mob_data *md;
+	struct item tmp_item;
 
-	if(sd != NULL && bl != NULL && bl->type == BL_MOB) {
-		int i,j,skill,itemid,flag;
-		struct mob_data *md;
-		md=(struct mob_data *)bl;
+	if(!sd || !bl || bl->type != BL_MOB)
+		return 0;
+	
+	md=(struct mob_data *)bl;
 
-		if(!md->state.steal_flag && md->db->mexp <= 0 && !(md->db->mode&0x20) &&
-			(!md->master_id) && //Prevent stealing from summoned creatures. [Skotlex]
-			(!(md->class_>=1324 && md->class_<1364)) && // prevent stealing from treasure boxes [Valaris]
-			(!map[md->bl.m].flag.nomobloot))        // check noloot map flag [Lorky]
-		{
-			if (md->sc_data && (md->sc_data[SC_STONE].timer != -1 || md->sc_data[SC_FREEZE].timer != -1))
-				return 0;
-			skill = battle_config.skill_steal_type == 1
-				? (sd->paramc[4] - md->db->dex)/2 + pc_checkskill(sd,TF_STEAL)*6 + 10
-				: sd->paramc[4] - md->db->dex + pc_checkskill(sd,TF_STEAL)*3 + 10;
+	if(md->state.steal_flag || md->db->mexp || (md->db->mode&0x20) || md->master_id ||
+		(md->class_>=1324 && md->class_<1364) || // prevent stealing from treasure boxes [Valaris]
+		map[md->bl.m].flag.nomobloot ||        // check noloot map flag [Lorky]
+		md->sc_data[SC_STONE].timer != -1 || md->sc_data[SC_FREEZE].timer != -1 //status change check
+  )
+		return 0;
+	
+	skill = battle_config.skill_steal_type == 1
+		? (sd->paramc[4] - md->db->dex)/2 + pc_checkskill(sd,TF_STEAL)*6 + 10
+		: sd->paramc[4] - md->db->dex + pc_checkskill(sd,TF_STEAL)*3 + 10;
 
-			if(0 < skill)
-			{
-				j = i = rand()%10; //Pick one mobs drop slot.
-				do {
-					//if it's empty, we check one by one, till find an item
-					i--;
-					if(i<0)
-						i=9; //9th slot
-					itemid = md->db->dropitem[i].nameid;
-					//now try all 10 slots till success
+	if (skill < 1)
+		return 0;
 
-					if(itemid > 0 && (itemdb_type(itemid) != 6 || pc_checkskill(sd,TF_STEAL) > 5))
-					{
-						//fixed rate. From Freya [Lupus]
-						if (rand() % 10000 < ((md->db->dropitem[i].p * skill) / 100 + sd->add_steal_rate))
-						{
-							struct item tmp_item;
-							memset(&tmp_item,0,sizeof(tmp_item));
-							tmp_item.nameid = itemid;
-							tmp_item.amount = 1;
-							tmp_item.identify = !itemdb_isequip3(itemid);
-							flag = pc_additem(sd,&tmp_item,1);
+	j = i = rand()%10; //Pick one mobs drop slot.
+	do {
+		//if it's empty, we check one by one, till find an item
+		i--;
+		if(i<0)
+		i=9; //9th slot
+		itemid = md->db->dropitem[i].nameid;
+		//now try all 10 slots till success
+		if(itemid <= 0 || (itemdb_type(itemid) == 6 && pc_checkskill(sd,TF_STEAL) <= 5))
+			continue;
+	} while (i != j &&
+		rand() % 10000 > ((md->db->dropitem[i].p * skill) / 100 + sd->add_steal_rate)); //fixed rate. From Freya [Lupus]
 
-							//Logs items, Stolen from mobs [Lupus]
-							if(log_config.pick > 0 ) {
-								log_pick((struct map_session_data*)md, "M", md->class_, itemid, -1, NULL);
-								log_pick(sd, "P", 0, itemid, 1, NULL);
-							}
-							//Logs
+	if (i == j)
+		return 0;
 
-							//this drop log contains ALL stolen items [Lupus]
-							if(log_config.steal) { //we check were there any drops.. and if not - don't write the log
-								memset(&log_item,0,sizeof(log_item));
-								log_item[i] = itemid; //i == monster's drop slot
-								log_drop(sd, md->class_, log_item);
-							}
+	md->state.steal_flag = 1;
+	
+	memset(&tmp_item,0,sizeof(tmp_item));
+	tmp_item.nameid = itemid;
+	tmp_item.amount = 1;
+	tmp_item.identify = !itemdb_isequip3(itemid);
+	flag = pc_additem(sd,&tmp_item,1);
 
-							//A Rare Steal Global Announce by Lupus
-							if(md->db->dropitem[i].p<=battle_config.rare_drop_announce) {
-								struct item_data *i_data;
-								char message[128];
-								i_data = itemdb_exists(itemid);
-								sprintf (message, msg_txt(542), (sd->status.name != NULL)?sd->status.name :"GM", md->db->jname, i_data->jname, (float)md->db->dropitem[i].p/100);
-								//MSG: "'%s' stole %s's %s (chance: %%%0.02f)"
-								intif_GMmessage(message,strlen(message)+1,0);
-							}
+	if(battle_config.show_steal_in_same_party)
+		party_foreachsamemap(pc_show_steal,sd,1,sd,tmp_item.nameid,flag?1:0);
+	if(flag)
+		clif_additem(sd,0,0,flag);
+	else
+	{	//Only invoke logs if item was successfully added (otherwise logs lie about actual item transaction)
+		//Logs items, Stolen from mobs [Lupus]
+		if(log_config.pick > 0 ) {
+			log_pick((struct map_session_data*)md, "M", md->class_, itemid, -1, NULL);
+			log_pick(sd, "P", 0, itemid, 1, NULL);
+		}
+		
+		if(log_config.steal) {	//this drop log contains ALL stolen items [Lupus]
+			int log_item[10]; //for stolen items logging Lupus
+			memset(&log_item,0,sizeof(log_item));
+			log_item[i] = itemid; //i == monster's drop slot
+			log_drop(sd, md->class_, log_item);
+		}
 
-							if(battle_config.show_steal_in_same_party)
-							{
-								party_foreachsamemap(pc_show_steal,sd,1,sd,tmp_item.nameid,0);
-							}
-							if(flag)
-							{
-								if(battle_config.show_steal_in_same_party)
-								{
-									party_foreachsamemap(pc_show_steal,sd,1,sd,tmp_item.nameid,1);
-								}
-									clif_additem(sd,0,0,flag);
-							}
-							md->state.steal_flag = 1;
-							return 1;
-						}
-					}
-				} while(i!=j); //we have to check I and J to prevent endless loop on a mob w/o any drops
-			}
+		//A Rare Steal Global Announce by Lupus
+		if(md->db->dropitem[i].p<=battle_config.rare_drop_announce) {
+			struct item_data *i_data;
+			char message[128];
+			i_data = itemdb_exists(itemid);
+			sprintf (message, msg_txt(542), (sd->status.name != NULL)?sd->status.name :"GM", md->db->jname, i_data->jname, (float)md->db->dropitem[i].p/100);
+			//MSG: "'%s' stole %s's %s (chance: %%%0.02f)"
+			intif_GMmessage(message,strlen(message)+1,0);
 		}
 	}
-	return 0;
+	return 1;
 }
 
 /*==========================================
