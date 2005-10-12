@@ -31,6 +31,8 @@
 		Item type: Throwing Dagger. Has to be equipped as an arrow, is consumed
 		like gemstones when the skill is used.
 	--
+10/12
+	* Corrected g_katrinn and g_shecil's element. [Skotlex]
 10/11
 	* Fixed Zherlthsh + Injustice Combo bonus (was giving that bonus 2 times... +1 more bug V_V ) [Lupus]
 	- Checked all combo cards bonuses: There's no similiar bug! ^_-
