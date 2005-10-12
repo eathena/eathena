@@ -5476,7 +5476,8 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 		sd->skilltimer=-1;
 
 	if(pc_isdead(sd) || (bl=map_id2bl(sd->skilltarget))==NULL ||
-		bl->prev==NULL || sd->bl.m != bl->m || status_isdead(bl) ||
+		bl->prev==NULL || sd->bl.m != bl->m || 
+		(sd->skillid != ALL_RESURRECTION && status_isdead(bl)) ||
 		(&sd->bl != bl && (opt = status_get_option(bl)) && ((*opt)&0x42) && !sd->special_state.intravision) //Hiding characters cannot have skills targetted at them. [Skotlex]
 		) {
 		sd->canact_tick = tick;

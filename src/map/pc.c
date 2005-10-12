@@ -4879,7 +4879,7 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage, int
 	if(damage > sd->status.max_hp>>2)
 		skill_stop_dancing(&sd->bl);
 
-	if (damage > sd->status.hp)
+	if (damage < sd->status.hp)
 		sd->status.hp-=damage;
 	else
 		sd->status.hp = 0;
@@ -4909,8 +4909,7 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage, int
 
 		return damage;
 	}
-	sd->status.hp = 0;
-	//pc_setdead(sd);
+
 	if(sd->vender_id)
 		vending_closevending(sd);
 

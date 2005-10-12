@@ -6211,10 +6211,10 @@ int clif_party_hp(struct map_session_data *sd)
  */
 static void clif_hpmeter_single(int fd, struct map_session_data *sd)
 {
-	WBUFW(fd,0) = 0x106;
-	WBUFL(fd,2) = sd->status.account_id;
-	WBUFW(fd,6) = (sd->status.hp > 0x7fff) ? 0x7fff : sd->status.hp;
-	WBUFW(fd,8) = (sd->status.max_hp > 0x7fff) ? 0x7fff : sd->status.max_hp;
+	WFIFOW(fd,0) = 0x106;
+	WFIFOL(fd,2) = sd->status.account_id;
+	WFIFOW(fd,6) = (sd->status.hp > 0x7fff) ? 0x7fff : sd->status.hp;
+	WFIFOW(fd,8) = (sd->status.max_hp > 0x7fff) ? 0x7fff : sd->status.max_hp;
 	WFIFOSET (fd, packet_len_table[0x106]);
 }
 

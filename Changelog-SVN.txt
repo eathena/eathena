@@ -2,6 +2,9 @@ Date	Added
 =======
 
 10/11
+	* Fixed not being able to cast resurrection on dead players. [Skotlex]
+	* Fixed party HP update crash. [Skotlex]
+	* Fixed players being killed always in one hit. [Skotlex]
 	* Fixed chars not being able to unhide. [Skotlex]
 	* Rewrote/optimized the hp updating code (both party hp and disp_hpmeter),
 	  this should lower bandwidth a bit from all the unnecessary packets that
