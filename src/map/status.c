@@ -4481,7 +4481,7 @@ int status_change_end( struct block_list* bl , int type,int tid )
 				if(sc_data[type].val4 != BCT_SELF)
 					calc_flag = 1;
 				break;
-			
+			case SC_HERMODE: 
 			case SC_BASILICA: //Clear the skill area. [Skotlex]
 				if(sc_data[type].val3 == BCT_SELF)
 					skill_clear_unitgroup(bl);

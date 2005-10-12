@@ -1585,9 +1585,10 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		sd = (struct map_session_data *)dsrc;
 	if (bl->type == BL_PC)
 		tsd = (struct map_session_data *)bl;
-		
-	if(dsrc->type == BL_PC && skillnotok(skillid, (struct map_session_data *)dsrc))
-		return 0; // [MouseJstr]
+
+//Shouldn't be needed, skillnotok's return value is highly unlikely to have changed after you started casting. [Skotlex]
+//	if(dsrc->type == BL_PC && skillnotok(skillid, (struct map_session_data *)dsrc))
+//		return 0; // [MouseJstr]
 	if(sc_data && sc_data[SC_HIDING].timer != -1) { //ハイディング?態で
 		if(skill_get_pl(skillid) != 2) //スキルの?性が地?性でなければ何もしない
 			return 0;
@@ -3177,8 +3178,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		return 1;
 	if(status_get_class(bl) == MOBID_EMPERIUM) //No damage skills cannot affect emperium.
 		return 1;
-	if (sd && skillnotok(skillid, sd)) // [MouseJstr]
-		return 0;
+//Shouldn't be needed, skillnotok's return value is highly unlikely to have changed after you started casting. [Skotlex]
+//	if (sd && skillnotok(skillid, sd)) // [MouseJstr]
+//		return 0;
 
 	map_freeblock_lock();
 	switch(skillid)
@@ -4010,12 +4012,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case DC_DONTFORGETME:		/* 私を忘れないで… */
 	case DC_FORTUNEKISS:		/* 幸運のキス */
 	case DC_SERVICEFORYOU:		/* サ?ビスフォ?ユ? */
-	case CG_HERMODE:			// Wand of Hermod
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		skill_unitsetting(src,skillid,skilllv,src->x,src->y,0);
 		break;
 
 	case HP_BASILICA:			/* バジリカ */
+	case CG_HERMODE:			// Wand of Hermod
 		{
 			struct skill_unit_group *sg;
 			battle_stopwalking(src,1);
@@ -5738,8 +5740,9 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 		skillid != TK_HIGHJUMP)
 		clif_skill_poseffect(src,skillid,skilllv,x,y,tick);
 
-	if (sd && skillnotok(skillid, sd)) // [MouseJstr]
-		return 0;
+//Shouldn't be needed, skillnotok's return value is highly unlikely to have changed after you started casting. [Skotlex]
+//	if (sd && skillnotok(skillid, sd)) // [MouseJstr]
+//		return 0;
 
 	switch(skillid)
 	{
@@ -6959,13 +6962,11 @@ int skill_unit_onout(struct skill_unit *src,struct block_list *bl,unsigned int t
 		break;
 	}
 	case UNT_BASILICA: //Clear basilica if the owner moved [Skotlex]
-		if(sc_data[type].timer!=-1 && sc_data[type].val3==BCT_SELF)
+	case UNT_HERMODE:	//Clear Hermode if the owner moved.
+		if (sc_data && sc_data[type].timer!=-1 && sc_data[type].val3 == BCT_SELF && sc_data[type].val4 == sg->group_id)
 			status_change_end(bl,type,-1);
 		break;
-	case UNT_HERMODE:
-		if (sg->src_id==bl->id) //Clear Hermode if the owner moved.
-			skill_delunitgroup(sg);
-			
+		
 	case UNT_SPIDERWEB:	/* スパイダ?ウェッブ */
 		{
 			struct block_list *target = map_id2bl(sg->val2);
@@ -8264,16 +8265,6 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 
 	case HP_BASILICA:		/* バジリカ */
 		{
-			/* utterly redundant!
-			if (skill_check_unit_range(sd->bl.m,sd->bl.x,sd->bl.y,sd->skillid,sd->skilllv)) {
-				clif_skill_fail(sd,sd->skillid,0,0);
-				return 0;
-			}
-			if (skill_check_unit_range2(&sd->bl,sd->bl.m,sd->bl.x,sd->bl.y,sd->skillid,sd->skilllv)) {
-				clif_skill_fail(sd,sd->skillid,0,0);
-				return 0;
-			}
-			*/
 			// cancel Basilica if already in effect
 			if (sc_data && sc_data[SC_BASILICA].timer != -1 && sc_data[SC_BASILICA].val3 == BCT_SELF) {
 				status_change_end(&sd->bl,SC_BASILICA,-1);
@@ -9942,10 +9933,10 @@ int skill_unit_timer( int tid,unsigned int tick,int id,int data)
 int skill_unit_move_sub( struct block_list *bl, va_list ap )
 {
 	struct skill_unit *unit = (struct skill_unit *)bl;
-	struct skill_unit_group *group;
 	struct block_list *target;
 	unsigned int tick,flag,result;
-
+	int skill_id;
+	
 	nullpo_retr(0, bl);
 	nullpo_retr(0, ap);
 	nullpo_retr(0, target=va_arg(ap,struct block_list*));
@@ -9955,9 +9946,11 @@ int skill_unit_move_sub( struct block_list *bl, va_list ap )
 	if (target->type!=BL_PC && target->type!=BL_MOB)
 		return 0;
 
-	nullpo_retr(0, group=unit->group);
-	if (group->interval!=-1 &&
-		!(skill_get_unit_flag(group->skill_id)&UF_DUALMODE)) //Skills in dual mode have to trigger both. [Skotlex]
+	nullpo_retr(0, unit->group);
+	skill_id = unit->group->skill_id; //Necessary in case the group is deleted after calling on_place/on_out [Skotlex]
+	
+	if (unit->group->interval!=-1 &&
+		!(skill_get_unit_flag(skill_id)&UF_DUALMODE)) //Skills in dual mode have to trigger both. [Skotlex]
 		return 0;
 
 	if (!unit->alive || target->prev==NULL)
@@ -9981,7 +9974,7 @@ int skill_unit_move_sub( struct block_list *bl, va_list ap )
 			skill_unit_temp[skill_unit_index++] = result;
 	}
 	if (flag&4)
-		skill_unit_onleft(group->skill_id,target,tick);
+		skill_unit_onleft(skill_id,target,tick);
 	return 1;
 }
 

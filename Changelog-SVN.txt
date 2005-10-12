@@ -2,6 +2,8 @@ Date	Added
 =======
 
 10/12
+	* Fixed Wand of Hermod and a potential crash related to ground based
+	  skills. [Skotlex]
 	* Probably corrected npc load count when using reloadscript. [Skotlex]
 	* Likely fixed petheal [Skotlex]
 	* Fixed PVP client crash bug. By a new cadidate into eA coders LuzZza [Lupus]
