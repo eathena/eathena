@@ -2,6 +2,8 @@ Date	Added
 =======
 
 10/12
+	* Fixed the Char SQL server unnecessarily loading AND saving parties each
+	  time a party-member changed maps. [Skotlex]
 	* Modified skill_min_damage so that it defines the minimum damage for
 	  skills IF the skill does not misses/is blocked. Can be used to specify
 	  to any of weapon attacks, magic attacks, or misc attacks. Defaults to 6

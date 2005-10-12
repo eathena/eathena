@@ -456,6 +456,7 @@ int mapif_party_leaved(int party_id,int account_id,char *name)
 	return 0;
 }
 // パーティマップ更新通知
+/*
 int mapif_party_membermoved(struct party *p,int idx)
 {
 	unsigned char buf[32];
@@ -466,14 +467,10 @@ int mapif_party_membermoved(struct party *p,int idx)
 	WBUFB(buf,10+MAP_NAME_LENGTH)=p->member[idx].online;
 	WBUFW(buf,11+MAP_NAME_LENGTH)=p->member[idx].lv;
 	mapif_sendall(buf,13+MAP_NAME_LENGTH);
-/*
-	WBUFB(buf,25)='\0';
-	WBUFB(buf,26)=p->member[idx].online;
-	WBUFW(buf,27)=p->member[idx].lv;
-	mapif_sendall(buf,29);
-*/
 	return 0;
 }
+*/
+
 // パーティ解散通知
 int mapif_party_broken(int party_id,int flag)
 {
@@ -702,6 +699,18 @@ int mapif_parse_PartyLeave(int fd,int party_id,int account_id)
 // When member goes to other map
 int mapif_parse_PartyChangeMap(int fd,int party_id,int account_id,char *map,int online,int lv)
 {
+	//Massively simplified to avoid ridiculous loading/saving of parties which is not even needed! [Skotlex]
+	//This is a fine example of a TXT->SQL conversion gone horribly wrong...
+	unsigned char buf[32];
+	WBUFW(buf,0)=0x3825;
+	WBUFL(buf,2)=party_id;
+	WBUFL(buf,6)=account_id;
+	memcpy(WBUFP(buf,10),map,MAP_NAME_LENGTH);
+	WBUFB(buf,26)=online;
+	WBUFW(buf,27)=lv;
+	mapif_sendall(buf,29);
+
+/*
 	struct party *p;
 	int i;
 
@@ -734,6 +743,7 @@ int mapif_parse_PartyChangeMap(int fd,int party_id,int account_id,char *map,int 
 		}
 	}
 	inter_party_tosql(party_id, p);
+	*/
 	return 0;
 }
 // パーティ解散要求
