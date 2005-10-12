@@ -1,0 +1,83 @@
+//===== eAthena Script ======================================= 
+//= Einbroch Airport Staff
+//===== By: ================================================== 
+//= Muad_Dib (The Prometheus Project)
+//===== Current Version: ===================================== 
+//= 1.0
+//===== Compatible With: ===================================== 
+//= eAthena Revision 3000+
+//===== Description: ========================================= 
+//= Einbroch Airport Staff
+//===== Additional Comments: ================================= 
+//= Converted by Dr.Evil
+//============================================================
+
+
+airport.gat,126,43,4	script	Airport Staff#1::Airport	90,{
+	mes "[Airport Staff]";
+	mes "Welcome to the Airport.";
+	mes "How may I help you?";
+	next;
+	menu "Board the Airship",-,"Cancel",L_Cancel;
+		mes "[Airport Staff]";
+		mes "The Airship boarding fee";
+		mes "is 1,200 zeny, but if you've";
+		mes "got a Free Ticket for Airship,"; 
+		mes "the fee will be waived. Will";
+		mes "you board the Airship?";
+		next;
+		menu "Yes",-,"No",L_Cancel;
+		if((countitem(7311) < 1) goto GotTicket;
+			set Zeny,zeny-1200;
+			warp "airport.gat",148,51;
+			close;
+		GotTicket:
+			delitem 7311,1;
+			warp "airport.gat",148,51;
+			close;
+	L_Cancel:
+		mes "[Airport Staff]";
+		mes "Thank you and";
+		mes "have a nice day.";
+		close;
+}
+
+airport.gat,143,43,4	duplicate(Airport)	Airport Staff#2	90,{
+//	script Airport_Staff_In;
+}
+airport.gat,156,43,4	duplicate(Airport)	Airport Staff#3	90,{
+//	script Airport_Staff_In;
+}
+
+airport.gat,126,51,4	Airport Staff#1::Airport2	90,{
+	mes "[Airport Staff]";
+	mes "Welcome~";
+	mes "Please head this";
+	mes "was to board the Airship.";
+	next;
+	menu "Exit to Main Terminal",-,Cancel,L_Cancel;
+		mes "[Airport Staff]";
+		mes "If you leave the";
+		mes "main terminal, you'll";
+		mes "have to pay the admission";
+		mes "fee again in order to board";
+		mes "the Airship. Are you sure";
+		mes "that you want to exit?";
+		next;
+		menu "Yes",-,"No",L_Cancel;
+			warp "airport.gat",142,40;
+			close;
+	L_Cancel:
+		mes "[Airport Staff]";
+		mes "Alright, thank you";
+		mes "for your patronage";
+		mes "and I hope you have";
+		mes "a plesant flight~";
+		close;
+}
+
+airport.gat,143,51,4	duplicate(Airport2)	Airport Staff#2	90,{
+}
+
+airport.gat,156,51,4	duplicate(Airport2)	Airport Staff#3	90,{
+}

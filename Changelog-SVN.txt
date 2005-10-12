@@ -1,6 +1,8 @@
 Date	Added
 =======
 
+10/12
+	* Updated maps comments, thanks to Justin84 [Lupus]
 10/11
 	* Fixed not being able to cast resurrection on dead players. [Skotlex]
 	* Fixed party HP update crash. [Skotlex]

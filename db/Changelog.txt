@@ -32,6 +32,7 @@
 		like gemstones when the skill is used.
 	--
 10/11
+	* Updated Ancient Mummy card effect, thanks to irmin for info [Lupus]
 	* Changed Envenom's range to 2. [Skotlex]
 	* Fixed Awakening Potion's usable jobs, I think. [Skotlex]
 	* Updated the whole item_db to allow TaekWon, Star Gladiator and Soul

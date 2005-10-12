@@ -23,6 +23,10 @@ Massdriller
 
 Date		Added
 ======
+10/12
+	* Added Muad-dib's Einbroch Airport, converted by Dr.Evil [Lupus]
+	* Added secret Lighthalzen dungeon entrance point. Provided by Justin84 [Lupus]
+	- It's commented out yet. Could someone investigate it?
 10/11
 	* Fixed Zealotus Mask NPC (->Piece of Black Quartz) thanx to vicious_pucca for info [Lupus]
 	* Added some Einbech NPCs [reddozen]
