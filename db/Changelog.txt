@@ -32,6 +32,8 @@
 		like gemstones when the skill is used.
 	--
 10/12
+	* Added Reverse Orcish to skill_cast_db.txt, upkeep time is the orc curse
+	  duration. Set to 20 mins for now. [Skotlex]
 	* Fixed typo AllStat -> Allstats,  thanx 2L0wFlea_sq [Lupus]
 	* Fixed: LunarBow[1]->[2], Coif Req/Jobs, Cinquedia Req/Equip Lvl thanx 2 persian69 [Lupus]
 	* Corrected g_katrinn and g_shecil's element. [Skotlex]

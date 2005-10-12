@@ -3405,8 +3405,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 	case SA_REVERSEORCISH:
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
-		//FIXME: Duration is unknown, currently scheduled to be 5 mins. [Skotlex]
-		status_change_start(bl, SkillStatusChangeTable[skillid], skilllv,0,0,0,300000,0);
+		status_change_start(bl, SkillStatusChangeTable[skillid], skilllv,0,0,0,skill_get_time(skillid, skilllv),0);
 		break;
 	case SA_FORTUNE:
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
