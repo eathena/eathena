@@ -1386,7 +1386,7 @@
 4245,Am_Mut_Card,Am Mut Card,6,,10,10,,,,,,,,64,,,,,{ bonus2 bSubRace,RC_DemiHuman,-20; bonus2 bExpAddRace,RC_DemiHuman,10; }
 4246,Assulter_Card,Assulter Card,6,,10,10,,,,,,,,2,,,,,{ bonus bCritAtkRate,10; bonus2 bCriticalAddRace,RC_DemiHuman,7; }
 4247,Aster_Card,Aster Card,6,,10,10,,,,,,,,2,,,,,{ bonus bAtk,5; bonus2 bAddDamageClass,1074,30; }
-4248,Ancient_Mummy_Card,Ancient Mummy Card,6,,10,10,,,,,,,,32,,,,,{ bonus4 bAutoSpellWhenHit,32,5,10,0; if(isequipped(4106)) bonus bPerfectHitAddRate,20; }
+4248,Ancient_Mummy_Card,Ancient Mummy Card,6,,10,10,,,,,,,,32,,,,,{ bonus4 bAutoSpellWhenHit,32,5,10,0; if(isequipped(4106)==0) end; bonus bAtk,20; bonus bPerfectHitAddRate,20; }
 4249,Ancient_Worm_Card,Ancient Worm Card,6,,10,10,,,,,,,,64,,,,,{ bonus2 bSubRace,RC_Demon,-20; bonus2 bExpAddRace,RC_Demon,10; }
 4250,Executioner_Card,Executioner Card,6,,10,10,,,,,,,,32,,,,,{ bonus2 bSubSize,2,25; bonus bDef,1; }
 4251,Elder_Card,Elder Card,6,,10,10,,,,,,,,2,,,,,{ bonus2 bAddRace2,5,40; }

@@ -32,6 +32,8 @@
 		like gemstones when the skill is used.
 	--
 10/11
+	* Fixed Zherlthsh + Injustice Combo bonus (was giving that bonus 2 times... +1 more bug V_V ) [Lupus]
+	- Damn it.. i think i have to revise all combo cards bonuses for similiar exploits!
 	* Updated Ancient Mummy card effect, thanks to irmin for info [Lupus]
 	* Changed Envenom's range to 2. [Skotlex]
 	* Fixed Awakening Potion's usable jobs, I think. [Skotlex]
