@@ -733,12 +733,15 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 	for(i = 0; i < MAX_EVENTTIMER; i++)
 		sd->eventtimer[i] = -1;
 
+	// Moved PVP timer initialisation before set_pos
+	sd->pvp_timer = -1;
+
 	// ˆÊ’u‚Ìİ’è
 	if (pc_setpos(sd,sd->status.last_point.map, sd->status.last_point.x, sd->status.last_point.y, 0) != 0) {
 		if(battle_config.error_log)
 			ShowError ("Last_point_map %s not found\n", sd->status.last_point.map);
 
-		// try warping to a default map instead
+		// try warping to a default map instead (church graveyard)
 		if (pc_setpos(sd, "prontera.gat", 273, 354, 0) != 0) {
 			// if we fail again
 			clif_authfail_fd(sd->fd, 0);
@@ -767,9 +770,6 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 			sd->state.gmaster_flag = (int) g;
 		}
 	}
-
-	// pvp‚Ìİ’è
-	sd->pvp_timer = -1;
 
 	// ’Ê’m
 
@@ -2952,6 +2952,12 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 		guild_reply_invite(sd,sd->guild_invite,0);
 	if(sd->guild_alliance>0)	// ƒMƒ‹ƒh“¯–¿?—U‚ğ‹‘”Û‚·‚é
 		guild_reply_reqalliance(sd,sd->guild_alliance_account,0);
+
+	// Delete timer before the player moved to hise repawn point
+	if (sd->pvp_timer != -1 && !battle_config.pk_mode) {
+		delete_timer(sd->pvp_timer, pc_calc_pvprank_timer);
+		sd->pvp_timer = -1;
+	}
 
 	skill_castcancel(&sd->bl,0);	// ‰r¥’†?
 	pc_stop_walking(sd,0);		// ?s’†?

@@ -8097,8 +8097,8 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 	clif_updatestatus(sd,SP_WEIGHT);
 
 	// pvp
-	if(sd->pvp_timer!=-1 && !battle_config.pk_mode)
-		delete_timer(sd->pvp_timer,pc_calc_pvprank_timer);
+	/*if(sd->pvp_timer!=-1 && !battle_config.pk_mode) //*PVP Client crash fix* Removed timer deletion
+		delete_timer(sd->pvp_timer,pc_calc_pvprank_timer);*/ //
 	if(map[sd->bl.m].flag.pvp){
 		if(!battle_config.pk_mode) { // remove pvp stuff for pk_mode [Valaris]
 			sd->pvp_timer=add_timer(gettick()+200,pc_calc_pvprank_timer,sd->bl.id,0);

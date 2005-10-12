@@ -2,6 +2,7 @@ Date	Added
 =======
 
 10/12
+	* Fixed PVP client crash bug. By a new cadidate into eA coders LuzZza [Lupus]
 	* Updated maps comments, thanks to Justin84 [Lupus]
 10/11
 	* Fixed not being able to cast resurrection on dead players. [Skotlex]
