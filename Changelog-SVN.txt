@@ -1,7 +1,7 @@
 Date	Added
 =======
 
-10/12
+2005/10/12
 	* Fixed the Char SQL server unnecessarily loading AND saving parties each
 	  time a party-member changed maps. [Skotlex]
 	* Modified skill_min_damage so that it defines the minimum damage for
@@ -14,7 +14,7 @@ Date	Added
 	* Likely fixed petheal [Skotlex]
 	* Fixed PVP client crash bug. By a new cadidate into eA coders LuzZza [Lupus]
 	* Updated maps comments, thanks to Justin84 [Lupus]
-10/11
+2005/10/11
 	* Fixed not being able to cast resurrection on dead players. [Skotlex]
 	* Fixed party HP update crash. [Skotlex]
 	* Fixed players being killed always in one hit. [Skotlex]
@@ -39,7 +39,7 @@ Date	Added
 	* Fixed the instrument/whips gender restriction being applied to Cap. [Skotlex]
 	* Damn typo: Fixed Mobs Drops with the same % droprate. thanx 2rover 4bugreport [Lupus]
 	* Fixed SQL Mob DB reading(no drops issue, etc) thanx to yoanykim for pointing it out [Lupus]
-10/10
+2005/10/10
 	* Probably fixed the peco-riding issue. [Skotlex]
 	* Fixed clif_clearchar_delay (cause of the ghost mobs from my tests). [Skotlex]
 	* Small fix on the mob ai (attacked_id was never being reset if the
@@ -69,7 +69,7 @@ Date	Added
 	* Changed GX duration to 900ms. [Skotlex]
 	* Cleared up the item get times descriptions in battle_athena.conf [Skotlex]
 	* Some timer fixes in status_change_start regarding sc_data loading. [Skotlex]
-10/09
+2005/10/09
 	* Probably fixed Waterball so it does max number of hits when casted by a
 	  non-player regardless of water availability. [Skotlex]
 	* Fixed perfect hiding. [Skotlex]
@@ -85,7 +85,7 @@ Date	Added
 	- Tip: When you Trade/Vend goods, use @iteminfo to check items price and even rareness ^_-
 	* Rearranged item_data struct units to make it compatible with some old script commands after Skotlex's changes
 	- Tip: Now you can use GetItemInfo script command to find out if the item is rare or not
-10/08
+2005/10/08
 	* Some improvements to the mob ai. [Skotlex]
 	* Fixed summoned marine spheres exploding on their own. [Skotlex]
 	* Probably fixed the attribute fix for magical attacks. [Skotlex]
@@ -106,7 +106,7 @@ Date	Added
 	* Made FrostJoke/Scream work the same way out and inside woe grounds.
 	  [Skotlex]
 	* Corrected Grand Cross Damage [Skotlex]
-10/07
+2005/10/07
 	* Took out Lighthalzen's noteleport mapflag. Added it by accident. [Nexon]
 	* Some commented code cleanup and help.txt update [Foruken]
 	* Applied Draco's fixes to battle_calc_magic_attack. [Skotlex]
@@ -127,7 +127,7 @@ Date	Added
 	  <http://eathena.deltaanime.net/board/index.php?showtopic=50037>
 	  for more information. Note that he admits it is not fully tested, so be
 	  careful when trying out the new commands!
-10/06
+2005/10/06
 	* Some corrections to the script engine, should fix a few memory leaks.
 	  [Skotlex]
 	* Minor corrections to the screen output of the char_sql server when
@@ -170,7 +170,7 @@ Date	Added
 		24-TK,25-SG,27-SL
 	  Don't ever use other bits e.g. for Advanced classes. It's useless
 	* Added Poring Box logs (into dead branch logs)
-10/05
+2005/10/05
 	* Updated nomemo and noteleports for Lighthalzen/Einbroch/Einbech maps and others. [Nexon]
 	* Fixed the mob AI. [Skotlex]
 	* Updated alchemist_summon_reward [Skotlex]
@@ -210,7 +210,7 @@ Date	Added
 	* Made the skilllv be 1 if the client sends less than that (this is why
 	  active guild skills were not working. For some reason the client was
 	  sending a request to do the skill at level 0!) [Skotlex]
-10/04
+2005/10/04
 	* Likely fixed Aeterna + Soul Breaker/Destroyer. [Skotlex]
 	* Some cleaning of the mob ai. May help with some of the current exploits.
 	  [Skotlex]
@@ -222,7 +222,7 @@ Date	Added
 	* Fixed Classical Pluck blocking AoE spells. [Skotlex]
 	* Updated Spider Web code to not retrigger if already trapped by one
 	  (needed because spider webs can now stack) [Skotlex]
-10/03
+2005/10/03
 	* Fixed a mistake with my last fix. [Kevin]
 	* Fixed often occurring memory leak in clif.c. [Kevin]
 	* Made NPC_DARKCROSS work (it's just a copy of Holy Cross with dark
@@ -243,14 +243,14 @@ Date	Added
 	* Cleaned up and restructured the mob item drop code. It also fixes a
 	  possible crash during the autoloot check. [Skotlex]
 	* Reupdated Wind Walk to add +5% flee bonus... AGAIN. [Skotlex]
-10/02
+2005/10/02
 	* Fixed STEAL issue. [Lupus]
 	- Any Mob has 10 drop slots. If we pick an empty one, then we check previous slot, until we find a slot with an item.
 	  Then we apply STEAL FORMULA for the item. (During the tests I managed to steal 2 poring cards 8)
 	  If a mod doesn't have any slots then STEAL fails.
 	- Possible exploit: If a mob (e.g. NEW MOBS) has only one rare drop, then STEAL would always try to steal that the only slot 8)
 	  How to fix: I suggest to fill other empty slots with Jellopies or Apples with zero chance.
-10/01
+2005/10/01
 	* Expanded NPC shop log info of sold items (cards, refine, etc) [Lupus]
 	* Fixed compile errors in converters [celest]
 	* Updating built-in zlib to 1.2.3 [celest]
@@ -260,7 +260,7 @@ Date	Added
 	  NOTE: It will need a new unzip library, so do 'make clean', or delete
 	  'Makefile.cache' before recompiling!
 
-09/30
+2005/2005/09/30
 	* Updated the slave warp code. Now when a master recalls their slaves,
 	  these will be placed 'randomly' around the master in an area_size/2 range.
 	  [Skotlex]
@@ -282,7 +282,7 @@ Date	Added
 	  blind/stun/bleeding independently in skill_cast_db.txt [Skotlex]
 	* Made TK_JUMPKICK share the same code as Ashura Strike (just to see what
 	  happens, both seem like they behave the same way, no?) [Skotlex]
-09/29
+2005/2005/09/29
 	* Some tweaks and fixes around status.c, may fix the timer mismatches of
 	  status_change_timer. [Skotlex]
 	* Fixed a memory leak regarding pet status recovery scripts. [Skotlex]
@@ -330,7 +330,7 @@ Date	Added
 	  seconds) :/
 	* Fixed crash, related to STEAL logs [Lupus]
 	* Added TXT logs for Pick_log [Lupus]
-09/28
+2005/2005/09/28
 	* Added 'scripts items operations' and 'vending' into pick_log: [Lupus]
 	  Tested with refine, getitem, getnameditem, removecards, etc commands. They are all supported.
 	  Now you can see if a player breaks his armor in NPC Cards Remover, etc.
@@ -346,7 +346,7 @@ Date	Added
 	  mob). Summons from the same master should not be attacking each other,
 	  however I do think they will attack summons from another player. [Skotlex]
 	* Removed 10 chances to pick an item from STEAL skill (it should have only 1 chance) [Lupus]
-09/27
+2005/2005/09/27
 	* Corrected again Wind Walk. Just +5 flee at lv10, walk bonus does not
 	  stacks with other speed giving skills. [Skotlex]
 	* Corrected Wind Walk's walk and flee bonus (walk was a +4*skill_lv%
@@ -359,7 +359,7 @@ Date	Added
 	* Removed the check that prevented chars from logging out during status
 	  changes, as the current system should save and restore these correctly.
 	  [Skotlex]
-09/26
+2005/2005/09/26
 	* Fixed MAX GUILD capasity in mmo.h to allow correct +6 Guild Extension [Lupus]
 	* Changed back the TIMER_MIN_INTERVAL to 50. Who changed it back to 25?
 	  (svn3015 skotlex: Changed TIMER_MIN_INTERVAL to 25 (from 10), it probably needs to be bumped even higher, awaiting results from testers to see if a higher value would be needed.
@@ -411,11 +411,11 @@ Date	Added
 	- TODO: Add Mobs Looters DROP items in the log. (Now only attacked mobs log loot drops)
 	- TODO: Add Scripts/Vending logs
 
-09/25
+2005/2005/09/25
 	* Modified battle_weapon_delay so that additional status effects are
 	  invoked even if the attack does no damage, as long as the attack connects
 	  (that is, it is not a miss/lucky dodge) [Skotlex]
-09/24
+2005/2005/09/24
 	* Updated several mob stats for the Lighthalzen and later mobs from the
 	  data provided by Viccious Pucca. [Skotlex]
 	* Updated sql-files/mob_db.sql to contain the most recent mob_db. [Skotlex]
@@ -445,7 +445,7 @@ Date	Added
 	* Fixed TXT char login with new auth system. [Kevin]
 	* Done: Adjustable players titles for @who, @who2, @who3 commands [Lupus]
 	- Check msg_athena.conf for new lines
-09/23
+2005/2005/09/23
 	* Software Caused Connection Abort errors will now cause said socket to be
 	  removed inmediately from the listening list of sockets, this may help with
 	  the lag issues that arise when said error occurs. [Skotlex]
@@ -456,7 +456,7 @@ Date	Added
 	  there's a shortcut for @WHO: @W
 	* Started adding adjustable players titles for @who, etc commands [Lupus]
 	- e.g. Super Player, GM, GM+, etc
-09/22
+2005/2005/09/22
 	* Updated sql-files/item_db.sql to have the most current version. [Skotlex]
 	* Finished first part of new auth system, fully tested. Will reduce char->map
 	  lag by whatever it is you are haveing. [Kevin]
@@ -473,7 +473,7 @@ Date	Added
 	  sitting. [Skotlex]
 	* Set default option gvg_traps_target_all: no [Lupus]
 	- In kRO it used to be 'yes' some time ago but has been reverted back to 'no'
-09/21
+2005/09/21
 	* Corrected an error in the way guild alliances were being counted, as
 	  pointed out by Viccious Pucca. [Skotlex]
 	* Fixed and deployed map_getallusers() on atcommands @who, @who2, @who3.
@@ -498,14 +498,14 @@ Date	Added
 	  number and contents of the attempted query which caused the error. [Skotlex]
 	* Corrected an sql logs error when selecting a character with special
 	  characters (eg: single quotes) on it. [Skotlex]
-09/20
+2005/09/20
 	* Changed Palm Strike's initial animation display. [Skotlex]
 	  (it will show as a normal attack that misses instead of an skill, but at
 	  least the animation delay is correct and the skill can be chained now)
 	* Adjusted Cart Revolution's damage to be based on the Cart's Max Weight
 	  (instead of the hardcoded 8000w value) [Skotlex]
 	* Fixed a memory leak when pets cancel their casting. [Skotlex]
-09/19
+2005/09/19
 	* Added error reporting an item in the item_db.txt file has insufficient
 	  fields (rather than just crashing) [Skotlex]
 	* Updated the item_db to use the new race and element constants. [Skotlex]
@@ -520,12 +520,12 @@ Date	Added
 	* Fixed a query error on sql refine logging. [Skotlex]
 	* General checks to the script engine string management. Should fix a bunch
 	  of memory leaks. [Skotlex]
-09/18
+2005/09/18
 	* More updates to status change IDs [DracoRPG]
 	* Implemented TK_SEVENWIND, allowed simultaneous use of several stances, thanks to
 	  reddozen for all the info about that [DracoRPG]
 	* Allowed to pickup/drop items while in Frenzy [DracoRPG]
-09/17
+2005/09/17
 	* Added a check that should prevent fighting against other guilds outside
 	  of WoE times. [Skotlex]
 	* Hopefully fixed Hunter's Dectect skill. [Skotlex]
@@ -533,7 +533,7 @@ Date	Added
 	* Miscellanous corrections to skill_attack. [Skotlex]
 	* Corrected the AutoSpellWhenHit rate of all items in the db (TXT + SQL)
 	  [Skotlex]
-09/16
+2005/09/16
 	* Reverted some of the contents of skill_unit_move_unit_group since the
 	  previous algorithm was optimized. Walking during a Song/Dance should be
 	  smooth again. [Skotlex]
@@ -564,7 +564,7 @@ Date	Added
 	  stepped out of quagmire/song/dances. [Skotlex]
 	* Made quagmire be affected by the "gvg_traps_target_all" battle switch. [Skotlex]
 	* Added Bloody Branch log (along with Dead Branch) [Lupus]
-09/15
+2005/09/15
 	* The skill Vending will now fail on GM characters who do not satisfy the
 	  gm_can_drop level requirement. [Skotlex]
 	* Updated the sql-files mob_db.sql and item_db.sql files to the current
@@ -592,7 +592,7 @@ Date	Added
 	  level?) [Skotlex]
 	* Couple of crash fixes on the map-server char saving method
 	  (char_save_method: 1) [Skotlex]
-09/14
+2005/09/14
 	* Yet another correction to SQL char saving. [Skotlex]
 	* Added support for N slots. [Skotlex]
 	- By changing the constant MAX_SLOTS in common/mmo.h, the server can be
@@ -630,7 +630,7 @@ Date	Added
 	* Changed autospell rates so that the max (100%) is 1000. Adjusted item
 	  database accordingly. [Skotlex]
 	* Reverted displayed heal value. [Skotlex]
-09/13
+2005/09/13
 	* Fixed Basilica [Skotlex]
 	* Rewrote the mechanics of how Devotion works. [Skotlex]
 	* Updated Heal so that it displays on-screen the actual amount that was
@@ -645,7 +645,7 @@ Date	Added
 	* Changed bonuses bAtkRate, bWeaponAtkRate and bCritRate to modify
 	  base+watk damage, not just watk. [Skotlex]
 	* Corrected coma-effect killing bosses. [Skotlex]
-09/12
+2005/09/12
 	* Party even share code won't try to give dead players their share of the
 	  exp (since pc_gainexp would refuse so anyway) [Skotlex]
 	* Added trim() usage to char servers to prevent creation of characters with
@@ -663,10 +663,10 @@ Date	Added
 	* Bomb/Demonstration should now be cast-able under the Emperium. [Skotlex]
 	* Acid Terror now knows ignores armor defense, but not vit defense. [Skotlex]
 	* Added an official Bards Job Quest (check npc\changelog.txt) [Lupus]
-09/11
+2005/09/11
 	* Changed back the default of gx_all_hit to no. [Skotlex]
 	* Added check to prevent ensemble skills from changing position. [Skotlex]
-09/10
+2005/09/10
 	* Removed the changing of targets for offensive songs in gvg grounds. [Skotlex]
 	* Corrected Grand Cross not always hitting 3 times. [Skotlex]
 	* Fixed the display of Auto Counter. [Skotlex]
@@ -683,7 +683,7 @@ Date	Added
 	* Reverted back my char.c/sql char.c changes 8) Have to re-check [Lupus]
 	* Added official Louyang city (thanks to MasterOfMuppets), fixed some Kafra bugs [Lupus]
 	  check npc/changelog.txt
-09/09
+2005/09/09
 	* Fixed TXT/SQL char servers not reading properly their command line arguments [Lupus]
 	* Refixed those compiler errors >.< [Skotlex]
 	* Readded the damage delay to firewall. [Skotlex]
@@ -711,7 +711,7 @@ Date	Added
 	* Fix to battle_check_target, should correct guardians/emperium [Skotlex]
 	* Guardians will now be deleted if their guild is not found in
 	  mob_spawn_guardian_sub. [Skotlex]
-09/08
+2005/09/08
 	* Added filter into chat log. Check log_athena.conf for more info [Lupus]
 	- Now you can turn off logs during WOE, etc
 	* Made Musical Strike/Slinging Arrow work while in ensembles. [Skotlex]
@@ -732,7 +732,7 @@ Date	Added
 	* Fixed disconnected chars appearing as GMs on the console. [Skotlex]
 	* clif_send_sub won't try to send any data to disconnected chars now. [Skotlex]
 	  (may fix possible buffer overflow crashes)
-09/07
+2005/09/07
 	* According to the patch, enabled Butterfly wings in the Castles [Lupus]
 	* Adjusted MAX_GUILD constant according to Skotlex's changes [Lupus]
 	* Now when the castle owner guild id is loaded, and the guild is not in
@@ -753,7 +753,7 @@ Date	Added
 	* Fixed the possible crash in map_foreachinpath. [Skotlex]
 	* Removed the error message in mob_guardian_changeguild when the new guild
 	  has ID 0, the mob will just be removed instead. [Skotlex]
-09/06
+2005/09/06
 	* Changed Assumptio to target all players around target. Mobs are no longer
 	  affected. [Skotlex]
 	* Fixed battle_check_target fails on guild-mates in pvp maps. [Skotlex]
@@ -770,7 +770,7 @@ Date	Added
 	  lookups. Should greatly reduce the heavy lagging during WoE.
 	- Not properly tested (lack of resources), update at your own risk AND 
 	  PLEASE report any crashes/problems.
-09/05
+2005/09/05
 	* Fixed Endure. [Skotlex]
 	* Fixed Harmonic Lick not adding status change resistant. [Skotlex]
 	* Moved ensemble stats calculating from status_change_start to
@@ -786,7 +786,7 @@ Date	Added
 	* Fixed both trader/seller not being saved when using autotrade. [Skotlex]
 	* Added debug messages to figure out who is causing the rain of function
 	  mismatches on deleting skill_timerskill. [Skotlex]
-09/04
+2005/09/04
 	* Fixed Trade Bug (when Trade Window indication was wrong). Thanks to k3dt
 	* Now Water Ball isn't affected by RAIN mapflag anymore. Also corrected
 		caclulation of number of WB shots (was broken by a typo) [Lupus]
@@ -815,7 +815,7 @@ Date	Added
 	  effect (and everyone involved in killing it will benefit) [Skotlex]
 	* Pets now won't move while casting (unless their master is like a screen
 	  away or so) [Skotlex]
-09/03
+2005/09/03
 	* Fixed speed calc for pushcart/stalk/dancing/singing. [Skotlex]
 	* Some crash-fixes introduced by the rewritten status system. [Skotlex]
 	* Adjusted the default gvg penalty values, added gvg_flee_penalty. [Skotlex]
@@ -831,7 +831,7 @@ Date	Added
 	* battle_check_target update: added novice/low-level pk prevention on
 	  pk_mode [Skotlex]
 	* testing new SVN location [MouseJstr]
-09/01
+2005/09/01
 	* Entirely rewrote status_calc_pc and status_get_[stat] functions to have a clear code.
 	  They all use shared status_calc_[stat] functions to handle SC effects, this will avoid
 	  to have 2 almost identical codes in different places for those effects [DracoRPG]
@@ -867,7 +867,7 @@ Date	Added
 	  saved yet, it'll retry then on every call to save the character (it will
 	  prevent account variables from being lost when the char/map connection is
 	  not established)
-08/31
+2005/08/31
 	* Updated @npctalk to work as it should [Skotlex]
 	- Usage @npctalk NPC Name, Your Message Goes here
 	* Fixed Wind Walk's flee/speed bonus (as pointed out by Viccious Pucca). [Skotlex]
