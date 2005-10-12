@@ -8336,13 +8336,11 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 	sd->canmove_tick = tick + (casttime>0 && (forcecast = pc_checkskill(sd,SA_FREECAST)) > 0?0:casttime);
 
 	if (casttime > 0) {
-		{
-			sd->skilltimer = add_timer (tick + casttime, skill_castend_id, sd->bl.id, 0);
-			if (forcecast > 0)
-				status_quick_recalc_speed (sd, SA_FREECAST, forcecast, 1);
-			else
-				pc_stop_walking(sd,0);
-		}
+		sd->skilltimer = add_timer (tick + casttime, skill_castend_id, sd->bl.id, 0);
+		if (forcecast > 0)
+			status_quick_recalc_speed (sd, SA_FREECAST, forcecast, 1);
+		else
+			pc_stop_walking(sd,0);
 	} else {
 		sd->state.skillcastcancel = 0;	/* ‰r¥‚Ì–³‚¢‚à‚Ì‚ÍƒLƒƒƒ“ƒZƒ‹‚³‚ê‚È‚¢ */
 		if (skill_num != SA_CASTCANCEL)
@@ -8498,7 +8496,7 @@ int skill_use_pos (struct map_session_data *sd, int skill_x, int skill_y, int sk
 
 	sd->skilltarget	= 0;
 	sd->canact_tick = tick + casttime + 100;
-	sd->canmove_tick = tick + (casttime>0 && (skill = pc_checkskill(sd,SA_FREECAST)>0?0:casttime));
+	sd->canmove_tick = tick + (casttime>0 && (skill = pc_checkskill(sd,SA_FREECAST))>0?0:casttime);
 
 	if (casttime > 0) {
 		sd->skilltimer = add_timer(tick + casttime, skill_castend_pos, sd->bl.id, 0);

@@ -2022,10 +2022,6 @@ struct Damage battle_calc_magic_attack(
 		case WZ_FIREPILLAR:
 			flag.imdef = 1;
 			break;
-		case NPC_GRANDDARKNESS:
-		case CR_GRANDCROSS:
-			skillratio+= 40*skill_lv;
-			break;
 		case PR_TURNUNDEAD:
 		case PR_ASPERSIO:
 		case PF_SOULBURN:
@@ -2171,6 +2167,10 @@ struct Damage battle_calc_magic_attack(
 							break;
 						case HW_NAPALMVULCAN:
 							skillratio += 10*skill_lv-30;
+							break;
+						case NPC_GRANDDARKNESS:
+						case CR_GRANDCROSS:
+							skillratio+= 40*skill_lv;
 							break;
 					}
 	
