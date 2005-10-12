@@ -2,6 +2,7 @@ Date	Added
 =======
 
 10/11
+	* Fixed chars not being able to unhide. [Skotlex]
 	* Rewrote/optimized the hp updating code (both party hp and disp_hpmeter),
 	  this should lower bandwidth a bit from all the unnecessary packets that
 	  were previously being sent. [Skotlex]
