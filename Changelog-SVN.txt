@@ -2,6 +2,7 @@ Date	Added
 =======
 
 2005/10/12
+	* Fixed crash when sending the insert card packet with an invalid index. [Skotlex]
 	* Added script constant baseClass. [Skotlex]
 	- Example: if (baseClass == Job_Novice) will match on all novices and super
 	  novices. if (baseClass == Job_Swordman) will match on all Swordmen, Knights

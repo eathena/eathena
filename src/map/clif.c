@@ -5328,7 +5328,9 @@ int clif_solved_charname(struct map_session_data *sd,int char_id)
 int clif_use_card(struct map_session_data *sd,int idx)
 {
 	nullpo_retr(0, sd);
-
+	if (idx < 0 || idx >= MAX_INVENTORY) //Crash-fix from bad packets.
+		return 0;
+	
 	if(sd->inventory_data[idx]) {
 		int i,c;
 		int ep=sd->inventory_data[idx]->equip;
