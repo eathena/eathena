@@ -1,4 +1,7 @@
 Changes are Aru's unless noted.
+2005-10-13:
+	Fix to map makefile
+
 2005-10-09:
         Fixed a cart-dupe bug in char-server, and added new feature:
          set max_connect_users to a negative value to allow only GMs of

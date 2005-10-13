@@ -3762,6 +3762,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			val3 = tick/1000;
 			if(val3 < 1) val3 = 1;
 			tick = 5000;
+			if(flag&0x1000)
+				tick = 5;
 			val2 = 1;
 			break;
 		case SC_SLEEP:				/* ‡–° */

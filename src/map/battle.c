@@ -2427,21 +2427,21 @@ static struct Damage battle_calc_pc_weapon_attack(
 			}
 			if(is_boss(target)) {
 				if(!idef_flag && sd->right_weapon.def_ratio_atk_race & (1<<10)) {
-					damage = damage/2 + (damage * (def1 + def2))/100;
+					damage = (damage * (def1 + def2))/100;
 					idef_flag = 1;
 				}
 				if(!idef_flag_ && sd->left_weapon.def_ratio_atk_race & (1<<10)) {
-					damage2 = damage2/2 + (damage2 * (def1 + def2))/100;
+					damage2 = (damage2 * (def1 + def2))/100;
 					idef_flag_ = 1;
 				}
 			}
 			else {
 				if(!idef_flag && sd->right_weapon.def_ratio_atk_race & (1<<11)) {
-					damage = damage/2 + (damage * (def1 + def2))/100;
+					damage = (damage * (def1 + def2))/100;
 					idef_flag = 1;
 				}
 				if(!idef_flag_ && sd->left_weapon.def_ratio_atk_race & (1<<11)) {
-					damage2 = damage2/2 + (damage2 * (def1 + def2))/100;
+					damage2 = (damage2 * (def1 + def2))/100;
 					idef_flag_ = 1;
 				}
 			}
@@ -4643,7 +4643,7 @@ struct Damage  battle_calc_misc_attack(
 		damage = self_damage + (self_damage/10)*(skill_lv-1);
 		break;
 	case CR_ACIDDEMONSTRATION:
-		damage = status_get_int(bl)*6 + status_get_vit(target)*8;
+		damage = status_get_int(bl)*6 + status_get_vit(target)*10;
 		if(target->type == BL_PC) damage/=2;
 		break;
 	}
@@ -4796,15 +4796,20 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 		}
 		else if (flag & AS_POISONREACT && sc_data && sc_data[SC_POISONREACT].timer != -1)
 			wd = battle_calc_weapon_attack(src, target, AS_POISONREACT, sc_data[SC_POISONREACT].val1, 0);
-		else if (sc_data && sc_data[SC_SACRIFICE].timer != -1)
+		else
+			wd = battle_calc_weapon_attack(src,target,0,0,0);
+
+		if (sc_data && sc_data[SC_SACRIFICE].timer != -1)
 		{
-			wd = battle_calc_misc_attack(src, target, PA_SACRIFICE, sc_data[SC_SACRIFICE].val1, 0);
+			if(sd==NULL || (sd->status.weapon != 0 && sd->status.weapon != 11))
+			skill_castend_damage_id(src, target, PA_SACRIFICE, sc_data[SC_SACRIFICE].val1, tick, flag);
 			sc_data[SC_SACRIFICE].val2--;			
 			if(sc_data[SC_SACRIFICE].val2 < 1)
 				status_change_end(src, SC_SACRIFICE, -1);
 		}			
-		else
-			wd = battle_calc_weapon_attack(src,target,0,0,0);
+
+
+
 
 
 		if ((damage = wd.damage + wd.damage2) > 0 && src != target) {
