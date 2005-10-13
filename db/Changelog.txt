@@ -32,6 +32,10 @@
 		like gemstones when the skill is used.
 	--
 10/12
+	* Updated item_db: Added books to equipable weapons of Star Gladiator,
+	  added Staffs as equipables for Soul Linker, and added to SG the armor they
+	  can wear (boots, manteau, spiky headband and Goat helm, I think). Also made
+	  the Vesper Core accesories equippable only by advanced classes. [Skotlex]
 	* Added Reverse Orcish to skill_cast_db.txt, upkeep time is the orc curse
 	  duration. Set to 20 mins for now. [Skotlex]
 	* Fixed typo AllStat -> Allstats,  thanx 2L0wFlea_sq [Lupus]
