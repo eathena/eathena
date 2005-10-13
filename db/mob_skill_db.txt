@@ -30,6 +30,7 @@
 //	closedattacked		when melee attacked (close range attack)
 //	longrangeattacked	when long ranged attacked (like bows and far range weapons)
 //	skillused		when a skill is used on the mob
+//	afterskill		after the mob used certain skill.
 //	casttargeted		when a target is in cast range.
 //	rudeattacked		when a target is rude attacked
 //	hiding			*not implemented yet* when a target is hidden

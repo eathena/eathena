@@ -3125,7 +3125,6 @@ int mobskill_castend_id( int tid, unsigned int tick, int id,int data )
 		break;
 	}
 
-
 	return 0;
 }
 
@@ -3584,6 +3583,8 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 					flag = (mob_countslave(md) <= c2 ); break;
 				case MSC_ATTACKPCGE:	// attack pc >= num
 					flag = (battle_counttargeted(&md->bl, NULL, 0) >= c2); break;
+				case MSC_AFTERSKILL:
+					flag = (md->skillid == c2); break;
 				case MSC_SKILLUSED:		// specificated skill used
 					flag = ((event & 0xffff) == MSC_SKILLUSED && ((event >> 16) == c2 || c2 == 0)); break;
 				case MSC_RUDEATTACKED:
@@ -4122,6 +4123,7 @@ static int mob_readskilldb(void)
 		{	"closedattacked",	MSC_CLOSEDATTACKED		},
 		{	"longrangeattacked",MSC_LONGRANGEATTACKED	},
 		{	"skillused",		MSC_SKILLUSED			},
+		{	"afterskill",		MSC_AFTERSKILL			},
 		{	"casttargeted",		MSC_CASTTARGETED		},
 		{	"rudeattacked",		MSC_RUDEATTACKED		},
 		{	"masterhpltmaxrate",MSC_MASTERHPLTMAXRATE	},
