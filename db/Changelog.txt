@@ -32,6 +32,10 @@
 		like gemstones when the skill is used.
 	--
 10/12
+	* Updated defense, mode, element, speed and attack speed of some Lighthalzen mobs,
+	  per info provided ny Viccious. [Skotlex]
+	* Updated a bit the Lighthalzen mob stats using data provided by Viccious
+	  Pucca [Skotlex]
 	* Updated item_db: Added books to equipable weapons of Star Gladiator,
 	  added Staffs as equipables for Soul Linker, and added to SG the armor they
 	  can wear (boots, manteau, spiky headband and Goat helm, I think). Also made

@@ -2,6 +2,7 @@ Date	Added
 =======
 
 2005/10/13
+	* Updated sql-files/mob_db.sql to match the latest mob_db.txt [Skotlex]
 	* Updated sql-files/item_db.sql to match the latest item_db.txt. [Skotlex]
 	* Fixed stealing. Now it works like aegis one. [Lupus]
 2005/10/12
