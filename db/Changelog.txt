@@ -32,6 +32,8 @@
 		like gemstones when the skill is used.
 	--
 10/13
+	* Updated Call Partner's time to 20 secs (after which time the partner is
+	  recalled), also set the skill's unit target to 'noone'. [Skotlex]
 	* Fixed Lude card casting endure on enemies instead of self [MasterOfMuppets]
 10/12
 	* Updated defense, mode, element, speed and attack speed of some Lighthalzen mobs,

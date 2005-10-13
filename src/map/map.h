@@ -353,7 +353,7 @@ struct map_session_data {
 		unsigned produce_flag : 1;
 		unsigned storage_flag : 2; //0: closed, 1: Normal Storage open, 2: guild storage open [Skotlex]
 		unsigned snovice_flag : 4;
-		int gmaster_flag;
+		struct guild *gmaster_flag;
 		// originally by Qamera, adapted by celest
 		unsigned event_death : 1;
 		unsigned event_kill : 1;

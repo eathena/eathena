@@ -2971,7 +2971,8 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 			return 1;
 		else
 			return -1;
-	}	
+	} else if (flag == BCT_NOONE) //Why would someone use this? no clue.
+		return -1;
 	
 	if (t_bl == s_bl) //No need for further testing.
 		return (flag&BCT_SELF)?1:-1;

@@ -4905,7 +4905,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 
 	case WE_CALLPARTNER:			/* ‚ ‚È‚½‚É?‚¢‚½‚¢ */
-		if(sd && dstsd){
+		if(sd){
 			if((dstsd = pc_get_partner(sd)) == NULL){
 				clif_skill_fail(sd,skillid,0,0);
 				map_freeblock_unlock();
@@ -4917,6 +4917,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				return 0;
 			}
 			skill_unitsetting(src,skillid,skilllv,sd->bl.x,sd->bl.y,0);
+			pc_blockskill_start (sd, skillid, skill_get_time(skillid, skilllv));
 		}
 		break;
 
@@ -5403,30 +5404,29 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			int dy[9]={ 0, 0, 1,-1, 1,-1,-1, 1, 0};
 			int j = 0;
 			struct guild *g = NULL;
+			if (!sd || !sd->state.gmaster_flag)
+				break;
 			//Reports say this particular skill is usable anywhere! o.o [Skotlex]
-			if	(sd && map[sd->bl.m].flag.nowarpto) //if not allowed to warp to the map
-			{	
+			if	(map[sd->bl.m].flag.nowarpto && !map[sd->bl.m].flag.gvg)
+			{	//if not allowed to warp to the map (castles are always allowed)
 				clif_skill_fail(sd,skillid,0,0);
 				map_freeblock_unlock();
 				return 0;
 			}
 			// i don't know if it actually summons in a circle, but oh well. ;P
-			if (sd && sd->status.guild_id > 0 && (g = guild_search(sd->status.guild_id)) &&
-				strcmp(sd->status.name,g->master)==0) {
-				for(i = 0; i < g->max_member; i++, j++) {
-					if (j>8) j=0;
-					if ((dstsd = g->member[i].sd) != NULL && sd != dstsd) {
-						 if (map[dstsd->bl.m].flag.nowarp &&
-							 guild_mapname2gc(sd->mapname) == NULL)
-							 continue;
-						clif_skill_nodamage(src,bl,skillid,skilllv,1);
-						if(map_getcell(sd->bl.m,sd->bl.x+dx[j],sd->bl.y+dy[j],CELL_CHKNOPASS))
-							dx[j] = dy[j] = 0;
-						pc_setpos(dstsd, sd->mapname, sd->bl.x+dx[j], sd->bl.y+dy[j], 2);
-					}
+			g = sd->state.gmaster_flag;
+			for(i = 0; i < g->max_member; i++, j++) {
+				if (j>8) j=0;
+				if ((dstsd = g->member[i].sd) != NULL && sd != dstsd) {
+					 if (map[dstsd->bl.m].flag.nowarp && !map[dstsd->bl.m].flag.gvg)
+						 continue;
+					clif_skill_nodamage(src,bl,skillid,skilllv,1);
+					if(map_getcell(sd->bl.m,sd->bl.x+dx[j],sd->bl.y+dy[j],CELL_CHKNOPASS))
+						dx[j] = dy[j] = 0;
+					pc_setpos(dstsd, sd->mapname, sd->bl.x+dx[j], sd->bl.y+dy[j], 2);
 				}
-				pc_blockskill_start (sd, skillid, 300000);
 			}
+			pc_blockskill_start (sd, skillid, 300000);
 		}
 		break;
 
@@ -7149,13 +7149,12 @@ int skill_unit_onlimit(struct skill_unit *src,unsigned int tick)
 	case UNT_CALLPARTNER:	/* ‚ ‚È‚½‚É?‚¢‚½‚¢ */
 		{
 			struct map_session_data *sd = NULL;
-			struct map_session_data *p_sd = NULL;
 			if((sd = map_id2sd(sg->src_id)) == NULL)
 				return 0;
-			if((p_sd = pc_get_partner(sd)) == NULL)
+			if((sd = pc_get_partner(sd)) == NULL)
 				return 0;
 
-			pc_setpos(p_sd,map[src->bl.m].name,src->bl.x,src->bl.y,3);
+			pc_setpos(sd,map[src->bl.m].name,src->bl.x,src->bl.y,3);
 		}
 		break;
 	}
@@ -8122,7 +8121,7 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 		{
 			if (!sd->status.guild_id || !sd->state.gmaster_flag)
 				return 0;
-			skill_lv = guild_checkskill((struct guild*)sd->state.gmaster_flag, skill_num);
+			skill_lv = guild_checkskill(sd->state.gmaster_flag, skill_num);
 			if (skill_lv <= 0) return 0;
 		}
 		break;
@@ -10889,6 +10888,7 @@ int skill_readdb(void)
 		else if( strcmpi(split[6],"all")==0 ) skill_db[i].unit_target=BCT_ALL;
 		else if( strcmpi(split[6],"enemy")==0 ) skill_db[i].unit_target=BCT_ENEMY;
 		else if( strcmpi(split[6],"self")==0 ) skill_db[i].unit_target=BCT_SELF;
+		else if( strcmpi(split[6],"noone")==0 ) skill_db[i].unit_target=BCT_NOONE;
 		else skill_db[i].unit_target = strtol(split[6],NULL,16);
 
 		skill_db[i].unit_flag = strtol(split[7],NULL,16);

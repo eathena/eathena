@@ -2,6 +2,10 @@ Date	Added
 =======
 
 2005/10/13
+	* Updated Recall Guild to work in gvg maps even if the nowarp flag is set.
+	  [Skotlex]
+	* Updated Recall Partner to warp partner after 20 secs the thing is on the
+	  ground, skill is blocked from reusage during that time. [Skotlex]
 	* Some updates to correctly decide whether skills hit cloaking and/or
 	  hidden chars. [Skotlex]
 	* Updated skill code so that heaven's drive will hit and destroy traps
