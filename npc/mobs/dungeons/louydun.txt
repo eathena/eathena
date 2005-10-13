@@ -3,11 +3,12 @@
 //===== By: ==================================================
 //= Athena (1.0)
 //===== Current Version: =====================================
-//= 1.1
+//= 1.2
 //===== Compatible With: =====================================
 //= Any Athena Version
 //===== Additional Comments: =================================
 //= 1.1 Updated by MasterOfMuppets
+//= 1.2 Added Bacsojin and Chung E [MasterOfMuppets]
 //============================================================
 
 //lou_dun01
