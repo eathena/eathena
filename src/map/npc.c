@@ -296,8 +296,6 @@ int npc_event_export(void *key,void *data,va_list ap)
 			sprintf(buf,"%s::%s",nd->exname,lname);
 			*p=':';
 			strdb_insert(ev_db,buf,ev);
-//			if (battle_config.etc_log)
-//				printf("npc_event_export: export [%s]\n",buf);
 		}
 	}
 	return 0;
@@ -1596,7 +1594,7 @@ static int npc_parse_shop (char *w1, char *w2, char *w3, char *w4)
 			ShowWarning ("Item %s [%d] buying price (%d) is less than selling price (%d)\n",
 				id->name, id->nameid, value*75/100, id->value_sell*124/100);
 		}
-		//for logs filrers, atcommands and iteminfo script command
+		//for logs filters, atcommands and iteminfo script command
 		if (id->maxchance<=0)
 			id->maxchance = 10000; //10000 (100% drop chance)would show that the item's sold in NPC Shop
 
@@ -1620,13 +1618,7 @@ static int npc_parse_shop (char *w1, char *w2, char *w3, char *w4)
 	nd->name[NAME_LENGTH-1] = '\0';
 	nd->class_ = atoi(w4);
 	nd->speed = 200;
-/* Already initialized
-	nd->chat_id = 0;
-	nd->option = 0;
-	nd->opt1 = 0;
-	nd->opt2 = 0;
-	nd->opt3 = 0;
-*/
+	
 	nd = (struct npc_data *)aRealloc(nd,
 		sizeof(struct npc_data) + sizeof(nd->u.shop_item[0]) * pos);
 
@@ -1907,6 +1899,8 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 			struct event_data *ev = (struct event_data *)aCalloc(1, sizeof(struct event_data));
 			ev->nd = nd;
 			ev->pos = 0;
+			if (strdb_search(ev_db, nd->exname) != NULL)
+				ShowInfo("duplicate event name! %s\n", nd->exname);
 			strdb_insert(ev_db, nd->exname, ev);
 		} else
 			clif_spawnnpc(nd);
@@ -1926,7 +1920,6 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 
 		// もう使わないのでバッファ解放
 		aFree(srcbuf);
-		srcbuf = NULL;
 	} else {
 		// duplicate
 		nd->u.scr.label_list = label_dup;	// ラベルデータ共有
@@ -1948,10 +1941,7 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 				exit(1);
 			} else {
 				struct event_data *ev;
-				struct event_data *ev2;
 				char *buf;
-				// エクスポートされる
-
 				// 51 comes from: 24 for npc name + 24 for label + 2 for a "::" and 1 for EOS
 				//buf=(char *)aMalloc(51,sizeof(char));
 				// but to save some memory we alloc only the really necessary space
@@ -1960,21 +1950,17 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 
 				// search the label in ev_db;
 				// remember the label is max 50 chars + eos; see the strdb_init below
-				ev2 = (struct event_data *)strdb_search(ev_db,buf);
-				if(ev2 != NULL) {
+				ev = (struct event_data *)strdb_search(ev_db,buf);
+				if(ev != NULL) {
 					ShowError("npc_parse_script : duplicate event %s (%s)\n",buf, current_file);
-
 					// just skip the label insertion and free the alloced buffer
 					aFree(buf);
-				}
-				else
-				{	// generate the data and insert it
+				} else {	// generate the data and insert it
 					ev=(struct event_data *)aCalloc(1,sizeof(struct event_data));
 					ev->nd=nd;
 					ev->pos=pos;
 					strdb_insert(ev_db,buf,ev);
 				}
-
 			}
 		}
 	}
@@ -2558,9 +2544,8 @@ static int npc_read_indoors (void)
 
 static int ev_db_final (void *key,void *data,va_list ap)
 {
-	const char* str = (const char *)key;
 	aFree(data);
-	if (strlen(key)>2 && strstr((const char *)key,"::") != NULL)
+	if (strstr((const char *)key,"::") != NULL)
 		aFree(key);
 	return 0;
 }
@@ -2709,7 +2694,6 @@ int do_init_npc(void)
 
 	// comparing only the first 24 chars of labels that are 50 chars long isn't that nice
 	// will cause "duplicated" labels where actually no dup is...
-	//ev_db=strdb_init(24);
 	ev_db = strdb_init(51);
 	npcname_db = strdb_init(NAME_LENGTH);
 	ev_db->release = ev_release;

@@ -2120,6 +2120,7 @@ unsigned char* parse_script(unsigned char *src,int line)
 	printf("\n");
 #endif
 
+	startptr = NULL; //Clear pointer to prevent future references to a src that may be free'd. [Skotlex]
 	return (unsigned char *) script_buf;
 }
 

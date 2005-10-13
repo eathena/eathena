@@ -2,6 +2,8 @@ Date	Added
 =======
 
 2005/10/13
+	* Fixed some memory issues in script loading and the plugin loading
+	  mechanism. [Skotlex]
 	* Fixed magic attacks always doing minimum damage. [Skotlex]
 	* Fixed the crash in battle_check_attackable [Skotlex]
 	* Fixed Fireball hitting twice on the targetted mob. [Skotlex]

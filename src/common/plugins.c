@@ -166,7 +166,7 @@ Plugin *plugin_open (const char *filename)
 		plugin = plugin->next;
 	}
 
-	plugin = (Plugin *)aMallocA(sizeof(Plugin));
+	plugin = (Plugin *)aCalloc(1, sizeof(Plugin));
 	plugin->state = -1;	// not loaded
 
 	plugin->dll = DLL_OPEN(filename);
