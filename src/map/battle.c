@@ -2100,7 +2100,7 @@ struct Damage battle_calc_magic_attack(
 				matkmin = status_get_matk2(src);
 				matkmax = status_get_matk1(src);
 
-				MATK_ADD(matkmin+(matkmin>matkmax?rand()%(matkmax-matkmin+1):0));
+				MATK_ADD(matkmin+(matkmax>matkmin?rand()%(matkmax-matkmin+1):0));
 
 				if(skill_num == MG_NAPALMBEAT || skill_num == HW_NAPALMVULCAN){ // Divide MATK in case of multiple targets skill
 					if(mflag>0)
@@ -2758,9 +2758,12 @@ int battle_check_attackable(struct block_list *src, struct block_list *target)
 	option = status_get_option(src);
 	opt1 = status_get_opt1(src);
 	
-	if (((*opt1) >0 && (*opt1) != 6) || (*option)&0x2)
+	if (opt1 && (*opt1) >0 && (*opt1) != 6)
 		return 0;
-
+	
+	if (option && (*option)&0x2)
+		return 0;
+		
 	sc_data = status_get_sc_data(src);
 	tsc_data = status_get_sc_data(target);
 	

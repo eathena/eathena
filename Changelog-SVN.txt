@@ -2,6 +2,8 @@ Date	Added
 =======
 
 2005/10/13
+	* Fixed magic attacks always doing minimum damage. [Skotlex]
+	* Fixed the crash in battle_check_attackable [Skotlex]
 	* Fixed Fireball hitting twice on the targetted mob. [Skotlex]
 	* Updated Recall Guild to work in gvg maps even if the nowarp flag is set.
 	  [Skotlex]

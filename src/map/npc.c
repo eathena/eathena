@@ -1926,10 +1926,9 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 
 		// もう使わないのでバッファ解放
 		aFree(srcbuf);
+		srcbuf = NULL;
 	} else {
 		// duplicate
-//		nd->u.scr.label_list = aMallocA(sizeof(struct npc_label_list)*label_dupnum);
-//		memcpy(nd->u.scr.label_list,label_dup,sizeof(struct npc_label_list)*label_dupnum);
 		nd->u.scr.label_list = label_dup;	// ラベルデータ共有
 		nd->u.scr.label_list_num = label_dupnum;
 	}
@@ -1941,35 +1940,6 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 		int pos = nd->u.scr.label_list[i].pos;
 
 		if ((lname[0] == 'O' || lname[0] == 'o') && (lname[1] == 'N' || lname[1] == 'n')) {
-/*
-I rearrange the code so this is just for commenting; remove it if you have enough if it [Shinomori]
-			struct event_data *ev;
-			char *buf;
-			// エクスポートされる
-			ev=(struct event_data *)aCalloc(1,sizeof(struct event_data));
-why allocing 50 chars ?
-			buf=(char *)aCallocA(50,sizeof(char));
-why checking here?
-lname is identical to nd->u.scr.label_list[i].name which is only 24 chars so check for strlen should be 23
-			if (strlen(lname)>24) {
-				printf("npc_parse_script: label name error (%s) !\n", current_file);
-				exit(1);
-			}else{
-				//struct event_data *ev2;
-				ev->nd=nd;
-				ev->pos=pos;
-				sprintf(buf,"%s::%s",nd->exname,lname);
-				//ev2 = strdb_search(ev_db,buf);
-				//if(ev2 != NULL) {
-				//	printf("npc_parse_script : duplicate event %s\n",buf);
-				//	aFree(ev2);
-				//}
-you are sure reentering the same database key will overwrite the existing entry?
-				strdb_insert(ev_db,buf,ev);
-anyway instead of removing data from the db and inserting a new one
-wouldn't it be easier just not to insert the new duplicate event, it is a duplicate anyway?
-			}
-*/
 			// this check is useless here because the buffer is only 24 chars
 			// and already overwritten if this is here is reached
 			// I leave the check anyway but place it correctly to npc_convertlabel_db
@@ -2588,8 +2558,9 @@ static int npc_read_indoors (void)
 
 static int ev_db_final (void *key,void *data,va_list ap)
 {
+	const char* str = (const char *)key;
 	aFree(data);
-	if (strstr((const char *)key,"::") != NULL)
+	if (strlen(key)>2 && strstr((const char *)key,"::") != NULL)
 		aFree(key);
 	return 0;
 }
