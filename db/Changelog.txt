@@ -32,6 +32,7 @@
 		like gemstones when the skill is used.
 	--
 10/13
+	* Updated the monster skills of the lighthalzen dungeon bosses [MasterOfMuppets]
 	* Updated monsters drops [Lupus]
 	-Evil Snake Lord <- Hellfire,
 	-Inc.Samurai <- Azoth,
