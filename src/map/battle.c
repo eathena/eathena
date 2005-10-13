@@ -2758,7 +2758,7 @@ int battle_check_attackable(struct block_list *src, struct block_list *target)
 	option = status_get_option(src);
 	opt1 = status_get_opt1(src);
 	
-	if (((*opt1) >0 && (*opt1) != 6) || (*option)&2)
+	if (((*opt1) >0 && (*opt1) != 6) || (*option)&0x2)
 		return 0;
 
 	sc_data = status_get_sc_data(src);
@@ -2822,8 +2822,12 @@ int battle_check_attackable(struct block_list *src, struct block_list *target)
 int battle_check_target( struct block_list *src, struct block_list *target,int flag)
 {
 	int m,state = 0; //Initial state none
+	int strip_enemy = 1; //Flag which marks whether to remove the BCT_ENEMY status if it's also friend/ally.
 	struct block_list *s_bl= src, *t_bl= target;
-	
+
+	nullpo_retr(0, src);
+	nullpo_retr(0, target);
+
 	m = target->m;
 	if (flag&BCT_ENEMY && !map[m].flag.gvg)	//Offensive stuff can't be casted on Basilica
 	{	// Celest
@@ -2841,10 +2845,24 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 		struct skill_unit *su = (struct skill_unit *)target;
 		if (!su || !su->group)
 			return 0;
-		if (src->type == BL_SKILL) //Cannot be hit by another skill.
+		if (skill_get_inf2(su->group->skill_id)&INF2_TRAP)
+		{	//Anyone can target traps... except skills
+			if (src->type == BL_SKILL)
+			{	//Check for Heaven's Drive, which is the only skill that can hit traps.
+				struct skill_unit *ssu = (struct skill_unit *)src;
+				if (!(ssu->group && ssu->group->skill_id == WZ_HEAVENDRIVE))
+					return 0;
+			}
+			state |= BCT_ENEMY;
+			strip_enemy = 0;
+		} else if (su->group->skill_id==WZ_ICEWALL)
+		{	//Icewall can be hit by anything except skills.
+			if (src->type == BL_SKILL)
+				return 0;
+			state |= BCT_ENEMY;
+			strip_enemy = 0;
+		} else	//Excepting traps and icewall, you should not be able to target skills.
 			return 0;
-		if (!(skill_get_inf2(su->group->skill_id)&INF2_TRAP || su->group->skill_id==WZ_ICEWALL))
-			return 0; //Excepting traps and icewall, you should not be able to target skills.
 		if ((t_bl = map_id2bl(su->group->src_id)) == NULL)
 			t_bl = target; //Fallback on the trap itself, otherwise consider this a "versus caster" scenario.
 	}
@@ -2854,26 +2872,28 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 		case BL_PC:
 		{
 			struct map_session_data *sd = (struct map_session_data *)t_bl;
-			if (!sd) //This really should never happen...
-				return 0;
 			if (sd->invincible_timer != -1 || pc_isinvisible(sd))
 				return -1; //Cannot be targeted yet.
 			if (sd->monster_ignore && src->type == BL_MOB)
 				return 0; //option to have monsters ignore GMs [Valaris]
 			if (sd->special_state.killable)
+			{
 				state |= BCT_ENEMY; //Universal Victim
+				strip_enemy = 0;
+			}
 			break;
 		}
 		case BL_MOB:
 		{
 			struct mob_data *md = (struct mob_data *)t_bl;
-			if (!md)
-				return 0;
 			if (!agit_flag && md->guardian_data)
 				return 0; //Disable guardians on non-woe times.
-			if (md->state.special_mob_ai == 2) 
-				return (flag&BCT_ENEMY)?1:-1; //Mines are sort of universal enemies.
-			if (md->state.special_mob_ai && src->type == BL_MOB)
+			if (md->state.special_mob_ai == 2)
+			{	
+				flag |= BCT_ENEMY; //Mines are sort of universal enemies.
+				strip_enemy = 0;
+			}
+			else if (md->state.special_mob_ai && src->type == BL_MOB)
 				state |= BCT_ENEMY;	//Summoned creatures can target other mobs.
 			if (md->master_id && (t_bl = map_id2bl(md->master_id)) == NULL)
 				t_bl = &md->bl; //Fallback on the mob itself, otherwise consider this a "versus master" scenario.
@@ -2892,7 +2912,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 	if (src->type == BL_SKILL)
 	{
 		struct skill_unit *su = (struct skill_unit *)src;
-		if (!su || !su->group)
+		if (!su->group)
 			return 0;
 		if (su->group->src_id == target->id)
 		{
@@ -2912,10 +2932,11 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 		case BL_PC:
 		{
 			struct map_session_data *sd = (struct map_session_data *) s_bl;
-			if (!sd) //Should never happen...
-				return 0;
 			if (sd->special_state.killer)
+			{
 				state |= BCT_ENEMY; //Is on a killing rampage :O
+				strip_enemy = 0;
+			}
 			if (agit_flag && map[m].flag.gvg && !sd->status.guild_id &&
 				t_bl->type == BL_MOB && ((struct mob_data *)t_bl)->guardian_data)
 				return 0; //If you don't belong to a guild, can't target guardians/emperium.
@@ -2924,8 +2945,6 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 		case BL_MOB:
 		{
 			struct mob_data *md = (struct mob_data *)s_bl;
-			if (!md)
-				return 0;
 			if (!agit_flag && md->guardian_data)
 				return 0; //Disable guardians on non-woe times.
 			if (md->state.special_mob_ai && target->type == BL_MOB)
@@ -2937,8 +2956,6 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 		case BL_PET:
 		{
 			struct pet_data *pd = (struct pet_data *)s_bl;
-			if (!pd)
-				return 0;
 			if (pd->msd)
 				s_bl = &pd->msd->bl; //"My master's enemies are my enemies..."
 			break;
@@ -3019,7 +3036,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 	if (!state) //If not an enemy, nor a guild, nor party, nor yourself, it's neutral.
 		state = BCT_NEUTRAL;
 	//Alliance state takes precedence over enemy one.
-	else if (state&BCT_ENEMY && state&(BCT_SELF|BCT_PARTY|BCT_GUILD))
+	else if (state&BCT_ENEMY && strip_enemy && state&(BCT_SELF|BCT_PARTY|BCT_GUILD))
 		state&=~BCT_ENEMY;
 
 	return (flag&state)?1:-1;

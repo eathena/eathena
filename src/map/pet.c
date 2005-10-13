@@ -460,11 +460,9 @@ int pet_target_check(struct map_session_data *sd,struct block_list *bl,int type)
 {
 	struct pet_data *pd;
 	struct mob_data *md;
-	int rate,mode,race;
+	int rate;
 
-	nullpo_retr(0, sd);
 	pd = sd->pd;
-	nullpo_retr(0, pd);
 	md=(struct mob_data *)bl;
 	
 	Assert((pd->msd == 0) || (pd->msd->pd == pd));
@@ -476,15 +474,11 @@ int pet_target_check(struct map_session_data *sd,struct block_list *bl,int type)
 		pd->state.state == MS_DELAY)
 		return 0;
 
-	mode=pd->db->mode;
-	race=pd->db->race;
-
 	if(pd->bl.m != md->bl.m ||
-		distance(pd->bl.x,pd->bl.y,md->bl.x,md->bl.y) > 13 || md->guardian_data) // Cannot attack Guardians/Emperium
+		distance(pd->bl.x,pd->bl.y,md->bl.x,md->bl.y) > pd->db->range2 || md->guardian_data) // Cannot attack Guardians/Emperium
 		return 0;
 
-	//What is this check for? TODO: Re-check it later [Skotlex]
-	if(pd->db->mexp <= 0 && !(mode&0x20) && (md->option&0x06 && race!=4 && race!=6))
+	if (!battle_check_attackable(&pd->bl, bl))
 		return 0;
 
 	if(!type) {

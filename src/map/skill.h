@@ -144,7 +144,7 @@ int	skill_get_time( int id ,int lv );
 int	skill_get_time2( int id ,int lv );
 int	skill_get_castdef( int id );
 int	skill_get_weapontype( int id );
-int skill_get_unit_id(int id,int flag);
+int	skill_get_unit_id(int id,int flag);
 int	skill_get_inf2( int id );
 int	skill_get_maxcount( int id );
 int	skill_get_blewcount( int id ,int lv );

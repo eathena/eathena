@@ -2,6 +2,10 @@ Date	Added
 =======
 
 2005/10/13
+	* Some updates to correctly decide whether skills hit cloaking and/or
+	  hidden chars. [Skotlex]
+	* Updated skill code so that heaven's drive will hit and destroy traps
+	  (untested), also AoE skills will not trigger on hidden characters. [Skotlex]
 	* Fixed the crash on magic rod. [Skotlex]
 	* Updated Maximize Power and Cloaking to last forever (until reuse, I
 	  believe) for non-players. [Skotlex]

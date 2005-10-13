@@ -5481,7 +5481,7 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 	if(pc_isdead(sd) || (bl=map_id2bl(sd->skilltarget))==NULL ||
 		bl->prev==NULL || sd->bl.m != bl->m || 
 		(sd->skillid != ALL_RESURRECTION && status_isdead(bl)) ||
-		(&sd->bl != bl && (opt = status_get_option(bl)) && ((*opt)&0x42) && !sd->special_state.intravision) //Hiding characters cannot have skills targetted at them. [Skotlex]
+		(&sd->bl != bl && (opt = status_get_option(bl)) && ((*opt)&0x2) && !sd->special_state.intravision) //Hiding characters cannot have skills targetted at them. [Skotlex]
 		) {
 		sd->canact_tick = tick;
 		sd->canmove_tick = tick;
@@ -6436,6 +6436,7 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 	struct block_list *ss;
 	struct status_change *sc_data;
 	int type;
+	short *opt;
 
 	nullpo_retr(0, src);
 	nullpo_retr(0, bl);
@@ -6454,6 +6455,9 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 	
 	if (battle_check_target(&src->bl,bl,sg->target_flag)<=0)
 		return 0;
+	
+	if ((opt = status_get_option(bl)) && ((*opt)&0x2) && sg->skill_id != WZ_HEAVENDRIVE)
+		return 0; //Hidden characters are inmune to AoE skills except Heaven's Drive. [Skotlex]
 	
 	sc_data = status_get_sc_data(bl);
 	type = SkillStatusChangeTable[sg->skill_id];
@@ -6588,9 +6592,6 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 	nullpo_retr(0, src);
 	nullpo_retr(0, bl);
 
-	if (bl->type!=BL_PC && bl->type!=BL_MOB)
-		return 0;
-	
 	if (bl->prev==NULL || !src->alive ||
 			(bl->type==BL_PC && pc_isdead((struct map_session_data *)bl)))
 		return 0;
@@ -7173,13 +7174,19 @@ int skill_unit_ondamaged(struct skill_unit *src,struct block_list *bl,
 	nullpo_retr(0, src);
 	nullpo_retr(0, sg=src->group);
 
+	if (skill_get_inf2(sg->skill_id)&INF2_TRAP)
+	{	
+		if (bl->type == BL_SKILL)
+		{	//Ground skill hitting a trap? Only heaven's drive can do this, so kill the trap.
+			skill_delunitgroup(sg);
+		} else {	//Traps can be pushed around.
+			skill_blown(bl,&src->bl,2,1);
+			damage = 0;
+		}
+	} else
 	switch(sg->unit_id){
 	case UNT_ICEWALL:
 		src->val1-=damage;
-		break;
-	case UNT_BLASTMINE:
-	case UNT_CLAYMORETRAP:
-		skill_blown(bl,&src->bl,2,1); //‚«”ò‚Î‚µ‚Ä‚İ‚é
 		break;
 	default:
 		damage = 0;
