@@ -1,5 +1,5 @@
 #define DUMP_UNKNOWN_PACKET	1
-#define	DUMP_ALL_PACKETS	0
+#define DUMP_ALL_PACKETS	0
 
 #include <stdio.h>
 #include <ctype.h>
@@ -423,28 +423,28 @@ int clif_send (unsigned char *buf, int len, struct block_list *bl, int type) {
 		if (p) {
 			for(i=0;i<MAX_PARTY;i++){
 				if ((sd = p->member[i].sd) != NULL) {
-					if (!sd->fd || (session[sd->fd] == NULL) || (session[sd->fd]->session_data == NULL))
+					if (!sd->fd || session[sd->fd] == NULL || sd->state.auth == 0
+						|| session[sd->fd]->session_data == NULL || sd->packet_ver > MAX_PACKET_VER)
 						continue;
-					if (sd->bl.id == bl->id && (type == PARTY_WOS ||
-					    type == PARTY_SAMEMAP_WOS || type == PARTY_AREA_WOS))
+					
+					if (sd->bl.id == bl->id && (type == PARTY_WOS || type == PARTY_SAMEMAP_WOS || type == PARTY_AREA_WOS))
 						continue;
+					
 					if (type != PARTY && type != PARTY_WOS && bl->m != sd->bl.m) // マップチェック
 						continue;
+					
 					if ((type == PARTY_AREA || type == PARTY_AREA_WOS) &&
-					    (sd->bl.x < x0 || sd->bl.y < y0 ||
-					     sd->bl.x > x1 || sd->bl.y > y1))
+						(sd->bl.x < x0 || sd->bl.y < y0 || sd->bl.x > x1 || sd->bl.y > y1))
 						continue;
+					
 					if (packet_db[sd->packet_ver][RBUFW(buf,0)].len) { // packet must exist for the client version
 						memcpy(WFIFOP(sd->fd,0), buf, len);
 						WFIFOSET(sd->fd,len);
 					}
-//					if(battle_config.etc_log)
-//						printf("send party %d %d %d\n",p->party_id,i,flag)
-
 				}
 			}
 			for (i = 1; i < fd_max; i++){
-				if (session[i] && (sd = (struct map_session_data*)session[i]->session_data) != NULL && sd->state.auth) {
+				if (session[i] && (sd = (struct map_session_data*)session[i]->session_data) != NULL && sd->state.auth && sd->fd) {
 					if (sd->partyspy == p->party_id) {
 						if (sd->fd && packet_db[sd->packet_ver][RBUFW(buf,0)].len) { // packet must exist for the client version
 							memcpy(WFIFOP(sd->fd,0), buf, len);
@@ -462,14 +462,15 @@ int clif_send (unsigned char *buf, int len, struct block_list *bl, int type) {
 		}
 		break;
 
-/* New definitions for guilds [Valaris]	*/
-
+// New definitions for guilds [Valaris] - Cleaned up and reorganized by [Skotlex]
 	case GUILD_AREA:
 	case GUILD_AREA_WOS:
 		x0 = bl->x - AREA_SIZE;
 		y0 = bl->y - AREA_SIZE;
 		x1 = bl->x + AREA_SIZE;
 		y1 = bl->y + AREA_SIZE;
+	case GUILD_SAMEMAP:
+	case GUILD_SAMEMAP_WOS:
 	case GUILD:
 	case GUILD_WOS:
 		if (sd) { // guildspy [Syrus22]
@@ -482,12 +483,20 @@ int clif_send (unsigned char *buf, int len, struct block_list *bl, int type) {
 		if (g) {
 			for(i = 0; i < g->max_member; i++) {
 				if ((sd = g->member[i].sd) != NULL) {
-					if (!sd->fd || session[sd->fd] == NULL || sd->state.auth == 0 || session[sd->fd]->session_data == NULL)
+					if (!sd->fd || session[sd->fd] == NULL || sd->state.auth == 0
+						|| session[sd->fd]->session_data == NULL || sd->packet_ver > MAX_PACKET_VER)
 						continue;
-					if (type == GUILD_WOS && sd->bl.id == bl->id)
+					
+					if (sd->bl.id == bl->id && (type == GUILD_WOS || type == GUILD_SAMEMAP_WOS || type == GUILD_AREA_WOS))
 						continue;
-					if (sd->packet_ver > MAX_PACKET_VER)
+					
+					if (type != GUILD && type != GUILD_WOS && sd->bl.m != bl->m)
 						continue;
+					
+					if ((type == GUILD_AREA || type == GUILD_AREA_WOS) &&
+						(sd->bl.x < x0 || sd->bl.y < y0 || sd->bl.x > x1 || sd->bl.y > y1))
+						continue;
+
 					if (packet_db[sd->packet_ver][RBUFW(buf,0)].len) { // packet must exist for the client version
 						memcpy(WFIFOP(sd->fd,0), buf, len);
 						WFIFOSET(sd->fd,len);
@@ -495,39 +504,12 @@ int clif_send (unsigned char *buf, int len, struct block_list *bl, int type) {
 				}
 			}
 			for (i = 1; i < fd_max; i++){
-				if (session[i] && (sd = (struct map_session_data*)session[i]->session_data) != NULL && sd->state.auth) {
+				if (session[i] && (sd = (struct map_session_data*)session[i]->session_data) != NULL && sd->state.auth && sd->fd) {
 					if (sd->guildspy == g->guild_id) {
 						if (packet_db[sd->packet_ver][RBUFW(buf,0)].len) { // packet must exist for the client version
 							memcpy(WFIFOP(sd->fd,0), buf, len);
 							WFIFOSET(sd->fd,len);
 						}
-					}
-				}
-			}
-		}
-		break;
-	case GUILD_SAMEMAP:
-	case GUILD_SAMEMAP_WOS:
-		if (sd && sd->status.guild_id > 0) {
-			g = guild_search(sd->status.guild_id);
-		}
-		if (g) {
-			for(i = 0; i < g->max_member; i++) {
-				if ((sd = g->member[i].sd) != NULL) {
-					if (!sd->fd || session[sd->fd] == NULL || sd->state.auth == 0 || session[sd->fd]->session_data == NULL)
-						continue;
-					if (sd->bl.id == bl->id && (type == GUILD_WOS ||
-					    type == GUILD_SAMEMAP_WOS || type == GUILD_AREA_WOS))
-						continue;
-					if (type != GUILD && type != GUILD_WOS && bl->m != sd->bl.m) // マップチェック
-						continue;
-					if ((type == GUILD_AREA || type == GUILD_AREA_WOS) &&
-					    (sd->bl.x < x0 || sd->bl.y < y0 ||
-					     sd->bl.x > x1 || sd->bl.y > y1))
-						continue;
-					if (packet_db[sd->packet_ver][RBUFW(buf,0)].len) { // packet must exist for the client version
-						memcpy(WFIFOP(sd->fd,0), buf, len);
-						WFIFOSET(sd->fd,len);
 					}
 				}
 			}
@@ -4526,9 +4508,8 @@ int clif_skillinfo(struct map_session_data *sd,int skillid,int type,int range)
 		range = skill_get_range(id,sd->status.skill[skillid].lv);
 		if(range < 0)
 			range = status_get_range(&sd->bl) - (range + 1);
-		WFIFOW(fd,12)= range;
-	} else
-		WFIFOW(fd,12)= range;
+	}
+	WFIFOW(fd,12)= range;
 	memset(WFIFOP(fd,14),0,24);
 	inf2 = skill_get_inf2(id);
 	if(((!(inf2&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) &&

@@ -728,6 +728,8 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 	// パ?ティ??係の初期化
 	sd->party_x = -1;
 	sd->party_y = -1;
+	sd->guild_x = -1;
+	sd->guild_y = -1;
 
 	// イベント?係の初期化
 	for(i = 0; i < MAX_EVENTTIMER; i++)
@@ -868,7 +870,7 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 			fclose(fp);
 		}
 		else if(battle_config.error_log) {
-			ShowWarning("In function pc_atuhok() -> File '"CL_WHITE"%s"CL_RESET"' not found.\n", motd_txt);
+			ShowWarning("In function pc_authok() -> File '"CL_WHITE"%s"CL_RESET"' not found.\n", motd_txt);
 		}
 	}
 

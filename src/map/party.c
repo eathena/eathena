@@ -18,11 +18,11 @@
 #include "clif.h"
 #include "log.h"
 
-#define PARTY_SEND_XYHP_INVERVAL	1000	// À•W‚â‚g‚o‘—M‚ÌŠÔŠu
+#define PARTY_SEND_XY_INVERVAL	1000	// À•W‚â‚g‚o‘—M‚ÌŠÔŠu
 
 static struct dbt* party_db;
 
-int party_send_xyhp_timer(int tid,unsigned int tick,int id,int data);
+int party_send_xy_timer(int tid,unsigned int tick,int id,int data);
 /*==========================================
  * I—¹
  *------------------------------------------
@@ -41,8 +41,8 @@ void do_final_party(void)
 void do_init_party(void)
 {
 	party_db=numdb_init();
-	add_timer_func_list(party_send_xyhp_timer,"party_send_xyhp_timer");
-	add_timer_interval(gettick()+PARTY_SEND_XYHP_INVERVAL,party_send_xyhp_timer,0,0,PARTY_SEND_XYHP_INVERVAL);
+	add_timer_func_list(party_send_xy_timer,"party_send_xy_timer");
+	add_timer_interval(gettick()+PARTY_SEND_XY_INVERVAL,party_send_xy_timer,0,0,PARTY_SEND_XY_INVERVAL);
 }
 
 // ŒŸõ
@@ -518,7 +518,7 @@ int party_check_conflict(struct map_session_data *sd)
 
 
 // ˆÊ’u‚â‚g‚o’Ê’m—p
-int party_send_xyhp_timer_sub(void *key,void *data,va_list ap)
+int party_send_xy_timer_sub(void *key,void *data,va_list ap)
 {
 	struct party *p=(struct party *)data;
 	int i;
@@ -539,9 +539,9 @@ int party_send_xyhp_timer_sub(void *key,void *data,va_list ap)
 	return 0;
 }
 // ˆÊ’u‚â‚g‚o’Ê’m
-int party_send_xyhp_timer(int tid,unsigned int tick,int id,int data)
+int party_send_xy_timer(int tid,unsigned int tick,int id,int data)
 {
-	numdb_foreach(party_db,party_send_xyhp_timer_sub,tick);
+	numdb_foreach(party_db,party_send_xy_timer_sub,tick);
 	return 0;
 }
 

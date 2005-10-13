@@ -34,7 +34,7 @@ struct eventlist {
 };
 
 // ギルドのEXPキャッシュのフラッシュに関連する定数
-#define GUILD_SEND_XYHP_INVERVAL	5000	// 座標やＨＰ送信の間隔
+#define GUILD_SEND_XY_INVERVAL	5000	// 座標やＨＰ送信の間隔
 #define GUILD_PAYEXP_INVERVAL 10000	// 間隔(キャッシュの最大生存時間、ミリ秒)
 #define GUILD_PAYEXP_LIST 8192	// キャッシュの最大数
 
@@ -50,7 +50,7 @@ int guild_save_timer = -1;
 int guild_payexp_timer(int tid,unsigned int tick,int id,int data);
 int guild_gvg_eliminate_timer(int tid,unsigned int tick,int id,int data);
 int guild_save_sub(int tid,unsigned int tick,int id,int data);
-static int guild_send_xyhp_timer(int tid,unsigned int tick,int id,int data);
+static int guild_send_xy_timer(int tid,unsigned int tick,int id,int data);
 
 // ギルドスキルdbのアクセサ（今は直打ちで代用）
 // Modified for new skills [Sara]
@@ -149,9 +149,9 @@ void do_init_guild(void)
 	add_timer_func_list(guild_gvg_eliminate_timer,"guild_gvg_eliminate_timer");
 	add_timer_func_list(guild_payexp_timer,"guild_payexp_timer");
 	add_timer_func_list(guild_save_sub, "guild_save_sub");
-	add_timer_func_list(guild_send_xyhp_timer, "guild_send_xyhp_timer");
+	add_timer_func_list(guild_send_xy_timer, "guild_send_xy_timer");
 	add_timer_interval(gettick()+GUILD_PAYEXP_INVERVAL,guild_payexp_timer,0,0,GUILD_PAYEXP_INVERVAL);
-	add_timer_interval(gettick()+GUILD_SEND_XYHP_INVERVAL,guild_send_xyhp_timer,0,0,GUILD_SEND_XYHP_INVERVAL);
+	add_timer_interval(gettick()+GUILD_SEND_XY_INVERVAL,guild_send_xy_timer,0,0,GUILD_SEND_XY_INVERVAL);
 }
 
 
@@ -313,8 +313,8 @@ int guild_payexp_timer(int tid, unsigned int tick, int id, int data)
 	return 0;
 }
 
-//Taken from party_send_xyhp_timer_sub. HP is not sent yet. [Skotlex]
-int guild_send_xyhp_timer_sub(void *key,void *data,va_list ap)
+//Taken from party_send_xy_timer_sub. [Skotlex]
+int guild_send_xy_timer_sub(void *key,void *data,va_list ap)
 {
 	struct guild *g=(struct guild *)data;
 	int i;
@@ -329,21 +329,15 @@ int guild_send_xyhp_timer_sub(void *key,void *data,va_list ap)
 				sd->guild_x=sd->bl.x;
 				sd->guild_y=sd->bl.y;
 			}
-/*
-			if(sd->guild_hp!=sd->status.hp){
-				clif_guild_hp(p,sd);
-				sd->guild_hp=sd->status.hp;
-			}
-*/			
 		}
 	}
 	return 0;
 }
 
-//Code from party_send_xphp_timer [Skotlex]
-static int guild_send_xyhp_timer(int tid,unsigned int tick,int id,int data)
+//Code from party_send_xy_timer [Skotlex]
+static int guild_send_xy_timer(int tid,unsigned int tick,int id,int data)
 {
-	numdb_foreach(guild_db,guild_send_xyhp_timer_sub,tick);
+	numdb_foreach(guild_db,guild_send_xy_timer_sub,tick);
 	return 0;
 }
 
