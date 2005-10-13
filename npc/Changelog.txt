@@ -24,6 +24,7 @@ Massdriller
 Date		Added
 ======
 10/13
+	* Moved a few misplaced npcs from Einbech to Einbroch [MasterOfMuppets]
 	* Added Bacsojin and Chung E to Louyang dungeon, thanks to Tron and Dr. Evil [MasterOfMuppets]	
 10/12
 	* Added Muad-dib's Einbroch Airport, converted by Dr.Evil [Lupus]

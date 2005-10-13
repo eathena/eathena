@@ -3,13 +3,14 @@
 //===== By: ================================================== 
 //= Nexon
 //===== Current Version: ===================================== 
-//= 0.2
+//= 0.3
 //===== Compatible With: ===================================== 
 //= eAthena Revision 3000+
 //===== Description: ========================================= 
 //=
 //===== Additional Comments: ================================= 
 //= 0.2 Added some NPCs [MasterOfMuppets]
+//= 0.3 Added a few npcs by reddozen [MasterOfMuppets]
 //============================================================
 
 
@@ -46,6 +47,15 @@ einbroch.gat,162,256,5	script	Bulletin Board	858,{
 	mes "South - Weapon Shop, Factory";
 	mes "Southwest - Airport, Airship Repair";
 	mes "Shop, Laboratory";
+	close;
+}
+
+einbroch.gat,235,141,5	script	Bulletin Board	858,{
+	mes "Southwest- Airship Repair Shop,";
+	mes "Laboratory";
+	mes "Northwest- Airport";
+	mes "Northwest- Weapon Shop, Hotel, Train";
+	mes "Station";
 	close;
 }
 
@@ -311,3 +321,68 @@ s_Enviroment:
 }
 	
 einbroch.gat,252,301,3	duplicate(EinbrochTrain)	Train Station Staff	852
+
+einbroch.gat,228,121,5	script	Little Toby	855,{
+	mes "[Little Toby]";
+	mes "Excuse me...";
+	mes "But I'm lost!";
+	mes "I can't find my";
+	mes "mom or dad!";
+	next;
+	mes "[Little Toby]";
+	mes "A-am I at the airport?!";
+	mes "My parents are suposed";
+	mes "to come get me, but I still";
+	mes "haven't found them! We just";
+	mes "moved here, so i dont know";
+	mes "where anything is!";
+	next;
+	mes "[Little Toby]";
+	mes "W-wait!";
+	mes "Where are you";
+	mes "going?! Dont leave";
+	mes "me, I'm all alone...!";
+	close;
+}
+	
+einbroch.gat,229,149,3	script	Sleik	854,{
+	mes "[Sleik]";
+	mes "Surprisingly, we have";
+	mes "a Train Station that everyone";
+	mes "has been calling a victory for";
+	mes "science. I mean, shouldn't we";
+	mes "be more amazed by the airship";
+	next;
+	mes "[Sleik]";
+	mes "Now, if you want to know";
+	mes "where the train actually goes";
+	mes "I wouldn't be able to tell you.";
+	mes "After all, I never rode it. But";
+	mes "still, I guess having our own";
+	mes "Train Station is a good thing";
+	close;
+}
+
+einbroch.gat,236,191,3	script	Tan	855,{
+	mes "[Tan]";
+	mes "All the factories";
+	mes "here in Einbroch are";
+	mes "causing a serious air";
+	mes "pollution problem.";
+	next;
+	mes "[Tan]";
+	mes "I'm an Airship engineer and";
+	mes "everyday, all day long, I deal";
+	mes "with oil stains and all sorts";
+	mes "of pollutants. i'm supprised";
+	mes "I havn't gotten sick yet...";
+	next;
+	mes "[Tan]";
+	mes "Still, I try to be careful";
+	mes "when I can. Whenever I go";
+	mes "out into the city's red fog,";
+	mes "I always wear my Flu Mask.";
+	mes "If you'll be here a while,";
+	mes "you should carry one with you.";
+	close;
+}
