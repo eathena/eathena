@@ -1,16 +1,20 @@
 //===== Athena Script ========================================
 //= Thanatos Tower Warp Script
 //===== By: ==================================================
-//= Moryagorn (1.0)
+//= Bibilol & Moryagorn  (2.0)
 //===== Current Version: =====================================
-//= 1.0
+//= 2.0
 //===== Compatible With: =====================================
 //= Any Athena Version; RO Episode 10+
 //===== Description: =========================================
 //= Warp Points for Thanatos Tower
 //===== Additional Comments: =================================
 //= It's just Temp warps [Lupus]
+//= 2.0 Updated to level tha_t12.gat
 //============================================================
+
+// Affiliated Files : tha_statues.txt
+// ^^^^ it's in the custom quests
 
 //Thanatos Tower
 turbo_room.gat,99,63,0	warp	tha_t01	1,1,tha_t01.gat,149,40
@@ -31,9 +35,13 @@ tha_t06.gat,119,120,0	warp	tha_t07	1,1,tha_t07.gat,35,166
 tha_t07.gat,28,166,0	warp	tha_t06	1,1,tha_t06.gat,119,127
 tha_t07.gat,112,166,0	warp	tha_t08	1,1,tha_t08.gat,105,44
 tha_t08.gat,112,44,0	warp	tha_t07	1,1,tha_t07.gat,105,166
+tha_t08.gat,26,44,0	warp	tha_t09	1,1,tha_t09.gat,88,145
+tha_t09.gat,93,145,0	warp	tha_t08	1,1,tha_t08.gat,30,44
+tha_t10.gat,171,138,0	warp	tha_t09	1,1,tha_t09.gat,18,97
+tha_t11.gat,92,32,0	warp	tha_t10	1,1,tha_t10.gat,91,130
+tha_t12.gat,16,160,0	warp	tha_t11	1,1,tha_t11.gat,16,160
 
 //Thana_step
-tha_t08.gat,26,44,0	warp	thana_step1	1,1,thana_step.gat,186,223
 thana_step.gat,179,223,0	warp	thana_step2	1,1,tha_t08.gat,32,44
 thana_step.gat,182,166,0	warp	thana_step3	1,1,thana_step.gat,183,73
 thana_step.gat,179,73,0	warp	thana_step4	1,1,thana_step.gat,191,166
@@ -41,6 +49,7 @@ thana_step.gat,182,15,0	warp	thana_step5	1,1,thana_step.gat,76,287
 thana_step.gat,69,287,0	warp	thana_step6	1,1,thana_step.gat,189,15
 thana_step.gat,174,287,0	warp	thana_step7	1,1,thana_step.gat,75,371
 thana_step.gat,68,371,0	warp	thana_step8	1,1,thana_step.gat,167,287
+thana_step.gat,179,223,0	warp	tha_t12		1,1,tha_t12.gat,128,58
 
 //Thana_boss
 thana_step.gat,169,371,0	warp	thana_boss	1,1,thana_boss.gat,85,76

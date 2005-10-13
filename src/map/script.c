@@ -3383,9 +3383,10 @@ int buildin_checkweight(struct script_state *st)
 	amount=conv_num(st,& (st->stack->stack_data[st->start+3]));
 	if ( amount<=0 || nameid<500 ) { //if get wrong item ID or amount<=0, don't count weight of non existing items
 		push_val(st->stack,C_INT,0);
+		return 0;
 	}
 
-	sd=script_rid2sd(st);
+//	sd=script_rid2sd(st);
 	if(itemdb_weight(nameid)*amount + sd->weight > sd->max_weight){
 		push_val(st->stack,C_INT,0);
 	} else {
