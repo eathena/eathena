@@ -31,6 +31,8 @@
 		Item type: Throwing Dagger. Has to be equipped as an arrow, is consumed
 		like gemstones when the skill is used.
 	--
+10/13
+	* Fixed Lude card casting endure on enemies instead of self [MasterOfMuppets]
 10/12
 	* Updated defense, mode, element, speed and attack speed of some Lighthalzen mobs,
 	  per info provided ny Viccious. [Skotlex]

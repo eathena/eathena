@@ -1331,7 +1331,7 @@
 4190,Wraith_Card,Wraith Card,6,,10,10,,,,,,,,136,,,,,{ bonus3 bAddMonsterDropItem,12027,1,10; }
 4191,Loli_Ruri_Card,Loli Ruri Card,6,,10,10,,,,,,,,16,,,,,{ bonus4 bAutoSpellWhenHit,28,3,50,0; }
 4192,Rotar_Zairo_Card,Rotar Zairo Card,6,,10,10,,,,,,,,2,,,,,{ bonus bCritAtkRate,10; bonus2 bCriticalAddRace,RC_Fish,7; }
-4193,Lude_Card,Lude Card,6,,10,10,,,,,,,,136,,,,,{ if(BaseJob==Job_Novice||BaseJob==Job_SuperNovice) bonus3 bAutoSpellWhenHit,8,1,20; }
+4193,Lude_Card,Lude Card,6,,10,10,,,,,,,,136,,,,,{ if(BaseJob==Job_Novice||BaseJob==Job_SuperNovice) bonus4 bAutoSpellWhenHit,8,1,20,0; }
 4194,Rybio_Card,Rybio Card,6,,10,10,,,,,,,,16,,,,,{ bonus2 bAddEffWhenHit,Eff_Stan,1000+2000*(readparam(bDex)>77); }
 4195,Leaf_Cat_Card,Leaf Cat Card,6,,10,10,,,,,,,,769,,,,,{ bonus2 bSubEle,Ele_Water,10; bonus3 bAddMonsterDropItem,991,5,500; }
 4196,Marin_Card,Marin Card,6,,10,10,,,,,,,,136,,,,,{ bonus2 bAddMonsterDropItemGroup,10,500; }
