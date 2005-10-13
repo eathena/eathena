@@ -2945,9 +2945,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 					ar = 2;
 					skill_area_temp[2]=bl->x;
 					skill_area_temp[3]=bl->y;
-					/* ターゲットに攻撃を加える(スキルエフェクト表示) */
-					skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,
-							skill_area_temp[0]);
 					break;
 				case WZ_SIGHTRASHER:
 				default:

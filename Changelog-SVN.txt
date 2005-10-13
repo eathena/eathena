@@ -2,6 +2,7 @@ Date	Added
 =======
 
 2005/10/13
+	* Fixed Fireball hitting twice on the targetted mob. [Skotlex]
 	* Updated Recall Guild to work in gvg maps even if the nowarp flag is set.
 	  [Skotlex]
 	* Updated Recall Partner to warp partner after 20 secs the thing is on the
