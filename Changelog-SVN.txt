@@ -2,6 +2,8 @@ Date	Added
 =======
 
 2005/10/13
+	* Small cleanup and optimization of data saved when received member
+	  information. [Skotlex]
 	* Fixed some memory issues in script loading and the plugin loading
 	  mechanism. [Skotlex]
 	* Fixed magic attacks always doing minimum damage. [Skotlex]
