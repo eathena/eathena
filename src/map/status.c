@@ -4643,14 +4643,16 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 	switch(type){	/* 特殊な?理になる場合 */
 	case SC_MAXIMIZEPOWER:	/* マキシマイズパワ? */
 	case SC_CLOAKING:
-		if(sd){
-			if( sd->status.sp > 0 ){ /* SP切れるまで持? */
+		if(!sd || sd->status.sp > 0)
+		{
+			if (sd)
+			{
 				sd->status.sp--;
 				clif_updatestatus(sd,SP_SP);
-				sc_data[type].timer=add_timer( /* タイマ?再設定 */
-				sc_data[type].val2+tick, status_change_timer, bl->id, data);
-				return 0;
 			}
+			sc_data[type].timer=add_timer( /* タイマ?再設定 */
+			sc_data[type].val2+tick, status_change_timer, bl->id, data);
+			return 0;
 		}
 		break;
 

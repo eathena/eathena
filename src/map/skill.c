@@ -1635,12 +1635,12 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 				sp = sp/((skilllv|1)*(skilllv|1)); //さらに計算？
 			if(sp > 0x7fff) sp = 0x7fff; //SP多すぎの場合は理論最大値
 			else if(sp < 1) sp = 1; //1以下の場合は1
-			if(sd->status.sp + sp > sd->status.max_sp) { //回復SP+現在のSPがMSPより大きい場合
-				sp = sd->status.max_sp - sd->status.sp; //SPをMSP-現在SPにする
-				sd->status.sp = sd->status.max_sp; //現在のSPにMSPを代入
+			if(tsd->status.sp + sp > tsd->status.max_sp) { //回復SP+現在のSPがMSPより大きい場合
+				sp = tsd->status.max_sp - tsd->status.sp; //SPをMSP-現在SPにする
+				tsd->status.sp = tsd->status.max_sp; //現在のSPにMSPを代入
 			}
 			else //回復SP+現在のSPがMSPより小さい場合は回復SPを加算
-				sd->status.sp += sp;
+				tsd->status.sp += sp;
 			clif_heal(tsd->fd,SP_SP,sp); //SP回復エフェクトの表示
 			tsd->canact_tick = tick + skill_delayfix(bl, skill_get_delay(SA_MAGICROD,sc_data[SC_MAGICROD].val1)); //
 		}

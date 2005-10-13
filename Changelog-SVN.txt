@@ -2,6 +2,12 @@ Date	Added
 =======
 
 2005/10/13
+	* Fixed the crash on magic rod. [Skotlex]
+	* Updated Maximize Power and Cloaking to last forever (until reuse, I
+	  believe) for non-players. [Skotlex]
+	* Made Berserk end when you logout. [Skotlex]
+	* Made song/dances end when you unequip your weapon rather than on equip.
+	  [Skotlex]
 	* Fixed one bug in battle_calc_magic attack and some cleaning of it as
 	  well. [Skotlex]
 	* Updated sql-files/mob_db.sql to match the latest mob_db.txt [Skotlex]

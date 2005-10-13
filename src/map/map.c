@@ -1336,9 +1336,11 @@ int map_quit(struct map_session_data *sd) {
 		skill_stop_dancing(&sd->bl);// ダンス/演奏中?
 
 		if(sd->sc_data && sd->sc_data[SC_BERSERK].timer!=-1) //バ?サ?ク中の終了はHPを100に
+		{	//Berserk must not be saved, so it must be ended now. [Skotlex]
 			sd->status.hp = 100;
+			status_change_end(&sd->bl,SC_BERSERK,-1);
+		}
 
-//		status_change_clear(&sd->bl,1);	// ステ?タス異常を解除する
 		skill_clear_unitgroup(&sd->bl);	// スキルユニットグル?プの削除
 
 		// check if we've been authenticated [celest]

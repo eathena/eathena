@@ -6530,8 +6530,6 @@ int pc_equipitem(struct map_session_data *sd,int n,int pos)
 	if(sd->sc_count) {
 		if (sd->sc_data[SC_SIGNUMCRUCIS].timer != -1 && !battle_check_undead(7,sd->def_ele))
 			status_change_end(&sd->bl,SC_SIGNUMCRUCIS,-1);
-		if(sd->sc_data[SC_DANCING].timer!=-1 && (sd->status.weapon != 13 && sd->status.weapon !=14))
-			skill_stop_dancing(&sd->bl);
 	}
 
 	return 0;
@@ -6579,6 +6577,8 @@ int pc_unequipitem(struct map_session_data *sd,int n,int flag)
 			sd->status.weapon = sd->weapontype2;
 			pc_calcweapontype(sd);
 			clif_changelook(&sd->bl,LOOK_WEAPON,sd->status.weapon);
+			if(sd->sc_data[SC_DANCING].timer!=-1) //When unequipping, stop dancing. [Skotlex]
+				skill_stop_dancing(&sd->bl);
 		}
 		if(sd->status.inventory[n].equip & 0x0020) {
 			sd->status.shield = sd->weapontype2 = 0;
