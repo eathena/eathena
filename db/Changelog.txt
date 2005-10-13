@@ -32,6 +32,10 @@
 		like gemstones when the skill is used.
 	--
 10/13
+	* Updated monsters drops [Lupus]
+	-Evil Snake Lord <- Hellfire,
+	-Inc.Samurai <- Azoth,
+	- Garm <- MVP drop% fix
 	* Lowered ancient mimic's droprate of bloody branch to 0.01% to prevent exploits [MasterOfMuppets]
 	- Fixed Elder's drops a bit
 	* Updated Call Partner's time to 20 secs (after which time the partner is
