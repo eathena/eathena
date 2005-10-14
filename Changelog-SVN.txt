@@ -2,6 +2,9 @@ Date	Added
 =======
 
 2005/10/13
+	* Updated the main.sql file with some of the recommendations by Zoc
+	  [Skotlex]
+	- If your sc_data table works as it is, you don't have to touch it.
 	* Fixed Maxmize Power/Cloaking sending the sever to an "infinite loop" when
 	  used by mobs. [Skotlex]
 	* Some cleaning to clif_send in regards to guild-related packets. [Skotlex]

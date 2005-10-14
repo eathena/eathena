@@ -96,6 +96,7 @@ CREATE TABLE `sc_data` (
   `val2` int(11) NOT NULL default '0',
   `val3` int(11) NOT NULL default '0',
   `val4` int(11) NOT NULL default '0',
+  PRIMARY KEY  (`account_id`,`char_id`,`type`),
   CONSTRAINT `scdata_ibfk_1` FOREIGN KEY (`account_id`) REFERENCES `login` (`account_id`) ON DELETE CASCADE,
   CONSTRAINT `scdata_ibfk_2` FOREIGN KEY (`char_id`) REFERENCES `char` (`char_id`) ON DELETE CASCADE
 ) TYPE=InnoDB;
@@ -392,7 +393,7 @@ CREATE TABLE `login` (
   `state` int(11) unsigned NOT NULL default '0',
   PRIMARY KEY  (`account_id`),
   KEY `name` (`userid`)
-) TYPE=MyISAM AUTO_INCREMENT=2000000; 
+) ENGINE=InnoDB AUTO_INCREMENT=2000000; 
 
 -- added standard accounts for servers, VERY INSECURE!!!
 -- inserted into the table called login which is above
