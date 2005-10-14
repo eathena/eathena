@@ -1465,8 +1465,14 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 	{	//Check validity of current target. [Skotlex]
 		tbl = map_id2bl(md->target_id);
 		if (!tbl || tbl->m != md->bl.m || !battle_check_attackable(&md->bl, tbl))
-		//Unlock current target.
+		{	//Unlock current target.
+			if (md->state.skillstate == MSS_CHASE)
+			{	//Confused!
+				mob_stop_walking(md, 0);
+				clif_emotion(&md->bl, 1);
+			}
 			mob_unlocktarget(md, tick);
+		}
 	}
 			
 	// It checks to see it was attacked first (if active, it is target change at 25% of probability).
@@ -1635,7 +1641,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 			{	//Can't loot...
 				mob_unlocktarget (md, tick);
 				if (md->state.state == MS_WALK)
-					mob_stop_walking(md,1);
+					mob_stop_walking(md,0);
 				return 0;
 			}
 			if (dist)
@@ -1666,7 +1672,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 			if (md->state.state == MS_ATTACK)
 				return 0; //Busy attacking?
 			if (md->state.state == MS_WALK)
-				mob_stop_walking(md,1);
+				mob_stop_walking(md,0);
 
 			fitem = (struct flooritem_data *)tbl;
 			if (md->lootitem_count < LOOTITEM_SIZE) {

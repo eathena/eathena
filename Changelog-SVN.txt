@@ -2,6 +2,11 @@ Date	Added
 =======
 
 2005/10/14
+	* Rewrote the card hash implementation. Now it should work correctly for
+	  any card set on any equipped item. Supports up to 4 slots in any of the
+	  equipped items. [Skotlex]
+	* Updated the mob ai so it stops chasing right away if you
+	  hide/cloak/vanish/etc. [Skotlex]
 	* Fixed some memory issues in the db handling. Credits to End of Exam.
 	  [Skotlex]
 2005/10/13

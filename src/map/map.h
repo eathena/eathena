@@ -524,7 +524,7 @@ struct map_session_data {
 	short monster_drop_itemgroup[10];
 	int sp_loss_tick, sp_loss_rate;
 	short sp_loss_value;
-	int setitem_hash;
+	unsigned long setitem_hash; //Had to be expanded a bit because int doesn't has enough space for 10*4 bits. [Skotlex]
 	//--- end effects
 
 	short spiritball, spiritball_old;

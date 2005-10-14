@@ -8637,14 +8637,41 @@ int buildin_isequipped(struct script_state *st)
 					if (sd->inventory_data[index]->nameid == id)
 						flag = 1;
 				} else if (type == 6) {
-					// Item Hash format:
-					// 1111 1111 1111 1111 1111 1111 1111 1111
-					// [ left  ] [ right ] [ NA ] [  armor  ]
 					for (k = 0; k < sd->inventory_data[index]->slot; k++) {
+						if (sd->status.inventory[index].card[0] == 0x00ff ||
+							sd->status.inventory[index].card[0] == 0x00fe ||
+							sd->status.inventory[index].card[0] == (short)0xff00 ||
+							sd->status.inventory[index].card[k] != id)
+							continue;
+
 						// --- Calculate hash for current card ---
+						int hash = 0; //New hash system which should support up to 4 slots on any equipment. [Skotlex]
+						hash = 1<<(index*4 + k);
+						//Special considerations for items that are equipped on multi-slots
+						if (sd->inventory_data[index]->type == 5 && 
+							sd->inventory_data[index]->equip & 769)
+						{	//Headgear
+							if (sd->inventory_data[index]->equip & 1)
+								hash |= 1<<(0*4 + k);
+							if (sd->inventory_data[index]->equip & 256)
+								hash |= 1<<(8*4 + k);
+							if (sd->inventory_data[index]->equip & 512)
+								hash |= 1<<(9*4 + k);
+						}
+						else if (sd->inventory_data[index]->type == 4 && 
+							sd->inventory_data[index]->equip == 34)
+						{	//Two handed weapon
+							hash |= 1<<(1*4 + k);
+							hash |= 1<<(5*4 + k);
+						}
+						/* Previous implementation
+						// Item Hash format:
+						// 1111 1111 1111 1111 1111 1111 1111 1111
+						// [ left  ] [ right ] [ NA ] [  armor  ]
 						// Defense equipment
 						// They *usually* have only 1 slot, so we just assign 1 bit
-						int hash = 0;
+						//New hash based on equip index position and slot number. [Skotlex]
+						//Supports up to 4 slots in any of the equipment positions.
 						if (sd->inventory_data[index]->type == 5) {
 							hash = sd->inventory_data[index]->equip;
 						}
@@ -8659,6 +8686,7 @@ int buildin_isequipped(struct script_state *st)
 								hash = 0x1000000 * (int)pow(2,k);	// x slot number
 						} else
 							continue;	// slotted item not armour nor weapon? we're not going to support it
+						*/
 
 						if (sd->setitem_hash & hash)	// check if card is already used by another set
 							continue;	// this item is used, move on to next card
