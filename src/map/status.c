@@ -3347,10 +3347,9 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_MAXIMIZEPOWER:		/* マキシマイズパワ?(SPが1減る時間,val2にも) */
 			if (!(flag&4))
 			{
-				if(bl->type == BL_PC)
-					val2 = tick;
-				else
-					tick = 5000*val1;
+				if(bl->type != BL_PC)
+					tick = 5000;
+				val2 = tick;
 			}
 			break;
 		case SC_ENCPOISON:			/* エンチャントポイズン */
@@ -3736,13 +3735,11 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_CLOAKING:		/* クロ?キング */
 			if (flag&4)
 				break;
-			if(bl->type == BL_PC) {
-				calc_flag = 1; // [Celest]
-				val2 = tick;
-				val3 = type==SC_CLOAKING ? 130-val1*3 : 135-val1*5;
-			}
-			else
+			if(bl->type != BL_PC)
 				tick = 5000*val1;
+			calc_flag = 1; // [Celest]
+			val2 = tick;
+			val3 = type==SC_CLOAKING ? 130-val1*3 : 135-val1*5;
 			break;
 		case SC_SIGHT:			/* サイト/ルアフ */
 		case SC_RUWACH:
