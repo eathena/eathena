@@ -2795,7 +2795,7 @@ int battle_check_attackable(struct block_list *src, struct block_list *target)
 			struct map_session_data *sd = (struct map_session_data*) target;
 			if (pc_isinvisible(sd))
 				return 0;
-			if ((pc_ishiding(sd) || sd->state.gangsterparadise)
+			if ((pc_ishiding(sd) || pc_iscloaking(sd) || sd->state.gangsterparadise)
 				&& !(race == 4 || race == 6 || mode&0x100)
 				&& !((mode & 0x20) || sd->state.perfect_hiding)
 			)
@@ -2807,6 +2807,14 @@ int battle_check_attackable(struct block_list *src, struct block_list *target)
 	case BL_ITEM:	//Allow targetting of items to pick'em up (or in the case of mobs, to loot them).
 		//TODO: Would be nice if this could be used to judge whether the player can or not pick up the item it targets. [Skotlex]
 		return 1;
+	default:
+		//Check for hiding/cloaking opponents.
+		option = status_get_option(target);
+		if (option && ((*option)&0x6) //2 is hiding, 4 is cloaking.
+			&& !(race == 4 || race == 6 || mode&0x100)
+			&& !((mode & 0x20))
+		)
+			return 0;
 	}
 	return 1;
 }

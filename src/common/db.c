@@ -605,6 +605,34 @@ void db_foreach(struct dbt *table,int (*func)(void*,void*,va_list),...)
 
 void db_final(struct dbt *table,int (*func)(void*,void*,va_list),...)
 {
+	int i;
+	struct dbn *p;
+	va_list ap;
+		
+	va_start(ap,func);
+	//The following is End of Exam's implementation, which avoids using the lock mechanism. [Skotlex]
+	for(i=0;i<HASH_SIZE;i++){
+		while( ( p = table->ht[i] ) ) {
+			while( p->left || p->right ) {
+				p = (p->right ? p->right : p->left);
+			}
+			if( !p->parent ) {
+				table->ht[i] = NULL;
+			} else if( p->parent->left == p ) {
+				p->parent->left  = NULL;
+			} else {
+				p->parent->right = NULL;
+			}
+			if( func ) 
+				func( p->key, p->data, ap );
+#ifdef MALLOC_DBN
+			free_dbn(p);
+#else
+			aFree(p);
+#endif
+		}
+	}
+	/*
 	int i,sp;
 	struct dbn *p,*pn,*stack[64];
 	va_list ap;
@@ -646,6 +674,7 @@ void db_final(struct dbt *table,int (*func)(void*,void*,va_list),...)
 		}
 	}
 	db_free_unlock(table);
+	*/
 	aFree(table->free_list);
 	aFree(table);
 	va_end(ap);

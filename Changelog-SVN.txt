@@ -2,6 +2,8 @@ Date	Added
 =======
 
 2005/10/14
+	* Some fine tuning in battle_check_attackable. [Skotlex]
+	* Changed db_final's implementation to End of Exam's. [Skotlex]
 	* Corrected Guardian removal routines to also update/save their respective
 	  Castle data (Guardian HP and visibility) [Skotlex]
 	* Added map server setting "enable_spy", must be set to yes/on for @spy
