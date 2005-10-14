@@ -32,6 +32,9 @@
 		like gemstones when the skill is used.
 	--
 10/14
+	* Corrected mob skill name for Lighthalzen bosses (do not call
+	  NPC_CALLSLAVE 'NPC_SUMMONSLAVE' they are different things) [Skotlex]
+	* Changed Envenom's element to poison... [Skotlex]
 	* Updated Envenom: Range 3, number of hits 1. [Skotlex]
 10/13
 	* Updated the monster skills of the lighthalzen dungeon bosses [MasterOfMuppets]

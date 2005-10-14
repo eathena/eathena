@@ -6,7 +6,7 @@
 // Licensed under GPL
 // http://prometheus.fnae.net/
 //===== Current Version: =====================================
-//= 1.1
+//= 1.2
 //===== Compatible With: =====================================
 //= Any Athena
 //===== Additional Comments: =================================
@@ -48,12 +48,12 @@ lhz_dun02.gat,0,0,0,0	monster	Ygnizem	1658,1,7200000,3600000,1
 // - Bio-life Labs 3F
 //========================================================================================
 
-lhz_dun03.gat,0,0,0,0	monster	Seyren	1634,5,0,0,0
-lhz_dun03.gat,0,0,0,0	monster	Eremes	1635,5,0,0,0
-lhz_dun03.gat,0,0,0,0	monster	Harword	1636,5,0,0,0
-lhz_dun03.gat,0,0,0,0	monster	Magaleta	1637,5,0,0,0
-lhz_dun03.gat,0,0,0,0	monster	Shecil	1638,5,0,0,0
-lhz_dun03.gat,0,0,0,0	monster	Katrinn	1639,5,0,0,0
+lhz_dun03.gat,0,0,0,0	monster	Seyren	1634,15,0,0,0
+lhz_dun03.gat,0,0,0,0	monster	Eremes	1635,15,0,0,0
+lhz_dun03.gat,0,0,0,0	monster	Harword	1636,15,0,0,0
+lhz_dun03.gat,0,0,0,0	monster	Magaleta	1637,15,0,0,0
+lhz_dun03.gat,0,0,0,0	monster	Shecil	1638,15,0,0,0
+lhz_dun03.gat,0,0,0,0	monster	Katrinn	1639,15,0,0,0
 lhz_dun03.gat,0,0,0,0	monster	Sir Seyren	1646,1,7200000,3600000,1
 lhz_dun03.gat,0,0,0,0	monster	Sir Eremes	1647,1,7200000,3600000,1
 lhz_dun03.gat,0,0,0,0	monster	Sir Harword	1648,1,7200000,3600000,1

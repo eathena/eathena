@@ -24,6 +24,7 @@ Massdriller
 Date		Added
 ======
 10/14
+	* Increased mob count in lhz dun 03 as pointed out by Viccious Pucca. [Skotlex]
 	* Changed some item names to the iRO ones in a quest dialog, thanks to Komurka. [MasterOfMuppets]
 10/13
 	* Updated Thanatos Tower warps, added custom Thanatos Tower Statues quest by Bibilol & Moryagorn [Lupus]
