@@ -2665,7 +2665,6 @@ int mob_guardian_guildchange(struct block_list *bl,va_list ap)
 
 	return 1;	
 }
-
 	
 /*==========================================
  * Pick a random class for the mob

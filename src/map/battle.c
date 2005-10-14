@@ -2068,7 +2068,7 @@ struct Damage battle_calc_magic_attack(
 				break;
 			case ALL_RESURRECTION:
 			case PR_TURNUNDEAD:
-				if(target->type != BL_PC && battle_check_undead(t_race,t_ele)){
+				if(!tsd && battle_check_undead(t_race,t_ele)){
 					int hp, mhp, thres;
 					hp = status_get_hp(target);
 					mhp = status_get_max_hp(target);

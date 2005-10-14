@@ -1,6 +1,9 @@
 Date	Added
 =======
 
+2005/10/14
+	* Fixed some memory issues in the db handling. Credits to End of Exam.
+	  [Skotlex]
 2005/10/13
 	* Updated the main.sql file with some of the recommendations by Zoc
 	  [Skotlex]

@@ -511,7 +511,7 @@ void* db_erase(struct dbt *table,void* key)
 		else
 			p=p->right;
 	}
-	if(!p)
+	if(!p || p->deleted)
 		return NULL;
 	data=p->data;
 	if(table->free_lock) {
@@ -639,10 +639,11 @@ void db_final(struct dbt *table,int (*func)(void*,void*,va_list),...)
 				p->next->prev = p->prev;
 			else
 				tail = p->prev;
+			if( ! p->deleted ) // deleted db node will be freed in db_free_unlock()
 #ifdef MALLOC_DBN
-			free_dbn(p);
+				free_dbn(p);
 #else
-			aFree(p);
+				aFree(p);
 #endif
 			p=pn;
 		}

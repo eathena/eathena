@@ -208,14 +208,16 @@ static void memmgr_info(void);
 static unsigned int memmgr_usage_bytes = 0;
 
 void* _mmalloc(size_t size, const char *file, int line, const char *func ) {
+	int i;
+	struct block *block;
+	size_t size_hash;
+
 	if (((long) size) < 0) {
 	  printf("_mmalloc: %d\n", size);
 	  return 0;
 	}
-	int i;
-	struct block *block;
-	size_t size_hash = (size+BLOCK_ALIGNMENT-1) / BLOCK_ALIGNMENT;
-
+	
+	size_hash = (size+BLOCK_ALIGNMENT-1) / BLOCK_ALIGNMENT;
 	if(size == 0) {
 		return NULL;
 	}
