@@ -671,7 +671,7 @@ int map_foreachinmovearea(int (*func)(struct block_list*,va_list),int m,int x0,i
 
 	if(bl_list_count>=BL_LIST_MAX) {
 		if(battle_config.error_log)
-			ShowWarning("map_foreachinarea: block count too many!\n");
+			ShowWarning("map_foreachinmovearea: block count too many!\n");
 	}
 
 	map_freeblock_lock();	// ƒƒ‚ƒŠ‚©‚ç‚Ì‰ğ•ú‚ğ‹Ö~‚·‚é

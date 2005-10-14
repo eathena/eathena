@@ -2,6 +2,8 @@ Date	Added
 =======
 
 2005/10/14
+	* Cleaned up (or rewrote?) the Run and High Jump code to merge them better
+	  with the normal walking routines. [Skotlex]
 	* Corrected Turn Undead from ignoring element. [Skotlex]
 	* Updated Power Thrust Max & Power Thrust so that they don't stack (and
 	  only PT Max cancels PT) [Skotlex]

@@ -3956,7 +3956,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case TK_DODGE:
 	case TF_HIDING:			/* ハイディング */
 	case ST_CHASEWALK:			/* ハイディング */
-	case TK_RUN://駆け足
 		{
 			struct status_change *tsc_data = status_get_sc_data(bl);
 			int sc = SkillStatusChangeTable[skillid];
@@ -3964,14 +3963,20 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			if (tsc_data && tsc_data[sc].timer != -1)
 				status_change_end(bl, sc, -1);
 			else
-			{
 				status_change_start(bl,sc,skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
-				if(skillid == TK_RUN && skilllv>=7 && sd->weapontype1 == 0 && sd->weapontype2 == 0)
-					status_change_start(&dstsd->bl,SC_INCSTR,10,0,0,0,skill_get_time2(skillid,skilllv),0);
-			}
 		}
 		break;
-
+	case TK_RUN://駆け足
+		if (dstsd) {
+			if (dstsd->sc_data[SC_RUN].timer == -1)
+			{
+				pc_run(dstsd, skilllv, (int)dstsd->dir);
+				if(skilllv>=7 && dstsd->weapontype1 == 0 && dstsd->weapontype2 == 0)
+					status_change_start(&dstsd->bl,SC_INCSTR,10,0,0,0,skill_get_time2(skillid,skilllv),0);
+			} else
+				pc_stop_walking(dstsd, 0);
+		}
+		break;
 	case AS_CLOAKING:		/* クロ?キング */
 		{
 			struct status_change *tsc_data = status_get_sc_data(bl);
@@ -5889,14 +5894,9 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 		}
 		break;
 	case TK_HIGHJUMP:
-		if(sd){
-			int jump_distance = distance(sd->bl.x,sd->bl.y,x,y);
-			int jump_tick	  = 7500;//distance(sd->bl.x,sd->bl.y,x,y)*333;
-			int jump_lv		  = jump_distance/2+jump_distance%2;
-			//clif_skill_poseffect(src,skillid,jump_lv,x,y,jump_tick);
-			sd->dir = sd->head_dir = map_calc_dir( &sd->bl, x, y);
-			status_change_start(src,SkillStatusChangeTable[skillid],jump_lv,x,y,distance(sd->bl.x,sd->bl.y,x,y),jump_tick,0);
-		}else if( src->type==BL_MOB )//mobは手抜き
+		if (sd)
+			pc_highjump(sd, skilllv);
+		else if( src->type==BL_MOB )//mobは手抜き
 			mob_warp((struct mob_data *)src,-1,x,y,0);
 		break;
 	case AM_CANNIBALIZE:	// バイオプラント

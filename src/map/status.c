@@ -4139,23 +4139,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 	if (bl->type==BL_PC && sd->pd)
 		pet_sc_check(sd, type); //Skotlex: Pet Status Effect Healing
 
-	switch(type){
-		case SC_RUN://‹ì‚¯‘«
-			if(bl->type==BL_PC)
-			{
-				struct map_session_data * sd = (struct map_session_data *)bl;
-				pc_runtodir(sd);
-			}
-			return 0;
-
-		case SC_HIGHJUMP:
-			if(bl->type==BL_PC)
-			{
-				struct map_session_data * sd = (struct map_session_data *)bl;
-				pc_highjumptodir(sd,val4);
-			}
-			break;
-	}
 	return 0;
 }
 /*==========================================
@@ -4320,6 +4303,14 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			case SC_GUILDAURA:
 				calc_flag = 1;
 				break;
+			case SC_RUN://‹ì‚¯‘«
+			{
+				struct map_session_data *sd;
+				if (bl->type == BL_PC && (sd= (struct map_session_data *)bl) && sd->walktimer != -1)
+					pc_stop_walking(sd,0);
+				calc_flag = 1;
+				break;
+			}
 			case SC_ASPDPOTION0:		/* ?‘¬ƒ|?ƒVƒ‡ƒ“ */
 			case SC_ASPDPOTION1:
 			case SC_ASPDPOTION2:
@@ -4427,11 +4418,6 @@ int status_change_end( struct block_list* bl , int type,int tid )
 						skill_castend_damage_id(src, bl,sc_data[type].val2,sc_data[type].val1,gettick(),0 );
 					}
 				}
-				break;
-
-			case SC_RUN://‹ì‚¯‘«
-				pc_stop_walking((struct map_session_data *)bl,0);
-				calc_flag = 1;
 				break;
 
 		/* option1 */
