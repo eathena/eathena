@@ -23,6 +23,8 @@ Massdriller
 
 Date		Added
 ======
+10/14
+	* Changed some item names to the iRO ones in a quest dialog, thanks to Komurka. [MasterOfMuppets]
 10/13
 	* Updated Thanatos Tower warps, added custom Thanatos Tower Statues quest by Bibilol & Moryagorn [Lupus]
 	* Moved a few misplaced npcs from Einbech to Einbroch [MasterOfMuppets]

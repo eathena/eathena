@@ -492,9 +492,9 @@ s_Sure:
 	mes "containing this holy power if you wish. In order to make it, I will need some materials.";
 	next;
 	mes "[Boonthom]";
-	mes "^4466771 Pin Cusion^000000,";
+	mes "^4466771 Needle Packet^000000,";
 	mes "^4466771 Spool^000000,";
-	mes "^4466771 Hard Back Shell^000000 and";
+	mes "^4466771 Solid Husk^000000 and";
 	mes "^4466771 Holy Water^000000...";
 	mes "That's all I need.";
 	next;
@@ -544,9 +544,9 @@ s_NoItems:
 	mes "Did you forget what materials you need to create my object of holy power? Please listen carefully this time.";
 	next;
 	mes "[Boonthom]";
-	mes "^4466771 Pin Cusion^000000,";
+	mes "^4466771 Needle Packet^000000,";
 	mes "^4466771 Spool^000000,";
-	mes "^4466771 Hard Back Shell^000000 and";
+	mes "^4466771 Solid Husk^000000 and";
 	mes "^4466771 Holy Water^000000.";
 	next;
 	mes "[Boonthom]";
@@ -587,9 +587,9 @@ s_NoItems2:
 	mes "If you lose the holy threads, don't worry. I can make some more for you. Just gather the following items.";
 	next;
 	mes "[Boonthom]";
-	mes "^4466771 Pin Cusion^000000,";
+	mes "^4466771 Needle Packet^000000,";
 	mes "^4466771 Spool^000000,";
-	mes "^4466771 Hard Back Shell^000000 and";
+	mes "^4466771 Solid Husk^000000 and";
 	mes "^4466771 Holy Water^000000.";
 	next;
 	mes "[Boonthom]";
@@ -642,7 +642,7 @@ s_Holier:
 	mes "[Boonthom]";
 	mes "^4466772 Holy Water^000000,";
 	mes "^4466771 Yggdrasil Leaf^000000,";
-	mes "^4466772 Pin Cusion^000000 and";
+	mes "^4466772 Needle Packet^000000 and";
 	mes "^4466772 Spool^000000.";
 	next;
 	mes "[Boonthom]";
@@ -700,7 +700,7 @@ s_NEnoughItems:
 	mes "[Boonthom]";
 	mes "^4466772 Holy Water^000000,";
 	mes "^4466771 Yggdrasil Leaf^000000,";
-	mes "^4466772 Pin Cusion^000000 and";
+	mes "^4466772 Needle Packet^000000 and";
 	mes "^4466772 Spool^000000.";
 	next;
 	mes "[Boonthom]";
