@@ -413,13 +413,9 @@ int clif_send (unsigned char *buf, int len, struct block_list *bl, int type) {
 	case PARTY_WOS:			// 自分以外の全パーティーメンバに送信
 	case PARTY_SAMEMAP:		// 同じマップの全パーティーメンバに送信
 	case PARTY_SAMEMAP_WOS:	// 自分以外の同じマップの全パーティーメンバに送信
-		if (sd) {
-			if (sd->partyspy > 0) {
-				p = party_search(sd->partyspy);
-			} else if (sd->status.party_id > 0) {
-				p = party_search(sd->status.party_id);
-			}
-		}
+		if (sd && sd->status.party_id)
+			p = party_search(sd->status.party_id);
+			
 		if (p) {
 			for(i=0;i<MAX_PARTY;i++){
 				if ((sd = p->member[i].sd) != NULL) {
@@ -443,7 +439,9 @@ int clif_send (unsigned char *buf, int len, struct block_list *bl, int type) {
 					}
 				}
 			}
-			for (i = 1; i < fd_max; i++){
+			if (!enable_spy) //Skip unnecessary parsing. [Skotlex]
+				break;
+			for (i = 1; i < fd_max; i++){ // partyspy [Syrus22]
 				if (session[i] && (sd = (struct map_session_data*)session[i]->session_data) != NULL && sd->state.auth && sd->fd) {
 					if (sd->partyspy == p->party_id) {
 						if (sd->fd && packet_db[sd->packet_ver][RBUFW(buf,0)].len) { // packet must exist for the client version
@@ -473,13 +471,9 @@ int clif_send (unsigned char *buf, int len, struct block_list *bl, int type) {
 	case GUILD_SAMEMAP_WOS:
 	case GUILD:
 	case GUILD_WOS:
-		if (sd) { // guildspy [Syrus22]
-			if (sd->guildspy > 0) {
-				g = guild_search(sd->guildspy);
-			} else if (sd->status.guild_id > 0) {
-				g = guild_search(sd->status.guild_id);
-			}
-		}
+		if (sd && sd->status.guild_id)
+			g = guild_search(sd->status.guild_id);
+
 		if (g) {
 			for(i = 0; i < g->max_member; i++) {
 				if ((sd = g->member[i].sd) != NULL) {
@@ -503,7 +497,9 @@ int clif_send (unsigned char *buf, int len, struct block_list *bl, int type) {
 					}
 				}
 			}
-			for (i = 1; i < fd_max; i++){
+			if (!enable_spy) //Skip unnecessary parsing. [Skotlex]
+				break;
+			for (i = 1; i < fd_max; i++){ // guildspy [Syrus22]
 				if (session[i] && (sd = (struct map_session_data*)session[i]->session_data) != NULL && sd->state.auth && sd->fd) {
 					if (sd->guildspy == g->guild_id) {
 						if (packet_db[sd->packet_ver][RBUFW(buf,0)].len) { // packet must exist for the client version

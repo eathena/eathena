@@ -5007,9 +5007,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			if((bl->type==BL_SKILL) &&
 			   (su=(struct skill_unit *)bl) &&
 			   (su->group->src_id == src->id || map[bl->m].flag.pvp || map[bl->m].flag.gvg) &&
-			   (su->group->unit_id >= UNT_BLASTMINE && su->group->unit_id <= UNT_TALKIEBOX) &&
-			   (su->group->unit_id != UNT_VENOMDUST)){ //?‚ðŽæ‚è•Ô‚·
+				(skill_get_inf2(su->group->skill_id) & INF2_TRAP))
 				if(sd && sd->sc_data[SC_INTOABYSS].timer == -1)
+			{
 				{ //Avoid collecting traps when it does not costs to place them down. [Skotlex]
 					if(battle_config.skill_removetrap_type == 1){
 						for(i=0;i<10;i++) {
@@ -9887,7 +9887,7 @@ int skill_unit_timer_sub( struct block_list *bl, va_list ap )
 			case UNT_TALKIEBOX:
 				{
 					struct block_list *src=map_id2bl(group->src_id);
-					if(group->unit_id == 0x91 && group->val2);
+					if(group->unit_id == UNT_ANKLESNARE && group->val2);
 					else{
 						if(src && src->type==BL_PC){
 							struct item item_tmp;

@@ -2,6 +2,11 @@ Date	Added
 =======
 
 2005/10/14
+	* Added map server setting "enable_spy", must be set to yes/on for @spy
+	  commands to work. [Skotlex]
+	* Applied End of Exam's fix to the previous fix to the db. [Skotlex]
+	* Fixed spyguild/spyparty sending packets to the spied guild/party instead
+	  of your own. [Skotlex]
 	* Rewrote the card hash implementation. Now it should work correctly for
 	  any card set on any equipped item. Supports up to 4 slots in any of the
 	  equipped items. [Skotlex]

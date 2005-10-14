@@ -640,11 +640,8 @@ void db_final(struct dbt *table,int (*func)(void*,void*,va_list),...)
 			else
 				tail = p->prev;
 			if( ! p->deleted ) // deleted db node will be freed in db_free_unlock()
-#ifdef MALLOC_DBN
-				free_dbn(p);
-#else
-				aFree(p);
-#endif
+				 db_erase(table, p->key);
+
 			p=pn;
 		}
 	}

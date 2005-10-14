@@ -5644,6 +5644,11 @@ int atcommand_guildspy(
 	memset(guild_name, '\0', sizeof(guild_name));
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
 
+	if (!enable_spy)
+	{
+		clif_displaymessage(fd, "The mapserver has spy command support disabled.");
+		return -1;
+	}
 	if (!message || !*message || sscanf(message, "%23[^\n]", guild_name) < 1) {
 		clif_displaymessage(fd, "Please, enter a guild name/id (usage: @guildspy <guild_name/id>).");
 		return -1;
@@ -5682,6 +5687,12 @@ int atcommand_partyspy(
 
 	memset(party_name, '\0', sizeof(party_name));
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
+
+	if (!enable_spy)
+	{
+		clif_displaymessage(fd, "The mapserver has spy command support disabled.");
+		return -1;
+	}
 
 	if (!message || !*message || sscanf(message, "%23[^\n]", party_name) < 1) {
 		clif_displaymessage(fd, "Please, enter a party name/id (usage: @partyspy <party_name/id>).");

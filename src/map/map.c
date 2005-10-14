@@ -182,6 +182,7 @@ char help_txt[256] = "conf/help.txt";
 char wisp_server_name[NAME_LENGTH] = "Server"; // can be modified in char-server configuration file
 
 int console = 0;
+int enable_spy = 0; //To enable/disable @spy commands, which consume too much cpu time when sending packets. [Skotlex]
 
 /*==========================================
  * ëSmapéI?åvÇ≈ÇÃê⁄??ê›íË
@@ -2918,6 +2919,11 @@ int map_config_read(char *cfgName) {
 					console = 1;
 					ShowNotice("Console Commands is enabled.\n");
 				}
+			} else if (strcmpi(w1, "enable_spy") == 0) {
+				if(strcmpi(w2,"on") == 0 || strcmpi(w2,"yes") == 0 )
+					enable_spy = 1;
+				else
+					enable_spy = 0;
 			} else if (strcmpi(w1, "import") == 0) {
 				map_config_read(w2);
 			}
