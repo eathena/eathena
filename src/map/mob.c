@@ -316,8 +316,15 @@ static int mob_spawn_guardian_sub(int tid,unsigned int tick,int id,int data)
 				ShowNotice("Clearing ownership of castle %d (%s)\n", md->guardian_data->castle->castle_id, md->guardian_data->castle->castle_name);
 				guild_castledatasave(md->guardian_data->castle->castle_id, 1, 0);
 			}
-		} else
+		} else {
+			if (md->guardian_data->castle->guardian[md->guardian_data->number].visible)
+			{	//Safe removal of guardian.
+				md->guardian_data->castle->guardian[md->guardian_data->number].visible = 0;
+				guild_castledatasave(md->guardian_data->castle->castle_id, 10+md->guardian_data->number,0);
+				guild_castledatasave(md->guardian_data->castle->castle_id, 18+md->guardian_data->number,0);
+			}
 			mob_delete(md); //Remove guardian.
+		}
 		return 0;
 	}
 	md->guardian_data->emblem_id = g->emblem_id;
@@ -2650,16 +2657,25 @@ int mob_guardian_guildchange(struct block_list *bl,va_list ap)
 			md->guardian_data->guild_id = 0;
 			md->guardian_data->emblem_id = 0;
 			md->guardian_data->guild_name[0] = '\0';
+		} else {
+			if (md->guardian_data->castle->guardian[md->guardian_data->number].visible)
+			{	//Safe removal of guardian.
+				md->guardian_data->castle->guardian[md->guardian_data->number].visible = 0;
+				guild_castledatasave(md->guardian_data->castle->castle_id, 10+md->guardian_data->number,0);
+				guild_castledatasave(md->guardian_data->castle->castle_id, 18+md->guardian_data->number,0);
+			}
+			mob_delete(md); //Remove guardian.
 		}
-		else
-			mob_delete(md);
 		return 0;
 	}
 	
 	g = guild_search(md->guardian_data->castle->guild_id);
 	if (g == NULL)
-	{
+	{	//Properly remove guardian info from Castle data.
 		ShowError("mob_guardian_guildchange: New Guild (id %d) does not exists!\n", md->guardian_data->guild_id);
+		md->guardian_data->castle->guardian[md->guardian_data->number].visible = 0;
+		guild_castledatasave(md->guardian_data->castle->castle_id, 10+md->guardian_data->number,0);
+		guild_castledatasave(md->guardian_data->castle->castle_id, 18+md->guardian_data->number,0);
 		mob_delete(md);
 		return 0;
 	}

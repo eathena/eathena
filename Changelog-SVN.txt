@@ -2,6 +2,8 @@ Date	Added
 =======
 
 2005/10/14
+	* Corrected Guardian removal routines to also update/save their respective
+	  Castle data (Guardian HP and visibility) [Skotlex]
 	* Added map server setting "enable_spy", must be set to yes/on for @spy
 	  commands to work. [Skotlex]
 	* Applied End of Exam's fix to the previous fix to the db. [Skotlex]
