@@ -4967,12 +4967,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 
 	case WE_CALLBABY:
-		if(sd){
-			if((dstsd = pc_get_child(sd)) == NULL){
-				clif_skill_fail(sd,skillid,0,0);
-				map_freeblock_unlock();
-				return 0;
-			}
+		if(sd && dstsd)
+		{
 			if(map[sd->bl.m].flag.nomemo || map[sd->bl.m].flag.nowarpto || map[dstsd->bl.m].flag.nowarp){
 				clif_skill_teleportmessage(sd,1);
 				map_freeblock_unlock();
@@ -8269,11 +8265,6 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 			if (p_sd == NULL)
 				return 0;
 			target_id = p_sd->bl.id;
-		/* Peepz keep saying this skill shouldn't check range. [Skotlex]
-			//range‚ğ‚à‚¤1‰ñ?¸
-			if(!battle_check_range(&sd->bl, &p_sd->bl, skill_get_range(skill_num,skill_lv)))
-				return 0;
-		*/
 		}
 		break;
 

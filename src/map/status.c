@@ -3176,7 +3176,9 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 
 	if(type == SC_AETERNA && (sc_data[SC_STONE].timer != -1 || sc_data[SC_FREEZE].timer != -1) )
 		return 0;
-
+	if(type == SC_OVERTHRUST && sc_data[SC_MAXOVERTHRUST].timer != -1)
+		return 0; //Overthrust can't take effect if under Max Overthrust. [Skotlex]
+	
 	switch(type){
 		case SC_STONE:
 		case SC_FREEZE:
@@ -3343,6 +3345,10 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 				if(pc_checkskill(sd,BS_HILTBINDING)>0)
 					tick += tick / 10;
 			*opt3 |= 2;
+			break;
+		case SC_MAXOVERTHRUST: //Cancels Normal Overthrust. [Skotlex]
+			if (sc_data[SC_OVERTHRUST].timer != -1)
+				status_change_end(bl, SC_OVERTHRUST, -1);
 			break;
 		case SC_MAXIMIZEPOWER:		/* マキシマイズパワ?(SPが1減る時間,val2にも) */
 			if (!(flag&4))
@@ -4017,7 +4023,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_FOGWALL:
 		case SC_PRESERVE:
 		case SC_DOUBLECAST:
-		case SC_MAXOVERTHRUST:
 		case SC_AURABLADE:		/* オ?ラブレ?ド */
 		case SC_BABY:
 		case SC_WATK_ELEMENT:

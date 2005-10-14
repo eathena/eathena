@@ -2021,7 +2021,6 @@ struct Damage battle_calc_magic_attack(
 		case WZ_FIREPILLAR:
 			flag.imdef = 1;
 			break;
-		case PR_TURNUNDEAD:
 		case PR_ASPERSIO:
 		case PF_SOULBURN:
 		case HW_GRAVITATION:
@@ -2029,6 +2028,10 @@ struct Damage battle_calc_magic_attack(
 		case ASC_BREAKER:
 			flag.elefix = 0;
 			flag.cardfix = 0;
+			break;
+		case PR_TURNUNDEAD:
+			flag.cardfix = 0;
+			flag.imdef = 1;
 			break;
 	}
 
