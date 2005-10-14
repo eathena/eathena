@@ -83,25 +83,6 @@ CREATE TABLE `char` (
 ) TYPE=InnoDB AUTO_INCREMENT=150000; 
 
 --
--- Table structure for table `sc_data`
---
-
-DROP TABLE IF EXISTS `sc_data`;
-CREATE TABLE `sc_data` (
-  `account_id` int(11) unsigned NOT NULL,
-  `char_id` int(11) unsigned NOT NULL,
-  `type` smallint(11) unsigned NOT NULL,
-  `tick` int(11) NOT NULL,
-  `val1` int(11) NOT NULL default '0',
-  `val2` int(11) NOT NULL default '0',
-  `val3` int(11) NOT NULL default '0',
-  `val4` int(11) NOT NULL default '0',
-  PRIMARY KEY  (`account_id`,`char_id`,`type`),
-  CONSTRAINT `scdata_ibfk_1` FOREIGN KEY (`account_id`) REFERENCES `login` (`account_id`) ON DELETE CASCADE,
-  CONSTRAINT `scdata_ibfk_2` FOREIGN KEY (`char_id`) REFERENCES `char` (`char_id`) ON DELETE CASCADE
-) TYPE=InnoDB;
-
---
 -- Table structure for table `charlog`
 --
 
@@ -413,6 +394,25 @@ INSERT INTO `login` (`account_id`, `userid`, `user_pass`, `sex`, `email`) VALUES
 INSERT INTO `login` (`account_id`, `userid`, `user_pass`, `sex`, `email`) VALUES ('13', 's13', 'p13', 'S','athena@athena.com');
 INSERT INTO `login` (`account_id`, `userid`, `user_pass`, `sex`, `email`) VALUES ('14', 's14', 'p14', 'S','athena@athena.com');
 INSERT INTO `login` (`account_id`, `userid`, `user_pass`, `sex`, `email`) VALUES ('15', 's15', 'p15', 'S','athena@athena.com');
+
+--
+-- Table structure for table `sc_data`
+--
+
+DROP TABLE IF EXISTS `sc_data`;
+CREATE TABLE `sc_data` (
+  `account_id` int(11) unsigned NOT NULL,
+  `char_id` int(11) unsigned NOT NULL,
+  `type` smallint(11) unsigned NOT NULL,
+  `tick` int(11) NOT NULL,
+  `val1` int(11) NOT NULL default '0',
+  `val2` int(11) NOT NULL default '0',
+  `val3` int(11) NOT NULL default '0',
+  `val4` int(11) NOT NULL default '0',
+  PRIMARY KEY  (`account_id`,`char_id`,`type`),
+  CONSTRAINT `scdata_ibfk_1` FOREIGN KEY (`account_id`) REFERENCES `login` (`account_id`) ON DELETE CASCADE,
+  CONSTRAINT `scdata_ibfk_2` FOREIGN KEY (`char_id`) REFERENCES `char` (`char_id`) ON DELETE CASCADE
+) TYPE=InnoDB;
 
 --
 -- Table structure for table `login_error`
