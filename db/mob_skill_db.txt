@@ -2610,14 +2610,17 @@
 1638,SHECIL@AC_CHARGEARROW,attack,148,1,500,0,5000,yes,target,always,0,,,,,,
 
 1639,KATRINN@HW_GRAVITATION,attack,484,10,500,1000,5000,yes,target,always,0,,,,,,
-1639,KATRINN@MG_FROSTDIVER,chase,15,10,500,1000,5000,yes,target,always,0,,,,,,
-1639,KATRINN@WZ_JUPITEL,attack,84,3,500,1500,5000,yes,target,afterskill,15,,,,,,6
-1639,KATRINN@WZ_JUPITEL,chase,84,3,500,1500,5000,yes,target,afterskill,15,,,,,,6
+1639,KATRINN@MG_FROSTDIVER,attack,15,10,1000,1000,5000,yes,target,always,0,,,,,,
+1639,KATRINN@MG_FROSTDIVER,chase,15,10,2500,1000,5000,yes,target,always,0,,,,,,
+1639,KATRINN@WZ_JUPITEL,attack,84,20,10000,1500,5000,yes,target,afterskill,15,,,,,,6
+1639,KATRINN@WZ_JUPITEL,chase,84,20,10000,1500,5000,yes,target,afterskill,15,,,,,,6
+1639,KATRINN@WZ_THUNDERSTORM,attack,21,15,10000,1500,5000,yes,target,afterskill,84,,,,,,
+1639,KATRINN@WZ_THUNDERSTORM,chase,21,15,10000,1500,5000,yes,target,afterskill,84,,,,,,
 1639,KATRINN@MG_COLDBOLT,attack,14,3,500,1500,5000,yes,target,always,0,,,,,,
 1639,KATRINN@MG_COLDBOLT,chase,14,3,500,1500,5000,yes,target,always,0,,,,,,
 1639,KATRINN@MG_SIGHT,chase,10,1,2000,0,5000,yes,self,always,0,,,,,,
 1639,KATRINN@MG_SAFETYWALL,attack,12,5,1000,1000,5000,no,self,always,0,,,,,,18
-1639,KATRINN@WZ_QUAGMIRE,chase,92,5,2000,0,5000,no,target,always,0,,,,,,
+1639,KATRINN@WZ_QUAGMIRE,chase,92,5,2000,0,30000,no,target,always,0,,,,,,
 1639,KATRINN@WZ_SIGHTRASHER,attack,81,7,1000,1000,5000,no,target,always,0,,,,,,´
 
 1640,G_SEYREN@NPC_FIREATTACK,attack,186,3,500,500,5000,no,target,always,0,,,,,,

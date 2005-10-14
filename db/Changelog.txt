@@ -32,6 +32,8 @@
 		like gemstones when the skill is used.
 	--
 10/14
+	* Some changes to Katrinn's mobskills as pointed out by Viccious and
+	  Lonyaph, also changed her mode to aggressive + assist. [Skotlex]
 	* Updated Gravitation's range to 8. [Skotlex]
 	* Corrected mob skill name for Lighthalzen bosses (do not call
 	  NPC_CALLSLAVE 'NPC_SUMMONSLAVE' they are different things) [Skotlex]
