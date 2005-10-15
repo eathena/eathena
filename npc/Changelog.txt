@@ -23,6 +23,8 @@ Massdriller
 
 Date		Added
 ======
+10/15
+	* Added in lighthalzen guards quest. Not implemented until the entire quest has been finished. [Nexon]
 10/14
 	* Increased mob count in lhz dun 03 as pointed out by Viccious Pucca. [Skotlex]
 	* Changed some item names to the iRO ones in a quest dialog, thanks to Komurka. [MasterOfMuppets]

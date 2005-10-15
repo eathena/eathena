@@ -31,6 +31,8 @@
 		Item type: Throwing Dagger. Has to be equipped as an arrow, is consumed
 		like gemstones when the skill is used.
 	--
+10/15
+	* Fixed 2 mobs having wrong stats. [Nexon]
 10/14
 	* Some changes to Katrinn's mobskills as pointed out by Viccious and
 	  Lonyaph, also changed her mode to aggressive + assist. [Skotlex]

@@ -1,0 +1,77 @@
+//===== eAthena Script ======================================= 
+//= Some Quests Gathered Together
+//===== By: ================================================== 
+//= Persian, translated by Vicious_Pucca
+//===== Current Version: ===================================== 
+//= 0.3
+//===== Compatible With: ===================================== 
+//= eAthena SVN
+//===== Description: ========================================= 
+//= Quest for the entrance card for Biolab
+//===== Additional Comments: ================================= 
+//= Grammar/script check please. This was a quick job.
+//= Things to add: Look at the thread "Lighthalzen Guard" in SVN script
+//============================================================ 
+
+
+lighthalzen.gat,267,200,3 script Security Guard 868,{
+
+if (countitem(7350)==1) goto Lhzpass;
+set @LhzTalk,rand(1,10);
+if (@LhzTalk  < 3 ) goto LhzTalk1;
+
+mes "[Guard]";
+mes "Hey! Where do you think you are going?";
+mes "I can not send nobody to the slum district!";
+mes "If we let suspecious people like you pass,";
+mes "there is no point in piece keeping!";
+close;
+
+LhzTalk1:
+mes "-Looks like the guard is doing something else";
+mes "Now is a good time to sneak by.-";
+next;
+warp "lighthalzen.gat",297,227;
+end;
+
+Lhzpass:
+mes "[Guard]";
+mes "Who are you! ...Hmm? You have a pass?";
+mes "I'm sorry. You look like an adventurer,";
+mes "but I guess you got the authority.";
+mes "You may pass.";
+close2;
+warp "lighthalzen.gat",297,227;
+end;
+}
+
+lighthalzen.gat,294,223,7 script Security Guard 868,{
+
+if (countitem(7350)==1) goto Lhzpass1;
+set @LhzTalk,rand(1,10);
+if (@LhzTalk  < 3 ) goto LhzTalk1;
+
+mes "[Guard]";
+mes "Hey! Where do you think you are going?";
+mes "Suspecious people like trying to pass this gate...";
+mes "No way in hell!";
+mes "I can let people from slum in there!";
+close;
+
+LhzTalk1:
+mes "-Looks like the guard is doing something else";
+mes "Now is a good time to sneak by.-";
+next;
+warp "lighthalzen.gat",264,200;
+end;
+
+Lhzpass1:
+mes "[Guard]";
+mes "Who are you! ...Hmm? You have a pass?";
+mes "I'm sorry. You look like an adventurer,";
+mes "but I guess you got the authority.";
+mes "You may pass.";
+close2;
+warp "lighthalzen.gat",264,200;
+end;
+}
