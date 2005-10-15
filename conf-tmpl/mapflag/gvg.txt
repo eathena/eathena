@@ -11,11 +11,11 @@
 //============================================================
 
 // GvG Arenas =============
-guild_vs1.gat	mapflag	gvg
-guild_vs2.gat	mapflag	gvg
-guild_vs3.gat	mapflag	gvg
-guild_vs4.gat	mapflag	gvg
-guild_vs5.gat	mapflag	gvg
+guild_vs1.gat	mapflag	gvg_dungeon
+guild_vs2.gat	mapflag	gvg_dungeon
+guild_vs3.gat	mapflag	gvg_dungeon
+guild_vs4.gat	mapflag	gvg_dungeon
+guild_vs5.gat	mapflag	gvg_dungeon
 
 // Guild Castles ==========
 aldeg_cas01.gat	mapflag	gvg
