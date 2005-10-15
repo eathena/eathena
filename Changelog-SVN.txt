@@ -2,6 +2,7 @@ Date	Added
 =======
 
 2005/10/14
+	* Fixed perfect hiding. [Skotlex]
 	* Cleaned up (or rewrote?) the Run and High Jump code to merge them better
 	  with the normal walking routines. [Skotlex]
 	* Corrected Turn Undead from ignoring element. [Skotlex]

@@ -2798,10 +2798,9 @@ int battle_check_attackable(struct block_list *src, struct block_list *target)
 			struct map_session_data *sd = (struct map_session_data*) target;
 			if (pc_isinvisible(sd))
 				return 0;
-			if ((pc_ishiding(sd) || pc_iscloaking(sd) || sd->state.gangsterparadise)
-				&& !(race == 4 || race == 6 || mode&0x100)
-				&& !((mode & 0x20) || sd->state.perfect_hiding)
-			)
+			if ((pc_ishiding(sd) || sd->state.gangsterparadise)
+				&& (sd->state.perfect_hiding || !(race == 4 || race == 6 || mode&0x100))
+				&& !(mode & 0x20))
 				return 0;
 		}
 		break;
