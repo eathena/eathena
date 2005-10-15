@@ -14,7 +14,7 @@
 //============================================================ 
 
 
-lighthalzen.gat,267,200,3 script Security Guard 868,{
+lighthalzen.gat,267,200,3	script	Security Guard	868,{
 
 if (countitem(7350)==1) goto Lhzpass;
 set @LhzTalk,rand(1,10);
@@ -45,7 +45,7 @@ warp "lighthalzen.gat",297,227;
 end;
 }
 
-lighthalzen.gat,294,223,7 script Security Guard 868,{
+lighthalzen.gat,294,223,7	script	Security Guard	868,{
 
 if (countitem(7350)==1) goto Lhzpass1;
 set @LhzTalk,rand(1,10);
