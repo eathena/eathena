@@ -260,10 +260,14 @@ tha_t01.gat	mapflag	nomemo
 tha_t02.gat	mapflag	nomemo
 tha_t03.gat	mapflag	nomemo
 tha_t04.gat	mapflag	nomemo
-tha_t07.gat	mapflag	nomemo
 tha_t05.gat	mapflag	nomemo
 tha_t06.gat	mapflag	nomemo
+tha_t07.gat	mapflag	nomemo
 tha_t08.gat	mapflag	nomemo
+tha_t09.gat	mapflag	nomemo
+tha_t10.gat	mapflag	nomemo
+tha_t11.gat	mapflag	nomemo
+tha_t12.gat	mapflag	nomemo
 thana_step.gat	mapflag	nomemo
 // Abyss Lake Dungeon --------
 abyss_01.gat	mapflag	nomemo
