@@ -2,6 +2,7 @@ Date	Added
 =======
 
 2005/10/16
+	* Fixed wrong calculation of items max drop chance (when using MySQL MOB DB) [Lupus]
 	* Added nomemo mapflag to more levels of Thanatos Tower, thx2Justin84 [Lupus]
 2005/10/14
 	* Updated the gvg_dungeon mapflag to mean "guild versus guild regardless of

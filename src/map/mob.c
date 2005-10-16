@@ -3982,7 +3982,7 @@ static int mob_readdb(void)
 				//calculate and store Max available drop chance of the MVP item
 				id = itemdb_search(mob_db_data[class_]->mvpitem[i].nameid);
 				if (mob_db_data[class_]->mvpitem[i].p) {
-					if (id->maxchance==10000 || (id->maxchance < mob_db_data[class_]->mvpitem[i].p) ) {
+					if (id->maxchance==10000 || (id->maxchance < mob_db_data[class_]->mvpitem[i].p/10+1) ) {
 					//item has bigger drop chance or sold in shops
 						id->maxchance = mob_db_data[class_]->mvpitem[i].p/10+1; //reduce MVP drop info to not spoil common drop rate
 					}			
@@ -4499,7 +4499,7 @@ static int mob_read_sqldb(void)
 					//calculate and store Max available drop chance of the MVP item
 					id = itemdb_search(mob_db_data[class_]->mvpitem[i].nameid);
 					if (mob_db_data[class_]->mvpitem[i].p) {
-						if (id->maxchance==10000 || (id->maxchance < mob_db_data[class_]->mvpitem[i].p) ) {
+						if (id->maxchance==10000 || (id->maxchance < mob_db_data[class_]->mvpitem[i].p/10+1) ) {
 						//item has bigger drop chance or sold in shops
 							id->maxchance = mob_db_data[class_]->mvpitem[i].p/10+1; //reduce MVP drop info to not spoil common drop rate
 						}			
