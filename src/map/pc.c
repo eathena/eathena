@@ -1481,8 +1481,10 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 		}
 		break;
 	case SP_LONG_ATK_RATE:
-		if(sd->state.lr_flag != 2 && sd->long_attack_atk_rate < val)
-			sd->long_attack_atk_rate = val;
+		//if(sd->state.lr_flag != 2 && sd->long_attack_atk_rate < val)
+		//	sd->long_attack_atk_rate = val;
+		if(sd->state.lr_flag != 2)	//[Lupus] it should stack, too. As any other cards rate bonuses
+			sd->long_attack_atk_rate+=val;
 		break;
 	case SP_BREAK_WEAPON_RATE:
 		if(sd->state.lr_flag != 2)

@@ -1,6 +1,10 @@
 Date	Added
 =======
 
+2005/10/17
+	* Fixed not stacking Long Attack Rate bonuses [Lupus]
+	- Bow Thimble +3%, Archer Skeleton Card +10%, Merman Card(when CARDS COMBO) +20%
+	- We should get rid of that +-15% ranged damage varianc (it doesn't cure "stoprate bug" anyways)
 2005/10/16
 	* Fixed wrong calculation of items max drop chance (when using MySQL MOB DB) [Lupus]
 	* Added nomemo mapflag to more levels of Thanatos Tower, thx2Justin84 [Lupus]
