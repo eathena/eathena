@@ -2,6 +2,8 @@ Date	Added
 =======
 
 2005/10/17
+	* Cleaned up and fixed isequipped script commands, it should be working
+	  correctly now (tested with the Assassin combo) [Skotlex]
 	* Fixed not stacking Long Attack Rate bonuses [Lupus]
 	- Bow Thimble +3%, Archer Skeleton Card +10%, Merman Card(when CARDS COMBO) +20%
 	- We should get rid of that +-15% ranged damage varianc (it doesn't cure "stoprate bug" anyways)
