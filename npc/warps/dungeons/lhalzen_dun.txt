@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= Sara-chan (1.0)
 //===== Current Version: =====================================
-//= 1.5
+//= 1.5a
 //===== Compatible With: =====================================
 //= Any Athena Version; RO Episode 8+
 //===== Description: =========================================
@@ -16,7 +16,7 @@
 //= 1.3 Fixed entrance condition check, thanx2Daegaladh [Lupus]
 //= 1.4 Added coords of secret dungeon entrance, thanks to Justin84
 //= proved with screenshots [Lupus]
-//= 1.5 thx2 Justin84, some additions and fixes [Lupus]
+//= 1.5a thx2 Justin84, some additions and fixes [Lupus]
 //============================================================
 
 lhz_dun03.gat,140,139,0	warp	lhz003	1,1,lhz_dun02.gat,150,147
@@ -32,10 +32,10 @@ lhz_dun01.gat,148,10,0	warp	lhz006a	1,1,lhz_dun02.gat,150,18
 //lighthalzen.gat,73,52,0 warp lhz007a 1,1,lhz_dun01.gat,150,288
 
 //official secret lighthalzen dungeon (coords might be wrong)
-lhz_dun01.gat,150,290,0	warp	lhz007	1,1,lighthalzen.gat,363,309
-//lighthalzen.gat,366,309,0	warp	lhz007a	1,1,lhz_dun01.gat,150,288
+lhz_dun01.gat,150,290,0	warp	lhz007	1,1,lighthalzen.gat,364,314
+//lighthalzen.gat,367,315,0	warp	lhz007a	1,1,lhz_dun01.gat,150,288
 
-lighthalzen.gat,367,314,0	script	???????	111,{
+lighthalzen.gat,367,315,0	script	???????	111,{
 OnTouch:
 	mes "[???????]";
 	mes ".............";
