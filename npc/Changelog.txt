@@ -24,6 +24,7 @@ Massdriller
 Date		Added
 ======
 10/16
+	* Fixed Thanatos Tower Statues quest bug, thanx 2 Dr.Evil for info [Lupus]
 	* Enabled lighthalzen guards quest, updated lighthalzen warps, thx2Justin84 [Lupus]
 10/15
 	* Added in lighthalzen guards quest. Not implemented until the entire quest has been finished. [Nexon]

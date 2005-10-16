@@ -18,7 +18,7 @@
 tha_t08.gat,69,106,4	script	Statue	111,{
 
 	mes "You can read on the back of the statue:";
-	mes "" By the spirit of olds, the walls are closed";
+	mes " By the spirit of olds, the walls are closed";
 	mes "Upper floors or foreign taboo";
 	mes "By the order of the Statues you will find the way";
 	mes "Which perhaps a day will bring you to me.";
