@@ -2,6 +2,8 @@ Date	Added
 =======
 
 2005/10/17
+	* Now Atk/Matk potions duration don't get automatically multiplied by 1000,
+	  duration must be specified in ms in the scripts. [Skotlex]
 	* Made all mobs with no guild belong to the same guild, this should prevent
 	  mobs from attacking each other on WoE. [Skotlex]
 	* Fixed Into the Abyss + retrieving traps related exploits. [Skotlex]

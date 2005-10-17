@@ -3566,10 +3566,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_ASPDPOTION3:
 			calc_flag = 1;
 			if (!(flag&4))
-			{
-				tick = 1000 * tick;
 				val2 = 5*(2+type-SC_ASPDPOTION0);
-			}			
+
 			// Since people complain so much about the various icons showing up, here we disable the visual of any other potions [Skotlex] 
 			if (sc_data[SC_ASPDPOTION0].timer != -1)
 				clif_status_change(bl,SC_ASPDPOTION0,0);
@@ -3587,8 +3585,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_ATKPOTION: // Valaris
 		case SC_MATKPOTION:
 			calc_flag = 1;
-			if (!(flag&4))
-				tick = 1000 * tick;
 			break;
 		case SC_WEDDING:	//åãç•óp(åãç•àﬂè÷Ç…Ç»Ç¡Çƒ?Ç≠ÇÃÇ™?Ç¢Ç∆Ç©)
 			{

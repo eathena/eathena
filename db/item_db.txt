@@ -139,9 +139,9 @@
 643,Pet_Incubator,Pet Incubator,2,3000,,30,,,,,127918079,7,2,,,,,,{ bpet; }
 644,Gift_Box,Gift Box,2,2,,200,,,,,127918079,7,2,,,,,,{ getitem -4,1; }
 // ASPD Potions
-645,Concentration_Potion,Concentration Potion,2,800,,100,,,,,127918079,7,2,,,,,,{ sc_start SC_SpeedPot0,1800,0; }
-656,Awakening_Potion,Awakening Potion,2,1500,,150,,,,,126344943,7,2,,,40,,,{ sc_end SC_Sleep; sc_start SC_SpeedPot1,1800,0; }
-657,Berserk_Potion,Berserk Potion,2,3000,,200,,,,,411302,7,2,,,85,,,{ sc_start SC_SpeedPot2,1800,0; }
+645,Concentration_Potion,Concentration Potion,2,800,,100,,,,,127918079,7,2,,,,,,{ sc_start SC_SpeedPot0,1800000,0; }
+656,Awakening_Potion,Awakening Potion,2,1500,,150,,,,,126344943,7,2,,,40,,,{ sc_end SC_Sleep; sc_start SC_SpeedPot1,1800000,0; }
+657,Berserk_Potion,Berserk Potion,2,3000,,200,,,,,411302,7,2,,,85,,,{ sc_start SC_SpeedPot2,1800000,0; }
 658,Tribal_Solidarity,Tribal Solidarity,2,1000,,500,,,,,127918079,7,2,,,,,,{ guildgetexp rand(1,10000); }
 // New Pet Tames
 659,Her_Heart,Her Heart,11,500,,50,,,,,127918079,7,2,,,,,,{ pet 1188; }
@@ -165,14 +165,14 @@
 675,Silver_Coin,Silver Coin,2,,10,40,,,,,127918079,7,3,,,,,,{}
 676,Silver_Coin_Pouch,Bag of Silver Coins,2,,10,400,,,,,127918079,7,3,,,,,,{}
 677,Platinum_Coin,Platinum Coin,2,,10,40,,,,,127918079,7,3,,,,,,{}
-678,Deadly_Poison_Bottle,Poison Bottle,2,5000,,100,,,,,127918079,7,2,,,,,,{ if(Class!=4013) goto Not_ASC; sc_start SC_Poison,600000,0; sc_start SC_SpeedPot3,30,0; end; Not_ASC: percentheal -100,0; }
+678,Deadly_Poison_Bottle,Poison Bottle,2,5000,,100,,,,,127918079,7,2,,,,,,{ if(Class!=4013) goto Not_ASC; sc_start SC_Poison,600000,0; sc_start SC_SpeedPot3,30000,0; end; Not_ASC: percentheal -100,0; }
 679,Pilule,Pilule,2,5000,,300,,,,,127918079,7,3,,,,,,{ itemheal 50,50; }
 680,Carnation,Magical Carnation,2,,10,1000,,,,,127918079,7,3,,,,,,{ itemheal 25,0; }
 681,Wedding_Photo_Album,Wedding Photo Album,2,,10,10,,,,,127918079,7,3,,,,,,{}
 // ATK/MATK Potions
-682,Realgar_Wine,Realgar Wine,2,,10,100,,,,,127918079,7,2,,,,,,{ sc_start SC_ATKPOT,60,30; }
-683,Exorcize_Herb,Exorcize Herb,2,,10,50,,,,,127918079,7,2,,,,,,{ sc_start SC_MATKPOT,60,30; }
-684,Durian,Durian,2,,10,300,,,,,127918079,7,2,,,,,,{ sc_start SC_ATKPOT,60,10; sc_start SC_MATKPOT,60,10; }
+682,Realgar_Wine,Realgar Wine,2,,10,100,,,,,127918079,7,2,,,,,,{ sc_start SC_ATKPOT,60000,30; }
+683,Exorcize_Herb,Exorcize Herb,2,,10,50,,,,,127918079,7,2,,,,,,{ sc_start SC_MATKPOT,60000,30; }
+684,Durian,Durian,2,,10,300,,,,,127918079,7,2,,,,,,{ sc_start SC_ATKPOT,60000,10; sc_start SC_MATKPOT,60000,10; }
 685,Ramadan,Ramadan,2,20,,300,,,,,127918079,7,2,,,,,,{}
 // Scrolls
 686,Earth_Spike_3,Earth Spike Level 3,11,650,,10,,,,,127918079,7,2,,,,,,{ itemskill 90,3,"Earth Spike Level 3"; }
