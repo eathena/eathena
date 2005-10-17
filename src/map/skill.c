@@ -5606,7 +5606,12 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 	{
 	case NK_NO_DAMAGE:
 		if( (sd->skillid==AL_HEAL || (sd->skillid==ALL_RESURRECTION && bl->type != BL_PC) || sd->skillid==PR_ASPERSIO) && battle_check_undead(status_get_race(bl),status_get_elem_type(bl)))
-			skill_castend_damage_id(&sd->bl,bl,sd->skillid,sd->skilllv,tick,0);
+		{
+			if (sd->skillid == AL_HEAL && battle_check_target(&sd->bl, bl, BCT_PARTY|BCT_GUILD) < 0)
+				clif_skill_fail(sd,sd->skillid,0,0); //Offensive heal does not works on allies. [Skotlex]
+			else
+				skill_castend_damage_id(&sd->bl,bl,sd->skillid,sd->skilllv,tick,0);
+		}	
 		else
 			skill_castend_nodamage_id(&sd->bl,bl,sd->skillid,sd->skilllv,tick,0);
 		break;

@@ -32,6 +32,10 @@
 		like gemstones when the skill is used.
 	--
 10/17
+	* Re-fixed Gravition's range to 8. [Skotlex]
+	* Some mob skill updates regarding the advanced classes in Lighthalzen. [Skotlex]
+	- Removed Sanctuary from Magaleta, removed advanced skills from mobs.
+	- Raised Frost Diver's rate for Katrinn, reduced rate of Sight Trasher.
 	* Updated the item_db to use BaseClass comparisons rather than those
 	  callfunc("is class") functions. [Skotlex]
 	* Updated some items so that Atk and Matk potions specify their duration in
