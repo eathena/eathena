@@ -2,6 +2,8 @@ Date	Added
 =======
 
 2005/10/17
+	* Made all mobs with no guild belong to the same guild, this should prevent
+	  mobs from attacking each other on WoE. [Skotlex]
 	* Fixed Into the Abyss + retrieving traps related exploits. [Skotlex]
 	* Changed monster_skill_nofootset to no to enable mobs casting stuff like
 	  Bomb underneath characters. [Skotlex]

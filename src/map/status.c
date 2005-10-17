@@ -2913,7 +2913,8 @@ int status_get_guild_id(struct block_list *bl)
 			return md->guardian_data->guild_id;
 		if (md->state.special_mob_ai >= 1 && (msd = map_id2sd(md->master_id)) != NULL)
 			return msd->status.guild_id; //Alchemist's mobs [Skotlex]
-		return -md->class_;
+		//Why Max_mob_db? Dunno... just a random pick to make all mobs be allied during WoE. [Skotlex]
+		return -MAX_MOB_DB;
 	}
 	else if(bl->type==BL_SKILL && (struct skill_unit *)bl)
 		return ((struct skill_unit *)bl)->group->guild_id;
