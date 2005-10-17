@@ -290,12 +290,12 @@ int settick_timer(int tid, unsigned int tick)
 
 	if (i < 0)
 		return -1; //Sort of impossible, isn't it?
-	if (timer_data[tid].tick > tick)
+	if (DIFF_TICK(timer_data[tid].tick, tick) > 0)
 	{	//Timer is accelerated, shift timer near the end of the heap.
 		if (i == timer_heap_num-1) //Nothing to shift.
 			j = timer_heap_num-1;
 		else {
-			for (j = i+1; j < timer_heap_num && timer_data[j].tick > tick; j++);
+			for (j = i+1; j < timer_heap_num && DIFF_TICK(timer_data[j].tick, tick) > 0; j++);
 			j--;
 			memmove(&timer_heap[i], &timer_heap[i+1], (j-i)*sizeof(int));
 		}
@@ -303,7 +303,7 @@ int settick_timer(int tid, unsigned int tick)
 		if (i == 0) //Nothing to shift.
 			j = 0;
 		else {
-			for (j = i-1; j >= 0 && timer_data[j].tick < tick; j--);
+			for (j = i-1; j >= 0 && DIFF_TICK(timer_data[j].tick, tick) < 0; j--);
 			j++;
 			memmove(&timer_heap[j+1], &timer_heap[j], (i-j)*sizeof(int));
 		}

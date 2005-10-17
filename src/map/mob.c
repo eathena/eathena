@@ -1522,14 +1522,17 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 					md->attacked_id = 0;
 				}
 			} else if (!(battle_config.mob_ai&2) && !battle_check_attackable(bl, abl)) {
-				//Can't attack back, but didn't invoke a rude attacked skill...
-				//Komurka said they should do nothing and just lay still until killed. [Skotlex]
-				//Do I agree? Not at all.. but what are ye gonna do when the emulator is supposed to emulate the crappy ai... x.x
+				//Can't attack back, but didn't invoke a rude attacked skill... so just attempt to run away.
+				int dist = rand() % 10 + 1;//Œã‘Þ‚·‚é‹——£
+				int dir = map_calc_dir(abl, bl->x, bl->y);
+				int mask[8][2] = {{0,1},{-1,1},{-1,0},{-1,-1},{0,-1},{1,-1},{1,0},{1,1}};
+				mob_walktoxy(md, md->bl.x + dist * mask[dir][0], md->bl.y + dist * mask[dir][1], 0);
+				md->next_walktime = tick + 500;
+				md->attacked_id = 0;
 			} else if (blind_flag && dist > 2 && DIFF_TICK(tick,md->next_walktime) < 0) { //Blinded, but can reach 
 				if (!md->target_id)
-				{	//Attempt to swap targets
+				{	//Attempt to follow new target
 					md->attacked_id = 0;
-					md->state.targettype = NONE_ATTACKABLE;
 					if (mode&1 && mob_can_move(md)) {	// why is it moving to the target when the mob can't see the player? o.o
 						dx = abl->x - md->bl.x;
 						dy = abl->y - md->bl.y;
