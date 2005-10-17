@@ -32,6 +32,8 @@
 		like gemstones when the skill is used.
 	--
 10/17
+	* Updated the item_db to use BaseClass comparisons rather than those
+	  callfunc("is class") functions. [Skotlex]
 	* Updated some items so that Atk and Matk potions specify their duration in
 	  ms rather than seconds (standarizes with all other sc_start items) [Skotlex]
 	* Added translations for japanese comments, thanks to sighel. [MasterOfMuppets]
