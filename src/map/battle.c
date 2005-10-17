@@ -3360,6 +3360,7 @@ static const struct battle_data_short {
 	{ "ignore_items_gender",               &battle_config.ignore_items_gender}, // [Lupus]
 	{ "copyskill_restrict",		       &battle_config.copyskill_restrict}, // [Aru]
 	{ "berserk_candels_buffs",		&battle_config.berserk_cancels_buffs}, // [Aru]
+	{ "monster_ai",                        &battle_config.mob_ai},
 	{ "dynamic_mobs",                      &battle_config.dynamic_mobs},
 	{ "mob_remove_damaged",                &battle_config.mob_remove_damaged},
 	{ "show_hp_sp_drain",                  &battle_config.show_hp_sp_drain}, // [Skotlex]
@@ -3724,6 +3725,7 @@ void battle_set_defaults() {
 	battle_config.display_hallucination = 1;
 	battle_config.ignore_items_gender = 1;
 	battle_config.use_statpoint_table = 1;
+	battle_config.mob_ai = 0;
 	battle_config.dynamic_mobs = 1; // use Dynamic Mobs [Wizputer]
 	battle_config.mob_remove_damaged = 1; // Dynamic Mobs - Remove mobs even if damaged [Wizputer]
 	battle_config.mob_remove_delay = 60000;

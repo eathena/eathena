@@ -133,11 +133,9 @@ static void push_timer_heap(int index)
 	if (timer_heap_num >= timer_heap_max) {
 		if (timer_heap_max == 0) {
 			timer_heap_max = 256;
-			//CALLOC(timer_heap, int, 256);
 			timer_heap = (int *) aCalloc( sizeof(int) , 256);
 		} else {
 			timer_heap_max += 256;
-			//REALLOC(timer_heap, int, timer_heap_max);
 			timer_heap = (int *) aRealloc( timer_heap, sizeof(int) * timer_heap_max);
 			memset(timer_heap + (timer_heap_max - 256), 0, sizeof(int) * 256);
 		}
@@ -148,7 +146,8 @@ static void push_timer_heap(int index)
 	// with less than 4 values, it's speeder to use simple loop
 	if (timer_heap_num < 4) {
 		for(i = timer_heap_num; i > 0; i--)
-			if (j < timer_data[timer_heap[i - 1]].tick)
+//			if (j < timer_data[timer_heap[i - 1]].tick) //Plain comparisons break on bound looping timers. [Skotlex]
+			if (DIFF_TICK(j, timer_data[timer_heap[i - 1]].tick) < 0)
 				break;
 			else
 				timer_heap[i] = timer_heap[i - 1];
@@ -156,7 +155,8 @@ static void push_timer_heap(int index)
 	// searching by dichotomie
 	} else {
 		// if lower actual item is higher than new
-		if (j < timer_data[timer_heap[timer_heap_num - 1]].tick)
+//		if (j < timer_data[timer_heap[timer_heap_num - 1]].tick) //Plain comparisons break on bound looping timers. [Skotlex]
+		if (DIFF_TICK(j, timer_data[timer_heap[timer_heap_num - 1]].tick) < 0)
 			timer_heap[timer_heap_num] = index;
 		else {
 			// searching position
@@ -164,7 +164,8 @@ static void push_timer_heap(int index)
 			max = timer_heap_num - 1;
 			while (min < max) {
 				pivot = (min + max) / 2;
-				if (j < timer_data[timer_heap[pivot]].tick)
+//				if (j < timer_data[timer_heap[pivot]].tick) //Plain comparisons break on bound looping timers. [Skotlex]
+				if (DIFF_TICK(j, timer_data[timer_heap[pivot]].tick) < 0)
 					min = pivot + 1;
 				else
 					max = pivot;

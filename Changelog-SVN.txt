@@ -2,6 +2,22 @@ Date	Added
 =======
 
 2005/10/17
+	* Some modifications to the timer push heap function, may fix timer issues
+	  when creating timers with tick values that overflow. [Skotlex]
+	* Modified the mob ai so it has a seek time, when the min_chase runs out
+	  (it is constantly decreased while chasing, starts out at range3) the mob
+	  will stop chasing, do a /swt, and stop being aggro for 10 secs. This is how
+	  it should be according to what I understood from Komurka's explanation.
+	  [Skotlex]
+	* Added config monster_ai, it determines some of the mob behaviour:
+	- If &1, mobs will use hard path finding to reach their target, otherwise
+	  only easy (straight line) path searches will be used (for most offensive
+	  purposes).
+	- If &2, mobs will use the rude attacked skill if they can't attack back no
+	  matter what, otherwise they use it only if they can't reach the target.
+	  [Skotlex]
+	- Still pending on what other things it could define. Currently defaults to
+	  0 (seems to be the official mob ai) [Skotlex]
 	* Now Atk/Matk potions duration don't get automatically multiplied by 1000,
 	  duration must be specified in ms in the scripts. [Skotlex]
 	* Made all mobs with no guild belong to the same guild, this should prevent

@@ -526,9 +526,10 @@ static int mob_walk(struct mob_data *md,unsigned int tick,int data)
 
 		x += dx;
 		y += dy;
-		if(md->min_chase>md->db->range2)
+	//Min chase is now used to determine how far mobs seek before getting tired and giving up temporarily.	
+		if(md->state.skillstate == MSS_CHASE)
 			md->min_chase--;
-
+		
 		skill_unit_move(&md->bl,tick,2);
 		if(moveblock) map_delblock(&md->bl);
 		md->bl.x = x;
@@ -546,11 +547,19 @@ static int mob_walk(struct mob_data *md,unsigned int tick,int data)
 		i = i>>1;
 		if(i < 1 && md->walkpath.path_half == 0)
 			i = 1;
-		md->timer=add_timer(tick+i,mob_timer,md->bl.id,md->walkpath.path_pos);
-		md->state.state=MS_WALK;
 
 		if(md->walkpath.path_pos>=md->walkpath.path_len)
 			clif_fixmobpos(md);	// ‚Æ‚Ü‚Á‚½‚Æ‚«‚ÉˆÊ’u‚ÌÄ‘—M
+		else if (md->state.skillstate != MSS_CHASE || md->min_chase > 0)
+		{	//keep walking/chasing.
+			md->timer=add_timer(tick+i,mob_timer,md->bl.id,md->walkpath.path_pos);
+			md->state.state=MS_WALK;
+		} else {	//Give up chasing? [Skotlex]
+			md->canseek_tick = tick + 10000; //Give up active seeks for 10 secs.
+			md->min_chase = md->db->range3;
+			clif_emotion(&md->bl, 4);
+			mob_unlocktarget(md, tick);
+		}
 	}
 	return 0;
 }
@@ -943,6 +952,7 @@ int mob_spawn (int id)
 	md->attackabletime = tick;
 	md->canmove_tick = tick;
 	md->last_linktime = tick;
+	md->canseek_tick = tick;
 
 	/* Guardians should be spawned using mob_spawn_guardian! [Skotlex]
 	 * and the Emperium is spawned using mob_once_spawn.
@@ -1066,7 +1076,7 @@ int mob_can_reach(struct mob_data *md,struct block_list *bl,int range)
 {
 	int dx,dy;
 	struct walkpath_data wpd;
-	int i;
+	int i, easy = (battle_config.mob_ai&1?1:0);
 
 	nullpo_retr(0, md);
 	nullpo_retr(0, bl);
@@ -1087,7 +1097,7 @@ int mob_can_reach(struct mob_data *md,struct block_list *bl,int range)
 	wpd.path_len=0;
 	wpd.path_pos=0;
 	wpd.path_half=0;
-	if(path_search(&wpd,md->bl.m,md->bl.x,md->bl.y,bl->x,bl->y,0)!=-1)
+	if(path_search(&wpd,md->bl.m,md->bl.x,md->bl.y,bl->x,bl->y,easy)!=-1)
 		return 1;
 
 	if(bl->type!=BL_PC && bl->type!=BL_MOB)
@@ -1096,10 +1106,10 @@ int mob_can_reach(struct mob_data *md,struct block_list *bl,int range)
 	// It judges whether it can adjoin or not.
 	dx=(dx>0)?1:((dx<0)?-1:0);
 	dy=(dy>0)?1:((dy<0)?-1:0);
-	if(path_search(&wpd,md->bl.m,md->bl.x,md->bl.y,bl->x-dx,bl->y-dy,0)!=-1)
+	if(path_search(&wpd,md->bl.m,md->bl.x,md->bl.y,bl->x-dx,bl->y-dy,easy)!=-1)
 		return 1;
 	for(i=0;i<9;i++){
-		if(path_search(&wpd,md->bl.m,md->bl.x,md->bl.y,bl->x-1+i/3,bl->y-1+i%3,0)!=-1)
+		if(path_search(&wpd,md->bl.m,md->bl.x,md->bl.y,bl->x-1+i/3,bl->y-1+i%3,easy)!=-1)
 			return 1;
 	}
 	return 0;
@@ -1151,14 +1161,16 @@ static int mob_ai_sub_hard_activesearch(struct block_list *bl,va_list ap)
 {
 	struct mob_data *md;
 	int dist,*pcc;
+	unsigned int tick;
 
 	nullpo_retr(0, bl);
 	nullpo_retr(0, ap);
 	nullpo_retr(0, md=va_arg(ap,struct mob_data *));
 	nullpo_retr(0, pcc=va_arg(ap,int *));
+	nullpo_retr(0, tick=va_arg(ap,unsigned int));
 
-	//If not an enemy, or you can't attack it, skip.
-	if(battle_check_target(&md->bl,bl,BCT_ENEMY)<=0 || !battle_check_attackable(&md->bl, bl))
+	//If can't seek yet, not an enemy, or you can't attack it, skip.
+	if (DIFF_TICK(tick, md->canseek_tick) < 0 || battle_check_target(&md->bl,bl,BCT_ENEMY)<=0 || !battle_check_attackable(&md->bl, bl))
 		return 0;
 
 	switch (bl->type)
@@ -1313,7 +1325,7 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 						dy = (rand()%1)? 1:-1;
 					}
 
-					ret=mob_walktoxy(md,bl->x+dx,bl->y+dy,0);
+					ret=mob_walktoxy(md,bl->x+dx,bl->y+dy,(battle_config.mob_ai&1?1:0));
 					i++;
 				} while(ret && i<10);
 			}
@@ -1494,7 +1506,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 			if (md->bl.m != abl->m || abl->prev == NULL ||
 				(dist = distance(md->bl.x, md->bl.y, abl->x, abl->y)) >= 32 ||
 				battle_check_target(bl, abl, BCT_ENEMY) <= 0 ||
-				!battle_check_attackable(bl, abl) ||
+				(battle_config.mob_ai&2 && !battle_check_attackable(bl, abl)) ||
 				!mob_can_reach(md, abl, dist))
 			{	//Can't attack back
 				if (md->attacked_count++ > 3) {
@@ -1509,16 +1521,21 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 					}
 					md->attacked_id = 0;
 				}
+			} else if (!(battle_config.mob_ai&2) && !battle_check_attackable(bl, abl)) {
+				//Can't attack back, but didn't invoke a rude attacked skill...
+				//Komurka said they should do nothing and just lay still until killed. [Skotlex]
+				//Do I agree? Not at all.. but what are ye gonna do when the emulator is supposed to emulate the crappy ai... x.x
 			} else if (blind_flag && dist > 2 && DIFF_TICK(tick,md->next_walktime) < 0) { //Blinded, but can reach 
-				//FIXME: Shouldn't the mob continue attacking? It may have a target within range... [Skotlex]
-				md->target_id = 0;
-				md->attacked_id = 0;
-				md->state.targettype = NONE_ATTACKABLE;
-				if (mode&1 && mob_can_move(md)) {	// why is it moving to the target when the mob can't see the player? o.o
-					dx = abl->x - md->bl.x;
-					dy = abl->y - md->bl.y;
-					md->next_walktime = tick + 1000;
-					mob_walktoxy(md, md->bl.x+dx, md->bl.y+dy, 0);
+				if (!md->target_id)
+				{	//Attempt to swap targets
+					md->attacked_id = 0;
+					md->state.targettype = NONE_ATTACKABLE;
+					if (mode&1 && mob_can_move(md)) {	// why is it moving to the target when the mob can't see the player? o.o
+						dx = abl->x - md->bl.x;
+						dy = abl->y - md->bl.y;
+						md->next_walktime = tick + 1000;
+						mob_walktoxy(md, md->bl.x+dx, md->bl.y+dy, 0);
+					}
 				}
 			} else { //Attackable
 				if (!tbl || dist < md->db->range || distance(md->bl.x, md->bl.y, tbl->x, tbl->y) > dist)
@@ -1549,11 +1566,11 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 			map_foreachinarea (mob_ai_sub_hard_activesearch, md->bl.m,
 					md->bl.x-search_size, md->bl.y-search_size,
 					md->bl.x+search_size, md->bl.y+search_size,
-					0, md, &i);
+					0, md, &i, tick);
 		else map_foreachinarea (mob_ai_sub_hard_activesearch, md->bl.m,
 					md->bl.x-search_size,md->bl.y-search_size,
 					md->bl.x+search_size,md->bl.y+search_size,
-					BL_PC, md, &i);
+					BL_PC, md, &i, tick);
 	}
 
 	// Scan area for items to loot, avoid trying to loot of the mob is full and can't consume the items.
@@ -2755,6 +2772,7 @@ int mob_class_change (struct mob_data *md, int class_)
 	md->attackabletime = tick;
 	md->canmove_tick = tick;
 	md->last_linktime = tick;
+	md->canseek_tick = tick;
 
 	for(i=0,c=tick-1000*3600*10;i<MAX_MOBSKILL;i++)
 		md->skilldelay[i] = c;
