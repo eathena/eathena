@@ -1628,6 +1628,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 //マジックロッド?理ここから
 	if(attack_type&BF_MAGIC && sc_data && sc_data[SC_MAGICROD].timer != -1 && src == dsrc) { //魔法攻?でマジックロッド?態でsrc=dsrcなら
 		dmg.damage = dmg.damage2 = 0; //ダメ?ジ0
+		dmg.dmg_lv = ATK_FLEE; //This will prevent skill additional effect from taking effect. [Skotlex]
 		if(tsd) {
 			int sp = skill_get_sp(skillid,skilllv); //使用されたスキルのSPを吸?
 			sp = sp * sc_data[SC_MAGICROD].val2 / 100; //吸?率計算
