@@ -4,7 +4,7 @@
 //= Nana, fixes by Poki
 //= finished, optimized and tested by Lupus
 //===== Current Version: ===================================== 
-//= 1.9
+//= 2.0
 //===== Compatible With: ===================================== 
 //= eAthena 1.0 +
 //===== Description: ========================================= 
@@ -23,6 +23,7 @@
 //= 1.7 On reborn reset some Job Quest Vars and Reset Girls Counter [Lupus]
 //= 1.8 Added Taekwondo classes check [Lupus]
 //= 1.9 Added support for Job NPC Fase pics, sorrected one dialogue stuff [Lupus]
+//= 2.0 Removed callfunc Is_####_Class in favor of baseClass [Silentdragon]
 //============================================================ 
 
 
@@ -33,7 +34,7 @@ valkyrie.gat,48,66,0	warp	valk01	1,1,valkyrie.gat,48,75,0
 // -== Book of Ymir (Heavens Door) ==-
 yuno_in02.gat,93,207,0	script	Book of Ymir	111,{
 	mes "[Book of Ymir]";
-	if( Upper==2 || callfunc("Is_Taekwon_Class") != 0 ) goto L_BABY; //don't allow Taekwondo classes, Baby Classes
+	if( Upper==2 || baseClass == Job_Taekwon ) goto L_BABY; //don't allow Taekwondo classes, Baby Classes
 	if(valkyrie_Q == 1) goto L_FADED;
 	if(valkyrie_Q == 2) goto L_START;
 L_BABY:
@@ -160,7 +161,7 @@ yuno_in02.gat,90,77,4	script	Researcher	744,{
 // -== Valhallana ==-
 valkyrie.gat,48,86,6	script	Valkyrie	811,{
 	if(BaseJob == 23) goto L_SN;
-	if( callfunc("Is_Taekwon_Class") != 0 ) goto L_Y; //sent back any Taekwondo classes
+	if( baseClass == Job_Taekwon ) goto L_Y; //sent back any Taekwondo classes
 	if(Upper == 2 ) goto L_BABY;
 	if(Upper > 0 ) goto L_ALREADY;
 	if(BaseLevel >= 99 && JobLevel >= 50 && BaseJob >= 7) goto L_CHANGE;

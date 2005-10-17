@@ -5,7 +5,7 @@
 //= converted by kobra_k88
 //= Further bugfixed and tested by Lupus
 //===== Current Version: ===================================== 
-//= 1.7
+//= 1.8
 //===== Compatible With: ===================================== 
 //= eAthena 1.0
 //===== Description: ========================================= 
@@ -25,6 +25,7 @@
 //= 2nd Job Quests again. It also guides adv classes where
 //= to go. [Lupus]
 //= 1.7 Replaced 2 Hodes with 2 Horong's (according to the official guide) [Lupus]
+//= 1.8 Removed callfunc Is_####_Class in favor of baseClass [Silentdragon]
 //============================================================ 
 
 
@@ -462,7 +463,7 @@ gef_tower.gat,102,24,3	script	Raul Expagarus	735,{
 	mes "[Raul Expagarus]";
 	if(BaseJob == Job_Mage) goto L_Mage;
 	if(BaseJob == Job_Wizard) goto L_Wizard;
-	if(callfunc("Is_Holy_Class")) goto L_Holy;
+	if(baseClass == Job_Acolyte) goto L_Holy;
 	if(BaseJob == Job_Novice) goto L_Novice;
 L_Other:
 	mes "Ugh, I don't feel good....I feel like I'm trapped in ice........";

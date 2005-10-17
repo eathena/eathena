@@ -5,7 +5,7 @@
 //= eAthena Dev Team
 //= Darlskies, Darkchild, Syrus22, Lupus, kobra_k88 (2.0)
 //===== Current Version: ===================================== 
-//= 3.0
+//= 3.1
 //===== Compatible With: ===================================== 
 //= eAthena 1.0
 //===== Description: =========================================
@@ -25,6 +25,7 @@
 //= 2.7 Added correct Ayothaya, Louyang & Amatsu Kafras. [Lupus]
 //= 2.8 Fixed Amatsu Storage problems [Lupus] 2.9 Fixed spelling mistakes. [Nexon]
 //= 3.0 Added special "not working teleport menu" for Einbroch Kafras [Lupus]
+//= 3.1 Removed callfunc Is_####_Class in favor of baseClass [Silentdragon]
 //============================================================ 
 
 
@@ -223,7 +224,7 @@ function	script	F_KafTele	{
 
 // Cart Function ========================================================
 function	script	F_KafCart	{
-	if(callfunc("Is_Merc_Class") == 0) goto sL_CantRent;
+	if(baseClass != Job_Merchant) goto sL_CantRent;
 	if(getskilllv(39)==0) goto sL_NeedSkill;
 	if(checkcart(0) == 1) goto sL_GotCart;
 	if(getarg(0) == 2) goto L_Guild;

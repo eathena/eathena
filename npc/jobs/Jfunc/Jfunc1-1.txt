@@ -3,13 +3,14 @@
 //===== By: ================================================== 
 //= massdriller
 //===== Current Version: ===================================== 
-//= 0.1
+//= 0.2
 //===== Compatible With: ===================================== 
 //= eAthena 1.0 +
 //===== Description: ========================================= 
 //= Optimised scripts by moving all their checkers here.
 //===== Additional Comments: ================================= 
 //= For 1-1 Jobs
+//= Simplified Job Checks [Silentdragon]
 //============================================================ 
 
 //Acolyte Check
@@ -202,11 +203,11 @@ function	script	Thi_check	{
 	if(BaseJob == Job_Novice) return;
 	if(BaseJob == Job_Thief) goto L_JobThief;
 	mes "[Thief Guide]";
-	if(BaseJob==1 || BaseJob==7 || BaseJob==14) goto L_Swordman;
-	if(BaseJob==2 || BaseJob==9 || BaseJob==16) goto L_Mage;
-	if(BaseJob==3 || BaseJob==11 || BaseJob==19 || BaseJob==20) goto L_Archer;
-	if(BaseJob==4 || BaseJob==8 || BaseJob==15) goto L_Acolyte;
-	if(BaseJob==5 || BaseJob==10 || BaseJob==18) goto L_Merchant;
+	if(BaseClass == Job_Swordman) goto L_Swordman;
+	if(BaseClass == Job_Mage) goto L_Mage;
+	if(BaseClass == Job_Archer) goto L_Archer;
+	if(BaseClass == Job_Acolyte) goto L_Acolyte;
+	if(BaseClass == Job_Merchant) goto L_Merchant;
 
 		mes "You already have a job.  Stop bothering me and go help out some newbies or something.";
 		emotion 21;

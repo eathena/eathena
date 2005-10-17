@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= kobra_k88
 //===== Current Version: =====================================
-//= 1.2
+//= 1.3
 //===== Compatible With: =====================================
 //= eAthena 7.15 +
 //===== Description: =========================================
@@ -14,6 +14,7 @@
 //= v1.a Now using functions found in "Global_Functions.txt"
 //= for class checks.[kobra_k88]
 //= 1.2 Added Baby Class Support [Lupus]
+//= 1.3 Removed callfunc Is_####_Class in favor of baseClass [Silentdragon]
 //============================================================
 
 
@@ -29,7 +30,7 @@ alberta.gat,89,96,5	script	Necko	139,0,4,{
 
 alberta.gat,83,96,5	script	Necko	98,{
 	mes "[Necko]";
-	if (callfunc("Is_Merc_Class")) goto L_Start;
+	if (baseClass == Job_Merchant) goto L_Start;
 
 L_Other:
 	mes "Necko's store is closed right now.  Come back later..... Hehe....";
@@ -119,7 +120,7 @@ L_GotSkill:
 //----------------------------------------- Charlron: Change cart ---------------------------------\\
 alberta.gat,119,221,6	script	Charlron	107,{
 	mes "[Charlron]";
-	if (callfunc("Is_Merc_Class")) goto L_Start;
+	if (baseClass == Job_Merchant) goto L_Start;
 L_Other:
 	mes "I am a merchant that deals in many things.  My name is Charlron.  If you ever find anything interesting, come back and try to negotiate a deal with me.";
 	close;
@@ -177,7 +178,7 @@ L_GotSkill:
 
 //-------------------------====-------- Gershuan: Cart Revolution ---------------------------------\\
 alberta.gat,232,106,6	script	Gershaun	57,{
-	if (callfunc("Is_Merc_Class")) goto L_Start;
+	if (baseClass == Job_Merchant) goto L_Start;
 
 L_Other:
 	mes "[Gershaun]";

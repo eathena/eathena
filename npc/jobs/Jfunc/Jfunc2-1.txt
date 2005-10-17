@@ -3,13 +3,14 @@
 //===== By: ================================================== 
 //= massdriller
 //===== Current Version: ===================================== 
-//= 0.1
+//= 0.2
 //===== Compatible With: ===================================== 
 //= eAthena 1.0 +
 //===== Description: ========================================= 
 //= Optimised scripts by moving all their checkers here.
 //===== Additional Comments: ================================= 
 //= For 2-1 Jobs
+//= 0.2 Removed callfunc Is_####_Class in favor of baseClass [Silentdragon]
 //============================================================ 
 
 //Assasin Check
@@ -17,12 +18,12 @@ function	script	Ass_check	{
 
 	if(BaseJob==Job_Assassin) goto L_JobSin;
 	mes "[Angry looking man]";
-	if(callfunc("Is_Sword_Class")) goto L_JobSwo;
-	if(callfunc("Is_Magic_Class")) goto L_JobMag;
-	if(callfunc("Is_Bow_Class")) goto L_JobArch;
-	if(callfunc("Is_Holy_Class")) goto L_JobAco;
-	if(callfunc("Is_Merc_Class")) goto L_JobMerc;
-	if(callfunc("Is_Thief_Class")) goto L_JobOther;
+	if(baseClass == Job_Swordman) goto L_JobSwo;
+	if(baseClass == Job_Mage) goto L_JobMag;
+	if(baseClass == Job_Archer) goto L_JobArch;
+	if(baseClass == Job_Acolyte) goto L_JobAco;
+	if(baseClass == Job_Merchant) goto L_JobMerc;
+	if(baseClass == Job_Thief) goto L_JobOther;
 
 L_JobNov:
 	mes "....HEY Novice!!! GET out of here now!! I won't be held responsible if anything bad happens to you.......";
@@ -74,11 +75,11 @@ L_JobSin:
 function	script	Bla_check	{
 
 	if (BaseJob == 0) goto L_Nov;
-	if (callfunc("Is_Sword_Class")) goto L_Sword;
-	if (callfunc("Is_Holy_Class")) goto L_Aco;
-	if (callfunc("Is_Thief_Class")) goto L_Thief;
-	if (callfunc("Is_Magic_Class")) goto L_Wiz;
-	if (callfunc("Is_Bow_Class")) goto L_Arc;
+	if (baseClass == Job_Swordman) goto L_Sword;
+	if (baseClass == Job_Acolyte) goto L_Aco;
+	if (baseClass == Job_Thief) goto L_Thief;
+	if (baseClass == Job_Mage) goto L_Wiz;
+	if (baseClass == Job_Archer) goto L_Arc;
 	if (BaseJob == 10) goto L_Black;
 	mes "Only Merchants can become Blacksmiths.";
 	close;
@@ -112,12 +113,12 @@ L_Black:
 function	script	Hun_check	{
 
 	if(BaseJob==Job_Hunter) goto L_Hunt;
-	if(callfunc("Is_Bow_Class")) goto L_Other;
-	if(callfunc("Is_Sword_Class")) goto L_Swo;
-	if(callfunc("Is_Magic_Class")) goto L_Mage;
-	if(callfunc("Is_Thief_Class")) goto L_Thf;
-	if(callfunc("Is_Holy_Class")) goto L_Aco;
-	if(callfunc("Is_Merc_Class")) goto L_Merc;
+	if(baseClass == Job_Archer) goto L_Other;
+	if(baseClass == Job_Swordman) goto L_Swo;
+	if(baseClass == Job_Mage) goto L_Mage;
+	if(baseClass == Job_Thief) goto L_Thf;
+	if(baseClass == Job_Acolyte) goto L_Aco;
+	if(baseClass == Job_Merchant) goto L_Merc;
 
 L_Nov:
 	mes "[Hunter Sharon]";
@@ -326,8 +327,8 @@ L_Priest:
 
 function	script	Wiz1_check	{
 
-	if(callfunc("Is_Magic_Class")) goto L_Magic;
-	if(callfunc("Is_Holy_Class")) goto L_Holy;
+	if(baseClass == Job_Mage) goto L_Magic;
+	if(baseClass == Job_Acolyte) goto L_Holy;
 L_Other:
 	mes "[Dog]";
 	mes "Sheesh....... Why would someone who can't even cast a single spell come all the way up here???";

@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= eAthena dev team
 //===== Current Version: =====================================
-//= 1.2
+//= 1.3
 //===== Compatible With: =====================================
 //= eAthena 7.15 +
 //===== Description: =========================================
@@ -15,6 +15,7 @@
 //= v1.0a Now using functions found in "Global_Functions.txt"
 //= for class checks.[kobra_k88]
 //= 1.2 Added Baby Class Support [Lupus]
+//= 1.3 Removed callfunc Is_####_Class in favor of baseClass [Silentdragon]
 //============================================================
 
 
@@ -22,7 +23,7 @@
 //<======================== Roberto: Arrow crafting =========================>\\
 morocc.gat,121,109,5	script	Roberto	88,{
 	mes "[Roberto]";
-	if (callfunc("Is_Bow_Class")) goto L_Start;
+	if (baseClass == Job_Archer) goto L_Start;
 
 L_Other:
 	mes "Eh?... First time seeing an archer of something? Why don't you just";
@@ -145,7 +146,7 @@ L_LowLvl:
 //<============================== Arrow Repel ===============================>\\
 payon.gat,103,63,5	script	Jason	88,{
 	mes "[Jason]";
-	if (callfunc("Is_Bow_Class")) goto L_Start;
+	if (baseClass == Job_Archer) goto L_Start;
 
 L_Other:
 	mes "What does life need from a lonely lad like me?";

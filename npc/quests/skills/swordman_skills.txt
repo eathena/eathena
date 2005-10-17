@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= kobra_k88
 //===== Current Version: =====================================
-//= 1.2
+//= 1.3
 //===== Compatible With: =====================================
 //= eAthena 7.15 +
 //===== Description: =========================================
@@ -14,6 +14,7 @@
 //= for class checks.
 //= 1.1 Added missing delitem [Lupus]
 //= 1.2 Added Baby Class Support [Lupus]
+//= 1.3 Removed callfunc Is_####_Class in favor of baseClass [Silentdragon]
 //============================================================
 
 
@@ -21,7 +22,7 @@
 //<-------------------------------------- Fatal Blow------------------------------------>\\
 prt_in.gat,75,88,5	script	Leon	85,{
 	mes "[Leon]";
-	if(callfunc("Is_Sword_Class")) goto L_Start;
+	if(baseClass == Job_Swordman) goto L_Start;
 	if(BaseJob == Job_Novice) goto L_Novice;
 
 	mes "Hello there.  I am Leon, a well known and well respected member of the famous Prontera Chivalry.";
@@ -162,7 +163,7 @@ L_Done:
 //<---------------------------------- Moving HP Recovery ---------------------------------->\\
 izlude_in.gat,175,130,2	script	Knight De Thomas	98,{
 	mes "[Knight De Thomas]";
-	if(callfunc("Is_Sword_Class")) goto L_Start;
+	if(baseJob == Job_Swordman) goto L_Start;
 
 L_Other:
 	mes "I am Thomas De Knight of the Prontera Chivalry.  I am very busy now so please leave me alone.";
@@ -265,7 +266,7 @@ L_Check:
 //<----------------------------------------- Auto-Berserk --------------------------------->\\
 prt_in.gat,94,57,3	script	Juan	85,{
 	mes "[Juan]";
-	if(callfunc("Is_Sword_Class")) goto L_Start;
+	if(baseClass == Job_Swordman) goto L_Start;
 
 L_Other:
 	mes "So how's your adventure going? I hope there will be good days ahead of you.";

@@ -23,6 +23,8 @@ Massdriller
 
 Date		Added
 ======
+10/17
+	*Fixed a lot of scripts that may have been exploitable, fixed typos, and optimized a bunch of other scripts. Thanks to Silent. [Nexon]
 10/16
 	* Fixed Einbroch Airport, Lighhalzen Dungeon warp. Thanks to Justin84 [Lupus]
 	* Fixed Thanatos Tower Statues quest bug, thanx 2 Dr.Evil for info [Lupus]
