@@ -2,6 +2,10 @@ Date	Added
 =======
 
 2005/10/17
+	* Changed monster_skill_nofootset to no to enable mobs casting stuff like
+	  Bomb underneath characters. [Skotlex]
+	* Fixed Sacrifice, it can now be recasted on a player as long as it's by
+	  the same crusader that is currently protecting the player. [Skotlex]
 	* Fixed some unitialized values error in magic and misc attacks. [Skotlex]
 	* Fixed  30% bonus from upper/baby classes affecting card bonuses. [Skotlex]
 	* Fixed baseClass not working on Acolyte class, thanks to Silent. [Skotlex]

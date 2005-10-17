@@ -3718,7 +3718,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			int lv = sd->status.base_level - dstsd->status.base_level;
 			if (lv < 0) lv = -lv;
 			if (lv > battle_config.devotion_level_difference ||
-				dstsd->sc_data[SC_DEVOTION].timer != 1 || //Avoid stacking. [Skotlex]
+				(dstsd->sc_data[SC_DEVOTION].timer != -1 && dstsd->sc_data[SC_DEVOTION].val1 != bl.id) || //Avoid overriding [Skotlex]
 				(dstsd->class_&MAPID_UPPERMASK) == MAPID_CRUSADER) {
 				clif_skill_fail(sd,skillid,0,0);
 				map_freeblock_unlock();
