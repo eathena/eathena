@@ -8251,10 +8251,9 @@ void clif_parse_QuitGame(int fd, struct map_session_data *sd) {
 	WFIFOW(fd,0) = 0x18b;
 
 	/*	Rovert's prevent logout option fixed [Valaris]	*/
-	if (!battle_config.prevent_logout ||
-		(gettick() - sd->canlog_tick) >= 10000 ||
-		pc_isdead(sd))	//Allow dead characters to logout [Skotlex]
-	{
+	if (sd->sc_data[SC_CLOAKING].timer==-1 && sd->sc_data[SC_HIDING].timer==-1 &&
+		(!battle_config.prevent_logout || gettick() - sd->canlog_tick >= 10000 || pc_isdead(sd))	//Allow dead characters to logout [Skotlex]
+	) {
 		clif_setwaitclose(fd);
 		WFIFOW(fd,2)=0;
 	} else {

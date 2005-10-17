@@ -1336,6 +1336,12 @@ int map_quit(struct map_session_data *sd) {
 
 		skill_stop_dancing(&sd->bl);// ダンス/演奏中?
 
+		//Status that are not saved...
+		if(sd->sc_data[SC_HIDING].timer!=-1)
+			status_change_end(&sd->bl,SC_HIDING,-1);
+		else if(sd->sc_data[SC_CLOAKING].timer!=-1)
+			status_change_end(&sd->bl,SC_CLOAKING,-1);
+		
 		if(sd->sc_data && sd->sc_data[SC_BERSERK].timer!=-1) //バ?サ?ク中の終了はHPを100に
 		{	//Berserk must not be saved, so it must be ended now. [Skotlex]
 			sd->status.hp = 100;

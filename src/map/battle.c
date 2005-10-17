@@ -2062,6 +2062,8 @@ struct Damage battle_calc_magic_attack(
 			case AL_HEAL:
 			case PR_BENEDICTIO:
 				ad.damage = skill_calc_heal(src,skill_lv)/2;
+				if (sd)
+					ad.damage += ad.damage * pc_checkskill(sd, HP_MEDITATIO) * 2 / 100;
 				break;
 			case PR_ASPERSIO:
 				ad.damage = 40;

@@ -2,6 +2,13 @@ Date	Added
 =======
 
 2005/10/17
+	* Fixed  30% bonus from upper/baby classes affecting card bonuses. [Skotlex]
+	* Fixed baseClass not working on Acolyte class, thanks to Silent. [Skotlex]
+	* Made the stone curse animation only show up on successfully cursing. [Skotlex]
+	* Added Meditation's bonus to offensive heal, thanks to Orn. [Skotlex]
+	* Made devotion fail when already used on a char with that effect. [Skotlex]
+	* Made it so you can't quit while cloaking/hiding, and said status will end
+	  on quit if force-quitting. [Skotlex]
 	* Cleaned up and fixed isequipped script commands, it should be working
 	  correctly now (tested with the Assassin combo) [Skotlex]
 	* Fixed not stacking Long Attack Rate bonuses [Lupus]

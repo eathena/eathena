@@ -1165,14 +1165,17 @@ int status_calc_pc(struct map_session_data* sd,int first)
 // ----- HP MAX AND REGEN CALCULATION -----
 
 	// Basic MaxHP value
+	// here we recycle variable index, and do this calc apart to avoid mixing up the 30% bonus with card bonuses. [Skotlex]
 	bl = sd->status.base_level;
-	sd->status.max_hp += (3500 + bl*hp_coefficient2[sd->status.class_] +
+	index = (3500 + bl*hp_coefficient2[sd->status.class_] +
 		hp_sigma_val[sd->status.class_][(bl > 0)? bl-1:0])/100 *
 		(100 + sd->paramc[2])/100 + (sd->parame[2] - sd->paramcard[2]);
 	if (sd->class_&JOBL_UPPER)
-		sd->status.max_hp = sd->status.max_hp * 130/100;
+		index += index * 30/100;
 	else if (sd->class_&JOBL_BABY)
-		sd->status.max_hp = sd->status.max_hp * 70/100;
+		index -= index * 30/100;
+	sd->status.max_hp += index;
+
 	if((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE && sd->status.base_level >= 99)
 		sd->status.max_hp = sd->status.max_hp + 2000;
 
@@ -1218,11 +1221,13 @@ int status_calc_pc(struct map_session_data* sd,int first)
 // ----- SP MAX AND REGEN CALCULATION -----
 
 	// Basic MaxSP value
-	sd->status.max_sp += ((sp_coefficient[sd->status.class_] * bl) + 1000)/100 * (100 + sd->paramc[3])/100 + (sd->parame[3] - sd->paramcard[3]);
+	// here we recycle variable index, and do this calc apart to avoid mixing up the 30% bonus with card bonuses. [Skotlex]
+	index = ((sp_coefficient[sd->status.class_] * bl) + 1000)/100 * (100 + sd->paramc[3])/100 + (sd->parame[3] - sd->paramcard[3]);
 	if (sd->class_&JOBL_UPPER)
-		sd->status.max_sp = sd->status.max_sp * 130/100;
+		index += index * 30/100;
 	else if (sd->class_&JOBL_BABY)
-		sd->status.max_sp = sd->status.max_sp * 70/100;
+		index -= index * 30/100;
+	sd->status.max_sp += index;
 
 	// Absolute modifiers from passive skills
 	if((skill=pc_checkskill(sd,HP_MEDITATIO))>0)

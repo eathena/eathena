@@ -5199,6 +5199,9 @@ int pc_readparam(struct map_session_data *sd,int type)
 			case MAPID_NOVICE:
 				val= JOB_NOVICE;
 				break;
+			case MAPID_ACOLYTE:
+				val= JOB_ACOLYTE;
+				break;
 			case MAPID_SWORDMAN:
 				val= JOB_SWORDMAN;
 				break;

@@ -3717,6 +3717,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			int lv = sd->status.base_level - dstsd->status.base_level;
 			if (lv < 0) lv = -lv;
 			if (lv > battle_config.devotion_level_difference ||
+				dstsd->sc_data[SC_DEVOTION].timer != 1 || //Avoid stacking. [Skotlex]
 				(dstsd->class_&MAPID_UPPERMASK) == MAPID_CRUSADER) {
 				clif_skill_fail(sd,skillid,0,0);
 				map_freeblock_unlock();
@@ -4142,7 +4143,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				if (sd) clif_skill_fail(sd,sd->skillid,0,0);
 				break;
 			}
-			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 			if(status_isimmune(bl))
 				break;
 			if (sc_data && sc_data[SC_STONE].timer != -1) {
@@ -4153,8 +4153,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				}
 			}
 			else if( rand()%100 < skilllv*4+20 && !battle_check_undead(status_get_race(bl),status_get_elem_type(bl)))
+			{
+				clif_skill_nodamage(src,bl,skillid,skilllv,1);
 				status_change_start(bl,SC_STONE,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
-			else if(sd) {
+			} else if(sd) {
 				if (skilllv > 5) gem_flag = 0;
 				clif_skill_fail(sd,skillid,0,0);
 				fail_flag = 1;
