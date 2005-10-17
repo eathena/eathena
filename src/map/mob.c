@@ -1890,7 +1890,7 @@ static struct delay_item_drop* mob_setlootitem(struct item* item, int m, int x, 
 static int mob_delay_item_drop(int tid,unsigned int tick,int id,int data)
 {
 	struct delay_item_drop *ditem;
-	nullpo_retr(0, ditem=(struct delay_item_drop *)id);
+	ditem=(struct delay_item_drop *)id;
 
 #if 0
 	if (ditem->first_sd){

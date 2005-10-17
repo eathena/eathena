@@ -1964,7 +1964,8 @@ struct Damage battle_calc_magic_attack(
 	ad.dmotion=status_get_dmotion(target);
 	ad.blewcount = skill_get_blewcount(skill_num,skill_lv);
 	ad.flag=BF_MAGIC|BF_LONG|BF_SKILL;
-
+	ad.dmg_lv=ATK_DEF;
+	
 	switch (src->type)
 	{
 		case BL_PC:
@@ -2311,6 +2312,13 @@ struct Damage  battle_calc_misc_attack(
 		return md;
 	}
 
+	//Some initial values
+	md.amotion=status_get_amotion(bl);
+	md.dmotion=status_get_dmotion(target);
+	md.damage2=0;
+	md.type=0;
+	md.dmg_lv=ATK_DEF;
+
 	if( bl->type == BL_PC && (sd=(struct map_session_data *)bl) ) {
 		sd->state.attack_type = BF_MISC;
 		sd->state.arrow_atk = 0;
@@ -2380,7 +2388,8 @@ struct Damage  battle_calc_misc_attack(
 			if(rand()%100 < hitrate) {
 				damage = 500 + (skill_lv-1)*1000 + rand()%1000;
 				if(damage > 9999) damage = 9999;
-			}
+			} else
+				md.dmg_lv=ATK_FLEE;
 		}
 		break;
 
@@ -2448,10 +2457,6 @@ struct Damage  battle_calc_misc_attack(
 
 	md.damage=damage;
 	md.div_=div_;
-	md.amotion=status_get_amotion(bl);
-	md.dmotion=status_get_dmotion(target);
-	md.damage2=0;
-	md.type=0;
 	md.blewcount=blewcount;
 	md.flag=aflag;
 	return md;

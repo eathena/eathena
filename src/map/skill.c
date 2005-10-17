@@ -3084,6 +3084,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 			if (heal > 0){
 				struct block_list tbl;
 				tbl.id = 0;
+				tbl.type = BL_NUL;
 				tbl.m = src->m;
 				tbl.x = src->x;
 				tbl.y = src->y;

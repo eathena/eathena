@@ -2,6 +2,7 @@ Date	Added
 =======
 
 2005/10/17
+	* Fixed some unitialized values error in magic and misc attacks. [Skotlex]
 	* Fixed  30% bonus from upper/baby classes affecting card bonuses. [Skotlex]
 	* Fixed baseClass not working on Acolyte class, thanks to Silent. [Skotlex]
 	* Made the stone curse animation only show up on successfully cursing. [Skotlex]
