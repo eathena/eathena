@@ -31,6 +31,14 @@
 		Item type: Throwing Dagger. Has to be equipped as an arrow, is consumed
 		like gemstones when the skill is used.
 	--
+10/17
+	* Added translations for japanese comments, thanks to sighel. [MasterOfMuppets]
+	  The following files had translations added:
+	- abra_db.txt
+	- attr_fix.txt
+	- exp_guild.txt
+	- skill_cast_db.txt
+	- skill_db.txt
 10/16
 	* Updated some stats of Lady Tanee, thanks to gyunwoo23 [MasterOfMuppets]
 10/15
