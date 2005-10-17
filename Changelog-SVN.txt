@@ -2,6 +2,9 @@ Date	Added
 =======
 
 2005/10/17
+	* Cleaned up the card inserting code to prevent crashes from modified
+	  packets. [Skotlex]
+	* Fixed offensive heal [Skotlex]
 	* Applied a random chance when reducing the mob's chase duration. This
 	  should randomize how long the mob chases you around before giving up.
 	  [Skotlex]

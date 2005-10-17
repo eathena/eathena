@@ -5304,48 +5304,49 @@ int clif_solved_charname(struct map_session_data *sd,int char_id)
  */
 int clif_use_card(struct map_session_data *sd,int idx)
 {
+	int i,c,ep;
+	int fd=sd->fd;
+
 	nullpo_retr(0, sd);
 	if (idx < 0 || idx >= MAX_INVENTORY) //Crash-fix from bad packets.
 		return 0;
-	
-	if(sd->inventory_data[idx]) {
-		int i,c;
-		int ep=sd->inventory_data[idx]->equip;
-		int fd=sd->fd;
-		WFIFOW(fd,0)=0x017b;
 
-		for(i=c=0;i<MAX_INVENTORY;i++){
-			int j;
+	if (!sd->inventory_data[idx] || sd->inventory_data[idx]->type != 6)
+		return 0; //Avoid parsing invalid item indexes (no card/no item)
+			
+	ep=sd->inventory_data[idx]->equip;
+	WFIFOW(fd,0)=0x017b;
 
-			if(sd->inventory_data[i] == NULL)
-				continue;
-			if(sd->inventory_data[i]->type!=4 && sd->inventory_data[i]->type!=5)	// 武器防具じゃない
-				continue;
-			if(sd->status.inventory[i].card[0]==0x00ff)	// 製造武器
-				continue;
-			if(sd->status.inventory[i].card[0]==(short)0xff00 || sd->status.inventory[i].card[0]==0x00fe)
-				continue;
-			if(sd->status.inventory[i].identify==0 )	// 未鑑定
-				continue;
+	for(i=c=0;i<MAX_INVENTORY;i++){
+		int j;
 
-			if((sd->inventory_data[i]->equip&ep)==0)	// 装備個所が違う
-				continue;
-			if(sd->inventory_data[i]->type==4 && ep==32)	// 盾カードと両手武器
-				continue;
+		if(sd->inventory_data[i] == NULL)
+			continue;
+		if(sd->inventory_data[i]->type!=4 && sd->inventory_data[i]->type!=5)	// 武器防具じゃない
+			continue;
+		if(sd->status.inventory[i].card[0]==0x00ff)	// 製造武器
+			continue;
+		if(sd->status.inventory[i].card[0]==(short)0xff00 || sd->status.inventory[i].card[0]==0x00fe)
+			continue;
+		if(sd->status.inventory[i].identify==0 )	// 未鑑定
+			continue;
 
-			for(j=0;j<sd->inventory_data[i]->slot;j++){
-				if( sd->status.inventory[i].card[j]==0 )
-					break;
-			}
-			if(j==sd->inventory_data[i]->slot)	// すでにカードが一杯
-				continue;
-
-			WFIFOW(fd,4+c*2)=i+2;
-			c++;
+		if((sd->inventory_data[i]->equip&ep)==0)	// 装備個所が違う
+			continue;
+		if(sd->inventory_data[i]->type==4 && ep==32)	// 盾カードと両手武器
+			continue;
+		for(j=0;j<sd->inventory_data[i]->slot;j++){
+			if( sd->status.inventory[i].card[j]==0 )
+				break;
 		}
-		WFIFOW(fd,2)=4+c*2;
-		WFIFOSET(fd,WFIFOW(fd,2));
+		if(j==sd->inventory_data[i]->slot)	// すでにカードが一杯
+			continue;
+
+		WFIFOW(fd,4+c*2)=i+2;
+		c++;
 	}
+	WFIFOW(fd,2)=4+c*2;
+	WFIFOSET(fd,WFIFOW(fd,2));
 
 	return 0;
 }

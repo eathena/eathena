@@ -2156,42 +2156,47 @@ int pc_blockskill_start (struct map_session_data *sd, int skillid, int tick)
  */
 int pc_insert_card(struct map_session_data *sd,int idx_card,int idx_equip)
 {
+	int i, ep;
+	int nameid, cardid;
+
 	nullpo_retr(0, sd);
 
-	if(idx_card >= 0 && idx_card < MAX_INVENTORY && idx_equip >= 0 && idx_equip < MAX_INVENTORY && sd->inventory_data[idx_card]) {
-		int i;
-		int nameid=sd->status.inventory[idx_equip].nameid;
-		int cardid=sd->status.inventory[idx_card].nameid;
-		int ep=sd->inventory_data[idx_card]->equip;
+	if(idx_card < 0 || idx_card >= MAX_INVENTORY || !sd->inventory_data[idx_card])
+		return 0; //Invalid card index.
+			
+	if(idx_equip < 0 || idx_equip >= MAX_INVENTORY || !sd->inventory_data[idx_equip])
+		return 0; //Invalid item index.
+	
+	nameid=sd->status.inventory[idx_equip].nameid;
+	cardid=sd->status.inventory[idx_card].nameid;
+	ep=sd->inventory_data[idx_card]->equip;
 
-		if( nameid <= 0 || sd->inventory_data[idx_equip] == NULL ||
-			(sd->inventory_data[idx_equip]->type!=4 && sd->inventory_data[idx_equip]->type!=5)||	// ? 備じゃない
-			( sd->status.inventory[idx_equip].identify==0 ) ||		// 未鑑定
-			(sd->inventory_data[idx_card]->type!=6)|| // Prevent Hack [Ancyker]
-			( sd->status.inventory[idx_equip].card[0]==0x00ff) ||		// 製造武器
-			( sd->status.inventory[idx_equip].card[0]==0x00fe) ||
-			( (sd->inventory_data[idx_equip]->equip&ep)==0 ) ||					// ? 備個所違い
-			( sd->inventory_data[idx_equip]->type==4 && ep==32) ||			// ? 手武器と盾カ?ド
-			( sd->status.inventory[idx_equip].card[0]==(short)0xff00) || sd->status.inventory[idx_equip].equip){
+	if( nameid <= 0 || cardid <= 0 ||
+		(sd->inventory_data[idx_equip]->type!=4 && sd->inventory_data[idx_equip]->type!=5)||	// ? 備じゃない
+		sd->inventory_data[idx_card]->type!=6 || // Prevent Hack [Ancyker]
+		sd->status.inventory[idx_equip].identify==0 ||		// 未鑑定
+		sd->status.inventory[idx_equip].card[0]==0x00ff ||		// 製造武器
+		sd->status.inventory[idx_equip].card[0]==0x00fe ||
+		sd->status.inventory[idx_equip].card[0]==(short)0xff00 ||
+		!(sd->inventory_data[idx_equip]->equip&ep) ||					// ? 備個所違い
+		(sd->inventory_data[idx_equip]->type==4 && ep==32) ||			// ? 手武器と盾カ?ド
+		sd->status.inventory[idx_equip].equip){
 
-			clif_insert_card(sd,idx_equip,idx_card,1);
+		clif_insert_card(sd,idx_equip,idx_card,1);
+		return 0;
+	}
+	for(i=0;i<sd->inventory_data[idx_equip]->slot;i++){
+		if( sd->status.inventory[idx_equip].card[i] == 0){
+		// 空きスロットがあったので差し?む
+			sd->status.inventory[idx_equip].card[i]=cardid;
+
+		// カ?ドは減らす
+			clif_insert_card(sd,idx_equip,idx_card,0);
+			pc_delitem(sd,idx_card,1,1);
 			return 0;
 		}
-		for(i=0;i<sd->inventory_data[idx_equip]->slot;i++){
-			if( sd->status.inventory[idx_equip].card[i] == 0){
-			// 空きスロットがあったので差し?む
-				sd->status.inventory[idx_equip].card[i]=cardid;
-
-			// カ?ドは減らす
-				clif_insert_card(sd,idx_equip,idx_card,0);
-				pc_delitem(sd,idx_card,1,1);
-				return 0;
-			}
-		}
 	}
-	else
-		clif_insert_card(sd,idx_equip,idx_card,1);
-
+	clif_insert_card(sd,idx_equip,idx_card,1);
 	return 0;
 }
 
