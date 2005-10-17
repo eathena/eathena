@@ -526,9 +526,16 @@ static int mob_walk(struct mob_data *md,unsigned int tick,int data)
 
 		x += dx;
 		y += dy;
-	//Min chase is now used to determine how far mobs seek before getting tired and giving up temporarily.	
+	
 		if(md->state.skillstate == MSS_CHASE)
-			md->min_chase--;
+		{	//Min chase is now used to determine how far mobs seek before getting tired and giving up temporarily.	
+			if ( md->min_chase > md->db->range2)
+				md->min_chase--;
+			else if (rand()%100 < 5)
+			 //Randomly bring down the min chase to 0. [Skotlex]
+			 //TODO: Find harddata of how the "stop chasing" code actually should work.
+				md->min_chase--;
+		}
 		
 		skill_unit_move(&md->bl,tick,2);
 		if(moveblock) map_delblock(&md->bl);
@@ -1851,7 +1858,6 @@ static int mob_ai_lazy(int tid,unsigned int tick,int id,int data)
 
 	return 0;
 }
-
 
 /*==========================================
  * The structure object for item drop with delay

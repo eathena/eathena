@@ -2,6 +2,9 @@ Date	Added
 =======
 
 2005/10/17
+	* Applied a random chance when reducing the mob's chase duration. This
+	  should randomize how long the mob chases you around before giving up.
+	  [Skotlex]
 	* Some modifications to the timer push heap function, may fix timer issues
 	  when creating timers with tick values that overflow. [Skotlex]
 	* Modified the mob ai so it has a seek time, when the min_chase runs out
