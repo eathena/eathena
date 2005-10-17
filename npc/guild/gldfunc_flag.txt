@@ -52,6 +52,7 @@ L_Startg2:
 	return;
 
 	M_Enter:
+		set PC_INVINCIBLE,1;
 		warp getarg(1)+".gat",getarg(2),getarg(3);
 		return;
 }

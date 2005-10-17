@@ -47,7 +47,6 @@ Member:
 	mes "What'll you have?";
 	next;
 	menu "Cinquedia[2] - 30T",Cinquedia,
-		"Coward[2] - 40T",Coward,
 		"Weeder Knife - 50T",Weeder,
 		"Dragon Killer - 60T",Dragon,
 		"Ginnungagap - 70T",Ginnun,
@@ -835,6 +834,149 @@ Repeating:
 	if (#Treasure_Token < 250) callfunc "THQ_needtoken";
 	set #Treasure_Token, #Treasure_Token-250;
 	getitem 1721,1;
+	callfunc "THQ_thank";
+	end;
+}
+
+yuno_in01.gat,124,166,6	script	Celia	1200,{
+	mes "[Celia]";
+	if(Event_THQS==1) goto Member;
+	mes "Get outta here before I decide to hurt you.";
+	close;
+Member:
+	mes "Whad'ya want?";
+	next;
+	menu "Err... a whip please",List,
+		"Your mask",Mask,
+		"Umm, nothing",-;
+	mes "[Celia]";
+	mes "Then quit wastin my time, wimp.";
+	close;
+
+Mask:
+	callfunc "F_ZealMask";
+	close;
+
+List:
+	mes "Ya got ^FF0000"+#Treasure_Token+"^000000 tokens.";
+	mes "What'll ya have?";
+	next;
+	menu "Whip of Scarlet Flame - 80T",Fire,
+		"Whip of Icy Blade - 80T",Ice,
+		"Whip of Earth - 80T",Earth,
+		"Rapture Rose - 80T",Rose,
+		"Jumprope - 100T",Jumprope,
+		"Blade Whip - 150T",Scourge,
+		"Queen's Whip - 150T",Queen,
+		"-nothing today-",-;
+	close;
+
+Fire:
+	mes "[Celia]";
+	mes "A whip made with a thick monster skin imbued with the strength of fire.";
+	mes "Attack : ^777777110^000000";
+	mes "Property :^777777Fire^000000";
+	mes "Weapon lvl : ^7777773^000000";
+	mes "Required lvl : ^77777730^000000";
+	next;
+	menu "Buy",-,"No",List;
+	if (#Treasure_Token < 80) callfunc "THQ_needtoken";
+	set #Treasure_Token, #Treasure_Token-80;
+	getitem 1965,1;
+	callfunc "THQ_thank";
+	end;
+
+Ice:
+	mes "[Celia]";
+	mes "The greens in order not to be, magical control grudge passed through a sharp ice formation of a cabinet and the whip which it made.";
+	mes "-- Whatever the hell that means. Don't look at me, I don't write this crap. --";
+	mes "Attack : ^777777110^000000";
+	mes "Property : ^777777Water^000000";
+	mes "Weapon Level : ^7777773^000000";
+	mes "Required Level : ^77777730^000000";
+	next;
+	menu "Buy",-,"No",List;
+	if (#Treasure_Token < 80) callfunc "THQ_needtoken";
+	set #Treasure_Token, #Treasure_Token-80;
+	getitem 1966,1;
+	callfunc "THQ_thank";
+	end;
+
+Earth:
+	mes "[Celia]";
+	mes "Made by taking the toughest part of the tree's root.";
+	mes "Attack : ^777777110^000000";
+	mes "Property :^777777Earth^000000";
+	mes "Weapon lvl : ^7777773^000000";
+	mes "Required lvl : ^77777730^000000";
+	next;
+	menu "Buy",-,"No",List;
+	if (#Treasure_Token < 80) callfunc "THQ_needtoken";
+	set #Treasure_Token, #Treasure_Token-80;
+	getitem 1967,1;
+	callfunc "THQ_thank";
+	end;
+
+Jumprope:
+	mes "[Celia]";
+	mes "Handle is made of wood. You might cry if you get hit by the wooden handle!";
+	mes "CRIT +20%";
+	mes "Attack : ^777777120^000000";
+	mes "Weapon lvl : ^7777773^000000";
+	mes "Required lvl : ^77777730^000000";
+	next;
+	menu "Buy",-,"No",List;
+	if (#Treasure_Token < 100) callfunc "THQ_needtoken";
+	set #Treasure_Token, #Treasure_Token-100;
+	getitem 1968,1;
+	callfunc "THQ_thank";
+	end;
+
+Scourge:
+	mes "[Celia]";
+	mes "Made by putting in parts of broken blade into the wire of the whip.";
+	mes "Excellent in cutting the enemy, and is almost similar to a sword in damage.";
+	mes "^880000External Bleeding^000000 an enemy when you attack (Success Chance 5%).";
+	mes "-- My favorite --";
+	mes "Attack : ^777777140^000000";
+	mes "Weapon lvl : ^7777774^000000";
+	mes "Required lvl : ^77777730^000000";
+	next;
+	menu "Buy",-,"No",List;
+	if (#Treasure_Token < 150) callfunc "THQ_needtoken";
+	set #Treasure_Token, #Treasure_Token-150;
+	getitem 1969,1;
+	callfunc "THQ_thank";
+	end;
+
+Queen:
+	mes "[Celia]";
+	mes "A whip with awesome power. Don't even go there with your imagination!";
+	mes "Throw Arrow and Arrow Vulcan damage + 10%.";
+	mes "Attack : ^777777150^000000";
+	mes "Weapon lvl : ^7777774^000000";
+	mes "Required lvl : ^77777765^000000";
+	next;
+	menu "Buy",-,"No",List;
+	if (#Treasure_Token < 150) callfunc "THQ_needtoken";
+	set #Treasure_Token, #Treasure_Token-150;
+	getitem 1970,1;
+	callfunc "THQ_thank";
+	end;
+
+Rose:
+	mes "[Celia]";
+	mes "A whip made from the thornstems of a rosebush.";
+	mes "It inflicts poison upon enemies when used.";
+	mes "Attack Strength : ^777777115^000000";
+	mes "Property : ^777777Poison^000000";
+	mes "Weapon lvl : ^7777774^000000";
+	mes "Required lvl : ^77777744^000000";
+	next;
+	menu "Buy",-,"No",List;
+	if (#Treasure_Token < 80) callfunc "THQ_needtoken";
+	set #Treasure_Token, #Treasure_Token-80;
+	getitem 1963,1;
 	callfunc "THQ_thank";
 	end;
 }

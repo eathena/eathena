@@ -6,6 +6,41 @@
 //===== Description: =========================================
 //============================================================
 
+function	script	F_Zealmask	{
+	mes "[Celia]";
+	if (countitem(660)>0) goto Step2;
+	mes "You want WHAT?";
+	mes " ";
+	mes "Get me a ^A00000Forbidden Red Candle^000000 and maybe we'll talk.";
+	close;
+
+Step2:
+	if (countitem(7262)>0) goto Step3;
+	mes "Hmm, I see you found me that candle. Maybe you're not completely worthless.";
+	mes " ";
+	mes "Bring me a ^00A000Cat's-Eye^000000 and maybe we can do business.";
+	close;
+
+Step3:
+	if (countitem(7099)>=30 && countitem(7315)>=369) goto Finish;
+	mes "My candle, and my jewel...";
+	mes " ";
+	mes "Bring me 30 Old magic Circle and 369 Piece of Black Quartz and you can have the mask.";
+	close;
+
+Finish:
+	mes "You actually found everything. I am impressed.";
+	next;
+	delitem 660,1;
+	delitem 7262,1;
+	delitem 7099,30;
+	delitem 7315,369;
+	getitem 5121,1;
+	mes "[Celia]";
+	mes "As promised, here is my mask, or a decent copy at least.";
+	close;
+}
+
 function	script	F_Russian_Hat	{
 	mes "["+@npcname$+"]";
 	mes "Thank you for your generosity.";

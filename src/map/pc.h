@@ -36,6 +36,8 @@ int pc_setnewpc(struct map_session_data*,int,int,int,int,int,int);
 int pc_authok(int, int, time_t, struct mmo_charstatus *);
 int pc_authfail(int);
 
+void pc_resetidle(struct map_session_data *);
+
 int pc_isequip(struct map_session_data *sd,int n);
 int pc_equippoint(struct map_session_data *sd,int n);
 

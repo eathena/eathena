@@ -532,11 +532,12 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 	}
 
 	if (damage > 0) { // damage reductions
-		if (map[bl->m].flag.gvg) { //GvG
+		if (map[bl->m].flag.gvg && skill_num != PA_PRESSURE) { //GvG
 			if (bl->type == BL_MOB){	//defenseがあればダメージが減るらしい？
 				struct guild_castle *gc = guild_mapname2gc(map[bl->m].name);
 				if (gc) damage -= damage * (gc->defense / 100) * (battle_config.castle_defense_rate/100);
 			}
+#ifdef OLD_GVG_Damage
 			if (flag & BF_WEAPON) {
 				if (flag & BF_SHORT)
 					damage = damage * battle_config.gvg_short_damage_rate/100;
@@ -547,6 +548,22 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 				damage = damage * battle_config.gvg_magic_damage_rate/100;
 			if (flag&BF_MISC && skill_num != CR_ACIDDEMONSTRATION)
 				damage = damage * battle_config.gvg_misc_damage_rate/100;
+#else
+			if (flag & BF_SKILL) { //Skills get a different reduction than non-skills. [Skotlex]
+				if (flag&BF_WEAPON)
+					damage = (damage * 6)/10;
+				if (flag&BF_MAGIC)
+					damage = damage/2;
+				if (flag&BF_MISC && skill_num != CR_ACIDDEMONSTRATION)
+					damage = (damage * 6)/10;
+			} else { //Normal attacks get reductions based on range.
+//				if (flag & BF_SHORT)
+//					damage = damage * battle_config.gvg_short_damage_rate/100;
+				if (flag & BF_LONG)
+					damage = (damage * 3)/4;
+			}
+
+#endif
 		} else if (map[bl->m].flag.pkmode && bl->type == BL_PC) {
 			if (flag & BF_WEAPON) {
 				if (flag & BF_SHORT)
@@ -5944,7 +5961,7 @@ void battle_validate_conf() {
 //	if (battle_config.finding_ore_rate < 0)
 //		battle_config.finding_ore_rate = 0;
 
-	if (battle_config.vending_max_value > 10000000 || battle_config.vending_max_value<=0) // Lupus & Kobra_k88
+	if (battle_config.vending_max_value<=0) // Lupus & Kobra_k88
 		battle_config.vending_max_value = 10000000;
 
 	if (battle_config.min_skill_delay_limit < 10)

@@ -1284,14 +1284,14 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 					if(rand()%10000 < (sd->addeff2[type])*sc_def_card/100 ){
 						if(battle_config.battle_log)
 							printf("PC %d skill_addeff: card‚É‚æ‚éˆÙí?“® %d %d\n",src->id,i,sd->addeff2[type]);
-						status_change_start(src,i,7,0,0,0,(i==SC_CONFUSION)? 10000+7000:skill_get_time2(sc2[type],7),0);
+						status_change_start(src,i,7,0,0,0,(i==SC_CONFUSION)? 10000+7000:skill_get_time2(sc2[type],7),0x10);
 					}
 				}
 				else {
 					if(rand()%10000 < (sd->addeff2[type]+sd->arrow_addeff2[type])*sc_def_card/100 ){
 						if(battle_config.battle_log)
 							printf("PC %d skill_addeff: card‚É‚æ‚éˆÙí?“® %d %d\n",src->id,i,sd->addeff2[type]);
-						status_change_start(src,i,7,0,0,0,(i==SC_CONFUSION)? 10000+7000:skill_get_time2(sc2[type],7),0);
+						status_change_start(src,i,7,0,0,0,(i==SC_CONFUSION)? 10000+7000:skill_get_time2(sc2[type],7),0x10);
 					}
 				}
 			}
@@ -1300,7 +1300,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 					continue;
 				if(battle_config.battle_log)
 					printf("PC %d skill_addeff: card‚É‚æ‚éˆÙí?“® %d %d\n",src->id,i,dstsd->addeff3[type]);
-				status_change_start(src,i,7,0,0,0,(i==SC_CONFUSION)? 10000+7000:skill_get_time2(sc2[type],7),0);
+				status_change_start(src,i,7,0,0,0,(i==SC_CONFUSION)? 10000+7000:skill_get_time2(sc2[type],7),0x10);
 			}
 		}
 	}
@@ -2811,7 +2811,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 				src->m,src->x-2,src->y-2,src->x+2,src->y+2,0,
 				src,skillid,skilllv,tick, flag|BCT_ENEMY|1,
 				skill_castend_damage_id);
-			status_change_start (src,SC_FLAMELAUNCHER,0,0,0,0,10000,0);
+//			status_change_start (src,SC_FLAMELAUNCHER,0,0,0,0,10000,0);
 			clif_skill_nodamage (src,src,skillid,skilllv,1);
 		}
 		break;

@@ -40,6 +40,7 @@
 #endif
 
 #define PVP_CALCRANK_INTERVAL 1000	// PVP‡ˆÊŒvŽZ‚ÌŠÔŠu
+#define ANTI_SPAWN_CAMP 1
 
 static int exp_table[14][MAX_LEVEL];
 static short statp[MAX_LEVEL];
@@ -82,6 +83,11 @@ int pc_istop10fame(int char_id,int type) {
 	}
 
 	return 0;
+}
+
+void pc_resetidle(struct map_session_data *sd)
+{
+	sd->timeout_tick = gettick() + 1000000;
 }
 
 int pc_isGM(struct map_session_data *sd) {
@@ -163,6 +169,8 @@ static int pc_invincible_timer(int tid,unsigned int tick,int id,int data) {
 	if( (sd=(struct map_session_data *)map_id2sd(id)) == NULL || sd->bl.type!=BL_PC )
 		return 1;
 
+	pc_setglobalreg(sd,"PC_INVINCIBLE",0);
+
 	if(sd->invincible_timer != tid){
 		if(battle_config.error_log)
 			printf("invincible_timer %d != %d\n",sd->invincible_timer,tid);
@@ -177,7 +185,7 @@ static int pc_invincible_timer(int tid,unsigned int tick,int id,int data) {
 int pc_setinvincibletimer(struct map_session_data *sd,int val) {
 	nullpo_retr(0, sd);
 
-//	if(map[sd->bl.m].flag.gvg) val/=2; 
+//	if(pc_readglobalreg(sd,"PC_INVINCIBLE")>0) val/=2; 
 
 	if(sd->invincible_timer != -1)
 		delete_timer(sd->invincible_timer,pc_invincible_timer);
@@ -187,6 +195,11 @@ int pc_setinvincibletimer(struct map_session_data *sd,int val) {
 
 int pc_delinvincibletimer(struct map_session_data *sd) {
 	nullpo_retr(0, sd);
+
+#ifdef ANTI_SPAWN_CAMP
+	if(pc_readglobalreg(sd,"PC_INVINCIBLE")>0)
+		return 0;
+#endif
 
 	if(sd->invincible_timer != -1) {
 		delete_timer(sd->invincible_timer,pc_invincible_timer);
@@ -7480,12 +7493,12 @@ static int pc_autosave_sub(struct map_session_data *sd,va_list ap)
 		storage_storage_save(sd);
 		if(sd->state.storage_flag)
 			storage_guild_storagesave(sd);
-#if 0
-		if(sd->timeout_tick < gettick())
+#ifdef IDLE_TIMEOUT
+		if(sd->timeout_tick < gettick() && !sd->vender_id)
 		{
-			clif_displaymessage(sd->fd,"Connection timed out.");
+			clif_displaymessage(sd->fd,"Idle time limit exceeded.");
 			clif_setwaitclose(sd->fd);
-			printf("%s timed out\n",sd->status.name);
+			printf("%s kicked: excessive idle\n",sd->status.name);
 		}
 #endif
 		if(agit_flag && sd->vender_id)
@@ -7547,7 +7560,7 @@ int pc_read_gm_account(int fd)
 	    while ((lsql_row = mysql_fetch_row(lsql_res))) {
 	        gm_account[GM_num].account_id = atoi(lsql_row[0]);
 		    gm_account[GM_num].level = atoi(lsql_row[1]);
-		    printf("GM account: %d -> level %d\n", gm_account[GM_num].account_id, gm_account[GM_num].level);
+//		    printf("GM account: %d -> level %d\n", gm_account[GM_num].account_id, gm_account[GM_num].level);
 		    GM_num++;
 	    }
     }

@@ -8232,6 +8232,9 @@ void clif_parse_GlobalMessage(int fd, struct map_session_data *sd) { // S 008c <
 	unsigned char *buf;
 
 	nullpo_retv(sd);
+
+	pc_resetidle(sd);
+
 	if ((is_atcommand(fd, sd, (char*)RFIFOP(fd,4), 0) != AtCommand_None) ||
         (is_charcommand(fd, sd, (char*)RFIFOP(fd,4),0)!= CharCommand_None) ||
 	    (sd->sc_data &&
@@ -8526,6 +8529,7 @@ void clif_parse_ActionRequest(int fd, struct map_session_data *sd) {
 
 	pc_stop_walking(sd, 0);
 	pc_stopattack(sd);
+	pc_resetidle(sd);
 
 	if (USE_PACKET_DB(sd)) {
 		target_id = RFIFOL(fd,packet_db[clif_config.packet_db_ver][RFIFOW(fd,0)].pos[0]);
@@ -8659,6 +8663,8 @@ void clif_parse_Wis(int fd, struct map_session_data *sd) { // S 0096 <len>.w <ni
 	char *gm_command;
 	struct map_session_data *dstsd;
 	int i;
+
+	pc_resetidle(sd);
 
 	//printf("clif_parse_Wis: message: '%s'.\n", RFIFOP(fd,28));
 
@@ -9017,6 +9023,8 @@ void clif_parse_NpcClicked(int fd,struct map_session_data *sd)
 {
 	nullpo_retv(sd);
 
+	pc_resetidle(sd);
+
 	if(pc_isdead(sd)) {
 		clif_clearchar_area(&sd->bl,1);
 		return;
@@ -9137,6 +9145,7 @@ void clif_parse_ChatLeave(int fd,struct map_session_data *sd)
 void clif_parse_TradeRequest(int fd,struct map_session_data *sd)
 {
 	nullpo_retv(sd);
+	pc_resetidle(sd);
 
 	if(battle_config.basic_skill_check == 0 || pc_checkskill(sd,NV_BASIC) >= 1){
 		trade_traderequest(sd,RFIFOL(sd->fd,2));
@@ -9274,6 +9283,7 @@ void clif_parse_StatusUp(int fd,struct map_session_data *sd)
  */
 void clif_parse_SkillUp(int fd,struct map_session_data *sd)
 {
+	pc_resetidle(sd);
 	pc_skillup(sd,RFIFOW(fd,2));
 }
 
@@ -9286,6 +9296,7 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd) {
 	unsigned int tick = gettick();
 
 	nullpo_retv(sd);
+	pc_resetidle(sd);
 
 	if (sd->chatID || sd->npc_id != 0 || sd->vender_id != 0)
 		return;
@@ -9436,6 +9447,7 @@ void clif_parse_UseSkillToPos(int fd, struct map_session_data *sd) {
 	int skillmoreinfo;
 
 	nullpo_retv(sd);
+	pc_resetidle(sd);
 
 	if (sd->npc_id != 0 || sd->vender_id != 0) return;
 	if(sd->chatID) return;
@@ -9604,6 +9616,7 @@ void clif_parse_UseSkillMap(int fd,struct map_session_data *sd)
 	nullpo_retv(sd);
 
 	if(sd->chatID) return;
+	pc_resetidle(sd);
 
 	if (sd->npc_id!=0 || sd->vender_id != 0 || (sd->sc_data &&
 		(sd->sc_data[SC_TRICKDEAD].timer != -1 ||
@@ -10104,6 +10117,7 @@ void clif_parse_PartyMessage(int fd, struct map_session_data *sd) {
  *------------------------------------------
  */
 void clif_parse_CloseVending(int fd, struct map_session_data *sd) {
+	pc_resetidle(sd);
 	vending_closevending(sd);
 }
 
@@ -10495,7 +10509,7 @@ void clif_parse_GMReqNoChat(int fd,struct map_session_data *sd)
 	if (type == 2 && limit == 60)
 	{
 		char logbuf[200];
-		sprintf(logbuf,"req mute - limit:%d",limit);
+		sprintf(logbuf,"Warned for botting on %s",map[sd->bl.m].name);
 		log_npc(sd,logbuf);
 		return;		
 	}

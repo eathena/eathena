@@ -4,6 +4,8 @@
 #include <stdarg.h>
 #include <string.h>
 
+#define DEBUG_MVP
+
 #include "timer.h"
 #include "socket.h"
 #include "db.h"
@@ -4620,9 +4622,9 @@ static int mob_read_sqldb(void)
 				if(mob_db[class_].mexp > 0)
 				{
 					// MVP Drops: MVP1id,MVP1per,MVP2id,MVP2per,MVP3id,MVP3per
-					mob_db[class_].mvpitem[0].nameid = atoi(sql_row[52]);
-					mob_db[class_].mvpitem[0].p = atoi(sql_row[53]) * battle_config.mvp_item_rate / 100;
-					mob_db[class_].mvpitem[1].nameid = atoi(sql_row[54]);
+					mob_db[class_].mvpitem[0].nameid = atoi(sql_row[51]);
+					mob_db[class_].mvpitem[0].p = atoi(sql_row[52]) * battle_config.mvp_item_rate / 100;
+					mob_db[class_].mvpitem[1].nameid = atoi(sql_row[53]);
 					mob_db[class_].mvpitem[1].p = atoi(sql_row[54]) * battle_config.mvp_item_rate / 100;
 					mob_db[class_].mvpitem[2].nameid = atoi(sql_row[55]);
 					mob_db[class_].mvpitem[2].p = atoi(sql_row[56]) * battle_config.mvp_item_rate / 100;
