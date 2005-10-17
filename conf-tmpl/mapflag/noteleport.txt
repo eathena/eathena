@@ -13,6 +13,7 @@ ayo_in02.gat	mapflag	noteleport
 alb_ship.gat	mapflag	noteleport
 alberta_in.gat	mapflag	noteleport
 aldeba_in.gat	mapflag	noteleport
+ama_dun01.gat	mapflag	noteleport
 ama_in01.gat	mapflag	noteleport
 ama_in02.gat	mapflag	noteleport
 cmd_in01.gat	mapflag	noteleport

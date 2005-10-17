@@ -24,6 +24,7 @@ Massdriller
 Date		Added
 ======
 10/17
+	* Added the noteleport mapflag to Amatsu Dungeon lvl 1, thanks to frugal [MasterOfMuppets]
 	*Fixed a lot of scripts that may have been exploitable, fixed typos, and optimized a bunch of other scripts. Thanks to Silent. [Nexon]
 10/16
 	* Fixed Einbroch Airport, Lighhalzen Dungeon warp. Thanks to Justin84 [Lupus]
