@@ -3718,7 +3718,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			int lv = sd->status.base_level - dstsd->status.base_level;
 			if (lv < 0) lv = -lv;
 			if (lv > battle_config.devotion_level_difference ||
-				(dstsd->sc_data[SC_DEVOTION].timer != -1 && dstsd->sc_data[SC_DEVOTION].val1 != bl.id) || //Avoid overriding [Skotlex]
+				(dstsd->sc_data[SC_DEVOTION].timer != -1 && dstsd->sc_data[SC_DEVOTION].val1 != bl->id) || //Avoid overriding [Skotlex]
 				(dstsd->class_&MAPID_UPPERMASK) == MAPID_CRUSADER) {
 				clif_skill_fail(sd,skillid,0,0);
 				map_freeblock_unlock();
@@ -5012,10 +5012,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			   (su=(struct skill_unit *)bl) &&
 			   (su->group->src_id == src->id || map[bl->m].flag.pvp || map[bl->m].flag.gvg) &&
 				(skill_get_inf2(su->group->skill_id) & INF2_TRAP))
-				if(sd && sd->sc_data[SC_INTOABYSS].timer == -1)
-			{
-				{ //Avoid collecting traps when it does not costs to place them down. [Skotlex]
-					if(battle_config.skill_removetrap_type == 1){
+			{	
+				if(sd && su->group->val3 != BD_INTOABYSS)
+				{	//Avoid collecting traps when it does not costs to place them down. [Skotlex]
+					if(battle_config.skill_removetrap_type){
 						for(i=0;i<10;i++) {
 							if(skill_db[su->group->skill_id].itemid[i] > 0){
 								memset(&item_tmp,0,sizeof(item_tmp));
@@ -5036,7 +5036,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 							map_addflooritem(&item_tmp,1,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);
 						}
 					}
-
 				}
 				if(su->group->unit_id == UNT_ANKLESNARE && su->group->val2){
 					struct block_list *target=map_id2bl(su->group->val2);
@@ -6166,7 +6165,7 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 	if (unit_flag&UF_DEFNOTENEMY && battle_config.defnotenemy)
 		target = BCT_NOENEMY;
 
-	sc_data = status_get_sc_data(src);	// for firewall and fogwall - celest
+	sc_data = status_get_sc_data(src);	// for traps, firewall and fogwall - celest
 
 	switch(skillid){	/* 設定 */
 
@@ -6221,6 +6220,8 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 	case HT_FLASHER:			/* フラッシャ? */
 	case HT_FREEZINGTRAP:		/* フリ?ジングトラップ */
 	case HT_BLASTMINE:			/* ブラストマイン */
+		if (sc_data && sc_data[SC_INTOABYSS].timer != -1)
+			val3 = BD_INTOABYSS;	//Store into abyss state, to know it shouldn't give traps back. [Skotlex]
 		if (map[src->m].flag.gvg)
 		{
 			limit *= 4; // longer trap times in WOE [celest]
@@ -9883,7 +9884,8 @@ int skill_unit_timer_sub( struct block_list *bl, va_list ap )
 					struct block_list *src=map_id2bl(group->src_id);
 					if(group->unit_id == UNT_ANKLESNARE && group->val2);
 					else{
-						if(src && src->type==BL_PC){
+						if(src && src->type==BL_PC && group->val3 != BD_INTOABYSS)
+						{	//Avoid generating trap items when it did not cost to create them. [Skotlex]
 							struct item item_tmp;
 							memset(&item_tmp,0,sizeof(item_tmp));
 							item_tmp.nameid=1065;

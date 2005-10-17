@@ -2,6 +2,7 @@ Date	Added
 =======
 
 2005/10/17
+	* Fixed Into the Abyss + retrieving traps related exploits. [Skotlex]
 	* Changed monster_skill_nofootset to no to enable mobs casting stuff like
 	  Bomb underneath characters. [Skotlex]
 	* Fixed Sacrifice, it can now be recasted on a player as long as it's by
