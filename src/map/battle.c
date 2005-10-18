@@ -134,6 +134,22 @@ static int battle_gettargeted_sub(struct block_list *bl, va_list ap)
 	bl_list[(*c)++] = bl;
 	return 0;
 }
+
+//Returns the id of the current targetted character of the passed bl. [Skotlex]
+int battle_gettarget(struct block_list *bl)
+{
+	switch (bl->type)
+	{
+		case BL_PC:
+			return ((struct map_session_data*)bl)->attacktarget;
+		case BL_MOB:
+			return ((struct mob_data*)bl)->target_id;
+		case BL_PET:
+			return ((struct pet_data*)bl)->target_id;
+	}
+	return 0;
+}
+
 struct block_list* battle_gettargeted(struct block_list *target)
 {
 	struct block_list *bl_list[24];

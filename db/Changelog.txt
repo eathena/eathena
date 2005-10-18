@@ -32,8 +32,12 @@
 		like gemstones when the skill is used.
 	--
 
-10/18	* Changed DEF of Guard to 3, according to Komurka and andz report
-[Foruken]
+10/18
+	* Updated Thanatos' mode to include boss-type (Thanatos and several of the
+	  mobs in the same dungeon are supposed to be looters? That's what I read
+	  from here). [Skotlex]
+	* Changed DEF of Guard to 3, according to Komurka and andz report
+	  [Foruken]
 
 10/17
 	* Re-fixed Gravition's range to 8. [Skotlex]

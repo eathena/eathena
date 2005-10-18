@@ -173,7 +173,7 @@ static int pet_unlocktarget(struct pet_data *pd)
 
 static int pet_attack(struct pet_data *pd,unsigned int tick,int data)
 {
-	struct mob_data *md;
+	struct block_list *target;
 
 	short range;
 
@@ -181,23 +181,23 @@ static int pet_attack(struct pet_data *pd,unsigned int tick,int data)
 
 	Assert((pd->msd == 0) || (pd->msd->pd == pd));
 
-	md=(struct mob_data *)map_id2bl(pd->target_id);
-	if(md == NULL || pd->bl.m != md->bl.m || md->bl.prev == NULL ||
-		distance(pd->bl.x,pd->bl.y,md->bl.x,md->bl.y) > 13)
+	target= map_id2bl(pd->target_id);
+	if(target == NULL || pd->bl.m != target->m || target->prev == NULL ||
+		distance(pd->bl.x,pd->bl.y,target->x,target->y) > pd->db->range3)
 	{
 		pet_unlocktarget(pd);
 		return 0;
 	}
 
 	range = pd->db->range + 1;
-	if(distance(pd->bl.x,pd->bl.y,md->bl.x,md->bl.y) > range)
+	if(distance(pd->bl.x,pd->bl.y,target->x,target->y) > range)
 		return 0;
 	if(battle_config.monster_attack_direction_change)
-		pd->dir=map_calc_dir(&pd->bl, md->bl.x,md->bl.y );
+		pd->dir=map_calc_dir(&pd->bl, target->x,target->y );
 
 	clif_fixpetpos(pd);
 
-	pd->target_lv = battle_weapon_attack(&pd->bl,&md->bl,tick,0);
+	pd->target_lv = battle_weapon_attack(&pd->bl,target,tick,0);
 
 	pd->attackabletime = tick + status_get_adelay(&pd->bl);
 
@@ -223,7 +223,7 @@ static int pet_attackskill(struct pet_data *pd, unsigned int tick, int data)
 
 	md=(struct mob_data *)map_id2bl(pd->target_id);
 	if(md == NULL || pd->bl.m != md->bl.m || md->bl.prev == NULL ||
-		distance(pd->bl.x,pd->bl.y,md->bl.x,md->bl.y) > 13)
+		distance(pd->bl.x,pd->bl.y,md->bl.x,md->bl.y) > md->db->range3)
 	{
 		pet_unlocktarget(pd);
 		return 0;
@@ -1493,7 +1493,7 @@ static int pet_ai_sub_hard(struct pet_data *pd,unsigned int tick)
 			race=pd->db->race;
 			md=(struct mob_data *)map_id2bl(pd->target_id);
 			if(md == NULL || pd->bl.m != md->bl.m || md->bl.prev == NULL ||
-				distance(pd->bl.x,pd->bl.y,md->bl.x,md->bl.y) > 13)
+				distance(pd->bl.x,pd->bl.y,md->bl.x,md->bl.y) > pd->db->range3)
 				pet_unlocktarget(pd);
 			else if(!battle_check_range(&pd->bl,&md->bl,pd->db->range && !pd->state.casting_flag)){ //Skotlex Don't interrupt a casting spell when targed moved
 				if(pd->timer != -1 && pd->state.state == MS_WALK && distance(pd->to_x,pd->to_y,md->bl.x,md->bl.y) < 2)

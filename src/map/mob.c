@@ -1548,8 +1548,10 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 					}
 				}
 			} else { //Attackable
-				if (!tbl || dist < md->db->range || distance(md->bl.x, md->bl.y, tbl->x, tbl->y) > dist)
-				{	//Change if the new target is closer than the actual one. [Skotlex]
+				if (!tbl || dist < md->db->range || distance(md->bl.x, md->bl.y, tbl->x, tbl->y) > dist
+					|| battle_gettarget(tbl) != md->bl.id)
+				{	//Change if the new target is closer than the actual one
+					//or if the previous target is not attacking the mob. [Skotlex]
 					md->target_id = md->attacked_id; // set target
 					md->state.targettype = ATTACKABLE;
 					attack_type = 1;

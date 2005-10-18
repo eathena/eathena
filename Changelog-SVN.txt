@@ -1,6 +1,11 @@
 Date	Added
 =======
 2005/10/18
+	* Updated mob AI so that aggressive mobs will change targets if they are
+	  attacked and their current target isn't attacking them (regardless of
+	  range) [Skotlex]
+	* Some updates to the pet AI so their chase range is range3 instead of the
+	  hardcoded value of 13. [Skotlex]
 	* Reverted Mika's fix since it makes it impossible for mobs to heal each
 	  other. (what is the so called exp bug about?) [Skotlex]
 	* Fixed a possible crash in clif_equiplist(), thanks to Zoc [Skotlex]
