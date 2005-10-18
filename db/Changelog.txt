@@ -33,6 +33,7 @@
 	--
 
 10/18
+	* More translations for japanese comments, again thanks to sighel. [MasterOfMuppets]
 	* Updated Thanatos' mode to include boss-type (Thanatos and several of the
 	  mobs in the same dungeon are supposed to be looters? That's what I read
 	  from here). [Skotlex]
