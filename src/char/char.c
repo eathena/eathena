@@ -3154,6 +3154,9 @@ int parse_char(int fd) {
 			auth_fifo[auth_fifo_pos].connect_until_time = sd->connect_until_time;
 			auth_fifo[auth_fifo_pos].ip = session[fd]->client_addr.sin_addr.s_addr;
 
+			//Checks to see if the even share setting of the party must be broken.
+			inter_party_logged(char_dat[sd->found_char[ch]].party_id, char_dat[sd->found_char[ch]].account_id);
+
 			//Send NEW auth packet [Kevin]
 			if ((map_fd = server_fd[i]) < 1 || session[map_fd] == NULL)
 			{	//0 Should not be a valid server_fd [Skotlex]

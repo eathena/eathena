@@ -343,6 +343,27 @@ int mapif_party_optionchanged(int fd,struct party *p, int account_id, int flag) 
 	return 0;
 }
 
+//Checks whether the even-share setting of a party is broken when a character logs in. [Skotlex]
+int inter_party_logged(int party_id, int account_id)
+{
+	struct party *p;
+	if (!party_id)
+		return 0;
+
+	p = (struct party *) numdb_search(party_db, party_id);
+	if(p==NULL){
+		return 0;
+	}
+
+	if(p->party_id && p->exp == 1 && !party_check_exp_share(p))
+	{
+		p->exp=0;
+		mapif_party_optionchanged(0,p,0,0);
+		return 1;
+	}
+	return 0;
+}
+
 // パ?ティ?退通知
 int mapif_party_leaved(int party_id,int account_id, char *name) {
 	unsigned char buf[34];

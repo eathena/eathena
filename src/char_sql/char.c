@@ -3146,7 +3146,6 @@ int parse_char(int fd) {
 			}
 			ShowInfo("Selected char: (Account %d: %d - %s)" RETCODE, sd->account_id, RFIFOB(fd, 2), char_dat[0].name);
 			
-
 			i = search_mapserver(char_dat[0].last_point.map);
 
 			// if map is not found, we check major cities
@@ -3217,6 +3216,9 @@ int parse_char(int fd) {
 			auth_fifo[auth_fifo_pos].connect_until_time = sd->connect_until_time;
 			auth_fifo[auth_fifo_pos].ip = session[fd]->client_addr.sin_addr.s_addr;
 
+			//Checks to see if the even share setting of the party must be broken.
+			inter_party_logged(char_dat[0].party_id, char_dat[0].account_id);
+			
 			//Send NEW auth packet [Kevin]
 			if ((map_fd = server_fd[i]) < 1 || session[map_fd] == NULL)
 			{	

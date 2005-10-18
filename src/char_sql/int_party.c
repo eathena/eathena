@@ -340,6 +340,7 @@ int party_check_exp_share(struct party *p)
         }
         return (maxlv==0 || maxlv-minlv<=party_share_level);
 }
+
 // Is there any member in the party?
 int party_check_empty(struct party *p)
 {
@@ -440,6 +441,29 @@ int mapif_party_optionchanged(int fd,struct party *p,int account_id,int flag)
 	//printf("int_party: option changed %d %d %d %d %d\n",p->party_id,account_id,p->exp,p->item,flag);
 	return 0;
 }
+
+//Checks whether the even-share setting of a party is broken when a character logs in. [Skotlex]
+int inter_party_logged(int party_id, int account_id)
+{
+	struct party *p = party_pt;
+	if(p==NULL){
+		ShowFatalError("int_party: out of memory !\n");
+		return 0;
+	}
+	if (!party_id)
+		return 0;
+		
+	inter_party_fromsql(party_id, p);
+
+	if(p->party_id && p->exp == 1 && !party_check_exp_share(p))
+	{
+		p->exp=0;
+		mapif_party_optionchanged(0,p,0,0);
+		return 1;
+	}
+	return 0;
+}
+
 // パーティ脱退通知
 int mapif_party_leaved(int party_id,int account_id,char *name)
 {

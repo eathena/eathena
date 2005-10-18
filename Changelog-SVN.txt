@@ -1,6 +1,9 @@
 Date	Added
 =======
 2005/10/18
+	* Modified the char servers so they do a party range check when a character
+	  logs in. This should fix parties keeping their even share even after a
+	  low-level member rejoins the server. [Skotlex]
 	* Updated mob AI so that aggressive mobs will change targets if they are
 	  attacked and their current target isn't attacking them (regardless of
 	  range) [Skotlex]
