@@ -2282,6 +2282,8 @@ struct Damage battle_calc_magic_attack(
 	}
 
 	ad.damage=battle_calc_damage(src,target,ad.damage,ad.div_,skill_num,skill_lv,ad.flag);
+	if (ad.damage == 0) //Magic attack blocked? Consider it a miss so it doesn't invokes additional effects. [Skotlex]
+		ad.dmg_lv = ATK_FLEE;
 	return ad;
 }
 

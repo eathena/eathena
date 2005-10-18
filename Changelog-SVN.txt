@@ -1,6 +1,9 @@
 Date	Added
 =======
 2005/10/18
+	* Fixed a possible crash in clif_equiplist(), thanks to Zoc [Skotlex]
+	* Spells are now considered a "miss" if they do no damage (this prevents
+	  additional effects from triggering out such as freezing) [Skotlex]
 	* Temp bug fix of Exp increase when healing non-undead mob (by MiKa) [Lupus]
 2005/10/17
 	* Updated sql-files/mob_db.sql to match with the current one. [Skotlex]

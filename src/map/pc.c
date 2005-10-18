@@ -3945,7 +3945,7 @@ int pc_attack_timer(int tid,unsigned int tick,int id,int data)
 		(sd->sc_data[SC_GOSPEL].timer != -1 && sd->sc_data[SC_GOSPEL].val4 == BCT_SELF)))
 			return 0;
 
-	if((opt = status_get_option(bl)) != NULL && (*opt)&0x42 && !sd->special_state.intravision)
+	if((opt = status_get_option(bl)) != NULL && (*opt)&0x42)
 		return 0;
 	
 	if((sc_data = status_get_sc_data(bl)) != NULL) {
