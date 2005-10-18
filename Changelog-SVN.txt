@@ -1,6 +1,8 @@
 Date	Added
 =======
 2005/10/18
+	* Reverted Mika's fix since it makes it impossible for mobs to heal each
+	  other. (what is the so called exp bug about?) [Skotlex]
 	* Fixed a possible crash in clif_equiplist(), thanks to Zoc [Skotlex]
 	* Spells are now considered a "miss" if they do no damage (this prevents
 	  additional effects from triggering out such as freezing) [Skotlex]
