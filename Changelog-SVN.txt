@@ -1,6 +1,10 @@
 Date	Added
 =======
 2005/10/18
+	* Fixed Devotion/Sacrifice check which should enable recasting on
+	  characters. Thanks to Irmin for pointing it out. [Skotlex] 
+	* Fixed offensive heal so it fails if not used on an enemy (instead of
+	  failing when used on an ally). [Skotlex]
 	* Modified the char servers so they do a party range check when a character
 	  logs in. This should fix parties keeping their even share even after a
 	  low-level member rejoins the server. [Skotlex]
