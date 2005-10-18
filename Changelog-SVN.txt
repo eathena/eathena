@@ -2,6 +2,10 @@ Date	Added
 =======
 
 2005/10/17
+	* Updated sql-files/mob_db.sql to match with the current one. [Skotlex]
+	  (someone else also did this, but missed a few values from Incantation
+	  Samurai. Altough who did it and why it is failed to be mentioned in the
+	  log files?) [Skotlex]
 	* Fixed alchemists not being able to hit their marine spheres (how many
 	  times this same bug keeps coming back from the dead anyway?) [Skotlex]
 	* Updated sql-files/item_db.sql to the current item_db.txt [Skotlex]
