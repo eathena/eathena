@@ -35,12 +35,12 @@ lhz_dun01.gat,148,10,0	warp	lhz006a	1,1,lhz_dun02.gat,150,18
 lhz_dun01.gat,150,290,0	warp	lhz007	1,1,lighthalzen.gat,364,314
 //lighthalzen.gat,367,315,0	warp	lhz007a	1,1,lhz_dun01.gat,150,288
 
-lighthalzen.gat,367,315,0	script	???????	111,{
+lighthalzen.gat,368,315,0	script	???????	111,{
 OnTouch:
 	mes "[???????]";
 	mes ".............";
 	next;
-	warp "lhz_dun01",150,288;
+	warp "lhz_dun01.gat",150,288;
 	end;
 }
 

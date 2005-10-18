@@ -288,7 +288,8 @@ int battle_heal(struct block_list *bl,struct block_list *target,int hp,int sp,in
 	if (hp < 0)
 		return battle_damage(bl,target,-hp,1,flag);
 
-	if (target->type == BL_MOB)
+	// Exp increase when healing non-undead mob bug temp-fix [MiKa]
+	if (target->type == BL_MOB && battle_check_undead(status_get_race(target),status_get_elem_type(target)))
 		return mob_heal((struct mob_data *)target,hp);
 	else if (target->type == BL_PC)
 		return pc_heal((struct map_session_data *)target,hp,sp);

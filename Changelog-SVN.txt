@@ -1,6 +1,7 @@
 Date	Added
 =======
-
+2005/10/18
+	* Temp bug fix of Exp increase when healing non-undead mob (by MiKa) [Lupus]
 2005/10/17
 	* Updated sql-files/mob_db.sql to match with the current one. [Skotlex]
 	  (someone else also did this, but missed a few values from Incantation
