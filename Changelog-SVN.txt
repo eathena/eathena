@@ -2,6 +2,8 @@ Date	Added
 =======
 
 2005/10/17
+	* Fixed alchemists not being able to hit their marine spheres (how many
+	  times this same bug keeps coming back from the dead anyway?) [Skotlex]
 	* Updated sql-files/item_db.sql to the current item_db.txt [Skotlex]
 	*  Fixed magic rod not cancelling the additional effects from skills. [Skotlex]
 	* Cleaned up the card inserting code to prevent crashes from modified

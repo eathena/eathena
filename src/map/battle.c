@@ -2910,7 +2910,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 				return 0; //Disable guardians on non-woe times.
 			if (md->state.special_mob_ai == 2)
 			{	
-				flag |= BCT_ENEMY; //Mines are sort of universal enemies.
+				state |= BCT_ENEMY; //Mines are sort of universal enemies.
 				strip_enemy = 0;
 			}
 			else if (md->state.special_mob_ai && src->type == BL_MOB)
@@ -2994,8 +2994,13 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 	} else if (flag == BCT_NOONE) //Why would someone use this? no clue.
 		return -1;
 	
-	if (t_bl == s_bl) //No need for further testing.
-		return (flag&BCT_SELF)?1:-1;
+	if (t_bl == s_bl)
+	{	//No need for further testing.
+		state |= BCT_SELF|BCT_PARTY|BCT_GUILD;
+		if (state&BCT_ENEMY && strip_enemy)
+			state&=~BCT_ENEMY;
+		return (flag&state)?1:-1;
+	}
 
 	//Check default enemy settings.
 	if ((s_bl->type == BL_MOB && t_bl->type == BL_PC) ||
