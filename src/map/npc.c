@@ -2111,7 +2111,7 @@ int npc_parse_mob2 (struct mob_list *mob, int cached)
 //		md->attacked_id=0;
 		md->speed = mob_db(mob->class_)->speed;
 
-		if (mob_db(mob->class_)->mode & 0x02)
+		if (mob_db(mob->class_)->mode & MD_LOOTER)
 			md->lootitem = (struct item *)aCalloc(LOOTITEM_SIZE, sizeof(struct item));
 		else
 			md->lootitem = NULL;
@@ -2173,13 +2173,13 @@ int npc_parse_mob (char *w1, char *w2, char *w3, char *w4)
 
 	//Apply the spawn delay fix [Skotlex]
 	mode = mob_db(mob.class_)->mode;
-	if (mode & 0x20) {	//Bosses
+	if (mode & MD_BOSS) {	//Bosses
 		if (battle_config.boss_spawn_delay != 100)
 		{
 			mob.delay1 = mob.delay1*battle_config.boss_spawn_delay/100;
 			mob.delay2 = mob.delay2*battle_config.boss_spawn_delay/100;
 		}
-	} else if (mode&0x40) {	//Plants
+	} else if (mode&MD_PLANT) {	//Plants
 		if (battle_config.plant_spawn_delay != 100)
 		{
 			mob.delay1 = mob.delay1*battle_config.plant_spawn_delay/100;

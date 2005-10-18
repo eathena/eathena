@@ -256,6 +256,19 @@ extern int SkillStatusChangeTable[];
 
 extern int current_equip_item_index;
 
+//Mode definitions to clear up code reading. [Skotlex]
+#define MD_CANMOVE 0x001
+#define MD_LOOTER 0x002
+#define MD_AGGRESSIVE 0x004
+#define MD_ASSIST 0x08
+#define MD_CASTSENSOR 0x010
+#define MD_BOSS 0x020
+#define MD_PLANT 0x040
+#define MD_CANATTACK 0x080
+#define MD_DETECTOR 0x100
+//Currently there isn't a bit for target changing in the mob db!
+#define MD_CHANGETARGET 0x004
+
 // ƒpƒ‰ƒ[ƒ^Š“¾Œn battle.c ‚æ‚èˆÚ“®
 int status_get_class(struct block_list *bl);
 int status_get_dir(struct block_list *bl);

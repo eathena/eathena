@@ -2952,7 +2952,7 @@ int status_get_mode(struct block_list *bl)
 {
 	nullpo_retr(0x01, bl);
 	if(bl->type==BL_PC)
-		return 0x81; //Default player mode: Can move + can attack.
+		return (MD_CANATTACK|MD_CANMOVE); //Default player mode: Can move + can attack.
 	if(bl->type==BL_MOB && (struct mob_data *)bl)
 	{
 		if (((struct mob_data *)bl)->mode)
@@ -2962,9 +2962,9 @@ int status_get_mode(struct block_list *bl)
 	if(bl->type==BL_PET && (struct pet_data *)bl)
 		return ((struct pet_data *)bl)->db->mode;
 	if (bl->type==BL_SKILL)
-		return 0x81;	//Default mode for skills: Can attack, can move (think dances).
+		return (MD_CANATTACK|MD_CANMOVE);	//Default mode for skills: Can attack, can move (think dances).
 	//Default universal mode, can move
-	return 0x01;	// とりあえず動くということで1
+	return MD_CANMOVE;	// とりあえず動くということで1
 }
 
 int status_get_mexp(struct block_list *bl)
@@ -3245,7 +3245,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		sc_data[type].timer != -1 && sc_data[type].val2 && !val2)
 		return 0;
 
-	if(mode & 0x20 && (type==SC_STONE || type==SC_FREEZE ||
+	if(mode & MD_BOSS && (type==SC_STONE || type==SC_FREEZE ||
 		type==SC_STAN || type==SC_SLEEP || type==SC_SILENCE || type==SC_QUAGMIRE || type == SC_DECREASEAGI || type == SC_SIGNUMCRUCIS || type == SC_PROVOKE ||
 		(type == SC_BLESSING && (undead_flag || race == 6))) && !(flag&1)){
 		/* ボスには?かない(ただしカ?ドによる?果は適用される) */
@@ -4980,7 +4980,7 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 			if (sd) {
 				pc_randomwalk (sd, gettick());
 				sd->next_walktime = tick + (i=1000 + rand()%1000);
-			} /*else if (bl->type==BL_MOB && (md=(struct mob_data *)bl) && md->mode&1 && mob_can_move(md)) {
+			} /*else if (bl->type==BL_MOB && (md=(struct mob_data *)bl) && md->mode&MD_CANMOVE && mob_can_move(md)) {
 				md->state.state=MS_WALK;
 				if( DIFF_TICK(md->next_walktime,tick) > + 7000 &&
 					(md->walkpath.path_len==0 || md->walkpath.path_pos>=md->walkpath.path_len) )

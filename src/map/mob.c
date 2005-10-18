@@ -193,7 +193,7 @@ int mob_once_spawn (struct map_session_data *sd, char *mapname,
 			class_ -= MAX_MOB_DB;
 		}
 
-		if(mob_db(class_)->mode & 0x02)
+		if(mob_db(class_)->mode & MD_LOOTER)
 			md->lootitem = (struct item *)aCalloc(LOOTITEM_SIZE,sizeof(struct item));
 
 		mob_spawn_dataset (md, mobname, class_);
@@ -201,7 +201,7 @@ int mob_once_spawn (struct map_session_data *sd, char *mapname,
 		md->bl.x = x;
 		md->bl.y = y;
 		if (class_ < 0 && battle_config.dead_branch_active)
-			md->mode = 0x1 + 0x4 + 0x80; //移動してアクティブで反撃する
+			md->mode = MD_CANMOVE|MD_AGGRESSIVE|MD_CANATTACK;
 		md->m = m;
 		md->x0 = x;
 		md->y0 = y;
@@ -505,7 +505,7 @@ static int mob_walk(struct mob_data *md,unsigned int tick,int data)
 		dx = dirx[md->dir];
 		dy = diry[md->dir];
 
-		if (map_getcell(md->bl.m,x+dx,y+dy,CELL_CHKBASILICA) && !(status_get_mode(&md->bl)&0x20)) {
+		if (map_getcell(md->bl.m,x+dx,y+dy,CELL_CHKBASILICA) && !(status_get_mode(&md->bl)&MD_BOSS)) {
 			mob_stop_walking(md,1);
 			return 0;
 		}
@@ -603,7 +603,7 @@ static int mob_attack(struct mob_data *md,unsigned int tick,int data)
 
 	range = md->db->range;
 	
-	if(status_get_mode(&md->bl)&1 && md->state.state == MS_WALK)
+	if(status_get_mode(&md->bl)&MD_CANMOVE && md->state.state == MS_WALK)
 		range++;
 	if(distance(md->bl.x,md->bl.y,tbl->x,tbl->y) > range)
 		return 0;
@@ -786,7 +786,7 @@ static int mob_walktoxy_sub(struct mob_data *md)
 		return 1;	
 	x = md->bl.x+dirx[wpd.path[0]];
 	y = md->bl.y+diry[wpd.path[0]];
-	if (map_getcell(md->bl.m,x,y,CELL_CHKBASILICA) && !(status_get_mode(&md->bl)&0x20)) {
+	if (map_getcell(md->bl.m,x,y,CELL_CHKBASILICA) && !(status_get_mode(&md->bl)&MD_BOSS)) {
 		md->state.change_walk_target=0;
 		return 1;
 	}
@@ -1139,7 +1139,7 @@ int mob_target(struct mob_data *md,struct block_list *bl,int dist)
 		mode=md->mode;
 
 	// Nothing will be carried out if there is no mind of changing TAGE by TAGE ending.
-	if( (md->target_id > 0 && md->state.targettype == ATTACKABLE) && (!(mode&0x04) || rand()%100>25) &&
+	if( (md->target_id > 0 && md->state.targettype == ATTACKABLE) && (!(mode&MD_CHANGETARGET) || rand()%100>25) &&
 		// if the monster was provoked ignore the above rule [celest]
 		!(md->state.provoke_flag && md->state.provoke_flag == bl->id))
 		return 0;
@@ -1280,7 +1280,7 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 		return 0;
 	}
 
-	if(status_get_mode(&md->bl)&0x01)
+	if(status_get_mode(&md->bl)&MD_CANMOVE)
 	{	//If the mob can move, follow around. [Check by Skotlex]
 		
 		if(bl->m != md->bl.m || md->master_dist > 30)
@@ -1470,7 +1470,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 	else
 		mode = md->mode;
 
-	if (md->attacked_id && mode&0x08 && DIFF_TICK(md->last_linktime, gettick()) < MIN_MOBLINKTIME)
+	if (md->attacked_id && mode&MD_ASSIST && DIFF_TICK(md->last_linktime, gettick()) < MIN_MOBLINKTIME)
 	{	// Link monster/ if target is not dead [Skotlex]
 		abl = map_id2bl(md->attacked_id);
 		unsigned int tick = gettick();
@@ -1502,8 +1502,8 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 	}
 			
 	// It checks to see it was attacked first (if active, it is target change at 25% of probability).
-	if (md->attacked_id && mode&0x80 && md->attacked_id != md->target_id &&
-		(!md->target_id || md->state.targettype == NONE_ATTACKABLE || (mode&0x04 && rand()%100 < 25)))
+	if (md->attacked_id && mode&MD_CANATTACK && md->attacked_id != md->target_id &&
+		(!md->target_id || md->state.targettype == NONE_ATTACKABLE || (mode&MD_CHANGETARGET && rand()%100 < 25)))
 	{
 		if (!abl) //Avoid seeking it if we had it from before (friend scan).
 			abl = map_id2bl(md->attacked_id);
@@ -1518,7 +1518,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 			{	//Can't attack back
 				if (md->attacked_count++ > 3) {
 					if (mobskill_use(md, tick, MSC_RUDEATTACKED) == 0 &&
-						mode&1 && mob_can_move(md))
+						mode&MD_CANMOVE && mob_can_move(md))
 					{
 						int dist = rand() % 10 + 1;//後退する距離
 						int dir = map_calc_dir(abl, bl->x, bl->y);
@@ -1540,7 +1540,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 				if (!md->target_id)
 				{	//Attempt to follow new target
 					md->attacked_id = 0;
-					if (mode&1 && mob_can_move(md)) {	// why is it moving to the target when the mob can't see the player? o.o
+					if (mode&MD_CANMOVE && mob_can_move(md)) {	// why is it moving to the target when the mob can't see the player? o.o
 						dx = abl->x - md->bl.x;
 						dy = abl->y - md->bl.y;
 						md->next_walktime = tick + 1000;
@@ -1570,7 +1570,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 		mob_ai_sub_hard_slavemob(md, tick);
 
 	// Scan area for targets (aggressive mob)
-	if ((!md->target_id || md->state.targettype == NONE_ATTACKABLE) && mode&0x04 &&
+	if ((!md->target_id || md->state.targettype == NONE_ATTACKABLE) && mode&MD_AGGRESSIVE &&
 		battle_config.monster_active_enable) {
 		i = 0;
 		search_size = (blind_flag) ? 3 : md->db->range2;
@@ -1586,7 +1586,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 	}
 
 	// Scan area for items to loot, avoid trying to loot of the mob is full and can't consume the items.
-	if (!md->target_id && mode&0x02 && md->lootitem && (md->lootitem_count < LOOTITEM_SIZE || battle_config.monster_loot_type != 1))
+	if (!md->target_id && mode&MD_LOOTER && md->lootitem && (md->lootitem_count < LOOTITEM_SIZE || battle_config.monster_loot_type != 1))
 	{
 		i = 0;
 		search_size = (blind_flag) ? 3 : md->db->range2;
@@ -1606,7 +1606,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 				md->target_id = 0;
 				md->attacked_id = 0;
 				md->state.targettype = NONE_ATTACKABLE;
-				if (!(mode & 1) || !mob_can_move(md))
+				if (!(mode & MD_CANMOVE) || !mob_can_move(md))
 					return 0;
 				dx = tbl->x - md->bl.x;
 				dy = tbl->y - md->bl.y;
@@ -1616,7 +1616,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 			}
 			if (!battle_check_range (&md->bl, tbl, md->db->range))
 			{	//Out of range...
-				if (!(mode & 1))
+				if (!(mode & MD_CANMOVE))
 				{	//Can't chase.
 					mob_unlocktarget(md,tick);
 					return 0;
@@ -1682,7 +1682,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 			}
 			if (dist)
 			{	//Still not within loot range.
-				if (!(mode & 1))
+				if (!(mode & MD_CANMOVE))
 				{	//A looter that can't move? Real smart.
 					mob_unlocktarget(md,tick);
 					return 0;
@@ -1737,7 +1737,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 		return 0;
 
 	// Nothing else to do... except random walking.
-	if (mode&1 && mob_can_move(md))
+	if (mode&MD_CANMOVE && mob_can_move(md))
 	{
 		if (DIFF_TICK(md->next_walktime, tick) > 7000 &&
 			(md->walkpath.path_len == 0 || md->walkpath.path_pos >= md->walkpath.path_len))
@@ -1822,7 +1822,7 @@ static int mob_ai_sub_lazy(void * key,void * data,va_list app)
 	}
 
 	if(DIFF_TICK(md->next_walktime,tick)<0 &&
-		(md->db->mode&1) && mob_can_move(md) ){
+		(md->db->mode&MD_CANMOVE) && mob_can_move(md) ){
 
 		if( map[md->bl.m].users>0 ){
 			// Since PC is in the same map, somewhat better negligent processing is carried out.
@@ -1833,7 +1833,7 @@ static int mob_ai_sub_lazy(void * key,void * data,va_list app)
 
 			// MOB which is not not the summons MOB but BOSS, either sometimes reboils.
 			else if( rand()%1000<MOB_LAZYWARPPERC && md->x0<=0 && md->master_id!=0 &&
-				md->db->mexp <= 0 && !(md->db->mode & 0x20))
+				md->db->mexp <= 0 && !(md->db->mode & MD_BOSS))
 				mob_spawn(md->bl.id);
 
 		}else{
@@ -1841,7 +1841,7 @@ static int mob_ai_sub_lazy(void * key,void * data,va_list app)
 
 			// MOB which is not BOSS which is not Summons MOB, either -- a case -- sometimes -- leaping
 			if( rand()%1000<MOB_LAZYWARPPERC && md->x0<=0 && md->master_id!=0 &&
-				md->db->mexp <= 0 && !(md->db->mode & 0x20))
+				md->db->mexp <= 0 && !(md->db->mode & MD_BOSS))
 				mob_warp(md,-1,-1,-1,-1);
 		}
 
@@ -2246,7 +2246,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 	}
 
 /* Uncomment this to enable supportive mobs calling for support when attacked as well as during their AI. [Skotlex]
-	if (src && status_get_mode(&md->bl) & 0x08 && DIFF_TICK(md->last_linktime, gettick()) < MIN_MOBLINKTIME)
+	if (src && status_get_mode(&md->bl) & MD_ASSIST && DIFF_TICK(md->last_linktime, gettick()) < MIN_MOBLINKTIME)
 	{	// Link monster/ if target is not dead [Skotlex]
 		unsigned int tick = gettick();
 		md->last_linktime = tick;
@@ -2363,7 +2363,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 		else if(md->size==2)
 			per *=2.;
 		if(md->master_id) {
-			if(((master = map_id2bl(md->master_id)) && status_get_mode(master)&0x20) ||	// check if its master is a boss (MVP's and minibosses)
+			if(((master = map_id2bl(md->master_id)) && status_get_mode(master)&MD_BOSS) ||	// check if its master is a boss (MVP's and minibosses)
 				md->state.special_mob_ai) { // for summoned creatures [Valaris]
 				per = 0;
 			}
@@ -2448,7 +2448,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 		for (i = 0; i < 10; i++) { // 8 -> 10 Lupus
 			struct delay_item_drop *ditem;
 
-			if ((master && status_get_mode(master) & 0x20) ||	// check if its master is a boss (MVP's and minibosses)
+			if ((master && status_get_mode(master) & MD_BOSS) ||	// check if its master is a boss (MVP's and minibosses)
 				(md->state.special_mob_ai &&
 					(battle_config.alchemist_summon_reward == 0 || //Noone gives items
 					(md->class_ != 1142 && battle_config.alchemist_summon_reward == 1) //Non Marine spheres don't drop items
@@ -2519,8 +2519,8 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 				if (sd->monster_drop_itemid[i] < 0)
 					continue;
 				if (sd->monster_drop_race[i] & (1<<race) ||
-					(md->db->mode & 0x20 && sd->monster_drop_race[i] & 1<<10) ||
-					(!(md->db->mode & 0x20) && sd->monster_drop_race[i] & 1<<11) )
+					(md->db->mode & MD_BOSS && sd->monster_drop_race[i] & 1<<10) ||
+					(!(md->db->mode & MD_BOSS) && sd->monster_drop_race[i] & 1<<11) )
 				{
 					if (sd->monster_drop_itemrate[i] <= rand()%10000+1)
 						continue;
@@ -2790,7 +2790,7 @@ int mob_class_change (struct mob_data *md, int class_)
 	md->skillid=0;
 	md->skilllv=0;
 
-	if(md->lootitem == NULL && md->db->mode&0x02)
+	if(md->lootitem == NULL && md->db->mode&MD_LOOTER)
 		md->lootitem=(struct item *)aCalloc(LOOTITEM_SIZE,sizeof(struct item));
 
 	skill_clear_unitgroup(&md->bl);
@@ -3014,7 +3014,7 @@ int mob_summonslave(struct mob_data *md2,int *value,int amount,int skill_id)
 			continue;
 
 		md=(struct mob_data *)aCalloc(1,sizeof(struct mob_data));
-		if(mob_db(class_)->mode&0x02)
+		if(mob_db(class_)->mode&MD_LOOTER)
 			md->lootitem=(struct item *)aCalloc(LOOTITEM_SIZE,sizeof(struct item));
 
 		while((x<=0 || y<=0 || map_getcell(m,x,y,CELL_CHKNOPASS)) && (i++)<100){
@@ -3112,7 +3112,7 @@ int mobskill_castend_id( int tid, unsigned int tick, int id,int data )
 	//沈黙や状態異常など
 	if(md->sc_data){
 		if(md->opt1>0 || md->sc_data[SC_SILENCE].timer != -1 ||
-			(!(md->db->mode & 0x20) && md->sc_data[SC_ROKISWEIL].timer != -1) ||
+			(!(md->db->mode & MD_BOSS) && md->sc_data[SC_ROKISWEIL].timer != -1) ||
 			md->sc_data[SC_STEELBODY].timer != -1)
 			return 0;
 		if(md->sc_data[SC_AUTOCOUNTER].timer != -1 && md->skillid != KN_AUTOCOUNTER) //オートカウンター
@@ -3198,7 +3198,7 @@ int mobskill_castend_pos( int tid, unsigned int tick, int id,int data )
 	md->skilltimer=-1;
 	if(md->sc_data){
 		if(md->opt1>0 || md->sc_data[SC_SILENCE].timer != -1 ||
-			(!(md->db->mode & 0x20) && md->sc_data[SC_ROKISWEIL].timer != -1) ||
+			(!(md->db->mode & MD_BOSS) && md->sc_data[SC_ROKISWEIL].timer != -1) ||
 			md->sc_data[SC_STEELBODY].timer != -1)
 			return 0;
 		if(md->sc_data[SC_AUTOCOUNTER].timer != -1 && md->skillid != KN_AUTOCOUNTER) //オートカウンター
@@ -3276,7 +3276,7 @@ int mobskill_use_id(struct mob_data *md,struct block_list *target,int skill_idx)
 	// 沈黙や異常
 	if(md->sc_data){
 		if(md->opt1>0 || md->sc_data[SC_SILENCE].timer != -1 ||
-			(!(md->db->mode & 0x20) && md->sc_data[SC_ROKISWEIL].timer != -1) ||
+			(!(md->db->mode & MD_BOSS) && md->sc_data[SC_ROKISWEIL].timer != -1) ||
 			md->sc_data[SC_STEELBODY].timer != -1)
 			return 0;
 		if(md->sc_data[SC_AUTOCOUNTER].timer != -1 && md->skillid != KN_AUTOCOUNTER) //オートカウンター
@@ -3393,7 +3393,7 @@ int mobskill_use_pos( struct mob_data *md,
 	//沈黙や状態異常など
 	if(md->sc_data){
 		if(md->opt1>0 || md->sc_data[SC_SILENCE].timer != -1 ||
-			(!(md->db->mode & 0x20) && md->sc_data[SC_ROKISWEIL].timer != -1) ||
+			(!(md->db->mode & MD_BOSS) && md->sc_data[SC_ROKISWEIL].timer != -1) ||
 			md->sc_data[SC_STEELBODY].timer != -1)
 			return 0;
 		if(md->sc_data[SC_AUTOCOUNTER].timer != -1 && md->skillid != KN_AUTOCOUNTER) //オートカウンター

@@ -804,7 +804,7 @@ static struct Damage battle_calc_weapon_attack(
 	//Initial flag
 	flag.rh=1;
 	flag.cardfix=1;
-	flag.infdef=(t_mode&0x40?1:0);
+	flag.infdef=(t_mode&MD_PLANT?1:0);
 
 	//Initial Values
 	wd.type=0; //Normal attack
@@ -1258,7 +1258,7 @@ static struct Damage battle_calc_weapon_attack(
 			// EDP : Since records say it does works with Sonic Blows, instead of pre-multiplying the damage,
 			// we take the number of hits in consideration. [Skotlex]
 			// It is still not quite decided whether it works on bosses or not...
-			if(sc_data[SC_EDP].timer != -1 /*&& !(t_mode&0x20)*/ && skill_num != ASC_BREAKER && skill_num != ASC_METEORASSAULT)
+			if(sc_data[SC_EDP].timer != -1 /*&& !(t_mode&MD_BOSS)*/ && skill_num != ASC_BREAKER && skill_num != ASC_METEORASSAULT)
 				skillratio += (50 + sc_data[SC_EDP].val1 * 50)*wd.div_;
 		}
 		if (!skill_num)
@@ -1697,7 +1697,7 @@ static struct Damage battle_calc_weapon_attack(
 				cardfix=cardfix*(100+sd->right_weapon.addele[t_ele]+sd->arrow_addele[t_ele])/100;
 				cardfix=cardfix*(100+sd->right_weapon.addsize[t_size]+sd->arrow_addsize[t_size])/100;
 				cardfix=cardfix*(100+sd->right_weapon.addrace2[t_race2])/100;
-				cardfix=cardfix*(100+sd->right_weapon.addrace[is_boss(target)?10:11]+sd->arrow_addrace[t_mode & 0x20?10:11])/100;
+				cardfix=cardfix*(100+sd->right_weapon.addrace[is_boss(target)?10:11]+sd->arrow_addrace[t_mode & MD_BOSS?10:11])/100;
 			} else {	//Melee attack
 				if(!battle_config.left_cardfix_to_right)
 				{
@@ -1720,7 +1720,7 @@ static struct Damage battle_calc_weapon_attack(
 					cardfix=cardfix*(100+sd->right_weapon.addele[t_ele]+sd->left_weapon.addele[t_ele])/100;
 					cardfix=cardfix*(100+sd->right_weapon.addsize[t_size]+sd->left_weapon.addsize[t_size])/100;
 					cardfix=cardfix*(100+sd->right_weapon.addrace2[t_race2]+sd->left_weapon.addrace2[t_race2])/100;
-					cardfix=cardfix*(100+sd->right_weapon.addrace[is_boss(target)?10:11]+sd->left_weapon.addrace[t_mode & 0x20?10:11])/100;
+					cardfix=cardfix*(100+sd->right_weapon.addrace[is_boss(target)?10:11]+sd->left_weapon.addrace[t_mode & MD_BOSS?10:11])/100;
 				}
 			}
 
@@ -1877,7 +1877,7 @@ static struct Damage battle_calc_weapon_attack(
 		}
 	}
 
-	if(sd && sd->classchange && tmd && !(t_mode&0x20) && !tmd->guardian_data && (tmd->class_ < 1324 || tmd->class_ > 1363) && (rand()%10000 < sd->classchange))
+	if(sd && sd->classchange && tmd && !(t_mode&MD_BOSS) && !tmd->guardian_data && (tmd->class_ < 1324 || tmd->class_ > 1363) && (rand()%10000 < sd->classchange))
 	{	//Classchange:
 		struct mob_db *mob;
 		int k, class_;
@@ -1889,7 +1889,7 @@ static struct Damage battle_calc_weapon_attack(
 			
 			k = rand() % 1000000;
 			mob = mob_db(class_);
-		} while ((mob->mode&(0x20|0x40) || mob->summonper[0] <= k) && (i++) < 2000);
+		} while ((mob->mode&(MD_BOSS|MD_PLANT) || mob->summonper[0] <= k) && (i++) < 2000);
 		if (i< 2000)
 			mob_class_change(((struct mob_data *)target),class_);
 	}
@@ -2021,7 +2021,7 @@ struct Damage battle_calc_magic_attack(
 	t_race = status_get_race(target);
 	t_ele = status_get_elem_type(target);
 	t_mode = status_get_mode(target);
-	flag.infdef=(t_mode&0x40?1:0);
+	flag.infdef=(t_mode&MD_PLANT?1:0);
 		
 	switch(skill_num)
 	{
@@ -2096,7 +2096,7 @@ struct Damage battle_calc_magic_attack(
 					mhp = status_get_max_hp(target);
 					thres = (skill_lv * 20) + status_get_luk(src) + status_get_int(src) + status_get_lv(src) + ((200 - hp * 200 / mhp));
 					if(thres > 700) thres = 700;
-					if(rand()%1000 < thres && !(t_mode&0x20))
+					if(rand()%1000 < thres && !(t_mode&MD_BOSS))
 						ad.damage = hp;
 					else
 						ad.damage = status_get_lv(src) + status_get_int(src) + skill_lv * 10;
@@ -2465,7 +2465,7 @@ struct Damage  battle_calc_misc_attack(
 	if(div_>1)
 		damage*=div_;
 
-	if(damage > 0 && t_mode&0x40)
+	if(damage > 0 && t_mode&MD_PLANT)
 		damage = 1;
 
 	if(is_boss(target))
@@ -2780,7 +2780,7 @@ int battle_check_attackable(struct block_list *src, struct block_list *target)
 	mode = status_get_mode(src);
 	race = status_get_race(src);
 	
-	if (!(mode&0x80))
+	if (!(mode&MD_CANATTACK))
 		return 0;
 	
 	option = status_get_option(src);
@@ -2801,7 +2801,7 @@ int battle_check_attackable(struct block_list *src, struct block_list *target)
 	))
 		return 0;
 	
-	if(tsc_data &&!(mode & 0x20))
+	if(tsc_data &&!(mode & MD_BOSS))
 	{	
 		if (tsc_data[SC_BASILICA].timer != -1
 			|| tsc_data[SC_TRICKDEAD].timer != -1
@@ -2824,8 +2824,8 @@ int battle_check_attackable(struct block_list *src, struct block_list *target)
 			if (pc_isinvisible(sd))
 				return 0;
 			if ((pc_ishiding(sd) || sd->state.gangsterparadise)
-				&& (sd->state.perfect_hiding || !(race == 4 || race == 6 || mode&0x100))
-				&& !(mode & 0x20))
+				&& (sd->state.perfect_hiding || !(race == 4 || race == 6 || mode&MD_DETECTOR))
+				&& !(mode & MD_BOSS))
 				return 0;
 		}
 		break;
@@ -2838,8 +2838,8 @@ int battle_check_attackable(struct block_list *src, struct block_list *target)
 		//Check for hiding/cloaking opponents.
 		option = status_get_option(target);
 		if (option && ((*option)&0x6) //2 is hiding, 4 is cloaking.
-			&& !(race == 4 || race == 6 || mode&0x100)
-			&& !((mode & 0x20))
+			&& !(race == 4 || race == 6 || mode&MD_DETECTOR)
+			&& !((mode & MD_BOSS))
 		)
 			return 0;
 	}

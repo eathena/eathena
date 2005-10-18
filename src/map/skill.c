@@ -824,7 +824,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 				status_change_start(bl,SC_POISON,sd->sc_data[SC_ENCPOISON].val1,0,0,0,skill_get_time2(AS_ENCHANTPOISON,sd->sc_data[SC_ENCPOISON].val1),0);
 			}
 			// Enchant Deadly Poison gives a chance to deadly poison attacked enemies
-			if (sd->sc_data[SC_EDP].timer != -1 && !(status_get_mode(bl) & 0x20) &&
+			if (sd->sc_data[SC_EDP].timer != -1 && !(status_get_mode(bl)&MD_BOSS) &&
 				sc_data && sc_data[SC_DPOISON].timer == -1 &&
 				rand() % 100 < sd->sc_data[SC_EDP].val2 * sc_def_vit / 100)
 				status_change_start(bl,SC_DPOISON,sd->sc_data[SC_EDP].val1,0,0,0,skill_get_time2(ASC_EDP,sd->sc_data[SC_EDP].val1),0);
@@ -912,7 +912,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		break;
 
 	 case HT_FLASHER:  /* Flasher */
-		if (!(status_get_mode(bl) & 0x20) && !(status_get_mode(bl)&0x40) &&
+		if (!(status_get_mode(bl) & (MD_BOSS|MD_PLANT)) &&
 				((dstsd && md) || (dstmd && !md) || (dstsd && (map[bl->m].flag.pvp || map[bl->m].flag.gvg))) &&
 				rand()%100 < (10*skilllv+30)*sc_def_int/100)
 			status_change_start(bl,SC_BLIND,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
@@ -1430,7 +1430,7 @@ int skill_blown( struct block_list *src, struct block_list *target,int count, in
 		sd=(struct map_session_data *)target;
 	}else if(target->type==BL_MOB){
 		md=(struct mob_data *)target;
-		if (md->db->mode&(0x40)) //Avoid Pushing inmobile Plants [Skotlex]
+		if (md->db->mode&(MD_PLANT)) //Avoid Pushing inmobile Plants [Skotlex]
 			return 0;
 	}else if(target->type==BL_PET){
 		pd=(struct pet_data *)target;
@@ -1844,7 +1844,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 			clif_fixpos(bl);
 	}
 	
-	if(skillid == RG_INTIMIDATE && damage > 0 && !(status_get_mode(bl)&0x20) && !map[src->m].flag.gvg ) {
+	if(skillid == RG_INTIMIDATE && damage > 0 && !(status_get_mode(bl)&MD_BOSS) && !map[src->m].flag.gvg ) {
 		int s_lv = status_get_lv(src),t_lv = status_get_lv(bl);
 		int rate = 50 + skilllv * 5;
 		rate = rate + (s_lv - t_lv);
@@ -3678,7 +3678,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			struct status_change *sc_data = status_get_sc_data(bl);
 
 			/* MVPmobと不死には?かない */
-			if((dstmd && status_get_mode(bl)&0x20) || battle_check_undead(status_get_race(bl),status_get_elem_type(bl))) { //不死には?かない
+			if((dstmd && status_get_mode(bl)&MD_BOSS) || battle_check_undead(status_get_race(bl),status_get_elem_type(bl))) { //不死には?かない
 				map_freeblock_unlock();
 				return 1;
 			}
@@ -3777,7 +3777,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			pc_delspiritball(dstsd,dstsd->spiritball,0);
 		} else if (dstmd && //?象がモンスタ?の場合
 			//20%の確率で?象のLv*2のSPを回復する。成功したときはタ?ゲット(σ?Д?)σ????!!
-			!(dstmd->db->mode&0x20) && rand() % 100 < 20)
+			!(dstmd->db->mode&MD_BOSS) && rand() % 100 < 20)
 		{
 			i = 2 * dstmd->db->lv;
 			mob_target(dstmd,src,0);
@@ -4078,7 +4078,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 	case BA_PANGVOICE://パンボイス
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			if(dstmd && dstmd->mode&0x20){
+			if(dstmd && dstmd->mode&MD_BOSS){
 				if(sd)
 					clif_skill_fail(sd,skillid,0,0);
 				break;
@@ -4103,7 +4103,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			}else if(dstmd)
 			{
 				int race = status_get_race(bl);
-				if(!dstmd->mode&0x20 && (race == 6 || race == 7 || race == 8))
+				if(!(status_get_mode(bl)&MD_BOSS) && (race == 6 || race == 7 || race == 8))
 				{
 					if(rand()%10000 < 5000){
 						status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,10000,0);
@@ -4146,7 +4146,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			struct status_change *sc_data = status_get_sc_data(bl);
 			// Level 6-10 doesn't consume a red gem if it fails [celest]
 			int i, gem_flag = 1, fail_flag = 0;
-			if (dstmd && status_get_mode(bl)&0x20) {
+			if (dstmd && status_get_mode(bl)&MD_BOSS) {
 				if (sd) clif_skill_fail(sd,sd->skillid,0,0);
 				break;
 			}
@@ -4577,7 +4577,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				}
 				else if(bl->type == BL_MOB) {
 					if(dstmd && dstmd->skilltimer != -1) {
-						if (status_get_mode(bl) & 0x20)
+						if (status_get_mode(bl) & MD_BOSS)
 						{	//Only 10% success chance against bosses. [Skotlex]
 							if (rand()%100 < 90)
 							{
@@ -5101,7 +5101,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			struct status_change *sc_data = status_get_sc_data(bl);
 
 			/* MVPmobと不死には?かない */
-			if((dstmd && status_get_mode(bl)&0x20) || battle_check_undead(status_get_race(bl),status_get_elem_type(bl))) //不死には?かない
+			if((dstmd && status_get_mode(bl)&MD_BOSS) || battle_check_undead(status_get_race(bl),status_get_elem_type(bl))) //不死には?かない
 			{
 				map_freeblock_unlock();
 				return 1;
@@ -5928,7 +5928,7 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 				md->max_hp = md->hp; //Update the max, too! [Skotlex]
 				md->state.special_mob_ai = 1;
 				//非移動でアクティブで反撃する[0x0:非移動 0x1:移動 0x4:ACT 0x8:非ACT 0x40:反撃無 0x80:反撃有]
-				md->mode = 0x0 + 0x4 + 0x80;
+				md->mode = MD_CANATTACK|MD_AGGRESSIVE;
 				md->deletetimer = add_timer (gettick() + skill_get_time(skillid,skilllv), mob_timer_delete, id, 0);
 			}
 			// To-do: 召還されるモンスターには召還したプレーヤーの名前が付きます
@@ -6555,7 +6555,7 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 				(sc_data[type].val4 == sg->group_id || sc_data[type].val3==BCT_SELF))
 					break;
 			status_change_start(bl,type,sg->skill_lv,0,0,sg->group_id,sg->limit,0);
-		} else if (!status_get_mode(bl)&0x20)
+		} else if (!status_get_mode(bl)&MD_BOSS)
 			skill_blown(&src->bl,bl,1,2);
 		break;
 
@@ -6569,7 +6569,7 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 		break;
 
 	case UNT_GRAVITATION:
-		if (sc_data && sc_data[type].timer==-1 && !status_get_mode(bl)&0x20)
+		if (sc_data && sc_data[type].timer==-1 && !status_get_mode(bl)&MD_BOSS)
 			status_change_start(bl,type,sg->skill_lv,5*sg->skill_lv,BCT_ENEMY,sg->group_id,sg->limit,0);
 		break;
 	
@@ -6711,7 +6711,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 		if(sg->val2==0 && sc_data && sc_data[SC_ANKLE].timer==-1){
 			int moveblock = ( bl->x/BLOCK_SIZE != src->bl.x/BLOCK_SIZE || bl->y/BLOCK_SIZE != src->bl.y/BLOCK_SIZE);
 			int sec = skill_get_time2(sg->skill_id,sg->skill_lv) - status_get_agi(bl)*100;
-			if(status_get_mode(bl)&0x20) // Lasts 5 times less on bosses
+			if(status_get_mode(bl)&MD_BOSS) // Lasts 5 times less on bosses
 				sec = sec/5;
 			if (sec < 3000+30*sg->skill_lv)	// Minimum trap time of 3+0.03*skilllv seconds [celest]
 				sec = 3000+30*sg->skill_lv;
@@ -8322,13 +8322,13 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 		else
 			clif_skillcasting(&sd->bl,sd->bl.id, target_id, 0,0, skill_num,casttime);
 		/* 詠唱反?モンスタ? */
-		if (bl->type == BL_MOB && (md = (struct mob_data *)bl) && md->db->mode & 0x10 &&
+		if (bl->type == BL_MOB && (status_get_mode(bl)&MD_CASTSENSOR) && (md = (struct mob_data *)bl) &&
 			md->state.state != MS_ATTACK && sd->invincible_timer == -1 && 
 			(!md->state.special_mob_ai || skill_get_inf(skill_num) != INF_SUPPORT_SKILL))
 		{	//Avoid having summons target master from supportive skills. [Skotlex]
 				md->target_id = sd->bl.id;
 				md->state.targettype = ATTACKABLE;
-				md->min_chase = 13;
+				md->min_chase = md->db->range3;
 		}
 	}
 

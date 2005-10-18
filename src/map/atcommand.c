@@ -7889,7 +7889,7 @@ atcommand_summon(
 	if((md=(struct mob_data *)map_id2bl(id))){
 		md->master_id=sd->bl.id;
 		md->state.special_mob_ai=1;
-		md->mode=md->db->mode|0x04;
+		md->mode=md->db->mode|MD_AGGRESSIVE;
 		md->deletetimer=add_timer(tick+(duration*60000),mob_timer_delete,id,0);
 		clif_misceffect2(&md->bl,344);
 	}
