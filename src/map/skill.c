@@ -2127,6 +2127,11 @@ int skill_guildaura_sub (struct block_list *bl,va_list ap)
 /* ?象の?をカウントする。（skill_area_temp[0]を初期化しておくこと） */
 int skill_area_sub_count(struct block_list *src,struct block_list *target,int skillid,int skilllv,unsigned int tick,int flag)
 {
+	//FIXME: Counting is not currently used by any skills that need to target "skills", and this count causes problems with traps.
+	//Since traps are universal targets, they are being counted in Blitz Beats.... and people don't want that :/ [Skotlex]
+	if(target->type == BL_SKILL)
+		return 0;
+	
 	if(skill_area_temp[0] < 0xffff)
 		skill_area_temp[0]++;
 	return 1;

@@ -1,6 +1,9 @@
 Date	Added
 =======
 2005/10/18
+	* Modified the counting function to never count in skills (traps, AoE
+	  skills) since traps were always being counted in for stuff like Napalm
+	  beat/Blitz Beat/etc. [Skotlex]
 	* Fixed Devotion/Sacrifice check which should enable recasting on
 	  characters. Thanks to Irmin for pointing it out. [Skotlex] 
 	* Fixed offensive heal so it fails if not used on an enemy (instead of
