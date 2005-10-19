@@ -1,6 +1,8 @@
 Date	Added
 =======
 2005/10/18
+	* Fixed the Dissonance song bug which allowed you to cast a song afterwards
+	  and it would not follow you around. [Skotlex]
 	* Modified the counting function to never count in skills (traps, AoE
 	  skills) since traps were always being counted in for stuff like Napalm
 	  beat/Blitz Beat/etc. [Skotlex]

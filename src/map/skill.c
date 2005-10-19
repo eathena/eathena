@@ -7053,7 +7053,6 @@ static int skill_unit_onleft(int skill_id, struct block_list *bl,unsigned int ti
 				status_change_end(bl, type, -1);
 			break;
 			
-		case BA_DISSONANCE:
 		case BA_POEMBRAGI:
 		case BA_WHISTLE:
 		case BA_ASSASSINCROSS:
