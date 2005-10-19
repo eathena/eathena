@@ -403,10 +403,12 @@ int mapif_party_noinfo(int fd,int party_id)
 // パーティ情報まとめ送り
 int mapif_party_info(int fd,struct party *p)
 {
-	unsigned char buf[1024];
+//	unsigned char buf[1024]; //Because this packet is so big, allow for a larger buffer based on party max size.
+	unsigned char buf[100+75*MAX_PARTY];
 	WBUFW(buf,0)=0x3821;
 	memcpy(buf+4,p,sizeof(struct party));
 	WBUFW(buf,2)=4+sizeof(struct party);
+	flush_fifos(); //This packet is BIG, so better have the socket buffers empty to allocate space for them. [Skotlex]
 	if(fd<0)
 		mapif_sendall(buf,WBUFW(buf,2));
 	else

@@ -249,6 +249,7 @@ enum {
 	SC_LUKFOOD			= 241,
 	SC_HIGHJUMP			= 242,
 	SC_MODE			= 243,	//Changes a mob's mode temporarily. [Skotlex]
+	SC_STOP			= 244,	//Prevents inflicted chars from walking. [Skotlex]
 	//
 	SC_INTRAVISION		= 337
 

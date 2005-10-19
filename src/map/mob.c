@@ -441,7 +441,8 @@ int mob_can_move(struct mob_data *md)
 	if( md->sc_data[SC_ANKLE].timer != -1 || //アンクルスネア
 		md->sc_data[SC_AUTOCOUNTER].timer != -1 || //オートカウンター
 		md->sc_data[SC_BLADESTOP].timer != -1 || //白刃取り
-		md->sc_data[SC_SPIDERWEB].timer != -1  //スパイダーウェッブ
+		md->sc_data[SC_SPIDERWEB].timer != -1 || //スパイダーウェッブ
+		md->sc_data[SC_STOP].timer != -1
 		)
 		return 0;
 

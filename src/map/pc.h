@@ -32,6 +32,7 @@
 int pc_isGM(struct map_session_data *sd);
 int pc_iskiller(struct map_session_data *src, struct map_session_data *target); // [MouseJstr]
 int pc_getrefinebonus(int lv,int type);
+int pc_can_move(struct map_session_data *sd); //[Skotlex]
 
 int pc_setrestartvalue(struct map_session_data *sd,int type);
 int pc_makesavestatus(struct map_session_data *);

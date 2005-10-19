@@ -3609,6 +3609,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case PA_SACRIFICE:
 	case ASC_EDP:			// [Celest]
 	case CG_MOONLIT:		/* Œ–¾‚è‚Ìò‚É—‚¿‚é‰Ô‚Ñ‚ç */
+	case NPC_STOP:
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
 		break;
@@ -4798,17 +4799,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			md->state.provoke_flag = tbl->id;
 			mob_target(md, tbl, md->db->range);
 		}
-		break;
-
-	case NPC_STOP:
-		if(dstsd) {
-			battle_stopwalking(&dstsd->bl,1);
-		    dstsd->canmove_tick += skill_get_time(skillid,skilllv);
-		} else if(dstmd) {
-			battle_stopwalking(&dstmd->bl,1);
-		    dstmd->canmove_tick += skill_get_time(skillid,skilllv);
-		}
-		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		break;
 
 	case NPC_RUN:		//Œã‘Ş
@@ -8179,7 +8169,7 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 		if(!battle_check_range(&sd->bl,bl,range))
 			return 0;
 		
-		if (check_range_flag) {
+		if (check_range_flag && pc_can_move(sd)) {
 			int mask[8][2] = {{0,1},{-1,1},{-1,0},{-1,-1},{0,-1},{1,-1},{1,0},{1,1}};
 			int dir = map_calc_dir(&sd->bl,bl->x,bl->y);
 			pc_walktoxy (sd, sd->bl.x + mask[dir][0], sd->bl.y + mask[dir][1]);
@@ -8375,7 +8365,7 @@ int skill_use_pos (struct map_session_data *sd, int skill_x, int skill_y, int sk
 		if(!battle_check_range(&sd->bl,&bl,range))
 			return 0;
 		
-		if (check_range_flag) {
+		if (check_range_flag && pc_can_move(sd)) {
 			int mask[8][2] = {{0,1},{-1,1},{-1,0},{-1,-1},{0,-1},{1,-1},{1,0},{1,1}};
 			int dir = map_calc_dir(&sd->bl,bl.x,bl.y);
 			pc_walktoxy (sd, sd->bl.x + mask[dir][0], sd->bl.y + mask[dir][1]);
@@ -8393,7 +8383,7 @@ int skill_use_pos (struct map_session_data *sd, int skill_x, int skill_y, int sk
 			range ++;
 		else check_range_flag = 1;
 		if(!battle_check_range(&sd->bl,&bl,range)) {
-			if (check_range_flag && battle_check_range(&sd->bl,&bl,range + 1)) {
+			if (check_range_flag && pc_can_move(sd) && battle_check_range(&sd->bl,&bl,range + 1)) {
 				int mask[8][2] = {{0,1},{-1,1},{-1,0},{-1,-1},{0,-1},{1,-1},{1,0},{1,1}};
 				int dir = map_calc_dir(&sd->bl,bl.x,bl.y);
 				pc_walktoxy (sd, sd->bl.x + mask[dir][0], sd->bl.y + mask[dir][1]);

@@ -208,7 +208,7 @@ int SkillStatusChangeTable[]={	/* status.h‚Ìenum‚ÌSC_***‚Æ‚ ‚í‚¹‚é‚±‚Æ */
 	SC_SERVICE4U,
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,
 /* 340- */
-	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+	-1,-1,SC_STOP,-1,-1,-1,-1,-1,-1,-1,
 /* 350- */
 	-1,-1,-1,-1,-1,
 	SC_AURABLADE,
@@ -4137,6 +4137,9 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			}
 			break;
 		}
+		case SC_STOP:
+			battle_stopwalking(bl, 0);
+			break;
 		case SC_SAFETYWALL:
 		case SC_PNEUMA:
 		case SC_SUFFRAGIUM:			/* ƒTƒtƒ‰ƒMƒ€ */

@@ -1,6 +1,12 @@
 Date	Added
 =======
 2005/10/19
+	* Converted NPC_STOP to a status-inducing effect, SC_STOP which prevents
+	  characters from moving. [Skotlex]
+	* General checks and cleanup (new function pc_can_move) to prevent chars
+	  from walking when they shouldn't be able to. [Skotlex]
+	* Some changes to int_party, which may prevent crashes due to large parties
+	  in congested situations. [Skotlex]
 	* Software Caused Connection Abort errors should inmediately terminate the
 	  connection now (rather than waiting for the timeout) [Skotlex]
 	* Hopefully fixed Basilica by making battle_check_target use the mapcell

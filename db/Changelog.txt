@@ -33,6 +33,10 @@
 	--
 
 10/19
+	* Corrected NPC_STOP, it should have at least range 1 (currently range 8
+	  for lack of better info) and inf should be 1 (attack skill) not 4
+	  (used on self). Also changed it's time to 10secs as 2sec is really too
+	  low. [Skotlex]
 	* Fixed constants for Karma and Manner in db/const.txt, thanks to orn. [Skotlex]
 10/18
 	* More translations for japanese comments, again thanks to sighel. [MasterOfMuppets]

@@ -338,6 +338,32 @@ int pc_setrestartvalue(struct map_session_data *sd,int type) {
 }
 
 /*==========================================
+ * Determines if the player can move based on status changes. [Skotlex]
+ *------------------------------------------
+ */
+int pc_can_move(struct map_session_data *sd)
+{
+	if (sd->canmove_tick > gettick() || (sd->opt1 > 0 && sd->opt1 != 6) ||
+		sd->sc_data[SC_ANKLE].timer != -1 ||
+   	sd->sc_data[SC_AUTOCOUNTER].timer !=-1 ||
+		sd->sc_data[SC_TRICKDEAD].timer !=-1 ||
+		sd->sc_data[SC_BLADESTOP].timer !=-1 ||
+		sd->sc_data[SC_SPIDERWEB].timer !=-1 ||
+		(sd->sc_data[SC_DANCING].timer !=-1 && sd->sc_data[SC_DANCING].val4 && sd->sc_data[SC_LONGING].timer == -1) ||
+		(sd->sc_data[SC_DANCING].timer !=-1 && sd->sc_data[SC_DANCING].val1 == CG_HERMODE) || //cannot move while Hermod is active.
+		(sd->sc_data[SC_GOSPEL].timer !=-1 && sd->sc_data[SC_GOSPEL].val4 == BCT_SELF) ||	// cannot move while gospel is in effect
+		 sd->sc_data[SC_CONFUSION].timer !=-1 ||
+		 sd->sc_data[SC_STOP].timer != -1
+		)
+		return 0;
+
+	if ((sd->status.option & 2) && pc_checkskill(sd, RG_TUNNELDRIVE) <= 0)
+		return 0;
+	
+	return 1;
+}
+
+/*==========================================
  * ロ?カルプロトタイプ宣言 (必要な物のみ)
  *------------------------------------------
  */
@@ -3223,6 +3249,9 @@ int pc_run(struct map_session_data *sd, int skilllv, int dir)
 
 	nullpo_retr(0, sd);
 
+	if (!pc_can_move(sd))
+		return 0;
+
 	to_x = sd->bl.x;
 	to_y = sd->bl.y;
 	dir_x = dirx[dir];
@@ -3284,10 +3313,12 @@ int pc_walktodir(struct map_session_data *sd,int step)
 int pc_highjump(struct map_session_data *sd,int skill_lv)
 {
 	int x,y,dir_x,dir_y, distance;
-
-	distance = skill_lv*2;
 	nullpo_retr(0, sd);
 
+	if (!pc_can_move(sd))
+		return 0;
+
+	distance = skill_lv*2;
 	x = sd->bl.x;
 	y = sd->bl.y;
 	dir_x = dirx[(int)sd->dir];
@@ -3554,6 +3585,9 @@ int pc_randomwalk (struct map_session_data *sd, int tick)
 {
 	const int retrycount = 20;
 	nullpo_retr(0, sd);
+
+	if (!pc_can_move(sd))
+		return 0;
 
 	if (DIFF_TICK(sd->next_walktime, tick) < 0) {
 		int i, x, y, d;
@@ -3961,7 +3995,7 @@ int pc_attack_timer(int tid,unsigned int tick,int id,int data)
 	}
 
 	if(!battle_check_range(&sd->bl,bl,range) ) {
-		if(pc_can_reach(sd,bl->x,bl->y) && sd->canmove_tick < tick && (sd->sc_data[SC_ANKLE].timer == -1 || sd->sc_data[SC_SPIDERWEB].timer == -1))
+		if(pc_can_reach(sd,bl->x,bl->y) && pc_can_move(sd))
 			pc_walktoxy(sd,bl->x,bl->y);
 		sd->attackabletime = tick + (sd->aspd<<1);
 	}
@@ -4086,7 +4120,7 @@ int pc_follow_timer(int tid,unsigned int tick,int id,int data)
 			sd->skilltimer == -1 && sd->attacktimer == -1 && sd->walktimer == -1)
 		{
 			if((sd->bl.m == tsd->bl.m) && pc_can_reach(sd,tsd->bl.x,tsd->bl.y)) {
-				if (distance(sd->bl.x,sd->bl.y,tsd->bl.x,tsd->bl.y) > 5)
+				if (distance(sd->bl.x,sd->bl.y,tsd->bl.x,tsd->bl.y) > 5 && pc_can_move(sd))
 					pc_walktoxy(sd,tsd->bl.x,tsd->bl.y);
 			} else
 				pc_setpos(sd, tsd->mapname, tsd->bl.x, tsd->bl.y, 3);
