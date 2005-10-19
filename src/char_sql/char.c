@@ -2988,14 +2988,9 @@ int parse_char(int fd) {
 				return 0;
 		}
 
-//		if(cmd<30000 && cmd!=0x187)
-//			printf("parse_char : %d %d %d\n",fd,RFIFOREST(fd),cmd);
-
-		// 不正パケットの処理
-//		if (sd == NULL && cmd != 0x65 && cmd != 0x20b && cmd != 0x187 &&
-//					 cmd != 0x2af8 && cmd != 0x7530 && cmd != 0x7532)
-//			cmd = 0xffff;	// パケットダンプを表示させる
-
+//For use in packets that depend on an sd being present [Skotlex]
+#define FIFOSD_CHECK(rest) { if(RFIFOREST(fd) < rest) return 0; if (sd==NULL) { RFIFOSKIP(fd,rest); return 0; } }
+		
 		switch(cmd){
 		case 0x20b: //20040622 encryption ragexe correspondence
 			if (RFIFOREST(fd) < 19)
@@ -3106,14 +3101,7 @@ int parse_char(int fd) {
 			break;
 
 		case 0x66: // char select
-			if (RFIFOREST(fd) < 3)
-				return 0;
-
-			if (sd == NULL)
-			{
-				RFIFOSKIP(fd,3);
-				return 0;
-			}
+			FIFOSD_CHECK(3);
 
 			sprintf(tmp_sql, "SELECT `char_id` FROM `%s` WHERE `account_id`='%d' AND `char_num`='%d'",char_db, sd->account_id, RFIFOB(fd, 2));
 			RFIFOSKIP(fd, 3);
@@ -3241,9 +3229,7 @@ int parse_char(int fd) {
 			break;
 
 		case 0x67:	// make new
-//			printf("0x67>request make new char\n");
-			if (RFIFOREST(fd) < 37)
-				return 0;
+			FIFOSD_CHECK(37);
 
 			if(char_new == 0) //turn character creation on/off [Kevin]
 				i = -2;
@@ -3333,10 +3319,9 @@ int parse_char(int fd) {
 					break;
 				}
 			}
-
+			break;
 		case 0x68: /* delete char */
-			if (RFIFOREST(fd) < 46)
-				return 0;
+			FIFOSD_CHECK(46);
 			ShowInfo("\033[1;31m Request Char Deletion:\033[0m \033[1;32m%d\033[0m(\033[1;32m%d\033[0m)\n", sd->account_id, RFIFOL(fd, 2));
 			memcpy(email, RFIFOP(fd,6), 40);
 			

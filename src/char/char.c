@@ -2927,13 +2927,8 @@ int parse_char(int fd) {
 				return 0;
 		}
 
-//		if(cmd<30000 && cmd!=0x187)
-//			printf("parse_char : %d %d %d\n",fd,RFIFOREST(fd),cmd);
-
-		// 不正パケットの処理
-//		if (sd == NULL && cmd != 0x65 && cmd != 0x20b && cmd != 0x187 &&
-//					 cmd != 0x2af8 && cmd != 0x7530 && cmd != 0x7532)
-//			cmd = 0xffff;	// パケットダンプを表示させる
+//For use in packets that depend on an sd being present [Skotlex]
+#define FIFOSD_CHECK(rest) { if(RFIFOREST(fd) < rest) return 0; if (sd==NULL) { RFIFOSKIP(fd,rest); return 0; } }
 
 		switch(cmd){
 		case 0x20b:	//20040622暗号化ragexe対応
@@ -3052,16 +3047,10 @@ int parse_char(int fd) {
 			break;
 
 		case 0x66:	// キャラ選択
-			if (RFIFOREST(fd) < 3)
-				return 0;
+			FIFOSD_CHECK(3);
 		{
 			int char_num = RFIFOB(fd,2);
 			RFIFOSKIP(fd,3);
-			if (sd == NULL)
-			{
-				RFIFOSKIP(fd,3);
-				return 0;
-			}
 
 			// if we activated email creation and email is default email
 			if (email_creation != 0 && strcmp(sd->email, "a@a.com") == 0 && login_fd > 0) { // to modify an e-mail, login-server must be online
@@ -3184,8 +3173,7 @@ int parse_char(int fd) {
 		break;
 
 		case 0x67:	// 作成
-			if (RFIFOREST(fd) < 37)
-				return 0;
+			FIFOSD_CHECK(37);
 				
 			if(char_new == 0) //turn character creation on/off [Kevin]
 				i = -2;
@@ -3264,8 +3252,8 @@ int parse_char(int fd) {
 			}
 
 		case 0x68:	// delete char //Yor's Fix
-			if (RFIFOREST(fd) < 46)
-				return 0;
+			FIFOSD_CHECK(46);
+
 			memcpy(email, RFIFOP(fd,6), 40);
 			if (e_mail_check(email) == 0)
 				strncpy(email, "a@a.com", 40); // default e-mail
@@ -3419,9 +3407,6 @@ int parse_char(int fd) {
 			return 0;
 
 		case 0x7532:	// 接続の切断(defaultと処理は一緒だが明示的にするため)
-			session[fd]->eof = 1;
-			return 0;
-
 		default:
 			session[fd]->eof = 1;
 			return 0;
