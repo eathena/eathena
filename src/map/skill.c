@@ -778,17 +778,17 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 	if(skillid > 0 && skilllv <= 0) return 0;	// don't forget auto attacks! - celest
 
 	if (src->type == BL_PC){
-		nullpo_retr(0, sd = (struct map_session_data *)src);
+		sd = (struct map_session_data *)src;
 	} else if (src->type == BL_MOB){
-		nullpo_retr(0, md = (struct mob_data *)src); //未使用？
+		md = (struct mob_data *)src;
 	} else if (src->type == BL_PET){
-		nullpo_retr(0, pd = (struct pet_data *)src); // [Valaris]
+		pd = (struct pet_data *)src; // [Valaris]
 	}
 
 	if(bl->type == BL_PC) {
-		nullpo_retr(0, dstsd=(struct map_session_data *)bl);
+		dstsd=(struct map_session_data *)bl;
 	} else if(bl->type == BL_MOB) {
-		nullpo_retr(0, dstmd=(struct mob_data *)bl); //未使用？
+		dstmd=(struct mob_data *)bl;
 	} else {
 		//PC,MOB以外は追加効果の対象外
 		return 0;
@@ -1288,18 +1288,18 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 	if(skillid > 0 && skilllv <= 0) return 0;	// don't forget auto attacks! - celest
 
 	if (src->type == BL_PC){
-		nullpo_retr(0, sd = (struct map_session_data *)src);
+		sd = (struct map_session_data *)src;
 	} else if (src->type == BL_MOB){
-		nullpo_retr(0, md = (struct mob_data *)src);
+		md = (struct mob_data *)src;
 	} else// if (src->type == BL_PET){
-//		nullpo_retr(0, pd = (struct pet_data *)src);
+//		pd = (struct pet_data *)src;
 		return 0; //Only mobs/players can be affected. [Skotlex]
 //	}
 
 	if(bl->type == BL_PC) {
-		nullpo_retr(0, dstsd=(struct map_session_data *)bl);
+		dstsd=(struct map_session_data *)bl;
 	} else if(bl->type == BL_MOB) {
-		nullpo_retr(0, dstmd=(struct mob_data *)bl); //未使用？
+		dstmd=(struct mob_data *)bl;
 	} else {
 		//PC,MOB以外は追加効果の対象外
 		return 0;
@@ -1853,7 +1853,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 	}
 
 	if (dmg.dmg_lv == ATK_DEF || damage > 0) //Counter status effects [Skotlex] 
-		skill_counter_additional_effect(src,bl,skillid,skilllv,attack_type,tick);
+		skill_counter_additional_effect(dsrc,bl,skillid,skilllv,attack_type,tick);
 	
 	/* ダメ?ジがあるなら追加?果判定 */	
 	if(!status_isdead(bl) && bl->type==BL_MOB && src!=bl)	/* スキル使用?件のMOBスキル */

@@ -1,6 +1,8 @@
 Date	Added
 =======
 2005/10/19
+	* Fixed ground placed skills causing skill_counter_additional_effect
+	  triggering on the skill's owner. [Skotlex]
 	* Added corrections/checks that should prevent the char servers from
 	  crashing if they parse a packet from a client where the session data is
 	  expected to be but is not set. [Skotlex]
