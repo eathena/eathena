@@ -2784,14 +2784,10 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 	nullpo_retr(0, target);
 
 	m = target->m;
-	if (flag&BCT_ENEMY && !map[m].flag.gvg)	//Offensive stuff can't be casted on Basilica
-	{	// Celest
-		struct status_change *sc_data, *tsc_data;
-
-		sc_data = status_get_sc_data(src);
-		tsc_data = status_get_sc_data(target);
-		if ((sc_data && sc_data[SC_BASILICA].timer != -1) ||
-		(tsc_data && tsc_data[SC_BASILICA].timer != -1))
+	if (flag&BCT_ENEMY && !map[m].flag.gvg && !(status_get_mode(src)&MD_BOSS))
+	{	//No offensive stuff while in Basilica.
+		if (map_getcell(m,src->x,src->y,CELL_CHKBASILICA) ||
+			map_getcell(m,target->x,target->y,CELL_CHKBASILICA))
 			return -1;
 	}
 
