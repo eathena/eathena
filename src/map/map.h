@@ -699,7 +699,6 @@ struct mob_data {
 	struct walkpath_data walkpath;
 	unsigned int next_walktime;
 	unsigned int canmove_tick;
-	unsigned int canseek_tick;
 	unsigned int attackabletime;
 	unsigned int last_deadtime,last_spawntime,last_thinktime;
 	unsigned int last_linktime;

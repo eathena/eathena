@@ -201,7 +201,7 @@ int mob_once_spawn (struct map_session_data *sd, char *mapname,
 		md->bl.x = x;
 		md->bl.y = y;
 		if (class_ < 0 && battle_config.dead_branch_active)
-			md->mode = MD_CANMOVE|MD_AGGRESSIVE|MD_CANATTACK;
+			md->mode = md->db->mode|MD_AGGRESSIVE|MD_CANATTACK;
 		md->m = m;
 		md->x0 = x;
 		md->y0 = y;
@@ -527,15 +527,8 @@ static int mob_walk(struct mob_data *md,unsigned int tick,int data)
 		x += dx;
 		y += dy;
 	
-		if(md->state.skillstate == MSS_CHASE)
-		{	//Min chase is now used to determine how far mobs seek before getting tired and giving up temporarily.	
-			if ( md->min_chase > md->db->range2)
-				md->min_chase--;
-			else if (rand()%100 < 5)
-			 //Randomly bring down the min chase to 0. [Skotlex]
-			 //TODO: Find harddata of how the "stop chasing" code actually should work.
-				md->min_chase--;
-		}
+		if ( md->min_chase > md->db->range2)
+			md->min_chase--;
 		
 		skill_unit_move(&md->bl,tick,2);
 		if(moveblock) map_delblock(&md->bl);
@@ -557,15 +550,9 @@ static int mob_walk(struct mob_data *md,unsigned int tick,int data)
 
 		if(md->walkpath.path_pos>=md->walkpath.path_len)
 			clif_fixmobpos(md);	// ‚Æ‚Ü‚Á‚½‚Æ‚«‚ÉˆÊ’u‚ÌÄ‘—M
-		else if (md->state.skillstate != MSS_CHASE || md->min_chase > 0)
-		{	//keep walking/chasing.
+		else {
 			md->timer=add_timer(tick+i,mob_timer,md->bl.id,md->walkpath.path_pos);
 			md->state.state=MS_WALK;
-		} else {	//Give up chasing? [Skotlex]
-			md->canseek_tick = tick + 10000; //Give up active seeks for 10 secs.
-			md->min_chase = md->db->range3;
-			clif_emotion(&md->bl, 4);
-			mob_unlocktarget(md, tick);
 		}
 	}
 	return 0;
@@ -959,7 +946,6 @@ int mob_spawn (int id)
 	md->attackabletime = tick;
 	md->canmove_tick = tick;
 	md->last_linktime = tick;
-	md->canseek_tick = tick;
 
 	/* Guardians should be spawned using mob_spawn_guardian! [Skotlex]
 	 * and the Emperium is spawned using mob_once_spawn.
@@ -1177,7 +1163,7 @@ static int mob_ai_sub_hard_activesearch(struct block_list *bl,va_list ap)
 	nullpo_retr(0, tick=va_arg(ap,unsigned int));
 
 	//If can't seek yet, not an enemy, or you can't attack it, skip.
-	if (DIFF_TICK(tick, md->canseek_tick) < 0 || battle_check_target(&md->bl,bl,BCT_ENEMY)<=0 || !status_check_skilluse(&md->bl, bl, 0, 0))
+	if (battle_check_target(&md->bl,bl,BCT_ENEMY)<=0 || !status_check_skilluse(&md->bl, bl, 0, 0))
 		return 0;
 
 	switch (bl->type)
@@ -1792,6 +1778,7 @@ static int mob_ai_sub_lazy(void * key,void * data,va_list app)
 	struct mob_data *md = (struct mob_data *)data;
 	va_list ap;
 	unsigned int tick;
+	int mode;
 
 	nullpo_retr(0, md);
 	nullpo_retr(0, app);
@@ -1821,8 +1808,9 @@ static int mob_ai_sub_lazy(void * key,void * data,va_list app)
 		return 0;
 	}
 
+	mode = status_get_mode(&md->bl);
 	if(DIFF_TICK(md->next_walktime,tick)<0 &&
-		(md->db->mode&MD_CANMOVE) && mob_can_move(md) ){
+		(mode&MD_CANMOVE) && mob_can_move(md) ){
 
 		if( map[md->bl.m].users>0 ){
 			// Since PC is in the same map, somewhat better negligent processing is carried out.
@@ -1833,15 +1821,14 @@ static int mob_ai_sub_lazy(void * key,void * data,va_list app)
 
 			// MOB which is not not the summons MOB but BOSS, either sometimes reboils.
 			else if( rand()%1000<MOB_LAZYWARPPERC && md->x0<=0 && md->master_id!=0 &&
-				md->db->mexp <= 0 && !(md->db->mode & MD_BOSS))
+				!(mode&MD_BOSS))
 				mob_spawn(md->bl.id);
-
 		}else{
 			// Since PC is not even in the same map, suitable processing is carried out even if it takes.
 
 			// MOB which is not BOSS which is not Summons MOB, either -- a case -- sometimes -- leaping
 			if( rand()%1000<MOB_LAZYWARPPERC && md->x0<=0 && md->master_id!=0 &&
-				md->db->mexp <= 0 && !(md->db->mode & MD_BOSS))
+				!(mode&MD_BOSS))
 				mob_warp(md,-1,-1,-1,-1);
 		}
 
@@ -2082,7 +2069,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 	struct block_list *master = NULL;
 	double tdmg,temp;
 	struct item item;
-	int ret;
+	int ret, mode;
 	int drop_rate;
 	int race;
 	
@@ -2246,6 +2233,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 	}
 
 /* Uncomment this to enable supportive mobs calling for support when attacked as well as during their AI. [Skotlex]
+	mode = status_get_mode(&md->bl);
 	if (src && status_get_mode(&md->bl) & MD_ASSIST && DIFF_TICK(md->last_linktime, gettick()) < MIN_MOBLINKTIME)
 	{	// Link monster/ if target is not dead [Skotlex]
 		unsigned int tick = gettick();
@@ -2263,6 +2251,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 
 	// ----- ‚±‚±‚©‚çŽ€–Sˆ— -----
 
+	mode = status_get_mode(&md->bl); //Mode will be used for various checks regarding exp/drops.
 
 	//changestate will clear all status effects, so we need to know if RICHMANKIM is in effect before then. [Skotlex]
 	//I just recycled ret because it isn't used until much later and I didn't want to add a new variable for it.
@@ -2519,8 +2508,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 				if (sd->monster_drop_itemid[i] < 0)
 					continue;
 				if (sd->monster_drop_race[i] & (1<<race) ||
-					(md->db->mode & MD_BOSS && sd->monster_drop_race[i] & 1<<10) ||
-					(!(md->db->mode & MD_BOSS) && sd->monster_drop_race[i] & 1<<11) )
+					sd->monster_drop_race[i] & 1<<(mode&MD_BOSS?10:11))
 				{
 					if (sd->monster_drop_itemrate[i] <= rand()%10000+1)
 						continue;
@@ -2783,7 +2771,6 @@ int mob_class_change (struct mob_data *md, int class_)
 	md->attackabletime = tick;
 	md->canmove_tick = tick;
 	md->last_linktime = tick;
-	md->canseek_tick = tick;
 
 	for(i=0,c=tick-1000*3600*10;i<MAX_MOBSKILL;i++)
 		md->skilldelay[i] = c;

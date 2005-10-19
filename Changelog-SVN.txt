@@ -1,12 +1,26 @@
 Date	Added
 =======
-2005/10/18
+2005/10/19
+	* Fixed being able to enable NPC clicks while a trading window is open. [Skotlex]
+	* Added status change SC_MODE which allows to temporarily override a mob's
+	  mode. It can be invoked through mob skills NPC_EMOTION and NPC_EMOTION_ON
+	  using the second and third value (new mode and duration in seconds,
+	  respectively). Example:
+		1269,Clock@NPC_EMOTION_ON,attack,474,1,10000,0,30000,yes,self,always,0,6,133,300,,,
+	  Makes the Clock do the /an emotion, and his mode changes to 133 (can
+	  move, can attack, aggressive) for the following 300 seconds (if the mode
+	  is 0, then the mode is not changed).
+	- Note that when a mob gets their mode changed, their state is reset (so
+	  they stop attacking/chasing)
+	- Because of this update, the code that made mobs give up chasing after a
+	  while is no longer needed and hence, removed.
 	* Implemented function status_check_skilluse which checks whether a skill
 	  (or melee attack) can be used on an enemy based on their status (restricts
 	  skills that may be used if opponent is cloaked/hidden, or blocks Aex
 	  Aeterna if opponent is petrified/frozen, blocks skills while silenced, etc
 	  etc). Note that the code simplification/modification is big, so beware of
 	  any new bugs that might have been caused by the function. [Skotlex]
+2005/10/18
 	* Fixed card set bonuses for sure this time (or so I hope) [Skotlex]
 	* Fixed the Dissonance song bug which allowed you to cast a song afterwards
 	  and it would not follow you around. [Skotlex]

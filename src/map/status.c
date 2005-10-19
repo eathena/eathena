@@ -3083,14 +3083,16 @@ int status_get_size(struct block_list *bl)
 int status_get_mode(struct block_list *bl)
 {
 	nullpo_retr(0x01, bl);
-	if(bl->type==BL_PC)
-		return (MD_CANATTACK|MD_CANMOVE); //Default player mode: Can move + can attack.
 	if(bl->type==BL_MOB && (struct mob_data *)bl)
 	{
+		if (((struct mob_data *)bl)->sc_data[SC_MODE].timer != -1)
+			return ((struct mob_data *)bl)->sc_data[SC_MODE].val1;
 		if (((struct mob_data *)bl)->mode)
 			return ((struct mob_data *)bl)->mode;
 		return ((struct mob_data *)bl)->db->mode;
 	}
+	if(bl->type==BL_PC)
+		return (MD_CANATTACK|MD_CANMOVE); //Default player mode: Can move + can attack.
 	if(bl->type==BL_PET && (struct pet_data *)bl)
 		return ((struct pet_data *)bl)->db->mode;
 	if (bl->type==BL_SKILL)
@@ -4162,6 +4164,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_WATK_ELEMENT:
 		case SC_ARMOR_ELEMENT:
 		case SC_HIGHJUMP:
+		case SC_MODE:
 			break;
 		case SC_RUN://‹ì‚¯‘«
 			calc_flag = 1;
@@ -5112,7 +5115,7 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 			if (sd) {
 				pc_randomwalk (sd, gettick());
 				sd->next_walktime = tick + (i=1000 + rand()%1000);
-			} /*else if (bl->type==BL_MOB && (md=(struct mob_data *)bl) && md->mode&MD_CANMOVE && mob_can_move(md)) {
+			} /*else if (bl->type==BL_MOB && (md=(struct mob_data *)bl) && status_get_mode(bl)&MD_CANMOVE && mob_can_move(md)) {
 				md->state.state=MS_WALK;
 				if( DIFF_TICK(md->next_walktime,tick) > + 7000 &&
 					(md->walkpath.path_len==0 || md->walkpath.path_pos>=md->walkpath.path_len) )

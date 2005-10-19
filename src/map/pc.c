@@ -2830,7 +2830,7 @@ int pc_steal_item(struct map_session_data *sd,struct block_list *bl)
 	
 	md=(struct mob_data *)bl;
 
-	if(md->state.steal_flag || md->db->mexp || (md->db->mode&MD_BOSS) || md->master_id ||
+	if(md->state.steal_flag || status_get_mode(bl)&MD_BOSS || md->master_id ||
 		(md->class_>=1324 && md->class_<1364) || // prevent stealing from treasure boxes [Valaris]
 		map[md->bl.m].flag.nomobloot ||        // check noloot map flag [Lorky]
 		md->sc_data[SC_STONE].timer != -1 || md->sc_data[SC_FREEZE].timer != -1 //status change check

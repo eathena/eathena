@@ -1430,7 +1430,7 @@ int skill_blown( struct block_list *src, struct block_list *target,int count, in
 		sd=(struct map_session_data *)target;
 	}else if(target->type==BL_MOB){
 		md=(struct mob_data *)target;
-		if (md->db->mode&(MD_PLANT)) //Avoid Pushing inmobile Plants [Skotlex]
+		if (status_get_mode(target)&(MD_PLANT)) //Avoid Pushing inmobile Plants [Skotlex]
 			return 0;
 	}else if(target->type==BL_PET){
 		pd=(struct pet_data *)target;
@@ -3777,7 +3777,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			pc_delspiritball(dstsd,dstsd->spiritball,0);
 		} else if (dstmd && //?象がモンスタ?の場合
 			//20%の確率で?象のLv*2のSPを回復する。成功したときはタ?ゲット(σ?Д?)σ????!!
-			!(dstmd->db->mode&MD_BOSS) && rand() % 100 < 20)
+			!(status_get_mode(bl)&MD_BOSS) && rand() % 100 < 20)
 		{
 			i = 2 * dstmd->db->lv;
 			mob_target(dstmd,src,0);
@@ -4078,7 +4078,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 	case BA_PANGVOICE://パンボイス
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			if(dstmd && dstmd->mode&MD_BOSS){
+			if(status_get_mode(bl)&MD_BOSS){
 				if(sd)
 					clif_skill_fail(sd,skillid,0,0);
 				break;
@@ -4146,7 +4146,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			struct status_change *sc_data = status_get_sc_data(bl);
 			// Level 6-10 doesn't consume a red gem if it fails [celest]
 			int i, gem_flag = 1, fail_flag = 0;
-			if (dstmd && status_get_mode(bl)&MD_BOSS) {
+			if (status_get_mode(bl)&MD_BOSS) {
 				if (sd) clif_skill_fail(sd,sd->skillid,0,0);
 				break;
 			}
@@ -4842,14 +4842,23 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		}
 		break;
 
+	case NPC_EMOTION_ON:		// not sure what it does, but for now treat it as NPC_EMOTION
 	case NPC_EMOTION:			/* エモ?ション */
 		if(md)
+		{
 			clif_emotion(&md->bl,md->db->skill[md->skillidx].val[0]);
+			if(md->db->skill[md->skillidx].val[1])
+			{
+				status_change_start(bl, SC_MODE, md->db->skill[md->skillidx].val[1],0,0,0,
+					md->db->skill[md->skillidx].val[2]*1000,0);
+				//Since mode changed, reset their state.
+				mob_stopattack(md);
+				mob_stop_walking(md,0);
+			}
+		}
 		break;
 
-	case NPC_EMOTION_ON:
-		// not sure what it does
-		break;
+
 
 	case NPC_DEFENDER:
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);

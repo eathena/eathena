@@ -32,6 +32,8 @@
 		like gemstones when the skill is used.
 	--
 
+10/19
+	* Fixed constants for Karma and Manner in db/const.txt, thanks to orn. [Skotlex]
 10/18
 	* More translations for japanese comments, again thanks to sighel. [MasterOfMuppets]
 	* Updated Thanatos' mode to include boss-type (Thanatos and several of the

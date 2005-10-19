@@ -248,6 +248,7 @@ enum {
 	SC_DEXFOOD			= 240,
 	SC_LUKFOOD			= 241,
 	SC_HIGHJUMP			= 242,
+	SC_MODE			= 243,	//Changes a mob's mode temporarily. [Skotlex]
 	//
 	SC_INTRAVISION		= 337
 
