@@ -8653,37 +8653,22 @@ int buildin_isequipped(struct script_state *st)
 
 					for (k = 0; k < sd->inventory_data[index]->slot; k++)
 					{	//New hash system which should support up to 4 slots on any equipment. [Skotlex]
-						int hash = 0;
+						unsigned int hash = 0;
 						if (sd->status.inventory[index].card[k] != id)
 							continue;
 
-						hash = 1<<(index*4 + k);
-						//Special considerations for items that are equipped on multi-slots
-						if (sd->inventory_data[index]->type == 5 && 
-							sd->inventory_data[index]->equip & 769)
-						{	//Headgear
-							if (sd->inventory_data[index]->equip & 1)
-								hash |= 1<<(0*4 + k);
-							if (sd->inventory_data[index]->equip & 256)
-								hash |= 1<<(8*4 + k);
-							if (sd->inventory_data[index]->equip & 512)
-								hash |= 1<<(9*4 + k);
-						}
-						else if (sd->inventory_data[index]->type == 4 && 
-							sd->inventory_data[index]->equip == 34)
-						{	//Two handed weapon
-							hash |= 1<<(1*4 + k);
-							hash |= 1<<(5*4 + k);
-						}
-						
+						hash = 1<<((j<5?j:j-5)*4 + k);
 						// check if card is already used by another set
-						if (sd->setitem_hash & hash)	
+						if ((j<5?sd->setitem_hash:sd->setitem_hash2) & hash)	
 							continue;
 
 						// We have found a match
 						flag = 1;
 						// Set hash so this card cannot be used by another
-						sd->setitem_hash |= hash;
+						if (j<5)
+							sd->setitem_hash |= hash;
+						else
+							sd->setitem_hash2 |= hash;
 						break;
 					}
 				//Case 6 end

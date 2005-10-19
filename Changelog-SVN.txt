@@ -1,6 +1,7 @@
 Date	Added
 =======
 2005/10/18
+	* Fixed card set bonuses for sure this time (or so I hope) [Skotlex]
 	* Fixed the Dissonance song bug which allowed you to cast a song afterwards
 	  and it would not follow you around. [Skotlex]
 	* Modified the counting function to never count in skills (traps, AoE
