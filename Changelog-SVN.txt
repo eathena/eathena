@@ -1,6 +1,7 @@
 Date	Added
 =======
 2005/10/19
+	* Likely fixed Root and the Wedding Skills [Skotlex]
 	* Fixed that crash in skill_use_id.. oops. [Skotlex]
 	* Fixed demonstration triggering status effects. [Skotlex]
 	* Fixed ground placed skills causing skill_counter_additional_effect

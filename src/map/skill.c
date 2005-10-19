@@ -8056,20 +8056,36 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 	case WE_FEMALE:
 		if (!sd->status.partner_id)
 			return 0;
-		target_id = sd->status.partner_id;
+		tsd = map_charid2sd(sd->status.partner_id);
+		bl = (struct block_list *)tsd;
+		if (bl)
+			target_id = bl->id;
+		else
+		{
+			clif_skill_fail(sd,skill_num,0,0);
+			return 0;
+		}
 		break;
 	case WE_CALLBABY:
 		if (!sd->status.child)
 			return 0;
-		target_id = sd->status.partner_id;
+		tsd = map_charid2sd(sd->status.child);
+		bl = (struct block_list *)tsd;
+		if (bl)
+			target_id = bl->id;
+		else
+		{
+			clif_skill_fail(sd,skill_num,0,0);
+			return 0;
+		}
 		break;
 	}
-
-	if ((bl = map_id2bl(target_id)) == NULL)
+	if (bl == NULL && (bl = map_id2bl(target_id)) == NULL)
 		return 0;
-	if (bl->type == BL_PC) {
-		nullpo_retr(0, tsd = (struct map_session_data*)bl);
-	}
+	
+	if (bl->type == BL_PC)
+		tsd = (struct map_session_data*)bl;
+	
 	if (bl->prev == NULL) //Prevent targeting enemies that are not in the map. [Skotlex]
 		return 0;
 	
