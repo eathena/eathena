@@ -366,6 +366,8 @@ int status_calc_maxhp(struct block_list *,int);
 int status_calc_maxsp(struct block_list *,int);
 int status_quick_recalc_speed(struct map_session_data*, int, int, char); // [Celest] - modified by [Skotlex]
 int status_getrefinebonus(int lv,int type);
+int status_check_skilluse(struct block_list *src, struct block_list *target, int skill_num, int flag); // [Skotlex]
+
 //Use this to refer the max refinery level [Skotlex]
 #define MAX_REFINE 10
 extern int percentrefinery[5][MAX_REFINE+1]; //The last slot always has a 0% success chance [Skotlex]

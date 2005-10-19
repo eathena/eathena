@@ -322,6 +322,138 @@ int status_getrefinebonus(int lv,int type)
 	return 0;
 }
 
+/*==========================================
+ * Checks whether the src can use the skill on the target,
+ * taking into account status/option of both source/target. [Skotlex]
+ * flag: 1 to indicate this call is done after the casting (target already selected)
+ * target MAY Be null, in which case the checks are only to see 
+ * whether the source can cast or not the skill on the ground.
+ *------------------------------------------
+ */
+int status_check_skilluse(struct block_list *src, struct block_list *target, int skill_num, int flag)
+{
+	int mode, race, hide_flag;
+	struct status_change *sc_data, *tsc_data;
+	short *option, *opt1;
+
+	if (status_isdead(src))
+		return 0;
+	if (target && status_isdead(target) && skill_num != ALL_RESURRECTION)
+		return 0;
+	
+	mode = status_get_mode(src);
+	if (!(mode&MD_CANATTACK))
+		return 0;
+	
+	opt1 = status_get_opt1(src);
+	if (opt1 && (*opt1) >0 && (*opt1) != 6)
+		return 0;
+	
+	sc_data = status_get_sc_data(src);
+	if(sc_data)
+	{
+		if (
+			(sc_data[SC_BASILICA].timer != -1 && (sc_data[SC_BASILICA].val3 != BCT_SELF || skill_num != HP_BASILICA))
+			|| (sc_data[SC_AUTOCOUNTER].timer != -1 && skill_num != KN_AUTOCOUNTER)
+			|| (sc_data[SC_GOSPEL].timer != -1 && sc_data[SC_GOSPEL].val4 == BCT_SELF && skill_num != PA_GOSPEL)
+			|| sc_data[SC_BLADESTOP].timer != -1 || sc_data[SC_GRAVITATION].timer != -1
+		)
+			return 0;
+
+		if (sc_data[SC_BLADESTOP].timer != -1) {
+			switch (sc_data[SC_BLADESTOP].val1)
+			{
+				case 1: return 0;
+				case 2: if (skill_num != MO_FINGEROFFENSIVE) return 0; break;
+				case 3: if (skill_num != MO_FINGEROFFENSIVE && skill_num != MO_INVESTIGATE) return 0; break;
+				case 4: if (skill_num != MO_FINGEROFFENSIVE && skill_num != MO_INVESTIGATE && skill_num != MO_CHAINCOMBO) return 0; break;
+				case 5: if (skill_num != MO_FINGEROFFENSIVE && skill_num != MO_INVESTIGATE && skill_num != MO_CHAINCOMBO && skill_num!=MO_EXTREMITYFIST) return 0; break;
+				default: return 0;
+			}
+		}
+		if (skill_num)
+		{	//Skills blocked through status changes...
+			if ((sc_data[SC_VOLCANO].timer != -1 && skill_num == WZ_ICEWALL) ||
+				(sc_data[SC_ROKISWEIL].timer != -1 && skill_num != BD_ADAPTATION) ||
+				(sc_data[SC_MARIONETTE].timer != -1 && skill_num != CG_MARIONETTE) ||
+				(sc_data[SC_MARIONETTE2].timer != -1 && skill_num == CG_MARIONETTE) ||
+				(sc_data[SC_HERMODE].timer != -1 && skill_get_inf(skill_num) & INF_SUPPORT_SKILL) ||
+				sc_data[SC_SILENCE].timer != -1 || sc_data[SC_STEELBODY].timer != -1 || sc_data[SC_BERSERK].timer != -1
+			)
+				return 0;
+
+			if (sc_data[SC_DANCING].timer != -1)
+			{
+				if (skill_num != BD_ADAPTATION && skill_num != CG_LONGINGFREEDOM
+					&& skill_num != BA_MUSICALSTRIKE && skill_num != DC_THROWARROW)
+					return 0;
+				if (sc_data[SC_DANCING].val1 == CG_HERMODE && skill_num == BD_ADAPTATION)
+					return 0;	//Can't amp out of Wand of Hermode :/ [Skotlex]
+			}
+		}
+	}
+	
+	tsc_data = target?status_get_sc_data(target):NULL;
+	if(tsc_data)
+	{	
+		if (!(mode & MD_BOSS) && (tsc_data[SC_BASILICA].timer != -1 || tsc_data[SC_TRICKDEAD].timer != -1))
+			return 0;
+
+		if(skill_num == PR_LEXAETERNA && (tsc_data[SC_FREEZE].timer != -1 || (tsc_data[SC_STONE].timer != -1 && tsc_data[SC_STONE].val2 == 0)))
+			return 0;
+	}
+
+	option = status_get_option(src);
+	if (option)
+	{
+		if ((*option)&0x2 && skill_num != TF_HIDING && skill_num != AS_GRIMTOOTH
+			&& skill_num != RG_BACKSTAP && skill_num != RG_RAID)
+			return 0;
+		if ((*option)&0x4 && skill_num == TF_HIDING)
+			return 0;
+		if ((*option)&0x4000 && skill_num != ST_CHASEWALK)
+			return 0;
+	}
+	if (target == NULL || target == src) //No further checking needed.
+		return 1;
+
+	race = status_get_race(src);
+	option = status_get_option(target);
+	hide_flag = flag?0x02:0x06; //If targetting, cloak+hide protect you, otherwise only hiding does.
+		
+	switch (target->type)
+	{
+	case BL_PC:
+		{
+			struct map_session_data *sd = (struct map_session_data*) target;
+			if (pc_isinvisible(sd))
+				return 0;
+			if ((*option)&0x4000 && !(mode & MD_BOSS)) //Chasewalk is inmune to all but bosses.
+				return 0;
+			if (((*option)&hide_flag || sd->state.gangsterparadise)
+				&& (sd->state.perfect_hiding || !(race == 4 || race == 6 || mode&MD_DETECTOR))
+				&& !(mode&MD_BOSS))
+				return 0;
+		}
+		break;
+	case BL_PET:
+		return 0;
+	case BL_ITEM:	//Allow targetting of items to pick'em up (or in the case of mobs, to loot them).
+		//TODO: Would be nice if this could be used to judge whether the player can or not pick up the item it targets. [Skotlex]
+		return 1;
+	default:
+		//Check for chase-walk/hiding/cloaking opponents.
+		if (option && !(mode&MD_BOSS))
+		{
+			if ((*option)&0x4000) //Chasewalk
+				return 0;
+			if ((*option)&hide_flag && !(race == 4 || race == 6 || mode&MD_DETECTOR))
+				return 0;
+		}
+	}
+	return 1;
+}
+
 //Skotlex: Calculates the stats of the given pet.
 int status_calc_pet(struct map_session_data *sd, int first)
 {
@@ -3245,9 +3377,9 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		sc_data[type].timer != -1 && sc_data[type].val2 && !val2)
 		return 0;
 
-	if(mode & MD_BOSS && (type==SC_STONE || type==SC_FREEZE ||
-		type==SC_STAN || type==SC_SLEEP || type==SC_SILENCE || type==SC_QUAGMIRE || type == SC_DECREASEAGI || type == SC_SIGNUMCRUCIS || type == SC_PROVOKE ||
-		(type == SC_BLESSING && (undead_flag || race == 6))) && !(flag&1)){
+	if(mode & MD_BOSS && (type==SC_STONE || type==SC_FREEZE || type==SC_STAN || type==SC_SLEEP || type==SC_SILENCE
+		|| type==SC_QUAGMIRE || type == SC_DECREASEAGI || type == SC_SIGNUMCRUCIS || type == SC_PROVOKE
+		|| type==SC_ROKISWEIL || (type == SC_BLESSING && (undead_flag || race == 6))) && !(flag&1)){
 		/* ボスには?かない(ただしカ?ドによる?果は適用される) */
 		return 0;
 	}

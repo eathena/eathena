@@ -590,7 +590,7 @@ static int mob_attack(struct mob_data *md,unsigned int tick,int data)
 	if( md->skilltimer!=-1 )	// スキル使用中
 		return 0;
 
-	if((tbl=map_id2bl(md->target_id))==NULL || !battle_check_attackable(&md->bl, tbl)){
+	if((tbl=map_id2bl(md->target_id))==NULL || !status_check_skilluse(&md->bl, tbl, 0, 0)){
 		md->target_id=0;
 		md->state.targettype = NONE_ATTACKABLE;
 		return 0;
@@ -1144,7 +1144,7 @@ int mob_target(struct mob_data *md,struct block_list *bl,int dist)
 		!(md->state.provoke_flag && md->state.provoke_flag == bl->id))
 		return 0;
 
-	if(!battle_check_attackable(&md->bl, bl))
+	if(!status_check_skilluse(&md->bl, bl, 0, 0))
 		return 0;
 
 	md->target_id = bl->id;	// Since there was no disturbance, it locks on to target.
@@ -1177,7 +1177,7 @@ static int mob_ai_sub_hard_activesearch(struct block_list *bl,va_list ap)
 	nullpo_retr(0, tick=va_arg(ap,unsigned int));
 
 	//If can't seek yet, not an enemy, or you can't attack it, skip.
-	if (DIFF_TICK(tick, md->canseek_tick) < 0 || battle_check_target(&md->bl,bl,BCT_ENEMY)<=0 || !battle_check_attackable(&md->bl, bl))
+	if (DIFF_TICK(tick, md->canseek_tick) < 0 || battle_check_target(&md->bl,bl,BCT_ENEMY)<=0 || !status_check_skilluse(&md->bl, bl, 0, 0))
 		return 0;
 
 	switch (bl->type)
@@ -1343,7 +1343,7 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 	// There is the master, the master locks a target and he does not lock.
 	if( mmd && (mmd->target_id>0 && mmd->state.targettype == ATTACKABLE) && (!md->target_id || md->state.targettype == NONE_ATTACKABLE) ){
 		struct map_session_data *sd=map_id2sd(mmd->target_id);
-		if(sd && battle_check_attackable(&md->bl, &sd->bl)) {
+		if(sd && status_check_skilluse(&md->bl, &sd->bl, 0, 0)) {
 			md->target_id=sd->bl.id;
 			md->state.targettype = ATTACKABLE;
 			md->min_chase=md->db->range2+distance(md->bl.x,md->bl.y,sd->bl.x,sd->bl.y);
@@ -1490,7 +1490,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 	if (md->target_id)
 	{	//Check validity of current target. [Skotlex]
 		tbl = map_id2bl(md->target_id);
-		if (!tbl || tbl->m != md->bl.m || !battle_check_attackable(&md->bl, tbl))
+		if (!tbl || tbl->m != md->bl.m || !status_check_skilluse(&md->bl, tbl, 0, 0))
 		{	//Unlock current target.
 			if (md->state.skillstate == MSS_CHASE)
 			{	//Confused!
@@ -1513,7 +1513,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 			if (md->bl.m != abl->m || abl->prev == NULL ||
 				(dist = distance(md->bl.x, md->bl.y, abl->x, abl->y)) >= 32 ||
 				battle_check_target(bl, abl, BCT_ENEMY) <= 0 ||
-				(battle_config.mob_ai&2 && !battle_check_attackable(bl, abl)) ||
+				(battle_config.mob_ai&2 && !status_check_skilluse(bl, abl, 0, 0)) ||
 				!mob_can_reach(md, abl, dist))
 			{	//Can't attack back
 				if (md->attacked_count++ > 3) {
@@ -1528,7 +1528,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 					}
 					md->attacked_id = 0;
 				}
-			} else if (!(battle_config.mob_ai&2) && !battle_check_attackable(bl, abl)) {
+			} else if (!(battle_config.mob_ai&2) && !status_check_skilluse(bl, abl, 0, 0)) {
 				//Can't attack back, but didn't invoke a rude attacked skill... so just attempt to run away.
 				int dist = rand() % 10 + 1;//後退する距離
 				int dir = map_calc_dir(abl, bl->x, bl->y);
@@ -3109,21 +3109,6 @@ int mobskill_castend_id( int tid, unsigned int tick, int id,int data )
 		return 0;
 
 	md->skilltimer=-1;
-	//沈黙や状態異常など
-	if(md->sc_data){
-		if(md->opt1>0 || md->sc_data[SC_SILENCE].timer != -1 ||
-			(!(md->db->mode & MD_BOSS) && md->sc_data[SC_ROKISWEIL].timer != -1) ||
-			md->sc_data[SC_STEELBODY].timer != -1)
-			return 0;
-		if(md->sc_data[SC_AUTOCOUNTER].timer != -1 && md->skillid != KN_AUTOCOUNTER) //オートカウンター
-			return 0;
-		if(md->sc_data[SC_BLADESTOP].timer != -1) //白刃取り
-			return 0;
-		if(md->sc_data[SC_BERSERK].timer != -1) //バーサーク
-			return 0;
-	}
-	if(md->skillid != NPC_EMOTION)
-		md->last_thinktime=tick + status_get_adelay(&md->bl);
 
 	if((bl = map_id2bl(md->skilltarget)) == NULL || bl->prev==NULL){ //スキルターゲットが存在しない
 		//printf("mobskill_castend_id nullpo\n");//ターゲットがいないときはnullpoじゃなくて普通に終了
@@ -3132,12 +3117,10 @@ int mobskill_castend_id( int tid, unsigned int tick, int id,int data )
 	if(md->bl.m != bl->m)
 		return 0;
 
-	if(md->skillid == PR_LEXAETERNA) {
-		struct status_change *sc_data = status_get_sc_data(bl);
-		if(sc_data && (sc_data[SC_FREEZE].timer != -1 || (sc_data[SC_STONE].timer != -1 && sc_data[SC_STONE].val2 == 0)))
-			return 0;
-	}
-	else if(md->skillid == RG_BACKSTAP) {
+	if(md->skillid != NPC_EMOTION)
+		md->last_thinktime=tick + status_get_adelay(&md->bl);
+		
+	if(md->skillid == RG_BACKSTAP) {
 		int dir = map_calc_dir(&md->bl,bl->x,bl->y),t_dir = status_get_dir(bl);
 		int dist = distance(md->bl.x,md->bl.y,bl->x,bl->y);
 		if(bl->type != BL_SKILL && (dist == 0 || map_check_dir(dir,t_dir)))
@@ -3146,12 +3129,17 @@ int mobskill_castend_id( int tid, unsigned int tick, int id,int data )
 	if( ( skill_get_inf(md->skillid) & INF_ATTACK_SKILL || md->skillid == MO_EXTREMITYFIST ) &&
 		battle_check_target(&md->bl,bl, BCT_ENEMY)<=0 )
 		return 0;
-	range = skill_get_range(md->skillid,md->skilllv);
-	if(range < 0)
-		range = status_get_range(&md->bl) - (range + 1);
-	if(range + battle_config.mob_skill_add_range < distance(md->bl.x,md->bl.y,bl->x,bl->y))
-		return 0;
 
+	if(tid != -1)
+	{
+		if (!status_check_skilluse(&md->bl, bl, md->skillid, 1))
+			return 0;
+		range = skill_get_range(md->skillid,md->skilllv);
+		if(range < 0)
+			range = status_get_range(&md->bl) - (range + 1);
+		if(range + battle_config.mob_skill_add_range < distance(md->bl.x,md->bl.y,bl->x,bl->y))
+			return 0;
+	}
 	md->skilldelay[md->skillidx]=tick;
 
 	if(battle_config.mob_skill_log)
@@ -3196,16 +3184,15 @@ int mobskill_castend_pos( int tid, unsigned int tick, int id,int data )
 		return 0;
 
 	md->skilltimer=-1;
-	if(md->sc_data){
-		if(md->opt1>0 || md->sc_data[SC_SILENCE].timer != -1 ||
-			(!(md->db->mode & MD_BOSS) && md->sc_data[SC_ROKISWEIL].timer != -1) ||
-			md->sc_data[SC_STEELBODY].timer != -1)
+
+	if (tid != -1)
+	{	//Avoid unnecessary checks for instant-cast skills. [Skotlex]
+		if (!status_check_skilluse(&md->bl, NULL, md->skillid, 1))
 			return 0;
-		if(md->sc_data[SC_AUTOCOUNTER].timer != -1 && md->skillid != KN_AUTOCOUNTER) //オートカウンター
-			return 0;
-		if(md->sc_data[SC_BLADESTOP].timer != -1) //白刃取り
-			return 0;
-		if(md->sc_data[SC_BERSERK].timer != -1) //バーサーク
+		range = skill_get_range(md->skillid,md->skilllv);
+		if(range < 0)
+			range = status_get_range(&md->bl) - (range + 1);
+		if(range + battle_config.mob_skill_add_range < distance(md->bl.x,md->bl.y,md->skillx,md->skilly))
 			return 0;
 	}
 
@@ -3218,7 +3205,6 @@ int mobskill_castend_pos( int tid, unsigned int tick, int id,int data )
 			skill_get_unit_flag (md->skillid) & UF_NOFOOTSET &&
 			skill_check_unit_range2(&md->bl, md->bl.m, md->skillx, md->skilly, md->skillid, md->skilllv))
 		return 0;
-
 
 	if(battle_config.monster_land_skill_limit) {
 		maxcount = skill_get_maxcount(md->skillid);
@@ -3233,11 +3219,6 @@ int mobskill_castend_pos( int tid, unsigned int tick, int id,int data )
 		}
 	}
 
-	range = skill_get_range(md->skillid,md->skilllv);
-	if(range < 0)
-		range = status_get_range(&md->bl) - (range + 1);
-	if(range + battle_config.mob_skill_add_range < distance(md->bl.x,md->bl.y,md->skillx,md->skilly))
-		return 0;
 	md->skilldelay[md->skillidx]=tick;
 
 	if(battle_config.mob_skill_log)
@@ -3248,7 +3229,6 @@ int mobskill_castend_pos( int tid, unsigned int tick, int id,int data )
 
 	return 0;
 }
-
 
 /*==========================================
  * Skill use (an aria start, ID specification)
@@ -3273,30 +3253,12 @@ int mobskill_use_id(struct mob_data *md,struct block_list *target,int skill_idx)
 	skill_id=ms->skill_id;
 	skill_lv=ms->skill_lv;
 
-	// 沈黙や異常
-	if(md->sc_data){
-		if(md->opt1>0 || md->sc_data[SC_SILENCE].timer != -1 ||
-			(!(md->db->mode & MD_BOSS) && md->sc_data[SC_ROKISWEIL].timer != -1) ||
-			md->sc_data[SC_STEELBODY].timer != -1)
-			return 0;
-		if(md->sc_data[SC_AUTOCOUNTER].timer != -1 && md->skillid != KN_AUTOCOUNTER) //オートカウンター
-			return 0;
-		if(md->sc_data[SC_BLADESTOP].timer != -1) //白刃取り
-			return 0;
-		if(md->sc_data[SC_BERSERK].timer != -1) //バーサーク
-			return 0;
-	}
-
-	if(md->option&4 && skill_id == TF_HIDING)
-		return 0;
-	if(md->option&2 && skill_id != TF_HIDING && skill_id != AS_GRIMTOOTH &&
-		skill_id != RG_BACKSTAP && skill_id != RG_RAID &&
-		skill_id != AM_POTIONPITCHER && skill_id != AL_HEAL)
-		return 0;
-
 	if(map[md->bl.m].flag.gvg && skill_db[skill_id].nocast & 4)
 		return 0;
 	if(skill_get_inf2(skill_id)&INF2_NO_TARGET_SELF && md->bl.id == target->id)
+		return 0;
+
+	if(!status_check_skilluse(&md->bl, target, skill_id, 0))
 		return 0;
 
 	// 射程と障害物チェック
@@ -3390,21 +3352,7 @@ int mobskill_use_pos( struct mob_data *md,
 	skill_id=ms->skill_id;
 	skill_lv=ms->skill_lv;
 
-	//沈黙や状態異常など
-	if(md->sc_data){
-		if(md->opt1>0 || md->sc_data[SC_SILENCE].timer != -1 ||
-			(!(md->db->mode & MD_BOSS) && md->sc_data[SC_ROKISWEIL].timer != -1) ||
-			md->sc_data[SC_STEELBODY].timer != -1)
-			return 0;
-		if(md->sc_data[SC_AUTOCOUNTER].timer != -1 && md->skillid != KN_AUTOCOUNTER) //オートカウンター
-			return 0;
-		if(md->sc_data[SC_BLADESTOP].timer != -1) //白刃取り
-			return 0;
-		if(md->sc_data[SC_BERSERK].timer != -1) //バーサーク
-			return 0;
-	}
-
-	if(md->option&2)
+	if(!status_check_skilluse(&md->bl, NULL, skill_id, 0))
 		return 0;
 
 	if(map[md->bl.m].flag.gvg && (skill_id == SM_ENDURE || skill_id == AL_TELEPORT || skill_id == AL_WARP ||

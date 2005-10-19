@@ -1,6 +1,12 @@
 Date	Added
 =======
 2005/10/18
+	* Implemented function status_check_skilluse which checks whether a skill
+	  (or melee attack) can be used on an enemy based on their status (restricts
+	  skills that may be used if opponent is cloaked/hidden, or blocks Aex
+	  Aeterna if opponent is petrified/frozen, blocks skills while silenced, etc
+	  etc). Note that the code simplification/modification is big, so beware of
+	  any new bugs that might have been caused by the function. [Skotlex]
 	* Fixed card set bonuses for sure this time (or so I hope) [Skotlex]
 	* Fixed the Dissonance song bug which allowed you to cast a song afterwards
 	  and it would not follow you around. [Skotlex]

@@ -3905,8 +3905,6 @@ int pc_attack_timer(int tid,unsigned int tick,int id,int data)
 {
 	struct map_session_data *sd;
 	struct block_list *bl;
-	struct status_change *sc_data;
-	short *opt;
 	int dist,skill,range;
 
 	sd=map_id2sd(id);
@@ -3927,33 +3925,17 @@ int pc_attack_timer(int tid,unsigned int tick,int id,int data)
 		return 0;
 
 	bl=map_id2bl(sd->attacktarget);
-	if(bl==NULL || bl->prev == NULL || status_isdead(bl))
+	if(bl==NULL || bl->prev == NULL)
 		return 0;
 
 	// “¯‚¶map‚Å‚È‚¢‚È‚çU?‚µ‚È‚¢
 	// PC‚ªŽ€‚ñ‚Å‚Ä‚àU?‚µ‚È‚¢
-	if(sd->bl.m != bl->m || pc_isdead(sd))
+	if(sd->bl.m != bl->m)
 		return 0;
 
-	if( sd->opt1>0 || sd->status.option&2 || pc_ischasewalk(sd))	// ˆÙí‚È‚Ç‚ÅU?‚Å‚«‚È‚¢
-		return 0;
-
-	if (sd->sc_count &&
- 		(sd->sc_data[SC_AUTOCOUNTER].timer != -1 ||
-		sd->sc_data[SC_BLADESTOP].timer != -1 ||
-		sd->sc_data[SC_GRAVITATION].timer != -1 ||
-		(sd->sc_data[SC_GOSPEL].timer != -1 && sd->sc_data[SC_GOSPEL].val4 == BCT_SELF)))
-			return 0;
-
-	if((opt = status_get_option(bl)) != NULL && (*opt)&0x42)
+	if(!status_check_skilluse(&sd->bl, bl, 0, 0))
 		return 0;
 	
-	if((sc_data = status_get_sc_data(bl)) != NULL) {
-		if (sc_data[SC_TRICKDEAD].timer != -1 ||
-			sc_data[SC_BASILICA].timer != -1)
-		return 0;
-	}
-
 	if(sd->skilltimer != -1 && pc_checkskill(sd,SA_FREECAST) <= 0)
 		return 0;
 
@@ -4036,7 +4018,7 @@ int pc_attack(struct map_session_data *sd,int target_id,int type)
 		return 0;
 	}
 
-	if(battle_check_target(&sd->bl,bl,BCT_ENEMY) <= 0)
+	if(battle_check_target(&sd->bl,bl,BCT_ENEMY) <= 0 || !status_check_skilluse(&sd->bl, bl, 0, 0))
 		return 1;
 	if(sd->attacktimer != -1)
 	{	//Just change target/type. [Skotlex]

@@ -5455,7 +5455,6 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 	struct map_session_data* sd = map_id2sd(id)/*,*target_sd=NULL*/;
 	struct block_list *bl;
 	int delay,range,inf2;
-	short *opt;
 
 	nullpo_retr(0, sd);
 
@@ -5484,29 +5483,15 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 	if(sd->skillid != SA_CASTCANCEL)
 		sd->skilltimer=-1;
 
-	if(pc_isdead(sd) || (bl=map_id2bl(sd->skilltarget))==NULL ||
-		bl->prev==NULL || sd->bl.m != bl->m || 
-		(sd->skillid != ALL_RESURRECTION && status_isdead(bl)) ||
-		(&sd->bl != bl && (opt = status_get_option(bl)) && ((*opt)&0x2)) //Hiding characters cannot have skills targetted at them. [Skotlex]
-		) {
+	if((bl=map_id2bl(sd->skilltarget))==NULL ||
+		bl->prev==NULL || sd->bl.m != bl->m) {
 		sd->canact_tick = tick;
 		sd->canmove_tick = tick;
 		sd->skillitem = sd->skillitemlv = -1;
 		return 0;
 	}
 
-	
-	if(sd->skillid == PR_LEXAETERNA) {
-		struct status_change *sc_data = status_get_sc_data(bl);
-		if(sc_data && (sc_data[SC_FREEZE].timer != -1 || (sc_data[SC_STONE].timer != -1 && sc_data[SC_STONE].val2 == 0))) {
-			clif_skill_fail(sd,sd->skillid,0,0);
-			sd->canact_tick = tick;
-			sd->canmove_tick = tick;
-			sd->skillitem = sd->skillitemlv = -1;
-			return 0;
-		}
-	}
-	else if(sd->skillid == RG_BACKSTAP) {
+	if(sd->skillid == RG_BACKSTAP) {
 		int dir = map_calc_dir(&sd->bl,bl->x,bl->y),t_dir = status_get_dir(bl);
 		int dist = distance(sd->bl.x,sd->bl.y,bl->x,bl->y);
 		if(bl->type != BL_SKILL && (dist == 0 || map_check_dir(dir,t_dir))) {
@@ -5539,7 +5524,17 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 		sd->skillitem = sd->skillitemlv = -1;
 		return 0;
 	}
-	
+
+	if (tid != -1 && !status_check_skilluse(&sd->bl, bl, sd->skillid, 1))
+	{	//Avoid doing double checks for instant-cast skills.
+		if(sd->skillid == PR_LEXAETERNA) //Eh.. assuming skill failed due to opponent frozen/stone-cursed. [Skotlex]
+			clif_skill_fail(sd,sd->skillid,0,0);
+		sd->canact_tick = tick;
+		sd->canmove_tick = tick;
+		sd->skillitem = sd->skillitemlv = -1;
+		return 0;
+	}
+
 	inf2 = skill_get_inf2(sd->skillid);
 	if(inf2 & (INF2_PARTY_ONLY|INF2_GUILD_ONLY) && sd->bl.id != bl->id) {
 		int fail_flag = 1;
@@ -5643,27 +5638,19 @@ int skill_castend_pos( int tid, unsigned int tick, int id,int data )
 
 	nullpo_retr(0, sd);
 
-	if( sd->bl.prev == NULL )
-		return 0;
 	if( sd->skilltimer != tid )
 	{	/* タイマIDの確認 */
 		ShowError("skill_castend_pos: Timer mismatch %d!=%d\n", sd->skilltimer, tid);
 		sd->skilltimer = -1;
 		return 0;
 	}
-	if (sd->skillid == -1 || sd->skilllv == -1)
-	{	// skill has failed after starting casting
-		sd->skilltimer = -1;
-		return 0;
-	}
+
 	if(sd->skillid != SA_CASTCANCEL && sd->skilltimer != -1 && (range = pc_checkskill(sd,SA_FREECAST) > 0)) //Hope ya don't mind me borrowing range :X
 		status_quick_recalc_speed(sd, SA_FREECAST, range, 0);
 
 	sd->skilltimer=-1;
-	if(pc_isdead(sd)) {
-		sd->canact_tick = tick;
-		sd->canmove_tick = tick;
-		sd->skillitem = sd->skillitemlv = -1;
+	if (sd->bl.prev == NULL || sd->skillid == -1 || sd->skilllv <= 0)
+	{	// skill has failed after starting casting
 		return 0;
 	}
 
@@ -5704,22 +5691,30 @@ int skill_castend_pos( int tid, unsigned int tick, int id,int data )
 		}
 	}
 
-	if(sd->skilllv <= 0) return 0;
-	range = skill_get_range(sd->skillid,sd->skilllv);
-	if(range < 0)
-		range = status_get_range(&sd->bl) - (range + 1);
+	if(tid != -1)
+	{	//Avoid double checks on instant cast skills. [Skotlex]
+		if (!status_check_skilluse(&sd->bl, NULL, sd->skillid, 1))
+		{
+			sd->canact_tick = tick;
+			sd->canmove_tick = tick;
+			sd->skillitem = sd->skillitemlv = -1;
+			return 0;
+		}
+		range = skill_get_range(sd->skillid,sd->skilllv);
+		if(range < 0)
+			range = status_get_range(&sd->bl) - (range + 1);
 	
-	if(range+battle_config.pc_skill_add_range < distance(sd->bl.x,sd->bl.y,sd->skillx,sd->skilly)) {
-		clif_skill_fail(sd,sd->skillid,0,0);
-		if(battle_config.skill_out_range_consume) //Consume items anyway.
-			skill_check_condition(sd,1);
+		if(range+battle_config.pc_skill_add_range < distance(sd->bl.x,sd->bl.y,sd->skillx,sd->skilly)) {
+			clif_skill_fail(sd,sd->skillid,0,0);
+			if(battle_config.skill_out_range_consume) //Consume items anyway.
+				skill_check_condition(sd,1);
 			
-		sd->canact_tick = tick;
-		sd->canmove_tick = tick;
-		sd->skillitem = sd->skillitemlv = -1;
-		return 0;
+			sd->canact_tick = tick;
+			sd->canmove_tick = tick;
+			sd->skillitem = sd->skillitemlv = -1;
+			return 0;
+		}
 	}
-
 
 	if(!skill_check_condition(sd,1)) {		/* 使用?件チェック */
 		sd->canact_tick = tick;
@@ -5737,6 +5732,9 @@ int skill_castend_pos( int tid, unsigned int tick, int id,int data )
 		sd->canmove_tick = tick + delay;
 
 	skill_castend_pos2(&sd->bl,sd->skillx,sd->skilly,sd->skillid,sd->skilllv,tick,0);
+
+	if (sd->sc_data[SC_MAGICPOWER].timer != -1)
+		status_change_end(&sd->bl,SC_MAGICPOWER,-1);		
 
 	return 0;
 }
@@ -5758,6 +5756,7 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 	if(src->type==BL_PC){
 		nullpo_retr(0, sd=(struct map_session_data *)src);
 	}
+	
 	if( skillid != WZ_METEOR &&
 		skillid != AM_CANNIBALIZE &&
 		skillid != AM_SPHEREMINE &&
@@ -8028,6 +8027,44 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 
 	if (skill_lv <= 0)
 		return 0;
+
+	switch(skill_num)
+	{	//Check for skills that auto-select target
+	case MO_CHAINCOMBO:
+		target_id = sd->attacktarget;
+		if (sd->sc_data[SC_BLADESTOP].timer != -1){
+			if ((bl=(struct block_list *)sc_data[SC_BLADESTOP].val4) == NULL) //タ?ゲットがいない？
+				return 0;
+			target_id = bl->id;
+		}
+		break;
+	case MO_COMBOFINISH:
+	case CH_CHAINCRUSH:
+	case CH_TIGERFIST:
+		target_id = sd->attacktarget;
+		break;
+// -- moonsoul	(altered to allow proper usage of extremity from new champion combos)
+//
+	case MO_EXTREMITYFIST:	/*阿修羅覇鳳拳*/
+		if (sc_data && sc_data[SC_COMBO].timer != -1 &&
+			(sc_data[SC_COMBO].val1 == MO_COMBOFINISH ||
+			sc_data[SC_COMBO].val1 == CH_TIGERFIST ||
+			sc_data[SC_COMBO].val1 == CH_CHAINCRUSH))
+			target_id = sd->attacktarget;
+		break;
+	case WE_MALE:
+	case WE_FEMALE:
+		if (!sd->status.partner_id)
+			return 0;
+		target_id = sd->status.partner_id;
+		break;
+	case WE_CALLBABY:
+		if (!sd->status.child)
+			return 0;
+		target_id = sd->status.partner_id;
+		break;
+	}
+
 	if ((bl = map_id2bl(target_id)) == NULL)
 		return 0;
 	if (bl->type == BL_PC) {
@@ -8036,7 +8073,7 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 	if (bl->prev == NULL) //Prevent targeting enemies that are not in the map. [Skotlex]
 		return 0;
 	
-	if(sd->bl.m != bl->m || pc_isdead(sd))
+	if(sd->bl.m != bl->m)
 		return 0;
 
 	if(sd->skilltimer != -1 && skill_num != SA_CASTCANCEL) //Normally not needed because clif.c checks for it, but the at/char/script commands don't! [Skotlex]
@@ -8049,60 +8086,15 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 
 	sc_data = sd->sc_data;
 
-	/* 沈?や異常（ただし、グリムなどの判定をする） */
-	if (sd->opt1 > 0)
-		return 0;
-	if (sc_data) {
-		if ((sc_data[SC_VOLCANO].timer != -1 && skill_num == WZ_ICEWALL) ||
-				(sc_data[SC_ROKISWEIL].timer != -1 && skill_num != BD_ADAPTATION) ||
-				(sc_data[SC_AUTOCOUNTER].timer != -1 && sd->skillid != KN_AUTOCOUNTER) ||
-				(sc_data[SC_MARIONETTE].timer != -1 && sd->skillid != CG_MARIONETTE) ||
-				(sc_data[SC_MARIONETTE2].timer != -1 && sd->skillid == CG_MARIONETTE) ||
-				sc_data[SC_SILENCE].timer != -1 ||
-				sc_data[SC_STEELBODY].timer != -1 ||
-				sc_data[SC_BERSERK].timer != -1)
-			return 0;	/* ?態異常や沈?など */
-
-		if (sc_data[SC_HERMODE].timer != -1 && skill_get_inf(skill_num) & INF_SUPPORT_SKILL)
-			return 0;	//Wand of Hermod blocks only supportive skills. [Skotlex]
-		
-		if (sc_data[SC_BLADESTOP].timer != -1) {
-			switch (sc_data[SC_BLADESTOP].val1) {
-				case 1: return 0;
-				case 2: if (skill_num != MO_FINGEROFFENSIVE) return 0; break;
-				case 3: if (skill_num != MO_FINGEROFFENSIVE && skill_num != MO_INVESTIGATE) return 0; break;
-				case 4: if (skill_num != MO_FINGEROFFENSIVE && skill_num != MO_INVESTIGATE && skill_num != MO_CHAINCOMBO) return 0; break;
-				case 5: if (skill_num != MO_FINGEROFFENSIVE && skill_num != MO_INVESTIGATE && skill_num != MO_CHAINCOMBO && skill_num!=MO_EXTREMITYFIST) return 0; break;
-				default: return 0;
-			}
-		}
-		if (sc_data[SC_BASILICA].timer != -1) { // Disallow all other skills in Basilica [celest]
-			// if caster is the owner of basilica
-			if (sc_data[SC_BASILICA].val3 == BCT_SELF &&
-				skill_num == HP_BASILICA) ;	// do nothing
-			// otherwise...
-			else return 0;
-		}
-		/* 演奏/ダンス中 */
-		if (sc_data[SC_DANCING].timer != -1 &&
-			(skill_num != BD_ADAPTATION && skill_num != BA_MUSICALSTRIKE && skill_num != DC_THROWARROW && skill_num != CG_LONGINGFREEDOM))
-				return 0;
-		if (sc_data[SC_DANCING].timer != 1 && sc_data[SC_DANCING].val1 == CG_HERMODE && skill_num == BD_ADAPTATION)
-			return 0;	//Can't amp out of Wand of Hermode :/ [Skotlex]
-		if (sc_data[SC_GOSPEL].timer != -1 && sc_data[SC_GOSPEL].val4 == BCT_SELF && skill_num != PA_GOSPEL)
-			return 0;
-	}
-
-	//チェイス、ハイド、クローキング時のスキル
-	if (pc_iscloaking(sd) && skill_num == TF_HIDING)
-		return 0;
-	if (sd->status.option & 2 && skill_num != TF_HIDING && skill_num != AS_GRIMTOOTH && skill_num != RG_BACKSTAP && skill_num != RG_RAID)
-		return 0;
-	if(pc_ischasewalk(sd) && skill_num != ST_CHASEWALK)
-	 	return 0;
 	if(skill_get_inf2(skill_num)&INF2_NO_TARGET_SELF && sd->bl.id == target_id)
 		return 0;
-
+	if(!status_check_skilluse(&sd->bl, bl, skill_num, 0))
+	{
+		if(skill_num == PR_LEXAETERNA) //Eh.. assuming skill failed due to opponent frozen/stone-cursed. [Skotlex]
+			clif_skill_fail(sd,skill_num,0,0);
+		return 0;
+	}
+	
 	//直前のスキルが何か?える必要のあるスキル
 	switch (skill_num) {
 	case SA_CASTCANCEL:
@@ -8208,21 +8200,6 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 		casttime += casttime * ((skill_lv > sd->spiritball) ? sd->spiritball : skill_lv);
 		break;
 
-	case MO_CHAINCOMBO:		/*連打掌*/
-		target_id = sd->attacktarget;
-		if (sc_data && sc_data[SC_BLADESTOP].timer != -1){
-			struct block_list *tbl;
-			if ((tbl=(struct block_list *)sc_data[SC_BLADESTOP].val4) == NULL) //タ?ゲットがいない？
-				return 0;
-			target_id = tbl->id;
-		}
-		break;
-	case MO_COMBOFINISH:	/*猛龍拳*/
-	case CH_CHAINCRUSH:		/* 連柱崩? */
-	case CH_TIGERFIST:		/* 伏虎拳 */
-		target_id = sd->attacktarget;
-		break;
-
 // -- moonsoul	(altered to allow proper usage of extremity from new champion combos)
 //
 	case MO_EXTREMITYFIST:	/*阿修羅覇鳳拳*/
@@ -8230,10 +8207,7 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 			(sc_data[SC_COMBO].val1 == MO_COMBOFINISH ||
 			sc_data[SC_COMBO].val1 == CH_TIGERFIST ||
 			sc_data[SC_COMBO].val1 == CH_CHAINCRUSH))
-		{
 			casttime = 0;
-			target_id = sd->attacktarget;
-		}
 		forcecast = 1;
 		break;
 
@@ -8242,22 +8216,6 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 		forcecast = 1;
 		break;
 
-	case WE_MALE:
-	case WE_FEMALE:
-		{
-			struct map_session_data *p_sd = pc_get_partner(sd);
-			if (p_sd == NULL)
-				return 0;
-			if (skill_num == WE_MALE && sd->status.hp <= ((15*sd->status.max_hp)/100))	// Requires more than 15% of Max HP for WE_MALE
-				return 0;
-			else if (skill_num == WE_FEMALE && sd->status.sp <= ((15*sd->status.max_sp)/100))	// Requires more than 15% of Max SP for WE_FEMALE
-				return 0;
-			target_id = p_sd->bl.id;
-			//rangeをもう1回?査
-			if (!battle_check_range(&sd->bl, &p_sd->bl, skill_get_range(skill_num,skill_lv)))
-				return 0;
-		}
-		break;
 
 	// parent-baby skills
 	case WE_BABY:
@@ -8272,16 +8230,6 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 			else return 0;	// neither are found
 		}
 		break;
-
-	case WE_CALLBABY:
-		{
-			struct map_session_data *p_sd = pc_get_child(sd);
-			if (p_sd == NULL)
-				return 0;
-			target_id = p_sd->bl.id;
-		}
-		break;
-
 	case HP_BASILICA:		/* バジリカ */
 		{
 			// cancel Basilica if already in effect
@@ -8291,14 +8239,6 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 			}
 		}
 		break;
-/* This shouldn't be needed anymore o.O [Skotlex]
-	case GD_BATTLEORDER:
-	case GD_REGENERATION:
-	case GD_RESTORE:
-	case GD_EMERGENCYCALL:
-		casttime = 1000; // temporary [Celest]
-		break;
-*/
 	}
 
 	//メモライズ?態ならキャストタイムが1/3
@@ -8393,27 +8333,7 @@ int skill_use_pos (struct map_session_data *sd, int skill_x, int skill_y, int sk
 	
 	sc_data = sd->sc_data;
 
-	if (sd->opt1 > 0)
-		return 0;
-	if (sc_data){
-		if (sc_data[SC_SILENCE].timer != -1 ||
-				sc_data[SC_ROKISWEIL].timer != -1 ||
-				sc_data[SC_AUTOCOUNTER].timer != -1 ||
-				sc_data[SC_STEELBODY].timer != -1 ||
-				sc_data[SC_DANCING].timer!=-1 ||
-				sc_data[SC_BERSERK].timer != -1  ||
-				sc_data[SC_MARIONETTE].timer != -1 ||
-				sc_data[SC_BLADESTOP].timer != -1 ||
-				sc_data[SC_CHASEWALK].timer != -1 ||
-				sc_data[SC_BASILICA].timer != -1 ||
-				(sc_data[SC_GOSPEL].timer != -1 && sc_data[SC_GOSPEL].val4 == BCT_SELF))
-			return 0;
-
-		if (sc_data[SC_HERMODE].timer != -1 && skill_get_inf(skill_num) & INF_SUPPORT_SKILL)
-			return 0;	//Wand of Hermod blocks only supportive skills. [Skotlex]
-	}
-
-	if(sd->status.option & 2)
+	if (!status_check_skilluse(&sd->bl, NULL, skill_num, 0))
 		return 0;
 
 	sd->skillid = skill_num;
@@ -8517,11 +8437,6 @@ int skill_use_pos (struct map_session_data *sd, int skill_x, int skill_y, int sk
 		sd->skilltimer = -1;
 		skill_castend_pos(sd->skilltimer,tick,sd->bl.id,0);
 	}
-	//マジックパワ?の?果終了
-	if (skill_get_unit_id(skill_num, 0) != UNT_MAGIC_SKILLS &&
-		sc_data && sc_data[SC_MAGICPOWER].timer != -1)
-			status_change_end(&sd->bl,SC_MAGICPOWER,-1);
-
 	return 0;
 }
 

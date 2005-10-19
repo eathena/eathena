@@ -182,6 +182,10 @@ static int pet_attack(struct pet_data *pd,unsigned int tick,int data)
 	Assert((pd->msd == 0) || (pd->msd->pd == pd));
 
 	target= map_id2bl(pd->target_id);
+
+	if(!status_check_skilluse(&pd->bl, target, 0, 0))
+		return 0;
+	
 	if(target == NULL || pd->bl.m != target->m || target->prev == NULL ||
 		distance(pd->bl.x,pd->bl.y,target->x,target->y) > pd->db->range3)
 	{
@@ -256,6 +260,9 @@ int petskill_use(struct pet_data *pd, struct block_list *target, short skill_id,
 	if(pd->state.casting_flag)
 		return 1;	//Will not interrupt an already casting skill.
 
+	if(!status_check_skilluse(&pd->bl, target, skill_id, 0))
+		return 0; //Cannot target.... 
+	
 	if(pd->timer != -1)	//Cancel whatever else the pet is doing.
 		delete_timer(pd->timer, pet_timer);
 	
@@ -306,7 +313,7 @@ static int petskill_castend(struct pet_data *pd,unsigned int tick,int data)
 	struct block_list *target = map_id2bl(dat->target);
 	pd->state.state = MS_IDLE;
 	pd->state.casting_flag = 0;
-	if (target && dat && pd == dat->src && target->prev != NULL)
+	if (dat && pd == dat->src)
 		petskill_castend2(pd, target, dat->id, dat->lv, dat->x, dat->y, tick);
 	aFree(dat);
 	return 0;
@@ -321,9 +328,6 @@ static int petskill_castend2(struct pet_data *pd, struct block_list *target, sho
 	short delaytime =0, range;
 
 	nullpo_retr(0, pd);
-   nullpo_retr(0, target);
-	
-	nullpo_retr(0, pd);
 
 	pd->state.state=MS_IDLE;
 	
@@ -331,12 +335,14 @@ static int petskill_castend2(struct pet_data *pd, struct block_list *target, sho
 	{	//Area skill
 		skill_castend_pos2(&pd->bl, skill_x, skill_y, skill_id, skill_lv, tick,0);
 	} else { //Targeted Skill
+		if (!target || !status_check_skilluse(&pd->bl, target, skill_id, 1))
+			return 0; 
 		//Skills with inf = 4 (cast on self) have view range (assumed party skills)
 		range = (skill_get_inf(skill_id) & INF_SELF_SKILL?battle_config.area_size:skill_get_range(skill_id, skill_lv));
 		if(range < 0)
 			range = status_get_range(&pd->bl) - (range + 1);
 		if(distance(pd->bl.x, pd->bl.y, target->x, target->y) > range)
-			return 0; 
+			return 0;
 		switch( skill_get_nk(skill_id) )
 		{
 			case NK_NO_DAMAGE:
@@ -344,15 +350,12 @@ static int petskill_castend2(struct pet_data *pd, struct block_list *target, sho
 				(skill_id==AL_HEAL || skill_id==ALL_RESURRECTION) && battle_check_undead(status_get_race(target),status_get_elem_type(target)) )
 					skill_castend_damage_id(&pd->bl, target, skill_id, skill_lv, tick, 0);
 				else
-				{
-				  skill_castend_nodamage_id(&pd->bl,target, skill_id, skill_lv,tick, 0);
-				}
+					skill_castend_nodamage_id(&pd->bl,target, skill_id, skill_lv,tick, 0);
 				break;
 			case NK_SPLASH_DAMAGE:
 			default:
 				skill_castend_damage_id(&pd->bl,target,skill_id,skill_lv,tick,0);
 				break;
-
 		}
 	}
 
@@ -478,7 +481,7 @@ int pet_target_check(struct map_session_data *sd,struct block_list *bl,int type)
 		distance(pd->bl.x,pd->bl.y,md->bl.x,md->bl.y) > pd->db->range2 || md->guardian_data) // Cannot attack Guardians/Emperium
 		return 0;
 
-	if (!battle_check_attackable(&pd->bl, bl))
+	if (!status_check_skilluse(&pd->bl, bl, 0, 0))
 		return 0;
 
 	if(!type) {
