@@ -1,6 +1,7 @@
 Date	Added
 =======
 2005/10/19
+	* Fixed demonstration triggering status effects. [Skotlex]
 	* Fixed ground placed skills causing skill_counter_additional_effect
 	  triggering on the skill's owner. [Skotlex]
 	* Added corrections/checks that should prevent the char servers from

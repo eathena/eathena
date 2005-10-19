@@ -1165,7 +1165,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
         break;
 	}
 
-	if(sd && skillid != MC_CARTREVOLUTION && attack_type&BF_WEAPON){	/* カ?ドによる追加?果 */
+	if(sd && skillid != MC_CARTREVOLUTION && skillid != AM_DEMONSTRATION && attack_type&BF_WEAPON){	/* カ?ドによる追加?果 */
 		int i, type;
 		int sc_def_card=100;
 
