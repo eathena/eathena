@@ -2031,7 +2031,8 @@ unsigned char* parse_script(unsigned char *src,int line)
 	}
 ////////////////////////////////////////////
 //	TODO: There is a memory leak on this aCallocA, gotta figure out when it's safe to aFree script_buf! [Skotlex]
-//	script_buf = (unsigned char *) aRealloc(script_buf, SCRIPT_BLOCK_SIZE*sizeof(unsigned char));
+//	if (!script_buf || script_pos < SCRIPT_BLOCK_SIZE)
+//		script_buf = (unsigned char *) aRealloc(script_buf, SCRIPT_BLOCK_SIZE*sizeof(unsigned char));
 	script_buf = (unsigned char *) aCallocA(SCRIPT_BLOCK_SIZE, sizeof(unsigned char));
 	script_pos = 0;
 	script_size = SCRIPT_BLOCK_SIZE;
@@ -9673,8 +9674,8 @@ int do_final_script()
 {
 	if(mapreg_dirty>=0)
 		script_save_mapreg();
-//	if(script_buf)
-//		aFree(script_buf);
+	if(script_buf)
+		aFree(script_buf);
 
 	if(mapreg_db)
 		numdb_final(mapreg_db,mapreg_db_final);

@@ -2008,7 +2008,8 @@ static int npc_parse_function (char *w1, char *w2, char *w3, char *w4, char *fir
 	int startline = 0;
 	char line[1024];
 	int curly_count = 0;
-
+	struct dbt *user_db;
+	
 	// スクリプトの解析
 	srcbuf = (char *) aCallocA (srcsize, sizeof(char));
 	if (strchr(first_line,'{')) {
@@ -2051,7 +2052,16 @@ static int npc_parse_function (char *w1, char *w2, char *w3, char *w4, char *fir
 
 	p = (char *) aCallocA (50, sizeof(char));
 	strncpy(p, w3, 50);
-	strdb_insert(script_get_userfunc_db(), p, script);
+
+	user_db = script_get_userfunc_db();
+	if (strdb_search(user_db, p))
+	{
+		ShowWarning("npc_parse_function: Duplicate user function %s!\n", p);
+		aFree(p);
+		aFree(script);
+	}
+	else
+		strdb_insert(user_db, p, script);
 
 	// もう使わないのでバッファ解放
 	aFree(srcbuf);
