@@ -864,12 +864,12 @@ int do_sendrecv(int next)
 			ret--;
 		}
 
-#ifdef TURBO
 		if(session[i] && session[i]->eof) //The session check is for when the connection ended in func_parse
 		{	//Finally, even if there is no data to parse, connections signalled eof should be closed, so we call parse_func [Skotlex]
 			if (session[i]->func_parse)
 				session[i]->func_parse(i); //This should close the session inmediately.
 		}
+#ifdef TURBO
 		} // for (j = 0;
 #endif
 	} // for (i = 0

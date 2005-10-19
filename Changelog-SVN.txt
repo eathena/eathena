@@ -1,6 +1,8 @@
 Date	Added
 =======
 2005/10/19
+	* Software Caused Connection Abort errors should inmediately terminate the
+	  connection now (rather than waiting for the timeout) [Skotlex]
 	* Hopefully fixed Basilica by making battle_check_target use the mapcell
 	  instead of the status change when deciding the enemy state. [Skotlex]
 	* Fixed being able to enable NPC clicks while a trading window is open. [Skotlex]
