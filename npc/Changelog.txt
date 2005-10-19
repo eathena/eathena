@@ -23,6 +23,9 @@ Massdriller
 
 Date		Added
 ======
+10/19
+	* Fine-tuned the warp in Thanatos lv11 (tha_t11.gat,92,32 ->
+	  tha_t11.gat,93,36) as pointed out by erKURITA. [Skotlex]
 10/17
 	* Increased mob count in Lighthalzen Lv3 as requested by Vicious. [Skotlex]
 	* Added the noteleport mapflag to Amatsu Dungeon lvl 1, thanks to frugal [MasterOfMuppets]

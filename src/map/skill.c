@@ -8027,11 +8027,12 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 	if (skill_lv <= 0)
 		return 0;
 
+	sc_data = sd->sc_data;
 	switch(skill_num)
 	{	//Check for skills that auto-select target
 	case MO_CHAINCOMBO:
 		target_id = sd->attacktarget;
-		if (sd->sc_data[SC_BLADESTOP].timer != -1){
+		if (sc_data[SC_BLADESTOP].timer != -1){
 			if ((bl=(struct block_list *)sc_data[SC_BLADESTOP].val4) == NULL) //ƒ^?ƒQƒbƒg‚ª‚¢‚È‚¢H
 				return 0;
 			target_id = bl->id;
@@ -8045,7 +8046,7 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 // -- moonsoul	(altered to allow proper usage of extremity from new champion combos)
 //
 	case MO_EXTREMITYFIST:	/*ˆ¢C—…”e–PŒ*/
-		if (sc_data && sc_data[SC_COMBO].timer != -1 &&
+		if (sc_data[SC_COMBO].timer != -1 &&
 			(sc_data[SC_COMBO].val1 == MO_COMBOFINISH ||
 			sc_data[SC_COMBO].val1 == CH_TIGERFIST ||
 			sc_data[SC_COMBO].val1 == CH_CHAINCRUSH))
@@ -8082,8 +8083,6 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 		return 0;
 	if (tsd && skill_num == ALL_RESURRECTION && !pc_isdead(tsd))
 		return 0;
-
-	sc_data = sd->sc_data;
 
 	if(skill_get_inf2(skill_num)&INF2_NO_TARGET_SELF && sd->bl.id == target_id)
 		return 0;

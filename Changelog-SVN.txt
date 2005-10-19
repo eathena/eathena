@@ -1,6 +1,7 @@
 Date	Added
 =======
 2005/10/19
+	* Fixed that crash in skill_use_id.. oops. [Skotlex]
 	* Fixed demonstration triggering status effects. [Skotlex]
 	* Fixed ground placed skills causing skill_counter_additional_effect
 	  triggering on the skill's owner. [Skotlex]
