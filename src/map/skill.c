@@ -1968,7 +1968,7 @@ static int skill_check_unit_range_sub( struct block_list *bl,va_list ap )
 {
 	struct skill_unit *unit;
 	int *c;
-	int skillid,unit_id;
+	int skillid,g_skillid;
 
 	nullpo_retr(0, bl);
 	nullpo_retr(0, ap);
@@ -1982,31 +1982,36 @@ static int skill_check_unit_range_sub( struct block_list *bl,va_list ap )
 		return 0;
 
 	skillid = va_arg(ap,int);
-	unit_id = unit->group->unit_id;
+	g_skillid = unit->group->skill_id;
 
-	if (skillid==MG_SAFETYWALL || skillid==AL_PNEUMA) {
-		if(unit_id != UNT_SAFETYWALL && unit_id != UNT_PNEUMA)
-			return 0;
-	} else if (skillid==AL_WARP) {
-		if ((unit_id<UNT_BLASTMINE || unit_id>UNT_TALKIEBOX) && unit_id!=UNT_VENOMDUST)
-			return 0;
-	} else if ((skillid>=HT_SKIDTRAP && skillid<=HT_CLAYMORETRAP) || skillid==HT_TALKIEBOX) {
-		if ((unit_id<UNT_BLASTMINE || unit_id>UNT_TALKIEBOX) && unit_id!=UNT_VENOMDUST)
-			return 0;
-	} else if (skillid==WZ_FIREPILLAR) {
-		if (unit_id!=UNT_FIREPILLAR_WAITING)
-			return 0;
-	} else if (skillid==HP_BASILICA) {
-		if ((unit_id<UNT_BLASTMINE || unit_id>UNT_TALKIEBOX) && unit_id!=UNT_VENOMDUST)
-			return 0;
-	} else if (skillid==HW_GRAVITATION) {
-		if (unit_id!=UNT_GRAVITATION)
-			return 0;
-	} else if (skillid==AM_DEMONSTRATION) {
-		if (unit_id!=UNT_DEMONSTRATION)
-			return 0;
-	} else
-		return 0;
+	switch (skillid)
+	{
+		case MG_SAFETYWALL:
+		case AL_PNEUMA:
+			if(g_skillid != MG_SAFETYWALL && g_skillid != AL_PNEUMA)
+				return 0;
+			break;
+		case AL_WARP:
+		case HT_SKIDTRAP:
+		case HT_LANDMINE:
+		case HT_ANKLESNARE:
+		case HT_SHOCKWAVE:
+		case HT_SANDMAN:
+		case HT_FLASHER:
+		case HT_FREEZINGTRAP:
+		case HT_BLASTMINE:
+		case HT_CLAYMORETRAP:
+		case HT_TALKIEBOX:
+		case HP_BASILICA:
+			//Non stackable on themselves and traps (including venom dust which does not has the trap inf2 set)
+			if (skillid != g_skillid && !(skill_get_inf2(g_skillid)&INF2_TRAP) && g_skillid != AS_VENOMDUST)
+				return 0;
+			break;
+		default: //Avoid stacking with same kind of trap. [Skotlex]
+			if (g_skillid != skillid)
+				return 0;
+			break;
+	}
 
 	(*c)++;
 
@@ -6606,8 +6611,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 	nullpo_retr(0, src);
 	nullpo_retr(0, bl);
 
-	if (bl->prev==NULL || !src->alive ||
-			(bl->type==BL_PC && pc_isdead((struct map_session_data *)bl)))
+	if (bl->prev==NULL || !src->alive || status_isdead(bl))
 		return 0;
 
 	nullpo_retr(0, sg=src->group);

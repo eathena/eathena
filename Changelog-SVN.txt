@@ -1,6 +1,12 @@
 Date	Added
 =======
 2005/10/20
+	* Rewrote the skill unit reiteration code so that it'll work with any AoE
+	  skill that is set to not reiterate in skill_unit_db.txt, when no
+	  reiteration is set, the skill cannot be stacked with itself, but it can
+	  be placed on top of other AoE skills (except for Pneuma, Safety Wall,
+	  Warp Portal, Basilica and the Hunter traps who all have their own checks
+	  hardcoded) [Skotlex]
 	* Modified the way Magic Power works for AoE magic skills, it should now
 	  work correctly for all AoE spells including Meteor. [Skotlex]
 	* Added mode "change target" (0x200 = 512) to specify mobs that can change
