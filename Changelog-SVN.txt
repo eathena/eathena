@@ -1,6 +1,14 @@
 Date	Added
 =======
 2005/10/20
+	* Modified skill_split_atoi so it can guess linear changes in the values
+	  and fill out the rest of the array correctly (eg: blowcount is defined as
+	  1:2:3:4:5, now the function can understand that and fill the rest of values
+	  with 6:7:8:9:10 and so on. It can also understand two-step increases, if
+	  the value is 1:2:2:3:3:4, it can guess that the following values should be
+	  4:5:5:6:6:7:7 and so on). This allows mobs to cast stuff like Thunderstorm
+	  LV67 without the need of manually updating the dbs with the corresponding
+	  values :O [Skotlex]
 	* Fixed monster_ai&1 doing the opposite of what it should do. [Skotlex]
 	* Rewrote the skill unit reiteration code so that it'll work with any AoE
 	  skill that is set to not reiterate in skill_unit_db.txt, when no

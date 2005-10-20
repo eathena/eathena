@@ -10421,18 +10421,59 @@ int skill_split_str(char *str,char **val,int num)
  */
 int skill_split_atoi(char *str,int *val)
 {
-	int i, max = 0;
+	int i, j, diff;
 
 	for (i=0; i<MAX_SKILL_LEVEL; i++) {
-		if (str) {
-			val[i] = max = atoi(str);
-			str = strchr(str,':');
-			if (str)
-				*str++=0;
-		} else {
-			val[i] = max;
+		if (!str) break;
+		val[i] = atoi(str);
+		str = strchr(str,':');
+		if (str)
+			*str++=0;
+	}
+	if(i==0) //No data found.
+		return 0;
+	if(i==1)
+	{	//Single value, have the whole range have the same value.
+		for (; i < MAX_SKILL_LEVEL; i++)
+			val[i] = val[i-1];
+		return i;
+	}
+	//Check for linear change in the value.
+	diff = val[i-1] - val[i-2];
+	for(j = i-1; j > 0; j--)
+		if ((val[j]-val[j-1]) != diff)
+			break;
+	
+	if (j==0)
+	{	//It has a linear increase, apply it.
+		for(;i<MAX_SKILL_LEVEL; i++)
+		{
+			val[i] = val[i-1]+diff;
+			if (val[i] < 1) { val[i]=1; diff = 0; }
+		}
+		return i;
+	}
+	//Non-linear? Let's try a two-step linearity (need at least four values for testing)
+	if (i > 3 && (val[i-1] == val[i-2] || val[i-2] == val[i-3]))
+	{
+		diff = (val[i-1] == val[i-2])? val[i-2]-val[i-3] : val[i-1]-val[i-3];
+		for (j=i-1; j > 1; j--)
+			if(val[j] - val[j-2] != diff)
+				break;
+
+		if (j == 1)
+		{	//Found the linearity
+			for(; i < MAX_SKILL_DB; i++)
+			{
+				val[i] = val[i-2]+diff;
+				if (val[i] < 1) { val[i] = 1; diff = 0; }
+			}
+			return i;
 		}
 	}
+	//Okay.. we can't figure this one out, just fill out the stuff with the previous value.
+	for (;i<MAX_SKILL_LEVEL; i++)
+		val[i] = val[i-1];
 	return i;
 }
 
