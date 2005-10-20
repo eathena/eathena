@@ -33,6 +33,8 @@
 	--
 
 10/19
+	* Double bug fix: 4303,Whisper_Boss_Card [Lupus]
+	- Fixed wrong Poki's card desc.. and found.. that we weren't adding 3% MaxHP... but +3
 	* Added new item. Thanks to Landarma. And Fixed an old item stat. [Nexon]
 	* Added a few more loot sell prices to the einbroch items [MasterOfMuppets] 
 	* Corrected NPC_STOP, it should have at least range 1 (currently range 8
