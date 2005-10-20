@@ -33,6 +33,7 @@
 	--
 
 10/19
+	* Added new item. Thanks to Landarma. And Fixed an old item stat. [Nexon]
 	* Added a few more loot sell prices to the einbroch items [MasterOfMuppets] 
 	* Corrected NPC_STOP, it should have at least range 1 (currently range 8
 	  for lack of better info) and inf should be 1 (attack skill) not 4

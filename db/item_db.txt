@@ -1250,7 +1250,7 @@
 4109,Jakk_Card,Jakk Card,6,,10,10,,,,,,,,4,,,,,{ bonus2 bSubEle,Ele_Fire,30; bonus bFlee,5; }
 4110,Ghoul_Card,Ghoul Card,6,,10,10,,,,,,,,769,,,,,{ bonus2 bResEff,Eff_Poison,2000; bonus bDef,1; }
 4111,Strouf_Card,Strouf Card,6,,10,10,,,,,,,,2,,,,,{ bonus2 bAddRace,RC_Demon,20; }
-4112,Marduk_Card,Marduk Card,6,,10,10,,,,,,,,769,,,,,{ bonus2 bResEff,Eff_Silence,10000; bonus bDelayrate,-5; }
+4112,Marduk_Card,Marduk Card,6,,10,10,,,,,,,,769,,,,,{ bonus2 bResEff,Eff_Silence,10000; }
 4113,Marionette_Card,Marionette Card,6,,10,10,,,,,,,,4,,,,,{ bonus2 bSubEle,Ele_Ghost,30; bonus bFlee,5; }
 4114,Argiope_Card,Argiope Card,6,,10,10,,,,,,,,16,,,,,{ bonus bDefEle,Ele_Poison; bonus bDef,1; }
 4115,Hunter_Fly_Card,Hunter Fly Card,6,,10,10,,,,,,,,2,,,,,{ bonus2 bHpDrainRate,30,15; }
@@ -2092,6 +2092,7 @@
 7480,LV9_Cookery_Book,Lv9 Cookbook,3,,10,10,,,,,,,,,,,,,{}
 7481,Lv10_Cookery_Book,Lv10 Cookbook,3,,10,10,,,,,,,,,,,,,{}
 7482,Pot,Pot,3,,10,10,,,,,,,,,,,,,{}
+7483,Key_of_the_Seal,Key of the Seal,3,,,10,,,,,,,,,,,,,{}
 
 //THQ Quest Items
 7500,THG_Membership,THG Membership,3,,10,10,,,,,,,,,,,,,{}
