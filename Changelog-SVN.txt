@@ -1,6 +1,8 @@
 Date	Added
 =======
 2005/10/20
+	* Modified the way Magic Power works for AoE magic skills, it should now
+	  work correctly for all AoE spells including Meteor. [Skotlex]
 	* Added mode "change target" (0x200 = 512) to specify mobs that can change
 	  target while attacking. Since no mob in the db has been updated yet to
 	  include this mode, for the time being all aggressive mobs will also be

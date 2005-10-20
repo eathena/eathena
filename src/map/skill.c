@@ -2306,11 +2306,11 @@ static int skill_timerskill(int tid, unsigned int tick, int id,int data )
 		switch(skl->skill_id) {
 			case WZ_METEOR:
 				if(skl->type >= 0) {
-					skill_unitsetting(src,skl->skill_id,skl->skill_lv,skl->type>>16,skl->type&0xFFFF,0);
+					skill_unitsetting(src,skl->skill_id,skl->skill_lv,skl->type>>16,skl->type&0xFFFF,skl->flag);
 					clif_skill_poseffect(src,skl->skill_id,skl->skill_lv,skl->x,skl->y,tick);
 				}
 				else
-					skill_unitsetting(src,skl->skill_id,skl->skill_lv,skl->x,skl->y,0);
+					skill_unitsetting(src,skl->skill_id,skl->skill_lv,skl->x,skl->y,skl->flag);
 				break;
 		}
 	}
@@ -3122,10 +3122,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 		return 1;
 	}
 
-	if(sc_data) {
-		if (sc_data[SC_MAGICPOWER].timer != -1 && skillid != HW_MAGICPOWER)	//マジックパワ?の?果終了
+	if(sc_data && sc_data[SC_MAGICPOWER].timer != -1 && skillid != HW_MAGICPOWER)
 			status_change_end(src,SC_MAGICPOWER,-1);		
-	}
 
 	map_freeblock_unlock();	
 
@@ -5742,6 +5740,7 @@ int skill_castend_pos( int tid, unsigned int tick, int id,int data )
 int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skilllv,unsigned int tick,int flag)
 {
 	struct map_session_data *sd=NULL;
+	struct status_change *sc_data;
 	int i,tmpx = 0,tmpy = 0, x1 = 0, y1 = 0;
 
 	//if(skilllv <= 0) return 0;
@@ -5749,9 +5748,10 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 
 	nullpo_retr(0, src);
 
-	if(src->type==BL_PC){
-		nullpo_retr(0, sd=(struct map_session_data *)src);
-	}
+	if(src->type==BL_PC)
+		sd=(struct map_session_data *)src;
+
+	sc_data = status_get_sc_data(src); //Needed for Magic Power checks.
 	
 	if( skillid != WZ_METEOR &&
 		skillid != AM_CANNIBALIZE &&
@@ -5850,6 +5850,8 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 	case WZ_METEOR:				//メテオスト?ム
 		{
 			int flag=0;
+			if (sc_data && sc_data[SC_MAGICPOWER].timer != -1)
+				flag = flag|2; //Store the magic power flag for future use. [Skotlex]
 			for(i=0;i<2+(skilllv>>1);i++) {
 				int j=0;
 				do {
@@ -5867,9 +5869,9 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 				} while((map_getcell(src->m,tmpx,tmpy,CELL_CHKNOPASS)) && j<100);
 				if(j >= 100)
 					continue;
-				if(flag==0){
+				if(!(flag&1)){
 					clif_skill_poseffect(src,skillid,skilllv,tmpx,tmpy,tick);
-					flag=1;
+					flag=flag|1;
 				}
 				if(i > 0)
 					skill_addtimerskill(src,tick+i*1000,0,tmpx,tmpy,skillid,skilllv,(x1<<16)|y1,flag);
@@ -6019,6 +6021,9 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 		break;
 	}
 
+	if (sc_data && sc_data[SC_MAGICPOWER].timer != -1)
+		status_change_end(&sd->bl,SC_MAGICPOWER,-1);
+
 	return 0;
 }
 
@@ -6146,7 +6151,9 @@ int skill_castend_map( struct map_session_data *sd,int skill_num, const char *ma
 }
 
 /*==========================================
- * スキルユニット設定?理
+ * Initializes and sets a ground skill.
+ * flag&1 is used to determine when the skill 'morphs' (Warp portal becomes active, or Fire Pillar becomes active)
+ * flag&2 is used to determine if this skill was casted with Magic Power active.
  *------------------------------------------
  */
 struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,int skilllv,int x,int y,int flag)
@@ -6186,7 +6193,7 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 
 	case AL_WARP:				/* ワ?プポ?タル */
 		val1=skilllv+6;
-		if(flag==0)
+		if(!(flag&1))
 			limit=2000;
 		active_flag=0;
 		break;
@@ -6197,7 +6204,7 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 		break;
 
 	case WZ_FIREPILLAR:			/* ファイア?ピラ? */
-		if(flag!=0)
+		if((flag&1)!=0)
 			limit=1000;
 		val1=skilllv+2;
 		if(skilllv >= 6)
@@ -6350,8 +6357,12 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 		break;
 	}
 
+	i = skill_get_unit_id(skillid,flag&1);
+	if (val3==0 && i == UNT_MAGIC_SKILLS && (flag&2 || (sc_data && sc_data[SC_MAGICPOWER].timer != -1)))
+		val3 = HW_MAGICPOWER; //Store the magic power flag. [Skotlex]
+		
 	nullpo_retr(NULL, group=skill_initunitgroup(src,(count > 0 ? count : layout->count),
-		skillid,skilllv,skill_get_unit_id(skillid,flag&1)));
+		skillid,skilllv,i));
 	group->limit=limit;
 	group->val1=val1;
 	group->val2=val2;
@@ -6675,7 +6686,13 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 		}
 
 	case UNT_MAGIC_SKILLS:
-		skill_attack(BF_MAGIC,ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,0);
+		if (sg->val3 == HW_MAGICPOWER && (sc_data = status_get_sc_data(ss)) && sc_data[SC_MAGICPOWER].timer == -1)
+		{	//Temporarily set magic power to have it take effect. [Skotlex]
+			sc_data[SC_MAGICPOWER].timer = 1;
+			skill_attack(BF_MAGIC,ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,0);
+			sc_data[SC_MAGICPOWER].timer = -1;
+		} else
+			skill_attack(BF_MAGIC,ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,0);
 		break;
 
 	case UNT_FIREPILLAR_WAITING:
@@ -8449,10 +8466,6 @@ int skill_use_pos (struct map_session_data *sd, int skill_x, int skill_y, int sk
 		skill_castend_pos(sd->skilltimer,tick,sd->bl.id,0);
 	}
 
-	if (skill_get_unit_id(skill_num, 0) != UNT_MAGIC_SKILLS &&
-		sc_data && sc_data[SC_MAGICPOWER].timer != -1)
-			status_change_end(&sd->bl,SC_MAGICPOWER,-1);
-
 	return 0;
 }
 
@@ -9624,11 +9637,7 @@ int skill_delunitgroup(struct skill_unit_group *group)
 				status_change_end(src,SC_DANCING,-1);
 			}
 		}
-		if (group->unit_id == UNT_MAGIC_SKILLS) {
-			struct status_change *sc_data = status_get_sc_data(src);
-			if(sc_data && sc_data[SC_MAGICPOWER].timer != -1)	//マジックパワ?の?果終了
-				status_change_end(src,SC_MAGICPOWER,-1);
-		}
+
 		if (group->unit_id == UNT_GOSPEL) { //Clear Gospel [Skotlex]
 			struct status_change *sc_data = status_get_sc_data(src);
 			if(sc_data && sc_data[SC_GOSPEL].timer != -1)
