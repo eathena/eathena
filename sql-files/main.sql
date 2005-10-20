@@ -65,10 +65,10 @@ CREATE TABLE `char` (
   `head_top` smallint(11) unsigned NOT NULL default '0',
   `head_mid` smallint(11) unsigned NOT NULL default '0',
   `head_bottom` smallint(11) unsigned NOT NULL default '0',
-  `last_map` varchar(20) NOT NULL default 'new_1-1.gat',
+  `last_map` varchar(20) NOT NULL default 'prontera.gat',
   `last_x` smallint(11) unsigned NOT NULL default '53',
   `last_y` smallint(11) unsigned NOT NULL default '111',
-  `save_map` varchar(20) NOT NULL default 'new_1-1.gat',
+  `save_map` varchar(20) NOT NULL default 'prontera.gat',
   `save_x` smallint(11) unsigned NOT NULL default '53',
   `save_y` smallint(11) unsigned NOT NULL default '111',
   `partner_id` int(11) unsigned NOT NULL default '0',
@@ -413,17 +413,6 @@ CREATE TABLE `sc_data` (
   CONSTRAINT `scdata_ibfk_1` FOREIGN KEY (`account_id`) REFERENCES `login` (`account_id`) ON DELETE CASCADE,
   CONSTRAINT `scdata_ibfk_2` FOREIGN KEY (`char_id`) REFERENCES `char` (`char_id`) ON DELETE CASCADE
 ) TYPE=InnoDB;
-
---
--- Table structure for table `login_error`
---
-
-DROP TABLE IF EXISTS `login_error`;
-CREATE TABLE `login_error` (
-  `err_id` int(11) NOT NULL default '0',
-  `reason` varchar(100) NOT NULL default 'Unknown',
-  PRIMARY KEY  (`err_id`)
-) TYPE=MyISAM;
 
 --
 -- Table structure for table `loginlog`

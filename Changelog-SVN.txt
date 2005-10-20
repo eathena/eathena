@@ -1,6 +1,7 @@
 Date	Added
 =======
 2005/10/19
+	* Added an SQL update update_logs2.sql Use it for more effecient work of your MySQL server [Luups]
 	* Likely fixed Root and the Wedding Skills [Skotlex]
 	* Fixed that crash in skill_use_id.. oops. [Skotlex]
 	* Fixed demonstration triggering status effects. [Skotlex]

@@ -24,6 +24,7 @@ Massdriller
 Date		Added
 ======
 10/19
+	* Updated and fixed Sage Job Quest [Lupus]
 	* Fine-tuned the warp in Thanatos lv11 (tha_t11.gat,92,32 ->
 	  tha_t11.gat,93,36) as pointed out by erKURITA. [Skotlex]
 10/17

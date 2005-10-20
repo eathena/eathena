@@ -8,7 +8,7 @@ CREATE TABLE `picklog` (
   `id` int(11) NOT NULL auto_increment,
   `time` datetime NOT NULL default '0000-00-00 00:00:00',
   `char_id` int(11) NOT NULL default '0',
-  `type` enum('M','P','L','T','V','S','N','C','A') NOT NULL default 'M',
+  `type` set('M','P','L','T','V','S','N','C','A') NOT NULL default 'P',
   `nameid` int(11) NOT NULL default '0',
   `amount` int(11) NOT NULL default '1',
   `refine` tinyint(3) unsigned NOT NULL default '0',
@@ -16,7 +16,7 @@ CREATE TABLE `picklog` (
   `card1` int(11) NOT NULL default '0',
   `card2` int(11) NOT NULL default '0',
   `card3` int(11) NOT NULL default '0',
-  `map` varchar(20) NOT NULL default '',
+  `map` varchar(20) NOT NULL default 'prontera.gat',
   PRIMARY KEY  (`id`)
 ) TYPE=MyISAM AUTO_INCREMENT=1 ;
 
@@ -28,7 +28,7 @@ CREATE TABLE `branchlog` (
   `account_id` int(11) NOT NULL default '0',
   `char_id` int(11) NOT NULL default '0',
   `char_name` varchar(30) NOT NULL default '',
-  `map` varchar(20) NOT NULL default '',
+  `map` varchar(20) NOT NULL default 'prontera.gat',
   PRIMARY KEY  (`branch_id`)
 ) TYPE=MyISAM AUTO_INCREMENT=1 ;
 
@@ -49,7 +49,7 @@ CREATE TABLE `droplog` (
   `item8` int(11) NOT NULL default '0',
   `item9` int(11) NOT NULL default '0',
   `itemCard` int(11) NOT NULL default '0',
-  `map` varchar(20) NOT NULL default '',
+  `map` varchar(20) NOT NULL default 'prontera.gat',
   PRIMARY KEY  (`drop_id`)
 ) TYPE=MyISAM AUTO_INCREMENT=1 ;
 
@@ -62,7 +62,7 @@ CREATE TABLE `mvplog` (
   `monster_id` smallint(6) NOT NULL default '0',
   `prize` int(11) NOT NULL default '0',
   `mvpexp` mediumint(9) NOT NULL default '0',
-  `map` varchar(20) NOT NULL default '',
+  `map` varchar(20) NOT NULL default 'prontera.gat',
   PRIMARY KEY  (`mvp_id`)
 ) TYPE=MyISAM AUTO_INCREMENT=1 ;
 
@@ -77,7 +77,7 @@ CREATE TABLE `presentlog` (
   `char_id` int(11) NOT NULL default '0',
   `char_name` varchar(30) NOT NULL default '',
   `nameid` int(11) NOT NULL default '0',
-  `map` varchar(20) NOT NULL default '',
+  `map` varchar(20) NOT NULL default 'prontera.gat',
   PRIMARY KEY  (`present_id`)
 ) TYPE=MyISAM AUTO_INCREMENT=1 ;
 
@@ -93,7 +93,7 @@ CREATE TABLE `producelog` (
   `slot1` int(11) NOT NULL default '0',
   `slot2` int(11) NOT NULL default '0',
   `slot3` int(11) NOT NULL default '0',
-  `map` varchar(20) NOT NULL default '',
+  `map` varchar(20) NOT NULL default 'prontera.gat',
   `success` tinyint(1) NOT NULL default '0',
   PRIMARY KEY  (`produce_id`)
 ) TYPE=MyISAM AUTO_INCREMENT=1 ;
@@ -112,7 +112,7 @@ CREATE TABLE `refinelog` (
   `card1` int(11) NOT NULL default '0',
   `card2` int(11) NOT NULL default '0',
   `card3` int(11) NOT NULL default '0',
-  `map` varchar(20) NOT NULL default '',
+  `map` varchar(20) NOT NULL default 'prontera.gat',
   `success` tinyint(1) NOT NULL default '0',
   `item_level` tinyint(2) NOT NULL default '0',
   PRIMARY KEY  (`refine_id`)
@@ -136,7 +136,7 @@ CREATE TABLE `tradelog` (
   `card1` int(11) NOT NULL default '0',
   `card2` int(11) NOT NULL default '0',
   `card3` int(11) NOT NULL default '0',
-  `map` varchar(20) NOT NULL default '',
+  `map` varchar(20) NOT NULL default 'prontera.gat',
   `zeny` int(11) NOT NULL default '0',
   PRIMARY KEY  (`trade_id`)
 ) TYPE=MyISAM AUTO_INCREMENT=1 ;
@@ -159,7 +159,7 @@ CREATE TABLE `vendlog` (
   `card1` int(11) NOT NULL default '0',
   `card2` int(11) NOT NULL default '0',
   `card3` int(11) NOT NULL default '0',
-  `map` varchar(20) NOT NULL default '',
+  `map` varchar(20) NOT NULL default 'prontera.gat',
   `zeny` int(11) NOT NULL default '0',
   KEY `vend_id` (`vend_id`)
 ) TYPE=MyISAM AUTO_INCREMENT=1 ;
@@ -172,7 +172,7 @@ CREATE TABLE `atcommandlog` (
   `account_id` int(11) unsigned NOT NULL default '0',
   `char_id` int(11) unsigned NOT NULL default '0',
   `char_name` varchar(30) NOT NULL default '',
-  `map` varchar(20) NOT NULL default '',
+  `map` varchar(20) NOT NULL default 'prontera.gat',
   `command` varchar(50) NOT NULL default '',
   PRIMARY KEY  (`atcommand_id`)
 ) TYPE=MyISAM AUTO_INCREMENT=1 ;
@@ -185,7 +185,7 @@ CREATE TABLE `npclog` (
   `account_id` int(11) unsigned NOT NULL default '0',
   `char_id` int(11) unsigned NOT NULL default '0',
   `char_name` varchar(30) NOT NULL default '',
-  `map` varchar(20) NOT NULL default '',
+  `map` varchar(20) NOT NULL default 'prontera.gat',
   `mes` varchar(255) NOT NULL default '',
   PRIMARY KEY  (`npc_id`)
 ) TYPE=MyISAM AUTO_INCREMENT=1 ;
@@ -195,11 +195,11 @@ CREATE TABLE `npclog` (
 CREATE TABLE `chatlog` (
   `id` bigint(20) NOT NULL auto_increment,
   `time` datetime NOT NULL default '0000-00-00 00:00:00',
-  `type` enum('W','P','G') NOT NULL default 'W',
+  `type` set('W','P','G') NOT NULL default 'W',
   `type_id` int(11) NOT NULL default '0',
   `src_charid` int(11) NOT NULL default '0',
   `src_accountid` int(11) NOT NULL default '0',
-  `src_map` varchar(17) NOT NULL default '',
+  `src_map` varchar(17) NOT NULL default 'prontera.gat',
   `src_map_x` tinyint(4) NOT NULL default '0',
   `src_map_y` tinyint(4) NOT NULL default '0',
   `dst_charname` varchar(25) NOT NULL default '',
