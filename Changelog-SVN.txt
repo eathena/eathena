@@ -1,5 +1,8 @@
 Date	Added
 =======
+2005/10/20
+	* Reverted a small change which likely made magic power not work anymore on
+	  ground skills. [Skotlex]
 2005/10/19
 	* Added an SQL update update_logs2.sql Use it for more effecient work of your MySQL server [Luups]
 	* Likely fixed Root and the Wedding Skills [Skotlex]

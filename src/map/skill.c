@@ -5732,9 +5732,6 @@ int skill_castend_pos( int tid, unsigned int tick, int id,int data )
 
 	skill_castend_pos2(&sd->bl,sd->skillx,sd->skilly,sd->skillid,sd->skilllv,tick,0);
 
-	if (sd->sc_data[SC_MAGICPOWER].timer != -1)
-		status_change_end(&sd->bl,SC_MAGICPOWER,-1);		
-
 	return 0;
 }
 
@@ -8451,6 +8448,11 @@ int skill_use_pos (struct map_session_data *sd, int skill_x, int skill_y, int sk
 		sd->skilltimer = -1;
 		skill_castend_pos(sd->skilltimer,tick,sd->bl.id,0);
 	}
+
+	if (skill_get_unit_id(skill_num, 0) != UNT_MAGIC_SKILLS &&
+		sc_data && sc_data[SC_MAGICPOWER].timer != -1)
+			status_change_end(&sd->bl,SC_MAGICPOWER,-1);
+
 	return 0;
 }
 
