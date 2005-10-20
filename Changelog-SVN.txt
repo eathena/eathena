@@ -1,6 +1,14 @@
 Date	Added
 =======
 2005/10/20
+	* Added mode "change target" (0x200 = 512) to specify mobs that can change
+	  target while attacking. Since no mob in the db has been updated yet to
+	  include this mode, for the time being all aggressive mobs will also be
+	  considered as "change target" types (which is how eA has been managing it
+	  up to this point) [Skotlex]
+	* Added a check in status_check_skilluse to make AoE skills fail if the
+	  caster is standing on Basilica. [Skotlex]
+	* Reduced a bit the size of the party structure. [Skotlex]
 	* Fixed Play Dead [Skotlex]
 	* Reverted a memory fix in script.c which causes a crash.. [Skotlex]
 	* Reverted a small change which likely made magic power not work anymore on

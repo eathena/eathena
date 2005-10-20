@@ -233,15 +233,18 @@ struct gm_account {
 struct party_member {
 	int account_id;
 	char name[NAME_LENGTH],map[MAP_NAME_LENGTH];
-	int leader,online,lv;
+	unsigned leader : 1,
+				online : 1;
+	unsigned short lv;
 	struct map_session_data *sd;
 };
 
 struct party {
 	int party_id;
 	char name[NAME_LENGTH];
-	int exp;
-	int item, itemc;
+	unsigned exp : 1,
+				item : 1,
+				itemc : 1;
 	struct party_member member[MAX_PARTY];
 };
 

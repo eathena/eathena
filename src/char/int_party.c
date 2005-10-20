@@ -49,8 +49,8 @@ int inter_party_fromstr(char *str, struct party *p) {
 
 	p->party_id = tmp_int[0];
 	memcpy(p->name, tmp_str, NAME_LENGTH-1);
-	p->exp = tmp_int[1];
-	p->item = tmp_int[2];
+	p->exp = tmp_int[1]?1:0;
+	p->item = tmp_int[2]?1:0;
 //	printf("%d [%s] %d %d\n", tmp_int[0], tmp_str[0], tmp_int[1], tmp_int[2]);
 
 	for(j = 0; j < 3 && str != NULL; j++)
@@ -66,7 +66,7 @@ int inter_party_fromstr(char *str, struct party *p) {
 			return 1;
 
 		m->account_id = tmp_int[0];
-		m->leader = tmp_int[1];
+		m->leader = tmp_int[1]?1:0;
 		memcpy(m->name, tmp_str, NAME_LENGTH-1);
 //		printf(" %d %d [%s]\n", tmp_int[0], tmp_int[1], tmp_str);
 

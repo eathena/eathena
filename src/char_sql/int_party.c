@@ -173,11 +173,10 @@ int inter_party_fromsql(int party_id, struct party *p)
 	sql_res = mysql_store_result(&mysql_handle) ;
 	if (sql_res != NULL && mysql_num_rows(sql_res) > 0) {
 		sql_row = mysql_fetch_row(sql_res);
-	//	printf("- Read party %d from MySQL\n",party_id);
 		p->party_id = party_id;
 		memcpy(p->name, sql_row[1], NAME_LENGTH-1);
-		p->exp = atoi(sql_row[2]);
-		p->item = atoi(sql_row[3]);
+		p->exp = atoi(sql_row[2])?1:0;
+		p->item = atoi(sql_row[3])?1:0;
 		leader_id = atoi(sql_row[4]);
 	} else {
 		mysql_free_result(sql_res);
@@ -200,14 +199,11 @@ int inter_party_fromsql(int party_id, struct party *p)
 		for (i = 0; (sql_row = mysql_fetch_row(sql_res)); i++) {
 			struct party_member *m = &p->member[i];
 			m->account_id = atoi(sql_row[0]);
-			if (m->account_id == leader_id)
-				m->leader = 1;
-			else
-				m->leader = 0;
+			m->leader = (m->account_id == leader_id)?1:0;
 			memcpy(m->name, sql_row[1], NAME_LENGTH-1);
 			m->lv = atoi(sql_row[2]);
 			memcpy(m->map, sql_row[3], MAP_NAME_LENGTH-1);
-			m->online = atoi(sql_row[4]);
+			m->online = atoi(sql_row[4])?1:0;
 		}
 	//	printf("- %d members found in party %d \n",i,party_id);
 	}
