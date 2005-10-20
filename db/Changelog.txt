@@ -33,6 +33,8 @@
 	--
 
 10/19
+	* Gave normal Magaleta a stronger heal (Lv1 is kinda sad...), also made her
+	  cast heal 10 on nearby friends when their HP drops below 60% [Skotlex]
 	* Double bug fix: 4303,Whisper_Boss_Card [Lupus]
 	- Fixed wrong Poki's card desc.. and found.. that we weren't adding 3% MaxHP... but +3
 	* Added new item. Thanks to Landarma. And Fixed an old item stat. [Nexon]

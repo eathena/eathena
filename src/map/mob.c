@@ -1070,7 +1070,7 @@ int mob_can_reach(struct mob_data *md,struct block_list *bl,int range)
 {
 	int dx,dy;
 	struct walkpath_data wpd;
-	int i, easy = (battle_config.mob_ai&1?1:0);
+	int i, easy = (battle_config.mob_ai&1?0:1);
 
 	nullpo_retr(0, md);
 	nullpo_retr(0, bl);
@@ -1573,7 +1573,8 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 	}
 
 	// Scan area for items to loot, avoid trying to loot of the mob is full and can't consume the items.
-	if (!md->target_id && mode&MD_LOOTER && md->lootitem && (md->lootitem_count < LOOTITEM_SIZE || battle_config.monster_loot_type != 1))
+	if (!md->target_id && mode&MD_LOOTER && md->lootitem && 
+		(md->lootitem_count < LOOTITEM_SIZE || battle_config.monster_loot_type != 1))
 	{
 		i = 0;
 		search_size = (blind_flag) ? 3 : md->db->range2;
