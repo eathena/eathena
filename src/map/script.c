@@ -9380,8 +9380,8 @@ int run_script(unsigned char *script,int pos,int rid,int oid)
 		sd->npc_scriptstate = st.state;
 		if (sd->stack)
 		{	//There was a stack? Remove it. [Skotlex]
-			if (sd->stack->stack_data)
-				aFree(sd->stack->stack_data);
+//			if (sd->stack->stack_data) //FIXME: This memory leak fix causes a crash... >.<
+//				aFree(sd->stack->stack_data);
 			aFree(sd->stack);
 		}
 		sd->stack           = st.stack;

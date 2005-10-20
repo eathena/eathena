@@ -354,6 +354,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 	{
 		if (
 			(sc_data[SC_BASILICA].timer != -1 && (sc_data[SC_BASILICA].val3 != BCT_SELF || skill_num != HP_BASILICA))
+			|| (sc_data[SC_TRICKDEAD].timer != -1 && skill_num != NV_TRICKDEAD)
 			|| (sc_data[SC_AUTOCOUNTER].timer != -1 && skill_num != KN_AUTOCOUNTER)
 			|| (sc_data[SC_GOSPEL].timer != -1 && sc_data[SC_GOSPEL].val4 == BCT_SELF && skill_num != PA_GOSPEL)
 			|| sc_data[SC_GRAVITATION].timer != -1
@@ -392,16 +393,6 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 			}
 		}
 	}
-	
-	tsc_data = target?status_get_sc_data(target):NULL;
-	if(tsc_data)
-	{	
-		if (!(mode & MD_BOSS) && (tsc_data[SC_BASILICA].timer != -1 || tsc_data[SC_TRICKDEAD].timer != -1))
-			return 0;
-
-		if(skill_num == PR_LEXAETERNA && (tsc_data[SC_FREEZE].timer != -1 || (tsc_data[SC_STONE].timer != -1 && tsc_data[SC_STONE].val2 == 0)))
-			return 0;
-	}
 
 	option = status_get_option(src);
 	if (option)
@@ -416,6 +407,16 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 	}
 	if (target == NULL || target == src) //No further checking needed.
 		return 1;
+
+	tsc_data = status_get_sc_data(target);
+	if(tsc_data)
+	{	
+		if (!(mode & MD_BOSS) && (tsc_data[SC_BASILICA].timer != -1 || tsc_data[SC_TRICKDEAD].timer != -1))
+			return 0;
+
+		if(skill_num == PR_LEXAETERNA && (tsc_data[SC_FREEZE].timer != -1 || (tsc_data[SC_STONE].timer != -1 && tsc_data[SC_STONE].val2 == 0)))
+			return 0;
+	}
 
 	race = status_get_race(src);
 	option = status_get_option(target);

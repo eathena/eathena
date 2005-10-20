@@ -1,6 +1,8 @@
 Date	Added
 =======
 2005/10/20
+	* Fixed Play Dead [Skotlex]
+	* Reverted a memory fix in script.c which causes a crash.. [Skotlex]
 	* Reverted a small change which likely made magic power not work anymore on
 	  ground skills. [Skotlex]
 2005/10/19
