@@ -1,5 +1,8 @@
 Date	Added
-=======
+==========
+2005/10/21
+	* Free up block chunks allocated by the memory manager when shutting down [celest]
+	* Updated packets in packet_db and clif.c [celest]
 2005/10/20
 	* Turned on the error_log by default (had this been on before, I would had
 	  noticed why Longing for Freedom was not working several WEEKS ago >.<)
@@ -78,6 +81,7 @@ Date	Added
 	  Aeterna if opponent is petrified/frozen, blocks skills while silenced, etc
 	  etc). Note that the code simplification/modification is big, so beware of
 	  any new bugs that might have been caused by the function. [Skotlex]
+>>>>>>> .r3638
 2005/10/18
 	* Fixed card set bonuses for sure this time (or so I hope) [Skotlex]
 	* Fixed the Dissonance song bug which allowed you to cast a song afterwards
@@ -500,7 +504,7 @@ Date	Added
 	* Fixed compile errors in converters [celest]
 	* Updating built-in zlib to 1.2.3 [celest]
 	* Added unzip functions to grfio.c [celest]
-	* Finished Fusion/Prometheus AF2 maps support - just put the .af2 files in the
+	* Finished Fusion AF2 maps support - just put the .af2 files in the
 	  afm folder and start the map server as usual [celest]
 	  NOTE: It will need a new unzip library, so do 'make clean', or delete
 	  'Makefile.cache' before recompiling!

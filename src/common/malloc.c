@@ -185,6 +185,11 @@ struct unit_head {
 	unsigned int checksum;
 };
 
+struct chunk {
+	char *block;
+	struct chunk *next;
+};
+
 static struct block* block_first  = NULL;
 static struct block* block_last   = NULL;
 static struct block* block_unused = NULL;
@@ -202,6 +207,8 @@ struct unit_head_large {
 };
 static struct unit_head_large *unit_head_large_first = NULL;
 
+static struct chunk *chunk_first = NULL;
+
 static struct block* block_malloc(void);
 static void   block_free(struct block* p);
 static void memmgr_info(void);
@@ -213,8 +220,8 @@ void* _mmalloc(size_t size, const char *file, int line, const char *func ) {
 	size_t size_hash;
 
 	if (((long) size) < 0) {
-	  printf("_mmalloc: %d\n", size);
-	  return 0;
+		printf("_mmalloc: %d\n", size);
+		return 0;
 	}
 	
 	size_hash = (size+BLOCK_ALIGNMENT-1) / BLOCK_ALIGNMENT;
@@ -236,16 +243,14 @@ void* _mmalloc(size_t size, const char *file, int line, const char *func ) {
 			p->unit_head.size  = size;
 			p->unit_head.file  = file;
 			p->unit_head.line  = line;
-			if(unit_head_large_first == NULL) {
-				unit_head_large_first = p;
+			p->prev = NULL;
+			if (unit_head_large_first == NULL)
 				p->next = NULL;
-				p->prev = NULL;
-			} else {
+			else {
 				unit_head_large_first->prev = p;
-				p->prev = NULL;
 				p->next = unit_head_large_first;
-				unit_head_large_first = p;
 			}
+			unit_head_large_first = p;
 			*(int*)((char*)p + sizeof(struct unit_head_large) - sizeof(int) + size) = 0xdeadbeaf;
 			return (char *)p + sizeof(struct unit_head_large) - sizeof(int);
 		} else {
@@ -498,11 +503,23 @@ static struct block* block_malloc(void) {
 		int i;
 		int block_no;
 		struct block* p;
+		struct chunk* chunk;
 		char *pb = (char *) CALLOC (sizeof(struct block),BLOCK_ALLOC + 1);
 		if(pb == NULL) {
 			ShowFatalError("Memory manager::block_alloc failed.\n");
 			exit(1);
 		}
+
+		// store original block address in chunk
+		chunk = (struct chunk *) MALLOC (sizeof(struct chunk));
+		if (chunk == NULL) {
+			ShowFatalError("Memory manager::block_alloc failed.\n");
+			exit(1);
+		}
+		chunk->block = pb;
+		chunk->next = (chunk_first) ? chunk_first : NULL;
+		chunk_first = chunk;
+
 		// ブロックのポインタの先頭をsizeof(block) アライメントに揃える
 		// このアドレスをfree() することはないので、直接ポインタを変更している。
 		pb += sizeof(struct block) - ((unsigned long)pb % sizeof(struct block));
@@ -569,7 +586,8 @@ static void memmgr_log (char *buf)
 
 static void memmgr_final (void)
 {
-	struct block *block, *block2;
+	struct block *block = block_first;
+	struct chunk *chunk = chunk_first, *chunk2;
 	struct unit_head_large *large = unit_head_large_first, *large2;
 	int i;
 
@@ -578,7 +596,6 @@ static void memmgr_final (void)
 	char buf[128];
 #endif
 	
-	block = block2 = block_first;
 	while (block) {
 		if (block->unit_size) {
 			for (i = 0; i < block->unit_count; i++) {
@@ -596,9 +613,9 @@ static void memmgr_final (void)
 				}
 			}
 		}
-		if (block->block_no >= block2->block_no + BLOCK_ALLOC - 1) {
+		//if (block->block_no >= block2->block_no + BLOCK_ALLOC - 1) {
 			// reached a new block array
-			block = block->block_next;
+			//block = block->block_next;
 
 		/* Okay wise guys... this is how block2 was allocated: [Skotlex]
 		struct block* p;
@@ -614,11 +631,21 @@ static void memmgr_final (void)
 		Since we are already quitting, it might be ok to just not free the block
 		as it is. 
 		 */
+		// didn't realise that before o.o -- block chunks are now freed below [celest]
 		//	FREE(block2);
-			block2 = block;
-			continue;
-		}
+			//block2 = block;
+			//continue;
+		//}
 		block = block->block_next;
+	}
+
+	// free the allocated block chunks
+	chunk = chunk_first;
+	while (chunk) {
+		chunk2 = chunk->next;
+		FREE(chunk->block);
+		FREE(chunk);
+		chunk = chunk2;
 	}
 
 	while(large) {
