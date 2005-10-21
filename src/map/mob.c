@@ -3152,6 +3152,9 @@ int mobskill_castend_id( int tid, unsigned int tick, int id,int data )
 		break;
 	}
 
+	if (md->sc_count && md->sc_data[SC_MAGICPOWER].timer != -1 && md->skillid != HW_MAGICPOWER)
+		status_change_end(&md->bl, SC_MAGICPOWER, -1);
+		
 	return 0;
 }
 

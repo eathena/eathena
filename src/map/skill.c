@@ -3127,9 +3127,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 		return 1;
 	}
 
-	if(sc_data && sc_data[SC_MAGICPOWER].timer != -1 && skillid != HW_MAGICPOWER)
-			status_change_end(src,SC_MAGICPOWER,-1);		
-
 	map_freeblock_unlock();	
 
 	return 0;
@@ -5244,7 +5241,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		{
 			int eff, count = 1;
 			if (rand() % 100 > skilllv * 8) {
-				clif_skill_fail(sd,skillid,0,0);
+				if (sd) clif_skill_fail(sd,skillid,0,0);
 				map_freeblock_unlock();
 				return 0;
 			}
@@ -5274,23 +5271,25 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					status_change_start(bl,SC_INCATKRATE,-50,0,0,0,30000,0);
 					break;
 				case 5:	// 2000HP heal, random teleported
-					if (sd) pc_heal(sd,2000,0);
-					if (bl->prev != NULL) {
-						if(sd && !map[src->m].flag.noteleport) pc_setpos(sd,sd->mapname,-1,-1,3);
-						else if(md && !map[src->m].flag.monster_noteleport) mob_warp(md,-1,-1,-1,3);
-					}
+					battle_heal(src, src, 2000, 0, 0);
+					if(sd && !map[src->m].flag.noteleport) pc_setpos(sd,sd->mapname,-1,-1,3);
+					else if(md && !map[src->m].flag.monster_noteleport) mob_warp(md,-1,-1,-1,3);
 					break;
 				case 6:	// random 2 other effects
 					count = 3;
 					break;
 				case 7:	// stun freeze or stoned
-					status_change_start(bl,SC_STAN,skilllv,0,0,0,30000,0);
-					status_change_start(bl,SC_FREEZE,skilllv,0,0,0,30000,0);
-					status_change_start(bl,SC_STONE,skilllv,0,0,0,30000,0);
+					{
+						int sc[] = { SC_STAN, SC_FREEZE, SC_STONE };
+						status_change_start(bl,sc[rand()%3],skilllv,0,0,0,30000,0);
+					}
 					break;
-				case 8:	// curse coma or poison
-					status_change_start(bl,SC_CURSE,skilllv,0,0,0,30000,0);
+				case 8:	// curse coma and poison
+					if (!(status_get_mode(bl)&MD_BOSS))
+						battle_damage(src, bl, status_get_hp(bl)-1, 1, 0);
+					if (dstsd) pc_heal(dstsd,0,-dstsd->status.sp+1);
 					//status_change_start(bl,SC_COMA,skilllv,0,0,0,30000,0);
+					status_change_start(bl,SC_CURSE,skilllv,0,0,0,30000,0);
 					status_change_start(bl,SC_POISON,skilllv,0,0,0,30000,0);
 					break;
 				case 9:	// chaos
@@ -5623,6 +5622,9 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 		skill_castend_damage_id(&sd->bl,bl,sd->skillid,sd->skilllv,tick,0);
 		break;
 	}
+
+	if(sd->sc_data[SC_MAGICPOWER].timer != -1 && sd->skillid != HW_MAGICPOWER)
+		status_change_end(&sd->bl,SC_MAGICPOWER,-1);		
 
 	return 0;
 }
@@ -6362,12 +6364,11 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 		break;
 	}
 
-	i = skill_get_unit_id(skillid,flag&1);
-	if (val3==0 && i == UNT_MAGIC_SKILLS && (flag&2 || (sc_data && sc_data[SC_MAGICPOWER].timer != -1)))
+	if (val3==0 && (flag&2 || (sc_data && sc_data[SC_MAGICPOWER].timer != -1)))
 		val3 = HW_MAGICPOWER; //Store the magic power flag. [Skotlex]
 		
 	nullpo_retr(NULL, group=skill_initunitgroup(src,(count > 0 ? count : layout->count),
-		skillid,skilllv,i));
+		skillid,skilllv,skill_get_unit_id(skillid,flag&1)));
 	group->limit=limit;
 	group->val1=val1;
 	group->val2=val2;
@@ -6596,8 +6597,9 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 {
 	struct skill_unit_group *sg;
 	struct block_list *ss;
+	struct map_session_data *sd = NULL;
 	int splash_count=0;
-	struct status_change *sc_data;
+	struct status_change *sc_data, *ssc_data;
 	struct skill_unit_group_tickset *ts;
 	int type;
 	int diff=0;
@@ -6610,6 +6612,8 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 
 	nullpo_retr(0, sg=src->group);
 	nullpo_retr(0, ss=map_id2bl(sg->src_id));
+	if (ss->type == BL_PC) sd = (struct map_session_data*)ss;
+	ssc_data = status_get_sc_data(ss); //For magic power. 
 	sc_data = status_get_sc_data(bl);
 	type = SkillStatusChangeTable[sg->skill_id];
 
@@ -6631,6 +6635,17 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 	if ((sg->skill_id==CR_GRANDCROSS || sg->skill_id==NPC_GRANDDARKNESS) && !battle_config.gx_allhit)
 		ts->tick += sg->interval*(map_count_oncell(bl->m,bl->x,bl->y,0)-1);
 
+	//Temporarily set magic power to have it take effect. [Skotlex]
+	if (sg->val3 == HW_MAGICPOWER && ssc_data && ssc_data[SC_MAGICPOWER].timer == -1 && ssc_data[SC_MAGICPOWER].val1 > 0)
+	{
+		if (sd)
+		{	//This is needed since we are not going to recall status_calc_pc...
+			sd->matk1 += sd->matk1 * 5*ssc_data[SC_MAGICPOWER].val1/100;
+			sd->matk2 += sd->matk2 * 5*ssc_data[SC_MAGICPOWER].val1/100;
+		} else
+			ssc_data[SC_MAGICPOWER].timer = -2; //Note to NOT return from the function until this is unset!
+	}
+	
 	switch (sg->unit_id) {
 	case UNT_FIREWALL:
 		{
@@ -6680,12 +6695,6 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 		}
 
 	case UNT_MAGIC_SKILLS:
-		if (sg->val3 == HW_MAGICPOWER && (sc_data = status_get_sc_data(ss)) && sc_data[SC_MAGICPOWER].timer == -1)
-		{	//Temporarily set magic power to have it take effect. [Skotlex]
-			sc_data[SC_MAGICPOWER].timer = 1;
-			skill_attack(BF_MAGIC,ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,0);
-			sc_data[SC_MAGICPOWER].timer = -1;
-		} else
 			skill_attack(BF_MAGIC,ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,0);
 		break;
 
@@ -6938,7 +6947,16 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 		skill_attack(BF_MAGIC,ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,0);		
 		break;
 	}
-
+	if (sg->val3 == HW_MAGICPOWER && ssc_data && ssc_data[SC_MAGICPOWER].timer < 0 && ssc_data[SC_MAGICPOWER].val1 > 0)
+	{	//Unset Magic Power.
+		if (sd)
+		{
+			sd->matk1 -= sd->matk1*100/(5*ssc_data[SC_MAGICPOWER].val1);
+			sd->matk2 -= sd->matk2*100/(5*ssc_data[SC_MAGICPOWER].val1);
+		} else
+			ssc_data[SC_MAGICPOWER].timer = -1;
+	}
+	
 	if (bl->type == BL_MOB && ss != bl) {	/* スキル使用?件のMOBスキル */
 		struct mob_data *md = (struct mob_data *)bl;
 		if (!md) return 0;

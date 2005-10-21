@@ -5149,8 +5149,6 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage, int
 				struct map_session_data *ssd = (struct map_session_data *)src;
 				if (ssd) { ssd->pvp_point++; ssd->pvp_won++; }
 			}
-		//} //fixed wrong '{' placement by Lupus
-			pc_setdead(sd);
 		}
 		// ?§‘—ŠÒ
 		if( sd->pvp_point < 0 ){
