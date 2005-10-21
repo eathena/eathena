@@ -1,6 +1,7 @@
 Date	Added
 =======
 2005/10/20
+	* Hopefully fixed even-share party on char relog exploit. [Skotlex]
 	* Modified Land Protector so it behaves more like Basilica. [Skotlex]
 	* Removed GM account reading from the char-sql server and moved it into
 	  the login-sql server (Ancyker requested this was fixed... and this is how

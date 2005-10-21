@@ -3205,9 +3205,6 @@ int parse_char(int fd) {
 			auth_fifo[auth_fifo_pos].connect_until_time = sd->connect_until_time;
 			auth_fifo[auth_fifo_pos].ip = session[fd]->client_addr.sin_addr.s_addr;
 
-			//Checks to see if the even share setting of the party must be broken.
-			inter_party_logged(char_dat[0].party_id, char_dat[0].account_id);
-			
 			//Send NEW auth packet [Kevin]
 			if ((map_fd = server_fd[i]) < 1 || session[map_fd] == NULL)
 			{	
@@ -3225,7 +3222,11 @@ int parse_char(int fd) {
 			WFIFOL(map_fd,12) = (unsigned long)auth_fifo[auth_fifo_pos].connect_until_time;
 			memcpy(WFIFOP(map_fd,20), &char_dat[0], sizeof(struct mmo_charstatus));
 			WFIFOSET(map_fd, WFIFOW(map_fd,2));
+
 			set_char_online(i, auth_fifo[auth_fifo_pos].char_id, auth_fifo[auth_fifo_pos].account_id);
+			//Checks to see if the even share setting of the party must be broken.
+			inter_party_logged(char_dat[0].party_id, char_dat[0].account_id);
+			
 			auth_fifo_pos++;
 			break;
 
