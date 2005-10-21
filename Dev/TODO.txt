@@ -775,3 +775,13 @@ Assignee		DracoRPG??
 
 We need to find the good HP value for them, but they SHOULD be attackable... they are currently
 way too powerful in WoE...
+
+81.
+Description: Update mode in mob_db.
+Status:		0%
+Assignee:	None
+
+A new mode was added recently to the mob_db, mode 0x200 (512) specifies that
+the mob may change targets while it is attacking, because in official not
+every aggressive mob does that. Since the db is not updated yet, currently
+both aggressive and mode 0x200 mobs change targets. [Skotlex]
