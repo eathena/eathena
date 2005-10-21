@@ -5890,11 +5890,11 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 					flag=flag|1;
 				}
 				if(i > 0)
-					skill_addtimerskill(src,tick+i*1000,0,tmpx,tmpy,skillid,skilllv,(x1<<16)|y1,flag);
+					skill_addtimerskill(src,tick+i*1000,0,tmpx,tmpy,skillid,skilllv,(x1<<16)|y1,flag&2); //Only pass the Magic Power flag
 				x1 = tmpx;
 				y1 = tmpy;
 			}
-			skill_addtimerskill(src,tick+i*1000,0,tmpx,tmpy,skillid,skilllv,-1,flag);
+			skill_addtimerskill(src,tick+i*1000,0,tmpx,tmpy,skillid,skilllv,-1,flag&2); //Only pass the Magic Power flag
 		}
 		break;
 
