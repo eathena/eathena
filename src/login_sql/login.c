@@ -2032,6 +2032,8 @@ void do_final(void) {
 	//but no need when you using DBMS (mysql)
 	mmo_db_close();
 	numdb_final(online_db, online_db_final);
+	if (gm_account_db)
+		aFree(gm_account_db);
 }
 
 void set_server_type(void)
