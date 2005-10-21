@@ -1,5 +1,5 @@
 
-prontera.gat,0,0,0 script PCLoginEvent -1,{
+prontera.gat,0,0,0	script	PCLoginEvent	-1,{
 set $@bot, rand(100000,999999);
 mes "Welcome to StarsRO";
 mes "Please input the following six digit number.";

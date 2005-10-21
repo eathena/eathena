@@ -234,49 +234,48 @@ void deactivate_pcreset(struct npc_data *nd,int setid)
  */
 void delete_pcreset(struct npc_data *nd,int setid)
 {
-    int active = 1;
-    struct pcrematch_set *pcreset;
-    struct npc_parse *npcParse = (struct npc_parse *) nd->chatdb;
-    if (npcParse == NULL) 
-        return; // Nothing to deactivate...
-
-    pcreset = npcParse->active_;
-    while (pcreset != NULL) {
-        if (pcreset->setid_ == setid)
-            break;
-        pcreset = pcreset->next_;
-    }
-    if (pcreset == NULL) {
-        active = 0;
-    	pcreset = npcParse->inactive_;
-    	while (pcreset != NULL) {
-        	if (pcreset->setid_ == setid)
-            	break;
-        	pcreset = pcreset->next_;
-    	}
-    }
-    if (pcreset == NULL) 
-	return;
-        
-    if (pcreset->next_ != NULL)
-        pcreset->next_->prev_ = pcreset->prev_;
-    if (pcreset->prev_ != NULL)
-        pcreset->prev_->next_ = pcreset->next_;
-    else if(active == 1)
-        npcParse->active_ = pcreset->next_;
-     else
-        npcParse->inactive_ = pcreset->next_;
-
-    pcreset->prev_ = NULL;
-    pcreset->next_ = NULL;
-
-    while (pcreset->head_) {
-    	struct pcrematch_entry *n = pcreset->head_->next_;;
-    	finalize_pcrematch_entry(pcreset->head_);
-	pcreset->head_ = n;
-    }
-
-    aFree(pcreset);
+	int active = 1;
+	struct pcrematch_set *pcreset;
+	struct npc_parse *npcParse = (struct npc_parse *) nd->chatdb;
+	if (npcParse == NULL)
+		return; // Nothing to deactivate...
+	
+	pcreset = npcParse->active_;
+	while (pcreset != NULL) {
+		if (pcreset->setid_ == setid)
+			break;
+		pcreset = pcreset->next_;
+	}
+	if (pcreset == NULL) {
+		active = 0;
+		pcreset = npcParse->inactive_;
+		while (pcreset != NULL) {
+			if (pcreset->setid_ == setid)
+				break;
+			pcreset = pcreset->next_;
+		}
+	}
+	if (pcreset == NULL)
+		return;
+	
+	if (pcreset->next_ != NULL)
+		pcreset->next_->prev_ = pcreset->prev_;
+	if (pcreset->prev_ != NULL)
+		pcreset->prev_->next_ = pcreset->next_;
+	if(active == 1)
+		npcParse->active_ = pcreset->next_;
+	else
+		npcParse->inactive_ = pcreset->next_;
+	
+	pcreset->prev_ = NULL;
+	pcreset->next_ = NULL;
+	
+	while (pcreset->head_) {
+		struct pcrematch_entry *n = pcreset->head_->next_;
+		finalize_pcrematch_entry(pcreset->head_);
+		pcreset->head_ = n;
+	}
+	aFree(pcreset);
 }
 
 /**

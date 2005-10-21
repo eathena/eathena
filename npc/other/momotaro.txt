@@ -444,4 +444,4 @@ OnTimer360000:
 	donpcevent "Event Hall Staff::OnInit";
 	end;
 }
-//end modification
+// finish

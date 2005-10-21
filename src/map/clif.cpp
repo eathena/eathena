@@ -40,7 +40,7 @@
 #define PACKETVER			6
 
 // packet DB
-#define MAX_PACKET_DB		0x23a
+#define MAX_PACKET_DB		0x25f
 #define MAX_PACKET_VER		18
 
 class packet_cmd
@@ -173,7 +173,9 @@ static const int packet_len_table[MAX_PACKET_DB] = {
    26, -1,  26, 10, 18, 26, 11, 34,  14, 36, 10, 0,  0, -1, 24, 10, // 0x20c change to 0 (was 19)
    22,  0,  26, 26, 42, -1, -1,  2,   2,282,282,10, 10, -1, -1, 66,
    10, -1,  -1,  8, 10,  2,282, 18,  18, 15, 58, 57, 64, 5, 69,  0,
-   12,  0,   9, 11, -1, -1, 10,  2, 282, 11
+   12, 26,   9, 11, -1, -1, 10,  2, 282, 11,  4, 36, -1,-1,  4,  2,
+   -1, -1,  -1, -1, -1,  3,  4,  8,  -1,  3, 70,  4,  8,12,  4, 10,
+    3, 32,  -1,  3,  3,  5,  5,  8,   2,  3, -1, -1,  4,-1,  4
 };
 
 
@@ -4976,9 +4978,9 @@ int clif_skillinfo(struct map_session_data &sd, unsigned short skillid, short ty
 		range = skill_get_range(id,sd.status.skill[skillid].lv);
 		if(range < 0)
 			range = status_get_range(&sd.bl) - (range + 1);
-		WFIFOW(fd,12)= range;
-	} else
-		WFIFOW(fd,12)= range;
+	}
+	WFIFOW(fd,12)= range;
+
 	memset(WFIFOP(fd,14),0,24);
 	inf2 = skill_get_inf2(id);
 	if( ((!(inf2&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) && !(inf2&INF2_WEDDING_SKILL)) ||
@@ -8422,7 +8424,10 @@ int clif_parse_LoadEndAck(int fd, struct map_session_data &sd)
 
 	// pvp
 	if(sd.pvp_timer!=-1 && !battle_config.pk_mode)
+	{
 		delete_timer(sd.pvp_timer,pc_calc_pvprank_timer);
+		sd.pvp_timer = -1;
+	}
 	if(map[sd.bl.m].flag.pvp){
 		if(!battle_config.pk_mode) { // remove pvp stuff for pk_mode [Valaris]
 			sd.pvp_timer=add_timer(gettick()+200,pc_calc_pvprank_timer,sd.bl.id,0);
@@ -9332,7 +9337,7 @@ int clif_parse_NpcClicked(int fd,struct map_session_data &sd)
 	if(pc_isdead(sd)) {
 		return clif_clearchar_area(sd.bl, 1);
 	}
-	if(sd.ScriptEngine.isRunning() || sd.vender_id != 0  || RFIFOL(fd,2)&FLAG_DISGUISE)
+	if(sd.ScriptEngine.isRunning() || sd.vender_id != 0 || sd.trade_partner || RFIFOL(fd,2)&FLAG_DISGUISE)
 		return 0;
 	npc_click(sd,RFIFOL(fd,2));
 	return 0;
@@ -12105,7 +12110,7 @@ int packetdb_readdb(void)
 	packet_db[0][0x022e] = packet_cmd(69);
 	packet_db[0][0x022f] = packet_cmd(0);
 	packet_db[0][0x0230] = packet_cmd(12);
-	packet_db[0][0x0231] = packet_cmd(0);
+	packet_db[0][0x0231] = packet_cmd(26);
 	packet_db[0][0x0232] = packet_cmd(9);
 	packet_db[0][0x0233] = packet_cmd(11);
 	packet_db[0][0x0234] = packet_cmd(-1);
@@ -12114,7 +12119,38 @@ int packetdb_readdb(void)
 	packet_db[0][0x0237] = packet_cmd(2);
 	packet_db[0][0x0238] = packet_cmd(282);
 	packet_db[0][0x0239] = packet_cmd(11);
-	//0x023a max
+	packet_db[0][0x0240] = packet_cmd(-1);
+	packet_db[0][0x0241] = packet_cmd(-1);
+	packet_db[0][0x0242] = packet_cmd(-1);
+	packet_db[0][0x0243] = packet_cmd(-1);
+	packet_db[0][0x0244] = packet_cmd(-1);
+	packet_db[0][0x0245] = packet_cmd(3);
+	packet_db[0][0x0246] = packet_cmd(4);
+	packet_db[0][0x0247] = packet_cmd(8);
+	packet_db[0][0x0248] = packet_cmd(-1);
+	packet_db[0][0x0249] = packet_cmd(3);
+	packet_db[0][0x024a] = packet_cmd(70);
+	packet_db[0][0x024b] = packet_cmd(4);
+	packet_db[0][0x024c] = packet_cmd(8);
+	packet_db[0][0x024d] = packet_cmd(12);
+	packet_db[0][0x024e] = packet_cmd(4);
+	packet_db[0][0x024f] = packet_cmd(10);
+	packet_db[0][0x0250] = packet_cmd(3);
+	packet_db[0][0x0251] = packet_cmd(32);
+	packet_db[0][0x0252] = packet_cmd(-1);
+	packet_db[0][0x0253] = packet_cmd(3);
+	packet_db[0][0x0254] = packet_cmd(3);
+	packet_db[0][0x0255] = packet_cmd(5);
+	packet_db[0][0x0256] = packet_cmd(5);
+	packet_db[0][0x0257] = packet_cmd(8);
+	packet_db[0][0x0258] = packet_cmd(2);
+	packet_db[0][0x0259] = packet_cmd(3);
+	packet_db[0][0x025a] = packet_cmd(-1);
+	packet_db[0][0x025b] = packet_cmd(-1);
+	packet_db[0][0x025c] = packet_cmd(4);
+	packet_db[0][0x025d] = packet_cmd(-1);
+	packet_db[0][0x025e] = packet_cmd(4);
+	//0x025f max
 	///////////////////////////////////////////////////////////////////////////
 	// init packet version 5 and lower
 	packet_db[1] = packet_db[0];
@@ -12386,6 +12422,7 @@ int packetdb_readdb(void)
 	packet_db[18][0x007e] = packet_cmd(113,clif_parse_UseSkillToPos,12,15,18,31,33);
 	packet_db[18][0x00a2] = packet_cmd(9,clif_parse_SolveCharName,5);
 	packet_db[18][0x0143] = packet_cmd(10,clif_parse_NpcAmountInput,2,6);
+
 	///////////////////////////////////////////////////////////////////////////
 	size_t i;
 	for(i=19; i<=MAX_PACKET_VER;i++)

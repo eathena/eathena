@@ -17,9 +17,7 @@
 #include "showmsg.h"
 #include "strlib.h"
 
-#ifdef PASSWORDENC
 #include "md5calc.h"
-#endif
 
 #include "login.h"
 
@@ -454,7 +452,7 @@ int parse_fromchar(int fd)
 			CLoginAccount account;
 
 			if( account_db.searchAccount(accid, account) &&
-// maybe remove this checks too, char server should do the auth checking by its own
+				// maybe remove this checks too, char server should do the auth checking by its own
 				account.account_id == accid &&
 				account.login_id1 == RFIFOL(fd,6) &&
 #if CMP_AUTHFIFO_LOGIN2 != 0
@@ -579,35 +577,7 @@ int parse_fromchar(int fd)
 			RFIFOSKIP(fd,46);
 			break;
 		}
-		///////////////////////////////////////////////////////////////////////
-		// We receive an e-mail/limited time request, because a player comes back from a map-server to the char-server
-// might be obsolete, use 2712 to read account data when in doubt
-		case 0x2716:
-		{
-			if (RFIFOREST(fd) < 6)
-				return 0;
 
-			uint32 accid = RFIFOL(fd,2);
-			CLoginAccount account;
-
-			//ShowMessage("parse_fromchar: E-mail/limited time request from '%s' server (concerned account: %ld)\n", server[id].name, (unsigned long)accid);
-
-			if( account_db.searchAccount(accid, account) )
-			{
-				login_log("Char-server '%s': e-mail of the account %d found (ip: %s)." RETCODE, server[id].name, (uint32)RFIFOL(fd,2), ip_str);
-				WFIFOW(fd,0) = 0x2717;
-				WFIFOL(fd,2) = RFIFOL(fd,2);
-				memcpy(WFIFOP(fd, 6), account.email, 40);
-				WFIFOL(fd,46) = (uint32)account.valid_until;
-				WFIFOSET(fd,50);
-			}
-			else
-			{
-				login_log("Char-server '%s': e-mail of the account %d NOT found (ip: %s)." RETCODE, server[id].name, (uint32)RFIFOL(fd,2), ip_str);
-			}
-			RFIFOSKIP(fd,6);
-			break;
-		}
 		///////////////////////////////////////////////////////////////////////
 		// login-server alive packet reply
 		case 0x2718:
@@ -1116,7 +1086,6 @@ int parse_admin(int fd)
 			size_t i, len;
 			uint32 st = RFIFOL(fd,2);
 			uint32 ed = RFIFOL(fd,6);
-			
 
 			if(st>ed) swap(st,ed);
 			if(ed > END_ACCOUNT_NUM || ed < st || ed <= 0)
@@ -2495,7 +2464,7 @@ int parse_login(int fd)
 			} else {
 				struct login_session_data *ld = (struct login_session_data*)session[fd]->session_data;
 				if (RFIFOW(fd,2) == 0) {	// non encrypted password
-					char* password="";
+					char password[64];
 					memcpy(password, RFIFOP(fd,4), 24);
 					password[23] = '\0';
 					remove_control_chars(password);

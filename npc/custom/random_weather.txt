@@ -1,0 +1,574 @@
+
+function	script	weather_helper	{
+	removemapflag $@weathermap$,16;//snow
+	removemapflag $@weathermap$,17;//fog
+	removemapflag $@weathermap$,18;//sakura
+	removemapflag $@weathermap$,19;//leaves
+	removemapflag $@weathermap$,20;//rain
+	if( ($@weathernumber >= 16) && ($@weathernumber <= 20) ) setmapflag $@weathermap$,$@weathernumber;
+	return;
+}
+
+function	script	weather_random	{
+
+	if($@weatherfrauholle > 0) set $@weathernumber,$@weatherfrauholle;
+	if($@weatherfrauholle > 0) goto finish;
+
+	set $@weathernumber,0;
+	set $@weather_temp, rand(0,100);
+	set $@weather_temp, $@weather_temp-$@weather_sun;
+	if( $@weather_temp < 0 ) goto finish;
+
+	set $@weathernumber,16;
+	set $@weather_temp, $@weather_temp-$@weather_snow;
+	if( $@weather_temp < 0 ) goto finish;
+
+	set $@weathernumber,17;
+	set $@weather_temp, $@weather_temp-$@weather_fog;
+	if( $@weather_temp < 0 ) goto finish;
+
+	set $@weathernumber,19;
+	set $@weather_temp, $@weather_temp-$@weather_leav;
+	if( $@weather_temp < 0 ) goto finish;
+
+	set $@weathernumber,20;
+	set $@weather_temp, $@weather_temp-$@weather_rain;
+	if( $@weather_temp < 0 ) goto finish;
+
+	set $@weathernumber,18;
+finish:
+	return;
+}
+
+function	script	weather_change1	{
+/////////////////////////////////////////////////////////////////
+// aldebaran and surrounding
+// sunny 50%, snow 10%, fog 15%, leaves 10%, rain 15%, sakura 00%
+/////////////////////////////////////////////////////////////////
+	set $@weather_sun,50;
+	set $@weather_snow,10;
+	set $@weather_fog,15;
+	set $@weather_leav,10;
+	set $@weather_rain,15;
+	callfunc "weather_random";
+	set $@weathermap$,"aldebaran.gat"; callfunc "weather_helper";
+	set $@weathermap$,"mjolnir_01.gat"; callfunc "weather_helper";
+	set $@weathermap$,"mjolnir_02.gat"; callfunc "weather_helper";
+	set $@weathermap$,"mjolnir_03.gat"; callfunc "weather_helper";
+	set $@weathermap$,"mjolnir_04.gat"; callfunc "weather_helper";
+	set $@weathermap$,"mjolnir_05.gat"; callfunc "weather_helper";
+	set $@weathermap$,"mjolnir_06.gat"; callfunc "weather_helper";
+	set $@weathermap$,"mjolnir_07.gat"; callfunc "weather_helper";
+	set $@weathermap$,"mjolnir_08.gat"; callfunc "weather_helper";
+	set $@weathermap$,"mjolnir_09.gat"; callfunc "weather_helper";
+	set $@weathermap$,"mjolnir_10.gat"; callfunc "weather_helper";
+	set $@weathermap$,"mjolnir_11.gat"; callfunc "weather_helper";
+	set $@weathermap$,"mjolnir_12.gat"; callfunc "weather_helper";
+	set $@weathermap$,"alde_gld.gat"; callfunc "weather_helper";
+	return;
+}
+function	script	weather_change2	{
+/////////////////////////////////////////////////////////////////
+// prontera and surrounding
+// sunny 50%, snow 10%, fog 15%, leaves 10%, rain 15%, sakura 00%
+/////////////////////////////////////////////////////////////////
+	set $@weather_sun,50;
+	set $@weather_snow,10;
+	set $@weather_fog,15;
+	set $@weather_leav,10;
+	set $@weather_rain,15;
+	callfunc "weather_random";
+	set $@weathermap$,"prontera.gat"; callfunc "weather_helper";
+	set $@weathermap$,"izlude.gat"; callfunc "weather_helper";
+	set $@weathermap$,"prt_monk.gat"; callfunc "weather_helper";
+	set $@weathermap$,"prt_fild00.gat"; callfunc "weather_helper";
+	set $@weathermap$,"prt_fild01.gat"; callfunc "weather_helper";
+	set $@weathermap$,"prt_fild02.gat"; callfunc "weather_helper";
+	set $@weathermap$,"prt_fild03.gat"; callfunc "weather_helper";
+	set $@weathermap$,"prt_fild04.gat"; callfunc "weather_helper";
+	set $@weathermap$,"prt_fild05.gat"; callfunc "weather_helper";
+	set $@weathermap$,"prt_fild06.gat"; callfunc "weather_helper";
+	set $@weathermap$,"prt_fild07.gat"; callfunc "weather_helper";
+	set $@weathermap$,"prt_fild08.gat"; callfunc "weather_helper";
+	set $@weathermap$,"prt_fild09.gat"; callfunc "weather_helper";
+	set $@weathermap$,"prt_fild10.gat"; callfunc "weather_helper";
+	set $@weathermap$,"prt_fild11.gat"; callfunc "weather_helper";
+	set $@weathermap$,"new_1-1.gat"; callfunc "weather_helper";
+	set $@weathermap$,"new_1-2.gat"; callfunc "weather_helper";
+	set $@weathermap$,"new_1-3.gat"; callfunc "weather_helper";
+	set $@weathermap$,"new_1-4.gat"; callfunc "weather_helper";
+	set $@weathermap$,"prt_gld.gat"; callfunc "weather_helper";
+	return;
+}
+function	script	weather_change3	{
+/////////////////////////////////////////////////////////////////
+// payon and surrounding
+// sunny 50%, snow 00%, fog 10%, leaves 20%, rain 20%, sakura 00%
+/////////////////////////////////////////////////////////////////
+	set $@weather_sun,50;
+	set $@weather_snow,00;
+	set $@weather_fog,10;
+	set $@weather_leav,20;
+	set $@weather_rain,20;
+	callfunc "weather_random";
+	set $@weathermap$,"payon.gat"; callfunc "weather_helper";
+	set $@weathermap$,"alberta.gat"; callfunc "weather_helper";
+	set $@weathermap$,"pay_arche.gat"; callfunc "weather_helper";
+	set $@weathermap$,"pay_gld.gat"; callfunc "weather_helper";
+	set $@weathermap$,"pay_fild01.gat"; callfunc "weather_helper";
+	set $@weathermap$,"pay_fild02.gat"; callfunc "weather_helper";
+	set $@weathermap$,"pay_fild03.gat"; callfunc "weather_helper";
+	set $@weathermap$,"pay_fild04.gat"; callfunc "weather_helper";
+	set $@weathermap$,"pay_fild05.gat"; callfunc "weather_helper";
+	set $@weathermap$,"pay_fild06.gat"; callfunc "weather_helper";
+	set $@weathermap$,"pay_fild07.gat"; callfunc "weather_helper";
+	set $@weathermap$,"pay_fild08.gat"; callfunc "weather_helper";
+	set $@weathermap$,"pay_fild09.gat"; callfunc "weather_helper";
+	set $@weathermap$,"pay_fild10.gat"; callfunc "weather_helper";
+	set $@weathermap$,"pay_fild11.gat"; callfunc "weather_helper";
+	set $@weathermap$,"moc_fild03.gat"; callfunc "weather_helper";
+	return;
+}
+function	script	weather_change4	{
+/////////////////////////////////////////////////////////////////
+// geffen and surrounding
+// sunny 60%, snow 10%, fog 10%, leaves 10%, rain 10%, sakura 00%
+/////////////////////////////////////////////////////////////////
+	set $@weather_sun,60;
+	set $@weather_snow,10;
+	set $@weather_fog,10;
+	set $@weather_leav,10;
+	set $@weather_rain,10;
+	callfunc "weather_random";
+	set $@weathermap$,"geffen.gat"; callfunc "weather_helper";
+	set $@weathermap$,"gef_fild00.gat"; callfunc "weather_helper";
+	set $@weathermap$,"gef_fild01.gat"; callfunc "weather_helper";
+	set $@weathermap$,"gef_fild02.gat"; callfunc "weather_helper";
+	set $@weathermap$,"gef_fild03.gat"; callfunc "weather_helper";
+	set $@weathermap$,"gef_fild04.gat"; callfunc "weather_helper";
+	set $@weathermap$,"gef_fild05.gat"; callfunc "weather_helper";
+	set $@weathermap$,"gef_fild06.gat"; callfunc "weather_helper";
+	set $@weathermap$,"gef_fild07.gat"; callfunc "weather_helper";
+	set $@weathermap$,"gef_fild08.gat"; callfunc "weather_helper";
+	set $@weathermap$,"gef_fild09.gat"; callfunc "weather_helper";
+	set $@weathermap$,"gef_fild10.gat"; callfunc "weather_helper";
+	set $@weathermap$,"gef_fild11.gat"; callfunc "weather_helper";
+	set $@weathermap$,"gef_fild12.gat"; callfunc "weather_helper";
+	set $@weathermap$,"gef_fild13.gat"; callfunc "weather_helper";
+	set $@weathermap$,"gef_fild14.gat"; callfunc "weather_helper";
+	return;
+}
+function	script	weather_change5	{
+/////////////////////////////////////////////////////////////////
+// yuno and surrounding
+// sunny 40%, snow 15%, fog 15%, leaves 10%, rain 20%, sakura 00%
+/////////////////////////////////////////////////////////////////
+	set $@weather_sun,40;
+	set $@weather_snow,15;
+	set $@weather_fog,15;
+	set $@weather_leav,10;
+	set $@weather_rain,20;
+	callfunc "weather_random";
+	set $@weathermap$,"yuno.gat"; callfunc "weather_helper";
+	set $@weathermap$,"yuno_fild01.gat"; callfunc "weather_helper";
+	set $@weathermap$,"yuno_fild02.gat"; callfunc "weather_helper";
+	set $@weathermap$,"yuno_fild03.gat"; callfunc "weather_helper";
+	set $@weathermap$,"yuno_fild04.gat"; callfunc "weather_helper";
+	return;
+}
+function	script	weather_change6	{
+/////////////////////////////////////////////////////////////////
+// morroc and surrounding
+// sunny 80%, snow 00%, fog 10%, leaves 00%, rain 10%, sakura 00%
+/////////////////////////////////////////////////////////////////
+	set $@weather_sun,80;
+	set $@weather_snow,00;
+	set $@weather_fog,10;
+	set $@weather_leav,00;
+	set $@weather_rain,10;
+	callfunc "weather_random";
+	set $@weathermap$,"morocc.gat"; callfunc "weather_helper";
+	set $@weathermap$,"moc_ruins.gat"; callfunc "weather_helper";
+	set $@weathermap$,"moc_fild01.gat"; callfunc "weather_helper";
+	set $@weathermap$,"moc_fild02.gat"; callfunc "weather_helper";
+	set $@weathermap$,"moc_fild04.gat"; callfunc "weather_helper";
+	set $@weathermap$,"moc_fild05.gat"; callfunc "weather_helper";
+	set $@weathermap$,"moc_fild06.gat"; callfunc "weather_helper";
+	set $@weathermap$,"moc_fild07.gat"; callfunc "weather_helper";
+	set $@weathermap$,"moc_fild08.gat"; callfunc "weather_helper";
+	set $@weathermap$,"moc_fild09.gat"; callfunc "weather_helper";
+	set $@weathermap$,"moc_fild10.gat"; callfunc "weather_helper";
+	set $@weathermap$,"moc_fild11.gat"; callfunc "weather_helper";
+	set $@weathermap$,"moc_fild12.gat"; callfunc "weather_helper";
+	set $@weathermap$,"moc_fild13.gat"; callfunc "weather_helper";
+	set $@weathermap$,"moc_fild14.gat"; callfunc "weather_helper";
+	set $@weathermap$,"moc_fild15.gat"; callfunc "weather_helper";
+	set $@weathermap$,"moc_fild16.gat"; callfunc "weather_helper";
+	set $@weathermap$,"moc_fild17.gat"; callfunc "weather_helper";
+	set $@weathermap$,"moc_fild18.gat"; callfunc "weather_helper";
+	set $@weathermap$,"moc_fild19.gat"; callfunc "weather_helper";
+	set $@weathermap$,"cmd_fild06.gat"; callfunc "weather_helper";
+	set $@weathermap$,"cmd_fild07.gat"; callfunc "weather_helper";
+	set $@weathermap$,"cmd_fild08.gat"; callfunc "weather_helper";
+	set $@weathermap$,"cmd_fild09.gat"; callfunc "weather_helper";
+	return;
+}
+function	script	weather_change7	{
+/////////////////////////////////////////////////////////////////
+// comodo jungle and surrounding
+// sunny 70%, snow 00%, fog 10%, leaves 00%, rain 20%, sakura 00%
+/////////////////////////////////////////////////////////////////
+	set $@weather_sun,70;
+	set $@weather_snow,00;
+	set $@weather_fog,10;
+	set $@weather_leav,00;
+	set $@weather_rain,20;
+	callfunc "weather_random";
+	set $@weathermap$,"comodo.gat"; callfunc "weather_helper";
+	set $@weathermap$,"cmd_fild01.gat"; callfunc "weather_helper";
+	set $@weathermap$,"cmd_fild02.gat"; callfunc "weather_helper";
+	set $@weathermap$,"cmd_fild03.gat"; callfunc "weather_helper";
+	set $@weathermap$,"cmd_fild04.gat"; callfunc "weather_helper";
+	set $@weathermap$,"cmd_fild05.gat"; callfunc "weather_helper";
+/////////////////////////////////////////////////////////////////
+	set $@weathermap$,"tur_dun01.gat"; callfunc "weather_helper";
+	set $@weathermap$,"alb2trea.gat"; callfunc "weather_helper";
+	return;
+}
+function	script	weather_change8	{
+/////////////////////////////////////////////////////////////////
+// xmas map and surrounding
+// sunny 30%, snow 60%, fog 10%, leaves 00%, rain 00%, sakura 00%
+/////////////////////////////////////////////////////////////////
+	set $@weather_sun,30;
+	set $@weather_snow,60;
+	set $@weather_fog,10;
+	set $@weather_leav,00;
+	set $@weather_rain,00;
+	callfunc "weather_random";
+	set $@weathermap$,"xmas.gat"; callfunc "weather_helper";
+	set $@weathermap$,"xmas_fild01.gat"; callfunc "weather_helper";
+	return;
+}
+function	script	weather_change9	{
+/////////////////////////////////////////////////////////////////
+// amatsu and surrounding
+// sunny 30%, snow 00%, fog 10%, leaves 00%, rain 20%, sakura 40%
+/////////////////////////////////////////////////////////////////
+	set $@weather_sun,30;
+	set $@weather_snow,00;
+	set $@weather_fog,10;
+	set $@weather_leav,00;
+	set $@weather_rain,20;
+	callfunc "weather_random";
+	set $@weathermap$,"amatsu.gat"; callfunc "weather_helper";
+	set $@weathermap$,"ama_fild01.gat"; callfunc "weather_helper";
+	return;
+}
+function	script	weather_change10	{
+/////////////////////////////////////////////////////////////////
+// gonryun and surrounding
+// sunny 50%, snow 00%, fog 10%, leaves 20%, rain 20%, sakura 00%
+/////////////////////////////////////////////////////////////////
+	set $@weather_sun,50;
+	set $@weather_snow,00;
+	set $@weather_fog,10;
+	set $@weather_leav,20;
+	set $@weather_rain,20;
+	callfunc "weather_random";
+	set $@weathermap$,"gonryun.gat"; callfunc "weather_helper";
+	set $@weathermap$,"gon_fild01.gat"; callfunc "weather_helper";
+	return;
+}
+function	script	weather_change11	{
+/////////////////////////////////////////////////////////////////
+// umbala jungle and surrounding
+// sunny 30%, snow 00%, fog 10%, leaves 20%, rain 40%, sakura 00%
+/////////////////////////////////////////////////////////////////
+	set $@weather_sun,30;
+	set $@weather_snow,00;
+	set $@weather_fog,10;
+	set $@weather_leav,20;
+	set $@weather_rain,40;
+	callfunc "weather_random";
+	set $@weathermap$,"umbala.gat"; callfunc "weather_helper";
+	set $@weathermap$,"um_fild01.gat"; callfunc "weather_helper";
+	set $@weathermap$,"um_fild02.gat"; callfunc "weather_helper";
+	set $@weathermap$,"um_fild03.gat"; callfunc "weather_helper";
+	set $@weathermap$,"um_fild04.gat"; callfunc "weather_helper";
+	return;
+}
+function	script	weather_change12	{
+/////////////////////////////////////////////////////////////////
+// yggdrasil tree
+// sunny 40%, snow 00%, fog 10%, leaves 40%, rain 10%, sakura 00%
+/////////////////////////////////////////////////////////////////
+	set $@weather_sun,40;
+	set $@weather_snow,00;
+	set $@weather_fog,10;
+	set $@weather_leav,40;
+	set $@weather_rain,10;
+	callfunc "weather_random";
+	set $@weathermap$,"yggdrasil01.gat"; callfunc "weather_helper";
+	set $@weathermap$,"um_dun01.gat"; callfunc "weather_helper";
+	set $@weathermap$,"um_dun02.gat"; callfunc "weather_helper";
+	return;
+}
+function	script	weather_change13	{
+/////////////////////////////////////////////////////////////////
+// nifflheim
+// sunny 00%, snow 40%, fog 20%, leaves 00%, rain 40%, sakura 00%
+/////////////////////////////////////////////////////////////////
+	set $@weather_sun,00;
+	set $@weather_snow,40;
+	set $@weather_fog,20;
+	set $@weather_leav,00;
+	set $@weather_rain,40;
+	callfunc "weather_random";
+	set $@weathermap$,"niflheim.gat"; callfunc "weather_helper";
+	set $@weathermap$,"nif_fild01.gat"; callfunc "weather_helper";
+	set $@weathermap$,"nif_fild02.gat"; callfunc "weather_helper";
+	set $@weathermap$,"glast_01.gat"; callfunc "weather_helper";
+	return;
+}
+function	script	weather_change14	{
+/////////////////////////////////////////////////////////////////
+// louyang
+// sunny 40%, snow 10%, fog 20%, leaves 10%, rain 20%, sakura 00%
+/////////////////////////////////////////////////////////////////
+	set $@weather_sun,40;
+	set $@weather_snow,10;
+	set $@weather_fog,20;
+	set $@weather_leav,10;
+	set $@weather_rain,20;
+	callfunc "weather_random";
+	set $@weathermap$,"louyang.gat"; callfunc "weather_helper";
+	set $@weathermap$,"lou_fild01.gat"; callfunc "weather_helper";
+	set $@weathermap$,"lou_dun01.gat"; callfunc "weather_helper";
+	return;
+}
+function	script	weather_change15	{
+/////////////////////////////////////////////////////////////////
+// jawaii
+// sunny 80%, snow 00%, fog 00%, leaves 00%, rain 10%, sakura 10%
+/////////////////////////////////////////////////////////////////
+	set $@weather_sun,80;
+	set $@weather_snow,00;
+	set $@weather_fog,00;
+	set $@weather_leav,00;
+	set $@weather_rain,10;
+	callfunc "weather_random";
+	set $@weathermap$,"jawaii.gat"; callfunc "weather_helper";
+
+	return;
+}
+function	script	weather_change16	{
+/////////////////////////////////////////////////////////////////
+// gefenia
+// sunny 60%, snow 10%, fog 10%, leaves 00%, rain 20%, sakura 00%
+/////////////////////////////////////////////////////////////////
+	set $@weather_sun,60;
+	set $@weather_snow,10;
+	set $@weather_fog,10;
+	set $@weather_leav,00;
+	set $@weather_rain,20;
+	callfunc "weather_random";
+	set $@weathermap$,"gefenia01.gat"; callfunc "weather_helper";
+	set $@weathermap$,"gefenia02.gat"; callfunc "weather_helper";
+	set $@weathermap$,"gefenia03.gat"; callfunc "weather_helper";
+	set $@weathermap$,"gefenia04.gat"; callfunc "weather_helper";
+	return;
+}
+function	script	weather_change17	{
+/////////////////////////////////////////////////////////////////
+// ayothaya
+// sunny 80%, snow 00%, fog 10%, leaves 00%, rain 10%, sakura 00%
+/////////////////////////////////////////////////////////////////
+	set $@weather_sun,80;
+	set $@weather_snow,00;
+	set $@weather_fog,10;
+	set $@weather_leav,00;
+	set $@weather_rain,10;
+	callfunc "weather_random";
+	set $@weathermap$,"ayothaya.gat"; callfunc "weather_helper";
+	set $@weathermap$,"ayo_fild01.gat"; callfunc "weather_helper";
+	set $@weathermap$,"ayo_fild02.gat"; callfunc "weather_helper";
+	return;
+}
+
+mjolnir_01.gat,316,272,4	script	Frau Holle	103,{
+	if(frauhollerand>0) goto L_Menu2_1;
+	mes "[Frau Holle]";
+	mes "Hello... I'm Frau Holle.";
+	mes "How did you come here? Did you also fall into the well?";
+	next;
+	mes "[Frau Holle]";
+	mes "I am the guardian of the weather, you know?";
+	mes "But recently I'm out of incrediances. So if you came here to change the weather, I would ask you to gather some things for me.";
+	next;
+	menu "Yes, I'm interested.",L_Menu1_0,"No, not very......",-;
+		mes "[Frau Holle]";
+		mes "No? Ok then. If you change your mind, you know where to find me.";
+		close;
+	L_Menu1_0:
+		mes "[Frau Holle]";
+		mes "Really....?";
+		mes "That is very nice of you. Not many of the young ones want to do a favour for an old woman.";
+		next;
+		mes "[Frau Holle]";
+		mes "Well then.";
+		mes "It is no difficult task, I'm asking you to do for me.";
+		next;
+		set frauhollerand,rand(1,3);
+		mes "[Frau Holle]";
+		mes "Just go on and gather some things.";
+		if (frauhollerand == 2) goto L_Menu1_2;
+		if (frauhollerand == 3) goto L_Menu1_3;
+		mes "I need incrediences for making Heat. Please get:"; 
+		mes "^3051FDFlame Heart^000000 5 pieces"; 
+		goto L_Menu1_4;
+	L_Menu1_2:
+		mes "I need incrediences for making Wind. Please get:"; 
+		mes "^3051FDRough Wind^000000 5 pieces"; 
+		goto L_Menu1_4;
+	L_Menu1_3:
+		mes "I need incrediences for making Snow. Please get:"; 
+		mes "^3051FDMystic Frozen^000000 5 pieces"; 
+	L_Menu1_4:
+		mes "^3051FDGold^000000 1 pieces"; 
+		mes "^3051FDFeather^000000 100 pieces"; 
+		next;
+		mes "[Frau Holle]";
+		mes "When everything is collected, come back and I can control the weather for you.";
+		close;
+L_Menu2_1:
+	if ((countitem(994) >= 5) && (countitem(969) >= 1) && (countitem(949) >= 100) && (frauhollerand == 1)) goto L_Menu2_2;
+	if ((countitem(996) >= 5) && (countitem(969) >= 1) && (countitem(949) >= 100) && (frauhollerand == 2)) goto L_Menu2_2;
+	if ((countitem(995) >= 5) && (countitem(969) >= 1) && (countitem(949) >= 100) && (frauhollerand == 3)) goto L_Menu2_2;
+	mes "[Frau Holle]";
+	mes "Oh Oh, you are not ready jet. I have asked you to gather following items, listen well:";
+	next;
+		if (frauhollerand == 2) goto L_Menu2_1_2;
+		if (frauhollerand == 3) goto L_Menu2_1_3;
+		mes "^3051FDFlame Heart^000000 5 pieces"; 
+		goto L_Menu2_1_4;
+	L_Menu2_1_2:
+		mes "^3051FDRough Wind^000000 5 pieces"; 
+		goto L_Menu2_1_4;
+	L_Menu2_1_3:
+		mes "^3051FDMystic Frozen^000000 5 pieces"; 
+	L_Menu2_1_4:
+		mes "^3051FDGold^000000 1 piece"; 
+		mes "^3051FDFeather^000000 100 pieces"; 
+		close;
+L_Menu2_2:
+	mes "[Frau Holle]";
+	mes "Well done. Thank you.";
+	mes "You are really a helpful person.";
+	if (frauhollerand == 2) goto L_Menu2_2_2;
+	if (frauhollerand == 3) goto L_Menu2_2_3;
+		delitem 994,5;
+		goto L_Menu2_2_4;
+	L_Menu2_2_2:
+		delitem 996,5;
+		goto L_Menu2_2_4;
+	L_Menu2_2_3:
+		delitem 995,5;
+	L_Menu2_2_4:
+		delitem 969,1;
+		delitem 949,100;
+L_Menu2_3:
+	next;
+	set frauhollerand,0;
+	mes "[Frau Holle]";
+	mes "So, Now I can change the weather on the whole planet to whatever you want.";
+	mes "What should it be...?";
+	next;
+	menu "Sunshine",L_Menu3_1,"Snow",L_Menu3_2,"Fog",L_Menu3_3,"Falling Leaves",L_Menu3_4,"Rain",L_Menu3_5,"Cherry Blossoms",L_Menu3_6,"I don't care",-;
+	mes "[Frau Holle]";
+	mes "Ok, I will let the weather change naturally then.";
+	set $@weatherfrauholle,0;
+	goto L_Menu3_7;
+L_Menu3_1:
+	mes "[Frau Holle]";
+	mes "Sunshine is god. That suits everybody.";
+// is not sunshine but will block the setmapflag in weather_helper
+	set $@weatherfrauholle,15;
+	goto L_Menu3_7;
+L_Menu3_2:
+	mes "[Frau Holle]";
+	mes "Hmm.... Snow. I don't know what the desert people will think when it starts to snow, but if you insist... I just hope the tropcal plants will not freeze...";
+	set $@weatherfrauholle,16;
+	goto L_Menu3_7;
+L_Menu3_3:
+	mes "[Frau Holle]";
+	mes "You like foggy weather? Do you come from an specific island far away? I just remember the people there loved their foggy weather for some reason...";
+	set $@weatherfrauholle,17;
+	goto L_Menu3_7;
+L_Menu3_4:
+	mes "[Frau Holle]";
+	mes "Ah, I see, you also like falling leaves. They are beautiful in autumn...";
+	set $@weatherfrauholle,19;
+	goto L_Menu3_7;
+L_Menu3_5:
+	mes "[Frau Holle]";
+	mes "Rain is important for all plants, you know. You really have a good heart to think also of the plants.";
+	set $@weatherfrauholle,20;
+	goto L_Menu3_7;
+L_Menu3_6:
+	mes "[Frau Holle]";
+	mes "Ah, cherry blossoms are favorite in Amatsu! Did you ever visit this place?";
+	set $@weatherfrauholle,18;
+
+L_Menu3_7:
+	callfunc "weather_change1";
+	callfunc "weather_change2";
+	callfunc "weather_change3";
+	callfunc "weather_change4";
+	callfunc "weather_change5";
+	callfunc "weather_change6";
+	callfunc "weather_change7";
+	callfunc "weather_change8";
+	callfunc "weather_change9";
+	callfunc "weather_change10";
+	callfunc "weather_change11";
+	callfunc "weather_change12";
+	callfunc "weather_change13";
+	callfunc "weather_change14";
+	callfunc "weather_change15";
+	callfunc "weather_change16";
+	callfunc "weather_change17";
+	set $@weatherfrauholle,0;
+	close;
+}
+
+-	script	weather_clock1_8	-1,{
+	end;
+OnInit:
+OnMinute45:
+	set $@weatherfrauholle,0;
+	callfunc "weather_change1";
+	callfunc "weather_change2";
+	callfunc "weather_change3";
+	callfunc "weather_change4";
+	callfunc "weather_change5";
+	callfunc "weather_change6";
+	callfunc "weather_change7";
+	callfunc "weather_change8";
+}
+-	script	weather_clock9_17	-1,{
+	end;
+OnInit:
+OnMinute45:
+	set $@weatherfrauholle,0;
+	callfunc "weather_change9";
+	callfunc "weather_change10";
+	callfunc "weather_change11";
+	callfunc "weather_change12";
+	callfunc "weather_change13";
+	callfunc "weather_change14";
+	callfunc "weather_change15";
+	callfunc "weather_change16";
+	callfunc "weather_change17";
+	end;
+}

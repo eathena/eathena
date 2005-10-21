@@ -511,14 +511,15 @@ int pet_changestate(struct pet_data &pd,int state,int type)
 	unsigned long tick;
 	int i;
 
+	if( pd.state.casting_flag )
+		skill_castcancel(&pd.bl, 0);
+
 	if(pd.timer != -1)
 	{
 		delete_timer(pd.timer,pet_timer);
 		pd.timer=-1;
 	}
 	pd.state.state=state;
-	if( pd.state.casting_flag )
-		skill_castcancel(&pd.bl, 0);
 
 	switch(state)
 	{
@@ -1201,7 +1202,12 @@ int pet_equipitem(struct map_session_data &sd,int index)
 		if (battle_config.pet_equip_required)
 		{ 	//Skotlex: start support timers if needd
 			if (sd.pd->s_skill && sd.pd->s_skill->timer == -1)
-				sd.pd->s_skill->timer=add_timer(gettick()+sd.pd->s_skill->delay*1000, pet_skill_support_timer, sd.bl.id, 0);
+			{
+				if (sd.pd->s_skill->id)
+					sd.pd->s_skill->timer=add_timer(gettick()+sd.pd->s_skill->delay*1000, pet_skill_support_timer, sd.bl.id, 0);
+				else
+					sd.pd->s_skill->timer=add_timer(gettick()+sd.pd->s_skill->delay*1000, pet_heal_timer, sd.bl.id, 0);
+			}
 			if (sd.pd->bonus && sd.pd->bonus->timer == -1)
 				sd.pd->bonus->timer=add_timer(gettick()+sd.pd->bonus->delay*1000, pet_skill_bonus_timer, sd.bl.id, 0);
 		}

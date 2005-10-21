@@ -26,7 +26,7 @@
 
 // WoE Start/Stop times
 //======================================
-- script Agit_Event -1,{
+-	script	Agit_Event	-1,{
 	end;
 
 OnClock2100:	//start time for Tues(2), Thurs(4)
@@ -59,7 +59,7 @@ L_Start:
 
 // Treasure Spawn Time
 //========================================
-- script TreasSpawn -1,{
+-	script	TreasSpawn	-1,{
 	end;
 
 OnClock0001:

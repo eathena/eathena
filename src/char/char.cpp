@@ -818,7 +818,6 @@ bool char_delete(uint32 char_id)
 int parse_tologin(int fd)
 {
 	size_t i;
-	struct char_session_data *sd;
 	///////////////////////////////////////////////////////////////////////////
 	// only login-server can have an access to here.
 	// so, if it isn't the login-server, we disconnect the session.
@@ -835,9 +834,6 @@ int parse_tologin(int fd)
 		login_fd = -1;
 		return 0;
 	}
-
-	sd = (struct char_session_data*)session[fd]->session_data;
-
 	while(RFIFOREST(fd) >= 2)
 	{
 		unsigned short command = RFIFOW(fd,0);
@@ -850,15 +846,7 @@ int parse_tologin(int fd)
 		{
 			if (RFIFOREST(fd) < 3)
 				return 0;
-			if( RFIFOB(fd, 2) )
-			{
-				//ShowMessage("connect login server error : %d\n", (unsigned char)RFIFOB(fd,2));
-				ShowMessage("Can not connect to login-server.\n");
-				ShowMessage("The server communication passwords (default s1/p1) is probably invalid.\n");
-				ShowMessage("Also, please make sure your accounts file (default: accounts.txt) has those values present.\n");
-				ShowMessage("If you changed the communication passwords, change them back at map_athena.conf and char_athena.conf\n");
-			}
-			else
+			if( 0==RFIFOB(fd, 2) )
 			{
 				ShowStatus("Connected to login-server (connection #%d).\n", fd);
 				// if no map-server already connected, display a message...
@@ -867,6 +855,14 @@ int parse_tologin(int fd)
 						break;
 				if (i == MAX_MAP_SERVERS)
 					ShowStatus("Awaiting maps from map-server.\n");
+			}
+			else
+			{
+				//ShowMessage("connect login server error : %d\n", (unsigned char)RFIFOB(fd,2));
+				ShowMessage("Can not connect to login-server.\n");
+				ShowMessage("The server communication passwords (default s1/p1) is probably invalid.\n");
+				ShowMessage("Also, please make sure your accounts file (default: accounts.txt) has those values present.\n");
+				ShowMessage("If you changed the communication passwords, change them back at map_athena.conf and char_athena.conf\n");
 			}
 			RFIFOSKIP(fd, 3);
 			break;
@@ -878,69 +874,58 @@ int parse_tologin(int fd)
 		{
 			if (RFIFOREST(fd) < 51)
 				return 0;
-//			ShowMessage("parse_tologin 2713 : %d\n", (unsigned char)RFIFOB(fd,6));
-			for(i = 0; i < fd_max; i++) {
+
+			struct char_session_data *sd;
+			CCharCharAccount account;
+			// search session 
+			//!! add a connection db
+			for(i = 0; i < fd_max; i++)
+			{
 				if(session[i] && (sd = (struct char_session_data *)session[i]->session_data) && sd->account_id == RFIFOL(fd,2))
 				{
-					if( RFIFOB(fd,6) != 0 )
+					// check authentification if login authentified and send the data
+					if( RFIFOB(fd,6) == 0 &&
+						char_db.searchAccount(RFIFOL(fd,2), account) &&
+						account.client_ip   == sd->client_ip &&
+						account.account_id  == sd->account_id &&
+						account.login_id1   == sd->login_id1 &&
+						account.login_id2   == sd->login_id2 && 
+						account.sex         == sd->sex )
 					{
+						if(max_connect_user == 0 || count_users() < max_connect_user || account.gm_level >= gm_allow_level)
+						{
+							// make a complete copy of the account data at the session
+							sd->CCharCharAccount::operator=(account);
+
+							if( sd->gm_level )
+								ShowMessage("Account Logged On; Account ID: %ld (GM level %d).\n", (unsigned long)sd->account_id, sd->gm_level);
+							else
+								ShowMessage("Account Logged On; Account ID: %ld.\n", (unsigned long)sd->account_id);
+
+							// send characters to player
+							mmo_char_send006b(fd, *sd);
+						}
+						else
+						{
+							// refuse connection (over populated)
+							WFIFOW(fd,0) = 0x6c;
+							WFIFOW(fd,2) = 0;
+							WFIFOSET(fd,3);
+						}
+					}
+					else
+					{	// reject, not authentified
 						WFIFOW(i,0) = 0x6c;
 						WFIFOB(i,2) = 0x42;
 						WFIFOSET(i,3);
 					}
-					else if( max_connect_user == 0 || count_users() < max_connect_user )
-					{
-//						if (max_connect_user == 0)
-//							ShowMessage("max_connect_user (unlimited) -> accepted.\n");
-//						else
-//							ShowMessage("count_users(): %d < max_connect_user (%d) -> accepted.\n", count_users(), max_connect_user);
-						memcpy(sd->email, RFIFOP(fd, 7), 40);
-						if( !email_check(sd->email) )
-							safestrcpy(sd->email, "a@a.com", 40); // default e-mail
-						sd->valid_until = (time_t)RFIFOL(fd,47);
-						// send characters to player
-						mmo_char_send006b(i, *sd);
-					}
-					else if(sd->gm_level >= gm_allow_level)
-					{
-						sd->valid_until = (time_t)RFIFOL(fd,47);
-						// send characters to player
-						mmo_char_send006b(i, *sd);
-					}
-					else
-					{	// refuse connection: too much online players
-//						ShowMessage("count_users(): %d < max_connect_use (%d) -> fail...\n", count_users(), max_connect_user);
-						WFIFOW(i,0) = 0x6c;
-						WFIFOW(i,2) = 0;
-						WFIFOSET(i,3);
-					}
 					break;
 				}
-			}
+			}// end for
 			RFIFOSKIP(fd,51);
 			break;
 		}
-		///////////////////////////////////////////////////////////////////////
-		// Receiving of an e-mail/time limit from the login-server (answer of a request because a player comes back from map-server to char-server) by [Yor]
-// obsolete will be 0x2750
-		case 0x2717:
-		{
-			if (RFIFOREST(fd) < 50)
-				return 0;
-			for(i = 0; i < (size_t)fd_max; i++) {
-				if (session[i] && (sd = (struct char_session_data*)session[i]->session_data)) {
-					if (sd->account_id == RFIFOL(fd,2)) {
-						memcpy(sd->email, RFIFOP(fd,6), 40);
-						if( !email_check(sd->email) )
-							safestrcpy(sd->email, "a@a.com", 40); // default e-mail
-						sd->valid_until = (time_t)RFIFOL(fd,46);
-						break;
-					}
-				}
-			}
-			RFIFOSKIP(fd,50);
-			break;
-		}
+
 		///////////////////////////////////////////////////////////////////////
 		// login-server alive packet
 		case 0x2718:
@@ -2161,62 +2146,59 @@ int parse_char(int fd)
 			WFIFOSET(fd,4);
 
 			// search authentification
-			if(max_connect_user == 0 || count_users() < max_connect_user)
-			{
-				if( char_db.searchAccount(RFIFOL(fd,2), *sd) &&
-					client_ip     == sd->client_ip &&
-					RFIFOL(fd,2)  == sd->account_id &&
-					RFIFOL(fd,6)  == sd->login_id1 &&
-					RFIFOL(fd,10) == sd->login_id2 && 
-					RFIFOB(fd,16) == sd->sex ) 
-				{	// send characters to player
+			if( char_db.searchAccount(RFIFOL(fd,2), *sd) &&
+				client_ip     == sd->client_ip &&
+				RFIFOL(fd,2)  == sd->account_id &&
+				RFIFOL(fd,6)  == sd->login_id1 &&
+				RFIFOL(fd,10) == sd->login_id2 && 
+				RFIFOB(fd,16) == sd->sex ) 
+			{	// send characters to player
+
+				if(max_connect_user == 0 || count_users() < max_connect_user || sd->gm_level >= gm_allow_level)
+				{
 					// make a local copy of the whole account data
 					if( sd->gm_level )
 						ShowMessage("Account Logged On; Account ID: %ld (GM level %d).\n", (unsigned long)sd->account_id, sd->gm_level);
 					else
 						ShowMessage("Account Logged On; Account ID: %ld.\n", (unsigned long)sd->account_id);
 
-					// obsolete, data is already there
-					if( session_isActive(login_fd) )
-					{	// don't send request if no login-server
-						// request to login-server to obtain e-mail/time limit
-						WFIFOW(login_fd,0) = 0x2716;
-						WFIFOL(login_fd,2) = sd->account_id;
-						WFIFOSET(login_fd,6);
-					}
 					// send characters to player
 					mmo_char_send006b(fd, *sd);
-
 				}
 				else
 				{
-					if( session_isActive(login_fd) )
-					{	// don't send request if no login-server
-						WFIFOW(login_fd,0) = 0x2712; // ask login-server to authentify an account
-						WFIFOL(login_fd,2) = sd->account_id;
-						WFIFOL(login_fd,6) = sd->login_id1;
-						WFIFOL(login_fd,10) = sd->login_id2; // relate to the versions higher than 18
-						WFIFOB(login_fd,14) = sd->sex;
-						WFIFOLIP(login_fd,15) = client_ip;
-						WFIFOSET(login_fd,19);
-					}
-					else
-					{	// if no login-server, we must refuse connection
-						WFIFOW(fd,0) = 0x6c;
-						WFIFOW(fd,2) = 0;
-						WFIFOSET(fd,3);
-					}
-				
-				}		
+					// refuse connection (over populated)
+					WFIFOW(fd,0) = 0x6c;
+					WFIFOW(fd,2) = 0;
+					WFIFOSET(fd,3);
+				}
 			}
 			else
 			{
-				// refuse connection (over populated)
-				WFIFOW(fd,0) = 0x6c;
-				WFIFOW(fd,2) = 0;
-				WFIFOSET(fd,3);
-			}
-
+				if( session_isActive(login_fd) )
+				{	// store data in the session data
+					sd->account_id= RFIFOL(fd,2);
+					sd->login_id1 = RFIFOL(fd,6);
+					sd->login_id2 = RFIFOL(fd,10);
+					sd->sex       = RFIFOB(fd,16);
+					sd->client_ip = client_ip;
+					
+					// ask login-server to authentify an account
+					WFIFOW(login_fd,0) = 0x2712; 
+					WFIFOL(login_fd,2) = sd->account_id;
+					WFIFOL(login_fd,6) = sd->login_id1;
+					WFIFOL(login_fd,10) = sd->login_id2; // relate to the versions higher than 18
+					WFIFOB(login_fd,14) = sd->sex;
+					WFIFOLIP(login_fd,15) = client_ip;
+					WFIFOSET(login_fd,19);
+				}
+				else
+				{	// if no login-server, we must refuse connection
+					WFIFOW(fd,0) = 0x6c;
+					WFIFOW(fd,2) = 0;
+					WFIFOSET(fd,3);
+				}
+			}		
 			RFIFOSKIP(fd,17);
 			break;
 		}

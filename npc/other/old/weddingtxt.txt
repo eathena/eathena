@@ -8,8 +8,8 @@ mes "[Thristan the Third]";
 if(event_marriage == 0) goto Lreg;
 if(event_marriage == 1) goto Lmale;
 if(event_marriage == 2) goto Lfemale;
-if(event_marriage == 3) && (countitem(2634)<1) || (event_marriage == 3) && (getequipname(136) == 2634) goto Lmcere;
-if(event_marriage == 4) && (countitem(2635)<1) || (event_marriage == 4) && (getequipname(136) == 2635) goto Lfcere;
+if((event_marriage == 3) && (countitem(2634)<1) || (event_marriage == 3) && (getequipname(136) == 2634)) goto Lmcere;
+if((event_marriage == 4) && (countitem(2635)<1) || (event_marriage == 4) && (getequipname(136) == 2635)) goto Lfcere;
 if(event_marriage >= 5) goto Lhappy;
 //else goto Lhappy;
 //if(even
@@ -248,8 +248,8 @@ Lmale3:
 close;
 
 Lfemale:
-if (getequipname(16) == 2338) && (getequipname(256) == 2206) goto Lfemale2;
-if (getequipname(16) != 2338) || (getequipname(256) == 2206) goto Lfemale3;
+if((getequipname(16) == 2338) && (getequipname(256) == 2206)) goto Lfemale2;
+if((getequipname(16) != 2338) || (getequipname(256) == 2206)) goto Lfemale3;
 mes "[Mary Happy]";
 mes "OmG1! H4X0Rz!1";
 Lfemale2:

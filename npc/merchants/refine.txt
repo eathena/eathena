@@ -336,7 +336,7 @@ REFINE4:
 }
 
 // Normal Refining Functions =========================
-function	script	refinenormal	-1,{
+function	script	refinenormal	{
 	mes "[" + @name$ + "]";	
 	mes "To refine this stuff,I need ^ff9999" + @matname$ + "^000000 and the fee " + @price + " Zeny.";
 	mes "Continue?";

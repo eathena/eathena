@@ -105,7 +105,7 @@ ein_in01.gat,288,25,0	warp	ein040	1,1,einbroch.gat,52,52
 einbroch.gat,50,52,0	warp	ein040a	1,1,ein_in01.gat,286,25
 einbroch.gat,213,263,0	warp	ein041	1,1,einbroch.gat,233,310
 einbroch.gat,233,308,0	warp	ein041a	1,1,einbroch.gat,213,261
-einbroch.gat,250,263,0	warp	ein042	1,1,einbroch.gat,270,312,0
+einbroch.gat,250,263,0	warp	ein042	1,1,einbroch.gat,270,312
 einbroch.gat,270,310,0	warp	ein042a	1,1,einbroch.gat,250,261
 
 //Airport

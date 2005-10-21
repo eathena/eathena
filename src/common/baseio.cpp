@@ -429,6 +429,195 @@ bool CConfig::CleanControlChars(char *str)
 	return change;
 }
 
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// Parameter Class
+//
+///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+// static data
+CParamStorage::CParamLoader	CParamStorage::cLoader;
+TslistDCT<CParamStorage>	CParamStorage::cParams;
+Mutex						CParamStorage::cLock;
+
+
+
+
+template <class T> T& CParam<T>::convert(const char* name, const T& value, CParamStorage &basestor)
+{
+	ScopeLock sl(CParamStorage::getMutex());
+	// get a reference to the parameter
+	CParamStorage &stor = CParamStorage::getParam(name);
+	CParamData<T>* tmp=NULL;
+
+	if( !stor.cParam.exists() )
+	{	// there is no data pointer
+		// create one
+		stor.cParam = tmp = new CParamData<T>(value);
+	}
+	else if( stor.cParam->getType() == typeid(T) )
+	{	// data has same type as requested, so can use it directly
+		tmp = dynamic_cast< CParamData<T>* >( (class CParamBase*)stor.cParam.get() );
+		// dynamic_cast is here because of my paranoia
+	}
+	else if( stor.cParam->getType() == typeid(MiniString) )
+	{	// otherwise we only accept MiniString to convert the data
+		//CParamData<MiniString> *old = dynamic_cast< CParamData<MiniString>* >( stor.cParam.operator->() );
+		// dynamic cast does not work here even if actually should, just hard cast it then
+		CParamData<MiniString> *old = (CParamData<MiniString>*)stor.cParam.get();
+		if( !old )
+			throw CException("Params: data conversion wrong type");
+		stor.cParam = tmp = new CParamData<T>(old->cData);
+		// this creation will change the pointer in the database
+		// and disconnect all existing references to this node
+	}
+	if(!tmp) throw CException("Params: data conversion failed");
+	// return a reference to the data and copy the storage
+	basestor = stor;
+	basestor.cTime++;
+	tmp->setReference();
+	return tmp->cData;
+}
+template <class T> T& CParam<T>::convert(const char* name, const char* value, CParamStorage &basestor)
+{
+	ScopeLock sl(CParamStorage::getMutex());
+	// get a reference to the parameter
+	CParamStorage &stor = CParamStorage::getParam(name);
+	CParamData<T>* tmp=NULL;
+	if( !stor.cParam.exists() )
+	{	// there is no data pointer
+		// create one
+		stor.cParam = tmp = new CParamData<T>(value);
+	}
+	else if( stor.cParam->getType() == typeid(T) )
+	{	// data has same type as requested, so can use it directly
+		tmp = dynamic_cast< CParamData<T>* >( (class CParamBase*)stor.cParam.get() );
+		// dynamic_cast is here because of my paranoia
+	}
+	else if( stor.cParam->getType() == typeid(MiniString) )
+	{	// otherwise we only accept MiniString to convert the data
+		//CParamData<MiniString> *old = dynamic_cast< CParamData<MiniString>* >( stor.cParam.operator->() );
+		CParamData<MiniString> *old = (CParamData<MiniString>*)stor.cParam.get();
+		if( !old )
+			throw CException("Params: data conversion wrong type");
+		stor.cParam = tmp = new CParamData<T>(old->cData);
+		// this creation will change the pointer in the database
+		// and disconnect all existing references to this node
+	}
+	if(!tmp) throw CException("Params: data conversion failed");
+	// return a reference to the data and copy the storage
+	basestor = stor;
+	basestor.cTime++;
+	tmp->setReference();
+	return tmp->cData;
+}
+///////////////////////////////////////////////////////////////////////////
+// create a new variable / overwrite the content of an existing
+template <class T> void CParam<T>::create(const char* name, const T& value)
+{
+	ScopeLock sl(CParamStorage::getMutex());
+	// get a reference to the parameter
+	CParamStorage &stor = CParamStorage::getParam(name);
+	if( !stor.cParam.exists() )
+	{	// there is no data pointer
+		// create one
+		stor.cParam = new CParamData<T>(value);
+	}
+	else if( stor.cParam->getType() == typeid(T) )
+	{	// data is of same type and can be used directly
+		CParamData<T>* tmp = dynamic_cast< CParamData<T>* >( (class CParamBase*)stor.cParam.get() );
+		if( tmp->cData != value )
+		{
+			tmp->cData = value;
+			stor.cTime = gettick();
+		}
+	}
+	else
+	{	// otherwise assign the new value
+		if( stor.cParam->assign(value) )
+			stor.cTime = gettick();
+	}
+}
+
+
+void parameertest()
+{
+	try {
+		double a, xx(141.30);
+		MiniString b="";
+		// create new param entry
+		createParam("double param", "0.2");
+		createParam("double param2", "0.2111");
+		createParam("double param3", "0.999");
+
+		CParam<MiniString> parameter2("double param", "0.0");
+
+		// create scope persistant object
+		CParam<double> parameter("double param", 0.0);
+
+		a=parameter;
+		printf("%lf %s\n", a, (const char*)b);
+
+		// modify param entry
+		createParam("double param", "0.4");
+
+		a=parameter;
+		printf("%lf %s\n", a, (const char*)b);
+
+		CParam<double> testvar("double param", 0.0);
+
+		a=parameter;
+		b=testvar;
+		printf("%lf %s\n", a, (const char*)b);
+
+		testvar = 5;
+		parameter = xx;
+
+		a=parameter;
+		b=testvar;
+		printf("%lf %s\n", a, (const char*)b);
+
+
+		printf("%s\n", typeid(testvar).name() );
+
+
+		CParam<int> testint("int param", 8);
+		CParam<MiniString> teststr("str param", "...test test...");
+
+		CParamStorage::loadFile("conf/login_athena.conf");
+
+		CParamStorage::listall();
+
+		CParamStorage::clean();
+		
+	}
+	catch ( CException e )
+	{
+		printf( "exception %s", (const char*)e );
+	}
+
+	CParamStorage::listall();
+
+	printf("\n");
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
 ///////////////////////////////////////////////////////////////////////////////
 // common structures
 ///////////////////////////////////////////////////////////////////////////////
@@ -558,70 +747,6 @@ void CCharAccount::_frombuffer(const unsigned char* &buf)
 
 
 
-
-
-///////////////////////////////////////////////////////////////////////////////
-#ifdef TXT_ONLY
-///////////////////////////////////////////////////////////////////////////////
-
-///////////////////////////////////////////////////////////////////////////////
-// basic class for using the old way timers
-///////////////////////////////////////////////////////////////////////////////
-class CTimerBase : public global, public noncopyable
-{
-	int cTimer;
-protected:
-	CTimerBase(unsigned long interval)
-	{
-		init(interval);
-	}
-	virtual ~CTimerBase()
-	{
-		if(cTimer>0)
-		{
-			delete_timer(cTimer, timercallback);
-			cTimer = -1;
-		}
-	}
-	bool init(unsigned long interval)
-	{
-		if(interval<1000)
-			interval = 1000;
-		cTimer = add_timer_interval(gettick()+interval, interval, timercallback, 0, intptr(this), false);
-		return (cTimer>=0);
-	}
-
-	// user function
-	virtual bool timeruserfunc(unsigned long tick) = 0;
-
-	// external calling from external timer implementation
-	static int timercallback(int timer, unsigned long tick, int id, intptr data)
-	{
-		if(data.ptr)
-		{
-			CTimerBase* base = (CTimerBase*)data.ptr;
-			if(timer==base->cTimer)
-			{
-				if( !base->timeruserfunc(tick) )
-				{
-					delete_timer(base->cTimer, timercallback);
-					base->cTimer = -1;
-				}
-			}
-		}
-		return 0;
-	}
-};
-
-
-///////////////////////////////////////////////////////////////////////////////
-#else// SQL
-///////////////////////////////////////////////////////////////////////////////
-
-
-///////////////////////////////////////////////////////////////////////////////
-#endif// SQL
-///////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -2176,8 +2301,8 @@ CREATE TABLE IF NOT EXISTS `char_skill` (
 		tempchar.head_top = 0;
 		tempchar.head_mid = 0;
 		tempchar.head_bottom = 0;
-		memcpy(&tempchar.last_point, &start_point, sizeof(start_point));
-		memcpy(&tempchar.save_point, &start_point, sizeof(start_point));
+		tempchar.last_point = start_point;
+		tempchar.save_point = start_point;
 
 
 		account.charlist[slot] = tempchar.char_id;

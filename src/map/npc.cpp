@@ -1172,6 +1172,13 @@ int npc_buylist(struct map_session_data &sd,unsigned short n,unsigned char *buff
 		if (nd->u.shop_item[j].nameid==0)
 			return 3;
 
+		if( itemdb_isSingleStorage(nd->u.shop_item[j].nameid) && amount > 1 )
+		{	//Exploit? You can't buy more than 1 of equipment types o.O
+			ShowWarning("Player %s (%d:%d) sent a hexed packet trying to buy %d of nonstackable item %d!\n",
+				sd.status.name, sd.status.account_id, sd.status.char_id, amount, nd->u.shop_item[j].nameid);
+			amount = 1;
+		}
+
 		if (itemdb_value_notdc(nd->u.shop_item[j].nameid))
 			z+=(nd->u.shop_item[j].value * amount);
 		else
@@ -2046,11 +2053,11 @@ int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4
 			for(i=0;i<ys;i++)
 			for(j=0;j<xs;j++) 
 			{
-					if (map_getcell(m, x - xs/2 + j, y - ys/2 + i, CELL_CHKNOPASS))
-						continue;
-					map_setcell(m, x - xs/2 + j, y - ys/2 + i, CELL_SETNPC);
-				}
+				if (map_getcell(m, x - xs/2 + j, y - ys/2 + i, CELL_CHKNOPASS))
+					continue;
+				map_setcell(m, x - xs/2 + j, y - ys/2 + i, CELL_SETNPC);
 			}
+		}
 		nd->u.scr.xs = xs;
 		nd->u.scr.ys = ys;
 	} 
@@ -2165,13 +2172,12 @@ int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4
 			else
 			{
 				struct event_data *ev;
-				struct event_data *ev2;
 				char *buf;
 				
 				buf=(char *)aMalloc( (3+strlen(nd->exname)+strlen(lname))*sizeof(char));
 				sprintf(buf,"%s::%s",nd->exname,lname);
-				ev2 = (struct event_data *)strdb_search(ev_db,buf);
-				if(ev2 != NULL) {
+				ev = (struct event_data *)strdb_search(ev_db,buf);
+				if(ev != NULL) {
 					ShowError("npc_parse_script : duplicate event %s\n",buf);
 					aFree(buf);
 				}

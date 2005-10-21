@@ -89,6 +89,7 @@ public:
 	virtual ~CDBProcessor()	{}
 	virtual bool process(void *key, void *data) const	{ return false; };
 };
+
 void db_foreach(struct dbt* table, const CDBProcessor& elem);
 void db_final(struct dbt* table, const CDBProcessor& elem=CDBProcessor());
 void db_final(struct dbt* table, int(*)(void*,void*));

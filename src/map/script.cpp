@@ -8001,7 +8001,7 @@ int buildin_guardianinfo(CScriptEngine &st)
 	struct guild_castle *gc=guild_mapname2gc(map[sd->bl.m].mapname);
 	st.push_val(CScriptEngine::C_INT,
 		(index>=0 && index<MAX_GUARDIAN && gc && gc->guardian[index].visible) ?
-		gc->guardian[index].guardian_hp : -1		
+		(int)gc->guardian[index].guardian_hp : -1		
 		);
 	return 0;
 }
@@ -8288,7 +8288,12 @@ int buildin_petheal(CScriptEngine &st)
 	if (pd->s_skill)
 	{	//Clear previous skill
 		if (pd->s_skill->timer != -1)
-			delete_timer(pd->s_skill->timer, pet_skill_support_timer);
+		{
+			if (pd->s_skill->id)
+				delete_timer(pd->s_skill->timer, pet_skill_support_timer);
+			else
+				delete_timer(pd->s_skill->timer, pet_heal_timer);
+		}
 	}
 	else //init memory
 		pd->s_skill = (struct pet_data::pet_skill_support *) aCalloc(1, sizeof(struct pet_data::pet_skill_support)); 
@@ -8374,7 +8379,12 @@ int buildin_petskillsupport(CScriptEngine &st)
 	if (pd->s_skill)
 	{ //Clear previous skill
 		if (pd->s_skill->timer != -1)
-			delete_timer(pd->s_skill->timer, pet_skill_support_timer);
+		{
+			if (pd->s_skill->id)
+				delete_timer(pd->s_skill->timer, pet_skill_support_timer);
+			else
+				delete_timer(pd->s_skill->timer, pet_heal_timer);
+		}
 	} else //init memory
 		pd->s_skill = (struct pet_data::pet_skill_support *) aCalloc(1, sizeof(struct pet_data::pet_skill_support)); 
 	

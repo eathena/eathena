@@ -16,7 +16,7 @@
 
 geffen.gat,84,189,6	script	Ses	815,{ 
  mes "[Ses]";
- If (BaseJob == 0) GOTO L_NOVICE;
+ if (BaseJob == 0) goto L_NOVICE;
  mes "Woo, hello! Fruit fruit!";
  mes "Sorry, I just love flowers, fruits and everything that makes me";
  mes "look more FRUITY!";
@@ -28,7 +28,7 @@ geffen.gat,84,189,6	script	Ses	815,{
  next;
  menu "Yes!",-,"No!",M_EXIT;
 
- If ((countitem(2278) < 1) || (countitem(975) < 1)) GOTO L_NOITEM;//Items: Mr. Smile, Scarlet Dyestuffs,
+ if ((countitem(2278) < 1) || (countitem(975) < 1)) goto L_NOITEM;//Items: Mr. Smile, Scarlet Dyestuffs,
  mes "[Ses]";
  mes "Yay! thanks! Pineapple!";
  mes "Here you go!";

@@ -3013,7 +3013,7 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 
 	short i;
 	short t_mode = status_get_mode(target), t_size = status_get_size(target);
-	short t_race=0, t_ele=0, s_race=0;	//Set to 0 because the compiler does not notices they are NOT gonna be used uninitialized
+	short t_race, t_ele, s_race;
 	short s_ele, s_ele_;
 	short def1, def2;
 	struct status_change *sc_data = status_get_sc_data(src);
@@ -5284,12 +5284,9 @@ int battle_check_target(struct block_list *src, struct block_list *target,int fl
 	m = target->m;
 	if (flag&BCT_ENEMY && !map[m].flag.gvg)	//Offensive stuff can't be casted on Basilica
 	{	// Celest
-		struct status_change *sc_data, *tsc_data;
-
-		sc_data = status_get_sc_data(src);
-		tsc_data = status_get_sc_data(target);
-		if ((sc_data && sc_data[SC_BASILICA].timer != -1) ||
-		(tsc_data && tsc_data[SC_BASILICA].timer != -1))
+		//No offensive stuff while in Basilica.
+		if (map_getcell(m,src->x,src->y,CELL_CHKBASILICA) ||
+			map_getcell(m,target->x,target->y,CELL_CHKBASILICA))
 			return -1;
 	}
 
@@ -5408,7 +5405,8 @@ int battle_check_target(struct block_list *src, struct block_list *target,int fl
 			return 1;
 		else
 			return -1;
-	}	
+	} else if (flag == BCT_NOONE) //Why would someone use this? no clue.
+		return -1;
 	
 	if (t_bl == s_bl) //No need for further testing.
 		return (flag&BCT_SELF)?1:-1;

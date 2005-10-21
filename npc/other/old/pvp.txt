@@ -899,7 +899,7 @@ prt_are_in.gat,93,86,4	script	Lancelot	125,{
 		close;
 }
 
-prt_are_in.gat,94,85,4	Zakkie	84,{
+prt_are_in.gat,94,85,4	script	Zakkie	84,{
 	mes "[Zakkie]";
 	mes "Welcome to Royal Rumble,the World of Fighters!";
 	mes "My name is Zakkie from Cool Event Corp.!";

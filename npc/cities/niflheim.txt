@@ -455,7 +455,7 @@ nif_in.gat,31,20,3	script	Kurtz	794,{
 	close;
 }
 
-niflheim.gat,169,71,5	script	#1	111,2,2{
+niflheim.gat,169,71,5	script	#1	111,2,2,{
 	if (nif_q_done == 1) end;
 	if (nif_quest4 == 1) end;
 
@@ -473,7 +473,7 @@ L_end:
 	close;
 }
 
-niflheim.gat,208,103,5	script	#2	111,2,2{
+niflheim.gat,208,103,5	script	#2	111,2,2,{
 	if (nif_q_done == 1) end;
 	if (nif_quest5 == 1) goto L_key2;
 	if (nif_quest5 >= 2) end;
@@ -503,7 +503,7 @@ L_end:
 	close;
 }
 
-nif_in.gat,115,181,5	script	#4	111,3,3{
+nif_in.gat,115,181,5	script	#4	111,3,3,{
 	mes "- You see a huge old piano -";
 	if (nif_q_done==0) mes "- with a few keys missing  -";
 	if (nif_q_done==1) mes "- with one key missing -";
@@ -529,7 +529,7 @@ L_event:
 	close;
 }
 
-nif_in.gat,118,151,5	script	#5	111,3,3{
+nif_in.gat,118,151,5	script	#5	111,3,3,{
 	if (nif_q_done != 1) end;
 
 	mes "- The very moment the long shadow -";

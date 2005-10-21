@@ -1015,18 +1015,19 @@ public:
 			if (sd.status.option & OPTION_HIDE && pc_isGM(sd) > 0)
 				return 0;
 		}
-		if (map[src.m].flag.gvg || map[src.m].flag.pvp)
-		{	// we freeze everybody except of ourselfes on pvp/gvg [veider]
-			skill_additional_effect(&src,&bl,skillid,skilllv,BF_MISC,tick);
-		}
-		else
-		{	
+		//It has been reported that Scream/Joke works the same regardless of woe-setting. [Skotlex]
+//		if (map[src.m].flag.gvg || map[src.m].flag.pvp)
+//		{	// we freeze everybody except of ourselfes on pvp/gvg [veider]
+//			skill_additional_effect(&src,&bl,skillid,skilllv,BF_MISC,tick);
+//		}
+//		else
+//		{	
 			if(battle_check_target(&src,&bl,BCT_ENEMY) > 0)
 				skill_additional_effect(&src,&bl,skillid,skilllv,BF_MISC,tick);
 			else if(battle_check_target(&src,&bl,BCT_PARTY) > 0 && rand()%100 < 10)
 				skill_additional_effect(&src,&bl,skillid,skilllv,BF_MISC,tick);
-		}
-		// so on non-pvp/gvg we are just freezing as freezed before
+//		}
+//		// so on non-pvp/gvg we are just freezing as freezed before
 		return 0;
 	}
 };
@@ -2141,13 +2142,12 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl,unsign
 		break;
 
 	case AS_GRIMTOOTH:
-		if (dstmd) {
+	{
 			struct status_change *sc_data = status_get_sc_data(bl);
 			if (sc_data && sc_data[SC_SLOWDOWN].timer == -1)
 				status_change_start(bl,SC_SLOWDOWN,0,0,0,0,1000,0);
-		}
 		break;
-
+	}
 	case HT_FREEZINGTRAP:	/* フリ?ジングトラップ */
 		if(dstmd || (dstsd && (map[bl->m].flag.pvp || map[bl->m].flag.gvg)) ) {
 			rate = skilllv*3 + 35;
@@ -4472,6 +4472,7 @@ int skill_castend_damage_id( struct block_list* src, struct block_list *bl, unsi
 			if (heal > 0){
 				struct block_list tbl;
 				tbl.id = 0;
+				tbl.type = BL_NUL;
 				tbl.m = src->m;
 				tbl.x = src->x;
 				tbl.y = src->y;
@@ -5475,10 +5476,11 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 				if(sd) clif_skill_fail(*sd,sd->skillid,0,0);
 				break;
 			}
-			clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
+			
 			if(status_isimmune(bl))
 				break;
-			if (sc_data && sc_data[SC_STONE].timer != -1) {
+			if (sc_data && sc_data[SC_STONE].timer != -1)
+			{
 				status_change_end(bl,SC_STONE,-1);
 				if (sd) {
 					fail_flag = 1;
@@ -5486,7 +5488,10 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 				}
 			}
 			else if( rand()%100 < skilllv*4+20 && !battle_check_undead(status_get_race(bl),status_get_elem_type(bl)))
+			{
+				clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
 				status_change_start(bl,SC_STONE,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
+			}
 			else if(sd) {
 				if (skilllv > 5) gem_flag = 0;
 				clif_skill_fail(*sd,skillid,0,0);
@@ -6226,7 +6231,7 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 		break;
 
 	case WE_CALLPARTNER:			/* あなたに?いたい */
-		if(sd && dstsd)
+		if(sd)
 		{
 			if((dstsd = pc_get_partner(*sd)) == NULL)
 			{
@@ -7248,7 +7253,7 @@ int skill_castend_pos2(struct block_list *src, int x,int y,unsigned short skilli
 			id = mob_once_spawn(sd, "this", x, y, sd->status.name, 1142, 1, "");
 			if( (md=(struct mob_data *)map_id2bl(id)) !=NULL ){
 				md->master_id = sd->bl.id;
-				md->hp = 2000 + skilllv * 400;
+				md->max_hp=md->hp = 2000 + skilllv * 400;
 				md->state.special_mob_ai = 2;
 				md->deletetimer = add_timer (gettick() + skill_get_time(skillid,skilllv), mob_timer_delete, id, 0);
 			}
@@ -7656,6 +7661,8 @@ struct skill_unit_group *skill_unitsetting(struct block_list *src, unsigned shor
 				clif_changemapcell(src->m,ux,uy,GAT_GROUND,0);
 			}
 		}
+		if(alive && map_getcell(src->m,ux,uy,CELL_CHKWALL))
+			alive = 0;
 
 		if(alive){
 			nullpo_retr(NULL, unit=skill_initunit(group,i,ux,uy));
@@ -8193,7 +8200,6 @@ int skill_unit_onout(struct skill_unit *src,struct block_list *bl,unsigned long 
 			sc_data[type].timer = add_timer(20000+tick, status_change_timer, bl->id, type);
 		}
 		break;		
-
 	case UNT_BASILICA:	// Basilica
 	case UNT_GRAVITATION:	// Gravitation
 		if (sc_data[type].timer!=-1 && sc_data[type].val4.ptr==sg) {
@@ -8202,24 +8208,22 @@ int skill_unit_onout(struct skill_unit *src,struct block_list *bl,unsigned long 
 		break;
 
 	case UNT_FOGWALL:
-		{
-			if (sc_data[type].timer!=-1 && sc_data[type].val4.ptr==sg) {
-				status_change_end(bl,SC_FOGWALL,-1);
-				if (sc_data && sc_data[SC_BLIND].timer!=-1)
-					sc_data[SC_BLIND].timer = add_timer(
-						gettick() + 30000, status_change_timer, bl->id, 0);
-			}		
-			break;
-		}
+		if (sc_data[type].timer!=-1 && sc_data[type].val4.ptr==sg) {
+			status_change_end(bl,SC_FOGWALL,-1);
+			if (sc_data && sc_data[SC_BLIND].timer!=-1)
+				sc_data[SC_BLIND].timer = add_timer(
+					gettick() + 30000, status_change_timer, bl->id, 0);
+		}		
+		break;
 
 	case UNT_SPIDERWEB:	/* スパイダ?ウェッブ */
-		{
-			struct block_list *target = map_id2bl(sg->val2);
-			if (target && target==bl)
-				status_change_end(bl,SC_SPIDERWEB,-1);
-			sg->limit = DIFF_TICK(tick,sg->tick)+1000;
-			break;
-		}
+	{
+		struct block_list *target = map_id2bl(sg->val2);
+		if (target && target==bl)
+			status_change_end(bl,SC_SPIDERWEB,-1);
+		sg->limit = DIFF_TICK(tick,sg->tick)+1000;
+		break;
+	}
 
 /*	default:
 		if(battle_config.error_log)
@@ -9542,7 +9546,7 @@ int skill_castcancel (struct block_list *bl, int type)
 			if(td && td->data.isptr)
 			{
 				aFree((struct cast_end_delay*)td->data.ptr);
-				td->data = NULL;
+				td->data = 0;
 			}
 		}
 		//The timer is not deleted as the pet's attack will be resumed.

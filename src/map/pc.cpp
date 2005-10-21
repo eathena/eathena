@@ -3150,6 +3150,12 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 	pc_stop_walking(sd,0);		// •às’†’f
 	pc_stopattack(sd);			// UŒ‚’†’f
 
+	// Delete timer before the player moved to hise repawn point
+	if (sd.pvp_timer != -1 && !battle_config.pk_mode) {
+		delete_timer(sd.pvp_timer, pc_calc_pvprank_timer);
+		sd.pvp_timer = -1;
+	}
+
 	for(i=0; i<5; i++)
 	{
 		if(sd.dev.val1[i])

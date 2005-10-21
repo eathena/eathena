@@ -2163,8 +2163,15 @@ public:
 	//				md.bl.m, ((int)md.bl.x)-AREA_SIZE, ((int)md.bl.y)-AREA_SIZE, ((int)md.bl.x)+AREA_SIZE, ((int)md.bl.y)+AREA_SIZE, BL_MOB,
 	//				&md, &asd->bl);
 			}
-			else //If the target is not reachable, unlock it. [Skotlex]
+			else 
+			{	//target is not reachable, unlock it. [Skotlex]
 				mob_unlocktarget(md, tick);
+				if (md.state.skillstate == MSS_CHASE)
+				{	//Confused!
+					mob_stop_walking(md, 0);
+					clif_emotion(md.bl, 1);
+				}
+			}
 		}
 		// It checks to see it was attacked first (if active, it is target change at 25% of probability).
 		if( mode>0 && 
@@ -2172,7 +2179,9 @@ public:
 			(!md.target_id || md.state.targettype == NONE_ATTACKABLE || ( (mode&0x04) && rand()%100<25)) )
 		{
 			struct block_list *abl = map_id2bl(md.attacked_id);
-			if (abl)
+			if (!abl) //Target gone.
+				md.attacked_id = 0;
+			else
 			{
 				dist = distance(md.bl.x, md.bl.y, abl->x, abl->y);
 				               

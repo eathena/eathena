@@ -114,7 +114,7 @@ L4:
 		mes "Thank you for using our service.";
 		goto L_EXIT;
 	L4_1:
-		If(getskilllv(39) == 0) goto Lerror4_4;
+		if(getskilllv(39) == 0) goto Lerror4_4;
 		if (Zeny < 800) goto Lerror4_2;
 		set Zeny,Zeny-800;
 		setcart;
@@ -402,7 +402,7 @@ L3_error:
 // Guardian Installation
 //================================================
 L4:
-	If(getskilllv(10002) == 0) goto L4Error;
+	if(getskilllv(10002) == 0) goto L4Error;
 	set @Defence,GetCastleData("prtg_cas03.gat",3);
 	set @Guardian0,guardianinfo(0);
 	set @Guardian1,guardianinfo(1);
@@ -521,7 +521,7 @@ L5:
 //================================================
 //(When Kafra is off) Employment
 //================================================
-	If(getskilllv(10001) == 0) goto L_k_a;
+	if(getskilllv(10001) == 0) goto L_k_a;
 	mes "[ Stick ]";
 	mes "Would you like to employ the services of a Kafra Service?";
 	mes "^ff0000 You need 10,000 Zeny to employ... ";

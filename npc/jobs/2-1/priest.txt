@@ -14,7 +14,7 @@
 //= Fully working.  Changed the way Priests enter the test room to help Acos.
 //= Must use this with the included Acolyte quest to work properely.
 //= 1.3 Added Baby Class support, fixed 3 wrong constants bugs [Lupus]
-==========================================================
+//==========================================================
 
 
 //*********************************************************************************************************************************************************************************\\

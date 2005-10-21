@@ -3117,7 +3117,7 @@ int status_get_dmotion(struct block_list *bl)
 		(bl->type == BL_PC && ((struct map_session_data *)bl)->state.infinite_endure)) )
 		ret=0;
 	else	//Let's apply a random damage modifier to prevent 'stun-lock' abusers. [Skotlex]
-		ret = ret*(95+rand()%10)/100;	//Currently: +/- 5%
+		ret = ret*(85+rand()%31)/100;	//Currently: +/- 15%
 	return ret;
 }
 

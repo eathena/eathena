@@ -332,7 +332,7 @@ prontera.gat,140,172,5	script	Zac	704,{
 }
 
 
-prontera.gat,141,172,5	script 	Jac	107,{
+prontera.gat,141,172,5	script	Jac	107,{
 	mes "[Jac]";
 	mes "I am the 2nd oldest and calmest of the 4 brothers that makes all the newer hats.";
 	mes "You will need to bring me the correct items for each hat so I can make them.";
@@ -645,7 +645,7 @@ prontera.gat,141,172,5	script 	Jac	107,{
 			close;
 }
 
-prontera.gat,142,172,5	script 	Pac	705,{
+prontera.gat,142,172,5	script	Pac	705,{
 	mes "[Pac]";
 	mes "I am 3rd oldest and wisest of the 4 brothers that makes all the newer hats.";
 	mes "You will need to bring me the correct items for each hat so I can make them.";
@@ -973,7 +973,7 @@ prontera.gat,142,172,5	script 	Pac	705,{
 			close;
 }
 
-prontera.gat,143,172,5	script 	Blac	732,{
+prontera.gat,143,172,5	script	Blac	732,{
 	mes "[Blac]";
 	mes "I am the youngest and sexiest of the 4 brothers that makes all the newer hats.";
 	mes "You will need to bring me the correct items for each hat so I can make them.";
@@ -1292,7 +1292,7 @@ prontera.gat,143,172,5	script 	Blac	732,{
 			close;
 }
 
-prontera.gat,144,172,5	script 	Angel	811,{
+prontera.gat,144,172,5	script	Angel	811,{
 	mes "[Angel]";
 	mes "Hello.";
 	mes "Im the hottest angel in Midgard!";

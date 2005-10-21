@@ -153,7 +153,7 @@ geffen_in.gat,30,71,4	script	Eric	83,{
 
 	M_Make:
 		mes "[Eric]";
-		if(countitem(999) < 40) || (countitem(984) < 1) || (countitem(970)<1) || (countitem(1003) < 1) goto L_NotEnuf;
+		if((countitem(999) < 40) || (countitem(984) < 1) || (countitem(970)<1) || (countitem(1003) < 1)) goto L_NotEnuf;
 		mes "Oh this is GREAT!! You have all of the materials I need to make my grandfather's Headset!";
 		emotion 5;
 		next;

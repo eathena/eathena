@@ -1732,7 +1732,7 @@ private:
 		MYSQL_RES *sql_res=NULL;
 		MYSQL_ROW sql_row;
 		char tmp_sql [1024];
-		char t_name[100];
+		char t_name[128];
 
 		mysql_real_escape_string(&mysql_handle, t_name, tempchar.name, strlen(tempchar.name));
 
@@ -1912,8 +1912,8 @@ private:
 		tempchar.head_top = 0;
 		tempchar.head_mid = 0;
 		tempchar.head_bottom = 0;
-		memcpy(&tempchar.last_point, &start_point, sizeof(start_point));
-		memcpy(&tempchar.save_point, &start_point, sizeof(start_point));
+		tempchar.last_point = start_point;
+		tempchar.save_point = start_point;
 
 
 		account.charlist[slot] = tempchar.char_id;

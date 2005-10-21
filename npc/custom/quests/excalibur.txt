@@ -64,5 +64,5 @@ goto ExMenu;
         mes "[Excalibur Quest Rep]";
 	mes "Good bye then. Hope you try the quest!";
         close;
-close;    }
 }
+

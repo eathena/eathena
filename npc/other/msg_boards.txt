@@ -17,7 +17,7 @@
 //=======================================================================//
 // 				Al De Baran				//
 //=======================================================================//
-/ Welcome Sign ------------------------------------------------
+// Welcome Sign ------------------------------------------------
 aldebaran.gat,133,104,1	script	Welcome Sign	111,{
   mes "~sign reads....~";
   mes "Hello and enjoy your visit to Aldebaran! Aldebaran is the mystical city of clocks and Kafras!";

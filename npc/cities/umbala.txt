@@ -1634,7 +1634,7 @@ LumWord:
 //==============================================================================
 //Bungee jumping!
 //==============================================================================
-//umbala.gat,140,197,0	script	#Shibonochikka	139,0,1,{
+umbala.gat,140,197,0	script	#Shibonochikka	139,0,1,{
 set @jumprand,rand(4);
 if (@jumprand == 1) goto L1;
 if (@jumprand == 2) goto L2;

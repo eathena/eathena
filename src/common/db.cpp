@@ -547,7 +547,7 @@ void* db_erase(struct dbt *table,void* key)
 		else
 			p=p->right;
 	}
-	if(!p)
+	if(!p || p->deleted)
 		return NULL;
 	data=p->data;
 	if(table->free_lock)

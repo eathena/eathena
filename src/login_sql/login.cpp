@@ -16,9 +16,7 @@
 #include "showmsg.h"
 #include "strlib.h"
 
-#ifdef PASSWORDENC
 #include "md5calc.h"
-#endif
 
 #include <mysql.h>
 ///////////////////////////////////////////////////////////////////////////////
@@ -433,7 +431,6 @@ int mmo_auth( struct mmo_account* account , int fd)
 			jstrescapecpy(user_password, account->passwd);
 		}
 		ShowMessage("account id ok encval:%d\n",account->passwdenc);
-#ifdef PASSWORDENC
 		if (account->passwdenc > 0) {
 			int j = account->passwdenc;
 			ShowMessage ("start md5calc..\n");
@@ -454,11 +451,9 @@ int mmo_auth( struct mmo_account* account , int fd)
 			ShowMessage("client [%s] accountpass [%s]\n", user_password, sql_row[2]);
 			ShowMessage ("end md5calc..\n");
 		}
-#endif
 		if ((strcmp(user_password, sql_row[2]) && !encpasswdok)) {
 			if (account->passwdenc == 0) {
 				ShowMessage ("auth failed pass error %s %s %s" RETCODE, tmpstr, account->userid, user_password);
-#ifdef PASSWORDENC
 			} else {
 				char logbuf[1024], *p = logbuf;
 				int j;
@@ -473,7 +468,6 @@ int mmo_auth( struct mmo_account* account , int fd)
 					p += sprintf(p, "%02x", ((unsigned char *)md5key)[j]);
 				p += sprintf(p, "]" RETCODE);
 				ShowMessage("%s\n", p);
-#endif
 			}
 			return 1;
 		}
@@ -1133,11 +1127,7 @@ int parse_login(int fd)
 			account.version = RFIFOL(fd, 2);
 			account.userid = (char*)RFIFOP(fd, 6);
 			account.passwd = (char*)RFIFOP(fd, 30);
-#ifdef PASSWORDENC
 			account.passwdenc= (RFIFOW(fd,0)==0x64)?0:PASSWORDENC;
-#else
-			account.passwdenc=0;
-#endif
 			result=mmo_auth(&account, fd);
 			
 			jstrescapecpy(t_uid,(char*)RFIFOP(fd, 6));

@@ -42,7 +42,7 @@ prontera.gat,150,185,0	script	ev_mobテスト	116,{
 
 // ----------MOBによるイベント駆動のサンプル2-------------
 // 倒すとイベント「event_test3」を起こすモンスターの[配置]
-prontera.gat,150,180,0	monster	Event_Mob	1008,1,0,0,event_test3
+prontera.gat,150,180	monster	Event_Mob	1008,1,0,0,event_test3
 
 // ----------タイマによるイベント駆動のサンプル -------------
 // クリックすると５秒後にラベル「OnTimer」を実行するNPC
@@ -112,14 +112,14 @@ prontera.gat,150,185,0	script	event_test	-1,{
 
 // ----------イベントで、エリアを指定したサンプル------------
 // (155,185)から半径5セル以内でイベント「event_test2」が起こると実行される
-prontera.gat,155,180,0	script	event_test2	-1,5,5 {
+prontera.gat,155,180,0	script	event_test2	-1,5,5,{
 	announce "５セル以内でクリックしましたね",19;
 	close;
 }
 
 // ----------イベントで、エリアを-1にしたサンプル------------
 // 同じマップ鯖でイベント「event_test3」が起こると実行される
-prontera.gat,150,180,0	script	event_test3	-1,-1,-1 {
+prontera.gat,150,180,0	script	event_test3	-1,{
 	mes "配置MOB倒しましたね";
 	close;
 }

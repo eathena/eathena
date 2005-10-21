@@ -1116,7 +1116,7 @@ break;
 //necessary functions from the rest of the      //
 //script.                                       //
 //**********************************************//
-function	script	kaframain	-1,{
+function	script	kaframain	{
 cutin @cutinpic$,2;
 mes "[Kafra Employee]";
 mes "Welcome to Kafra Corporation. The Kafra services are always by your side.";
@@ -1165,7 +1165,7 @@ break;
 //This will handle the save function for all the//
 //kafras.                                       //
 //**********************************************//
-function	script	kafrasave	-1,{
+function	script	kafrasave	{
 if (@save == 1) goto Lsavein;
 mes "[Kafra]";
 mes "Where would you like to save?";
@@ -1192,7 +1192,7 @@ Lsaveout:
 //This will handle the storage functions for    //
 //all the kafras.                               //
 //**********************************************//
-function	script	kafrastorage	-1,{
+function	script	kafrastorage	{
 if (getskilllv(1) < 6) goto NeedJobLevel;
 if (Zeny < 30) goto NeedZenys;
 set specialreserve,specialreserve + 30;
@@ -1221,7 +1221,7 @@ NeedZenys:
 //This will handle all the actual warping and   //
 //the payment of Zeny                           //
 //**********************************************//
-function	script	kafrawarps	-1,{
+function	script	kafrawarps	{
 mes "[Kafra]";
 mes "Please choose your destination.";
 next;
@@ -1331,7 +1331,7 @@ Lcancel:
 //This will handle the cart rental function for //
 //all the Kafras.                               //
 //**********************************************//
-function	script	kafracart	-1,{
+function	script	kafracart	{
 if ((class == Job_Merchant) || (class == Job_Blacksmith) || (class == Job_Alchem) || (class == Job_Merchant_High) || (class == Job_Whitesmith) || (class == Job_Creator)) goto Lrentcart;
 mes "[Kafra]";
 mes "Sorry this service is only provided for Merchant classes.";
@@ -1380,7 +1380,7 @@ Lcancel:
 //such as your kafra points and the locations of//
 //other kafras.                                 //
 //**********************************************//
-function	script	kafrainfo	-1,{
+function	script	kafrainfo	{
 if (@kaflocations == 1) goto Lfullmenu;
 menu "Check Special Reserve Points",Lreserve,"Cancel",Lcancel;
 
@@ -1426,7 +1426,7 @@ Lcancel:
 //This will empty all possible variables and end//
 //the kafra scripts.                            //
 //**********************************************//
-function	script	kafraend	-1,{
+function	script	kafraend	{
 set @warps,0;
 set @save,0;
 set @special,0;
@@ -1501,141 +1501,141 @@ aldeba_in.gat,79,161,6	script	Kafra	115,{
 	mes "Your special reserve is ^FF0000" + specialreserve + "^000000~";
 	mes "Please choose the items you want.";
 	next;
-	menu "100 = Carrot 7 ea",100,"200 = Carrot 15 ea",200,"300 = Carrot 25 ea",300,"400 = Carrot 35 ea",400,"500 = Carrot 50 ea",500,"600 = Carrot 60 ea",600,"700 = Carrot 75 ea",700,"800 = Carrot 85 ea",800,"900 = Carrot 100 ea",900,"1000 = 1st Lotery Chance!",1000,"Next Articles",L0,"Cancel",LEnd;
+	menu "100 = Carrot 7 ea",L100,"200 = Carrot 15 ea",L200,"300 = Carrot 25 ea",L300,"400 = Carrot 35 ea",L400,"500 = Carrot 50 ea",L500,"600 = Carrot 60 ea",L600,"700 = Carrot 75 ea",L700,"800 = Carrot 85 ea",L800,"900 = Carrot 100 ea",L900,"1000 = 1st Lotery Chance!",L1000,"Next Articles",L0,"Cancel",LEnd;
 
-	100:
+	L100:
 		if(specialreserve < 100) goto Lneedpoints;
 		mes "[Kafra]";
 		mes "Good choice... Here ya go.";
 		getitem 515,7;
 		set specialreserve,specialreserve - 100;
 		close;
-	200:
+	L200:
 		if(specialreserve < 200) goto Lneedpoints;
 		mes "[Kafra]";
 		mes "Good choice... Here ya go.";
 		getitem 515,15;
 		set specialreserve,specialreserve - 200;
 		close;
-	300:
+	L300:
 		if(specialreserve < 300) goto Lneedpoints;
 		mes "[Kafra]";
 		mes "Good choice... Here ya go.";
 		getitem 515,25;
 		set specialreserve,specialreserve - 300;
 		close;
-	400:
+	L400:
 		if(specialreserve < 400) goto Lneedpoints;
 		mes "[Kafra]";
 		mes "Good choice... Here ya go.";
 		getitem 515,35;
 		set specialreserve,specialreserve - 400;
 		close;
-	500:
+	L500:
 		if(specialreserve < 500) goto Lneedpoints;
 		mes "[Kafra]";
 		mes "Good choice... Here ya go.";
 		getitem 515,50;
 		set specialreserve,specialreserve - 500;
 		close;
-	600:
+	L600:
 		if(specialreserve < 600) goto Lneedpoints;
 		mes "[Kafra]";
 		mes "Good choice... Here ya go.";
 		getitem 515,60;
 		set specialreserve,specialreserve - 600;
 		close;
-	700:
+	L700:
 		if(specialreserve < 700) goto Lneedpoints;
 		mes "[Kafra]";
 		mes "Good choice... Here ya go.";
 		getitem 515,75;
 		set specialreserve,specialreserve - 700;
 		close;
-	800:
+	L800:
 		if(specialreserve < 800) goto Lneedpoints;
 		mes "[Kafra]";
 		mes "Good choice... Here ya go.";
 		getitem 515,85;
 		set specialreserve,specialreserve - 800;
 		close;
-	900:
+	L900:
 		if(specialreserve < 900) goto Lneedpoints;
 		mes "[Kafra]";
 		mes "Good choice... Here ya go.";
 		getitem 515,100;
 		set specialreserve,specialreserve - 900;
 		close;
-	1000:
+	L1000:
 		mes "^FF0000Under Construction^000000";
 		close;
 	L0:
-		menu "1100 = Red Potion 7 ea",1100,"1300 = Red Potion 15 ea",1300,"1500 = Red Potion 25 ea",1500,"1700 = Red Potion 35 ea",1700,"1900 = Red Potion 50 ea",1900,"2100 = Red Potion 60 ea",2100,"2300 = Red Potion 75 ea",2300,"2500 = Red Potion 85 ea",2500,"2800 = Red Potion 100 ea",2800,"3000 = 2nd Lotery Chance!",3000,"Cancel",EndL0;
+		menu "1100 = Red Potion 7 ea",L1100,"1300 = Red Potion 15 ea",L1300,"1500 = Red Potion 25 ea",L1500,"1700 = Red Potion 35 ea",L1700,"1900 = Red Potion 50 ea",L1900,"2100 = Red Potion 60 ea",L2100,"2300 = Red Potion 75 ea",L2300,"2500 = Red Potion 85 ea",L2500,"2800 = Red Potion 100 ea",L2800,"3000 = 2nd Lotery Chance!",L3000,"Cancel",EndL0;
 		
-		1100:
+		L1100:
 			if(specialreserve < 1100) goto Lneedpoints;
 			mes "[Kafra]";
 			mes "Good choice... Here ya go.";
 			getitem 501,7;
 			set specialreserve,specialreserve - 1100;
 			close;
-		1300:
+		L1300:
 			if(specialreserve < 1300) goto Lneedpoints;
 			mes "[Kafra]";
 			mes "Good choice... Here ya go.";
 			getitem 501,15;
 			set specialreserve,specialreserve - 1300;
 			close;
-		1500:
+		L1500:
 			if(specialreserve < 1500) goto Lneedpoints;
 			mes "[Kafra]";
 			mes "Good choice... Here ya go.";
 			getitem 501,25;
 			set specialreserve,specialreserve - 1500;
 			close;
-		1700:
+		L1700:
 			if(specialreserve < 1700) goto Lneedpoints;
 			mes "[Kafra]";
 			mes "Good choice... Here ya go.";
 			getitem 501,35;
 			set specialreserve,specialreserve - 1700;
 			close;
-		1900:
+		L1900:
 			if(specialreserve < 1900) goto Lneedpoints;
 			mes "[Kafra]";
 			mes "Good choice... Here ya go.";
 			getitem 501,50;
 			set specialreserve,specialreserve - 1900;
 			close;
-		2100:
+		L2100:
 			if(specialreserve < 2100) goto Lneedpoints;
 			mes "[Kafra]";
 			mes "Good choice... Here ya go.";
 			getitem 501,60;
 			set specialreserve,specialreserve - 2100;
 			close;
-		2300:
+		L2300:
 			if(specialreserve < 2300) goto Lneedpoints;
 			mes "[Kafra]";
 			mes "Good choice... Here ya go.";
 			getitem 501,75;
 			set specialreserve,specialreserve - 2300;
 			close;
-		2500:
+		L2500:
 			if(specialreserve < 2500) goto Lneedpoints;
 			mes "[Kafra]";
 			mes "Good choice... Here ya go.";
 			getitem 501,85;
 			set specialreserve,specialreserve - 2500;
 			close;
-		2800:
+		L2800:
 			if(specialreserve < 2800) goto Lneedpoints;
 			mes "[Kafra]";
 			mes "Good choice... Here ya go.";
 			getitem 501,100;
 			set specialreserve,specialreserve - 2800;
 			close;
-		3000:
+		L3000:
 			mes "^FF0000Under Construction^000000";
 			close;
 Lend:

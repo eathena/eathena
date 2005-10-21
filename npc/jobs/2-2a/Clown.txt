@@ -14,6 +14,6 @@
 //============================================================ 
 
 // -== Clown ==-
-valkyrie.gat,53,54,4z	script	Clown	741,{
+valkyrie.gat,53,54,4	script	Clown	741,{
 	callfunc "F_Rebirth",27,"High Archer",43,"Clown",147,148,0,0;
 }

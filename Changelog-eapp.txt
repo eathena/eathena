@@ -1,4 +1,30 @@
 Date	Added
+10/21	* adding parts of the new script engine, currently only in form of a simple script checker
+	  the provided pre-compiled w32 version (needs zlib1.dll from precompiled zlib folder)
+	  only does basic syntax checks, which might be enought for testing purpose
+	  the folloing stages of parse tree transformation and compiling are disabled 
+	  since those outputs are currently only interesting for debugging
+	  use syntax: "eascriptchk [optional engine file] <file or folder to check>"
+	  if using folders it parses all encountered files that contain 'txt' in the name from all subdirectories
+	  note that this is more like a preview to the development direction than a full featured tool
+	! compilation of the script checker is not possible since I cannot provide my standard environment
+	  for public use at the moment
+	+ implemented is the complete set of current script syntax (if I interpreted all the informations right)
+	  additionally the engine understands C syntax without pointers and some C++ (ie. member functions on function return values)
+	  feel free to experiment with it, for those able to read grammar, yacc file is included
+	+ the only change to the current engine is that the synatx is case sensitive and key words need to be lower case
+	  (like 'if', 'goto', 'while', 'for' etc.), scope depth and expression complexity is not limited
+	+ since 'if' is now a keyword instead of beeing a buildin function it always needs brackets around the parameters
+	  constructions like "if (a) || (b) || (c) goto somewhere;" as used at some places of the code are invalid now
+	+ very problematic are script/mob/warp/shop headers in the current form since those headers do not allow 
+	  context free parsing, they instead slow down the parsing roughly by factor 10 to 20
+	  therefore a modification of the current grammar might be advisable, I will come up with a suggestion 
+	  for discussion after having a look at the lua thing to prevent possible double work; 
+	  in any case of script syntax modification, automatic conversion from old to new syntax would be supplied
+	* the npc folder in eapp has been checked and a bunch of (more or less critical) errors removed
+	* some smaller edits and only very few copies from stable; 
+	  stable seems now to become more and more incomatible to its former structures
+	  I guess I have to look up an new definition of "feature freeze", maybe it's "features <until you> freeze"... [Shinomori]
 10/07
 	* added database interace and txt implementation for party, guild, castle,
 	  pcstorage and guildstorage, 

@@ -91,11 +91,11 @@ prontera.gat,146,87,6	script	Kafra Corp. Rep.#1::KCRep	83,{
 
 
 // Geffen ------------------------------------------------------------------------------------------------------------------------------------------
-geffen.gat,116,62,2	duplicate(KCRep)	Kafra Corp. Rep.#2	83,
+geffen.gat,116,62,2	duplicate(KCRep)	Kafra Corp. Rep.#2	83
 // Morroc ------------------------------------------------------------------------------------------------------------------------------------------
-morocc.gat,154,97,4	duplicate(KCRep)	Kafra Corp. Rep.#3	83,
+morocc.gat,154,97,4	duplicate(KCRep)	Kafra Corp. Rep.#3	83
 // Alberta ------------------------------------------------------------------------------------------------------------------------------------------
-alberta.gat,26,229,1	duplicate(KCRep)	Kafra Corp. Rep.#4	83,
+alberta.gat,26,229,1	duplicate(KCRep)	Kafra Corp. Rep.#4	83
 // Payon ------------------------------------------------------------------------------------------------------------------------------------------
-payon.gat,184,104,4	duplicate(KCRep)	Kafra Corp. Rep.#5	83,
+payon.gat,184,104,4	duplicate(KCRep)	Kafra Corp. Rep.#5	83
 
