@@ -10458,7 +10458,7 @@ int skill_split_atoi(char *str,int *val)
 
 		if (j == 1)
 		{	//Found the linearity
-			for(; i < MAX_SKILL_DB; i++)
+			for(; i < MAX_SKILL_LEVEL; i++)
 			{
 				val[i] = val[i-2]+diff;
 				if (val[i] < 1) { val[i] = 1; diff = 0; }

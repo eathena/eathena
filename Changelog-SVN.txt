@@ -1,6 +1,7 @@
 Date	Added
 ==========
 2005/10/21
+	* Fixed a screwup in skill_split_atoi which was corrupting the skill db. [Skotlex]
 	* Free up block chunks allocated by the memory manager when shutting down [celest]
 	* Updated packets in packet_db and clif.c [celest]
 2005/10/20
