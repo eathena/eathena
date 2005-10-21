@@ -1,6 +1,13 @@
 Date	Added
 ==========
 2005/10/21
+	* Updated skill_split_atoi to guess linear increases up to half of the data
+	  provided. This means it can understand the more complex cast times of
+	  skills such as Meteor and Soul Strike. If you provide the data of ten
+	  levels, then it will check for patterns up to 5 steps long (meaning that
+	  the diff between 1 and 6 is the same as the diff between 2 and 7 and so on,
+	  and if they all match, the tested pattern is applied all the way to level
+	  100) [Skotlex]
 	* Some modifications to Magic Power, it should hopefully be working now. [Skotlex]
 	* Cleanups and fixes to Tarot Card. [Skotlex]
 	* Fixed a screwup in skill_split_atoi which was corrupting the skill db. [Skotlex]
