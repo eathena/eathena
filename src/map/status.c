@@ -4125,6 +4125,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_INTFOOD:
 		case SC_DEXFOOD:
 		case SC_LUKFOOD:
+		case SC_RUN://‹ì‚¯‘«
 			calc_flag = 1;
 			break;
 
@@ -4175,9 +4176,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_ARMOR_ELEMENT:
 		case SC_HIGHJUMP:
 		case SC_MODE:
-			break;
-		case SC_RUN://‹ì‚¯‘«
-			calc_flag = 1;
+		case SC_LONGING:
 			break;
 
 		default:
