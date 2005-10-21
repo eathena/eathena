@@ -9674,8 +9674,9 @@ int do_final_script()
 {
 	if(mapreg_dirty>=0)
 		script_save_mapreg();
-	if(script_buf)
-		aFree(script_buf);
+// Unknown... the script buf usually is assigned elsewhere...
+//	if(script_buf)
+//		aFree(script_buf);
 
 	if(mapreg_db)
 		numdb_final(mapreg_db,mapreg_db_final);
