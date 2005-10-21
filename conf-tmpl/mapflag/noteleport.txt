@@ -2,7 +2,7 @@
 //= Map flags that disable use of fly wings
 //===== By: ==================================================
 //= eAthena Dev Team
-//= 1.3 [Lupus]
+//= 1.4 [Lupus]
 //===== Notes: ===============================================
 //= For disabling Butterfly wings use noreturn
 //===== Current Version: =====================================
@@ -69,7 +69,14 @@ jupe_core.gat	mapflag	noteleport
 jupe_ele.gat	mapflag	noteleport
 jupe_ele_r.gat	mapflag	noteleport
 jupe_gate.gat	mapflag	noteleport
-
+tha_t07.gat	mapflag	noteleport
+tha_t08.gat	mapflag	noteleport
+tha_t09.gat	mapflag	noteleport
+tha_t10.gat	mapflag	noteleport
+tha_t11.gat	mapflag	noteleport
+tha_t12.gat	mapflag	noteleport
+thana_step.gat	mapflag	noteleport
+thana_boss.gat	mapflag	noteleport
 
 // Job Quests ====================
 sword_1-1.gat	mapflag	noteleport

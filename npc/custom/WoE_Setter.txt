@@ -175,12 +175,12 @@ L_End:
 	if(agitcheck(0)==0) end;
 	Announce "The War Of Emperium is over!",8;
 	AgitEnd;
-	Break;
+	end;
 
 // Start WoE
 L_Start:
 	if(agitcheck(0)==1) end;
 	Announce "The War Of Emperium has begun!",8;
 	AgitStart;
-	Break;
+	end;
 }

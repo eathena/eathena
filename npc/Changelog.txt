@@ -24,6 +24,9 @@ Massdriller
 Date		Added
 ======
 10/19
+	* Thanks to Justin84:
+	- Updated Thanatos Tower warps, added NOTELEPORT to some thanatos tower levels
+	- Fixed custom WoE Setter (break; -> end;)
 	* Updated some Airport warps as provided by Justin84 [Skotlex]
 	* Updated and fixed Sage Job Quest [Lupus]
 	* Fine-tuned the warp in Thanatos lv11 (tha_t11.gat,92,32 ->

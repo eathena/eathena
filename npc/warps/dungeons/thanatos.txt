@@ -1,16 +1,17 @@
 //===== Athena Script ========================================
 //= Thanatos Tower Warp Script
 //===== By: ==================================================
-//= Bibilol & Moryagorn  (2.0)
+//= Bibilol & Moryagorn  (1.0)
 //===== Current Version: =====================================
-//= 2.0
+//= 1.3
 //===== Compatible With: =====================================
 //= Any Athena Version; RO Episode 10+
 //===== Description: =========================================
 //= Warp Points for Thanatos Tower
 //===== Additional Comments: =================================
 //= It's just Temp warps [Lupus]
-//= 2.0 Updated to level tha_t12.gat
+//= 1.2 Updated to level tha_t12.gat
+//= 1.3 Some warps changes due to official info [Justin84]
 //============================================================
 
 // Affiliated Files : tha_statues.txt
@@ -26,12 +27,35 @@ tha_t03.gat,220,165,0	warp	tha_t02	1,1,tha_t02.gat,226,149
 tha_t03.gat,60,134,0	warp	tha_t04	1,1,tha_t04.gat,59,143
 tha_t04.gat,59,136,0	warp	tha_t03	1,1,tha_t03.gat,59,126
 tha_t04.gat,83,34,0	warp	tha_t05	1,1,tha_t05.gat,62,11
-tha_t05.gat,62,4,0	warp	tha_t04	1,1,tha_t04.gat,90,34
+//According to official info, 5F it is not possible to return to the 4F, so we disable this warp:
+//tha_t05.gat,62,4,0	warp	tha_t04	1,1,tha_t04.gat,90,34
 tha_t05.gat,208,96,0	warp	tha_t06	1,1,tha_t06.gat,119,228
 tha_t05.gat,185,232,0	warp	tha_t06	1,1,tha_t06.gat,119,228
 tha_t05.gat,61,157,0	warp	tha_t06	1,1,tha_t06.gat,119,228
 tha_t06.gat,119,235,0	warp	tha_t05	1,1,tha_t05.gat,61,164
-tha_t06.gat,119,120,0	warp	tha_t07	1,1,tha_t07.gat,35,166
+
+//tha_t06.gat,119,120,0	warp	tha_t07	1,1,tha_t07.gat,35,166
+//Thanatos 6F to 7F
+tha_t06.gat,119,120,4	script	tha_t07warp	45,2,2,{
+	mes "You have to gather 4 types of keys to enter the 7th Floor.";
+	mes "Give me the key of red, yellow, blue & green.";
+	next;
+	menu "Give the keys",-,"Leave",T_CLOSE;
+
+	if(countitem(7421) < 1 || countitem(7422) < 1 || countitem(7423) < 1 || countitem(7424) < 1) goto T_1;
+	delitem 7421,1;
+	delitem 7422,1;
+	delitem 7423,1;
+	delitem 7424,1;
+	warp "tha_t07.gat",35,166;
+	end;
+
+T_1:
+	mes "You don't have enough keys.";
+T_CLOSE:
+	close;
+}
+
 tha_t07.gat,28,166,0	warp	tha_t06	1,1,tha_t06.gat,119,127
 tha_t07.gat,112,166,0	warp	tha_t08	1,1,tha_t08.gat,105,44
 tha_t08.gat,112,44,0	warp	tha_t07	1,1,tha_t07.gat,105,166
