@@ -33,6 +33,8 @@
 	--
 
 10/19
+	* Corrected a bunch of spells that should be "no overlap" in skill_unit_db.
+	  [Skotlex]
 	* Added Arrow Vulcan to skill_castnodex.txt to specify you shouldn't be
 	  able to walk during the skill's delay. [Skotlex]
 	* Gave normal Magaleta a stronger heal (Lv1 is kinda sad...), also made her

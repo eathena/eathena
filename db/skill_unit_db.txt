@@ -21,18 +21,18 @@
 //    u1   u2 lay  r intr target  flag
 //
  12,0x7e,    ,  0, 0,  -1,all,   0x003	//MG_SAFETYWALL#セイフティウォール
- 18,0x7f,    , -1, 0,   1,enemy, 0x000	//MG_FIREWALL#ファイアーウォール
+ 18,0x7f,    , -1, 0,   1,enemy, 0x008	//MG_FIREWALL#ファイアーウォール
  21,0x86,    ,  0, 2,1000,enemy, 0x008	//MG_THUNDERSTORM#サンダーストーム
  25,0x85,    ,  1, 0,  -1,all,   0x003	//AL_PNEUMA#ニューマ
  27,0x81,0x80,  0, 0,  -1,all,   0x006	//AL_WARP#ワープポータル
- 70,0x83,    , -1, 1,1000,all,   0x000	//PR_SANCTUARY#サンクチュアリ
- 79,0x84,    , -1, 1,3000,enemy, 0x000	//PR_MAGNUS#マグヌスエクソシズム
+ 70,0x83,    , -1, 1,1000,all,   0x008	//PR_SANCTUARY#サンクチュアリ
+ 79,0x84,    , -1, 1,3000,enemy, 0x008	//PR_MAGNUS#マグヌスエクソシズム
  80,0x87,0x88,  0, 1,2000,enemy, 0x002	//WZ_FIREPILLAR#ファイアーピラー
  83,0x86,    ,  0, 3,1000,enemy, 0x000	//WZ_METEOR#メテオストーム
  85,0x86,    ,  0, 6,1250,enemy, 0x008	//WZ_VERMILION#ロードオブヴァーミリオン
  87,0x8d,    , -1, 0,  -1,all,   0x000	//WZ_ICEWALL#アイスウォール
  88,0x86,    ,  0, 2,1000,enemy, 0x000	//WZ_FROSTNOVA#フロストノヴァ
- 89,0x86,    ,  0, 5, 450,enemy, 0x000	//WZ_STORMGUST#ストームガスト
+ 89,0x86,    ,  0, 5, 450,enemy, 0x008	//WZ_STORMGUST#ストームガスト
  91,0x86,    ,  0, 2,1000,enemy, 0x000	//WZ_HEAVENDRIVE#ヘヴンズドライブ
  92,0x8e,    ,  2, 0,  -1,enemy, 0x000	//WZ_QUAGMIRE#クァグマイア
 115,0x90,    ,  0, 1,1000,enemy, 0x006	//HT_SKIDTRAP#スキッドトラップ
@@ -77,5 +77,5 @@
 369,0xb3,    , -1, 0,10000,all,  0x000	//PA_GOSPEL#ゴスペル
 404,0xb6,    , -1, 0,  -1,all,   0x000	//PF_FOGWALL#フォグウォール
 405,0xb7,    ,  0, 1,1000,enemy, 0x000	//PF_SPIDERWEB#スパイダーウェッブ
-484,0xb8,    ,  2, 0,1000,enemy, 0x080	//HW_GRAVITATION
+484,0xb8,    ,  2, 0,1000,enemy, 0x088	//HW_GRAVITATION
 488,0xb9,    ,  3, 0,  -1,all,   0x000	//CG_HERMODE
