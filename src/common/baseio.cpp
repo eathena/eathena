@@ -1198,6 +1198,8 @@ bool CAccountDB_txt::saveAccount(const CLoginAccount& account)
 
 #endif
 
+
+
 CAccountDBInterface* CAccountDB::getDB(const char *dbcfgfile)
 {
 #ifdef TXT_ONLY
@@ -1522,8 +1524,9 @@ private:
 		}
 /* data for sql tables:
 
-DROP TABLE IF EXISTS `char_char`;
-CREATE TABLE `char_char` (
+DROP TABLE IF EXISTS `char_characters`
+
+CREATE TABLE IF NOT EXISTS `char_characters` (
   `char_id` 		INTEGER UNSIGNED NOT NULL auto_increment,
   `account_id`		INTEGER UNSIGNED NOT NULL default '0',
   `slot`			TINYINT UNSIGNED NOT NULL default '0',
@@ -1576,28 +1579,31 @@ CREATE TABLE `char_char` (
   KEY `account_id` (`account_id`),
   KEY `party_id` (`party_id`),
   KEY `guild_id` (`guild_id`)
-);
+)
 
-DROP TABLE IF EXISTS `char_reg_value`;
-CREATE TABLE `char_reg_value` (
+DROP TABLE IF EXISTS `char_reg_value`
+
+CREATE TABLE IF NOT EXISTS `char_reg_value` (
   `char_id`			INTEGER UNSIGNED NOT NULL default '0',
   `str`				VARCHAR(255) NOT NULL default '',
   `value`			VARCHAR(255) NOT NULL default '0',
   PRIMARY KEY  (`char_id`,`str`),
   KEY `char_id` (`char_id`)
-);
+)
 
-DROP TABLE IF EXISTS `char_friends`;
-CREATE TABLE `char_friends` (
+DROP TABLE IF EXISTS `char_friends`
+
+CREATE TABLE IF NOT EXISTS `char_friends` (
   `char_id` 		INTEGER UNSIGNED NOT NULL default '0',
   `friend_id`		INTEGER UNSIGNED NOT NULL default '0',
   PRIMARY KEY  (`char_id`,`friend_id`),
   KEY `char_id` (`char_id`)
-);
+)
 
 
-DROP TABLE IF EXISTS `char_inventory`;
-CREATE TABLE `char_inventory` (
+DROP TABLE IF EXISTS `char_inventory`
+
+CREATE TABLE IF NOT EXISTS `char_inventory` (
   `id`				BIGINT UNSIGNED NOT NULL auto_increment,
   `char_id`			INTEGER UNSIGNED NOT NULL default '0',
   `nameid`			MEDIUMINT UNSIGNED NOT NULL default '0',
@@ -1613,10 +1619,11 @@ CREATE TABLE `char_inventory` (
   `broken` 			BOOL default 'FALSE',
   PRIMARY KEY  (`id`),
   KEY `char_id` (`char_id`)
-);
+)
 
-DROP TABLE IF EXISTS `char_cart`;
-CREATE TABLE `char_cart` (
+DROP TABLE IF EXISTS `char_cart`
+
+CREATE TABLE IF NOT EXISTS `char_cart` (
   `id`				BIGINT UNSIGNED NOT NULL auto_increment,
   `char_id`			INTEGER UNSIGNED NOT NULL default '0',
   `nameid`			MEDIUMINT UNSIGNED NOT NULL default '0',
@@ -1632,10 +1639,11 @@ CREATE TABLE `char_cart` (
   `broken` 			BOOL default 'FALSE',
   PRIMARY KEY  (`id`),
   KEY `char_id` (`char_id`)
-);
+)
 
-DROP TABLE IF EXISTS `char_storage`;
-CREATE TABLE `char_storage` (
+DROP TABLE IF EXISTS `char_storage`
+
+CREATE TABLE IF NOT EXISTS `char_storage` (
   `id`				BIGINT UNSIGNED NOT NULL auto_increment,
   `account_id`		INTEGER UNSIGNED NOT NULL default '0',
   `nameid`			MEDIUMINT UNSIGNED NOT NULL default '0',
@@ -1651,11 +1659,12 @@ CREATE TABLE `char_storage` (
   `broken` 			BOOL default 'FALSE',
   PRIMARY KEY  (`id`),
   KEY `account_id` (`account_id`)
-);
+)
 
 
-DROP TABLE IF EXISTS `char_memo`;
-CREATE TABLE `char_memo` (
+DROP TABLE IF EXISTS `char_memo`
+
+CREATE TABLE IF NOT EXISTS `char_memo` (
   `memo_id`			TINYINT UNSIGNED NOT NULL default '0',
   `char_id` 		INTEGER UNSIGNED NOT NULL default '0',
   `map` 			VARCHAR(20) NOT NULL default '',
@@ -1663,16 +1672,18 @@ CREATE TABLE `char_memo` (
   `y`				MEDIUMINT(3) UNSIGNED NOT NULL default '0',
   PRIMARY KEY  (`char_id`,`memo_id`),
   KEY `char_id` (`char_id`)
-);
+)
 
-DROP TABLE IF EXISTS `char_skill`;
-CREATE TABLE `char_skill` (
+
+DROP TABLE IF EXISTS `char_skill`
+
+CREATE TABLE IF NOT EXISTS `char_skill` (
   `char_id` 		INTEGER UNSIGNED NOT NULL default '0',
   `id`				MEDIUMINT UNSIGNED NOT NULL default '0',
   `lv` 				TINYINT UNSIGNED NOT NULL default '0',
   PRIMARY KEY  (`char_id`,`id`),
   KEY `char_id` (`char_id`)
-);
+)
 
 	will continue when i have more rest.
 
@@ -2521,8 +2532,8 @@ class CGuildDB_txt : public CTimerBase, private CConfig, public CGuildDBInterfac
 		char *pstr;
 
 		// 基本データ
-		if( 8 > sscanf(str, 
-			"%d\t%[^\t]\t%[^\t]\t%d,%d,%d,%d,%d\t%[^\t]\t%[^\t]\t", 
+		if( 8 > sscanf(str,
+			"%d\t%[^\t]\t%[^\t]\t%d,%d,%d,%d,%d\t%[^\t]\t%[^\t]\t",
 			&tmp_int[0],
 			tmp_str[0], tmp_str[1],
 			&tmp_int[1], &tmp_int[2], &tmp_int[3], &tmp_int[4], &tmp_int[5],
@@ -2546,7 +2557,7 @@ class CGuildDB_txt : public CTimerBase, private CConfig, public CGuildDBInterfac
 			str = strchr(str + 1, '\t');
 
 		// メンバー
-		if(g.max_member>MAX_GUILD) 
+		if(g.max_member>MAX_GUILD)
 			g.max_member=0;
 		for(i=0; i<g.max_member; i++)
 		{
@@ -2569,14 +2580,14 @@ class CGuildDB_txt : public CTimerBase, private CConfig, public CGuildDBInterfac
 			m.exp_payper = tmp_int[8];
 			m.position = tmp_int[9];
 			safestrcpy(m.name, tmp_str[0], sizeof(m.name));
-			
+
 			for(j=0; j<2 && str!=NULL; j++)	// 位置スキップ
 				str = strchr(str+1, '\t');
 		}
 
 		// 役職
 		i = 0;
-		while( sscanf(str+1, "%d,%d%n", &tmp_int[0], &tmp_int[1], &j) == 2 && 
+		while( sscanf(str+1, "%d,%d%n", &tmp_int[0], &tmp_int[1], &j) == 2 &&
 			str[1+j] == '\t')
 		{
 			struct guild_position &p = g.position[i];
@@ -2585,7 +2596,7 @@ class CGuildDB_txt : public CTimerBase, private CConfig, public CGuildDBInterfac
 			p.mode = tmp_int[0];
 			p.exp_mode = tmp_int[1];
 			safestrcpy(p.name, tmp_str[0], sizeof(p.name));
-			
+
 			for(j=0; j<2 && str!=NULL; j++)	// 位置スキップ
 				str = strchr(str+1, '\t');
 			i++;
@@ -2625,7 +2636,7 @@ class CGuildDB_txt : public CTimerBase, private CConfig, public CGuildDBInterfac
 			a.guild_id = tmp_int[0];
 			a.opposition = tmp_int[1];
 			safestrcpy(a.name, tmp_str[0], sizeof(a.name));
-			
+
 			for(j=0; j<2 && str!=NULL; j++)	// 位置スキップ
 				str = strchr(str + 1, '\t');
 		}
@@ -2633,7 +2644,7 @@ class CGuildDB_txt : public CTimerBase, private CConfig, public CGuildDBInterfac
 		// 追放リスト
 		if (sscanf(str+1, "%d\t", &c) < 1)
 			return false;
-		
+
 		str = strchr(str + 1, '\t');	// 位置スキップ
 		for(i=0; i<c; i++)
 		{
@@ -2671,7 +2682,7 @@ class CGuildDB_txt : public CTimerBase, private CConfig, public CGuildDBInterfac
 	ssize_t guild2string(char *str, size_t maxlen, const CGuild &g)
 	{
 		ssize_t i, c, len;
-	
+
 		// 基本データ
 		len = sprintf(str, "%ld\t%s\t%s\t%d,%d,%ld,%d,%d\t%s#\t%s#\t",
 					  (unsigned long)g.guild_id, g.name, g.master,
@@ -2735,9 +2746,9 @@ class CGuildDB_txt : public CTimerBase, private CConfig, public CGuildDBInterfac
 		len = snprintf(str, maxlen, "%d,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld"RETCODE,	// added Guardian HP [Valaris]
 					  gc.castle_id, (unsigned long)gc.guild_id, (unsigned long)gc.economy, (unsigned long)gc.defense, (unsigned long)gc.triggerE,
 					  (unsigned long)gc.triggerD, (unsigned long)gc.nextTime, (unsigned long)gc.payTime, (unsigned long)gc.createTime, (unsigned long)gc.visibleC,
-					  (unsigned long)gc.guardian[0].visible, (unsigned long)gc.guardian[1].visible, (unsigned long)gc.guardian[2].visible, (unsigned long)gc.guardian[3].visible, 
+					  (unsigned long)gc.guardian[0].visible, (unsigned long)gc.guardian[1].visible, (unsigned long)gc.guardian[2].visible, (unsigned long)gc.guardian[3].visible,
 					  (unsigned long)gc.guardian[4].visible, (unsigned long)gc.guardian[5].visible, (unsigned long)gc.guardian[6].visible, (unsigned long)gc.guardian[7].visible,
-					  (unsigned long)gc.guardian[0].guardian_hp, (unsigned long)gc.guardian[1].guardian_hp, (unsigned long)gc.guardian[2].guardian_hp, (unsigned long)gc.guardian[3].guardian_hp, 
+					  (unsigned long)gc.guardian[0].guardian_hp, (unsigned long)gc.guardian[1].guardian_hp, (unsigned long)gc.guardian[2].guardian_hp, (unsigned long)gc.guardian[3].guardian_hp,
 					  (unsigned long)gc.guardian[4].guardian_hp, (unsigned long)gc.guardian[5].guardian_hp, (unsigned long)gc.guardian[6].guardian_hp, (unsigned long)gc.guardian[7].guardian_hp);
 		return len;
 	}
@@ -2821,7 +2832,7 @@ class CGuildDB_txt : public CTimerBase, private CConfig, public CGuildDBInterfac
 		char line[16384];
 		FILE *fp;
 		int i, j, c;
-		
+
 		///////////////////////////////////////////////////////////////////////
 		fp = safefopen(guild_filename,"r");
 		if(fp == NULL)
@@ -2855,7 +2866,7 @@ class CGuildDB_txt : public CTimerBase, private CConfig, public CGuildDBInterfac
 					}
 					if(i<g.max_member)
 					{
-						
+
 
 						if( g.guild_id >= next_guild_id )
 							next_guild_id = g.guild_id + 1;
@@ -2900,7 +2911,7 @@ class CGuildDB_txt : public CTimerBase, private CConfig, public CGuildDBInterfac
 			}
 			else
 				ShowError("GuildCastle: broken data [%s] line %d\n", castle_filename, c);
-			
+
 		}
 		fclose(fp);
 		ShowStatus("GuildCastle: %s read done (%d castles)\n", castle_filename, cCastles.size());
@@ -2935,7 +2946,7 @@ class CGuildDB_txt : public CTimerBase, private CConfig, public CGuildDBInterfac
 			{
 				sz=guild2string(line, sizeof(line), cGuilds[i]);
 				//fprintf(fp, "%s" RETCODE, line); // retcode integrated to line generation
-				if(sz>0) 
+				if(sz>0)
 					fwrite(line, sz,1,fp);
 			}
 			lock_fclose(fp, guild_filename, &lock);
@@ -2990,8 +3001,8 @@ private:
 	char					guild_filename[1024];
 	char					castle_filename[1024];
 	char					guildexp_filename[1024];
-	
-	
+
+
 	///////////////////////////////////////////////////////////////////////////
 	// Config processor
 	virtual bool ProcessConfig(const char*w1, const char*w2)
@@ -3068,15 +3079,15 @@ public:
 			safestrcpy(tmp.position[MAX_GUILDPOSITION-1].name,"Newbie", sizeof(tmp.position[0].name));
 			for(i=1; i<MAX_GUILDPOSITION-1; i++)
 				snprintf(tmp.position[i].name,sizeof(tmp.position[0].name),"Position %d",i+1);
-			
+
 			tmp.max_member=16;
 			tmp.average_lv=tmp.member[0].lv;
 			tmp.castle_id=0xFFFF;
 			for(i=0;i<MAX_GUILDSKILL;i++)
 				tmp.skill[i].id = i+GD_SKILLBASE;
-			
+
 			guild = tmp;
-			return cGuilds.insert(tmp); 
+			return cGuilds.insert(tmp);
 		}
 		return false;
 	}
@@ -3085,7 +3096,7 @@ public:
 		size_t pos;
 		if( cGuilds.find( CGuild(guildid), pos, 0) )
 		{
-			return cGuilds.removeindex(pos,0); 
+			return cGuilds.removeindex(pos,0);
 		}
 		return false;
 	}
@@ -3213,17 +3224,17 @@ class CPartyDB_txt : public CTimerBase, private CConfig, public CPartyDBInterfac
 		int i, j;
 		int tmp_int[16];
 		char tmp_str[256];
-		
+
 		if (sscanf(str, "%d\t%255[^\t]\t%d,%d\t", &tmp_int[0], tmp_str, &tmp_int[1], &tmp_int[2]) != 4)
 			return false;
-		
+
 		p.party_id = tmp_int[0];
 		safestrcpy(p.name, tmp_str, sizeof(p.name));
 		p.expshare = tmp_int[1];
 		p.itemshare = tmp_int[2];
 		for(j=0; j<3 && str != NULL; j++)
 			str = strchr(str+1, '\t');
-		
+
 		for(i=0; i<MAX_PARTY; i++)
 		{
 			struct party_member &m = p.member[i];
@@ -3231,7 +3242,7 @@ class CPartyDB_txt : public CTimerBase, private CConfig, public CPartyDBInterfac
 				return false;
 			if(sscanf(str + 1, "%d,%d\t%255[^\t]\t", &tmp_int[0], &tmp_int[1], tmp_str) != 3)
 				return false;
-			
+
 			m.account_id = tmp_int[0];
 			m.leader = tmp_int[1];
 			safestrcpy(m.name, tmp_str, sizeof(m.name));
@@ -3330,7 +3341,7 @@ private:
 	uint32					next_party_id;
 	uint					savecount;
 	char					party_filename[1024];
-	
+
 	///////////////////////////////////////////////////////////////////////////
 	// Config processor
 	virtual bool ProcessConfig(const char*w1, const char*w2)
@@ -3630,8 +3641,8 @@ private:
 	TslistDST<CPCStorage>	cPCStorList;
 	uint savecount;
 	char pcstorage_filename[1024];
-	
-	
+
+
 	///////////////////////////////////////////////////////////////////////////
 	// Config processor
 	virtual bool ProcessConfig(const char*w1, const char*w2)
@@ -3766,7 +3777,7 @@ class CGuildStorageDB_txt : public CTimerBase, private CConfig, public CGuildSto
 	{
 		int tmp_int[256];
 		int set,next,len,i;
-		
+
 		set=sscanf(str,"%d,%d%n",&tmp_int[0],&tmp_int[1],&next);
 		if(set!=2)
 			return false;
@@ -3894,8 +3905,8 @@ private:
 	TslistDST<CGuildStorage> cGuildStorList;
 	uint savecount;
 	char guildstorage_filename[1024];
-	
-	
+
+
 	///////////////////////////////////////////////////////////////////////////
 	// Config processor
 	virtual bool ProcessConfig(const char*w1, const char*w2)
