@@ -1900,6 +1900,8 @@ int map_getcellp(struct map_data* m,int x,int y,cell_t cellchk)
 			return (type&CELL_NPC);
 		case CELL_CHKBASILICA:
 			return (type&CELL_BASILICA);
+		case CELL_CHKLANDPROTECTOR:
+			return (type&CELL_CHKLANDPROTECTOR);
 		case CELL_CHKREGEN:
 			return (type&CELL_REGEN);
 		default:
@@ -1927,6 +1929,12 @@ void map_setcell(int m,int x,int y,int cell)
 			break;
 		case CELL_CLRBASILICA:
 			map[m].gat[j] &= ~CELL_BASILICA;
+			break;
+		case CELL_SETLANDPROTECTOR:
+			map[m].gat[j] |= CELL_LANDPROTECTOR;
+			break;
+		case CELL_CLRLANDPROTECTOR:
+			map[m].gat[j] &= ~CELL_LANDPROTECTOR;
 			break;
 		case CELL_SETREGEN:
 			map[m].gat[j] |= CELL_REGEN;

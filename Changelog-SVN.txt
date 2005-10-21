@@ -1,6 +1,10 @@
 Date	Added
 =======
 2005/10/20
+	* Modified Land Protector so it behaves more like Basilica. [Skotlex]
+	* Removed GM account reading from the char-sql server and moved it into
+	  the login-sql server (Ancyker requested this was fixed... and this is how
+	  it was working on the TXT servers) [Skotlex]
 	* Modified skill_split_atoi so it can guess linear changes in the values
 	  and fill out the rest of the array correctly (eg: blowcount is defined as
 	  1:2:3:4:5, now the function can understand that and fill the rest of values

@@ -5038,7 +5038,7 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage, int
 	
 	 // changed penalty options, added death by player if pk_mode [Valaris]
 	if(battle_config.death_penalty_type
-		&& (sd->class_&MAPID_UPPERMASK) != MAPID_NOVICE	// only novices will recieve no penalty
+		&& (sd->class_&MAPID_UPPERMASK) != MAPID_NOVICE	// only novices will receive no penalty
 		&& !map[sd->bl.m].flag.nopenalty && !map[sd->bl.m].flag.gvg
 		&& !(sd->sc_count && sd->sc_data[SC_BABY].timer!=-1))
 	{

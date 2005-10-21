@@ -63,7 +63,6 @@ char guild_skill_db[256] = "guild_skill";
 char guild_storage_db[256] = "guild_storage";
 char party_db[256] = "party";
 char pet_db[256] = "pet";
-char login_db[256] = "login";
 char friend_db[256] = "friends";
 int db_use_sqldbs;
 
@@ -301,31 +300,6 @@ int isGM(int account_id) {
 			return gm_account[i].level;
 	return 0;
 }
-
-void read_gm_account(void) {
-	if (gm_account != NULL)
-		aFree(gm_account);
-	GM_num = 0;
-
-	sprintf(tmp_sql, "SELECT `%s`,`%s` FROM `%s` WHERE `%s`>='%d'",login_db_account_id,login_db_level,login_db,login_db_level,lowest_gm_level);
-	if (mysql_query(&lmysql_handle, tmp_sql)) {
-		ShowSQL("DB error - %s\n",mysql_error(&lmysql_handle));
-		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-	}
-	lsql_res = mysql_store_result(&lmysql_handle);
-	if (lsql_res) {
-		gm_account = (struct gm_account*)aCalloc(sizeof(struct gm_account) * mysql_num_rows(lsql_res), 1);
-		while ((lsql_row = mysql_fetch_row(lsql_res))) {
-			gm_account[GM_num].account_id = atoi(lsql_row[0]);
-			gm_account[GM_num].level = atoi(lsql_row[1]);
-			GM_num++;
-		}
-	}
-
-	mysql_free_result(lsql_res);
-	mapif_send_gmaccounts();
-}
-
 
 
 int compare_item(struct item *a, struct item *b) {
@@ -2179,6 +2153,30 @@ int parse_tologin(int fd) {
 			RFIFOSKIP(fd,11);
 			break;
 
+		case 0x2732:
+			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < RFIFOW(fd,2))
+				return 0;
+		  {
+			unsigned char buf[32000];
+			if (gm_account != NULL)
+				aFree(gm_account);
+			gm_account = (struct gm_account*)aCalloc(sizeof(struct gm_account) * ((RFIFOW(fd,2) - 4) / 5), 1);
+			GM_num = 0;
+			for (i = 4; i < RFIFOW(fd,2); i = i + 5) {
+				gm_account[GM_num].account_id = RFIFOL(fd,i);
+				gm_account[GM_num].level = (int)RFIFOB(fd,i+4);
+				//printf("GM account: %d -> level %d\n", gm_account[GM_num].account_id, gm_account[GM_num].level);
+				GM_num++;
+			}
+			ShowStatus("From login-server: receiving information of %d GM accounts.\n", GM_num);
+			// send new gm acccounts level to map-servers
+			memcpy(buf, RFIFOP(fd,0), RFIFOW(fd,2));
+			WBUFW(buf,0) = 0x2b15;
+			mapif_sendall(buf, RFIFOW(fd,2));
+		  }
+			RFIFOSKIP(fd,RFIFOW(fd,2));
+			break;
+
 		// Receive GM accounts [Freya login server packet by Yor]
 		case 0x2733:
 		// add test here to remember that the login-server is Freya-type
@@ -2315,7 +2313,10 @@ int parse_frommap(int fd) {
 
 		case 0x2af7:
 			RFIFOSKIP(fd,2);
-			read_gm_account();
+			if (login_fd > 0) { // don't send request if no login-server
+				WFIFOW(login_fd,0) = 0x2709;
+				WFIFOSET(login_fd, 2);
+			}
 			break;
 
 		// mapserver -> map names recv.
@@ -3825,9 +3826,7 @@ void sql_config_read(const char *cfgName){ /* Kalaspuff, to get login_db */
 		if (sscanf(line, "%[^:]: %[^\r\n]", w1, w2) != 2)
 			continue;
 
-		if(strcmpi(w1, "login_db") == 0) {
-			strcpy(login_db, w2);
-		}else if(strcmpi(w1,"char_db")==0){
+		if(strcmpi(w1,"char_db")==0){
 			strcpy(char_db,w2);
 		}else if(strcmpi(w1,"scdata_db")==0){
 			strcpy(scdata_db,w2);
@@ -4121,8 +4120,6 @@ int do_init(int argc, char **argv){
 	add_timer_interval(gettick() + 10, check_connect_login_server, 0, 0, 10 * 1000);
 	// send USER COUNT PING to login server.
 	add_timer_interval(gettick() + 10, send_users_tologin, 0, 0, 5 * 1000);
-
-	read_gm_account();
 
 	if ( console ) {
 	    set_defaultconsoleparse(parse_console);

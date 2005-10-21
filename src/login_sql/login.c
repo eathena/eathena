@@ -120,6 +120,9 @@ char login_db_userid[256] = "userid";
 char login_db_user_pass[256] = "user_pass";
 char login_db_level[256] = "level";
 
+int lowest_gm_level;
+struct gm_account *gm_account_db;
+int GM_num;
 char tmpsql[65535], tmp_sql[65535];
 
 int console = 0;
@@ -202,6 +205,65 @@ int waiting_disconnect_timer(int tid, unsigned int tick, int id, int data)
 	if ((p= numdb_search(online_db, id)) != NULL && p->waiting_disconnect)
 		remove_online_user(p->account_id);
 	return 0;
+}
+
+//-----------------------------------------------------
+// Read GM accounts
+//-----------------------------------------------------
+void read_gm_account(void) {
+	MYSQL_RES* sql_res ;
+	MYSQL_ROW sql_row;
+
+	if (gm_account_db != NULL)
+		aFree(gm_account_db);
+	GM_num = 0;
+
+	sprintf(tmp_sql, "SELECT `%s`,`%s` FROM `%s` WHERE `%s`>='%d'",login_db_account_id,login_db_level,login_db,login_db_level,lowest_gm_level);
+	if (mysql_query(&mysql_handle, tmp_sql)) {
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+	}
+	sql_res = mysql_store_result(&mysql_handle);
+	if (sql_res) {
+		gm_account_db = (struct gm_account*)aCalloc(sizeof(struct gm_account) * mysql_num_rows(sql_res), 1);
+		while ((sql_row = mysql_fetch_row(sql_res))) {
+			gm_account_db[GM_num].account_id = atoi(sql_row[0]);
+			gm_account_db[GM_num].level = atoi(sql_row[1]);
+			GM_num++;
+		}
+	}
+
+	mysql_free_result(sql_res);
+}
+
+int charif_sendallwos(int sfd, unsigned char *buf, unsigned int len);
+
+//-----------------------------------------------------
+// Send GM accounts to all char-server
+//-----------------------------------------------------
+void send_GM_accounts(int fd) {
+	int i;
+	unsigned char buf[32767];
+	int len;
+
+	len = 4;
+	WBUFW(buf,0) = 0x2732;
+	for(i = 0; i < GM_num; i++)
+		// send only existing accounts. We can not create a GM account when server is online.
+		if (gm_account_db[i].level > 0) {
+			WBUFL(buf,len) = gm_account_db[i].account_id;
+			WBUFB(buf,len+4) = (unsigned char)gm_account_db[i].level;
+			len += 5;
+		}
+	WBUFW(buf,2) = len;
+	if (fd == -1)
+		charif_sendallwos(-1, buf, len);
+	else
+	{
+		memcpy(WFIFOP(fd,0), buf, len);
+		WFIFOSET(fd,len);
+	}
+	return;
 }
 
 //-----------------------------------------------------
@@ -794,6 +856,21 @@ int parse_fromchar(int fd){
 //		printf("char_parse: %d %d packet case=%x\n", fd, RFIFOREST(fd), RFIFOW(fd, 0));
 
 		switch (RFIFOW(fd,0)) {
+		case 0x2709:
+			if (log_login)
+			{
+				sprintf(tmpsql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%d.%d.%d.%d', '%s','%s', 'GM reload request')", loginlog_db, p[0], p[1], p[2], p[3], server[id].name, RETCODE);
+				if (mysql_query(&mysql_handle, tmpsql)) {
+					ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+					ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+				}
+			}
+			read_gm_account();
+			// send GM accounts to all char-servers
+			send_GM_accounts(-1);
+			RFIFOSKIP(fd,2);
+			break;
+
 		case 0x2712:
 			if (RFIFOREST(fd) < 19)
 				return 0;
@@ -1590,6 +1667,8 @@ int parse_login(int fd) {
 					WFIFOSET(fd,3);
 					session[fd]->func_parse=parse_fromchar;
 					realloc_fifo(fd,FIFOSIZE_SERVERLINK,FIFOSIZE_SERVERLINK);
+					// send GM account to char-server
+					send_GM_accounts(fd);
 				} else {
 					WFIFOW(fd, 0) =0x2711;
 					WFIFOB(fd, 2)=3;
@@ -1933,6 +2012,9 @@ void sql_config_read(const char *cfgName){ /* Kalaspuff, to get login_db */
 		else if (strcmpi(w1, "loginlog_db") == 0) {
 			strcpy(loginlog_db, w2);
 		}
+		else if (strcmpi(w1, "lowest_gm_level") == 0) {
+			lowest_gm_level = atoi(w2);
+		}
 		//support the import command, just like any other config
 		else if(strcmpi(w1,"import")==0){
 			sql_config_read(w2);
@@ -2000,6 +2082,9 @@ int do_init(int argc,char **argv){
 	ShowInfo("Running mmo_auth_sqldb_init()\n");
 	mmo_auth_sqldb_init();
 	ShowInfo("finished mmo_auth_sqldb_init()\n");
+	
+	//Read account information.
+	read_gm_account();
 
 	//set default parser as parse_login function
 	set_defaultparse(parse_login);

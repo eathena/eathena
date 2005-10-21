@@ -6466,6 +6466,9 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 
 	nullpo_retr(0, sg=src->group);
 	nullpo_retr(0, ss=map_id2bl(sg->src_id));
+
+	if (map_getcell(bl->m, bl->x, bl->y, CELL_CHKLANDPROTECTOR))
+		return 0; //AoE skills are ineffective. [Skotlex]
 	
 	type = skill_get_unit_flag(sg->skill_id); //Just recycling the variable rather than using a brand new one.
 
@@ -6480,10 +6483,6 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 	
 	sc_data = status_get_sc_data(bl);
 	type = SkillStatusChangeTable[sg->skill_id];
-
-	// 対象がLP上に居る場合は無効
-	if (map_find_skill_unit_oncell(bl,bl->x,bl->y,SA_LANDPROTECTOR,NULL))
-		return 0;
 
 	switch (sg->unit_id) {
 	case UNT_SAFETYWALL:
@@ -6561,12 +6560,7 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 		break;
 
 	case UNT_BASILICA:
-		if (battle_check_target(&src->bl,bl,BCT_NOENEMY)>0) {
-			if (sc_data && sc_data[type].timer!=-1 &&
-				(sc_data[type].val4 == sg->group_id || sc_data[type].val3==BCT_SELF))
-					break;
-			status_change_start(bl,type,sg->skill_lv,0,0,sg->group_id,sg->limit,0);
-		} else if (!status_get_mode(bl)&MD_BOSS)
+		if (!(status_get_mode(bl)&MD_BOSS) && battle_check_target(&src->bl,bl,BCT_ENEMY)>0)
 			skill_blown(&src->bl,bl,1,2);
 		break;
 
@@ -6623,10 +6617,6 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 		//Ok, this case only happens with Ankle Snare/Spider Web (only skills that sets its interval to -1), 
 		//and only happens when more than one target is stepping on the trap at the moment it was triggered
 		//(yet only the first mob standing on the trap will be captured) [Skotlex]
-		return 0;
-
-	// 対象がLP上に居る場合は無効
-	if (map_find_skill_unit_oncell(bl,bl->x,bl->y,SA_LANDPROTECTOR,NULL))
 		return 0;
 
 	// 前に影響を受けてからintervalの間は影響を受けない
@@ -7063,7 +7053,6 @@ static int skill_unit_onleft(int skill_id, struct block_list *bl,unsigned int ti
 		case SA_DELUGE:
 		case SA_VIOLENTGALE:
 		case CG_HERMODE:
-		case HP_BASILICA:
 		case HW_GRAVITATION:
 			if (sc_data && sc_data[type].timer != -1)
 				status_change_end(bl, type, -1);
@@ -9091,9 +9080,9 @@ int skill_check_moonlit (struct block_list *bl, int dx, int dy)
  * バジリカのセルを設定する
  *------------------------------------------
  */
-void skill_basilica_cell(struct skill_unit *unit,int flag)
+void skill_unitsetmapcell(struct skill_unit *unit, int skill_num, int flag)
 {
-	int i,x,y,range = skill_get_unit_range(HP_BASILICA);
+	int i,x,y,range = skill_get_unit_range(skill_num);
 	int size = range*2+1;
 
 	for (i=0;i<size*size;i++) {
@@ -9488,8 +9477,9 @@ struct skill_unit *skill_initunit(struct skill_unit_group *group,int idx,int x,i
 	clif_skill_setunit(unit);
 
 	if (group->skill_id==HP_BASILICA)
-		skill_basilica_cell(unit,CELL_SETBASILICA);
-
+		skill_unitsetmapcell(unit,HP_BASILICA,CELL_SETBASILICA);
+	else if (group->skill_id==SA_LANDPROTECTOR)
+		skill_unitsetmapcell(unit,SA_LANDPROTECTOR,CELL_SETLANDPROTECTOR);
 	return unit;
 }
 
@@ -9516,7 +9506,9 @@ int skill_delunit(struct skill_unit *unit)
 	}
 
 	if (group->skill_id==HP_BASILICA)
-		skill_basilica_cell(unit,CELL_CLRBASILICA);
+		skill_unitsetmapcell(unit,HP_BASILICA, CELL_CLRBASILICA);
+	else if (group->skill_id==SA_LANDPROTECTOR)
+		skill_unitsetmapcell(unit,SA_LANDPROTECTOR, CELL_CLRLANDPROTECTOR);
 
 	clif_skill_delunit(unit);
 
@@ -9768,6 +9760,9 @@ int skill_unit_timer_sub_onplace( struct block_list *bl, va_list ap )
 		return 0;
 
 	nullpo_retr(0, group=unit->group);
+
+	if (map_getcell(bl->m, bl->x, bl->y, CELL_CHKLANDPROTECTOR))
+		return 0; //AoE skills are ineffective. [Skotlex]
 
 	flag = skill_get_unit_flag(group->skill_id);
 	if ((bl->type == BL_PC && flag&UF_NOPC) || (bl->type == BL_MOB && flag&UF_NOMOB))

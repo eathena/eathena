@@ -965,6 +965,7 @@ enum {
 #define CELL_NPC		0x80	// NPCセル
 #define CELL_BASILICA	0x40	// BASILICAセル
 #define CELL_REGEN		0x20
+#define CELL_LANDPROTECTOR 0x10
 #define CELL_PEACE
 #define CELL_PCONLY
 /*
@@ -980,6 +981,7 @@ typedef enum {
 	CELL_CHKNPC=0x10,	// タッチタイプのNPC(セルタイプ0x80フラグ)
 	CELL_CHKBASILICA,	// バジリカ(セルタイプ0x40フラグ)
 	CELL_CHKREGEN,		// cells that improve regeneration
+	CELL_CHKLANDPROTECTOR, //Magnetic Earth
 } cell_t;
 // map_setcell()で使用されるフラグ
 enum {
@@ -987,6 +989,8 @@ enum {
 	CELL_SETBASILICA,	// バジリカをセット
 	CELL_CLRBASILICA,	// バジリカをクリア
 	CELL_SETREGEN,		// set regen cell
+	CELL_SETLANDPROTECTOR, //Set/Clear Magnetic Earth
+	CELL_CLRLANDPROTECTOR,
 };
 
 struct chat_data {
