@@ -4541,6 +4541,8 @@ int status_change_end( struct block_list* bl , int type,int tid )
 							status_change_end(&dsd->bl, type, -1);
 						}
 					}
+					if(sc_data[type].val1 == CG_MOONLIT) //Only dance that doesn't has ground tiles... [Skotlex]
+						status_change_end(bl, SC_MOONLIT, -1);
 				}
 				if (sc_data[SC_LONGING].timer!=-1)
 					status_change_end(bl,SC_LONGING,-1);				

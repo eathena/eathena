@@ -1,6 +1,8 @@
 Date	Added
 ==========
 2005/10/21
+	* Some changes to Moonlight Petals, it should make the skill finally be
+	  considered an ensemble skill. [Skotlex]
 	* Updated skill_split_atoi to guess linear increases up to half of the data
 	  provided. This means it can understand the more complex cast times of
 	  skills such as Meteor and Soul Strike. If you provide the data of ten

@@ -626,6 +626,7 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 static int skill_unit_onleft(int skill_id, struct block_list *bl,unsigned int tick);
 int skill_unit_effect(struct block_list *bl,va_list ap);
 int skill_castend_delay (struct block_list* src, struct block_list *bl,int skillid,int skilllv,unsigned int tick,int flag);
+static int skill_check_pc_partner(struct map_session_data *sd, int skill_id, int* skill_lv, int range, int cast_flag);
 
 int enchant_eff[5] = { 10, 14, 17, 19, 20 };
 int deluge_eff[5] = { 5, 9, 12, 14, 15 };
@@ -3608,12 +3609,20 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case PF_MEMORIZE:		/* ƒƒ‚ƒ‰ƒCƒY */
 	case PA_SACRIFICE:
 	case ASC_EDP:			// [Celest]
-	case CG_MOONLIT:		/* Œ–¾‚è‚Ìò‚É—‚¿‚é‰Ô‚Ñ‚ç */
 	case NPC_STOP:
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
 		break;
 
+	case CG_MOONLIT:		/* Œ–¾‚è‚Ìò‚É—‚¿‚é‰Ô‚Ñ‚ç */
+		clif_skill_nodamage(src,bl,skillid,skilllv,1);
+		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
+		status_change_start(src,SC_DANCING,skillid,0,0,BCT_SELF,skill_get_time(skillid,skilllv)+1000,0);
+		if (sd && battle_config.player_skill_partner_check) {
+			skill_check_pc_partner(sd, skillid, &skilllv, 1, 1);
+		}
+		break;
+	
 	case HP_ASSUMPTIO:
 		if (flag&1)
 			status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
