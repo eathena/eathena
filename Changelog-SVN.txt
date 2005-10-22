@@ -1,6 +1,7 @@
 Date	Added
 ==========
 2005/10/22
+	* Updated Bowling bash damage, knockback to current Kro values. [Skotlex]
 	* Modified NPC_EMOTION and NPC_EMOTION_ON so they can be used to modify the
 	  current mob's mode (instead of setting it). [Skotlex]
 	- Some examples:

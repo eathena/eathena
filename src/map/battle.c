@@ -1327,7 +1327,7 @@ static struct Damage battle_calc_weapon_attack(
 					break;
 				}
 				case KN_BOWLINGBASH:
-					skillratio+= 50*skill_lv;
+					skillratio+= 40*skill_lv;
 					break;
 				case KN_AUTOCOUNTER:
 					flag.idef= flag.idef2= 1;
