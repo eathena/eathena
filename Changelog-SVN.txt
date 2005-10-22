@@ -1,6 +1,9 @@
 Date	Added
 ==========
 2005/10/21
+	* Moved the code so that SNovice Steel Body should trigger inmediately upon
+	  death, and bypass the exp loss penalty. [Skotlex]
+	* Added Taekwon boy to the buff on level up system. [Skotlex]
 	* Fixed Skills checking for water-cells instead of Land Protector cells.
 	  [Skotlex]
 	* Added config option skillrange_by_distance, makes skills be long/short

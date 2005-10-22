@@ -4181,7 +4181,7 @@ int pc_checkbaselevelup(struct map_session_data *sd)
 		pc_heal(sd,sd->status.max_hp,sd->status.max_sp);
 
 		//スパノビはキリエ、イムポ、マニピ、グロ、サフラLv1がかかる
-		if((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE){
+		if((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE || (sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON){
 			status_change_start(&sd->bl,SkillStatusChangeTable[PR_KYRIE],1,0,0,0,skill_get_time(PR_KYRIE,1),0 );
 			status_change_start(&sd->bl,SkillStatusChangeTable[PR_IMPOSITIO],1,0,0,0,skill_get_time(PR_IMPOSITIO,1),0 );
 			status_change_start(&sd->bl,SkillStatusChangeTable[PR_MAGNIFICAT],1,0,0,0,skill_get_time(PR_MAGNIFICAT,1),0 );
@@ -5019,7 +5019,7 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage, int
 		if (i>0 && (j=sd->status.base_exp*1000/i)>=990 && j<=1000)
 			sd->state.snovice_flag = 4;
 	}
-
+	
 	for(i = 0; i < 5; i++)
 		if (sd->devotion[i]){
 			struct map_session_data *devsd = map_id2sd(sd->devotion[i]);
@@ -5037,7 +5037,7 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage, int
 	sd->canregen_tick = gettick();
 	
 	 // changed penalty options, added death by player if pk_mode [Valaris]
-	if(battle_config.death_penalty_type
+	if(battle_config.death_penalty_type && sd->state.snovice_flag != 4
 		&& (sd->class_&MAPID_UPPERMASK) != MAPID_NOVICE	// only novices will receive no penalty
 		&& !map[sd->bl.m].flag.nopenalty && !map[sd->bl.m].flag.gvg
 		&& !(sd->sc_count && sd->sc_data[SC_BABY].timer!=-1))
@@ -5156,6 +5156,7 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage, int
 			pc_setstand(sd);
 			pc_setrestartvalue(sd,3);
 			pc_setpos(sd,sd->status.save_point.map,sd->status.save_point.x,sd->status.save_point.y,0);
+			return damage;
 		}
 	}
 	//GvG
@@ -5163,6 +5164,22 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage, int
 		pc_setstand(sd);
 		pc_setrestartvalue(sd,3);
 		pc_setpos(sd,sd->status.save_point.map,sd->status.save_point.x,sd->status.save_point.y,0);
+		return damage;
+	}
+
+	if (sd->state.snovice_flag == 4) {
+		sd->state.snovice_flag = 0;
+		sd->status.hp = sd->status.max_hp;
+		sd->status.sp = sd->status.max_sp;
+		clif_skill_nodamage(&sd->bl,&sd->bl,ALL_RESURRECTION,1,1);
+		pc_setstand(sd);
+		clif_updatestatus(sd, SP_HP);
+		clif_updatestatus(sd, SP_SP);
+		clif_resurrection(&sd->bl, 1);
+		if(battle_config.pc_invincible_time > 0)
+			pc_setinvincibletimer(sd, battle_config.pc_invincible_time);
+		status_change_start(&sd->bl,SkillStatusChangeTable[MO_STEELBODY],1,0,0,0,skill_get_time(MO_STEELBODY,1),0 );
+		return 0;
 	}
 
 	return damage;
