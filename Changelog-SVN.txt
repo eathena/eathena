@@ -1,6 +1,7 @@
 Date	Added
 ==========
 2005/10/21
+	* Removed the level up buff bonus from the Taekwon class T.T [Skotlex]
 	* Small change in mob_ai_sub_hard which may fix mobs casting their Rude
 	  Attacked skill when they shouldn't. [Skotlex]
 	* Moved the code so that SNovice Steel Body should trigger inmediately upon
