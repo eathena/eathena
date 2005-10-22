@@ -1,6 +1,8 @@
 Date	Added
 ==========
 2005/10/22
+	* Applied Ilpalazzo-sama's patch which speeds up the data zeroing in
+	  status_calc_pc. [Skotlex]
 	* Crashfix on invalid lines when reading castle_db.txt [Skotlex]
 	* Updated GrandCross's damage formula according to Komurka's information.
 	  [Skotlex]

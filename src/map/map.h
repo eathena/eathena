@@ -257,31 +257,35 @@ struct vending {
 };
 
 struct weapon_data {
-	int watk;
-	int watk2;
-	int overrefine;
-	int star;
-	int atk_ele;
-	unsigned fameflag : 1;
-	int atkmods[3];
-	int addsize[3];
-	int addele[10];
-	int addrace[12];
-	int addrace2[12];
-	int ignore_def_ele;
-	int ignore_def_race;
-	short ignore_def_mob;
-	int def_ratio_atk_ele;
-	int def_ratio_atk_race;
-	int add_damage_class_count;
-	short add_damage_classid[10];
-	int add_damage_classrate[10];
-	short hp_drain_rate;
-	short hp_drain_per;
-	short hp_drain_value;
-	short sp_drain_rate;
-	short sp_drain_per;
-	short sp_drain_value;
+ 	unsigned fameflag : 1;
+ 	int atkmods[3];
+ 
+ 	// to be zeroed
+  	int watk;
+  	int watk2;
+ 	int atk_ele;
+  	int overrefine;
+  	int star;
+  	int ignore_def_ele;
+  	int ignore_def_race;
+  	int def_ratio_atk_ele;
+  	int def_ratio_atk_race;
+  	int add_damage_class_count;
+  	short ignore_def_mob;
+  	short hp_drain_rate;
+  	short hp_drain_per;
+  	short hp_drain_value;
+  	short sp_drain_rate;
+  	short sp_drain_per;
+  	short sp_drain_value;
+ 
+ 	// to be zeroed
+ 	int addele[10];
+ 	int addrace[12];
+ 	int addsize[3];
+ 	short add_damage_classid[10];
+ 	int add_damage_classrate[10];
+ 	int addrace2[12];
 };
 
 struct skill_unit_group;
@@ -391,7 +395,6 @@ struct map_session_data {
 	struct mmo_charstatus status;
 	struct item_data *inventory_data[MAX_INVENTORY];
 	short equip_index[11];
-	unsigned short unbreakable_equip;
 	unsigned short unbreakable;	// chance to prevent equipment breaking [celest]
 	int weight,max_weight;
 	int cart_weight,cart_max_weight,cart_num,cart_max_num;
@@ -432,7 +435,6 @@ struct map_session_data {
 
 	time_t emotionlasttime; // to limit flood with emotion packets
 
-	short attackrange,attackrange_;
 	int skilltimer;
 	int skilltarget;
 	short skillx,skilly;
@@ -464,81 +466,132 @@ struct map_session_data {
 
 	struct weapon_data right_weapon;
 	struct weapon_data left_weapon;
-	int paramb[6],paramc[6],parame[6],paramcard[6];
-	int hit,flee,flee2,aspd,amotion,dmotion;
-	int def,def2,mdef,mdef2,critical,matk1,matk2;
-	int def_ele;
-	int castrate,delayrate,hprate,sprate,dsprate;
-	int subele[10],subrace[12];
-	int addeff[10],addeff2[10],reseff[10];
-	int base_atk,atk_rate;
-	int weapon_atk[16],weapon_atk_rate[16];
-	int arrow_atk,arrow_ele,arrow_cri,arrow_hit,arrow_range;
-	int arrow_addele[10],arrow_addrace[12],arrow_addsize[3],arrow_addeff[10],arrow_addeff2[10];
-	int nhealhp,nhealsp,nshealhp,nshealsp,nsshealhp,nsshealsp;
-	int aspd_rate,speed_rate,hprecov_rate,sprecov_rate,critical_def,double_rate;
-	int long_attack_atk_rate; //Long range atk rate, not weapon based. [Skotlex]
-	int near_attack_def_rate,long_attack_def_rate,magic_def_rate,misc_def_rate;
-	int matk_rate;
-	int ignore_mdef_ele,ignore_mdef_race;
-	int magic_addele[10],magic_addrace[12],magic_subrace[12];
-	int perfect_hit;
-	int get_zeny_rate, get_zeny_num; //Added Get Zeny Rate [Skotlex]
-	int critical_rate,hit_rate,flee_rate,flee2_rate,def_rate,def2_rate,mdef_rate,mdef2_rate;
-	int add_magic_damage_class_count,add_magic_damage_classrate[10];
-	short add_magic_damage_classid[10];
-	short add_def_class_count,add_mdef_class_count;
-	short add_def_classid[10],add_mdef_classid[10];
-	int add_def_classrate[10],add_mdef_classrate[10];
-	short monster_drop_item_count;
-	short monster_drop_itemid[10];
-	int monster_drop_race[10],monster_drop_itemrate[10];
-	int double_add_rate,speed_add_rate,aspd_add_rate,perfect_hit_add;
-	short splash_range,splash_add_range;
-	short autospell_id[10],autospell_lv[10],autospell_rate[10];
-	int short_weapon_damage_return,long_weapon_damage_return;
-	int weapon_coma_ele[10],weapon_coma_race[12];
-	int break_weapon_rate,break_armor_rate;
-	short add_steal_rate;
-	//--- 02/15's new card effects [celest]
-	int crit_atk_rate;
-	int critaddrace[12];
-	short no_regen;
-	int addeff3[10];
-	short addeff3_type[10];
-	short autospell2_id[10],autospell2_lv[10],autospell2_rate[10];
-	int skillatk[5][2]; //For skill damage enhancement bonuses [Skotlex] (index 0 is skillid, 1 damage %bonus)
-	unsigned short unstripable_equip;
-	short add_damage_classid2[10],add_damage_class_count2;
-	int add_damage_classrate2[10];
-	short sp_gain_value, hp_gain_value;
-	short sp_drain_type;
-	int hp_loss_tick, hp_loss_rate;
-	short hp_loss_value, hp_loss_type;
-	int subsize[3];
-	short unequip_losehp[11];
-	short unequip_losesp[11];
-	int itemid;
-	short itemindex;	//Used item's index in sd->inventory [Skotlex]
-	int itemhealrate[7];
-	//--- 03/15's new card effects
-	int expaddrace[12];
-	int subrace2[12];
-	short sp_gain_race[12];
-	short monster_drop_itemgroup[10];
-	int sp_loss_tick, sp_loss_rate;
-	short sp_loss_value;
-	unsigned int setitem_hash, setitem_hash2; //Split in 2 because shift operations only work on int ranges. [Skotlex]
-	//--- end effects
-
-	short spiritball, spiritball_old;
-	int spirit_timer[MAX_SKILL_LEVEL];
-	int magic_damage_return; // AppleGirl Was Here
-	int random_attack_increase_add,random_attack_increase_per; // [Valaris]
-	int classchange; // [Valaris]
-
-	int die_counter;
-	short doridori_counter;
+	
+ 	int paramc[6],paramcard[6];
+ 
+ 	// here start arrays to be globally zeroed at the beginning of status_calc_pc()
+ 
+ 	int paramb[6];
+ 	int parame[6];
+ 	int subele[10];
+ 	int subrace[12];
+ 	int addeff[10];
+ 	int addeff2[10];
+ 	int reseff[10];
+ 	int weapon_coma_ele[10];
+ 	int weapon_coma_race[12];
+ 	int weapon_atk[16];
+ 	int weapon_atk_rate[16];
+ 	int arrow_addele[10];
+ 	int arrow_addrace[12];
+ 	int arrow_addsize[3];
+ 	int arrow_addeff[10];
+ 	int arrow_addeff2[10];
+ 	int magic_addele[10];
+ 	int magic_addrace[12];
+ 	int magic_subrace[12];
+  	short add_magic_damage_classid[10];
+ 	int add_magic_damage_classrate[10];
+ 	int monster_drop_race[10];
+ 	int monster_drop_itemrate[10];
+ 	short autospell_id[10];
+ 	short autospell_lv[10];
+ 	short autospell_rate[10];
+ 	short autospell2_id[10];
+ 	short autospell2_lv[10];
+ 	short autospell2_rate[10];
+  	int critaddrace[12];
+  	int addeff3[10];
+  	short addeff3_type[10];
+  	int skillatk[5][2]; //For skill damage enhancement bonuses [Skotlex] (index 0 is skillid, 1 damage %bonus)
+ 	short add_def_classid[10];
+ 	int add_def_classrate[10];
+ 	short add_mdef_classid[10];
+ 	int add_mdef_classrate[10];
+ 	short add_damage_classid2[10];
+  	int add_damage_classrate2[10];
+  	int subsize[3];
+  	short unequip_losehp[11];
+  	short unequip_losesp[11];
+  	int subrace2[12];
+ 	int expaddrace[12];
+  	short sp_gain_race[12];
+ 	int itemhealrate[7];
+  
+ 	// zeroed arrays end here.
+ 	// zeroed vars start here.
+ 
+ 	int hit;
+ 	int flee, flee2;
+ 	int critical;
+ 	int aspd;
+ 	int def, def2;
+ 	int mdef, mdef2;
+ 	int def_ele;
+ 	int matk1, matk2;
+ 	int base_atk;
+ 	int arrow_atk,arrow_ele,arrow_cri,arrow_hit,arrow_range;
+ 	int nhealhp,nhealsp,nshealhp,nshealsp,nsshealhp,nsshealsp;
+ 	int critical_def,double_rate;
+ 	int long_attack_atk_rate; //Long range atk rate, not weapon based. [Skotlex]
+ 	int near_attack_def_rate,long_attack_def_rate,magic_def_rate,misc_def_rate;
+ 	int ignore_mdef_ele;
+ 	int ignore_mdef_race;
+ 	int perfect_hit;
+ 	int perfect_hit_add;
+ 	int get_zeny_rate;
+ 	int get_zeny_num; //Added Get Zeny Rate [Skotlex]
+ 	int double_add_rate;
+ 	int short_weapon_damage_return,long_weapon_damage_return;
+ 	int add_magic_damage_class_count;
+  	int magic_damage_return; // AppleGirl Was Here
+  	int random_attack_increase_add,random_attack_increase_per; // [Valaris]
+ 	int break_weapon_rate,break_armor_rate;
+ 	int crit_atk_rate;
+ 	int hp_loss_rate;
+ 	int sp_loss_rate;
+  	int classchange; // [Valaris]
+ 	unsigned int setitem_hash, setitem_hash2; //Split in 2 because shift operations only work on int ranges. [Skotlex]
+ 
+ 	short attackrange,attackrange_;
+ 	short splash_range, splash_add_range;
+ 	short add_steal_rate;
+ 	short hp_loss_value;
+ 	short sp_loss_value;
+ 	short hp_loss_type;
+ 	short sp_drain_type;
+ 	short sp_gain_value, hp_gain_value;
+ 	short monster_drop_item_count;
+ 	unsigned short unbreakable_equip;
+ 	unsigned short unstripable_equip;
+ 	short no_regen;
+ 	short add_def_class_count,add_mdef_class_count;
+ 	short add_damage_class_count2;
+ 
+ 	// zeroed vars end here.
+ 
+ 	int amotion,dmotion;
+ 	int castrate,delayrate,hprate,sprate,dsprate;
+ 	int atk_rate;
+ 	int aspd_rate,speed_rate,hprecov_rate,sprecov_rate;
+ 	int matk_rate;
+ 	int critical_rate,hit_rate,flee_rate,flee2_rate,def_rate,def2_rate,mdef_rate,mdef2_rate;
+ 	int speed_add_rate, aspd_add_rate;
+ 
+ 	short monster_drop_itemid[10];
+ 	short monster_drop_itemgroup[10];
+ 
+ 	int hp_loss_tick;
+ 	int sp_loss_tick;
+ 
+ 	int itemid;
+ 	short itemindex;	//Used item's index in sd->inventory [Skotlex]
+ 
+ 	short spiritball, spiritball_old;
+ 	int spirit_timer[MAX_SKILL_LEVEL];
+  
+  	int die_counter;
+  	short doridori_counter;
 	char potion_success_counter;
 
 	int reg_num;

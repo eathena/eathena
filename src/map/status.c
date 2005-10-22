@@ -590,159 +590,206 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		}
 	}
 
-	memset(sd->paramb,0,sizeof(sd->paramb));
-	memset(sd->parame,0,sizeof(sd->parame));
-	sd->hit = 0;
-	sd->flee = 0;
-	sd->flee2 = 0;
-	sd->critical = 0;
-	sd->aspd = 0;
-	sd->right_weapon.watk = 0;
-	sd->def = 0;
-	sd->mdef = 0;
-	sd->right_weapon.watk2 = 0;
-	sd->def2 = 0;
-	sd->mdef2 = 0;
-	sd->status.max_hp = 0;
-	sd->status.max_sp = 0;
-	sd->attackrange = 0;
-	sd->attackrange_ = 0;
-	sd->right_weapon.atk_ele = 0;
-	sd->def_ele = 0;
-	sd->right_weapon.star = 0;
-	sd->right_weapon.overrefine = 0;
-	sd->matk1 = 0;
-	sd->matk2 = 0;
+	// these are not zeroed. [zzo]
+
 	sd->speed = DEFAULT_WALK_SPEED;
 	sd->hprate=battle_config.hp_rate;
 	sd->sprate=battle_config.sp_rate;
 	sd->castrate=100;
 	sd->delayrate=100;
 	sd->dsprate=100;
-	sd->base_atk=0;
-	sd->arrow_atk=0;
-	sd->arrow_ele=0;
-	sd->arrow_hit=0;
-	sd->arrow_range=0;
-	sd->nhealhp=sd->nhealsp=sd->nshealhp=sd->nshealsp=sd->nsshealhp=sd->nsshealsp=0;
-	memset(sd->right_weapon.addele,0,sizeof(sd->right_weapon.addele));
-	memset(sd->right_weapon.addrace,0,sizeof(sd->right_weapon.addrace));
-	memset(sd->right_weapon.addsize,0,sizeof(sd->right_weapon.addsize));
-	memset(sd->left_weapon.addele,0,sizeof(sd->left_weapon.addele));
-	memset(sd->left_weapon.addrace,0,sizeof(sd->left_weapon.addrace));
-	memset(sd->left_weapon.addsize,0,sizeof(sd->left_weapon.addsize));
-	memset(sd->subele,0,sizeof(sd->subele));
-	memset(sd->subrace,0,sizeof(sd->subrace));
-	memset(sd->addeff,0,sizeof(sd->addeff));
-	memset(sd->addeff2,0,sizeof(sd->addeff2));
-	memset(sd->reseff,0,sizeof(sd->reseff));
-	memset(&sd->special_state,0,sizeof(sd->special_state));
-	memset(sd->weapon_coma_ele,0,sizeof(sd->weapon_coma_ele));
-	memset(sd->weapon_coma_race,0,sizeof(sd->weapon_coma_race));
-	memset(sd->weapon_atk,0,sizeof(sd->weapon_atk));
-	memset(sd->weapon_atk_rate,0,sizeof(sd->weapon_atk_rate));
-
-	sd->left_weapon.watk = 0;			//“ñ“—¬—p(?)
-	sd->left_weapon.watk2 = 0;
-	sd->left_weapon.atk_ele = 0;
-	sd->left_weapon.star = 0;
-	sd->left_weapon.overrefine = 0;
-
 	sd->aspd_rate = 100;
 	sd->speed_rate = 100;
 	sd->hprecov_rate = 100;
 	sd->sprecov_rate = 100;
-	sd->critical_def = 0;
-	sd->double_rate = 0;
-	sd->long_attack_atk_rate = 0;
-	sd->near_attack_def_rate = sd->long_attack_def_rate = 0;
 	sd->atk_rate = sd->matk_rate = 100;
-	sd->right_weapon.ignore_def_ele = sd->right_weapon.ignore_def_race = 0;
-	sd->left_weapon.ignore_def_ele = sd->left_weapon.ignore_def_race = 0;
-	sd->ignore_mdef_ele = sd->ignore_mdef_race = 0;
-	sd->arrow_cri = 0;
-	sd->magic_def_rate = sd->misc_def_rate = 0;
-	memset(sd->arrow_addele,0,sizeof(sd->arrow_addele));
-	memset(sd->arrow_addrace,0,sizeof(sd->arrow_addrace));
-	memset(sd->arrow_addsize,0,sizeof(sd->arrow_addsize));
-	memset(sd->arrow_addeff,0,sizeof(sd->arrow_addeff));
-	memset(sd->arrow_addeff2,0,sizeof(sd->arrow_addeff2));
-	memset(sd->magic_addele,0,sizeof(sd->magic_addele));
-	memset(sd->magic_addrace,0,sizeof(sd->magic_addrace));
-	memset(sd->magic_subrace,0,sizeof(sd->magic_subrace));
-	sd->perfect_hit = 0;
 	sd->critical_rate = sd->hit_rate = sd->flee_rate = sd->flee2_rate = 100;
 	sd->def_rate = sd->def2_rate = sd->mdef_rate = sd->mdef2_rate = 100;
-	sd->right_weapon.def_ratio_atk_ele = sd->left_weapon.def_ratio_atk_ele = 0;
-	sd->right_weapon.def_ratio_atk_race = sd->left_weapon.def_ratio_atk_race = 0;
-	sd->get_zeny_num = sd->get_zeny_rate = 0;
-	sd->right_weapon.add_damage_class_count = sd->left_weapon.add_damage_class_count = sd->add_magic_damage_class_count = 0;
-	sd->add_def_class_count = sd->add_mdef_class_count = 0;
-	sd->monster_drop_item_count = 0;
-	memset(sd->right_weapon.add_damage_classrate,0,sizeof(sd->right_weapon.add_damage_classrate));
-	memset(sd->left_weapon.add_damage_classrate,0,sizeof(sd->left_weapon.add_damage_classrate));
-	memset(sd->add_magic_damage_classrate,0,sizeof(sd->add_magic_damage_classrate));
-	memset(sd->add_def_classrate,0,sizeof(sd->add_def_classrate));
-	memset(sd->add_mdef_classrate,0,sizeof(sd->add_mdef_classrate));
-	memset(sd->monster_drop_race,0,sizeof(sd->monster_drop_race));
-	memset(sd->monster_drop_itemrate,0,sizeof(sd->monster_drop_itemrate));
 	sd->speed_add_rate = sd->aspd_add_rate = 100;
-	sd->double_add_rate = sd->perfect_hit_add = 0;
-	sd->splash_range = sd->splash_add_range = 0;
-	memset(sd->autospell_id,0,sizeof(sd->autospell_id));
-	memset(sd->autospell_lv,0,sizeof(sd->autospell_lv));
-	memset(sd->autospell_rate,0,sizeof(sd->autospell_rate));
-	sd->right_weapon.hp_drain_rate = sd->right_weapon.hp_drain_per = sd->right_weapon.sp_drain_rate = sd->right_weapon.sp_drain_per = 0;
-	sd->left_weapon.hp_drain_rate = sd->left_weapon.hp_drain_per = sd->left_weapon.sp_drain_rate = sd->left_weapon.sp_drain_per = 0;
-	sd->short_weapon_damage_return = sd->long_weapon_damage_return = 0;
-	sd->magic_damage_return = 0; //AppleGirl Was Here
-	sd->random_attack_increase_add = sd->random_attack_increase_per = 0;
-	sd->right_weapon.hp_drain_value = sd->left_weapon.hp_drain_value = sd->right_weapon.sp_drain_value = sd->left_weapon.sp_drain_value = 0;
-	sd->unbreakable_equip = 0;
 
-	sd->break_weapon_rate = sd->break_armor_rate = 0;
-	sd->add_steal_rate = 0;
-	sd->crit_atk_rate = 0;
-	sd->no_regen = 0;
-	sd->unstripable_equip = 0;
-	memset(sd->autospell2_id,0,sizeof(sd->autospell2_id));
-	memset(sd->autospell2_lv,0,sizeof(sd->autospell2_lv));
-	memset(sd->autospell2_rate,0,sizeof(sd->autospell2_rate));
-	memset(sd->critaddrace,0,sizeof(sd->critaddrace));
-	memset(sd->addeff3,0,sizeof(sd->addeff3));
-	memset(sd->addeff3_type,0,sizeof(sd->addeff3_type));
-	memset(sd->skillatk,0,sizeof(sd->skillatk));
-	sd->right_weapon.add_damage_class_count = sd->left_weapon.add_damage_class_count = sd->add_magic_damage_class_count = 0;
-	sd->add_def_class_count = sd->add_mdef_class_count = 0;
-	sd->add_damage_class_count2 = 0;
-	memset(sd->right_weapon.add_damage_classid,0,sizeof(sd->right_weapon.add_damage_classid));
-	memset(sd->left_weapon.add_damage_classid,0,sizeof(sd->left_weapon.add_damage_classid));
-	memset(sd->add_magic_damage_classid,0,sizeof(sd->add_magic_damage_classid));
-	memset(sd->right_weapon.add_damage_classrate,0,sizeof(sd->right_weapon.add_damage_classrate));
-	memset(sd->left_weapon.add_damage_classrate,0,sizeof(sd->left_weapon.add_damage_classrate));
-	memset(sd->add_magic_damage_classrate,0,sizeof(sd->add_magic_damage_classrate));
-	memset(sd->add_def_classid,0,sizeof(sd->add_def_classid));
-	memset(sd->add_def_classrate,0,sizeof(sd->add_def_classrate));
-	memset(sd->add_mdef_classid,0,sizeof(sd->add_mdef_classid));
-	memset(sd->add_mdef_classrate,0,sizeof(sd->add_mdef_classrate));
-	memset(sd->add_damage_classid2,0,sizeof(sd->add_damage_classid2));
-	memset(sd->add_damage_classrate2,0,sizeof(sd->add_damage_classrate2));
-	sd->sp_gain_value = 0;
-	sd->right_weapon.ignore_def_mob = sd->left_weapon.ignore_def_mob = 0;
-	sd->hp_loss_rate = sd->hp_loss_value = sd->hp_loss_type = 0;
-	sd->sp_loss_rate = sd->sp_loss_value = 0;
-	memset(sd->right_weapon.addrace2,0,sizeof(sd->right_weapon.addrace2));
-	memset(sd->left_weapon.addrace2,0,sizeof(sd->left_weapon.addrace2));
-	sd->hp_gain_value = sd->sp_drain_type = 0;
-	memset(sd->subsize,0,sizeof(sd->subsize));
-	memset(sd->unequip_losehp,0,sizeof(sd->unequip_losehp));
-	memset(sd->unequip_losesp,0,sizeof(sd->unequip_losesp));
-	memset(sd->subrace2,0,sizeof(sd->subrace2));
-	memset(sd->expaddrace,0,sizeof(sd->expaddrace));
-	memset(sd->sp_gain_race,0,sizeof(sd->sp_gain_race));
-	memset(sd->itemhealrate,0,sizeof(sd->itemhealrate));
-	sd->classchange = 0;
-	sd->setitem_hash = sd->setitem_hash2 = 0;
+	// zeroed arays, order follows the order in map.h.
+	// add new arrays to the end of zeroed area in map.h (see comments) and size here. [zzo]
+	memset (sd->paramb, 0, sizeof(sd->paramb)
+		+ sizeof(sd->parame)
+		+ sizeof(sd->subele)
+		+ sizeof(sd->subrace)
+		+ sizeof(sd->addeff)
+		+ sizeof(sd->addeff2)
+		+ sizeof(sd->reseff)
+		+ sizeof(sd->weapon_coma_ele)
+		+ sizeof(sd->weapon_coma_race)
+		+ sizeof(sd->weapon_atk)
+		+ sizeof(sd->weapon_atk_rate)
+		+ sizeof(sd->arrow_addele) 
+		+ sizeof(sd->arrow_addrace)
+		+ sizeof(sd->arrow_addsize)
+		+ sizeof(sd->arrow_addeff)
+		+ sizeof(sd->arrow_addeff2)
+		+ sizeof(sd->magic_addele)
+		+ sizeof(sd->magic_addrace)
+		+ sizeof(sd->magic_subrace)
+		+ sizeof(sd->add_magic_damage_classid)
+		+ sizeof(sd->add_magic_damage_classrate)
+		+ sizeof(sd->monster_drop_race)
+		+ sizeof(sd->monster_drop_itemrate)
+		+ sizeof(sd->autospell_id)
+		+ sizeof(sd->autospell_lv)
+		+ sizeof(sd->autospell_rate)
+		+ sizeof(sd->autospell2_id)
+		+ sizeof(sd->autospell2_lv)
+		+ sizeof(sd->autospell2_rate)
+		+ sizeof(sd->critaddrace)
+		+ sizeof(sd->addeff3)
+		+ sizeof(sd->addeff3_type)
+		+ sizeof(sd->skillatk)
+		+ sizeof(sd->add_def_classid)
+		+ sizeof(sd->add_def_classrate)
+		+ sizeof(sd->add_mdef_classid)
+		+ sizeof(sd->add_mdef_classrate)
+		+ sizeof(sd->add_damage_classid2)
+		+ sizeof(sd->add_damage_classrate2)
+		+ sizeof(sd->subsize)
+		+ sizeof(sd->unequip_losehp)
+		+ sizeof(sd->unequip_losesp)
+		+ sizeof(sd->subrace2)
+		+ sizeof(sd->expaddrace)
+		+ sizeof(sd->sp_gain_race)
+		+ sizeof(sd->itemhealrate)
+		);
+
+	memset (sd->right_weapon.addele, 0, sizeof(sd->right_weapon.addele)
+		+ sizeof(sd->right_weapon.addrace)
+		+ sizeof(sd->right_weapon.addsize)
+		+ sizeof(sd->right_weapon.add_damage_classid)
+		+ sizeof(sd->right_weapon.add_damage_classrate)
+		+ sizeof(sd->right_weapon.addrace2)
+		);
+
+	memset (&sd->right_weapon.watk, 0, sizeof(sd->right_weapon.watk)
+		+ sizeof(sd->right_weapon.watk2)
+		+ sizeof(sd->right_weapon.atk_ele)
+		+ sizeof(sd->right_weapon.overrefine)
+		+ sizeof(sd->right_weapon.star)
+		+ sizeof(sd->right_weapon.ignore_def_ele)
+		+ sizeof(sd->right_weapon.ignore_def_race)
+		+ sizeof(sd->right_weapon.def_ratio_atk_ele)
+		+ sizeof(sd->right_weapon.def_ratio_atk_race)
+		+ sizeof(sd->right_weapon.add_damage_class_count)
+		+ sizeof(sd->right_weapon.ignore_def_mob)
+		+ sizeof(sd->right_weapon.hp_drain_rate)
+		+ sizeof(sd->right_weapon.hp_drain_per)
+		+ sizeof(sd->right_weapon.hp_drain_value)
+		+ sizeof(sd->right_weapon.sp_drain_rate)
+		+ sizeof(sd->right_weapon.sp_drain_per)
+		+ sizeof(sd->right_weapon.sp_drain_value)
+		);
+
+	memset (sd->left_weapon.addele, 0, sizeof(sd->left_weapon.addele)
+		+ sizeof(sd->left_weapon.addrace)
+		+ sizeof(sd->left_weapon.addsize)
+		+ sizeof(sd->left_weapon.add_damage_classid)
+		+ sizeof(sd->left_weapon.add_damage_classrate)
+		+ sizeof(sd->left_weapon.addrace2)
+		);
+
+	memset (&sd->left_weapon.watk, 0, sizeof(sd->left_weapon.watk)
+		+ sizeof(sd->left_weapon.watk2)
+		+ sizeof(sd->left_weapon.atk_ele)
+		+ sizeof(sd->left_weapon.overrefine)
+		+ sizeof(sd->left_weapon.star)
+		+ sizeof(sd->left_weapon.ignore_def_ele)
+		+ sizeof(sd->left_weapon.ignore_def_race)
+		+ sizeof(sd->left_weapon.def_ratio_atk_ele)
+		+ sizeof(sd->left_weapon.def_ratio_atk_race)
+		+ sizeof(sd->left_weapon.add_damage_class_count)
+		+ sizeof(sd->left_weapon.ignore_def_mob)
+		+ sizeof(sd->left_weapon.hp_drain_rate)
+		+ sizeof(sd->left_weapon.hp_drain_per)
+		+ sizeof(sd->left_weapon.hp_drain_value)
+		+ sizeof(sd->left_weapon.sp_drain_rate)
+		+ sizeof(sd->left_weapon.sp_drain_per)
+		+ sizeof(sd->left_weapon.sp_drain_value)
+		);
+
+	memset(&sd->special_state,0,sizeof(sd->special_state));
+
+	sd->status.max_hp = 0;
+	sd->status.max_sp = 0;
+
+	// vars zeroing. ints, shorts, chars. in that order.
+
+	memset (&sd->hit, 0, sizeof(sd->hit)
+		+ sizeof(sd->flee)
+		+ sizeof(sd->flee2)
+		+ sizeof(sd->critical)
+		+ sizeof(sd->aspd)
+		+ sizeof(sd->def)
+		+ sizeof(sd->mdef)
+		+ sizeof(sd->def2)
+		+ sizeof(sd->mdef2)
+		+ sizeof(sd->def_ele)
+		+ sizeof(sd->matk1)
+		+ sizeof(sd->matk2)
+		+ sizeof(sd->base_atk)
+		+ sizeof(sd->arrow_atk)
+		+ sizeof(sd->arrow_ele)
+		+ sizeof(sd->arrow_cri)
+		+ sizeof(sd->arrow_hit)
+		+ sizeof(sd->arrow_range)
+		+ sizeof(sd->nhealhp)
+		+ sizeof(sd->nhealsp)
+		+ sizeof(sd->nshealhp)
+		+ sizeof(sd->nshealsp)
+		+ sizeof(sd->nsshealhp)
+		+ sizeof(sd->nsshealsp)
+		+ sizeof(sd->critical_def)
+		+ sizeof(sd->double_rate)
+		+ sizeof(sd->long_attack_atk_rate)
+		+ sizeof(sd->near_attack_def_rate)
+		+ sizeof(sd->long_attack_def_rate)
+		+ sizeof(sd->magic_def_rate)
+		+ sizeof(sd->misc_def_rate)
+		+ sizeof(sd->ignore_mdef_ele)
+		+ sizeof(sd->ignore_mdef_race)
+		+ sizeof(sd->perfect_hit)
+		+ sizeof(sd->perfect_hit_add)
+		+ sizeof(sd->get_zeny_rate)
+		+ sizeof(sd->get_zeny_num)
+		+ sizeof(sd->double_add_rate)
+		+ sizeof(sd->short_weapon_damage_return)
+		+ sizeof(sd->long_weapon_damage_return)
+		+ sizeof(sd->add_magic_damage_class_count)
+		+ sizeof(sd->magic_damage_return)
+		+ sizeof(sd->random_attack_increase_add)
+		+ sizeof(sd->random_attack_increase_per)
+		+ sizeof(sd->break_weapon_rate)
+		+ sizeof(sd->break_armor_rate)
+		+ sizeof(sd->crit_atk_rate)
+		+ sizeof(sd->hp_loss_rate)
+		+ sizeof(sd->sp_loss_rate)
+		+ sizeof(sd->classchange)
+		+ sizeof(sd->setitem_hash)
+		+ sizeof(sd->setitem_hash2)
+		// shorts
+		+ sizeof(sd->attackrange)
+		+ sizeof(sd->attackrange_)
+		+ sizeof(sd->splash_range)
+		+ sizeof(sd->splash_add_range)
+		+ sizeof(sd->add_steal_rate)
+		+ sizeof(sd->hp_loss_value)
+		+ sizeof(sd->sp_loss_value)
+		+ sizeof(sd->hp_loss_type)
+		+ sizeof(sd->sp_drain_type)
+		+ sizeof(sd->hp_gain_value)
+		+ sizeof(sd->sp_gain_value)
+		+ sizeof(sd->monster_drop_item_count)
+		+ sizeof(sd->unbreakable_equip)
+		+ sizeof(sd->unstripable_equip)
+		+ sizeof(sd->no_regen)
+		+ sizeof(sd->add_def_class_count)
+		+ sizeof(sd->add_mdef_class_count)
+		+ sizeof(sd->add_damage_class_count2)
+		);
 
 	if(!sd->state.disguised && sd->disguise) {
 		pc_stop_walking(sd,0);
