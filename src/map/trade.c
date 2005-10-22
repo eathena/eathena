@@ -72,9 +72,9 @@ void trade_tradeack(struct map_session_data *sd, int type) {
 		clif_tradestart(target_sd, type);
 		clif_tradestart(sd, type);
 		if (type == 4) { // Cancel
-			sd->deal_locked = 0;
+			sd->state.deal_locked = 0;
 			sd->trade_partner = 0;
-			target_sd->deal_locked = 0;
+			target_sd->state.deal_locked = 0;
 			target_sd->trade_partner = 0;
 		}
 
@@ -174,7 +174,7 @@ void trade_tradeadditem(struct map_session_data *sd, int index, int amount) {
 	int trade_i, trade_weight, nameid;
 
 	nullpo_retv(sd);
-	if ((target_sd = map_id2sd(sd->trade_partner)) == NULL || sd->deal_locked > 0)
+	if ((target_sd = map_id2sd(sd->trade_partner)) == NULL || sd->state.deal_locked > 0)
 		return; //Can't add stuff.
 
 	if (index == 0)
@@ -278,7 +278,7 @@ void trade_tradeok(struct map_session_data *sd) {
 	}
 
 	if ((target_sd = map_id2sd(sd->trade_partner)) != NULL) {
-		sd->deal_locked = 1;
+		sd->state.deal_locked = 1;
 		clif_tradeitemok(sd, 0, 0);
 		clif_tradedeal_lock(sd, 0);
 		clif_tradedeal_lock(target_sd, 1);
@@ -316,9 +316,9 @@ void trade_tradecancel(struct map_session_data *sd) {
 			clif_updatestatus(target_sd, SP_ZENY);
 			target_sd->deal_zeny = 0;
 		}
-		sd->deal_locked = 0;
+		sd->state.deal_locked = 0;
 		sd->trade_partner = 0;
-		target_sd->deal_locked = 0;
+		target_sd->state.deal_locked = 0;
 		target_sd->trade_partner = 0;
 		clif_tradecancelled(sd);
 		clif_tradecancelled(target_sd);
@@ -337,11 +337,11 @@ void trade_tradecommit(struct map_session_data *sd) {
 	nullpo_retv(sd);
 
 	if ((target_sd = map_id2sd(sd->trade_partner)) != NULL) {
-		if ((sd->deal_locked >= 1) && (target_sd->deal_locked >= 1)) { // both have pressed 'ok'
-			if (sd->deal_locked < 2) { // set locked to 2
-				sd->deal_locked = 2;
+		if ((sd->state.deal_locked >= 1) && (target_sd->state.deal_locked >= 1)) { // both have pressed 'ok'
+			if (sd->state.deal_locked < 2) { // set locked to 2
+				sd->state.deal_locked = 2;
 			}
-			if (target_sd->deal_locked == 2) { // the other one pressed 'trade' too
+			if (target_sd->state.deal_locked == 2) { // the other one pressed 'trade' too
 				// check exploit (trade more items that you have)
 				if (impossible_trade_check(sd)) {
 					trade_tradecancel(sd);
@@ -419,9 +419,9 @@ void trade_tradecommit(struct map_session_data *sd) {
 						clif_updatestatus(target_sd, SP_ZENY);
 						target_sd->deal_zeny = 0;
 					}
-					sd->deal_locked = 0;
+					sd->state.deal_locked = 0;
 					sd->trade_partner = 0;
-					target_sd->deal_locked = 0;
+					target_sd->state.deal_locked = 0;
 					target_sd->trade_partner = 0;
 					clif_tradecompleted(sd, 0);
 					clif_tradecompleted(target_sd, 0);

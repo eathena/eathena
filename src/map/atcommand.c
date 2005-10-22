@@ -6230,7 +6230,7 @@ int atcommand_disguise(
 	pc_stop_walking(sd,0);
 	clif_clearchar(&sd->bl, 0);
 	sd->disguise = id;
-	sd->disguiseflag = 1; // set to override items with disguise script [Valaris]
+	sd->state.disguised = 1; // set to override items with disguise script [Valaris]
 	clif_changeoption(&sd->bl);
 	clif_spawnpc(sd);
 	clif_displaymessage(fd, msg_table[122]); // Disguise applied.
@@ -6269,7 +6269,7 @@ int atcommand_disguiseall(
 				pc_stop_walking(pl_sd,0);
 				clif_clearchar(&pl_sd->bl, 0);
 				pl_sd->disguise = mob_id;
-				pl_sd->disguiseflag = 1; // set to override items with disguise script [Valaris]
+				pl_sd->state.disguised = 1; // set to override items with disguise script [Valaris]
 				clif_changeoption(&pl_sd->bl);
 				clif_spawnpc(pl_sd);
 			}
@@ -6414,7 +6414,7 @@ int atcommand_chardisguise(
 				pc_stop_walking(pl_sd,0);
 				clif_clearchar(&pl_sd->bl, 0);
 				pl_sd->disguise = mob_id;
-				pl_sd->disguiseflag = 1; // set to override items with disguise script [Valaris]
+				pl_sd->state.disguised = 1; // set to override items with disguise script [Valaris]
 				clif_changeoption(&pl_sd->bl);
 				clif_spawnpc(pl_sd);
 				clif_displaymessage(fd, msg_table[140]); // Character's disguise applied.

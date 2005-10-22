@@ -185,9 +185,9 @@ int party_recv_info(struct party *sp)
 
 	for(i=0;i<MAX_PARTY;i++){	// 設定情報の送信
 		struct map_session_data *sd = p->member[i].sd;
-		if(sd!=NULL && sd->party_sended==0){
+		if(sd!=NULL && sd->state.party_sent==0){
 			clif_party_option(p,sd,0x100);
-			sd->party_sended=1;
+			sd->state.party_sent=1;
 		}
 	}
 	
@@ -272,7 +272,7 @@ int party_member_added(int party_id,int account_id,int flag)
 	}
 	
 		// 成功
-	sd->party_sended=0;
+	sd->state.party_sent=0;
 	sd->status.party_id=party_id;
 	
 	if( sd2!=NULL)
@@ -346,7 +346,7 @@ int party_member_leaved(int party_id,int account_id,char *name)
 	}
 	if(sd!=NULL && sd->status.party_id==party_id){
 		sd->status.party_id=0;
-		sd->party_sended=0;
+		sd->state.party_sent=0;
 		clif_charnameupdate(sd); //Update name display [Skotlex]
 	}
 	return 0;
@@ -364,7 +364,7 @@ int party_broken(int party_id)
 			clif_party_leaved(p,p->member[i].sd,
 				p->member[i].account_id,p->member[i].name,0x10);
 			p->member[i].sd->status.party_id=0;
-			p->member[i].sd->party_sended=0;
+			p->member[i].sd->state.party_sent=0;
 		}
 	}
 	numdb_erase(party_db,party_id);
@@ -444,7 +444,7 @@ int party_send_movemap(struct map_session_data *sd)
 		return 0;
 	intif_party_changemap(sd,1);
 
-	if( sd->party_sended!=0 )	// もうパーティデータは送信済み
+	if( sd->state.party_sent!=0 )	// もうパーティデータは送信済み
 		return 0;
 
 	// 競合確認	
@@ -456,7 +456,7 @@ int party_send_movemap(struct map_session_data *sd)
 		if(sd->status.party_id==p->party_id){
 			clif_party_info(p,sd->fd);
 			clif_party_option(p,sd,0x100);
-			sd->party_sended=1;
+			sd->state.party_sent=1;
 		}
 	}
 	

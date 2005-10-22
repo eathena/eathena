@@ -366,6 +366,10 @@ struct map_session_data {
 		unsigned accreg_dirty : 1; //By Skotlex (marks whether Account variables have been saved or not yet)
 		unsigned showdelay :1;
 		unsigned showexp :1;
+		unsigned disguised :1; //[Valaris]
+		unsigned deal_locked :1;
+		unsigned party_sent :1;
+		unsigned guild_sent :1;
 	} state;
 	struct {
 		unsigned killer : 1;
@@ -456,7 +460,7 @@ struct map_session_data {
 
 	short view_class;
 	short weapontype1,weapontype2;
-	short disguiseflag,disguise; // [Valaris]
+	short disguise; // [Valaris]
 
 	struct weapon_data right_weapon;
 	struct weapon_data left_weapon;
@@ -551,12 +555,11 @@ struct map_session_data {
 	int deal_item_amount[10];
 	int deal_zeny;
 	int deal_weight;	//tracks deal weight [Skotlex]
-	short deal_locked;
 
-	int party_sended,party_invite,party_invite_account;
+	int party_invite,party_invite_account;
 	int party_x,party_y;
 
-	int guild_sended,guild_invite,guild_invite_account;
+	int guild_invite,guild_invite_account;
 	int guild_emblem_id,guild_alliance,guild_alliance_account;
 	int guild_x,guild_y; //For guildmate position display. [Skotlex]
 	int guildspy; // [Syrus22]

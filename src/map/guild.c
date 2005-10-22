@@ -378,7 +378,7 @@ int guild_created(int account_id,int guild_id)
 	if(guild_id>0) {
 			//struct guild *g;
 			sd->status.guild_id=guild_id;
-			sd->guild_sended=0;
+			sd->state.guild_sent=0;
 			//if((g=(struct guild *) numdb_search(guild_db,guild_id))!=NULL){
 			//	printf("guild: id already exists!\n");
 			//	exit(1);
@@ -441,7 +441,7 @@ int guild_check_member(const struct guild *g)
 				}
 				if(f){
 					sd->status.guild_id=0;
-					sd->guild_sended=0;
+					sd->state.guild_sent=0;
 					sd->guild_emblem_id=0;
 					if(battle_config.error_log)
 						ShowWarning("guild: check_member %d[%s] is not member\n",sd->status.account_id,sd->status.name);
@@ -532,11 +532,11 @@ int guild_recv_info(struct guild *sg)
 		if( before.skill_point!=g->skill_point)
 			clif_guild_skillinfo(sd);	// スキル情報送信
 
-		if( sd->guild_sended==0){	// 未送信なら所属情報も送る
+		if( sd->state.guild_sent==0){	// 未送信なら所属情報も送る
 			clif_guild_belonginfo(sd,g);
 			clif_guild_notice(sd,g);
 			sd->guild_emblem_id=g->emblem_id;
-			sd->guild_sended=1;
+			sd->state.guild_sent=1;
 		}
 	}
 
@@ -680,7 +680,7 @@ int guild_member_added(int guild_id,int account_id,int char_id,int flag)
 	}
 
 		// 成功
-	sd->guild_sended=0;
+	sd->state.guild_sent=0;
 	sd->status.guild_id=guild_id;
 
 	if( sd2!=NULL )
@@ -785,7 +785,7 @@ int guild_member_leaved(int guild_id,int account_id,int char_id,int flag,
 			guild_send_dot_remove(sd);
 			sd->status.guild_id=0;
 			sd->guild_emblem_id=0;
-			sd->guild_sended=0;
+			sd->state.guild_sent=0;
 			clif_charnameupdate(sd); //Update display name [Skotlex]
 		}
 	}
@@ -815,7 +815,7 @@ int guild_send_memberinfoshort(struct map_session_data *sd,int online)
 		return 0;
 	}
 
-	if( sd->guild_sended!=0 )	// ギルド初期送信データは送信済み
+	if( sd->state.guild_sent!=0 )	// ギルド初期送信データは送信済み
 		return 0;
 
 	// 競合確認
@@ -827,7 +827,7 @@ int guild_send_memberinfoshort(struct map_session_data *sd,int online)
 		if(sd->status.guild_id==g->guild_id){
 			clif_guild_belonginfo(sd,g);
 			clif_guild_notice(sd,g);
-			sd->guild_sended=1;
+			sd->state.guild_sent=1;
 			sd->guild_emblem_id=g->emblem_id;
 		}
 	}
@@ -862,7 +862,7 @@ int guild_recv_memberinfoshort(int guild_id,int account_id,int char_id,int onlin
 		if(sd && sd->char_id == char_id) {
 			sd->status.guild_id=0;
 			sd->guild_emblem_id=0;
-			sd->guild_sended=0;
+			sd->state.guild_sent=0;
 		}
 		if(battle_config.error_log)
 			ShowWarning("guild: not found member %d,%d on %d[%s]\n",	account_id,char_id,guild_id,g->name);
@@ -1433,7 +1433,7 @@ int guild_broken(int guild_id,int flag)
 			if(sd->state.storage_flag == 2)
 				storage_guild_storage_quit(sd,1);
 			sd->status.guild_id=0;
-			sd->guild_sended=0;
+			sd->state.guild_sent=0;
 			clif_guild_broken(g->member[i].sd,0);
 		}
 	}

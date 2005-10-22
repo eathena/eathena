@@ -744,7 +744,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	sd->classchange = 0;
 	sd->setitem_hash = sd->setitem_hash2 = 0;
 
-	if(!sd->disguiseflag && sd->disguise) {
+	if(!sd->state.disguised && sd->disguise) {
 		pc_stop_walking(sd,0);
 		clif_clearchar(&sd->bl, 0);
 		sd->disguise=0;

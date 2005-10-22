@@ -1473,7 +1473,7 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 		}
 		break;
 	case SP_DISGUISE: // Disguise script for items [Valaris]
-		if(sd->state.lr_flag!=2 && !sd->disguiseflag && !pc_isriding(sd)) {
+		if(sd->state.lr_flag!=2 && !sd->state.disguised && !pc_isriding(sd)) {
 			clif_clearchar(&sd->bl, 0);
 			sd->disguise=val;
 			clif_changeoption(&sd->bl);
