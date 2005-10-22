@@ -1,6 +1,8 @@
 Date	Added
 ==========
 2005/10/22
+	* Eh.. now Safety Wall blocks all skills tagged as short-ranged. Report any
+	  anomalies this causes. [Skotlex]
 	* Added support for global mob skills. In essence, you can now specify a
 	  mob skill that is added to ALL mobs in a single line by using negative
 	  class IDs. -1 adds the skill to normal mobs, -2 adds the skill to

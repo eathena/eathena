@@ -422,9 +422,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 	sc_count = status_get_sc_count(bl);
 
 	if (sc_count && *sc_count > 0) {
-		if (sc_data[SC_SAFETYWALL].timer!=-1 && damage>0 && flag&BF_WEAPON &&
-			flag&BF_SHORT && 
-			(skill_num != NPC_GUIDEDATTACK && skill_num != AM_DEMONSTRATION)
+		if (sc_data[SC_SAFETYWALL].timer!=-1 && damage>0 && flag&BF_SHORT && (skill_num != NPC_GUIDEDATTACK && skill_num != AM_DEMONSTRATION)
 		) {
 			// セーフティウォール
 			struct skill_unit_group *group = (struct skill_unit_group *)sc_data[SC_SAFETYWALL].val3;
