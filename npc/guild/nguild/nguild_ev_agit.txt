@@ -3,13 +3,14 @@
 //===== By: ==================================================
 //= kobra_k88
 //===== Current Version: =====================================
-//= 1.0
+//= 1.3
 //===== Compatible With: =====================================
 //= eAthena 0.1+; RO Episode 4+
 //===== Description: =========================================
 //= Event Triggers for NGuild Wars
 //===== Additional Comments: =================================
 // Based off existing guild scripts.  Do not know if it is accurate.[kobra_k88]
+//= 1.3 Added code for abandoning captured castles on /breakguild [Lupus]
 //============================================================
 
 
@@ -26,6 +27,9 @@ OnAgitStart:
 	end;
 OnAgitBreak:
 	callfunc "F_AgitBreak","nguild_alde","N01";
+	end;
+OnGuildBreak:
+	callfunc "F_GuildBreak","nguild_alde","N01";
 	end;
 OnAgitEliminate:
 	MapRespawnGuildID "nguild_alde.gat",GetCastleData("nguild_alde.gat",1),6;
@@ -50,6 +54,9 @@ OnAgitStart:
 OnAgitBreak:
 	callfunc "F_AgitBreak","nguild_gef","N02";
 	end;
+OnGuildBreak:
+	callfunc "F_GuildBreak","nguild_gef","N02";
+	end;
 OnAgitEliminate:
 	MapRespawnGuildID "nguild_gef.gat",GetCastleData("nguild_gef.gat",1),6;
 	Monster "nguild_gef.gat",198,182,"EMPERIUM",1288,1,"Agit_N02::OnAgitBreak";
@@ -73,6 +80,9 @@ OnAgitStart:
 OnAgitBreak:
 	callfunc "F_AgitBreak","nguild_pay","N03";
 	end;
+OnGuildBreak:
+	callfunc "F_GuildBreak","nguild_pay","N03";
+	end;
 OnAgitEliminate:
 	MapRespawnGuildID "nguild_pay.gat",GetCastleData("nguild_pay.gat",1),6;
 	Monster "nguild_pay.gat",139,139,"EMPERIUM",1288,1,"Agit_N03::OnAgitBreak";
@@ -95,6 +105,9 @@ OnAgitStart:
 	end;
 OnAgitBreak:
 	callfunc "F_AgitBreak","nguild_prt","N04";
+	end;
+OnGuildBreak:
+	callfunc "F_GuildBreak","nguild_prt","N04";
 	end;
 OnAgitEliminate:
 	MapRespawnGuildID "nguild_prt.gat",GetCastleData("nguild_prt.gat",1),6;

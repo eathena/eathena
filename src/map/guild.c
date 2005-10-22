@@ -1419,15 +1419,31 @@ int castle_guild_broken_sub(void *key,void *data,va_list ap)
 	return 0;
 }
 
-// ƒMƒ‹ƒh‰ðŽU’Ê’m
+//Innvoked on /breakguild "Guild name"
 int guild_broken(int guild_id,int flag)
 {
 	struct guild *g=guild_search(guild_id);
+//	struct guild_castle *gc=NULL;
 	struct map_session_data *sd;
 	int i;
+//	char *name;;
+
 	if(flag!=0 || g==NULL)
 		return 0;
 
+	//we call castle_event::OnGuildBreak of all castlesof the guild
+	//you can set all castle_events in the castle_db.txt
+/*	name=(char *)aCalloc(50,sizeof(char)); //24 char = event name, + space for  "::OnGuildBreak"
+	for(i=0;i<MAX_GUILDCASTLE;i++){
+		if( (gc=guild_castle_search(i)) != NULL ){
+			if(gc->guild_id == guild_id){
+				memcpy(name,gc->castle_event,50);
+				npc_event_do(strcat(name,"::OnGuildBreak"));
+			}
+		}
+	}
+	free(name);
+*/
 	for(i=0;i<g->max_member;i++){	// ƒMƒ‹ƒh‰ðŽU‚ð’Ê’m
 		if((sd=g->member[i].sd)!=NULL){
 			if(sd->state.storage_flag == 2)

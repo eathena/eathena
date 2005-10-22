@@ -32,6 +32,8 @@
 		like gemstones when the skill is used.
 	--
 
+10/23
+	* Updated castle_db.txt for correct work on /guildbreak [Lupus]
 10/19
 	* Corrected a bunch of spells that should be "no overlap" in skill_unit_db.
 	  [Skotlex]

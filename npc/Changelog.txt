@@ -18,11 +18,18 @@ Massdriller
 	  guide book so, probably unofficial
 	* Level 4 forge (MRO Lvl 4 Forging Quest) - 1% - resources only from MRO Official
 	  guide book so, probably unofficial
+MasterOfMuppets
+	* ???
+Nexon
+	* ???
 
 == Changelog ==
 
 Date		Added
 ======
+10/23
+	* Updated WoE (Guilds War) scripts to work correctly with /breakguild [Lupus]
+	  They should abandon accuped casles of the broken guild 
 10/19
 	* Thanks to Justin84:
 	- Updated Thanatos Tower warps, added NOTELEPORT to some thanatos tower levels
