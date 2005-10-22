@@ -573,17 +573,16 @@ struct map_session_data {
 	struct pet_data *pd;
 	int pet_hungry_timer;
 
-	int pvp_point, pvp_rank, pvp_timer, pvp_lastusers;
-	int pvp_won, pvp_lost;
+	unsigned int pvp_timer;
+	short pvp_point;
+	unsigned short pvp_rank, pvp_lastusers;
+	unsigned short pvp_won, pvp_lost;
 
 	char eventqueue[MAX_EVENTQUEUE][50];
 	int eventtimer[MAX_EVENTTIMER];
 	unsigned short eventcount; // [celest]
 
-	int last_skillid,last_skilllv;		// Added by RoVeRT
-
 	unsigned char change_level; // [celest]
-	unsigned detach :1;
 
 	short monster_ignore;	// for monsters to ignore a character [Valaris]
 	char fakename[NAME_LENGTH]; // fake names [Valaris]

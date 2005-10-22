@@ -1,6 +1,15 @@
 Date	Added
 ==========
 2005/10/22
+	* Modified NPC_EMOTION and NPC_EMOTION_ON so they can be used to modify the
+	  current mob's mode (instead of setting it). [Skotlex]
+	- Some examples:
+		1269,Clock@NPC_EMOTION_ON,attack,474,1,10000,0,30000,yes,self,always,0,6,4,300,,,
+	  Adds mode 4 (aggressive) for 300 seconds to Clocks when attacking.
+		1193,Alarm@NPC_EMOTION,chase,197,1,200,0,5000,yes,self,always,0,19,4,10,,,
+	  Removes the aggressive mode (4) from Alarms when chasing for 10 seconds.
+	- After a mob's mode is changed, their state is reset so they can stop
+		chasing/seek a target.
 	* Made GrimTooth be longranged, Soul Drain work only on targetted skills,
 	  and Extremity Fist only checks for enemy state right before attacking (I am
 	  not sure it is 100% as it should be still, though) [Skotlex]

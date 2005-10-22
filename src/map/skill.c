@@ -4852,7 +4852,16 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			clif_emotion(&md->bl,md->db->skill[md->skillidx].val[0]);
 			if(md->db->skill[md->skillidx].val[1])
 			{
-				status_change_start(bl, SC_MODE, md->db->skill[md->skillidx].val[1],0,0,0,
+				int mode, mode2;
+				mode = status_get_mode(src);
+				if (skillid == NPC_EMOTION_ON) //Add a mode
+					mode2 = mode|md->db->skill[md->skillidx].val[1];
+				else	//Remove a mode
+					mode2 = mode&~(md->db->skill[md->skillidx].val[1]);
+				
+				if (mode == mode2)
+					break; //No change
+				status_change_start(bl, SC_MODE, mode2,0,0,0,
 					md->db->skill[md->skillidx].val[2]*1000,0);
 				//Since mode changed, reset their state.
 				mob_stopattack(md);
