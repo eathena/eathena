@@ -104,6 +104,7 @@ extern struct Battle_Config {
 	unsigned short pc_skill_add_range;
 	unsigned short skill_out_range_consume;
 	unsigned short mob_skill_add_range;
+	unsigned short skillrange_by_distance; //[Skotlex]
 	unsigned short pc_damage_delay_rate;
 	unsigned short combo_damage_delay;	//[Skotlex]
 	unsigned short defnotenemy;

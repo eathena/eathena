@@ -1901,7 +1901,7 @@ int map_getcellp(struct map_data* m,int x,int y,cell_t cellchk)
 		case CELL_CHKBASILICA:
 			return (type&CELL_BASILICA);
 		case CELL_CHKLANDPROTECTOR:
-			return (type&CELL_CHKLANDPROTECTOR);
+			return (type&CELL_LANDPROTECTOR);
 		case CELL_CHKREGEN:
 			return (type&CELL_REGEN);
 		default:

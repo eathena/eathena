@@ -1,6 +1,11 @@
 Date	Added
 ==========
 2005/10/21
+	* Fixed Skills checking for water-cells instead of Land Protector cells.
+	  [Skotlex]
+	* Added config option skillrange_by_distance, makes skills be long/short
+	  ranged based on the source/target distance. Defaults to 6 (mobs + pets).
+	  [Skotlex]
 	* Fixed Magic Power totally messing up matk. [Skotlex]
 	* Fixed Meteor Storm [Skotlex]
 	* Some changes to Moonlight Petals, it should make the skill finally be

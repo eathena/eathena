@@ -905,6 +905,19 @@ static struct Damage battle_calc_weapon_attack(
 		}
 	}
 
+	if (skill_num && battle_config.skillrange_by_distance)
+	{ //Skill range based on distance between src/target [Skotlex]
+		if ((sd && battle_config.skillrange_by_distance&1)
+			|| (md && battle_config.skillrange_by_distance&2)
+			|| (pd && battle_config.skillrange_by_distance&4)
+		) {
+			if (distance(src->x, src->y, target->x, target->y) > 3)
+				wd.flag=(wd.flag&~BF_RANGEMASK)|BF_LONG;
+			else
+				wd.flag=(wd.flag&~BF_RANGEMASK)|BF_SHORT;
+		}
+	}
+	
 	if(is_boss(target)) //Bosses can't be knocked-back
 		wd.blewcount = 0;
 
@@ -2017,6 +2030,19 @@ struct Damage battle_calc_magic_attack(
 		sd->state.arrow_atk = 0;
 	}
 
+	if (battle_config.skillrange_by_distance)
+	{ //Skill range based on distance between src/target [Skotlex]
+		if ((sd && battle_config.skillrange_by_distance&1)
+			|| (md && battle_config.skillrange_by_distance&2)
+			|| (pd && battle_config.skillrange_by_distance&4)
+		) {
+			if (distance(src->x, src->y, target->x, target->y) > 3)
+				ad.flag=(ad.flag&~BF_RANGEMASK)|BF_LONG;
+			else
+				ad.flag=(ad.flag&~BF_RANGEMASK)|BF_SHORT;
+		}
+	}
+
 	//Initialize variables that will be used afterwards
 	t_race = status_get_race(target);
 	t_ele = status_get_elem_type(target);
@@ -2470,6 +2496,19 @@ struct Damage  battle_calc_misc_attack(
 
 	if(is_boss(target))
 		blewcount = 0;
+
+	if (battle_config.skillrange_by_distance)
+	{ //Skill range based on distance between src/target [Skotlex]
+		if ((bl->type == BL_PC && battle_config.skillrange_by_distance&1)
+			|| (bl->type == BL_MOB && battle_config.skillrange_by_distance&2)
+			|| (bl->type == BL_PET && battle_config.skillrange_by_distance&4)
+		) {
+			if (distance(bl->x, bl->y, target->x, target->y) > 3)
+				aflag=(aflag&~BF_RANGEMASK)|BF_LONG;
+			else
+				aflag=(aflag&~BF_RANGEMASK)|BF_SHORT;
+		}
+	}
 
 	damage=battle_calc_damage(bl,target,damage,div_,skill_num,skill_lv,aflag);	// ç≈èIèCê≥
 
@@ -3060,6 +3099,7 @@ static const struct battle_data_short {
 	{ "player_skill_add_range",            &battle_config.pc_skill_add_range		},
 	{ "skill_out_range_consume",           &battle_config.skill_out_range_consume	},
 	{ "monster_skill_add_range",           &battle_config.mob_skill_add_range		},
+	{ "skillrange_by_distance",            &battle_config.skillrange_by_distance	},
 	{ "player_damage_delay_rate",          &battle_config.pc_damage_delay_rate		},
 	{ "combo_damage_delay",                &battle_config.combo_damage_delay		},
 	{ "defunit_not_enemy",                 &battle_config.defnotenemy				},
@@ -3402,6 +3442,7 @@ void battle_set_defaults() {
 	battle_config.pc_skill_add_range=0;
 	battle_config.skill_out_range_consume=1;
 	battle_config.mob_skill_add_range=0;
+	battle_config.skillrange_by_distance=6;
 	battle_config.pc_damage_delay_rate=100;
 	battle_config.combo_damage_delay=230;
 	battle_config.defnotenemy=0;
