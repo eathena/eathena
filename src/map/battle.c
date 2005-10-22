@@ -1415,9 +1415,9 @@ static struct Damage battle_calc_weapon_attack(
 					break;
 				case MO_FINGEROFFENSIVE:
 					if(battle_config.finger_offensive_type == 0)
-						skillratio+= wd.div_ * (125 + 25*skill_lv) -100;
+						skillratio+= wd.div_ * (100 + 50*skill_lv) -100;
 					else
-						skillratio+= 25 + 25 * skill_lv;
+						skillratio+= 50 * skill_lv;
 					break;
 				case MO_INVESTIGATE:
 					skillratio+=75*skill_lv;

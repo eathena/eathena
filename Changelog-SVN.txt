@@ -1,6 +1,9 @@
 Date	Added
 ==========
 2005/10/22
+	* Modified Finger Offensive's formula to be 100% + 50%*skilllv which seems
+	  to be a more factually correct equation than what is shown in the websites.
+	  [Skotlex]
 	* Applied Ilpalazzo-sama's patch which speeds up the data zeroing in
 	  status_calc_pc. [Skotlex]
 	* Crashfix on invalid lines when reading castle_db.txt [Skotlex]
