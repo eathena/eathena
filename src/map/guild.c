@@ -112,13 +112,18 @@ static int guild_read_castledb(void)
 		if(line[0]=='/' && line[1]=='/')
 			continue;
 		memset(str,0,sizeof(str));
-		gc=(struct guild_castle *)aCalloc(1,sizeof(struct guild_castle));
 		for(j=0,p=line;j<6 && p;j++){
 			str[j]=p;
 			p=strchr(p,',');
 			if(p) *p++=0;
 		}
+		if (j < 4) //Insufficient data for castle. [Skotlex]
+		{
+			ShowError("castle_db.txt: invalid line '%s'\n", line);
+			continue;
+		}
 
+		gc=(struct guild_castle *)aCalloc(1,sizeof(struct guild_castle));
 		gc->castle_id=atoi(str[0]);
 		memcpy(gc->map_name,str[1],MAP_NAME_LENGTH-1);
 		memcpy(gc->castle_name,str[2],NAME_LENGTH-1);

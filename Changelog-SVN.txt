@@ -1,6 +1,7 @@
 Date	Added
 ==========
 2005/10/22
+	* Crashfix on invalid lines when reading castle_db.txt [Skotlex]
 	* Updated GrandCross's damage formula according to Komurka's information.
 	  [Skotlex]
 	* Also, now skills that ignore card modifiers only ignore the attacker's
