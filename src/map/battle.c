@@ -881,6 +881,8 @@ static struct Damage battle_calc_weapon_attack(
 			case PA_SHIELDCHAIN: //Since Pneuma and Defending Aura block it, it has to be long range. [Skotlex]
 			case AM_ACIDTERROR:
 			case ITM_TOMAHAWK:	//Tomahawk is a ranged attack! [Skotlex]
+			case CR_GRANDCROSS:
+			case NPC_GRANDDARKNESS:
 				wd.flag=(wd.flag&~BF_RANGEMASK)|BF_LONG;
 				break;
 
@@ -1032,6 +1034,8 @@ static struct Damage battle_calc_weapon_attack(
 				case AM_ACIDTERROR:
 				case MO_INVESTIGATE:
 				case MO_EXTREMITYFIST:
+				case CR_GRANDCROSS:
+				case NPC_GRANDDARKNESS:
 				case PA_SACRIFICE:
     			case TK_COUNTER:
 					flag.hit = 1;
@@ -1397,6 +1401,10 @@ static struct Damage battle_calc_weapon_attack(
 				case CR_HOLYCROSS:
 					skillratio+= 35*skill_lv;
 					break;
+				case CR_GRANDCROSS:
+				case NPC_GRANDDARKNESS:
+					flag.cardfix = 0;
+					break;
 				case AM_DEMONSTRATION:
 					skillratio+= 20*skill_lv;
 					flag.cardfix = 0;
@@ -1761,8 +1769,8 @@ static struct Damage battle_calc_weapon_attack(
 		}
 	} //if (sd)
 
-	//Card Fix, tsd side
-	if (tsd && flag.cardfix) {
+	//Card Fix, tsd side - Cards always apply on the target. [Skotlex]
+	if (tsd) {
 		short s_size,s_race2,s_class;
 		short cardfix=1000;
 		
@@ -1872,7 +1880,10 @@ static struct Damage battle_calc_weapon_attack(
 			flag.lh = 1;
 		}
 	}
-
+	
+	if(skill_num == CR_GRANDCROSS || skill_num == NPC_GRANDDARKNESS)
+		return wd; //Enough, rest is not needed.
+	
 	if(wd.damage > 0 || wd.damage2 > 0)
 	{
 		if(wd.damage2<1)
@@ -2075,6 +2086,10 @@ struct Damage battle_calc_magic_attack(
 			flag.cardfix = 0;
 			flag.imdef = 1;
 			break;
+		case NPC_GRANDDARKNESS:
+		case CR_GRANDCROSS:
+			flag.cardfix = 0;
+			break;
 	}
 
 	if(is_boss(target)) //Bosses can't be knocked-back
@@ -2209,10 +2224,6 @@ struct Damage battle_calc_magic_attack(
 					case HW_NAPALMVULCAN:
 						skillratio += 10*skill_lv-30;
 						break;
-					case NPC_GRANDDARKNESS:
-					case CR_GRANDCROSS:
-						skillratio+= 40*skill_lv;
-						break;
 				}
 
 				if (sd && sd->skillatk[0] != 0)
@@ -2253,20 +2264,6 @@ struct Damage battle_calc_magic_attack(
 		if(ad.damage<1)
 			ad.damage=1;
 
-		if(skill_num == CR_GRANDCROSS || skill_num == NPC_GRANDDARKNESS)
-		{	//Apply the physical part of the skill's damage. [Skotlex]
-			int damage2 = status_get_batk(src);
-			damage2 += damage2*40*skill_lv/100;
-			if(battle_config.player_defense_type)
-				damage2 -= battle_config.player_defense_type*status_get_def(target);
-			else
-				damage2 -= damage2*status_get_def(target)/100;
-			damage2 -= status_get_def2(target);
-			if (damage2 < 1) damage2 = 1;
-			ad.damage+=damage2;
-			if(src==target && src->type == BL_MOB)
-				ad.damage = 0;
-		}
 
 		if (flag.elefix)
 			ad.damage=battle_attr_fix(src, target, ad.damage, s_ele, status_get_element(target));
@@ -2287,7 +2284,7 @@ struct Damage battle_calc_magic_attack(
 			MATK_RATE(cardfix);
 		}
 
-		if (tsd && flag.cardfix) {
+		if (tsd) { //Card fixes always apply on the target side. [Skotlex]
 			short s_size,s_race2,s_class;
 			short cardfix=100;
 
@@ -2314,6 +2311,14 @@ struct Damage battle_calc_magic_attack(
 
 	if(!flag.infdef && ad.div_>1 && skill_num != WZ_VERMILION)
 		ad.damage *= ad.div_;
+
+	if(skill_num == CR_GRANDCROSS || skill_num == NPC_GRANDDARKNESS)
+	{	//Apply the physical part of the skill's damage. [Skotlex]
+		struct Damage wd = battle_calc_weapon_attack(src,target,skill_num,skill_lv,mflag);
+		ad.damage = (wd.damage + ad.damage) * (100 + 40*skill_lv)/100;
+		if(src==target && src->type == BL_MOB)
+			ad.damage = 0;
+	}
 
 	if (tsd && status_isimmune(target)) {
 		if (sd && battle_config.gtb_pvp_only)  { // [MouseJstr]

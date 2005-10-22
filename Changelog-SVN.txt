@@ -1,6 +1,11 @@
 Date	Added
 ==========
 2005/10/22
+	* Updated GrandCross's damage formula according to Komurka's information.
+	  [Skotlex]
+	* Also, now skills that ignore card modifiers only ignore the attacker's
+	  card modifiers, no the target's (does not apply to skills like Pressure
+	  that do fixed damage). [Skotlex]
 	* Updated Bowling bash damage, knockback to current Kro values. [Skotlex]
 	* Modified NPC_EMOTION and NPC_EMOTION_ON so they can be used to modify the
 	  current mob's mode (instead of setting it). [Skotlex]
