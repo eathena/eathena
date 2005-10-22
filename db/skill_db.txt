@@ -282,12 +282,12 @@
 263,0,8,0,-1,0,10,3,no,0,0,0,weapon,0	//MO_TRIPLEATTACK#Raging Triple Blow#
 264,14,6,2,0,1,1,1,no,0,0,0,none,0	//MO_BODYRELOCATION#Snap#
 265,0,0,0,0,0,10,0,no,0,0,0,weapon,0	//MO_DODGE#Dodge#
-266,8,6,1,0,0,5,1,no,0,0,0,weapon,0	//MO_INVESTIGATE#Occult Impact#
+266,3,6,1,0,0,5,1,no,0,0,0,weapon,0	//MO_INVESTIGATE#Occult Impact#
 267,10,8,1,-1,0,5,1:2:3:4:5,no,0,0,0,weapon,0	//MO_FINGEROFFENSIVE#Throw Spirit Sphere#
 268,0,6,4,0,1,5,1,no,0,0,0,weapon,0	//MO_STEELBODY#Mental Strength#
 269,0,6,4,0,1,5,1,no,0,0,0,weapon,0	//MO_BLADESTOP#Root#
 270,0,6,4,0,1,5,0,no,0,0,0,weapon,0	//MO_EXPLOSIONSPIRITS#Fury#
-271,-3,6,4,0,0,5,1,yes,0,0,0,weapon,0	//MO_EXTREMITYFIST#Asura Strike#
+271,3,6,4,0,0,5,1,yes,0,0,0,weapon,0	//MO_EXTREMITYFIST#Asura Strike#
 272,-2,8,4,-1,0,5,4,no,0,0,0,weapon,0	//MO_CHAINCOMBO#Raging Quadruple Blow#
 273,-2,6,4,-1,0,5,1,no,0,0,0,weapon,0	//MO_COMBOFINISH#Raging Thrust#
 274,0,0,0,0,0,10,0,no,0,0,0,weapon,0	//SA_ADVANCEDBOOK#Study#
