@@ -1,5 +1,13 @@
 Date	Added
 ==========
+2005/10/22
+	* Added support for global mob skills. In essence, you can now specify a
+	  mob skill that is added to ALL mobs in a single line by using negative
+	  class IDs. -1 adds the skill to normal mobs, -2 adds the skill to
+	  bosses, and -3 to both. For example:
+	  -1,All@AL_HEAL,any,28,10,10000,500,5000,yes,friend,friendhpltmaxrate,60,,,,,,
+	  Adds Heal Lv10 to all normal mobs.
+	* Readded the level up buff bonus from the Taekwon class T.T [Skotlex]
 2005/10/21
 	* Removed the level up buff bonus from the Taekwon class T.T [Skotlex]
 	* Small change in mob_ai_sub_hard which may fix mobs casting their Rude
@@ -106,7 +114,6 @@ Date	Added
 	  Aeterna if opponent is petrified/frozen, blocks skills while silenced, etc
 	  etc). Note that the code simplification/modification is big, so beware of
 	  any new bugs that might have been caused by the function. [Skotlex]
->>>>>>> .r3638
 2005/10/18
 	* Fixed card set bonuses for sure this time (or so I hope) [Skotlex]
 	* Fixed the Dissonance song bug which allowed you to cast a song afterwards

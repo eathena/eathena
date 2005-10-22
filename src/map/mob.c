@@ -4085,6 +4085,7 @@ static int mob_read_randommonster(void)
 	}
 	return 0;
 }
+
 /*==========================================
  * db/mob_skill_db.txt reading
  *------------------------------------------
@@ -4169,7 +4170,7 @@ static int mob_readskilldb(void)
 		while(fgets(line,1020,fp)){
 			char *sp[20],*p;
 			int mob_id;
-			struct mob_skill *ms;
+			struct mob_skill *ms, gms;
 			int j=0;
 
 			if(line[0] == '/' && line[1] == '/')
@@ -4181,22 +4182,30 @@ static int mob_readskilldb(void)
 				if((p=strchr(p,','))!=NULL)
 					*p++=0;
 			}
-			if( (mob_id=atoi(sp[0]))<=0 || mob_db(mob_id) == mob_dummy)
+			if( (mob_id=atoi(sp[0]))== 0 || (mob_id > 0 && mob_db(mob_id) == mob_dummy))
 				continue;
 
 			if( strcmp(sp[1],"clear")==0 ){
+				if (mob_id < 0)
+					continue;
 				memset(mob_db_data[mob_id]->skill,0,sizeof(struct mob_skill));
 					mob_db_data[mob_id]->maxskill=0;
 				continue;
 			}
 
-			for(i=0;i<MAX_MOBSKILL;i++)
-				if( (ms=&mob_db_data[mob_id]->skill[i])->skill_id == 0)
-					break;
-			if(i==MAX_MOBSKILL){
-				ShowWarning("mob_skill: readdb: too many skill ! [%s] in %d[%s]\n",
-					sp[1],mob_id,mob_db_data[mob_id]->jname);
-				continue;
+			if (mob_id < 0)
+			{	//Prepare global skill. [Skotlex]
+				memset(&gms, 0, sizeof (struct mob_skill));
+				ms = &gms;
+			} else {			
+				for(i=0;i<MAX_MOBSKILL;i++)
+					if( (ms=&mob_db_data[mob_id]->skill[i])->skill_id == 0)
+						break;
+				if(i==MAX_MOBSKILL){
+					ShowWarning("mob_skill: readdb: too many skill ! [%s] in %d[%s]\n",
+						sp[1],mob_id,mob_db_data[mob_id]->jname);
+					continue;
+				}
 			}
 
 			ms->state=atoi(sp[2]);
@@ -4209,7 +4218,10 @@ static int mob_readskilldb(void)
 			j=atoi(sp[3]);
 			if (j<=0 || j>MAX_SKILL_DB) //fixed Lupus
 			{
-				ShowWarning("Invalid Skill ID (%d) for mob %d (%s)\n", mob_id, mob_db_data[mob_id]->jname);
+				if (mob_id < 0)
+					ShowWarning("Invalid Skill ID (%d) for all mobs\n", j);
+				else
+					ShowWarning("Invalid Skill ID (%d) for mob %d (%s)\n", j, mob_id, mob_db_data[mob_id]->jname);
 				continue;
 			}
 			ms->skill_id=j;
@@ -4251,7 +4263,32 @@ static int mob_readskilldb(void)
 				ms->emotion=atoi(sp[17]);
 			else
 				ms->emotion=-1;
-			mob_db_data[mob_id]->maxskill=i+1;
+			if (mob_id < 0)
+			{	//Set this skill to ALL mobs. [Skotlex]
+				mob_id *= -1;
+				for (i = 1; i < MAX_MOB_DB; i++)
+				{
+					if (mob_db_data[i] == NULL)
+						continue;
+					if (mob_db_data[i]->mode&MD_BOSS)
+					{
+						if (!(mob_id&2)) //Skill not for bosses
+							continue;
+					} else
+						if (!(mob_id&1)) //Skill not for normal enemies.
+							continue;
+					
+					for(j=0;j<MAX_MOBSKILL;j++)
+						if( mob_db_data[i]->skill[j].skill_id == 0)
+							break;
+					if(j==MAX_MOBSKILL)
+						continue;
+
+					memcpy (&mob_db_data[i]->skill[j], ms, sizeof(struct mob_skill));
+					mob_db_data[i]->maxskill=j+1;
+				}
+			} else //Skill set on a single mob.
+				mob_db_data[mob_id]->maxskill=i+1;
 		}
 		fclose(fp);
 		ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n",filename[x]);

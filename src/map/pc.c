@@ -4181,7 +4181,7 @@ int pc_checkbaselevelup(struct map_session_data *sd)
 		pc_heal(sd,sd->status.max_hp,sd->status.max_sp);
 
 		//スパノビはキリエ、イムポ、マニピ、グロ、サフラLv1がかかる
-		if((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE){
+		if((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE || (sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON){
 			status_change_start(&sd->bl,SkillStatusChangeTable[PR_KYRIE],1,0,0,0,skill_get_time(PR_KYRIE,1),0 );
 			status_change_start(&sd->bl,SkillStatusChangeTable[PR_IMPOSITIO],1,0,0,0,skill_get_time(PR_IMPOSITIO,1),0 );
 			status_change_start(&sd->bl,SkillStatusChangeTable[PR_MAGNIFICAT],1,0,0,0,skill_get_time(PR_MAGNIFICAT,1),0 );
