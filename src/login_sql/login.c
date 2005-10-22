@@ -1337,35 +1337,36 @@ int parse_login(int fd) {
 		if (mysql_query(&mysql_handle, tmpsql)) {
 			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-		}
-
-		sql_res = mysql_store_result(&mysql_handle) ;
-		sql_row = mysql_fetch_row(sql_res);	//row fetching
-
-		if (atoi(sql_row[0]) >0) {
-			// ip ban ok.
-			ShowWarning("packet from banned ip : %d.%d.%d.%d\n" RETCODE, p[0], p[1], p[2], p[3]);
-			if (log_login)
-			{
-				sprintf(tmpsql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%d.%d.%d.%d', 'unknown','-3', 'ip banned')", loginlog_db, p[0], p[1], p[2], p[3]);
-
-				// query
-				if(mysql_query(&mysql_handle, tmpsql)) {
-					ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
-					ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-				}
-			}
-			ShowInfo ("close session connection...\n");
-
-			// close connection
+			// close connection because we can't verify their connectivity.
 			session[fd]->eof = 1;
+		} else { //Avoid entering as it causes a crash.
+			sql_res = mysql_store_result(&mysql_handle) ;
+			sql_row = mysql_fetch_row(sql_res);	//row fetching
 
-		} else {
-			ShowInfo ("packet from ip (ban check ok) : %d.%d.%d.%d" RETCODE, p[0], p[1], p[2], p[3]);
+			if (atoi(sql_row[0]) >0) {
+				// ip ban ok.
+				ShowWarning("packet from banned ip : %d.%d.%d.%d\n" RETCODE, p[0], p[1], p[2], p[3]);
+				if (log_login)
+				{
+					sprintf(tmpsql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%d.%d.%d.%d', 'unknown','-3', 'ip banned')", loginlog_db, p[0], p[1], p[2], p[3]);
+
+					// query
+					if(mysql_query(&mysql_handle, tmpsql)) {
+						ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+						ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+					}
+				}
+				ShowInfo ("close session connection...\n");
+
+				// close connection
+				session[fd]->eof = 1;
+
+			} else {
+				ShowInfo ("packet from ip (ban check ok) : %d.%d.%d.%d" RETCODE, p[0], p[1], p[2], p[3]);
+			}
+			mysql_free_result(sql_res);
 		}
-		mysql_free_result(sql_res);
 	}
-
 	if (session[fd]->eof) {
 		for(i = 0; i < MAX_SERVERS; i++)
 			if (server_fd[i] == fd)
