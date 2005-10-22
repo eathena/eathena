@@ -1678,9 +1678,9 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 		if(sd->state.lr_flag != 2)
 			sd->magic_addrace[type2]+=val;
 		break;
-	case SP_MAGIC_SUBRACE:
+	case SP_MAGIC_ADDSIZE:
 		if(sd->state.lr_flag != 2)
-			sd->magic_subrace[type2]+=val;
+			sd->magic_addsize[type2]+=val;
 		break;
 	case SP_ADD_DAMAGE_CLASS:
 		if(!sd->state.lr_flag) {

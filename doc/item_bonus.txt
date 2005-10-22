@@ -93,13 +93,15 @@ bonus2 bResEff,e,x;			Adds a x/10000 tolerance to effect e (e.g. x=100 makes 1% 
 							e: Eff_Blind, Eff_Sleep, Eff_Poison, Eff_Freeze, Eff_Silence, Eff_Stan, Eff_Curse, Eff_Confusion, Eff_Stone, Eff_Bleeding
 bonus2 bAddSize,n,x;			In n size the damage addition of x%
 							n: 0=Small  1=Medium  2=Large
+bonus2 bMagicAddSize,n,x;		In n size the magic damage addition of x%
+							n: 0=Small  1=Medium  2=Large
+bonus2 bSubSize,n,x;			Damage x% reduction from n size
+							n: 0=Small  1=Medium  2=Large
 bonus2 bAddRace,n,x;			In n race the damage addition of x%
-							n: 0=Formless, 1=Undead, 2=Brute, 3=Plant, 4=Insect, 5=Fish, 6=Demon, 7=Demi-Human, 8=Angel, 9=Dragon, 10=Boss monster, 11=Other than (normal monster) boss monster
-bonus2 bSubRace,n,x;			Damage x% reduction from n race
 							n: 0=Formless, 1=Undead, 2=Brute, 3=Plant, 4=Insect, 5=Fish, 6=Demon, 7=Demi-Human, 8=Angel, 9=Dragon, 10=Boss monster, 11=Other than (normal monster) boss monster
 bonus2 bMagicAddRace,n,x;		In n race the damage addition of x% (only magical attack)
 							n: 0=Formless, 1=Undead, 2=Brute, 3=Plant, 4=Insect, 5=Fish, 6=Demon, 7=Demi-Human, 8=Angel, 9=Dragon, 10=Boss monster, 11=Other than (normal monster) boss monster
-bonus2 bMagicSubRace,n,x;		Magical damage x% reduction from n race
+bonus2 bSubRace,n,x;			Damage x% reduction from n race
 							n: 0=Formless, 1=Undead, 2=Brute, 3=Plant, 4=Insect, 5=Fish, 6=Demon, 7=Demi-Human, 8=Angel, 9=Dragon, 10=Boss monster, 11=Other than (normal monster) boss monster
 bonus2 bAddEle,n,x;			In n attribute the damage addition of x%
 							n: 0=Neutral, 1=Water, 2=Earth, 3=Fire, 4=Wind, 5=Poison, 6=Holy, 7=Dark, 8=Spirit, 9=Undead
@@ -150,8 +152,6 @@ bonus2 bAddDamageByClass,n,x;		When being hit by monster of class n increase
                                         damage taken by x%
 bonus2 bAddRace2,n,x;			Increase damage by x% vs. enemies of race n
                                         (Check db/mob_race2_db.txt)
-bonus2 bSubSize,n,x;			Damage x% reduction from n size
-                                        n: 0=Small  1=Medium  2=Large
 
 bonus3 bHPLossRate,n,x,y;		Lose n amount of hp every x amount of time
                                         y: 0=Don't show damage 1=Show damage

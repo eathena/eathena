@@ -4,46 +4,12 @@
 // ProduceItemID,ItemLV,RequireSkill,MaterialID1,MaterialAmount1,...,MaterialID5,MaterialAmount5
 //
 // Comments:
-// If MaterialAmount = 0, then u just need that item in your inventory (books)
+// If MaterialAmount = 0, then you just need that item in your inventory (books)
 // For example, Mine Bottle is 7138,32,228,7131,0,713,1,1050,1,1051,1
 // 7131 is the Book needed to create mine bottles and the amount needed of this item is 0 (.. ,7131,0, ..).
-//
-//=================================
-// Note:
-//  Comments describing are
-//  structured like:
-//  Product <-- Skill & Materials
-//  (Vedurin)
-//=================================
 
 
-//===== Stones and Metals === ItemLV=16 ========
-
-//---- Metals ----------------------------------
-//-- Iron <-- BS_IRON & 1 Iron Ore
-998,16,94,1002,1
-//-- Steel <-- BS_STEEL & 5 Iron, 1 Coal
-999,16,95,998,5,1003,1
-//----------------------------------------------
-
-
-//---- Enchanted Stones ------------------------
-//-- Star Crumb <-- BS_ENCHANTSTONE & 10 Star Dust
-1000,16,96,1001,10
-//-- Flame Heart <-- BS_ENCHANTSTONE & 10 Red Blood
-994,16,96,990,10
-//-- Mystic Frozen <-- BS_ENCHANTSTONE & 10 Crystal Blue
-995,16,96,991,10
-//-- Rough Wind <-- BS_ENCHANTSTONE & 10 Wind of Verdure
-997,16,96,993,10
-//-- Great Nature <-- BS_ENCHANTSTONE & 10 Green Live
-996,16,96,992,10
-//----------------------------------------------
-
-//==============================================
-
-
-//===== Weapon === ItemLV=wLV ==================
+//===== Weapon === ItemLV=1~3 ==================
 
 //---- One Handed Swords -----------------------
 //-- Sword <-- BS_SWORD & 2 Iron
@@ -87,7 +53,7 @@
 1222,3,98,984,4,999,60,729,1
 //----------------------------------------------
 
-//---- To Handed Swords ------------------------
+//---- Two Handed Swords -----------------------
 //-- Katana <-- BS_TWOHANDSWORD & 35 Iron, 15 Horrendous Mouth
 1116,1,100,998,35,958,15
 //-- Slayer <-- BS_TWOHANDSWORD & 25 Steel, 20 Decayed Nail
@@ -173,55 +139,119 @@
 //==============================================
 
 
-//===== Potions === ItemLV=32 ==================
+//===== Mixed Foods === ItemLV=11~15 ===========
 
-//---- Health Potions --------------------------
-//-- Red Potion <-- AM_PHARMACY & 1 Red Herb, 1 Empty Potion Bottle
-501,32,228,7144,0,507,1,1093,1
-//-- Yellow Potion <-- AM_PHARMACY & 1 Yellow Herb, 1 Empty Potion Bottle
-503,32,228,7144,0,508,1,1093,1
-//-- White Potion <-- AM_PHARMACY & 1 White Herb, 1 Empty Potion Bottle
-504,32,228,7144,0,509,1,1093,1
-//-- Blue Potion <-- AM_PHARMACY & 1 Blue Herb, 1 Scell, 1 Empty Potion Bottle
-505,32,228,7144,0,510,1,911,1,1093,1
-//-- Condensed Red Potion <-- AM_PHARMACY & 1 Red Potion, 1 Empty Testtube, 1 Cactus Needle
-545,32,228,7133,0,501,1,1092,1,952,1
-//-- Condensed Yellow Potion <-- AM_PHARMACY & 1 Yellow Potion, 1 Empty Testtube, 1 Mole Whiskers
-546,32,228,7133,0,503,1,1092,1,1017,1
-//-- Condensed White Potion <-- AM_PHARMACY & 1 White Potion, 1 Empty Testtube, 1 Witched Starsand
-547,32,228,7133,0,504,1,1092,1,1061,1
+//---- Stat +1&+2 --- ItemLV=11 ----------------
+//-- Boiled Down Locust <-- 5 Grasshopper's Leg, 1 Old Frying Pan, 1 Cooking Oil
+12041,11,0,7431,0,940,5,7031,1,7457,1
+//-- Seasoned Webs <-- 20 Cobweb, 10 Green Herb, 10 Yellow Herb, 1 Plain Sauce
+12042,11,0,7431,0,1025,20,511,10,508,10,7454,1
+//-- Herb Tea With Grape Juice <-- 3 Grape, 2 Red Potion
+12046,11,0,7431,0,514,3,501,2
+//-- Black Tea <-- 5 Blue Herb, 10 Red Herb, 10 Yellow Herb
+12047,11,0,7431,0,510,5,507,10,508,10
+//-- Steamed Crab Pincer <-- 10 Nipper, 10 Green Herb, 1 Yellow Potion
+12051,11,0,7431,0,960,10,511,10,503,1
+//-- Sea Food <-- 10 Clam Flesh, 5 ?y?, 5 Fin, 1 Yummi Fish
+//12052,11,0,7431,0,966,10,y,5,951,5,579,1
+//-- Frog Spawn Soup <-- 1 Grain, 10 Spawn, 1 Squid Ink
+12056,11,0,7431,0,577,1,908,10,1024,1
+//-- Smooth Noodle <-- 1 Grain, 1 Plain Sauce, 5 Pumpkin, 3 Carrot
+12057,11,0,7431,0,577,1,7454,1,535,5,515,3
+//-- Grape Juice with Honey <-- 1 Honey, 2 Grape, 1 Red Potion
+12061,11,0,7431,0,518,1,514,2,501,1
+//-- Chocolate Mousse Cake <-- 10 Cacao, 1 Piece of Cake, 1 Milk, 1 China
+12062,11,0,7431,0,7182,10,539,1,519,1,736,1
+//-- Fried Monkey Tail <-- 5 Yoyo Tail, 1 Old Frying Pan, 1 Cooking Oil
+12066,11,0,7431,0,942,5,7031,1,7457,1
+//-- Mixed Juice <-- 3 Apple Juice, 2 Carrot Juice, 1 Grape Juice, 2 Orange Juice
+12067,11,0,7431,0,531,3,534,2,533,1,620,2
 //----------------------------------------------
 
-//---- Misc ------------------------------------
-//-- Anodyne <-- AM_PHARMACY & 1 Ment, 1 Alcohol, 1 Empty Bottle
-605,32,228,7144,0,708,1,970,1,713,1
-//-- Aloevera <-- AM_PHARMACY & 1 Aloe, 1 Honey, 1 Empty Bottle
-606,32,228,7144,0,704,1,518,1,713,1
-//-- Alcohol <-- AM_PHARMACY & 1 Empty Bottle, 5 Poison Spore, 5 Stem, 1 Empty Testtube
-970,32,228,7127,0,713,1,7033,5,905,5,1092,1
+//---- Stat +3&+4 --- ItemLV=12 ----------------
+
 //----------------------------------------------
 
-//---- Skill related Mixtures ------------------
-//-- Fire Bottle <-- AM_PHARMACY & 1 Alcohol, 1 Fabric, 1 Empty Bottle
-7135,32,228,7128,0,970,1,1059,1,713,1
-//-- Hydrobolic Acid Bottle <-- AM_PHARMACY & 1 Empty Bottle, 1 Immortal Heart
-7136,32,228,7129,0,713,1,929,1
-//-- Plant Bottle <-- AM_PHARMACY & 1 Empty Bottle, 2 Maneater Blossom
-7137,32,228,7130,0,713,1,1032,2
-//-- Mine Bottle <-- AM_PHARMACY & 1 Empty Bottle, 1 Tendon, 1 Detonator
-7138,32,228,7131,0,713,1,1050,1,1051,1
-//-- Coating Wax <-- AM_PHARMACY & 1 Alcohol, 1 Heart of Mermaid, 1 Zenorcs Fang, 1 Empty Bottle
-7139,32,228,7132,0,970,1,950,1,1044,1,713,1
+//---- Stat +5&+6 --- ItemLV=13 ----------------
+
+//----------------------------------------------
+
+//---- Stat +7&+8 --- ItemLV=14 ----------------
+
+//----------------------------------------------
+
+//---- Stat +9&+10 --- ItemLV=15 ---------------
+
 //----------------------------------------------
 
 //==============================================
 
 
-//===== Monetary === ItemLV=64 =================
-//-- Gold Coin <-- WS_CREATECOIN & 1 Gold Ore
-671,64,385,7231,1
-//-- Mithril Coin <-- WS_CREATECOIN & 1 Mithril Ore
-674,64,385,7233,1
-//-- Silver Coin <-- WS_CREATECOIN & 1 Silver Ore
-675,64,385,7232,1
+//===== Stones and Metals === ItemLV=21 ========
+
+//---- Metals ----------------------------------
+//-- Iron <-- BS_IRON & 1 Iron Ore
+998,21,94,1002,1
+//-- Steel <-- BS_STEEL & 5 Iron, 1 Coal
+999,21,95,998,5,1003,1
+//----------------------------------------------
+
+
+//---- Enchanted Stones ------------------------
+//-- Star Crumb <-- BS_ENCHANTSTONE & 10 Star Dust
+1000,21,96,1001,10
+//-- Flame Heart <-- BS_ENCHANTSTONE & 10 Red Blood
+994,21,96,990,10
+//-- Mystic Frozen <-- BS_ENCHANTSTONE & 10 Crystal Blue
+995,21,96,991,10
+//-- Rough Wind <-- BS_ENCHANTSTONE & 10 Wind of Verdure
+997,21,96,993,10
+//-- Great Nature <-- BS_ENCHANTSTONE & 10 Green Live
+996,21,96,992,10
+//----------------------------------------------
+
+//==============================================
+
+
+//===== Potions === ItemLV=22 ==================
+
+//---- Health Potions --------------------------
+//-- Red Potion <-- AM_PHARMACY & 1 Red Herb, 1 Empty Potion Bottle
+501,22,228,7144,0,507,1,1093,1
+//-- Yellow Potion <-- AM_PHARMACY & 1 Yellow Herb, 1 Empty Potion Bottle
+503,22,228,7144,0,508,1,1093,1
+//-- White Potion <-- AM_PHARMACY & 1 White Herb, 1 Empty Potion Bottle
+504,22,228,7144,0,509,1,1093,1
+//-- Blue Potion <-- AM_PHARMACY & 1 Blue Herb, 1 Scell, 1 Empty Potion Bottle
+505,22,228,7144,0,510,1,911,1,1093,1
+//-- Condensed Red Potion <-- AM_PHARMACY & 1 Red Potion, 1 Empty Testtube, 1 Cactus Needle
+545,22,228,7133,0,501,1,1092,1,952,1
+//-- Condensed Yellow Potion <-- AM_PHARMACY & 1 Yellow Potion, 1 Empty Testtube, 1 Mole Whiskers
+546,22,228,7133,0,503,1,1092,1,1017,1
+//-- Condensed White Potion <-- AM_PHARMACY & 1 White Potion, 1 Empty Testtube, 1 Witched Starsand
+547,22,228,7133,0,504,1,1092,1,1061,1
+//----------------------------------------------
+
+//---- Misc ------------------------------------
+//-- Anodyne <-- AM_PHARMACY & 1 Ment, 1 Alcohol, 1 Empty Bottle
+605,22,228,7144,0,708,1,970,1,713,1
+//-- Aloevera <-- AM_PHARMACY & 1 Aloe, 1 Honey, 1 Empty Bottle
+606,22,228,7144,0,704,1,518,1,713,1
+//-- Alcohol <-- AM_PHARMACY & 1 Empty Bottle, 5 Poison Spore, 5 Stem, 1 Empty Testtube
+970,22,228,7127,0,713,1,7033,5,905,5,1092,1
+//----------------------------------------------
+
+//---- Skill-related Mixtures ------------------
+//-- Fire Bottle <-- AM_PHARMACY & 1 Alcohol, 1 Fabric, 1 Empty Bottle
+7135,22,228,7128,0,970,1,1059,1,713,1
+//-- Hydrobolic Acid Bottle <-- AM_PHARMACY & 1 Empty Bottle, 1 Immortal Heart
+7136,22,228,7129,0,713,1,929,1
+//-- Plant Bottle <-- AM_PHARMACY & 1 Empty Bottle, 2 Maneater Blossom
+7137,22,228,7130,0,713,1,1032,2
+//-- Mine Bottle <-- AM_PHARMACY & 1 Empty Bottle, 1 Tendon, 1 Detonator
+7138,22,228,7131,0,713,1,1050,1,1051,1
+//-- Coating Wax <-- AM_PHARMACY & 1 Alcohol, 1 Heart of Mermaid, 1 Zenorcs Fang, 1 Empty Bottle
+7139,22,228,7132,0,970,1,950,1,1044,1,713,1
+//----------------------------------------------
+
 //==============================================

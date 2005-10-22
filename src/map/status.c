@@ -627,7 +627,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		+ sizeof(sd->arrow_addeff2)
 		+ sizeof(sd->magic_addele)
 		+ sizeof(sd->magic_addrace)
-		+ sizeof(sd->magic_subrace)
+		+ sizeof(sd->magic_addsize)
 		+ sizeof(sd->add_magic_damage_classid)
 		+ sizeof(sd->add_magic_damage_classrate)
 		+ sizeof(sd->monster_drop_race)
@@ -1504,7 +1504,6 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		sd->left_weapon.addrace[9]+=skill;
 		sd->subrace[9]+=skill;
 		sd->magic_addrace[9]+=skill;
-		sd->magic_subrace[9]-=skill;
 	}
 
 	if(sd->sc_count){

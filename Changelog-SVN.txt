@@ -1,5 +1,9 @@
 Date	Added
 ==========
+2005/10/23
+	* Rewrote the produce system for mixed foods creation [DracoRPG]
+	* Small changes and optimizations to battle_calc_magic_attack, replaced redundant
+	  magic_subrace with missing magic_addsize, updated crappy doc about it [DracoRPG]
 2005/10/22
 	* Modified Finger Offensive's formula to be 100% + 50%*skilllv which seems
 	  to be a more factually correct equation than what is shown in the websites.

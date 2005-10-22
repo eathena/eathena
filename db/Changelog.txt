@@ -32,8 +32,8 @@
 		like gemstones when the skill is used.
 	--
 
-
 10/23
+	* Added healing effect to mixed foods, added produce effect to cooking sets [DracoRPG]
 	* Updated Poring V's mode, thanks to Vicious Pucca. [Skotlex]
 	* Updated castle_db.txt for correct work on /guildbreak [Lupus]
 10/22
