@@ -2736,7 +2736,11 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 				}
 				sd->to_x = sd->bl.x + dx;
 				sd->to_y = sd->bl.y + dy;
-				skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
+
+				if (battle_check_target(src, bl, BCT_ENEMY) > 0) //Check must be done here because EF should be broken this way.. [Skotlex]
+					skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
+				else
+					clif_skill_fail(sd,sd->skillid,0,0);
 				clif_walkok(sd);
 				clif_movechar(sd);
 				if(dx < 0) dx = -dx;
@@ -5525,8 +5529,7 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 			return 0;
 		}
 	}
-	else if( ( skill_get_inf(sd->skillid) & INF_ATTACK_SKILL ||
-		sd->skillid == MO_EXTREMITYFIST ) &&
+	else if(skill_get_inf(sd->skillid)&INF_ATTACK_SKILL &&
 		battle_check_target(&sd->bl,bl, BCT_ENEMY)<=0
 	) {
 		sd->canact_tick = tick;

@@ -1,6 +1,9 @@
 Date	Added
 ==========
 2005/10/22
+	* Made GrimTooth be longranged, Soul Drain work only on targetted skills,
+	  and Extremity Fist only checks for enemy state right before attacking (I am
+	  not sure it is 100% as it should be still, though) [Skotlex]
 	* Eh.. now Safety Wall blocks all skills tagged as short-ranged. Report any
 	  anomalies this causes. [Skotlex]
 	* Added support for global mob skills. In essence, you can now specify a
