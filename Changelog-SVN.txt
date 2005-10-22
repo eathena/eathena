@@ -1,6 +1,7 @@
 Date	Added
 ==========
 2005/10/21
+	* Fixed Magic Power totally messing up matk. [Skotlex]
 	* Fixed Meteor Storm [Skotlex]
 	* Some changes to Moonlight Petals, it should make the skill finally be
 	  considered an ensemble skill. [Skotlex]

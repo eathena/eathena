@@ -6697,7 +6697,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 		{
 			int race = status_get_race(bl);
 			if (!battle_check_undead(race,status_get_elem_type(bl)) && race!=6)
-				return 0;
+				break;
 			skill_attack(BF_MAGIC,ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,0);
 			src->val2++;
 			break;
@@ -6960,8 +6960,8 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 	{	//Unset Magic Power.
 		if (sd)
 		{
-			sd->matk1 -= sd->matk1*100/(5*ssc_data[SC_MAGICPOWER].val1);
-			sd->matk2 -= sd->matk2*100/(5*ssc_data[SC_MAGICPOWER].val1);
+			sd->matk1 = 100*sd->matk1/(100 + 5*ssc_data[SC_MAGICPOWER].val1);
+			sd->matk2 = 100*sd->matk2/(100 + 5*ssc_data[SC_MAGICPOWER].val1);
 		} else
 			ssc_data[SC_MAGICPOWER].timer = -1;
 	}
