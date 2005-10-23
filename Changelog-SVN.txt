@@ -1,6 +1,9 @@
 Date	Added
 ==========
 2005/10/23
+	* Added a clause to ignore name solve requests of chat-rooms (for some
+	  reason the client requests them...) [Skotlex]
+	* Updated sql-files/item_db.sql to the latest. [Skotlex]
 	* Removed that mob_spawn_once message that is just a debug message with no
 	  real purpose anymore. [Skotlex]
 	* Fixed forging displaying success even when it fails. [Skotlex]

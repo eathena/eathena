@@ -7834,7 +7834,9 @@ int clif_charnameack (int fd, struct block_list *bl)
 			}
 		}
 		break;
-	case BL_SKILL: //Players may be requesting the name of a trap/icewall [Skotlex]
+	case BL_CHAT:	//FIXME: Clients DO request this... what should be done about it? The chat's title may not fit... [Skotlex]
+//		memcpy(WBUFP(buf,6), (struct chat*)->title, NAME_LENGTH);
+//		break;
 		return 0;
 	default:
 		if (battle_config.error_log)

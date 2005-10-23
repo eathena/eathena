@@ -28,7 +28,6 @@ CREATE TABLE `item_db` (
 ) TYPE=MyISAM;
 
 -- // ID,'Name','Name','Type','Price','Sell','Weight','ATK','DEF','Range','Slot','Job','Upper','Gender','Loc','wLV','eLV','Refineable','View','Script');
--- //
 -- // Healing Items
 -- //=============================================================
 REPLACE INTO `item_db` VALUES (0,'DEFAULT','Default','0',NULL,'10','10',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,NULL);
@@ -129,7 +128,7 @@ REPLACE INTO `item_db` VALUES (609,'Amulet','Amulet','2','100',NULL,'100',NULL,N
 REPLACE INTO `item_db` VALUES (610,'Yggdrasil_Leaf','Yggdrasil Leaf','11','4000',NULL,'100',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'itemskill 54,1,"Resurrection";');
 REPLACE INTO `item_db` VALUES (611,'Magnifier','Magnifier','11','40',NULL,'50',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'itemskill 40,1,"Identify";');
 -- // Smithing Items
-REPLACE INTO `item_db` VALUES (612,'Mini_Furnace','Mini Furnace','2','150',NULL,'200',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'produce 16;');
+REPLACE INTO `item_db` VALUES (612,'Mini_Furnace','Mini Furnace','2','150',NULL,'200',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'produce 21;');
 REPLACE INTO `item_db` VALUES (613,'Iron_Hammer','Iron Hammer','2','1000',NULL,'200',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'produce 1;');
 REPLACE INTO `item_db` VALUES (614,'Golden_Hammer','Golden Hammer','2','3000',NULL,'300',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'produce 2;');
 REPLACE INTO `item_db` VALUES (615,'Oridecon_Hammer','Oridecon Hammer','2','5000',NULL,'400',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'produce 3;');
@@ -578,7 +577,7 @@ REPLACE INTO `item_db` VALUES (1230,'House_Auger','House Auger','4',NULL,'10','6
 REPLACE INTO `item_db` VALUES (1231,'Bazerald','Bazerald','4',NULL,'10','500','70',NULL,'1','0','2055918','7','2','2','4','36','1','1','bonus bAtkEle,Ele_Fire; bonus bInt,5; bonus bMatkRate,10;');
 REPLACE INTO `item_db` VALUES (1232,'Assassin_Dagger','Assasin Dagger','4',NULL,'10','600','140',NULL,'1','0','4096','7','2','2','4','36','1','1','bonus bMaxHPrate,20; bonus bMaxSPrate,15; bonus bAspdRate,2;');
 REPLACE INTO `item_db` VALUES (1233,'Exercise','Excorcise','4',NULL,'10','700','90',NULL,'1','0','2055918','7','2','2','4','36','1','1','bonus bIgnoreDefRace,RC_Demon; bonus2 bSubRace,RC_Demon,5; bonus2 bSubRace,RC_DemiHuman,-10;');
-REPLACE INTO `item_db` VALUES (1234,'Moonlight_Sword','Walgwanggum','4',NULL,'10','700','50',NULL,'1','0','2055918','7','2','2','4','36','1','1','bonus bMaxSPrate,10; bonus2 bSPDrainRate,1000,3;');
+REPLACE INTO `item_db` VALUES (1234,'Moonlight_Sword','Walgwanggum','4',NULL,'10','700','50',NULL,'1','0','2055918','7','2','2','4','36','1','1','bonus bMaxSPrate,10; bonus bSPDrainValue,3;');
 REPLACE INTO `item_db` VALUES (1235,'Azoth','Azoth','4',NULL,'10','700','110',NULL,'1','0','262144','7','2','2','4','36','1','1','bonus bClassChange,300;');
 REPLACE INTO `item_db` VALUES (1236,'Sucsamad','Sucsamad','4',NULL,'10','800','140',NULL,'1','0','2055918','7','2','2','4','36','1','1','bonus2 bAddEle,2,Ele_Earth; bonus2 bAddEle,Ele_Wind,10; bonus bUnbreakableWeapon,0;');
 REPLACE INTO `item_db` VALUES (1237,'Grimtooth_','Grimtooth','4',NULL,'10','800','180',NULL,'1','0','2055918','7','2','2','4','36','1','1','bonus bFlee,10; bonus bFlee2,5; bonus bDefRate,-50; bonus bDef2Rate,-50;');
@@ -1276,7 +1275,7 @@ REPLACE INTO `item_db` VALUES (4108,'Myst_Card','Myst Card','6',NULL,'10','10',N
 REPLACE INTO `item_db` VALUES (4109,'Jakk_Card','Jakk Card','6',NULL,'10','10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'4',NULL,NULL,NULL,NULL,'bonus2 bSubEle,Ele_Fire,30; bonus bFlee,5;');
 REPLACE INTO `item_db` VALUES (4110,'Ghoul_Card','Ghoul Card','6',NULL,'10','10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'769',NULL,NULL,NULL,NULL,'bonus2 bResEff,Eff_Poison,2000; bonus bDef,1;');
 REPLACE INTO `item_db` VALUES (4111,'Strouf_Card','Strouf Card','6',NULL,'10','10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2',NULL,NULL,NULL,NULL,'bonus2 bAddRace,RC_Demon,20;');
-REPLACE INTO `item_db` VALUES (4112,'Marduk_Card','Marduk Card','6',NULL,'10','10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'769',NULL,NULL,NULL,NULL,'bonus2 bResEff,Eff_Silence,10000; bonus bDelayrate,-5;');
+REPLACE INTO `item_db` VALUES (4112,'Marduk_Card','Marduk Card','6',NULL,'10','10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'769',NULL,NULL,NULL,NULL,'bonus2 bResEff,Eff_Silence,10000;');
 REPLACE INTO `item_db` VALUES (4113,'Marionette_Card','Marionette Card','6',NULL,'10','10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'4',NULL,NULL,NULL,NULL,'bonus2 bSubEle,Ele_Ghost,30; bonus bFlee,5;');
 REPLACE INTO `item_db` VALUES (4114,'Argiope_Card','Argiope Card','6',NULL,'10','10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'16',NULL,NULL,NULL,NULL,'bonus bDefEle,Ele_Poison; bonus bDef,1;');
 REPLACE INTO `item_db` VALUES (4115,'Hunter_Fly_Card','Hunter Fly Card','6',NULL,'10','10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2',NULL,NULL,NULL,NULL,'bonus2 bHpDrainRate,30,15;');
@@ -1440,7 +1439,7 @@ REPLACE INTO `item_db` VALUES (4272,'Dancing_Dragon_Card','Dancing Dragon Card',
 REPLACE INTO `item_db` VALUES (4273,'Shellfish_Card','Shellfish Card','6',NULL,'10','10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2',NULL,NULL,NULL,NULL,'bonus bAtk,5; bonus2 bAddDamageClass,1073,30;');
 REPLACE INTO `item_db` VALUES (4274,'Zombie_Master_Card','Zombie Master Card','6',NULL,'10','10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2',NULL,NULL,NULL,NULL,'bonus2 bSPGainRace,RC_Undead,5; bonus bLoseSPWhenUnequip,5;');
 REPLACE INTO `item_db` VALUES (4275,'Zombie_Prisoner_Card','Zombie Prisoner Card','6',NULL,'10','10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'64',NULL,NULL,NULL,NULL,'bonus2 bSubRace,RC_Undead,-20; bonus2 bExpAddRace,RC_Undead,10;');
-REPLACE INTO `item_db` VALUES (4276,'Lord_of_Death_Card','Lord of Death Card','6',NULL,'10','10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2',NULL,NULL,NULL,NULL,'bonus2 bAddEff,Eff_Stan,100; bonus2 bAddEff,Eff_Curse,100; bonus2 bAddEff,Eff_Poison,100; bonus2 bAddEff,Eff_Bleeding,100; bonus2 bAddWeaponComaRace,RC_NonBoss,30;');
+REPLACE INTO `item_db` VALUES (4276,'Lord_of_Death_Card','Lord of Death Card','6',NULL,'10','10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2',NULL,NULL,NULL,NULL,'bonus2 bAddEff,Eff_Stan,100; bonus2 bAddEff,Eff_Curse,100; bonus2 bAddEff,Eff_Poison,100; bonus2 bAddEff,Eff_Bleeding,100; bonus2 bWeaponComaRace,RC_NonBoss,30;');
 REPLACE INTO `item_db` VALUES (4277,'Zherlthsh_Card','Zherlthsh Card','6',NULL,'10','10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'32',NULL,NULL,NULL,NULL,'bonus bLuk,2; bonus2 bSkillAtk,316,10; bonus2 bSkillAtk,324,10;');
 REPLACE INTO `item_db` VALUES (4278,'Gibbet_Card','Gibbet Card','6',NULL,'10','10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'769',NULL,NULL,NULL,NULL,'if(getrefine()<6) bonus bMdef,5;');
 REPLACE INTO `item_db` VALUES (4279,'Earth_Deleter_Card','Earth Deleter Card','6',NULL,'10','10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'16',NULL,NULL,NULL,NULL,'bonus bSPrecovRate,-100; bonus bSPGainValue,10; bonus bLoseSPWhenUnequip,100;');
@@ -1467,7 +1466,7 @@ REPLACE INTO `item_db` VALUES (4299,'Clock_Card','Clock Card','6',NULL,'10','10'
 REPLACE INTO `item_db` VALUES (4300,'Chimera_Card','Chimera Card','6',NULL,'10','10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'16',NULL,NULL,NULL,NULL,'bonus2 bAddEffWhenHit,Eff_Poison,1000+2000*(BaseJob==Job_Assassin);');
 REPLACE INTO `item_db` VALUES (4301,'Killer_Mantis_Card','Killer Mantis Card','6',NULL,'10','10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'16',NULL,NULL,NULL,NULL,'bonus2 bAddEffWhenHit,Eff_Bleeding,2000;');
 REPLACE INTO `item_db` VALUES (4302,'Tao_Gunka_Card','Tao Gunka Card','6',NULL,'10','10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'16',NULL,NULL,NULL,NULL,'bonus bMaxHPrate,100; bonus bDef,-50; bonus bMdef,-50;');
-REPLACE INTO `item_db` VALUES (4303,'Whisper_Boss_Card','Whisper Boss Card','6',NULL,'10','10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'4',NULL,NULL,NULL,NULL,'bonus bFlee,10; if(readparam(bStr)>=80) bonus bAtk,20; if(readparam(bVit)>=80) bonus bMaxHP,3; if(readparam(bLuk)>=80) bonus bCritical,3;');
+REPLACE INTO `item_db` VALUES (4303,'Whisper_Boss_Card','Whisper Boss Card','6',NULL,'10','10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'4',NULL,NULL,NULL,NULL,'bonus bFlee,10; if(readparam(bStr)>=80) bonus bAtk,20; if(readparam(bVit)>=80) bonus bMaxHPrate,3; if(readparam(bLuk)>=80) bonus bCritical,3;');
 REPLACE INTO `item_db` VALUES (4304,'Tamruan_Card','Tamruan Card','6',NULL,'10','10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'32',NULL,NULL,NULL,NULL,'bonus bDef,2; bonus2 bSkillAtk,250,10; bonus2 bSkillAtk,251,10;');
 REPLACE INTO `item_db` VALUES (4305,'Turtle_General_Card','Turtle General Card','6',NULL,'10','10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2',NULL,NULL,NULL,NULL,'bonus bAtkRate,20; if(BaseClass == Job_Swordman) bonus3 bAutoSpell,7,10,10;');
 REPLACE INTO `item_db` VALUES (4306,'Toad_Card','Toad Card','6',NULL,'10','10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'4',NULL,NULL,NULL,NULL,'bonus bFlee2,1; if(isequipped(4014)) bonus bFlee,18;');
@@ -1949,15 +1948,15 @@ REPLACE INTO `item_db` VALUES (7311,'Airship_Coupon','Airship Free Coupon','3',N
 REPLACE INTO `item_db` VALUES (7312,'Jubile','Jubilee','3',NULL,'32','10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 REPLACE INTO `item_db` VALUES (7313,'Witch\'s_Voucher','Witch\'s Voucher','3',NULL,'10','10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 REPLACE INTO `item_db` VALUES (7314,'The_Sign','The Sign','3',NULL,'10','10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
-REPLACE INTO `item_db` VALUES (7315,'Black_Quartz_Piece','Piece of Black Quartz','3',NULL,'10','10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
+REPLACE INTO `item_db` VALUES (7315,'Black_Quartz_Piece','Dark Crystal Fragment','3','422',NULL,'10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 REPLACE INTO `item_db` VALUES (7316,'Insect_Long_leg','Insect\'s Long Leg','3',NULL,'10','10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 REPLACE INTO `item_db` VALUES (7317,'Rusted_Bolt','Rusty Screw','3','534',NULL,'10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 REPLACE INTO `item_db` VALUES (7318,'Old_Pick','Old Pick','3','512',NULL,'10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 REPLACE INTO `item_db` VALUES (7319,'Old_Iron_Plate','Used Iron Plate','3','1024',NULL,'10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 REPLACE INTO `item_db` VALUES (7320,'Dust','Dust Pollutant','3','256',NULL,'10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 REPLACE INTO `item_db` VALUES (7321,'Quartz_Piece','Crystal Fragment','3','552',NULL,'10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
-REPLACE INTO `item_db` VALUES (7322,'Poison_Gas','Poison Gas','3',NULL,'10','10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
-REPLACE INTO `item_db` VALUES (7323,'Battered_Kettle','Battered Kettle','3',NULL,'10','10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
+REPLACE INTO `item_db` VALUES (7322,'Poison_Gas','Toxic Gas','3','666',NULL,'10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
+REPLACE INTO `item_db` VALUES (7323,'Battered_Kettle','Battered Kettle','3','256',NULL,'10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 REPLACE INTO `item_db` VALUES (7324,'Toothed_Wheel','Gear','3',NULL,'10','10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 REPLACE INTO `item_db` VALUES (7325,'Tube','Flexible Tube','3',NULL,'102','10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 REPLACE INTO `item_db` VALUES (7326,'Fluorescent_Colored_Liquid','Fluorescent Liquid','3',NULL,'10','10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
@@ -2118,6 +2117,7 @@ REPLACE INTO `item_db` VALUES (7479,'Lv8_Cookery_Book','Lv8 Cookbook','3',NULL,'
 REPLACE INTO `item_db` VALUES (7480,'LV9_Cookery_Book','Lv9 Cookbook','3',NULL,'10','10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 REPLACE INTO `item_db` VALUES (7481,'Lv10_Cookery_Book','Lv10 Cookbook','3',NULL,'10','10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 REPLACE INTO `item_db` VALUES (7482,'Pot','Pot','3',NULL,'10','10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
+REPLACE INTO `item_db` VALUES (7483,'Key_of_the_Seal','Key of the Seal','3',NULL,NULL,'10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 -- 
 -- //THQ Quest Items
 REPLACE INTO `item_db` VALUES (7500,'THG_Membership','THG Membership','3',NULL,'10','10',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
@@ -2248,69 +2248,72 @@ REPLACE INTO `item_db` VALUES (12037,'Ball_Box__','Ball Box','2',NULL,'10','20',
 REPLACE INTO `item_db` VALUES (12038,'Ball_Box___','Ball Box','2',NULL,'10','20',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'getitem rand(7385,7392),1;');
 REPLACE INTO `item_db` VALUES (12039,'Ball_Box____','Ball Box','2',NULL,'10','20',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'getitem rand(7393,7398),1;');
 REPLACE INTO `item_db` VALUES (12040,'Philosopher\'s_Stone','Philosopher\'s Stone','2',NULL,'10','10',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,NULL);
--- // Mixed Food,' gives temp bonuses',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
-REPLACE INTO `item_db` VALUES (12041,'Boiled_Down_Locust','Boiled Locust','2','2000',NULL,'60',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_STRFood, 1200000, 1;');
-REPLACE INTO `item_db` VALUES (12042,'Seasoned_Webs','Seasoned Webs','2','4000',NULL,'500',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_STRFood, 1200000, 2;');
-REPLACE INTO `item_db` VALUES (12043,'Bomber_Steak','Bomber Steak','2','6000',NULL,'500',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_STRFood, 1200000, 3;');
-REPLACE INTO `item_db` VALUES (12044,'Rib_with_Herb_and_Spices','Spicy Ribs','2','8000',NULL,'500',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_STRFood, 1200000, 4;');
-REPLACE INTO `item_db` VALUES (12045,'Lutie_Plat_Cake','Lutie Plat Cake','2','10000',NULL,'500',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_STRFood, 1200000, 5;');
-REPLACE INTO `item_db` VALUES (12046,'Herb_Tea_with_Grape_Juice','Grape Juice and Tea','2','2000',NULL,'100',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_INTFood, 1200000, 1;');
-REPLACE INTO `item_db` VALUES (12047,'Black_Tea','Black Tea','2','4000',NULL,'500',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_INTFood, 1200000, 2;');
-REPLACE INTO `item_db` VALUES (12048,'Herb_and_Honey_Tea','Herb and Honey Tea','2','6000',NULL,'500',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_INTFood, 1200000, 3;');
-REPLACE INTO `item_db` VALUES (12049,'Morocc_Fruit_Wine','Morocc Fruit Wine','2','8000',NULL,'300',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_INTFood, 1200000, 4;');
-REPLACE INTO `item_db` VALUES (12050,'Mastela_Wine','Mastela Wine','2','10000',NULL,'400',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_INTFood, 1200000, 5;');
-REPLACE INTO `item_db` VALUES (12051,'Steamed_Crab_Pincer','Steamed Crab Pincer','2','2000',NULL,'100',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_VITFood, 1200000, 1;');
-REPLACE INTO `item_db` VALUES (12052,'Sea_Food','Sea Food','2','4000',NULL,'200',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_VITFood, 1200000, 2;');
-REPLACE INTO `item_db` VALUES (12053,'Clam_Soup','Clam Soup','2','6000',NULL,'300',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_VITFood, 1200000, 3;');
-REPLACE INTO `item_db` VALUES (12054,'Seasoned_Jellyfish','Seasoned Jellyfish','2','8000',NULL,'500',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_VITFood, 1200000, 4;');
-REPLACE INTO `item_db` VALUES (12055,'Peppery_Roasted_Dumpling','Hot Roasted Dumpling','2','10000',NULL,'800',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_VITFood, 1200000, 5;');
-REPLACE INTO `item_db` VALUES (12056,'Frog_Spawn_Soup','Frog Spawn Soup','2','2000',NULL,'100',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_AGIFood, 1200000, 1;');
-REPLACE INTO `item_db` VALUES (12057,'Smooth_Noodle','Smooth Noodle','2','4000',NULL,'100',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_AGIFood, 1200000, 2;');
-REPLACE INTO `item_db` VALUES (12058,'Tentacle_and_Cheese_Gratin','Tentacle\'n\'Cheese Gratin','2','6000',NULL,'500',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_AGIFood, 1200000, 3;');
-REPLACE INTO `item_db` VALUES (12059,'Lutie_Mixed_Cold_Noodle','Lutie Mixed Cold Noodle','2','8000',NULL,'400',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_AGIFood, 1200000, 4;');
-REPLACE INTO `item_db` VALUES (12060,'Steamed_Bat_Wing_and_Pumpkin','Steamed Bat Wing\'n\'Pumpkin','2','10000',NULL,'500',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_AGIFood, 1200000, 5;');
-REPLACE INTO `item_db` VALUES (12061,'Grape_Juice_with_Honey','Grape Juice with Honey','2','2000',NULL,'100',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_DEXFood, 1200000, 1;');
-REPLACE INTO `item_db` VALUES (12062,'Chocolate_Mousse_Cake','Chocolate Mousse Cake','2','4000',NULL,'200',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_DEXFood, 1200000, 2;');
-REPLACE INTO `item_db` VALUES (12063,'Fruits_Punch','Fruits Punch','2','6000',NULL,'200',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_DEXFood, 1200000, 3;');
-REPLACE INTO `item_db` VALUES (12064,'Cream_Sandwich','Cream Sandwich','2','8000',NULL,'500',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_DEXFood, 1200000, 4;');
-REPLACE INTO `item_db` VALUES (12065,'Green_Salad','Green Salad','2','10000',NULL,'200',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_DEXFood, 1200000, 5;');
-REPLACE INTO `item_db` VALUES (12066,'Fried_Monkey_Tail','Fried Monkey Tail','2','2000',NULL,'60',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_LUKFood, 1200000, 1;');
-REPLACE INTO `item_db` VALUES (12067,'Mixed_Juice','Mixed Juice','2','4000',NULL,'200',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_LUKFood, 1200000, 2;');
-REPLACE INTO `item_db` VALUES (12068,'Fried_Sweet_Potato_with_Syrup','Fried Sweet Potato with Syrup','2','6000',NULL,'500',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_LUKFood, 1200000, 3;');
-REPLACE INTO `item_db` VALUES (12069,'Ancient_Fish_Dish','Ancient Fish Dish','2','8000',NULL,'500',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_LUKFood, 1200000, 4;');
-REPLACE INTO `item_db` VALUES (12070,'Broiled_Down_Scorpion','Broiled Scorpion','2','10000',NULL,'400',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_LUKFood, 1200000, 5;');
-REPLACE INTO `item_db` VALUES (12071,'Flavored_Grilled_Beef','Flavored Grilled Beef','2','20000',NULL,'80',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_STRFood, 1200000, 6;');
-REPLACE INTO `item_db` VALUES (12072,'Barbecue','Barbecue','2','40000',NULL,'1000',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_STRFood, 1200000, 7;');
-REPLACE INTO `item_db` VALUES (12073,'Bear_Foot_Dish','Bear Foot Dish','2','60000',NULL,'500',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_STRFood, 1200000, 8;');
-REPLACE INTO `item_db` VALUES (12074,'Sauted_Meat_Strips','Sauted Meat Strips','2','80000',NULL,'1000',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_STRFood, 1200000, 9;');
-REPLACE INTO `item_db` VALUES (12075,'Tongue_Dish','Tongue Dish','2','100000',NULL,'1000',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_STRFood, 1200000, 10;');
-REPLACE INTO `item_db` VALUES (12076,'Red_Mushroom_Wine','Red Mushroom Wine','2','20000',NULL,'300',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_INTFood, 1200000, 6;');
-REPLACE INTO `item_db` VALUES (12077,'Royal_Jelly_and_Herb_Tea','Royal Jelly and Herb Tea','2','40000',NULL,'800',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_INTFood, 1200000, 7;');
-REPLACE INTO `item_db` VALUES (12078,'Royal_Tea','Royal Tea','2','60000',NULL,'1000',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_INTFood, 1200000, 8;');
-REPLACE INTO `item_db` VALUES (12079,'Tristan_12','Tristans 12 years wine','2','80000',NULL,'1000',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_INTFood, 1200000, 9;');
-REPLACE INTO `item_db` VALUES (12080,'Dragon_Breath_Cocktail','Dragon Breath Cocktail','2','100000',NULL,'1000',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_INTFood, 1200000, 10;');
-REPLACE INTO `item_db` VALUES (12081,'Very_Bitter_Invigorant','Very Bitter Invigorant','2','20000',NULL,'500',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_VITFood, 1200000, 6;');
-REPLACE INTO `item_db` VALUES (12082,'Sumptuous_Feast','Sumptuous Feast','2','40000',NULL,'400',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_VITFood, 1200000, 7;');
-REPLACE INTO `item_db` VALUES (12083,'Huge_Stuffed_Leaves','Huge Stuffed Leaves','2','60000',NULL,'1000',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_VITFood, 1200000, 8;');
-REPLACE INTO `item_db` VALUES (12084,'Ascending_Dragon_Broth','Ascending Dragon Broth','2','80000',NULL,'1000',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_VITFood, 1200000, 9;');
-REPLACE INTO `item_db` VALUES (12085,'Stew_of_Immortality','Stew of Immortality','2','100000',NULL,'1000',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_VITFood, 1200000, 10;');
-REPLACE INTO `item_db` VALUES (12086,'Chili_and_Prawn_Gratin','Chili and Prawn Gratin','2','20000',NULL,'800',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_AGIFood, 1200000, 6;');
-REPLACE INTO `item_db` VALUES (12087,'Boiled_Vegitable_stuffed_with_Roasted_Crocodile','Boiled Vegitable stuffed with Roasted Crocodile','2','40000',NULL,'800',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_AGIFood, 1200000, 7;');
-REPLACE INTO `item_db` VALUES (12088,'Very_Hot_Curry','Very Hot Curry','2','60000',NULL,'1000',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_AGIFood, 1200000, 8;');
-REPLACE INTO `item_db` VALUES (12089,'Delicious_Boiled_Meats','Delicious Boiled Meats','2','80000',NULL,'1000',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_AGIFood, 1200000, 9;');
-REPLACE INTO `item_db` VALUES (12090,'Hot_Sand_Steamed_Scorpion','Hot Sand Steamed Scorpion','2','100000',NULL,'1000',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_AGIFood, 1200000, 10;');
-REPLACE INTO `item_db` VALUES (12091,'Peach_Cake','Peach Cake','2','20000',NULL,'800',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_DEXFood, 1200000, 6;');
-REPLACE INTO `item_db` VALUES (12092,'Soul_Hunt_Bread','Soul Hunt Bread','2','40000',NULL,'800',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_DEXFood, 1200000, 7;');
-REPLACE INTO `item_db` VALUES (12093,'Special_Toast','Special Toast','2','60000',NULL,'1000',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_DEXFood, 1200000, 8;');
-REPLACE INTO `item_db` VALUES (12094,'Ethereal_Fruit_Juice','Ethereal Fruit Juice','2','80000',NULL,'500',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_DEXFood, 1200000, 9;');
-REPLACE INTO `item_db` VALUES (12095,'Wine_of_Bergelmir','Wine of Bergelmir','2','100000',NULL,'500',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_DEXFood, 1200000, 10;');
-REPLACE INTO `item_db` VALUES (12096,'Soup_of_Great_Luck','Soup of Great Luck','2','20000',NULL,'300',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_LUKFood, 1200000, 6;');
-REPLACE INTO `item_db` VALUES (12097,'Grilled_Meat_Skewer','Grilled Meat Skewer','2','40000',NULL,'800',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_LUKFood, 1200000, 7;');
-REPLACE INTO `item_db` VALUES (12098,'Strawberry_Rice_Ball','Strawberry Rice Ball','2','60000',NULL,'400',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_LUKFood, 1200000, 8;');
-REPLACE INTO `item_db` VALUES (12099,'Blood_Flavored_Sodapop','Blood Flavored Sodapop','2','80000',NULL,'1000',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_LUKFood, 1200000, 9;');
-REPLACE INTO `item_db` VALUES (12100,'Nine_Tail_Dish','Nine Tail Dish','2','100000',NULL,'500',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_LUKFood, 1200000, 10;');
+-- // Mixed Foods (+1 to +5)
+REPLACE INTO `item_db` VALUES (12041,'Boiled_Down_Locust','Boiled Locust','2','2000',NULL,'60',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_STRFood, 1200000, 1; percentheal 5,0;');
+REPLACE INTO `item_db` VALUES (12042,'Seasoned_Webs','Seasoned Webs','2','4000',NULL,'500',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_STRFood, 1200000, 2; percentheal 5,0;');
+REPLACE INTO `item_db` VALUES (12043,'Bomber_Steak','Bomber Steak','2','6000',NULL,'500',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_STRFood, 1200000, 3; percentheal 5,0;');
+REPLACE INTO `item_db` VALUES (12044,'Rib_with_Herb_and_Spices','Spicy Ribs','2','8000',NULL,'500',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_STRFood, 1200000, 4; percentheal 5,0;');
+REPLACE INTO `item_db` VALUES (12045,'Lutie_Plat_Cake','Lutie Plat Cake','2','10000',NULL,'500',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_STRFood, 1200000, 5; percentheal 10,0;');
+REPLACE INTO `item_db` VALUES (12046,'Herb_Tea_with_Grape_Juice','Grape Juice and Tea','2','2000',NULL,'100',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_INTFood, 1200000, 1; percentheal 0,5;');
+REPLACE INTO `item_db` VALUES (12047,'Black_Tea','Black Tea','2','4000',NULL,'500',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_INTFood, 1200000, 2; percentheal 0,5;');
+REPLACE INTO `item_db` VALUES (12048,'Herb_and_Honey_Tea','Herb and Honey Tea','2','6000',NULL,'500',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_INTFood, 1200000, 3; percentheal 0,5;');
+REPLACE INTO `item_db` VALUES (12049,'Morocc_Fruit_Wine','Morocc Fruit Wine','2','8000',NULL,'300',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_INTFood, 1200000, 4; percentheal 0,5;');
+REPLACE INTO `item_db` VALUES (12050,'Mastela_Wine','Mastela Wine','2','10000',NULL,'400',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_INTFood, 1200000, 5; percentheal 0,10;');
+REPLACE INTO `item_db` VALUES (12051,'Steamed_Crab_Pincer','Steamed Crab Pincer','2','2000',NULL,'100',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_VITFood, 1200000, 1; percentheal 5,0;');
+REPLACE INTO `item_db` VALUES (12052,'Sea_Food','Sea Food','2','4000',NULL,'200',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_VITFood, 1200000, 2; percentheal 5,0;');
+REPLACE INTO `item_db` VALUES (12053,'Clam_Soup','Clam Soup','2','6000',NULL,'300',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_VITFood, 1200000, 3; percentheal 5,0;');
+REPLACE INTO `item_db` VALUES (12054,'Seasoned_Jellyfish','Seasoned Jellyfish','2','8000',NULL,'500',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_VITFood, 1200000, 4; percentheal 5,0;');
+REPLACE INTO `item_db` VALUES (12055,'Peppery_Roasted_Dumpling','Hot Roasted Dumpling','2','10000',NULL,'800',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_VITFood, 1200000, 5; percentheal 10,0;');
+REPLACE INTO `item_db` VALUES (12056,'Frog_Spawn_Soup','Frog Spawn Soup','2','2000',NULL,'100',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_AGIFood, 1200000, 1; percentheal 3,1;');
+REPLACE INTO `item_db` VALUES (12057,'Smooth_Noodle','Smooth Noodle','2','4000',NULL,'100',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_AGIFood, 1200000, 2; percentheal 3,1;');
+REPLACE INTO `item_db` VALUES (12058,'Tentacle_and_Cheese_Gratin','Tentacle\'n\'Cheese Gratin','2','6000',NULL,'500',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_AGIFood, 1200000, 3; percentheal 3,1;');
+REPLACE INTO `item_db` VALUES (12059,'Lutie_Mixed_Cold_Noodle','Lutie Mixed Cold Noodle','2','8000',NULL,'400',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_AGIFood, 1200000, 4; percentheal 3,1;');
+REPLACE INTO `item_db` VALUES (12060,'Steamed_Bat_Wing_and_Pumpkin','Steamed Bat Wing\'n\'Pumpkin','2','10000',NULL,'500',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_AGIFood, 1200000, 5; percentheal 6,2;');
+REPLACE INTO `item_db` VALUES (12061,'Grape_Juice_with_Honey','Grape Juice with Honey','2','2000',NULL,'100',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_DEXFood, 1200000, 1; percentheal 2,2;');
+REPLACE INTO `item_db` VALUES (12062,'Chocolate_Mousse_Cake','Chocolate Mousse Cake','2','4000',NULL,'200',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_DEXFood, 1200000, 2; percentheal 2,2;');
+REPLACE INTO `item_db` VALUES (12063,'Fruits_Punch','Fruits Punch','2','6000',NULL,'200',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_DEXFood, 1200000, 3; percentheal 2,2;');
+REPLACE INTO `item_db` VALUES (12064,'Cream_Sandwich','Cream Sandwich','2','8000',NULL,'500',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_DEXFood, 1200000, 4; percentheal 2,2;');
+REPLACE INTO `item_db` VALUES (12065,'Green_Salad','Green Salad','2','10000',NULL,'200',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_DEXFood, 1200000, 5; percentheal 5,5;');
+REPLACE INTO `item_db` VALUES (12066,'Fried_Monkey_Tail','Fried Monkey Tail','2','2000',NULL,'60',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_LUKFood, 1200000, 1; percentheal 3,2;');
+REPLACE INTO `item_db` VALUES (12067,'Mixed_Juice','Mixed Juice','2','4000',NULL,'200',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_LUKFood, 1200000, 2; percentheal 3,2;');
+REPLACE INTO `item_db` VALUES (12068,'Fried_Sweet_Potato_with_Syrup','Fried Sweet Potato with Syrup','2','6000',NULL,'500',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_LUKFood, 1200000, 3; percentheal 4,2;');
+REPLACE INTO `item_db` VALUES (12069,'Ancient_Fish_Dish','Ancient Fish Dish','2','8000',NULL,'500',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_LUKFood, 1200000, 4; percentheal 4,2;');
+REPLACE INTO `item_db` VALUES (12070,'Broiled_Down_Scorpion','Broiled Scorpion','2','10000',NULL,'400',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_LUKFood, 1200000, 5; percentheal 5,2;');
+-- // Mixed Foods (+6 to +10)
+REPLACE INTO `item_db` VALUES (12071,'Flavored_Grilled_Beef','Flavored Grilled Beef','2','20000',NULL,'80',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_STRFood, 1200000, 6; percentheal 10,2;');
+REPLACE INTO `item_db` VALUES (12072,'Barbecue','Barbecue','2','40000',NULL,'1000',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_STRFood, 1200000, 7; percentheal 10,4;');
+REPLACE INTO `item_db` VALUES (12073,'Bear_Foot_Dish','Bear Foot Dish','2','60000',NULL,'500',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_STRFood, 1200000, 8; percentheal 15,6;');
+REPLACE INTO `item_db` VALUES (12074,'Sauted_Meat_Strips','Sauted Meat Strips','2','80000',NULL,'1000',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_STRFood, 1200000, 9; percentheal 15,8;');
+REPLACE INTO `item_db` VALUES (12075,'Tongue_Dish','Tongue Dish','2','100000',NULL,'1000',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_STRFood, 1200000, 10; percentheal 20,20;');
+REPLACE INTO `item_db` VALUES (12076,'Red_Mushroom_Wine','Red Mushroom Wine','2','20000',NULL,'300',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_INTFood, 1200000, 6; percentheal 2,10;');
+REPLACE INTO `item_db` VALUES (12077,'Royal_Jelly_and_Herb_Tea','Royal Jelly and Herb Tea','2','40000',NULL,'800',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_INTFood, 1200000, 7; percentheal 4,10;');
+REPLACE INTO `item_db` VALUES (12078,'Royal_Tea','Royal Tea','2','60000',NULL,'1000',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_INTFood, 1200000, 8; percentheal 6,10;');
+REPLACE INTO `item_db` VALUES (12079,'Tristan_12','Tristans 12 years wine','2','80000',NULL,'1000',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_INTFood, 1200000, 9; percentheal 8,15;');
+REPLACE INTO `item_db` VALUES (12080,'Dragon_Breath_Cocktail','Dragon Breath Cocktail','2','100000',NULL,'1000',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_INTFood, 1200000, 10; percentheal 10,20;');
+REPLACE INTO `item_db` VALUES (12081,'Very_Bitter_Invigorant','Very Bitter Invigorant','2','20000',NULL,'500',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_VITFood, 1200000, 6; percentheal 13,0;');
+REPLACE INTO `item_db` VALUES (12082,'Sumptuous_Feast','Sumptuous Feast','2','40000',NULL,'400',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_VITFood, 1200000, 7; percentheal 16,0;');
+REPLACE INTO `item_db` VALUES (12083,'Huge_Stuffed_Leaves','Huge Stuffed Leaves','2','60000',NULL,'1000',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_VITFood, 1200000, 8; percentheal 19,0;');
+REPLACE INTO `item_db` VALUES (12084,'Ascending_Dragon_Broth','Ascending Dragon Broth','2','80000',NULL,'1000',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_VITFood, 1200000, 9; percentheal 22,0;');
+REPLACE INTO `item_db` VALUES (12085,'Stew_of_Immortality','Stew of Immortality','2','100000',NULL,'1000',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_VITFood, 1200000, 10; percentheal 25,0;');
+REPLACE INTO `item_db` VALUES (12086,'Chili_and_Prawn_Gratin','Chili and Prawn Gratin','2','20000',NULL,'800',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_AGIFood, 1200000, 6; percentheal 7,2;');
+REPLACE INTO `item_db` VALUES (12087,'Boiled_Vegitable_stuffed_with_Roasted_Crocodile','Boiled Vegitable stuffed with Roasted Crocodile','2','40000',NULL,'800',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_AGIFood, 1200000, 7; percentheal 8,2;');
+REPLACE INTO `item_db` VALUES (12088,'Very_Hot_Curry','Very Hot Curry','2','60000',NULL,'1000',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_AGIFood, 1200000, 8; percentheal 9,2;');
+REPLACE INTO `item_db` VALUES (12089,'Delicious_Boiled_Meats','Delicious Boiled Meats','2','80000',NULL,'1000',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_AGIFood, 1200000, 9; percentheal 10,2;');
+REPLACE INTO `item_db` VALUES (12090,'Hot_Sand_Steamed_Scorpion','Hot Sand Steamed Scorpion','2','100000',NULL,'1000',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_AGIFood, 1200000, 10; percentheal 15,5;');
+REPLACE INTO `item_db` VALUES (12091,'Peach_Cake','Peach Cake','2','20000',NULL,'800',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_DEXFood, 1200000, 6; percentheal 5,6;');
+REPLACE INTO `item_db` VALUES (12092,'Soul_Hunt_Bread','Soul Hunt Bread','2','40000',NULL,'800',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_DEXFood, 1200000, 7; percentheal 5,7;');
+REPLACE INTO `item_db` VALUES (12093,'Special_Toast','Special Toast','2','60000',NULL,'1000',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_DEXFood, 1200000, 8; percentheal 5,8;');
+REPLACE INTO `item_db` VALUES (12094,'Ethereal_Fruit_Juice','Ethereal Fruit Juice','2','80000',NULL,'500',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_DEXFood, 1200000, 9; percentheal 5,9;');
+REPLACE INTO `item_db` VALUES (12095,'Wine_of_Bergelmir','Wine of Bergelmir','2','100000',NULL,'500',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_DEXFood, 1200000, 10; percentheal 10,10;');
+REPLACE INTO `item_db` VALUES (12096,'Soup_of_Great_Luck','Soup of Great Luck','2','20000',NULL,'300',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_LUKFood, 1200000, 6; percentheal 6,3;');
+REPLACE INTO `item_db` VALUES (12097,'Grilled_Meat_Skewer','Grilled Meat Skewer','2','40000',NULL,'800',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_LUKFood, 1200000, 7; percentheal 7,3;');
+REPLACE INTO `item_db` VALUES (12098,'Strawberry_Rice_Ball','Strawberry Rice Ball','2','60000',NULL,'400',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_LUKFood, 1200000, 8; percentheal 9,3;');
+REPLACE INTO `item_db` VALUES (12099,'Blood_Flavored_Sodapop','Blood Flavored Sodapop','2','80000',NULL,'1000',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_LUKFood, 1200000, 9; percentheal 10,4;');
+REPLACE INTO `item_db` VALUES (12100,'Nine_Tail_Dish','Nine Tail Dish','2','100000',NULL,'500',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_LUKFood, 1200000, 10; percentheal 14,8;');
+-- 
 REPLACE INTO `item_db` VALUES (12101,'Citron','Citron','2',NULL,'10','300',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,NULL);
 REPLACE INTO `item_db` VALUES (12102,'Grilled_Skewer','Grilled Skewer','2',NULL,'10','300',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,NULL);
+-- // New Monster Summoners & Item Givers
 REPLACE INTO `item_db` VALUES (12103,'Bloody_Branch','Bloody Branch','2',NULL,'10','200',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'monster "this",0,0,"--ja--",-3,1,"";');
 REPLACE INTO `item_db` VALUES (12104,'Random_Quiver','Random Quiver','2',NULL,'10','200',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'getitem groupranditem(17),1;');
 REPLACE INTO `item_db` VALUES (12105,'Taming_Item_Giftset','Taming Item Giftset','2',NULL,'10','200',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'getitem groupranditem(15),3;');
@@ -2322,10 +2325,12 @@ REPLACE INTO `item_db` VALUES (12110,'First_Aid_Box','First Aid Box','2',NULL,'1
 REPLACE INTO `item_db` VALUES (12111,'Wrapped_Food','Wrapped Food','2',NULL,'10','200',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'getitem groupranditem(3),1; getitem groupranditem(4),1; getitem groupranditem(7),1;');
 REPLACE INTO `item_db` VALUES (12112,'Tropical_Sograt','Tropical Sograt','2',NULL,'10','100',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,NULL);
 REPLACE INTO `item_db` VALUES (12113,'Vermilion_the_Beach','Vermilion the Beach','2',NULL,'10','100',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,NULL);
+-- // Elemental Converters
 REPLACE INTO `item_db` VALUES (12114,'Elemental_Converter','Flame Elemental Converter','2',NULL,'10','10',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_Flame,120000,1;');
 REPLACE INTO `item_db` VALUES (12115,'Elemental_Converter_','Frost Elemental Converter','2',NULL,'10','10',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_Frost,120000,1;');
 REPLACE INTO `item_db` VALUES (12116,'Elemental_Converter__','Seismic Elemental Converter','2',NULL,'10','10',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_Seismic,120000,1;');
 REPLACE INTO `item_db` VALUES (12117,'Elemental_Converter___','Lighting Elemental Converter','2',NULL,'10','10',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_Lightning,120000,1;');
+-- // Elemental Resistance Potions
 REPLACE INTO `item_db` VALUES (12118,'Resist_Fire','Resist Fire Potion','2',NULL,'10','10',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start4 SC_DefEle,1200000,Ele_Fire,20,Ele_Water,-15;');
 REPLACE INTO `item_db` VALUES (12119,'Resist_Cold','Resist Cold Potion','2',NULL,'10','10',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start4 SC_DefEle,1200000,Ele_Water,20,Ele_Wind,-15;');
 REPLACE INTO `item_db` VALUES (12120,'Resist_Earth','Resist Earth Potion','2',NULL,'10','10',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start4 SC_DefEle,1200000,Ele_Earth,20,Ele_Fire,-15;');
@@ -2333,11 +2338,12 @@ REPLACE INTO `item_db` VALUES (12121,'Resist_Thunder','Resist Thunder Potion','2
 REPLACE INTO `item_db` VALUES (12122,'Dasik','Dasik','2',NULL,'10','70',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,NULL);
 REPLACE INTO `item_db` VALUES (12123,'Oil_and_Honey_Pastry','Oil and Honey Pastry','2',NULL,'10','70',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,NULL);
 REPLACE INTO `item_db` VALUES (12124,'Various_colored_Rice_Cake','Rainbow colord Rice Cake','2',NULL,'10','70',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,NULL);
-REPLACE INTO `item_db` VALUES (12125,'Outdoor_Cooker','Outdoor Cooker','2',NULL,'10','20',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,NULL);
-REPLACE INTO `item_db` VALUES (12126,'Home_Cooking_Set','Home Cooking Set','2',NULL,'10','30',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,NULL);
-REPLACE INTO `item_db` VALUES (12127,'Deluxe_Cooking_Set','Deluxe Cooking Set','2',NULL,'10','30',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,NULL);
-REPLACE INTO `item_db` VALUES (12128,'Court_Cooking_Set','Court Cooking Set','2',NULL,'10','70',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,NULL);
-REPLACE INTO `item_db` VALUES (12129,'Legendary_Cooking_Set','Legendary Cooking Set','2',NULL,'10','70',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,NULL);
+-- // Cooking Sets
+REPLACE INTO `item_db` VALUES (12125,'Outdoor_Cooker','Outdoor Cooker','2',NULL,'10','20',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'produce 11;');
+REPLACE INTO `item_db` VALUES (12126,'Home_Cooking_Set','Home Cooking Set','2',NULL,'10','30',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'produce 12;');
+REPLACE INTO `item_db` VALUES (12127,'Deluxe_Cooking_Set','Deluxe Cooking Set','2',NULL,'10','30',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'produce 13;');
+REPLACE INTO `item_db` VALUES (12128,'Court_Cooking_Set','Court Cooking Set','2',NULL,'10','70',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'produce 14;');
+REPLACE INTO `item_db` VALUES (12129,'Legendary_Cooking_Set','Legendary Cooking Set','2',NULL,'10','70',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'produce 15;');
 REPLACE INTO `item_db` VALUES (12130,'Cookie_Bag','Cookie Bag','2',NULL,'10','70',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,NULL);
 -- 
 -- // More Weapons
