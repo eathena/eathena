@@ -342,8 +342,9 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 		return 0;
 	
 	mode = status_get_mode(src);
-	if (!(mode&MD_CANATTACK))
-		return 0;
+	
+	if (!skill_num && !(mode&MD_CANATTACK))
+		return 0; //This mode is only needed for melee attacking.
 	
 	//Check for Basilica when the target is null (the basilica check normally is done in battle_check_target,
 	//and it's correct there, however, it allows mages to stand inside basilica and cast AoE spells to the outside!)

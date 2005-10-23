@@ -5959,6 +5959,7 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 				md->master_id = sd->bl.id;
 				md->hp = 2000 + skilllv * 400;
 				md->max_hp = md->hp; //Update the max, too! [Skotlex]
+				md->mode = md->db->mode|MD_CANMOVE; //Needed for the skill
 				md->state.special_mob_ai = 2;
 				md->deletetimer = add_timer (gettick() + skill_get_time(skillid,skilllv), mob_timer_delete, id, 0);
 			}

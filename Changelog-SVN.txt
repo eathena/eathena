@@ -1,6 +1,10 @@
 Date	Added
 ==========
 2005/10/23
+	* Fixed mobs that couldn't attack not being able to use skills (first half
+	  of why marine spheres were broken). [Skotlex]
+	* Updated summoned marine spheres so they can move (second half of why
+	  marine spheres were broken). [Skotlex]
 	* Rewrote the produce system for mixed foods creation [DracoRPG]
 	* Small changes and optimizations to battle_calc_magic_attack, replaced redundant
 	  magic_subrace with missing magic_addsize, updated crappy doc about it [DracoRPG]
