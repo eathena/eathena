@@ -2760,7 +2760,7 @@ int pc_putitemtocart(struct map_session_data *sd,int idx,int amount) {
 
 	nullpo_retr(0, sd);
 
-	if (idx < 0 || idx >= MAX_CART || sd->status.cart[idx] == NULL) //Invalid index check [Skotlex]
+	if (idx < 0 || idx >= MAX_CART) //Invalid index check [Skotlex]
 		return 1;
 	
 	item_data = &sd->status.inventory[idx];
@@ -2801,7 +2801,7 @@ int pc_getitemfromcart(struct map_session_data *sd,int idx,int amount)
 
 	nullpo_retr(0, sd);
 
-	if (idx < 0 || idx >= MAX_CART || sd->status.cart[idx] == NULL) //Invalid index check [Skotlex]
+	if (idx < 0 || idx >= MAX_CART) //Invalid index check [Skotlex]
 		return 1;
 	
 	item_data=&sd->status.cart[idx];
