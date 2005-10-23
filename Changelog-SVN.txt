@@ -1,6 +1,12 @@
 Date	Added
 ==========
 2005/10/23
+	* Changed main.sql so that sc_data only has indexes, not a primary key
+	  (I keep hearing mysql can't handle a triple column PK...) [Skotlex]
+	* Fixed Doublecast's success chance [Skotlex]
+	* 'Fixed' the warning on @reloadscript (just removed the warning and
+	  avoided memory leaks, because properly unloading the user functions and
+	  reloading them I could not get done) [Skotlex]
 	* Fixed possible crash due to custom packets, thanks to Andz for the info.
 	  [Skotlex]
 	* Fixed mob's Scream/Frost Joke crashing the server if the message was too

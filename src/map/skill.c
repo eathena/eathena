@@ -1917,7 +1917,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		) &&
 		(sc_data = status_get_sc_data(src)) &&
 		sc_data[SC_DOUBLECAST].timer != -1 &&
-		rand() % 100 < 40+10*skilllv)
+		rand() % 100 < 40+10*sc_data[SC_DOUBLECAST].val1)
 	{
 		skill_castend_delay (src, bl, skillid, skilllv, tick + dmg.div_*dmg.amotion, flag|1);
 	}

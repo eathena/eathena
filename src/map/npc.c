@@ -2055,8 +2055,8 @@ static int npc_parse_function (char *w1, char *w2, char *w3, char *w4, char *fir
 
 	user_db = script_get_userfunc_db();
 	if (strdb_search(user_db, p))
-	{
-		ShowWarning("npc_parse_function: Duplicate user function %s!\n", p);
+	{	//The script engine already checks for duplicate functions, this seems to only happen 
+		//on @reloadscript, where it is not even safe to clear the user function db! [Skotlex]
 		aFree(p);
 		aFree(script);
 	}
