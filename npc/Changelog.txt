@@ -21,7 +21,7 @@ Massdriller
 MasterOfMuppets
 	* ???
 Nexon
-	* ???
+	* Adding in the new Abyss/Thanatos/Lighthalzen NPC's and optimizing them.
 
 == Changelog ==
 
@@ -30,6 +30,8 @@ Date		Added
 10/23
 	* Updated WoE (Guilds War) scripts to work correctly with /breakguild [Lupus]
 	  They should abandon accuped casles of the broken guild 
+10/22
+	* Added Abyss warps and a few NPC's. [Nexon]
 10/19
 	* Thanks to Justin84:
 	- Updated Thanatos Tower warps, added NOTELEPORT to some thanatos tower levels

@@ -26,7 +26,7 @@ tha_t02.gat,226,161,0	warp	tha_t03	1,1,tha_t03.gat,220,158
 tha_t03.gat,220,165,0	warp	tha_t02	1,1,tha_t02.gat,226,149
 tha_t03.gat,60,134,0	warp	tha_t04	1,1,tha_t04.gat,59,143
 tha_t04.gat,59,136,0	warp	tha_t03	1,1,tha_t03.gat,59,126
-tha_t04.gat,83,34,0	warp	tha_t05	1,1,tha_t05.gat,62,11
+tha_t04.gat,83,36,0	warp	tha_t05	1,1,tha_t05.gat,62,11
 //According to official info, 5F it is not possible to return to the 4F, so we disable this warp:
 //tha_t05.gat,62,4,0	warp	tha_t04	1,1,tha_t04.gat,90,34
 tha_t05.gat,208,96,0	warp	tha_t06	1,1,tha_t06.gat,119,228
@@ -56,6 +56,7 @@ T_CLOSE:
 	close;
 }
 
+
 tha_t07.gat,28,166,0	warp	tha_t06	1,1,tha_t06.gat,119,127
 tha_t07.gat,112,166,0	warp	tha_t08	1,1,tha_t08.gat,105,44
 tha_t08.gat,112,44,0	warp	tha_t07	1,1,tha_t07.gat,105,166
@@ -66,14 +67,17 @@ tha_t11.gat,93,36,0	warp	tha_t10	1,1,tha_t10.gat,91,130
 tha_t12.gat,16,160,0	warp	tha_t11	1,1,tha_t11.gat,16,160
 
 //Thana_step
-thana_step.gat,179,223,0	warp	thana_step2	1,1,tha_t08.gat,32,44
-thana_step.gat,182,166,0	warp	thana_step3	1,1,thana_step.gat,183,73
-thana_step.gat,179,73,0	warp	thana_step4	1,1,thana_step.gat,191,166
-thana_step.gat,182,15,0	warp	thana_step5	1,1,thana_step.gat,76,287
-thana_step.gat,69,287,0	warp	thana_step6	1,1,thana_step.gat,189,15
-thana_step.gat,174,287,0	warp	thana_step7	1,1,thana_step.gat,75,371
-thana_step.gat,68,371,0	warp	thana_step8	1,1,thana_step.gat,167,287
-thana_step.gat,179,223,0	warp	tha_t12		1,1,tha_t12.gat,128,58
+thana_step.gat,12,73,0 warp thana_step1 1,1,tha_t12.gat,128,58
+thana_step.gat,16,16,0 warp thana_step2 1,1,thana_step.gat,32,224
+thana_step.gat,30,224,0 warp thana_step3 1,1,thana_step.gat,19,16
+thana_step.gat,32,166,0 warp thana_step4 1,1,thana_step.gat,184,74
+thana_step.gat,180,74,0 warp thana_step5 1,1,thana_step.gat,36,166
+thana_step.gat,182,16,0 warp thana_step6 1,1,thana_step.gat,184,224
+thana_step.gat,180,224,0 warp thana_step7 1,1,thana_step.gat,185,16
+thana_step.gat,182,166,0 warp thana_step8 1,1,thana_step.gat,73,287
+thana_step.gat,69,287,0 warp thana_step9 1,1,thana_step.gat,186,166
+thana_step.gat,70,371,0 warp thana_step10 1,1,thana_step.gat,170,287
+thana_step.gat,174,287,0 warp thana_step11 1,1,thana_step.gat,74,371 
 
 //Thana_boss
 thana_step.gat,169,371,0	warp	thana_boss	1,1,thana_boss.gat,85,76

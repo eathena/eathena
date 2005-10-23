@@ -1,0 +1,72 @@
+//===== Athena Script ========================================
+//= Abyss Cave Warper
+//===== By: ==================================================
+//= erKURITA
+//===== Current Version: =====================================
+//= 1.0
+//===== Compatible With: =====================================
+//= Any Athena Version
+//===== Description: =========================================
+//= Warper to Abyss Cave. and warper out
+//===== Additional Comments: =================================
+//= 1.0 Added by Nexon [Nexon]
+//============================================================
+
+hu_fild05.gat,168,302,0	script	Pilar	111,{
+
+	mes "[Ancient Voice]";
+	mes "So, you wish access to the Abyss Cave?";
+	mes "You have to bring me then 1 Dragon Canine, 1 Dragon Tail and 1 Dragon Scale";
+	mes "in order to grant you access to the island";
+	next;
+	mes "[Ancient Voice]";
+	mes "Do you wish to go?";
+	menu "Yes",L_Check,"No",end;
+
+		L_Check:
+			mes "[Ancient Voice]";
+			mes "Good, let me check your items first";
+			next;
+			if ((countitem(1035) == 0) || (countitem(1036) == 0) || (countitem(1037) == 0)) goto L_No_Items;
+			goto L_Grant;
+
+			L_No_Items:
+				mes "[Ancient Voice]";
+				mes "You dont have enough items";
+				close;
+		L_Grant:
+			mes "[Ancient Voice]";
+			mes "Good, I hereby you access then";
+			close2;
+			delitem 1035,1;
+			delitem 1036,1;
+			delitem 1037,1;
+			enablenpc "warpabyss";
+			initnpctimer;
+			warp "hu_fild05",181,197;
+			end;
+
+OnTimer10000:
+	disablenpc "warpabyss";
+	stopnpctimer;
+	setnpctimer 0;
+	end;
+
+OnInit:
+	disablenpc "warpabyss";
+	end;
+}
+
+
+hu_fild05.gat,171,212,0 script Pillar 111,{
+mes "[Pillar]";
+mes "Leave the island?";
+
+menu "Yes",L_1,"No",L_CLOSE;
+
+L_1:
+warp "hu_fild05.gat",168,301;
+
+L_CLOSE:
+close;
+} 
