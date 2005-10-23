@@ -1,4 +1,4 @@
-#define DUMP_UNKNOWN_PACKET	1
+#define DUMP_UNKNOWN_PACKET	0
 #define DUMP_ALL_PACKETS	0
 
 #include <stdio.h>
@@ -11147,6 +11147,7 @@ static int packetdb_readdb(void)
 		packet_db[packet_ver][cmd].len = k;
 
 		if(str[2]==NULL){
+			packet_db[packet_ver][cmd].func = NULL;
 			ln++;
 			continue;
 		}
