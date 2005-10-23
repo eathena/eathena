@@ -32,6 +32,7 @@ Date		Added
 	  They should abandon accuped casles of the broken guild 
 10/22
 	* Added Abyss warps and a few NPC's. [Nexon]
+	* Added lighthalzen security guard/ security event quest. [Nexon]
 10/19
 	* Thanks to Justin84:
 	- Updated Thanatos Tower warps, added NOTELEPORT to some thanatos tower levels
