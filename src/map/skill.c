@@ -10377,7 +10377,7 @@ int skill_produce_mix( struct map_session_data *sd,
 			log_produce(sd,nameid,slot1,slot2,slot3,0);
 
 		if(equip){
-			clif_produceeffect(sd,0,nameid);
+			clif_produceeffect(sd,1,nameid);
 			clif_misceffect(&sd->bl,3);
 		} else {
 			switch (skill_produce_db[idx].req_skill) {

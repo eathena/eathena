@@ -1,6 +1,7 @@
 Date	Added
 ==========
 2005/10/23
+	* Fixed forging displaying success even when it fails. [Skotlex]
 	* Changed main.sql so that sc_data only has indexes, not a primary key
 	  (I keep hearing mysql can't handle a triple column PK...) [Skotlex]
 	* Fixed Doublecast's success chance [Skotlex]
