@@ -1,6 +1,7 @@
 Date	Added
 ==========
 2005/10/23
+	* Some more fine-tuning of the Grand Cross equation. [Skotlex]
 	* Fixed mobs that couldn't attack not being able to use skills (first half
 	  of why marine spheres were broken). [Skotlex]
 	* Updated summoned marine spheres so they can move (second half of why

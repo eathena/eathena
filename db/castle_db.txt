@@ -2,7 +2,6 @@
 //
 // Structure of Database:
 // CastleID,MapName,CastleName,OnGuildBreakEventName(to abandon captured castles),Flag(reserved)
-
 0,aldeg_cas01.gat,Neuschwanstein,Agit_A01,1		// kRO : Noisyubantian
 1,aldeg_cas02.gat,Hohenschwangau,Agit_A02,1		// kRO : Hohensyubangawoo
 2,aldeg_cas03.gat,Nuenberg,Agit_A03,1			// kRO : Nyirenverk

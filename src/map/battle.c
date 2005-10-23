@@ -1672,6 +1672,9 @@ static struct Damage battle_calc_weapon_attack(
 		}
 	} //Here ends flag.hit section, the rest of the function applies to both hitting and missing attacks
 
+	if(skill_num == CR_GRANDCROSS || skill_num == NPC_GRANDDARKNESS)
+		return wd; //Enough, rest is not needed.
+
 	if(sd && (skill=pc_checkskill(sd,BS_WEAPONRESEARCH)) > 0)
 		ATK_ADD(skill*2);
 
@@ -1879,9 +1882,6 @@ static struct Damage battle_calc_weapon_attack(
 			flag.lh = 1;
 		}
 	}
-	
-	if(skill_num == CR_GRANDCROSS || skill_num == NPC_GRANDDARKNESS)
-		return wd; //Enough, rest is not needed.
 	
 	if(wd.damage > 0 || wd.damage2 > 0)
 	{
@@ -2267,6 +2267,13 @@ struct Damage battle_calc_magic_attack(
 		if(ad.damage<1)
 			ad.damage=1;
 
+		if(skill_num == CR_GRANDCROSS || skill_num == NPC_GRANDDARKNESS)
+		{	//Apply the physical part of the skill's damage. [Skotlex]
+			struct Damage wd = battle_calc_weapon_attack(src,target,skill_num,skill_lv,mflag);
+			ad.damage = (wd.damage + ad.damage) * (100 + 40*skill_lv)/100;
+			if(src==target && src->type == BL_MOB)
+				ad.damage = 0;
+		}
 
 		if (flag.elefix)
 			ad.damage=battle_attr_fix(src, target, ad.damage, s_ele, t_ele);
@@ -2313,14 +2320,6 @@ struct Damage battle_calc_magic_attack(
 
 	if(!flag.infdef && ad.div_>1 && skill_num != WZ_VERMILION)
 		ad.damage *= ad.div_;
-
-	if(skill_num == CR_GRANDCROSS || skill_num == NPC_GRANDDARKNESS)
-	{	//Apply the physical part of the skill's damage. [Skotlex]
-		struct Damage wd = battle_calc_weapon_attack(src,target,skill_num,skill_lv,mflag);
-		ad.damage = (wd.damage + ad.damage) * (100 + 40*skill_lv)/100;
-		if(src==target && src->type == BL_MOB)
-			ad.damage = 0;
-	}
 
 	if (tsd && status_isimmune(target)) {
 		if (sd && battle_config.gtb_pvp_only)  { // [MouseJstr]
