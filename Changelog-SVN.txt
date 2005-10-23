@@ -1,6 +1,8 @@
 Date	Added
 ==========
 2005/10/23
+	* Removed that mob_spawn_once message that is just a debug message with no
+	  real purpose anymore. [Skotlex]
 	* Fixed forging displaying success even when it fails. [Skotlex]
 	* Changed main.sql so that sc_data only has indexes, not a primary key
 	  (I keep hearing mysql can't handle a triple column PK...) [Skotlex]

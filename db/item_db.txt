@@ -552,7 +552,7 @@
 1231,Bazerald,Bazerald,4,,10,500,70,,1,0,2055918,7,2,2,4,36,1,1,{ bonus bAtkEle,Ele_Fire; bonus bInt,5; bonus bMatkRate,10; }
 1232,Assassin_Dagger,Assasin Dagger,4,,10,600,140,,1,0,4096,7,2,2,4,36,1,1,{ bonus bMaxHPrate,20; bonus bMaxSPrate,15; bonus bAspdRate,2; }
 1233,Exercise,Excorcise,4,,10,700,90,,1,0,2055918,7,2,2,4,36,1,1,{ bonus bIgnoreDefRace,RC_Demon; bonus2 bSubRace,RC_Demon,5; bonus2 bSubRace,RC_DemiHuman,-10; }
-1234,Moonlight_Sword,Walgwanggum,4,,10,700,50,,1,0,2055918,7,2,2,4,36,1,1,{ bonus bMaxSPrate,10; bonus2 bSPDrainValue,3; }
+1234,Moonlight_Sword,Walgwanggum,4,,10,700,50,,1,0,2055918,7,2,2,4,36,1,1,{ bonus bMaxSPrate,10; bonus bSPDrainValue,3; }
 1235,Azoth,Azoth,4,,10,700,110,,1,0,262144,7,2,2,4,36,1,1,{ bonus bClassChange,300; }
 1236,Sucsamad,Sucsamad,4,,10,800,140,,1,0,2055918,7,2,2,4,36,1,1,{ bonus2 bAddEle,2,Ele_Earth; bonus2 bAddEle,Ele_Wind,10; bonus bUnbreakableWeapon,0; }
 1237,Grimtooth_,Grimtooth,4,,10,800,180,,1,0,2055918,7,2,2,4,36,1,1,{ bonus bFlee,10; bonus bFlee2,5; bonus bDefRate,-50; bonus bDef2Rate,-50; }
@@ -1414,7 +1414,7 @@
 4273,Shellfish_Card,Shellfish Card,6,,10,10,,,,,,,,2,,,,,{ bonus bAtk,5; bonus2 bAddDamageClass,1073,30; }
 4274,Zombie_Master_Card,Zombie Master Card,6,,10,10,,,,,,,,2,,,,,{ bonus2 bSPGainRace,RC_Undead,5; bonus bLoseSPWhenUnequip,5; }
 4275,Zombie_Prisoner_Card,Zombie Prisoner Card,6,,10,10,,,,,,,,64,,,,,{ bonus2 bSubRace,RC_Undead,-20; bonus2 bExpAddRace,RC_Undead,10; }
-4276,Lord_of_Death_Card,Lord of Death Card,6,,10,10,,,,,,,,2,,,,,{ bonus2 bAddEff,Eff_Stan,100; bonus2 bAddEff,Eff_Curse,100; bonus2 bAddEff,Eff_Poison,100; bonus2 bAddEff,Eff_Bleeding,100; bonus2 bAddWeaponComaRace,RC_NonBoss,30; }
+4276,Lord_of_Death_Card,Lord of Death Card,6,,10,10,,,,,,,,2,,,,,{ bonus2 bAddEff,Eff_Stan,100; bonus2 bAddEff,Eff_Curse,100; bonus2 bAddEff,Eff_Poison,100; bonus2 bAddEff,Eff_Bleeding,100; bonus2 bWeaponComaRace,RC_NonBoss,30; }
 4277,Zherlthsh_Card,Zherlthsh Card,6,,10,10,,,,,,,,32,,,,,{ bonus bLuk,2; bonus2 bSkillAtk,316,10; bonus2 bSkillAtk,324,10; }
 4278,Gibbet_Card,Gibbet Card,6,,10,10,,,,,,,,769,,,,,{ if(getrefine()<6) bonus bMdef,5; }
 4279,Earth_Deleter_Card,Earth Deleter Card,6,,10,10,,,,,,,,16,,,,,{ bonus bSPrecovRate,-100; bonus bSPGainValue,10; bonus bLoseSPWhenUnequip,100; }

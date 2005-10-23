@@ -171,7 +171,6 @@ int mob_once_spawn (struct map_session_data *sd, char *mapname,
 		}
 	} else if (x <= 0 || y <= 0) {
 		i = j = 0;
-		ShowInfo("mob_once_spawn: %i at %s x:%i y:%i\n ??\n",class_,map[m].name,x,y); //got idea from Freya [Lupus]
 		do {
 			x = rand() % (map[m].xs - 2) + 1;
 			y = rand() % (map[m].ys - 2) + 1;
