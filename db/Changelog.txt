@@ -33,6 +33,8 @@
 	--
 
 10/23
+	* Updated Mini Furnace to be produce 21 since that's the new index for
+	   rough material refinements. [Skotlex]
 	* Changed Moonlight dagger to be steal 3 sp per hit, not 3% [Skotlex]
 	* Added healing effect to mixed foods, added produce effect to cooking sets [DracoRPG]
 	* Updated Poring V's mode, thanks to Vicious Pucca. [Skotlex]

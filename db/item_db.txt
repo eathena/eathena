@@ -103,7 +103,7 @@
 610,Yggdrasil_Leaf,Yggdrasil Leaf,11,4000,,100,,,,,127918079,7,2,,,,,,{ itemskill 54,1,"Resurrection"; }
 611,Magnifier,Magnifier,11,40,,50,,,,,127918079,7,2,,,,,,{ itemskill 40,1,"Identify"; }
 // Smithing Items
-612,Mini_Furnace,Mini Furnace,2,150,,200,,,,,127918079,7,2,,,,,,{ produce 16; }
+612,Mini_Furnace,Mini Furnace,2,150,,200,,,,,127918079,7,2,,,,,,{ produce 21; }
 613,Iron_Hammer,Iron Hammer,2,1000,,200,,,,,127918079,7,2,,,,,,{ produce 1; }
 614,Golden_Hammer,Golden Hammer,2,3000,,300,,,,,127918079,7,2,,,,,,{ produce 2; }
 615,Oridecon_Hammer,Oridecon Hammer,2,5000,,400,,,,,127918079,7,2,,,,,,{ produce 3; }
