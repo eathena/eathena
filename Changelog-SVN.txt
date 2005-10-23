@@ -1,6 +1,9 @@
 Date	Added
 ==========
 2005/10/23
+	* Fixed the wrong attribute being passed to the attribute fix in
+	  battle_calc_magic attack (strange deja vu feeling.. I am sure I fixed this
+	  same bug before).  [Skotlex]
 	* Fixed trading. [Skotlex]
 	* Removed Mastery damage being applied to Grand Cross [Skotlex]
 	* Some more fine-tuning of the Grand Cross equation. [Skotlex]
