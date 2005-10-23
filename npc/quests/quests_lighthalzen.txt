@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= Persian, Vicious_Pucca, Completed by aoa00
 //===== Current Version: ===================================== 
-//= 1.0
+//= 1.0a
 //===== Compatible With: ===================================== 
 //= eAthena SVN
 //===== Description: ========================================= 
@@ -16,6 +16,7 @@
 //= 0.6 small bug fixes
 //= 0.9 fix small bug. Added Bio-lab entrance Quest. Added Getting security-card Quest.
 //= 1.0 Patched "mobsters spawn & Alert" like Real-RO.
+//= 1.0a fixed rand(1,10) + comparision. There just can't be 'X < 1' [Lupus]
 //============================================================ 
 //= aoa's comment
 //= In future, Need for new monsters. No-Drop, No-Exp, Weak "Mobster","VENOMOUS","NOXIOUS"
@@ -125,7 +126,7 @@ close;
 
 LhzTalk2:
 set @LhzTalk,rand(1,10);
-if (@LhzTalk  < 1 ) goto LhzTalk;
+if (@LhzTalk  < 2 ) goto LhzTalk;
 mes "[Guard]";
 mes "zzZ... zzZ... zzZ...";
 mes "hmm. hmm... zzZ...";
@@ -184,7 +185,7 @@ close;
 
 LhzTalk2:
 set @LhzTalk,rand(1,10);
-if (@LhzTalk  < 1 ) goto LhzTalk;
+if (@LhzTalk  < 2 ) goto LhzTalk;
 mes "[Guard]";
 mes "zzZ... zzZ... zzZ...";
 mes "hmm. hmm... zzZ...";
