@@ -33,6 +33,7 @@
 	--
 
 10/23
+	* Changed Moonlight dagger to be steal 3 sp per hit, not 3% [Skotlex]
 	* Added healing effect to mixed foods, added produce effect to cooking sets [DracoRPG]
 	* Updated Poring V's mode, thanks to Vicious Pucca. [Skotlex]
 	* Updated castle_db.txt for correct work on /guildbreak [Lupus]

@@ -12,7 +12,7 @@
 //= 1.0 Added by Nexon [Nexon]
 //============================================================
 
-hu_fild05.gat,168,302,0	script	Pilar	111,{
+hu_fild05.gat,168,302,0	script	Pillar	111,{
 
 	mes "[Ancient Voice]";
 	mes "So, you wish access to the Abyss Cave?";

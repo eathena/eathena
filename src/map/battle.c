@@ -1665,7 +1665,8 @@ static struct Damage battle_calc_weapon_attack(
 		if (flag.rh && wd.damage < 1) wd.damage = 1;
 		if (flag.lh && wd.damage2 < 1) wd.damage2 = 1;
 
-		if (sd && skill_num != MO_INVESTIGATE && skill_num != MO_EXTREMITYFIST)
+		if (sd && skill_num != MO_INVESTIGATE && skill_num != MO_EXTREMITYFIST
+			&& skill_num != CR_GRANDCROSS)
 		{	//Add mastery damage
 			wd.damage = battle_addmastery(sd,target,wd.damage,0);
 			if (flag.lh) wd.damage2 = battle_addmastery(sd,target,wd.damage2,1);

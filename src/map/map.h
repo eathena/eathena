@@ -371,7 +371,7 @@ struct map_session_data {
 		unsigned showdelay :1;
 		unsigned showexp :1;
 		unsigned disguised :1; //[Valaris]
-		unsigned deal_locked :1;
+		unsigned deal_locked :2;
 		unsigned party_sent :1;
 		unsigned guild_sent :1;
 	} state;
