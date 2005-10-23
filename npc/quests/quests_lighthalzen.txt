@@ -97,7 +97,7 @@ ChkEnd:
 	end;	
 }
 
-lighthalzen.gat,267,200,3 script Security Guard 868,{
+lighthalzen.gat,267,200,3	script	Security Guard	868,{
 
 if (countitem(7350)==1) goto Lhzpass1;
 if ($@lhz_alert == 1) goto Lhzstop;
@@ -156,7 +156,7 @@ close;
 	
 }
 
-lighthalzen.gat,294,223,7 script Security Guard 868,{
+lighthalzen.gat,294,223,7	script	Security Guard	868,{
 
 if (countitem(7350)==1) goto Lhzpass1;
 if ($@lhz_alert == 1) goto Lhzstop;
