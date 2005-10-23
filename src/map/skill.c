@@ -4071,7 +4071,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		skill_addtimerskill(src,tick+3000,bl->id,0,0,skillid,skilllv,0,flag);
 		if (md) {	// Mob‚Í’?‚ê‚È‚¢‚©‚ç?AƒXƒLƒ‹–¼‚ð‹©‚Î‚¹‚Ä‚Ý‚é
-			char temp[100];
+			char temp[128];
+			if (strlen(md->name) + strlen(skill_db[skillid].desc) > 120)
+				break; //Message won't fit on buffer. [Skotlex]
 			sprintf(temp,"%s : %s !!",md->name,skill_db[skillid].desc);
 			clif_GlobalMessage(&md->bl,temp);
 		}

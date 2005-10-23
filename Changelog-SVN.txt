@@ -1,6 +1,10 @@
 Date	Added
 ==========
 2005/10/23
+	* Fixed possible crash due to custom packets, thanks to Andz for the info.
+	  [Skotlex]
+	* Fixed mob's Scream/Frost Joke crashing the server if the message was too
+	  long [Skotlex]
 	* Fixed the wrong attribute being passed to the attribute fix in
 	  battle_calc_magic attack (strange deja vu feeling.. I am sure I fixed this
 	  same bug before).  [Skotlex]
