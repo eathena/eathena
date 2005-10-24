@@ -32,6 +32,10 @@
 		like gemstones when the skill is used.
 	--
 
+10/24
+	* Changed Investigate's range to 2. [Skotlex]
+	* Added GrimTooth to skill_cast_db, time2 is the duration of the stop
+	effect. [Skotlex]
 10/23
 	* Fixed the Weapon coma rate script of Lord of Death Card [Skotlex]
 	* Fixed type in Moonlight Dagger script. [Skotlex]
