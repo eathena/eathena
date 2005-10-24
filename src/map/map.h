@@ -374,6 +374,7 @@ struct map_session_data {
 		unsigned deal_locked :2;
 		unsigned party_sent :1;
 		unsigned guild_sent :1;
+		unsigned monster_ignore :1; // for monsters to ignore a character [Valaris] [zzo]
 	} state;
 	struct {
 		unsigned killer : 1;
@@ -587,6 +588,8 @@ struct map_session_data {
  	int itemid;
  	short itemindex;	//Used item's index in sd->inventory [Skotlex]
  
+	short catch_target_class; // pet catching, stores a pet class to catch (short now) [zzo]
+
  	short spiritball, spiritball_old;
  	int spirit_timer[MAX_SKILL_LEVEL];
   
@@ -610,11 +613,11 @@ struct map_session_data {
 	int deal_weight;	//tracks deal weight [Skotlex]
 
 	int party_invite,party_invite_account;
-	int party_x,party_y;
+	short party_x,party_y; // should be short [zzo]
 
 	int guild_invite,guild_invite_account;
 	int guild_emblem_id,guild_alliance,guild_alliance_account;
-	int guild_x,guild_y; //For guildmate position display. [Skotlex]
+	short guild_x,guild_y; // For guildmate position display. [Skotlex] should be short [zzo]
 	int guildspy; // [Syrus22]
 	int partyspy; // [Syrus22]
 
@@ -623,7 +626,6 @@ struct map_session_data {
 	char message[MESSAGE_SIZE];
 	struct vending vending[MAX_VENDING];
 
-	int catch_target_class;
 	struct s_pet pet;
 	struct pet_db *petDB;
 	struct pet_data *pd;
@@ -640,7 +642,6 @@ struct map_session_data {
 
 	unsigned char change_level; // [celest]
 
-	short monster_ignore;	// for monsters to ignore a character [Valaris]
 	char fakename[NAME_LENGTH]; // fake names [Valaris]
 	short viewsize; // for tiny/large types
 

@@ -38,6 +38,7 @@ struct mmo_account {
 	long char_id;
 	char lastlogin[24];
 	int sex;
+	int level; // added [zzo]
 };
 
 struct mmo_char_server {

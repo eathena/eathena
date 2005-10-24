@@ -9384,11 +9384,11 @@ int atcommand_monsterignore(
 {
 	nullpo_retr(-1, sd);
 
-	if(!sd->monster_ignore) {
-		sd->monster_ignore=1;
+	if (!sd->state.monster_ignore) {
+		sd->state.monster_ignore = 1;
 		clif_displaymessage(sd->fd, "Monsters will now ignore you.");
 	} else {
-		sd->monster_ignore=0;
+		sd->state.monster_ignore = 0;
 		clif_displaymessage(sd->fd, "Monsters are no longer ignoring you.");
 	}
 

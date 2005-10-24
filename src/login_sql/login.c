@@ -269,7 +269,7 @@ void send_GM_accounts(int fd) {
 //-----------------------------------------------------
 // check user level
 //-----------------------------------------------------
-
+/*
 int isGM(int account_id) {
 	int level;
 
@@ -298,6 +298,7 @@ int isGM(int account_id) {
 
 	return level;
 }
+*/
 
 //---------------------------------------------------
 // E-mail check: return 0 (not correct) or 1 (valid).
@@ -591,7 +592,7 @@ int mmo_auth( struct mmo_account* account , int fd){
 	// make query
 	sprintf(tmpsql, "SELECT `%s`,`%s`,`%s`,`lastlogin`,`logincount`,`sex`,`connect_until`,`last_ip`,`ban_until`,`state`,`%s`"
 	                " FROM `%s` WHERE %s `%s`='%s'", login_db_account_id, login_db_userid, login_db_user_pass, login_db_level, login_db, case_sensitive ? "BINARY" : "", login_db_userid, t_uid);
-	//login {0-account_id/1-userid/2-user_pass/3-lastlogin/4-logincount/5-sex/6-connect_untl/7-last_ip/8-ban_until/9-state}
+	//login {0-account_id/1-userid/2-user_pass/3-lastlogin/4-logincount/5-sex/6-connect_untl/7-last_ip/8-ban_until/9-state/10-level}
 
 	// query
 	if (mysql_query(&mysql_handle, tmpsql)) {
@@ -802,6 +803,7 @@ int mmo_auth( struct mmo_account* account , int fd){
 	memcpy(tmpstr, sql_row[3], 19);
 	memcpy(account->lastlogin, tmpstr, 24);
 	account->sex = sql_row[5][0] == 'S' ? 2 : sql_row[5][0]=='M';
+	account->level = atoi(sql_row[10]) > 99 ? 99 : atoi(sql_row[10]); // as was in isGM() [zzo]
 
 	if (account->sex != 2 && account->account_id < 700000)
 		ShowWarning("Account %s has account id %d! Account IDs must be over 700000 to work properly!\n", account->userid, account->account_id);
@@ -1410,9 +1412,10 @@ int parse_login(int fd) {
 
 		jstrescapecpy(t_uid,(char*)RFIFOP(fd, 6));
 		if(result==-1){
-		    int gm_level = isGM(account.account_id);
+		// as we have queried account level earlier in mmo_auth anyway, no need to do this again [zzo]
+//		    int gm_level = isGM(account.account_id); // removed by [zzo]
 
-        	    if (min_level_to_connect > gm_level) {
+        	    if (min_level_to_connect > account.level) {
 					WFIFOW(fd,0) = 0x81;
 					WFIFOL(fd,2) = 1; // 01 = Server closed
 					WFIFOSET(fd,3);
@@ -1426,8 +1429,8 @@ int parse_login(int fd) {
 										ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
                          }
                     }
-                    if (gm_level)
-						ShowStatus("Connection of the GM (level:%d) account '%s' accepted.\n", gm_level, account.userid);
+                    if (account.level)
+						ShowStatus("Connection of the GM (level:%d) account '%s' accepted.\n", account.level, account.userid);
 					else
 						ShowStatus("Connection of the account '%s' accepted.\n", account.userid);
                     server_num=0;

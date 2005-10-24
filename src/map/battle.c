@@ -2870,7 +2870,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 			struct map_session_data *sd = (struct map_session_data *)t_bl;
 			if (sd->invincible_timer != -1 || pc_isinvisible(sd))
 				return -1; //Cannot be targeted yet.
-			if (sd->monster_ignore && src->type == BL_MOB)
+			if (sd->state.monster_ignore && src->type == BL_MOB)
 				return 0; //option to have monsters ignore GMs [Valaris]
 			if (sd->special_state.killable)
 			{
