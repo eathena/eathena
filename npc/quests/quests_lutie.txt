@@ -149,7 +149,7 @@ xmas.gat,117,295,3	script	Titicupe	704,{
 	make_spore_hat:
 	if((countitem(7068)<300) || (countitem(7033)<850) || (countitem(1015)<1)) goto fail;
 	mes "[^469ED2Titicupe^000000]";
-	mes "^4599A3Abra ^66A73FKa ^C7A82EDabra, ^64826BSim ^E9239ESa ^B7EB01La ^8080C0Bim^000000!! ^45A8C9*poof*^000000 I succeeded! Here take this ^7D4E31Raccoon Hat^000000, it's yours.";
+	mes "^4599A3Abra ^66A73FKa ^C7A82EDabra, ^64826BSim ^E9239ESa ^B7EB01La ^8080C0Bim^000000!! ^45A8C9*poof*^000000 I succeeded! Here take this ^7D4E31Spore Hat^000000, it's yours.";
 	delitem 7068,300;
 	delitem 7033,850;
 	delitem 1015,1;
@@ -168,7 +168,7 @@ xmas.gat,117,295,3	script	Titicupe	704,{
 	make_wonder_nut:
 	if((countitem(5037)<1) || (countitem(7064)<500)) goto fail;
 	mes "[^469ED2Titicupe^000000]";
-	mes "^4599A3Abra ^66A73FKa ^C7A82EDabra, ^64826BSim ^E9239ESa ^B7EB01La ^8080C0Bim^000000!! ^45A8C9*poof*^000000 I succeeded! Here take this ^7D4E31Raccoon Hat^000000, it's yours.";
+	mes "^4599A3Abra ^66A73FKa ^C7A82EDabra, ^64826BSim ^E9239ESa ^B7EB01La ^8080C0Bim^000000!! ^45A8C9*poof*^000000 I succeeded! Here take this ^7D4E31Wonder Nutshell^000000, it's yours.";
 	delitem 5037,1;
 	delitem 7064,500;
 	getitem 5050,1;
