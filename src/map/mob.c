@@ -185,10 +185,10 @@ int mob_once_spawn (struct map_session_data *sd, char *mapname,
 		md = (struct mob_data *)aCalloc(1,sizeof(struct mob_data));
 
 		if (class_ > 2*MAX_MOB_DB) { // large/tiny mobs [Valaris]
-			md->size = 2;
+			md->special_state.size = 2;
 			class_ -= 2*MAX_MOB_DB;
 		} else if (class_ > MAX_MOB_DB) {
-			md->size = 1;
+			md->special_state.size = 1;
 			class_ -= MAX_MOB_DB;
 		}
 
@@ -984,9 +984,9 @@ int mob_spawn (int id)
 	memset(md->skillunittick, 0, sizeof(md->skillunittick));
 
 	md->max_hp = md->db->max_hp;
-	if(md->size==1) // change for sized monsters [Valaris]
+	if(md->special_state.size==1) // change for sized monsters [Valaris]
 		md->max_hp/=2;
-	else if(md->size==2)
+	else if(md->special_state.size==2)
 		md->max_hp*=2;
 	md->hp = md->max_hp;
 
@@ -1259,7 +1259,7 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 		mmd=(struct mob_data *)bl;
 
 	if (!bl || status_isdead(bl)) {	//主が死亡しているか見つからない
-		if(md->state.special_mob_ai>0)
+		if(md->special_state.ai>0)
 			mob_timer_delete(0, 0, md->bl.id, 0);
 		else
 			mob_damage(NULL,md,md->hp,0,0);
@@ -1563,7 +1563,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 		battle_config.monster_active_enable) {
 		i = 0;
 		search_size = (blind_flag) ? 3 : md->db->range2;
-		if (md->state.special_mob_ai)
+		if (md->special_state.ai)
 			map_foreachinarea (mob_ai_sub_hard_activesearch, md->bl.m,
 					md->bl.x-search_size, md->bl.y-search_size,
 					md->bl.x+search_size, md->bl.y+search_size,
@@ -2146,7 +2146,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 				md->dmglog[minpos].dmg=damage;
 			}
 
-			if(md->attacked_id <= 0 && md->state.special_mob_ai==0)
+			if(md->attacked_id <= 0 && md->special_state.ai==0)
 				md->attacked_id = sd->bl.id;
 		}
 		if(src && src->type == BL_PET && battle_config.pet_attack_exp_to_master==1) {
@@ -2173,14 +2173,14 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 				md->dmglog[minpos].dmg=(damage*battle_config.pet_attack_exp_rate)/100;
 			}
 			//Let mobs retaliate against the pet's master [Skotlex]
-			if(md->attacked_id <= 0 && md->state.special_mob_ai==0)
+			if(md->attacked_id <= 0 && md->special_state.ai==0)
 				md->attacked_id = pd->msd->bl.id;
 		}
 		if(src && src->type == BL_MOB)
 		{
 			struct mob_data *md2 = (struct mob_data *)src;
 			struct map_session_data *msd = NULL;
-			if (md2->state.special_mob_ai && md2->master_id)
+			if (md2->special_state.ai && md2->master_id)
 				msd = map_id2sd(md2->master_id);
 			if (msd)	
 			{	//If master is not logged on, we just make his share of exp be lost. [Skotlex]
@@ -2228,7 +2228,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 	if(md->option&4 )
 		status_change_end(&md->bl, SC_CLOAKING, -1);
 
-	if(md->state.special_mob_ai == 2 &&	//スフィアーマイン
+	if(md->special_state.ai == 2 &&	//スフィアーマイン
 		src && md->master_id == src->id)
 	{
 		md->state.alchemist = 1;
@@ -2352,13 +2352,13 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 			if (battle_config.pk_mode && (md->db->lv - sd->status.base_level >= 20))
 				per *= 1.15;	// pk_mode additional exp if monster >20 levels [Valaris]		
 		}
-		if(md->size==1)	// change experience for different sized monsters [Valaris]
+		if(md->special_state.size==1)	// change experience for different sized monsters [Valaris]
 			per /=2.;
-		else if(md->size==2)
+		else if(md->special_state.size==2)
 			per *=2.;
 		if(md->master_id) {
 			if(((master = map_id2bl(md->master_id)) && status_get_mode(master)&MD_BOSS) ||	// check if its master is a boss (MVP's and minibosses)
-				md->state.special_mob_ai) { // for summoned creatures [Valaris]
+				md->special_state.ai) { // for summoned creatures [Valaris]
 				per = 0;
 			}
 		} else {
@@ -2366,9 +2366,9 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 				if(md->level > 0) zeny=(int) ((md->level+rand()%md->level)*per); // zeny calculation moblv + random moblv [Valaris]
 				if(md->db->mexp > 0)
 					zeny*=rand()%250;
-				if(md->size==1 && zeny >=2) // change zeny for different sized monsters [Valaris]
+				if(md->special_state.size==1 && zeny >=2) // change zeny for different sized monsters [Valaris]
 					zeny/=2;
-				else if(md->size==2 && zeny >1)
+				else if(md->special_state.size==2 && zeny >1)
 					zeny*=2;
 			}
 			if(battle_config.mobs_level_up && md->level > md->db->lv) { // [Valaris]
@@ -2443,7 +2443,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 			struct delay_item_drop *ditem;
 
 			if ((master && status_get_mode(master) & MD_BOSS) ||	// check if its master is a boss (MVP's and minibosses)
-				(md->state.special_mob_ai &&
+				(md->special_state.ai &&
 					(battle_config.alchemist_summon_reward == 0 || //Noone gives items
 					(md->class_ != 1142 && battle_config.alchemist_summon_reward == 1) //Non Marine spheres don't drop items
 				)))	// Added [Valaris]
@@ -2458,9 +2458,9 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 			if (drop_rate <= 0 && !battle_config.drop_rate0item)
 				drop_rate = 1;
 			// change drops depending on monsters size [Valaris]
-			if(md->size==1 && drop_rate >= 2)
+			if(md->special_state.size==1 && drop_rate >= 2)
 				drop_rate/=2;
-			else if(md->size==2 && drop_rate > 0)
+			else if(md->special_state.size==2 && drop_rate > 0)
 				drop_rate*=2;
 			//Drops affected by luk as a fixed increase [Valaris]
 			if (src && battle_config.drops_by_luk > 0)
@@ -2538,7 +2538,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 	}
 
 	// mvp処理
-	if(mvp_sd && md->db->mexp > 0 && !md->state.special_mob_ai){
+	if(mvp_sd && md->db->mexp > 0 && !md->special_state.ai){
 		int log_mvp[2] = {0};
 		int j;
 		int mexp;
@@ -3030,7 +3030,7 @@ int mob_summonslave(struct mob_data *md2,int *value,int amount,int skill_id)
 		md->ys=0;
 		if (battle_config.slaves_inherit_speed && (skill_id != NPC_METAMORPHOSIS && skill_id != NPC_TRANSFORMATION))
 			md->speed=md2->speed;
-		md->cached= battle_config.dynamic_mobs;	//[Skotlex]
+		md->special_state.cached= battle_config.dynamic_mobs;	//[Skotlex]
 		md->spawndelay1=-1;	// 一度のみフラグ
 		md->spawndelay2=-1;	// 一度のみフラグ
 
@@ -3287,7 +3287,7 @@ int mobskill_use_id(struct mob_data *md,struct block_list *target,int skill_idx)
 			return 0;
 		break;
 	case NPC_SELFDESTRUCTION:
-		if (casttime == 0 && md->state.special_mob_ai == 2) {
+		if (casttime == 0 && md->special_state.ai == 2) {
 			casttime = skill_get_time(skill_id,skill_lv);
 			selfdestruct_flag =  1;
 		}
@@ -3441,7 +3441,7 @@ struct block_list *mob_getfriendhpltmaxrate(struct mob_data *md,int rate)
 	
 	nullpo_retr(NULL, md);
 
-	if (md->state.special_mob_ai == 1) //Summoned creatures. [Skotlex]
+	if (md->special_state.ai == 1) //Summoned creatures. [Skotlex]
 		type = BL_PC;
 	
 	map_foreachinarea(mob_getfriendhpltmaxrate_sub, md->bl.m,
@@ -3762,7 +3762,6 @@ static int mob_makedummymobdb(int class_)
 	mob_dummy->luk=2;
 	mob_dummy->range2=10;
 	mob_dummy->range3=10;
-	mob_dummy->size=0;
 	mob_dummy->race=0;
 	mob_dummy->element=0;
 	mob_dummy->mode=0;

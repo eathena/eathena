@@ -7888,7 +7888,7 @@ atcommand_summon(
 	id = mob_once_spawn(sd,"this", x, y, "--ja--", mob_id, 1, "");
 	if((md=(struct mob_data *)map_id2bl(id))){
 		md->master_id=sd->bl.id;
-		md->state.special_mob_ai=1;
+		md->special_state.ai=1;
 		md->mode=md->db->mode|MD_AGGRESSIVE;
 		md->deletetimer=add_timer(tick+(duration*60000),mob_timer_delete,id,0);
 		clif_misceffect2(&md->bl,344);
@@ -9356,16 +9356,16 @@ int atcommand_size(
 	if (sscanf(message,"%d", &size) < 1)
 		return -1;
 
-	if(sd->viewsize) {
-		sd->viewsize=0;
+	if(sd->state.size) {
+		sd->state.size=0;
 		pc_setpos(sd, sd->mapname, sd->bl.x, sd->bl.y, 3);
 	}
 
 	if(size==1) {
-		sd->viewsize=1;
+		sd->state.size=1;
 		clif_specialeffect(&sd->bl,420,0);
 	} else if(size==2) {
-		sd->viewsize=2;
+		sd->state.size=2;
 		clif_specialeffect(&sd->bl,422,0);
 	}
 

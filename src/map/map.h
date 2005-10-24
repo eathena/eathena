@@ -375,6 +375,7 @@ struct map_session_data {
 		unsigned party_sent :1;
 		unsigned guild_sent :1;
 		unsigned monster_ignore :1; // for monsters to ignore a character [Valaris] [zzo]
+		unsigned size :2; // for tiny/large types
 	} state;
 	struct {
 		unsigned killer : 1;
@@ -643,7 +644,6 @@ struct map_session_data {
 	unsigned char change_level; // [celest]
 
 	char fakename[NAME_LENGTH]; // fake names [Valaris]
-	short viewsize; // for tiny/large types
 
 #ifndef TXT_ONLY
 	int mail_counter;	// mail counter for mail system [Valaris]
@@ -723,12 +723,13 @@ struct guardian_data {
 
 struct mob_data {
 	struct block_list bl;
-	short n;
-	short base_class,class_,dir,mode,level;
 	struct mob_db *db;	//For quick data access (saves doing mob_db(md->class_) all the time) [Skotlex]
-	short m,x0,y0,xs,ys;
 	char name[NAME_LENGTH];
-	int spawndelay1,spawndelay2;
+	struct {
+		unsigned size : 2; //Small/Big monsters.
+		unsigned cached : 1; //Cached mobs for dynamic mob unloading [Skotlex]
+		unsigned ai : 3; //Special ai for summoned monsters.
+	} special_state; //Special mob information that does not needs to be zero'ed on mob respawn.
 	struct {
 		unsigned state : 8;
 		unsigned skillstate : 8;
@@ -738,55 +739,52 @@ struct mob_data {
 		unsigned skillcastcancel : 1;
 		unsigned change_walk_target : 1;
 		unsigned walk_easy : 1;
-		unsigned special_mob_ai : 3;
 		unsigned soul_change_flag : 1; // Celest
-		int provoke_flag; // Celest
 		unsigned alchemist: 1;
+		int provoke_flag; // Celest
 	} state;
-	int timer;
-	short to_x,to_y;
-	short target_dir;
-	short speed;
-	int hp;
-	int max_hp;
-	int target_id,attacked_id;
-	short attacked_count;
-	short target_lv;
+	struct status_change sc_data[MAX_STATUSCHANGE];
 	struct walkpath_data walkpath;
-	unsigned int next_walktime;
-	unsigned int canmove_tick;
-	unsigned int attackabletime;
-	unsigned int last_deadtime,last_spawntime,last_thinktime;
-	unsigned int last_linktime;
-	short move_fail_count;
+	struct guardian_data* guardian_data; 
+	struct item *lootitem;
 	struct {
 		int id;
 		int dmg;
 	} dmglog[DAMAGELOG_SIZE];
-	struct item *lootitem;
+	short n;
+	short base_class,class_,dir,mode,level;
+	short m,x0,y0,xs,ys;
+	short to_x,to_y;
+	short target_dir;
+	short speed;
+	short attacked_count;
+	short target_lv;
+	int timer;
+	int hp, max_hp;
+	int target_id,attacked_id;
+	int spawndelay1,spawndelay2;
+	unsigned int attackabletime, canmove_tick, next_walktime;
+	unsigned int last_deadtime,last_spawntime,last_thinktime,last_linktime;
+	short move_fail_count;
 	short lootitem_count;
-
-	struct status_change sc_data[MAX_STATUSCHANGE];
 	short sc_count;
 	short opt1,opt2,opt3,option;
 	short min_chase;
-	struct guardian_data* guardian_data; 
+	
 	int deletetimer;
-
 	int skilltimer;
 	int skilltarget;
-	short skillx,skilly;
-	short skillid,skilllv,skillidx;
-	unsigned int skilldelay[MAX_MOBSKILL];
 	int def_ele;
 	int master_id,master_dist;
+	
+	short skillx,skilly,skillid,skilllv,skillidx;
+	unsigned int skilldelay[MAX_MOBSKILL];
 	struct skill_timerskill skilltimerskill[MAX_MOBSKILLTIMERSKILL];
 	struct skill_unit_group skillunit[MAX_MOBSKILLUNITGROUP];
 	struct skill_unit_group_tickset skillunittick[MAX_SKILLUNITGROUPTICKSET];
 	char npc_event[50];
-	unsigned char size;
-	unsigned char cached; //Cached mobs for dynamic mob unloading [Skotlex]
 };
+
 struct pet_data {
 	struct block_list bl;
 	short n;

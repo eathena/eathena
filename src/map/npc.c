@@ -2097,10 +2097,10 @@ int npc_parse_mob2 (struct mob_list *mob, int cached)
 		md->n = i;
 		//FIXME: This implementation is not stable, npc scripts will stop working once MAX_MOB_DB changes value! [Skotlex]
 		if(mob->class_ > 2*MAX_MOB_DB){ // large/tiny mobs [Valaris]
-			md->size=2;
+			md->special_state.size=2;
 			md->base_class = md->class_ = mob->class_-2*MAX_MOB_DB;
 		} else if (mob->class_ > MAX_MOB_DB) {
-			md->size=1;
+			md->special_state.size=1;
 			md->base_class = md->class_ = mob->class_-MAX_MOB_DB;
 		} else
 			md->base_class = md->class_ = mob->class_;
@@ -2115,7 +2115,7 @@ int npc_parse_mob2 (struct mob_list *mob, int cached)
 		md->spawndelay2 = mob->delay2;
 
 //		memset(&md->state,0,sizeof(md->state));
-		md->cached = cached;	//If cached, mob is dynamically removed
+		md->special_state.cached = cached;	//If cached, mob is dynamically removed
 		md->timer = -1;
 //		md->target_id=0;
 //		md->attacked_id=0;
@@ -2131,9 +2131,9 @@ int npc_parse_mob2 (struct mob_list *mob, int cached)
 		} else if (strlen(mob->eventname) == 1) { //Portable monster big/small implementation. [Skotlex]
 			int size = atoi(mob->eventname);
 			if (size & 2)
-				md->size=1;
+				md->special_state.size=1;
 			else if (size & 4)
-				md->size=2;
+				md->special_state.size=2;
 		}
 
 		md->bl.type = BL_MOB;

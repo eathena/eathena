@@ -8465,7 +8465,7 @@ int buildin_summon(struct script_state *st)
 		id=mob_once_spawn(sd, "this", 0, 0, str,_class,1,event);
 		if((md=(struct mob_data *)map_id2bl(id))){
 			md->master_id=sd->bl.id;
-			md->state.special_mob_ai=1;
+			md->special_state.ai=1;
 			md->mode=mob_db(md->class_)->mode|0x04;
 			md->deletetimer=add_timer(tick+60000,mob_timer_delete,id,0);
 			clif_misceffect2(&md->bl,344);

@@ -5947,7 +5947,7 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 				// different levels of HP according to skill level
 				md->hp = 1500 + skilllv * 200 + sd->status.base_level * 10;
 				md->max_hp = md->hp; //Update the max, too! [Skotlex]
-				md->state.special_mob_ai = 1;
+				md->special_state.ai = 1;
 				//非移動でアクティブで反撃する[0x0:非移動 0x1:移動 0x4:ACT 0x8:非ACT 0x40:反撃無 0x80:反撃有]
 				md->mode = MD_CANATTACK|MD_AGGRESSIVE;
 				md->deletetimer = add_timer (gettick() + skill_get_time(skillid,skilllv), mob_timer_delete, id, 0);
@@ -5968,7 +5968,7 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 				md->hp = 2000 + skilllv * 400;
 				md->max_hp = md->hp; //Update the max, too! [Skotlex]
 				md->mode = md->db->mode|MD_CANMOVE; //Needed for the skill
-				md->state.special_mob_ai = 2;
+				md->special_state.ai = 2;
 				md->deletetimer = add_timer (gettick() + skill_get_time(skillid,skilllv), mob_timer_delete, id, 0);
 			}
 			clif_skill_poseffect(src,skillid,skilllv,x,y,tick);
@@ -8320,7 +8320,7 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 		/* 詠?･反?モンスタ? */
 		if (bl->type == BL_MOB && (status_get_mode(bl)&MD_CASTSENSOR) && (md = (struct mob_data *)bl) &&
 			md->state.state != MS_ATTACK && sd->invincible_timer == -1 && 
-			(!md->state.special_mob_ai || skill_get_inf(skill_num) != INF_SUPPORT_SKILL))
+			(!md->special_state.ai || skill_get_inf(skill_num) != INF_SUPPORT_SKILL))
 		{	//Avoid having summons target master from supportive skills. [Skotlex]
 				md->target_id = sd->bl.id;
 				md->state.targettype = ATTACKABLE;

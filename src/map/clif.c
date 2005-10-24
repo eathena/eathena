@@ -1426,9 +1426,9 @@ int clif_spawnpc(struct map_session_data *sd) {
 	if (map[sd->bl.m].flag.rain)
 		clif_weather1(sd->fd, 161);
 
-	if(sd->viewsize==2) // tiny/big players [Valaris]
+	if(sd->state.size==2) // tiny/big players [Valaris]
 		clif_specialeffect(&sd->bl,423,0);
-	else if(sd->viewsize==1)
+	else if(sd->state.size==1)
 		clif_specialeffect(&sd->bl,421,0);
 		
 	return 0;
@@ -1496,9 +1496,9 @@ int clif_spawnmob(struct mob_data *md)
 	if (mob_get_equip(md->class_) > 0) // mob equipment [Valaris]
 		clif_mob_equip(md,mob_get_equip(md->class_));
 
-	if(md->size==2) // tiny/big mobs [Valaris]
+	if(md->special_state.size==2) // tiny/big mobs [Valaris]
 		clif_specialeffect(&md->bl,423,0);
-	else if(md->size==1)
+	else if(md->special_state.size==1)
 		clif_specialeffect(&md->bl,421,0);
 
 	return 0;
@@ -1650,9 +1650,9 @@ int clif_movechar(struct map_session_data *sd) {
 		)
 		clif_changelook(&sd->bl, LOOK_CLOTHES_COLOR, sd->status.clothes_color);
 
-	if(sd->viewsize==2) // tiny/big players [Valaris]
+	if(sd->state.size==2) // tiny/big players [Valaris]
 		clif_specialeffect(&sd->bl,423,0);
-	else if(sd->viewsize==1)
+	else if(sd->state.size==1)
 		clif_specialeffect(&sd->bl,421,0);
 
 	return 0;
@@ -3803,9 +3803,9 @@ void clif_getareachar_pc(struct map_session_data* sd,struct map_session_data* ds
 	if(sd->status.manner < 0)
 		clif_changestatus(&sd->bl,SP_MANNER,sd->status.manner);
 		
-	if(sd->viewsize==2) // tiny/big players [Valaris]
+	if(sd->state.size==2) // tiny/big players [Valaris]
 		clif_specialeffect(&sd->bl,423,0);
-	else if(sd->viewsize==1)
+	else if(sd->state.size==1)
 		clif_specialeffect(&sd->bl,421,0);
 
 }
@@ -3851,9 +3851,9 @@ int clif_movemob(struct mob_data *md)
 	if(mob_get_equip(md->class_) > 0) // mob equipment [Valaris]
 		clif_mob_equip(md,mob_get_equip(md->class_));
 
-	if(md->size==2) // tiny/big mobs [Valaris]
+	if(md->special_state.size==2) // tiny/big mobs [Valaris]
 		clif_specialeffect(&md->bl,423,0);
-	else if(md->size==1)
+	else if(md->special_state.size==1)
 		clif_specialeffect(&md->bl,421,0);
 
 	return 0;
@@ -4059,9 +4059,9 @@ void clif_getareachar_mob(struct map_session_data* sd,struct mob_data* md)
 	if(mob_get_equip(md->class_) > 0) // mob equipment [Valaris]
 		clif_mob_equip(md,mob_get_equip(md->class_));
 
-	if(md->size==2) // tiny/big mobs [Valaris]
+	if(md->special_state.size==2) // tiny/big mobs [Valaris]
 		clif_specialeffect(&md->bl,423,0);
-	else if(md->size==1)
+	else if(md->special_state.size==1)
 		clif_specialeffect(&md->bl,421,0);
 
 

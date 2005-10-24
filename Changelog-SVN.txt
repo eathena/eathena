@@ -1,6 +1,7 @@
 Date	Added
 ==========
 2005/10/24
+	* Some optimizations to the struct mob_data. [Skotlex]
 	* Applied Ipalazzo-sama/zzo's memory optimization patches. [Skotlex]
 	* Fixed some quests and updated item_db. [Kayla]
 	* Updated Grimtooth to cause "Stop" on enemies instead of slow down. The

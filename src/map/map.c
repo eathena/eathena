@@ -1695,7 +1695,7 @@ int mob_cache_cleanup_sub(struct block_list *bl, va_list ap) {
 
 	//When not to remove:
 	//Mob has the cached flag on 0
-	if (!md->cached)
+	if (!md->special_state.cached)
 		return 0;
 
 	mob_remove_map(md, 0);
