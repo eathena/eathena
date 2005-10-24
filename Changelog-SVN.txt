@@ -1,6 +1,8 @@
 Date	Added
 ==========
 2005/10/24
+	* Fixed script command "makeitem" to only require an attached player if the
+	  map is defined as "this". [Skotlex]
 	* Updated battle_check_target to enable only skills with inf 32 (can target
 	  traps) to hit traps. Implementation may not be perfect depending on how
 	  the client reacts to the associated skill_db change. [Skotlex]

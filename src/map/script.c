@@ -3650,10 +3650,7 @@ int buildin_makeitem(struct script_state *st)
 	int x,y,m;
 	char *mapname;
 	struct item item_tmp;
-	struct map_session_data *sd;
 	struct script_data *data;
-
-	sd = script_rid2sd(st);
 
 	data=&(st->stack->stack_data[st->start+2]);
 	get_val(st,data);
@@ -3671,9 +3668,13 @@ int buildin_makeitem(struct script_state *st)
 	x	=conv_num(st,& (st->stack->stack_data[st->start+5]));
 	y	=conv_num(st,& (st->stack->stack_data[st->start+6]));
 
-	if( sd && strcmp(mapname,"this")==0)
+	if(strcmp(mapname,"this")==0)
+	{
+		struct map_session_data *sd;
+		sd = script_rid2sd(st);
+		if (!sd) return 0; //Failed...
 		m=sd->bl.m;
-	else
+	} else
 		m=map_mapname2mapid(mapname);
 
 	if(nameid<0) { // ƒ‰ƒ“ƒ_ƒ€
@@ -3689,7 +3690,6 @@ int buildin_makeitem(struct script_state *st)
 		else
 			item_tmp.identify=!itemdb_isequip3(nameid);
 
-//		clif_additem(sd,0,0,flag);
 		map_addflooritem(&item_tmp,amount,m,x,y,NULL,NULL,NULL,0);
 	}
 
