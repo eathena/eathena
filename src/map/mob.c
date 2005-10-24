@@ -1451,10 +1451,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 	if (md->sc_data && md->sc_data[SC_BLIND].timer != -1)
 		blind_flag = 1;
 
-	if (!md->mode)
-		mode = md->db->mode;
-	else
-		mode = md->mode;
+	mode = status_get_mode(&md->bl);
 
 	if (md->attacked_id && mode&MD_ASSIST && DIFF_TICK(md->last_linktime, gettick()) < MIN_MOBLINKTIME)
 	{	// Link monster/ if target is not dead [Skotlex]
@@ -1516,15 +1513,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 				}
 			} else if (!(battle_config.mob_ai&2) && !status_check_skilluse(bl, abl, 0, 0)) {
 				//Can't attack back, but didn't invoke a rude attacked skill...
-				//This is "dumb" ai, so do nothing.... (that's how players want it) [Skotlex]
-				/*
-				int dist = rand() % 10 + 1;
-				int dir = map_calc_dir(abl, bl->x, bl->y);
-				int mask[8][2] = {{0,1},{-1,1},{-1,0},{-1,-1},{0,-1},{1,-1},{1,0},{1,1}};
-				mob_walktoxy(md, md->bl.x + dist * mask[dir][0], md->bl.y + dist * mask[dir][1], 0);
-				md->next_walktime = tick + 500;
-				md->attacked_id = 0;
-				*/
+				md->attacked_id = 0; //Simply unlock, shouldn't attempt to run away when in dumb_ai mode.
 			} else if (blind_flag && dist > 2 && DIFF_TICK(tick,md->next_walktime) < 0) { //Blinded, but can reach 
 				if (!md->target_id)
 				{	//Attempt to follow new target
