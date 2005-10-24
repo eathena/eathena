@@ -1,6 +1,7 @@
 Date	Added
 ==========
 2005/10/24
+	* Fixed some quests and updated item_db. [Kayla]
 	* Updated Grimtooth to cause "Stop" on enemies instead of slow down. The
 	  duration used is now skill's time 2. [Skotlex]
 	* Updated the mob_ai code so they do nothing if they were attacked but
