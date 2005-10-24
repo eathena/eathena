@@ -4,7 +4,7 @@
 //= Halca (1.0), Mass Zero (1.1)
 //= Lupus (1.2)
 //===== Current Version: ===================================== 
-//= 1.3
+//= 1.4
 //===== Compatible With: ===================================== 
 //= Any eAthena Version.
 //===== Description: ========================================= 
@@ -13,6 +13,7 @@
 //= 1.2 Fixed wrong labels, added missing text, fixed
 //=     items count [Lupus]
 //= 1.3 Fixed ingredients according to kRO [Lupus]
+//= 1.4 Fixed ingredients again. [Kayla]
 //============================================================
 
 comodo.gat,238,217,5	script	Merunte	832,{
@@ -25,7 +26,7 @@ comodo.gat,238,217,5	script	Merunte	832,{
 
  mes "[Merunte]";
  mes "Ok. Gimme:";
- mes "1 Hair Band,";
+ mes "1 Indian Fillet,";
  mes "1 Striped Bandana,";
  mes "10 Peco Feathers,";
  mes "and 10,000 Zeny.";
@@ -35,8 +36,8 @@ comodo.gat,238,217,5	script	Merunte	832,{
  next;
  menu "Yep!",-,"Nope!",M_EXIT;
 
- if ((countitem(7101) < 10) || (countitem(5049) < 1) ||  (countitem(2210) < 1) ||  (Zeny < 10000)) GOTO L_NOITEM;//Items: Peco Feather, Striped Bandana, Hair Band,
- delitem 2210,1;//Items: Hair Band,
+ if ((countitem(7101) < 10) || (countitem(5049) < 1) ||  (countitem(5010) < 1) ||  (Zeny < 10000)) GOTO L_NOITEM;//Items: Peco Feather, Striped Bandana, Hair Band,
+ delitem 5010,1;//Items: Indian Fillet,
  delitem 5049,1;//Items: Striped Bandana,
  delitem 7101,10;//Items: Peco Feather,
  set Zeny,Zeny-10000;
