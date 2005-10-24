@@ -27,6 +27,8 @@ Nexon
 
 Date		Added
 ======
+10/25
+	* Updated Indian Hairband Quest. It asked for hairband, should have been Indian Filet (5010) [Kayla]
 10/23
 	* Updated WoE (Guilds War) scripts to work correctly with /breakguild [Lupus]
 	  They should abandon accuped casles of the broken guild 
