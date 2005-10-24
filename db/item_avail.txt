@@ -9,4 +9,5 @@
 //5054,0	//Assassin_Mask,Disabled
 8009,2282	//GM_Halo,Heaven_Ring
 8010,2344	//GM_Armor,Armor_of_fire
+8100,1080
 // 11500,10013	//grab_bag,backpack

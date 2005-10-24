@@ -1084,13 +1084,6 @@ static struct Damage battle_calc_pet_weapon_attack(
 			case WS_CARTTERMINATION:
 				damage = damage * (80000 / (10 * (16 - skill_lv)) )/100;
 				break;
-			case CR_ACIDDEMONSTRATION:
-				div_flag = 1;
-				damage *= (status_get_int(src) + status_get_vit(target))/50;
-				// damage according to vit and int
-				if(target->type == BL_PC)
-					damage /= 2;
-				break;
 			}
 			if (div_flag && div_ > 1) {	// [Skotlex]
 				damage *= div_;
@@ -1621,14 +1614,6 @@ static struct Damage battle_calc_mob_weapon_attack(
 				break;
 			case WS_CARTTERMINATION:
 				damage = damage * (80000 / (10 * (16 - skill_lv)) )/100;
-				break;
-			case CR_ACIDDEMONSTRATION:
-				div_flag = 1;
-				damage *= (status_get_int(src) + status_get_vit(target))/50;
-				// damage according to vit and int
-				if(target->type == BL_PC)
-					damage /= 2;
-				// damage according to vit and int
 				break;
 			}
 			if (div_flag && div_ > 1) {	// [Skotlex]
@@ -2402,14 +2387,6 @@ static struct Damage battle_calc_pc_weapon_attack(
 					damage_rate += sd->cart_weight/(10*(16-skill_lv))-100;
 				}
 				break;
-			case CR_ACIDDEMONSTRATION:
-				div_flag = 1;
-				damage_rate = (status_get_int(src) + status_get_vit(target))/30;
-				// damage according to vit and int
-				if(target->type == BL_PC)
-					damage_rate /= 2;
-				// damage according to vit and int
-				break;
 			}
 
 			//what about normal attacks? [celest]
@@ -2444,21 +2421,21 @@ static struct Damage battle_calc_pc_weapon_attack(
 			}
 			if(is_boss(target)) {
 				if(!idef_flag && sd->right_weapon.def_ratio_atk_race & (1<<10)) {
-					damage = (damage * (def1 + def2))/100;
+					damage = damage/2 + (damage * (def1 + def2))/100;
 					idef_flag = 1;
 				}
 				if(!idef_flag_ && sd->left_weapon.def_ratio_atk_race & (1<<10)) {
-					damage2 = (damage2 * (def1 + def2))/100;
+					damage2 = damage2/2 + (damage2 * (def1 + def2))/100;
 					idef_flag_ = 1;
 				}
 			}
 			else {
 				if(!idef_flag && sd->right_weapon.def_ratio_atk_race & (1<<11)) {
-					damage = (damage * (def1 + def2))/100;
+					damage = damage/2 + (damage * (def1 + def2))/100;
 					idef_flag = 1;
 				}
 				if(!idef_flag_ && sd->left_weapon.def_ratio_atk_race & (1<<11)) {
-					damage2 = (damage2 * (def1 + def2))/100;
+					damage2 = damage2/2 + (damage2 * (def1 + def2))/100;
 					idef_flag_ = 1;
 				}
 			}
@@ -3712,13 +3689,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 					else if (!sd)
 						skillratio += 80000 / (10 * (16 - skill_lv));
 					break;
-				case CR_ACIDDEMONSTRATION:
-					skillratio = (status_get_int(src) + status_get_vit(target))/30;
-					// damage according to vit and int
-					if(target->type == BL_PC)
-						skillratio /= 2;
-					skillratio *= wd.div_;
-					break;
+
 			}
 			if (ele_flag)
 				s_ele=s_ele_=0;
@@ -4660,8 +4631,13 @@ struct Damage  battle_calc_misc_attack(
 		damage = self_damage + (self_damage/10)*(skill_lv-1);
 		break;
 	case CR_ACIDDEMONSTRATION:
-		damage = status_get_int(bl)*6 + status_get_vit(target)*10;
-		if(target->type == BL_PC) damage/=2;
+		{
+			float fdamage;
+			fdamage = status_get_int(bl)*0.28;
+			fdamage *= (1+status_get_vit(target))*1.41;
+			damage = (int)fdamage;
+			if(target->type == BL_PC) damage/=2;
+		}
 		break;
 	}
 

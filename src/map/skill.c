@@ -2827,7 +2827,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 				if (!skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0))
 					break;
 				c = skill_get_blewcount(skillid,skilllv);
-				if(map[bl->m].flag.gvg || status_get_mexp(bl)) c = 0;
+				if(map[bl->m].flag.gvg || status_get_mexp(bl) || 
+					(status_get_hp(bl) <= 0) ) c = 0;
 				for(i=0;i<c;i++){
 					skill_blown(src,bl,1);
 					if(bl->type == BL_MOB)
@@ -3320,7 +3321,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					skill_get_unit_flag(abra_skillid) & UF_DANCE)	//‰‰‘tƒXƒLƒ‹‚Íƒ_ƒ
 						abra_skillid = 0;	// reset to get a new id
 			} while (abra_skillid == 0);
-			printf("abra_skillid = %d\n",abra_skillid);
 			abra_skilllv = skill_get_max(abra_skillid) >  skilllv ? skilllv : skill_get_max(abra_skillid);
 			clif_skill_nodamage (src, bl, skillid, skilllv, 1);
 			sd->skillitem = abra_skillid;
@@ -7571,6 +7571,7 @@ int skill_castfix( struct block_list *bl, int time )
 int skill_delayfix( struct block_list *bl, int time )
 {
 	struct status_change *sc_data;	
+	int base_time = time;
 
 	nullpo_retr(0, bl);
 
@@ -7582,13 +7583,12 @@ int skill_delayfix( struct block_list *bl, int time )
 		if(skill_get_delaynodex(sd->skillid, sd->skilllv))
 			dex_fix = 0;
 
-
 		// instant cast attack skills depend on aspd as delay [celest]
 		if (time == 0) {
 			if (skill_get_type(sd->skillid) == BF_WEAPON)
 			{
 				time = status_get_adelay (bl)/2;
-				//dex_fix = 0;
+				dex_fix = 0;
 			}
 			else
 				time = 300;	// default delay, according to official servers
@@ -7601,6 +7601,8 @@ int skill_delayfix( struct block_list *bl, int time )
 			if (scale < 0)
 				scale = 0;
 			time = time * scale / battle_config.delayrate_dex_scale;
+			if (time < base_time/2) 
+				time = base_time/2;
 		}
 
 		if (battle_config.delay_rate != 100)

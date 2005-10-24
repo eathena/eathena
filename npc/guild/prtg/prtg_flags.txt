@@ -19,7 +19,7 @@
 //================================================================================//
 prontera.gat,150,193,3	script	Creamhilt#p1-1::Creamhilt	722,
 {
-	callfunc "F_Flags","Prontera","prtg_cas01",97,174;
+	callfunc "F_Flags","Prontera","prtg_cas01",rand(101,112),rand(170,179);
 	close;
 
 OnRecvCastlePt01:
@@ -51,7 +51,7 @@ prtg_cas01.gat,45,46,4	duplicate(Creamhilt)	Creamhilt#p1-16	722
 //================================================================================//
 prontera.gat,161,193,5	script	Sbanhealt#p2-1::Sbanhealt	722,
 {
-	callfunc "F_Flags","Prontera","prtg_cas02",71,36;
+	callfunc "F_Flags","Prontera","prtg_cas02",rand(62,81),40;
 	close;
 
 OnRecvCastlePt02:
@@ -86,7 +86,7 @@ prtg_cas02.gat,162,161,4	duplicate(Sbanhealt)	Sbanhealt#p2-18	722
 //================================================================================//
 prontera.gat,154,192,4	script	Lazrigees#p3-1::Lazrigees	722,
 {
-	callfunc "F_Flags","Prontera","prtg_cas03",45,99;
+	callfunc "F_Flags","Prontera","prtg_cas03",rand(36,55),rand(94,101);
 	close;
 
 OnRecvCastlePt03:
@@ -118,7 +118,7 @@ prtg_cas03.gat,165,201,4	duplicate(Lazrigees)	Lazrigees#p3-16	722
 //================================================================================//
 prontera.gat,147,195,3	script	Squagul#p4-1::Squagul	722,
 {
-	callfunc "F_Flags","Prontera","prtg_cas04",259,265;
+	callfunc "F_Flags","Prontera","prtg_cas04",269,rand(254,274);
 	close;
 
 OnRecvCastlePt04:
@@ -151,7 +151,7 @@ prtg_cas04.gat,263,27,4	duplicate(Squagul)	Squagul#p4-16	722
 //================================================================================//
 prontera.gat,164,195,5	script	Guindull#p5-1::Guindull	722,
 {
-	callfunc "F_Flags","Prontera","prtg_cas05",34,30;
+	callfunc "F_Flags","Prontera","prtg_cas05",35,rand(17,38);
 	close;
 
 OnRecvCastlePt05:

@@ -62,7 +62,7 @@ L_Start:
 	mes "Welcome Master ^5533FF" + getguildmaster(@GID) + "^000000 ! I will assist you in any way I can!";
 	next;
 	menu 	"Guild Base Briefing",M_Base, "Commerce Investment",M_Comrc, "Defence Investment",M_Def, "Guardian Installation",M_Gaurd, 
-		"Kafra Service Employment / Dismissal",M_Kaf, "Enter Treasure Room",M_Treas, "Surrender Guild Base",M_Sur, "Cancel",M_End;
+		"Kafra Service Employment / Dismissal",M_Kaf, "Enter Treasure Room",M_Treas, "Cancel",M_End;
 
 	//========================
 	M_Base:

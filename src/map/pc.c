@@ -41,6 +41,7 @@
 
 #define PVP_CALCRANK_INTERVAL 1000	// PVP‡ˆÊŒvŽZ‚ÌŠÔŠu
 #define ANTI_SPAWN_CAMP 1
+#define IDLE_TIMEOUT 1
 
 static int exp_table[14][MAX_LEVEL];
 static short statp[MAX_LEVEL];
@@ -169,8 +170,6 @@ static int pc_invincible_timer(int tid,unsigned int tick,int id,int data) {
 	if( (sd=(struct map_session_data *)map_id2sd(id)) == NULL || sd->bl.type!=BL_PC )
 		return 1;
 
-	pc_setglobalreg(sd,"PC_INVINCIBLE",0);
-
 	if(sd->invincible_timer != tid){
 		if(battle_config.error_log)
 			printf("invincible_timer %d != %d\n",sd->invincible_timer,tid);
@@ -185,8 +184,6 @@ static int pc_invincible_timer(int tid,unsigned int tick,int id,int data) {
 int pc_setinvincibletimer(struct map_session_data *sd,int val) {
 	nullpo_retr(0, sd);
 
-//	if(pc_readglobalreg(sd,"PC_INVINCIBLE")>0) val/=2; 
-
 	if(sd->invincible_timer != -1)
 		delete_timer(sd->invincible_timer,pc_invincible_timer);
 	sd->invincible_timer = add_timer(gettick()+val,pc_invincible_timer,sd->bl.id,0);
@@ -195,11 +192,6 @@ int pc_setinvincibletimer(struct map_session_data *sd,int val) {
 
 int pc_delinvincibletimer(struct map_session_data *sd) {
 	nullpo_retr(0, sd);
-
-#ifdef ANTI_SPAWN_CAMP
-	if(pc_readglobalreg(sd,"PC_INVINCIBLE")>0)
-		return 0;
-#endif
 
 	if(sd->invincible_timer != -1) {
 		delete_timer(sd->invincible_timer,pc_invincible_timer);
@@ -960,6 +952,7 @@ int pc_authok(int id, int login_id2, time_t connect_until_time, struct mmo_chars
 #endif
 
 //	sd->timeout_tick = gettick()+1000*3600*8;
+	pc_resetidle(sd);
 	
 	// message of the limited time of the account
 	if (connect_until_time != 0) { // don't display if it's unlimited or unknow value
@@ -3258,11 +3251,6 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 		}
 		if (sd->sc_data[SC_DEVOTION].timer!=-1)
 			status_change_end(&sd->bl,SC_DEVOTION,-1);
-#if 0
-		for(i=0;i < SC_SENDMAX; i++)
-			if(sd->sc_data[i].timer!=-1 && status_need_reset(i))
-				clif_status_change(&sd->bl,i,0);
-#endif
 	}
 
 	if(sd->status.option&2)
@@ -3337,6 +3325,14 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 		clif_setwaitclose(sd->fd);
 #endif
 		return 1;
+	}
+	
+	if(map[m].flag.gvg)
+	{
+		x--;
+		y--;
+		x+=rand()%2;
+		y+=rand()%2;
 	}
 
 	if(x <0 || x >= map[m].xs || y <0 || y >= map[m].ys)
@@ -5350,14 +5346,15 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 			pc_setdead(sd);
 		}
 		// ?§‘—ŠÒ
-#if 0
 		if( sd->pvp_point < 0 ){
 			sd->pvp_point=0;
+#if 0
 			pc_setstand(sd);
 			pc_setrestartvalue(sd,3);
 			pc_setpos(sd,sd->status.save_point.map,sd->status.save_point.x,sd->status.save_point.y,0);
-		}
 #endif
+		}
+
 	}
 	//GvG
 	if(map[sd->bl.m].flag.gvg){

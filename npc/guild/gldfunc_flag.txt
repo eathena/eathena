@@ -48,11 +48,17 @@ L_Startg:
 	return;
 L_Startg2:
 	next;
-	menu "Go back to your Guild Castle.",M_Enter,"Cancel.",-;
+	menu "Go to Kafra",M_Enter,
+		"Go to random location",M_Enter2,
+		"Cancel.",-;
 	return;
 
 	M_Enter:
-		set PC_INVINCIBLE,1;
 		warp getarg(1)+".gat",getarg(2),getarg(3);
 		return;
+
+	M_Enter2:
+		warp getarg(1)+".gat",0,0;
+		return;
+
 }

@@ -312,7 +312,9 @@ int party_check_exp_share(struct party *p)
                 pl1=char_nick2id(p->member[0].name);
                 pl2=char_nick2id(p->member[1].name);
                 pl3=char_nick2id(p->member[2].name);
+#if 0
                 printf("PARTY: group of 3 Id1 %d lv %d name %s Id2 %d lv %d name %s Id3 %d lv %d name %s\n",pl1,p->member[0].lv,p->member[0].name,pl2,p->member[1].lv,p->member[1].name,pl3,p->member[2].lv,p->member[2].name);
+#endif
                 if (char_married(pl1,pl2) && char_child(pl1,pl3))
                         return 1;
                 if (char_married(pl1,pl3) && char_child(pl1,pl2))

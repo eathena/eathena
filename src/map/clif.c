@@ -10102,6 +10102,8 @@ void clif_parse_PartyChangeOption(int fd, struct map_session_data *sd) {
 void clif_parse_PartyMessage(int fd, struct map_session_data *sd) {
 	nullpo_retv(sd);
 
+	pc_resetidle(sd);
+
 	if (is_charcommand(fd, sd, (char*)RFIFOP(fd,4), 0) != CharCommand_None ||
 		is_atcommand(fd, sd, (char*)RFIFOP(fd,4), 0) != AtCommand_None ||
 		(sd->sc_data && 
@@ -10291,6 +10293,8 @@ void clif_parse_GuildExplusion(int fd,struct map_session_data *sd) {
  */
 void clif_parse_GuildMessage(int fd,struct map_session_data *sd) {
 	nullpo_retv(sd);
+
+	pc_resetidle(sd);
 
 	if (is_charcommand(fd, sd, (char*)RFIFOP(fd, 4), 0) != CharCommand_None ||
 		is_atcommand(fd, sd, (char*)RFIFOP(fd, 4), 0) != AtCommand_None ||

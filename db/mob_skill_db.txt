@@ -1323,6 +1323,7 @@
 1317,FUR_SEAL@NPC_EMOTION,chase,197,1,20,0,5000,yes,self,always,0,19,,,,,
 1317,FUR_SEAL@NPC_EMOTION,idle,197,1,3,0,5000,yes,self,always,0,1,,,,,
 1317,FUR_SEAL@NPC_WATERATTACK,attack,184,5,50,500,5000,no,target,always,0,,,,,,6
+1317,FUR_SEAL@NPC_CRITICALSLASH,attack,170,1,50,500,5000,no,target,always,0,,,,,,6
 1318,HEATER@MG_FIREBALL,chase,17,9,50,0,5000,yes,target,always,0,,,,,,
 1318,HEATER@NPC_EMOTION,chase,197,1,20,0,5000,yes,self,always,0,19,,,,,
 1318,HEATER@NPC_EMOTION,idle,197,1,3,0,5000,yes,self,always,0,6,,,,,
@@ -2417,8 +2418,22 @@
 1658,DOPPELGANGER@NPC_SUMMONSLAVE,attack,196,1,1000,700,10000,no,self,slavele,2,1653,1654,1656,1657,1655,
 1658,DOPPELGANGER@NPC_SUMMONSLAVE,idle,196,1,1000,700,10000,no,self,slavele,2,1653,1654,1656,1657,1655,
 
+1629,HillWind@NPC_WINDATTACK,angry,187,1,200,0,5000,yes,target,always,0,,,,,,
+1629,HillWind@NPC_WINDATTACK,attack,187,1,200,0,5000,yes,target,always,0,,,,,,
+
+1680,HillWind@NPC_WINDATTACK,angry,187,1,200,0,5000,yes,target,always,0,,,,,,
+1680,HillWind@NPC_WINDATTACK,attack,187,1,200,0,5000,yes,target,always,0,,,,,,
+
 1681,Gemini@Ruwach,chase,24,1,200,0,5000,yes,self,always,0,,,,,,
 1681,Gemini@Ruwach,idle,24,1,200,0,5000,yes,self,always,0,,,,,,
+
+1632,Gremlin@NPC_CRITICALSLASH,attack,170,1,200,0,5000,yes,target,always,0,,,,,,
+1633,Beholder@MG_STONECURSE,attack,16,10,50,1500,5000,no,target,always,0,,,,,,3
+
+1628,Mole@NPC_GROUNDATTACK,attack,185,1,200,0,5000,yes,target,always,0,,,,,,
+1628,Mole@TF_HIDING,attack,51,1,200,500,5000,no,self,myhpltmaxrate,30,,,,,,19
+1628,Mole@TF_SPRINKLESAND,attack,149,1,50,0,5000,yes,target,always,0,,,,,,6
+
 
 // ** eAthena Developers ** // Custom stuff:
 // Valaris

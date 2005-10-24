@@ -77,85 +77,11 @@ prontera.gat,0,0,0	script	PCLoginEvent	-1,{
 	set showbase,#showbase;
 	set autoloot,#autoloot;
 	reloadoptions;
+	if(countitem(8100) > 0) set #Treasure_Token, #Treasure_Token+120*countitem(8100);
+	delitem 8100,countitem(8100);
 	end;
 }
 
 function	script	F_GemStone	{
-	set @count,2+rand(5);
-L_Loop:
-	L1:
-		getitem 718,1;
-		goto L_Loop;
-	L2:
-		getitem 719,1;
-		goto L_Loop;
-	L3:
-		getitem 720,1;
-		goto L_Loop;
-	L4:
-		getitem 721,1;
-		goto L_Loop;
-	L5:
-		getitem 722,1;
-		goto L_Loop;
-	L6:
-		getitem 723,1;
-		goto L_Loop;
-	L7:
-		getitem 724,1;
-		goto L_Loop;
-	L8:
-		getitem 725,1;
-		goto L_Loop;
-	L9:
-		getitem 726,1;
-		goto L_Loop;
-	L10:
-		getitem 727,1;
-		goto L_Loop;
-	L11:
-		getitem 728,1;
-		goto L_Loop;
-	L12:
-		getitem 729,1;
-		goto L_Loop;
-	L13:
-		getitem 730,1;
-		goto L_Loop;
-	L14:
-		getitem 731,1;
-		goto L_Loop;
-	L15:
-		getitem 732,1;
-		goto L_Loop;
-	L16:
-		getitem 733,1;
-		goto L_Loop;
-	L17:
-		getitem 7289,1;
-		goto L_Loop;
-	L18:
-		getitem 7290,1;
-		goto L_Loop;
-	L19:
-		getitem 7291,1;
-		goto L_Loop;
-	L20:
-		getitem 7292,1;
-		goto L_Loop;
-	L21:
-		getitem 7293,1;
-		goto L_Loop;
-	L22:
-		getitem 7294,1;
-		goto L_Loop;
-	L23:
-		getitem 7295,1;
-		goto L_Loop;
-	L24:
-		getitem 7296,1;
-		goto L_Loop;
-	L25:
-		getitem 7297,1;
-		goto L_Loop;
+
 }

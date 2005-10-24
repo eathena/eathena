@@ -6,7 +6,7 @@
 //===== Description: =========================================
 //============================================================
 
-function	script	F_Zealmask	{
+function	script	F_ZealMask	{
 	mes "[Celia]";
 	if (countitem(660)>0) goto Step2;
 	mes "You want WHAT?";
@@ -15,7 +15,7 @@ function	script	F_Zealmask	{
 	close;
 
 Step2:
-	if (countitem(7262)>0) goto Step3;
+	if (countitem(7263)>0) goto Step3;
 	mes "Hmm, I see you found me that candle. Maybe you're not completely worthless.";
 	mes " ";
 	mes "Bring me a ^00A000Cat's-Eye^000000 and maybe we can do business.";
@@ -32,7 +32,7 @@ Finish:
 	mes "You actually found everything. I am impressed.";
 	next;
 	delitem 660,1;
-	delitem 7262,1;
+	delitem 7263,1;
 	delitem 7099,30;
 	delitem 7315,369;
 	getitem 5121,1;
