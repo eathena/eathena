@@ -289,7 +289,6 @@ int petskill_use(struct pet_data *pd, struct block_list *target, short skill_id,
 		dat->x = target->x;
 		dat->y = target->y;
 
-		pd->state.state=MS_ATTACK;
 		pd->state.casting_flag = 1;
 		if (skill_get_inf(skill_id) & INF_GROUND_SKILL)
 			clif_skillcasting( &pd->bl, pd->bl.id, 0, dat->x, dat->y, skill_id,casttime);
@@ -311,7 +310,6 @@ static int petskill_castend(struct pet_data *pd,unsigned int tick,int data)
 {
 	struct castend_delay *dat = (struct castend_delay *)data;
 	struct block_list *target = map_id2bl(dat->target);
-	pd->state.state = MS_IDLE;
 	pd->state.casting_flag = 0;
 	if (dat && pd == dat->src)
 		petskill_castend2(pd, target, dat->id, dat->lv, dat->x, dat->y, tick);
@@ -366,9 +364,11 @@ static int petskill_castend2(struct pet_data *pd, struct block_list *target, sho
 	if (delaytime < MIN_PETTHINKTIME)
 		delaytime = status_get_adelay(&pd->bl);
 	pd->attackabletime = tick + delaytime; 
-	if (pd->target_id) //Resume attacking
+	if (pd->target_id)
+	{	//Resume attacking
 		pd->state.state=MS_ATTACK;
-	pd->timer=add_timer(pd->attackabletime,pet_timer,pd->bl.id,0);
+		pd->timer=add_timer(pd->attackabletime,pet_timer,pd->bl.id,0);
+	}
 
 	return 0;
 }

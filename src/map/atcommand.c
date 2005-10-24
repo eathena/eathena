@@ -5609,16 +5609,16 @@ int atcommand_char_mount_peco(
 
 	if ((pl_sd = map_nick2sd(atcmd_player_name)) != NULL) {
 
-		if (!pc_isriding(sd)) { // if actually no peco
-			if (pc_checkskill(sd, KN_RIDING)) {
-				pc_setoption(sd, sd->status.option | 0x0020);
+		if (!pc_isriding(pl_sd)) { // if actually no peco
+			if (pc_checkskill(pl_sd, KN_RIDING)) {
+				pc_setoption(pl_sd, pl_sd->status.option | 0x0020);
 				clif_displaymessage(fd, msg_table[216]); // Mounted Peco.
 			} else {
 				clif_displaymessage(fd, msg_table[217]); // You can not mount a peco with your job.
 				return -1;
 			}
 		} else {	//Dismount
-			pc_setoption(sd, sd->status.option & ~0x0020);
+			pc_setoption(pl_sd, pl_sd->status.option & ~0x0020);
 			clif_displaymessage(fd, msg_table[218]); // Unmounted Peco.
 		}
 	} else {
