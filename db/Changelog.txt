@@ -34,6 +34,9 @@
 	--
 
 10/24
+	* Added inf 32 (can target traps) to Arrow Shower and Heaven's Drive. I
+	  hope it doesn't messes up the client... but this is how it should be since
+	  those skills CAN hit traps [Skotlex]
 	* Fixed Poison Toad Card - Now equips on Accessory [Kayla]
 	* Changed Investigate's range to 2. [Skotlex]
 	* Added GrimTooth to skill_cast_db, time2 is the duration of the stop

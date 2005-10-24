@@ -135,6 +135,28 @@ static int battle_gettargeted_sub(struct block_list *bl, va_list ap)
 	return 0;
 }
 
+int battle_getcurrentskill(struct block_list *bl)
+{	//Returns the current/last skill in use by this bl.
+	switch (bl->type)
+	{
+		case BL_PC:
+			return ((struct map_session_data*)bl)->skillid;
+		case BL_MOB:
+			return ((struct mob_data*)bl)->skillid;
+		case BL_PET:
+			return 0; //Skill data is not stored for pets...
+			break;
+		case BL_SKILL:
+			{
+				struct skill_unit * su = (struct skill_unit*)bl;
+				if (su->group)
+					return su->group->skill_id;
+			}
+			break;
+	}
+	return 0;
+}
+
 //Returns the id of the current targetted character of the passed bl. [Skotlex]
 int battle_gettarget(struct block_list *bl)
 {
@@ -2563,231 +2585,212 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 	struct status_change *sc_data, *tsc_data;
 	int race, ele, damage, rdamage = 0;
 	struct Damage wd;
-	short *opt1;
 
 	nullpo_retr(0, src);
 	nullpo_retr(0, target);
 
 	if (src->prev == NULL || target->prev == NULL)
 		return 0;
+	
 	if(src->type == BL_PC)
 		sd = (struct map_session_data *)src;
-	if (sd && pc_isdead(sd))
-		return 0;
 
 	if (target->type == BL_PC)
 		tsd = (struct map_session_data *)target;
-	if (tsd && pc_isdead(tsd))
-		return 0;
-
-	opt1 = status_get_opt1(src);
-	if (opt1 && *opt1 > 0) {
-		battle_stopattack(src);
-		return 0;
-	}
 
 	sc_data = status_get_sc_data(src);
 	tsc_data = status_get_sc_data(target);
 
-	if (sc_data && sc_data[SC_BLADESTOP].timer != -1) {
-		battle_stopattack(src);
-		return 0;
-	}
-	if (battle_check_target(src,target,BCT_ENEMY) <= 0 && !battle_check_range(src,target,0))
-		return 0;	// ?UŒ‚‘Î?ÛŠO
-
 	race = status_get_race(target);
 	ele = status_get_elem_type(target);
-	if (battle_check_target(src,target,BCT_ENEMY) > 0 && battle_check_range(src,target,0)) {
-		// ?UŒ‚‘Î?Û‚Æ‚È‚è‚¤‚é‚Ì‚Å?UŒ‚
-		if(sd && sd->status.weapon == 11) {
-			if(sd->equip_index[10] >= 0) {
-				if(battle_config.arrow_decrement)
-					pc_delitem(sd,sd->equip_index[10],1,0);
-			}
-			else {
-				clif_arrow_fail(sd,0);
-				return 0;
-			}
+
+	if(sd && sd->status.weapon == 11) {
+		if(sd->equip_index[10] >= 0) {
+			if(battle_config.arrow_decrement)
+				pc_delitem(sd,sd->equip_index[10],1,0);
 		}
-
-		//Check for counter attacks that block your attack. [Skotlex]
-		if(tsc_data)
-		{
-			if(tsc_data[SC_AUTOCOUNTER].timer != -1 &&
-				(!sc_data || sc_data[SC_AUTOCOUNTER].timer == -1))
-			{
-				int dir = map_calc_dir(target,src->x,src->y);
-				int t_dir = status_get_dir(target);
-				int dist = distance(src->x,src->y,target->x,target->y);
-				if(dist <= 0 || (!map_check_dir(dir,t_dir) && dist <= status_get_range(target)+1))
-				{
-					int skilllv = tsc_data[SC_AUTOCOUNTER].val1;
-					clif_skillcastcancel(target); //Remove the casting bar. [Skotlex]
-					clif_damage(src, target, tick, status_get_amotion(src), 1, 0, 1, 0, 0); //Display MISS.
-					status_change_end(target,SC_AUTOCOUNTER,-1);
-					skill_attack(BF_WEAPON,target,target,src,KN_AUTOCOUNTER,skilllv,tick,0);
-					return 0;
-				}
-			}
-			if (tsc_data[SC_BLADESTOP_WAIT].timer != -1 && !is_boss(src)) {
-				int skilllv = tsc_data[SC_BLADESTOP_WAIT].val1;
-				int duration = skill_get_time2(MO_BLADESTOP,skilllv);
-				status_change_end(target, SC_BLADESTOP_WAIT, -1);
-				clif_damage(src, target, tick, status_get_amotion(src), 1, 0, 1, 0, 0); //Display MISS.
-				status_change_start(target, SC_BLADESTOP, skilllv, 2, (int)target, (int)src, duration, 0);
-				skilllv = sd?pc_checkskill(sd, MO_BLADESTOP):1;
-				status_change_start(src, SC_BLADESTOP, skilllv, 1, (int)src, (int)target, duration, 0);
-				return 0;
-			}
-
+		else {
+			clif_arrow_fail(sd,0);
+			return 0;
 		}
-		//Recycled the rdamage variable rather than use a new one... [Skotlex]
-		if(sd && (rdamage = pc_checkskill(sd,MO_TRIPLEATTACK)) > 0 && sd->status.weapon <= 16 && rand()%100 < (30 - rdamage)) // triple blow works with bows ^^ [celest]
-			return skill_attack(BF_WEAPON,src,src,target,MO_TRIPLEATTACK,rdamage,tick,0);
-		else if (sc_data && sc_data[SC_SACRIFICE].timer != -1)
-			return skill_attack(BF_WEAPON,src,src,target,PA_SACRIFICE,sc_data[SC_SACRIFICE].val1,tick,0);
-			
-		wd = battle_calc_weapon_attack(src,target, 0, 0,0);
-	
-		if ((damage = wd.damage + wd.damage2) > 0 && src != target) {
-			rdamage = 0;
-			if (wd.flag & BF_SHORT) {
-				if (tsd && tsd->short_weapon_damage_return)
-					rdamage += damage * tsd->short_weapon_damage_return / 100;
-				if (tsc_data && tsc_data[SC_REFLECTSHIELD].timer != -1) {
-					rdamage += damage * tsc_data[SC_REFLECTSHIELD].val2 / 100;
-					if (rdamage < 1) rdamage = 1;
-				}
-			} else if (wd.flag & BF_LONG) {
-				if (tsd && tsd->long_weapon_damage_return)
-					rdamage += damage * tsd->long_weapon_damage_return / 100;
-			}
-			if (rdamage > 0)
-				clif_damage(src, src, tick, wd.amotion, wd.dmotion, rdamage, 1, 4, 0);
-		}
-
-	
-		clif_damage(src, target, tick, wd.amotion, wd.dmotion, wd.damage, wd.div_ , wd.type, wd.damage2);
-		//“ñ“?—¬?¶Žè‚ÆƒJƒ^?[ƒ‹’ÇŒ‚‚Ìƒ~ƒX•\Ž¦(–³—?‚â‚è?`)
-		if(sd && sd->status.weapon >= 16 && wd.damage2 == 0)
-			clif_damage(src, target, tick+10, wd.amotion, wd.dmotion,0, 1, 0, 0);
-
-		if (sd && sd->splash_range > 0 && (wd.damage > 0 || wd.damage2 > 0))
-			skill_castend_damage_id(src, target, 0, -1, tick, 0);
-
-		map_freeblock_lock();
-
-		battle_delay_damage(tick+wd.amotion, src, target, BF_WEAPON, 0, 0, (wd.damage+wd.damage2), wd.dmotion, wd.dmg_lv, 0);
-
-		if (wd.dmg_lv == ATK_DEF || wd.damage > 0 || wd.damage2 > 0) //Added counter effect [Skotlex]
-			skill_counter_additional_effect(src, target, 0, 0, BF_WEAPON, tick);
-		if (!status_isdead(target) && (wd.damage > 0 || wd.damage2 > 0)) {
-			if (sd) {
-				int boss = is_boss(target);
-				int hp = status_get_max_hp(target);
-				if (!boss && sd->weapon_coma_ele[ele] > 0 && rand()%10000 < sd->weapon_coma_ele[ele])
-					battle_damage(src, target, hp, 1, 1);
-				if (!boss && sd->weapon_coma_race[race] > 0 && rand()%10000 < sd->weapon_coma_race[race])
-					battle_damage(src, target, hp, 1, 1);
-				if(sd->weapon_coma_race[boss?10:11] > 0 && rand()%10000 < sd->weapon_coma_race[boss?10:11])
-					battle_damage(src, target, hp, 1, 1);
-			}
-		}
-
-		if (sc_data && sc_data[SC_AUTOSPELL].timer != -1 && rand()%100 < sc_data[SC_AUTOSPELL].val4) {
-			int sp = 0, f = 0;
-			int skillid = sc_data[SC_AUTOSPELL].val2;
-			int skilllv = sc_data[SC_AUTOSPELL].val3;
-
-			int i = rand()%100;
-			if (i >= 50) skilllv -= 2;
-			else if (i >= 15) skilllv--;
-			if (skilllv < 1) skilllv = 1;
-
-			if (sd) sp = skill_get_sp(skillid,skilllv) * 2 / 3;
-
-			if ((sd && sd->status.sp >= sp) || !sd) {
-				if (skill_get_inf(skillid) & INF_GROUND_SKILL)
-					f = skill_castend_pos2(src, target->x, target->y, skillid, skilllv, tick, flag);
-				else {
-					switch(skill_get_nk(skillid)) {
-						case NK_NO_DAMAGE:/* Žx‰‡Œn */
-							if((skillid == AL_HEAL || (skillid == ALL_RESURRECTION && !tsd)) && battle_check_undead(race,ele))
-								f = skill_castend_damage_id(src, target, skillid, skilllv, tick, flag);
-							else
-								f = skill_castend_nodamage_id(src, target, skillid, skilllv, tick, flag);
-							break;
-						case NK_SPLASH_DAMAGE:
-						default:
-							f = skill_castend_damage_id(src, target, skillid, skilllv, tick, flag);
-							break;
-					}
-				}
-				if (sd && !f) { pc_heal(sd, 0, -sp); }
-			}
-		}
-		if (sd) {
-			if (wd.flag & BF_WEAPON && src != target && (wd.damage > 0 || wd.damage2 > 0)) {
-				int hp = 0, sp = 0;
-				if (!battle_config.left_cardfix_to_right) { // “ñ“?—¬?¶ŽèƒJ?[ƒh‚Ì‹zŽûŒnŒø‰Ê‚ð‰EŽè‚É’Ç‰Á‚µ‚È‚¢?ê?‡
-					hp += battle_calc_drain(wd.damage, sd->right_weapon.hp_drain_rate, sd->right_weapon.hp_drain_per, sd->right_weapon.hp_drain_value);
-					hp += battle_calc_drain(wd.damage2, sd->left_weapon.hp_drain_rate, sd->left_weapon.hp_drain_per, sd->left_weapon.hp_drain_value);
-					sp += battle_calc_drain(wd.damage, sd->right_weapon.sp_drain_rate, sd->right_weapon.sp_drain_per, sd->right_weapon.sp_drain_value);
-					sp += battle_calc_drain(wd.damage2, sd->left_weapon.sp_drain_rate, sd->left_weapon.sp_drain_per, sd->left_weapon.sp_drain_value);
-				} else { // “ñ“?—¬?¶ŽèƒJ?[ƒh‚Ì‹zŽûŒnŒø‰Ê‚ð‰EŽè‚É’Ç‰Á‚·‚é?ê?‡
-					int hp_drain_rate = sd->right_weapon.hp_drain_rate + sd->left_weapon.hp_drain_rate;
-					int hp_drain_per = sd->right_weapon.hp_drain_per + sd->left_weapon.hp_drain_per;
-					int hp_drain_value = sd->right_weapon.hp_drain_value + sd->left_weapon.hp_drain_value;
-					int sp_drain_rate = sd->right_weapon.sp_drain_rate + sd->left_weapon.sp_drain_rate;
-					int sp_drain_per = sd->right_weapon.sp_drain_per + sd->left_weapon.sp_drain_per;
-					int sp_drain_value = sd->right_weapon.sp_drain_value + sd->left_weapon.sp_drain_value;
-					hp += battle_calc_drain(wd.damage, hp_drain_rate, hp_drain_per, hp_drain_value);
-					sp += battle_calc_drain(wd.damage, sp_drain_rate, sp_drain_per, sp_drain_value);
-				}
-				if (hp && hp + sd->status.hp > sd->status.max_hp)
-					hp = sd->status.max_hp - sd->status.hp;
-				if (sp && sp + sd->status.sp > sd->status.max_sp)
-					sp = sd->status.max_sp - sd->status.sp;
-				
-				if (hp || sp)
-					pc_heal(sd, hp, sp);
-
-				if (battle_config.show_hp_sp_drain)
-				{	//Display gained values [Skotlex]
-					if (hp)
-						clif_heal(sd->fd, SP_HP, hp);
-					if (sp)
-						clif_heal(sd->fd, SP_SP, sp);
-				}
-
-				if (tsd && sd->sp_drain_type)
-					pc_heal(tsd, 0, -sp);
-			}
-		}
-		if (rdamage > 0) //By sending attack type "none" skill_additional_effect won't be invoked. [Skotlex]
-			battle_delay_damage(tick+wd.amotion, target, src, 0, 0, 0, rdamage, 0, ATK_DEF, 0);
-
-		if (tsc_data) {
-			if (tsc_data && tsc_data[SC_POISONREACT].timer != -1 && 
-				distance(src->x,src->y,target->x,target->y) <= status_get_range(target)+1)
-			{	//Poison React
-				if (status_get_elem_type(src) == 5) {
-					tsc_data[SC_POISONREACT].val2 = 0;
-					skill_attack(BF_WEAPON,target,target,src,AS_POISONREACT,sc_data[SC_POISONREACT].val1,tick,0);
-				} else {
-					skill_attack(BF_WEAPON,target,target,src,TF_POISON, 5, tick, flag);
-					--tsc_data[SC_POISONREACT].val2;
-				}
-				if (tsc_data[SC_POISONREACT].val2 <= 0)
-					status_change_end(target, SC_POISONREACT, -1);
-			}
-			if (tsc_data[SC_SPLASHER].timer != -1)	//‰£‚Á‚½‚Ì‚Å‘Î?Û‚Ìƒxƒiƒ€ƒXƒvƒ‰ƒbƒVƒƒ?[?ó‘Ô‚ð‰ð?œ
-				status_change_end(target, SC_SPLASHER, -1);
-		}
-
-		map_freeblock_unlock();
 	}
+
+	//Check for counter attacks that block your attack. [Skotlex]
+	if(tsc_data)
+	{
+		if(tsc_data[SC_AUTOCOUNTER].timer != -1 &&
+			(!sc_data || sc_data[SC_AUTOCOUNTER].timer == -1))
+		{
+			int dir = map_calc_dir(target,src->x,src->y);
+			int t_dir = status_get_dir(target);
+			int dist = distance(src->x,src->y,target->x,target->y);
+			if(dist <= 0 || (!map_check_dir(dir,t_dir) && dist <= status_get_range(target)+1))
+			{
+				int skilllv = tsc_data[SC_AUTOCOUNTER].val1;
+				clif_skillcastcancel(target); //Remove the casting bar. [Skotlex]
+				clif_damage(src, target, tick, status_get_amotion(src), 1, 0, 1, 0, 0); //Display MISS.
+				status_change_end(target,SC_AUTOCOUNTER,-1);
+				skill_attack(BF_WEAPON,target,target,src,KN_AUTOCOUNTER,skilllv,tick,0);
+				return 0;
+			}
+		}
+		if (tsc_data[SC_BLADESTOP_WAIT].timer != -1 && !is_boss(src)) {
+			int skilllv = tsc_data[SC_BLADESTOP_WAIT].val1;
+			int duration = skill_get_time2(MO_BLADESTOP,skilllv);
+			status_change_end(target, SC_BLADESTOP_WAIT, -1);
+			clif_damage(src, target, tick, status_get_amotion(src), 1, 0, 1, 0, 0); //Display MISS.
+			status_change_start(target, SC_BLADESTOP, skilllv, 2, (int)target, (int)src, duration, 0);
+			skilllv = sd?pc_checkskill(sd, MO_BLADESTOP):1;
+			status_change_start(src, SC_BLADESTOP, skilllv, 1, (int)src, (int)target, duration, 0);
+			return 0;
+		}
+
+	}
+	//Recycled the rdamage variable rather than use a new one... [Skotlex]
+	if(sd && (rdamage = pc_checkskill(sd,MO_TRIPLEATTACK)) > 0 && sd->status.weapon <= 16 && rand()%100 < (30 - rdamage)) // triple blow works with bows ^^ [celest]
+		return skill_attack(BF_WEAPON,src,src,target,MO_TRIPLEATTACK,rdamage,tick,0);
+	else if (sc_data && sc_data[SC_SACRIFICE].timer != -1)
+		return skill_attack(BF_WEAPON,src,src,target,PA_SACRIFICE,sc_data[SC_SACRIFICE].val1,tick,0);
+			
+	wd = battle_calc_weapon_attack(src,target, 0, 0,0);
+	
+	if ((damage = wd.damage + wd.damage2) > 0 && src != target) {
+		rdamage = 0;
+		if (wd.flag & BF_SHORT) {
+			if (tsd && tsd->short_weapon_damage_return)
+				rdamage += damage * tsd->short_weapon_damage_return / 100;
+			if (tsc_data && tsc_data[SC_REFLECTSHIELD].timer != -1) {
+				rdamage += damage * tsc_data[SC_REFLECTSHIELD].val2 / 100;
+				if (rdamage < 1) rdamage = 1;
+			}
+		} else if (wd.flag & BF_LONG) {
+			if (tsd && tsd->long_weapon_damage_return)
+				rdamage += damage * tsd->long_weapon_damage_return / 100;
+		}
+		if (rdamage > 0)
+			clif_damage(src, src, tick, wd.amotion, wd.dmotion, rdamage, 1, 4, 0);
+	}
+
+
+	clif_damage(src, target, tick, wd.amotion, wd.dmotion, wd.damage, wd.div_ , wd.type, wd.damage2);
+	//“ñ“?—¬?¶Žè‚ÆƒJƒ^?[ƒ‹’ÇŒ‚‚Ìƒ~ƒX•\Ž¦(–³—?‚â‚è?`)
+	if(sd && sd->status.weapon >= 16 && wd.damage2 == 0)
+		clif_damage(src, target, tick+10, wd.amotion, wd.dmotion,0, 1, 0, 0);
+
+	if (sd && sd->splash_range > 0 && (wd.damage > 0 || wd.damage2 > 0))
+		skill_castend_damage_id(src, target, 0, -1, tick, 0);
+
+	map_freeblock_lock();
+
+	battle_delay_damage(tick+wd.amotion, src, target, BF_WEAPON, 0, 0, (wd.damage+wd.damage2), wd.dmotion, wd.dmg_lv, 0);
+
+	if (wd.dmg_lv == ATK_DEF || wd.damage > 0 || wd.damage2 > 0) //Added counter effect [Skotlex]
+		skill_counter_additional_effect(src, target, 0, 0, BF_WEAPON, tick);
+	if (!status_isdead(target) && (wd.damage > 0 || wd.damage2 > 0)) {
+		if (sd) {
+			int boss = is_boss(target);
+			int hp = status_get_max_hp(target);
+			if (!boss && sd->weapon_coma_ele[ele] > 0 && rand()%10000 < sd->weapon_coma_ele[ele])
+				battle_damage(src, target, hp, 1, 1);
+			if (!boss && sd->weapon_coma_race[race] > 0 && rand()%10000 < sd->weapon_coma_race[race])
+				battle_damage(src, target, hp, 1, 1);
+			if(sd->weapon_coma_race[boss?10:11] > 0 && rand()%10000 < sd->weapon_coma_race[boss?10:11])
+				battle_damage(src, target, hp, 1, 1);
+		}
+	}
+
+	if (sc_data && sc_data[SC_AUTOSPELL].timer != -1 && rand()%100 < sc_data[SC_AUTOSPELL].val4) {
+		int sp = 0, f = 0;
+		int skillid = sc_data[SC_AUTOSPELL].val2;
+		int skilllv = sc_data[SC_AUTOSPELL].val3;
+
+		int i = rand()%100;
+		if (i >= 50) skilllv -= 2;
+		else if (i >= 15) skilllv--;
+		if (skilllv < 1) skilllv = 1;
+
+		if (sd) sp = skill_get_sp(skillid,skilllv) * 2 / 3;
+
+		if ((sd && sd->status.sp >= sp) || !sd) {
+			if (skill_get_inf(skillid) & INF_GROUND_SKILL)
+				f = skill_castend_pos2(src, target->x, target->y, skillid, skilllv, tick, flag);
+			else {
+				switch(skill_get_nk(skillid)) {
+					case NK_NO_DAMAGE:/* Žx‰‡Œn */
+						if((skillid == AL_HEAL || (skillid == ALL_RESURRECTION && !tsd)) && battle_check_undead(race,ele))
+							f = skill_castend_damage_id(src, target, skillid, skilllv, tick, flag);
+						else
+							f = skill_castend_nodamage_id(src, target, skillid, skilllv, tick, flag);
+						break;
+					case NK_SPLASH_DAMAGE:
+					default:
+						f = skill_castend_damage_id(src, target, skillid, skilllv, tick, flag);
+						break;
+				}
+			}
+			if (sd && !f) { pc_heal(sd, 0, -sp); }
+		}
+	}
+	if (sd) {
+		if (wd.flag & BF_WEAPON && src != target && (wd.damage > 0 || wd.damage2 > 0)) {
+			int hp = 0, sp = 0;
+			if (!battle_config.left_cardfix_to_right) { // “ñ“?—¬?¶ŽèƒJ?[ƒh‚Ì‹zŽûŒnŒø‰Ê‚ð‰EŽè‚É’Ç‰Á‚µ‚È‚¢?ê?‡
+				hp += battle_calc_drain(wd.damage, sd->right_weapon.hp_drain_rate, sd->right_weapon.hp_drain_per, sd->right_weapon.hp_drain_value);
+				hp += battle_calc_drain(wd.damage2, sd->left_weapon.hp_drain_rate, sd->left_weapon.hp_drain_per, sd->left_weapon.hp_drain_value);
+				sp += battle_calc_drain(wd.damage, sd->right_weapon.sp_drain_rate, sd->right_weapon.sp_drain_per, sd->right_weapon.sp_drain_value);
+				sp += battle_calc_drain(wd.damage2, sd->left_weapon.sp_drain_rate, sd->left_weapon.sp_drain_per, sd->left_weapon.sp_drain_value);
+			} else { // “ñ“?—¬?¶ŽèƒJ?[ƒh‚Ì‹zŽûŒnŒø‰Ê‚ð‰EŽè‚É’Ç‰Á‚·‚é?ê?‡
+				int hp_drain_rate = sd->right_weapon.hp_drain_rate + sd->left_weapon.hp_drain_rate;
+				int hp_drain_per = sd->right_weapon.hp_drain_per + sd->left_weapon.hp_drain_per;
+				int hp_drain_value = sd->right_weapon.hp_drain_value + sd->left_weapon.hp_drain_value;
+				int sp_drain_rate = sd->right_weapon.sp_drain_rate + sd->left_weapon.sp_drain_rate;
+				int sp_drain_per = sd->right_weapon.sp_drain_per + sd->left_weapon.sp_drain_per;
+				int sp_drain_value = sd->right_weapon.sp_drain_value + sd->left_weapon.sp_drain_value;
+				hp += battle_calc_drain(wd.damage, hp_drain_rate, hp_drain_per, hp_drain_value);
+				sp += battle_calc_drain(wd.damage, sp_drain_rate, sp_drain_per, sp_drain_value);
+			}
+			if (hp && hp + sd->status.hp > sd->status.max_hp)
+				hp = sd->status.max_hp - sd->status.hp;
+			if (sp && sp + sd->status.sp > sd->status.max_sp)
+				sp = sd->status.max_sp - sd->status.sp;
+			
+			if (hp || sp)
+				pc_heal(sd, hp, sp);
+
+			if (battle_config.show_hp_sp_drain)
+			{	//Display gained values [Skotlex]
+				if (hp)
+					clif_heal(sd->fd, SP_HP, hp);
+				if (sp)
+					clif_heal(sd->fd, SP_SP, sp);
+			}
+
+			if (tsd && sd->sp_drain_type)
+				pc_heal(tsd, 0, -sp);
+		}
+	}
+	if (rdamage > 0) //By sending attack type "none" skill_additional_effect won't be invoked. [Skotlex]
+		battle_delay_damage(tick+wd.amotion, target, src, 0, 0, 0, rdamage, 0, ATK_DEF, 0);
+
+	if (tsc_data) {
+		if (tsc_data && tsc_data[SC_POISONREACT].timer != -1 && 
+			distance(src->x,src->y,target->x,target->y) <= status_get_range(target)+1)
+		{	//Poison React
+			if (status_get_elem_type(src) == 5) {
+				tsc_data[SC_POISONREACT].val2 = 0;
+				skill_attack(BF_WEAPON,target,target,src,AS_POISONREACT,sc_data[SC_POISONREACT].val1,tick,0);
+			} else {
+				skill_attack(BF_WEAPON,target,target,src,TF_POISON, 5, tick, flag);
+				--tsc_data[SC_POISONREACT].val2;
+			}
+			if (tsc_data[SC_POISONREACT].val2 <= 0)
+				status_change_end(target, SC_POISONREACT, -1);
+		}
+		if (tsc_data[SC_SPLASHER].timer != -1)	//‰£‚Á‚½‚Ì‚Å‘Î?Û‚Ìƒxƒiƒ€ƒXƒvƒ‰ƒbƒVƒƒ?[?ó‘Ô‚ð‰ð?œ
+			status_change_end(target, SC_SPLASHER, -1);
+	}
+
+	map_freeblock_unlock();
 	return wd.dmg_lv;
 }
 
@@ -2842,15 +2845,11 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 		if (!su || !su->group)
 			return 0;
 		if (skill_get_inf2(su->group->skill_id)&INF2_TRAP)
-		{	//Anyone can target traps... except skills
-			if (src->type == BL_SKILL)
-			{	//Check for Heaven's Drive, which is the only skill that can hit traps.
-				struct skill_unit *ssu = (struct skill_unit *)src;
-				if (!(ssu->group && ssu->group->skill_id == WZ_HEAVENDRIVE))
-					return 0;
-			}
-			state |= BCT_ENEMY;
-			strip_enemy = 0;
+		{	//Only a few skills can target traps...
+			if (skill_get_inf(battle_getcurrentskill(src))&INF_TARGET_TRAP)
+				return 1;
+			else
+				return 0;
 		} else if (su->group->skill_id==WZ_ICEWALL)
 		{	//Icewall can be hit by anything except skills.
 			if (src->type == BL_SKILL)

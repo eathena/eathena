@@ -1,6 +1,10 @@
 Date	Added
 ==========
 2005/10/24
+	* Updated battle_check_target to enable only skills with inf 32 (can target
+	  traps) to hit traps. Implementation may not be perfect depending on how
+	  the client reacts to the associated skill_db change. [Skotlex]
+	* Cleaned up battle_weapon_attack. [Skotlex]
 	* Some optimizations to the struct mob_data. [Skotlex]
 	* Applied Ipalazzo-sama/zzo's memory optimization patches. [Skotlex]
 	* Fixed some quests and updated item_db. [Kayla]
