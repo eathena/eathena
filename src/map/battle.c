@@ -2848,7 +2848,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 				case HT_REMOVETRAP:
 				case AC_SHOWER:
 				case WZ_HEAVENDRIVE:
-					state != BCT_ENEMY;
+					state |= BCT_ENEMY;
 					strip_enemy = 0;
 					break;
 				default:

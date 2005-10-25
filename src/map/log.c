@@ -111,8 +111,8 @@ int log_pick(struct map_session_data *sd, char *type, int mob_id, int nameid, in
 
 	//either PLAYER or MOB (here we get map name and objects ID)
 	if(mob_id) {
-		obj_id = mob_id;
 		struct mob_data *md = (struct mob_data*)sd;
+		obj_id = mob_id;
 		mapname = map[md->m].name;
 	} else {
 		obj_id = sd->char_id;

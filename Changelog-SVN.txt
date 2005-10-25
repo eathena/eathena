@@ -1,5 +1,8 @@
 Date	Added
 ==========
+2005/10/25
+	* Some code cleanup to make eA ANSI-C complaint (not quite there, but
+	  closer) [Skotlex]
 2005/10/24
 	* Applied Ilpalazzo-sama/zzo's patch that optimizes the status_get_*
 	  functions. [Skotlex]

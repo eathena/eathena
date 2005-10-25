@@ -1214,10 +1214,10 @@ char * job_name(int class_) {
 static int create_online_files_sub(void* key, void* data, va_list va)
 {
 	struct online_char_data *character;
-	character = (struct online_char_data*) data;
 	int* players;
 	int *id;
 	int j,k,l;
+	character = (struct online_char_data*) data;
 	players = va_arg(va, int*);
 	id = va_arg(va, int*);
 	
@@ -1526,7 +1526,6 @@ int count_users(void) {
 	return users;
 }
 
-#define NEW_006b
 //----------------------------------------
 // Function to send characters to a player
 //----------------------------------------

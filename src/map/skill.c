@@ -1626,7 +1626,10 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		struct pet_data *pd = (struct pet_data *)src;
 		if (pd->a_skill && pd->a_skill->div_ && pd->a_skill->id == skillid)
 		{
-			dmg.damage=battle_attr_fix(src, bl, skilllv, skill_get_pl(skillid), status_get_element(bl) );
+			int element = skill_get_pl(skillid);
+			if (skillid == -1)
+				element = status_get_attack_element(src);
+			dmg.damage=battle_attr_fix(src, bl, skilllv, element, status_get_element(bl));
 			dmg.damage2=0;
 			dmg.div_= pd->a_skill->div_;
 		}
