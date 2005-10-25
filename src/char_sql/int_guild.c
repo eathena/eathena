@@ -1784,7 +1784,7 @@ int mapif_parse_GuildMasterChange(int fd, int guild_id, const char* name, int le
 	if(g==NULL || g->guild_id<=0 || len > NAME_LENGTH)
 		return 0;
 	
-	for (pos = 0; pos < g->max_member && strcmp(g->member[pos].name, name); pos++);
+	for (pos = 0; pos < g->max_member && strncmp(g->member[pos].name, name, len); pos++);
 
 	if (pos == g->max_member)
 		return 0; //Character not found??
@@ -1795,9 +1795,11 @@ int mapif_parse_GuildMasterChange(int fd, int guild_id, const char* name, int le
 
 	g->member[pos].position = g->member[0].position;
 	g->member[0].position = 0; //Position 0: guild Master.
-	strcpy(g->master, name);
+	strncpy(g->master, name, len);
+	if (len < NAME_LENGTH)
+		g->master[len] = '\0';
 
-	ShowInfo("int_guild: Guildmaster Changed to %s (Guild %d - %s)\n",name, guild_id, g->name);
+	ShowInfo("int_guild: Guildmaster Changed to %s (Guild %d - %s)\n",g->master, guild_id, g->name);
 	add_guild_save_timer(g,5); //Save main data and member data.
 	return mapif_guild_master_changed(g, pos);
 }

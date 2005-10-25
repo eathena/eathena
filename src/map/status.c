@@ -2199,14 +2199,13 @@ int status_quick_recalc_speed(struct map_session_data *sd, int skill_num, int sk
 int status_get_class(struct block_list *bl)
 {
 	nullpo_retr(0, bl);
-	if(bl->type==BL_MOB && (struct mob_data *)bl)
+	if(bl->type==BL_MOB)
 		return ((struct mob_data *)bl)->class_;
-	else if(bl->type==BL_PC && (struct map_session_data *)bl)
+	if(bl->type==BL_PC)
 		return ((struct map_session_data *)bl)->status.class_;
-	else if(bl->type==BL_PET && (struct pet_data *)bl)
+	if(bl->type==BL_PET)
 		return ((struct pet_data *)bl)->class_;
-	else
-		return 0;
+	return 0;
 }
 /*==========================================
  * 対象の方向を返す(汎用)
@@ -2216,14 +2215,13 @@ int status_get_class(struct block_list *bl)
 int status_get_dir(struct block_list *bl)
 {
 	nullpo_retr(0, bl);
-	if(bl->type==BL_MOB && (struct mob_data *)bl)
+	if(bl->type==BL_MOB)
 		return ((struct mob_data *)bl)->dir;
-	else if(bl->type==BL_PC && (struct map_session_data *)bl)
+	if(bl->type==BL_PC)
 		return ((struct map_session_data *)bl)->dir;
-	else if(bl->type==BL_PET && (struct pet_data *)bl)
+	if(bl->type==BL_PET)
 		return ((struct pet_data *)bl)->dir;
-	else
-		return 0;
+	return 0;
 }
 /*==========================================
  * 対象のレベルを返す(汎用)
@@ -2233,14 +2231,13 @@ int status_get_dir(struct block_list *bl)
 int status_get_lv(struct block_list *bl)
 {
 	nullpo_retr(0, bl);
-	if(bl->type==BL_MOB && (struct mob_data *)bl)
+	if(bl->type==BL_MOB)
 		return ((struct mob_data *)bl)->level;
-	else if(bl->type==BL_PC && (struct map_session_data *)bl)
+	if(bl->type==BL_PC)
 		return ((struct map_session_data *)bl)->status.base_level;
-	else if(bl->type==BL_PET && (struct pet_data *)bl)
+	if(bl->type==BL_PET)
 		return ((struct pet_data *)bl)->msd->pet.level;
-	else
-		return 0;
+	return 0;
 }
 
 /*==========================================
@@ -2251,14 +2248,13 @@ int status_get_lv(struct block_list *bl)
 int status_get_range(struct block_list *bl)
 {
 	nullpo_retr(0, bl);
-	if(bl->type==BL_MOB && (struct mob_data *)bl)
+	if(bl->type==BL_MOB)
 		return ((struct mob_data *)bl)->db->range;
-	else if(bl->type==BL_PC && (struct map_session_data *)bl)
+	if(bl->type==BL_PC)
 		return ((struct map_session_data *)bl)->attackrange;
-	else if(bl->type==BL_PET && (struct pet_data *)bl)
+	if(bl->type==BL_PET)
 		return ((struct pet_data *)bl)->db->range;
-	else
-		return 0;
+	return 0;
 }
 /*==========================================
  * 対象のHPを返す(汎用)
@@ -2268,12 +2264,11 @@ int status_get_range(struct block_list *bl)
 int status_get_hp(struct block_list *bl)
 {
 	nullpo_retr(1, bl);
-	if(bl->type==BL_MOB && (struct mob_data *)bl)
+	if(bl->type==BL_MOB)
 		return ((struct mob_data *)bl)->hp;
-	else if(bl->type==BL_PC && (struct map_session_data *)bl)
+	if(bl->type==BL_PC)
 		return ((struct map_session_data *)bl)->status.hp;
-	else
-		return 1;
+	return 1;
 }
 /*==========================================
  * 対象のMHPを返す(汎用)
@@ -2284,7 +2279,7 @@ int status_get_max_hp(struct block_list *bl)
 {
 	nullpo_retr(1, bl);
 
-	if(bl->type==BL_PC && ((struct map_session_data *)bl))
+	if(bl->type==BL_PC)
 		return ((struct map_session_data *)bl)->status.max_hp;
 	else {
 		int max_hp = 1;
@@ -2319,10 +2314,10 @@ int status_get_str(struct block_list *bl)
 	int str = 0;
 	nullpo_retr(0, bl);
 
-	if (bl->type == BL_PC && ((struct map_session_data *)bl))
+	if (bl->type == BL_PC)
 		return ((struct map_session_data *)bl)->paramc[0];
 	else {
-		if(bl->type == BL_MOB && ((struct mob_data *)bl)) {
+		if(bl->type == BL_MOB) {
 			str = ((struct mob_data *)bl)->db->str;
 			if(battle_config.mobs_level_up) // mobs leveling up increase [Valaris]
 				str += ((struct mob_data *)bl)->level - ((struct mob_data *)bl)->db->lv;
@@ -2330,7 +2325,7 @@ int status_get_str(struct block_list *bl)
 				str/=2;
 			else if(((struct mob_data*)bl)->special_state.size==2)
 				str*=2;
-		} else if(bl->type == BL_PET && ((struct pet_data *)bl)){	//<Skotlex> Use pet's stats
+		} else if(bl->type == BL_PET){	//<Skotlex> Use pet's stats
 			if (battle_config.pet_lv_rate && ((struct pet_data *)bl)->status)
 				str = ((struct pet_data *)bl)->status->str;
 			else
@@ -2353,10 +2348,10 @@ int status_get_agi(struct block_list *bl)
 	int agi=0;
 	nullpo_retr(0, bl);
 
-	if(bl->type==BL_PC && (struct map_session_data *)bl)
+	if(bl->type==BL_PC)
 		return ((struct map_session_data *)bl)->paramc[1];
 	else {
-		if(bl->type == BL_MOB && (struct mob_data *)bl) {
+		if(bl->type == BL_MOB) {
 			agi = ((struct mob_data *)bl)->db->agi;
 			if(battle_config.mobs_level_up) // increase of mobs leveling up [Valaris]
 				agi += ((struct mob_data *)bl)->level - ((struct mob_data *)bl)->db->lv;
@@ -2364,7 +2359,7 @@ int status_get_agi(struct block_list *bl)
 				agi/=2;
 			else if(((struct mob_data*)bl)->special_state.size==2)
 				agi*=2;
-		} else if(bl->type == BL_PET && (struct pet_data *)bl) {	//<Skotlex> Use pet's stats
+		} else if(bl->type == BL_PET) {	//<Skotlex> Use pet's stats
 			if (battle_config.pet_lv_rate && ((struct pet_data *)bl)->status)
 				agi = ((struct pet_data *)bl)->status->agi;
 			else
@@ -2386,10 +2381,10 @@ int status_get_vit(struct block_list *bl)
 	int vit = 0;
 	nullpo_retr(0, bl);
 
-	if(bl->type == BL_PC && (struct map_session_data *)bl)
+	if(bl->type == BL_PC)
 		return ((struct map_session_data *)bl)->paramc[2];
 	else {
-		if(bl->type == BL_MOB && (struct mob_data *)bl) {
+		if(bl->type == BL_MOB) {
 			vit = ((struct mob_data *)bl)->db->vit;
 			if(battle_config.mobs_level_up) // increase from mobs leveling up [Valaris]
 				vit += ((struct mob_data *)bl)->level - ((struct mob_data *)bl)->db->lv;
@@ -2397,7 +2392,7 @@ int status_get_vit(struct block_list *bl)
 				vit/=2;
 			else if(((struct mob_data*)bl)->special_state.size==2)
 				vit*=2;
-		} else if(bl->type == BL_PET && (struct pet_data *)bl) {	//<Skotlex> Use pet's stats
+		} else if(bl->type == BL_PET) {	//<Skotlex> Use pet's stats
 			if (battle_config.pet_lv_rate && ((struct pet_data *)bl)->status)
 				vit = ((struct pet_data *)bl)->status->vit;
 			else
@@ -2419,10 +2414,10 @@ int status_get_int(struct block_list *bl)
 	int int_=0;
 	nullpo_retr(0, bl);
 
-	if(bl->type == BL_PC && (struct map_session_data *)bl)
+	if(bl->type == BL_PC)
 		return ((struct map_session_data *)bl)->paramc[3];
 	else {
-		if(bl->type == BL_MOB && (struct mob_data *)bl){
+		if(bl->type == BL_MOB) {
 			int_ = ((struct mob_data *)bl)->db->int_;
 			if(battle_config.mobs_level_up) // increase from mobs leveling up [Valaris]
 				int_ += ((struct mob_data *)bl)->level - ((struct mob_data *)bl)->db->lv;
@@ -2430,7 +2425,7 @@ int status_get_int(struct block_list *bl)
 				int_/=2;
 			else if(((struct mob_data*)bl)->special_state.size==2)
 				int_*=2;
-		} else if(bl->type == BL_PET && (struct pet_data *)bl) {	//<Skotlex> Use pet's stats
+		} else if(bl->type == BL_PET) {	//<Skotlex> Use pet's stats
 			if (battle_config.pet_lv_rate && ((struct pet_data *)bl)->status)
 				int_ = ((struct pet_data *)bl)->status->int_;
 			else
@@ -2452,10 +2447,10 @@ int status_get_dex(struct block_list *bl)
 	int dex = 0;
 	nullpo_retr(0, bl);
 
-	if(bl->type==BL_PC && (struct map_session_data *)bl)
+	if(bl->type==BL_PC)
 		return ((struct map_session_data *)bl)->paramc[4];
 	else {
-		if(bl->type == BL_MOB && (struct mob_data *)bl) {
+		if(bl->type == BL_MOB) {
 			dex = ((struct mob_data *)bl)->db->dex;
 			if(battle_config.mobs_level_up) // increase from mobs leveling up [Valaris]
 				dex += ((struct mob_data *)bl)->level - ((struct mob_data *)bl)->db->lv;
@@ -2463,7 +2458,7 @@ int status_get_dex(struct block_list *bl)
 				dex/=2;
 			else if(((struct mob_data*)bl)->special_state.size==2)
 				dex*=2;
-		} else if(bl->type == BL_PET && (struct pet_data *)bl) {	//<Skotlex> Use pet's stats
+		} else if(bl->type == BL_PET) {	//<Skotlex> Use pet's stats
 			if (battle_config.pet_lv_rate && ((struct pet_data *)bl)->status)
 				dex = ((struct pet_data *)bl)->status->dex;
 			else
@@ -2485,10 +2480,10 @@ int status_get_luk(struct block_list *bl)
 	int luk = 0;
 	nullpo_retr(0, bl);
 
-	if(bl->type == BL_PC && (struct map_session_data *)bl)
+	if(bl->type == BL_PC)
 		return ((struct map_session_data *)bl)->paramc[5];
 	else {
-		if(bl->type == BL_MOB && (struct mob_data *)bl) {
+		if(bl->type == BL_MOB) {
 			luk = ((struct mob_data *)bl)->db->luk;
 			if(battle_config.mobs_level_up) // increase from mobs leveling up [Valaris]
 				luk += ((struct mob_data *)bl)->level - ((struct mob_data *)bl)->db->lv;
@@ -2496,7 +2491,7 @@ int status_get_luk(struct block_list *bl)
 				luk/=2;
 			else if(((struct mob_data*)bl)->special_state.size==2)
 				luk*=2;
-		} else if(bl->type == BL_PET && (struct pet_data *)bl) {	//<Skotlex> Use pet's stats
+		} else if(bl->type == BL_PET) {	//<Skotlex> Use pet's stats
 			if (battle_config.pet_lv_rate && ((struct pet_data *)bl)->status)
 				luk = ((struct pet_data *)bl)->status->luk;
 			else
@@ -2519,11 +2514,10 @@ int status_get_flee(struct block_list *bl)
 	int flee = 1;
 	nullpo_retr(1, bl);
 
-	if(bl->type == BL_PC && (struct map_session_data *)bl)
+	if(bl->type == BL_PC)
 		return ((struct map_session_data *)bl)->flee;
-	else
-		flee = status_calc_flee(bl,status_get_agi(bl)+status_get_lv(bl));
-
+	
+	flee = status_calc_flee(bl,status_get_agi(bl)+status_get_lv(bl));
 	if(flee < 1) flee = 1;
 	return flee;
 }
@@ -2536,11 +2530,10 @@ int status_get_hit(struct block_list *bl)
 {
 	int hit = 1;
 	nullpo_retr(1, bl);
-	if (bl->type == BL_PC && (struct map_session_data *)bl)
+	if (bl->type == BL_PC)
 		return ((struct map_session_data *)bl)->hit;
-	else
-		hit = status_calc_hit(bl,status_get_dex(bl)+status_get_lv(bl));
-
+	
+	hit = status_calc_hit(bl,status_get_dex(bl)+status_get_lv(bl));
 	if(hit < 1) hit = 1;
 	return hit;
 }
@@ -2554,11 +2547,10 @@ int status_get_flee2(struct block_list *bl)
 	int flee2 = 1;
 	nullpo_retr(1, bl);
 
-	if( bl->type == BL_PC && (struct map_session_data *)bl){
+	if (bl->type == BL_PC) 
 		return ((struct map_session_data *)bl)->flee2;
-	} else
-		flee2 = status_calc_flee2(bl,status_get_luk(bl)+10);
 
+	flee2 = status_calc_flee2(bl,status_get_luk(bl)+10);
 	if (flee2 < 1) flee2 = 1;
 	return flee2;
 }
@@ -2572,11 +2564,10 @@ int status_get_critical(struct block_list *bl)
 	int critical = 1;
 	nullpo_retr(1, bl);
 
-	if (bl->type == BL_PC && (struct map_session_data *)bl)
+	if (bl->type == BL_PC)
 		return ((struct map_session_data *)bl)->critical;
-	else
-		critical = status_calc_critical(bl,status_get_luk(bl)*3+10);
 
+	critical = status_calc_critical(bl,status_get_luk(bl)*3+10);
 	if (critical < 1) critical = 1;
 	return critical;
 }
@@ -2590,7 +2581,7 @@ int status_get_batk(struct block_list *bl)
 	int batk = 1;
 	nullpo_retr(1, bl);
 	
-	if(bl->type==BL_PC && (struct map_session_data *)bl) {
+	if(bl->type==BL_PC) {
 		batk = ((struct map_session_data *)bl)->base_atk;
 		if (((struct map_session_data *)bl)->status.weapon < 16)
 			batk += ((struct map_session_data *)bl)->weapon_atk[((struct map_session_data *)bl)->status.weapon];
@@ -2600,7 +2591,7 @@ int status_get_batk(struct block_list *bl)
 		dstr = str/10;
 		batk = dstr*dstr + str; //base_atkを計算する
 
-		if(bl->type == BL_MOB && (struct mob_data *)bl && ((struct mob_data *)bl)->guardian_data)
+		if(bl->type == BL_MOB && ((struct mob_data *)bl)->guardian_data)
 			batk += batk * 10*((struct mob_data *)bl)->guardian_data->guardup_lv/100; // Strengthen Guardians - custom value +10% ATK / lv
 
 		batk = status_calc_batk(bl,batk);
@@ -2616,17 +2607,17 @@ int status_get_batk(struct block_list *bl)
 int status_get_atk(struct block_list *bl)
 {
 	nullpo_retr(0, bl);
-	if(bl->type==BL_PC && (struct map_session_data *)bl)
+	if(bl->type==BL_PC)
 		return ((struct map_session_data*)bl)->right_weapon.watk;
 	else {
 		struct status_change *sc_data=status_get_sc_data(bl);
 		int atk=0;
-		if(bl->type == BL_MOB && (struct mob_data *)bl){
+		if(bl->type == BL_MOB){
 			atk = ((struct mob_data*)bl)->db->atk1;
 
 			if(((struct mob_data *)bl)->guardian_data)
 				atk += atk * 10*((struct mob_data *)bl)->guardian_data->guardup_lv/100; // Strengthen Guardians - custom value +10% ATK / lv
-		} else if(bl->type == BL_PET && (struct pet_data *)bl) { //<Skotlex> Use pet's stats
+		} else if(bl->type == BL_PET) { //<Skotlex> Use pet's stats
 			if (battle_config.pet_lv_rate && ((struct pet_data *)bl)->status)
 				atk = ((struct pet_data *)bl)->status->atk1;
 			else
@@ -2660,12 +2651,10 @@ int status_get_atk(struct block_list *bl)
 int status_get_atk_(struct block_list *bl)
 {
 	nullpo_retr(0, bl);
-	if(bl->type==BL_PC && (struct map_session_data *)bl){
-		int atk=((struct map_session_data*)bl)->left_weapon.watk;
-		return atk;
+	if(bl->type==BL_PC){
+		return ((struct map_session_data*)bl)->left_weapon.watk;
 	}
-	else
-		return 0;
+	return 0;
 }
 /*==========================================
  * 対象のAtk2を返す(汎用)
@@ -2675,17 +2664,17 @@ int status_get_atk_(struct block_list *bl)
 int status_get_atk2(struct block_list *bl)
 {
 	nullpo_retr(0, bl);
-	if(bl->type==BL_PC && (struct map_session_data *)bl)
+	if(bl->type==BL_PC)
 		return ((struct map_session_data*)bl)->right_weapon.watk2;
 	else {
 		struct status_change *sc_data=status_get_sc_data(bl);
 		int atk2=0;
-		if(bl->type==BL_MOB && (struct mob_data *)bl) {
+		if(bl->type==BL_MOB) {
 			atk2 = ((struct mob_data*)bl)->db->atk2;
 			
 			if(((struct mob_data *)bl)->guardian_data)
 				atk2 += atk2 * 10*((struct mob_data *)bl)->guardian_data->guardup_lv/100; // Strengthen Guardians - custom value +10% ATK / lv
-		} else if(bl->type==BL_PET && (struct pet_data *)bl) {	//<Skotlex> Use pet's stats
+		} else if(bl->type==BL_PET) {	//<Skotlex> Use pet's stats
 			if (battle_config.pet_lv_rate && ((struct pet_data *)bl)->status)
 				atk2 = ((struct pet_data *)bl)->status->atk2;
 			else
@@ -2721,10 +2710,9 @@ int status_get_atk2(struct block_list *bl)
 int status_get_atk_2(struct block_list *bl)
 {
 	nullpo_retr(0, bl);
-	if(bl->type==BL_PC && (struct map_session_data *)bl)
+	if(bl->type==BL_PC)
 		return ((struct map_session_data*)bl)->left_weapon.watk2;
-	else
-		return 0;
+	return 0;
 }
 /*==========================================
  * 対象のMAtk1を返す(汎用)
@@ -2735,7 +2723,7 @@ int status_get_matk1(struct block_list *bl)
 {
 	nullpo_retr(0, bl);
 
-	if(bl->type == BL_PC && (struct map_session_data *)bl)
+	if(bl->type == BL_PC)
 		return ((struct map_session_data *)bl)->matk1;
 	else {
 		int matk = 0;
@@ -2753,7 +2741,7 @@ int status_get_matk2(struct block_list *bl)
 {
 	nullpo_retr(0, bl);
 
-	if(bl->type == BL_PC && (struct map_session_data *)bl)
+	if(bl->type == BL_PC)
 		return ((struct map_session_data *)bl)->matk2;
 	else {
         int matk = 0;
@@ -2772,14 +2760,14 @@ int status_get_def(struct block_list *bl)
 	int def=0;
 	nullpo_retr(0, bl);
 
-	if(bl->type==BL_PC && (struct map_session_data *)bl){
+	if(bl->type==BL_PC){
 		def = ((struct map_session_data *)bl)->def;
 		if(((struct map_session_data *)bl)->skilltimer != -1)
 			def -= def * skill_get_castdef(((struct map_session_data *)bl)->skillid)/100;
-	} else if(bl->type==BL_MOB && (struct mob_data *)bl) {
+	} else if(bl->type==BL_MOB) {
 		def = ((struct mob_data *)bl)->db->def;
 		def -= def * skill_get_castdef(((struct mob_data *)bl)->skillid)/100;
-	} else if(bl->type==BL_PET && (struct pet_data *)bl)
+	} else if(bl->type==BL_PET)
 		def = ((struct pet_data *)bl)->db->def;
 
 	def = status_calc_def(bl,def);
@@ -2823,17 +2811,17 @@ int status_get_mdef(struct block_list *bl)
 	int mdef=0;
 	nullpo_retr(0, bl);
 
-	if(bl->type==BL_PC && (struct map_session_data *)bl)
+	if(bl->type==BL_PC)
 		return ((struct map_session_data *)bl)->mdef;
-	else if(bl->type==BL_MOB && (struct mob_data *)bl)
+	else if(bl->type==BL_MOB)
 		mdef = ((struct mob_data *)bl)->db->mdef;
-	else if(bl->type==BL_PET && (struct pet_data *)bl)
+	else if(bl->type==BL_PET)
 		mdef = ((struct pet_data *)bl)->db->mdef;
 
 	mdef = status_calc_mdef(bl,mdef);
 	if(mdef < 0) mdef = 0;
 
-   return mdef;
+ 	return mdef;
 }
 /*==========================================
  * 対象のMDef2を返す(汎用)
@@ -2871,16 +2859,16 @@ int status_get_speed(struct block_list *bl)
 {
 	int speed = 1000;
 	nullpo_retr(1000, bl);
-	if(bl->type==BL_PC && (struct map_session_data *)bl)
+	if(bl->type==BL_PC)
 		return ((struct map_session_data *)bl)->speed;
-	else if(bl->type==BL_MOB && (struct mob_data *)bl) {
+	else if(bl->type==BL_MOB) {
 		speed = ((struct mob_data *)bl)->speed;
 		if(battle_config.mobs_level_up) // increase from mobs leveling up [Valaris]
 			speed-=((struct mob_data *)bl)->level - ((struct mob_data *)bl)->db->lv;
 	}
-	else if(bl->type==BL_PET && (struct pet_data *)bl)
+	else if(bl->type==BL_PET)
 		speed = ((struct pet_data *)bl)->msd->petDB->speed;
-	else if(bl->type==BL_NPC && (struct npc_data *)bl)	//Added BL_NPC (Skotlex)
+	else if(bl->type==BL_NPC)	//Added BL_NPC (Skotlex)
 		speed = ((struct npc_data *)bl)->speed;
 
 	speed = status_calc_speed(bl,speed);
@@ -2896,16 +2884,16 @@ int status_get_speed(struct block_list *bl)
 int status_get_adelay(struct block_list *bl)
 {
 	nullpo_retr(4000, bl);
-	if(bl->type==BL_PC && (struct map_session_data *)bl)
+	if(bl->type==BL_PC)
 		return (((struct map_session_data *)bl)->aspd<<1);
 	else {
 		int adelay=4000,aspd_rate = 100;
-		if(bl->type==BL_MOB && (struct mob_data *)bl) {
+		if(bl->type==BL_MOB) {
 			adelay = ((struct mob_data *)bl)->db->adelay;
 
 			if(((struct mob_data *)bl)->guardian_data)
 				aspd_rate -= aspd_rate * 10*((struct mob_data *)bl)->guardian_data->guardup_lv/100; // Strengthen Guardians - custom value +10% ASPD / lv
-		} else if(bl->type==BL_PET && (struct pet_data *)bl)
+		} else if(bl->type==BL_PET)
 			adelay = ((struct pet_data *)bl)->db->adelay;
 
 		aspd_rate = status_calc_aspd_rate(bl,aspd_rate);
@@ -2920,16 +2908,16 @@ int status_get_adelay(struct block_list *bl)
 int status_get_amotion(struct block_list *bl)
 {
 	nullpo_retr(2000, bl);
-	if(bl->type==BL_PC && (struct map_session_data *)bl)
+	if(bl->type==BL_PC)
 		return ((struct map_session_data *)bl)->amotion;
 	else {
 		int amotion=2000,aspd_rate = 100;
-		if(bl->type==BL_MOB && (struct mob_data *)bl) {
+		if(bl->type==BL_MOB) {
 			amotion = ((struct mob_data *)bl)->db->amotion;
 
 			if(((struct mob_data *)bl)->guardian_data)
 				aspd_rate -= aspd_rate * 10*((struct mob_data *)bl)->guardian_data->guardup_lv/100; // Strengthen Guardians - custom value +10% ASPD / lv
-		} else if(bl->type==BL_PET && (struct pet_data *)bl)
+		} else if(bl->type==BL_PET)
 			amotion = ((struct pet_data *)bl)->db->amotion;
 
 		aspd_rate = status_calc_aspd_rate(bl,aspd_rate);
@@ -2948,17 +2936,17 @@ int status_get_dmotion(struct block_list *bl)
 
 	nullpo_retr(0, bl);
 	sc_data = status_get_sc_data(bl);
-	if(bl->type==BL_MOB && (struct mob_data *)bl){
+	if(bl->type==BL_MOB){
 		ret=((struct mob_data *)bl)->db->dmotion;
 		if(battle_config.monster_damage_delay_rate != 100)
 			ret = ret*battle_config.monster_damage_delay_rate/100;
 	}
-	else if(bl->type==BL_PC && (struct map_session_data *)bl){
+	else if(bl->type==BL_PC){
 		ret=((struct map_session_data *)bl)->dmotion;
 		if(battle_config.pc_damage_delay_rate != 100)
 			ret = ret*battle_config.pc_damage_delay_rate/100;
 	}
-	else if(bl->type==BL_PET && (struct pet_data *)bl)
+	else if(bl->type==BL_PET)
 		ret=((struct pet_data *)bl)->db->dmotion;
 	else
 		return 2000;
@@ -2973,101 +2961,99 @@ int status_get_dmotion(struct block_list *bl)
 }
 int status_get_element(struct block_list *bl)
 {
-	int ret = 20;
-	struct status_change *sc_data;
+	// removed redundant variable ret [zzo]
+	struct status_change *sc_data = status_get_sc_data(bl);
 
-	nullpo_retr(ret, bl);
-	sc_data = status_get_sc_data(bl);
-	if(bl->type==BL_MOB && (struct mob_data *)bl)	// 10の位＝Lv*2、１の位＝属性
-		ret=((struct mob_data *)bl)->def_ele;
-	else if(bl->type==BL_PC && (struct map_session_data *)bl)
-		ret=20+((struct map_session_data *)bl)->def_ele;	// 防御属性Lv1
-	else if(bl->type==BL_PET && (struct pet_data *)bl)
-		ret = ((struct pet_data *)bl)->db->element;
+	nullpo_retr(20, bl);
 
 	if(sc_data) {
 		if( sc_data[SC_BENEDICTIO].timer!=-1 )	// 聖体降福
-			ret=26;
+			return 26;
 		if( sc_data[SC_FREEZE].timer!=-1 )	// 凍結
-			ret=21;
+			return 21;
 		if( sc_data[SC_STONE].timer!=-1 && sc_data[SC_STONE].val2==0)
-			ret=22;
+			return 22;
 	}
+	if(bl->type==BL_MOB)	// 10の位＝Lv*2、１の位＝属性
+		return ((struct mob_data *)bl)->def_ele;
+	if(bl->type==BL_PC)
+		return 20+((struct map_session_data *)bl)->def_ele;	// 防御属性Lv1
+	if(bl->type==BL_PET)
+		return ((struct pet_data *)bl)->db->element;
 
-	return ret;
+	return 20;
 }
 
 int status_get_attack_element(struct block_list *bl)
 {
-	int ret = 0;
 	struct status_change *sc_data=status_get_sc_data(bl);
 
 	nullpo_retr(0, bl);
-	if(bl->type==BL_MOB && (struct mob_data *)bl)
-		ret=0;
-	else if(bl->type==BL_PC && (struct map_session_data *)bl)
-		ret=((struct map_session_data *)bl)->right_weapon.atk_ele;
-	else if(bl->type==BL_PET && (struct pet_data *)bl)
-		ret=0;
-
+	
 	if(sc_data) {
 		if( sc_data[SC_WATERWEAPON].timer!=-1)	// フロストウェポン
-			ret=1;
+			return 1;
 		if( sc_data[SC_EARTHWEAPON].timer!=-1)	// サイズミックウェポン
-			ret=2;
+			return 2;
 		if( sc_data[SC_FIREWEAPON].timer!=-1)	// フレームランチャー
-			ret=3;
+			return 3;
 		if( sc_data[SC_WINDWEAPON].timer!=-1)	// ライトニングローダー
-			ret=4;
+			return 4;
 		if( sc_data[SC_ENCPOISON].timer!=-1)	// エンチャントポイズン
-			ret=5;
+			return 5;
 		if( sc_data[SC_ASPERSIO].timer!=-1)		// アスペルシオ
-			ret=6;
+			return 6;
 		if( sc_data[SC_SHADOWWEAPON].timer!=-1)
-			ret=7;
+			return 7;
 		if( sc_data[SC_GHOSTWEAPON].timer!=-1)
-			ret=8;
+			return 8;
 	}
+	if(bl->type==BL_MOB && (struct mob_data *)bl)
+		return 0;
+	if(bl->type==BL_PC && (struct map_session_data *)bl)
+		return ((struct map_session_data *)bl)->right_weapon.atk_ele;
+	if(bl->type==BL_PET && (struct pet_data *)bl)
+		return 0;
 
-	return ret;
+	return 0;
 }
 int status_get_attack_element2(struct block_list *bl)
 {
 	nullpo_retr(0, bl);
-	if(bl->type==BL_PC && (struct map_session_data *)bl) {
-		int ret = ((struct map_session_data *)bl)->left_weapon.atk_ele;
+	if(bl->type==BL_PC) {
+		// removed redundant var, speeded up a bit [zzo]
 		struct status_change *sc_data = ((struct map_session_data *)bl)->sc_data;
 
 		if(sc_data) {
 			if( sc_data[SC_WATERWEAPON].timer!=-1)	// フロストウェポン
-				ret=1;
+				return 1;
 			if( sc_data[SC_EARTHWEAPON].timer!=-1)	// サイズミックウェポン
-				ret=2;
+				return 2;
 			if( sc_data[SC_FIREWEAPON].timer!=-1)	// フレームランチャー
-				ret=3;
+				return 3;
 			if( sc_data[SC_WINDWEAPON].timer!=-1)	// ライトニングローダー
-				ret=4;
+				return 4;
 			if( sc_data[SC_ENCPOISON].timer!=-1)	// エンチャントポイズン
-				ret=5;
+				return 5;
 			if( sc_data[SC_ASPERSIO].timer!=-1)		// アスペルシオ
-				ret=6;
+				return 6;
 			if( sc_data[SC_SHADOWWEAPON].timer!=-1)
-				ret=7;
+				return 7;
 			if( sc_data[SC_GHOSTWEAPON].timer!=-1)
-				ret=8;
+				return 8;
 		}
-		return ret;
+		return ((struct map_session_data *)bl)->left_weapon.atk_ele;
 	}
 	return 0;
 }
 int status_get_party_id(struct block_list *bl)
 {
 	nullpo_retr(0, bl);
-	if(bl->type==BL_PC && (struct map_session_data *)bl)
+	if(bl->type==BL_PC)
 		return ((struct map_session_data *)bl)->status.party_id;
-	else if(bl->type==BL_PET && (struct pet_data *)bl)
+	if(bl->type==BL_PET)
 		return ((struct pet_data *)bl)->msd->status.party_id;
-	else if(bl->type==BL_MOB && (struct mob_data *)bl){
+	if(bl->type==BL_MOB){
 		struct mob_data *md=(struct mob_data *)bl;
 		if( md->master_id>0 )
 		{
@@ -3078,20 +3064,19 @@ int status_get_party_id(struct block_list *bl)
 		}
 		return -md->class_;
 	}
-	else if(bl->type==BL_SKILL && (struct skill_unit *)bl)
+	if(bl->type==BL_SKILL)
 		return ((struct skill_unit *)bl)->group->party_id;
-	else
-		return 0;
+	return 0;
 }
 
 int status_get_guild_id(struct block_list *bl)
 {
 	nullpo_retr(0, bl);
-	if(bl->type==BL_PC && (struct map_session_data *)bl)
+	if(bl->type==BL_PC)
 		return ((struct map_session_data *)bl)->status.guild_id;
-	else if(bl->type==BL_PET && (struct pet_data *)bl)
+	if(bl->type==BL_PET)
 		return ((struct pet_data *)bl)->msd->status.guild_id;
-	else if(bl->type==BL_MOB && (struct mob_data *)bl)
+	if(bl->type==BL_MOB)
 	{
 		struct map_session_data *msd;
 		struct mob_data *md = (struct mob_data *)bl;
@@ -3102,42 +3087,40 @@ int status_get_guild_id(struct block_list *bl)
 		//Why Max_mob_db? Dunno... just a random pick to make all mobs be allied during WoE. [Skotlex]
 		return -MAX_MOB_DB;
 	}
-	else if(bl->type==BL_SKILL && (struct skill_unit *)bl)
+	if(bl->type==BL_SKILL)
 		return ((struct skill_unit *)bl)->group->guild_id;
-	else
-		return 0;
+	return 0;
 }
 int status_get_race(struct block_list *bl)
 {
 	nullpo_retr(0, bl);
-	if(bl->type==BL_MOB && (struct mob_data *)bl)
+	if(bl->type==BL_MOB)
 		return ((struct mob_data *)bl)->db->race;
-	else if(bl->type==BL_PC && (struct map_session_data *)bl)
+	if(bl->type==BL_PC)
 		return 7;
-	else if(bl->type==BL_PET && (struct pet_data *)bl)
+	if(bl->type==BL_PET)
 		return ((struct pet_data *)bl)->db->race;
-	else
-		return 0;
+	return 0;
 }
 int status_get_size(struct block_list *bl)
 {
 	nullpo_retr(1, bl);
-	if(bl->type==BL_MOB && (struct mob_data *)bl)
+	if(bl->type==BL_MOB)
 		return ((struct mob_data *)bl)->db->size;
-	else if(bl->type==BL_PET && (struct pet_data *)bl)
+	if(bl->type==BL_PET)
 		return ((struct pet_data *)bl)->db->size;
-	else if(bl->type==BL_PC) {
+	if(bl->type==BL_PC) {
 		struct map_session_data *sd = (struct map_session_data *)bl;
 		if (sd->class_&JOBL_BABY) //[Lupus]
 			return (pc_isriding(sd)!=0 && battle_config.character_size&2); //Baby Class Peco Rider + enabled option -> size = 1, else 0
 		return 1+(pc_isriding(sd)!=0 && battle_config.character_size&1);	//Peco Rider + enabled option -> size = 2, else 1
-	} else
-		return 1;
+	}
+	return 1;
 }
 int status_get_mode(struct block_list *bl)
 {
 	nullpo_retr(0x01, bl);
-	if(bl->type==BL_MOB && (struct mob_data *)bl)
+	if(bl->type==BL_MOB)
 	{
 		if (((struct mob_data *)bl)->sc_data[SC_MODE].timer != -1)
 			return ((struct mob_data *)bl)->sc_data[SC_MODE].val1;
@@ -3158,39 +3141,36 @@ int status_get_mode(struct block_list *bl)
 int status_get_mexp(struct block_list *bl)
 {
 	nullpo_retr(0, bl);
-	if(bl->type==BL_MOB && (struct mob_data *)bl)
+	if(bl->type==BL_MOB)
 		return ((struct mob_data *)bl)->db->mexp;
-	else if(bl->type==BL_PET && (struct pet_data *)bl)
+	if(bl->type==BL_PET)
 		return ((struct pet_data *)bl)->db->mexp;
-	else
-		return 0;
+	return 0;
 }
 int status_get_race2(struct block_list *bl)
 {
 	nullpo_retr(0, bl);
-	if(bl->type == BL_MOB && (struct mob_data *)bl)
+	if(bl->type == BL_MOB)
 		return ((struct mob_data *)bl)->db->race2;
-	else if(bl->type==BL_PET && (struct pet_data *)bl)
+	if(bl->type==BL_PET)
 		return ((struct pet_data *)bl)->db->race2;
-	else
-		return 0;
+	return 0;
 }
 int status_isdead(struct block_list *bl)
 {
 	nullpo_retr(0, bl);
-	if(bl->type == BL_MOB && (struct mob_data *)bl)
+	if(bl->type == BL_MOB)
 		return ((struct mob_data *)bl)->state.state == MS_DEAD;
-	else if(bl->type==BL_PC && (struct map_session_data *)bl)
+	if(bl->type==BL_PC)
 		return pc_isdead((struct map_session_data *)bl);
-	else
-		return 0;
+	return 0;
 }
 int status_isimmune(struct block_list *bl)
 {
-	struct map_session_data *sd = NULL;
+	struct map_session_data *sd = (struct map_session_data *)bl;
 	
 	nullpo_retr(0, bl);
-	if (bl->type == BL_PC && (sd = (struct map_session_data *)bl)) {
+	if (bl->type == BL_PC) {
 		if (sd->special_state.no_magic_damage)
 			return 1;
 		if (sd->sc_count && sd->sc_data[SC_HERMODE].timer != -1)
@@ -3203,62 +3183,62 @@ int status_isimmune(struct block_list *bl)
 struct status_change *status_get_sc_data(struct block_list *bl)
 {
 	nullpo_retr(NULL, bl);
-	if(bl->type==BL_MOB && (struct mob_data *)bl)
+	if(bl->type==BL_MOB)
 		return ((struct mob_data*)bl)->sc_data;
-	else if(bl->type==BL_PC && (struct map_session_data *)bl)
+	if(bl->type==BL_PC)
 		return ((struct map_session_data*)bl)->sc_data;
 	return NULL;
 }
 short *status_get_sc_count(struct block_list *bl)
 {
 	nullpo_retr(NULL, bl);
-	if(bl->type==BL_MOB && (struct mob_data *)bl)
+	if(bl->type==BL_MOB)
 		return &((struct mob_data*)bl)->sc_count;
-	else if(bl->type==BL_PC && (struct map_session_data *)bl)
+	if(bl->type==BL_PC)
 		return &((struct map_session_data*)bl)->sc_count;
 	return NULL;
 }
 short *status_get_opt1(struct block_list *bl)
 {
 	nullpo_retr(0, bl);
-	if(bl->type==BL_MOB && (struct mob_data *)bl)
+	if(bl->type==BL_MOB)
 		return &((struct mob_data*)bl)->opt1;
-	else if(bl->type==BL_PC && (struct map_session_data *)bl)
+	if(bl->type==BL_PC)
 		return &((struct map_session_data*)bl)->opt1;
-	else if(bl->type==BL_NPC && (struct npc_data *)bl)
+	if(bl->type==BL_NPC)
 		return &((struct npc_data*)bl)->opt1;
 	return 0;
 }
 short *status_get_opt2(struct block_list *bl)
 {
 	nullpo_retr(0, bl);
-	if(bl->type==BL_MOB && (struct mob_data *)bl)
+	if(bl->type==BL_MOB)
 		return &((struct mob_data*)bl)->opt2;
-	else if(bl->type==BL_PC && (struct map_session_data *)bl)
+	if(bl->type==BL_PC)
 		return &((struct map_session_data*)bl)->opt2;
-	else if(bl->type==BL_NPC && (struct npc_data *)bl)
+	if(bl->type==BL_NPC)
 		return &((struct npc_data*)bl)->opt2;
 	return 0;
 }
 short *status_get_opt3(struct block_list *bl)
 {
 	nullpo_retr(0, bl);
-	if(bl->type==BL_MOB && (struct mob_data *)bl)
+	if(bl->type==BL_MOB)
 		return &((struct mob_data*)bl)->opt3;
-	else if(bl->type==BL_PC && (struct map_session_data *)bl)
+	if(bl->type==BL_PC)
 		return &((struct map_session_data*)bl)->opt3;
-	else if(bl->type==BL_NPC && (struct npc_data *)bl)
+	if(bl->type==BL_NPC)
 		return &((struct npc_data*)bl)->opt3;
 	return 0;
 }
 short *status_get_option(struct block_list *bl)
 {
 	nullpo_retr(0, bl);
-	if(bl->type==BL_MOB && (struct mob_data *)bl)
+	if(bl->type==BL_MOB)
 		return &((struct mob_data*)bl)->option;
-	else if(bl->type==BL_PC && (struct map_session_data *)bl)
+	if(bl->type==BL_PC)
 		return &((struct map_session_data*)bl)->status.option;
-	else if(bl->type==BL_NPC && (struct npc_data *)bl)
+	if(bl->type==BL_NPC)
 		return &((struct npc_data*)bl)->option;
 	return 0;
 }

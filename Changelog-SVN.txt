@@ -1,6 +1,9 @@
 Date	Added
 ==========
 2005/10/24
+	* Applied Ilpalazzo-sama/zzo's patch that optimizes the status_get_*
+	  functions. [Skotlex]
+	* Fixed changegm (as far as I know) [Skotlex]
 	* Modified again the code that checks who and what can target traps. It
 	  should be set to only let heaven's drive, arrow shower and remove trap
 	  target them. [Skotlex]
