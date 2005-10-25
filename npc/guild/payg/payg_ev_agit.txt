@@ -53,7 +53,7 @@ OnAgitStart:
 	callfunc "F_AgitStart","payg_cas02","Py02",39,25;
 	end;
 OnAgitBreak:
-	callfunc "F_AgitBreak","payg_cas02","Py01";
+	callfunc "F_AgitBreak","payg_cas02","Py02";
 	end;
 OnGuildBreak:
 	callfunc "F_GuildBreak","payg_cas02","Py02";
