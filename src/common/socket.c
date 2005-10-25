@@ -1248,7 +1248,9 @@ void do_close(int fd)
 {
 //We don't really care if these closing functions return an error, we are just shutting down and not reusing this socket.
 #ifdef __WIN32
-	shutdown(fd, SD_BOTH);
+//	shutdown(fd, SD_BOTH); //FIXME: Shutdown requires winsock2.h! What would be the proper shutting down method for winsock1?
+	if (session[fd] && session[fd]->func_send == send_from_fifo)
+		session[fd]->func_send(fd); //Flush the data as it is gonna be closed down, but it may not succeed as it is a nonblocking socket! [Skotlex]
 	closesocket(fd);
 #else
 	if (close(fd))
