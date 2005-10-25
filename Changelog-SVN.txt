@@ -1,6 +1,8 @@
 Date	Added
 ==========
 2005/10/25
+	* Fixed the Makefile for TXT char/login servers (fixes guild structure size
+	  mismatches) [Skotlex]
 	* Added script command "playerattached", returns the char_id of the player
 	  currently attached to the script, 0 if there's no player attached (or
 	  attached player is no longer on the map server) [Skotlex]

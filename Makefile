@@ -167,9 +167,9 @@ depend: src/common/GNUmakefile src/login/GNUmakefile src/login_sql/GNUmakefile \
 	src/char/GNUmakefile src/char_sql/GNUmakefile src/map/GNUmakefile \
 	src/ladmin/GNUmakefile src/plugins/GNUmakefile src/txt-converter/GNUmakefile
 	cd src/common; makedepend -fGNUmakefile -pobj/ -Y. *.c; cd ../..;
-	cd src/login; makedepend -fGNUmakefile -Y. -Y../common *.c; cd ../..;
+	cd src/login; makedepend -DTXT_ONLY -fGNUmakefile -Y. -Y../common *.c; cd ../..;
 	cd src/login_sql; makedepend -fGNUmakefile -Y. -Y../common *.c; cd ../..;
-	cd src/char; makedepend -fGNUmakefile -Y. -Y../common *.c; cd ../..;
+	cd src/char; makedepend -DTXT_ONLY -fGNUmakefile -Y. -Y../common *.c; cd ../..;
 	cd src/char_sql; makedepend -fGNUmakefile -Y. -Y../common *.c; cd ../..;
 	cd src/map; makedepend -DTXT_ONLY -fGNUmakefile -ptxtobj/ -Y. -Y../common *.c; cd ../..;
 	cd src/map; makedepend -fGNUmakefile -a -psqlobj/ -Y. -Y../common *.c; cd ../..;

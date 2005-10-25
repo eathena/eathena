@@ -931,7 +931,7 @@ int intif_parse_GuildInfo(int fd)
 //		printf("intif: guild info %d\n",RFIFOL(fd,4));
 	if( RFIFOW(fd,2)!=sizeof(struct guild)+4 ){
 		if(battle_config.error_log)
-			ShowError("intif: guild info : data size error\n %d %d %d",RFIFOL(fd,4),RFIFOW(fd,2),sizeof(struct guild)+4);
+			ShowError("intif: guild info : data size error Gid: %d recv size: %d Expected size: %d",RFIFOL(fd,4),RFIFOW(fd,2),sizeof(struct guild)+4);
 	}
 	guild_recv_info((struct guild *)RFIFOP(fd,4));
 	return 0;
