@@ -2888,8 +2888,8 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 			if (!agit_flag && md->guardian_data)
 				return 0; //Disable guardians on non-woe times.
 			if (md->special_state.ai == 2)
-			{	
-				state |= BCT_ENEMY; //Mines are sort of universal enemies.
+			{	//Mines are sort of universal enemies.
+				state |= BCT_ENEMY;
 				strip_enemy = 0;
 			}
 			else if (md->special_state.ai && src->type == BL_MOB)

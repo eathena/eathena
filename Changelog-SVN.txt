@@ -1,6 +1,9 @@
 Date	Added
 ==========
 2005/10/25
+	* Updated battle_check_target to consider normal mobs as always belonging
+	  to the same party (should fix them fighting out when pkmode is on)
+	  [Skotlex]
 	* Fixed the Makefile for TXT char/login servers (fixes guild structure size
 	  mismatches) [Skotlex]
 	* Added script command "playerattached", returns the char_id of the player

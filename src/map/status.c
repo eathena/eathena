@@ -3060,9 +3060,9 @@ int status_get_party_id(struct block_list *bl)
 			struct map_session_data *msd;
 			if (md->special_state.ai && (msd = map_id2sd(md->master_id)) != NULL)
 				return msd->status.party_id;
-			return -md->master_id;
+//			return -md->master_id;
 		}
-		return -md->class_;
+		return -MAX_MOB_DB; //Make all mobs belong to the same party to avoid them fighting.
 	}
 	if(bl->type==BL_SKILL)
 		return ((struct skill_unit *)bl)->group->party_id;
