@@ -30,10 +30,15 @@
 	1771,Venom_Knife: For new Asassins skill
 		Item type: Throwing Dagger. Has to be equipped as an arrow, is consumed
 		like gemstones when the skill is used.
-	4327,Bloody_Butterfly_Card: I think this should be working in WoE....otherwise its just a bad phen card thats more rare...anyone know? [Kayla]
+	4327,Bloody_Butterfly_Card: I think this should be working in
+	WoE....otherwise its just a bad phen card thats more rare...anyone know?
+	[Kayla] <- Vicious has already cleared this one up, Bloody Butterfly IS
+	part of the mage's combo, so it makes sense to be just a 'rarer' phen card.
+	[Skotlex]
 	--
 
 10/24
+	* Reverted the inf 32 mode for Heaven's Drive and Arrow Shower [Skotlex]
 	* Added Thanatos/Abyss MOb skills and changed some thanatos/abyss mob stats. Thanks to Vicious_Pucca, Poki#3 and erKURITA. [Nexon]
 	* Added inf 32 (can target traps) to Arrow Shower and Heaven's Drive. I
 	  hope it doesn't messes up the client... but this is how it should be since

@@ -1,6 +1,10 @@
 Date	Added
 ==========
 2005/10/24
+	* Modified again the code that checks who and what can target traps. It
+	  should be set to only let heaven's drive, arrow shower and remove trap
+	  target them. [Skotlex]
+	* Breaker now ignores mdef. [Skotlex]
 	* Fixed script command "makeitem" to only require an attached player if the
 	  map is defined as "this". [Skotlex]
 	* Updated battle_check_target to enable only skills with inf 32 (can target

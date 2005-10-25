@@ -2110,11 +2110,8 @@ struct Damage battle_calc_magic_attack(
 		case PR_ASPERSIO:
 		case PF_SOULBURN:
 		case HW_GRAVITATION:
-			flag.imdef = 1;
-			flag.elefix = 0;
-			flag.cardfix = 0;
-			break;
 		case ASC_BREAKER:
+			flag.imdef = 1;
 			flag.elefix = 0;
 			flag.cardfix = 0;
 			break;
@@ -2846,10 +2843,17 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 			return 0;
 		if (skill_get_inf2(su->group->skill_id)&INF2_TRAP)
 		{	//Only a few skills can target traps...
-			if (skill_get_inf(battle_getcurrentskill(src))&INF_TARGET_TRAP)
-				return 1;
-			else
-				return 0;
+			switch (battle_getcurrentskill(src))
+			{
+				case HT_REMOVETRAP:
+				case AC_SHOWER:
+				case WZ_HEAVENDRIVE:
+					state != BCT_ENEMY;
+					strip_enemy = 0;
+					break;
+				default:
+					return 0;
+			}
 		} else if (su->group->skill_id==WZ_ICEWALL)
 		{	//Icewall can be hit by anything except skills.
 			if (src->type == BL_SKILL)
