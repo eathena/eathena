@@ -2960,3 +2960,95 @@
 
 1682,Removal@SM_BASH,attack,5,5,500,800,5000,no,target,always,0,,,,,,
 1682,Removal@NPC_UNDEADATTACK,attack,347,3,500,500,5000,no,target,always,0,,,,,,
+
+// Thanatos Tower Mobs
+1700,Observation@RG_INTIMIDATE,attack,219,1,700,0,5000,yes,target,always,0,,,,,,
+1702,Retribution@CR_GRANDCROSS,attack,254,1,2000,0,0,yes,target,always,0,,,,,,
+1702,Retribution@NPC_GRANDDARKNESS,attack,339,10,1000,700,5000,no,target,myhpltmaxrate,30,,,,,,
+1702,Retribution@NPC_DARKCROSS,attack,338,10,500,800,5000,no,target,always,0,,,,,,2
+1703,Solace@CR_GRANDCROSS,attack,254,1,2000,0,0,yes,target,always,0,,,,,,
+1703,Solace@PR_LEXAETERNA,chase,78,1,1000,1000,5000,yes,target,always,0,,,,,,6
+1703,Solace@PR_LEXAETERNA,attack,78,1,1000,1000,5000,yes,target,always,0,,,,,,6
+1704,Thanatos Odium@NPC_POWERUP,attack,349,10,1000,0,5000,yes,self,myhpltmaxrate,30,,,,,,
+1705,Thanatos Despero@NPC_POWERUP,attack,349,10,1000,0,5000,yes,self,myhpltmaxrate,30,,,,,,
+1706,Thanatos Maero@AS_CLOAKING,attack,135,1,2000,200,5000,yes,self,always,0,,,,,,
+1706,Thanatos Maero@NPC_POWERUP,attack,349,10,1000,0,5000,yes,self,myhpltmaxrate,30,,,,,,
+1707,Thanatos Dolor@NPC_POWERUP,attack,349,10,1000,0,5000,yes,self,myhpltmaxrate,30,,,,,,
+1707,Thanatos Dolor@WZ_JUPITEL,attack,84,10,500,1500,5000,yes,target,always,0,,,,,,6
+1707,Thanatos Dolor@WZ_JUPITEL,chase,84,10,500,1500,5000,yes,target,always,0,,,,,,6
+
+// Thanatos MVP
+1708,Thanatos@AL_TELEPORT,idle,26,1,3000,0,0,yes,self,rudeattacked,,,,,,,
+1708,Thanatos@NPC_SUMMONSLAVE,attack,196,10,10000,1000,60000,no,self,slavele,10,1709,1710,1711,1712,,6
+1708,Thanatos@NPC_CALLSLAVE,attack,352,1,2000,0,10000,yes,target,always,0,,,,,,
+1708,Thanatos@NPC_CALLSLAVE,idle,352,1,2000,0,10000,yes,self,always,0,,,,,,
+1708,Thanatos@NPC_DARKSTRIKE,chase,340,10,500,0,30000,yes,target,always,0,,,,,,
+1708,Thanatos@WZ_METEOR,attack,83,10,2500,0,10000,yes,target,always,0,,,,,,29
+1708,Thanatos@WZ_STORMGUST,attack,89,10,2500,0,10000,yes,target,always,0,,,,,,29
+1708,Thanatos@WZ_VERMILION,attack,85,10,2500,0,10000,yes,target,always,0,,,,,,29
+1708,Thanatos@KN_BOWLINGBASH,attack,62,10,2500,0,15000,yes,target,always,0,,,,,,
+1708,Thanatos@KN_BRANDISHSPEAR,attack,57,10,2500,0,10000,yes,target,always,0,,,,,,29
+1708,Thanatos@NPC_POWERUP,attack,349,5,1000,0,30000,no,self,always,0,,,,,,
+1708,Thanatos@NPC_AGIUP,attack,350,5,10000,0,30000,no,self,always,0,,,,,,
+1708,Thanatos@NPC_AGIUP,attack,350,5,10000,0,10000,yes,friend,friendhpltmaxrate,80,,,,,,2
+1708,Thanatos@KN_TWOHANDQUICKEN,attack,60,5,500,0,30000,no,self,always,0,,,,,,
+1708,Thanatos@AL_HEAL,attack,28,11,10000,0,5000,yes,friend,friendhpltmaxrate,70,,,,,,2
+1708,Thanatos@AL_HEAL,attack,28,11,10000,0,5000,yes,self,myhpltmaxrate,80,,,,,,2
+1708,Thanatos@AL_HEAL,chase,28,11,10000,0,5000,yes,friend,friendhpltmaxrate,60,,,,,,2
+1708,Thanatos@AL_HEAL,chase,28,11,10000,0,5000,yes,self,myhpltmaxrate,50,,,,,,2
+
+// Thanatos Slaves
+1709,Thanatos Odium@NPC_POWERUP,attack,349,5,1000,0,30000,no,self,always,0,,,,,,
+1709,Thanatos Odium@NPC_CALLSLAVE,idle,352,1,1000,0,30000,yes,self,always,0,,,,,,
+1709,Thanatos Odium@NPC_SUMMONSLAVE,attack,196,30,10000,1000,60000,no,self,slavele,10,1704,1705,1706,1707,,6
+1710,Thanatos Despero@NPC_SUMMONSLAVE,attack,196,30,10000,1000,60000,no,self,slavele,10,1704,1705,1706,1707,,6
+1710,Thanatos Despero@NPC_CALLSLAVE,idle,352,1,1000,0,30000,yes,self,always,0,,,,,,
+1710,Thanatos Despero@NPC_POWERUP,attack,349,5,1000,0,30000,no,self,always,0,,,,,,
+1711,Thanatos Maero@NPC_POWERUP,attack,349,5,1000,0,30000,no,self,always,0,,,,,,
+1711,Thanatos Maero@NPC_SUMMONSLAVE,attack,196,30,10000,1000,60000,no,self,slavele,10,1704,1705,1706,1707,,6
+1711,Thanatos Maero@NPC_CALLSLAVE,idle,352,1,1000,0,30000,yes,self,always,0,,,,,,
+1712,Thanatos Dolor@NPC_SUMMONSLAVE,attack,196,30,10000,1000,60000,no,self,slavele,10,1704,1705,1706,1707,,6
+1712,Thanatos Dolor@NPC_CALLSLAVE,idle,352,1,1000,0,30000,yes,self,always,0,,,,,,
+1712,Thanatos Dolor@WZ_JUPITEL,attack,84,10,500,1500,5000,yes,target,always,0,,,,,,6
+1712,Thanatos Dolor@WZ_JUPITEL,chase,84,10,500,1500,5000,yes,target,always,0,,,,,,6
+1712,Thanatos Dolor@AS_CLOAKING,attack,135,1,2000,200,5000,yes,self,always,0,,,,,,
+1712,Thanatos Dolor@NPC_POWERUP,attack,349,5,1000,0,30000,no,self,always,0,,,,,,
+
+
+// Abyss Lake
+1713,Acidus@WZ_FIREPILLAR,idle,80,10,10000,0,2000,yes,self,always,0,,,,,,
+1713,Acidus@WZ_FIREPILLAR,idle,80,10,10000,0,2000,yes,self,always,0,,,,,,
+1713,Acidus@MG_THUNDERSTORM,chase,21,10,2000,0,5000,yes,target,always,0,,,,,,29
+1713,Acidus@MG_THUNDERSTORM,attack,21,10,2000,0,5000,yes,target,always,0,,,,,,29
+1713,Acidus@NPC_WINDATTACK,attack,187,1,2000,0,5000,yes,target,always,0,,,,,,
+1713,Acidus@NPC_FIREATTACK,attack,186,5,500,500,5000,no,target,always,0,,,,,,
+1714,Ferus@NPC_CRITICALSLASH,attack,170,1,1000,0,30000,no,target,always,0,,,,,,
+1714,Ferus@KN_BRANDISHSPEAR,attack,57,10,2000,0,10000,yes,target,always,0,,,,,,29
+1716,Acidus@MG_THUNDERSTORM,chase,21,10,2000,0,5000,yes,target,always,0,,,,,,29
+1716,Acidus@MG_THUNDERSTORM,attack,21,10,2000,0,5000,yes,target,always,0,,,,,,29
+1716,Acidus@WZ_FIREPILLAR,idle,80,10,10000,0,2000,yes,self,always,0,,,,,,
+1716,Acidus@WZ_FIREPILLAR,idle,80,10,10000,0,2000,yes,self,always,0,,,,,,
+1717,Ferus@KN_BRANDISHSPEAR,attack,57,10,2000,0,10000,yes,target,always,0,,,,,,29
+1717,Ferus@KN_BRANDISHSPEAR,attack,170,1,1000,0,30000,no,target,always,0,,,,,,
+1719,Detale@CR_REFLECTSHIELD,attack,252,10,500,0,300000,no,self,always,0,,,,,,
+1719,Detale@WZ_VERMILION,attack,85,10,2000,0,15000,yes,target,always,0,,,,,,29
+1719,Detale@WZ_METEOR,chase,83,10,2000,0,5000,yes,target,always,0,,,,,,29
+1719,Detale@WZ_METEOR,attack,83,10,2000,0,5000,yes,target,always,0,,,,,,29
+1719,Detale@WZ_METEOR,chase,83,10,2000,0,5000,yes,target,always,0,,,,,,29
+1719,Detale@WZ_METEOR,chase,83,10,2000,0,5000,yes,target,always,0,,,,,,29
+1719,Detale@WZ_METEOR,attack,83,10,2000,0,5000,yes,target,always,0,,,,,,29
+1719,Detale@WZ_METEOR,chase,83,10,2000,0,5000,yes,target,always,0,,,,,,29
+1719,Detale@WZ_METEOR,attack,83,10,2000,0,5000,yes,target,always,0,,,,,,29
+1719,Detale@WZ_METEOR,chase,83,10,2000,0,5000,yes,target,always,0,,,,,,29
+1719,Detale@WZ_METEOR,chase,83,10,2000,0,5000,yes,target,always,0,,,,,,29
+1719,Detale@WZ_METEOR,attack,83,10,2000,0,5000,yes,target,always,0,,,,,,29
+1719,Detale@WZ_FIREPILLAR,idle,80,10,8000,0,2000,yes,self,always,0,,,,,,
+1719,Detale@WZ_FIREPILLAR,idle,80,10,8000,0,2000,yes,self,always,0,,,,,,
+1719,Detale@NPC_CALLSLAVE,attack,352,1,2000,0,10000,yes,target,always,0,,,,,,
+1719,Detale@NPC_CALLSLAVE,idle,352,1,2000,0,10000,yes,self,always,0,,,,,,
+1719,Detale@NPC_SUMMONSLAVE,idle,196,2,10000,2000,240000,no,self,slavele,0,1720,,,,,
+1719,Detale@AL_HEAL,attack,28,11,10000,0,5000,yes,self,myhpltmaxrate,80,,,,,,2
+1720,Hydro­@AL_HEAL,attack,28,11,10000,0,5000,yes,self,myhpltmaxrate,99,,,,,,2
+1720,Hydro@NPC_SUMMONSLAVE,idle,196,4,10000,2000,240000,no,self,slavele,1,1713,1714,1716,1717,,
+1720,Hydro@NPC_CALLSLAVE,attack,352,1,2000,0,10000,yes,target,always,0,,,,,,
+1720,Hydro­@NPC_CALLSLAVE,idle,352,1,2000,0,10000,yes,self,always,0,,,,,

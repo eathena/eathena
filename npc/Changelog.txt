@@ -30,6 +30,8 @@ Date		Added
 10/25
 	* Updated Lutie Quests. Sloppy copy and paste job. Vending Machine man now knows his own items. [Kayla]
 	* Updated Indian Hairband Quest. It asked for hairband, should have been Indian Filet (5010) [Kayla]
+10/24
+	*Added real spawns for Thanatos and Abyss. [Nexon]
 10/23
 	* Updated WoE (Guilds War) scripts to work correctly with /breakguild [Lupus]
 	  They should abandon occupied castles of the broken guild 

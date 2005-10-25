@@ -34,6 +34,7 @@
 	--
 
 10/24
+	* Added Thanatos/Abyss MOb skills and changed some thanatos/abyss mob stats. Thanks to Vicious_Pucca, Poki#3 and erKURITA. [Nexon]
 	* Added inf 32 (can target traps) to Arrow Shower and Heaven's Drive. I
 	  hope it doesn't messes up the client... but this is how it should be since
 	  those skills CAN hit traps [Skotlex]
