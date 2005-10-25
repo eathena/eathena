@@ -1,6 +1,8 @@
 Date	Added
 ==========
 2005/10/25
+	* Updated GrandCross so it does half damage on the caster (+half damage
+	  from Faith, it does just 25% or less damage to self now) [Skotlex]
 	* Updated battle_check_target to consider normal mobs as always belonging
 	  to the same party (should fix them fighting out when pkmode is on)
 	  [Skotlex]

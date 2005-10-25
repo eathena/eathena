@@ -2288,8 +2288,13 @@ struct Damage battle_calc_magic_attack(
 		{	//Apply the physical part of the skill's damage. [Skotlex]
 			struct Damage wd = battle_calc_weapon_attack(src,target,skill_num,skill_lv,mflag);
 			ad.damage = (wd.damage + ad.damage) * (100 + 40*skill_lv)/100;
-			if(src==target && src->type == BL_MOB)
-				ad.damage = 0;
+			if(src==target)
+			{
+				if (src->type == BL_PC)
+					ad.damage = ad.damage/2;
+				else
+					ad.damage = 0;
+			}
 		}
 
 		if(ad.damage<1)
