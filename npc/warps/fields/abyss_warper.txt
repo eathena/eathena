@@ -69,4 +69,6 @@ warp "hu_fild05.gat",168,301;
 
 L_CLOSE:
 close;
-} 
+}
+
+hu_fild05.gat,180,190,0	warp	warpabyss	1,1,hu_fild05.gat,168,300
