@@ -355,7 +355,10 @@ would not know what character to work on if there's no RID.
 Unless you use 'attachrid' to explicitly attach a character to the script first.
 
 Whenever we say 'invoking character', we mean 'the character who's RID is 
-attached to the running script.
+attached to the running script. The script function "playerattached" can be
+used to check which is the currently attached player to the script (it will
+return 0 if the there is no player attached or the attached player no longer
+is logged on to the map-server).
 
 Item and pet scripts
 --------------------
@@ -677,6 +680,16 @@ All commands must end with a ';'. Actually, you may expect to have multiple
 commands on one line if you properly terminate them with a ';', but it's better 
 if you don't, since it is not certain just whether the scripting engine will 
 behave nicely if you do.
+
+-------------------------
+
+*playerattached;
+
+Returns the ID of the player currently attached to the script. It will return
+0 if noone is attached, or if the attached player no longer exists on the map
+server. It is wise to check for the attached player in script functions that
+deal with timers as there's no guarantee the player will still be logged on
+when the timer triggers.
 
 -------------------------
 
@@ -1897,7 +1910,9 @@ if guild or party number is requested. If a name is specified and the character
 is not found, 0 is returned.
 
 If getcharid(0) returns a zero, the script got called not by a character and 
-doesn't have an attached RID.
+doesn't have an attached RID. Note that this will cause the map server to
+print "player not attached!" error messages, so it is preferred to use
+"playerattached" to check for the character attached to the script.
 
 if (getcharid(2)) mes "Only members of a guild are allowed beyond this point!";
 

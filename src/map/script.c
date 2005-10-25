@@ -223,6 +223,7 @@ int buildin_setnpctimer(struct script_state *st);
 int buildin_getnpctimer(struct script_state *st);
 int buildin_attachnpctimer(struct script_state *st);	// [celest]
 int buildin_detachnpctimer(struct script_state *st);	// [celest]
+int buildin_playerattached(struct script_state *st);	// [Skotlex]
 int buildin_announce(struct script_state *st);
 int buildin_mapannounce(struct script_state *st);
 int buildin_areaannounce(struct script_state *st);
@@ -489,6 +490,7 @@ struct {
 	{buildin_getnpctimer,"getnpctimer","i*"},
 	{buildin_attachnpctimer,"attachnpctimer","*"}, // attached the player id to the npc timer [Celest]
 	{buildin_detachnpctimer,"detachnpctimer","*"}, // detached the player id from the npc timer [Celest]
+	{buildin_playerattached,"playerattached",""}, // returns id of the current attached player. [Skotlex]
 	{buildin_announce,"announce","si"},
 	{buildin_mapannounce,"mapannounce","ssi"},
 	{buildin_areaannounce,"areaannounce","siiiisi"},
@@ -5389,6 +5391,22 @@ int buildin_detachnpctimer(struct script_state *st)
 		nd=(struct npc_data *)map_id2bl(st->oid);
 
 	nd->u.scr.rid = 0;
+	return 0;
+}
+
+/*==========================================
+ * To avoid "player not attached" script errors, this function is provided,
+ * it checks if there is a player attached to the current script. [Skotlex]
+ * If no, returns 0, if yes, returns the char_id of the attached player.
+ *------------------------------------------
+ */
+int buildin_playerattached(struct script_state *st)
+{
+	struct map_session_data *sd;
+	if (st->rid == 0 || (sd = map_id2sd(st->rid)) == NULL)
+		push_val(st->stack,C_INT,0);
+	else
+		push_val(st->stack,C_INT,sd->status.char_id);
 	return 0;
 }
 

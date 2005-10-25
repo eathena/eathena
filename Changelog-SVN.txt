@@ -1,6 +1,9 @@
 Date	Added
 ==========
 2005/10/25
+	* Added script command "playerattached", returns the char_id of the player
+	  currently attached to the script, 0 if there's no player attached (or
+	  attached player is no longer on the map server) [Skotlex]
 	* Fixed @changegm in the char-txt server. [Skotlex]
 	* Some code cleanup to make eA ANSI-C complaint (not quite there, but
 	  closer) [Skotlex]
