@@ -1474,7 +1474,7 @@ int mapif_parse_GuildMasterChange(int fd, int guild_id, const char* name, int le
 	if(g==NULL || g->guild_id<=0 || len > NAME_LENGTH)
 		return 0;
 	
-	for (pos = 0; pos < g->max_member && strcmp(g->member[pos].name, name); pos++);
+	for (pos = 0; pos < g->max_member && strncmp(g->member[pos].name, name, len); pos++);
 
 	if (pos == g->max_member)
 		return 0; //Character not found??
@@ -1485,7 +1485,9 @@ int mapif_parse_GuildMasterChange(int fd, int guild_id, const char* name, int le
 
 	g->member[pos].position = g->member[0].position;
 	g->member[0].position = 0; //Position 0: guild Master.
-	strcpy(g->master, name);
+	strncpy(g->master, name, len);
+	if (len < NAME_LENGTH)
+		g->master[len] = '\0';
 
 	ShowInfo("int_guild: Guildmaster Changed to %s (Guild %d - %s)\n",name, guild_id, g->name);
 	return mapif_guild_master_changed(g, pos);
@@ -1501,6 +1503,7 @@ int inter_guild_parse_frommap(int fd) {
 	case 0x3030: mapif_parse_CreateGuild(fd, RFIFOL(fd,4), (char*)RFIFOP(fd,8), (struct guild_member *)RFIFOP(fd,32)); break;
 	case 0x3031: mapif_parse_GuildInfo(fd, RFIFOL(fd,2)); break;
 	case 0x3032: mapif_parse_GuildAddMember(fd, RFIFOL(fd,4), (struct guild_member *)RFIFOP(fd,8)); break;
+	case 0x3033: mapif_parse_GuildMasterChange(fd,RFIFOL(fd,4),(const char*)RFIFOP(fd,8),RFIFOW(fd,2)-8); break;
 	case 0x3034: mapif_parse_GuildLeave(fd, RFIFOL(fd,2), RFIFOL(fd,6), RFIFOL(fd,10), RFIFOB(fd,14), (const char*)RFIFOP(fd,15)); break;
 	case 0x3035: mapif_parse_GuildChangeMemberInfoShort(fd, RFIFOL(fd,2), RFIFOL(fd,6), RFIFOL(fd,10), RFIFOB(fd,14), RFIFOW(fd,15), RFIFOW(fd,17)); break;
 	case 0x3036: mapif_parse_BreakGuild(fd, RFIFOL(fd,2)); break;

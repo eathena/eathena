@@ -1,6 +1,7 @@
 Date	Added
 ==========
 2005/10/25
+	* Fixed @changegm in the char-txt server. [Skotlex]
 	* Some code cleanup to make eA ANSI-C complaint (not quite there, but
 	  closer) [Skotlex]
 2005/10/24
