@@ -216,6 +216,10 @@ enum {
 #define DEFAULT_AUTOSAVE_INTERVAL 60*1000
 
 #define OPTION_HIDE 0x40
+//Specifies maps where players may hit each other
+#define map_flag_vs(m) (map[m].flag.pvp || map[m].flag.gvg_dungeon || map[m].flag.gvg || (agit_flag && map[m].flag.gvg_castle))
+//Specifies maps that have special GvG/WoE restrictions
+#define map_flag_gvg(m) (map[m].flag.gvg || (agit_flag && map[m].flag.gvg_castle))
 
 enum { BL_NUL, BL_PC, BL_NPC, BL_MOB, BL_ITEM, BL_CHAT, BL_SKILL , BL_PET };
 enum { WARP, SHOP, SCRIPT, MONS };
@@ -906,8 +910,9 @@ struct map_data {
 		unsigned pvp_noguild : 1;
 		unsigned pvp_nightmaredrop :1;
 		unsigned pvp_nocalcrank : 1;
-		unsigned gvg_castle : 1; // Celest (renamed from gvg_dungeon to gvg_castle, it identifies castles now)
+		unsigned gvg_castle : 1;
 		unsigned gvg : 1; // Now it identifies gvg versus maps that are active 24/7
+		unsigned gvg_dungeon : 1; // Celest
 		unsigned gvg_noparty : 1;
 		unsigned nozenypenalty : 1;
 		unsigned notrade : 1;

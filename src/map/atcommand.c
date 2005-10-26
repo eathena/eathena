@@ -5427,6 +5427,8 @@ int atcommand_mapinfo(
 	strcpy(atcmd_output,"GvG Flags: ");
 	if (map[m_id].flag.gvg)
 		strcat(atcmd_output, "GvG ON | ");
+	if (map[m_id].flag.gvg_dungeon)
+		strcat(atcmd_output, "GvG Dungeon | ");
 	if (map[m_id].flag.gvg_castle)
 		strcat(atcmd_output, "GvG Castle | ");
 	if (map[m_id].flag.gvg_noparty)

@@ -1905,7 +1905,7 @@ int status_calc_flee(struct block_list *bl, int flee)
 			flee -= flee * 25/100;
 	}
 
-	if (bl->type == BL_PC && agit_flag && map[bl->m].flag.gvg_castle) //GVG grounds flee penalty, placed here because it's "like" a status change. [Skotlex]
+	if (bl->type == BL_PC && map_flag_gvg(bl->m)) //GVG grounds flee penalty, placed here because it's "like" a status change. [Skotlex]
 		flee -= flee * battle_config.gvg_flee_penalty/100;
 	return flee;
 }
@@ -2952,7 +2952,7 @@ int status_get_dmotion(struct block_list *bl)
 		return 2000;
 
 	if(sc_data && (sc_data[SC_ENDURE].timer!=-1 || sc_data[SC_CONCENTRATION].timer!=-1 || sc_data[SC_BERSERK].timer!=-1))
-		if (!map[bl->m].flag.gvg_castle) //Only works on non-gvg grounds. [Skotlex]
+		if (!map_flag_gvg(bl->m)) //Only works on non-gvg grounds. [Skotlex]
 			return 0;
 
 	//Let's apply a random damage modifier to prevent 'stun-lock' abusers. [Skotlex]
@@ -4823,7 +4823,7 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 	case SC_CHASEWALK:
 		if(sd){
 			int sp = 10+sc_data[SC_CHASEWALK].val1*2;
-			if (map[sd->bl.m].flag.gvg_castle) sp *= 5;
+			if (map_flag_gvg(sd->bl.m)) sp *= 5;
 			if (sd->status.sp > sp){
 				sd->status.sp -= sp; // update sp cost [Celest]
 				clif_updatestatus(sd,SP_SP);

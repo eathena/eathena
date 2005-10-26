@@ -1,6 +1,9 @@
 Date	Added
 ==========
 2005/10/26
+	* Updated mapflags, readded gvg_dungeon. Now mapflags work according to
+	  this post: [Skotle]
+	  http://eathena.ws/board/index.php?showtopic=58201
 	* Likely fixed Party Even Share. [Skotlex]
 	* Added map flag "nightenabled", only maps with this flag will display the
 	  night effect when it's night. Said maps are specified in mapflag/night.txt [Skotlex]

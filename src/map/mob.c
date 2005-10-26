@@ -3236,7 +3236,7 @@ int mobskill_use_id(struct mob_data *md,struct block_list *target,int skill_idx)
 	skill_id=ms->skill_id;
 	skill_lv=ms->skill_lv;
 
-	if(map[md->bl.m].flag.gvg_castle && skill_db[skill_id].nocast & 4)
+	if(map_flag_gvg(md->bl.m) && skill_db[skill_id].nocast & 4)
 		return 0;
 	if(skill_get_inf2(skill_id)&INF2_NO_TARGET_SELF && md->bl.id == target->id)
 		return 0;
@@ -3335,7 +3335,7 @@ int mobskill_use_pos( struct mob_data *md,
 	skill_id=ms->skill_id;
 	skill_lv=ms->skill_lv;
 
-	if(map[md->bl.m].flag.gvg_castle && skill_db[skill_id].nocast & 4)
+	if(map_flag_gvg(md->bl.m) && skill_db[skill_id].nocast & 4)
 		return 0;
 	if(!status_check_skilluse(&md->bl, NULL, skill_id, 0))
 		return 0;

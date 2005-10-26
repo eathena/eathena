@@ -6339,7 +6339,7 @@ int clif_sendegg(struct map_session_data *sd)
 	nullpo_retr(0, sd);
 
 	fd=sd->fd;
-	if (agit_flag && battle_config.pet_no_gvg && map[sd->bl.m].flag.gvg_castle)
+	if (battle_config.pet_no_gvg && map_flag_gvg(sd->bl.m))
 	{	//Disable pet hatching in GvG grounds during Guild Wars [Skotlex]
 		clif_displaymessage(fd, "Pets are not allowed in Guild Wars.");
 		return 0;
@@ -8059,7 +8059,7 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 	// 78
 
 	if(battle_config.pc_invincible_time > 0) {
-		if(map[sd->bl.m].flag.gvg_castle)
+		if(map_flag_gvg(sd->bl.m))
 			pc_setinvincibletimer(sd,battle_config.pc_invincible_time<<1);
 		else
 			pc_setinvincibletimer(sd,battle_config.pc_invincible_time);
@@ -8089,10 +8089,8 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 	} else {
 		sd->pvp_timer=-1;
 	}
-	if(map[sd->bl.m].flag.gvg_castle)
+	if(map_flag_gvg(sd->bl.m))
 		clif_set0199(sd->fd,3);
-	else if (map[sd->bl.m].flag.gvg)
-		clif_set0199(sd->fd,1); //Would this be more proper than 3?
 
 	// pet
 	if(sd->status.pet_id > 0 && sd->pd && sd->pet.intimate > 0) {

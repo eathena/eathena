@@ -100,7 +100,8 @@ mf_nogo		22
 mf_clouds	23
 mf_fireworks	24
 mf_gvg_castle	25
-mf_nightenabled	26
+mf_gvg_dungeon	26
+mf_nightenabled	27
 
 cell_wall	1
 cell_water	3
