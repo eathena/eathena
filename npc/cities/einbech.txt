@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= Muad_dib
 //===== Current Version: ===================================== 
-//= 0.2a
+//= 0.3
 //===== Compatible With: ===================================== 
 //= eAthena Revision 3000+
 //===== Description: ========================================= 
@@ -14,6 +14,7 @@
 //= 0.1b Added missing tabs. [Mass Zero] 0.1c more missing tabs [Lupus]
 //= 0.2 Added reddozen's NPCs, fixedmissing '";' [Lupus]
 //= 0.2a Removed a few npcs never intended to be there [MasterOfMuppets]
+//= 0.3 Added some more npcs, thanks to Muad_Dib [MasterOfMuppets]
 //============================================================
 
 
@@ -436,4 +437,538 @@ L_ZENY:
 	mes "have enough zeny";
 	mes "to pay the train fare.";
 	close;
+}
+
+einbech.gat,157,215,4	script	Train Station Manager	852,{
+	mes "[Train Station Manager]";
+	mes "This train station";
+	mes "is strictly for trains";
+	mes "running from Einbech";
+	mes "to Einbroch. Please speak";
+	mes "to the staff in the 11 o' clock";
+	mes "direction if you'd like to board.";
+	close;
+}
+
+einbech.gat,129,234,6	script	Hander	848,{
+	mes "[Hander]";
+	mes "Those Einbroch bastards!";
+	mes "Living off the resources we";
+	mes "dig up while we keep working";
+	mes "for them like suckers! Damn!";
+	next;
+	mes "[Hander]";
+	mes "Everyday, we risk our";
+	mes "freakin' lives just so we";
+	mes "can make a living! Why don't";
+	mes "the elders do something about";
+	mes "this, like raise our ore prices?";
+	next;
+	mes "[Hander]";
+	mes "The work schedule's";
+	mes "unreasonable, Cavitar's";
+	mes "wife was attacked by a mine";
+	mes "creature, the hospital's too";
+	mes "far away and we don't have";
+	mes "any food to eat! Why...?!";
+	close;
+}
+
+einbech.gat,128,238,6	script	Mogan	848,{
+	mes "[Mogan]";
+	mes "Recently, there were a few";
+	mes "cave-ins where many miners";
+	mes "were injured. It was discussed";
+	mes "in the Town Council and in my";
+	mes "opinion, I think the miners dug";
+	mes "too deep and disturbed... ^FF0000it^000000.";
+	next;
+	mes "[Mogan]";
+	mes "Yes, they awoke Ungoliant,";
+	mes "the master of the caves that";
+	mes "has existed since ancient time.";
+	mes "I don't know how many more will";
+	mes "be victimised by Ungolian in the";
+	mes "future. There's no telling...";
+	next;
+	mes "[Mogan]";
+	mes "Adventurer, be careful";
+	mes "if you travel inside the";
+	mes "mines, lest your footsteps";
+	mes "distrub Ungoliant's slumber.";
+	close;
+}
+
+einbech.gat,130,253,2	script	Ekuri	848,{
+	mes "[Ekuri]";
+	mes "Yo-heave-ho!";
+	mes "Yo-heave-ho~!";
+	next;
+	mes "[Ekuri]";
+	mes "What am I doing here?";
+	mes "heck, I'm scared to death";
+	mes "of entering the mine! But";
+	mes "I can make a living here at";
+	mes "the entrance by gathering";
+	mes "scrap metal! Smart, huh?";
+	next;
+	mes "[Ekuri]";
+	mes "Sometimes, I get lucky";
+	mes "and score an entire ore!";
+	mes "Sure, I'm a coward, but";
+	mes "at least I'm alive. Well,";
+	mes "for the time being.";
+	next;
+	mes "[Ekuri]";
+	mes "Now you know what";
+	mes "I'm doing here. So why";
+	mes "don't you leave me to";
+	mes "my work? Heave-ho!";
+	mes "Ores, come to me!";
+	close;
+}
+
+einbech.gat,148,242,5	script	Jung	855,{
+	mes "[Jung]";
+	mes "I'm one of the few";
+	mes "people who's lived";
+	mes "in both Einbech and";
+	mes "Einbroch for a long time,";
+	mes "So I gyess I'm one of the";
+	mes "best guides of this area.";
+	next;
+	mes "[Jung]";
+	mes "Say, if you're thinking of";
+	mes "entering the Mine Dungeon,";
+	mes "I can tell you all I know about";
+	mes "the monsters in that place so";
+	mes "that you'll be better prepared.";
+	next;
+	menu "Sure, why not?",L_TELL,"No, thanks.",-;
+	mes "[Jung]";
+	mes "I understand if you're";
+	mes "kind of in a hurry. Still,";
+	mes "if you're pretty new around";
+	mes "here, you should learn as";
+	mes "much as you can before";
+	mes "entering any dungeons.";
+	next;
+	mes "[Jung]";
+	mes "Alright then,";
+	mes "be safe on your";
+	mes "adventures, alright?";
+	close;
+L_TELL:
+	mes "[Jung]";
+	mes "Let's see. Ah, the monsters that";
+	mes "are unique to the Mine Dungeon";
+	mes "are Noxious, Venomous, Porcellio";
+	mes "and Obsidian. Wich one do you";
+	mes "want to know more about?";
+	next;
+	menu "Noxious and Venomous",-,"Porcellio",L_PORCELLIO,"Obsidian",L_OBSIDIAN;
+	mes "[Jung]";
+	mes "You know, no one seems";
+	mes "to know where Noxious and";
+	mes "Venomous have come form.";
+	mes "It's like they appeared out of";
+	mes "nowhere when Einbroch";
+	mes "started to industrialise.";
+	next;
+	mes "[Jung]";
+	mes "Now that I think about it,";
+	mes "I don't think they're naturally";
+	mes "created monsters. They have";
+	mes "this fixed look of despair and";
+	mes "suffering and tend to act like they";
+	mes "want their enemies to kill them.";
+	next;
+	mes "[Jung]";
+	mes "Still, you'd better be careful!";
+	mes "Careful! Nocious and Venomous";
+	mes "are stealthy monsters that can";
+	mes "glide quietly through the air";
+	mes "and attack you before";
+	mes "you even notice...";
+	next;
+	mes "[Jung]";
+	mes "You should know that";
+	mes "Noxious is Ghost property";
+	mes "and Venomous is Poison.";
+	mes "Both are medium sized,";
+	mes "formless monsters.";
+	next;
+	mes "[Jung]";
+	mes "Both of them drop Apple,";
+	mes "Dust Pollutant, Toxic Gas,";
+	mes "Poisonous Powder, Bacillus,";
+	mes "Mold Powder and Anodyne.";
+	next;
+	mes "[Jung]";
+	mes "That's all for now.";
+	mes "Feel free to ask me";
+	mes "if you have any questions";
+	mes "about monsters in the Mine";
+	mes "Dungeon. Be safe, adventurer.";
+	close;
+L_PORCELLIO:
+	mes "[Jung]";
+	mes "Porcellio is an insect that";
+	mes "lives in caves and drinks water";
+	mes "dripped from stalactites. It's";
+	mes "different from Ungoliant since";
+	mes "it likes to be near different";
+	mes "kinds of minerals and ores.";
+	next;
+	mes "[Jung]";
+	mes "Porcellio drops Jubilee,";
+	mes "Insect Leg, Single Cell,";
+	mes "Moss of Morning Dew, Neon";
+	mes "Liquid and a few other things";
+	mes "I can't quite remember.";
+	next;
+	mes "[Jung]";
+	mes "Lastly, Porcellio is an";
+	mes "Earth property monster.";
+	mes "That's all I know about it.";
+	mes "But if you want to know more";
+	mes "about some monster in the";
+	mes "Mine Dungeon, feel free to ask.";
+	close;
+L_OBSIDIAN:
+	mes "[Jung]";
+	mes "Do you know about the";
+	mes "belief that underground";
+	mes "minerlas that contain huge";
+	mes "amounts of energy actually";
+	mes "have souls? Obsidian is";
+	mes "one of these living rocks.";
+	next;
+	mes "[Jung]";
+	mes "Supposedly, just a piece of an";
+	mes "Obsidian in a Jung Processor has";
+	mes "enough energy to light up the night";
+	mes "sky. Unfortunately, it's impossible";
+	mes "to capture one alive and hunting";
+	mes "them isn't so easy.";
+	next;
+	mes "[Jung]";
+	mes "Obsidian is a small,";
+	mes "shapeless monster that";
+	mes "drops Clear Jewel, Piece of";
+	mes "Black Crystal, Coal, Elunium,";
+	mes "Iron and Steel.";
+	next;
+	mes "[Jung]";
+	mes "That's all for Obsidian.";
+	mes "If you have any questions";
+	mes "about other monsters living";
+	mes "in the Mine Dungeon, feel";
+	mes "free to ask me.";
+	close;
+}
+
+einbech.gat,148,246,5	script	Franz	851,{
+	mes "[Franz]";
+	mes "So bored...";
+	mes "Starving for...";
+	mes "Conversation.";
+	mes "S-somebody...";
+	next;
+	mes "[Franz]";
+	mes "Hey, a traveller!";
+	mes "Are you planning to explore";
+	mes "the Mine Dungeon or the fields";
+	mes "around here? Let's chat for a bit";
+	mes "and maybe you'll learn something.";
+	next;
+	menu "Okay, fine.",L_OKAY,"No, thanks.",-;
+	mes "[Franz]";
+	mes "Oh, okay.";
+	mes "You're busy and have";
+	mes "things to do, I understand.";
+	mes "You probably have to head";
+	mes "off somewhere right away.";
+	mes "Right. Got it.";
+	next;
+	mes "[Franz]";
+	mes "I...";
+	mes "I've got stuff";
+	mes "I should be working";
+	mes "on. Yes. So very busy.";
+	close;
+L_OKAY:
+	mes "[Franz]";
+	mes "Ooh, have you heard";
+	mes "about the creature in the";
+	mes "Mine Dungeon or what's";
+	mes "happened in town recently?";
+	mes "Wich would you like to";
+	mes "know more about?";
+	next;
+	menu "Creature of Mine Dungeon",L_CREATURE,"Town Incident",-;
+	mes "[Franz]";
+	mes "In Einbroch, there was";
+	mes "a short lived teddy bear";
+	mes "fad. However, a series of";
+	mes "mysterious accidents and";
+	mes "murders where entire families";
+	mes "were killed also occured.";
+	next;
+	mes "[Franz]";
+	mes "It turns out that every family";
+	mes "that had been murdered had";
+	mes "bought one of these teddy bears.";
+	mes "There were even rumors tat these";
+	mes "teddy bears were comming to life.";
+	next;
+	mes "[Franz]";
+	mes "After an investigation, the";
+	mes "authorities learned that all the";
+	mes "merchants who sold these bears";
+	mes "had purchased them from the";
+	mes "smae wholesaler, an outsider";
+	mes "noone knew anything about.";
+	next;
+	mes "[Franz]";
+	mes "Since the teddy bears were";
+	mes "clearly not made to be mere,";
+	mes "harmless toys, troops were";
+	mes "sent to secure all the teddy";
+	mes "bears and dispose of them";
+	mes "outside of town.";
+	next;
+	mes "[Franz]";
+	mes "But as soon as the teddy";
+	mes "bears were set outside of";
+	mes "town, they sprang to life and";
+	mes "started rioting! This is clear";
+	mes "proof that these bears are";
+	mes "controlled by some evil force.";	
+	next;
+	mes "[Franz]";
+	mes "Now those aggressive teddy";
+	mes "bears are scattered all over";
+	mes "the place and the government";
+	mes "has classified them as monsters.";
+	mes "Kill with exstreme prejudice!";
+ 	next;
+	mes "[Franz]";
+	mes "According to adventurers";
+	mes "who have caught these bears,";
+	mes "they're small, neutral monsters";
+	mes "wich drop Honey, Screw, Well-baked";
+	mes "Cookie and Oridecon Hammer.";
+	next;
+	mes "[Franz]";
+	mes "That's all I know";
+	mes "about it. watch out";
+	mes "for those bears if you";
+	mes "go exploring, okay? They";
+	mes "may be cute, but they're";
+	mes "known to be extremely vicious!";
+	close;
+L_CREATURE:
+	mes "[Franz]";
+	mes "The creature I'm talking about is";
+	mes "Ungoliant, wich also called the";
+	mes "Master of the Caves around here.";
+	mes "It's said to live deep in the caves";
+	mes "where it giards peculiar ores and";
+	mes "minerals with strange powers.";
+	next;
+	mes "[Franz]";
+	mes "At first I thought it was";
+	mes "just an old fairy tale, but it";
+	mes "actually started appearing";
+	mes "again about ten years ago";
+	mes "when the tunnel cave-ins";
+	mes "started to happen.";
+	next;
+	mes "[Franz]";
+	mes "As sightings of Ungoliant";
+	mes "increased, more and more";
+	mes "tunnel cave-ins occured.";
+	mes "I guess the miners have";
+	mes "inadvertently intruded";
+	mes "into it's territory.";
+	next;
+	mes "[Franz]";
+	mes "According to legend,";
+	mes "ancient giants snuck into";
+	mes "a mine to steal coal from";
+	mes "humans. But they made too";
+	mes "much noise while they were";
+	mes "digging and awoke Ungoliant.";
+	next;
+	mes "[Franz]";
+	mes "When the miners went to work";
+	mes "the next morning, they found the";
+	mes "bloodied bodies of those giants.";
+	mes "After that, people have feared";
+	mes "the threat that Ungoliant poses";
+	mes "to anyone entering the mines.";
+	next;
+	mes "[Franz]";
+	mes "Now, and adventurer that";
+	mes "managed to kill an Ungoliant";
+	mes "has told me that it drops Ant's";
+	mes "Jaw, Colorful Shell, Very Hard";
+	mes "Shell, Long Leg, Neon Liquid";
+	mes "and Zircon.";
+	close;
+}
+
+einbech.gat,151,168,4	script	Tollaf	854,{
+	mes "[Tollaf]";
+	mes "Ah...!";
+	mes "This is killing me!";
+	mes "I don't have the money";
+	mes "to move, but I don't wanna";
+	mes "live in this town anymore!";
+	next;
+	mes "[Tollaf]";
+	mes "People everywhere else";
+	mes "live so much better than we";
+	mes "do, especially those snobs in";
+	mes "Einbroch! Einbech must be the";
+	mes "worst town of Schwartzwald Republic.";
+	mes "No, it's the worst in the world!";
+	close;
+}
+
+einbech.gat,149,154,4	script	Mjunia	850,{
+	mes "[Mjunia]";
+	mes "It's hard being a woman";
+	mes "in this town, By being born";
+	mes "here, it's like fate just decided";
+	mes "to be especially cruel to me.";
+	next;
+	mes "[Mjunia]";
+	mes "My skin and hands are";
+	mes "rough from all the work";
+	mes "I have to do. But worst of";
+	mes "all... I... I... I've developed";
+	mes "bigger muscles than most";
+	mes "guys! Waaaaaah~!";
+	next;
+	mes "[Mjunia]";
+	mes "I wish I could find";
+	mes "a nice guy from Einbroch";
+	mes "and get married so I can";
+	mes "get away from this town.";
+	mes "But it doesn't look like";
+	mes "that wil happen...";
+	next;
+	mes "[Mjunia]";
+	mes "And I'd never marry";
+	mes "anyone from Einbech!";
+	mes "I'd rather die cold and";
+	mes "alone than cold and married";
+	mes "to some Einbech hooligan.";
+	next;
+	mes "[Mjunia]";
+	mes "Look at these";
+	mes "muscles. What do";
+	mes "you think? Am I pretty?";
+	mes "*Sniff* I gave up trying";
+	mes "to be feminine years ago.";
+	mes "I have to work so hard...";
+	close;
+}
+
+einbech.gat,176,125,4	script	Ellhenje	850,{
+	mes "[Ellhenje]";
+	mes "Things might be";
+	mes "bad in this town";
+	mes "with the pollution";
+	mes "and the bullying";
+	mes "from Einbroch...";
+	next;
+	mes "[Ellhenje]";
+	mes "But somehow, people";
+	mes "are able to get by. That's";
+	mes "because there's a guy";
+	mes "that everyone here likes...";
+	next;
+	mes "[Ellhenje]";
+	mes "I'm talking about Clitzer!";
+	mes "He's almost too honest and";
+	mes "almost too diligent. But most";
+	mes "of all, he's the nicest guy~";
+	next;
+	mes "[Ellhenje]";
+	mes "Clitzer was born in one of";
+	mes "Einbech's poorest families,";
+	mes "but he's usually happy and always";
+	mes "thinks about others. I guess that's";
+	mes "why people like to think of him";
+	mes "as representing all of Einbech.";
+	next;
+	mes "[Ellhenje]";
+	mes "Recently, something's";
+	mes "been bothering him. I'm";
+	mes "not sure, but I think only";
+	mes "woman troubles could make";
+	mes "a guy feel so glum. I hope he";
+	mes "feels better soon...";
+	close;
+}
+
+einbech.gat,172,113,4	script	Nemuk	855,{
+	mes "[Nemuk]";
+	mes "You seem to be an";
+	mes "outsider, so let me";
+	mes "ask you something.";
+	mes "What do you think";
+	mes "of Einbech?";
+	next;
+	menu "It's fine.",L_FINE,"It looks tough to live here.",-;
+	mes "[Nemuk]";
+	mes "I thought so.";
+	mes "Well, I appologize if";
+	mes "I put you on the spot.";
+	next;
+	mes "[Nemuk]";
+	mes "Everyone here has been";
+	mes "having a tough time just";
+	mes "living day to day for as long";
+	mes "as I can remember. It's like";
+	mes "things never seem to get any";
+	mes "better, no matter what we do.";
+	next;
+	mes "[Nemuk]";
+	mes "I really want to leave,";
+	mes "but it's just an empty";
+	mes "wish. My body is trapped";
+	mes "here while my heart longs";
+	mes "for a much better life. *Sigh*";
+	mes "Is it hopeless? What can I do?";
+	close;
+L_FINE:
+	mes "[Nemuk]";
+	mes "Huh...?";
+	mes "I'm not sure what";
+	mes "you've seen, but I'm";
+	mes "surprised to hear you";
+	mes "say something like that.";
+	next;
+	mes "[Nemuk]";
+	mes "It's been ten years since";
+	mes "I've started to think about";
+	mes "moving out. However, I'm still";
+	mes "debating it. Now, if I were rich,";
+	mes "I'd leave in no time, but it's hard";
+	mes "getting the money to move out.";
+	next;
+	mes "[Nemuk]";
+	mes "*Sigh...*";
+	mes "Maybe if I had been";
+	mes "and adventurer when I was";
+	mes "younger, I wouldn't have";
+	mes "these problems today...";
+	close;
+}
+
+einbech.gat,165,105,6	script	Buender Hikeman	847,{
 }

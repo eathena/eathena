@@ -28,6 +28,7 @@ Nexon
 Date		Added
 ======
 10/26
+	* Added some more Einbech npcs, thanks to Muad_Dib of Prometheus [MasterOfMuppets]
 	* Added noteleport to Gefenia maps [MasterOfMuppets]
 	* Added more Juperos Warps and Scripts by Justin84 [Lupus]
 	* Re-enabled main Lighthalzen Entrance warp [Lupus]
