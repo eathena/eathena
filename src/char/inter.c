@@ -449,6 +449,7 @@ int mapif_parse_GMmessage(int fd) {
 // Wisp/page request to send
 int mapif_parse_WisRequest(int fd) {
 	struct WisData* wd;
+	char name[NAME_LENGTH];
 	static int wisid = 0;
 	int index;
 
@@ -460,23 +461,25 @@ int mapif_parse_WisRequest(int fd) {
 		return 0;
 	}
 
+	memcpy(name, RFIFOP(fd,28), NAME_LENGTH); //Received name may be too large and not contain \0! [Skotlex]
+	name[NAME_LENGTH-1]= '\0';
 	// search if character exists before to ask all map-servers
-	if ((index = search_character_index((char*)RFIFOP(fd,28))) == -1) {
+	if ((index = search_character_index(name)) == -1) {
 		unsigned char buf[27];
 		WBUFW(buf, 0) = 0x3802;
-		memcpy(WBUFP(buf, 2), RFIFOP(fd, 4), 24);
+		memcpy(WBUFP(buf, 2), RFIFOP(fd, 4), NAME_LENGTH);
 		WBUFB(buf,26) = 1; // flag: 0: success to send wisper, 1: target character is not loged in?, 2: ignored by target
 		mapif_send(fd, buf, 27);
 	// Character exists. So, ask all map-servers
 	} else {
 		// to be sure of the correct name, rewrite it
-		memset(RFIFOP(fd,28), 0, 24);
-		strncpy((char*)RFIFOP(fd,28), search_character_name(index), NAME_LENGTH);
+		memset(name, 0, NAME_LENGTH);
+		strncpy(name, search_character_name(index), NAME_LENGTH);
 		// if source is destination, don't ask other servers.
-		if (strcmp((char*)RFIFOP(fd,4),(char*)RFIFOP(fd,28)) == 0) {
+		if (strcmp((char*)RFIFOP(fd,4),name) == 0) {
 			unsigned char buf[27];
 			WBUFW(buf, 0) = 0x3802;
-			memcpy(WBUFP(buf, 2), RFIFOP(fd, 4), 24);
+			memcpy(WBUFP(buf, 2), RFIFOP(fd, 4), NAME_LENGTH);
 			WBUFB(buf,26) = 1; // flag: 0: success to send wisper, 1: target character is not loged in?, 2: ignored by target
 			mapif_send(fd, buf, 27);
 		} else {
@@ -493,8 +496,8 @@ int mapif_parse_WisRequest(int fd) {
 			wd->id = ++wisid;
 			wd->fd = fd;
 			wd->len= RFIFOW(fd,2)-52;
-			memcpy(wd->src, RFIFOP(fd, 4), 24);
-			memcpy(wd->dst, RFIFOP(fd,28), 24);
+			memcpy(wd->src, RFIFOP(fd, 4), NAME_LENGTH);
+			memcpy(wd->dst, RFIFOP(fd,28), NAME_LENGTH);
 			memcpy(wd->msg, RFIFOP(fd,52), wd->len);
 			wd->tick = gettick();
 			numdb_insert(wis_db, wd->id, wd);

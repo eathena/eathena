@@ -650,30 +650,18 @@ int intif_guild_castle_datasave(int castle_id,int index, int value)
 int intif_parse_WisMessage(int fd) { // rewritten by [Yor]
 	struct map_session_data* sd;
 	char *wisp_source;
+	char name[NAME_LENGTH];
 	int id=RFIFOL(fd,4);
 	int i=0; //,j=0;
 
 //	if(battle_config.etc_log)
 //		printf("intif_parse_wismessage: %d %s %s %s\n",id,RFIFOP(fd,6),RFIFOP(fd,30),RFIFOP(fd,54) );
-
-	sd=(struct map_session_data *) map_nick2sd((char *) RFIFOP(fd,32));	// 送信先を探す
-	if(sd!=NULL && strcmp((char *) sd->status.name, (char *) RFIFOP(fd,32)) == 0){
-/*
-		for(i=0;i<MAX_WIS_REFUSAL;i++){	//拒否リストに名前があるかどうか判定してあれば拒否
-			if(strcmp(sd->wis_refusal[i],RFIFOP(fd,8))==0){
-				j++;
-				break;
-			}
-		}
-*/
+	memcpy(name, RFIFOP(fd,32), NAME_LENGTH);
+	name[NAME_LENGTH-1] = '\0'; //In case name arrived without it's terminator. [Skotlex]
+	sd=(struct map_session_data *) map_nick2sd(name);	// 送信先を探す
+	if(sd!=NULL && strcmp(sd->status.name, name) == 0){
 		if(sd->ignoreAll == 1)
 			intif_wis_replay(RFIFOL(fd,4), 2);	// 受信拒否
-/*
-		else if(j>0)
-			intif_wis_replay(id,2);	// 受信拒否
-
-		else{
-*/
 		else {
 			wisp_source = (char *) RFIFOP(fd,8); // speed up [Yor]
 			for(i=0;i<MAX_IGNORE_LIST;i++){   //拒否リストに名前があるかどうか判定してあれば拒否

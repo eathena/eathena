@@ -1,6 +1,7 @@
 Date	Added
 ==========
 2005/10/26
+	* Probably fixed a char-server crash related to whispers. [Skotlex]
 	* Updated the custom jobmaster so it should stop second advanced classes
 	  from being able to re-change jobs. [Skotlex]
 	* Implemented dynamix's night system which uses a status change rather than
