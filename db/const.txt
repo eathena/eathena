@@ -340,7 +340,9 @@ SC_SpeedUp1	42
 SC_ATKPot	43
 SC_MATKPot	44
 SC_EncPoison	6
+SC_Ghost		148
 SC_Holy		17
+SC_Dark		146
 SC_Flame	90
 SC_Frost	91
 SC_Lightning	92
