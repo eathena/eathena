@@ -166,6 +166,123 @@ int impossible_trade_check(struct map_session_data *sd) {
 }
 
 /*==========================================
+ * Check here if we can add item in inventory (against full inventory)
+ *------------------------------------------
+ */
+int trade_check(struct map_session_data *sd) {
+	struct item inventory[MAX_INVENTORY];
+	struct item inventory2[MAX_INVENTORY];
+	struct item_data *data;
+	struct map_session_data *target_sd;
+	int trade_i, i, amount;
+
+	target_sd = map_id2sd(sd->trade_partner);
+
+	// get inventory of player
+	memcpy(&inventory, &sd->status.inventory, sizeof(struct item) * MAX_INVENTORY);
+	memcpy(&inventory2, &target_sd->status.inventory, sizeof(struct item) * MAX_INVENTORY);
+
+	// check free slot in both inventory
+	for(trade_i = 0; trade_i < 10; trade_i++) {
+		amount = sd->deal_item_amount[trade_i];
+		if (amount > 0) {
+			int n = sd->deal_item_index[trade_i];
+			// check quantity
+			if (amount > inventory[n].amount)
+				amount = inventory[n].amount;
+			if (amount > 0) {
+				data = itemdb_search(inventory[n].nameid);
+				i = MAX_INVENTORY;
+				// check for non-equipement item
+				if (!itemdb_isequip2(data)) {
+					for(i = 0; i < MAX_INVENTORY; i++)
+						if (inventory2[i].nameid == inventory[n].nameid &&
+							inventory2[i].card[0] == inventory[n].card[0] && inventory2[i].card[1] == inventory[n].card[1] &&
+							inventory2[i].card[2] == inventory[n].card[2] && inventory2[i].card[3] == inventory[n].card[3]) {
+							if (inventory2[i].amount + amount > MAX_AMOUNT) {
+								clif_displaymessage(sd->fd, msg_txt(592)); // Trade can not be done, because one of your doesn't have enough free slots in its inventory.
+								clif_displaymessage(target_sd->fd, msg_txt(592)); // Trade can not be done, because one of your doesn't have enough free slots in its inventory.
+								return 0;
+							}
+							inventory2[i].amount += amount;
+							inventory[n].amount -= amount;
+							if (inventory[n].amount <= 0)
+								memset(&inventory[n], 0, sizeof(struct item));
+							break;
+						}
+				}
+				// check for equipement
+				if (i == MAX_INVENTORY) {
+					for(i = 0; i < MAX_INVENTORY; i++) {
+						if (inventory2[i].nameid == 0) {
+							memcpy(&inventory2[i], &inventory[n], sizeof(struct item));
+							inventory2[i].amount = amount;
+							inventory[n].amount -= amount;
+							if (inventory[n].amount <= 0)
+								memset(&inventory[n], 0, sizeof(struct item));
+							break;
+						}
+					}
+					if (i == MAX_INVENTORY) {
+						clif_displaymessage(sd->fd, msg_txt(592)); // Trade can not be done, because one of your doesn't have enough free slots in its inventory.
+						clif_displaymessage(target_sd->fd, msg_txt(592)); // Trade can not be done, because one of your doesn't have enough free slots in its inventory.
+						return 0;
+					}
+				}
+			}
+		}
+		amount = target_sd->deal_item_amount[trade_i];
+		if (amount > 0) {
+			int n = target_sd->deal_item_index[trade_i];
+			// check quantity
+			if (amount > inventory2[n].amount)
+				amount = inventory2[n].amount;
+			if (amount > 0) {
+				// search if it's possible to add item (for full inventory)
+				data = itemdb_search(inventory2[n].nameid);
+				i = MAX_INVENTORY;
+				if (!itemdb_isequip2(data)) {
+					for(i = 0; i < MAX_INVENTORY; i++)
+						if (inventory[i].nameid == inventory2[n].nameid &&
+							inventory[i].card[0] == inventory2[n].card[0] && inventory[i].card[1] == inventory2[n].card[1] &&
+							inventory[i].card[2] == inventory2[n].card[2] && inventory[i].card[3] == inventory2[n].card[3]) {
+							if (inventory[i].amount + amount > MAX_AMOUNT) {
+								clif_displaymessage(sd->fd, msg_txt(592)); // Trade can not be done, because one of your doesn't have enough free slots in its inventory.
+								clif_displaymessage(target_sd->fd, msg_txt(592)); // Trade can not be done, because one of your doesn't have enough free slots in its inventory.
+								return 0;
+							}
+							inventory[i].amount += amount;
+							inventory2[n].amount -= amount;
+							if (inventory2[n].amount <= 0)
+								memset(&inventory2[n], 0, sizeof(struct item));
+							break;
+						}
+				}
+				if (i == MAX_INVENTORY) {
+					for(i = 0; i < MAX_INVENTORY; i++) {
+						if (inventory[i].nameid == 0) {
+							memcpy(&inventory[i], &inventory2[n], sizeof(struct item));
+							inventory[i].amount = amount;
+							inventory2[n].amount -= amount;
+							if (inventory2[n].amount <= 0)
+								memset(&inventory2[n], 0, sizeof(struct item));
+							break;
+						}
+					}
+					if (i == MAX_INVENTORY) {
+						clif_displaymessage(sd->fd, msg_txt(592)); // Trade can not be done, because one of your doesn't have enough free slots in its inventory.
+						clif_displaymessage(target_sd->fd, msg_txt(592)); // Trade can not be done, because one of your doesn't have enough free slots in its inventory.
+						return 0;
+					}
+				}
+			}
+		}
+	}
+
+	return 1;
+}
+
+/*==========================================
  * Adds an item/qty to the trade window [rewrite by Skotlex] 
  *------------------------------------------
  */
@@ -357,6 +474,12 @@ void trade_tradecommit(struct map_session_data *sd) {
 				    (target_sd->status.zeny + sd->deal_zeny) <= MAX_ZENY && // fix positiv overflow
 				    target_sd->deal_zeny >= 0 && target_sd->deal_zeny <= MAX_ZENY && target_sd->deal_zeny <= target_sd->status.zeny && // check amount
 				    (sd->status.zeny + target_sd->deal_zeny) <= MAX_ZENY) { // fix positiv overflow
+
+					// check for full inventory (can not add traded items)
+					if (!trade_check(sd)) { // check the both players
+						trade_tradecancel(sd);
+						return;
+					}
 
 					// trade is accepted
 					for(trade_i = 0; trade_i < 10; trade_i++) {

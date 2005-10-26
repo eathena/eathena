@@ -64,19 +64,32 @@ void vending_purchasereq(struct map_session_data *sd,int len,int id,unsigned cha
 		return;
 	if (vsd->vender_id == sd->bl.id)
 		return;
+
+	// check number of buying items
+	if (len < 8 + 4 || len > 8 + 4 * MAX_VENDING) {
+		clif_buyvending(sd, 0, 32767, 4); // not enough quantity (index and amount are unknown)
+		return;
+	}
+
 	for(i = 0, w = z = 0; 8 + 4 * i < len; i++) {
 		amount = *(short*)(p + 4 * i);
 		index = *(short*)(p + 2 + 4 * i) - 2;
 
-		if (amount < 0) return; // exploit
+		if (amount <= 0) return; // exploit
+
 /*		for(j = 0; j < vsd->vend_num; j++)
 			if (0 < vsd->vending[j].amount && amount <= vsd->vending[j].amount && vsd->vending[j].index == index)
 				break;
 */
+
+		// check of index
+		if (index < 0 || index >= MAX_CART)
+			return;
+
 //ADD_start
 		for(j = 0; j < vsd->vend_num; j++) {
-			if (0 < vsd->vending[j].amount && vsd->vending[j].index == index) {
-				if (amount > vsd->vending[j].amount || amount <= 0) {
+			if (vsd->vending[j].amount > 0 && vsd->vending[j].index == index) {
+				if (amount > vsd->vending[j].amount) {
 					clif_buyvending(sd,index,vsd->vending[j].amount, 4);
 					return;
 				}
@@ -91,6 +104,10 @@ void vending_purchasereq(struct map_session_data *sd,int len,int id,unsigned cha
 		if (z > sd->status.zeny){
 			clif_buyvending(sd, index, amount, 1);
 			return; // zeny•s‘«
+		}
+		if (z + vsd->status.zeny > MAX_ZENY) { // fix positiv overflow (merchant)
+			clif_buyvending(sd, index, vsd->vending[j].amount, 4); // not enough quantity
+			return; // zeny•s‘ë
 		}
 		w += itemdb_weight(vsd->status.cart[index].nameid) * amount;
 		if (w + sd->weight > sd->max_weight) {
@@ -168,15 +185,25 @@ void vending_purchasereq(struct map_session_data *sd,int len,int id,unsigned cha
 void vending_openvending(struct map_session_data *sd,int len,char *message,int flag,unsigned char *p)
 {
 	int i, j;
-
+	int vending_skill_lvl;
 	nullpo_retv(sd);
 
-	if(!pc_checkskill(sd,MC_VENDING) || !pc_iscarton(sd)) {	// cart skill and cart check [Valaris]
+	//check shopname len
+	if(message[0] == '\0')
+		return;
+
+	vending_skill_lvl = pc_checkskill(sd, MC_VENDING);
+	if(!vending_skill_lvl || !pc_iscarton(sd)) {	// cart skill and cart check [Valaris]
 		clif_skill_fail(sd,MC_VENDING,0,0);
 		return;
 	}
 
 	if (flag) {
+		// check number of items in shop
+		if (len < 85 + 8 || len > 85 + 8 * MAX_VENDING || len > 85 + 8 * (2 + vending_skill_lvl)) {
+			clif_skill_fail(sd, MC_VENDING, 0, 0);
+			return;
+		}
 		for(i = 0, j = 0; (85 + 8 * j < len) && (i < MAX_VENDING); i++, j++) {
 			sd->vending[i].index = *(short*)(p+8*j)-2;
 			if (sd->vending[i].index < 0 || sd->vending[i].index >= MAX_INVENTORY ||
