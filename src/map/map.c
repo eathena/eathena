@@ -1963,8 +1963,10 @@ int map_setipport(char *name,unsigned long ip,int port) {
 //		mdos->map  = NULL;
 		strdb_insert(map_db,mdos->name,mdos);
 	} else if(md->gat){
+		//We are SO NOT DOING this, this would cause a conflict in the map_db, 
+		//and since we already have a local map, don't risk overwriting it! [Skotlex]
+		/*
 		if(ip!=clif_getip() || port!=clif_getport()){
-			// 読み甲ﾅいたけど、担当外になったマップ
 			mdos=(struct map_data_other_server *)aCalloc(1,sizeof(struct map_data_other_server));
 			memcpy(mdos->name, name, NAME_LENGTH-1);
 //			mdos->gat  = NULL;
@@ -1976,7 +1978,7 @@ int map_setipport(char *name,unsigned long ip,int port) {
 		} else {
 			// 読み甲ﾅいて、担当になったマップ（何もしない）
 			;
-		}
+		}*/
 	} else {
 		mdos=(struct map_data_other_server *)md;
 		if(ip == clif_getip() && port == clif_getport()) {

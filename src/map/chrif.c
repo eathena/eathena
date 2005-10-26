@@ -306,7 +306,7 @@ int chrif_changemapserver(struct map_session_data *sd, char *name, int x, int y,
 	WFIFOW(char_fd,34) = x;
 	WFIFOW(char_fd,36) = y;
 	WFIFOL(char_fd,38) = ip;
-	WFIFOL(char_fd,42) = port;
+	WFIFOW(char_fd,42) = port;
 	WFIFOB(char_fd,44) = sd->status.sex;
 	WFIFOL(char_fd,45) = s_ip;
 	WFIFOSET(char_fd,49);

@@ -2268,6 +2268,8 @@ int parse_tologin(int fd) {
 	return 0;
 }
 
+int search_mapserver(char *map, long ip, short port);
+
 int parse_frommap(int fd) {
 	int i = 0, j = 0;
 	int id;
@@ -2523,48 +2525,46 @@ int parse_frommap(int fd) {
 		case 0x2b05:
 			if (RFIFOREST(fd) < 49)
 				return 0;
+			{
+				char name[MAP_NAME_LENGTH];
+				int map_id, map_fd;
+				struct online_char_data* data;
+	
+				WFIFOW(fd, 0) = 0x2b06;
+				memcpy(WFIFOP(fd,2), RFIFOP(fd,2), 42);
+				WFIFOSET(fd, 44);
 
-			if (auth_fifo_pos >= AUTH_FIFO_SIZE)
-				auth_fifo_pos = 0;
+				memcpy(name, RFIFOP(fd,18), MAP_NAME_LENGTH);
+				name[MAP_NAME_LENGTH-1]= '\0';
+				map_id = search_mapserver(name, RFIFOL(fd,38), RFIFOW(fd,42)); //Locate mapserver by ip and port.
+				if (map_id >= 0)
+					map_fd = server_fd[map_id];
+				 //Char should just had been saved before this packet, so this should be safe. [Skotlex]
+				char_dat = (struct mmo_charstatus*)numdb_search(char_db_,RFIFOL(fd,14));
+				//Tell the new map server about this player using Kevin's new auth packet. [Skotlex]
+				if (map_fd>=0 && session[map_fd] && char_dat) 
+				{	//Send the map server the auth of this player.
+					char_dat[0].sex = RFIFOB(fd,44);
+					//Update the "last map" as this is where the player must be spawned on the new map server.
+					memcpy(char_dat[0].last_point.map, RFIFOP(fd,18), MAP_NAME_LENGTH);
+					char_dat[0].last_point.x = RFIFOW(fd,34);
+					char_dat[0].last_point.y = RFIFOW(fd,36);
 
-			WFIFOW(fd, 0) = 0x2b06;
-			memcpy(WFIFOP(fd,2), RFIFOP(fd,2), 42);
-			ShowDebug("Map Change...");
-			auth_fifo[auth_fifo_pos].account_id = RFIFOL(fd, 2);
-			auth_fifo[auth_fifo_pos].login_id1 = RFIFOL(fd, 6);
-			auth_fifo[auth_fifo_pos].login_id2 = RFIFOL(fd,10);
-			auth_fifo[auth_fifo_pos].char_id = RFIFOL(fd,14);
-			auth_fifo[auth_fifo_pos].delflag = 0;
-			auth_fifo[auth_fifo_pos].sex = RFIFOB(fd,44);
-			auth_fifo[auth_fifo_pos].ip = RFIFOL(fd,45);
-
-			sprintf(tmp_sql, "SELECT `char_id`, `name` FROM `%s` WHERE `account_id` = '%d' AND `char_id`='%d'", char_db, RFIFOL(fd,2), RFIFOL(fd,14));
-			if (mysql_query(&mysql_handle, tmp_sql)) {
-				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
-				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+					WFIFOW(map_fd,0) = 0x2afd;
+					WFIFOW(map_fd,2) = 20 + sizeof(struct mmo_charstatus);
+					WFIFOL(map_fd,4) = RFIFOL(fd, 2); //Account ID
+					WFIFOL(map_fd,8) = RFIFOL(fd, 6); //Login1
+					WFIFOL(map_fd,16) = RFIFOL(fd,10); //Login2
+					WFIFOL(map_fd,12) = (unsigned long)0; //TODO: connect_until_time, how do I figure it out right now?
+					memcpy(WFIFOP(map_fd,20), &char_dat[0], sizeof(struct mmo_charstatus));
+					WFIFOSET(map_fd, WFIFOW(map_fd,2));
+					data = numdb_search(online_char_db, RFIFOL(fd, 2));
+					if (data) //This check should really never fail...
+						data->server = map_id; //Update server where char is.
+				}
+				RFIFOSKIP(fd, 49);
 			}
-			sql_res = mysql_store_result(&mysql_handle);
-			if(sql_res){
-				i = atoi(sql_row[0]);
-				ShowDebug("aid: %d, cid: %d, name: %s", RFIFOL(fd,2), atoi(sql_row[0]), sql_row[1]);
-				mysql_free_result(sql_res);
-				auth_fifo[auth_fifo_pos].char_pos = auth_fifo[auth_fifo_pos].char_id;
-				auth_fifo_pos++;
-				WFIFOL(fd,6) = 0;
-			}else{
-				ShowError("Map Change Error, aborted\n");
-				return 0;
-			}
-
-			if(i == 0){
-				WFIFOW(fd, 6) = 0;
-			}
-
-			WFIFOSET(fd, 44);
-			RFIFOSKIP(fd, 49);
-			ShowDebug("Map change done.\n");
-
-		break;
+			break;
 
 		// char name check
 		case 0x2b08:
@@ -2893,7 +2893,7 @@ int parse_frommap(int fd) {
 	return 0;
 }
 
-int search_mapserver(char *map) {
+int search_mapserver(char *map, long ip, short port) {
 	int i, j;
 	char temp_map[MAP_NAME_LENGTH];
 	int temp_map_len;
@@ -2910,7 +2910,10 @@ int search_mapserver(char *map) {
 			for (j = 0; server[i].map[j][0]; j++)
 				//printf("%s : %s = %d\n", server[i].map[j], map, strncmp(server[i].map[j], temp_map, temp_map_len));
 				if (strncmp(server[i].map[j], temp_map, temp_map_len) == 0) {
-//					printf("found -> server #%d.\n", i);
+					if (ip > 0 && server[i].ip != ip)
+						continue;
+					if (port > 0 && server[i].port != port)
+						continue;
 					return i;
 				}
 
@@ -3135,31 +3138,32 @@ int parse_char(int fd) {
 			}
 			ShowInfo("Selected char: (Account %d: %d - %s)" RETCODE, sd->account_id, RFIFOB(fd, 2), char_dat[0].name);
 			
-			i = search_mapserver(char_dat[0].last_point.map);
+			i = search_mapserver(char_dat[0].last_point.map, -1, -1);
 
 			// if map is not found, we check major cities
 			if (i < 0) {
-				if ((i = search_mapserver("prontera.gat")) >= 0) { // check is done without 'gat'.
+				ShowWarning("Unable to find map-server for %s, resorting to sending to a major city.\n", char_dat[0].last_point.map);
+				if ((i = search_mapserver("prontera.gat", -1, -1)) >= 0) { // check is done without 'gat'.
 					memcpy(char_dat[0].last_point.map, "prontera.gat", MAP_NAME_LENGTH);
 					char_dat[0].last_point.x = 273; // savepoint coordonates
 					char_dat[0].last_point.y = 354;
-				} else if ((i = search_mapserver("geffen.gat")) >= 0) { // check is done without 'gat'.
+				} else if ((i = search_mapserver("geffen.gat", -1, -1)) >= 0) { // check is done without 'gat'.
 					memcpy(char_dat[0].last_point.map, "geffen.gat", MAP_NAME_LENGTH);
 					char_dat[0].last_point.x = 120; // savepoint coordonates
 					char_dat[0].last_point.y = 100;
-				} else if ((i = search_mapserver("morocc.gat")) >= 0) { // check is done without 'gat'.
+				} else if ((i = search_mapserver("morocc.gat", -1, -1)) >= 0) { // check is done without 'gat'.
 					memcpy(char_dat[0].last_point.map, "morocc.gat", MAP_NAME_LENGTH);
 					char_dat[0].last_point.x = 160; // savepoint coordonates
 					char_dat[0].last_point.y = 94;
-				} else if ((i = search_mapserver("alberta.gat")) >= 0) { // check is done without 'gat'.
+				} else if ((i = search_mapserver("alberta.gat", -1, -1)) >= 0) { // check is done without 'gat'.
 					memcpy(char_dat[0].last_point.map, "alberta.gat", MAP_NAME_LENGTH);
 					char_dat[0].last_point.x = 116; // savepoint coordonates
 					char_dat[0].last_point.y = 57;
-				} else if ((i = search_mapserver("payon.gat")) >= 0) { // check is done without 'gat'.
+				} else if ((i = search_mapserver("payon.gat", -1, -1)) >= 0) { // check is done without 'gat'.
 					memcpy(char_dat[0].last_point.map, "payon.gat", MAP_NAME_LENGTH);
 					char_dat[0].last_point.x = 87; // savepoint coordonates
 					char_dat[0].last_point.y = 117;
-				} else if ((i = search_mapserver("izlude.gat")) >= 0) { // check is done without 'gat'.
+				} else if ((i = search_mapserver("izlude.gat", -1, -1)) >= 0) { // check is done without 'gat'.
 					memcpy(char_dat[0].last_point.map, "izlude.gat", MAP_NAME_LENGTH);
 					char_dat[0].last_point.x = 94; // savepoint coordonates
 					char_dat[0].last_point.y = 103;

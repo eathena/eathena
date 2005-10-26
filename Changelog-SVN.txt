@@ -1,6 +1,10 @@
 Date	Added
 ==========
 2005/10/25
+	* Some work fixing up multi-map servers. It should now *work*, however each
+	  time the player swaps map-server it triggers all the relevant
+	  on-login/on-logout events, which likely needs to be corrected at a later
+	  date. Only SQL has been updated so far, TXT is still pending. [Skotlex]
 	* Updated GrandCross so it does half damage on the caster (+half damage
 	  from Faith, it does just 25% or less damage to self now) [Skotlex]
 	* Updated battle_check_target to consider normal mobs as always belonging

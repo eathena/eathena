@@ -699,7 +699,6 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 
 	sd->view_class = sd->status.class_;
 	sd->speed = DEFAULT_WALK_SPEED;
-	sd->state.auth = 1;
 	sd->walktimer = -1;
 	sd->next_walktime = -1;
 	sd->attacktimer = -1;
@@ -846,6 +845,7 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 
 	// ステ?タス初期計算など
 	status_calc_pc(sd,1);
+	sd->state.auth = 1; //Do not auth him until the initial stats have been placed.
 	{	//Add IP field
 		unsigned char *ip = (unsigned char *) &session[sd->fd]->client_addr.sin_addr;
 		if (pc_isGM(sd))
