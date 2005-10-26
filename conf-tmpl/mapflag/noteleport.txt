@@ -77,6 +77,10 @@ tha_t11.gat	mapflag	noteleport
 tha_t12.gat	mapflag	noteleport
 thana_step.gat	mapflag	noteleport
 thana_boss.gat	mapflag	noteleport
+gefenia01.gat	mapflag	noteleport
+gefenia02.gat	mapflag	noteleport
+gefenia03.gat	mapflag	noteleport
+gefenia04.gat	mapflag	noteleport
 
 // Job Quests ====================
 sword_1-1.gat	mapflag	noteleport

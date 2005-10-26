@@ -38,6 +38,7 @@
 	--
 
 10/24
+	* Added cursed water to be dropped by fake angel [MasterOfMuppets]
 	* Reverted the inf 32 mode for Heaven's Drive and Arrow Shower [Skotlex]
 	* Added Thanatos/Abyss MOb skills and changed some thanatos/abyss mob stats. Thanks to Vicious_Pucca, Poki#3 and erKURITA. [Nexon]
 	* Added inf 32 (can target traps) to Arrow Shower and Heaven's Drive. I

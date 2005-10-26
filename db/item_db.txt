@@ -2201,7 +2201,7 @@
 12017,Speed_Decreasing_Potion,Speed Potion,2,1000,,100,,,,,127918079,7,2,,,,,,{}
 12018,Fire_Cracker,Fire Cracker,2,250,,20,,,,,127918079,7,2,,,,,,{ misceffect(256); }
 12019,Sacred_Egg,Sacred Egg,2,,10,150,,,,,127918079,7,2,,,,,,{}
-12020,Dark_Water,Dark_Water,2,,10,30,,,,,127918079,7,2,,,,,,{}
+12020,Cursed_Water,Cursed_Water,2,,10,30,,,,,127918079,7,2,,,,,,{}
 12021,Fatback,Fatback,2,,10,10,,,,,127918079,7,2,,,,,,{}
 12022,Ribs,Ribs,2,,10,10,,,,,127918079,7,2,,,,,,{}
 12023,2nd_Anniversary_Giftbox,2nd Annual Commemoration Giftbox,2,,10,200,,,,,127918079,7,2,,,,,,{ getitem -4,1; }
