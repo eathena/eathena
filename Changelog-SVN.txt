@@ -1,6 +1,7 @@
 Date	Added
 ==========
 2005/10/26
+	* Likely fixed Party Even Share. [Skotlex]
 	* Added map flag "nightenabled", only maps with this flag will display the
 	  night effect when it's night. Said maps are specified in mapflag/night.txt [Skotlex]
 	* Modified map flags gvg and gvg_dungeon. gvg now is basicly the same as

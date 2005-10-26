@@ -584,8 +584,8 @@ int party_exp_share(struct party *p,int map,int base_exp,int job_exp,int zeny)
 	// 1 + 0.05*c*(c-1)/2 [Shinomori]
 	bonus += (5*c*(c-1)/2);	//Changed Valaris's bonus switch to an equation [Skotlex]
 	//Bonus at Full party (12): +3.3 (430% exp/12 ~= 35% of total Mob's exp)
-	base = (unsigned long)base_exp*(bonus/(c*100));
-	job = (unsigned long)job_exp*(bonus/(c*100));
+	base = (unsigned long)base_exp*bonus/(c*100);
+	job = (unsigned long)job_exp*bonus/(c*100);
 	if (base > 0x7fffffff)
 		base = 0x7fffffff;
 	if (job > 0x7fffffff)

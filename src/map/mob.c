@@ -1455,7 +1455,6 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 
 	if (md->attacked_id && mode&MD_ASSIST && DIFF_TICK(md->last_linktime, gettick()) < MIN_MOBLINKTIME)
 	{	// Link monster/ if target is not dead [Skotlex]
-		unsigned int tick = gettick();
 		abl = map_id2bl(md->attacked_id);
 		md->last_linktime = tick;
 		if (abl && !status_isdead(abl))
