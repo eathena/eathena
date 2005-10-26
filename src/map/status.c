@@ -982,7 +982,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	if(pc_checkskill(sd,BS_HILTBINDING)>0)
 		sd->paramb[0] ++;
 	if((skill=pc_checkskill(sd,SA_DRAGONOLOGY))>0)
-		sd->paramb[3] += ((skill+1)*0.5); // +1 INT / 2 lv
+		sd->paramb[3] += (skill+1)/2; // +1 INT / 2 lv
 	if((skill=pc_checkskill(sd,AC_OWL))>0)
 		sd->paramb[4] += skill;
 

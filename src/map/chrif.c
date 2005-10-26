@@ -1280,6 +1280,7 @@ int chrif_load_scdata(int fd)
 		}
 		fclose(fp);
 	} else {
+		memset(buf, 0, sizeof(buf)); //No data found, send empty packets?
 		WFIFOW(char_fd,8) = sizeof(buf) + 10;
 		memcpy(WFIFOP(char_fd,10), buf, sizeof(buf));
 	}

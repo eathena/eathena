@@ -11214,8 +11214,10 @@ static int packetdb_readdb(void)
  *------------------------------------------
  */
 int do_init_clif(void) {
+#ifndef __WIN32
 	int i;
-
+#endif
+	
 	clif_config.packet_db_ver = -1; // the main packet version of the DB
 	memset(clif_config.connect_cmd, 0, sizeof(clif_config.connect_cmd)); //The default connect command will be determined after reading the packet_db [Skotlex]
 

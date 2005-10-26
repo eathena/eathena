@@ -90,7 +90,7 @@ static void setsocketopts(int fd)
 {
 	int yes = 1; // reuse fix
 	size_t buff;
-	unsigned int buff_size = sizeof (buff);	
+	size_t buff_size = sizeof (buff);	
 
 	setsockopt(fd,SOL_SOCKET,SO_REUSEADDR,(char *)&yes,sizeof yes);
 #ifdef SO_REUSEPORT

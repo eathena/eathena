@@ -2367,8 +2367,8 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 		}
 
 		if (per > 3) per = 3; //Limit gained exp to triple the mob's exp.
-		base_exp = base_exp*per;
-		job_exp = job_exp*per;
+		base_exp = (unsigned long)base_exp*per;
+		job_exp = (unsigned long)job_exp*per;
 	
 		if (base_exp > 0x7fffffff) base_exp = 0x7fffffff;
 		else if (base_exp < 1) base_exp = 1;
