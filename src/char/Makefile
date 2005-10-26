@@ -9,6 +9,9 @@ COMMON_H = ../common/core.h ../common/socket.h ../common/timer.h ../common/mmo.h
 	../common/malloc.h ../common/showmsg.h ../common/utils.h ../common/strlib.h \
 	../common/graph.h ../common/grfio.h
 
+%.o: %.c
+	$(COMPILE.c) -DTXT_ONLY $(OUTPUT_OPTION) $<
+	
 char-server: char.o inter.o int_party.o int_guild.o int_status.o int_storage.o int_pet.o $(COMMON_OBJ)
 	$(CC) -o ../../$@ $> $(LIB_S)
 

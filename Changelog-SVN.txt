@@ -1,6 +1,8 @@
 Date	Added
 ==========
 2005/10/26
+	* Updated the login/char TXT Makefiles so the TXT_ONLY flag is passed, this
+	  SHOULD fix the guild size mismatch errors... [Skotlex]
 	* Probably fixed a char-server crash related to whispers. [Skotlex]
 	* Updated the custom jobmaster so it should stop second advanced classes
 	  from being able to re-change jobs. [Skotlex]
