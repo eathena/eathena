@@ -3164,7 +3164,13 @@ int online_timer (int tid,unsigned int tick,int id,int data)
 
 int id_db_final(void *k,void *d,va_list ap) { return 0; }
 int pc_db_final(void *k,void *d,va_list ap) { return 0; }
-int map_db_final(void *k,void *d,va_list ap) { return 0; }
+int map_db_final(void *k,void *d,va_list ap)
+{
+	struct map_data_other_server *mdos = (struct map_data_other_server*)d;
+	if(mdos->gat == NULL && mdos->map == NULL)
+		aFree(mdos);
+	return 0;
+}
 int nick_db_final(void *k,void *d,va_list ap)
 {
 	char *p = (char *) d;
