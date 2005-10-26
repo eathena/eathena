@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= Sara-chan (1.0)
 //===== Current Version: =====================================
-//= 1.5a
+//= 1.5b
 //===== Compatible With: =====================================
 //= Any Athena Version; RO Episode 8+
 //===== Description: =========================================
@@ -17,6 +17,7 @@
 //= 1.4 Added coords of secret dungeon entrance, thanks to Justin84
 //= proved with screenshots [Lupus]
 //= 1.5a thx2 Justin84, some additions and fixes [Lupus]
+//= 1.5b re-enabled main entrance warp [Lupus]
 //============================================================
 
 lhz_dun03.gat,140,139,0	warp	lhz003	1,1,lhz_dun02.gat,150,147
@@ -28,11 +29,11 @@ lhz_dun02.gat,148,18,0	warp	lhz006	1,1,lhz_dun01.gat,146,10
 lhz_dun01.gat,148,10,0	warp	lhz006a	1,1,lhz_dun02.gat,150,18
 
 //current entrance
-//lhz_dun01.gat,150,290,0 warp lhz007 1,1,lighthalzen.gat,73,54
-//lighthalzen.gat,73,52,0 warp lhz007a 1,1,lhz_dun01.gat,150,288
+lhz_dun01.gat,150,290,0 warp lhz007 1,1,lighthalzen.gat,73,54
+lighthalzen.gat,73,52,0 warp lhz007a 1,1,lhz_dun01.gat,150,288
 
 //official secret lighthalzen dungeon (coords might be wrong)
-lhz_dun01.gat,150,290,0	warp	lhz007	1,1,lighthalzen.gat,364,314
+//lhz_dun01.gat,150,290,0	warp	lhz007	1,1,lighthalzen.gat,364,314
 //lighthalzen.gat,367,315,0	warp	lhz007a	1,1,lhz_dun01.gat,150,288
 
 lighthalzen.gat,368,315,0	script	???????	111,{

@@ -27,6 +27,9 @@ Nexon
 
 Date		Added
 ======
+10/26
+	* Added more Juperos Warps and Scripts by Justin84 [Lupus]
+	* Re-enabled main Lighthalzen Entrance warp [Lupus]
 10/25
 	* Updated Lutie Quests. Sloppy copy and paste job. Vending Machine man now knows his own items. [Kayla]
 	* Updated Indian Hairband Quest. It asked for hairband, should have been Indian Filet (5010) [Kayla]
