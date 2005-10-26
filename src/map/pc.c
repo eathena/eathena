@@ -836,11 +836,14 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 		sd->state.event_disconnect = 1;
 	}
 
-	if (night_flag && !map[sd->bl.m].flag.indoors) {
+	if (night_flag) {
 		char tmpstr[1024];
 		strcpy(tmpstr, msg_txt(500)); // Actually, it's the night...
 		clif_wis_message(sd->fd, wisp_server_name, tmpstr, strlen(tmpstr)+1);
-		clif_weather1(sd->fd, 474 + battle_config.night_darkness_level);
+	// New night effect by dynamix [Skotlex]
+	//	clif_weather1(sd->fd, 474 + battle_config.night_darkness_level);
+		clif_status_change(&sd->bl, SC_NIGHT,0);
+		clif_status_change(&sd->bl, SC_NIGHT,1);
 	}
 
 	// ステ?タス初期計算など
@@ -7471,14 +7474,19 @@ int pc_read_gm_account(int fd)
 int map_day_timer(int tid, unsigned int tick, int id, int data)
 {
 	char tmp_soutput[1024];
+	struct map_session_data *pl_sd;
+
 	if (data == 0 && battle_config.day_duration <= 0)	// if we want a day
 		return 0;
 	
 	if (night_flag != 0) {
 		int i;
 		night_flag = 0; // 0=day, 1=night [Yor]
-		for (i = 0; i < map_num; i++)
-			clif_clearweather(i);
+
+		for(i = 0; i < fd_max; i++) {
+			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth && pl_sd->fd)
+				clif_status_change(&pl_sd->bl, SC_NIGHT, 0); //New night effect by dynamix [Skotlex]
+		}
 
 		strcpy(tmp_soutput, (data == 0) ? msg_txt(502) : msg_txt(60)); // The day has arrived!
 		intif_GMmessage(tmp_soutput, strlen(tmp_soutput) + 1, 0);
@@ -7504,8 +7512,8 @@ int map_night_timer(int tid, unsigned int tick, int id, int data)
 		int i;
 		night_flag = 1; // 0=day, 1=night [Yor]
 		for(i = 0; i < fd_max; i++) {
-			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth  && !map[pl_sd->bl.m].flag.indoors)
-				clif_weather1(i, 474 + battle_config.night_darkness_level);
+			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth && pl_sd->fd)
+				clif_status_change(&pl_sd->bl, SC_NIGHT, 1); //New night effect by dynamix [Skotlex]
 		}
 		strcpy(tmp_soutput, (data == 0) ? msg_txt(503) : msg_txt(59)); // The night has fallen...
 		intif_GMmessage(tmp_soutput, strlen(tmp_soutput) + 1, 0);

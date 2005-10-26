@@ -154,7 +154,7 @@ enum {
 	SC_SHADOWWEAPON		= 146,
 	SC_ADRENALINE2      = 147,
 	SC_GHOSTWEAPON		= 148,
-// 149 = slightly colors the screen with blue (night-like)
+	SC_NIGHT		= 149, //slightly colors the screen with blue (night-like), unused by skills, but used for day/night
 // 150 = empty
 // 151 = empty
 // 152 = empty

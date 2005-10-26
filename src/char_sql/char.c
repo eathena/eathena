@@ -2527,9 +2527,10 @@ int parse_frommap(int fd) {
 				return 0;
 			{
 				char name[MAP_NAME_LENGTH];
-				int map_id, map_fd;
+				int map_id, map_fd = -1;
 				struct online_char_data* data;
-	
+				struct mmo_charstatus* char_data;
+
 				WFIFOW(fd, 0) = 0x2b06;
 				memcpy(WFIFOP(fd,2), RFIFOP(fd,2), 42);
 				WFIFOSET(fd, 44);
@@ -2539,16 +2540,21 @@ int parse_frommap(int fd) {
 				map_id = search_mapserver(name, RFIFOL(fd,38), RFIFOW(fd,42)); //Locate mapserver by ip and port.
 				if (map_id >= 0)
 					map_fd = server_fd[map_id];
-				 //Char should just had been saved before this packet, so this should be safe. [Skotlex]
-				char_dat = (struct mmo_charstatus*)numdb_search(char_db_,RFIFOL(fd,14));
+				//Char should just had been saved before this packet, so this should be safe. [Skotlex]
+				char_data = (struct mmo_charstatus*)numdb_search(char_db_,RFIFOL(fd,14));
+				if (char_data == NULL) 
+				{	//Really shouldn't happen.
+					mmo_char_fromsql(RFIFOL(fd,14), char_dat);
+					char_data = char_dat;
+				}
 				//Tell the new map server about this player using Kevin's new auth packet. [Skotlex]
-				if (map_fd>=0 && session[map_fd] && char_dat) 
+				if (map_fd>=0 && session[map_fd]) 
 				{	//Send the map server the auth of this player.
-					char_dat[0].sex = RFIFOB(fd,44);
+					char_data->sex = RFIFOB(fd,44);
 					//Update the "last map" as this is where the player must be spawned on the new map server.
-					memcpy(char_dat[0].last_point.map, RFIFOP(fd,18), MAP_NAME_LENGTH);
-					char_dat[0].last_point.x = RFIFOW(fd,34);
-					char_dat[0].last_point.y = RFIFOW(fd,36);
+					memcpy(char_data->last_point.map, RFIFOP(fd,18), MAP_NAME_LENGTH);
+					char_data->last_point.x = RFIFOW(fd,34);
+					char_data->last_point.y = RFIFOW(fd,36);
 
 					WFIFOW(map_fd,0) = 0x2afd;
 					WFIFOW(map_fd,2) = 20 + sizeof(struct mmo_charstatus);
@@ -2556,7 +2562,7 @@ int parse_frommap(int fd) {
 					WFIFOL(map_fd,8) = RFIFOL(fd, 6); //Login1
 					WFIFOL(map_fd,16) = RFIFOL(fd,10); //Login2
 					WFIFOL(map_fd,12) = (unsigned long)0; //TODO: connect_until_time, how do I figure it out right now?
-					memcpy(WFIFOP(map_fd,20), &char_dat[0], sizeof(struct mmo_charstatus));
+					memcpy(WFIFOP(map_fd,20), char_data, sizeof(struct mmo_charstatus));
 					WFIFOSET(map_fd, WFIFOW(map_fd,2));
 					data = numdb_search(online_char_db, RFIFOL(fd, 2));
 					if (data) //This check should really never fail...

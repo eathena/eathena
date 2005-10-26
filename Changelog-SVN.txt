@@ -1,6 +1,13 @@
 Date	Added
 ==========
 2005/10/26
+	* Updated the custom jobmaster so it should stop second advanced classes
+	  from being able to re-change jobs. [Skotlex]
+	* Implemented dynamix's night system which uses a status change rather than
+	  the "darkness levels", said config option removed as is no longer needed.
+	  [Skotlex]
+	* Some fixes to the char-sql code when sending chars to another map server.
+	  [Skotlex]
 	* LuzZa's ported Trade/Vending additional antispoof checks [Lupus]
 	- thanks to Yor&Freya Team. So LuzZa is our new dev (it was his 2nd test)
 2005/10/25

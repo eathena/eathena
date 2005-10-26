@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= eAthena Dev Team [LunatikBunnie] (Editted by Amada`)
 //===== Current Version: =====================================
-//= 1.2c
+//= 1.2d
 //===== Compatible With: =====================================
 //= Any Athena Version
 //===== Description: =========================================
@@ -15,27 +15,27 @@
 // ------------------------------ Start ------------------------------
 prontera.gat,153,193,6	script	Job Master	123,{
 // Variable Setup
-	set @MinimumJB, 40; //Minimum job level for changing between 2nd and advance class (Default : 40)
+	set @MinimumJB, 40; //Minimum job level for changing between 2nd and advance Class (Default : 40)
 	set @GivePlat, 1; //Give Platinum skills on Jobchange (Default : 1-yes)
 	set @SupNovM, 45; //Base Level to change into Super Novice (Default : 45)
 // Check Jobtype
-	if((class >=31) && (class <=44)) goto L_cantCh;	
+	if(Upper == 1 && Class >= Job_Lord_Knight) goto L_cantCh;
 	if(SkillPoint != 0) goto L_skillUsed;
-	if(class ==0) goto L_novice;
+	if(Class == Job_Novice) goto L_novice;
 	if(JobLevel <10) goto L_notEn;
-	if((class ==4001) && ((lastJob ==7) || (lastJob ==14))) goto L_cHsword;
-	if((class ==4001) && ((lastJob ==9) || (lastJob ==16))) goto L_cHmage;
-	if((class ==4001) && ((lastJob ==11) || (lastJob ==19) || (lastJob ==20))) goto L_cHarcher;
-	if((class ==4001) && ((lastJob ==8) || (lastJob ==15))) goto L_cHacolyte;
-	if((class ==4001) && ((lastJob ==10) || (lastJob ==18))) goto L_cHmerchant;
-	if((class ==4001) && ((lastJob ==12) || (lastJob ==17))) goto L_cHthief;
+	if((Class ==Job_Novice_High) && ((lastJob ==7) || (lastJob ==14))) goto L_cHsword;
+	if((Class ==Job_Novice_High) && ((lastJob ==9) || (lastJob ==16))) goto L_cHmage;
+	if((Class ==Job_Novice_High) && ((lastJob ==11) || (lastJob ==19) || (lastJob ==20))) goto L_cHarcher;
+	if((Class ==Job_Novice_High) && ((lastJob ==8) || (lastJob ==15))) goto L_cHacolyte;
+	if((Class ==Job_Novice_High) && ((lastJob ==10) || (lastJob ==18))) goto L_cHmerchant;
+	if((Class ==Job_Novice_High) && ((lastJob ==12) || (lastJob ==17))) goto L_cHthief;
 	if(JobLevel <@MinimumJB) goto L_notEn;
-	if(class ==1) goto L_iSword;
-	if(class ==2) goto L_iMage;
-	if(class ==3) goto L_iArcher;
-	if(class ==4) goto L_iAcolyte;
-	if(class ==5) goto L_iMerchant;
-	if(class ==6) goto L_iThief;
+	if(Class ==1) goto L_iSword;
+	if(Class ==2) goto L_iMage;
+	if(Class ==3) goto L_iArcher;
+	if(Class ==4) goto L_iAcolyte;
+	if(Class ==5) goto L_iMerchant;
+	if(Class ==6) goto L_iThief;
 	if(checkfalcon(0) == 1 || checkcart(0) == 1 || checkriding(0) == 1) goto L_remove;
 	if(lastJob ==7) goto L_iKnight;
 	if(lastJob ==8) goto L_iPriest;
@@ -50,7 +50,7 @@ prontera.gat,153,193,6	script	Job Master	123,{
 	if(lastJob ==18) goto L_iAlchemist;
 	if(lastJob ==19) goto L_iBard;
 	if(lastJob ==20) goto L_iDancer;
-	if((class >=7) && (class <=20)) goto L_rebirth;
+	if((Class >=7) && (Class <=20)) goto L_rebirth;
 	close;
 
 // Novice

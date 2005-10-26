@@ -344,7 +344,7 @@ extern struct Battle_Config {
 	unsigned short pk_min_level; // [celest]
 	unsigned short skill_steal_type; // [celest]
 	unsigned short skill_steal_rate; // [celest]
-	unsigned short night_darkness_level; // [celest]
+//	unsigned short night_darkness_level; // [celest]
 	unsigned short motd_type; // [celest]
 	unsigned short allow_atcommand_when_mute; // [celest]
 	unsigned short finding_ore_rate; // orn

@@ -26,9 +26,10 @@
 #include "status.h"
 #include "nullpo.h"
 #include "showmsg.h"
-#include "charsave.h"
 #include "db.h"
-
+#ifndef TXT_ONLY
+#include "charsave.h"
+#endif
 //Updated table (only doc^^) [Sirius]
 //Used Packets: U->2af8
 //Free Packets: F->2af8

@@ -20,6 +20,9 @@
 #include "../common/plugins.h"
 #include "../common/version.h"
 #include "../common/showmsg.h"
+#include "../zlib/zlib.h"
+
+
 #include "svnversion.h"
 
 int runflag = 1;

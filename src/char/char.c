@@ -40,8 +40,10 @@ typedef long in_addr_t;
 #include "int_pet.h"
 #include "int_guild.h"
 #include "int_party.h"
-#include "int_status.h"
 #include "int_storage.h"
+#ifdef ENABLE_SC_SAVING
+#include "int_status.h"
+#endif
 
 struct mmo_map_server server[MAX_MAP_SERVERS];
 int server_fd[MAX_MAP_SERVERS];

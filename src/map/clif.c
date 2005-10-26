@@ -8150,8 +8150,12 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 	if(battle_config.muting_players && sd->status.manner < 0)
 		status_change_start(&sd->bl,SC_NOCHAT,0,0,0,0,0,0);
 
-	if (night_flag && !map[sd->bl.m].flag.indoors)
-		clif_weather1(sd->fd, 474 + battle_config.night_darkness_level);
+	if (night_flag)
+	{	//New 'night' effect by dynamix [Skotlex]
+		//clif_weather1(sd->fd, 474 + battle_config.night_darkness_level);
+		clif_status_change(&sd->bl, SC_NIGHT, 0);
+		clif_status_change(&sd->bl, SC_NIGHT, 1);
+	}
 
 // Lance
 if ((npc = npc_name2id("PCLoadMapEvent"))) {  
@@ -8691,8 +8695,9 @@ void clif_parse_Restart(int fd, struct map_session_data *sd) {
 			pc_setdead(sd);
 		break;
 	case 0x01:
-		if(!pc_isdead(sd) && (sd->opt1 || (sd->opt2 && !(night_flag == 1 && sd->opt2 == STATE_BLIND))))
-			return;
+
+		//if(!pc_isdead(sd) && (sd->opt1 || (sd->opt2 && sd->opt2 != STATE_BLIND)))
+		//	return; No need as status changes are saved now. [Skotlex]
 
 		/*	Rovert's Prevent logout option - Fixed [Valaris]	*/
 		if (!battle_config.prevent_logout ||
