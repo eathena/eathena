@@ -5427,8 +5427,8 @@ int atcommand_mapinfo(
 	strcpy(atcmd_output,"GvG Flags: ");
 	if (map[m_id].flag.gvg)
 		strcat(atcmd_output, "GvG ON | ");
-	if (map[m_id].flag.gvg_dungeon)
-		strcat(atcmd_output, "GvGDungeon | ");
+	if (map[m_id].flag.gvg_castle)
+		strcat(atcmd_output, "GvG Castle | ");
 	if (map[m_id].flag.gvg_noparty)
 		strcat(atcmd_output, "NoParty | ");
 	clif_displaymessage(fd, atcmd_output);
@@ -5479,6 +5479,8 @@ int atcommand_mapinfo(
 		strcat(atcmd_output, "Rain | ");
 	if (map[m_id].flag.indoors)
 		strcat(atcmd_output, "Indoors | ");
+	if (map[m_id].flag.nightenabled)
+		strcat(atcmd_output, "Displays Night | ");
 	clif_displaymessage(fd, atcmd_output);
 
 	strcpy(atcmd_output,"Other Flags: ");

@@ -554,9 +554,9 @@ int pc_isequip(struct map_session_data *sd,int n)
 		return 0;
 	if(item->sex != 2 && sd->status.sex != item->sex)
 		return 0;
-	if(map[sd->bl.m].flag.pvp && (item->flag.no_equip&1)) //optimized by Lupus
+	if((map[sd->bl.m].flag.pvp||map[sd->bl.m].flag.gvg) && (item->flag.no_equip&1)) //optimized by Lupus
 		return 0;
-	if(map[sd->bl.m].flag.gvg && (item->flag.no_equip>1)) //optimized by Lupus
+	if(map[sd->bl.m].flag.gvg_castle && (item->flag.no_equip>1)) //optimized by Lupus
 		return 0;
 	if((item->equip & 0x0002 || item->equip & 0x0020) && item->type == 4 && sc_data && sc_data[SC_STRIPWEAPON].timer != -1) // Also works with left-hand weapons [DracoRPG]
 		return 0;
@@ -840,10 +840,13 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 		char tmpstr[1024];
 		strcpy(tmpstr, msg_txt(500)); // Actually, it's the night...
 		clif_wis_message(sd->fd, wisp_server_name, tmpstr, strlen(tmpstr)+1);
-	// New night effect by dynamix [Skotlex]
-	//	clif_weather1(sd->fd, 474 + battle_config.night_darkness_level);
-		clif_status_change(&sd->bl, SC_NIGHT,0);
-		clif_status_change(&sd->bl, SC_NIGHT,1);
+		// New night effect by dynamix [Skotlex]
+	
+		if (map[sd->bl.m].flag.nightenabled)
+		{
+			clif_status_change(&sd->bl, SC_NIGHT,1);
+			sd->state.night = 1;
+		}
 	}
 
 	// ステ?タス初期計算など
@@ -2578,10 +2581,10 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 	if(item->type != 0 && item->type != 2)
 		return 0;
 	//Anodyne (can't use Anodyne's Endure at GVG)
-	if((nameid == 605) && map[sd->bl.m].flag.gvg)
+	if((nameid == 605) && map[sd->bl.m].flag.gvg_castle)
 		return 0;
 	//Fly Wing (can't use at GVG and when noteleport flag is on)
-	if(nameid == 601 && (map[sd->bl.m].flag.noteleport || map[sd->bl.m].flag.gvg)) {
+	if(nameid == 601 && (map[sd->bl.m].flag.noteleport || map[sd->bl.m].flag.gvg_castle)) {
 		clif_skill_teleportmessage(sd,0);
 		return 0;
 	}
@@ -2589,7 +2592,7 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 	if(nameid == 602 && map[sd->bl.m].flag.noreturn)
 		return 0;
 	//Dead Branch & Bloody Branch & Porings Box (can't use at GVG and when nobranch flag is on)
-	if((nameid == 604 || nameid == 12103 || nameid == 12109) && (map[sd->bl.m].flag.nobranch || map[sd->bl.m].flag.gvg))
+	if((nameid == 604 || nameid == 12103 || nameid == 12109) && (map[sd->bl.m].flag.nobranch || map[sd->bl.m].flag.gvg_castle))
 		return 0;
 	//Gender check
 	if(item->sex != 2 && sd->status.sex != item->sex)
@@ -2636,8 +2639,8 @@ int pc_useitem(struct map_session_data *sd,int n)
 			sd->sc_data[SC_GRAVITATION].timer!=-1 ||
 			(pc_issit(sd) && (sd->itemid == 605 || sd->itemid == 606)) ||
 			//added item_noequip.txt items check by Maya&[Lupus]
-			(map[sd->bl.m].flag.pvp && (sd->inventory_data[n]->flag.no_equip&1) ) || // PVP
-			(map[sd->bl.m].flag.gvg && (sd->inventory_data[n]->flag.no_equip>1) ) || // GVG
+			((map[sd->bl.m].flag.pvp||map[sd->bl.m].flag.gvg) && (sd->inventory_data[n]->flag.no_equip&1) ) || // PVP
+			(map[sd->bl.m].flag.gvg_castle && (sd->inventory_data[n]->flag.no_equip>1) ) || // GVG
 			!pc_isUseitem(sd,n) ) {
 			clif_useitemack(sd,n,0,0);
 			return 1;
@@ -4852,7 +4855,7 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage, int
 
 	// ? いていたら足を止める
 	if (sd->sc_data) {
-		if (sd->sc_data[SC_ENDURE].timer != -1 && (src != NULL && src->type == BL_MOB) && !map[sd->bl.m].flag.gvg) {
+		if (sd->sc_data[SC_ENDURE].timer != -1 && (src != NULL && src->type == BL_MOB) && !map[sd->bl.m].flag.gvg_castle) {
 			if (!sd->special_state.infinite_endure && (--sd->sc_data[SC_ENDURE].val2) < 0) 
 				status_change_end(&sd->bl, SC_ENDURE, -1);
 		} else if (delay) {
@@ -5050,7 +5053,7 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage, int
 	 // changed penalty options, added death by player if pk_mode [Valaris]
 	if(battle_config.death_penalty_type && sd->state.snovice_flag != 4
 		&& (sd->class_&MAPID_UPPERMASK) != MAPID_NOVICE	// only novices will receive no penalty
-		&& !map[sd->bl.m].flag.nopenalty && !map[sd->bl.m].flag.gvg
+		&& !map[sd->bl.m].flag.nopenalty && !map[sd->bl.m].flag.gvg_castle
 		&& !(sd->sc_count && sd->sc_data[SC_BABY].timer!=-1))
 	{
 			if(battle_config.death_penalty_type==1 && battle_config.death_penalty_base > 0)
@@ -5171,7 +5174,7 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage, int
 		}
 	}
 	//GvG
-	if(map[sd->bl.m].flag.gvg){
+	if(map[sd->bl.m].flag.gvg_castle){
 		pc_setstand(sd);
 		pc_setrestartvalue(sd,3);
 		pc_setpos(sd,sd->status.save_point.map,sd->status.save_point.x,sd->status.save_point.y,0);
@@ -6707,10 +6710,10 @@ int pc_checkitem(struct map_session_data *sd)
 			calc_flag = 1;
 		}
 		//?備制限チェック
-		if(sd->status.inventory[i].equip && map[sd->bl.m].flag.pvp && (it->flag.no_equip&1)){//PVP check for forbiden items. optimized by [Lupus]
+		if(sd->status.inventory[i].equip && (map[sd->bl.m].flag.pvp||map[sd->bl.m].flag.gvg) && (it->flag.no_equip&1)){//PVP check for forbiden items. optimized by [Lupus]
 			sd->status.inventory[i].equip=0;
 			calc_flag = 1;
-		}else if(sd->status.inventory[i].equip && map[sd->bl.m].flag.gvg && (it->flag.no_equip>1)){//GvG optimized by [Lupus]
+		}else if(sd->status.inventory[i].equip && map[sd->bl.m].flag.gvg_castle && (it->flag.no_equip>1)){//GvG optimized by [Lupus]
 			sd->status.inventory[i].equip=0;
 			calc_flag = 1;
 		}

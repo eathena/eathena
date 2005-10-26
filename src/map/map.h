@@ -376,6 +376,7 @@ struct map_session_data {
 		unsigned guild_sent :1;
 		unsigned monster_ignore :1; // for monsters to ignore a character [Valaris] [zzo]
 		unsigned size :2; // for tiny/large types
+		unsigned night :1; //Holds whether or not the player currently has the SC_NIGHT effect on. [Skotlex]
 	} state;
 	struct {
 		unsigned killer : 1;
@@ -905,9 +906,9 @@ struct map_data {
 		unsigned pvp_noguild : 1;
 		unsigned pvp_nightmaredrop :1;
 		unsigned pvp_nocalcrank : 1;
-		unsigned gvg : 1;
+		unsigned gvg_castle : 1; // Celest (renamed from gvg_dungeon to gvg_castle, it identifies castles now)
+		unsigned gvg : 1; // Now it identifies gvg versus maps that are active 24/7
 		unsigned gvg_noparty : 1;
-		unsigned gvg_dungeon : 1; // celest
 		unsigned nozenypenalty : 1;
 		unsigned notrade : 1;
 		unsigned noskill : 1;
@@ -928,6 +929,7 @@ struct map_data {
 		unsigned nojobexp	: 1; // [Lorky]
 		unsigned nomobloot	: 1; // [Lorky]
 		unsigned nomvploot	: 1; // [Lorky]
+		unsigned nightenabled :1; //For night display. [Skotlex]
 	} flag;
 	struct point save;
 	struct npc_data *npc[MAX_NPC_PER_MAP];

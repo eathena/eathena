@@ -302,7 +302,7 @@ int battle_damage(struct block_list *bl,struct block_list *target,int damage, in
 
 		if (tsd->skilltimer != -1) {	// ‰r?¥–WŠQ
 			// ƒtƒFƒ“ƒJ?[ƒh‚â–WŠQ‚³‚ê‚È‚¢ƒXƒLƒ‹‚©‚ÌŒŸ?¸
-			if ((!tsd->special_state.no_castcancel || map[bl->m].flag.gvg) && tsd->state.skillcastcancel &&
+			if ((!tsd->special_state.no_castcancel || map[bl->m].flag.gvg_castle) && tsd->state.skillcastcancel &&
 				!tsd->special_state.no_castcancel2)
 				skill_castcancel(target,0);
 		}
@@ -577,7 +577,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 	}
 
 	if (damage > 0 && skill_num != PA_PRESSURE) { // Gloria Domini ignores WoE damage reductions
-		if (map[bl->m].flag.gvg) { //GvG
+		if (map[bl->m].flag.gvg_castle) { //GvG
 			if (md && md->guardian_data)
 				damage -= damage * (md->guardian_data->castle->defense/100) * (battle_config.castle_defense_rate/100);
 
@@ -1837,7 +1837,7 @@ static struct Damage battle_calc_weapon_attack(
 			scfix=scfix*50/100;
 		
 		if(t_sc_data[SC_ASSUMPTIO].timer != -1){
-			if(map[target->m].flag.pvp || map[target->m].flag.gvg)
+			if(map[target->m].flag.pvp || map[target->m].flag.gvg || map[target->m].flag.gvg_castle)
 				scfix=scfix*2/3; //Receive 66% damage
 			else
 				scfix=scfix/2; //Receive 50% damage
@@ -2834,7 +2834,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 	nullpo_retr(0, target);
 
 	m = target->m;
-	if (flag&BCT_ENEMY && !map[m].flag.gvg && !(status_get_mode(src)&MD_BOSS))
+	if (flag&BCT_ENEMY && !map[m].flag.gvg_castle && !(status_get_mode(src)&MD_BOSS))
 	{	//No offensive stuff while in Basilica.
 		if (map_getcell(m,src->x,src->y,CELL_CHKBASILICA) ||
 			map_getcell(m,target->x,target->y,CELL_CHKBASILICA))
@@ -2941,7 +2941,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 				state |= BCT_ENEMY; //Is on a killing rampage :O
 				strip_enemy = 0;
 			}
-			if (agit_flag && map[m].flag.gvg && !sd->status.guild_id &&
+			if (agit_flag && map[m].flag.gvg_castle && !sd->status.guild_id &&
 				t_bl->type == BL_MOB && ((struct mob_data *)t_bl)->guardian_data)
 				return 0; //If you don't belong to a guild, can't target guardians/emperium.
 			break;
@@ -2991,20 +2991,22 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 		(s_bl->type == BL_PC && t_bl->type == BL_MOB))
 		state |= BCT_ENEMY;
 	
-	if (flag&BCT_PARTY || (map[m].flag.pvp && flag&BCT_ENEMY))
+	if (flag&BCT_PARTY || ((map[m].flag.pvp||map[m].flag.gvg) && flag&BCT_ENEMY))
 	{	//Identify party state
 		int s_party, t_party;
 		s_party = status_get_party_id(s_bl);
 		t_party = status_get_party_id(t_bl);
 
-		if (!map[m].flag.pvp)
+		if (!map[m].flag.pvp && !map[m].flag.gvg)
 		{
 			if (s_party && s_party == t_party)
 				state |= BCT_PARTY;
 		}
 		else
 		{
-			if (!map[m].flag.pvp_noparty && s_party && s_party == t_party)
+			if (!(map[m].flag.pvp && map[m].flag.pvp_noparty)
+				&&!(map[m].flag.gvg && map[m].flag.gvg_noparty)
+				&& s_party && s_party == t_party)
 				state |= BCT_PARTY;
 			else
 			{
@@ -3023,13 +3025,13 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 			}
 		}
 	}
-	if (flag&BCT_GUILD || (((agit_flag && map[m].flag.gvg) || map[m].flag.gvg_dungeon) && flag&BCT_ENEMY))
+	if (flag&BCT_GUILD || (((agit_flag && map[m].flag.gvg_castle) || map[m].flag.gvg) && flag&BCT_ENEMY))
 	{	//Identify guild state
 		int s_guild, t_guild;
 		s_guild = status_get_guild_id(s_bl);
 		t_guild = status_get_guild_id(t_bl);
 
-		if (!(agit_flag && map[m].flag.gvg) && !map[m].flag.gvg_dungeon && !map[m].flag.pvp)
+		if (!(agit_flag && map[m].flag.gvg_castle) && !map[m].flag.gvg && !map[m].flag.pvp)
 		{
 			if (s_guild && t_guild && (s_guild == t_guild || guild_idisallied(s_guild, t_guild)))
 				state |= BCT_GUILD;

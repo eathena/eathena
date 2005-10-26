@@ -335,7 +335,7 @@ int map_addblock (struct block_list *bl)
 			if (map[m].users++ == 0 && battle_config.dynamic_mobs)	//Skotlex
 				map_spawnmobs(m);
 			sd = (struct map_session_data*)bl;
-			if (agit_flag && battle_config.pet_no_gvg && map[m].flag.gvg && sd->pd)
+			if (agit_flag && battle_config.pet_no_gvg && map[m].flag.gvg_castle && sd->pd)
 			{	//Return the pet to egg. [Skotlex]
 				clif_displaymessage(sd->fd, "Pets are not allowed in Guild Wars.");
 				pet_menu(sd, 3); //Option 3 is return to egg.

@@ -3237,7 +3237,7 @@ int mobskill_use_id(struct mob_data *md,struct block_list *target,int skill_idx)
 	skill_id=ms->skill_id;
 	skill_lv=ms->skill_lv;
 
-	if(map[md->bl.m].flag.gvg && skill_db[skill_id].nocast & 4)
+	if(map[md->bl.m].flag.gvg_castle && skill_db[skill_id].nocast & 4)
 		return 0;
 	if(skill_get_inf2(skill_id)&INF2_NO_TARGET_SELF && md->bl.id == target->id)
 		return 0;
@@ -3336,11 +3336,9 @@ int mobskill_use_pos( struct mob_data *md,
 	skill_id=ms->skill_id;
 	skill_lv=ms->skill_lv;
 
-	if(!status_check_skilluse(&md->bl, NULL, skill_id, 0))
+	if(map[md->bl.m].flag.gvg_castle && skill_db[skill_id].nocast & 4)
 		return 0;
-
-	if(map[md->bl.m].flag.gvg && (skill_id == SM_ENDURE || skill_id == AL_TELEPORT || skill_id == AL_WARP ||
-		skill_id == WZ_ICEWALL || skill_id == TF_BACKSLIDING))
+	if(!status_check_skilluse(&md->bl, NULL, skill_id, 0))
 		return 0;
 
 	// 射程と障害物チェック

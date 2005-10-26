@@ -3955,16 +3955,6 @@ static int clif_calc_delay(struct block_list *dst, int type, int delay)
 	if (delay == 0)
 		return 9; //Endure type attack (damage delay is 0)
 	
-	//Delay should be 0 when used on endure characters, so the checks below are unneeded. [Skotlex]
-/*
-	struct status_change *sc_data;
-
-	if	(map[dst->m].flag.gvg)	//Can't be endure-type attacks on gvg maps. [Skotlex]
-		return type;
-	sc_data = status_get_sc_data(dst);
-	if(sc_data && (sc_data[SC_ENDURE].timer != -1 || sc_data[SC_CONCENTRATION].timer != -1 || sc_data[SC_BERSERK].timer != -1))
-		return 9;
-*/
 	return type;
 }
 /*==========================================
@@ -6349,7 +6339,7 @@ int clif_sendegg(struct map_session_data *sd)
 	nullpo_retr(0, sd);
 
 	fd=sd->fd;
-	if (agit_flag && battle_config.pet_no_gvg && map[sd->bl.m].flag.gvg)
+	if (agit_flag && battle_config.pet_no_gvg && map[sd->bl.m].flag.gvg_castle)
 	{	//Disable pet hatching in GvG grounds during Guild Wars [Skotlex]
 		clif_displaymessage(fd, "Pets are not allowed in Guild Wars.");
 		return 0;
@@ -8069,7 +8059,7 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 	// 78
 
 	if(battle_config.pc_invincible_time > 0) {
-		if(map[sd->bl.m].flag.gvg)
+		if(map[sd->bl.m].flag.gvg_castle)
 			pc_setinvincibletimer(sd,battle_config.pc_invincible_time<<1);
 		else
 			pc_setinvincibletimer(sd,battle_config.pc_invincible_time);
@@ -8099,9 +8089,10 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 	} else {
 		sd->pvp_timer=-1;
 	}
-	if(map[sd->bl.m].flag.gvg) {
+	if(map[sd->bl.m].flag.gvg_castle)
 		clif_set0199(sd->fd,3);
-	}
+	else if (map[sd->bl.m].flag.gvg)
+		clif_set0199(sd->fd,1); //Would this be more proper than 3?
 
 	// pet
 	if(sd->status.pet_id > 0 && sd->pd && sd->pet.intimate > 0) {
@@ -8150,11 +8141,15 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 	if(battle_config.muting_players && sd->status.manner < 0)
 		status_change_start(&sd->bl,SC_NOCHAT,0,0,0,0,0,0);
 
-	if (night_flag)
-	{	//New 'night' effect by dynamix [Skotlex]
-		//clif_weather1(sd->fd, 474 + battle_config.night_darkness_level);
-		clif_status_change(&sd->bl, SC_NIGHT, 0);
+	//New 'night' effect by dynamix [Skotlex]
+	if (night_flag && map[sd->bl.m].flag.nightenabled)
+	{	//Display night.
+		if (sd->state.night) //It must be resent because otherwise players get this annoying aura...
+			clif_status_change(&sd->bl, SC_NIGHT, 0);
 		clif_status_change(&sd->bl, SC_NIGHT, 1);
+	} else if (sd->state.night) { //Clear night display.
+		clif_status_change(&sd->bl, SC_NIGHT, 0);
+		sd->state.night = 0;
 	}
 
 // Lance

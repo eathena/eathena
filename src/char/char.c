@@ -136,7 +136,7 @@ struct online_char_data {
 	int account_id;
 	int char_id;
 	short server;
-	short waiting_disconnect;
+	unsigned waiting_disconnect :1;
 };
 
 struct dbt *online_char_db; //Holds all online characters.

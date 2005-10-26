@@ -679,11 +679,11 @@ int skillnotok(int skillid, struct map_session_data *sd)
 		return 0;  // gm's can do anything damn thing they want
 
 	// Check skill restrictions [Celest]
-	if(!map[sd->bl.m].flag.pvp && !map[sd->bl.m].flag.gvg && skill_get_nocast (skillid) & 1)
+	if(!map[sd->bl.m].flag.pvp && !map[sd->bl.m].flag.gvg && !map[sd->bl.m].flag.gvg_castle && skill_get_nocast (skillid) & 1)
 		return 1;
-	if(map[sd->bl.m].flag.pvp && skill_get_nocast (skillid) & 2)
+	if((map[sd->bl.m].flag.pvp || map[sd->bl.m].flag.gvg) && skill_get_nocast (skillid) & 2)
 		return 1;
-	if(map[sd->bl.m].flag.gvg && skill_get_nocast (skillid) & 4)
+	if(map[sd->bl.m].flag.gvg_castle && skill_get_nocast (skillid) & 4)
 		return 1;
 	if (agit_flag && skill_get_nocast (skillid) & 8)
 		return 1;
@@ -912,36 +912,31 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		break;
 		
 	case HT_FREEZINGTRAP:	/* ƒtƒŠ?ƒWƒ“ƒOƒgƒ‰ƒbƒv */
-		if(dstmd || (dstsd && (map[bl->m].flag.pvp || map[bl->m].flag.gvg)) ) {
-			if(rand()%100 < (3*skilllv+35)*sc_def_mdef/100)
-				status_change_start(bl,SC_FREEZE,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
-		}
+		if(rand()%100 < (3*skilllv+35)*sc_def_mdef/100)
+			status_change_start(bl,SC_FREEZE,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
 		break;
 
 	 case HT_FLASHER:  /* Flasher */
 		if (!(status_get_mode(bl) & (MD_BOSS|MD_PLANT)) &&
-				((dstsd && md) || (dstmd && !md) || (dstsd && (map[bl->m].flag.pvp || map[bl->m].flag.gvg))) &&
-				rand()%100 < (10*skilllv+30)*sc_def_int/100)
+			rand()%100 < (10*skilllv+30)*sc_def_int/100)
 			status_change_start(bl,SC_BLIND,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
 		break;
 
 	case HT_LANDMINE:		/* ƒ‰ƒ“ƒhƒ}ƒCƒ“ */
-		if( bl->type == BL_MOB || (bl->type == BL_PC && (map[bl->m].flag.pvp || map[bl->m].flag.gvg)) )
-			if( rand()%100 < (5*skilllv+30)*sc_def_vit/100 )
-				status_change_start(bl,SC_STAN,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
+		if( rand()%100 < (5*skilllv+30)*sc_def_vit/100 )
+			status_change_start(bl,SC_STAN,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
 		break;
 
 	case HT_SHOCKWAVE:				//it can't affect mobs, because they have no SP...
-		if(dstsd && (map[bl->m].flag.pvp || map[bl->m].flag.gvg) ){
+		if(dstsd){
 			dstsd->status.sp -= dstsd->status.sp*(15*skilllv+5)/100;
 			clif_updatestatus(dstsd,SP_SP);
 		}
 		break;
 
 	case HT_SANDMAN:		/* ƒTƒ“ƒhƒ}ƒ“ */
-		if( bl->type == BL_MOB || (bl->type == BL_PC && (map[bl->m].flag.pvp || map[bl->m].flag.gvg)) )
-			if( rand()%100 < (10*skilllv+40)*sc_def_int/100 )
-				status_change_start(bl,SC_SLEEP,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
+		if( rand()%100 < (10*skilllv+40)*sc_def_int/100 )
+			status_change_start(bl,SC_SLEEP,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
 		break;
 
 	case TF_SPRINKLESAND:	/* ?»‚Ü‚« */
@@ -1433,6 +1428,9 @@ int skill_blown( struct block_list *src, struct block_list *target,int count, in
 	nullpo_retr(0, src);
 	nullpo_retr(0, target);
 
+	if (src != target && map[target->m].flag.gvg_castle) 
+		return 0; //No knocking back in WoE castles.
+	
 	if(target->type==BL_PC){
 		sd=(struct map_session_data *)target;
 	}else if(target->type==BL_MOB){
@@ -1844,7 +1842,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 	}
 
 	//Only knockback if it's still alive, otherwise a "ghost" is left behind. [Skotlex]
-	if (dmg.blewcount > 0 && !status_isdead(bl) && bl->type!=BL_SKILL && !map[src->m].flag.gvg) {
+	if (dmg.blewcount > 0 && !status_isdead(bl) && bl->type!=BL_SKILL) {
 		skill_blown(dsrc,bl,dmg.blewcount, 1);
 		if(bl->type == BL_MOB)
 			clif_fixmobpos((struct mob_data *)bl);
@@ -1854,7 +1852,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 			clif_fixpos(bl);
 	}
 	
-	if(skillid == RG_INTIMIDATE && damage > 0 && !(status_get_mode(bl)&MD_BOSS) && !map[src->m].flag.gvg ) {
+	if(skillid == RG_INTIMIDATE && damage > 0 && !(status_get_mode(bl)&MD_BOSS) && !map[src->m].flag.gvg_castle ) {
 		int s_lv = status_get_lv(src),t_lv = status_get_lv(bl);
 		int rate = 50 + skilllv * 5;
 		rate = rate + (s_lv - t_lv);
@@ -2836,7 +2834,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 				int i,c;	/* ‘¼?l‚©‚ç•·‚¢‚½“®‚«‚È‚Ì‚ÅŠÔˆá‚Á‚Ä‚é‰Â”\?«‘å?•?—¦‚ª?‚¢‚Á‚·?„?ƒ */
 				/* ‚Ü‚¸ƒ^?[ƒQƒbƒg‚É?UŒ‚‚ð‰Á‚¦‚é */
 				c = skill_get_blewcount(skillid,skilllv);
-				if(map[bl->m].flag.gvg || status_get_mexp(bl)) 
+				if(map[bl->m].flag.gvg_castle || status_get_mexp(bl)) 
 					c = 0;
 				for(i=0;i<c;i++){
 					skill_blown(src,bl,1, 2);
@@ -2869,7 +2867,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 			if (bl->id==skill_area_temp[1])
 				break;
 			if (skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0x0500) &&
-			   !(map[bl->m].flag.gvg || status_get_mexp(bl)))
+			   !(map[bl->m].flag.gvg_castle || status_get_mexp(bl)))
 				skill_blown(src,bl,skill_area_temp[2],1);
 		} else {
 			int x=bl->x,y=bl->y,i,dir;
@@ -2878,7 +2876,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 			skill_area_temp[1] = bl->id;
 			skill_area_temp[2] = skill_get_blewcount(skillid,skilllv)|dir<<20;
 			if (skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0) &&
-			   !(map[bl->m].flag.gvg || status_get_mexp(bl)))
+			   !(map[bl->m].flag.gvg_castle || status_get_mexp(bl)))
 				skill_blown(src,bl,skill_area_temp[2],1);
 			for (i=0;i<4;i++) {
 				map_foreachinarea(skill_area_sub,bl->m,x,y,x,y,0,
@@ -3058,7 +3056,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 			if (skilllv == 5)
 				skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,0 );
-			if (tsd && (map[src->m].flag.pvp || map[src->m].flag.gvg)) {
+			if (tsd) {
 				tsd->status.sp = 0;
 				clif_updatestatus(tsd,SP_SP);
 			}
@@ -3718,7 +3716,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 			if(dstmd && dstmd->skilltimer!=-1 && dstmd->state.skillcastcancel)	// ‰r?¥–WŠQ
 				skill_castcancel(bl,0);
-			if(dstsd && dstsd->skilltimer!=-1 && (!dstsd->special_state.no_castcancel || map[bl->m].flag.gvg)
+			if(dstsd && dstsd->skilltimer!=-1 && (!dstsd->special_state.no_castcancel || map[bl->m].flag.gvg_castle)
 				&& dstsd->state.skillcastcancel	&& !dstsd->special_state.no_castcancel2)
 				skill_castcancel(bl,0);
 
@@ -3794,7 +3792,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case MO_ABSORBSPIRITS:	// ?’D
 		i = 0;
 		if (dstsd && dstsd->spiritball > 0 &&
-			((sd && sd == dstsd) || map[src->m].flag.pvp || map[src->m].flag.gvg))
+			((sd && sd == dstsd) || map[src->m].flag.pvp || map[src->m].flag.gvg || map[src->m].flag.gvg_castle))
 		{
 			i = dstsd->spiritball * 7;
 			pc_delspiritball(dstsd,dstsd->spiritball,0);
@@ -4584,7 +4582,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					if(dstsd && dstsd->skilltimer != -1) {
 						bl_skillid = dstsd->skillid;
 						bl_skilllv = dstsd->skilllv;
-						if (map[bl->m].flag.pvp || map[bl->m].flag.gvg)
+						if (map[bl->m].flag.pvp || map[bl->m].flag.gvg || map[bl->m].flag.gvg_castle)
 							hp = status_get_max_hp(bl)/50; //Recover 2% HP [Skotlex]
 					}
 				}
@@ -5036,7 +5034,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			int flag;
 			if((bl->type==BL_SKILL) &&
 			   (su=(struct skill_unit *)bl) &&
-			   (su->group->src_id == src->id || map[bl->m].flag.pvp || map[bl->m].flag.gvg) &&
+			   (su->group->src_id == src->id || map[bl->m].flag.pvp || map[bl->m].flag.gvg || map[bl->m].flag.gvg_castle) &&
 				(skill_get_inf2(su->group->skill_id) & INF2_TRAP))
 			{	
 				if(sd && su->group->val3 != BD_INTOABYSS)
@@ -5139,7 +5137,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 			if(dstmd && dstmd->skilltimer!=-1 && dstmd->state.skillcastcancel)	// ‰r?¥–WŠQ
 				skill_castcancel(bl,0);
-			if(dstsd && dstsd->skilltimer!=-1 && (!dstsd->special_state.no_castcancel || map[bl->m].flag.gvg)
+			if(dstsd && dstsd->skilltimer!=-1 && (!dstsd->special_state.no_castcancel || map[bl->m].flag.gvg_castle)
 				&& dstsd->state.skillcastcancel	&& !dstsd->special_state.no_castcancel2)
 				skill_castcancel(bl,0);
 
@@ -5435,7 +5433,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			if (!sd || !sd->state.gmaster_flag)
 				break;
 			//Reports say this particular skill is usable anywhere! o.o [Skotlex]
-			if	(map[sd->bl.m].flag.nowarpto && !map[sd->bl.m].flag.gvg)
+			if	(map[sd->bl.m].flag.nowarpto && !map[sd->bl.m].flag.gvg_castle)
 			{	//if not allowed to warp to the map (castles are always allowed)
 				clif_skill_fail(sd,skillid,0,0);
 				map_freeblock_unlock();
@@ -5446,7 +5444,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			for(i = 0; i < g->max_member; i++, j++) {
 				if (j>8) j=0;
 				if ((dstsd = g->member[i].sd) != NULL && sd != dstsd) {
-					 if (map[dstsd->bl.m].flag.nowarp && !map[dstsd->bl.m].flag.gvg)
+					 if (map[dstsd->bl.m].flag.nowarp && !map[dstsd->bl.m].flag.gvg_castle)
 						 continue;
 					clif_skill_nodamage(src,bl,skillid,skilllv,1);
 					if(map_getcell(sd->bl.m,sd->bl.x+dx[j],sd->bl.y+dy[j],CELL_CHKNOPASS))
@@ -5564,7 +5562,7 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 		else if(inf2 & INF2_GUILD_ONLY && battle_check_target(&sd->bl,bl, BCT_GUILD) > 0)
 			fail_flag = 0;
 		
-		if (sd->skillid == PF_SOULCHANGE && (map[sd->bl.m].flag.gvg || map[sd->bl.m].flag.pvp))
+		if (sd->skillid == PF_SOULCHANGE && (map[sd->bl.m].flag.gvg_castle || map[sd->bl.m].flag.gvg || map[sd->bl.m].flag.pvp))
 			//Soul Change overrides this restriction during pvp/gvg [Skotlex]
 			fail_flag = 0;
 		
@@ -6248,7 +6246,7 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 		break;
 	case WZ_QUAGMIRE:	//The target changes to "all" if used in a gvg map. [Skotlex]
 	case AM_DEMONSTRATION:
-		if (map[src->m].flag.gvg && battle_config.gvg_traps_bctall)
+		if (map[src->m].flag.gvg_castle && battle_config.gvg_traps_bctall)
 			target = BCT_ALL;
 		break;
 	case HT_SHOCKWAVE:			/* ƒVƒ‡ƒbƒNƒEƒF?ƒuƒgƒ‰ƒbƒv */
@@ -6263,7 +6261,7 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 	case HT_BLASTMINE:			/* ƒuƒ‰ƒXƒgƒ}ƒCƒ“ */
 		if (sc_data && sc_data[SC_INTOABYSS].timer != -1)
 			val3 = BD_INTOABYSS;	//Store into abyss state, to know it shouldn't give traps back. [Skotlex]
-		if (map[src->m].flag.gvg)
+		if (map[src->m].flag.gvg_castle)
 		{
 			limit *= 4; // longer trap times in WOE [celest]
 			if (battle_config.gvg_traps_bctall)
@@ -6371,10 +6369,6 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 		val2 = skilllv*10;	//Status ailment resistance
 		break;
 	case BD_ETERNALCHAOS:
-/*
-		if (map[src->m].flag.gvg || map[src->m].flag.pvp)
-			target = BCT_ALL;	//On versus grounds it affects everyone. [Skotlex]
-*/
 		break;
 	case PF_FOGWALL:	/* ƒtƒHƒOƒEƒH?ƒ‹ */
 		if(sc_data && sc_data[SC_DELUGE].timer!=-1) limit *= 2;
@@ -6734,7 +6728,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 	case UNT_SKIDTRAP:
 		{
 			int i,c = skill_get_blewcount(sg->skill_id,sg->skill_lv);
-			if(map[bl->m].flag.gvg) c = 0;
+			if(map[bl->m].flag.gvg_castle) c = 0;
 			for(i=0;i<c;i++)
 				skill_blown(&src->bl,bl,1|0x30000,2);
 			sg->unit_id = UNT_USED_TRAPS;
@@ -8380,7 +8374,7 @@ int skill_use_pos (struct map_session_data *sd, int skill_x, int skill_y, int sk
 		return 0;
 	if (skillnotok(skill_num, sd)) // [MouseJstr]
 		return 0;
-	if (skill_num == WZ_ICEWALL && map[sd->bl.m].flag.noicewall && !map[sd->bl.m].flag.pvp)  { // noicewall flag [Valaris]
+	if (skill_num == WZ_ICEWALL && map[sd->bl.m].flag.noicewall && !map[sd->bl.m].flag.pvp && !map[sd->bl.m].flag.gvg)  { // noicewall flag [Valaris]
 		clif_skill_fail(sd,sd->skillid,0,0);
 		return 0;
 	}
