@@ -206,8 +206,8 @@ void set_char_online(int map_id, int char_id, int account_id) {
 	} else {
 		if (online_check && character->char_id != -1 && character->server > -1 && character->server != map_id)
 		{
-			ShowNotice("Character (%d:%d) registered on map server %d, but map server %d claims to have (%d:%d) online!\n",
-				character->account_id, character->char_id, character->server, account_id, char_id, map_id);
+			ShowNotice("set_char_online: Character %d:%d marked in map server %d, but map server %d claims to have (%d:%d) online!\n",
+				character->account_id, character->char_id, character->server, map_id, account_id, char_id);
 			mapif_disconnectplayer(server_fd[character->server], character->account_id, character->char_id, 2);
 		}
 		character->waiting_disconnect = 0;
@@ -2457,8 +2457,8 @@ int parse_frommap(int fd) {
 				} else {
 					if (character->server > -1 && character->server != id)
 					{
-						ShowNotice("Character (%d:%d) registered on map server %d, but map server %d claims to have (%d:%d) online!\n",
-							character->account_id, character->char_id, character->server, aid, cid, id);
+						ShowNotice("Set map user: Character (%d:%d) marked on map server %d, but map server %d claims to have (%d:%d) online!\n",
+							character->account_id, character->char_id, character->server, id, aid, cid);
 						mapif_disconnectplayer(server_fd[character->server], character->account_id, character->char_id, 2);
 					}
 					character->server = id;
@@ -2548,7 +2548,7 @@ int parse_frommap(int fd) {
 					char_data = char_dat;
 				}
 				//Tell the new map server about this player using Kevin's new auth packet. [Skotlex]
-				if (map_fd>=0 && session[map_fd]) 
+				if (map_fd>=0 && session[map_fd] && char_data) 
 				{	//Send the map server the auth of this player.
 					char_data->sex = RFIFOB(fd,44);
 					//Update the "last map" as this is where the player must be spawned on the new map server.

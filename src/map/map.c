@@ -1399,6 +1399,15 @@ int map_quit(struct map_session_data *sd) {
 			storage_guild_storageclose(sd);
 
 		map_delblock(&sd->bl);
+	} else { //Try to free some data, without saving anything (this could be invoked on map server change. [Skotlex]
+		if (sd->bl.prev != NULL)
+		{	//Remove from map...
+			if (!(sd->status.option & OPTION_HIDE))
+				clif_clearchar_area(&sd->bl,2);
+			map_delblock(&sd->bl);
+		}
+		if (sd->pd)
+			pet_remove_map(sd);
 	}
 
 	if (sd->stack) {
@@ -1540,8 +1549,8 @@ static int map_foreachpc_sub(void * key,void * data,va_list ap)
 	struct map_session_data ***total_sd = va_arg(ap, struct map_session_data***);
 	int *count = va_arg(ap, int*);
 	
-	if (!sd->state.auth)
-		return 0; //Do not count in not-yet authenticated characters.
+	if (!sd->state.auth || sd->state.waitingdisconnect)
+		return 0; //Do not count in not-yet authenticated characters or ready to disconnect ones.
 
 	(*total_sd)[(*count)++] = sd;
 	return 0;

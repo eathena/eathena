@@ -1,6 +1,9 @@
 Date	Added
 ==========
 2005/10/26
+	* Some more multi-map server work. It seems to work now correctly and with
+	  no memory leaks, however it likely needs more testing. Also added the
+	  support into the char-TXT server. [Skotlex]
 	* Patched a crash where mobs with no space for looting would attempt to
 	  loot. [Skotlex]
 	* Updated mapflags, readded gvg_dungeon. Now mapflags work according to

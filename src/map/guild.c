@@ -436,7 +436,7 @@ int guild_check_member(const struct guild *g)
 	all_sd = map_getallusers(&users);
 	
 	for(i=0;i<users;i++){
-		if((sd=all_sd[i]) && !sd->state.waitingdisconnect){
+		if((sd=all_sd[i])){
 			if(sd->status.guild_id==g->guild_id){
 				int j,f=1;
 				for(j=0;j<MAX_GUILD;j++){	// ƒf[ƒ^‚ª‚ ‚é‚©
@@ -465,7 +465,7 @@ int guild_recv_noinfo(int guild_id)
 	all_sd = map_getallusers(&users);
 	
 	for(i=0;i<users;i++){
-		if((sd=all_sd[i]) && !sd->state.waitingdisconnect){
+		if((sd=all_sd[i])){
 			if(sd->status.guild_id==guild_id)
 				sd->status.guild_id=0;
 		}

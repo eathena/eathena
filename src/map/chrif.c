@@ -333,7 +333,6 @@ int chrif_changemapserverack(int fd)
 		return 0;
 	}
 	clif_changemapserver(sd, (char*)RFIFOP(fd,18), RFIFOW(fd,34), RFIFOW(fd,36), RFIFOL(fd,38), RFIFOW(fd,42));
-
 	return 0;
 }
 

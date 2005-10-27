@@ -1756,7 +1756,9 @@ int clif_changemapserver(struct map_session_data *sd, char *mapname, int x, int 
 	WFIFOL(fd,22) = ip;
 	WFIFOW(fd,26) = port;
 	WFIFOSET(fd, packet_len_table[0x92]);
-
+	//If they are going to another map server, we must mark them as ready to leave.
+	sd->state.waitingdisconnect = 1;
+	
 	return 0;
 }
 
