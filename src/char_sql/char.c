@@ -6,8 +6,9 @@
 // TXT 1.105
 #include <sys/types.h>
 
-#ifdef LCCWIN32
+#ifdef _WIN32
 #include <winsock.h>
+typedef long in_addr_t;
 #pragma lib <libmysql.lib>
 #else
 #include <sys/socket.h>
