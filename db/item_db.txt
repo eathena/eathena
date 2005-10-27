@@ -142,7 +142,7 @@
 645,Concentration_Potion,Concentration Potion,2,800,,100,,,,,127918079,7,2,,,,,,{ sc_start SC_SpeedPot0,1800000,0; }
 656,Awakening_Potion,Awakening Potion,2,1500,,150,,,,,126344943,7,2,,,40,,,{ sc_end SC_Sleep; sc_start SC_SpeedPot1,1800000,0; }
 657,Berserk_Potion,Berserk Potion,2,3000,,200,,,,,411302,7,2,,,85,,,{ sc_start SC_SpeedPot2,1800000,0; }
-658,Tribal_Solidarity,Tribal Solidarity,2,1000,,500,,,,,127918079,7,2,,,,,,{ guildgetexp rand(1,10000); }
+658,Tribal_Solidarity,Tribal Solidarity,2,1000,,500,,,,,127918079,7,2,,,,,,{ guildgetexp rand(600000,1200000); }
 // New Pet Tames
 659,Her_Heart,Her Heart,11,500,,50,,,,,127918079,7,2,,,,,,{ pet 1188; }
 660,Forbidden_Red_Candle,Forbidden Red Candle,11,,10,50,,,,,127918079,7,2,,,,,,{ pet 1200; }

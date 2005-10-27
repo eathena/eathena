@@ -38,6 +38,7 @@
 	--
 
 10/27
+	* Fixed the ammount of guild exp beeing given by Tribal Solidarity, credits goes to irmin [MasterOfMuppets]
 	* Fixed Glittering Clothes' script. [Skotlex]
 10/24
 	* Added cursed water to be dropped by fake angel [MasterOfMuppets]
