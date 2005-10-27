@@ -1651,7 +1651,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 		} else {	//Target is BL_ITEM, attempt loot.
 			struct flooritem_data *fitem;
 			
-			if ((dist = distance(md->bl.x, md->bl.y, tbl->x, tbl->y)) >= md->min_chase || (blind_flag && dist >= 4))
+			if ((dist = distance(md->bl.x, md->bl.y, tbl->x, tbl->y)) >= md->min_chase || (blind_flag && dist >= 4) || md->lootitem == NULL)
 			{	//Can't loot...
 				mob_unlocktarget (md, tick);
 				if (md->state.state == MS_WALK)

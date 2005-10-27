@@ -1,6 +1,8 @@
 Date	Added
 ==========
 2005/10/26
+	* Patched a crash where mobs with no space for looting would attempt to
+	  loot. [Skotlex]
 	* Updated mapflags, readded gvg_dungeon. Now mapflags work according to
 	  this post: [Skotle]
 	  http://eathena.ws/board/index.php?showtopic=58201
