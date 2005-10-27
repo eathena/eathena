@@ -2523,31 +2523,6 @@ int parse_frommap(int fd) {
 				}
 				RFIFOSKIP(fd, 49);
 			}
-
-			if (auth_fifo_pos >= AUTH_FIFO_SIZE)
-				auth_fifo_pos = 0;
-			WFIFOW(fd,0) = 0x2b06;
-			memcpy(WFIFOP(fd,2), RFIFOP(fd,2), 42);
-			auth_fifo[auth_fifo_pos].account_id = RFIFOL(fd,2);
-			auth_fifo[auth_fifo_pos].char_id = RFIFOL(fd,14);
-			auth_fifo[auth_fifo_pos].login_id1 = RFIFOL(fd,6);
-			auth_fifo[auth_fifo_pos].login_id2 = RFIFOL(fd,10);
-			auth_fifo[auth_fifo_pos].delflag = 0;
-			auth_fifo[auth_fifo_pos].sex = RFIFOB(fd,44);
-			auth_fifo[auth_fifo_pos].connect_until_time = 0; // unlimited/unknown time by default (not display in map-server)
-			auth_fifo[auth_fifo_pos].ip = RFIFOL(fd,45);
-			for(i = 0; i < char_num; i++)
-				if (char_dat[i].account_id == RFIFOL(fd,2) &&
-				    char_dat[i].char_id == RFIFOL(fd,14)) {
-					auth_fifo[auth_fifo_pos].char_pos = i;
-					auth_fifo_pos++;
-					WFIFOL(fd,6) = 0;
-					break;
-				}
-			if (i == char_num)
-				WFIFOW(fd,6) = 1;
-			WFIFOSET(fd,44);
-			RFIFOSKIP(fd,49);
 			break;
 
 		// ƒLƒƒƒ‰–¼ŒŸõ
