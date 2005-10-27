@@ -3766,15 +3766,11 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			break;
 		case SC_NOCHAT:	//チャット禁止?態
 			{
-				time_t timer;
-
 				if(!battle_config.muting_players)
 					return 0;
 				
 				if (!(flag&4))
 					tick = 60000;
-				if(!val2)
-					val2 = (int)time(&timer);
 				updateflag = SP_MANNER;
 				save_flag = 1; // celest
 			}
@@ -5106,13 +5102,12 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 		}
 		break;
 	case SC_NOCHAT:	//チャット禁止?態
-		if(sd && battle_config.muting_players){
-			time_t timer;
-			if((++sd->status.manner) && time(&timer) < ((sc_data[type].val2) + 60*(0-sd->status.manner))){	//開始からstatus.manner分?ってないので??
-				clif_updatestatus(sd,SP_MANNER);
-				sc_data[type].timer=add_timer(	/* タイマ?再設定(60秒) */
-					60000+tick, status_change_timer,
-					bl->id, data);
+		if(sd){
+			sd->status.manner++;
+			clif_updatestatus(sd,SP_MANNER);
+			if (sd->status.manner < 0)
+			{	//Every 60 seconds your manner goes up by 1 until it gets back to 0.
+				sc_data[type].timer=add_timer(60000+tick, status_change_timer, bl->id, data);
 				return 0;
 			}
 		}
