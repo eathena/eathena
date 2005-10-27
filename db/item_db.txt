@@ -1924,7 +1924,7 @@
 7313,Witch's_Voucher,Witch's Voucher,3,,10,10,,,,,,,,,,,,,{}
 7314,The_Sign,The Sign,3,,10,10,,,,,,,,,,,,,{}
 7315,Black_Quartz_Piece,Dark Crystal Fragment,3,422,,10,,,,,,,,,,,,,{}
-7316,Insect_Long_leg,Insect's Long Leg,3,,10,10,,,,,,,,,,,,,{}
+7316,Insect_Long_leg,Insect Leg,3,,329,10,,,,,,,,,,,,,{}
 7317,Rusted_Bolt,Rusty Screw,3,534,,10,,,,,,,,,,,,,{}
 7318,Old_Pick,Old Pick,3,512,,10,,,,,,,,,,,,,{}
 7319,Old_Iron_Plate,Used Iron Plate,3,1024,,10,,,,,,,,,,,,,{}
@@ -1934,7 +1934,7 @@
 7323,Battered_Kettle,Battered Kettle,3,256,,10,,,,,,,,,,,,,{}
 7324,Toothed_Wheel,Gear,3,,10,10,,,,,,,,,,,,,{}
 7325,Tube,Flexible Tube,3,,102,10,,,,,,,,,,,,,{}
-7326,Fluorescent_Colored_Liquid,Fluorescent Liquid,3,,10,10,,,,,,,,,,,,,{}
+7326,Fluorescent_Colored_Liquid,Fluorescent Liquid,3,,356,10,,,,,,,,,,,,,{}
 7327,Flashlight,Flashlight,3,,10,10,,,,,,,,,,,,,{}
 7328,Songkran_Legend,Songkran Legend,3,,10,10,,,,,,,,,,,,,{}
 7329,Old_Copper_Key,Old Copper Key,3,,10,10,,,,,,,,,,,,,{}
