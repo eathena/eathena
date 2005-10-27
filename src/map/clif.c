@@ -10209,7 +10209,7 @@ void clif_parse_GMReqNoChat(int fd,struct map_session_data *sd)
 			dstsd->status.manner = 0;
 			status_change_end(bl,SC_NOCHAT,-1);
 		}
-		ShowNotice("name:%s type:%d limit:%d manner:%d\n", dstsd->status.name, type, limit, dstsd->status.manner);
+		ShowDebug("GMReqNoChat: name:%s type:%d limit:%d manner:%d\n", dstsd->status.name, type, limit, dstsd->status.manner);
 	}
 
 	return;

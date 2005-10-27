@@ -1,6 +1,9 @@
 Date	Added
 ==========
 2005/10/27
+	* Added file upgrade_svn3746.sql, use it to alter your `char` table column
+	  "manner", which should NOT be unsigned (if your column already is
+	  signed, then no need to apply this update) [Skotlex]
 	* More code cleanup to make eA ANSI-C compliant. [Skotlex]
 	* Some fixes to the night-day-system. [Skotlex]
 2005/10/26

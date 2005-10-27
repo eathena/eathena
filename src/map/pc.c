@@ -402,11 +402,6 @@ int pc_makesavestatus(struct map_session_data *sd)
 		}
 	}
 
-	//マナ?ポイントがプラスだった場合0に
-	/* I am not sure what this is for, but considering that the status changes are now saved and restored, it probably is not a good idea to reset the manner. [Skotlex]
-	if(battle_config.muting_players && sd->status.manner > 0)
-		sd->status.manner = 0;
-	*/
 	return 0;
 }
 
