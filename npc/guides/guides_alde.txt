@@ -3,16 +3,15 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.0a
+//= 1.2
 //===== Compatible With: ===================================== 
 //= eAthena 7.15 +
 //===== Description: ========================================= 
 //=
 //===== Additional Comments: ================================= 
 //= Corrected building locations and descriptions
+//= 1.2 Optimized, updated common guide names [Lupus]
 //============================================================
-
-
 
 
 aldebaran.gat,139,63,4	script	Soldier	105,{
@@ -24,15 +23,13 @@ aldebaran.gat,139,63,4	script	Soldier	105,{
 	mes "We are here to help you find your way.  Please feel free to speak to us anytime.";
 M_Menu:
 	next;
-	menu "View Buildings",M_1, "Notice",M_2, "Cancel",M_End;
+	menu "View Buildings",-, "Notice",M_2, "Cancel",M_End;
 
-	M_1:
 		mes "[Al De Baran Guard]";
 		mes "Do you want me to leave indications on the Mini-Map?";
 		next;
-		menu "No Thanks",sM_1a,"Yes Please",sM_1b;
+		menu "No Thanks",-,"Yes Please",sM_1b;
 		
-		sM_1a:
 			set @COMPASS_CHECK,0;
 			goto L_Cont;
 
@@ -44,11 +41,10 @@ M_Menu:
 		mes "Please choose a building to view.";
 		next;
 	sM_Menu:
-		menu 	"^FF0000Kafra Main Office^000000",sM_2a, "Armory",sM_2b, "Item Shop",sM_2c, "Pub",sM_2d,
+		menu "^FF0000Kafra Main Office^000000",-, "Armory",sM_2b, "Item Shop",sM_2c, "Pub",sM_2d,
 			"^00AAFFSorcerer Guild (Closed)^000000",sM_2e, "^DDAA00Chemical Academy^000000",sM_2f,
 			"Wipe all indications from mini-map",sM_2g, "Cancel", M_End;
 
-		sM_2a:
 			mes "[Al De Baran Guard]";
 			mes "The 'Kafra Main Office' is the place where you can redeem your special researve points.";
 			viewpoint 1,56,225,1,0xFF0000;

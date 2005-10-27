@@ -1,15 +1,16 @@
 //===== eAthena Script ======================================= 
 //= Niflheim Guide
 //===== By: ================================================== 
-//= 
+//= eAthena Team
 //===== Current Version: ===================================== 
-//= 1.1
+//= 1.2
 //===== Compatible With: ===================================== 
 //= eAthena 1.0 +
 //===== Description: ========================================= 
 //=
 //===== Additional Comments: ================================= 
 //= 1.1 Fixed location command format [Lupus]
+//= 1.2 Optimized, updated common guide names [Lupus]
 //============================================================ 
 
 
@@ -24,12 +25,12 @@ niflheim.gat,186,190,5	script	Wandering Man	798,{
 	mes "perhaps it may be useful for escaping sometimes.";
 	next;
 	menu "Enquire locations",-,"Wipe indications",L_MENU_2,"Cancel",L_end;
+
 		mes "[Wandering Man]";
 		mes "Where do you want to know about?";
 		next;
-		menu "Witch's Hut",M_Magic,"Equipment Shop",M_item,"Weapon Shop",M_weapon,"Inn",M_hotel,"Cancel",L_cancel;
+		menu "Witch's Hut",-,"Equipment Shop",M_item,"Weapon Shop",M_weapon,"Inn",M_hotel,"Cancel",L_cancel;
 
-		M_Magic:
 		viewpoint 1,255,194,1,0xFF3366;
 		mes "[Wandering Man]";
 		mes "In Niflheim lives a terrible witch,";

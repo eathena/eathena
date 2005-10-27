@@ -10,15 +10,13 @@
 //=
 //===== Additional Comments: ================================= 
 //= Fully working
-//= v1.1 Now using duplicate command.
-//= 1.2 Fixed Armory coords, thanks to Fteya team
+//= 1.1 Fixed Armory coords, thanks to Freya team
+//= 1.2 Optimized, updated common guide names [Lupus]
 //============================================================ 
 
 
-
-
 // North --------------------------------------------------------
-alberta.gat,23,238,4	script	Guide#1::Guide	105,{
+alberta.gat,23,238,4	script	Guide#1::Alb_Guide	105,{
 	cutin "prt_soldier",2;
 	mes "[Alberta Soldier]";
 	mes "Welcome to Alberta, the Port Town.";
@@ -28,15 +26,13 @@ alberta.gat,23,238,4	script	Guide#1::Guide	105,{
 	mes "Oh, and if you're a newbie you should read the notice first.";
 M_Menu:
 	next;
-	menu "View Buildings",M_1, "Notice",M_2, "Cancel",M_End;
+	menu "View Buildings",-, "Notice",M_2, "Cancel",M_End;
 
-	M_1:
 		mes "[Alberta Soldier]";
 		mes "Do you want me to leave indications on the Mini-Map?";
 		next;
-		menu "No Thanks",sM_1a,"Yes Please",sM_1b;
+		menu "No Thanks",-,"Yes Please",sM_1b;
 		
-		sM_1a:
 			set @COMPASS_CHECK,0;
 			goto L_Cont;
 		sM_1b:
@@ -47,9 +43,8 @@ M_Menu:
 		mes "Please choose a building to view.";
 		next;
 	sM_Menu:
-		menu "^FF0000Merchant Guild^000000",sM_2a,"Armory",sM_2b,"Item Shop",sM_2c,"Inn",sM_2d, "Wipe all indications from mini-map.",sM_2e, "Cancel",M_End;
+		menu "^FF0000Merchant Guild^000000",-,"Armory",sM_2b,"Item Shop",sM_2c,"Inn",sM_2d, "Wipe all indications from mini-map.",sM_2e, "Cancel",M_End;
 
-		sM_2a:
 			mes "[Alberta Soldier]";
 			mes "The 'Merchant Guild' is located in the SouthWestern part of town.  The Merchant Guild is the place to go to become a merchant.";
 			viewpoint 1,33,41,1,0xFF0000;
@@ -107,4 +102,4 @@ M_Menu:
 }
 
 // South --------------------------------------------------------
-alberta.gat,120,60,3	duplicate(Guide)	Guide#2	105
+alberta.gat,120,60,3	duplicate(Alb_Guide)	Guide#2	105

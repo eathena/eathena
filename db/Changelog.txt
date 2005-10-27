@@ -37,6 +37,8 @@
 	[Skotlex]
 	--
 
+10/28
+	* Thanx to Justin84, added misssing names of 2 skills in skill_tree.txt (HW_GANBANTEIN,HW_GRAVITATION) [Lupus]
 10/27
 	* Fixed the ammount of guild exp beeing given by Tribal Solidarity, credits goes to irmin [MasterOfMuppets]
 	* Fixed Glittering Clothes' script. [Skotlex]

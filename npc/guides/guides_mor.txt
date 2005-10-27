@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.1
+//= 1.2
 //===== Compatible With: ===================================== 
 //= eAthena  0.5.2 +
 //===== Description: ========================================= 
@@ -11,14 +11,12 @@
 //===== Additional Comments: ================================= 
 //= Fully working.  Added a guide at every exit.
 //= v1.1 Now using duplicate command.
+//= 1.2 Optimized, updated common guide names [Lupus]
 //============================================================
 
 
-
-
-
 // North ------------------------------------------------
-morocc.gat,153,286,6	script	Guide#1::Guide	707,{
+morocc.gat,153,286,6	script	Guide#1::Mor_Guide	707,{
 	cutin "moc_soldier",2;
 	mes "[Morroc Soldier]";
 	mes "Welcome to Morroc, the Desert Frontier!";
@@ -27,15 +25,13 @@ morocc.gat,153,286,6	script	Guide#1::Guide	707,{
 	mes "We are here to help you find your way.  Please feel free to speak to us anytime you need help.";
 M_Menu:
 	next;
-	menu "View Buildings",M_1, "Notice",M_2, "Cancel",M_End;
+	menu "View Buildings",-, "Notice",M_2, "Cancel",M_End;
 
-	M_1:
 		mes "[Morroc Soldier]";
 		mes "Do you want me to leave indications on the Mini-Map?";
 		next;
-		menu "No Thanks",sM_1a,"Yes Please",sM_1b;
+		menu "No Thanks",-,"Yes Please",sM_1b;
 		
-		sM_1a:
 			set @COMPASS_CHECK,0;
 			goto L_Cont;
 
@@ -47,10 +43,9 @@ M_Menu:
 		mes "Please choose a building to view.";
 		next;
 	sM_Menu:
-		menu "^FF0000Thief Guild^000000",M_1_1, "Armory",M_1_2, "Inn",M_1_3, "Pub",M_1_4, "Mercenary Guild",M_1_5,
+		menu "^FF0000Thief Guild^000000",-, "Armory",M_1_2, "Inn",M_1_3, "Pub",M_1_4, "Mercenary Guild",M_1_5,
 			"Wipe all indications from mini-map.",M_1_6, "Cancel",M_End;
 
-		M_1_1:
 			mes "[Morocc Soldier]";
 			mes "The 'Thief Guild'.... I hear that it's the place to go if you want to be a Thief.....";
 			viewpoint 1,24,297,1,0xFF0000;
@@ -114,8 +109,8 @@ M_Menu:
 }
 
 // South --------------------------------------------
-morocc.gat,162,97,6	duplicate(Guide)	Guide#2	707
+morocc.gat,162,97,6	duplicate(Mor_Guide)	Guide#2	707
 // West --------------------------------------------
-morocc.gat,28,161,6	duplicate(Guide)	Guide#3	707
+morocc.gat,28,161,6	duplicate(Mor_Guide)	Guide#3	707
 // East  --------------------------------------------
-morocc.gat,294,203,9	duplicate(Guide)	Guide#4	707
+morocc.gat,294,203,9	duplicate(Mor_Guide)	Guide#4	707

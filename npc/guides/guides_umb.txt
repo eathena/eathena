@@ -1,25 +1,18 @@
 //===== eAthena Script ======================================= 
 //= Umbala Guides
 //===== By: ================================================== 
-//= Dizzy
-//= Translated by Celest
+//= Dizzy, Translated by Celest
 //===== Current Version: ===================================== 
-//= 1.1
+//= 1.2
 //===== Compatible With: ===================================== 
 //= eAthena 1.0 +
 //===== Description: ========================================= 
 //=
 //===== Additional Comments: ================================= 
 //= 1.1 Fixed location command format [Lupus]
+//= 1.2 Optimized, updated common guide names [Lupus]
 //============================================================ 
 
-
-//=====================================================================================
-//umbala.gat,174,147,5	script	Umbalian Guide	789,{
-//	mes "[Umbalian Guide]";
-//	mes "-Under Development-";
-//	close;
-//}
 
 // Umbala tour guide
 //===========================================================================
@@ -36,13 +29,11 @@ umbala.gat,128,94,3	script	Ricard	702,{
 	next;
 	menu "View buildings",-,"Clear indications",L_MENU_2,"Cancel",L_end1;
 
-L_MENU_1:
 	mes "[Ricard]";
 	mes "Where would you want to know about?";
 	next;
-	menu "Village Chieftain's house",L_room1,"Village Shaman's house",L_room2,"Weapon shop",L_room3,"Equipment shop",L_room4,"Bungee Jumping Spot",L_room5,"Cancel",L_end2;
+	menu "Village Chieftain's house",-,"Village Shaman's house",L_room2,"Weapon shop",L_room3,"Equipment shop",L_room4,"Bungee Jumping Spot",L_room5,"Cancel",L_end2;
 
-	L_room1:
 		mes "[Ricard]";
 		mes "The chieftain lives ^FF0000here^000000,";
 		mes "only he understands the languages of outsiders,";

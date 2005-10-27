@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.1
+//= 1.2
 //===== Compatible With: ===================================== 
 //= eAthena  0.5.2 +
 //===== Description: ========================================= 
@@ -11,16 +11,12 @@
 //===== Additional Comments: ================================= 
 //= Fully working.  Added a guide at every exit.
 //= v1.1 Now using duplicate command.
+//= 1.2 Optimized, updated common guide names [Lupus]
 //============================================================
 
 
-
-
-
-
-
 // North --------------------------------------------
-geffen.gat,123,202,5	script	Guide#1::Guide	705,{
+geffen.gat,123,202,5	script	Guide#1::Gef_Guide	705,{
 	cutin "gef_soldier",2;
 	mes "[Geffen Soldier]";
 	mes "Welcome to Geffen, the City of Magic.";
@@ -29,15 +25,13 @@ geffen.gat,123,202,5	script	Guide#1::Guide	705,{
 	mes "We are here to help you find your way.  Please feel free to speak to us anytime you need help.";
 M_Menu:
 	next;
-	menu "View Buildings",M_1, "Notice",M_2, "Cancel",M_End;
+	menu "View Buildings",-, "Notice",M_2, "Cancel",M_End;
 
-	M_1:
 		mes "[Geffen Soldier]";
 		mes "Do you want me to leave indications on the Mini-Map?";
 		next;
-		menu "No Thanks",sM_1a,"Yes Please",sM_1b;
+		menu "No Thanks",-,"Yes Please",sM_1b;
 		
-		sM_1a:
 			set @COMPASS_CHECK,0;
 			goto L_Cont;
 
@@ -49,10 +43,9 @@ M_Menu:
 		mes "Please choose a building to view.";
 		next;
 	sM_Menu:
-		menu 	"^FF0000Magic Acadamy^000000",M_1_1, "^00A500Blacksmith Workshop^000000",M_1_2, "^4444FFGeffen Tower^000000",M_1_3,
+		menu "^FF0000Magic Acadamy^000000",-, "^00A500Blacksmith Workshop^000000",M_1_2, "^4444FFGeffen Tower^000000",M_1_3,
 			"Armory",M_1_4, "Item Shop",M_1_5, "Pub",M_1_6, "Inn",M_1_7, "Wipe all indications from mini-map",M_1_8, "Cancel", M_End;
 
-		M_1_1:
 			mes "[Geffen Soldier]";
 			mes "'The 'Magic Acadamy' is the home of magical theorists, and the place for would be Mages.";
 			viewpoint 1,61,180,1,0xFF5555;
@@ -128,8 +121,8 @@ M_Menu:
 }
 
 // South ------------------------------------------
-geffen.gat,118,62,0	duplicate(Guide)	Guide#2	705
+geffen.gat,118,62,0	duplicate(Gef_Guide)	Guide#2	705
 // East -----------------------------------------------------
-geffen.gat,203,116,2	duplicate(Guide)	Guide#3	705
+geffen.gat,203,116,2	duplicate(Gef_Guide)	Guide#3	705
 // West ----------------------------------------------
-geffen.gat,37,123,5	duplicate(Guide)	Guide#4	705
+geffen.gat,37,123,5	duplicate(Gef_Guide)	Guide#4	705

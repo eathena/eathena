@@ -10,11 +10,9 @@
 //=
 //===== Additional Comments: ================================= 
 //= Fully working
-//= v1.1 Now using duplicate command.
-//= New Payon Locations [Darkchild]
+//= v1.1 Now using duplicate command.New Payon Locations [Darkchild]
+//= 1.2 Optimized, updated common guide names [Lupus]
 //============================================================
-
-
 
 
 payon.gat,148,213,4	script	Guide	708,{
@@ -26,15 +24,13 @@ payon.gat,148,213,4	script	Guide	708,{
 	mes "We are here to help you find your way.  Please feel free to speak to us anytime you need help.";
 M_Menu:
 	next;
-	menu "View Buildings",M_1, "Notice",M_2, "Cancel",M_End;
+	menu "View Buildings",-, "Notice",M_2, "Cancel",M_End;
 
-	M_1:
 		mes "[Payon Soldier]";
 		mes "Do you want me to leave indications on the Mini-Map?";
 		next;
-		menu "No Thanks",sM_1a,"Yes Please",sM_1b;
+		menu "No Thanks",-,"Yes Please",sM_1b;
 		
-		sM_1a:
 			set @COMPASS_CHECK,0;
 			goto L_Cont;
 
@@ -46,10 +42,9 @@ M_Menu:
 		mes "Please choose a building to view.";
 		next;
 	sM_Menu:
-		menu 	"^FF0000Archer Guild^000000",M_1_1, "Armory",M_1_2, "Item Shop",M_1_3, "Inn",M_1_4, "Central Palace",M_1_5,
+		menu "^FF0000Archer Guild^000000",-, "Armory",M_1_2, "Item Shop",M_1_3, "Inn",M_1_4, "Central Palace",M_1_5,
 			"Wipe all indications from mini-map.",M_1_6, "Cancel",M_End;
 
-   M_1_1: 
          mes "[Payon Soldier]"; 
          mes "The 'Archer Guild' is located in Archer Village.  Go there if you want to be an archer."; 
          viewpoint 1,227,323,1,0xFF0000; 
@@ -120,15 +115,13 @@ pay_arche.gat,85,30,2	script	Guide	708,{
 	mes "We are here to help you find your way.  Please feel free to speak to us anytime you need help.";
 M_Menu:
 	next;
-	menu "View Buildings",M_1, "Notice",M_2, "Cancel",M_End;
+	menu "View Buildings",-, "Notice",M_2, "Cancel",M_End;
 
-	M_1:
 		mes "[Payon Soldier]";
 		mes "Do you want me to leave indications on the Mini-Map?";
 		next;
-		menu "No Thanks",sM_1a,"Yes Please",sM_1b;
+		menu "No Thanks",-,"Yes Please",sM_1b;
 		
-		sM_1a:
 			set @COMPASS_CHECK,0;
 			goto L_Cont;
 
@@ -140,10 +133,9 @@ M_Menu:
 		mes "Please choose a building to view.";
 		next;
 	sM_Menu:
-		menu 	"^FF0000Archer Guild^000000",M_1_1, "Item Shop",M_1_2, "^0000FFPayon Cave^000000",M_1_3,
+		menu "^FF0000Archer Guild^000000",-, "Item Shop",M_1_2, "^0000FFPayon Cave^000000",M_1_3,
 			"Wipe all indications from mini-map.",M_1_4, "Cancel",M_End;
 
-		M_1_1:
 			mes "[Payon Soldier]";
 			mes "The 'Archer Guild' located in the NorthEastern part of Archer Village.  Go there to become an Archer";
 			viewpoint 1,144,164,1,0xFF0000;

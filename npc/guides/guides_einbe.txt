@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= Muad_dib
 //===== Current Version: ===================================== 
-//= 1.0b
+//= 1.2
 //===== Compatible With: ===================================== 
 //= eAthena 7.15 +
 //===== Description: ========================================= 
@@ -11,11 +11,12 @@
 //===== Additional Comments: ================================= 
 //= 1.0 Einbech guide by Muad_dib in prometheus format
 //= 1.0a Conversion to eA format [MasterOfMuppets]
-//= 1.0b missing tabs [Lupus]
+//= 1.1 missing tabs [Lupus]
+//= 1.2 Optimized, updated common guide names [Lupus]
 //============================================================
 
 
-einbech.gat,67,37,4 script Guide 852,{
+einbech.gat,67,37,4 script Guide#1::Einbech_Guide 852,{
   cutin "ein_soldier",2;
   mes "[Einbech Guide]";
   mes "Welcome to Einbech,";
@@ -25,10 +26,9 @@ einbech.gat,67,37,4 script Guide 852,{
   mes "please feel free to ask us.";
 L_MENU:
   next;
-  menu "City Guide",L_CITY,"Remove Marks from Mini-Map",L_REMOVE,"Notice",L_NOTICE,"Cancel",L_END;
+  menu "City Guide",-,"Remove Marks from Mini-Map",L_REMOVE,"Notice",L_NOTICE,"Cancel",L_END;
 
-L_CITY:
-mes "[Einbech Guide]";
+  mes "[Einbech Guide]";
   mes "Please select";
   mes "a location from";
   mes "the following menu.";
@@ -36,8 +36,8 @@ mes "[Einbech Guide]";
   mes "to mark locations";
   mes "on your Mini-Map?";
   next;
-  menu "Yes.",L_YES,"No.",L_NO;
-L_NO:
+  menu "Yes.",L_YES,"No.",-;
+
   set @COMPASS_CHECK,0;
   goto L_CONT;
 L_YES:
@@ -161,4 +161,4 @@ L_END:
   close;
 }
 
-einbech.gat,48,214,4	duplicate(Guide)	Guide	852
+einbech.gat,48,214,4	duplicate(Einbech_Guide)	Guide#2	852

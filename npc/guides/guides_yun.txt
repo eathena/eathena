@@ -11,9 +11,9 @@
 //===== Additional Comments: ================================= 
 //= Edited Miss Yoon text. Added town soldiers by usul. Edited town soldiers
 //= and added map location option for them. [kobra_k88]
-//= 1.2 Changed sprites and cutins to Schwartzald Republic ones
+//= 1.1 Changed sprites and cutins to Schwartzald Republic ones
+//= 1.2 Optimized, updated common guide names [Lupus]
 //============================================================ 
-
 
 
 //=====================================================================================
@@ -143,18 +143,16 @@ function	script	F_YunoLoc	{
 	mes "Welcome to Yuno, the city of noble-mindedness.";
 	M_Menu:
 	next;
-	menu "View city locations.",M_0, @menu1$,M_1, "End conversation.",M_End;
+	menu "View city locations.",-, @menu1$,M_1, "End conversation.",M_End;
 
-	M_0:
 		mes @name$;
 		mes "Please choose a building to view...";
 		sM_Menu:
 		next;
-		menu 	"Armory",sM_1, "Tool Dealer",sM_2, "Sage Castle",sM_3, "Street of Book Stores",sM_4, "Yuphero Plaza",sM_5,
+		menu "Armory",-, "Tool Dealer",sM_2, "Sage Castle",sM_3, "Street of Book Stores",sM_4, "Yuphero Plaza",sM_5,
 			"Library of the Republic",sM_6, "Schwheicherbil Magic Academy",sM_7, "Museum of Monsters",sM_8,
 			"Wipe all indications from mini-map",sM_Wipe, "Cancel",M_End;
 
-		sM_1: 
 			mes @name$;
 			mes "This is the Weapon and Armor Shop.";
 			viewpoint 1,117,135,1,0xFF0000;

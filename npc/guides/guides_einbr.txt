@@ -3,17 +3,19 @@
 //===== By: ================================================== 
 //= Reddozen
 //===== Current Version: ===================================== 
-//= 1.0b
+//= 1.2
 //===== Compatible With: ===================================== 
 //= eAthena 7.15 +
 //===== Description: ========================================= 
 //=
 //===== Additional Comments: ================================= 
 //= 1.0b missing tabs, fixed Guide coords [Lupus]
+//= 1.1 added 1 more Guide NPC, thanx to Justin84 [Lupus]
+//= 1.2 Optimized, updated common guide names [Lupus]
 //============================================================
 
 
-einbroch.gat,72,202,4	script	Guide	852,{
+einbroch.gat,72,202,4	script	Guide#1::Einbroch_Guide	852,{
   cutin "ein_soldier",2;
   mes "[Einbroch Guide]";
   mes "Welcome to Einbroch,";
@@ -23,9 +25,8 @@ einbroch.gat,72,202,4	script	Guide	852,{
 
 M_Menu:
   next;
-  menu "City Guide",M_1, "Remove Marks from Mini-Map",M_2, "Notice",M_3, "Cancel",M_End;
+  menu "City Guide",-, "Remove Marks from Mini-Map",M_2, "Notice",M_3, "Cancel",M_End;
 
-M_1:
   mes "[Einbroch Guide]";
   mes "Please select";
   mes "a location from";
@@ -34,9 +35,8 @@ M_1:
   mes "to mark locations";
   mes "on your Mini-Map";
   next;
-  menu "No Thanks",sM_1a,"Yes Please",sM_1b;
+  menu "No Thanks",-,"Yes Please",sM_1b;
   
-  sM_1a:
   set @COMPASS_CHECK,0;
   goto L_Cont;
 
@@ -45,12 +45,11 @@ M_1:
 
   L_Cont:
 sM_Menu:
-  menu  "^FF0000Airport^000000",sM_2a, "Train Station",sM_2b, "Factory",sM_2c, "Plaza",sM_2d,
+  menu  "^FF0000Airport^000000",-, "Train Station",sM_2b, "Factory",sM_2c, "Plaza",sM_2d,
   "Hotel",sM_2e, "Weapon Shop",sM_2f, "Laboratory",sM_2g, "Blacksmith Guild",sM_2h, 
   "Einbroch Tower",sM_2i, 
   "Cancel", SM_2j;
 
-  sM_2a:
   mes "[Einbroch Guide]";
   mes "The ^FF0000Airport^000000 is is located";
   mes "in the northwestern part";
@@ -218,4 +217,5 @@ M_End:
   close;
 }
 
-einbroch.gat,155,43,4	duplicate(Guide)	Guide	852
+einbroch.gat,155,43,4	duplicate(Einbroch_Guide)	Guide#2	852
+einbroch.gat,162,317,4	duplicate(Einbroch_Guide)	Guide#3	852

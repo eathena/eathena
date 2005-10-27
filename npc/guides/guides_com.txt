@@ -3,17 +3,15 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.1
+//= 1.2
 //===== Compatible With: ===================================== 
 //= eAthena  0.5.2 +
 //===== Description: ========================================= 
 //=
 //===== Additional Comments: ================================= 
-//= Fully working
-//= v1.1 Now using duplicate command.
+//= Fully working v1.1 Now using duplicate command.
+//= 1.2 Optimized, updated common guide names [Lupus]
 //============================================================
-
-
 
 
 // East -------------------------------------------------------------------------------------
@@ -25,15 +23,13 @@ comodo.gat,322,178,4	script	Comodo Guide#1::Comodo_Guide	724,{
 	mes "I know the area very well.  If you need directions, ask me for asistance anytime.";
 M_Menu:
 	next;
-	menu "View Buildings",M_1, "Notice",M_2,"What else is new?",M_3,"Cancel",M_End;
+	menu "View Buildings",-, "Notice",M_2,"What else is new?",M_3,"Cancel",M_End;
 
-	M_1:
 		mes "[Comodo Guide]";
 		mes "Do you want me to leave indications on the Mini-Map?";
 		next;
-		menu "No Thanks",sM_1a,"Yes Please",sM_1b;
+		menu "No Thanks",-,"Yes Please",sM_1b;
 		
-		sM_1a:
 			set @COMPASS_CHECK,0;
 			goto L_Cont;
 
@@ -46,11 +42,10 @@ M_Menu:
 		next;
 	sM_Menu:
 		mes "[Comodo Guide]";
-		menu	"^FF8000Casino^000000",sM_1, "^34B4A0Hula dancing stage^000000",sM_2, "Weapons and Armor Shop",sM_3, "Tool store",sM_4,
+		menu "^FF8000Casino^000000",-, "^34B4A0Hula dancing stage^000000",sM_2, "Weapons and Armor Shop",sM_3, "Tool store",sM_4,
 			"Tourist Shop",sM_5, "^F1BE0EKafra Corp. Western Branch^000000",sM_6, "^FF5555Chief's House^000000",sM_7, "Pub",sM_8,
 			"^00B200Camp Grounds^000000",sM_9, "Clear all indications from mini-map.",sM_10, "End Conversation",M_End;
 
-		sM_1:
 			mes "The heart of Comodo's night life!";
 			mes "A heaven of rest for tired travelers!";
 			mes "The Comodo Casino ~!";
@@ -143,4 +138,3 @@ M_Menu:
 comodo.gat,176,350,4	duplicate(Comodo_Guide)	Comodo Guide#2	724
 // West -----------------------------------------------------------------------------------------
 comodo.gat,37,219,4	duplicate(Comodo_Guide)	Comodo Guide#3	724
-
