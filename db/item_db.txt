@@ -982,7 +982,7 @@
 2316,Full_Plate,Full Plate,5,80000,,4500,,10,,0,16514,7,2,16,,40,1,0,{}
 2317,Full_Plate_,Full Plate,5,80000,,4500,,10,,1,16514,7,2,16,,40,1,0,{}
 2318,Clothes_of_the_Lord,Lord's Cloth,5,,10,2500,,8,,1,263200,7,2,16,,70,1,0,{ bonus bMdef,5; bonus bInt,1; }
-2319,Glittering_Clothes,Glittering Jacket,5,,10,2500,,7,,1,127918079,7,2,16,,60,1,0,{ bonus bMdef,5; bonus2 bAddEffect,Eff_Blind,500; }
+2319,Glittering_Clothes,Glittering Jacket,5,,10,2500,,7,,1,127918079,7,2,16,,60,1,0,{ bonus bMdef,5; bonus2 bAddEff,Eff_Blind,500; }
 2320,Formal_Suit,Formal Suit,5,,10,300,,5,,1,119529470,7,2,16,,0,1,0,{}
 2321,Silk_Robe,Silk Robe,5,8000,,400,,3,,0,378806,7,2,16,,0,1,0,{ bonus bMdef,10; }
 2322,Silk_Robe_,Silk Robe,5,8000,,400,,3,,1,378806,7,2,16,,0,1,0,{ bonus bMdef,10; }
