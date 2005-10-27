@@ -38,6 +38,7 @@
 	--
 
 10/28
+	* Added apple drop to Ancient mimic to prevent steal exploiting, thanks to Irmin [MasterOfMuppets]
 	* Added a few missing loot sell prices [MasterOfMuppets]
 	* Thanx to Justin84, added misssing names of 2 skills in skill_tree.txt (HW_GANBANTEIN,HW_GRAVITATION) [Lupus]
 10/27
