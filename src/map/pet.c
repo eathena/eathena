@@ -1570,13 +1570,13 @@ static int pet_ai_sub_hard(struct pet_data *pd,unsigned int tick)
 				if(pd->loot->count < pd->loot->max){
 					memcpy(&pd->loot->item[pd->loot->count++],&fitem->item_data,sizeof(pd->loot->item[0]));
 					pd->loot->weight += itemdb_search(fitem->item_data.nameid)->weight*fitem->item_data.amount;
+					map_clearflooritem(bl_item->id);
+					pet_unlocktarget(pd);
 				}
 				else { //Maxed out on carried items
 					pet_unlocktarget(pd);
 					return 0;
 				}
-				map_clearflooritem(bl_item->id);
-				pet_unlocktarget(pd);
 			}
 		}
 		else {
