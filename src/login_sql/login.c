@@ -8,7 +8,7 @@
 #include <winsock.h>
 #pragma lib <libmysql.lib>
 #else
-#ifdef WIN32
+#ifdef __WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <winsock2.h>
@@ -22,6 +22,7 @@ void Gettimeofday(struct timeval *timenow)
 	return;
 }
 #define gettimeofday(timenow, dummy) Gettimeofday(timenow)
+#define in_addr_t unsigned long
 #pragma comment(lib,"libmysql.lib")
 #else
 #include <sys/socket.h>
@@ -1211,7 +1212,8 @@ int parse_fromchar(int fd){
 				acc=RFIFOL(fd,4);
 
 				if (acc>0){
-					unsigned char buf[RFIFOW(fd,2)+1];
+					unsigned char *buf;
+					buf = (unsigned char*)aCalloc(RFIFOW(fd,2)+1, sizeof(unsigned char));
 					for(p=8,j=0;p<RFIFOW(fd,2) && j<ACCOUNT_REG2_NUM;p+=36,j++){
 						memcpy(str,RFIFOP(fd,p),32);
 						value=RFIFOL(fd,p+32);
@@ -1231,6 +1233,7 @@ int parse_fromchar(int fd){
 					memcpy(WBUFP(buf,0),RFIFOP(fd,0),RFIFOW(fd,2));
 					WBUFW(buf,0)=0x2729;
 					charif_sendallwos(fd,buf,WBUFW(buf,2));
+					if (buf) aFree(buf);
 				}
 			  }
 				RFIFOSKIP(fd,RFIFOW(fd,2));

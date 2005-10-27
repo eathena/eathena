@@ -1783,7 +1783,7 @@ int parse_fromchar(int fd) {
 						// Save
 						mmo_auth_sync();
 //						printf("parse_fromchar: receiving (from the char-server) of account_reg2 (account id: %d).\n", acc);
-						if (buf) free(buf);
+						if (buf) aFree(buf);
 						break;
 					}
 				}

@@ -372,8 +372,9 @@ int inter_mapif_init(int fd) {
 
 // GM message sending
 int mapif_GMmessage(unsigned char *mes, int len, int sfd) {
-	unsigned char buf[len];
+	unsigned char buf[2048];
 
+	if (len > 2048) len = 2047; //Make it fit to avoid crashes. [Skotlex]
 	WBUFW(buf, 0) = 0x3800;
 	WBUFW(buf, 2) = len;
 	memcpy(WBUFP(buf, 4), mes, len-4);
@@ -384,13 +385,14 @@ int mapif_GMmessage(unsigned char *mes, int len, int sfd) {
 
 // Wis sending
 int mapif_wis_message(struct WisData *wd) {
-	unsigned char buf[56 + wd->len];
+	unsigned char buf[2048];
+	if (wd->len > 2047-56) wd->len = 2047-56; //Force it to fit to avoid crashes. [Skotlex]
 
 	WBUFW(buf, 0) = 0x3801;
 	WBUFW(buf, 2) = 56 +wd->len;
 	WBUFL(buf, 4) = wd->id;
-	memcpy(WBUFP(buf, 8), wd->src, 24);
-	memcpy(WBUFP(buf,32), wd->dst, 24);
+	memcpy(WBUFP(buf, 8), wd->src, NAME_LENGTH);
+	memcpy(WBUFP(buf,32), wd->dst, NAME_LENGTH);
 	memcpy(WBUFP(buf,56), wd->msg, wd->len);
 	wd->count = mapif_sendall(buf,WBUFW(buf,2));
 

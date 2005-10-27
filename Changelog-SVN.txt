@@ -1,6 +1,7 @@
 Date	Added
 ==========
 2005/10/27
+	* More code cleanup to make eA ANSI-C compliant. [Skotlex]
 	* Some fixes to the night-day-system. [Skotlex]
 2005/10/26
 	* Some more multi-map server work. It seems to work now correctly and with
