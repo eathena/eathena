@@ -27,7 +27,8 @@ Nexon
 
 Date		Added
 ======
-10/26
+10/28
+	* Fixed Prontera Kafras not teleporting to Alberta [Lupus]
 	* Added a missing Guide to Einbrochm thx2 Justin84
 	* Updated all guides, fixed common guide names for correct duplicate() [Lupus]
 10/26
