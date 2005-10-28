@@ -8056,7 +8056,6 @@ void clif_parse_WantToConnection(int fd, struct map_session_data *sd)
  */
 void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 {
-	struct npc_data *npc;
 	nullpo_retv(sd);
 
 	if(sd->bl.prev != NULL)
@@ -8185,14 +8184,16 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 	}
 
 // Lance
-if ((npc = npc_name2id("PCLoadMapEvent"))) {  
-	if(npc->bl.m == sd->bl.m) {
-		run_script(npc->u.scr.script,0,sd->bl.id,npc->bl.id);
-		ShowStatus("Event '"CL_WHITE"PCLoadMapEvent"CL_RESET"' executed.\n");
+	if (script_config.event_script_type == 0) {
+		struct npc_data *npc;
+		if ((npc = npc_name2id(script_config.loadmap_event_name))) {  
+			run_script(npc->u.scr.script,0,sd->bl.id,npc->bl.id);
+			ShowStatus("Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.loadmap_event_name);
+		}
+	} else {
+		ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
+			npc_event_doall_id(script_config.loadmap_event_name, sd->bl.id), script_config.loadmap_event_name);
 	}
-}
-
-	npc_event_doall_id("OnPCLoadMapEvent", sd->bl.id);
 
 	// option
 	clif_changeoption(&sd->bl);

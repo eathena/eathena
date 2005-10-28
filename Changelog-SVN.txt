@@ -1,6 +1,12 @@
 Date	Added
 ==========
 2005/10/28
+	* Fixed the size of the equip_job field in SQL item_db/item_db2, thanks to
+	  blackhole89. [DracoRPG]
+	* Harmonized the way NPC events such as PCLoadMapEvent, PCBaseLvUpEvent, etc
+	  are implemented. Caution, now PCLoadMapEvent NPC is called globally: it
+	  is not needed to put it in a specific map. Use script functions to know
+	  which map the player has been warped to. Thanks to Z3RO. [DracoRPG]
 	* Fixed the names of the job level up char commands. [Skotlex]
 	* Tiny change to the script engine which may fix those crashes. [Skotlex]
 	* Added blocking use of skills while sitting. [Skotlex]

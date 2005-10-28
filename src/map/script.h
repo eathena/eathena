@@ -16,12 +16,14 @@ extern struct Script_Config {
 	int check_gotocount;
 
 	unsigned event_script_type : 1;
+	unsigned event_requires_trigger : 1;
 	char* die_event_name;
 	char* kill_event_name;
 	char* login_event_name;
 	char* logout_event_name;
-	char* mapload_event_name;
-	unsigned event_requires_trigger : 1;
+	char* loadmap_event_name;
+	char* baselvup_event_name;
+	char* joblvup_event_name;
 } script_config;
 
 struct script_data {

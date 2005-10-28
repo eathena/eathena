@@ -9635,6 +9635,9 @@ int script_config_read_sub(char *cfgName)
 		else if(strcmpi(w1,"event_script_type")==0) {
 			script_config.event_script_type = battle_config_switch(w2);
 		}
+		else if(strcmpi(w1,"event_requires_trigger")==0) {
+			script_config.event_requires_trigger = battle_config_switch(w2);
+		}
 		else if(strcmpi(w1,"die_event_name")==0) {			
 			strcpy(script_config.die_event_name, w2);			
 		}
@@ -9647,11 +9650,14 @@ int script_config_read_sub(char *cfgName)
 		else if(strcmpi(w1,"logout_event_name")==0) {
 			strcpy(script_config.logout_event_name, w2);
 		}
-		else if(strcmpi(w1,"mapload_event_name")==0) {
-			strcpy(script_config.mapload_event_name, w2);
+		else if(strcmpi(w1,"loadmap_event_name")==0) {
+			strcpy(script_config.loadmap_event_name, w2);
 		}
-		else if(strcmpi(w1,"event_requires_trigger")==0) {
-			script_config.event_requires_trigger = battle_config_switch(w2);
+		else if(strcmpi(w1,"baselvup_event_name")==0) {
+			strcpy(script_config.baselvup_event_name, w2);
+		}
+		else if(strcmpi(w1,"joblvup_event_name")==0) {
+			strcpy(script_config.joblvup_event_name, w2);
 		}
 		else if(strcmpi(w1,"import")==0){
 			script_config_read_sub(w2);
@@ -9677,7 +9683,9 @@ int script_config_read(char *cfgName)
 	script_config.kill_event_name = (char *) aCallocA (NAME_LENGTH, sizeof(char));
 	script_config.login_event_name = (char *) aCallocA (NAME_LENGTH, sizeof(char));
 	script_config.logout_event_name = (char *) aCallocA (NAME_LENGTH, sizeof(char));
-	script_config.mapload_event_name = (char *) aCallocA (NAME_LENGTH, sizeof(char));
+	script_config.loadmap_event_name = (char *) aCallocA (NAME_LENGTH, sizeof(char));
+	script_config.baselvup_event_name = (char *) aCallocA (NAME_LENGTH, sizeof(char));
+	script_config.joblvup_event_name = (char *) aCallocA (NAME_LENGTH, sizeof(char));
 
 	script_config.event_script_type = 0;
 	script_config.event_requires_trigger = 1;
@@ -9738,8 +9746,12 @@ int do_final_script()
 		aFree(script_config.login_event_name);
 	if (script_config.logout_event_name)
 		aFree(script_config.logout_event_name);
-	if (script_config.mapload_event_name)
-		aFree(script_config.mapload_event_name);
+	if (script_config.loadmap_event_name)
+		aFree(script_config.loadmap_event_name);
+	if (script_config.baselvup_event_name)
+		aFree(script_config.baselvup_event_name);
+	if (script_config.joblvup_event_name)
+		aFree(script_config.joblvup_event_name);
 
 	return 0;
 }

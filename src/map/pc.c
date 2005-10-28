@@ -857,7 +857,6 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 	
 	if (script_config.event_script_type == 0) {
 		struct npc_data *npc;
-		//printf("pc: OnPCLogin event done. (%d events)\n", npc_event_doall("OnPCLogin") );
 		if ((npc = npc_name2id(script_config.login_event_name))) {
 			run_script(npc->u.scr.script,0,sd->bl.id,npc->bl.id); // PCLoginNPC
 			ShowStatus("Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.login_event_name);
@@ -4198,21 +4197,20 @@ int pc_checkbaselevelup(struct map_session_data *sd)
 		//レベルアップしたのでパ?ティ?情報を更新する
 		//(公平範?チェック)
 		party_send_movemap(sd);
-//LORDALFA - LVLUPEVENT
-	if (script_config.event_script_type == 0) {
-	struct npc_data *npc;
-	if ((npc = npc_name2id("PCBaseUpEvent"))) {
-	run_script(npc->u.scr.script,0,sd->bl.id,npc->bl.id); // PCLvlUPNPC
-	ShowStatus("Event '"CL_WHITE"PCBaseUpEvent"CL_RESET"' executed.\n");
-	}
-	} else {
-			ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
-			npc_event_doall_id("PCBaseUpEvent", sd->bl.id), "PCBaseUpEvent");
-	}
-//LORDALFA - LVLUPEVENT
+		//LORDALFA - LVLUPEVENT
+		if (script_config.event_script_type == 0) {
+			struct npc_data *npc;
+			if ((npc = npc_name2id(script_config.baselvup_event_name))) {
+				run_script(npc->u.scr.script,0,sd->bl.id,npc->bl.id); // PCLvlUPNPC
+				ShowStatus("Event '"CL_WHITE"%s"CL_RESET"' executed.\n",script_config.baselvup_event_name);
+			}
+		} else {
+				ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
+				npc_event_doall_id(script_config.baselvup_event_name, sd->bl.id), script_config.baselvup_event_name);
+		}
 
 		return 1;
-	}
+		}
 
 	return 0;
 }
@@ -4234,6 +4232,18 @@ int pc_checkjoblevelup(struct map_session_data *sd)
 		status_calc_pc(sd,0);
 
 		clif_misceffect(&sd->bl,1);
+
+		if (script_config.event_script_type == 0) {
+			struct npc_data *npc;
+			if ((npc = npc_name2id(script_config.joblvup_event_name))) {
+				run_script(npc->u.scr.script,0,sd->bl.id,npc->bl.id); // PCLvlUPNPC
+				ShowStatus("Event '"CL_WHITE"%s"CL_RESET"' executed.\n",script_config.joblvup_event_name);
+			}
+		} else {
+				ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
+				npc_event_doall_id(script_config.joblvup_event_name, sd->bl.id), script_config.joblvup_event_name);
+		}
+
 		return 1;
 	}
 
