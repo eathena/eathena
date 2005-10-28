@@ -1,5 +1,8 @@
 Date	Added
 ==========
+2005/10/28
+	* Added blocking use of skills while sitting. [Skotlex]
+	* Implemented Trancid's expanded global announce system. [Skotlex]
 2005/10/27
 	* Applied Ilpalazzo-sama/Zzo's patch that cleans up and fixes some bugs
 	  with the script engine. [Skotlex]

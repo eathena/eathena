@@ -2737,7 +2737,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 					dx = bl->x - sd->bl.x;
 					dy = bl->y - sd->bl.y;
 					if(path_search(&wpd,src->m,sd->bl.x,sd->bl.y,sd->bl.x+dx,sd->bl.y+dy,1) == -1) {
-						clif_skill_fail(sd,sd->skillid,0,0);
+						clif_skill_fail(sd,skillid,0,0);
 						break;
 					}
 				}
@@ -2747,7 +2747,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 				if (battle_check_target(src, bl, BCT_ENEMY) > 0) //Check must be done here because EF should be broken this way.. [Skotlex]
 					skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
 				else
-					clif_skill_fail(sd,sd->skillid,0,0);
+					clif_skill_fail(sd,skillid,0,0);
 				clif_walkok(sd);
 				clif_movechar(sd);
 				if(dx < 0) dx = -dx;
@@ -9264,7 +9264,7 @@ int skill_landprotector(struct block_list *bl, va_list ap )
 		return 0;
 
 	if (alive && skillid == SA_LANDPROTECTOR && unit->group->skill_id == SA_LANDPROTECTOR
-		&& battle_check_target(unit, src, BCT_ENEMY) > 0)
+		&& battle_check_target(bl, src, BCT_ENEMY) > 0)
 	{	//Check for offensive Land Protector to delete both. [Skotlex]
 		(*alive) = 0;
 		skill_delunit(unit);

@@ -549,9 +549,9 @@ struct {
 	{buildin_failedremovecards,"failedremovecards","ii"},
 	{buildin_marriage,"marriage","s"},
 	{buildin_wedding_effect,"wedding",""},
-	{buildin_divorce,"divorce","*"},
-	{buildin_ispartneron,"ispartneron","*"},
-	{buildin_getpartnerid,"getpartnerid","*"},
+	{buildin_divorce,"divorce",""},
+	{buildin_ispartneron,"ispartneron",""},
+	{buildin_getpartnerid,"getpartnerid",""},
 	{buildin_getchildid,"getchildid",""},
 	{buildin_warppartner,"warppartner","sii"},
 	{buildin_getitemname,"getitemname","i"},
@@ -6515,9 +6515,11 @@ int buildin_emotion(struct script_state *st)
 	if( st->end>st->start+3 )
 		player=conv_num(st,& (st->stack->stack_data[st->start+3]));
 	
-	if (player)
-		clif_emotion(&(script_rid2sd(st)->bl),type);
-	else
+	if (player) {
+		struct map_session_data *sd = script_rid2sd(st);
+		if (sd)
+			clif_emotion(&sd->bl,type);
+	} else
 		clif_emotion(map_id2bl(st->oid),type);
 	return 0;
 }

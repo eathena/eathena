@@ -19,17 +19,13 @@ typedef long in_addr_t;
 #include <netdb.h>
 #endif
 
+#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/time.h>
-#include <time.h>
-#include <sys/ioctl.h>
 #include <unistd.h>
 #include <signal.h>
 #include <fcntl.h>
 #include <string.h>
-#include <arpa/inet.h>
-#include <netdb.h>
 #include <stdarg.h>
 
 #include "char.h"
