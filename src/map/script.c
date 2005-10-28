@@ -2031,10 +2031,6 @@ unsigned char* parse_script(unsigned char *src,int line)
 		// an empty function, just return  
 		return NULL;
 	}
-////////////////////////////////////////////
-//	TODO: There is a memory leak on this aCallocA, gotta figure out when it's safe to aFree script_buf! [Skotlex]
-//	if (!script_buf || script_pos < SCRIPT_BLOCK_SIZE)
-//		script_buf = (unsigned char *) aRealloc(script_buf, SCRIPT_BLOCK_SIZE*sizeof(unsigned char));
 	script_buf = (unsigned char *) aCallocA(SCRIPT_BLOCK_SIZE, sizeof(unsigned char));
 	script_pos = 0;
 	script_size = SCRIPT_BLOCK_SIZE;
@@ -2390,10 +2386,11 @@ void pop_stack(struct script_stack* stack,int start,int end)
 void script_free_stack(struct script_stack* stack)
 {
 	int i;
-	for (i = 0; i < stack->sp_max; i++)
+	for (i = 0; i < stack->sp; i++)
 	{
 		if(stack->stack_data[i].type==C_STR)
 		{
+			ShowDebug ("script_free_stack: freeing %p at sp=%d.\n", stack->stack_data[i].u.str, i);
 			aFree(stack->stack_data[i].u.str);
 			stack->stack_data[i].type = C_INT;
 		}
@@ -9176,7 +9173,7 @@ int run_func(struct script_state *st)
 	}
 #ifdef DEBUG_RUN
 	if(battle_config.etc_log) {
-		ShowDebug("run_func : %s? (%d(%d))\n",str_buf+str_data[func].str,func,str_data[func].type);
+		ShowDebug("run_func : %s? (%d(%d)) sp=%d (%d...%d)\n",str_buf+str_data[func].str, func, str_data[func].type, st->stack->sp, st->start, st->end);
 		ShowDebug("stack dump :");
 		for(i=0;i<end_sp;i++){
 			switch(st->stack->stack_data[i].type){
@@ -9191,6 +9188,12 @@ int run_func(struct script_state *st)
 				break;
 			case C_POS:
 				printf(" pos(%d)",st->stack->stack_data[i].u.num);
+				break;
+			case C_STR:
+				printf(" str(%s)",st->stack->stack_data[i].u.str);
+				break;
+			case C_CONSTSTR:
+				printf(" cstr(%s)",st->stack->stack_data[i].u.str);
 				break;
 			default:
 				printf(" %d,%d",st->stack->stack_data[i].type,st->stack->stack_data[i].u.num);
@@ -9257,7 +9260,8 @@ int run_script_main(struct script_state *st)
 		st->state = RUN;
 	}
 	while( st->state == RUN) {
-		switch(c= get_com((unsigned char *) st->script,&st->pos)){
+		c= get_com((unsigned char *) st->script,&st->pos);
+		switch(c){
 		case C_EOL:
 			if(stack->sp!=stack->defsp){
 				if(battle_config.error_log)
@@ -9372,23 +9376,22 @@ int run_script(unsigned char *script,int pos,int rid,int oid)
 	struct script_state st;
 	struct map_session_data *sd;
 	unsigned char *rootscript = script;
-	int i;
 
 	if (script == NULL || pos < 0)
 		return -1;
 	memset(&st, 0, sizeof(struct script_state));
 
 	if ((sd = map_id2sd(rid)) && sd->stack && sd->npc_scriptroot == rootscript){
-		// 前回のスタックを復帰
+		// we have a stack for the same script, should continue exec.
 		st.script = sd->npc_script;
 		st.stack = sd->stack;
 		st.state  = sd->npc_scriptstate;
-		sd->stack = NULL;
+		// and clear vars
 		sd->npc_script      = NULL;
 		sd->npc_scriptroot  = NULL;
 		sd->npc_scriptstate = 0;
 	} else {
-		// スタック初期化
+		// the script is different, make new script_state and stack
 		st.stack = aCalloc (1, sizeof(struct script_stack));
 		st.stack->sp = 0;
 		st.stack->sp_max = 64;
@@ -9396,35 +9399,37 @@ int run_script(unsigned char *script,int pos,int rid,int oid)
 		st.stack->defsp = st.stack->sp;
 		st.state  = RUN;
 		st.script = rootscript;
+		// if there's a sd and a stack - free it, it's no longer usable.
+		if (sd && sd->stack) {
+			//ShowInfo ("run_script: (before) stack found (%p), freeing (sd = %d).\n", sd->stack, sd);
+			script_free_stack (sd->stack);
+			sd->stack = NULL;
+		}
 	}
 	st.pos = pos;
 	st.rid = rid;
 	st.oid = oid;
+	// let's run that stuff
 	run_script_main(&st);
 
 	sd = map_id2sd(st.rid);
 	if (st.state != END && sd) {
-		// 再開するためにスタック情報を保存
+		// script is not finished, store data in sd.
 		sd->npc_script      = st.script;
 		sd->npc_scriptroot  = rootscript;
 		sd->npc_scriptstate = st.state;
-		if (sd->stack)
-		{	//There was a stack? Remove it. [Skotlex]
-//			if (sd->stack->stack_data) //FIXME: This memory leak fix causes a crash... >.<
-//				aFree(sd->stack->stack_data);
-			aFree(sd->stack);
-		}
 		sd->stack           = st.stack;
-
 	} else {
-		for (i = 0; i < st.stack->sp; i++)
-			if (st.stack->stack_data[i].type == C_STR)
-			{
-				aFree(st.stack->stack_data[i].u.str);
-				st.stack->stack_data[i].type = C_INT;
-			}
-		aFree(st.stack->stack_data);
-		aFree(st.stack);
+		// we are done with stuff, free the stack
+		script_free_stack (st.stack);
+		// and if there was a sd associated - zero vars.
+		if (sd) {
+			//ShowInfo ("run_script: (after) stack found (%p), freeing (sd = %d).\n", st.stack, sd);
+			sd->npc_script      = NULL;
+			sd->npc_scriptroot  = NULL;
+			sd->npc_scriptstate = 0;
+			sd->stack = NULL;
+		}
 	}
 
 	return st.pos;
