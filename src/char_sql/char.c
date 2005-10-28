@@ -21,7 +21,6 @@ typedef long in_addr_t;
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <netinet/in.h>
 #include <sys/time.h>
 #include <time.h>
 #include <sys/ioctl.h>

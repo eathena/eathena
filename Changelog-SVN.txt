@@ -1,6 +1,12 @@
 Date	Added
 ==========
 2005/10/27
+	* Made it so Guardians/Emperiums with no owning guild can be attacked out
+	  of woe. [Skotlex]
+	* Corrected being able to attack and use skills during the first interval
+	  of Petrify [Skotlex]
+	* Fixed packet exploit that allowed you to produce multiple times without
+	  first triggering the skill. [Skotlex]
 	* Cleaned up/simplified the implementation of SC_NOCHAT [Skotlex]
 	* Added file upgrade_svn3746.sql, use it to alter your `char` table column
 	  "manner", which should NOT be unsigned (if your column already is

@@ -9452,6 +9452,8 @@ void clif_parse_ProduceMix(int fd,struct map_session_data *sd)
 {
 	nullpo_retv(sd);
 
+	if (!sd->state.produce_flag)
+		return;
 	sd->state.produce_flag = 0;
 	skill_produce_mix(sd,RFIFOW(fd,2),RFIFOW(fd,4),RFIFOW(fd,6),RFIFOW(fd,8));
 }
@@ -9463,6 +9465,8 @@ void clif_parse_RepairItem(int fd, struct map_session_data *sd)
 {
 	nullpo_retv(sd);
 
+	if (!sd->state.produce_flag)
+		return;
 	sd->state.produce_flag = 0;
 	skill_repairweapon(sd,RFIFOW(fd,2));
 }
@@ -9547,6 +9551,8 @@ void clif_parse_SelectArrow(int fd,struct map_session_data *sd)
 {
 	nullpo_retv(sd);
 
+	if (!sd->state.produce_flag)
+		return;
 	sd->state.produce_flag = 0;
 	skill_arrow_create(sd,RFIFOW(fd,2));
 }

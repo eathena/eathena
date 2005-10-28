@@ -3086,10 +3086,6 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 				return 0;
 			}
 		}
-#if 0
-		clif_authfail_fd(sd->fd,0);	// cancel
-		clif_setwaitclose(sd->fd);
-#endif
 		return 1;
 	}
 
@@ -3098,7 +3094,7 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 	if((x==0 && y==0) || map_getcell(m,x,y,CELL_CHKNOPASS)){
 		if(x||y) {
 			if(battle_config.error_log)
-				ShowError("pc_setpos: stacked (%d,%d)\n",x,y);
+				ShowError("pc_setpos: attempt to place player on non-walkable tile (%s-%d,%d)\n",mapname,x,y);
 		}
 		do {
 			x=rand()%(map[m].xs-2)+1;

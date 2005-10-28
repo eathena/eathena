@@ -2890,8 +2890,8 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 		case BL_MOB:
 		{
 			struct mob_data *md = (struct mob_data *)t_bl;
-			if (!agit_flag && md->guardian_data)
-				return 0; //Disable guardians on non-woe times.
+			if (!agit_flag && md->guardian_data && md->guardian_data->guild_id)
+				return 0; //Disable guardians/emperiums owned by Guilds on non-woe times.
 			if (md->special_state.ai == 2)
 			{	//Mines are sort of universal enemies.
 				state |= BCT_ENEMY;
@@ -2949,8 +2949,8 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 		case BL_MOB:
 		{
 			struct mob_data *md = (struct mob_data *)s_bl;
-			if (!agit_flag && md->guardian_data)
-				return 0; //Disable guardians on non-woe times.
+			if (!agit_flag && md->guardian_data && md->guardian_data->guild_id)
+				return 0; //Disable guardians/emperium owned by Guilds on non-woe times.
 			if (md->special_state.ai && target->type == BL_MOB)
 				state |= BCT_ENEMY;	//Summoned creatures can target other mobs.
 			if (md->master_id && (s_bl = map_id2bl(md->master_id)) == NULL)

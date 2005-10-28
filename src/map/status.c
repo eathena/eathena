@@ -353,7 +353,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 		return 0;
 			
 	opt1 = status_get_opt1(src);
-	if (opt1 && (*opt1) >0 && (*opt1) != 6)
+	if (opt1 && (*opt1) >0)
 		return 0;
 	
 	sc_data = status_get_sc_data(src);
