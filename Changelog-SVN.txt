@@ -1,6 +1,7 @@
 Date	Added
 ==========
 2005/10/28
+	* Fixed the names of the job level up char commands. [Skotlex]
 	* Tiny change to the script engine which may fix those crashes. [Skotlex]
 	* Added blocking use of skills while sitting. [Skotlex]
 	* Implemented Trancid's expanded global announce system. [Skotlex]
