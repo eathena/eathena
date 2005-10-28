@@ -2390,7 +2390,7 @@ void script_free_stack(struct script_stack* stack)
 	{
 		if(stack->stack_data[i].type==C_STR)
 		{
-			ShowDebug ("script_free_stack: freeing %p at sp=%d.\n", stack->stack_data[i].u.str, i);
+			//ShowDebug ("script_free_stack: freeing %p at sp=%d.\n", stack->stack_data[i].u.str, i);
 			aFree(stack->stack_data[i].u.str);
 			stack->stack_data[i].type = C_INT;
 		}
@@ -9389,6 +9389,7 @@ int run_script(unsigned char *script,int pos,int rid,int oid)
 		st.stack = sd->stack;
 		st.state  = sd->npc_scriptstate;
 		// and clear vars
+		sd->stack           = NULL;
 		sd->npc_script      = NULL;
 		sd->npc_scriptroot  = NULL;
 		sd->npc_scriptstate = 0;
