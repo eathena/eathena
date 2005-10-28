@@ -632,7 +632,7 @@
 1414,Gelerdria,Gelerdria,4,,10,700,145,,3,0,16514,7,2,2,4,48,1,4,{ bonus bAtkEle,Ele_Earth; bonus bMaxHP,500; bonus bMaxSP,-50; }
 1415,Skewer,Brocca,4,,10,850,100,,3,0,16514,7,2,2,4,48,1,4,{ bonus bIgnoreDefRace,RC_NonBoss; bonus2 bAddEle,Ele_Neutral,25; }
 1416,Tjungkuletti,Tjungkuletti,4,,10,1000,95,,3,0,16514,7,2,2,4,48,1,4,{ bonus2 bSPDrainValue,1,1; bonus bSPGainValue,5; }
-1417,Pole_Axe,Pole Axe,4,,10,3800,160,,3,1,16514,7,2,2,3,71,1,4,{ bonus bStr,1; bonus bInt,2; bonus bDex,2; }
+1417,Pole_Axe,Pole Axe,4,,10,3800,160,,3,1,16514,7,2,2,3,71,1,4,{ bonus bStr,1; bonus bInt,2; bonus bDex,1; }
 // 2-Handed Spears
 1451,Guisarme,Guisarme,4,13000,,1000,84,,3,2,16514,7,2,34,2,18,1,5,{}
 1452,Guisarme_,Guisarme,4,13000,,1000,84,,3,3,16514,7,2,34,2,18,1,5,{}
