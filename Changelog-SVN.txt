@@ -1,6 +1,7 @@
 Date	Added
 ==========
 2005/10/27
+	* Made land protectors from enemies cancel each other out. [Skotlex]
 	* Made it so Guardians/Emperiums with no owning guild can be attacked out
 	  of woe. [Skotlex]
 	* Corrected being able to attack and use skills during the first interval

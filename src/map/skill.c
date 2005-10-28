@@ -6424,11 +6424,14 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 		}
 		//’¼?ãƒXƒLƒ‹‚Ì?ê?‡?Ý’u?À•W?ã‚Éƒ‰ƒ“ƒhƒvƒ?ƒeƒNƒ^?‚ª‚È‚¢‚©ƒ`ƒFƒbƒN
 		if(range<=0)
-			map_foreachincell(skill_landprotector,src->m,ux,uy,BL_SKILL,skillid,&alive);
-
-		if(skillid==WZ_ICEWALL && alive){
+			map_foreachincell(skill_landprotector,src->m,ux,uy,BL_SKILL,skillid,&alive, src);
+		
+		if(alive && map_getcell(src->m,ux,uy,CELL_CHKWALL))
+			alive = 0;
+		
+		if(alive && skillid == WZ_ICEWALL) {
 			if(src->x == x && src->y==y) // Ice Wall not allowed on self [DracoRPG]
-			    alive=0;
+				alive=0;
 			else {
 				val2=map_getcell(src->m,ux,uy,CELL_GETTYPE);
 				if(val2==5 || val2==1)
@@ -6440,16 +6443,13 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 			}
 		}
 
-		if(alive && map_getcell(src->m,ux,uy,CELL_CHKWALL))
-			alive = 0;
-
 		if(alive){
 			nullpo_retr(NULL, unit=skill_initunit(group,i,ux,uy));
 			unit->val1=val1;
 			unit->val2=val2;
 			unit->limit=limit;
 			unit->range=range;
-
+				
 			if (range==0 && active_flag)
 				map_foreachincell(skill_unit_effect,unit->bl.m,
 					unit->bl.x,unit->bl.y,0,&unit->bl,gettick(),1);
@@ -9251,22 +9251,32 @@ int skill_landprotector(struct block_list *bl, va_list ap )
 	int skillid;
 	int *alive;
 	struct skill_unit *unit;
+	struct block_list *src;
 
 	nullpo_retr(0, bl);
 	nullpo_retr(0, ap);
 
 	skillid = va_arg(ap,int);
 	alive = va_arg(ap,int *);
-
+	src = va_arg(ap,struct block_list *);
+	
 	if ((unit = (struct skill_unit *)bl) == NULL)
 		return 0;
 
+	if (alive && skillid == SA_LANDPROTECTOR && unit->group->skill_id == SA_LANDPROTECTOR
+		&& battle_check_target(unit, src, BCT_ENEMY) > 0)
+	{	//Check for offensive Land Protector to delete both. [Skotlex]
+		(*alive) = 0;
+		skill_delunit(unit);
+		return 0;
+	}	
 	if (skillid == SA_LANDPROTECTOR || 
 		skillid == HW_GANBANTEIN)
 		skill_delunit(unit);
 	else if (alive && unit->group && unit->group->skill_id == SA_LANDPROTECTOR)
-			(*alive) = 0;
-
+		(*alive) = 0;
+	else if  (alive && skillid == HP_BASILICA && unit->group && unit->group->skill_id == HP_BASILICA)
+		(*alive) = 0; //Basilica can't be placed on top of itself to avoid map-cell stacking problems. [Skotlex]
 	return 0;
 }
 
@@ -9507,10 +9517,11 @@ struct skill_unit *skill_initunit(struct skill_unit_group *group,int idx,int x,i
 	map_addblock(&unit->bl);
 	clif_skill_setunit(unit);
 
-	if (group->skill_id==HP_BASILICA)
+	if (group->skill_id == HP_BASILICA)
 		skill_unitsetmapcell(unit,HP_BASILICA,CELL_SETBASILICA);
-	else if (group->skill_id==SA_LANDPROTECTOR)
+	else if (group->skill_id == SA_LANDPROTECTOR)
 		skill_unitsetmapcell(unit,SA_LANDPROTECTOR,CELL_SETLANDPROTECTOR);
+	
 	return unit;
 }
 
