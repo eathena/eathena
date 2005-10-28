@@ -28,6 +28,10 @@ Nexon
 Date		Added
 ======
 10/28
+	* Fixed Sage Job Quest [Lupus]
+	- Its questions should be revised, especially about other NPC names
+	* Added new Prontera Kafra's coords into mini-map location info [Lupus]
+	* Updated North Prontera Kafra, thanks to Vicious_Pucca [Lupus]
 	* Fixed Prontera Kafras not teleporting to Alberta [Lupus]
 	* Added a missing Guide to Einbrochm thx2 Justin84
 	* Updated all guides, fixed common guide names for correct duplicate() [Lupus]

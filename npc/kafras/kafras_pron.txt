@@ -3,7 +3,7 @@
 //===== By: =========================
 //= eAthena Dev Team
 //===== Current Version: ===================
-//= 2.3a
+//= 2.4
 //===== Compatible With: =====================
 //= eAthena 1.0
 //===== Description: ============================================
@@ -19,17 +19,19 @@
 //= This version uses arrays .[kobra_k88]
 //= 2.2 North Kafra allows you save your position
 //= 2.3 New Teleport list, new prices, 2.3a fixed Alberta Teleport [Lupus]
+//= 2.3b One Kafra's been moved to Prontera, thx to Vicious_Pucca [Lupus]
+//= 2.4 Updated Kafras locations for the mini-map [Lupus]
 //=====================================================================
 
 
-// North of Prontera==================================
-prt_fild01.gat,198,47,8	script	Kafra	112,{
+// North ==================================
+prontera.gat,152,326,4	script	Kafra	112,{
 	cutin "kafra_06",2;
 	callfunc "F_Kafra",0,1,1;
 
-	M_Save:
-		savepoint "prt_fild01.gat",197,50;
-		callfunc "F_KafEnd",0,1;
+M_Save:
+	savepoint "prontera.gat",157,327;
+	callfunc "F_KafEnd",0,1;
 }
 
 // SOUTH ======================================
@@ -95,7 +97,7 @@ function	script	F_KafSetPront	{
 	set @wrpC$[4], @wrpD$[4]+" -> "+@wrpP[4];
 	set @wrpC$[5], @wrpD$[5]+" -> "+@wrpP[5];
 	set @wrpC$[6], "Cancel";
-	setarray @viewpX[0], 151, 29, 282, 0;
-	setarray @viewpY[0], 29, 207, 200, 0;
+	setarray @viewpX[0], 151, 29, 282, 152;
+	setarray @viewpY[0], 29, 207, 200, 326;
 	return;
 }
