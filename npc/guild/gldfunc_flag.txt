@@ -4,7 +4,7 @@
 //= jAthena - kalen (1.0)
 //= 1.1 by Akaru, ho|yAnge|X, and Valaris
 //===== Current Version: =====================================
-//= 1.2
+//= 1.3
 //===== Compatible With: =====================================
 //= eAthena 0.1+; RO Episode 4+
 //===== Description: =========================================
@@ -16,8 +16,10 @@
 //=   arg(1): name of guild castle.
 //=   arg(2): x1 coordinate for warp
 //=   arg(3): y1 coordinate for warp
+//=   arg(4): Teleportable (0/1) 
 //===== Additional Comments: =================================
 //= v1.2: All Guild flags scripts use this function. [kobra_k88]
+//= v1.3: Can now only flag in from outside the castle [Kayla]
 //============================================================
 
 function	script	F_Flags	{
@@ -32,7 +34,7 @@ function	script	F_Flags	{
 	mes "2. In order to take this guild base, you must defeat all the guardians that are protecting the guild base and eliminate the Emperium.";
 	return;
 L_Startg:
-	if (getcharid(2) == @GID) goto L_Startg2;
+	if ((getcharid(2) == @GID) && (getarg(4) == 1)) goto L_Startg2;
 	mes "[ Edict of the Divine Rune Midgard Kingdom of "+ getarg(0) +" ]";
 	mes " ";
 	mes "1. Honoring the ordinance of the";

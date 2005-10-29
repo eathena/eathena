@@ -4,7 +4,7 @@
 //= jAthena - kalen (1.0)
 //= 1.1 by Akaru, ho|yAnge|X, and Valaris
 //===== Current Version: =====================================
-//= 1.3
+//= 1.4
 //===== Compatible With: =====================================
 //= eAthena 0.1+; RO Episode 4+
 //===== Description: =========================================
@@ -12,6 +12,7 @@
 //===== Additional Comments: =================================
 //= v1.2 Optimized with functions.[kobra_k88]
 //= v1.3 Changed to iRO castle names [DracoRPG]
+//= v1.4 Can now only flag in from outside the castle [Kayla]
 //============================================================
 
 
@@ -19,7 +20,16 @@
 // 					Castle 1
 //================================================================================//
 prontera.gat,155,190,4	script	Kriemhild#p1-1::Kriemhild	722,{
-	callfunc "F_Flags","Prontera","prtg_cas01",97,174;
+	callfunc "F_Flags","Prontera","prtg_cas01",97,174,0;
+	close;
+
+OnRecvCastlePt01:
+	FlagEmblem GetCastleData("prtg_cas01.gat",1);
+	end;
+}
+
+prt_gld.gat,131,60,6	script	Kriemhild#p1-2::Kriemhild2	722,{
+	callfunc "F_Flags","Prontera","prtg_cas01",97,174,1;
 	close;
 
 OnRecvCastlePt01:
@@ -27,11 +37,10 @@ OnRecvCastlePt01:
 	end;
 }
 // In Guild ===========================================
-prt_gld.gat,131,60,6	duplicate(Kriemhild)	Kriemhild#p1-2	722
-prt_gld.gat,138,68,6	duplicate(Kriemhild)	Kriemhild#p1-3	722
-prt_gld.gat,138,60,6	duplicate(Kriemhild)	Kriemhild#p1-4	722
-prt_gld.gat,135,60,6	duplicate(Kriemhild)	Kriemhild#p1-5	722
-prt_gld.gat,160,210,4	duplicate(Kriemhild)	Kriemhild#p1-6	722
+prt_gld.gat,138,68,6	duplicate(Kriemhild2)	Kriemhild#p1-3	722
+prt_gld.gat,138,60,6	duplicate(Kriemhild2)	Kriemhild#p1-4	722
+prt_gld.gat,135,60,6	duplicate(Kriemhild2)	Kriemhild#p1-5	722
+prt_gld.gat,160,210,4	duplicate(Kriemhild2)	Kriemhild#p1-6	722
 // In Castle =============================================
 prtg_cas01.gat,58,56,4	duplicate(Kriemhild)	Kriemhild#p1-7	722
 prtg_cas01.gat,64,56,4	duplicate(Kriemhild)	Kriemhild#p1-8	722
@@ -50,7 +59,16 @@ prtg_cas01.gat,45,46,4	duplicate(Kriemhild)	Kriemhild#p1-16	722
 // 					Castle 2
 //================================================================================//
 prontera.gat,146,194,3	script	Swanhild#p2-1::Swanhild	722,{
-	callfunc "F_Flags","Prontera","prtg_cas02",71,36;
+	callfunc "F_Flags","Prontera","prtg_cas02",71,36,0;
+	close;
+
+OnRecvCastlePt02:
+	FlagEmblem GetCastleData("prtg_cas02.gat",1);
+	end;
+}
+
+prt_gld.gat,153,213,3	script	Swanhild#p2-2::Swanhild2	722,{
+	callfunc "F_Flags","Prontera","prtg_cas02",71,36,1;
 	close;
 
 OnRecvCastlePt02:
@@ -58,11 +76,10 @@ OnRecvCastlePt02:
 	end;
 }
 // In Guild ===========================================
-prt_gld.gat,153,213,3	duplicate(Swanhild)	Swanhild#p2-2	722
-prt_gld.gat,244,126,8	duplicate(Swanhild)	Swanhild#p2-3	722
-prt_gld.gat,244,128,8	duplicate(Swanhild)	Swanhild#p2-4	722
-prt_gld.gat,236,126,8	duplicate(Swanhild)	Swanhild#p2-5	722
-prt_gld.gat,236,128,8	duplicate(Swanhild)	Swanhild#p2-6	722
+prt_gld.gat,244,126,8	duplicate(Swanhild2)	Swanhild#p2-3	722
+prt_gld.gat,244,128,8	duplicate(Swanhild2)	Swanhild#p2-4	722
+prt_gld.gat,236,126,8	duplicate(Swanhild2)	Swanhild#p2-5	722
+prt_gld.gat,236,128,8	duplicate(Swanhild2)	Swanhild#p2-6	722
 // In Castle =============================================
 prtg_cas02.gat,40,227,4	duplicate(Swanhild)	Swanhild#p2-7	722
 prtg_cas02.gat,46,227,4	duplicate(Swanhild)	Swanhild#p2-8	722
@@ -84,7 +101,16 @@ prtg_cas02.gat,162,161,4	duplicate(Swanhild)	Swanhild#p2-18	722
 // 					Castle 3
 //================================================================================//
 prontera.gat,143,203,2	script	Fadhgridh#p3-1::Fadhgridh	722,{
-	callfunc "F_Flags","Prontera","prtg_cas03",45,99;
+	callfunc "F_Flags","Prontera","prtg_cas03",45,99,0;
+	close;
+
+OnRecvCastlePt03:
+	FlagEmblem GetCastleData("prtg_cas03.gat",1);
+	end;
+}
+
+prt_gld.gat,150,220,2	script	Fadhgridh#p3-2::Fadhgridh2	722,{
+	callfunc "F_Flags","Prontera","prtg_cas03",45,99,1;
 	close;
 
 OnRecvCastlePt03:
@@ -92,11 +118,10 @@ OnRecvCastlePt03:
 	end;
 }
 // In Guild ===========================================
-prt_gld.gat,150,220,2	duplicate(Fadhgridh)	Fadhgridh#p3-2	722
-prt_gld.gat,147,140,4	duplicate(Fadhgridh)	Fadhgridh#p3-3	722
-prt_gld.gat,147,136,4	duplicate(Fadhgridh)	Fadhgridh#p3-4	722
-prt_gld.gat,158,140,4	duplicate(Fadhgridh)	Fadhgridh#p3-5	722
-prt_gld.gat,158,136,4	duplicate(Fadhgridh)	Fadhgridh#p3-6	722
+prt_gld.gat,147,140,4	duplicate(Fadhgridh2)	Fadhgridh#p3-3	722
+prt_gld.gat,147,136,4	duplicate(Fadhgridh2)	Fadhgridh#p3-4	722
+prt_gld.gat,158,140,4	duplicate(Fadhgridh2)	Fadhgridh#p3-5	722
+prt_gld.gat,158,136,4	duplicate(Fadhgridh2)	Fadhgridh#p3-6	722
 // In Castle =============================================
 prtg_cas03.gat,168,28,4	duplicate(Fadhgridh)	Fadhgridh#p3-7	722
 prtg_cas03.gat,182,28,4	duplicate(Fadhgridh)	Fadhgridh#p3-8	722
@@ -115,7 +140,16 @@ prtg_cas03.gat,165,201,4	duplicate(Fadhgridh)	Fadhgridh#p3-16	722
 // 					Castle 4
 //================================================================================//
 prontera.gat,167,203,6	script	Skoegul#p4-1::Skoegul	722,{
-	callfunc "F_Flags","Prontera","prtg_cas04",259,265;
+	callfunc "F_Flags","Prontera","prtg_cas04",259,265,0;
+	close;
+
+OnRecvCastlePt04:
+	FlagEmblem GetCastleData("prtg_cas04.gat",1);
+	end;
+}
+
+prt_gld.gat,169,220,6	script	Skoegul#p4-2::Skoegul2	722,{
+	callfunc "F_Flags","Prontera","prtg_cas04",259,265,1;
 	close;
 
 OnRecvCastlePt04:
@@ -123,11 +157,10 @@ OnRecvCastlePt04:
 	end;
 }
 // In Guild ===========================================
-prt_gld.gat,169,220,6	duplicate(Skoegul)	Skoegul#p4-2	722
-prt_gld.gat,120,243,6	duplicate(Skoegul)	Skoegul#p4-3	722
-prt_gld.gat,120,236,6	duplicate(Skoegul)	Skoegul#p4-4	722
-prt_gld.gat,122,243,6	duplicate(Skoegul)	Skoegul#p4-5	722
-prt_gld.gat,122,246,6	duplicate(Skoegul)	Skoegul#p4-6	722
+prt_gld.gat,120,243,6	duplicate(Skoegul2)	Skoegul#p4-3	722
+prt_gld.gat,120,236,6	duplicate(Skoegul2)	Skoegul#p4-4	722
+prt_gld.gat,122,243,6	duplicate(Skoegul2)	Skoegul#p4-5	722
+prt_gld.gat,122,246,6	duplicate(Skoegul2)	Skoegul#p4-6	722
 // In Castle =============================================
 prtg_cas04.gat,82,29,4	duplicate(Skoegul)	Skoegul#p4-7	722
 prtg_cas04.gat,75,29,4	duplicate(Skoegul)	Skoegul#p4-8	722
@@ -147,7 +180,16 @@ prtg_cas04.gat,263,27,4	duplicate(Skoegul)	Skoegul#p4-16	722
 // 					Castle 5
 //================================================================================//
 prontera.gat,165,194,5	script	Gondul#p5-1::Gondul	722,{
-	callfunc "F_Flags","Prontera","prtg_cas05",34,30;
+	callfunc "F_Flags","Prontera","prtg_cas05",34,30,0;
+	close;
+
+OnRecvCastlePt05:
+	FlagEmblem GetCastleData("prtg_cas05.gat",1);
+	end;
+}
+
+prt_gld.gat,167,213,5	script	Gondul#p5-2::Gondul2	722,{
+	callfunc "F_Flags","Prontera","prtg_cas05",34,30,1;
 	close;
 
 OnRecvCastlePt05:
@@ -155,11 +197,10 @@ OnRecvCastlePt05:
 	end;
 }
 // In Guild ===========================================
-prt_gld.gat,167,213,5	duplicate(Gondul)	Gondul#p5-2	722
-prt_gld.gat,199,243,2	duplicate(Gondul)	Gondul#p5-3	722
-prt_gld.gat,199,236,2	duplicate(Gondul)	Gondul#p5-4	722
-prt_gld.gat,197,243,2	duplicate(Gondul)	Gondul#p5-5	722
-prt_gld.gat,197,236,2	duplicate(Gondul)	Gondul#p5-6	722
+prt_gld.gat,199,243,2	duplicate(Gondul2)	Gondul#p5-3	722
+prt_gld.gat,199,236,2	duplicate(Gondul2)	Gondul#p5-4	722
+prt_gld.gat,197,243,2	duplicate(Gondul2)	Gondul#p5-5	722
+prt_gld.gat,197,236,2	duplicate(Gondul2)	Gondul#p5-6	722
 // In Castle =============================================
 prtg_cas05.gat,19,247,4	duplicate(Gondul)	Gondul#p5-7	722
 prtg_cas05.gat,19,243,4	duplicate(Gondul)	Gondul#p5-8	722
