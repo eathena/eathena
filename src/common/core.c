@@ -8,6 +8,7 @@
 #endif
 #include <signal.h>
 #include <string.h>
+#include <zlib.h>
 
 #include "core.h"
 #include "../common/db.h"
@@ -20,8 +21,6 @@
 #include "../common/plugins.h"
 #include "../common/version.h"
 #include "../common/showmsg.h"
-#include "../zlib/zlib.h"
-
 
 #include "svnversion.h"
 

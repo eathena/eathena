@@ -1,6 +1,10 @@
 Date	Added
 ==========
 2005/10/29
+	* Removed most of the built-in zlib files and the LOCALZLIB compile option
+	  Note: All native Windows builds now require zlib1.dll, you can just download
+	  it from http://www.zlib.org and place it in the main directory [celest]
+	* Changed the unzip library to be static linked instead of dynamic [celest]
 	* Small fix to the trading routing, should fix items with the no-trade flag
 	  being able to be vended. [Skotlex]
 2005/10/28

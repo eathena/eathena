@@ -34,40 +34,23 @@
 #define CHUNK 16384
 
 #ifdef _WIN32
-	#ifdef LOCALZLIB
-		#include "../zlib/iowin32.h"
-		#include "../zlib/zlib.h"
-		#define zlib_inflateInit inflateInit
-		#define zlib_inflate     inflate
-		#define zlib_inflateEnd  inflateEnd
-		#define zlib_deflateInit deflateInit
-		#define zlib_deflate     deflate
-		#define zlib_deflateEnd  deflateEnd
-		#define zlib_crc32       crc32
-	#else
-		#include "../zlib/ioapi.h"
-		#include "../zlib/zlib.h"
-		#include "../common/plugins.h"
-		Plugin *zlib_dll;
-		#define zlib_inflateInit(strm) zlib_inflateInit_((strm), ZLIB_VERSION, sizeof(z_stream))
-		#define zlib_deflateInit(strm, level) zlib_deflateInit_((strm), (level), ZLIB_VERSION, sizeof(z_stream))
+	#include "../zlib/zlib.h"
+	#include "../zlib/iowin32.h"
+	#include "../common/plugins.h"
+	Plugin *zlib_dll;
+	#define zlib_inflateInit(strm) zlib_inflateInit_((strm), ZLIB_VERSION, sizeof(z_stream))
+	#define zlib_deflateInit(strm, level) zlib_deflateInit_((strm), (level), ZLIB_VERSION, sizeof(z_stream))
 
-		int (*zlib_inflateInit_) (z_streamp strm, const char *version, int stream_size);
-		int (*zlib_inflate) (z_streamp strm, int flush);
-		int (*zlib_inflateEnd) (z_streamp strm);
+	int (*zlib_inflateInit_) (z_streamp strm, const char *version, int stream_size);
+	int (*zlib_inflate) (z_streamp strm, int flush);
+	int (*zlib_inflateEnd) (z_streamp strm);
 
-		int (*zlib_deflateInit_) (z_streamp strm, int level, const char *version, int stream_size);
-		int (*zlib_deflate) (z_streamp strm, int flush);
-		int (*zlib_deflateEnd) (z_streamp strm);
-		unsigned long (*zlib_crc32) (unsigned long crc, const char *buf, unsigned int len);
-	#endif
+	int (*zlib_deflateInit_) (z_streamp strm, int level, const char *version, int stream_size);
+	int (*zlib_deflate) (z_streamp strm, int flush);
+	int (*zlib_deflateEnd) (z_streamp strm);
+	unsigned long (*zlib_crc32) (unsigned long crc, const char *buf, unsigned int len);
 #else
-	#ifdef LOCALZLIB
-		#include "../zlib/zlib.h"
-	#else
-		#include <zlib.h>
-	#endif
-
+	#include <zlib.h>
 	#define zlib_inflateInit inflateInit
 	#define zlib_inflate     inflate
 	#define zlib_inflateEnd  inflateEnd
@@ -1148,7 +1131,7 @@ void zlib_init (void)
 			break;
 		}
 		if (zlib_dll == NULL) {
-			ShowFatalError("Can't load zlib DLL\n");
+			ShowFatalError("eAthena requires zlib1.dll to run!\n");
 			exit(1);
 		}
 		DLL_SYM (zlib_inflateInit_,	zlib_dll,	"inflateInit_");

@@ -32,7 +32,6 @@ OPT += -Wall -Wno-sign-compare
 # LIBS += -lgc
 # LIBS += -ldmalloc
 # LIBS += -L/usr/local/lib -lpcre
-LIBS += -L../common -lunz
 
 PLATFORM = $(shell uname)
 
