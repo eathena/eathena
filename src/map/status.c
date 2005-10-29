@@ -448,7 +448,10 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 		return 0;
 	case BL_ITEM:	//Allow targetting of items to pick'em up (or in the case of mobs, to loot them).
 		//TODO: Would be nice if this could be used to judge whether the player can or not pick up the item it targets. [Skotlex]
-		return 1;
+		if (src->type == BL_PC || mode&MD_LOOTER)
+			return 1;
+		else
+			return 0;
 	default:
 		//Check for chase-walk/hiding/cloaking opponents.
 		if (option && !(mode&MD_BOSS))

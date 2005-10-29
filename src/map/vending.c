@@ -206,8 +206,8 @@ void vending_openvending(struct map_session_data *sd,int len,char *message,int f
 		}
 		for(i = 0, j = 0; (85 + 8 * j < len) && (i < MAX_VENDING); i++, j++) {
 			sd->vending[i].index = *(short*)(p+8*j)-2;
-			if (sd->vending[i].index < 0 || sd->vending[i].index >= MAX_INVENTORY ||
-				!itemdb_cantrade(sd->status.inventory[sd->vending[i].index].nameid, pc_isGM(sd), pc_isGM(sd)))
+			if (sd->vending[i].index < 0 || sd->vending[i].index >= MAX_CART ||
+				!itemdb_cantrade(sd->status.cart[sd->vending[i].index].nameid, pc_isGM(sd), pc_isGM(sd)))
 			{
 				i--; //Preserve the vending index, skip to the next item.
 				continue;
@@ -216,7 +216,7 @@ void vending_openvending(struct map_session_data *sd,int len,char *message,int f
 			sd->vending[i].value = *(int*)(p+4+8*j);
 			if(sd->vending[i].value > battle_config.vending_max_value)
 				sd->vending[i].value=battle_config.vending_max_value;
-			else if(sd->vending[i].value == 0)
+			else if(sd->vending[i].value < 1)
 				sd->vending[i].value = 1000000;	// auto set to 1 million [celest]
 			// カート内のアイテム数と販売するアイテム数に相違があったら中止
 			if(pc_cartitem_amount(sd, sd->vending[i].index, sd->vending[i].amount) < 0 || sd->vending[i].value < 0) { // fixes by Valaris and fritz

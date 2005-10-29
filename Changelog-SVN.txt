@@ -1,5 +1,8 @@
 Date	Added
 ==========
+2005/10/29
+	* Small fix to the trading routing, should fix items with the no-trade flag
+	  being able to be vended. [Skotlex]
 2005/10/28
 	* Fixed the size of the equip_job field in SQL item_db/item_db2, thanks to
 	  blackhole89. [DracoRPG]
