@@ -27,6 +27,8 @@ Nexon
 
 Date		Added
 ======
+10/29
+	* Fixed the flag guild script. Now one can only flag in using the flags outside the castle. [Kayla]
 10/28
 	* Fixed Sage Job Quest [Lupus]
 	- Its questions should be revised, especially about other NPC names
