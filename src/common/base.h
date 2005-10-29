@@ -4246,5 +4246,227 @@ public:
 
 
 
+
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Multi-Indexed List Template
+// using SavePointers to stored objects for internal lists, 
+// subsequent insert/delete does new/delete the objects, 
+// for performance use a managed memory derived classes
+// usable classes need a "int compare(const T& elem, size_t inx) const" member
+//
+// needs evaluation
+///////////////////////////////////////////////////////////////////////////////
+template <class T, int CNT> class TMultiListSP
+{
+	TArrayDCT< TPtrAutoCount<T> >	cIndex[CNT];
+	Mutex							cMx;
+
+public:
+	TMultiListSP()	{}
+	~TMultiListSP()	{ clear(); }
+
+	size_t size() const												{ return cIndex[0].size(); }
+	const TPtrAutoCount<T> operator[](size_t p) const				{ return cIndex[0][p]; }
+	TPtrAutoCount<T> operator[](size_t p)							{ return cIndex[0][p]; }
+
+	const TPtrAutoCount<T> operator()(size_t p,size_t i=0) const	{ return cIndex[(i<CNT)?i:0][p]; }
+	TPtrAutoCount<T> operator()(size_t p,size_t i=0)				{ return cIndex[(i<CNT)?i:0][p]; }
+
+	///////////////////////////////////////////////////////////////////////////
+	// add an element
+	virtual bool insert(const T& elem)
+	{
+		size_t i;
+		size_t ipos[CNT];
+		bool ok=true;
+
+		for(i=0; i<CNT; i++)
+		{
+			ok &= !binsearch(elem, 0, i, ipos[i], true, &T::compare);
+		}
+		if(ok)
+		{
+			TPtrAutoCount<T> newelem(new T(elem));
+			for(i=0; i<CNT; i++)
+			{
+				ok &= cIndex[i].insert(newelem, 1, ipos[i]);
+			}
+		}
+		return ok;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// add and take over the element pointer
+	virtual bool insert(T* elem)
+	{
+		bool ok=false;
+		if(elem)
+		{
+			size_t i;
+			size_t ipos[CNT];
+			ok = true;
+			for(i=0; i<CNT; i++)
+			{
+				ok &= !binsearch(*elem, 0, i, ipos[i], true, &T::compare);
+			}
+			if(ok)
+			{
+				TPtrAutoCount<T> xx(elem);
+				for(i=0; i<CNT; i++)
+				{
+					ok &= cIndex[i].insert(xx, 1, ipos[i]);
+				}
+			}
+		}
+		return ok;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// add an element at position pos (at the end by default)
+	virtual bool insert(const T* elem, size_t cnt)
+	{
+		bool ret = false;
+		if(elem && cnt)
+		{
+			size_t i;
+			ret = insert(elem[0]);
+			for(i=1; i<cnt; i++)
+				ret &= insert(elem[i]);
+		}
+		return ret;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// remove element [inx]
+	bool removeindex(size_t pos, size_t inx=0)
+	{
+		TPtrAutoCount<T> elem = cIndex[(inx<CNT)?inx:0][pos];
+		size_t temppos, i;
+		bool ret = true;
+
+		for(i=0; i<CNT; i++)
+		{
+			if( binsearch(*elem, 0, i, temppos, true, &T::compare) )
+				ret &= cIndex[i].removeindex(temppos);
+		}
+		// free the removed element
+		delete elem;
+		return ret;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// remove all elements
+	bool clear()
+	{
+		bool ret = true;
+		size_t i;
+		// free elements
+		for(i=0; i<cIndex[0].size(); i++)
+			cIndex[0][i].clear();
+		// clear pointer list
+		for(i=0; i<CNT; i++)
+			ret &= cIndex[i].clear();
+		return ret;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// find an element in the list
+	bool find(const T& elem, size_t& pos, size_t inx=0) const
+	{
+		return binsearch(elem, 0, (inx<CNT)?inx:0, pos, true, &T::compare);
+	}
+private:
+	///////////////////////////////////////////////////////////////////////////
+	// binsearch
+	// with member function parameter might be not necesary in this case
+	bool binsearch(const T& elem, size_t startpos, size_t inx, size_t& pos, bool asc, int (T::*cmp)(const T&, size_t) const) const
+	{	
+		if (inx>=CNT) inx=0;
+		// do a binary search
+		// make some initial stuff
+		bool ret = false;
+		size_t a= (startpos>=cIndex[inx].size()) ? 0 : startpos;
+		size_t b=cIndex[inx].size()-1;
+		size_t c;
+		pos = 0;
+
+		if( cIndex[inx].size() < 1)
+			ret = false;
+		else if( 0 == (elem.*cmp)( *cIndex[inx][a], inx) ) 
+		{	pos=a;
+			ret = true;
+		}
+		else if( 0 == (elem.*cmp)( *cIndex[inx][b], inx) )
+		{	pos = b;
+			ret = true;
+		}
+		else if( asc )
+		{	//smallest element first
+			if( 0 > (elem.*cmp)( *cIndex[inx][a], inx) )
+			{	pos = a;
+				ret = false; //larger than lower
+			}
+			else if( 0 < (elem.*cmp)( *cIndex[inx][b], inx) )	// v1
+			{	pos = b+1;
+				ret = false; //less than upper
+			}
+			else
+			{	// binary search
+				do
+				{
+					c=(a+b)/2;
+					if( 0 == (elem.*cmp)( *cIndex[inx][c], inx) )
+					{	b=c;
+						ret = true;
+						break;
+					}
+					else if( 0 > (elem.*cmp)( *cIndex[inx][c], inx) )
+						b=c;
+					else
+						a=c;
+				}while( (a+1) < b );
+				pos = b;//return the next smaller element to the given or the found element
+			}
+		}
+		else // descending
+		{	//smallest element last
+			if( 0 < (elem.*cmp)( *cIndex[inx][a], inx) )
+			{	pos = a;
+				ret = false; //less than lower
+			}
+			else if( 0 > (elem.*cmp)( *cIndex[inx][b], inx) )
+			{	pos = b+1;
+				ret = false; //larger than upper
+			}
+			else
+			{	// binary search
+				do
+				{
+					c=(a+b)/2;
+					if( 0 == (elem.*cmp)( *cIndex[inx][c], inx) )
+					{	b=c;
+						ret = true;
+						break;
+					}
+					else if( 0 < (elem.*cmp)( *cIndex[inx][c], inx) )
+						b=c;
+					else
+						a=c;
+				}while( (a+1) < b );
+				pos = b;//return the next larger element to the given or the found element
+			}
+		}
+		return ret;
+	}
+
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+
+
 #endif//_BASE_H_
 

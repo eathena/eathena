@@ -1096,6 +1096,7 @@ int parse_admin(int fd)
 
 			WFIFOW(fd,0) = 0x7921;
 			len = 4;
+
 			for(i=0; i<account_db.size() && len < 65536; i++)
 			{
 				CLoginAccount &account = account_db[i]; // sorted by index 0
@@ -1113,6 +1114,8 @@ int parse_admin(int fd)
 					len += 38;
 				}
 			}
+
+
 			WFIFOW(fd,2) = len;
 			WFIFOSET(fd,len);
 

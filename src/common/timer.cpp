@@ -407,8 +407,9 @@ int add_timer_interval(unsigned long tick, unsigned long interval,int (*func)(in
 
 int delete_timer(size_t tid, int (*func)(int,unsigned long,int,intptr))
 {
-	
 	// a basic check
+	if( !timer_data )	// when called after timers have been finalized
+		return 0;
 	if( tid >= timer_data_pos ) {
 		ShowMessage("delete_timer error : no such timer %d\n", tid);
 		return -1;

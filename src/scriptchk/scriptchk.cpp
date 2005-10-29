@@ -15,16 +15,12 @@
 #include "eacompiler.h"
 
 
-
-
-
-
-
+///////////////////////////////////////////////////////////////////////////////////////
+// temporary placeholder for buildin function support
+///////////////////////////////////////////////////////////////////////////////////////
 class CScriptEngine
 {
 };
-
-
 
 int buildin_mes(CScriptEngine &st) { return 0; }
 int buildin_goto(CScriptEngine &st) { return 0; }
@@ -541,20 +537,307 @@ struct _buildin_func{
 };
 
 
-void usage(const char*p)
+///////////////////////////////////////////////////////////////////////////////////////
+// code beautifier
+///////////////////////////////////////////////////////////////////////////////////////
+//FILE *output=NULL;
+bool output=true;
+void printoutput(const char* str, int scope, bool &newline, bool &limiter)
 {
-	printf("usage: %s [engine file] <input file/folder>\n", (p)?p:"<binary>");
+	if(str)
+	{
+		if(newline)
+		{
+			int i;
+			for(i=0; i<scope; i++)
+				printf("\t");
+			newline=false;
+		}
+		else if(limiter && isalnum(str[0]))
+		{
+			printf(" ");
+		}
+		printf(str);
+		limiter = 0!=isalnum( str[strlen(str)-1] );
+	}
+}
+void print_comments(CParser_CommentStore& parser, int &scope, bool &newline, bool &limiter, size_t linelimit)
+{
+	// print comments
+	while( parser.cCommentList.size() )
+	{
+		if( parser.cCommentList[0].line < linelimit )
+		{
+			if(!newline) 
+			{
+				printoutput("\n", scope, newline, limiter);
+				newline=true;
+			}
+
+			printoutput( (parser.cCommentList[0].multi)?"/*":"// ", scope, newline, limiter);
+			printoutput( parser.cCommentList[0].string, scope, newline, limiter);
+			printoutput( (parser.cCommentList[0].multi)?"*/\n":"\n", scope, newline, limiter);
+			newline=true;
+			parser.cCommentList.removeindex(0);
+		}
+		else
+			break;
+	}
+}
+
+bool print_beautified(CParser_CommentStore& parser, int rtpos, int &scope, bool &newline, bool &limiter)
+{
+	if( output )
+	{
+		bool ret = true;
+
+		if( parser.rt[rtpos].symbol.Type == 1 )
+		{	// terminals
+
+			print_comments(parser, scope, newline, limiter, parser.rt[rtpos].cToken.line);
+
+			switch( parser.rt[rtpos].symbol.idx )
+			{
+			case PT_RBRACE:
+				scope--;
+				if(!newline) printoutput("\n", scope, newline, limiter);
+				newline=true;
+				printoutput("}\n", scope, newline, limiter);
+				newline=true;
+				break;
+			case PT_LBRACE:
+				if(!newline) printoutput("\n", scope, newline, limiter);
+				newline=true;
+				printoutput("{\n", scope, newline, limiter);
+				newline=true;
+				scope++;
+				break;
+			case PT_SEMI:
+				printoutput(";\n", scope, newline, limiter);
+				newline=true;
+				break;
+			case PT_COMMA:
+				printoutput(", ", scope, newline, limiter);
+				break;
+			case PT_LPARAN:
+			case PT_RPARAN:
+				printoutput((const char*)parser.rt[rtpos].cToken.cLexeme, scope, newline, limiter);
+				break;
+			default:
+				// print the token
+				printoutput((const char*)parser.rt[rtpos].cToken.cLexeme, scope, newline, limiter);
+				break;
+			}
+		}
+		else if( parser.rt[rtpos].cChildNum==1 )
+		{	// only one child, just go down
+			print_beautified(parser, parser.rt[rtpos].cChildPos, scope, newline, limiter);
+		}
+		else if( parser.rt[rtpos].cChildNum>1 )
+		{	// nonterminals
+			switch( parser.rt[rtpos].symbol.idx )
+			{
+			case PT_LABELSTM:
+			{
+				int tmpscope = scope;
+				scope=0;
+				print_beautified(parser, parser.rt[rtpos].cChildPos, scope, newline, limiter);
+				printoutput(":\n", scope, newline, limiter);
+				newline=true;
+				scope = tmpscope;
+				break;
+			}
+			case PT_CALLSTM:
+				// transform to function calls
+				print_beautified(parser, parser.rt[rtpos].cChildPos, scope, newline, limiter);
+				printoutput("(", scope, newline, limiter);
+				if( parser.rt[rtpos].cChildNum==3 )
+					print_beautified(parser, parser.rt[rtpos].cChildPos+1, scope, newline, limiter);
+				printoutput(");\n", scope, newline, limiter);
+				newline=true;
+				break;
+			case PT_NORMALSTM:
+			{	// can be:
+				// if '(' <Expr> ')' <Normal Stm>
+				// if '(' <Expr> ')' <Normal Stm> else <Normal Stm>
+				// while '(' <Expr> ')' <Normal Stm>
+				// for '(' <Arg> ';' <Arg> ';' <Arg> ')' <Normal Stm>
+				// do <Normal Stm> while '(' <Expr> ')' ';'
+				// switch '(' <Expr> ')' '{' <Case Stms> '}'
+				// <ExprList> ';'
+				// ';'              !Null statement
+				if(!newline)
+				{
+					printoutput("\n", scope, newline, limiter);
+					newline=true;
+				}
+
+				if( PT_IF == parser.rt[ parser.rt[rtpos].cChildPos ].symbol.idx ||
+					PT_WHILE == parser.rt[ parser.rt[rtpos].cChildPos ].symbol.idx )
+				{
+					print_beautified(parser, parser.rt[rtpos].cChildPos+0, scope, newline, limiter);
+					printoutput("( ", scope, newline, limiter);
+					print_beautified(parser, parser.rt[rtpos].cChildPos+2, scope, newline, limiter);
+					printoutput(" )\n", scope, newline, limiter);
+					newline = true;
+
+					if( PT_BLOCK != parser.rt[ parser.rt[rtpos].cChildPos+4 ].symbol.idx )
+						scope++;
+					print_beautified(parser, parser.rt[rtpos].cChildPos+4, scope, newline, limiter);
+					if( PT_BLOCK != parser.rt[ parser.rt[rtpos].cChildPos+4 ].symbol.idx )
+						scope--;
+
+					if( parser.rt[rtpos].cChildNum==7 )
+					{
+						print_beautified(parser, parser.rt[rtpos].cChildPos+5, scope, newline, limiter);
+						if(!newline)
+						{
+							printoutput("\n", scope, newline, limiter);
+							newline=true;
+						}
+						if( PT_BLOCK != parser.rt[ parser.rt[rtpos].cChildPos+6 ].symbol.idx )
+							scope++;
+						print_beautified(parser, parser.rt[rtpos].cChildPos+6, scope, newline, limiter);
+						if( PT_BLOCK != parser.rt[ parser.rt[rtpos].cChildPos+6 ].symbol.idx )
+							scope--;
+					}
+				}
+				else if( PT_DO == parser.rt[ parser.rt[rtpos].cChildPos ].symbol.idx )
+				{	// do <Normal Stm> while '(' <Expr> ')' ';'
+					print_beautified(parser, parser.rt[rtpos].cChildPos+0, scope, newline, limiter);
+					printoutput("\n", scope, newline, limiter);
+					newline = true;
+					if( PT_BLOCK != parser.rt[ parser.rt[rtpos].cChildPos+1 ].symbol.idx )
+						scope++;
+					print_beautified(parser, parser.rt[rtpos].cChildPos+1, scope, newline, limiter);
+					if( PT_BLOCK != parser.rt[ parser.rt[rtpos].cChildPos+1 ].symbol.idx )
+						scope--;
+					if(!newline)
+					{
+						printoutput("\n", scope, newline, limiter);
+						newline=true;
+					}
+					print_beautified(parser, parser.rt[rtpos].cChildPos+2, scope, newline, limiter);
+					printoutput("( ", scope, newline, limiter);
+					print_beautified(parser, parser.rt[rtpos].cChildPos+4, scope, newline, limiter);
+					printoutput(" )", scope, newline, limiter);
+					print_beautified(parser, parser.rt[rtpos].cChildPos+6, scope, newline, limiter);
+				}
+				else if( PT_SWITCH == parser.rt[ parser.rt[rtpos].cChildPos ].symbol.idx )
+				{	// switch '(' <Expr> ')' '{' <Case Stms> '}'
+					print_beautified(parser, parser.rt[rtpos].cChildPos+0, scope, newline, limiter);
+					printoutput("( ", scope, newline, limiter);
+					print_beautified(parser, parser.rt[rtpos].cChildPos+2, scope, newline, limiter);
+					printoutput(" )\n", scope, newline, limiter);
+					newline = true;
+					printoutput("{\n", scope, newline, limiter);
+					newline = true;
+					print_beautified(parser, parser.rt[rtpos].cChildPos+5, scope, newline, limiter);
+					if(!newline)
+					{
+						printoutput("\n", scope, newline, limiter);
+						newline=true;
+					}
+					printoutput("}\n", scope, newline, limiter);
+					newline = true;
+				}
+				else if( PT_FOR == parser.rt[ parser.rt[rtpos].cChildPos ].symbol.idx )
+				{	// for '(' <Arg> ';' <Arg> ';' <Arg> ')' <Normal Stm>
+					print_beautified(parser, parser.rt[rtpos].cChildPos+0, scope, newline, limiter);
+					printoutput("(", scope, newline, limiter);
+					print_beautified(parser, parser.rt[rtpos].cChildPos+2, scope, newline, limiter);
+					printoutput("; ", scope, newline, limiter);
+					print_beautified(parser, parser.rt[rtpos].cChildPos+4, scope, newline, limiter);
+					printoutput("; ", scope, newline, limiter);
+					print_beautified(parser, parser.rt[rtpos].cChildPos+6, scope, newline, limiter);
+					printoutput(")\n", scope, newline, limiter);
+					newline=true;
+					if( PT_BLOCK != parser.rt[ parser.rt[rtpos].cChildPos+8 ].symbol.idx )
+						scope++;
+					print_beautified(parser, parser.rt[rtpos].cChildPos+8, scope, newline, limiter);
+					if( PT_BLOCK != parser.rt[ parser.rt[rtpos].cChildPos+8 ].symbol.idx )
+						scope--;
+				}
+				else
+				{
+					size_t j,k;
+					k = parser.rt[rtpos].cChildPos+parser.rt[rtpos].cChildNum;
+					j = parser.rt[rtpos].cChildPos;
+					for(; j<k; ++j)
+					{
+						print_beautified(parser, j, scope, newline, limiter);
+					}
+				}
+				break;
+			}
+			case PT_CASESTMS:
+			{	// <Case Stms>  ::= case <Value> ':' <Stm List> <Case Stms>
+				//			   | default ':' <Stm List> <Case Stms>
+				//			   |
+				size_t j,k;
+				int tmpscope = scope;
+				k = parser.rt[rtpos].cChildPos+parser.rt[rtpos].cChildNum;
+				for(j=parser.rt[rtpos].cChildPos; j<k; ++j)
+				{	// go down
+					if( PT_COLON==parser.rt[j].symbol.idx )
+					{
+						printoutput(":\n", scope, newline, limiter);
+						newline=true;
+						scope++;
+					}
+					else
+					{
+						if( PT_CASESTMS==parser.rt[j].symbol.idx )
+							scope--;
+						print_beautified(parser, j, scope, newline, limiter);
+					}
+				}
+				scope = tmpscope;
+				break;
+			}
+			default:
+			{
+				size_t j,k;
+				k = parser.rt[rtpos].cChildPos+parser.rt[rtpos].cChildNum;
+				for(j=parser.rt[rtpos].cChildPos; j<k; ++j)
+				{	// go down
+					print_beautified(parser, j, scope, newline, limiter);
+				}
+				break;
+			}// end default case
+			}// end switch
+		}
+
+		return ret;
+	}
+	return false;
 }
 
 
 
+
+
+///////////////////////////////////////////////////////////////////////////////////////
+// parse processor
+///////////////////////////////////////////////////////////////////////////////////////
+
+
+#define OPT_PARSE			0x00
+#define OPT_BEAUTIFY		0x01
+#define OPT_PRINTTREE		0x02
+#define OPT_TRANSFORM		0x04
+#define OPT_COMPILEDEBUG	0x08
+#define OPT_COMPILEOUTPUT	0x10
+
 class PParser : public CFileProcessor
 {
-	CScriptCompiler&	compiler;
-	CParser*			parser;
+	CScriptCompiler&		compiler;
+	CParser_CommentStore*	parser;
+	int						option;
+	
 
 public:
-	PParser(CScriptCompiler& c, CParser* p) : compiler(c), parser(p)	{}
+	PParser(CScriptCompiler& c, CParser_CommentStore* p, int o) : compiler(c), parser(p), option(o)	{}
 
 	virtual bool process(const char*name) const
 	{
@@ -617,17 +900,37 @@ public:
 					  )
 				  )
 				{
-//					printf("(%i)----------------------------------------\n", parser->rt.size());
-//					parser->print_rt_tree(0,0, false);
+					if( (option&OPT_BEAUTIFY)==OPT_BEAUTIFY )
+					{
+						bool newline=true;
+						bool limiter=true;
+						int scope = 0; 
+						print_beautified(*parser, 0, scope, newline, limiter);
+						print_comments(*parser, scope, newline, limiter, 0xFFFFFFFF);
+					}
+					if( (option&OPT_PRINTTREE)==OPT_PRINTTREE )
+					{
+						printf("(%i)----------------------------------------\n", parser->rt.size());
+						parser->print_rt_tree(0,0, false);
+					}
 
-					//////////////////////////////////////////////////////////
-					// tree transformation
-//					parsenode pnode(*parser);
-//					pnode.print_tree();
+					if( (option&OPT_TRANSFORM)==OPT_TRANSFORM || 
+						(option&OPT_COMPILEDEBUG)==OPT_COMPILEDEBUG ||
+						(option&OPT_COMPILEOUTPUT)==OPT_COMPILEOUTPUT )
+					{
+						//////////////////////////////////////////////////////////
+						// tree transformation
+						parsenode pnode(*parser);
 
-					//////////////////////////////////////////////////////////
-					// compiling
-//					run = compiler.CompileTree(pnode);
+						if( (option&OPT_TRANSFORM)==OPT_TRANSFORM )
+							pnode.print_tree();
+						
+						//////////////////////////////////////////////////////////
+						// compiling
+						if( (option&OPT_COMPILEDEBUG)==OPT_COMPILEDEBUG ||
+						(option&OPT_COMPILEOUTPUT)==OPT_COMPILEOUTPUT )
+							run = compiler.CompileTree(pnode);
+					}
 					
 					//////////////////////////////////////////////////////////
 					// reinitialize parser
@@ -641,23 +944,100 @@ public:
 	}
 };
 
+void usage(const char*p)
+{
+	printf("usage: %s [engine file] [bptco] <input file/folder>\n", (p)?p:"<binary>");
+	printf("     option b: outputs beautified code\n");
+	printf("     option p: prints parse tree\n");
+	printf("     option t: prints transformation tree\n");
+	printf("     option c: prints compilation debug and output\n");
+	printf("     option o: prints compilation output only\n");
+}
 
+int get_option(const char* p)
+{
+	int option = OPT_PARSE;
+	if(p)
+	{
+		while(*p)
+		{
+			if(*p=='b')
+				option |= OPT_BEAUTIFY;
+			else if(*p=='p')
+				option |= OPT_PRINTTREE;
+			else if(*p=='t')
+				option |= OPT_TRANSFORM;
+			else if(*p=='c')
+				option |= OPT_COMPILEDEBUG;
+			else if(*p=='o')
+				option |= OPT_COMPILEOUTPUT;
+			p++;
+		}
+	}
+	return option;
+}
 
 extern int testmain(int argc, char *argv[]);
 
-// Accepts 2 arguments [engine file] <input file>
+// Accepts 3 arguments [engine file] [option(s)] <input file>
 int main(int argc, char *argv[])
 {
 //	return testmain(argc, argv);
-	CScriptEnvironment env;
-	CScriptCompiler compiler(env);
 	ulong tick = GetTickCount();
-	CParser* parser = 0;
+	CParser_CommentStore* parser = 0;
 	CParseConfig* parser_config = 0;
-	int inputinx = 0;
 	bool ok;
 
-	if(argc == 2) // input
+
+	// parse commandline
+	const char* enginefile=NULL;
+	const char* inputfile=NULL;
+	int i, option=OPT_PARSE;
+
+	for(i=1; i<argc; i++)
+	{
+		if( isFile(argv[i]) )
+		{
+			if(!enginefile)
+				enginefile = argv[i];
+			else 
+				inputfile = argv[i];
+		}
+		else if( isDirectory(argv[i]) )
+		{
+			inputfile = argv[i];
+		}
+		else
+		{
+			option = get_option(argv[i]);
+		}
+	}
+	if(enginefile && !inputfile)
+		swap(enginefile, inputfile);
+
+	if(!inputfile)
+	{
+		usage(argv[0]);
+		return EXIT_FAILURE;
+	}
+
+	if(enginefile)
+	{
+		try
+		{
+			parser_config = new CParseConfig( enginefile );
+		}
+		catch(...)
+		{
+			parser_config=NULL;
+		}
+		if (!parser_config)
+		{
+			printf("Could not open engine file %s\n", enginefile);
+			return EXIT_FAILURE;		
+		}
+	}
+	else
 	{
 		ulong sz;
 		const unsigned char *e = getEngine(sz);
@@ -667,34 +1047,19 @@ int main(int argc, char *argv[])
 			return EXIT_FAILURE;
 		}
 		parser_config = new CParseConfig(e, sz);
-		inputinx  = 1;
-	}
-	else if(argc == 3) // engine input
-	{
-		parser_config = new CParseConfig( argv[1] );
-		inputinx = 2;
-	}
-	else
-	{
-		usage(argv[0]);
-		return EXIT_FAILURE;
+		if (!parser_config)
+			printf("Could not load engine\n");
+
 	}
 
-	if (!parser_config){
-		if(argc == 3)
-			printf("Could not open engine file %s\n", argv[1]);
-		else
-			printf("Could not load engine\n");
-		return EXIT_FAILURE;
-	}
-	parser = new CParser(parser_config);
+	parser = new CParser_CommentStore(parser_config);
 	if (!parser){
 		printf("Error creating parser\n");
 		return EXIT_FAILURE;
 	}
 
-
-
+	CScriptEnvironment env;
+	CScriptCompiler compiler(env, (option&OPT_COMPILEDEBUG)==OPT_COMPILEDEBUG);
 
 	struct _buildin_func *pt = buildin_func;
 	while(pt->name)
@@ -703,15 +1068,15 @@ int main(int argc, char *argv[])
 		pt++;
 	}
 
-	PParser pp(compiler, parser);
+	PParser pp(compiler, parser, option);
 
-	if( isDirectory(argv[inputinx] ) )
+	if( isDirectory( inputfile ) )
 	{
-		ok=findFiles(argv[inputinx], "txt", pp);
+		ok=findFiles(inputfile, ".txt", pp);
 	}
 	else
 	{	// single file
-		ok=pp.process( argv[inputinx] );
+		ok=pp.process( inputfile );
 	}
 	printf("\nready (%i)\n", ok);
 	if (parser)  delete parser;

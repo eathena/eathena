@@ -179,7 +179,7 @@ int storage_additem(struct map_session_data &sd, struct pc_storage &stor, struct
 	{	// 装備品ではないので、既所有品なら個数のみ変化させる
 		for(i=0;i<MAX_STORAGE;i++)
 		{
-			if( compare_item(&stor.storage[i], &item_data) )
+			if( compare_item(stor.storage[i], item_data) )
 			{
 				if(stor.storage[i].amount+amount > MAX_AMOUNT)
 					return 1;
@@ -468,7 +468,7 @@ int guild_storage_additem(struct map_session_data &sd,struct guild_storage &stor
 	{	// 装備品ではないので、既所有品なら個数のみ変化させる
 		for(i=0;i<MAX_GUILD_STORAGE;i++)
 		{
-			if( compare_item(&stor.storage[i], &item_data))
+			if( compare_item(stor.storage[i], item_data))
 			{
 				if(stor.storage[i].amount+amount > MAX_AMOUNT)
 					return 1;

@@ -277,19 +277,19 @@ int insert_friends(int char_id){
 return 1;
 }
 
-int compare_item(struct item *a, struct item *b) {
-  return (
-	  (a->id == b->id) &&
-	  (a->nameid == b->nameid) &&
-	  (a->amount == b->amount) &&
-	  (a->equip == b->equip) &&
-	  (a->identify == b->identify) &&
-	  (a->refine == b->refine) &&
-	  (a->attribute == b->attribute) &&
-	  (a->card[0] == b->card[0]) &&
-	  (a->card[1] == b->card[1]) &&
-	  (a->card[2] == b->card[2]) &&
-	  (a->card[3] == b->card[3]));
+bool compare_item(const struct item &a, const struct item &b)
+{
+	return ( (a.id == b.id) &&
+			 (a.nameid == b.nameid) &&
+			 (a.amount == b.amount) &&
+			 (a.equip == b.equip) &&
+			 (a.identify == b.identify) &&
+			 (a.refine == b.refine) &&
+			 (a.attribute == b.attribute) &&
+			 (a.card[0] == b.card[0]) &&
+			 (a.card[1] == b.card[1]) &&
+			 (a.card[2] == b.card[2]) &&
+			 (a.card[3] == b.card[3]) );
 }
 
 //=====================================================================================================
@@ -331,7 +331,7 @@ int mmo_char_tosql(uint32 char_id, struct mmo_charstatus *p)
 
 	//map inventory data
 	for(i=0;i<MAX_INVENTORY;i++){
-			if (!compare_item(&p->inventory[i], &cp->inventory[i]))
+			if (!compare_item(p->inventory[i], cp->inventory[i]))
 				diff = 1;
 		if(p->inventory[i].nameid>0){
 			mapitem[count].flag=0;
@@ -361,7 +361,7 @@ int mmo_char_tosql(uint32 char_id, struct mmo_charstatus *p)
 
 	//map cart data
 	for(i=0;i<MAX_CART;i++){
-	        if (!compare_item(&p->cart[i], &cp->cart[i]))
+	        if (!compare_item(p->cart[i], cp->cart[i]))
 		        diff = 1;
 		if(p->cart[i].nameid>0){
 			mapitem[count].flag=0;

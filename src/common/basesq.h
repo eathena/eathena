@@ -52,6 +52,86 @@ public:
 	virtual bool removeAccount(uint32 accid);
 	virtual bool saveAccount(const CLoginAccount& account);
 
+	///////////////////////////////////////////////////////////////////////////
+	// alternative interface
+	CLoginAccount	cTempAccount;
+	Mutex			cMx;
+	MYSQL_RES*		cSqlRes;
+	MYSQL_ROW		cSqlRow;
+
+	virtual bool aquire()
+	{
+		release();	// just in case
+		return this->first();
+	}
+	virtual bool release()
+	{
+		if(cSqlRes)
+		{
+			mysql_free_result(cSqlRes);
+			cSqlRes=NULL;
+		}
+		return true;
+	}
+	virtual bool first()
+	{
+		char query[2048];
+		size_t sz=snprintf(query, sizeof(query), "SELECT `*` FROM `%s`", login_auth_db);
+		if( this->mysql_SendQuery(cSqlRes, query, sz) )
+		{
+			if( mysql_num_rows(cSqlRes) > 0 )
+			{
+				return (*this)++;
+			}
+		}
+		return false;
+	}
+	virtual operator bool()		{ return (NULL!=cSqlRow); }
+	virtual bool operator ++(int)
+	{
+		cSqlRow = mysql_fetch_row(cSqlRes);	//row fetching
+		if(cSqlRow)
+		{
+			cTempAccount.account_id	= cSqlRow[0]?atol(cSqlRow[0]):0;
+			safestrcpy(cTempAccount.userid, cSqlRow[1]?cSqlRow[1]:"", sizeof(cTempAccount.userid));
+			safestrcpy(cTempAccount.passwd, cSqlRow[2]?cSqlRow[2]:"", sizeof(cTempAccount.passwd));
+			cTempAccount.sex			= cSqlRow[3][0] == 'S' ? 2 : cSqlRow[3][0]=='M';
+			cTempAccount.gm_level	= cSqlRow[4]?atol(cSqlRow[4]):0;
+			cTempAccount.online		= cSqlRow[5]?atol(cSqlRow[5]):0;
+			safestrcpy(cTempAccount.email, cSqlRow[6]?cSqlRow[6]:"" , sizeof(cTempAccount.email));
+			cTempAccount.login_id1	= cSqlRow[7]?atol(cSqlRow[7]):0;
+			cTempAccount.login_id2	= cSqlRow[8]?atol(cSqlRow[8]):0;
+			cTempAccount.client_ip	= ipaddress(cSqlRow[9]);
+			safestrcpy(cTempAccount.last_login, cSqlRow[10]?cSqlRow[10]:"" , sizeof(cTempAccount.last_login));
+			cTempAccount.login_count	= cSqlRow[11]?atol(cSqlRow[11]):0;
+			cTempAccount.valid_until	= (time_t)(cSqlRow[12]?atol(cSqlRow[12]):0);
+			cTempAccount.ban_until	= (time_t)(cSqlRow[13]?atol(cSqlRow[13]):0);
+
+			// clear unused fields until they got removed from all implementations
+			cTempAccount.state = 0;
+			cTempAccount.error_message[0]=0;
+			cTempAccount.memo[0]=0;
+			cTempAccount.last_ip[0]=0;		
+		}
+		return (cSqlRow!=NULL);
+	}
+	virtual bool save()
+	{
+		return saveAccount(cTempAccount);
+	}
+	virtual bool find(const char* userid)
+	{
+		return searchAccount(userid, cTempAccount);
+	}
+	virtual bool find(uint32 accid)
+	{
+		return searchAccount(accid, cTempAccount);
+	}
+	virtual CLoginAccount& operator()()
+	{
+		return cTempAccount;
+	}
+
 protected:
 	///////////////////////////////////////////////////////////////////////////
 	// data

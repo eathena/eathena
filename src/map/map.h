@@ -1370,7 +1370,7 @@ void map_deliddb(struct block_list &bl);
 dbt* get_iddb();
 void map_addnickdb(struct map_session_data &sd);
 struct map_session_data * map_nick2sd(const char *nick);
-int compare_item(struct item *a, struct item *b);
+bool compare_item(const struct item &a, const struct item &b);
 
 // ‚»‚Ì‘¼
 int map_check_dir(int s_dir,int t_dir);

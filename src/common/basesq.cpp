@@ -70,6 +70,7 @@ inline const char* CMySQL::escape_string(char *target, const char* source, size_
 // CAccountDB_sql Class
 //////////////////////////////////////////////////////////////////////////////////////
 CAccountDB_sql::CAccountDB_sql(const char* configfile)
+	: cSqlRes(NULL)
 {
 	safestrcpy(login_auth_db,"login_auth",sizeof(login_auth_db));
 	safestrcpy(login_reg_db,"login_reg",sizeof(login_reg_db));
@@ -495,14 +496,12 @@ bool CAccountDB_sql::saveAccount(const CLoginAccount& account)
 	ret = this->mysql_SendQuery(query, sz);
 
 	sz=sprintf(query,"DELETE FROM `%s` WHERE `account_id`='%d';",login_reg_db, account.account_id);
-	this->mysql_SendQuery(query, sz)
-
+	this->mysql_SendQuery(query, sz);
 
 	sz = sprintf(query,"INSERT INTO `%s` (`account_id`, `str`, `value`) VALUES ",  login_reg_db);
-
 	for(i=0; i<account.account_reg2_num; i++)
 	{
-		mysql_real_escape_string(&mysql_handle, tempstr, account.account_reg2[i].str, strlen(account.account_reg2[i].str));
+		mysql_real_escape_string(&mysqldb_handle, tempstr, account.account_reg2[i].str, strlen(account.account_reg2[i].str));
 		sz += sprintf(query, "%s %s( '%d' , '%s' , '%d')",query,i?",":"", account.account_id, tempstr, account.account_reg2[i].value);
 	}
 
@@ -1023,16 +1022,22 @@ CREATE TABLE IF NOT EXISTS `char_skill` (
 */
 
 
-class CCharDB_sql : public CTimerBase, private CConfig, public CCharDBInterface
+class CCharDB_sql : public CMySQL, private CConfig, public CCharDBInterface
 {
 	///////////////////////////////////////////////////////////////////////////
 	// config stuff
 	// uint32 next_char_id;
 
 	char char_db[256];
-//	char backup_txt[1024]; // DOesnt exist
-	char friends_db[256];
-	bool backup_txt_flag;
+	char friend_db[256];
+	char memo_db[256];
+	char cart_db[256];
+	char inventory_db[256];
+	char skill_db[256];
+	char guild_skill_db[256];
+	char char_reg_db[256];
+	
+
 
 	bool name_ignoring_case;
 	int char_name_option;
@@ -1050,15 +1055,17 @@ class CCharDB_sql : public CTimerBase, private CConfig, public CCharDBInterface
 //	TslistDCT<CCharCharAccount>		cAccountList;
 
 public:
-	CCharDB_sql(const char *dbcfgfile) :
-		CTimerBase(300*1000)		// 300sec save interval
+	CCharDB_sql(const char *dbcfgfile)
 	{
-		next_char_id = 150000;
-		safestrcpy(char_txt, "save/athena.txt", sizeof(char_txt));
-		safestrcpy(backup_txt, "save/backup.txt", sizeof(backup_txt));
-		safestrcpy(friends_txt, "save/friends.txt", sizeof(friends_txt));
-
-		backup_txt_flag=0;
+		safestrcpy(char_db, "char", sizeof(char_db));
+		safestrcpy(friend_db, "friends", sizeof(friend_db));
+		safestrcpy(memo_db, "memo", sizeof(memo_db));
+		safestrcpy(cart_db, "cart_inventory", sizeof(cart_db));
+		safestrcpy(inventory_db, "inventory", sizeof(inventory_db));
+		safestrcpy(skill_db, "skill", sizeof(skill_db));
+		safestrcpy(guild_skill_db, "guild_skill", sizeof(guild_skill_db));
+		safestrcpy(char_reg_db, "char_reg", sizeof(char_reg_db));
+		
 
 		char_name_option=0;
 		memset(char_name_letters,0,sizeof(char_name_letters));
@@ -1079,19 +1086,19 @@ public:
 
 private:
 
-	bool compare_item(struct item *a, struct item *b) {
-		return (
-		  (a->id == b->id) &&
-		  (a->nameid == b->nameid) &&
-		  (a->amount == b->amount) &&
-		  (a->equip == b->equip) &&
-		  (a->identify == b->identify) &&
-		  (a->refine == b->refine) &&
-		  (a->attribute == b->attribute) &&
-		  (a->card[0] == b->card[0]) &&
-		  (a->card[1] == b->card[1]) &&
-		  (a->card[2] == b->card[2]) &&
-		  (a->card[3] == b->card[3]));
+	bool compare_item(const struct item &a, const struct item &b)
+	{
+		return ( (a.id == b.id) &&
+				 (a.nameid == b.nameid) &&
+				 (a.amount == b.amount) &&
+				 (a.equip == b.equip) &&
+				 (a.identify == b.identify) &&
+				 (a.refine == b.refine) &&
+				 (a.attribute == b.attribute) &&
+				 (a.card[0] == b.card[0]) &&
+				 (a.card[1] == b.card[1]) &&
+				 (a.card[2] == b.card[2]) &&
+				 (a.card[3] == b.card[3]) );
 	}
 
 
@@ -1099,11 +1106,14 @@ private:
 
 	bool char_to_sql(const CCharCharacter& p)
 	{
-
-		bool diff,l,status, loaded;
-		size_t sz,i,pos;
-
-		loaded = false
+		char query[65536];
+		bool diff,l,status, loaded=false;
+		size_t sz,i;
+		
+		
+		CCharCharacter cp;
+/*
+		size_t pos;
 		if( cCharList.find( CCharCharacter(p.char_id), pos, 0) )
 		{
 			CCharCharacter &cp = cCharList(pos,0);
@@ -1114,11 +1124,10 @@ private:
 			memset(&cp, 0, sizeof(CCharCharacter));
 			loaded = false;
 		}
+*/
 
 
-
-		sz = sprintf(tmp_sql ,
-
+		sz = snprintf(query, sizeof(query), 
 			"UPDATE `%s` "
 			"SET " // Sorted things out so it was easy to read and compare
 			"`class`='%d', `base_level`='%d', `job_level`='%d',"
@@ -1150,24 +1159,25 @@ private:
 			p.hp,p.max_hp,
 			p.sp,p.max_sp,
 			p.str,p.agi,p.vit,p.int_,p.dex,p.luk,
-			p.status_point,p.skill_point
+			p.status_point,p.skill_point,
 
-			p.option,p.karma,p.chaos,p.manner
-			p.party_id,p.guild_id
-			p.pet_id
+			p.option,p.karma,p.chaos,p.manner,
+			p.party_id,p.guild_id,
+			p.pet_id,
 
-			p.hair,p.hair_color,p.clothes_color
-			p.weapon,p.shield,p.head_top,p.head_mid,p.head_bottom
+			p.hair,p.hair_color,p.clothes_color,
+			p.weapon,p.shield,p.head_top,p.head_mid,p.head_bottom,
 
-			p.last_point.map,p.last_point.x,p.last_point.y
-			p.save_point.map,p.save_point.x,p.save_point.y
-			p.partner_id,p.father_id,p.mother_id,p.child_id
+			p.last_point.map,p.last_point.x,p.last_point.y,
+			p.save_point.map,p.save_point.x,p.save_point.y,
+			p.partner_id,p.father_id,p.mother_id,p.child_id,
 
-			p.fame_points
+			p.fame_points,
 
-			,(unsigned long)p.account_id, (unsigned long)p.char_id p.slot,
-			);
-		this->mysql_SendQuery(tmp_sql, sz);
+			(unsigned long)p.account_id, (unsigned long)p.char_id, p.slot
+		);
+		
+		this->mysql_SendQuery(query, sz);
 
 		// This is set for overall.. if anything changed.... it will copy over old data... =o
 		status = false;
@@ -1191,23 +1201,25 @@ private:
 
 		if (diff)
 		{
-			sz = sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",memo_db, p.char_id);
-			this->mysql_SendQuery(tmp_sql, sz);
+			sz = snprintf(query, sizeof(query),"DELETE FROM `%s` WHERE `char_id`='%d'", memo_db, p.char_id);
+			this->mysql_SendQuery(query, sz);
+
 
 			//insert here.
-			sz = sprintf(tmp_sql,"INSERT INTO `%s`(`char_id`,`memo_id`,`map`,`x`,`y`) VALUES ", memo_db);
+			sz = snprintf(query, sizeof(query),"INSERT INTO `%s`(`char_id`,`memo_id`,`map`,`x`,`y`) VALUES ", memo_db);
+			l=false;
 			for(i=0;i<MAX_MEMO;i++)
 			{
-				if(p->memo_point[i].map[0])
+				if(p.memo_point[i].map[0])
 				{
-					sz +=sprintf(tmp_sql,"%s%s('%ld', '%d', '%s', '%d', '%d')",
-						tmp_sql,l?",":"",
-						(unsigned long)char_id, i, p->memo_point[i].map, p->memo_point[i].x, p->memo_point[i].y);
+					sz +=snprintf(query+sz, sizeof(query)-sz,"%s('%ld', '%d', '%s', '%d', '%d')",
+						l?",":"",
+						(unsigned long)p.char_id, i, p.memo_point[i].map, p.memo_point[i].x, p.memo_point[i].y);
 					l= true;
 				}
 			}
 			// if at least one entry spotted.
-			if(l)this->mysql_SendQuery(tmp_sql, sz);
+			if(l)this->mysql_SendQuery(query, sz);
 		}
 
 
@@ -1219,7 +1231,7 @@ private:
 
 		for(i = 0; i<MAX_INVENTORY; i++)
 		{
-			if (!compare_item(&p.inventory[i], &cp.inventory[i]))
+			if (!compare_item(p.inventory[i], cp.inventory[i]))
 			{
 				diff = true;
 				status = true;
@@ -1229,19 +1241,20 @@ private:
 
 		if (diff)
 		{
-			sz = sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",cart_db, p.char_id);
-			this->mysql_SendQuery(tmp_sql, sz);
+			sz = snprintf(query, sizeof(query),"DELETE FROM `%s` WHERE `char_id`='%d'",cart_db, p.char_id);
+			this->mysql_SendQuery(query, sz);
 
 			//insert here.
-			sz = sprintf(tmp_sql,"INSERT INTO `%s`(`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`) VALUES ", inventory_db);
+			sz = snprintf(query, sizeof(query),"INSERT INTO `%s`(`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`) VALUES ", inventory_db);
+			l=false;
 			for(i=0;i<MAX_INVENTORY;i++)
 			{
-				if(p->inventory[i].nameid>0)
+				if(p.inventory[i].nameid>0)
 				{
-					sz +=sprintf(tmp_sql,
-						"%s%s('%ld', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
-						tmp_sql,l?",":"",
-						(unsigned long)char_id,
+					sz +=snprintf(query+sz, sizeof(query)-sz,
+						"%s('%ld', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
+						l?",":"",
+						(unsigned long)p.char_id,
 						p.inventory[i].nameid,
 						p.inventory[i].amount,
 						p.inventory[i].equip,
@@ -1256,7 +1269,7 @@ private:
 				}
 			}
 			// if at least one entry spotted.
-			if(l)this->mysql_SendQuery(tmp_sql, sz);
+			if(l)this->mysql_SendQuery(query, sz);
 		}
 
 
@@ -1268,7 +1281,7 @@ private:
 
 		for(i = 0; i<MAX_CART; i++)
 		{
-			if (!compare_item(&p.cart[i], &cp.cart[i]))
+			if (!compare_item(p.cart[i], cp.cart[i]))
 			{
 				diff = true;
 				status = true;
@@ -1278,17 +1291,19 @@ private:
 
 		if (diff)
 		{
-			sz = sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",cart_db, p.char_id);
-			this->mysql_SendQuery(tmp_sql, sz);
+			sz = snprintf(query, sizeof(query),"DELETE FROM `%s` WHERE `char_id`='%d'",cart_db, p.char_id);
+			this->mysql_SendQuery(query, sz);
 
 			//insert here.
-			sz = sprintf(tmp_sql,"INSERT INTO `%s`(`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`) VALUES ", inventory_db);			for(i=0;i<MAX_CART;i++)
+			sz = snprintf(query, sizeof(query),"INSERT INTO `%s`(`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`) VALUES ", inventory_db);
+			l=false;
+			for(i=0;i<MAX_CART;i++)
 			{
-				if(p->cart[i].nameid>0)
+				if(p.cart[i].nameid>0)
 				{
-					sz +=sprintf(tmp_sql,
-						"%s%s('%ld', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
-						tmp_sql,l?",":"",
+					sz +=snprintf(query+sz, sizeof(query)-sz,
+						"%s('%ld', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
+						l?",":"",
 						(unsigned long)p.char_id,
 						p.cart[i].nameid,
 						p.cart[i].amount,
@@ -1299,12 +1314,12 @@ private:
 						p.cart[i].card[0],
 						p.cart[i].card[1],
 						p.cart[i].card[2],
-						p.cart[i].card[3]);
+						p.cart[i].card[3] );
 					l = true;
 				}
 			}
 			// if at least one entry spotted.
-			if(l)this->mysql_SendQuery(tmp_sql, sz);
+			if(l)this->mysql_SendQuery(query, sz);
 		}
 
 		///////////////////////////////////////////////////////////////////////
@@ -1312,7 +1327,8 @@ private:
 
 		diff = false;
 		l = false;
-
+/*
+// really need to edit the char?
 		for(i=0;i<MAX_SKILL;i++)
 		{
 			if(
@@ -1330,27 +1346,28 @@ private:
 			status = true;
 			break;
 		}
-
+*/
 
 		if (diff)
 		{
-			sz = sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%ld'",skill_db, (unsigned long)p.char_id);
-			this->mysql_SendQuery(tmp_sql, sz);
+			sz = snprintf(query, sizeof(query),"DELETE FROM `%s` WHERE `char_id`='%ld'",skill_db, (unsigned long)p.char_id);
+			this->mysql_SendQuery(query, sz);
 
 			//insert here.
-			sz = sprintf(tmp_sql,"INSERT INTO `%s`(`char_id`,`id`,`lvl`) VALUES ", skill_db);
+			sz = snprintf(query, sizeof(query),"INSERT INTO `%s`(`char_id`,`id`,`lvl`) VALUES ", skill_db);
+			l=false;
 			for(i=0;i<MAX_MEMO;i++)
 			{
 				if(p.skill[i].id>0 && p.skill[i].flag != 1)
 				{
-					sz +=sprintf(tmp_sql,"%s%s('%ld', '%d', '%d')",
-						tmp_sql,l?",":"",
+					sz +=snprintf(query+sz, sizeof(query)-sz,"%s('%ld', '%d', '%d')",
+						l?",":"",
 						(unsigned long)p.char_id, i, p.skill[i].id, p.skill[i].lv);
 					l = true;
 				}
 			}
 			// if at least one entry spotted.
-			if(l)this->mysql_SendQuery(tmp_sql, sz);
+			if(l)this->mysql_SendQuery(query, sz);
 		}
 
 		///////////////////////////////////////////////////////////////////////
@@ -1362,9 +1379,9 @@ private:
 		for(i=0;i<p.global_reg_num;i++)
 		{
 			if(
-				((p->global_reg[i].str == NULL) == (cp->global_reg[i].str == NULL)) ||
-				(p->global_reg[i].value == cp->global_reg[i].value) ||
-				strcmp(p->global_reg[i].str, cp->global_reg[i].str) == 0
+				((p.global_reg[i].str == NULL) == (cp.global_reg[i].str == NULL)) ||
+				(p.global_reg[i].value == cp.global_reg[i].value) ||
+				strcmp(p.global_reg[i].str, cp.global_reg[i].str) == 0
 				)continue;
 			diff = true;
 			status = true;
@@ -1374,23 +1391,23 @@ private:
 
 		if (diff)
 		{
-			sz = sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%ld'",char_reg_db, (unsigned long)p.char_id);
-			this->mysql_SendQuery(tmp_sql, sz);
+			sz = snprintf(query, sizeof(query),"DELETE FROM `%s` WHERE `char_id`='%ld'",char_reg_db, (unsigned long)p.char_id);
+			this->mysql_SendQuery(query, sz);
 
 			//insert here.
-			sz = sprintf(tmp_sql,"INSERT INTO `%s`(`char_id`,`str`,`value`) VALUES ", char_reg_db);
+			sz = snprintf(query, sizeof(query),"INSERT INTO `%s`(`char_id`,`str`,`value`) VALUES ", char_reg_db);
 			for(i=0;i<p.global_reg_num;i++)
 			{
 				if(p.global_reg[i].str && p.global_reg[i].value !=0)
 				{
-					sz +=sprintf(tmp_sql,"%s%s('%ld', '%d', '%d')",
-						tmp_sql,l?",":"",
+					sz +=snprintf(query+sz, sizeof(query)-sz,"%s('%ld', '%d', '%d')",
+						l?",":"",
 						(unsigned long)p.char_id, i, p.global_reg[i].str, p.global_reg[i].value);
 					l = true;
 				}
 			}
 			// if at least one entry spotted.
-			if(l)this->mysql_SendQuery(tmp_sql, sz);
+			if(l)this->mysql_SendQuery(query, sz);
 		}
 
 
@@ -1400,40 +1417,43 @@ private:
 		diff = false;
 		l = false;
 
-		for (i=0; i<20; i++)
+		for (i=0; i<MAX_FRIENDLIST; i++)
 		{
-			if(
-				p.friend_id == cp.friend_id
-				)continue;
-			diff = true;
-			status = true;
-			break;
+			if( p.friendlist[i].friend_id != cp.friendlist[i].friend_id )
+			{
+				diff = true;
+				status = true;
+				break;
+			}
 		}
 
 		if(diff)
-			sz = sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id` = '%ld'", friend_db, (unsigned long)p.char_id);
-			this->mysql_SendQuery(tmp_sql, sz);
+		{
+			sz = snprintf(query, sizeof(query),"DELETE FROM `%s` WHERE `char_id` = '%ld'", friend_db, (unsigned long)p.char_id);
+			this->mysql_SendQuery(query, sz);
 
 			//insert here.
-			sz = sprintf(tmp_sql,"INSERT INTO `%s` (`char_id`, `friend_id`) VALUES ", friend_db);
-			for(i=0;i<20;i++)
+			sz = snprintf(query, sizeof(query),"INSERT INTO `%s` (`char_id`, `friend_id`) VALUES ", friend_db);
+			for(i=0;i<MAX_FRIENDLIST;i++)
 			{
-				if(p.friendlist[i].id!=0)
+				if(p.friendlist[i].friend_id!=0)
 				{
-					sz +=sprintf(tmp_sql,"%s%s('%ld', '%ld')",
-						tmp_sql,l?",":"",
+					sz +=snprintf(query+sz, sizeof(query)-sz,"%s('%ld', '%ld')",
+						l?",":"",
 						(unsigned long)p.char_id, (unsigned long)p.friendlist[i].friend_id);
 					l = true;
 				}
 			}
 			// if at least one entry spotted.
-			if(l)this->mysql_SendQuery(tmp_sql, sz);
+			if(l)this->mysql_SendQuery(query, sz);
 		}
 
 		if (status) // If anything has changed in this process, set to true in any of the differences check.
 		{
-			if(loaded)cCharList.removeindex(pos, 0); // remove old char_id where ever the &cp index is pointing to
-			cCharList.insert(p); // now lets add our CharID to the index list.
+			if(loaded)
+				printf("dummy, rethink this here");
+//				cCharList.removeindex(pos, 0); // remove old char_id where ever the cp index is pointing to
+//			cCharList.insert(p); // now lets add our CharID to the index list.
 		}
 
 		return true;
@@ -1731,21 +1751,22 @@ private:
 		CCharCharacter tempchar(n);
 		MYSQL_RES *sql_res=NULL;
 		MYSQL_ROW sql_row;
-		char tmp_sql [1024];
+		char query [1024];
 		char t_name[128];
+		size_t i, sz;
 
-		mysql_real_escape_string(&mysql_handle, t_name, tempchar.name, strlen(tempchar.name));
+		mysql_real_escape_string(&mysqldb_handle, t_name, tempchar.name, strlen(tempchar.name));
 
 		//check stat error
 		if (
 			(str + agi + vit + int_ + dex + luk !=6*5 ) || // stats
 
 			// Check slots
-			(slot >= 9) || (slot < 0 ) || // slots can not be negative or over 9
+			(slot >= 9) || // slots must not over 9
 
 			// Check hair
 			(hair_style <= 0) || (hair_style >= 24) || // hair style
-			(hair_color >= 9) || (hair_color < 0) ||   // Hair color?
+			(hair_color >= 9) ||					   // Hair color?
 
 			// Check stats pairs and make sure they are balanced
 
@@ -1766,7 +1787,7 @@ private:
 
 			)
 		{
-			printf("fail (aid: %d), stats error(bot cheat?!)\n", sd->account_id);
+			printf("fail (aid: %d), stats error(bot cheat?!)\n", account.account_id);
 			return false;
 		} // now when we have passed all stat checks
 
@@ -1790,8 +1811,8 @@ private:
 
 
 		//Check Name (already in use?)
-		sz = sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `name` = '%s'",char_db, t_name);
-		if ( this->mysql_SendQuery(sql_res, tmp_sql, sz) )
+		sz = snprintf(query, sizeof(query), "SELECT count(*) FROM `%s` WHERE `name` = '%s'",char_db, t_name);
+		if ( this->mysql_SendQuery(sql_res, query, sz) )
 		{
 			sql_row = mysql_fetch_row(sql_res);
 			if (atol(sql_row[0]))
@@ -1803,12 +1824,12 @@ private:
 
 
 		// check char slot.
-		sz = sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d'",char_db, account.account_id, slot);
-		if ( this->mysql_SendQuery(sql_res, tmp_sql, sz) )
+		sz = snprintf(query, sizeof(query), "SELECT count(*) FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d'",char_db, account.account_id, slot);
+		if ( this->mysql_SendQuery(sql_res, query, sz) )
 		{
 			sql_row = mysql_fetch_row(sql_res);
 			if(atol(sql_row[0]))
-				printf("fail (aid: %d, slot: %d), slot already in use\n", sd->account_id, dat[30]);
+				printf("fail (aid: %d, slot: %d), slot already in use\n", account.account_id, slot);
 
 			mysql_free_result(sql_res);
 			return false;
@@ -1816,7 +1837,7 @@ private:
 
 		// It has passed both the name and slot check, let's insert the info since it doesnt conflict =D
 		// make new char.
-		sz = sprintf(tmp_sql,
+		sz = snprintf(query, sizeof(query),
 				"INSERT INTO `%s` "
 					"(`account_id`,`char_num`,`name`,`str`,`agi`,`vit`,`int`,`dex`,`luk`,`hair`,`hair_color`) "
 					"VALUES "
@@ -1824,13 +1845,13 @@ private:
 				 char_db,
 				 (unsigned long)account.account_id , slot, t_name,  str, agi, vit, int_, dex, luk, hair_style, hair_color);
 
-		this->mysql_SendQuery(tmp_sql, sz)
+		this->mysql_SendQuery(query, sz);
 
 
 		//Now we need the charid from sql!
-		sz = sprintf(tmp_sql, "SELECT `char_id` FROM `%s` WHERE `account_id` = '%ld' AND `char_num` = '%d' AND `name` = '%s'", char_db, (unsigned long)account.account_id, slot, t_name);
+		sz = snprintf(query, sizeof(query), "SELECT `char_id` FROM `%s` WHERE `account_id` = '%ld' AND `char_num` = '%d' AND `name` = '%s'", char_db, (unsigned long)account.account_id, slot, t_name);
 
-		if( this->mysql_SendQuery(sql_res, tmp_sql, sz) )
+		if( this->mysql_SendQuery(sql_res, query, sz) )
 		{
 			sql_row = mysql_fetch_row(sql_res);
 			if (sql_row)
@@ -1840,7 +1861,7 @@ private:
 
 		//Give the char the default items
 		//knife & cotton shirts, add on as needed ifmore items are to be included.
-		sz = sprintf(tmp_sql,
+		sz = snprintf(query, sizeof(query),
 					"INSERT INTO `%s` "
 						"(`char_id`,`nameid`, `amount`, `equip`, `identify`) "
 						"VALUES "
@@ -1851,11 +1872,11 @@ private:
 						(unsigned long)tempchar.char_id, start_armor, 1,0x10,1  //add cotton shirts
 						);
 
-		this->mysql_SendQuery(tmp_sql, sz);
+		this->mysql_SendQuery(query, sz);
 
 
 		// Update the map they are starting on and where they respawn at.
-		sz = sprintf(tmp_sql,
+		sz = snprintf(query, sizeof(query),
 					"UPDATE `%s` "
 					"SET `last_map` = '%s', `last_x` = '%d', `last_y` = '%d', "
 					"    `save_map` = '%s', `save_x` = '%d', `save_y` = '%d'  "
@@ -1918,53 +1939,57 @@ private:
 
 		account.charlist[slot] = tempchar.char_id;
 
-		cCharList.insert(tempchar);
+//		cCharList.insert(tempchar);
 
 		return true;
 	}
 
 	bool read_friends()
 	{
-		MYSQL_RES *sql_res=NULL, *sql_res2=NULL;
+/*		MYSQL_RES *sql_res=NULL, *sql_res2=NULL;
 		MYSQL_ROW sql_row, sql_row2;
-		char tmp_sql [1024];
+		char query[1024];
 		unsigned long cid=0;
 		unsigned long fid=0;
 		struct friends friendlist[20];
-		size_t pos, i;
+		size_t pos, i, sz;
 
 		// SELECT f.`char_id`,f.`friend_id`,c.`name` FROM `lege_friend` f JOIN `lege_char` c ON f.`friend_id`=c.`char_id` ORDER BY f.char_id DESC, f.friend_id DESC
-		sz = sprintf(tmp_sql,"SELECT `char_id` FROM `%s` GROUP BY `char_id` ORDER BY `char_id` ASC", friend_db);
+		sz = snprintf(query, sizeof(query),"SELECT `char_id` FROM `%s` GROUP BY `char_id` ORDER BY `char_id` ASC", friend_db);
 
-		if( this->mysql_SendQuery(sql_res, tmp_sql, sz) )
+		if( this->mysql_SendQuery(sql_res, query, sz) )
 		{
 			while( (sql_row = mysql_fetch_row(sql_res)) )
 			{
 
+might be unnecessary to loop around all chars 
+since characters are loaded from sql one by one on demand
+there is no read cache planned right now
+
 				if( cCharList.find( CCharCharacter(atol(sql_row[0])), pos, 0) )
 				{
+					CCharCharacter temp;// = cCharList(pos,0);
 
-					CCharCharacter &temp = cCharList(pos,0);
-					sz = sprintf(tmp_sql,"SELECT f.`friend_id`, c.`name` FROM `%s` f JOIN `%s` c ON f.`friend_id` = c.`char_id` WHERE f.`char_id` = '%ld'",friend_db, char_db,atol(sql_row[0]) );
 
-					if( this->mysql_SendQuery(sql_res2, tmp_sql, sz) )
+					sz = snprintf(query, sizeof(query),"SELECT f.`friend_id`, c.`name` FROM `%s` f JOIN `%s` c ON f.`friend_id` = c.`char_id` WHERE f.`char_id` = '%ld'",friend_db, char_db,atol(sql_row[0]) );
+
+					if( this->mysql_SendQuery(sql_res2, query, sz) )
 					{
 						i=0;
-
-						for (i<MAX_FRIENDLIST && (sql_row2 = mysql_fetch_row(sql_res2)))
+						while( i<MAX_FRIENDLIST && (sql_row2 = mysql_fetch_row(sql_res2)))
 						{
 							temp.friendlist[i].friend_id   = atol(sql_row2[0]);
 							safestrcpy(temp.friendlist[i].friend_name,sql_row2[1],sizeof(temp.friendlist[0].friend_name) );
-							i++
+							i++;
 						}
-						mysql_free_result(sql_res2)
+						mysql_free_result(sql_res2);
 					}
 				}
 			}
 
 			mysql_free_result(sql_res);
 		}
-
+*/
 		return true;
 
 		// This is the query when searching to load friends list via char_id... which is what this will be replaced with.
@@ -1975,8 +2000,8 @@ private:
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// access interface
-	virtual size_t size()	{ return cCharList.size(); }
-	virtual CCharCharacter& operator[](size_t i)	{ return cCharList[i]; }
+	virtual size_t size()	{ return 0;/*cCharList.size();*/ }
+	virtual CCharCharacter& operator[](size_t i)	{ static CCharCharacter tmp; return tmp; /*cCharList[i];*/ }
 
 	virtual bool existChar(const char* name);
 	virtual bool searchChar(const char* name, CCharCharacter&data);
@@ -1998,29 +2023,14 @@ private:
 	// normal function
 	bool init(const char* configfile)
 	{	// init db
-		CConfig::LoadConfig(configfile);
-		return read_chars() && read_friends();
+		if(configfile)
+			CConfig::LoadConfig(configfile);
+		//return read_chars() && read_friends();
+		return true;
 	}
 	bool close()
 	{
-		return save_chars() && save_friends();
-	}
-
-	///////////////////////////////////////////////////////////////////////////
-	// timer function
-	virtual bool timeruserfunc(unsigned long tick)
-	{
-		// we only save if necessary:
-		// we have do some authentifications without do saving
-		if( savecount > 100 )
-		{
-			savecount=0;
-//			save_chars();
-			save_friends();
-		}
-
-		//!! todo check changes in files and reload them if necessary
-
+		//return save_chars() && save_friends();
 		return true;
 	}
 };
@@ -2028,28 +2038,8 @@ private:
 
 bool CCharDB_sql::ProcessConfig(const char*w1, const char*w2)
 {
-	if(strcasecmp(w1, "char_txt") == 0)
-	{
-		safestrcpy(char_txt, w2, sizeof(char_txt));
-	}
-	else if(strcasecmp(w1, "backup_txt") == 0)
-	{
-		safestrcpy(backup_txt, w2, sizeof(backup_txt));
-	}
-	else if(strcasecmp(w1, "friends_txt") == 0)
-	{
-		safestrcpy(friends_txt, w2, sizeof(friends_txt));
-	}
-	else if(strcasecmp(w1, "backup_txt_flag") == 0)
-	{
-		backup_txt_flag = Switch(w2);
-	}
-	else if(strcasecmp(w1, "autosave_time") == 0)
-	{
-		// less then 10 seconds and more than an hour is not realistic
-		CTimerBase::init( SwitchValue(w2, 10, 3600)*1000 );
-	}
-	else if(strcasecmp(w1, "start_point") == 0)
+
+	if(strcasecmp(w1, "start_point") == 0)
 	{
 		char map[32];
 		int x, y;
@@ -2089,15 +2079,14 @@ bool CCharDB_sql::ProcessConfig(const char*w1, const char*w2)
 
 bool CCharDB_sql::existChar(const char* name)
 {
-
 	// select char id where name = *name
-	size_t pos;
-	return cCharList.find( CCharCharacter(name), pos, 1);
+//	size_t pos;
+	return false;//cCharList.find( CCharCharacter(name), pos, 1);
 }
 bool CCharDB_sql::searchChar(const char* name, CCharCharacter&data)
 {
 	// select char_data where name = *name
-	size_t pos;
+/*	size_t pos;
 	if( cCharList.find( CCharCharacter(name), pos, 1) )
 	{
 		//if found char_id
@@ -2105,36 +2094,37 @@ bool CCharDB_sql::searchChar(const char* name, CCharCharacter&data)
 		data = cCharList[pos];
 		return true;
 	}
-	return false;
+*/	return false;
 }
 bool CCharDB_sql::searchChar(uint32 charid, CCharCharacter&data)
 {
 	// select char_data where char_id = *char_id
-	size_t pos;
+/*	size_t pos;
 	if( cCharList.find( CCharCharacter(charid), pos, 0) )
 	{
 		//if found char_id do like i said for search char
 		data = cCharList[pos];
 		return true;
 	}
-	return false;
+*/	return false;
 }
 bool CCharDB_sql::insertChar(CCharAccount &account, const char *name, unsigned char str, unsigned char agi, unsigned char vit, unsigned char int_, unsigned char dex, unsigned char luk, unsigned char slot, unsigned char hair_style, unsigned char hair_color, CCharCharacter&data)
 {
 
 	// insert into database all the data needed to finish creating a character, return false, if unfinished. return character data when complete
-	size_t pos;
+/*	size_t pos;
 	if( cAccountList.find(account,0,pos) )
 	{
 		make_new_char(cAccountList[pos], name, str, agi, vit, int_, dex, luk, slot, hair_style, hair_color)
 		account = cAccountList[pos];
 		return searchChar(name, data);
 	}
-	return false;
+*/	return false;
 }
 bool CCharDB_sql::removeChar(uint32 charid)
 {
-	size_t sz=sprintf(query, "DELETE FROM `%s` WHERE `char_id`='%d'", char_character_db, charid);
+	char query[1024];
+	size_t sz=sprintf(query, "DELETE FROM `%s` WHERE `char_id`='%d'", char_db, charid);
 	this->mysql_SendQuery(query, sz);
 
 	return true;
@@ -2147,18 +2137,25 @@ bool CCharDB_sql::saveChar(const CCharCharacter& data)
 bool CCharDB_sql::searchAccount(uint32 accid, CCharCharAccount& account)
 {
 	// SELECT char_id where account_id = *accid
-	size_t pos;
+/*	size_t pos;
 	if( cAccountList.find(CCharCharAccount(accid),0,pos) )
 	{
 		account = cAccountList[pos];
 		return true;
 	}
-	return false;
+*/	return false;
 }
 bool CCharDB_sql::saveAccount(CCharAccount& account)
 {
 	// Unknown function, can't find relative info for cAccountList.insert()
-	size_t pos;
+
+	// this is function is used in txt server to synchronise login and char server
+	// to given account data, 
+	// function could be empty if login and char are using the same database
+	// otherwise char needs to store the values to allow account authentification
+	// will change when uniting login and char data interface
+
+/*	size_t pos;
 	if( cAccountList.find(account,0,pos) )lol
 	{	// exist -> update list entry
 		cAccountList[pos].CCharAccount::operator=(account);
@@ -2168,496 +2165,35 @@ bool CCharDB_sql::saveAccount(CCharAccount& account)
 	{	// create new
 		return cAccountList.insert(account);
 	}
+*/
+	return false;
 }
 bool CCharDB_sql::removeAccount(uint32 accid)
 {
+	char query[1024];
+	size_t sz = snprintf(query, sizeof(query), "DELETE FROM `%s` WHERE `account_id` = '%ld'", (unsigned long) accid);
+	this->mysql_SendQuery(query, sz);
 
-	size_t sz = sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%ld'", (unsigned long) accid);
-	this->mysql_SendQuery(tmp_sql, sz);
-
-	size_t pos;
+/*	size_t pos;
 	if( cAccountList.find(CCharAccount(accid),0,pos) )
 	{	// exist -> update list entry
 		cAccountList.removeindex(pos);
 	}
-	return true;
-}
-
-CCharDBInterface* CCharDB::getDB(const char *dbcfgfile)
-{
-	return new CCharDB_sql(dbcfgfile);
+*/	return true;
 }
 
 
 
-*/
 
 
-
-class CGuildDB_sql : public CTimerBase, private CConfig, public CGuildDBInterface
+class CGuildDB_sql : public CMySQL, private CConfig, public CGuildDBInterface
 {
-	bool string2guild(const char *str, CGuild &g)
-	{
-		int i, j, c;
-		int tmp_int[16];
-		char tmp_str[4][256];
-		char tmp_str2[4096];
-		char *pstr;
-
-		// 基本データ
-		if( 8 > sscanf(str,
-			"%d\t%[^\t]\t%[^\t]\t%d,%d,%d,%d,%d\t%[^\t]\t%[^\t]\t",
-			&tmp_int[0],
-			tmp_str[0], tmp_str[1],
-			&tmp_int[1], &tmp_int[2], &tmp_int[3], &tmp_int[4], &tmp_int[5],
-			tmp_str[2], tmp_str[3]) )
-		{
-			return false;
-		}
-
-		g.guild_id = tmp_int[0];
-		g.guild_lv = tmp_int[1];
-		g.max_member = tmp_int[2];
-		g.exp = tmp_int[3];
-		g.skill_point = tmp_int[4];
-		g.castle_id = tmp_int[5];
-		safestrcpy(g.name, tmp_str[0], sizeof(g.name));
-		safestrcpy(g.master, tmp_str[1], sizeof(g.master));
-		safestrcpy(g.mes1, tmp_str[2], sizeof(g.mes1));
-		safestrcpy(g.mes2, tmp_str[3], sizeof(g.mes2));
-
-		for(j=0; j<6 && str!=NULL; j++)	// 位置スキップ
-			str = strchr(str + 1, '\t');
-
-		// メンバー
-		if(g.max_member>MAX_GUILD)
-			g.max_member=0;
-		for(i=0; i<g.max_member; i++)
-		{
-			struct guild_member &m = g.member[i];
-
-			if( sscanf(str+1, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\t%[^\t]\t",
-				&tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3], &tmp_int[4],
-				&tmp_int[5], &tmp_int[6], &tmp_int[7], &tmp_int[8], &tmp_int[9],
-				tmp_str[0]) < 11)
-				return false;
-
-			m.account_id = tmp_int[0];
-			m.char_id = tmp_int[1];
-			m.hair = tmp_int[2];
-			m.hair_color = tmp_int[3];
-			m.gender = tmp_int[4];
-			m.class_ = tmp_int[5];
-			m.lv = tmp_int[6];
-			m.exp = tmp_int[7];
-			m.exp_payper = tmp_int[8];
-			m.position = tmp_int[9];
-			safestrcpy(m.name, tmp_str[0], sizeof(m.name));
-
-			for(j=0; j<2 && str!=NULL; j++)	// 位置スキップ
-				str = strchr(str+1, '\t');
-		}
-
-		// 役職
-		i = 0;
-		while( sscanf(str+1, "%d,%d%n", &tmp_int[0], &tmp_int[1], &j) == 2 &&
-			str[1+j] == '\t')
-		{
-			struct guild_position &p = g.position[i];
-			if( sscanf(str+1, "%d,%d\t%[^\t]\t", &tmp_int[0], &tmp_int[1], tmp_str[0]) < 3)
-				return false;
-			p.mode = tmp_int[0];
-			p.exp_mode = tmp_int[1];
-			safestrcpy(p.name, tmp_str[0], sizeof(p.name));
-
-			for(j=0; j<2 && str!=NULL; j++)	// 位置スキップ
-				str = strchr(str+1, '\t');
-			i++;
-		}
-
-		// エンブレム
-		tmp_int[1] = 0;
-		if( sscanf(str + 1, "%d,%d,%[^\t]\t", &tmp_int[0], &tmp_int[1], tmp_str2)< 3 &&
-			sscanf(str + 1, "%d,%[^\t]\t", &tmp_int[0], tmp_str2) < 2 )
-			return false;
-		g.emblem_len = tmp_int[0];
-		g.emblem_id = tmp_int[1];
-		for(i=0, pstr=tmp_str2; i<g.emblem_len; i++, pstr+=2)
-		{
-			int c1 = pstr[0], c2 = pstr[1], x1 = 0, x2 = 0;
-			if (c1 >= '0' && c1 <= '9') x1 = c1 - '0';
-			if (c1 >= 'a' && c1 <= 'f') x1 = c1 - 'a' + 10;
-			if (c1 >= 'A' && c1 <= 'F') x1 = c1 - 'A' + 10;
-			if (c2 >= '0' && c2 <= '9') x2 = c2 - '0';
-			if (c2 >= 'a' && c2 <= 'f') x2 = c2 - 'a' + 10;
-			if (c2 >= 'A' && c2 <= 'F') x2 = c2 - 'A' + 10;
-			g.emblem_data[i] = (x1<<4) | x2;
-		}
-
-		str=strchr(str+1, '\t');	// 位置スキップ
-
-		// 同盟リスト
-		if (sscanf(str+1, "%d\t", &c) < 1)
-			return false;
-
-		str = strchr(str + 1, '\t');	// 位置スキップ
-		for(i = 0; i < c; i++)
-		{
-			struct guild_alliance &a = g.alliance[i];
-			if( sscanf(str + 1, "%d,%d\t%[^\t]\t", &tmp_int[0], &tmp_int[1], tmp_str[0]) < 3)
-				return false;
-			a.guild_id = tmp_int[0];
-			a.opposition = tmp_int[1];
-			safestrcpy(a.name, tmp_str[0], sizeof(a.name));
-
-			for(j=0; j<2 && str!=NULL; j++)	// 位置スキップ
-				str = strchr(str + 1, '\t');
-		}
-
-		// 追放リスト
-		if (sscanf(str+1, "%d\t", &c) < 1)
-			return false;
-
-		str = strchr(str + 1, '\t');	// 位置スキップ
-		for(i=0; i<c; i++)
-		{
-			struct guild_explusion &e = g.explusion[i];
-			if( sscanf(str + 1, "%d,%d,%d,%d\t%[^\t]\t%[^\t]\t%[^\t]\t",
-				&tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3],
-				tmp_str[0], tmp_str[1], tmp_str[2]) < 6)
-				return false;
-			e.account_id = tmp_int[0];
-			e.rsv1 = tmp_int[1];
-			e.rsv2 = tmp_int[2];
-			e.rsv3 = tmp_int[3];
-			safestrcpy(e.name, tmp_str[0], sizeof(e.name));
-			safestrcpy(e.acc, tmp_str[1], sizeof(e.acc));
-			safestrcpy(e.mes, tmp_str[2], sizeof(e.mes));
-
-			for(j=0; j<4 && str!=NULL; j++)	// 位置スキップ
-				str = strchr(str+1, '\t');
-		}
-
-		// ギルドスキル
-		for(i=0; i<MAX_GUILDSKILL; i++)
-		{
-			if (sscanf(str+1,"%d,%d ", &tmp_int[0], &tmp_int[1]) < 2)
-				break;
-			g.skill[i].id = tmp_int[0];
-			g.skill[i].lv = tmp_int[1];
-			str = strchr(str+1, ' ');
-		}
-		str = strchr(str + 1, '\t');
-
-		return true;
-	}
-
-	ssize_t guild2string(char *str, size_t maxlen, const CGuild &g)
-	{
-		ssize_t i, c, len;
-
-		// 基本データ
-		len = sprintf(str, "%ld\t%s\t%s\t%d,%d,%ld,%d,%d\t%s#\t%s#\t",
-					  (unsigned long)g.guild_id, g.name, g.master,
-					  g.guild_lv, g.max_member, (unsigned long)g.exp, g.skill_point, g.castle_id,
-					  g.mes1, g.mes2);
-		// メンバー
-		for(i = 0; i < g.max_member; i++) {
-			const struct guild_member &m = g.member[i];
-			len += sprintf(str + len, "%ld,%ld,%d,%d,%d,%d,%d,%ld,%ld,%d\t%s\t",
-						   (unsigned long)m.account_id, (unsigned long)m.char_id,
-						   m.hair, m.hair_color, m.gender,
-						   m.class_, m.lv, (unsigned long)m.exp, (unsigned long)m.exp_payper, m.position,
-						   ((m.account_id > 0) ? m.name : "-"));
-		}
-		// 役職
-		for(i = 0; i < MAX_GUILDPOSITION; i++) {
-			const struct guild_position &p = g.position[i];
-			len += sprintf(str + len, "%ld,%ld\t%s#\t", (unsigned long)p.mode, (unsigned long)p.exp_mode, p.name);
-		}
-		// エンブレム
-		len += sprintf(str + len, "%d,%ld,", g.emblem_len, (unsigned long)g.emblem_id);
-		for(i = 0; i < g.emblem_len; i++) {
-			len += sprintf(str + len, "%02x", (unsigned char)(g.emblem_data[i]));
-		}
-		len += sprintf(str + len, "$\t");
-		// 同盟リスト
-		c = 0;
-		for(i = 0; i < MAX_GUILDALLIANCE; i++)
-			if (g.alliance[i].guild_id > 0)
-				c++;
-		len += sprintf(str + len, "%d\t", c);
-		for(i = 0; i < MAX_GUILDALLIANCE; i++) {
-			const struct guild_alliance &a = g.alliance[i];
-			if (a.guild_id > 0)
-				len += sprintf(str + len, "%ld,%ld\t%s\t", (unsigned long)a.guild_id, (unsigned long)a.opposition, a.name);
-		}
-		// 追放リスト
-		c = 0;
-		for(i = 0; i < MAX_GUILDEXPLUSION; i++)
-			if (g.explusion[i].account_id > 0)
-				c++;
-		len += sprintf(str + len, "%d\t", c);
-		for(i = 0; i < MAX_GUILDEXPLUSION; i++) {
-			const struct guild_explusion &e = g.explusion[i];
-			if (e.account_id > 0)
-				len += sprintf(str + len, "%ld,%ld,%ld,%ld\t%s\t%s\t%s#\t",
-							   (unsigned long)e.account_id, (unsigned long)e.rsv1, (unsigned long)e.rsv2, (unsigned long)e.rsv3,
-							   e.name, e.acc, e.mes );
-		}
-		// ギルドスキル
-		for(i = 0; i < MAX_GUILDSKILL; i++) {
-			len += sprintf(str + len, "%d,%d ", g.skill[i].id, g.skill[i].lv);
-		}
-		len += sprintf(str+len, "\t"RETCODE);
-		return len;
-	}
-
-	ssize_t castle2string(char *str, size_t maxlen, const CCastle &gc)
-	{
-		ssize_t len;
-		len = snprintf(str, maxlen, "%d,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld"RETCODE,	// added Guardian HP [Valaris]
-					  gc.castle_id, (unsigned long)gc.guild_id, (unsigned long)gc.economy, (unsigned long)gc.defense, (unsigned long)gc.triggerE,
-					  (unsigned long)gc.triggerD, (unsigned long)gc.nextTime, (unsigned long)gc.payTime, (unsigned long)gc.createTime, (unsigned long)gc.visibleC,
-					  (unsigned long)gc.guardian[0].visible, (unsigned long)gc.guardian[1].visible, (unsigned long)gc.guardian[2].visible, (unsigned long)gc.guardian[3].visible,
-					  (unsigned long)gc.guardian[4].visible, (unsigned long)gc.guardian[5].visible, (unsigned long)gc.guardian[6].visible, (unsigned long)gc.guardian[7].visible,
-					  (unsigned long)gc.guardian[0].guardian_hp, (unsigned long)gc.guardian[1].guardian_hp, (unsigned long)gc.guardian[2].guardian_hp, (unsigned long)gc.guardian[3].guardian_hp,
-					  (unsigned long)gc.guardian[4].guardian_hp, (unsigned long)gc.guardian[5].guardian_hp, (unsigned long)gc.guardian[6].guardian_hp, (unsigned long)gc.guardian[7].guardian_hp);
-		return len;
-	}
-
-	// ギルド城データの文字列からの変換
-	bool string2castle(char *str, CCastle &gc)
-	{
-		int tmp_int[26];
-		memset(tmp_int, 0, sizeof(tmp_int));
-		if (sscanf(str, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
-				   &tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3], &tmp_int[4], &tmp_int[5], &tmp_int[6],
-				   &tmp_int[7], &tmp_int[8], &tmp_int[9], &tmp_int[10], &tmp_int[11], &tmp_int[12], &tmp_int[13],
-				   &tmp_int[14], &tmp_int[15], &tmp_int[16], &tmp_int[17], &tmp_int[18], &tmp_int[19], &tmp_int[20],
-				   &tmp_int[21], &tmp_int[22], &tmp_int[23], &tmp_int[24], &tmp_int[25]) == 26) {
-			gc.castle_id = tmp_int[0];
-			gc.guild_id = tmp_int[1];
-			gc.economy = tmp_int[2];
-			gc.defense = tmp_int[3];
-			gc.triggerE = tmp_int[4];
-			gc.triggerD = tmp_int[5];
-			gc.nextTime = tmp_int[6];
-			gc.payTime = tmp_int[7];
-			gc.createTime = tmp_int[8];
-			gc.visibleC = tmp_int[9];
-			gc.guardian[0].visible = tmp_int[10];
-			gc.guardian[1].visible = tmp_int[11];
-			gc.guardian[2].visible = tmp_int[12];
-			gc.guardian[3].visible = tmp_int[13];
-			gc.guardian[4].visible = tmp_int[14];
-			gc.guardian[5].visible = tmp_int[15];
-			gc.guardian[6].visible = tmp_int[16];
-			gc.guardian[7].visible = tmp_int[17];
-			gc.guardian[0].guardian_hp = tmp_int[18];
-			gc.guardian[1].guardian_hp = tmp_int[19];
-			gc.guardian[2].guardian_hp = tmp_int[20];
-			gc.guardian[3].guardian_hp = tmp_int[21];
-			gc.guardian[4].guardian_hp = tmp_int[22];
-			gc.guardian[5].guardian_hp = tmp_int[23];
-			gc.guardian[6].guardian_hp = tmp_int[24];
-			gc.guardian[7].guardian_hp = tmp_int[25];	// end additions [Valaris]
-		// old structure of guild castle
-		} else if (sscanf(str, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
-						  &tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3], &tmp_int[4], &tmp_int[5], &tmp_int[6],
-						  &tmp_int[7], &tmp_int[8], &tmp_int[9], &tmp_int[10], &tmp_int[11], &tmp_int[12], &tmp_int[13],
-						  &tmp_int[14], &tmp_int[15], &tmp_int[16], &tmp_int[17]) == 18) {
-			gc.castle_id = tmp_int[0];
-			gc.guild_id = tmp_int[1];
-			gc.economy = tmp_int[2];
-			gc.defense = tmp_int[3];
-			gc.triggerE = tmp_int[4];
-			gc.triggerD = tmp_int[5];
-			gc.nextTime = tmp_int[6];
-			gc.payTime = tmp_int[7];
-			gc.createTime = tmp_int[8];
-			gc.visibleC = tmp_int[9];
-			gc.guardian[0].visible = tmp_int[10];
-			gc.guardian[1].visible = tmp_int[11];
-			gc.guardian[2].visible = tmp_int[12];
-			gc.guardian[3].visible = tmp_int[13];
-			gc.guardian[4].visible = tmp_int[14];
-			gc.guardian[5].visible = tmp_int[15];
-			gc.guardian[6].visible = tmp_int[16];
-			gc.guardian[7].visible = tmp_int[17];
-			gc.guardian[0].guardian_hp = (gc.guardian[0].visible) ? 15670 + 2000 * gc.defense : 0;
-			gc.guardian[1].guardian_hp = (gc.guardian[1].visible) ? 15670 + 2000 * gc.defense : 0;
-			gc.guardian[2].guardian_hp = (gc.guardian[2].visible) ? 15670 + 2000 * gc.defense : 0;
-			gc.guardian[3].guardian_hp = (gc.guardian[3].visible) ? 30214 + 2000 * gc.defense : 0;
-			gc.guardian[4].guardian_hp = (gc.guardian[4].visible) ? 30214 + 2000 * gc.defense : 0;
-			gc.guardian[5].guardian_hp = (gc.guardian[5].visible) ? 28634 + 2000 * gc.defense : 0;
-			gc.guardian[6].guardian_hp = (gc.guardian[6].visible) ? 28634 + 2000 * gc.defense : 0;
-			gc.guardian[7].guardian_hp = (gc.guardian[7].visible) ? 28634 + 2000 * gc.defense : 0;
-		}
-		else
-		{
-			return false;
-		}
-		return true;
-	}
-	bool readGuildsCastles()
-	{
-		char line[16384];
-		FILE *fp;
-		int i, j, c;
-
-		///////////////////////////////////////////////////////////////////////
-		fp = safefopen(guild_filename,"r");
-		if(fp == NULL)
-		{
-			ShowError("can't read %s\n", guild_filename);
-			return false;
-		}
-
-		c=0;
-		while(fgets(line, sizeof(line), fp))
-		{
-			c++;
-			if( !skip_empty_line(line) )
-				continue;
-
-			CGuild g;
-			j = 0;
-			if (sscanf(line, "%d\t%%newid%%\n%n", &i, &j) == 1 && j > 0 && next_guild_id <= (uint32)i) {
-				next_guild_id = i;
-				continue;
-			}
-			if( string2guild(line, g) && g.guild_id > 0 )
-			{
-				g.calcInfo();
-				if(g.max_member>0 && g.max_member < MAX_GUILD)
-				{
-					for(i=0;i<g.max_member;i++)
-					{
-						if(g.member[i].account_id>0)
-							break;
-					}
-					if(i<g.max_member)
-					{
-
-
-						if( g.guild_id >= next_guild_id )
-							next_guild_id = g.guild_id + 1;
-
-						cGuilds.insert(g);
-					}
-				}
-			}
-			else
-			{
-				ShowError("Guild: broken data [%s] line %d\n", guild_filename, c);
-			}
-		}
-		fclose(fp);
-		ShowStatus("Guild: %s read done (%d guilds)\n", guild_filename, cGuilds.size());
-		///////////////////////////////////////////////////////////////////////
-
-
-		///////////////////////////////////////////////////////////////////////
-		fp = safefopen(castle_filename, "r");
-		if( fp==NULL )
-		{
-			ShowError("GuildCastle: cannot open %s\n", castle_filename);
-			return false;
-		}
-		c = 0;
-		while(fgets(line, sizeof(line), fp))
-		{
-			c++;
-
-			if( !skip_empty_line(line) )
-				continue;
-
-			size_t pos;
-			CCastle gc;
-			if( string2castle(line, gc) )
-			{	// clear guildcastles with removed guilds
-				if( gc.guild_id && !cGuilds.find(CGuild(gc.guild_id), pos, 0) )
-					gc.guild_id = 0;
-
-				cCastles.insert(gc);
-			}
-			else
-				ShowError("GuildCastle: broken data [%s] line %d\n", castle_filename, c);
-
-		}
-		fclose(fp);
-		ShowStatus("GuildCastle: %s read done (%d castles)\n", castle_filename, cCastles.size());
-
-		for(i = 0; i < MAX_GUILDCASTLE; i++)
-		{	// check if castle exists
-			size_t pos;
-			if( !cCastles.find( CCastle(i), 0, pos) )
-			{	// construct a new one if not
-				cCastles.insert( CCastle(i) ); // constructor takes care of all settings
-			}
-		}
-		///////////////////////////////////////////////////////////////////////
-		return true;
-	}
-	bool saveGuildsCastles()
-	{
-		bool ret=true;
-		char line[65536];
-		FILE *fp;
-		int lock;
-		size_t i, sz;
-		///////////////////////////////////////////////////////////////////////
-		fp = lock_fopen(guild_filename,&lock);
-		if( fp == NULL) {
-			ShowError("Guild: cannot open [%s]\n", guild_filename);
-			ret = false;
-		}
-		else
-		{
-			for(i=0; i<cGuilds.size(); i++)
-			{
-				sz=guild2string(line, sizeof(line), cGuilds[i]);
-				//fprintf(fp, "%s" RETCODE, line); // retcode integrated to line generation
-				if(sz>0)
-					fwrite(line, sz,1,fp);
-			}
-			lock_fclose(fp, guild_filename, &lock);
-		}
-
-
-		///////////////////////////////////////////////////////////////////////
-		fp = lock_fopen(castle_filename,&lock);
-		if( fp == NULL) {
-			ShowError("Guild: cannot open [%s]\n", castle_filename);
-			ret = false;
-		}
-		else
-		{
-			for(i=0; i<cCastles.size(); i++)
-			{
-				sz=castle2string(line, sizeof(line), cCastles[i]);
-				//fprintf(fp, "%s" RETCODE, line);	// retcode integrated to line generation
-				if(sz>0) fwrite(line, sz,1,fp);
-			}
-			lock_fclose(fp, castle_filename, &lock);
-		}
-		///////////////////////////////////////////////////////////////////////
-		return ret;
-	}
-
 
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// construct/destruct
-	CGuildDB_sql(const char *configfile) :
-		CTimerBase(60000),		// 60sec save interval
-		next_guild_id(10000),
-		savecount(0)
+	CGuildDB_sql(const char *configfile)
 	{
-		safestrcpy(guild_filename,"save/guild.txt",sizeof(guild_filename));
-		safestrcpy(castle_filename,"save/castle.txt",sizeof(castle_filename));
-		safestrcpy(guildexp_filename,"db/exp_guild.txt",sizeof(guildexp_filename));
 		init(configfile);
 	}
 	virtual ~CGuildDB_sql()
@@ -2667,13 +2203,6 @@ public:
 private:
 	///////////////////////////////////////////////////////////////////////////
 	// data
-	TMultiListP<CGuild, 2>	cGuilds;
-	TslistDST<CCastle>		cCastles;
-	uint32					next_guild_id;
-	uint					savecount;
-	char					guild_filename[1024];
-	char					castle_filename[1024];
-	char					guildexp_filename[1024];
 
 
 	///////////////////////////////////////////////////////////////////////////
@@ -2687,44 +2216,34 @@ private:
 	// normal function
 	bool init(const char* configfile)
 	{	// init db
-		CConfig::LoadConfig(configfile);
-		CGuild::cGuildExp.init(guildexp_filename);
-		return readGuildsCastles();
+		if(configfile)
+			CConfig::LoadConfig(configfile);
+		return false;
 	}
 	bool close()
 	{
-		return saveGuildsCastles();
-	}
-
-	///////////////////////////////////////////////////////////////////////////
-	// timer function
-	virtual bool timeruserfunc(unsigned long tick)
-	{
-		// we only save if necessary:
-		// we have do some authentifications without do saving
-		if( savecount > 10 )
-		{
-			savecount=0;
-			saveGuildsCastles();
-		}
-		return true;
+		return false;
 	}
 
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// access interface
-	virtual size_t size()					{ return cGuilds.size(); }
-	virtual CGuild& operator[](size_t i)	{ return cGuilds[i]; }
+	virtual size_t size()					{ return 0;/*cGuilds.size();*/ }
+	virtual CGuild& operator[](size_t i)	{ static CGuild tmp; return tmp; /*return cGuilds[i];*/ }
+
+	virtual size_t castlesize()				{ return 0;/*cGuilds.size();*/ }
+	virtual CCastle &castle(size_t i)		{ static CCastle tmp; return tmp; }
+
 
 	virtual bool searchGuild(const char* name, CGuild& guild)
 	{
-		//select guild_data where name = *name
+		//select guild_data where name = name
 		// return true and guild data
 		return false;
 	}
 	virtual bool searchGuild(uint32 guildid, CGuild& guild)
 	{
-		// select guild_data where guild_id = *guildid
+		// select guild_data where guild_id = guildid
 		// return true and guild data
 		return false;
 	}
@@ -2759,6 +2278,8 @@ public:
 	virtual bool removeGuild(uint32 guildid)
 	{
 		// Delete from guild where guild_id = *guildid
+		// clear alliances
+		// clear castles
 		// else
 		return false;
 	}
@@ -2791,46 +2312,10 @@ public:
 
 
 
-
-CGuildDBInterface* CGuildDB::getDB(const char *dbcfgfile)
-{
-	return new CGuildDB_sql(dbcfgfile);
-}
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Guild Experience
-void CGuildExp::init(const char* filename)
-{
-	FILE* fp=safefopen(filename,"r");
-	memset(exp,0,sizeof(exp));
-	if(fp==NULL)
-	{
-		ShowError("can't read %s\n", filename);
-	}
-	else
-	{
-		char line[1024];
-		int c=0;
-		while(fgets(line,sizeof(line),fp) && c<100)
-		{
-			if( !skip_empty_line(line) )
-				continue;
-			exp[c]=atoi(line);
-			c++;
-		}
-		fclose(fp);
-	}
-}
-// static member of CGuild
-CGuildExp CGuild::cGuildExp;
-
-
-
 ///////////////////////////////////////////////////////////////////////////////
 // Party Database
 ///////////////////////////////////////////////////////////////////////////////
-class CPartyDB_sql : public CTimerBase, private CConfig, public CPartyDBInterface
+class CPartyDB_sql : public CMySQL, private CConfig, public CPartyDBInterface
 {
 /*		// Shouldnt be needed for SQL versions
 		// WIll keep for reference to data structures and usage
@@ -2953,12 +2438,8 @@ class CPartyDB_sql : public CTimerBase, private CConfig, public CPartyDBInterfac
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// construct/destruct
-	CPartyDB_sql(const char *configfile) :
-		CTimerBase(60000),		// 60sec save interval
-		next_party_id(1000),
-		savecount(0)
+	CPartyDB_sql(const char *configfile)
 	{
-		safestrcpy(party_filename,"save/party.txt",sizeof(party_filename));
 		init(configfile);
 	}
 	virtual ~CPartyDB_sql()
@@ -2984,32 +2465,20 @@ private:
 	// normal function
 	bool init(const char* configfile)
 	{	// init db
-		CConfig::LoadConfig(configfile);
-		return readParties();
+		if(configfile)
+			CConfig::LoadConfig(configfile);
+		return true;
 	}
 	bool close()
 	{
-		return saveParties();
-	}
-
-	///////////////////////////////////////////////////////////////////////////
-	// timer function
-	virtual bool timeruserfunc(unsigned long tick)
-	{
-		// we only save if necessary:
-		// we have do some authentifications without do saving
-		if( savecount > 10 )
-		{
-			savecount=0;
-			saveParties();
-		}
 		return true;
 	}
 
+
 	///////////////////////////////////////////////////////////////////////////
 	// access interface
-	virtual size_t size()					{ return cParties.size(); }
-	virtual CParty& operator[](size_t i)	{ return cParties[i]; }
+	virtual size_t size()					{ return 0; /*cParties.size();*/ }
+	virtual CParty& operator[](size_t i)	{ static CParty tmp; return tmp; /*return cParties[i];*/ }
 
 	virtual bool searchParty(const char* name, CParty& party)
 	{
@@ -3065,15 +2534,11 @@ private:
 };
 
 
-CPartyDBInterface* CPartyDB::getDB(const char *dbcfgfile)
-{
-	return new CPartyDB_sql(dbcfgfile);
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Storage Database Interface
 ///////////////////////////////////////////////////////////////////////////////
-class CPCStorageDB_sql : public CTimerBase, private CConfig, public CPCStorageDBInterface
+class CPCStorageDB_sql : public CMySQL, private CConfig, public CPCStorageDBInterface
 {
 /*		// Shouldnt be needed for SQL versions
 		// WIll keep for reference to data structures and usage
@@ -3223,11 +2688,8 @@ class CPCStorageDB_sql : public CTimerBase, private CConfig, public CPCStorageDB
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// construct/destruct
-	CPCStorageDB_sql(const char *dbcfgfile) :
-		CTimerBase(60000),		// 60sec save interval
-		savecount(0)
+	CPCStorageDB_sql(const char *dbcfgfile)
 	{
-		safestrcpy(pcstorage_filename, "save/storage.txt", sizeof(pcstorage_filename));
 		init(dbcfgfile);
 	}
 	virtual ~CPCStorageDB_sql()
@@ -3238,9 +2700,6 @@ public:
 private:
 	///////////////////////////////////////////////////////////////////////////
 	// data
-	TslistDST<CPCStorage>	cPCStorList;
-	uint savecount;
-	char pcstorage_filename[1024];
 
 
 	///////////////////////////////////////////////////////////////////////////
@@ -3254,33 +2713,21 @@ private:
 	// normal function
 	bool init(const char* configfile)
 	{	// init db
-		CConfig::LoadConfig(configfile);
-		return readPCStorage();
+		if(configfile)
+			CConfig::LoadConfig(configfile);
+		return true;
 	}
 	bool close()
 	{
-		return savePCStorage();
-	}
-
-	///////////////////////////////////////////////////////////////////////////
-	// timer function
-	virtual bool timeruserfunc(unsigned long tick)
-	{
-		// we only save if necessary:
-		// we have do some authentifications without do saving
-		if( savecount > 10 )
-		{
-			savecount=0;
-			savePCStorage();
-		}
 		return true;
 	}
 
 
+
 	///////////////////////////////////////////////////////////////////////////
 	// access interface
-	virtual size_t size()	{ return cPCStorList.size(); }
-	virtual CPCStorage& operator[](size_t i)	{ return cPCStorList[i]; }
+	virtual size_t size()	{ return 0; /*cPCStorList.size();*/ }
+	virtual CPCStorage& operator[](size_t i)	{ static CPCStorage tmp; return tmp; /*cPCStorList[i];*/ }
 
 	virtual bool searchStorage(uint32 accid, CPCStorage& stor)
 	{
@@ -3302,12 +2749,8 @@ private:
 };
 
 
-CPCStorageDBInterface* CPCStorageDB::getDB(const char *dbcfgfile)
-{
-	return new CPCStorageDB_sql(dbcfgfile);
-}
 
-class CGuildStorageDB_sql : public CTimerBase, private CConfig, public CGuildStorageDBInterface
+class CGuildStorageDB_sql : public CMySQL, private CConfig, public CGuildStorageDBInterface
 {
 /*		// Shouldnt be needed for SQL versions
 		// WIll keep for reference to data structures and usage
@@ -3453,11 +2896,8 @@ class CGuildStorageDB_sql : public CTimerBase, private CConfig, public CGuildSto
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// construct/destruct
-	CGuildStorageDB_sql(const char *dbcfgfile) :
-		CTimerBase(60000),		// 60sec save interval
-		savecount(0)
+	CGuildStorageDB_sql(const char *dbcfgfile)
 	{
-		safestrcpy(guildstorage_filename, "save/g_storage.txt", sizeof(guildstorage_filename));
 		init(dbcfgfile);
 	}
 	virtual ~CGuildStorageDB_sql()
@@ -3469,9 +2909,6 @@ public:
 private:
 	///////////////////////////////////////////////////////////////////////////
 	// data
-	TslistDST<CGuildStorage> cGuildStorList;
-	uint savecount;
-	char guildstorage_filename[1024];
 
 
 	///////////////////////////////////////////////////////////////////////////
@@ -3485,33 +2922,21 @@ private:
 	// normal function
 	bool init(const char* configfile)
 	{	// init db
-		CConfig::LoadConfig(configfile);
-		return readGuildStorage();
+		if(configfile)
+			CConfig::LoadConfig(configfile);
+		return false;
 	}
 	bool close()
 	{
-		return saveGuildStorage();
+		return false;
 	}
 
-	///////////////////////////////////////////////////////////////////////////
-	// timer function
-	virtual bool timeruserfunc(unsigned long tick)
-	{
-		// we only save if necessary:
-		// we have do some authentifications without do saving
-		if( savecount > 10 )
-		{
-			savecount=0;
-			saveGuildStorage();
-		}
-		return true;
-	}
 
 
 	///////////////////////////////////////////////////////////////////////////
 	// access interface
-	virtual size_t size()	{ return cGuildStorList.size(); }
-	virtual CGuildStorage& operator[](size_t i)	{ return cGuildStorList[i]; }
+	virtual size_t size()	{ return 0; /*cGuildStorList.size();*/ }
+	virtual CGuildStorage& operator[](size_t i)	{ static CGuildStorage tmp; return tmp; /*cGuildStorList[i];*/ }
 
 	virtual bool searchStorage(uint32 gid, CGuildStorage& stor)
 	{
@@ -3530,10 +2955,5 @@ private:
 	}
 };
 
-
-CGuildStorageDBInterface* CGuildStorageDB::getDB(const char *dbcfgfile)
-{
-	return new CGuildStorageDB_sql(dbcfgfile);
-}
 
 #endif// SQL

@@ -2,6 +2,7 @@
 #define __IO_H__
 
 #include "base.h"
+#include "baseparam.h"
 #include "showmsg.h"	// ShowMessage
 #include "utils.h"		// safefopen
 #include "socket.h"		// buffer iterator
@@ -9,404 +10,6 @@
 #include "db.h"
 #include "strlib.h"
 #include "mmo.h"
-
-//////////////////////////////////////////////////////////////////////////
-// basic interface for reading configs from file
-//////////////////////////////////////////////////////////////////////////
-class CConfig
-{
-public:
-	CConfig(){}
-	virtual ~CConfig(){}
-
-	bool LoadConfig(const char* cfgName);							// Load and parse config
-	virtual bool ProcessConfig(const char*w1,const char*w2) = 0;	// Proccess config
-
-	static int SwitchValue(const char *str, int defaultmin=INT_MIN, int defaultmax=INT_MAX);  // Return 0/1 for no/yes
-	static bool Switch(const char *str, bool defaultval=false);		// Return true/false for yes/no, if unknown return defaultval
-	
-	static bool CleanControlChars(char *str);						// Replace control chars with '_' and return location of change
-};
-
-
-///////////////////////////////////////////////////////////////////////////////
-// basic class for using the old way timers
-///////////////////////////////////////////////////////////////////////////////
-class CTimerBase : public global, public noncopyable
-{
-	int cTimer;
-protected:
-	CTimerBase(unsigned long interval)
-	{
-		init(interval);
-	}
-	virtual ~CTimerBase()
-	{
-		if(cTimer>0)
-		{
-			delete_timer(cTimer, timercallback);
-			cTimer = -1;
-		}
-	}
-	bool init(unsigned long interval)
-	{
-		if(interval<1000)
-			interval = 1000;
-		cTimer = add_timer_interval(gettick()+interval, interval, timercallback, 0, intptr(this), false);
-		return (cTimer>=0);
-	}
-
-	// user function
-	virtual bool timeruserfunc(unsigned long tick) = 0;
-
-	// external calling from external timer implementation
-	static int timercallback(int timer, unsigned long tick, int id, intptr data)
-	{
-		if(data.ptr)
-		{
-			CTimerBase* base = (CTimerBase*)data.ptr;
-			if(timer==base->cTimer)
-			{
-				if( !base->timeruserfunc(tick) )
-				{
-					delete_timer(base->cTimer, timercallback);
-					base->cTimer = -1;
-				}
-			}
-		}
-		return 0;
-	}
-};
-
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Parameter class
-// for parameter storage and distribution
-// reads in config files and holds the variables
-///////////////////////////////////////////////////////////////////////////////
-
-///////////////////////////////////////////////////////////////////////////////
-// predefined conversion functions for common data types
-//!! move them to virtual convert implementations directly at CParamData
-inline bool paramconvert(long &t, const char* str)
-{
-	char *ss=NULL;
-	t = (!str || strcasecmp(str, "off") == 0 || strcasecmp(str, "no" ) == 0 || strcasecmp(str, "non") == 0 || strcasecmp(str, "nein") == 0) ? 0 :
-		(        strcasecmp(str, "on" ) == 0 || strcasecmp(str, "yes") == 0 || strcasecmp(str, "oui") == 0 || strcasecmp(str, "ja"  ) == 0 || strcasecmp(str, "si") == 0) ? 1 : 
-		strtol(str, &ss, 0);
-	return true;
-}
-inline bool paramconvert(ulong &t, const char* str)
-{
-	char *ss=NULL;
-	t = (!str || strcasecmp(str, "off") == 0 || strcasecmp(str, "no" ) == 0 || strcasecmp(str, "non") == 0 || strcasecmp(str, "nein") == 0) ? 0 :
-		(        strcasecmp(str, "on" ) == 0 || strcasecmp(str, "yes") == 0 || strcasecmp(str, "oui") == 0 || strcasecmp(str, "ja"  ) == 0 || strcasecmp(str, "si") == 0) ? 1 : 
-		strtoul(str, &ss, 0);
-	return true;
-}
-inline bool paramconvert(double &t, const char* s) 
-{
-	char *ss=0;
-	t= (s) ? strtod(s, &ss) : 0;
-	//if(ss && *ss) return PARAM_CONVERSION;
-	return true;
-}
-
-inline bool paramconvert( int            &t, const char* s) {  long val; bool ret=paramconvert(val, s); t=val; return ret; }
-inline bool paramconvert( unsigned       &t, const char* s) { ulong val; bool ret=paramconvert(val, s); t=val; return ret; }
-inline bool paramconvert( short          &t, const char* s) {  long val; bool ret=paramconvert(val, s); t=val; return ret; }
-inline bool paramconvert( unsigned short &t, const char* s) { ulong val; bool ret=paramconvert(val, s); t=val; return ret; }
-inline bool paramconvert( char           &t, const char* s) {  long val; bool ret=paramconvert(val, s); t=val; return ret; }
-inline bool paramconvert( unsigned char  &t, const char* s) { ulong val; bool ret=paramconvert(val, s); t=val; return ret; }
-inline bool paramconvert( bool           &t, const char* s) {  long val; bool ret=paramconvert(val, s); t=(0!=val); return ret; }
-inline bool paramconvert( float          &t, const char* s) { double val; bool ret=paramconvert( val, s); t=val; return ret; }
-
-///////////////////////////////////////////////////////////////////////////////
-// template for the rest
-// usable types need an assignment operator of MiniString or const char* 
-template <class T> inline bool paramconvert( T &t, const char* s)
-{
-	t=(s) ? s : "";
-	return true;
-}
-
-
-
-///////////////////////////////////////////////////////////////////////////////
-// parameter base class
-class CParamBase
-{
-	///////////////////////////////////////////////////////////////////////////
-	// class data
-	bool cReferenced;	// true when this parameter has been referenced
-public:
-	///////////////////////////////////////////////////////////////////////////
-	// construct/destruct
-	CParamBase() : cReferenced(false)	{}
-	virtual ~CParamBase()	{}
-	///////////////////////////////////////////////////////////////////////////
-	// check/set the reference
-	bool isReferenced()	{ return cReferenced; }
-	bool setReference()	{ return (cReferenced=true); }
-	///////////////////////////////////////////////////////////////////////////
-	// access functions for overloading
-	virtual const std::type_info& getType()	{ return typeid(CParamBase); }
-	virtual bool assign(const char*s)	{ return false; }
-	virtual void print()	{ printf("\nparameter uninitialized"); }
-};
-
-///////////////////////////////////////////////////////////////////////////////
-// parameter storage
-// stored parameters and their names as smart pointers in a sorted list
-// gives out references for changing parameters at their storage
-// needs external lock of the provided mutex for multithread environment
-class CParamStorage : public MiniString
-{
-	///////////////////////////////////////////////////////////////////////////
-	// internal class for loading/storing/reloading config files
-	// and automatically setting up of changed parameters
-	class CParamLoader : private CConfig, private CTimerBase
-	{
-		///////////////////////////////////////////////////////////////////////
-		// stores information about a file
-		class CFileData : public MiniString
-		{
-			///////////////////////////////////////////////////////////////////
-			// class data
-			time_t modtime;	// last modification time of the file
-		public:
-			///////////////////////////////////////////////////////////////////
-			// construction/destruction
-			CFileData()	{}
-			CFileData(const char* name) : MiniString(name)
-			{
-				struct stat s;
-				if( 0==stat(name, &s) )
-					modtime = s.st_mtime;
-			}
-			~CFileData()	{}
-
-			///////////////////////////////////////////////////////////////////
-			// checking file state
-			bool isModified()
-			{
-				struct stat s;
-				return ( 0==stat((const char*)(*this), &s) && s.st_mtime!=this->modtime );
-			}
-		};
-		///////////////////////////////////////////////////////////////////////
-
-		///////////////////////////////////////////////////////////////////////
-		// class data
-		TslistDCT<CFileData>	cFileList;			// list of loaded files
-	public:
-		CParamLoader() : CTimerBase(5*60*1000)		// 5 minutes interval for file checks
-		{}
-		/////////////////////////////////////////////////////////////
-		// timer callback
-		virtual bool timeruserfunc(unsigned long tick)
-		{	// check all listed files for modification
-			size_t i;
-			for(i=0; i<cFileList.size(); i++)
-				if( cFileList[i].isModified() )
-					LoadConfig( cFileList[i] );
-			return true;
-		}
-		/////////////////////////////////////////////////////////////
-		// config processing callback
-		virtual bool ProcessConfig(const char*w1,const char*w2)
-		{	// create/update parameter
-			CParamStorage::create(w1, w2);
-			return true;
-		}
-		/////////////////////////////////////////////////////////////
-		// external access
-		void loadFile(const char* name)
-		{
-			LoadConfig( name );
-			cFileList.insert( CFileData(name) );
-		}
-	};
-
-	///////////////////////////////////////////////////////////////////////////
-	// static data
-	static CParamLoader				cLoader;
-	static TslistDCT<CParamStorage>	cParams;	
-	static Mutex					cLock;
-public:
-	///////////////////////////////////////////////////////////////////////////
-	// class Data
-	TPtrCount<CParamBase>		cParam;	// pointer to the parameter data
-	ulong						cTime;	// time of last access
-
-	///////////////////////////////////////////////////////////////////////////
-	// construction/destruction
-	CParamStorage()
-	{}
-	CParamStorage(const char* name) : MiniString(name)
-	{}
-	~CParamStorage()
-	{}
-	///////////////////////////////////////////////////////////////////////////
-	// class access
-	void print()
-	{
-		printf("\nparameter name: %s", (const char*)(*this)); 
-		cParam->print();
-	}
-
-	///////////////////////////////////////////////////////////////////////////
-	// static access functions
-	static CParamStorage& getParam(const char* name)
-	{
-		ScopeLock sl(CParamStorage::getMutex());
-		size_t pos;
-		CParamStorage tmp(name);
-		if( !cParams.find(tmp, 0, pos) )
-		{
-			tmp.cTime = gettick();
-			cParams.insert(tmp);
-			if( !cParams.find(tmp, 0, pos) )
-				throw CException("Params: insert failed");		
-		}
-		return cParams[pos];
-	}
-    static Mutex& getMutex()	{ return cLock; }
-	// clean unreferenced parameters
-	static void clean()
-	{
-		size_t i=cParams.size();
-		while(i>0)
-		{
-			i--;
-			if( !cParams[i].cParam->isReferenced() )
-				cParams.removeindex(i);
-		}
-	}
-	static void listall()
-	{
-		size_t i;
-		printf("\nList of Parameters (existing %i):", cParams.size());
-		for(i=0; i<cParams.size(); i++)
-			cParams[i].print();
-	}
-	static void create(const char* name, const char* value);
-	static void loadFile(const char* name)
-	{
-		cLoader.loadFile(name);
-	}
-};
-
-
-
-
-
-///////////////////////////////////////////////////////////////////////////////
-// variable parameter template
-template <class T> class CParam
-{
-private:
-	///////////////////////////////////////////////////////////////////////////
-	// internal parameter data template
-	template <class X> class CParamData : public CParamBase
-	{
-	public:
-		///////////////////////////////////////////////////////////////////////
-		// the actual parameter data
-		X	cData;
-		///////////////////////////////////////////////////////////////////////
-		// construction
-		CParamData(const char* value)
-		{
-			paramconvert(cData, value);
-		}
-		CParamData(const X& value) : cData(value)
-		{}
-		///////////////////////////////////////////////////////////////////////
-		// access
-		// typeid needs #include <typeinfo> 
-		// which is a bit stange among the different std implementations
-		virtual const std::type_info& getType()	{ return typeid(X); }
-		virtual bool assign(const char*s)	{ return paramconvert(cData, s); }
-		virtual bool assign(const X&s)		{ if(cData != s) { cData = s; return true; } return false; }
-		virtual void print()
-		{
-			printf("type: %s, value='%s'", typeid(X).name(), (const char*)MiniString(cData));
-		}
-	};
-
-	///////////////////////////////////////////////////////////////////////////
-	// parameter storage
-	CParamStorage		cStor;	// a copy of the storage to keep the smart pointers alive
-	T&					cData;	// a reference to the data
-public:
-	///////////////////////////////////////////////////////////////////////////
-	// construction/destruction (can use default copy/assign here)
-	CParam(const char* name)
-		: cStor(), cData(convert(name, "", cStor))
-	{}
-	CParam(const char* name, const T& defaultvalue)
-		: cStor(), cData(convert(name, defaultvalue, cStor))
-	{}
-	CParam(const char* name, const char* defaultvalue)
-		: cStor(), cData(convert(name, defaultvalue, cStor))
-	{}
-	virtual ~CParam()
-	{}
-	///////////////////////////////////////////////////////////////////////////
-	// direct access on the parameter value
-	const T& operator=(const T& a)
-	{
-		if( a != cData )
-		{
-			CParamStorage &stor = CParamStorage::getParam(cStor);
-			stor.cTime = gettick();
-			cData = a; 
-		}
-		return a; 
-	}
-	operator const T&()	{ return cData; }
-
-	const char*name()	{ return cStor; }
-	///////////////////////////////////////////////////////////////////////////
-	// check and set parameter modification
-	bool isModified()
-	{
-		CParamStorage &stor = CParamStorage::getParam(cStor);
-		return (cStor.cTime != stor.cTime);
-	}
-	bool adjusted()
-	{
-		CParamStorage &stor = CParamStorage::getParam(cStor);
-		bool ret = (cStor.cTime != stor.cTime);
-		cStor.cTime = stor.cTime;
-		return ret;
-	}
-
-private:
-	///////////////////////////////////////////////////////////////////////////
-	// determination and conversion of the stored parameter
-	static T& convert(const char* name, const T& value, CParamStorage &basestor);
-	static T& convert(const char* name, const char* value, CParamStorage &basestor);
-	//////////////////////////////////////////////////////////////////////////
-	// create a new variable / overwrite the content of an existing
-	static void create(const char* name, const T& value);
-
-	friend void createParam(const char* name, const char* value);
-	friend void CParamStorage::create(const char* name, const char* value);
-
-};
-
-inline void createParam(const char* name, const char* value)
-{
-	CParam<MiniString>::create(name, value);
-}
-inline void CParamStorage::create(const char* name, const char* value)
-{
-	CParam<MiniString>::create(name, value);
-}
-
 
 
 
@@ -724,9 +327,6 @@ public:
 
 
 
-
-
-
 ///////////////////////////////////////////////////////////////////////////////
 // Account Database Interface
 // for storing accounts stuff in login
@@ -751,6 +351,20 @@ public:
 	virtual bool insertAccount(const char* userid, const char* passwd, unsigned char sex, const char* email, CLoginAccount&account) =0;
 	virtual bool removeAccount(uint32 accid) =0;
 	virtual bool saveAccount(const CLoginAccount& account) =0;
+
+
+	///////////////////////////////////////////////////////////////////////////
+	// alternative interface
+	virtual bool aquire() =0;
+	virtual bool release() =0;
+	virtual bool first() =0;
+	virtual operator bool() =0;
+	virtual bool operator++(int) =0;
+	virtual bool save()=0;
+
+	virtual bool find(const char* userid)=0;
+	virtual bool find(uint32 accid)=0;
+	virtual CLoginAccount& operator()()=0;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -799,6 +413,20 @@ public:
 	virtual bool insertAccount(const char* userid, const char* passwd, unsigned char sex, const char* email, CLoginAccount&account)	{ return db->insertAccount(userid, passwd, sex, email, account); }
 	virtual bool removeAccount(uint32 accid)	{ return db->removeAccount(accid); }
 	virtual bool saveAccount(const CLoginAccount& account)	{ return db->saveAccount(account); }
+
+
+	///////////////////////////////////////////////////////////////////////////
+	// alternative interface
+	virtual bool aquire()		{ return db->aquire(); }
+	virtual bool release()		{ return db->release(); }
+	virtual bool first()		{ return db->first(); }
+	virtual operator bool()		{ return *db; }
+	virtual bool operator++(int){ return (*db)++; }
+	virtual bool save()			{ return db->save(); }
+
+	virtual bool find(const char* userid)	{ return db->find(userid); }
+	virtual bool find(uint32 accid)			{ return db->find(accid); }
+	virtual CLoginAccount& operator()()		{ return db->operator()(); }
 };
 
 
@@ -987,7 +615,16 @@ public:
 				 before_guild_lv != this->guild_lv ||
 				 before_skill_point != this->skill_point );
 	}
-
+	int isEmpty()
+	{
+		size_t i;
+		for(i=0; i<this->max_member; i++)
+		{
+			if (this->member[i].account_id > 0)
+				return true;
+		}
+		return false;
+	}
 };
 ///////////////////////////////////////////////////////////////////////////////
 // Guild Castle Class Definition
@@ -1024,6 +661,8 @@ public:
 	// access interface
 	virtual size_t size()=0;
 	virtual CGuild& operator[](size_t i)=0;
+	virtual size_t castlesize()	=0;
+	virtual CCastle& castle(size_t i) =0;
 
 	virtual bool searchGuild(const char* name, CGuild& guild) =0;
 	virtual bool searchGuild(uint32 guildid, CGuild& guild) =0;
@@ -1035,6 +674,7 @@ public:
 	virtual bool saveCastle(CCastle& castle) =0;
 	virtual bool removeCastle(ushort castleid)=0;
 };
+
 ///////////////////////////////////////////////////////////////////////////////
 // Dynamic Database Implementation
 ///////////////////////////////////////////////////////////////////////////////
@@ -1071,6 +711,8 @@ public:
 	// access interface
 	virtual size_t size()					{ return db->size(); }
 	virtual CGuild& operator[](size_t i)	{ return (*db)[i]; }
+	virtual size_t castlesize()				{ return db->castlesize(); }
+	virtual CCastle& castle(size_t i)		{ return db->castle(i); }
 
 	virtual bool searchGuild(const char* name, CGuild& guild)	{ return db->searchGuild(name, guild); }
 	virtual bool searchGuild(uint32 guildid, CGuild& guild)	{ return db->searchGuild(guildid, guild); }
@@ -1118,13 +760,13 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// class internal functions
-	bool isempty() 
+	bool isEmpty() 
 	{
 		int i;
-		for(i = 0; i < MAX_PARTY; i++) {
-			if (this->member[i].account_id > 0) {
+		for(i = 0; i < MAX_PARTY; i++)
+		{
+			if (this->member[i].account_id > 0)
 				return false;
-			}
 		}
 		return true;
 	}
@@ -1313,7 +955,7 @@ public:
 
 	virtual bool searchStorage(uint32 accid, CPCStorage& stor)	{ return db->searchStorage(accid, stor); }
 	virtual bool removeStorage(uint32 accid)	{ return removeStorage(accid); }
-	virtual bool saveStorage(const CPCStorage& stor)	{ saveStorage(stor); }
+	virtual bool saveStorage(const CPCStorage& stor)	{ return saveStorage(stor); }
 };
 class CGuildStorageDB : public CGuildStorageDBInterface
 {
@@ -1351,9 +993,138 @@ public:
 
 	virtual bool searchStorage(uint32 gid, CGuildStorage& stor)	{ return db->searchStorage(gid, stor); }
 	virtual bool removeStorage(uint32 gid)	{ return removeStorage(gid); }
-	virtual bool saveStorage(const CGuildStorage& stor)	{ saveStorage(stor); }
+	virtual bool saveStorage(const CGuildStorage& stor)	{ return saveStorage(stor); }
 };
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Pet Class
+///////////////////////////////////////////////////////////////////////////////
+
+class CPet : public s_pet
+{public:
+	CPet()					{}
+	CPet(const char* n)		{ memset(this, 0, sizeof(CPet)); safestrcpy(this->name, n, sizeof(this->name)); }
+	CPet(uint32 pid)		{ memset(this, 0, sizeof(CPet)); this->pet_id=pid; }
+	CPet(uint32 pid, uint32 accid, uint32 cid, short pet_class, short pet_lv, short pet_egg_id, ushort pet_equip, short intimate, short hungry, char renameflag, char incuvat, char *pet_name)
+	{
+		this->account_id	= accid;
+		this->char_id		= cid;
+		this->pet_id		= pid;
+		this->class_		= pet_class;
+		this->level			= pet_lv;
+		this->egg_id		= pet_egg_id;
+		this->equip_id		= pet_equip;
+		this->intimate		= intimate;
+		this->hungry		= hungry;
+		this->rename_flag	= renameflag;
+		this->incuvate		= incuvat;
+		safestrcpy(this->name, pet_name, sizeof(this->name));
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// creation and sorting by guildid
+
+	bool operator==(const CPet& c) const { return this->pet_id==c.pet_id; }
+	bool operator!=(const CPet& c) const { return this->pet_id!=c.pet_id; }
+	bool operator> (const CPet& c) const { return this->pet_id> c.pet_id; }
+	bool operator>=(const CPet& c) const { return this->pet_id>=c.pet_id; }
+	bool operator< (const CPet& c) const { return this->pet_id< c.pet_id; }
+	bool operator<=(const CPet& c) const { return this->pet_id<=c.pet_id; }
+
+
+	///////////////////////////////////////////////////////////////////////////
+	// compare for Multilist
+	int compare(const CPet& c, size_t i=0) const	
+	{
+		if(i==0)
+			return (this->pet_id - c.pet_id);
+		else
+			return strcmp(this->name, c.name); 
+	}
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// Pet Database Interface
+///////////////////////////////////////////////////////////////////////////////
+class CPetDBInterface : public global, public noncopyable
+{
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// construct/destruct
+	CPetDBInterface()				{}
+	virtual ~CPetDBInterface()		{}
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// access interface
+	virtual size_t size()=0;
+	virtual CPet& operator[](size_t i)=0;
+
+	virtual bool searchPet(const char* name, CPet& pet) =0;
+	virtual bool searchPet(uint32 pid, CPet& pet) =0;
+	virtual bool insertPet(uint32 accid, uint32 cid, short pet_class, short pet_lv, short pet_egg_id, ushort pet_equip, short intimate, short hungry, char renameflag, char incuvat, char *pet_name, CPet& pet) =0;
+	virtual bool removePet(uint32 pid) =0;
+	virtual bool savePet(const CPet& pet) =0;
+};
+
+
+class CPetDB : public CPetDBInterface
+{
+	CPetDBInterface *db;
+	CPetDBInterface* getDB(const char *dbcfgfile);
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// construct/destruct
+	CPetDB():db(NULL)	{}
+	CPetDB(const char *dbcfgfile):db(getDB(dbcfgfile))	{}
+	virtual ~CPetDB()									{ delete db; }
+
+public:
+
+	bool init(const char *dbcfgfile)
+	{
+		if(db) delete db;
+		db = getDB(dbcfgfile);
+		return (NULL!=db);
+	}
+	bool close()
+	{
+		if(db)
+		{	delete db;
+			db=NULL;
+		}
+		return true;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// access interface
+	virtual size_t size()				{ return db->size(); }
+	virtual CPet& operator[](size_t i) { return (*db)[i]; }
+
+	virtual bool searchPet(const char* name, CPet& pet) { return db->searchPet(name, pet); }
+	virtual bool searchPet(uint32 pid, CPet& pet) { return db->searchPet(pid, pet); }
+	virtual bool insertPet(uint32 accid, uint32 cid, short pet_class, short pet_lv, short pet_egg_id, ushort pet_equip, short intimate, short hungry, char renameflag, char incuvat, char *pet_name, CPet& pet)
+	{
+		return db->insertPet(accid, cid, pet_class, pet_lv, pet_egg_id, pet_equip, intimate, hungry, renameflag, incuvat, pet_name, pet);
+	}
+	virtual bool removePet(uint32 pid)  { return db->removePet(pid); }
+	virtual bool savePet(const CPet& pet) { return db->savePet(pet); }
+};
 
 
 #endif//__IO_H__

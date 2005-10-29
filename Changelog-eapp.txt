@@ -1,5 +1,33 @@
 Date	Added
-10/21	* adding parts of the new script engine, currently only in form of a simple script checker
+10/29
+	* following the wishes I enable the hidden functions in the script checker for public
+	  which includes a bunch of the parsing debug outputs (but might be only useful
+	  for those interested in parsing), debug outputs from the compiler and 
+	  a short dump of the generated program in binary form and a code sequence.
+	- the code transformation and the compiler currently only have rudimentary functionality
+	  since the final grammar for the script language is not yet fixed
+	  still, extension is easy possible independend from parsing and interpreting engine
+	- also added the experimental feature of "code beautification" (option 'b'), 
+	  which dumps the input script in a unified format, scope and function call style
+	  when finished with the final arrangements on the eaScript grammar, 
+	  this tool might be used for automatic conversion of existing scripts.
+	* corrected CCharDB_txt not saving the character data on programm exit
+	* changed char server to use the finished baseio data classes, still need debugging
+	  also experimenting with a new data access interface using integrated iterators 
+	  which might simplify subsequent access on sql data
+	* edited basesq code slightly to enable at least clean compile
+	  needed for check other sql code
+	- modification mainly consists of renaming some variables and correcting
+	  the doubled buffer usage (aka: "sprintf(buf, "%s%i", buf, 1);") 
+	  which is not really dangerous with common sprintf implementations 
+	  but still risky and quite unnecessary (since the data length in the buffer is known)
+	  also switched to use snprintf as far as I've seen them
+	* removed parameter related code from baseio (putting it to baseparam)
+	  tests have been successful, though, memory fragmentation could be reduced
+	  now only need to implement callbacks then all ini-file reading/processing 
+	  can be switched to use those dynamic parameters [Shinomori]
+10/21
+	* adding parts of the new script engine, currently only in form of a simple script checker
 	  the provided pre-compiled w32 version (needs zlib1.dll from precompiled zlib folder)
 	  only does basic syntax checks, which might be enought for testing purpose
 	  the folloing stages of parse tree transformation and compiling are disabled 

@@ -2,9 +2,9 @@ all eascript: eascriptchk
 
 ##########################################################
 # stupid make does not know .cpp suffix by default
-#.SUFFIXES: .cpp
-#.cpp.o:
-#	$(CCC) $(CPPFLAGS) $(OUTPUT_OPTION) -c $<
+.SUFFIXES: .cpp
+.cpp.o:
+	$(CCC) $(CPPFLAGS) $(OUTPUT_OPTION) -c $<
 ##########################################################
 
 

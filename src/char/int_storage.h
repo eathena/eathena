@@ -4,14 +4,11 @@
 
 int inter_storage_init(void);
 void inter_storage_final();
-int inter_storage_save();
-int inter_guild_storage_save();
+
 int inter_storage_delete(uint32 account_id);
 int inter_guild_storage_delete(uint32 guild_id);
 
 int inter_storage_parse_frommap(int fd);
 
-extern char storage_txt[1024];
-extern char guild_storage_txt[1024];
 
 #endif

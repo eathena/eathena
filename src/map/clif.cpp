@@ -5494,11 +5494,40 @@ int clif_GMmessage(struct block_list *bl, const char* mes, size_t len, int flag)
 	{
 		unsigned char buf[512];
 		size_t lp;
+		//Altered by Trancid to support more colors.
+		switch ((flag & 0xf0)>>4)
+		{
+		case 1:	//Blue
+			WBUFW(buf,0) = 0x9a;
+			lp = 8;
+			break;
+		case 2:  //Blueish Green
+			WBUFW(buf,0) = 0x17f;
+			lp = 4;
+			break;
+		case 3:  //White
+			WBUFW(buf,0) = 0x8d;
+			lp = 8;
+			break;
+		case 4: //Pink
+			WBUFW(buf,0) = 0x109;
+			lp = 8;
+			break;
+		case 5:  //Lightyellow? Doesn't work yet because this is a self-guild message.
+			WBUFW(buf,0) = 0x17f;
+			lp = 8;
+			break;
+		case 6:  //White above head and green in chat, incorrect as it's a self-message.
+			WBUFW(buf,0) = 0x08e;
+			lp = 4;
+			break;
 
-		lp = (flag & 0x10) ? 8 : 4;
-			if( len > 512-lp ) len = 512-lp;
-
-		WBUFW(buf,0) = 0x9a;
+		default:	//Yellow (normal announce color)
+			WBUFW(buf,0) = 0x9a;
+			lp = 4;
+			break;
+		}
+		if( len > 512-lp ) len = 512-lp;
 		WBUFW(buf,2) = len + lp;
 		WBUFL(buf,4) = 0x65756c62;
 		memcpy(WBUFP(buf,lp), mes, len);
@@ -8265,6 +8294,11 @@ int clif_charnameack(int fd, struct block_list &bl, bool clear)
 		}
 		break;
 		}
+	case BL_CHAT:	
+	{	//FIXME: Clients DO request this... what should be done about it? The chat's title may not fit... [Skotlex]
+		safestrcpy((char*)WBUFP(buf,6), ((struct chat_data&)bl).title, 24);
+		break;
+	}
 	default:
 		if (battle_config.error_log)
 			ShowError("clif_parse_GetCharNameRequest : bad type %d(%ld)\n", bl.type, (unsigned long)bl.id);
@@ -9664,7 +9698,7 @@ int clif_parse_UseSkillToId(int fd, struct map_session_data &sd) {
 	if( !session_isActive(fd) )
 		return 0;
 
-	if( sd.ScriptEngine.isRunning() || sd.chatID || sd.vender_id != 0 )
+	if( sd.ScriptEngine.isRunning() || sd.chatID || sd.vender_id != 0 || pc_issit(sd) || pc_isdead(sd))
 		return 0;
 
 	skilllv = RFIFOW(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[0]);
@@ -9767,7 +9801,7 @@ int clif_parse_UseSkillToPos(int fd, struct map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	if(sd.ScriptEngine.isRunning() || sd.vender_id != 0 || sd.chatID)
+	if(sd.ScriptEngine.isRunning() || sd.vender_id != 0 || sd.chatID || pc_issit(sd) || pc_isdead(sd))
 		return 0;
 
 	skilllv = RFIFOW(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[0]);
@@ -9866,9 +9900,7 @@ int clif_parse_ProduceMix(int fd,struct map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	sd.state.produce_flag = 0;
-	skill_produce_mix(sd,RFIFOW(fd,2),RFIFOW(fd,4),RFIFOW(fd,6),RFIFOW(fd,8));
-	return 0;
+	return skill_produce_mix(sd,RFIFOW(fd,2),RFIFOW(fd,4),RFIFOW(fd,6),RFIFOW(fd,8));
 }
 /*==========================================
  * 武器修理
@@ -9876,6 +9908,9 @@ int clif_parse_ProduceMix(int fd,struct map_session_data &sd)
  */
 int clif_parse_RepairItem(int fd, struct map_session_data &sd)
 {
+	if( !session_isActive(fd) )
+		return 0;
+
 	return pc_item_repair(sd, RFIFOW(fd,2));
 }
 
@@ -9969,9 +10004,7 @@ int clif_parse_SelectArrow(int fd,struct map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	sd.state.produce_flag = 0;
-	skill_arrow_create(&sd,RFIFOW(fd,2));
-	return 0;
+	return skill_arrow_create(&sd,RFIFOW(fd,2));
 }
 /*==========================================
  * オートスペル受信

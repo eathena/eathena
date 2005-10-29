@@ -344,51 +344,55 @@ static inline uint32 axtoi(const char *hexStg)
 ///////////////////////////////////////////////////////////////////////////////
 // this->logging output collector/rerouter
 ///////////////////////////////////////////////////////////////////////////////
-class CLogger 
+class CLogger
 {
+	bool enable;
 
 public:
-	virtual ~CLogger()	{}
+	CLogger(bool e=true) : enable(e)	{}
+	virtual ~CLogger()					{}
 
 	int logging(const char *fmt, ...)
 	{
-		static char		tempbuf[4096]; // initially using a static fixed buffer size 
-		static Mutex	mtx;
-		ScopeLock		sl(mtx);
 		int ret = 0;
-
-		size_t sz  = 4096; // initial buffer size
-		char *ibuf = tempbuf;
-
-		va_list argptr;
-		va_start(argptr, fmt);
-
-		if(fmt)
+		if(enable)
 		{
-			if(argptr)
+			static char		tempbuf[4096]; // initially using a static fixed buffer size 
+			static Mutex	mtx;
+			ScopeLock		sl(mtx);
+			size_t sz  = 4096; // initial buffer size
+			char *ibuf = tempbuf;
+
+			va_list argptr;
+			va_start(argptr, fmt);
+
+			if(fmt)
 			{
-				do{
-					// print
-					if( vsnprintf(ibuf, sz, fmt, argptr) >=0 ) // returns -1 in case of error
-						break; // print ok, can break
-					// otherwise
-					// aFree the memory if it was dynamically alloced
-					if(ibuf!=tempbuf) delete[] ibuf;
-					// double the size of the buffer
-					sz *= 2;
-					ibuf = new char[sz];
-					// and loop in again
-				}while(1); 
-				// ibuf contains the printed string
-				ret = output(ibuf);
+				if(argptr)
+				{
+					do{
+						// print
+						if( vsnprintf(ibuf, sz, fmt, argptr) >=0 ) // returns -1 in case of error
+							break; // print ok, can break
+						// otherwise
+						// aFree the memory if it was dynamically alloced
+						if(ibuf!=tempbuf) delete[] ibuf;
+						// double the size of the buffer
+						sz *= 2;
+						ibuf = new char[sz];
+						// and loop in again
+					}while(1); 
+					// ibuf contains the printed string
+					ret = output(ibuf);
+				}
+				else
+				{	// thust the format string, no parameter
+					ret = output(fmt);
+				}
 			}
-			else
-			{	// thust the format string, no parameter
-				ret = output(fmt);
-			}
+			va_end(argptr);
+			if(ibuf!=tempbuf) delete[] ibuf;
 		}
-		va_end(argptr);
-		if(ibuf!=tempbuf) delete[] ibuf;
 		return ret;
 	}
 
@@ -1789,7 +1793,7 @@ class CScriptCompiler : public CLogger
 	///////////////////////////////////////////////////////////////////////////
 	// construct/destruct
 public:
-	CScriptCompiler(CScriptEnvironment &e):cEnv(e)	{}
+	CScriptCompiler(CScriptEnvironment &e, bool log=true):cEnv(e), CLogger(log)	{}
 	~CScriptCompiler()	{}
 
 private:
@@ -2512,9 +2516,18 @@ private:
 			// return;
 			case PT_RETURNSTMS:
 			{	// <Return Stms>::= return <ArgC> ';'
+				//                | end ';'
 
-				accept = CompileMain(node[1], level+1,flags, prog, userval);
-				prog.appendCommand(OP_RETURN);
+				if( CheckTerminal(node[0], PT_RETURN) )
+				{
+					accept = CompileMain(node[1], level+1,flags, prog, userval);
+					prog.appendCommand(OP_RETURN);
+				}
+				else
+				{
+					accept = true;
+					prog.appendCommand(OP_END);
+				}
 
 				if(accept)
 				{

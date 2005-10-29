@@ -7319,12 +7319,25 @@ int buildin_gvgoff(CScriptEngine &st)
  */
 int buildin_emotion(CScriptEngine &st)
 {
-	int type;
+	uint32 type;
+	uint32 player=0;
 	type=st.GetInt(st[2]);
-	if(type < 0 || type > 100)
-		return 0;
-	block_list *bl = map_id2bl(st.oid);
-	if(bl) clif_emotion(*bl,type);
+
+	if(type <= 100)
+	{
+		if( st.Arguments() > 3 )
+			player=st.GetInt(st[3]);
+		if (player)
+		{
+			struct map_session_data *sd = map_id2sd(player);
+			if (sd) clif_emotion(sd->bl,type);
+		}
+		else
+		{
+			block_list *bl = map_id2bl(st.oid);
+			if(bl) clif_emotion(*bl,type);
+		}
+	}
 	return 0;
 }
 /*

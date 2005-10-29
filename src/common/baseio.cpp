@@ -322,297 +322,6 @@ public:
 
 
 
-//////////////////////////////////////////////////////////////////////////
-// basic interface for reading configs from file
-//////////////////////////////////////////////////////////////////////////
-
-/////////////////////////////////////////////////////////////////
-// Loading a file, stripping lines,
-// splitting it to "part1 : part2" or "part1 = part2"
-// calling the derived function for processing
-/////////////////////////////////////////////////////////////////
-bool CConfig::LoadConfig(const char* cfgName)
-{
-	char line[1024], w1[1024], w2[1024], *ip;
-	FILE *fp;
-
-	if ((fp = safefopen(cfgName, "r")) == NULL) {
-		ShowError("Configuration file (%s) not found.\n", cfgName);
-		return false;
-	}
-
-	ShowInfo("Reading configuration file '%s'\n", cfgName);
-	while(fgets(line, sizeof(line), fp))
-	{
-		// terminate buffer
-		line[sizeof(line)-1] = '\0';
-
-		// skip leading spaces
-		ip = line;
-		while( isspace((int)((unsigned char)*ip) ) ) ip++;
-
-		// skipping comment lines
-		if( ip[0] == '/' && ip[1] == '/')
-			continue;
-
-		memset(w2, 0, sizeof(w2));
-		// format: "name:value"
-		if( sscanf(ip, "%[^:]: %[^\r\n]", w1, w2) == 2 ||
-			sscanf(ip, "%[^=]= %[^\r\n]", w1, w2) == 2 )
-		{
-			CleanControlChars(w1);
-			CleanControlChars(w2);
-			checktrim(w1); checktrim(w2);
-			if( strcasecmp(w1, "import") == 0 )
-			{	// call recursive, prevent infinity loop (first order only)
-				if( strcasecmp(cfgName,w2) !=0 )
-					LoadConfig(w2);
-			}
-			else
-			{	// calling derived function to process
-				ProcessConfig(w1,w2);
-			}
-		}
-	}
-	fclose(fp);
-	ShowInfo("Reading configuration file '%s' finished\n", cfgName);
-	return true;
-}
-
-// Return 0/1 for no/yes
-int CConfig::SwitchValue(const char *str, int defaultmin, int defaultmax)
-{
-	if( str )
-	{
-		if (strcasecmp(str, "on") == 0 || strcasecmp(str, "yes") == 0 || strcasecmp(str, "oui") == 0 || strcasecmp(str, "ja") == 0 || strcasecmp(str, "si") == 0)
-			return 1;
-		else if (strcasecmp(str, "off") == 0 || strcasecmp(str, "no" ) == 0 || strcasecmp(str, "non") == 0 || strcasecmp(str, "nein") == 0)
-			return 0;
-		else
-		{
-			int ret = atoi(str);
-			return (ret<defaultmin) ? defaultmin : (ret>defaultmax) ? defaultmax : ret;
-		}
-	}
-	else
-		return 0;
-}
-
-// Return true/false for yes/no, if unknown return defaultval
-bool CConfig::Switch(const char *str, bool defaultval)
-{
-	if( str )
-	{
-		if (strcasecmp(str, "on") == 0 || strcasecmp(str, "yes") == 0 || strcasecmp(str, "oui") == 0 || strcasecmp(str, "ja") == 0 || strcasecmp(str, "si") == 0)
-			return true;
-		else if (strcasecmp(str, "off") == 0 || strcasecmp(str, "no" ) == 0 || strcasecmp(str, "non") == 0 || strcasecmp(str, "nein") == 0)
-			return false;
-	}
-	return defaultval;
-}
-
-// Replace control chars with '_' and return if changed
-bool CConfig::CleanControlChars(char *str)
-{
-	bool change = false;
-	if(str)
-	while( *str )
-	{	// replace control chars
-		// but skip chars >0x7F which are negative in char representations
-		if ( (*str<32) && (*str>0) )
-		{
-			*str = '_';
-			change = true;
-		}
-		str++;
-	}
-	return change;
-}
-
-
-
-
-///////////////////////////////////////////////////////////////////////////////
-//
-// Parameter Class
-//
-///////////////////////////////////////////////////////////////////////////////
-
-///////////////////////////////////////////////////////////////////////////////
-// static data
-CParamStorage::CParamLoader	CParamStorage::cLoader;
-TslistDCT<CParamStorage>	CParamStorage::cParams;
-Mutex						CParamStorage::cLock;
-
-
-
-
-template <class T> T& CParam<T>::convert(const char* name, const T& value, CParamStorage &basestor)
-{
-	ScopeLock sl(CParamStorage::getMutex());
-	// get a reference to the parameter
-	CParamStorage &stor = CParamStorage::getParam(name);
-	CParamData<T>* tmp=NULL;
-
-	if( !stor.cParam.exists() )
-	{	// there is no data pointer
-		// create one
-		stor.cParam = tmp = new CParamData<T>(value);
-	}
-	else if( stor.cParam->getType() == typeid(T) )
-	{	// data has same type as requested, so can use it directly
-		tmp = dynamic_cast< CParamData<T>* >( (class CParamBase*)stor.cParam.get() );
-		// dynamic_cast is here because of my paranoia
-	}
-	else if( stor.cParam->getType() == typeid(MiniString) )
-	{	// otherwise we only accept MiniString to convert the data
-		//CParamData<MiniString> *old = dynamic_cast< CParamData<MiniString>* >( stor.cParam.operator->() );
-		// dynamic cast does not work here even if actually should, just hard cast it then
-		CParamData<MiniString> *old = (CParamData<MiniString>*)stor.cParam.get();
-		if( !old )
-			throw CException("Params: data conversion wrong type");
-		stor.cParam = tmp = new CParamData<T>(old->cData);
-		// this creation will change the pointer in the database
-		// and disconnect all existing references to this node
-	}
-	if(!tmp) throw CException("Params: data conversion failed");
-	// return a reference to the data and copy the storage
-	basestor = stor;
-	basestor.cTime++;
-	tmp->setReference();
-	return tmp->cData;
-}
-template <class T> T& CParam<T>::convert(const char* name, const char* value, CParamStorage &basestor)
-{
-	ScopeLock sl(CParamStorage::getMutex());
-	// get a reference to the parameter
-	CParamStorage &stor = CParamStorage::getParam(name);
-	CParamData<T>* tmp=NULL;
-	if( !stor.cParam.exists() )
-	{	// there is no data pointer
-		// create one
-		stor.cParam = tmp = new CParamData<T>(value);
-	}
-	else if( stor.cParam->getType() == typeid(T) )
-	{	// data has same type as requested, so can use it directly
-		tmp = dynamic_cast< CParamData<T>* >( (class CParamBase*)stor.cParam.get() );
-		// dynamic_cast is here because of my paranoia
-	}
-	else if( stor.cParam->getType() == typeid(MiniString) )
-	{	// otherwise we only accept MiniString to convert the data
-		//CParamData<MiniString> *old = dynamic_cast< CParamData<MiniString>* >( stor.cParam.operator->() );
-		CParamData<MiniString> *old = (CParamData<MiniString>*)stor.cParam.get();
-		if( !old )
-			throw CException("Params: data conversion wrong type");
-		stor.cParam = tmp = new CParamData<T>(old->cData);
-		// this creation will change the pointer in the database
-		// and disconnect all existing references to this node
-	}
-	if(!tmp) throw CException("Params: data conversion failed");
-	// return a reference to the data and copy the storage
-	basestor = stor;
-	basestor.cTime++;
-	tmp->setReference();
-	return tmp->cData;
-}
-///////////////////////////////////////////////////////////////////////////
-// create a new variable / overwrite the content of an existing
-template <class T> void CParam<T>::create(const char* name, const T& value)
-{
-	ScopeLock sl(CParamStorage::getMutex());
-	// get a reference to the parameter
-	CParamStorage &stor = CParamStorage::getParam(name);
-	if( !stor.cParam.exists() )
-	{	// there is no data pointer
-		// create one
-		stor.cParam = new CParamData<T>(value);
-	}
-	else if( stor.cParam->getType() == typeid(T) )
-	{	// data is of same type and can be used directly
-		CParamData<T>* tmp = dynamic_cast< CParamData<T>* >( (class CParamBase*)stor.cParam.get() );
-		if( tmp->cData != value )
-		{
-			tmp->cData = value;
-			stor.cTime = gettick();
-		}
-	}
-	else
-	{	// otherwise assign the new value
-		if( stor.cParam->assign(value) )
-			stor.cTime = gettick();
-	}
-}
-
-
-void parameertest()
-{
-	try {
-		double a, xx(141.30);
-		MiniString b="";
-		// create new param entry
-		createParam("double param", "0.2");
-		createParam("double param2", "0.2111");
-		createParam("double param3", "0.999");
-
-		CParam<MiniString> parameter2("double param", "0.0");
-
-		// create scope persistant object
-		CParam<double> parameter("double param", 0.0);
-
-		a=parameter;
-		printf("%lf %s\n", a, (const char*)b);
-
-		// modify param entry
-		createParam("double param", "0.4");
-
-		a=parameter;
-		printf("%lf %s\n", a, (const char*)b);
-
-		CParam<double> testvar("double param", 0.0);
-
-		a=parameter;
-		b=testvar;
-		printf("%lf %s\n", a, (const char*)b);
-
-		testvar = 5;
-		parameter = xx;
-
-		a=parameter;
-		b=testvar;
-		printf("%lf %s\n", a, (const char*)b);
-
-
-		printf("%s\n", typeid(testvar).name() );
-
-
-		CParam<int> testint("int param", 8);
-		CParam<MiniString> teststr("str param", "...test test...");
-
-		CParamStorage::loadFile("conf/login_athena.conf");
-
-		CParamStorage::listall();
-
-		CParamStorage::clean();
-		
-	}
-	catch ( CException e )
-	{
-		printf( "exception %s", (const char*)e );
-	}
-
-	CParamStorage::listall();
-
-	printf("\n");
-}
-
-
-///////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
 
 
 
@@ -911,6 +620,9 @@ private:
 			{
 				if( !skip_empty_line(line) )
 					continue;
+				*userid=0;
+				*pass=0;
+				*lastlogin=0;
 
 				// database version reading (v2)
 				if( 13 == (i=sscanf(line, "%ld\t%[^\t]\t%[^\t]\t%[^\t]\t%c\t%d\t%d\t%[^\t]\t%[^\t]\t%ld\t%[^\t]\t%[^\t]\t%ld%n",
@@ -1028,8 +740,10 @@ private:
 
 					last_ip[15] = '\0';
 					remove_control_chars(last_ip);
-					temp.client_ip = ipaddress(last_ip);
-
+					if(*last_ip && *last_ip!='-')
+						temp.client_ip = ipaddress(last_ip);
+					else
+						temp.client_ip = 0;
 
 					p = line;
 					for(j = 0; j < ACCOUNT_REG2_NUM; j++)
@@ -1197,7 +911,8 @@ private:
 	// normal function
 	bool init(const char* configfile)
 	{	// init db
-		CConfig::LoadConfig(configfile);
+		if(configfile)
+			CConfig::LoadConfig(configfile);
 		return readAccounts();
 	}
 	bool close()
@@ -1234,6 +949,56 @@ private:
 		return true;
 	}
 
+
+
+
+
+
+
+	///////////////////////////////////////////////////////////////////////////
+	// alternative interface
+	Mutex cMx;
+	size_t cPos;
+
+	virtual bool aquire()
+	{
+		cMx.lock();
+		return this->first();
+	}
+	virtual bool release()
+	{
+		cMx.unlock();
+		return true; 
+	}
+	virtual bool first()
+	{
+		cPos=0;
+		return cList.size()>0; 
+	}
+	virtual operator bool()		{ return cPos<cList.size(); }
+	virtual bool operator++(int){ return cPos++; }
+	virtual bool save()			{ return true; }
+
+	virtual bool find(const char* userid)
+	{
+		size_t pos;
+		// search in index 1
+		if( cList.find( CLoginAccount(userid), pos, 1) )
+		{	// set position based to index 0 
+			return cList.find( cList(pos,1), cPos, 0);
+		}
+		return false; 
+	}
+	virtual bool find(uint32 accid)
+	{
+		return cList.find( CLoginAccount(accid), cPos, 0);
+	}
+	virtual CLoginAccount& operator()()
+	{
+		if( cPos>=cList.size() )
+			throw "access out of bound";
+		return cList(cPos,0);
+	}
 };
 ///////////////////////////////////////////////////////////////////////////////
 // class implementation
@@ -1389,7 +1154,7 @@ public:
 
 		init(dbcfgfile);
 	}
-	~CCharDB_txt()	{}
+	~CCharDB_txt()	{ close(); }
 
 
 private:
@@ -2430,7 +2195,8 @@ private:
 	// normal function
 	bool init(const char* configfile)
 	{	// init db
-		CConfig::LoadConfig(configfile);
+		if(configfile)
+			CConfig::LoadConfig(configfile);
 		return read_chars() && read_friends();
 	}
 	bool close()
@@ -3139,7 +2905,8 @@ private:
 	// normal function
 	bool init(const char* configfile)
 	{	// init db
-		CConfig::LoadConfig(configfile);
+		if(configfile)
+			CConfig::LoadConfig(configfile);
 		CGuild::cGuildExp.init(guildexp_filename);
 		return readGuildsCastles();
 	}
@@ -3167,6 +2934,10 @@ public:
 	// access interface
 	virtual size_t size()					{ return cGuilds.size(); }
 	virtual CGuild& operator[](size_t i)	{ return cGuilds[i]; }
+
+	virtual size_t castlesize()				{ return cCastles.size(); }
+	virtual CCastle& castle(size_t i)		{ return cCastles[i]; }
+
 
 	virtual bool searchGuild(const char* name, CGuild& guild)
 	{
@@ -3218,9 +2989,23 @@ public:
 	}
 	virtual bool removeGuild(uint32 guildid)
 	{
-		size_t pos;
+		size_t pos,i,k;
 		if( cGuilds.find( CGuild(guildid), pos, 0) )
 		{
+			// clear alliances
+			for(i=0; i<cGuilds.size(); i++)
+			for(k=0; k<MAX_GUILDALLIANCE; k++)
+			{
+				if( cGuilds[i].alliance[k].guild_id == guildid )
+					cGuilds[i].alliance[k].guild_id = 0;
+			}
+			// clear castles
+			for(i=0; i<cCastles.size(); i++)
+			{
+				if( cCastles[i].guild_id == guildid )
+					cCastles[i].guild_id = 0;
+			}
+
 			return cGuilds.removeindex(pos,0);
 		}
 		return false;
@@ -3404,7 +3189,7 @@ class CPartyDB_txt : public CTimerBase, private CConfig, public CPartyDBInterfac
 				CParty p;
 				if( party_from_string(line, p) && p.party_id > 0)
 				{
-					if( !p.isempty() )
+					if( !p.isEmpty() )
 					{
 						if(p.party_id >= next_party_id)
 							next_party_id = p.party_id + 1;
@@ -3478,7 +3263,8 @@ private:
 	// normal function
 	bool init(const char* configfile)
 	{	// init db
-		CConfig::LoadConfig(configfile);
+		if(configfile)
+			CConfig::LoadConfig(configfile);
 		return readParties();
 	}
 	bool close()
@@ -3779,7 +3565,8 @@ private:
 	// normal function
 	bool init(const char* configfile)
 	{	// init db
-		CConfig::LoadConfig(configfile);
+		if(configfile)
+			CConfig::LoadConfig(configfile);
 		return readPCStorage();
 	}
 	bool close()
@@ -4043,7 +3830,8 @@ private:
 	// normal function
 	bool init(const char* configfile)
 	{	// init db
-		CConfig::LoadConfig(configfile);
+		if(configfile)
+			CConfig::LoadConfig(configfile);
 		return readGuildStorage();
 	}
 	bool close()
@@ -4122,6 +3910,253 @@ CGuildStorageDBInterface* CGuildStorageDB::getDB(const char *dbcfgfile)
 #else
 	return NULL;
 //	return new CGuildStorageDB_sql(dbcfgfile);
+#endif// SQL
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+#ifdef TXT_ONLY
+///////////////////////////////////////////////////////////////////////////////
+
+class CPetDB_txt : public CTimerBase, private CConfig, public CPetDBInterface
+{
+	int pet_to_string(char *str, size_t sz, CPet &pet)
+	{
+		int len;
+
+		if(pet.hungry < 0)
+			pet.hungry = 0;
+		else if(pet.hungry > 100)
+			pet.hungry = 100;
+		if(pet.intimate < 0)
+			pet.intimate = 0;
+		else if(pet.intimate > 1000)
+			pet.intimate = 1000;
+
+		len=snprintf(str, sz, "%ld,%d,%s\t%ld,%ld,%d,%d,%d,%d,%d,%d,%d",
+			(unsigned long)pet.pet_id,pet.class_,pet.name,pet.account_id,pet.char_id,pet.level,pet.egg_id,
+			pet.equip_id,pet.intimate,pet.hungry,pet.rename_flag,pet.incuvate);
+
+		return len;
+	}
+
+	bool pet_from_string(const char *str, CPet &pet)
+	{
+		int tmp_int[16];
+		char tmp_str[256];
+		int s=sscanf(str,"%d,%d,%[^\t]\t%d,%d,%d,%d,%d,%d,%d,%d,%d",&tmp_int[0],&tmp_int[1],tmp_str,&tmp_int[2],
+				&tmp_int[3],&tmp_int[4],&tmp_int[5],&tmp_int[6],&tmp_int[7],&tmp_int[8],&tmp_int[9],&tmp_int[10]);
+
+		if(s==12)
+		{
+			pet.pet_id = tmp_int[0];
+			pet.class_ = tmp_int[1];
+			safestrcpy(pet.name,tmp_str,24);
+			pet.account_id = tmp_int[2];
+			pet.char_id = tmp_int[3];
+			pet.level = tmp_int[4];
+			pet.egg_id = tmp_int[5];
+			pet.equip_id = tmp_int[6];
+			pet.intimate = tmp_int[7];
+			pet.hungry = tmp_int[8];
+			pet.rename_flag = tmp_int[9];
+			pet.incuvate = tmp_int[10];
+
+			if(pet.hungry < 0)
+				pet.hungry = 0;
+			else if(pet.hungry > 100)
+				pet.hungry = 100;
+			if(pet.intimate < 0)
+				pet.intimate = 0;
+			else if(pet.intimate > 1000)
+				pet.intimate = 1000;
+
+			return true;
+		}
+		return false;
+	}
+
+	bool readPets()
+	{
+		char line[65536];
+		int c=0;
+		CPet pet;
+		FILE *fp=safefopen(pet_filename,"r");
+		if(fp==NULL){
+			ShowMessage("cant't read : %s\n",pet_filename);
+			return 1;
+		}
+		while(fgets(line,sizeof(line),fp))
+		{
+			c++;
+			if( !skip_empty_line(line) )
+				continue;
+
+			if( pet_from_string(line,pet) )
+			{
+				cPetList.insert(pet);
+			}
+			else
+			{
+				ShowError("Storage: broken data [%s] line %d\n", pet_filename, c);
+			}
+		}
+		fclose(fp);
+		return true;
+	}
+	bool savePets()
+	{
+		char line[65536];
+		int lock;
+		size_t i, sz;
+		FILE *fp=lock_fopen(pet_filename,&lock);
+
+		if( fp==NULL )
+		{
+			ShowError("Storage: cannot open [%s]\n",pet_filename);
+			return false;
+		}
+		for(i=0; i<cPetList.size(); i++)
+		{
+			sz = pet_to_string(line, sizeof(line), cPetList[i]);
+			if(sz>0) fprintf(fp,"%s"RETCODE,line);
+		}
+		lock_fclose(fp, pet_filename, &lock);
+		return true;
+	}
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// construct/destruct
+	CPetDB_txt(const char *dbcfgfile) :
+		CTimerBase(60000),		// 60sec save interval
+		savecount(0)
+	{
+		next_petid = 100;
+		safestrcpy(pet_filename, "save/pet.txt", sizeof(pet_filename));
+		init(dbcfgfile);
+	}
+	virtual ~CPetDB_txt()
+	{
+		close();
+	}
+
+private:
+	///////////////////////////////////////////////////////////////////////////
+	// data
+	TslistDST<CPet> cPetList;
+	uint32 next_petid;
+	char pet_filename[1024];
+	uint savecount;
+
+	///////////////////////////////////////////////////////////////////////////
+	// Config processor
+	virtual bool ProcessConfig(const char*w1, const char*w2)
+	{
+		return true;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// normal function
+	bool init(const char* configfile)
+	{	// init db
+		if(configfile)
+			CConfig::LoadConfig(configfile);
+		return readPets();
+	}
+	bool close()
+	{
+		return savePets();
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// timer function
+	virtual bool timeruserfunc(unsigned long tick)
+	{
+		// we only save if necessary:
+		// we have do some authentifications without do saving
+		if( savecount > 10 )
+		{
+			savecount=0;
+			savePets();
+		}
+		return true;
+	}
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// access interface
+	virtual size_t size()				{ return cPetList.size(); }
+	virtual CPet& operator[](size_t i) { return cPetList[i]; }
+
+	virtual bool searchPet(const char* name, CPet& pet)
+	{
+		size_t pos;
+		if( cPetList.find( CPet(name), 0, pos) )
+		{
+			pet = cPetList[pos];
+			return true;
+		}
+		return false;
+	}
+	virtual bool searchPet(uint32 pid, CPet& pet)
+	{
+		size_t pos;
+		if( cPetList.find( CPet(pid), 0, pos) )
+		{
+			pet = cPetList[pos];
+			return true;
+		}
+		return false;
+	}
+	virtual bool insertPet(uint32 accid, uint32 cid, short pet_class, short pet_lv, short pet_egg_id, ushort pet_equip, short intimate, short hungry, char renameflag, char incuvat, char *pet_name, CPet& pet)
+	{
+		if( cPetList.insert( CPet(next_petid, accid, cid, pet_class, pet_lv, pet_egg_id, pet_equip, intimate, hungry, renameflag, incuvat, pet_name) ) )
+			return searchPet(next_petid++, pet);
+		return false;
+	}
+	virtual bool removePet(uint32 pid)
+	{
+		size_t pos;
+		if( cPetList.find( CPet(pid), 0, pos) )
+		{
+			cPetList.removeindex(pos);
+			return true;
+		}
+		return false;
+	}
+	virtual bool savePet(const CPet& pet)
+	{
+		size_t pos;
+		if( cPetList.find( pet, 0, pos) )
+		{
+			cPetList[pos] = pet;
+			return true;
+		}
+		return false;
+	}
+};
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+#else// SQL
+///////////////////////////////////////////////////////////////////////////////
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+#endif// SQL
+///////////////////////////////////////////////////////////////////////////////
+
+CPetDBInterface* CPetDB::getDB(const char *dbcfgfile)
+{
+#ifdef TXT_ONLY
+	return new CPetDB_txt(dbcfgfile);
+#else
+	return NULL;
+//	return new CPetDB_sql(dbcfgfile);
 #endif// SQL
 }
 

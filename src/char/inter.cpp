@@ -213,20 +213,21 @@ int inter_config_read(const char *cfgName) {
 		if (sscanf(line,"%[^:]: %[^\r\n]", w1, w2) != 2)
 			continue;
 
-		if (strcasecmp(w1, "storage_txt") == 0) {
-			safestrcpy(storage_txt, w2, sizeof(storage_txt));
-		} else if (strcasecmp(w1, "party_txt") == 0) {
-			safestrcpy(party_txt, w2, sizeof(party_txt));
-		} else if (strcasecmp(w1, "guild_txt") == 0) {
-			safestrcpy(guild_txt, w2, sizeof(guild_txt));
-		} else if (strcasecmp(w1, "pet_txt") == 0) {
-			safestrcpy(pet_txt, w2, sizeof(pet_txt));
-		} else if (strcasecmp(w1, "castle_txt") == 0) {
-			safestrcpy(castle_txt, w2, sizeof(castle_txt));
-		} else if (strcasecmp(w1, "accreg_txt") == 0) {
+//		if (strcasecmp(w1, "storage_txt") == 0) {
+//			safestrcpy(storage_txt, w2, sizeof(storage_txt));
+//		} else if (strcasecmp(w1, "party_txt") == 0) {
+//			safestrcpy(party_txt, w2, sizeof(party_txt));
+//		} else if (strcasecmp(w1, "guild_txt") == 0) {
+//			safestrcpy(guild_txt, w2, sizeof(guild_txt));
+//		} else if (strcasecmp(w1, "pet_txt") == 0) {
+//			safestrcpy(pet_txt, w2, sizeof(pet_txt));
+//		} else if (strcasecmp(w1, "castle_txt") == 0) {
+//			safestrcpy(castle_txt, w2, sizeof(castle_txt));
+//		} else 
+			if (strcasecmp(w1, "accreg_txt") == 0) {
 			safestrcpy(accreg_txt, w2, sizeof(accreg_txt));
-		} else if (strcasecmp(w1, "guild_storage_txt") == 0) {
-			safestrcpy(guild_storage_txt, w2, sizeof(guild_storage_txt));
+//		} else if (strcasecmp(w1, "guild_storage_txt") == 0) {
+//			safestrcpy(guild_storage_txt, w2, sizeof(guild_storage_txt));
 		} else if (strcasecmp(w1, "party_share_level") == 0) {
 			party_share_level = atoi(w2);
 			if (party_share_level < 0)
@@ -263,13 +264,7 @@ int inter_log(char *fmt,...)
 // ƒZ[ƒu
 int inter_save(void) 
 {
-	inter_party_save();
-	inter_guild_save();
-	inter_storage_save();
-	inter_guild_storage_save();
-	inter_pet_save();
 	inter_accreg_save();
-
 	return 0;
 }
 

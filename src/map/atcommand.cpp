@@ -7056,7 +7056,7 @@ bool atcommand_skillid(int fd, struct map_session_data &sd, const char* command,
 			(skill_db[idx].desc && strncasecmp(skill_db[idx].desc, message, skillen) == 0))
 		{
 			char output[256];
-			sprintf(output, "skill %d: %s", idx, skill_db[idx].desc);
+			snprintf(output, sizeof(output),"skill %d: %s", idx, skill_db[idx].desc);
 			clif_displaymessage(fd, output);
 		}
 

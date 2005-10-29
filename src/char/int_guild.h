@@ -4,14 +4,13 @@
 
 int inter_guild_init();
 void inter_guild_final();
-int inter_guild_save();
+
 int inter_guild_parse_frommap(int fd);
-struct guild *inter_guild_search(uint32 guild_id);
+
+
 int inter_guild_mapif_init(int fd);
 
 int inter_guild_leave(uint32 guild_id,uint32 account_id,uint32 char_id);
 
-extern char guild_txt[1024];
-extern char castle_txt[1024];
 
 #endif

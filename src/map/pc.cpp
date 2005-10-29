@@ -2833,34 +2833,38 @@ int pc_item_identify(struct map_session_data &sd, unsigned short idx)
  */
 int pc_item_repair(struct map_session_data &sd, unsigned short idx)
 {
-	static int materials[5] = { 0, 1002, 998, 999, 756 };
-	int flag=1, material;
-	unsigned short nameid = 0;
-
-	sd.state.produce_flag = 0;
-	if(idx < MAX_INVENTORY)
+	if(sd.state.produce_flag==1)
 	{
-		struct item &item = sd.status.inventory[idx];
-		nameid = item.nameid;
-		if(item.nameid > 0 && item.attribute == 1 )
-		{
-			if (itemdb_type(item.nameid)==4)
-				material = materials[itemdb_wlv(item.nameid)];
-			else
-				material = materials[3];
+		static int materials[5] = { 0, 1002, 998, 999, 756 };
+		int flag=1, material;
+		unsigned short nameid = 0;
 
-			if(pc_search_inventory(sd, material) < 0 ) { //fixed by Lupus (item pos can be = 0!)
-				clif_skill_fail(sd,sd.skillid,0,0);
-				return 0;
+		sd.state.produce_flag = 0;
+		if(idx < MAX_INVENTORY)
+		{
+			struct item &item = sd.status.inventory[idx];
+			nameid = item.nameid;
+			if(item.nameid > 0 && item.attribute == 1 )
+			{
+				if (itemdb_type(item.nameid)==4)
+					material = materials[itemdb_wlv(item.nameid)];
+				else
+					material = materials[3];
+
+				if(pc_search_inventory(sd, material) < 0 ) { //fixed by Lupus (item pos can be = 0!)
+					clif_skill_fail(sd,sd.skillid,0,0);
+					return 0;
+				}
+				flag=0;
+				item.attribute=0;
+				pc_delitem(sd, pc_search_inventory(sd, material), 1, 0);
+				clif_equiplist(sd);
+				clif_displaymessage(sd.fd,"Item has been repaired.");
 			}
-			flag=0;
-			item.attribute=0;
-			pc_delitem(sd, pc_search_inventory(sd, material), 1, 0);
-			clif_equiplist(sd);
-			clif_displaymessage(sd.fd,"Item has been repaired.");
 		}
+		return clif_repaireffect(sd,nameid,flag);
 	}
-	return clif_repaireffect(sd,nameid,flag);
+	return 0;
 }
 
 /*==========================================

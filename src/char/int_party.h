@@ -4,12 +4,10 @@
 
 int inter_party_init();
 void inter_party_final();
-int inter_party_save();
+
 
 int inter_party_parse_frommap(int fd);
-
 int inter_party_leave(uint32 party_id, uint32 account_id);
 
-extern char party_txt[1024];
 
 #endif
