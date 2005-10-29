@@ -9,6 +9,7 @@
 #include "../common/mmo.h"
 #include "../common/strlib.h"
 #include "../common/showmsg.h"
+#include "../common/malloc.h"
 
 #include "charsave.h"
 #include "map.h"
