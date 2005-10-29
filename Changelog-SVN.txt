@@ -1,6 +1,7 @@
 Date	Added
 ==========
 2005/10/29
+	* Fixed the flag guild script. Now one can only flag in using the flags outside the castle. [Kayla]
 	* Removed most of the built-in zlib files and the LOCALZLIB compile option
 	  Note: All native Windows builds now require zlib1.dll, you can just download
 	  it from http://www.zlib.org and place it in the main directory [celest]
