@@ -18,6 +18,8 @@ Date	Added
 	* Fixed the code in skill.c so that skills are considered as guild skills
 	  (for things such as inf, maxlv, etc) only when their ID >= 10k, enables
 	  use of 2nd jobs quest skills with 1k+ IDs, thanks to Silent. [DracoRPG]
+	* Fixed the Flag guild script. Now one can only flag in using the flags infront 
+	  of the castle. [Kayla]
 	* Removed most of the built-in zlib files and the LOCALZLIB compile option
 	  Note: All native Windows builds now require zlib1.dll, you can just download
 	  it from http://www.zlib.org and place it in the main directory [celest]
