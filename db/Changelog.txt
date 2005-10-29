@@ -37,6 +37,10 @@
 	[Skotlex]
 	--
 
+10/29
+	* Added 2nd jobs quest skills to skill_tree. [DracoRPG]
+	* Updated current food recipes and added more of them, at the moment
+	  we'll keep all of them as itemlv 11. [DracoRPG]
 10/28
 	* Changed pole axe's dex bonus to 1, thanks to Maxsia for pointing it out [MasterOfMuppets]
 	* Added apple drop to Ancient mimic to prevent steal exploiting, thanks to Irmin [MasterOfMuppets]
@@ -48,7 +52,8 @@
 10/24
 	* Added cursed water to be dropped by fake angel [MasterOfMuppets]
 	* Reverted the inf 32 mode for Heaven's Drive and Arrow Shower [Skotlex]
-	* Added Thanatos/Abyss MOb skills and changed some thanatos/abyss mob stats. Thanks to Vicious_Pucca, Poki#3 and erKURITA. [Nexon]
+	* Added Thanatos/Abyss MOb skills and changed some thanatos/abyss mob stats.
+	  Thanks to Vicious_Pucca, Poki#3 and erKURITA. [Nexon]
 	* Added inf 32 (can target traps) to Arrow Shower and Heaven's Drive. I
 	  hope it doesn't messes up the client... but this is how it should be since
 	  those skills CAN hit traps [Skotlex]

@@ -569,11 +569,11 @@ struct skill_abra_db skill_abra_db[MAX_SKILL_ABRA_DB];
 
 // Skill DB
 int	skill_get_hit( int id ){ skill_get (skill_db[id].hit, id, 1); }
-int	skill_get_inf( int id ){ skill_chk (id, 1); return (id < 500) ? skill_db[id].inf : guild_skill_get_inf(id); }
+int	skill_get_inf( int id ){ skill_chk (id, 1); return (id < 10000) ? skill_db[id].inf : guild_skill_get_inf(id); }
 int	skill_get_pl( int id ){ skill_get (skill_db[id].pl, id, 1); }
 int	skill_get_nk( int id ){ skill_get (skill_db[id].nk, id, 1); }
-int skill_get_max( int id ){ skill_chk (id, 1); return (id < 500) ? skill_db[id].max : guild_skill_get_max(id); }
-int skill_get_range( int id , int lv ){ skill_chk (id, lv); return (id < 500) ? skill_db[id].range[lv-1] : 0; }
+int	skill_get_max( int id ){ skill_chk (id, 1); return (id < 10000) ? skill_db[id].max : guild_skill_get_max(id); }
+int	skill_get_range( int id , int lv ){ skill_chk (id, lv); return (id < 10000) ? skill_db[id].range[lv-1] : 0; }
 int	skill_get_hp( int id ,int lv ){ skill_get (skill_db[id].hp[lv-1], id, lv); }
 int	skill_get_sp( int id ,int lv ){ skill_get (skill_db[id].sp[lv-1], id, lv); }
 int	skill_get_zeny( int id ,int lv ){ skill_get (skill_db[id].zeny[lv-1], id, lv); }
@@ -4094,7 +4094,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					clif_skill_fail(sd,skillid,0,0);
 				break;
 			}
-			if(rand()%10000 < 5000){
+			if(rand()%100 < 50){
 				status_change_start(bl,SC_CONFUSION,7,0,0,0,10000+7000,0);
 			}else{
 				if(sd)
@@ -4105,7 +4105,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case DC_WINKCHARM://–£˜f‚ÌƒEƒBƒ“ƒN
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 			if(dstsd){
-				if(rand()%10000 < 3000)
+				if(rand()%100 < 30)
 					status_change_start(bl,SC_CONFUSION,7,0,0,0,10000+7000,0);
 				{
 					if(sd)
@@ -5779,8 +5779,7 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 	if( skillid != WZ_METEOR &&
 		skillid != AM_CANNIBALIZE &&
 		skillid != AM_SPHEREMINE &&
-		skillid != CR_CULTIVATION &&
-		skillid != TK_HIGHJUMP)
+		skillid != CR_CULTIVATION)
 		clif_skill_poseffect(src,skillid,skilllv,x,y,tick);
 
 //Shouldn't be needed, skillnotok's return value is highly unlikely to have changed after you started casting. [Skotlex]
@@ -6033,13 +6032,9 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 					return 1;
 				}
 				pc_delitem(sd,j,skill_db[skillid].amount[i],0);
-				if (rand()%100 > 50) {
-					clif_skill_fail(sd,skillid,0,0);
-					return 1;
-				}
-				mob_once_spawn(sd, "this", x, y, "--ja--",
-					(skilllv < 2 ? 1084 + rand() % 2 : 1078 + rand() % 6 ), 1, "");
 				clif_skill_poseffect(src,skillid,skilllv,x,y,tick);
+				if (rand()%100 < 50)
+					mob_once_spawn(sd, "this", x, y, "--ja--",(skilllv < 2 ? 1084+rand()%2 : 1078+rand()%6), 1, "");
 			}
 		}
 		break;
@@ -10291,7 +10286,7 @@ int skill_produce_mix( struct map_session_data *sd,
 						make_per += 3000+skill*500; // Temper Steel bonus: +35/+40/+45/+50/+55
 						break;
 					case 1000: //Star Crumb
-						make_per = 100000; //Star Crumbs are 100% success crafting rate? (made 1000% so it succeeds even after penalties) [Skotlex]
+						make_per = 100000; // Star Crumbs are 100% success crafting rate? (made 1000% so it succeeds even after penalties) [Skotlex]
 						break;
 					default: // Enchanted Stones
 						make_per += 1000+skill*500; // Enchantedstone Craft bonus: +15/+20/+25/+30/+35
@@ -10299,7 +10294,7 @@ int skill_produce_mix( struct map_session_data *sd,
 				}
 				break;
 			default:
-				make_per = 100000;
+				make_per = 5000;
 				break;
 			}
 		}
@@ -10356,16 +10351,16 @@ int skill_produce_mix( struct map_session_data *sd,
 					if(nameid >= 545 && nameid <= 547) { // Fame point system [DracoRPG]
 			  			switch(sd->potion_success_counter++) {
 							case 3:
-								pc_addfame(sd,1); // Success to prepare 3 Concentrated Potions in a row = +1 fame point
+								pc_addfame(sd,1); // Success to prepare 3 Condensed Potions in a row = +1 fame point
 								break;
 							case 5:
-								pc_addfame(sd,3); // Success to prepare 5 Concentrated Potions in a row = +3 fame point
+								pc_addfame(sd,3); // Success to prepare 5 Condensed Potions in a row = +3 fame point
 								break;
 				  			case 7:
-								pc_addfame(sd,10); // Success to prepare 7 Concentrated Potions in a row = +10 fame point
+								pc_addfame(sd,10); // Success to prepare 7 Condensed Potions in a row = +10 fame point
 								break;
 							case 10:
-								pc_addfame(sd,50); // Success to prepare 10 Concentrated Potions in a row = +50 fame point
+								pc_addfame(sd,50); // Success to prepare 10 Condensed Potions in a row = +50 fame point
 								sd->potion_success_counter = 0;
 								break;
 						}

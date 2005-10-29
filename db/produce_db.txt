@@ -139,50 +139,55 @@
 //==============================================
 
 
-//===== Mixed Foods === ItemLV=11~15 ===========
+//===== Mixed Foods === ItemLV=11 ==============
 
-//---- Stat +1&+2 --- ItemLV=11 ----------------
 //-- Boiled Down Locust <-- 5 Grasshopper's Leg, 1 Old Frying Pan, 1 Cooking Oil
-12041,11,0,7431,0,940,5,7031,1,7457,1
+12041,11,0,7472,0,940,5,7031,1,7457,1
 //-- Seasoned Webs <-- 20 Cobweb, 10 Green Herb, 10 Yellow Herb, 1 Plain Sauce
-12042,11,0,7431,0,1025,20,511,10,508,10,7454,1
+12042,11,0,7473,0,1025,20,511,10,508,10,7454,1
+//-- Bomber Steak <-- 4 Meat, 1 Old Frying Pan, 10 Green Herb, 5 Red Chili, 1 Hot Sauce
+12043,11,0,7474,0,517,4,7031,1,511,10,7286,5,7455,1
+//-- Spicy Ribs <-- 5 Meat, 3 Red Herb, 2 Yellow Herb, 3 Green Herb, 1 Sweet Sauce, 1 Lemon
+12044,11,0,7475,0,517,5,507,3,508,2,511,3,7453,1,568,1
+//-- Lutie Plat Cake <-- 10 Potato, 2 Honey, 1 Cooking Oil, 3 Carrot, 1 Grain
+12045,11,0,7476,0,516,10,518,2,7457,1,515,3,577,1
+
 //-- Herb Tea With Grape Juice <-- 3 Grape, 2 Red Potion
-12046,11,0,7431,0,514,3,501,2
+12046,11,0,7472,0,514,3,501,2
 //-- Black Tea <-- 5 Blue Herb, 10 Red Herb, 10 Yellow Herb
-12047,11,0,7431,0,510,5,507,10,508,10
+12047,11,0,7473,0,510,5,507,10,508,10
+//-- Herb and Honey Tea <-- 2 Honey, 10 White Herb, 1 Yellow Spice
+12048,11,0,7474,0,518,2,509,10,7452,1
+//-- Morroc Fruit Wine <-- 10 Strawberry, 4 Lemon, 10 Orange, 2 Alcohol, 5 Grape
+12049,11,0,7475,0,578,10,568,4,582,10,970,2,514,5
+//-- Mastela Wine <-- 4 Mastela Fruit, 1 Blue Potion, 2 Alcohol, 2 Lemon, 1 Yellow Spice
+12050,11,0,7476,0,522,4,505,1,970,2,568,2,7452,1
+
 //-- Steamed Crab Pincer <-- 10 Nipper, 10 Green Herb, 1 Yellow Potion
-12051,11,0,7431,0,960,10,511,10,503,1
-//-- Sea Food <-- 10 Clam Flesh, 5 ?y?, 5 Fin, 1 Yummi Fish
-//12052,11,0,7431,0,966,10,y,5,951,5,579,1
+12051,11,0,7472,0,960,10,511,10,503,1
+//-- Sea Food <-- 10 Clam Flesh, 5 Gill, 5 Fin, 1 Yummy Fish
+12052,11,0,7473,0,966,10,956,5,951,5,579,1
+//-- Clam Soup <-- 20 Clam Flesh, 10 Clam Shell, 1 Honey, 1 Sweet Sauce
+12053,11,0,7474,0,966,20,965,10,518,1,7453,1
+//-- Seasoned Jellyfish <-- 30 Tentacle, 10 White Herb, 10 Soft Grass Leaf, 1 Old Frying Pan, 20 Squid Ink
+12054,11,0,7475,0,962,30,509,10,7194,10,7031,1,1024,20
+//-- Hot Roasted Dumpling <-- 20 Dumpling, 10 Yellow Herb, 1 Hot Sauce, 1 Red Spice, 20 Green Herb
+12055,11,0,7476,0,553,20,508,10,7455,1,7456,1,511,20
+
 //-- Frog Spawn Soup <-- 1 Grain, 10 Spawn, 1 Squid Ink
-12056,11,0,7431,0,577,1,908,10,1024,1
+12056,11,0,7472,0,577,1,908,10,1024,1
 //-- Smooth Noodle <-- 1 Grain, 1 Plain Sauce, 5 Pumpkin, 3 Carrot
-12057,11,0,7431,0,577,1,7454,1,535,5,515,3
+12057,11,0,7473,0,577,1,7454,1,535,5,515,3
+
 //-- Grape Juice with Honey <-- 1 Honey, 2 Grape, 1 Red Potion
-12061,11,0,7431,0,518,1,514,2,501,1
+12061,11,0,7472,0,518,1,514,2,501,1
 //-- Chocolate Mousse Cake <-- 10 Cacao, 1 Piece of Cake, 1 Milk, 1 China
-12062,11,0,7431,0,7182,10,539,1,519,1,736,1
+12062,11,0,7473,0,7182,10,539,1,519,1,736,1
+
 //-- Fried Monkey Tail <-- 5 Yoyo Tail, 1 Old Frying Pan, 1 Cooking Oil
-12066,11,0,7431,0,942,5,7031,1,7457,1
+12066,11,0,7472,0,942,5,7031,1,7457,1
 //-- Mixed Juice <-- 3 Apple Juice, 2 Carrot Juice, 1 Grape Juice, 2 Orange Juice
-12067,11,0,7431,0,531,3,534,2,533,1,620,2
-//----------------------------------------------
-
-//---- Stat +3&+4 --- ItemLV=12 ----------------
-
-//----------------------------------------------
-
-//---- Stat +5&+6 --- ItemLV=13 ----------------
-
-//----------------------------------------------
-
-//---- Stat +7&+8 --- ItemLV=14 ----------------
-
-//----------------------------------------------
-
-//---- Stat +9&+10 --- ItemLV=15 ---------------
-
-//----------------------------------------------
+12067,11,0,7473,0,531,3,534,2,533,1,620,2
 
 //==============================================
 

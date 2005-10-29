@@ -1,7 +1,23 @@
 Date	Added
 ==========
 2005/10/29
-	* Fixed the flag guild script. Now one can only flag in using the flags outside the castle. [Kayla]
+	* Reorganized SC IDs to make room for 2nd jobs quest skills statuses: upped
+	  SC_SENDMAX to 300 and moved all required SC to 300+. BEWARE: as a side-
+	  effect of this, you might get 'glue boots' if an SC was saved and cannot
+	  be restored because the ID isn't used anymore, this should only happen
+	  with bonuses from cooked foods & dances/songs (unlikely since they last 20
+	  seconds only), and maybe a few other such things. Simply remove lines
+	  with SC IDs above 200 in your sc_data file/table. [DracoRPG]
+	* Changed a bit the way Plant Cultivation fails: when it fails because of
+	  missing items, it does nothing and displays "Skill had failed"; when the
+	  50% success rate test fails, the effect is displayed but no plant summoned.
+	  How should it work exactly? Because previous way was a bit confusing for
+	  the player, not explaining why it failed, so I'd like to know. [DracoRPG]
+	* Changed food cooking success rate to unmodifiable 50%, temporary value
+	  waiting for accurate data ;) [DracoRPG]
+	* Fixed the code in skill.c so that skills are considered as guild skills
+	  (for things such as inf, maxlv, etc) only when their ID >= 10k, enables
+	  use of 2nd jobs quest skills with 1k+ IDs, thanks to Silent. [DracoRPG]
 	* Removed most of the built-in zlib files and the LOCALZLIB compile option
 	  Note: All native Windows builds now require zlib1.dll, you can just download
 	  it from http://www.zlib.org and place it in the main directory [celest]

@@ -537,7 +537,7 @@
 1012,0,0,0,0,0,1,0,no,0,1,0,weapon,0	//BS_UNFAIRLYTRICK#Unfair Trick#
 1013,0,6,0,0,0,1,0,no,0,1,0,weapon,0	//BS_GREED#Greed#
 1014,10,6,2,6,1,10,1,yes,0,1,0,magic,0	//PR_REDEMPTIO#Redemptio#
-1015,10,6,16,0,1,1,1,no,0,1,0,weapon,0	//MO_KITRANSLATION#Ki Transtation#
+1015,10,6,16,0,1,1,1,no,0,1,0,weapon,0	//MO_KITRANSLATION#Ki Translation#
 1016,0,6,1,0,0,1,1,no,0,1,0,weapon,0	//MO_BALKYOUNG#Ki Explosion#
 1017,10,6,1,0,1,1,1,yes,0,1,0,magic,0	//SA_ELEMENTGROUND#Elemental Change Earth#
 1018,10,6,1,0,1,1,1,yes,0,1,0,magic,0	//SA_ELEMENTFIRE#Elemental Change Fire#

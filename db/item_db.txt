@@ -2285,8 +2285,6 @@
 12098,Strawberry_Rice_Ball,Strawberry Rice Ball,2,60000,,400,,,,,127918079,7,2,,,,,,{ sc_start SC_LUKFood, 1200000, 8; percentheal 9,3; }
 12099,Blood_Flavored_Sodapop,Blood Flavored Sodapop,2,80000,,1000,,,,,127918079,7,2,,,,,,{ sc_start SC_LUKFood, 1200000, 9; percentheal 10,4; }
 12100,Nine_Tail_Dish,Nine Tail Dish,2,100000,,500,,,,,127918079,7,2,,,,,,{ sc_start SC_LUKFood, 1200000, 10; percentheal 14,8; }
-
-
 12101,Citron,Citron,2,,10,300,,,,,127918079,7,2,,,,,,{}
 12102,Grilled_Skewer,Grilled Skewer,2,,10,300,,,,,127918079,7,2,,,,,,{}
 // New Monster Summoners & Item Givers
