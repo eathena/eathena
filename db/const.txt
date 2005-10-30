@@ -360,12 +360,12 @@ SC_Frost	91
 SC_Lightning	92
 SC_Seismic	93
 SC_EleDef	99
-SC_STRFood	236
-SC_AGIFood	237
-SC_VITFood	238
-SC_INTFood	239
-SC_DEXFood	240
-SC_LUKFood	241
+SC_STRFood	336
+SC_AGIFood	337
+SC_VITFood	338
+SC_INTFood	339
+SC_DEXFood	340
+SC_LUKFood	341
 
 e_gasp	0
 e_what	1

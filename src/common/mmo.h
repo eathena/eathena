@@ -1,6 +1,3 @@
-// $Id: mmo.h,v 1.3 2004/09/25 20:12:25 PoW Exp $
-// Original : mmo.h 2003/03/14 12:07:02 Rev.1.7
-
 #ifndef	_MMO_H_
 #define	_MMO_H_
 
@@ -49,10 +46,10 @@
 //Note: The client seems unable to receive data for more than 4 slots due to all related packets having a fixed size.
 #define MAX_SLOTS 4
 #define MAX_AMOUNT 30000
-#define MAX_ZENY 1000000000	// 1G zeny
-#define MAX_FAME 1000000000 // 1G fame point [DracoRPG]
+#define MAX_ZENY 1000000000
+#define MAX_FAME 1000000000
 #define MAX_CART 100
-#define MAX_SKILL 650
+#define MAX_SKILL 1100 // Bumped to 1100 for new quest skills, will need to further increase one day... [DracoRPG]
 #define GLOBAL_REG_NUM 96
 #define ACCOUNT_REG_NUM 16
 #define ACCOUNT_REG2_NUM 16
