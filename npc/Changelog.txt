@@ -28,6 +28,7 @@ Nexon
 Date		Added
 ======
 10/29
+	* A small fix to the obb quest, thanks to marquis007 [MasterOfMuppets]
 	* Fixed the flag guild script. Now one can only flag in using the flags outside the castle. [Kayla]
 10/28
 	* Fixed Sage Job Quest [Lupus]

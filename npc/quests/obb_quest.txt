@@ -3,12 +3,13 @@
 //===== By ================================================
 //= Celesta, Lupus
 //===== Version ===========================================
-//= 1.6
+//= 1.6a
 //===== Compatible With ===================================
 //= SVN3000+
 //===== Description =======================================
 //= Official OBB Quest. You can pass it any times you want.
 //= 1.6 Updated, fixed, optimized and translated into English [Lupus]
+//= 1.6a Halved the required items to make an obb, thanks to marquis007 [MasterOfMuppets]
 //===== Description =======================================
 
 alberta.gat,115,204,5	script	Tourist	97,{
@@ -161,10 +162,10 @@ L_MENU:
 
 	mes "[Old Greek]";
 	mes "For an Old Blue Box I need:";
-	mes "100 ^0000FFCyfars^000000";
-	mes "20 ^0000FFBrigans^000000";
-	mes "20 ^0000FFClam Shells^000000";
-	mes "30 ^0000FFCrab Shells^000000";
+	mes "50 ^0000FFCyfars^000000";
+	mes "10 ^0000FFBrigans^000000";
+	mes "10 ^0000FFClam Shells^000000";
+	mes "15 ^0000FFCrab Shells^000000";
 	next;
 	goto L_MENU;
 
@@ -173,14 +174,14 @@ L_CREATE:
 	mes "Let's see... What have you got...";
 	next;
 L_CREATE2:
-	if(countitem(7053)<100 || countitem(7054)<20 || countitem(965)<20 || countitem(964)<30) goto L_NO;//Items: Cyfar, Brigan, Clam_Shell, Crab_Shell,
+	if(countitem(7053)<50 || countitem(7054)<10 || countitem(965)<10 || countitem(964)<15) goto L_NO;//Items: Cyfar, Brigan, Clam_Shell, Crab_Shell,
 
 	mes "[Old Greek]";
 	mes "Here's your Box!";
-	delitem 7053,100;//Items: Cyfar,
-	delitem 7054,20;//Items: Brigan,
-	delitem 965,20;//Items: Clam_Shell,
-	delitem 964,30;//Items: Crab_Shell,
+	delitem 7053,50;//Items: Cyfar,
+	delitem 7054,10;//Items: Brigan,
+	delitem 965,10;//Items: Clam_Shell,
+	delitem 964,15;//Items: Crab_Shell,
 	getitem 603,1;//Items: Old_Blue_Box,
 	emotion 21;
 	next;
