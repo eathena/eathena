@@ -6825,7 +6825,7 @@ atcommand_follow(const int fd, struct map_session_data* sd,
 	if (!message || !*message) { 
 		if (sd->followtarget == -1) 
 			return -1; 
-	else { 
+	} else { 
 		pc_stop_following (sd); 
 		clif_displaymessage(fd, "Stop following"); 
 		return 0; 
