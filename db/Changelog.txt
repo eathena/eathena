@@ -37,6 +37,8 @@
 	[Skotlex]
 	--
 
+10/30
+	* Updated const.txt to reflect changes in source, thanks to Silent. [DracoRPG]
 10/29
 	* Added 2nd jobs quest skills to skill_tree. [DracoRPG]
 	* Updated current food recipes and added more of them, at the moment
