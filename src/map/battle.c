@@ -526,6 +526,9 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 					sd->canmove_tick = gettick() + delay;
 				else if(md)
 					md->canmove_tick = gettick() + delay;
+
+				if(sc_data[SC_SHRINK].timer != -1 && rand()%100<5*sc_data[SC_AUTOGUARD].val1)
+					skill_blown(bl,src,skill_get_blewcount(CR_SHRINK,1),1);
 			}
 		}
 // -- moonsoul (chance to block attacks with new Lord Knight skill parrying)
@@ -891,6 +894,11 @@ static struct Damage battle_calc_weapon_attack(
 				flag.arrow = 1;
 				break;
 
+			case HT_PHANTASMIC:
+				wd.flag=(wd.flag&~BF_RANGEMASK)|BF_LONG;
+				flag.arrow = 0;
+				break;
+
 			case MO_FINGEROFFENSIVE:
 				if(sd && battle_config.finger_offensive_type == 0)
 					wd.div_ = sd->spiritball_old;
@@ -1058,7 +1066,7 @@ static struct Damage battle_calc_weapon_attack(
 				case CR_GRANDCROSS:
 				case NPC_GRANDDARKNESS:
 				case PA_SACRIFICE:
-    			case TK_COUNTER:
+				case TK_COUNTER:
 					flag.hit = 1;
 					break;
 			}
@@ -1111,6 +1119,10 @@ static struct Damage battle_calc_weapon_attack(
 				break;
 			case PA_SHIELDCHAIN:
 				hitrate += 20;
+				break;
+			case AS_SONICBLOW:
+				if(sd && pc_checkskill(sd,AS_SONICACCEL)>0)
+					hitrate += 50;
 				break;
 		}
 
@@ -1254,7 +1266,7 @@ static struct Damage battle_calc_weapon_attack(
 					//rodatazone says the range is 0~arrow_atk-1 for non crit
 					if (flag.arrow && sd->arrow_atk)
 						ATK_ADD(flag.cri?sd->arrow_atk:rand()%sd->arrow_atk);
-					
+
 					//SizeFix only for players
 					if (!(
 						/*!tsd || //rodatazone claims that target human players don't have a size! -- I really don't believe it... removed until we find some evidence*/
@@ -1365,6 +1377,8 @@ static struct Damage battle_calc_weapon_attack(
 					break;
 				case AS_SONICBLOW:
 					skillratio += 200+50*skill_lv;
+					if(sd && pc_checkskill(sd,AS_SONICACCEL)>0)
+						skillratio += 10;
 					break;
 				case TF_SPRINKLESAND:
 					skillratio += 30;
@@ -1545,6 +1559,8 @@ static struct Damage battle_calc_weapon_attack(
 				case TK_JUMPKICK:
 					skillratio += -70 + 10*skill_lv;
 					break;
+				case HT_PHANTASMIC:
+					skillratio += 50;
         	}
 
 			if (sd && sd->skillatk[0] != 0)
@@ -2606,7 +2622,7 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 	race = status_get_race(target);
 	ele = status_get_elem_type(target);
 
-	if(sd && sd->status.weapon == 11) {
+	if(sd && (sd->skillid == AS_VENOMKNIFE || (sd->status.weapon == 11 && sd->skillid != HT_PHANTASMIC))) {
 		if(sd->equip_index[10] >= 0) {
 			if(battle_config.arrow_decrement)
 				pc_delitem(sd,sd->equip_index[10],1,0);

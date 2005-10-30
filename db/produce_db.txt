@@ -4,9 +4,9 @@
 // ProduceItemID,ItemLV,RequireSkill,MaterialID1,MaterialAmount1,...,MaterialID5,MaterialAmount5
 //
 // Comments:
-// If MaterialAmount = 0, then you just need that item in your inventory (books)
+// If MaterialAmount = 0, then you just need that item in your inventory (guides)
 // For example, Mine Bottle is 7138,32,228,7131,0,713,1,1050,1,1051,1
-// 7131 is the Book needed to create mine bottles and the amount needed of this item is 0 (.. ,7131,0, ..).
+// 7131 is the Guide needed to create mine bottles and the amount needed of this item is 0 (.. ,7131,0, ..).
 
 
 //===== Weapon === ItemLV=1~3 ==================
@@ -221,42 +221,67 @@
 //===== Potions === ItemLV=22 ==================
 
 //---- Health Potions --------------------------
-//-- Red Potion <-- AM_PHARMACY & 1 Red Herb, 1 Empty Potion Bottle
+//-- Red Potion <-- AM_PHARMACY & Potion Creation Guide & 1 Red Herb, 1 Empty Potion Bottle
 501,22,228,7144,0,507,1,1093,1
-//-- Yellow Potion <-- AM_PHARMACY & 1 Yellow Herb, 1 Empty Potion Bottle
+//-- Yellow Potion <-- AM_PHARMACY & Potion Creation Guide & 1 Yellow Herb, 1 Empty Potion Bottle
 503,22,228,7144,0,508,1,1093,1
-//-- White Potion <-- AM_PHARMACY & 1 White Herb, 1 Empty Potion Bottle
+//-- White Potion <-- AM_PHARMACY & Potion Creation Guide & 1 White Herb, 1 Empty Potion Bottle
 504,22,228,7144,0,509,1,1093,1
-//-- Blue Potion <-- AM_PHARMACY & 1 Blue Herb, 1 Scell, 1 Empty Potion Bottle
+//-- Blue Potion <-- AM_PHARMACY & Potion Creation Guide & 1 Blue Herb, 1 Scell, 1 Empty Potion Bottle
 505,22,228,7144,0,510,1,911,1,1093,1
-//-- Condensed Red Potion <-- AM_PHARMACY & 1 Red Potion, 1 Empty Testtube, 1 Cactus Needle
+//-- Condensed Red Potion <-- AM_PHARMACY & Condensed Potion Creation Guide & 1 Red Potion, 1 Empty Testtube, 1 Cactus Needle
 545,22,228,7133,0,501,1,1092,1,952,1
-//-- Condensed Yellow Potion <-- AM_PHARMACY & 1 Yellow Potion, 1 Empty Testtube, 1 Mole Whiskers
+//-- Condensed Yellow Potion <-- AM_PHARMACY & Condensed Potion Creation Guide & 1 Yellow Potion, 1 Empty Testtube, 1 Mole Whiskers
 546,22,228,7133,0,503,1,1092,1,1017,1
-//-- Condensed White Potion <-- AM_PHARMACY & 1 White Potion, 1 Empty Testtube, 1 Witched Starsand
+//-- Condensed White Potion <-- AM_PHARMACY & Condensed Potion Creation Guide & 1 White Potion, 1 Empty Testtube, 1 Witched Starsand
 547,22,228,7133,0,504,1,1092,1,1061,1
 //----------------------------------------------
 
 //---- Misc ------------------------------------
-//-- Anodyne <-- AM_PHARMACY & 1 Ment, 1 Alcohol, 1 Empty Bottle
+//-- Anodyne <-- AM_PHARMACY & Potion Creation Guide & 1 Ment, 1 Alcohol, 1 Empty Bottle
 605,22,228,7144,0,708,1,970,1,713,1
-//-- Aloevera <-- AM_PHARMACY & 1 Aloe, 1 Honey, 1 Empty Bottle
+//-- Aloevera <-- AM_PHARMACY & Potion Creation Guide & 1 Aloe, 1 Honey, 1 Empty Bottle
 606,22,228,7144,0,704,1,518,1,713,1
-//-- Alcohol <-- AM_PHARMACY & 1 Empty Bottle, 5 Poison Spore, 5 Stem, 1 Empty Testtube
+//-- Alcohol <-- AM_PHARMACY & Alcohol Creation Guide & 1 Empty Bottle, 5 Poison Spore, 5 Stem, 1 Empty Testtube
 970,22,228,7127,0,713,1,7033,5,905,5,1092,1
 //----------------------------------------------
 
 //---- Skill-related Mixtures ------------------
-//-- Fire Bottle <-- AM_PHARMACY & 1 Alcohol, 1 Fabric, 1 Empty Bottle
+//-- Bottle Grenade <-- AM_PHARMACY & Bottle Grenade Creation Guide & 1 Alcohol, 1 Fabric, 1 Empty Bottle
 7135,22,228,7128,0,970,1,1059,1,713,1
-//-- Hydrobolic Acid Bottle <-- AM_PHARMACY & 1 Empty Bottle, 1 Immortal Heart
+//-- Acid Bottle <-- AM_PHARMACY & Acid Bottle Creation Guide & 1 Empty Bottle, 1 Immortal Heart
 7136,22,228,7129,0,713,1,929,1
-//-- Plant Bottle <-- AM_PHARMACY & 1 Empty Bottle, 2 Maneater Blossom
+//-- Plant Bottle <-- AM_PHARMACY & Plant Bottle Creation Guide & 1 Empty Bottle, 2 Maneater Blossom
 7137,22,228,7130,0,713,1,1032,2
-//-- Mine Bottle <-- AM_PHARMACY & 1 Empty Bottle, 1 Tendon, 1 Detonator
+//-- Marine Sphere Bottle <-- AM_PHARMACY & Marine Sphere Creation Guide & 1 Empty Bottle, 1 Tendon, 1 Detonator
 7138,22,228,7131,0,713,1,1050,1,1051,1
-//-- Coating Wax <-- AM_PHARMACY & 1 Alcohol, 1 Heart of Mermaid, 1 Zenorcs Fang, 1 Empty Bottle
+//-- Glistening Coat <-- AM_PHARMACY & Glistening Coat Creation Guide & 1 Alcohol, 1 Heart of Mermaid, 1 Zenorcs Fang, 1 Empty Bottle
 7139,22,228,7132,0,970,1,950,1,1044,1,713,1
 //----------------------------------------------
+
+//---- Elemental-resist Potions ----------------
+//-- Resist Fire Potion <-- AM_PHARMACY & Elemental Potion Creation Guide & ??
+12118,22,228,7434,0
+//-- Resist Water Potion <-- AM_PHARMACY & Elemental Potion Creation Guide & ??
+12119,22,228,7434,0
+//-- Resist Earth Potion <-- AM_PHARMACY & Elemental Potion Creation Guide & ??
+12120,22,228,7434,0
+//-- Resist Wind Potion <-- AM_PHARMACY & Elemental Potion Creation Guide & ??
+12121,22,228,7434,0
+//----------------------------------------------
+
+//==============================================
+
+
+//===== Elemental Converters === ItemLV=23 =====
+
+//-- Fire Elemental Converter <-- SA_CREATECON & 1 Blank Scroll, 10 Scorpion Tail
+12114,23,1007,7433,1,904,10
+//-- Water Elemental Converter <-- SA_CREATECON & 1 Blank Scroll, 10 Snail's Shell
+12115,23,1007,7433,1,946,10
+//-- Earth Elemental Converter <-- SA_CREATECON & 1 Blank Scroll, 7 Stiff Horn
+12116,23,1007,7433,1,7008,7
+//-- Wind Elemental Converter <-- SA_CREATECON & 1 Blank Scroll, 12 Rainbow Shell
+12117,23,1007,7433,1,1013,12
 
 //==============================================

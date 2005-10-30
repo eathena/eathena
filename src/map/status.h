@@ -202,7 +202,8 @@ enum {
 	SC_SHRINK			= 197,
 	SC_SIGHTBLASTER		= 198,
 // 199 = empty
-
+	SC_CLOSECONFINE		= 200,
+	SC_CLOSECONFINE2		= 201,
 
 	SC_SENDMAX			= 300, // 300 is enough at the moment to allow display of all client-side effects [DracoRPG]
 

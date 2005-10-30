@@ -612,15 +612,16 @@ int skill_tree_get_max(int id, int b_class){
 int skill_check_condition( struct map_session_data *sd,int type);
 int skill_castend_damage_id( struct block_list* src, struct block_list *bl,int skillid,int skilllv,unsigned int tick,int flag );
 int skill_frostjoke_scream(struct block_list *bl,va_list ap);
-int status_change_timer_sub(struct block_list *bl, va_list ap );
+int status_change_timer_sub(struct block_list *bl, va_list ap);
 int skill_attack_area(struct block_list *bl,va_list ap);
 int skill_clear_element_field(struct block_list *bl);
 struct skill_unit_group *skill_locate_element_field(struct block_list *bl); // [Skotlex]
-int skill_graffitiremover(struct block_list *bl, va_list ap ); // [Valaris]
-int skill_landprotector(struct block_list *bl, va_list ap );
-int skill_ganbatein(struct block_list *bl, va_list ap );
-int skill_trap_splash(struct block_list *bl, va_list ap );
-int skill_count_target(struct block_list *bl, va_list ap );
+int skill_graffitiremover(struct block_list *bl, va_list ap); // [Valaris]
+int skill_greed(struct block_list *bl, va_list ap);
+int skill_landprotector(struct block_list *bl, va_list ap);
+int skill_ganbatein(struct block_list *bl, va_list ap);
+int skill_trap_splash(struct block_list *bl, va_list ap);
+int skill_count_target(struct block_list *bl, va_list ap);
 struct skill_unit_group_tickset *skill_unitgrouptickset_search(struct block_list *bl,struct skill_unit_group *sg,int tick);
 int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int tick);
 static int skill_unit_onleft(int skill_id, struct block_list *bl,unsigned int tick);
@@ -852,6 +853,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 
 	case TF_POISON:			/* ƒCƒ“ƒxƒiƒ€ */
 	case AS_SPLASHER:		/* ƒxƒiƒ€ƒXƒvƒ‰ƒbƒVƒƒ? */
+	case AS_VENOMKNIFE:
 		if(rand()%100< (2*skilllv+10)*sc_def_vit/100 )
 			status_change_start(bl,SC_POISON,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
 		else{
@@ -1220,10 +1222,10 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 
 			if (auto_skillid == skillid) //Prevents skill from retriggering themselves. [Skotlex]
 				continue;
-			
+
 			auto_skilllv = (sd->autospell_lv[i] > 0) ? sd->autospell_lv[i] : 1;
 			rate = (!sd->state.arrow_atk) ? sd->autospell_rate[i] : sd->autospell_rate[i] / 2;
-			
+
 			if (rand()%1000 > rate)
 				continue;
 			if (sd->autospell_id[i] < 0)
@@ -1917,9 +1919,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 	}
 
 	if (!(flag & 1) &&
-		(
-//			skillid == MG_NAPALMBEAT || skillid == MG_SOULSTRIKE ||
-//			skillid == MG_FIREBALL || skillid == MG_FROSTDIVER ||		
+		(	
 			skillid == MG_COLDBOLT || skillid == MG_FIREBOLT || skillid == MG_LIGHTNINGBOLT
 		) &&
 		(sc_data = status_get_sc_data(src)) &&
@@ -2553,6 +2553,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 	case AC_CHARGEARROW:	/* ƒ`ƒƒ?ƒWƒAƒ?? */
 	case RG_RAID:		/* ƒTƒvƒ‰ƒCƒYƒAƒ^ƒbƒN */
 	case RG_INTIMIDATE:		/* ƒCƒ“ƒeƒBƒ~ƒfƒCƒg */
+	case AM_ACIDTERROR:		/* ƒAƒVƒbƒhƒeƒ‰? */
 	case BA_MUSICALSTRIKE:	/* ƒ~ƒ…?ƒWƒJƒ‹ƒXƒgƒ‰ƒCƒN */
 	case DC_THROWARROW:		/* –î?‚¿ */
 	case BA_DISSONANCE:		/* •s‹¦˜a‰¹ */
@@ -2608,7 +2609,9 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 	case PA_SHIELDCHAIN:	// Shield Chain
 	case PA_SACRIFICE:	// Sacrifice, Aru's style.
 	case WS_CARTTERMINATION:	// Cart Termination
-	case AM_ACIDTERROR:		/* ƒAƒVƒbƒhƒeƒ‰? */
+	case KN_CHARGEATK:
+	case AS_VENOMKNIFE:
+	case HT_PHANTASMIC:
 		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
 		break;
 	case TK_STORMKICK: // Taekwon kicks [Dralnu]
@@ -2917,6 +2920,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 	case NPC_MAGICALATTACK:		/* MOB:–‚–@‘Å??U? */
 	case PR_ASPERSIO:			/* ƒAƒXƒyƒ‹ƒVƒI */
 	case MG_FROSTDIVER:		/* ƒtƒ?ƒXƒgƒ_ƒCƒo?[ */
+	case WZ_SIGHTBLASTER:
 		skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag);
 		break;
 
@@ -3621,6 +3625,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case PA_SACRIFICE:
 	case ASC_EDP:			// [Celest]
 	case NPC_STOP:
+	case WZ_SIGHTBLASTER:
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
 		break;
@@ -3830,6 +3835,13 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		}
 		break;
 
+	case SA_CREATECON:
+		if(sd) {
+			clif_skill_produce_mix_list(sd,23);
+			clif_skill_nodamage(src,bl,skillid,skilllv,1);
+		}
+		break;
+
 	case BS_HAMMERFALL:		/* ƒnƒ“ƒ}?ƒtƒH?ƒ‹ */
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		if(dstsd && dstsd->special_state.no_weapon_damage)
@@ -3940,10 +3952,16 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		}
 		break;
 
-	case BS_MAXIMIZE:		/* ƒ}ƒLƒVƒ}ƒCƒYƒpƒ?? */
-	case NV_TRICKDEAD:		/* Ž€‚ñ‚¾‚Ó‚è */
-	case CR_DEFENDER:		/* ƒfƒBƒtƒFƒ“ƒ_? */
-	case CR_AUTOGUARD:		/* ƒI?ƒgƒK?ƒh */
+	case BS_MAXIMIZE:
+	case NV_TRICKDEAD:
+	case CR_DEFENDER:
+	case CR_AUTOGUARD:
+	case TK_READYSTORM:
+	case TK_READYDOWN:
+	case TK_READYTURN:
+	case TK_READYCOUNTER:
+	case TK_DODGE:
+	case CR_SHRINK:
 		{
 			struct status_change *tsc_data = status_get_sc_data(bl);
 			int sc = SkillStatusChangeTable[skillid];
@@ -3966,17 +3984,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				status_change_start(bl,sc,skilllv,0,0,0,0,0);				
 		}
 		break;
-	case TK_READYSTORM:
-	case TK_READYDOWN:
-	case TK_READYTURN:
-	case TK_READYCOUNTER:
-	case TK_DODGE:
 	case TF_HIDING:			/* ƒnƒCƒfƒBƒ“ƒO */
 	case ST_CHASEWALK:			/* ƒnƒCƒfƒBƒ“ƒO */
 		{
 			struct status_change *tsc_data = status_get_sc_data(bl);
 			int sc = SkillStatusChangeTable[skillid];
-			clif_skill_nodamage(src,bl,skillid,-1,1);
+			clif_skill_nodamage(src,bl,skillid,-1,1); // Don't display the skill name as it is a hiding skill
 			if (tsc_data && tsc_data[sc].timer != -1)
 				status_change_end(bl, sc, -1);
 			else
@@ -4107,22 +4120,16 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			if(dstsd){
 				if(rand()%100 < 30)
 					status_change_start(bl,SC_CONFUSION,7,0,0,0,10000+7000,0);
-				{
+				else{
 					if(sd)
 						clif_skill_fail(sd,skillid,0,0);
 				}
 			}else if(dstmd)
 			{
 				int race = status_get_race(bl);
-				if(!(status_get_mode(bl)&MD_BOSS) && (race == 6 || race == 7 || race == 8))
-				{
-					if(rand()%10000 < 5000){
+				if(!(status_get_mode(bl)&MD_BOSS) && (race == 6 || race == 7 || race == 8) && rand()%100 < 70)
 						status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,10000,0);
-					}else{
-						if(sd)
-							clif_skill_fail(sd,skillid,0,0);
-					}
-				}else{
+				else{
 					if(sd)
 						clif_skill_fail(sd,skillid,0,0);
 				}
@@ -4541,6 +4548,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		skill_addtimerskill(src,tick + 200,src->id,0,0,skillid,skilllv,0,flag);
 		break;
 
+	case TK_HIGHJUMP:
+		if (sd)
+			pc_highjump(sd, skilllv);
+		break;
+
 	case SA_CASTCANCEL:
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		skill_castcancel(src,1);
@@ -4675,6 +4687,24 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			if(spellid > 0)
 				status_change_start(src,SC_AUTOSPELL,skilllv,spellid,maxlv,0,
 					skill_get_time(SA_AUTOSPELL,skilllv),0);
+		}
+		break;
+
+	case BS_GREED:
+		if(sd){
+			clif_skill_nodamage(src,bl,skillid,skilllv,1);
+			map_foreachinarea(skill_greed,bl->m,bl->x-2,bl->y-2,bl->x+2,bl->y+2,BL_ITEM,bl);
+		}
+		break;
+
+	case SA_ELEMENTWATER:
+	case SA_ELEMENTFIRE:
+	case SA_ELEMENTGROUND:
+	case SA_ELEMENTWIND:
+		if(dstmd && !(status_get_mode(bl)&MD_BOSS)){
+			clif_skill_nodamage(src,bl,skillid,skilllv,1);
+			dstmd->def_ele = skill_get_pl(skillid);
+			dstmd->def_ele += (1+rand()%4)*20;
 		}
 		break;
 
@@ -5577,18 +5607,6 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 	if(range < 0)
 		range = status_get_range(&sd->bl) - (range + 1);
 
-	/* This piece of code is quite broken... it was originally meant to add range to follow up your enemy when
-	 * Combo Finish used to knock back. No longer needed. [Skotlex]
-	if (sd->sc_data[SC_COMBO].timer != -1 &&
-		((sd->skillid == MO_EXTREMITYFIST && sd->sc_data[SC_COMBO].val1 == MO_COMBOFINISH) ||
-		(sd->skillid == CH_TIGERFIST && sd->sc_data[SC_COMBO].val1 == MO_COMBOFINISH) ||
-		(sd->skillid == CH_CHAINCRUSH && sd->sc_data[SC_COMBO].val1 == MO_COMBOFINISH) ||
-		(sd->skillid == CH_CHAINCRUSH && sd->sc_data[SC_COMBO].val1 == CH_TIGERFIST) ||
-		(sd->skillid == MO_EXTREMITYFIST && sd->sc_data[SC_COMBO].val1 == CH_TIGERFIST) ||
-		(sd->skillid == MO_EXTREMITYFIST && sd->sc_data[SC_COMBO].val1 == CH_CHAINCRUSH)))
-		range += skill_get_blewcount(MO_COMBOFINISH,sd->sc_data[SC_COMBO].val2);
-	*/
-
 	if(range+battle_config.pc_skill_add_range < distance(sd->bl.x,sd->bl.y,bl->x,bl->y))
 	{
 		clif_skill_fail(sd,sd->skillid,0,0);
@@ -5924,12 +5942,6 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 			mob_warp(md, -1, x, y, 0);
 			clif_spawnmob(md);
 		}
-		break;
-	case TK_HIGHJUMP:
-		if (sd)
-			pc_highjump(sd, skilllv);
-		else if( src->type==BL_MOB )//mob‚ÍŽè”²‚«
-			mob_warp((struct mob_data *)src,-1,x,y,0);
 		break;
 	case AM_CANNIBALIZE:	// ƒoƒCƒIƒvƒ‰ƒ“ƒg
 		if(sd) {
@@ -7500,7 +7512,7 @@ int skill_check_condition(struct map_session_data *sd,int type)
 	switch(skill) { // Check for cost reductions due to skills & SCs
 		case MC_MAMMONITE:
 			if(pc_checkskill(sd,BS_UNFAIRLYTRICK)>0)
-				zeny *= 90/100;
+				zeny -= zeny*10/100;
 			break;
 		/*case AL_HOLYLIGHT:
 			if(sd->sc_data[SC_PRIEST].timer!=-1)
@@ -7550,6 +7562,7 @@ int skill_check_condition(struct map_session_data *sd,int type)
 	case ST_CHASEWALK:
 	case PA_GOSPEL:
 	case TK_RUN:
+	case CR_SHRINK:
 		if(sd->sc_data[SkillStatusChangeTable[skill]].timer!=-1)
 			return 1;			/* ‰ð?œ‚·‚é?ê?‡‚ÍSP?Á”ï‚µ‚È‚¢ */
 		break;
@@ -8263,6 +8276,9 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 		forcecast = 1;
 		break;
 
+	case KN_CHARGEATK:
+		casttime *= distance(sd->bl.x,sd->bl.y,bl->x,bl->y);
+		break;
 
 	// parent-baby skills
 	case WE_BABY:
@@ -9220,7 +9236,7 @@ struct skill_unit_group *skill_locate_element_field(struct block_list *bl)
 }
 
 // for graffiti cleaner [Valaris]
-int skill_graffitiremover(struct block_list *bl, va_list ap )
+int skill_graffitiremover(struct block_list *bl, va_list ap)
 {
 	struct skill_unit *unit=NULL;
 
@@ -9230,9 +9246,24 @@ int skill_graffitiremover(struct block_list *bl, va_list ap )
 	if(bl->type!=BL_SKILL || (unit=(struct skill_unit *)bl) == NULL)
 		return 0;
 
-	if((unit->group) && (unit->group->unit_id == UNT_GRAFFITI)){
+	if((unit->group) && (unit->group->unit_id == UNT_GRAFFITI))
 		skill_delunit(unit);
-	}
+
+	return 0;
+}
+
+int skill_greed(struct block_list *bl, va_list ap)
+{
+	struct block_list *src;
+	struct map_session_data *sd=NULL;
+	struct flooritem_data *fitem=NULL;
+
+	nullpo_retr(0, bl);
+	nullpo_retr(0, ap);
+	nullpo_retr(0, src = va_arg(ap,struct block_list *));
+
+	if(src->type == BL_PC && (sd=(struct map_session_data *)src) && bl->type==BL_ITEM && (fitem=(struct flooritem_data *)bl))
+		pc_takeitem(sd, fitem);
 
 	return 0;
 }
@@ -10236,7 +10267,28 @@ int skill_produce_mix( struct map_session_data *sd,
 		wlv = itemdb_wlv(nameid);
 	if(!equip) {
 		switch(skill_produce_db[idx].req_skill){
-			case AM_PHARMACY: // Potion Making - reviewed with the help of various Ragnainfo sources [DracoRPG]
+			case BS_IRON:
+			case BS_STEEL:
+			case BS_ENCHANTEDSTONE:
+				{ // Ores & Metals Refining - skill bonuses are straight from kRO website [DracoRPG]
+				int skill = pc_checkskill(sd,skill_produce_db[idx].req_skill);
+				make_per = sd->status.job_level*20 + sd->paramc[4]*10 + sd->paramc[5]*10; //Base chance
+				switch(nameid){
+					case 998: // Iron
+						make_per += 4000+skill*500; // Temper Iron bonus: +26/+32/+38/+44/+50
+						break;
+					case 999: // Steel
+						make_per += 3000+skill*500; // Temper Steel bonus: +35/+40/+45/+50/+55
+						break;
+					case 1000: //Star Crumb
+						make_per = 100000; // Star Crumbs are 100% success crafting rate? (made 1000% so it succeeds even after penalties) [Skotlex]
+						break;
+					default: // Enchanted Stones
+						make_per += 1000+skill*500; // Enchantedstone Craft bonus: +15/+20/+25/+30/+35
+					break;
+				}
+				break;
+			case AM_PHARMACY: // Potion Preparation - reviewed with the help of various Ragnainfo sources [DracoRPG]
 				make_per = pc_checkskill(sd,AM_LEARNINGPOTION)*100
 					+ pc_checkskill(sd,AM_PHARMACY)*300 + sd->status.job_level*20
 					+ sd->paramc[3]*5 + sd->paramc[4]*10+sd->paramc[5]*10;
@@ -10272,25 +10324,21 @@ int skill_produce_mix( struct map_session_data *sd,
 				if(battle_config.pp_rate != 100)
 					make_per = make_per * battle_config.pp_rate / 100;
 				break;
-			case BS_IRON:
-			case BS_STEEL:
-			case BS_ENCHANTEDSTONE:
-				{ // Ores & Metals Refining - skill bonuses are straight from kRO website [DracoRPG]
-				int skill = pc_checkskill(sd,skill_produce_db[idx].req_skill);
-				make_per = sd->status.job_level*20 + sd->paramc[4]*10 + sd->paramc[5]*10; //Base chance
+			case SA_CREATECON: // Elemental Converter Creation - skill bonuses are from kRO [DracoRPG]
+				make_per = sd->status.job_level*20 + sd->paramc[3]*10 + sd->paramc[4]*10;
 				switch(nameid){
-					case 998: // Iron
-						make_per += 4000+skill*500; // Temper Iron bonus: +26/+32/+38/+44/+50
+					case 12114:
+						make_per += pc_checkskill(sd,SA_FLAMELAUNCHER)*1000-500;
 						break;
-					case 999: // Steel
-						make_per += 3000+skill*500; // Temper Steel bonus: +35/+40/+45/+50/+55
+					case 12115:
+						make_per += pc_checkskill(sd,SA_FROSTWEAPON)*1000-500;
 						break;
-					case 1000: //Star Crumb
-						make_per = 100000; // Star Crumbs are 100% success crafting rate? (made 1000% so it succeeds even after penalties) [Skotlex]
+					case 12116:
+						make_per += pc_checkskill(sd,SA_SEISMICWEAPON)*1000-500;
 						break;
-					default: // Enchanted Stones
-						make_per += 1000+skill*500; // Enchantedstone Craft bonus: +15/+20/+25/+30/+35
-					break;
+					case 12117:
+						make_per += pc_checkskill(sd,SA_LIGHTNINGLOADER)*1000-500;
+						break;
 				}
 				break;
 			default:

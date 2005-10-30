@@ -2507,7 +2507,7 @@ int pc_takeitem(struct map_session_data *sd,struct flooritem_data *fitem)
 	nullpo_retr(0, sd);
 	nullpo_retr(0, fitem);
 
-	if(distance(fitem->bl.x,fitem->bl.y,sd->bl.x,sd->bl.y)>2)
+	if(distance(fitem->bl.x,fitem->bl.y,sd->bl.x,sd->bl.y)>2 && sd->skillid!=BS_GREED)
 		return 0;	// ‹——£‚ª‰“‚¢
 
 	if(fitem->first_get_id > 0) {

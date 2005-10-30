@@ -1,5 +1,8 @@
 Date	Added
 ==========
+2005/10/31
+	* Updates to new quest skills, some are fully functionnal, some half, some
+	  not at all xD. [DracoRPG]
 2005/10/30
 	* Fixed a bug that broke pet skills. [Skotlex]
 	* @follow: Now to stop following, you may just type @follow, thx2Sartory [Lupus]

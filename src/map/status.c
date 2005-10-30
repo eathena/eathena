@@ -293,6 +293,131 @@ int SkillStatusChangeTable[]={	/* status.hのenumのSC_***とあわせること */
 	-1,
 /* 490- */
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 500- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 510- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 520- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 530- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 540- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 550- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 560- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 570- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 580- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 590- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 600- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 610- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 620- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 630- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 640- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 650- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 660- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 670- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 680- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 690- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 700- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 710- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 720- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 730- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 740- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 750- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 760- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 770- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 780- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 790- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 800- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 810- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 820- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 830- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 840- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 850- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 860- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 870- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 880- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 890- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 900- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 910- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 920- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 930- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 940- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 950- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 960- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 970- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 980- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 990- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 1000- */
+	-1,-1,
+	SC_SHRINK,
+	-1,-1,
+	SC_CLOSECONFINE,
+	SC_SIGHTBLASTER,
+	-1,-1,-1,
+/* 1010- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 1020- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 1030- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 1040- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 1050- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 1060- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 1070- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 1080- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 1090- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
 };
 
 static int max_weight_base[MAX_PC_CLASS];
@@ -4109,6 +4234,27 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 				tick = 1000;
 			break;
 
+		case SC_DEVOTION:			/* ディボ?ション */
+		{
+			struct map_session_data *src;
+			if ((src = map_id2sd(val1)) && src->sc_count)
+			{	//Try to inherit the status from the Crusader [Skotlex]
+			//Ideally, we should calculate the remaining time and use that, but we'll trust that
+			//once the Crusader's status changes, it will reflect on the others. 
+				if (src->sc_data[SC_AUTOGUARD].timer != -1)
+					status_change_start(bl,SC_AUTOGUARD,src->sc_data[SC_AUTOGUARD].val1,0,0,0,
+						skill_get_time(CR_AUTOGUARD,src->sc_data[SC_AUTOGUARD].val1),0);
+				if (src->sc_data[SC_DEFENDER].timer != -1)
+					status_change_start(bl,SC_DEFENDER,src->sc_data[SC_DEFENDER].val1,0,0,0,
+						skill_get_time(CR_DEFENDER,src->sc_data[SC_DEFENDER].val1),0);
+			}
+			break;
+		}
+
+		case SC_STOP:
+			battle_stopwalking(bl, 0);
+			break;
+
 		case SC_CARTBOOST:		/* カ?トブ?スト */
 			if(sc_data[SC_DECREASEAGI].timer!=-1 )
 			{	//Cancel Decrease Agi, but take no further effect [Skotlex]
@@ -4155,25 +4301,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			calc_flag = 1;
 			break;
 
-		case SC_DEVOTION:			/* ディボ?ション */
-		{
-			struct map_session_data *src;
-			if ((src = map_id2sd(val1)) && src->sc_count)
-			{	//Try to inherit the status from the Crusader [Skotlex]
-			//Ideally, we should calculate the remaining time and use that, but we'll trust that
-			//once the Crusader's status changes, it will reflect on the others. 
-				if (src->sc_data[SC_AUTOGUARD].timer != -1)
-					status_change_start(bl,SC_AUTOGUARD,src->sc_data[SC_AUTOGUARD].val1,0,0,0,
-						skill_get_time(CR_AUTOGUARD,src->sc_data[SC_AUTOGUARD].val1),0);
-				if (src->sc_data[SC_DEFENDER].timer != -1)
-					status_change_start(bl,SC_DEFENDER,src->sc_data[SC_DEFENDER].val1,0,0,0,
-						skill_get_time(CR_DEFENDER,src->sc_data[SC_DEFENDER].val1),0);
-			}
-			break;
-		}
-		case SC_STOP:
-			battle_stopwalking(bl, 0);
-			break;
 		case SC_SAFETYWALL:
 		case SC_PNEUMA:
 		case SC_SUFFRAGIUM:			/* サフラギム */
@@ -4204,6 +4331,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_MODE:
 		case SC_LONGING:
 		case SC_ORCISH:
+		case SC_SHRINK:
+		case SC_SIGHTBLASTER:
 			break;
 
 		default:

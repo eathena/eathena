@@ -704,7 +704,7 @@
 1557,Book_of_the_Apocalypse,Book of the Apocalypse,4,35000,,800,120,,1,0,33620224,7,2,2,4,40,1,15,{ bonus bAtkEle,Ele_Dark; bonus2 bSubEle,Ele_Holy,-5; bonus2 bAddEle,Ele_Water,7; bonus2 bAddEle,Ele_Earth,7; bonus2 bAddEle,Ele_Fire,7; bonus2 bAddEle,Ele_Wind,7; }
 1558,Girl's_Diary,Girl's Diary,4,,10,300,60,,1,1,33620224,7,2,2,4,40,1,15,{ bonus2 bAddDamageClass,1188,150; }
 1559,Dragon_Legacy,Legacy of Dragon,4,,10,700,130,,1,0,33620224,7,2,2,4,70,1,15,{ bonus bInt,3; bonus bIgnoreDefRace,RC_Dragon; bonus2 bSPGainRace,RC_Dragon,10; }
-1560,Sage's_Diary,Sage's Diary,4,,10,1100,100,,1,2,33619968,7,2,2,3,60,1,15,{ bonus bMatkRate,15; if readparam(bStr>=50) bonus bAspdRate,5; if readparam(bInt>=70) bonus bMatkRate,5; }
+1560,Sage's_Diary,Sage's Diary,4,,10,1100,100,,1,2,33619968,7,2,2,3,60,1,15,{ bonus bMatkRate,15; if(readparam(bStr>=50)) bonus bAspdRate,5; if(readparam(bInt>=70)) bonus bMatkRate,5; }
 1561,Hard_Covered_Book,Hard Covered Book,4,,10,1500,140,,1,0,33620224,7,2,2,4,55,1,15,{ bonus bStr,3; bonus bDex,2; }
 1562,Battlefield_Textbook,Textbook on Battlefield,4,,10,1500,140,,1,0,33620224,7,2,2,4,55,1,15,{ bonus bInt,3; bonus4 bAutoSpell,34,3+(getskilllv(34)>3)*(getskilllv(34)-3),10,0; }
 1599,Angra_Manyu,Angra Manyu,4,120,,10,1,,1,4,44031999,7,2,2,4,2,1,8,{ bonus bBaseAtk,3800; bonus2 bHPDrainRate,1000,100; }
@@ -2028,7 +2028,7 @@
 7416,Letter_of_Recommentation,Letter of Recommentation,3,,10,10,,,,,,,,,,,,,{}
 7417,Written_Request_A,Written Request A,3,,10,10,,,,,,,,,,,,,{}
 7418,Written_Request_B,Written Request B,3,,10,10,,,,,,,,,,,,,{}
-7419,Embryo_Creation_Guide,Embryo Creation Book,3,,10,10,,,,,,,,,,,,,{}
+7419,Embryo_Creation_Guide,Embryo Creation Guide,3,,10,10,,,,,,,,,,,,,{}
 7420,Skull_,Skull,3,,0,10,,,,,,,,,,,,,{}
 7421,Red_Key,Red Key,3,,10,10,,,,,,,,,,,,,{}
 7422,Yellow_Key,Yellow Key,3,,10,10,,,,,,,,,,,,,{}
@@ -2042,7 +2042,7 @@
 7430,Black_Magic_Stone,Black Magic Stone,3,,10,10,,,,,,,,,,,,,{}
 7431,Books,Books,3,,10,10,,,,,,,,,,,,,{}
 7432,Leather_Pouch,Leather Pouch,3,,10,10,,,,,,,,,,,,,{}
-7433,Empty_Scroll,Blank Scroll,3,,10,10,,,,,,,,,,,,,{}
+7433,Blank_Scroll,Blank Scroll,3,,10,10,,,,,,,,,,,,,{}
 7434,Elemental_Potion_Creation_Guide,Elemental Potion Creation Manual,3,,10,10,,,,,,,,,,,,,{}
 7435,Golden_Accessory,Golden Accessory,3,,10,10,,,,,,,,,,,,,{}
 7436,Fragment_of_Agony,Fragment of Agony,3,,10,10,,,,,,,,,,,,,{}
@@ -2300,15 +2300,15 @@
 12112,Tropical_Sograt,Tropical Sograt,2,,10,100,,,,,127918079,7,2,,,,,,{}
 12113,Vermilion_the_Beach,Vermilion the Beach,2,,10,100,,,,,127918079,7,2,,,,,,{}
 // Elemental Converters
-12114,Elemental_Converter,Flame Elemental Converter,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start SC_Flame,120000,1; }
-12115,Elemental_Converter_,Frost Elemental Converter,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start SC_Frost,120000,1; }
-12116,Elemental_Converter__,Seismic Elemental Converter,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start SC_Seismic,120000,1; }
-12117,Elemental_Converter___,Lighting Elemental Converter,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start SC_Lightning,120000,1; }
+12114,Element_Converter_Fire,Fire Elemental Converter,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start SC_Flame,180000,1; }
+12115,Element_Converter_Water,Water Elemental Converter,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start SC_Frost,180000,1; }
+12116,Element_Converter_Earth,Earth Elemental Converter,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start SC_Seismic,180000,1; }
+12117,Element_Converter_Wind,Wind Elemental Converter,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start SC_Lightning,180000,1; }
 // Elemental Resistance Potions
-12118,Resist_Fire,Resist Fire Potion,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start4 SC_DefEle,1200000,Ele_Fire,20,Ele_Water,-15; }
-12119,Resist_Cold,Resist Cold Potion,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start4 SC_DefEle,1200000,Ele_Water,20,Ele_Wind,-15; }
-12120,Resist_Earth,Resist Earth Potion,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start4 SC_DefEle,1200000,Ele_Earth,20,Ele_Fire,-15; }
-12121,Resist_Thunder,Resist Thunder Potion,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start4 SC_DefEle,1200000,Ele_Wind,20,Ele_Earth,-15; }
+12118,Resist_Fire_Potion,Resist Fire Potion,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start4 SC_DefEle,1200000,Ele_Fire,20,Ele_Water,-15; }
+12119,Resist_Water_Potion,Resist Water Potion,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start4 SC_DefEle,1200000,Ele_Water,20,Ele_Wind,-15; }
+12120,Resist_Earth_Potion,Resist Earth Potion,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start4 SC_DefEle,1200000,Ele_Earth,20,Ele_Fire,-15; }
+12121,Resist_Wind_Potion,Resist Wind Potion,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start4 SC_DefEle,1200000,Ele_Wind,20,Ele_Earth,-15; }
 12122,Dasik,Dasik,2,,10,70,,,,,127918079,7,2,,,,,,{}
 12123,Oil_and_Honey_Pastry,Oil and Honey Pastry,2,,10,70,,,,,127918079,7,2,,,,,,{}
 12124,Various_colored_Rice_Cake,Rainbow colord Rice Cake,2,,10,70,,,,,127918079,7,2,,,,,,{}

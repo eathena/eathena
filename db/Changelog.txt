@@ -36,7 +36,9 @@
 	part of the mage's combo, so it makes sense to be just a 'rarer' phen card.
 	[Skotlex]
 	--
-
+10/31
+	* Many updates about new quest skills. [DracoRPG]
+	* Added missing ()s to Sage's Diary script. [DracoRPG]
 10/30
 	* Updated Venom Knife price -> 50z [Lupus]
 	* Updated const.txt to reflect changes in source, thanks to Silent. [DracoRPG]
