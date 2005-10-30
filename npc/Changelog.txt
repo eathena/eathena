@@ -28,6 +28,10 @@ Nexon
 Date		Added
 ======
 10/31
+	* Added the official Jawaii script, information from iRO [MasterOfMuppets]
+	- Beware of potentional bugs
+	- Added the divorcer as well
+	* Updated Jawaii's warps [MasterOfMuppets]
 	* Added Venom Knives into da shops [Lupus]
 10/30
 	* Added Wild roses to spawn in a few more towns [MasterOfMuppets]
