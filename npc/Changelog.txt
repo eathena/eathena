@@ -29,6 +29,9 @@ Date		Added
 ======
 10/31
 	* Added Venom Knives into da shops [Lupus]
+10/30
+	* Added Wild roses to spawn in a few more towns [MasterOfMuppets]
+	* Added monsters spawns to Jawaii [MasterOfMuppets]
 10/29
 	* A small fix to the obb quest, thanks to marquis007 [MasterOfMuppets]
 	* Fixed the flag guild script. Now one can only flag in using the flags outside the castle. [Kayla]

@@ -19,19 +19,8 @@
 //= 1.6 - Final corrections (not complete), thanks to the public, and DNett123!
 //= 1.6c - added missing monsters. Still 1 type is missing [Lupus]
 //= 1.7 – Fixed a lot of typo’s [Nexon]
+//= 1.8 - Removed monster spawns, added aegis ep 8.5 spawns to npc/mobs/fields/jawaii.txt [MasterOfMuppets]
 //============================================================
-
-//===== Mobs: ================================================
-jawaii.gat,0,0,0,0	monster	Black Mushroom	1084,10,600000,300000
-jawaii.gat,0,0,0,0	monster	Red Mushroom	1085,10,600000,300000
-jawaii_in.gat,0,0,0,0	monster	Thief Bug	1051,5,600000,300000
-jawaii_in.gat,0,0,0,0	monster	Black Mushroom	1084,10,600000,300000
-jawaii_in.gat,0,0,0,0	monster	Red Mushroom	1085,10,600000,300000
-
-jawaii.gat,194,299,224,286	monster	Phen	1158,1,600000,300000
-jawaii.gat,168,257,251,228	monster	Phen	1158,5,600000,300000
-jawaii.gat,0,0,0,0	monster	Aster	1266,15,0,0,0
-jawaii.gat,0,0,0,0	monster	Shellfish	1074,15,0,0,0
 
 //===== Shop: ================================================
 jawaii.gat,186,174,2	shop	Jawaii Dealer	85,536:150

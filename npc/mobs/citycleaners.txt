@@ -3,12 +3,13 @@
 //===== By: ==================================================
 //= massdriller
 //===== Current Version: =====================================
-//= 0.1
+//= 0.1a
 //===== Compatible With: =====================================
 //= Any Athena Version
 //===== Description: =========================================
 //= Spawns monsters to clean up city. Apparently spawning
 //= occured in iRO and kRO. Enable this if you want. 
+//= 0.1a Added a few more towns to spawn Wild rose [MasterOfMuppets]
 //============================================================
 
 prontera.gat,0,0,0,0	monster	Wild Rose	1261,1,1,3600000,0
@@ -20,4 +21,12 @@ morocc.gat,0,0,0,0	monster	Wild Rose	1261,1,1,3600000,0
 comodo.gat,0,0,0,0	monster	Wild Rose	1261,1,1,3600000,0
 yuno.gat,0,0,0,0	monster	Wild Rose	1261,1,1,3600000,0
 aldebaran.gat,0,0,0,0	monster	Wild Rose	1261,1,1,3600000,0
+umbala.gat,0,0,0,0	monster	Wild Rose	1261,1,1,3600000,0
+amatsu.gat,0,0,0,0	monster	Wild Rose	1261,1,1,3600000,0
+gonryun.gat,0,0,0,0	monster	Wild Rose	1261,1,1,3600000,0
+louyang.gat,0,0,0,0	monster	Wild Rose	1261,1,1,3600000,0
+ayothaya.gat,0,0,0,0	monster	Wild Rose	1261,1,1,3600000,0
+einbroch.gat,0,0,0,0	monster	Wild Rose	1261,1,1,3600000,0
+einbech.gat,0,0,0,0	monster	Wild Rose	1261,1,1,3600000,0
+lighthalzen.gat,0,0,0,0	monster	Wild Rose	1261,1,1,3600000,0
 xmas.gat,0,0,0,0	monster	Sasquatch	1243,1,1,3600000,0
