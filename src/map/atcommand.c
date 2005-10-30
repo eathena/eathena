@@ -6822,8 +6822,14 @@ atcommand_follow(const int fd, struct map_session_data* sd,
 	struct map_session_data *pl_sd = NULL;
 	nullpo_retr(-1, sd);
 
-	if (!message || !*message)
-		return -1;
+	if (!message || !*message) { 
+		if (sd->followtarget == -1) 
+			return -1; 
+	else { 
+		pc_stop_following (sd); 
+		clif_displaymessage(fd, "Stop following"); 
+		return 0; 
+	} 
 	if ((pl_sd = map_nick2sd((char *) message)) != NULL) {
 		if (sd->followtarget == pl_sd->bl.id)
 			pc_stop_following (sd);

@@ -1,6 +1,7 @@
 Date	Added
 ==========
 2005/10/30
+	* @follow: Now to stop following, you may just type @follow, thx2Sartory [Lupus]
 	* Fixed & finished what I did yesterday with SCs and quest skills, thanks
 	  to Silent. [DracoRPG]
 2005/10/29
