@@ -2039,7 +2039,7 @@ static int npc_parse_function (char *w1, char *w2, char *w3, char *w4, char *fir
 			strcat(srcbuf,line);
 	}
 	if(curly_count > 0) {
-		ShowError("Missing right curly at line %d\n",*lines);
+		ShowError("Missing right curly at file %s, line %d\n",current_file, *lines);
 		script = NULL;
 	} else {
 		script = parse_script((unsigned char *)srcbuf, startline);

@@ -273,13 +273,13 @@ int petskill_use(struct pet_data *pd, struct block_list *target, short skill_id,
 	//Casting time
 	casttime=skill_castfix(&pd->bl, skill_get_cast(skill_id, skill_lv));
 		
+	pet_stop_walking(pd,1);
 	pd->attackabletime = tick;
 	pd->state.state=MS_ATTACK;
 
 	if (casttime > 0)
 	{
 		pd->attackabletime += casttime;
-		pet_stop_walking(pd,1);
 		
 		dat = (struct castend_delay *)aCalloc(1, sizeof(struct castend_delay));
 		dat->src = pd;
