@@ -37,6 +37,9 @@
 	[Skotlex]
 	--
 10/31
+	* More updates to new quest skills. [DracoRPG]
+	* Added Elemental-resist Potions recipe, thanks to RockManEXE. [DracoRPG]
+	* Added Embryo recipe, updated Homonculus skill tree. [DracoRPG]
 	* Many updates about new quest skills. [DracoRPG]
 	* Added missing ()s to Sage's Diary script. [DracoRPG]
 10/30

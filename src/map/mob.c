@@ -589,7 +589,7 @@ static int mob_attack(struct mob_data *md,unsigned int tick,int data)
 	}
 
 	range = md->db->range;
-	
+
 	if(status_get_mode(&md->bl)&MD_CANMOVE && md->state.state == MS_WALK)
 		range++;
 	if(distance(md->bl.x,md->bl.y,tbl->x,tbl->y) > range)
@@ -601,7 +601,11 @@ static int mob_attack(struct mob_data *md,unsigned int tick,int data)
 	if( mobskill_use(md,tick,-2) )	// スキル使用
 		return 0;
 
-	md->target_lv = battle_weapon_attack(&md->bl,tbl,tick,0);
+
+	if(md->sc_data && md->sc_data[SC_WINKCHARM].timer != -1)
+		clif_emotion(&md->bl, 3);
+	else
+		md->target_lv = battle_weapon_attack(&md->bl,tbl,tick,0);
 
 	if(!(battle_config.monster_cloak_check_type&2) && md->sc_data[SC_CLOAKING].timer != -1)
 		status_change_end(&md->bl,SC_CLOAKING,-1);
@@ -2072,8 +2076,6 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 		mvp_sd = sd;
 	}
 
-//	if(battle_config.battle_log)
-//		printf("mob_damage %d %d %d\n",md->hp,max_hp,damage);
 	if(md->bl.prev==NULL){
 		if(battle_config.error_log==1)
 			ShowError("mob_damage : BlockError!!\n");
@@ -2109,9 +2111,8 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 		damage=md->hp;
 
 	if(!(type&2)) {
-		if(sd!=NULL){
+		if(sd){
 			for(i=0,minpos=0,mindmg=0x7fffffff;i<DAMAGELOG_SIZE;i++){
-				//if(md->dmglog[i].id==sd->bl.id)
 				if(md->dmglog[i].id==sd->status.char_id)
 					break;
 				if(md->dmglog[i].id==0){
@@ -3240,6 +3241,11 @@ int mobskill_use_id(struct mob_data *md,struct block_list *target,int skill_idx)
 
 	if(!status_check_skilluse(&md->bl, target, skill_id, 0))
 		return 0;
+
+	if(md->sc_data && md->sc_data[SC_WINKCHARM].timer != -1 && target->type == BL_PC) {
+		clif_emotion(&md->bl, 3);
+		return 0;
+	}
 
 	// 射程と障害物チェック
 	range = skill_get_range(skill_id,skill_lv);

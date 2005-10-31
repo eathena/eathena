@@ -3789,6 +3789,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		}
 		break;
 
+	case MO_KITRANSLATION:
+		if(dstsd) {
+			pc_addspiritball(dstsd,skill_get_time(skillid,skilllv),5);
+		}
+		break;
+
 	case MO_BLADESTOP:	// ”’?nŽæ‚è
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		status_change_start(src,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );

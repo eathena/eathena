@@ -479,17 +479,10 @@
 18,235,5,237,3,0,0,0,0,0,0,0,0 //AM_CP_SHIELD#Synthesized Shield#
 18,236,5,235,3,0,0,0,0,0,0,0,0 //AM_CP_ARMOR#Synthetic Armor#
 18,237,5,228,2,0,0,0,0,0,0,0,0 //AM_CP_HELM#Biochemical Helm#
-//Homonculusskilltree(disabledasfornow)
-//18,238,1,0,0,0,0,0,0,0,0,0,0 //AM_BIOETHICS#Basis of Life#
-//18,239,10,238,1,0,0,0,0,0,0,0,0 //AM_BIOTECHNOLOGY#Biotechnology#
-//18,240,5,239,7,0,0,0,0,0,0,0,0 //AM_CREATECREATURE#Life Creation#
-//18,241,5,242,3,240,3,0,0,0,0,0,0 //AM_CULTIVATION#Cultivation#
-//18,242,5,239,3,0,0,0,0,0,0,0,0 //AM_FLAMECONTROL#Flame Control#
-//18,243,1,244,1,0,0,0,0,0,0,0,0 //AM_CALLHOMUN#Call Homunculus#
-//18,244,1,239,5,0,0,0,0,0,0,0,0 //AM_REST#Peaceful Rest#
-//18,245,10,246,3,0,0,0,0,0,0,0,0 //AM_DRILLMASTER#Drillmaster#
-//18,246,10,241,5,0,0,0,0,0,0,0,0 //AM_HEALHOMUN#Heal Homunculus#
-//18,247,10,246,5,0,0,0,0,0,0,0,0 //AM_RESURRECTHOMUN#Ressurect Homunculus#
+18,238,1,0,0,0,0,0,0,0,0,0,0 //AM_BIOETHICS#Basis of Life#
+18,243,1,244,1,0,0,0,0,0,0,0,0 //AM_CALLHOMUN#Call Homunculus#
+18,244,1,238,1,0,0,0,0,0,0,0,0 //AM_REST#Peaceful Rest#
+18,247,5,243,1,0,0,0,0,0,0,0,0 //AM_RESURRECTHOMUN#Ressurect Homunculus#
 18,410,1,0,0,0,0,0,0,0,0,0,0 //WE_CALLBABY#Call Baby#
 //Bard
 19,1,9,0,0,0,0,0,0,0,0,0,0 //NV_BASIC#Basic Skill#
@@ -1185,17 +1178,10 @@
 4019,235,5,237,3,0,0,0,0,0,0,0,0 //AM_CP_SHIELD#Synthesized Shield#
 4019,236,5,235,3,0,0,0,0,0,0,0,0 //AM_CP_ARMOR#Synthetic Armor#
 4019,237,5,228,2,0,0,0,0,0,0,0,0 //AM_CP_HELM#Biochemical Helm#
-//Homonculusskilltree(disabledasfornow)
-//4019,238,1,0,0,0,0,0,0,0,0,0,0 //AM_BIOETHICS#Basis of Life#
-//4019,239,10,238,1,0,0,0,0,0,0,0,0 //AM_BIOTECHNOLOGY#Biotechnology#
-//4019,240,5,239,7,0,0,0,0,0,0,0,0 //AM_CREATECREATURE#Life Creation#
-//4019,241,5,242,3,243,1,0,0,0,0,0,0 //AM_CULTIVATION#Cultivation#
-//4019,242,5,239,3,0,0,0,0,0,0,0,0 //AM_FLAMECONTROL#Flame Control#
-//4019,243,1,244,1,0,0,0,0,0,0,0,0 //AM_CALLHOMUN#Call Homunculus#
-//4019,244,1,239,5,0,0,0,0,0,0,0,0 //AM_REST#Peaceful Rest#
-//4019,245,10,246,3,0,0,0,0,0,0,0,0 //AM_DRILLMASTER#Drillmaster#
-//4019,246,10,241,5,0,0,0,0,0,0,0,0 //AM_HEALHOMUN#Heal Homunculus#
-//4019,247,10,246,5,0,0,0,0,0,0,0,0 //AM_RESURRECTHOMUN#Ressurect Homunculus#
+4019,238,1,0,0,0,0,0,0,0,0,0,0 //AM_BIOETHICS#Basis of Life#
+4019,243,1,244,1,0,0,0,0,0,0,0,0 //AM_CALLHOMUN#Call Homunculus#
+4019,244,1,238,1,0,0,0,0,0,0,0,0 //AM_REST#Peaceful Rest#
+4019,247,5,243,1,0,0,0,0,0,0,0,0 //AM_RESURRECTHOMUN#Ressurect Homunculus#
 //4019,392,5,228,5,0,0,0,0,0,0,0,0 //CR_ALCHEMY#Alchemy#
 //4019,393,5,228,6,390,2,0,0,0,0,0,0 //CR_SYNTHESISPOTION#Potion Synthesis#
 4019,478,10,231,5,0,0,0,0,0,0,0,0 //CR_SLIMPITCHER#Aid Condensed Potion#
@@ -1811,17 +1797,10 @@
 4041,235,5,237,3,0,0,0,0,0,0,0,0 //AM_CP_SHIELD#Synthesized Shield#
 4041,236,5,235,3,0,0,0,0,0,0,0,0 //AM_CP_ARMOR#Synthetic Armor#
 4041,237,5,228,2,0,0,0,0,0,0,0,0 //AM_CP_HELM#Biochemical Helm#
-//Homonculusskilltree(disabledasfornow)
-//4041,238,1,0,0,0,0,0,0,0,0,0,0 //AM_BIOETHICS#Basis of Life#
-//4041,239,10,238,1,0,0,0,0,0,0,0,0 //AM_BIOTECHNOLOGY#Biotechnology#
-//4041,240,5,239,7,0,0,0,0,0,0,0,0 //AM_CREATECREATURE#Life Creation#
-//4041,241,5,242,3,240,3,0,0,0,0,0,0 //AM_CULTIVATION#Cultivation#
-//4041,242,5,239,3,0,0,0,0,0,0,0,0 //AM_FLAMECONTROL#Flame Control#
-//4041,243,1,244,1,0,0,0,0,0,0,0,0 //AM_CALLHOMUN#Call Homunculus#
-//4041,244,1,239,5,0,0,0,0,0,0,0,0 //AM_REST#Peaceful Rest#
-//4041,245,10,246,3,0,0,0,0,0,0,0,0 //AM_DRILLMASTER#Drillmaster#
-//4041,246,10,241,5,0,0,0,0,0,0,0,0 //AM_HEALHOMUN#Heal Homunculus#
-//4041,247,10,246,5,0,0,0,0,0,0,0,0 //AM_RESURRECTHOMUN#Ressurect Homunculus#
+4041,238,1,0,0,0,0,0,0,0,0,0,0 //AM_BIOETHICS#Basis of Life#
+4041,243,1,244,1,0,0,0,0,0,0,0,0 //AM_CALLHOMUN#Call Homunculus#
+4041,244,1,238,1,0,0,0,0,0,0,0,0 //AM_REST#Peaceful Rest#
+4041,247,5,243,1,0,0,0,0,0,0,0,0 //AM_RESURRECTHOMUN#Ressurect Homunculus#
 //Baby Bard
 4042,1,9,0,0,0,0,0,0,0,0,0,0 //NV_BASIC#Basic Skill#
 4042,142,1,0,0,0,0,0,0,0,0,0,0 //NV_FIRSTAID#First Aid#

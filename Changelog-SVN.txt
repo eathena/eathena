@@ -1,6 +1,7 @@
 Date	Added
 ==========
 2005/10/31
+	* More and more new quest skills! :3 [DracoRPG]
 	* Removed the setting where characters could logout overriding the
 	  prevent_logout setting if they were dead (it made it extremely easy to
 	  accidentally log out if you were killed while trying to escape) [Skotlex]

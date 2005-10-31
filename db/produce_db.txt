@@ -237,15 +237,6 @@
 547,22,228,7133,0,504,1,1092,1,1061,1
 //----------------------------------------------
 
-//---- Misc ------------------------------------
-//-- Anodyne <-- AM_PHARMACY & Potion Creation Guide & 1 Ment, 1 Alcohol, 1 Empty Bottle
-605,22,228,7144,0,708,1,970,1,713,1
-//-- Aloevera <-- AM_PHARMACY & Potion Creation Guide & 1 Aloe, 1 Honey, 1 Empty Bottle
-606,22,228,7144,0,704,1,518,1,713,1
-//-- Alcohol <-- AM_PHARMACY & Alcohol Creation Guide & 1 Empty Bottle, 5 Poison Spore, 5 Stem, 1 Empty Testtube
-970,22,228,7127,0,713,1,7033,5,905,5,1092,1
-//----------------------------------------------
-
 //---- Skill-related Mixtures ------------------
 //-- Bottle Grenade <-- AM_PHARMACY & Bottle Grenade Creation Guide & 1 Alcohol, 1 Fabric, 1 Empty Bottle
 7135,22,228,7128,0,970,1,1059,1,713,1
@@ -260,14 +251,25 @@
 //----------------------------------------------
 
 //---- Elemental-resist Potions ----------------
-//-- Resist Fire Potion <-- AM_PHARMACY & Elemental Potion Creation Guide & ??
-12118,22,228,7434,0
-//-- Resist Water Potion <-- AM_PHARMACY & Elemental Potion Creation Guide & ??
-12119,22,228,7434,0
-//-- Resist Earth Potion <-- AM_PHARMACY & Elemental Potion Creation Guide & ??
-12120,22,228,7434,0
-//-- Resist Wind Potion <-- AM_PHARMACY & Elemental Potion Creation Guide & ??
-12121,22,228,7434,0
+//-- Resist Fire Potion <-- AM_PHARMACY & Elemental Potion Creation Guide & 2 Frill, 1 Red Gemstone
+12118,22,228,7434,0,1012,2,716,1
+//-- Resist Water Potion <-- AM_PHARMACY & Elemental Potion Creation Guide & 3 Heart of Mermaid, 1 Blue Gemstone
+12119,22,228,7434,0,950,3,717,1
+//-- Resist Earth Potion <-- AM_PHARMACY & Elemental Potion Creation Guide & 2 Large Jellopy, 1 Yellow Gemstone
+12120,22,228,7434,0,7126,2,715,1
+//-- Resist Wind Potion <-- AM_PHARMACY & Elemental Potion Creation Guide & 3 Powder of Butterfly, 1 Blue Gemstone
+12121,22,228,7434,0,924,3,717,1
+//----------------------------------------------
+
+//---- Misc ------------------------------------
+//-- Anodyne <-- AM_PHARMACY & Potion Creation Guide & 1 Ment, 1 Alcohol, 1 Empty Bottle
+605,22,228,7144,0,708,1,970,1,713,1
+//-- Aloevera <-- AM_PHARMACY & Potion Creation Guide & 1 Aloe, 1 Honey, 1 Empty Bottle
+606,22,228,7144,0,704,1,518,1,713,1
+//-- Alcohol <-- AM_PHARMACY & Alcohol Creation Guide & 1 Empty Bottle, 5 Poison Spore, 5 Stem, 1 Empty Testtube
+970,22,228,7127,0,713,1,7033,5,905,5,1092,1
+//-- Embryo <-- AM_PHARMACY & Embryo Creation Guide & 1 Seed of Life, 1 Morning Dew of Yggdrasil, 1 Glass Tube
+7142,22,228,7419,0,7140,1,7141,1,7143,1
 //----------------------------------------------
 
 //==============================================

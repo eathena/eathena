@@ -201,7 +201,7 @@ enum {
 // 196 = empty
 	SC_SHRINK			= 197,
 	SC_SIGHTBLASTER		= 198,
-// 199 = empty
+	SC_WINKCHARM		= 199,
 	SC_CLOSECONFINE		= 200,
 	SC_CLOSECONFINE2		= 201,
 

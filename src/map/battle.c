@@ -278,6 +278,8 @@ int battle_damage(struct block_list *bl,struct block_list *target,int damage, in
 			status_change_end(target,SC_STONE,-1);
 		if (sc_data[SC_SLEEP].timer != -1)
 			status_change_end(target,SC_SLEEP,-1);
+		if (sc_data[SC_WINKCHARM].timer != -1)
+			status_change_end(target,SC_WINKCHARM,-1);
 	}
 
 	if (target->type == BL_MOB) {	// MOB
@@ -2622,7 +2624,7 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 	race = status_get_race(target);
 	ele = status_get_elem_type(target);
 
-	if(sd && (sd->skillid == AS_VENOMKNIFE || (sd->status.weapon == 11 && sd->skillid != HT_PHANTASMIC))) {
+	if(sd && sd->status.weapon == 11) {
 		if(sd->equip_index[10] >= 0) {
 			if(battle_config.arrow_decrement)
 				pc_delitem(sd,sd->equip_index[10],1,0);
