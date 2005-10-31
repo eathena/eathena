@@ -1,6 +1,12 @@
 Date	Added
 ==========
 2005/10/31
+	* Removed the setting where characters could logout overriding the
+	  prevent_logout setting if they were dead (it made it extremely easy to
+	  accidentally log out if you were killed while trying to escape) [Skotlex]
+	* Changed prevent_logout from yes/no to a "duration in ms" setting.
+	  Defaults to 10secs (10000ms), note the client always says "wait 10 seconds"
+	  regardless of the value of this setting. [Skotlex]
 	* Moved the status change of SC_RIDING/SC_FALCON from clif_changeoption to
 	  pc_changeoption which correctly makes the falcon/riding states end on quit.
 	  [Skotlex]

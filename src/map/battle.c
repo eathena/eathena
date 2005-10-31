@@ -3684,7 +3684,7 @@ void battle_set_defaults() {
 	battle_config.item_drop_use_max=10000;	// End
 	battle_config.item_drop_treasure_min=1;
 	battle_config.item_drop_treasure_max=10000;
-	battle_config.prevent_logout = 1;	// Added by RoVeRT
+	battle_config.prevent_logout = 10000;	// Added by RoVeRT
 	battle_config.max_base_level = 255;	// Added by Valaris
 	battle_config.max_job_level = 50;
 	battle_config.max_adv_level = 70;
@@ -3939,6 +3939,9 @@ void battle_validate_conf() {
 		battle_config.firewall_hits_on_undead = 1;
 	else if (battle_config.firewall_hits_on_undead > 255) //The flag passed to battle_calc_damage is limited to 0xff
 		battle_config.firewall_hits_on_undead = 255;
+
+	if (battle_config.prevent_logout > 60000)
+		battle_config.prevent_logout = 60000;
 }
 
 /*==========================================

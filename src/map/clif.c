@@ -1680,7 +1680,7 @@ static int clif_delayquit(int tid, unsigned int tick, int id, int data) {
  */
 void clif_quitsave(int fd,struct map_session_data *sd)
 {
-	if (chrif_isconnect() && (!battle_config.prevent_logout || gettick() - sd->canlog_tick >= 10000 || pc_isdead(sd)))
+	if (chrif_isconnect() && (!battle_config.prevent_logout || DIFF_TICK(gettick(), sd->canlog_tick) > battle_config.prevent_logout))
 		map_quit(sd);
 	else if (sd->fd)
 	{	//Disassociate session from player (session is deleted after this function was called)
@@ -8260,7 +8260,7 @@ void clif_parse_QuitGame(int fd, struct map_session_data *sd) {
 
 	/*	Rovert's prevent logout option fixed [Valaris]	*/
 	if (sd->sc_data[SC_CLOAKING].timer==-1 && sd->sc_data[SC_HIDING].timer==-1 &&
-		(!battle_config.prevent_logout || gettick() - sd->canlog_tick >= 10000 || pc_isdead(sd))	//Allow dead characters to logout [Skotlex]
+		(!battle_config.prevent_logout || DIFF_TICK(gettick(), sd->canlog_tick) > battle_config.prevent_logout)
 	) {
 		clif_setwaitclose(fd);
 		WFIFOW(fd,2)=0;
@@ -8710,9 +8710,7 @@ void clif_parse_Restart(int fd, struct map_session_data *sd) {
 		//	return; No need as status changes are saved now. [Skotlex]
 
 		/*	Rovert's Prevent logout option - Fixed [Valaris]	*/
-		if (!battle_config.prevent_logout ||
-			(gettick() - sd->canlog_tick) >= 10000 ||
-			pc_isdead(sd))	//Allow dead characters to logout [Skotlex]
+		if (!battle_config.prevent_logout || DIFF_TICK(gettick(), sd->canlog_tick) > battle_config.prevent_logout)
 		{
 			//map_quit(sd);	//A clif_quitsave is sent inmediately after this, so no need to quit yet. [Skotlex]
 			chrif_charselectreq(sd);
