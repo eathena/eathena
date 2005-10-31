@@ -1267,7 +1267,7 @@ int atcommand_who3(
 	for (i = 0; i < users; i++) {
 		if ((pl_sd = pl_allsd[i])) {
 			pl_GM_level = pc_isGM(pl_sd);
-			if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
+			if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_INVISIBLE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
 				memcpy(player_name, pl_sd->status.name, NAME_LENGTH);
 				for (j = 0; player_name[j]; j++)
 					player_name[j] = tolower(player_name[j]);
@@ -1343,7 +1343,7 @@ int atcommand_who2(
 	for (i = 0; i < users; i++) {
 		if ((pl_sd = pl_allsd[i])) {
 			pl_GM_level = pc_isGM(pl_sd);
-			if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
+			if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_INVISIBLE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
 				memcpy(player_name, pl_sd->status.name, NAME_LENGTH);
 				for (j = 0; player_name[j]; j++)
 					player_name[j] = tolower(player_name[j]);
@@ -1416,7 +1416,7 @@ int atcommand_who(
 	for (i = 0; i < users; i++) {
 		if ((pl_sd = pl_allsd[i])) {
 			pl_GM_level = pc_isGM(pl_sd);
-			if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
+			if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_INVISIBLE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
 				memcpy(player_name, pl_sd->status.name, NAME_LENGTH);
 				for (j = 0; player_name[j]; j++)
 					player_name[j] = tolower(player_name[j]);
@@ -1496,7 +1496,7 @@ int atcommand_whomap3(
 	for (i = 0; i < users; i++) {
 		if ((pl_sd = pl_allsd[i])) {
 			pl_GM_level = pc_isGM(pl_sd);
-			if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
+			if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_INVISIBLE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
 				if (pl_sd->bl.m == map_id) {
 					if (pl_GM_level > 0)
 						sprintf(atcmd_output, "Name: %s (GM:%d) | Location: %s %d %d", pl_sd->status.name, pl_GM_level, pl_sd->mapname, pl_sd->bl.x, pl_sd->bl.y);
@@ -1556,7 +1556,7 @@ int atcommand_whomap2(
 	for (i = 0; i < users; i++) {
 		if ((pl_sd = pl_allsd[i])) {
 			pl_GM_level = pc_isGM(pl_sd);
-			if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
+			if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_INVISIBLE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
 				if (pl_sd->bl.m == map_id) {
 					if (pl_GM_level > 0)
 						sprintf(atcmd_output, "Name: %s (GM:%d) | BLvl: %d | Job: %s (Lvl: %d)", pl_sd->status.name, pl_GM_level, pl_sd->status.base_level, job_name(pl_sd->status.class_), pl_sd->status.job_level);
@@ -1623,7 +1623,7 @@ int atcommand_whomap(
 	for (i = 0; i < users; i++) {
 		if ((pl_sd = pl_allsd[i])) {
 			pl_GM_level = pc_isGM(pl_sd);
-			if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
+			if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_INVISIBLE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
 				if (pl_sd->bl.m == map_id) {
 					g = guild_search(pl_sd->status.guild_id);
 					if (g == NULL)
@@ -1696,7 +1696,7 @@ int atcommand_whogm(
 		if ((pl_sd = pl_allsd[i])) {
 			pl_GM_level = pc_isGM(pl_sd);
 			if (pl_GM_level > 0) {
-				if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
+				if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_INVISIBLE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
 					memcpy(player_name, pl_sd->status.name, NAME_LENGTH);
 					for (j = 0; player_name[j]; j++)
 						player_name[j] = tolower(player_name[j]);
@@ -2019,11 +2019,11 @@ int atcommand_hide(
 	const char* command, const char* message)
 {
 	nullpo_retr(-1, sd);
-	if (sd->status.option & OPTION_HIDE) {
-		sd->status.option &= ~OPTION_HIDE;
+	if (sd->status.option & OPTION_INVISIBLE) {
+		sd->status.option &= ~OPTION_INVISIBLE;
 		clif_displaymessage(fd, msg_table[10]); // Invisible: Off
 	} else {
-		sd->status.option |= OPTION_HIDE;
+		sd->status.option |= OPTION_INVISIBLE;
 		clif_displaymessage(fd, msg_table[11]); // Invisible: On
 	}
 	clif_changeoption(&sd->bl);

@@ -1,6 +1,9 @@
 Date	Added
 ==========
 2005/10/31
+	* Moved the status change of SC_RIDING/SC_FALCON from clif_changeoption to
+	  pc_changeoption which correctly makes the falcon/riding states end on quit.
+	  [Skotlex]
 	* Mob ai fix (mobs locking down into one target forever even if they should
 	  be able to change targets) [Skotlex]
 	* Added routine to check party share level whenever one of the members

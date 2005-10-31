@@ -529,12 +529,12 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 	option = status_get_option(src);
 	if (option)
 	{
-		if ((*option)&0x2 && skill_num != TF_HIDING && skill_num != AS_GRIMTOOTH
+		if ((*option)&OPTION_HIDE && skill_num != TF_HIDING && skill_num != AS_GRIMTOOTH
 			&& skill_num != RG_BACKSTAP && skill_num != RG_RAID)
 			return 0;
-		if ((*option)&0x4 && skill_num == TF_HIDING)
+		if ((*option)&OPTION_CLOAK && skill_num == TF_HIDING)
 			return 0;
-		if ((*option)&0x4000 && skill_num != ST_CHASEWALK)
+		if ((*option)&OPTION_CHASEWALK && skill_num != ST_CHASEWALK)
 			return 0;
 	}
 	if (target == NULL || target == src) //No further checking needed.
@@ -552,7 +552,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 
 	race = status_get_race(src);
 	option = status_get_option(target);
-	hide_flag = flag?0x02:0x06; //If targetting, cloak+hide protect you, otherwise only hiding does.
+	hide_flag = flag?OPTION_HIDE:(OPTION_HIDE|OPTION_CLOAK); //If targetting, cloak+hide protect you, otherwise only hiding does.
 		
 	switch (target->type)
 	{
@@ -561,7 +561,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 			struct map_session_data *sd = (struct map_session_data*) target;
 			if (pc_isinvisible(sd))
 				return 0;
-			if ((*option)&0x4000 && !(mode & MD_BOSS)) //Chasewalk is inmune to all but bosses.
+			if ((*option)&OPTION_CHASEWALK && !(mode & MD_BOSS)) //Chasewalk is inmune to all but bosses.
 				return 0;
 			if (((*option)&hide_flag || sd->state.gangsterparadise)
 				&& (sd->state.perfect_hiding || !(race == 4 || race == 6 || mode&MD_DETECTOR))
@@ -573,7 +573,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 		return 0;
 	case BL_ITEM:	//Allow targetting of items to pick'em up (or in the case of mobs, to loot them).
 		//TODO: Would be nice if this could be used to judge whether the player can or not pick up the item it targets. [Skotlex]
-		if (src->type == BL_PC || mode&MD_LOOTER)
+		if (mode&MD_LOOTER)
 			return 1;
 		else
 			return 0;
@@ -581,7 +581,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 		//Check for chase-walk/hiding/cloaking opponents.
 		if (option && !(mode&MD_BOSS))
 		{
-			if ((*option)&0x4000) //Chasewalk
+			if ((*option)&OPTION_CHASEWALK) //Chasewalk
 				return 0;
 			if ((*option)&hide_flag && !(race == 4 || race == 6 || mode&MD_DETECTOR))
 				return 0;
@@ -3257,7 +3257,7 @@ int status_get_mode(struct block_list *bl)
 		return ((struct mob_data *)bl)->db->mode;
 	}
 	if(bl->type==BL_PC)
-		return (MD_CANATTACK|MD_CANMOVE); //Default player mode: Can move + can attack.
+		return (MD_MASK&~MD_BOSS); //Default player mode: Everything but boss.
 	if(bl->type==BL_PET && (struct pet_data *)bl)
 		return ((struct pet_data *)bl)->db->mode;
 	if (bl->type==BL_SKILL)
@@ -4390,28 +4390,28 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_HIDING:
 		case SC_CLOAKING:
 			battle_stopattack(bl);	/* çU?í‚é~ */
-			*option |= ((type==SC_HIDING)?2:4);
+			*option |= ((type==SC_HIDING)?OPTION_HIDE:OPTION_CLOAK);
 			opt_flag =1 ;
 			break;
 		case SC_CHASEWALK:
 			battle_stopattack(bl);	/* çU?í‚é~ */
-			*option |= 16388;
+			*option |= OPTION_CHASEWALK|OPTION_CLOAK;
 			opt_flag =1 ;
 			break;
 		case SC_SIGHT:
-			*option |= 1;
+			*option |= OPTION_SIGHT;
 			opt_flag = 1;
 			break;
 		case SC_RUWACH:
-			*option |= 8192;
+			*option |= OPTION_RUWACH;
 			opt_flag = 1;
 			break;
 		case SC_WEDDING:
-			*option |= 4096;
+			*option |= OPTION_WEDDING;
 			opt_flag = 1;
 			break;
 		case SC_ORCISH:
-			*option |= 2048;
+			*option |= OPTION_ORCISH;
 			opt_flag = 1;
 			break;
 	}
@@ -4824,30 +4824,30 @@ int status_change_end( struct block_list* bl , int type,int tid )
 
 		case SC_HIDING:
 		case SC_CLOAKING:
-			*option &= ~((type == SC_HIDING) ? 2 : 4);
+			*option &= ~((type == SC_HIDING) ? OPTION_HIDE : OPTION_CLOAK);
 			calc_flag = 1;	// orn
 			opt_flag = 1 ;
 			break;
 
 		case SC_CHASEWALK:
-			*option &= ~16388;
+			*option &= ~(OPTION_CHASEWALK|OPTION_CLOAK);
 			opt_flag = 1 ;
 			break;
 
 		case SC_SIGHT:
-			*option &= ~1;
+			*option &= ~OPTION_SIGHT;
 			opt_flag = 1;
 			break;
 		case SC_WEDDING:	//åãç•óp(åãç•àﬂè÷Ç…Ç»Ç¡Çƒ?Ç≠ÇÃÇ™?Ç¢Ç∆Ç©)
-			*option &= ~4096;
+			*option &= ~OPTION_WEDDING;
 			opt_flag = 1;
 			break;
 		case SC_ORCISH:
-			*option &= ~2048;
+			*option &= ~OPTION_ORCISH;
 			opt_flag = 1;
 			break;
 		case SC_RUWACH:
-			*option &= ~8192;
+			*option &= ~OPTION_RUWACH;
 			opt_flag = 1;
 			break;
 
@@ -5366,13 +5366,13 @@ int status_change_timer_sub(struct block_list *bl, va_list ap )
 	switch( type ){
 	case SC_SIGHT:	/* ÉTÉCÉg */
 	case SC_CONCENTRATE:
-		if( (*status_get_option(bl))&6 ){
+		if( (*status_get_option(bl))&(OPTION_HIDE|OPTION_CLOAK) ){
 			status_change_end( bl, SC_HIDING, -1);
 			status_change_end( bl, SC_CLOAKING, -1);
 		}
 		break;
 	case SC_RUWACH:	/* ÉãÉAÉt */
-		if( (*status_get_option(bl))&6 ){
+		if( (*status_get_option(bl))&(OPTION_HIDE|OPTION_CLOAK) ){
 			struct status_change *sc_data = status_get_sc_data(bl);	// check whether the target is hiding/cloaking [celest]
 			if (sc_data && (sc_data[SC_HIDING].timer != -1 ||	// if the target is using a special hiding, i.e not using normal hiding/cloaking, don't bother
 				sc_data[SC_CLOAKING].timer != -1)) {

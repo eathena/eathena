@@ -732,7 +732,7 @@ static int clif_set0078(struct map_session_data *sd, unsigned char *buf) {
 	WBUFW(buf,8)=sd->opt1;
 	WBUFW(buf,10)=sd->opt2;
 	if(sd->disguise) {
-		WBUFW(buf,12)=OPTION_HIDE;
+		WBUFW(buf,12)=OPTION_INVISIBLE;
 	} else {
 		WBUFW(buf,12)=sd->status.option;
 	}	
@@ -769,7 +769,7 @@ static int clif_set0078(struct map_session_data *sd, unsigned char *buf) {
 	WBUFW(buf,8)=sd->opt1;
 	WBUFW(buf,10)=sd->opt2;
 	if(sd->disguise) {
-		WBUFW(buf,12)=OPTION_HIDE;
+		WBUFW(buf,12)=OPTION_INVISIBLE;
 	} else {
 		WBUFW(buf,12)=sd->status.option;
 	}
@@ -855,7 +855,7 @@ static int clif_set007b(struct map_session_data *sd,unsigned char *buf) {
 	WBUFW(buf,8)=sd->opt1;
 	WBUFW(buf,10)=sd->opt2;
 	if(sd->disguise) {
-		WBUFW(buf,12)=OPTION_HIDE;
+		WBUFW(buf,12)=OPTION_INVISIBLE;
 	} else {
 		WBUFW(buf,12)=sd->status.option;
 	}
@@ -892,7 +892,7 @@ static int clif_set007b(struct map_session_data *sd,unsigned char *buf) {
 	WBUFW(buf,8)=sd->opt1;
 	WBUFW(buf,10)=sd->opt2;
 	if(sd->disguise) {
-		WBUFW(buf,12)=OPTION_HIDE;
+		WBUFW(buf,12)=OPTION_INVISIBLE;
 	} else {
 		WBUFW(buf,12)=sd->status.option;
 	}
@@ -1324,7 +1324,7 @@ int clif_clearweather(int m) {
 			WFIFOW(sd->fd,6)=0;
 			WFIFOW(sd->fd,8)=0;
 			WFIFOW(sd->fd,10)=0;
-			WFIFOW(sd->fd,12)=OPTION_HIDE;
+			WFIFOW(sd->fd,12)=OPTION_INVISIBLE;
 			WFIFOW(sd->fd,20)=100;
 			WFIFOPOS(sd->fd,36,sd->bl.x,sd->bl.y);
 			WFIFOSET(sd->fd,packet_len_table[0x7c]);
@@ -1403,7 +1403,7 @@ int clif_spawnpc(struct map_session_data *sd) {
 	WFIFOW(sd->fd,6)=0;
 	WFIFOW(sd->fd,8)=0;
 	WFIFOW(sd->fd,10)=0;
-	WFIFOW(sd->fd,12)=OPTION_HIDE;
+	WFIFOW(sd->fd,12)=OPTION_INVISIBLE;
 	WFIFOW(sd->fd,20)=100;
 	WFIFOPOS(sd->fd,36,sd->bl.x,sd->bl.y);
 	WFIFOSET(sd->fd,packet_len_table[0x7c]);
@@ -1629,7 +1629,7 @@ int clif_movechar(struct map_session_data *sd) {
 	WBUFW(buf2,6)=sd->speed;
 	WBUFW(buf2,8)=0;
 	WBUFW(buf2,10)=0;
-	WBUFW(buf2,12)=OPTION_HIDE;
+	WBUFW(buf2,12)=OPTION_INVISIBLE;
 	WBUFW(buf2,14)=100;
 	WBUFL(buf2,22)=gettick();
 	WBUFPOS2(buf2,50,sd->bl.x,sd->bl.y,sd->to_x,sd->to_y);
@@ -3108,22 +3108,17 @@ int clif_changeoption(struct block_list* bl)
 {
 	unsigned char buf[32];
 	short option;
-	struct status_change *sc_data;
-	static const int omask[]={ 0x10,0x20 };
-	static const int scnum[]={ SC_FALCON, SC_RIDING };
-	int i;
 
 	nullpo_retr(0, bl);
 
 	option = *status_get_option(bl);
-	sc_data = status_get_sc_data(bl);
 
 	WBUFW(buf,0) = 0x119;
 	if(bl->type==BL_PC && ((struct map_session_data *)bl)->disguise) {
 		WBUFL(buf,2) = bl->id;
 		WBUFW(buf,6) = 0;
 		WBUFW(buf,8) = 0;
-		WBUFW(buf,10) = OPTION_HIDE;
+		WBUFW(buf,10) = OPTION_INVISIBLE;
 		WBUFB(buf,12) = 0;
 		clif_send(buf,packet_len_table[0x119],bl,AREA);
 		WBUFL(buf,2) = -bl->id;
@@ -3139,16 +3134,6 @@ int clif_changeoption(struct block_list* bl)
 		WBUFW(buf,10) = option;
 		WBUFB(buf,12) = 0;	// ??
 		clif_send(buf,packet_len_table[0x119],bl,AREA);
-	}
-
-	// アイコンの表示
-	for(i=0;i<sizeof(omask)/sizeof(omask[0]);i++){
-		if( option&omask[i] ){
-			if( sc_data[scnum[i]].timer==-1)
-				status_change_start(bl,scnum[i],0,0,0,0,0,0);
-		} else {
-			status_change_end(bl,scnum[i],-1);
-		}
 	}
 
 	return 0;
@@ -8086,8 +8071,6 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 	party_send_movemap(sd);
 	// guild
 	guild_send_memberinfoshort(sd,1);
-	// 119
-	// 78
 
 	if(battle_config.pc_invincible_time > 0) {
 		if(map_flag_gvg(sd->bl.m))
@@ -8285,7 +8268,6 @@ void clif_parse_QuitGame(int fd, struct map_session_data *sd) {
 		WFIFOW(fd,2)=1;
 	}
 	WFIFOSET(fd,packet_len_table[0x18b]);
-
 }
 
 
@@ -8850,7 +8832,7 @@ if ((strncasecmp((const char*)RFIFOP(fd,4),"NPC:",4) == 0) && (strlen((const cha
 		// otherwise, send message and answer immediatly
 		else {
 			if (dstsd->ignoreAll == 1) {
-				if (dstsd->status.option & OPTION_HIDE && pc_isGM(sd) < pc_isGM(dstsd))
+				if (dstsd->status.option & OPTION_INVISIBLE && pc_isGM(sd) < pc_isGM(dstsd))
 					clif_wis_end(fd, 1); // 1: target character is not loged in
 				else
 					clif_wis_end(fd, 3); // 3: everyone ignored by target
@@ -10196,11 +10178,11 @@ void clif_parse_GMHide(int fd, struct map_session_data *sd) {	// Modified by [Yo
 	//printf("%2x %2x %2x\n", RFIFOW(fd,0), RFIFOW(fd,2), RFIFOW(fd,4)); // R 019d <Option_value>.2B <flag>.2B
 	if ((battle_config.atc_gmonly == 0 || pc_isGM(sd)) &&
 	    (pc_isGM(sd) >= get_atcommand_level(AtCommand_Hide))) {
-		if (sd->status.option & OPTION_HIDE) { // OPTION_HIDE = 0x40
-			sd->status.option &= ~OPTION_HIDE; // OPTION_HIDE = 0x40
+		if (sd->status.option & OPTION_INVISIBLE) {
+			sd->status.option &= ~OPTION_INVISIBLE;
 			clif_displaymessage(fd, "Invisible: Off.");
 		} else {
-			sd->status.option |= OPTION_HIDE; // OPTION_HIDE = 0x40
+			sd->status.option |= OPTION_INVISIBLE;
 			clif_displaymessage(fd, "Invisible: On.");
 		}
 		clif_changeoption(&sd->bl);

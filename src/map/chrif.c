@@ -1477,7 +1477,7 @@ int send_users_tochar(int tid, unsigned int tick, int id, int data) {
 	WFIFOW(char_fd,0) = 0x2aff;
 	for (i = 0; i < count; i++) {
 		if (all_sd[i] && 
-			!((battle_config.hide_GM_session || (all_sd[i]->status.option & OPTION_HIDE)) && pc_isGM(all_sd[i])))
+			!((battle_config.hide_GM_session || (all_sd[i]->status.option & OPTION_INVISIBLE)) && pc_isGM(all_sd[i])))
 		{
 			WFIFOL(char_fd,6+8*users) = all_sd[i]->status.account_id;
 			WFIFOL(char_fd,6+8*users+4) = all_sd[i]->status.char_id;

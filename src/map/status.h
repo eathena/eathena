@@ -270,6 +270,7 @@ extern int current_equip_item_index;
 #define MD_DETECTOR 0x100
 //Currently there isn't a bit for target changing in the mob db! So aggressive is used in the meantime as well.
 #define MD_CHANGETARGET (0x004|0x200)
+#define MD_MASK 0xFFF
 
 // ƒpƒ‰ƒ[ƒ^Š“¾Œn battle.c ‚æ‚èˆÚ“®
 int status_get_class(struct block_list *bl);

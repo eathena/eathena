@@ -741,7 +741,7 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 	sd->sc_count=0;
 	if ((battle_config.atc_gmonly == 0 || pc_isGM(sd)) &&
 	    (pc_isGM(sd) >= get_atcommand_level(AtCommand_Hide)))
-		sd->status.option &= (OPTION_MASK | OPTION_HIDE);
+		sd->status.option &= (OPTION_MASK | OPTION_INVISIBLE);
 	else
 		sd->status.option &= OPTION_MASK;
 
@@ -5845,7 +5845,7 @@ int pc_changelook(struct map_session_data *sd,int type,int val)
 int pc_setoption(struct map_session_data *sd,int type)
 {
 	nullpo_retr(0, sd);
-	if (type&0x0020 && !(sd->status.option&0x0020) && (sd->class_&MAPID_BASEMASK) == MAPID_SWORDMAN)
+	if (type&OPTION_RIDING && !(sd->status.option&OPTION_RIDING) && (sd->class_&MAPID_BASEMASK) == MAPID_SWORDMAN)
 	{	//We are going to mount. [Skotlex]
 		switch (sd->status.class_)
 		{
@@ -5868,8 +5868,9 @@ int pc_setoption(struct map_session_data *sd,int type)
 				sd->status.class_ = sd->view_class = JOB_BABY_CRUSADER2;
 				break;
 		}
+		status_change_start(&sd->bl,SC_RIDING,0,0,0,0,0,0);
 	}
-	else if (!(type&0x0020) && sd->status.option&0x0020 && (sd->class_&MAPID_BASEMASK) == MAPID_SWORDMAN)
+	else if (!(type&OPTION_RIDING) && sd->status.option&OPTION_RIDING && (sd->class_&MAPID_BASEMASK) == MAPID_SWORDMAN)
 	{	//We are going to dismount.
 		switch (sd->status.class_)
 		{
@@ -5892,7 +5893,13 @@ int pc_setoption(struct map_session_data *sd,int type)
 				sd->status.class_ = sd->view_class = JOB_BABY_CRUSADER;
 				break;
 		}
+		status_change_end(&sd->bl,SC_RIDING,-1);
 	}
+	if (type&OPTION_FALCON && !(sd->status.option&OPTION_FALCON)) //Falcon ON
+		status_change_start(&sd->bl,SC_FALCON,0,0,0,0,0,0);
+	else if (!(type&OPTION_FALCON) && sd->status.option&OPTION_FALCON) //Falcon OFF
+		status_change_end(&sd->bl,SC_FALCON,-1);
+
 	sd->status.option=type;
 	clif_changeoption(&sd->bl);
 	status_calc_pc(sd,0);

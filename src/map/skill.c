@@ -6502,7 +6502,7 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 	if (battle_check_target(&src->bl,bl,sg->target_flag)<=0)
 		return 0;
 	
-	if ((opt = status_get_option(bl)) && ((*opt)&0x2) && sg->skill_id != WZ_HEAVENDRIVE)
+	if ((opt = status_get_option(bl)) && ((*opt)&OPTION_HIDE) && sg->skill_id != WZ_HEAVENDRIVE)
 		return 0; //Hidden characters are inmune to AoE skills except Heaven's Drive. [Skotlex]
 	
 	sc_data = status_get_sc_data(bl);
@@ -9079,7 +9079,7 @@ int skill_frostjoke_scream(struct block_list *bl,va_list ap)
 		return 0;
 	if (bl->type == BL_PC) {
 		struct map_session_data *sd = (struct map_session_data *)bl;
-		if (sd && sd->status.option & OPTION_HIDE && pc_isGM(sd) > 0)
+		if (sd && sd->status.option & OPTION_INVISIBLE && pc_isGM(sd) > 0)
 			return 0;
 	}
 	//It has been reported that Scream/Joke works the same regardless of woe-setting. [Skotlex]

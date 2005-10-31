@@ -1366,7 +1366,7 @@ int map_quit(struct map_session_data *sd) {
 			status_calc_pc(sd,4);
 	//	skill_clear_unitgroup(&sd->bl);	// [Sara-chan]
 
-		if (!(sd->status.option & OPTION_HIDE))
+		if (!(sd->status.option & OPTION_INVISIBLE))
 			clif_clearchar_area(&sd->bl,2);
 
 		chrif_save_scdata(sd); //Save status changes, then clear'em out from memory. [Skotlex]
@@ -1402,7 +1402,7 @@ int map_quit(struct map_session_data *sd) {
 	} else { //Try to free some data, without saving anything (this could be invoked on map server change. [Skotlex]
 		if (sd->bl.prev != NULL)
 		{	//Remove from map...
-			if (!(sd->status.option & OPTION_HIDE))
+			if (!(sd->status.option & OPTION_INVISIBLE))
 				clif_clearchar_area(&sd->bl,2);
 			map_delblock(&sd->bl);
 		}
