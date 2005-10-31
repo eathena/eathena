@@ -4,6 +4,7 @@
 
 #include <stdarg.h>
 
+extern int party_share_level;
 struct party;
 struct map_session_data;
 struct block_list;
@@ -39,6 +40,7 @@ int party_check_conflict(struct map_session_data *sd);
 
 int party_send_xy_clear(struct party *p);
 
+void party_exp_share_check(struct map_session_data *sd, struct party *p);
 int party_exp_share(struct party *p,int map,int base_exp,int job_exp,int zeny);
 
 void party_foreachsamemap(int (*func)(struct block_list *,va_list),struct map_session_data *sd,int type,...);

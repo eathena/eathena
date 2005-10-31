@@ -1113,7 +1113,7 @@ int atcommand_rura(
 }
 
 /*==========================================
- *
+ * Displays where a character is. Corrected version by Silent. [Skotlex]
  *------------------------------------------
  */
 int atcommand_where(
@@ -1123,23 +1123,18 @@ int atcommand_where(
 	struct map_session_data *pl_sd = NULL;
 	
 	int GM_level, pl_GM_level;
+	memset(atcmd_player_name, '\0', sizeof atcmd_player_name);
 
-	pl_sd = map_nick2sd(atcmd_player_name);
-	nullpo_retr(-1, sd);
-//	nullpo_retr(-1, pl_sd);
-
-	if (pl_sd == NULL) {
-		snprintf(atcmd_output, sizeof atcmd_output, "%s %d %d",
-			sd->mapname, sd->bl.x, sd->bl.y);
-		clif_displaymessage(fd, atcmd_output);
+	if (!message || !*message || sscanf(message, "%23[^\n]", atcmd_player_name) < 1) {
+		clif_displaymessage(fd, "Please, enter a player name (usage: @where <char name>).");
 		return -1;
 	}
+	pl_sd = map_nick2sd(atcmd_player_name);
+	nullpo_retr(-1, sd);
 
-	if (!message || !*message)
+	if (pl_sd == NULL) 
 		return -1;
-	memset(atcmd_player_name, '\0', sizeof atcmd_player_name);
-	if (sscanf(message, "%23[^\n]", atcmd_player_name) < 1)
-		return -1;
+
 	if(strncmp(sd->status.name,atcmd_player_name,NAME_LENGTH)==0)
 		return -1;
 		
@@ -1149,7 +1144,7 @@ int atcommand_where(
 	if (battle_config.hide_GM_session) {
 		if(!(GM_level >= pl_GM_level)) {
 			if (!(battle_config.who_display_aid > 0 && pc_isGM(sd) >= battle_config.who_display_aid)) {
-				return 1;
+				return -1;
 			}
 		}
 	}

@@ -4194,9 +4194,9 @@ int pc_checkbaselevelup(struct map_session_data *sd)
 		}
 
 		clif_misceffect(&sd->bl,0);
-		//レベルアップしたのでパ?ティ?情報を更新する
-		//(公平範?チェック)
-		party_send_movemap(sd);
+		//Apply a check to see if even share was broken.
+		if (sd->status.party_id)
+			party_exp_share_check(sd, party_search(sd->status.party_id));
 		//LORDALFA - LVLUPEVENT
 		if (script_config.event_script_type == 0) {
 			struct npc_data *npc;

@@ -1015,7 +1015,7 @@ unsigned char* parse_simpleexpr(unsigned char *p)
 			}
 			add_scriptc(C_FUNC);
 		} else if(str_data[l].type == C_USERFUNC || str_data[l].type == C_USERFUNC_POS) {
-			add_scriptl(search_str("callsub"));
+			add_scriptl(search_str((unsigned char*)"callsub"));
 			add_scriptc(C_ARG);
 			add_scriptl(l);
 		}else
@@ -1089,7 +1089,7 @@ unsigned char* parse_subexpr(unsigned char *p,int limit)
 				add_scriptc(C_ARG);
 			} else if(str_data[parse_cmd].type == C_USERFUNC || str_data[parse_cmd].type == C_USERFUNC_POS) {
 				// ユーザー定義関数呼び出し
-				parse_cmd = search_str("callsub");
+				parse_cmd = search_str((unsigned char*)"callsub");
 				i++;
 			} else {
 				disp_error_message(
@@ -1169,7 +1169,7 @@ unsigned char* parse_line(unsigned char *p)
 {
 	int i=0,cmd;
 	const char *plist[128];
-	char *p2;
+	unsigned char *p2;
 	char end;
 
 	p=skip_space(p);
@@ -1201,7 +1201,7 @@ unsigned char* parse_line(unsigned char *p)
 		add_scriptc(C_ARG);
 	} else if(str_data[parse_cmd].type == C_USERFUNC || str_data[parse_cmd].type == C_USERFUNC_POS) {
 		// ユーザー定義関数呼び出し
-		parse_cmd = search_str("callsub");
+		parse_cmd = search_str((unsigned char*)"callsub");
 		i++;
 	} else {
 		disp_error_message(
@@ -1274,7 +1274,7 @@ unsigned char* parse_curly_close(unsigned char *p) {
 	} else if(syntax.curly[syntax.curly_count-1].type == TYPE_SWITCH) {
 		// switch() 閉じ判定
 		int pos = syntax.curly_count-1;
-		char label[256];
+		unsigned char label[256];
 		int l;
 		// 一時変数を消す
 		sprintf(label,"set $@__SW%x_VAL,0;",syntax.curly[pos].index);
@@ -1532,7 +1532,7 @@ unsigned char* parse_syntax(unsigned char *p) {
 	case 'f':
 		if(!strncmp(p,"for",3) && !isalpha(*(p + 3))) {
 			int l;
-			char label[256];
+			unsigned char label[256];
 			int  pos = syntax.curly_count;
 			syntax.curly[syntax.curly_count].type  = TYPE_FOR;
 			syntax.curly[syntax.curly_count].count = 1;
@@ -1706,7 +1706,7 @@ unsigned char* parse_syntax(unsigned char *p) {
 			syntax.curly[syntax.curly_count].flag  = 0;
 			sprintf(label,"$@__SW%x_VAL",syntax.curly[syntax.curly_count].index);
 			syntax.curly_count++;
-			add_scriptl(add_str("set"));
+			add_scriptl(add_str((unsigned char*)"set"));
 			add_scriptc(C_ARG);
 			add_scriptl(add_str(label));
 			p=skip_word(p);
@@ -1770,7 +1770,7 @@ unsigned char* parse_syntax_close(unsigned char *p) {
 //     flag == 1 : 閉じられた
 //     flag == 0 : 閉じられない
 unsigned char* parse_syntax_close_sub(unsigned char *p,int *flag) {
-	char label[256];
+	unsigned char label[256];
 	int pos = syntax.curly_count - 1;
 	int l;
 	*flag = 1;
@@ -2618,6 +2618,10 @@ int buildin_rand(struct script_state *st)
 		int min, max;
 		min = conv_num(st,& (st->stack->stack_data[st->start+2]));
 		max = conv_num(st,& (st->stack->stack_data[st->start+3]));
+		if (max == min){ //Why would someone do this?
+			push_val(st->stack,C_INT,min);
+			return 0;
+		}
 		if (max < min){
 			int tmp = min;
 			min = max;

@@ -1266,7 +1266,7 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 	if (strlen((char *)dat) > NAME_LENGTH-1)
 		dat[NAME_LENGTH-1] = '\0';
 
-	dat = trim(dat,TRIM_CHARS); //Trim character name. [Skotlex]
+	dat = (unsigned char*)trim((char *)dat,TRIM_CHARS); //Trim character name. [Skotlex]
 	jstrescapecpy(t_name, (char*)dat);
 
 	// disabled until fixed >.>

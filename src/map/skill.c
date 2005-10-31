@@ -4057,8 +4057,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			skill_clear_unitgroup(src);
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 			sg = skill_unitsetting(src,skillid,skilllv,src->x,src->y,0);
-			status_change_start(src,SkillStatusChangeTable[skillid],skilllv,0,BCT_SELF,sg->group_id,
-				skill_get_time(skillid,skilllv),0);
+			if(skillid == CG_HERMODE)
+				status_change_start(src,SC_DANCING,skillid,0,0,sg->group_id,skill_get_time(skillid,skilllv),0);
+			else
+				status_change_start(src,SkillStatusChangeTable[skillid],skilllv,0,BCT_SELF,sg->group_id,
+					skill_get_time(skillid,skilllv),0);
 		}
 		break;
 

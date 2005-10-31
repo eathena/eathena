@@ -1489,9 +1489,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 	{
 		if (!abl) //Avoid seeking it if we had it from before (friend scan).
 			abl = map_id2bl(md->attacked_id);
-		if (!abl) //Target gone.
-			md->attacked_id = 0;
-		else {
+		if (abl) {
 			if (md->bl.m != abl->m || abl->prev == NULL ||
 				(dist = distance(md->bl.x, md->bl.y, abl->x, abl->y)) >= 32 ||
 				battle_check_target(bl, abl, BCT_ENEMY) <= 0 ||
@@ -1508,7 +1506,6 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 						mob_walktoxy(md, md->bl.x + dist * mask[dir][0], md->bl.y + dist * mask[dir][1], 0);
 						md->next_walktime = tick + 500;
 					}
-					md->attacked_id = 0;
 				}
 			} else if (!(battle_config.mob_ai&2) && !status_check_skilluse(bl, abl, 0, 0)) {
 				//Can't attack back, but didn't invoke a rude attacked skill...
@@ -1516,7 +1513,6 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 			} else if (blind_flag && dist > 2 && DIFF_TICK(tick,md->next_walktime) < 0) { //Blinded, but can reach 
 				if (!md->target_id)
 				{	//Attempt to follow new target
-					md->attacked_id = 0;
 					if (mode&MD_CANMOVE && mob_can_move(md)) {	// why is it moving to the target when the mob can't see the player? o.o
 						dx = abl->x - md->bl.x;
 						dy = abl->y - md->bl.y;
@@ -1532,7 +1528,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 					md->target_id = md->attacked_id; // set target
 					md->state.targettype = ATTACKABLE;
 					attack_type = 1;
-					md->attacked_id = md->attacked_count = 0;
+					md->attacked_count = 0;
 					md->min_chase = dist + md->db->range2;
 					if (md->min_chase > 26)
 						md->min_chase = 26;
@@ -1541,6 +1537,8 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 			}
 		}
 	}
+	if (md->attacked_id)
+		md->attacked_id = 0;	//Clear it since it's been checked for already.
 
 	// Processing of slave monster
 	if (md->master_id > 0)
@@ -1582,7 +1580,6 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 			if (blind_flag && DIFF_TICK(tick,md->next_walktime) < 0 && distance(md->bl.x, md->bl.y, tbl->x, tbl->y) > 2)
 			{	//Run towards the enemy when out of range?
 				md->target_id = 0;
-				md->attacked_id = 0;
 				md->state.targettype = NONE_ATTACKABLE;
 				if (!(mode & MD_CANMOVE) || !mob_can_move(md))
 					return 0;

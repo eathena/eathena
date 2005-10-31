@@ -1684,7 +1684,7 @@ int npc_convertlabel_db (void *key, void *data, va_list ap)
  *------------------------------------------
  */
 static void npc_parse_script_line(unsigned char *p,int *curly_count,int line) {
-	int i = strlen(p),j;
+	int i = strlen((char *)p),j;
 	int string_flag = 0;
 	static int comment_flag = 0;
 	for(j = 0; j < i ; j++) {
@@ -1873,7 +1873,7 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 //	nd->flag = 0;
 	nd->class_ = class_;
 	nd->speed = 200;
-	nd->u.scr.script = (char *) script;
+	nd->u.scr.script = script;
 	nd->u.scr.src_id = src_id;
 /* Cleaned up above with memset...
 	nd->chat_id = 0;
@@ -2003,7 +2003,7 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
  */
 static int npc_parse_function (char *w1, char *w2, char *w3, char *w4, char *first_line, FILE *fp, int *lines)
 {
-	char *srcbuf, *script, *p;
+	unsigned char *srcbuf, *script, *p;
 	int srcsize = 65536;
 	int startline = 0;
 	char line[1024];
@@ -2011,7 +2011,7 @@ static int npc_parse_function (char *w1, char *w2, char *w3, char *w4, char *fir
 	struct dbt *user_db;
 	
 	// スクリプトの解析
-	srcbuf = (char *) aCallocA (srcsize, sizeof(char));
+	srcbuf = (unsigned char *) aCallocA (srcsize, sizeof(char));
 	if (strchr(first_line,'{')) {
 		strcpy(srcbuf, strchr(first_line,'{'));
 		startline = *lines;
@@ -2042,7 +2042,7 @@ static int npc_parse_function (char *w1, char *w2, char *w3, char *w4, char *fir
 		ShowError("Missing right curly at file %s, line %d\n",current_file, *lines);
 		script = NULL;
 	} else {
-		script = parse_script((unsigned char *)srcbuf, startline);
+		script = parse_script(srcbuf, startline);
 	}
 	if (script == NULL) {
 		// script parse error?

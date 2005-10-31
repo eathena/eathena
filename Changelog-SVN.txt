@@ -1,6 +1,17 @@
 Date	Added
 ==========
 2005/10/31
+	* Mob ai fix (mobs locking down into one target forever even if they should
+	  be able to change targets) [Skotlex]
+	* Added routine to check party share level whenever one of the members
+	 levels up. It's checked on the map server, and then a share request is sent
+	  to the char-server if party_share_level is broken. [Skotlex]
+	* Corrected "show drain" to show nothing if the leeched values are
+	  non positive. [Skotlex]
+	* Probably fixed Wand of Hermode not blocking the caster from walking.
+	  [Skotlex]
+	* Applied Silent's fix to @where [Skotlex]
+	* Code cleanup regarding sign/unsigned comparisons. [Skotlex]
 	* Updates to new quest skills, some are fully functionnal, some half, some
 	  not at all xD. [DracoRPG]
 2005/10/30

@@ -2776,10 +2776,10 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 				pc_heal(sd, hp, sp);
 
 			if (battle_config.show_hp_sp_drain)
-			{	//Display gained values [Skotlex]
-				if (hp)
+			{	//Display gained values only when they are positive [Skotlex]
+				if (hp > 0)
 					clif_heal(sd->fd, SP_HP, hp);
-				if (sp)
+				if (sp > 0)
 					clif_heal(sd->fd, SP_SP, sp);
 			}
 
