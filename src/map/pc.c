@@ -4835,6 +4835,17 @@ int pc_resetskill(struct map_session_data* sd)
 	return 0;
 }
 
+static int pc_respawn(int tid,unsigned int tick,int id,int data)
+{
+	struct map_session_data *sd = map_id2sd(id);
+	if (sd && pc_isdead(sd))
+	{	//Auto-respawn [Skotlex]
+		pc_setstand(sd);
+		pc_setrestartvalue(sd,3);
+		pc_setpos(sd,sd->status.save_point.map,sd->status.save_point.x,sd->status.save_point.y,0);
+	}
+	return 0;
+}
 /*==========================================
  * pc‚Éƒ_ƒ?ƒW‚ð?‚¦‚é
  *------------------------------------------
@@ -5168,17 +5179,13 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage, int
 		// ?§‘—ŠÒ
 		if( sd->pvp_point < 0 ){
 			sd->pvp_point=0;
-			pc_setstand(sd);
-			pc_setrestartvalue(sd,3);
-			pc_setpos(sd,sd->status.save_point.map,sd->status.save_point.x,sd->status.save_point.y,0);
+			add_timer(gettick()+1000, pc_respawn,sd->bl.id,0);
 			return damage;
 		}
 	}
 	//GvG
 	if(map_flag_gvg(sd->bl.m)){
-		pc_setstand(sd);
-		pc_setrestartvalue(sd,3);
-		pc_setpos(sd,sd->status.save_point.map,sd->status.save_point.x,sd->status.save_point.y,0);
+		add_timer(gettick()+1000, pc_respawn,sd->bl.id,0);
 		return damage;
 	}
 
