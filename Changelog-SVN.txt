@@ -1,6 +1,8 @@
 Date	Added
 ==========
 2005/11/01
+	* Changed the default of mob_max_skilllv from 11 to 100, as many of the
+	  recent mobs use higher level skills. [Skotlex]
 	* Moved the check which made emperiums receive 0 damage to: [Skotlex]
 	- status_check_skilluse, so that all targetted skills fail.
 	- battle_check_target, so that all ground-based offensive skills fail.

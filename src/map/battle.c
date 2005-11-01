@@ -3750,7 +3750,7 @@ void battle_set_defaults() {
 	battle_config.show_hp_sp_gain = 1;	//Display gained hp/sp from mob-kills
 	battle_config.mob_clear_delay = 0;
 	battle_config.character_size = 3; //3: Peco riders Size=2, Baby Class Riders Size=1 [Lupus]
-	battle_config.mob_max_skilllvl = 11; //max possible level of monsters skills [Lupus]
+	battle_config.mob_max_skilllvl = MAX_SKILL_LEVEL; //max possible level of monsters skills [Lupus]
 	battle_config.retaliate_to_master = 1; //Make mobs retaliate against the master rather than the mob that attacked them. [Skotlex]
 	battle_config.rare_drop_announce = 1; //show global announces for rare items drops (<= 0.01% chance) [Lupus]
 	battle_config.firewall_hits_on_undead = 1;
