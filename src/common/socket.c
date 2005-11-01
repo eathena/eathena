@@ -724,10 +724,15 @@ int do_sendrecv(int next)
 #ifdef __WIN32
 	if (ret == SOCKET_ERROR) {
 		ShowError("do_sendrecv: select error (code %d)\n", WSAGetLastError());
+		if (WSAGetLastError() == WSAEWOULDBLOCK)
+			return 0; //Eh... try again later?
 #else
 	if (ret == -1) {
 		perror("do_sendrecv");
+		if (errno == 11) //Isn't there a constantI can use instead of this hardcoded value? This should be "resource temporarily unavailable": ie: try again.
+			return 0;
 #endif
+		
 		//if error, remove invalid connections
 		//Individual socket handling code shamelessly assimilated from Freya :3
 		// an error give invalid values in fd_set structures -> init them again

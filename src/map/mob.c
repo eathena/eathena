@@ -2245,7 +2245,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 
 	//changestate will clear all status effects, so we need to know if RICHMANKIM is in effect before then. [Skotlex]
 	//I just recycled ret because it isn't used until much later and I didn't want to add a new variable for it.
-	ret = (md->sc_data[SC_RICHMANKIM].timer != -1)?(25 + 11*sd->sc_data[SC_RICHMANKIM].val1):0;
+	ret = (md->sc_data[SC_RICHMANKIM].timer != -1)?(25 + 11*md->sc_data[SC_RICHMANKIM].val1):0;
 	
 	map_freeblock_lock();
 	mob_changestate(md,MS_DEAD,0);

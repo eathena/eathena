@@ -1,5 +1,12 @@
 Date	Added
 ==========
+2005/11/01
+	* Fixed crash when a mob was killed while under Rich Man Kim effect by a
+	  non-player, also fixes Rich Man Kim not giving the correct exp bonus.
+	  [Skotlex]
+	* Modified the socket subsystem to not close all connections on an "Service
+	  Temporarily Unavailable" error (it is a non-fatal error which basicly means
+	  "try again later").  [Skotlex]
 2005/10/31
 	* Fixed all players having the "plant" mode on... [Skotlex]
 	* Added a timer to delay the automatic respawn of characters in gvg or pvp
