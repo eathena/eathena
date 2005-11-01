@@ -1,6 +1,7 @@
 Date	Added
 ==========
 2005/10/31
+	* Fixed all players having the "plant" mode on... [Skotlex]
 	* Added a timer to delay the automatic respawn of characters in gvg or pvp
 	  grounds. The delay is currently 1 second, but be warned that because of
 	  this it may be possible to revive the character if some priest is insanely

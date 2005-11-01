@@ -3258,8 +3258,8 @@ int status_get_mode(struct block_list *bl)
 			return ((struct mob_data *)bl)->mode;
 		return ((struct mob_data *)bl)->db->mode;
 	}
-	if(bl->type==BL_PC)
-		return (MD_MASK&~MD_BOSS); //Default player mode: Everything but boss.
+	if(bl->type==BL_PC) //Players can do lots of stuff..
+		return (MD_CANMOVE|MD_LOOTER|MD_AGGRESSIVE|MD_ASSIST|MD_CASTSENSOR|MD_CANATTACK|MD_CHANGETARGET);
 	if(bl->type==BL_PET && (struct pet_data *)bl)
 		return ((struct pet_data *)bl)->db->mode;
 	if (bl->type==BL_SKILL)

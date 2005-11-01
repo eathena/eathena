@@ -8122,9 +8122,7 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 		}
 		break;
 	case WE_CALLBABY:
-		if (!sd->status.child)
-			return 0;
-		tsd = map_charid2sd(sd->status.child);
+		tsd = pc_get_child(sd);
 		bl = (struct block_list *)tsd;
 		if (bl)
 			target_id = bl->id;
