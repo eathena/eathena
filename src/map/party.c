@@ -567,7 +567,7 @@ int party_send_xy_clear(struct party *p)
 void party_exp_share_check(struct map_session_data *sd, struct party *p) 
 {
 	struct map_session_data *p_sd;
-	int i;
+	int i,lv;
 	int maxlv=0,minlv=0x7fffffff;
 
 	if (p == NULL || p->exp == 0)
@@ -575,7 +575,7 @@ void party_exp_share_check(struct map_session_data *sd, struct party *p)
 	for(i=0;i<MAX_PARTY;i++){
 		if ((p_sd = p->member[i].sd) == NULL)
 			continue;
-		int lv=p_sd->status.base_level;
+		lv=p_sd->status.base_level;
 		if( lv < minlv ) minlv=lv;
 		else if( maxlv < lv ) maxlv=lv;
 	}
