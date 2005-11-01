@@ -1,6 +1,12 @@
 Date	Added
 ==========
 2005/11/01
+	* Updated @ commands. NO command can be used at gm-level 0 now, that's how
+	  it should be, the new minimum is 1 for most trivial @ commands. Also added
+	  a bunch of commands to conf/atcommand.conf which were missing. I STRONGLY
+	  recommend everyone to at least fetch the new atcommand file as there
+	  were abusable commands at level 0 (abusable in the sense they can incur
+	  performance penalties if over-used by everyone) [Skotlex]
 	* Fixed crash when a mob was killed while under Rich Man Kim effect by a
 	  non-player, also fixes Rich Man Kim not giving the correct exp bonus.
 	  [Skotlex]

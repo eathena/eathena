@@ -434,12 +434,12 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_Hidenpc,			"@hidenpc",			80, atcommand_hidenpc }, // []
 	{ AtCommand_Loadnpc,			"@loadnpc",			80, atcommand_loadnpc }, // []
 	{ AtCommand_Unloadnpc,			"@unloadnpc",		80, atcommand_unloadnpc }, // []
-	{ AtCommand_ServerTime,			"@time",			 0, atcommand_servertime }, // by Yor
-	{ AtCommand_ServerTime,			"@date",			 0, atcommand_servertime }, // by Yor
-	{ AtCommand_ServerTime,			"@server_date",		 0, atcommand_servertime }, // by Yor
-	{ AtCommand_ServerTime,			"@serverdate",		 0, atcommand_servertime }, // by Yor
-	{ AtCommand_ServerTime,			"@server_time",		 0, atcommand_servertime }, // by Yor
-	{ AtCommand_ServerTime,			"@servertime",		 0, atcommand_servertime }, // by Yor
+	{ AtCommand_ServerTime,			"@time",			 1, atcommand_servertime }, // by Yor
+	{ AtCommand_ServerTime,			"@date",			 1, atcommand_servertime }, // by Yor
+	{ AtCommand_ServerTime,			"@server_date",		 1, atcommand_servertime }, // by Yor
+	{ AtCommand_ServerTime,			"@serverdate",		 1, atcommand_servertime }, // by Yor
+	{ AtCommand_ServerTime,			"@server_time",		 1, atcommand_servertime }, // by Yor
+	{ AtCommand_ServerTime,			"@servertime",		 1, atcommand_servertime }, // by Yor
 	{ AtCommand_CharDelItem,		"@chardelitem",		60, atcommand_chardelitem }, // by Yor
 	{ AtCommand_Jail,				"@jail",			60, atcommand_jail }, // by Yor
 	{ AtCommand_UnJail,				"@unjail",			60, atcommand_unjail }, // by Yor
@@ -448,7 +448,7 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_UnDisguise,			"@undisguise",		20, atcommand_undisguise }, // by Yor
 	{ AtCommand_CharDisguise,		"@chardisguise",	60, atcommand_chardisguise }, // Kalaspuff
 	{ AtCommand_CharUnDisguise,		"@charundisguise",	60, atcommand_charundisguise }, // Kalaspuff
-	{ AtCommand_EMail,				"@email",			 0, atcommand_email }, // by Yor
+	{ AtCommand_EMail,				"@email",			 1, atcommand_email }, // by Yor
 	{ AtCommand_Effect,				"@effect",			40, atcommand_effect }, // by Apple
 	{ AtCommand_Char_Cart_List,		"@charcartlist",	40, atcommand_character_cart_list }, // by Yor
 	{ AtCommand_Follow,				"@follow",			10, atcommand_follow }, // by MouseJstr
@@ -480,22 +480,22 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_SetBattleFlag,		"@setbattleflag",	60, atcommand_setbattleflag },
 	{ AtCommand_UnMute,				"@unmute",			60, atcommand_unmute }, // [Valaris]
 	{ AtCommand_Clearweather,		"@clearweather",	99, atcommand_clearweather }, // Dexity
-	{ AtCommand_UpTime,				"@uptime",			 0, atcommand_uptime }, // by MC Cameri
+	{ AtCommand_UpTime,				"@uptime",			 1, atcommand_uptime }, // by MC Cameri
 //	{ AtCommand_ChangeSex,			"@changesex",		 1, atcommand_changesex }, // by MC Cameri <- do we still need this? [Foruken]
 	{ AtCommand_Mute,				"@mute",			99, atcommand_mute }, // [celest]
 	{ AtCommand_Mute,				"@red",				99, atcommand_mute }, // [celest]
 	{ AtCommand_WhoZeny,			"@whozeny",			20, atcommand_whozeny }, // [Valaris]
 	{ AtCommand_HappyHappyJoyJoy,	"@happyhappyjoyjoy",40, atcommand_happyhappyjoyjoy }, // [Valaris]
-	{ AtCommand_Refresh,	        "@refresh",			 0, atcommand_refresh }, // by MC Cameri
+	{ AtCommand_Refresh,	        "@refresh",			 1, atcommand_refresh }, // by MC Cameri
 	{ AtCommand_PetId,	    	    "@petid",			40, atcommand_petid }, // by MC Cameri
 	{ AtCommand_Identify,	   	    "@identify",		40, atcommand_identify }, // by MC Cameri
-	{ AtCommand_Gmotd,				"@gmotd",			 0, atcommand_gmotd }, // Added by MC Cameri, created by davidsiaw
+	{ AtCommand_Gmotd,				"@gmotd",			20, atcommand_gmotd }, // Added by MC Cameri, created by davidsiaw
 	{ AtCommand_MiscEffect,			"@misceffect",		50, atcommand_misceffect }, // by MC Cameri
-	{ AtCommand_MobSearch,			"@mobsearch",		 0, atcommand_mobsearch },
-	{ AtCommand_CleanMap,			"@cleanmap",		 0, atcommand_cleanmap },
-	{ AtCommand_NpcTalk,			"@npctalk",			 0,	atcommand_npctalk },
-	{ AtCommand_PetTalk,			"@pettalk",			 0,	atcommand_pettalk },
-	{ AtCommand_Users,				"@users",			 0, atcommand_users },
+	{ AtCommand_MobSearch,			"@mobsearch",		10, atcommand_mobsearch },
+	{ AtCommand_CleanMap,			"@cleanmap",		40, atcommand_cleanmap },
+	{ AtCommand_NpcTalk,			"@npctalk",			20,	atcommand_npctalk },
+	{ AtCommand_PetTalk,			"@pettalk",			10,	atcommand_pettalk },
+	{ AtCommand_Users,				"@users",			40, atcommand_users },
 	{ AtCommand_ResetState,			"/reset",			40,	NULL },
 
 #ifndef TXT_ONLY // sql-only commands
@@ -545,7 +545,7 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_MobInfo,			"@monsterinfo",		1,	atcommand_mobinfo }, // [Lupus]
 	{ AtCommand_MobInfo,			"@mi",				1,	atcommand_mobinfo }, // [Lupus]
 	{ AtCommand_Adopt,              "@adopt",			40, atcommand_adopt }, // [Veider]
-	{ AtCommand_Version,			"@version",			0,	atcommand_version },
+	{ AtCommand_Version,			"@version",			1,	atcommand_version },
 
 	{ AtCommand_MuteArea,			"@mutearea",		99, atcommand_mutearea }, // MouseJstr
 	{ AtCommand_MuteArea,			"@stfu",			99, atcommand_mutearea }, // MouseJstr
@@ -560,12 +560,11 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_MonsterIgnore,	"@monsterignore",	99,	atcommand_monsterignore }, // [Valaris]
 	{ AtCommand_FakeName,				"@fakename",			20, atcommand_fakename }, // [Valaris]
 	{ AtCommand_Size,				"@size",			20, atcommand_size },
-	{ AtCommand_ShowExp,					"@showexp", 					0, atcommand_showexp},
-	{ AtCommand_ShowDelay,					"@showdelay",					0, atcommand_showdelay},
+	{ AtCommand_ShowExp,					"@showexp", 					10, atcommand_showexp},
+	{ AtCommand_ShowDelay,					"@showdelay",					1, atcommand_showdelay},
 	{ AtCommand_AutoTrade,			"@autotrade",		10,	atcommand_autotrade }, // durf
 	{ AtCommand_ChangeGM,			"@changegm",		10,	atcommand_changegm }, // durf
 	{ AtCommand_ChangeLeader,			"@changeleader",		10,	atcommand_changeleader }, // durf
-
 
 // add new commands before this line
 	{ AtCommand_Unknown,			NULL,				1,	NULL }
@@ -7715,7 +7714,7 @@ int atcommand_mobsearch(
 
 	if ((mob_id = atoi(mob_name)) == 0)
 		 mob_id = mobdb_searchname(mob_name);
-	if(mob_id !=-1 && (mob_id <= 1000 || mob_id >= 2000)){
+	if(mob_id > 0 && mobdb_checkid(mob_id) == 0){
 		snprintf(atcmd_output, sizeof atcmd_output, "Invalid mob id %s!",mob_name);
 		clif_displaymessage(fd, atcmd_output);
 		return 0;
@@ -8144,7 +8143,6 @@ int atcommand_refresh(
 	const char* command, const char* message)
 {
 	nullpo_retr(-1, sd);
-	//pc_setpos(sd, sd->mapname, sd->bl.x, sd->bl.y, 3);
 	clif_refresh(sd);
 	return 0;
 }
