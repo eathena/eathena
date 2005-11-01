@@ -3073,50 +3073,58 @@ int mobskill_castend_id( int tid, unsigned int tick, int id,int data )
 	struct block_list *mbl;
 	int range;
 
+//Code cleanup. Insert any code that should be executed if the skill fails here.
+#define skill_failed(md) { md->skillid = md->skilllv = -1; }
+	
 	if((mbl = map_id2bl(id)) == NULL ) //詠唱したMobがもういないというのは良くある正常処理
 		return 0;
-	if((md=(struct mob_data *)mbl) == NULL ){
-		ShowError("mobskill_castend_id nullpo mbl->id:%d\n",mbl->id);
-		return 0;
-	}
 
 	if( md->bl.type!=BL_MOB || md->bl.prev==NULL )
 		return 0;
 
-	if( md->skilltimer != tid )	// タイマIDの確認
+	if( md->skilltimer != tid ) {
+		if (battle_config.error_log)
+			ShowError("mobskill_castend_id: Timer mismatch %d!=%d\n", md->skilltimer, tid);
+		md->skilltimer = -1;
 		return 0;
+	}
 
 	md->skilltimer=-1;
 
-	if((bl = map_id2bl(md->skilltarget)) == NULL || bl->prev==NULL){ //スキルターゲットが存在しない
-		//printf("mobskill_castend_id nullpo\n");//ターゲットがいないときはnullpoじゃなくて普通に終了
+	if((bl = map_id2bl(md->skilltarget)) == NULL || bl->prev==NULL || md->bl.m != bl->m){
+		skill_failed(md);
 		return 0;
 	}
-	if(md->bl.m != bl->m)
-		return 0;
 
 	if(md->skillid != NPC_EMOTION)
 		md->last_thinktime=tick + status_get_adelay(&md->bl);
 		
 	if(md->skillid == RG_BACKSTAP) {
 		int dir = map_calc_dir(&md->bl,bl->x,bl->y),t_dir = status_get_dir(bl);
-		int dist = distance(md->bl.x,md->bl.y,bl->x,bl->y);
-		if(bl->type != BL_SKILL && (dist == 0 || map_check_dir(dir,t_dir)))
+		if(bl->type != BL_SKILL && (distance(md->bl.x,md->bl.y,bl->x,bl->y) == 0 || map_check_dir(dir,t_dir))) {
+			skill_failed(md);
 			return 0;
+		}
 	}
 	if( ( skill_get_inf(md->skillid) & INF_ATTACK_SKILL || md->skillid == MO_EXTREMITYFIST ) &&
-		battle_check_target(&md->bl,bl, BCT_ENEMY)<=0 )
+		battle_check_target(&md->bl,bl, BCT_ENEMY)<=0 ) {
+		skill_failed(md);
 		return 0;
+	}
 
 	if(tid != -1)
 	{
-		if (!status_check_skilluse(&md->bl, bl, md->skillid, 1))
+		if (!status_check_skilluse(&md->bl, bl, md->skillid, 1)) {
+			skill_failed(md);
 			return 0;
+		}
 		range = skill_get_range(md->skillid,md->skilllv);
 		if(range < 0)
 			range = status_get_range(&md->bl) - (range + 1);
-		if(range + battle_config.mob_skill_add_range < distance(md->bl.x,md->bl.y,bl->x,bl->y))
+		if(range + battle_config.mob_skill_add_range < distance(md->bl.x,md->bl.y,bl->x,bl->y)) {
+			skill_failed(md);
 			return 0;
+		}
 	}
 	md->skilldelay[md->skillidx]=tick;
 
@@ -3144,6 +3152,9 @@ int mobskill_castend_id( int tid, unsigned int tick, int id,int data )
 	if (md->sc_count && md->sc_data[SC_MAGICPOWER].timer != -1 && md->skillid != HW_MAGICPOWER)
 		status_change_end(&md->bl, SC_MAGICPOWER, -1);
 		
+	//TODO: This value is used for the "afterskill" mob condition, what could one do to clean it other than
+	//to use a "previous skill" struct variable?
+	//md->skillid = md->skilllv = -1; //Clean up skill-data for battle_getcurrentskill references. [Skotlex]
 	return 0;
 }
 
@@ -3156,37 +3167,51 @@ int mobskill_castend_pos( int tid, unsigned int tick, int id,int data )
 	struct mob_data* md=NULL;
 	int range,maxcount;
 
+//Code cleanup. Insert any code that should be executed if the skill fails here.
+#define skill_failed(md) { md->skillid = md->skilllv = -1; }
+
 	nullpo_retr(0, md=(struct mob_data *)map_id2bl(id));
 
 	if( md->bl.type!=BL_MOB || md->bl.prev==NULL )
 		return 0;
 
-	if( md->skilltimer != tid )	// タイマIDの確認
+	if( md->skilltimer != tid ) {
+		if (battle_config.error_log)
+			ShowError("mobskill_castend_pos: Timer mismatch %d!=%d\n", md->skilltimer, tid);
+		md->skilltimer = -1;
 		return 0;
+	}
 
 	md->skilltimer=-1;
 
 	if (tid != -1)
 	{	//Avoid unnecessary checks for instant-cast skills. [Skotlex]
-		if (!status_check_skilluse(&md->bl, NULL, md->skillid, 1))
+		if (!status_check_skilluse(&md->bl, NULL, md->skillid, 1)) {
+			skill_failed(md);
 			return 0;
+		}
 		range = skill_get_range(md->skillid,md->skilllv);
 		if(range < 0)
 			range = status_get_range(&md->bl) - (range + 1);
-		if(range + battle_config.mob_skill_add_range < distance(md->bl.x,md->bl.y,md->skillx,md->skilly))
+		if(range + battle_config.mob_skill_add_range < distance(md->bl.x,md->bl.y,md->skillx,md->skilly)) {
+			skill_failed(md);
 			return 0;
+		}
 	}
 
 	if (!battle_config.monster_skill_reiteration &&
 			skill_get_unit_flag (md->skillid) & UF_NOREITERATION &&
-			skill_check_unit_range (md->bl.m, md->skillx, md->skilly, md->skillid, md->skilllv))
+			skill_check_unit_range (md->bl.m, md->skillx, md->skilly, md->skillid, md->skilllv)) {
+		skill_failed(md);
 		return 0;
+	}
 
 	if(battle_config.monster_skill_nofootset &&
 			skill_get_unit_flag (md->skillid) & UF_NOFOOTSET &&
-			skill_check_unit_range2(&md->bl, md->bl.m, md->skillx, md->skilly, md->skillid, md->skilllv))
+			skill_check_unit_range2(&md->bl, md->bl.m, md->skillx, md->skilly, md->skillid, md->skilllv)) {
+		skill_failed(md);
 		return 0;
-
+	}
 	if(battle_config.monster_land_skill_limit) {
 		maxcount = skill_get_maxcount(md->skillid);
 		if(maxcount > 0) {
@@ -3195,8 +3220,10 @@ int mobskill_castend_pos( int tid, unsigned int tick, int id,int data )
 				if(md->skillunit[i].alive_count > 0 && md->skillunit[i].skill_id == md->skillid)
 					c++;
 			}
-			if(c >= maxcount)
+			if(c >= maxcount) {
+				skill_failed(md);
 				return 0;
+			}
 		}
 	}
 
@@ -3208,6 +3235,9 @@ int mobskill_castend_pos( int tid, unsigned int tick, int id,int data )
 
 	skill_castend_pos2(&md->bl,md->skillx,md->skilly,md->skillid,md->skilllv,tick,0);
 
+	//TODO: This value is used for the "afterskill" mob condition, what could one do to clean it other than
+	//to use a "previous skill" struct variable?
+	//md->skillid = md->skilllv = -1; //Clean up skill data for future references to battle_getcurrentskill [Skotlex]
 	return 0;
 }
 

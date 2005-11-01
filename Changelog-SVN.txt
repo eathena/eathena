@@ -1,6 +1,10 @@
 Date	Added
 ==========
 2005/11/01
+	* Moved the check which made emperiums receive 0 damage to: [Skotlex]
+	- status_check_skilluse, so that all targetted skills fail.
+	- battle_check_target, so that all ground-based offensive skills fail.
+	* Cleaned up a bit the skill related code. [Skotlex]
 	* Updated @ commands. NO command can be used at gm-level 0 now, that's how
 	  it should be, the new minimum is 1 for most trivial @ commands. Also added
 	  a bunch of commands to conf/atcommand.conf which were missing. I STRONGLY

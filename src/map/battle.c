@@ -570,9 +570,11 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 	}
 
 	if(md && md->guardian_data) {
+		/* Unneeded as this restriction was moved to battle_check_target and status_check_skilluse [Skotlex]
 		if(class_ == MOBID_EMPERIUM && (flag&BF_SKILL && skill_num != PA_PRESSURE && skill_num != MO_TRIPLEATTACK)) // Gloria Domini and Raging Trifecta Blows can hit Emperium
 			damage=0;
-		else if(src->type == BL_PC) {
+		else */
+		if(src->type == BL_PC) {
 			struct guild *g=guild_search(((struct map_session_data *)src)->status.guild_id);
 			if(g && class_ == MOBID_EMPERIUM && guild_checkskill(g,GD_APPROVAL) <= 0)
 				damage=0;
@@ -2539,7 +2541,7 @@ struct Damage  battle_calc_misc_attack(
 	if(div_>1)
 		damage*=div_;
 
-	if(damage > 0 && t_mode&MD_PLANT)
+	if(damage > 0 && t_mode&MD_PLANT && skill_num != PA_PRESSURE) //Pressure can vaporize plants.
 		damage = 1;
 
 	if(is_boss(target))
@@ -2910,6 +2912,10 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 			struct mob_data *md = (struct mob_data *)t_bl;
 			if (!agit_flag && md->guardian_data && md->guardian_data->guild_id)
 				return 0; //Disable guardians/emperiums owned by Guilds on non-woe times.
+			//The check for targetted skills is on status_check_skilluse, here we only check for ground-based skills. [Skotlex]
+			//Emperium cannot be targetted by offensive ground-based skills.
+			if (md->class_ == MOBID_EMPERIUM && src->type == BL_SKILL && flag&BCT_ENEMY)
+				return 0;
 			if (md->special_state.ai == 2)
 			{	//Mines are sort of universal enemies.
 				state |= BCT_ENEMY;

@@ -3197,8 +3197,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		return 1;
 	if(dstsd && pc_isdead(dstsd) && skillid != ALL_RESURRECTION)
 		return 1;
-	if(status_get_class(bl) == MOBID_EMPERIUM) //No damage skills cannot affect emperium.
-		return 1;
 //Shouldn't be needed, skillnotok's return value is highly unlikely to have changed after you started casting. [Skotlex]
 //	if (sd && skillnotok(skillid, sd)) // [MouseJstr]
 //		return 0;
@@ -5515,6 +5513,9 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 
 	nullpo_retr(0, sd);
 
+//Code cleanup.
+#define skill_failed(sd) { sd->skillid = sd->skilllv = sd->skillitem = sd->skillitemlv = -1; sd->canact_tick = sd->canmove_tick = tick; }
+
 	if(sd->skillid != SA_CASTCANCEL && sd->skilltimer != tid )
 	{	/* ƒ^ƒCƒ}ID‚ÌŠm”F */
 		ShowError("skill_castend_id: Timer mismatch %d!=%d!\n", sd->skilltimer, tid);
@@ -5522,15 +5523,10 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 		return 0;
 	}
 
-	if( sd->bl.prev == NULL )
-	{	//prev‚ª–³‚¢‚Ì‚Í‚ ‚è‚È‚Ì?H
+	if( sd->bl.prev == NULL || sd->skillid == -1 || sd->skilllv == -1)
+	{	//Finished casting between maps, or the skill has failed after starting casting{
 		sd->skilltimer = -1;
-		return 0;
-	}
-
-	if (sd->skillid == -1 || sd->skilllv == -1)
-	{	// skill has failed after starting casting
-		sd->skilltimer = -1;
+		skill_failed(sd);
 		return 0;
 	}
 
@@ -5542,20 +5538,16 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 
 	if((bl=map_id2bl(sd->skilltarget))==NULL ||
 		bl->prev==NULL || sd->bl.m != bl->m) {
-		sd->canact_tick = tick;
-		sd->canmove_tick = tick;
-		sd->skillitem = sd->skillitemlv = -1;
+		skill_failed(sd);
 		return 0;
 	}
-
+	
 	if(sd->skillid == RG_BACKSTAP) {
 		int dir = map_calc_dir(&sd->bl,bl->x,bl->y),t_dir = status_get_dir(bl);
 		int dist = distance(sd->bl.x,sd->bl.y,bl->x,bl->y);
 		if(bl->type != BL_SKILL && (dist == 0 || map_check_dir(dir,t_dir))) {
 			clif_skill_fail(sd,sd->skillid,0,0);
-			sd->canact_tick = tick;
-			sd->canmove_tick = tick;
-			sd->skillitem = sd->skillitemlv = -1;
+			skill_failed(sd);
 			return 0;
 		}
 	}
@@ -5566,18 +5558,14 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 		if (battle_check_target(&sd->bl,bl, BCT_ENEMY)<=0 &&
 			(!sc_data || sc_data[SC_SILENCE].timer == -1)) //If it's not an enemy, and not silenced, you can't use the skill on them. [Skotlex]
 		{
-			sd->canact_tick = tick;
-			sd->canmove_tick = tick;
-			sd->skillitem = sd->skillitemlv = -1;
+			skill_failed(sd);
 			return 0;
 		}
 	}
 	else if(skill_get_inf(sd->skillid)&INF_ATTACK_SKILL &&
 		battle_check_target(&sd->bl,bl, BCT_ENEMY)<=0
 	) {
-		sd->canact_tick = tick;
-		sd->canmove_tick = tick;
-		sd->skillitem = sd->skillitemlv = -1;
+		skill_failed(sd);
 		return 0;
 	}
 
@@ -5585,9 +5573,7 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 	{	//Avoid doing double checks for instant-cast skills.
 		if(sd->skillid == PR_LEXAETERNA) //Eh.. assuming skill failed due to opponent frozen/stone-cursed. [Skotlex]
 			clif_skill_fail(sd,sd->skillid,0,0);
-		sd->canact_tick = tick;
-		sd->canmove_tick = tick;
-		sd->skillitem = sd->skillitemlv = -1;
+		skill_failed(sd);
 		return 0;
 	}
 
@@ -5605,9 +5591,7 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 		
 		if(fail_flag) {
 			clif_skill_fail(sd,sd->skillid,0,0);
-			sd->canact_tick = tick;
-			sd->canmove_tick = tick;
-			sd->skillitem = sd->skillitemlv = -1;
+			skill_failed(sd);
 			return 0;
 		}
 	}
@@ -5622,16 +5606,12 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 		if(battle_config.skill_out_range_consume) //Consume items anyway. [Skotlex]
 			skill_check_condition(sd,1);
 			
-		sd->canact_tick = tick;
-		sd->canmove_tick = tick;
-		sd->skillitem = sd->skillitemlv = -1;
+		skill_failed(sd);
 		return 0;
 	}
 
 	if(!skill_check_condition(sd,1)) {		/* Žg—p?Œ?ƒ`ƒFƒbƒN */
-		sd->canact_tick = tick;
-		sd->canmove_tick = tick;
-		sd->skillitem = sd->skillitemlv = -1;
+		skill_failed(sd);
 		return 0;
 	}
 
@@ -5669,6 +5649,7 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 	if(sd->sc_data[SC_MAGICPOWER].timer != -1 && sd->skillid != HW_MAGICPOWER)
 		status_change_end(&sd->bl,SC_MAGICPOWER,-1);		
 
+	sd->skillid = sd->skilllv = -1; //Clean this up for future references to battle_getcurrentskill. [Skotlex]
 	return 0;
 }
 
@@ -5684,6 +5665,9 @@ int skill_castend_pos( int tid, unsigned int tick, int id,int data )
 	int delay,range,maxcount;
 
 	nullpo_retr(0, sd);
+
+//Code cleanup.
+#define skill_failed(sd) { sd->skillid = sd->skilllv = sd->skillitem = sd->skillitemlv = -1; sd->canact_tick = sd->canmove_tick = tick; }
 
 	if( sd->skilltimer != tid )
 	{	/* ƒ^ƒCƒ}ID‚ÌŠm”F */
@@ -5705,9 +5689,7 @@ int skill_castend_pos( int tid, unsigned int tick, int id,int data )
 			skill_get_unit_flag(sd->skillid)&UF_NOREITERATION &&
 			skill_check_unit_range(sd->bl.m,sd->skillx,sd->skilly,sd->skillid,sd->skilllv)) {
 		clif_skill_fail(sd,sd->skillid,0,0);
-		sd->canact_tick = tick;
-		sd->canmove_tick = tick;
-		sd->skillitem = sd->skillitemlv = -1;
+		skill_failed(sd);
 		return 0;
 	}
 
@@ -5715,9 +5697,7 @@ int skill_castend_pos( int tid, unsigned int tick, int id,int data )
 			skill_get_unit_flag(sd->skillid)&UF_NOFOOTSET &&
 			skill_check_unit_range2(&sd->bl,sd->bl.m,sd->skillx,sd->skilly,sd->skillid,sd->skilllv)) {
 		clif_skill_fail(sd,sd->skillid,0,0);
-		sd->canact_tick = tick;
-		sd->canmove_tick = tick;
-		sd->skillitem = sd->skillitemlv = -1;
+		skill_failed(sd);
 		return 0;
 	}
 	if(battle_config.pc_land_skill_limit) {
@@ -5730,9 +5710,7 @@ int skill_castend_pos( int tid, unsigned int tick, int id,int data )
 			}
 			if(c >= maxcount) {
 				clif_skill_fail(sd,sd->skillid,0,0);
-				sd->canact_tick = tick;
-				sd->canmove_tick = tick;
-				sd->skillitem = sd->skillitemlv = -1;
+				skill_failed(sd);
 				return 0;
 			}
 		}
@@ -5742,9 +5720,7 @@ int skill_castend_pos( int tid, unsigned int tick, int id,int data )
 	{	//Avoid double checks on instant cast skills. [Skotlex]
 		if (!status_check_skilluse(&sd->bl, NULL, sd->skillid, 1))
 		{
-			sd->canact_tick = tick;
-			sd->canmove_tick = tick;
-			sd->skillitem = sd->skillitemlv = -1;
+			skill_failed(sd);
 			return 0;
 		}
 		range = skill_get_range(sd->skillid,sd->skilllv);
@@ -5756,17 +5732,13 @@ int skill_castend_pos( int tid, unsigned int tick, int id,int data )
 			if(battle_config.skill_out_range_consume) //Consume items anyway.
 				skill_check_condition(sd,1);
 			
-			sd->canact_tick = tick;
-			sd->canmove_tick = tick;
-			sd->skillitem = sd->skillitemlv = -1;
+			skill_failed(sd);
 			return 0;
 		}
 	}
 
 	if(!skill_check_condition(sd,1)) {		/* Žg—p?Œ?ƒ`ƒFƒbƒN */
-		sd->canact_tick = tick;
-		sd->canmove_tick = tick;
-		sd->skillitem = sd->skillitemlv = -1;
+		skill_failed(sd);
 		return 0;
 	}
 	if(battle_config.pc_skill_log)
@@ -5780,6 +5752,7 @@ int skill_castend_pos( int tid, unsigned int tick, int id,int data )
 
 	skill_castend_pos2(&sd->bl,sd->skillx,sd->skilly,sd->skillid,sd->skilllv,tick,0);
 
+	sd->skillid = sd->skilllv = -1; //Clean up for future references to battle_getcurrentskill. [Skotlex]
 	return 0;
 }
 
@@ -8546,6 +8519,7 @@ int skill_castcancel (struct block_list *bl, int type)
 				if (ret < 0)
 					ShowError("delete timer error : (old) skillid : %d\n", sd->skillid_old);
 			}
+			sd->skillid = sd->skilllv = -1;
 			sd->skilltimer = -1;
 			clif_skillcastcancel(bl);
 		}
@@ -8558,6 +8532,7 @@ int skill_castcancel (struct block_list *bl, int type)
 				ret = delete_timer( md->skilltimer, mobskill_castend_pos );
 			else
 				ret = delete_timer( md->skilltimer, mobskill_castend_id );
+			md->skillid = md->skilllv = -1;
 			md->skilltimer = -1;
 			clif_skillcastcancel(bl);
 		}
