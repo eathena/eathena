@@ -5649,7 +5649,10 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 	if(sd->sc_data[SC_MAGICPOWER].timer != -1 && sd->skillid != HW_MAGICPOWER)
 		status_change_end(&sd->bl,SC_MAGICPOWER,-1);		
 
-	sd->skillid = sd->skilllv = -1; //Clean this up for future references to battle_getcurrentskill. [Skotlex]
+		
+		
+	if (sd->skillid != AL_TELEPORT && sd->skillid != AL_WARP)
+		sd->skillid = sd->skilllv = -1; //Clean this up for future references to battle_getcurrentskill. [Skotlex]
 	return 0;
 }
 

@@ -48,6 +48,14 @@ extern time_t stall_time;
 #define WBUFW(p,pos) (*(unsigned short*)((p) + (pos)))
 #define WBUFL(p,pos) (*(unsigned int*)((p) + (pos)))
 
+#ifdef __WIN32
+//The default FD_SETSIZE is kinda small for windows systems.
+	#ifdef FD_SETSIZE
+	#undef FD_SETSIZE
+	#endif
+#define FD_SETSIZE 4096
+#endif
+
 #ifdef __INTERIX
 #define FD_SETSIZE 4096
 #endif // __INTERIX

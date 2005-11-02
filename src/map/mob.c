@@ -3070,13 +3070,12 @@ int mobskill_castend_id( int tid, unsigned int tick, int id,int data )
 {
 	struct mob_data* md=NULL;
 	struct block_list *bl;
-	struct block_list *mbl;
 	int range;
 
 //Code cleanup. Insert any code that should be executed if the skill fails here.
 #define skill_failed(md) { md->skillid = md->skilllv = -1; }
 	
-	if((mbl = map_id2bl(id)) == NULL ) //‰r¥‚µ‚½Mob‚ª‚à‚¤‚¢‚È‚¢‚Æ‚¢‚¤‚Ì‚Í—Ç‚­‚ ‚é³íˆ—
+	if((md  = (struct mob_data*)map_id2bl(id)) == NULL ) //‰r¥‚µ‚½Mob‚ª‚à‚¤‚¢‚È‚¢‚Æ‚¢‚¤‚Ì‚Í—Ç‚­‚ ‚é³íˆ—
 		return 0;
 
 	if( md->bl.type!=BL_MOB || md->bl.prev==NULL )
@@ -3091,7 +3090,7 @@ int mobskill_castend_id( int tid, unsigned int tick, int id,int data )
 
 	md->skilltimer=-1;
 
-	if((bl = map_id2bl(md->skilltarget)) == NULL || bl->prev==NULL || md->bl.m != bl->m){
+	if((bl = map_id2bl(md->skilltarget)) == NULL || bl->prev==NULL || md->bl.m != bl->m) {
 		skill_failed(md);
 		return 0;
 	}
@@ -3114,7 +3113,7 @@ int mobskill_castend_id( int tid, unsigned int tick, int id,int data )
 
 	if(tid != -1)
 	{
-		if (!status_check_skilluse(&md->bl, bl, md->skillid, 1)) {
+		if (md->skillid == -1 ||!status_check_skilluse(&md->bl, bl, md->skillid, 1)) {
 			skill_failed(md);
 			return 0;
 		}
@@ -3186,7 +3185,7 @@ int mobskill_castend_pos( int tid, unsigned int tick, int id,int data )
 
 	if (tid != -1)
 	{	//Avoid unnecessary checks for instant-cast skills. [Skotlex]
-		if (!status_check_skilluse(&md->bl, NULL, md->skillid, 1)) {
+		if (md->skillid == -1 || !status_check_skilluse(&md->bl, NULL, md->skillid, 1)) {
 			skill_failed(md);
 			return 0;
 		}

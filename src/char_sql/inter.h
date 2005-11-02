@@ -19,6 +19,10 @@ extern int party_share_level;
 extern int kick_on_disconnect; //For deciding whether characters are kicked or not on reconnections. [Skotlex]
 extern char inter_log_filename[1024];
 
+#ifdef __WIN32
+//Windows.h need to be included before mysql.h
+#include <windows.h>
+#endif
 //add include for DBMS(mysql)
 #include <mysql.h>
 

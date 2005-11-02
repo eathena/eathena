@@ -2864,7 +2864,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 	if (target->type == BL_SKILL) //Needed out of the switch in case the ownership needs to be passed skill->mob->master
 	{
 		struct skill_unit *su = (struct skill_unit *)target;
-		if (!su || !su->group)
+		if (!su->group)
 			return 0;
 		if (skill_get_inf2(su->group->skill_id)&INF2_TRAP)
 		{	//Only a few skills can target traps...
@@ -2912,10 +2912,6 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 			struct mob_data *md = (struct mob_data *)t_bl;
 			if (!agit_flag && md->guardian_data && md->guardian_data->guild_id)
 				return 0; //Disable guardians/emperiums owned by Guilds on non-woe times.
-			//The check for targetted skills is on status_check_skilluse, here we only check for ground-based skills. [Skotlex]
-			//Emperium cannot be targetted by offensive ground-based skills.
-			if (md->class_ == MOBID_EMPERIUM && src->type == BL_SKILL && flag&BCT_ENEMY && (flag&BCT_ALL) != BCT_ALL)
-				return 0;
 			if (md->special_state.ai == 2)
 			{	//Mines are sort of universal enemies.
 				state |= BCT_ENEMY;
@@ -2942,6 +2938,12 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 		struct skill_unit *su = (struct skill_unit *)src;
 		if (!su->group)
 			return 0;
+		//The check for targetted skills is on status_check_skilluse, here we only check for ground-based skills. [Skotlex]
+		//Emperium cannot be targetted by offensive ground-based skills, except gravitation
+		if (target->type == BL_MOB && ((struct mob_data*) target)->class_ == MOBID_EMPERIUM &&
+			su->group->skill_id != HW_GRAVITATION && flag&BCT_ENEMY && (flag&BCT_ALL) != BCT_ALL)
+				return 0;
+
 		if (su->group->src_id == target->id)
 		{
 			int inf2;

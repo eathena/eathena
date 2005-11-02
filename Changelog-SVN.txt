@@ -1,6 +1,8 @@
 Date	Added
 ==========
 2005/11/02
+	* Multiple fixes to the skill system. Should fix Warp Portal, Teleport and
+	  mob skills crashing the server. [Skotlex]
 	* Updated sql-files/item_db.sql with the latest. [Skotlex]
 	* Some optimizations to the script config events loading/storing/saving.
 	  (Somehow it fixes the warning from the memory manager on shutdown...)
