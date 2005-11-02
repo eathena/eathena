@@ -17,13 +17,13 @@ extern struct Script_Config {
 
 	unsigned event_script_type : 1;
 	unsigned event_requires_trigger : 1;
-	char* die_event_name;
-	char* kill_event_name;
-	char* login_event_name;
-	char* logout_event_name;
-	char* loadmap_event_name;
-	char* baselvup_event_name;
-	char* joblvup_event_name;
+	char die_event_name[NAME_LENGTH];
+	char kill_event_name[NAME_LENGTH];
+	char login_event_name[NAME_LENGTH];
+	char logout_event_name[NAME_LENGTH];
+	char loadmap_event_name[NAME_LENGTH];
+	char baselvup_event_name[NAME_LENGTH];
+	char joblvup_event_name[NAME_LENGTH];
 } script_config;
 
 struct script_data {

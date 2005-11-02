@@ -9643,25 +9643,39 @@ int script_config_read_sub(char *cfgName)
 			script_config.event_requires_trigger = battle_config_switch(w2);
 		}
 		else if(strcmpi(w1,"die_event_name")==0) {			
-			strcpy(script_config.die_event_name, w2);			
+			strncpy(script_config.die_event_name, w2, NAME_LENGTH-1);
+			if (strlen(script_config.die_event_name) != strlen(w2))
+				ShowWarning("script_config_read: Event label truncated (max length is 23 chars): %d\n", script_config.die_event_name);
 		}
 		else if(strcmpi(w1,"kill_event_name")==0) {
-			strcpy(script_config.kill_event_name, w2);
+			strncpy(script_config.kill_event_name, w2, NAME_LENGTH-1);
+			if (strlen(script_config.kill_event_name) != strlen(w2))
+				ShowWarning("script_config_read: Event label truncated (max length is 23 chars): %d\n", script_config.kill_event_name);
 		}
 		else if(strcmpi(w1,"login_event_name")==0) {
-			strcpy(script_config.login_event_name, w2);
+			strncpy(script_config.login_event_name, w2, NAME_LENGTH-1);
+			if (strlen(script_config.login_event_name) != strlen(w2))
+				ShowWarning("script_config_read: Event label truncated (max length is 23 chars): %d\n", script_config.login_event_name);
 		}
 		else if(strcmpi(w1,"logout_event_name")==0) {
-			strcpy(script_config.logout_event_name, w2);
+			strncpy(script_config.logout_event_name, w2, NAME_LENGTH-1);
+			if (strlen(script_config.logout_event_name) != strlen(w2))
+				ShowWarning("script_config_read: Event label truncated (max length is 23 chars): %d\n", script_config.logout_event_name);
 		}
 		else if(strcmpi(w1,"loadmap_event_name")==0) {
-			strcpy(script_config.loadmap_event_name, w2);
+			strncpy(script_config.loadmap_event_name, w2, NAME_LENGTH-1);
+			if (strlen(script_config.loadmap_event_name) != strlen(w2))
+				ShowWarning("script_config_read: Event label truncated (max length is 23 chars): %d\n", script_config.loadmap_event_name);
 		}
 		else if(strcmpi(w1,"baselvup_event_name")==0) {
-			strcpy(script_config.baselvup_event_name, w2);
+			strncpy(script_config.baselvup_event_name, w2, NAME_LENGTH-1);
+			if (strlen(script_config.baselvup_event_name) != strlen(w2))
+				ShowWarning("script_config_read: Event label truncated (max length is 23 chars): %d\n", script_config.baselvup_event_name);
 		}
 		else if(strcmpi(w1,"joblvup_event_name")==0) {
-			strcpy(script_config.joblvup_event_name, w2);
+			strncpy(script_config.joblvup_event_name, w2, NAME_LENGTH-1);
+			if (strlen(script_config.joblvup_event_name) != strlen(w2))
+				ShowWarning("script_config_read: Event label truncated (max length is 23 chars): %d\n", script_config.joblvup_event_name);
 		}
 		else if(strcmpi(w1,"import")==0){
 			script_config_read_sub(w2);
@@ -9674,7 +9688,8 @@ int script_config_read_sub(char *cfgName)
 
 int script_config_read(char *cfgName)
 {	//Script related variables should be initialized once! [Skotlex]
-	
+
+	memset (&script_config, 0, sizeof(script_config));
 	script_config.verbose_mode = 0;
 	script_config.warn_func_no_comma = 1;
 	script_config.warn_cmd_no_comma = 1;
@@ -9682,14 +9697,6 @@ int script_config_read(char *cfgName)
 	script_config.warn_cmd_mismatch_paramnum = 1;
 	script_config.check_cmdcount = 65535;
 	script_config.check_gotocount = 2048;
-
-	script_config.die_event_name = (char *) aCallocA (NAME_LENGTH, sizeof(char));
-	script_config.kill_event_name = (char *) aCallocA (NAME_LENGTH, sizeof(char));
-	script_config.login_event_name = (char *) aCallocA (NAME_LENGTH, sizeof(char));
-	script_config.logout_event_name = (char *) aCallocA (NAME_LENGTH, sizeof(char));
-	script_config.loadmap_event_name = (char *) aCallocA (NAME_LENGTH, sizeof(char));
-	script_config.baselvup_event_name = (char *) aCallocA (NAME_LENGTH, sizeof(char));
-	script_config.joblvup_event_name = (char *) aCallocA (NAME_LENGTH, sizeof(char));
 
 	script_config.event_script_type = 0;
 	script_config.event_requires_trigger = 1;
@@ -9738,21 +9745,6 @@ int do_final_script()
 		aFree(str_data);
 	if (str_buf)
 		aFree(str_buf);
-
-	if (script_config.die_event_name)
-		aFree(script_config.die_event_name);
-	if (script_config.kill_event_name)
-		aFree(script_config.kill_event_name);
-	if (script_config.login_event_name)
-		aFree(script_config.login_event_name);
-	if (script_config.logout_event_name)
-		aFree(script_config.logout_event_name);
-	if (script_config.loadmap_event_name)
-		aFree(script_config.loadmap_event_name);
-	if (script_config.baselvup_event_name)
-		aFree(script_config.baselvup_event_name);
-	if (script_config.joblvup_event_name)
-		aFree(script_config.joblvup_event_name);
 
 	return 0;
 }

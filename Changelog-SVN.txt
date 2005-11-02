@@ -1,5 +1,10 @@
 Date	Added
 ==========
+2005/11/02
+	* Updated sql-files/item_db.sql with the latest. [Skotlex]
+	* Some optimizations to the script config events loading/storing/saving.
+	  (Somehow it fixes the warning from the memory manager on shutdown...)
+	  [Skotlex]
 2005/11/01
 	* Updated battle_check_target to allow ground skills that affect "Everyone"
 	  to affect the emperium, only the ones that target only enemies will have no
