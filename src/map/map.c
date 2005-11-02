@@ -102,7 +102,6 @@ char gm_db[32] = "login";
 char gm_db_level[32] = "level";
 char gm_db_account_id[32] = "account_id";
 
-int lowest_gm_level = 1;
 int read_gm_interval = 600000;
 
 char char_db[32] = "char";
@@ -117,6 +116,8 @@ MYSQL_RES* charsql_res;
 MYSQL_ROW charsql_row;
 
 #endif /* not TXT_ONLY */
+
+int lowest_gm_level = 1;
 
 static int online_timer(int,unsigned int,int,int);
 int CHECK_INTERVAL = 3600000; // [Valaris]

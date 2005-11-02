@@ -1245,9 +1245,7 @@ extern char gm_db[32];
 extern char gm_db_level[32];
 extern char gm_db_account_id[32];
 
-extern int lowest_gm_level;
 extern int read_gm_interval;
-
 
 //Own saving
 extern MYSQL charsql_handle;
@@ -1257,6 +1255,6 @@ extern MYSQL_ROW charsql_row;
 extern char char_db[32];
 #endif /* not TXT_ONLY */
 
-
+extern int lowest_gm_level;
 
 #endif
