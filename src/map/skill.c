@@ -4625,7 +4625,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 						bl_skilllv = dstmd->skilllv;
 					}
 				}
-				if(bl_skillid > 0 && skill_db[bl_skillid].skill_type == BF_MAGIC) {
+				if(bl_skillid > 0/* && skill_db[bl_skillid].skill_type == BF_MAGIC*/) { //Reports indicate Spell Break cancels any tyoe of skill. [Skotlex]
 					clif_skill_nodamage(src,bl,skillid,skilllv,1);
 					skill_castcancel(bl,0);
 					sp = skill_get_sp(bl_skillid,bl_skilllv);

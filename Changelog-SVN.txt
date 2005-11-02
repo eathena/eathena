@@ -1,6 +1,7 @@
 Date	Added
 ==========
 2005/11/02
+	* Spell Breaker now works on any skill with a cast time. [Skotlex]
 	* Made Dispell not work on Meltdown and Cart Boost [Skotlex]
 	* Made Meltdown not dispellable upon death. [Skotlex]
 	* Probably fixed Warp Portal [Skotlex]
