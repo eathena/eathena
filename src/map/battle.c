@@ -2914,7 +2914,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 				return 0; //Disable guardians/emperiums owned by Guilds on non-woe times.
 			//The check for targetted skills is on status_check_skilluse, here we only check for ground-based skills. [Skotlex]
 			//Emperium cannot be targetted by offensive ground-based skills.
-			if (md->class_ == MOBID_EMPERIUM && src->type == BL_SKILL && flag&BCT_ENEMY)
+			if (md->class_ == MOBID_EMPERIUM && src->type == BL_SKILL && flag&BCT_ENEMY && (flag&BCT_ALL) != BCT_ALL)
 				return 0;
 			if (md->special_state.ai == 2)
 			{	//Mines are sort of universal enemies.
