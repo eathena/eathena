@@ -3482,11 +3482,12 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		return 0;
 	if(type == SC_OVERTHRUST && sc_data[SC_MAXOVERTHRUST].timer != -1)
 		return 0; //Overthrust can't take effect if under Max Overthrust. [Skotlex]
+	/* Unneeded! Look at the code below where it says "if(sc_data[type].timer != -1)", that one handles reinflicting status changes! [Skotlex]
 	if(type == SC_FREEZE && sc_data[SC_FREEZE].timer != -1 )
 		return 0; //You can't stun already stunned player [Lupus]
 	if(type == SC_STAN && sc_data[SC_STAN].timer != -1 )
 		return 0; //You can't stun already stunned player [Lupus]
-	
+	*/
 	switch(type){
 		case SC_STONE:
 		case SC_FREEZE:
@@ -3555,8 +3556,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		/* ボスには?かない(ただしカ?ドによる?果は適用される) */
 		return 0;
 	}
-	if(type==SC_FREEZE || type==SC_STAN || type==SC_SLEEP)
-		battle_stopwalking(bl,1);
 
 	if(sc_data[type].timer != -1){	/* すでに同じ異常になっている場合タイマ解除 */
 		if(sc_data[type].val1 > val1 && type != SC_COMBO && type != SC_DANCING && type != SC_DEVOTION &&
@@ -3571,6 +3570,9 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		delete_timer(sc_data[type].timer, status_change_timer);
 		sc_data[type].timer = -1;
 	}
+
+	if(type==SC_FREEZE || type==SC_STAN || type==SC_SLEEP)
+		battle_stopwalking(bl,1);
 
 	// クアグマイア/私を忘れないで中は無効なスキル
 	if ((sc_data[SC_QUAGMIRE].timer!=-1 || sc_data[SC_DONTFORGETME].timer!=-1) &&
