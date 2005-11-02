@@ -570,10 +570,10 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 	}
 
 	if(md && md->guardian_data) {
-		/* Unneeded as this restriction was moved to battle_check_target and status_check_skilluse [Skotlex]
-		if(class_ == MOBID_EMPERIUM && (flag&BF_SKILL && skill_num != PA_PRESSURE && skill_num != MO_TRIPLEATTACK)) // Gloria Domini and Raging Trifecta Blows can hit Emperium
+		if(class_ == MOBID_EMPERIUM && (flag&BF_SKILL && //Only a few skills can hit the Emperium.
+			skill_num != PA_PRESSURE && skill_num != MO_TRIPLEATTACK && skill_num != HW_GRAVITATION)) 
 			damage=0;
-		else */
+		else
 		if(src->type == BL_PC) {
 			struct guild *g=guild_search(((struct map_session_data *)src)->status.guild_id);
 			if(g && class_ == MOBID_EMPERIUM && guild_checkskill(g,GD_APPROVAL) <= 0)
@@ -2938,11 +2938,6 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 		struct skill_unit *su = (struct skill_unit *)src;
 		if (!su->group)
 			return 0;
-		//The check for targetted skills is on status_check_skilluse, here we only check for ground-based skills. [Skotlex]
-		//Emperium cannot be targetted by offensive ground-based skills, except gravitation
-		if (target->type == BL_MOB && ((struct mob_data*) target)->class_ == MOBID_EMPERIUM &&
-			su->group->skill_id != HW_GRAVITATION && flag&BCT_ENEMY && (flag&BCT_ALL) != BCT_ALL)
-				return 0;
 
 		if (su->group->src_id == target->id)
 		{

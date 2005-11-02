@@ -1,6 +1,10 @@
 Date	Added
 ==========
 2005/11/02
+	* Fixed Dispell not clearing a lot of status changes it should. [Skotlex]
+	* Corrected the way the Emperium skill-defense works. Damage skills other
+	  than Gloria Domini, Raging Trifecta and Gravitation do no damage. Status
+	  changing skills have no effect, and normal heal heals for 0. [Skotlex]
 	* Some more corrections to the night/day system. [Skotlex]
 	* Multiple fixes to the skill system. Should fix Warp Portal, Teleport and
 	  mob skills crashing the server. [Skotlex]

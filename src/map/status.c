@@ -588,9 +588,6 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 			if ((*option)&hide_flag && !(race == 4 || race == 6 || mode&MD_DETECTOR))
 				return 0;
 		}
-		//Targetted skills can't hit emperium. Placed here as status_check_skilluse is not invoked by ground spells. [Skotlex]
-		if(skill_num > 0 && status_get_class(target) == MOBID_EMPERIUM)
-			return 0;
 	}
 	return 1;
 }
@@ -3522,7 +3519,9 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			}
 		}
 	}
-	else if(bl->type == BL_MOB) {		
+	else if(bl->type == BL_MOB) {
+		if (((struct mob_data*)bl)->class_ == MOBID_EMPERIUM)
+			return 0; //Emperium can't be afflicted by status changes.
 	}
 	else {
 		if(battle_config.error_log)
