@@ -7504,8 +7504,10 @@ int map_day_timer(int tid, unsigned int tick, int id, int data)
 		for(i = 0; i < fd_max; i++) {
 			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth && pl_sd->fd)
 			{
-				clif_status_change(&pl_sd->bl, SC_NIGHT, 0); //New night effect by dynamix [Skotlex]
-				pl_sd->state.night = 0;
+				if (pl_sd->state.night) {
+					clif_status_change(&pl_sd->bl, SC_NIGHT, 0); //New night effect by dynamix [Skotlex]
+					pl_sd->state.night = 0;
+				}
 			}
 		}
 
@@ -7535,8 +7537,10 @@ int map_night_timer(int tid, unsigned int tick, int id, int data)
 		for(i = 0; i < fd_max; i++) {
 			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth && pl_sd->fd)
 			{
-				clif_status_change(&pl_sd->bl, SC_NIGHT, 1); //New night effect by dynamix [Skotlex]
-				pl_sd->state.night = 1;
+				if (!pl_sd->state.night && map[pl_sd->bl.m].flag.nightenabled) {
+					clif_status_change(&pl_sd->bl, SC_NIGHT, 1); //New night effect by dynamix [Skotlex]
+					pl_sd->state.night = 1;
+				}
 			}
 		}
 		strcpy(tmp_soutput, (data == 0) ? msg_txt(503) : msg_txt(59)); // The night has fallen...

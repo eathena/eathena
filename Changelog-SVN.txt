@@ -1,6 +1,7 @@
 Date	Added
 ==========
 2005/11/02
+	* Some more corrections to the night/day system. [Skotlex]
 	* Multiple fixes to the skill system. Should fix Warp Portal, Teleport and
 	  mob skills crashing the server. [Skotlex]
 	* Updated sql-files/item_db.sql with the latest. [Skotlex]
