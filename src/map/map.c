@@ -2981,6 +2981,8 @@ int inter_config_read(char *cfgName)
 			kick_on_disconnect = battle_config_switch(w2);
 		} else if(strcmpi(w1,"party_share_level")==0){
 			party_share_level = battle_config_switch(w2);
+		} else if(strcmpi(w1,"lowest_gm_level")==0){
+			lowest_gm_level = atoi(w2);
 	#ifndef TXT_ONLY
 		} else if(strcmpi(w1,"charsave_method")==0){
 			charsave_method = atoi(w2); //New char saving method.
@@ -3031,8 +3033,6 @@ int inter_config_read(char *cfgName)
 			strcpy(login_server_pw, w2);
 		} else if(strcmpi(w1,"login_server_db")==0){
 			strcpy(login_server_db, w2);
-		} else if(strcmpi(w1,"lowest_gm_level")==0){
-			lowest_gm_level = atoi(w2);
 		} else if(strcmpi(w1,"read_gm_interval")==0){
 			read_gm_interval = ( atoi(w2) * 60 * 1000 ); // Minutes multiplied by 60 secs per min by 1000 milliseconds per second
 		}else if(strcmpi(w1, "char_server_ip") == 0){
