@@ -145,7 +145,7 @@ int storage_storageopen(struct map_session_data *sd)
 //#endif
 	nullpo_retr(0, sd);
 
-	if(pc_isGM(sd) && pc_isGM(sd) < battle_config.gm_can_drop_lv) {
+	if( pc_can_give_items(pc_isGM(sd)) ) { //check is this GM level is allowed to put items to storage
 		clif_displaymessage(sd->fd, msg_txt(246));
 		return 1;
 	}
@@ -466,7 +466,7 @@ int storage_guild_storageopen(struct map_session_data *sd)
 	if(sd->status.guild_id <= 0)
 		return 2;
 
-	if(pc_isGM(sd) && pc_isGM(sd) < battle_config.gm_can_drop_lv) {
+	if( pc_can_give_items(pc_isGM(sd)) ) { //check is this GM level can open guild storage and store items [Lupus]
 		clif_displaymessage(sd->fd, msg_txt(246));
 		return 1;
 	}

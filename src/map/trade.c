@@ -18,13 +18,14 @@
 #include "atcommand.h"
 #include "log.h"
 
+
 /*==========================================
  * Žæˆø—v¿‚ð‘ŠŽè‚É‘—‚é
  *------------------------------------------
  */
 void trade_traderequest(struct map_session_data *sd, int target_id) {
 	struct map_session_data *target_sd;
-	int level, level2;
+	int level;
 
 	nullpo_retv(sd);
 
@@ -36,15 +37,14 @@ void trade_traderequest(struct map_session_data *sd, int target_id) {
 			}
 		}
 		level = pc_isGM(sd);
-		if (battle_config.gm_can_drop_lv &&
-			((level > 0 && level < battle_config.gm_can_drop_lv) ||
-			((level2 = pc_isGM(target_sd)) > 0 && level2 < battle_config.gm_can_drop_lv)))
+		if ( pc_can_give_items(level) || pc_can_give_items(pc_isGM(target_sd)) ) //check if both GMs are allowed to trade
 		{
 			clif_displaymessage(sd->fd, msg_txt(246));
 			trade_tradecancel(sd); // GM is not allowed to trade		
 		} else if ((target_sd->trade_partner != 0) || (sd->trade_partner != 0)) {
 			trade_tradecancel(sd); // person is in another trade
 		} else {
+			//TODO!!! only real GMs can do it from far away! [Lupus] 
 			if (!level && (sd->bl.m != target_sd->bl.m ||
 			    (sd->bl.x - target_sd->bl.x <= -5 || sd->bl.x - target_sd->bl.x >= 5) ||
 			    (sd->bl.y - target_sd->bl.y <= -5 || sd->bl.y - target_sd->bl.y >= 5))) {
