@@ -10218,7 +10218,9 @@ void clif_parse_GMReqNoChat(int fd,struct map_session_data *sd)
 	if (type == 2 && sd->bl.id == dstsd->bl.id)
 		return;
 	
-	if (((level = pc_isGM(sd)) > pc_isGM(dstsd)) || (type == 2 && !level)) {
+	if (
+		((level = pc_isGM(sd)) > pc_isGM(dstsd) && level >= get_atcommand_level(AtCommand_Mute))
+		|| (type == 2 && !level)) {
 		clif_GM_silence(sd, dstsd, ((type == 2) ? 1 : type));
 		dstsd->status.manner -= limit;
 		if(dstsd->status.manner < 0)

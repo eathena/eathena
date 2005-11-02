@@ -1,6 +1,8 @@
 Date	Added
 ==========
 2005/11/02
+	* Fixed players being able to mute others even if their gm level is not
+	  high enough to use @mute [Skotlex]
 	* Fixed Dispell not clearing a lot of status changes it should. [Skotlex]
 	* Corrected the way the Emperium skill-defense works. Damage skills other
 	  than Gloria Domini, Raging Trifecta and Gravitation do no damage. Status
