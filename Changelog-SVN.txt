@@ -1,6 +1,9 @@
 Date	Added
 ==========
 2005/11/02
+	* Fixed possibility of freezing / stunning already frozen/stunned players
+	- Now you can't froze an already frozen one [Lupus]
+	* Fixed non-GMs allowing send trade requests from far places [Lupus]
 	* Fix of lowest_gm_level (inter_athena), now logins with access under
 	  lowest_gm_level overides gm_can_drop_lv. [Kayla]
 	* Spell Breaker now works on any skill with a cast time. [Skotlex]

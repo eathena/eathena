@@ -44,8 +44,8 @@ void trade_traderequest(struct map_session_data *sd, int target_id) {
 		} else if ((target_sd->trade_partner != 0) || (sd->trade_partner != 0)) {
 			trade_tradecancel(sd); // person is in another trade
 		} else {
-			//TODO!!! only real GMs can do it from far away! [Lupus] 
-			if (!level && (sd->bl.m != target_sd->bl.m ||
+			//Fixed. Only real GMs can request trade from far away! [Lupus] 
+			if (level < lowest_gm_level && (sd->bl.m != target_sd->bl.m ||
 			    (sd->bl.x - target_sd->bl.x <= -5 || sd->bl.x - target_sd->bl.x >= 5) ||
 			    (sd->bl.y - target_sd->bl.y <= -5 || sd->bl.y - target_sd->bl.y >= 5))) {
 				clif_tradestart(sd, 0); // too far

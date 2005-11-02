@@ -3482,6 +3482,10 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		return 0;
 	if(type == SC_OVERTHRUST && sc_data[SC_MAXOVERTHRUST].timer != -1)
 		return 0; //Overthrust can't take effect if under Max Overthrust. [Skotlex]
+	if(type == SC_FREEZE && sc_data[SC_FREEZE].timer != -1 )
+		return 0; //You can't stun already stunned player [Lupus]
+	if(type == SC_STAN && sc_data[SC_STAN].timer != -1 )
+		return 0; //You can't stun already stunned player [Lupus]
 	
 	switch(type){
 		case SC_STONE:
