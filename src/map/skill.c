@@ -4540,7 +4540,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					|| i==SC_STRIPWEAPON || i==SC_STRIPSHIELD || i==SC_STRIPARMOR || i==SC_STRIPHELM
 					|| i==SC_CP_WEAPON || i==SC_CP_SHIELD || i==SC_CP_ARMOR || i==SC_CP_HELM
 					|| i==SC_COMBO || i==SC_DANCING || i==SC_GUILDAURA || i==SC_STEELBODY || i==SC_EDP
-					|| i==SC_HIGHJUMP
+					|| i==SC_CARTBOOST || i==SC_MELTDOWN || i==SC_HIGHJUMP
 					)
 					continue;
 				status_change_end(bl,i,-1);
@@ -5656,7 +5656,7 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 
 		
 		
-	if (sd->skillid != AL_TELEPORT && sd->skillid != AL_WARP)
+	if (sd->skillid != AL_TELEPORT)
 		sd->skillid = sd->skilllv = -1; //Clean this up for future references to battle_getcurrentskill. [Skotlex]
 	return 0;
 }
@@ -5760,7 +5760,8 @@ int skill_castend_pos( int tid, unsigned int tick, int id,int data )
 
 	skill_castend_pos2(&sd->bl,sd->skillx,sd->skilly,sd->skillid,sd->skilllv,tick,0);
 
-	sd->skillid = sd->skilllv = -1; //Clean up for future references to battle_getcurrentskill. [Skotlex]
+	if (sd->skillid != AL_WARP)
+		sd->skillid = sd->skilllv = -1; //Clean this up for future references to battle_getcurrentskill. [Skotlex]
 	return 0;
 }
 

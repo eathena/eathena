@@ -4470,8 +4470,9 @@ int status_change_clear(struct block_list *bl,int type)
 		return 0;
 	for(i = 0; i < MAX_STATUSCHANGE; i++)
 	{
-		//Type 0: PC killed -> EDP must not be dispelled. [Skotlex]
-		if(sc_data[i].timer == -1 || (i == SC_EDP && type == 0))
+		//Type 0: PC killed -> EDP and Meltdown must not be dispelled. [Skotlex]
+		if(sc_data[i].timer == -1 ||
+			(type == 0 && (i == SC_EDP || i == SC_MELTDOWN)))
 			continue;
 
 		status_change_end(bl, i, -1);

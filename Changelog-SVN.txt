@@ -1,6 +1,9 @@
 Date	Added
 ==========
 2005/11/02
+	* Made Dispell not work on Meltdown and Cart Boost [Skotlex]
+	* Made Meltdown not dispellable upon death. [Skotlex]
+	* Probably fixed Warp Portal [Skotlex]
 	* Fixed players being able to mute others even if their gm level is not
 	  high enough to use @mute [Skotlex]
 	* Fixed Dispell not clearing a lot of status changes it should. [Skotlex]
