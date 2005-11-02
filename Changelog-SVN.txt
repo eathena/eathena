@@ -1,6 +1,8 @@
 Date	Added
 ==========
 2005/11/02
+	* Fix of lowest_gm_level (inter_athena), now logins with access under
+	  lowest_gm_level overides gm_can_drop_lv. [Kayla]
 	* Spell Breaker now works on any skill with a cast time. [Skotlex]
 	* Made Dispell not work on Meltdown and Cart Boost [Skotlex]
 	* Made Meltdown not dispellable upon death. [Skotlex]
