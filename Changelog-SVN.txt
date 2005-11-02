@@ -1,6 +1,7 @@
 Date	Added
 ==========
 2005/11/02
+	* Another fix/optimization to thenight/day system. [Skotlex]
 	* Fixed possibility of freezing / stunning already frozen/stunned players
 	- Now you can't froze an already frozen one [Lupus]
 	* Fixed non-GMs allowing send trade requests from far places [Lupus]

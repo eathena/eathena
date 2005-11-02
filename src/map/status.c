@@ -4353,7 +4353,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 	if (bl->type == BL_PC && (battle_config.display_hallucination || type != SC_HALLUCINATION))
 	{
 		if (flag&4)
-			clif_status_load(bl,type); //Sending to owner since they aren't in the map yet. [Skotlex]
+			clif_status_load(bl,type,1); //Sending to owner since they aren't in the map yet. [Skotlex]
 		clif_status_change(bl,type,1);	/* アイコン表示 */
 	}
 
