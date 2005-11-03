@@ -1,6 +1,18 @@
 Date	Added
 ==========
 2005/11/03
+	* Removed the knockback code for players and changed it for a "fix
+	  position" code. The new code is not right as it makes your character
+	  "teleport" to the position rather than walk really fast to it, but it fixes
+	  the "Do not use bot!" messages. [Skotlex]
+	  (someone has to log the actual packets used when being knocked/knocking
+	  back for this to really be fixed)
+	* Heaven Drive now can target traps. [Skotlex]
+	  (I find it impossible to target a trap with Arrow Shower unless the
+	  skill's info is set to 32 -target traps-, but when it's done so, the
+	  client refuses to use the skill on enemies, and mode 33 makes the skill
+	  useless. How does one makes this work?)
+	* Various cleanups to the skill system. [Skotlex]
 	* Update: Now your cast cancels on recieving status change such as:
 	  Stun, Stone Curse, Freeze or Sleep [LuzZza]
 	* Updated the code to allow the Emperium to be inflicted by Pneuma and

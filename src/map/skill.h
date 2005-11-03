@@ -88,9 +88,10 @@ enum {
 	UF_NOOVERLAP		= 0x0008,	// ユニット効果が重複しない
 	UF_NOPC		= 0x0010,	//May not target players
 	UF_NOMOB		= 0x0020,	//May not target mobs
-	UF_DUALMODE	= 0x0080,	//Spells should trigger both ontimer and onplace/onout/onleft effects.
+	UF_SKILL		= 0x0080,	//May target skills
 	UF_DANCE			= 0x0100,	// ダンススキル
 	UF_ENSEMBLE			= 0x0200,	// 合奏スキル
+	UF_DUALMODE	= 0x0800,	//Spells should trigger both ontimer and onplace/onout/onleft effects.
 };
 
 // アイテム作成デ?タベ?ス

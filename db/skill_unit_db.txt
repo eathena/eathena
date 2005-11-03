@@ -9,9 +9,10 @@
 //      0x008(UF_NOOVERLAP)		Spell effects do not overlap
 //      0x010(UF_NOPC)		Spell cannot affect players.
 //      0x020(UF_NOMOB)		Spell cannot affect mobs.
-//      0x080(UF_DUALMODE) Spell has effects both at an interval and when you step in/out
+//      0x080(UF_SKILL)		Spell CAN affect skills.
 //      0x100(UF_DANCE)		Dance skill
 //      0x200(UF_ENSEMBLE)	Ensemble skill
+//      0x800(UF_DUALMODE) Spell has effects both at an interval and when you step in/out
 // 	Example: 0x006 = 0x002+0x004 -> Cannot be stacked nor cast near targets
 //
 // Notes:
@@ -33,7 +34,7 @@
  87,0x8d,    , -1, 0,  -1,all,   0x000	//WZ_ICEWALL#アイスウォール
  88,0x86,    ,  0, 2,1000,enemy, 0x000	//WZ_FROSTNOVA#フロストノヴァ
  89,0x86,    ,  0, 5, 450,enemy, 0x008	//WZ_STORMGUST#ストームガスト
- 91,0x86,    ,  0, 2,1000,enemy, 0x000	//WZ_HEAVENDRIVE#ヘヴンズドライブ
+ 91,0x86,    ,  0, 2,1000,enemy, 0x080	//WZ_HEAVENDRIVE#ヘヴンズドライブ
  92,0x8e,    ,  2, 0,  -1,enemy, 0x000	//WZ_QUAGMIRE#クァグマイア
 115,0x90,    ,  0, 1,1000,enemy, 0x006	//HT_SKIDTRAP#スキッドトラップ
 116,0x93,    ,  0, 1,1000,enemy, 0x006	//HT_LANDMINE#ランドマイン
@@ -65,7 +66,7 @@
 319,0xa7,    ,  3, 0,  -1,all,   0x120	//BA_WHISTLE#口笛
 320,0xa8,    ,  3, 0,  -1,all,   0x120	//BA_ASSASSINCROSS#夕陽のアサシンクロス
 321,0xa9,    ,  3, 0,  -1,all,   0x120	//BA_POEMBRAGI#ブラギの詩
-322,0xaa,    ,  3, 0,6000,all,   0x1A0	//BA_APPLEIDUN#イドゥンの林檎
+322,0xaa,    ,  3, 0,6000,all,   0x920	//BA_APPLEIDUN#イドゥンの林檎
 325,0xab,    ,  3, 0,3000,enemy, 0x100	//DC_UGLYDANCE#自分勝手なダンス
 327,0xac,    ,  3, 0,  -1,all,   0x120	//DC_HUMMING#ハミング
 328,0xad,    ,  3, 0,  -1,enemy, 0x100	//DC_DONTFORGETME#私を忘れないで…
@@ -77,5 +78,5 @@
 369,0xb3,    , -1, 0,10000,all,  0x000	//PA_GOSPEL#ゴスペル
 404,0xb6,    , -1, 0,  -1,all,   0x000	//PF_FOGWALL#フォグウォール
 405,0xb7,    ,  0, 1,1000,enemy, 0x000	//PF_SPIDERWEB#スパイダーウェッブ
-484,0xb8,    ,  2, 0,1000,enemy, 0x088	//HW_GRAVITATION
+484,0xb8,    ,  2, 0,1000,enemy, 0x808	//HW_GRAVITATION
 488,0xb9,    ,  3, 0,  -1,all,   0x000	//CG_HERMODE

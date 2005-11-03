@@ -623,8 +623,9 @@ int skill_ganbatein(struct block_list *bl, va_list ap);
 int skill_trap_splash(struct block_list *bl, va_list ap);
 int skill_count_target(struct block_list *bl, va_list ap);
 struct skill_unit_group_tickset *skill_unitgrouptickset_search(struct block_list *bl,struct skill_unit_group *sg,int tick);
-int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int tick);
+static int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int tick);
 static int skill_unit_onleft(int skill_id, struct block_list *bl,unsigned int tick);
+static int skill_unit_checktarget(int skill_id, struct block_list *bl);
 int skill_unit_effect(struct block_list *bl,va_list ap);
 int skill_castend_delay (struct block_list* src, struct block_list *bl,int skillid,int skilllv,unsigned int tick,int flag);
 static int skill_check_pc_partner(struct map_session_data *sd, int skill_id, int* skill_lv, int range, int cast_flag);
@@ -779,20 +780,26 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 	}
 	if(skillid > 0 && skilllv <= 0) return 0;	// don't forget auto attacks! - celest
 
-	if (src->type == BL_PC){
+	switch (src->type) {
+	case BL_PC:
 		sd = (struct map_session_data *)src;
-	} else if (src->type == BL_MOB){
+		break;
+	case BL_MOB:
 		md = (struct mob_data *)src;
-	} else if (src->type == BL_PET){
+		break;
+	case BL_PET:
 		pd = (struct pet_data *)src; // [Valaris]
+		break;
 	}
-
-	if(bl->type == BL_PC) {
+	
+	switch (bl->type) {
+	case BL_PC:
 		dstsd=(struct map_session_data *)bl;
-	} else if(bl->type == BL_MOB) {
+		break;
+	case BL_MOB:
 		dstmd=(struct mob_data *)bl;
-	} else {
-		//PC,MOB以外は追加効果の対?ﾛ外
+		break;
+	default:
 		return 0;
 	}
 
@@ -1291,22 +1298,29 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 	}
 	if(skillid > 0 && skilllv <= 0) return 0;	// don't forget auto attacks! - celest
 
-	if (src->type == BL_PC){
-		sd = (struct map_session_data *)src;
-	} else if (src->type == BL_MOB){
-		md = (struct mob_data *)src;
-	} else// if (src->type == BL_PET){
-//		pd = (struct pet_data *)src;
-		return 0; //Only mobs/players can be affected. [Skotlex]
-//	}
-
-	if(bl->type == BL_PC) {
-		dstsd=(struct map_session_data *)bl;
-	} else if(bl->type == BL_MOB) {
-		dstmd=(struct mob_data *)bl;
-	} else {
-		//PC,MOB以外は追加効果の対?ﾛ外
-		return 0;
+	switch (src->type) {
+		case BL_PC:
+			sd = (struct map_session_data *)src;
+			break;
+		case BL_MOB:
+			md = (struct mob_data *)src;
+			break;
+		case BL_PET:	//Only mobs/players can be affected. [Skotlex]
+//			pd = (struct pet_data *)src;
+//			break;
+		default:
+			return 0;
+	}
+	
+	switch (bl->type) {
+		case BL_PC:
+			dstsd=(struct map_session_data *)bl;
+			break;
+		case BL_MOB:
+			dstmd=(struct mob_data *)bl;
+			break;
+		default:
+			return 0;
 	}
 
 	//自分の耐?ｫ
@@ -1432,19 +1446,23 @@ int skill_blown( struct block_list *src, struct block_list *target,int count, in
 
 	if (src != target && map_flag_gvg(target->m)) 
 		return 0; //No knocking back in WoE
-	
-	if(target->type==BL_PC){
-		sd=(struct map_session_data *)target;
-	}else if(target->type==BL_MOB){
-		md=(struct mob_data *)target;
-		if (status_get_mode(target)&(MD_PLANT)) //Avoid Pushing inmobile Plants [Skotlex]
-			return 0;
-	}else if(target->type==BL_PET){
-		pd=(struct pet_data *)target;
-	}else if(target->type==BL_SKILL){
-		su=(struct skill_unit *)target;
-	}else return 0;
 
+	switch (target->type) {
+		case BL_PC:
+			sd=(struct map_session_data *)target;
+			break;
+		case BL_MOB:
+			md=(struct mob_data *)target;
+			break;
+		case BL_PET:
+			pd=(struct pet_data *)target;
+			break;
+		case BL_SKILL:
+			su=(struct skill_unit *)target;
+			break;
+		default:
+			return 0;
+	}
 	if (target->type != BL_SKILL)
 		sc_data = status_get_sc_data(target);
 
@@ -1472,24 +1490,18 @@ int skill_blown( struct block_list *src, struct block_list *target,int count, in
 			sd->to_x=nx;
 			sd->to_y=ny;
 			sd->walktimer = 1;
-			clif_walkok(sd);
-			clif_movechar(sd);
-			sd->walktimer = -1;  // set back so not to disturb future pc_stop_walking calls
-		}
-		else if(md) {
+		} else if(md) {
 			md->to_x=nx;
 			md->to_y=ny;
 			prev_state = md->state.state;
 			md->state.state = MS_WALK;
-			clif_fixmobpos(md);
-		}
-		else if(pd) {
+		} else if(pd) {
 			pd->to_x=nx;
 			pd->to_y=ny;
 			prev_state = pd->state.state;
 			pd->state.state = MS_WALK;
-			clif_fixpetpos(pd);
 		}
+		clif_blown(target);
 	}
 	else
 		//if the 2 is hardcoded, it causes conflicts with the div combo-delay,
@@ -1844,15 +1856,8 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 	}
 
 	//Only knockback if it's still alive, otherwise a "ghost" is left behind. [Skotlex]
-	if (dmg.blewcount > 0 && !status_isdead(bl) && bl->type!=BL_SKILL) {
-		skill_blown(dsrc,bl,dmg.blewcount, 1);
-		if(bl->type == BL_MOB)
-			clif_fixmobpos((struct mob_data *)bl);
-		else if(bl->type == BL_PET)
-			clif_fixpetpos((struct pet_data *)bl);
-		else
-			clif_fixpos(bl);
-	}
+	if (dmg.blewcount > 0 && !status_isdead(bl))
+		skill_blown(dsrc,bl,0x20000|dmg.blewcount, 1);
 	
 	if(skillid == RG_INTIMIDATE && damage > 0 && !(status_get_mode(bl)&MD_BOSS) && !map_flag_gvg(src->m)) {
 		int s_lv = status_get_lv(src),t_lv = status_get_lv(bl);
@@ -2057,7 +2062,7 @@ static int skill_check_unit_range2_sub( struct block_list *bl,va_list ap )
 	if(bl->prev == NULL || (bl->type != BL_PC && bl->type != BL_MOB))
 		return 0;
 
-	if(bl->type == BL_PC && pc_isdead((struct map_session_data *)bl))
+	if(status_isdead(bl))
 		return 0;
 
 	skillid = va_arg(ap,int);
@@ -2840,13 +2845,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 				if(map_flag_gvg(bl->m) || status_get_mexp(bl)) 
 					c = 0;
 				for(i=0;i<c;i++){
-					skill_blown(src,bl,1, 2);
-					if(bl->type == BL_MOB)
-						clif_fixmobpos((struct mob_data *)bl);
-					else if(bl->type == BL_PET)
-						clif_fixpetpos((struct pet_data *)bl);
-					else
-						clif_fixpos(bl);
+					skill_blown(src,bl,0x20000|1, 2);
 					skill_area_temp[0]=0;
 					map_foreachinarea(skill_area_sub,
 						bl->m,bl->x-1,bl->y-1,bl->x+1,bl->y+1,0,
@@ -4550,13 +4549,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 	case TF_BACKSLIDING:		/* バックステップ */
 		battle_stopwalking(src,1);
-		skill_blown(src,bl,skill_get_blewcount(skillid,skilllv)|0x10000, 2);
-		if (sd)
-			clif_fixpos(src);
-		else if (md)
-			clif_fixmobpos(md);
-		else if (src->type == BL_PET)
-			clif_fixpetpos((struct pet_data *)src);
+		skill_blown(src,bl,skill_get_blewcount(skillid,skilllv)|0x30000, 2);
 		skill_addtimerskill(src,tick + 200,src->id,0,0,skillid,skilllv,0,flag);
 		break;
 
@@ -6472,8 +6465,7 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 	nullpo_retr(0, src);
 	nullpo_retr(0, bl);
 	
-	if(bl->prev==NULL || !src->alive ||
-		(bl->type == BL_PC && pc_isdead((struct map_session_data *)bl)))
+	if(bl->prev==NULL || !src->alive || status_isdead(bl))
 		return 0;
 
 	nullpo_retr(0, sg=src->group);
@@ -6481,11 +6473,6 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 
 	if (map_getcell(bl->m, bl->x, bl->y, CELL_CHKLANDPROTECTOR))
 		return 0; //AoE skills are ineffective. [Skotlex]
-	
-	type = skill_get_unit_flag(sg->skill_id); //Just recycling the variable rather than using a brand new one.
-
-	if ((bl->type == BL_PC && type&UF_NOPC) || (bl->type == BL_MOB && type&UF_NOMOB))
-		return 0;
 	
 	if (battle_check_target(&src->bl,bl,sg->target_flag)<=0)
 		return 0;
@@ -6634,18 +6621,17 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 		//(yet only the first mob standing on the trap will be captured) [Skotlex]
 		return 0;
 
-	// 前に影響を受けてからintervalの間は影響を受けない
-	nullpo_retr(0,ts = skill_unitgrouptickset_search(bl,sg,tick));
-	diff = DIFF_TICK(tick,ts->tick);
-	if (diff < 0)
-		return 0;
-
-	ts->tick = tick+sg->interval;
-
-	// GXは?dなっていたら3HITしない
-	if ((sg->skill_id==CR_GRANDCROSS || sg->skill_id==NPC_GRANDDARKNESS) && !battle_config.gx_allhit)
-		ts->tick += sg->interval*(map_count_oncell(bl->m,bl->x,bl->y,0)-1);
-
+	if ((ts = skill_unitgrouptickset_search(bl,sg,tick)))
+	{	//Not all have it, eg: Traps don't have it even though they can be hit by Heaven's Drive [Skotlex]
+		diff = DIFF_TICK(tick,ts->tick);
+		if (diff < 0)
+			return 0;
+		ts->tick = tick+sg->interval;
+		
+		// GXは?dなっていたら3HITしない
+		if ((sg->skill_id==CR_GRANDCROSS || sg->skill_id==NPC_GRANDDARKNESS) && !battle_config.gx_allhit)
+			ts->tick += sg->interval*(map_count_oncell(bl->m,bl->x,bl->y,0)-1);
+	}
 	//Temporarily set magic power to have it take effect. [Skotlex]
 	if (sg->val3 == HW_MAGICPOWER && ssc_data && ssc_data[SC_MAGICPOWER].timer == -1 && ssc_data[SC_MAGICPOWER].val1 > 0)
 	{
@@ -6706,7 +6692,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 		}
 
 	case UNT_MAGIC_SKILLS:
-			skill_attack(BF_MAGIC,ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,0);
+		skill_attack(BF_MAGIC,ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,0);
 		break;
 
 	case UNT_FIREPILLAR_WAITING:
@@ -6750,13 +6736,11 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 				bl->y = src->bl.y;
 			if(moveblock) map_addblock(bl);
 			skill_unit_move(bl,tick,3);
-			if(bl->type == BL_MOB)
-				clif_fixmobpos((struct mob_data *)bl);
-			else if(bl->type == BL_PET)
-				clif_fixpetpos((struct pet_data *)bl);
-			else
-				clif_fixpos(bl);
-			clif_01ac(&src->bl);
+			clif_fixpos(bl);
+			//clif_01ac(&src->bl); //Removed? Check the openkore description of this packet: [Skotlex]
+			// 01AC: long ID
+			// Indicates that an object is trapped, but ID is not a
+			// valid monster or player ID.
 			sg->limit=DIFF_TICK(tick,sg->tick) + sec;
 			sg->val2=bl->id;
 			sg->interval = -1;
@@ -6941,12 +6925,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 				bl->y = src->bl.y;
 			if(moveblock) map_addblock(bl);
 			skill_unit_move(bl,tick,3);
- 			if(bl->type == BL_MOB)
- 				clif_fixmobpos((struct mob_data *)bl);
- 			else if(bl->type == BL_PET)
- 				clif_fixpetpos((struct pet_data *)bl);
- 			else
- 				clif_fixpos(bl);
+ 			clif_fixpos(bl);
 			sg->limit = DIFF_TICK(tick,sg->tick)+skill_get_time2(sg->skill_id,sg->skill_lv);
 			sg->val2=bl->id;
 			sg->interval = -1;
@@ -6999,8 +6978,7 @@ int skill_unit_onout(struct skill_unit *src,struct block_list *bl,unsigned int t
 	sc_data = status_get_sc_data(bl);
 	type = SkillStatusChangeTable[sg->skill_id];
 
-	if (bl->prev==NULL || !src->alive ||
-		(bl->type == BL_PC && pc_isdead((struct map_session_data *)bl)))
+	if (bl->prev==NULL || !src->alive || status_isdead(bl))
 		return 0;
 
 	switch(sg->unit_id){
@@ -7119,6 +7097,30 @@ static int skill_unit_onleft(int skill_id, struct block_list *bl,unsigned int ti
 }
 
 /*==========================================
+ * Checks ot see if this skill can target the bl given considering 
+ * the UF_NOPC, UF_NOMOB and UF_SKILL flags [Skotlex]
+ */
+static int skill_unit_checktarget(int skill_id, struct block_list *bl) {
+	int type = skill_get_unit_flag(skill_id);
+	
+	switch (bl->type) {
+		case BL_PC:
+			if (type&UF_NOPC)
+				return 0;
+			break;
+		case BL_MOB:
+			if (type&UF_NOMOB)
+				return 0;
+			break;
+		case BL_SKILL:
+			if (type&UF_SKILL)
+				break;
+		default:
+			return 0;
+	}
+	return 1;
+}
+/*==========================================
  * Invoked when a unit cell has been placed/removed/deleted.
  * flag values:
  * flag&1: Invoke onplace function (otherwise invoke onout)
@@ -7138,13 +7140,13 @@ int skill_unit_effect(struct block_list *bl,va_list ap)
 	tick = va_arg(ap,unsigned int);
 	flag = va_arg(ap,unsigned int);
 
-	if (bl->type!=BL_PC && bl->type!=BL_MOB)
-		return 0;
-
 	if (!unit->alive || bl->prev==NULL)
 		return 0;
 
 	nullpo_retr(0, group=unit->group);
+
+	if (!skill_unit_checktarget(group->skill_id, bl))
+		return 0;
 
 	if (flag&1)
 		skill_unit_onplace(unit,bl,tick);
@@ -7216,13 +7218,11 @@ int skill_unit_ondamaged(struct skill_unit *src,struct block_list *bl,
 
 	if (skill_get_inf2(sg->skill_id)&INF2_TRAP)
 	{	
-		if (bl->type == BL_SKILL)
-		{	//Ground skill hitting a trap? Only heaven's drive can do this, so kill the trap.
-			skill_delunitgroup(sg);
-		} else {	//Traps can be pushed around.
+		if (battle_getcurrentskill(bl) == AC_SHOWER) {
 			skill_blown(bl,&src->bl,2,1);
 			damage = 0;
-		}
+		} else
+			skill_delunitgroup(sg);
 	} else
 	switch(sg->unit_id){
 	case UNT_ICEWALL:
@@ -9806,15 +9806,12 @@ int skill_unit_timer_sub_onplace( struct block_list *bl, va_list ap )
 	struct skill_unit *unit;
 	struct skill_unit_group *group;
 	unsigned int tick;
-	int flag;
 
 	nullpo_retr(0, bl);
 	nullpo_retr(0, ap);
 	unit = va_arg(ap,struct skill_unit *);
 	tick = va_arg(ap,unsigned int);
 
-	if (bl->type!=BL_PC && bl->type!=BL_MOB)
-		return 0;
 	if (!unit->alive || bl->prev==NULL)
 		return 0;
 
@@ -9823,8 +9820,7 @@ int skill_unit_timer_sub_onplace( struct block_list *bl, va_list ap )
 	if (map_getcell(bl->m, bl->x, bl->y, CELL_CHKLANDPROTECTOR))
 		return 0; //AoE skills are ineffective. [Skotlex]
 
-	flag = skill_get_unit_flag(group->skill_id);
-	if ((bl->type == BL_PC && flag&UF_NOPC) || (bl->type == BL_MOB && flag&UF_NOMOB))
+	if (!skill_unit_checktarget(group->skill_id, bl))
 		return 0;
 	
 	if (battle_check_target(&unit->bl,bl,group->target_flag)<=0)
@@ -9961,16 +9957,17 @@ int skill_unit_move_sub( struct block_list *bl, va_list ap )
 	tick = va_arg(ap,unsigned int);
 	flag = va_arg(ap,int);
 	
-	if (target->type!=BL_PC && target->type!=BL_MOB)
-		return 0;
-
 	nullpo_retr(0, unit->group);
 	skill_id = unit->group->skill_id; //Necessary in case the group is deleted after calling on_place/on_out [Skotlex]
 	
-	if (unit->group->interval!=-1 &&
+
+	if (unit->group->interval!=-1 && 
 		!(skill_get_unit_flag(skill_id)&UF_DUALMODE)) //Skills in dual mode have to trigger both. [Skotlex]
 		return 0;
 
+	if (!skill_unit_checktarget(skill_id, bl))
+		return 0;
+	
 	if (!unit->alive || target->prev==NULL)
 		return 0;
 
