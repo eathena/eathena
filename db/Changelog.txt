@@ -30,6 +30,8 @@
 		Item type: Throwing Dagger. Has to be equipped as an arrow, is consumed
 		like gemstones when the skill is used.
 	--
+11/03
+	* Added empty bottles to the Elemental-resist potions recipes, thanks to reddozen [MasterOfMuppets]
 10/31
 	* More updates to new quest skills. [DracoRPG]
 	* Added Elemental-resist Potions recipe, thanks to RockManEXE. [DracoRPG]

@@ -251,14 +251,14 @@
 //----------------------------------------------
 
 //---- Elemental-resist Potions ----------------
-//-- Resist Fire Potion <-- AM_PHARMACY & Elemental Potion Creation Guide & 2 Frill, 1 Red Gemstone
-12118,22,228,7434,0,1012,2,716,1
-//-- Resist Water Potion <-- AM_PHARMACY & Elemental Potion Creation Guide & 3 Heart of Mermaid, 1 Blue Gemstone
-12119,22,228,7434,0,950,3,717,1
-//-- Resist Earth Potion <-- AM_PHARMACY & Elemental Potion Creation Guide & 2 Large Jellopy, 1 Yellow Gemstone
-12120,22,228,7434,0,7126,2,715,1
-//-- Resist Wind Potion <-- AM_PHARMACY & Elemental Potion Creation Guide & 3 Powder of Butterfly, 1 Blue Gemstone
-12121,22,228,7434,0,924,3,717,1
+//-- Resist Fire Potion <-- AM_PHARMACY & Elemental Potion Creation Guide & 1 Empty Bottle, 2 Frill, 1 Red Gemstone
+12118,22,228,7434,0,1012,2,716,1,713,1
+//-- Resist Water Potion <-- AM_PHARMACY & Elemental Potion Creation Guide & 1 Empty Bottle, 3 Heart of Mermaid, 1 Blue Gemstone
+12119,22,228,7434,0,950,3,717,1,713,1
+//-- Resist Earth Potion <-- AM_PHARMACY & Elemental Potion Creation Guide & 1 Empty Bottle, 2 Large Jellopy, 1 Yellow Gemstone
+12120,22,228,7434,0,7126,2,715,1,713,1
+//-- Resist Wind Potion <-- AM_PHARMACY & Elemental Potion Creation Guide & 1 Empty Bottle, 3 Powder of Butterfly, 1 Blue Gemstone
+12121,22,228,7434,0,924,3,717,1,713,1
 //----------------------------------------------
 
 //---- Misc ------------------------------------
