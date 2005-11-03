@@ -1,5 +1,10 @@
 Date	Added
 ==========
+2005/11/03
+	* Updated the code to allow the Emperium to be inflicted by Pneuma and
+	  Safety Wall. [Skotlex]
+	* Updated @recallall to revive any dead characters before moving them,
+	  should fix that weird ghost bug. [Skotlex]
 2005/11/02
 	* Made Spell breaker not be able to cancel Pressure/Gloria domini [Skotlex]
 	* Another fix/optimization to thenight/day system. [Skotlex]

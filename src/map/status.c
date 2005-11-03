@@ -3525,7 +3525,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		}
 	}
 	else if(bl->type == BL_MOB) {
-		if (((struct mob_data*)bl)->class_ == MOBID_EMPERIUM)
+		if (((struct mob_data*)bl)->class_ == MOBID_EMPERIUM && type != SC_PNEUMA && type != SC_SAFETYWALL)
 			return 0; //Emperium can't be afflicted by status changes.
 	}
 	else {

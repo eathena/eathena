@@ -5078,8 +5078,13 @@ int atcommand_recallall(
 		    pc_isGM(sd) >= pc_isGM(pl_sd)) { // you can recall only lower or same level
 			if (pl_sd->bl.m >= 0 && map[pl_sd->bl.m].flag.nowarp && battle_config.any_warp_GM_min_level > pc_isGM(sd))
 				count++;
-			else
+			else {
+				if (pc_isdead(pl_sd)) { //Wake them up
+					pc_setstand(pl_sd);
+					pc_setrestartvalue(pl_sd,1);
+				}
 				pc_setpos(pl_sd, sd->mapname, sd->bl.x, sd->bl.y, 2);
+			}
 		}
 	}
 
