@@ -1,6 +1,8 @@
 Date	Added
 ==========
 2005/11/03
+	* Update: Now your cast cancels on recieving status change such as:
+	  Stun, Stone Curse, Freeze or Sleep [LuzZza]
 	* Updated the code to allow the Emperium to be inflicted by Pneuma and
 	  Safety Wall. [Skotlex]
 	* Updated @recallall to revive any dead characters before moving them,
@@ -9,7 +11,7 @@ Date	Added
 	* Made Spell breaker not be able to cancel Pressure/Gloria domini [Skotlex]
 	* Another fix/optimization to thenight/day system. [Skotlex]
 	* Fixed possibility of freezing / stunning already frozen/stunned players
-	- Now you can't froze an already frozen one [Lupus]
+	- Now you can't freeze an already frozen one [Lupus]
 	* Fixed non-GMs allowing send trade requests from far places [Lupus]
 	* Fix of lowest_gm_level (inter_athena), now logins with access under
 	  lowest_gm_level overides gm_can_drop_lv. [Kayla]
