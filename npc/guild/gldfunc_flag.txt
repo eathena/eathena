@@ -48,17 +48,12 @@ L_Startg:
 	return;
 L_Startg2:
 	next;
-	menu "Go to Kafra",M_Enter,
-		"Go to random location",M_Enter2,
+	menu "Return to your castle",M_Enter,
 		"Cancel.",-;
 	return;
 
 	M_Enter:
 		warp getarg(1)+".gat",getarg(2),getarg(3);
-		return;
-
-	M_Enter2:
-		warp getarg(1)+".gat",0,0;
 		return;
 
 }

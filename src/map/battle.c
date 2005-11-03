@@ -4623,18 +4623,24 @@ struct Damage  battle_calc_misc_attack(
 		aflag |= (flag&~BF_RANGEMASK)|BF_LONG;
 		break;
 	case PA_SACRIFICE:
-//		ele = status_get_attack_element(bl);
 		self_damage = status_get_max_hp(bl)/10;
 		self_damage -= self_damage/10;
 		if(status_get_mexp(target))
 			self_damage = 1;
 		damage = self_damage + (self_damage/10)*(skill_lv-1);
+		// Add attacker's weapon cards.
+		cardfix = 100;
+		cardfix=cardfix*(100+sd->right_weapon.addrace[status_get_race(target)])/100;	// 種族によるダメージ修正
+		cardfix=cardfix*(100+sd->right_weapon.addele[status_get_element(target)])/100;	// 属性によるダメージ修正
+		cardfix=cardfix*(100+sd->right_weapon.addsize[status_get_size(target)])/100;	// サイズによるダメージ修正
+		cardfix=cardfix*(100+sd->right_weapon.addrace2[status_get_race2(target)])/100;
+		damage=damage*cardfix/100;
 		break;
 	case CR_ACIDDEMONSTRATION:
 		{
 			float fdamage;
 			fdamage = status_get_int(bl)*0.28;
-			fdamage *= (1+status_get_vit(target))*1.41;
+			fdamage *= (1+status_get_vit(target))*0.8;
 			damage = (int)fdamage;
 			if(target->type == BL_PC) damage/=2;
 		}
@@ -4801,10 +4807,6 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 				status_change_end(src, SC_SACRIFICE, -1);
 		}			
 
-
-
-
-
 		if ((damage = wd.damage + wd.damage2) > 0 && src != target) {
 			if(battle_config.pet_attack_support && sd && sd->status.pet_id > 0 && sd->pd && sd->petDB)
 				pet_target_check(sd,target,0);
@@ -4852,6 +4854,9 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 		map_freeblock_lock();
 
 		battle_delay_damage(tick+wd.amotion, src, target, (wd.damage+wd.damage2), 0);
+
+		if(wd.type == 4 && tsd!=NULL)
+			tsd->endure_tick = gettick();
 
 		if (wd.damage > 0 || wd.damage2 > 0) //Added counter effect [Skotlex]
 			skill_counter_additional_effect(src, target, 0, 1, BF_WEAPON, tick);

@@ -262,6 +262,8 @@ struct map_session_data {
 	unsigned int canmove_tick;
 	unsigned int canlog_tick;
 	unsigned int canregen_tick;
+	unsigned int endure_tick;
+	unsigned int useitem_tick;
 	int hp_sub,sp_sub;
 	int inchealhptick,inchealsptick,inchealspirithptick,inchealspiritsptick;
 

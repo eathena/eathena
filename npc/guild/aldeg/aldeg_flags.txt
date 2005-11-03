@@ -18,6 +18,7 @@
 // 					Castle 1
 //================================================================================//
 aldebaran.gat,152,97,4	script	Noisyubantian#a1-1::Noisyubantian	722,{
+	FlagEmblem GetCastleData("aldeg_cas01.gat",1);
 	callfunc "F_Flags","Al De Baran","aldeg_cas01",rand(195,219),rand(159,163);
 	close;
 
@@ -55,6 +56,7 @@ aldeg_cas01.gat,210,150,4	duplicate(Noisyubantian)	Noisyubantian#a1-20	722
 // 					Castle 2
 //================================================================================//
 aldebaran.gat,149,97,4	script	Hohensyubangawoo#a2-1::Hohensyubangawoo	722,{
+	FlagEmblem GetCastleData("aldeg_cas02.gat",1);
 	callfunc "F_Flags","Al De Baran","aldeg_cas02",rand(92,99),rand(58,79);
 	close;
 
@@ -91,6 +93,7 @@ aldeg_cas02.gat,121,29,2	duplicate(Hohensyubangawoo)	Hohensyubangawoo#a2-19	722
 // 					Castle 3
 //================================================================================//
 aldebaran.gat,134,97,4	script	Nyirenverk#a3-1::Nyirenverk	722,{
+	FlagEmblem GetCastleData("aldeg_cas03.gat",1);
 	callfunc "F_Flags","Al De Baran","aldeg_cas03",rand(86,95),rand(62,79);
 	close;
 
@@ -129,6 +132,7 @@ aldeg_cas03.gat,96,62,2	duplicate(Nyirenverk)	Nyirenverk#a3-22	722
 // 					Castle 4
 //================================================================================//
 aldebaran.gat,131,97,4	script	Byirtsburi#a4-1::Byirtsburi	722,{
+	FlagEmblem GetCastleData("aldeg_cas04.gat",1);
 	callfunc "F_Flags","Al De Baran","aldeg_cas04",rand(40,59),rand(82,93);
 	close;
 
@@ -169,6 +173,7 @@ aldeg_cas04.gat,169,15,2	duplicate(Byirtsburi)	Byirtsburi#a4-24	722
 // 					Castle 5
 //================================================================================//
 aldebaran.gat,128,97,4	script	Rotenburk#a5-1::Rotenburk	722,{
+	FlagEmblem GetCastleData("aldeg_cas05.gat",1);
 	callfunc "F_Flags","Al De Baran","aldeg_cas05",rand(136,159),rand(190,195);
 	close;
 

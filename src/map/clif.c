@@ -103,6 +103,17 @@ int get_weapon_view(int item_id)
 			return 1550;
 		case 1616:
 			return 1472;
+		case 1962:
+		case 1963:
+		case 1964:
+		case 1965:
+		case 1966:
+		case 1967:
+		case 1968:
+		case 1969:
+		case 1970:
+		case 1971:
+			return (item_id-12);
 		default:
 			return item_id;
 	}
@@ -3840,12 +3851,9 @@ int clif_damage(struct block_list *src,struct block_list *dst,unsigned int tick,
 
 	sc_data = status_get_sc_data(dst);
 
-	if(type != 4 && dst->type == BL_PC && ((struct map_session_data *)dst)->special_state.infinite_endure)
+	if(type != 5 && type != 1 && status_get_dmotion(dst)==0)
 		type = 9;
 	if(sc_data) {
-		if(type != 4 && sc_data[SC_ENDURE].timer != -1 &&
-			(dst->type == BL_PC && !map[dst->m].flag.gvg))
-			type = 9;
 		if(sc_data[SC_HALLUCINATION].timer != -1) {
 			if(damage > 0)
 				damage = damage*(5+sc_data[SC_HALLUCINATION].val1) + rand()%100;
@@ -4510,11 +4518,9 @@ int clif_skill_damage(struct block_list *src,struct block_list *dst,
 
 	sc_data = status_get_sc_data(dst);
 
-	if(type != 5 && dst->type == BL_PC && ((struct map_session_data *)dst)->special_state.infinite_endure)
+	if(type != 5 && status_get_dmotion(dst)==0)
 		type = 9;
 	if(sc_data) {
-		if(type != 5 && sc_data[SC_ENDURE].timer != -1)
-			type = 9;
 		if(sc_data[SC_HALLUCINATION].timer != -1 && damage > 0)
 			damage = damage*(5+sc_data[SC_HALLUCINATION].val1) + rand()%100;
 	}
@@ -4568,11 +4574,9 @@ int clif_skill_damage2(struct block_list *src,struct block_list *dst,
 
 	sc_data = status_get_sc_data(dst);
 
-	if(type != 5 && dst->type == BL_PC && ((struct map_session_data *)dst)->special_state.infinite_endure)
+	if(type != 5 && dst->type == BL_PC && status_get_dmotion(dst)==0)
 		type = 9;
 	if(sc_data) {
-		if(type != 5 && sc_data[SC_ENDURE].timer != -1)
-			type = 9;
 		if(sc_data[SC_HALLUCINATION].timer != -1 && damage > 0)
 			damage = damage*(5+sc_data[SC_HALLUCINATION].val1) + rand()%100;
 	}

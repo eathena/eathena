@@ -5,6 +5,8 @@
 #include <ctype.h>
 #include <math.h>
 
+// #define HALLOWEEN 1
+
 #include "../common/socket.h"
 #include "../common/timer.h"
 #include "../common/nullpo.h"
@@ -6804,6 +6806,9 @@ int atcommand_disguise(
 		}
 		sd->disguiseflag = 1; // set to override items with disguise script [Valaris]
 		sd->disguise = mob_id;
+#ifdef HALLOWEEN 
+		pc_setglobalreg(sd,"PC_DISGUISE",mob_id);
+#endif
 		pc_setpos(sd, sd->mapname, sd->bl.x, sd->bl.y, 3);
 		clif_displaymessage(fd, msg_table[122]); // Disguise applied.
 	} else {
@@ -6914,6 +6919,10 @@ int atcommand_undisguise(
 	if (sd->disguise) {
 		clif_clearchar(&sd->bl, 9);
 		sd->disguise = 0;
+#ifdef HALLOWEEN
+		pc_setglobalreg(sd,"PC_DISGUISE",0);
+#endif
+
 		pc_setpos(sd, sd->mapname, sd->bl.x, sd->bl.y, 3);
 		clif_displaymessage(fd, msg_table[124]); // Undisguise applied.
 	} else {
@@ -8554,6 +8563,7 @@ int atcommand_mute(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
+	char buf[100];
 
 	if(!battle_config.muting_players) {
 		clif_displaymessage(fd, "Please enable the muting system before using it.");
@@ -8573,7 +8583,13 @@ int atcommand_mute(
 		clif_GM_silence(sd, pl_sd, 0);
 		pl_sd->status.manner -= manner;
 		if(pl_sd->status.manner < 0)
+		{
+			if (pl_sd->status.manner < -15)
+				pl_sd->status.manner = 15;
 			status_change_start(&pl_sd->bl,SC_NOCHAT,0,0,0,0,0,0);
+			sprintf(buf, "player muted for %d minutes",-(pl_sd->status.manner));
+			clif_displaymessage(sd->fd,buf);
+		}
 	}
 	else {
 		clif_displaymessage(fd, msg_table[3]); // Character not found.

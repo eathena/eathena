@@ -2878,6 +2878,7 @@ int status_get_dmotion(struct block_list *bl)
 {
 	int ret;
 	struct status_change *sc_data;
+	struct map_session_data *sd = NULL;
 
 	nullpo_retr(0, bl);
 	sc_data = status_get_sc_data(bl);
@@ -2887,7 +2888,8 @@ int status_get_dmotion(struct block_list *bl)
 			ret = ret*battle_config.monster_damage_delay_rate/400;
 	}
 	else if(bl->type==BL_PC && (struct map_session_data *)bl){
-		ret=((struct map_session_data *)bl)->dmotion;
+		sd = (struct map_session_data *)bl;
+		ret= sd->dmotion;
 		if(battle_config.pc_damage_delay_rate != 100)
 			ret = ret*battle_config.pc_damage_delay_rate/100;
 	}
@@ -2900,9 +2902,13 @@ int status_get_dmotion(struct block_list *bl)
 	{
 		if(sc_data && (sc_data[SC_ENDURE].timer!=-1 || sc_data[SC_BERSERK].timer!=-1))
 			ret = 0;
-		if(bl->type == BL_PC && ((struct map_session_data *)bl)->special_state.infinite_endure)
+		if(sd && sd->special_state.infinite_endure)
 			ret = 0;
 	}
+
+	// ARU: Attempt at fixing stunlock
+	if (sd && sd->endure_tick > gettick())
+		ret = 0;
 
 	return ret;
 }

@@ -40,8 +40,9 @@
 #endif
 
 #define PVP_CALCRANK_INTERVAL 1000	// PVP‡ˆÊŒvŽZ‚ÌŠÔŠu
-#define ANTI_SPAWN_CAMP 1
 #define IDLE_TIMEOUT 1
+
+// #define HALLOWEEN 1
 
 static int exp_table[14][MAX_LEVEL];
 static short statp[MAX_LEVEL];
@@ -406,7 +407,9 @@ int pc_setnewpc(struct map_session_data *sd, int account_id, int char_id, int lo
 	sd->state.auth   = 0;
 	sd->bl.type      = BL_PC;
 	sd->canact_tick  = sd->canmove_tick = gettick();
+	sd->endure_tick  = gettick();
 	sd->canlog_tick  = gettick();
+	sd->useitem_tick = gettick();
 	sd->state.waitingdisconnect = 0;
 
 	return 0;
@@ -749,6 +752,8 @@ int pc_authok(int id, int login_id2, time_t connect_until_time, struct mmo_chars
 	sd->canmove_tick = tick;
 	sd->canregen_tick = tick;
 	sd->attackabletime = tick;
+	sd->endure_tick = tick;
+	sd->useitem_tick = tick;
 	sd->reg_num = 0;
 	sd->doridori_counter = 0;
 	sd->change_level = pc_readglobalreg(sd,"jobchange_level");
@@ -2702,6 +2707,7 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 	//?¶‚â—{Žq‚Ìê‡‚ÌŒ³‚ÌE‹Æ‚ðŽZo‚·‚é
 
 	nullpo_retr(0, sd);
+
 	p_job = pc_calc_base_job2(sd->status.class_);
 
 	if(p_job == JOB_KNIGHT2) p_job = JOB_KNIGHT;
@@ -2710,6 +2716,8 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 	item = sd->inventory_data[n];
 	nameid = sd->status.inventory[n].nameid;
 
+	if(sd->useitem_tick > gettick())
+		return 0;
 	if(item == NULL)
 		return 0;
 	if(item->type != 0 && item->type != 2)
@@ -2780,6 +2788,7 @@ int pc_useitem(struct map_session_data *sd,int n)
 		    sd->state.potion_flag = 1;
 		run_script(script,0,sd->bl.id,0);
 		sd->state.potion_flag = 0;
+		sd->useitem_tick = gettick()+200;
 	}
 
 	return 0;
@@ -3270,6 +3279,11 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 		disguise=sd->disguise;
 		sd->disguise=0;
 	}
+#ifdef HALLOWEEN
+	if(!pc_isriding(sd))
+		disguise = pc_readglobalreg(sd,"PC_DISGUISE");
+	
+#endif
 
 	strncpy(mapname,mapname_org,sizeof(mapname));
 	mapname[16]=0;
@@ -3327,14 +3341,6 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 		return 1;
 	}
 	
-	if(map[m].flag.gvg)
-	{
-		x--;
-		y--;
-		x+=rand()%2;
-		y+=rand()%2;
-	}
-
 	if(x <0 || x >= map[m].xs || y <0 || y >= map[m].ys)
 		x=y=0;
 	if((x==0 && y==0) || map_getcell(m,x,y,CELL_CHKNOPASS)){
@@ -3377,8 +3383,8 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 		}
 		clif_changemap(sd,map[m].name,x,y); // [MouseJstr]
 	}
-
-	if(disguise) // disguise teleport fix [Valaris]
+// disguise teleport fix [Valaris]
+	if(disguise && !(map[m].flag.gvg || map[m].flag.pvp))
 		sd->disguise=disguise;
 		
 	if (strcmp(sd->mapname,mapname)!=0) //minimap dot fix [Kevin]
@@ -3724,6 +3730,9 @@ int pc_stop_walking (struct map_session_data *sd, int type)
 {
 	nullpo_retr(0, sd);
 
+	if(type & 0x02 && sd->endure_tick > gettick())
+		return 0;
+
 	if (sd->walktimer != -1) {
 		delete_timer(sd->walktimer, pc_walk);
 		sd->walktimer = -1;
@@ -3737,7 +3746,10 @@ int pc_stop_walking (struct map_session_data *sd, int type)
 		unsigned int tick = gettick();
 		int delay = status_get_dmotion(&sd->bl);
 		if (sd->canmove_tick < tick)
+		{
 			sd->canmove_tick = tick + delay;
+			sd->endure_tick = tick + delay*2;
+		}
 	}
 
 	return 0;
@@ -5051,8 +5063,9 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 
 	}
 
-	if(map[sd->bl.m].flag.gvg || !endure) 
-		pc_stop_walking(sd,3);
+	if(status_get_dmotion(&sd->bl)>0)
+		if(map[sd->bl.m].flag.gvg || !endure) 
+			pc_stop_walking(sd,3);
 
 	// ‰‰‘t/ƒ_ƒ“ƒX‚Ì’†?
 	if(damage > sd->status.max_hp>>2)

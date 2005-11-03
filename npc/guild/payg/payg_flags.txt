@@ -18,6 +18,7 @@
 // 					Castle 1
 //============================================================================//
 payon.gat,165,177,3	script	Mingting#f1-1::Mingting	722,{
+	FlagEmblem GetCastleData("payg_cas01.gat",1);
 	if(rand(1,4)>2) goto Warp2;
 	callfunc "F_Flags","Payon","payg_cas01",rand(97,102),rand(29,36);
 	close;
@@ -49,6 +50,7 @@ payg_cas01.gat,212,108,4	duplicate(Mingting)	Mingting#f1-11	722
 // 					Castle 2
 //============================================================================//
 payon.gat,165,173,3	script	Tiantan#f2-1::Tiantan	722,{
+	FlagEmblem GetCastleData("payg_cas02.gat",1);
 	callfunc "F_Flags","Payon","payg_cas02",rand(21,29),rand(260,275);
 	close;
 
@@ -75,6 +77,7 @@ payg_cas02.gat,70,282,4	duplicate(Tiantan)	Tiantan#f2-11	722
 // 					Castle 3
 //============================================================================//
 payon.gat,165,169,3	script	Fuying#f3-1::Fuying	722,{
+	FlagEmblem GetCastleData("payg_cas03.gat",1);
 	callfunc "F_Flags","Payon","payg_cas03",15,rand(253,279);
 	close;
 
@@ -101,6 +104,7 @@ payg_cas03.gat,43,31,4	duplicate(Fuying)	Fuying#f3-11	722
 // 					Castle 4
 //============================================================================//
 payon.gat,165,165,3	script	Honglou#f4-1::Honglou	722,{
+	FlagEmblem GetCastleData("payg_cas04.gat",1);
 	callfunc "F_Flags","Payon","payg_cas04",rand(25,41),237;
 	close;
 
@@ -127,6 +131,7 @@ payg_cas04.gat,239,181,4	duplicate(Honglou)	Honglou#f4-11	722
 // 					Castle 5
 //============================================================================//
 payon.gat,165,161,3	script	Zhulinxian#f5-1::Zhulinxian	722,{
+	FlagEmblem GetCastleData("payg_cas05.gat",1);
 	callfunc "F_Flags","Payon","payg_cas05",rand(271,278),rand(242,253);
 	close;
 

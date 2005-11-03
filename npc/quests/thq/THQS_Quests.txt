@@ -37,10 +37,7 @@ function	script	thq_end	{
 	set quest_finished,1;
 	mes "^00FF00QUEST COMPLETE^000000";
 	mes "Total treasure tokens: "+#Treasure_Token+"";
-	close2;
-	sc_end 29;
-	if(@killplayer > 0) percentheal -100,0;
-	set @killplayer,0;
+	close;
 	end;
 }
 
@@ -1228,19 +1225,18 @@ nif_in.gat,48,184,2	script	Coffin	801,{
 
 SuckBlood:
 	mes "[???]";
-	mes "Thank you for coming.";
+	mes "Have 2 tokens...";
+	set #Treasure_Token, #Treasure_Token+2;
+	set eight_qset,0;
+	set On_Quest,0;
+	set quest_finished,1;
 	next;
 	enablenpc "Dracula";
 	mes "[Vampire]";
-	mes "And now I feed!";
-	percentheal -99,0;
-	sc_start 29,300000,0;
-	next;
-	mes "--He places a treasure token over each of your eyes--";
-	next;
+	mes "...for delivering my dinner!";
+	close2;
+	percentheal -100,0;
 	disablenpc "Dracula";
-	set #Treasure_Token, #Treasure_Token+2;
-	set @killplayer,1;
-	callfunc "thq_end";
+	end;
 }
 

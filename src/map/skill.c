@@ -734,6 +734,10 @@ int skillnotok(int skillid, struct map_session_data *sd)
 		return 1;
 	if (map[sd->bl.m].flag.pkmode && skill_get_nocast (skillid) & 16)
 		return 1;
+#ifdef HALLOWEEN
+	if (pc_readglobalreg(sd,"PC_DISGUISE")>0)
+		return 1;
+#endif
 	
 	switch (skillid) {
 		case AL_WARP:
@@ -1177,7 +1181,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 	case WS_CARTTERMINATION:	// Cart termination
 		if (rand() % 10000 < 5 * skilllv * sc_def_vit)
 			status_change_start(bl,SC_STAN,skilllv,0,0,0,skill_get_time2(WS_CARTTERMINATION,skilllv),0);
-//		status_change_end(src,SC_CARTBOOST,-1);
+		status_change_end(src,SC_CARTBOOST,-1);
 		break;
 
 	case CR_ACIDDEMONSTRATION:
@@ -5084,7 +5088,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case CG_TAROTCARD:
 		{
 			int eff, count = 1;
-			if (rand() % 100 < skilllv * 8) {
+			if (rand() % 100 > skilllv * 8) {
 				clif_skill_fail(sd,skillid,0,0);
 				map_freeblock_unlock();
 				return 0;
