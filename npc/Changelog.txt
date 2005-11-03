@@ -28,6 +28,7 @@ Nexon
 Date		Added
 ======
 11/02
+	* Removed flags around fountain in the top of Prontera guild map [Kayla]
 	* Added a missing warp in Jawaii, thanks to Zoc [MasterOfMuppets]
 10/31
 	* Finished the Einbech town script, thanks to muad_dib [MasterOfMuppets]
