@@ -131,6 +131,7 @@ int	skill_get_blewcount( int id ,int lv );
 int	skill_get_unit_flag( int id );
 int	skill_tree_get_max( int id, int b_class );	// Celest
 int	skill_gethitbonus(int, int);
+void skill_check_plag(struct map_session_data*, int, int);
 
 // スキルの使用
 int skill_use_id( struct map_session_data *sd, int target_id,
@@ -145,6 +146,7 @@ int skill_addtimerskill(struct block_list *src,unsigned int tick,int target,int 
 
 // 追加?果
 int skill_additional_effect( struct block_list* src, struct block_list *bl,int skillid,int skilllv,int attack_type,unsigned int tick);
+int skill_card_effect(struct block_list*, struct block_list*,unsigned int);
 int skill_counter_additional_effect( struct block_list* src, struct block_list *bl,int skillid,int skilllv,int attack_type,unsigned int tick);
 
 

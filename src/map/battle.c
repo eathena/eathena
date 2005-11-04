@@ -1967,8 +1967,13 @@ static struct Damage battle_calc_pc_weapon_attack(
 	if (skill_num == 0) {
 		//ダブルアタック判定
 		int da_rate = sd->double_rate; 
-		if(sd->weapontype1 == 0x01) 
-			da_rate += pc_checkskill(sd,TF_DOUBLE) * 5;
+		int da_rate2 = pc_checkskill(sd,TF_DOUBLE) * 5;
+		if(sd->weapontype1 == 0x01 || da_rate>0) 
+		{
+			if(da_rate < da_rate2)
+				da_rate = da_rate2;
+		}
+			
 		//三段掌	 // triple blow works with bows ^^ [celest]
 		if (sd->status.weapon <= 16 && (skill = pc_checkskill(sd,MO_TRIPLEATTACK)) > 0)
 			da = (rand()%100 < (30 - skill)) ? 2 : 0;
@@ -4622,6 +4627,10 @@ struct Damage  battle_calc_misc_attack(
 			damage /= flag;
 		aflag |= (flag&~BF_RANGEMASK)|BF_LONG;
 		break;
+	case PA_PRESSURE:
+		damage = 500+300*skill_lv;
+		damagefix = 0;
+		break;
 	case PA_SACRIFICE:
 		self_damage = status_get_max_hp(bl)/10;
 		self_damage -= self_damage/10;
@@ -4686,8 +4695,8 @@ struct Damage  battle_calc_misc_attack(
 	if(self_damage)
 	{
 		pc_damage(bl,sd,self_damage);
-//		clif_damage(bl,bl, gettick(), 0, 0, self_damage, 0 , 0, 0);
-		clif_skill_damage(bl, bl, gettick(), 0, 0, self_damage, PA_SACRIFICE, 1, 1, 9);
+		clif_damage(bl,bl, gettick(), 0, 0, self_damage, 0 , 0, 0);
+//		clif_skill_damage(bl, bl, gettick(), 0, 0, self_damage, PA_SACRIFICE, 1, 1, 9);
 	}
 
 	md.damage=damage;
@@ -4842,6 +4851,8 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 			clif_combo_delay(src, delay);
 			clif_skill_damage(src, target, tick, wd.amotion, wd.dmotion, wd.damage, 3,
 				MO_TRIPLEATTACK, pc_checkskill(sd,MO_TRIPLEATTACK), -1);
+			if(tsd)
+				skill_check_plag(tsd,MO_TRIPLEATTACK, pc_checkskill(sd,MO_TRIPLEATTACK));
 		} else {
 			clif_damage(src, target, tick, wd.amotion, wd.dmotion, wd.damage, wd.div_ , wd.type, wd.damage2);
 			//二刀流左手とカタール追撃のミス表示(無理やり～)
@@ -4860,6 +4871,9 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 
 		if (wd.damage > 0 || wd.damage2 > 0) //Added counter effect [Skotlex]
 			skill_counter_additional_effect(src, target, 0, 1, BF_WEAPON, tick);
+
+		if (target->prev)
+			skill_card_effect(src,target,tick);
 
 		if (target->prev != NULL && (wd.damage > 0 || wd.damage2 > 0)) {
 			skill_additional_effect(src, target, 0, 0, BF_WEAPON, tick);

@@ -816,13 +816,14 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		SC_POISON, SC_BLIND, SC_SILENCE, SC_STAN,
 		SC_STONE, SC_CURSE, SC_SLEEP
 	};
+#if 0
 	const int sc2[]={
 		MG_STONECURSE,MG_FROSTDIVER,NPC_STUNATTACK,
 		NPC_SLEEPATTACK,TF_POISON,NPC_CURSEATTACK,
 		NPC_SILENCEATTACK,0,NPC_BLINDATTACK,
 		LK_HEADCRUSH
 	};
-
+#endif
 	struct map_session_data *sd=NULL;
 	struct map_session_data *dstsd=NULL;
 	struct mob_data *md=NULL;
@@ -1210,7 +1211,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 			}
 		}
 	}
-
+#if 0
 	if((sd||dstsd) && attack_type&BF_WEAPON){	/* カ?ドによる追加?果 */
 		int i, type;
 		int sc_def_card=100;
@@ -1308,6 +1309,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 			}
 		}
 	}
+#endif
 	//Reports say that autospell effects get triggered on skills and pretty much everything including splash attacks. [Skotlex]
 	//Here we use the nk value to trigger spells only on damage causing skills (otherwise stuff like AL_HEAL will trigger them)
 	if(sd && !sd->state.autocast && !status_isdead(bl) && src != bl &&(!skillid || skill_get_nk(skillid)!=NK_NO_DAMAGE)) 
@@ -1362,6 +1364,153 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 	return 0;
 }
 
+int skill_card_effect (struct block_list* src, struct block_list *bl, unsigned int tick)
+{
+	const int sc2[]={
+		MG_STONECURSE,MG_FROSTDIVER,NPC_STUNATTACK,
+		NPC_SLEEPATTACK,TF_POISON,NPC_CURSEATTACK,
+		NPC_SILENCEATTACK,0,NPC_BLINDATTACK,
+		LK_HEADCRUSH
+	};
+
+	struct map_session_data *sd=NULL;
+	struct map_session_data *dstsd=NULL;
+	struct mob_data *md=NULL;
+	struct mob_data *dstmd=NULL;
+	struct pet_data *pd=NULL;
+
+	int sc_def_mdef,sc_def_vit,sc_def_int,sc_def_luk;
+	int sc_def_mdef2,sc_def_vit2,sc_def_int2,sc_def_luk2;
+
+	nullpo_retr(0, src);
+	nullpo_retr(0, bl);
+
+	if (src->type == BL_PC){
+		nullpo_retr(0, sd = (struct map_session_data *)src);
+	} else if (src->type == BL_MOB){
+		nullpo_retr(0, md = (struct mob_data *)src); //未使用？
+	} else if (src->type == BL_PET){
+		nullpo_retr(0, pd = (struct pet_data *)src); // [Valaris]
+	}
+
+	if(bl->type == BL_PC) {
+		nullpo_retr(0, dstsd=(struct map_session_data *)bl);
+	} else if(bl->type == BL_MOB) {
+		nullpo_retr(0, dstmd=(struct mob_data *)bl); //未使用？
+	}
+
+	//?象の耐性
+	sc_def_mdef = status_get_sc_def_mdef(bl);
+	sc_def_vit = status_get_sc_def_vit(bl);
+	sc_def_int = status_get_sc_def_int(bl);
+	sc_def_luk = status_get_sc_def_luk(bl);
+
+	//自分の耐性
+	sc_def_mdef2 = status_get_sc_def_mdef(src);
+	sc_def_vit2 = status_get_sc_def_vit(src);
+	sc_def_int2 = status_get_sc_def_int(src);
+	sc_def_luk2 = status_get_sc_def_luk(src);
+
+	if(sd||dstsd){	/* カ?ドによる追加?果 */
+		int i, type;
+		int sc_def_card=100;
+
+		for(i=SC_STONE;i<=SC_BLEEDING2;i++){
+			type=i-SC_STONE;
+			//?象に?態異常
+			switch (i) {
+				case SC_STONE:
+				case SC_FREEZE:
+					sc_def_card=sc_def_mdef;
+					break;
+				case SC_STAN:
+				case SC_POISON:
+				case SC_SILENCE:
+				case SC_BLEEDING2:
+					sc_def_card=sc_def_vit;
+					break;
+				case SC_SLEEP:
+				case SC_CONFUSION:
+				case SC_BLIND:
+					sc_def_card=sc_def_int;
+					break;
+				case SC_CURSE:
+					sc_def_card=sc_def_luk;
+					break;
+				default: 
+					printf ("Addeff, what status is %d?\n",i);
+			}
+
+			if (sd) {
+				if(!sd->state.arrow_atk) {
+					if(rand()%10000 < (sd->addeff[type])*sc_def_card/100 ){
+						if(battle_config.battle_log)
+							printf("PC %d skill_addeff: cardによる異常?動 %d %d\n",sd->bl.id,i,sd->addeff[type]);
+						status_change_start(bl,i,7,0,0,0,(i==SC_CONFUSION)? 10000+7000:skill_get_time2(sc2[type],7),0);
+					}
+				}
+				else {
+					if(rand()%10000 < (sd->addeff[type]+sd->arrow_addeff[type])*sc_def_card/100 ){
+						if(battle_config.battle_log)
+							printf("PC %d skill_addeff: cardによる異常?動 %d %d\n",sd->bl.id,i,sd->addeff[type]);
+						status_change_start(bl,i,7,0,0,0,(i==SC_CONFUSION)? 10000+7000:skill_get_time2(sc2[type],7),0);
+					}
+				}
+			}
+			//自分に?態異常
+			switch (i) {
+				case SC_STONE:
+				case SC_FREEZE:
+					sc_def_card=sc_def_mdef2;
+					break;
+				case SC_STAN:
+				case SC_POISON:
+				case SC_SILENCE:
+				case SC_BLEEDING2:
+					sc_def_card=sc_def_vit2;
+					break;
+				case SC_SLEEP:
+				case SC_CONFUSION:
+				case SC_BLIND:
+					sc_def_card=sc_def_int2;
+					break;
+				case SC_CURSE:
+					sc_def_card=sc_def_luk2;
+					break;
+				default: 
+					printf ("Addeff, what status is %d?\n",i);
+			}
+
+			if (sd) {
+				if(!sd->state.arrow_atk) {
+					if(rand()%10000 < (sd->addeff2[type])*sc_def_card/100 ){
+						if(battle_config.battle_log)
+							printf("PC %d skill_addeff: cardによる異常?動 %d %d\n",src->id,i,sd->addeff2[type]);
+						status_change_start(src,i,7,0,0,0,(i==SC_CONFUSION)? 10000+7000:skill_get_time2(sc2[type],7),0x10);
+					}
+				}
+				else {
+					if(rand()%10000 < (sd->addeff2[type]+sd->arrow_addeff2[type])*sc_def_card/100 ){
+						if(battle_config.battle_log)
+							printf("PC %d skill_addeff: cardによる異常?動 %d %d\n",src->id,i,sd->addeff2[type]);
+						status_change_start(src,i,7,0,0,0,(i==SC_CONFUSION)? 10000+7000:skill_get_time2(sc2[type],7),0x10);
+					}
+				}
+			}
+			if (dstsd && rand()%10000 < dstsd->addeff3[type]*sc_def_card/100){
+				if (dstsd->addeff3_type[type] == 0 && ((sd && sd->state.arrow_atk) || (status_get_range(src)>2)))
+					continue;
+				if(battle_config.battle_log)
+					printf("PC %d skill_addeff: cardによる異常?動 %d %d\n",src->id,i,dstsd->addeff3[type]);
+				status_change_start(src,i,7,0,0,0,(i==SC_CONFUSION)? 10000+7000:skill_get_time2(sc2[type],7),0x10);
+			}
+		}
+	}
+
+	return 0;
+}
+
+
 /* Splitted off from skill_additional_effect, which is never called when the
  * attack skill kills the enemy. Place in this function counter status effects 
  * when using skills (eg: Asura's sp regen penalty, or counter-status effects 
@@ -1372,13 +1521,14 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
  */
 int skill_counter_additional_effect (struct block_list* src, struct block_list *bl, int skillid, int skilllv, int attack_type, unsigned int tick)
 {
+#if 0
 	const int sc2[]={
 		MG_STONECURSE,MG_FROSTDIVER,NPC_STUNATTACK,
 		NPC_SLEEPATTACK,TF_POISON,NPC_CURSEATTACK,
 		NPC_SILENCEATTACK,AS_SONICBLOW,NPC_BLINDATTACK,
 		LK_HEADCRUSH
 	};
-
+#endif
 	struct map_session_data *sd=NULL;
 	struct map_session_data *dstsd=NULL;
 	struct mob_data *md=NULL;
@@ -1901,6 +2051,8 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		if(!status_isdead(bl)) {
 			if(damage > 0)
 				skill_additional_effect(src,bl,skillid,skilllv,attack_type,tick);
+			if(attack_type&BF_WEAPON && skillid!=AM_DEMONSTRATION)
+				skill_card_effect(src,bl,tick);
 			if(bl->type==BL_MOB && src!=bl)	/* スキル使用?件のMOBスキル */
 			{
 				struct mob_data *md=(struct mob_data *)bl;
