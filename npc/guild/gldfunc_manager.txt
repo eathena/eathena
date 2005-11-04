@@ -28,7 +28,8 @@
 //= v1.2b U can't surrender the base during WOE [Lupus]
 //= v1.2c Fixed issue of guardians hp not increasing upon defense
 //= investment.[kobra_k88]
-//= 1.3 Now you can't install Guardians during WOE [Lupus]
+//= v1.3 Now you can't install Guardians during WOE [Lupus]
+//= v1.4 Reomve surrender abbility (Was 100% custom as far as I can tell) [Kayla]
 //============================================================
 
 
@@ -62,7 +63,7 @@ L_Start:
 	mes "Welcome Master ^5533FF" + getguildmaster(@GID) + "^000000 ! I will assist you in any way I can!";
 	next;
 	menu 	"Guild Base Briefing",M_Base, "Commerce Investment",M_Comrc, "Defence Investment",M_Def, "Guardian Installation",M_Gaurd, 
-		"Kafra Service Employment / Dismissal",M_Kaf, "Enter Treasure Room",M_Treas, "Surrender Guild Base",M_Sur, "Cancel",M_End;
+		"Kafra Service Employment / Dismissal",M_Kaf, "Enter Treasure Room",M_Treas, "Cancel",M_End;
 
 	//========================
 	M_Base:
@@ -410,47 +411,6 @@ L_Start:
 			mes "You should get them whenever you can because they might dissapear if you take them at the wrong time.";
 			return 0;
 
-	//==========================
-	M_Sur:
-	//=======
-		mes "[ "+getarg(0)+" ]";
-		emotion 19;
-		if(agitcheck(0) != 0) goto sL_CantSur;
-		mes "Master.... Do you really want to give up this guild base?? It is not worth it master!!! Please reconsider, master!!";
-		next;
-		menu "Surrender Guild Base",-, "Cancel",sM_SurEnd;
-
-			mes "[ "+getarg(0)+" ]";
-			mes "Master, please reconsider...!!";
-			emotion 16;
-			next;
-			menu "Surrender Guild Base",-, "Cancel",sM_SurEnd;
-
-				mes "[ "+getarg(0)+" ]";
-				mes "Master!!.....";
-				mes "Oh well..";
-				next;
-				disablenpc "Kafra Service#"+getarg(4);
-				killmonster getarg(1)+".gat", "Guardian_" +getarg(4)+ "::OnGuardianDied";
-				set @i, 0;
-			L_Loop:
-				set @i, @i + 1;
-				SetCastleData getarg(1)+".gat",@i,0;
-				if(@i < 25) goto L_Loop;
-				
-				Announce "[" + GetGuildName(@GID) + "] has surrendered the Guild Castle [" + GetCastleName(getarg(1)+".gat") + "]",0;
-				MapRespawnGuildID getarg(1)+".gat",GetCastleData(getarg(1)+".gat",1),7;
-				return 0;
-
-		sM_SurEnd:
-			mes "[ "+getarg(0)+" ]";
-			mes "I knew it master!! Please, don't scare me like that again.";
-			emotion 33;
-			return 0;
-
-		sL_CantSur:
-			mes "Master.... don't you know that we can't give up this guild base during the War Of Emperium?!!";
-			close;
 
 	//==========================
 	M_End:

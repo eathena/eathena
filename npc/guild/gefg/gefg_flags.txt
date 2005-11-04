@@ -55,7 +55,7 @@ gefg_cas01.gat,64,16,4	duplicate(Repherion)	Repherion#g1-12	722
 //===================================================================================//
 //					Castle 2
 //===================================================================================//
-gef_fild13.gat,303,243,4	script	Eeyolbriggar#g2-1::Eeyolbriggar	722,{
+geffen.gat,113,130,1	script	Eeyolbriggar#g2-1::Eeyolbriggar	722,{
 	callfunc "F_Flags","Geffen","gefg_cas02",23,66,0;
 	close;
 
