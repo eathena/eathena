@@ -9277,7 +9277,7 @@ int skill_landprotector(struct block_list *bl, va_list ap )
 	alive = va_arg(ap,int *);
 	src = va_arg(ap,struct block_list *);
 	
-	if ((unit = (struct skill_unit *)bl) == NULL)
+	if ((unit = (struct skill_unit *)bl) == NULL || unit->group == NULL)
 		return 0;
 
 	if (alive && skillid == SA_LANDPROTECTOR && unit->group->skill_id == SA_LANDPROTECTOR
@@ -9290,9 +9290,9 @@ int skill_landprotector(struct block_list *bl, va_list ap )
 	if (skillid == SA_LANDPROTECTOR || 
 		skillid == HW_GANBANTEIN)
 		skill_delunit(unit);
-	else if (alive && unit->group && unit->group->skill_id == SA_LANDPROTECTOR)
+	else if (alive && unit->group->skill_id == SA_LANDPROTECTOR)
 		(*alive) = 0;
-	else if  (alive && skillid == HP_BASILICA && unit->group && unit->group->skill_id == HP_BASILICA)
+	else if  (alive && skillid == HP_BASILICA && unit->group->skill_id == HP_BASILICA)
 		(*alive) = 0; //Basilica can't be placed on top of itself to avoid map-cell stacking problems. [Skotlex]
 	return 0;
 }

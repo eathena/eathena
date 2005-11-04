@@ -475,8 +475,9 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 	
 	//Check for Basilica when the target is null (the basilica check normally is done in battle_check_target,
 	//and it's correct there, however, it allows mages to stand inside basilica and cast AoE spells to the outside!)
-	if (target == NULL && skill_get_inf(skill_num)&INF_ATTACK_SKILL
-		&& !(mode&MD_BOSS) && map_getcell(src->m,src->x,src->y,CELL_CHKBASILICA))
+	if (target == NULL  && map_getcell(src->m,src->x,src->y,CELL_CHKBASILICA)
+		&& skill_get_inf(skill_num)&INF_GROUND_SKILL && skill_get_unit_flag(skill_num)==BCT_ENEMY
+		&& !(mode&MD_BOSS))
 		return 0;
 			
 	opt1 = status_get_opt1(src);
