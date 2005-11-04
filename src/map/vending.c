@@ -132,6 +132,11 @@ void vending_purchasereq(struct map_session_data *sd,int len,int id,unsigned cha
 		return;
 	}
 
+	//Logs (V)ending Zeny [Lupus]
+	if(log_config.zeny > 0 )
+		log_zeny(vsd, "V", sd, z);
+	//Logs
+
 	pc_payzeny(sd, z);
 	pc_getzeny(vsd, z);
 	for(i = 0; 8 + 4 * i < len; i++) {

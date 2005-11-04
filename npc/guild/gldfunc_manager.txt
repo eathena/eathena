@@ -344,7 +344,7 @@ L_Start:
 				next;
 				cutin "kafra_01",255;
 				mes "[ "+getarg(0)+" ]";
-				mes "Your employment contract lasts ^5533FF1 month^000000.  After this term is over you will have to create a new contract.";
+				//mes "Your employment contract lasts ^5533FF1 month^000000.  After this term is over you will have to create a new contract.";
 				mes "I think the Kafra Service will benefit our guild members.";
 				return 0;
 

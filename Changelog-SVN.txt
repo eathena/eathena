@@ -1,6 +1,10 @@
 Date	Added
 ==========
 2005/11/05
+	* Fixed not working ZENY LOG. You can use logging filter as well. [Lupus]
+		- Only SQL logs available.
+		- Logs only Vending, Trade, Shops yet
+		- Don't forget to update your logs SQL DB and log_athena.conf
 	* Added previously removed (by an accident) "MVP Prize item log" into pick_log [Lupus]
 2005/11/04
 	* Added support for new quest skills to @allskills/@skillall. Thanks again to blackhole89 for 

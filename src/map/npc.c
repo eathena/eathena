@@ -1027,6 +1027,11 @@ int npc_buylist(struct map_session_data *sd,int n,unsigned short *item_list)
 	if (pc_inventoryblank(sd)<new_)
 		return 3;	// Ží—Þ”’´‰ß
 
+	//Logs (S)hopping Zeny [Lupus]
+	if(log_config.zeny > 0 )
+		log_zeny(sd, "S", sd, -z);
+	//Logs
+
 	pc_payzeny(sd,(int)z);
 	for(i=0;i<n;i++) {
 		struct item item_tmp;
@@ -1088,6 +1093,12 @@ int npc_selllist(struct map_session_data *sd,int n,unsigned short *item_list)
 	}
 
 	if (z > MAX_ZENY) z = MAX_ZENY;
+
+	//Logs (S)hopping Zeny [Lupus]
+	if(log_config.zeny > 0 )
+		log_zeny(sd, "S", sd, z);
+	//Logs
+
 	pc_getzeny(sd,(int)z);
 	for(i=0;i<n;i++) {
 		int item_id=item_list[i*2]-2;

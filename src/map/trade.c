@@ -529,10 +529,18 @@ void trade_tradecommit(struct map_session_data *sd) {
 						}
 					}
 					if (sd->deal_zeny) {
+						//Logs Zeny (T)rade [Lupus]
+						if(log_config.zeny > 0 )
+							log_zeny(target_sd, "T", sd, sd->deal_zeny);
+						//Logs
 						sd->status.zeny -= sd->deal_zeny;
 						target_sd->status.zeny += sd->deal_zeny;
 					}
 					if (target_sd->deal_zeny) {
+						//Logs Zeny (T)rade [Lupus]
+						if(log_config.zeny > 0 )
+							log_zeny(sd, "T", target_sd, target_sd->deal_zeny);
+						//Logs
 						target_sd->status.zeny -= target_sd->deal_zeny;
 						sd->status.zeny += target_sd->deal_zeny;
 					}

@@ -164,6 +164,38 @@ int log_pick(struct map_session_data *sd, char *type, int mob_id, int nameid, in
 	return 1; //Logged
 }
 
+int log_zeny(struct map_session_data *sd, char *type, struct map_session_data *src_sd, int amount)
+{
+//	FILE *logfp;
+	if(log_config.enable_logs <= 0 || (log_config.zeny!=1 && abs(amount)<log_config.zeny))
+		return 0;
+
+	nullpo_retr(0, sd);
+#ifndef TXT_ONLY
+	if(log_config.sql_logs > 0)
+	{
+		sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`time`, `char_id`, `src_id`, `type`, `amount`, `map`) VALUES (NOW(), '%d', '%d', '%s', '%d', '%s')",
+			 log_config.log_zeny_db, sd->char_id, src_sd->char_id, type, amount, sd->mapname);
+		if(mysql_query(&logmysql_handle, tmp_sql))
+		{
+			ShowSQL("DB error - %s\n",mysql_error(&logmysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+		}
+	} else {
+#endif
+//		if((logfp=fopen(log_config.log_zeny,"a+")) != NULL) {
+//			time(&curtime);
+//			strftime(timestring, 254, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
+//			fprintf(logfp,"%s - %s[%d]\t%s[%d]\t%d\t%s", timestring, sd->status.name, sd->status.account_id, target_sd->status.name, target_sd->status.account_id, sd->deal_zeny, RETCODE);
+//			fclose(logfp);
+//		}
+#ifndef TXT_ONLY
+	}
+#endif
+	return 0;
+}
+
+
 int log_drop(struct map_session_data *sd, int monster_id, int *log_drop)
 {
 	FILE *logfp;
@@ -577,40 +609,6 @@ int log_vend(struct map_session_data *sd,struct map_session_data *vsd,int n,int 
 	return 0;
 }
 
-int log_zeny(struct map_session_data *sd, struct map_session_data *target_sd,int amount)
-{
-	FILE *logfp;
-#ifndef TXT_ONLY
-		char t_name[NAME_LENGTH*2],t_name2[NAME_LENGTH*2];
-#endif
-
-	if(log_config.enable_logs <= 0)
-		return 0;
-	nullpo_retr(0, sd);
-#ifndef TXT_ONLY
-	if(log_config.sql_logs > 0)
-	{
-		sprintf(tmp_sql,"INSERT DELAYED INTO `%s` (`trade_date`, `src_account_id`, `src_char_id`, `src_char_name`, `des_account_id`, `des_char_id`, `des_char_name`, `map`, `zeny`) VALUES (NOW(), '%d', '%d', '%s', '%d', '%d', '%s', '%s', '%d')",
-			log_config.log_trade_db, sd->status.account_id, sd->status.char_id, jstrescapecpy(t_name, sd->status.name), target_sd->status.account_id, target_sd->status.char_id, jstrescapecpy(t_name2, target_sd->status.name), sd->mapname, sd->deal_zeny);
-		if(mysql_query(&logmysql_handle, tmp_sql))
-		{
-			ShowSQL("DB error - %s\n",mysql_error(&logmysql_handle));
-			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-		}
-	} else {
-#endif
-		if((logfp=fopen(log_config.log_trade,"a+")) != NULL) {
-			time(&curtime);
-			strftime(timestring, 254, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
-			fprintf(logfp,"%s - %s[%d]\t%s[%d]\t%d\t%s", timestring, sd->status.name, sd->status.account_id, target_sd->status.name, target_sd->status.account_id, sd->deal_zeny, RETCODE);
-			fclose(logfp);
-		}
-#ifndef TXT_ONLY
-	}
-#endif
-	return 0;
-}
-
 int log_atcommand(struct map_session_data *sd, const char *message)
 {
 	FILE *logfp;
@@ -812,10 +810,7 @@ int log_config_read(char *cfgName)
 			} else if(strcmpi(w1,"log_vend") == 0) {
 				log_config.vend = (atoi(w2));
 			} else if(strcmpi(w1,"log_zeny") == 0) {
-				if(log_config.trade != 1)
-					log_config.zeny = 0;
-				else
-					log_config.zeny = (atoi(w2));
+				log_config.zeny = (atoi(w2));
 			} else if(strcmpi(w1,"log_gm") == 0) {
 				log_config.gm = (atoi(w2));
 			} else if(strcmpi(w1,"log_npc") == 0) {
@@ -833,6 +828,10 @@ int log_config_read(char *cfgName)
 				strcpy(log_config.log_pick_db, w2);
 				if(log_config.pick == 1)
 					ShowNotice("Logging Item Picks to table `%s`\n", w2);
+			} else if(strcmpi(w1, "log_zeny_db") == 0) {
+				strcpy(log_config.log_zeny_db, w2);
+				if(log_config.zeny == 1)
+					ShowNotice("Logging Zeny to table `%s`\n", w2);
 			} else if(strcmpi(w1, "log_drop_db") == 0) {
 				strcpy(log_config.log_drop_db, w2);
 				if(log_config.drop == 1)
@@ -856,12 +855,7 @@ int log_config_read(char *cfgName)
 			} else if(strcmpi(w1, "log_trade_db") == 0) {
 				strcpy(log_config.log_trade_db, w2);
 				if(log_config.trade == 1)
-				{
-					ShowNotice("Logging Item Trades");
-					if(log_config.zeny == 1)
-						printf("and Zeny Trades");
-					printf(" to table `%s`\n", w2);
-				}
+					ShowNotice("Logging Item Trades to table `%s`\n", w2);
 //			} else if(strcmpi(w1, "log_storage_db") == 0) {
 //				strcpy(log_config.log_storage_db, w2);
 //				if(log_config.storage == 1)
@@ -900,6 +894,10 @@ int log_config_read(char *cfgName)
 				strcpy(log_config.log_pick, w2);
 				if(log_config.pick > 0 && log_config.sql_logs < 1)
 					ShowNotice("Logging Item Picks to file `%s`.txt\n", w2);
+			} else if(strcmpi(w1, "log_zeny_file") == 0) {
+				strcpy(log_config.log_zeny, w2);
+				if(log_config.zeny > 0 && log_config.sql_logs < 1)
+					ShowNotice("Logging Zeny to file `%s`.txt\n", w2);
 			} else if(strcmpi(w1, "log_mvpdrop_file") == 0) {
 				strcpy(log_config.log_mvpdrop, w2);
 				if(log_config.mvpdrop > 0 && log_config.sql_logs < 1)
@@ -919,12 +917,7 @@ int log_config_read(char *cfgName)
 			} else if(strcmpi(w1, "log_trade_file") == 0) {
 				strcpy(log_config.log_trade, w2);
 				if(log_config.trade > 0 && log_config.sql_logs < 1)
-				{
-					ShowNotice("Logging Item Trades");
-					if(log_config.zeny > 0)
-						printf("and Zeny Trades");
-					printf(" to file `%s`.txt\n", w2);
-				}
+					ShowNotice("Logging Item Trades to file `%s`.txt\n", w2);
 			} else if(strcmpi(w1, "log_storage_file") == 0) {
 				strcpy(log_config.log_storage, w2);
 				if(log_config.storage > 0 && log_config.sql_logs < 1)
