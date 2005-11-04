@@ -2575,6 +2575,11 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 				intif_GMmessage(message,strlen(message)+1,0);
 			}
 
+			if(log_config.pick > 0)	{//Logs items, MVP prizes [Lupus]
+				log_pick((struct map_session_data*)md, "M", md->class_, item.nameid, -1, NULL);
+				log_pick(mvp_sd, "P", 0, item.nameid, 1, NULL);
+			}
+
 			if(log_config.mvpdrop > 0)
 				log_mvpdrop(mvp_sd, md->class_, log_mvp);
 				
