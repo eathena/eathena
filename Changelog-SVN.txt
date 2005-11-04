@@ -1,8 +1,10 @@
 Date	Added
 ==========
 2005/11/04
+	* Added support for new quest skills to @allskills/@skillall. Thanks again to blackhole89 for 
+	  pointing that out! [Kayla]
 	* Fixed various occurencies of assuming Guild Skills being >= ID 10000 
-	  rather than 500<skill<1000 still after skill_chk. Thanks blackhole! [Kayla]
+	  rather than 500<skill<1000 still after skill_chk. Thanks blackhole89! [Kayla]
 	* Hopefully fixed Weapon Refine. [Skotlex]
 	* Applied a change which prevents pc_setpos from working for characters
 	  between maps, as doing so makes the character appear on a different

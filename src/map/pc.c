@@ -1003,6 +1003,8 @@ int pc_calc_skilltree(struct map_session_data *sd)
 			sd->status.skill[i].id=i;
 		for(i=475;i<492;i++)
 			sd->status.skill[i].id=i;
+		for(i=1001;i<1020;i++)
+			sd->status.skill[i].id=i;
 	} else {
             do {
                 flag=0;
