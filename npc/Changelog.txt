@@ -28,6 +28,7 @@ Nexon
 Date		Added
 ======
 11/04
+	* Updated Geffenia's monster spawns [MasterOfMuppets]
 	* Fixed flags in geffen town (whoops I worked too fast :-x) [Kayla]
 	* Removed Surrender Abbility in guild manager (was 100% custom) [Kayla]
 11/02
