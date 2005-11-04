@@ -35,6 +35,7 @@
 2244,Big Ribbon,10000
 2249,Coronet,10000
 2250,Cute Ribbon,10000
+2254,Angel Wing,10000
 2257,Snow Horn,10000
 2258,Spiky Band,10000
 2260,Mini Glasses,10000

@@ -30,6 +30,8 @@
 		Item type: Throwing Dagger. Has to be equipped as an arrow, is consumed
 		like gemstones when the skill is used.
 	--
+11/04
+	* Added Angel wing to old blue boxes and old violet boxes [MasterOfMuppets]
 11/03
 	* Added slots to Garm's claw, hard covered book and wool cap, thanks to Gyunwoo23
 	- Made shoes unequipable for novices and a small update for the skill DB.
