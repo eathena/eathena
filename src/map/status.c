@@ -4536,6 +4536,12 @@ int status_change_end( struct block_list* bl , int type,int tid )
 	nullpo_retr(0, opt2 = status_get_opt2(bl));
 	nullpo_retr(0, opt3 = status_get_opt3(bl));
 
+	
+	if (type == SC_FALCON && (*option)&OPTION_FALCON)
+		return 0; //Falcon state should be removed by removing the option, not ending the status change! [Skotlex]
+	if (type == SC_RIDING && (*option)&OPTION_RIDING)
+		return 0; //Riding state should be removed by removing the option, not ending the status change! [Skotlex]
+
 	if (sc_data[type].timer != -1 && (sc_data[type].timer == tid || tid == -1)) {
 
 		if (tid == -1)	// タイマから呼ばれていないならタイマ削除をする
@@ -4806,6 +4812,7 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			case SC_BASILICA: //Clear the skill area. [Skotlex]
 				if(sc_data[type].val3 == BCT_SELF)
 					skill_clear_unitgroup(bl);
+				break;
 			}
 
 

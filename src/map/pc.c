@@ -5763,7 +5763,7 @@ int pc_jobchange(struct map_session_data *sd,int job, int upper)
 
 	if(pc_isriding(sd)) {	// remove peco status if changing into invalid class [Valaris]
 		if(!(pc_checkskill(sd,KN_RIDING)))
-			pc_setoption(sd,sd->status.option|-0x0000);
+			pc_setoption(sd,sd->status.option&~OPTION_RIDING);
 		else
 			pc_setriding(sd);
 	}
@@ -5983,7 +5983,7 @@ int pc_setfalcon(struct map_session_data *sd)
 int pc_setriding(struct map_session_data *sd)
 {
 	if((pc_checkskill(sd,KN_RIDING)>0)){ // ライディングスキル所持
-		pc_setoption(sd,sd->status.option|0x0020);
+		pc_setoption(sd,sd->status.option|OPTION_RIDING);
 	}
 	return 0;
 }

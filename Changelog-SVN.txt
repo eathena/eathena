@@ -1,6 +1,8 @@
 Date	Added
 ==========
 2005/11/03
+	* Modifed status_change_end to prevent peco-peco/falcon from ending until
+	  the player's 'falcon/peco option' value is removed first. [Skotlex]
 	* Removed the knockback code for players and changed it for a "fix
 	  position" code. The new code is not right as it makes your character
 	  "teleport" to the position rather than walk really fast to it, but it fixes
