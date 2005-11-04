@@ -1,6 +1,8 @@
 Date	Added
 ==========
 2005/11/04
+	* Fixed various occurencies of assuming Guild Skills being >= ID 10000 
+	  rather than 500<skill<1000 still after skill_chk. Thanks blackhole! [Kayla]
 	* Hopefully fixed Weapon Refine. [Skotlex]
 	* Applied a change which prevents pc_setpos from working for characters
 	  between maps, as doing so makes the character appear on a different

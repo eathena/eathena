@@ -569,11 +569,11 @@ struct skill_abra_db skill_abra_db[MAX_SKILL_ABRA_DB];
 
 // Skill DB
 int	skill_get_hit( int id ){ skill_get (skill_db[id].hit, id, 1); }
-int	skill_get_inf( int id ){ skill_chk (id, 1); return (id < 10000) ? skill_db[id].inf : guild_skill_get_inf(id); }
+int	skill_get_inf( int id ){ skill_chk (id, 1); return (id < 500 || id > 1000) ? skill_db[id].inf : guild_skill_get_inf(id); }
 int	skill_get_pl( int id ){ skill_get (skill_db[id].pl, id, 1); }
 int	skill_get_nk( int id ){ skill_get (skill_db[id].nk, id, 1); }
-int	skill_get_max( int id ){ skill_chk (id, 1); return (id < 10000) ? skill_db[id].max : guild_skill_get_max(id); }
-int	skill_get_range( int id , int lv ){ skill_chk (id, lv); return (id < 10000) ? skill_db[id].range[lv-1] : 0; }
+int	skill_get_max( int id ){ skill_chk (id, 1); return (id < 500 || id > 1000) ? skill_db[id].max : guild_skill_get_max(id); }
+int	skill_get_range( int id , int lv ){ skill_chk (id, lv); return (id < 500 || id > 1000) ? skill_db[id].range[lv-1] : 0; }
 int	skill_get_hp( int id ,int lv ){ skill_get (skill_db[id].hp[lv-1], id, lv); }
 int	skill_get_sp( int id ,int lv ){ skill_get (skill_db[id].sp[lv-1], id, lv); }
 int	skill_get_zeny( int id ,int lv ){ skill_get (skill_db[id].zeny[lv-1], id, lv); }
