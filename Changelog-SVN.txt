@@ -1,8 +1,13 @@
 Date	Added
 ==========
-2005/11/03
+2005/11/04
+	* Hopefully fixed Weapon Refine. [Skotlex]
+	* Applied a change which prevents pc_setpos from working for characters
+	  between maps, as doing so makes the character appear on a different
+	  position on the client than the position stored in the server. [Skotlex]
 	* Added friend_db option to inter_athena.conf, now friend table is
 	  usable in multi server and/or custom db configs. [Foruken]
+2005/11/03
 	* Corrected the basilica check which should disable casting offensive
 	  skills from within inside the basilica. [Skotlex]
 	* Modifed status_change_end to prevent peco-peco/falcon from ending until

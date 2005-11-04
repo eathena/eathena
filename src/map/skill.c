@@ -5649,7 +5649,7 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 
 		
 		
-	if (sd->skillid != AL_TELEPORT)
+	if (sd->skillid != AL_TELEPORT && sd->skillid != WS_WEAPONREFINE)
 		sd->skillid = sd->skilllv = -1; //Clean this up for future references to battle_getcurrentskill. [Skotlex]
 	return 0;
 }
@@ -8762,6 +8762,7 @@ void skill_identify(struct map_session_data *sd,int idx)
 	// Celest
 	if (sd->skillid == WS_WEAPONREFINE){
 		skill_weaponrefine (sd, idx);
+		sd->skillid = -1;
 		return;
 	}
 

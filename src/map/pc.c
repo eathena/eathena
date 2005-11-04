@@ -2985,6 +2985,13 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 
 	nullpo_retr(0, sd);
 
+	if(sd->state.auth && sd->bl.prev == NULL)
+	{	//Should NOT move a character while it is not in a map (changing between maps, for example)
+		//state.auth helps identifies if this is the initial setpos rather than a normal map-change set pos.
+		if (battle_config.etc_log)
+			ShowInfo("pc_setpos failed: Attempted to relocate player %s (%d:%d) while it is still between maps.\n", sd->status.name, sd->status.account_id, sd->status.char_id);
+		return 1;
+	}
 	if(sd->chatID)	// チャットから出る
 		chat_leavechat(sd);
 	if(sd->trade_partner)	// 取引を中?する
@@ -3172,9 +3179,6 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 		sd->pd->bl.y = sd->pd->to_y = y;
 		sd->pd->dir = sd->dir;
 	}
-
-//	map_addblock(&sd->bl);	/// ブロック登?とspawnは
-//	clif_spawnpc(sd);
 
 	return 0;
 }
