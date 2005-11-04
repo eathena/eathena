@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= Darkchild
 //===== Current Version: =====================================
-//= 1.3
+//= 1.4a
 //===== Compatible With: =====================================
 //= Any eAthena Version;
 //===== Description: =========================================
@@ -15,6 +15,7 @@
 //= 1.3 fixed Louyang label typo, added warp and WARPRA into
 //= Nifleheim. Also sorted all names in alphabet order [Lupus]
 //= 1.4 fixed morroc warp npc overlaying kafra [Aria]
+//= 1.4a fixed izlude warp npc overlaying BBS [Justin84]
 //============================================================
 
 -	script	Warp NPC::warpra	115,{
@@ -79,7 +80,7 @@ geffen.gat,115,66,4	duplicate(warpra)	Warp NPC	115
 glast_01.gat,370,308,4	duplicate(warpra)	Warp NPC	115
 gonryun.gat,151,130,4	duplicate(warpra)	Warp NPC	115
 gonryun.gat,164,196,4	duplicate(warpra)	Warp NPC	115
-izlude.gat,131,116,4	duplicate(warpra)	Warp NPC	115
+izlude.gat,133,117,4	duplicate(warpra)	Warp NPC	115
 izlu2dun.gat,104,82,4	duplicate(warpra)	Warp NPC	115
 louyang.gat,210,106,4	duplicate(warpra)	Warp NPC	115
 mjolnir_02.gat,85,363,4	duplicate(warpra)	Warp NPC	115

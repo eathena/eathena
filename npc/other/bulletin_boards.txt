@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= MasterOfMuppets (1.4)
 //===== Current Version: =====================================
-//= 1.4
+//= 1.4a
 //===== Compatible With: =====================================
 //= Any Athena Version
 //===== Additional Comments: =================================
@@ -431,7 +431,7 @@ aldebaran.gat,136,133,5	script	Bulletin Board	837,{
 	close;
 }
 
-moc_fild19,107,101,5	script	Bulletin Board	837,{
+moc_fild19.gat,107,101,5	script	Bulletin Board	837,{
 	mes "[Sphinx]";
 	mes "^6B1312Caution!^000000";
 	mes "The Sphinx consists of 5 levels.";
