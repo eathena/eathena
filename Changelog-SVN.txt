@@ -1,6 +1,8 @@
 Date	Added
 ==========
 2005/11/03
+	* Added friend_db option to inter_athena.conf, now friend table is
+	  usable in multi server and/or custom db configs. [Foruken]
 	* Corrected the basilica check which should disable casting offensive
 	  skills from within inside the basilica. [Skotlex]
 	* Modifed status_change_end to prevent peco-peco/falcon from ending until

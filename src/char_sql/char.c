@@ -3873,6 +3873,8 @@ void sql_config_read(const char *cfgName){ /* Kalaspuff, to get login_db */
 			strcpy(party_db,w2);
 		}else if(strcmpi(w1,"pet_db")==0){
 			strcpy(pet_db,w2);
+		}else if(strcmpi(w1,"friend_db")==0){
+			strcpy(friend_db,w2);
 		}else if(strcmpi(w1,"db_path")==0){
 			strcpy(db_path,w2);
 		//Map server option to use SQL db or not
