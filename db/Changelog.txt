@@ -31,6 +31,8 @@
 		like gemstones when the skill is used.
 	--
 11/03
+	* Added slots to Garm's claw, hard covered book and wool cap, thanks to Gyunwoo23
+	- Made shoes unequipable for novices and a small update for the skill DB.
 	* Added Venom Knife requirement to the skill Venom Knife. Still won't check
 	  for a Venom Knife to be equipped as arrow, but it will consume it at least.
 	  [Skotlex]
