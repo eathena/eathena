@@ -2702,7 +2702,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 				clif_changed_dir(bl);
 			}
 			else if (sd)
-				clif_skill_fail(sd,sd->skillid,0,0);
+				clif_skill_fail(sd,skillid,0,0);
 		}
 		break;
 
@@ -3328,7 +3328,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				//require 1 yellow gemstone even with mistress card or Into the Abyss
 				if ((i = pc_search_inventory(sd, 715)) < 0 )
 				{ //bug fixed by Lupus (item pos can be 0, too!)
-					clif_skill_fail(sd,sd->skillid,0,0);
+					clif_skill_fail(sd,skillid,0,0);
 					break;
 				}
 				pc_delitem(sd, i, 1, 0);
@@ -4171,7 +4171,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			// Level 6-10 doesn't consume a red gem if it fails [celest]
 			int i, gem_flag = 1, fail_flag = 0;
 			if (status_get_mode(bl)&MD_BOSS) {
-				if (sd) clif_skill_fail(sd,sd->skillid,0,0);
+				if (sd) clif_skill_fail(sd,skillid,0,0);
 				break;
 			}
 			if(status_isimmune(bl))
@@ -4196,7 +4196,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				mob_target(dstmd,src,skill_get_range(skillid,skilllv));
 			if (sd && gem_flag) {
 				if ((i=pc_search_inventory(sd, skill_db[skillid].itemid[0])) < 0 ) {
-					if (!fail_flag) clif_skill_fail(sd,sd->skillid,0,0);
+					if (!fail_flag) clif_skill_fail(sd,skillid,0,0);
 					break;
 				}
 				pc_delitem(sd, i, skill_db[skillid].amount[0], 0);
@@ -4294,9 +4294,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			}
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 			if(sd->skilllv == 1)
-				clif_skill_warppoint(sd,sd->skillid,"Random","","","");
+				clif_skill_warppoint(sd,skillid,"Random","","","");
 			else {
-				clif_skill_warppoint(sd,sd->skillid,"Random",
+				clif_skill_warppoint(sd,skillid,"Random",
 					sd->status.save_point.map,"","");
 			}
 		} else if(dstmd)
@@ -5512,6 +5512,7 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 	nullpo_retr(0, sd);
 
 //Code cleanup.
+#undef skill_failed
 #define skill_failed(sd) { sd->skillid = sd->skilllv = sd->skillitem = sd->skillitemlv = -1; sd->canact_tick = sd->canmove_tick = tick; }
 
 	if(sd->skillid != SA_CASTCANCEL && sd->skilltimer != tid )
@@ -5646,8 +5647,6 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 
 	if(sd->sc_data[SC_MAGICPOWER].timer != -1 && sd->skillid != HW_MAGICPOWER)
 		status_change_end(&sd->bl,SC_MAGICPOWER,-1);		
-
-		
 		
 	if (sd->skillid != AL_TELEPORT && sd->skillid != WS_WEAPONREFINE)
 		sd->skillid = sd->skilllv = -1; //Clean this up for future references to battle_getcurrentskill. [Skotlex]
@@ -5668,6 +5667,7 @@ int skill_castend_pos( int tid, unsigned int tick, int id,int data )
 	nullpo_retr(0, sd);
 
 //Code cleanup.
+#undef skill_failed
 #define skill_failed(sd) { sd->skillid = sd->skilllv = sd->skillitem = sd->skillitemlv = -1; sd->canact_tick = sd->canmove_tick = tick; }
 
 	if( sd->skilltimer != tid )
@@ -5910,7 +5910,7 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 		if(sd) {
 			if(map[sd->bl.m].flag.noteleport)	/* ƒeƒŒƒ|‹Ö~ */
 				break;
-			clif_skill_warppoint(sd,sd->skillid,sd->status.save_point.map,
+			clif_skill_warppoint(sd,skillid,sd->status.save_point.map,
 				(sd->skilllv>1)?sd->status.memo_point[0].map:"",
 				(sd->skilllv>2)?sd->status.memo_point[1].map:"",
 				(sd->skilllv>3)?sd->status.memo_point[2].map:"");
@@ -6051,14 +6051,22 @@ int skill_castend_map( struct map_session_data *sd,int skill_num, const char *ma
 	int x=0,y=0;
 
 	nullpo_retr(0, sd);
+
+//Simplify skill_failed code.
+#undef skill_failed
+#define skill_failed(sd) { sd->skillid = sd->skilllv = sd->skillitem = sd->skillitemlv = -1; }
+
 	if( sd->bl.prev == NULL || pc_isdead(sd) )
 		return 0;
 
-	if(skillnotok(skill_num, sd))
-		return 0;
+//Shouldn't be needed, skillnotok's return value is highly unlikely to have changed after you started casting. [Skotlex]
+//	if(skillnotok(skill_num, sd))
+//		return 0;
 
-	if( sd->opt1>0 || sd->status.option&2 )
+	if( sd->opt1>0 || sd->status.option&2 ) {
+		skill_failed(sd);
 		return 0;
+	}
 	//ƒXƒLƒ‹‚ªg‚¦‚È‚¢?‘ÔˆÙ?í’†
 	if(sd->sc_count){
 		if( sd->sc_data[SC_SILENCE].timer!=-1 ||
@@ -6071,15 +6079,14 @@ int skill_castend_map( struct map_session_data *sd,int skill_num, const char *ma
 			return 0;
 	}
 
-	if( skill_num != sd->skillid)	/* •s?³ƒpƒPƒbƒg‚ç‚µ‚¢ */
+	if( skill_num != sd->skillid) /* •s?³ƒpƒPƒbƒg‚ç‚µ‚¢ */
 		return 0;
 
-	sd->skillid = 0; //Clear it up to prevent resent packets through! [Skotlex]
-	
 	if (strlen(map) > MAP_NAME_LENGTH-1)
 	{	//Map_length check, as it is sent by the client and we shouldn't trust it [Skotlex]
 		if (battle_config.error_log)
 			ShowError("skill_castend_map: Received map name '%s' too long!\n", map);
+		skill_failed(sd);
 		return 0;
 	}
 	pc_stopattack(sd);
@@ -6088,9 +6095,11 @@ int skill_castend_map( struct map_session_data *sd,int skill_num, const char *ma
 		ShowInfo("PC %d skill castend skill =%d map=%s\n",sd->bl.id,skill_num,map);
 	pc_stop_walking(sd,0);
 
-	if(strcmp(map,"cancel")==0)
+	if(strcmp(map,"cancel")==0) {
+		skill_failed(sd);
 		return 0;
-
+	}
+	
 	switch(skill_num){
 	case AL_TELEPORT:		/* ƒeƒŒƒ|?ƒg */
 		if(strcmp(map,"Random")==0)
@@ -6106,7 +6115,6 @@ int skill_castend_map( struct map_session_data *sd,int skill_num, const char *ma
 			struct skill_unit_group *group;
 			int i;
 			int maxcount=0;
-			unsigned int tick=gettick();
 			p[0] = &sd->status.save_point;
 			p[1] = &sd->status.memo_point[0];
 			p[2] = &sd->status.memo_point[1];
@@ -6120,9 +6128,7 @@ int skill_castend_map( struct map_session_data *sd,int skill_num, const char *ma
 				}
 				if(c >= maxcount) {
 					clif_skill_fail(sd,skill_num,0,0);
-					sd->canact_tick = gettick();
-					sd->canmove_tick = gettick();
-					sd->skillitem = sd->skillitemlv = -1;
+					skill_failed(sd);
 					return 0;
 				}
 			}
@@ -6135,26 +6141,26 @@ int skill_castend_map( struct map_session_data *sd,int skill_num, const char *ma
 					break;
 				}
 			}
-			if(x==0 || y==0)	/* •s?³ƒpƒPƒbƒg?H */
-				return 0;
-
-			sd->skillid = skill_num;
-			if(!skill_check_condition(sd,3))
-			{
-				sd->skillid = 0;
+			if(x==0 || y==0) {	/* •s?³ƒpƒPƒbƒg?H */
+				skill_failed(sd);
 				return 0;
 			}
-			sd->skillid = 0;
+			
+			if(!skill_check_condition(sd,3))
+			{
+				skill_failed(sd);
+				return 0;
+			}
 			
 			if(skill_check_unit_range2(&sd->bl,sd->bl.m,sd->skillx,sd->skilly,skill_num,sd->skilllv) > 0) {
 				clif_skill_fail(sd,0,0,0);
-				sd->canact_tick = tick;
-				sd->canmove_tick = tick;
-				sd->skillitem = sd->skillitemlv = -1;
+				skill_failed(sd);
 				return 0;
 			}
-			if((group=skill_unitsetting(&sd->bl,skill_num,sd->skilllv,sd->skillx,sd->skilly,0))==NULL)
+			if((group=skill_unitsetting(&sd->bl,skill_num,sd->skilllv,sd->skillx,sd->skilly,0))==NULL) {
+				skill_failed(sd);
 				return 0;
+			}
 			group->valstr=(char *)aCallocA(MAP_NAME_LENGTH,sizeof(char));
 			memcpy(group->valstr,map,MAP_NAME_LENGTH-1);
 			group->val2=(x<<16)|y;
@@ -6162,6 +6168,7 @@ int skill_castend_map( struct map_session_data *sd,int skill_num, const char *ma
 		break;
 	}
 
+	sd->skillid = sd->skilllv = -1;
 	return 0;
 }
 
