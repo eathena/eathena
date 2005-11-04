@@ -31,6 +31,9 @@
 		like gemstones when the skill is used.
 	--
 11/04
+	* Added the enchant effect to Cursed water [MasterOfMuppets]
+	- Changed fake angels droprate of cursed water to 3% and added cursed water to
+	  drop from violys at 10%
 	* Added Angel wing to old blue boxes and old violet boxes [MasterOfMuppets]
 11/03
 	* Added slots to Garm's claw, hard covered book and wool cap, thanks to Gyunwoo23
