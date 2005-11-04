@@ -31,6 +31,10 @@
 		like gemstones when the skill is used.
 	--
 11/03
+	* Added Venom Knife requirement to the skill Venom Knife. Still won't check
+	  for a Venom Knife to be equipped as arrow, but it will consume it at least.
+	  [Skotlex]
+	* Made Ki Translation usable on party-mates only (inf2&1024) [Skotlex]
 	* Added empty bottles to the Elemental-resist potions recipes, thanks to reddozen [MasterOfMuppets]
 10/31
 	* More updates to new quest skills. [DracoRPG]

@@ -411,7 +411,6 @@ CREATE TABLE `sc_data` (
   `val4` int(11) NOT NULL default '0',
   KEY (`account_id`),
   KEY (`char_id`),
---PRIMARY KEY  (`account_id`,`char_id`,`type`),
   CONSTRAINT `scdata_ibfk_1` FOREIGN KEY (`account_id`) REFERENCES `login` (`account_id`) ON DELETE CASCADE,
   CONSTRAINT `scdata_ibfk_2` FOREIGN KEY (`char_id`) REFERENCES `char` (`char_id`) ON DELETE CASCADE
 ) TYPE=InnoDB;

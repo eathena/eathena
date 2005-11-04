@@ -4133,7 +4133,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			}else if(dstmd)
 			{
 				int race = status_get_race(bl);
-				if(!(status_get_mode(bl)&MD_BOSS) && (race == 6 || race == 7 || race == 8) && rand()%100 < 70)
+				if(!(status_get_mode(bl)&MD_BOSS) && status_get_lv(src)>status_get_lv(bl) && (race == 6 || race == 7 || race == 8) && rand()%100 < 70)
 						status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,10000,0);
 				else{
 					if(sd)
