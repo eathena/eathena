@@ -499,6 +499,7 @@ int guild_recv_info(struct guild *sg)
 					pc_blockskill_start(sd, skill_num[i], 300000);
 			//Also set the guild master flag.
 			sd->state.gmaster_flag = g;
+			clif_charnameupdate(sd); // [LuzZza]			
 		}
 	}else
 		before=*g;
@@ -509,9 +510,10 @@ int guild_recv_info(struct guild *sg)
 			struct map_session_data *sd = map_id2sd(g->member[i].account_id);
 			if (sd && sd->status.char_id == g->member[i].char_id &&
 				sd->status.guild_id == g->guild_id &&
-				!sd->state.waitingdisconnect)
+				!sd->state.waitingdisconnect) {
 				g->member[i].sd = sd;
-			else g->member[i].sd = NULL;
+				clif_charnameupdate(sd); // [LuzZza]
+			} else g->member[i].sd = NULL;
 			m++;
 		}else
 			g->member[i].sd=NULL;
@@ -693,7 +695,8 @@ int guild_member_added(int guild_id,int account_id,int char_id,int flag)
 
 	// いちおう競合確認
 	guild_check_conflict(sd);
-	clif_charnameupdate(sd); //Update display name [Skotlex]
+	//Next line commented because it do nothing, look at guild_recv_info [LuzZza]
+	//clif_charnameupdate(sd); //Update display name [Skotlex]
 	return 0;
 }
 
@@ -932,6 +935,10 @@ int guild_memberposition_changed(struct guild *g,int idx,int pos)
 
 	g->member[idx].position=pos;
 	clif_guild_memberpositionchanged(g,idx);
+	
+	// Update char position in client [LuzZza]
+	if(g->member[idx].sd != NULL)
+		clif_charnameupdate(g->member[idx].sd);
 	return 0;
 }
 // ギルド役職変更
@@ -955,10 +962,16 @@ int guild_change_position(struct map_session_data *sd,int idx,
 int guild_position_changed(int guild_id,int idx,struct guild_position *p)
 {
 	struct guild *g=guild_search(guild_id);
+	int i;
 	if(g==NULL)
 		return 0;
 	memcpy(&g->position[idx],p,sizeof(struct guild_position));
 	clif_guild_positionchanged(g,idx);
+	
+	// Update char name in client [LuzZza]
+	for(i=0;i<g->max_member;i++)
+		if(g->member[i].position == idx && g->member[i].sd != NULL)
+			clif_charnameupdate(g->member[i].sd);
 	return 0;
 }
 // ギルド告知変更
@@ -1456,6 +1469,7 @@ int guild_broken(int guild_id,int flag)
 			sd->status.guild_id=0;
 			sd->state.guild_sent=0;
 			clif_guild_broken(g->member[i].sd,0);
+			clif_charnameupdate(sd); // [LuzZza]
 		}
 	}
 
