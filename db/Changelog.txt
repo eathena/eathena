@@ -30,6 +30,8 @@
 		Item type: Throwing Dagger. Has to be equipped as an arrow, is consumed
 		like gemstones when the skill is used.
 	--
+11/05
+	* Updated alot of weapons, thanks to reddozen and vicious_pucca [MasterOfMuppets]
 11/04
 	* Added the enchant effect to Cursed water [MasterOfMuppets]
 	- Changed fake angels droprate of cursed water to 3% and added cursed water to
