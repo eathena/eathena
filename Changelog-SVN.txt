@@ -209,8 +209,8 @@ Date	Added
 	  [Skotlex]
 	* Some fixes to the char-sql code when sending chars to another map server.
 	  [Skotlex]
-	* LuzZa's ported Trade/Vending additional antispoof checks [Lupus]
-	- thanks to Yor&Freya Team. So LuzZa is our new dev (it was his 2nd test)
+	* LuzZza's ported Trade/Vending additional antispoof checks [Lupus]
+	- thanks to Yor&Freya Team. So LuzZza is our new dev (it was his 2nd test)
 2005/10/25
 	* Some work fixing up multi-map servers. It should now *work*, however each
 	  time the player swaps map-server it triggers all the relevant
