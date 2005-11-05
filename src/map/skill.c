@@ -1432,7 +1432,7 @@ int skill_blown( struct block_list *src, struct block_list *target,int count, in
 {
 	int dx=0,dy=0,nx,ny;
 	int x=target->x,y=target->y;
-	int dir,ret,prev_state=MS_IDLE;
+	int dir,ret;
 	int moveblock;
 	struct map_session_data *sd=NULL;
 	struct mob_data *md=NULL;
@@ -1482,31 +1482,8 @@ int skill_blown( struct block_list *src, struct block_list *target,int count, in
 	//Avoid "moving" a target that is not registered in the map (otherwise a dangling pointer is caused) [Skotlex]
 	//This happens when a skill knocks back an enemy and the same hit kills it, so we are pushing around a corpse.
 	moveblock= (target->prev!=NULL) && ( x/BLOCK_SIZE != nx/BLOCK_SIZE || y/BLOCK_SIZE != ny/BLOCK_SIZE);
-
-	if(count&0x20000) {
-		battle_stopwalking(target,1);
-		if(sd){
-			sd->to_x=nx;
-			sd->to_y=ny;
-			sd->walktimer = 1;
-		} else if(md) {
-			md->to_x=nx;
-			md->to_y=ny;
-			prev_state = md->state.state;
-			md->state.state = MS_WALK;
-		} else if(pd) {
-			pd->to_x=nx;
-			pd->to_y=ny;
-			prev_state = pd->state.state;
-			pd->state.state = MS_WALK;
-		}
-		clif_blown(target);
-	}
-	else
-		//if the 2 is hardcoded, it causes conflicts with the div combo-delay,
-		//so it's best to pass it to the function the flag value. [Skotlex]
-		//(or perhaps would it be safe to just use 1 here? I am not risking it....
-		battle_stopwalking(target,flag);
+	
+	battle_stopwalking(target,count&0x20000?0:1); //When flag 0x20000 is passed, position update is sent at the end of function. [Skotlex]
 
 	dx = nx - x;
 	dy = ny - y;
@@ -1533,22 +1510,18 @@ int skill_blown( struct block_list *src, struct block_list *target,int count, in
 		skill_unit_move(target,tick,3);
 	}
 
-	if(sd) {	/* ?–Ê?‚É“ü‚Á‚Ä‚«‚½‚Ì‚Å•\Ž¦ */
+	if(count&0x20000) //FIXME: Where exactly do I place this packet? Before/after the in/out of sight packets may cause trouble...  [Skotlex]
+		clif_blown(target);
+	
+	if(sd)	/* ?–Ê?‚É“ü‚Á‚Ä‚«‚½‚Ì‚Å•\Ž¦ */
 		map_foreachinmovearea(clif_pcinsight,target->m,nx-AREA_SIZE,ny-AREA_SIZE,nx+AREA_SIZE,ny+AREA_SIZE,-dx,-dy,0,sd);
-		if(count&0x20000)
-			sd->walktimer = -1;
-	}
-	else if(md) {
+	else if(md)
 		map_foreachinmovearea(clif_mobinsight,target->m,nx-AREA_SIZE,ny-AREA_SIZE,nx+AREA_SIZE,ny+AREA_SIZE,-dx,-dy,BL_PC,md);
-		if(count&0x20000)
-			md->state.state = prev_state;
-	}
-	else if(pd) {
+	else if(pd)
 		map_foreachinmovearea(clif_petinsight,target->m,nx-AREA_SIZE,ny-AREA_SIZE,nx+AREA_SIZE,ny+AREA_SIZE,-dx,-dy,BL_PC,pd);
-		if(count&0x20000)
-			pd->state.state = prev_state;
-	}
+	
 
+		
 	return 0;
 }
 
@@ -6714,10 +6687,9 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 
 	case UNT_SKIDTRAP:
 		{
-			int i,c = skill_get_blewcount(sg->skill_id,sg->skill_lv);
+			int c = skill_get_blewcount(sg->skill_id,sg->skill_lv);
 			if(map_flag_gvg(bl->m)) c = 0;
-			for(i=0;i<c;i++)
-				skill_blown(&src->bl,bl,1|0x30000,2);
+			skill_blown(&src->bl,bl,c|0x30000,2);
 			sg->unit_id = UNT_USED_TRAPS;
 			clif_changelook(&src->bl,LOOK_BASE,sg->unit_id);
 			sg->limit=DIFF_TICK(tick,sg->tick)+1500;

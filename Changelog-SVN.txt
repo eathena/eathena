@@ -1,6 +1,8 @@
 Date	Added
 ==========
 2005/11/05
+	* Fixed knock-back packets, thanks to Vicious for collecting the packet
+	  samples. [Skotlex]
 	* Fixed pretty much all ground skills not working when you "walked into
 	  them" (they were fine if casted on top of you, though) [Skotlex]
 	* Fixed not working ZENY LOG. You can use logging filter as well. [Lupus]

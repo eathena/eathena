@@ -1761,23 +1761,16 @@ int clif_changemapserver(struct map_session_data *sd, char *mapname, int x, int 
 }
 
 int clif_blown(struct block_list *bl) {
-	
+	//Empirical results with packet-sniffing tools says this should be a simple clif_fixpos. [Skotlex]
+/*
 	switch (bl->type) {
 	case BL_MOB:
 		return clif_fixmobpos((struct mob_data*)bl);
 	case BL_PET:
 		return clif_fixpetpos((struct pet_data*)bl);
-	case BL_PC:
-		// FIXME: This method no longer works, client complains about "Don't use bot"
-		// Falling back on a harsh "set yourself here" implementation.
-		//	clif_walkok(sd);
-		//	clif_movechar(sd);
-		//	return 0;
 	default:
-		return clif_fixpos(bl);
-	}
-	
-	return 0;
+*/
+	return clif_fixpos(bl);
 	
 }
 /*==========================================
@@ -1789,22 +1782,13 @@ int clif_fixpos(struct block_list *bl) {
 
 	nullpo_retr(0, bl);
 
-	if (bl->type ==BL_PC) {
-		WBUFW(buf,0)=0x88;
-		WBUFL(buf,2)=-10;
-		WBUFW(buf,6)=bl->x;
-		WBUFW(buf,8)=bl->y;
-		clif_send(buf, packet_len_table[0x88], bl, SELF);
-		if (((struct map_session_data *)bl)->disguise) {
-			WBUFL(buf,2)=-bl->id;
-			WBUFW(buf,6)=bl->x;
-			WBUFW(buf,8)=bl->y;
-			clif_send(buf, packet_len_table[0x88], bl, AREA);
-			return 0;
-		}
-	}
 	WBUFW(buf,0)=0x88;
-	WBUFL(buf,2)=bl->id;
+
+	if (bl->type ==BL_PC && ((struct map_session_data *)bl)->disguise)
+		WBUFL(buf,2)=-bl->id;
+	else
+		WBUFL(buf,2)=bl->id;
+
 	WBUFW(buf,6)=bl->x;
 	WBUFW(buf,8)=bl->y;
 	clif_send(buf, packet_len_table[0x88], bl, AREA);
