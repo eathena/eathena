@@ -48,8 +48,6 @@
 #include "pet.h"
 #include "log.h"
 
-#define STATE_BLIND 0x10
-
 struct Clif_Config {
 	int packet_db_ver;	//Preferred packet version.
 	int connect_cmd[MAX_PACKET_VER + 1]; //Store the connect command for all versions. [Skotlex]
@@ -2599,7 +2597,6 @@ int clif_updatestatus(struct map_session_data *sd,int type)
 	case SP_WEIGHT:
 		pc_checkweighticon(sd);
 		WFIFOW(fd,0)=0xb0;
-		WFIFOW(fd,2)=type;
 		WFIFOL(fd,4)=sd->weight;
 		break;
 	case SP_MAXWEIGHT:
@@ -5107,7 +5104,6 @@ int clif_GMmessage(struct block_list *bl, char* mes, int len, int flag)
 			WBUFW(buf,0) = 0x08e;
 			lp = 4;
 			break;
-
 		default:	//Yellow (normal announce color)
 			WBUFW(buf,0) = 0x9a;
 			lp = 4;
@@ -8723,10 +8719,6 @@ void clif_parse_Restart(int fd, struct map_session_data *sd) {
 			pc_setdead(sd);
 		break;
 	case 0x01:
-
-		//if(!pc_isdead(sd) && (sd->opt1 || (sd->opt2 && sd->opt2 != STATE_BLIND)))
-		//	return; No need as status changes are saved now. [Skotlex]
-
 		/*	Rovert's Prevent logout option - Fixed [Valaris]	*/
 		if (!battle_config.prevent_logout || DIFF_TICK(gettick(), sd->canlog_tick) > battle_config.prevent_logout)
 		{

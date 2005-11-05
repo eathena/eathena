@@ -7,7 +7,6 @@
 
 #define OPTION_MASK 0xd7b8
 #define CART_MASK 0x788
-#define STATE_BLIND 0x10
 
 //Update this max as necessary. 53 is the value needed for Super Baby currently
 #define MAX_SKILL_TREE 53

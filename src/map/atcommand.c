@@ -36,8 +36,6 @@
 #include "mail.h"
 #endif
 
-#define STATE_BLIND 0x10
-
 static char command_symbol = '@'; // first char of the commands (by [Yor])
 
 char *msg_table[MAX_MSG]; // Server messages (0-499 reserved for GM commands, 500-999 reserved for others)

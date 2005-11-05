@@ -26,7 +26,6 @@
 #include "grfio.h"
 
 #define SKILLUNITTIMER_INVERVAL	100
-#define STATE_BLIND 0x10
 #define swap(x,y) { int t; t = x; x = y; y = t; }
 
 const struct skill_name_db skill_names[] = {
@@ -3508,7 +3507,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				break;
 			}
 			if(dstsd->status.weapon == 0 ||
-				(sd && sd->status.party_id > 0 && sd->status.party_id != dstsd->status.party_id) ||
 				dstsd->sc_data[SC_FIREWEAPON].timer != -1 ||
 				dstsd->sc_data[SC_WATERWEAPON].timer != -1 ||
 				dstsd->sc_data[SC_WINDWEAPON].timer != -1 ||
@@ -7724,6 +7722,7 @@ int skill_check_condition(struct map_session_data *sd,int type)
 	case DC_THROWARROW:
 	case SN_SHARPSHOOTING:
 	case CG_ARROWVULCAN:
+	case AS_VENOMKNIFE:
 		if(sd->equip_index[10] < 0) {
 			clif_arrow_fail(sd,0);
 			return 0;
@@ -9973,7 +9972,7 @@ int skill_unit_move_sub( struct block_list *bl, va_list ap )
 		!(skill_get_unit_flag(skill_id)&UF_DUALMODE)) //Skills in dual mode have to trigger both. [Skotlex]
 		return 0;
 
-	if (!skill_unit_checktarget(skill_id, bl))
+	if (!skill_unit_checktarget(skill_id, target))
 		return 0;
 	
 	if (!unit->alive || target->prev==NULL)
