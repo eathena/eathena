@@ -1,6 +1,7 @@
 Date	Added
 ==========
 2005/11/05
+    * Fixes on sending to client status of char (guild, position, etc). [LuzZza]
 	* Updated backsliding to work as it should. [Skotlex]
 	* Added back the GPL licence on the root directory (why was this removed?)
 	  [Skotlex]
