@@ -144,7 +144,6 @@ int buildin_copyarray(struct script_state *st);
 int buildin_getarraysize(struct script_state *st);
 int buildin_deletearray(struct script_state *st);
 int buildin_getelementofarray(struct script_state *st);
-int buildin_if(struct script_state *st);
 int buildin_getitem(struct script_state *st);
 int buildin_getitem2(struct script_state *st);
 int buildin_getnameditem(struct script_state *st);
@@ -405,7 +404,6 @@ struct {
 	{buildin_getarraysize,"getarraysize","i"},
 	{buildin_deletearray,"deletearray","ii"},
 	{buildin_getelementofarray,"getelementofarray","ii"},
-	{buildin_if,"if","i*"},
 	{buildin_getitem,"getitem","ii**"},
 	{buildin_getitem2,"getitem2","iiiiiiiii*"},
 	{buildin_getnameditem,"getnameditem","is"},
@@ -3010,32 +3008,6 @@ int buildin_input(struct script_state *st)
 	}
 	return 0;
 }
-
-/*==========================================
- *
- *------------------------------------------
- */
-int buildin_if(struct script_state *st)
-{
-	int sel,i;
-
-	sel=conv_num(st,& (st->stack->stack_data[st->start+2]));
-	if(!sel)
-		return 0;
-
-	// 関数名をコピー
-	push_copy(st->stack,st->start+3);
-	// 間に引数マーカを入れて
-	push_val(st->stack,C_ARG,0);
-	// 残りの引数をコピー
-	for(i=st->start+4;i<st->end;i++){
-		push_copy(st->stack,i);
-	}
-	run_func(st);
-
-	return 0;
-}
-
 
 /*==========================================
  * 変数設定

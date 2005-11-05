@@ -2215,9 +2215,6 @@ static int skill_timerskill(int tid, unsigned int tick, int id,int data )
 			return 0;
 
 		switch(skl->skill_id) {
-			case TF_BACKSLIDING:
-				clif_skill_nodamage(src,src,skl->skill_id,skl->skill_lv,1);
-				break;
 			case RG_INTIMIDATE:
 				if(sd && !map[src->m].flag.noteleport) {
 					int x,y,i,j;
@@ -4518,10 +4515,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		}
 		break;
 
-	case TF_BACKSLIDING:		/* バックステップ */
-		battle_stopwalking(src,1);
+	case TF_BACKSLIDING: //This is the correct implementation as per packet logging information. [Skotlex]
+		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		skill_blown(src,bl,skill_get_blewcount(skillid,skilllv)|0x30000, 2);
-		skill_addtimerskill(src,tick + 200,src->id,0,0,skillid,skilllv,0,flag);
 		break;
 
 	case TK_HIGHJUMP:
