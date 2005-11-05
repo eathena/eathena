@@ -31,6 +31,8 @@
 		like gemstones when the skill is used.
 	--
 11/05
+	* Reverted Doppelganger's aspd value to 10, it is the correct value [MasterOfMuppets]
+	  do not change it again.
 	* Updated alot of weapons, thanks to reddozen and vicious_pucca [MasterOfMuppets]
 11/04
 	* Added the enchant effect to Cursed water [MasterOfMuppets]
