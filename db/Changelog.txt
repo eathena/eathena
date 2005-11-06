@@ -30,6 +30,10 @@
 		Item type: Throwing Dagger. Has to be equipped as an arrow, is consumed
 		like gemstones when the skill is used.
 	--
+11/07
+	* Updated Mimic Card & Mystcase Card bonuses & Raggler Card [Combo bonus = OVB Drop] chances: [Lupus]
+	  according to kRO formula (found by real tests): chance = 1 * (killed_mob_level/10) + 1
+		PS I've killed tons of mobs and tested these cards [Lupus]
 11/06
 	* Fixed Marse and Rocker cards missing effects [MasterOfMuppets]
 	* Updated item_db2.txt (new format), thanks to Justin84 [Lupus]

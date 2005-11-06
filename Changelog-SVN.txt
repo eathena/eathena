@@ -1,4 +1,11 @@
 Date	Added
+2005/11/07
+	* Updated bAddMonsterDropItem bonuses to work with cards: Mimic Card, Mystcase Card
+		where bonus_item_rate = base_rate * (killed_mob_level/10) + 1
+		So if 2nd argument is negative, then it's 'rate'
+		Now, if you kill Porings, u'd have OBB/GIFT BOX drops with 0.01% chance
+		and if u kill Leaf Cats then u'd have them with 0.05% chance
+		Max chance is 0.1% (when u kill MVPs with level > 94)
 2005/11/06
 	* Cleaned up a bit the warp portal code. [Skotlex]
 	* Added a timer to invoke the OnAgitInit event 10 seconds after the char/map

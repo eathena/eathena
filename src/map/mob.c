@@ -2501,8 +2501,17 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 				if (sd->monster_drop_race[i] & (1<<race) ||
 					sd->monster_drop_race[i] & 1<<(mode&MD_BOSS?10:11))
 				{
-					if (sd->monster_drop_itemrate[i] <= rand()%10000+1)
-						continue;
+					//check if the bonus item drop rate should be multiplied with mob level/10 [Lupus]
+					if(sd->monster_drop_itemrate[i]<0) {
+						//it's negative, then it should be multiplied. e.g. for Mimic,Myst Case Cards, etc
+						// rate = base_rate * (mob_level/10) + 1
+						if( -sd->monster_drop_itemrate[i]*(md->level/10)+1 <= rand()%10000+1 )
+							continue;
+					} else {
+						//it's positive, then it goes as it is
+						if (sd->monster_drop_itemrate[i] <= rand()%10000+1)
+							continue;
+					}
 					itemid = (sd->monster_drop_itemid[i] > 0) ? sd->monster_drop_itemid[i] :
 						itemdb_searchrandomgroup(sd->monster_drop_itemgroup[i]);
 

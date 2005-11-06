@@ -116,9 +116,12 @@ bonus2 bAddMDefClass,n,x;		In monster of class n in case of the magical damage r
 bonus2 bHPDrainRate,n,x;		it obtained to the enemy -- ? ME ? JI -- n % probability -- x % -- HP -- absorption (+ n and x are carried out)
 bonus2 bSPDrainRate,n,x;		it obtained to the enemy -- ? ME ? JI -- n % probability -- x % -- SP -- absorption (+ n and x are carried out)
 bonus2 bAddMonsterDropItem,n,x;		When killing any monsters with physical attack, the probability which drops item n +x% (the item which the monster drops unrelated ones)
-
+									if 'x' is negative value, then it's a part of formula
+										chance = -x*(killed_mob_level/10)+1
 bonus3 bAddMonsterDropItem,n,x,y;	When killing monsters from race x with physical attack, the probability which drops item n +y% (the item which the monster drops unrelated ones)
 						0=Formless, 1=Undead, 2=Brute, 3=Plant, 4=Insect, 5=Fish, 6=Demon, 7=Demi-Human, 8=Angel, 9=Dragon, 10=Boss monster, 11=Other than (normal monster) boss monster
+									if 'x' is negative value, then it's a part of formula
+										chance = -x*(killed_mob_level/10)+1
 bonus3 bAutoSpell,n,x,y;		Auto Spell casting of spell n at level x with y% chance
 
 // bAddDamageClass, bAddMagicDamageClass and bAddMonsterDropItem it is setting possible up to 10. Those which exceed 10 are ignored.
