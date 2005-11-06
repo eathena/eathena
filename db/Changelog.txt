@@ -31,6 +31,7 @@
 		like gemstones when the skill is used.
 	--
 11/05
+	* Changed some item names for preparing the sign quest [MasterOfMuppets]
 	* Reverted Doppelganger's aspd value to 10, it is the correct value [MasterOfMuppets]
 	  do not change it again.
 	* Updated alot of weapons, thanks to reddozen and vicious_pucca [MasterOfMuppets]

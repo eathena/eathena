@@ -1110,8 +1110,8 @@
 2639,Purification_Sachet,Occult Incense,5,,10,100,,0,,0,127918079,7,2,136,,0,0,0,{ bonus bAgi,1; bonus bInt,1; }
 2640,Kafra_Ring,Kafra Ring,5,,10,200,,0,,0,127918079,7,2,136,,0,0,0,{ bonus bStr,1; bonus bAgi,1; bonus bInt,1; bonus bLuk,1; }
 2641,Fashion_Hip_Sack,Fashion Hip Sack,5,,10,700,,0,,0,263200,7,2,136,,50,0,0,{ bonus bStr,2; }
-2642,Celines_Ring,Celine's Ring,5,,10,100,,0,,0,127918079,7,2,136,,0,0,0,{}
-2643,Celines_Ring_,Celine's Ring,5,,10,100,,0,,0,127918079,7,2,136,,0,0,0,{}
+2642,Serin's_Gold_Ring,Serin's Gold Ring,5,,10,100,,0,,0,127918079,7,2,136,,0,0,0,{}
+2643,Serin's_Gold_Ring_,Serin's Gold Ring,5,,10,100,,0,,0,127918079,7,2,136,,0,0,0,{}
 2644,The_Sign_,The Sign,5,,10,0,,0,,0,127918079,7,2,136,,0,0,0,{ bonus bMatkRate,5; bonus bAtkRate,5; }
 2645,Moonlight_Ring,Moonlight Ring,5,,10,200,,0,,0,135232,7,2,136,,60,0,0,{}
 2646,Bouquet_,Bunch of Carnations,5,,10,100,,0,,0,127918079,7,2,136,,0,0,0,{ bonus bAllStats,3; }
@@ -1785,8 +1785,8 @@
 7174,Wrapping_Thread,Wrapping Thread,3,,10,10,,,,,,,,,,,,,{}
 7175,Wrapper,Wrapper,3,,10,10,,,,,,,,,,,,,{}
 7176,King's_Proof_Document,King's Proof Document,3,,10,10,,,,,,,,,,,,,{}
-7177,Piece_of_Starlight's_Sorrow,Piece of Starlight's Sorrow,3,,10,10,,,,,,,,,,,,,{}
-7178,Starlight's_Sorrow,Starlight's Sorrow,3,,10,10,,,,,,,,,,,,,{}
+7177,Crumb_of_Sobbing_Starlight,Crumb of Sobbing Starlight,3,,10,10,,,,,,,,,,,,,{}
+7178,Sobbing_Starlight,Sobbing Starlight,3,,10,10,,,,,,,,,,,,,{}
 7179,Donation_Ticket,Donation Ticket,3,,10,10,,,,,,,,,,,,,{}
 7180,Letter_of_Introduction,Letter of Introduction,3,,10,10,,,,,,,,,,,,,{}
 7181,Commodity_Receipt,Commodity Receipt,3,,10,10,,,,,,,,,,,,,{}
@@ -1912,16 +1912,16 @@
 7301,Tassel,Tassel,3,,399,10,,,,,,,,,,,,,{}
 7302,Krathong,Krathong,3,,10,10,,,,,,,,,,,,,{}
 7303,Straw_Rice_Bag,Straw Rice Bag,3,,10,800,,,,,,,,,,,,,{}
-7304,Witchs_Spellbook,Witch's Spellbook,3,,10,10,,,,,,,,,,,,,{}
-7305,Nine_Words_Authority,Authority of 9 worlds,3,,10,10,,,,,,,,,,,,,{}
-7306,Piece_of_Soul,Piece of Soul,3,,10,10,,,,,,,,,,,,,{}
-7307,Whisper_of_Soul,Whisper of Soul,3,,10,10,,,,,,,,,,,,,{}
-7308,Witchs_Potion,Witch's Potion,3,,10,10,,,,,,,,,,,,,{}
-7309,Crows_Wing,Crow's Wing,3,,10,10,,,,,,,,,,,,,{}
+7304,Witch's_Spell_Scroll,Witch's Spell Scroll,3,,10,10,,,,,,,,,,,,,{}
+7305,Symbol_of_the_Nine_Realms,Symbol of the Nine Realms,3,,10,10,,,,,,,,,,,,,{}
+7306,Piece_of_Spirit,Piece of Spirit,3,,10,10,,,,,,,,,,,,,{}
+7307,Spiritual_Whispers,Spiritual Whispers,3,,10,10,,,,,,,,,,,,,{}
+7308,Witch's_Tonic,Witch's Tonic,3,,10,10,,,,,,,,,,,,,{}
+7309,Crow_Wing,Crow Wing,3,,10,10,,,,,,,,,,,,,{}
 7310,Peco_Coupon,Pecopeco Free Coupon,3,,10,10,,,,,,,,,,,,,{}
 7311,Airship_Coupon,Airship Free Coupon,3,,10,10,,,,,,,,,,,,,{}
 7312,Jubile,Jubilee,3,,32,10,,,,,,,,,,,,,{}
-7313,Witch's_Voucher,Witch's Voucher,3,,10,10,,,,,,,,,,,,,{}
+7313,Witch's_Medal,Witch's Medal,3,,10,10,,,,,,,,,,,,,{}
 7314,The_Sign,The Sign,3,,10,10,,,,,,,,,,,,,{}
 7315,Black_Quartz_Piece,Dark Crystal Fragment,3,422,,10,,,,,,,,,,,,,{}
 7316,Insect_Long_leg,Insect Leg,3,,329,10,,,,,,,,,,,,,{}
