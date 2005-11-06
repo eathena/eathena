@@ -28,6 +28,7 @@ Nexon
 Date		Added
 ======
 11/05
+	* Fixed a small typo in Alberta's weapon shop, thanks to reddozen for the fix [MasterOfMuppets]
 	* Added warps to the Izlude Airship, thanks to Justin84 [Lupus]
 	* Fixed both warper&warper2 Izlede location was ovelapped with BB, thanks to Justin84
 	- fixed wrong header of moc_fild19 BB, thanks to Justin84
