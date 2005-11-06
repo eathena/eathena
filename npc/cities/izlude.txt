@@ -14,6 +14,7 @@
 //= 1.2 Fixed a lot of typo’s [Nexon]
 //= 1.3 Removed callfunc Is_####_Class in favor of baseClass [Silentdragon]
 //= 1.4 Added a Jawaii related npc [MasterOfMuppets]
+//= 1.4a Fixed a small bug to the Jawaii warper, thanks to reddozen and Silent [MasterOfMuppets]
 //============================================================
 
 
@@ -574,7 +575,7 @@ izlude.gat,171,185,3	script	Honeymoon Helper#Izlude I	71,{
 			close;
 
 s_Go:
-			if(event_wedding == 0)
+			if(getpartnerid() == 0)
 {
 				mes "[Marry Happy]";
 				mes "UhOh, I'm sorry.";
