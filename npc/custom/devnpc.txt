@@ -307,6 +307,7 @@ doitagain:
 	if($lol == 2) goto Lquote2;
 	if($lol == 3) goto Lquote3;
 	if($lol == 4) goto Lquote4;
+	if($lol == 5) goto Lquote5;
         goto doitagain;
 
 Lquote0:
@@ -318,15 +319,23 @@ Lquote1:
 	setnpctimer 0;
 	end;
 Lquote2:
-	npctalk "Hey, wanna go meet in a dark room and do something fun?";
+	npctalk "Bananaphone!";
 	setnpctimer 0;
 	end;
 Lquote3:
-	npctalk "Guild Wars is better than RO. Infact, none of the eAthena devs actually play RO";
+	npctalk "Go away troll.";
 	setnpctimer 0;
 	end;
 Lquote4:
-	npctalk "I don't really do anything anymore...";
+	npctalk "Aria can go to hell.";
+	setnpctimer 0;
+	end;
+Lquote5:
+	npctalk "Sup, I'm back.";
+	setnpctimer 0;
+	end;
+Lquote6:
+	npctalk "WTFPWNED";
 	setnpctimer 0;
 	end;
 OnInit:
