@@ -2581,6 +2581,7 @@ int clif_updatestatus(struct map_session_data *sd,int type)
 	case SP_WEIGHT:
 		pc_checkweighticon(sd);
 		WFIFOW(fd,0)=0xb0;
+		WFIFOW(fd,2)=type;	//Added this packet back, Temp fix to the slow motion [Lupus]
 		WFIFOL(fd,4)=sd->weight;
 		break;
 	case SP_MAXWEIGHT:

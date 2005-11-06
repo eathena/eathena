@@ -1,5 +1,7 @@
 Date	Added
 ==========
+2005/11/06
+	* Slow motion Fix: Reverted weight packet, thanks to Momoko [Lupus]
 2005/11/05
 	* Fixes on sending to client status of char (guild, position, etc). [LuzZza]
 	* Updated backsliding to work as it should. [Skotlex]
