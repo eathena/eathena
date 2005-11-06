@@ -28,6 +28,14 @@ Nexon
 Date		Added
 ======
 11/06
+	* Big update to town guards. Changed according to how it is on iRO [MasterOfMuppets]
+	  thanks to Muad_Dib. The following towns had their guards updated:
+	  - Alberta
+	  - Aldebaran
+	  - Comodo
+	  - Izlude
+          - Payon
+          - Prontera
 	* Added Yuno and Lighthalzen Airports. Thanks to Justin84 [Lupus]
 11/05
 	* Fixed a small bug in the jawaii warper, thanks to reddozen and Silent [MasterOfMuppets]
