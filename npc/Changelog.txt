@@ -27,6 +27,8 @@ Nexon
 
 Date		Added
 ======
+11/06
+	* Added Yuno and Lighthalzen Airports. Thanks to Justin84 [Lupus]
 11/05
 	* Fixed a small bug in the jawaii warper, thanks to reddozen and Silent [MasterOfMuppets]
 	* Fixed a small typo in Alberta's weapon shop, thanks to reddozen for the fix [MasterOfMuppets]

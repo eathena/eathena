@@ -30,6 +30,8 @@
 		Item type: Throwing Dagger. Has to be equipped as an arrow, is consumed
 		like gemstones when the skill is used.
 	--
+11/06
+	* Updated item_db2.txt (new format), thanks to Justin84 [Lupus]
 11/05
 	* Changed some item names for preparing the sign quest [MasterOfMuppets]
 	* Reverted Doppelganger's aspd value to 10, it is the correct value [MasterOfMuppets]

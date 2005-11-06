@@ -1,45 +1,44 @@
 //===== eAthena Script ======================================= 
-//= Einbroch Airport Staff
+//= Lighthalzen Airport Staff
 //===== By: ================================================== 
 //= L0ne_W0lf, Muad_Dib
 //===== Current Version: ===================================== 
-//= 1.1a
+//= 1.0
 //===== Compatible With: ===================================== 
 //= eAthena Revision 3000+
 //===== Description: ========================================= 
-//= Einbroch Airport Staff
+//= Lighthalzen Airport Staff
 //===== Additional Comments: ================================= 
-//= Converted by Dr.Evil, 1.0b more typos and credits [Lupus]
-//= 1.1 Fixed wrong check, added extra condition [Justin84]
+//= 1.0 Cloned from einbroch.txt [Justin84]
 //============================================================
 
 
-airport.gat,126,43,4	script	Airport Staff#1::AirportE	90,{
+lhz_airport.gat,126,43,4	script	Airport Staff#1::AirportL	90,{
 	mes "[Airport Staff]";
 	mes "Welcome to the Airport.";
 	mes "How may I help you?";
 	next;
 	menu "Board the Airship",-,"Cancel",L_Cancel;
 
-		mes "[Airport Staff]";
-		mes "The Airship boarding fee";
-		mes "is 1,200 zeny, but if you've";
-		mes "got a Free Ticket for Airship,"; 
-		mes "the fee will be waived. Will";
-		mes "you board the Airship?";
-		next;
-		menu "Yes",-,"No",L_Cancel;
+	mes "[Airport Staff]";
+	mes "The Airship boarding fee";
+	mes "is 1,200 zeny, but if you've";
+	mes "got a Free Ticket for Airship,"; 
+	mes "the fee will be waived. Will";
+	mes "you board the Airship?";
+	next;
+	menu "Yes",-,"No",L_Cancel;
 
-		if(countitem(7311) > 0) goto L_GotTicket;
-		if(Zeny < 1200) goto L_NoZeny;
-			set Zeny, Zeny - 1200;
-			warp "airport.gat",148,51;
-			close;
+		if(countitem(7311) > 0) goto GotTicket;
+		if(zeny < 1200) goto L_NoZeny;
+		set Zeny,zeny-1200;
+		warp "lhz_airport.gat",148,51;
+		close;
 
-		L_GotTicket:
-			delitem 7311,1;
-			warp "airport.gat",148,51;
-			close;
+	GotTicket:
+		delitem 7311,1;
+		warp "lhz_airport.gat",148,51;
+		close;
 
 	L_NoZeny:
 		mes "[Airport Staff]";
@@ -53,14 +52,14 @@ airport.gat,126,43,4	script	Airport Staff#1::AirportE	90,{
 		close;
 }
 
-airport.gat,143,43,4	duplicate(AirportE)	Airport Staff#2	90,{
-//	script Airport_Staff_In;
+lhz_airport.gat,143,43,4	duplicate(AirportL)	Airport Staff#2	90,{
+// script Airport_Staff_In;
 }
-airport.gat,156,43,4	duplicate(AirportE)	Airport Staff#3	90,{
-//	script Airport_Staff_In;
+lhz_airport.gat,156,43,4	duplicate(AirportL)	Airport Staff#3	90,{
+// script Airport_Staff_In;
 }
 
-airport.gat,126,51,4	script	Airport Staff#4::AirportE2	90,{
+lhz_airport.gat,126,51,4	script	Airport Staff#4::AirportL2	90,{
 	mes "[Airport Staff]";
 	mes "Welcome~";
 	mes "Please head this";
@@ -78,7 +77,7 @@ airport.gat,126,51,4	script	Airport Staff#4::AirportE2	90,{
 		next;
 		menu "Yes",-,"No",L_Cancel;
 
-			warp "airport.gat",142,40;
+			warp "lhz_airport.gat",142,40;
 			close;
 
 	L_Cancel:
@@ -90,8 +89,8 @@ airport.gat,126,51,4	script	Airport Staff#4::AirportE2	90,{
 		close;
 }
 
-airport.gat,143,51,4	duplicate(AirportE2)	Airport Staff#5	90,{
+lhz_airport.gat,143,51,4	duplicate(AirportL2)	Airport	Staff#5 90,{
 }
 
-airport.gat,156,51,4	duplicate(AirportE2)	Airport Staff#6	90,{
+lhz_airport.gat,156,51,4	duplicate(AirportL2)	Airport	Staff#6	90,{
 }

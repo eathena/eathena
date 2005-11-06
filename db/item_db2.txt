@@ -1,7 +1,7 @@
 // Items Additional Database
 //
 // Structure of Database:
-// ID,Name,Name,Type,Price,Sell,Weight,ATK,DEF,Range,Slot,Job,Gender,Loc,wLV,eLV,Refineable,View,{UseScript},{EquipScript}
+// ID,Name,Name,Type,Price,Sell,Weight,ATK,DEF,Range,Slot,Job,Upper,Gender,Loc,wLV,eLV,Refineable,View,{Script}
 //
 // Legend for 'Type' field:
 //  0 = Usable : healing
@@ -17,5 +17,5 @@
 
 // Custom Items go here
 //=============================================================
-0,DEFAULT,Default,0,20,,10,,,,,0,2,0,0,,,,{},{}
-
+0,DEFAULT,Default,0,,10,10,,,,,127918079,7,2,,,,,,{}
+                                               
