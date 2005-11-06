@@ -337,6 +337,16 @@ int chrif_changemapserverack(int fd)
 }
 
 /*==========================================
+ * Delayed execution of the OnAgitInit to allow castle data
+ * to the retrieved from the char-server. [Skotlex]
+ *------------------------------------------
+ */
+static int chrif_do_onagitinit(int tid, unsigned int tick, int id, int data) {
+	ShowStatus("Event '"CL_WHITE"OnAgitInit"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n", npc_event_doall("OnAgitInit"));
+	return 0;
+}
+
+/*==========================================
  *
  *------------------------------------------
  */
@@ -357,7 +367,7 @@ int chrif_connectack(int fd)
 	if(!char_init_done) {
 		char_init_done = 1;
 		ShowStatus("Event '"CL_WHITE"OnInterIfInitOnce"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n", npc_event_doall("OnInterIfInitOnce"));
-		ShowStatus("Event '"CL_WHITE"OnAgitInit"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n", npc_event_doall("OnAgitInit"));
+		add_timer(gettick() + 10000, chrif_do_onagitinit, 0, 0);
 	}
 
 	return 0;
@@ -1566,6 +1576,7 @@ int do_init_chrif(void)
 	add_timer_func_list(check_connect_char_server, "check_connect_char_server");
 	add_timer_func_list(send_users_tochar, "send_users_tochar");
 	add_timer_func_list(auth_db_cleanup, "auth_db_cleanup");
+	add_timer_func_list(chrif_do_onagitinit, "chrif_do_onagitinit");
 	add_timer_interval(gettick() + 1000, check_connect_char_server, 0, 0, 10 * 1000);
 	add_timer_interval(gettick() + 1000, send_users_tochar, 0, 0, 5 * 1000);
 	add_timer_interval(gettick() + 1000, auth_db_cleanup, 0, 0, 10 * 1000);

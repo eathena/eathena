@@ -6472,14 +6472,10 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 	case UNT_WARP_WAITING:
 		if(bl->type==BL_PC){
 			struct map_session_data *sd = (struct map_session_data *)bl;
-			if(sd && src->bl.m == bl->m && src->bl.x == bl->x && src->bl.y == bl->y &&
-				src->bl.x == sd->to_x && src->bl.y == sd->to_y) {
-				if( battle_config.chat_warpportal || !sd->chatID ){
-					pc_setpos(sd,sg->valstr,sg->val2>>16,sg->val2&0xffff,3);
-					if(sg->src_id == bl->id || (strcmp(map[src->bl.m].name,sg->valstr) == 0	&&
-						src->bl.x == (sg->val2>>16) && src->bl.y == (sg->val2&0xffff) ))
-						skill_delunitgroup(sg);
-					if (--sg->val1<=0)
+			if((!sd->chatID || battle_config.chat_warpportal)
+				&& sd->to_x == src->bl.x && sd->to_y == src->bl.y) {
+				if (pc_setpos(sd,sg->valstr,sg->val2>>16,sg->val2&0xffff,3) == 0) {
+					if (--sg->val1<=0 || sg->src_id == bl->id)
 						skill_delunitgroup(sg);
 				}
 			}

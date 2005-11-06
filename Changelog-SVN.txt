@@ -1,6 +1,12 @@
 Date	Added
-==========
 2005/11/06
+	* Cleaned up a bit the warp portal code. [Skotlex]
+	* Added a timer to invoke the OnAgitInit event 10 seconds after the char/map
+	  servers are connected. Scripts should now carefully use OnInit to load the
+	  castle data, and OnAgitInit to check for castle owners, mobs, WoE, etc.
+	  [Skotlex]
+	* Reverted the  damage delay equation to 800 -4*agi, which is the correct
+	  data from packets examined. [Skotlex]	
 	* Slow motion Fix: Reverted weight packet, thanks to Momoko [Lupus]
 2005/11/05
 	* Fixes on sending to client status of char (guild, position, etc). [LuzZza]
