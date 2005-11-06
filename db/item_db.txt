@@ -1159,7 +1159,7 @@
 4018,Andre_Larva_Card,Andre Larva Card,6,,10,10,,,,,,,,2,,,,,{ bonus bInt,1; bonus bMaxSP,10; }
 4019,Hornet_Card,Hornet Card,6,,10,10,,,,,,,,2,,,,,{ bonus bStr,1; bonus bBaseAtk,3; }
 4020,Farmiliar_Card,Farmiliar Card,6,,10,10,,,,,,,,2,,,,,{ bonus2 bAddEff,Eff_Blind,500; bonus bBaseAtk,5; }
-4021,Rocker_Card,Rocker Card,6,,10,10,,,,,,,,16,,,,,{ bonus bDex,1; }
+4021,Rocker_Card,Rocker Card,6,,10,10,,,,,,,,16,,,,,{ bonus bDex,1; bonus bBaseAtk,5; }
 4022,Spore_Card,Spore Card,6,,10,10,,,,,,,,136,,,,,{ bonus bVit,2; }
 4023,Desert_Wolf_Babe_Card,Desert Wolf Babe Card,6,,10,10,,,,,,,,16,,,,,{ bonus bInt,1; }
 4024,Plankton_Card,Plankton Card,6,,10,10,,,,,,,,2,,,,,{ bonus2 bAddEff,Eff_Sleep,500; bonus bBaseAtk,5; }
@@ -1233,7 +1233,7 @@
 4092,Skel_Worker_Card,Skel Worker Card,6,,10,10,,,,,,,,2,,,,,{ bonus2 bAddSize,1,15; bonus bBaseAtk,5; }
 4093,Obeaune_Card,Obeaune Card,6,,10,10,,,,,,,,136,,,,,{ skill 35,1; }
 4094,Archer_Skeleton_Card,Archer Skeleton Card,6,,10,10,,,,,,,,2,,,,,{ bonus bLongAtkRate,10; }
-4095,Marse_Card,Marse Card,6,,10,10,,,,,,,,4,,,,,{ bonus2 bSubEle,Ele_Water,30; }
+4095,Marse_Card,Marse Card,6,,10,10,,,,,,,,4,,,,,{ bonus2 bSubEle,Ele_Water,30; bonus bFlee,5; }
 4096,Zenorc_Card,Zenorc Card,6,,10,10,,,,,,,,2,,,,,{ bonus2 bAddEff,Eff_Poison,400; bonus bBaseAtk,10; }
 4097,Matyr_Card,Matyr Card,6,,10,10,,,,,,,,64,,,,,{ bonus bMaxHPrate,10; bonus bAgi,1; }
 4098,Dokebi_Card,Dokebi Card,6,,10,10,,,,,,,,16,,,,,{ bonus bDefEle,Ele_Wind; bonus bDef,1; }
