@@ -357,7 +357,7 @@ M_Menu:
 	M_1:
 		mes "[Monster Tamer Shogo]";
 		mes "This book is far too powerfull for any mere mortal to read and contains the secret method of summoning a devil!";
-		mes "Use it to lure the monster ^FF5555'Deviruchi.'^000000.";
+		mes "Use it to lure the monster ^FF5555'Baphomet Jr.'^000000.";
 		next;
 		mes "[Monster Tamer Shogo]";
 		mes "I can give you a ^5555FF'Book of Devil'^000000 in exchange for:";

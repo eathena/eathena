@@ -28,6 +28,8 @@ Nexon
 Date		Added
 ======
 11/07
+	* Fixed a misleading typo in quest/monstertamers.txt, thanks to vicious_pucca [MasterOfMuppets]
+	  for pointing it out.
 	* Updated the spawns of Santa Porings and Antonios in event/xmas.txt [MasterOfMuppets]
 11/06
 	* Big update to town guards. Changed according to how it is on iRO [MasterOfMuppets]
