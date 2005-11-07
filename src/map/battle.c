@@ -326,7 +326,7 @@ int battle_heal(struct block_list *bl,struct block_list *target,int hp,int sp,in
 		return 0;
 
 	if (hp < 0)
-		return battle_damage(bl,target,-hp,1,flag);
+		return battle_damage(bl,target,-hp,0,flag);
 
 	if (target->type == BL_MOB)
 		return mob_heal((struct mob_data *)target,hp);
@@ -419,6 +419,35 @@ int battle_attr_fix(struct block_list *src, struct block_list *target, int damag
 	return damage*ratio/100;
 }
 
+/*==========================================
+ * Calcs walk delay based on attack type. [Skotlex]
+ *------------------------------------------
+ */
+int battle_calc_walkdelay(struct block_list *bl, int delay, int div_) {
+	int ret = 0;
+	if (delay == 0) return 0; //Endure attack.
+	switch (bl->type) {
+	case BL_MOB:
+		ret=((struct mob_data *)bl)->db->dmotion;
+		if(battle_config.monster_damage_delay_rate != 100)
+			ret = ret*battle_config.monster_damage_delay_rate/100;
+		break;
+	case BL_PC:
+		ret=((struct map_session_data *)bl)->dmotion;
+		if(battle_config.pc_damage_delay_rate != 100)
+			ret = ret*battle_config.pc_damage_delay_rate/100;
+		break;
+	case BL_PET:
+		ret=((struct pet_data *)bl)->db->dmotion;
+		break;
+	default:
+		return 0;
+	}
+
+	if (battle_config.walk_delay_rate != 100)
+		ret = ret*battle_config.walk_delay_rate/100;
+	return ret<10?10:ret;
+}
 
 /*==========================================
  * ƒ_ƒ??[ƒW?Å?IŒvŽZ
@@ -549,7 +578,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 			if(rand()%100 < (15*sc_data[SC_REJECTSWORD].val1)){ //”½ŽËŠm—¦‚Í15*Lv
 				damage = damage*50/100;
 				clif_damage(bl,src,gettick(),0,0,damage,0,0,0);
-				battle_damage(bl,src,damage,1,0);
+				battle_damage(bl,src,damage,0,0);
 				//ƒ_ƒ??[ƒW‚ð—^‚¦‚½‚Ì‚Í—Ç‚¢‚ñ‚¾‚ª?A‚±‚±‚©‚ç‚Ç‚¤‚µ‚Ä•\Ž¦‚·‚é‚ñ‚¾‚©‚í‚©‚ñ‚Ë‚¥
 				//ƒGƒtƒFƒNƒg‚à‚±‚ê‚Å‚¢‚¢‚Ì‚©‚í‚©‚ñ‚Ë‚¥
 				clif_skill_nodamage(bl,bl,ST_REJECTSWORD,sc_data[SC_REJECTSWORD].val1,1);
@@ -2341,7 +2370,7 @@ struct Damage battle_calc_magic_attack(
 			MATK_RATE(cardfix);
 		}
 
-		if (tsd) { //Card fixes always apply on the target side. [Skotlex]
+		if (tsd && skill_num != HW_GRAVITATION) { //Card fixes always apply on the target side. [Skotlex]
 			short s_race2=status_get_race2(src);
 			short s_class= status_get_class(src);
 			short cardfix=100;
@@ -2592,8 +2621,6 @@ struct Damage battle_calc_attack(	int attack_type,
 		memset(&d,0,sizeof(d));
 		break;
 	}
-	if (d.div_ > 1 && d.dmotion > 0 && battle_config.combo_damage_delay) //Combo Damage Delay [Skotlex]
-		d.dmotion += (d.div_-1)*battle_config.combo_damage_delay;
 	return d;
 }
 /*==========================================
@@ -2713,11 +2740,11 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 			int boss = is_boss(target);
 			int hp = status_get_max_hp(target);
 			if (!boss && sd->weapon_coma_ele[ele] > 0 && rand()%10000 < sd->weapon_coma_ele[ele])
-				battle_damage(src, target, hp, 1, 1);
+				battle_damage(src, target, hp, 0, 1);
 			if (!boss && sd->weapon_coma_race[race] > 0 && rand()%10000 < sd->weapon_coma_race[race])
-				battle_damage(src, target, hp, 1, 1);
+				battle_damage(src, target, hp, 0, 1);
 			if(sd->weapon_coma_race[boss?10:11] > 0 && rand()%10000 < sd->weapon_coma_race[boss?10:11])
-				battle_damage(src, target, hp, 1, 1);
+				battle_damage(src, target, hp, 0, 1);
 		}
 	}
 
@@ -3138,7 +3165,6 @@ static const struct battle_data_short {
 	{ "monster_skill_add_range",           &battle_config.mob_skill_add_range		},
 	{ "skillrange_by_distance",            &battle_config.skillrange_by_distance	},
 	{ "player_damage_delay_rate",          &battle_config.pc_damage_delay_rate		},
-	{ "combo_damage_delay",                &battle_config.combo_damage_delay		},
 	{ "defunit_not_enemy",                 &battle_config.defnotenemy				},
 	{ "gvg_traps_target_all",	            &battle_config.gvg_traps_bctall			},
 	{ "random_monster_checklv",            &battle_config.random_monster_checklv	},
@@ -3180,6 +3206,7 @@ static const struct battle_data_short {
 	{ "plant_spawn_delay",                 &battle_config.plant_spawn_delay			},
 	{ "boss_spawn_delay",                  &battle_config.boss_spawn_delay			},
 	{ "slaves_inherit_speed",              &battle_config.slaves_inherit_speed		},
+	{ "damage_walk_delay_rate",            &battle_config.walk_delay_rate		},
 	{ "quest_skill_learn",                 &battle_config.quest_skill_learn		},
 	{ "quest_skill_reset",                 &battle_config.quest_skill_reset		},
 	{ "basic_skill_check",                 &battle_config.basic_skill_check		},
@@ -3481,7 +3508,6 @@ void battle_set_defaults() {
 	battle_config.mob_skill_add_range=0;
 	battle_config.skillrange_by_distance=6;
 	battle_config.pc_damage_delay_rate=100;
-	battle_config.combo_damage_delay=230;
 	battle_config.defnotenemy=0;
 	battle_config.gvg_traps_bctall=1;
 	battle_config.random_monster_checklv=1;
@@ -3532,6 +3558,7 @@ void battle_set_defaults() {
 	battle_config.plant_spawn_delay=100;
 	battle_config.boss_spawn_delay=100;
 	battle_config.slaves_inherit_speed=1;
+	battle_config.walk_delay_rate=50;
 	battle_config.quest_skill_learn=0;
 	battle_config.quest_skill_reset=1;
 	battle_config.basic_skill_check=1;

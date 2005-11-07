@@ -41,6 +41,7 @@ enum {	// 最終計算のフラグ
 };
 
 // 実際にHPを増減
+int battle_calc_walkdelay(struct block_list *src, int delay, int div_); //Calcs walk delay based on attack type. [Skotlex]
 int battle_delay_damage (unsigned int tick, struct block_list *src, struct block_list *target, int attack_type, int skill_id, int skill_lv, int damage, int delay, int dmg_lv, int flag);
 int battle_damage(struct block_list *bl,struct block_list *target,int damage,int delay,int flag);
 int battle_heal(struct block_list *bl,struct block_list *target,int hp,int sp,int flag);
@@ -107,7 +108,6 @@ extern struct Battle_Config {
 	unsigned short mob_skill_add_range;
 	unsigned short skillrange_by_distance; //[Skotlex]
 	unsigned short pc_damage_delay_rate;
-	unsigned short combo_damage_delay;	//[Skotlex]
 	unsigned short defnotenemy;
 	unsigned short gvg_traps_bctall;	
 	unsigned short random_monster_checklv;
@@ -153,6 +153,7 @@ extern struct Battle_Config {
 	unsigned short mob_count_rate;
 	unsigned short mob_spawn_delay, plant_spawn_delay, boss_spawn_delay;	// [Skotlex]
 	unsigned short slaves_inherit_speed;
+	unsigned short walk_delay_rate;
 	unsigned short quest_skill_learn;
 	unsigned short quest_skill_reset;
 	unsigned short basic_skill_check;

@@ -1,5 +1,11 @@
 Date	Added
 2005/11/07
+	* Removed combo_damage_delay and added damage_walk_delay_rate. Now the total
+	  delay during which you can't move is a percent of the normal damage delay
+	  rate adjusted by number of hits and this rate. Defaults to 50% for now. [Skotlex]
+	* Removed the random damage delay value from status_get_dmotion as it is
+	  not really helping the walk-stun-lock. [Skotlex]
+	* Made Gravitation ignore target's cards. [Skotlex]
 	* Updated readme with new layout [Evera]
 	* Updated bAddMonsterDropItem bonuses to work with cards: Mimic Card, Mystcase Card
 	  where bonus_item_rate = base_rate * (killed_mob_level/10) + 1

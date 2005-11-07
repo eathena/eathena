@@ -1819,9 +1819,10 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 	/* ?Û‚Éƒ_ƒ?ƒW?—‚ðs‚¤ */
 	if ((skillid || flag) && !(skillid == ASC_BREAKER && attack_type&BF_WEAPON)) {  // do not really deal damage for ASC_BREAKER's 1st attack
 		if (attack_type&BF_WEAPON)
-			battle_delay_damage(tick+dmg.amotion,src,bl,attack_type,skillid,skilllv,damage,dmg.dmotion, dmg.dmg_lv, 0);
+			battle_delay_damage(tick+dmg.amotion,src,bl,attack_type,skillid,skilllv,damage,
+				battle_calc_walkdelay(bl, dmg.dmotion, dmg.div_), dmg.dmg_lv, 0);
 		else {
-			battle_damage(src,bl,damage,dmg.dmotion, 0);
+			battle_damage(src,bl,damage,battle_calc_walkdelay(bl, dmg.dmotion, dmg.div_), 0);
 			if (!status_isdead(bl) && (dmg.dmg_lv == ATK_DEF || damage > 0))
 				skill_additional_effect(src,bl,skillid,skilllv,attack_type,tick);
 		}
@@ -1889,9 +1890,10 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 
 	if (/*(skillid || flag) &&*/ rdamage>0) { //Is the skillid/flag check really necessary? [Skotlex]
 		if (attack_type&BF_WEAPON)
-			battle_delay_damage(tick+dmg.amotion,bl,src,0,0,0,rdamage,dmg.dmotion,ATK_DEF,0);
+			battle_delay_damage(tick+dmg.amotion,bl,src,0,0,0,rdamage,
+				battle_calc_walkdelay(src, dmg.dmotion, dmg.div_),ATK_DEF,0);
 		else
-			battle_damage(bl,src,rdamage,dmg.dmotion,0);
+			battle_damage(bl,src,rdamage,battle_calc_walkdelay(src, dmg.dmotion, dmg.div_),0);
 		clif_damage(src,src,tick, dmg.amotion,0,rdamage,1,4,0);
 	}
 
@@ -3066,7 +3068,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 							bl->x-5, bl->y-5, bl->x+5, bl->y+5, 0,
 							src, skillid, skilllv, tick, flag|BCT_ENEMY|1,
 							skill_castend_damage_id);
-				battle_damage(src, src, skill_area_temp[2], 1, 0);
+				battle_damage(src, src, skill_area_temp[2], 0, 0);
 			}
 			break;
 
@@ -5281,7 +5283,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				case 3:	// 1000 damage, random armor destroyed
 					{
 						int where[] = { EQP_ARMOR, EQP_SHIELD, EQP_HELM };
-						battle_damage(src, bl, 1000, 1, 0);
+						battle_damage(src, bl, 1000, 0, 0);
 						clif_damage(src,bl,tick,0,0,1000,0,0,0);
 						if (dstsd) pc_break_equip(dstsd, where[rand() % 3]);
 					}
@@ -5305,7 +5307,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					break;
 				case 8:	// curse coma and poison
 					if (!(status_get_mode(bl)&MD_BOSS))
-						battle_damage(src, bl, status_get_hp(bl)-1, 1, 0);
+						battle_damage(src, bl, status_get_hp(bl)-1, 0, 0);
 					if (dstsd) pc_heal(dstsd,0,-dstsd->status.sp+1);
 					//status_change_start(bl,SC_COMA,skilllv,0,0,0,30000,0);
 					status_change_start(bl,SC_CURSE,skilllv,0,0,0,30000,0);
@@ -5315,14 +5317,14 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					status_change_start(bl,SC_CONFUSION,skilllv,0,0,0,30000,0);
 					break;
 				case 10:	// 6666 damage, atk matk halved, cursed
-					battle_damage(src, bl, 6666, 1, 0);
+					battle_damage(src, bl, 6666, 0, 0);
 					clif_damage(src,bl,tick,0,0,6666,0,0,0);
 					status_change_start(bl,SC_INCATKRATE,-50,0,0,0,30000,0);
 					status_change_start(bl,SC_INCMATKRATE,-50,0,0,0,30000,0);
 					status_change_start(bl,SC_CURSE,skilllv,0,0,0,30000,0);
 					break;
 				case 11:	// 4444 damage
-					battle_damage(src, bl, 4444, 1, 0);
+					battle_damage(src, bl, 4444, 0, 0);
 					clif_damage(src,bl,tick,0,0,4444,0,0,0);
 					break;
 				case 12:	// stun
@@ -6853,7 +6855,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 				{
 					int dmg = rand() % 9999 +1;
 					clif_skill_damage(bl, bl, sg->tick,0,0,dmg,0,CR_HOLYCROSS,1,-1);
-					battle_damage(ss, bl, dmg,1,0);
+					battle_damage(ss, bl, dmg,0,0);
 					break;
 				}
 				case 1: // Curse
