@@ -281,6 +281,12 @@
 1246,Christmas Cookie@PR_LEXAETERNA,chase,78,1,500,1000,5000,yes,target,always,0,,,,,,6
 1246,Christmas Cookie@SA_REVERSEORCISH,attack,294,1,50,0,30000,yes,target,always,0,,,,,,18
 1246,Christmas Cookie@SA_REVERSEORCISH,chase,294,1,50,0,30000,yes,target,always,0,,,,,,18
+1244,Christmas Jakk@NPC_BLINDATTACK,attack,177,3,500,0,5000,yes,target,always,0,,,,,,
+1244,Christmas Jakk@NPC_CURSEATTACK,attack,181,3,500,800,5000,no,target,always,0,,,,,,29
+1244,Christmas Jakk@NPC_CURSEATTACK,chase,181,3,500,800,5000,no,target,always,0,,,,,,29
+1244,Christmas Jakk@NPC_FIREATTACK,attack,186,3,500,500,5000,no,target,always,0,,,,,,6
+1244,Christmas Jakk@NPC_EMOTION,chase,197,1,200,0,5000,yes,self,always,0,19,,,,,
+1244,Christmas Jakk@NPC_EMOTION,idle,197,1,200,0,5000,yes,self,always,0,2,,,,,
 1067,Cornutus@NPC_KEEPING,attack,201,1,2000,0,5000,yes,self,myhpltmaxrate,30,,,,,,9
 1067,Cornutus@NPC_WATERATTACK,attack,184,2,500,500,5000,no,target,always,0,,,,,,6
 1067,Cornutus@CR_AUTOGUARD,attack,249,2,500,0,300000,yes,self,always,0,,,,,,

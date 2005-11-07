@@ -31,6 +31,7 @@
 		like gemstones when the skill is used.
 	--
 11/07
+	* Copied skills from Jakk to Christmas Jakk which was missing monster skills [MasterOfMuppets]
 	* Added Metaling to mob_poring.txt [MasterOfMuppets]
 	* Updated Mimic Card & Mystcase Card bonuses & Raggler Card [Combo bonus = OVB Drop] chances: [Lupus]
 	  according to kRO formula (found by real tests): chance = 1 * (killed_mob_level/10) + 1
