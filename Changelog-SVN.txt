@@ -1,5 +1,7 @@
 Date	Added
 2005/11/07
+	* Cleaned up and optimized the way card data is set in packets. Should
+	  correct most, if not all, pet-egg related issues. [Skotlex]
 	* Removed combo_damage_delay and added damage_walk_delay_rate. Now the total
 	  delay during which you can't move is a percent of the normal damage delay
 	  rate adjusted by number of hits and this rate. Defaults to 50% for now. [Skotlex]
