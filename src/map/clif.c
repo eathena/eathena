@@ -5510,7 +5510,6 @@ int clif_cart_itemlist(struct map_session_data *sd)
 	fd=sd->fd;
 	buf = WFIFOP(fd,0);
 #if PACKETVER < 5
-	WBUFW(buf,0)=0x123;
 	for(i=0,n=0;i<MAX_CART;i++){
 		if(sd->status.cart[i].nameid<=0)
 			continue;
@@ -5529,11 +5528,11 @@ int clif_cart_itemlist(struct map_session_data *sd)
 		n++;
 	}
 	if(n){
+		WBUFW(buf,0)=0x123;
 		WBUFW(buf,2)=4+n*10;
 		WFIFOSET(fd,WFIFOW(fd,2));
 	}
 #else
-	WBUFW(buf,0)=0x1ef;
 	for(i=0,n=0;i<MAX_CART;i++){
 		if(sd->status.cart[i].nameid<=0)
 			continue;
@@ -5553,6 +5552,7 @@ int clif_cart_itemlist(struct map_session_data *sd)
 		n++;
 	}
 	if(n){
+		WBUFW(buf,0)=0x1ef;
 		WBUFW(buf,2)=4+n*18;
 		WFIFOSET(fd,WFIFOW(fd,2));
 	}
@@ -5575,7 +5575,6 @@ int clif_cart_equiplist(struct map_session_data *sd)
 	fd=sd->fd;
 	buf = WFIFOP(fd,0);
 
-	WBUFW(buf,0)=0x122;
 	for(i=0,n=0;i<MAX_INVENTORY;i++){
 		if(sd->status.cart[i].nameid<=0)
 			continue;
@@ -5597,6 +5596,7 @@ int clif_cart_equiplist(struct map_session_data *sd)
 		n++;
 	}
 	if(n){
+		WBUFW(buf,0)=0x122;
 		WBUFW(buf,2)=4+n*20;
 		WFIFOSET(fd,WFIFOW(fd,2));
 	}
@@ -5681,8 +5681,6 @@ int clif_vendinglist(struct map_session_data *sd,int id,struct vending *vending)
 
 	fd=sd->fd;
 	buf = WFIFOP(fd,0);
-	WBUFW(buf,0)=0x133;
-	WBUFL(buf,4)=id;
 	for(i=0,n=0;i<vsd->vend_num;i++){
 		if(vending[i].amount<=0)
 			continue;
@@ -5704,7 +5702,9 @@ int clif_vendinglist(struct map_session_data *sd,int id,struct vending *vending)
 		n++;
 	}
 	if(n > 0){
+		WBUFW(buf,0)=0x133;
 		WBUFW(buf,2)=8+n*22;
+		WBUFL(buf,4)=id;
 		WFIFOSET(fd,WFIFOW(fd,2));
 	}
 
@@ -5745,9 +5745,6 @@ int clif_openvending(struct map_session_data *sd,int id,struct vending *vending)
 
 	fd=sd->fd;
 	buf = WFIFOP(fd,0);
-
-	WBUFW(buf,0)=0x136;
-	WBUFL(buf,4)=id;
 	for(i=0,n=0;i<sd->vend_num;i++){
 		if (sd->vend_num > 2+pc_checkskill(sd,MC_VENDING)) return 0;
 		WBUFL(buf,8+n*22)=vending[i].value;
@@ -5769,10 +5766,11 @@ int clif_openvending(struct map_session_data *sd,int id,struct vending *vending)
 		n++;
 	}
 	if(n > 0){
+		WBUFW(buf,0)=0x136;
 		WBUFW(buf,2)=8+n*22;
+		WBUFL(buf,4)=id;
 		WFIFOSET(fd,WFIFOW(fd,2));
 	}
-
 	return n;
 }
 

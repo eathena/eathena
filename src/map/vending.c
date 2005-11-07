@@ -50,13 +50,14 @@ void vending_vendinglistreq(struct map_session_data *sd,int id)
  */
 void vending_purchasereq(struct map_session_data *sd,int len,int id,unsigned char *p)
 {
-	int i, j, w, z, new_ = 0, blank, vend_list[12];
-	short amount, index;
+	int i, j, w, new_ = 0, blank, vend_list[MAX_VENDING];
+	double z;
+	unsigned short amount;
+	short idx;
 	struct map_session_data *vsd = map_id2sd(id);
+	struct vending vending[MAX_VENDING]; // against duplicate packets
 
 	nullpo_retv(sd);
-
-	blank = pc_inventoryblank(sd);
 
 	if (vsd == NULL)
 		return;
@@ -71,97 +72,103 @@ void vending_purchasereq(struct map_session_data *sd,int len,int id,unsigned cha
 		return;
 	}
 
-	for(i = 0, w = z = 0; 8 + 4 * i < len; i++) {
-		amount = *(short*)(p + 4 * i);
-		index = *(short*)(p + 2 + 4 * i) - 2;
+	blank = pc_inventoryblank(sd); //number of free cells in the buyer's inventory
 
-		if (amount <= 0) return; // exploit
+	// duplicate item in vending to check hacker with multiple packets
+	memcpy(&vending, &vsd->vending, sizeof(struct vending) * MAX_VENDING); // copy vending list
 
-/*		for(j = 0; j < vsd->vend_num; j++)
-			if (0 < vsd->vending[j].amount && amount <= vsd->vending[j].amount && vsd->vending[j].index == index)
-				break;
-*/
+	// some checks
+	z = 0.;
+	w = 0;
+	for(i = 0; 8 + 4 * i < len; i++) {
+		amount = *(unsigned short*)(p + 4 * i);
+		idx = *(short*)(p + 2 + 4 * i) - 2;
 
-		// check of index
-		if (index < 0 || index >= MAX_CART)
+		if (amount <= 0)
 			return;
 
-//ADD_start
+		// check of item index in the cart
+		if (idx < 0 || idx >= MAX_CART)
+			return;
+
 		for(j = 0; j < vsd->vend_num; j++) {
-			if (vsd->vending[j].amount > 0 && vsd->vending[j].index == index) {
-				if (amount > vsd->vending[j].amount) {
-					clif_buyvending(sd,index,vsd->vending[j].amount, 4);
-					return;
-				}
+			if (vsd->vending[j].index == idx) {
+				vend_list[i] = j;
 				break;
 			}
 		}
-//ADD_end
 		if (j == vsd->vend_num)
-			return; // 売り切れ
-		vend_list[i] = j;
-		z += vsd->vending[j].value * amount;
-		if (z > sd->status.zeny){
-			clif_buyvending(sd, index, amount, 1);
-			return; // zeny不足
+			return; //picked non-existing item
+
+		z += ((double)vsd->vending[j].value * (double)amount);
+		if (z > (double)sd->status.zeny || z < 0. || z > (double)MAX_ZENY) { // fix positiv overflow (buyer)
+			clif_buyvending(sd, idx, amount, 1); // you don't have enough zeny
+			return; // zenys'<
 		}
-		if (z + vsd->status.zeny > MAX_ZENY) { // fix positiv overflow (merchant)
-			clif_buyvending(sd, index, vsd->vending[j].amount, 4); // not enough quantity
-			return; // zeny不瀧
+		if (z + (double)vsd->status.zeny > (double)MAX_ZENY) { // fix positiv overflow (merchand)
+			clif_buyvending(sd, idx, vsd->vending[j].amount, 4); // too much zeny = overflow
+			return; // zenys'<
 		}
-		w += itemdb_weight(vsd->status.cart[index].nameid) * amount;
+		w += itemdb_weight(vsd->status.cart[idx].nameid) * amount;
 		if (w + sd->weight > sd->max_weight) {
-			clif_buyvending(sd, index, amount, 2);
-			return; // 重量超過
+			clif_buyvending(sd, idx, amount, 2); // you can not buy, because overweight
+			return;
 		}
-		switch(pc_checkadditem(sd, vsd->status.cart[index].nameid, amount)) {
+		// if they try to add packets (example: get twice or more 2 apples if marchand has only 3 apples).
+		// here, we check cumulativ amounts
+		if (vending[j].amount < amount) { // send more quantity is not a hack (an other player can have buy items just before)
+			clif_buyvending(sd, idx, vsd->vending[j].amount, 4); // not enough quantity
+			return;
+		} else
+			vending[j].amount -= amount;
+
+		switch(pc_checkadditem(sd, vsd->status.cart[idx].nameid, amount)) {
 		case ADDITEM_EXIST:
-			break;
+			break;	//We'd add this item to the existing one (in buyers inventory)
 		case ADDITEM_NEW:
 			new_++;
 			if (new_ > blank)
-				return;	// 種類数超過
+				return; //Buyer has no space in his inventory
 			break;
 		case ADDITEM_OVERAMOUNT:
-			return; // アイテム数超過
+			return; //too many items
 		}
-	}
-	if (z < 0 || z > MAX_ZENY) { // Zeny Bug Fixed by Darkchild
-		clif_tradecancelled(sd);
-		clif_tradecancelled(vsd);
-		return;
 	}
 
 	//Logs (V)ending Zeny [Lupus]
 	if(log_config.zeny > 0 )
-		log_zeny(vsd, "V", sd, z);
+		log_zeny(vsd, "V", sd, (int)z);
 	//Logs
 
-	pc_payzeny(sd, z);
-	pc_getzeny(vsd, z);
+	pc_payzeny(sd, (int)z);
+	pc_getzeny(vsd, (int)z);
+
 	for(i = 0; 8 + 4 * i < len; i++) {
 		amount = *(short*)(p + 4 *i);
-		index = *(short*)(p + 2 + 4 * i) - 2;
+		idx = *(short*)(p + 2 + 4 * i) - 2;
 		//if (amount < 0) break; // tested at start of the function
 
 		//Logs sold (V)ending items [Lupus]
 		if(log_config.pick > 0 ) {
-			log_pick(vsd, "V", 0, vsd->status.cart[index].nameid, -amount, (struct item*)&vsd->status.cart[index]);
-			log_pick(sd, "V", 0, vsd->status.cart[index].nameid, amount, (struct item*)&vsd->status.cart[index]);
+			log_pick(vsd, "V", 0, vsd->status.cart[idx].nameid, -amount, (struct item*)&vsd->status.cart[idx]);
+			log_pick( sd, "V", 0, vsd->status.cart[idx].nameid,  amount, (struct item*)&vsd->status.cart[idx]);
 		}
 		//Logs
 
-		//log added by Lupus
+		//Old VENDING log added by Lupus
 		if(log_config.vend > 0) {
-			log_vend(sd,vsd, index, amount, z); // for Item + Zeny. log.
-			//we log ZENY only with the 1st item. Then zero it for the rest items 8).
+			log_vend(sd,vsd, idx, amount, (int)z); // for Item + Zeny. log.
+			//we log ZENY only with the 1st item. Then zero it for the rest items
 			z = 0;
 		}
 
-		pc_additem(sd,&vsd->status.cart[index],amount);
+		// vending item
+		pc_additem(sd, &vsd->status.cart[idx], amount);
 		vsd->vending[vend_list[i]].amount -= amount;
-		pc_cart_delitem(vsd, index, amount, 0);
-		clif_vendingreport(vsd, index, amount);
+		pc_cart_delitem(vsd, idx, amount, 0);
+		clif_vendingreport(vsd, idx, amount);
+
+		//print buyer's name
 		if(battle_config.buyer_name) {
 			char temp[256];
 			sprintf(temp, msg_txt(265), sd->status.name);
@@ -169,10 +176,12 @@ void vending_purchasereq(struct map_session_data *sd,int len,int id,unsigned cha
 		}
 	}
 
+	//Always save BOTH: buyer and customer
+	chrif_save(sd);
+	chrif_save(vsd);
+	//check for @AUTOTRADE users [durf]
 	if (vsd->state.autotrade)
-	{	//check for @AUTOTRADE users [durf]
-		chrif_save(sd);
-		chrif_save(vsd);
+	{
 		//Close Vending (this was automatically done by the client, we have to do it manually for autovenders) [Skotlex]
 		for(i = 0; i < vsd->vend_num && vsd->vending[i].amount < 1; i++);
 		if (i == vsd->vend_num)

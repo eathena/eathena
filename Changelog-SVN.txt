@@ -1,4 +1,7 @@
 Date	Added
+2005/11/08
+	* Fixed not showing named/carded items in Vending [Lupus]
+	  (when you drag'n'drop them from your cart into your shop list)
 2005/11/07
 	* Expanded script commands announce/mapannounce/mapareaannounce to take an
 	  additional parameter to define the color. This uses the new packet 0x1c3 to
