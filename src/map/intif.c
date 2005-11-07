@@ -121,17 +121,32 @@ int intif_delete_petdata(int pet_id)
 int intif_GMmessage(char* mes,int len,int flag)
 {
 	int lp = (flag&0x10) ? 8 : 4;
+	// Send to the local players
+	clif_GMmessage(NULL, mes, len, flag);
+	
 	if (CheckForCharServer())
 		return 0;
 	WFIFOW(inter_fd,0) = 0x3000;
-	WFIFOW(inter_fd,2) = lp + len;
-	WFIFOL(inter_fd,4) = 0x65756c62;
-	memcpy(WFIFOP(inter_fd,lp), mes, len);
+	WFIFOW(inter_fd,2) = lp + len + 4;
+	WFIFOL(inter_fd,4) = 0xFF000000; //"invalid" color signals standard broadcast.
+	WFIFOL(inter_fd,8) = 0x65756c62;
+	memcpy(WFIFOP(inter_fd,4+lp), mes, len);
 	WFIFOSET(inter_fd, WFIFOW(inter_fd,2));
+	return 0;
+}
 
+int intif_announce(char* mes,int len, unsigned long color, int flag)
+{
 	// Send to the local players
-	clif_GMmessage(NULL, mes, len, flag);
-
+	clif_announce(NULL, mes, len, color, flag);
+	
+	if (CheckForCharServer())
+		return 0;
+	WFIFOW(inter_fd,0) = 0x3000;
+	WFIFOW(inter_fd,2) = 8 + len;
+	WFIFOL(inter_fd,4) = color;
+	memcpy(WFIFOP(inter_fd,8), mes, len);
+	WFIFOSET(inter_fd, WFIFOW(inter_fd,2));
 	return 0;
 }
 
@@ -1140,7 +1155,12 @@ int intif_parse(int fd)
 	}
 	// èàóùï™äÚ
 	switch(cmd){
-	case 0x3800:	clif_GMmessage(NULL,(char *) RFIFOP(fd,4),packet_len-4,0); break;
+	case 0x3800:	
+		if (RFIFOL(fd,4) == 0xFF000000) //Normal announce.
+			clif_GMmessage(NULL,(char *) RFIFOP(fd,8),packet_len-8,0);
+		else //Color announce.
+			clif_announce(NULL,(char *) RFIFOP(fd,8),packet_len-8,RFIFOL(fd,4),0);
+		break;
 	case 0x3801:	intif_parse_WisMessage(fd); break;
 	case 0x3802:	intif_parse_WisEnd(fd); break;
 	case 0x3803:	mapif_parse_WisToGM(fd); break;

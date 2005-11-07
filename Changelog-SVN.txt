@@ -1,5 +1,10 @@
 Date	Added
 2005/11/07
+	* Expanded script commands announce/mapannounce/mapareaannounce to take an
+	  additional parameter to define the color. This uses the new packet 0x1c3 to
+	  send the broadcast, and even though the packet is not fully understood yet,
+	  it should be at the point where it can be used. [Skotlex]
+	- eg: "announce "hello world", bc_map, 0xFFFF00;"
 	* Cleaned up and optimized the way card data is set in packets. Should
 	  correct most, if not all, pet-egg related issues. [Skotlex]
 	* Removed combo_damage_delay and added damage_walk_delay_rate. Now the total

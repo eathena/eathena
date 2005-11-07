@@ -489,9 +489,9 @@ struct {
 	{buildin_attachnpctimer,"attachnpctimer","*"}, // attached the player id to the npc timer [Celest]
 	{buildin_detachnpctimer,"detachnpctimer","*"}, // detached the player id from the npc timer [Celest]
 	{buildin_playerattached,"playerattached",""}, // returns id of the current attached player. [Skotlex]
-	{buildin_announce,"announce","si"},
-	{buildin_mapannounce,"mapannounce","ssi"},
-	{buildin_areaannounce,"areaannounce","siiiisi"},
+	{buildin_announce,"announce","si*"},
+	{buildin_mapannounce,"mapannounce","ssi*"},
+	{buildin_areaannounce,"areaannounce","siiiisi*"},
 	{buildin_getusers,"getusers","i"},
 	{buildin_getmapusers,"getmapusers","s"},
 	{buildin_getareausers,"getareausers","siiii"},
@@ -5389,17 +5389,26 @@ int buildin_playerattached(struct script_state *st)
  */
 int buildin_announce(struct script_state *st)
 {
-	char *str;
+	char *str, *color=NULL;
 	int flag;
 	str=conv_str(st,& (st->stack->stack_data[st->start+2]));
 	flag=conv_num(st,& (st->stack->stack_data[st->start+3]));
+	if (st->end>st->start+4)
+		color=conv_str(st,& (st->stack->stack_data[st->start+4]));
 
 	if(flag&0x0f){
 		struct block_list *bl=(flag&0x08)? map_id2bl(st->oid) :
 			(struct block_list *)script_rid2sd(st);
-		clif_GMmessage(bl,str,(int)strlen(str)+1,flag);
-	}else
-		intif_GMmessage(str,(int)strlen(str)+1,flag);
+		if (color)
+			clif_announce(bl,str,(int)strlen(str)+1, strtol(color, (char **)NULL, 0),flag);
+		else
+			clif_GMmessage(bl,str,(int)strlen(str)+1,flag);
+	}else {
+		if (color)
+			intif_announce(str,(int)strlen(str)+1, strtol(color, (char **)NULL, 0), flag);
+		else
+			intif_GMmessage(str,(int)strlen(str)+1,flag);
+	}
 	return 0;
 }
 /*==========================================
@@ -5408,27 +5417,34 @@ int buildin_announce(struct script_state *st)
  */
 int buildin_mapannounce_sub(struct block_list *bl,va_list ap)
 {
-	char *str;
+	char *str, *color;
 	int len,flag;
 	str=va_arg(ap,char *);
 	len=va_arg(ap,int);
 	flag=va_arg(ap,int);
-	clif_GMmessage(bl,str,len,flag|3);
+	color=va_arg(ap,char *);
+	if (color)
+		clif_announce(bl,str,len, strtol(color, (char **)NULL, 0), flag|3);
+	else
+		clif_GMmessage(bl,str,len,flag|3);
 	return 0;
 }
 int buildin_mapannounce(struct script_state *st)
 {
-	char *mapname,*str;
+	char *mapname,*str,*color=NULL;
 	int flag,m;
 
 	mapname=conv_str(st,& (st->stack->stack_data[st->start+2]));
 	str=conv_str(st,& (st->stack->stack_data[st->start+3]));
 	flag=conv_num(st,& (st->stack->stack_data[st->start+4]));
+	if (st->end>st->start+4)
+		color=conv_str(st,& (st->stack->stack_data[st->start+4]));
 
 	if( (m=map_mapname2mapid(mapname))<0 )
 		return 0;
+
 	map_foreachinarea(buildin_mapannounce_sub,
-		m,0,0,map[m].xs,map[m].ys,BL_PC, str,strlen(str)+1,flag&0x10);
+		m,0,0,map[m].xs,map[m].ys,BL_PC, str,strlen(str)+1,flag&0x10, color);
 	return 0;
 }
 /*==========================================
@@ -5437,7 +5453,7 @@ int buildin_mapannounce(struct script_state *st)
  */
 int buildin_areaannounce(struct script_state *st)
 {
-	char *map,*str;
+	char *map,*str,*color=NULL;
 	int flag,m;
 	int x0,y0,x1,y1;
 
@@ -5448,14 +5464,17 @@ int buildin_areaannounce(struct script_state *st)
 	y1=conv_num(st,& (st->stack->stack_data[st->start+6]));
 	str=conv_str(st,& (st->stack->stack_data[st->start+7]));
 	flag=conv_num(st,& (st->stack->stack_data[st->start+8]));
+	if (st->end>st->start+9)
+		color=conv_str(st,& (st->stack->stack_data[st->start+9]));
 
 	if( (m=map_mapname2mapid(map))<0 )
 		return 0;
 
 	map_foreachinarea(buildin_mapannounce_sub,
-		m,x0,y0,x1,y1,BL_PC, str,strlen(str)+1,flag&0x10 );
+		m,x0,y0,x1,y1,BL_PC, str,strlen(str)+1,flag&0x10, color);
 	return 0;
 }
+
 /*==========================================
  * ƒ†[ƒU[”Š“¾
  *------------------------------------------

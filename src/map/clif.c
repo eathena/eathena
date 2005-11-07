@@ -344,7 +344,7 @@ int clif_send (unsigned char *buf, int len, struct block_list *bl, int type) {
 	if (type != ALL_CLIENT) {
 		nullpo_retr(0, bl);
 		if (bl->type == BL_PC) {
-			nullpo_retr (0, sd = (struct map_session_data *)bl);
+			sd = (struct map_session_data *)bl;
 		}
 	}
 
@@ -5022,6 +5022,31 @@ void clif_GlobalMessage(struct block_list *bl,char *message)
 	clif_send((unsigned char *) buf,WBUFW(buf,2),bl,AREA_CHAT_WOC);
 }
 
+/*==========================================
+ * Does an announce message in the given color. 
+ *------------------------------------------
+ */
+int clif_announce(struct block_list *bl, char* mes, int len, unsigned long color, int flag)
+{
+	unsigned char *buf;
+	buf = (unsigned char*)aCallocA(len + 16, sizeof(unsigned char));
+	WBUFW(buf,0) = 0x1c3;
+	WBUFW(buf,2) = len + 16;
+	WBUFL(buf,4) = color;
+	WBUFL(buf,8) = bl?bl->id:0; //TODO: These two fields are unconfirmed/unknown [Skotlex]
+	WBUFL(buf,12) = 0;
+	memcpy(WBUFP(buf,16), mes, len);
+	
+	flag &= 0x07;
+	clif_send(buf, WBUFW(buf,2), bl,
+	          (flag == 1) ? ALL_SAMEMAP :
+	          (flag == 2) ? AREA :
+	          (flag == 3) ? SELF :
+	          ALL_CLIENT);
+
+	if(buf) aFree(buf);
+	return 0;
+}
 /*==========================================
  * HPSP回復エフェクトを送信する
  *------------------------------------------

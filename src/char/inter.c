@@ -316,13 +316,14 @@ void mapif_send_maxid(int account_id, int char_id)
 }
 
 // GMメッセージ送信
-int mapif_GMmessage(unsigned char *mes, int len, int sfd) {
+int mapif_GMmessage(unsigned char *mes, int len, unsigned long color, int sfd) {
 	unsigned char buf[2048];
 
 	if (len > 2048) len = 2047; //Make it fit to avoid crashes. [Skotlex]
 	WBUFW(buf,0) = 0x3800;
 	WBUFW(buf,2) = len;
-	memcpy(WBUFP(buf,4), mes, len - 4);
+	WBUFL(buf,4) = color;
+	memcpy(WBUFP(buf,8), mes, len - 8);
 	mapif_sendallwos(sfd, buf, len);
 //	printf("inter server: GM:%d %s\n", len, mes);
 
@@ -443,7 +444,7 @@ int check_ttl_wisdata() {
 
 // GMメッセージ送信
 int mapif_parse_GMmessage(int fd) {
-	mapif_GMmessage(RFIFOP(fd,4), RFIFOW(fd,2), fd);
+	mapif_GMmessage(RFIFOP(fd,8), RFIFOW(fd,2), RFIFOL(fd,4), fd);
 
 	return 0;
 }
