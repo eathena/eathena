@@ -1,0 +1,101 @@
+/* Go away, troll */
+
+A 		{color: #ffa640; text-decoration: underline; background-color : inherit;} 
+
+A:link		{color: #ffa640; text-decoration: underline; background-color : inherit;} 
+
+A:visited		{ color: #ffa640; text-decoration: underline; background-color : inherit;} 
+
+A:active		{ color: #ffa640; text-decoration: underline; background-color : inherit;} 
+
+A:hover		{ color: #ffa640; text-decoration: underline; background-color : inherit;} 
+
+
+
+html {
+
+	margin:		0px;
+
+	padding:		0px;
+
+}
+
+
+
+BODY {
+
+	background :  url(./btmbg.gif);
+
+	margin : 0px 0px 0px 0px;
+
+	padding: 0px 0px 0px 0px;
+
+	font: 14px Arial, arial;
+
+	color:#ffa640;
+
+}
+
+
+
+h1 {
+
+	width : 100%;
+
+	height : 40px;
+
+	border-bottom : #ffa640 solid 1px;
+
+	text-align : bottom;
+
+	font : 30px Arial Black, arial black, helvetica, sans-serif;
+
+}
+
+h2 {
+
+	font : 25px Arial Black, arial black, helvetica, sans-serif;
+
+}
+
+.banner {
+
+	background : url(./bg.gif);
+
+}
+
+.kafra {
+
+	background : url(./bg.gif);
+
+	height : 135px;
+
+	font : 10px Arial Black, arial black, helvetica, sans-serif;
+
+}
+
+#navi {
+
+	background : url(./bg.gif);
+
+	font : 12px Arial Black, arial black, helvetica, sans-serif;
+
+	height : 92px;
+
+}
+
+#line {
+
+	background : url(./4.gif);
+
+	height: 21px;
+
+}
+
+#copyright {
+
+	font : 10px verdana, arial;
+
+	color: #000;
+
+}

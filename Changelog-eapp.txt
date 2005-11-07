@@ -1,5 +1,6 @@
 Date	Added
 10/29
+	* Updated readme with new layout [Evera]
 	* following the wishes I enable the hidden functions in the script checker for public
 	  which includes a bunch of the parsing debug outputs (but might be only useful
 	  for those interested in parsing), debug outputs from the compiler and 
