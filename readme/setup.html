@@ -1,119 +1,107 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-"http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
+<title>eAthena - Setup</title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<title>Untitled Document</title>
-<link rel="Stylesheet" href="style.css" type="text/css">
+<link rel="stylesheet" type="text/css" href="./readme.css">
 </head>
-
 <body>
-<div align="center">
-<table width="750"  border="0" cellspacing="0" cellpadding="0" align="center">
-  <tr>
-    <td align="left" valign="middle"><img src="eathena.gif" width="263" height="68"></td>
-	<td align="right" valign="bottom"><img src="kafra.gif" width="100" height="170"></td>
-  </tr>
-  <tr>
-    <td colspan="2" align="left" valign="top">
-	<div id="header">
-	   <ul>
-      <li><a href="../readme.html">Introduction</a></li>
-      <li><a href="changelog.html">Changelog</a></li>
-      <li><a href="features.html">Features</a></li>
-      <li><a href="npcfeatures.html">NPC Features</a></li>
-      <li  id="current"><a href="setup.html">Set-UP</a></li>
-	  <li><a href="commands.html">GM Commands</a></li>
-	  <li><a href="faq.html">FAQ</a></li>
-	  <li><a href="support.html">Support Site</a></li>
-    	</ul>
-	</div>
-	</td>
-  </tr>
-  <tr>
-    <td colspan="2" align="left" valign="top">
-	<div class="content">
-	<h2>How to setup an eAthena Server ? </h2>
-	<ol>
-  	<li>Edit motd.txt, grf-files.txt &amp; .conf files as neccessary.</li>
-  	<li>If you want to add a user, run adduser.exe in the main eAthena
-	directory before starting the server.</li>
-	<li>Run the login-server.exe, char-server.exe and map-server.exe in
-	the main eAthena directory.</li>
-  	<li>You're done!</li>
-	</ol>
-	<h2>Upgrading eAthena</h2>
-	<p class="main">
-	<span style="font-weight: bold;">
-	From a release newer than 953 or 817:
-	</span>
-	<ol>
-  	<li>Transfer your old /save/ folder contents (Athena.txt,
-		Account.txt, Storage.txt, etc.) to the new /save/ folder.</li>
-  	<li>Transfer/Edit grf-files.txt, gm-account.txt and motd.txt as&nbsp;
-		neccessary.</li>
-  	<li>Transfer any extra custom NPCs to the /npc/ folder and edit if
-		neccessary.</li>
-  	<li>Edit .conf files to setup your server.</li>
-  	<li>You're done!</li>
-	</ol>
+<table border="0" cellpadding="0" cellspacing="0">
+	<tr height="59">
+		<td class="banner" rowspan="3" width="354" height="286">
+			<table width="354" height="286" border="0" cellpadding="0" cellspacing="0">
+				<tr>
+					<td colspan="2">
+						<img src="./1-_01.gif" width="354" height="10" alt=""></td>
+				</tr>
+				<tr>
+					<td>
+						<img src="./1-_02.gif" width="10" height="276" alt=""></td>
+					<td>
+						<img src="./1-_03.gif" width="344" height="276" alt=""></td>
+					</tr>
+			</table>
+		</td>
+		<td class="banner" width="117" height="192" rowspan="2">
+			<img src="./2-1.gif" width="117" height="194" alt="">
+		</td>
+		<td class="banner" width="100%" rowspan="3">
+		</td>
+		<td class="banner" width="320" height="59" colspan="3" align="right">
+			<img src="./3-1.gif" width="320" height="59" alt="">
+		</td>
+	</tr>
+	<tr height="135">
+		<td class="kafra">
+		</td>
+		<td class="kafra" valign="top" width="200">
+			<h2>Setup</h2>
+			Instrucitons on how to start and configure eAthena!
+			Some of the older versions are listed here, and do not correspond to current SVN versions. Please don't be confused.
+		</td>
+		<td class="kafra" width="35" valign="bottom">
+			<img src="./5.gif" width="35" height="93" alt="">
+		</td>
+	</tr>
+	<tr height="92">
+		<td id="navi" align="right" valign="bottom" colspan="5">
+			<a href="../readme.html">Intro</a>   <a href="./changelog.html">Changelog</a>   <a href="./features.html">Features</a>   <a href="./npcfeatures.html">NPC Features</a>   Setup   <a href="./gmcommands.html">GM Commands</a>   <a href="./faq.html">FAQ</a>   <a href="./sites.html">Sites</a>
+		</td>
+	</tr>
+	<tr>
+		<td id="line" colspan="6">
+		</td>
+	</tr>
+	<tr>
+		<td colspan="6" height="100%">
+			<h1>How to setup an eAthena Server? </h1>
+			<ol>
+  				<li>Edit motd.txt, grf-files.txt &amp; .conf files as neccessary.</li>
+  				<li>If you want to add a user, run adduser.exe in the main eAthena directory before starting the server.</li>
+				<li>Run the login-server.exe, char-server.exe and map-server.exe in the main eAthena directory.</li>
+  				<li>You're done!</li>
+			</ol>
+			<h1>Upgrading eAthena</h1>
+				<b>From a release newer than 953 or 817:</b>
+				<ol>
+  					<li>Transfer your old /save/ folder contents (Athena.txt, Account.txt, Storage.txt, etc.) to the new /save/ folder.</li>
+  					<li>Transfer/Edit grf-files.txt, gm-account.txt and motd.txt as&nbsp; neccessary.</li>
+					<li>Transfer any extra custom NPCs to the /npc/ folder and edit if neccessary.</li>
+  					<li>Edit .conf files to setup your server.</li>
+  					<li>You're done!</li>
+				</ol>
 
-        <span style="font-style: italic;"><strong>NOTE</strong></span>:
-It is not recommended to transfer your DB files<br>
-&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; as the DB files are constantly
-updated by the eAthena/jAthena<br>
-&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; team. Just readd your changes to
-the new DB files instead of<br>
-&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; replacing the new DB file with
-your old one.
-	</p>
-	<p class="main">
-	<span style="font-weight: bold;">
-	From a release newer than 953 or 817:
-	</span>
-	<ol>
-  <li>Transfer your old /save/ folder contents (Athena.txt,
-Account.txt, Storage.txt, etc.) to the new /save/ folder.</li>
-  <li>Transfer/Edit grf-files.txt, gm-account.txt and motd.txt as
-neccessary.</li>
-  <li>Transfer any extra custom NPCs to the /npc/ folder and edit if
-neccessary.</li>
-  <li>Edit .conf files to setup your server.</li>
+        			<i><b>NOTE</b></i>:
+				It is not recommended to transfer your DB files<br>
+				&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp &nbsp;&nbsp;&nbsp; as the DB files are constantly updated by the eAthena/jAthena<br>
+				&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp &nbsp;&nbsp;&nbsp; team. Just readd your changes to the new DB files instead of<br>
+				&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp &nbsp;&nbsp;&nbsp; replacing the new DB file withyour old one.
+				<b>From a release newer than 953 or 817:</b>
+				<ol>
+					<li>Transfer your old /save/ folder contents (Athena.txt, Account.txt, Storage.txt, etc.) to the new /save/ folder.</li>
+					<li>Transfer/Edit grf-files.txt, gm-account.txt and motd.txt as neccessary.</li>
+					<li>Transfer any extra custom NPCs to the /npc/ folder and edit if neccessary.</li>
+					<li>Edit .conf files to setup your server.</li>
+					<li>You're done!</li>
+				</ol>
 
-  <li>You're done!</li>
-</ol>
-        <span style="font-style: italic;"><strong>NOTE</strong></span>:
-It is not recommended to transfer your .conf files from<br>
-&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; your old eAthena setup to this
-new one because there are always<br>
-&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; changes and new additions to
-these .conf files all the time<br>
+        			<i><b>NOTE</b></i>:
+				It is not recommended to transfer your .conf files from<br>
+				&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp &nbsp;&nbsp;&nbsp; your old eAthena setup to this new one because there are always<br>
+				&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp &nbsp;&nbsp;&nbsp; changes and new additions to these .conf files all the time<br>
 
-<br>
-&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
-<span style="font-style: italic;"><strong>NOTE
-2</strong></span>: It is also not recommended to transfer your DB files<br>
-&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; as the DB files are constantly
-updated by the eAthena/jAthena<br>
-&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; team. Just readd your changes to
-the new DB files instead of<br>
-&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; replacing the new DB file with
-your old one.
-</p>
-    </div>
-    </td>
-  </tr>
-  <tr>
-    <td colspan="2" align="left" valign="top">
-	<div class="footer">
-	© Content Copyright 2005 eAthena Development Team<br>
-	Original content by Aria/Evera<br>
-	Content modified & Updated by massdriller<br>
-	Designed by manutdotcom.
-	</div>
-	</td>
-  </tr>
+				<br>
+				<i><b>NOTE 2</b></i>: 
+				It is also not recommended to transfer your DB files<br>
+				&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp &nbsp;&nbsp;&nbsp; &nbsp;&nbsp; as the DB files are constantly updated by the eAthena/jAthena<br>
+				&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp &nbsp;&nbsp;&nbsp; &nbsp;&nbsp; team. Just read your changes to the new DB files instead of<br>
+				&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp &nbsp;&nbsp;&nbsp; &nbsp;&nbsp; replacing the new DB file with your old one.
+		</td>
+	</tr>
+	<tr>
+		<td colspan="6" id="copyright">
+			&copy; Copyright 2005 Evera/eAthena
+		</td>
+	</tr>
 </table>
-</div>
 </body>
 </html>

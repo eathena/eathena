@@ -1,5 +1,6 @@
 Date	Added
 2005/11/07
+	* Updated readme with new layout [Evera]
 	* Updated bAddMonsterDropItem bonuses to work with cards: Mimic Card, Mystcase Card
 	  where bonus_item_rate = base_rate * (killed_mob_level/10) + 1
   	  So if 2nd argument is negative, then it's 'rate'
