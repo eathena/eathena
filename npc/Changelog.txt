@@ -28,6 +28,9 @@ Nexon
 Date		Added
 ======
 11/07
+	* Added the lvl 4 weapon quest, thanks a lot to Vicious_pucca for converting it from [MasterOfMuppets]
+	  aegis format to eA format. a lot of thanks to reddozen as well for fixing bugs.
+	  - Also two quest related NPCs was added to Geffen and Morroc
 	* Fixed a misleading typo in quest/monstertamers.txt, thanks to vicious_pucca [MasterOfMuppets]
 	  for pointing it out.
 	* Updated the spawns of Santa Porings and Antonios in event/xmas.txt [MasterOfMuppets]

@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.4
+//= 1.5
 //===== Compatible With: ===================================== 
 //= eAthena 7.15 +
 //===== Description: ========================================= 
@@ -15,6 +15,7 @@
 //= 1.3 Removed some NPC due to Assassin Job Quest [kobra_k88]
 //= 1.3b mobs name corrected [Lupus], 1.3c - Adv classes support
 //= 1.4 Fixed typo’s [Nexon]
+//= 1.5 Added a lvl 4 weapon quest related NPC [MasterOfMuppets]
 //============================================================
 
 
@@ -359,6 +360,23 @@ M_Menu:
 		close;
 }
 
+// Lvl 4 weapon quest related NPC ================================
+
+morocc.gat,289,230,3	script	Citizen	92, {
+	mes "[Citizen]";
+	mes "Meeting a dead man is basically";
+	mes "impossible.";
+	mes "Even if you met one,";
+	mes "he would not have the full memory of his life.";
+	next;
+	mes "[Citizen]";
+	mes "But if you brought a thing that he";
+	mes "used to keep in his life,";
+	mes "it would be possible to retrieve his memory of the life.";
+	mes "Of course, we can confirm this theory only";
+	mes "when we meet a dead man.";
+	close;
+}
 
 //<================================================== Assassin Guild ====================================================>\\
 

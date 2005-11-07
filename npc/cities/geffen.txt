@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.2
+//= 1.3
 //===== Compatible With: ===================================== 
 //= eAthena 7.15 +
 //===== Description: ========================================= 
@@ -12,6 +12,7 @@
 //= Fully working
 //= 1.1 - Spell Checked [massdriller]
 //= 1.2 Fixed more typo’s [Nexon]
+//= 1.3 added a Level 4 weapon quest related NPC [MasterOfMuppets]
 //============================================================
 
 
@@ -331,7 +332,30 @@ geffen_in.gat,21,125,5	script	Drunkard	52,{
 	close;
 }
 
-// Friend of Youth -----------------------------------------------------------------
+// Lvl 4 weapon quest related NPC ------------------------------------------------------
+
+geffen.gat,203,146,5	script	Citizen	97, {
+	mes "[Citizen]";
+	mes "There was a skillful weaponsmith";
+	mes "in Al De Baran who had 4 sons.";
+	mes "Unfortunately he lost all of his sons";
+	mes "while developing a powerful weapon.";
+	mes "The father survived alone from the tragedy.";
+	next;
+	mes "[Citizen]";
+	mes "How sad it will be for the father...";
+	mes "Because of the incident, the weaponsmith";
+	mes "retired from his work and hid himself somewhere.";
+	mes "After that, no one could ever see";
+	mes "the powerful weapon that he and his sons were developing.";
+	next;
+	mes "[Citizen]";
+	mes "I don't think that 4 sons of him";
+	mes "went to the heaven with the anxiety.";
+	close;
+}
+
+// Friend of Youth ---------------------------------------------------------------------
 geffen_in.gat,37,124,5	script	Friend of Youth	704,{
 	set @temp,0;
 	mes "[Friend of Youth]";
