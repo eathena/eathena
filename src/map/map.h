@@ -16,8 +16,14 @@
 #define LIFETIME_FLOORITEM 60
 #define DAMAGELOG_SIZE 30
 #define LOOTITEM_SIZE 10
+#define MAX_STATUSCHANGE 250
+//Quick defines to know which are the min-max common ailments. [Skotlex]
+//Because of the way the headers are included.. these must be replaced for actual values.
+//Remember to update as needed! Min is SC_STONE and max is SC_DPOISON currently.
+#define SC_COMMON_MIN 0
+#define SC_COMMON_MAX 10
+
 #define MAX_SKILL_LEVEL 100
-#define MAX_STATUSCHANGE 400
 #define MAX_SKILLUNITGROUP 32
 #define MAX_MOBSKILLUNITGROUP 8
 #define MAX_SKILLUNITGROUPTICKSET 32
@@ -494,9 +500,9 @@ struct map_session_data {
  	int parame[6];
  	int subele[10];
  	int subrace[12];
- 	int addeff[10];
- 	int addeff2[10];
- 	int reseff[10];
+ 	int addeff[SC_COMMON_MAX-SC_COMMON_MIN+1];
+ 	int addeff2[SC_COMMON_MAX-SC_COMMON_MIN+1];
+ 	int reseff[SC_COMMON_MAX-SC_COMMON_MIN+1];
  	int weapon_coma_ele[10];
  	int weapon_coma_race[12];
  	int weapon_atk[16];
@@ -504,8 +510,8 @@ struct map_session_data {
  	int arrow_addele[10];
  	int arrow_addrace[12];
  	int arrow_addsize[3];
- 	int arrow_addeff[10];
- 	int arrow_addeff2[10];
+ 	int arrow_addeff[SC_COMMON_MAX-SC_COMMON_MIN+1];
+ 	int arrow_addeff2[SC_COMMON_MAX-SC_COMMON_MIN+1];
  	int magic_addele[10];
  	int magic_addrace[12];
  	int magic_addsize[3];
@@ -520,8 +526,8 @@ struct map_session_data {
  	short autospell2_lv[10];
  	short autospell2_rate[10];
   	int critaddrace[12];
-  	int addeff3[10];
-  	short addeff3_type[10];
+  	int addeff3[SC_COMMON_MAX-SC_COMMON_MIN+1];
+  	short addeff3_type[SC_COMMON_MAX-SC_COMMON_MIN+1];
   	int skillatk[5][2]; //For skill damage enhancement bonuses [Skotlex] (index 0 is skillid, 1 damage %bonus)
  	short add_def_classid[10];
  	int add_def_classrate[10];

@@ -1179,8 +1179,8 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		int i, type;
 		int sc_def_card=100;
 
-		for(i=SC_STONE;i<=SC_BLEEDING;i++){
-			type=i-SC_STONE;
+		for(i=SC_COMMON_MIN;i<=SC_COMMON_MAX;i++){
+			type=i-SC_COMMON_MIN;
 			if (!sd->addeff[type] && (!sd->state.arrow_atk || !sd->arrow_addeff[type]))
 				continue; //Code Speedup.
 			//??Û‚É?‘ÔˆÙ?í
@@ -1191,6 +1191,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 					break;
 				case SC_STAN:
 				case SC_POISON:
+				case SC_DPOISON:
 				case SC_SILENCE:
 				case SC_BLEEDING:
 					sc_def_card=sc_def_vit;
@@ -1341,8 +1342,8 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 		int i, type;
 		int sc_def_card=100;
 
-		for(i=SC_STONE;i<=SC_BLEEDING;i++){
-			type=i-SC_STONE;
+		for(i=SC_COMMON_MIN;i<=SC_COMMON_MAX;i++){
+			type=i-SC_COMMON_MIN;
 					
 			switch (i) {
 				case SC_STONE:
@@ -1351,6 +1352,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 					break;
 				case SC_STAN:
 				case SC_POISON:
+				case SC_DPOISON:
 				case SC_SILENCE:
 				case SC_BLEEDING:
 					sc_def_card=sc_def_vit;
@@ -4502,7 +4504,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			}
 			if(status_isimmune(bl))
 				break;
-			for(i=0;i<MAX_STATUSCHANGE;i++){
+			for(i=0;i<SC_MAX;i++){
 				if (tsc_data[i].timer == -1)
 					continue;
 				if(i==SC_RIDING || i==SC_FALCON || i==SC_HALLUCINATION || i==SC_WEIGHT50 || i==SC_WEIGHT90
@@ -5307,7 +5309,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					break;
 				case 8:	// curse coma and poison
 					if (!(status_get_mode(bl)&MD_BOSS))
-						battle_damage(src, bl, status_get_hp(bl)-1, 0, 0);
+						battle_damage(NULL, bl, status_get_hp(bl)-1, 0, 0);
 					if (dstsd) pc_heal(dstsd,0,-dstsd->status.sp+1);
 					//status_change_start(bl,SC_COMA,skilllv,0,0,0,30000,0);
 					status_change_start(bl,SC_CURSE,skilllv,0,0,0,30000,0);

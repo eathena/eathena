@@ -2657,12 +2657,12 @@ int map_readallmap(void) {
 #ifdef USE_AFM
 		char afm_name[256] = "";
 #endif
-		// set it by default first
-		map[i].alias = NULL;
 		memset(map[i].moblist, 0, sizeof(map[i].moblist));	//Initialize moblist [Skotlex]
 		map[i].mob_delete_timer = -1;	//Initialize timer [Skotlex]
 
 #ifdef USE_AFM
+		// set it by default first
+		map[i].alias = NULL;
 		if(!strstr(map[i].name, ".afm")) {
 		// check if it's necessary to replace the extension - speeds up loading abit
 			strncpy(afm_name, map[i].name, strlen(map[i].name) - 4);

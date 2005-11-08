@@ -1,5 +1,12 @@
 Date	Added
 2005/11/08
+	* Implemented SI_ constants to specify the icon number for different SC_
+	  changes, idea adopted from jAthena. All SC_ data was reorganized and
+	  several checks are now in place. It is likely all saved sc_data is wrong
+	  after this update due to the numbers changing places. It won't cause any
+	  glue-boots.. but the wrong status changes will be loaded the first time
+	  anyway, so it may be a good idea to wipe that file/table for this update.
+	  [Skotlex]
 	* Added mob boss inmunity to status changes: poison, curse, deadly poison.
 	  [Skotlex]
 	* Now when the mob starts casting a skill and stops walking, a packet will

@@ -1197,7 +1197,7 @@ int chrif_save_scdata(struct map_session_data *sd)
 	WFIFOW(char_fd,0) = 0x2b1c;
 	WFIFOL(char_fd,4) = sd->status.account_id;
 	WFIFOL(char_fd,8) = sd->status.char_id;
-	for (i = 0; i < MAX_STATUSCHANGE; i++)
+	for (i = 0; i < SC_MAX; i++)
 	{
 		if (sd->sc_data[i].timer == -1)
 			continue;

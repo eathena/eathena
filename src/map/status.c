@@ -422,6 +422,8 @@ int SkillStatusChangeTable[]={	/* status.hのenumのSC_***とあわせること */
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
 };
 
+int StatusIconChangeTable[SC_MAX];
+
 static int max_weight_base[MAX_PC_CLASS];
 static int hp_coefficient[MAX_PC_CLASS];
 static int hp_coefficient2[MAX_PC_CLASS];
@@ -438,6 +440,152 @@ int current_equip_item_index; //Contains inventory index of an equipped item. To
 //we need it for new cards 15 Feb 2005, to check if the combo cards are insrerted into the CURRENT weapon only
 //to avoid cards exploits
 
+//Initializes the StatusIconChangeTable variable. May seem somewhat slower than directly defining the array,
+//but it is much less prone to errors. [Skotlex]
+void initStatusIconChangeTable() {
+	int i;
+	for (i = 0; i < SC_MAX; i++)
+		StatusIconChangeTable[i] = SI_BLANK;
+
+	StatusIconChangeTable[SC_PROVOKE] = SI_PROVOKE;
+	StatusIconChangeTable[SC_ENDURE] = SI_ENDURE;
+	StatusIconChangeTable[SC_TWOHANDQUICKEN] = SI_TWOHANDQUICKEN;
+	StatusIconChangeTable[SC_CONCENTRATE] = SI_CONCENTRATE;
+	StatusIconChangeTable[SC_HIDING] = SI_HIDING;
+	StatusIconChangeTable[SC_CLOAKING] = SI_CLOAKING;
+	StatusIconChangeTable[SC_ENCPOISON] = SI_ENCPOISON;
+	StatusIconChangeTable[SC_POISONREACT] = SI_POISONREACT;
+	StatusIconChangeTable[SC_QUAGMIRE] = SI_QUAGMIRE;
+	StatusIconChangeTable[SC_ANGELUS] = SI_ANGELUS;
+	StatusIconChangeTable[SC_BLESSING] = SI_BLESSING;
+	StatusIconChangeTable[SC_SIGNUMCRUCIS] = SI_SIGNUMCRUCIS;
+	StatusIconChangeTable[SC_INCREASEAGI] = SI_INCREASEAGI;
+	StatusIconChangeTable[SC_DECREASEAGI] = SI_DECREASEAGI;
+	StatusIconChangeTable[SC_SLOWPOISON] = SI_SLOWPOISON;
+	StatusIconChangeTable[SC_IMPOSITIO] = SI_IMPOSITIO;
+	StatusIconChangeTable[SC_SUFFRAGIUM] = SI_SUFFRAGIUM;
+	StatusIconChangeTable[SC_ASPERSIO] = SI_ASPERSIO;
+	StatusIconChangeTable[SC_BENEDICTIO] = SI_BENEDICTIO;
+	StatusIconChangeTable[SC_KYRIE] = SI_KYRIE;
+	StatusIconChangeTable[SC_MAGNIFICAT] = SI_MAGNIFICAT;
+	StatusIconChangeTable[SC_GLORIA] = SI_GLORIA;
+	StatusIconChangeTable[SC_AETERNA] = SI_AETERNA;
+	StatusIconChangeTable[SC_ADRENALINE] = SI_ADRENALINE;
+	StatusIconChangeTable[SC_WEAPONPERFECTION]	= SI_WEAPONPERFECTION;
+	StatusIconChangeTable[SC_OVERTHRUST] = SI_OVERTHRUST;
+	StatusIconChangeTable[SC_MAXIMIZEPOWER] = SI_MAXIMIZEPOWER;
+	StatusIconChangeTable[SC_RIDING] = SI_RIDING;
+	StatusIconChangeTable[SC_FALCON] = SI_FALCON;
+	StatusIconChangeTable[SC_TRICKDEAD] = SI_TRICKDEAD;
+	StatusIconChangeTable[SC_LOUD] = SI_LOUD;
+	StatusIconChangeTable[SC_ENERGYCOAT] = SI_ENERGYCOAT;
+	StatusIconChangeTable[SC_BROKENARMOR] = SI_BROKENARMOR;
+	StatusIconChangeTable[SC_BROKENWEAPON] = SI_BROKENWEAPON;
+	StatusIconChangeTable[SC_HALLUCINATION] = SI_HALLUCINATION;
+	StatusIconChangeTable[SC_WEIGHT50 ] = SI_WEIGHT50;
+	StatusIconChangeTable[SC_WEIGHT90] = SI_WEIGHT90;
+	StatusIconChangeTable[SC_ASPDPOTION0] = SI_ASPDPOTION0;
+	StatusIconChangeTable[SC_ASPDPOTION1] = SI_ASPDPOTION1;
+	StatusIconChangeTable[SC_ASPDPOTION2] = SI_ASPDPOTION2;
+	StatusIconChangeTable[SC_ASPDPOTION3] = SI_ASPDPOTION3;
+	StatusIconChangeTable[SC_ATKPOTION] = SI_ATKPOTION;
+	StatusIconChangeTable[SC_MATKPOTION] = SI_MATKPOTION;
+	StatusIconChangeTable[SC_ANKLE] = SI_ANKLE;
+	StatusIconChangeTable[SC_STRIPWEAPON] = SI_STRIPWEAPON;
+	StatusIconChangeTable[SC_STRIPSHIELD] = SI_STRIPSHIELD;
+	StatusIconChangeTable[SC_STRIPARMOR] = SI_STRIPARMOR;
+	StatusIconChangeTable[SC_STRIPHELM] = SI_STRIPHELM;
+	StatusIconChangeTable[SC_CP_WEAPON] = SI_CP_WEAPON;
+	StatusIconChangeTable[SC_CP_SHIELD] = SI_CP_SHIELD;
+	StatusIconChangeTable[SC_CP_ARMOR] = SI_CP_ARMOR;
+	StatusIconChangeTable[SC_CP_HELM] = SI_CP_HELM;
+	StatusIconChangeTable[SC_AUTOGUARD] = SI_AUTOGUARD;
+	StatusIconChangeTable[SC_REFLECTSHIELD] = SI_REFLECTSHIELD;
+	StatusIconChangeTable[SC_PROVIDENCE] = SI_PROVIDENCE;
+	StatusIconChangeTable[SC_DEFENDER] = SI_DEFENDER;
+	StatusIconChangeTable[SC_AUTOSPELL] = SI_AUTOSPELL;
+	StatusIconChangeTable[SC_SIGHTTRASHER] = SI_SIGHTTRASHER;
+	StatusIconChangeTable[SC_AUTOBERSERK] = SI_AUTOBERSERK;
+	StatusIconChangeTable[SC_SPEARSQUICKEN] = SI_SPEARQUICKEN;
+	StatusIconChangeTable[SC_AUTOCOUNTER] = SI_AUTOCOUNTER;
+	StatusIconChangeTable[SC_SIGHT] = SI_SIGHT;
+	StatusIconChangeTable[SC_SAFETYWALL] = SI_SAFETYWALL;
+	StatusIconChangeTable[SC_RUWACH] = SI_RUWACH;
+	StatusIconChangeTable[SC_PNEUMA] = SI_PNEUMA;
+	StatusIconChangeTable[SC_STONE] = SI_STONE;
+	StatusIconChangeTable[SC_FREEZE] = SI_FREEZE;
+	StatusIconChangeTable[SC_STAN] = SI_STAN;
+	StatusIconChangeTable[SC_SLEEP] = SI_SLEEP;
+	StatusIconChangeTable[SC_POISON] = SI_POISON;
+	StatusIconChangeTable[SC_CURSE] = SI_CURSE;
+	StatusIconChangeTable[SC_SILENCE] = SI_SILENCE;
+	StatusIconChangeTable[SC_CONFUSION] = SI_CONFUSION;
+	StatusIconChangeTable[SC_BLIND] = SI_BLIND;
+	StatusIconChangeTable[SC_BLEEDING] = SI_BLEEDING;
+	StatusIconChangeTable[SC_DPOISON] = SI_DPOISON;
+	StatusIconChangeTable[SC_EXPLOSIONSPIRITS] = SI_EXPLOSIONSPIRITS;
+	StatusIconChangeTable[SC_BLADESTOP_WAIT] = SI_BLADESTOP_WAIT;
+	StatusIconChangeTable[SC_BLADESTOP] = SI_BLADESTOP;
+	StatusIconChangeTable[SC_VOLCANO] = SI_VOLCANO;
+	StatusIconChangeTable[SC_DELUGE] = SI_DELUGE;
+	StatusIconChangeTable[SC_VIOLENTGALE] = SI_VIOLENTGALE;
+	StatusIconChangeTable[SC_NOCHAT] = SI_NOCHAT;
+	StatusIconChangeTable[SC_AURABLADE] = SI_AURABLADE;
+	StatusIconChangeTable[SC_PARRYING] = SI_PARRYING;
+	StatusIconChangeTable[SC_CONCENTRATION] = SI_CONCENTRATION;
+	StatusIconChangeTable[SC_TENSIONRELAX] = SI_TENSIONRELAX;
+	StatusIconChangeTable[SC_BERSERK] = SI_BERSERK;
+	StatusIconChangeTable[SC_FURY] = SI_FURY;
+	StatusIconChangeTable[SC_GOSPEL] = SI_GOSPEL;
+	StatusIconChangeTable[SC_ASSUMPTIO] = SI_ASSUMPTIO;
+	StatusIconChangeTable[SC_GUILDAURA] = SI_GUILDAURA;
+	StatusIconChangeTable[SC_MAGICPOWER] = SI_MAGICPOWER;
+	StatusIconChangeTable[SC_EDP] = SI_EDP;
+	StatusIconChangeTable[SC_TRUESIGHT] = SI_TRUESIGHT;
+	StatusIconChangeTable[SC_WINDWALK] = SI_WINDWALK;
+	StatusIconChangeTable[SC_MELTDOWN] = SI_MELTDOWN;
+	StatusIconChangeTable[SC_CARTBOOST] = SI_CARTBOOST;
+	StatusIconChangeTable[SC_CHASEWALK] = SI_CHASEWALK;
+	StatusIconChangeTable[SC_REJECTSWORD] = SI_REJECTSWORD;
+	StatusIconChangeTable[SC_MARIONETTE] = SI_MARIONETTE;
+	StatusIconChangeTable[SC_MARIONETTE2] = SI_MARIONETTE2;
+	StatusIconChangeTable[SC_MOONLIT] = SI_MOONLIT;
+	StatusIconChangeTable[SC_JOINTBEAT] = SI_JOINTBEAT;
+	StatusIconChangeTable[SC_MINDBREAKER] = SI_MINDBREAKER;
+	StatusIconChangeTable[SC_MEMORIZE] = SI_MEMORIZE;
+	StatusIconChangeTable[SC_FOGWALL] = SI_FOGWALL;
+	StatusIconChangeTable[SC_SPIDERWEB] = SI_SPIDERWEB;
+	StatusIconChangeTable[SC_DEVOTION] = SI_DEVOTION;
+	StatusIconChangeTable[SC_SACRIFICE] = SI_SACRIFICE;
+	StatusIconChangeTable[SC_STEELBODY] = SI_STEELBODY;
+	StatusIconChangeTable[SC_ORCISH] = SI_WIGGLE;
+	StatusIconChangeTable[SC_READYSTORM] = SI_READYSTORM;
+	StatusIconChangeTable[SC_READYDOWN] = SI_READYDOWN;
+	StatusIconChangeTable[SC_READYTURN] = SI_READYTURN;
+	StatusIconChangeTable[SC_READYCOUNTER] = SI_READYCOUNTER;
+	StatusIconChangeTable[SC_DODGE] = SI_DODGE;
+	StatusIconChangeTable[SC_JUMPKICK] = SI_JUMPKICK;
+	StatusIconChangeTable[SC_RUN] = SI_RUN;
+	StatusIconChangeTable[SC_ADRENALINE2] = SI_ADRENALINE2;
+	StatusIconChangeTable[SC_NIGHT] = SI_NIGHT;
+	StatusIconChangeTable[SC_KAIZEL] = SI_KAIZEL;
+	StatusIconChangeTable[SC_KAAHI] = SI_KAAHI;
+	StatusIconChangeTable[SC_KAUPE] = SI_KAUPE;
+	StatusIconChangeTable[SC_ONEHAND] = SI_ONEHAND;
+	StatusIconChangeTable[SC_PRESERVE] = SI_PRESERVE;
+	StatusIconChangeTable[SC_BATTLEORDERS] = SI_BATTLEORDERS;
+	StatusIconChangeTable[SC_REGENERATION] = SI_REGENERATION;
+	StatusIconChangeTable[SC_DOUBLECAST] = SI_DOUBLECAST;
+	StatusIconChangeTable[SC_GRAVITATION] = SI_GRAVITATION;
+	StatusIconChangeTable[SC_MAXOVERTHRUST] = SI_MAXOVERTHRUST;
+	StatusIconChangeTable[SC_LONGING] = SI_LONGING;
+	StatusIconChangeTable[SC_HERMODE] = SI_HERMODE;
+	StatusIconChangeTable[SC_SHRINK] = SI_SHRINK;
+	StatusIconChangeTable[SC_SIGHTBLASTER] = SI_SIGHTBLASTER;
+	StatusIconChangeTable[SC_WINKCHARM] = SI_WINKCHARM;
+	StatusIconChangeTable[SC_CLOSECONFINE] = SI_CLOSECONFINE;
+	StatusIconChangeTable[SC_CLOSECONFINE2] = SI_CLOSECONFINE2;
+}
 /*==========================================
  * 精錬ボーナス
  *------------------------------------------
@@ -3461,6 +3609,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		if (status_isdead(bl)) return 0;
 	if(bl->type == BL_PET)	//Pets cannot have status effects
 		return 0;
+	if(type < 0 || type >= SC_MAX)
+		return 0;
 
 	nullpo_retr(0, sc_data=status_get_sc_data(bl));
 	nullpo_retr(0, sc_count=status_get_sc_count(bl));
@@ -3512,8 +3662,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		if( sd && type == SC_ADRENALINE && !(skill_get_weapontype(BS_ADRENALINE)&(1<<sd->status.weapon)))
 			return 0;
 
-		if(SC_STONE<=type && type<=SC_BLIND && !(flag&1)){
-			if( sd && sd->reseff[type-SC_STONE] > 0 && rand()%10000<sd->reseff[type-SC_STONE]){
+		if(SC_COMMON_MIN<=type && type<=SC_COMMON_MAX && !(flag&1)){
+			if( sd && sd->reseff[type-SC_COMMON_MIN] > 0 && rand()%10000<sd->reseff[type-SC_COMMON_MIN]){
 				if(battle_config.battle_log)
 					ShowInfo("PC %d skill_sc_start: cardによる異常耐性?動\n",sd->bl.id);
 				return 0;
@@ -3546,9 +3696,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		sc_data[type].timer != -1 && sc_data[type].val2 && !val2)
 		return 0;
 
-	if(mode & MD_BOSS && !(flag&1) &&
-		(type==SC_STONE || type==SC_FREEZE || type==SC_STAN || type==SC_SLEEP || type==SC_SILENCE
-		|| type==SC_POISON || type==SC_DPOISON || type==SC_CURSE
+	if(mode & MD_BOSS && !(flag&1) && ( (type>=SC_COMMON_MIN && type <= SC_COMMON_MAX)
 		|| type==SC_QUAGMIRE || type==SC_DECREASEAGI || type==SC_SIGNUMCRUCIS || type==SC_PROVOKE || type==SC_ROKISWEIL
 		|| (type == SC_BLESSING && (undead_flag || race == 6)))){
 		/* ボスには?かない(ただしカ?ドによる?果は適用される) */
@@ -3874,16 +4022,16 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 
 			// Since people complain so much about the various icons showing up, here we disable the visual of any other potions [Skotlex] 
 			if (sc_data[SC_ASPDPOTION0].timer != -1)
-				clif_status_change(bl,SC_ASPDPOTION0,0);
+				clif_status_change(bl,StatusIconChangeTable[SC_ASPDPOTION0],0);
 			else
 			if (sc_data[SC_ASPDPOTION1].timer != -1)
-				clif_status_change(bl,SC_ASPDPOTION1,0);
+				clif_status_change(bl,StatusIconChangeTable[SC_ASPDPOTION1],0);
 			else
 			if (sc_data[SC_ASPDPOTION2].timer != -1)
-				clif_status_change(bl,SC_ASPDPOTION2,0);
+				clif_status_change(bl,StatusIconChangeTable[SC_ASPDPOTION2],0);
 			else
 			if (sc_data[SC_ASPDPOTION3].timer != -1)
-				clif_status_change(bl,SC_ASPDPOTION3,0);
+				clif_status_change(bl,StatusIconChangeTable[SC_ASPDPOTION2],0);
 			break;
 
 		case SC_ATKPOTION: // Valaris
@@ -4353,8 +4501,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 	if (bl->type == BL_PC && (battle_config.display_hallucination || type != SC_HALLUCINATION))
 	{
 		if (flag&4)
-			clif_status_load(bl,type,1); //Sending to owner since they aren't in the map yet. [Skotlex]
-		clif_status_change(bl,type,1);	/* アイコン表示 */
+			clif_status_load(bl,StatusIconChangeTable[type],1); //Sending to owner since they aren't in the map yet. [Skotlex]
+		clif_status_change(bl,StatusIconChangeTable[type],1);
 	}
 
 	/* optionの?更 */
@@ -4482,7 +4630,7 @@ int status_change_clear(struct block_list *bl,int type)
 
 	if (*sc_count == 0)
 		return 0;
-	for(i = 0; i < MAX_STATUSCHANGE; i++)
+	for(i = 0; i < SC_MAX; i++)
 	{
 		//Type 0: PC killed -> EDP and Meltdown must not be dispelled. [Skotlex]
 		if(sc_data[i].timer == -1 ||
@@ -4527,6 +4675,10 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			ShowError("status_change_end: neither MOB nor PC !\n");
 		return 0;
 	}
+
+	if(type < 0 || type >= SC_MAX)
+		return 0;
+	
 	nullpo_retr(0, sc_data = status_get_sc_data(bl));
 	nullpo_retr(0, sc_count = status_get_sc_count(bl));
 	nullpo_retr(0, option = status_get_option(bl));
@@ -4646,16 +4798,16 @@ int status_change_end( struct block_list* bl , int type,int tid )
 				calc_flag = 1;
 				//Restore the icon if another speed potion is still in effect.
 				if (sc_data[SC_ASPDPOTION3].timer != -1)
-					clif_status_change(bl,SC_ASPDPOTION3,1);
+					clif_status_change(bl,StatusIconChangeTable[SC_ASPDPOTION3],1);
 				else
 				if (sc_data[SC_ASPDPOTION2].timer != -1)
-					clif_status_change(bl,SC_ASPDPOTION2,1);
+					clif_status_change(bl,StatusIconChangeTable[SC_ASPDPOTION2],1);
 				else
 				if (sc_data[SC_ASPDPOTION1].timer != -1)
-					clif_status_change(bl,SC_ASPDPOTION1,1);
+					clif_status_change(bl,StatusIconChangeTable[SC_ASPDPOTION1],1);
 				else
 				if (sc_data[SC_ASPDPOTION0].timer != -1)
-					clif_status_change(bl,SC_ASPDPOTION0,1);
+					clif_status_change(bl,StatusIconChangeTable[SC_ASPDPOTION0],1);
 				break;
 
 			case SC_AUTOBERSERK:
@@ -4815,7 +4967,7 @@ int status_change_end( struct block_list* bl , int type,int tid )
 
 
 		if (bl->type == BL_PC && (battle_config.display_hallucination || type != SC_HALLUCINATION))
-			clif_status_change(bl,type,0);	/* アイコン消去 */
+			clif_status_change(bl,StatusIconChangeTable[type],0);
 
 		switch(type){	/* 正常に?るときなにか?理が必要 */
 		case SC_STONE:
@@ -5456,7 +5608,7 @@ int status_change_clear_debuffs (struct block_list *bl)
 	struct status_change *sc_data = status_get_sc_data(bl);
 	if (!sc_data)
 		return 0;
-	for (i = SC_STONE; i <= SC_DPOISON; i++) {
+	for (i = SC_COMMON_MIN; i <= SC_COMMON_MAX; i++) {
 		if(sc_data[i].timer != -1)
 			status_change_end(bl,i,-1);
 	}
@@ -5610,7 +5762,13 @@ int status_readdb(void) {
  */
 int do_init_status(void)
 {
+	if (SC_MAX > MAX_STATUSCHANGE)
+	{
+		ShowDebug("status.h defines %d status changes, but the MAX_STATUSCHANGE is %d! Fix it.\n", SC_MAX, MAX_STATUSCHANGE);
+		exit(1);
+	}
 	add_timer_func_list(status_change_timer,"status_change_timer");
+	initStatusIconChangeTable();
 	status_readdb();
 	status_calc_sigma();
 	return 0;

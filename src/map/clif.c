@@ -4879,7 +4879,7 @@ int clif_skill_produce_mix_list(struct map_session_data *sd,int trigger)
 int clif_status_load(struct block_list *bl,int type, int flag)
 {
 	int fd;
-	if (type >= SC_SENDMAX) //Status changes above this value are not displayed on the client. [Skotlex]
+	if (type == SI_BLANK)  //It shows nothing on the client...
 		return 0;
 	
 	if (bl->type != BL_PC)
@@ -4902,7 +4902,7 @@ int clif_status_change(struct block_list *bl,int type,int flag)
 {
 	unsigned char buf[16];
 
-	if (type >= SC_SENDMAX) //Status changes above this value are not displayed on the client. [Skotlex]
+	if (type == SI_BLANK)  //It shows nothing on the client...
 		return 0;
 	
 	nullpo_retr(0, bl);

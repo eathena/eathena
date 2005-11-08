@@ -31,6 +31,9 @@
 		like gemstones when the skill is used.
 	--
 11/08
+	* Updated job_db1.txt information for Taekwon/Star Gladiator and Soul
+	  Linker. Thanks to... Reddozen, I think (data was taken from the Taekwon
+	  Thread) [Skotlex]
 	* Fixed Mobster Card bonus, thanks to tattatheng [Lupus]
 11/07
 	* Copied skills from Jakk to Christmas Jakk which was missing monster skills [MasterOfMuppets]

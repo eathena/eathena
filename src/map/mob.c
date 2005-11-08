@@ -3519,7 +3519,7 @@ int mob_getfriendstatus_sub(struct block_list *bl,va_list ap)
 	fr=va_arg(ap,struct mob_data **);
 	if( cond2==-1 ){
 		int j;
-		for(j=SC_STONE;j<=SC_BLIND && !flag;j++){
+		for(j=SC_COMMON_MIN;j<=SC_COMMON_MAX && !flag;j++){
 			flag=(md->sc_data[j].timer!=-1 );
 		}
 	}else
@@ -3588,7 +3588,7 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 						flag = 0;
 					} else if (ms[i].cond2 == -1) {
 						int j;
-						for (j = SC_STONE; j <= SC_BLIND; j++)
+						for (j = SC_COMMON_MIN; j <= SC_COMMON_MAX; j++)
 							if ((flag = (md->sc_data[j].timer != -1)) != 0)
 								break;
 					} else {

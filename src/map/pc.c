@@ -1670,20 +1670,32 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 			sd->subrace[type2]+=val;
 		break;
 	case SP_ADDEFF:
+		if (type2 < SC_COMMON_MIN || type2 > SC_COMMON_MAX) {
+			ShowWarning("pc_bonus2 (Add Effect): %d is not supported.\n", type2);
+			break;
+		}
 		if(sd->state.lr_flag != 2)
-			sd->addeff[type2]+=val;
+			sd->addeff[type2-SC_COMMON_MIN]+=val;
 		else
-			sd->arrow_addeff[type2]+=val;
+			sd->arrow_addeff[type2-SC_COMMON_MIN]+=val;
 		break;
 	case SP_ADDEFF2:
+		if (type2 < SC_COMMON_MIN || type2 > SC_COMMON_MAX) {
+			ShowWarning("pc_bonus2 (Add Effect2): %d is not supported.\n", type2);
+			break;
+		}
 		if(sd->state.lr_flag != 2)
-			sd->addeff2[type2]+=val;
+			sd->addeff2[type2-SC_COMMON_MIN]+=val;
 		else
-			sd->arrow_addeff2[type2]+=val;
+			sd->arrow_addeff2[type2-SC_COMMON_MIN]+=val;
 		break;
 	case SP_RESEFF:
+		if (type2 < SC_COMMON_MIN || type2 > SC_COMMON_MAX) {
+			ShowWarning("pc_bonus2 (Resist Effect): %d is not supported.\n", type2);
+			break;
+		}
 		if(sd->state.lr_flag != 2)
-			sd->reseff[type2]+=val;
+			sd->reseff[type2-SC_COMMON_MIN]+=val;
 		break;
 	case SP_MAGIC_ADDELE:
 		if(sd->state.lr_flag != 2)
@@ -1850,15 +1862,23 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 			sd->critaddrace[type2] += val*10;
 		break;
 	case SP_ADDEFF_WHENHIT:
+		if (type2 < SC_COMMON_MIN || type2 > SC_COMMON_MAX) {
+			ShowWarning("pc_bonus2 (Add Effect when hit): %d is not supported.\n", type2);
+			break;
+		}
 		if(sd->state.lr_flag != 2) {
-			sd->addeff3[type2]+=val;
-			sd->addeff3_type[type2]=1;
+			sd->addeff3[type2-SC_COMMON_MIN]+=val;
+			sd->addeff3_type[type2-SC_COMMON_MIN]=1;
 		}
 		break;
 	case SP_ADDEFF_WHENHIT_SHORT:
+		if (type2 < SC_COMMON_MIN || type2 > SC_COMMON_MAX) {
+			ShowWarning("pc_bonus2 (Add Effect when hit short): %d is not supported.\n", type2);
+			break;
+		}
 		if(sd->state.lr_flag != 2) {
-			sd->addeff3[type2]+=val;
-			sd->addeff3_type[type2]=0;
+			sd->addeff3[type2-SC_COMMON_MIN]+=val;
+			sd->addeff3_type[type2-SC_COMMON_MIN]=0;
 		}
 		break;
 	case SP_SKILL_ATK:
