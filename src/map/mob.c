@@ -1039,7 +1039,7 @@ int mob_stop_walking(struct mob_data *md,int type)
 		int dx=0,dy=0;
 
 		md->walkpath.path_len=0;
-		if(type&4){
+		if(type&2){
 			dx=md->to_x-md->bl.x;
 			if(dx<0)
 				dx=-1;
@@ -3333,7 +3333,7 @@ int mobskill_use_id(struct mob_data *md,struct block_list *target,int skill_idx)
 
 	if (casttime || forcecast) { 	// ‰r¥‚ª•K—v
 		if (!selfdestruct_flag)
-			mob_stop_walking(md,0);		// •às’â~
+			mob_stop_walking(md,1);		// •às’â~
 		clif_skillcasting(&md->bl, md->bl.id, target->id, 0,0, skill_id, casttime);
 	}
 
@@ -3407,7 +3407,7 @@ int mobskill_use_pos( struct mob_data *md,
 			skill_x,skill_y,skill_id,skill_lv,casttime,md->class_);
 
 	if( casttime>0 ) {	// A cast time is required.
-		mob_stop_walking(md,0);		// •às’â~
+		mob_stop_walking(md,1);		// •às’â~
 		clif_skillcasting( &md->bl,
 			md->bl.id, 0, skill_x,skill_y, skill_id,casttime);
 	}

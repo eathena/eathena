@@ -1,5 +1,8 @@
 Date	Added
 2005/11/08
+	* Now when the mob starts casting a skill and stops walking, a packet will
+	  be sent to update the mob position on the clients. [Skotlex]
+	* Fixed a bug in mob_stop_walking which may fix stun-lock. [Skotlex]
 	* Fixed not showing named/carded items in Vending [Lupus]
 	  (when you drag'n'drop them from your cart into your shop list)
 2005/11/07

@@ -365,7 +365,7 @@ CREATE TABLE `login` (
   `sex` char(1) NOT NULL default 'M',
   `logincount` mediumint(9) unsigned NOT NULL default '0',
   `email` varchar(60) NOT NULL default '',
-  `level` tinyint(3) unsigned NOT NULL default '0',
+  `level` tinyint(3) NOT NULL default '0',
   `error_message` smallint(11) unsigned NOT NULL default '0',
   `connect_until` smallint(11) unsigned NOT NULL default '0',
   `last_ip` varchar(100) NOT NULL default '',
