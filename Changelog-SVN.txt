@@ -1,5 +1,6 @@
 Date	Added
 2005/11/08
+	* Probably fixed mapannounce. [Skotlex]
 	* Implemented SI_ constants to specify the icon number for different SC_
 	  changes, idea adopted from jAthena. All SC_ data was reorganized and
 	  several checks are now in place. It is likely all saved sc_data is wrong

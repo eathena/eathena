@@ -5431,14 +5431,14 @@ int buildin_mapannounce_sub(struct block_list *bl,va_list ap)
 }
 int buildin_mapannounce(struct script_state *st)
 {
-	char *mapname,*str,*color=NULL;
+	char *mapname,*str, *color=NULL;
 	int flag,m;
 
 	mapname=conv_str(st,& (st->stack->stack_data[st->start+2]));
 	str=conv_str(st,& (st->stack->stack_data[st->start+3]));
 	flag=conv_num(st,& (st->stack->stack_data[st->start+4]));
-	if (st->end>st->start+4)
-		color=conv_str(st,& (st->stack->stack_data[st->start+4]));
+	if (st->end>st->start+5)
+		color=conv_str(st,& (st->stack->stack_data[st->start+5]));
 
 	if( (m=map_mapname2mapid(mapname))<0 )
 		return 0;
