@@ -31,6 +31,7 @@
 		like gemstones when the skill is used.
 	--
 11/08
+	* Added cook books, lvl 1~5 to item_trade.txt to prevent exploits [MasterOfMuppets]
 	* Updated job_db1.txt information for Taekwon/Star Gladiator and Soul
 	  Linker. Thanks to... Reddozen, I think (data was taken from the Taekwon
 	  Thread) [Skotlex]
