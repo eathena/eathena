@@ -765,7 +765,7 @@ void* grfio_reads(char *fname, int *size)
 			if (entry != NULL && entry->gentry < 0) {
 				entry->gentry = -entry->gentry;	// local file checked
 			} else {
-				ShowError("%s not found (grfio_reads)\n", fname);
+				ShowError("%s not found (grfio_reads - local file)\n", fname);
 				return NULL;
 			}
 		}
@@ -796,7 +796,7 @@ void* grfio_reads(char *fname, int *size)
 			}
 			aFree(buf);
 		} else {
-			ShowError("%s not found (grfio_reads)\n", gfname);
+			ShowError("%s not found (grfio_reads - grf file)\n", gfname);
 			return NULL;
 		}
 	}

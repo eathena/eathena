@@ -424,8 +424,9 @@ int battle_attr_fix(struct block_list *src, struct block_list *target, int damag
  *------------------------------------------
  */
 int battle_calc_walkdelay(struct block_list *bl, int delay, int div_) {
-	int ret = 0;
+	int ret = delay;
 	if (delay == 0) return 0; //Endure attack.
+	/*
 	switch (bl->type) {
 	case BL_MOB:
 		ret=((struct mob_data *)bl)->db->dmotion;
@@ -443,9 +444,9 @@ int battle_calc_walkdelay(struct block_list *bl, int delay, int div_) {
 	default:
 		return 0;
 	}
-
+*/
 	if (battle_config.walk_delay_rate != 100)
-		ret = ret*battle_config.walk_delay_rate/100;
+		ret = delay*battle_config.walk_delay_rate/100;
 	return ret<10?10:ret;
 }
 
