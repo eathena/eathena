@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= Lupus
 //===== Current Version: ===================================== 
-//= 1.0
+//= 1.0a
 //===== Compatible With: ===================================== 
 //= eAthena Revision 3800+
 //===== Description: ========================================= 
@@ -16,31 +16,31 @@
 
 prontera.gat,165,156,0	script	Skill Master	122,{
 	//Alcohol x 30
-	callfunc "F_Skill2Quest","Skill Master", 1007,"Create Converter", Job_Sage, 970,30, 70000;
+	callfunc "F_Skill2Quest","Skill Master", 1007,"Create Converter", Job_Sage, 970,30, 100000;
 	end;
 }
 
 prontera.gat,167,158,1	script	Skill Master	122,{
 	//Mystic Frozen x 35
-	callfunc "F_Skill2Quest","Skill Master", 1008,"Elemental Charge Water", Job_Sage, 995,35, 30000;
+	callfunc "F_Skill2Quest","Skill Master", 1008,"Elemental Charge Water", Job_Sage, 995,35, 0;
 	end;
 }
 
 prontera.gat,166,153,2	script	Skill Master	122,{
 	//Great Nature x 35
-	callfunc "F_Skill2Quest","Skill Master", 1017,"Elemental Charge Earth", Job_Sage, 997,35, 30000;
+	callfunc "F_Skill2Quest","Skill Master", 1017,"Elemental Charge Earth", Job_Sage, 997,35, 0;
 	end;
 }
 
 prontera.gat,170,153,3	script	Skill Master	122,{
 	//Flame Heart x 35
-	callfunc "F_Skill2Quest","Skill Master", 1018,"Elemental Charge Fire", Job_Sage, 994,35, 30000;
+	callfunc "F_Skill2Quest","Skill Master", 1018,"Elemental Charge Fire", Job_Sage, 994,35, 0;
 	end;
 }
 
 prontera.gat,170,159,4	script	Skill Master	122,{
 	//Rough Wind x 35
-	callfunc "F_Skill2Quest","Skill Master", 1019,"Elemental Charge Wind", Job_Sage, 996,35, 30000;
+	callfunc "F_Skill2Quest","Skill Master", 1019,"Elemental Charge Wind", Job_Sage, 996,35, 0;
 	end;
 }
 
@@ -57,6 +57,7 @@ prontera.gat,165,144,5	script	Skill Master	726,{
 }
 
 prontera.gat,168,142,1	script	Skill Master	726,{
+	//Star Crumb x 15
 	callfunc "F_Skill2Quest","Skill Master", 1012,"Unfair Trick", Job_Blacksmith, 1000,15, 200000;
 	end;
 }
