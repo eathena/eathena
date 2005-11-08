@@ -1,4 +1,6 @@
 Date	Added
+2005/11/09
+	* Added temp skill quests for all complete 2nd Class Quest Skills [Lupus]
 2005/11/08
 	* Updated the documentation on the announce script commands. [Skotlex]
 	* Removed the global color message support as there's now a way to craft

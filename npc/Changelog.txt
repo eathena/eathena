@@ -27,6 +27,8 @@ Nexon
 
 Date		Added
 ======
+11/09
+	* Added temp skill quests for all complete 2nd Class Quest Skills [Lupus]
 11/08
 	* A lot of typos fixed in the lvl 4 weapon quest, thanks to Silent. [MasterOfMuppets]
 11/07

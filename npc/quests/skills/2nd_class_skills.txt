@@ -1,0 +1,182 @@
+//===== eAthena Script ======================================= 
+//= New Skills Quests
+//===== By: ================================================== 
+//= Lupus
+//===== Current Version: ===================================== 
+//= 1.0
+//===== Compatible With: ===================================== 
+//= eAthena Revision 3800+
+//===== Description: ========================================= 
+//= Temp quests for new skills for 2nd classes
+//===== Additional Comments: ================================= 
+//= 1.0 for fully working skills only [Lupus]
+//= Somehow eA engine doesn let you keep learn't skill V_V'
+//============================================================
+
+
+prontera.gat,165,156,0	script	Skill Master	122,{
+	//Alcohol x 30
+	callfunc "F_Skill2Quest","Skill Master", 1007,"Create Converter", Job_Sage, 970,30, 70000;
+	end;
+}
+
+prontera.gat,167,158,1	script	Skill Master	122,{
+	//Mystic Frozen x 35
+	callfunc "F_Skill2Quest","Skill Master", 1008,"Elemental Charge Water", Job_Sage, 995,35, 30000;
+	end;
+}
+
+prontera.gat,166,153,2	script	Skill Master	122,{
+	//Great Nature x 35
+	callfunc "F_Skill2Quest","Skill Master", 1017,"Elemental Charge Earth", Job_Sage, 997,35, 30000;
+	end;
+}
+
+prontera.gat,170,153,3	script	Skill Master	122,{
+	//Flame Heart x 35
+	callfunc "F_Skill2Quest","Skill Master", 1018,"Elemental Charge Fire", Job_Sage, 994,35, 30000;
+	end;
+}
+
+prontera.gat,170,159,4	script	Skill Master	122,{
+	//Rough Wind x 35
+	callfunc "F_Skill2Quest","Skill Master", 1019,"Elemental Charge Wind", Job_Sage, 996,35, 30000;
+	end;
+}
+
+prontera.gat,162,152,3	script	Skill Master	727,{
+	//Arrow of Wind x 3000
+	callfunc "F_Skill2Quest","Skill Master", 1009,"Phantasmic Arrow", Job_Hunter, 1755,3000, 100000;
+	end;
+}
+
+prontera.gat,165,144,5	script	Skill Master	726,{
+	//Gold x 1
+	callfunc "F_Skill2Quest","Skill Master", 1013,"Greed", Job_Blacksmith, 969,1, 200000;
+	end;
+}
+
+prontera.gat,168,142,1	script	Skill Master	726,{
+	callfunc "F_Skill2Quest","Skill Master", 1012,"Unfair Trick", Job_Blacksmith, 1000,15, 200000;
+	end;
+}
+
+prontera.gat,162,143,0	script	Skill Master	752,{
+	//Gold x 3
+	callfunc "F_Skill2Quest","Skill Master", 1002,"Shrink", Job_Crusader, 969,3, 100000;
+	end;
+}
+
+prontera.gat,166,138,1	script	Skill Master	52,{
+	//Poring Card x 15
+	callfunc "F_Skill2Quest","Skill Master", 1015,"Ki Translation", Job_Monk, 4001,15, 50000;
+	end;
+}
+
+prontera.gat,167,130,2	script	Skill Master	725,{
+	//EDP Bottle x 15
+	callfunc "F_Skill2Quest","Skill Master", 1003,"Sonic Acceleration", Job_Assassin, 678,15, 250000;
+	end;
+}
+
+//Args:
+//0 - NPC name
+//1 - Skill Number
+//2 - Skill Name
+//3 - Base Class (that can obtain the skill)
+//4 - Quest Item ID
+//5 - How many Quest Items you need
+//6 - Zeny fee (if > 0 )
+
+function	script	F_Skill2Quest	{
+//	mes "-> " + getarg(3);
+//	mes "Class: " + Class + ". BaseClass: " + BaseClass;
+//	mes "BaseJob: " + BaseJob+ ". Upper: " + Uppser;
+	mes "[" + getarg(0) + "]";
+	if(getskilllv(getarg(1)))goto L_Already;
+	if(sex) {
+		mes "Hello, good man!";
+	} else {
+		mes "Hello, beautiful lady!";
+	}
+	if(BaseJob!=getarg(3)) {
+		mes "Looking for your master?";
+		emotion e_gasp;
+		close;
+	}
+
+	//Sage can obtain only ONE property skill
+	if(BaseJob==Job_Sage) {
+		//got Create Converter?
+		if(getskilllv(1007)==0 && (getarg(1)==1008 || getarg(1)==1017 || getarg(1)==1018 || getarg(1)==1019)){
+			mes "I can't teach you ^FF0000"+getarg(2)+"^000000 now.";	
+			mes "You have to learn ^FF0000Create Converter^000000 before.";
+			emotion e_sry;
+			close;
+		}
+		//got other ELEMENTS already?
+		if(getskilllv(1008) || getskilllv(1017) || getskilllv(1018) || getskilllv(1019)){
+			mes "I can't teach you ^FF0000"+getarg(2)+"^000000.";	
+			mes "Because you've already learnt another Charge Element Skill.";
+			emotion e_sry;
+			close;
+		}
+	}
+
+	if(rand(2))	{
+		mes "I can teach you a new skill ^FF0000"+getarg(2)+"^000000.";
+	} else {
+		mes "Would you like to obtain an unique skill ^FF0000"+getarg(2)+"^000000?";
+	}
+	mes "So, what do you think?";
+	next;
+	menu "Teach me the ^FF0000"+getarg(2)+"^000000",-,"No, thank you",L_Cancel;
+
+	mes "[" + getarg(0) + "]";
+	mes "Oh, ^FF0000"+getarg(2)+"^000000 is a very strong skill!";
+	if(getarg(5)) mes "If you want to learn it, then bring me ^008F00"+getarg(5)+" ^00008F"+getitemname(getarg(4))+"^000000";
+	if(getarg(5) && getarg(6)) mes "and ^00008F"+getarg(6)+" zeny^000000 for my work.";
+	if(getarg(5)==0) mes "If you want to learn it, then bring me ^00008F"+getarg(6)+" zeny^000000.";
+	emotion e_gasp;
+	next;
+	menu "I'm ready to learn it",-,"No, thanks",L_Cancel;
+
+	mes "[" + getarg(0) + "]";
+	mes "OK. Hand me all the stuff...";
+
+	if(getarg(5) && countitem(getarg(4))<getarg(5))goto L_NoItem;
+	if(getarg(6) && Zeny<getarg(6))goto L_NoZeny;
+
+	set Zeny,Zeny-getarg(6);
+	if(getarg(5))delitem getarg(4),getarg(5);
+
+	mes "Well...";
+	next;
+	skill getarg(1),1,0;
+	mes "[" + getarg(0) + "]";
+	mes "Done. Now you can use ^FF0000"+getarg(2)+"^000000.";
+	mes "My congratulations!";
+	emotion e_grat;
+	close;
+
+	L_Already:
+		mes ""+strcharinfo(0)+"! Please use your ^FF0000"+getarg(2)+"^000000 for good.";
+		emotion e_pat;
+		close;
+
+	L_NoItem:
+		mes "You don't have ^008F00"+getarg(5)+" ^00008F"+getitemname(getarg(4))+"^000000.";
+		emotion e_sry;
+		close;
+
+	L_NoZeny:
+		mes "You don't have enough zeny.";
+		emotion e_cash;
+		close;
+
+	L_Cancel:
+		mes "[" + getarg(0) + "]";
+		mes "...";
+		emotion e_dots;
+		close;
+}
