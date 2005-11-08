@@ -4950,40 +4950,11 @@ int clif_GMmessage(struct block_list *bl, char* mes, int len, int flag)
 {
 	unsigned char *buf;
 	int lp;
-	//Altered by Trancid to support more colors.
-	//lp = (flag & 0x10) ? 8 : 4;
-	buf = (unsigned char*)aCallocA(len + 8, sizeof(unsigned char)); //Max lp value: 8
-	switch ((flag & 0xf0)>>4)
-	{
-		case 1:	//Blue
-			WBUFW(buf,0) = 0x9a;
-			lp = 8;
-			break;
-		case 2:  //Blueish Green
-			WBUFW(buf,0) = 0x17f;
-			lp = 4;
-			break;
-		case 3:  //White
-			WBUFW(buf,0) = 0x8d;
-			lp = 8;
-			break;
-		case 4: //Pink
-			WBUFW(buf,0) = 0x109;
-			lp = 8;
-			break;
-		case 5:  //Lightyellow? Doesn't work yet because this is a self-guild message.
-			WBUFW(buf,0) = 0x17f;
-			lp = 8;
-			break;
-		case 6:  //White above head and green in chat, incorrect as it's a self-message.
-			WBUFW(buf,0) = 0x08e;
-			lp = 4;
-			break;
-		default:	//Yellow (normal announce color)
-			WBUFW(buf,0) = 0x9a;
-			lp = 4;
-			break;
-	}
+
+	lp = (flag & 0x10) ? 8 : 4;
+	buf = (unsigned char*)aCallocA(len + lp, sizeof(unsigned char));
+
+	WBUFW(buf,0) = 0x9a;
 	WBUFW(buf,2) = len + lp;
 	WBUFL(buf,4) = 0x65756c62;
 	memcpy(WBUFP(buf,lp), mes, len);
@@ -4993,7 +4964,6 @@ int clif_GMmessage(struct block_list *bl, char* mes, int len, int flag)
 	          (flag == 2) ? AREA :
 	          (flag == 3) ? SELF :
 	          ALL_CLIENT);
-
 	if(buf) aFree(buf);
 
 	return 0;

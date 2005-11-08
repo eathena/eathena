@@ -1,5 +1,8 @@
 Date	Added
 2005/11/08
+	* Updated the documentation on the announce script commands. [Skotlex]
+	* Removed the global color message support as there's now a way to craft
+	  custom colored announces. [Skotlex]
 	* Probably fixed mapannounce. [Skotlex]
 	* Implemented SI_ constants to specify the icon number for different SC_
 	  changes, idea adopted from jAthena. All SC_ data was reorganized and

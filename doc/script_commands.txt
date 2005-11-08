@@ -3116,7 +3116,7 @@ Example 4:
 
 ---------------------------------------
 
-*announce "<text>",<flag>
+*announce "<text>",<flag>{,<color>}
 
 This command will broadcast a message to all or most players, similar to 
 @kami/@kamib GM commands.
@@ -3126,44 +3126,52 @@ will be determined by the flags:
 
     announce "This will be shown to everyone at all in yellow.",0;
 
-The flag values given here definitely have some kind of bit mask behind them but 
-it's not clear just what means what. Here are the flag values that were tested 
-and found to work:
+The flag values are coded as constants in db/const.txt to make them easier to use:
+- bc_all: Broadcast message is sent server-wide
+- bc_map: Message is sent to everyone in the same map
+- bc_area: Message is sent to players in the vecinity of the source.
+- bc_self: Message is sent only to current player.
 
-  0  - Yellow To everyone
-  1  - Yellow To everyone on the same map as the NPC object it's running from.
-  2  - Yellow To everyone in the area around the NPC object.
-  3  - Yellow, Can only be seen by the invoking player.
-  16 - Blue To everyone.
-  17 - Blue To everyone on the same map as the NPC object it's running from.
-  18 - Blue To everyone in the area around the NPC object.
-  19 - Blue, Can only be seen by the invoking player
+- bc_npc: Broadcast source is the npc, not the player attached to the script
+  (useful when a player is not attached or the message should be sent to those
+  nearby the npc)
 
-Using this for private messages to players is probably not that good an idea.
+- bc_yellow: The default is to send broadcasts in yellow color.
+- bc_blue: Alternate broadcast is displayed in blue color.
+
+The optional parameter, color, allows usage of broadcasts in any custom color.
+The color parameter is a single number which can be in hexadecimal notation.
+For example:
+    announce "This will be shown to everyone at all in yellow.",bc_all,0xFFFF00;
+Will display a global announce in yellow. The color format is in RGB (0xRRGGBB).
+
+Using this for private messages to players is probably not that good an idea,
+but it can be used instead in NPCs to "preview" an announce.
 
     // This will be a private message to the player using the NPC that made the 
     // annonucement
-    announce "This is my message just for you",19;
+    announce "This is my message just for you",bc_blue|bc_self;
 
     // This will be shown on everyones screen that is in sight of the NPC.
-    announce "This is my message just for you people here",2;
+    announce "This is my message just for you people here",bc_area;
 
 ---------------------------------------
 
-*mapannounce "<map name>","<text>",<flag>;
+*mapannounce "<map name>","<text>",<flag>[,<color>];
 
 This command will work like 'announce' but will only broadcast to characters 
-currently residing on the specified map. The flags are given the same as in 
-'announce', but it is not certain which values will actually work correctly.
+currently residing on the specified map. The flag and optional color
+parameters are the same as in 'announce', even though the only ones that make
+sense are the color related ones.
 
 ---------------------------------------
 
-*areaannounce "<map name>",<x1>,<y1>,<x2>,<y2>,"<text>",<flag>;
+*areaannounce "<map name>",<x1>,<y1>,<x2>,<y2>,"<text>",<flag>[,<color>];
 
 This command works like 'announce' but will only broadcast to characters 
-residing in the specified x1/y1-x2/y2 square on the map given. The flags are 
-given the same as in 'announce', but it is not certain which values will 
-actually work correctly.
+residing in the specified x1/y1-x2/y2 square on the map given. The flags and
+color parameter given are the same as in 'announce', but only the color
+related ones have effect.
 
     areaannounce "prt_church.gat",0,0,350,350,"God's in his heaven, all right with the world",0;
 
