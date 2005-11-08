@@ -27,6 +27,8 @@ Nexon
 
 Date		Added
 ======
+11/08
+	* A lot of typos fixed in the lvl 4 weapon quest, thanks to Silent. [MasterOfMuppets]
 11/07
 	* Added the lvl 4 weapon quest, thanks a lot to Vicious_pucca for converting it from [MasterOfMuppets]
 	  aegis format to eA format. a lot of thanks to reddozen as well for fixing bugs.

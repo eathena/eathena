@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= Vicious_Pucca, Reddozen & MasterOfMuppets
 //===== Current Version: ===================================== 
-//= 1.0
+//= 1.1
 //===== Compatible With: ===================================== 
 //= eAthena SVN 3422+(Requires jA Script System)
 //===== Description: ========================================= 
@@ -12,6 +12,7 @@
 //= 1.0 First Version, Credits goes to Vicious_Pucca for converting [MasterOfMuppets]
 //=     the quest from aegis format to eA format. Also thanks to 
 //=	reddozen for fixing bugs.
+//= 1.1 Many fixes to spelling, grammar, and sentence order. [Silent]
 //============================================================ 
 
 //---------------------------------------------------------------
@@ -71,24 +72,24 @@ LV4_NOT_OW:
 LV4_0:
 	mes "[Bazo]";
 	mes "Hello, you are from outside, huh?";
-	mes "I can tell that by your appearance.";
+	mes "I can tell by your appearance.";
 	mes "Pleased to meet you. My name is Bazo Heburiech.";
 	mes "I am also from outside.";
 	next;
 	mes "[Bazo]";
-	mes "We must be meant to meet each other.";
+	mes "We must have been meant to meet each other.";
 	mes "If you don't mind, let me explain about this place for a while.";
 	mes "Umbala is adjacent to Nifflheim, the city of the dead.";
 	mes "Even at a first sight, I knew that";
 	mes "there is something about this village.";
 	next;
 	mes "[Bazo]";
-	mes "Due to the geographical trait,";
-	mes "this village is filled with evil power";
-	mes "that were influenced by the city of the dead.";
+	mes "Due to that geographical trait,";
+	mes "this village was filled with evil power";
+	mes "that was influenced by the city of the dead.";
 	next;
 	mes "[Bazo]";
-	mes "And local people have learned";
+	mes "The local people have learned";
 	mes "to manipulate the evil power for";
 	mes "producing specialties.";
 	next;
@@ -96,7 +97,7 @@ LV4_0:
 	mes "While staying here, I also have learned";
 	mes "some recipes. If you bring me materials,";
 	mes "I am willing to show you my skills.";
-	mes "How does it sound?";
+	mes "How does that sound?";
 	next;
 	
 	switch( select( "Sounds good.", "No, thanks." ) ) {
@@ -105,11 +106,11 @@ LV4_0:
 			
 			mes "[Bazo]";
 			mes "Err...I don't think that you are powerful";
-			mes "enough to handle my product.";
+			mes "enough to handle my products.";
 			mes "They are charged with evil power.";
 			next;
 			mes "That means if their owners are not powerful";
-			mes "and well-experienced enough,";
+			mes "and not experienced enough,";
 			mes "they will drive the owners insane.";
 			mes "And I cannot do that to my friend.";
 			next;
@@ -120,8 +121,8 @@ LV4_0:
 L4_0_1:
 			mes "[Bazo]";
 			mes "Excellent! Let me tell you";
-			mes "the materials I need. I hope you will write it down.";
-			mes "They are not that many though.";
+			mes "the materials I need. I hope you will write them down.";
+			mes "There is not that many though.";
 			next;
 			mes "[Bazo]";
 			mes "I need 10 Gold, 50 Steel and 10 Emperium";
@@ -137,7 +138,7 @@ L4_0_1:
 			next;
 			mes "[Bazo]";
 			mes "I wish you good luck...";
-			mes "I will next; for you!";
+			mes "I will wait for you!";
 			
 			set lv4_weapon, 1;
 			break;
@@ -145,8 +146,8 @@ L4_0_1:
 			mes "[Bazo]";
 			mes "Oh, okay. That is fine with me.";
 			mes "By the way, don't you want to know how evil the city of the dead will be?";
-			mes "I do since that city influences this much to this village";
-			mes "with the mysterious power, you know.";
+			mes "I do since that city influences so much of this village";
+			mes "with it's mysterious power, you know.";
 			break;			
 	}	
 	close;
@@ -181,7 +182,7 @@ LV4_1:
 LV4_1_CTA:	
 	mes "[Bazo]";
 	mes "Hahaha, I asked you to bring one kind not all of them.";
-	mes "You can only use one kind of ores.";
+	mes "You can only use one kind of ore.";
 	mes "Which one would you like to use?";
 	next;
 	
@@ -213,7 +214,7 @@ LV4_1_CTA:
 LV4_1_CT:
 	mes "[Bazo]";
 	mes "Hahaha, I asked you to bring one kind not two.";
-	mes "You can only use one kind of ores.";
+	mes "You can only use one kind of ore.";
 	mes "Which one would you like to use?";
 	next;
 	
@@ -239,7 +240,7 @@ LV4_1_CT:
 LV4_1_CA:	
 	mes "[Bazo]";
 	mes "Hahaha, I asked you to bring one kind not two.";
-	mes "You can only use one kind of ores.";
+	mes "You can only use one kind of ore.";
 	mes "Which one would you like to use?";
 	next;
 	
@@ -265,7 +266,7 @@ LV4_1_CA:
 LV4_1_TA:	
 	mes "[Bazo]";
 	mes "Hahaha, I asked you to bring one kind not two.";
-	mes "You can only use one kind of ores.";
+	mes "You can only use one kind of ore.";
 	mes "Which one would you like to use?";
 	next;
 	
@@ -317,33 +318,33 @@ LV4_1_A:
 	
 LV4_1_PICK:
 	mes "we must do one thing first.";
-	mes "That is testing your luck.";
+	mes "That is, testing your luck.";
 	mes "As you already know,";
 	mes "I cannot guarantee you that we will succeed";
-	mes "to make one at once or not.";
+	mes "to make one right away.";
 	next;
 	mes "[Bazo]";
 	mes "If we can raise your luck before we start,";
 	mes "we will be able to succeed.";
 	next;
 	mes "[Bazo]";
-	mes "Now you must wonder what we";
-	mes "will do in order to increase your luck?";
+	mes "Now you must be wondering what we";
+	mes "will do in order to increase your luck.";
 	mes "It is simple, we will play a mind-reading game.";
 	mes "I am going to think of one monster among 4 of my favorite ones,";
 	mes "you will guess what the monster is.";
 	next;
 	mes "[Bazo]";
 	mes "You must answer correctly at least";
-	mes "1 out of 5. It should not be that difficult.";
-	mes "And if you fail to answer, we must do another thing";
+	mes "1 out of 5 times. It shouldn't be that difficult.";
+	mes "And if you fail to answer, we must do something else";
 	mes "to drive away your bad luck.";
 	next;
 	mes "[Bazo]";
-	mes "I will take 10 of a special ore you have.";
-	mes "Well, I understand that it does not sound that tempting";
+	mes "I will take 10 of the special ore you chose.";
+	mes "Well, I understand that it does not sound tempting";
 	mes "but let's think of it this way.";
-	mes "It is way much better than wasting 30 of an ore";
+	mes "It is much better than wasting 30 ore";
 	mes "by failing to create the item, isn't it?";
 	next;
 	mes "[Bazo]";
@@ -365,9 +366,9 @@ LV4_1_PICK:
 LV4_1_NOGEM:
 	mes "[Bazo]";
 	mes "I seem to recall that I asked you to bring";
-	mes "30 of a special ore among Citrine, Turquoise or Agate...";
+	mes "30 of a special ore, Citrine, Turquoise, or Agate...";
 	mes "And I don't see any of them.";
-	mes "You must forgot that. Please go bring them too.";
+	mes "You must have forgot them. Please go get them too.";
 	close;
 
 
@@ -381,7 +382,7 @@ LV4_1_FAIL:
 	mes "[Bazo]";
 	mes "Please bring me 30 of either Citrin, Turquoise or Agate.";
 	mes "Each one of them possess their own attribute";
-	mes "and following by the ore you have brought,";
+	mes "and using the ore you have brought,";
 	mes "my product will possess a special trait.";
 	next;
 	mes "[Bazo]";
@@ -404,7 +405,7 @@ LV4_2:
 	mes "Ok, you seem to be ready.";
 	mes "Let's get started.";
 	mes "My favorite monsters are Poring,";
-	mes "Hode, Obeaune and Minorous.";
+	mes "Hode, Obeaune, and Minorous.";
 	next;
 
 	set @dap, 0;
@@ -445,7 +446,7 @@ LV4_2:
 
 	mes "[Bazo]";
 	mes "Okay, let me give you answers for the questions.";
-	mes "I was thinking monsters in the order of";
+	mes "I was thinking of the monsters in the order of";
 	next;
 	mes "[Bazo]";
 
@@ -461,8 +462,8 @@ LV4_2:
 	next;
 	mes "[Bazo]";
 	mes "You answered " + @dap + " times!";
-	mes "I must say you are amazing!";
-	mes "Then as I promised, I will make an Umbala specialty for you.";
+	mes "I must say you're amazing!";
+	mes "As I promised, I will make an Umbala specialty for you.";
 	mes "Please give me some time to prepare.";
 	mes "Talk to you later.";
 	
@@ -479,7 +480,7 @@ LV4_2_FAIL:
 	next;
 	mes "[Bazo]";
 	mes "Errr... I don't think you are good at reading";
-	mes "other people's mind. Or you had a bad luck, I guess.";
+	mes "other people's minds. Or you had bad luck, I guess.";
 	mes "We cannot do that again unless";
 	mes "we drive away the bad luck.";
 	mes "Give me 10 " + @gemstring$ + ", that will do the job.";
@@ -493,7 +494,7 @@ LV4_2_FAIL:
 
 LV4_2_NOGEM:
 	mes "[Bazo]";
-	mes "Errr...something feels not right. We lack of something...";
+	mes "Errr...something doesn't feel right. We lack something...";
 	mes "Will you check the materials that you have brought?";
 	close;
 	
@@ -509,27 +510,27 @@ LV4_5:
 	mes "I cannot tell you what kind of product it will be. It is so random.";
 	mes "Let's wish that a good thing will come out, okay?";
 	next;
-	mes "- You feel unknown power started gathered -";
-	mes "- the materials. It seemed the materials were-";
-	mes "- obsorbing all the evil power existing in the air. -";
+	mes "- You feel unknown power start gathering in -";
+	mes "- the materials. It seems the materials are -";
+	mes "- absorbing all the evil power in the air. -";
 	next;
-	mes "- Then, the materials started being merged into one -";
-	mes "- even if Bazo didn't even tough them at all. -";
+	mes "- Then, the materials start merging into one -";
+	mes "- even though Bazo didn't touch them at all. -";
 	next;
 	mes "[Bazo]";
-	mes "Can you feel that? Materials are gathering";
-	mes "power on their own will.";
-	mes "They are out of my hand now. Let's next; and hope.";
+	mes "Can you feel that? The materials are gathering";
+	mes "power at their own will.";
+	mes "They are out of my hand now. Let's wait and hope.";
 	next;
-	mes "- After a while, you feel the air became calm -";
-	mes "- and you could check the result. -";
+	mes "- After a while, the air becomes calm -";
+	mes "- and you check the result. -";
 	next;
 	mes "[Bazo]";
 	mes "Ooooooh! It is done!";
 	mes "We have succeeded! Ah, it's amazing!";
-	mes "Did I tell you that this is really rare to succeed at once?";
-	mes "Yes, God must listen to our prayer.";
-	mes "Oh, it is a weapon! It will be so useful for you.";
+	mes "Did I tell you that it is really rare to succeed right away?";
+	mes "Yes, God must have listened to our prayers.";
+	mes "Oh, it is a weapon! It will be very useful to you.";
 	mes "Let's take a closer look...";
 	next;
 
@@ -626,7 +627,7 @@ LumWord:
 	
 LV4_0:
 	mes "[Hibilaithan]";
-	mes "Haha, yeah, I know this day has come.";
+	mes "Haha, yeah, I knew this day would come.";
 	mes "Finally people recognize my value";
 	mes "as the best artisan in Umbala!";
 	next;
@@ -638,12 +639,12 @@ LV4_0:
 	next;
 	mes "[Hibilaithan]";
 	mes "Eh? What? You didn't come to see me?";
-	mes "Stop joking around...Don't play me a fool!";
+	mes "Stop joking around...Don't play me for a fool!";
 	mes "People are too shy to tell the truth nowadays!";
-	mes "Let's be honest and tell me you want it or not?";
+	mes "Let's be honest and tell me if you want it or not.";
 	next;
 	
-	switch( select( "...okay.", "...sorry, I don't neet it!" ) ) {
+	switch( select( "...okay.", "...sorry, I don't need it!" ) ) {
 		case 1:
 			if(BaseLevel >= 70) goto L4_0_1;
 			
@@ -659,7 +660,7 @@ L4_0_1:
 			mes "[Hibilaithan]";
 			mes "Great! I like your attitute! Great, great!";
 			mes "I am going to tell you what I need.";
-			mes "They are not that many, so do not forget.";
+			mes "It is not much, so do not forget.";
 			next;
 			mes "[Hibilaithan]";
 			mes "Bring me 10 Gold, 50 Steel and 10 Emperium";
@@ -721,7 +722,7 @@ LV4_8_MBP:
 	mes "Gosh, did you brought all three kinds?";
 	mes "Hahaha, it's fine.";
 	mes "But we cannot use all of them this time.";
-	mes "Pick one what you want to use.";
+	mes "Pick one that you want to use.";
 	next;
 			
 	switch( select( "Muscovite", "Biotite", "Pyroxene" ) ) {
@@ -752,7 +753,7 @@ LV4_8_MBP:
 LV4_8_MB:
 	mes "[Hibilaithan]";
 	mes "Hahaha, I asked you to bring one kind not two.";
-	mes "You can only use one kind of ores.";
+	mes "You can only use one kind of ore.";
 	mes "Which one would you like to use?";
 	next;
 	
@@ -778,7 +779,7 @@ LV4_8_MB:
 LV4_8_MP:	
 	mes "[Hibilaithan]";
 	mes "Hahaha, I asked you to bring one kind not two.";
-	mes "You can only use one kind of ores.";
+	mes "You can only use one kind of ore.";
 	mes "Which one would you like to use?";
 	next;
 	
@@ -804,7 +805,7 @@ LV4_8_MP:
 LV4_8_BP:	
 	mes "[Hibilaithan]";
 	mes "Hahaha, I asked you to bring one kind not two.";
-	mes "You can only use one kind of ores.";
+	mes "You can only use one kind of ore.";
 	mes "Which one would you like to use?";
 	next;
 	
@@ -856,33 +857,33 @@ LV4_8_P:
 	
 LV4_8_PICK:
 	mes "we must do one thing first.";
-	mes "That is testing your luck.";
+	mes "That is, to test your luck.";
 	mes "As you already know,";
 	mes "I cannot guarantee you that we will succeed";
-	mes "to make one at once or not.";
+	mes "to make one right away.";
 	next;
 	mes "[Hibilaithan]";
 	mes "If we can raise your luck before we start,";
 	mes "we will be able to succeed.";
 	next;
 	mes "[Hibilaithan]";
-	mes "Now you must wonder what we";
-	mes "will do in order to increase your luck?";
+	mes "Now you must be wondering what we";
+	mes "will do in order to increase your luck.";
 	mes "It is simple, we will play a mind-reading game.";
-	mes "I am going to think of one monster among 4 of my favorite ones,";
-	mes "you will guess what the monster is.";
+	mes "I am going to think of one monster among 4 of my favorites,";
+	mes "you will guess what that monster is.";
 	next;
 	mes "[Hibilaithan]";
 	mes "You must answer correctly at least";
-	mes "1 out of 5. It should not be that difficult.";
-	mes "And if you fail to answer, we must do another thing";
+	mes "1 out of 5 times. It should not be that difficult.";
+	mes "And if you fail to answer, we must do something else";
 	mes "to drive away your bad luck.";
 	next;
 	mes "[Hibilaithan]";
-	mes "I will take 10 of a special ore you have.";
-	mes "Well, I understand that it does not sound that tempting";
+	mes "I will take 10 of the special ore you have chose.";
+	mes "Well, I understand that it does not sound tempting";
 	mes "but let's think of it this way.";
-	mes "It is way much better than wasting 30 of an ore";
+	mes "It is much better than wasting 30 ore";
 	mes "by failing to create the item, isn't it?";
 	next;
 	mes "[Hibilaithan]";
@@ -906,7 +907,7 @@ LV4_8_NOGEM:
 	mes "I seem to recall that I asked you to bring";
 	mes "30 of a special ore among Muscovite, Biotite or Pyroxene...";
 	mes "And I don't see any of them.";
-	mes "You must forgot that. Please go bring them too.";
+	mes "You must have forgot that. Please go get them too.";
 	close;
 
 
@@ -918,9 +919,9 @@ LV4_8_FAIL:
 	mes "For that, I need some rare ores...";
 	next;
 	mes "[Hibilaithan]";
-	mes "Please bring me 30 of either Citrin, Biotite or Pyroxene.";
-	mes "Each one of them possess their own attribute";
-	mes "and following by the ore you have brought,";
+	mes "Please bring me 30 of an ore among Citrin, Biotite or Pyroxene.";
+	mes "Each one of them possess their own attributes";
+	mes "and by using the ore you have brought,";
 	mes "my product will possess a special trait.";
 	next;
 	mes "[Hibilaithan]";
@@ -945,12 +946,12 @@ LV4_9:
 	mes "4 monsters that I like. I am going to think";
 	mes "of a monster among the 4, you will guess what it is.";
 	mes "We will play this game 5 times and you must";
-	mes "answer correctly at least 1 out of. Doesn't it sound easy?";
+	mes "answer correctly at least 1 out of 5 times. Doesn't that sound easy?";
 	next;
 	mes "[Hibilaithan]";
 	mes "This is a very good game for";
 	mes "increasing your luck!";
-	mes "Okay, better be ready now.";
+	mes "Okay, you better be ready now.";
 	next;
 	
 	set @dap, 0;
@@ -958,11 +959,11 @@ LV4_9:
 	for( set @i, 1; @i <= 5; set @i, @i + 1 ) {
 		mes "[Hibilaithan]";
 		
-		if(@i == 1) mes "I like Zealotus, Alice";
-		if(@i == 1) mes "Munak and Isis among all monsters.";
+		if(@i == 1) mes "I like Zealotus, Alice,";
+		if(@i == 1) mes "Munak, and Isis among all monsters.";
 		
 		mes "Now, guess which one";
-		mes "I am thinking at this moment.";		
+		mes "I am thinking of at this moment.";		
 		next;
 
 		set @mons, rand(1, 4);		
@@ -992,7 +993,7 @@ LV4_9:
 
 	mes "[Hibilaithan]";
 	mes "Okay, that's all! Now let me";
-	mes "the answers. I was thinking";
+	mes "check the answers. I was thinking";
 	mes "monsters in the order of...";
 	next;
 	mes "[Hibilaithan]";
@@ -1035,7 +1036,7 @@ LV4_9_FAIL:
 	next;
 	mes "[Hibilaithan]";
 	mes "Now, we need to play the game again.";
-	mes "If you don't have the ores anymore, go bring them.";
+	mes "If you don't anymore ore, go get some.";
 	mes "I am not going anywhere";
 	mes "so you don't need to be in hurry.";
 	mes "Take your time!";
@@ -1045,7 +1046,7 @@ LV4_9_FAIL:
 LV4_9_NOGEM:
 	mes "[Hibilaithan]";
 	mes "Hum. You might lack of";
-	mes "materials? Check it again";
+	mes "materials? Check them again.";
 	mes "See. I knew it.";
 	close;
 	
@@ -1057,16 +1058,16 @@ LV4_9_NOGEM:
 LV4_12:
 	mes "[Hibilaithan]";
 	mes "Ah, I can tell you are ready. Alright...";
-	mes "I will try to make an awsome stuff for you.";
+	mes "I will try to make an awsome item for you.";
 	mes "...and you are not going to look over my shoulder!";
 	mes "I don't want to share my secret recipe with anyone!";
 	next;
-	mes "- Hibilaithan picked up all the materials -";
-	mes "- and turned his back at you. -";
-	mes "- You saw him busying himself with doing something. -";
-	mes "- Although they way he was doing it -";
-	mes "- looked very primitive and crude, -";
-	mes "- you felt that some strange energy gathered around him. -";
+	mes "- Hibilaithan picks up all the materials -";
+	mes "- and turns his back at you. -";
+	mes "- You see him busying himself with something. -";
+	mes "- Although the way he is doing it -";
+	mes "- looks very primitive and crude, -";
+	mes "- you feel that some strange energy has gathered around him. -";
 	next;
 	mes "[Hibilaithan]";
 	mes "Umm~ umm~ umm~";
@@ -1079,7 +1080,7 @@ LV4_12:
 	mes " ";
 	mes " ";
 	mes "Haha, there it is! Phew, that was really hard...";
-	mes "You must be anticipating, aren't you? Ok, let's see...";
+	mes "You're anxious, aren't you? Ok, let's see...";
 	next;
 	
 	mes "[Hibilaithan]";
@@ -1089,15 +1090,15 @@ LV4_12:
 	
 	switch( lv4_weapon ) {
 		case 12:
-			mes "it is Mailbreaker!";
+			mes "it is a Mailbreaker!";
 			getitem 1225, 1; // 1225,Mail_Breaker
 			break;
 		case 13:
-			mes "it is Swordbreaker!";
+			mes "it is a Swordbreaker!";
 			getitem 1224, 1; // 1224,Sword_Breaker
 			break;
 		case 14:
-			mes "it is Slaughter!";
+			mes "it is a Slaughter!";
 			getitem 1367, 1; // 1367,Slaughter
 			break;
 	}
@@ -1149,8 +1150,8 @@ um_in.gat,156,77,5	script	Tabezthan	788,{
 	set @NowWeight, MaxWeight - Weight;
 	if (@NowWeight >= 3000) goto LV4_NOT_OW;
 	mes "- Wait a minute! -";
-	mes "- Currently you are overweight. -";
-	mes "- Please lighten your weight -";
+	mes "- You are currently overweight. -";
+	mes "- Please lose some weight -";
 	mes "- and try again. -";
 	close;
 
@@ -1180,24 +1181,24 @@ LumWord:
 	
 LV4_0:
 	mes "[Tabezthan]";
-	mes "Hmm...I feel something different from you...";
+	mes "Hmm...I feel something different about you...";
 	mes "You are a stranger...aren't you?";
 	next;
 	mes "[Tabezthan]";
 	mes "Let me introduce myself.";
 	mes "I am Tabezthan,";
-	mes "the storage of knowledge and the genius of Umbala...";
+	mes "the storage of the knowledge and the genius of Umbala...";
 	mes "Hahahaha.";
 	next;
 	mes "[Tabezthan]";
 	mes "I have two diciples. One is Hibilaithan the fool";
 	mes "and the other one is Bazo who is intelligent";
-	mes "and from outside as you.";
+	mes "and is from outside the same as you.";
 	next;
 	mes "[Tabezthan]";
 	mes "Of course both of them are talented and skillful";
-	mes "but I am worried about Hibilaithan for him";
-	mes "making many stupid mistakes yet being shameless";
+	mes "but I am worried about Hibilaithan, for he";
+	mes "makes many stupid mistakes and is shameless";
 	mes "for what he has done.";
 	next;
 	mes "[Tabezthan]";
@@ -1228,10 +1229,10 @@ LV4_0:
 L4_0_1:
 			mes "[Tabezthan]";
 			mes "One with curiousity...he is called the young adventurer...";
-			mes "Fine. Then let me inform you";
+			mes "Fine. Then let me inform you of";
 			mes "the matetrials I need. Please memorize them";
 			mes "or write them down.";
-			mes "They are not many however.";
+			mes "It is not much however.";
 			next;
 			mes "[Tabezthan]";
 			mes "I need 10 Gold, 50 Steel and 10 Emperium";
@@ -1240,21 +1241,21 @@ L4_0_1:
 			mes "For that, I need some rare ores...";
 			next;
 			mes "[Tabezthan]";
-			mes "Please bring me 30 of either Phlogopite, Peridot or Rose Quartz.";
+			mes "Please bring me 30 of an ore among Phlogopite, Peridot or Rose Quartz.";
 			mes "Each one of them possess their own attribute";
-			mes "and following by the ore you have brought,";
+			mes "and by using the ore you have brought,";
 			mes "my product will possess a special trait.";
 			next;
 			mes "[Tabezthan]";
 			mes "However, please be aware that";
 			mes "I cannot guarantee what will come out as a result.";
 			mes "There are too many factors in the world of alchemy";
-			mes "which my knowledge is limitted to reach at.";
+			mes "where my knowledge is limited.";
 			mes "So you must be willing to accept the result as it is";
-			mes "even if it is not satisfying your expectation.";
+			mes "even if it does not satisfy your expectations.";
 			next;
 			mes "[Tabezthan]";
-			mes "That means that you should trust to luck.";
+			mes "That means that you should place trust in luck.";
 			mes "Let's talk about it later...please go prepare the materials first.";
 			mes "Come back when you are ready.";
 			mes "I will wait here.";
@@ -1334,7 +1335,7 @@ LV4_15_POR:
 LV4_15_PO:
 	mes "[Tabezthan]";
 	mes "Hahaha, I asked you to bring one kind not two.";
-	mes "You can only use one kind of ores.";
+	mes "You can only use one kind of ore.";
 	mes "Which one would you like to use?";
 	next;
 	
@@ -1360,7 +1361,7 @@ LV4_15_PO:
 LV4_15_PR:	
 	mes "[Tabezthan]";
 	mes "Hahaha, I asked you to bring one kind not two.";
-	mes "You can only use one kind of ores.";
+	mes "You can only use one kind of ore.";
 	mes "Which one would you like to use?";
 	next;
 	
@@ -1386,7 +1387,7 @@ LV4_15_PR:
 LV4_15_OR:	
 	mes "[Tabezthan]";
 	mes "Hahaha, I asked you to bring one kind not two.";
-	mes "You can only use one kind of ores.";
+	mes "You can only use one kind of ore.";
 	mes "Which one would you like to use?";
 	next;
 	
@@ -1438,33 +1439,33 @@ LV4_15_R:
 	
 LV4_15_PICK:
 	mes "we must do one thing first.";
-	mes "That is testing your luck.";
+	mes "That is, to test your luck.";
 	mes "As you already know,";
 	mes "I cannot guarantee you that we will succeed";
-	mes "to make one at once or not.";
+	mes "in makeing one right away.";
 	next;
 	mes "[Tabezthan]";
 	mes "If we can raise your luck before we start,";
 	mes "we will be able to succeed.";
 	next;
 	mes "[Tabezthan]";
-	mes "Now you must wonder what we";
-	mes "will do in order to increase your luck?";
+	mes "Now you must be wondering what we";
+	mes "will do in order to increase your luck.";
 	mes "It is simple, we will play a mind-reading game.";
-	mes "I am going to think of one monster among 4 of my favorite ones,";
+	mes "I am going to think of one monster among 4 of my favorites,";
 	mes "you will guess what the monster is.";
 	next;
 	mes "[Tabezthan]";
 	mes "You must answer correctly at least";
-	mes "1 out of 5. It should not be that difficult.";
-	mes "And if you fail to answer, we must do another thing";
+	mes "1 out of 5 times. It should not be that difficult.";
+	mes "And if you fail to answer correctly, we must do something else";
 	mes "to drive away your bad luck.";
 	next;
 	mes "[Tabezthan]";
-	mes "I will take 10 of a special ore you have.";
-	mes "Well, I understand that it does not sound that tempting";
+	mes "I will take 10 of the special ore you chose.";
+	mes "Well, I understand that it does not sound tempting";
 	mes "but let's think of it this way.";
-	mes "It is way much better than wasting 30 of an ore";
+	mes "It is much better than wasting 30 ore";
 	mes "by failing to create the item, isn't it?";
 	next;
 	mes "[Tabezthan]";
@@ -1485,8 +1486,8 @@ LV4_15_PICK:
 
 LV4_15_NOGEM:
 	mes "[Tabezthan]";
-	mes "Hmmm...I cannot find any rare ores from";
-	mes "materials that you have brought...";
+	mes "Hmmm...I cannot find any rare ores in";
+	mes "the materials that you have brought...";
 	mes "Please bring me 30 of an ore among Phlogopite, Peridot";
 	mes "or Rose Quartz.";
 	close;
@@ -1500,9 +1501,9 @@ LV4_15_FAIL:
 	mes "For that, I need some rare ores...";
 	next;
 	mes "[Tabezthan]";
-	mes "Please bring me 30 of either Phlogopite, Peridot or Rose Quartz.";
+	mes "Please bring me 30 of an ore among Phlogopite, Peridot or Rose Quartz.";
 	mes "Each one of them possess their own attribute";
-	mes "and following by the ore you have brought,";
+	mes "and by using the ore you have brought,";
 	mes "my product will possess a special trait.";
 	close;
 
@@ -1523,7 +1524,7 @@ LV4_16:
 	mes "4 monsters that I like. I am going to think";
 	mes "of a monster among the 4, you will guess what it is.";
 	mes "We will play this game 5 times and you must";
-	mes "answer correctly at least 1 out of. Doesn't it sound easy?";
+	mes "answer correctly at least 1 out of 5 times. Doesn't it sound easy?";
 	next;
 	mes "[Hibilaithan]";
 	mes "This is a very good game for";
@@ -1537,7 +1538,7 @@ LV4_16:
 		mes "[Tabezthan]";
 		
 		if(@i == 1) mes "I like Baphomet, Dark Lord,";
-		if(@i == 1) mes "Bloody Knight and Stormy Knight among all monsters.";
+		if(@i == 1) mes "Bloody Knight, and Stormy Knight among all monsters.";
 		
 		mes "Now, guess which one";		
 		mes "I am thinking at this moment.";
@@ -1569,9 +1570,9 @@ LV4_16:
 	}
 
 	mes "[Tabezthan]";
-	mes "Okay, that's all! Now let me";
+	mes "Okay, that's all! Now let me check";
 	mes "the answers. I was thinking";
-	mes "monsters in the order of...";
+	mes "of the monsters in the order of...";
 	next;
 	mes "[Tabezthan]";
 
@@ -1609,23 +1610,23 @@ LV4_16_FAIL:
 	mes "10 " + @gemstring$ + " will do it.";
 	next;
 	mes "[Tabezthan]";
-	mes "Do not be so dissappointing.";
+	mes "Do not be so dissappointed.";
 	mes "It is still better than wasting 30 of them";
 	mes "for trying to make a thing when you know";
 	mes "you would not make it. ";
 	next;
 	mes "[Tabezthan]";
 	mes "If you need something to prepare,";
-	mes "please do. I will next; you here.";
+	mes "please do. I will wait for you here.";
 	close;
 
 
 LV4_16_NOGEM:
 	mes "[Tabezthan]";
-	mes "Umm...it seems you are lacking of" + @gemstring$;
-	mes "Please count the number of it and";
-	mes "if you don't have enough ones,";
-	mes "you can go gather them first.";
+	mes "Umm...it seems you are lacking " + @gemstring$;
+	mes "Please count them and";
+	mes "if you don't have enough,";
+	mes "you can go gather more first.";
 	close;
 	
 	
@@ -1635,15 +1636,15 @@ LV4_16_NOGEM:
 //--------------------------------------------------
 LV4_19:
 	mes "[Tabezthan]";
-	mes "Great, I am also in readyness.";
+	mes "Great, I am also ready.";
 	mes "Shall we start now? Give me a minute.";
 	mes "I need to arrange these materials in a magic circle.";
 	next;
-	mes "- He arranged materials in a strange circle -";
-	mes "- and started chanting in a strange language. -";
-	mes "- As he did that, suddenly the air surrounding him -";
-	mes "- seemed to change and you felt something powerful-";
-	mes "- gathered around him and the materials. -";
+	mes "- He arranges materials in a strange circle -";
+	mes "- and starts chanting in a strange language. -";
+	mes "- As he does that, suddenly the air surrounding him -";
+	mes "- seems to change and you feel something powerful-";
+	mes "- gathering around him and the materials. -";
 	next;
 	mes "[Tabezthan]";
 	mes "Please understand that the power is not from me.";
@@ -1651,13 +1652,13 @@ LV4_19:
 	mes "The power has come from the city of the dead.";
 	next;
 	mes "[Tabezthan]";
-	mes "The result is on God's hand.";
+	mes "The result is in God's hands.";
 	mes "Let's pray for a good result together.";
 	mes "Hmmmmm!";
 	next;
-	mes "- After a while...you found the materials -";
-	mes "- were gathered and combined into one new thing. -";
-	mes "- Did it mean that you have succeeded or failed?! -";
+	mes "- After a while...you find the materials -";
+	mes "- are gathering and combining into one new thing. -";
+	mes "- Does that mean that you have succeeded or failed?! -";
 	next;
 	mes "[Tabezthan]";
 	mes "?!...God must bless you!";
@@ -1689,7 +1690,7 @@ LV4_19:
 	mes "[Tabezthan]";
 	mes "Well, feel free to come back";
 	mes "if you want to make a thing again...hahaha.";
-	mes "The weapon was created to be yours.";
+	mes "The weapon was made to be yours.";
 	close;
 
 
@@ -1700,8 +1701,8 @@ LV4_19:
 LV4_14:
 	mes "[Tabezthan]";
 	mes "Umm...you don't have a business with me, do you?";
-	mes "Please do not think of me an old fool.";
-	mes "When a man gets older, he can see through other people's mind.";
+	mes "Please do not think of me as an old fool.";
+	mes "When a man gets older, he can see through other people's minds.";
 	mes "Go ahead and do what you have been doing.";
 	mes "Do not let me intrrupt you any longer.";
 	close;
@@ -1820,7 +1821,7 @@ LV4_55:
 
 	mes "[Bill Thayer]";
 	mes "Hmm...it seems that you need 30 of";
-	mes @LV4_Gem1Name$ + ", " + @LV4_Gem2Name$ + " and " + @LV4_Gem3Name$;
+	mes @LV4_Gem1Name$ + ", " + @LV4_Gem2Name$ + ", and " + @LV4_Gem3Name$;
 	mes "I am sure that those are the materials...";
 	mes "but I cannot guarantee anything about the result...";
 	next;
@@ -1838,8 +1839,8 @@ LV4_53:
 	mes "[Bill Thayer]";
 	if(lv4_weapon == 26) mes "What, Kayron's research?";
 	if(lv4_weapon == 35) mes "What, Reyghema's research?";
-	if(lv4_weapon == 44) mes "What? Hein's reserach?";
-	if(lv4_weapon == 53) mes "What? Waltboughst's reserach?";	
+	if(lv4_weapon == 44) mes "What? Hein's research?";
+	if(lv4_weapon == 53) mes "What? Waltboughst's research?";	
 	mes "How do you know him?";
 	mes "Were you a friend of him when he was still alive?";
 	mes "Ah....there must an act of providence.";
@@ -1916,7 +1917,7 @@ LV4_53:
 	
 	mes "[Bill Thayer]";
 	mes "Hmm...it seems that you need 30 of";
-	mes @LV4_Gem1Name$ + ", " + @LV4_Gem2Name$ + " and " + @LV4_Gem3Name$;
+	mes @LV4_Gem1Name$ + ", " + @LV4_Gem2Name$ + ", and " + @LV4_Gem3Name$;
 	mes "I am sure that those are the materials...";
 	mes "but I cannot guarantee anything about the result...";
 	next;
@@ -1965,7 +1966,7 @@ LV4_41:
 	mes "[Bill Thayer]";
 	mes "...no matter how much you are willing to pay me,";
 	mes "I am not going to forge any weapons.";
-	mes "Even when I was in active to forge weapons,";
+	mes "Even when I was actively forging weapons,";
 	mes "I didn't accept money from my clients.";
 	mes "You know why?";
 	next;
@@ -1977,7 +1978,7 @@ LV4_41:
 	next;
 	mes "[Bill Thayer]";
 	mes "Well, I am not going to do so";
-	mes "even though you offer me something else than money";
+	mes "even if you offer me something else other than money";
 	mes "...unless all of my sons come back";
 	mes "alive....";
 	close;
@@ -2010,8 +2011,8 @@ niflheim.gat,240,193,3	script	Kayron	794, {
 	set @NowWeight, MaxWeight - Weight;
 	if (@NowWeight >= 3000) goto LV4_NOT_OW;
 	mes "- Wait a minute! -";
-	mes "- Currently you are overweight. -";
-	mes "- Please lighten your weight -";
+	mes "- You are currently overweight. -";
+	mes "- Please lose some weight -";
 	mes "- and try again. -";
 	close;
 
@@ -2020,7 +2021,7 @@ LV4_NOT_OW:
 	if(BaseLevel >= 80) goto LV4_LEVEL_PASS;
 	mes "[Kayron]";
 	mes "Bah, I cannot believe";
-	mes "that such a weak man like you made to come here even.";
+	mes "that such a weak man like you even came here.";
 	mes "You have an invisible sign on your forehead";
 	mes "that indicates you are a weakling. Be strong first.";
 	close;
@@ -2055,24 +2056,24 @@ LV4_22:
 	if(lv4_weapon == 0) goto LV4_0_ASK;
 	
 	mes "[Kayron]";
-	mes "Ah...I cannot remember what I was going to speak...";
+	mes "Ah...I cannot remember what I was going to say...";
 	mes "Waaahhh.....I cannot remember....";
 	mes "My memory is gone...!";
 	close;
 	
 LV4_0_ASK:
-	switch( select( "Show interest.", "Igonore him." ) ) {
+	switch( select( "Show interest.", "Ignore him." ) ) {
 		case 1:
 			mes "[Kayron]";
-			mes "Ah...I cannot remember what I was going to speak...";
+			mes "Ah...I cannot remember what I was going to say...";
 			mes "Waaahhh.....I cannot remember....";
 			mes "My memory is gone...!";
 			set lv4_weapon, 22;
 			close;
 			break;
 		case 2:
-			mes "- As you decided to ignore him, -";
-			mes "- you were no longer able to hear him. -";
+			mes "- Because you decided to ignore him, -";
+			mes "- you are no longer able to hear him. -";
 			close;
 			break;
 	}
@@ -2082,7 +2083,7 @@ LV4_0_ASK:
 LV4_21:
 LV4_31:
 	mes "[Kayron]";
-	mes "I feel something different from you.";
+	mes "I feel something different about you.";
 	mes "Did you come here with a purpose?";
 	mes "I am envious of you...";
 	close;
@@ -2123,7 +2124,7 @@ LV4_23_CORRECT:
 	mes "But you have to gather the materials for me.";
 	mes "As you see, I do not have a body";
 	mes "that would allow me to touch other objects...";
-	mes "So you got to help me that.";
+	mes "So you got to help me with that.";
 	next;
 	mes "[Kayron]";
 	mes "Luckily this place is filled with mysterious energy,";
@@ -2147,7 +2148,7 @@ LV4_25:
 	
 	mes "[Kayron]";
 	mes "Oh...you brought everything I need!";
-	mes "You are a reliable person unlike you appear.";
+	mes "You are a reliable person unlike your appearance.";
 	mes "But here is the thing...";
 	mes "There are some more materials I need...";
 	mes "But I cannot think of any of them...my memory";
@@ -2185,7 +2186,7 @@ LV4_25_BASE_MAT:
 			next;
 			mes "[Kayron]";
 			mes "Let me give you the list of materials";
-			mes "I need. They are quite many,";
+			mes "I need. They are quite a lot,";
 			mes "so write them down if you need.";
 			break;
 		case 25:
@@ -2202,8 +2203,8 @@ LV4_25_BASE_MAT:
 		next;
 		mes "[Kayron]";
 		mes "Bring these to me first. I am kind of worried";
-		mes "that I forget something...but I will try to remember";
-		mes "while next;ing for you to bring these stuffs.";
+		mes "that I forgot something...but I will try to remember";
+		mes "while waiting for you to bring these items.";
 		next;
 		mes "[Kayron]";
 		mes "Have a safe travel.";
@@ -2217,7 +2218,7 @@ LV4_28:
 	if(countitem(LV4_Gem2) < 30) goto LV4_27_NOGEM;
 	if(countitem(LV4_Gem3) < 30) goto LV4_27_NOGEM;
 	mes "[Kayron]";
-	mes "...Um? Stuffs that you brought to me seem";
+	mes "...Um? The items that you brought to me seem";
 	mes "to be good materials for my creation...";
 	mes "Give them to me, I shall try first!";
 	next;
@@ -2227,23 +2228,23 @@ LV4_28:
 	mes "Great, give me a moment!";
 	next;
 	mes "[Kayron]";
-	mes "...next;, I must test your luck first.";
+	mes "...wait, I must test your luck first.";
 	mes "Since I am not sure about the result,";
-	mes "we should trust to luck for the result of my creation.";
+	mes "we should place trust in luck for the result of my creation.";
 	mes "You must have good luck...";
 	next;
 	mes "[Kayron]";
-	mes "We are going to play 'rock paper scissors'.";
-	mes "You must win at least 2 out of 3.";
-	mes "If you fail, you must dump a large amount";
-	mes "of one material among the 3 kinds you have brought.";
+	mes "We are going to play 'Rock, Paper, Scissors'.";
+	mes "You must win at least 2 out of 3 times.";
+	mes "If you fail, you must throw away a large amount";
+	mes "of one of the 3 kinds of ore that you have brought.";
 	mes "It is for driving away your bad luck.";
 	next;
 	mes "[Kayron]";
 	mes "I will give you a piece of paper.";
-	mes "You will write down one among 'rock paper scissors'.";
+	mes "You will write down one among 'Rock, Paper, or Scissors'.";
 	mes "I will do the same at the same time.";
-	mes "We will compare each other's paper at the last time.";
+	mes "We will compare each other's paper after.";
 	next;
 	
 	set @shobu, 0;
@@ -2340,7 +2341,7 @@ LV4_27_SAY_WIN:
 	next;
 	mes "[Kayron]";
 	mes "I am going to keep my promise.";
-	mes "But I need some times to prepare.";
+	mes "But I need some time to prepare.";
 	mes "Give me the materials now and I will talk to you later.";
 	close;
 
@@ -2349,21 +2350,21 @@ LV4_27_NOGEM:
 	mes "[Kayron]";
 	mes "Arph...it has not gotten into my memory yet.";
 	mes "Awww....this is a problem.";
-	mes "I used to often discuss about the materials";
-	mes "with my family...now I cannot remember which they are...";
+	mes "I used to often discuss the materials";
+	mes "with my family...now I cannot remember what they are...";
 	close;
 
 
 LV4_29:
 LV4_30:
 	mes "[Kayron]";
-	mes "Hahaha...you came back at a right time.";
+	mes "Hahaha...you came back at the right time.";
 	mes "The result? Do you want to know about the result?...";
 	mes "Haha...okay...let's see...";
 	next;
 	mes "[Kayron]";
 	mes "...YES! It's a success!";
-	mes "I created the weapon that got me killed this time!";
+	mes "I created the weapon that got me killed last time!";
 	mes "Look at this...haha! I died while making this!";
 	mes "... The name of the weapon is...";
 	
@@ -2417,8 +2418,8 @@ niflheim.gat,99,268,5	script	Reyghema	794, {
 	set @NowWeight, MaxWeight - Weight;
 	if (@NowWeight >= 3000) goto LV4_NOT_OW;
 	mes "- Wait a minute! -";
-	mes "- Currently you are overweight. -";
-	mes "- Please lighten your weight -";
+	mes "- You are currently overweight. -";
+	mes "- Please lose some weight -";
 	mes "- and try again. -";
 	close;
 
@@ -2427,7 +2428,7 @@ LV4_NOT_OW:
 	if(BaseLevel >= 80) goto LV4_LEVEL_PASS;
 	mes "[Reyghema]";
 	mes "Um? Do you have any business with me?";
-	mes "Sorry but I don't. I am also not";
+	mes "Sorry but I don't. I'm also not";
 	mes "speaking to a weak person like you.";
 	mes "Have a safe travel~";
 	close;
@@ -2462,7 +2463,7 @@ LV4_31:
 	if(lv4_weapon == 0) goto LV4_0_ASK;
 	
 	mes "[Reyghema]";
-	mes "Ah...I cannot remember what I was going to speak...";
+	mes "Ah...I cannot remember what I was going to say...";
 	mes "Waaahhh.....I cannot remember....";
 	mes "My memory is gone...!";
 	close;
@@ -2471,15 +2472,15 @@ LV4_0_ASK:
 	switch( select( "Show interest.", "Igonore him." ) ) {
 		case 1:
 			mes "[Reyghema]";
-			mes "Ah...I cannot remember what I was going to speak...";
+			mes "Ah...I cannot remember what I was going to say...";
 			mes "Waaahhh.....I cannot remember....";
 			mes "My memory is gone...!";
 			set lv4_weapon, 31;
 			close;
 			break;
 		case 2:
-			mes "- As you decided to ignore him, -";
-			mes "- you were no longer able to hear him. -";
+			mes "- Because you decided to ignore him, -";
+			mes "- you are no longer able to hear him. -";
 			close;
 			break;
 	}
@@ -2489,7 +2490,7 @@ LV4_0_ASK:
 LV4_30:
 LV4_40:
 	mes "[Reyghema]";
-	mes "I feel something different from you.";
+	mes "I feel something different about you.";
 	mes "Did you come here with a purpose?";
 	mes "I am envious of you...";
 	close;
@@ -2526,7 +2527,7 @@ LV4_32_CORRECT:
 	mes ".........";
 	next;
 	mes "[Reyghema]";
-	mes "That's right! I am Bill Thayer the weaponsmith's";
+	mes "That's right! I am Bill Thayer the Weaponsmith's";
 	mes "second son! And I must forge a weapon";
 	mes "in order to not regret my youth!";
 	mes "Even if I am dead, I cannot give it up!";
@@ -2534,8 +2535,8 @@ LV4_32_CORRECT:
 	mes "[Reyghema]";
 	mes "Hey you, thank you for letting me have my memory back!";
 	mes "You need to do me another favor!";
-	mes "Bring me some stuffs, I need to forge a weapon.";
-	mes "Once I make one, I will give it to you in return of your favor.";
+	mes "Bring me some items, I need to forge a weapon.";
+	mes "Once I make one, I will give it to you in return for your favor.";
 	next;
 	mes "[Reyghema]";
 	mes "Reyghema, breathe deeply first...phew~.";
@@ -2581,7 +2582,7 @@ LV4_34_BASE_MAT:
 	switch( lv4_weapon ) {
 		case 33:
 			mes "[Reyghema]";
-			mes "Okay. You don't need any other explain, do you?";
+			mes "Okay. You don't need any other explaination, do you?";
 			mes "I will tell you what I need";
 			mes "so please do not forget those materials.";
 			break;
@@ -2612,7 +2613,7 @@ LV4_37:
 	if(countitem(LV4_Gem2) < 30) goto LV4_36_NOGEM;
 	if(countitem(LV4_Gem3) < 30) goto LV4_36_NOGEM;
 	mes "[Reyghema]";
-	mes "...Um? Stuffs that you brought to me seem";
+	mes "...Um? The items that you brought to me seem";
 	mes "to be good materials for my creation...";
 	mes "Give them to me, I shall try first!";
 	next;
@@ -2622,23 +2623,23 @@ LV4_37:
 	mes "Great, give me a moment!";
 	next;
 	mes "[Reyghema]";
-	mes "...next;, I must test your luck first.";
+	mes "...wait, I must test your luck first.";
 	mes "Since I am not sure about the result,";
-	mes "we should trust to luck for the result of my creation.";
+	mes "we should place trust in luck for the result of my creation.";
 	mes "You must have good luck...";
 	next;
 	mes "[Reyghema]";
-	mes "We are going to play 'rock paper scissors'.";
-	mes "You must win at least 2 out of 3.";
-	mes "If you fail, you must dump a large amount";
-	mes "of one material among the 3 kinds you have brought.";
+	mes "We are going to play 'Rock, Paper, Scissors'.";
+	mes "You must win at least 2 out of 3 times.";
+	mes "If you fail, you must leave a large amount";
+	mes "of one material you have brought.";
 	mes "It is for driving away your bad luck.";
 	next;
 	mes "[Reyghema]";
 	mes "I will give you a piece of paper.";
-	mes "You will write down one among 'rock paper scissors'.";
+	mes "You will write down one among 'Rock, Paper, or Scissors'.";
 	mes "I will do the same at the same time.";
-	mes "We will compare each other's paper at the last time.";
+	mes "We will then compare each other's paper.";
 	next;
 	
 	set @shobu, 0;
@@ -2735,7 +2736,7 @@ LV4_36_SAY_WIN:
 	next;
 	mes "[Reyghema]";
 	mes "I am going to keep my promise.";
-	mes "But I need some times to prepare.";
+	mes "But I need some time to prepare.";
 	mes "Give me the materials now and I will talk to you later.";
 	close;
 
@@ -2756,7 +2757,7 @@ LV4_39:
 	next;
 	mes "[Reyghema]";
 	mes "...YES! It's a success!";
-	mes "I created the weapon that got me killed this time!";
+	mes "I created the weapon that got me killed last time!";
 	mes "Look at this...haha! I died while making this!";
 	mes "... The name of the weapon is...";
 	
@@ -2780,13 +2781,13 @@ LV4_39:
 	mes "...*sigh*.";
 	next;
 	mes "[Reyghema]";
-	mes "Happyness lasts too short...";
+	mes "Happiness lasts too short...";
 	mes "As I am a dead man, I think I am not allowed";
 	mes "to keep the memory of past....";
 	mes "My memory is fading again...";
 	next;
 	mes "[Reyghema]";
-	mes "But thank you for letting me achieved";
+	mes "But thank you for letting me achieve";
 	mes "my long-cherished desire.";
 	mes "If we meet again, please let me";
 	mes "retrieve my memory of past again.";
@@ -2817,8 +2818,8 @@ niflheim.gat,187,280,3	script	Hein	795, {
 	set @NowWeight, MaxWeight - Weight;
 	if (@NowWeight >= 3000) goto LV4_NOT_OW;
 	mes "- Wait a minute! -";
-	mes "- Currently you are overweight. -";
-	mes "- Please lighten your weight -";
+	mes "- You are currently overweight. -";
+	mes "- Please lose some weight -";
 	mes "- and try again. -";
 	close;
 
@@ -2827,7 +2828,7 @@ LV4_NOT_OW:
 	if(BaseLevel >= 80) goto LV4_LEVEL_PASS;
 	mes "[Hein]";
 	mes "You should care about other people";
-	mes "more than you...";
+	mes "more than yourself...";
 	mes "You are quite weak for an adventurer.";
 	close;
 	
@@ -2864,7 +2865,7 @@ LV4_40:
 	mes "[Hein]";
 	mes "Why did I speak of money?";
 	mes "I am a dead man and dead people";
-	mes "donnot need money...arf!";
+	mes "do not need money...arf!";
 	mes "My head is hurting...I guess that";
 	mes "a dead man can have a headache!";
 	close;
@@ -2875,15 +2876,15 @@ LV4_0_ASK:
 			mes "[Hein]";
 			mes "Why did I speak of money?";
 			mes "I am a dead man and dead people";
-			mes "donnot need money...arf!";
+			mes "do not need money...arf!";
 			mes "My head is hurting...I guess that";
 			mes "a dead man can have a headache!";
 			set lv4_weapon, 40;
 			close;
 			break;
 		case 2:
-			mes "- As you decided to ignore him, -";
-			mes "- you were no longer able to hear him. -";
+			mes "- Because you decided to ignore him, -";
+			mes "- you are no longer able to hear him. -";
 			close;
 			break;
 	}
@@ -2917,8 +2918,8 @@ LV4_41:
 
 LV4_41_CORRECT:
 	mes "[Hein]";
-	mes "That's right! It's a bad luck!";
-	mes "Creating weapons is a betting! And I am...I am?";
+	mes "That's right! It's bad luck!";
+	mes "Creating weapons is betting! And I am...I am?";
 	mes "Oh right...I forgot that. Yes, I am dead.";
 	mes "Ahahahahaha.";
 	set lv4_weapon, 42;
@@ -2953,8 +2954,8 @@ LV4_43:
 	
 	mes "[Hein]";
 	mes "Oh, you have brought the materials I asked.";
-	mes "Here's a thing. I cannot remember what I need other than those...";
-	mes "Aww....I need some more times to think of them...";
+	mes "Here's the thing. I cannot remember what I need other than those...";
+	mes "Aww....I need some more time to think of them...";
 	next;
 	mes "[Hein]";
 	mes "Please try to search what I need...if you can.";
@@ -2993,8 +2994,8 @@ LV4_43_BASE_MAT:
 			next;
 			mes "[Hein]";
 			mes "And I do need 3 more things...";
-			mes "but I have a hard time to remember what they are.";
-			mes "That means that my memory of the past are not";
+			mes "but I have a hard time remembering what they are.";
+			mes "That means that my memory of the past is not";
 			mes "absolutely back.";
 			next;
 			mes "[Hein]";
@@ -3020,7 +3021,7 @@ LV4_46:
 	if(countitem(LV4_Gem2) < 30) goto LV4_45_NOGEM;
 	if(countitem(LV4_Gem3) < 30) goto LV4_45_NOGEM;
 	mes "[Hein]";
-	mes "...Um? Stuffs that you brought to me seem";
+	mes "...Um? The items that you brought to me seem";
 	mes "to be good materials for my creation...";
 	mes "Give them to me, I shall try first!";
 	next;
@@ -3036,17 +3037,17 @@ LV4_46:
 	mes "You must have good luck...";
 	next;
 	mes "[Hein]";
-	mes "We are going to play 'rock paper scissors'.";
-	mes "You must win at least 2 out of 3.";
-	mes "If you fail, you must dump a large amount";
-	mes "of one material among the 3 kinds you have brought.";
+	mes "We are going to play 'Rock, Paper, Scissors'.";
+	mes "You must win at least 2 out of 3 times.";
+	mes "If you fail, you must leave a large amount";
+	mes "of one material you have brought.";
 	mes "It is for driving away your bad luck.";
 	next;
 	mes "[Hein]";
 	mes "I will give you a piece of paper.";
-	mes "You will write down one among 'rock paper scissors'.";
+	mes "You will write down one among 'Rock, Paper, or Scissors'.";
 	mes "I will do the same at the same time.";
-	mes "We will compare each other's paper at the last time.";
+	mes "We will then compare each other's paper at the end.";
 	next;
 	
 	set @shobu, 0;
@@ -3143,7 +3144,7 @@ LV4_45_SAY_WIN:
 	next;
 	mes "[Hein]";
 	mes "I am going to keep my promise.";
-	mes "But I need some times to prepare.";
+	mes "But I need some time to prepare.";
 	mes "Give me the materials now and I will talk to you later.";
 	close;
 
@@ -3222,8 +3223,8 @@ niflheim.gat,331,72,3	script	Waltboughst	795,{
 	set @NowWeight, MaxWeight - Weight;
 	if (@NowWeight >= 3000) goto LV4_NOT_OW;
 	mes "- Wait a minute! -";
-	mes "- Currently you are overweight. -";
-	mes "- Please lighten your weight -";
+	mes "- You are currently overweight. -";
+	mes "- Please lose some weight -";
 	mes "- and try again. -";
 	close;
 
@@ -3254,7 +3255,7 @@ LV4_LEVEL_PASS:
 LV4_0:
 LV4_49:
 	mes "[Waltboughst]";
-	mes "Ah~ this is so frustrating to be a dead man.";
+	mes "Ah~ it is so frustrating to be a dead man.";
 	mes "Because I cannot do anything without a body.";
 	mes "You know what my father used to say?";
 	mes "Trying best does not always";
@@ -3277,7 +3278,7 @@ LV4_0_ASK:
 	switch( select( "Show interest.", "Igonore him." ) ) {
 		case 1:
 			mes "[Waltboughst]";
-			mes "...what was he saying afterwards?";
+			mes "...what did he say afterwards?";
 			mes "Speaking of which, why am I";
 			mes "so anxious to do something?";
 			mes "I am a dead man, and a dead man is not supposed to do anything!";
@@ -3286,8 +3287,8 @@ LV4_0_ASK:
 			close;
 			break;
 		case 2:
-			mes "- As you decided to ignore him, -";
-			mes "- you were no longer able to hear him. -";
+			mes "- Because you decided to ignore him, -";
+			mes "- you are no longer able to hear him. -";
 			close;
 			break;
 	}
@@ -3297,7 +3298,7 @@ LV4_0_ASK:
 LV4_48:
 LV4_58:
 	mes "[Waltboughst]";
-	mes "I feel something different from you.";
+	mes "I feel something different about you.";
 	mes "Did you come here with a purpose?";
 	mes "I am envious of you...";
 	close;
@@ -3305,7 +3306,7 @@ LV4_58:
 
 LV4_50:
 	mes "[Waltboughst]";
-	mes "Ah~ this is so frustrating to be a dead man.";
+	mes "Ah~ it is so frustrating to be a dead man.";
 	mes "Because I cannot do anything without a body.";
 	mes "You know what my father used to say?";
 	mes "Trying best does not always";
@@ -3331,7 +3332,7 @@ LV4_50_CORRECT:
 	next;
 	mes "[Waltboughst]";
 	mes "Okay, I am not going to end this way.";
-	mes "Hey, you are meant to meet me!";
+	mes "Hey, you were meant to meet me!";
 	mes "You got to do me a favor, now!";
 	next;
 	mes "[Waltboughst]";
@@ -3355,7 +3356,7 @@ LV4_52:
 	mes "[Waltboughst]";
 	mes "Oh...you brought everything I need!";
 	mes "You were quick this time...I am still having";
-	mes "a hard time to remember what I need other than those.";
+	mes "a hard time remembering what I need other than those.";
 	mes "This is not good, this is not good at all.";
 	next;
 	mes "[Waltboughst]";
@@ -3387,7 +3388,7 @@ LV4_52_BASE_MAT:
 			mes "1 Emperium Anvil, 1 Illusion Flower and 20 Gold...";
 			next;
 			mes "[Waltboughst]";
-			mes "I do need some other stuffs...but I need some times";
+			mes "I do need some other items...but I need some time";
 			mes "to remember those. Oh well,";
 			mes "we have enough time, so let me think of them.";
 			set lv4_weapon, 52;
@@ -3408,7 +3409,7 @@ LV4_55:
 	if(countitem(LV4_Gem2) < 30) goto LV4_54_NOGEM;
 	if(countitem(LV4_Gem3) < 30) goto LV4_54_NOGEM;
 	mes "[Waltboughst]";
-	mes "...Um? Stuffs that you brought to me seem";
+	mes "...Um? The items that you brought to me seem";
 	mes "to be good materials for my creation...";
 	mes "Give them to me, I shall try first!";
 	next;
@@ -3418,23 +3419,23 @@ LV4_55:
 	mes "Great, give me a moment!";
 	next;
 	mes "[Waltboughst]";
-	mes "...next;, I must test your luck first.";
+	mes "...wait, I must test your luck first.";
 	mes "Since I am not sure about the result,";
 	mes "we should trust to luck for the result of my creation.";
 	mes "You must have good luck...";
 	next;
 	mes "[Waltboughst]";
-	mes "We are going to play 'rock paper scissors'.";
-	mes "You must win at least 2 out of 3.";
-	mes "If you fail, you must dump a large amount";
-	mes "of one material among the 3 kinds you have brought.";
+	mes "We are going to play 'Rock, Paper, Scissors'.";
+	mes "You must win at least 2 out of 3 times.";
+	mes "If you fail, you must leave a large amount";
+	mes "of one material you have brought.";
 	mes "It is for driving away your bad luck.";
 	next;
 	mes "[Waltboughst]";
 	mes "I will give you a piece of paper.";
-	mes "You will write down one among 'rock paper scissors'.";
+	mes "You will write down one among 'Rock, Paper, or Scissors'.";
 	mes "I will do the same at the same time.";
-	mes "We will compare each other's paper at the last time.";
+	mes "We will then compare each other's paper at the end.";
 	next;
 	
 	set @shobu, 0;
@@ -3531,14 +3532,14 @@ LV4_54_SAY_WIN:
 	next;
 	mes "[Waltboughst]";
 	mes "I am going to keep my promise.";
-	mes "But I need some times to prepare.";
+	mes "But I need some time to prepare.";
 	mes "Give me the materials now and I will talk to you later.";
 	close;
 
 LV4_53:
 LV4_54_NOGEM:
 	mes "[Waltboughst]";
-	mes "Arph...it has not gotten into my memory yet.";
+	mes "Arph...I haven't remembered them yet.";
 	mes "Awww....this is a problem.";
 	mes "I must think of them as soon as possible...";
 	close;
