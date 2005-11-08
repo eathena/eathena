@@ -1,5 +1,7 @@
 Date	Added
 2005/11/08
+	* Added mob boss inmunity to status changes: poison, curse, deadly poison.
+	  [Skotlex]
 	* Now when the mob starts casting a skill and stops walking, a packet will
 	  be sent to update the mob position on the clients. [Skotlex]
 	* Fixed a bug in mob_stop_walking which may fix stun-lock. [Skotlex]

@@ -3546,9 +3546,11 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		sc_data[type].timer != -1 && sc_data[type].val2 && !val2)
 		return 0;
 
-	if(mode & MD_BOSS && (type==SC_STONE || type==SC_FREEZE || type==SC_STAN || type==SC_SLEEP || type==SC_SILENCE
-		|| type==SC_QUAGMIRE || type == SC_DECREASEAGI || type == SC_SIGNUMCRUCIS || type == SC_PROVOKE
-		|| type==SC_ROKISWEIL || (type == SC_BLESSING && (undead_flag || race == 6))) && !(flag&1)){
+	if(mode & MD_BOSS && !(flag&1) &&
+		(type==SC_STONE || type==SC_FREEZE || type==SC_STAN || type==SC_SLEEP || type==SC_SILENCE
+		|| type==SC_POISON || type==SC_DPOISON || type==SC_CURSE
+		|| type==SC_QUAGMIRE || type==SC_DECREASEAGI || type==SC_SIGNUMCRUCIS || type==SC_PROVOKE || type==SC_ROKISWEIL
+		|| (type == SC_BLESSING && (undead_flag || race == 6)))){
 		/* ボスには?かない(ただしカ?ドによる?果は適用される) */
 		return 0;
 	}
