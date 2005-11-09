@@ -706,6 +706,12 @@ struct npc_data {
 		unsigned walk_easy : 1;
 	} state;
 
+	char eventqueue[MAX_EVENTQUEUE][50];
+	int eventtimer[MAX_EVENTTIMER];
+	short arenaflag;
+
+	void *chatdb;
+
 	union {
 		struct {
 			unsigned char *script;
@@ -725,13 +731,7 @@ struct npc_data {
 			char name[MAP_NAME_LENGTH];
 		} warp;
 	} u;
-	// ‚±‚±‚Éƒƒ“ƒo‚ğ’Ç‰Á‚µ‚Ä‚Í‚È‚ç‚È‚¢(shop_item‚ª‰Â•Ï’·‚Ìˆ×)
-
-	char eventqueue[MAX_EVENTQUEUE][50];
-	int eventtimer[MAX_EVENTTIMER];
-	short arenaflag;
-
-	void *chatdb;
+	//Do NOT place anything afterwards... shop data NPC will override any variables from here and on! [Skotlex]
 };
 
 //For quick linking to a guardian's info. [Skotlex]

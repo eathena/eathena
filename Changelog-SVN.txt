@@ -1,5 +1,6 @@
 Date	Added
 2005/11/09
+	* Fixed the crash on shutdown if PCRE support was enabled. [Skotlex]
 	* Fixed possible item duping while vending, thanks to End of Exam for
 	  pointing it out. [Skotlex]
 	* Fixed the blue aura of Night effect. Thanks to zBuffer [Skotlex]

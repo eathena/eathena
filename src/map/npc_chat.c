@@ -280,11 +280,11 @@ static void delete_pcreset(struct npc_data *nd,int setid) {
     pcreset->prev_ = NULL;
     pcreset->next_ = NULL;
 
-	while (pcreset->head_) {
-		struct pcrematch_entry *n = pcreset->head_->next_;
+    while (pcreset->head_) {
+		struct pcrematch_entry *n = pcreset->head_->next_;;
 		finalize_pcrematch_entry(pcreset->head_);
 		pcreset->head_ = n;
-	}
+    }
 
 	aFree(pcreset);
 }

@@ -2770,9 +2770,9 @@ int do_init_npc(void)
 	struct npc_data *nd= (struct npc_data *) strdb_search(npcname_db,name);
 	if (nd==NULL)
 		return 0;
-		strcpy(nd->name,newname);
-		nd->class_ = look;
-		npc_enable(name,0);
-		npc_enable(name,1);
+	strcpy(nd->name,newname);
+	nd->class_ = look;
+	npc_enable(name,0);
+	npc_enable(name,1);
 	return 0;
 }
