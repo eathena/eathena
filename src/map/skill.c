@@ -857,9 +857,11 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		}
 		break;
 
+	case AS_VENOMKNIFE:
+		if (sd) //Poison chance must be that of Envenom. [Skotlex]
+			skilllv = pc_checkskill(sd, TF_POISON);
 	case TF_POISON:			/* インベナム */
 	case AS_SPLASHER:		/* ベナムスプラッシャ? */
-	case AS_VENOMKNIFE:
 		if(rand()%100< (2*skilllv+10)*sc_def_vit/100 )
 			status_change_start(bl,SC_POISON,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
 		else{
