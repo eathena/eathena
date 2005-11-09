@@ -1292,7 +1292,7 @@
 4151,Gajomart_Card,Gajomart Card,6,,10,10,,,,,,,,64,,,,,{ bonus2 bSubRace,RC_Plant,-20; bonus2 bExpAddRace,RC_Plant,10; }
 4152,Galapago_Card,Galapago Card,6,,10,10,,,,,,,,136,,,,,{ bonus2 bAddItemHealRate,6,50; bonus3 bAddMonsterDropItemGroup,6,4,4000; }
 4153,Crab_Card,Crab Card,6,,10,10,,,,,,,,2,,,,,{ bonus bAtk,5; bonus2 bAddDamageClass,1266,30; if(isequipped(4247,4273)==0) end; bonus3 bAddMonsterDropItem,544,5,3000; bonus2 bAddEle,Ele_Wind,30; }
-4154,Dumpling_Child_Card,Dumpling Child Card,6,,10,10,,,,,,,,136,,,,,{ bonus2 bAddItemHealRate,4,50; bonus3 bAddMonsterDropItemGroup,4,7,4000; }
+4154,Dumpling_Child_Card,Dumpling Child Card,6,,10,10,,,,,,,,136,,,,,{ bonus2 bAddItemHealRate,5,50; bonus3 bAddMonsterDropItemGroup,5,7,4000; }
 4155,Goblin_Leader_Card,Goblin Leader Card,6,,10,10,,,,,,,,2,,,,,{ bonus2 bAddRace2,1,30; }
 4156,Goblin_Rider_Card,Goblin Steam Rider Card,6,,10,10,,,,,,,,2,,,,,{ bonus bCritAtkRate,10; bonus2 bCriticalAddRace,RC_Formless,7; }
 4157,Goblin_Archer_Card,Goblin Archer Card,6,,10,10,,,,,,,,2,,,,,{ bonus bCritAtkRate,10; bonus2 bCriticalAddRace,RC_Undead,7; }
