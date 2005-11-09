@@ -27,6 +27,8 @@ Nexon
 
 Date		Added
 ======
+11/10
+	* Added more quests for 2nd Class Quest Skills [Lupus]
 11/09
 	* Added an incomplete sign quest for backup/storing purposes, use it at your own risk! [MasterOfMuppets]
 	* Remove a few message boards from msgboard.txt to not conflict with some [MasterOfMuppets]

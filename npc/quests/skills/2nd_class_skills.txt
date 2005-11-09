@@ -3,14 +3,15 @@
 //===== By: ================================================== 
 //= Lupus
 //===== Current Version: ===================================== 
-//= 1.0b
+//= 1.1
 //===== Compatible With: ===================================== 
 //= eAthena Revision 3800+
 //===== Description: ========================================= 
 //= Temp quests for new skills for 2nd classes
 //===== Additional Comments: ================================= 
 //= 1.0 for fully working skills only [Lupus]
-//= Somehow eA engine doesn let you keep learn't skill V_V'
+//= 1.1 Added more new skill quests for more classes [Lupus]
+//= Somehow eA engine doesn't let you keep learn't skill V_V'
 //============================================================
 
 
@@ -77,6 +78,42 @@ prontera.gat,166,138,1	script	Skill Master	52,{
 prontera.gat,167,130,2	script	Skill Master	725,{
 	//EDP Bottle x 15
 	callfunc "F_Skill2Quest","Skill Master", 1003,"Sonic Acceleration", Job_Assassin, 678,15, 250000;
+	end;
+}
+
+prontera.gat,147,135,6	script	Skill Master	749,{
+	//Rocker Egg x 2
+	callfunc "F_Skill2Quest","Skill Master", 238,"Basis of Life", Job_Alchem, 9011,2, 250000;
+	end;
+}
+
+prontera.gat,171,129,0	script	Skill Master	725,{
+	//Karvodailnirol x 10
+	callfunc "F_Skill2Quest","Skill Master", 1004,"Throw Venom Knife", Job_Assassin, 972,10, 50000;
+	end;
+}
+
+prontera.gat,144,153,3	script	Skill Master	741,{
+	//Singing Flower x 1
+	callfunc "F_Skill2Quest","Skill Master", 1010,"Pang Voice", Job_Bard, 629,1, 150000;
+	end;
+}
+
+prontera.gat,142,150,7	script	Skill Master	101,{
+	//Aloevera x 15
+	callfunc "F_Skill2Quest","Skill Master", 1011,"Wink of Charm", Job_Dancer, 606,15, 70000;
+	end;
+}
+
+prontera.gat,164,147,3	script	Skill Master	56,{
+	//Gold x 3
+	callfunc "F_Skill2Quest","Skill Master", 1001,"Charge Attack", Job_Knight, 969,3, 100000;
+	end;
+}
+
+prontera.gat,148,130,2	script	Skill Master	735,{
+	//Silve Robe[1] x 1
+	callfunc "F_Skill2Quest","Skill Master", 1006,"Sight Blaster", Job_Wizard, 2333,1, 0;
 	end;
 }
 
