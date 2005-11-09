@@ -28,6 +28,10 @@ Nexon
 Date		Added
 ======
 11/09
+	* Added an incomplete sign quest for backup/storing purposes, use it at your own risk! [MasterOfMuppets]
+	* Remove a few message boards from msgboard.txt to not conflict with some [MasterOfMuppets]
+	  sign quest npcs.
+	* Added two warps in prontera for preparing the sign quest [MasterOfMuppets]
 	* Added temp skill quests for all complete 2nd Class Quest Skills [Lupus]
 11/08
 	* A lot of typos fixed in the lvl 4 weapon quest, thanks to Silent. [MasterOfMuppets]

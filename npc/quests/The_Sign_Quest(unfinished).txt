@@ -1,0 +1,738 @@
+//===== eAthena Script ======================================= 
+//= The Sign Quest, NOT FINISHED.
+//===== By: ================================================== 
+//= MasterOfMuppets
+//===== Current Version: ===================================== 
+//= 0.1
+//===== Compatible With: ===================================== 
+//= eAthena SVN 3422+(Requires jA Script System)
+//===== Description: ========================================= 
+//= Quest for opening the doors to Geffenia, NOT FINISHED
+//===== Comments: ============================================
+//= This script uses sign_01.bmp - sign_04.bmp, these will be
+//= found in the language of your client.
+//===== Additional Comments: ================================= 
+//= Stored here for backup purposes
+//= 0.1 Added a few npcs, this quest cannot be finished [MasterOfMuppets]
+//=     yet, so add it at your own risk.
+//============================================================ 
+
+alberta.gat,35,241,1	script	Sign::Geffenia	111,{
+
+	if(signquest < 1)set signquest,1;
+	cutin "sign_01",4;
+	mes "^3C2EE6Next";
+	next;
+	cutin "",255;	
+	cutin "sign_02",4;
+	mes "^3C2EE6Next";
+	next;
+	cutin "",255;	
+	cutin "sign_03",4;
+	mes "^3C2EE6Next";
+	next;
+	cutin "",255;		
+	cutin "sign_04",4;
+	mes "^3C2EE6Close";
+	close2;
+	cutin "",255;
+	end;
+
+}	
+
+morocc.gat,168,264,1	duplicate(Geffenia)	Sign	111
+payon.gat,160,183,1	duplicate(Geffenia)	Sign	111
+prontera.gat,147,305,1	duplicate(Geffenia)	Sign	111
+geffen.gat,168,175,1	duplicate(Geffenia)	Sign	111
+aldebaran.gat,54,223,1	duplicate(Geffenia)	Sign	111
+
+prt_in.gat,228,26,4	script	Steward	55,{
+
+	if(signquest > 1)
+{
+	mes "[Vendez]";
+	mes "Ah, master " + strcharinfo(0) + ".";
+	mes "Welcome. How may I be";
+	mes "of service today?";
+	next;
+	menu "Who is Arian?",s_Arian,"What is Metz doing?",-,"How is Elle?",s_Elle;
+
+	mes "[Vendez]";
+	mes "Althought I've served";
+	mes "the Brayde family for years";
+	mes "I'm unfamiliar with Master";
+	mes "Metz's work. My appologies, but";
+	mes "I simply cannot even begin to";
+	mes "fathom his research...";
+	close;
+s_Arian:
+	mes "[Vendez]";
+	mes "Ah yes, Arian.";
+	mes "I consider him to be";
+	mes "a man of few words. The";
+	mes "words he does choose to";
+	mes "use are rather harsh and";
+	mes "brutish, you might say.";
+	close;
+s_Elle:
+	mes "[Vendez]";
+	mes "Ah, Mistress Elle";
+	mes "has been working here";
+	mes "since she was a very young";
+	mes "girl. She is almost like";
+	mes "a granddaughter to me.";
+	mes "Ha ha-^222222*Ahem*";
+	close;
+
+}
+	else
+{
+	mes "[Vendez]";
+	mes "Welcome to the";
+	mes "Brayde Estate. How";
+	mes "may I be of service?";
+	next;
+	menu "Nothing",-,"I'm here to see Metz",s_Metz,"Gimmie your cash!",s_Cash;
+
+	mes "[Vendez]";
+	mes "If you do not have";
+	mes "any business to conduct";
+	mes "with Master Metz, please";
+	mes "leave immediately";
+	close;
+
+s_Metz:
+	mes "[Vendez]";
+	mes "Very good, sir.";
+	mes "Please wait a moment";
+	mes "while I consult with";
+	mes "the master in his study.";
+	close;
+
+s_Cash:
+	mes "[Vendez]";
+	mes "My apologies,";
+	mes "but I insist that";
+	mes "you leave the premises";
+	mes "^FF0000immediately^000000.";
+	close2;
+	warp "prontera.gat",150,150;
+	end;
+}
+
+}
+
+prt_in.gat,227,45,4	script	Archaeologist	804,{
+
+	cutin "mets_alpha",2;
+	if(signquest > 0)goto s_Cont;
+	mes "[Metz]";
+	mes "Although you need everlasting";
+	mes "patience in an archaeological";
+	mes "excavation, the feeling you get";
+	mes "when you find something makes";
+	mes "all those long hours of study and";
+	mes "research worth it.";
+	close2;
+	cutin "",255;
+	end;
+
+s_Cont:
+	if(signquest == 1)
+{
+	mes "[Metz]";
+	mes "Hm...?";
+	mes "Can I help you?";
+	next;
+	menu "I've been following these signs and...",s_Sign,"I was just passing by",-;
+
+	mes "[Metz]";
+	mes "Oh really?";
+	mes "I see, I though you";
+	mes "were an applicant for";
+	mes "the position I'm offering";
+	mes "to brave adventurers.";
+	close2;
+	cutin "",255;
+	end;
+
+s_Sign:
+	mes "[Metz]";
+	mes "Great...!";
+	mes "Welcome to my";
+	mes "humble lodgings.";
+	mes "Hmm, let me see...";
+	next;
+	mes "[Metz]";
+	mes "Hey, I think you might";
+	mes "be well suited for the job!";
+	mes "But do you think you could come";
+	mes "back later? I've got my hands full";
+	mes "with some other business.";
+	next;
+	mes "[Metz]";
+	mes "Oh right, would you tell";
+	mes "me your name? " + strcharinfo(0) + "?";
+	mes "Okay then, I'll remember that.";
+	mes "Talk to you later, alright?";
+	set signquest,2;
+	close2;
+	cutin "",255;
+	end;
+}
+
+	else if(signquest == 2)
+{
+	mes "[Metz]";
+	mes "I'm sorry I made you wait,";
+	mes "but I had some research to finish";
+	mes "and it took longer than I expected.";
+	mes "Now, before I tell you more about";
+	mes "the job, I want to test your";
+	mes "competency";
+	next;
+	mes "[Metz]";
+	mes "The job I'm offering is";
+	mes "pretty risky and not just";
+	mes "anybody can handle it.";
+	mes "You'll actually go through";
+	mes "a series of tests conducted";
+	mes "by my trusted friends.";
+	next;
+	mes "[Metz]";
+	mes "Now, the first person";
+	mes "you must visit is ^FF0000Arian^000000";
+	mes "in Morroc. Please speak";
+	mes "to him and he'll give you";
+	mes "all the details about his";
+	mes "examination... I hope";
+	next;
+	mes "[Metz]";
+	mes "Once you're finished with";
+	mes "the test, Arian will tell you";
+	mes "what to do next. Afterwards,";
+	mes "come back to me so that we";
+	mes "can finally talk business.";
+	next;
+	mes "[Metz]";
+	mes "Ah, almost forgot.";
+	mes "Arian won't talk to anybody";
+	mes "unless he knows them or";
+	mes "receives a message from me.";
+	mes "So if he's snubbed you in the past,";
+	mes "just understand that's his way.";
+	set signquest,3;
+	close2;
+	cutin "",255;
+	end;
+}
+	else if(signquest == 3 || signquest == 4)
+{
+	mes "[Metz]";
+	mes "Hm...?";
+	mes "Shouldn't you leave";
+	mes "for Morroc to see Arian?";
+	mes "You better hurrty in case";
+	mes "somebody else applies";
+	mes "for this little job.";
+	close2;
+	cutin "",255;
+	end;
+}
+
+}
+
+prt_in.gat,248,23,4	script	Maid	1275,{
+
+end;
+
+}
+
+morocc_in.gat,114,162,4	script	Young Man	118,{
+
+	if(signquest == 5)
+{
+	mes "[Gaanan]";
+	mes "^444444*Sigh...*^000000";
+	mes "I wish the weather'd";
+	mes "cool down, even just a little.";
+	mes "While I'm asking for miracles,";
+	mes "I may as well wish for a billion";
+	mes "kajillion zeny. And maybe a yacht.";
+	close;
+}
+
+	else if(arianstest == 8)
+{
+	if(gaanantest == 1)
+{
+	mes "[Gaanan]";
+	mes "Hm...?";
+	mes "Arian is the one";
+	mes "who's grading your";
+	mes "test. But I understand.";
+	mes "If you failed, I'd want";
+	mes "to avoid him too...";
+	close;
+}
+	mes "[Gaanan]";
+	mes "Oh, Arian seny you to me,";
+	mes "right? I'm sorry, but he takes";
+	mes "a little time getting used to.";
+	mes "Even though I still have to get";
+	mes "used to his... mannerisms";
+	next;
+	mes "[Gaanan]";
+	mes "Anyway, since he thinks it's";
+	mes "boring, Arian put me in charge";
+	mes "of the quiz portion of your test.";
+	mes "Please carefully choose an";
+	mes "ansawer when I ask you a";
+	mes "question. Are you ready?";
+	next;
+	set gaananpoint,0;
+	mes "[Gaanan]";
+	mes "Now, the first question.";
+	mes "Let's say that you just";
+	mes "found yourself on a deserted";
+	mes "island. What is the very first";
+	mes "thing that you should do?";
+	next;
+	menu "Look for fresh water",-,"Just wait for rescue.",s_1W,"Forage for food.",s_1W,"Explore the island.",s_1W;
+	set gaananpoint,1;
+s_1W:
+	mes "[Gaanan]";
+	mes "The second question is...";
+	mes "You happen to be stuck in";
+	mes "a narrow place inside some collapsed building. What";
+	mes "do you plan to do first?";
+	next;
+	menu "Scream for help",-,"Stay quiet.",s_2W,"Wait for death to come.",s_2W,"Find a way out.",s_2W;
+	set gaananpoint,gaananpoint + 1;
+s_2W:
+	mes "[Gaanan]";
+	mes "Now, the third question.";
+	mes "You're on some dungeon";
+	mes "expedition with your friends,";
+	mes "but you got lost somehow.";
+	mes "How do you handle it?";
+	next;
+	menu "Try to find my friends.",-,"Find a way out.",s_3W,"Stay put.",s_3W,"Continue exploring the dungeon.",s_3W;
+	set gaananpoint,gaananpoint + 1;
+s_3W:
+	mes "[Gaanan]";
+	mes "Here's the fourth question.";
+	mes "You're with your friends inside";
+	mes "a mansion with no exit. What do";
+	mes "you do first when a murder happens";
+	mes "inside the mansion?";
+	next;
+	menu "Wait for the case to get solved.",-,"Try to find my firends first.",s_4W,"Find a way out.",s_4W,"Solve the murder case on my own.",s_4W,"Kill the others before they kill me.",s_4W;
+	set gaananpoint,gaananpoint + 1;
+s_4W:
+	mes "[Gaanan]";
+	mes "The fifth question is";
+	mes "You hear that the end of";
+	mes "the world is in one week.";
+	mes "So what do you do during";
+	mes "this final week?";
+	next;
+	menu "Wait to see the end.",-,"Plant an apple tree.",s_5W,"Look to move to a different world.",s_5W,"What else? Save the world.",s_5W,"What else? Go on a crime spree.",s_5W;
+	set gaananpoint,gaananpoint + 1;
+s_5W:
+	mes "[Gaanan]";
+	mes "Oh! We're done!";
+	mes "Okay, let me give";
+	mes "these answers to Arian.";
+	mes "Sooo... Talk to him and";
+	mes "he'll let you know how";
+	mes "you did.";
+	set gaanantest,1;
+	close;
+}
+
+	else if(ariantest < 8)
+{
+
+	emotion 19;
+	mes "[Gaanan]";
+	mes "The weather here in";
+	mes "Morroc is too hot for me.";
+	mes "I'm having a hard time just";
+	mes "trying to live here. Do you";
+	mes "know a nice and cool place";
+	mes "where I can work?";
+	close;
+
+}
+
+}
+
+morocc_in.gat,115,154,5	script	Rogue	810,{
+	
+	if(signquest == 5)
+{
+	mes "[Arian]";
+	mes "..........";
+	mes "Payon...?";
+	mes "Daewooon?";
+	mes "Any of it ring a bell?";
+	mes "Cuz it really oughtta!";
+	close;
+}
+
+	else if(signquest < 3)
+{
+	emotion 9;
+	end;
+}
+	else if(signquest == 3)
+{
+
+	mes "[Arian]";
+	mes "...";
+	mes "Who the hell";
+	mes "are you, jerkface?";
+	next;
+	menu "Metz sent me here.",s_Metz,"^0000FF" + strcharinfo(0) + "^000000",s_Name,"Who are you then?",-;
+
+	mes "[Arian]";
+	mes "...";
+	mes "......";
+	next;
+	percentheal -50,0;
+	mes "[Arian]";
+	mes "...";
+	mes "......";
+	mes "Your mom.";
+	mes "Now get the";
+	mes "hell outta here!";
+	close;
+
+s_Metz:
+
+	mes "[Arian]";
+	mes "Oh yeah...?";
+	mes "Well, I'm sending you";
+	mes "back! No way I'm fallin'";
+	mes "for that trick, chump!";
+	close2;
+	warp "morocc.gat",279,173;
+	end;
+
+s_Name:
+
+	mes "[Arian]";
+	mes "Wha...?";
+	mes "^0000FF" + strcharinfo(0) + "^000000.";
+	mes "Yeah, okay. Metz did";
+	mes "mention something about";
+	mes "you. You're here for";
+	mes "the test, right?";
+	next;
+	mes "[Arian]";
+	mes "Aliright, this";
+	mes "test is simple.";
+	mes "I tell you to bring me";
+	mes "a bunch of items and";
+	mes "you go get them.";
+	next;
+	mes "[Arian]";
+	mes "I know you jerkward adventurers";
+	mes "are always talking and you share";
+	mes "the answers for any test some dude";
+	mes "is givin' out. 'Course, it doesn't";
+	mes "help that I use the same test";
+	mes "every frickin' time...";
+	next;
+	mes "[Arian]";
+	mes "Now, you gotta bring and only";
+	mes "have the item I ask you for when";
+	mes "you come to me. If you know that";
+	mes "I'll be asking for something later";
+	mes "and you happen to have it, I'll";
+	mes "straight up ^FF0000jack it^000000.";
+	next;
+	mes "[Arian]";
+	mes "The first item?";
+	mes "Gimme ^FF0000100 Fluff^000000.";
+	mes "Bring that and I'll";
+	mes "tell you what to";
+	mes "bring next.";
+	set signquest,4;
+	set arianstest,1;
+	close;
+}
+	else if(signquest == 4)
+{
+
+	if(arianstest == 1)
+{
+	if(countitem(914) < 100)goto s_Bringfluff;
+	mes "[Arian]";
+	mes "What the hell took you so";
+	mes "long? Now bring me ^FF000050 Poison Spores^000000";
+	mes "or I'll kick your ass.";
+	delitem 914,100;
+	set arianstest,2;
+	close2;
+	goto Verifyitems;
+
+s_Bringfluff:
+	mes "[Arian]";
+	mes "...";
+	mes "Hey. What the hell's wrong";
+	mes "with you? Hurry and get me";
+	mes "^FF0000100 Fluff^000000, ya slacker.";
+	close;	
+}
+
+	else if(arianstest == 2)
+{
+	if(countitem(7033) < 50)goto s_Bringspore;
+	mes "[Arian]";
+	mes "...";
+	mes "It's about time you";
+	mes "got here with those";
+	mes "Poison Spores. Now, go";
+	mes "and get ^FF000030 Poison Spores";
+	delitem 7033,50;
+	set arianstest,3;
+	close2;
+	goto Verifyitems;
+
+s_Bringspore:
+	mes "[Arian]";
+	mes "...";
+	mes "Hey. What part of 'Get me";
+	mes "^FF000050 Poison Spores^000000 or I'll";
+	mes "kick your ass, don't";
+	mes "you understand?";
+	close;		
+}
+	else if(arianstest == 3)
+{
+	if(countitem(904) < 30)goto s_Bringtails;
+	mes "[Arian]";
+	mes "...";
+	mes "Damn, you sure took your";
+	mes "sweet time bringing over this";
+	mes "crap. Okay, now bring";
+	mes "^FF000020 Rotten Bandages^000000.";
+	delitem 904,30;
+	set arianstest,4;
+	close2;
+	goto Verifyitems;
+
+s_Bringtails:
+	mes "[Arian]";
+	mes "...";
+	mes "What, your mom drop you on the";
+	mes "head right after you were born?";
+	mes "Stop bein' stupid and get me";
+	mes "^FF000030 Scorpion Tails^000000, nimrod.";
+	close;		
+}
+	else if(arianstest == 4)
+{
+	if(countitem(930) < 20)goto s_Bringbandages;
+	mes "[Arian]";
+	mes "...";
+	mes "You brought the bandages.";
+	mes "Okay short stuff, go and get";
+	mes "me ^FF000015 Little Evil Horn^000000. What";
+	mes "are you waiting for, a memo?";
+	mes "Get outta here~!";
+	delitem 930,20;
+	set arianstest,5;
+	close2;
+	goto Verifyitems;
+
+s_Bringbandages:
+	mes "[Arian]";
+	mes "...";
+	mes "Is it really that hard to get";
+	mes "^FF000020 Rotten Bandages^000000? Cuz if it";
+	mes "is, then you must really blow.";
+	mes "How hustle it up, punk!";
+	close;		
+}
+	else if(arianstest == 5)
+{
+	if(countitem(1038) < 15)goto s_Bringhorns;
+	mes "[Arian]";
+	mes "...";
+	mes "My grandma coulda grown";
+	mes "out her beard in the time";
+	mes "it took you to come back.";
+	mes "Now hurry it up and get";
+	mes "me ^FF000010 Coral Reefs^000000!";
+	delitem 1038,15;
+	set arianstest,6;
+	close2;
+	goto Verifyitems;
+
+s_Bringhorns:
+	mes "[Arian]";
+	mes "...";
+	mes "I don't get it.";
+	mes "You don't have the";
+	mes "^FF000015 Little Evil Horn";
+	mes "I told you to get.";
+	next;
+	mes "[Arian]";
+	mes "I see, so it's my";
+	mes "fault for not telling you";
+	mes "not to bring your crap face";
+	mes "back without 'em. ^222222*A-hem*";
+	mes "Don't bring your crap face here";
+	mes "without 15 Little Evil Horns!!";
+	close;	
+}
+	else if(arianstest == 6)
+{
+	if(countitem(7013) < 10)goto s_Bringcorals;
+	mes "[Arian]";
+	mes "Finally you're back";
+	mes "Gimme a sec to count";
+	mes "all this stuff so I can make";
+	mes "sure you're not trying to";
+	mes "cheat. God help you if you";
+	mes "try to pull a fast one on me...!";
+	delitem 7013,10;
+	set arianstest,7;
+	close;
+
+s_Bringcorals:
+	mes "[Arian]";
+	mes "I don't care how pretty";
+	mes "they are or if you're ruining";
+	mes "the ecosystem! When I say";
+	mes "'bring ^FF000010 Coral Reefs^000000',you";
+	mes "better have them! All the";
+	mes "fish can die for all I care.";
+	close;	
+}
+	else if(arianstest == 7)
+{
+	mes "[Arian]";
+	mes "...";
+	mes "Alright. Go talk";
+	mes "to the guy to my left.";
+	mes "The dude at the counter.";
+	mes "What's-his-face, Ganaan.";
+	set arianstest,8;
+	close;
+}
+	else if(arianstest == 8)
+{
+	if(gaanantest == 1)
+{
+	if(gaananpoint < 3)goto s_Suck;
+	mes "[Arian]";
+	mes "Alright. The answers";
+	mes "you have Ganaan tell me";
+	mes "you're not a total dumbass.";
+	mes "Now you're supposed to go see";
+	mes "Daewoon in Payon. And don't forget";
+	mes "to show him this Star thingiee.";
+	getitem 7177,1;
+	set signquest,5;
+	close;
+s_Suck:
+	mes "[Arian]";
+	mes "Let's see...";
+	mes "I'm looking at your";
+	mes "answers and they totally";
+	mes "suck. Take the test again";
+	mes "and do it right this time!";
+	next;
+	mes "[Arian]";
+	mes "Geez...";
+	mes "You're givin' Ganaan";
+	mes "a hard time. You hear";
+	mes "me? That's my job!";
+	set gaananpoint,0;
+	set gaanantest,0;
+	close;
+}
+	mes "[Arian]";
+	mes "You wanna leave me";
+	mes "alone now and gimme";
+	mes "a little personal space?!";
+	mes "I need a break from looking";
+	mes "at your ugly mug, you know?";
+	close;
+}
+
+}
+
+Verifyitems:
+
+	if(arianstest == 2 && countitem(7033) > 49)
+{
+
+	mes "[Arian]";
+	mes "Hey! What did I tell you";
+	mes "about bringing stuff before";
+	mes "I asked you about it";
+	next;
+	mes "[Arian]";
+	mes "I'll confiscate those Poison Spores.";
+	delitem 7033,countitem(7033);
+	close2;	
+}
+	else if(arianstest == 3 && countitem(904) > 29)
+{
+
+	mes "[Arian]";
+	mes "Hey! What did I tell you";
+	mes "about bringing stuff before";
+	mes "I asked you about it";
+	next;
+	mes "[Arian]";
+	mes "I'll take those Scorpion Tails.";
+	delitem 904,countitem(904);
+	close2;	
+}
+	else if(arianstest == 4 && countitem(930) > 19)
+{
+
+	mes "[Arian]";
+	mes "Hey! What did I tell you";
+	mes "about bringing stuff before";
+	mes "I asked you about it";
+	next;
+	mes "[Arian]";
+	mes "I'll take those Rotten Bandages.";
+	delitem 930,countitem(930);
+	close2;	
+}
+	else if(arianstest == 5 && countitem(1038) > 14)
+{
+
+	mes "[Arian]";
+	mes "Hey! What did I tell you";
+	mes "about bringing stuff before";
+	mes "I asked you about it";
+	next;
+	mes "[Arian]";
+	mes "I'll confiscate those Little Evil Horns.";
+	delitem 1038,countitem(1038);
+	close2;	
+}
+	else if(arianstest == 6 && countitem(7013) > 9)
+{
+
+	mes "[Arian]";
+	mes "Hey! What did I tell you";
+	mes "about bringing stuff before";
+	mes "I asked you about it";
+	next;
+	mes "[Arian]";
+	mes "I'll confiscate those Coral Reefs.";
+	delitem 7013,countitem(7013);
+	close2;	
+}
+	end;
+}
