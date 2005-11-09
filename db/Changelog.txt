@@ -31,6 +31,9 @@
 		like gemstones when the skill is used.
 	--
 11/09
+	* Made Maya Purple card to compound on headgear isntead of accessory, [MasterOfMuppets]
+	  thanks to reddozen.
+	- Added red chili to Kraben's monster drops.
 	* Corrected Venom Knife's poison duration. [Skotlex]
 	* Fixed dumpling child card dropping meat and giving an additional heal effect to meat
 	  instead of candy, thanks to Komurka. [MasterOfMuppets]

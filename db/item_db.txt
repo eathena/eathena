@@ -1336,7 +1336,7 @@
 4195,Leaf_Cat_Card,Leaf Cat Card,6,,10,10,,,,,,,,769,,,,,{ bonus2 bSubEle,Ele_Water,10; bonus3 bAddMonsterDropItem,991,5,500; }
 4196,Marin_Card,Marin Card,6,,10,10,,,,,,,,136,,,,,{ bonus2 bAddMonsterDropItemGroup,10,500; }
 4197,Mastering_Card,Mastering Card,6,,10,10,,,,,,,,4,,,,,{ bonus bLuk,1; if(isequipped(4001)) bonus bFlee,18; }
-4198,Maya_Purple_Card,Maya Purple Card,6,,10,10,,,,,,,,136,,,,,{ bonus bIntravision,0; }
+4198,Maya_Purple_Card,Maya Purple Card,6,,10,10,,,,,,,,769,,,,,{ bonus bIntravision,0; }
 4199,Merman_Card,Merman Card,6,,10,10,,,,,,,,64,,,,,{ bonus bHPrecovRate,10; bonus bSPrecovRate,10; if(isequipped(4297,4234,4252,4178)==0) end; bonus bAgi,5; bonus bDex,3; bonus bLongAtkRate,20; bonus bPerfectHitAddRate,20; if(BaseClass != Job_Archer) end; bonus2 bExpAddRace,RC_Brute,5; bonus2 bWeaponComaRace,RC_Brute,500;  }
 4200,Megalith_Card,Megalith Card,6,,10,10,,,,,,,,64,,,,,{ if(getrefine()<6) bonus bMdef,7; }
 4201,Majoruros_Card,Majoruros Card,6,,10,10,,,,,,,,16,,,,,{ bonus2 bAddEffWhenHit,Eff_Stan,2000; }
