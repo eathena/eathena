@@ -6953,7 +6953,8 @@ int skill_unit_onout(struct skill_unit *src,struct block_list *bl,unsigned int t
 	sc_data = status_get_sc_data(bl);
 	type = SkillStatusChangeTable[sg->skill_id];
 
-	if (bl->prev==NULL || !src->alive || status_isdead(bl))
+	if (bl->prev==NULL || !src->alive || //Need to delete the trap if the source died.
+		(status_isdead(bl) && sg->unit_id != UNT_ANKLESNARE && sg->unit_id != UNT_SPIDERWEB))
 		return 0;
 
 	switch(sg->unit_id){

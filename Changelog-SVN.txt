@@ -1,5 +1,7 @@
 Date	Added
 2005/11/09
+	* Fixed Ankle Snare and Spider Web not being cleared when the trapped
+	  target dies. [Skotlex]
 	* Fixed the range flag being incorrectly set in BF_MISC skill attacks.
 	  [Skotlex]
 	* Corrected Venom Knife using Level1 always for the poisoning chance rather
