@@ -2479,12 +2479,12 @@ struct Damage  battle_calc_misc_attack(
 		damage=(dex/10+int_/2+skill*3+40)*2;
 		if(flag > 1)
 			damage /= flag;
-		aflag |= (flag&~BF_RANGEMASK)|BF_LONG;
+		aflag = (aflag&~BF_RANGEMASK)|BF_LONG;
 		break;
 
 	case TF_THROWSTONE:	// ?Î“Š‚°
 		damage=50;
-		aflag |= (flag&~BF_RANGEMASK)|BF_LONG;
+		aflag = (aflag&~BF_RANGEMASK)|BF_LONG;
 		break;
 
 	case BA_DISSONANCE:	// •s‹¦˜a‰¹
@@ -2524,13 +2524,13 @@ struct Damage  battle_calc_misc_attack(
 		damage=damage*(150+70*skill_lv)/100;	//Falcon Assault Modifier
 		if(flag > 1)
 			damage /= flag;
-		aflag |= (flag&~BF_RANGEMASK)|BF_LONG;
+		aflag = (aflag&~BF_RANGEMASK)|BF_LONG;
 		break;
 
 	case PA_PRESSURE:
 		damage=500+300*skill_lv;
 		damagefix=0;
-		aflag |= (flag&~BF_RANGEMASK)|BF_LONG;
+		aflag = (aflag&~BF_RANGEMASK)|BF_LONG;
 		break;
 
 	case CR_ACIDDEMONSTRATION:
@@ -2538,7 +2538,7 @@ struct Damage  battle_calc_misc_attack(
 		//that Viccious Pucca and the other folks at the forums could come up with. [Skotlex]
 		damage = int_ * (int)(sqrt(100*status_get_vit(target))) / 3;
 		if (tsd) damage/=2;
-		aflag |= (flag&~BF_RANGEMASK)|BF_LONG;
+		aflag = (aflag&~BF_RANGEMASK)|BF_LONG;
 		break;
 	}
 

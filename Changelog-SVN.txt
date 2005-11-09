@@ -1,5 +1,7 @@
 Date	Added
 2005/11/09
+	* Fixed the range flag being incorrectly set in BF_MISC skill attacks.
+	  [Skotlex]
 	* Corrected Venom Knife using Level1 always for the poisoning chance rather
 	  than learned Envenom's level. [Skotlex]
 	* Fixed the crash on shutdown if PCRE support was enabled. [Skotlex]
