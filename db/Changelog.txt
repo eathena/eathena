@@ -31,6 +31,8 @@
 		like gemstones when the skill is used.
 	--
 11/09
+	* Updated the drops of the normal advanced class monsters in lighthalzen. [MasterOfMuppets]
+	  Thanks to reddozen for fine tuning them
 	* Made Maya Purple card to compound on headgear isntead of accessory, [MasterOfMuppets]
 	  thanks to reddozen.
 	- Added red chili to Kraben's monster drops.
