@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= Lupus
 //===== Current Version: ===================================== 
-//= 1.0a
+//= 1.0b
 //===== Compatible With: ===================================== 
 //= eAthena Revision 3800+
 //===== Description: ========================================= 
@@ -51,8 +51,8 @@ prontera.gat,162,152,3	script	Skill Master	727,{
 }
 
 prontera.gat,165,144,5	script	Skill Master	726,{
-	//Gold x 1
-	callfunc "F_Skill2Quest","Skill Master", 1013,"Greed", Job_Blacksmith, 969,1, 200000;
+	// none, 1.5kk zeny
+	callfunc "F_Skill2Quest","Skill Master", 1013,"Greed", Job_Blacksmith, 0,0, 1500000;
 	end;
 }
 
