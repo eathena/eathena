@@ -1039,7 +1039,7 @@ int mob_stop_walking(struct mob_data *md,int type)
 		int dx=0,dy=0;
 
 		md->walkpath.path_len=0;
-		if(type&2){
+		if(type&2 && mob_can_move(md)){
 			dx=md->to_x-md->bl.x;
 			if(dx<0)
 				dx=-1;

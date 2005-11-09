@@ -1,5 +1,7 @@
 Date	Added
 2005/11/09
+	* Fixed mobs moving one tile when hit even if they can't move (this is what
+	  broke Ankle Snare) [Skotlex]
 	* Fixed night/day implementation (which broke due to the addition of SI_
 	  constants). [Skotlex]
 	* Cleaned up the SI_ constants to have defined only those which actually
