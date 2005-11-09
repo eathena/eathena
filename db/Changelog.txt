@@ -30,6 +30,8 @@
 		Item type: Throwing Dagger. Has to be equipped as an arrow, is consumed
 		like gemstones when the skill is used.
 	--
+11/09
+	* Updated db/const.txt as per the new SC changes, thanks to Silent. [Skotlex]
 11/08
 	* Added cook books, lvl 1~5 to item_trade.txt to prevent exploits [MasterOfMuppets]
 	* Updated job_db1.txt information for Taekwon/Star Gladiator and Soul

@@ -4897,9 +4897,7 @@ int status_change_end( struct block_list* bl , int type,int tid )
 					struct block_list *pbl = map_id2bl(sc_data[type].val3);
 					if (pbl) {
 						struct status_change* sc_data;
-						if (*status_get_sc_count(pbl) > 0 &&
-							(sc_data = status_get_sc_data(pbl)) &&
-							sc_data[type2].timer != -1)
+						if ((sc_data = status_get_sc_data(pbl)) && sc_data[type2].timer != -1)
 							status_change_end(pbl, type2, -1);
 					}
 					calc_flag = 1;
