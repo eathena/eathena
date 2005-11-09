@@ -848,13 +848,7 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 		char tmpstr[1024];
 		strcpy(tmpstr, msg_txt(500)); // Actually, it's the night...
 		clif_wis_message(sd->fd, wisp_server_name, tmpstr, strlen(tmpstr)+1);
-		// New night effect by dynamix [Skotlex]
-	
-		if (map[sd->bl.m].flag.nightenabled)
-		{
-			clif_status_load(&sd->bl, SI_NIGHT,1);
-			sd->state.night = 1;
-		}
+		//Night packet is sent when it finishes loading the map. [Skotlex]
 	}
 
 	// ステ?タス初期計算など
