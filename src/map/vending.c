@@ -114,9 +114,14 @@ void vending_purchasereq(struct map_session_data *sd,int len,int id,unsigned cha
 			clif_buyvending(sd, idx, amount, 2); // you can not buy, because overweight
 			return;
 		}
+		
+		if (vending[j].amount > vsd->status.cart[idx].amount) //Check to see if cart/vend info is in sync.
+			vending[j].amount = vsd->status.cart[idx].amount;
+		
 		// if they try to add packets (example: get twice or more 2 apples if marchand has only 3 apples).
 		// here, we check cumulativ amounts
-		if (vending[j].amount < amount) { // send more quantity is not a hack (an other player can have buy items just before)
+		if (vending[j].amount < amount) {
+			// send more quantity is not a hack (an other player can have buy items just before)
 			clif_buyvending(sd, idx, vsd->vending[j].amount, 4); // not enough quantity
 			return;
 		} else

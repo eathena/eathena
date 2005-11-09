@@ -6706,6 +6706,9 @@ int pc_checkitem(struct map_session_data *sd)
 
 	nullpo_retr(0, sd);
 
+	if (sd->vender_id) //Avoid reorganizing items when we are vending, as that leads to exploits (pointed out by End of Exam)
+		return 0;
+	
 	// Š•i‹ó‚«‹l‚ß
 	for(i=j=0;i<MAX_INVENTORY;i++){
 		if( (id=sd->status.inventory[i].nameid)==0)

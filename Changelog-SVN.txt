@@ -1,5 +1,7 @@
 Date	Added
 2005/11/09
+	* Fixed possible item duping while vending, thanks to End of Exam for
+	  pointing it out. [Skotlex]
 	* Fixed the blue aura of Night effect. Thanks to zBuffer [Skotlex]
 	* Fixed mobs moving one tile when hit even if they can't move (this is what
 	  broke Ankle Snare) [Skotlex]
