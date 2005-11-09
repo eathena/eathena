@@ -154,7 +154,6 @@ enum {
 	SC_SHADOWWEAPON,
 	SC_ADRENALINE2,
 	SC_GHOSTWEAPON,
-	SC_NIGHT,
 	SC_KAIZEL,
 	SC_KAAHI,
 	SC_KAUPE,
@@ -262,13 +261,12 @@ enum {
 	SI_HALLUCINATION		= 34,
 	SI_WEIGHT50 		= 35,
 	SI_WEIGHT90			= 36,
-	SI_ASPDPOTION0		= 37,
-	SI_ASPDPOTION1		= 38,
-	SI_ASPDPOTION2		= 39,
-	SI_ASPDPOTION3		= 40,
-	SI_ATKPOTION		= 43,
-	SI_MATKPOTION		= 44,
-	SI_ANKLE				= 47,
+	SI_ASPDPOTION		= 37,
+	//38: Again Aspd Potion
+	//39: Again Aspd Potion
+	//40: Again Aspd Potion
+	//41: Again Agi Up
+	//42: Again Agi Up
 	SI_STRIPWEAPON		= 50,
 	SI_STRIPSHIELD		= 51,
 	SI_STRIPARMOR		= 52,
@@ -282,39 +280,19 @@ enum {
 	SI_PROVIDENCE		= 61,
 	SI_DEFENDER			= 62,
 	SI_AUTOSPELL		= 65,
-	SI_SIGHTTRASHER		= 66,
-	SI_AUTOBERSERK		= 67,
 	SI_SPEARQUICKEN		= 68,
-	SI_AUTOCOUNTER		= 69,
-	SI_SIGHT			= 70,
-	SI_SAFETYWALL		= 71,
-	SI_RUWACH			= 72,
-	SI_PNEUMA			= 73,
-	SI_STONE			= 74,
-	SI_FREEZE			= 75,
-	SI_STAN			= 76,
-	SI_SLEEP			= 77,
-	SI_POISON			= 78,
-	SI_CURSE			= 79,
-	SI_SILENCE			= 80,
-	SI_CONFUSION		= 81,
-	SI_BLIND			= 82,
-	SI_DPOISON		= 84,
 	SI_EXPLOSIONSPIRITS	= 86,
-	SI_BLADESTOP_WAIT		= 88,
-	SI_BLADESTOP		= 89,
-	SI_VOLCANO			= 94,
-	SI_DELUGE			= 95,
-	SI_VIOLENTGALE		= 96,
-	SI_NOCHAT			= 100,
-// 102 = gloria - from what I saw on screenshots, I wonder if it isn't gospel... [DracoRPG]
+	SI_FURY			= 87,
+	SI_FIREWEAPON		= 90
+	SI_WATERWEAPON		= 91,
+	SI_WINDWEAPON		= 92,
+	SI_EARTHWEAPON		= 93,
+// 102 = again gloria - from what I saw on screenshots, I wonder if it isn't gospel... [DracoRPG]
 	SI_AURABLADE		= 103,
 	SI_PARRYING			= 104,
 	SI_CONCENTRATION		= 105,
 	SI_TENSIONRELAX		= 106,
 	SI_BERSERK			= 107,
-	SI_FURY			= 108,
-	SI_GOSPEL			= 109,
 	SI_ASSUMPTIO		= 110,
 	SI_GUILDAURA		= 112,
 	SI_MAGICPOWER		= 113,
@@ -323,19 +301,13 @@ enum {
 	SI_WINDWALK			= 116,
 	SI_MELTDOWN			= 117,
 	SI_CARTBOOST		= 118,
-	SI_CHASEWALK		= 119,
 	SI_REJECTSWORD		= 120,
 	SI_MARIONETTE		= 121,
-	SI_MARIONETTE2		= 122,
+// 122 SI_MARIONETTE again
 	SI_MOONLIT			= 123,
 	SI_BLEEDING			= 124,
 	SI_JOINTBEAT		= 125,
-	SI_MINDBREAKER		= 126,
-	SI_MEMORIZE			= 127,
-	SI_FOGWALL			= 128,
-	SI_SPIDERWEB		= 129,
 	SI_DEVOTION			= 130,
-	SI_SACRIFICE		= 131,
 	SI_STEELBODY		= 132,
 	SI_WIGGLE			= 134, //It "wiggles" the character sprite on start/end. Used for SC_ORCISH
 	SI_READYSTORM		= 135,
@@ -343,15 +315,16 @@ enum {
 	SI_READYTURN		= 139,
 	SI_READYCOUNTER		= 141,
 	SI_DODGE			= 143,
-	SI_JUMPKICK   	      = 144,
 	SI_RUN			= 145,
-	SI_ADRENALINE2    	= 147,
+	//146: Some korean symbol
+	//147 SI_ADRENALINE again
+	//148: Another korean symbol
 	SI_NIGHT			= 149, //slightly colors the screen with blue (night-like), unused by skills, but used for day/night
 // 153 = causes character after-image effect.
 	SI_KAIZEL			= 156,
 	SI_KAAHI			= 157,
 	SI_KAUPE			= 158,
-// 159 = slightly colors the screen with blue (night-like)
+// 159 = blue sparks and item-heal sound effect. Looks like item-use effect.
 	SI_ONEHAND			= 161,
 // 165 = ultra-red character
 // 166 = ultra-red character
@@ -361,13 +334,9 @@ enum {
 // 171 = stars
 	SI_PRESERVE			= 181,
 	SI_BATTLEORDERS		= 182,
-	SI_REGENERATION		= 183,
 // 184 = WTF?? creates the black shape of 4_m_02 NPC, with NPC talk cursor
 	SI_DOUBLECAST		= 186,
-	SI_GRAVITATION		= 187,
 	SI_MAXOVERTHRUST		= 188,
-	SI_LONGING			= 189,
-	SI_HERMODE			= 190,
 	SI_TAROT			= 191, // the icon allows no doubt... but what is it really used for ?? [DracoRPG]
 	SI_SHRINK			= 197,
 	SI_SIGHTBLASTER		= 198,

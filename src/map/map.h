@@ -398,7 +398,7 @@ struct map_session_data {
 		unsigned guild_sent :1;
 		unsigned monster_ignore :1; // for monsters to ignore a character [Valaris] [zzo]
 		unsigned size :2; // for tiny/large types
-		unsigned night :1; //Holds whether or not the player currently has the SC_NIGHT effect on. [Skotlex]
+		unsigned night :1; //Holds whether or not the player currently has the SI_NIGHT effect on. [Skotlex]
 	} state;
 	struct {
 		unsigned killer : 1;

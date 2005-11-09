@@ -6198,12 +6198,11 @@ int atcommand_disguise(
 		if ((id = mobdb_checkid(id)) == 0)
 		{ //TODO: There's no numdb_search for npcs, so we use hard-coded seeks for now.
 			id = atoi(message);
-			if ((id >=  46 && id <= 125) || (id >= 700 && id <= 718) ||
-	   		 (id >= 721 && id <= 755) || (id >= 757 && id <= 811) ||
-			    (id >= 813 && id <= 858));	//Valid NPC numbers
+			//Valid NPC numbers (including npcs from jRO/tRO that are not in kRO by default)
+			if ((id >=  46 && id <= 125) || (id >= 700 && id <= 858));
 			else
 				id = 0;
-		}
+			}
 	}	else	{ //Acquired a Name
 		if ((id = mobdb_searchname(message)) == 0)
 		{

@@ -909,6 +909,7 @@ int pet_return_egg(struct map_session_data *sd)
 		if(sd->petDB == NULL)
 			return 1;
 		sd->pet.incuvate = 1;
+		sd->pet.rename_flag = 0; //Prevents future captured pets from starting as "beloved" [Skotlex]
 		memset(&tmp_item,0,sizeof(tmp_item));
 		tmp_item.nameid = sd->petDB->EggID;
 		tmp_item.identify = 1;

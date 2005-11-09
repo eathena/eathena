@@ -7946,12 +7946,12 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 	if (night_flag && map[sd->bl.m].flag.nightenabled)
 	{	//Display night.
 		if (sd->state.night) //It must be resent because otherwise players get this annoying aura...
-			clif_status_load(&sd->bl, SC_NIGHT, 0);
+			clif_status_load(&sd->bl, SI_NIGHT, 0);
 		else
 			sd->state.night = 1;
-		clif_status_load(&sd->bl, SC_NIGHT, 1);
+		clif_status_load(&sd->bl, SI_NIGHT, 1);
 	} else if (sd->state.night) { //Clear night display.
-		clif_status_load(&sd->bl, SC_NIGHT, 0);
+		clif_status_load(&sd->bl, SI_NIGHT, 0);
 		sd->state.night = 0;
 	}
 

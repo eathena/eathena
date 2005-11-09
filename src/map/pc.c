@@ -852,7 +852,7 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 	
 		if (map[sd->bl.m].flag.nightenabled)
 		{
-			clif_status_load(&sd->bl, SC_NIGHT,1);
+			clif_status_load(&sd->bl, SI_NIGHT,1);
 			sd->state.night = 1;
 		}
 	}
@@ -7544,7 +7544,7 @@ int map_day_timer(int tid, unsigned int tick, int id, int data)
 			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth && pl_sd->fd)
 			{
 				if (pl_sd->state.night) {
-					clif_status_load(&pl_sd->bl, SC_NIGHT, 0); //New night effect by dynamix [Skotlex]
+					clif_status_load(&pl_sd->bl, SI_NIGHT, 0); //New night effect by dynamix [Skotlex]
 					pl_sd->state.night = 0;
 				}
 			}
@@ -7577,7 +7577,7 @@ int map_night_timer(int tid, unsigned int tick, int id, int data)
 			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth && pl_sd->fd)
 			{
 				if (!pl_sd->state.night && map[pl_sd->bl.m].flag.nightenabled) {
-					clif_status_load(&pl_sd->bl, SC_NIGHT, 1); //New night effect by dynamix [Skotlex]
+					clif_status_load(&pl_sd->bl, SI_NIGHT, 1); //New night effect by dynamix [Skotlex]
 					pl_sd->state.night = 1;
 				}
 			}

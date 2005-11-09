@@ -1,5 +1,11 @@
 Date	Added
 2005/11/09
+	* Fixed night/day implementation (which broke due to the addition of SI_
+	  constants). [Skotlex]
+	* Cleaned up the SI_ constants to have defined only those which actually
+	  display something on the client. [Skotlex]
+	* Fixed a bug which caused a captured pet's name to be displayed as beloved
+	  even though it was just captured. [Skotlex]
 	* Added temp skill quests for all complete 2nd Class Quest Skills [Lupus]
 2005/11/08
 	* Updated the documentation on the announce script commands. [Skotlex]

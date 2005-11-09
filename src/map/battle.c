@@ -3933,7 +3933,7 @@ void battle_validate_conf() {
 	if ((battle_config.packet_ver_flag & 255) == 0) // added by [Yor]
 		battle_config.packet_ver_flag = 255; // accept all clients
 */
-/* Deprecated by dynamix's new night system (using SC_NIGHT)
+/* Deprecated by dynamix's new night system (using SI_NIGHT)
 	if (battle_config.night_darkness_level <= 0)
 		battle_config.night_darkness_level = 9;
 	else if (battle_config.night_darkness_level > 10) // Celest
