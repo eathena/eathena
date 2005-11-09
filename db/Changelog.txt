@@ -31,6 +31,8 @@
 		like gemstones when the skill is used.
 	--
 11/09
+	* Added a few monster drops related to cooking, thanks to reddozen and vicious_pucca [MasterOfMuppets]
+	- Cook books 6~10, various ingredients for cooking and legendary cooking set.
 	* Updated db/const.txt as per the new SC changes, thanks to Silent. [Skotlex]
 11/08
 	* Added cook books, lvl 1~5 to item_trade.txt to prevent exploits [MasterOfMuppets]
