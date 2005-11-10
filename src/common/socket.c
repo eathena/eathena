@@ -323,7 +323,7 @@ static int connect_client(int listen_fd)
 	{
 		unsigned long val = 1;
 		if (ioctlsocket(fd, FIONBIO, &val) != 0);
-			ShowError("Couldn't set the socket to non-blocking mode!\n");
+			ShowError("Couldn't set the socket to non-blocking mode (code %d)!\n", WSAGetLastError());
 	}
 #else
 	if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1)
@@ -360,7 +360,7 @@ int make_listen_port(int port)
 	{
 		unsigned long val = 1;
 		if (ioctlsocket(fd, FIONBIO, &val) != 0);
-			ShowError("Couldn't set the socket to non-blocking mode!\n");
+			ShowError("Couldn't set the socket to non-blocking mode (code %d)!\n", WSAGetLastError());
 	}
 #else
 	if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1)
@@ -412,7 +412,7 @@ int make_listen_bind(long ip,int port)
 	{
 	  	unsigned long val = 1;
 		if (ioctlsocket(fd, FIONBIO, &val) != 0);
-			ShowError("Couldn't set the socket to non-blocking mode!\n");
+			ShowError("Couldn't set the socket to non-blocking mode (code %d)!\n", WSAGetLastError());
 	}
 #else
 	if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1)
@@ -561,7 +561,7 @@ int make_connection(long ip,int port)
 	{
 		unsigned long val = 1;
 		if (ioctlsocket(fd, FIONBIO, &val) != 0);
-			ShowError("Couldn't set the socket to non-blocking mode!\n");
+			ShowError("Couldn't set the socket to non-blocking mode (code %d)!\n", WSAGetLastError());
 	}
 #else
 	if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1)
