@@ -1,5 +1,7 @@
 Date	Added
 2005/11/10
+	* Removed the OnAgitInit call when the map connects to char server. Fixes
+	  double guardian spawn. [Skotlex]
 	* Fixed the sql query strings that would appear "incomplete" under certain
 	  *nix systems. [Skotlex]
 	* Applied zBuffer's patches to correct memory leaks in the PCRE module

@@ -3924,6 +3924,10 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_ASSNCROS:			/* 夕陽のアサシンクロス */
 		case SC_APPLEIDUN:			/* イドゥンの林檎 */
 		case SC_HUMMING:			/* ハミング */
+		case SC_ATKPOTION: // Valaris
+		case SC_MATKPOTION:
+		case SC_FORTUNE:			/* 幸運のキス */
+		case SC_SERVICE4U:			/* サ?ビスフォ?ユ? */
 			calc_flag = 1;
 			break;
 		case SC_DONTFORGETME:		/* 私を忘れないで */
@@ -3944,12 +3948,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 				status_change_end(bl,SC_WINDWALK,-1);
 			if(sc_data[SC_CARTBOOST].timer!=-1 )	/* カ?トブ?スト */
 				status_change_end(bl,SC_CARTBOOST,-1);
-			break;
-		case SC_FORTUNE:			/* 幸運のキス */
-			calc_flag = 1;
-			break;
-		case SC_SERVICE4U:			/* サ?ビスフォ?ユ? */
-			calc_flag = 1;
 			break;
 		case SC_MOONLIT:
 			val2 = bl->id;
@@ -3984,24 +3982,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			calc_flag = 1;
 			if (!(flag&4))
 				val2 = 5*(2+type-SC_ASPDPOTION0);
-
-			// Since people complain so much about the various icons showing up, here we disable the visual of any other potions [Skotlex] 
-			if (sc_data[SC_ASPDPOTION0].timer != -1)
-				clif_status_change(bl,StatusIconChangeTable[SC_ASPDPOTION0],0);
-			else
-			if (sc_data[SC_ASPDPOTION1].timer != -1)
-				clif_status_change(bl,StatusIconChangeTable[SC_ASPDPOTION1],0);
-			else
-			if (sc_data[SC_ASPDPOTION2].timer != -1)
-				clif_status_change(bl,StatusIconChangeTable[SC_ASPDPOTION2],0);
-			else
-			if (sc_data[SC_ASPDPOTION3].timer != -1)
-				clif_status_change(bl,StatusIconChangeTable[SC_ASPDPOTION2],0);
-			break;
-
-		case SC_ATKPOTION: // Valaris
-		case SC_MATKPOTION:
-			calc_flag = 1;
 			break;
 		case SC_WEDDING:	//結婚用(結婚衣裳になって?くのが?いとか)
 			{
@@ -4719,6 +4699,10 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			case SC_BERSERK:
 			case SC_EDP:	// Celest
 			case SC_SLOWDOWN:
+			case SC_ASPDPOTION0:		/* ?速ポ?ション */
+			case SC_ASPDPOTION1:
+			case SC_ASPDPOTION2:
+			case SC_ASPDPOTION3:
 			case SC_SPEEDUP0:
 			case SC_SPEEDUP1:
 			case SC_INCALLSTATUS:
@@ -4756,25 +4740,6 @@ int status_change_end( struct block_list* bl , int type,int tid )
 				calc_flag = 1;
 				break;
 			}
-			case SC_ASPDPOTION0:		/* ?速ポ?ション */
-			case SC_ASPDPOTION1:
-			case SC_ASPDPOTION2:
-			case SC_ASPDPOTION3:
-				calc_flag = 1;
-				//Restore the icon if another speed potion is still in effect.
-				if (sc_data[SC_ASPDPOTION3].timer != -1)
-					clif_status_change(bl,StatusIconChangeTable[SC_ASPDPOTION3],1);
-				else
-				if (sc_data[SC_ASPDPOTION2].timer != -1)
-					clif_status_change(bl,StatusIconChangeTable[SC_ASPDPOTION2],1);
-				else
-				if (sc_data[SC_ASPDPOTION1].timer != -1)
-					clif_status_change(bl,StatusIconChangeTable[SC_ASPDPOTION1],1);
-				else
-				if (sc_data[SC_ASPDPOTION0].timer != -1)
-					clif_status_change(bl,StatusIconChangeTable[SC_ASPDPOTION0],1);
-				break;
-
 			case SC_AUTOBERSERK:
 				if (sc_data[SC_PROVOKE].timer != -1)
 					status_change_end(bl,SC_PROVOKE,-1);

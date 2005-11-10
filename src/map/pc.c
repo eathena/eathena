@@ -5973,7 +5973,7 @@ int pc_setcart(struct map_session_data *sd,int type)
 			clif_cart_itemlist(sd);
 			clif_cart_equiplist(sd);
 			clif_updatestatus(sd,SP_CARTINFO);
-			clif_status_change(&sd->bl,0x0c,0);
+			clif_status_change(&sd->bl,SI_INCREASEAGI,0); //0x0c is 12, Increase Agi??
 		}
 		else{
 			pc_setoption(sd,option);
