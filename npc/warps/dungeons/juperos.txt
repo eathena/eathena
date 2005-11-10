@@ -108,7 +108,7 @@ OnTimer15000:
 	end;
 }
 
-jupe_gate.gat,49,168,0 script	Juperos Guard	111,{
+jupe_gate.gat,49,168,0	script	Juperos Guard	111,{
 	mes "Are you sure to enter Juperos Core?";
 	next;
 	menu "Yes",-,"No",J_CLOSE;
