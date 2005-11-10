@@ -1,5 +1,6 @@
 Date	Added
 2005/11/10
+	* Fixed char-sql cart loading. [Skotlex]
 	* Updated the function that specifies the cards to support more than four
 	  slots. [Skotlex]
 	- Since the packets are fixed sized the client can never receive data of

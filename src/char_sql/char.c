@@ -1002,7 +1002,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p){
 	for (j=0; j<MAX_SLOTS; j++)
 		str_p += sprintf(str_p, ", `card%d`", j);
 
-	str_p += printf(str_p, " FROM `%s` WHERE `char_id`='%d'", cart_db, char_id);
+	str_p += sprintf(str_p, " FROM `%s` WHERE `char_id`='%d'", cart_db, char_id);
 
 	if (mysql_query(&mysql_handle, tmp_sql)) {
 		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
