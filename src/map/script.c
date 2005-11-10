@@ -9039,10 +9039,16 @@ void op_2num(struct script_state *st,int op,int i1,int i2)
 		}
 		break;
 	case C_DIV:
-		i1/=i2;
+		if (i2 != 0)
+			i1/=i2;
+		else
+			ShowWarning("op_2num: Attempted to divide by 0 in a script (operation C_DIV)!\n");
 		break;
 	case C_MOD:
-		i1%=i2;
+		if (i2 != 0)
+			i1%=i2;
+		else
+			ShowWarning("op_2num: Attempted to divide by 0 in a script (operation C_MOD)!\n");
 		break;
 	case C_AND:
 		i1&=i2;

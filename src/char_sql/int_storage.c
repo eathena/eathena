@@ -57,18 +57,19 @@ int storage_tosql(int account_id,struct storage *p){
 // DB -> storage data conversion
 int storage_fromsql(int account_id, struct storage *p){
 	int i=0,j;
+	char * str_p = tmp_sql;
 
 	memset(p,0,sizeof(struct storage)); //clean up memory
 	p->storage_amount = 0;
 	p->account_id = account_id;
 
 	// storage {`account_id`/`id`/`nameid`/`amount`/`equip`/`identify`/`refine`/`attribute`/`card0`/`card1`/`card2`/`card3`}
-	sprintf(tmp_sql,"SELECT `id`,`nameid`,`amount`,`equip`,`identify`,`refine`,`attribute`");
+	str_p += sprintf(str_p,"SELECT `id`,`nameid`,`amount`,`equip`,`identify`,`refine`,`attribute`");
 	
 	for (j=0; j<MAX_SLOTS; j++)
-		sprintf(tmp_sql, "%s, `card%d`", tmp_sql, j);
+		str_p += sprintf(str_p, ", `card%d`", j);
 	
-	sprintf(tmp_sql,"%s FROM `%s` WHERE `account_id`='%d' ORDER BY `nameid`",tmp_sql, storage_db, account_id);
+	str_p += sprintf(str_p," FROM `%s` WHERE `account_id`='%d' ORDER BY `nameid`", storage_db, account_id);
 	
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
 		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
@@ -129,6 +130,7 @@ int guild_storage_tosql(int guild_id, struct guild_storage *p){
 int guild_storage_fromsql(int guild_id, struct guild_storage *p){
 	int i=0,j;
 	struct guild_storage *gs=guild_storage_pt;
+	char * str_p = tmp_sql;
 	p=gs;
 
 	memset(p,0,sizeof(struct guild_storage)); //clean up memory
@@ -136,12 +138,12 @@ int guild_storage_fromsql(int guild_id, struct guild_storage *p){
 	p->guild_id = guild_id;
 
 	// storage {`guild_id`/`id`/`nameid`/`amount`/`equip`/`identify`/`refine`/`attribute`/`card0`/`card1`/`card2`/`card3`}
-	sprintf(tmp_sql,"SELECT `id`,`nameid`,`amount`,`equip`,`identify`,`refine`,`attribute`");
-	
+	str_p += sprintf(str_p,"SELECT `id`,`nameid`,`amount`,`equip`,`identify`,`refine`,`attribute`");
+
 	for (j=0; j<MAX_SLOTS; j++)
-		sprintf(tmp_sql, "%s, `card%d`", tmp_sql, j);
+		str_p += sprintf(str_p, ", `card%d`",  j);
 	
-	sprintf(tmp_sql,"%s FROM `%s` WHERE `guild_id`='%d' ORDER BY `nameid`",tmp_sql, guild_storage_db, guild_id);
+	str_p += sprintf(str_p," FROM `%s` WHERE `guild_id`='%d' ORDER BY `nameid`", guild_storage_db, guild_id);
 	
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
 		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));

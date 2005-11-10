@@ -704,6 +704,7 @@ int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tab
 	int i,j, flag, id;
 	char *tablename;
 	char selectoption[16];
+	char * str_p = tmp_sql;
 
 	switch (tableswitch) {
 	case TABLE_INVENTORY:
@@ -729,12 +730,12 @@ int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tab
 
 	//=======================================mysql database data > memory===============================================
 
-	sprintf(tmp_sql, "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`");
+	str_p += sprintf(str_p, "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`");
 
 	for (j=0; j<MAX_SLOTS; j++)
-		sprintf(tmp_sql, "%s, `card%d`", tmp_sql, j);
+		str_p += sprintf(str_p, ", `card%d`", j);
 
-	sprintf(tmp_sql, "%s FROM `%s` WHERE `%s`='%d'", tmp_sql, tablename, selectoption, char_id);
+	str_p += sprintf(str_p, " FROM `%s` WHERE `%s`='%d'", tablename, selectoption, char_id);
 
 	if (mysql_query(&mysql_handle, tmp_sql)) {
 		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
@@ -775,14 +776,15 @@ int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tab
 						}
 					} else 
 					{	//Equipment or Misc item, just update all fields.
-						sprintf(tmp_sql,"UPDATE `%s` SET `equip`='%d', `identify`='%d', `refine`='%d',`attribute`='%d'",
+						str_p = tmp_sql;
+						str_p += sprintf(str_p,"UPDATE `%s` SET `equip`='%d', `identify`='%d', `refine`='%d',`attribute`='%d'",
 							tablename, mapitem[i].equip, mapitem[i].identify, mapitem[i].refine, mapitem[i].attribute);
 						
 						for(j=0; j<MAX_SLOTS; j++)
-							sprintf(tmp_sql, "%s, `card%d`=%d", tmp_sql, j, mapitem[i].card[j]);
+							str_p += sprintf(str_p, ", `card%d`=%d", j, mapitem[i].card[j]);
 						
-						sprintf(tmp_sql,"%s, `amount`='%d' WHERE `id`='%d' LIMIT 1",
-							tmp_sql, mapitem[i].amount, id);
+						str_p += sprintf(str_p,", `amount`='%d' WHERE `id`='%d' LIMIT 1",
+							mapitem[i].amount, id);
 						
 						if(mysql_query(&mysql_handle, tmp_sql))
 						{
@@ -808,17 +810,18 @@ int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tab
 
 	for(i = 0; i < count; i++) {
 		if(!mapitem[i].flag) {
-			sprintf(tmp_sql,"INSERT INTO `%s`(`%s`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`",
+			str_p = tmp_sql;
+			str_p += sprintf(str_p,"INSERT INTO `%s`(`%s`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`",
 				tablename, selectoption);
 			for(j=0; j<MAX_SLOTS; j++)
-				sprintf(tmp_sql,"%s, `card%d`",tmp_sql, j);
+				str_p += sprintf(str_p,", `card%d`", j);
 			
-			sprintf(tmp_sql,"%s) VALUES ( '%d','%d', '%d', '%d', '%d', '%d', '%d'",
-				tmp_sql, char_id, mapitem[i].nameid, mapitem[i].amount, mapitem[i].equip, mapitem[i].identify, mapitem[i].refine,
+			str_p += sprintf(str_p,") VALUES ( '%d','%d', '%d', '%d', '%d', '%d', '%d'",
+				char_id, mapitem[i].nameid, mapitem[i].amount, mapitem[i].equip, mapitem[i].identify, mapitem[i].refine,
 				mapitem[i].attribute);
 			
 			for(j=0; j<MAX_SLOTS; j++)
-				sprintf(tmp_sql,"%s, '%d'",tmp_sql, mapitem[i].card[j]);
+				str_p +=sprintf(str_p,", '%d'",mapitem[i].card[j]);
 		
 			strcat(tmp_sql, ")");
 			if(mysql_query(&mysql_handle, tmp_sql))
@@ -836,7 +839,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p){
 	int i,j, n;
 	int friends;
 	char t_msg[128];
-	//char *tmp_p = tmp_sql;
+	char *str_p = tmp_sql;
 	struct mmo_charstatus *cp;
         friends = 0;
 
@@ -963,12 +966,12 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p){
 
 	//read inventory
 	//`inventory` (`id`,`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`)
-	sprintf(tmp_sql, "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`");
+	str_p += sprintf(str_p, "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`");
 
 	for (j=0; j<MAX_SLOTS; j++)
-		sprintf(tmp_sql, "%s, `card%d`", tmp_sql, j);
+		str_p += sprintf(str_p, ", `card%d`", j);
 
-	sprintf(tmp_sql, "%s FROM `%s` WHERE `char_id`='%d'", tmp_sql, inventory_db, char_id);
+	str_p += sprintf(str_p, " FROM `%s` WHERE `char_id`='%d'", inventory_db, char_id);
 
 	if (mysql_query(&mysql_handle, tmp_sql)) {
 		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
@@ -993,12 +996,13 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p){
 
 	//read cart.
 	//`cart_inventory` (`id`,`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`)
-	sprintf(tmp_sql, "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`");
+	str_p = tmp_sql;
+	str_p += sprintf(str_p, "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`");
 
 	for (j=0; j<MAX_SLOTS; j++)
-		sprintf(tmp_sql, "%s, `card%d`", tmp_sql, j);
+		str_p += sprintf(str_p, ", `card%d`", j);
 
-	sprintf(tmp_sql, "%s FROM `%s` WHERE `char_id`='%d'", tmp_sql, cart_db, char_id);
+	str_p += printf(str_p, " FROM `%s` WHERE `char_id`='%d'", cart_db, char_id);
 
 	if (mysql_query(&mysql_handle, tmp_sql)) {
 		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));

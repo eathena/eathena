@@ -361,18 +361,19 @@ int log_refine(struct map_session_data *sd, int n, int success)
 #ifndef TXT_ONLY
 	if(log_config.sql_logs > 0)
 	{
-		sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`refine_date`, `account_id`, `char_id`, `char_name`, `nameid`, `refine`"
+		char *str_p = tmp_sql;
+		str_p += sprintf(str_p, "INSERT DELAYED INTO `%s` (`refine_date`, `account_id`, `char_id`, `char_name`, `nameid`, `refine`"
 			", `map`, `success`, `item_level`", log_config.log_refine_db);
 		
 		for (i=0; i < MAX_SLOTS; i++)
-			sprintf(tmp_sql, "%s, `card%d`", tmp_sql, i);
+			str_p += sprintf(str_p, ", `card%d`", i);
 		
-		sprintf(tmp_sql, "%s) VALUES (NOW(), '%d', '%d', '%s', '%d', '%d', '%s', '%d', '%d'",
-			tmp_sql, sd->status.account_id, sd->status.char_id, jstrescapecpy(t_name, sd->status.name),
+		str_p += sprintf(str_p, ") VALUES (NOW(), '%d', '%d', '%s', '%d', '%d', '%s', '%d', '%d'",
+			sd->status.account_id, sd->status.char_id, jstrescapecpy(t_name, sd->status.name),
 			sd->status.inventory[n].nameid, sd->status.inventory[n].refine, sd->mapname, success, item_level);
 		
 		for(i=0; i<MAX_SLOTS; i++)
-			sprintf(tmp_sql, "%s, '%d'", tmp_sql, log_card[i]);
+			str_p += sprintf(str_p, ", '%d'", log_card[i]);
 
 		strcat(tmp_sql,")");
 
@@ -495,19 +496,20 @@ int log_trade(struct map_session_data *sd, struct map_session_data *target_sd, i
 #ifndef TXT_ONLY
 	if(log_config.sql_logs > 0)
 	{
-		sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`trade_date`, `src_account_id`, `src_char_id`, `src_char_name`, `des_account_id`, `des_char_id`, `des_char_name`, `nameid`, `amount`, `refine`, `map`",
+		char *str_p = tmp_sql;
+		str_p += sprintf(str_p, "INSERT DELAYED INTO `%s` (`trade_date`, `src_account_id`, `src_char_id`, `src_char_name`, `des_account_id`, `des_char_id`, `des_char_name`, `nameid`, `amount`, `refine`, `map`",
 			log_config.log_trade_db);
 
 		for (i=0; i < MAX_SLOTS; i++)
-			sprintf(tmp_sql, "%s, `card%d`", tmp_sql, i);
+			str_p += sprintf(str_p, ", `card%d`", i);
 		
-		sprintf(tmp_sql, "%s) VALUES (NOW(), '%d', '%d', '%s', '%d', '%d', '%s', '%d', '%d', '%d', '%s'",
-			tmp_sql, sd->status.account_id, sd->status.char_id, jstrescapecpy(t_name, sd->status.name),
+		str_p += sprintf(str_p, ") VALUES (NOW(), '%d', '%d', '%s', '%d', '%d', '%s', '%d', '%d', '%d', '%s'",
+			sd->status.account_id, sd->status.char_id, jstrescapecpy(t_name, sd->status.name),
 			target_sd->status.account_id, target_sd->status.char_id, jstrescapecpy(t_name2, target_sd->status.name),
 			log_nameid, log_amount, log_refine, sd->mapname);
 		
 		for(i=0; i<MAX_SLOTS; i++)
-			sprintf(tmp_sql, "%s, '%d'", tmp_sql, log_card[i]);
+			str_p += sprintf(str_p, ", '%d'", log_card[i]);
 
 		strcat(tmp_sql, ")");
 		
@@ -566,19 +568,20 @@ int log_vend(struct map_session_data *sd,struct map_session_data *vsd,int n,int 
 #ifndef TXT_ONLY
 	if(log_config.sql_logs > 0)
 	{
-		sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`vend_date`, `vend_account_id`, `vend_char_id`, `vend_char_name`, `buy_account_id`, `buy_char_id`, `buy_char_name`, `nameid`, `amount`, `refine`, `map`, `zeny`",
+		char *str_p = tmp_sql;
+		str_p += sprintf(str_p, "INSERT DELAYED INTO `%s` (`vend_date`, `vend_account_id`, `vend_char_id`, `vend_char_name`, `buy_account_id`, `buy_char_id`, `buy_char_name`, `nameid`, `amount`, `refine`, `map`, `zeny`",
 			log_config.log_vend_db); 	
 
 		for (i=0; i < MAX_SLOTS; i++)
-			sprintf(tmp_sql, "%s, `card%d`", tmp_sql, i);
+			str_p += sprintf(str_p, ", `card%d`", i);
 
-		sprintf(tmp_sql, "%s) VALUES (NOW(), '%d', '%d', '%s', '%d', '%d', '%s', '%d', '%d', '%d', '%s', '%d'",
-			tmp_sql, sd->status.account_id, sd->status.char_id, jstrescapecpy(t_name, sd->status.name),
+		str_p += sprintf(str_p, ") VALUES (NOW(), '%d', '%d', '%s', '%d', '%d', '%s', '%d', '%d', '%d', '%s', '%d'",
+			sd->status.account_id, sd->status.char_id, jstrescapecpy(t_name, sd->status.name),
 			vsd->status.account_id, vsd->status.char_id, jstrescapecpy(t_name2, vsd->status.name),
 			log_nameid, log_amount, log_refine, sd->mapname, zeny);
 		
 		for(i=0; i<MAX_SLOTS; i++)
-			sprintf(tmp_sql, "%s, '%d'", tmp_sql, log_card[i]);
+			str_p += sprintf(str_p, ", '%d'", log_card[i]);
 
 		strcat(tmp_sql, ")");
 		

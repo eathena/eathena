@@ -1,4 +1,10 @@
 Date	Added
+2005/11/10
+	* Fixed the sql query strings that would appear "incomplete" under certain
+	  *nix systems. [Skotlex]
+	* Applied zBuffer's patches to correct memory leaks in the PCRE module
+	  (regular expression support for npcs) and prevent server crashing when
+	  scripts divide (or do mod %) by zero. [Skotlex
 2005/11/09
 	* Fixed Ankle Snare and Spider Web not being cleared when the trapped
 	  target dies. [Skotlex]

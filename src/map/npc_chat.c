@@ -281,8 +281,9 @@ static void delete_pcreset(struct npc_data *nd,int setid) {
     pcreset->next_ = NULL;
 
     while (pcreset->head_) {
-		struct pcrematch_entry *n = pcreset->head_->next_;;
+		struct pcrematch_entry *n = pcreset->head_->next_;
 		finalize_pcrematch_entry(pcreset->head_);
+		aFree(pcreset->head_); // Cleanin' the last ones.. [Lance]
 		pcreset->head_ = n;
     }
 
@@ -354,6 +355,9 @@ void npc_chat_finalize(struct npc_data *nd)
 
     while(npcParse->inactive_)
       delete_pcreset(nd, npcParse->inactive_->setid_);
+
+	// Additional cleaning up [Lance]
+	aFree(npcParse);
 }
 
 /**

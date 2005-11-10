@@ -17,9 +17,10 @@
 #ifndef TXT_ONLY
 
 struct mmo_charstatus *charsave_loadchar(int charid){
-         int i,j, friends;
-         struct mmo_charstatus *c;
-         friends = 0;
+	int i,j, friends;
+	struct mmo_charstatus *c;
+	char *str_p;
+	friends = 0;
 
          c = (struct mmo_charstatus *)aMalloc(sizeof(struct mmo_charstatus));
 
@@ -133,13 +134,13 @@ struct mmo_charstatus *charsave_loadchar(int charid){
 		mysql_free_result(charsql_res);
          }
 
-
          //read inventory...
-         sprintf(tmp_sql, "SELECT `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`");
+			str_p = tmp_sql;
+         str_p += sprintf(str_p, "SELECT `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`");
 			for (i = 0; i < MAX_SLOTS; i++)
-				sprintf(tmp_sql, "%s, `card%d`", tmp_sql, i);
-			sprintf(tmp_sql, "%s FROM `inventory` WHERE `char_id` = '%d'", tmp_sql, charid);
-         if(mysql_query(&charsql_handle, tmp_sql)){
+				str_p += sprintf(str_p, ", `card%d`", i);
+			str_p += sprintf(str_p, " FROM `inventory` WHERE `char_id` = '%d'", charid);
+			if(mysql_query(&charsql_handle, tmp_sql)){
 				ShowSQL("DB error - %s\n",mysql_error(&charsql_handle));
 				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 				aFree(c);
@@ -164,10 +165,11 @@ struct mmo_charstatus *charsave_loadchar(int charid){
 
 
          //cart inventory ..
-         sprintf(tmp_sql, "SELECT `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`");
+			str_p = tmp_sql;
+         str_p += sprintf(str_p, "SELECT `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`");
 			for (i = 0; i < MAX_SLOTS; i++)
-				sprintf(tmp_sql, "%s, `card%d`", tmp_sql, i);
-			sprintf(tmp_sql, "%s FROM `cart_inventory` WHERE `char_id` = '%d'", tmp_sql, charid);
+				str_p += sprintf(str_p, ", `card%d`", i);
+			str_p += sprintf(str_p, " FROM `cart_inventory` WHERE `char_id` = '%d'", charid);
 
          if(mysql_query(&charsql_handle, tmp_sql)){
 				ShowSQL("DB error - %s\n",mysql_error(&charsql_handle));
@@ -263,7 +265,8 @@ struct mmo_charstatus *charsave_loadchar(int charid){
 
 int charsave_savechar(int charid, struct mmo_charstatus *c){
 	int i,j;
-         char tmp_str[128];
+	char *str_p;
+	char tmp_str[128];
          //First save the 'char'
 	sprintf(tmp_sql ,"UPDATE `char` SET `class`='%d', `base_level`='%d', `job_level`='%d',"
 		"`base_exp`='%d', `job_exp`='%d', `zeny`='%d',"
@@ -299,16 +302,17 @@ int charsave_savechar(int charid, struct mmo_charstatus *c){
 		}
 		for(i = 0; i < MAX_INVENTORY; i++){
 			if(c->inventory[i].nameid > 0){
-				sprintf(tmp_sql, "INSERT INTO `inventory` (`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`");
+				str_p = tmp_sql;
+				str_p += sprintf(str_p, "INSERT INTO `inventory` (`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`");
 			for (j = 0; j < MAX_SLOTS; j++)
-				sprintf(tmp_sql, "%s, `card%d`", tmp_sql, j);
+				str_p += sprintf(str_p, ", `card%d`", j);
 				
-			sprintf(tmp_sql, "%s) VALUES ('%d', '%d', '%d', '%d', '%d', '%d', '%d'",
-				tmp_sql, charid, c->inventory[i].nameid, c->inventory[i].amount, c->inventory[i].equip,
+			str_p += sprintf(str_p, ") VALUES ('%d', '%d', '%d', '%d', '%d', '%d', '%d'",
+				charid, c->inventory[i].nameid, c->inventory[i].amount, c->inventory[i].equip,
 				c->inventory[i].identify, c->inventory[i].refine, c->inventory[i].attribute);
 
 			for (j = 0; j < MAX_SLOTS; j++)
-				sprintf(tmp_sql, "%s, '%d'", tmp_sql, c->inventory[i].card[j]);
+				str_p += sprintf(str_p, ", '%d'", c->inventory[i].card[j]);
 			
 			strcat(tmp_sql,")");
 			
@@ -327,16 +331,17 @@ int charsave_savechar(int charid, struct mmo_charstatus *c){
 		}
 		for(i = 0; i < MAX_CART; i++){
 			if(c->cart[i].nameid > 0){
-				sprintf(tmp_sql, "INSERT INTO `cart_inventory` (`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`");
+				str_p = tmp_sql;
+				str_p += sprintf(str_p, "INSERT INTO `cart_inventory` (`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`");
 				for (j = 0; j < MAX_SLOTS; j++)
-					sprintf(tmp_sql, "%s, `card%d`", tmp_sql, j);
+					str_p += sprintf(str_p, ", `card%d`", j);
 				
-				sprintf(tmp_sql, "%s) VALUES ('%d', '%d', '%d', '%d', '%d', '%d', '%d'",
-					tmp_sql, charid, c->cart[i].nameid, c->cart[i].amount, c->cart[i].equip,
+				str_p += sprintf(str_p, ") VALUES ('%d', '%d', '%d', '%d', '%d', '%d', '%d'",
+					charid, c->cart[i].nameid, c->cart[i].amount, c->cart[i].equip,
 					c->cart[i].identify, c->cart[i].refine, c->cart[i].attribute);
 
 				for (j = 0; j < MAX_SLOTS; j++)
-					sprintf(tmp_sql, "%s, '%d'", tmp_sql, c->cart[i].card[j]);
+					str_p += sprintf(str_p, ", '%d'", c->cart[i].card[j]);
 			
 				strcat(tmp_sql,")");
 				
