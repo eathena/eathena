@@ -30,7 +30,10 @@
 		Item type: Throwing Dagger. Has to be equipped as an arrow, is consumed
 		like gemstones when the skill is used.
 	--
-11/09	mob_db.txt update:  [Lupus]
+11/09
+	* Updated metalings drop rates, based on 100 killed metalings [MasterOfMuppets]
+	  in iRO, I will kill more some other time to get more accurate results
+	mob_db.txt update:  [Lupus]
 	- Added Solid Trunks into Willow drops (fixed % rate of other trunks)
 	- Removed ALL slaves cards drops from mini-boss drops
 	- Removed Zorro Mask from goblins drops (added it into Wrapped Masks Box)
