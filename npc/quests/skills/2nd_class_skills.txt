@@ -112,7 +112,7 @@ prontera.gat,164,147,3	script	Skill Master	56,{
 }
 
 prontera.gat,148,130,2	script	Skill Master	735,{
-	//Silve Robe[1] x 1
+	//Silver Robe[1] x 1
 	callfunc "F_Skill2Quest","Skill Master", 1006,"Sight Blaster", Job_Wizard, 2333,1, 0;
 	end;
 }
