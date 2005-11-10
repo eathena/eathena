@@ -334,75 +334,6 @@ S_Evan:
 	end;
 }
 
-// yuno_in01.gat,111,170,2	script	Wands	64,{
-List:
-	mes "[Dealer]";
-	if(Event_THQS==1) goto Member;
-	mes "...";
-	close;
-Member:
-	mes "You have ^FF0000"+#Treasure_Token+"^000000 treasure tokens.";
-	mes "What'll you have?";
-	next;
-	menu "Winged Staff - 75T",Winged,
-
-		"Wand of Survival[1]+Int - 120T",SurInt,
-		"Wand of Survival[1]+Dex - 150T",SurDex,
-		"-nothing today-",-;
-	close;
-
-Winged:
-	mes "A staff blessed with power of the wind spirit. When you have this, it is said that you will be agile in everything.";
-	mes "MATK + 15%.";
-	mes "Reduce casting time by 5%";
-	mes "2-Handed";
-	mes "Attack : ^77777760^000000";
-	mes "Property :^777777Wind^000000";
-	mes "Weapon lvl : ^7777774^000000";
-	mes "Required lvl : ^77777740^000000";
-	mes "Applicable Job : ^777777Mage Class^000000";
-	next;
-	menu "Buy",-,"No",List;
-	if (#Treasure_Token < 75) callfunc "THQ_needtoken";
-	set #Treasure_Token, #Treasure_Token-75;
-	getitem 1616,1;
-	callfunc "THQ_thank";
-	end;
-
-
-
-SurInt:
-	mes "A staff made by those in Mage guild and school to help the trainers who are having a difficult time adventuring.";
-	mes "There are two types of this staff.";
-	mes "INT + 3, MATK + 15%, HP + 400.";
-	mes "Attack : ^77777750^000000";
-	mes "Weapon lvl : ^7777773^000000";
-	mes "Required lvl : ^77777724^000000";
-	mes "Applicable Job : ^777777Mage Class, Acolyte Class^000000";
-	next;
-	menu "Buy",-,"No",List;
-	if (#Treasure_Token < 120) callfunc "THQ_needtoken";
-	set #Treasure_Token, #Treasure_Token-120;
-	getitem 1620,1;
-	callfunc "THQ_thank";
-	end;
-
-SurDex:
-	mes "A staff made by those in Mage guild and school to help the trainers who are having a difficult time adventuring.";
-	mes "There are two types of this staff.";
-	mes "DEX + 3, MATK + 15%, HP + 400.";
-	mes "Attack : ^77777750^000000";
-	mes "Weapon lvl : ^7777773^000000";
-	mes "Required lvl : ^77777724^000000";
-	mes "Applicable Job : ^777777Mage Class, Acolyte Class^000000";
-	next;
-	menu "Buy",-,"No",List;
-	if (#Treasure_Token < 150) callfunc "THQ_needtoken";
-	set #Treasure_Token, #Treasure_Token-150;
-	getitem 1618,1;
-	callfunc "THQ_thank";
-	end;
-}
 
 //Mega Man Expert's swords
 
@@ -769,14 +700,14 @@ List:
 	mes "Ya got ^FF0000"+#Treasure_Token+"^000000 tokens.";
 	mes "What'll ya have?";
 	next;
-	menu "Whip of Scarlet Flame - 70T",Fire,
-		"Whip of Icy Blade - 70T",Ice,
-		"Whip of Earth - 70T",Earth,
-		"Electric Wire - 70T",Wire,
-		"Rapture Rose - 70T",Rose,
-		"Jumprope - 100T",Jumprope,
-		"Blade Whip - 150T",Scourge,
-		"Queen's Whip - 150T",Queen,
+	menu "Whip of Scarlet Flame - 50T",Fire,
+		"Whip of Icy Blade - 50T",Ice,
+		"Whip of Earth - 50T",Earth,
+		"Electric Wire - 50T",Wire,
+		"Rapture Rose - 50T",Rose,
+		"Jumprope - 85T",Jumprope,
+		"Blade Whip - 120T",Scourge,
+		"Queen's Whip - 120T",Queen,
 		"-nothing today-",-;
 	close;
 
@@ -789,8 +720,8 @@ Fire:
 	mes "Required lvl : ^77777730^000000";
 	next;
 	menu "Buy",-,"No",List;
-	if (#Treasure_Token < 70) callfunc "THQ_needtoken";
-	set #Treasure_Token, #Treasure_Token-70;
+	if (#Treasure_Token < 50) callfunc "THQ_needtoken";
+	set #Treasure_Token, #Treasure_Token-50;
 	getitem 1965,1;
 	callfunc "THQ_thank";
 	end;
@@ -805,8 +736,8 @@ Ice:
 	mes "Required Level : ^77777730^000000";
 	next;
 	menu "Buy",-,"No",List;
-	if (#Treasure_Token < 70) callfunc "THQ_needtoken";
-	set #Treasure_Token, #Treasure_Token-70;
+	if (#Treasure_Token < 50) callfunc "THQ_needtoken";
+	set #Treasure_Token, #Treasure_Token-50;
 	getitem 1966,1;
 	callfunc "THQ_thank";
 	end;
@@ -820,8 +751,8 @@ Earth:
 	mes "Required lvl : ^77777730^000000";
 	next;
 	menu "Buy",-,"No",List;
-	if (#Treasure_Token < 70) callfunc "THQ_needtoken";
-	set #Treasure_Token, #Treasure_Token-70;
+	if (#Treasure_Token < 50) callfunc "THQ_needtoken";
+	set #Treasure_Token, #Treasure_Token-50;
 	getitem 1967,1;
 	callfunc "THQ_thank";
 	end;
@@ -835,8 +766,8 @@ Jumprope:
 	mes "Required lvl : ^77777730^000000";
 	next;
 	menu "Buy",-,"No",List;
-	if (#Treasure_Token < 100) callfunc "THQ_needtoken";
-	set #Treasure_Token, #Treasure_Token-100;
+	if (#Treasure_Token < 85) callfunc "THQ_needtoken";
+	set #Treasure_Token, #Treasure_Token-85;
 	getitem 1968,1;
 	callfunc "THQ_thank";
 	end;
@@ -852,8 +783,8 @@ Scourge:
 	mes "Required lvl : ^77777730^000000";
 	next;
 	menu "Buy",-,"No",List;
-	if (#Treasure_Token < 150) callfunc "THQ_needtoken";
-	set #Treasure_Token, #Treasure_Token-150;
+	if (#Treasure_Token < 120) callfunc "THQ_needtoken";
+	set #Treasure_Token, #Treasure_Token-120;
 	getitem 1969,1;
 	callfunc "THQ_thank";
 	end;
@@ -867,8 +798,8 @@ Queen:
 	mes "Required lvl : ^77777765^000000";
 	next;
 	menu "Buy",-,"No",List;
-	if (#Treasure_Token < 150) callfunc "THQ_needtoken";
-	set #Treasure_Token, #Treasure_Token-150;
+	if (#Treasure_Token < 120) callfunc "THQ_needtoken";
+	set #Treasure_Token, #Treasure_Token-120;
 	getitem 1970,1;
 	callfunc "THQ_thank";
 	end;
@@ -883,8 +814,8 @@ Rose:
 	mes "Required lvl : ^77777744^000000";
 	next;
 	menu "Buy",-,"No",List;
-	if (#Treasure_Token < 70) callfunc "THQ_needtoken";
-	set #Treasure_Token, #Treasure_Token-70;
+	if (#Treasure_Token < 50) callfunc "THQ_needtoken";
+	set #Treasure_Token, #Treasure_Token-50;
 	getitem 1963,1;
 	callfunc "THQ_thank";
 	end;
@@ -898,8 +829,8 @@ Wire:
 	mes "Required lvl : ^77777730^000000";
 	next;
 	menu "Buy",-,"No",List;
-	if (#Treasure_Token < 70) callfunc "THQ_needtoken";
-	set #Treasure_Token, #Treasure_Token-70;
+	if (#Treasure_Token < 50) callfunc "THQ_needtoken";
+	set #Treasure_Token, #Treasure_Token-50;
 	getitem 1971,1;
 	callfunc "THQ_thank";
 	end;
@@ -915,12 +846,12 @@ Member:
 	mes "You have ^FF0000"+#Treasure_Token+"^000000 treasure tokens.";
 	mes "What'll you have?";
 	next;
-	menu "Guitar of Burning Passion - 70T",Burning,
-		"Guitar of Lonely One - 70T",Lonely,
-		"Guitar of Vast Ground - 70T",Ground,
-		"Guitar of Breeze - 70T",Breeze,
-		"Korean Mandolin - 150T",Korean,
-		"Electric Quitar - 250T",Electric,
+	menu "Guitar of Burning Passion - 50T",Burning,
+		"Guitar of Lonely One - 50T",Lonely,
+		"Guitar of Vast Ground - 50T",Ground,
+		"Guitar of Breeze - 50T",Breeze,
+		"Korean Mandolin - 120T",Korean,
+		"Electric Quitar - 200T",Electric,
 		"-nothing today-",-;
 	close;
 
@@ -932,8 +863,8 @@ Burning:
 	mes "Required lvl : ^77777727^000000";
 	next;
 	menu "Buy",-,"No",List;
-	if (#Treasure_Token < 70) callfunc "THQ_needtoken";
-	set #Treasure_Token, #Treasure_Token-70;
+	if (#Treasure_Token < 50) callfunc "THQ_needtoken";
+	set #Treasure_Token, #Treasure_Token-50;
 	getitem 1914,1;
 	callfunc "THQ_thank";
 	end;
@@ -946,8 +877,8 @@ Lonely:
 	mes "Required lvl : ^77777727^000000";
 	next;
 	menu "Buy",-,"No",List;
-	if (#Treasure_Token < 70) callfunc "THQ_needtoken";
-	set #Treasure_Token, #Treasure_Token-70;
+	if (#Treasure_Token < 50) callfunc "THQ_needtoken";
+	set #Treasure_Token, #Treasure_Token-50;
 	getitem 1915,1;
 	callfunc "THQ_thank";
 	end;
@@ -961,8 +892,8 @@ Ground:
 	mes "Required Level : ^77777727^000000";
 	next;
 	menu "Buy",-,"No",List;
-	if (#Treasure_Token < 70) callfunc "THQ_needtoken";
-	set #Treasure_Token, #Treasure_Token-70;
+	if (#Treasure_Token < 50) callfunc "THQ_needtoken";
+	set #Treasure_Token, #Treasure_Token-50;
 	getitem 1916,1;
 	callfunc "THQ_thank";
 	end;
@@ -975,8 +906,8 @@ Breeze:
 	mes "Required lvl : ^77777727^000000";
 	next;
 	menu "Buy",-,"No",List;
-	if (#Treasure_Token < 70) callfunc "THQ_needtoken";
-	set #Treasure_Token, #Treasure_Token-70;
+	if (#Treasure_Token < 50) callfunc "THQ_needtoken";
+	set #Treasure_Token, #Treasure_Token-50;
 	getitem 1917,1;
 	callfunc "THQ_thank";
 	end;
@@ -990,8 +921,8 @@ Korean:
 	mes "Required lvl : ^77777765^000000";
 	next;
 	menu "Buy",-,"No",List;
-	if (#Treasure_Token < 150) callfunc "THQ_needtoken";
-	set #Treasure_Token, #Treasure_Token-150;
+	if (#Treasure_Token < 120) callfunc "THQ_needtoken";
+	set #Treasure_Token, #Treasure_Token-120;
 	getitem 1918,1;
 	callfunc "THQ_thank";
 	end;
@@ -1006,8 +937,8 @@ Electric:
 	mes "Required lvl : ^77777770^000000";
 	next;
 	menu "Buy",-,"No",List;
-	if (#Treasure_Token < 250) callfunc "THQ_needtoken";
-	set #Treasure_Token, #Treasure_Token-250;
+	if (#Treasure_Token < 200) callfunc "THQ_needtoken";
+	set #Treasure_Token, #Treasure_Token-200;
 	getitem 1913,1;
 	callfunc "THQ_thank";
 	end;
@@ -1028,9 +959,41 @@ Member:
 	"Stardust Blade[1] - 60T",Stardust,
 	"Wand of Hypnotist[2] - 100T",Hypnotist,
 	"Novice Shield[1] - 50T",S_Novice,
+	"Novice Shoes[1] - 50T",Shoes,
+	"NOvice Manteau[1] - 50T",Manteau,
 	"-nothing today-",-;
 	close;
-//	"Novice Shoes
+
+Manteau:
+	mes "A cute cape made for Novices. It is light and tough.";
+	mes "+ 10% resistance against Neutral attacks.";
+	mes "Class : ^777777Garment^000000";
+	mes "Defence : ^7777772^000000";
+	mes "Required lvl : ^77777740^000000";
+	mes "Applicable Job : ^777777Novice^000000";
+	next;
+	menu "Buy",-,"No",List;
+	if (#Treasure_Token < 50) callfunc "THQ_needtoken";
+	set #Treasure_Token, #Treasure_Token-50;
+	getitem 2512,1;
+	callfunc "THQ_thank";
+	end;
+
+Shoes:
+	mes "A special cute shoes made just for Novices.";
+	mes "Maximum HP + 5%.";
+	mes "Class : ^777777Shoes^000000";
+	mes "Defence : ^7777772^000000";
+	mes "Required lvl : ^77777740^000000";
+	mes "Applicable Job : ^777777Novice^000000";
+	next;
+	menu "Buy",-,"No",List;
+	if (#Treasure_Token < 50) callfunc "THQ_needtoken";
+	set #Treasure_Token, #Treasure_Token-50;
+	getitem 2416,1;
+	callfunc "THQ_thank";
+	end;
+
 
 Cinquedia:
 	mes "A dagger made from somewhere overseas. It has wide blade.";
@@ -1112,4 +1075,67 @@ Stardust:
 	callfunc "THQ_thank";
 	end;
 
+}
+
+yuno_in01.gat,16,179,4	script	Axes	813,{
+List:
+	mes "[Dealer]";
+	if(Event_THQS==1) goto Member;
+	mes "...";
+	close;
+Member:
+	mes "You have ^FF0000"+#Treasure_Token+"^000000 treasure tokens.";
+	mes "What'll you have?";
+	next;
+	menu "Cleaver - 60T",Cleaver,
+		"Slaughter - 80T",Slaughter,
+		"Tomahawk - 150",Tomahawk,
+		"-nothing today-",-;
+	close;
+
+Cleaver:
+	mes "Heavy, broad-bladed hatchet used by butchers.";
+	mes "Attack Strength : ^777777140^000000";
+	mes "5 % additional damage on Demi-Human monsters.";
+	mes "30 % additional chance to drop Meat item when killing Brute monsters.";
+	mes "Weapon lvl : ^7777774^000000";
+	mes "Required lvl : ^77777744^000000";
+	mes "Available Job : ^777777Novice, Swordman, Merchant^000000";
+	next;
+	menu "Buy",-,"No",List;
+	if (#Treasure_Token < 60 ) callfunc "THQ_needtoken";
+	set #Treasure_Token, #Treasure_Token-60;
+	getitem 1305,1;
+	callfunc "THQ_thank";
+	end;
+
+Slaughter:
+	mes "An axe used for Slaying many foes.";
+	mes "Pierces the defence of brute monsters.";
+	mes "Has a low chance of delivering an instantaneous death to brute monsters.";
+	mes "Attack Strength : ^777777120^000000";
+	mes "Weapon lvl : ^7777774^000000";
+	mes "Required lvl : ^77777744^000000";
+	mes "Available Job : ^777777Swordman, Merchant^000000";
+	menu "Buy",-,"No",List;
+	if (#Treasure_Token < 80 ) callfunc "THQ_needtoken";
+	set #Treasure_Token, #Treasure_Token-80;
+	getitem 1367,1;
+	callfunc "THQ_thank";
+	end;
+
+Tomahawk:
+	mes "A light axe with wind property, used for throwing.";
+	mes "Enable to use ^008800Tomahawk Throwing^000000.";
+	mes "Attack Strength : ^777777165^000000";
+	mes "Property : ^777777Wind^000000";
+	mes "Weapon lvl : ^7777774^000000";
+	mes "Required lvl : ^77777744^000000";
+	mes "Available Job : ^777777Swordman, Merchant^000000";
+	menu "Buy",-,"No",List;
+	if (#Treasure_Token < 150 ) callfunc "THQ_needtoken";
+	set #Treasure_Token, #Treasure_Token-150;
+	getitem 1368,1;
+	callfunc "THQ_thank";
+	end;
 }

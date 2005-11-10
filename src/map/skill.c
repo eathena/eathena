@@ -1826,6 +1826,10 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		dmg.damage2+=dmg2.damage2;
 	}
 
+	if(skillid==PA_SACRIFICE)
+		rdamage = (status_get_max_hp(bl)*9) / 100;
+
+
 //マジックロッド?理ここから
 	if((attack_type&BF_MAGIC || skillid==ASC_BREAKER) && sc_data && sc_data[SC_MAGICROD].timer != -1 && src == dsrc) { //魔法攻?でマジックロッド?態でsrc=dsrcなら
 		dmg.damage = dmg.damage2 = 0; //ダメ?ジ0
@@ -2811,8 +2815,10 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 			status_change_end(src,SC_BLADESTOP,-1);
 		break;
 	case SN_FALCONASSAULT:			/* ファルコンアサルト */
-	case PA_SACRIFICE:
 		skill_attack(BF_MISC,src,src,bl,skillid,skilllv,tick,flag);
+		break;
+	case PA_SACRIFICE:
+		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
 		break;
 
 	case RG_BACKSTAP:		/* バックスタブ */

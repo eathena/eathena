@@ -937,6 +937,10 @@ static struct Damage battle_calc_pet_weapon_attack(
 				break;
 			case TF_SPRINKLESAND:	// 砂まき
 				damage = damage*125/100;
+				flag=(flag&~BF_RANGEMASK)|BF_LONG;
+				break;
+			case ITM_TOMAHAWK:
+				flag=(flag&~BF_RANGEMASK)|BF_LONG;
 				break;
 			case MC_CARTREVOLUTION:	// カートレボリューション
 				damage = (damage*150)/100;
@@ -1467,6 +1471,10 @@ static struct Damage battle_calc_mob_weapon_attack(
 				break;
 			case TF_SPRINKLESAND:	// 砂まき
 				damage = damage*125/100;
+				flag=(flag&~BF_RANGEMASK)|BF_LONG;
+				break;
+			case ITM_TOMAHAWK:
+				flag=(flag&~BF_RANGEMASK)|BF_LONG;
 				break;
 			case MC_CARTREVOLUTION:	// カートレボリューション
 				damage = (damage*150)/100;
@@ -1826,6 +1834,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 	int idef_flag=0,idef_flag_=0;
 	int div_flag=0;	// 0: total damage is to be divided by div_
 	int is_emperium=0;
+	int mastery_flag=1;
 					// 1: damage is distributed,and has to be multiplied by div_ [celest]
 
 	//return前の処理があるので情報出力部のみ変更
@@ -1863,7 +1872,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 	t_sc_data=status_get_sc_data( target ); //対象のステータス異常
 
 	if(status_get_class(target)==1288) // Emperium
-		no_cardfix = 1;
+		is_emperium = 1;
 
 //オートカウンター処理ここから
 	if(skill_num == 0 || (target->type == BL_PC && battle_config.pc_auto_counter_type&2) ||
@@ -2186,6 +2195,10 @@ static struct Damage battle_calc_pc_weapon_attack(
 				break;
 			case TF_SPRINKLESAND:	// 砂まき
 				damage_rate += 25;
+				flag=(flag&~BF_RANGEMASK)|BF_LONG;
+				break;
+			case ITM_TOMAHAWK:
+				flag=(flag&~BF_RANGEMASK)|BF_LONG;
 				break;
 			case MC_CARTREVOLUTION:	// カートレボリューション
 				if(sd->cart_max_weight > 0 && sd->cart_weight > 0) {
@@ -2287,6 +2300,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 				}
 				hitrate = 1000000;
 				ignore_def_flag = 1;
+				mastery_flag = 0;
 				s_ele = 0;
 				s_ele_ = 0;
 				break;
@@ -2296,6 +2310,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 				clif_updatestatus(sd,SP_SP);
 				hitrate = 1000000;
 				ignore_def_flag = 1;
+				mastery_flag = 0;
 				s_ele = 0;
 				s_ele_ = 0;
 				break;
@@ -2306,15 +2321,6 @@ static struct Damage battle_calc_pc_weapon_attack(
 				damage_rate += 140+ 60*skill_lv;;
 				break;
 			case BA_MUSICALSTRIKE:	// ミュージカルストライク
-#if 0
-				damage_rate += 40*skill_lv-40;
-				if(sd->arrow_ele > 0) {
-					s_ele = sd->arrow_ele;
-					s_ele_ = sd->arrow_ele;
-				}
-				flag=(flag&~BF_RANGEMASK)|BF_LONG;
-				break;
-#endif
 			case DC_THROWARROW:	// 矢撃ち
 				if(!sd->state.arrow_atk && sd->arrow_atk > 0) {
 					int arr = rand()%(sd->arrow_atk+1);
@@ -2391,6 +2397,13 @@ static struct Damage battle_calc_pc_weapon_attack(
 				if(sd->cart_max_weight > 0 && sd->cart_weight > 0) {
 					damage_rate += sd->cart_weight/(10*(16-skill_lv))-100;
 				}
+				break;
+			case PA_SACRIFICE:
+				damage = (status_get_max_hp(src)*9) / 100;
+				damage += (damage/10)*(skill_lv-1);
+				hitrate = 1000000;
+				ignore_def_flag = 1;
+				mastery_flag = 0;
 				break;
 			}
 
@@ -2526,13 +2539,16 @@ static struct Damage battle_calc_pc_weapon_attack(
 		if(!no_cardfix && sc_data[SC_EDP].timer != -1 &&
 			skill_num != ASC_BREAKER && skill_num != ASC_METEORASSAULT)
 		{
-			damage += damage * (150 + sc_data[SC_EDP].val1 * 50) / 100;
+			if(is_emperium)
+				damage += damage * (150 + sc_data[SC_EDP].val1 * 50) / 200;
+			else
+				damage += damage * (150 + sc_data[SC_EDP].val1 * 50) / 100;
 			no_cardfix = 1;
 		}
 	}
 
 	// 精錬ダメージの追加
-	if( skill_num != MO_INVESTIGATE && skill_num != MO_EXTREMITYFIST) {			//DEF, VIT無視
+	if(mastery_flag) {			//DEF, VIT無視
 		damage += status_get_atk2(src);
 		damage2 += status_get_atk_2(src);
 	}
@@ -2561,7 +2577,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 
 	// スキル修正２（修練系）
 	// 修練ダメージ(右手のみ) ソニックブロー時は別処理（1撃に付き1/8適応)
-	if( skill_num != MO_INVESTIGATE && skill_num != MO_EXTREMITYFIST && skill_num != CR_GRANDCROSS) {			//修練ダメージ無視
+	if(mastery_flag && skill_num != CR_GRANDCROSS) {			//修練ダメージ無視
 		//Advanced Katar Research by zanetheinsane
 		if((sd->weapontype1 == 0x10 || sd->weapontype2 == 0x10) && (skill = pc_checkskill(sd,ASC_KATAR)) > 0)
 				damage += damage*(10+(skill * 2))/100;
@@ -2754,12 +2770,23 @@ static struct Damage battle_calc_pc_weapon_attack(
 	// 属 性の適用
 	damage=battle_attr_fix(damage,s_ele, status_get_element(target) );
 	damage2=battle_attr_fix(damage2,s_ele_, status_get_element(target) );
+#if 0
+	if(sc_data[SC_MAGNUM].timer!=0)
+	{
+		damage += battle_attr_fix(damage,3,status_get_element(target))/5;
+		damage2 += battle_attr_fix(damage2,3,status_get_element(target))/5;
+	}
 
-	// 星のかけら、気球の適用
-	damage += sd->right_weapon.star;
-	damage2 += sd->left_weapon.star;
-	damage += sd->spiritball*3;
-	damage2 += sd->spiritball*3;
+#endif
+
+	if(skill_num != PA_SACRIFICE)
+	{
+		// 星のかけら、気球の適用
+		damage += sd->right_weapon.star;
+		damage2 += sd->left_weapon.star;
+		damage += sd->spiritball*3;
+		damage2 += sd->spiritball*3;
+	}
 
 	if(skill_num==PA_PRESSURE){ /* プレッシャー 必中? */
 		damage = 500+300*skill_lv;
@@ -4132,7 +4159,7 @@ struct Damage battle_calc_weapon_attack(
 		breakrate_[1] += sd->break_armor_rate;
 
 		if (sd->sc_count) {
-			if (sd->sc_data[SC_MELTDOWN].timer!=-1) {
+			if (sd->sc_data[SC_MELTDOWN].timer!=-1 && (wd.flag & BF_SHORT)) {
 				breakrate_[0] += 100*sd->sc_data[SC_MELTDOWN].val1;
 				breakrate_[1] = 70*sd->sc_data[SC_MELTDOWN].val1;
 				breaktime = skill_get_time2(WS_MELTDOWN,1);

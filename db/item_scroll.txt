@@ -64,7 +64,7 @@
 2638,Exorcize_Sachet		,10000
 2639,Purification_Sachet	,10000
 1364,Great_Axe			,10000
-1368,Tomahawk			,10000
+1369,Guillotine			,10000
 1415,Skewer			,10000
 1531,Spanner			,10000
 1720,Rudra_Bow			,10000
@@ -77,7 +77,7 @@
 5108,Detective Hat		,10000
 5131,Close Helm			,10000
 1471,HEllfire			,10000
-1367,Slaughter			,10000
+1368,Tomahawk			,10000
 1261,Loki's Talon		,10000
 1224,Swordbreaker		,10000
 1225,Mailbreaker		,10000

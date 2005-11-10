@@ -69,9 +69,10 @@ pay_arche.gat,86,129,6	script	Archer	732,{
 	close;
 N_QuestStart:
 	mes "[Kieth]";
-	mes "Ahh, you must be from the Treasure Hunter Agensy. Do you have my bow??";
+	mes "Ahh, you must be from the Treasure Hunter Agency. Do you have my bow??";
 	mes " ";
 	mes "Ahh, good,thank you for your time. Take this Treasure Token.";
+	next;
 	set one_qset,0;
 	set On_Quest,0;
 	delitem 1072,1;
