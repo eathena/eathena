@@ -3,13 +3,14 @@
 //===== By: ================================================== 
 //= kobra_k88, Akaru
 //===== Current Version: ===================================== 
-//= 1.1
+//= 1.2
 //===== Compatible With: ===================================== 
 //= eAthena 7.15 +
 //===== Description: ========================================= 
 //= 
 //===== Additional Comments: ================================= 
 //= Fully working. 1.1 Optimized
+//= 1.2 updated Payon coords [Lupus]
 //============================================================ 
 
 
@@ -85,6 +86,6 @@ izlude.gat,129,118,4	duplicate(SmileAT)	Smile Assistance#4	92
 // Morroc -----------------------------------------------------------------------------------
 morocc.gat,158,97,4	duplicate(SmileAT)	Smile Assistance#5	92
 // Payon ------------------------------------------------------------------------------------
-payon.gat,187,104,4	duplicate(SmileAT)	Smile Assistance#6	92
+payon.gat,168,225,4	duplicate(SmileAT)	Smile Assistance#6	92
 // Prontera ---------------------------------------------------------------------------------
 prontera.gat,157,187,4	duplicate(SmileAT)	Smile Assistance#7	92

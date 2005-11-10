@@ -3,15 +3,14 @@
 //===== By: ==================================================
 //= sEiKaN (1.0)
 //===== Current Version: =====================================
-//= 1.3
+//= 1.4
 //===== Compatible With: =====================================
 //= Any Athena Version; 0315+
 //===== Description: =========================================
 //= mRO Event: Twin Towers NPCs
 //===== Additional Comments: =================================
-//= 1.1 by Akaru
-//= 1.2 by Akaru
-//= 1.3 by massdriller(Fixed typos)
+//= 1.2 by Akaru 1.3 by massdriller(Fixed typos)
+//= 1.4 fixed coords, according to off. src [Lupus]
 //============================================================
 
 prontera.gat,146,92,4	script	Twin Towers#tt1::Twin-Towers	813,{
@@ -86,9 +85,9 @@ prontera.gat,146,92,4	script	Twin Towers#tt1::Twin-Towers	813,{
 }
 
 morocc.gat,160,97,4	duplicate(Twin-Towers)	Twin Towers#tt2	812
-payon.gat,101,116,4	duplicate(Twin-Towers)  Twin Towers#tt3	812
+payon.gat,176,226,4	duplicate(Twin-Towers)  Twin Towers#tt3	812
 izlude.gat,134,92,4	duplicate(Twin-Towers)  Twin Towers#tt4	812
 alberta.gat,25,238,4	duplicate(Twin-Towers)	Twin Towers#tt5	812
 geffen.gat,120,60,4	duplicate(Twin-Towers)	Twin Towers#tt6	812
-aldebaran.gat,145,118,4	duplicate(Twin-Towers)	Twin Towers#tt7	812
+aldebaran.gat,143,116,4	duplicate(Twin-Towers)	Twin Towers#tt7	812
 comodo.gat,194,158,4	duplicate(Twin-Towers)	Twin Towers#tt7	812

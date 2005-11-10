@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= Muad-Dib (1.0)
 //===== Current Version: =====================================
-//= 1.1
+//= 1.2
 //===== Compatible With: =====================================
 //= Any Athena Version; RO Episode 8+
 //===== Description: =========================================
@@ -11,6 +11,7 @@
 //===== Additional Comments: =================================
 //= 1.0 Converted by Dr.Evil [Lupus]
 //= 1.1 More temp warps to Juperos by Justin84 [Lupus]
+//= 1.2 Justin84's fixed elevator scripts
 //============================================================
 	
 yuno_fild07.gat,207,175,0	warp	jupwrp01	1,1,jupe_cave.gat,143,52
@@ -53,10 +54,17 @@ juperos_02.gat,129,150,0	script	Juperos	111,{
 	mes "Are you sure to enter?";
 	next;
 	menu "Yes",-,"No",J_CLOSE;
+	if( getmapusers("jupe_ele.gat")>0 ) goto J_WAIT;
 	initnpctimer;
 	warp "jupe_ele.gat",41,45;
 	end;
+
 J_CLOSE:
+	close;
+
+J_WAIT:
+	mes "Sorry, the elevator is in use,";
+	mes "please wait for a while.";
 	close;
 
 OnTimer1000:
@@ -75,11 +83,17 @@ jupe_ele_r.gat,50,98,0	script	Juperos Elevator	111,{
 	mes "Are you sure want to go up?";
 	next;
 	menu "Yes",-,"No",J_CLOSE;
+	if( getmapusers("jupe_ele.gat")>0 ) goto J_WAIT;
 	initnpctimer;
 	warp "jupe_ele.gat",41,45;
 	end;
 
 J_CLOSE:
+	close;
+
+J_WAIT:
+	mes "Sorry, the elevator is in use,";
+	mes "please wait for a while.";
 	close;
 
 OnTimer1000:
@@ -94,7 +108,7 @@ OnTimer15000:
 	end;
 }
 
-jupe_gate.gat,49,168,0	script	Juperos Guard	111,{
+jupe_gate.gat,49,168,0 script	Juperos Guard	111,{
 	mes "Are you sure to enter Juperos Core?";
 	next;
 	menu "Yes",-,"No",J_CLOSE;
@@ -112,7 +126,7 @@ J_CLOSE:
 	close;
 }
 
-jupe_core.gat,150,17,0	script	Juperos Guard	111,{
+jupe_core.gat,150,17,0 script	Juperos Guard#2	111,{
 	mes "Leave Juperos Core?";
 	next;
 	menu "Yes",-,"No",J_CLOSE;
