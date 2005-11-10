@@ -28,8 +28,8 @@ Nexon
 Date		Added
 ======
 11/10
+	* Added Cooking Quest. Thanks to Reddozen [Lupus]
 	* Added reddozen's fix of Alchemist.txt (Materials / Manuals) [Lupus]
-	* Added reddozen's Cooking Books Sellers (some NPC sprites are wrong, tough) [Lupus]
 	* Fixed Juperos Elevator, coords of Twin Tower NPC, Mr.Smile. Thanks to Justin84 [Lupus]
 	* Added more quests for 2nd Class Quest Skills [Lupus]
 11/09
