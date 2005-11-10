@@ -103,8 +103,7 @@ alde_alche.gat,24,188,3	script	Gever AI Sharp	740,{
 	L_Choice:
 		mes "[Gever AI Sharp]";
 		mes "An " + @itemname$ + " Creation Guide??";
-		if(@price == 100000) mes "That will be 100,000 zeny";
-		if(@price == 240000) mes "That will be 240,000 zeny";
+		mes "That will be "+@price/1000+",000 zeny.";
 		next;
 		menu "Purchase.",-,"Quit.",M_Bye;
 

@@ -126,7 +126,7 @@ J_CLOSE:
 	close;
 }
 
-jupe_core.gat,150,17,0 script	Juperos Guard#2	111,{
+jupe_core.gat,150,17,0	script	Juperos Guard#2	111,{
 	mes "Leave Juperos Core?";
 	next;
 	menu "Yes",-,"No",J_CLOSE;
