@@ -2033,7 +2033,7 @@ int clif_cutin(struct map_session_data *sd, char *image, int type) {
  */
 static void clif_addcards(unsigned char* buf, struct item* item)
 {
-	int j;
+	int i=0,j;
 	if (item == NULL) { //Blank data
 		WBUFW(buf,0)=0;
 		WBUFW(buf,2)=0;
@@ -2055,26 +2055,30 @@ static void clif_addcards(unsigned char* buf, struct item* item)
 		WBUFW(buf,6)=item->card[3];
 		return;
 	}
+	//Client only receives four cards.. so randomly send them a set of cards. [Skotlex]
+	if (MAX_SLOTS > 4 && (j = itemdb_slot(item->nameid)) > 4)
+		i = rand()%(j-3); //eg: 6 slots, possible i values: 0->3, 1->4, 2->5 => i = rand()%3;
+
 	//Normal items.
-	if (item->card[0] > 0 && (j=itemdb_viewid(item->card[0])) > 0)
+	if (item->card[i] > 0 && (j=itemdb_viewid(item->card[i])) > 0)
 		WBUFW(buf,0)=j;
 	else
-		WBUFW(buf,0)= item->card[0];
+		WBUFW(buf,0)= item->card[i];
 
-	if (item->card[1] > 0 && (j=itemdb_viewid(item->card[1])) > 0)
+	if (item->card[++i] > 0 && (j=itemdb_viewid(item->card[i])) > 0)
 		WBUFW(buf,2)=j;
 	else
-		WBUFW(buf,2)=item->card[1];
+		WBUFW(buf,2)=item->card[i];
 
-	if (item->card[2] > 0 && (j=itemdb_viewid(item->card[2])) > 0)
+	if (item->card[++i] > 0 && (j=itemdb_viewid(item->card[i])) > 0)
 		WBUFW(buf,4)=j;
 	else
-		WBUFW(buf,4)=item->card[2];
+		WBUFW(buf,4)=item->card[i];
 
-	if (item->card[3] > 0 && (j=itemdb_viewid(item->card[3])) > 0)
+	if (item->card[++i] > 0 && (j=itemdb_viewid(item->card[i])) > 0)
 		WBUFW(buf,6)=j;
 	else
-		WBUFW(buf,6)=item->card[3];
+		WBUFW(buf,6)=item->card[i];
 }
 
 /*==========================================
