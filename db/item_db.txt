@@ -2125,8 +2125,8 @@
 9023,Deviruchi_Egg,Deviruchi Egg,7,,10,0,,,,,,,,,,,,,{}
 9024,Bapho_Jr._Egg,Bapho Jr. Egg,7,,10,0,,,,,,,,,,,,,{}
 9025,Bongun_Egg,Bongun Egg,7,,10,0,,,,,,,,,,,,,{}
-9026,Alice_Egg,Alice Egg,7,,10,0,,,,,,,,,,,,,{}
-9027,Zherlthsh_Egg,Zherlthsh Egg,7,,10,0,,,,,,,,,,,,,{}
+9026,Zherlthsh_Egg,Zherlthsh Egg,7,,10,0,,,,,,,,,,,,,{}
+9027,Alice_Egg,Alice Egg,7,,10,0,,,,,,,,,,,,,{}
 9028,Test_Egg,Test Egg,7,,10,0,,,,,,,,,,,,,{}
 9029,Test_Egg_,Test Egg,7,,10,0,,,,,,,,,,,,,{}
 

@@ -31,6 +31,8 @@
 		like gemstones when the skill is used.
 	--
 11/09
+	* Fixed alice and zherlths(whatever)s taming items which were swaped [MasterOfMuppets]
+	  thanks to Poki#3 for fixing it.  
 	* Updated metalings drop rates, based on 100 killed metalings [MasterOfMuppets]
 	  in iRO, I will kill more some other time to get more accurate results
 	mob_db.txt update:  [Lupus]
