@@ -1,0 +1,24 @@
+//===== eAthena Script ======================================= 
+//= Cooking Books Sellers
+//===== By: ================================================== 
+//= reddozen
+//===== Current Version: ===================================== 
+//= 1.0
+//===== Compatible With: ===================================== 
+//= eAthena SVN 3800+
+//===== Description: ========================================= 
+//= Cooking Books Sellers
+//===== Additional Comments: ================================= 
+//= Well, coords are mostly correct, but NPC sprites should be
+//= revised [Lupus]
+//============================================================ 
+
+
+comodo.gat,224.164,4	shop	Food Seller	750,7455:-1
+lighthalzen.gat,125.125,4	shop	Food Seller	750,7456:-1,-1,7453:-1,7454:-1
+payon.gat,205.119,4	shop	Food Seller	750,7455:-1
+umbala.gat,101.154,4	shop	Food Seller	750,7456:-1,577:-1
+ayothaya.gat,202.178,4	shop	Food Seller	750,7456:-1,577:-1
+gonryun.gat,148.101,4	shop	Food Seller	750,580:-1,7452:-1
+louyang.gat,255.123,4	shop	Food Seller	750,7454:-1,577:-1
+prontera.gat,155.212,2	shop	Food Seller	750,580:-1,7482:-1
