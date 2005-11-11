@@ -8643,6 +8643,11 @@ int buildin_isequipped(struct script_state *st)
 
 	sd = script_rid2sd(st);
 	
+	if (!sd) { //If the player is not attached it is a script error anyway... but better prevent the map server from crashing...
+		push_val(st->stack,C_INT,0);
+		return 0;
+	}
+	
 	for (i=0; id!=0; i++)
 	{
 		FETCH (i+2, id) else id = 0;
