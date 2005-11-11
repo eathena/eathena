@@ -3364,8 +3364,6 @@ int status_get_mode(struct block_list *bl)
 	nullpo_retr(0x01, bl);
 	if(bl->type==BL_MOB)
 	{
-		if (((struct mob_data *)bl)->sc_data[SC_MODE].timer != -1)
-			return ((struct mob_data *)bl)->sc_data[SC_MODE].val1;
 		if (((struct mob_data *)bl)->mode)
 			return ((struct mob_data *)bl)->mode;
 		return ((struct mob_data *)bl)->db->mode;
@@ -4426,7 +4424,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_WATK_ELEMENT:
 		case SC_ARMOR_ELEMENT:
 		case SC_HIGHJUMP:
-		case SC_MODE:
 		case SC_LONGING:
 		case SC_ORCISH:
 		case SC_SHRINK:

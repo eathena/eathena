@@ -1,5 +1,10 @@
 Date	Added
 2005/11/11
+	* Removed SC_MODE, now NPC_EMOTION and NPC_EMOTION_ON can change a mob's
+	  mode permanently (until their death, that is), and it won't work on
+	  player summoned mobs. As before, val1 is the emotion value, val2 is the
+	  mode to add/remove. Val3 is now ignored (used to be duration) [Skotlex]
+	  (no, no need to wipe SC data this time around either)
 	* Cleaned up sql-files to use TYPE rather than ENGINE as TYPE is supported
 	  by older MySQL versions and not quite deprecated yet. [Skotlex]
 	* Modified the party even share exp bonus to be +10% per extra party member

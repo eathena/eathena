@@ -213,7 +213,6 @@ enum {
 	SC_DEXFOOD,
 	SC_LUKFOOD,
 	SC_HIGHJUMP,
-	SC_MODE,	//Changes a mob's mode temporarily. [Skotlex]
 	SC_STOP,	//Prevents inflicted chars from walking. [Skotlex]
 
 	//

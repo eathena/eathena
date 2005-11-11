@@ -4852,13 +4852,14 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		}
 		break;
 
-	case NPC_EMOTION_ON:		// not sure what it does, but for now treat it as NPC_EMOTION
-	case NPC_EMOTION:			/* ƒGƒ‚?ƒVƒ‡ƒ“ */
+	case NPC_EMOTION_ON:
+	case NPC_EMOTION:
 		if(md)
 		{
 			clif_emotion(&md->bl,md->db->skill[md->skillidx].val[0]);
-			if(md->db->skill[md->skillidx].val[1])
-			{
+			if(md->db->skill[md->skillidx].val[1] && !md->special_state.ai)
+			{ //NPC_EMOTION & NPC_EMOTION_ON can change a mob's mode 'permanently' [Skotlex]
+				//NPC_EMOTION_ON adds a mode to the list, while NPC_EMOTION can remove it.
 				int mode, mode2;
 				mode = status_get_mode(src);
 				if (skillid == NPC_EMOTION_ON) //Add a mode
@@ -4868,8 +4869,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				
 				if (mode == mode2)
 					break; //No change
-				status_change_start(bl, SC_MODE, mode2,0,0,0,
-					md->db->skill[md->skillidx].val[2]*1000,0);
+				md->mode = mode2;
+				if (md->mode == md->db->mode)
+					md->mode = 0; //Fallback to the db's mode.
 				//Since mode changed, reset their state.
 				mob_stopattack(md);
 				mob_stop_walking(md,0);
