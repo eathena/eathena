@@ -1,5 +1,7 @@
 Date	Added
 2005/11/11
+	* Added additional debug information to battle_attr_fix until the cause of
+	  those errors are found and resolved. [Skotlex]
 	* Fixed win32 compiles always reporting "unable to set socket to
 	  non-blocking mode", together with other minor win32 fixes. [Skotlex]
 2005/11/10
