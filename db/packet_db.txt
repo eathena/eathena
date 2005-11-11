@@ -621,7 +621,7 @@ packet_ver: 15
 0x021d,6
 0x021e,6
 0x0221,-1
-0x0222,6
+0x0222,6,weaponrefine,2
 0x0223,8
 
 //2005-01-10bSakexe by Sara

@@ -5364,29 +5364,45 @@ int clif_item_repaireffect(struct map_session_data *sd,int nameid,int flag)
 }
 
 /*==========================================
- * Weapon Refining [Celest]
+ * Weapon Refining - Taken from jAthena
  *------------------------------------------
  */
 int clif_item_refine_list(struct map_session_data *sd)
 {
 	int i,c;
 	int fd;
+	int skilllv;
+	int wlv;
+	int refine_item[5];
 
 	nullpo_retr(0, sd);
 
+	skilllv = pc_checkskill(sd,WS_WEAPONREFINE);
+
 	fd=sd->fd;
 
-	WFIFOW(fd,0)=0x177; // temporarily use same packet as clif_item_identify
+	refine_item[0] = -1;
+	refine_item[1] = pc_search_inventory(sd,1010);
+	refine_item[2] = pc_search_inventory(sd,1011);
+	refine_item[3] = refine_item[4] = pc_search_inventory(sd,984);
+
+	WFIFOW(fd,0)=0x221;
 	for(i=c=0;i<MAX_INVENTORY;i++){
-		if(sd->status.inventory[i].nameid > 0 && itemdb_type(sd->status.inventory[i].nameid)==4){
-			WFIFOW(fd,c*2+4)=i+2;
+		if(sd->status.inventory[i].nameid > 0 && sd->status.inventory[i].refine < skilllv &&
+			sd->status.inventory[i].identify==1 && (wlv=itemdb_wlv(sd->status.inventory[i].nameid)) >=1 &&
+			refine_item[wlv]!=-1 && !(sd->status.inventory[i].equip&0x0022)){
+			WFIFOW(fd,c*13+ 4)=i+2;
+			WFIFOW(fd,c*13+ 6)=sd->status.inventory[i].nameid;
+			WFIFOW(fd,c*13+ 8)=0; //TODO: Wonder what are these for? Perhaps ID of weapon's crafter if any?
+			WFIFOW(fd,c*13+10)=0;
+			WFIFOB(fd,c*13+12)=c;
 			c++;
 		}
 	}
-	if(c > 0) {
-		WFIFOW(fd,2)=c*2+4;
-		WFIFOSET(fd,WFIFOW(fd,2));
-	}
+	WFIFOW(fd,2)=c*13+4;
+	WFIFOSET(fd,WFIFOW(fd,2));
+	sd->state.produce_flag = 1;
+
 	return 0;
 }
 
@@ -9301,6 +9317,19 @@ void clif_parse_RepairItem(int fd, struct map_session_data *sd)
  *
  *------------------------------------------
  */
+void clif_parse_WeaponRefine(int fd, struct map_session_data *sd) {
+
+	if (!sd->state.produce_flag) //Packet exploit?
+		return;
+	sd->state.produce_flag = 0;
+	int idx = RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]);
+	skill_weaponrefine(sd, idx-2);
+}
+
+/*==========================================
+ *
+ *------------------------------------------
+ */
 void clif_parse_NpcSelectMenu(int fd,struct map_session_data *sd)
 {
 	nullpo_retv(sd);
@@ -10864,6 +10893,7 @@ static int packetdb_readdb(void)
 		{clif_parse_UseCard,"usecard"},
 		{clif_parse_InsertCard,"insertcard"},
 		{clif_parse_RepairItem,"repairitem"},
+		{clif_parse_WeaponRefine,"weaponrefine"},
 		{clif_parse_SolveCharName,"solvecharname"},
 		{clif_parse_ResetChar,"resetchar"},
 		{clif_parse_LGMmessage,"lgmmessage"},

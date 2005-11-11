@@ -8740,13 +8740,6 @@ void skill_identify(struct map_session_data *sd,int idx)
 
 	nullpo_retv(sd);
 
-	// Celest
-	if (sd->skillid == WS_WEAPONREFINE){
-		skill_weaponrefine (sd, idx);
-		sd->skillid = -1;
-		return;
-	}
-
 	if(idx >= 0 && idx < MAX_INVENTORY) {
 		if(sd->status.inventory[idx].nameid > 0 && sd->status.inventory[idx].identify == 0 ){
 			flag=0;
