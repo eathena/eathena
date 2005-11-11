@@ -601,9 +601,10 @@ int party_exp_share(struct party *p,int map,int base_exp,int job_exp,int zeny)
 		}
 	if (c < 1)
 		return 0;
-	// the arithmetic for this bonus is
+	bonus += (c-1)*10; //Official kRO/iRO sites state that the even share bonus is 10% per additional party member.
+	// This other bonus seems to be a custom one brought up by Valaris
 	// 1 + 0.05*c*(c-1)/2 [Shinomori]
-	bonus += (5*c*(c-1)/2);	//Changed Valaris's bonus switch to an equation [Skotlex]
+	//bonus += (5*c*(c-1)/2);	//Changed Valaris's bonus switch to an equation [Skotlex]
 	//Bonus at Full party (12): +3.3 (430% exp/12 ~= 35% of total Mob's exp)
 	base = (unsigned long)(base_exp/c)*bonus/100;
 	job = (unsigned long)(job_exp/c)*bonus/100;

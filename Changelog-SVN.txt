@@ -1,5 +1,9 @@
 Date	Added
 2005/11/11
+	* Cleaned up sql-files to use TYPE rather than ENGINE as TYPE is supported
+	  by older MySQL versions and not quite deprecated yet. [Skotlex]
+	* Modified the party even share exp bonus to be +10% per extra party member
+	  as official sources state. [Skotlex]
 	* Organized the clif_devotion packet, and added clif_marionette as per
 	  jA's implementation. [Skotlex]
 	* Added db_path to map_athena.conf, used to specify an alternate directory

@@ -374,7 +374,7 @@ CREATE TABLE `login` (
   `state` int(11) unsigned NOT NULL default '0',
   PRIMARY KEY  (`account_id`),
   KEY `name` (`userid`)
-) ENGINE=InnoDB AUTO_INCREMENT=2000000; 
+) TYPE=InnoDB AUTO_INCREMENT=2000000; 
 
 -- added standard accounts for servers, VERY INSECURE!!!
 -- inserted into the table called login which is above

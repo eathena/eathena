@@ -219,4 +219,4 @@ CREATE TABLE `chatlog` (
   `dst_charname` varchar(25) NOT NULL default '',
   `message` varchar(150) NOT NULL default '',
   PRIMARY KEY  (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 ;
+) TYPE=MyISAM AUTO_INCREMENT=1 ;
