@@ -46,8 +46,8 @@ enum {
 	SC_WEAPONPERFECTION,
 	SC_OVERTHRUST,
 	SC_MAXIMIZEPOWER,
-	SC_RIDING,
-	SC_FALCON,
+	SC_RIDING, //DEPRECATED. We don't remove it yet to avoid screwing up with saved sc_data [Skotlex]
+	SC_FALCON, //DEPRECATED. We don't remove it yet to avoid screwing up with saved sc_data [Skotlex]
 	SC_TRICKDEAD,
 	SC_LOUD,
 	SC_ENERGYCOAT,

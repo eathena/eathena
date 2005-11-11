@@ -4509,7 +4509,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			for(i=0;i<SC_MAX;i++){
 				if (tsc_data[i].timer == -1)
 					continue;
-				if(i==SC_RIDING || i==SC_FALCON || i==SC_HALLUCINATION || i==SC_WEIGHT50 || i==SC_WEIGHT90
+				if(i==SC_HALLUCINATION || i==SC_WEIGHT50 || i==SC_WEIGHT90
 					|| i==SC_STRIPWEAPON || i==SC_STRIPSHIELD || i==SC_STRIPARMOR || i==SC_STRIPHELM
 					|| i==SC_CP_WEAPON || i==SC_CP_SHIELD || i==SC_CP_ARMOR || i==SC_CP_HELM
 					|| i==SC_COMBO || i==SC_DANCING || i==SC_GUILDAURA || i==SC_STEELBODY || i==SC_EDP

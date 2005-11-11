@@ -853,6 +853,7 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 
 	// ステ?タス初期計算など
 	status_calc_pc(sd,1);
+			
 	sd->state.auth = 1; //Do not auth him until the initial stats have been placed.
 	{	//Add IP field
 		unsigned char *ip = (unsigned char *) &session[sd->fd]->client_addr.sin_addr;
@@ -5908,7 +5909,8 @@ int pc_setoption(struct map_session_data *sd,int type)
 				sd->status.class_ = sd->view_class = JOB_BABY_CRUSADER2;
 				break;
 		}
-		status_change_start(&sd->bl,SC_RIDING,0,0,0,0,0,0);
+		clif_status_load(&sd->bl,SI_RIDING,1);
+		status_calc_pc(sd,0); //Mounting/Umounting affects walk speed.
 	}
 	else if (!(type&OPTION_RIDING) && sd->status.option&OPTION_RIDING && (sd->class_&MAPID_BASEMASK) == MAPID_SWORDMAN)
 	{	//We are going to dismount.
@@ -5933,12 +5935,13 @@ int pc_setoption(struct map_session_data *sd,int type)
 				sd->status.class_ = sd->view_class = JOB_BABY_CRUSADER;
 				break;
 		}
-		status_change_end(&sd->bl,SC_RIDING,-1);
+		clif_status_load(&sd->bl,SI_RIDING,0);
+		status_calc_pc(sd,0); //Mounting/Umounting affects walk speed.
 	}
 	if (type&OPTION_FALCON && !(sd->status.option&OPTION_FALCON)) //Falcon ON
-		status_change_start(&sd->bl,SC_FALCON,0,0,0,0,0,0);
+		clif_status_load(&sd->bl,SI_FALCON,1);
 	else if (!(type&OPTION_FALCON) && sd->status.option&OPTION_FALCON) //Falcon OFF
-		status_change_end(&sd->bl,SC_FALCON,-1);
+		clif_status_load(&sd->bl,SI_FALCON,0);
 
 	sd->status.option=type;
 	clif_changeoption(&sd->bl);

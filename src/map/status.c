@@ -474,8 +474,6 @@ void initStatusIconChangeTable() {
 	StatusIconChangeTable[SC_WEAPONPERFECTION]	= SI_WEAPONPERFECTION;
 	StatusIconChangeTable[SC_OVERTHRUST] = SI_OVERTHRUST;
 	StatusIconChangeTable[SC_MAXIMIZEPOWER] = SI_MAXIMIZEPOWER;
-	StatusIconChangeTable[SC_RIDING] = SI_RIDING;
-	StatusIconChangeTable[SC_FALCON] = SI_FALCON;
 	StatusIconChangeTable[SC_TRICKDEAD] = SI_TRICKDEAD;
 	StatusIconChangeTable[SC_LOUD] = SI_LOUD;
 	StatusIconChangeTable[SC_ENERGYCOAT] = SI_ENERGYCOAT;
@@ -1767,7 +1765,12 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	}
 
 // ----- CLIENT-SIDE REFRESH -----
-
+	if(first&1) { //Since this is the initial loading, the Falcon and Peco icons must be loaded. [Skotlex]
+		if (sd->status.option&OPTION_FALCON)
+			clif_status_load(&sd->bl, SI_FALCON, 1);
+		if (sd->status.option&OPTION_RIDING)
+			clif_status_load(&sd->bl, SI_RIDING, 1);
+	}
 	if(first&4)
 		return 0;
 	if(first&3) {
@@ -4150,12 +4153,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			tick = 10;
 			break;
 
-		/* スキルじゃない/時間に?係しない */
-		case SC_RIDING:
-			calc_flag = 1;
-			tick = 600*1000;
-			break;
-		case SC_FALCON:
 		case SC_WEIGHT50:
 		case SC_WEIGHT90:
 		case SC_BROKENWEAPON:
@@ -4631,12 +4628,6 @@ int status_change_end( struct block_list* bl , int type,int tid )
 	nullpo_retr(0, opt2 = status_get_opt2(bl));
 	nullpo_retr(0, opt3 = status_get_opt3(bl));
 
-	
-	if (type == SC_FALCON && (*option)&OPTION_FALCON)
-		return 0; //Falcon state should be removed by removing the option, not ending the status change! [Skotlex]
-	if (type == SC_RIDING && (*option)&OPTION_RIDING)
-		return 0; //Riding state should be removed by removing the option, not ending the status change! [Skotlex]
-
 	if (sc_data[type].timer != -1 && (sc_data[type].timer == tid || tid == -1)) {
 
 		if (tid == -1)	// タイマから呼ばれていないならタイマ削除をする
@@ -4681,7 +4672,6 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			case SC_EXPLOSIONSPIRITS:	// 爆裂波動
 			case SC_STEELBODY:			// 金剛
 			case SC_APPLEIDUN:			/* イドゥンの林檎 */
-			case SC_RIDING:
 			case SC_BLADESTOP_WAIT:
 			case SC_CONCENTRATION:		/* コンセントレ?ション */
 			case SC_ASSUMPTIO:			/* アシャンプティオ */
@@ -5228,8 +5218,6 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 	// Status changes that don't have a time limit
 	case SC_AETERNA:
 	case SC_TRICKDEAD:
-	case SC_RIDING:
-	case SC_FALCON:
 	case SC_WEIGHT50:
 	case SC_WEIGHT90:
 	case SC_MAGICPOWER:

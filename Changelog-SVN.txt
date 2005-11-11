@@ -1,5 +1,9 @@
 Date	Added
 2005/11/11
+	* Removed SC_FALCON and SC_RIDING, the status icons are directly managed
+	  through the change of the character's option now. The actual defines were
+	  not removed to avoid shifting all the SC_ values again (no need to wipe sc
+	  data) [Skotlex]
 	* Added additional debug information to battle_attr_fix until the cause of
 	  those errors are found and resolved. [Skotlex]
 	* Fixed win32 compiles always reporting "unable to set socket to
