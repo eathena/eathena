@@ -6346,18 +6346,43 @@ int clif_autospell(struct map_session_data *sd,int skilllv)
 int clif_devotion(struct map_session_data *sd)
 {
 	unsigned char buf[56];
-	int n;
+	int i,n;
 
 	nullpo_retr(0, sd);
 
 	WBUFW(buf,0)=0x1cf;
 	WBUFL(buf,2)=sd->bl.id;
-	for(n=0;n<5;n++)
-		WBUFL(buf,6+4*n)=sd->devotion[n];
+	for(i=0,n=0;i<5;i++) {
+		if (!sd->devotion[i])
+			continue;
+		WBUFL(buf,6+4*n)=sd->devotion[i];
+		n++;
+	}
+	for(;n<5;n++)
+		WBUFL(buf,6+4*n)=0;
+		
 	WBUFB(buf,26)=8;
 	WBUFB(buf,27)=0;
 
 	clif_send(buf,packet_len_table[0x1cf],&sd->bl,AREA);
+	return 0;
+}
+
+int clif_marionette(struct block_list *src, struct block_list *target)
+{
+	unsigned char buf[56];
+	int n;
+
+	WBUFW(buf,0)=0x1cf;
+	WBUFL(buf,2)=src->id;
+	for(n=0;n<5;n++)
+		WBUFL(buf,6+4*n)=0;
+	if (target) //The target goes on the second slot.
+		WBUFL(buf,6+4) = target->id;
+	WBUFB(buf,26)=8;
+	WBUFB(buf,27)=0;
+
+	clif_send(buf,packet_len_table[0x1cf],src,AREA);
 	return 0;
 }
 

@@ -3447,7 +3447,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 		
 	case CG_MARIONETTE:		/* ƒ}ƒŠƒIƒlƒbƒgƒRƒ“ƒgƒ??ƒ‹ */
-		if (sd && dstsd){
+		{
 			struct status_change *sc_data = status_get_sc_data(src);
 			struct status_change *tsc_data = status_get_sc_data(bl);
 			int sc = SkillStatusChangeTable[skillid];
@@ -3457,14 +3457,16 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				if (sc_data[sc].timer == -1 && tsc_data[sc2].timer == -1) {
 					status_change_start (src,sc,skilllv,0,bl->id,0,skill_get_time(skillid,skilllv),0);
 					status_change_start (bl,sc2,skilllv,0,src->id,0,skill_get_time(skillid,skilllv),0);
+					clif_marionette(src, bl);
 				}
 				else if (sc_data[sc].timer != -1 && tsc_data[sc2].timer != -1 &&
 					sc_data[sc].val3 == bl->id && tsc_data[sc2].val3 == src->id) {
 					status_change_end(src, sc, -1);
 					status_change_end(bl, sc2, -1);
+					clif_marionette(src, 0);
 				}
 				else {
-					clif_skill_fail(sd,skillid,0,0);
+					if (sd) clif_skill_fail(sd,skillid,0,0);
 					map_freeblock_unlock();
 					return 1;
 				}

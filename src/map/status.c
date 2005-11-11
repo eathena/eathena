@@ -4855,6 +4855,8 @@ int status_change_end( struct block_list* bl , int type,int tid )
 						if ((sc_data = status_get_sc_data(pbl)) && sc_data[type2].timer != -1)
 							status_change_end(pbl, type2, -1);
 					}
+					if (type == SC_MARIONETTE)
+						clif_marionette(bl, 0); 
 					calc_flag = 1;
 				}
 				break;
