@@ -322,7 +322,7 @@ static int connect_client(int listen_fd)
 #ifdef __WIN32
 	{
 		unsigned long val = 1;
-		if (ioctlsocket(fd, FIONBIO, &val) != 0);
+		if (ioctlsocket(fd, FIONBIO, &val) != 0)
 			ShowError("Couldn't set the socket to non-blocking mode (code %d)!\n", WSAGetLastError());
 	}
 #else
@@ -359,7 +359,7 @@ int make_listen_port(int port)
 #ifdef __WIN32
 	{
 		unsigned long val = 1;
-		if (ioctlsocket(fd, FIONBIO, &val) != 0);
+		if (ioctlsocket(fd, FIONBIO, &val) != 0)
 			ShowError("Couldn't set the socket to non-blocking mode (code %d)!\n", WSAGetLastError());
 	}
 #else
@@ -411,7 +411,7 @@ int make_listen_bind(long ip,int port)
 #ifdef __WIN32
 	{
 	  	unsigned long val = 1;
-		if (ioctlsocket(fd, FIONBIO, &val) != 0);
+		if (ioctlsocket(fd, FIONBIO, &val) != 0)
 			ShowError("Couldn't set the socket to non-blocking mode (code %d)!\n", WSAGetLastError());
 	}
 #else
@@ -560,7 +560,7 @@ int make_connection(long ip,int port)
 #ifdef __WIN32
 	{
 		unsigned long val = 1;
-		if (ioctlsocket(fd, FIONBIO, &val) != 0);
+		if (ioctlsocket(fd, FIONBIO, &val) != 0)
 			ShowError("Couldn't set the socket to non-blocking mode (code %d)!\n", WSAGetLastError());
 	}
 #else

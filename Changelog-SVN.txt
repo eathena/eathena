@@ -1,4 +1,7 @@
 Date	Added
+2005/11/11
+	* Fixed win32 compiles always reporting "unable to set socket to
+	  non-blocking mode", together with other minor win32 fixes. [Skotlex]
 2005/11/10
 	* Fixed char-sql cart loading. [Skotlex]
 	* Updated the function that specifies the cards to support more than four

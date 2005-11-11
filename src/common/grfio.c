@@ -33,7 +33,7 @@
 
 #define CHUNK 16384
 
-#ifdef _WIN32
+#ifdef __WIN32
 	#include "../zlib/zlib.h"
 	#include "../zlib/iowin32.h"
 	#include "../common/plugins.h"

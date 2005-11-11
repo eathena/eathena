@@ -488,8 +488,8 @@ void initStatusIconChangeTable() {
 	StatusIconChangeTable[SC_ASPDPOTION1] = SI_ASPDPOTION;
 	StatusIconChangeTable[SC_ASPDPOTION2] = SI_ASPDPOTION;
 	StatusIconChangeTable[SC_ASPDPOTION3] = SI_ASPDPOTION;
-	StatusIconChangeTable[SC_SPEEDUP0] = SI_INCREASEAGI;
-	StatusIconChangeTable[SC_SPEEDUP1] = SI_INCREASEAGI;
+	StatusIconChangeTable[SC_SPEEDUP0] = SI_SPEEDPOTION;
+	StatusIconChangeTable[SC_SPEEDUP1] = SI_SPEEDPOTION;
 	StatusIconChangeTable[SC_STRIPWEAPON] = SI_STRIPWEAPON;
 	StatusIconChangeTable[SC_STRIPSHIELD] = SI_STRIPSHIELD;
 	StatusIconChangeTable[SC_STRIPARMOR] = SI_STRIPARMOR;
