@@ -102,9 +102,10 @@ static int itemdb_readdb(void)
 	char *str[128],*p,*np;
 	struct item_data *id;
 
-	fp=fopen("db/item_db.txt","r");
+	sprintf(line, "%s/item_db.txt", db_path);
+	fp=fopen(line,"r");
 	if(fp==NULL){
-		ShowError("can't read db/item_db.txt\n");
+		ShowError("can't read %s\n", str);
 		exit(1);
 	}
 	while(fgets(line,1020,fp)){
@@ -132,7 +133,7 @@ static int itemdb_readdb(void)
 
 	}
 	fclose(fp);
-	ShowStatus("done reading db/item_db.txt (count=%d)\n",ln);
+	ShowStatus("done reading item_db.txt (count=%d)\n",ln);
 	return 0;
 }
 

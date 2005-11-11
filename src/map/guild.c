@@ -103,8 +103,9 @@ static int guild_read_castledb(void)
 	char *str[32],*p;
 	struct guild_castle *gc;
 
-	if( (fp=fopen("db/castle_db.txt","r"))==NULL){
-		ShowError("can't read db/castle_db.txt\n");
+	sprintf(line, "%s/castle_db.txt", db_path);
+	if( (fp=fopen(line,"r"))==NULL){
+		ShowError("can't read %s\n", line);
 		return -1;
 	}
 
@@ -136,7 +137,7 @@ static int guild_read_castledb(void)
 		ln++;
 	}
 	fclose(fp);
-	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",ln,"db/castle_db.txt");
+	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",ln,"castle_db.txt");
 	return 0;
 }
 

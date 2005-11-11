@@ -656,9 +656,10 @@ int inter_guild_readdb()
 	char line[1024];
 	for (i=0;i<100;i++) guild_exp[i]=0;
 
-	fp=fopen("db/exp_guild.txt","r");
+	sprintf(line, "%s/exp_guild.txt", db_path);
+	fp=fopen(line,"r");
 	if(fp==NULL){
-		ShowError("can't read db/exp_guild.txt\n");
+		ShowError("can't read %s\n", line);
 		return 1;
 	}
 	i=0;

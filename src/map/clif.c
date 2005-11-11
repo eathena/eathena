@@ -10905,8 +10905,9 @@ static int packetdb_readdb(void)
 		{NULL,NULL}
 	};
 
-	if( (fp=fopen("db/packet_db.txt","r"))==NULL ){
-		ShowFatalError("can't read db/packet_db.txt\n");
+	sprintf(line, "%s/packet_db.txt", db_path);
+	if( (fp=fopen(line,"r"))==NULL ){
+		ShowFatalError("can't read %s\n", line);
 		exit(1);
 	}
 
@@ -11012,7 +11013,7 @@ static int packetdb_readdb(void)
 		
 		clif_config.packet_db_ver = j?j:MAX_PACKET_VER;
 	}
-	ShowStatus("Done reading packet database from '"CL_WHITE"%s"CL_RESET"'. Using default packet version: "CL_WHITE"%d"CL_RESET".\n", "db/packet_db.txt", clif_config.packet_db_ver);
+	ShowStatus("Done reading packet database from '"CL_WHITE"%s"CL_RESET"'. Using default packet version: "CL_WHITE"%d"CL_RESET".\n", "packet_db.txt", clif_config.packet_db_ver);
 	return 0;
 }
 

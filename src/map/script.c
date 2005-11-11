@@ -1975,9 +1975,10 @@ static void read_constdb(void)
 	char line[1024],name[1024];
 	int val,n,i,type;
 
-	fp=fopen("db/const.txt","r");
+	sprintf(line, "%s/const.txt", db_path);
+	fp=fopen(line, "r");
 	if(fp==NULL){
-		ShowError("can't read db/const.txt\n");
+		ShowError("can't read %s\n", line);
 		return ;
 	}
 	while(fgets(line,1020,fp)){

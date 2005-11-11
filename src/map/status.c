@@ -5550,11 +5550,12 @@ static int status_calc_sigma(void)
 int status_readdb(void) {
 	int i,j;
 	FILE *fp;
-	char line[1024],*p;
+	char line[1024], path[1024],*p;
 
-	fp=fopen("db/job_db1.txt","r"); // Job-specific values (weight, HP, SP, ASPD)
+	sprintf(path, "%s/job_db1.txt", db_path);
+	fp=fopen(path,"r"); // Job-specific values (weight, HP, SP, ASPD)
 	if(fp==NULL){
-		ShowError("can't read db/job_db1.txt\n");
+		ShowError("can't read %s\n", path);
 		return 1;
 	}
 	while(fgets(line, sizeof(line)-1, fp)){
@@ -5578,12 +5579,13 @@ int status_readdb(void) {
 			aspd_base[atoi(split[0])][j]=atoi(split[j+5]);
 	}
 	fclose(fp);
-	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/job_db1.txt");
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","job_db1.txt");
 
 	memset(job_bonus,0,sizeof(job_bonus)); // Job-specific stats bonus
-	fp=fopen("db/job_db2.txt","r");
+	sprintf(path, "%s/job_db2.txt", db_path);
+	fp=fopen(path,"r");
 	if(fp==NULL){
-		ShowError("can't read db/job_db2.txt\n");
+		ShowError("can't read %s\n", path);
 		return 1;
 	}
 	while(fgets(line, sizeof(line)-1, fp)){
@@ -5601,15 +5603,16 @@ int status_readdb(void) {
 			job_bonus[atoi(split[0])][i-1]=atoi(split[i]);
 	}
 	fclose(fp);
-	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/job_db2.txt");
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n",path);
 
 	// サイズ補正テ?ブル
 	for(i=0;i<3;i++)
 		for(j=0;j<20;j++)
 			atkmods[i][j]=100;
-	fp=fopen("db/size_fix.txt","r");
+	sprintf(path, "%s/size_fix.txt", db_path);
+	fp=fopen(path,"r");
 	if(fp==NULL){
-		ShowError("can't read db/size_fix.txt\n");
+		ShowError("can't read %s\n", path);
 		return 1;
 	}
 	i=0;
@@ -5630,7 +5633,7 @@ int status_readdb(void) {
 		i++;
 	}
 	fclose(fp);
-	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/size_fix.txt");
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n",path);
 
 	// 精?デ?タテ?ブル
 	for(i=0;i<5;i++){
@@ -5641,9 +5644,11 @@ int status_readdb(void) {
 		refinebonus[i][1]=0;
 		refinebonus[i][2]=10;
 	}
-	fp=fopen("db/refine_db.txt","r");
+
+	sprintf(path, "%s/refine_db.txt", db_path);
+	fp=fopen(path,"r");
 	if(fp==NULL){
-		ShowError("can't read db/refine_db.txt\n");
+		ShowError("can't read %s\n", path);
 		return 1;
 	}
 	i=0;
@@ -5667,7 +5672,7 @@ int status_readdb(void) {
 		i++;
 	}
 	fclose(fp); //Lupus. close this file!!!
-	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/refine_db.txt");
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n",path);
 
 	return 0;
 }

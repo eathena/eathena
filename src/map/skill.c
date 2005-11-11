@@ -10724,14 +10724,15 @@ int skill_readdb(void)
 {
 	int i,j,k,l,m;
 	FILE *fp;
-	char line[1024],*p;
-	char *filename[]={"db/produce_db.txt","db/produce_db2.txt"};
+	char line[1024],path[1024],*p;
+	char *filename[]={"produce_db.txt","produce_db2.txt"};
 
 	/* スキルデ?タベ?ス */
 	memset(skill_db,0,sizeof(skill_db));
-	fp=fopen("db/skill_db.txt","r");
+	sprintf(path, "%s/skill_db.txt", db_path);
+	fp=fopen(path,"r");
 	if(fp==NULL){
-		ShowError("can't read db/skill_db.txt\n");
+		ShowError("can't read %s\n", path);
 		return 1;
 	}
 	while(fgets(line,1020,fp)){
@@ -10748,7 +10749,6 @@ int skill_readdb(void)
 		else if(i<=0 || i>MAX_SKILL_DB)
 			continue;
 
-/*		printf("skill id=%d\n",i); */
 		skill_split_atoi(split[1],skill_db[i].range);
 		skill_db[i].hit=atoi(split[2]);
 		skill_db[i].inf=atoi(split[3]);
@@ -10782,11 +10782,12 @@ int skill_readdb(void)
 			}
 	}
 	fclose(fp);
-	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/skill_db.txt");
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n",path);
 
-	fp=fopen("db/skill_require_db.txt","r");
+	sprintf(path, "%s/skill_require_db.txt", db_path);
+	fp=fopen(path,"r");
 	if(fp==NULL){
-		ShowError("can't read db/skill_require_db.txt\n");
+		ShowError("can't read %s\n", path);
 		return 1;
 	}
 	while(fgets(line,1020,fp)){
@@ -10863,12 +10864,14 @@ int skill_readdb(void)
 		skill_db[i].amount[9]=atoi(split[29]);
 	}
 	fclose(fp);
-	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/skill_require_db.txt");
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n",path);
 
 	/* キャスティングデ?タベ?ス */
-	fp=fopen("db/skill_cast_db.txt","r");
+
+	sprintf(path, "%s/skill_cast_db.txt", db_path);
+	fp=fopen(path,"r");
 	if(fp==NULL){
-		ShowError("can't read db/skill_cast_db.txt\n");
+		ShowError("can't read %s\n", path);
 		return 1;
 	}
 	while(fgets(line,1020,fp)){
@@ -10892,12 +10895,14 @@ int skill_readdb(void)
 		skill_split_atoi(split[4],skill_db[i].upkeep_time2);
 	}
 	fclose(fp);
-	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/skill_cast_db.txt");
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n",path);
 
 	/* スキルユニットデ?[タベ?[ス */
-	fp = fopen("db/skill_unit_db.txt","r");
+
+	sprintf(path, "%s/skill_unit_db.txt", db_path);
+	fp=fopen(path,"r");
 	if (fp==NULL) {
-		ShowError("can't read db/skill_unit_db.txt\n");
+		ShowError("can't read %s\n", path);
 		return 1;
 	}
         k = 0;
@@ -10934,17 +10939,18 @@ int skill_readdb(void)
 		k++;
 	}
 	fclose(fp);
-	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/skill_unit_db.txt");
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n",path);
 	skill_init_unit_layout();
 
 	/* ?ｻ造系スキルデ?タベ?ス */
 	memset(skill_produce_db,0,sizeof(skill_produce_db));
 	for(m=0;m<2;m++){
-		fp=fopen(filename[m],"r");
+		sprintf(path, "%s/%s", db_path, filename[m]);
+		fp=fopen(path,"r");
 		if(fp==NULL){
 			if(m>0)
 				continue;
-			ShowError("can't read %s\n",filename[m]);
+			ShowError("can't read %s\n",path);
 			return 1;
 		}
 		k=0;
@@ -10973,13 +10979,15 @@ int skill_readdb(void)
 				break;
 		}
 		fclose(fp);
-		ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",k,filename[m]);
+		ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",k,path);
 	}
 
 	memset(skill_arrow_db,0,sizeof(skill_arrow_db));
-	fp=fopen("db/create_arrow_db.txt","r");
+
+	sprintf(path, "%s/create_arrow_db.txt", db_path);
+	fp=fopen(path,"r");
 	if(fp==NULL){
-		ShowError("can't read db/create_arrow_db.txt\n");
+		ShowError("can't read %s\n", path);
 		return 1;
 	}
 	k=0;
@@ -11007,12 +11015,13 @@ int skill_readdb(void)
 			break;
 	}
 	fclose(fp);
-	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",k,"db/create_arrow_db.txt");
+	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",k,path);
 
 	memset(skill_abra_db,0,sizeof(skill_abra_db));
-	fp=fopen("db/abra_db.txt","r");
+	sprintf(path, "%s/abra_db.txt", db_path);
+	fp=fopen(path,"r");
 	if(fp==NULL){
-		ShowError("can't read db/abra_db.txt\n");
+		ShowError("can't read %s\n", path);
 		return 1;
 	}
 	k=0;
@@ -11036,11 +11045,12 @@ int skill_readdb(void)
 			break;
 	}
 	fclose(fp);
-	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",k,"db/abra_db.txt");
+	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",k,path);
 
-	fp=fopen("db/skill_castnodex_db.txt","r");
+	sprintf(path, "%s/skill_castnodex_db.txt", db_path);
+	fp=fopen(path,"r");
 	if(fp==NULL){
-		ShowError("can't read db/skill_castnodex_db.txt\n");
+		ShowError("can't read %s\n", path);
 		return 1;
 	}
 	while(fgets(line,1020,fp)){
@@ -11066,11 +11076,12 @@ int skill_readdb(void)
 		skill_split_atoi(split[3],skill_db[i].delaynowalk);
 	}
 	fclose(fp);
-	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/skill_castnodex_db.txt");
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n",path);
 
-	fp=fopen("db/skill_nocast_db.txt","r");
+	sprintf(path, "%s/skill_nocast_db.txt", db_path);
+	fp=fopen(path,"r");
 	if(fp==NULL){
-		ShowError("can't read db/skill_nocast_db.txt\n");
+		ShowError("can't read %s\n", path);
 		return 1;
 	}
 	k=0;
@@ -11091,7 +11102,7 @@ int skill_readdb(void)
 		k++;
 	}
 	fclose(fp);
-	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/skill_nocast_db");
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n",path);
 
 	return 0;
 }

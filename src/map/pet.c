@@ -1882,16 +1882,17 @@ int read_petdb()
 	int nameid,i,k; 
 	int j=0;
 	int lines;
-	char *filename[]={"db/pet_db.txt","db/pet_db2.txt"};
+	char *filename[]={"pet_db.txt","pet_db2.txt"};
 	char *str[32],*p,*np;
 	
 	memset(pet_db,0,sizeof(pet_db));
 	for(i=0;i<2;i++){
-		fp=fopen(filename[i],"r");
+		sprintf(line, "%s/%s", db_path, filename[i]);
+		fp=fopen(line,"r");
 		if(fp==NULL){
 			if(i>0)
 				continue;
-			ShowError("can't read %s\n",filename[i]);
+			ShowError("can't read %s\n",line);
 			return -1;
 		}
 		lines = 0;

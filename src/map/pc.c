@@ -7620,9 +7620,10 @@ int pc_readdb(void)
 
 	// 必要??値?み?み
 	memset(exp_table,0,sizeof(exp_table));
-	fp=fopen("db/exp.txt","r");
+	sprintf(line, "%s/exp.txt", db_path);
+	fp=fopen(line, "r");
 	if(fp==NULL){
-		ShowError("can't read db/exp.txt\n");
+		ShowError("can't read %s\n", line);
 		return 1;
 	}
 	i=0;
@@ -7685,13 +7686,14 @@ int pc_readdb(void)
 		}
 	}
 	fclose(fp);
-	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/exp.txt");
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","exp.txt");
 
 	// スキルツリ?
 	memset(skill_tree,0,sizeof(skill_tree));
-	fp=fopen("db/skill_tree.txt","r");
+	sprintf(line, "%s/skill_tree.txt", db_path);
+	fp=fopen(line,"r");
 	if(fp==NULL){
-		ShowError("can't read db/skill_tree.txt\n");
+		ShowError("can't read %s\n", line);
 		return 1;
 	}
 
@@ -7731,16 +7733,18 @@ int pc_readdb(void)
 		}
 	}
 	fclose(fp);
-	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/skill_tree.txt");
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","skill_tree.txt");
 
 	// ?性修正テ?ブル
 	for(i=0;i<4;i++)
 		for(j=0;j<10;j++)
 			for(k=0;k<10;k++)
 				attr_fix_table[i][j][k]=100;
-	fp=fopen("db/attr_fix.txt","r");
+
+	sprintf(line, "%s/attr_fix.txt", db_path);
+	fp=fopen(line,"r");
 	if(fp==NULL){
-		ShowError("can't read db/attr_fix.txt\n");
+		ShowError("can't read %s\n", line);
 		return 1;
 	}
 	while(fgets(line, sizeof(line)-1, fp)){
@@ -7776,15 +7780,16 @@ int pc_readdb(void)
 		}
 	}
 	fclose(fp);
-	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/attr_fix.txt");
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","attr_fix.txt");
 
 	// スキルツリ?
 	memset(statp,0,sizeof(statp));
 	i=1;
 	j=45;	// base points
-	fp=fopen("db/statpoint.txt","r");
+	sprintf(line, "%s/statpoint.txt", db_path);
+	fp=fopen(line,"r");
 	if(fp == NULL){
-		ShowStatus("Can't read '"CL_WHITE"%s"CL_RESET"'... Generating DB.\n","db/statpoint.txt");
+		ShowStatus("Can't read '"CL_WHITE"%s"CL_RESET"'... Generating DB.\n",line);
 		//return 1;
 	} else {
 		while(fgets(line, sizeof(line)-1, fp)){
@@ -7798,7 +7803,7 @@ int pc_readdb(void)
 			i++;
 		}
 		fclose(fp);
-		ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/statpoint.txt");
+		ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","statpoint.txt");
 	}
 	// generate the remaining parts of the db if necessary
 	for (; i < MAX_LEVEL; i++) {

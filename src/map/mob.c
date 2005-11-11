@@ -3816,19 +3816,19 @@ static int mob_drop_adjust(int rate, int rate_adjust, int rate_min, int rate_max
 	return (rate>rate_max)?rate_max:((rate<rate_min)?rate_min:rate);
 }
 /*==========================================
- * db/mob_db.txt reading
+ * mob_db.txt reading
  *------------------------------------------
  */
 static int mob_readdb(void)
 {
 	FILE *fp;
 	char line[1024];
-	char *filename[]={ "db/mob_db.txt","db/mob_db2.txt" };
+	char *filename[]={ "mob_db.txt","mob_db2.txt" };
 	int class_, i, fi;
 
 	for(fi=0;fi<2;fi++){
-
-		fp=fopen(filename[fi],"r");
+		sprintf(line, "%s/%s", db_path, filename[fi]);
+		fp=fopen(line,"r");
 		if(fp==NULL){
 			if(fi>0)
 				continue;
@@ -4015,8 +4015,9 @@ static int mob_readdb_mobavail(void)
 	int class_,j,k;
 	char *str[20],*p,*np;
 
-	if( (fp=fopen("db/mob_avail.txt","r"))==NULL ){
-		ShowError("can't read db/mob_avail.txt\n");
+	sprintf(line, "%s/mob_avail.txt", db_path);
+	if( (fp=fopen(line,"r"))==NULL ){
+		ShowError("can't read %s\n", line);
 		return -1;
 	}
 
@@ -4068,7 +4069,7 @@ static int mob_readdb_mobavail(void)
 		ln++;
 	}
 	fclose(fp);
-	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",ln,"db/mob_avail.txt");
+	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",ln,"mob_avail.txt");
 	return 0;
 }
 
@@ -4084,15 +4085,16 @@ static int mob_read_randommonster(void)
 	int i,j;
 
 	const char* mobfile[] = {
-		"db/mob_branch.txt",
-		"db/mob_poring.txt",
-		"db/mob_boss.txt" };
+		"mob_branch.txt",
+		"mob_poring.txt",
+		"mob_boss.txt" };
 
 	for(i=0;i<MAX_RANDOMMONSTER;i++){
 		mob_db_data[0]->summonper[i] = 1002;	// ê›íËÇµñYÇÍÇΩèÍçáÇÕÉ|ÉäÉìÇ™èoÇÈÇÊÇ§Ç…ÇµÇƒÇ®Ç≠
-		fp=fopen(mobfile[i],"r");
+		sprintf(line, "%s/%s", db_path, mobfile[i]);
+		fp=fopen(line,"r");
 		if(fp==NULL){
-			ShowError("can't read %s\n",mobfile[i]);
+			ShowError("can't read %s\n",line);
 			return -1;
 		}
 		while(fgets(line,1020,fp)){
@@ -4121,7 +4123,7 @@ static int mob_read_randommonster(void)
 }
 
 /*==========================================
- * db/mob_skill_db.txt reading
+ * mob_skill_db.txt reading
  *------------------------------------------
  */
 static int mob_readskilldb(void)
@@ -4191,14 +4193,14 @@ static int mob_readskilldb(void)
 	};
 
 	int x;
-	char *filename[]={ "db/mob_skill_db.txt","db/mob_skill_db2.txt" };
+	char *filename[]={ "mob_skill_db.txt","mob_skill_db2.txt" };
 
 	for(x=0;x<2;x++){
-
-		fp=fopen(filename[x],"r");
+		sprintf(line, "%s/%s", db_path, filename[x]); 
+		fp=fopen(line,"r");
 		if(fp==NULL){
 			if(x==0)
-				ShowError("can't read %s\n",filename[x]);
+				ShowError("can't read %s\n",line);
 			continue;
 		}
 		while(fgets(line,1020,fp)){
@@ -4330,7 +4332,7 @@ static int mob_readskilldb(void)
 	return 0;
 }
 /*==========================================
- * db/mob_race_db.txt reading
+ * mob_race_db.txt reading
  *------------------------------------------
  */
 static int mob_readdb_race(void)
@@ -4340,8 +4342,9 @@ static int mob_readdb_race(void)
 	int race,j,k;
 	char *str[20],*p,*np;
 
-	if( (fp=fopen("db/mob_race2_db.txt","r"))==NULL ){
-		ShowError("can't read db/mob_race2_db.txt\n");
+	sprintf(line, "%s/mob_race2_db.txt", db_path);
+	if( (fp=fopen(line,"r"))==NULL ){
+		ShowError("can't read %s\n", line);
 		return -1;
 	}
 	
@@ -4375,7 +4378,7 @@ static int mob_readdb_race(void)
 		}
 	}
 	fclose(fp);
-	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/mob_race2_db.txt");
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","mob_race2_db.txt");
 	return 0;
 }
 

@@ -177,6 +177,7 @@ struct charid2nick {
 int  map_read_flag = READ_FROM_GAT;
 char map_cache_file[256]="db/map.info"; // «Ş«Ã«×«­«ã«Ã«·«å«Õ«¡«¤«E£
 
+char db_path[256] = "db";
 char motd_txt[256] = "conf/motd.txt";
 char help_txt[256] = "conf/help.txt";
 
@@ -2938,6 +2939,8 @@ int map_config_read(char *cfgName) {
 					map_read_flag = READ_FROM_GAT;
 			} else if(strcmpi(w1,"map_cache_file") == 0) {
 				strncpy(map_cache_file,w2,255);
+			} else if(strcmpi(w1,"db_path") == 0) {
+				strncpy(db_path,w2,255);
 			} else if(strcmpi(w1,"afm_dir") == 0) {
 				strcpy(afm_dir, w2);
 			} else if (strcmpi(w1, "console") == 0) {

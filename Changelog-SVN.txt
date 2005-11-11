@@ -1,5 +1,7 @@
 Date	Added
 2005/11/11
+	* Added db_path to map_athena.conf, used to specify an alternate directory
+	  to locate the db/ files. Defaults to "db", obviously. [Skotlex]
 	* Removed SC_FALCON and SC_RIDING, the status icons are directly managed
 	  through the change of the character's option now. The actual defines were
 	  not removed to avoid shifting all the SC_ values again (no need to wipe sc

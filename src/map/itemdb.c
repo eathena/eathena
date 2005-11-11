@@ -346,12 +346,12 @@ static int itemdb_read_randomitem()
 		struct random_item_data *pdata;
 		int *pcount,*pdefault;
 	} data[] = {
-		{"db/item_bluebox.txt",		blue_box,	&blue_box_count, &blue_box_default		},
-		{"db/item_violetbox.txt",	violet_box,	&violet_box_count, &violet_box_default	},
-		{"db/item_cardalbum.txt",	card_album,	&card_album_count, &card_album_default	},
-		{"db/item_giftbox.txt",		gift_box,	&gift_box_count, &gift_box_default	},
-		{"db/item_scroll.txt",		scroll,		&scroll_count, &scroll_default	},
-		{"db/item_findingore.txt",	finding_ore,&finding_ore_count, &finding_ore_default	},
+		{"item_bluebox.txt",		blue_box,	&blue_box_count, &blue_box_default		},
+		{"item_violetbox.txt",	violet_box,	&violet_box_count, &violet_box_default	},
+		{"item_cardalbum.txt",	card_album,	&card_album_count, &card_album_default	},
+		{"item_giftbox.txt",		gift_box,	&gift_box_count, &gift_box_default	},
+		{"item_scroll.txt",		scroll,		&scroll_count, &scroll_default	},
+		{"item_findingore.txt",	finding_ore,&finding_ore_count, &finding_ore_default	},
 	};
 
 	for(i=0;i<sizeof(data)/sizeof(data[0]);i++){
@@ -361,8 +361,9 @@ static int itemdb_read_randomitem()
 		char *fn=(char *) data[i].filename;
 
 		*pdefault = 0;
-		if( (fp=fopen(fn,"r"))==NULL ){
-			ShowError("can't read %s\n",fn);
+		sprintf(line, "%s/%s", db_path, fn);
+		if( (fp=fopen(line,"r"))==NULL ){
+			ShowError("can't read %s\n",line);
 			continue;
 		}
 
@@ -417,8 +418,9 @@ static int itemdb_read_itemavail (void)
 	char line[1024], *str[10], *p;
 	struct item_data *id;
 
-	if ((fp = fopen("db/item_avail.txt","r")) == NULL) {
-		ShowError("can't read db/item_avail.txt\n");
+	sprintf(line, "%s/item_avail.txt", db_path);
+	if ((fp = fopen(line,"r")) == NULL) {
+		ShowError("can't read %s\n", line);
 		return -1;
 	}
 
@@ -445,7 +447,7 @@ static int itemdb_read_itemavail (void)
 		ln++;
 	}
 	fclose(fp);
-	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", ln, "db/item_avail.txt");
+	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", ln, "item_avail.txt");
 
 	return 0;
 }
@@ -462,8 +464,9 @@ static int itemdb_read_itemgroup(void)
 	int groupid,j,k;
 	char *str[31],*p;
 
-	if( (fp=fopen("db/item_group_db.txt","r"))==NULL ){
-		ShowError("can't read db/item_group_db.txt\n");
+	sprintf(line, "%s/item_group_db.txt", db_path);
+	if( (fp=fopen(line,"r"))==NULL ){
+		ShowError("can't read %s\n", line);
 		return -1;
 	}
 
@@ -505,7 +508,7 @@ static int itemdb_read_itemgroup(void)
 		ln++;
 	}
 	fclose(fp);
-	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",ln,"db/item_group_db.txt");
+	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",ln,"item_group_db.txt");
 	return 0;
 }
 
@@ -669,8 +672,9 @@ static int itemdb_read_noequip(void)
 	char *str[32],*p;
 	struct item_data *id;
 
-	if( (fp=fopen("db/item_noequip.txt","r"))==NULL ){
-		ShowError("can't read db/item_noequip.txt\n");
+	sprintf(line, "%s/item_noequip.txt", db_path);
+	if( (fp=fopen(line,"r"))==NULL ){
+		ShowError("can't read %s\n", line);
 		return -1;
 	}
 	while(fgets(line,1020,fp)){
@@ -696,7 +700,7 @@ static int itemdb_read_noequip(void)
 	}
 	fclose(fp);
 	if (ln > 0) {
-		ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",ln,"db/item_noequip.txt");
+		ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",ln,"item_noequip.txt");
 	}	
 	return 0;
 }
@@ -712,8 +716,9 @@ static int itemdb_read_itemtrade(void)
 	char line[1024], *str[10], *p;
 	struct item_data *id;
 
-	if ((fp = fopen("db/item_trade.txt","r")) == NULL) {
-		ShowError("can't read db/item_trade.txt\n");
+	sprintf(line, "%s/item_trade.txt", db_path);
+	if ((fp = fopen(line,"r")) == NULL) {
+		ShowError("can't read %s\n", line);
 		return -1;
 	}
 
@@ -741,7 +746,7 @@ static int itemdb_read_itemtrade(void)
 		}
 	}
 	fclose(fp);
-	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", ln, "db/item_trade.txt");
+	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", ln, "item_trade.txt");
 
 	return 0;
 }
@@ -912,15 +917,15 @@ static int itemdb_readdb(void)
 	char *str[32],*p,*np;
 	struct item_data *id;
 	int i=0;
-	char *filename[]={ "db/item_db.txt","db/item_db2.txt" };
+	char *filename[]={ "item_db.txt","item_db2.txt" };
 
 	for(i=0;i<2;i++){
-
-		fp=fopen(filename[i],"r");
+		sprintf(line, "%s/%s", db_path, filename[i]);
+		fp=fopen(line,"r");
 		if(fp==NULL){
 			if(i>0)
 				continue;
-			ShowFatalError("can't read %s\n",filename[i]);
+			ShowFatalError("can't read %s\n",line);
 			exit(1);
 		}
 
