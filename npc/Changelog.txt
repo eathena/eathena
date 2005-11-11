@@ -28,6 +28,9 @@ Nexon
 Date		Added
 ======
 11/10
+	* Updated swordsman_skills.txt to allow any swordsman subclass to be able to get the [MasterOfMuppets]
+	  skills as well, thanks to vicious_pucca.
+	* Fixed npc sprites for the cooking quest npcs, thanks to Silent for the sprite IDs [MasterOfMuppets]
 	* Added Cooking Quest. Thanks to Reddozen [Lupus]
 	* Added reddozen's fix of Alchemist.txt (Materials / Manuals) [Lupus]
 	* Fixed Juperos Elevator, coords of Twin Tower NPC, Mr.Smile. Thanks to Justin84 [Lupus]

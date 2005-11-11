@@ -12,7 +12,7 @@
 //= 1.1 Fixed wrong item ID, added missing ";, optimized [Lupus]
 //============================================================ 
 
-prt_castle.gat,43,30,6	script	Chef Apprentice	105,{
+prt_castle.gat,43,30,6	script	Chef Apprentice	878,{
 
 	if(cooking == 2){
 		mes "[Chef's Apprentice]";
@@ -266,7 +266,7 @@ prt_castle.gat,43,30,6	script	Chef Apprentice	105,{
 }
 
 
-payon.gat,209,127,4	script	Cooking Friend	105,{
+payon.gat,209,127,4	script	Cooking Friend	88,{
 
 	if(cooking == 5){
 		mes "[Cooking Friend]";
@@ -287,7 +287,7 @@ payon.gat,209,127,4	script	Cooking Friend	105,{
 }
 
 
-prt_castle.gat,45,35,4	script	Sharle	105,{
+prt_castle.gat,45,35,4	script	Sharle	886,{
 
 	if(cooking == 7) goto L_Cooking_7;
 
