@@ -9318,11 +9318,11 @@ void clif_parse_RepairItem(int fd, struct map_session_data *sd)
  *------------------------------------------
  */
 void clif_parse_WeaponRefine(int fd, struct map_session_data *sd) {
-
+	int idx;
 	if (!sd->state.produce_flag) //Packet exploit?
 		return;
 	sd->state.produce_flag = 0;
-	int idx = RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]);
+	idx = RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]);
 	skill_weaponrefine(sd, idx-2);
 }
 
