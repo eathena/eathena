@@ -21,7 +21,9 @@
 #include "../common/version.h"
 #include "../common/showmsg.h"
 
-#include "svnversion.h"
+#ifndef _WIN32
+	#include "svnversion.h"
+#endif
 
 int runflag = 1;
 int arg_c = 0;

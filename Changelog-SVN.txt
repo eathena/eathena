@@ -1,6 +1,9 @@
 Date	Added
 2005/11/12
 	* Probably fixed the name of freshly captured pet eggs. [Skotlex]
+	* Changes Win32 to not require svnversion.h, but instead tries to peek in
+	  .svn\entries to check for svn version. If the file doesn't exist it'll
+	  display "Unknown" though, which I guess isn't a good thing ^^; [celest]
 	* Removed the option to load zlib as a plugin for Win32 since it should be
 	  linked at compile time [celest]
 	* Added zlib and libmysql .lib files for compiling in Visual Studio [celest]
