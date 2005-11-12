@@ -1175,7 +1175,7 @@ int pet_catch_process2(struct map_session_data *sd,int target_id)
 }
 
 int pet_get_egg(int account_id,int pet_id,int flag)
-{
+{	//This function is invoked when a new pet has been created, and at no other time!
 	struct map_session_data *sd;
 	struct item tmp_item;
 	int i=0,ret=0;
@@ -1195,7 +1195,7 @@ int pet_get_egg(int account_id,int pet_id,int flag)
 			tmp_item.card[0] = (short)0xff00;
 			tmp_item.card[1] = GetWord(pet_id,0);
 			tmp_item.card[2] = GetWord(pet_id,1);
-			tmp_item.card[3] = sd->pet.rename_flag;
+			tmp_item.card[3] = 0; //New pets are not named.
 			if((ret = pc_additem(sd,&tmp_item,1))) {
 				clif_additem(sd,0,0,ret);
 				map_addflooritem(&tmp_item,1,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);

@@ -1,4 +1,6 @@
 Date	Added
+2005/11/12
+	* Probably fixed the name of freshly captured pet eggs. [Skotlex]
 2005/11/11
 	* New readme content/layout (IE warning: IE hates new readme) [Evera]
 	* Imported use of the refine weapon packets from jA. [Skotlex]
