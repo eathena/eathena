@@ -1,6 +1,13 @@
 Date	Added
 2005/11/12
 	* Probably fixed the name of freshly captured pet eggs. [Skotlex]
+	* Removed the option to load zlib as a plugin for Win32 since it should be
+	  linked at compile time [celest]
+	* Added zlib and libmysql .lib files for compiling in Visual Studio [celest]
+	  Note: The project files on SVN don't have them yet, you'll need to include
+		them yourself for now
+	* Fixed a compile error in Visual Studio [celest]
+	* Readded a missing zlib file needed by Win32, sorry ^^; [celest]
 2005/11/11
 	* New readme content/layout (IE warning: IE hates new readme) [Evera]
 	* Imported use of the refine weapon packets from jA. [Skotlex]

@@ -206,7 +206,6 @@ int main (int argc, char **argv)
 	signals_init();
 
 	timer_init();
-	zlib_init();
 	socket_init();
 	plugins_init();
 

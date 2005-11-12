@@ -36,28 +36,8 @@
 #ifdef __WIN32
 	#include "../zlib/zlib.h"
 	#include "../zlib/iowin32.h"
-	#include "../common/plugins.h"
-	Plugin *zlib_dll;
-	#define zlib_inflateInit(strm) zlib_inflateInit_((strm), ZLIB_VERSION, sizeof(z_stream))
-	#define zlib_deflateInit(strm, level) zlib_deflateInit_((strm), (level), ZLIB_VERSION, sizeof(z_stream))
-
-	int (*zlib_inflateInit_) (z_streamp strm, const char *version, int stream_size);
-	int (*zlib_inflate) (z_streamp strm, int flush);
-	int (*zlib_inflateEnd) (z_streamp strm);
-
-	int (*zlib_deflateInit_) (z_streamp strm, int level, const char *version, int stream_size);
-	int (*zlib_deflate) (z_streamp strm, int flush);
-	int (*zlib_deflateEnd) (z_streamp strm);
-	unsigned long (*zlib_crc32) (unsigned long crc, const char *buf, unsigned int len);
 #else
 	#include <zlib.h>
-	#define zlib_inflateInit inflateInit
-	#define zlib_inflate     inflate
-	#define zlib_inflateEnd  inflateEnd
-	#define zlib_deflateInit deflateInit
-	#define zlib_deflate     deflate
-	#define zlib_deflateEnd  deflateEnd
-	#define zlib_crc32       crc32
 #endif
 
 typedef	unsigned char	BYTE;
@@ -306,17 +286,17 @@ int decode_zip(unsigned char *dest, unsigned long* destLen, const unsigned char*
 	stream.zalloc = (alloc_func)0;
 	stream.zfree = (free_func)0;
 
-	err = zlib_inflateInit(&stream);
+	err = inflateInit(&stream);
 	if (err != Z_OK) return err;
 
-	err = zlib_inflate(&stream, Z_FINISH);
+	err = inflate(&stream, Z_FINISH);
 	if (err != Z_STREAM_END) {
-		zlib_inflateEnd(&stream);
+		inflateEnd(&stream);
 		return err == Z_OK ? Z_BUF_ERROR : err;
 	}
 	*destLen = stream.total_out;
 
-	err = zlib_inflateEnd(&stream);
+	err = inflateEnd(&stream);
 	return err;
 }
 
@@ -336,17 +316,17 @@ int encode_zip(unsigned char *dest, unsigned long* destLen, const unsigned char*
 	stream.zalloc = (alloc_func)0;
 	stream.zfree = (free_func)0;
 
-	err = zlib_deflateInit(&stream,Z_DEFAULT_COMPRESSION);
+	err = deflateInit(&stream,Z_DEFAULT_COMPRESSION);
 	if (err != Z_OK) return err;
 
-	err = zlib_deflate(&stream, Z_FINISH);
+	err = deflate(&stream, Z_FINISH);
 	if (err != Z_STREAM_END) {
-		zlib_inflateEnd(&stream);
+		inflateEnd(&stream);
 		return err == Z_OK ? Z_BUF_ERROR : err;
 	}
 	*destLen = stream.total_out;
 
-	err = zlib_deflateEnd(&stream);
+	err = deflateEnd(&stream);
 	return err;
 }
 
@@ -376,14 +356,14 @@ int decode_file (FILE *source, FILE *dest)
 	strm.avail_in = 0;
 	strm.next_in = Z_NULL;
 
-	err = zlib_inflateInit(&strm);
+	err = inflateInit(&strm);
 	if (err != Z_OK) return 0;	//return err;
 
 	/* decompress until deflate stream ends or end of file */
 	do {
 		strm.avail_in = fread(in, 1, CHUNK, source);
 		if (ferror(source)) {
-			zlib_inflateEnd(&strm);
+			inflateEnd(&strm);
 			return 0;
 		}
 		if (strm.avail_in == 0)
@@ -394,20 +374,20 @@ int decode_file (FILE *source, FILE *dest)
 		do {
 			strm.avail_out = CHUNK;
 			strm.next_out = out;
-			err = zlib_inflate(&strm, Z_NO_FLUSH);
+			err = inflate(&strm, Z_NO_FLUSH);
 			Assert(err != Z_STREAM_ERROR);  /* state not clobbered */
 			switch (err) {
 			case Z_NEED_DICT:
 				err = Z_DATA_ERROR;     /* and fall through */
 			case Z_DATA_ERROR:
 			case Z_MEM_ERROR:
-				zlib_inflateEnd(&strm);
+				inflateEnd(&strm);
 				//return err;
 				return 0;
 			}
 			have = CHUNK - strm.avail_out;
 			if (fwrite(out, 1, have, dest) != have || ferror(dest)) {
-				zlib_inflateEnd(&strm);
+				inflateEnd(&strm);
 				//return Z_ERRNO;
 				return 0;
 			}
@@ -418,7 +398,7 @@ int decode_file (FILE *source, FILE *dest)
 	} while (err != Z_STREAM_END);
 
 	/* clean up and return */
-	zlib_inflateEnd(&strm);
+	inflateEnd(&strm);
 	return err == Z_STREAM_END ? 1 : 0;
 }
 
@@ -501,7 +481,7 @@ int deflate_file (const char *source, const char *filename)
 
 unsigned long grfio_crc32 (const char *buf, unsigned int len)
 {
-	return zlib_crc32(zlib_crc32(0L, Z_NULL, 0), buf, len);
+	return crc32(crc32(0L, Z_NULL, 0), buf, len);
 }
 
 /***********************************************************
@@ -1114,35 +1094,6 @@ void grfio_final(void)
 	gentry_entrys = gentry_maxentry = 0;
 
 	if (localresname) aFree(localresname);
-}
-
-void zlib_init (void)
-{
-#ifdef _WIN32
-	#ifndef LOCALZLIB
-		const char *zlib_path[] = { "zlib1.dll", "zlib.dll", NULL };
-		int i = 0;
-		while (zlib_path[i]) {
-			zlib_dll = plugin_open ("zlib.dll");
-			if (zlib_dll == NULL) {
-				i++;
-				continue;
-			}
-			break;
-		}
-		if (zlib_dll == NULL) {
-			ShowFatalError("eAthena requires zlib1.dll to run!\n");
-			exit(1);
-		}
-		DLL_SYM (zlib_inflateInit_,	zlib_dll,	"inflateInit_");
-		DLL_SYM (zlib_inflate,		zlib_dll,	"inflate");
-		DLL_SYM (zlib_inflateEnd,	zlib_dll,	"inflateEnd");
-		DLL_SYM (zlib_deflateInit_,	zlib_dll,	"deflateInit_");
-		DLL_SYM (zlib_deflate,		zlib_dll,	"deflate");
-		DLL_SYM (zlib_deflateEnd,	zlib_dll,	"deflateEnd");
-		DLL_SYM (zlib_crc32,		zlib_dll,	"crc32");
-	#endif
-#endif
 }
 
 /*==========================================

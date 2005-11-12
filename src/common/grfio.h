@@ -2,8 +2,6 @@
 #ifndef	_GRFIO_H_
 #define	_GRFIO_H_
 
-void zlib_init(void);			// ZLib Initialize
-
 void grfio_init(char*);			// GRFIO Initialize
 void grfio_final(void);			// GRFIO Finalize
 int grfio_add(char*);			// GRFIO Resource file add
