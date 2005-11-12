@@ -1,42 +1,41 @@
-/* Go away, troll */
+/* Go away, Troll */
 
-A 		{color: #ffa640; text-decoration: underline; background-color : inherit;} 
+A,
+A:link,
+A:visited,
+A:active,
+A:hover {
 
-A:link		{color: #ffa640; text-decoration: underline; background-color : inherit;} 
+color: #000; 
 
-A:visited		{ color: #ffa640; text-decoration: underline; background-color : inherit;} 
+text-decoration: underline; 
 
-A:active		{ color: #ffa640; text-decoration: underline; background-color : inherit;} 
+background-color : inherit;
 
-A:hover		{ color: #ffa640; text-decoration: underline; background-color : inherit;} 
-
+} 
 
 
 html {
 
-	margin:		0px;
+	margin: 0px;
 
-	padding:		0px;
+	padding: 0px;
 
 }
 
+body {
 
+	background: url(./images/bg.gif);
 
-BODY {
-
-	background :  url(./btmbg.gif);
-
-	margin : 0px 0px 0px 0px;
+	margin: 0px 0px 0px 0px;
 
 	padding: 0px 0px 0px 0px;
 
 	font: 14px Arial, arial;
 
-	color:#ffa640;
+	color: #000;
 
 }
-
-
 
 h1 {
 
@@ -44,58 +43,185 @@ h1 {
 
 	height : 40px;
 
-	border-bottom : #ffa640 solid 1px;
-
 	text-align : bottom;
 
 	font : 30px Arial Black, arial black, helvetica, sans-serif;
 
 }
 
-h2 {
+.w800 {
 
-	font : 25px Arial Black, arial black, helvetica, sans-serif;
-
-}
-
-.banner {
-
-	background : url(./bg.gif);
+	width: 800px;
 
 }
 
-.kafra {
+#dleftbg,
+#drightbg {
 
-	background : url(./bg.gif);
+	position: absolute;
 
-	height : 135px;
+	width: 50%;
 
-	font : 10px Arial Black, arial black, helvetica, sans-serif;
+	overflow: hidden;
 
-}
+	height: 69px;
 
-#navi {
-
-	background : url(./bg.gif);
-
-	font : 12px Arial Black, arial black, helvetica, sans-serif;
-
-	height : 92px;
+	z-index: 0;
 
 }
 
-#line {
+#dleftbg {
 
-	background : url(./4.gif);
+	top: 66px;
 
-	height: 21px;
+	left: 0px;
+
+	background: url(./images/leftbg.gif);
 
 }
 
-#copyright {
+#drightbg {
 
-	font : 10px verdana, arial;
+	top: 105px;
 
-	color: #000;
+	right: 0px;
+
+	background: url(./images/rightbg.gif);
+
+}
+
+#canvas { 
+
+	position: absolute;
+	
+	z-index: 1;
+
+	width: 100%;
+	
+	height: 100%;
+
+}
+
+#ea {
+
+	height: 100%;
+
+}
+
+
+#leftborderspacer,
+#leftbgspacer {
+
+	height: 66px;
+
+}
+
+#rightborderspacer { 
+
+	height: 106px;
+
+}
+
+
+#leftborder,
+#rightborder {
+
+	background: #000;
+
+	width: 1px;
+
+}
+
+.vspacer {
+
+
+
+}
+
+#middle {
+
+	background: url(./images/textbg.gif);
+
+	width: 800px;
+
+	height: 100%;
+
+}
+
+#logo {
+
+	background: url(./images/logo.gif) no-repeat top left;
+
+	height: 100%;
+
+}
+
+#title {
+
+	font : 30px Arial Black, arial black, helvetica, sans-serif;
+
+	height: 54px;
+
+}
+
+.navi {
+
+	font : 14px Arial Black, arial black, helvetica, sans-serif;
+
+	height: 88px;
+
+}
+
+#btmborder {
+
+	background: url(./images/btmborderbg.gif);
+
+	height: 2px;
+
+}
+
+.left,
+#lefttext,
+#leftbtmborder {
+
+	width: 327px;
+
+}
+
+#midtext,
+#midbtmborder {
+
+	width: 44px;
+
+}
+
+.right,
+#righttext,
+#rightbtmborder {
+
+	width: 429px;
+
+}
+
+#content {
+
+	height: 100px;
+
+}
+
+#lefttext,
+#righttext {
+
+	background: url(./images/textbg.gif);
+
+	height: 100%;
+
+}
+
+#midtext {
+
+	background: url(./images/logobtm.gif);
+
+	height: 100%;
 
 }

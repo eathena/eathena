@@ -1,4 +1,6 @@
 Date	Added
+11/11
+	* New readme content/layout (IE warning: IE hates new readme) [Evera]
 10/29
 	* Updated readme with new layout [Evera]
 	* following the wishes I enable the hidden functions in the script checker for public
