@@ -1,5 +1,6 @@
 Date	Added
 2005/11/11
+	* New readme content/layout (IE warning: IE hates new readme) [Evera]
 	* Imported use of the refine weapon packets from jA. [Skotlex]
 	* Removed SC_MODE, now NPC_EMOTION and NPC_EMOTION_ON can change a mob's
 	  mode permanently (until their death, that is), and it won't work on
