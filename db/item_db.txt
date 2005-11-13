@@ -56,7 +56,7 @@
 550,Rice_Cake,Rice Popper,0,20,,10,,,,,127918079,7,2,,,,,,{ itemheal 10,0; }
 551,Sushi,Sushi,0,,10,50,,,,,127918079,7,2,,,,,,{ itemheal rand(50,60),0; }
 552,Ketupat,Ketupat,0,100,,10,,,,,127918079,7,2,,,,,,{ itemheal rand(100,200),0; }
-553,Dumpling,Dumpling,0,,10,50,,,,,127918079,7,2,,,,,,{ itemheal rand(39,68),0; }
+553,Dumpling,Dumpling,0,1,,50,,,,,127918079,7,2,,,,,,{ itemheal rand(39,68),0; }
 554,Mochi,Mochi,0,100,,80,,,,,127918079,7,2,,,,,,{ itemheal rand(15,22),0; if(rand(100)<3) sc_start SC_Stan,10000,0; if(rand(100)<3) sc_start SC_Blind,10000,0; }
 555,Traditional_Rice_Cake,Rice Cake,0,,10,20,,,,,127918079,7,2,,,,,,{ itemheal 10,0; }
 556,Rolled_Rice,Rolled Rice,0,,10,10,,,,,127918079,7,2,,,,,,{ itemheal rand(10,50),0; }
@@ -81,11 +81,11 @@
 574,Egg,Egg,0,,10,30,,,,,127918079,7,2,,,,,,{ itemheal rand(16,21),0; }
 575,2nd_Anniversary_Cake,2nd Anniversary Cake,0,,10,100,,,,,127918079,7,2,,,,,,{ itemheal rand(270,329),0; }
 576,Thorned_Fruit,Thorned Fruit,0,,10,40,,,,,127918079,7,2,,,,,,{ itemheal rand(10,15),rand(10,15); }
-577,Grain,Grain,0,,10,20,,,,,16777215,7,2,,,,,,{ itemheal rand(10,14),0; }
-578,Strawberry,Strawberry,0,,10,20,,,,,16777215,7,2,,,,,,{ itemheal 0,rand(10,14); }
-579,Yummy_Fish,Yummy_Fish,0,,10,20,,,,,16777215,7,2,,,,,,{ itemheal rand(40,54),0; }
-580,Bread,Bread,0,,10,20,,,,,16777215,7,2,,,,,,{ itemheal rand(20,34),0; }
-581,Mushroom,Mushroom,0,,10,20,,,,,16777215,7,2,,,,,,{ itemheal rand(10,14),0; }
+577,Grain,Grain,0,200,,20,,,,,16777215,7,2,,,,,,{ itemheal rand(10,14),0; }
+578,Strawberry,Strawberry,0,200,,20,,,,,16777215,7,2,,,,,,{ itemheal 0,rand(10,14); }
+579,Yummy_Fish,Yummy_Fish,0,150,,20,,,,,16777215,7,2,,,,,,{ itemheal rand(40,54),0; }
+580,Bread,Bread,0,150,,20,,,,,16777215,7,2,,,,,,{ itemheal rand(20,34),0; }
+581,Mushroom,Mushroom,0,40,,20,,,,,16777215,7,2,,,,,,{ itemheal rand(10,14),0; }
 582,Orange,Orange,0,,10,20,,,,,16777215,7,2,,,,,,{ itemheal rand(10,15),rand(10,15); }
 583,KETUPAT_SAYUR,KETUPAT SAYUR,0,,10,150,,,,,16777215,7,2,,,,,,{}
 
@@ -1727,7 +1727,7 @@
 7116,Harpy_Talon,Tooth of Lowblood,3,,605,10,,,,,,,,,,,,,{}
 7117,Torn_Magic_Book,Torn Spell Book,3,,571,10,,,,,,,,,,,,,{}
 7118,Torn_Scroll,Torn Scroll,3,,681,10,,,,,,,,,,,,,{}
-7119,Bacillus,Hypha Body,3,,512,10,,,,,,,,,,,,,{}
+7119,Bacillus,Hypha Body,3,1025,,10,,,,,,,,,,,,,{}
 7120,Burning_Horseshoe,Burning Horseshoe,3,,411,10,,,,,,,,,,,,,{}
 7121,Honey_Pot,Honey Jar,3,,311,10,,,,,,,,,,,,,{}
 7122,Burning_Hair,Hot Feather,3,,487,10,,,,,,,,,,,,,{}
@@ -2063,8 +2063,8 @@
 7451,Scale_of_Fire_Dragon,Scale of Fire Dragon,3,,10,10,,,,,,,,,,,,,{}
 7452,Yellow_Spice,Yellow Spice,3,,10,10,,,,,,,,,,,,,{}
 7453,Sweet_Sauce,Sweet Sauce,3,,10,10,,,,,,,,,,,,,{}
-7454,Plain_Sauce,Plain Sauce,3,,10,10,,,,,,,,,,,,,{}
-7455,Hot_Sauce,Hot Sauce,3,,10,10,,,,,,,,,,,,,{}
+7454,Plain_Sauce,Plain Sauce,3,700,,10,,,,,,,,,,,,,{}
+7455,Hot_Sauce,Hot Sauce,3,700,,10,,,,,,,,,,,,,{}
 7456,Red_Spice,Red Spice,3,,10,10,,,,,,,,,,,,,{}
 7457,Cooking_Oil,Cooking Oil,3,,10,10,,,,,,,,,,,,,{}
 7458,Unknown_item,Unknown Item,3,,10,10,,,,,,,,,,,,,{}
