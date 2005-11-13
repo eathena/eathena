@@ -27,6 +27,8 @@ Nexon
 
 Date		Added
 ======
+11/14
+	* Updated Lighthalzen Dungeon warps. thanks to Justin84 [Lupus]
 11/10
 	* Updated swordsman_skills.txt to allow any swordsman subclass to be able to get the [MasterOfMuppets]
 	  skills as well, thanks to vicious_pucca.
