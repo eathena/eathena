@@ -98,7 +98,7 @@
 //For Map Names, which the client considers to be 16 in length
 #define MAP_NAME_LENGTH 16
 
-#define MAX_FRIENDS 20
+#define MAX_FRIENDS 40
 #define MAX_MEMOPOINTS 10
 
 //These max values can be exceeded and the char/map servers will update them with no problems

@@ -1,4 +1,7 @@
 Date	Added
+2005/11/14
+	* Fixed Friends List not able to add more than 20 friends (current clients support up to 40) [Lupus]
+	  thanks to CAHTEXNIK for pointing it out 8)
 2005/11/12
 	* Probably fixed the name of freshly captured pet eggs. [Skotlex]
 	* Changes Win32 to not require svnversion.h, but instead tries to peek in
