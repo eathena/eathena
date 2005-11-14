@@ -2092,7 +2092,7 @@ int status_calc_critical(struct block_list *bl, int critical)
 		if (sc_data[SC_FORTUNE].timer!=-1)
 			critical += sc_data[SC_FORTUNE].val2*10;
 		if (sc_data[SC_TRUESIGHT].timer!=-1)
-			critical += sc_data[SC_TRUESIGHT].val1;
+			critical += sc_data[SC_TRUESIGHT].val1*10;
 		if(sc_data[SC_CLOAKING].timer!=-1)
 			critical += critical;
 	}
