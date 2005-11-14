@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= Reddozen
 //===== Current Version: ===================================== 
-//= 1.1a
+//= 1.2
 //===== Compatible With: ===================================== 
 //= eAthena 1.0+
 //===== Description: ========================================= 
@@ -11,6 +11,7 @@
 //===== Additional Comments: ================================= 
 //= 1.1 Fixed wrong item ID, added missing ";, optimized [Lupus]
 //= 1.1a minor bugfix, thx 2 Irmin [Lupus]
+//= 1.2 Fixed exploit, some typos [Lupus]
 //============================================================ 
 
 prt_castle.gat,43,30,6	script	Chef Apprentice	878,{
@@ -88,39 +89,38 @@ prt_castle.gat,43,30,6	script	Chef Apprentice	878,{
 	}
 
 	if(cooking == 4){
+		mes "[Chef's Apprentice]";
 		if(countitem(12056) < 1 && countitem(12061) < 1 && countitem(112046) < 1 && countitem(12066) < 1 && countitem(12041) < 1 && countitem(12051) < 1){//Items: Frog Spawn Soup, Grape Juice with Honey, ???, Fried Monkey Tail, Boiled Locust, Steamed Crab Pincer,
-		mes "[Chef's Apprentice]";
-		mes "What!? Through already?";
-		mes "Let me see what you've made";
-		next;
+			mes "What!? Through already?";
+			mes "Let me see what you've made";
+			next;
 
-		delitem 12056, 1;//Items: Frog Spawn Soup,
-		delitem 12061, 1;//Items: Grape Juice with Honey,
-		delitem 12046, 1;//Items: Grape Juice and Tea,
-		delitem 12066, 1;//Items: Fried Monkey Tail,
-		delitem 12041, 1;//Items: Boiled Locust,
-		delitem 12051, 1;//Items: Steamed Crab Pincer,
+			delitem 12056, 1;//Items: Frog Spawn Soup,
+			delitem 12061, 1;//Items: Grape Juice with Honey,
+			delitem 12046, 1;//Items: Grape Juice and Tea,
+			delitem 12066, 1;//Items: Fried Monkey Tail,
+			delitem 12041, 1;//Items: Boiled Locust,
+			delitem 12051, 1;//Items: Steamed Crab Pincer,
 
-		mes "[Chef's Apprentice]";
-		mes "Great job, but there's";
-		mes "still one thing that I need";
-		mes "you to do. Talk to a friend";
-		mes "of mine in Payon. We used";
-		mes "to study together.";
-		next;
-		mes "Take him this Leather Pouch,";
-		mes "and I'll put in a good word";
-		mes "for you with my teacher.";
+			mes "[Chef's Apprentice]";
+			mes "Great job, but there's";
+			mes "still one thing that I need";
+			mes "you to do. Talk to a friend";
+			mes "of mine in Payon. We used";
+			mes "to study together.";
+			next;
+			mes "[Chef's Apprentice]";
+			mes "Take him this Leather Pouch,";
+			mes "and I'll put in a good word";
+			mes "for you with my teacher.";
 
-		getitem 7432, 1;//Items: Leather Pouch,
-		set cooking, 5;
-		close;
+			getitem 7432, 1;//Items: Leather Pouch,
+			set cooking, 5;
 		} else {
-		mes "[Chef's Apprentice]";
-		mes "Please come back when you've cooked";
-		mes "all the Lv 1 foods.";
-		close;
+			mes "Please come back when you've cooked";
+			mes "all the Lv 1 foods.";
 		}
+		close;
 	}
 
 	if(cooking == 5){
@@ -271,11 +271,18 @@ payon.gat,209,127,4	script	Cooking Friend	88,{
 
 	if(cooking == 5){
 		mes "[Cooking Friend]";
-		mes "I see my friend sent you";
-		mes "to give me something.";
+		if(countitem(7432)) {
+			mes "I see my friend sent you";
+			mes "to give me something.";
+			delitem 7432, 1;//Items: Leather Pouch,
+			set cooking, 6;
+		} else {
+			mes "What? My friend sent you";
+			mes "just to say Hello?";
+		}
 		mes "Thank you for your";
 		mes "trouble. Tell him I said,";
-		mes "Hello";
+		mes "Hello.";
 		delitem 7432, 1;//Items: Leather Pouch,
 		set cooking, 6;
 		close;

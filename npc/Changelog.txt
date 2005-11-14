@@ -28,6 +28,7 @@ Nexon
 Date		Added
 ======
 11/14
+	* Fixed some cooking quest bugs [Lupus]
 	* Updated Lighthalzen Dungeon warps. thanks to Justin84 [Lupus]
 11/10
 	* Updated swordsman_skills.txt to allow any swordsman subclass to be able to get the [MasterOfMuppets]
