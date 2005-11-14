@@ -438,7 +438,6 @@ packet_ver: 5
 0x020d,-1
 0x020e,24
 0x020f,10
-//jRO‚Í‚±‚±‚Ü‚Å
 
 //2004-07-06kRO
 packet_ver: 6
@@ -703,6 +702,7 @@ packet_ver: 18
 0x0143,10,npcamountinput,2:6
 0x20e,10
 0x22e,71
+0x237,2,rankingpk,0
 0x23d,-1
 0x23e,4
 0x23f,2

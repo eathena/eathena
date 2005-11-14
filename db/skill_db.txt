@@ -38,7 +38,7 @@
 21,8,8,2,4,0,10,1:2:3:4:5:6:7:8:9:10,yes,0,0,0,magic,0	//MG_THUNDERSTORM#Thunderstorm#
 22,0,0,0,0,0,10,0,no,0,0,0,weapon,0	//AL_DP#Divine protection#
 23,0,0,0,0,0,10,0,no,0,0,0,weapon,0	//AL_DEMONBANE#Divine Protection#
-24,2,6,4,0,1,1,1,yes,0,0,0,magic,0	//AL_RUWACH#Ruwach#
+24,2,6,4,6,1,1,1,yes,0,0,0,magic,0	//AL_RUWACH#Ruwach#
 25,8,6,2,0,1,1,1,yes,0,0,0,magic,0	//AL_PNEUMA#Pneuma#
 26,0,6,4,0,1,2,1,yes,0,0,0,magic,0	//AL_TELEPORT#Teleport#
 27,5,6,2,0,1,4,1,yes,0,0,3,magic,0	//AL_WARP#Warp Portal#

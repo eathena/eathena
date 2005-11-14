@@ -10590,7 +10590,24 @@ void clif_parse_Taekwon(int fd,struct map_session_data *sd)
 		memcpy(WFIFOP(fd, 2 + 24 * i), "Unknown", NAME_LENGTH);
 		WFIFOL(fd, 242 + i * 4) = 0;
 	}
-	WFIFOSET(fd, packet_db[sd->packet_ver][0x226].len);
+	WFIFOSET(fd, packet_len_table[0x226]);
+}
+
+/*==========================================
+ * PK Ranking table?
+ *------------------------------------------
+ */
+void clif_parse_RankingPk(int fd,struct map_session_data *sd)
+{
+	int i;
+
+	WFIFOW(fd,0) = 0x238;
+	for(i=0;i<10;i++){
+		memcpy(WFIFOP(fd,i*24+2), "Unknown", NAME_LENGTH);
+		WFIFOL(fd,i*4+242) = 0;
+	}
+	WFIFOSET(fd, packet_len_table[0x238]);
+	return;
 }
 
 /*==========================================
@@ -10955,6 +10972,7 @@ static int packetdb_readdb(void)
 		{clif_parse_Shift,"shift"},
 		{clif_parse_Blacksmith,"blacksmith"},
 		{clif_parse_Alchemist,"alchemist"},
+		{clif_parse_RankingPk,"rankingpk"},
 		{clif_parse_debug,"debug"},
 
 		{NULL,NULL}

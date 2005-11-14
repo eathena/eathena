@@ -1,5 +1,13 @@
 Date	Added
 2005/11/14
+	* Fixed null pointer crash in battle_damage. [Skotlex]
+	* Increased max account variables to 32. [Skotlex]
+	* Pressure/Gloria Domini now isn't instant-cancelled by status effects, and
+	  bypasses the Devotion/Sacrifice check. [Skotlex]
+	* Added handling of the /pk packet, even thought it just shows an empty
+	  listing for now. [Skotlex]
+	* Applied zBuffer's suggested fix to prevent S. Novices from getting mental
+	  Strength at 100% exp. [Skotlex]
 	* Fixed Friends List not able to add more than 20 friends (current clients support up to 40) [Lupus]
 	  thanks to CAHTEXNIK for pointing it out 8)
 2005/11/12

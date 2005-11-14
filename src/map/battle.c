@@ -291,7 +291,8 @@ int battle_damage(struct block_list *bl,struct block_list *target,int damage, in
 		struct map_session_data *tsd = (struct map_session_data *)target;
 		if (!tsd)
 			return 0;
-		if (sc_data[SC_DEVOTION].val1) {	// ƒfƒBƒ{?[ƒVƒ‡ƒ“‚ð‚©‚¯‚ç‚ê‚Ä‚¢‚é
+		if (sc_data[SC_DEVOTION].val1 && battle_getcurrentskill(bl) != PA_PRESSURE)
+		{	//Pressure can go through Devotion.
 			struct map_session_data *sd2 = map_id2sd(tsd->sc_data[SC_DEVOTION].val1);
 			if (sd2 && sd2->devotion[sc_data[SC_DEVOTION].val2] == target->id)
 			{
@@ -304,7 +305,7 @@ int battle_damage(struct block_list *bl,struct block_list *target,int damage, in
 
 		if (tsd->skilltimer != -1) {	// ‰r?¥–WŠQ
 			// ƒtƒFƒ“ƒJ?[ƒh‚â–WŠQ‚³‚ê‚È‚¢ƒXƒLƒ‹‚©‚ÌŒŸ?¸
-			if ((!tsd->special_state.no_castcancel || map_flag_gvg(bl->m)) && tsd->state.skillcastcancel &&
+			if ((!tsd->special_state.no_castcancel || map_flag_gvg(target->m)) && tsd->state.skillcastcancel &&
 				!tsd->special_state.no_castcancel2)
 				skill_castcancel(target,0);
 		}

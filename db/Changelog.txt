@@ -30,6 +30,8 @@
 		Item type: Throwing Dagger. Has to be equipped as an arrow, is consumed
 		like gemstones when the skill is used.
 	--
+11/14
+	* Made Ruwach's element Holy as pointed out by k3dt. [Skotlex]
 11/13
 	* Updated some buy prices to food items, thanks to reddozen and vicious_pucca [MasterOfMuppets]
 11/12

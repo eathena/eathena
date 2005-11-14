@@ -5076,7 +5076,7 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage, int
 	if ((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE) {
 		if ((i=pc_nextbaseexp(sd))<=0)
 			i=sd->status.base_exp;
-		if (i>0 && (j=sd->status.base_exp*1000/i)>=990 && j<=1000)
+		if (i>0 && (j=sd->status.base_exp*1000/i)>=990 && j<1000)
 			sd->state.snovice_flag = 4;
 	}
 	
@@ -6185,7 +6185,7 @@ int pc_setglobalreg(struct map_session_data *sd,char *reg,int val)
 	}
 
 	if(battle_config.error_log)
-		ShowError("pc_setglobalreg : couldn't set %s (GLOBAL_REG_NUM = %d)\n", reg, GLOBAL_REG_NUM);
+		ShowError("pc_setglobalreg : couldn't set %s, limit of account registries reached (GLOBAL_REG_NUM = %d)\n", reg, GLOBAL_REG_NUM);
 
 	return 1;
 }
@@ -6259,7 +6259,7 @@ int pc_setaccountreg(struct map_session_data *sd,char *reg,int val)
 	}
 
 	if(battle_config.error_log)
-		ShowError("pc_setaccountreg : couldn't set %s (ACCOUNT_REG_NUM = %d)\n", reg, ACCOUNT_REG_NUM);
+		ShowError("pc_setaccountreg : couldn't set %s, limit of account registries reached (ACCOUNT_REG_NUM = %d)\n", reg, ACCOUNT_REG_NUM);
 
 	return 1;
 }
@@ -6324,7 +6324,7 @@ int pc_setaccountreg2(struct map_session_data *sd,char *reg,int val)
 	}
 
 	if (battle_config.error_log)
-		ShowError("pc_setaccountreg2 : couldn't set %s (ACCOUNT_REG2_NUM = %d)\n", reg, ACCOUNT_REG2_NUM);
+		ShowError("pc_setaccountreg2 : couldn't set %s, limit of account registries reached (ACCOUNT_REG2_NUM = %d)\n", reg, ACCOUNT_REG2_NUM);
 
 	return 1;
 }

@@ -1207,7 +1207,7 @@ int parse_fromchar(int fd){
 			  {
 				int acc,p,j;
 				char str[32];
-				char temp_str[32];
+				char temp_str[64]; //Needs twice as much space as the original string.
 				int value;
 				acc=RFIFOL(fd,4);
 

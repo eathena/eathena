@@ -4453,8 +4453,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		
             // Cancel cast when get status [LuzZza]
             if (bl->type == BL_PC) {
-		        struct mob_data *sd = (struct mob_data *)bl;
-		        if (sd->skilltimer != -1) skill_castcancel(bl, 0);
+		        struct mob_data *sd = (struct mob_data *)bl; //Only Pressure is uninterruptable.
+		        if (sd->skilltimer != -1 && sd->skillid != PA_PRESSURE) skill_castcancel(bl, 0);
 		    } else if (bl->type == BL_MOB) {
 		        struct map_session_data *md = (struct map_session_data *)bl;
 		        if (md->skilltimer != -1) skill_castcancel(bl, 0);

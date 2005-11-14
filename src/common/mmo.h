@@ -51,7 +51,7 @@
 #define MAX_CART 100
 #define MAX_SKILL 1100 // Bumped to 1100 for new quest skills, will need to further increase one day... [DracoRPG]
 #define GLOBAL_REG_NUM 96
-#define ACCOUNT_REG_NUM 16
+#define ACCOUNT_REG_NUM 32
 #define ACCOUNT_REG2_NUM 16
 #define DEFAULT_WALK_SPEED 150
 #define MIN_WALK_SPEED 0

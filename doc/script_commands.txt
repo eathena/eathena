@@ -2150,17 +2150,21 @@ who made it, can answer why is it so.
 
 ---------------------------------------
 
-*getequipisequiped(<item id>)
+*getequipisequiped(<equipment slot>)
 
-This functions will return 1 if the equipment specified with the ID number is 
-equipped on the invoking character and 0 if it isn't:
+This functions will return 1 if there is an equipment placed on the specified
+equipment slot and 0 otherwise. For a list of equipment slots 
+see 'getequipid'. Function originally used by the refining NPCs:
 
-    if ((getequipisequiped(2341)) || (getequipisequiped(2342))) goto L_EquipedLegionPlate;
+    if (getequipisequiped(1)) goto L_equipped;
+        mes "[Refiner]";
+        mes "Do you want me to refine your dumb head?";
+        close;
+    L_equipped:
+        mes "[Refiner]";
+        mes "That's a fine hat you are wearing there...";
+        close;
 
-You can also, obviously, use it to check if someone is not wearing a specified 
-piece of equipment:
-
-    if (getequipisequiped(2341) != 1) got L_LegionPlateNotEquiped;
 
 ---------------------------------------
 
@@ -4447,13 +4451,13 @@ more:
 
 ---------------------------------------
 
-*isequipped(<card id>{,<card id>{,<card id>{,<card id>}}})
+*isequipped(<id>{,<id>{,<id>{,<id>}}})
 
-This function will return 1 if the invoking character has all of the card item 
-IDs given inserted into slots in the equipment they are currently wearing at the 
-same time. Up to 4 cards may be tested for at the same time. 
-If even one of the cards given is not both inserted and worn, 0 will be 
-returned.
+This function will return 1 if the invoking character has all of the item 
+IDs given equipped (if card IDs are passed, then it checks if the cards are
+inserted into slots in the equipment they are currently wearing). Theorically
+there is no limit to the number of items that may be tested for at the same time. 
+If even one of the items given is not equipped, 0 will be returned.
 
     // (Poring,Santa Poring,Poporing,Marin)
     if (isequipped(4001,4005,4033,4196)) mes "Wow! You're wearing a full complement of possible poring cards!";
