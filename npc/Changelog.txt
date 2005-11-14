@@ -28,6 +28,8 @@ Nexon
 Date		Added
 ======
 11/14
+	* Fixed the Universal Renter not correctly checking for Riding chars. Now
+	  also rents Carts to S. Novices [Skotlex]
 	* Fixed some cooking quest bugs [Lupus]
 	* Updated Lighthalzen Dungeon warps. thanks to Justin84 [Lupus]
 11/10
