@@ -3,7 +3,7 @@
 //===== By: =========================
 //= eAthena Dev Team
 //===== Current Version: ===================
-//= 2.2
+//= 2.3
 //===== Compatible With: =====================
 //= eAthena 1.0
 //===== Description: ============================================
@@ -18,24 +18,30 @@
 //= v2.1b Minor changes to function calls.  Using arguments.
 //= This version uses arrays .[kobra_k88]
 //= v2.2 New Payon Locations. [Darkchild]
+//= 2.3 1 New Kafra, fixed save menus
 //==========================================================================
 
 
-// Main Town ----------------------------------------------------------------
+// Main Town, South ----------------------------------------------------------
 payon.gat,181,104,4	script	Kafra	113,{
 	cutin "kafra_05",2;
 	callfunc "F_KafSetPay";
 	callfunc "F_Kafra",0,0,1;
 
 	M_Save:
-		menu "-Save outside city.",sM_Out,"-Save inside city.",sM_In;
+		savepoint "payon.gat",160,58;
+		callfunc "F_KafEnd",0,1;
+}
 
-		sM_Out:
-			savepoint "pay_fild01.gat",340,347;
-			callfunc "F_KafEnd",0,1;
-		sM_In:
-			savepoint "payon.gat",179,97;
-			callfunc "F_KafEnd",0,1;
+// Main Town, Middle North --------------------------------------------------
+payon.gat,175,226,4	script	Kafra	116,{
+	cutin "kafra_02",2;
+	callfunc "F_KafSetPay";
+	callfunc "F_Kafra",0,0,1;
+
+	M_Save:
+		savepoint "payon.gat",257,242;
+		callfunc "F_KafEnd",0,1;
 }
 
 // Archer Village ------------------------------------------------------------

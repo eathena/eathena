@@ -4,11 +4,11 @@
 //= kobra_k88
 //= added some dialogs for Morgenstein by Komurka
 //===== Current Version: ===================================== 
-//= 1.5
+//= 1.6
 //===== Compatible With: ===================================== 
 //= eAthena 7.15 +
 //===== Description: ========================================= 
-//= Counteragent and mixtures for making dyes
+//= Counteragent and Mixtures for making dyes & Alchemist Job Quest
 //===== Additional Comments: ================================= 
 //= Fully working
 //= Update for Alchemist Quest.
@@ -16,8 +16,8 @@
 //= Fixed some lil thingys [Darkchild]
 //= More li'l thing, added comments for items IDs [Lupus]
 //= 1.5 Fixed Spelling mistakes. [Nexon]
+//= 1.6 Fixed some bugs, also related to Alch Job quest [Lupus]
 //============================================================ 
-
 
 
 
@@ -25,7 +25,7 @@
 alberta_in.gat,130,54,2	script	Merchant Louitz	84,{
 	mes "[Louitz]";
 	mes "What's going on?";
-	if(countitem(970) > 0 && countitem(971) > 0 && countitem(972) > 0) goto M_Menu2;//Items: Alcohol, Detrimindexta, Karvodailnirol,
+	if(countitem(970) && countitem(971) && countitem(972)) goto M_Menu2;//Items: Alcohol, Detrimindexta, Karvodailnirol,
 M_Menu:
 	next;
 	menu "Talk",M_Talk,"Cancel",M_Cancel;
@@ -42,15 +42,17 @@ M_Menu2:
 		mes "After many attempts, I finally got to meet him.  Unfortunately he was too immersed in his work and didn't even take notice of me.";
 		next;
 		mes "[Merchant Louitz]";
-		mes "He kept on mumbling to himself ^0000ff'Karvodainirol... Detrimindexta... Alcohol^000000...'";
+		mes "He kept on mumbling to himself ^0000FF'Karvodainirol... Detrimindexta... Alcohol^000000...'";
 		next;
 		mes "[Merchant Louitz]";
 		mes "I had know idea what he was talking about at first, but I later learned that those were names for some unique and rare solutions.";
-		if(countitem(970) > 0 && countitem(971) > 0 && countitem(972) > 0) goto M_Menu2;//Items: Alcohol, Detrimindexta, Karvodailnirol,
+		if(countitem(970) && countitem(971) && countitem(972)) goto M_Menu2;//Items: Alcohol, Detrimindexta, Karvodailnirol,
+		mes "I wish ^0000FFI could see them^000000 with my own eyes...";
+		emotion e_slur;
 		goto M_Menu;
 
 	M_Solut:
-		set MORGEN,1;
+		if(MORGEN==0)set MORGEN,1;
 		mes "[Merchant Louitz]";
 		mes "Apparently that scientist uses those solutions to make other agents and mixtures.";
 		mes "You should speak with ^0000ddAure Dupon^000000 in Geffen to find out more about it. ";
@@ -74,7 +76,7 @@ geffen.gat,181,114,4	script	Aure Dupon	55,{
 	mes "[Aure Dupon]";
 	mes "So... why did you stop me??";
 	emotion 20;
-	if(MORGEN == 1) goto M_Menu2;
+	if(MORGEN >= 1) goto M_Menu2;
 M_Menu:
 	next;
 	menu "Talk",M_Talk,"Cancel",M_Cancel;
@@ -91,11 +93,11 @@ M_Menu2:
 		next;
 		mes "[Aure Dupon]";
 		mes "Would you be able to give up everything else in your life to achieve that goal? Even if it meant risking insanity??";
-		if(MORGEN == 1) goto M_Menu2;
+		if(MORGEN>=1) goto M_Menu2;
 		goto M_Menu;
 
 	M_Morgen:
-		set MORGEN,2;
+		if(MORGEN==1) set MORGEN,2;
 		mes "[Aure Dupon]";
 		mes "Morgenstein? Now that man definatley has a few screws loose.  He's always in the ^0000ddBlasksmith Guild Building^000000 making crazy potions.";
 		mes "He calls them ^ff0000Mixtures^000000 and ^ff0000Counteragents^000000.  I'm not sure what there used for though.";
@@ -169,17 +171,15 @@ L_1:
 	mes "What do you want now?";
 M_Menu2:
 	next;
-	menu "Ask about research",M_Rsrch,"Make a new one",M_Make, "Nothing",M_End;
+	menu "Ask about research",M_Rsrch,"Make a new one",-, "Nothing",M_End;
 	
-	M_Make:
 		mes "[Chemist Morgenstein]";
 		mes "Heheheheheheh.... So I see you are interested in my creations?..... Who woudn't.... Kekekekekekeke!!!";
 		mes "So what do you want me to make for you?? Huh? Heheheheheh.............";
 		emotion 29;
 		next;
-		menu "-Counteragent",sM_Counter, "-Mixture",sM_Mixture, "-Forget it",M_End;
+		menu "-Counteragent",-, "-Mixture",sM_Mixture, "-Forget it",M_End;
 		
-		sM_Counter:
 			mes "[Chemist Morgenstein]";
 			mes "Oh... You said Counteragent... Kekekekekekeke... Let's see.... I'll need some items.......";
 			mes "... Let me check... Oh... Oh...... Ahhhh..... Hmmm.....";
@@ -200,24 +200,27 @@ M_Menu2:
 			menu "Make",-,"Cancel",M_End;
 
 				mes "[Chemist Morgenstein]";
-				if(countitem(970)>0 && countitem(971)>0 && countitem(713)>0 && Zeny>=3000) goto sl_GetCounter;//Items: Alcohol, Detrimindexta, Empty Bottle,
-				mes "I'm sorry but you need 1 Alcohol, 1 Detrimindexta, and 3000 Zeny for me to make a Counteragent.";
-				close;
+				if(countitem(970) && countitem(971) && countitem(713) && Zeny>=3000) goto sl_GetCounter;//Items: Alcohol, Detrimindexta, Empty Bottle,
+					mes "I'm sorry but you need 1 Empty Bottle, 1 Alcohol, 1 Detrimindexta, and 3000 Zeny for me to make a Counteragent.";
+					emotion e_sry;
+					close;
 	
 				sl_GetCounter:
 					mes "OhOhOhOh...... Heheheheheh...... Fine... Like this..... Fine... Keep... More........ Heheheheheh";
 					mes ".... Ahhhh.... ..... OhOh.... OhOh!..... OhOhOhOhOhOh!!!...!!!!!!";
 					next;
-					getitem 973,1;//Items: Counteragent,
 					delitem 970,1;//Items: Alcohol,
 					delitem 713,1;//Items: Empty Bottle,
 					delitem 971,1;//Items: Detrimindexta,
+					getitem 973,1;//Items: Counteragent,
 					set Zeny, Zeny-3000;
 					mes "[Chemist Morgenstein]";
 					mes ".... Hmmm......";
+					emotion e_hmm;
 					close;
 
 		sM_Mixture:
+			mes "[Chemist Morgenstein]";
 			mes "Oh... You said Mixture?... Kekekekekekeke... Let's see... I'll need some items.......";
 			mes "... Let me check... Oh... Oh...... Ahhhh..... Hmmm.....";
 			next;
@@ -236,28 +239,29 @@ M_Menu2:
 			next;
 			menu "Make",-,"Cancel",M_End;
 
-				if(countitem(970)>0 && countitem(972)>0 && countitem(713)>0 && Zeny>=4000) goto sl_GetMix;//Items: Alcohol, Karvodailnirol, Empty Bottle,
-				mes "I'm sorry but you need 1 Alcohol, 1 Karvodainirol, and 4000 Zeny for me to make a Mixture.";
-				close;
+				mes "[Chemist Morgenstein]";
+				if(countitem(970) && countitem(972) && countitem(713) && Zeny>=4000) goto sl_GetMix;//Items: Alcohol, Karvodailnirol, Empty Bottle,
+					mes "I'm sorry but you need 1 Empty Bottle, 1 Alcohol, 1 Karvodainirol, and 4000 Zeny for me to make a Mixture.";
+					emotion e_sry;
+					close;
 			
 				sl_GetMix:
-					mes "[Chemist Morgenstein]";
 					mes "OhOhOhOh...... Heheheheheh...... Fine... Like this..... Fine... Keep... More........ Heheheheheh";
 					mes ".... Ahhhh.... ..... OhOh.... OhOh!..... OhOhOhOhOhOh!!!...!!!!!!";
 					next;
-					getitem 974,1;//Items: Mixture,
 					delitem 970,1;//Items: Alcohol,
 					delitem 713,1;//Items: Empty Bottle,
 					delitem 972,1;//Items: Karvodailnirol,
+					getitem 974,1;//Items: Mixture,
 					set Zeny, Zeny-4000;
 					mes "[Chemist Morgenstein]";
 					mes ".... Hmmm......";
+					emotion e_hmm;
 					close;
 
 	M_End:
 		mes "[Chemist Morgenstein]";
 		mes "... Kekekekekekeke....";
+		emotion e_heh;
 		close;
-
-
 }
