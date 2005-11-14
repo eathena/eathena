@@ -31,6 +31,7 @@
 		like gemstones when the skill is used.
 	--
 11/14
+	* Added sell price to pot and fixed the shop, thanks to vicious_pucca [MasterOfMuppets]
 	* Updated some more food prices [MasterOfMuppets]
 	- Also added a few of the shops selling food items, pot isn't sold atm though
 	  I'll try to find it's price tomorrow.

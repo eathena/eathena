@@ -2091,7 +2091,7 @@
 7479,Lv8_Cookery_Book,Lv8 Cookbook,3,,10,10,,,,,,,,,,,,,{}
 7480,LV9_Cookery_Book,Lv9 Cookbook,3,,10,10,,,,,,,,,,,,,{}
 7481,Lv10_Cookery_Book,Lv10 Cookbook,3,,10,10,,,,,,,,,,,,,{}
-7482,Pot,Pot,3,,10,10,,,,,,,,,,,,,{}
+7482,Pot,Pot,3,200,,10,,,,,,,,,,,,,{}
 7483,Key_of_the_Seal,Key of the Seal,3,,,10,,,,,,,,,,,,,{}
 
 //THQ Quest Items
