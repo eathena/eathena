@@ -3,13 +3,14 @@
 //===== By: ================================================== 
 //= Reddozen
 //===== Current Version: ===================================== 
-//= 1.1
+//= 1.1a
 //===== Compatible With: ===================================== 
 //= eAthena 1.0+
 //===== Description: ========================================= 
 //= Official Cooking Quest
 //===== Additional Comments: ================================= 
 //= 1.1 Fixed wrong item ID, added missing ";, optimized [Lupus]
+//= 1.1a minor bugfix, thx 2 Irmin [Lupus]
 //============================================================ 
 
 prt_castle.gat,43,30,6	script	Chef Apprentice	878,{
@@ -432,7 +433,7 @@ prt_castle.gat,45,35,4	script	Sharle	886,{
 
 				mes "[Sharle]";
 				mes "Bring me:";
-				mes "10 Nippers, 1 Green Herbs, and";
+				mes "10 Nippers, 1 Green Herb, and";
 				mes "1 Yellow Potion";
 				if(countitem(@item1) >= @item1a && countitem(@item2) >= @item2a && countitem(@item3) >= @item3a)goto FC_cook;
 				next;
@@ -561,7 +562,7 @@ prt_castle.gat,45,35,4	script	Sharle	886,{
 
 	b_trade:
 		if(cook_book == 0){
-			mes "[Chef]";
+			mes "[Sharle]";
 			getitem @checkout,1;
 			set cook_book, @checkout;
 			mes "Good luck! I hope you learn a lot!";
@@ -588,7 +589,7 @@ prt_castle.gat,45,35,4	script	Sharle	886,{
 
 	s_3:
 		if(cook_book == 0){
-			mes "[Chef]";
+			mes "[Sharle]";
 			mes "You haven't borrowed any books.";
 			close;
 		}
@@ -599,7 +600,6 @@ prt_castle.gat,45,35,4	script	Sharle	886,{
 		mes "did you learn what you wanted";
 		mes "to know?";
 		close;
-	}
 
 	L_uniform:
 		mes "[Sharle]";
