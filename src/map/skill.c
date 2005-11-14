@@ -5314,10 +5314,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					}
 					break;
 				case 8:	// curse coma and poison
-					if (!(status_get_mode(bl)&MD_BOSS))
-						battle_damage(NULL, bl, status_get_hp(bl)-1, 0, 0);
-					if (dstsd) pc_heal(dstsd,0,-dstsd->status.sp+1);
-					//status_change_start(bl,SC_COMA,skilllv,0,0,0,30000,0);
+					status_change_start(bl,SC_COMA,skilllv,0,0,0,30000,0);
 					status_change_start(bl,SC_CURSE,skilllv,0,0,0,30000,0);
 					status_change_start(bl,SC_POISON,skilllv,0,0,0,30000,0);
 					break;

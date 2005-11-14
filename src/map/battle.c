@@ -2772,14 +2772,13 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 		skill_counter_additional_effect(src, target, 0, 0, BF_WEAPON, tick);
 	if (!status_isdead(target) && (wd.damage > 0 || wd.damage2 > 0)) {
 		if (sd) {
-			int boss = is_boss(target);
-			int hp = status_get_max_hp(target);
-			if (!boss && sd->weapon_coma_ele[ele] > 0 && rand()%10000 < sd->weapon_coma_ele[ele])
-				battle_damage(src, target, hp, 0, 1);
-			if (!boss && sd->weapon_coma_race[race] > 0 && rand()%10000 < sd->weapon_coma_race[race])
-				battle_damage(src, target, hp, 0, 1);
-			if(sd->weapon_coma_race[boss?10:11] > 0 && rand()%10000 < sd->weapon_coma_race[boss?10:11])
-				battle_damage(src, target, hp, 0, 1);
+			int boss = status_get_mode(target)&MD_BOSS;
+			if (
+				(sd->weapon_coma_ele[ele] > 0 && rand()%10000 < sd->weapon_coma_ele[ele]) ||
+				(sd->weapon_coma_race[race] > 0 && rand()%10000 < sd->weapon_coma_race[race]) ||
+				(sd->weapon_coma_race[boss?10:11] > 0 && rand()%10000 < sd->weapon_coma_race[boss?10:11])
+			)
+				status_change_start(target, SC_COMA, 0, 0, 0, 0, 0, 0);
 		}
 	}
 

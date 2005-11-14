@@ -214,6 +214,7 @@ enum {
 	SC_LUKFOOD,
 	SC_HIGHJUMP,
 	SC_STOP,	//Prevents inflicted chars from walking. [Skotlex]
+	SC_COMA, //Not a real SC_, it makes a char's HP/SP hit 1.
 
 	//
 	SC_MAX, //Automatically updated max, used in for's and at startup to check we are within bounds. [Skotlex]

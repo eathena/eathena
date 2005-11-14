@@ -1,5 +1,7 @@
 Date	Added
 2005/11/14
+	* Made coma a status effect. SC_COMA. Sets HP/SP to 1. Bosses/Emperium are
+	  inmune to it. [Skotlex]
 	* Fixed null pointer crash in battle_damage. [Skotlex]
 	* Increased max account variables to 32. [Skotlex]
 	* Pressure/Gloria Domini now isn't instant-cancelled by status effects, and

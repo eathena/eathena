@@ -3664,6 +3664,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 
 	if(mode & MD_BOSS && !(flag&1) && ( (type>=SC_COMMON_MIN && type <= SC_COMMON_MAX)
 		|| type==SC_QUAGMIRE || type==SC_DECREASEAGI || type==SC_SIGNUMCRUCIS || type==SC_PROVOKE || type==SC_ROKISWEIL
+		|| type==SC_COMA
 		|| (type == SC_BLESSING && (undead_flag || race == 6)))){
 		/* ボスには?かない(ただしカ?ドによる?果は適用される) */
 		return 0;
@@ -4350,7 +4351,12 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_STOP:
 			battle_stopwalking(bl, 0);
 			break;
-
+		
+		case SC_COMA: //Coma. Sends a char to 1HP/SP
+			battle_damage(NULL, bl, status_get_hp(bl)-1, 0, 0);
+			if (sd) pc_heal(sd,0,-sd->status.sp+1);
+			return 0;
+			
 		case SC_CARTBOOST:		/* カ?トブ?スト */
 			if(sc_data[SC_DECREASEAGI].timer!=-1 )
 			{	//Cancel Decrease Agi, but take no further effect [Skotlex]
