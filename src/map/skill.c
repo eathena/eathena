@@ -5258,7 +5258,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case CG_LONGINGFREEDOM:
 		{
 			struct status_change *sc_data = status_get_sc_data(src);
-			if (sc_data && sc_data[SC_LONGING].timer == -1 && sc_data[SC_DANCING].timer != -1 && sc_data[SC_DANCING].val4)
+			if (sc_data && sc_data[SC_LONGING].timer == -1 && sc_data[SC_DANCING].timer != -1 && sc_data[SC_DANCING].val4
+				&& sc_data[SC_DANCING].val1 != CG_MOONLIT) //Can't use Longing for Freedom while under Moonlight Petals. [Skotlex]
 			{
 				clif_skill_nodamage(src,bl,skillid,skilllv,1);
 				status_change_start(src,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0);

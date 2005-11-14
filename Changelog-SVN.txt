@@ -1,5 +1,6 @@
 Date	Added
 2005/11/14
+	* Longing for Freedom can't be used during Moonlight Petals now. [Skotlex]
 	* Corrected True Sight's critical bonus (from +0.1 cri per level to +1 cri
 	  per level) [Skotlex]
 	* Made coma a status effect. SC_COMA. Sets HP/SP to 1. Bosses/Emperium are
