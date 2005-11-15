@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= Reddozen
 //===== Current Version: ===================================== 
-//= 1.2
+//= 1.3
 //===== Compatible With: ===================================== 
 //= eAthena 1.0+
 //===== Description: ========================================= 
@@ -12,6 +12,7 @@
 //= 1.1 Fixed wrong item ID, added missing ";, optimized [Lupus]
 //= 1.1a minor bugfix, thx 2 Irmin [Lupus]
 //= 1.2 Fixed exploit, some typos [Lupus]
+//= 1.3 Fixed wrong label [Lupus]
 //============================================================ 
 
 prt_castle.gat,43,30,6	script	Chef Apprentice	878,{
@@ -178,16 +179,15 @@ prt_castle.gat,43,30,6	script	Chef Apprentice	878,{
 				mes "[Chef's Apprentice]";
 				mes "What would you like?";
 				next;
-				menu "Outdoor Cooking Set - 500z each",-, "Home Cooking Set - 1,000z",L_Supplies1, "Never Mind",L_Leave3;
+				menu "Outdoor Cooking Set - 500z each",-, "Home Cooking Set - 1,000z",L_HomeCooking, "Never Mind",L_Leave3;
 
 				set @price, 500;
 				set @tool, 12125;
 				goto L_Cooking_Tools4;
 
-			L_Supplies1:
+			L_HomeCooking:
 				set @price, 1000;
 				set @tool, 12126;
-				goto Cooking_Tools4;
 
 		L_Cooking_Tools4:
 			mes "[Chef's Apprentice]";

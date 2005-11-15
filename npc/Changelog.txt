@@ -27,6 +27,8 @@ Nexon
 
 Date		Added
 ======
+11/15
+	* Cooking quest: Fixed wrong label [Lupus]
 11/14
 	* Added 1 Kafra to Payon, fixed Save menu & coords. Thanks to Justin84 [Lupus]
 	* Fixed Mixture Quest [Lupus]
