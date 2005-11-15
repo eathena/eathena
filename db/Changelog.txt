@@ -30,6 +30,8 @@
 		Item type: Throwing Dagger. Has to be equipped as an arrow, is consumed
 		like gemstones when the skill is used.
 	--
+11/15
+	* Updated 2356,Holy_Cloth_of_Benefit effect [Lupus]
 11/14
 	* Added sell price to pot and fixed the shop, thanks to vicious_pucca [MasterOfMuppets]
 	* Updated some more food prices [MasterOfMuppets]

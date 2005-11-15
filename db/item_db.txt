@@ -1019,7 +1019,7 @@
 2353,Blessing_of_Odin,Blessing of Odin,5,,10,2500,,6,,1,119529470,7,2,16,,65,1,0,{}
 2354,Gebney_Armor,Gebney's Armor,5,,10,3500,,7,,0,119529470,7,2,16,,54,1,0,{ bonus bVit,2; bonus bMaxHPrate,10; }
 2355,Angel_Protection,Devine Protection of Angel,5,,10,600,,4,,1,8388609,7,2,16,,40,1,0,{ bonus bMdef,20; if(isequipped(2116,2420,2521,5125)==0) end; bonus bMaxHP,900; bonus bMaxSP,100; bonus4 bAutoSpellWhenHit,361,1,20,0; }
-2356,Holy_Cloth_of_Benefit,Holy Cloth of Benefit,5,,10,2500,,5,,0,33024,7,2,16,,70,1,,{ bonus2 bSubEle,7,80; bonus bMdef,5; }
+2356,Holy_Cloth_of_Benefit,Holy Cloth of Benefit,5,,10,2500,,5,,0,33024,7,2,16,,70,1,,{ bonus2 bSubEle,7,80; bonus bMdef,5; bonus2 bResEff,Eff_Blind,8000; }
 
 // Footgears
 //===================================================================
