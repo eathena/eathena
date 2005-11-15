@@ -28,6 +28,8 @@ Nexon
 Date		Added
 ======
 11/15
+	* Added missing cities into noBranch / noIcewall mapflags files [Lupus]
+	* Prontera Maze mob spawn typo fixed, thanks to noobs [Lupus]
 	* Cooking quest: Fixed wrong label [Lupus]
 11/14
 	* Added 1 Kafra to Payon, fixed Save menu & coords. Thanks to Justin84 [Lupus]
