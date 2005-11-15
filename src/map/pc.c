@@ -3439,10 +3439,6 @@ static int pc_walk(int tid,unsigned int tick,int id,int data)
 			pc_walktoxy_sub(sd);
 			return 0;
 		}
-		if (skill_check_moonlit (&sd->bl,x+dx,y+dy)) {
-			pc_stop_walking(sd,1);
-			return 0;
-		}
 		moveblock = ( x/BLOCK_SIZE != (x+dx)/BLOCK_SIZE || y/BLOCK_SIZE != (y+dy)/BLOCK_SIZE);
 
 		sd->walktimer = 1;	// temporarily set (so that in clif_set007x the player will still appear as walking)
