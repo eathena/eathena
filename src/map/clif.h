@@ -60,6 +60,7 @@ int clif_movenpc(struct npc_data *nd);	// [Valaris]
 int clif_changemap(struct map_session_data*,char*,int,int);	//self
 int clif_changemapserver(struct map_session_data*,char*,int,int,int,int);	//self
 int clif_blown(struct block_list *); // area
+int clif_slide(struct block_list *,int,int); // area
 int clif_fixpos(struct block_list *);	// area
 int clif_fixmobpos(struct mob_data *md);
 int clif_fixpcpos(struct map_session_data *sd);

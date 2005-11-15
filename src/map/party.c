@@ -621,11 +621,28 @@ int party_exp_share(struct party *p,int map,int base_exp,int job_exp,int zeny)
 	return 0;
 }
 
+int party_send_dot_remove(struct map_session_data *sd)
+{
+	if (sd->status.party_id)
+		clif_party_xy_remove(sd);
+	return 0;
+}
+
+// To use for Taekwon's "Fighting Chant"
+// int c = 0;
+// party_foreachsamemap(party_sub_count, sd, 0, &c);
+int party_sub_count(struct block_list *bl, va_list ap)
+{
+	int *c = va_arg(ap, int*);
+
+	(*c)++;
+	return 1;
+}
+
 // 同じマップのパーティメンバー全体に処理をかける
 // type==0 同じマップ
 //     !=0 画面内
-void party_foreachsamemap(int (*func)(struct block_list*,va_list),
-	struct map_session_data *sd,int type,...)
+void party_foreachsamemap(int (*func)(struct block_list*,va_list),struct map_session_data *sd,int type,...)
 {
 	struct party *p;
 	va_list ap;
@@ -668,10 +685,4 @@ void party_foreachsamemap(int (*func)(struct block_list*,va_list),
 	map_freeblock_unlock();	// 解放を許可する
 
 	va_end(ap);
-}
-int party_send_dot_remove(struct map_session_data *sd)
-{
-	if (sd->status.party_id)
-		clif_party_xy_remove(sd);
-	return 0;
 }

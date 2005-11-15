@@ -23,7 +23,7 @@
 6,8,6,1,0,1,10,1,no,0,0,0,none,0	//SM_PROVOKE#Provoke#
 7,0,6,4,3,2,10,1,no,0,0,0,weapon,2	//SM_MAGNUM#Magnum Break#
 8,0,6,4,0,1,10,1,no,0,0,0,weapon,0	//SM_ENDURE#Endure#
-9,0,0,0,0,0,10,0,no,0,0,0,none,0	//MG_SRECOVERY#Increase SPRecovery#
+9,0,0,0,0,0,10,0,no,0,0,0,none,0	//MG_SRECOVERY#Increase SP Recovery#
 10,3,6,4,3,1,1,1,yes,0,0,0,magic,0	//MG_SIGHT#Sight#
 11,8,6,1,8,0,10,1,yes,0,0,0,magic,0	//MG_NAPALMBEAT#Napalm Beat#
 12,8,8,2,8,0,10,1,yes,0,0,0,magic,0	//MG_SAFETYWALL#Safety Wall#
@@ -382,10 +382,7 @@
 365,8,8,1,0,0,1,1,yes,0,0,0,magic,0	//HW_MAGICCRASHER#Stave Crasher#
 366,0,6,4,0,1,10,1,no,0,0,0,magic,0	//HW_MAGICPOWER#Mystical Amplification#
 367,8,8,1,0,0,5,1,no,0,0,0,misc,0	//PA_PRESSURE#Gloria Domini#
-//The kRO official Sacrifice (self skill, works for 5 hits) - Martyr's Reckoning
-368,0,6,4,0,1,5,1,yes,0,0,0,weapon,0	//PA_SACRIFICE# Old Style
-//Aru's Sacrifice style (target selected skill)
-//368,3,6,1,0,2,5,1,yes,0,0,0,weapon,0	//PA_SACRIFICE# New Style by Aru
+368,0,6,4,0,1,5,1,yes,0,0,0,weapon,0	//PA_SACRIFICE# Martyr's Reckoning#
 369,0,6,4,0,1,10,1,yes,0,0,0,misc,0	//PA_GOSPEL#Battle Chant#
 370,-2,6,1,-1,0,5,1,yes,0,0,0,weapon,3	//CH_PALMSTRIKE#Raging Palm Strike#
 371,-2,8,4,-1,0,5,1,no,0,0,0,weapon,0	//CH_TIGERFIST#Glacier Fist#
@@ -418,7 +415,7 @@
 398,4,6,1,-1,0,5,1,no,0,0,0,weapon,0	//LK_HEADCRUSH#Traumatic Blow#
 399,4,6,1,-1,0,10,1,no,0,0,0,weapon,0	//LK_JOINTBEAT#Vital Strike#
 400,8,8,1,8,0,5,1:2:3:4:5,yes,0,0,0,magic,0	//HW_NAPALMVULCAN#Napalm Vulcan#
-401,0,6,4,0,1,1,1,yes,0,0,0,none,0	//CH_SOULCOLLECT#Hyper Spirit Sphere#
+401,0,6,4,0,1,1,1,yes,0,0,0,none,0	//CH_SOULCOLLECT#Zen#
 402,8,6,1,0,1,5,1,no,0,0,0,none,0	//PF_MINDBREAKER#Mind Breaker#
 403,0,0,4,0,1,1,1,yes,0,0,0,magic,0	//PF_MEMORIZE#Foresight#
 404,3,6,2,2,1,5,1,yes,0,256,2,magic,0	//PF_FOGWALL#Blinding Mist#
@@ -439,11 +436,11 @@
 419,-2,6,4,-1,0,7,1,no,0,0,0,weapon,0	//TK_COUNTER#Counter Kick#
 420,0,6,4,0,1,1,1,no,0,0,0,weapon,0	//TK_DODGE#Break Fall#
 421,10,6,1,-1,0,7,1,no,0,0,0,weapon,0	//TK_JUMPKICK#Flying Side Kick#
-422,0,0,0,0,0,10,0,no,0,0,0,none,0	//TK_HPTIME#Peacefull Rest#
+422,0,0,0,0,0,10,0,no,0,0,0,none,0	//TK_HPTIME#Peaceful Rest#
 423,0,0,0,0,0,10,0,no,0,0,0,none,0	//TK_SPTIME#Enjoyable Rest#
 424,0,0,0,0,0,5,0,no,0,0,0,weapon,0	//TK_POWER#Fighting Chant#
-425,0,6,4,2:4:1:3:8:7:6,1,7,1,no,0,0,0,weapon,0	//TK_SEVENWIND#Warm Wind#
-426,2:4:6:8:10,6,2,0,1,5,1,yes,0,0,0,weapon,0	//TK_HIGHJUMP##
+425,0,6,4,2:4:1:3:8:7:6,1,7,1,no,0,0,0,weapon,0	//TK_SEVENWIND#Mild Wind#
+426,0,6,4,0,1,5,1,no,0,0,0,weapon,0	//TK_HIGHJUMP#Taekwon Jump#
 427,0,0,0,0,0,0,0,no,0,0,0,none,0	//SG_FEEL#Feeling the Sun, Moon and Stars#
 428,0,0,0,0,0,0,0,no,0,0,0,none,0	//SG_SUN_WARM#Warmth of the Sun#
 429,0,0,0,0,0,0,0,no,0,0,0,none,0	//SG_MOON_WARM#Warmth of the Moon#
@@ -451,7 +448,7 @@
 431,0,0,0,0,0,0,0,no,0,0,0,none,0	//SG_SUN_COMFORT#Comfort of the Sun#
 432,0,0,0,0,0,0,0,no,0,0,0,none,0	//SG_MOON_COMFORT#Comfort of the Moon#
 433,0,0,0,0,0,0,0,no,0,0,0,none,0	//SG_STAR_COMFORT#Comfort of the Star#
-434,0,0,0,0,0,0,0,no,0,0,0,none,0	//SG_HATE#Hatred#
+434,0,0,0,0,0,0,0,no,0,0,0,none,0	//SG_HATE#Hatred of the Sun, Moon and Stars#
 435,0,0,0,0,0,0,0,no,0,0,0,none,0	//SG_SUN_ANGER#Sun's Wrath#
 436,0,0,0,0,0,0,0,no,0,0,0,none,0	//SG_MOON_ANGER#Moon's Wrath#
 437,0,0,0,0,0,0,0,no,0,0,0,none,0	//SG_STAR_ANGER#Stars's Wrath#
@@ -463,7 +460,7 @@
 443,0,0,0,0,0,0,0,no,0,0,0,none,0	//SG_KNOWLEDGE#Knowledge of the Sun, Moon and Stars#
 444,0,0,0,0,0,0,0,no,0,0,0,none,0	//SG_FUSION#Union of the Sun, Moon and Stars#
 445,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_ALCHEMIST#Spirit of the Alchemist#
-446,0,0,0,0,0,0,0,no,0,0,0,none,0	//AM_BERSERKPITCHER#Berserk Pitcher#
+446,0,0,0,0,0,0,0,no,0,0,8,none,0	//AM_BERSERKPITCHER#Berserk Pitcher#
 447,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_MONK#Spirit of the Monk#
 448,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_STAR#Spirit of the Star Knight#
 449,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_SAGE#Spirit of the Professor#
@@ -476,7 +473,7 @@
 456,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_ROGUE#Spirit of the Rogue#
 457,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_ASSASIN#Spirit of the Assasin#
 458,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_BLACKSMITH#Spirit of the Blacksmith#
-459,0,0,0,0,0,0,0,no,0,0,0,none,0	//BS_ADRENALINE2#Full Adrenaline Rush#
+459,0,0,0,0,0,0,0,no,0,0,8,none,0	//BS_ADRENALINE2#Full Adrenaline Rush#
 460,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_HUNTER#Spirit of the Hunter#
 461,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_SOULLINKER#Spirit of the Soul Linker#
 462,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_KAIZEL#Kaizel#
@@ -511,11 +508,11 @@
 491,1,6,2,0,1,2,1,no,0,0,0,none,0	//CR_CULTIVATION#Cultivation#
 
 494,8,6,16,0,1,5,1,yes,0,0,0,magic,0	//SL_HIGH#Spirit of Rebirth#
-495,0,6,4,0,1,1,1,no,0,0,0,weapon,0	//KN_ONEHAND#Onehand Quicken#
-496,0,6,4,0,1,1,0,no,0,0,0,none,0	//AM_TWILIGHT1#Twilight Alchemy 1#
-497,0,6,4,0,1,1,0,no,0,0,0,none,0	//AM_TWILIGHT2#Twilight Alchemy 2#
-498,0,6,4,0,1,1,0,no,0,0,0,none,0	//AM_TWILIGHT3#Twilight Alchemy 3#
-499,-3,8,1,-1,0,1,1,no,0,0,0,weapon,0	//HT_POWER#Beast Strafing#
+495,0,6,4,0,1,1,1,no,0,0,8,weapon,0	//KN_ONEHAND#Onehand Quicken#
+496,0,6,4,0,1,1,0,no,0,0,8,none,0	//AM_TWILIGHT1#Twilight Alchemy 1#
+497,0,6,4,0,1,1,0,no,0,0,8,none,0	//AM_TWILIGHT2#Twilight Alchemy 2#
+498,0,6,4,0,1,1,0,no,0,0,8,none,0	//AM_TWILIGHT3#Twilight Alchemy 3#
+499,-3,8,1,-1,0,1,1,no,0,0,8,weapon,0	//HT_POWER#Beast Strafing#
 
 1001,9,6,1,-1,0,1,1,no,0,1,0,weapon,0	//KN_CHARGEATK#Charge Attack#
 1002,0,6,4,0,1,1,0,no,0,1,0,weapon,2	//CR_SHRINK#Shrink#

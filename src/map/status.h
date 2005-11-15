@@ -212,8 +212,8 @@ enum {
 	SC_INTFOOD,
 	SC_DEXFOOD,
 	SC_LUKFOOD,
-	SC_HIGHJUMP,
 	SC_STOP,	//Prevents inflicted chars from walking. [Skotlex]
+	SC_SPIRIT,
 	SC_COMA, //Not a real SC_, it makes a char's HP/SP hit 1.
 
 	//
@@ -223,7 +223,7 @@ extern int SkillStatusChangeTable[];
 
 //Numerates the Number for the status changes (client-dependent), imported from jA
 enum {
-	SI_BLANK				= -1,
+	SI_BLANK			= -1,
 	SI_PROVOKE			= 0,
 	SI_ENDURE			= 1,
 	SI_TWOHANDQUICKEN		= 2,
@@ -316,9 +316,9 @@ enum {
 	SI_READYCOUNTER		= 141,
 	SI_DODGE			= 143,
 	SI_RUN			= 145,
-	//146: Some korean symbol
+	SI_SHADOWWEAPON		= 146,
 	//147 SI_ADRENALINE again
-	//148: Another korean symbol
+	SI_GHOSTWEAPON		= 148,
 	SI_NIGHT			= 149, //slightly colors the screen with blue (night-like), unused by skills, but used for day/night
 // 153 = causes character after-image effect.
 	SI_KAIZEL			= 156,

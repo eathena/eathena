@@ -18,6 +18,7 @@
 #include "clif.h"
 #include "pet.h"
 #include "guild.h"
+#include "party.h"
 
 #define	is_boss(bl)	status_get_mexp(bl)	// Can refine later [Aru]
 
@@ -594,7 +595,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 					md->canmove_tick = gettick() + delay;
 
 				if(sc_data[SC_SHRINK].timer != -1 && rand()%100<5*sc_data[SC_AUTOGUARD].val1)
-					skill_blown(bl,src,skill_get_blewcount(CR_SHRINK,1),1);
+					skill_blown(bl,src,skill_get_blewcount(CR_SHRINK,1));
 			}
 		}
 // -- moonsoul (chance to block attacks with new Lord Knight skill parrying)
@@ -1356,6 +1357,12 @@ static struct Damage battle_calc_weapon_attack(
 
 					if(flag.cri && sd->crit_atk_rate)
 						ATK_ADDRATE(sd->crit_atk_rate);
+
+					if(sd->status.party_id && (skill=pc_checkskill(sd,TK_POWER)) > 0){
+						i = 0;
+						party_foreachsamemap(party_sub_count, sd, 0, &i);
+						ATK_ADDRATE(2*skill*i);
+					}
 				}
 				break;
 			}	//End default case

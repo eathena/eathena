@@ -3348,40 +3348,6 @@ int pc_walktodir(struct map_session_data *sd,int step)
 	return 1;
 }
 
-int pc_highjump(struct map_session_data *sd,int skill_lv)
-{
-	int x,y,dir_x,dir_y, distance;
-	nullpo_retr(0, sd);
-
-	if (!pc_can_move(sd))
-		return 0;
-
-	distance = skill_lv*2;
-	x = sd->bl.x;
-	y = sd->bl.y;
-	dir_x = dirx[(int)sd->dir];
-	dir_y = diry[(int)sd->dir];
-
-	if (dir_x != 0 && dir_y != 0)
-	{	//Diagonal jump.
-		distance = distance*10/14;
-		if (distance < 1)
-			distance = 1;
-	};
-
-	x = sd->bl.x + dir_x*distance;
-	y = sd->bl.y + dir_y*distance;
-	
-	if(map_getcell(sd->bl.m,x,y,CELL_CHKPASS))
-	{
-		status_change_start(&sd->bl, SC_HIGHJUMP, skill_lv, distance, x, y,0,0);
-		pc_walktoxy(sd, x, y);
-	} else
-		clif_skill_fail(sd,1,4,0);
-
-	return 1;
-}
-
 /*==========================================
  *
  *------------------------------------------
@@ -3429,7 +3395,7 @@ static int pc_walk(int tid,unsigned int tick,int id,int data)
 {
 	struct map_session_data *sd;
 	int i, x, y, dx, dy;
-	int moveblock, highjump;
+	int moveblock;
 
 	if ((sd = map_id2sd(id)) == NULL)
 		return 0;
@@ -3441,7 +3407,6 @@ static int pc_walk(int tid,unsigned int tick,int id,int data)
 	}
 
 	sd->walktimer = -1;
-	highjump = (sd->sc_data[SC_HIGHJUMP].timer != -1); //High Jump flag, if set tiles need not be checked for NOPASS
 	
 	if (sd->walkpath.path_pos >= sd->walkpath.path_len ||
 		sd->walkpath.path_pos != data)
@@ -3463,15 +3428,19 @@ static int pc_walk(int tid,unsigned int tick,int id,int data)
 			return 1;
 		x = sd->bl.x;
 		y = sd->bl.y;
-		if (map_getcell(sd->bl.m,x,y,CELL_CHKNOPASS) && !highjump) {
+		if (map_getcell(sd->bl.m,x,y,CELL_CHKNOPASS)) {
 			pc_stop_walking(sd,1);
 			return 0;
 		}
 		sd->dir = sd->head_dir = sd->walkpath.path[sd->walkpath.path_pos];
 		dx = dirx[(int)sd->dir];
 		dy = diry[(int)sd->dir];
-		if (map_getcell(sd->bl.m,x+dx,y+dy,CELL_CHKNOPASS) && !highjump) {
+		if (map_getcell(sd->bl.m,x+dx,y+dy,CELL_CHKNOPASS)) {
 			pc_walktoxy_sub(sd);
+			return 0;
+		}
+		if (skill_check_moonlit (&sd->bl,x+dx,y+dy)) {
+			pc_stop_walking(sd,1);
 			return 0;
 		}
 		moveblock = ( x/BLOCK_SIZE != (x+dx)/BLOCK_SIZE || y/BLOCK_SIZE != (y+dy)/BLOCK_SIZE);
@@ -3518,8 +3487,6 @@ static int pc_walk(int tid,unsigned int tick,int id,int data)
 	}
 	else if(sd->sc_data[SC_RUN].timer!=-1) //Keep trying to run.
 		pc_run(sd, sd->sc_data[SC_RUN].val1, sd->sc_data[SC_RUN].val2);
-	else if(sd->sc_data[SC_HIGHJUMP].timer!=-1) //Reached target point.
-		status_change_end(&sd->bl, SC_HIGHJUMP, -1);
 
 	return 0;
 }
@@ -3535,8 +3502,7 @@ static int pc_walktoxy_sub (struct map_session_data *sd)
 
 	nullpo_retr(1, sd);
 
-	if(path_search(&wpd, sd->bl.m, sd->bl.x, sd->bl.y, sd->to_x, sd->to_y,
-		sd->sc_data[SC_HIGHJUMP].timer!=-1?0x20001:0)) //If high jumping, send flag to avoid all obstacles.
+	if(path_search(&wpd, sd->bl.m, sd->bl.x, sd->bl.y, sd->to_x, sd->to_y, 0))
 		return 1;
 
 	memcpy(&sd->walkpath, &wpd, sizeof(wpd));
@@ -3606,8 +3572,6 @@ int pc_stop_walking (struct map_session_data *sd, int type)
 		clif_fixpos(&sd->bl);
 	if (sd->sc_data[SC_RUN].timer != -1)
 		status_change_end(&sd->bl, SC_RUN, -1);
-	else if (sd->sc_data[SC_HIGHJUMP].timer != -1)
-		status_change_end(&sd->bl, SC_HIGHJUMP, -1);
 	return 0;
 }
 
@@ -3662,14 +3626,8 @@ int pc_movepos(struct map_session_data *sd,int dst_x,int dst_y,int checkpath)
 
 	nullpo_retr(0, sd);
 
-if(sd && sd->sc_data && sd->sc_data[SC_HIGHJUMP].timer!=-1) {
-		if(path_search(&wpd,sd->bl.m,sd->bl.x,sd->bl.y,dst_x,dst_y,0x20001))
-			return 1;
-	} else {
 	if(checkpath && path_search(&wpd,sd->bl.m,sd->bl.x,sd->bl.y,dst_x,dst_y,0))
 		return 1;
-
-	}
 
 	sd->dir = sd->head_dir = map_calc_dir(&sd->bl, dst_x,dst_y);
 

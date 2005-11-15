@@ -211,7 +211,6 @@ int pc_istop10fame(int char_id, int job);
 int pc_eventtimer(int tid,unsigned int tick,int id,int data); // for npc_dequeue
 
 int pc_run(struct map_session_data *sd, int skilllv, int dir);
-int pc_highjump(struct map_session_data *sd,int skilllv);
 
 extern struct fame_list smith_fame_list[10];
 extern struct fame_list chemist_fame_list[10];

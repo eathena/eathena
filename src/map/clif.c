@@ -1598,7 +1598,7 @@ int clif_walkok(struct map_session_data *sd)
 
 	fd=sd->fd;
 	WFIFOW(fd,0)=0x87;
-	WFIFOL(fd,2)=gettick();;
+	WFIFOL(fd,2)=gettick();
 	WFIFOPOS2(fd,6,sd->bl.x,sd->bl.y,sd->to_x,sd->to_y);
 	WFIFOB(fd,11)=0;
 	WFIFOSET(fd,packet_len_table[0x87]);
@@ -7272,7 +7272,7 @@ void clif_callpartner(struct map_session_data *sd)
 			chrif_searchcharid(sd->status.partner_id);
 			WBUFB(buf,2) = 0;
 		}
-		clif_send(buf,packet_len_table[0x1e6]&sd->bl,AREA);
+		clif_send(buf,packet_len_table[0x1e6],&sd->bl,AREA);
 	}
 	return;
 }
@@ -7754,8 +7754,22 @@ int clif_charnameupdate (struct map_session_data *ssd)
 		WBUFB(buf,78) = 0;
 	}
 
-	// Update nearby cliens
+	// Update nearby clients
 	clif_send(buf, packet_len_table[cmd], &ssd->bl, AREA);
+	return 0;
+}
+
+int clif_slide(struct block_list *bl, int x, int y){
+	unsigned char buf[10];
+
+	nullpo_retr(0, bl);
+
+	WBUFW(buf, 0) = 0x01ff;
+	WBUFL(buf, 2) = bl->id;
+	WBUFW(buf, 6) = x;
+	WBUFW(buf, 8) = y;
+
+	clif_send(buf, packet_len_table[0x1ff], bl, AREA);
 	return 0;
 }
 
@@ -10576,7 +10590,7 @@ int clif_fame_alchemist(struct map_session_data *sd, int points)
 }
 
 /*==========================================
- * /taekwon?
+ * /taekwon
  *------------------------------------------
  */
 void clif_parse_Taekwon(int fd,struct map_session_data *sd)

@@ -268,15 +268,31 @@ int SkillStatusChangeTable[]={	/* status.hのenumのSC_***とあわせること */
 	SC_COUNTER,
 /* 420- */
 	SC_DODGE,
-	-1,-1,-1,-1,-1,SC_HIGHJUMP,-1,-1,-1,
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,
 /* 430- */
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
 /* 440- */
-	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+	-1,-1,-1,-1,-1,
+	SC_SPIRIT,
+	-1,
+	SC_SPIRIT,
+	SC_SPIRIT,
+	SC_SPIRIT,
 /* 450- */
-	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+	SC_SPIRIT,
+	SC_SPIRIT,
+	SC_SPIRIT,
+	SC_SPIRIT,
+	SC_SPIRIT,
+	SC_SPIRIT,
+	SC_SPIRIT,
+	SC_SPIRIT,
+	SC_SPIRIT,
+	SC_ADRENALINE2,
 /* 460- */
-	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+	SC_SPIRIT,
+	SC_SPIRIT,
+	-1,-1,-1,-1,-1,-1,-1,-1,
 /* 470- */
 	-1,-1,-1,-1,-1,
 	SC_PRESERVE,
@@ -292,7 +308,9 @@ int SkillStatusChangeTable[]={	/* status.hのenumのSC_***とあわせること */
 	SC_HERMODE,
 	-1,
 /* 490- */
-	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+	-1,-1,-1,-1,
+	SC_SPIRIT,
+	-1,-1,-1,-1,-1,
 /* 500- */
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
 /* 510- */
@@ -503,6 +521,7 @@ void initStatusIconChangeTable() {
 	StatusIconChangeTable[SC_AUTOSPELL] = SI_AUTOSPELL;
 	StatusIconChangeTable[SC_SPEARSQUICKEN] = SI_SPEARQUICKEN;
 	StatusIconChangeTable[SC_EXPLOSIONSPIRITS] = SI_EXPLOSIONSPIRITS;
+	StatusIconChangeTable[SC_FURY] = SI_FURY;
 	StatusIconChangeTable[SC_WATK_ELEMENT] = SI_FIREWEAPON;
 	StatusIconChangeTable[SC_FIREWEAPON] = SI_FIREWEAPON;
 	StatusIconChangeTable[SC_WATERWEAPON] = SI_WATERWEAPON;
@@ -513,7 +532,6 @@ void initStatusIconChangeTable() {
 	StatusIconChangeTable[SC_CONCENTRATION] = SI_CONCENTRATION;
 	StatusIconChangeTable[SC_TENSIONRELAX] = SI_TENSIONRELAX;
 	StatusIconChangeTable[SC_BERSERK] = SI_BERSERK;
-	StatusIconChangeTable[SC_FURY] = SI_FURY;
 	StatusIconChangeTable[SC_ASSUMPTIO] = SI_ASSUMPTIO;
 	StatusIconChangeTable[SC_GUILDAURA] = SI_GUILDAURA;
 	StatusIconChangeTable[SC_MAGICPOWER] = SI_MAGICPOWER;
@@ -535,7 +553,9 @@ void initStatusIconChangeTable() {
 	StatusIconChangeTable[SC_READYCOUNTER] = SI_READYCOUNTER;
 	StatusIconChangeTable[SC_DODGE] = SI_DODGE;
 	StatusIconChangeTable[SC_RUN] = SI_RUN;
+	StatusIconChangeTable[SC_SHADOWWEAPON] = SI_SHADOWWEAPON;
 	StatusIconChangeTable[SC_ADRENALINE2] = SI_ADRENALINE;
+	StatusIconChangeTable[SC_GHOSTWEAPON] = SI_GHOSTWEAPON;
 	StatusIconChangeTable[SC_KAIZEL] = SI_KAIZEL;
 	StatusIconChangeTable[SC_KAAHI] = SI_KAAHI;
 	StatusIconChangeTable[SC_KAUPE] = SI_KAUPE;
@@ -1714,7 +1734,6 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	sd->dmotion = 800-sd->paramc[1]*4;
 	if(sd->dmotion<400)	sd->dmotion = 400;
 
-	
 	// Weight
 	if((skill=pc_checkskill(sd,MC_INCCARRY))>0)
 		sd->max_weight += 2000*skill;
@@ -1743,8 +1762,8 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		skill = skill*4;
 		sd->right_weapon.addrace[9]+=skill;
 		sd->left_weapon.addrace[9]+=skill;
-		sd->subrace[9]+=skill;
 		sd->magic_addrace[9]+=skill;
+		sd->subrace[9]+=skill;
 	}
 
 	if(sd->sc_count){
@@ -2318,6 +2337,8 @@ int status_calc_aspd_rate(struct block_list *bl, int aspd_rate)
 			int i;
 			if(sc_data[SC_QUAGMIRE].timer==-1 && sc_data[SC_DONTFORGETME].timer==-1){
 				if(sc_data[SC_TWOHANDQUICKEN].timer!=-1)
+					aspd_rate -= 30;
+				else if(sc_data[SC_ONEHAND].timer!=-1)
 					aspd_rate -= 30;
 				else if(sc_data[SC_ADRENALINE].timer!=-1)
 					aspd_rate -= (sc_data[SC_ADRENALINE].val2 || !battle_config.party_skill_penalty)?30:25;
@@ -4402,6 +4423,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_DEXFOOD:
 		case SC_LUKFOOD:
 		case SC_RUN://駆け足
+		case SC_SPIRIT:
 			calc_flag = 1;
 			break;
 
@@ -4430,7 +4452,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_BABY:
 		case SC_WATK_ELEMENT:
 		case SC_ARMOR_ELEMENT:
-		case SC_HIGHJUMP:
 		case SC_LONGING:
 		case SC_ORCISH:
 		case SC_SHRINK:
@@ -4724,8 +4745,10 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			case SC_BATTLEORDERS:
 			case SC_REGENERATION:
 			case SC_GUILDAURA:
+			case SC_SPIRIT: 
 				calc_flag = 1;
 				break;
+
 			case SC_RUN://駆け足
 			{
 				struct map_session_data *sd;
@@ -4734,6 +4757,7 @@ int status_change_end( struct block_list* bl , int type,int tid )
 				calc_flag = 1;
 				break;
 			}
+
 			case SC_AUTOBERSERK:
 				if (sc_data[SC_PROVOKE].timer != -1)
 					status_change_end(bl,SC_PROVOKE,-1);
@@ -4905,18 +4929,18 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			opt_flag = 1;
 			break;
 
-		case SC_POISON:
-			if (sc_data[SC_DPOISON].timer != -1)	//
-				break;						// DPOISON用のオプション
-			*opt2 &= ~1;					// が?用に用意された場合には
-			opt_flag = 1;					// ここは削除する
-			break;							//
 		case SC_CURSE:
 		case SC_SILENCE:
 		case SC_BLIND:
 			*opt2 &= ~(1<<(type-SC_POISON));
 			opt_flag = 1;
 			break;
+		case SC_POISON:
+			if (sc_data[SC_DPOISON].timer != -1)	//
+				break;						// DPOISON用のオプション
+			*opt2 &= ~1;					// が?用に用意された場合には
+			opt_flag = 1;					// ここは削除する
+			break;							//
 		case SC_DPOISON:
 			if (sc_data[SC_POISON].timer != -1)	// DPOISON用のオプションが
 				break;							// 用意されたら削除
@@ -4929,17 +4953,18 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			break;
 
 		case SC_HIDING:
+			*option &= ~OPTION_HIDE;
+			opt_flag = 1 ;
+			break;
 		case SC_CLOAKING:
-			*option &= ~((type == SC_HIDING) ? OPTION_HIDE : OPTION_CLOAK);
+			*option &= ~OPTION_CLOAK;
 			calc_flag = 1;	// orn
 			opt_flag = 1 ;
 			break;
-
 		case SC_CHASEWALK:
 			*option &= ~(OPTION_CHASEWALK|OPTION_CLOAK);
 			opt_flag = 1 ;
 			break;
-
 		case SC_SIGHT:
 			*option &= ~OPTION_SIGHT;
 			opt_flag = 1;
