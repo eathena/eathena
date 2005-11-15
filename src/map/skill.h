@@ -188,6 +188,7 @@ int skill_check_unit_cell(int skillid,int m,int x,int y,int unit_id);
 int skill_unit_out_all( struct block_list *bl,unsigned int tick,int range);
 int skill_unit_move(struct block_list *bl,unsigned int tick,int flag);
 int skill_unit_move_unit_group( struct skill_unit_group *group, int m,int dx,int dy);
+void skill_setmapcell(struct block_list *src, int skill_num, int skill_lv, int flag);
 
 struct skill_unit_group *skill_check_dancing( struct block_list *src );
 void skill_stop_dancing(struct block_list *src);
@@ -200,7 +201,6 @@ int skill_castcancel(struct block_list *bl,int type);
 
 int skill_gangsterparadise(struct map_session_data *sd ,int type);
 int skill_rest(struct map_session_data *sd ,int type);
-int skill_check_moonlit(struct block_list *bl, int dx, int dy);
 void skill_brandishspear_first(struct square *tc,int dir,int x,int y);
 void skill_brandishspear_dir(struct square *tc,int dir,int are);
 void skill_repairweapon(struct map_session_data *sd, int idx);

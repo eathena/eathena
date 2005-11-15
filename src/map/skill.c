@@ -627,6 +627,7 @@ static int skill_unit_onleft(int skill_id, struct block_list *bl,unsigned int ti
 static int skill_unit_checktarget(int skill_id, struct block_list *bl);
 int skill_unit_effect(struct block_list *bl,va_list ap);
 int skill_castend_delay (struct block_list* src, struct block_list *bl,int skillid,int skilllv,unsigned int tick,int flag);
+static void skill_moonlit(struct block_list* src, struct block_list* partner, int skilllv);
 static int skill_check_pc_partner(struct map_session_data *sd, int skill_id, int* skill_lv, int range, int cast_flag);
 
 int enchant_eff[5] = { 10, 14, 17, 19, 20 };
@@ -1499,8 +1500,13 @@ int skill_blown( struct block_list *src, struct block_list *target,int count, in
 	else if(pd)
 		map_foreachinmovearea(clif_petoutsight,target->m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,dx,dy,BL_PC,pd);
 
-	if (sc_data && sc_data[SC_DANCING].timer != -1) //Move the song/dance [Skotlex]
-		skill_unit_move_unit_group((struct skill_unit_group *)sc_data[SC_DANCING].val2, target->m, dx, dy);
+	if (sc_data && sc_data[SC_DANCING].timer != -1) {//Move the song/dance [Skotlex]
+		if (sc_data[SC_DANCING].val1 == CG_MOONLIT) //Cancel Moonlight Petals if moved from casting position. [Skotlex]
+			skill_stop_dancing(target);
+		else
+			skill_unit_move_unit_group((struct skill_unit_group *)sc_data[SC_DANCING].val2, target->m, dx, dy);
+	}
+	
 		
 	if(su){
 		skill_unit_move_unit_group(su->group,target->m,dx,dy);
@@ -3605,11 +3611,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 	case CG_MOONLIT:		/* ŒŽ–¾‚è‚Ìò‚É—Ž‚¿‚é‰Ô‚Ñ‚ç */
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
-		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
-		status_change_start(src,SC_DANCING,skillid,0,0,BCT_SELF,skill_get_time(skillid,skilllv)+1000,0);
 		if (sd && battle_config.player_skill_partner_check) {
 			skill_check_pc_partner(sd, skillid, &skilllv, 1, 1);
-		}
+		} else
+			skill_moonlit(bl, NULL, skilllv); //The knockback must be invoked before starting the effect which places down the map cells. [Skotlex]
+		
 		break;
 	
 	case HP_ASSUMPTIO:
@@ -7213,6 +7219,46 @@ int skill_unit_ondamaged(struct skill_unit *src,struct block_list *bl,
 	return damage;
 }
 
+static int skill_moonlit_sub(struct block_list *bl, va_list ap) {
+	struct block_list *src = va_arg(ap, struct block_list*);
+	struct block_list *partner = va_arg(ap, struct block_list*);
+	int blowcount = va_arg(ap, int);
+	if (bl == src || bl == partner)
+		return 0;
+	if (bl->type == BL_MOB || bl->type == BL_PC || bl->type == BL_PET)
+		skill_blown(src, bl, 0x20000|blowcount,1);
+	return 1;
+}
+
+/*==========================================
+ * Starts the moonlit effect by first knocking back all other characters in the vecinity.
+ * partner may be null, but src cannot be.
+ *------------------------------------------
+ */
+static void skill_moonlit(struct block_list* src, struct block_list* partner, int skilllv)
+{
+	int range = skill_get_range(CG_MOONLIT, skilllv);
+	int blowcount = range+1, time = skill_get_time(CG_MOONLIT,skilllv);
+	
+	map_foreachinarea(skill_moonlit_sub,src->m
+					,src->x-range,src->y-range
+					,src->x+range,src->y+range
+					,0,src,partner,blowcount);
+	if(partner)
+		map_foreachinarea(skill_moonlit_sub,partner->m
+					,partner->x-range,partner->y-range
+					,partner->x+range,partner->y+range
+					,0,src,partner,blowcount);
+		
+	status_change_start(src,SC_DANCING,CG_MOONLIT,0,0,partner?partner->id:BCT_SELF,time+1000,0);
+	status_change_start(src,SkillStatusChangeTable[CG_MOONLIT],skilllv,0,0,0,time,0);
+	
+	if (partner) {
+		status_change_start(partner,SC_DANCING,CG_MOONLIT,0,0,src->id,time+1000,0);
+		status_change_start(partner,SkillStatusChangeTable[CG_MOONLIT],skilllv,0,0,0,time,0);
+	}
+	
+}
 /*==========================================
  * ”Í??ƒLƒƒƒ‰‘¶?ÝŠm”F”»’è?—?(foreachinarea)
  *------------------------------------------
@@ -7301,6 +7347,15 @@ static int skill_check_pc_partner(struct map_session_data *sd, int skill_id, int
 						tsd->status.sp -= 10;
 						clif_updatestatus(tsd,SP_SP);
 					}
+				}
+				return c;
+			case CG_MOONLIT:
+				if (c > 0 && (tsd = map_id2sd(p_sd[0])) != NULL)
+				{
+					clif_skill_nodamage(&tsd->bl, &sd->bl, skill_id, *skill_lv, 1);
+					skill_moonlit(&sd->bl, &tsd->bl, *skill_lv);
+					tsd->skillid_dance = tsd->skillid = skill_id;
+					tsd->skilllv_dance = tsd->skilllv = *skill_lv;
 				}
 				return c;
 			default: //Warning: Assuming Ensemble skills here (for speed)
@@ -7746,6 +7801,20 @@ int skill_check_condition(struct map_session_data *sd,int type)
 			if (c < 1) {
 				clif_skill_fail(sd,skill,0,0);
 				return 0;
+			}
+		}
+		break;
+	case CG_MOONLIT: //Check there's no wall in the range+1 area around the caster. [Skotlex]
+		{
+			int i,x,y,range = skill_get_unit_range(skill)+1;
+			int size = range*2+1;
+			for (i=0;i<size*size;i++) {
+				x = sd->bl.x+(i%size-range);
+				y = sd->bl.y+(i/size-range);
+				if (map_getcell(sd->bl.m,x,y,CELL_CHKWALL)) {
+					clif_skill_fail(sd,skill,0,0);
+					return 0;
+				}	
 			}
 		}
 		break;
@@ -9053,51 +9122,37 @@ int skill_frostjoke_scream(struct block_list *bl,va_list ap)
 }
 
 /*==========================================
- * Moonlit creates a 'safe zone' [celest]
- *------------------------------------------
- */
-static int skill_moonlit_count(struct block_list *bl,va_list ap)
-{
-	int *c, id;
-	struct map_session_data *sd;
-
-	nullpo_retr(0, bl);
-	nullpo_retr(0, ap);
-	nullpo_retr(0, (sd=(struct map_session_data *)bl));
-
-	id=va_arg(ap,int);
-	c=va_arg(ap,int *);
-
-	if (sd->bl.id != id && sd->sc_count && sd->sc_data[SC_MOONLIT].timer != -1 && c)
-		(*c)++;
-	return 0;
-}
-
-int skill_check_moonlit (struct block_list *bl, int dx, int dy)
-{
-	int c=0;
-	nullpo_retr(0, bl);
-	map_foreachinarea(skill_moonlit_count,bl->m,
-			dx-1,dy-1,dx+1,dy+1,BL_PC,bl->id,&c);
-	return (c>0);
-}
-
-/*==========================================
  * ƒoƒWƒŠƒJ‚ÌƒZƒ‹‚ð?Ý’è‚·‚é
  *------------------------------------------
  */
-void skill_unitsetmapcell(struct skill_unit *unit, int skill_num, int flag)
+void skill_unitsetmapcell(struct skill_unit *src, int skill_num, int flag)
 {
 	int i,x,y,range = skill_get_unit_range(skill_num);
 	int size = range*2+1;
 
 	for (i=0;i<size*size;i++) {
-		x = unit->bl.x+(i%size-range);
-		y = unit->bl.y+(i/size-range);
-		map_setcell(unit->bl.m,x,y,flag);
+		x = src->bl.x+(i%size-range);
+		y = src->bl.y+(i/size-range);
+		map_setcell(src->bl.m,x,y,flag);
 	}
 }
 
+/*==========================================
+ * Sets a map cell around the caster, according to the skill's range.
+ *------------------------------------------
+ */
+void skill_setmapcell(struct block_list *src, int skill_num, int skill_lv, int flag)
+{
+	int i,x,y,range = skill_get_range(skill_num, skill_lv);
+	int size = range*2+1;
+
+	for (i=0;i<size*size;i++) {
+		x = src->x+(i%size-range);
+		y = src->y+(i/size-range);
+		map_setcell(src->m,x,y,flag);
+	}
+}
+	
 /*==========================================
  *
  *------------------------------------------
@@ -9507,11 +9562,20 @@ struct skill_unit *skill_initunit(struct skill_unit_group *group,int idx,int x,i
 	map_addblock(&unit->bl);
 	clif_skill_setunit(unit);
 
-	if (group->skill_id == HP_BASILICA)
-		skill_unitsetmapcell(unit,HP_BASILICA,CELL_SETBASILICA);
-	else if (group->skill_id == SA_LANDPROTECTOR)
+	switch (group->skill_id) {
+	case AL_PNEUMA:
+		skill_unitsetmapcell(unit,AL_PNEUMA,CELL_SETPNEUMA);
+		break;
+	case MG_SAFETYWALL:
+		skill_unitsetmapcell(unit,MG_SAFETYWALL,CELL_SETSAFETYWALL);
+		break;
+	case SA_LANDPROTECTOR:
 		skill_unitsetmapcell(unit,SA_LANDPROTECTOR,CELL_SETLANDPROTECTOR);
-	
+		break;
+	case HP_BASILICA:
+		skill_unitsetmapcell(unit,HP_BASILICA,CELL_SETBASILICA);
+		break;
+	}
 	return unit;
 }
 
@@ -9537,10 +9601,20 @@ int skill_delunit(struct skill_unit *unit)
 			unit->bl.x,unit->bl.y,0,&unit->bl,gettick(),4);
 	}
 
-	if (group->skill_id==HP_BASILICA)
-		skill_unitsetmapcell(unit,HP_BASILICA, CELL_CLRBASILICA);
-	else if (group->skill_id==SA_LANDPROTECTOR)
-		skill_unitsetmapcell(unit,SA_LANDPROTECTOR, CELL_CLRLANDPROTECTOR);
+	switch (group->skill_id) {
+	case AL_PNEUMA:
+		skill_unitsetmapcell(unit,AL_PNEUMA,CELL_CLRPNEUMA);
+		break;
+	case MG_SAFETYWALL:
+		skill_unitsetmapcell(unit,MG_SAFETYWALL,CELL_CLRSAFETYWALL);
+		break;
+	case SA_LANDPROTECTOR:
+		skill_unitsetmapcell(unit,SA_LANDPROTECTOR,CELL_CLRLANDPROTECTOR);
+		break;
+	case HP_BASILICA:
+		skill_unitsetmapcell(unit,HP_BASILICA,CELL_CLRBASILICA);
+		break;
+	}
 
 	clif_skill_delunit(unit);
 

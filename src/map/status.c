@@ -41,7 +41,7 @@ int SkillStatusChangeTable[]={	/* status.hのenumのSC_***とあわせること */
 /* 20- */
 	-1,-1,-1,-1,
 	SC_RUWACH,			/* ルアフ */
-	SC_PNEUMA,			/* ニューマ */
+	-1,//SC_PNEUMA, Pneuma is no longer a status change. It is a cell type.
 	-1,-1,-1,
 	SC_INCREASEAGI,		/* 速度?加 */
 /* 30- */
@@ -3637,7 +3637,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		}
 	}
 	else if(bl->type == BL_MOB) {
-		if (((struct mob_data*)bl)->class_ == MOBID_EMPERIUM && type != SC_PNEUMA && type != SC_SAFETYWALL)
+		if (((struct mob_data*)bl)->class_ == MOBID_EMPERIUM && type != SC_SAFETYWALL)
 			return 0; //Emperium can't be afflicted by status changes.
 	}
 	else {
@@ -3953,6 +3953,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			break;
 		case SC_MOONLIT:
 			val2 = bl->id;
+			skill_setmapcell(bl,CG_MOONLIT, val1, CELL_SETMOONLIT);
 			break;
 		case SC_DANCING:			/* ダンス/演奏中 */
 			calc_flag = 1;
@@ -4404,7 +4405,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			break;
 
 		case SC_SAFETYWALL:
-		case SC_PNEUMA:
 		case SC_SUFFRAGIUM:			/* サフラギム */
 		case SC_BENEDICTIO:			/* 聖? */
 		case SC_MAGNIFICAT:			/* マグニフィカ?ト */
@@ -4885,6 +4885,9 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			case SC_BASILICA: //Clear the skill area. [Skotlex]
 				if(sc_data[type].val3 == BCT_SELF)
 					skill_clear_unitgroup(bl);
+				break;
+			case SC_MOONLIT: //Clear the unit effect. [Skotlex]
+				skill_setmapcell(bl,CG_MOONLIT, sc_data[SC_MOONLIT].val1, CELL_CLRMOONLIT);
 				break;
 			}
 

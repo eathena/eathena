@@ -1881,7 +1881,7 @@ int map_getcell(int m,int x,int y,cell_t cellchk)
 
 int map_getcellp(struct map_data* m,int x,int y,cell_t cellchk)
 {
-	int type;
+	int type, type2;
 	nullpo_ret(m);
 
 	if(x<0 || x>=m->xs-1 || y<0 || y>=m->ys-1)
@@ -1890,15 +1890,14 @@ int map_getcellp(struct map_data* m,int x,int y,cell_t cellchk)
 		return 0;
 	}
 	type = m->gat[x+y*m->xs];
-	if (cellchk<0x10)
-		type &= CELL_MASK;
+	type2 = m->cell[x+y*m->xs];
 
 	switch(cellchk)
 	{
 		case CELL_CHKPASS:
-			return (type!=1 && type!=5);
+			return (type!=1 && type!=5 && !(type2&CELL_MOONLIT));
 		case CELL_CHKNOPASS:
-			return (type==1 || type==5);
+			return (type==1 || type==5 || type2&CELL_MOONLIT);
 		case CELL_CHKWALL:
 			return (type==1);
 		case CELL_CHKWATER:
@@ -1907,14 +1906,22 @@ int map_getcellp(struct map_data* m,int x,int y,cell_t cellchk)
 			return (type==5);
 		case CELL_GETTYPE:
 			return type;
+		case CELL_GETCELLTYPE:
+			return type2;
 		case CELL_CHKNPC:
-			return (type&CELL_NPC);
+			return (type2&CELL_NPC);
+		case CELL_CHKPNEUMA:
+			return (type2&CELL_PNEUMA);
+		case CELL_CHKSAFETYWALL:
+			return (type2&CELL_SAFETYWALL);
 		case CELL_CHKBASILICA:
-			return (type&CELL_BASILICA);
+			return (type2&CELL_BASILICA);
 		case CELL_CHKLANDPROTECTOR:
-			return (type&CELL_LANDPROTECTOR);
+			return (type2&CELL_LANDPROTECTOR);
+		case CELL_CHKMOONLIT:
+			return (type2&CELL_MOONLIT);
 		case CELL_CHKREGEN:
-			return (type&CELL_REGEN);
+			return (type2&CELL_REGEN);
 		default:
 			return 0;
 	}
@@ -1933,25 +1940,43 @@ void map_setcell(int m,int x,int y,int cell)
 
 	switch (cell) {
 		case CELL_SETNPC:
-			map[m].gat[j] |= CELL_NPC;
+			map[m].cell[j] |= CELL_NPC;
 			break;
 		case CELL_SETBASILICA:
-			map[m].gat[j] |= CELL_BASILICA;
+			map[m].cell[j] |= CELL_BASILICA;
 			break;
 		case CELL_CLRBASILICA:
-			map[m].gat[j] &= ~CELL_BASILICA;
+			map[m].cell[j] &= ~CELL_BASILICA;
+			break;
+		case CELL_SETPNEUMA:
+			map[m].cell[j] |= CELL_PNEUMA;
+			break;
+		case CELL_CLRPNEUMA:
+			map[m].cell[j] &= ~CELL_PNEUMA;
+			break;
+		case CELL_SETSAFETYWALL:
+			map[m].cell[j] |= CELL_SAFETYWALL;
+			break;
+		case CELL_CLRSAFETYWALL:
+			map[m].cell[j] &= ~CELL_SAFETYWALL;
+			break;
+		case CELL_SETMOONLIT:
+			map[m].cell[j] |= CELL_MOONLIT;
+			break;
+		case CELL_CLRMOONLIT:
+			map[m].cell[j] &= ~CELL_MOONLIT;
 			break;
 		case CELL_SETLANDPROTECTOR:
-			map[m].gat[j] |= CELL_LANDPROTECTOR;
+			map[m].cell[j] |= CELL_LANDPROTECTOR;
 			break;
 		case CELL_CLRLANDPROTECTOR:
-			map[m].gat[j] &= ~CELL_LANDPROTECTOR;
+			map[m].cell[j] &= ~CELL_LANDPROTECTOR;
 			break;
 		case CELL_SETREGEN:
-			map[m].gat[j] |= CELL_REGEN;
+			map[m].cell[j] |= CELL_REGEN;
 			break;
 		default:
-			map[m].gat[j] = (map[m].gat[j]&~CELL_MASK) + cell;
+			map[m].gat[j] = cell;
 			break;
 	}
 }
@@ -2597,6 +2622,7 @@ static int map_readmap(int m,char *fn, char *alias, int *map_cache, int maxmap) 
 	map[m].m=m;
 	map[m].npc_num=0;
 	map[m].users=0;
+	map[m].cell = (unsigned char *)aCalloc(map[m].xs * map[m].ys,sizeof(unsigned char));
 	memset(&map[m].flag,0,sizeof(map[m].flag));
 	if(battle_config.pk_mode)
 		map[m].flag.pvp = 1; // make all maps pvp for pk_mode [Valaris]
@@ -2608,6 +2634,7 @@ static int map_readmap(int m,char *fn, char *alias, int *map_cache, int maxmap) 
 	size = map[m].bxs*map[m].bys*sizeof(int);
 	map[m].block_count = (int *)aCallocA(1,size);
 	map[m].block_mob_count=(int *)aCallocA(1,size);
+				
 	if (alias)
            strdb_insert(map_db,alias,&map[m]);
         else
@@ -3262,6 +3289,7 @@ void do_final(void) {
 	
 	for (i=0; i<map_num; i++) {
 		if(map[i].gat) aFree(map[i].gat);
+		if(map[i].cell) aFree(map[i].cell);
 		if(map[i].block) aFree(map[i].block);
 		if(map[i].block_mob) aFree(map[i].block_mob);
 		if(map[i].block_count) aFree(map[i].block_count);

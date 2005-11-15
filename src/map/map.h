@@ -905,6 +905,7 @@ struct mob_list {
 struct map_data {
 	char name[MAP_NAME_LENGTH];
 	unsigned char *gat;	// NULLなら下のmap_data_other_serverとして扱う
+	unsigned char *cell; //Contains temporary cell data that is set/unset on tiles.
 	char *alias; // [MouseJstr]
 	struct block_list **block;
 	struct block_list **block_mob;
@@ -1039,14 +1040,14 @@ enum {
 	LOOK_BASE,LOOK_HAIR,LOOK_WEAPON,LOOK_HEAD_BOTTOM,LOOK_HEAD_TOP,LOOK_HEAD_MID,LOOK_HAIR_COLOR,LOOK_CLOTHES_COLOR,LOOK_SHIELD,LOOK_SHOES
 };
 
-// CELL
-#define CELL_MASK		0x0f
-#define CELL_NPC		0x80	// NPCセル
-#define CELL_BASILICA	0x40	// BASILICAセル
-#define CELL_REGEN		0x20
-#define CELL_LANDPROTECTOR 0x10
-#define CELL_PEACE
-#define CELL_PCONLY
+// CELLs for non-permanent cell-based effects (Pneuma, Basilica, Npcs, etc)
+#define CELL_NPC	0x1
+#define CELL_REGEN	0x2
+#define CELL_PNEUMA	0x4
+#define CELL_SAFETYWALL	0x8
+#define CELL_LANDPROTECTOR	0x10
+#define CELL_BASILICA	0x20
+#define CELL_MOONLIT	0x40
 /*
  * map_getcell()で使用されるフラグ
  */
@@ -1057,10 +1058,14 @@ typedef enum {
 	CELL_CHKPASS,		// 通過可能(セルタイプ1,5以外)
 	CELL_CHKNOPASS,		// 通過不可(セルタイプ1,5)
 	CELL_GETTYPE,		// セルタイプを返す
+	CELL_GETCELLTYPE,
 	CELL_CHKNPC=0x10,	// タッチタイプのNPC(セルタイプ0x80フラグ)
-	CELL_CHKBASILICA,	// バジリカ(セルタイプ0x40フラグ)
 	CELL_CHKREGEN,		// cells that improve regeneration
-	CELL_CHKLANDPROTECTOR, //Magnetic Earth
+	CELL_CHKPNEUMA,
+	CELL_CHKSAFETYWALL,
+	CELL_CHKBASILICA,	// バジリカ(セルタイプ0x40フラグ)
+	CELL_CHKLANDPROTECTOR,
+	CELL_CHKMOONLIT,
 } cell_t;
 // map_setcell()で使用されるフラグ
 enum {
@@ -1070,6 +1075,12 @@ enum {
 	CELL_SETREGEN,		// set regen cell
 	CELL_SETLANDPROTECTOR, //Set/Clear Magnetic Earth
 	CELL_CLRLANDPROTECTOR,
+	CELL_SETPNEUMA,
+	CELL_CLRPNEUMA,
+	CELL_SETSAFETYWALL,
+	CELL_CLRSAFETYWALL,
+	CELL_SETMOONLIT,
+	CELL_CLRMOONLIT,
 };
 
 struct chat_data {

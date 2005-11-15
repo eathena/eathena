@@ -1,4 +1,11 @@
 Date	Added
+2005/11/15
+	* Pretty much rewrote how Moonlight Petals work, it should be working
+	  mostly right now. [Skotlex]
+	* Splitted gat map information into gat and cell info. gat info is
+	  permanent map data (walls, ground, etc) while cell is temp map info
+	  (basilica, pneuma, etc). Modified Pneuma and Moonlight Petals to work based
+	  on map cells. [Skotlex]
 2005/11/14
 	* New Visual Studio projects, compiling works, need zlib.dll for txt server. [Kevin]
 	* Longing for Freedom can't be used during Moonlight Petals now. [Skotlex]

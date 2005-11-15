@@ -515,10 +515,6 @@ static int mob_walk(struct mob_data *md,unsigned int tick,int data)
 			return 0;
 		}
 
-		if (skill_check_moonlit (&md->bl,x+dx,y+dy)) {
-			mob_walktoxy_sub(md);
-			return 0;
-		}
 		moveblock = ( x/BLOCK_SIZE != (x+dx)/BLOCK_SIZE || y/BLOCK_SIZE != (y+dy)/BLOCK_SIZE);
 
 		md->state.state=MS_WALK;

@@ -92,7 +92,7 @@ enum {
 	SC_SIGHT,
 	SC_SAFETYWALL,
 	SC_RUWACH,
-	SC_PNEUMA,
+	SC_PNEUMA, //DEPRECATED: Pneuma now uses ground tiles. [Skotlex]
 	SC_EXTREMITYFIST,
 	SC_EXPLOSIONSPIRITS,
 	SC_COMBO,
