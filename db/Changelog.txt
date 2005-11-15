@@ -31,6 +31,7 @@
 		like gemstones when the skill is used.
 	--
 11/15
+	* Replaced all Cards' bAtk bonuses with bBaseAtk, thanks to Vicious_Pucca for pointing it out [Lupus]
 	* Taekwon skill updates [DracoRPG]
 	* Fixed bonus of 2356,Holy_Cloth_of_Benefit, thx to vicious_pucca [Lupus]
 	* Made Arrow Shower a land-based skill. [Skotlex]
