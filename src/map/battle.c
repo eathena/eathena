@@ -1582,7 +1582,7 @@ static struct Damage battle_calc_weapon_attack(
 					flag.cardfix = 0;
 					break;
 				case SN_SHARPSHOOTING:
-					skillratio += 100+50*skill_lv;
+					skillratio += 50*skill_lv;
 					break;
 				case CG_ARROWVULCAN:
 					skillratio += 100+100*skill_lv;

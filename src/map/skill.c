@@ -2807,7 +2807,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 				src,skillid,skilllv,tick, flag|BCT_ENEMY|1,
 				skill_castend_damage_id);
 			clif_skill_nodamage (src,src,skillid,skilllv,1);
-			status_change_start (src,SC_WATK_ELEMENT,3,10,0,0,10000,0); //Initiate 10% of your damage becomes fire element.
+			status_change_start (src,SC_WATK_ELEMENT,3,20,0,0,10000,0); //Initiate 10% of your damage becomes fire element.
 		}
 		break;
 
@@ -4518,7 +4518,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					|| i==SC_STRIPWEAPON || i==SC_STRIPSHIELD || i==SC_STRIPARMOR || i==SC_STRIPHELM
 					|| i==SC_CP_WEAPON || i==SC_CP_SHIELD || i==SC_CP_ARMOR || i==SC_CP_HELM
 					|| i==SC_COMBO || i==SC_DANCING || i==SC_GUILDAURA || i==SC_STEELBODY || i==SC_EDP
-					|| i==SC_CARTBOOST || i==SC_MELTDOWN || i==SC_HIGHJUMP
+					|| i==SC_CARTBOOST || i==SC_MELTDOWN || i==SC_HIGHJUMP || i==SC_MOONLIT
 					)
 					continue;
 				status_change_end(bl,i,-1);

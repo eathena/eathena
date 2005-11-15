@@ -1,5 +1,7 @@
 Date	Added
 2005/11/15
+	* Corrected Sharpshooting's damage equation to +50%*skill_lv [Skotlex]
+	* Updated Magnum Break's bonus from 10% to 20% fire elemental. [Skotlex]
 	* Updated Arrow Shower to be a ground based skill (untested yet) [Skotlex]
 	* Pretty much rewrote how Moonlight Petals work, it should be working
 	  mostly right now. [Skotlex]

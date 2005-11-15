@@ -5282,7 +5282,7 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 				if (s && ((sc_data[type].val3 % s) == 0)) {
 					if (sc_data[SC_LONGING].timer != -1 ||
 						sc_data[type].val1 == CG_HERMODE) {
-						sp = s;						
+						sp = s;
 					}
 					if (sp > sd->status.sp)
 						sp = sd->status.sp;
