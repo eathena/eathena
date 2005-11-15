@@ -205,7 +205,7 @@ extern struct Battle_Config {
 	unsigned short max_walk_speed;	//Maximum walking speed after buffs [Skotlex]
 	int max_hp;
 	int max_sp;
-	unsigned short max_lv;
+	unsigned short max_lv, aura_lv;
 	unsigned short max_parameter, max_baby_parameter;
 	int max_cart_weight;
 	unsigned short pc_skill_log;

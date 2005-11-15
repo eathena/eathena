@@ -3294,6 +3294,7 @@ static const struct battle_data_short {
 	{ "max_aspd",                          &battle_config.max_aspd					},
 	{ "max_walk_speed",                    &battle_config.max_walk_speed			},
 	{ "max_lv",                            &battle_config.max_lv					},
+	{ "aura_lv",                           &battle_config.aura_lv					},
 	{ "max_parameter",                     &battle_config.max_parameter			},
 	{ "max_baby_parameter",                &battle_config.max_baby_parameter	},
 	{ "max_def",                           &battle_config.max_def					},
@@ -3651,6 +3652,7 @@ void battle_set_defaults() {
 	battle_config.max_hp = 32500;
 	battle_config.max_sp = 32500;
 	battle_config.max_lv = 99; // [MouseJstr]
+	battle_config.aura_lv = 99; // [Skotlex]
 	battle_config.max_parameter = 99;
 	battle_config.max_baby_parameter = 80;
 	battle_config.max_cart_weight = 8000;

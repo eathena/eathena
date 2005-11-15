@@ -1,5 +1,10 @@
 Date	Added
 2005/11/15
+	* Added battle config option "aura_lv", specifies which level characters
+	  have to be for the server to report their level as "max_lv" (which normally
+	  is used to enable the aura). See battle_athena.conf for more details. It
+	  may not work for your self, but only for other characters (this is,
+	  afterall, untested yet) [Skotlex]
 	* Implemented High Jump (works 100%) and Fighting Chant (untested but should work). [DracoRPG]
 	* Various cleanups and typo fixes here and there. [DracoRPG]
 	* Corrected the upkeep SP cost of Moonlight Petals. [Skotlex]

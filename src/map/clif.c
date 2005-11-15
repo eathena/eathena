@@ -148,6 +148,9 @@ enum {
 #define WFIFOPOS(fd,pos,x,y) { WBUFPOS (WFIFOP(fd,pos),0,x,y); }
 #define WFIFOPOS2(fd,pos,x0,y0,x1,y1) { WBUFPOS2(WFIFOP(fd,pos),0,x0,y0,x1,y1); }
 
+//To make the assignation of the level based on limits clearer/easier. [Skotlex]
+#define clif_setlevel(lv) (lv<battle_config.max_lv?lv:battle_config.max_lv-(lv<battle_config.aura_lv?1:0));
+	
 static char map_ip_str[16];
 static in_addr_t map_ip;
 static in_addr_t bind_ip = INADDR_ANY;
@@ -760,7 +763,7 @@ static int clif_set0078(struct map_session_data *sd, unsigned char *buf) {
 	WBUFB(buf,49)=5;
 	WBUFB(buf,50)=5;
 	WBUFB(buf,51)=sd->state.dead_sit;
-	WBUFW(buf,52)=(sd->status.base_level>battle_config.max_lv)?battle_config.max_lv:sd->status.base_level;
+	WBUFW(buf,52)=clif_setlevel(sd->status.base_level);
 
 	return packet_len_table[0x78];
 #else
@@ -807,7 +810,7 @@ static int clif_set0078(struct map_session_data *sd, unsigned char *buf) {
 	WBUFB(buf,49)=5;
 	WBUFB(buf,50)=5;
 	WBUFB(buf,51)=sd->state.dead_sit;
-	WBUFW(buf,52)=(sd->status.base_level>battle_config.max_lv)?battle_config.max_lv:sd->status.base_level;
+	WBUFW(buf,52)=clif_setlevel(sd->status.base_level);
 
 	return packet_len_table[0x1d8];
 #endif
@@ -883,7 +886,7 @@ static int clif_set007b(struct map_session_data *sd,unsigned char *buf) {
 	WBUFB(buf,55)=0;
 	WBUFB(buf,56)=5;
 	WBUFB(buf,57)=5;
-	WBUFW(buf,58)=(sd->status.base_level>battle_config.max_lv)?battle_config.max_lv:sd->status.base_level;
+	WBUFW(buf,58)=clif_setlevel(sd->status.base_level);
 
 	return packet_len_table[0x7b];
 #else
@@ -932,7 +935,7 @@ static int clif_set007b(struct map_session_data *sd,unsigned char *buf) {
 	WBUFB(buf,55)=0;
 	WBUFB(buf,56)=5;
 	WBUFB(buf,57)=5;
-	WBUFW(buf,58)=(sd->status.base_level>battle_config.max_lv)?battle_config.max_lv:sd->status.base_level;
+	WBUFW(buf,58)=clif_setlevel(sd->status.base_level);
 
 	return packet_len_table[0x1da];
 #endif
@@ -1064,7 +1067,8 @@ static int clif_mob0078(struct mob_data *md, unsigned char *buf)
 	WBUFB(buf,48)|=md->dir&0x0f;
 	WBUFB(buf,49)=5;
 	WBUFB(buf,50)=5;
-	WBUFW(buf,52)=((level = status_get_lv(&md->bl))>battle_config.max_lv)? battle_config.max_lv:level;
+	level = status_get_lv(&md->bl);
+	WBUFW(buf,52)= clif_setlevel(level);
 
 	return packet_len_table[0x78];
 }
@@ -1110,7 +1114,8 @@ static int clif_mob007b(struct mob_data *md, unsigned char *buf) {
 	WBUFPOS2(buf,50,md->bl.x,md->bl.y,md->to_x,md->to_y);
 	WBUFB(buf,56)=5;
 	WBUFB(buf,57)=5;
-	WBUFW(buf,58)=((level = status_get_lv(&md->bl))>battle_config.max_lv)? battle_config.max_lv:level;
+	level = status_get_lv(&md->bl);
+	WBUFW(buf,58)=clif_setlevel(level);
 
 	return packet_len_table[0x7b];
 }
@@ -1204,7 +1209,8 @@ static int clif_pet0078(struct pet_data *pd, unsigned char *buf) {
 	WBUFB(buf,48)|=pd->dir&0x0f;
 	WBUFB(buf,49)=0;
 	WBUFB(buf,50)=0;
-	WBUFW(buf,52)=((level = status_get_lv(&pd->bl))>battle_config.max_lv)? battle_config.max_lv:level;
+	level = status_get_lv(&pd->bl);
+	WBUFW(buf,52)=clif_setlevel(level);
 
 	return packet_len_table[0x78];
 }
@@ -1247,7 +1253,8 @@ static int clif_pet007b(struct pet_data *pd, unsigned char *buf) {
 	WBUFPOS2(buf,50,pd->bl.x,pd->bl.y,pd->to_x,pd->to_y);
 	WBUFB(buf,56)=0;
 	WBUFB(buf,57)=0;
-	WBUFW(buf,58)=((level = status_get_lv(&pd->bl))>battle_config.max_lv)? battle_config.max_lv:level;
+	level = status_get_lv(&pd->bl);
+	WBUFW(buf,58)=clif_setlevel(level);
 
 	return packet_len_table[0x7b];
 }
@@ -1367,11 +1374,11 @@ int clif_spawnpc(struct map_session_data *sd) {
 
 #if PACKETVER < 4
 	WBUFW(buf, 0) = 0x79;
-	WBUFW(buf,51) = (sd->status.base_level > battle_config.max_lv) ? battle_config.max_lv : sd->status.base_level;
+	WBUFW(buf,51) = clif_setlevel(sd->status.base_level);
 	clif_send(buf, packet_len_table[0x79], &sd->bl, AREA_WOS);
 #else
 	WBUFW(buf, 0) = 0x1d9;
-	WBUFW(buf,51) = (sd->status.base_level > battle_config.max_lv) ? battle_config.max_lv : sd->status.base_level;
+	WBUFW(buf,51) = clif_setlevel(sd->status.base_level);
 	clif_send(buf, packet_len_table[0x1d9], &sd->bl, AREA_WOS);
 #endif
 
