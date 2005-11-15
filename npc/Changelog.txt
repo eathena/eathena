@@ -28,6 +28,7 @@ Nexon
 Date		Added
 ======
 11/15
+	* Updated Cooking Quest, according to Reddozen's changes [Lupus]
 	* Added missing cities into noBranch / noIcewall mapflags files [Lupus]
 	* Prontera Maze mob spawn typo fixed, thanks to noobs [Lupus]
 	* Cooking quest: Fixed wrong label [Lupus]

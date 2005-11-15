@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= Reddozen
 //===== Current Version: ===================================== 
-//= 1.3
+//= 1.3a
 //===== Compatible With: ===================================== 
 //= eAthena 1.0+
 //===== Description: ========================================= 
@@ -12,7 +12,7 @@
 //= 1.1 Fixed wrong item ID, added missing ";, optimized [Lupus]
 //= 1.1a minor bugfix, thx 2 Irmin [Lupus]
 //= 1.2 Fixed exploit, some typos [Lupus]
-//= 1.3 Fixed wrong label [Lupus]
+//= 1.3 Fixed wrong label [Lupus] 1.3a updated to Reddozen's changes
 //============================================================ 
 
 prt_castle.gat,43,30,6	script	Chef Apprentice	878,{
@@ -24,6 +24,7 @@ prt_castle.gat,43,30,6	script	Chef Apprentice	878,{
 		getitem 7472, 1;//Items: Lv1 Cookbook,
 		set cook_book, 7472;
 		set cooking, 3;
+		close;
 	}
 
 	if(cooking == 3){
@@ -31,7 +32,7 @@ prt_castle.gat,43,30,6	script	Chef Apprentice	878,{
 		mes "Hi there. Is there something";
 		mes "that I can help you with?";
 		next;
-		menu "Buy Supplies",-, "Talk about cooking",L_Cook_Talk;		
+		menu "Buy Supplies",-, "Talk about cooking",L_Cook_Talk, "Leave", L_no_talk;		
 
 			mes "[Chef's Apprentice]";
 			mes "Outdoor Cooking Set - 500z each";
@@ -87,6 +88,12 @@ prt_castle.gat,43,30,6	script	Chef Apprentice	878,{
 			mes "Come back when you feel";
 			mes "more confident.";
 			close;
+
+		L_no_talk:
+			mes "[Chef's Apprentice]";
+			mes "Come back to vist anytime!";
+			mes "Have a good day.";
+			close;
 	}
 
 	if(cooking == 4){
@@ -129,7 +136,7 @@ prt_castle.gat,43,30,6	script	Chef Apprentice	878,{
 		mes "Hi there. Is there something";
 		mes "that I can help you with?";
 		next;
-		menu "Buy Supplies",-, "Leave",L_Leave2;		
+		menu "Buy Supplies",-, "Leave",L_no_talk2;
 
 			mes "[Chef's Apprentice]";
 			mes "Outdoor Cooking Set - 500z each.";
@@ -146,9 +153,10 @@ prt_castle.gat,43,30,6	script	Chef Apprentice	878,{
 			mes "Enjoy!";
 			close;
 
-		L_Leave2:
+		L_no_talk2:
 			mes "[Chef's Apprentice]";
-			mes "Maybe next time.";
+			mes "Come back to vist anytime!";
+			mes "Have a good day.";
 			close;
 
 	}
@@ -339,7 +347,6 @@ prt_castle.gat,45,35,4	script	Sharle	886,{
 				mes "1 Grain, 10 Spawn, and";
 				mes "1 Squid Ink";
 				if(countitem(@item1) >= @item1a && countitem(@item2) >= @item2a && countitem(@item3) >= @item3a)goto FC_cook;
-				next;
 				close;
 		}
 
@@ -360,7 +367,6 @@ prt_castle.gat,45,35,4	script	Sharle	886,{
 				mes "1 Honey, 2 Grapes, and";
 				mes "1 Red Potion";
 				if(countitem(@item1) >= @item1a && countitem(@item2) >= @item2a && countitem(@item3) >= @item3a)goto FC_cook;
-				next;
 				close;
 		}
 
@@ -380,7 +386,6 @@ prt_castle.gat,45,35,4	script	Sharle	886,{
 				mes "Bring me:";
 				mes "3 Grapes and 2 Red Potions";
 				if(countitem(@item1) >= @item1a && countitem(@item2) >= @item2a && countitem(@item3) >= @item3a)goto FC_cook;
-				next;
 				close;
 		}
 
@@ -401,7 +406,6 @@ prt_castle.gat,45,35,4	script	Sharle	886,{
 				mes "5 Yoyo Tails, 1 Old Frying Pan, and";
 				mes "1 Cooking Oil";
 				if(countitem(@item1) >= @item1a && countitem(@item2) >= @item2a && countitem(@item3) >= @item3a)goto FC_cook;
-				next;
 				close;
 		}
 
@@ -422,7 +426,6 @@ prt_castle.gat,45,35,4	script	Sharle	886,{
 				mes "5 Grasshopper Legs, 1 Old Frying Pan, and";
 				mes "1 Cooking Oil";
 				if(countitem(@item1) >= @item1a && countitem(@item2) >= @item2a && countitem(@item3) >= @item3a)goto FC_cook;
-				next;
 				close;
 		}
 
@@ -443,7 +446,6 @@ prt_castle.gat,45,35,4	script	Sharle	886,{
 				mes "10 Nippers, 1 Green Herb, and";
 				mes "1 Yellow Potion";
 				if(countitem(@item1) >= @item1a && countitem(@item2) >= @item2a && countitem(@item3) >= @item3a)goto FC_cook;
-				next;
 				close;
 		}
 
