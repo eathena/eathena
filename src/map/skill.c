@@ -2012,7 +2012,7 @@ static int skill_check_unit_range_sub( struct block_list *bl,va_list ap )
 
 	(*c)++;
 
-	return 0;
+	return 1;
 }
 
 int skill_check_unit_range(int m,int x,int y,int skillid,int skilllv)
@@ -2530,6 +2530,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 	case SM_BASH:			/* ƒoƒbƒVƒ… */
 	case MC_MAMMONITE:		/* ƒ?ƒ}?ƒiƒCƒg */
 	case AC_DOUBLE:			/* ƒ_ƒuƒ‹ƒXƒgƒŒƒCƒtƒBƒ“ƒO */
+	case AC_SHOWER:			/* ƒAƒ??ƒVƒƒƒ?? */
 	case AS_SONICBLOW:		/* ƒ\ƒjƒbƒNƒuƒ?? */
 	case KN_PIERCE:			/* ƒsƒA?ƒX */
 	case KN_SPEARBOOMERANG:	/* ƒXƒsƒAƒu?ƒ?ƒ‰ƒ“ */
@@ -2760,7 +2761,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 		break;
 
 	/* •?ŠíŒn”Í??U?ƒXƒLƒ‹ */
-	case AC_SHOWER:			/* ƒAƒ??ƒVƒƒƒ?? */
 	case AS_GRIMTOOTH:		/* ƒOƒŠƒ€ƒgƒD?ƒX */
 	case MC_CARTREVOLUTION:	/* ƒJ?ƒgƒŒƒ”ƒHƒŠƒ…?ƒVƒ‡ƒ“ */
 	case NPC_SPLASHATTACK:	/* ƒXƒvƒ‰ƒbƒVƒ…ƒAƒ^ƒbƒN */
@@ -2775,9 +2775,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 			int ar = 1;
 			int x = bl->x, y = bl->y;
 			switch (skillid) {
-				case AC_SHOWER:
-					ar=2;
-					break;
 				case NPC_SPLASHATTACK:
 					ar=3;
 					break;
@@ -5762,7 +5759,8 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 	if( skillid != WZ_METEOR &&
 		skillid != AM_CANNIBALIZE &&
 		skillid != AM_SPHEREMINE &&
-		skillid != CR_CULTIVATION)
+		skillid != CR_CULTIVATION &&
+		skillid != AC_SHOWER)
 		clif_skill_poseffect(src,skillid,skilllv,x,y,tick);
 
 //Shouldn't be needed, skillnotok's return value is highly unlikely to have changed after you started casting. [Skotlex]
@@ -5783,7 +5781,17 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 			skill_castend_damage_id);
 		break;
 
-	case BS_HAMMERFALL:			/* ƒnƒ“ƒ}?ƒtƒH?ƒ‹ */
+	case AC_SHOWER:
+		{
+			int r = 2;
+			map_foreachinarea (skill_area_sub,
+				src->m, x-r, y-r, x+r, y+r, 0,
+				src, skillid, skilllv, tick, flag|BCT_ENEMY|1,
+				skill_castend_damage_id);
+		}
+		break;
+
+	case BS_HAMMERFALL:
 		{
 			int r = 2;
 			if (skilllv > 5) {

@@ -31,6 +31,7 @@
 		like gemstones when the skill is used.
 	--
 11/15
+	* Made Arrow Shower a land-based skill. [Skotlex]
 	* Changed Moonlight Petal's range to 3, this is used for the sheltering
 	  range of the skill. [Skotlex]
 	* Updated 2356,Holy_Cloth_of_Benefit effect [Lupus]
