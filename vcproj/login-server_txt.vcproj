@@ -79,20 +79,26 @@
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
+				EnableIntrinsicFunctions="TRUE"
+				ImproveFloatingPointConsistency="TRUE"
+				FavorSizeOrSpeed="1"
+				OptimizeForWindowsApplication="TRUE"
 				AdditionalIncludeDirectories="src\common;src\map;src\zlib"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_WIN32;PACKETVER=6;TXT_ONLY;NEW_006b;__WIN32;LOCALZLIB"
-				RuntimeLibrary="1"
+				RuntimeLibrary="5"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="3"/>
+				Detect64BitPortabilityProblems="FALSE"
+				DebugInformationFormat="3"
+				CompileAs="1"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="WSOCK32.lib"
+				AdditionalDependencies="WSOCK32.lib zdll.lib"
 				OutputFile="..\login-server.exe"
 				LinkIncremental="1"
+				AdditionalLibraryDirectories="..\vcproj"
 				GenerateDebugInformation="TRUE"
 				SubSystem="1"
 				OptimizeReferences="2"
@@ -134,6 +140,18 @@
 				RelativePath="..\src\common\db.c">
 			</File>
 			<File
+				RelativePath="..\src\common\graph.c">
+			</File>
+			<File
+				RelativePath="..\src\common\grfio.c">
+			</File>
+			<File
+				RelativePath="..\src\zlib\ioapi.c">
+			</File>
+			<File
+				RelativePath="..\src\zlib\iowin32.c">
+			</File>
+			<File
 				RelativePath="..\src\common\lock.c">
 			</File>
 			<File
@@ -149,6 +167,9 @@
 				RelativePath="..\src\common\nullpo.c">
 			</File>
 			<File
+				RelativePath="..\src\common\plugins.c">
+			</File>
+			<File
 				RelativePath="..\src\common\showmsg.c">
 			</File>
 			<File
@@ -161,13 +182,11 @@
 				RelativePath="..\src\common\timer.c">
 			</File>
 			<File
+				RelativePath="..\src\zlib\unzip.c">
+			</File>
+			<File
 				RelativePath="..\src\common\utils.c">
 			</File>
-		</Filter>
-		<Filter
-			Name="Header Files"
-			Filter="h;hpp;hxx;hm;inl;inc;xsd"
-			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
 		</Filter>
 		<Filter
 			Name="Resource Files"

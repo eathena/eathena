@@ -1,5 +1,6 @@
 Date	Added
 2005/11/14
+	* New Visual Studio projects, compiling works, need zlib.dll for txt server. [Kevin]
 	* Longing for Freedom can't be used during Moonlight Petals now. [Skotlex]
 	* Corrected True Sight's critical bonus (from +0.1 cri per level to +1 cri
 	  per level) [Skotlex]

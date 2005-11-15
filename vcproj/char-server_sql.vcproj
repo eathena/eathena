@@ -70,13 +70,18 @@
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
+				EnableIntrinsicFunctions="TRUE"
+				ImproveFloatingPointConsistency="TRUE"
+				FavorSizeOrSpeed="1"
+				OptimizeForWindowsApplication="TRUE"
 				AdditionalIncludeDirectories="..\src\common;;src\zlib;C:\Program Files\MySQL\MySQL Server 4.1\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_WIN32;PACKETVER=6;NEW_006b;__WIN32;LOCALZLIB"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="3"/>
+				Detect64BitPortabilityProblems="FALSE"
+				DebugInformationFormat="3"
+				CompileAs="1"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
@@ -84,7 +89,8 @@
 				AdditionalDependencies="WSOCK32.lib mysqlclient.lib"
 				OutputFile="../char-server_sql.exe"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="C:\Program Files\MySQL\MySQL Server 4.1\lib\debug"
+				AdditionalLibraryDirectories="..\vcproj"
+				IgnoreDefaultLibraryNames="LIBCMT"
 				GenerateDebugInformation="TRUE"
 				SubSystem="1"
 				OptimizeReferences="2"
@@ -120,7 +126,7 @@
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}">
 			<File
-				RelativePath="..\src\char\char.c">
+				RelativePath="..\src\char_sql\char.c">
 			</File>
 			<File
 				RelativePath="..\src\common\core.c">
@@ -129,19 +135,40 @@
 				RelativePath="..\src\common\db.c">
 			</File>
 			<File
-				RelativePath="..\src\char\int_guild.c">
+				RelativePath="..\src\common\graph.c">
 			</File>
 			<File
-				RelativePath="..\src\char\int_party.c">
+				RelativePath="..\src\common\grfio.c">
 			</File>
 			<File
-				RelativePath="..\src\char\int_pet.c">
+				RelativePath="..\src\char_sql\int_guild.c">
 			</File>
 			<File
-				RelativePath="..\src\char\int_storage.c">
+				RelativePath="..\src\char_sql\int_party.c">
 			</File>
 			<File
-				RelativePath="..\src\char\inter.c">
+				RelativePath="..\src\char_sql\int_pet.c">
+			</File>
+			<File
+				RelativePath="..\src\char_sql\int_storage.c">
+			</File>
+			<File
+				RelativePath="..\src\char_sql\inter.c">
+			</File>
+			<File
+				RelativePath="..\src\zlib\ioapi.c">
+			</File>
+			<File
+				RelativePath="..\src\zlib\iowin32.c">
+			</File>
+			<File
+				RelativePath="..\src\char_sql\itemdb.c">
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="1"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\common\lock.c">
@@ -151,6 +178,9 @@
 			</File>
 			<File
 				RelativePath="..\src\common\nullpo.c">
+			</File>
+			<File
+				RelativePath="..\src\common\plugins.c">
 			</File>
 			<File
 				RelativePath="..\src\common\showmsg.c">
@@ -165,13 +195,11 @@
 				RelativePath="..\src\common\timer.c">
 			</File>
 			<File
+				RelativePath="..\src\zlib\unzip.c">
+			</File>
+			<File
 				RelativePath="..\src\common\utils.c">
 			</File>
-		</Filter>
-		<Filter
-			Name="Header Files"
-			Filter="h;hpp;hxx;hm;inl;inc;xsd"
-			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
 		</Filter>
 		<Filter
 			Name="Resource Files"
