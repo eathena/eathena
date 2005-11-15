@@ -1,5 +1,6 @@
 Date	Added
 2005/11/15
+	* Corrected the upkeep SP cost of Moonlight Petals. [Skotlex]
 	* Modified Magnum Break's fire bonus to be 20% ADDITIONAL fire damage of
 	  your total damage previous to the elemental modifier. [Skotlex]
 	* Modified Fatal Blow's stun chance to kRO's equation (+5% stun chance per

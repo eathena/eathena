@@ -5264,27 +5264,28 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 				case DC_FORTUNEKISS:			/* K‰^‚ÌƒLƒX 4•b‚ÅSP1 */
 					s=4;
 					break;
+				case CG_HERMODE:				// Wand of Hermod
+					sp=5;	//Upkeep = 5
 				case BD_INTOABYSS:				/* [•£‚Ì’†‚É 5•b‚ÉSP1 */
 				case BA_WHISTLE:				/* Œû“J 5•b‚ÅSP1 */
 				case DC_HUMMING:				/* ƒnƒ~ƒ“ƒO 5•b‚ÅSP1 */
 				case BA_POEMBRAGI:				/* ƒuƒ‰ƒM‚Ì 5•b‚ÅSP1 */
 				case DC_SERVICEFORYOU:			/* ƒT?ƒrƒXƒtƒH?ƒ†? 5•b‚ÅSP1 */
-				case CG_HERMODE:				// Wand of Hermod
 					s=5;
 					break;
 				case BA_APPLEIDUN:				/* ƒCƒhƒDƒ“‚Ì—ÑŒç 6•b‚ÅSP1 */
 					s=6;
 					break;
-				case DC_DONTFORGETME:			/* „‚ğ–Y‚ê‚È‚¢‚Åc 10•b‚ÅSP1 */
 				case CG_MOONLIT:				/* Œ–¾‚è‚Ìò‚É—‚¿‚é‰Ô‚Ñ‚ç 10•b‚ÅSP1H */
+					sp= 4*sc_data[type].val2; //Moonlit's cost is 4sp*skill_lv [Skotlex]
+					//Upkeep is also every 10 secs.
+				case DC_DONTFORGETME:			/* „‚ğ–Y‚ê‚È‚¢‚Åc 10•b‚ÅSP1 */
 					s=10;
 					break;
 				}
 				if (s && ((sc_data[type].val3 % s) == 0)) {
-					if (sc_data[SC_LONGING].timer != -1 ||
-						sc_data[type].val1 == CG_HERMODE) {
+					if (sc_data[SC_LONGING].timer != -1)
 						sp = s;
-					}
 					if (sp > sd->status.sp)
 						sp = sd->status.sp;
 					sd->status.sp -= sp;
