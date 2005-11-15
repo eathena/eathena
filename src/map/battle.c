@@ -428,7 +428,7 @@ int battle_attr_fix(struct block_list *src, struct block_list *target, int damag
 			int percent = sc_data[SC_WATK_ELEMENT].val1;
 			sc_data[SC_WATK_ELEMENT].val4 = 1;
 			damage = battle_attr_fix(src, target, damage*percent/100, sc_data[SC_WATK_ELEMENT].val2, def_elem)
-				+ battle_attr_fix(src, target, damage*(100-percent)/100, atk_elem, def_elem);
+				+ battle_attr_fix(src, target, damage, atk_elem, def_elem);
 			sc_data[SC_WATK_ELEMENT].val4 = 0;
 			return damage;
 		}

@@ -27,7 +27,7 @@ int SkillStatusChangeTable[]={	/* status.hのenumのSC_***とあわせること */
 /* 0- */
 	-1,-1,-1,-1,-1,-1,
 	SC_PROVOKE,			/* プロボック */
-	SC_WATK_ELEMENT,		//Converts part of your final attack into an elemental one. [Skotlex]
+	SC_WATK_ELEMENT,		//Adds part of your final attack as elemental damage. [Skotlex]
 	SC_ENDURE,
 	-1,
 /* 10- */
@@ -503,6 +503,7 @@ void initStatusIconChangeTable() {
 	StatusIconChangeTable[SC_AUTOSPELL] = SI_AUTOSPELL;
 	StatusIconChangeTable[SC_SPEARSQUICKEN] = SI_SPEARQUICKEN;
 	StatusIconChangeTable[SC_EXPLOSIONSPIRITS] = SI_EXPLOSIONSPIRITS;
+	StatusIconChangeTable[SC_WATK_ELEMENT] = SI_FIREWEAPON;
 	StatusIconChangeTable[SC_FIREWEAPON] = SI_FIREWEAPON;
 	StatusIconChangeTable[SC_WATERWEAPON] = SI_WATERWEAPON;
 	StatusIconChangeTable[SC_WINDWEAPON] = SI_WINDWEAPON;
