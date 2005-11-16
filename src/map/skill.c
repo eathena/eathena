@@ -8383,6 +8383,7 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 		{	//Avoid having summons target master from supportive skills. [Skotlex]
 				md->target_id = sd->bl.id;
 				md->state.targettype = ATTACKABLE;
+				md->state.aggressive = 0; //They join in chase/attack state, not aggressive one.
 				md->min_chase = md->db->range3;
 		}
 	}

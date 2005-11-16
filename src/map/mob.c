@@ -1238,7 +1238,7 @@ static int mob_ai_sub_hard_linksearch(struct block_list *bl,va_list ap)
 			md->target_id = target->id;
 			md->attacked_count = 0;
 			md->state.targettype = ATTACKABLE;
-			md->state.aggressive = 1;
+			md->state.aggressive = 0; //They don't join in follow/angry states.
 			md->min_chase=md->db->range3;
 			return 1;
 		}
@@ -3645,6 +3645,9 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 				switch (ms[i].target) {
 					case MST_TARGET:
 					case MST_AROUND5:
+					case MST_AROUND6:
+					case MST_AROUND7:
+					case MST_AROUND8:
 						bl = map_id2bl(md->target_id);
 						break;
 					case MST_FRIEND:
@@ -3668,10 +3671,10 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 				continue;
 			// Ž©•ª‚ÌŽüˆÍ
 			if (ms[i].target >= MST_AROUND1) {
-				int bx = x, by = y, i = 0, m = bl->m, r = ms[i].target-MST_AROUND1;
+				int bx = x, by = y, i = 0, m = bl->m, r = (ms[i].target-MST_AROUND1) +1;
 				do {
-					bx = x + rand() % (r*2+3) - r;
-					by = y + rand() % (r*2+3) - r;
+					bx = x + rand() % (r*2+1) - r;
+					by = y + rand() % (r*2+1) - r;
 				} while (map_getcell(m, bx, by, CELL_CHKNOPASS) && (i++) < 1000);
 				if (i < 1000){
 					x = bx; y = by;

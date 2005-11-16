@@ -10,10 +10,19 @@
 //delay is the time in milliseconds that has to be pass before recasting the same skill.
 //
 //STATE:
-// any / idle (in standby) / walk (in movement) / attack / dead (on killed) /
-// loot / chase (following target) / counterattack (?) / target (when a PC is
-// targetted) / self (when under attack) / friend / (There are others still
-// not documented)
+// any / idle (in standby) / walk (in movement) / dead (on killed) / loot /
+// attack / angry (like attack, except player has not attacked mob yet) / 
+// chase (following target, after being attacked) / follow (following
+// target, without being attacked)
+//
+//target: The target of the skill can be: target (when a PC is targetted) / self / friend /
+// (the following are for ground-skills, a random target tile is selected from
+// the specified area):
+// around1 (3x3 area around self) / around2 (5x5 area around self) / 
+// around3 (7x7 area around self) / around4 (9x9 area around self) /
+// around5 (3x3 area around target) / around6 (5x5 area around target) /
+// around7 (7x7 area around target) / around8 (9x9 area around target) /
+// around (11x11 area around self)
 //
 //conditions: (condition type) (value which specifies a condition value) 
 //	always			uncondtional

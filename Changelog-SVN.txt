@@ -1,5 +1,10 @@
 Date	Added
 2005/11/16
+	* Some corrections to the mob states, linked/cast-sensitive mobs engage in
+	  attach/chase modes, not angry/follow (which seem reserved entirely for
+	  aggressive mobs) [Skotlex]
+	* Cleaned up and corrected target types MSS_AROUND->MSS_AROUND8, also added
+	  and documented them in mob_skill_db.txt [Skotlex]
 	* Probably corrected whispers to GMs. Thanks to Slennox for pointing it
 	  out. [Skotlex]
 	* Modified mob-skill states to use Aegis-based information. Modes are
