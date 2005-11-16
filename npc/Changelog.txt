@@ -27,6 +27,12 @@ Nexon
 
 Date		Added
 ======
+11/16
+	* Fixed more bugs (wrong ID, wrong labels, missing text) in Cooking quest. [Lupus]
+	  Now you can pass loaned books to other people but have to return them to
+	  the Chef, before loaning another one. Added Leather Pouch into item_trade.txt
+	  it's a quest item, you can't sell/pass it to the others. It should be done
+	  with similiar quest items, too.
 11/15
 	* Updated Cooking Quest, according to Reddozen's changes [Lupus]
 	* Added missing cities into noBranch / noIcewall mapflags files [Lupus]

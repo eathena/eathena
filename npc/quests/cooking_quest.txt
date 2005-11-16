@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= Reddozen
 //===== Current Version: ===================================== 
-//= 1.3a
+//= 1.3b
 //===== Compatible With: ===================================== 
 //= eAthena 1.0+
 //===== Description: ========================================= 
@@ -13,6 +13,8 @@
 //= 1.1a minor bugfix, thx 2 Irmin [Lupus]
 //= 1.2 Fixed exploit, some typos [Lupus]
 //= 1.3 Fixed wrong label [Lupus] 1.3a updated to Reddozen's changes
+//= 1.3b Fixed wrong id, fixed Puch quest, added more Pouch Quest
+//= dialogues [Lupus]
 //============================================================ 
 
 prt_castle.gat,43,30,6	script	Chef Apprentice	878,{
@@ -98,7 +100,13 @@ prt_castle.gat,43,30,6	script	Chef Apprentice	878,{
 
 	if(cooking == 4){
 		mes "[Chef's Apprentice]";
-		if(countitem(12056) < 1 && countitem(12061) < 1 && countitem(112046) < 1 && countitem(12066) < 1 && countitem(12041) < 1 && countitem(12051) < 1){//Items: Frog Spawn Soup, Grape Juice with Honey, ???, Fried Monkey Tail, Boiled Locust, Steamed Crab Pincer,
+		if(countitem(12056)
+			&& countitem(12061)
+			&& countitem(12046)
+			&& countitem(12066)
+			&& countitem(12041)
+			&& countitem(12051)) {//Items: Frog Spawn Soup, Grape Juice with Honey, Grape Juice and Tea, Fried Monkey Tail, Boiled Locust, Steamed Crab Pincer,
+
 			mes "What!? Through already?";
 			mes "Let me see what you've made";
 			next;
@@ -118,7 +126,7 @@ prt_castle.gat,43,30,6	script	Chef Apprentice	878,{
 			mes "to study together.";
 			next;
 			mes "[Chef's Apprentice]";
-			mes "Take him this Leather Pouch,";
+			mes "Take him this ^000080Leather Pouch^000000,";
 			mes "and I'll put in a good word";
 			mes "for you with my teacher.";
 
@@ -150,7 +158,13 @@ prt_castle.gat,43,30,6	script	Chef Apprentice	878,{
 
 			next;
 			mes "[Chef's Apprentice]";
-			mes "Enjoy!";
+			if(rand(2)) {
+				mes "Enjoy";
+			} ELSE {
+				mes "Please, don't forget to";
+				mes "hand my ^000080Leather Pouch^000000";
+				mes "to my friend in Payon.";
+			}
 			close;
 
 		L_no_talk2:
@@ -291,8 +305,6 @@ payon.gat,209,127,4	script	Cooking Friend	88,{
 		mes "Thank you for your";
 		mes "trouble. Tell him I said,";
 		mes "Hello.";
-		delitem 7432, 1;//Items: Leather Pouch,
-		set cooking, 6;
 		close;
 	}
 	
@@ -480,17 +492,25 @@ prt_castle.gat,45,35,4	script	Sharle	886,{
 		menu "Yes",-, "No", s_2, "Return Book", s_3;
 
 		mes "[Sharle]";
-		mes "You'll have to give me back the";
-		mes "first book I loaned you if you";
-		mes "would like to check out a new book.";
-		mes "Would you like to trade books?";
-		next;
-		menu "Yes",-, "No",s_2;
-
-			mes "[Sharle]";
-			mes "Which book would you like?";
+		if(cook_book){
+			mes "You'll have to give me back the";
+			mes "first book I loaned you if you";
+			mes "would like to check out a new book.";
+			mes "Would you like to trade books?";
 			next;
-			menu "Lv 1 Cookbook",b_1, "Lv 2 Cookbook",b_2, "Lv 3 Cookbook",b_3, "Lv 4 Cookbook",b_4, "Lv 5 Cookbook",b_5;
+			menu "Yes",-, "No",s_2;
+
+			if(countitem(cook_book)==0){
+				mes "What? You don't have the book I loaned you?";
+				mes "It was a ^800000"+getitemname(cook_book)+"^000000.";
+				emotion e_sry;
+				close;
+			} 
+		}
+		mes "[Sharle]";
+		mes "Which book would you like?";
+		next;
+		menu "^800000Lv 1 Cookbook",b_1, "Lv 2 Cookbook",b_2, "Lv 3 Cookbook",b_3, "Lv 4 Cookbook",b_4, "Lv 5 Cookbook",b_5, "^000000Leave",s_2;
 
 	b_1:
 		mes "[Sharle]";
@@ -570,24 +590,20 @@ prt_castle.gat,45,35,4	script	Sharle	886,{
 		close;
 
 	b_trade:
-		if(cook_book == 0){
-			mes "[Sharle]";
-			getitem @checkout,1;
-			set cook_book, @checkout;
+		mes "[Sharle]";
+		mes "If you find you need a new book,";
+		mes "you're welcome to come back and";
+		mes "trade.";
+
+		if(cook_book){
+			delitem cook_book,1;
+			mes "Have fun, and good luck!";
+		} else {
 			mes "Good luck! I hope you learn a lot!";
-			goto s_end;
 		}
-
-
-	delitem cook_book,1;
-	getitem @checkout,1;
-	set cook_book, @checkout;
-
-	mes "[Sharle]";
-	mes "If you find you need a new book,";
-	mes "you're welcome to come back and";
-	mes "trade. Have fun, and good luck!";
-	close;
+		getitem @checkout,1;
+		set cook_book, @checkout;
+		close;
 
 	s_2:
 		mes "[Sharle]";
@@ -600,14 +616,17 @@ prt_castle.gat,45,35,4	script	Sharle	886,{
 		if(cook_book == 0){
 			mes "[Sharle]";
 			mes "You haven't borrowed any books.";
+			enmotion e_hmm;
 			close;
 		}
 
+		delitem cook_book,1;
 		set cook_book, 0;
 		mes "[Sharle]";
 		mes "Returning the book already?";
 		mes "did you learn what you wanted";
 		mes "to know?";
+		emotion e_what;
 		close;
 
 	L_uniform:
@@ -616,6 +635,7 @@ prt_castle.gat,45,35,4	script	Sharle	886,{
 		mes "by showing up out of uniform.";
 		mes "Come back when you have your";
 		mes "uniform on.";
+		emotion e_bzz;
 		close;
 		
 }

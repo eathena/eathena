@@ -17,9 +17,12 @@
 2644,99,100
 //Novice Red Potion
 569,8,100
-//Cook books
-7472,109,100
-7473,109,100
-7474,109,100
-7475,109,100
-7476,109,100 
+//Cook Books (you can recieve them trough the Cooking Quest only)
+//Actually, you can pass your books, but have to return them before borrowing another one [Lupus]
+//7472,123,100
+//7473,123,100
+//7474,123,100
+//7475,123,100
+//7476,123,100
+//Leather Pouch (part of Cooking Quest)
+7432,123,100
