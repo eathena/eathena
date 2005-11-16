@@ -29,6 +29,7 @@
 #define MIN_MOBTHINKTIME 100
 #define MIN_MOBLINKTIME 1000
 
+#define MOB_LAZYSKILLPERC 10	// Probability for mobs far from players from doing their IDLE skill. (rate of 1000 minute)
 #define MOB_LAZYMOVEPERC 50	// Move probability in the negligent mode MOB (rate of 1000 minute)
 #define MOB_LAZYWARPPERC 20	// Warp probability in the negligent mode MOB (rate of 1000 minute)
 
@@ -1807,11 +1808,12 @@ static int mob_ai_sub_lazy(void * key,void * data,va_list app)
 			// It sometimes moves.
 			if(rand()%1000<MOB_LAZYMOVEPERC)
 				mob_randomwalk(md,tick);
-
 			// MOB which is not not the summons MOB but BOSS, either sometimes reboils.
 			else if( rand()%1000<MOB_LAZYWARPPERC && md->x0<=0 && md->master_id!=0 &&
 				!(mode&MD_BOSS))
 				mob_spawn(md->bl.id);
+			else if(rand()%1000<MOB_LAZYSKILLPERC) //Chance to do a mob's idle skill.
+				mobskill_use(md, tick, -1);
 		}else{
 			// Since PC is not even in the same map, suitable processing is carried out even if it takes.
 

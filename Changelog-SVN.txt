@@ -1,5 +1,8 @@
 Date	Added
 2005/11/16
+	* Added MOB_LAZYSKILLPERC to mob.c, determines probability of a mob doing a
+	  skill when there are no players nearby (but there has to be players in the
+	  same map for it to trigger). Currently set to 10/1000 chance. [Skotlex]
 	* battle_check_target update. Rewrote the party/guild checks, this should
 	  hopefully fix any problems left with pvp/gvg and mapflags not working
 	  properly. [Skotlex]
