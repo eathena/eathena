@@ -1,5 +1,8 @@
 Date	Added
 2005/11/16
+	* battle_check_target update. Rewrote the party/guild checks, this should
+	  hopefully fix any problems left with pvp/gvg and mapflags not working
+	  properly. [Skotlex]
 	* Fixed playerattached() returning char id instead of account id. [Skotlex]
 	* Added battle option party_even_share_bonus to enable use of Valaris's evn
 	  share experience bonus equation rather than the official one. [Skotlex]

@@ -3062,60 +3062,54 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 		(s_bl->type == BL_PC && t_bl->type == BL_MOB))
 		state |= BCT_ENEMY;
 	
-	if (flag&BCT_PARTY || (map_flag_vs(m) && flag&BCT_ENEMY))
-	{	//Identify party state
-		int s_party, t_party;
-		s_party = status_get_party_id(s_bl);
-		t_party = status_get_party_id(t_bl);
-
-		if (!map_flag_vs(m))
-		{
-			if (s_party && s_party == t_party)
-				state |= BCT_PARTY;
-		}
-		else
-		{
-			if (!(map[m].flag.pvp && map[m].flag.pvp_noparty)
-				&&!(map_flag_gvg(m) && map[m].flag.gvg_noparty)
-				&& s_party && s_party == t_party)
+	if (map_flag_vs(m)) { //Check rivalry settings.
+		if (flag&(BCT_PARTY|BCT_ENEMY)) {
+			int s_party = status_get_party_id(s_bl);
+			if (
+				!(map[m].flag.pvp && map[m].flag.pvp_noparty) &&
+				!(map_flag_gvg(m) && map[m].flag.gvg_noparty) &&
+				s_party && s_party == status_get_party_id(t_bl)
+			)
 				state |= BCT_PARTY;
 			else
-			{
 				state |= BCT_ENEMY;
-			
-				if (battle_config.pk_mode && s_bl->type == BL_PC && t_bl->type == BL_PC)
-				{	//Prevent novice engagement on pk_mode (feature by Valaris)
-					struct map_session_data* sd;
-					if ((sd = (struct map_session_data*)s_bl) != NULL &&
-						((sd->class_&MAPID_UPPERMASK) == MAPID_NOVICE || sd->status.base_level < battle_config.pk_min_level))
-						state&=~BCT_ENEMY;
-					else if ((sd = (struct map_session_data*)t_bl) != NULL &&
-						((sd->class_&MAPID_UPPERMASK) == MAPID_NOVICE || sd->status.base_level < battle_config.pk_min_level))
-						state&=~BCT_ENEMY;
-				}
-			}
 		}
-	}
-	if (flag&BCT_GUILD || (map_flag_vs(m) && flag&BCT_ENEMY))
-	{	//Identify guild state
-		int s_guild, t_guild;
-		s_guild = status_get_guild_id(s_bl);
-		t_guild = status_get_guild_id(t_bl);
-
-		if (!map_flag_vs(m))
-		{
+		if (flag&(BCT_GUILD|BCT_ENEMY)) {
+			int s_guild = status_get_guild_id(s_bl);
+			int t_guild = status_get_guild_id(t_bl);
+			if (
+				!(map[m].flag.pvp && map[m].flag.pvp_noguild) &&
+				s_guild && t_guild && (s_guild == t_guild || guild_idisallied(s_guild, t_guild))
+			)
+				state |= BCT_GUILD;
+			else
+				state |= BCT_ENEMY;
+		}
+		if (state&BCT_ENEMY && battle_config.pk_mode && s_bl->type == BL_PC && t_bl->type == BL_PC)
+		{	//Prevent novice engagement on pk_mode (feature by Valaris)
+			struct map_session_data* sd;
+			if ((sd = (struct map_session_data*)s_bl) &&
+				((sd->class_&MAPID_UPPERMASK) == MAPID_NOVICE || sd->status.base_level < battle_config.pk_min_level))
+				state&=~BCT_ENEMY;
+			else
+			if ((sd = (struct map_session_data*)t_bl) &&
+				((sd->class_&MAPID_UPPERMASK) == MAPID_NOVICE || sd->status.base_level < battle_config.pk_min_level))
+				state&=~BCT_ENEMY;
+		}
+	} else { //Non pvp/gvg, check party/guild settings.
+		if (flag&BCT_PARTY || state&BCT_ENEMY) {
+			int s_party = status_get_party_id(s_bl);
+			if (s_party && s_party ==status_get_party_id(t_bl))
+				state |= BCT_PARTY;
+		}
+		if (flag&BCT_GUILD || state&BCT_ENEMY) {
+			int s_guild = status_get_guild_id(s_bl);
+			int t_guild = status_get_guild_id(t_bl);
 			if (s_guild && t_guild && (s_guild == t_guild || guild_idisallied(s_guild, t_guild)))
 				state |= BCT_GUILD;
 		}
-		else
-		{
-			if (!(map[m].flag.pvp && map[m].flag.pvp_noguild) && s_guild && t_guild && (s_guild == t_guild || guild_idisallied(s_guild, t_guild)))
-				state |= BCT_GUILD;
-			else
-				state |= BCT_ENEMY;
-		}
 	}
-
+	
 	if (!state) //If not an enemy, nor a guild, nor party, nor yourself, it's neutral.
 		state = BCT_NEUTRAL;
 	//Alliance state takes precedence over enemy one.
