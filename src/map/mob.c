@@ -3566,6 +3566,9 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 		if (ms[i].state >= 0 && ms[i].state != md->state.skillstate)
 			continue;
 
+		if (rand() % 10000 > ms[i].permillage) //Lupus (max value = 10000)
+			continue;
+
 		// 条件判定
 		flag = (event == ms[i].cond1);
 		if (!flag){
@@ -3620,95 +3623,91 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 					flag = (md->state.alchemist); break;
 			}
 		}
+		
+		if (!flag)
+			continue; //Skill requisite failed to be fulfilled.
 
-		// 確率判定
-		if (flag && rand() % 10000 < ms[i].permillage) //Lupus (max value = 10000)
-		{
-			if (skill_get_inf(ms[i].skill_id) & INF_GROUND_SKILL) {
-				// 場所指定
-				struct block_list *bl = NULL;
-				int x = 0, y = 0;
-				if (ms[i].target <= MST_AROUND) {
-					switch (ms[i].target) {
-						case MST_TARGET:
-						case MST_AROUND5:
-							bl = map_id2bl(md->target_id);
+		//Execute skill	
+		if (skill_get_inf(ms[i].skill_id) & INF_GROUND_SKILL) {
+			// 場所指定
+			struct block_list *bl = NULL;
+			int x = 0, y = 0;
+			if (ms[i].target <= MST_AROUND) {
+				switch (ms[i].target) {
+					case MST_TARGET:
+					case MST_AROUND5:
+						bl = map_id2bl(md->target_id);
+						break;
+					case MST_FRIEND:
+						if (fbl)
+						{
+							bl = fbl;
 							break;
-						case MST_FRIEND:
-							if (fbl)
-							{
-								bl = fbl;
-								break;
-							} else if (fmd) {
-								bl= &fmd->bl;
-								break;
-							} // else fall through
-						default:
-							bl = &md->bl;
+						} else if (fmd) {
+							bl= &fmd->bl;
 							break;
-					}
-					if (bl != NULL) {
-						x = bl->x; y=bl->y;
-					}
+						} // else fall through
+					default:
+						bl = &md->bl;
+						break;
 				}
-				if (x <= 0 || y <= 0)
-					continue;
-				// 自分の周囲
-				if (ms[i].target >= MST_AROUND1) {
-					int bx = x, by = y, i = 0, m = bl->m, r = ms[i].target-MST_AROUND1;
-					do {
-						bx = x + rand() % (r*2+3) - r;
-						by = y + rand() % (r*2+3) - r;
-					} while ((
-						//bx <= 0 || by <= 0 || bx >= map[m].xs || by >= map[m].ys ||	// checked in getcell
-						map_getcell(m, bx, by, CELL_CHKNOPASS)) && (i++) < 1000);
-					if (i < 1000){
-						x = bx; y = by;
-					}
-				}
-				// 相手の周囲
-				if (ms[i].target >= MST_AROUND5) {
-					int bx = x, by = y, i = 0, m = bl->m, r = (ms[i].target-MST_AROUND5) + 1;
-					do {
-						bx = x + rand() % (r*2+1) - r;
-						by = y + rand() % (r*2+1) - r;
-					} while ((
-						//bx <= 0 || by <= 0 || bx >= map[m].xs || by >= map[m].ys ||	// checked in getcell
-						map_getcell(m, bx, by, CELL_CHKNOPASS)) && (i++) < 1000);
-					if (i < 1000){
-						x = bx; y = by;
-					}
-				}
-				if (!mobskill_use_pos(md, x, y, i))
-					return 0;
-			} else {
-				// ID指定
-				if (ms[i].target <= MST_FRIEND) {
-					struct block_list *bl;
-					switch (ms[i].target) {
-						case MST_TARGET:
-							bl = map_id2bl(md->target_id);
-							break;
-						case MST_FRIEND:
-							if (fbl) {
-								bl = fbl;
-								break;
-							} else if (fmd) {
-								bl = &fmd->bl;
-								break;
-							} // else fall through
-						default:
-							bl = &md->bl;
-							break;
-					}
-					if (bl && !mobskill_use_id(md, bl, i))
-						return 0;
+				if (bl != NULL) {
+					x = bl->x; y=bl->y;
 				}
 			}
-			if (ms[i].emotion >= 0)
-				clif_emotion(&md->bl, ms[i].emotion);
-			return 1;
+			if (x <= 0 || y <= 0)
+				continue;
+			// 自分の周囲
+			if (ms[i].target >= MST_AROUND1) {
+				int bx = x, by = y, i = 0, m = bl->m, r = ms[i].target-MST_AROUND1;
+				do {
+					bx = x + rand() % (r*2+3) - r;
+					by = y + rand() % (r*2+3) - r;
+				} while (map_getcell(m, bx, by, CELL_CHKNOPASS) && (i++) < 1000);
+				if (i < 1000){
+					x = bx; y = by;
+				}
+			}
+			// 相手の周囲
+			if (ms[i].target >= MST_AROUND5) {
+				int bx = x, by = y, i = 0, m = bl->m, r = (ms[i].target-MST_AROUND5) + 1;
+				do {
+					bx = x + rand() % (r*2+1) - r;
+					by = y + rand() % (r*2+1) - r;
+				} while (map_getcell(m, bx, by, CELL_CHKNOPASS) && (i++) < 1000);
+				if (i < 1000){
+					x = bx; y = by;
+				}
+			}
+			if (!mobskill_use_pos(md, x, y, i))
+				return 0;
+		} else {
+			// ID指定
+			if (ms[i].target <= MST_FRIEND) {
+				struct block_list *bl;
+				switch (ms[i].target) {
+					case MST_TARGET:
+						bl = map_id2bl(md->target_id);
+						break;
+					case MST_FRIEND:
+						if (fbl) {
+							bl = fbl;
+							break;
+						} else if (fmd) {
+							bl = &fmd->bl;
+							break;
+						} // else fall through
+					default:
+						bl = &md->bl;
+						break;
+				}
+				if (bl && !mobskill_use_id(md, bl, i))
+					return 0;
+			}
 		}
+		if (ms[i].emotion >= 0)
+			clif_emotion(&md->bl, ms[i].emotion);
+		return 1;
 	}
 
 	return 0;
