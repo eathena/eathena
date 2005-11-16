@@ -1,5 +1,6 @@
 Date	Added
 2005/11/15
+	* Modified way to updating hp/position of party members. [LuzZza]
 	* Added battle config option "aura_lv", specifies which level characters
 	  have to be for the server to report their level as "max_lv" (which normally
 	  is used to enable the aura). See battle_athena.conf for more details. It
