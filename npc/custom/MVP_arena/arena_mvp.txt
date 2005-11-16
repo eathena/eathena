@@ -118,6 +118,9 @@ mes "Which Arena you want to go to??";
 L_No:
 close;
 
+Lcancel:
+close;
+
 Larena1:
 if (getmapusers("pvp_n_1-3.gat") > 49) goto Lsorry;
 callfunc "Ramvp_2";

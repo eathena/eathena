@@ -28,6 +28,7 @@ Nexon
 Date		Added
 ======
 11/17
+	* Fixed custom MVP arena warper. R4000! [Kayla]
 	* Added more Food Sellers (for Cooking Quest). Some of them have temp sprites and coords [Lupus]
 11/16
 	* Fixed the payon guide to give the right description at label L_Dungeon [MasterOfMuppets]
