@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= Darkchild
 //===== Current Version: ===================================== 
-//= 1.8
+//= 1.8a
 //===== Compatible With: ===================================== 
 //= Any eAthena
 //===== Description: ========================================= 
@@ -245,9 +245,9 @@ aldebaran.gat,54,238,5	script	Kafra	117,{
 	mes "Are you sure you want the cart?";
 	next;
 	menu "I heard you the first time!",-,"Uhhh...wait a minute...",L_End;
+	if(getskilllv(39)==0) goto L_End;
 	if(Zeny < 1900) goto L_Error;
 	set Zeny,Zeny-1900;
-	if(getskilllv(39)==0) goto L_End;
 	setcart;
 	mes "[Kafra]";
 	mes "Thanks for using the Kafra service, even if it is under the table.";

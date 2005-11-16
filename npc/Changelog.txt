@@ -28,6 +28,8 @@ Nexon
 Date		Added
 ======
 11/16
+	* Minor fix of SN Kafra rent service. It firstly checks for Push Cart skill and
+	  then gets money [Lupus]
 	* Fixed more bugs (wrong ID, wrong labels, missing text) in Cooking quest. [Lupus]
 	  Now you can pass loaned books to other people but have to return them to
 	  the Chef, before loaning another one. Added Leather Pouch into item_trade.txt
