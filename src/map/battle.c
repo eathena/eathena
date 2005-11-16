@@ -461,25 +461,7 @@ int battle_attr_fix(struct block_list *src, struct block_list *target, int damag
 int battle_calc_walkdelay(struct block_list *bl, int delay, int div_) {
 	int ret = delay;
 	if (delay == 0) return 0; //Endure attack.
-	/*
-	switch (bl->type) {
-	case BL_MOB:
-		ret=((struct mob_data *)bl)->db->dmotion;
-		if(battle_config.monster_damage_delay_rate != 100)
-			ret = ret*battle_config.monster_damage_delay_rate/100;
-		break;
-	case BL_PC:
-		ret=((struct map_session_data *)bl)->dmotion;
-		if(battle_config.pc_damage_delay_rate != 100)
-			ret = ret*battle_config.pc_damage_delay_rate/100;
-		break;
-	case BL_PET:
-		ret=((struct pet_data *)bl)->db->dmotion;
-		break;
-	default:
-		return 0;
-	}
-*/
+	ret*= div_; //Multi-hit skills mean higher delays.
 	if (battle_config.walk_delay_rate != 100)
 		ret = delay*battle_config.walk_delay_rate/100;
 	return ret<10?10:ret;

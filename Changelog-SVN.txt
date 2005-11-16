@@ -1,5 +1,7 @@
 Date	Added
 2005/11/15
+	* Fixed multi-hitting skills not increasing the "can-walk" delay
+	  accordingly. [Skotlex]
 	* Modified way to updating hp/position of party members. [LuzZza]
 	* Added battle config option "aura_lv", specifies which level characters
 	  have to be for the server to report their level as "max_lv" (which normally
