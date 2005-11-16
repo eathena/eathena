@@ -1443,8 +1443,8 @@ int skill_blown( struct block_list *src, struct block_list *target,int count)
 	nullpo_retr(0, src);
 	nullpo_retr(0, target);
 
-	if (src != target && map_flag_gvg(target->m)) 
-		return 0; //No knocking back in WoE
+	if (src != target && map_flag_gvg(target->m) && target->type != BL_SKILL)
+		return 0; //No knocking back in WoE, except for skills... because traps CAN be knocked back.
 
 	switch (target->type) {
 		case BL_PC:
@@ -1501,7 +1501,6 @@ int skill_blown( struct block_list *src, struct block_list *target,int count)
 		else
 			skill_unit_move_unit_group((struct skill_unit_group *)sc_data[SC_DANCING].val2, target->m, dx, dy);
 	}
-	
 		
 	if(su){
 		skill_unit_move_unit_group(su->group,target->m,dx,dy);
@@ -10109,12 +10108,11 @@ int skill_unit_move_unit_group( struct skill_unit_group *group, int m,int dx,int
 	if (group->unit==NULL)
 		return 0;
 
-	// 移動可能なスキルはダンス系と?Aブラストマイン?Aクレイモア?[トラップのみ
-	if (!(skill_get_unit_flag(group->skill_id)&UF_DANCE) &&
-			group->skill_id!=HT_CLAYMORETRAP && group->skill_id!=HT_BLASTMINE)
-		return 0;
-
-	if (skill_get_unit_flag(group->skill_id)&UF_ENSEMBLE) //Ensemble skills can't be moved!
+	i = skill_get_unit_flag(group->skill_id); //Check the flag...
+	if (!(
+		(i&UF_DANCE && !(i&UF_ENSEMBLE)) || //Only non ensemble dances and traps can be moved.
+		skill_get_inf2(group->skill_id)&INF2_TRAP
+	))
 		return 0;
 		
 	m_flag = (int *) aMalloc(sizeof(int)*group->unit_count);
