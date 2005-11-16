@@ -178,10 +178,22 @@ int party_recv_info(struct party *sp)
 	
 	for(i=0;i<MAX_PARTY;i++){	// sd‚Ìİ’è
 		struct map_session_data *sd = map_id2sd(p->member[i].account_id);
-		p->member[i].sd=(sd!=NULL && sd->status.party_id==p->party_id && !sd->state.waitingdisconnect)?sd:NULL;
+		if(sd!=NULL && sd->status.party_id==p->party_id && !sd->state.waitingdisconnect)
+			p->member[i].sd=sd;
+		else
+			p->member[i].sd=NULL;
 	}
 
 	clif_party_info(p,-1);
+	
+	// Refresh hp/xy state [LuzZza]
+	for(i=0;i<MAX_PARTY;i++) {
+		struct map_session_data *sd = p->member[i].sd;
+		if(sd!=NULL) {
+			clif_party_hp(sd);
+			clif_party_xy(sd);
+		}
+	}
 
 	for(i=0;i<MAX_PARTY;i++){	// İ’èî•ñ‚Ì‘—M
 		struct map_session_data *sd = p->member[i].sd;
@@ -253,11 +265,12 @@ int party_reply_invite(struct map_session_data *sd,int account_id,int flag)
 int party_member_added(int party_id,int account_id,int flag)
 {
 	struct map_session_data *sd = map_id2sd(account_id),*sd2;
+	
 	if(sd == NULL){
 		if (flag == 0) {
 			if(battle_config.error_log)
 				ShowError("party: member added error %d is not online\n",account_id);
-			intif_party_leave(party_id,account_id); // ƒLƒƒƒ‰‘¤‚É“o˜^‚Å‚«‚È‚©‚Á‚½‚½‚ß’E‘Ş—v‹‚ğo‚·
+			intif_party_leave(party_id,account_id); // ƒLƒƒƒ‰‘¤‚‰“o˜^‚…‚«‚ˆ‚©‚‚½‚½‚Ÿ’E‘—v‹‚ào‚·
 		}
 		return 0;
 	}
@@ -265,20 +278,20 @@ int party_member_added(int party_id,int account_id,int flag)
 	sd->party_invite=0;
 	sd->party_invite_account=0;
 	
-	if(flag==1){	// ¸”s
+	if(flag==1){	// ñ”s
 		if( sd2!=NULL )
 			clif_party_inviteack(sd2,sd->status.name,0);
 		return 0;
 	}
 	
-		// ¬Œ÷
+		// ¬Œç
 	sd->state.party_sent=0;
 	sd->status.party_id=party_id;
 	
 	if( sd2!=NULL)
 		clif_party_inviteack(sd2,sd->status.name,2);
 
-	// ‚¢‚¿‚¨‚¤‹£‡Šm”F
+	// ‚¢‚¿‚ğ‚¤‹£‡Šm”F
 	party_check_conflict(sd);
 	clif_charnameupdate(sd); //Update char name's display [Skotlex]
 	clif_party_hp(sd);

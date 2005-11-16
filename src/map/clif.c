@@ -7941,6 +7941,10 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 	clif_updatestatus(sd,SP_MAXWEIGHT);
 	clif_updatestatus(sd,SP_WEIGHT);
 
+	// Show hp after displacement [LuzZza]
+	if(sd->status.party_id)
+	    clif_party_hp(sd);
+
 	// pvp
 	//if(sd->pvp_timer!=-1 && !battle_config.pk_mode) /PVP Client crash fix* Removed timer deletion
 	//	delete_timer(sd->pvp_timer,pc_calc_pvprank_timer);
