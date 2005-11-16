@@ -276,3 +276,14 @@ yuno_in01.gat,112,25,5	shop	Armor Dealer	101,2628:-1,2101:-1,2107:-1,2401:-1,250
 //=======================================================
 prt_monk.gat,135,263,3	shop	Blacksmith	726, 1801:8000//Waghnak, 1803:25000//Knuckle Dusters, 1805:32000//Studded Knuckles
 
+
+//=======================================================
+//New Food Sellers (rearrange them when it's settled down) [Lupus]
+//=======================================================
+yuno.gat,133,171,2	shop	Food Seller	750,7457:-1,7482:-1
+niflheim.gat,205,158,1	shop	Food Seller	795,581:-1	//temp coords, temp spr ID
+alberta.gat,169,136,4	shop	Food Seller	750,579:-1
+amatsu.gat,205,150,2	shop	Food Seller	750,7453:-1,579:-1
+morocc.gat,121,97,5	shop	Food Seller	750,7455:-1,7453:-1,7452:-1,7456:-1,7454:-1
+aldebaran.gat,166,109,7	shop	Food Seller	750,580:-1,7482:-1	//temp goods
+geffen.gat,135,64,3	shop	Food Seller	750,580:-1,7482:-1	//temp coords, temp goods

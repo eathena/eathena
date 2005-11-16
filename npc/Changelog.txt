@@ -27,6 +27,8 @@ Nexon
 
 Date		Added
 ======
+11/17
+	* Added more Food Sellers (for Cooking Quest). Some of them have temp sprites and coords [Lupus]
 11/16
 	* A minor fix to a screwup in the lvl 4 weapon quest, thanks to vicious_pucca [MasterOfMuppets]
 	* Fixed the lvl 4 S grade weapon quest only giving 8 kinds of weapons instead [MasterOfMuppets]
