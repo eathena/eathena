@@ -13,6 +13,7 @@
 //=     the quest from aegis format to eA format. Also thanks to 
 //=	reddozen for fixing bugs.
 //= 1.1 Many fixes to spelling, grammar, and sentence order. [Silent]
+//= 1.2 A small fix, thanks to vicious_pucca [MasterOfMuppets]
 //============================================================ 
 
 //---------------------------------------------------------------
@@ -2295,7 +2296,7 @@ LV4_27_WIN:
 	delitem LV4_Gem1, 30;
 	delitem LV4_Gem2, 30;
 	delitem LV4_Gem3, 30;
-	set lv4_weapon, 29 + rand(0,1);
+	set lv4_weapon, lv4_weapon + 2;
 	goto LV4_27_RESULT;
 	
 LV4_27_RESULT:
@@ -2690,7 +2691,7 @@ LV4_36_WIN:
 	delitem LV4_Gem1, 30;
 	delitem LV4_Gem2, 30;
 	delitem LV4_Gem3, 30;
-	set lv4_weapon, 38 + rand(0,1);
+	set lv4_weapon, lv4_weapon + 2;
 	goto LV4_36_RESULT;
 	
 LV4_36_RESULT:
@@ -3098,7 +3099,7 @@ LV4_45_WIN:
 	delitem LV4_Gem1, 30;
 	delitem LV4_Gem2, 30;
 	delitem LV4_Gem3, 30;
-	set lv4_weapon, 47 + rand(0,1);
+	set lv4_weapon, lv4_weapon + 2;
 	goto LV4_45_RESULT;
 	
 LV4_45_RESULT:
@@ -3486,7 +3487,7 @@ LV4_54_WIN:
 	delitem LV4_Gem1, 30;
 	delitem LV4_Gem2, 30;
 	delitem LV4_Gem3, 30;
-	set lv4_weapon, 56 + rand(0,1);
+	set lv4_weapon, lv4_weapon + 2;
 	goto LV4_54_RESULT;
 	
 LV4_54_RESULT:

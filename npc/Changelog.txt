@@ -28,6 +28,7 @@ Nexon
 Date		Added
 ======
 11/16
+	* A minor fix to a screwup in the lvl 4 weapon quest, thanks to vicious_pucca [MasterOfMuppets]
 	* Fixed the lvl 4 S grade weapon quest only giving 8 kinds of weapons instead [MasterOfMuppets]
 	  of 16, thanks to Gepard for pointing it out.
 	* Minor fix of SN Kafra rent service. It firstly checks for Push Cart skill and
