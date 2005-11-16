@@ -160,7 +160,7 @@ prt_castle.gat,43,30,6	script	Chef Apprentice	878,{
 			mes "[Chef's Apprentice]";
 			if(rand(2)) {
 				mes "Enjoy";
-			} ELSE {
+			} else {
 				mes "Please, don't forget to";
 				mes "hand my ^000080Leather Pouch^000000";
 				mes "to my friend in Payon.";
@@ -616,7 +616,7 @@ prt_castle.gat,45,35,4	script	Sharle	886,{
 		if(cook_book == 0){
 			mes "[Sharle]";
 			mes "You haven't borrowed any books.";
-			enmotion e_hmm;
+			emotion e_hmm;
 			close;
 		}
 
