@@ -594,7 +594,7 @@ static int mob_attack(struct mob_data *md,unsigned int tick,int data)
 	if(battle_config.monster_attack_direction_change)
 		md->dir=map_calc_dir(&md->bl, tbl->x,tbl->y );	// 向き設定
 
-	md->state.skillstate=MSS_ATTACK;
+	md->state.skillstate=md->state.aggressive?MSS_ANGRY:MSS_BERSERK;
 	if( mobskill_use(md,tick,-2) )	// スキル使用
 		return 0;
 
@@ -1176,6 +1176,7 @@ static int mob_ai_sub_hard_activesearch(struct block_list *bl,va_list ap)
 		{
 			md->target_id=bl->id;
 			md->state.targettype = ATTACKABLE;
+			md->state.aggressive = 1;
 			md->min_chase= md->db->range3;
 			return 1;
 		}
@@ -1237,6 +1238,7 @@ static int mob_ai_sub_hard_linksearch(struct block_list *bl,va_list ap)
 			md->target_id = target->id;
 			md->attacked_count = 0;
 			md->state.targettype = ATTACKABLE;
+			md->state.aggressive = 1;
 			md->min_chase=md->db->range3;
 			return 1;
 		}
@@ -1333,6 +1335,7 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 		if(sd && status_check_skilluse(&md->bl, &sd->bl, 0, 0)) {
 			md->target_id=sd->bl.id;
 			md->state.targettype = ATTACKABLE;
+			md->state.aggressive = 1;
 			md->min_chase=md->db->range2+distance(md->bl.x,md->bl.y,sd->bl.x,sd->bl.y);
 		}
 	}
@@ -1475,10 +1478,10 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 		tbl = map_id2bl(md->target_id);
 		if (!tbl || tbl->m != md->bl.m || !status_check_skilluse(&md->bl, tbl, 0, 0))
 		{	//Unlock current target.
-			if (md->state.skillstate == MSS_CHASE)
+			if (md->state.state == MS_WALK)
 			{	//Confused!
 				mob_stop_walking(md, 0);
-				clif_emotion(&md->bl, 1);
+			//	clif_emotion(&md->bl, 1); This emotion isn't really official...
 			}
 			mob_unlocktarget(md, tick);
 		}
@@ -1528,6 +1531,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 					//or if the previous target is not attacking the mob. [Skotlex]
 					md->target_id = md->attacked_id; // set target
 					md->state.targettype = ATTACKABLE;
+					md->state.aggressive = 0; //Retaliating.
 					attack_type = 1;
 					md->attacked_count = 0;
 					md->min_chase = dist + md->db->range2;
@@ -1538,8 +1542,11 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 			}
 		}
 	}
-	if (md->attacked_id)
+	if (md->attacked_id) {
+		if (md->state.aggressive && md->attacked_id == md->target_id)
+			md->state.aggressive = 0; //No longer aggressive, change to retaliate AI.
 		md->attacked_id = 0;	//Clear it since it's been checked for already.
+	}
 
 	// Processing of slave monster
 	if (md->master_id > 0)
@@ -1600,7 +1607,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 				if (!mob_can_move(md)) //Wait until you can move?
 					return 0;
 				//Follow up
-				md->state.skillstate = MSS_CHASE;
+				md->state.skillstate = md->state.aggressive?MSS_FOLLOW:MSS_RUSH;
 				mobskill_use (md, tick, -1);
 				if (md->timer != -1 && md->state.state != MS_ATTACK &&
 					(DIFF_TICK (md->next_walktime, tick) < 0 ||
@@ -1639,7 +1646,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 				return 0;
 			}
 			//Target within range, engage
-			md->state.skillstate = MSS_ATTACK;
+			md->state.skillstate = md->state.aggressive?MSS_ANGRY:MSS_BERSERK;
 			if (md->state.state == MS_WALK)
 				mob_stop_walking (md, 1);
 			if (md->state.state == MS_ATTACK)
@@ -4170,10 +4177,12 @@ static int mob_readskilldb(void)
 		{	"any",		-1			},
 		{	"idle",		MSS_IDLE	},
 		{	"walk",		MSS_WALK	},
-		{	"attack",	MSS_ATTACK	},
-		{	"dead",		MSS_DEAD	},
 		{	"loot",		MSS_LOOT	},
-		{	"chase",	MSS_CHASE	},
+		{	"dead",		MSS_DEAD	},
+		{	"attack",	MSS_BERSERK	}, //Retaliating attack
+		{	"angry",		MSS_ANGRY	}, //Preemptive attack (aggressive mobs)
+		{	"chase",		MSS_RUSH		}, //Chase escaping target
+		{	"follow",	MSS_FOLLOW	}, //Preemptive chase (aggressive mobs)
 	}, target[] = {
 		{	"target",	MST_TARGET	},
 		{	"self",		MST_SELF	},

@@ -712,25 +712,27 @@ int intif_parse_WisEnd(int fd) {
 
 // Received wisp message from map-server via char-server for ALL gm
 int mapif_parse_WisToGM(int fd) { // 0x3003/0x3803 <packet_len>.w <wispname>.24B <min_gm_level>.w <message>.?B
-	int i, min_gm_level;
+	int i, min_gm_level, mes_len;
 	struct map_session_data *pl_sd;
 	char Wisp_name[NAME_LENGTH];
         char mbuf[255];
-	char *message = (char *) (((RFIFOW(fd,2) - 30) >= sizeof(mbuf)) ? (char *) aMallocA((RFIFOW(fd,2) - 30)) : mbuf);
+	char *message;
+	mes_len =  RFIFOW(fd,2) - 30;
+	message = (char *) (mes_len >= 255 ? (char *) aMallocA(mes_len) : mbuf);
 
 	min_gm_level = (int)RFIFOW(fd,28);
 	memcpy(Wisp_name, RFIFOP(fd,4), NAME_LENGTH);
 	Wisp_name[NAME_LENGTH-1] = '\0';
-	memcpy(message, RFIFOP(fd,30), RFIFOW(fd,2) - 30);
-	message[sizeof(message) - 1] = '\0';
+	memcpy(message, RFIFOP(fd,30), mes_len);
+	message[mes_len-1] = '\0';
 	// information is sended to all online GM
 	for (i = 0; i < fd_max; i++)
 		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth)
 			if (pc_isGM(pl_sd) >= min_gm_level)
 				clif_wis_message(i, Wisp_name, message, strlen(message) + 1);
 
-        if (message != mbuf)
-            aFree(message);
+	if (message != mbuf)
+		aFree(message);
 
 	return 0;
 }

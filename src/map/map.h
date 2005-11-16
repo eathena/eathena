@@ -756,6 +756,7 @@ struct mob_data {
 	struct {
 		unsigned state : 8;
 		unsigned skillstate : 8;
+		unsigned aggressive : 1; //Signals whether the mob AI is in aggressive mode or reactive mode. [Skotlex]
 		unsigned targettype : 1;
 		unsigned steal_flag : 1;
 		unsigned steal_coin_flag : 1;

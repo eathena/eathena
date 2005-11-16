@@ -1,5 +1,11 @@
 Date	Added
 2005/11/16
+	* Probably corrected whispers to GMs. Thanks to Slennox for pointing it
+	  out. [Skotlex]
+	* Modified mob-skill states to use Aegis-based information. Modes are
+	  MSS_IDLE, MSS_WALK, MSS_LOOT, MSS_DEAD, MSS_BERSERK, MSS_ANGRY, MSS_RUSH
+	  and MSS_FOLLOW. Mob skill db is unaltered other than for the fact it now
+	  supports "angry" and "follow" states. [Skotlex]
 	* Cleanup of how knockback routines are invoked. [Skotlex]
 	* Added MOB_LAZYSKILLPERC to mob.c, determines probability of a mob doing a
 	  skill when there are no players nearby (but there has to be players in the

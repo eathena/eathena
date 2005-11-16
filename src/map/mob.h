@@ -80,13 +80,16 @@ enum {
 	MSC_ALCHEMIST,
 };
 
+//Mob skill states.
 enum {
 	MSS_IDLE,
 	MSS_WALK,
-	MSS_ATTACK,
-	MSS_DEAD,
 	MSS_LOOT,
-	MSS_CHASE,
+	MSS_DEAD,
+	MSS_BERSERK, //Aggressive mob attacking
+	MSS_ANGRY,   //Mob retaliating from being attacked.
+	MSS_RUSH,    //Mob following a player after being attacked.
+	MSS_FOLLOW,  //Mob following a player without being attacked.
 };
 
 struct mob_db* mob_db(int class_);
