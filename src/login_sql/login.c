@@ -226,7 +226,7 @@ void read_gm_account(void) {
 	}
 	sql_res = mysql_store_result(&mysql_handle);
 	if (sql_res) {
-		gm_account_db = (struct gm_account*)aCalloc(sizeof(struct gm_account) * mysql_num_rows(sql_res), 1);
+		gm_account_db = (struct gm_account*)aCalloc(mysql_num_rows(sql_res), sizeof(struct gm_account));
 		while ((sql_row = mysql_fetch_row(sql_res))) {
 			gm_account_db[GM_num].account_id = atoi(sql_row[0]);
 			gm_account_db[GM_num].level = atoi(sql_row[1]);

@@ -428,7 +428,7 @@ struct map_session_data {
 	short to_x,to_y;
 	short speed,prev_speed;
 	short opt1,opt2,opt3;
-	char dir,head_dir;
+	unsigned char dir,head_dir;
 	unsigned int client_tick,server_tick;
 	struct walkpath_data walkpath;
 	int walktimer;
@@ -976,7 +976,7 @@ struct map_data_other_server {
 
 struct flooritem_data {
 	struct block_list bl;
-	short subx,suby;
+	unsigned char subx,suby;
 	int cleartimer;
 	int first_get_id,second_get_id,third_get_id;
 	unsigned int first_get_tick,second_get_tick,third_get_tick;

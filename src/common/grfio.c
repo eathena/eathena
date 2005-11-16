@@ -818,7 +818,7 @@ static char * decode_filename(unsigned char *buf,int len)
 static int grfio_entryread(char *gfname,int gentry)
 {
 	FILE *fp;
-	int grf_size,list_size;
+	long grf_size,list_size;
 	unsigned char grf_header[0x2e];
 	int lop,entry,entrys,ofs,grf_version;
 	char *fname;

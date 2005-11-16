@@ -109,8 +109,8 @@ static void setsocketopts(int fd)
 }
 #endif
 
-	setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (char *) &wfifo_size , sizeof(wfifo_size ));
-	if (getsockopt(fd, SOL_SOCKET, SO_SNDBUF, &buff, &buff_size) == 0)
+	setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (void *)&wfifo_size , sizeof(wfifo_size ));
+	if (getsockopt(fd, SOL_SOCKET, SO_SNDBUF, (void *)&buff, &buff_size) == 0)
 	{
 		if (buff < wfifo_size) //We are not going to complain if we get more, aight? [Skotlex]
 			ShowError("setsocketopts: Requested send buffer size failed (requested %d bytes buffer, received a buffer of size %d)\n", wfifo_size, buff);

@@ -8411,11 +8411,11 @@ void clif_changed_dir(struct block_list *bl) {
  *------------------------------------------
  */
 void clif_parse_ChangeDir(int fd, struct map_session_data *sd) {
-	short headdir, dir;
+	unsigned char headdir, dir;
 
 	nullpo_retv(sd);
 
-	headdir = RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]);
+	headdir = RFIFOB(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]);
 	dir = RFIFOB(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[1]);
 	pc_setdir(sd, dir, headdir);
 

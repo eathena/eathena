@@ -558,7 +558,7 @@ int pc_isequip(struct map_session_data *sd,int n)
 
 	if(item == NULL)
 		return 0;
-	if(item->elv > 0 && sd->status.base_level < item->elv)
+	if(item->elv && sd->status.base_level < item->elv)
 		return 0;
 	if(item->sex != 2 && sd->status.sex != item->sex)
 		return 0;
@@ -2622,7 +2622,7 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 	if(item->sex != 2 && sd->status.sex != item->sex)
 		return 0;
 	//Required level check
-	if(item->elv > 0 && sd->status.base_level < item->elv)
+	if(item->elv && sd->status.base_level < item->elv)
 		return 0;
 
 	//Not equipable by class. [Skotlex]
@@ -7443,7 +7443,7 @@ int pc_read_gm_account(int fd)
 		aFree(gm_account);
 	GM_num = 0;
 #ifdef TXT_ONLY
-	gm_account = (struct gm_account *) aCallocA(sizeof(struct gm_account) * ((RFIFOW(fd,2) - 4) / 5), 1);
+	gm_account = (struct gm_account *) aCallocA(((RFIFOW(fd,2) - 4) / 5), sizeof(struct gm_account));
 	for (i = 4; i < RFIFOW(fd,2); i = i + 5) {
 		gm_account[GM_num].account_id = RFIFOL(fd,i);
 		gm_account[GM_num].level = (int)RFIFOB(fd,i+4);
@@ -7459,7 +7459,7 @@ int pc_read_gm_account(int fd)
 	}
 	lsql_res = mysql_store_result(&lmysql_handle);
 	if (lsql_res) {
-	    gm_account = (struct gm_account *) aCallocA(sizeof(struct gm_account) * mysql_num_rows(lsql_res), 1);
+	    gm_account = (struct gm_account *) aCallocA(mysql_num_rows(lsql_res), sizeof(struct gm_account));
 	    while ((lsql_row = mysql_fetch_row(lsql_res))) {
 	        gm_account[GM_num].account_id = atoi(lsql_row[0]);
 		    gm_account[GM_num].level = atoi(lsql_row[1]);

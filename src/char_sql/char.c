@@ -1235,7 +1235,7 @@ int mmo_char_sql_init(void) {
 	}else{
 		sql_res = mysql_store_result(&mysql_handle);
 		if(sql_res){
-			charcount = mysql_num_rows(sql_res);
+			charcount = (int)mysql_num_rows(sql_res);
 			ShowStatus("total char data -> '%d'.......\n", charcount);
 			mysql_free_result(sql_res);
 		}else{
@@ -1291,7 +1291,7 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 		sql_res = mysql_store_result(&mysql_handle);
 		if(sql_res){
 			//ok
-			temp = mysql_num_rows(sql_res);
+			temp = (int)mysql_num_rows(sql_res);
 			if(temp >= char_per_account){
 				//hehe .. limit exceeded :P
 				ShowInfo("Create char failed (%d): charlimit exceeded.\n", sd->account_id);
@@ -1382,7 +1382,7 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 	}
 	sql_res = mysql_store_result(&mysql_handle);
 	if(sql_res){
-		temp = mysql_num_rows(sql_res);
+		temp = (int)mysql_num_rows(sql_res);
 
 		if (temp > 0) {
 			mysql_free_result(sql_res);
@@ -1401,7 +1401,7 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 	sql_res = mysql_store_result(&mysql_handle);
 
 	if(sql_res){
-		temp = mysql_num_rows(sql_res);
+		temp = (int)mysql_num_rows(sql_res);
 
 		if (temp > 0) {
 			mysql_free_result(sql_res);
@@ -1661,7 +1661,7 @@ int delete_char_sql(int char_id, int partner_id)
 			}
 			return -1;			
 		} else {
-			int rows = mysql_num_rows(sql_res);
+			int rows = (int)mysql_num_rows(sql_res);
 			mysql_free_result(sql_res);
 			if (rows > 0) {
 				//We assume the guild found is the same as the char belongs (how would this NOT be possible?) [Skotlex]
@@ -1752,7 +1752,6 @@ int count_users(void) {
 	return 0;
 }
 
-#define NEW_006b
 int mmo_char_send006b(int fd, struct char_session_data *sd) {
 	int i, j, found_num = 0;
 	struct mmo_charstatus *p = NULL;
@@ -1777,7 +1776,7 @@ int mmo_char_send006b(int fd, struct char_session_data *sd) {
 	}
 	sql_res = mysql_store_result(&mysql_handle);
 	if (sql_res) {
-		found_num = mysql_num_rows(sql_res);
+		found_num = (int)mysql_num_rows(sql_res);
 		ShowInfo("number of chars: %d\n", found_num);
 		i = 0;
 		while((sql_row = mysql_fetch_row(sql_res))) {
@@ -3313,12 +3312,12 @@ int parse_char(int fd) {
 
 			memcpy(WFIFOP(fd,2+74), char_dat[i].name, NAME_LENGTH);
 
-			WFIFOB(fd,2+98) = char_dat[i].str;
-			WFIFOB(fd,2+99) = char_dat[i].agi;
-			WFIFOB(fd,2+100) = char_dat[i].vit;
-			WFIFOB(fd,2+101) = char_dat[i].int_;
-			WFIFOB(fd,2+102) = char_dat[i].dex;
-			WFIFOB(fd,2+103) = char_dat[i].luk;
+			WFIFOB(fd,2+98) = char_dat[i].str>255?255:char_dat[i].str;
+			WFIFOB(fd,2+99) = char_dat[i].agi>255?255:char_dat[i].agi;
+			WFIFOB(fd,2+100) = char_dat[i].vit>255?255:char_dat[i].vit;
+			WFIFOB(fd,2+101) = char_dat[i].int_>255?255:char_dat[i].int_;
+			WFIFOB(fd,2+102) = char_dat[i].dex>255?255:char_dat[i].dex;
+			WFIFOB(fd,2+103) = char_dat[i].luk>255?255:char_dat[i].luk;
 			WFIFOB(fd,2+104) = char_dat[i].char_num;
 
 			WFIFOSET(fd, 108);
@@ -3644,7 +3643,7 @@ int check_connect_login_server(int tid, unsigned int tick, int id, int data) {
 
 		sql_res = mysql_store_result(&mysql_handle);
 		if(sql_res){
-			cc = mysql_num_rows(sql_res);
+			cc = (int)mysql_num_rows(sql_res);
 			ShowStatus("Setting %d Players offline\n", cc);
 			while((sql_row = mysql_fetch_row(sql_res))){
 				//sql_row[0] == AID
