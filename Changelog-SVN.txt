@@ -1,4 +1,10 @@
 Date	Added
+2005/11/16
+	* Fixed playerattached() returning char id instead of account id. [Skotlex]
+	* Added battle option party_even_share_bonus to enable use of Valaris's evn
+	  share experience bonus equation rather than the official one. [Skotlex]
+	* Corrected @jump not displaying the actual coords you jumped to. Thanks to
+	  kitty74x9 for noticing (and fixing) it out. [Skotlex]
 2005/11/15
 	* Fixed multi-hitting skills not increasing the "can-walk" delay
 	  accordingly. [Skotlex]

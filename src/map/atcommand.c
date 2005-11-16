@@ -1212,23 +1212,17 @@ int atcommand_jump(
 
 	sscanf(message, "%d %d", &x, &y);
 
-	if (x <= 0)
-		x = rand() % 399 + 1;
+	if (x <= 0) //If coordinates are 'wrong', random jump.
+		x = -1;
 	if (y <= 0)
-		y = rand() % 399 + 1;
-	if (x > 0 && x < 400 && y > 0 && y < 400) {
-		if (sd->bl.m >= 0 && (map[sd->bl.m].flag.nowarp || map[sd->bl.m].flag.nowarpto) && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
-			clif_displaymessage(fd, msg_table[248]);
-			return -1;
-		}
-		pc_setpos(sd, sd->mapname, x, y, 3);
-		sprintf(atcmd_output, msg_table[5], x, y); // Jump to %d %d
-		clif_displaymessage(fd, atcmd_output);
-	} else {
-		clif_displaymessage(fd, msg_table[2]); // Coordinates out of range.
+		y = -1;
+	if (sd->bl.m >= 0 && (map[sd->bl.m].flag.nowarp || map[sd->bl.m].flag.nowarpto) && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
+		clif_displaymessage(fd, msg_table[248]);
 		return -1;
 	}
-
+	pc_setpos(sd, sd->mapname, x, y, 3);
+	sprintf(atcmd_output, msg_table[5], sd->bl.x, sd->bl.y); // Jump to %d %d
+	clif_displaymessage(fd, atcmd_output);
 	return 0;
 }
 

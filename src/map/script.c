@@ -5380,7 +5380,7 @@ int buildin_playerattached(struct script_state *st)
 	if (st->rid == 0 || (sd = map_id2sd(st->rid)) == NULL)
 		push_val(st->stack,C_INT,0);
 	else
-		push_val(st->stack,C_INT,sd->status.char_id);
+		push_val(st->stack,C_INT,st->rid);
 	return 0;
 }
 
