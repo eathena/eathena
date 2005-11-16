@@ -30,6 +30,8 @@ Date		Added
 11/17
 	* Added more Food Sellers (for Cooking Quest). Some of them have temp sprites and coords [Lupus]
 11/16
+	* Fixed the payon guide to give the right description at label L_Dungeon [MasterOfMuppets]
+	  thanks to muad_dib
 	* A minor fix to a screwup in the lvl 4 weapon quest, thanks to vicious_pucca [MasterOfMuppets]
 	* Fixed the lvl 4 S grade weapon quest only giving 8 kinds of weapons instead [MasterOfMuppets]
 	  of 16, thanks to Gepard for pointing it out.

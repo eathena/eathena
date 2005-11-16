@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.3
+//= 1.3a
 //===== Compatible With: ===================================== 
 //= eAthena  0.5.2 +
 //===== Description: ========================================= 
@@ -14,6 +14,7 @@
 //= 1.2 Optimized, updated common guide names [Lupus]
 //= 1.3 Updated the guide according to how it is on iRO, thanks [MasterOfMuppets]
 //=     to Muad_Dib
+//= 1.3a Fixed some problems with duplicated text, thanks to muad_dib [MasterOfMuppets]
 //============================================================
 
 
@@ -245,11 +246,10 @@ L_TOOL:
 	goto L_WIPE;
 L_DUNGEON:
 	mes "[Payon Guide]";
-	mes "The Pub can be";
-	mes "found in the northeast";
-	mes "part of Payon. It's the";
-	mes "best place to relax after";
-	mes "a long day of hunting.";
+	mes "The entrance to";
+	mes "the Payon Dungeon";
+	mes "is located at the west";
+	mes "end of the village.";
 	viewpoint 1,34,132,3,0xFFFFFF;
 	next; 
 	goto L_WIPE;
