@@ -28,6 +28,8 @@ Nexon
 Date		Added
 ======
 11/16
+	* Fixed the lvl 4 S grade weapon quest only giving 8 kinds of weapons instead [MasterOfMuppets]
+	  of 16, thanks to Gepard for pointing it out.
 	* Minor fix of SN Kafra rent service. It firstly checks for Push Cart skill and
 	  then gets money [Lupus]
 	* Fixed more bugs (wrong ID, wrong labels, missing text) in Cooking quest. [Lupus]

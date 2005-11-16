@@ -2295,7 +2295,7 @@ LV4_27_WIN:
 	delitem LV4_Gem1, 30;
 	delitem LV4_Gem2, 30;
 	delitem LV4_Gem3, 30;
-	set lv4_weapon, 29;
+	set lv4_weapon, 29 + rand(0,1);
 	goto LV4_27_RESULT;
 	
 LV4_27_RESULT:
@@ -2690,7 +2690,7 @@ LV4_36_WIN:
 	delitem LV4_Gem1, 30;
 	delitem LV4_Gem2, 30;
 	delitem LV4_Gem3, 30;
-	set lv4_weapon, 38;
+	set lv4_weapon, 38 + rand(0,1);
 	goto LV4_36_RESULT;
 	
 LV4_36_RESULT:
@@ -3098,7 +3098,7 @@ LV4_45_WIN:
 	delitem LV4_Gem1, 30;
 	delitem LV4_Gem2, 30;
 	delitem LV4_Gem3, 30;
-	set lv4_weapon, 47;
+	set lv4_weapon, 47 + rand(0,1);
 	goto LV4_45_RESULT;
 	
 LV4_45_RESULT:
@@ -3486,7 +3486,7 @@ LV4_54_WIN:
 	delitem LV4_Gem1, 30;
 	delitem LV4_Gem2, 30;
 	delitem LV4_Gem3, 30;
-	set lv4_weapon, 56;
+	set lv4_weapon, 56 + rand(0,1);
 	goto LV4_54_RESULT;
 	
 LV4_54_RESULT:
