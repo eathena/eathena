@@ -1427,6 +1427,9 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 
 /*=========================================================================
  Used to knock back players, monsters, traps, etc
+ If count&0xf00000, the direction is send in the 6th byte.
+ If count&0x10000, the direction is to the back of the target, otherwise is away from the src.
+ If count&0x20000, position update packets must not be sent.
 -------------------------------------------------------------------------*/
 int skill_blown( struct block_list *src, struct block_list *target,int count)
 {
@@ -1483,7 +1486,7 @@ int skill_blown( struct block_list *src, struct block_list *target,int count)
 	//This happens when a skill knocks back an enemy and the same hit kills it, so we are pushing around a corpse.
 	moveblock= (target->prev!=NULL) && ( x/BLOCK_SIZE != nx/BLOCK_SIZE || y/BLOCK_SIZE != ny/BLOCK_SIZE);
 	
-	battle_stopwalking(target,count&0x20000?0:1); //When flag 0x20000 is passed, position update is sent at the end of function. [Skotlex]
+	battle_stopwalking(target,0); 
 
 	dx = nx - x;
 	dy = ny - y;
@@ -1494,7 +1497,7 @@ int skill_blown( struct block_list *src, struct block_list *target,int count)
 		map_foreachinmovearea(clif_moboutsight,target->m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,dx,dy,BL_PC,md);
 	else if(pd)
 		map_foreachinmovearea(clif_petoutsight,target->m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,dx,dy,BL_PC,pd);
-
+	
 	if (sc_data && sc_data[SC_DANCING].timer != -1) {//Move the song/dance [Skotlex]
 		if (sc_data[SC_DANCING].val1 == CG_MOONLIT) //Cancel Moonlight Petals if moved from casting position. [Skotlex]
 			skill_stop_dancing(target);
@@ -1514,15 +1517,15 @@ int skill_blown( struct block_list *src, struct block_list *target,int count)
 		skill_unit_move(target,tick,3);
 	}
 
-	if(count&0x20000) //FIXME: Where exactly do I place this packet? Before/after the in/out of sight packets may cause trouble...  [Skotlex]
-		clif_blown(target);
-
 	if(sd)	/* ?–Ê?‚É“ü‚Á‚Ä‚«‚½‚Ì‚Å•\Ž¦ */
 		map_foreachinmovearea(clif_pcinsight,target->m,nx-AREA_SIZE,ny-AREA_SIZE,nx+AREA_SIZE,ny+AREA_SIZE,-dx,-dy,0,sd);
 	else if(md)
 		map_foreachinmovearea(clif_mobinsight,target->m,nx-AREA_SIZE,ny-AREA_SIZE,nx+AREA_SIZE,ny+AREA_SIZE,-dx,-dy,BL_PC,md);
 	else if(pd)
 		map_foreachinmovearea(clif_petinsight,target->m,nx-AREA_SIZE,ny-AREA_SIZE,nx+AREA_SIZE,ny+AREA_SIZE,-dx,-dy,BL_PC,pd);
+
+	if(!(count&0x20000)) 
+		clif_blown(target);
 
 	return 0;
 }
@@ -1829,7 +1832,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 
 	//Only knockback if it's still alive, otherwise a "ghost" is left behind. [Skotlex]
 	if (dmg.blewcount > 0 && !status_isdead(bl))
-		skill_blown(dsrc,bl,0x20000|dmg.blewcount);
+		skill_blown(dsrc,bl,dmg.blewcount);
 	
 	if(skillid == RG_INTIMIDATE && damage > 0 && !(status_get_mode(bl)&MD_BOSS) && !map_flag_gvg(src->m)) {
 		int s_lv = status_get_lv(src),t_lv = status_get_lv(bl);
@@ -2820,6 +2823,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 						skill_area_sub_count);
 					if(skill_area_temp[0]>1) break;
 				}
+				clif_blown(bl); //Update target pos.
 				skill_area_temp[1]=bl->id;
 				/* ‚»‚ÌŒãƒ^?ƒQƒbƒgˆÈŠO‚Ì”Í??‚Ì“G‘S?‚É?—?‚ð?s‚¤ */
 				map_foreachinarea(skill_area_sub,
@@ -2835,8 +2839,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 			/* ŒÂ•Ê‚Éƒ_ƒ??[ƒW‚ð—^‚¦‚é */
 			if (bl->id==skill_area_temp[1])
 				break;
-			if (skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0x0500) &&
-			   !(map_flag_gvg(bl->m) || status_get_mexp(bl)))
+			if (skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0x0500) && !status_get_mexp(bl))
 				skill_blown(src,bl,skill_area_temp[2]);
 		} else {
 			int x=bl->x,y=bl->y,i,dir;
@@ -2844,8 +2847,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 			dir = map_calc_dir(bl,src->x,src->y);
 			skill_area_temp[1] = bl->id;
 			skill_area_temp[2] = skill_get_blewcount(skillid,skilllv)|dir<<20;
-			if (skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0) &&
-			   !(map_flag_gvg(bl->m) || status_get_mexp(bl)))
+			if (skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0) && !status_get_mexp(bl))
 				skill_blown(src,bl,skill_area_temp[2]);
 			for (i=0;i<4;i++) {
 				map_foreachinarea(skill_area_sub,bl->m,x,y,x,y,0,
@@ -4519,7 +4521,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 	case TF_BACKSLIDING: //This is the correct implementation as per packet logging information. [Skotlex]
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
-		skill_blown(src,bl,skill_get_blewcount(skillid,skilllv)|0x30000);
+		skill_blown(src,bl,skill_get_blewcount(skillid,skilllv)|0x10000);
 		break;
 
 	case TK_HIGHJUMP:
@@ -6710,7 +6712,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 		{
 			int c = skill_get_blewcount(sg->skill_id,sg->skill_lv);
 			if(map_flag_gvg(bl->m)) c = 0;
-			skill_blown(&src->bl,bl,c|0x30000);
+			skill_blown(&src->bl,bl,c|0x10000);
 			sg->unit_id = UNT_USED_TRAPS;
 			clif_changelook(&src->bl,LOOK_BASE,sg->unit_id);
 			sg->limit=DIFF_TICK(tick,sg->tick)+1500;
@@ -7241,7 +7243,7 @@ static int skill_moonlit_sub(struct block_list *bl, va_list ap) {
 	if (bl == src || bl == partner)
 		return 0;
 	if (bl->type == BL_MOB || bl->type == BL_PC || bl->type == BL_PET)
-		skill_blown(src, bl, 0x20000|blowcount);
+		skill_blown(src, bl, blowcount);
 	return 1;
 }
 

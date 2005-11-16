@@ -1,5 +1,6 @@
 Date	Added
 2005/11/16
+	* Cleanup of how knockback routines are invoked. [Skotlex]
 	* Added MOB_LAZYSKILLPERC to mob.c, determines probability of a mob doing a
 	  skill when there are no players nearby (but there has to be players in the
 	  same map for it to trigger). Currently set to 10/1000 chance. [Skotlex]
