@@ -17,7 +17,6 @@ Date	Added
 	* Updated status_calc_pc to prevent infinite recursion loops. [Skotlex]
 	* Applied End of Exam's suggested signedness fixes to npc.c [Skotlex]
 	* Fixed the Makefile. [Skotlex]
-	* Temp fix to make it compile: commented out mingwin [Lupus]
 	* Fixed moonlit not properly checking for nearby walls. [Skotlex]
 	* Added a recursion protection system to status_calc_pc which should avoid
 	  exploits derived from recursively calling status_calc_pc which certain

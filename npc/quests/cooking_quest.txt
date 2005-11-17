@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= Reddozen
 //===== Current Version: ===================================== 
-//= 1.3b
+//= 1.4
 //===== Compatible With: ===================================== 
 //= eAthena 1.0+
 //===== Description: ========================================= 
@@ -15,14 +15,22 @@
 //= 1.3 Fixed wrong label [Lupus] 1.3a updated to Reddozen's changes
 //= 1.3b Fixed wrong id, fixed Puch quest, added more Pouch Quest
 //= dialogues [Lupus]
+//= 1.4 Fixed spelling, added some dialoguesm optimized
+//= fixed bugs. Tested, fully working [Lupus]
 //============================================================ 
 
 prt_castle.gat,43,30,6	script	Chef Apprentice	878,{
 
+	mes "[Chef's Apprentice]";
+
+	if(cooking == 1) goto L_Remind;
+
 	if(cooking == 2){
-		mes "[Chef's Apprentice]";
 		mes "I see you passed the test.";
 		mes "Good job!";
+		next;
+		mes "[Chef's Apprentice]";
+		mes "This book would be quite helpful for a novice chef.";
 		getitem 7472, 1;//Items: Lv1 Cookbook,
 		set cook_book, 7472;
 		set cooking, 3;
@@ -30,12 +38,12 @@ prt_castle.gat,43,30,6	script	Chef Apprentice	878,{
 	}
 
 	if(cooking == 3){
-		mes "[Chef's Apprentice]";
 		mes "Hi there. Is there something";
 		mes "that I can help you with?";
 		next;
-		menu "Buy Supplies",-, "Talk about cooking",L_Cook_Talk, "Leave", L_no_talk;		
+		menu "Buy Supplies",M_BuySupply, "Talk about cooking",L_Cook_Talk, "Leave",L_No_Talk;		
 
+		M_BuySupply:
 			mes "[Chef's Apprentice]";
 			mes "Outdoor Cooking Set - 500z each";
 			mes " How many?";
@@ -91,7 +99,7 @@ prt_castle.gat,43,30,6	script	Chef Apprentice	878,{
 			mes "more confident.";
 			close;
 
-		L_no_talk:
+		L_No_Talk:
 			mes "[Chef's Apprentice]";
 			mes "Come back to vist anytime!";
 			mes "Have a good day.";
@@ -99,7 +107,6 @@ prt_castle.gat,43,30,6	script	Chef Apprentice	878,{
 	}
 
 	if(cooking == 4){
-		mes "[Chef's Apprentice]";
 		if(countitem(12056)
 			&& countitem(12061)
 			&& countitem(12046)
@@ -135,16 +142,22 @@ prt_castle.gat,43,30,6	script	Chef Apprentice	878,{
 		} else {
 			mes "Please come back when you've cooked";
 			mes "all the Lv 1 foods.";
+			next;
+			menu "Buy Supplies",M_BuySupply, "Leave",L_No_Talk;		
 		}
 		close;
 	}
 
 	if(cooking == 5){
+		mes "Please, don't forget to";
+		mes "hand my ^000080Leather Pouch^000000";
+		mes "to my friend in Payon.";
+		next;
 		mes "[Chef's Apprentice]";
-		mes "Hi there. Is there something";
+		mes "Well... Is there something";
 		mes "that I can help you with?";
 		next;
-		menu "Buy Supplies",-, "Leave",L_no_talk2;
+		menu "Buy Supplies",-, "Leave",L_No_Talk2;
 
 			mes "[Chef's Apprentice]";
 			mes "Outdoor Cooking Set - 500z each.";
@@ -158,26 +171,17 @@ prt_castle.gat,43,30,6	script	Chef Apprentice	878,{
 
 			next;
 			mes "[Chef's Apprentice]";
-			if(rand(2)) {
-				mes "Enjoy";
-			} else {
-				mes "Please, don't forget to";
-				mes "hand my ^000080Leather Pouch^000000";
-				mes "to my friend in Payon.";
-			}
+			mes "Enjoy!";
 			close;
 
-		L_no_talk2:
+		L_No_Talk2:
 			mes "[Chef's Apprentice]";
 			mes "Come back to vist anytime!";
 			mes "Have a good day.";
 			close;
-
 	}
 
 	if(cooking == 6){
-
-		mes "[Chef's Apprentice]";
 		mes "Thank you for taking that";
 		mes "pouch to my friend! Take";
 		mes "this as a gift.";
@@ -188,11 +192,9 @@ prt_castle.gat,43,30,6	script	Chef Apprentice	878,{
 		mes "Come back later if you";
 		mes "need anything else!";
 		close;
-
 	}
 
 	if(cooking == 7){
-		mes "[Chef's Apprentice]";
 		mes "Welcome back. What";
 		mes "would you like to do?";
 		next;
@@ -233,7 +235,6 @@ prt_castle.gat,43,30,6	script	Chef Apprentice	878,{
 			close;
 	}			
 			
-	mes "[Chef's Apprentice]";
 	mes "Hi there. What can I";
 	mes "do for you?";
 	next;
@@ -255,7 +256,9 @@ prt_castle.gat,43,30,6	script	Chef Apprentice	878,{
 			close;
 		}
 
+		set cooking, 1;
 		mes "[Chef's Apprentice]";
+	L_Remind:
 		mes "So you want to learn to";
 		mes "cook huh? Well, if you";
 		mes "think you can handle it,";
@@ -263,9 +266,8 @@ prt_castle.gat,43,30,6	script	Chef Apprentice	878,{
 		next;
 		mes "[Chef's Apprentice]";
 		mes "Just don't forget your";
-		mes "Chef's Hat or Sharle";
+		mes "^000080Chef's Hat^000000 or Sharle";
 		mes "will yell at you.";
-		set cooking, 1;
 		close;
 
 	ER_Zeny:
@@ -290,184 +292,132 @@ prt_castle.gat,43,30,6	script	Chef Apprentice	878,{
 
 
 payon.gat,209,127,4	script	Cooking Friend	88,{
-
+	mes "[Cooking Friend]";
 	if(cooking == 5){
-		mes "[Cooking Friend]";
 		if(countitem(7432)) {
 			mes "I see my friend sent you";
 			mes "to give me something.";
 			delitem 7432, 1;//Items: Leather Pouch,
 			set cooking, 6;
+			emotion e_thx;
 		} else {
 			mes "What? My friend sent you";
 			mes "just to say Hello?";
+			emotion e_hmm;
 		}
 		mes "Thank you for your";
 		mes "trouble. Tell him I said,";
 		mes "Hello.";
 		close;
 	}
-	
-	mes "[Cooking Friend]";
 	mes "Hello, how are you?";
 	close;
-
 }
 
 
 prt_castle.gat,45,35,4	script	Sharle	886,{
-
-	if(cooking == 7) goto L_Cooking_7;
-
-	if(first_cooking == 1)goto FC_1;
-	if(first_cooking == 2)goto FC_2;
-	if(first_cooking == 3)goto FC_3;
-	if(first_cooking == 4)goto FC_4;
-	if(first_cooking == 5)goto FC_5;
-	if(first_cooking == 6)goto FC_6;
+	mes "[Sharle]";
+	if(cooking && getequipid(1) != 5026) goto L_No_Uniform; //Item: Chef's Hat
+	if(cooking == 7)goto L_Cooking_7;
+	if(first_cooking)goto L_First_Cooking;
 
 	if(cooking == 1){
-		if(getequipid(1) != 5026)goto L_uniform; //Item: Chef's Hat
-		mes "[Sharle]";
 		mes "So you want to learn how to cook?";
 		next;
-		menu "Yes",L_Cooking1_1, "No",L_Cooking1_2;
+		menu "Yes",M_GetQuest, "No",M_End;
 	}
 
-	mes "[Sharle]";
 	mes "What a great day to bake some";
 	mes "wonderfull treats!";
 	close;
-		
-	L_Cooking1_1:
+
+	M_GetQuest:
+		mes "[Sharle]";
+		mes "Ok. Let's try to cook something together.";
 		set first_cooking,rand(1,6);
 
+	L_First_Cooking:
+		mes "I'm lack of special ingredients,";
+		mes "bring me:";
 		if(first_cooking == 1){
-			FC_1:
-				if(getequipid(1) != 5026)goto L_uniform; //Item: Chef's Hat
+			set @item1, 577;
+			set @item1a, 1;
+			set @item2, 908;
+			set @item2a, 10;
+			set @item3, 1024;
+			set @item3a, 1;
+			set @food1, 12056;
 
-				set @item1, 577;
-				set @item1a, 1;
-				set @item2, 908;
-				set @item2a, 10;
-				set @item3, 1024;
-				set @item3a, 1;
-				set @food1, 12056;
-
-				mes "[Sharle]";
-				mes "Bring me:";
-				mes "1 Grain, 10 Spawn, and";
-				mes "1 Squid Ink";
-				if(countitem(@item1) >= @item1a && countitem(@item2) >= @item2a && countitem(@item3) >= @item3a)goto FC_cook;
-				close;
+			mes "1 Grain, 10 Spawn, and";
+			mes "1 Squid Ink.";
 		}
 
 		if(first_cooking == 2){
-			FC_2:
-				if(getequipid(1) != 5026)goto L_uniform; //Item: Chef's Hat
+			set @item1, 518;
+			set @item1a, 1;
+			set @item2, 514;
+			set @item2a, 2;
+			set @item3, 501;
+			set @item3a, 1;
+			set @food1, 12061;
 
-				set @item1, 518;
-				set @item1a, 1;
-				set @item2, 514;
-				set @item2a, 2;
-				set @item3, 501;
-				set @item3a, 1;
-				set @food1, 12061;
-
-				mes "[Sharle]";
-				mes "bring me:";
-				mes "1 Honey, 2 Grapes, and";
-				mes "1 Red Potion";
-				if(countitem(@item1) >= @item1a && countitem(@item2) >= @item2a && countitem(@item3) >= @item3a)goto FC_cook;
-				close;
+			mes "1 Honey, 2 Grapes, and";
+			mes "1 Red Potion.";
 		}
 
 		if(first_cooking == 3){
-			FC_3:
-				if(getequipid(1) != 5026)goto L_uniform; //Item: Chef's Hat
+			set @item1, 514;
+			set @item1a, 3;
+			set @item2, 501;
+			set @item2a, 2;
+			set @item3, 0;
+			set @item3a, 0;
+			set @food1, 12046;
 
-				set @item1, 514;
-				set @item1a, 3;
-				set @item2, 501;
-				set @item2a, 2;
-				set @item3, 0;
-				set @item3a, 0;
-				set @food1, 12046;
-
-				mes "[Sharle]";
-				mes "Bring me:";
-				mes "3 Grapes and 2 Red Potions";
-				if(countitem(@item1) >= @item1a && countitem(@item2) >= @item2a && countitem(@item3) >= @item3a)goto FC_cook;
-				close;
+			mes "3 Grapes and 2 Red Potions.";
 		}
 
 		if(first_cooking == 4){
-			FC_4:
-				if(getequipid(1) != 5026)goto L_uniform; //Item: Chef's Hat
+			set @item1, 942;
+			set @item1a, 5;
+			set @item2, 7031;
+			set @item2a, 1;
+			set @item3, 7457;
+			set @item3a, 1;
+			set @food1, 12066;
 
-				set @item1, 942;
-				set @item1a, 5;
-				set @item2, 7031;
-				set @item2a, 1;
-				set @item3, 7457;
-				set @item3a, 1;
-				set @food1, 12066;
-
-				mes "[Sharle]";
-				mes "Bring me:";
-				mes "5 Yoyo Tails, 1 Old Frying Pan, and";
-				mes "1 Cooking Oil";
-				if(countitem(@item1) >= @item1a && countitem(@item2) >= @item2a && countitem(@item3) >= @item3a)goto FC_cook;
-				close;
+			mes "5 Yoyo Tails, 1 Old Frying Pan, and";
+			mes "1 Cooking Oil.";
 		}
 
 		if(first_cooking == 5){
-			FC_5:
-				if(getequipid(1) != 5026)goto L_uniform; //Item: Chef's Hat
+			set @item1, 940;
+			set @item1a, 5;
+			set @item2, 7031;
+			set @item2a, 1;
+			set @item3, 7457;
+			set @item3a, 1;
+			set @food1, 12041;
 
-				set @item1, 940;
-				set @item1a, 5;
-				set @item2, 7031;
-				set @item2a, 1;
-				set @item3, 7457;
-				set @item3a, 1;
-				set @food1, 12041;
-
-				mes "[Sharle]";
-				mes "Bring me:";
-				mes "5 Grasshopper Legs, 1 Old Frying Pan, and";
-				mes "1 Cooking Oil";
-				if(countitem(@item1) >= @item1a && countitem(@item2) >= @item2a && countitem(@item3) >= @item3a)goto FC_cook;
-				close;
+			mes "5 Grasshopper Legs, 1 Old Frying Pan, and";
+			mes "1 Cooking Oil.";
 		}
 
 		if(first_cooking == 6){
-			FC_6:
-				if(getequipid(1) != 5026)goto L_uniform; //Item: Chef's Hat
+			set @item1, 960;
+			set @item1a, 10;
+			set @item2, 511;
+			set @item2a, 10;
+			set @item3, 503;
+			set @item3a, 1;
+			set @food1, 12051;
 
-				set @item1, 960;
-				set @item1a, 10;
-				set @item2, 511;
-				set @item2a, 10;
-				set @item3, 503;
-				set @item3a, 1;
-				set @food1, 12051;
-
-				mes "[Sharle]";
-				mes "Bring me:";
-				mes "10 Nippers, 1 Green Herb, and";
-				mes "1 Yellow Potion";
-				if(countitem(@item1) >= @item1a && countitem(@item2) >= @item2a && countitem(@item3) >= @item3a)goto FC_cook;
-				close;
+			mes "10 Nippers, 1 Green Herb, and";
+			mes "1 Yellow Potion.";
 		}
 
-	L_Cooking1_2:
-		mes "[Sharle]";
-		mes "That's fine with me, come back";
-		mes "when you want to cook.";
-		close;
+		if(countitem(@item1) < @item1a || countitem(@item2) < @item2a || countitem(@item3) < @item3a) close;
 
-	FC_cook:
 		next;
 		delitem @item1, @item1a;
 		delitem @item2, @item2a;
@@ -483,13 +433,10 @@ prt_castle.gat,45,35,4	script	Sharle	886,{
 		close;
 
 	L_Cooking_7:
-		if(getequipid(1) != 5026)goto L_uniform; //Item: Chef's Hat
-
-		mes "[Sharle]";
 		mes "Would you like to check";
-		mes "out a Cook Book?";
+		mes "out my ^800000Cookbooks^000000?";
 		next;
-		menu "Yes",-, "No", s_2, "Return Book", s_3;
+		menu "Yes",-, "No", M_End2, "Return Book", M_ReturnBook;
 
 		mes "[Sharle]";
 		if(cook_book){
@@ -498,7 +445,7 @@ prt_castle.gat,45,35,4	script	Sharle	886,{
 			mes "would like to check out a new book.";
 			mes "Would you like to trade books?";
 			next;
-			menu "Yes",-, "No",s_2;
+			menu "Yes",-, "No",M_End2;
 
 			if(countitem(cook_book)==0){
 				mes "What? You don't have the book I loaned you?";
@@ -510,14 +457,14 @@ prt_castle.gat,45,35,4	script	Sharle	886,{
 		mes "[Sharle]";
 		mes "Which book would you like?";
 		next;
-		menu "^800000Lv 1 Cookbook",b_1, "Lv 2 Cookbook",b_2, "Lv 3 Cookbook",b_3, "Lv 4 Cookbook",b_4, "Lv 5 Cookbook",b_5, "^000000Leave",s_2;
+		menu "^800000Lv 1 Cookbook",b_1, "Lv 2 Cookbook",b_2, "Lv 3 Cookbook",b_3, "Lv 4 Cookbook",b_4, "Lv 5 Cookbook",b_5, "^000000Leave",M_End2;
 
 	b_1:
 		mes "[Sharle]";
 		mes "You will need:";
 		mes "10 Pumpkins";
 		next;
-		if(countitem(535) < 10) goto need_items;//Items: Pumpkin,
+		if(countitem(535) < 10) goto L_No_Items;//Items: Pumpkin,
 		mes "And I see you have";
 		mes "what you need!";
 		next;
@@ -531,7 +478,7 @@ prt_castle.gat,45,35,4	script	Sharle	886,{
 		mes "You will need:";
 		mes "5 well-baked cookies";
 		next;
-		if(countitem(538) < 5) goto need_items;//Items: Well-baked Cookie,
+		if(countitem(538) < 5) goto L_No_Items;//Items: Well-baked Cookie,
 		mes "And I see you have";
 		mes "what you need!";
 		next;
@@ -545,7 +492,7 @@ prt_castle.gat,45,35,4	script	Sharle	886,{
 		mes "You will need:";
 		mes "5 Sushi";
 		next;
-		if(countitem(551) < 5) goto need_items;//Items: Sushi,
+		if(countitem(551) < 5) goto L_No_Items;//Items: Sushi,
 		mes "And I see you have";
 		mes "what you need!";
 		next;
@@ -559,7 +506,7 @@ prt_castle.gat,45,35,4	script	Sharle	886,{
 		mes "You will need:";
 		mes "5 Dumplings";
 		next;
-		if(countitem(553) < 5) goto need_items;//Items: Dumpling,
+		if(countitem(553) < 5) goto L_No_Items;//Items: Dumpling,
 		mes "And I see you have";
 		mes "what you need!";
 		next;
@@ -573,7 +520,7 @@ prt_castle.gat,45,35,4	script	Sharle	886,{
 		mes "You will need:";
 		mes "10 shoots";
 		next;
-		if(countitem(711) < 10) goto need_items;//Items: Shoot,
+		if(countitem(711) < 10) goto L_No_Items;//Items: Shoot,
 		mes "And I see you have";
 		mes "what you need!";
 		next;
@@ -581,13 +528,6 @@ prt_castle.gat,45,35,4	script	Sharle	886,{
 		delitem 711, 10;//Items: Shoot,
 		set @checkout, 7476;
 		goto b_trade;
-
-	need_items:
-		mes "[Sharle]";
-		mes "So come back when";
-		mes "you have the items";
-		mes "that you need.";
-		close;
 
 	b_trade:
 		mes "[Sharle]";
@@ -605,14 +545,20 @@ prt_castle.gat,45,35,4	script	Sharle	886,{
 		set cook_book, @checkout;
 		close;
 
-	s_2:
+	M_End:
+		mes "[Sharle]";
+		mes "That's fine with me, come back";
+		mes "when you want to cook.";
+		close;
+
+	M_End2:
 		mes "[Sharle]";
 		mes "Well, I'm here whenever you'd like";
 		mes "to learn. Just make sure you're";
 		mes "ready.";
 		close;
 
-	s_3:
+	M_ReturnBook:
 		if(cook_book == 0){
 			mes "[Sharle]";
 			mes "You haven't borrowed any books.";
@@ -629,13 +575,18 @@ prt_castle.gat,45,35,4	script	Sharle	886,{
 		emotion e_what;
 		close;
 
-	L_uniform:
+	L_No_Items:
 		mes "[Sharle]";
+		mes "So come back when";
+		mes "you have the items";
+		mes "that you need.";
+		close;
+
+	L_No_Uniform:
 		mes "How dare you disrespect me";
 		mes "by showing up out of uniform.";
 		mes "Come back when you have your";
 		mes "uniform on.";
 		emotion e_bzz;
-		close;
-		
+		close;	
 }

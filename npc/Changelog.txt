@@ -19,7 +19,7 @@ Massdriller
 	* Level 4 forge (MRO Lvl 4 Forging Quest) - 1% - resources only from MRO Official
 	  guide book so, probably unofficial
 MasterOfMuppets
-	* ???
+	* Updating Items / Scripts
 Nexon
 	* Adding in the new Abyss/Thanatos/Lighthalzen NPC's and optimizing them.
 
@@ -27,6 +27,9 @@ Nexon
 
 Date		Added
 ======
+11/18
+	* Added missing dialogues into Cooking Quest. Fixed a bug when you stuck if u haven't bought [Lupus]
+	  cooking sets before getting the quest, some optimizations, etc. Now fully workign 8) 
 11/17
 	* Fixed custom MVP arena warper. R4000! [Kayla]
 	* Added more Food Sellers (for Cooking Quest). Some of them have temp sprites and coords [Lupus]
