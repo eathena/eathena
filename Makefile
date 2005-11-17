@@ -72,7 +72,7 @@ ifdef SQLFLAG
 	else
 		MYSQLFLAG_CONFIG = $(shell which mysql_config)
 		ifeq ($(findstring /,$(MYSQLFLAG_CONFIG)), /)
-			MYSQLFLAG_VERSION = $(shell $(MYSQLFLAG_CONFIG) --version | sed s:\\..*:smile.gif
+			MYSQLFLAG_VERSION = $(shell $(MYSQLFLAG_CONFIG) --version | sed s:\\..*::)
 			ifeq ($(findstring 5,$(MYSQLFLAG_VERSION)), 5)
 				MYSQLFLAG_CONFIG_ARGUMENT = --include
 			else

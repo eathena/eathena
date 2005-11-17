@@ -4867,16 +4867,19 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		if(md)
 		{
 			clif_emotion(&md->bl,md->db->skill[md->skillidx].val[0]);
-			if(md->db->skill[md->skillidx].val[1] && !md->special_state.ai)
+			if(!md->special_state.ai && (md->db->skill[md->skillidx].val[1] || md->db->skill[md->skillidx].val[2]))
 			{ //NPC_EMOTION & NPC_EMOTION_ON can change a mob's mode 'permanently' [Skotlex]
-				//NPC_EMOTION_ON adds a mode to the list, while NPC_EMOTION can remove it.
+				//val[1] 'sets' the mode, val[2] can add/remove from the current mode based on skill used:
+				//NPC_EMOTION_ON adds a mode / NPC_EMOTION removes it.
 				int mode, mode2;
 				mode = status_get_mode(src);
-				if (skillid == NPC_EMOTION_ON) //Add a mode
-					mode2 = mode|md->db->skill[md->skillidx].val[1];
-				else	//Remove a mode
-					mode2 = mode&~(md->db->skill[md->skillidx].val[1]);
-				
+				mode2 =  (md->db->skill[md->skillidx].val[1])?(md->db->skill[md->skillidx].val[1]):mode;
+				if (md->db->skill[md->skillidx].val[2]) { //Alter the mode.
+					if (skillid == NPC_EMOTION_ON) //Add a mode
+						mode2|= md->db->skill[md->skillidx].val[2];
+					else	//Remove a mode
+						mode2&= ~(md->db->skill[md->skillidx].val[2]);
+				}
 				if (mode == mode2)
 					break; //No change
 				md->mode = mode2;

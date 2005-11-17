@@ -1,5 +1,12 @@
 Date	Added
 2005/11/17
+	* Altered behaviour of NPC_EMOTION/NPC_EMOTION_ON as requested by Komurka.
+	  [Skotlex]
+	- val[0] (the first one) is the emotion the mob does. If val[1] is
+	  different from 0, then the mob's mode is changed to THIS value. If val[2]
+	  is different from zero, it'll add/remove a mode based on skill used
+	  (EMOTION_ON adds mode, EMOTION removes it), both can stack [Skotlex]
+	* Fixed for sure the Makefile... [Skotlex]
 	* Modified Wedding effects. That is, changing base to 22 does NOT displays
 	  wedding outfit anymore. To display the wedding outfits, you have to start
 	  SC_WEDDING instead. Tux/Wedding dress scripts likely need being updated.
