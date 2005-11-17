@@ -1671,7 +1671,7 @@ int npc_convertlabel_db (void *key, void *data, va_list ap)
 
 	// In case of labels not terminated with ':', for user defined function support
 	p = lname;
-	while(isalnum(*p) || *p == '_') { p++; }
+	while(isalnum(*(unsigned char*)p) || *p == '_') { p++; }
 	c = *p;
 	*p='\0';
 
@@ -2491,7 +2491,7 @@ void npc_parsesrcfile (char *name)
 		// 不要なスペースやタブの連続は詰める
 		for (i = j = 0; line[i]; i++) {
 			if (line[i]==' ') {
-				if (!((line[i+1] && (isspace(line[i+1]) || line[i+1]==',')) ||
+				if (!((line[i+1] && (isspace((unsigned char)line[i+1]) || line[i+1]==',')) ||
 					 (j && line[j-1]==',')))
 					line[j++]=' ';
 			} else if (line[i]=='\t') {
@@ -2500,6 +2500,7 @@ void npc_parsesrcfile (char *name)
 			} else
 				line[j++]=line[i];
 		}
+		line[j] = '\0'; //Forget to terminate the string. From [jA 1091]
 		// 最初はタブ区切りでチェックしてみて、ダメならスペース区切りで確認
 		if ((count = sscanf(line,"%[^\t]\t%[^\t]\t%[^\t\r\n]\t%n%[^\t\r\n]", w1, w2, w3, &w4pos, w4)) < 3 &&
 		   (count = sscanf(line,"%s%s%s%n%s", w1, w2, w3, &w4pos, w4)) < 3) {

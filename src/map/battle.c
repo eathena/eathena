@@ -3342,6 +3342,7 @@ static const struct battle_data_short {
 	{ "invite_request_check",              &battle_config.invite_request_check		},
 	{ "skill_removetrap_type",             &battle_config.skill_removetrap_type	},
 	{ "disp_experience",                   &battle_config.disp_experience			},
+	{ "disp_zeny",                         &battle_config.disp_zeny				},
 	{ "castle_defense_rate",               &battle_config.castle_defense_rate		},
 	{ "hp_rate",                           &battle_config.hp_rate					},
 	{ "sp_rate",                           &battle_config.sp_rate					},
@@ -3704,6 +3705,7 @@ void battle_set_defaults() {
 	battle_config.invite_request_check = 1;
 	battle_config.skill_removetrap_type = 0;
 	battle_config.disp_experience = 0;
+	battle_config.disp_zeny = 0;
 	battle_config.castle_defense_rate = 100;
 	battle_config.hp_rate = 100;
 	battle_config.sp_rate = 100;

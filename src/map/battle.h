@@ -307,6 +307,7 @@ extern struct Battle_Config {
 	unsigned short invite_request_check;
 	unsigned short skill_removetrap_type;
 	unsigned short disp_experience;
+	unsigned short disp_zeny;
 	unsigned short castle_defense_rate;
 	unsigned short backstab_bow_penalty;
 	unsigned short hp_rate;

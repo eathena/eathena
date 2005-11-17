@@ -2378,6 +2378,11 @@ int pc_getzeny(struct map_session_data *sd,int zeny)
 	}
 	sd->status.zeny+=zeny;
 	clif_updatestatus(sd,SP_ZENY);
+	if(battle_config.disp_zeny && zeny > 0){
+		char output[255];
+		sprintf(output, "Gained %dz.", zeny);
+		clif_disp_onlyself(sd,output,strlen(output));
+	}
 
 	return 0;
 }

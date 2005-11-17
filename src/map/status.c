@@ -803,7 +803,8 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	int str,dstr,dex;
 
 	nullpo_retr(0, sd);
-	calculating = 1;
+	if (++calculating > 10) //Too many recursive calls to status_calc_pc!
+		return -1;
 	
 	b_speed = sd->speed;
 	b_max_hp = sd->status.max_hp;
