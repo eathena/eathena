@@ -2464,6 +2464,7 @@ static int map_readafm(int m,char *fn) {
 			exit(1);
 		}
 
+		map[m].cell = (unsigned char *)aCalloc(map[m].xs * map[m].ys,sizeof(unsigned char));
 		map[m].npc_num=0;
 		map[m].users=0;
 		memset(&map[m].flag,0,sizeof(map[m].flag));

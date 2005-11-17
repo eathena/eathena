@@ -1,5 +1,7 @@
 Date	Added
 2005/11/16
+	* Fixed AFM map loading (something was missing there which was gonna make
+	  the map server crash for sure later on) [Skotlex]
 	* Some corrections to the mob states, linked/cast-sensitive mobs engage in
 	  attach/chase modes, not angry/follow (which seem reserved entirely for
 	  aggressive mobs) [Skotlex]
