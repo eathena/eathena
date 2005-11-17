@@ -12,7 +12,7 @@
 #include <assert.h>
 // }
 #ifndef DEFCPP
-#if defined(_WIN32)
+#if defined(_WIN32) && !defined(MINGW)
 #include <crtdbg.h>
 #endif
 #endif

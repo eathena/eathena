@@ -10,7 +10,7 @@
 #define UPPER(c)   (((c)>='a'  && (c) <= 'z') ? ((c)+('A'-'a')) : (c) )
 
 /* strcasecmp -> stricmp -> str_cmp */
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(MINGW)
 	int	strcasecmp(const char *arg1, const char *arg2);
 	int	strncasecmp(const char *arg1, const char *arg2, int n);
 	void str_upper(char *name);

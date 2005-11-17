@@ -1,6 +1,10 @@
 
 OBJS = unzip.o ioapi.o
 
+ifeq ($(findstring MINGW,$(CFLAGS)), MINGW)
+	OBJS += iowin32.o
+endif
+
 .c.o:
 	$(CC) -c $(CFLAGS) $*.c
 

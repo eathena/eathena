@@ -67,7 +67,7 @@ int newt_sqrt(int input)
 	return new_value;
 }
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(MINGW)
 char *rindex(char *str, char c)
 {
         char *sptr;

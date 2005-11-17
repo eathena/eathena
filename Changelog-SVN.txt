@@ -1,4 +1,7 @@
 Date	Added
+2005/11/17
+	* Applied Celest's patch which should help compiling eA under mingwin.
+	  [Skotlex]
 2005/11/16
 	* Fixed AFM map loading (something was missing there which was gonna make
 	  the map server crash for sure later on) [Skotlex]
