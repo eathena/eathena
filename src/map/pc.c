@@ -558,7 +558,7 @@ int pc_isequip(struct map_session_data *sd,int n)
 
 	if(item == NULL)
 		return 0;
-	if(item->elv && sd->status.base_level < item->elv)
+	if(item->elv && sd->status.base_level < (unsigned int)item->elv)
 		return 0;
 	if(item->sex != 2 && sd->status.sex != item->sex)
 		return 0;
@@ -2627,7 +2627,7 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 	if(item->sex != 2 && sd->status.sex != item->sex)
 		return 0;
 	//Required level check
-	if(item->elv && sd->status.base_level < item->elv)
+	if(item->elv && sd->status.base_level < (unsigned int)item->elv)
 		return 0;
 
 	//Not equipable by class. [Skotlex]

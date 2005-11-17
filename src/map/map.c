@@ -2559,10 +2559,10 @@ static int map_readmap(int m,char *fn, char *alias, int *map_cache, int maxmap) 
 	//printf("\rLoading Maps [%d/%d]: %-50s  ",m,map_num,fn);
 	if (maxmap) { //avoid map-server crashing if there are 0 maps
 		char c = '-';
-		static int lasti = -1;
-		static int last_time = -1;
+		static unsigned int lasti = -1;
+		static unsigned int last_time = -1;
 		i=m*20/maxmap;
-		if ((i != lasti) || (last_time != time(0))) {
+		if ((i != lasti) || (last_time != gettick()/1000)) {
 			lasti = i;
 			printf("\r");
 			ShowStatus("Progress: ");
@@ -2570,7 +2570,7 @@ static int map_readmap(int m,char *fn, char *alias, int *map_cache, int maxmap) 
 			for (e=0;e<i;e++) progress[e] = '#';
 			printf(progress);
 			printf("] Working: [");
-			last_time = time(0);
+			last_time = gettick()/1000;
 			switch(last_time % 4) {
 				case 0: c='\\'; break;
 				case 1: c='|'; break;

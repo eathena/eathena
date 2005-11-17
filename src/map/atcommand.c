@@ -3972,7 +3972,7 @@ int atcommand_param(
 	}
 
 	new_value = (int)*status[index] + value;
-	if (value > 0 && ((unsigned int)value > pc_maxparameter(sd) || (unsigned int)new_value > pc_maxparameter(sd))) // fix positiv overflow
+	if (value > 0 && (value > pc_maxparameter(sd) || new_value > pc_maxparameter(sd))) // fix positiv overflow
 		new_value = pc_maxparameter(sd); 
 	else if (value < 0 && (value < -(int)pc_maxparameter(sd) || new_value < 1)) // fix negativ overflow
 		new_value = 1;
@@ -4017,7 +4017,7 @@ int atcommand_stat_all(
 	for (index = 0; index < (int)(sizeof(status) / sizeof(status[0])); index++) {
 
 		new_value = (int)*status[index] + value;
-		if (value > 0 && ((unsigned int)value > pc_maxparameter(sd) || (unsigned int)new_value > pc_maxparameter(sd))) // fix positiv overflow
+		if (value > 0 && (value > pc_maxparameter(sd) || new_value > pc_maxparameter(sd))) // fix positiv overflow
 			new_value = pc_maxparameter(sd);
 		else if (value < 0 && (value < -(int)pc_maxparameter(sd) || new_value < 1)) // fix negative overflow
 			new_value = 1;

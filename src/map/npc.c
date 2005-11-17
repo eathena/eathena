@@ -1786,7 +1786,7 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 			npc_parse_script_line(line,&curly_count,*lines);
 			if (feof(fp))
 				break;
-			if (strlen((char *)srcbuf) + strlen((char *)line) + 1 >= srcsize) {
+			if (strlen((char *)srcbuf) + strlen((char *)line) + 1 >= (size_t)srcsize) {
 				srcsize += 65536;
 				srcbuf = (unsigned char *)aRealloc(srcbuf, srcsize);
 				memset(srcbuf + srcsize - 65536, '\0', 65536);

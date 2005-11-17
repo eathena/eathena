@@ -1240,7 +1240,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 // ----- STATS CALCULATION -----
 
 	// Job bonuses
-	for(i=0;i<sd->status.job_level && i<MAX_LEVEL;i++){
+	for(i=0;i<(int)sd->status.job_level && i<MAX_LEVEL;i++){
 		if(job_bonus[sd->status.class_][i])
 			sd->paramb[job_bonus[sd->status.class_][i]-1]++;
 	}
