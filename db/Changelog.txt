@@ -31,6 +31,9 @@
 		like gemstones when the skill is used.
 	--
 11/17
+	* Updated the mob skill database to use the new conditions angry and follow [MasterOfMuppets]
+	  now it also changed the modes of monsters using emotes, all credits goes
+	  to Komurka for the database work.
 	* Added 5135,Cyclops_Eye with temp view ID [Lupus]
 	* Changed the drop rate of house auger from lord of death to 0.8% [MasterOfMuppets]
 	* Made Brooch of cursed fortune give +6 crit instead of +6% crit, [MasterOfMuppets]
