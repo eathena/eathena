@@ -4028,12 +4028,20 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			break;
 		case SC_WEDDING:	//結婚用(結婚衣裳になって?くのが?いとか)
 			{
-				time_t timer;
-
-				calc_flag = 1;
-				tick = 10000;
-				if(!val2)
-					val2 = (int)time(&timer);
+				struct map_session_data *sd;
+				if (bl->type == BL_PC && (sd= (struct map_session_data *)bl))
+				{	//Change look.
+					sd->view_class = 22;
+					clif_changelook(&sd->bl,LOOK_BASE,sd->view_class);
+#if PACKETVER < 4
+					clif_changelook(&sd->bl,LOOK_WEAPON,sd->status.weapon);
+					clif_changelook(&sd->bl,LOOK_SHIELD,sd->status.shield);
+#else
+					clif_changelook(&sd->bl,LOOK_WEAPON,0);
+#endif
+					if(battle_config.save_clothcolor && sd->status.clothes_color > 0 && !battle_config.wedding_ignorepalette)
+						clif_changelook(&sd->bl,LOOK_CLOTHES_COLOR,sd->status.clothes_color);
+				}
 			}
 			break;
 		case SC_NOCHAT:	//チャット禁止?態
@@ -4725,7 +4733,6 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			case SC_CHASEWALK:
 			case SC_ATKPOTION:		// [Valaris]
 			case SC_MATKPOTION:		// [Valaris]
-			case SC_WEDDING:	//結婚用(結婚衣裳になって?くのが?いとか)
 			case SC_MELTDOWN:		/* メルトダウン */
 			case SC_CARTBOOST:
 			case SC_MINDBREAKER:		/* マインドブレーカー */
@@ -4767,6 +4774,24 @@ int status_change_end( struct block_list* bl , int type,int tid )
 				calc_flag = 1;
 				break;
 
+			case SC_WEDDING:	//結婚用(結婚衣裳になって?くのが?いとか)
+			{
+				struct map_session_data *sd;
+				if (bl->type == BL_PC && (sd= (struct map_session_data *)bl))
+				{	//Restore look
+					sd->view_class = sd->status.class_;
+					clif_changelook(&sd->bl,LOOK_BASE,sd->view_class);
+#if PACKETVER < 4
+					clif_changelook(&sd->bl,LOOK_WEAPON,sd->status.weapon);
+					clif_changelook(&sd->bl,LOOK_SHIELD,sd->status.shield);
+#else
+					clif_changelook(&sd->bl,LOOK_WEAPON,0);
+#endif
+					if(battle_config.save_clothcolor && sd->status.clothes_color > 0)
+						clif_changelook(&sd->bl,LOOK_CLOTHES_COLOR,sd->status.clothes_color);
+				}
+			}
+			break;
 			case SC_RUN://駆け足
 			{
 				struct map_session_data *sd;
@@ -5368,17 +5393,6 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 			}
 			else
 				sd->canregen_tick = gettick() + 300000;
-		}
-		break;
-	case SC_WEDDING:	//結婚用(結婚衣裳になって?くのが?いとか)
-		if(sd){
-			time_t timer;
-			if(time(&timer) < ((sc_data[type].val2) + 3600)){	//1時間たっていないので??
-				sc_data[type].timer=add_timer(	/* タイマ?再設定 */
-					10000+tick, status_change_timer,
-					bl->id, data);
-				return 0;
-			}
 		}
 		break;
 	case SC_NOCHAT:	//チャット禁止?態
