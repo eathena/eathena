@@ -66,25 +66,26 @@ endif
 CFLAGS = $(OPT) -I../common $(OS_TYPE)
 
 ifdef SQLFLAG
-	ifeq ($(findstring MINGW,$(OPT)), MINGW)
-		CFLAGS += -I/usr/local/include/mysql
-		LIBS += -lmysql
-	else
-		MYSQLFLAG_CONFIG = $(shell which mysql_config)
-		ifeq ($(findstring /,$(MYSQLFLAG_CONFIG)), /)
-			MYSQLFLAG_VERSION = $(shell $(MYSQLFLAG_CONFIG) --version | sed s:\\..*:smile.gif
-			ifeq ($(findstring 5,$(MYSQLFLAG_VERSION)), 5)
-				MYSQLFLAG_CONFIG_ARGUMENT = --include
-			else
-				MYSQLFLAG_CONFIG_ARGUMENT = --cflags
-			endif
-		CFLAGS += $(shell $(MYSQLFLAG_CONFIG) $(MYSQLFLAG_CONFIG_ARGUMENT))
-		LIBS += $(shell $(MYSQLFLAG_CONFIG) --libs)
-	else
-		CFLAGS += -I/usr/local/include/mysql
-		LIBS += -L/usr/local/lib/mysql -lmysqlclient
-	endif
+   MYSQLFLAG_CONFIG = $(shell which mysql_config)
+   ifeq ($(findstring /,$(MYSQLFLAG_CONFIG)), /)
+      MYSQLFLAG_VERSION = $(shell $(MYSQLFLAG_CONFIG) --version | sed s:\\..*::) 
+      ifeq ($(findstring 5,$(MYSQLFLAG_VERSION)), 5)
+         MYSQLFLAG_CONFIG_ARGUMENT = --include
+      else
+         MYSQLFLAG_CONFIG_ARGUMENT = --cflags
+      endif
+      CFLAGS += $(shell $(MYSQLFLAG_CONFIG) $(MYSQLFLAG_CONFIG_ARGUMENT))
+      LIBS += $(shell $(MYSQLFLAG_CONFIG) --libs)
+   else
+      CFLAGS += -I/usr/local/include/mysql
+      LIBS += -L/usr/local/lib/mysql -lmysqlclient
+   endif
 endif
+
+#	ifeq ($(findstring MINGW,$(OPT)), MINGW)
+#		CFLAGS += -I/usr/local/include/mysql
+#		LIBS += -lmysql
+#	endif
 
 ifneq ($(findstring -lz,$(LIBS)), -lz)
    LIBS += -lz
