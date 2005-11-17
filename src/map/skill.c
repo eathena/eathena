@@ -7823,7 +7823,7 @@ int skill_check_condition(struct map_session_data *sd,int type)
 		break;
 	case CG_MOONLIT: //Check there's no wall in the range+1 area around the caster. [Skotlex]
 		{
-			int i,x,y,range = skill_get_unit_range(skill)+1;
+			int i,x,y,range = skill_get_range(skill, lv)+1;
 			int size = range*2+1;
 			for (i=0;i<size*size;i++) {
 				x = sd->bl.x+(i%size-range);

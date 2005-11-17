@@ -1,5 +1,10 @@
 Date	Added
 2005/11/17
+	* Fixed moonlit not properly checking for nearby walls. [Skotlex]
+	* Added a recursion protection system to status_calc_pc which should avoid
+	  exploits derived from recursively calling status_calc_pc which certain
+	  equipment scripts could trigger. Thanks to End of Exam for pointing it out.
+	  [Skotlex]
 	* Applied Celest's patch which should help compiling eA under mingwin.
 	  [Skotlex]
 2005/11/16

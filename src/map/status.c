@@ -792,6 +792,7 @@ int status_calc_pet(struct map_session_data *sd, int first)
 
 int status_calc_pc(struct map_session_data* sd,int first)
 {
+	static int calculating = 0; //Check for recursive call preemption. [Skotlex]
 	int b_speed,b_max_hp,b_max_sp,b_hp,b_sp,b_weight,b_max_weight,b_paramb[6],b_parame[6],b_hit,b_flee;
 	int b_aspd,b_watk,b_def,b_watk2,b_def2,b_flee2,b_critical,b_attackrange,b_matk1,b_matk2,b_mdef,b_mdef2,b_class;
 	int b_base_atk;
@@ -802,7 +803,8 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	int str,dstr,dex;
 
 	nullpo_retr(0, sd);
-
+	calculating = 1;
+	
 	b_speed = sd->speed;
 	b_max_hp = sd->status.max_hp;
 	b_max_sp = sd->status.max_sp;
@@ -1085,6 +1087,8 @@ int status_calc_pc(struct map_session_data* sd,int first)
 								sd->state.lr_flag = 1;
 							run_script(itemdb_equipscript(c),0,sd->bl.id,0);
 							sd->state.lr_flag = 0;
+							if (!calculating) //Abort, run_script retriggered status_calc_pc. [Skotlex]
+								return 1;
 						}
 					}
 				}
@@ -1094,8 +1098,11 @@ int status_calc_pc(struct map_session_data* sd,int first)
 					int j;
 					for(j=0;j<sd->inventory_data[index]->slot;j++){	// ƒJ?ƒh
 						int c=sd->status.inventory[index].card[j];
-						if(c>0)
+						if(c>0) {
 							run_script(itemdb_equipscript(c),0,sd->bl.id,0);
+							if (!calculating) //Abort, run_script retriggered status_calc_pc. [Skotlex]
+								return 1;
+						}
 					}
 				}
 			}
@@ -1152,6 +1159,8 @@ int status_calc_pc(struct map_session_data* sd,int first)
 					sd->state.lr_flag = 1;
 					run_script(sd->inventory_data[index]->script,0,sd->bl.id,0);
 					sd->state.lr_flag = 0;
+					if (!calculating) //Abort, run_script retriggered status_calc_pc. [Skotlex]
+						return 1;
 				}
 				else {	// Right-hand weapon
 					sd->right_weapon.watk += sd->inventory_data[index]->atk;
@@ -1168,12 +1177,16 @@ int status_calc_pc(struct map_session_data* sd,int first)
 					}
 					sd->attackrange += sd->inventory_data[index]->range;
 					run_script(sd->inventory_data[index]->script,0,sd->bl.id,0);
+					if (!calculating) //Abort, run_script retriggered status_calc_pc. [Skotlex]
+						return 1;
 				}
 			}
 			else if(sd->inventory_data[index]->type == 5) {
 				sd->right_weapon.watk += sd->inventory_data[index]->atk;
 				refinedef += sd->status.inventory[index].refine*refinebonus[0][0];
 				run_script(sd->inventory_data[index]->script,0,sd->bl.id,0);
+				if (!calculating) //Abort, run_script retriggered status_calc_pc. [Skotlex]
+					return 1;
 			}
 		}
 	}
@@ -1791,8 +1804,10 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		if (sd->status.option&OPTION_RIDING)
 			clif_status_load(&sd->bl, SI_RIDING, 1);
 	}
-	if(first&4)
+	if(first&4) {
+		calculating = 0;
 		return 0;
+	}
 	if(first&3) {
 		clif_updatestatus(sd,SP_SPEED);
 		clif_updatestatus(sd,SP_MAXHP);
@@ -1801,6 +1816,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 			clif_updatestatus(sd,SP_HP);
 			clif_updatestatus(sd,SP_SP);
 		}
+		calculating = 0;
 		return 0;
 	}
 
@@ -1873,6 +1889,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		(sd->sc_data[SC_PROVOKE].timer==-1 || sd->sc_data[SC_PROVOKE].val2==0) && !pc_isdead(sd))
 		status_change_start(&sd->bl,SC_PROVOKE,10,1,0,0,0,0);
 
+	calculating = 0;
 	return 0;
 }
 
