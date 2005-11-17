@@ -27,6 +27,9 @@ char* jstrescape (char* pt) {
 				pt[j++] = '\\';
 				pt[j++] = ptr[i++];
 				break;
+			case '%':
+				pt[j++] = '_'; i++;
+				break;
 			default:
 				pt[j++] = ptr[i++];
 		}
@@ -52,6 +55,9 @@ char* jstrescapecpy (char* pt,char* spt) {
 				pt[j++] = '\\';
 				pt[j++] = spt[i++];
 				break;
+			case '%':
+				pt[j++] = '_'; i++;
+				break;
 			default:
 				pt[j++] = spt[i++];
 		}
@@ -72,6 +78,9 @@ int jmemescapecpy (char* pt,char* spt, int size) {
 			case '\\':
 				pt[j++] = '\\';
 				pt[j++] = spt[i++];
+				break;
+			case '%':
+				pt[j++] = '_'; i++;
 				break;
 			default:
 				pt[j++] = spt[i++];
