@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.6
+//= 1.7
 //===== Compatible With: ===================================== 
 //= eAthena 7.15 +
 //===== Description: ========================================= 
@@ -16,6 +16,7 @@
 //= 1.4 Someone forget a .gat in an NPC header [Fredzilla]
 //= 1.5 Fixed typo in script. [massdriller]
 //= 1.6 Fixed some typos, optimized, added Gotanblue#2 to be able to return back to Alberta [Lupus]
+//= 1.7 Fixed Phelix bugs [Lupus]
 //============================================================ 
 
 
@@ -276,7 +277,8 @@ alberta.gat,190,173,4	script	Phelix	85,{
 				next;
 				set @input,0;
 				input @input;
-				if(@input < 1) goto M_Yes;
+				if(@input < 1 || @input > 1000) goto M_Yes;
+				if(checkweight(@item,@input)==0) goto L_OverW;
 
 				if(@item == 501) set @amount, @input*10;
 				if(@item == 516) set @amount, @input*3;
@@ -289,6 +291,12 @@ alberta.gat,190,173,4	script	Phelix	85,{
 			L_NotEnough:
 				mes "[Phelix]";
 				mes "I'm sorry but you do not have enough jellopy.";
+				next;
+				goto M_Yes;
+
+			L_OverW:
+				mes "[Phelix]";
+				mes "I'm sorry but you can't carry so many things.";
 				next;
 				goto M_Yes;
 

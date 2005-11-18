@@ -28,6 +28,7 @@ Nexon
 Date		Added
 ======
 11/18
+	* Alberta, fixed bugs [Lupus]
 	* Typos and minor fixes of Assassin JQ and Clothes_dyer. thanks to momotaro_master & WhiteLight for info [Lupus]
 	* Added missing dialogues into Cooking Quest. Fixed a bug when you stuck if u haven't bought [Lupus]
 	  cooking sets before getting the quest, some optimizations, etc. Now fully workign 8) 
