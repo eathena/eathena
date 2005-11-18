@@ -437,7 +437,7 @@ sF_Quiz:
 		mes "The Katar is one of the strongest weapons a Assassin can use.";
 		next;
 		mes "[Assassin Kai]";
-		mes "I ^554433wouldn't want to raise a Rohda Frog as pet^000000, and neither would anyone else for that matter.";
+		mes "I ^554433wouldn't want to raise a Roda Frog as pet^000000, and neither would anyone else for that matter.";
 		next;
 		mes "[Assassin Kai]";
 		mes "^554433Fire^000000 is effective against ^554433ground type monsters^000000.";

@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= Usnul
 //===== Current Version: ===================================== 
-//= 2.2a
+//= 2.2b
 //===== Compatible With: ===================================== 
 //= eAthena 1.0+
 //===== Description: ========================================= 
@@ -75,8 +75,9 @@ Male_dye:
 		if(BaseJob==8 || BaseJob==15) goto L_Priest_Monk_M;
 		if(BaseJob==9 || BaseJob==11 || BaseJob==19 || BaseJob==23) goto L_Wiz_Hunt_Bard_SN_M;
 		if(BaseJob==10 || BaseJob==18) goto L_Bls_Alch_M;
-//		if(BaseJob==12) goto L_Assassin_M;
+		if(BaseJob==12) goto L_Assassin_M;
 		if(BaseJob==17) goto L_Rogue_M;
+		goto sL_Sorry;
 	
 	//1 Class
 	L_Mage_M:
@@ -159,6 +160,7 @@ Female_dye:
 		if(BaseJob==11 || BaseJob==20) goto L_Hunt_Dancer_F;
 		if(BaseJob==12 || BaseJob==17) goto L_As_Rog_F;
 		if(BaseJob==23) goto L_SN_F;
+		goto sL_Sorry;
 	
 	//1 Class
 	L_Sword_Aco_F:
