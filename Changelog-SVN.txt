@@ -1,5 +1,7 @@
 Date	Added
 2005/11/18
+	* Fixed three memory issues (char txt shutdown, npc reloading, ore
+	  discovery logs) which were pointed out by End of Exam. [Skotlex]
 	* Added support for hyper-active mobs (MD_CHANGECHASE = 0x400), these mobs
 	  will change to the closest target while chasing/following other players.
 	  Needs be added to the mob_db. [Skotlex]

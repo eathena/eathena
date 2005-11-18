@@ -2487,10 +2487,10 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 		if (sd == mvp_sd && map[md->bl.m].flag.nomobloot==0 && pc_checkskill(sd,BS_FINDINGORE)>0 && battle_config.finding_ore_rate/100 >= rand()%1000) {
 			struct delay_item_drop *ditem;
 			ditem = mob_setdropitem(itemdb_searchrandomid(6), 1, md->bl.m, md->bl.x, md->bl.y, mvp_sd, second_sd, third_sd);
-			if (drop_ore<0) i=8; //we have only 10 slots in LOG, there's a check to not overflow (9th item usually a card, so we use 8th slot)
-			log_item[i] = ditem->item_data.nameid; //it's for logging only
+			if (drop_ore<0) drop_ore=8; //we have only 10 slots in LOG, there's a check to not overflow (9th item usually a card, so we use 8th slot)
+			log_item[drop_ore] = ditem->item_data.nameid; //it's for logging only
 			drop_items++; //we count if there were any drops
-			mob_item_drop(md, tick+500+i, ditem, 0);
+			mob_item_drop(md, tick+500+drop_ore, ditem, 0);
 		}
 
 		//this drop log contains ALL dropped items + ORE (if there was ORE Recovery) [Lupus]

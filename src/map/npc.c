@@ -1382,6 +1382,18 @@ int npc_remove_map (struct npc_data *nd)
 	return 0;
 }
 
+static int npc_unload_ev(void *key,void *data,va_list ap) {
+	struct event_data *ev=(struct event_data *)data;
+	char *npcname=va_arg(ap,char *);
+
+	if(strcmp(ev->nd->exname,npcname)==0){
+		strdb_erase(ev_db, key);
+		aFree(ev);
+		return 1;
+	}
+	return 0;
+}
+
 int npc_unload (struct npc_data *nd)
 {
 	npc_remove_map (nd);
@@ -1392,6 +1404,7 @@ int npc_unload (struct npc_data *nd)
 		cd = NULL;
 	}
 	if (nd->bl.subtype == SCRIPT) {
+		strdb_foreach(ev_db,npc_unload_ev,nd->exname); //Clean up all events related.
 		if (nd->u.scr.timerid != -1)
 			delete_timer(nd->u.scr.timerid, npc_timerevent);
 		npc_cleareventtimer (nd);
