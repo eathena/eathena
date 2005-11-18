@@ -30,6 +30,8 @@
 		Item type: Throwing Dagger. Has to be equipped as an arrow, is consumed
 		like gemstones when the skill is used.
 	--
+11/18
+	* Fixed the Elemental Resist potions. [Skotlex]
 11/17
 	* Updated the mob skill database to use the new conditions angry and follow [MasterOfMuppets]
 	  now it also changed the modes of monsters using emotes, all credits goes

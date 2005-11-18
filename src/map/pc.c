@@ -2421,7 +2421,7 @@ int pc_additem(struct map_session_data *sd,struct item *item_data,int amount)
 	if(item_data->nameid <= 0 || amount <= 0)
 		return 1;
 	data = itemdb_search(item_data->nameid);
-	if((w = data->weight*amount) + sd->weight > sd->max_weight)
+	if((w = data->weight*amount) + sd->weight > sd->max_weight || (w+sd->weight) < 0) //Weight overflow check?
 		return 2;
 
 	i = MAX_INVENTORY;

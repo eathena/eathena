@@ -3335,13 +3335,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		if (status_isimmune(bl))
 			break;
-		if (dstsd) {			
-			dstsd->status.hp = 1;
-			dstsd->status.sp = 1;
-			clif_updatestatus(dstsd, SP_HP);
-			clif_updatestatus(dstsd, SP_SP);
-		}
-		if(dstmd) dstmd->hp = 1;
+		status_change_start(bl,SC_COMA,skilllv,0,0,0,0,0);
 		break;
 	case SA_FULLRECOVERY:
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);

@@ -3634,12 +3634,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		return 0;
 	if(type == SC_OVERTHRUST && sc_data[SC_MAXOVERTHRUST].timer != -1)
 		return 0; //Overthrust can't take effect if under Max Overthrust. [Skotlex]
-	/* Unneeded! Look at the code below where it says "if(sc_data[type].timer != -1)", that one handles reinflicting status changes! [Skotlex]
-	if(type == SC_FREEZE && sc_data[SC_FREEZE].timer != -1 )
-		return 0; //You can't stun already stunned player [Lupus]
-	if(type == SC_STAN && sc_data[SC_STAN].timer != -1 )
-		return 0; //You can't stun already stunned player [Lupus]
-	*/
 	switch(type){
 		case SC_STONE:
 		case SC_FREEZE:
@@ -3719,6 +3713,9 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		if ((type >=SC_STAN && type <= SC_BLIND) || type == SC_DPOISON)
 			return 0;/* ?‚¬‘«‚µ‚ª‚Å‚«‚È‚¢?‘ÔˆÙí‚Å‚ ‚éŽž‚Í?‘ÔˆÙí‚ðs‚í‚È‚¢ */
 
+		if (type == SC_GOSPEL && sc_data[type].val4 == BCT_SELF) //Must not override a casting gospel char.
+			return 0;
+		
 		(*sc_count)--;
 		delete_timer(sc_data[type].timer, status_change_timer);
 		sc_data[type].timer = -1;
