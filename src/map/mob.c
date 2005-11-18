@@ -1154,14 +1154,15 @@ int mob_target(struct mob_data *md,struct block_list *bl,int dist)
 static int mob_ai_sub_hard_activesearch(struct block_list *bl,va_list ap)
 {
 	struct mob_data *md;
-	int dist,*pcc;
+	struct block_list **target;
+	int dist;
 	unsigned int tick;
 
 	nullpo_retr(0, bl);
 	nullpo_retr(0, ap);
-	nullpo_retr(0, md=va_arg(ap,struct mob_data *));
-	nullpo_retr(0, pcc=va_arg(ap,int *));
-	nullpo_retr(0, tick=va_arg(ap,unsigned int));
+	md=va_arg(ap,struct mob_data *);
+	target= va_arg(ap,struct block_list**);
+	tick=va_arg(ap,unsigned int);
 
 	//If can't seek yet, not an enemy, or you can't attack it, skip.
 	if (battle_check_target(&md->bl,bl,BCT_ENEMY)<=0 || !status_check_skilluse(&md->bl, bl, 0, 0))
@@ -1172,11 +1173,13 @@ static int mob_ai_sub_hard_activesearch(struct block_list *bl,va_list ap)
 	case BL_PC:
 	case BL_MOB:
 		if((dist=distance(md->bl.x,md->bl.y,bl->x,bl->y)) < md->db->range2
-			&& (md->db->range > 6 || mob_can_reach(md,bl,dist)) && rand()%1000<1000/(++(*pcc)))
-		{
+			&& (md->db->range > 6 || mob_can_reach(md,bl,dist+1))
+			&& ((*target) == NULL || distance(md->bl.x, md->bl.y, (*target)->x, (*target)->y) > dist) //New target closer than previous one.
+		) {
+			(*target) = bl;
 			md->target_id=bl->id;
 			md->state.targettype = ATTACKABLE;
-			md->state.aggressive = 1;
+			md->state.aggressive = (status_get_mode(&md->bl)&MD_BERSERK)?1:0;
 			md->min_chase= md->db->range3;
 			return 1;
 		}
@@ -1238,7 +1241,7 @@ static int mob_ai_sub_hard_linksearch(struct block_list *bl,va_list ap)
 			md->target_id = target->id;
 			md->attacked_count = 0;
 			md->state.targettype = ATTACKABLE;
-			md->state.aggressive = 0; //They don't join in follow/angry states.
+			md->state.aggressive = (status_get_mode(&md->bl)&MD_BERSERK)?1:0;
 			md->min_chase=md->db->range3;
 			return 1;
 		}
@@ -1335,7 +1338,7 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 		if(sd && status_check_skilluse(&md->bl, &sd->bl, 0, 0)) {
 			md->target_id=sd->bl.id;
 			md->state.targettype = ATTACKABLE;
-			md->state.aggressive = 1;
+			md->state.aggressive = (status_get_mode(&md->bl)&MD_BERSERK)?1:0;
 			md->min_chase=md->db->range2+distance(md->bl.x,md->bl.y,sd->bl.x,sd->bl.y);
 		}
 	}
@@ -1484,6 +1487,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 			//	clif_emotion(&md->bl, 1); This emotion isn't really official...
 			}
 			mob_unlocktarget(md, tick);
+			tbl = NULL;
 		}
 	}
 			
@@ -1548,24 +1552,20 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 		md->attacked_id = 0;	//Clear it since it's been checked for already.
 	}
 
-	// Processing of slave monster
-	if (md->master_id > 0)
+	// Processing of slave monster, is it needed when there's a target to deal with?
+	if (md->master_id > 0 && !tbl)
 		mob_ai_sub_hard_slavemob(md, tick);
 
-	// Scan area for targets (aggressive mob)
-	if ((!md->target_id || md->state.targettype == NONE_ATTACKABLE) && mode&MD_AGGRESSIVE &&
-		battle_config.monster_active_enable) {
-		i = 0;
+	// Scan area for targets
+	if ((mode&MD_AGGRESSIVE && battle_config.monster_active_enable && !tbl) ||
+		(mode&MD_CHANGECHASE && (md->state.skillstate == MSS_RUSH || md->state.skillstate == MSS_FOLLOW)))
+	{
 		search_size = (blind_flag) ? 3 : md->db->range2;
-		if (md->special_state.ai)
-			map_foreachinarea (mob_ai_sub_hard_activesearch, md->bl.m,
-					md->bl.x-search_size, md->bl.y-search_size,
-					md->bl.x+search_size, md->bl.y+search_size,
-					0, md, &i, tick);
-		else map_foreachinarea (mob_ai_sub_hard_activesearch, md->bl.m,
+		map_foreachinarea (mob_ai_sub_hard_activesearch, md->bl.m,
 					md->bl.x-search_size,md->bl.y-search_size,
 					md->bl.x+search_size,md->bl.y+search_size,
-					BL_PC, md, &i, tick);
+					md->special_state.ai?0:BL_PC,
+					md, &tbl, tick);
 	}
 
 	// Scan area for items to loot, avoid trying to loot of the mob is full and can't consume the items.

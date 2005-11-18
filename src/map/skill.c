@@ -8361,6 +8361,7 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 
 	if (casttime > 0 || forcecast) {
 		struct mob_data *md;
+		int mode;
 		if(sd->disguise) { // [Valaris]
 			clif_skillcasting(&sd->bl,sd->bl.id, target_id, 0,0, skill_num,0);
 			clif_skillcasting(&sd->bl,-sd->bl.id, target_id, 0,0, skill_num,casttime);
@@ -8368,14 +8369,21 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 		else
 			clif_skillcasting(&sd->bl,sd->bl.id, target_id, 0,0, skill_num,casttime);
 		/* ‰r?¥”½?ƒ‚ƒ“ƒXƒ^? */
-		if (bl->type == BL_MOB && (status_get_mode(bl)&MD_CASTSENSOR) && (md = (struct mob_data *)bl) &&
-			md->state.state != MS_ATTACK && sd->invincible_timer == -1 && 
-			(!md->special_state.ai || skill_get_inf(skill_num) != INF_SUPPORT_SKILL))
-		{	//Avoid having summons target master from supportive skills. [Skotlex]
-				md->target_id = sd->bl.id;
-				md->state.targettype = ATTACKABLE;
-				md->state.aggressive = 0; //They join in chase/attack state, not aggressive one.
-				md->min_chase = md->db->range3;
+		if (bl->type == BL_MOB && (mode = status_get_mode(bl))&MD_CASTSENSOR && (md = (struct mob_data *)bl) &&
+			(!md->special_state.ai || skill_get_inf(skill_num) != INF_SUPPORT_SKILL) //Avoid having summons target master from supportive skills. [Skotlex]
+		) {
+			switch (md->state.skillstate) {
+				case MSS_RUSH:
+				case MSS_FOLLOW:
+					if (!(mode&MD_AGGRESSIVE))
+						break; //Only Aggressive mobs change target while chasing.
+				case MSS_IDLE:
+				case MSS_WALK:
+					md->target_id = sd->bl.id;
+					md->state.targettype = ATTACKABLE;
+					md->state.aggressive = (mode&MD_BERSERK)?1:0;
+					md->min_chase = md->db->range3;
+			}
 		}
 	}
 

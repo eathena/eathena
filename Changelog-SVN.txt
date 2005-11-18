@@ -1,5 +1,16 @@
 Date	Added
 2005/11/18
+	* Added support for hyper-active mobs (MD_CHANGECHASE = 0x400), these mobs
+	  will change to the closest target while chasing/following other players.
+	  Needs be added to the mob_db. [Skotlex]
+	* Added support for hyper-aggressive mobs (MD_BERSERK = 0x800), these mobs
+	  change their skill state to angry/follow instead of attack/chase when they
+	  select/change target (except if they changed target because the new target
+	  attacked them). Needs be added to the mob_db, for now all aggressive mobs
+	  are considered hyper as well. [Skotlex]
+	* Updated mob mode cast-sensor (MD_CASTSENSOR = 0x010), mobs that are
+	  Aggressive can also change target if they are chasing/following a player
+	  when someone else casts a skill on them. [Skotlex]
 	* Fixed Dark Blessing. [Skotlex]
 	* Changed the default battle_delay_damage value from no to yes. [Skotlex]
 	* Added check to prevent reinitiating SC_GOSPEL on a character that already
