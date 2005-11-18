@@ -8413,9 +8413,10 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 			(!md->special_state.ai || skill_get_inf(skill_num) != INF_SUPPORT_SKILL) //Avoid having summons target master from supportive skills. [Skotlex]
 		) {
 			switch (md->state.skillstate) {
+				case MSS_ANGRY:
 				case MSS_RUSH:
 				case MSS_FOLLOW:
-					if (!(mode&MD_AGGRESSIVE))
+					if (!(mode&(MD_AGGRESSIVE|MD_BERSERK)))
 						break; //Only Aggressive mobs change target while chasing.
 				case MSS_IDLE:
 				case MSS_WALK:

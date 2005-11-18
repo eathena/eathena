@@ -1,5 +1,10 @@
 Date	Added
 2005/11/18
+	* Some cleaning up of @time, may fix the weird time displays. [Skotlex]
+	* Modified mob_ai so hyper-active mobs change target if they are
+	  cast-sensors even if attacking (angry mode). They will also change target
+	  if attacked while in angry/follow mode regardless of their change-target
+	  mode. [Skotlex]
 	* Moved the night-inducing code from "map loaded ack" to "spawn pc", should
 	  fix characters going ultra-blue after stuff like fly-wings. [Skotlex]
 	* Delayed the mob emotion when doing skills so that it gets executed AFTER

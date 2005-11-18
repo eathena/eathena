@@ -1493,8 +1493,8 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 			
 	// It checks to see it was attacked first (if active, it is target change at 25% of probability).
 	if (md->attacked_id && mode&MD_CANATTACK && md->attacked_id != md->target_id &&
-		(!md->target_id || md->state.targettype == NONE_ATTACKABLE || (mode&MD_CHANGETARGET && rand()%100 < 25)))
-	{
+		(!tbl || ((mode&MD_CHANGETARGET || md->state.aggressive) && rand()%100 < 25))
+	) {
 		if (!abl) //Avoid seeking it if we had it from before (friend scan).
 			abl = map_id2bl(md->attacked_id);
 		if (abl) {
@@ -1558,8 +1558,9 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 
 	// Scan area for targets
 	if ((mode&MD_AGGRESSIVE && battle_config.monster_active_enable && !tbl) ||
-		(mode&MD_CHANGECHASE && (md->state.skillstate == MSS_RUSH || md->state.skillstate == MSS_FOLLOW)))
-	{
+		(mode&MD_BERSERK && md->state.skillstate == MSS_FOLLOW) ||
+		(mode&MD_CHANGECHASE && (md->state.skillstate == MSS_RUSH || md->state.skillstate == MSS_FOLLOW))
+	) {
 		search_size = (blind_flag) ? 3 : md->db->range2;
 		map_foreachinarea (mob_ai_sub_hard_activesearch, md->bl.m,
 					md->bl.x-search_size,md->bl.y-search_size,
