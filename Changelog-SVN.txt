@@ -1,5 +1,6 @@
 Date	Added
 2005/11/18
+	* Fixed Dark Blessing. [Skotlex]
 	* Changed the default battle_delay_damage value from no to yes. [Skotlex]
 	* Added check to prevent reinitiating SC_GOSPEL on a character that already
 	  has GOSPEL and val4 == BCT_SELF, may fix multiple Gospels being placed on

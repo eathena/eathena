@@ -121,11 +121,14 @@ int SkillStatusChangeTable[]={	/* status.h‚Ìenum‚ÌSC_***‚Æ‚ ‚í‚¹‚é‚±‚Æ */
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 200 */
 	-1,
 	SC_KEEPING,
-	-1,-1,
+	-1,
+	SC_COMA,
 	SC_BARRIER,
-	-1,-1,
+	-1,
+	SC_STAN,
 	SC_HALLUCINATION,
 	-1,-1,
 /* 210- */
@@ -182,7 +185,9 @@ int SkillStatusChangeTable[]={	/* status.h‚Ìenum‚ÌSC_***‚Æ‚ ‚í‚¹‚é‚±‚Æ */
 	SC_ORCISH,
 	-1,-1,-1,-1,-1,
 /* 300- */
-	-1,-1,-1,-1,-1,-1,
+	-1,-1,-1,
+	SC_COMA,
+	-1,-1,
 	SC_LULLABY,
 	SC_RICHMANKIM,
 	SC_ETERNALCHAOS,

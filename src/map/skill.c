@@ -3335,7 +3335,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		if (status_isimmune(bl))
 			break;
-		status_change_start(bl,SC_COMA,skilllv,0,0,0,0,0);
+		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time2(skillid,skilllv),0 );
 		break;
 	case SA_FULLRECOVERY:
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
@@ -4753,14 +4753,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				break;
 			if(status_get_elem_type(bl) == 7 || status_get_race(bl) == 6)
 				break;
-			if(rand()%100 < sc_def*(50+skilllv*5)/100) {
-				if(dstsd) {
-					int hp = status_get_hp(bl)-1;
-					pc_heal(dstsd,-hp,0);
-				}
-				else if(dstmd)
-					dstmd->hp = 1;
-			}
+			if(rand()%100 < sc_def*(50+skilllv*5)/100)
+				status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time2(skillid,skilllv),0 );
 		}
 		break;
 
@@ -4772,7 +4766,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			pc_heal(dstsd,0,-100);
 		}
 		if(rand()%100 < (skilllv*5)*sc_def_vit/100)
-			status_change_start(bl,SC_STAN,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
+			status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time2(skillid,skilllv),0 );
 		break;
 
 	case NPC_SUICIDE:			/* Ž©Œˆ */
