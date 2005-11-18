@@ -1434,6 +1434,19 @@ int clif_spawnpc(struct map_session_data *sd) {
 	if (map[sd->bl.m].flag.rain)
 		clif_weather1(sd->fd, 161);
 
+	//New 'night' effect by dynamix [Skotlex]
+	if (night_flag && map[sd->bl.m].flag.nightenabled)
+	{	//Display night.
+		if (sd->state.night) //It must be resent because otherwise players get this annoying aura...
+			clif_status_load(&sd->bl, SI_NIGHT, 0);
+		else
+			sd->state.night = 1;
+		clif_status_load(&sd->bl, SI_NIGHT, 1);
+	} else if (sd->state.night) { //Clear night display.
+		clif_status_load(&sd->bl, SI_NIGHT, 0);
+		sd->state.night = 0;
+	}
+
 	if(sd->state.size==2) // tiny/big players [Valaris]
 		clif_specialeffect(&sd->bl,423,0);
 	else if(sd->state.size==1)
@@ -8032,19 +8045,6 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		status_change_end(&sd->bl,SC_SIGNUMCRUCIS,-1);
 	if(sd->special_state.infinite_endure && sd->sc_data[SC_ENDURE].timer == -1)
 		status_change_start(&sd->bl,SC_ENDURE,10,1,0,0,0,0);
-
-	//New 'night' effect by dynamix [Skotlex]
-	if (night_flag && map[sd->bl.m].flag.nightenabled)
-	{	//Display night.
-		if (sd->state.night) //It must be resent because otherwise players get this annoying aura...
-			clif_status_load(&sd->bl, SI_NIGHT, 0);
-		else
-			sd->state.night = 1;
-		clif_status_load(&sd->bl, SI_NIGHT, 1);
-	} else if (sd->state.night) { //Clear night display.
-		clif_status_load(&sd->bl, SI_NIGHT, 0);
-		sd->state.night = 0;
-	}
 
 	map_foreachinarea(clif_getareachar,sd->bl.m,sd->bl.x-AREA_SIZE,sd->bl.y-AREA_SIZE,sd->bl.x+AREA_SIZE,sd->bl.y+AREA_SIZE,0,sd);
 }

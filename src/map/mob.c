@@ -3170,6 +3170,9 @@ int mobskill_castend_id( int tid, unsigned int tick, int id,int data )
 	if (md->sc_count && md->sc_data[SC_MAGICPOWER].timer != -1 && md->skillid != HW_MAGICPOWER)
 		status_change_end(&md->bl, SC_MAGICPOWER, -1);
 		
+	if (md->db->skill[md->skillidx].emotion >= 0)
+			clif_emotion(&md->bl, md->db->skill[md->skillidx].emotion);
+	
 	//TODO: This value is used for the "afterskill" mob condition, what could one do to clean it other than
 	//to use a "previous skill" struct variable?
 	//md->skillid = md->skilllv = -1; //Clean up skill-data for battle_getcurrentskill references. [Skotlex]
@@ -3253,6 +3256,9 @@ int mobskill_castend_pos( int tid, unsigned int tick, int id,int data )
 
 	skill_castend_pos2(&md->bl,md->skillx,md->skilly,md->skillid,md->skilllv,tick,0);
 
+	if (md->db->skill[md->skillidx].emotion >= 0)
+			clif_emotion(&md->bl, md->db->skill[md->skillidx].emotion);
+	
 	//TODO: This value is used for the "afterskill" mob condition, what could one do to clean it other than
 	//to use a "previous skill" struct variable?
 	//md->skillid = md->skilllv = -1; //Clean up skill data for future references to battle_getcurrentskill [Skotlex]
@@ -3717,8 +3723,6 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 					return 0;
 			}
 		}
-		if (ms[i].emotion >= 0)
-			clif_emotion(&md->bl, ms[i].emotion);
 		return 1;
 	}
 

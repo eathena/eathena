@@ -1,5 +1,13 @@
 Date	Added
 2005/11/18
+	* Moved the night-inducing code from "map loaded ack" to "spawn pc", should
+	  fix characters going ultra-blue after stuff like fly-wings. [Skotlex]
+	* Delayed the mob emotion when doing skills so that it gets executed AFTER
+	  the skill is successfully performed. [Skotlex]
+	* Implemented PR_REDEMPTIO. Is the penalty for both base and job exp?
+	  That's how it is currently. And if the map has the nopenalty flag,there's
+	  no exp penalty. Awaiting further input on the matter (altough, do note the
+	  skill isn't tested either) [Skotlex]
 	* Fixed three memory issues (char txt shutdown, npc reloading, ore
 	  discovery logs) which were pointed out by End of Exam. [Skotlex]
 	* Added support for hyper-active mobs (MD_CHANGECHASE = 0x400), these mobs

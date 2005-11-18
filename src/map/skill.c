@@ -3163,7 +3163,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		return 1;
 	if(sd && pc_isdead(sd))
 		return 1;
-	if(dstsd && pc_isdead(dstsd) && skillid != ALL_RESURRECTION)
+	if(dstsd && pc_isdead(dstsd) && skillid != ALL_RESURRECTION && skillid != PR_REDEMPTIO)
 		return 1;
 //Shouldn't be needed, skillnotok's return value is highly unlikely to have changed after you started casting. [Skotlex]
 //	if (sd && skillnotok(skillid, sd)) // [MouseJstr]
@@ -3203,6 +3203,36 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		}
 		break;
 
+	case PR_REDEMPTIO:
+		if (sd && !(flag&1)) {
+			if (sd->status.party_id == 0) {
+				clif_skill_fail(sd,skillid,0,0);
+				break;
+			}
+			skill_area_temp[0] = 0;
+			party_foreachsamemap(skill_area_sub,
+				sd,1,
+				src,skillid,skilllv,tick, flag|BCT_PARTY|1,
+				skill_castend_nodamage_id);
+			if (skill_area_temp[0] == 0) {
+				clif_skill_fail(sd,skillid,0,0);
+				break;
+			}
+			skill_area_temp[0] = 5 - skill_area_temp[0]; // The actual penalty...
+			if (skill_area_temp[0] > 0 && !map[src->m].flag.nopenalty) { //Apply penalty
+				sd->status.base_exp -= pc_nextbaseexp(sd) * skill_area_temp[0] * 2/1000; //0.2% penalty per each.
+				sd->status.job_exp -= pc_nextjobexp(sd) * skill_area_temp[0] * 2/1000;
+				clif_updatestatus(sd,SP_BASEEXP);
+				clif_updatestatus(sd,SP_JOBEXP);
+			}
+			status_change_start(src,SkillStatusChangeTable[skillid],skilllv,0,0,0,0,0); //SC_COMA :P
+			break;
+		} else if (dstsd && pc_isdead(dstsd) && flag&1) { //Revive
+			skill_area_temp[0]++; //Count it in, then fall-through to the Resurrection code.
+			skilllv = 3; //Resurrection level 3 is used
+		} else //Invalid target, skip resurrection.
+			break;
+		
 	case ALL_RESURRECTION:		/* ƒŠƒUƒŒƒNƒVƒ‡ƒ“ */
 		if(dstsd) {
 			int per = 0;
@@ -7826,6 +7856,16 @@ int skill_check_condition(struct map_session_data *sd,int type)
 			}
 		}
 		break;
+	case PR_REDEMPTIO:
+		{
+			int exp;
+			if(((exp = pc_nextbaseexp(sd)) > 0 && sd->status.base_exp*100/exp < 1) ||
+				((exp = pc_nextjobexp(sd)) > 0 && sd->status.job_exp*100/exp < 1)) {
+				clif_skill_fail(sd,skill,0,0); //Not enough exp.
+				return 0;
+			}
+			break;
+		}
 	}
 
 	if(!(type&2)){
