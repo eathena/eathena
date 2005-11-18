@@ -1,9 +1,9 @@
 //===== eAthena Script =======================================
 //= Official scripts for beginners from iRO
 //===== By: ==================================================
-//= MasterOfMuppets (1.4)
+//= MasterOfMuppets
 //===== Current Version: =====================================
-//= 1.4a
+//= 1.5
 //===== Compatible With: =====================================
 //= Any Athena Version
 //===== Additional Comments: =================================
@@ -14,6 +14,7 @@
 //= 1.3 Fixed spelling mistakes. [Nexon]
 //= 1.3a Fixed a missing close; [Nexon]
 //= 1.4 Added more BBS MasterOfMuppets
+//= 1.5 Added the last of the bulletin boards, I think... [MasterOfMuppets]
 //============================================================
 
 alberta.gat,111,59,5	script	Bulletin Board	837,{
@@ -297,7 +298,7 @@ umbala.gat,137,94,5	script	Bulletin Board	837,{
 	close;
 }
 
-gef_fild09.gat,227,29,4	script	Bulletin Board	835,{
+gef_fild09.gat,227,29,4	script	Bulletin Board::OrcsBoard	835,{
 	mes "[Orc Village]";
 	mes "^6B1312Caution!^000000";
 	mes "Beyond this point";
@@ -309,6 +310,28 @@ gef_fild09.gat,227,29,4	script	Bulletin Board	835,{
 	mes "Orc Warriors, Orc Ladies and High";
 	mes "Orcs. Two boss monsters, ^6B1312Orc Hero^000000";
 	mes "and ^6B1312Orc Lord^000000 will also appear at certain times.";
+	close;
+}
+
+gef_fild13.gat,202,31,5	duplicate(OrcsBoard)	Bulletin Board	835
+
+gef_fild13.gat,29,206,5	script	Bulletin Board::KoboldsBoard	836,{
+
+	mes "[Kobold Village]";
+	mes "^6B1312Caution!^000000";
+	mes "You're heading to the Kobold Village.";
+	mes "Please be aware this village is filled with many kobolds.";
+	close;
+}
+
+gef_fild08.gat,211,24,5	duplicate(KoboldsBoard)	Bulletin Board	836
+
+gef_fild10.gat,109,23,5	script	Bulletin Board	836,{
+
+	mes "[Goblin Village]";
+	mes "^6B1312Caution!^000000";
+	mes "You're heading to the Goblin Village.";
+	mes "Please be aware this village is filled with many goblins.";
 	close;
 }
 
@@ -449,5 +472,142 @@ moc_fild19.gat,107,101,5	script	Bulletin Board	837,{
 	mes "monster ^6B1312Pharaoh^000000 will appear at";
 	mes "certain times. Exorcise with";
 	mes "extreme prejudice.";
+	close;
+}
+
+gef_tower.gat,55,142,5	script	Bulletin Board	837,{
+
+	mes "[Geffen Dungeon]";
+	mes "^6B1312Caution!^000000"; 
+	mes "Geffen dungeon is consisted of 3 levels";
+	mes "is too difficult for new adventurers to venture.";
+	mes "As main monsters constantly appear,";
+	mes "there are ^6B1312Hunter Flies^000000, ^6B1312Nightmares^000000 and ^6B1312Jakks^000000.";
+	mes "Nightmares and Jakks only appear in this dungeon.";
+	next;
+	mes "[Geffen Dungeon]";
+	mes "On the 2nd level of this dungeon,";
+	mes "^6B1312Ogretooth^000000, the creature of a doomed sword and ^6B1312Dracula^000000,";
+	mes "the boss monster appear without warning.";
+	mes "On the 3rd level, ^6B1312Doppelganger^000000 one of the strongest boss monster appears at certain time.";
+	close;
+}
+
+xmas_fild01.gat,75,80,5	script	Bulletin Board	837,{
+
+	mes "[Winter Town, Lutie]";
+	mes "Welcome to Lutie, the town of snowfall.";
+	mes "Manufacturing toys in the toy factory is the main";
+	mes "business of this town.";
+	next;
+	mes "[Winter Town, Lutie]";
+	mes "You can access to the toy factory dungeon";
+	mes "at the north of Lutie.";
+	mes "Please remember to visit Lutie in Christmas season.";
+	mes "There are various event held with joy.";
+	mes "Please beware of ^6B1312Stormy Knight^000000 and ^6B1312Hatii^000000 the boss monsters of the toy factory dungeon.";
+	close;
+}
+
+xmas.gat,147,311,5	script	Bulletin Board	837,{
+
+	mes "[Toy Factory]";
+	mes "^6B1312Caution!^000000";
+	mes "Toy Factory is consisting of 2 levels.";
+	mes "This dungeon is not that difficult to venture for new adventurers,";
+	mes "but there are 3 dangerous boss monsters spawn at certain time.";
+	next;
+	mes "[Toy Factory]";
+	mes "In 1st level, you will encounter a boss monster, ^6B1312Angeling^000000.";
+	mes "In 2nd level, you will encounter 2 dangrous boss monsters which are";
+	mes "^6B1312Stormy Knight^000000 and ^6B1312Hatii^000000. It is adviced to be attentive while venturing.";
+	mes "For your reference, ^6B1312Myst Cases^000000, ^6B1312Cruisers^000000 and ^6B1312Cookies^000000 only appear in this dungeon.";
+	close;
+}
+
+yuno_fild03.gat,37,143,5	script	Bulletin Board	837,{
+
+	mes "[The Magma Dungeon, Nogg Road]";
+	mes "^6B1312Caution!^000000";
+	mes "Nogg Road is filled with very dangerous creatures.";
+	mes "It is limited to enter only to well-experienced adventurers.";
+	next;
+	mes "[The Magma Dungeon, Nogg Road]";
+	mes "Main Monsters of this dungeon is";
+	mes "^6B1312Kahos^000000 and ^6B1312Nightmare Terrors^000000.";
+	mes "Please be attentive.";
+	close;
+}
+
+niflheim.gat,200,191,5	script	Bulletin Board	837,{
+
+	mes "[City of the Dead, Nifflheim]";
+	mes "Welcome to Nifflheim, the City of the Dead.";
+	mes "Nifflheim was known as the other world where";
+	mes "you come after the death.";
+	mes "However, recently people found out a secret path behind of a mysterious tree.";
+	mes "So, you will find many other people travelling around this area.";
+	next;
+	mes "[City of the Dead, Nifflheim]";
+	mes "As a tourist attraction, The Witch's castle is suggested.";
+	mes "Unlike normal towns, it is prohibited to save respawn point or";
+	mes "warp point inside Nifflheim. Also monsters spawn within the town as well.";
+	next;
+	mes "[City of the Dead, Nifflheim]";
+	mes "Especially, please be attentive with a boss monster";
+	mes "called ^6B1312Lord of the Death^000000.";
+	next;
+	mes "[City of the Dead, Nifflheim]";
+	mes "When you go ahead west, you will arrive at ^6B1312Valley of Gyoll^000000";
+	mes "where all the powerful and fearful monsters dwell upon.";
+	mes "It is suggested to leave the area immediately in case of a new solo adventurer.";
+	close;
+}
+
+moc_fild15.gat,267,264,5	script	Bulletin Board	837,{
+
+	mes "[Ant Hell]";
+	mes "^6B1312Caution!^000000";
+	mes "Ant Hell is consisting of 2 levels.";
+	mes "As the name shows, this dungeon is filled with various ants";
+	mes "and good as the training grounds for new adventurers.";
+	next;
+	mes "[Ant Hell]";
+	mes "However, please be aware that ^6B1312Maya Purple^000000 appears in the 1st level";
+	mes "and ^6B1312Maya^000000 does in the 2nd level. They are the queens of ants.";
+	mes "Also, in the field where you're standing";
+	mes "a boss monster called ^6B1312Phreeoni^000000 will appear at certain time.";
+	close;
+}
+
+moc_ruins.gat,61,164,5	script	Bulletin Board	837,{
+
+	mes "[Pyramids]";
+	mes "^6B1312Caution!^000000";
+	mes "Pyramids is consisting of total 7 levels as 4 levels on the earth and the rest under the ground.";
+	mes "First few levels are suited for new adventurers to venture, but as deeper you go down, you will encounter stronger monsters.";
+	next;
+	mes "[Pyramids]";
+	mes "In first level, there is the thief guild where people can change their jobs into Thief.";
+	mes "In the 4:th level, a boss monster called ^6B1312Osiris^000000 appears at certain time.";
+	mes "In the 3:d basement, ^6B1312Amon Ra^000000 appears at certain time.";
+	close;
+}
+
+glast_01.gat,369,308,5	script	Bulletin Board	837,{
+
+	mes "[Glast Heim]";
+	mes "Glast Heim is an enormous dungeon with countless levels.";
+	mes "This dungeon is definately not for new or experienced adventurers";
+	mes "but for dungeon experts.";
+	next;
+	mes "[Glast Heim]";
+	mes "There are many fearsome monsters such as ^6B131Dark Lord^000000,";
+	mes "^6B131Owl Baron^000000, ^6B131Owl Duke^000000, ^6B131Dark Illusion^000000, ^6B131Bloody Knight^000000, ^6B131Abysmal Knight^000000, ^6B131Chimera^000000 and various types of doomed swords.";
+	next;
+	mes "[Glast Heim]";
+	mes "However, more difficult the expedition is, greater the reward is.";
+	mes "Therefore, this dungeon is pretty popular among dungeon experts.";
+	mes "Enjoy your dungeon expedition.";
 	close;
 }
