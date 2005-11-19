@@ -31,6 +31,7 @@
 		like gemstones when the skill is used.
 	--
 11/18
+	* Fixed Tao Gunka's Slaves -> Megaliths again [Lupus]
 	* Fixed the Elemental Resist potions. [Skotlex]
 11/17
 	* Updated the mob skill database to use the new conditions angry and follow [MasterOfMuppets]

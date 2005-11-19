@@ -2439,8 +2439,8 @@
 1583,Tao Gunka@NPC_MENTALBREAKER,chase,159,5,2000,0,5000,yes,target,always,0,,,,,,7
 1583,Tao Gunka@NPC_STUNATTACK,attack,179,5,2000,0,5000,yes,target,always,0,,,,,,7
 1583,Tao Gunka@NPC_STUNATTACK,chase,179,5,2000,0,5000,yes,target,always,0,,,,,,7
-1583,Tao Gunka@NPC_SUMMONSLAVE,attack,196,5,10000,700,60000,no,self,slavele,2,1584,,,,,
-1583,Tao Gunka@NPC_SUMMONSLAVE,idle,196,5,10000,700,60000,no,self,slavele,2,1584,,,,,
+1583,Tao Gunka@NPC_SUMMONSLAVE,attack,196,5,10000,700,60000,no,self,slavele,4,1274,,,,,
+1583,Tao Gunka@NPC_SUMMONSLAVE,idle,196,5,10000,700,60000,no,self,slavele,4,1274,,,,,
 1584,Tamruan@NPC_EMOTION,chase,197,1,2000,0,5000,yes,self,always,0,9,,,,,
 1584,Tamruan@NPC_EMOTION,idle,197,1,200,0,5000,yes,self,always,0,9,,,,,
 1584,Tamruan@NPC_SILENCEATTACK,attack,178,5,2000,700,5000,no,target,always,0,,,,,,9
