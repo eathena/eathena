@@ -1,5 +1,6 @@
 Date	Added
 2005/11/19
+	* Fixed showing falcon when player is hide. [LuzZza]
 	* Updated mob_db.sql and item_db.sql to current [Skotlex]
 	* Updated the skill db step guessing code to allow for negative ranges (Now
 	  spear boomerang should progressively get longer range with higher levels)
