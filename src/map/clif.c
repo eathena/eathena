@@ -3850,7 +3850,7 @@ int clif_fixnpcpos(struct npc_data *nd)
  */
 static int clif_calc_delay(struct block_list *dst, int type, int delay)
 {
-	if (type == 1 || type == 4) //Type 1 is the crouching animation, type 4 are non-flinching attacks. 
+	if (type == 1 || type == 4 || type == 0x0a) //Type 1 is the crouching animation, type 4 are non-flinching attacks, 0x0a - crits. 
 		return type;
 	
 	if (delay == 0)
