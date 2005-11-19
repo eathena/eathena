@@ -1491,10 +1491,12 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 		}
 	}
 			
-	// It checks to see it was attacked first (if active, it is target change at 25% of probability).
+	// Check for target change.
 	if (md->attacked_id && mode&MD_CANATTACK && md->attacked_id != md->target_id &&
-		(!tbl || ((mode&MD_CHANGETARGET || md->state.aggressive) && rand()%100 < 25))
-	) {
+		(!tbl ||
+		 (mode&MD_CHANGETARGET && md->state.state != MS_WALK) ||
+		 (mode&MD_AGGRESSIVE && md->state.state == MS_WALK)
+		 )) {
 		if (!abl) //Avoid seeking it if we had it from before (friend scan).
 			abl = map_id2bl(md->attacked_id);
 		if (abl) {

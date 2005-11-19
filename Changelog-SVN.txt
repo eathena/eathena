@@ -1,5 +1,8 @@
 Date	Added
 2005/11/18
+	* Updated mob_ai so aggressive mobs change target when chasing, and
+	  change-target mobs do so when attacking. [Skotlex]
+	* Fixed weapon forging showing success even when it fails. [Skotlex]
 	* Some cleaning up of @time, may fix the weird time displays. [Skotlex]
 	* Modified mob_ai so hyper-active mobs change target if they are
 	  cast-sensors even if attacking (angry mode). They will also change target

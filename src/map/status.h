@@ -359,7 +359,7 @@ extern int current_equip_item_index;
 #define MD_CANATTACK 0x080
 #define MD_DETECTOR 0x100
 //TODO: The following three modes are not yet in the mob_db!
-#define MD_CHANGETARGET (0x004|0x200)
+#define MD_CHANGETARGET (0x200|0x04)
 #define MD_CHANGECHASE 0x400
 #define MD_BERSERK (0x800|0x004)
 #define MD_MASK 0xFFF
