@@ -1,5 +1,13 @@
 Date	Added
 2005/11/19
+	* Updated mob_db.sql and item_db.sql to current [Skotlex]
+	* Updated the skill db step guessing code to allow for negative ranges (Now
+	  spear boomerang should progressively get longer range with higher levels)
+	  [Skotlex]
+	* Fixed Tarot Card, the card that gets two random effects can't retrigger
+	  itself, and it causes STOP instead of Stun where appropiate. [Skotlex]
+	* Updated devotion to only work on damage attacks that have a source (will
+	  prevent it from "blocking" COMA, which is what caused the crash). [Skotlex]
 	* Fixed not always showing CRIT attacks, thanks to Irmin [Lupus]
 2005/11/18
 	* Updated mob_ai so aggressive mobs change target when chasing, and

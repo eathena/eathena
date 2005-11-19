@@ -122,10 +122,14 @@ struct npc_parse {
  */
 
 void finalize_pcrematch_entry(struct pcrematch_entry *e) {
-	if (e->pcre_)
+	if (e->pcre_) {
 		free(e->pcre_);
-	if (e->pcre_extra_)
+		e->pcre_ = NULL;
+	}
+	if (e->pcre_extra_) {
 		free(e->pcre_extra_);
+		e->pcre_ = NULL;
+	}
 	aFree(e->pattern_);
 	aFree(e->label_);
 }

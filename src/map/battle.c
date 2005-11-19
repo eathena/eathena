@@ -292,8 +292,8 @@ int battle_damage(struct block_list *bl,struct block_list *target,int damage, in
 		struct map_session_data *tsd = (struct map_session_data *)target;
 		if (!tsd)
 			return 0;
-		if (sc_data[SC_DEVOTION].val1 && battle_getcurrentskill(bl) != PA_PRESSURE)
-		{	//Pressure can go through Devotion.
+		if (sc_data[SC_DEVOTION].val1 && bl && battle_getcurrentskill(bl) != PA_PRESSURE)
+		{	//Devotion only works on attacks from a source (prevent it from absorbing coma) [Skotlex]
 			struct map_session_data *sd2 = map_id2sd(tsd->sc_data[SC_DEVOTION].val1);
 			if (sd2 && sd2->devotion[sc_data[SC_DEVOTION].val2] == target->id)
 			{

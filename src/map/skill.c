@@ -5300,7 +5300,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 	case CG_TAROTCARD:
 		{
-			int eff, count = 1;
+			int eff, count = -1;
 			if (rand() % 100 > skilllv * 8) {
 				if (sd) clif_skill_fail(sd,skillid,0,0);
 				map_freeblock_unlock();
@@ -5337,11 +5337,14 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					else if(md && !map[src->m].flag.monster_noteleport) mob_warp(md,-1,-1,-1,3);
 					break;
 				case 6:	// random 2 other effects
-					count = 3;
+					if (count == -1)
+						count = 3;
+					else
+						count++; //Should not retrigger this one.
 					break;
-				case 7:	// stun freeze or stoned
+				case 7:	// stop freeze or stoned
 					{
-						int sc[] = { SC_STAN, SC_FREEZE, SC_STONE };
+						int sc[] = { SC_STOP, SC_FREEZE, SC_STONE };
 						status_change_start(bl,sc[rand()%3],skilllv,0,0,0,30000,0);
 					}
 					break;
@@ -7240,7 +7243,7 @@ int skill_unit_ondamaged(struct skill_unit *src,struct block_list *bl,
 
 	if (skill_get_inf2(sg->skill_id)&INF2_TRAP)
 	{	
-		if (battle_getcurrentskill(bl) == AC_SHOWER) {
+		if (bl && battle_getcurrentskill(bl) == AC_SHOWER) {
 			skill_blown(bl,&src->bl,2);
 			damage = 0;
 		} else
@@ -10639,11 +10642,12 @@ int skill_split_atoi(char *str,int *val)
 	
 		if (j>=step) //No match, try next step.
 			continue;
-		//Apply linear increase
+		
 		for(; i < MAX_SKILL_LEVEL; i++)
-		{
+		{	//Apply linear increase
 			val[i] = val[i-step]+diff;
-			if (val[i] < 1) { val[i] = 1; diff = 0; step = 1; }
+			if (val[i] < 1 && val[i-1] >=0) //Check if we have switched from + to -, cap the decrease to 0 in said cases.
+			{ val[i] = 1; diff = 0; step = 1; }
 		}
 		return i;
 	}
