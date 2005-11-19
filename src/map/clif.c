@@ -728,7 +728,12 @@ int clif_clearchar_id(int id, int type, int fd) {
 static int clif_set0078(struct map_session_data *sd, unsigned char *buf) {
 
 	nullpo_retr(0, sd);
-
+	int sdoption = sd->status.option;
+	
+	// Disable showing Falcon when player is hide [LuzZza]
+	if(sdoption&OPTION_HIDE || sdoption&OPTION_CLOAK || sdoption&OPTION_INVISIBLE)
+		sdoption &= ~OPTION_FALCON;
+		
 #if PACKETVER < 4
 	WBUFW(buf,0)=0x78;
 	WBUFL(buf,2)=sd->bl.id;
@@ -738,7 +743,7 @@ static int clif_set0078(struct map_session_data *sd, unsigned char *buf) {
 	if(sd->disguise) {
 		WBUFW(buf,12)=OPTION_INVISIBLE;
 	} else {
-		WBUFW(buf,12)=sd->status.option;
+		WBUFW(buf,12)=sdoption;
 	}	
 	WBUFW(buf,14)=sd->view_class;
 	WBUFW(buf,16)=sd->status.hair;
@@ -775,7 +780,7 @@ static int clif_set0078(struct map_session_data *sd, unsigned char *buf) {
 	if(sd->disguise) {
 		WBUFW(buf,12)=OPTION_INVISIBLE;
 	} else {
-		WBUFW(buf,12)=sd->status.option;
+		WBUFW(buf,12)=sdoption;
 	}
 	WBUFW(buf,14)=sd->view_class;
 	WBUFW(buf,16)=sd->status.hair;
@@ -851,6 +856,11 @@ static int clif_dis0078(struct map_session_data *sd, unsigned char *buf) {
 static int clif_set007b(struct map_session_data *sd,unsigned char *buf) {
 
 	nullpo_retr(0, sd);
+	int sdoption = sd->status.option;
+	
+	// Disable showing Falcon when player is hide [LuzZza]
+	if(sdoption&OPTION_HIDE || sdoption&OPTION_CLOAK || sdoption&OPTION_INVISIBLE)
+		sdoption &= ~OPTION_FALCON;
 
 #if PACKETVER < 4
 	WBUFW(buf,0)=0x7b;
@@ -861,7 +871,7 @@ static int clif_set007b(struct map_session_data *sd,unsigned char *buf) {
 	if(sd->disguise) {
 		WBUFW(buf,12)=OPTION_INVISIBLE;
 	} else {
-		WBUFW(buf,12)=sd->status.option;
+		WBUFW(buf,12)=sdoption;
 	}
 	WBUFW(buf,14)=sd->view_class;
 	WBUFW(buf,16)=sd->status.hair;
@@ -898,7 +908,7 @@ static int clif_set007b(struct map_session_data *sd,unsigned char *buf) {
 	if(sd->disguise) {
 		WBUFW(buf,12)=OPTION_INVISIBLE;
 	} else {
-		WBUFW(buf,12)=sd->status.option;
+		WBUFW(buf,12)=sdoption;
 	}
 	WBUFW(buf,14)=sd->view_class;
 	WBUFW(buf,16)=sd->status.hair;
