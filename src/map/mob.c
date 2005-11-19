@@ -1156,16 +1156,14 @@ static int mob_ai_sub_hard_activesearch(struct block_list *bl,va_list ap)
 	struct mob_data *md;
 	struct block_list **target;
 	int dist;
-	unsigned int tick;
 
 	nullpo_retr(0, bl);
 	nullpo_retr(0, ap);
 	md=va_arg(ap,struct mob_data *);
 	target= va_arg(ap,struct block_list**);
-	tick=va_arg(ap,unsigned int);
 
 	//If can't seek yet, not an enemy, or you can't attack it, skip.
-	if (battle_check_target(&md->bl,bl,BCT_ENEMY)<=0 || !status_check_skilluse(&md->bl, bl, 0, 0))
+	if ((*target) == bl || battle_check_target(&md->bl,bl,BCT_ENEMY)<=0 || !status_check_skilluse(&md->bl, bl, 0, 0))
 		return 0;
 
 	switch (bl->type)
@@ -1187,6 +1185,44 @@ static int mob_ai_sub_hard_activesearch(struct block_list *bl,va_list ap)
 	}
 	return 0;
 }
+
+/*==========================================
+ * chase target-change routine.
+ *------------------------------------------
+ */
+static int mob_ai_sub_hard_changechase(struct block_list *bl,va_list ap)
+{
+	struct mob_data *md;
+	struct block_list **target;
+
+	nullpo_retr(0, bl);
+	nullpo_retr(0, ap);
+	md=va_arg(ap,struct mob_data *);
+	target= va_arg(ap,struct block_list**);
+
+	//If can't seek yet, not an enemy, or you can't attack it, skip.
+	if ((*target) == bl || battle_check_target(&md->bl,bl,BCT_ENEMY)<=0 || !status_check_skilluse(&md->bl, bl, 0, 0))
+		return 0;
+
+	switch (bl->type)
+	{
+	case BL_PC:
+	case BL_MOB:
+		if((distance(md->bl.x,md->bl.y,bl->x,bl->y)) <= md->db->range &&
+			battle_check_range (&md->bl, bl, md->db->range)
+		) {
+			(*target) = bl;
+			md->target_id=bl->id;
+			md->state.targettype = ATTACKABLE;
+			md->state.aggressive = (status_get_mode(&md->bl)&MD_BERSERK)?1:0;
+			md->min_chase= md->db->range3;
+			return 1;
+		}
+		break;
+	}
+	return 0;
+}
+
 
 /*==========================================
  * loot monster item search
@@ -1494,9 +1530,9 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 	// Check for target change.
 	if (md->attacked_id && mode&MD_CANATTACK && md->attacked_id != md->target_id &&
 		(!tbl ||
-		 (mode&MD_CHANGETARGET && md->state.state != MS_WALK) ||
-		 (mode&MD_AGGRESSIVE && md->state.state == MS_WALK)
-		 )) {
+		(mode&MD_CHANGETARGET && md->state.state != MS_WALK) || //Change-target mobs only change when engaged in combat
+		(mode&MD_AGGRESSIVE && md->state.state == MS_WALK) //Aggressive ones can change when attacked while chasing.
+	)) {
 		if (!abl) //Avoid seeking it if we had it from before (friend scan).
 			abl = map_id2bl(md->attacked_id);
 		if (abl) {
@@ -1560,15 +1596,21 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 
 	// Scan area for targets
 	if ((mode&MD_AGGRESSIVE && battle_config.monster_active_enable && !tbl) ||
-		(mode&MD_BERSERK && md->state.skillstate == MSS_FOLLOW) ||
-		(mode&MD_CHANGECHASE && (md->state.skillstate == MSS_RUSH || md->state.skillstate == MSS_FOLLOW))
+		(mode&MD_BERSERK && md->state.skillstate == MSS_FOLLOW)
 	) {
 		search_size = (blind_flag) ? 3 : md->db->range2;
 		map_foreachinarea (mob_ai_sub_hard_activesearch, md->bl.m,
 					md->bl.x-search_size,md->bl.y-search_size,
 					md->bl.x+search_size,md->bl.y+search_size,
 					md->special_state.ai?0:BL_PC,
-					md, &tbl, tick);
+					md, &tbl);
+	} else if (mode&MD_CHANGECHASE && (md->state.skillstate == MSS_RUSH || md->state.skillstate == MSS_FOLLOW)) {
+		search_size = (blind_flag && md->db->range>3) ? 3 : md->db->range;
+		map_foreachinarea (mob_ai_sub_hard_changechase, md->bl.m,
+					md->bl.x-search_size,md->bl.y-search_size,
+					md->bl.x+search_size,md->bl.y+search_size,
+					md->special_state.ai?0:BL_PC,
+					md, &tbl);
 	}
 
 	// Scan area for items to loot, avoid trying to loot of the mob is full and can't consume the items.
