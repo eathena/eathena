@@ -352,7 +352,6 @@ int pc_can_move(struct map_session_data *sd)
 		(sd->sc_data[SC_DANCING].timer !=-1 && sd->sc_data[SC_DANCING].val4 && sd->sc_data[SC_LONGING].timer == -1) ||
 		(sd->sc_data[SC_DANCING].timer !=-1 && sd->sc_data[SC_DANCING].val1 == CG_HERMODE) || //cannot move while Hermod is active.
 		(sd->sc_data[SC_GOSPEL].timer !=-1 && sd->sc_data[SC_GOSPEL].val4 == BCT_SELF) ||	// cannot move while gospel is in effect
-		 sd->sc_data[SC_CONFUSION].timer !=-1 ||
 		 sd->sc_data[SC_STOP].timer != -1
 		)
 		return 0;
@@ -3530,7 +3529,7 @@ int pc_walktoxy (struct map_session_data *sd, int x, int y)
 	sd->to_x = x;
 	sd->to_y = y;
 	if (sd->sc_data[SC_CONFUSION].timer != -1) //Randomize the target position
-		map_random_dir(sd->bl, &sd->to_x, &sd->to_y);
+		map_random_dir(&sd->bl, &sd->to_x, &sd->to_y);
 	
 	if (sd->walktimer != -1)
 	{	//There was a timer-mismatch here. pc_walktoxy_sub does not clears previous pc_walk timers! [Skotlex]
