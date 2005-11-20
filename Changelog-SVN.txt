@@ -1,5 +1,7 @@
 Date	Added
 2005/11/20
+	* Corrected the mob_db by adding the canmove/canattack bits to pretty much
+	  all mobs that needed them. [Skotlex]
 	* Some fixes to the confusion code. [Skotlex]
 	* Crash-fix in status_change_start [Skotlex]
 	* Implemented confusion as it should be (not tested yet!) [Skotlex]
