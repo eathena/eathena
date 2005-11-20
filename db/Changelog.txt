@@ -31,6 +31,7 @@
 		like gemstones when the skill is used.
 	--
 11/20
+	* Added that bonus INT to Sage/Baby Sage on Job Level 38 [Skotlex]
 	* Updated the monster DB to use all the new modes, all credits to Kyoki [MasterOfMuppets]
 	* Adjusted drops/speed of the Einbroch monsters according to iRO [MasterOfMuppets]
 	* Fixed Skeleton Manteau not having it's bonuses, thanks to reddozen & vicious_pucca [MasterOfMuppets]

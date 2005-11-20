@@ -1881,7 +1881,7 @@ int map_random_dir(struct block_list *bl, short *x, short *y) {
 	short yi = *y-bl->y;
 	short i=0, j;
 	int dist2 = xi*xi + yi*yi;
-	short dist = sqrt(dist);
+	short dist = (short)sqrt(dist2);
 	short segment;
 	
 	if (dist < 1) dist =1;
@@ -1890,7 +1890,7 @@ int map_random_dir(struct block_list *bl, short *x, short *y) {
 		j = rand()%8; //Pick a random direction
 		segment = rand()%dist; //Pick a random interval from the whole vector in that direction
 		xi = bl->x + segment*dirx[j];
-		segment = sqrt(dist2 - segment*segment); //The complement of the previously picked segment
+		segment = (short)sqrt(dist2 - segment*segment); //The complement of the previously picked segment
 		yi = bl->y + segment*diry[j];
 	} while (map_getcell(bl->m,xi,yi,CELL_CHKNOPASS) && (++i)<100);
 	if (i < 100) {
