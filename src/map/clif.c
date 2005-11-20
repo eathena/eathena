@@ -856,11 +856,13 @@ static int clif_dis0078(struct map_session_data *sd, unsigned char *buf) {
  */
 static int clif_set007b(struct map_session_data *sd,unsigned char *buf) {
 
+	int sdoption;
+	
 	nullpo_retr(0, sd);
-	int sdoption = sd->status.option;
 	
 	// Disable showing Falcon when player is hide [LuzZza]
-	if(sdoption&OPTION_HIDE || sdoption&OPTION_CLOAK || sdoption&OPTION_INVISIBLE)
+	sdoption = sd->status.option;
+	if(sdoption&(OPTION_HIDE|OPTION_CLOAK|OPTION_INVISIBLE))
 		sdoption &= ~OPTION_FALCON;
 
 #if PACKETVER < 4
