@@ -27,6 +27,8 @@ Nexon
 
 Date		Added
 ======
+11/20
+	* Changed the Einbroch area spawns a bit using iRO info from emperium.org [MasterOfMuppets]
 11/18
 	* Added the last of the bulletin boards [MasterOfMuppets]
 	* Alberta, fixed bugs [Lupus]

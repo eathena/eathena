@@ -691,7 +691,7 @@
 1527,Quadrille,Quadrille,4,,10,900,165,,1,0,33040,7,2,2,4,40,1,8,{ bonus2 bAddRace,RC_Undead,10; bonus2 bAddRace,RC_DemiHuman,10; bonus2 bAddEle,Ele_Earth,10; }
 1528,Grand_Cross,Grand Cross,4,,10,1500,140,,1,0,33040,7,2,2,4,40,1,8,{ bonus bAtkEle,Ele_Holy; bonus3 bAutoSpell,77,3,90; bonus2 bSPDrainRate,1000,1; }
 1529,Iron_Driver,Iron Driver,4,,10,3000,155,,1,0,33024,7,2,2,3,78,1,8,{ bonus bAtkRange,1; }
-1530,Mjolnir,Mjolnir,4,,10,6000,250,,1,0,8701363,7,2,2,4,95,0,8,{ bonus bAtkEle,Ele_Wind; bonus bDex,40; bonus bStr,15; bonus bAspdRate,30; }
+1530,Mjolnir,Mjolnir,4,,10,6000,250,,1,0,414946,7,2,2,4,95,0,8,{ bonus bAtkEle,Ele_Wind; bonus bDex,40; bonus bStr,15; bonus bAspdRate,30; }
 1531,Spanner,Spanner,4,,10,2500,115,,1,0,33040,7,2,2,3,55,1,8,{ bonus2 bAddEff,Eff_Blind,100; bonus2 bAddEff,Eff_Stan,100; bonus2 bAddEff,Eff_Poison,100; bonus2 bAddEff,Eff_Freeze,100; }
 // Books
 1550,Book,Book,4,30000,,600,85,,1,3,33620224,7,2,2,2,14,1,15,{}
@@ -1056,7 +1056,7 @@
 2508,Ragamuffin_Cape,Ragamuffin Manteau,5,,10,500,,1,,0,119529470,7,2,4,,0,1,0,{ bonus bMdef,10; bonus bUnbreakableArmor,0; }
 2509,Manteau_of_Survival,Manteau of Life,5,,10,550,,0,,0,66052,7,2,4,,75,0,0,{ bonus bVit,10; }
 2510,Novice_Cloak,Novice Hood,5,,10,1,,2,,0,8388609,7,2,4,,0,0,0,{ bonus2 bSubEle,Ele_Neutral,20; }
-2511,Skeleton_Manteau,Skeleton's Manteau,5,,10,700,,1,,0,119529470,7,2,4,,75,1,0,{}
+2511,Skeleton_Manteau,Skeleton's Manteau,5,,10,700,,1,,0,119529470,7,2,4,,75,1,0,{ bonus bStr,2; bonus bInt,-3; bonus bDex,2; bonus bVit,-3; bonus bLuk,2; bonus bAgi,-4; }
 2512,Novice_Manteau,Novice Manteau,5,50000,,500,,2,,1,8388609,7,2,4,,40,1,0,{ bonus2 bSubEle,Ele_Neutral,10; }
 2513,Heavenly_Wings,Light Wing-cloth,5,,10,500,,3,,1,119529470,7,2,4,,80,1,0,{}
 2514,Fauldren,Fauldren,5,,10,800,,5,,1,414946,7,2,4,,80,1,0,{}
