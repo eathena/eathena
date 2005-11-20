@@ -587,8 +587,10 @@ static int mob_attack(struct mob_data *md,unsigned int tick,int data)
 
 	range = md->db->range;
 
+	/* It seems mobs always teleport the last two tiles when chasing players, so do not give them this bonus range tile.[Skotlex]
 	if(status_get_mode(&md->bl)&MD_CANMOVE && md->state.state == MS_WALK)
 		range++;
+	*/
 	if(distance(md->bl.x,md->bl.y,tbl->x,tbl->y) > range)
 		return 0;
 	if(battle_config.monster_attack_direction_change)

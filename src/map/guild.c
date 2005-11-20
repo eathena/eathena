@@ -1759,15 +1759,16 @@ int guild_gvg_eliminate_timer(int tid,unsigned int tick,int id,int data)
 	size_t len = (name) ? strlen(name) : 0; 
 	// the rest is dangerous, but let it crash,
 	// if this happens, it's ruined anyway
-	char *evname=(char*)aMalloc( (len + 4) * sizeof(char));
 	int c=0;
 
 	if(agit_flag)	// Agit not already End
 	{
+		char *evname=(char*)aMalloc( (len + 4) * sizeof(char));
 		memcpy(evname,name,len - 5);
 		strcpy(evname + len - 5,"Eliminate");
 		c = npc_event_do(evname);
 		ShowStatus("NPC_Event:[%s] Run (%d) Events.\n",evname,c);
+		aFree(evname); // [Lance] Should fix this
 	}
 	if(name) aFree(name);
 	return 0;

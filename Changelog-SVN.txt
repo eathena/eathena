@@ -1,4 +1,9 @@
 Date	Added
+2005/11/20
+	* Fixed a memory leak in the guild eliminate timer. [Skotlex]
+	* Removed the extra tile of range mobs have when walking. [Skotlex]
+	* Added mob reloading to battleconfig reload @ command. [Skotlex]
+	* Updated mob_db.sql with the new modes by Kyoki. [Skotlex]
 2005/11/19
 	* Made characters stop walking when inflicted by SC_STOP, may fix
 	  GrimTooth's stop effect not seeming to take effect. [Skotlex]

@@ -5271,6 +5271,7 @@ atcommand_reloadbattleconf(
 	const char* command, const char* message)
 {
 	battle_config_read(BATTLE_CONF_FILENAME);
+	mob_reload(); //Needed as well so rate changes take effect.
 	clif_displaymessage(fd, msg_table[255]);
 	return 0;
 }
