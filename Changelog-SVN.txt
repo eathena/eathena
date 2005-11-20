@@ -1,5 +1,6 @@
 Date	Added
 2005/11/20
+	* Crash-fix in status_change_start [Skotlex]
 	* Implemented confusion as it should be (not tested yet!) [Skotlex]
 	* Updated run_script to backup the current script of a player and
 	  restore it if the current script ends inmediately. This should fix losing
