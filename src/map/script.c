@@ -9386,6 +9386,12 @@ int run_script(unsigned char *script,int pos,int rid,int oid)
 	struct map_session_data *sd;
 	unsigned char *rootscript = script;
 
+	//Variables for backing up the previous script and restore it if needed. [Skotlex]
+	unsigned char *bck_script = NULL;
+	unsigned char *bck_scriptroot = NULL;
+	int bck_scriptstate = 0;
+	struct script_stack *bck_stack = NULL;
+	
 	if (script == NULL || pos < 0)
 		return -1;
 	memset(&st, 0, sizeof(struct script_state));
@@ -9409,10 +9415,12 @@ int run_script(unsigned char *script,int pos,int rid,int oid)
 		st.stack->defsp = st.stack->sp;
 		st.state  = RUN;
 		st.script = rootscript;
-		// if there's a sd and a stack - free it, it's no longer usable.
-		if (sd && sd->stack) {
-			//ShowInfo ("run_script: (before) stack found (%p), freeing (sd = %d).\n", sd->stack, sd);
-			script_free_stack (sd->stack);
+	
+		if (sd && sd->stack) {	// if there's a sd and a stack - back it up and restore it if possible.
+			bck_script      = sd->npc_script;
+			bck_scriptroot  = sd->npc_scriptroot;
+			bck_scriptstate = sd->npc_scriptstate;
+			bck_stack = sd->stack;
 			sd->stack = NULL;
 		}
 	}
@@ -9429,16 +9437,18 @@ int run_script(unsigned char *script,int pos,int rid,int oid)
 		sd->npc_scriptroot  = rootscript;
 		sd->npc_scriptstate = st.state;
 		sd->stack           = st.stack;
+		if (bck_stack) //Get rid of the backup as it can't be restored.
+			script_free_stack (bck_stack);
 	} else {
 		// we are done with stuff, free the stack
 		script_free_stack (st.stack);
 		// and if there was a sd associated - zero vars.
 		if (sd) {
-			//ShowInfo ("run_script: (after) stack found (%p), freeing (sd = %d).\n", st.stack, sd);
-			sd->npc_script      = NULL;
-			sd->npc_scriptroot  = NULL;
-			sd->npc_scriptstate = 0;
-			sd->stack = NULL;
+			//Clear or restore previous script.
+			sd->npc_script      = bck_script;
+			sd->npc_scriptroot  = bck_scriptroot;
+			sd->npc_scriptstate = bck_scriptstate;
+			sd->stack = bck_stack;
 		}
 	}
 

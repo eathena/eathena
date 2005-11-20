@@ -1,5 +1,9 @@
 Date	Added
 2005/11/20
+	* Updated run_script to backup the current script of a player and
+	  restore it if the current script ends inmediately. This should fix losing
+	  the script info if status_calc_pc is invoked while running a script.
+	  [Skotlex]
 	* Fixed a memory leak in the guild eliminate timer. [Skotlex]
 	* Removed the extra tile of range mobs have when walking. [Skotlex]
 	* Added mob reloading to battleconfig reload @ command. [Skotlex]
