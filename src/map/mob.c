@@ -809,6 +809,10 @@ int mob_walktoxy(struct mob_data *md,int x,int y,int easy)
 	md->state.walk_easy = easy;
 	md->to_x=x;
 	md->to_y=y;
+	
+	if (md->sc_data[SC_CONFUSION].timer != -1) //Randomize target direction.
+		map_random_dir(&md->bl, &md->to_x, &md->to_y);
+	
 	if(md->state.state == MS_WALK)
 		md->state.change_walk_target=1;
 	else

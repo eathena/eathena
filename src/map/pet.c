@@ -220,20 +220,20 @@ static int petskill_castend2(struct pet_data *pd, struct block_list *target, sho
 static int pet_attackskill(struct pet_data *pd, unsigned int tick, int data)
 {
 
-	struct mob_data *md;
+	struct block_list *bl;
 	
 	nullpo_retr(0, pd);
 	Assert((pd->msd == 0) || (pd->msd->pd == pd));
 
-	md=(struct mob_data *)map_id2bl(pd->target_id);
-	if(md == NULL || pd->bl.m != md->bl.m || md->bl.prev == NULL ||
-		distance(pd->bl.x,pd->bl.y,md->bl.x,md->bl.y) > pd->db->range3)
+	bl=map_id2bl(pd->target_id);
+	if(bl == NULL || pd->bl.m != bl->m || bl->prev == NULL ||
+		distance(pd->bl.x,pd->bl.y,bl->x,bl->y) > pd->db->range3)
 	{
 		pet_unlocktarget(pd);
 		return 0;
 	}
 
-	petskill_use(pd, &md->bl, pd->a_skill->id, pd->a_skill->lv, tick);
+	petskill_use(pd, bl, pd->a_skill->id, pd->a_skill->lv, tick);
 	return 0;
 }
 

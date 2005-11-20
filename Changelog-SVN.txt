@@ -1,5 +1,6 @@
 Date	Added
 2005/11/20
+	* Implemented confusion as it should be (not tested yet!) [Skotlex]
 	* Updated run_script to backup the current script of a player and
 	  restore it if the current script ends inmediately. This should fix losing
 	  the script info if status_calc_pc is invoked while running a script.

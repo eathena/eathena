@@ -186,6 +186,9 @@ char wisp_server_name[NAME_LENGTH] = "Server"; // can be modified in char-server
 int console = 0;
 int enable_spy = 0; //To enable/disable @spy commands, which consume too much cpu time when sending packets. [Skotlex]
 
+static const int dirx[8]={0,-1,-1,-1,0,1,1,1};
+static const int diry[8]={1,1,0,-1,-1,-1,0,1};
+
 /*==========================================
  * ‘SmapŽI?Œv‚Å‚ÌÚ??Ý’è
  * (charŽI‚©‚ç‘—‚ç‚ê‚Ä‚­‚é)
@@ -1868,6 +1871,35 @@ int map_calc_dir( struct block_list *src,int x,int y) {
 	return dir;
 }
 
+/*==========================================
+ * Randomizes target cell x,y to a random walkable cell that 
+ * has the same distance from object as given coordinates do. [Skotlex]
+ *------------------------------------------
+ */
+int map_random_dir(struct block_list *bl, short *x, short *y) {
+	short xi = *x-bl->x;
+	short yi = *y-bl->y;
+	short i=0, j;
+	int dist2 = xi*xi + yi*yi;
+	short dist = sqrt(dist);
+	short segment;
+	
+	if (dist < 1) dist =1;
+	
+	do {
+		j = rand()%8; //Pick a random direction
+		segment = rand()%dist; //Pick a random interval from the whole vector in that direction
+		xi = bl->x + segment*dirx[j];
+		segment = sqrt(dist2 - segment*segment); //The complement of the previously picked segment
+		yi = bl->y + segment*diry[j];
+	} while (map_getcell(bl->m,xi,yi,CELL_CHKNOPASS) && (++i)<100);
+	if (i < 100) {
+		*x = xi;
+		*y = yi;
+		return 1;
+	}
+	return 0;
+}
 // gatŒn
 /*==========================================
  * (m,x,y)‚Ìó‘Ô‚ð’²‚×‚é

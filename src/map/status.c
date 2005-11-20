@@ -3728,7 +3728,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		sc_data[type].timer = -1;
 	}
 
-	if(type==SC_FREEZE || type==SC_STAN || type==SC_SLEEP || type==SC_STOP)
+	if(type==SC_FREEZE || type==SC_STAN || type==SC_SLEEP || type==SC_STOP || type == SC_CONFUSION)
 		battle_stopwalking(bl,1);
 
 	// クアグマイア/私を忘れないで中は無効なスキル
@@ -4139,15 +4139,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			}
 			break;
 		case SC_CONFUSION:
-			if (!(flag&4))
-			{
-				val2 = tick;
-				tick = 100;
-			}
 			clif_emotion(bl,1);
-			if (sd) {
-				pc_stop_walking (sd, 0);
-			}
 			break;
 		case SC_BLIND:				/* 暗? */
 			calc_flag = 1;
@@ -4909,16 +4901,6 @@ int status_change_end( struct block_list* bl , int type,int tid )
 				calc_flag = 1;
 				break;
 
-			// celest
-			case SC_CONFUSION:
-				{
-					struct map_session_data *sd=NULL;
-					if(bl->type == BL_PC && (sd=(struct map_session_data *)bl)){
-						sd->next_walktime = -1;
-					}
-				}
-				break;
-
 			case SC_MARIONETTE:		/* マリオネットコントロ?ル */
 			case SC_MARIONETTE2:	/// Marionette target
 				{
@@ -5433,30 +5415,6 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 				(sc_data[type].val2 -= 1000)>0) {
 				sc_data[type].timer = add_timer(
 					1000 + tick, status_change_timer,
-					bl->id, data);
-					return 0;
-			}
-		}
-		break;
-
-	// Celest
-	case SC_CONFUSION:
-		{
-			int i = 3000;
-			//struct mob_data *md;
-			if (sd) {
-				pc_randomwalk (sd, gettick());
-				sd->next_walktime = tick + (i=1000 + rand()%1000);
-			} /*else if (bl->type==BL_MOB && (md=(struct mob_data *)bl) && status_get_mode(bl)&MD_CANMOVE && mob_can_move(md)) {
-				md->state.state=MS_WALK;
-				if( DIFF_TICK(md->next_walktime,tick) > + 7000 &&
-					(md->walkpath.path_len==0 || md->walkpath.path_pos>=md->walkpath.path_len) )
-					md->next_walktime = tick + 3000*rand()%2000;
-				mob_randomwalk(md,tick);
-			}*/
-			if ((sc_data[type].val2 -= 1000) > 0) {
-				sc_data[type].timer = add_timer(
-					i + tick, status_change_timer,
 					bl->id, data);
 					return 0;
 			}

@@ -708,7 +708,6 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 	sd->view_class = sd->status.class_;
 	sd->speed = DEFAULT_WALK_SPEED;
 	sd->walktimer = -1;
-	sd->next_walktime = -1;
 	sd->attacktimer = -1;
 	sd->followtimer = -1; // [MouseJstr]
 	sd->skilltimer = -1;
@@ -3530,7 +3529,9 @@ int pc_walktoxy (struct map_session_data *sd, int x, int y)
 
 	sd->to_x = x;
 	sd->to_y = y;
-
+	if (sd->sc_data[SC_CONFUSION].timer != -1) //Randomize the target position
+		map_random_dir(sd->bl, &sd->to_x, &sd->to_y);
+	
 	if (sd->walktimer != -1)
 	{	//There was a timer-mismatch here. pc_walktoxy_sub does not clears previous pc_walk timers! [Skotlex]
 		sd->state.change_walk_target = 1;
@@ -3573,43 +3574,6 @@ int pc_stop_walking (struct map_session_data *sd, int type)
 		clif_fixpos(&sd->bl);
 	if (sd->sc_data[SC_RUN].timer != -1)
 		status_change_end(&sd->bl, SC_RUN, -1);
-	return 0;
-}
-
-/*==========================================
- * Random walk
- *------------------------------------------
- */
-int pc_randomwalk (struct map_session_data *sd, int tick)
-{
-	const int retrycount = 20;
-	nullpo_retr(0, sd);
-
-	if (!pc_can_move(sd))
-		return 0;
-
-	if (DIFF_TICK(sd->next_walktime, tick) < 0) {
-		int i, x, y, d;
-		d = rand() % 7 + 5;
-		for (i = 0; i < retrycount; i++) {	// Search of a movable place
-			int r = rand();
-			x = sd->bl.x + r % (d*2+1) - d;
-			y = sd->bl.y + r / (d*2+1) % (d*2+1) - d;
-			if ((map_getcell(sd->bl.m, x, y, CELL_CHKPASS)) &&
-				pc_walktoxy(sd, x, y) == 0)
-				break;
-		}
-		// Working on this part later [celest]
-		/*for(i=c=0;i<sd->walkpath.path_len;i++){	// The next walk start time is calculated.
-			if(sd->walkpath.path[i]&1)
-				c+=sd->speed*14/10;
-			else
-				c+=sd->speed;
-		}
-		sd->next_walktime = (d=tick+rand()%3000+c);
-		return d;*/
-		return 1;
-	}
 	return 0;
 }
 

@@ -432,7 +432,6 @@ struct map_session_data {
 	unsigned int client_tick,server_tick;
 	struct walkpath_data walkpath;
 	int walktimer;
-	int next_walktime;
 	int npc_id,areanpc_id,npc_shopid;
 	int npc_pos;
 	int npc_menu;
@@ -1187,13 +1186,13 @@ int compare_item(struct item *a, struct item *b);
 // ‚»‚Ì‘¼
 int map_check_dir(int s_dir,int t_dir);
 int map_calc_dir( struct block_list *src,int x,int y);
+int map_random_dir(struct block_list *bl, short *x, short *y); // [Skotlex]
 
 // path.c‚æ‚è
 int path_search(struct walkpath_data*,int,int,int,int,int,int);
 int path_search_long(struct shootpath_data *,int,int,int,int,int);
 int path_blownpos(int m,int x0,int y0,int dx,int dy,int count);
 
-int map_who(int fd);
 
 int cleanup_sub(struct block_list *bl, va_list ap);
 
