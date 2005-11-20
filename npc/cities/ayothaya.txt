@@ -19,6 +19,7 @@
 //=     Tom Yum Goong quest, Holy Threads quest and Holier threads quest.
 //= 1.0a some checks, optimization [Lupus]
 //= 1.1 Missing delitem fixed by Poki#3 [Lupus]
+//= 1.1a Fixed a typo and clarified a comment at the bottom of the script [MasterOfMuppets]
 //============================================================ 
 
 ayothaya.gat,152,68,1	script	Aibakthing	843,{
@@ -749,7 +750,7 @@ ayo_fild01.gat,129,197,7	script	Puraim	842,{
 	next;
 	mes "[Puraim]";
 	mes "Go back, adventurer.";
-	mes "If you wish to explore this area, you'd better show mu some holy spirit.";
+	mes "If you wish to explore this area, you'd better show me some holy spirit.";
 	close;
 s_Dungeon:
 	mes "[Puraim]";
@@ -1566,7 +1567,7 @@ ayothaya.gat,213,142,5	script	Young Man	843,{
 	close;
 }
 
-//I'll fix this sometime soon
+//This might not get fixed, feel free to submit a fix in the forum to apply though.
 ayothaya.gat,253,99,3	script	Fisherman	843,{
 	mes "[Dannai]";
 	mes "This place is known to be teeming with fish. The fish here tend to eat anything they find, so it's easy to catch them.";
@@ -1584,6 +1585,7 @@ ayothaya.gat,253,99,3	script	Fisherman	843,{
 	mes "No problem,";
 	mes "come back anytime you want. Fishing relaxes the mind and makes you feel at peace...";
 s_Yes:
+	mes "Sorry this script isn't finished.";
 	close;
 }
 	

@@ -28,6 +28,7 @@ Nexon
 Date		Added
 ======
 11/20
+	* Fixed a typo in cities/ayothaya.txt, nothing big [MasterOfMuppets]
 	* Changed the Einbroch area spawns a bit using iRO info from emperium.org [MasterOfMuppets]
 11/18
 	* Added the last of the bulletin boards [MasterOfMuppets]
