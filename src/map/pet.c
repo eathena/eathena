@@ -227,7 +227,7 @@ static int pet_attackskill(struct pet_data *pd, unsigned int tick, int data)
 
 	md=(struct mob_data *)map_id2bl(pd->target_id);
 	if(md == NULL || pd->bl.m != md->bl.m || md->bl.prev == NULL ||
-		distance(pd->bl.x,pd->bl.y,md->bl.x,md->bl.y) > md->db->range3)
+		distance(pd->bl.x,pd->bl.y,md->bl.x,md->bl.y) > pd->db->range3)
 	{
 		pet_unlocktarget(pd);
 		return 0;
