@@ -26,12 +26,12 @@ xmas.gat,152,176,3	script	Bora	826,{
  next;
  menu "Yes, make me one now!",-,"What are the requirements?",M_REQ,"No, thanks.",M_EXIT;
 
- if ((countitem(5030) < 1) || (countitem(7213) < 100) || (countitem(7217) < 100) || (countitem(7161) < 300)) GOTO L_NOITEM;//Items: Panda Hat, Pin Cusion, Spool of Thread, Bear Skin,
+ if ((countitem(5030) < 1) || (countitem(7213) < 100) || (countitem(7217) < 100) || (countitem(7161) < 300)) GOTO L_NOITEM;//Items: Panda Hat, Needle Packet, Spool of Thread, Bear Skin,
  mes "[Bora]";
  mes "Yay! now I can make my famous Bear Hat!";
  mes "Now, give me your items!";
  delitem 5030,1;//Items: Panda Hat,
- delitem 7213,100;//Items: Pin Cusion,
+ delitem 7213,100;//Items: Needle Packet,
  delitem 7217,100;//Items: Spool of Thread,
  delitem 7161,300;//Items: Bear Skin,
  next;
@@ -47,7 +47,7 @@ M_REQ:
  mes "[Bora]";
  mes "Bring me...";
  mes "1 Panda Hat,";
- mes "100 Pin Cushion,";
+ mes "100 Needle Packet,";
  mes "100 Spool of Thread,";
  mes "300 Bear Skins.";
  next;

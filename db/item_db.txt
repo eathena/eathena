@@ -1822,7 +1822,7 @@
 7210,Piece_of_Dullahan's_Armor,Dullahan's Armor Piece,3,,395,10,,,,,,,,,,,,,{}
 7211,Rosetta_Stone_Fragment,Fragment of Rossata Stone,3,,1300,10,,,,,,,,,,,,,{}
 7212,Hanging_Doll,Hung Doll,3,,510,10,,,,,,,,,,,,,{}
-7213,Pin_Cusion,Pin Cusion,3,,416,10,,,,,,,,,,,,,{}
+7213,Needle_Packet,Needle Packet,3,,416,10,,,,,,,,,,,,,{}
 7214,Bat_Cage,Bat Cage,3,,440,10,,,,,,,,,,,,,{}
 7215,Broken_Needle,Broken Needle,3,,345,10,,,,,,,,,,,,,{}
 7216,Red_Muffler,Red Muffler,3,,330,10,,,,,,,,,,,,,{}
