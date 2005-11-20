@@ -3728,7 +3728,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		sc_data[type].timer = -1;
 	}
 
-	if(type==SC_FREEZE || type==SC_STAN || type==SC_SLEEP)
+	if(type==SC_FREEZE || type==SC_STAN || type==SC_SLEEP || type==SC_STOP)
 		battle_stopwalking(bl,1);
 
 	// クアグマイア/私を忘れないで中は無効なスキル

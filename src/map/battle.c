@@ -3085,7 +3085,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 			else
 				state |= BCT_ENEMY;
 		}
-		if (state&BCT_ENEMY && battle_config.pk_mode && s_bl->type == BL_PC && t_bl->type == BL_PC)
+		if (state&BCT_ENEMY && battle_config.pk_mode && !map_flag_gvg(m) && s_bl->type == BL_PC && t_bl->type == BL_PC)
 		{	//Prevent novice engagement on pk_mode (feature by Valaris)
 			struct map_session_data* sd;
 			if ((sd = (struct map_session_data*)s_bl) &&

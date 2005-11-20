@@ -1,5 +1,9 @@
 Date	Added
 2005/11/19
+	* Made characters stop walking when inflicted by SC_STOP, may fix
+	  GrimTooth's stop effect not seeming to take effect. [Skotlex]
+	* Made the pk_min_level config not take effect in WoE/GvG grounds.
+	  [Skotlex]
 	* Fixed showing falcon when player is hide. [LuzZza]
 	* Updated mob_db.sql and item_db.sql to current [Skotlex]
 	* Updated the skill db step guessing code to allow for negative ranges (Now

@@ -122,10 +122,13 @@ struct npc_parse {
  */
 
 void finalize_pcrematch_entry(struct pcrematch_entry *e) {
+//TODO: For some odd reason this causes a already-free'd error under Windows, but not *nix! [Skotlex]
+#ifndef _WIN32
 	if (e->pcre_) {
 		free(e->pcre_);
 		e->pcre_ = NULL;
 	}
+#endif
 	if (e->pcre_extra_) {
 		free(e->pcre_extra_);
 		e->pcre_ = NULL;
