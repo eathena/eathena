@@ -4802,7 +4802,7 @@ static int pc_respawn(int tid,unsigned int tick,int id,int data)
  * pc‚Éƒ_ƒ?ƒW‚ð?‚¦‚é
  *------------------------------------------
  */
-int pc_damage(struct block_list *src,struct map_session_data *sd,int damage, int delay)
+int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 {
 	int i=0,j=0;
 
@@ -4819,14 +4819,6 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage, int
 
 	// ? ‚¢‚Ä‚¢‚½‚ç‘«‚ðŽ~‚ß‚é
 	if (sd->sc_data) {
-		if (sd->sc_data[SC_ENDURE].timer != -1 && (src != NULL && src->type == BL_MOB) && !map_flag_gvg(sd->bl.m)) {
-			if (!sd->special_state.infinite_endure && (--sd->sc_data[SC_ENDURE].val2) < 0) 
-				status_change_end(&sd->bl, SC_ENDURE, -1);
-		} else if (delay) {
-			pc_stop_walking (sd,1);
-			if (sd->canmove_tick < gettick())
-				sd->canmove_tick = gettick() + delay;
-		}
 		if (sd->sc_data[SC_GRAVITATION].timer != -1 &&
 			sd->sc_data[SC_GRAVITATION].val3 == BCT_SELF) {
 			struct skill_unit_group *sg = (struct skill_unit_group *)sd->sc_data[SC_GRAVITATION].val4;
@@ -5481,7 +5473,7 @@ int pc_heal(struct map_session_data *sd,int hp,int sp)
 	sd->status.hp+=hp;
 	if(sd->status.hp <= 0) {
 		sd->status.hp = 0;
-		pc_damage(NULL,sd,1,0);
+		pc_damage(NULL,sd,1);
 		hp = 0;
 	}
 	sd->status.sp+=sp;
@@ -5540,7 +5532,7 @@ int pc_itemheal(struct map_session_data *sd,int hp,int sp)
 	sd->status.hp+=hp;
 	if(sd->status.hp <= 0) {
 		sd->status.hp = 0;
-		pc_damage(NULL,sd,1,0);
+		pc_damage(NULL,sd,1);
 		hp = 0;
 	}
 	sd->status.sp+=sp;
@@ -5576,7 +5568,7 @@ int pc_percentheal(struct map_session_data *sd,int hp,int sp)
 		}
 		else if(hp <= -100) {
 			sd->status.hp = 0;
-			pc_damage(NULL,sd,1,0);
+			pc_damage(NULL,sd,1);
 		}
 		else {
 			sd->status.hp += sd->status.max_hp*hp/100;
@@ -5584,7 +5576,7 @@ int pc_percentheal(struct map_session_data *sd,int hp,int sp)
 				sd->status.hp = sd->status.max_hp;
 			if(sd->status.hp <= 0) {
 				sd->status.hp = 0;
-				pc_damage(NULL,sd,1,0);
+				pc_damage(NULL,sd,1);
 				hp = 0;
 			}
 		}

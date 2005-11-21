@@ -1183,7 +1183,7 @@ static int mob_ai_sub_hard_activesearch(struct block_list *bl,va_list ap)
 			(*target) = bl;
 			md->target_id=bl->id;
 			md->state.targettype = ATTACKABLE;
-			md->state.aggressive = (status_get_mode(&md->bl)&MD_BERSERK)?1:0;
+			md->state.aggressive = (status_get_mode(&md->bl)&MD_ANGRY)?1:0;
 			md->min_chase= md->db->range3;
 			return 1;
 		}
@@ -1220,7 +1220,7 @@ static int mob_ai_sub_hard_changechase(struct block_list *bl,va_list ap)
 			(*target) = bl;
 			md->target_id=bl->id;
 			md->state.targettype = ATTACKABLE;
-			md->state.aggressive = (status_get_mode(&md->bl)&MD_BERSERK)?1:0;
+			md->state.aggressive = (status_get_mode(&md->bl)&MD_ANGRY)?1:0;
 			md->min_chase= md->db->range3;
 			return 1;
 		}
@@ -1283,7 +1283,7 @@ static int mob_ai_sub_hard_linksearch(struct block_list *bl,va_list ap)
 			md->target_id = target->id;
 			md->attacked_count = 0;
 			md->state.targettype = ATTACKABLE;
-			md->state.aggressive = (status_get_mode(&md->bl)&MD_BERSERK)?1:0;
+			md->state.aggressive = (status_get_mode(&md->bl)&MD_ANGRY)?1:0;
 			md->min_chase=md->db->range3;
 			return 1;
 		}
@@ -1310,7 +1310,7 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 		if(md->special_state.ai>0)
 			mob_timer_delete(0, 0, md->bl.id, 0);
 		else
-			mob_damage(NULL,md,md->hp,0,0);
+			mob_damage(NULL,md,md->hp,0);
 		return 0;
 	}
 
@@ -1380,7 +1380,7 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 		if(sd && status_check_skilluse(&md->bl, &sd->bl, 0, 0)) {
 			md->target_id=sd->bl.id;
 			md->state.targettype = ATTACKABLE;
-			md->state.aggressive = (status_get_mode(&md->bl)&MD_BERSERK)?1:0;
+			md->state.aggressive = (status_get_mode(&md->bl)&MD_ANGRY)?1:0;
 			md->min_chase=md->db->range2+distance(md->bl.x,md->bl.y,sd->bl.x,sd->bl.y);
 		}
 	}
@@ -1602,7 +1602,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 
 	// Scan area for targets
 	if ((mode&MD_AGGRESSIVE && battle_config.monster_active_enable && !tbl) ||
-		(mode&MD_BERSERK && md->state.skillstate == MSS_FOLLOW)
+		(mode&MD_ANGRY && md->state.skillstate == MSS_FOLLOW)
 	) {
 		search_size = (blind_flag) ? 3 : md->db->range2;
 		map_foreachinarea (mob_ai_sub_hard_activesearch, md->bl.m,
@@ -2082,7 +2082,7 @@ int mob_deleteslave_sub(struct block_list *bl,va_list ap)
 
 	id=va_arg(ap,int);
 	if(md->master_id > 0 && md->master_id == id )
-		mob_damage(NULL,md,md->hp,0,1);
+		mob_damage(NULL,md,md->hp,1);
 	return 0;
 }
 /*==========================================
@@ -2103,7 +2103,7 @@ int mob_deleteslave(struct mob_data *md)
  * It is the damage of sd to damage to md.
  *------------------------------------------
  */
-int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,int type)
+int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 {
 	int i,count,minpos,mindmg;
 	struct map_session_data *sd = NULL,*tmpsd[DAMAGELOG_SIZE];
@@ -2147,13 +2147,6 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 			mob_setdelayspawn(md->bl.id);
 		}
 		return 0;
-	}
-
-	if(delay)
-	{
-		mob_stop_walking(md,3);
-		if (md->canmove_tick < tick)
-			md->canmove_tick = tick + delay;
 	}
 
 	if(damage > max_hp>>2)

@@ -361,7 +361,7 @@ extern int current_equip_item_index;
 //TODO: The following three modes are not yet in the mob_db!
 #define MD_CHANGETARGET 0x200
 #define MD_CHANGECHASE 0x400
-#define MD_BERSERK 0x800
+#define MD_ANGRY 0x800
 #define MD_MASK 0xFFF
 
 // ƒpƒ‰ƒ[ƒ^Š“¾Œn battle.c ‚æ‚èˆÚ“®

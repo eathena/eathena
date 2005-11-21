@@ -4398,7 +4398,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			break;
 		
 		case SC_COMA: //Coma. Sends a char to 1HP/SP
-			battle_damage(NULL, bl, status_get_hp(bl)-1, 0, 0);
+			battle_damage(NULL, bl, status_get_hp(bl)-1, 0);
 			if (sd) pc_heal(sd,0,-sd->status.sp+1);
 			return 0;
 			

@@ -34,6 +34,8 @@
 	12017,Speed_Decreasing_Potion no bonus... Turbo Track race item
 
 	--
+11/21
+	* Updated rafflesia's mode to make it change-target. [Skotlex]
 11/20
 	* Changed all mixed food type to 0 - FOOD (healing items) [Lupus]
 	* Updated mob_db with the mode data from Kyoki and added mob entries 1521

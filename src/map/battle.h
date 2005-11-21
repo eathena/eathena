@@ -41,9 +41,9 @@ enum {	// ÅIŒvZ‚Ìƒtƒ‰ƒO
 };
 
 // ÀÛ‚ÉHP‚ğ‘Œ¸
-int battle_calc_walkdelay(struct block_list *src, int delay, int div_); //Calcs walk delay based on attack type. [Skotlex]
-int battle_delay_damage (unsigned int tick, struct block_list *src, struct block_list *target, int attack_type, int skill_id, int skill_lv, int damage, int delay, int dmg_lv, int flag);
-int battle_damage(struct block_list *bl,struct block_list *target,int damage,int delay,int flag);
+int battle_walkdelay(struct block_list *bl, struct block_list *src, int delay, int div_); //Calcs walk delay based on attack type. [Skotlex]
+int battle_delay_damage (unsigned int tick, struct block_list *src, struct block_list *target, int attack_type, int skill_id, int skill_lv, int damage, int dmg_lv, int flag);
+int battle_damage(struct block_list *bl,struct block_list *target,int damage,int flag);
 int battle_heal(struct block_list *bl,struct block_list *target,int hp,int sp,int flag);
 
 // UŒ‚‚âˆÚ“®‚ğ~‚ß‚é

@@ -1,4 +1,10 @@
 Date	Added
+2005/11/21
+	* Changed the way damage delay works. It is no longer applied on
+	  mob_damage/pc_damage, but instead is invoked from clif_damage (or
+	  clif_skill_damage), which means the "can't walk" delay is sync'ed with the
+	  damage packets when they are sent. This should fix most delay-damage
+	  'stun-lock' related issues. [Skotlex]
 2005/11/20
 	* Mobs now can't move while casting. [Skotlex]
 	* Updated mob_db.txt and mob_db.sql with the most recent data from Kyoki.

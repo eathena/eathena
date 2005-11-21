@@ -3935,7 +3935,8 @@ int clif_damage(struct block_list *src,struct block_list *dst,unsigned int tick,
 		WBUFW(buf2,27)=0;
 		clif_send(buf2,packet_len_table[0x8a],src,AREA);
 	}
-
+	//Because the damage delay must be synced with the client, here is where the can-walk tick must be updated. [Skotlex]
+	battle_walkdelay(dst, src, ddelay, div);
 	return 0;
 }
 
@@ -4624,6 +4625,8 @@ int clif_skill_damage(struct block_list *src,struct block_list *dst,
 	clif_send(buf,packet_len_table[0x1de],src,AREA);
 #endif
 
+	//Because the damage delay must be synced with the client, here is where the can-walk tick must be updated. [Skotlex]
+	battle_walkdelay(dst, src, ddelay, div);
 	return 0;
 }
 
@@ -4662,6 +4665,8 @@ int clif_skill_damage2(struct block_list *src,struct block_list *dst,
 	WBUFB(buf,34)=clif_calc_delay(dst, (type>0)?type:skill_get_hit(skill_id), ddelay);
 	clif_send(buf,packet_len_table[0x115],src,AREA);
 
+	//Because the damage delay must be synced with the client, here is where the can-walk tick must be updated. [Skotlex]
+	battle_walkdelay(dst, src, ddelay, div);
 	return 0;
 }
 
@@ -9965,7 +9970,7 @@ void clif_parse_GMKick(int fd, struct map_session_data *sd) {
 			} else if (target->type == BL_MOB) {
 				struct mob_data *md = (struct mob_data *)target;
 				sd->state.attack_type = 0;
-				mob_damage(&sd->bl, md, md->hp, 0, 2);
+				mob_damage(&sd->bl, md, md->hp, 2);
 			} else
 				clif_GM_kickack(sd, 0);
 		} else

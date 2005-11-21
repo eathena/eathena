@@ -2160,7 +2160,7 @@ int atcommand_die(
 {
 	nullpo_retr(-1, sd);
 	clif_specialeffect(&sd->bl,450,1);
-	pc_damage(NULL, sd, sd->status.hp, 0);
+	pc_damage(NULL, sd, sd->status.hp);
 	clif_displaymessage(fd, msg_table[13]); // A pity! You've died.
 
 	return 0;
@@ -2186,7 +2186,7 @@ int atcommand_kill(
 
 	if ((pl_sd = map_nick2sd(atcmd_player_name)) != NULL) {
 		if (pc_isGM(sd) >= pc_isGM(pl_sd)) { // you can kill only lower or same level
-			pc_damage(NULL, pl_sd, pl_sd->status.hp, 0);
+			pc_damage(NULL, pl_sd, pl_sd->status.hp);
 			clif_displaymessage(fd, msg_table[14]); // Character killed.
 		} else {
 			clif_displaymessage(fd, msg_table[81]); // Your GM level don't authorise you to do this action on this player.
@@ -3486,7 +3486,7 @@ static int atkillmonster_sub(struct block_list *bl, va_list ap) {
 	flag = va_arg(ap, int);
 
 	if (flag)
-		mob_damage(NULL, md, md->hp, 0, 2);
+		mob_damage(NULL, md, md->hp, 2);
 	else
 		mob_delete(md);
 	
@@ -4592,7 +4592,7 @@ int atcommand_doom(
 	pl_allsd = map_getallusers(&users);
 	for(i = 0; i < users; i++) {
 		if ((pl_sd = pl_allsd[i]) && pl_sd->fd != fd && pc_isGM(sd) >= pc_isGM(pl_sd)) { // you can doom only lower or same gm level
-			pc_damage(NULL, pl_sd, pl_sd->status.hp, 0);
+			pc_damage(NULL, pl_sd, pl_sd->status.hp);
 			clif_displaymessage(pl_sd->fd, msg_table[61]); // The holy messenger has given judgement.
 		}
 	}
@@ -4618,7 +4618,7 @@ int atcommand_doommap(
 		if ((pl_sd = pl_allsd[i]) && pl_sd->fd != fd && sd->bl.m == pl_sd->bl.m &&
 			pc_isGM(sd) >= pc_isGM(pl_sd))	// you can doom only lower or same gm level
 		{
-			pc_damage(NULL, pl_sd, pl_sd->status.hp, 0);
+			pc_damage(NULL, pl_sd, pl_sd->status.hp);
 //			clif_specialeffect(&pl_sd->bl,450,1);
 			clif_displaymessage(pl_sd->fd, msg_table[61]); // The holy messenger has given judgement.
 		}
@@ -8723,7 +8723,7 @@ int atcommand_killid(
    {
       if ((pl_sd = (struct map_session_data *) session[session_id]->session_data) != NULL) {
          if (pc_isGM(sd) >= pc_isGM(pl_sd)) { // you can kill only lower or same level
-            pc_damage(NULL, pl_sd, pl_sd->status.hp, 0);
+            pc_damage(NULL, pl_sd, pl_sd->status.hp);
             clif_displaymessage(fd, msg_table[14]); // Character killed.
          } else {
             clif_displaymessage(fd, msg_table[81]); // Your GM level don't authorise you to do this action on this player.
@@ -8771,7 +8771,7 @@ int atcommand_killid2(
    {
       if ((pl_sd = (struct map_session_data *) session[session_id]->session_data) != NULL) {
          if (pc_isGM(sd) >= pc_isGM(pl_sd)) { // you can kill only lower or same level
-            pc_damage(NULL, pl_sd, pl_sd->status.hp, 0);
+            pc_damage(NULL, pl_sd, pl_sd->status.hp);
             clif_displaymessage(fd, msg_table[14]); // Character killed.
          } else {
             clif_displaymessage(fd, msg_table[81]); // Your GM level don't authorise you to do this action on this player.
