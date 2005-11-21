@@ -2315,10 +2315,10 @@
 12124,Various_colored_Rice_Cake,Rainbow colord Rice Cake,0,,10,70,,,,,127918079,7,2,,,,,,{}
 // Cooking Sets
 12125,Outdoor_Cooker,Outdoor Cooker,2,,10,20,,,,,127918079,7,2,,,,,,{ produce 11; }
-12126,Home_Cooking_Set,Home Cooking Set,2,,10,30,,,,,127918079,7,2,,,,,,{ produce 12; }
-12127,Deluxe_Cooking_Set,Deluxe Cooking Set,2,,10,30,,,,,127918079,7,2,,,,,,{ produce 13; }
-12128,Court_Cooking_Set,Court Cooking Set,2,,10,70,,,,,127918079,7,2,,,,,,{ produce 14; }
-12129,Legendary_Cooking_Set,Legendary Cooking Set,2,,10,70,,,,,127918079,7,2,,,,,,{ produce 15; }
+12126,Home_Cooking_Set,Home Cooking Set,2,,10,30,,,,,127918079,7,2,,,,,,{ produce 11; }
+12127,Deluxe_Cooking_Set,Deluxe Cooking Set,2,,10,30,,,,,127918079,7,2,,,,,,{ produce 11; }
+12128,Court_Cooking_Set,Court Cooking Set,2,,10,70,,,,,127918079,7,2,,,,,,{ produce 11; }
+12129,Legendary_Cooking_Set,Legendary Cooking Set,2,,10,70,,,,,127918079,7,2,,,,,,{ produce 11; }
 12130,Cookie_Bag,Cookie Bag,3,,10,70,,,,,127918079,7,2,,,,,,{}
 
 // More Weapons
