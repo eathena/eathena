@@ -1818,21 +1818,21 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		}
 	}
 
-	/* ?Û‚Éƒ_ƒ?ƒW?—‚ğs‚¤ */
-	if ((skillid || flag) && !(skillid == ASC_BREAKER && attack_type&BF_WEAPON)) {  // do not really deal damage for ASC_BREAKER's 1st attack
-		if (attack_type&BF_WEAPON)
-			battle_delay_damage(tick+dmg.amotion,src,bl,attack_type,skillid,skilllv,damage,dmg.dmg_lv,0);
-		else {
-			battle_damage(src,bl,damage, 0);
-			if (!status_isdead(bl) && (dmg.dmg_lv == ATK_DEF || damage > 0))
-				skill_additional_effect(src,bl,skillid,skilllv,attack_type,tick);
-		}
+	if ((skillid || flag) && !(attack_type&BF_WEAPON)) {  // do not really deal damage for ASC_BREAKER's 1st attack
+		battle_damage(src,bl,damage, 0); //Deal damage before knockback to allow stuff like firewall+storm gust combo.
+		if (!status_isdead(bl) && (dmg.dmg_lv == ATK_DEF || damage > 0))
+			skill_additional_effect(src,bl,skillid,skilllv,attack_type,tick);
 	}
 
 	//Only knockback if it's still alive, otherwise a "ghost" is left behind. [Skotlex]
 	if (dmg.blewcount > 0 && !status_isdead(bl))
 		skill_blown(dsrc,bl,dmg.blewcount);
 	
+	//Delayed damage must be dealt after the knockback (it needs to know actual position of target)
+	if ((skillid || flag) && attack_type&BF_WEAPON && skillid != ASC_BREAKER) {  // do not really deal damage for ASC_BREAKER's 1st attack
+			battle_delay_damage(tick+dmg.amotion,src,bl,attack_type,skillid,skilllv,damage,dmg.dmg_lv,0);
+	}
+
 	if(skillid == RG_INTIMIDATE && damage > 0 && !(status_get_mode(bl)&MD_BOSS) && !map_flag_gvg(src->m)) {
 		int s_lv = status_get_lv(src),t_lv = status_get_lv(bl);
 		int rate = 50 + skilllv * 5;
