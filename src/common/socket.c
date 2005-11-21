@@ -708,6 +708,8 @@ int do_sendrecv(int next)
 		if(!session[i] && FD_ISSET(i, &readfds)){
 			ShowDebug("force clr fds %d\n", i);
 			FD_CLR(i, &readfds);
+			FD_CLR(i, &efd);
+			FD_CLR(i, &wfd);
 			continue;
 		}
 		if(!session[i])

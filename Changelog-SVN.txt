@@ -1,5 +1,9 @@
 Date	Added
 2005/11/21
+	* Mob AI update: updated the conditions used to specify if a mob can change
+	  targets as per the forum provided information (by Komurka and Kyoki).
+	  Mode 512 (MD_CHANGETARGET) no longer does anything. [Skotlex]
+	* Mobs that assist now link nearby mobs when they attack. [Skotlex]
 	* Made the damage delay be applied after knockback rather than before
 	  (magical/misc instant effect attacks are still applied before the
 	  knockback) [Skotlex]

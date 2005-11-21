@@ -351,15 +351,15 @@ extern int current_equip_item_index;
 //Mode definitions to clear up code reading. [Skotlex]
 #define MD_CANMOVE 0x001
 #define MD_LOOTER 0x002
-#define MD_AGGRESSIVE 0x004
-#define MD_ASSIST 0x08
+//MD_ANGRY mobs are also aggressive.
+#define MD_AGGRESSIVE 0x804
+#define MD_ASSIST 0x008
 #define MD_CASTSENSOR 0x010
 #define MD_BOSS 0x020
 #define MD_PLANT 0x040
 #define MD_CANATTACK 0x080
 #define MD_DETECTOR 0x100
-//TODO: The following three modes are not yet in the mob_db!
-#define MD_CHANGETARGET 0x200
+//#define MD_CHANGETARGET 0x200 //Mode deprecated, figured out through mob_can_changetarget()
 #define MD_CHANGECHASE 0x400
 #define MD_ANGRY 0x800
 #define MD_MASK 0xFFF

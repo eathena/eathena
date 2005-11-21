@@ -201,7 +201,9 @@ int mob_once_spawn (struct map_session_data *sd, char *mapname,
 		md->bl.x = x;
 		md->bl.y = y;
 		if (class_ < 0 && battle_config.dead_branch_active)
-			md->mode = md->db->mode|MD_AGGRESSIVE|MD_CANATTACK;
+			//Behold Aegis's masterful decisions yet again...
+			//"I understand the "Aggressive" part, but the "Can Move" and "Can Attack" is just stupid" - Poki#3
+			md->mode = md->db->mode|MD_AGGRESSIVE|MD_CANATTACK|MD_CANMOVE;
 		md->m = m;
 		md->x0 = x;
 		md->y0 = y;
@@ -556,6 +558,88 @@ static int mob_walk(struct mob_data *md,unsigned int tick,int data)
 }
 
 /*==========================================
+ * Reachability to a Specification ID existence place
+ *------------------------------------------
+ */
+int mob_can_reach(struct mob_data *md,struct block_list *bl,int range)
+{
+	int dx,dy;
+	struct walkpath_data wpd;
+	int i, easy = (battle_config.mob_ai&1?0:1);
+
+	nullpo_retr(0, md);
+	nullpo_retr(0, bl);
+
+	dx=abs(bl->x - md->bl.x);
+	dy=abs(bl->y - md->bl.y);
+
+	if( md->bl.m != bl->m)	// 違うャbプ
+		return 0;
+
+	if( range>0 && range < ((dx>dy)?dx:dy) )	// 遠すぎる
+		return 0;
+
+	if( md->bl.x==bl->x && md->bl.y==bl->y )	// 同じマス
+		return 1;
+
+	// Obstacle judging
+	wpd.path_len=0;
+	wpd.path_pos=0;
+	wpd.path_half=0;
+	if(path_search(&wpd,md->bl.m,md->bl.x,md->bl.y,bl->x,bl->y,easy)!=-1)
+		return 1;
+
+	if(bl->type!=BL_PC && bl->type!=BL_MOB)
+		return 0;
+
+	// It judges whether it can adjoin or not.
+	dx=(dx>0)?1:((dx<0)?-1:0);
+	dy=(dy>0)?1:((dy<0)?-1:0);
+	if(path_search(&wpd,md->bl.m,md->bl.x,md->bl.y,bl->x-dx,bl->y-dy,easy)!=-1)
+		return 1;
+	for(i=0;i<9;i++){
+		if(path_search(&wpd,md->bl.m,md->bl.x,md->bl.y,bl->x-1+i/3,bl->y-1+i%3,easy)!=-1)
+			return 1;
+	}
+	return 0;
+}
+
+/*==========================================
+ * Links nearby mobs (supportive mobs)
+ *------------------------------------------
+ */
+static int mob_linksearch(struct block_list *bl,va_list ap)
+{
+	struct mob_data *md;
+	int class_;
+	struct block_list *target;
+	unsigned int tick;
+	
+	nullpo_retr(0, bl);
+	nullpo_retr(0, ap);
+	md=(struct mob_data *)bl;
+	class_ = va_arg(ap, int);
+	target = va_arg(ap, struct block_list *);
+	tick=va_arg(ap, unsigned int);
+
+	if (md->class_ == class_ && DIFF_TICK(md->last_linktime, tick) < MIN_MOBLINKTIME
+		&& (!md->target_id || md->state.targettype == NONE_ATTACKABLE))
+	{
+		md->last_linktime = tick;
+		if( mob_can_reach(md,target,md->db->range2) ){	// Reachability judging
+			md->target_id = target->id;
+			md->attacked_count = 0;
+			md->state.targettype = ATTACKABLE;
+			md->state.aggressive = (status_get_mode(&md->bl)&MD_ANGRY)?1:0;
+			md->min_chase=md->db->range3;
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+/*==========================================
  * Attack processing of mob
  *------------------------------------------
  */
@@ -596,10 +680,18 @@ static int mob_attack(struct mob_data *md,unsigned int tick,int data)
 	if(battle_config.monster_attack_direction_change)
 		md->dir=map_calc_dir(&md->bl, tbl->x,tbl->y );	// 向き設定
 
+	if (status_get_mode(&md->bl)&MD_ASSIST && DIFF_TICK(md->last_linktime, tick) < MIN_MOBLINKTIME)
+	{	// Link monsters nearby [Skotlex]
+		md->last_linktime = tick;
+		map_foreachinarea(mob_linksearch, md->bl.m,
+			md->bl.x-md->db->range2, md->bl.y-md->db->range2,
+			md->bl.x+md->db->range2, md->bl.y+md->db->range2,
+			BL_MOB, md->class_, tbl, tick);
+	}
+
 	md->state.skillstate=md->state.aggressive?MSS_ANGRY:MSS_BERSERK;
 	if( mobskill_use(md,tick,-2) )	// スキル使用
 		return 0;
-
 
 	if(md->sc_data && md->sc_data[SC_WINKCHARM].timer != -1)
 		clif_emotion(&md->bl, 3);
@@ -620,7 +712,6 @@ static int mob_attack(struct mob_data *md,unsigned int tick,int data)
 
 	return 0;
 }
-
 
 /*==========================================
  * The attack of PC which is attacking id is stopped.
@@ -1068,51 +1159,27 @@ int mob_stop_walking(struct mob_data *md,int type)
 	return 0;
 }
 
+
 /*==========================================
- * Reachability to a Specification ID existence place
+ * Determines if the mob can change target. [Skotlex]
  *------------------------------------------
  */
-int mob_can_reach(struct mob_data *md,struct block_list *bl,int range)
+static int mob_can_changetarget(struct mob_data* md, int mode)
 {
-	int dx,dy;
-	struct walkpath_data wpd;
-	int i, easy = (battle_config.mob_ai&1?0:1);
-
-	nullpo_retr(0, md);
-	nullpo_retr(0, bl);
-
-	dx=abs(bl->x - md->bl.x);
-	dy=abs(bl->y - md->bl.y);
-
-	if( md->bl.m != bl->m)	// 違うャbプ
-		return 0;
-
-	if( range>0 && range < ((dx>dy)?dx:dy) )	// 遠すぎる
-		return 0;
-
-	if( md->bl.x==bl->x && md->bl.y==bl->y )	// 同じマス
-		return 1;
-
-	// Obstacle judging
-	wpd.path_len=0;
-	wpd.path_pos=0;
-	wpd.path_half=0;
-	if(path_search(&wpd,md->bl.m,md->bl.x,md->bl.y,bl->x,bl->y,easy)!=-1)
-		return 1;
-
-	if(bl->type!=BL_PC && bl->type!=BL_MOB)
-		return 0;
-
-	// It judges whether it can adjoin or not.
-	dx=(dx>0)?1:((dx<0)?-1:0);
-	dy=(dy>0)?1:((dy<0)?-1:0);
-	if(path_search(&wpd,md->bl.m,md->bl.x,md->bl.y,bl->x-dx,bl->y-dy,easy)!=-1)
-		return 1;
-	for(i=0;i<9;i++){
-		if(path_search(&wpd,md->bl.m,md->bl.x,md->bl.y,bl->x-1+i/3,bl->y-1+i%3,easy)!=-1)
+	switch (md->state.skillstate) {
+		case MSS_BERSERK: //Only Assist or Aggressive+CastSensor mobs can change target while attacking.
+			return (mode&MD_ASSIST || (mode&(MD_AGGRESSIVE|MD_CASTSENSOR)) == (MD_AGGRESSIVE|MD_CASTSENSOR));
+		case MSS_RUSH:
+			return (mode&MD_AGGRESSIVE);
+		case MSS_FOLLOW:
+		case MSS_ANGRY:
+		case MSS_IDLE:
+		case MSS_WALK:
+		case MSS_LOOT:
 			return 1;
+		default:
+			return 0;
 	}
-	return 0;
 }
 
 /*==========================================
@@ -1121,18 +1188,11 @@ int mob_can_reach(struct mob_data *md,struct block_list *bl,int range)
  */
 int mob_target(struct mob_data *md,struct block_list *bl,int dist)
 {
-	int mode;
-
 	nullpo_retr(0, md);
 	nullpo_retr(0, bl);
 
-	if(!md->mode)
-		mode=md->db->mode;
-	else
-		mode=md->mode;
-
 	// Nothing will be carried out if there is no mind of changing TAGE by TAGE ending.
-	if( (md->target_id > 0 && md->state.targettype == ATTACKABLE) && (!(mode&MD_CHANGETARGET) || rand()%100>25) &&
+	if((md->target_id > 0 && md->state.targettype == ATTACKABLE) && !mob_can_changetarget(md, status_get_mode(&md->bl)) &&
 		// if the monster was provoked ignore the above rule [celest]
 		!(md->state.provoke_flag && md->state.provoke_flag == bl->id))
 		return 0;
@@ -1257,40 +1317,6 @@ static int mob_ai_sub_hard_lootsearch(struct block_list *bl,va_list ap)
 	return 0;
 }
 
-/*==========================================
- * Links nearby mobs (supportive mobs)
- *------------------------------------------
- */
-static int mob_ai_sub_hard_linksearch(struct block_list *bl,va_list ap)
-{
-	struct mob_data *md;
-	int class_;
-	struct block_list *target;
-	unsigned int tick;
-	
-	nullpo_retr(0, bl);
-	nullpo_retr(0, ap);
-	md=(struct mob_data *)bl;
-	class_ = va_arg(ap, int);
-	target = va_arg(ap, struct block_list *);
-	tick=va_arg(ap, unsigned int);
-
-	if (md->class_ == class_ && DIFF_TICK(md->last_linktime, tick) < MIN_MOBLINKTIME
-		&& (!md->target_id || md->state.targettype == NONE_ATTACKABLE))
-	{
-		md->last_linktime = tick;
-		if( mob_can_reach(md,target,md->db->range2) ){	// Reachability judging
-			md->target_id = target->id;
-			md->attacked_count = 0;
-			md->state.targettype = ATTACKABLE;
-			md->state.aggressive = (status_get_mode(&md->bl)&MD_ANGRY)?1:0;
-			md->min_chase=md->db->range3;
-			return 1;
-		}
-	}
-
-	return 0;
-}
 /*==========================================
  * Processing of slave monsters
  *------------------------------------------
@@ -1502,22 +1528,6 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 
 	mode = status_get_mode(&md->bl);
 
-	if (md->attacked_id && mode&MD_ASSIST && DIFF_TICK(md->last_linktime, gettick()) < MIN_MOBLINKTIME)
-	{	// Link monster/ if target is not dead [Skotlex]
-		abl = map_id2bl(md->attacked_id);
-		md->last_linktime = tick;
-		if (abl && !status_isdead(abl))
-			map_foreachinarea(mob_ai_sub_hard_linksearch, md->bl.m,
-				md->bl.x-md->db->range2, md->bl.y-md->db->range2,
-				md->bl.x+md->db->range2, md->bl.y+md->db->range2,
-				BL_MOB, md->class_, abl, tick);
-		else
-		{
-			abl = NULL;
-			md->attacked_id = 0;
-		}
-	}
-
 	if (md->target_id)
 	{	//Check validity of current target. [Skotlex]
 		tbl = map_id2bl(md->target_id);
@@ -1535,12 +1545,9 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 			
 	// Check for target change.
 	if (md->attacked_id && mode&MD_CANATTACK && md->attacked_id != md->target_id &&
-		(!tbl ||
-		(mode&MD_CHANGETARGET && md->state.state != MS_WALK) || //Change-target mobs only change when engaged in combat
-		(mode&MD_AGGRESSIVE && md->state.state == MS_WALK) //Aggressive ones can change when attacked while chasing.
-	)) {
-		if (!abl) //Avoid seeking it if we had it from before (friend scan).
-			abl = map_id2bl(md->attacked_id);
+		(!tbl || mob_can_changetarget(md, mode)))
+	{
+		abl = map_id2bl(md->attacked_id);
 		if (abl) {
 			if (md->bl.m != abl->m || abl->prev == NULL ||
 				(dist = distance(md->bl.x, md->bl.y, abl->x, abl->y)) >= 32 ||
@@ -2271,17 +2278,6 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 		mobskill_use(md, tick, MSC_ALCHEMIST);
 	}
 
-/* Uncomment this to enable supportive mobs calling for support when attacked as well as during their AI. [Skotlex]
-	mode = status_get_mode(&md->bl);
-	if (src && status_get_mode(&md->bl) & MD_ASSIST && DIFF_TICK(md->last_linktime, gettick()) < MIN_MOBLINKTIME)
-	{	// Link monster/ if target is not dead [Skotlex]
-		unsigned int tick = gettick();
-		md->last_linktime = tick;
-		map_foreachinarea(mob_ai_sub_hard_linksearch, md->bl.m,
-			md->bl.x-13, md->bl.y-13, md->bl.x+13, md->bl.y+13,
-			BL_MOB, md->class_, src, tick);
-	}
-*/
 	if (battle_config.show_mob_hp)
 		clif_charnameack (0, &md->bl);
 		
