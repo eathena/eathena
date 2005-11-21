@@ -3,7 +3,7 @@
 //===== By: ============================
 //= eAthena Dev Team
 //===== Current Version: =======================
-//= 2.3
+//= 2.4
 //===== Compatible With: ============================
 //= eAthena 1.0
 //===== Description: ============================================
@@ -21,6 +21,7 @@
 //= Added ant hell kafras.  This version uses arrays .[kobra_k88]
 //= Fixed Kafras, not giving you Save menu [Lupus]
 //= 2.3 Removed SAVE menu from dungeons Kafras [Lupus]
+//= 2.4 Now Baby Merchant can pass Merch Job Quest w/o probs [Lupus]
 //===============================================================
 
 
@@ -51,7 +52,7 @@ moc_fild15.gat,264,260,3	script	Kafra	115,{
 izlu2dun.gat,106,58,8	script	Kafra	115,{
 
 	cutin "kafra_03",2;
-	if(Class==Job_Novice && job_merchant_q3>0) callfunc "F_MercKafra";  //F_MercKafra found in merchant.txt
+	if(BaseJob==Job_Novice && job_merchant_q3>0) callfunc "F_MercKafra";  //F_MercKafra found in merchant.txt
 	callfunc "F_Kafra",0,2,1;
 
 	M_Save:

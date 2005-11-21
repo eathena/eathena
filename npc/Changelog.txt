@@ -27,6 +27,8 @@ Nexon
 
 Date		Added
 ======
+11/22
+	* Kafra fixed: Now Baby Merchant can pass Merch Job Quest w/o probs [Lupus]
 11/20
 	* Fixed a major problem in event/xmas.txt [MasterOfMuppets]
 	* Readded Lord of Death to Niflheim [MasterOfMuppets]
