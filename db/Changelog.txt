@@ -35,6 +35,7 @@
 
 	--
 11/21
+	* Updated joblevel stat bonuses of Soullinker and Star Gladiator, thanks to reddozen [MasterOfMuppets]
 	* Massive Reddozen's update of mix-food recipes, also made all Cooking Sets Produce 11; [Lupus]
 	* Made more food/Potion items type 0, fixed typo [Lupus]
 	* Updated rafflesia's mode to make it change-target. [Skotlex]
