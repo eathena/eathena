@@ -1,5 +1,10 @@
 Date	Added
 2005/11/21
+	* The damage delay timer now stores the distance between source/target, if
+	  this distance is increased by 2 or more, the damage delay fails and takes
+	  no effect (if the '2' needs to be made higher, do point it out. It
+	  shouldn't be much of a problem since you aren't supposed to be able to walk
+	  from the damage delay anyway). [Skotlex]
 	* Changed the way damage delay works. It is no longer applied on
 	  mob_damage/pc_damage, but instead is invoked from clif_damage (or
 	  clif_skill_damage), which means the "can't walk" delay is sync'ed with the

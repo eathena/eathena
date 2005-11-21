@@ -1700,7 +1700,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 			md->state.skillstate = md->state.aggressive?MSS_ANGRY:MSS_BERSERK;
 			if (md->state.state == MS_WALK)
 				mob_stop_walking (md, 1);
-			if (md->state.state == MS_ATTACK)
+			else if (md->state.state == MS_ATTACK)
 				return 0; //Ah, we are already attacking.
 			mob_changestate(md, MS_ATTACK, attack_type);
 			return 0;

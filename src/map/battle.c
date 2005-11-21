@@ -193,19 +193,21 @@ struct block_list* battle_gettargeted(struct block_list *target)
 struct delay_damage {
 	struct block_list *src;
 	int target;
-	int attack_type;
-	int skill_lv;
-	int skill_id;
 	int damage;
-	int dmg_lv;
-	int flag;
+	unsigned short distance;
+	unsigned short skill_lv;
+	unsigned short skill_id;
+	unsigned short dmg_lv;
+	unsigned short flag;
+	unsigned char attack_type;
 };
 
 int battle_delay_damage_sub (int tid, unsigned int tick, int id, int data)
 {
 	struct delay_damage *dat = (struct delay_damage *)data;
 	struct block_list *target = map_id2bl(dat->target);
-	if (target && dat && map_id2bl(id) == dat->src && target->prev != NULL && !status_isdead(target))
+	if (target && dat && map_id2bl(id) == dat->src && target->prev != NULL && !status_isdead(target) &&
+		target->m == dat->src->m && distance(dat->src->x, dat->src->y, target->x, target->y) < dat->distance) //Check to see if you haven't teleported. [Skotlex]
 	{
 		battle_damage(dat->src, target, dat->damage, dat->flag);
 		if (!status_isdead(target) && (dat->dmg_lv == ATK_DEF || dat->damage > 0) && dat->attack_type)
@@ -236,6 +238,7 @@ int battle_delay_damage (unsigned int tick, struct block_list *src, struct block
 	dat->damage = damage;
 	dat->dmg_lv = dmg_lv;
 	dat->flag = flag;
+	dat->distance = distance(src->x, src->y, target->x, target->y)+2; //How far away could you be allowed to move in ~0.5 secs?
 	add_timer(tick, battle_delay_damage_sub, src->id, (int)dat);
 	
 	return 0;
