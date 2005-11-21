@@ -31,6 +31,8 @@
 		like gemstones when the skill is used.
 	--
 11/20
+	* Updated mob_db with the mode data from Kyoki and added mob entries 1521
+	  1581. [Skotlex]
 	* Added that bonus INT to Sage/Baby Sage on Job Level 38 [Skotlex]
 	* Updated the monster DB to use all the new modes, all credits to Kyoki [MasterOfMuppets]
 	* Adjusted drops/speed of the Einbroch monsters according to iRO [MasterOfMuppets]
