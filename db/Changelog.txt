@@ -23,14 +23,19 @@
 	5125,Angel_Kiss,Angel's Kiss: Description miss.  This item is for Novice/Super Novice, like any other
 		'Angel' equipments.
 	5126,Morphicious_Hood: When using magic, it cannot be dispelled(Maybe it works like Phen card)
-	12033,Sunshine_Box: should allow seeing cloaked or hidden enemy
-	4198,Maya_Purple_Card: intravision not working atm
+	12033,Sunshine_Box: should allow seeing cloaked or hidden enemy (itravision + timer 20 sec)
+	4198,Maya_Purple_Card: intravision not quite right working atm
 	4296,Cramp_Card: Temporal Plug: 10z per mob-level on a 3% chance.
-	1771,Venom_Knife: For new Asassins skill
-		Item type: Throwing Dagger. Has to be equipped as an arrow, is consumed
-		like gemstones when the skill is used.
+	12122,Dasik - FOOD should add temporary +30 ATK
+	12123,Oil_and_Honey_Pastry - FOOD should add temporary +30 Flee
+	12124,Various_colored_Rice_Cake - FOOD should add temporary +10 ATK +10 MATK
+	7458,Fortune_Horn - it's a custom name yet
+	12016,Speed_Increasing_Potion no bonus... Turbo Track race item
+	12017,Speed_Decreasing_Potion no bonus... Turbo Track race item
+
 	--
 11/20
+	* Changed all mixed food type to 0 - FOOD (healing items) [Lupus]
 	* Updated mob_db with the mode data from Kyoki and added mob entries 1521
 	  1581. [Skotlex]
 	* Added that bonus INT to Sage/Baby Sage on Job Level 38 [Skotlex]
