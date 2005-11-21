@@ -89,8 +89,8 @@ lhz_airport.gat,126,51,4	script	Airport Staff#4::AirportL2	90,{
 		close;
 }
 
-lhz_airport.gat,143,51,4	duplicate(AirportL2)	Airport	Staff#5 90,{
+lhz_airport.gat,143,51,4	duplicate(AirportL2)	Airport Staff#5	90,{
 }
 
-lhz_airport.gat,156,51,4	duplicate(AirportL2)	Airport	Staff#6	90,{
+lhz_airport.gat,156,51,4	duplicate(AirportL2)	Airport Staff#6	90,{
 }

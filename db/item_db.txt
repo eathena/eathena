@@ -66,7 +66,7 @@
 560,White_Chocolate,White Chocolate,0,,10,80,,,,,127918079,7,2,,,,,,{ itemheal rand(100,200),0; }
 561,Milk_Chocolate_Bar,Milk Chocolate,0,,10,80,,,,,127918079,7,2,,,,,,{ itemheal rand(100,200),0; }
 562,Pizza,Pizza,0,,10,150,,,,,127918079,7,2,,,,,,{ itemheal rand(100,200),0; }
-563,Double_Growing_Swiss_Pong_Tyu_,Doublecrust Swiss Fondue,0,,10,150,,,,,127918079,7,3,,,,,,{ itemheal rand(100,200),0; }
+563,Double_Growing_Swiss_Pong_Tyu,Doublecrust Swiss Fondue,0,,10,150,,,,,127918079,7,3,,,,,,{ itemheal rand(100,200),0; }
 564,Meat_Dumpling,Meat Dumpling,0,,10,30,,,,,127918079,7,2,,,,,,{ itemheal rand(175,234),0; }
 565,Vita_500_Bottle,Vita 500,0,2000,100,10,,,,,127918079,7,2,,,,,,{ itemheal 500,0; }
 566,Tom_Yum_Goong,Tom Yum Goong,0,10000,,150,,,,,127918079,7,2,,,,,,{ itemheal rand(100,200),0; }
@@ -83,7 +83,7 @@
 576,Thorned_Fruit,Thorned Fruit,0,,10,40,,,,,127918079,7,2,,,,,,{ itemheal rand(10,15),rand(10,15); }
 577,Grain,Grain,0,200,,20,,,,,16777215,7,2,,,,,,{ itemheal rand(10,14),0; }
 578,Strawberry,Strawberry,0,200,,20,,,,,16777215,7,2,,,,,,{ itemheal 0,rand(10,14); }
-579,Yummy_Fish,Yummy_Fish,0,150,,20,,,,,16777215,7,2,,,,,,{ itemheal rand(40,54),0; }
+579,Yummy_Fish,Yummy Fish,0,150,,20,,,,,16777215,7,2,,,,,,{ itemheal rand(40,54),0; }
 580,Bread,Bread,0,150,,20,,,,,16777215,7,2,,,,,,{ itemheal rand(20,34),0; }
 581,Mushroom,Mushroom,0,40,,20,,,,,16777215,7,2,,,,,,{ itemheal rand(10,14),0; }
 582,Orange,Orange,0,,10,20,,,,,16777215,7,2,,,,,,{ itemheal rand(10,15),rand(10,15); }
@@ -154,8 +154,8 @@
 665,Gift_Box__,Gift Box,2,1000,,200,,,,,127918079,7,2,,,,,,{ getitem -4,1; }
 666,Gift_Box___,Gift Box,2,1000,,200,,,,,127918079,7,2,,,,,,{ getitem -4,1; }
 667,Gift_Box____,Gift Box,2,1000,,200,,,,,127918079,7,2,,,,,,{ getitem -4,1; }
-668,Angpow,Angpow,0,1,,20,,,,,127918079,7,2,,,,,,{ set Zeny,Zeny+rand(1000,10000); }
-669,Rice_Cake_Soup,Rice Cake Soup,2,,10,100,,,,,127918079,7,2,,,,,,{ percentheal -100,-100; }
+668,Angpow,Angpow,2,1,,20,,,,,127918079,7,2,,,,,,{ set Zeny,Zeny+rand(1000,10000); }
+669,Rice_Cake_Soup,Rice Cake Soup,0,,10,100,,,,,127918079,7,2,,,,,,{ percentheal -100,-100; }
 // Coins
 670,Gold_Coin_Pouch,Bag of Gold Coins,2,,10,400,,,,,127918079,7,3,,,,,,{}
 671,Gold_Coin,Gold Coin,2,,10,40,,,,,127918079,7,2,,,,,,{ set Zeny,Zeny+rand(100,1000); }
@@ -165,15 +165,15 @@
 675,Silver_Coin,Silver Coin,2,,10,40,,,,,127918079,7,3,,,,,,{}
 676,Silver_Coin_Pouch,Bag of Silver Coins,2,,10,400,,,,,127918079,7,3,,,,,,{}
 677,Platinum_Coin,Platinum Coin,2,,10,40,,,,,127918079,7,3,,,,,,{}
-678,Deadly_Poison_Bottle,Poison Bottle,2,5000,,100,,,,,127918079,7,2,,,,,,{ if(Class!=4013) goto Not_ASC; sc_start SC_Poison,600000,0; sc_start SC_SpeedPot3,30000,0; end; Not_ASC: percentheal -100,0; }
-679,Pilule,Pilule,2,5000,,300,,,,,127918079,7,3,,,,,,{ itemheal 50,50; }
+678,Deadly_Poison_Bottle,Poison Bottle,0,5000,,100,,,,,127918079,7,2,,,,,,{ if(Class!=4013) goto Not_ASC; sc_start SC_Poison,600000,0; sc_start SC_SpeedPot3,30000,0; end; Not_ASC: percentheal -100,0; }
+679,Pilule,Pilule,0,5000,,300,,,,,127918079,7,3,,,,,,{ itemheal 50,50; }
 680,Carnation,Magical Carnation,2,,10,1000,,,,,127918079,7,3,,,,,,{ itemheal 25,0; }
 681,Wedding_Photo_Album,Wedding Photo Album,2,50000,,10,,,,,127918079,7,3,,,,,,{}
 // ATK/MATK Potions
-682,Realgar_Wine,Realgar Wine,2,,10,100,,,,,127918079,7,2,,,,,,{ sc_start SC_ATKPOT,60000,30; }
-683,Exorcize_Herb,Exorcize Herb,2,,10,50,,,,,127918079,7,2,,,,,,{ sc_start SC_MATKPOT,60000,30; }
-684,Durian,Durian,2,,10,300,,,,,127918079,7,2,,,,,,{ sc_start SC_ATKPOT,60000,10; sc_start SC_MATKPOT,60000,10; }
-685,Ramadan,Ramadan,2,20,,300,,,,,127918079,7,2,,,,,,{}
+682,Realgar_Wine,Realgar Wine,0,,10,100,,,,,127918079,7,2,,,,,,{ sc_start SC_ATKPOT,60000,30; }
+683,Exorcize_Herb,Exorcize Herb,0,,10,50,,,,,127918079,7,2,,,,,,{ sc_start SC_MATKPOT,60000,30; }
+684,Durian,Durian,0,,10,300,,,,,127918079,7,2,,,,,,{ sc_start SC_ATKPOT,60000,10; sc_start SC_MATKPOT,60000,10; }
+685,Ramadan,Ramadan,0,20,,300,,,,,127918079,7,2,,,,,,{}
 // Scrolls
 686,Earth_Spike_3,Earth Spike Level 3,11,650,,10,,,,,127918079,7,2,,,,,,{ itemskill 90,3,"Earth Spike Level 3"; }
 687,Earth_Spike_5,Earth Spike Level 5,11,1300,,10,,,,,127918079,7,2,,,,,,{ itemskill 90,5,"Earth Spike Level 5"; }
@@ -2202,7 +2202,7 @@
 12017,Speed_Decreasing_Potion,Speed Potion,2,1000,,100,,,,,127918079,7,2,,,,,,{}
 12018,Fire_Cracker,Fire Cracker,2,250,,20,,,,,127918079,7,2,,,,,,{ misceffect(256); }
 12019,Sacred_Egg,Sacred Egg,2,,10,150,,,,,127918079,7,2,,,,,,{}
-12020,Cursed_Water,Cursed_Water,2,,1,30,,,,,127918079,7,2,,,,,,{ sc_start SC_Dark, 1200000, 1; }
+12020,Cursed_Water,Cursed_Water,0,,1,30,,,,,127918079,7,2,,,,,,{ sc_start SC_Dark, 1200000, 1; }
 12021,Fatback,Fatback,0,,10,10,,,,,127918079,7,2,,,,,,{ itemheal rand(70,99),0; }
 12022,Ribs,Ribs,0,,10,10,,,,,127918079,7,2,,,,,,{ itemheal rand(70,99),0; }
 12023,2nd_Anniversary_Giftbox,2nd Annual Commemoration Giftbox,2,,10,200,,,,,127918079,7,2,,,,,,{ getitem -4,1; }

@@ -35,6 +35,7 @@
 
 	--
 11/21
+	* Made more food/Potion items type 0, fixed typo [Lupus]
 	* Updated rafflesia's mode to make it change-target. [Skotlex]
 11/20
 	* Changed all mixed food type to 0 - FOOD (healing items) [Lupus]
