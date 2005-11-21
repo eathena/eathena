@@ -1,5 +1,6 @@
 Date	Added
 2005/11/20
+	* Mobs now can't move while casting. [Skotlex]
 	* Updated mob_db.txt and mob_db.sql with the most recent data from Kyoki.
 	  [Skotlex]
 	* Corrected the mob_db by adding the canmove/canattack bits to pretty much

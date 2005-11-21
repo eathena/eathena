@@ -435,7 +435,7 @@ int mob_can_move(struct mob_data *md)
 {
 	nullpo_retr(0, md);
 
-	if(md->canmove_tick > gettick() || (md->opt1 > 0 && md->opt1 != 6) || md->option&2)
+	if(md->canmove_tick > gettick() || md->skilltimer != -1 || (md->opt1 > 0 && md->opt1 != 6) || md->option&2)
 		return 0;
 	// アンクル中で動けないとか
 	if( md->sc_data[SC_ANKLE].timer != -1 || //アンクルスネア
