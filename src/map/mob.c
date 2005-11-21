@@ -690,7 +690,7 @@ static int mob_attack(struct mob_data *md,unsigned int tick,int data)
 	}
 
 	md->state.skillstate=md->state.aggressive?MSS_ANGRY:MSS_BERSERK;
-	if( mobskill_use(md,tick,-2) )	// スキル使用
+	if( mobskill_use(md,tick,-1) )	// スキル使用
 		return 0;
 
 	if(md->sc_data && md->sc_data[SC_WINKCHARM].timer != -1)
@@ -1167,8 +1167,8 @@ int mob_stop_walking(struct mob_data *md,int type)
 static int mob_can_changetarget(struct mob_data* md, int mode)
 {
 	switch (md->state.skillstate) {
-		case MSS_BERSERK: //Only Assist or Aggressive+CastSensor mobs can change target while attacking.
-			return (mode&MD_ASSIST || (mode&(MD_AGGRESSIVE|MD_CASTSENSOR)) == (MD_AGGRESSIVE|MD_CASTSENSOR));
+		case MSS_BERSERK: //Only Assist, Angry or Aggressive+CastSensor mobs can change target while attacking.
+			return (mode&(MD_ASSIST|MD_ANGRY) || (mode&(MD_AGGRESSIVE|MD_CASTSENSOR)) == (MD_AGGRESSIVE|MD_CASTSENSOR));
 		case MSS_RUSH:
 			return (mode&MD_AGGRESSIVE);
 		case MSS_FOLLOW:
