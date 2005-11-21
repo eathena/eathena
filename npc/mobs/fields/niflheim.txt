@@ -3,13 +3,14 @@
 //===== By: ==================================================
 //= Athena (1.0)
 //===== Current Version: =====================================
-//= 1.4
+//= 1.4a
 //===== Compatible With: =====================================
 //= Any Athena Version
 //===== Additional Comments: =================================
 //= 1.2 updated [shadow],
 //= 1.3 many changes and wrong LOD ID 5373 -> 1373 [Lupus]
 //= 1.4 removed yggdrasil from this file [DracoRPG]
+//= 1.4a Readded Lord of Death, why was it removed anyway? [MasterOfMuppets]
 //============================================================
 
 //niflheim
@@ -18,6 +19,7 @@ niflheim.gat,0,0,0,0	monster	Gibbet	1503,10,1200000,600000,0
 niflheim.gat,0,0,0,0	monster	Hylozoist	1510,10,1200000,600000,0
 niflheim.gat,0,0,0,0	monster	Quve	1508,20,300000,150000,0
 niflheim.gat,0,0,0,0	monster	Lude	1509,20,300000,150000,0
+niflheim.gat,0,0,0,0	monster	Lord of Death	1373,1,7200000,3600000,1
 
 //nif_fild01
 nif_fild01.gat,0,0,0,0	monster	Disguise	1506,20,0,0,0
