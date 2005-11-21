@@ -4171,7 +4171,7 @@ int do_init(int argc, char **argv){
 
 
 
-	ShowInfo("char server init func end (now unlimited loop start!)....\n");
+	ShowInfo("End of char server initilization function.\n");
 	ShowStatus("The char-server is \033[1;32mready\033[0m (Server is listening on the port %d).\n\n", char_port);
 	return 0;
 }
