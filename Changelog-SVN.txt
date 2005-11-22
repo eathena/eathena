@@ -1,5 +1,5 @@
 Date	Added
-2005/11/21
+2005/11/22
 	* Some more fixes to the english in ShowInfo()'s [Kayla]
 	* Cleaned out the SVN a bit [Kayla]
 2005/11/21
