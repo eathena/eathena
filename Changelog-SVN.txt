@@ -1,6 +1,9 @@
 Date	Added
 2005/11/21
-	* Removed "(now unlimited loop start!)" from char-sql in an info line...wtf..[Kayla]
+	* Some more fixes to the english in ShowInfo()'s [Kayla]
+	* Cleaned out the SVN a bit [Kayla]
+2005/11/21
+	* Removed "(now unlimited loop start!)" from char-sql in an info line...wtf xD..[Kayla]
 	* Mob AI update: updated the conditions used to specify if a mob can change
 	  targets as per the forum provided information (by Komurka and Kyoki).
 	  Mode 512 (MD_CHANGETARGET) no longer does anything. [Skotlex]

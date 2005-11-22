@@ -1203,7 +1203,7 @@ int mmo_char_sql_init(void) {
 
         char_db_=numdb_init();
 
-	ShowInfo("init start.......\n");
+	ShowInfo("Begin Initializing.......\n");
 	// memory initialize
 	// no need to set twice size in this routine. but some cause segmentation error. :P
 	// The hell? Why segmentation faults? Sounds like a bug that needs addressing... [Skotlex]
@@ -1254,7 +1254,7 @@ int mmo_char_sql_init(void) {
 	//it will dc all off players
 	//and send the loginserver the new state....
 
-	ShowInfo("init end.......\n");
+	ShowInfo("Finished initilizing.......\n");
 
 	return 0;
 }
@@ -4073,15 +4073,15 @@ int do_init(int argc, char **argv){
 	char_lan_config_read((argc > 1) ? argv[1] : LAN_CONF_NAME);
 	sql_config_read(SQL_CONF_NAME);
 
-	ShowInfo("charserver configuration reading done.\n");
+	ShowInfo("Finished reading the char-server configuration.\n");
 
 	inter_init((argc > 2) ? argv[2] : inter_cfgName); // inter server √ ±‚»≠
-	ShowInfo("interserver configuration reading done.\n");
+	ShowInfo("Finished reading the inter-server configuration.\n");
 
 	//Read ItemDB
 	do_init_itemdb();
 
-	ShowInfo("start char server initializing.\n");
+	ShowInfo("Initializing char server.\n");
 	online_char_db = numdb_init();
 	mmo_char_sql_init();
 	ShowInfo("char server initialized.\n");
