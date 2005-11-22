@@ -548,7 +548,7 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_MuteArea,			"@mutearea",		99, atcommand_mutearea }, // MouseJstr
 	{ AtCommand_MuteArea,			"@stfu",			99, atcommand_mutearea }, // MouseJstr
 	{ AtCommand_Shuffle,			"@shuffle",			40, atcommand_shuffle }, // MouseJstr
-	{ AtCommand_Rates,				"@rates",			10, atcommand_rates }, // MouseJstr
+	{ AtCommand_Rates,				"@rates",			1, atcommand_rates }, // MouseJstr
 
 	{ AtCommand_ItemInfo,			"@iteminfo",		1, atcommand_iteminfo }, // [Lupus]
 	{ AtCommand_ItemInfo,			"@ii",		1, atcommand_iteminfo }, // [Lupus]

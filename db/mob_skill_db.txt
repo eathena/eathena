@@ -470,7 +470,7 @@
 1105,Deniro@NPC_EMOTION,loot,197,1,2000,0,5000,yes,self,always,0,19,,,,,
 1105,Deniro@NPC_GROUNDATTACK,attack,185,2,500,500,5000,no,target,always,0,,,,,,
 1106,Desert Wolf@NPC_EMOTION,chase,197,1,20,0,5000,yes,self,always,0,19,129,,,,
-1106,Desert Wolf@NPC_EMOTION,idle,197,1,200,0,5000,yes,self,always,0,6,653,,,,
+1106,Desert Wolf@NPC_EMOTION,idle,197,1,200,0,5000,yes,self,always,0,6,141,,,,
 1106,Desert Wolf@NPC_FIREATTACK,attack,186,1,2000,0,5000,yes,target,always,0,,,,,,
 1106,Desert Wolf@TF_SPRINKLESAND,attack,149,1,500,0,5000,yes,target,always,0,,,,,,6
 1107,Desert Wolf Puppy@NPC_EMOTION,walk,197,1,200,0,5000,yes,self,always,0,2,,,,,
@@ -579,23 +579,23 @@
 1121,Giearth@TF_SPRINKLESAND,attack,149,1,500,0,5000,yes,target,always,0,,,,,,6
 1122,Goblin 1@NPC_EMOTION,chase,197,1,20,0,5000,yes,self,always,0,19,129,,,,
 1122,Goblin 1@NPC_EMOTION,chase,197,1,200,0,5000,yes,self,always,0,18,,,,,
-1122,Goblin 1@NPC_EMOTION,idle,197,1,200,0,5000,yes,self,always,0,2,653,,,,
+1122,Goblin 1@NPC_EMOTION,idle,197,1,200,0,5000,yes,self,always,0,2,141,,,,
 1122,Goblin 1@NPC_WINDATTACK,attack,187,2,500,500,5000,no,target,always,0,,,,,,
 1123,Goblin 2@NPC_EMOTION,chase,197,1,20,0,5000,yes,self,always,0,19,129,,,,
 1123,Goblin 2@NPC_EMOTION,chase,197,1,200,0,5000,yes,self,always,0,29,,,,,
-1123,Goblin 2@NPC_EMOTION,idle,197,1,200,0,5000,yes,self,always,0,2,653,,,,
+1123,Goblin 2@NPC_EMOTION,idle,197,1,200,0,5000,yes,self,always,0,2,141,,,,
 1123,Goblin 2@NPC_FIREATTACK,attack,186,2,500,500,5000,no,target,always,0,,,,,,
 1124,Goblin 3@NPC_EMOTION,chase,197,1,20,0,5000,yes,self,always,0,19,129,,,,
 1124,Goblin 3@NPC_EMOTION,chase,197,1,200,0,5000,yes,self,always,0,9,,,,,
-1124,Goblin 3@NPC_EMOTION,idle,197,1,200,0,5000,yes,self,always,0,2,653,,,,
+1124,Goblin 3@NPC_EMOTION,idle,197,1,200,0,5000,yes,self,always,0,2,141,,,,
 1124,Goblin 3@NPC_POISONATTACK,attack,188,2,500,500,5000,no,target,always,0,,,,,,
 1125,Goblin 4@NPC_EMOTION,chase,197,1,20,0,5000,yes,self,always,0,19,129,,,,
 1125,Goblin 4@NPC_EMOTION,chase,197,1,200,0,5000,yes,self,always,0,20,,,,,
-1125,Goblin 4@NPC_EMOTION,idle,197,1,200,0,5000,yes,self,always,0,2,653,,,,
+1125,Goblin 4@NPC_EMOTION,idle,197,1,200,0,5000,yes,self,always,0,2,141,,,,
 1125,Goblin 4@NPC_GROUNDATTACK,attack,185,2,500,500,5000,no,target,always,0,,,,,,
 1126,Goblin 5@NPC_EMOTION,chase,197,1,20,0,5000,yes,self,always,0,19,129,,,,
 1126,Goblin 5@NPC_EMOTION,chase,197,1,200,0,5000,yes,self,always,0,28,,,,,
-1126,Goblin 5@NPC_EMOTION,idle,197,1,200,0,5000,yes,self,always,0,2,653,,,,
+1126,Goblin 5@NPC_EMOTION,idle,197,1,200,0,5000,yes,self,always,0,2,141,,,,
 1126,Goblin 5@NPC_WATERATTACK,attack,184,2,500,500,5000,no,target,always,0,,,,,,
 1127,Hode@AS_CLOAKING,attack,135,1,2000,200,5000,yes,self,always,0,,,,,,
 1127,Hode@AS_CLOAKING,chase,135,1,200,200,5000,yes,self,always,0,,,,,,
@@ -635,15 +635,15 @@
 1132,Khalitzburg@NPC_STUNATTACK,attack,179,3,500,1500,5000,no,target,always,0,,,,,,9
 1133,Kobold 1@NPC_EMOTION,chase,197,1,20,0,5000,yes,self,always,0,19,129,,,,
 1133,Kobold 1@NPC_EMOTION,idle,197,1,200,0,5000,yes,self,always,0,22,,,,,
-1133,Kobold 1@NPC_EMOTION,idle,197,1,200,0,5000,yes,self,always,0,9,653,,,,
+1133,Kobold 1@NPC_EMOTION,idle,197,1,200,0,5000,yes,self,always,0,9,141,,,,
 1133,Kobold 1@NPC_WINDATTACK,attack,187,3,500,500,5000,no,target,always,0,,,,,,6
 1134,Kobold 2@NPC_EMOTION,chase,197,1,20,0,5000,yes,self,always,0,19,129,,,,
 1134,Kobold 2@NPC_EMOTION,idle,197,1,200,0,5000,yes,self,always,0,22,,,,,
-1134,Kobold 2@NPC_EMOTION,idle,197,1,200,0,5000,yes,self,always,0,9,653,,,,
+1134,Kobold 2@NPC_EMOTION,idle,197,1,200,0,5000,yes,self,always,0,9,141,,,,
 1134,Kobold 2@NPC_POISONATTACK,attack,188,3,500,500,5000,no,target,always,0,,,,,,6
 1135,Kobold 3@NPC_EMOTION,chase,197,1,20,0,5000,yes,self,always,0,19,129,,,,
 1135,Kobold 3@NPC_EMOTION,idle,197,1,200,0,5000,yes,self,always,0,22,,,,,
-1135,Kobold 3@NPC_EMOTION,idle,197,1,200,0,5000,yes,self,always,0,9,653,,,,
+1135,Kobold 3@NPC_EMOTION,idle,197,1,200,0,5000,yes,self,always,0,9,141,,,,
 1135,Kobold 3@NPC_FIREATTACK,attack,186,3,500,500,5000,no,target,always,0,,,,,,6
 1138,Magnolia@HT_FLASHER,idle,120,5,50,0,300000,yes,self,always,0,,,,,,29
 1138,Magnolia@NPC_EMOTION,idle,197,1,200,0,5000,yes,self,always,0,28,,,,,
@@ -1520,7 +1520,7 @@
 1371,Fake Angel@NPC_SILENCEATTACK,follow,178,5,50,700,5000,no,target,always,0,,,,,,29
 1372,Goat@BS_ADRENALINE,attack,111,10,500,1500,300000,no,self,always,0,,,,,,6
 1372,Goat@BS_ADRENALINE,chase,111,10,50,1500,300000,no,self,always,0,,,,,,6
-1372,Goat@NPC_EMOTION,chase,197,1,20,0,5000,yes,self,always,0,19,649,,,,
+1372,Goat@NPC_EMOTION,chase,197,1,20,0,5000,yes,self,always,0,19,137,,,,
 1372,Goat@NPC_SPLASHATTACK,attack,174,1,2000,0,5000,yes,target,attackpcgt,2,,,,,,
 1372,Goat@NPC_STUNATTACK,attack,179,3,500,1500,5000,no,target,always,0,,,,,,6
 1373,Lord of Death@AL_DECAGI,chase,30,10,200,0,60000,no,target,always,0,,,,,,
@@ -1620,14 +1620,14 @@
 1383,Explosion@SM_MAGNUM,attack,7,5,500,500,5000,no,target,always,0,,,,,,
 1384,Sky Deleter@MG_FIREBALL,chase,17,9,50,0,5000,yes,target,always,0,,,,,,
 1384,Sky Deleter@NPC_EMOTION,chase,197,1,20,0,5000,yes,self,always,0,19,129,,,,
-1384,Sky Deleter@NPC_EMOTION,idle,197,1,200,0,5000,yes,self,always,0,6,653,,,,
+1384,Sky Deleter@NPC_EMOTION,idle,197,1,200,0,5000,yes,self,always,0,6,141,,,,
 1384,Sky Deleter@NPC_FIREATTACK,attack,186,3,500,500,5000,no,target,always,0,,,,,,6
 1384,Sky Deleter@NPC_FIREATTACK,attack,186,3,500,500,5000,no,target,always,0,,,,,,6
 1384,Sky Deleter@NPC_PIERCINGATT,attack,158,1,500,0,5000,yes,target,always,0,,,,,,
 1385,Earth Deleter@MG_FIREWALL,attack,18,5,500,500,5000,yes,target,always,0,,,,,,
 1385,Earth Deleter@MG_FIREWALL,chase,18,5,50,500,5000,yes,target,always,0,,,,,,
 1385,Earth Deleter@NPC_EMOTION,chase,197,1,20,0,5000,yes,self,always,0,19,129,,,,
-1385,Earth Deleter@NPC_EMOTION,idle,197,1,200,0,5000,yes,self,always,0,6,653,,,,
+1385,Earth Deleter@NPC_EMOTION,idle,197,1,200,0,5000,yes,self,always,0,6,141,,,,
 1385,Earth Deleter@NPC_FIREATTACK,attack,186,3,500,500,5000,no,target,always,0,,,,,,6
 1385,Earth Deleter@NPC_FIREATTACK,chase,186,3,50,500,5000,no,target,always,0,,,,,,6
 1385,Earth Deleter@SM_MAGNUM,attack,7,9,500,500,5000,no,target,always,0,,,,,,

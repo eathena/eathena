@@ -1,5 +1,8 @@
 Date	Added
 2005/11/22
+	* Updated the config comments for the ip-related settings. Thanks to
+	  akusarujin for the update. [Skotlex]
+	* Added rates to at_command.conf, set it's default to GM lv1 [Skotlex]
 	* Removed the icon from Fire Break's fire-elemental bonus. [Skotlex]
 	* Updated the walkdelay function to only be invoked if the attack did
 	  damage. [Skotlex]
