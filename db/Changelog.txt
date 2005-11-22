@@ -35,6 +35,8 @@
 
 	--
 11/22
+	* Merged in Komurka's latest update to the mob_skill_db.txt [Skotlex]
+	* Updated Firewall's knockback to 2. [Skotlex]
 	* Updated the job bonuses for a bunch of jobs, thanks to Haplo for going
 	  through the kRO job bonus db. [Skotlex]
 	* Fixed g_bloody_butterfly - 1526, thanks to Zoc for finding it [Kayla]

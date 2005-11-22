@@ -1535,7 +1535,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 		{	//Unlock current target.
 			if (md->state.state == MS_WALK)
 			{	//Confused!
-				mob_stop_walking(md, 0);
+				mob_stop_walking(md, 2);
 			//	clif_emotion(&md->bl, 1); This emotion isn't really official...
 			}
 			mob_unlocktarget(md, tick);
