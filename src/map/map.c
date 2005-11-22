@@ -3006,7 +3006,7 @@ int map_config_read(char *cfgName) {
 			} else if (strcmpi(w1, "console") == 0) {
 				if(strcmpi(w2,"on") == 0 || strcmpi(w2,"yes") == 0 ) {
 					console = 1;
-					ShowNotice("Console Commands is enabled.\n");
+					ShowNotice("Console Commands are enabled.\n");
 				}
 			} else if (strcmpi(w1, "enable_spy") == 0) {
 				if(strcmpi(w2,"on") == 0 || strcmpi(w2,"yes") == 0 )
@@ -3142,7 +3142,7 @@ int map_sql_init(void){
     mysql_init(&mmysql_handle);
 
 	//DB connection start
-	ShowInfo("Connect Map DB Server....\n");
+	ShowInfo("Connecting to the Map DB Server....\n");
 	if(!mysql_real_connect(&mmysql_handle, map_server_ip, map_server_id, map_server_pw,
 		map_server_db ,map_server_port, (char *)NULL, 0)) {
 			//pointer check
@@ -3156,7 +3156,7 @@ int map_sql_init(void){
     mysql_init(&lmysql_handle);
 
     //DB connection start
-    ShowInfo("Connect Login DB Server....\n");
+    ShowInfo("Connecting to the Login DB Server....\n");
     if(!mysql_real_connect(&lmysql_handle, login_server_ip, login_server_id, login_server_pw,
         login_server_db ,login_server_port, (char *)NULL, 0)) {
 	        //pointer check
@@ -3203,7 +3203,7 @@ int log_sql_init(void){
     mysql_init(&logmysql_handle);
 
 	//DB connection start
-	ShowInfo(""CL_WHITE"[SQL]"CL_RESET": Connecting to Log Database "CL_WHITE"%s"CL_RESET" At "CL_WHITE"%s"CL_RESET"...\n",log_db,log_db_ip);
+	ShowInfo(""CL_WHITE"[SQL]"CL_RESET": Connecting to the Log Database "CL_WHITE"%s"CL_RESET" At "CL_WHITE"%s"CL_RESET"...\n",log_db,log_db_ip);
 	if(!mysql_real_connect(&logmysql_handle, log_db_ip, log_db_id, log_db_pw,
 		log_db ,log_db_port, (char *)NULL, 0)) {
 			//pointer check

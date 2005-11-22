@@ -1782,8 +1782,8 @@ int parse_tologin(int fd) {
 				return 0;
 			if (RFIFOB(fd,2)) {
 //				printf("connect login server error : %d\n", RFIFOB(fd,2));
-				ShowError("Can not connect to login-server.\n");
-				ShowError("The server communication passwords (default s1/p1) is probably invalid.\n");
+				ShowError("Can not connect to the login-server.\n");
+				ShowError("The server communication passwords (default s1/p1) are probably invalid.\n");
 				ShowInfo("Also, please make sure your accounts file (default: accounts.txt) has those values present.\n");
 				ShowInfo("If you changed the communication passwords, change them back at map_athena.conf and char_athena.conf\n");
 				exit(1);

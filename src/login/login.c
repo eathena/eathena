@@ -3350,7 +3350,7 @@ int login_lan_config_read(const char *lancfgName) {
 		return 1;
 	}
 
-	ShowInfo("reading configuration file %s...\n", lancfgName);
+	ShowInfo("Reading the configuration file %s...\n", lancfgName);
 
 	while(fgets(line, sizeof(line)-1, fp)) {
 		if (line[0] == '/' && line[1] == '/')
@@ -3418,7 +3418,7 @@ int login_lan_config_read(const char *lancfgName) {
 		}
 	}
 
-	ShowInfo("done reading %s.\n", lancfgName);
+	ShowInfo("Finished reading %s.\n", lancfgName);
 
 	return 0;
 }
@@ -3438,7 +3438,7 @@ int login_config_read(const char *cfgName) {
 		return 1;
 	}
 
-	ShowInfo("reading configuration file %s...\n", cfgName);
+	ShowInfo("Reading configuration file %s...\n", cfgName);
 	while(fgets(line, sizeof(line)-1, fp)) {
 		if (line[0] == '/' && line[1] == '/')
 			continue;
@@ -3648,7 +3648,7 @@ int login_config_read(const char *cfgName) {
 	}
 	fclose(fp);
 
-	ShowInfo("done reading %s.\n", cfgName);
+	ShowInfo("Finished reading %s.\n", cfgName);
 
 	return 0;
 }
