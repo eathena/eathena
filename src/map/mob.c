@@ -1164,11 +1164,14 @@ int mob_stop_walking(struct mob_data *md,int type)
  * Determines if the mob can change target. [Skotlex]
  *------------------------------------------
  */
-static int mob_can_changetarget(struct mob_data* md, int mode)
+static int mob_can_changetarget(struct mob_data* md, struct block_list* target, int mode)
 {
 	switch (md->state.skillstate) {
 		case MSS_BERSERK: //Only Assist, Angry or Aggressive+CastSensor mobs can change target while attacking.
-			return (mode&(MD_ASSIST|MD_ANGRY) || (mode&(MD_AGGRESSIVE|MD_CASTSENSOR)) == (MD_AGGRESSIVE|MD_CASTSENSOR));
+			if (mode&(MD_ASSIST|MD_ANGRY) || (mode&(MD_AGGRESSIVE|MD_CASTSENSOR)) == (MD_AGGRESSIVE|MD_CASTSENSOR))
+				return (battle_config.mob_ai&4 || distance(md->bl.x, md->bl.y, target->x, target->y) <= 3);
+			else
+				return 0;
 		case MSS_RUSH:
 			return (mode&MD_AGGRESSIVE);
 		case MSS_FOLLOW:
@@ -1192,7 +1195,7 @@ int mob_target(struct mob_data *md,struct block_list *bl,int dist)
 	nullpo_retr(0, bl);
 
 	// Nothing will be carried out if there is no mind of changing TAGE by TAGE ending.
-	if((md->target_id > 0 && md->state.targettype == ATTACKABLE) && !mob_can_changetarget(md, status_get_mode(&md->bl)) &&
+	if((md->target_id > 0 && md->state.targettype == ATTACKABLE) && !mob_can_changetarget(md, bl, status_get_mode(&md->bl)) &&
 		// if the monster was provoked ignore the above rule [celest]
 		!(md->state.provoke_flag && md->state.provoke_flag == bl->id))
 		return 0;
@@ -1544,11 +1547,10 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 	}
 			
 	// Check for target change.
-	if (md->attacked_id && mode&MD_CANATTACK && md->attacked_id != md->target_id &&
-		(!tbl || mob_can_changetarget(md, mode)))
+	if (md->attacked_id && mode&MD_CANATTACK && md->attacked_id != md->target_id)
 	{
 		abl = map_id2bl(md->attacked_id);
-		if (abl) {
+		if (abl && (!tbl || mob_can_changetarget(md, abl, mode))) {
 			if (md->bl.m != abl->m || abl->prev == NULL ||
 				(dist = distance(md->bl.x, md->bl.y, abl->x, abl->y)) >= 32 ||
 				battle_check_target(bl, abl, BCT_ENEMY) <= 0 ||

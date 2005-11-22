@@ -1,5 +1,9 @@
 Date	Added
 2005/11/22
+	* Updated mob ai to enable changing targets while attacking ONLY if the
+	  attacker is within melee range (Aegis AI). monster_ai&4 can be used to
+	  override this and allow mobs to change target and pursue ranged attackers.
+	  [Skotlex]
 	* Updated the config comments for the ip-related settings. Thanks to
 	  akusarujin for the update. [Skotlex]
 	* Added rates to at_command.conf, set it's default to GM lv1 [Skotlex]
