@@ -4414,7 +4414,8 @@ int clif_skillinfo(struct map_session_data *sd,int skillid,int type,int range)
 			range = status_get_range(&sd->bl) - (range + 1);
 	}
 	WFIFOW(fd,12)= range;
-	memset(WFIFOP(fd,14),0,24);
+	memset(WFIFOP(fd,14),0,NAME_LENGTH);
+	strncpy(WFIFOP(fd,14), skill_get_name(id, 0), NAME_LENGTH);
 	inf2 = skill_get_inf2(id);
 	if(((!(inf2&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) &&
 		!(inf2&INF2_WEDDING_SKILL)) ||
@@ -4452,7 +4453,8 @@ int clif_skillinfoblock(struct map_session_data *sd)
 			if(range < 0)
 				range = status_get_range(&sd->bl) - (range + 1);
 			WFIFOW(fd,len+10)= range;
-			memset(WFIFOP(fd,len+12),0,24);
+			memset(WFIFOP(fd,len+12),0,NAME_LENGTH);
+			strncpy(WFIFOP(fd,len+12), skill_get_name(id, 0), NAME_LENGTH);
 			inf2 = skill_get_inf2(id);
 			if(((!(inf2&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) &&
 				!(inf2&INF2_WEDDING_SKILL)) ||

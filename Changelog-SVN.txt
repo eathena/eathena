@@ -1,5 +1,7 @@
 Date	Added
 2005/11/22
+	* Updated the skill info packets to deliver the skill names as expected by
+	  the client. [Skotlex]
 	* Updated mob ai to enable changing targets while attacking ONLY if the
 	  attacker is within melee range (Aegis AI). monster_ai&4 can be used to
 	  override this and allow mobs to change target and pursue ranged attackers.

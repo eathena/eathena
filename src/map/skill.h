@@ -151,6 +151,7 @@ int	skill_get_maxcount( int id );
 int	skill_get_blewcount( int id ,int lv );
 int	skill_get_unit_flag( int id );
 int	skill_tree_get_max( int id, int b_class );	// Celest
+const char*	skill_get_name( int id ); 	// [Skotlex]
 
 // スキルの使用
 int skill_use_id( struct map_session_data *sd, int target_id,
