@@ -441,7 +441,7 @@ struct map_session_data {
 	int  npc_scriptstate;
 	char npc_str[256];
 	unsigned int chatID;
-	unsigned long idletime;
+	time_t idletime;
 
 	struct{
 		char name[NAME_LENGTH];

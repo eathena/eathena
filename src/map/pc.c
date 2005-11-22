@@ -1052,7 +1052,7 @@ int pc_calc_skilltree_normalize_job(struct map_session_data *sd) {
 		int skill_point = pc_calc_skillpoint(sd);
 		if(skill_point < 9)
 			c = JOB_NOVICE;
-		else if (((c > JOB_THIEF && c < JOB_SUPER_NOVICE) || c == JOB_TAEKWON) && sd->status.skill_point >= sd->status.job_level && ((sd->change_level > 0 && skill_point < sd->change_level+8) || skill_point < 58)) {
+		else if (((c > JOB_THIEF && c < JOB_SUPER_NOVICE) || c == JOB_TAEKWON) && sd->status.skill_point >= (int)sd->status.job_level && ((sd->change_level > 0 && skill_point < sd->change_level+8) || skill_point < 58)) {
 			switch(c) {
 				case JOB_KNIGHT:
 				case JOB_KNIGHT2:
@@ -5305,8 +5305,8 @@ int pc_setparam(struct map_session_data *sd,int type,int val)
 	case SP_BASELEVEL:
 		if ((val+ sd->status.base_level) > battle_config.max_base_level) //Capping to max
 			val = battle_config.max_base_level - sd->status.base_level;
-		if (val > sd->status.base_level) {
-			for (i = 1; i <= (val - sd->status.base_level); i++)
+		if (val > (int)sd->status.base_level) {
+			for (i = 1; i <= (val - (int)sd->status.base_level); i++)
 				sd->status.status_point += (sd->status.base_level + i + 14) / 5 ;
 		}
 		sd->status.base_level = val;
@@ -5325,7 +5325,7 @@ int pc_setparam(struct map_session_data *sd,int type,int val)
 			up_level = battle_config.max_sn_level;
 		else if (sd->class_&JOBL_UPPER && sd->class_&JOBL_2) //3rd Job has 70 Job Levels
 			up_level = battle_config.max_adv_level;
-		if (val >= sd->status.job_level) {
+		if (val >= (int)sd->status.job_level) {
 			if (val > up_level) val = up_level;
 			sd->status.skill_point += (val-sd->status.job_level);
 			sd->status.job_level = val;
@@ -7419,7 +7419,7 @@ int pc_read_gm_account(int fd)
 	}
 	lsql_res = mysql_store_result(&lmysql_handle);
 	if (lsql_res) {
-	    gm_account = (struct gm_account *) aCallocA(mysql_num_rows(lsql_res), sizeof(struct gm_account));
+	    gm_account = (struct gm_account *) aCallocA((size_t)mysql_num_rows(lsql_res), sizeof(struct gm_account));
 	    while ((lsql_row = mysql_fetch_row(lsql_res))) {
 	        gm_account[GM_num].account_id = atoi(lsql_row[0]);
 		    gm_account[GM_num].level = atoi(lsql_row[1]);

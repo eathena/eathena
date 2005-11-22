@@ -8858,7 +8858,7 @@ int buildin_charisalpha(struct script_state *st) {
 	char *str=conv_str(st,& (st->stack->stack_data[st->start+2]));
 	int pos=conv_num(st,& (st->stack->stack_data[st->start+3]));
 
-	int val = ( str && pos>0 && pos<strlen(str) ) ? isalpha( str[pos] ) : 0;
+	int val = ( str && pos>0 && (unsigned int)pos<strlen(str) ) ? isalpha( str[pos] ) : 0;
 
 	push_val(st->stack,C_INT,val);
 	return 0;

@@ -1,5 +1,8 @@
 Date	Added
 2005/11/22
+	* Removed the icon from Fire Break's fire-elemental bonus. [Skotlex]
+	* Updated the walkdelay function to only be invoked if the attack did
+	  damage. [Skotlex]
 	* Some more fixes to the english in ShowInfo()'s [Kayla]
 	* Cleaned out the SVN a bit [Kayla]
 2005/11/21

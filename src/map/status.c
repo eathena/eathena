@@ -529,7 +529,6 @@ void initStatusIconChangeTable() {
 	StatusIconChangeTable[SC_SPEARSQUICKEN] = SI_SPEARQUICKEN;
 	StatusIconChangeTable[SC_EXPLOSIONSPIRITS] = SI_EXPLOSIONSPIRITS;
 	StatusIconChangeTable[SC_FURY] = SI_FURY;
-	StatusIconChangeTable[SC_WATK_ELEMENT] = SI_FIREWEAPON;
 	StatusIconChangeTable[SC_FIREWEAPON] = SI_FIREWEAPON;
 	StatusIconChangeTable[SC_WATERWEAPON] = SI_WATERWEAPON;
 	StatusIconChangeTable[SC_WINDWEAPON] = SI_WINDWEAPON;

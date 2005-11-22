@@ -848,7 +848,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 
 	case SM_BASH:			/* ƒoƒbƒVƒ…?i‹}?Š?U??j */
 		if( sd && skilllv > 5 && pc_checkskill(sd,SM_FATALBLOW)>0 ){
-			if( rand()%100 < (5*(skilllv-5)+sd->status.base_level/10)*sc_def_vit/100 ) //TODO: How much % per base level it actually is?
+			if( rand()%100 < (5*(skilllv-5)+(int)sd->status.base_level/10)*sc_def_vit/100 ) //TODO: How much % per base level it actually is?
 				status_change_start(bl,SC_STAN,skilllv,0,0,0,skill_get_time2(SM_FATALBLOW,skilllv),0);
 		}
 		break;
