@@ -34,6 +34,8 @@
 	12017,Speed_Decreasing_Potion no bonus... Turbo Track race item
 
 	--
+11/22
+	* Fixed g_bloody_butterfly - 1526, thanks to Zoc for finding it [Kayla]
 11/21
 	* Changed a Coma effect. Thanks to Luna. [Nexon]
 	* Updated joblevel stat bonuses of Soullinker and Star Gladiator, thanks to reddozen [MasterOfMuppets]
