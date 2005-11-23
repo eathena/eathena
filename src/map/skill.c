@@ -8298,28 +8298,15 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 	if (!skill_check_condition(sd,0)) return 0;	
 
 	if(sd->bl.id != target_id){ // Don't check range for self skills, this is useless...
-		int check_range_flag = 0, range;
-
-		/* 射程と?瘧Q物チェック */
-		range = skill_get_range(skill_num,skill_lv);
-		if(range < 0)
-			range = status_get_range(&sd->bl) - (range + 1);
+		//It complicates a little the reading, but it's more efficient to reuse the variable than defining a new one. 
+		//Here 'casttime' is actually 'range' [Skotlex]
+		casttime = skill_get_range(skill_num,skill_lv);
+		if(casttime < 0)
+			casttime = status_get_range(&sd->bl) - (casttime + 1);
+		casttime++; //For some odd reason, Aegis allows this extra range tile.
 		
-		if (sd->walktimer != -1)
-		{	//Because of the sync issues between map and client, we increase the range by one
-			//and make the char move towards the target one cell. [Skotlex]
-			range++;
-			check_range_flag = 1;
-		}
-		
-		if(!battle_check_range(&sd->bl,bl,range))
+		if(!battle_check_range(&sd->bl,bl,casttime))
 			return 0;
-		
-		if (check_range_flag && pc_can_move(sd)) {
-			int mask[8][2] = {{0,1},{-1,1},{-1,0},{-1,-1},{0,-1},{1,-1},{1,0},{1,1}};
-			int dir = map_calc_dir(&sd->bl,bl->x,bl->y);
-			pc_walktoxy (sd, sd->bl.x + mask[dir][0], sd->bl.y + mask[dir][1]);
-		} 
 	}
 
 	if ((skill_num != MO_CHAINCOMBO &&
@@ -8506,30 +8493,16 @@ int skill_use_pos (struct map_session_data *sd, int skill_x, int skill_y, int sk
 	bl.x = skill_x;
 	bl.y = skill_y;
 
-	{
-		int check_range_flag = 0, range;
-
-		/* 射程と?瘧Q物チェック */
-		range = skill_get_range(skill_num,skill_lv);
-		if(range < 0)
-			range = status_get_range(&sd->bl) - (range + 1);
+	//It complicates a little the reading, but it's more efficient to reuse the variable than defining a new one. 
+	//Here 'casttime' is actually 'range' [Skotlex]
+	casttime = skill_get_range(skill_num,skill_lv);
+	if(casttime < 0)
+		casttime = status_get_range(&sd->bl) - (casttime + 1);
+	casttime++;
 		
-		if (sd->walktimer != -1)
-		{	//Because of the sync issues between map and client, we increase the range by one
-			//and make the char move towards the target one cell. [Skotlex]
-			range++;
-			check_range_flag = 1;
-		}
+	if(!battle_check_range(&sd->bl,&bl,casttime))
+		return 0;
 		
-		if(!battle_check_range(&sd->bl,&bl,range))
-			return 0;
-		
-		if (check_range_flag && pc_can_move(sd)) {
-			int mask[8][2] = {{0,1},{-1,1},{-1,0},{-1,-1},{0,-1},{1,-1},{1,0},{1,1}};
-			int dir = map_calc_dir(&sd->bl,bl.x,bl.y);
-			pc_walktoxy (sd, sd->bl.x + mask[dir][0], sd->bl.y + mask[dir][1]);
-		} 
-	}
 /* Previous code body, left here in case we have to rollback. [Skotlex]
 	{
 		int check_range_flag = 0;

@@ -1,5 +1,7 @@
 Date	Added
 2005/11/22
+	* Added 1-tile of range grace in skill_use_id and skill_use_pos since
+	  that's how it is on Aegis servers. [Skotlex]
 	* Updated the skill info packets to deliver the skill names as expected by
 	  the client. [Skotlex]
 	* Updated mob ai to enable changing targets while attacking ONLY if the
