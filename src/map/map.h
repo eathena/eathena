@@ -671,7 +671,15 @@ struct map_session_data {
 	int mail_counter;	// mail counter for mail system [Valaris]
 #endif
 
+	// duel vars [LuzZza]
+    int duel_group;
+    int duel_invite;
+    
 };
+
+// duel arrays [LuzZza]
+int duel_group_list[1024];
+int duel_invite_list[1024];
 
 struct npc_timerevent_list {
 	int timer,pos;

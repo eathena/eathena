@@ -271,6 +271,13 @@ ACMD_FUNC(autotrade);// durf
 ACMD_FUNC(changeleader);// [Skotlex]
 ACMD_FUNC(changegm);// durf
 
+// Duel [LuzZza]
+ACMD_FUNC(invite);
+ACMD_FUNC(duel);
+ACMD_FUNC(leave);
+ACMD_FUNC(accept);
+ACMD_FUNC(reject);
+
 /*==========================================
  *AtCommandInfo atcommand_info[]\‘¢‘Ì‚Ì’è‹`
  *------------------------------------------
@@ -551,18 +558,24 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_Rates,				"@rates",			1, atcommand_rates }, // MouseJstr
 
 	{ AtCommand_ItemInfo,			"@iteminfo",		1, atcommand_iteminfo }, // [Lupus]
-	{ AtCommand_ItemInfo,			"@ii",		1, atcommand_iteminfo }, // [Lupus]
-	{ AtCommand_MapFlag,			"@mapflag",		99, atcommand_mapflag }, // [Lupus]
+	{ AtCommand_ItemInfo,			"@ii",				1, atcommand_iteminfo }, // [Lupus]
+	{ AtCommand_MapFlag,			"@mapflag",			99, atcommand_mapflag }, // [Lupus]
 
-	{ AtCommand_Me,				"@me",			20, atcommand_me }, //added by massdriller, code by lordalfa
-	{ AtCommand_MonsterIgnore,	"@monsterignore",	99,	atcommand_monsterignore }, // [Valaris]
-	{ AtCommand_FakeName,				"@fakename",			20, atcommand_fakename }, // [Valaris]
+	{ AtCommand_Me,					"@me",				20, atcommand_me }, //added by massdriller, code by lordalfa
+	{ AtCommand_MonsterIgnore,		"@monsterignore",	99,	atcommand_monsterignore }, // [Valaris]
+	{ AtCommand_FakeName,			"@fakename",		20, atcommand_fakename }, // [Valaris]
 	{ AtCommand_Size,				"@size",			20, atcommand_size },
-	{ AtCommand_ShowExp,					"@showexp", 					10, atcommand_showexp},
-	{ AtCommand_ShowDelay,					"@showdelay",					1, atcommand_showdelay},
+	{ AtCommand_ShowExp,			"@showexp", 		10, atcommand_showexp},
+	{ AtCommand_ShowDelay,			"@showdelay",		1, atcommand_showdelay},
 	{ AtCommand_AutoTrade,			"@autotrade",		10,	atcommand_autotrade }, // durf
 	{ AtCommand_ChangeGM,			"@changegm",		10,	atcommand_changegm }, // durf
-	{ AtCommand_ChangeLeader,			"@changeleader",		10,	atcommand_changeleader }, // durf
+	{ AtCommand_ChangeLeader,		"@changeleader",	10,	atcommand_changeleader }, // durf
+	
+	{ AtCommand_Invite,				"@invite",			 0, atcommand_invite }, // By LuzZza
+	{ AtCommand_Duel,				"@duel",			 0, atcommand_duel }, // By LuzZza
+	{ AtCommand_Leave,				"@leave",			 0, atcommand_leave }, // By LuzZza
+	{ AtCommand_Accept,				"@accept",			 0, atcommand_accept }, // By LuzZza
+	{ AtCommand_Reject,				"@reject",			 0, atcommand_reject }, // By LuzZza		
 
 // add new commands before this line
 	{ AtCommand_Unknown,			NULL,				1,	NULL }
@@ -9480,5 +9493,220 @@ int atcommand_showdelay(
 	
 	sd->state.showdelay = 1;
 	clif_displaymessage(fd, "Skill delay failures are shown now.");
+	return 0;
+}
+
+/*==========================================
+ * Duel organizing functions [LuzZza]
+ *
+ * @duel - create a duel
+ * @invite - invite player in created duel
+ * @accept - accept invitation
+ * @reject - reject invitation
+ * @leave - leave duel
+ *------------------------------------------
+ */
+int atcommand_invite(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+	int i;
+	char output[256];
+    struct map_session_data* pl_sd = NULL;
+    struct map_session_data* player_sd = NULL;
+    pl_sd = map_nick2sd((char *)message);
+
+    if(!sd->duel_group) {
+    
+      clif_displaymessage(fd, "Duel: @invite without @duel.");
+      return 0;
+    }
+    
+    if(!pl_sd) {
+    
+      clif_displaymessage(fd, "Duel: Player not found.");
+      return 0;
+    }
+    
+    if(pl_sd->duel_group || pl_sd->duel_invite)  {
+
+      clif_displaymessage(fd, "Duel: Player already in duel.");
+      return 0;
+    }
+
+    for (i=0; i<fd_max; i++)
+	  if (session[i] && (player_sd = (struct map_session_data *) session[i]->session_data) 
+	    && player_sd->state.auth && player_sd->duel_group == sd->duel_group && player_sd != sd) {
+	  
+	    sprintf(output, " -- Player %s invites %s to duel -- ", (unsigned char *)sd->status.name, (unsigned char *)pl_sd->status.name);
+	    clif_disp_onlyself(player_sd,output,strlen(output));
+	  }
+
+    pl_sd->duel_invite = sd->duel_group;
+    duel_invite_list[sd->duel_group]++;
+    
+    clif_displaymessage(fd, "Duel: Sent.");   
+    
+    sprintf(output, "Blue -- Player %s invites you to PVP duel (@accept/@reject) -- ", (unsigned char *)sd->status.name);
+    clif_GMmessage((struct block_list *)pl_sd, output, strlen(output)+1, 3);
+
+    return 0;
+}
+
+int atcommand_duel(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+    int i=1;
+    char output[256];
+    struct map_session_data* player_sd = NULL;
+    
+    if(sd->duel_group > 0) {
+    
+      sprintf(output, " -- Duels: %d/%d, Members: %d/%d -- ", sd->duel_group, duel_group_list[0], duel_group_list[sd->duel_group], duel_group_list[sd->duel_group] + duel_invite_list[sd->duel_group]);
+      clif_disp_onlyself(sd,output,strlen(output));
+      
+      int p=0;
+      for (i=0; i<fd_max; i++)
+	    if (session[i] && (player_sd = (struct map_session_data *) session[i]->session_data) 
+          && player_sd->state.auth && player_sd->duel_group == sd->duel_group) {
+	  
+	      sprintf(output, "      %d. %s", ++p, (unsigned char *)player_sd->status.name);
+	      clif_disp_onlyself(sd,output,strlen(output));
+	    }      
+      
+      return 0;
+    }
+
+    if(sd->duel_invite > 0) {
+
+      clif_displaymessage(fd, "Duel: @duel without @reject.");
+      return 0;
+    }
+    
+    while(duel_group_list[i]) i++;
+    if(i == 1023) return 1;
+    
+    duel_group_list[i] = 1; // set player count
+    sd->duel_group = i; // set group id
+    duel_group_list[0]++; // increase count of groups
+    
+    strcpy(output, " -- Duel created (@invite/@leave) -- ");
+    
+    // set attributes
+    clif_set0199(fd, 1);
+    clif_misceffect2(&sd->bl, 159);
+    
+    clif_disp_onlyself(sd,output,strlen(output));
+	return 0;
+}
+
+
+int atcommand_leave(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+    int i;
+    char output[256];
+    struct map_session_data* pl_sd = NULL;
+
+    if(!sd->duel_group) {
+    
+      clif_displaymessage(fd, "Duel: @leave without @duel.");
+      return 0;
+    }
+
+    for (i=0; i<fd_max; i++)
+	  if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) 
+	    && pl_sd->state.auth && pl_sd->duel_group == sd->duel_group && pl_sd != sd) {
+	  
+	    sprintf(output, " <- Player %s has left duel -- ", (unsigned char *)sd->status.name);
+	    clif_disp_onlyself(pl_sd,output,strlen(output));
+	  }
+	  
+    duel_group_list[sd->duel_group]--; // decrease player count
+
+    if(duel_group_list[sd->duel_group] == 0) {
+    
+      for (i=0; i<fd_max; i++)
+        if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) 
+	      && pl_sd->state.auth && pl_sd->duel_invite == sd->duel_group && pl_sd != sd) pl_sd->duel_invite = 0;
+	      
+	  duel_group_list[0]--; // decrease count of groups
+    }  
+      
+    sd->duel_group = 0; // set group id
+    
+    // set attributes
+    clif_set0199(fd, 0);
+
+    clif_displaymessage(fd, "Duel: You left the duel.");
+    return 0;
+    
+}
+
+int atcommand_accept(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+	int i;
+	char output[256];
+	struct map_session_data* pl_sd = NULL;
+
+    if(!sd->duel_invite) {
+    
+      clif_displaymessage(fd, "Duel: @accept without invititation.");
+      return 0;
+    }
+    
+    for (i=0; i<fd_max; i++)
+	  if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) 
+	    && pl_sd->state.auth && pl_sd->duel_group == sd->duel_invite && pl_sd != sd) {
+	  
+	    sprintf(output, " -> Player %s has accepted duel -- ", (unsigned char *)sd->status.name);
+	    clif_disp_onlyself(pl_sd,output,strlen(output));
+	  }
+	  
+    duel_group_list[sd->duel_invite]++;
+    sd->duel_group = sd->duel_invite;
+    duel_invite_list[sd->duel_invite]--;
+    sd->duel_invite = 0;
+    
+    // set attributes
+    clif_set0199(fd, 1);
+    clif_misceffect2(&sd->bl, 159);
+
+    clif_displaymessage(fd, "Duel: Accepted.");
+    return 0;
+}
+
+int atcommand_reject(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+	int i;
+	char output[256];
+	struct map_session_data* pl_sd = NULL;
+
+    if(!sd->duel_invite) {
+    
+      clif_displaymessage(fd, "Duel: @reject without invititation.");
+      return 0;
+    }    
+
+    for (i=0; i<fd_max; i++)
+	  if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) 
+	    && pl_sd->state.auth && pl_sd->duel_group == sd->duel_invite && pl_sd != sd) {
+	  
+	    sprintf(output, " -- Player %s has rejected duel -- ", (unsigned char *)sd->status.name);
+	    clif_disp_onlyself(pl_sd,output,strlen(output));
+	  }
+
+    duel_invite_list[sd->duel_invite]--;
+    sd->duel_invite = 0;
+
+    clif_displaymessage(fd, "Duel: Rejected.");
+    return 0;
+
 	return 0;
 }

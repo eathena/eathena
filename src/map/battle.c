@@ -3096,6 +3096,15 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 		default:	//Invalid source of attack?
 			return 0;
 	}
+
+	// Duel [LuzZza]
+	if (s_bl->type == BL_PC && t_bl->type == BL_PC) {
+	
+		struct map_session_data *sd = (struct map_session_data *) s_bl;
+		struct map_session_data *tsd = (struct map_session_data *) t_bl;
+		
+		if ((sd->duel_group == tsd->duel_group) && sd->duel_group && sd != tsd) return 1;
+	}
 	
 	if ((flag&BCT_ALL) == BCT_ALL) { //All actually stands for all players/mobs
 		if (target->type == BL_MOB || target->type == BL_PC)

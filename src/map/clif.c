@@ -3722,6 +3722,10 @@ void clif_getareachar_pc(struct map_session_data* sd,struct map_session_data* ds
 	else if(sd->state.size==1)
 		clif_specialeffect(&sd->bl,421,0);
 
+	// pvp circle for duel [LuzZza]
+	if(dstsd->duel_group)
+		clif_specialeffect(&dstsd->bl, 159, 4);
+
 }
 
 /*==========================================
@@ -7600,6 +7604,9 @@ int clif_specialeffect(struct block_list *bl, int type, int flag)
 	WBUFL(buf,6) = type;
 
 	switch (flag) {
+	case 4:
+		clif_send(buf, packet_len_table[0x1f3], bl, AREA_WOS);
+		break;
 	case 3:
 		clif_send(buf, packet_len_table[0x1f3], bl, ALL_CLIENT);
 		break;
@@ -7984,6 +7991,12 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 	// Show hp after displacement [LuzZza]
 	if(sd->status.party_id)
 	    clif_party_hp(sd);
+
+    // set flag, if it's a duel [LuzZza]
+    if(sd->duel_group) {
+    	clif_set0199(fd, 1);
+    	clif_misceffect2(&sd->bl, 159);
+    }
 
 	// pvp
 	//if(sd->pvp_timer!=-1 && !battle_config.pk_mode) /PVP Client crash fix* Removed timer deletion
