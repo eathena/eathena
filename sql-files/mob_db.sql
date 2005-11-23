@@ -54,7 +54,7 @@ CREATE TABLE `mob_db` (
   `DropCardid` smallint(9) unsigned NOT NULL default '0',
   `DropCardper` smallint(9) unsigned NOT NULL default '0',
   `MEXP` mediumint(9) unsigned NOT NULL default '0',
-  `ExpPer` smallint(9) unsigned NOT NULL default '0',
+  `ExpPer` mediumint(9) unsigned NOT NULL default '0',
   `MVP1id` smallint(9) unsigned NOT NULL default '0',
   `MVP1per` smallint(9) unsigned NOT NULL default '0',
   `MVP2id` smallint(9) unsigned NOT NULL default '0',
