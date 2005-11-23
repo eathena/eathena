@@ -571,11 +571,11 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_ChangeGM,			"@changegm",		10,	atcommand_changegm }, // durf
 	{ AtCommand_ChangeLeader,		"@changeleader",	10,	atcommand_changeleader }, // durf
 	
-	{ AtCommand_Invite,				"@invite",			 0, atcommand_invite }, // By LuzZza
-	{ AtCommand_Duel,				"@duel",			 0, atcommand_duel }, // By LuzZza
-	{ AtCommand_Leave,				"@leave",			 0, atcommand_leave }, // By LuzZza
-	{ AtCommand_Accept,				"@accept",			 0, atcommand_accept }, // By LuzZza
-	{ AtCommand_Reject,				"@reject",			 0, atcommand_reject }, // By LuzZza		
+	{ AtCommand_Invite,				"@invite",			 1, atcommand_invite }, // By LuzZza
+	{ AtCommand_Duel,				"@duel",			 1, atcommand_duel }, // By LuzZza
+	{ AtCommand_Leave,				"@leave",			 1, atcommand_leave }, // By LuzZza
+	{ AtCommand_Accept,				"@accept",			 1, atcommand_accept }, // By LuzZza
+	{ AtCommand_Reject,				"@reject",			 1, atcommand_reject }, // By LuzZza		
 
 // add new commands before this line
 	{ AtCommand_Unknown,			NULL,				1,	NULL }
