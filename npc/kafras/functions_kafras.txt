@@ -5,7 +5,7 @@
 //= eAthena Dev Team
 //= Darlskies, Darkchild, Syrus22, Lupus, kobra_k88 (2.0)
 //===== Current Version: ===================================== 
-//= 3.1
+//= 3.1a
 //===== Compatible With: ===================================== 
 //= eAthena 1.0
 //===== Description: =========================================
@@ -131,6 +131,7 @@ function	script	F_KafStor	{
 	close2;
 	openstorage;
 	cutin "", 255;
+	close;
 	end;
 
 	sL_JbLvl:
@@ -152,6 +153,7 @@ L_Guild:
 		mes "right now.  Please wait until that person is finished.";
 		close2;
 		cutin "", 255;
+		close;
 		end;
 
 }
@@ -211,6 +213,7 @@ function	script	F_KafTele	{
 		close2;		// this part safegaurds against errors/typos
 		set zeny, zeny + @wrpP[@num];
 		cutin "", 255;
+		close;
 		end;
 
 		sL_CantTele:
@@ -218,6 +221,7 @@ function	script	F_KafTele	{
 			mes "Dear you don't have enough money. Please check your funds again.";
 			close2;
 			cutin "", 255;
+			close;
 			end;
 }
 
@@ -383,5 +387,6 @@ function	script	F_KafEnd	{
 	close2;
 	cutin "", 255;
 	emotion 15;
+	close;
 	end;
 }

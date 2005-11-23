@@ -28,6 +28,8 @@ Nexon
 Date		Added
 ======
 11/23
+	* Temp fix for Kafra functions. New eA script engine has new CLOSE2 command [Lupus]
+	  so some old scripts were... 'stuckable' 8)
 	* Updated Thanatos & Turbo Trach warps, thanks to Justin84 [Lupus]
 11/22
 	* Kafra fixed: Now Baby Merchant can pass Merch Job Quest w/o probs [Lupus]
