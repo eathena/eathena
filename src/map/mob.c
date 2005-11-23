@@ -3156,8 +3156,9 @@ int mobskill_castend_id( int tid, unsigned int tick, int id,int data )
 		return 0;
 	}
 
-	if(md->skillid != NPC_EMOTION)
-		md->last_thinktime=tick + status_get_adelay(&md->bl);
+	if(md->skillid != NPC_EMOTION) 
+		//Set afterskill delay.
+		md->last_thinktime=tick + (tid==-1?status_get_adelay(&md->bl):status_get_amotion(&md->bl));
 		
 	if(md->skillid == RG_BACKSTAP) {
 		int dir = map_calc_dir(&md->bl,bl->x,bl->y),t_dir = status_get_dir(bl);
@@ -3292,6 +3293,9 @@ int mobskill_castend_pos( int tid, unsigned int tick, int id,int data )
 
 	md->skilldelay[md->skillidx]=tick;
 
+	//Set afterskill delay.
+	md->last_thinktime=tick + (tid==-1?status_get_adelay(&md->bl):status_get_amotion(&md->bl));
+	
 	if(battle_config.mob_skill_log)
 		ShowInfo("MOB skill castend skill=%d, class = %d\n",md->skillid,md->class_);
 //	mob_stop_walking(md,0);
