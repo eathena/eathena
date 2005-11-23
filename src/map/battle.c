@@ -475,7 +475,9 @@ int battle_walkdelay(struct block_list *bl, struct block_list *src, int delay, i
 				if (sd->special_state.infinite_endure)
 					sd->sc_data[SC_ENDURE].val2++; //This prevents it from ending later below.
 				if (t_delay > 0) {
-					pc_stop_walking (sd,1);
+					 //If you attempt a clif_fixpos while sitting, the client goes out of sync and makes the char look standing! [Skotlex]
+					if (sd->walktimer != -1)
+						pc_stop_walking (sd,1);
 					if (sd->canmove_tick < tick)
 						sd->canmove_tick = tick + t_delay;
 				}
@@ -486,7 +488,8 @@ int battle_walkdelay(struct block_list *bl, struct block_list *src, int delay, i
 				struct mob_data *md = (struct mob_data*)bl;
 				if(t_delay > 0)
 				{
-					mob_stop_walking(md,3);
+					if (md->state.state == MS_WALK)
+						mob_stop_walking(md,3);
 					if (md->canmove_tick < tick)
 						md->canmove_tick = tick + t_delay;
 				}
@@ -2273,11 +2276,11 @@ struct Damage battle_calc_magic_attack(
 				}
 				break;
 			case PF_SOULBURN:
-				if (!sd || skill_lv < 5) {
+				if (!tsd || skill_lv < 5) {
 					memset(&ad,0,sizeof(ad));
 					return ad;
-				} else if (sd)
-					ad.damage = sd->status.sp * 2;
+				} else if (tsd)
+					ad.damage = tsd->status.sp * 2;
 				break;
 			case ASC_BREAKER:
 				ad.damage = rand()%500 + 500 + skill_lv * status_get_int(src) * 5;

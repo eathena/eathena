@@ -1,4 +1,12 @@
 Date	Added
+2005/11/23
+	* Added displaying file which caused an error on incorrect mob lines.
+	  [Skotlex]
+	* Small memory corrections to sql castle saving/loading, mostly Lance's
+	  work. [Skotlex]
+	* Updated the walk delay routine to not invoke stop-walking when character
+	  is not walking (fixes the case in which the packet is sent while sitting,
+	  which causes a 'standing' sprite even if the char is sitting). [Skotlex]
 2005/11/22
    * Implemented a guild cache in char sql, saves all online guilds every 5 minutes. [Kevin]
 	* More grammar fixes [Kayla]

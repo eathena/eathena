@@ -2182,24 +2182,24 @@ int npc_parse_mob (char *w1, char *w2, char *w3, char *w4)
 	// 引数の個数チェック
 	if (sscanf(w1, "%15[^,],%d,%d,%d,%d", mapname, &mob.x, &mob.y, &mob.xs, &mob.ys) < 3 ||
 		sscanf(w4, "%d,%d,%d,%d,%23s", &mob.class_, &mob.num, &mob.delay1, &mob.delay2, mob.eventname) < 2 ) {
-		ShowError("bad monster line : %s %s %s\n", w1, w3, w4);
+		ShowError("bad monster line : %s %s %s (file %s)\n", w1, w3, w4, current_file);
 		return 1;
 	}
 
 	mob.m = map_mapname2mapid(mapname);
 	if (mob.m < 0) {
-		ShowError("wrong map name : %s %s\n", w1,w3);
+		ShowError("wrong map name : %s %s (file %s)\n", w1,w3, current_file);
 		return 1;
 	}
 
 	// check monster ID if exists!
 	if (mobdb_checkid(mob.class_)==0) {
-		ShowError("bad monster ID : %s %s\n", w3, w4);
+		ShowError("bad monster ID : %s %s (file %s)\n", w3, w4, current_file);
 		return 1;
 	}
 
 	if (mob.num < 1 || mob.num>1000 ) {
-		ShowError("wrong number of monsters : %s %s\n", w3, w4);
+		ShowError("wrong number of monsters : %s %s (file %s)\n", w3, w4, current_file);
 		return 1;
 	}
 	if (mob.num > 1 && battle_config.mob_count_rate != 100) {
@@ -2238,7 +2238,7 @@ int npc_parse_mob (char *w1, char *w2, char *w3, char *w4)
 	else memcpy(mob.mobname, mobname, NAME_LENGTH-1);
 
 	if( mob.delay1<0 || mob.delay2<0 || mob.delay1>0xfffffff || mob.delay2>0xfffffff) {
-		ShowError("wrong monsters spawn delays : %s %s\n", w3, w4);
+		ShowError("wrong monsters spawn delays : %s %s (file %s)\n", w3, w4, current_file);
 		return 1;
 	}
 
