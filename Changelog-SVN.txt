@@ -1,5 +1,6 @@
 Date	Added
 2005/11/22
+   * Implemented a guild cache in char sql, saves all online guilds every 5 minutes. [Kevin]
 	* More grammar fixes [Kayla]
 	* Added 1-tile of range grace in skill_use_id and skill_use_pos since
 	  that's how it is on Aegis servers. [Skotlex]

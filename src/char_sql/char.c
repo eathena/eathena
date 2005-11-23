@@ -12,7 +12,7 @@ typedef long in_addr_t;
 #pragma lib <libmysql.lib>
 #else
 #include <sys/socket.h>
-#include <netinet/in.h>
+#include <netinet/in.h> 
 #include <sys/time.h>
 #include <sys/ioctl.h>
 #include <arpa/inet.h>
@@ -257,7 +257,7 @@ void set_char_offline(int char_id, int account_id) {
 }
 
 void set_all_offline(void) {
-	sprintf(tmp_sql, "SELECT `account_id` FROM `%s` WHERE `online`='1'",char_db);
+	sprintf(tmp_sql, "SELECT `account_id`, `char_id` FROM `%s` WHERE `online`='1'",char_db);
 	if (mysql_query(&mysql_handle, tmp_sql)) {
 		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
@@ -266,6 +266,9 @@ void set_all_offline(void) {
 	sql_res = mysql_store_result(&mysql_handle);
 	if (sql_res) {
 	    while((sql_row = mysql_fetch_row(sql_res))) {
+   	    
+	        inter_guild_CharOffline(atoi(sql_row[1]));
+   	    
 	        if ( login_fd > 0 ) {
 	            ShowInfo("send user offline: %d\n",atoi(sql_row[0]));
 	            WFIFOW(login_fd,0) = 0x272c;
@@ -2774,6 +2777,7 @@ int parse_frommap(int fd) {
 				return 0;
 			//printf("Setting %d char offline\n",RFIFOL(fd,2));
 			set_char_offline(RFIFOL(fd,2),RFIFOL(fd,6));
+	      inter_guild_CharOffline(RFIFOL(fd,2));
 			RFIFOSKIP(fd,10);
 			break;
 		// Reset all chars to offline [Wizputer]
@@ -3233,6 +3237,8 @@ int parse_char(int fd) {
 			WFIFOSET(map_fd, WFIFOW(map_fd,2));
 
 			set_char_online(i, auth_fifo[auth_fifo_pos].char_id, auth_fifo[auth_fifo_pos].account_id);
+
+	      inter_guild_CharOnline(auth_fifo[auth_fifo_pos].char_id);
 			//Checks to see if the even share setting of the party must be broken.
 			inter_party_logged(char_dat[0].party_id, char_dat[0].account_id);
 			
