@@ -27,6 +27,8 @@ Nexon
 
 Date		Added
 ======
+11/23
+	* Updated Thanatos & Turbo Trach warps, thanks to Justin84 [Lupus]
 11/22
 	* Kafra fixed: Now Baby Merchant can pass Merch Job Quest w/o probs [Lupus]
 11/20
