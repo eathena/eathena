@@ -1,5 +1,6 @@
 Date	Added
 2005/11/23
+	* Fixed the crash on guild creation in new guild cache. [Kevin]
 	* Impletmented duel organizing commands: @duel, @invite, @accept, @reject, @leave. [LuzZza]
 	* Made the walk-delay a timer, so that it triggers after the actual attack
 	  motion of the src. [Skotlex]

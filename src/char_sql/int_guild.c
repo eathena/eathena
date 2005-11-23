@@ -616,7 +616,7 @@ int inter_guild_CharOnline(int char_id) {
    	sql_row = mysql_fetch_row(sql_res);
 	
    	
-   	if(sql_row) {
+   	if(sql_row[0]) {
    	
       	//Character has a guild, set character online and load guild if not loaded
       	if((guild_id = atoi(sql_row[0])) != 0) {
@@ -642,8 +642,8 @@ int inter_guild_CharOnline(int char_id) {
             }
          }
       }
+      
    }
-	mysql_free_result(sql_res);
    return 0;
    
 }
@@ -669,7 +669,7 @@ int inter_guild_CharOffline(int char_id) {
 	if(sql_res) {
    	sql_row = mysql_fetch_row(sql_res);
    	
-   	if(sql_row) {
+   	if(sql_row[0]) {
    	
          //Character has a guild, set character offline and check if they were the only member online
       	if((guild_id = atoi(sql_row[0])) != 0) {
@@ -696,8 +696,8 @@ int inter_guild_CharOffline(int char_id) {
             }
          }
       }
+      
    }
-   	mysql_free_result(sql_res);
    return 0;
    
 }
@@ -759,8 +759,8 @@ int inter_guild_sql_init()
       	   guild_newid = atoi(sql_row[0])+1;
    	   }
       }
+	   mysql_free_result(sql_res);
    }
-	mysql_free_result(sql_res);
 		
 	//Add timer to save guilds to memory
 	add_timer_func_list(save_guild_cache, "save_guild_cache");
@@ -784,8 +784,11 @@ struct guild* search_guildname(char *str)
 	struct guild *g;
 	int *guild_id;
 	
+	g=NULL;
+	
 	guild_id = (int *)strdb_search(guild_name_db_, str);
-	g = (struct guild *)numdb_search(guild_db_, *guild_id);
+	if(guild_id)
+      g = (struct guild *)numdb_search(guild_db_, *guild_id);
 	
 	return g;
 }
