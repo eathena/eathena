@@ -1785,7 +1785,7 @@ int parse_tologin(int fd) {
 				ShowError("Can not connect to the login-server.\n");
 				ShowError("The server communication passwords (default s1/p1) are probably invalid.\n");
 				ShowInfo("Also, please make sure your accounts file (default: accounts.txt) has those values present.\n");
-				ShowInfo("If you changed the communication passwords, change them back at map_athena.conf and char_athena.conf\n");
+				ShowInfo("The communication passwords can be changed in map_athena.conf and char_athena.conf\n");
 				exit(1);
 			} else {
 				ShowStatus("Connected to login-server (connection #%d).\n", fd);
