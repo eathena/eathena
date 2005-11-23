@@ -28,6 +28,7 @@ Nexon
 Date		Added
 ======
 11/23
+	* Fixed santa goblin spawn locations in event/xmas.txt [Kayla]
 	* Temp fix for Kafra functions. New eA script engine has new CLOSE2 command [Lupus]
 	  so some old scripts were... 'stuckable' 8)
 	* Updated Thanatos & Turbo Trach warps, thanks to Justin84 [Lupus]

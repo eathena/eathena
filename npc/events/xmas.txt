@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= eAthena Dev Team
 //===== Current Version: =====================================
-//= 1.2a 
+//= 1.2b 
 //===== Compatible With: =====================================
 //= Any version of eAthena
 //===== Description: =========================================
@@ -16,6 +16,7 @@
 //= 1.1 Added Xmas Jakk, fixed 2 exploits, fixed reward Box ID [Lupus]
 //= 1.2 Added monsters to the newer fields, thanks to Muad_Dib [MasterOfMuppets]
 //= 1.2a Fixed a major problem with the monster spawns, thanks to Playtester [MasterOfMuppets]
+//= 1.2b Fixed a minor problem with the mosnter spawns, thanks to Playtester [Kayla]
 //============================================================
 
 
@@ -111,7 +112,7 @@ OnInit:
 // - Xmas Goblin Spawns
 //========================================================================================
 
-gef_fild02.gat,0,0,0,0	monster	Christmas Goblin	1245,5,0,0,0
+prt_fild11.gat,0,0,0,0	monster	Christmas Goblin	1245,5,0,0,0
 gef_fild11.gat,0,0,0,0	monster	Christmas Goblin	1245,5,0,0,0
 
 //========================================================================================
