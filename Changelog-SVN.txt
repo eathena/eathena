@@ -1,5 +1,7 @@
 Date	Added
 2005/11/23
+	* Made the walk-delay a timer, so that it triggers after the actual attack
+	  motion of the src. [Skotlex]
 	* Added back the combo damage delay config, now renamed to
 	  multihit_delay, and set to the default of 230ms it had before. [Skotlex]
 	* Added displaying file which caused an error on incorrect mob lines.

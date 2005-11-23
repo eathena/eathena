@@ -3883,6 +3883,8 @@ int clif_damage(struct block_list *src,struct block_list *dst,unsigned int tick,
 	nullpo_retr(0, src);
 	nullpo_retr(0, dst);
 
+	type = clif_calc_delay(dst, type, ddelay); //Type defaults to 0 for normal attacks.
+
 	sc_data = status_get_sc_data(dst);
 
 	if(sc_data) {
@@ -3908,7 +3910,7 @@ int clif_damage(struct block_list *src,struct block_list *dst,unsigned int tick,
 	WBUFL(buf,18)=ddelay;
 	WBUFW(buf,22)=(damage > 0x7fff)? 0x7fff:damage;
 	WBUFW(buf,24)=div;
-	WBUFB(buf,26)=clif_calc_delay(dst, type, ddelay); //Type defaults to 0 for normal attacks.
+	WBUFB(buf,26)=type;
 	WBUFW(buf,27)=damage2;
 	clif_send(buf,packet_len_table[0x8a],src,AREA);
 
@@ -3931,13 +3933,13 @@ int clif_damage(struct block_list *src,struct block_list *dst,unsigned int tick,
 		else
 			WBUFW(buf2,22)=0;
 		WBUFW(buf2,24)=div;
-		WBUFB(buf2,26)=clif_calc_delay(dst, type, ddelay); //Type defaults to 0 for normal attacks.
+		WBUFB(buf2,26)=type;
 		WBUFW(buf2,27)=0;
 		clif_send(buf2,packet_len_table[0x8a],src,AREA);
 	}
 	//Because the damage delay must be synced with the client, here is where the can-walk tick must be updated. [Skotlex]
-	if (damage > 0 || damage2 > 0)
-		battle_walkdelay(dst, src, ddelay, div);
+	if (type != 4 && type != 9) //Non-endure/Non-flinch attack, update walk delay.
+		battle_walkdelay(dst, tick, sdelay, ddelay, div);
 	return 0;
 }
 
@@ -4580,7 +4582,8 @@ int clif_skill_damage(struct block_list *src,struct block_list *dst,
 
 	nullpo_retr(0, src);
 	nullpo_retr(0, dst);
-
+	
+	type = clif_calc_delay(dst, (type>0)?type:skill_get_hit(skill_id), ddelay);
 	sc_data = status_get_sc_data(dst);
 
 	if(sc_data) {
@@ -4605,7 +4608,7 @@ int clif_skill_damage(struct block_list *src,struct block_list *dst,
 	WBUFW(buf,24)=damage;
 	WBUFW(buf,26)=skill_lv;
 	WBUFW(buf,28)=div;
-	WBUFB(buf,30)=clif_calc_delay(dst, (type>0)?type:skill_get_hit(skill_id), ddelay);
+	WBUFB(buf,30)=type;
 	clif_send(buf,packet_len_table[0x114],src,AREA);
 #else
 	WBUFW(buf,0)=0x1de;
@@ -4624,13 +4627,13 @@ int clif_skill_damage(struct block_list *src,struct block_list *dst,
 	WBUFL(buf,24)=damage;
 	WBUFW(buf,28)=skill_lv;
 	WBUFW(buf,30)=div;
-	WBUFB(buf,32)=clif_calc_delay(dst, (type>0)?type:skill_get_hit(skill_id), ddelay);
+	WBUFB(buf,32)=type;
 	clif_send(buf,packet_len_table[0x1de],src,AREA);
 #endif
 
 	//Because the damage delay must be synced with the client, here is where the can-walk tick must be updated. [Skotlex]
-	if (damage > 0)
-		battle_walkdelay(dst, src, ddelay, div);
+	if (type != 4 && type != 9) //Non-endure/Non-flinch attack, update walk delay.
+		battle_walkdelay(dst, tick, sdelay, ddelay, div);
 	return 0;
 }
 
@@ -4647,6 +4650,7 @@ int clif_skill_damage2(struct block_list *src,struct block_list *dst,
 	nullpo_retr(0, src);
 	nullpo_retr(0, dst);
 
+	type = clif_calc_delay(dst, (type>0)?type:skill_get_hit(skill_id), ddelay);
 	sc_data = status_get_sc_data(dst);
 
 	if(sc_data) {
@@ -4666,12 +4670,12 @@ int clif_skill_damage2(struct block_list *src,struct block_list *dst,
 	WBUFW(buf,28)=damage;
 	WBUFW(buf,30)=skill_lv;
 	WBUFW(buf,32)=div;
-	WBUFB(buf,34)=clif_calc_delay(dst, (type>0)?type:skill_get_hit(skill_id), ddelay);
+	WBUFB(buf,34)=type;
 	clif_send(buf,packet_len_table[0x115],src,AREA);
 
 	//Because the damage delay must be synced with the client, here is where the can-walk tick must be updated. [Skotlex]
-	if (damage > 0)
-		battle_walkdelay(dst, src, ddelay, div);
+	if (type != 4 && type != 9) //Non-endure/Non-flinch attack, update walk delay.
+		battle_walkdelay(dst, tick, sdelay, ddelay, div);
 	return 0;
 }
 

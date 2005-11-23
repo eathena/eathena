@@ -455,53 +455,71 @@ int battle_attr_fix(struct block_list *src, struct block_list *target, int damag
 	return damage*ratio/100;
 }
 
-/*==========================================
- * Applies walk delay based on attack type. [Skotlex]
- *------------------------------------------
- */
-int battle_walkdelay(struct block_list *bl, struct block_list *src, int delay, int div_) {
-	struct status_change *sc_data = status_get_sc_data(bl);
-	int t_delay = delay;
-	unsigned int tick = gettick();
-
-	if (battle_config.walk_delay_rate != 100)
-		t_delay = t_delay*battle_config.walk_delay_rate/100;
-	
-	if (div_ > 1) //Multi-hit skills mean higher delays.
-		t_delay += battle_config.multihit_delay*(div_-1);
+static int battle_walkdelay_sub(int tid, unsigned int tick, int id, int data)
+{
+	struct block_list *bl = map_id2bl(id);
+	if (!bl) return 0;
 	
 	switch (bl->type) {
 		case BL_PC:
 			{
 				struct map_session_data *sd = (struct map_session_data*)bl;
-				if (sd->special_state.infinite_endure)
-					sd->sc_data[SC_ENDURE].val2++; //This prevents it from ending later below.
-				if (t_delay > 0) {
-					 //If you attempt a clif_fixpos while sitting, the client goes out of sync and makes the char look standing! [Skotlex]
-					if (sd->walktimer != -1)
-						pc_stop_walking (sd,1);
-					if (sd->canmove_tick < tick)
-						sd->canmove_tick = tick + t_delay;
-				}
+				if (sd->walktimer != -1)
+					pc_stop_walking (sd,1);
+				if (sd->canmove_tick < tick)
+					sd->canmove_tick = tick + data;
 			}
 			break;
 		case BL_MOB:
 			{
 				struct mob_data *md = (struct mob_data*)bl;
-				if(t_delay > 0)
-				{
-					if (md->state.state == MS_WALK)
-						mob_stop_walking(md,3);
-					if (md->canmove_tick < tick)
-						md->canmove_tick = tick + t_delay;
-				}
+				if (md->state.state == MS_WALK)
+					mob_stop_walking(md,3);
+				if (md->canmove_tick < tick)
+					md->canmove_tick = tick + data;
 			}
 			break;
 	}
-	if (sc_data && sc_data[SC_ENDURE].timer != -1 && (src != NULL && src->type == BL_MOB)
-		&& !map_flag_gvg(bl->m) && --sc_data[SC_ENDURE].val2 < 0) 
-		status_change_end(bl, SC_ENDURE, -1);
+	return 0;
+}
+/*==========================================
+ * Applies walk delay based on attack type. [Skotlex]
+ *------------------------------------------
+ */
+int battle_walkdelay(struct block_list *bl, unsigned int tick, int adelay, int delay, int div_) {
 
+	if (battle_config.walk_delay_rate != 100)
+		delay = delay*battle_config.walk_delay_rate/100;
+	
+	if (div_ > 1) //Multi-hit skills mean higher delays.
+		delay += battle_config.multihit_delay*(div_-1);
+
+	if (delay <= 0)
+		return 0;
+	
+	//See if it makes sense to set this trigger.
+	switch (bl->type) {
+		case BL_PC:
+		{
+			struct map_session_data *sd = (struct map_session_data*)bl;
+			if (DIFF_TICK(sd->canmove_tick, tick+adelay) > 0)
+				return 0;
+			if (!adelay) //No need of timer.
+				sd->canmove_tick = tick + delay;			
+		}
+		case BL_MOB:
+		{
+			struct mob_data *md = (struct mob_data*)bl;
+			if (DIFF_TICK(md->canmove_tick, tick+adelay) > 0)
+				return 0;
+			if (!adelay) //No need of timer.
+				md->canmove_tick = tick + delay;			
+		}
+		default:
+			return 0;
+	}
+	if (adelay > 0)
+		add_timer(tick+adelay, battle_walkdelay_sub, bl->id, delay);
 	return 1;
 }
 
@@ -4071,6 +4089,7 @@ int battle_config_read(const char *cfgName)
 	if (--count == 0) {
 		battle_validate_conf();
 		add_timer_func_list(battle_delay_damage_sub, "battle_delay_damage_sub");
+		add_timer_func_list(battle_walkdelay_sub, "battle_walkdelay_sub");
 	}
 
 	return 0;
