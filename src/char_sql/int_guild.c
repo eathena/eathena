@@ -613,28 +613,34 @@ int inter_guild_CharOnline(int char_id) {
 	}
 
 	sql_res = mysql_store_result(&mysql_handle) ;
-	sql_row = mysql_fetch_row(sql_res);
 	
-	//Character has a guild, set character online and load guild if not loaded
-	if((guild_id = atoi(sql_row[0])) != 0) {
-      struct guild *g = numdb_search(guild_db_, guild_id);
-      
-      //First guild member to login, load guild into cache
-      if(!g) {
-         g = inter_guild_fromsql(guild_id);
-         numdb_insert(guild_db_, guild_id, g);
-         strdb_insert(guild_name_db_, &g->name, &guild_id);
-      }
-      
-      //Member has logged in before saving, tell saver not to delete
-      if(g->del_flag & 1) {
-         g->del_flag = 0;
-      }
-         
-      //Set member online
-      for(i=0; i<g->max_member; i++) {
-         if(g->member[i].char_id == char_id) {
-            g->member[i].online = 1;
+	if(sql_res) {
+   	sql_row = mysql_fetch_row(sql_res);
+   	
+   	if(sql_row) {
+   	
+      	//Character has a guild, set character online and load guild if not loaded
+      	if((guild_id = atoi(sql_row[0])) != 0) {
+            struct guild *g = numdb_search(guild_db_, guild_id);
+            
+            //First guild member to login, load guild into cache
+            if(!g) {
+               g = inter_guild_fromsql(guild_id);
+               numdb_insert(guild_db_, guild_id, g);
+               strdb_insert(guild_name_db_, &g->name, &guild_id);
+            }
+            
+            //Member has logged in before saving, tell saver not to delete
+            if(g->del_flag & 1) {
+               g->del_flag = 0;
+            }
+               
+            //Set member online
+            for(i=0; i<g->max_member; i++) {
+               if(g->member[i].char_id == char_id) {
+                  g->member[i].online = 1;
+               }
+            }
          }
       }
    }
@@ -660,30 +666,36 @@ int inter_guild_CharOffline(int char_id) {
 	}
 
 	sql_res = mysql_store_result(&mysql_handle) ;
-	sql_row = mysql_fetch_row(sql_res);
 	
-   //Character has a guild, set character offline and check if they were the only member online
-	if((guild_id = atoi(sql_row[0])) != 0) {
-      struct guild *g = numdb_search(guild_db_, guild_id);
-      
-      //Make sure we have the guild in cache just in case anything goes wrong
-      if(g) {
-         
-         //Set member offline
-         for(i=0; i<g->max_member; i++) {
+	if(sql_res) {
+   	sql_row = mysql_fetch_row(sql_res);
+   	
+   	if(sql_row) {
+   	
+         //Character has a guild, set character offline and check if they were the only member online
+      	if((guild_id = atoi(sql_row[0])) != 0) {
+            struct guild *g = numdb_search(guild_db_, guild_id);
             
-            if(g->member[i].char_id != char_id && g->member[i].online ==1) {
-               online_count++;
-            }
-            
-            if(g->member[i].char_id == char_id) {
-               g->member[i].online = 0;
+            //Make sure we have the guild in cache just in case anything goes wrong
+            if(g) {
+               
+               //Set member offline
+               for(i=0; i<g->max_member; i++) {
+                  
+                  if(g->member[i].char_id != char_id && g->member[i].online ==1) {
+                     online_count++;
+                  }
+                  
+                  if(g->member[i].char_id == char_id) {
+                     g->member[i].online = 0;
+                  }
+               }
+               
+               if(online_count == 0)
+                  g->del_flag = 1;
+               
             }
          }
-         
-         if(online_count == 0)
-            g->del_flag = 1;
-         
       }
    }
    
@@ -741,9 +753,14 @@ int inter_guild_sql_init()
 	}
 
 	sql_res = mysql_store_result(&mysql_handle) ;
-	sql_row = mysql_fetch_row(sql_res);
-	if((i = atoi(sql_row[0])) != 0)
-	   guild_newid = atoi(sql_row[0])+1;
+	if(sql_res) {
+   	sql_row = mysql_fetch_row(sql_res);
+   	if(sql_row) {
+      	if((i = atoi(sql_row[0])) != 0) {
+      	   guild_newid = atoi(sql_row[0])+1;
+   	   }
+      }
+   }
 	mysql_free_result(sql_res);
 		
 	//Add timer to save guilds to memory
