@@ -616,6 +616,7 @@ int inter_guild_CharOnline(int char_id) {
 	
 	if(sql_res) {
    	sql_row = mysql_fetch_row(sql_res);
+	
    	
    	if(sql_row) {
    	
@@ -644,7 +645,7 @@ int inter_guild_CharOnline(int char_id) {
          }
       }
    }
-   
+	mysql_free_result(sql_res);
    return 0;
    
 }
@@ -698,7 +699,7 @@ int inter_guild_CharOffline(int char_id) {
          }
       }
    }
-   
+   	mysql_free_result(sql_res);
    return 0;
    
 }
@@ -755,7 +756,7 @@ int inter_guild_sql_init()
 	sql_res = mysql_store_result(&mysql_handle) ;
 	if(sql_res) {
    	sql_row = mysql_fetch_row(sql_res);
-   	if(sql_row) {
+   	if(sql_row[0]) {
       	if((i = atoi(sql_row[0])) != 0) {
       	   guild_newid = atoi(sql_row[0])+1;
    	   }
