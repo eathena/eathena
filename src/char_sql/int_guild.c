@@ -48,7 +48,7 @@ int inter_guild_tosql(struct guild *g)
 	// 4 `guild_position` (`guild_id`,`position`,`name`,`mode`,`exp_mode`)
 	// 8 `guild_alliance` (`guild_id`,`opposition`,`alliance_id`,`name`)
 	// 16 `guild_expulsion` (`guild_id`,`name`,`mes`,`acc`,`account_id`,`rsv1`,`rsv2`,`rsv3`)
-	// 32 `guild_skill` (`guild_id`,`id`,`lv`)
+	// 32 `guild_skill` (`guild_id`,`id`,`lv`) 
 
 	// temporary storage for str convertion. They must be twice the size of the
 	// original string to ensure no overflows will occur. [Skotlex]
@@ -64,6 +64,10 @@ int inter_guild_tosql(struct guild *g)
 		t_info[240];
 	char emblem_data[4096];
 	int i=0;
+	
+	int len=0;
+	char updateflag=1;
+	struct guild_member *m;
 //	int guild_online_member=0; //Meh, this value is not being used anywhere! [Skotlex]
 
 	if (g->guild_id<=0) return -1;
@@ -76,8 +80,6 @@ int inter_guild_tosql(struct guild *g)
 	
 	t_info[0]='\0';
    // Insert new guild to sqlserver
-	int len=0;
-	char updateflag=1;
 	strcat(t_info, " guild");
 	
 	// Check if the guild exists.
@@ -128,7 +130,6 @@ int inter_guild_tosql(struct guild *g)
 		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 	}
 
-	struct guild_member *m;
 	strcat(t_info, " members");
 	// Re-writing from scratch (Aru)
 	sprintf(tmp_sql,"DELETE from `%s` where `guild_id` = '%d'",
