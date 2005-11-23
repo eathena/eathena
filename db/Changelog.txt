@@ -35,6 +35,8 @@
 
 	--
 11/22
+	* Updated the Range of Provoke, Bowling Bash. Retouched the range of Spear
+	  Stab to be +2 of current weapon rather than 4. [Skotlex]
 	* Reupdated the mob skill db (some mobs had mode change-target which is
 	  obsolete now) [Skotlex]
 	* Merged in Komurka's latest update to the mob_skill_db.txt [Skotlex]

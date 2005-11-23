@@ -2278,10 +2278,10 @@ struct Damage battle_calc_magic_attack(
 				}
 				break;
 			case PF_SOULBURN:
-				if (!tsd || skill_lv < 5) {
+				if (!tsd) {
 					memset(&ad,0,sizeof(ad));
 					return ad;
-				} else if (tsd)
+				} else
 					ad.damage = tsd->status.sp * 2;
 				break;
 			case ASC_BREAKER:

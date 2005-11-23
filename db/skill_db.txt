@@ -20,7 +20,7 @@
 3,0,0,0,0,0,10,0,no,0,0,0,weapon,0	//SM_TWOHAND#Two-Handed Sword Mastery#
 4,0,0,0,0,0,10,0,no,0,0,0,none,0	//SM_RECOVERY#Increase HP Recovery#
 5,-1,6,1,-1,0,10,1,no,0,0,0,weapon,0	//SM_BASH#Bash#
-6,8,6,1,0,1,10,1,no,0,0,0,none,0	//SM_PROVOKE#Provoke#
+6,9,6,1,0,1,10,1,no,0,0,0,none,0	//SM_PROVOKE#Provoke#
 7,0,6,4,3,2,10,1,no,0,0,0,weapon,2	//SM_MAGNUM#Magnum Break#
 8,0,6,4,0,1,10,1,no,0,0,0,weapon,0	//SM_ENDURE#Endure#
 9,0,0,0,0,0,10,0,no,0,0,0,none,0	//MG_SRECOVERY#Increase SP Recovery#
@@ -72,11 +72,11 @@
 55,0,0,0,0,0,10,0,no,0,0,0,weapon,0	//KN_SPEARMASTERY#Spear Mastery#
 56,-1,8,1,-1,0,10,3,no,0,0,0,weapon,0	//KN_PIERCE#Pierce#
 57,1,6,1,-1,1,10,1,no,33,0,0,weapon,3	//KN_BRANDISHSPEAR#Brandish Spear#
-58,4,6,1,-1,2,10,1,no,0,0,0,weapon,6	//KN_SPEARSTAB#Spear Stab#
+58,-3,6,1,-1,2,10,1,no,0,0,0,weapon,6	//KN_SPEARSTAB#Spear Stab#
 59,-3:-5:-7:-9:-11,6,1,-1,0,5,1,no,0,0,0,weapon,0	//KN_SPEARBOOMERANG#Spear Boomerang#
 60,0,6,4,0,1,10,1,no,0,0,0,weapon,0	//KN_TWOHANDQUICKEN#Twohand Quicken#
 61,0,6,4,-1,1,5,1,no,0,0,0,weapon,0	//KN_AUTOCOUNTER#Counter Attack#
-62,-1,6,1,-1,2,10,1,no,33,0,0,weapon,1:1:2:2:3:3:4:4:5:5 //KN_BOWLINGBASH#Bowling Bash#
+62,-2,6,1,-1,2,10,1,no,33,0,0,weapon,1:1:2:2:3:3:4:4:5:5 //KN_BOWLINGBASH#Bowling Bash#
 63,0,0,0,0,0,1,0,no,0,0,0,weapon,0	//KN_RIDING#Peco Peco Riding#
 64,0,0,0,0,0,5,0,no,0,0,0,weapon,0	//KN_CAVALIERMASTERY#Cavalier Mastery#
 65,0,0,0,0,0,10,0,no,0,0,0,weapon,0	//PR_MACEMASTERY#Mace Mastery#
