@@ -362,6 +362,7 @@ int buildin_charisalpha(struct script_state *st);//isalpha [valaris]
 int buildin_fakenpcname(struct script_state *st); // [Lance]
 int buildin_compare(struct script_state *st); // Lordalfa, to bring strstr to Scripting Engine
 int buildin_getiteminfo(struct script_state *st); //[Lupus] returns Items Buy / sell Price, etc info
+int buildin_getequipcardid(struct script_state *st); //[Lupus] returns card id from quipped item card slot N
 void push_val(struct script_stack *stack,int type,int val);
 int run_func(struct script_state *st);
 
@@ -635,6 +636,7 @@ struct {
 	{buildin_fakenpcname,"fakenpcname","ssi"}, // [Lance]
 	{buildin_compare,"compare","ss"}, // Lordalfa - To bring strstr to scripting Engine.
 	{buildin_getiteminfo,"getiteminfo","ii"}, //[Lupus] returns Items Buy / sell Price, etc info
+	{buildin_getequipcardid,"getequipcardid","ii"}, //[Lupus] returns CARD ID or other info from CARD slot N of equipped item
 	{NULL,NULL,NULL},
 };
 
@@ -7326,6 +7328,36 @@ int buildin_getiteminfo(struct script_state *st)
 		push_val(st->stack,C_INT,item_arr[n]);
 	} else
 		push_val(st->stack,C_INT,-1);
+	return 0;
+}
+
+/*==========================================
+ * Returns value from equipped item slot n [Lupus]
+	getequipcardid(num,slot)
+	where
+		num = eqip position slot
+		slot = 0,1,2,3 (Card Slot N)
+
+	This func returns CARD ID, 255,254,-255 (for card 0, if the item is produced)
+		it's useful when you want to check item cards or if it's signed
+	Useful for such quests as "Sign this refined item with players name" etc
+		Hat[0] +4 -> Player's Hat[0] +4
+ *------------------------------------------
+ */
+int buildin_getequipcardid(struct script_state *st)
+{
+	int i,num,slot;
+	struct map_session_data *sd;
+
+	num=conv_num(st,& (st->stack->stack_data[st->start+2]));
+	slot=conv_num(st,& (st->stack->stack_data[st->start+3]));
+	sd=script_rid2sd(st);
+	i=pc_checkequip(sd,equip[num-1]);
+	if(i >= 0 && slot>=0 && slot<4)
+		push_val(st->stack,C_INT,sd->status.inventory[i].card[slot]);
+	else
+		push_val(st->stack,C_INT,0);
+
 	return 0;
 }
 

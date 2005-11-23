@@ -1,4 +1,8 @@
 Date	Added
+	* Added a new script function: getequipcardid(equipSlot,CardSlot) [Lupus]
+		Returns Card ID or just a value from your EQUIPPED item
+		Useful to check equipped items PROPERTY, STRONG value, Author ID, etc
+		Check npc\sample\getequipcardid.txt and read script.c comment ^_-
 2005/11/23
 	* Fixed the crash on guild creation in new guild cache. [Kevin]
 	* Impletmented duel organizing commands: @duel, @invite, @accept, @reject, @leave. [LuzZza]
