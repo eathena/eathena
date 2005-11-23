@@ -693,14 +693,12 @@ int inter_guild_CharOffline(int char_id) {
 static int save_guild_from_cache(void *id, void *g, va_list ap)
 {
 	struct guild * save_guild = (struct guild*)g;
-	int guild_id;
 	
    inter_guild_tosql(save_guild);
    
    if(save_guild->del_flag & 1) {
       
-      guild_id = (int)(*(int*)id);
-      numdb_erase(guild_db_, guild_id);
+      numdb_erase(guild_db_, save_guild->guild_id);
       strdb_erase(guild_name_db_, &save_guild->name);
       aFree(save_guild);
       
