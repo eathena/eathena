@@ -2201,6 +2201,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 				flag=(flag&~BF_RANGEMASK)|BF_LONG;
 				break;
 			case MC_CARTREVOLUTION:	// カートレボリューション
+				no_cardfix = 1;
 				if(sd->cart_max_weight > 0 && sd->cart_weight > 0) {
 					damage_rate += 50 + sd->cart_weight/800;	//fixed CARTREV damage [Lupus] // should be 800, not 80... weight is *10 ^_- [celest]
 				}
@@ -2394,6 +2395,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 				s_ele = 0;
 				break;
 			case WS_CARTTERMINATION:
+				no_cardfix = 1;
 				if(sd->cart_max_weight > 0 && sd->cart_weight > 0) {
 					damage_rate += sd->cart_weight/(10*(16-skill_lv))-100;
 				}

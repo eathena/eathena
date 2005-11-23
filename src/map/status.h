@@ -202,7 +202,8 @@ enum {	// struct map_session_data ‚Ì status_change‚Ì”Ô?ƒe?ƒuƒ‹
 	SC_INCDEF2			= 194,
 	SC_INCSTR			= 195,
 	SC_INCAGI			= 196,
-	SC_SELFDESTRUCTION		= 201
+	SC_SELFDESTRUCTION		= 201,
+	SC_MAGNUM			= 202
 };
 extern int SkillStatusChangeTable[];
 

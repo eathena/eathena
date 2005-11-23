@@ -906,6 +906,18 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		}
 		break;
 
+	case DC_UGLYDANCE:
+		if (dstsd) {
+			int skill, sp = 5+5*skilllv;
+			if(sd && (skill=pc_checkskill(sd,DC_DANCINGLESSON)))
+			    sp += 5+skill;
+			dstsd->status.sp -= sp;
+			if(dstsd->status.sp<0)
+				dstsd->status.sp=0;
+			clif_updatestatus(dstsd,SP_SP);
+		}
+  		break;
+
 	case SM_BASH:			/* バッシュ（急所攻?） */
 		if( sd && (skill=pc_checkskill(sd,SM_FATALBLOW))>0 ){
 			if( rand()%100 < 6*(skilllv-5)*sc_def_vit/100 )
@@ -1182,7 +1194,6 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 	case WS_CARTTERMINATION:	// Cart termination
 		if (rand() % 10000 < 5 * skilllv * sc_def_vit)
 			status_change_start(bl,SC_STAN,skilllv,0,0,0,skill_get_time2(WS_CARTTERMINATION,skilllv),0);
-		status_change_end(src,SC_CARTBOOST,-1);
 		break;
 
 	case CR_ACIDDEMONSTRATION:
@@ -1827,7 +1838,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 	}
 
 	if(skillid==PA_SACRIFICE)
-		rdamage = (status_get_max_hp(bl)*9) / 100;
+		rdamage = (status_get_max_hp(src)*9) / 100;
 
 
 //マジックロッド?理ここから
@@ -5578,6 +5589,7 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 
 	if(battle_config.pc_skill_log)
 		printf("PC %d skill castend skill=%d\n",sd->bl.id,sd->skillid);
+
 	pc_stop_walking(sd,0);
 
 	switch( skill_get_nk(sd->skillid) )
@@ -6224,9 +6236,12 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 		val3 = 0;//回復用タイムカウンタ(6秒?に1?加)
 		break;
 	case DC_SERVICEFORYOU:		/* サ?ビスフォ?ユ? */
-		if(src->type == BL_PC)
-			val1 = (pc_checkskill((struct map_session_data *)src,DC_DANCINGLESSON)+1)>>1;
-		val2 = status_get_int(src)/10;
+		val1 = 10+skilllv+(status_get_int(src)/10); // MaxSP percent increase
+		val2 = 10+3*skilllv+(status_get_int(src)/10); // SP cost reduction
+		if(src->type == BL_PC){
+			val1 += pc_checkskill((struct map_session_data *)src,DC_DANCINGLESSON);
+			val2 += pc_checkskill((struct map_session_data *)src,DC_DANCINGLESSON);
+		}
 		break;
 	case BA_ASSASSINCROSS:		/* 夕陽のアサシンクロス */
 		if(src->type == BL_PC)
@@ -6673,6 +6688,13 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 		skill_attack(BF_MISC, ss, &src->bl, bl, sg->skill_id, sg->skill_lv, tick, 0);
 		break;
 
+	case 0xab:
+		if (ss->id == bl->id)
+			break;
+		if (bl->type == BL_PC)
+			skill_additional_effect(ss, bl, sg->skill_id, sg->skill_lv, BF_LONG|BF_SKILL|BF_MISC, tick);
+		break;
+
 	case 0xb1:	/* デモンストレ?ション */
 		skill_attack(BF_WEAPON, ss, &src->bl, bl, sg->skill_id, sg->skill_lv, tick, 0);
 		if (bl->type == BL_PC && rand()%100 < sg->skill_lv && battle_config.equipment_breaking)
@@ -6802,7 +6824,6 @@ int skill_unit_onout(struct skill_unit *src,struct block_list *bl,unsigned int t
 	case 0xa3:	/* ロキの叫び */
 	case 0xa4:	/* 深淵の中に */
 	case 0xa5:	/* 不死身のジークフリード */
-	case 0xad:	/* 私を忘れないで… */
 	case 0xb9:	// Wand of Hermod
 		if (sc_data[type].timer!=-1 && sc_data[type].val4==(int)src) {
 			status_change_end(bl,type,-1);
@@ -6812,6 +6833,7 @@ int skill_unit_onout(struct skill_unit *src,struct block_list *bl,unsigned int t
 //	case 0xa6:	/* 不協和音 */
 	case 0xa7:	/* 口笛 */
 	case 0xa8:	/* 夕陽のアサシンクロス */
+	case 0xad:	// Don't Forget Me
 	case 0xa9:	/* ブラギの詩 */
 	case 0xaa:	/* イドゥンの林檎 */
 	case 0xab:	/* 自分勝手なダンス */
@@ -7747,7 +7769,8 @@ int skill_delayfix( struct block_list *bl, int time )
 
 		// instant cast attack skills depend on aspd as delay [celest]
 		if (time == 0) {
-			if (skill_get_type(sd->skillid) == BF_WEAPON)
+			if (skill_get_type(sd->skillid) == BF_WEAPON || 
+				sd->skillid==WS_CARTTERMINATION) // how'd that escape?
 			{
 				time = status_get_adelay (bl)/2;
 				dex_fix = 0;
@@ -7968,6 +7991,9 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 	casttime = skill_castfix(&sd->bl, skill_get_cast(skill_num, skill_lv));
 	if (skill_num != SA_MAGICROD)
 		delay = skill_delayfix(&sd->bl, skill_get_delay(skill_num, skill_lv));
+	if(sd->skillid == CG_ARROWVULCAN && sd->canmove_tick < (tick + delay))
+		sd->canmove_tick = tick + delay;
+
 	sd->state.skillcastcancel = skill_get_castcancel(skill_num);
 
 	switch (skill_num) {	/* 何か特殊な?理が必要 */
@@ -9797,31 +9823,39 @@ int skill_produce_mix( struct map_session_data *sd,
 	if((equip=itemdb_isequip(nameid)))
 		wlv = itemdb_wlv(nameid);
 	if(!equip) {
-// Corrected rates [DracoRPG] --------------------------//
 		if(skill_produce_db[idx].req_skill==AM_PHARMACY) {
 			make_per = pc_checkskill(sd,AM_LEARNINGPOTION)*100
 				+ pc_checkskill(sd,AM_PHARMACY)*300 + sd->status.job_level*20
-				+ sd->paramc[3]*20 + sd->paramc[4]*15;
-
-			if(nameid >= 501 && nameid <= 505) // Normal potions
-				make_per += 2000 + pc_checkskill(sd,AM_POTIONPITCHER)*100;
-			else if(nameid >= 605 && nameid <= 606) // Anodyne & Aloevera (not sure of the formula, I put the same base value as normal pots but without the Aid Potion bonus since they are not throwable pots ^^)
-				make_per += 2000;
-			else if(nameid >= 545 && nameid <= 547) // Concentrated potions
-				make_per += 2000 + pc_checkskill(sd,CR_SLIMPITCHER)*100;
-			else if(nameid == 970) // Alcohol
-				make_per += 1000;
-			else if(nameid == 7135) // Bottle Grenade
-				make_per += 500 + pc_checkskill(sd,AM_DEMONSTRATION)*100;
-			else if(nameid == 7136) // Acid Bottle
-				make_per += 500 + pc_checkskill(sd,AM_ACIDTERROR)*100;
-			else if(nameid == 7137) // Plant Bottle
-				make_per += 500 + pc_checkskill(sd,AM_CANNIBALIZE)*100;
-			else if(nameid == 7138) // Marine Sphere Bottle
-				make_per += 500 + pc_checkskill(sd,AM_SPHEREMINE)*100;
-			else if(nameid == 7139) // Glistening Coat
-				make_per += 500 + pc_checkskill(sd,AM_CP_WEAPON)*100 + pc_checkskill(sd,AM_CP_SHIELD)*100 +
-					pc_checkskill(sd,AM_CP_ARMOR)*100 + pc_checkskill(sd,AM_CP_HELM)*100;
+				+ sd->paramc[3]*5 + sd->paramc[4]*10+sd->paramc[5]*10;
+				switch(nameid){
+					case 501: // Red Potion
+					case 503: // Yellow Potion
+					case 504: // White Potion
+					case 605: // Anodyne
+					case 606: // Aloevera
+						make_per += 2000;
+						break;
+					case 505: // Blue Potion
+						make_per -= 500;
+						break;
+					case 545: // Condensed Red Potion
+					case 546: // Condensed Yellow Potion
+					case 547: // Condensed White Potion
+						make_per -= 1000;
+					    break;
+				 	case 970: // Alcohol
+						make_per += 1000;
+						break;
+					case 7139: // Glistening Coat
+						make_per -= 1000;
+						break;
+					case 7135: // Bottle Grenade
+					case 7136: // Acid Bottle
+					case 7137: // Plant Bottle
+					case 7138: // Marine Sphere Bottle
+					default:
+						break;
+				}
 		} else if (skill_produce_db[idx].req_skill == ASC_CDP) {
 			make_per = 2000 + 40*sd->paramc[4] + 20*sd->paramc[5]; // Poison Bottle
 		} else {

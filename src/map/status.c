@@ -1356,12 +1356,10 @@ int status_calc_pc(struct map_session_data* sd,int first)
 				sd->status.max_hp = battle_config.max_hp;
 		}
 		if(sd->sc_data[SC_SERVICE4U].timer!=-1) {	// サ?ビスフォ?ユ?
-			sd->status.max_sp += sd->status.max_sp*(10+sd->sc_data[SC_SERVICE4U].val1+sd->sc_data[SC_SERVICE4U].val2
-						+sd->sc_data[SC_SERVICE4U].val3)/100;
+			sd->status.max_sp += sd->status.max_sp*(sd->sc_data[SC_SERVICE4U].val1)/100;
 			if(sd->status.max_sp < 0 || sd->status.max_sp > battle_config.max_sp)
 				sd->status.max_sp = battle_config.max_sp;
-			sd->dsprate-=(10+sd->sc_data[SC_SERVICE4U].val1*3+sd->sc_data[SC_SERVICE4U].val2
-					+sd->sc_data[SC_SERVICE4U].val3);			
+			sd->dsprate-=(sd->sc_data[SC_SERVICE4U].val2);			
 		}
 
 		if(sd->sc_data[SC_FORTUNE].timer!=-1)	// 幸運のキス
