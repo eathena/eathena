@@ -9557,7 +9557,7 @@ int atcommand_duel(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-    int i=1;
+    int i=1, p=0;
     char output[256];
     struct map_session_data* player_sd = NULL;
     
@@ -9566,7 +9566,6 @@ int atcommand_duel(
       sprintf(output, " -- Duels: %d/%d, Members: %d/%d -- ", sd->duel_group, duel_group_list[0], duel_group_list[sd->duel_group], duel_group_list[sd->duel_group] + duel_invite_list[sd->duel_group]);
       clif_disp_onlyself(sd,output,strlen(output));
       
-      int p=0;
       for (i=0; i<fd_max; i++)
 	    if (session[i] && (player_sd = (struct map_session_data *) session[i]->session_data) 
           && player_sd->state.auth && player_sd->duel_group == sd->duel_group) {

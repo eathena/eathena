@@ -5,7 +5,7 @@ Date	Added
 		Check npc\sample\getequipcardid.txt and read script.c comment ^_-
 2005/11/23
 	* Fixed the crash on guild creation in new guild cache. [Kevin]
-	* Impletmented duel organizing commands: @duel, @invite, @accept, @reject, @leave. [LuzZza]
+	* Implemented duel organizing commands: @duel, @invite, @accept, @reject, @leave. [LuzZza]
 	* Made the walk-delay a timer, so that it triggers after the actual attack
 	  motion of the src. [Skotlex]
 	* Added back the combo damage delay config, now renamed to

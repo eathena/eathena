@@ -1290,11 +1290,12 @@ void map_addnickdb(struct map_session_data *sd) {
  *------------------------------------------
  */
 int map_quit(struct map_session_data *sd) {
-	nullpo_retr(0, sd);
-
     int i;
     char output[256];
     struct map_session_data* pl_sd = NULL;    
+
+	//nullpo_retr(0, sd); //Utterly innecessary, all invokations to this function already have an SD non-null check.
+	//Learn to use proper coding and stop relying on nullpo_'s for safety :P [Skotlex]
 
     // Force exiting from duel when player quit [LuzZza]
     if(sd->duel_group) {

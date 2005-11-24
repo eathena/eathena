@@ -756,7 +756,7 @@ int inter_guild_sql_init()
    	sql_row = mysql_fetch_row(sql_res);
    	if(sql_row[0]) {
       	if((i = atoi(sql_row[0])) != 0) {
-      	   guild_newid = atoi(sql_row[0])+1;
+      	   guild_newid = i+1;
    	   }
       }
 	   mysql_free_result(sql_res);
