@@ -108,6 +108,7 @@ int clif_refresh(struct map_session_data*);	// self
 
 int clif_fame_blacksmith(struct map_session_data *, int);
 int clif_fame_alchemist(struct map_session_data *, int);
+int clif_fame_taekwon(struct map_session_data *, int);
 
 void clif_emotion(struct block_list *bl,int type);
 void clif_talkiebox(struct block_list *bl,char* talkie);

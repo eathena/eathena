@@ -10575,7 +10575,6 @@ void clif_parse_Blacksmith(int fd,struct map_session_data *sd)
 
 	WFIFOW(fd,0) = 0x219;
 	for (i = 0; i < 10; i++) {
-		// To-do: save blacksmith names in fame list...
 		if (smith_fame_list[i].id > 0) {
 			if (strcmp(smith_fame_list[i].name, "-") == 0 &&
 				(name = map_charid2nick(smith_fame_list[i].id)) != NULL)
@@ -10614,7 +10613,6 @@ void clif_parse_Alchemist(int fd,struct map_session_data *sd)
 
 	WFIFOW(fd,0) = 0x21a;
 	for (i = 0; i < 10; i++) {
-		// To-do: save alchemist names in fame list...
 		if (chemist_fame_list[i].id > 0) {
 			if (strcmp(chemist_fame_list[i].name, "-") == 0 &&
 				(name = map_charid2nick(chemist_fame_list[i].id)) != NULL)
@@ -10647,15 +10645,35 @@ int clif_fame_alchemist(struct map_session_data *sd, int points)
 void clif_parse_Taekwon(int fd,struct map_session_data *sd)
 {
 	int i;
+	char *name;
 
 	nullpo_retv(sd);
 
 	WFIFOW(fd,0) = 0x226;
 	for (i = 0; i < 10; i++) {
-		memcpy(WFIFOP(fd, 2 + 24 * i), "Unknown", NAME_LENGTH);
-		WFIFOL(fd, 242 + i * 4) = 0;
+		if (taekwon_fame_list[i].id > 0) {
+			if (strcmp(taekwon_fame_list[i].name, "-") == 0 &&
+				(name = map_charid2nick(taekwon_fame_list[i].id)) != NULL)
+			{
+				memcpy(WFIFOP(fd, 2 + 24 * i), name, NAME_LENGTH);
+			} else
+				memcpy(WFIFOP(fd, 2 + 24 * i), taekwon_fame_list[i].name, NAME_LENGTH);
+		} else
+			memcpy(WFIFOP(fd, 2 + 24 * i), "None", NAME_LENGTH);
+		WFIFOL(fd, 242 + i * 4) = taekwon_fame_list[i].fame;
 	}
 	WFIFOSET(fd, packet_len_table[0x226]);
+}
+
+int clif_fame_taekwon(struct map_session_data *sd, int points)
+{
+	int fd = sd->fd;
+	WFIFOW(fd,0) = 0x224;
+	WFIFOL(fd,2) = points;
+	WFIFOL(fd,6) = sd->status.fame;
+	WFIFOSET(fd, packet_len_table[0x224]);
+	
+	return 0;
 }
 
 /*==========================================
@@ -11037,6 +11055,7 @@ static int packetdb_readdb(void)
 		{clif_parse_Shift,"shift"},
 		{clif_parse_Blacksmith,"blacksmith"},
 		{clif_parse_Alchemist,"alchemist"},
+		{clif_parse_Alchemist,"taekwon"},
 		{clif_parse_RankingPk,"rankingpk"},
 		{clif_parse_debug,"debug"},
 

@@ -1,5 +1,20 @@
 Date	Added
 2005/11/24
+	* Various things I made but already forgot xD [DracoRPG]
+	* Added or updated several Taekwon skills [DracoRPG]
+	  - Jump Kick uses clif_slide to the target's exact pos , waiting for capture/video
+	  - Taekwon ranking is now supported by the fame system, but there's no way to gain
+	    points atm (Taekwon Mission has no effect), infinite kick combo should be OK
+	  - 4 basic kicks updated, you now stop attacking when a stance triggers, and have 2
+	    seconds to hit the button before attacking again
+	  - Run uses SC_SPORT to increase your STR and affect the way Break Fall works
+	  - Break Fall dodges ranged magic/weapon attacks, as well as melee weapon ones
+	    when SC_SPORT is active
+	* Made Sword Reject / Counter Instinct reflect damage only against monsters (not
+	  100% sure about it, but let's say 90%... iRO site says it, although it isn't
+	  the best source ever) [DracoRPG]
+	* Made Spiral Pierce use SC_STOP instead of setting canwalk_tick, some other such things
+	  need to be reviewed [DracoRPG]
 	* Fixed Pneuma. [Skotlex]
 	* Fixed dead mobs reappearing on the map. [Skotlex]
 	* Cleaned up the duel code in battle_check_target. [Skotlex]

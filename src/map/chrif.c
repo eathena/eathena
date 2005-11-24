@@ -50,11 +50,9 @@ static const int packet_len_table[0x3d] = {
 //2af9: Incomming, chrif_connectack -> 'answer of the 2af8 login(ok / fail)'
 //2afa: Outgoing, chrif_sendmap -> 'sending our maps'
 //2afb: Incomming, chrif_sendmapack -> 'Maps received successfully / or not ..'
-
 //2afc: Outgoing, chrif_scdata_request -> request sc_data for pc_authok'ed char. <- new command reuses previous one.
 //2afd: Incomming, chrif_authok -> 'character selected, add to auth db'
 //2afe: FREE (packet deprecated by Kevin's new login system)
-
 //2aff: Outgoing, send_users_tochar -> 'sends all actual connected charactersids to charserver'
 //2b00: Incomming, map_setusers -> 'set the actual usercount? PACKET.2B COUNT.L.. ?' (not sure)
 //2b01: Outgoing, chrif_save -> 'charsave of char XY account XY (complete struct)'
@@ -1139,22 +1137,29 @@ int chrif_reqfamelist(void)
 int chrif_recvfamelist(int fd)
 {	// response from 0x2b1b
 	int num, size;
-	int total = 0, len = 6;
+	int total = 0, len = 8;
 
 	memset (smith_fame_list, 0, sizeof(smith_fame_list));
 	memset (chemist_fame_list, 0, sizeof(chemist_fame_list));
+	memset (chemist_fame_list, 0, sizeof(taekwon_fame_list));
 
-	size = RFIFOW(fd,4); //Blasksmith block size.
-
-	for (len = 6, num = 0; len < size && num < 10; num++) {
+	size = RFIFOW(fd,6); //Blacksmith block size
+	for (num = 0; len < size && num < 10; num++) {
 		memcpy(&smith_fame_list[num], RFIFOP(fd,len), sizeof(struct fame_list));
  		len += sizeof(struct fame_list);
 	}
 	total += num;
-	size = RFIFOW(fd,2); //The total packet size...
-	
+
+	size = RFIFOW(fd,4); //Alchemist block size
 	for (num = 0; len < size && num < 10; num++) {
 		memcpy(&chemist_fame_list[num], RFIFOP(fd,len), sizeof(struct fame_list));
+ 		len += sizeof(struct fame_list);
+	}
+	total += num;
+
+	size = RFIFOW(fd,2); //Total packet length
+	for (num = 0; len < size && num < 10; num++) {
+		memcpy(&taekwon_fame_list[num], RFIFOP(fd,len), sizeof(struct fame_list));
  		len += sizeof(struct fame_list);
 	}
 	total += num;

@@ -213,6 +213,7 @@ enum {
 	SC_DEXFOOD,
 	SC_LUKFOOD,
 	SC_STOP,	//Prevents inflicted chars from walking. [Skotlex]
+	SC_SPORT,
 	SC_SPIRIT,
 	SC_COMA, //Not a real SC_, it makes a char's HP/SP hit 1.
 
@@ -309,7 +310,7 @@ enum {
 	SI_JOINTBEAT		= 125,
 	SI_DEVOTION			= 130,
 	SI_STEELBODY		= 132,
-	SI_WIGGLE			= 134, //It "wiggles" the character sprite on start/end. Used for SC_ORCISH
+	SI_SPORT			= 134, //It "wiggles" the character sprite on start/end. Used for SC_ORCISH
 	SI_READYSTORM		= 135,
 	SI_READYDOWN		= 137,
 	SI_READYTURN		= 139,

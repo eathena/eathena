@@ -213,6 +213,7 @@ int pc_run(struct map_session_data *sd, int skilllv, int dir);
 
 extern struct fame_list smith_fame_list[10];
 extern struct fame_list chemist_fame_list[10];
+extern struct fame_list taekwon_fame_list[10];
 
 int pc_readdb(void);
 int do_init_pc(void);

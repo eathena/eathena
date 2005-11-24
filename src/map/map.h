@@ -279,7 +279,6 @@ struct vending {
 };
 
 struct weapon_data {
- 	unsigned fameflag : 1;
  	int atkmods[3];
  
  	// to be zeroed

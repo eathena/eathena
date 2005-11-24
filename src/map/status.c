@@ -552,7 +552,7 @@ void initStatusIconChangeTable() {
 	StatusIconChangeTable[SC_MOONLIT] = SI_MOONLIT;
 	StatusIconChangeTable[SC_DEVOTION] = SI_DEVOTION;
 	StatusIconChangeTable[SC_STEELBODY] = SI_STEELBODY;
-	StatusIconChangeTable[SC_ORCISH] = SI_WIGGLE;
+	StatusIconChangeTable[SC_SPORT] = SI_SPORT;
 	StatusIconChangeTable[SC_READYSTORM] = SI_READYSTORM;
 	StatusIconChangeTable[SC_READYDOWN] = SI_READYDOWN;
 	StatusIconChangeTable[SC_READYTURN] = SI_READYTURN;
@@ -1159,8 +1159,8 @@ int status_calc_pc(struct map_session_data* sd,int first)
 					if(sd->status.inventory[index].card[0]==0x00ff){	// Forged weapon
 						sd->left_weapon.star = (sd->status.inventory[index].card[1]>>8);	// 星のかけら
 						if(sd->left_weapon.star >= 15) sd->left_weapon.star = 40; // 3 Star Crumbs now give +40 dmg
+						sd->left_weapon.star += 10 * pc_istop10fame( MakeDWord(sd->status.inventory[index].card[2],sd->status.inventory[index].card[3]) ,MAPID_BLACKSMITH);
 						wele_= (sd->status.inventory[index].card[1]&0x0f);	// ? 性
-						sd->left_weapon.fameflag = pc_istop10fame( MakeDWord(sd->status.inventory[index].card[2],sd->status.inventory[index].card[3]) ,JOB_BLACKSMITH);
 					}
 					sd->attackrange_ += sd->inventory_data[index]->range;
 					sd->state.lr_flag = 1;
@@ -1178,9 +1178,9 @@ int status_calc_pc(struct map_session_data* sd,int first)
 
 					if(sd->status.inventory[index].card[0]==0x00ff){	// Forged weapon
 						sd->right_weapon.star += (sd->status.inventory[index].card[1]>>8);	// 星のかけら
-						if(sd->right_weapon.star >= 15) sd->right_weapon.star = 50; // 3 Star Crumbs now give +50 dmg
+						if(sd->right_weapon.star >= 15) sd->right_weapon.star = 40; // 3 Star Crumbs now give +40 dmg
+						sd->right_weapon.star += 10 * pc_istop10fame( MakeDWord(sd->status.inventory[index].card[2],sd->status.inventory[index].card[3]) ,MAPID_BLACKSMITH);
 						wele = (sd->status.inventory[index].card[1]&0x0f);	// ? 性
-						sd->right_weapon.fameflag = pc_istop10fame( MakeDWord(sd->status.inventory[index].card[2],sd->status.inventory[index].card[3]) ,JOB_BLACKSMITH);
 					}
 					sd->attackrange += sd->inventory_data[index]->range;
 					run_script(sd->inventory_data[index]->script,0,sd->bl.id,0);
@@ -1921,6 +1921,8 @@ int status_calc_str(struct block_list *bl, int str)
 			str += 4;
   		if(sc_data[SC_TRUESIGHT].timer!=-1)
 			str += 5;
+		if(sc_data[SC_SPORT].timer!=-1)
+			str += sc_data[SC_SPORT].val1;
 		if(sc_data[SC_BLESSING].timer != -1){
 			int race = status_get_race(bl);
 			if(battle_check_undead(race,status_get_elem_type(bl)) || race == 6)
@@ -4209,32 +4211,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 				break;
 			tick = 600*1000;
 			break;
-// Taekwon kicks SCs, waiting to know how they should work [Dralnu]
-		case SC_STORMKICK:
-  		case SC_DOWNKICK:
- 		case SC_TURNKICK:
-		case SC_COUNTER:
-			if (sd)
-			{
-				switch (type)
-				{
-				case SC_STORMKICK:
-					clif_displaymessage(sd->fd,"Whirlwind Kick now !!");
-					break;
-		  		case SC_DOWNKICK:
-					clif_displaymessage(sd->fd,"Axe Kick now !!");
-					break;
-		 		case SC_TURNKICK:
-					clif_displaymessage(sd->fd,"Round Kick now !!");
-					break;
-    			case SC_COUNTER:
-					clif_displaymessage(sd->fd,"Counter Kick now !!");
-					break;
-				}
-				sd->attackabletime = gettick()+tick;
-			}
-			break;
-			
+
 		case SC_AUTOGUARD:
 			if (!flag)
 			{
@@ -4400,13 +4377,44 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			battle_damage(NULL, bl, status_get_hp(bl)-1, 0);
 			if (sd) pc_heal(sd,0,-sd->status.sp+1);
 			return 0;
-			
+
 		case SC_CARTBOOST:		/* カ?トブ?スト */
 			if(sc_data[SC_DECREASEAGI].timer!=-1 )
 			{	//Cancel Decrease Agi, but take no further effect [Skotlex]
 				status_change_end(bl,SC_DECREASEAGI,-1);
 				return 0;
 			}
+			calc_flag = 1;
+			break;
+
+		// Taekwon Kicks Stances
+		// If val3=1, then display the stance triggering effect and wait 2 sec before attacking again (normal trigger)
+		// If val3=0, then start the SC silently (infinite kick combo, Top-10 ranked Taekwons only)
+		case SC_STORMKICK:
+			if(sd && val3) {
+				clif_skill_nodamage(bl,bl,TK_READYSTORM,1,1);
+				sd->attackabletime = gettick()+2000;
+			}
+			break;
+  		case SC_DOWNKICK:
+			if(sd && val3) {
+				clif_skill_nodamage(bl,bl,TK_READYDOWN,1,1);
+				sd->attackabletime = gettick()+2000;
+			}
+			break;
+ 		case SC_TURNKICK:
+			if(sd && val3) {
+				clif_skill_nodamage(bl,bl,TK_READYTURN,1,1);
+				sd->attackabletime = gettick()+2000;
+			}
+			break;
+		case SC_COUNTER:
+			if(sd && val3) {
+				clif_skill_nodamage(bl,bl,TK_READYCOUNTER,1,1);
+				sd->attackabletime = gettick()+2000;
+			}
+			break;
+
 		case SC_CONCENTRATE:		/* 集中力向上 */
 		case SC_BLESSING:			/* ブレッシング */
 		case SC_ANGELUS:			/* アンゼルス */
@@ -4444,6 +4452,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_DEXFOOD:
 		case SC_LUKFOOD:
 		case SC_RUN://駆け足
+		case SC_SPORT:
 		case SC_SPIRIT:
 			calc_flag = 1;
 			break;
@@ -4478,6 +4487,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_SHRINK:
 		case SC_SIGHTBLASTER:
 		case SC_WINKCHARM:
+		case SC_JUMPKICK:
 			break;
 
 		default:
@@ -4765,6 +4775,7 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			case SC_BATTLEORDERS:
 			case SC_REGENERATION:
 			case SC_GUILDAURA:
+			case SC_SPORT:
 			case SC_SPIRIT: 
 				calc_flag = 1;
 				break;

@@ -829,26 +829,22 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 					clif_skill_fail(sd,skillid,0,0);
 			}
 			// Enchant Poison gives a chance to poison attacked enemies
-			if (sd->sc_data[SC_ENCPOISON].timer != -1 && sc_data && sc_data[SC_POISON].timer == -1 &&
-				rand() % 100 < sd->sc_data[SC_ENCPOISON].val1 * sc_def_vit / 100) {
+			if(sd->sc_data[SC_ENCPOISON].timer != -1 && sc_data && sc_data[SC_POISON].timer == -1 &&
+				rand() % 100 < sd->sc_data[SC_ENCPOISON].val1 * sc_def_vit / 100)
 				status_change_start(bl,SC_POISON,sd->sc_data[SC_ENCPOISON].val1,0,0,0,skill_get_time2(AS_ENCHANTPOISON,sd->sc_data[SC_ENCPOISON].val1),0);
-			}
 			// Enchant Deadly Poison gives a chance to deadly poison attacked enemies
-			if (sd->sc_data[SC_EDP].timer != -1 && !(status_get_mode(bl)&MD_BOSS) &&
-				sc_data && sc_data[SC_DPOISON].timer == -1 &&
+			if(sd->sc_data[SC_EDP].timer != -1 && !(status_get_mode(bl)&MD_BOSS) && sc_data && sc_data[SC_DPOISON].timer == -1 &&
 				rand() % 100 < sd->sc_data[SC_EDP].val2 * sc_def_vit / 100)
 				status_change_start(bl,SC_DPOISON,sd->sc_data[SC_EDP].val1,0,0,0,skill_get_time2(ASC_EDP,sd->sc_data[SC_EDP].val1),0);
-			// Chance to trigger Taekwon kicks
-			if (sd->sc_data[SC_READYSTORM].timer != -1 && rand()%100 < 15) // Storm Kick Stance [Dralnu]
-				status_change_start(src,SC_STORMKICK,1,bl->id,0,0,1000,0);
-			if(sd->sc_data[SC_READYDOWN].timer != -1 && rand()%100 < 15) // Axe Kick Stance [Dralnu]
-				status_change_start(src,SC_DOWNKICK,1,bl->id,0,0,1000,0);
-			if(sd->sc_data[SC_READYTURN].timer != -1 && rand()%100 < 15) // Round Kick Stance [Dralnu]
-				status_change_start(src,SC_TURNKICK,1,bl->id,0,0,1000,0);
-		}
-		if(dstsd){
-        	if (dstsd->sc_data[SC_READYCOUNTER].timer != -1 && rand()%100 < 20) // Counter Kick Stance [Dralnu]
-				status_change_start(bl,SC_COUNTER,1,src->id,0,0,1000,0);
+			// Chance to trigger Taekwon kicks [Dralnu]
+			if(sd->sc_data[SC_READYSTORM].timer != -1 && rand()%100 < 15)
+				status_change_start(src,SC_STORMKICK,1,bl->id,1,0,2000,0);
+			if(sd->sc_data[SC_READYDOWN].timer != -1 && rand()%100 < 15)
+				status_change_start(src,SC_DOWNKICK,1,bl->id,1,0,2000,0);
+			if(sd->sc_data[SC_READYTURN].timer != -1 && rand()%100 < 15)
+				status_change_start(src,SC_TURNKICK,1,bl->id,1,0,2000,0);
+			if(sd->sc_data[SC_READYCOUNTER].timer != -1 && rand()%100 < 20)
+				status_change_start(src,SC_COUNTER,1,bl->id,1,0,2000,0);
 		}
 		break;
 
@@ -1072,6 +1068,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		if(rand()%100 < sc_def_int)
 			status_change_start(bl,sc[skillid-NPC_POISON],skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
 		break;
+
 	case NPC_MENTALBREAKER:
 		if(dstsd) {
 			int sp = dstsd->status.max_sp*(10+skilllv)/100;
@@ -1080,8 +1077,6 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		}
 		break;
 
-// -- moonsoul (stun ability of new champion skill tigerfist)
-//
 	case CH_TIGERFIST:
 		if (rand()%100 < (10 + skilllv*10)*sc_def_vit/100) {
 			int sec = skill_get_time2 (skillid,skilllv) - status_get_agi(bl)/10;
@@ -1094,20 +1089,15 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		break;
 
 	case LK_SPIRALPIERCE:
-		if (rand()%100 < (15 + skilllv*5)*sc_def_vit/100) {
-			int sec = skill_get_time2 (skillid,skilllv);
-			if (dstsd) {
-				dstsd->canmove_tick += sec;
-			} else if (dstmd)
-				dstmd->canmove_tick += sec;
-		}
-		// changed to 'unable to move' instead of stun [celest]
-		//status_change_start(bl,SC_STAN,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
+		if (rand()%100 < (15 + skilllv*5)*sc_def_vit/100)
+			status_change_start(bl,SC_STOP,0,0,0,0,skill_get_time2(skillid,skilllv),0);
 		break;
+
 	case ST_REJECTSWORD:	/* ƒtƒŠ?ƒWƒ“ƒOƒgƒ‰ƒbƒv */
 		if( rand()%100 < (skilllv*15) )
 			status_change_start(bl,SC_AUTOCOUNTER,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
 		break;
+
 	case PF_FOGWALL:		/* ƒz?ƒŠ?ƒNƒ?ƒX */
 		if (src != bl) {
 			struct status_change *sc_data = status_get_sc_data(bl);
@@ -1115,6 +1105,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 				status_change_start(bl,SC_BLIND,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
 		}
 		break;
+
 	case LK_HEADCRUSH:				/* ƒwƒbƒhƒNƒ‰ƒbƒVƒ… */
 		{
 			//?Œ?‚ª—Ç‚­•ª‚©‚ç‚È‚¢‚Ì‚Å“K?‚É
@@ -1122,12 +1113,14 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 			if (!(battle_check_undead(race, status_get_elem_type(bl)) || race == 6) && rand()%100 < 50 * sc_def_vit/100)
 				status_change_start(bl, SC_BLEEDING, skilllv, 0, 0, 0, skill_get_time2(skillid,skilllv), 0);
 		}
-			break;
+		break;
+
 	case LK_JOINTBEAT:				/* ƒWƒ‡ƒCƒ“ƒgƒr?ƒg */
 		//?Œ?‚ª—Ç‚­•ª‚©‚ç‚È‚¢‚Ì‚Å“K?‚É
 		if( rand()%100 < (5*skilllv+5)*sc_def_vit/100 )
 			status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
 		break;
+
 	case PF_SPIDERWEB:		/* ƒXƒpƒCƒ_?ƒEƒFƒbƒu */
 		{
 			int sec = skill_get_time2(skillid,skilllv);
@@ -1137,6 +1130,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 			status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,sec,0);
 		}
 		break;
+
 	case ASC_METEORASSAULT:			/* ƒ?ƒeƒIƒAƒTƒ‹ƒg */
 		//Any enemies hit by this skill will receive Stun, Darkness, or external bleeding status ailment with a 5%+5*SkillLV% chance.
 		if( rand()%100 < (5+skilllv*5) ) //5%+5*SkillLV%
@@ -1151,6 +1145,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 					status_change_start(bl,SC_BLEEDING,skilllv,0,0,0,skill_get_time2(skillid,3),0);
   			}
 		break;
+
 	case HW_NAPALMVULCAN:			/* ƒiƒp?ƒ€ƒoƒ‹ƒJƒ“ */
 		// skilllv*5%‚ÌŠm—¦‚ÅŽô‚¢
 		if (rand()%10000 < 5*skilllv*sc_def_luk)
@@ -1171,11 +1166,10 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 				pc_breakarmor(dstsd);
 		}
 		break;
-// Taekwon skills
+
 	case TK_DOWNKICK:
-	    if(rand()%100< 100*sc_def_vit/100 ) {
-    	    status_change_start(bl,SC_STAN,skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
-	        }
+		if(rand()%100 < 100*sc_def_vit/100 )
+			status_change_start(bl,SC_STAN,skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
         break;
 	}
 
@@ -1571,8 +1565,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 
 	sc_data = status_get_sc_data(bl);
 
-//‰½‚à‚µ‚È‚¢”»’è‚±‚±‚©‚ç
-	if(src->prev == NULL || dsrc->prev == NULL || bl->prev == NULL) //prev‚æ‚­‚í‚©‚ç‚È‚¢?¦
+	if(src->prev == NULL || dsrc->prev == NULL || bl->prev == NULL)
 		return 0;
 
 	//uncomment the following to do a check between caster and target. [Skotlex]
@@ -1596,14 +1589,14 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 //Shouldn't be needed, skillnotok's return value is highly unlikely to have changed after you started casting. [Skotlex]
 //	if(dsrc->type == BL_PC && skillnotok(skillid, (struct map_session_data *)dsrc))
 //		return 0; // [MouseJstr]
-	if(sc_data && sc_data[SC_HIDING].timer != -1) { //ƒnƒCƒfƒBƒ“ƒO?‘Ô‚Å
-		if(skill_get_pl(skillid) != 2) //ƒXƒLƒ‹‚Ì??«‚ª’n??«‚Å‚È‚¯‚ê‚Î‰½‚à‚µ‚È‚¢
+	if(sc_data && sc_data[SC_HIDING].timer != -1) {
+		if(skill_get_pl(skillid) != 2) // Earth-elemental skills can attack hidden people??
 			return 0;
 	}
-	if(sc_data && sc_data[SC_TRICKDEAD].timer != -1) //Ž€‚ñ‚¾‚Ó‚è’†‚Í‰½‚à‚µ‚È‚¢
+	if(sc_data && sc_data[SC_TRICKDEAD].timer != -1)
 		return 0;
-	if(skillid == WZ_STORMGUST) { //Žg—pƒXƒLƒ‹‚ªƒXƒg?ƒ€ƒKƒXƒg‚Å
-		if(sc_data && sc_data[SC_FREEZE].timer != -1) //“€Œ‹?‘Ô‚È‚ç‰½‚à‚µ‚È‚¢
+	if(skillid == WZ_STORMGUST) {
+		if(sc_data && sc_data[SC_FREEZE].timer != -1)
 			return 0;
 	}
 	if(skillid == WZ_FROSTNOVA && dsrc->x == bl->x && dsrc->y == bl->y) //Žg—pƒXƒLƒ‹‚ªƒtƒ?ƒXƒgƒmƒ”ƒ@‚Å?Adsrc‚Æbl‚ª“¯‚¶?ê?Š‚È‚ç‰½‚à‚µ‚È‚¢
@@ -2602,39 +2595,79 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 	case HT_PHANTASMIC:
 		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
 		break;
+
 	case TK_STORMKICK: // Taekwon kicks [Dralnu]
-	   		if (sc_data && sc_data[SC_STORMKICK].timer != -1){
- 				map_foreachinarea(skill_attack_area, src->m,
+		if (sc_data && sc_data[SC_STORMKICK].timer != -1 && (bl = map_id2bl(sc_data[SC_STORMKICK].val2)) != NULL) {
+			status_change_end(src, SC_STORMKICK, -1);
+			status_change_end(src, SC_DOWNKICK, -1);
+			status_change_end(src, SC_TURNKICK, -1);
+        		status_change_end(src, SC_COUNTER, -1);
+			map_foreachinarea(skill_attack_area, src->m,
 				src->x-2, src->y-2, src->x+2, src->y+2, 0,
 				BF_WEAPON, src, src, skillid, skilllv, tick, flag, BCT_ENEMY);	
-				clif_skill_nodamage(src,bl,skillid,skilllv,1);
-   				status_change_end(src, SC_STORMKICK, -1);
+			clif_skill_nodamage(src,bl,skillid,skilllv,1);
+			if(sd && pc_istop10fame(sd->char_id,MAPID_TAEKWON)){ // Infinite combo of all 4 kicks if ranked top 10
+				status_change_start(src,SC_STORMKICK,1,bl->id,0,0,2000,0);
+				status_change_start(src,SC_DOWNKICK,1,bl->id,0,0,2000,0);
+				status_change_start(src,SC_TURNKICK,1,bl->id,0,0,2000,0);
+				status_change_start(src,SC_COUNTER,1,bl->id,0,0,2000,0);
 			}
+		}
 		break;
 	case TK_DOWNKICK:
-	   		if (sc_data && sc_data[SC_DOWNKICK].timer != -1){
-	   		    bl = map_id2bl(sc_data[SC_DOWNKICK].val2);
-	   		    skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
-          		clif_skill_nodamage(src,bl,skillid,skilllv,1);
-  		      	status_change_end(src, SC_DOWNKICK, -1);
-        	}
+	   	if (sc_data && sc_data[SC_DOWNKICK].timer != -1 && (bl = map_id2bl(sc_data[SC_DOWNKICK].val2)) != NULL) {
+			status_change_end(src, SC_STORMKICK, -1);
+			status_change_end(src, SC_DOWNKICK, -1);
+			status_change_end(src, SC_TURNKICK, -1);
+        		status_change_end(src, SC_COUNTER, -1);
+			skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
+			if(sd && pc_istop10fame(sd->char_id,MAPID_TAEKWON)){ // Infinite combo of all 4 kicks if ranked top 10
+				status_change_start(src,SC_STORMKICK,1,bl->id,0,0,2000,0);
+				status_change_start(src,SC_DOWNKICK,1,bl->id,0,0,2000,0);
+				status_change_start(src,SC_TURNKICK,1,bl->id,0,0,2000,0);
+				status_change_start(src,SC_COUNTER,1,bl->id,0,0,2000,0);
+			}
+		}
       	break;
 	case TK_TURNKICK:
-	   		if (sc_data && sc_data[SC_TURNKICK].timer != -1){
-	   		    bl = map_id2bl(sc_data[SC_TURNKICK].val2);
-	   		    skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
-          		clif_skill_nodamage(src,bl,skillid,skilllv,1);
-      	 	 	status_change_end(src, SC_TURNKICK, -1);
-        	}
+		if (sc_data && sc_data[SC_TURNKICK].timer != -1 && (bl = map_id2bl(sc_data[SC_TURNKICK].val2)) != NULL) {
+			status_change_end(src, SC_STORMKICK, -1);
+			status_change_end(src, SC_DOWNKICK, -1);
+			status_change_end(src, SC_TURNKICK, -1);
+        		status_change_end(src, SC_COUNTER, -1);
+			skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
+			if(sd && pc_istop10fame(sd->char_id,MAPID_TAEKWON)){ // Infinite combo of all 4 kicks if ranked top 10
+				status_change_start(src,SC_STORMKICK,1,bl->id,0,0,2000,0);
+				status_change_start(src,SC_DOWNKICK,1,bl->id,0,0,2000,0);
+				status_change_start(src,SC_TURNKICK,1,bl->id,0,0,2000,0);
+				status_change_start(src,SC_COUNTER,1,bl->id,0,0,2000,0);
+			}
+		}
       	break;   
 	case TK_COUNTER:
-	   		if (sc_data && sc_data[SC_COUNTER].timer != -1){
-	   		    bl = map_id2bl(sc_data[SC_COUNTER].val2);
-	   		    skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
-          		clif_skill_nodamage(src,bl,skillid,skilllv,1);
+		if (sc_data && sc_data[SC_COUNTER].timer != -1 && (bl = map_id2bl(sc_data[SC_COUNTER].val2)) != NULL) {
+			status_change_end(src, SC_STORMKICK, -1);
+			status_change_end(src, SC_DOWNKICK, -1);
+			status_change_end(src, SC_TURNKICK, -1);
         		status_change_end(src, SC_COUNTER, -1);
-        	}
-      	break;   
+			skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
+			if(sd && pc_istop10fame(sd->char_id,MAPID_TAEKWON)){ // Infinite combo of all 4 kicks if ranked top 10
+				status_change_start(src,SC_STORMKICK,1,bl->id,0,0,2000,0);
+				status_change_start(src,SC_DOWNKICK,1,bl->id,0,0,2000,0);
+				status_change_start(src,SC_TURNKICK,1,bl->id,0,0,2000,0);
+				status_change_start(src,SC_COUNTER,1,bl->id,0,0,2000,0);
+			}
+		}
+      	break;
+	case TK_JUMPKICK:
+		if(sd) {
+			if (!pc_can_move(sd))
+				return 0;
+			skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
+			pc_movepos(sd,bl->x,bl->y,0); 
+			clif_slide(src,bl->x,bl->y);
+		}
+		break;
 	case ASC_BREAKER:				/* ƒ\ƒEƒ‹ƒuƒŒ?ƒJ? */	// [DracoRPG]
 		// Separate weapon and magic attacks
 		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
@@ -2710,7 +2743,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 				status_change_end(src,SC_BLADESTOP,-1);
 		}
 		break;
-	case TK_JUMPKICK:
 	case MO_EXTREMITYFIST:	/* ˆ¢?C—…”e–PŒ? */
 		{
 			if(sd) {
@@ -3690,6 +3722,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		break;
 
+	case TK_MISSION:
+		break;
+
 	case AC_CONCENTRATION:	/* ?W’†—ÍŒü?ã */
 		{
 			int range = 1;
@@ -4004,13 +4039,13 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				status_change_start(bl,sc,skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
 		}
 		break;
-	case TK_RUN://‹ì‚¯‘«
+	case TK_RUN:
 		if (dstsd) {
 			if (dstsd->sc_data[SC_RUN].timer == -1)
 			{
 				pc_run(dstsd, skilllv, (int)dstsd->dir);
-				if(skilllv>=7 && dstsd->weapontype1 == 0 && dstsd->weapontype2 == 0)
-					status_change_start(&dstsd->bl,SC_INCSTR,10,0,0,0,skill_get_time2(skillid,skilllv),0);
+				if(skilllv>=7 && dstsd->status.weapon == 0 && (dstsd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON)
+					status_change_start(bl,SC_SPORT,10,0,0,0,skill_get_time2(skillid,skilllv),0);
 			} else
 				pc_stop_walking(dstsd, 0);
 		}
@@ -4563,14 +4598,13 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			if (!pc_can_move(sd))
 				return 0; 
 
-			x = sd->bl.x + dirx[(int)sd->dir]*skilllv*2;
-			y = sd->bl.y + diry[(int)sd->dir]*skilllv*2;
+			x = src->x + dirx[(int)sd->dir]*skilllv*2;
+			y = src->y + diry[(int)sd->dir]*skilllv*2;
 
-			clif_skill_nodamage(&sd->bl,&sd->bl,TK_HIGHJUMP,skilllv,1);
-			if(map_getcell(sd->bl.m,x,y,CELL_CHKPASS)) {
+			clif_skill_nodamage(src,bl,TK_HIGHJUMP,skilllv,1);
+			if(map_getcell(src->m,x,y,CELL_CHKPASS)) {
 				pc_movepos(sd,x,y,0); 
-				clif_slide(&sd->bl,x,y);
-				ShowDebug("Successfully jumped to (%d,%d)\n",sd->bl.x,sd->bl.y);
+				clif_slide(src,x,y);
 			}
 		}
 		break;
@@ -4635,7 +4669,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 						bl_skilllv = dstmd->skilllv;
 					}
 				}
-				if(bl_skillid > 0 && bl_skillid != PA_PRESSURE/* && skill_db[bl_skillid].skill_type == BF_MAGIC*/) { //Reports indicate Spell Break cancels any tyoe of skill, except Pressure. [Skotlex]
+				if(bl_skillid > 0 && bl_skillid != PA_PRESSURE/* && skill_db[bl_skillid].skill_type == BF_MAGIC*/) { //Reports indicate Spell Break cancels any type of skill, except Pressure. [Skotlex]
 					clif_skill_nodamage(src,bl,skillid,skilllv,1);
 					skill_castcancel(bl,0);
 					sp = skill_get_sp(bl_skillid,bl_skilllv);
@@ -8318,8 +8352,12 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 		skill_num != MO_COMBOFINISH &&
 		skill_num != MO_EXTREMITYFIST &&
 		skill_num != CH_TIGERFIST &&
-		skill_num != CH_CHAINCRUSH) ||
-		(skill_num == MO_EXTREMITYFIST && sd->state.skill_flag) )
+		skill_num != CH_CHAINCRUSH &&
+		skill_num != TK_STORMKICK &&
+		skill_num != TK_DOWNKICK &&
+		skill_num != TK_TURNKICK &&
+		skill_num != TK_COUNTER) ||
+		(skill_num == MO_EXTREMITYFIST && sd->state.skill_flag))
 		pc_stopattack(sd);
 
 	casttime = skill_castfix(&sd->bl, skill_get_cast(skill_num, skill_lv));
@@ -9209,7 +9247,6 @@ int skill_attack_area(struct block_list *bl,va_list ap)
 		return 0;
 	skillid=va_arg(ap,int);
 	skilllv=va_arg(ap,int);
-	//if(skilllv <= 0) return 0;
 	if(skillid > 0 && skilllv <= 0) return 0;	// celest
 	tick=va_arg(ap,unsigned int);
 	flag=va_arg(ap,int);

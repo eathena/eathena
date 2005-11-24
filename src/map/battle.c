@@ -653,12 +653,12 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 			(src->type==BL_MOB || (src->type==BL_PC && (((struct map_session_data *)src)->status.weapon == 1 ||
 			((struct map_session_data *)src)->status.weapon == 2 ||
 			((struct map_session_data *)src)->status.weapon == 3)))){
-			if(rand()%100 < (15*sc_data[SC_REJECTSWORD].val1)){ //”½ŽËŠm—¦‚Í15*Lv
+			if(rand()%100 < (15*sc_data[SC_REJECTSWORD].val1)){
 				damage = damage*50/100;
-				clif_damage(bl,src,gettick(),0,0,damage,0,0,0);
-				battle_damage(bl,src,damage,0);
-				//ƒ_ƒ??[ƒW‚ð—^‚¦‚½‚Ì‚Í—Ç‚¢‚ñ‚¾‚ª?A‚±‚±‚©‚ç‚Ç‚¤‚µ‚Ä•\Ž¦‚·‚é‚ñ‚¾‚©‚í‚©‚ñ‚Ë‚¥
-				//ƒGƒtƒFƒNƒg‚à‚±‚ê‚Å‚¢‚¢‚Ì‚©‚í‚©‚ñ‚Ë‚¥
+				if(src->type==BL_MOB){ // Damage is reflected to the attacker only if it's a mob, it seems [DracoRPG]
+					clif_damage(bl,src,gettick(),0,0,damage,0,0,0);
+					battle_damage(bl,src,damage,0);
+				}
 				clif_skill_nodamage(bl,bl,ST_REJECTSWORD,sc_data[SC_REJECTSWORD].val1,1);
 				if((--sc_data[SC_REJECTSWORD].val2)<=0)
 					status_change_end(bl, SC_REJECTSWORD, -1);
@@ -674,6 +674,12 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 		if(sc_data[SC_FOGWALL].timer != -1 && flag&BF_MAGIC)
 			if(rand()%100 < 75)
 				damage = 0;
+
+		if(sc_data[SC_DODGE].timer != -1 && (flag&BF_LONG || (sc_data[SC_SPORT].timer != -1 && flag&BF_WEAPON)))
+			if(rand()%100 < 20) {
+				damage = 0;
+				clif_skill_nodamage(bl,bl,TK_DODGE,1,1);
+			}
 	}
 
 	if(md && md->guardian_data) {
@@ -1809,12 +1815,9 @@ static struct Damage battle_calc_weapon_attack(
 				ATK_ADD(20*sc_data[SC_AURABLADE].val1);
 		}
 
+		//Refine bonus
 		if (sd && skill_num != MO_INVESTIGATE && skill_num != MO_EXTREMITYFIST)
-		{	//refine bonus
 			ATK_ADD2(status_get_atk2(src), status_get_atk_2(src));
-			//Items forged from the Top 10 most famous BS's get 10 dmg bonus
-			ATK_ADD2(sd->right_weapon.fameflag*10, sd->left_weapon.fameflag*10);
-		}
 
 		//Set to min of 1
 		if (flag.rh && wd.damage < 1) wd.damage = 1;

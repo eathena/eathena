@@ -1,6 +1,3 @@
-// $Id: char.c,v 1.16 2004/09/23 18:31:16 MouseJstr Exp $
-// original : char2.c 2003/03/14 11:58:35 Rev.1.5
-//
 // original code from athena
 // SQL conversion by Jioh L. Jung
 // TXT 1.105
@@ -2799,7 +2796,7 @@ int parse_frommap(int fd) {
 			if (RFIFOREST(fd) < 2)
 				return 0;
 		{
-			int len = 6, num = 0;
+			int len = 8, num = 0;
 			unsigned char buf[32000];
 			struct fame_list fame_item;
 
@@ -2822,8 +2819,8 @@ int parse_frommap(int fd) {
 						break;
 				}
 			}
-   		mysql_free_result(sql_res);
-			WBUFW(buf, 4) = len; //Blacksmith block size.
+   			mysql_free_result(sql_res);
+			WBUFW(buf, 6) = len; //Blacksmith block size
 
 			num = 0;
 			sprintf(tmp_sql, "SELECT `char_id`,`fame`,`name` FROM `%s` WHERE `class`='18' OR `class`='4019'"
@@ -2845,7 +2842,28 @@ int parse_frommap(int fd) {
 				}
 			}
 			mysql_free_result(sql_res);
-			WBUFW(buf, 2) = len; //Total packet size
+			WBUFW(buf, 4) = len; //Alchemist block size
+
+			num = 0;
+			sprintf(tmp_sql, "SELECT `char_id`,`fame`,`name` FROM `%s` WHERE `class`='4046' ORDER BY `fame` DESC LIMIT 0,10", char_db);
+			if (mysql_query(&mysql_handle, tmp_sql)) {
+				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+			}
+			sql_res = mysql_store_result(&mysql_handle);
+			if (sql_res) {
+				while((sql_row = mysql_fetch_row(sql_res))) {
+					fame_item.id = atoi(sql_row[0]);
+					fame_item.fame = atoi(sql_row[1]);
+					strncpy(fame_item.name, sql_row[2], NAME_LENGTH);
+					memcpy(WBUFP(buf,len), &fame_item, sizeof(struct fame_list));
+					len += sizeof(struct fame_list);
+					if (++num == 10)
+						break;
+				}
+			}
+			mysql_free_result(sql_res);
+			WBUFW(buf, 2) = len; //Total packet length
 
 			mapif_sendall(buf, len);
 			RFIFOSKIP(fd,2);

@@ -119,6 +119,7 @@
 7,64,5,63,1,0,0,0,0,0,0,0,0 //KN_CAVALIERMASTERY#Cavalier Mastery#
 7,1001,1,0,0,0,0,0,0,0,0,0,0 //KN_CHARGEATK#Charge Attack#
 7,410,1,0,0,0,0,0,0,0,0,0,0 //WE_CALLBABY#Call Baby#
+7,495,1,60,10,0,0,0,0,0,0,0,0	//KN_ONEHAND#Onehand Quicken#
 //Priest
 8,1,9,0,0,0,0,0,0,0,0,0,0 //NV_BASIC#Basic Skill#
 8,142,1,0,0,0,0,0,0,0,0,0,0 //NV_FIRSTAID#First Aid#
@@ -227,6 +228,7 @@
 10,1012,1,0,0,0,0,0,0,0,0,0,0 //BS_UNFAIRLYTRICK#Unfair Trick#
 10,1013,1,0,0,0,0,0,0,0,0,0,0 //BS_GREED#Greed#
 10,410,1,0,0,0,0,0,0,0,0,0,0 //WE_CALLBABY#Call Baby#
+10,459,1,111,5,0,0,0,0,0,0,0,0	//BS_ADRENALINE2#Full Adrenaline Rush#
 //Hunter
 11,1,9,0,0,0,0,0,0,0,0,0,0 //NV_BASIC#Basic Skill#
 11,142,1,0,0,0,0,0,0,0,0,0,0 //NV_FIRSTAID#First Aid#
@@ -256,6 +258,7 @@
 11,131,5,124,1,127,1,0,0,0,0,0,0 //HT_SPRINGTRAP#Spring Trap#
 11,1009,1,0,0,0,0,0,0,0,0,0,0 //HT_PHANTASMIC#Phantasmic Arrow#
 11,410,1,0,0,0,0,0,0,0,0,0,0 //WE_CALLBABY#Call Baby#
+11,499,1,46,10,0,0,0,0,0,0,0,0	//HT_POWER#Beast Strafing#
 //Assassin
 12,1,9,0,0,0,0,0,0,0,0,0,0 //NV_BASIC#Basic Skill#
 12,142,1,0,0,0,0,0,0,0,0,0,0 //NV_FIRSTAID#First Aid#
@@ -307,6 +310,7 @@
 13,64,5,63,1,0,0,0,0,0,0,0,0 //KN_CAVALIERMASTERY#Cavalier Mastery#
 13,1001,1,0,0,0,0,0,0,0,0,0,0 //KN_CHARGEATK#Charge Attack#
 13,410,1,0,0,0,0,0,0,0,0,0,0 //WE_CALLBABY#Call Baby#
+13,495,1,60,10,0,0,0,0,0,0,0,0	//KN_ONEHAND#Onehand Quicken#
 //Crusader
 14,1,9,0,0,0,0,0,0,0,0,0,0 //NV_BASIC#Basic Skill#
 14,142,1,0,0,0,0,0,0,0,0,0,0 //NV_FIRSTAID#First Aid#
@@ -484,6 +488,10 @@
 18,244,1,238,1,0,0,0,0,0,0,0,0 //AM_REST#Peaceful Rest#
 18,247,5,243,1,0,0,0,0,0,0,0,0 //AM_RESURRECTHOMUN#Ressurect Homunculus#
 18,410,1,0,0,0,0,0,0,0,0,0,0 //WE_CALLBABY#Call Baby#
+18,446,1,0,0,0,0,0,0,0,0,0,0	//AM_BERSERKPITCHER#Berserk Pitcher#
+18,496,1,228,10,0,0,0,0,0,0,0,0	//AM_TWILIGHT1#Twilight Alchemy 1#
+18,497,1,228,10,0,0,0,0,0,0,0,0	//AM_TWILIGHT2#Twilight Alchemy 2#
+18,498,1,228,10,0,0,0,0,0,0,0,0	//AM_TWILIGHT3#Twilight Alchemy 3#
 //Bard
 19,1,9,0,0,0,0,0,0,0,0,0,0 //NV_BASIC#Basic Skill#
 19,142,1,0,0,0,0,0,0,0,0,0,0 //NV_FIRSTAID#First Aid#
@@ -764,6 +772,7 @@
 4008,398,5,55,9,63,1,0,0,0,0,0,0 //LK_HEADCRUSH#Traumatic Blow#
 4008,399,10,55,9,64,3,398,3,0,0,0,0 //LK_JOINTBEAT#Vital Strike#
 4008,410,1,0,0,0,0,0,0,0,0,0,0 //WE_CALLBABY#Call Baby#
+4008,495,1,60,10,0,0,0,0,0,0,0,0	//KN_ONEHAND#Onehand Quicken#
 //HighPriest
 4009,1,9,0,0,0,0,0,0,0,0,0,0 //NV_BASIC#Basic Skill#
 4009,142,1,0,0,0,0,0,0,0,0,0,0 //NV_FIRSTAID#First Aid#
@@ -889,6 +898,7 @@
 4011,485,10,42,10,110,5,387,1,0,0,0,0 //WS_CARTTERMINATION#Cart Termination#
 4011,486,5,113,5,0,0,0,0,0,0,0,0 //WS_OVERTHRUSTMAX#Maximum Power Thrust#
 4011,410,1,0,0,0,0,0,0,0,0,0,0 //WE_CALLBABY#Call Baby#
+4011,459,1,111,5,0,0,0,0,0,0,0,0	//BS_ADRENALINE2#Full Adrenaline Rush#
 //Sniper
 4012,1,9,0,0,0,0,0,0,0,0,0,0 //NV_BASIC#Basic Skill#
 4012,142,1,0,0,0,0,0,0,0,0,0,0 //NV_FIRSTAID#First Aid#
@@ -922,6 +932,7 @@
 4012,382,5,45,10,46,5,0,0,0,0,0,0 //SN_SHARPSHOOTING#Focused Arrow Strike#
 4012,383,10,45,9,0,0,0,0,0,0,0,0 //SN_WINDWALK#Wind Walker#
 4012,410,1,0,0,0,0,0,0,0,0,0,0 //WE_CALLBABY#Call Baby#
+4012,499,1,46,10,0,0,0,0,0,0,0,0	//HT_POWER#Beast Strafing#
 //AssassinCross
 4013,1,9,0,0,0,0,0,0,0,0,0,0 //NV_BASIC#Basic Skill#
 4013,142,1,0,0,0,0,0,0,0,0,0,0 //NV_FIRSTAID#First Aid#
@@ -986,6 +997,7 @@
 4014,398,5,55,9,63,1,0,0,0,0,0,0 //LK_HEADCRUSH#Traumatic Blow#
 4014,399,10,55,9,64,3,398,3,0,0,0,0 //LK_JOINTBEAT#Vital Strike#
 4014,410,1,0,0,0,0,0,0,0,0,0,0 //WE_CALLBABY#Call Baby#
+4014,495,1,60,10,0,0,0,0,0,0,0,0	//KN_ONEHAND#Onehand Quicken#
 //Paladin
 4015,1,9,0,0,0,0,0,0,0,0,0,0 //NV_BASIC#Basic Skill#
 4015,142,1,0,0,0,0,0,0,0,0,0,0 //NV_FIRSTAID#First Aid#
@@ -1189,6 +1201,10 @@
 4019,490,10,229,5,230,5,0,0,0,0,0,0 //CR_ACIDDEMONSTRATION#Acid Demonstration#
 4019,491,2,0,0,0,0,0,0,0,0,0,0 //CR_CULTIVATION#Cultivation#
 4019,410,1,0,0,0,0,0,0,0,0,0,0 //WE_CALLBABY#Call Baby#
+4019,446,1,0,0,0,0,0,0,0,0,0,0	//AM_BERSERKPITCHER#Berserk Pitcher#
+4019,496,1,228,10,0,0,0,0,0,0,0,0	//AM_TWILIGHT1#Twilight Alchemy 1#
+4019,497,1,228,10,0,0,0,0,0,0,0,0	//AM_TWILIGHT2#Twilight Alchemy 2#
+4019,498,1,228,10,0,0,0,0,0,0,0,0	//AM_TWILIGHT3#Twilight Alchemy 3#
 //Clown
 4020,1,9,0,0,0,0,0,0,0,0,0,0 //NV_BASIC#Basic Skill#
 4020,142,1,0,0,0,0,0,0,0,0,0,0 //NV_FIRSTAID#First Aid#
@@ -1426,6 +1442,7 @@
 4030,63,1,8,1,0,0,0,0,0,0,0,0 //KN_RIDING#Peco Peco Riding#
 4030,64,5,63,1,0,0,0,0,0,0,0,0 //KN_CAVALIERMASTERY#Cavalier Mastery#
 4030,1001,1,0,0,0,0,0,0,0,0,0,0 //KN_CHARGEATK#Charge Attack#
+4030,495,1,60,10,0,0,0,0,0,0,0,0	//KN_ONEHAND#Onehand Quicken#
 //Baby Priest
 4031,1,9,0,0,0,0,0,0,0,0,0,0 //NV_BASIC#Basic Skill#
 4031,142,1,0,0,0,0,0,0,0,0,0,0 //NV_FIRSTAID#First Aid#
@@ -1536,6 +1553,7 @@
 4033,114,5,112,3,113,2,0,0,0,0,0,0 //BS_MAXIMIZE#Maximize Power#
 4033,1012,1,0,0,0,0,0,0,0,0,0,0 //BS_UNFAIRLYTRICK#Unfair Trick#
 4033,1013,1,0,0,0,0,0,0,0,0,0,0 //BS_GREED#Greed#
+4033,459,1,111,5,0,0,0,0,0,0,0,0	//BS_ADRENALINE2#Full Adrenaline Rush#
 //Baby Hunter
 4034,1,9,0,0,0,0,0,0,0,0,0,0 //NV_BASIC#Basic Skill#
 4034,142,1,0,0,0,0,0,0,0,0,0,0 //NV_FIRSTAID#First Aid#
@@ -1566,6 +1584,7 @@
 4034,130,4,45,1,127,1,0,0,0,0,0,0 //HT_DETECTING#Detect#
 4034,131,5,124,1,127,1,0,0,0,0,0,0 //HT_SPRINGTRAP#Spring Trap#
 4034,1009,1,0,0,0,0,0,0,0,0,0,0 //HT_PHANTASMIC#Phantasmic Arrow#
+4034,499,1,46,10,0,0,0,0,0,0,0,0	//HT_POWER#Beast Strafing#
 //Baby Assassin
 4035,1,9,0,0,0,0,0,0,0,0,0,0 //NV_BASIC#Basic Skill#
 4035,142,1,0,0,0,0,0,0,0,0,0,0 //NV_FIRSTAID#First Aid#
@@ -1619,6 +1638,7 @@
 4036,63,1,8,1,0,0,0,0,0,0,0,0 //KN_RIDING#Peco Peco Riding#
 4036,64,5,63,1,0,0,0,0,0,0,0,0 //KN_CAVALIERMASTERY#Cavalier Mastery#
 4036,1001,1,0,0,0,0,0,0,0,0,0,0 //KN_CHARGEATK#Charge Attack#
+4036,495,1,60,10,0,0,0,0,0,0,0,0	//KN_ONEHAND#Onehand Quicken#
 //Baby Crusader
 4037,1,9,0,0,0,0,0,0,0,0,0,0 //NV_BASIC#Basic Skill#
 4037,142,1,0,0,0,0,0,0,0,0,0,0 //NV_FIRSTAID#First Aid#
@@ -1801,6 +1821,10 @@
 4041,243,1,244,1,0,0,0,0,0,0,0,0 //AM_CALLHOMUN#Call Homunculus#
 4041,244,1,238,1,0,0,0,0,0,0,0,0 //AM_REST#Peaceful Rest#
 4041,247,5,243,1,0,0,0,0,0,0,0,0 //AM_RESURRECTHOMUN#Ressurect Homunculus#
+4041,446,1,0,0,0,0,0,0,0,0,0,0	//AM_BERSERKPITCHER#Berserk Pitcher#
+4041,496,1,228,10,0,0,0,0,0,0,0,0	//AM_TWILIGHT1#Twilight Alchemy 1#
+4041,497,1,228,10,0,0,0,0,0,0,0,0	//AM_TWILIGHT2#Twilight Alchemy 2#
+4041,498,1,228,10,0,0,0,0,0,0,0,0	//AM_TWILIGHT3#Twilight Alchemy 3#
 //Baby Bard
 4042,1,9,0,0,0,0,0,0,0,0,0,0 //NV_BASIC#Basic Skill#
 4042,142,1,0,0,0,0,0,0,0,0,0,0 //NV_FIRSTAID#First Aid#
@@ -1970,8 +1994,9 @@
 4046,424,5,0,0,0,0,0,0,0,0,0,0 //TK_POWER#Fighting Chant#
 4046,425,7,422,5,423,5,424,5,0,0,0,0 //TK_SEVENWIND#Warm Wind#
 4046,426,5,0,0,0,0,0,0,0,0,0,0 //TK_HIGHJUMP#High Jump#
+4046,493,1,424,5,0,0,0,0,0,0,0,0 //TK_MISSION#Taekwon Mission#
 4046,410,1,0,0,0,0,0,0,0,0,0,0 //WE_CALLBABY#Call Baby#
-//StarGladiator
+//Star Gladiator
 4047,1,9,0,0,0,0,0,0,0,0,0,0 //NV_BASIC#Basic Skill#
 4047,142,1,0,0,0,0,0,0,0,0,0,0 //NV_FIRSTAID#First Aid#
 4047,411,10,0,0,0,0,0,0,0,0,0,0 //TK_RUN#Running#
@@ -1990,8 +2015,28 @@
 4047,424,5,0,0,0,0,0,0,0,0,0,0 //TK_POWER#Fighting Chant#
 4047,425,7,422,5,423,5,424,5,0,0,0,0 //TK_SEVENWIND#Warm Wind#
 4047,426,5,0,0,0,0,0,0,0,0,0,0 //TK_HIGHJUMP#High Jump#
+4047,493,1,424,5,0,0,0,0,0,0,0,0 //TK_MISSION#Taekwon Mission#
+4047,427,3,0,0,0,0,0,0,0,0,0,0	//SG_FEEL#Feeling the Sun, Moon and Stars#
+4047,428,1,427,1,0,0,0,0,0,0,0,0	//SG_SUN_WARM#Warmth of the Sun#
+4047,429,1,427,2,0,0,0,0,0,0,0,0	//SG_MOON_WARM#Warmth of the Moon#
+4047,430,1,427,3,0,0,0,0,0,0,0,0	//SG_STAR_WARM#Warmth of the Star#
+4047,431,1,427,1,0,0,0,0,0,0,0,0	//SG_SUN_COMFORT#Comfort of the Sun#
+4047,432,1,427,2,0,0,0,0,0,0,0,0	//SG_MOON_COMFORT#Comfort of the Moon#
+4047,433,1,427,3,0,0,0,0,0,0,0,0	//SG_STAR_COMFORT#Comfort of the Star#
+4047,434,3,0,0,0,0,0,0,0,0,0,0	//SG_HATE#Hatred of the Sun, Moon and Stars#
+4047,435,1,434,1,0,0,0,0,0,0,0,0	//SG_SUN_ANGER#Sun's Wrath#
+4047,436,1,434,2,0,0,0,0,0,0,0,0	//SG_MOON_ANGER#Moon's Wrath#
+4047,437,1,434,3,0,0,0,0,0,0,0,0	//SG_STAR_ANGER#Stars's Wrath#
+4047,438,1,427,1,434,1,0,0,0,0,0,0	//SG_SUN_BLESS#Blessing of the Sun#
+4047,439,1,427,2,434,2,0,0,0,0,0,0	//SG_MOON_BLESS#Blessing of the Moon#
+4047,440,5,427,3,434,3,0,0,0,0,0,0	//SG_STAR_BLESS#Blessing of the Star#
+4047,441,10,0,0,0,0,0,0,0,0,0,0	//SG_DEVIL#Demon of the Sun, Moon and Stars#
+4047,442,3,0,0,0,0,0,0,0,0,0,0	//SG_FRIEND#Friend of the Sun, Moon and Stars#
+4047,443,10,0,0,0,0,0,0,0,0,0,0	//SG_KNOWLEDGE#Knowledge of the Sun, Moon and Stars#
+4047,444,1,443,9,0,0,0,0,0,0,0,0	//SG_FUSION#Union of the Sun, Moon and Stars#
 4047,410,1,0,0,0,0,0,0,0,0,0,0 //WE_CALLBABY#Call Baby#
-//StarGladiator(Flying)
+
+//Star Gladiator (Flying)
 4048,1,9,0,0,0,0,0,0,0,0,0,0 //NV_BASIC#Basic Skill#
 4048,142,1,0,0,0,0,0,0,0,0,0,0 //NV_FIRSTAID#First Aid#
 4048,411,10,0,0,0,0,0,0,0,0,0,0 //TK_RUN#Running#
@@ -2010,8 +2055,28 @@
 4048,424,5,0,0,0,0,0,0,0,0,0,0 //TK_POWER#Fighting Chant#
 4048,425,7,422,5,423,5,424,5,0,0,0,0 //TK_SEVENWIND#Warm Wind#
 4048,426,5,0,0,0,0,0,0,0,0,0,0 //TK_HIGHJUMP#High Jump#
+4048,493,1,424,5,0,0,0,0,0,0,0,0 //TK_MISSION#Taekwon Mission#
+4048,427,3,0,0,0,0,0,0,0,0,0,0	//SG_FEEL#Feeling the Sun, Moon and Stars#
+4048,428,1,427,1,0,0,0,0,0,0,0,0	//SG_SUN_WARM#Warmth of the Sun#
+4048,429,1,427,2,0,0,0,0,0,0,0,0	//SG_MOON_WARM#Warmth of the Moon#
+4048,430,1,427,3,0,0,0,0,0,0,0,0	//SG_STAR_WARM#Warmth of the Star#
+4048,431,1,427,1,0,0,0,0,0,0,0,0	//SG_SUN_COMFORT#Comfort of the Sun#
+4048,432,1,427,2,0,0,0,0,0,0,0,0	//SG_MOON_COMFORT#Comfort of the Moon#
+4048,433,1,427,3,0,0,0,0,0,0,0,0	//SG_STAR_COMFORT#Comfort of the Star#
+4048,434,3,0,0,0,0,0,0,0,0,0,0	//SG_HATE#Hatred of the Sun, Moon and Stars#
+4048,435,1,434,1,0,0,0,0,0,0,0,0	//SG_SUN_ANGER#Sun's Wrath#
+4048,436,1,434,2,0,0,0,0,0,0,0,0	//SG_MOON_ANGER#Moon's Wrath#
+4048,437,1,434,3,0,0,0,0,0,0,0,0	//SG_STAR_ANGER#Stars's Wrath#
+4048,438,1,427,1,434,1,0,0,0,0,0,0	//SG_SUN_BLESS#Blessing of the Sun#
+4048,439,1,427,2,434,2,0,0,0,0,0,0	//SG_MOON_BLESS#Blessing of the Moon#
+4048,440,5,427,3,434,3,0,0,0,0,0,0	//SG_STAR_BLESS#Blessing of the Star#
+4048,441,10,0,0,0,0,0,0,0,0,0,0	//SG_DEVIL#Demon of the Sun, Moon and Stars#
+4048,442,3,0,0,0,0,0,0,0,0,0,0	//SG_FRIEND#Friend of the Sun, Moon and Stars#
+4048,443,10,0,0,0,0,0,0,0,0,0,0	//SG_KNOWLEDGE#Knowledge of the Sun, Moon and Stars#
+4048,444,1,443,9,0,0,0,0,0,0,0,0	//SG_FUSION#Union of the Sun, Moon and Stars#
 4048,410,1,0,0,0,0,0,0,0,0,0,0 //WE_CALLBABY#Call Baby#
-//SoulLinker
+
+//Soul Linker
 4049,1,9,0,0,0,0,0,0,0,0,0,0 //NV_BASIC#Basic Skill#
 4049,142,1,0,0,0,0,0,0,0,0,0,0 //NV_FIRSTAID#First Aid#
 4049,411,10,0,0,0,0,0,0,0,0,0,0 //TK_RUN#Running#
@@ -2030,4 +2095,32 @@
 4049,424,5,0,0,0,0,0,0,0,0,0,0 //TK_POWER#Fighting Chant#
 4049,425,7,422,5,423,5,424,5,0,0,0,0 //TK_SEVENWIND#Warm Wind#
 4049,426,5,0,0,0,0,0,0,0,0,0,0 //TK_HIGHJUMP#High Jump#
+4049,493,1,424,5,0,0,0,0,0,0,0,0 //TK_MISSION#Taekwon Mission#
+4049,445,5,0,0,0,0,0,0,0,0,0,0	//SL_ALCHEMIST#Spirit of the Alchemist#
+4049,447,5,0,0,0,0,0,0,0,0,0,0	//SL_MONK#Spirit of the Monk#
+4049,448,5,0,0,0,0,0,0,0,0,0,0	//SL_STAR#Spirit of the Star Knight#
+4049,449,5,0,0,0,0,0,0,0,0,0,0	//SL_SAGE#Spirit of the Professor#
+4049,450,5,0,0,0,0,0,0,0,0,0,0	//SL_CRUSADER#Spirit of the Crusader#
+4049,451,5,0,0,0,0,0,0,0,0,0,0	//SL_SUPERNOVICE#Spirit of the Supernovice#
+4049,452,5,450,1,0,0,0,0,0,0,0,0	//SL_KNIGHT#Spirit of the Knight#
+4049,453,5,449,1,0,0,0,0,0,0,0,0	//SL_WIZARD#Spirit of the Wizard#
+4049,454,5,447,1,0,0,0,0,0,0,0,0	//SL_PRIEST#Spirit of the Priest#
+4049,455,5,0,0,0,0,0,0,0,0,0,0	//SL_BARDDANCER#Spirit of the Artist#
+4049,456,5,457,1,0,0,0,0,0,0,0,0	//SL_ROGUE#Spirit of the Rogue#
+4049,457,5,0,0,0,0,0,0,0,0,0,0	//SL_ASSASIN#Spirit of the Assasin#
+4049,458,5,445,1,0,0,0,0,0,0,0,0	//SL_BLACKSMITH#Spirit of the Blacksmith#
+4049,460,5,455,1,0,0,0,0,0,0,0,0	//SL_HUNTER#Spirit of the Hunter#
+4049,461,5,448,1,0,0,0,0,0,0,0,0	//SL_SOULLINKER#Spirit of the Soul Linker#
+4049,462,7,454,1,0,0,0,0,0,0,0,0	//SL_KAIZEL#Kaizel#
+4049,463,7,454,1,450,1,0,0,0,0,0,0	//SL_KAAHI#Kahai#
+4049,464,3,456,1,0,0,0,0,0,0,0,0	//SL_KAUPE#Kauf#
+4049,465,7,453,1,0,0,0,0,0,0,0,0	//SL_KAITE#Kaite#
+4049,466,7,422,1,0,0,0,0,0,0,0,0	//SL_KAINA#Kaina#
+4049,467,7,453,1,0,0,0,0,0,0,0,0	//SL_STIN#Estin#
+4049,468,7,453,1,0,0,0,0,0,0,0,0	//SL_STUN#Estern#
+4049,469,10,467,7,468,7,0,0,0,0,0,0	//SL_SMA#Esma#
+4049,470,7,454,1,0,0,0,0,0,0,0,0	//SL_SWOO#Esu#
+4049,471,3,452,1,0,0,0,0,0,0,0,0	//SL_SKE#Esk#
+4049,472,3,447,1,0,0,0,0,0,0,0,0	//SL_SKA#Eska#
+4049,494,3,451,1,0,0,0,0,0,0,0,0	//SL_HIGH#Spirit of Rebirth#
 4049,410,1,0,0,0,0,0,0,0,0,0,0 //WE_CALLBABY#Call Baby#

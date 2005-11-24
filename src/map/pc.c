@@ -53,6 +53,7 @@ static int diry[8]={1,1,0,-1,-1,-1,0,1};
 
 struct fame_list smith_fame_list[10];
 struct fame_list chemist_fame_list[10];
+struct fame_list taekwon_fame_list[10];
 
 static unsigned int equip_pos[11]={0x0080,0x0008,0x0040,0x0004,0x0001,0x0200,0x0100,0x0010,0x0020,0x0002,0x8000};
 
@@ -258,6 +259,9 @@ void pc_addfame(struct map_session_data *sd,int count) {
 		case MAPID_ALCHEMIST: // Alchemist
             clif_fame_alchemist(sd,count);
             break;
+		case MAPID_TAEKWON: // Taekwon
+            clif_fame_taekwon(sd,count);
+            break;	
 	}
 	chrif_save(sd); // Save to allow up-to-date fame list refresh
 	chrif_reqfamelist(); // Refresh the fame list
@@ -267,15 +271,21 @@ void pc_addfame(struct map_session_data *sd,int count) {
 int pc_istop10fame(int char_id,int job) {
     int i;
 	switch(job){
-	case JOB_BLACKSMITH: // Blacksmith
+	case MAPID_BLACKSMITH: // Blacksmith
 	    for(i=0;i<10;i++){
 			if(smith_fame_list[i].id==char_id)
 			    return 1;
 		}
 		break;
-	case JOB_ALCHEMIST: // Alchemist
+	case MAPID_ALCHEMIST: // Alchemist
 	    for(i=0;i<10;i++){
 	        if(chemist_fame_list[i].id==char_id)
+	            return 1;
+		}
+		break;
+	case MAPID_TAEKWON: // Taekwon
+	    for(i=0;i<10;i++){
+	        if(taekwon_fame_list[i].id==char_id)
 	            return 1;
 		}
 		break;
@@ -2688,7 +2698,7 @@ int pc_useitem(struct map_session_data *sd,int n)
 
 			pc_delitem(sd,n,1,1);
 		}
-		if(sd->status.inventory[n].card[0]==0x00fe && pc_istop10fame(MakeDWord(sd->status.inventory[n].card[2],sd->status.inventory[n].card[3]),JOB_ALCHEMIST))
+		if(sd->status.inventory[n].card[0]==0x00fe && pc_istop10fame(MakeDWord(sd->status.inventory[n].card[2],sd->status.inventory[n].card[3]), MAPID_ALCHEMIST))
 		    potion_flag = 2; // Famous player's potions have 50% more efficiency
 		sd->canuseitem_tick= gettick() + battle_config.item_use_interval; //Update item use time.
 		run_script(script,0,sd->bl.id,0);
@@ -3674,6 +3684,9 @@ int pc_checkallowskill(struct map_session_data *sd)
 	}
 	if(!(skill_get_weapontype(BS_ADRENALINE)&(1<<sd->status.weapon)) && sd->sc_data[SC_ADRENALINE].timer!=-1){	// Adrenaline Rush requires an Axe or a Mace
 		status_change_end(&sd->bl,SC_ADRENALINE,-1);
+	}
+	if(sd->status.weapon && sd->sc_data[SC_SPORT].timer!=-1){	// Sport requires bare hands (feet, in fact xD)
+		status_change_end(&sd->bl,SC_SPORT,-1);
 	}
 
 	if(sd->status.shield <= 0) { // Skills requiring a shield

@@ -1,6 +1,3 @@
-// $Id: char.c,v 1.3 2004/09/13 16:52:16 Yor Exp $
-// original : char2.c 2003/03/14 11:58:35 Rev.1.5
-
 #include <sys/types.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -2746,7 +2743,7 @@ int parse_frommap(int fd) {
 			if (RFIFOREST(fd) < 2)
 				return 0;
 		{
-			int i, j, k, len = 6;
+			int i, j, k, len = 8;
 			unsigned char buf[32000];
 			struct fame_list fame_item;
 			//struct mmo_charstatus *dat;
@@ -2773,7 +2770,7 @@ int parse_frommap(int fd) {
 
 			// starting to send to map
 			WBUFW(buf,0) = 0x2b1b;
-			// send first list for blacksmiths
+			// add list for blacksmiths
 			for (i = 0, j = 0; i < char_num && j < 10; i++) {
 				if (char_dat[id[i]].class_ == 10 ||
 					char_dat[id[i]].class_ == 4011 ||
@@ -2788,10 +2785,10 @@ int parse_frommap(int fd) {
 					j++;
 				}
 			}
-			// adding blacksmith's block length
-			WBUFW(buf, 4) = len;
+			// add blacksmith's block length
+			WBUFW(buf, 6) = len;
 			
-			// adding second list for alchemists
+			// add list for alchemists
 			for (i = 0, j = 0; i < char_num && j < 10; i++) {
 				if (char_dat[id[i]].class_ == 18 ||
 					char_dat[id[i]].class_ == 4019 ||
@@ -2806,9 +2803,25 @@ int parse_frommap(int fd) {
 					j++;
 				}
 			}
-			// adding packet length			
+			// add alchemist's block length
+			WBUFW(buf, 4) = len;
+
+			// adding list for taekwons
+			for (i = 0, j = 0; i < char_num && j < 10; i++) {
+				if (char_dat[id[i]].class_ == 4046)
+				{
+					fame_item.id = char_dat[id[i]].char_id;
+					fame_item.fame = char_dat[id[i]].fame;
+					strncpy(fame_item.name, char_dat[id[i]].name, NAME_LENGTH);
+					
+					memcpy(WBUFP(buf, len), &fame_item, sizeof(struct fame_list));
+					len += sizeof(struct fame_list);
+					j++;
+				}
+			}
+			// add total packet length
 			WBUFW(buf, 2) = len;
-			
+
 			// sending to all maps
 			mapif_sendall(buf, len);
 			// done!
