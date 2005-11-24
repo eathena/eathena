@@ -35,6 +35,8 @@
 
 	--
 11/22
+	* Lowered the required ammount of oridecon needed to craft gladiuses by 4, [MasterOfMuppets]
+	  thanks to andz for pointing it out.
 	* Updated the Range of Provoke, Bowling Bash. Retouched the range of Spear
 	  Stab to be +2 of current weapon rather than 4. [Skotlex]
 	* Reupdated the mob skill db (some mobs had mode change-target which is

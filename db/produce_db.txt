@@ -48,7 +48,7 @@
 //-- Stiletto <-- BS_DAGGER & 40 Steel
 1216,2,98,999,40
 //-- Gladius <-- BS_DAGGER & 8 Oridecon, 40 Steel, 1 Sapphire
-1219,3,98,984,8,999,40,726,1
+1219,3,98,984,4,999,40,726,1
 //-- Damascus <-- BS_DAGGER & 4 Oridecon, 60 Steel, 1 Zircon
 1222,3,98,984,4,999,60,729,1
 //----------------------------------------------
