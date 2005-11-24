@@ -20,7 +20,6 @@
 
 //Guild cache
 static struct dbt *guild_db_;
-static struct dbt *guild_name_db_;
 
 struct guild_castle castles[MAX_GUILDCASTLE];
 
@@ -710,7 +709,6 @@ static int save_guild_from_cache(void *id, void *g, va_list ap)
    if(save_guild->del_flag & 1) {
       
       numdb_erase(guild_db_, save_guild->guild_id);
-      strdb_erase(guild_name_db_, &save_guild->name);
       aFree(save_guild);
       
    }
@@ -728,35 +726,6 @@ static int save_guild_cache(int tid, unsigned int tick, int id, int data)
 }
 
 
-//Load all names to check for naming conflicts
-int inter_guild_LoadNames() {
-   
-   char *name;
-   
-   //Set the new guild ID
-	sprintf (tmp_sql , "SELECT guild_id, name FROM `%s`",guild_db);
-	if(mysql_query(&mysql_handle, tmp_sql) ) {
-		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
-		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-		exit(0);
-	}
-
-	sql_res = mysql_store_result(&mysql_handle) ;
-	if(sql_res) {
-   	while((sql_row = mysql_fetch_row(sql_res))!=NULL) {
-      	if(sql_row[0] && sql_row[1]) {
-         	name = (char *)aCalloc(sizeof(char), strlen(sql_row[1]));
-	         strncpy(name, sql_row[1], NAME_LENGTH-1);
-         	strdb_insert(guild_name_db_, name, atoi(sql_row[0]));
-         }
-	   }
-   }
-   
-   return 0;
-   
-}
-
-
 // Initialize guild sql
 int inter_guild_sql_init()
 {
@@ -764,11 +733,6 @@ int inter_guild_sql_init()
 
 	//Initialize the guild cache
    guild_db_=numdb_init();
-   
-   //Compare table for easy name lookup
-   guild_name_db_=strdb_init(NAME_LENGTH);
-   
-   inter_guild_LoadNames();
 
    //Read exp file
 	inter_guild_ReadEXP();
@@ -805,13 +769,6 @@ static int guild_db_final(void *key,void *data,va_list ap)
 	return 0;
 }
 
-static int guild_name_db_final(void *key,void *data,va_list ap)
-{
-	if (data) aFree(data);
-	return 0;
-}
-
-
 void inter_guild_sql_final()
 {
    
@@ -819,21 +776,30 @@ void inter_guild_sql_final()
 	save_guild_cache(0, 0, 0, 0);
 	
 	numdb_final(guild_db_, guild_db_final);
-	strdb_final(guild_db_, guild_name_db_final);
 
 	return;
 }
 
-// Get guild by its name
-struct guild* search_guildname(char *str)
+static int guild_name_check(void *key,void *data,va_list ap)
 {
-	struct guild *g;
-	int guild_id;
+	int *matches = va_arg(ap, int *);
+	char *name = va_arg(ap, char *);
+	struct guild *g = (struct guild *)data;
 	
-	guild_id = (int)strdb_search(guild_name_db_, str);
-   g = (struct guild *)numdb_search(guild_db_, guild_id);
+	if(!strcmp(name, g->name)) {
+   	*matches++;
+	}
+	return 0;
+}
+
+// Get guild by its name
+int search_guildname(char *str)
+{
+	int matches;
+
+	numdb_foreach(guild_db_, guild_name_check, &matches, str);
 	
-	return g;
+	return matches;
 }
 
 // Check if guild is empty
@@ -1238,12 +1204,11 @@ int mapif_guild_castle_alldataload(int fd) {
 int mapif_parse_CreateGuild(int fd,int account_id,char *name,struct guild_member *master)
 {
 	struct guild *g;
-	int i;
-	char *db_name;
+	int i=0;
 
 	ShowInfo("Creating Guild (%s)\n", name);
-	g=search_guildname(name);
-	if(g!=NULL&&g->guild_id>0){
+	i=search_guildname(name);
+	if(i>0){
 		ShowInfo("int_guild: guild with same name exists [%s]\n",name);
 		mapif_guild_created(fd,account_id,NULL);
 		return 0;
@@ -1271,12 +1236,6 @@ int mapif_parse_CreateGuild(int fd,int account_id,char *name,struct guild_member
 	//Add to cache
 	ShowDebug("Create initialize OK!\n");
 	numdb_insert(guild_db_, g->guild_id, g);
-	
-	//Allocate new memory for name so we know it is always there
-	db_name = (char *)aCalloc(sizeof(char), strlen(g->name));
-	strncpy(db_name, g->name, NAME_LENGTH-1);
-	
-	strdb_insert(guild_name_db_, db_name, (void *)&g->guild_id);
 
 	if (i<0) {
 		mapif_guild_created(fd,account_id,NULL);
@@ -1432,6 +1391,7 @@ int mapif_parse_GuildChangeMemberInfoShort(int fd,int guild_id,
 int mapif_parse_BreakGuild(int fd,int guild_id)
 {
 	struct guild * g = (struct guild *)numdb_search(guild_db_, guild_id);
+	
 	if(g==NULL)
 		return 0;
 		
