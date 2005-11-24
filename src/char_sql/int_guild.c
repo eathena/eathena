@@ -626,7 +626,6 @@ int inter_guild_CharOnline(int char_id) {
             if(!g) {
                g = inter_guild_fromsql(guild_id);
                numdb_insert(guild_db_, guild_id, g);
-               strdb_insert(guild_name_db_, &g->name, &guild_id);
             }
             
             //Member has logged in before saving, tell saver not to delete
@@ -729,6 +728,35 @@ static int save_guild_cache(int tid, unsigned int tick, int id, int data)
 }
 
 
+//Load all names to check for naming conflicts
+int inter_guild_LoadNames() {
+   
+   char *name;
+   
+   //Set the new guild ID
+	sprintf (tmp_sql , "SELECT guild_id, name FROM `%s`",guild_db);
+	if(mysql_query(&mysql_handle, tmp_sql) ) {
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+		exit(0);
+	}
+
+	sql_res = mysql_store_result(&mysql_handle) ;
+	if(sql_res) {
+   	while((sql_row = mysql_fetch_row(sql_res))!=NULL) {
+      	if(sql_row[0] && sql_row[1]) {
+         	name = (char *)aCalloc(sizeof(char), strlen(sql_row[1]));
+	         strncpy(name, sql_row[1], NAME_LENGTH-1);
+         	strdb_insert(guild_name_db_, name, atoi(sql_row[0]));
+         }
+	   }
+   }
+   
+   return 0;
+   
+}
+
+
 // Initialize guild sql
 int inter_guild_sql_init()
 {
@@ -739,6 +767,8 @@ int inter_guild_sql_init()
    
    //Compare table for easy name lookup
    guild_name_db_=strdb_init(NAME_LENGTH);
+   
+   inter_guild_LoadNames();
 
    //Read exp file
 	inter_guild_ReadEXP();
@@ -769,11 +799,27 @@ int inter_guild_sql_init()
 	return 0;
 }
 
+static int guild_db_final(void *key,void *data,va_list ap)
+{
+	if (data) aFree(data);
+	return 0;
+}
+
+static int guild_name_db_final(void *key,void *data,va_list ap)
+{
+	if (data) aFree(data);
+	return 0;
+}
+
+
 void inter_guild_sql_final()
 {
    
    //Save the cache one last time
 	save_guild_cache(0, 0, 0, 0);
+	
+	numdb_final(guild_db_, guild_db_final);
+	strdb_final(guild_db_, guild_name_db_final);
 
 	return;
 }
@@ -782,13 +828,10 @@ void inter_guild_sql_final()
 struct guild* search_guildname(char *str)
 {
 	struct guild *g;
-	int *guild_id;
+	int guild_id;
 	
-	g=NULL;
-	
-	guild_id = (int *)strdb_search(guild_name_db_, str);
-	if(guild_id)
-      g = (struct guild *)numdb_search(guild_db_, *guild_id);
+	guild_id = (int)strdb_search(guild_name_db_, str);
+   g = (struct guild *)numdb_search(guild_db_, guild_id);
 	
 	return g;
 }
@@ -1196,6 +1239,7 @@ int mapif_parse_CreateGuild(int fd,int account_id,char *name,struct guild_member
 {
 	struct guild *g;
 	int i;
+	char *db_name;
 
 	ShowInfo("Creating Guild (%s)\n", name);
 	g=search_guildname(name);
@@ -1204,7 +1248,7 @@ int mapif_parse_CreateGuild(int fd,int account_id,char *name,struct guild_member
 		mapif_guild_created(fd,account_id,NULL);
 		return 0;
 	}
-	g = (struct guild *)malloc(sizeof(struct guild));
+	g = (struct guild *)aMalloc(sizeof(struct guild));
 	memset(g,0,sizeof(struct guild));
 	g->guild_id=guild_newid++;
 	memcpy(g->name,name,NAME_LENGTH-1);
@@ -1227,6 +1271,12 @@ int mapif_parse_CreateGuild(int fd,int account_id,char *name,struct guild_member
 	//Add to cache
 	ShowDebug("Create initialize OK!\n");
 	numdb_insert(guild_db_, g->guild_id, g);
+	
+	//Allocate new memory for name so we know it is always there
+	db_name = (char *)aCalloc(sizeof(char), strlen(g->name));
+	strncpy(db_name, g->name, NAME_LENGTH-1);
+	
+	strdb_insert(guild_name_db_, db_name, (void *)&g->guild_id);
 
 	if (i<0) {
 		mapif_guild_created(fd,account_id,NULL);
@@ -1401,7 +1451,6 @@ int mapif_parse_BreakGuild(int fd,int guild_id)
 	}
 
 	//Remove the guild from memory. [Skotlex]
-	strdb_erase(guild_name_db_, &g->name);
 	numdb_erase(guild_db_, guild_id);
 	mapif_guild_broken(guild_id,0);
 	aFree(g);
@@ -1699,7 +1748,7 @@ int mapif_parse_GuildCastleDataSave(int fd,int castle_id,int index,int value)   
 	case 1:
 		if( gc.guild_id!=value ){
 			int gid=(value)?value:gc.guild_id;
-			struct guild *g=inter_guild_fromsql(gid);
+			struct guild *g=numdb_search(guild_db_, gid);
 			if(log_inter)
 				inter_log("guild %s (id=%d) %s castle id=%d" RETCODE,
 					(g)?g->name:"??" ,gid, (value)?"occupy":"abandon", castle_id);
