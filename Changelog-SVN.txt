@@ -1,4 +1,7 @@
 Date	Added
+	* Updated duel [LuzZza]
+	- Now "@duel <Num>" may be used for indication max players limit of duel.
+	- Now "@duel <Nick>" creating duel for two players and automatically send invitation to Nick.
 	* Added a new script function: getequipcardid(equipSlot,CardSlot) [Lupus]
 		Returns Card ID or just a value from your EQUIPPED item
 		Useful to check equipped items PROPERTY, STRONG value, Author ID, etc
@@ -18,7 +21,7 @@ Date	Added
 	  is not walking (fixes the case in which the packet is sent while sitting,
 	  which causes a 'standing' sprite even if the char is sitting). [Skotlex]
 2005/11/22
-   * Implemented a guild cache in char sql, saves all online guilds every 5 minutes. [Kevin]
+	* Implemented a guild cache in char sql, saves all online guilds every 5 minutes. [Kevin]
 	* More grammar fixes [Kayla]
 	* Added 1-tile of range grace in skill_use_id and skill_use_pos since
 	  that's how it is on Aegis servers. [Skotlex]
