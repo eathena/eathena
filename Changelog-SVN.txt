@@ -1,5 +1,9 @@
 Date	Added
 2005/11/24
+	* Added debug information in case the guild isn't found in the cache when
+	  it should be there. This should help fix any problems the guild cache
+	  might have (eg: for some function that may take effect on a guild which
+	  has no members online) [Skotlex]
 	* Finished cleaning up and merging the guild cache withthe guild timers
 	  behaviour. It should be mostly safe to update now. [Skotlex]
 	* Reverted the sql save behaviour. [Skotlex]
