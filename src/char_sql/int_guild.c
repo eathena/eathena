@@ -33,8 +33,8 @@ static int guild_exp[100];
 #define GS_ALLIANCE 0x08
 #define GS_EXPULSION 0x10
 #define GS_SKILL 0x20
-#define GS_MASK 0xFF
-#define GS_REMOVE 0x100
+#define GS_MASK 0x7F
+#define GS_REMOVE 0x80
 
 int mapif_parse_GuildLeave(int fd,int guild_id,int account_id,int char_id,int flag,const char *mes);
 int mapif_guild_broken(int guild_id,int flag);
