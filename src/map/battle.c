@@ -458,7 +458,8 @@ int battle_attr_fix(struct block_list *src, struct block_list *target, int damag
 static int battle_walkdelay_sub(int tid, unsigned int tick, int id, int data)
 {
 	struct block_list *bl = map_id2bl(id);
-	if (!bl) return 0;
+	if (!bl || status_isdead(bl))
+		return 0;
 	
 	switch (bl->type) {
 		case BL_PC:
@@ -488,6 +489,9 @@ static int battle_walkdelay_sub(int tid, unsigned int tick, int id, int data)
  */
 int battle_walkdelay(struct block_list *bl, unsigned int tick, int adelay, int delay, int div_) {
 
+	if (status_isdead(bl))
+		return 0;
+	
 	if (battle_config.walk_delay_rate != 100)
 		delay = delay*battle_config.walk_delay_rate/100;
 	
@@ -548,6 +552,12 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 	sc_data = status_get_sc_data(bl);
 	sc_count = status_get_sc_count(bl);
 
+	if(map_getcell(bl->m, bl->x, bl->y, CELL_CHKPNEUMA) && damage>0 && flag&BF_LONG && 
+		((flag&BF_WEAPON && skill_num != NPC_GUIDEDATTACK) ||
+		(flag&BF_MISC && skill_num !=  PA_PRESSURE) ||
+		(flag&BF_MAGIC && skill_num == ASC_BREAKER))){ // It should block only physical part of Breaker! [Lupus], on the contrary, players all over the boards say it completely blocks Breaker x.x' [Skotlex]
+		damage=0;
+	} else
 	if (sc_count && *sc_count > 0) {
 		if (sc_data[SC_SAFETYWALL].timer!=-1 && damage>0 && flag&BF_SHORT && (skill_num != NPC_GUIDEDATTACK && skill_num != AM_DEMONSTRATION)
 		) {
@@ -560,12 +570,6 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 			} else {
 				status_change_end(bl,SC_SAFETYWALL,-1);
 			}
-		}
-		if(map_getcell(bl->m, bl->x, bl->y, CELL_CHKPNEUMA) && damage>0 && flag&BF_LONG && 
-			((flag&BF_WEAPON && skill_num != NPC_GUIDEDATTACK) ||
-			(flag&BF_MISC && skill_num !=  PA_PRESSURE) ||
-			(flag&BF_MAGIC && skill_num == ASC_BREAKER))){ // It should block only physical part of Breaker! [Lupus], on the contrary, players all over the boards say it completely blocks Breaker x.x' [Skotlex]
-			damage=0;
 		}
 
 		/* No no no, ROKISWEIL only prevents people from using skills, it does not blocks any skill that was casted on it! [Skotlex]
@@ -3067,6 +3071,12 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 			{
 				state |= BCT_ENEMY; //Is on a killing rampage :O
 				strip_enemy = 0;
+			} else
+			if (t_bl->type == BL_PC && t_bl != s_bl &&
+				sd->duel_group && (sd->duel_group == ((struct map_session_data *)t_bl)->duel_group)
+			) {	// Duel [LuzZza]
+					state |= BCT_ENEMY;
+					strip_enemy = 0;
 			}
 			if (map_flag_gvg(m) && !sd->status.guild_id &&
 				t_bl->type == BL_MOB && ((struct mob_data *)t_bl)->guardian_data)
@@ -3095,15 +3105,6 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 			break;
 		default:	//Invalid source of attack?
 			return 0;
-	}
-
-	// Duel [LuzZza]
-	if (s_bl->type == BL_PC && t_bl->type == BL_PC) {
-	
-		struct map_session_data *sd = (struct map_session_data *) s_bl;
-		struct map_session_data *tsd = (struct map_session_data *) t_bl;
-		
-		if ((sd->duel_group == tsd->duel_group) && sd->duel_group && sd != tsd) return 1;
 	}
 	
 	if ((flag&BCT_ALL) == BCT_ALL) { //All actually stands for all players/mobs
@@ -3288,6 +3289,7 @@ static const struct battle_data_short {
 	{ "plant_spawn_delay",                 &battle_config.plant_spawn_delay			},
 	{ "boss_spawn_delay",                  &battle_config.boss_spawn_delay			},
 	{ "slaves_inherit_speed",              &battle_config.slaves_inherit_speed		},
+	{ "summons_inherit_effects",           &battle_config.summons_inherit_effects	},
 	{ "damage_walk_delay_rate",            &battle_config.walk_delay_rate		},
 	{ "multihit_delay",                    &battle_config.multihit_delay			},
 	{ "quest_skill_learn",                 &battle_config.quest_skill_learn		},
@@ -3644,6 +3646,7 @@ void battle_set_defaults() {
 	battle_config.plant_spawn_delay=100;
 	battle_config.boss_spawn_delay=100;
 	battle_config.slaves_inherit_speed=1;
+ 	battle_config.summons_inherit_effects=1; 
 	battle_config.walk_delay_rate=20;
 	battle_config.multihit_delay=230;
 	battle_config.quest_skill_learn=0;

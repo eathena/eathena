@@ -1,4 +1,10 @@
 Date	Added
+2005/11/24
+	* Fixed Pneuma. [Skotlex]
+	* Fixed dead mobs reappearing on the map. [Skotlex]
+	* Cleaned up the duel code in battle_check_target. [Skotlex]
+	* Added config option summons_inherit_effects, defaults to yes, check
+	  battle_athena.conf for further details. [Skotlex]
 	* Updated duel [LuzZza]
 	- Now "@duel <Num>" may be used for indication max players limit of duel.
 	- Now "@duel <Nick>" creating duel for two players and automatically send invitation to Nick.

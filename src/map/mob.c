@@ -3530,7 +3530,7 @@ struct block_list *mob_getfriendhpltmaxrate(struct mob_data *md,int rate)
 	
 	nullpo_retr(NULL, md);
 
-	if (md->special_state.ai == 1) //Summoned creatures. [Skotlex]
+	if (md->special_state.ai) //Summoned creatures. [Skotlex]
 		type = BL_PC;
 	
 	map_foreachinarea(mob_getfriendhpltmaxrate_sub, md->bl.m,

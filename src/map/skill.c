@@ -1179,6 +1179,11 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
         break;
 	}
 
+	if (md && battle_config.summons_inherit_effects && md->master_id && md->special_state.ai)
+	{	//Pass heritage to Master for status causing effects. [Skotlex]
+		sd = map_id2sd(md->master_id);
+	}
+
 	if(sd && skillid != MC_CARTREVOLUTION && skillid != AM_DEMONSTRATION && attack_type&BF_WEAPON){	/* ƒJ?ƒh‚É‚æ‚é’Ç‰Á?‰Ê */
 		int i, type;
 		int sc_def_card=100;
