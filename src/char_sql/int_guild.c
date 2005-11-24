@@ -780,24 +780,24 @@ void inter_guild_sql_final()
 	return;
 }
 
-// Get guild by its name
+// Get guild_id by its name. Returns 0 if not found, -1 on error.
 int search_guildname(char *str)
 {
-   
-   int rows;
-   
+	int guild_id;
+
 	//Lookup guilds with the same name
-	sprintf (tmp_sql , "SELECT name FROM `%s` WHERE name='%s'",guild_db,jstrescape(str));
+	sprintf (tmp_sql , "SELECT guild_id FROM `%s` WHERE name='%s'",guild_db,jstrescape(str));
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
 		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-		exit(0);
+		return -1;
 	}
 
 	sql_res = mysql_store_result(&mysql_handle) ;
-   rows = mysql_num_rows(sql_res);
-   mysql_free_result(sql_res);
-   return rows;
+	sql_row = mysql_fetch_row(sql_res);
+	guild_id = sql_row[0]?atoi(sql_row[0]):0;
+	mysql_free_result(sql_res);
+	return guild_id;
 }
 
 // Check if guild is empty
@@ -1205,8 +1205,7 @@ int mapif_parse_CreateGuild(int fd,int account_id,char *name,struct guild_member
 	int i=0;
 
 	ShowInfo("Creating Guild (%s)\n", name);
-	i=search_guildname(name);
-	if(i>0){
+	if(search_guildname(name) != 0){
 		ShowInfo("int_guild: guild with same name exists [%s]\n",name);
 		mapif_guild_created(fd,account_id,NULL);
 		return 0;
@@ -1411,11 +1410,11 @@ int mapif_parse_BreakGuild(int fd,int guild_id)
 	//Remove the guild from memory. [Skotlex]
 	numdb_erase(guild_db_, guild_id);
 	mapif_guild_broken(guild_id,0);
-	aFree(g);
-
+	
 	if(log_inter)
 		inter_log("guild %s (id=%d) broken" RETCODE,g->name,guild_id);
-
+	
+	aFree(g);
 	return 0;
 }
 
