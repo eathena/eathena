@@ -780,26 +780,19 @@ void inter_guild_sql_final()
 	return;
 }
 
-static int guild_name_check(void *key,void *data,va_list ap)
-{
-	int *matches = va_arg(ap, int *);
-	char *name = va_arg(ap, char *);
-	struct guild *g = (struct guild *)data;
-	
-	if(!strcmp(name, g->name)) {
-   	*matches++;
-	}
-	return 0;
-}
-
 // Get guild by its name
 int search_guildname(char *str)
 {
-	int matches;
+	//Lookup guilds with the same name
+	sprintf (tmp_sql , "SELECT name FROM `%s` WHERE name='%s'",guild_db,str);
+	if(mysql_query(&mysql_handle, tmp_sql) ) {
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+		exit(0);
+	}
 
-	numdb_foreach(guild_db_, guild_name_check, &matches, str);
-	
-	return matches;
+	sql_res = mysql_store_result(&mysql_handle) ;
+   return mysql_num_rows(sql_res);
 }
 
 // Check if guild is empty
