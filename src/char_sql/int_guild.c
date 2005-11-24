@@ -594,110 +594,73 @@ int inter_guild_ReadEXP()
 }
 
 
-int inter_guild_CharOnline(int char_id) {
+int inter_guild_CharOnline(int char_id, int guild_id) {
    
    struct guild *g;
-   int guild_id, i;
+   int i;
    
    g=NULL;
-   
-   //Get guild_id from the database
-	sprintf (tmp_sql , "SELECT guild_id FROM `%s` WHERE char_id='%d'",char_db,char_id);
-	if(mysql_query(&mysql_handle, tmp_sql) ) {
-		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
-		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-		exit(0);
+   if (guild_id == 0)
+		return 0;
+	g = numdb_search(guild_db_, guild_id);
+	//First guild member to login, load guild into cache
+	if(!g) {
+		g = inter_guild_fromsql(guild_id);
+		numdb_insert(guild_db_, guild_id, g);
 	}
 
-	sql_res = mysql_store_result(&mysql_handle) ;
-	
-	if(sql_res) {
-   	sql_row = mysql_fetch_row(sql_res);
-	
-   	
-   	if(sql_row[0]) {
-   	
-      	//Character has a guild, set character online and load guild if not loaded
-      	if((guild_id = atoi(sql_row[0])) != 0) {
-            struct guild *g = numdb_search(guild_db_, guild_id);
-            
-            //First guild member to login, load guild into cache
-            if(!g) {
-               g = inter_guild_fromsql(guild_id);
-               numdb_insert(guild_db_, guild_id, g);
-            }
-            
-            //Member has logged in before saving, tell saver not to delete
-            if(g->del_flag & 1) {
-               g->del_flag = 0;
-            }
-               
-            //Set member online
-            for(i=0; i<g->max_member; i++) {
-               if(g->member[i].char_id == char_id) {
-                  g->member[i].online = 1;
-               }
-            }
-         }
-      }
-      
-   }
-   return 0;
-   
+	//Member has logged in before saving, tell saver not to delete
+	if(g->del_flag & 1)
+		g->del_flag = 0;
+
+	//Set member online
+	for(i=0; i<g->max_member; i++) {
+		if (g->member[i].char_id == char_id) {
+			g->member[i].online = 1;
+			break;
+		}
+	}
+	return 1;
 }
 
-
 int inter_guild_CharOffline(int char_id) {
-   
-   struct guild *g;
-   int guild_id, online_count=0, i;
-   
-   g=NULL;
-   
-   //Get guild_id from the database
+	struct guild *g=NULL;
+	int guild_id, online_count=0, i;
+
+	//Get guild_id from the database
 	sprintf (tmp_sql , "SELECT guild_id FROM `%s` WHERE char_id='%d'",char_db,char_id);
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
 		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-		exit(0);
+		return 0;
 	}
 
 	sql_res = mysql_store_result(&mysql_handle) ;
+
+	if(sql_res)
+		sql_row = mysql_fetch_row(sql_res);
+	if (!sql_res || !sql_row[0] || (guild_id = atoi(sql_row[0])) == 0)
+		return 0; //No guild?
 	
-	if(sql_res) {
-   	sql_row = mysql_fetch_row(sql_res);
-   	
-   	if(sql_row[0]) {
-   	
-         //Character has a guild, set character offline and check if they were the only member online
-      	if((guild_id = atoi(sql_row[0])) != 0) {
-            struct guild *g = numdb_search(guild_db_, guild_id);
-            
-            //Make sure we have the guild in cache just in case anything goes wrong
-            if(g) {
-               
-               //Set member offline
-               for(i=0; i<g->max_member; i++) {
-                  
-                  if(g->member[i].char_id != char_id && g->member[i].online ==1) {
-                     online_count++;
-                  }
-                  
-                  if(g->member[i].char_id == char_id) {
-                     g->member[i].online = 0;
-                  }
-               }
-               
-               if(online_count == 0)
-                  g->del_flag = 1;
-               
-            }
-         }
-      }
-      
-   }
-   return 0;
-   
+	//Character has a guild, set character offline and check if they were the only member online
+	g = numdb_search(guild_db_, guild_id);
+	if (g == NULL) {	//Make sure we have the guild in cache just in case anything goes wrong
+		ShowDebug("inter_guild_CharOffline: For char %d, guild %d is not in cache!\n", char_id, guild_id);
+		return 0;
+	}
+
+	//Set member offline
+	for(i=0; i<g->max_member; i++) {
+		if(g->member[i].char_id == char_id)
+			g->member[i].online = 0;
+		if(g->member[i].online)
+			online_count++;
+	}
+
+	if(online_count == 0)
+		g->del_flag = 1;
+
+	return 0;
 }
 
 static int save_guild_from_cache(void *id, void *g, va_list ap)

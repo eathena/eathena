@@ -3237,8 +3237,8 @@ int parse_char(int fd) {
 			WFIFOSET(map_fd, WFIFOW(map_fd,2));
 
 			set_char_online(i, auth_fifo[auth_fifo_pos].char_id, auth_fifo[auth_fifo_pos].account_id);
-
-	      inter_guild_CharOnline(auth_fifo[auth_fifo_pos].char_id);
+	      inter_guild_CharOnline(auth_fifo[auth_fifo_pos].char_id, char_dat[0].guild_id);
+			
 			//Checks to see if the even share setting of the party must be broken.
 			inter_party_logged(char_dat[0].party_id, char_dat[0].account_id);
 			
