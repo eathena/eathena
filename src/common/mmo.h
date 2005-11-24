@@ -296,7 +296,6 @@ struct guild {
 #ifndef TXT_ONLY
 	unsigned int save_timer;
 	unsigned char save_flag;
-	unsigned char del_flag;
 #endif
 };
 

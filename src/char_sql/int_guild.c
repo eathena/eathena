@@ -27,6 +27,15 @@ static int guild_newid=30000;
 
 static int guild_exp[100];
 
+#define GS_BASIC 0x01
+#define GS_MEMBER 0x02
+#define GS_POSITION 0x04
+#define GS_ALLIANCE 0x08
+#define GS_EXPULSION 0x10
+#define GS_SKILL 0x20
+#define GS_MASK 0xFF
+#define GS_REMOVE 0x100
+
 int mapif_parse_GuildLeave(int fd,int guild_id,int account_id,int char_id,int flag,const char *mes);
 int mapif_guild_broken(int guild_id,int flag);
 int guild_check_empty(struct guild *g);
@@ -53,9 +62,17 @@ static int guild_save_timer(int tid,unsigned int tick,int id,int data) {
 		ShowError("Guild_Save_timer: wrong tid!\n");
 		return 0;
 	}
-	inter_guild_tosql(g,g->save_flag);
-	g->save_flag = 0;
+
+	if (g->save_flag&GS_MASK) {
+	   inter_guild_tosql(g, g->save_flag&GS_MASK);
+		g->save_flag &= ~GS_MASK;
+	}
 	g->save_timer=-1;
+	
+   if(g->save_flag&GS_REMOVE) {
+      numdb_erase(guild_db_, g->guild_id);
+      aFree(g);
+   }
 	return 0;
 }
 
@@ -70,12 +87,12 @@ int add_guild_save_timer(struct guild *g,unsigned int flag) {
 // Save guild into sql
 int inter_guild_tosql(struct guild *g,int flag)
 {
-	// 1 `guild` (`guild_id`, `name`,`master`,`guild_lv`,`connect_member`,`max_member`,`average_lv`,`exp`,`next_exp`,`skill_point`,`castle_id`,`mes1`,`mes2`,`emblem_len`,`emblem_id`,`emblem_data`)
-	// 2 `guild_member` (`guild_id`,`account_id`,`char_id`,`hair`,`hair_color`,`gender`,`class`,`lv`,`exp`,`exp_payper`,`online`,`position`,`rsv1`,`rsv2`,`name`)
-	// 4 `guild_position` (`guild_id`,`position`,`name`,`mode`,`exp_mode`)
-	// 8 `guild_alliance` (`guild_id`,`opposition`,`alliance_id`,`name`)
-	// 16 `guild_expulsion` (`guild_id`,`name`,`mes`,`acc`,`account_id`,`rsv1`,`rsv2`,`rsv3`)
-	// 32 `guild_skill` (`guild_id`,`id`,`lv`) 
+	// GS_BASIC `guild` (`guild_id`, `name`,`master`,`guild_lv`,`connect_member`,`max_member`,`average_lv`,`exp`,`next_exp`,`skill_point`,`castle_id`,`mes1`,`mes2`,`emblem_len`,`emblem_id`,`emblem_data`)
+	// GS_MEMBER `guild_member` (`guild_id`,`account_id`,`char_id`,`hair`,`hair_color`,`gender`,`class`,`lv`,`exp`,`exp_payper`,`online`,`position`,`rsv1`,`rsv2`,`name`)
+	// GS_POSITION `guild_position` (`guild_id`,`position`,`name`,`mode`,`exp_mode`)
+	// GS_ALLIANCE `guild_alliance` (`guild_id`,`opposition`,`alliance_id`,`name`)
+	// GS_EXPULSION `guild_expulsion` (`guild_id`,`name`,`mes`,`acc`,`account_id`,`rsv1`,`rsv2`,`rsv3`)
+	// GS_SKILL `guild_skill` (`guild_id`,`id`,`lv`) 
 
 	// temporary storage for str convertion. They must be twice the size of the
 	// original string to ensure no overflows will occur. [Skotlex]
@@ -91,7 +108,6 @@ int inter_guild_tosql(struct guild *g,int flag)
 		t_info[240];
 	char emblem_data[4096];
 	int i=0;
-//	int guild_online_member=0; //Meh, this value is not being used anywhere! [Skotlex]
 
 	if (g->guild_id<=0) return -1;
 	
@@ -103,7 +119,7 @@ int inter_guild_tosql(struct guild *g,int flag)
 	
 	t_info[0]='\0';
 	// Insert new guild to sqlserver
-	if (flag&1){
+	if (flag&GS_BASIC){
 		int len=0;
 		char updateflag=1;
 		strcat(t_info, " guild");
@@ -157,7 +173,7 @@ int inter_guild_tosql(struct guild *g,int flag)
 		}
 	}
 
-	if (flag&2){ //Update Guild Members
+	if (flag&GS_MEMBER){
 		struct guild_member *m;
 		strcat(t_info, " members");
 		// Re-writing from scratch (Aru)
@@ -201,7 +217,7 @@ int inter_guild_tosql(struct guild *g,int flag)
 		}
 	}
 
-	if (flag&4){
+	if (flag&GS_POSITION){
 		strcat(t_info, " positions");
 		//printf("- Insert guild %d to guild_position\n",g->guild_id);
 		for(i=0;i<MAX_GUILDPOSITION;i++){
@@ -216,8 +232,7 @@ int inter_guild_tosql(struct guild *g,int flag)
 		}
 	}
 
-	if (flag&8){
-//		printf("- Delete guild %d from guild_alliance\n",g->guild_id);
+	if (flag&GS_ALLIANCE){
 		sprintf(tmp_sql, "DELETE FROM `%s` WHERE `guild_id`='%d' OR `alliance_id`='%d'",guild_alliance_db, g->guild_id,g->guild_id);
 		if(mysql_query(&mysql_handle, tmp_sql) ) {
 			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
@@ -250,7 +265,7 @@ int inter_guild_tosql(struct guild *g,int flag)
 		}
 	}
 
-	if (flag&16){
+	if (flag&GS_EXPULSION){
 		strcat(t_info, " expulsions");
 		//printf("- Insert guild %d to guild_expulsion\n",g->guild_id);
 		for(i=0;i<MAX_GUILDEXPLUSION;i++){
@@ -269,7 +284,7 @@ int inter_guild_tosql(struct guild *g,int flag)
 		}
 	}
 
-	if (flag&32){
+	if (flag&GS_SKILL){
 		strcat(t_info, " skills");
 		//printf("- Insert guild %d to guild_skill\n",g->guild_id);
 		for(i=0;i<MAX_GUILDSKILL;i++){
@@ -650,8 +665,8 @@ int inter_guild_CharOnline(int char_id, int guild_id) {
 	}
 
 	//Member has logged in before saving, tell saver not to delete
-	if(g->del_flag & 1)
-		g->del_flag = 0;
+	if(g->save_flag & GS_REMOVE)
+		g->save_flag &= ~GS_REMOVE;
 
 	//Set member online
 	for(i=0; i<g->max_member; i++) {
@@ -698,37 +713,10 @@ int inter_guild_CharOffline(int char_id) {
 	}
 
 	if(online_count == 0)
-		g->del_flag = 1;
+		add_guild_save_timer(g, GS_REMOVE);
 
 	return 0;
 }
-
-static int save_guild_from_cache(void *id, void *g, va_list ap)
-{
-	struct guild * save_guild = (struct guild*)g;
-	
-	if (save_guild->save_flag)
-	   inter_guild_tosql(save_guild, save_guild->save_flag);
-   
-   if(save_guild->del_flag & 1) {
-      
-      numdb_erase(guild_db_, save_guild->guild_id);
-      aFree(save_guild);
-      
-   }
-	
-	return 0;
-}
-
-
-static int save_guild_cache(int tid, unsigned int tick, int id, int data)
-{
-   
-   ShowNotice("Starting guild saving of cache... saving all online...\n");
-	numdb_foreach(guild_db_, save_guild_from_cache);
-	return 0;
-}
-
 
 // Initialize guild sql
 int inter_guild_sql_init()
@@ -759,28 +747,23 @@ int inter_guild_sql_init()
       }
 	   mysql_free_result(sql_res);
    }
-		
-	//Add timer to save guilds to memory
-	add_timer_func_list(save_guild_cache, "save_guild_cache");
-	add_timer_interval(gettick() + 300*1000, save_guild_cache, 0, 0, 300*1000);
-
 	return 0;
 }
 
 static int guild_db_final(void *key,void *data,va_list ap)
 {
-	if (data) aFree(data);
+	struct guild *g = (struct guild*)data;
+	if (g->save_flag&GS_MASK)
+	   inter_guild_tosql(g, g->save_flag&GS_MASK);
+	if (g->save_timer != -1)
+		delete_timer(g->save_timer,guild_save_timer);
+	aFree(g);
 	return 0;
 }
 
 void inter_guild_sql_final()
 {
-   
-   //Save the cache one last time
-	save_guild_cache(0, 0, 0, 0);
-	
 	numdb_final(guild_db_, guild_db_final);
-
 	return;
 }
 
@@ -816,8 +799,7 @@ int guild_check_empty(struct guild *g)
 
 	// 誰もいないので解散
 	mapif_guild_broken(g->guild_id,0);
-	add_guild_save_timer(g,255);
-	g->save_flag=255;
+	add_guild_save_timer(g,GS_MASK); //Save all
 	//This piece of code strikes me as broken.... zero-ing the data?
 	//The guild is invalidated, the save timer is lost, the data is just gonna be left there 
 	//hanging in midair.
@@ -1238,7 +1220,7 @@ int mapif_parse_CreateGuild(int fd,int account_id,char *name,struct guild_member
 	//Add to cache
 	ShowDebug("Create initialize OK!\n");
 	numdb_insert(guild_db_, g->guild_id, g);
-	i=inter_guild_tosql(g,255);
+	i=inter_guild_tosql(g,GS_MASK);
 
 	if (i<0) {
 		mapif_guild_created(fd,account_id,NULL);
@@ -1263,7 +1245,7 @@ int mapif_parse_GuildInfo(int fd,int guild_id)
 	if(g!=NULL&&g->guild_id>0){
 		guild_calcinfo(g);
 		mapif_guild_info(fd,g);
-		//inter_guild_tosql(g,1); // Change guild
+		//inter_guild_tosql(g,GS_BASIC); // Change guild
 	}else
 		mapif_guild_noinfo(fd,guild_id);
 	return 0;
@@ -1286,12 +1268,11 @@ int mapif_parse_GuildAddMember(int fd,int guild_id,struct guild_member *m)
 			mapif_guild_memberadded(fd,guild_id,m->account_id,m->char_id,0);
 			guild_calcinfo(g);
 			mapif_guild_info(-1,g);
-			add_guild_save_timer(g,3);	//Change guild & guild_member
+			add_guild_save_timer(g,GS_BASIC|GS_MEMBER);
 			return 0;
 		}
 	}
 	mapif_guild_memberadded(fd,guild_id,m->account_id,m->char_id,1);
-	//inter_guild_tosql(g,3); // Change guild & guild_member
 	return 0;
 }
 // Delete member from guild
@@ -1338,7 +1319,7 @@ int mapif_parse_GuildLeave(int fd,int guild_id,int account_id,int char_id,int fl
 			}
 		}
 		guild_calcinfo(g);
-		add_guild_save_timer(g,19);	//Change guild & guild_member & guild_expulsion
+		add_guild_save_timer(g,GS_BASIC|GS_MEMBER|GS_EXPULSION);
 	}else{
 		sprintf(tmp_sql, "UPDATE `%s` SET `guild_id`='0' WHERE `account_id`='%d' AND `char_id`='%d'",char_db, account_id,char_id);
 		if(mysql_query(&mysql_handle, tmp_sql) ) {
@@ -1388,10 +1369,10 @@ int mapif_parse_GuildChangeMemberInfoShort(int fd,int guild_id,
 		if (g->connect_member != prev_count || g->average_lv != alv)
 		{
 			g->average_lv=alv;
-			add_guild_save_timer(g,1); //FIXME: Save the base guild just because the avl/connect count changed?
+			add_guild_save_timer(g,GS_BASIC); //FIXME: Save the base guild just because the avl/connect count changed?
 		}
 	}
-	add_guild_save_timer(g,2); //Update guild member data
+	add_guild_save_timer(g,GS_MEMBER); //Update guild member data
 	return 0;
 }
 
@@ -1455,14 +1436,13 @@ int mapif_parse_GuildBasicInfoChange(int fd,int guild_id,
 			}else if(dw<0 && g->guild_lv+dw>=1)
 				g->guild_lv+=dw;
 			mapif_guild_info(-1,g);
-			add_guild_save_timer(g,1);
+			add_guild_save_timer(g,GS_BASIC);
 		} return 0;
 	default:
 		ShowError("int_guild: GuildBasicInfoChange: Unknown type %d\n",type);
 		break;
 	}
 	mapif_guild_basicinfochanged(guild_id,type,data,len);
-	//inter_guild_tosql(g,1); // Change guild
 	return 0;
 }
 
@@ -1493,7 +1473,7 @@ int mapif_parse_GuildMemberInfoChange(int fd,int guild_id,int account_id,int cha
 	  {
 	    g->member[i].position=*((int *)data);
 	    mapif_guild_memberinfochanged(guild_id,account_id,char_id,type,data,len);
-	    add_guild_save_timer(g,3); // Change guild & guild_member
+	    add_guild_save_timer(g,GS_BASIC|GS_MEMBER);
 	    break;
 	  }
 	case GMI_EXP:
@@ -1504,42 +1484,42 @@ int mapif_parse_GuildMemberInfoChange(int fd,int guild_id,int account_id,int cha
 	    guild_calcinfo(g);	// Lvアップ判断
 	    mapif_guild_basicinfochanged(guild_id,GBI_EXP,&g->exp,4);
 	    mapif_guild_memberinfochanged(guild_id,account_id,char_id,type,data,len);
-	    add_guild_save_timer(g,3);
+	    add_guild_save_timer(g,GS_BASIC|GS_MEMBER);
 	    break;
 	  }
 	case GMI_HAIR:
 	{
 		g->member[i].hair=*((int *)data);
 		mapif_guild_memberinfochanged(guild_id,account_id,char_id,type,data,len);
-		add_guild_save_timer(g,2); //Save new data.
+		add_guild_save_timer(g,GS_MEMBER); //Save new data.
 		break;
 	}
 	case GMI_HAIR_COLOR:
 	{
 		g->member[i].hair_color=*((int *)data);
 		mapif_guild_memberinfochanged(guild_id,account_id,char_id,type,data,len);
-		add_guild_save_timer(g,2); //Save new data.
+		add_guild_save_timer(g,GS_MEMBER); //Save new data.
 		break;
 	}
 	case GMI_GENDER:
 	{
 		g->member[i].gender=*((int *)data);
 		mapif_guild_memberinfochanged(guild_id,account_id,char_id,type,data,len);
-		add_guild_save_timer(g,2); //Save new data.
+		add_guild_save_timer(g,GS_MEMBER); //Save new data.
 		break;
 	}
 	case GMI_CLASS:
 	{
 		g->member[i].class_=*((int *)data);
 		mapif_guild_memberinfochanged(guild_id,account_id,char_id,type,data,len);
-		add_guild_save_timer(g,2); //Save new data.
+		add_guild_save_timer(g,GS_MEMBER); //Save new data.
 		break;
 	}
 	case GMI_LEVEL:
 	{
 		g->member[i].lv=*((int *)data);
 		mapif_guild_memberinfochanged(guild_id,account_id,char_id,type,data,len);
-		add_guild_save_timer(g,2); //Save new data.
+		add_guild_save_timer(g,GS_MEMBER); //Save new data.
 		break;
 	}
 	default:
@@ -1566,7 +1546,7 @@ int mapif_parse_GuildPosition(int fd,int guild_id,int idx,struct guild_position 
 	memcpy(&g->position[idx],p,sizeof(struct guild_position));
 	mapif_guild_position(g,idx);
 	ShowInfo("int_guild: position data changed (Guild %d, position %d)\n",guild_id, idx);
-	add_guild_save_timer(g,4); // Change guild_position
+	add_guild_save_timer(g,GS_POSITION); // Change guild_position
 	return 0;
 }
 // ギルドスキルアップ要求
@@ -1589,7 +1569,7 @@ int mapif_parse_GuildSkillUp(int fd,int guild_id,int skill_num,int account_id)
 			mapif_guild_info(-1,g);
 		mapif_guild_skillupack(guild_id,skill_num,account_id);
 		ShowDebug("int_guild: skill %d up\n",skill_num);
-		add_guild_save_timer(g,33); // Change guild & guild_skill
+		add_guild_save_timer(g,GS_BASIC|GS_SKILL); // Change guild & guild_skill
 	}
 
 	return 0;
@@ -1611,7 +1591,7 @@ static int mapif_parse_GuildDeleteAlliance(struct guild *g, int guild_id, int ac
 		return -1;
 	
 	mapif_guild_alliance(g->guild_id,guild_id,account_id1,account_id2,flag,g->name,name);
-	add_guild_save_timer(g,8);
+	add_guild_save_timer(g,GS_ALLIANCE);
 	return 0;
 }
 // ギルド同盟要求
@@ -1653,8 +1633,8 @@ int mapif_parse_GuildAlliance(int fd,int guild_id1,int guild_id2,
 	}
 	mapif_guild_alliance(guild_id1,guild_id2,account_id1,account_id2,flag,
 		g[0]->name,g[1]->name);
-	add_guild_save_timer(g[0],8);
-	add_guild_save_timer(g[1],8);
+	add_guild_save_timer(g[0],GS_ALLIANCE);
+	add_guild_save_timer(g[1],GS_ALLIANCE);
 	return 0;
 }
 // ギルド告知変更要求
@@ -1666,7 +1646,7 @@ int mapif_parse_GuildNotice(int fd,int guild_id,const char *mes1,const char *mes
 		return 0;
 	memcpy(g->mes1,mes1,60);
 	memcpy(g->mes2,mes2,120);
-	add_guild_save_timer(g,1);	//Change mes of guild
+	add_guild_save_timer(g,GS_BASIC);	//Change mes of guild
 	return mapif_guild_notice(g);
 }
 // ギルドエンブレム変更要求
@@ -1679,7 +1659,7 @@ int mapif_parse_GuildEmblem(int fd,int len,int guild_id,int dummy,const char *da
 	memcpy(g->emblem_data,data,len);
 	g->emblem_len=len;
 	g->emblem_id++;
-	add_guild_save_timer(g,1);	//Change guild
+	add_guild_save_timer(g,GS_BASIC);	//Change guild
 	return mapif_guild_emblem(g);
 }
 
@@ -1800,7 +1780,7 @@ int mapif_parse_GuildMasterChange(int fd, int guild_id, const char* name, int le
 		g->master[len] = '\0';
 
 	ShowInfo("int_guild: Guildmaster Changed to %s (Guild %d - %s)\n",g->master, guild_id, g->name);
-	add_guild_save_timer(g,5); //Save main data and member data.
+	add_guild_save_timer(g,GS_BASIC|GS_POSITION); //Save main data and member data.
 	return mapif_guild_master_changed(g, pos);
 }
 

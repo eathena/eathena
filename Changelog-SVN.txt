@@ -1,5 +1,7 @@
 Date	Added
 2005/11/24
+	* Finished cleaning up and merging the guild cache withthe guild timers
+	  behaviour. It should be mostly safe to update now. [Skotlex]
 	* Reverted the sql save behaviour. [Skotlex]
 	- Now guilds timers and cache are both into effect, this requires a bit
 	  more of cleaning to be considered done.
