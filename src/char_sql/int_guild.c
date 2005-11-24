@@ -764,7 +764,7 @@ int inter_guild_sql_init()
 		
 	//Add timer to save guilds to memory
 	add_timer_func_list(save_guild_cache, "save_guild_cache");
-	add_timer_interval(gettick() + 60*1000, save_guild_cache, 0, 0, 60*1000);
+	add_timer_interval(gettick() + 300*1000, save_guild_cache, 0, 0, 300*1000);
 
 	return 0;
 }
