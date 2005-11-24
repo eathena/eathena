@@ -294,6 +294,8 @@ struct guild {
 	struct guild_explusion explusion[MAX_GUILDEXPLUSION];
 	struct guild_skill skill[MAX_GUILDSKILL];
 #ifndef TXT_ONLY
+	unsigned int save_timer;
+	unsigned char save_flag;
 	unsigned char del_flag;
 #endif
 };

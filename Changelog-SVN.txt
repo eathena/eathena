@@ -1,5 +1,8 @@
 Date	Added
 2005/11/24
+	* Reverted the sql save behaviour. [Skotlex]
+	- Now guilds timers and cache are both into effect, this requires a bit
+	  more of cleaning to be considered done.
 	* Various things I made but already forgot xD [DracoRPG]
 	* Added or updated several Taekwon skills [DracoRPG]
 	  - Jump Kick uses clif_slide to the target's exact pos , waiting for capture/video
