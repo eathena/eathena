@@ -678,6 +678,7 @@ struct map_session_data {
 };
 
 // duel arrays [LuzZza]
+int duel_maxpl_list[1024];
 int duel_group_list[1024];
 int duel_invite_list[1024];
 

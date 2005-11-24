@@ -9522,6 +9522,13 @@ int atcommand_invite(
       return 0;
     }
     
+    if(duel_maxpl_list[sd->duel_group] > 0 &&
+    	duel_group_list[sd->duel_group] >= duel_maxpl_list[sd->duel_group]) {
+    	
+    	clif_displaymessage(fd, "Duel: Limit of players is reached.");
+    	return 0;
+    }
+    
     if(!pl_sd) {
     
       clif_displaymessage(fd, "Duel: Player not found.");
@@ -9545,7 +9552,7 @@ int atcommand_invite(
     pl_sd->duel_invite = sd->duel_group;
     duel_invite_list[sd->duel_group]++;
     
-    clif_displaymessage(fd, "Duel: Sent.");   
+    clif_displaymessage(fd, "Duel: Invitation has been sent.");   
     
     sprintf(output, "Blue -- Player %s invites you to PVP duel (@accept/@reject) -- ", (unsigned char *)sd->status.name);
     clif_GMmessage((struct block_list *)pl_sd, output, strlen(output)+1, 3);
@@ -9557,13 +9564,18 @@ int atcommand_duel(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-    int i=1, p=0;
+    int i=1, p=0, maxpl=0;
     char output[256];
+    struct map_session_data* pl_sd = NULL;
     struct map_session_data* player_sd = NULL;
     
     if(sd->duel_group > 0) {
     
-      sprintf(output, " -- Duels: %d/%d, Members: %d/%d -- ", sd->duel_group, duel_group_list[0], duel_group_list[sd->duel_group], duel_group_list[sd->duel_group] + duel_invite_list[sd->duel_group]);
+      if(duel_maxpl_list[sd->duel_group] > 0)
+      	sprintf(output, " -- Duels: %d/%d, Members: %d/%d, Max players: %d -- ", sd->duel_group, duel_group_list[0], duel_group_list[sd->duel_group], duel_group_list[sd->duel_group] + duel_invite_list[sd->duel_group], duel_maxpl_list[sd->duel_group]);
+      else
+      	sprintf(output, " -- Duels: %d/%d, Members: %d/%d -- ", sd->duel_group, duel_group_list[0], duel_group_list[sd->duel_group], duel_group_list[sd->duel_group] + duel_invite_list[sd->duel_group]);
+      
       clif_disp_onlyself(sd,output,strlen(output));
       
       for (i=0; i<fd_max; i++)
@@ -9572,13 +9584,12 @@ int atcommand_duel(
 	  
 	      sprintf(output, "      %d. %s", ++p, (unsigned char *)player_sd->status.name);
 	      clif_disp_onlyself(sd,output,strlen(output));
-	    }      
-      
+	    }
+	    
       return 0;
     }
 
     if(sd->duel_invite > 0) {
-
       clif_displaymessage(fd, "Duel: @duel without @reject.");
       return 0;
     }
@@ -9586,17 +9597,42 @@ int atcommand_duel(
     while(duel_group_list[i]) i++;
     if(i == 1023) return 1;
     
+    if(strlen(message) > 0) {
+        if(sscanf(message, "%d", &maxpl) == 1) {
+        	if(maxpl < 2 || maxpl > 65535) {
+        		clif_displaymessage(fd, "Duel: Invalid value.");
+        		return 0;
+        	}
+    		sd->duel_group = i; // set group id        	
+        	sprintf(output, " -- Duel has been created for %d players max (@invite/@leave) -- ", maxpl);
+        	clif_disp_onlyself(sd,output,strlen(output));
+        } else {
+        	pl_sd = map_nick2sd((char *)message);
+        	if(pl_sd != NULL) {
+    			maxpl = 2; // tet-a-tet duel
+    			sd->duel_group = i; // set group id
+				strcpy(output, " -- Duel has been created for two players (@leave) -- ");
+				clif_disp_onlyself(sd,output,strlen(output));
+    			atcommand_invite(fd, sd, "", message); // auto invite
+        	} else {
+    			clif_displaymessage(fd, "Duel: Player not found.");
+    			return 0;
+        	}
+        }        
+	} else {
+    	maxpl = 0; // without limit
+    	sd->duel_group = i; // set group id
+	    strcpy(output, " -- Duel has been created (@invite/@leave) -- ");
+	    clif_disp_onlyself(sd,output,strlen(output));
+	}
+
     duel_group_list[i] = 1; // set player count
-    sd->duel_group = i; // set group id
+    duel_maxpl_list[i] = maxpl;
     duel_group_list[0]++; // increase count of groups
-    
-    strcpy(output, " -- Duel created (@invite/@leave) -- ");
     
     // set attributes
     clif_set0199(fd, 1);
     clif_misceffect2(&sd->bl, 159);
-    
-    clif_disp_onlyself(sd,output,strlen(output));
 	return 0;
 }
 
@@ -9675,7 +9711,7 @@ int atcommand_accept(
     clif_set0199(fd, 1);
     clif_misceffect2(&sd->bl, 159);
 
-    clif_displaymessage(fd, "Duel: Accepted.");
+    clif_displaymessage(fd, "Duel: Invitation has been accepted.");
     return 0;
 }
 
@@ -9704,7 +9740,7 @@ int atcommand_reject(
     duel_invite_list[sd->duel_invite]--;
     sd->duel_invite = 0;
 
-    clif_displaymessage(fd, "Duel: Rejected.");
+    clif_displaymessage(fd, "Duel: Invitation has been rejected.");
     return 0;
 
 	return 0;

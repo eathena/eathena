@@ -3464,6 +3464,7 @@ int do_init(int argc, char *argv[]) {
 	chrif_connected = 0;
 
 	// Init duel [LuzZza]
+	i=0; while(i<1024) duel_maxpl_list[i++] = 0;
 	i=0; while(i<1024) duel_group_list[i++] = 0;
 	i=0; while(i<1024) duel_invite_list[i++] = 0;
 
