@@ -783,8 +783,11 @@ void inter_guild_sql_final()
 // Get guild by its name
 int search_guildname(char *str)
 {
+   
+   int rows;
+   
 	//Lookup guilds with the same name
-	sprintf (tmp_sql , "SELECT name FROM `%s` WHERE name='%s'",guild_db,str);
+	sprintf (tmp_sql , "SELECT name FROM `%s` WHERE name='%s'",guild_db,jstrescape(str));
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
 		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
@@ -792,7 +795,9 @@ int search_guildname(char *str)
 	}
 
 	sql_res = mysql_store_result(&mysql_handle) ;
-   return mysql_num_rows(sql_res);
+   rows = mysql_num_rows(sql_res);
+   mysql_free_result(sql_res);
+   return rows;
 }
 
 // Check if guild is empty
@@ -826,7 +831,7 @@ int guild_nextexp(int level)
 	return 0;
 }
 
-// ƒMƒ‹ƒhƒXƒLƒ‹‚ª‚ ‚é‚©Šm”F
+// ƒMƒ‹ƒhƒXƒLƒ‹‚ª‚ ‚é‚©Šm”F
 int guild_checkskill(struct guild *g,int id) {
 
 	int idx = id - GD_SKILLBASE;
@@ -887,7 +892,7 @@ int guild_calcinfo(struct guild *g)
 	}
 	if(c) g->average_lv/=c;
 
-	// ‘Sƒf[ƒ^‚ð‘—‚é•K—v‚ª‚ ‚è‚»‚¤
+	// ‘Sƒf[ƒ^‚ð‘—‚é•K—v‚ª‚ ‚è‚»‚¤
 	if(	g->max_member!=before.max_member	||
 		g->guild_lv!=before.guild_lv		||
 		g->skill_point!=before.skill_point	){
