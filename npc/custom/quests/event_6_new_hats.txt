@@ -47,7 +47,7 @@ L1_4:
 	mes "[Zac]";
 	mes "Wow!! Well done! Finally you have gathered all items needed! We will make the Bongun Hat for you right away. Please Wait a Moment.";
    	next;
-	delitem 609,100;//Items: Amulet,
+	delitem 609,10;//Items: Amulet,
 	delitem 978,1;//Items: Cobaltblue Dyestuff,
 	delitem 2264,1;	//Items: Munak Hat,
 	mes "[Zac]";
