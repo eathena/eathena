@@ -28,6 +28,7 @@
 //        [Skotlex]
 //= 2.4 - Explained the upper parameter of jobchange. [Skotlex]
 //= 2.5 - Added pow, sqrt and distance. [Lance]
+//= 2.6 - Added setd and getd. [Lance]
 //===== Compatible With ===================================
 //= LOL, can be used by anyone hopefully
 //===== Description =======================================
@@ -4772,6 +4773,31 @@ Returns distance between 2 points.
 
 Example:
 set @i, distance(100,200,101,202);
+
+---------------------------------------
+
+*setd "variable name", <value>
+
+Works almost identical as set, just that the variable name is identified as a string, 
+thus can be constructed dynamically.
+
+Example:
+set $var$, "Poring";
+
+setd "$var$", "Poporing";
+mes $var$; // Will return Poporing
+
+setd "$" + $var$ + "123$", "Poporing is cool";
+mes $Poporing123$; // Will return Poporing is cool.
+
+---------------------------------------
+
+*getd("variable name")
+
+Retrieves variable, name can be constructed dynamically. Refer to setd for usage.
+
+Example:
+set @i, getd("$pikachu");
 
 Whew.
 What's about all of them.

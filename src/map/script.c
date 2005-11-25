@@ -368,6 +368,10 @@ int buildin_sqrt(struct script_state *st);
 int buildin_pow(struct script_state *st);
 int buildin_distance(struct script_state *st);
 // <--- [zBuffer] List of mathematics commands
+// [zBuffer] List of dynamic var commands --->
+int buildin_getd(struct script_state *st);
+int buildin_setd(struct script_state *st);
+// <--- [zBuffer] List of dynamic var commands
 void push_val(struct script_stack *stack,int type,int val);
 int run_func(struct script_state *st);
 
@@ -647,6 +651,10 @@ struct {
 	{buildin_pow,"pow","ii"},
 	{buildin_distance,"distance","iiii"},
 	// <--- [zBuffer] List of mathematics commands
+	// [zBuffer] List of dynamic var commands --->
+	{buildin_getd,"getd","*"},
+	{buildin_setd,"setd","*"},
+	// <--- [zBuffer] List of dynamic var commands
 	{NULL,NULL,NULL},
 };
 
@@ -9887,3 +9895,61 @@ int buildin_distance(struct script_state *st){
 	return 0;
 }
 // <--- [zBuffer] List of mathematics commands
+// [zBuffer] List of dynamic var commands --->
+void setd_sub(struct map_session_data *sd, char *varname, int elem, void *value)
+{
+	set_reg(sd, add_str((unsigned char *) varname)+(elem<<24), varname, value);
+	return;
+}
+
+int buildin_setd(struct script_state *st)
+{
+	struct map_session_data *sd=NULL;
+	char varname[100], *buffer;
+	char *value;
+	int elem;
+	buffer = conv_str(st, & (st->stack->stack_data[st->start+2]));
+	value = conv_str(st,  & (st->stack->stack_data[st->start+3]));
+
+	if(sscanf(buffer, "%[^[][%d]", varname, &elem) < 2)
+		elem = 0;
+
+	if(st->rid)
+		sd = script_rid2sd(st);
+
+	if(varname[strlen(varname)-1] != '$') {
+		setd_sub(sd, varname, elem, (void *)atoi(value));
+	} else {
+		setd_sub(sd, varname, elem, (void *)value);
+	}
+	
+	return 0;
+}
+
+int buildin_getd(struct script_state *st)
+{
+	char varname[100], *buffer;
+	struct script_data dat;
+	int elem;
+
+	buffer = conv_str(st, & (st->stack->stack_data[st->start+2]));
+
+	if(sscanf(buffer, "%[^[][%d]", varname, &elem) < 2)
+		elem = 0;
+
+	dat.type=C_NAME;
+	dat.u.num=add_str((unsigned char *) varname)+(elem<<24);
+	get_val(st,&dat);
+
+	if(dat.type == C_INT)
+		push_val(st->stack, C_INT, dat.u.num);
+	else if(dat.type == C_CONSTSTR){
+		buffer = aStrdup((char *)dat.u.str);
+		// dat.u.str holds the actual pointer to the data, must be duplicated.
+		// It will be freed later. Tested.
+		push_str(st->stack, C_STR, buffer);
+	}
+
+	return 0;
+}
+// <--- [zBuffer] List of dynamic var commands
