@@ -1,5 +1,6 @@
 Date	Added
 2005/11/25
+	* Uploaded fixes to int_guild, tested and working safely. [Kevin]
 	* Added @showzeny @ command. [Skotlex]
 	* Some code cleanup to make AutoBerserk work the way it was intended to
 	  (skill toggles "auto-berserk" state on/off, if on, you automatically get
