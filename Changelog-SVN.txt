@@ -1,5 +1,8 @@
 Date	Added
 2005/11/25
+	* Some code cleanup to make AutoBerserk work the way it was intended to
+	  (skill toggles "auto-berserk" state on/off, if on, you automatically get
+	  Provoked when under 25%HP) [Skotlex]
 	* Fixed Auto-Berserk auto-ending after a minute. [Skotlex]
 	* Added a fix to mob skills to prevent them from being checked too
 	  frequently during battle (which was sort of bumping up their rate to double

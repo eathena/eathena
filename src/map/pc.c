@@ -4871,7 +4871,6 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 	clif_updatestatus(sd,SP_HP);
 
 	if(sd->status.hp>0){
-		//if(sd->status.hp<sd->status.max_hp>>2 && pc_checkskill(sd,SM_AUTOBERSERK)>0 &&
 		if(sd->status.hp<sd->status.max_hp>>2 && sd->sc_data[SC_AUTOBERSERK].timer != -1 &&
 			(sd->sc_data[SC_PROVOKE].timer==-1 || sd->sc_data[SC_PROVOKE].val2==0 ))
 			// オ?トバ?サ?ク?動
@@ -5500,6 +5499,10 @@ int pc_heal(struct map_session_data *sd,int hp,int sp)
 		clif_updatestatus(sd,SP_HP);
 	if(sp)
 		clif_updatestatus(sd,SP_SP);
+
+	if(sd->status.hp>=sd->status.max_hp>>2 && sd->sc_data[SC_AUTOBERSERK].timer != -1 &&
+		(sd->sc_data[SC_PROVOKE].timer!=-1 && sd->sc_data[SC_PROVOKE].val2==1 ))
+			status_change_end(&sd->bl,SC_PROVOKE,-1); //End auto berserk.
 
 	return hp + sp;
 }

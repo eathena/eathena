@@ -1892,10 +1892,11 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	if(b_sp != sd->status.sp)
 		clif_updatestatus(sd,SP_SP);
 
+	/* I don't think there's a need for this here. It should be handled in pc_damage and pc_heal. [Skotlex]
 	if(sd->status.hp<sd->status.max_hp>>2 && sd->sc_data[SC_AUTOBERSERK].timer!=-1 &&
 		(sd->sc_data[SC_PROVOKE].timer==-1 || sd->sc_data[SC_PROVOKE].val2==0) && !pc_isdead(sd))
 		status_change_start(&sd->bl,SC_PROVOKE,10,1,0,0,0,0);
-
+	*/
 	calculating = 0;
 	return 0;
 }
@@ -4808,7 +4809,7 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			}
 
 			case SC_AUTOBERSERK:
-				if (sc_data[SC_PROVOKE].timer != -1)
+				if (sc_data[SC_PROVOKE].timer != -1 && sc_data[SC_PROVOKE].val2 == 1)
 					status_change_end(bl,SC_PROVOKE,-1);
 				break;
 
@@ -5186,11 +5187,10 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 		}
 		break;
 
-	case SC_AUTOBERSERK:
-		if(sd && sd->status.hp>sd->status.max_hp>>2) { //Continue in this state while under 25% HP [Skotlex]
+	case SC_AUTOBERSERK: //Auto Berserk continues until triggered off manually. [Skotlex]
 			sc_data[type].timer=add_timer( 1000*60+tick,status_change_timer, bl->id, data );
 			return 0;
-		}
+			
 	case SC_ENDURE:	/* ƒCƒ“ƒfƒ…ƒA */
 		if(sd && sd->special_state.infinite_endure) {
 			sc_data[type].timer=add_timer( 1000*60+tick,status_change_timer, bl->id, data );

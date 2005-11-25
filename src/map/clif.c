@@ -8056,12 +8056,15 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		)
 		clif_changelook(&sd->bl,LOOK_CLOTHES_COLOR,sd->status.clothes_color);
 
+	/* There shouldn't be a need for this anymore because... [Skotlex]
+	 * 1. sc_data is saved and loaded now.
+	 * 2. if it fails (sc_data is not being saved?) players can just reuse the skill.
 	//if(sd->status.hp<sd->status.max_hp>>2 && pc_checkskill(sd,SM_AUTOBERSERK)>0 &&
 	if(sd->status.hp<sd->status.max_hp>>2 && sd->sc_data[SC_AUTOBERSERK].timer != -1 &&
 		(sd->sc_data[SC_PROVOKE].timer==-1 || sd->sc_data[SC_PROVOKE].val2==0 ))
 		// オートバーサーク発動
 		status_change_start(&sd->bl,SC_PROVOKE,10,1,0,0,0,0);
-
+	*/
 	if(battle_config.muting_players && sd->status.manner < 0)
 		status_change_start(&sd->bl,SC_NOCHAT,0,0,0,0,0,0);
 
