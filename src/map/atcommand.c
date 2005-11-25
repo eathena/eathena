@@ -266,6 +266,7 @@ ACMD_FUNC(monsterignore); // [Valaris]
 ACMD_FUNC(fakename); //[Valaris]
 ACMD_FUNC(size); //[Valaris]
 ACMD_FUNC(showexp); //moved from charcommand [Kevin]
+ACMD_FUNC(showzeny); 
 ACMD_FUNC(showdelay); //moved from charcommand [Kevin]
 ACMD_FUNC(autotrade);// durf
 ACMD_FUNC(changeleader);// [Skotlex]
@@ -566,6 +567,7 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_FakeName,			"@fakename",		20, atcommand_fakename }, // [Valaris]
 	{ AtCommand_Size,				"@size",			20, atcommand_size },
 	{ AtCommand_ShowExp,			"@showexp", 		10, atcommand_showexp},
+	{ AtCommand_ShowZeny,			"@showzeny", 		10, atcommand_showzeny},
 	{ AtCommand_ShowDelay,			"@showdelay",		1, atcommand_showdelay},
 	{ AtCommand_AutoTrade,			"@autotrade",		10,	atcommand_autotrade }, // durf
 	{ AtCommand_ChangeGM,			"@changegm",		10,	atcommand_changegm }, // durf
@@ -9478,6 +9480,21 @@ int atcommand_showexp(
 
 	sd->state.showexp = 1;
 	clif_displaymessage(fd, "Gained exp is now shown");
+	return 0;
+}
+
+int atcommand_showzeny(
+       const int fd, struct map_session_data* sd,
+       const char* command, const char* message)
+{
+	if (sd->state.showzeny) {
+		sd->state.showzeny = 0;
+		clif_displaymessage(fd, "Gained zeny will not be shown.");
+		return 0;
+	}
+
+	sd->state.showzeny = 1;
+	clif_displaymessage(fd, "Gained zeny is now shown");
 	return 0;
 }
 

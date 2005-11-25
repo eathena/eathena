@@ -741,7 +741,9 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 
 	if (battle_config.disp_experience)
 		sd->state.showexp = 1;
-		
+	if (battle_config.disp_zeny)
+		sd->state.showzeny = 1;
+	
 	if (battle_config.display_delay_skill_fail)
 		sd->state.showdelay = 1;
 		
@@ -2386,7 +2388,7 @@ int pc_getzeny(struct map_session_data *sd,int zeny)
 	}
 	sd->status.zeny+=zeny;
 	clif_updatestatus(sd,SP_ZENY);
-	if(battle_config.disp_zeny && zeny > 0){
+	if(zeny > 0 && sd->state.showzeny){
 		char output[255];
 		sprintf(output, "Gained %dz.", zeny);
 		clif_disp_onlyself(sd,output,strlen(output));

@@ -391,6 +391,7 @@ struct map_session_data {
 		unsigned accreg_dirty : 1; //By Skotlex (marks whether Account variables have been saved or not yet)
 		unsigned showdelay :1;
 		unsigned showexp :1;
+		unsigned showzeny :1;
 		unsigned disguised :1; //[Valaris]
 		unsigned deal_locked :2;
 		unsigned party_sent :1;

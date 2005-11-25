@@ -242,6 +242,7 @@ enum AtCommandType {
 	AtCommand_Size, // [Valaris]
 	AtCommand_ShowDelay,
 	AtCommand_ShowExp,
+	AtCommand_ShowZeny,
 	AtCommand_AutoTrade,//durf
 	AtCommand_ChangeGM,//durf
 	AtCommand_ChangeLeader,
