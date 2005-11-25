@@ -273,7 +273,7 @@ L1_29:
 	mes "[Pac]";
 	mes "Wow!! Well done! Finally you have gathered all items needed! We will make the Sphinx Hat for you right away. Please Wait a Moment.";
    	next;
-	delitem 999,1;//Items: Steel,
+	delitem 999,25;//Items: Steel,
 	delitem 979,1;//Items: Darkgreen Dyestuff,
 	delitem 976,1;//Items: Lemon Dyestuffs,
 	delitem 1059,150;//Items: Fabric,
