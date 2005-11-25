@@ -28,6 +28,7 @@ Nexon
 Date		Added
 ======
 11/25
+	* Added the Einbech kafra [MasterOfMuppets]
 	* Added Thanatos entrance warp. Thanks to Justin84 [Lupus]
 11/23
 	* Fixed santa goblin spawn locations in event/xmas.txt [Kayla]

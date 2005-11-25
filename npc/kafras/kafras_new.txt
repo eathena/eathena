@@ -3,7 +3,7 @@
 //===== By: =========================
 //= eAthena Dev Team
 //===== Current Version: ===================
-//= 2.5
+//= 2.6
 //===== Compatible With: =====================
 //= eAthena 1.0
 //===== Description: ============================================
@@ -22,6 +22,7 @@
 //= 2.3 Added temp Amatsu + Ayothaya Kafra (wrong coords and sprite) [Lupus]
 //= 2.4 Added correct Ayothaya, Louyang & Amatsu Kafras. [Lupus]
 //= 2.5 Added 2 Einbroch Kafras. [Lupus]
+//= 2.6 Added the Einbech Kafra [MasterOfMuppets]
 //==========================================================================
 
 // Amatsu ------------------------------------------------------------------
@@ -41,6 +42,17 @@ ayothaya.gat,212,169,5	script	Kafra	116,{
 
 	M_Save:
 		savepoint "ayothaya.gat",149,69;
+		callfunc "F_KafEnd",0,1;
+}
+
+// Einbech -----------------------------------------------------------------
+
+einbech.gat,181,131,5	script	Kafra	115,{
+	cutin "kafra_03",2;
+	callfunc "F_Kafra",0,4,1;
+
+	M_Save:
+		savepoint "einbech.gat",181,124;
 		callfunc "F_KafEnd",0,1;
 }
 
