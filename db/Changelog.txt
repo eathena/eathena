@@ -34,6 +34,9 @@
 	12017,Speed_Decreasing_Potion no bonus... Turbo Track race item
 
 	--
+11/25
+	* Updated skill ranges of Assassin and Crusader skills, thanks to Komurka
+	  for the information. [Skotlex]
 11/24
 	* Updated skill ranges of Hunter and Knight skills, thanks to Komurka for
 	  the packet information. [Skotlex]
