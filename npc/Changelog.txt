@@ -28,6 +28,7 @@ Nexon
 Date		Added
 ======
 11/26
+	* Fixed some mapname typos in mob spawn scripts (mostly Prontera and Geffen fields) [Lupus]
 	* Spiffed up 6_new_hats custom quest NPCs coords [Lupus]
 	* Added new cities into warper & warper2 [Lupus]
 	* Removed some buggy custom quests. Those items has appeared in recent official quests [Lupus]

@@ -3,11 +3,11 @@
 //===== By: ==================================================
 //= Athena (1.0)
 //===== Current Version: =====================================
-//= 1.1
+//= 1.2
 //===== Compatible With: =====================================
 //= Any Athena Version
 //===== Additional Comments: =================================
-//=
+//= 1.2 Map names typos fix [Lupus]
 //============================================================
 
 // gef_fild00 (lv1)
@@ -16,7 +16,7 @@ gef_fild00.gat,0,0,0,0	monster	Poring	1002,50,0,0,0
 gef_fild00.gat,0,0,0,0	monster	Fabre	1007,50,0,0,0
 gef_fild00.gat,0,0,0,0	monster	Pupa	1008,20,0,0,0
 gef_fild00.gat,0,0,0,0	monster	Poporing	1031,10,0,0,0
-gef_fild01.gat,215,225,10,10	monster	Green Plant	1080,5,360000,180000,1
+gef_fild00.gat,215,225,10,10	monster	Green Plant	1080,5,360000,180000,1
 gef_fild00.gat,95,128,0,0	monster	Blue Plant	1079,1,900000,450000,1
 gef_fild00.gat,124,321,0,0	monster	Blue Plant	1079,1,900000,450000,1
 gef_fild00.gat,54,212,5,5	monster	Green Plant	1080,3,360000,180000,1

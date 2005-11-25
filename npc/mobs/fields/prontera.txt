@@ -3,11 +3,11 @@
 //===== By: ==================================================
 //= Athena (1.0)
 //===== Current Version: =====================================
-//= 1.1
+//= 1.2
 //===== Compatible With: =====================================
 //= Any Athena Version
 //===== Additional Comments: =================================
-//= 1.1 map name type fix, thanx to Gwendalin
+//= 1.2 fixed some map name typos [Lupus]
 //============================================================
 
 // prt_fild00 (lv2)
@@ -24,7 +24,7 @@ prt_fild00.gat,285,138,10,10	monster	Green Plant	1080,5,360000,180000,1
 
 // prt_fild01 (lv1)
 
-prt_fild02.gat,0,0,0,0	monster	Thief Bug Larva	1051,30,0,0,0
+prt_fild01.gat,0,0,0,0	monster	Thief Bug Larva	1051,30,0,0,0
 prt_fild01.gat,0,0,0,0	monster	Fabre	1007,20,0,0,0
 prt_fild01.gat,0,0,0,0	monster	Pupa	1008,10,0,0,0
 prt_fild01.gat,0,0,0,0	monster	Lunatic	1063,80,0,0,0
@@ -61,9 +61,9 @@ prt_fild04.gat,0,0,0,0	monster	Pupa	1008,10,0,0,0
 prt_fild04.gat,0,0,0,0	monster	Poring	1002,30,0,0,0
 prt_fild04.gat,0,0,0,0	monster	Vocal	1088,1,1800000,1200000,0
 prt_fild04.gat,350,114,10,10	monster	Green Plant	1080,5,900000,450000,1
-prt_fild03.gat,307,75,5,5	monster	Green Plant	1080,5,360000,180000,1
-prt_fild03.gat,147,319,5,5	monster	Green Plant	1080,5,360000,180000,1
-prt_fild03.gat,148,107,5,5	monster	Green Plant	1080,5,360000,180000,1
+prt_fild04.gat,307,75,5,5	monster	Green Plant	1080,5,360000,180000,1
+prt_fild04.gat,147,319,5,5	monster	Green Plant	1080,5,360000,180000,1
+prt_fild04.gat,148,107,5,5	monster	Green Plant	1080,5,360000,180000,1
 
 // prt_fild05 (lv1)
 prt_fild05.gat,0,0,0,0	monster	Poring	1002,70,0,0,0

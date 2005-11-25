@@ -26,7 +26,3 @@ hu_fild05.gat,0,0,0,0	monster	Petit	1155,5,60000,30000,0
 hu_fild05.gat,0,0,0,0	monster	Earth Deleter	1385,5,120000,60000,0
 hu_fild05.gat,0,0,0,0	monster	Earth Deleter	1385,15,0,0,0
 hu_fild05.gat,0,0,0,0	monster	Mutant Dragonoid	1262,1,7200000,3600000,0
-
-
-
-
