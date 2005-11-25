@@ -27,6 +27,7 @@
 //= 2.3 - added plenty of info for recent (and not so) script commands I added
 //        [Skotlex]
 //= 2.4 - Explained the upper parameter of jobchange. [Skotlex]
+//= 2.5 - Added pow, sqrt and distance. [Lance]
 //===== Compatible With ===================================
 //= LOL, can be used by anyone hopefully
 //===== Description =======================================
@@ -4745,6 +4746,32 @@ Valid types are:
 	4 - sex; 5 - equip; 6 - weight; 7 - atk; 8 - def; 9 - range;
 	10 - slot; 11 - look; 12 - elv; 13 - wlv;
 
+---------------------------------------
+
+*pow(<number>,<power>)
+
+Returns the result of the calculation.
+
+Example:
+set @i, pow(2,3); // @i will be 8
+
+---------------------------------------
+
+*sqrt(<number>)
+
+Returns square-root of number.
+
+Examlpe:
+set @i, sqrt(25); // @i will be 5
+
+---------------------------------------
+
+*distance(<x0>,<y0>,<x1>,<y1>)
+
+Returns distance between 2 points.
+
+Example:
+set @i, distance(100,200,101,202);
 
 Whew.
 What's about all of them.

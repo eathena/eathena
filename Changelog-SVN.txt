@@ -2,6 +2,7 @@ Date	Added
 2005/11/25
 	* Added pow, sqrt and distance to scripting commands. [Lance]
 	* Removed players with 0 Fame Points from Blacksmith/Alchem/Taekwon TOP10 lists [Lupus]
+	* Should fix night glowing bug. [Lance]
 2005/11/24
 	* Fixed a small bug in the guild search by name routine. Should fix the
 	  crash on new guild creation. [Skotlex]
