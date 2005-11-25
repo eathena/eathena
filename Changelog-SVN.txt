@@ -1,5 +1,10 @@
 Date	Added
 2005/11/25
+	* Added monster_ai&8, when set monsters stop walking as soon as they lose
+	  their current target [Skotlex]
+	* Reflect Sword again reflects damage versus players. [Skotlex]
+	* Corrections to the skill code so only Heaven's Drive may damage traps. [Skotlex]
+	* Reverted the mob random walk delay after unlocking a target to 3~6 secs. [Skotlex]
 	* Added pow, sqrt and distance to scripting commands. [Lance]
 	* Removed players with 0 Fame Points from Blacksmith/Alchem/Taekwon TOP10 lists [Lupus]
 	* Should fix night glowing bug. [Lance]

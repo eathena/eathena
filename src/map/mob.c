@@ -1428,7 +1428,7 @@ int mob_unlocktarget(struct mob_data *md,int tick)
 	md->target_id=0;
 	md->state.targettype = NONE_ATTACKABLE;
 	md->state.skillstate=MSS_IDLE;
-	md->next_walktime=tick+rand()%3000;
+	md->next_walktime=tick+rand()%3000+3000;
 	return 0;
 }
 /*==========================================
@@ -1536,11 +1536,8 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 		tbl = map_id2bl(md->target_id);
 		if (!tbl || tbl->m != md->bl.m || !status_check_skilluse(&md->bl, tbl, 0, 0))
 		{	//Unlock current target.
-			if (md->state.state == MS_WALK)
-			{	//Confused!
+			if (md->state.state == MS_WALK && battle_config.mob_ai&8) //Inmediately stop chasing.
 				mob_stop_walking(md, 2);
-			//	clif_emotion(&md->bl, 1); This emotion isn't really official...
-			}
 			mob_unlocktarget(md, tick);
 			tbl = NULL;
 		}

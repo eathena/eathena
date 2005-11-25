@@ -1821,7 +1821,11 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 			clif_skillinfoblock(tsd);
 		}
 	}
-
+	if (skillid != WZ_HEAVENDRIVE && bl->type == BL_SKILL && damage > 0) {
+		struct skill_unit* su = (struct skill_unit*)bl;
+		if (su->group && skill_get_inf(su->group->skill_id)&INF2_TRAP)
+			damage = 0; //Only Heaven's drive may damage traps. [Skotlex]
+	}
 	if ((skillid || flag) && !(attack_type&BF_WEAPON)) {  // do not really deal damage for ASC_BREAKER's 1st attack
 		battle_damage(src,bl,damage, 0); //Deal damage before knockback to allow stuff like firewall+storm gust combo.
 		if (!status_isdead(bl) && (dmg.dmg_lv == ATK_DEF || damage > 0))
@@ -7278,14 +7282,9 @@ int skill_unit_ondamaged(struct skill_unit *src,struct block_list *bl,
 	nullpo_retr(0, src);
 	nullpo_retr(0, sg=src->group);
 
-	if (skill_get_inf2(sg->skill_id)&INF2_TRAP)
-	{	
-		if (bl && battle_getcurrentskill(bl) == AC_SHOWER) {
-			skill_blown(bl,&src->bl,2);
-			damage = 0;
-		} else
-			skill_delunitgroup(sg);
-	} else
+	if (skill_get_inf2(sg->skill_id)&INF2_TRAP && damage > 0)
+		skill_delunitgroup(sg);
+	else 
 	switch(sg->unit_id){
 	case UNT_ICEWALL:
 		src->val1-=damage;

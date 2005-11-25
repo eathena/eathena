@@ -655,10 +655,8 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 			((struct map_session_data *)src)->status.weapon == 3)))){
 			if(rand()%100 < (15*sc_data[SC_REJECTSWORD].val1)){
 				damage = damage*50/100;
-				if(src->type==BL_MOB){ // Damage is reflected to the attacker only if it's a mob, it seems [DracoRPG]
-					clif_damage(bl,src,gettick(),0,0,damage,0,0,0);
-					battle_damage(bl,src,damage,0);
-				}
+				clif_damage(bl,src,gettick(),0,0,damage,0,0,0);
+				battle_damage(bl,src,damage,0);
 				clif_skill_nodamage(bl,bl,ST_REJECTSWORD,sc_data[SC_REJECTSWORD].val1,1);
 				if((--sc_data[SC_REJECTSWORD].val2)<=0)
 					status_change_end(bl, SC_REJECTSWORD, -1);
