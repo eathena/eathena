@@ -27,6 +27,8 @@ Nexon
 
 Date		Added
 ======
+11/25
+	* Added Thanatos entrance warp. Thanks to Justin84 [Lupus]
 11/23
 	* Fixed santa goblin spawn locations in event/xmas.txt [Kayla]
 	* Temp fix for Kafra functions. New eA script engine has new CLOSE2 command [Lupus]
