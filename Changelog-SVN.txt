@@ -1,5 +1,8 @@
 Date	Added
 2005/11/25
+	* Added cleaning up the fifo before sending the guild information (since
+	  the packet is big, the fifo should be cleared to avoid overflow problems)
+	  [Skotlex]
 	* Added monster_ai&8, when set monsters stop walking as soon as they lose
 	  their current target [Skotlex]
 	* Reflect Sword again reflects damage versus players. [Skotlex]

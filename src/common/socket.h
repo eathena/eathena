@@ -155,6 +155,7 @@ void do_close(int fd);
 void socket_init(void);
 void socket_final(void);
 
+extern void flush_fifo(int fd);
 extern void flush_fifos();
 extern void set_nonblocking(int fd, int yes);
 

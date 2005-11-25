@@ -404,11 +404,13 @@ int mapif_party_info(int fd,struct party *p)
 	WBUFW(buf,0)=0x3821;
 	memcpy(buf+4,p,sizeof(struct party));
 	WBUFW(buf,2)=4+sizeof(struct party);
-	flush_fifos(); //This packet is BIG, so better have the socket buffers empty to allocate space for them. [Skotlex]
-	if(fd<0)
+	if(fd<0) {
+		flush_fifos(); //This packet is BIG, so better have the socket buffers empty to allocate space for them. [Skotlex]
 		mapif_sendall(buf,WBUFW(buf,2));
-	else
+	} else {
+		flush_fifo(fd);
 		mapif_send(fd,buf,WBUFW(buf,2));
+	}
 //	printf("int_party: info %d %s\n",p->party_id,p->name);
 	return 0;
 }

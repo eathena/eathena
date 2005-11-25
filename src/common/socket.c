@@ -269,6 +269,16 @@ static int send_from_fifo(int fd)
 	return 0;
 }
 
+void flush_fifo(int fd)
+{
+	if(session[fd] != NULL && session[fd]->func_send == send_from_fifo)
+	{
+		set_nonblocking(fd, 1);
+		send_from_fifo(fd);
+		set_nonblocking(fd, 0);
+	}
+}
+
 void flush_fifos()
 {
 	int i;

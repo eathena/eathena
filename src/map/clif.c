@@ -1783,7 +1783,7 @@ int clif_changemapserver(struct map_session_data *sd, char *mapname, int x, int 
 	fd = sd->fd;
 	WFIFOW(fd,0) = 0x92;
 	//Better not trust the null-terminator is there. [Skotlex]
-	memcpy(WFIFOP(fd,2), mapname, 15);
+	memcpy(WFIFOP(fd,2), mapname, MAP_NAME_LENGTH);
 	WFIFOB(fd,17) = 0;	//Null terminator for mapname
 	WFIFOW(fd,18) = x;
 	WFIFOW(fd,20) = y;
