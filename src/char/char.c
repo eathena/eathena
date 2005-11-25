@@ -2772,9 +2772,9 @@ int parse_frommap(int fd) {
 			WBUFW(buf,0) = 0x2b1b;
 			// add list for blacksmiths
 			for (i = 0, j = 0; i < char_num && j < 10; i++) {
-				if (char_dat[id[i]].class_ == 10 ||
+				if (char_dat[id[i]].fame && (char_dat[id[i]].class_ == 10 ||
 					char_dat[id[i]].class_ == 4011 ||
-					char_dat[id[i]].class_ == 4033)
+					char_dat[id[i]].class_ == 4033))
 				{
 					fame_item.id = char_dat[id[i]].char_id;
 					fame_item.fame = char_dat[id[i]].fame;
@@ -2790,9 +2790,9 @@ int parse_frommap(int fd) {
 			
 			// add list for alchemists
 			for (i = 0, j = 0; i < char_num && j < 10; i++) {
-				if (char_dat[id[i]].class_ == 18 ||
+				if (char_dat[id[i]].fame && (char_dat[id[i]].class_ == 18 ||
 					char_dat[id[i]].class_ == 4019 ||
-					char_dat[id[i]].class_ == 4041)
+					char_dat[id[i]].class_ == 4041))
 				{
 					fame_item.id = char_dat[id[i]].char_id;
 					fame_item.fame = char_dat[id[i]].fame;
@@ -2808,7 +2808,7 @@ int parse_frommap(int fd) {
 
 			// adding list for taekwons
 			for (i = 0, j = 0; i < char_num && j < 10; i++) {
-				if (char_dat[id[i]].class_ == 4046)
+				if (char_dat[id[i]].fame && char_dat[id[i]].class_ == 4046)
 				{
 					fame_item.id = char_dat[id[i]].char_id;
 					fame_item.fame = char_dat[id[i]].fame;

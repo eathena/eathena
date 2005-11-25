@@ -2801,7 +2801,7 @@ int parse_frommap(int fd) {
 			struct fame_list fame_item;
 
 			WBUFW(buf,0) = 0x2b1b;
-			sprintf(tmp_sql, "SELECT `char_id`,`fame`, `name` FROM `%s` WHERE `class`='10' OR `class`='4011'OR `class`='4033' ORDER BY `fame` DESC LIMIT 0,10", char_db);
+			sprintf(tmp_sql, "SELECT `char_id`,`fame`, `name` FROM `%s` WHERE `fame`>0 AND (`class`='10' OR `class`='4011'OR `class`='4033') ORDER BY `fame` DESC LIMIT 0,10", char_db);
 			if (mysql_query(&mysql_handle, tmp_sql)) {
 				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
@@ -2823,8 +2823,7 @@ int parse_frommap(int fd) {
 			WBUFW(buf, 6) = len; //Blacksmith block size
 
 			num = 0;
-			sprintf(tmp_sql, "SELECT `char_id`,`fame`,`name` FROM `%s` WHERE `class`='18' OR `class`='4019'"
-				"OR `class`='4041' ORDER BY `fame` DESC LIMIT 0,10", char_db);
+			sprintf(tmp_sql, "SELECT `char_id`,`fame`,`name` FROM `%s` WHERE `fame`>0 AND (`class`='18' OR `class`='4019' OR `class`='4041') ORDER BY `fame` DESC LIMIT 0,10", char_db);
 			if (mysql_query(&mysql_handle, tmp_sql)) {
 				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
@@ -2845,7 +2844,7 @@ int parse_frommap(int fd) {
 			WBUFW(buf, 4) = len; //Alchemist block size
 
 			num = 0;
-			sprintf(tmp_sql, "SELECT `char_id`,`fame`,`name` FROM `%s` WHERE `class`='4046' ORDER BY `fame` DESC LIMIT 0,10", char_db);
+			sprintf(tmp_sql, "SELECT `char_id`,`fame`,`name` FROM `%s` WHERE `fame`>0 AND `class`='4046' ORDER BY `fame` DESC LIMIT 0,10", char_db);
 			if (mysql_query(&mysql_handle, tmp_sql)) {
 				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
