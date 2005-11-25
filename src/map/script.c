@@ -363,6 +363,11 @@ int buildin_fakenpcname(struct script_state *st); // [Lance]
 int buildin_compare(struct script_state *st); // Lordalfa, to bring strstr to Scripting Engine
 int buildin_getiteminfo(struct script_state *st); //[Lupus] returns Items Buy / sell Price, etc info
 int buildin_getequipcardid(struct script_state *st); //[Lupus] returns card id from quipped item card slot N
+// [zBuffer] List of mathematics commands --->
+int buildin_sqrt(struct script_state *st);
+int buildin_pow(struct script_state *st);
+int buildin_distance(struct script_state *st);
+// <--- [zBuffer] List of mathematics commands
 void push_val(struct script_stack *stack,int type,int val);
 int run_func(struct script_state *st);
 
@@ -637,6 +642,11 @@ struct {
 	{buildin_compare,"compare","ss"}, // Lordalfa - To bring strstr to scripting Engine.
 	{buildin_getiteminfo,"getiteminfo","ii"}, //[Lupus] returns Items Buy / sell Price, etc info
 	{buildin_getequipcardid,"getequipcardid","ii"}, //[Lupus] returns CARD ID or other info from CARD slot N of equipped item
+	// [zBuffer] List of mathematics commands --->
+	{buildin_sqrt,"sqrt","i"},
+	{buildin_pow,"pow","ii"},
+	{buildin_distance,"distance","iiii"},
+	// <--- [zBuffer] List of mathematics commands
 	{NULL,NULL,NULL},
 };
 
@@ -9845,3 +9855,35 @@ int buildin_compare(struct script_state *st)                                 {
 //-----------------------------------------------------------------------//
 //         BRING STRSTR TO SCRIPTING ENGINE         - LORDALFA  END      //
 //-----------------------------------------------------------------------//
+// [zBuffer] List of mathematics commands --->
+int buildin_sqrt(struct script_state *st){
+	double i, a;
+	i = conv_num(st, &(st->stack->stack_data[st->start+2]));
+	a = sqrt(i);
+	push_val(st->stack, C_INT, (int)a);
+	return 0;
+}
+
+int buildin_pow(struct script_state *st){
+	double i, a, b;
+	a = conv_num(st, &(st->stack->stack_data[st->start+2]));
+	b = conv_num(st, &(st->stack->stack_data[st->start+3]));
+	i = pow(a,b);
+	push_val(st->stack, C_INT, (int)i);
+	return 0;
+}
+int buildin_distance(struct script_state *st){
+	int x0, y0, x1, y1;
+	int dx,dy;
+
+	x0 = conv_num(st, &(st->stack->stack_data[st->start+2]));
+	y0 = conv_num(st, &(st->stack->stack_data[st->start+3]));
+	x1 = conv_num(st, &(st->stack->stack_data[st->start+4]));
+	y1 = conv_num(st, &(st->stack->stack_data[st->start+5]));
+
+	dx=abs(x0-x1);
+	dy=abs(y0-y1);
+	push_val(st->stack, C_INT, (dx>dy ? dx : dy));
+	return 0;
+}
+// <--- [zBuffer] List of mathematics commands
