@@ -3629,7 +3629,9 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 
 		// èåèîªíË
 		flag = (event == ms[i].cond1);
-		if (!flag){
+		//Avoid entering on defined events to avoid "hyper-active skill use" due to the overflow of calls to this function
+		//in battle. The only exception is MSC_SKILLUSED which explicitly uses the event value to trigger. [Skotlex]
+		if (!flag && (event == -1 || event == MSC_SKILLUSED)){
 			switch (ms[i].cond1)
 			{
 				case MSC_ALWAYS:

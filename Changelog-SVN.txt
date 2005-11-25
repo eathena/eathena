@@ -1,5 +1,9 @@
 Date	Added
 2005/11/25
+	* Fixed Auto-Berserk auto-ending after a minute. [Skotlex]
+	* Added a fix to mob skills to prevent them from being checked too
+	  frequently during battle (which was sort of bumping up their rate to double
+	  or more from what the skill db would state) [Skotlex]
 	* Added cleaning up the fifo before sending the guild information (since
 	  the packet is big, the fifo should be cleared to avoid overflow problems)
 	  [Skotlex]

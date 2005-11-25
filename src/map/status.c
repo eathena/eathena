@@ -5186,8 +5186,12 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 		}
 		break;
 
+	case SC_AUTOBERSERK:
+		if(sd && sd->status.hp>sd->status.max_hp>>2) { //Continue in this state while under 25% HP [Skotlex]
+			sc_data[type].timer=add_timer( 1000*60+tick,status_change_timer, bl->id, data );
+			return 0;
+		}
 	case SC_ENDURE:	/* ƒCƒ“ƒfƒ…ƒA */
-	case SC_AUTOBERSERK: // Celest
 		if(sd && sd->special_state.infinite_endure) {
 			sc_data[type].timer=add_timer( 1000*60+tick,status_change_timer, bl->id, data );
 			return 0;
