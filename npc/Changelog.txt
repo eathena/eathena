@@ -28,6 +28,7 @@ Nexon
 Date		Added
 ======
 11/25
+	* Added a temp shop in Yuno to sell blank scrolls, thanks to reddozen [MasterOfMuppets]
 	* Added the Einbech kafra [MasterOfMuppets]
 	* Added Thanatos entrance warp. Thanks to Justin84 [Lupus]
 11/23
