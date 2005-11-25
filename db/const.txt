@@ -424,3 +424,10 @@ e_proud	55
 e_loud	56
 e_ohnoes	57
 e_dice	58
+
+PET_CLASS	1
+PET_NAME	2
+PET_LEVEL	3
+PET_HUNGRY	4
+PET_INTIMATE	5
+

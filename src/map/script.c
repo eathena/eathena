@@ -372,6 +372,7 @@ int buildin_distance(struct script_state *st);
 int buildin_getd(struct script_state *st);
 int buildin_setd(struct script_state *st);
 // <--- [zBuffer] List of dynamic var commands
+int buildin_petstat(struct script_state *st); // [Lance] Pet Stat Rq: Dubby
 void push_val(struct script_stack *stack,int type,int val);
 int run_func(struct script_state *st);
 
@@ -655,6 +656,7 @@ struct {
 	{buildin_getd,"getd","*"},
 	{buildin_setd,"setd","*"},
 	// <--- [zBuffer] List of dynamic var commands
+	{buildin_petstat,"petstat","i"},
 	{NULL,NULL,NULL},
 };
 
@@ -9953,3 +9955,40 @@ int buildin_getd(struct script_state *st)
 	return 0;
 }
 // <--- [zBuffer] List of dynamic var commands
+// Pet stat [Lance]
+int buildin_petstat(struct script_state *st){
+	struct map_session_data *sd = NULL;
+	char *tmp;
+	int flag = conv_num(st, & (st->stack->stack_data[st->start+2]));
+	sd = script_rid2sd(st);
+	if(!sd || !sd->pet.pet_id){
+		if(flag == 2)
+			push_str(st->stack, C_CONSTSTR, "");
+		else
+			push_val(st->stack, C_INT, 0);
+	}
+	else {
+		switch(flag){
+			case 1:
+				push_val(st->stack, C_INT, (int)sd->pet.class_);
+				break;
+			case 2:
+				tmp = aStrdup(sd->pet.name);
+				push_str(st->stack, C_STR, tmp);
+				break;
+			case 3:
+				push_val(st->stack, C_INT, (int)sd->pet.level);
+				break;
+			case 4:
+				push_val(st->stack, C_INT, (int)sd->pet.hungry);
+				break;
+			case 5:
+				push_val(st->stack, C_INT, (int)sd->pet.intimate);
+				break;
+			default:
+				push_val(st->stack, C_INT, 0);
+				break;
+		}
+	}
+	return 0;
+}
