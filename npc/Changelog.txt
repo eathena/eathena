@@ -27,9 +27,14 @@ Nexon
 
 Date		Added
 ======
+11/26
+	* Spiffed up 6_new_hats custom quest NPCs coords [Lupus]
+	* Added new cities into warper & warper2 [Lupus]
+	* Removed some buggy custom quests. Those items has appeared in recent official quests [Lupus]
+		e.g. Excalibur, some hats, etc
 11/25
 	* Added a temp shop in Yuno to sell blank scrolls, thanks to reddozen [MasterOfMuppets]
-	* Added the Einbech kafra [MasterOfMuppets]
+	* Added the Einbech Kafra [MasterOfMuppets]
 	* Added Thanatos entrance warp. Thanks to Justin84 [Lupus]
 11/23
 	* Fixed santa goblin spawn locations in event/xmas.txt [Kayla]

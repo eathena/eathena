@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= Darkchild
 //===== Current Version: =====================================
-//= 1.5a
+//= 1.5
 //===== Compatible With: =====================================
 //= Any eAthena Version;
 //===== Description: =========================================
@@ -13,8 +13,9 @@
 //= 1.3 fixed Louyang label typo, added warp and WARPRA into
 //= Nifleheim. Also sorted all names in alphabet order [Lupus]
 //= 1.4 fixed morroc warp npc overlaying kafra [Aria]
-//= 1.5 Added Ayothaya and Einbroch to list, and town Warpra's [Fredzilla]
-//= 1.5a fixed izlude warp npc overlaying BBS [Justin84]
+//= 1.4a Added Ayothaya and Einbroch to list, and town Warpra's [Fredzilla]
+//= 1.4b fixed Izlude warp npc overlaying BBS [Justin84]
+//= 1.5 Added this NPC to more places [Lupus]
 //============================================================
 
 -	script	Warp NPC::warpra	115,{
@@ -23,12 +24,10 @@
 	mes "I can warp you to any Town and Dungeon!";
 	mes "Were do you want to go?";
 	next;
-	menu "Towns",stadt,"Dungeons",dungeon;
+	menu "Towns",-,"Dungeons",dungeon;
 	
-	stadt:
 	menu "Alberta",walberta,"Aldebaran",waldebaran,"Amatsu",wamatsu,"Ayothaya",wayothaya,"Comodo",wcomodo,"Einbroch",weinbroch,"Geffen",wgeffen,"Gonryun",wgonryun,"Izlude",wizlude,"Louyang",wlouyang,"Lutie",wxmas,"Morroc",wmorroc,"Niflheim",wniflheim,"Payon",wpayon,"Prontera",wprontera,"Umbala",wumbala,"Yuno",wyuno;
-	
-	dungeon:
+dungeon:
 	menu "Amatsu Dungeon",damatsu,"Anthell",dant,"Ayothaya Dungeon",dayothaya,"Bibilan Dungeon",dbibilan,"Coal Mine (Dead Pit)",dcoal,"Culvert",dculvert,"Einbech Dungeon",dein,"Glast Heim",dglast,"Gonryun Dungeon",dgonryun,"Magma-Dungeon",dmagma,"Orc-Dungeon",dorc,"Payon-Dungeon",dpayon,"Pyramids",dpyramids,"Sphinx",dsphinx,"Sunken Ship",dsunken,"Turtle Dungeon",dturtle;
 
 
@@ -106,3 +105,11 @@ valkyrie.gat,48,35,8		duplicate(warpra)	Warp NPC	115
 xmas.gat,150,136,4		duplicate(warpra)	Warp NPC	115
 yuno.gat,137,162,4		duplicate(warpra)	Warp NPC	115
 yuno_fild03.gat,37,135,4	duplicate(warpra)	Warp NPC	115
+//New places
+ayothaya.gat,144,117,6	duplicate(warpra)	Warp NPC	115
+einbroch.gat,243,189,2	duplicate(warpra)	Warp NPC	115
+einbech.gat,81,101,1	duplicate(warpra)	Warp NPC	115
+hu_fild05.gat,99,62,7	duplicate(warpra)	Warp NPC	115
+jawaii.gat,250,126,1	duplicate(warpra)	Warp NPC	115
+lighthalzen.gat,155,79,6	duplicate(warpra)	Warp NPC	115
+yuno_fild07.gat,221,179,4	duplicate(warpra)	Warp NPC	115
