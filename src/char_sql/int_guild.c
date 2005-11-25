@@ -782,8 +782,9 @@ int search_guildname(char *str)
 	}
 
 	sql_res = mysql_store_result(&mysql_handle) ;
-	sql_row = mysql_fetch_row(sql_res);
-	guild_id = sql_row[0]?atoi(sql_row[0]):0;
+	if(sql_res) sql_row = mysql_fetch_row(sql_res);
+	
+	guild_id = (sql_res&&sql_row[0])?atoi(sql_row[0]):0;
 	mysql_free_result(sql_res);
 	return guild_id;
 }

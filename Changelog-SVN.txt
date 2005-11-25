@@ -1,5 +1,7 @@
 Date	Added
 2005/11/24
+	* Fixed a small bug in the guild search by name routine. Should fix the
+	  crash on new guild creation. [Skotlex]
 	* Added debug information in case the guild isn't found in the cache when
 	  it should be there. This should help fix any problems the guild cache
 	  might have (eg: for some function that may take effect on a guild which
