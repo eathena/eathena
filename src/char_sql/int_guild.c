@@ -684,9 +684,14 @@ int inter_guild_CharOffline(int char_id) {
 
 	sql_res = mysql_store_result(&mysql_handle) ;
 
-	if(sql_res)
-		sql_row = mysql_fetch_row(sql_res);
-	if (!sql_res || !sql_row[0] || (guild_id = atoi(sql_row[0])) == 0)
+	if(sql_res == NULL)
+		return 0; //Eh? No guild?
+	
+	sql_row = mysql_fetch_row(sql_res);
+	if (sql_row) guild_id = atoi(sql_row[0]);
+	mysql_free_result(sql_res);
+	
+	if (sql_row==NULL || guild_id == 0)
 		return 0; //No guild?
 	
 	//Character has a guild, set character offline and check if they were the only member online
@@ -707,7 +712,7 @@ int inter_guild_CharOffline(int char_id) {
 	if(online_count == 0)
 		g->save_flag |= GS_REMOVE;
 
-	return 0;
+	return 1;
 }
 
 // Initialize guild sql

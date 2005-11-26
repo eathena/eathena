@@ -1,5 +1,7 @@
 Date	Added
 2005/11/26
+	* Fixed Soul Linker skills showing up on the tree for leveling up. [Skotlex]
+	* Probably fixed the crash in inter_guild_CharOffline [Skotlex]
 	* Modified the skill get range routine to correctly account for the attack
 	  range and the AC_VULTURE range bonus where needed. [Skotlex]
 	* Fixed alchemists Fame Points bug: It were giving 1 fame point [Lupus]

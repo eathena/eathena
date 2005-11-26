@@ -959,7 +959,7 @@ static int pc_calc_skillpoint(struct map_session_data* sd)
 		if( (skill = pc_checkskill(sd,i)) > 0) {
 			inf2 = skill_get_inf2(i);
 			if((!(inf2&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) &&
-				!(inf2&INF2_WEDDING_SKILL) //Do not count wedding skills. [Skotlex]
+				!(inf2&(INF2_WEDDING_SKILL|INF2_SPIRIT_SKILL)) //Do not count wedding/link skills. [Skotlex]
 				) {
 				if(!sd->status.skill[i].flag)
 					skill_point += skill;
@@ -4614,7 +4614,10 @@ int pc_allskillup(struct map_session_data *sd)
 		int inf2;
 		for(i=0;i < MAX_SKILL_TREE && (id=skill_tree[sd->status.class_][i].id)>0;i++){
 			inf2 = skill_get_inf2(id);
-			if(sd->status.skill[id].id==0 && (!(inf2&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) && !(inf2&INF2_WEDDING_SKILL)) {
+			if(sd->status.skill[id].id==0 &&
+				(!(inf2&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) &&
+				!(inf2&(INF2_WEDDING_SKILL|INF2_SPIRIT_SKILL))
+			) {
 				sd->status.skill[id].id = id;	// celest
 				sd->status.skill[id].lv = skill_tree_get_max(id, sd->status.class_);	// celest
 			}
@@ -4778,7 +4781,7 @@ int pc_resetskill(struct map_session_data* sd)
 		if ((skill = sd->status.skill[i].lv) > 0) {
 			inf2 = skill_get_inf2(i);	
 			if ((!(inf2&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) &&
-				!(inf2&INF2_WEDDING_SKILL)) //Avoid reseting wedding skills.
+				!(inf2&(INF2_WEDDING_SKILL|INF2_SPIRIT_SKILL))) //Avoid reseting wedding/linker skills.
 			{
 					if (!sd->status.skill[i].flag)
 						sd->status.skill_point += skill;
