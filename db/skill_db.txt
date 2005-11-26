@@ -38,25 +38,25 @@
 21,9,8,2,4,0,10,1:2:3:4:5:6:7:8:9:10,yes,0,0,0,magic,0	//MG_THUNDERSTORM#Thunderstorm#
 22,0,0,0,0,0,10,0,no,0,0,0,weapon,0	//AL_DP#Divine protection#
 23,0,0,0,0,0,10,0,no,0,0,0,weapon,0	//AL_DEMONBANE#Divine Protection#
-24,2,6,4,6,1,1,1,yes,0,0,0,magic,0	//AL_RUWACH#Ruwach#
-25,8,6,2,0,1,1,1,yes,0,0,0,magic,0	//AL_PNEUMA#Pneuma#
+24,10,6,4,6,1,1,1,yes,0,0,0,magic,0	//AL_RUWACH#Ruwach#
+25,9,6,2,0,1,1,1,yes,0,0,0,magic,0	//AL_PNEUMA#Pneuma#
 26,0,6,4,0,1,2,1,yes,0,0,0,magic,0	//AL_TELEPORT#Teleport#
-27,5,6,2,0,1,4,1,yes,0,0,3,magic,0	//AL_WARP#Warp Portal#
+27,9,6,2,0,1,4,1,yes,0,0,3,magic,0	//AL_WARP#Warp Portal#
 28,9,6,16,6,1,10,1,yes,0,0,0,magic,0	//AL_HEAL#Heal#
-29,8,6,16,0,1,10,1,yes,0,0,0,magic,0	//AL_INCAGI#Increase AGI#
-30,8,6,1,0,1,10,1,yes,0,0,0,magic,0		//AL_DECAGI#Decrease AGI#
-31,1,6,4,0,1,1,1,yes,0,0,0,magic,0	//AL_HOLYWATER#Aqua Benedicta#
-32,8,6,4,0,1,10,1,yes,0,0,0,magic,0	//AL_CRUCIS#Signum Crusis#
-33,8,6,4,0,1,10,1,yes,0,0,0,magic,0	//AL_ANGELUS#Angelus#
-34,8,6,16,0,1,10,1,yes,0,0,0,magic,0	//AL_BLESSING#Blessing#
+29,9,6,16,0,1,10,1,yes,0,0,0,magic,0	//AL_INCAGI#Increase AGI#
+30,9,6,1,0,1,10,1,yes,0,0,0,magic,0		//AL_DECAGI#Decrease AGI#
+31,0,6,4,0,1,1,1,yes,0,0,0,magic,0	//AL_HOLYWATER#Aqua Benedicta#
+32,0,6,4,0,1,10,1,yes,0,0,0,magic,0	//AL_CRUCIS#Signum Crusis#
+33,0,6,4,0,1,10,1,yes,0,0,0,magic,0	//AL_ANGELUS#Angelus#
+34,9,6,16,0,1,10,1,yes,0,0,0,magic,0	//AL_BLESSING#Blessing#
 35,9,6,16,0,1,1,1,yes,0,0,0,magic,0	//AL_CURE#Cure#
 36,0,0,0,0,0,10,0,no,0,0,0,none,0	//MC_INCCARRY#Enlarge Weight Limit#
 37,0,0,0,0,0,10,0,no,0,0,0,none,0	//MC_DISCOUNT#Discount#
 38,0,0,0,0,0,10,0,no,0,0,0,none,0	//MC_OVERCHARGE#Overcharge#
-39,0,0,0,0,0,10,0,no,0,0,0,none,0	//MC_PUSHCART#Pushcart#
-40,0,6,4,0,1,1,1,no,0,0,0,none,0	//MC_IDENTIFY#Item Appraisal#
-41,0,6,4,0,1,10,1,no,0,0,0,none,0	//MC_VENDING#Vending#
-42,-2,6,1,-1,0,10,1,no,0,0,0,weapon,0	//MC_MAMMONITE#Mammonite#
+39,1,0,0,0,0,10,0,no,0,0,0,none,0	//MC_PUSHCART#Pushcart#
+40,1,6,4,0,1,1,1,no,0,0,0,none,0	//MC_IDENTIFY#Item Appraisal#
+41,1,6,4,0,1,10,1,no,0,0,0,none,0	//MC_VENDING#Vending#
+42,-1,6,1,-1,0,10,1,no,0,0,0,weapon,0	//MC_MAMMONITE#Mammonite#
 43,0,0,0,0,0,10,0,no,0,0,0,none,0	//AC_OWL#Owl's Eye#
 44,0,0,0,0,0,10,0,no,0,0,0,none,0	//AC_VULTURE#Vulture's Eye#
 45,0,6,4,0,1,10,1,no,0,0,0,weapon,0	//AC_CONCENTRATION#Improve Concentration#
@@ -80,20 +80,20 @@
 63,0,0,0,0,0,1,0,no,0,0,0,weapon,0	//KN_RIDING#Peco Peco Riding#
 64,0,0,0,0,0,5,0,no,0,0,0,weapon,0	//KN_CAVALIERMASTERY#Cavalier Mastery#
 65,0,0,0,0,0,10,0,no,0,0,0,weapon,0	//PR_MACEMASTERY#Mace Mastery#
-66,8,6,16,0,1,5,1,yes,0,0,0,magic,0	//PR_IMPOSITIO#Impositio Manus#	
-67,8,6,16,0,1,3,1,yes,0,512,0,magic,0	//PR_SUFFRAGIUM#Suffragium#
-68,8,6,16,6,1,5,1,yes,0,0,0,magic,0	//PR_ASPERSIO#Aspersio#
+66,9,6,16,0,1,5,1,yes,0,0,0,magic,0	//PR_IMPOSITIO#Impositio Manus#	
+67,9,6,16,0,1,3,1,yes,0,512,0,magic,0	//PR_SUFFRAGIUM#Suffragium#
+68,9,6,16,6,1,5,1,yes,0,0,0,magic,0	//PR_ASPERSIO#Aspersio#
 69,9,6,2,0,1,5,1,yes,0,64,0,magic,0	//PR_BENEDICTIO#B.S Sacramenti#
-70,8,6,2,6,1,10,1,yes,0,0,0,magic,2	//PR_SANCTUARY#Sanctuary#
-71,8,6,16,0,1,4,1,yes,0,0,0,magic,0	//PR_SLOWPOISON#Slow Poison#
-72,8,6,16,0,1,1,1,yes,0,0,0,magic,0	//PR_STRECOVERY#Status Recovery#
-73,8,6,16,0,1,10,1,yes,0,0,0,magic,0	//PR_KYRIE#Kyrie Eleison#
+70,9,6,2,6,1,10,1,yes,0,0,0,magic,2	//PR_SANCTUARY#Sanctuary#
+71,9,6,16,0,1,4,1,yes,0,0,0,magic,0	//PR_SLOWPOISON#Slow Poison#
+72,9,6,16,0,1,1,1,yes,0,0,0,magic,0	//PR_STRECOVERY#Status Recovery#
+73,9,6,16,0,1,10,1,yes,0,0,0,magic,0	//PR_KYRIE#Kyrie Eleison#
 74,0,6,4,0,1,5,1,yes,0,0,0,magic,0	//PR_MAGNIFICAT#Magnificat#
 75,0,6,4,0,1,5,1,yes,0,0,0,magic,0	//PR_GLORIA#Gloria#
-76,8,6,1,0,1,10,0,yes,0,0,0,magic,0	//PR_LEXDIVINA#Lex Divina#
-77,8,6,1,6,0,10,1,yes,0,0,0,magic,0	//PR_TURNUNDEAD#Turn Undead#
-78,8,6,1,0,1,1,0,yes,0,0,0,magic,0	//PR_LEXAETERNA#Lex Aeterna#
-79,3,8,2,6,0,10,1:2:3:4:5:6:7:8:9:10,yes,0,0,0,magic,0	//PR_MAGNUS#Magnus Exorcismus#
+76,5,6,1,0,1,10,0,yes,0,0,0,magic,0	//PR_LEXDIVINA#Lex Divina#
+77,5,6,1,6,0,10,1,yes,0,0,0,magic,0	//PR_TURNUNDEAD#Turn Undead#
+78,9,6,1,0,1,1,0,yes,0,0,0,magic,0	//PR_LEXAETERNA#Lex Aeterna#
+79,9,8,2,6,0,10,1:2:3:4:5:6:7:8:9:10,yes,0,0,0,magic,0	//PR_MAGNUS#Magnus Exorcismus#
 80,9,8,2,3,0,10,3:4:5:6:7:8:9:10:11:12,yes,0,128,5,magic,0	//WZ_FIREPILLAR#Fire Pillar#
 81,0,6,4,3,0,10,1,yes,0,0,0,magic,5	//WZ_SIGHTRASHER#Sightrasher#
 //82,9,6,2,3,0,10,1,yes,0,0,0,magic,0	//WZ_FIREIVY#Fire Ivy#
@@ -124,7 +124,7 @@
 107,0,0,0,0,0,10,0,no,0,0,0,weapon,0	//BS_WEAPONRESEARCH#Weaponry Research#
 108,2,6,16,0,1,1,1,no,0,0,0,weapon,0	//BS_REPAIRWEAPON#Weapon Repair#
 109,0,0,0,0,0,5,0,no,0,0,0,weapon,0	//BS_SKINTEMPER#Skin Tempering#
-110,2,6,2,0,1,5,1,no,0,0,0,weapon,0	//BS_HAMMERFALL#Hammer Fall#
+110,1,6,2,0,1,5,1,no,0,0,0,weapon,0	//BS_HAMMERFALL#Hammer Fall#
 111,0,6,4,0,1,5,1,no,0,0,0,weapon,0	//BS_ADRENALINE#Adrenaline Rush#
 112,0,6,4,0,1,5,1,no,0,0,0,weapon,0	//BS_WEAPONPERFECT#Weapon Perfection#
 113,0,6,4,0,1,5,1,no,0,0,0,weapon,0	//BS_OVERTHRUST#Power-Thrust#
@@ -236,7 +236,7 @@
 219,-1,6,1,-1,0,5,1,no,0,0,0,weapon,0	//RG_INTIMIDATE#Snatch#
 220,1,6,2,0,1,1,1,no,0,0,0,none,0	//RG_GRAFFITI#Scribble#
 221,0,6,2,0,1,5,1,no,0,0,0,none,0	//RG_FLAGGRAFFITI#Piece#
-222,0,6,2,0,1,1,1,no,0,0,0,none,0	//RG_CLEANER#Remover#
+222,1,6,2,0,1,1,1,no,0,0,0,none,0	//RG_CLEANER#Remover#
 223,0,0,0,0,0,1,0,no,0,0,0,none,0	//RG_GANGSTER#Slyness#
 224,0,0,0,0,0,5,0,no,0,0,0,none,0	//RG_COMPULSION#Haggle#
 225,0,0,0,0,0,10,0,no,0,0,0,none,0	//RG_PLAGIARISM#Intimidate#

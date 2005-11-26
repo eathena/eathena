@@ -35,6 +35,8 @@
 
 	--
 11/25
+	* Updated skill ranges of Rogue and Priest skills, thanks to Komurka
+	  for the information. [Skotlex]
 	* Updated skill ranges of Assassin and Crusader skills, thanks to Komurka
 	  for the information. [Skotlex]
 11/24
