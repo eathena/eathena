@@ -35,6 +35,7 @@
 
 	--
 11/26
+	* Updated sell prices on new items [Vicious]
 	* Updated Great Axe to give +5 skillblown to Mammonite, and BonGun card +5
 	  knockback to Bash [Skotlex]
 	* Changed the range of Blitz Beat and Falcon Assault to 5 [Skotlex]

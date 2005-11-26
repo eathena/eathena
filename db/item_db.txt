@@ -1912,49 +1912,49 @@
 7300,Gemstone,Gemstone,3,,710,10,,,,,,,,,,,,,{}
 7301,Tassel,Tassel,3,,399,10,,,,,,,,,,,,,{}
 7302,Krathong,Krathong,3,,10,10,,,,,,,,,,,,,{}
-7303,Straw_Rice_Bag,Straw Rice Bag,3,,10,800,,,,,,,,,,,,,{}
-7304,Witch's_Spell_Scroll,Witch's Spell Scroll,3,,10,10,,,,,,,,,,,,,{}
-7305,Symbol_of_the_Nine_Realms,Symbol of the Nine Realms,3,,10,10,,,,,,,,,,,,,{}
-7306,Piece_of_Spirit,Piece of Spirit,3,,10,10,,,,,,,,,,,,,{}
-7307,Spiritual_Whispers,Spiritual Whispers,3,,10,10,,,,,,,,,,,,,{}
-7308,Witch's_Tonic,Witch's Tonic,3,,10,10,,,,,,,,,,,,,{}
-7309,Crow_Wing,Crow Wing,3,,10,10,,,,,,,,,,,,,{}
+7303,Straw_Rice_Bag,Straw Rice Bag,3,,0,800,,,,,,,,,,,,,{}
+7304,Witch's_Spell_Scroll,Witch's Spell Scroll,3,,0,0,,,,,,,,,,,,,{}
+7305,Symbol_of_the_Nine_Realms,Symbol of the Nine Realms,3,,0,10,,,,,,,,,,,,,{}
+7306,Piece_of_Spirit,Piece of Spirit,3,,0,10,,,,,,,,,,,,,{}
+7307,Spiritual_Whispers,Spiritual Whispers,3,,0,10,,,,,,,,,,,,,{}
+7308,Witch's_Tonic,Witch's Tonic,3,,0,10,,,,,,,,,,,,,{}
+7309,Crow_Wing,Crow Wing,3,,0,10,,,,,,,,,,,,,{}
 7310,Peco_Coupon,Pecopeco Free Coupon,3,,10,10,,,,,,,,,,,,,{}
 7311,Airship_Coupon,Airship Free Coupon,3,,10,10,,,,,,,,,,,,,{}
-7312,Jubile,Jubilee,3,,32,10,,,,,,,,,,,,,{}
+7312,Jubile,Jubilee,3,,16,10,,,,,,,,,,,,,{}
 7313,Witch's_Medal,Witch's Medal,3,,10,10,,,,,,,,,,,,,{}
-7314,The_Sign,The Sign,3,,10,10,,,,,,,,,,,,,{}
-7315,Black_Quartz_Piece,Dark Crystal Fragment,3,422,,10,,,,,,,,,,,,,{}
+7314,The_Sign,The Sign,3,,0,10,,,,,,,,,,,,,{}
+7315,Black_Quartz_Piece,Dark Crystal Fragment,3,0,211,10,,,,,,,,,,,,,{}
 7316,Insect_Long_leg,Insect Leg,3,,329,10,,,,,,,,,,,,,{}
-7317,Rusted_Bolt,Rusty Screw,3,534,,10,,,,,,,,,,,,,{}
-7318,Old_Pick,Old Pick,3,512,,10,,,,,,,,,,,,,{}
-7319,Old_Iron_Plate,Used Iron Plate,3,1024,,10,,,,,,,,,,,,,{}
-7320,Dust,Dust Pollutant,3,256,,10,,,,,,,,,,,,,{}
-7321,Quartz_Piece,Crystal Fragment,3,552,,10,,,,,,,,,,,,,{}
-7322,Poison_Gas,Toxic Gas,3,666,,10,,,,,,,,,,,,,{}
-7323,Battered_Kettle,Battered Kettle,3,256,,10,,,,,,,,,,,,,{}
+7317,Rusted_Bolt,Rusty Screw,3,,267,10,,,,,,,,,,,,,{}
+7318,Old_Pick,Old Pick,3,,256,10,,,,,,,,,,,,,{}
+7319,Old_Iron_Plate,Used Iron Plate,3,,512,10,,,,,,,,,,,,,{}
+7320,Dust,Dust Pollutant,3,,128,10,,,,,,,,,,,,,{}
+7321,Quartz_Piece,Crystal Fragment,3,,276,10,,,,,,,,,,,,,{}
+7322,Poison_Gas,Toxic Gas,3,,333,10,,,,,,,,,,,,,{}
+7323,Battered_Kettle,Battered Kettle,3,,128,10,,,,,,,,,,,,,{}
 7324,Toothed_Wheel,Gear,3,,10,10,,,,,,,,,,,,,{}
-7325,Tube,Flexible Tube,3,,102,10,,,,,,,,,,,,,{}
+7325,Tube,Flexible Tube,3,,51,10,,,,,,,,,,,,,{}
 7326,Fluorescent_Colored_Liquid,Fluorescent Liquid,3,,356,10,,,,,,,,,,,,,{}
-7327,Flashlight,Flashlight,3,,10,10,,,,,,,,,,,,,{}
+7327,Flashlight,Flashlight,3,,512,10,,,,,,,,,,,,,{}
 7328,Songkran_Legend,Songkran Legend,3,,10,10,,,,,,,,,,,,,{}
 7329,Old_Copper_Key,Old Copper Key,3,,10,10,,,,,,,,,,,,,{}
 7330,Songwha_Orb7,Songwha Orb,3,,10,10,,,,,,,,,,,,,{}
 7331,Heavenly_Flower,Heavenly Flower,3,,10,10,,,,,,,,,,,,,{}
-7332,Stone_Tablet,Stone Tablet,3,,0,10,,,,,,,,,,,,,{}
+7332,Stone_Tablet,Stone Tablet,3,,0,0,,,,,,,,,,,,,{}
 7333,Piece_of_Stone_Tablet,Piece of Stone Tablet,3,,10,10,,,,,,,,,,,,,{}
 7334,Piece_of_Stone_Tablet_,Piece of Stone Tablet,3,,10,10,,,,,,,,,,,,,{}
 7335,Piece_of_Stone_Tablet__,Piece of Stone Tablet,3,,10,10,,,,,,,,,,,,,{}
 7336,Piece_of_Stone_Tablet___,Piece of Stone Tablet,3,,10,10,,,,,,,,,,,,,{}
-7337,Eye_of_Helion,Eye of Helion,3,,10,10,,,,,,,,,,,,,{}
+7337,Eye_of_Helion,Eye of Helion,3,,0,0,,,,,,,,,,,,,{}
 7338,One_Way_Ticket,One way ticket,3,,10,10,,,,,,,,,,,,,{}
 7339,Commemorative_Traffic_Card,Commoemorative Traffic Card,3,,10,10,,,,,,,,,,,,,{}
-7340,Dark_Will,Dark Will,3,,10,50,,,,,,,,,,,,,{}
+7340,Dark_Will,Dark Will,3,,367,50,,,,,,,,,,,,,{}
 7341,Old_Pendant,Old Pendant,3,,10,10,,,,,,,,,,,,,{}
 7342,Folder,Thin Folder,3,,10,10,,,,,,,,,,,,,{}
 7343,Sealed_File,Sealed File,3,,10,10,,,,,,,,,,,,,{}
 7344,Sinocas_Incident_File,Sinocas Incident File,3,,10,10,,,,,,,,,,,,,{}
-7345,Prisoner_Bangle,Prisoner's Bangle,3,,10,10,,,,,,,,,,,,,{}
+7345,Prisoner_Bangle,Prisoner's Bangle,3,,362,10,,,,,,,,,,,,,{}
 7346,Pile_of_Ymir_Heart,Pile of Ymir's Heart,3,,10,10,,,,,,,,,,,,,{}
 7347,Researcher_Record,Researcher Record,3,,10,10,,,,,,,,,,,,,{}
 7348,Membership_Certificate,Organization Member's Certificate,3,,10,10,,,,,,,,,,,,,{}
@@ -1965,10 +1965,10 @@
 7353,Transparent_Board_,Transparent Plate,3,,10,10,,,,,,,,,,,,,{}
 7354,Transparent_Board__,Transparent Plate,3,,10,10,,,,,,,,,,,,,{}
 7355,Transparent_Board___,Transparent Plate,3,,10,10,,,,,,,,,,,,,{}
-7356,Embelem_Piece,Piece of Emblem,3,,10,10,,,,,,,,,,,,,{}
-7357,Embelem_Piece_,Piece of Emblem,3,,10,10,,,,,,,,,,,,,{}
-7358,Embelem_Piece__,Piece of Emblem,3,,10,10,,,,,,,,,,,,,{}
-7359,Embelem_Piece___,Piece of Emblem,3,,10,10,,,,,,,,,,,,,{}
+7356,Embelem_Piece,Piece of Emblem,3,,2500,10,,,,,,,,,,,,,{}
+7357,Embelem_Piece_,Piece of Emblem,3,,2500,10,,,,,,,,,,,,,{}
+7358,Embelem_Piece__,Piece of Emblem,3,,2500,10,,,,,,,,,,,,,{}
+7359,Embelem_Piece___,Piece of Emblem,3,,2500,10,,,,,,,,,,,,,{}
 7360,RO_Festival_Invitation_Ticket,Festival Ticket,3,,10,10,,,,,,,,,,,,,{}
 7361,Number_1_Ball,Number_1_Ball,3,,10,10,,,,,,,,,,,,,{}
 7362,Number_2_Ball,Number_2_Ball,3,,10,10,,,,,,,,,,,,,{}
@@ -2015,7 +2015,7 @@
 7402,Republik,Republik,3,,10,10,,,,,,,,,,,,,{}
 7403,Indonesia,Indonesia,3,,10,10,,,,,,,,,,,,,{}
 7404,Ke-60,KE-60,3,,10,10,,,,,,,,,,,,,{}
-7405,Crushed_Can,Crushed Can,3,,10,10,,,,,,,,,,,,,{}
+7405,Crushed_Can,Crushed Can,3,,1,10,,,,,,,,,,,,,{}
 7406,Yuebing,Lettered Moon Cake,3,,10,10,,,,,,,,,,,,,{}
 7407,Yuebing_,Lettered Moon Cake,3,,10,10,,,,,,,,,,,,,{}
 7408,Yuebing__,Lettered Moon Cake,3,,10,10,,,,,,,,,,,,,{}
@@ -2045,23 +2045,23 @@
 7432,Leather_Pouch,Leather Pouch,3,,10,10,,,,,,,,,,,,,{}
 7433,Blank_Scroll,Blank Scroll,3,,10,10,,,,,,,,,,,,,{}
 7434,Elemental_Potion_Creation_Guide,Elemental Potion Creation Manual,3,,10,10,,,,,,,,,,,,,{}
-7435,Golden_Accessory,Golden Accessory,3,,10,10,,,,,,,,,,,,,{}
-7436,Fragment_of_Agony,Fragment of Agony,3,,10,10,,,,,,,,,,,,,{}
-7437,Fragment_of_Sorrow,Fragment of Sorrow,3,,10,10,,,,,,,,,,,,,{}
-7438,Fragment_of_Hatred,Fragment of Hatred,3,,10,10,,,,,,,,,,,,,{}
-7439,Fragment_of_Dispair,Fragment of Dispair,3,,10,10,,,,,,,,,,,,,{}
-7440,Red_Feather,Red tinted Feather,3,,10,10,,,,,,,,,,,,,{}
-7441,Blue_Feather,Blue tinted Feather,3,,10,10,,,,,,,,,,,,,{}
-7442,Cursed_Seal,Cursed Seal,3,,10,10,,,,,,,,,,,,,{}
-7443,Head_of_Three_Headed_Dragon,3-Headed Dragon's Head,3,,10,10,,,,,,,,,,,,,{}
-7444,Treasure_Box,Treasure Box,3,,10,10,,,,,,,,,,,,,{}
-7445,Green_Orb,Green Orb,3,,10,10,,,,,,,,,,,,,{}
-7446,Blue_Orb,Blue Orb,3,,10,10,,,,,,,,,,,,,{}
-7447,Red_Orb,Red Orb,3,,10,10,,,,,,,,,,,,,{}
-7448,Yellow_Orb,Yellow Orb,3,,10,10,,,,,,,,,,,,,{}
-7449,Bloodstained_Page,Bloodstained Page,3,,10,10,,,,,,,,,,,,,{}
-7450,Bone_Armor_Piece,Bone Armor Piece,3,,10,10,,,,,,,,,,,,,{}
-7451,Scale_of_Fire_Dragon,Scale of Fire Dragon,3,,10,10,,,,,,,,,,,,,{}
+7435,Golden_Accessory,Golden Accessory,3,,953,10,,,,,,,,,,,,,{}
+7436,Fragment_of_Agony,Fragment of Agony,3,,753,10,,,,,,,,,,,,,{}
+7437,Fragment_of_Sorrow,Fragment of Sorrow,3,,753,10,,,,,,,,,,,,,{}
+7438,Fragment_of_Hatred,Fragment of Hatred,3,,753,10,,,,,,,,,,,,,{}
+7439,Fragment_of_Dispair,Fragment of Dispair,3,,753,10,,,,,,,,,,,,,{}
+7440,Red_Feather,Red tinted Feather,3,,667,10,,,,,,,,,,,,,{}
+7441,Blue_Feather,Blue tinted Feather,3,,704,10,,,,,,,,,,,,,{}
+7442,Cursed_Seal,Cursed Seal,3,,666,10,,,,,,,,,,,,,{}
+7443,Head_of_Three_Headed_Dragon,3-Headed Dragon's Head,3,,478,10,,,,,,,,,,,,,{}
+7444,Treasure_Box,Treasure Box,3,,150000,10,,,,,,,,,,,,,{}
+7445,Green_Orb,Green Orb,3,,443,10,,,,,,,,,,,,,{}
+7446,Blue_Orb,Blue Orb,3,,443,10,,,,,,,,,,,,,{}
+7447,Red_Orb,Red Orb,3,,443,10,,,,,,,,,,,,,{}
+7448,Yellow_Orb,Yellow Orb,3,,443,10,,,,,,,,,,,,,{}
+7449,Bloodstained_Page,Bloodstained Page,3,,340,10,,,,,,,,,,,,,{}
+7450,Bone_Armor_Piece,Bone Armor Piece,3,,1025,10,,,,,,,,,,,,,{}
+7451,Scale_of_Fire_Dragon,Scale of Fire Dragon,3,,926,10,,,,,,,,,,,,,{}
 7452,Yellow_Spice,Yellow Spice,3,1000,,10,,,,,,,,,,,,,{}
 7453,Sweet_Sauce,Sweet Sauce,3,700,,10,,,,,,,,,,,,,{}
 7454,Plain_Sauce,Plain Sauce,3,700,,10,,,,,,,,,,,,,{}
