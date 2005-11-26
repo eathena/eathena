@@ -28,6 +28,7 @@ Nexon
 Date		Added
 ======
 11/26
+	* Re-Enabled city cleaners (why was this turned off?) [Kayla]
 	* Updated mobs to prevent exploitable spawning (AMs, Seals). Thanks Redflame. [Kayla]
 	* Updated detective hat to ask for the correct items [Kayla]
 	* Fixed 2 bugs in New Hats_6. It deleted 100 Amultets instead of 10 and only 1 Steel instead of 25 [Lupus]
