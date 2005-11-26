@@ -29,7 +29,7 @@ Date		Added
 ======
 11/26
 	* Added eamobs containing fix for exploitable spawns. Switch is in scripts_main.
-	  The eaMobs is suggested for smaller servers but mobs is offical. [Kayla]
+	  The eaMobs is suggested for smaller servers but mobs is official. [Kayla]
 	* Re-Enabled city cleaners (why was this turned off?) [Kayla]
 	* Updated mobs to prevent exploitable spawning (AMs, Seals). Thanks Redflame. [Kayla]
 	* Updated detective hat to ask for the correct items [Kayla]
