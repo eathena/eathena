@@ -98,26 +98,9 @@ c_tower4.gat,0,0,0,0	monster	Tower Keeper	1270,1,3600000,0,0
 c_tower4.gat,0,0,0,0	monster	Whisper	1179,5,0,0,0
 c_tower4.gat,0,0,0,0	monster	Elder	1377,1,3600000,1800000,0
 c_tower4.gat,0,0,0,0	monster	Elder	1377,1,1800000,600000,0
-c_tower4.gat,108,198,100,10	monster	Alarm	1193,6,0,0,0
-c_tower4.gat,108,178,100,10	monster	Alarm	1193,6,0,0,0
-c_tower4.gat,108,158,100,10	monster	Alarm	1193,6,0,0,0
-c_tower4.gat,108,138,100,10	monster	Alarm	1193,6,0,0,0
-c_tower4.gat,108,118,100,10	monster	Alarm	1193,6,0,0,0
-c_tower4.gat,108,98,100,10	monster	Clock	1269,7,0,0,0
-c_tower4.gat,108,78,100,10	monster	Clock	1269,7,0,0,0
-c_tower4.gat,108,58,100,10	monster	Clock	1269,7,0,0,0
-c_tower4.gat,108,38,100,10	monster	Clock	1269,7,0,0,0
-c_tower4.gat,108,18,100,10	monster	Clock	1269,7,0,0,0
-c_tower4.gat,108,198,100,10	monster	Owl Duke	1320,3,0,0,0
-c_tower4.gat,108,178,100,10	monster	Owl Duke	1320,3,0,0,0
-c_tower4.gat,108,158,100,10	monster	Owl Duke	1320,3,0,0,0
-c_tower4.gat,108,138,100,10	monster	Owl Duke	1320,3,0,0,0
-c_tower4.gat,108,118,100,10	monster	Owl Duke	1320,3,0,0,0
-c_tower4.gat,108,98,100,10	monster	Owl Duke	1320,3,0,0,0
-c_tower4.gat,108,78,100,10	monster	Owl Duke	1320,3,0,0,0
-c_tower4.gat,108,58,100,10	monster	Owl Duke	1320,3,0,0,0
-c_tower4.gat,108,38,100,10	monster	Owl Duke	1320,3,0,0,0
-c_tower4.gat,108,18,100,10	monster	Owl Duke	1320,3,0,0,0
+c_tower4.gat,0,0,0,0	monster	Alarm	1193,30,0,0,0
+c_tower4.gat,0,0,0,0	monster	Clock	1269,35,0,0,0
+c_tower4.gat,0,0,0,0	monster	Owl Duke	1320,30,0,0,0
 c_tower4.gat,98,180,0,0	monster	Rideword	1195,1,300000,150000,1
 c_tower4.gat,97,180,0,0	monster	Rideword	1195,1,240000,150000,1
 c_tower4.gat,96,180,0,0	monster	Rideword	1195,1,350000,150000,1

@@ -30,7 +30,7 @@ cmd_fild02.gat,279,78,100,20	monster	Cornutus	1067,10,60000,0,0
 cmd_fild02.gat,0,0,0,0	monster	Shellfish	1074,35,0,0,0
 cmd_fild02.gat,93,82,40,80	monster	Shellfish	1074,5,180000,0,0
 cmd_fild02.gat,0,0,0,0	monster	Mobster	1313,1,0,0,0
-cmd_fild02.gat,200,130,150,40	monster	Seal	1317,18,0,0,0
+cmd_fild02.gat,0,0,0,0	monster	Seal	1317,18,0,0,0
 cmd_fild02.gat,93,82,40,80	monster	Seal	1317,2,180000,0,0
 cmd_fild02.gat,0,0,0,0	monster	Galapago	1391,20,0,0,0
 
@@ -49,7 +49,7 @@ cmd_fild04.gat,0,0,0,0	monster	Alligator	1271,40,0,0,0
 cmd_fild04.gat,0,0,0,0	monster	Crab	1073,20,0,0,0
 cmd_fild04.gat,0,0,0,0	monster	Raggler	1254,20,0,0,0
 cmd_fild04.gat,0,0,0,0	monster	Shellfish	1074,20,0,0,0
-cmd_fild04.gat,221,120,120,40	monster	Sea Otter	1323,20,0,0,0
+cmd_fild04.gat,0,0,0,0	monster	Sea Otter	1323,20,0,0,0
 
 // cmd_fild05 (lv3)
 
@@ -81,7 +81,7 @@ cmd_fild06.gat,284,186,0,0	monster	Goblin Archer	1258,1,180000,0,0
 cmd_fild06.gat,354,342,0,0	monster	Goblin Archer	1258,1,180000,0,0
 cmd_fild06.gat,365,342,0,0	monster	Goblin Archer	1258,1,180000,0,0
 cmd_fild06.gat,340,334,0,0	monster	Goblin Archer	1258,1,180000,0,0
-cmd_fild06.gat,305,95,70,180	monster	Stem Worm	1215,30,0,0,0
+cmd_fild06.gat,0,0,0,0	monster	Stem Worm	1215,30,0,0,0
 cmd_fild06.gat,102,268,10,40	monster	Stem Worm	1215,3,0,0,0
 cmd_fild06.gat,359,156,30,50	monster	Stem Worm	1215,1,0,0,0
 cmd_fild06.gat,360,155,30,50	monster	Stem Worm	1215,1,0,0,0
