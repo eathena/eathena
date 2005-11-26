@@ -35,6 +35,8 @@
 
 	--
 11/26
+	* Updated Great Axe to give +5 skillblown to Mammonite, and BonGun card +5
+	  knockback to Bash [Skotlex]
 	* Changed the range of Blitz Beat and Falcon Assault to 5 [Skotlex]
 	  (Vulture Eye bonus is now applied to these skills)
 11/25

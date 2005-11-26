@@ -1902,6 +1902,22 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 			}
 		}
 		break;
+	case SP_ADD_SKILL_BLOW:
+		for (i = 0; i < 5 && sd->skillblown[i][0] != 0 && sd->skillblown[i][0] != type2; i++);
+		if (i == 5)
+		{	//Better mention this so the array length can be updated. [Skotlex]
+			ShowDebug("run_script: bonus2 bSkillBlown reached it's limit (5 skills per character), bonus skill %d (+%d%%) lost.\n", type2, val);
+			break;
+		}
+		if(sd->state.lr_flag != 2) {
+			if (sd->skillblown[i][0] == type2)
+				sd->skillblown[i][1] += val;
+			else {
+				sd->skillblown[i][0] = type2;
+				sd->skillblown[i][1] = val;
+			}
+		}
+		break;
 	case SP_ADD_DAMAGE_BY_CLASS:
 		if(sd->state.lr_flag != 2) {
 			for(i=0;i<sd->add_damage_class_count2;i++) {

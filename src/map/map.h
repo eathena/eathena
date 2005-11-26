@@ -528,6 +528,7 @@ struct map_session_data {
   	int addeff3[SC_COMMON_MAX-SC_COMMON_MIN+1];
   	short addeff3_type[SC_COMMON_MAX-SC_COMMON_MIN+1];
   	int skillatk[5][2]; //For skill damage enhancement bonuses [Skotlex] (index 0 is skillid, 1 damage %bonus)
+  	int skillblown[5][2]; //For skill-blown enhancement bonuses [Skotlex] (index 0 is skillid, 1 blown cells bonus)
  	short add_def_classid[10];
  	int add_def_classrate[10];
  	short add_mdef_classid[10];
@@ -1042,7 +1043,8 @@ enum {
 	SP_SUBSIZE, SP_DAMAGE_WHEN_UNEQUIP, SP_ADD_ITEM_HEAL_RATE, SP_LOSESP_WHEN_UNEQUIP, SP_EXP_ADDRACE,	// 2026-2030
 	SP_SP_GAIN_RACE, SP_SUBRACE2, SP_ADDEFF_WHENHIT_SHORT,	// 2031-2033
 	SP_UNSTRIPABLE_WEAPON,SP_UNSTRIPABLE_ARMOR,SP_UNSTRIPABLE_HELM,SP_UNSTRIPABLE_SHIELD,  // 2034-2037
-	SP_INTRAVISION, SP_ADD_MONSTER_DROP_ITEMGROUP, SP_SP_LOSS_RATE // 2038-2040
+	SP_INTRAVISION, SP_ADD_MONSTER_DROP_ITEMGROUP, SP_SP_LOSS_RATE, // 2038-2040
+	SP_ADD_SKILL_BLOW //2041
 };
 
 enum {

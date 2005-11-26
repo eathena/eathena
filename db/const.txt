@@ -292,6 +292,7 @@ bUnstripableShield	2037
 bIntravision	2038
 bAddMonsterDropItemGroup	2039
 bSPLossRate	2040
+bAddSkillBlow 2041
 
 Eff_Stone	0
 Eff_Freeze	1

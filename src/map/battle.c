@@ -984,9 +984,15 @@ static struct Damage battle_calc_weapon_attack(
 			return wd;
 	}
 
-	if(sd)
+	if(sd) {
 		sd->state.attack_type = BF_WEAPON;
-
+		if (sd->skillblown[0] != 0)
+		{	//Apply the bonus blewcount. [Skotlex
+			for (i = 0; i < 5 && sd->skillblown[i][0] != 0 && sd->skillblown[i][0] != skill_num; i++);
+			if (i < 5 && sd->skillblown[i][0] == skill_num)
+				 wd.blewcount += sd->skillblown[i][1];
+		}
+	}
 	//Set miscellaneous data that needs be filled regardless of hit/miss
 	if(sd && sd->status.weapon == 11) {
 		wd.flag=(wd.flag&~BF_RANGEMASK)|BF_LONG;
@@ -994,6 +1000,7 @@ static struct Damage battle_calc_weapon_attack(
 	} else if (status_get_range(src) > 3)
 		wd.flag=(wd.flag&~BF_RANGEMASK)|BF_LONG;
 
+	
 	if(skill_num){
 		wd.flag=(wd.flag&~BF_SKILLMASK)|BF_SKILL;
 		switch(skill_num)
@@ -2209,6 +2216,12 @@ struct Damage battle_calc_magic_attack(
 	if(sd) {
 		sd->state.attack_type = BF_MAGIC;
 		sd->state.arrow_atk = 0;
+		if (sd->skillblown[0] != 0)
+		{	//Apply the bonus blewcount. [Skotlex
+			for (i = 0; i < 5 && sd->skillblown[i][0] != 0 && sd->skillblown[i][0] != skill_num; i++);
+			if (i < 5 && sd->skillblown[i][0] == skill_num)
+				ad.blewcount += sd->skillblown[i][1];
+		}
 	}
 
 	if (battle_config.skillrange_by_distance)
@@ -2530,6 +2543,13 @@ struct Damage  battle_calc_misc_attack(
 	if( bl->type == BL_PC && (sd=(struct map_session_data *)bl) ) {
 		sd->state.attack_type = BF_MISC;
 		sd->state.arrow_atk = 0;
+		if (sd->skillblown[0] != 0)
+		{	//Apply the bonus blewcount. [Skotlex]
+			int i;
+			for (i = 0; i < 5 && sd->skillblown[i][0] != 0 && sd->skillblown[i][0] != skill_num; i++);
+			if (i < 5 && sd->skillblown[i][0] == skill_num)
+				blewcount += sd->skillblown[i][1];
+		}
 	}
 
 	if( target->type==BL_PC )
