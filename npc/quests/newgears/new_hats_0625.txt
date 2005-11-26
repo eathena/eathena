@@ -3,7 +3,7 @@
 //===== By: =========================
 //= Lorky, Lupus
 //===== Current Version: ===================
-//= 0.5
+//= 0.5a
 //===== Compatible With: =====================
 //= eAthena 1.0
 //===== Description: ============================================
@@ -25,6 +25,7 @@
 // 0.3 Added Zealotus mask quest with correct items [Lupus]
 // 0.4 Fixed some sprites, npc names and coords [Lupus]
 // 0.5 Removed temp shops, Black Clothes -> Piece of Black Quartz, thx to vicious_Pucca for note [Lupus]
+// 0.5a Updated detective hat to ask for the correct items [Kayla]
 //=====================================================================
 
 //Links (some info related to these headgears)
@@ -80,7 +81,7 @@ lighthalzen.gat,140,68,4	script	Morris	818,{
 	mes "[Morris]";
 	mes "Ok then, I shall make one for you.";
 
-	if (countitem(611)<10 || countitem(7301)<1887 || countitem(5115)<1 || Zeny<50000) goto L_NOITEM;//Items: Magnifier, Tassel, Fashionable_Fur_Hat,
+	if (countitem(611)<10 || countitem(7301)<1887 || countitem(5120)<1 || Zeny<50000) goto L_NOITEM;//Items: Magnifier, Tassel, Wide_Bunker_Hat_,
 	mes "[Morris]";
 	mes "Very well. Now I can make it...";
 	next;
@@ -88,7 +89,7 @@ lighthalzen.gat,140,68,4	script	Morris	818,{
 	mes "Enjoy.";
 	delitem 611,10;   //Items: Magnifier,
 	delitem 7301,1887;  //Tassel//Items: Tassel,
-	delitem 5115,1;   //Items: Fashionable_Fur_Hat,
+	delitem 5120,1;   //Items: Wide_Bunker_Hat_,
 	set Zeny,Zeny-50000;
 	getitem 5108,1;//Items: Detective_Hat,
 	close;
