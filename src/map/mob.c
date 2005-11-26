@@ -3128,7 +3128,6 @@ int mobskill_castend_id( int tid, unsigned int tick, int id,int data )
 {
 	struct mob_data* md=NULL;
 	struct block_list *bl;
-	int range;
 
 //Code cleanup. Insert any code that should be executed if the skill fails here.
 #define skill_failed(md) { md->skillid = md->skilllv = -1; }
@@ -3176,10 +3175,7 @@ int mobskill_castend_id( int tid, unsigned int tick, int id,int data )
 			skill_failed(md);
 			return 0;
 		}
-		range = skill_get_range(md->skillid,md->skilllv);
-		if(range < 0)
-			range = status_get_range(&md->bl) - (range + 1);
-		if(range + battle_config.mob_skill_add_range < distance(md->bl.x,md->bl.y,bl->x,bl->y)) {
+		if(skill_get_range2(&md->bl, md->skillid,md->skilllv) + battle_config.mob_skill_add_range < distance(md->bl.x,md->bl.y,bl->x,bl->y)) {
 			skill_failed(md);
 			return 0;
 		}
@@ -3226,7 +3222,7 @@ int mobskill_castend_id( int tid, unsigned int tick, int id,int data )
 int mobskill_castend_pos( int tid, unsigned int tick, int id,int data )
 {
 	struct mob_data* md=NULL;
-	int range,maxcount;
+	int maxcount;
 
 //Code cleanup. Insert any code that should be executed if the skill fails here.
 #define skill_failed(md) { md->skillid = md->skilllv = -1; }
@@ -3251,10 +3247,7 @@ int mobskill_castend_pos( int tid, unsigned int tick, int id,int data )
 			skill_failed(md);
 			return 0;
 		}
-		range = skill_get_range(md->skillid,md->skilllv);
-		if(range < 0)
-			range = status_get_range(&md->bl) - (range + 1);
-		if(range + battle_config.mob_skill_add_range < distance(md->bl.x,md->bl.y,md->skillx,md->skilly)) {
+		if(skill_get_range2(&md->bl,md->skillid,md->skilllv) + battle_config.mob_skill_add_range < distance(md->bl.x,md->bl.y,md->skillx,md->skilly)) {
 			skill_failed(md);
 			return 0;
 		}
@@ -3314,7 +3307,7 @@ int mobskill_castend_pos( int tid, unsigned int tick, int id,int data )
  */
 int mobskill_use_id(struct mob_data *md,struct block_list *target,int skill_idx)
 {
-	int casttime,range;
+	int casttime;
 	struct mob_skill *ms;
 	int skill_id, skill_lv, forcecast = 0;
 	int selfdestruct_flag = 0;
@@ -3345,10 +3338,7 @@ int mobskill_use_id(struct mob_data *md,struct block_list *target,int skill_idx)
 	}
 
 	// 射程と障害物チェック
-	range = skill_get_range(skill_id,skill_lv);
-	if(range < 0)
-		range = status_get_range(&md->bl) - (range + 1);
-	if(!battle_check_range(&md->bl,target,range))
+	if(!battle_check_range(&md->bl,target,skill_get_range2(&md->bl,skill_id,skill_lv)))
 		return 0;
 
 //	delay=skill_delayfix(&md->bl, skill_get_delay( skill_id,skill_lv) );
@@ -3421,7 +3411,7 @@ int mobskill_use_id(struct mob_data *md,struct block_list *target,int skill_idx)
 int mobskill_use_pos( struct mob_data *md,
 	int skill_x, int skill_y, int skill_idx)
 {
-	int casttime=0,range;
+	int casttime=0;
 	struct mob_skill *ms;
 	struct block_list bl;
 	int skill_id, skill_lv;
@@ -3445,10 +3435,7 @@ int mobskill_use_pos( struct mob_data *md,
 	bl.m = md->bl.m;
 	bl.x = skill_x;
 	bl.y = skill_y;
-	range = skill_get_range(skill_id,skill_lv);
-	if(range < 0)
-		range = status_get_range(&md->bl) - (range + 1);
-	if(!battle_check_range(&md->bl,&bl,range))
+	if(!battle_check_range(&md->bl,&bl,skill_get_range2(&md->bl,skill_id,skill_lv)))
 		return 0;
 
 //	delay=skill_delayfix(&sd->bl, skill_get_delay( skill_id,skill_lv) );

@@ -4414,11 +4414,9 @@ int clif_skillinfo(struct map_session_data *sd,int skillid,int type,int range)
 	WFIFOW(fd,6) = 0;
 	WFIFOW(fd,8) = sd->status.skill[skillid].lv;
 	WFIFOW(fd,10) = skill_get_sp(id,sd->status.skill[skillid].lv);
-	if(range < 0) {
-		range = skill_get_range(id,sd->status.skill[skillid].lv);
-		if(range < 0)
-			range = status_get_range(&sd->bl) - (range + 1);
-	}
+	if(range < 0)
+		range = skill_get_range2(&sd->bl, id,sd->status.skill[skillid].lv);
+
 	WFIFOW(fd,12)= range;
 	memset(WFIFOP(fd,14),0,NAME_LENGTH);
 //	strncpy(WFIFOP(fd,14), skill_get_name(id), NAME_LENGTH); //TODO: Correct a crash here when GM all SKILL is set. [Skotlex]
@@ -4442,7 +4440,7 @@ int clif_skillinfo(struct map_session_data *sd,int skillid,int type,int range)
 int clif_skillinfoblock(struct map_session_data *sd)
 {
 	int fd;
-	int i,c,len=4,id,range, inf2;
+	int i,c,len=4,id, inf2;
 
 	nullpo_retr(0, sd);
 
@@ -4455,10 +4453,7 @@ int clif_skillinfoblock(struct map_session_data *sd)
 			WFIFOW(fd,len+4) = 0;
 			WFIFOW(fd,len+6) = sd->status.skill[i].lv;
 			WFIFOW(fd,len+8) = skill_get_sp(id,sd->status.skill[i].lv);
-			range = skill_get_range(id,sd->status.skill[i].lv);
-			if(range < 0)
-				range = status_get_range(&sd->bl) - (range + 1);
-			WFIFOW(fd,len+10)= range;
+			WFIFOW(fd,len+10)= skill_get_range2(&sd->bl, id,sd->status.skill[i].lv);
 			memset(WFIFOP(fd,len+12),0,NAME_LENGTH);
 //			strncpy(WFIFOP(fd,len+12), skill_get_name(id), NAME_LENGTH); //TODO: Correct a crash here when GM all SKILL is set. [Skotlex]
 			inf2 = skill_get_inf2(id);
@@ -4485,7 +4480,7 @@ int clif_skillinfoblock(struct map_session_data *sd)
  */
 int clif_skillup(struct map_session_data *sd,int skill_num)
 {
-	int range,fd;
+	int fd;
 
 	nullpo_retr(0, sd);
 
@@ -4494,10 +4489,7 @@ int clif_skillup(struct map_session_data *sd,int skill_num)
 	WFIFOW(fd,2) = skill_num;
 	WFIFOW(fd,4) = sd->status.skill[skill_num].lv;
 	WFIFOW(fd,6) = skill_get_sp(skill_num,sd->status.skill[skill_num].lv);
-	range = skill_get_range(skill_num,sd->status.skill[skill_num].lv);
-	if(range < 0)
-		range = status_get_range(&sd->bl) - (range + 1);
-	WFIFOW(fd,8) = range;
+	WFIFOW(fd,8) = skill_get_range2(&sd->bl,skill_num,sd->status.skill[skill_num].lv);
 	//WFIFOB(fd,10) = (sd->status.skill[skill_num].lv < skill_get_max(sd->status.skill[skill_num].id)) ? 1 : 0;
 	WFIFOB(fd,10) = (sd->status.skill[skill_num].lv < skill_tree_get_max(sd->status.skill[skill_num].id, sd->status.class_)) ? 1 : 0;
 	WFIFOSET(fd,packet_len_table[0x10e]);
@@ -5463,7 +5455,7 @@ int clif_item_refine_list(struct map_session_data *sd)
  */
 int clif_item_skill(struct map_session_data *sd,int skillid,int skilllv,const char *name)
 {
-	int range,fd;
+	int fd;
 
 	nullpo_retr(0, sd);
 
@@ -5474,10 +5466,7 @@ int clif_item_skill(struct map_session_data *sd,int skillid,int skilllv,const ch
 	WFIFOW(fd, 6)=0;
 	WFIFOW(fd, 8)=skilllv;
 	WFIFOW(fd,10)=skill_get_sp(skillid,skilllv);
-	range = skill_get_range(skillid,skilllv);
-	if(range < 0)
-		range = status_get_range(&sd->bl) - (range + 1);
-	WFIFOW(fd,12)=range;
+	WFIFOW(fd,12)=skill_get_range2(&sd->bl, skillid,skilllv);
 	strncpy((char*)WFIFOP(fd,14),name,NAME_LENGTH);
 	WFIFOB(fd,38)=0;
 	WFIFOSET(fd,packet_len_table[0x147]);

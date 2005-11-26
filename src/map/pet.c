@@ -323,7 +323,7 @@ static int petskill_castend(struct pet_data *pd,unsigned int tick,int data)
  */
 static int petskill_castend2(struct pet_data *pd, struct block_list *target, short skill_id, short skill_lv, short skill_x, short skill_y, unsigned int tick)
 {	//Invoked after the casting time has passed.
-	short delaytime =0, range;
+	short delaytime =0;
 
 	nullpo_retr(0, pd);
 
@@ -336,10 +336,8 @@ static int petskill_castend2(struct pet_data *pd, struct block_list *target, sho
 		if (!target || !status_check_skilluse(&pd->bl, target, skill_id, 1))
 			return 0; 
 		//Skills with inf = 4 (cast on self) have view range (assumed party skills)
-		range = (skill_get_inf(skill_id) & INF_SELF_SKILL?battle_config.area_size:skill_get_range(skill_id, skill_lv));
-		if(range < 0)
-			range = status_get_range(&pd->bl) - (range + 1);
-		if(distance(pd->bl.x, pd->bl.y, target->x, target->y) > range)
+		if(distance(pd->bl.x, pd->bl.y, target->x, target->y) >
+			(skill_get_inf(skill_id) & INF_SELF_SKILL?battle_config.area_size:skill_get_range2(&pd->bl, skill_id, skill_lv)))
 			return 0;
 		switch( skill_get_nk(skill_id) )
 		{

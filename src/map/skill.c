@@ -634,6 +634,17 @@ static int skill_check_pc_partner(struct map_session_data *sd, int skill_id, int
 int enchant_eff[5] = { 10, 14, 17, 19, 20 };
 int deluge_eff[5] = { 5, 9, 12, 14, 15 };
 
+//Returns actual skill range taking into account attack range and AC_OWL [Skotlex]
+int skill_get_range2(struct block_list *bl, int id, int lv) {
+	int range = skill_get_range(id, lv);
+	if(range < 0)
+		range = status_get_range(bl) - (range + 1);
+	else if (bl->type == BL_PC && //TODO: Find a way better than hardcoding the list of skills affected by AC_VULTURE.
+		(id == AC_SHOWER || id == AC_DOUBLE || id == HT_BLITZBEAT || id == SN_FALCONASSAULT))
+		range += pc_checkskill((struct map_session_data *)bl, AC_VULTURE);
+	return range;
+}
+
 // Making plagirize check its own function [Aru]
 int can_copy(struct map_session_data *sd, int skillid)
 {
@@ -3776,9 +3787,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			}
 
 			if(dstmd) {
-				int range = skill_get_range(skillid,skilllv);
 				dstmd->state.provoke_flag = src->id;
-				mob_target(dstmd,src,range);
+				mob_target(dstmd,src,skill_get_range2(src,skillid,skilllv));
 			}
 		}
 		break;
@@ -3808,7 +3818,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			sd->devotion[i] = bl->id;
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 			clif_devotion(sd);
-			status_change_start(bl,SkillStatusChangeTable[skillid],src->id,i,skill_get_range(skillid,skilllv),skill_get_time2(skillid, skilllv),1000,0);
+			status_change_start(bl,SkillStatusChangeTable[skillid],src->id,i,skill_get_range2(src,skillid,skilllv),skill_get_time2(skillid, skilllv),1000,0);
 		}
 		else
 			if (sd)
@@ -4198,11 +4208,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case RG_STEALCOIN:		// スティ?ルコイン
 		if(sd) {
 			if(pc_steal_coin(sd,bl)) {
-				int range = skill_get_range(skillid,skilllv);
-				if(range < 0)
-					range = status_get_range(src) - (range + 1);
 				clif_skill_nodamage(src,bl,skillid,skilllv,1);
-				mob_target((struct mob_data *)bl,src,range);
+				mob_target((struct mob_data *)bl,src,skill_get_range2(src,skillid,skilllv));
 			}
 			else
 				clif_skill_fail(sd,skillid,0,0);
@@ -4237,7 +4244,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				fail_flag = 1;
 			}
 			if (dstmd)
-				mob_target(dstmd,src,skill_get_range(skillid,skilllv));
+				mob_target(dstmd,src,skill_get_range2(src,skillid,skilllv));
 			if (sd && gem_flag) {
 				if ((i=pc_search_inventory(sd, skill_db[skillid].itemid[0])) < 0 ) {
 					if (!fail_flag) clif_skill_fail(sd,skillid,0,0);
@@ -5233,7 +5240,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			}
 
 			if(dstmd)
-				mob_target(dstmd,src,skill_get_range(skillid,skilllv));
+				mob_target(dstmd,src,skill_get_range2(src,skillid,skilllv));
 		}
 		break;
 
@@ -5557,7 +5564,7 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 {
 	struct map_session_data* sd = map_id2sd(id)/*,*target_sd=NULL*/;
 	struct block_list *bl;
-	int delay,range,inf2;
+	int delay,inf2;
 
 	nullpo_retr(0, sd);
 
@@ -5579,8 +5586,8 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 		return 0;
 	}
 
-	if(sd->skillid != SA_CASTCANCEL && sd->skilltimer != -1 && (range = pc_checkskill(sd,SA_FREECAST) > 0)) //Hope ya don't mind me borrowing range :X
-		status_quick_recalc_speed(sd, SA_FREECAST, range, 0);
+	if(sd->skillid != SA_CASTCANCEL && sd->skilltimer != -1 && (delay = pc_checkskill(sd,SA_FREECAST) > 0)) //Hope ya don't mind me borrowing delay :X
+		status_quick_recalc_speed(sd, SA_FREECAST, delay, 0);
 
 	if(sd->skillid != SA_CASTCANCEL)
 		sd->skilltimer=-1;
@@ -5645,11 +5652,7 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 		}
 	}
 
-	range = skill_get_range(sd->skillid,sd->skilllv);
-	if(range < 0)
-		range = status_get_range(&sd->bl) - (range + 1);
-
-	if(range+battle_config.pc_skill_add_range < distance(sd->bl.x,sd->bl.y,bl->x,bl->y))
+	if(skill_get_range2(&sd->bl,sd->skillid,sd->skilllv)+battle_config.pc_skill_add_range < distance(sd->bl.x,sd->bl.y,bl->x,bl->y))
 	{
 		clif_skill_fail(sd,sd->skillid,0,0);
 		if(battle_config.skill_out_range_consume) //Consume items anyway. [Skotlex]
@@ -5712,7 +5715,7 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 int skill_castend_pos( int tid, unsigned int tick, int id,int data )
 {
 	struct map_session_data* sd=map_id2sd(id)/*,*target_sd=NULL*/;
-	int delay,range,maxcount;
+	int delay,maxcount;
 
 	nullpo_retr(0, sd);
 
@@ -5727,8 +5730,8 @@ int skill_castend_pos( int tid, unsigned int tick, int id,int data )
 		return 0;
 	}
 
-	if(sd->skillid != SA_CASTCANCEL && sd->skilltimer != -1 && (range = pc_checkskill(sd,SA_FREECAST) > 0)) //Hope ya don't mind me borrowing range :X
-		status_quick_recalc_speed(sd, SA_FREECAST, range, 0);
+	if(sd->skillid != SA_CASTCANCEL && sd->skilltimer != -1 && (delay = pc_checkskill(sd,SA_FREECAST) > 0)) //Hope ya don't mind me borrowing delay :X
+		status_quick_recalc_speed(sd, SA_FREECAST, delay, 0);
 
 	sd->skilltimer=-1;
 	if (sd->bl.prev == NULL || sd->skillid == -1 || sd->skilllv <= 0)
@@ -5774,11 +5777,7 @@ int skill_castend_pos( int tid, unsigned int tick, int id,int data )
 			skill_failed(sd);
 			return 0;
 		}
-		range = skill_get_range(sd->skillid,sd->skilllv);
-		if(range < 0)
-			range = status_get_range(&sd->bl) - (range + 1);
-	
-		if(range+battle_config.pc_skill_add_range < distance(sd->bl.x,sd->bl.y,sd->skillx,sd->skilly)) {
+		if(skill_get_range2(&sd->bl,sd->skillid,sd->skilllv)+battle_config.pc_skill_add_range < distance(sd->bl.x,sd->bl.y,sd->skillx,sd->skilly)) {
 			clif_skill_fail(sd,sd->skillid,0,0);
 			if(battle_config.skill_out_range_consume) //Consume items anyway.
 				skill_check_condition(sd,1);
@@ -7314,7 +7313,7 @@ static int skill_moonlit_sub(struct block_list *bl, va_list ap) {
  */
 static void skill_moonlit(struct block_list* src, struct block_list* partner, int skilllv)
 {
-	int range = skill_get_range(CG_MOONLIT, skilllv);
+	int range = skill_get_range2(src, CG_MOONLIT, skilllv);
 	int blowcount = range+1, time = skill_get_time(CG_MOONLIT,skilllv);
 	
 	map_foreachinarea(skill_moonlit_sub,src->m
@@ -7883,7 +7882,7 @@ int skill_check_condition(struct map_session_data *sd,int type)
 		break;
 	case CG_MOONLIT: //Check there's no wall in the range+1 area around the caster. [Skotlex]
 		{
-			int i,x,y,range = skill_get_range(skill, lv)+1;
+			int i,x,y,range = skill_get_range2(&sd->bl, skill, lv)+1;
 			int size = range*2+1;
 			for (i=0;i<size*size;i++) {
 				x = sd->bl.x+(i%size-range);
@@ -8336,14 +8335,7 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 	if (!skill_check_condition(sd,0)) return 0;	
 
 	if(sd->bl.id != target_id){ // Don't check range for self skills, this is useless...
-		//It complicates a little the reading, but it's more efficient to reuse the variable than defining a new one. 
-		//Here 'casttime' is actually 'range' [Skotlex]
-		casttime = skill_get_range(skill_num,skill_lv);
-		if(casttime < 0)
-			casttime = status_get_range(&sd->bl) - (casttime + 1);
-		casttime++; //For some odd reason, Aegis allows this extra range tile.
-		
-		if(!battle_check_range(&sd->bl,bl,casttime))
+		if(!battle_check_range(&sd->bl,bl,skill_get_range2(&sd->bl, skill_num,skill_lv)+1))
 			return 0;
 	}
 
@@ -8535,14 +8527,7 @@ int skill_use_pos (struct map_session_data *sd, int skill_x, int skill_y, int sk
 	bl.x = skill_x;
 	bl.y = skill_y;
 
-	//It complicates a little the reading, but it's more efficient to reuse the variable than defining a new one. 
-	//Here 'casttime' is actually 'range' [Skotlex]
-	casttime = skill_get_range(skill_num,skill_lv);
-	if(casttime < 0)
-		casttime = status_get_range(&sd->bl) - (casttime + 1);
-	casttime++;
-		
-	if(!battle_check_range(&sd->bl,&bl,casttime))
+	if(!battle_check_range(&sd->bl,&bl,skill_get_range2(&sd->bl, skill_num,skill_lv)+1))
 		return 0;
 		
 /* Previous code body, left here in case we have to rollback. [Skotlex]
@@ -8844,7 +8829,7 @@ void skill_repairweapon(struct map_session_data *sd, int idx)
 
     item = &sd->repair_target->status.inventory[idx];
 
-	if(sd!=sd->repair_target && !battle_check_range(&sd->bl,&sd->repair_target->bl,skill_get_range(sd->skillid,sd->skilllv))){
+	if(sd!=sd->repair_target && !battle_check_range(&sd->bl,&sd->repair_target->bl,skill_get_range2(&sd->bl, sd->skillid,sd->skilllv))){
 		clif_item_repaireffect(sd,item->nameid,1);
 		return;
 	}
@@ -9216,7 +9201,7 @@ void skill_unitsetmapcell(struct skill_unit *src, int skill_num, int flag)
  */
 void skill_setmapcell(struct block_list *src, int skill_num, int skill_lv, int flag)
 {
-	int i,x,y,range = skill_get_range(skill_num, skill_lv);
+	int i,x,y,range = skill_get_range2(src, skill_num, skill_lv);
 	int size = range*2+1;
 
 	for (i=0;i<size*size;i++) {

@@ -5154,7 +5154,7 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 	case SC_SIGHT:	/* サイト */
 	case SC_RUWACH:	/* ルアフ */
 		{
-			int range = skill_get_range(type==SC_SIGHT?MG_SIGHT:AL_RUWACH, sc_data[type].val1);
+			int range = skill_get_range2(bl, type==SC_SIGHT?MG_SIGHT:AL_RUWACH, sc_data[type].val1);
 			map_foreachinarea( status_change_timer_sub,
 				bl->m, bl->x-range, bl->y-range, bl->x+range,bl->y+range,0,
 				bl,type,tick);

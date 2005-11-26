@@ -134,6 +134,7 @@ int	skill_get_pl( int id );
 int	skill_get_nk( int id );
 int	skill_get_max( int id );
 int skill_get_range( int id , int lv );
+int skill_get_range2(struct block_list *bl, int id, int lv);
 int	skill_get_hp( int id ,int lv );
 int	skill_get_mhp( int id ,int lv );
 int	skill_get_sp( int id ,int lv );
