@@ -35,6 +35,7 @@
 
 	--
 11/26
+	* Updated Redemptio(no target, not dex-effected) [Vicious]
 	* Updated blowcount on 2nd class quest skills [Vicious]
 	* Updated sell prices on new items [Vicious]
 	* Updated Great Axe to give +5 skillblown to Mammonite, and BonGun card +5
