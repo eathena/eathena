@@ -51,6 +51,9 @@ Date	Added
 	- Now guilds timers and cache are both into effect, this requires a bit
 	  more of cleaning to be considered done.
 	* Various things I made but already forgot xD [DracoRPG]
+	* Fixed and updated damage bonus for forged weapons: VVVS is +40 (was previously +50
+	  for the right hand...) and "famous maker bonus" gives a no-miss +10 dmg, same as
+	  2 additional Star Crumbs. [DracoRPG]
 	* Added or updated several Taekwon skills [DracoRPG]
 	  - Jump Kick uses clif_slide to the target's exact pos , waiting for capture/video
 	  - Taekwon ranking is now supported by the fame system, but there's no way to gain
