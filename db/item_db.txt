@@ -72,7 +72,7 @@
 566,Tom_Yum_Goong,Tom Yum Goong,0,10000,,150,,,,,127918079,7,2,,,,,,{ itemheal rand(100,200),0; }
 567,Shrimp,Shrimp,0,500,,40,,,,,127918079,7,2,,,,,,{ itemheal rand(50,100),0; }
 568,Lemon,Lemon,0,60,,40,,,,,127918079,7,2,,,,,,{ itemheal 0,rand(20,30); }
-569,Novice's_Red_Potion,Novices Red Potion,0,50,,10,,,,,127918079,7,2,,,,,,{ itemheal rand(34,46),0; }
+569,Novice's_Red_Potion,Novices Red Potion,0,,0,10,,,,,127918079,7,2,,,,,,{ itemheal rand(34,46),0; }
 // St.Valentine's Day Items
 570,Fortune_Candy,Fortune Candy,0,10,,30,,,,,127918079,7,2,,,,,,{ itemheal rand(45,64),0; }
 571,Fortune_Candy_Cane,Fortune Candy Cane,0,,10,40,,,,,127918079,7,2,,,,,,{ itemheal rand(105,144),0; }
@@ -2210,14 +2210,14 @@
 12025,Five_Paragraphs_Egg,Five Paragraphs Egg,2,,10,10,,,,,127918079,7,2,,,,,,{}
 12026,Five_Paragraphs_Egg_,Five Paragraphs Egg,2,,10,10,,,,,127918079,7,2,,,,,,{}
 // Effect Boxes
-12027,Giggling_Box,Giggling Box,2,,500,200,,,,,127918079,7,2,,,,,,{ sc_start SC_Curse,30000,0; percentheal 9,0; }
+12027,Giggling_Box,Giggling Box,2,,500,200,,,,,127918079,7,2,,,,,,{ percentheal 9,0; if(rand(100)<30) sc_start SC_Curse,30000,0; }
 12028,Lightning_Box,Lightning Box,2,,500,200,,,,,127918079,7,2,,,,,,{ sc_start SC_SpeedUp1,20000,0; }
-12029,Gloomy_Box,Gloomy Box,11,,500,200,,,,,127918079,7,2,,,,,,{ itemskill 45,3,"Improve Concentration"; }
+12029,Gloomy_Box,Gloomy Box,11,,500,200,,,,,127918079,7,2,,,,,,{ itemskill 45,1,"Improve Concentration"; }
 12030,Grudge_Box,Box of Grudge,2,,500,200,,,,,127918079,7,2,,,,,,{ sc_start SC_ATKPot,60000,20; }
 12031,Sleepy_Box,Sleepy Box,2,,500,200,,,,,127918079,7,2,,,,,,{ sc_start SC_MATKPot,60000,20; }
 12032,Downpour_Box,Box of Heavy Rain,2,,500,200,,,,,127918079,7,2,,,,,,{ sc_start SC_Frost,180000,0; }
 12033,Sunshine_Box,Box of Sunshine,2,,500,200,,,,,127918079,7,2,,,,,,{}
-12034,Gasping_Box,Gasping Box,2,,500,200,,,,,127918079,7,2,,,,,,{ sc_start SC_Silence,30000,0; percentheal 0,9; }
+12034,Gasping_Box,Gasping Box,2,,500,200,,,,,127918079,7,2,,,,,,{ percentheal 0,9; if(rand(100)<30) sc_start SC_Silence,30000,0; }
 12035,Ball_Box,Ball Box,2,,10,20,,,,,127918079,7,2,,,,,,{ getitem rand(7361,7368),1; }
 12036,Ball_Box_,Ball Box,2,,10,20,,,,,127918079,7,2,,,,,,{ getitem rand(7369,7376),1; }
 12037,Ball_Box__,Ball Box,2,,10,20,,,,,127918079,7,2,,,,,,{ getitem rand(7377,7384),1; }
@@ -2310,7 +2310,7 @@
 12119,Resist_Water_Potion,Resist Water Potion,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start4 SC_EleDef,1200000,Ele_Water,20,Ele_Wind,-15; }
 12120,Resist_Earth_Potion,Resist Earth Potion,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start4 SC_EleDef,1200000,Ele_Earth,20,Ele_Fire,-15; }
 12121,Resist_Wind_Potion,Resist Wind Potion,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start4 SC_EleDef,1200000,Ele_Wind,20,Ele_Earth,-15; }
-12122,Dasik,Dasik,0,,10,70,,,,,127918079,7,2,,,,,,{}
+12122,Dasik,Dasik,0,,1,70,,,,,127918079,7,2,,,,,,{}
 12123,Oil_and_Honey_Pastry,Oil and Honey Pastry,0,,10,70,,,,,127918079,7,2,,,,,,{}
 12124,Various_colored_Rice_Cake,Rainbow colord Rice Cake,0,,10,70,,,,,127918079,7,2,,,,,,{}
 // Cooking Sets
