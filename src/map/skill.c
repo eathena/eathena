@@ -10503,7 +10503,7 @@ int skill_produce_mix( struct map_session_data *sd,
 					clif_produceeffect(sd,2,nameid);
 					clif_misceffect(&sd->bl,5);
 					if(nameid >= 545 && nameid <= 547) { // Fame point system [DracoRPG]
-			  			switch(sd->potion_success_counter++) {
+			  			switch(++sd->potion_success_counter) {
 							case 3:
 								pc_addfame(sd,1); // Success to prepare 3 Condensed Potions in a row = +1 fame point
 								break;

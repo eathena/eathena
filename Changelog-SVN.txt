@@ -1,5 +1,7 @@
 Date	Added
 2005/11/26
+	* Fixed alchemists Fame Points bug: It were giving 1 fame point [Lupus]
+		on making 4 Condensed Potions in row, instead of 3, etc. Now tested ^_-
 	* Some restructuring and cleaning up in map loading to make it easier for
 	  future plans (like removing Grfio) [celest]
 	  - split map loading into separate sources properly
