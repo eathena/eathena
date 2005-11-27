@@ -40,7 +40,7 @@
 21,9,8,2,4,0,10,1:2:3:4:5:6:7:8:9:10,yes,0,0,0,magic,0	//MG_THUNDERSTORM#Thunderstorm#
 22,0,0,0,0,0,10,0,no,0,0,0,weapon,0	//AL_DP#Divine protection#
 23,0,0,0,0,0,10,0,no,0,0,0,weapon,0	//AL_DEMONBANE#Divine Protection#
-24,10,6,4,6,1,1,1,yes,0,0,0,magic,0	//AL_RUWACH#Ruwach#
+24,2,6,4,6,1,1,1,yes,0,0,0,magic,0	//AL_RUWACH#Ruwach#
 25,9,6,2,0,1,1,1,yes,0,0,0,magic,0	//AL_PNEUMA#Pneuma#
 26,0,6,4,0,1,2,1,yes,0,0,0,magic,0	//AL_TELEPORT#Teleport#
 27,9,6,2,0,1,4,1,yes,0,0,3,magic,0	//AL_WARP#Warp Portal#
@@ -462,7 +462,7 @@
 443,0,0,0,0,0,0,0,no,0,0,0,none,0	//SG_KNOWLEDGE#Knowledge of the Sun, Moon and Stars#
 444,0,0,0,0,0,0,0,no,0,0,0,none,0	//SG_FUSION#Union of the Sun, Moon and Stars#
 445,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_ALCHEMIST#Spirit of the Alchemist#
-446,0,0,0,0,0,0,0,no,0,0,8,none,0	//AM_BERSERKPITCHER#Berserk Pitcher#
+446,0,0,0,0,0,0,0,no,0,8,0,none,0	//AM_BERSERKPITCHER#Berserk Pitcher#
 447,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_MONK#Spirit of the Monk#
 448,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_STAR#Spirit of the Star Knight#
 449,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_SAGE#Spirit of the Professor#
@@ -475,7 +475,7 @@
 456,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_ROGUE#Spirit of the Rogue#
 457,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_ASSASIN#Spirit of the Assasin#
 458,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_BLACKSMITH#Spirit of the Blacksmith#
-459,0,0,0,0,0,0,0,no,0,0,8,none,0	//BS_ADRENALINE2#Full Adrenaline Rush#
+459,0,0,0,0,0,0,0,no,0,8,0,none,0	//BS_ADRENALINE2#Full Adrenaline Rush#
 460,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_HUNTER#Spirit of the Hunter#
 461,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_SOULLINKER#Spirit of the Soul Linker#
 462,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_KAIZEL#Kaizel#

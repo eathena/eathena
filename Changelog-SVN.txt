@@ -1,5 +1,7 @@
 Date	Added
 2005/11/27
+	* Updated the damage code if Spiral Pierce, Shield Chain and Shield
+	  boomerang to be closer to official. [Skotlex]
 	* Fixed a crash when setting all chars offline in the char-sql server. Also
 	  fixed that delete_timer mismatch on shutdown [Skotlex]
 	* Autospells now won't trigger if the range between the source and the

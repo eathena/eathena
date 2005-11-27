@@ -33,6 +33,9 @@
 
 	--
 11/27
+	* Fixed Adrenaline2 and Berserk Pitcher's inf2 (were not set to spirit
+	  skill) [Skotlex]
+	* Reverted Ruwach's range to 2. [Skotlex]
 	* Updated skill_db to make all ranged skills with range 8 become 9. Also
 	  explained wtf is "maxcount" in skill_db. [Skotlex]
 	* Fixed SA skills showing up. wtf is "maxcount" in skill_db??? [Vicious]

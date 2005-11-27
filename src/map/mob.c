@@ -701,11 +701,11 @@ static int mob_attack(struct mob_data *md,unsigned int tick,int data)
 	if(!(battle_config.monster_cloak_check_type&2) && md->sc_data[SC_CLOAKING].timer != -1)
 		status_change_end(&md->bl,SC_CLOAKING,-1);
 
-	//Mobs can't move if they can't attack neither. But since the attack delay is so hideously long for some mobs,
-	//the can't move is 1/4th of the can't attack tick. [Skotlex]
-	md->attackabletime = status_get_adelay(&md->bl);
-	md->canmove_tick = tick + md->attackabletime/4;
-	md->attackabletime += tick;
+	//Mobs can't move if they can't attack neither.
+	//Use the attack delay for next can attack try
+	//But use the attack motion to know when it can start moving. [Skotlex]
+	md->attackabletime = tick + status_get_adelay(&md->bl);
+	md->canmove_tick = tick + status_get_amotion(&md->bl);
 
 	md->timer=add_timer(md->attackabletime,mob_timer,md->bl.id,0);
 	md->state.state=MS_ATTACK;

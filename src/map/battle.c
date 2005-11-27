@@ -1301,6 +1301,48 @@ static struct Damage battle_calc_weapon_attack(
 				}
 				break;
 			}
+			case LK_SPIRALPIERCE:
+				if (sd) {
+					short index = sd->equip_index[9];
+
+					if (index >= 0 &&
+						sd->inventory_data[index] &&
+						sd->inventory_data[index]->type == 4) {
+					
+						wd.damage = sd->inventory_data[index]->weight*8/100; //80% of weight
+						ATK_ADDRATE(50*skill_lv); //Skill modifier applies to weight only.
+						ATK_ADD(sd->status.inventory[index].refine * status_getrefinebonus(sd->inventory_data[index]->wlv,1)); //Add refine damage
+					}
+					
+					index = status_get_str(src)/10;
+					index = index*index;
+					ATK_ADD(index); //Add str bonus.
+					
+					switch (t_size) { //Size-fix. Is this modified by weapon perfection?
+						case 0: //Small: 125%
+							ATK_RATE(125);
+							break;
+						//case 1: //Medium: 100%
+						case 2: //Large: 75%
+							ATK_RATE(75);
+							break;
+					}
+					break;
+				}
+			case CR_SHIELDBOOMERANG:
+			case PA_SHIELDCHAIN:
+				if (sd) {
+					short index = sd->equip_index[8];
+					
+					wd.damage = status_get_batk(src);
+					if (flag.lh) wd.damage2 = status_get_batk(src);
+
+					if (index >= 0 &&
+						sd->inventory_data[index] &&
+						sd->inventory_data[index]->type == 5)
+						ATK_ADD(sd->inventory_data[index]->weight/10);
+					break;
+				}
 			default:
 			{
 				unsigned short baseatk=0, baseatk_=0, atkmin=0, atkmax=0, atkmin_=0, atkmax_=0;
@@ -1495,6 +1537,8 @@ static struct Damage battle_calc_weapon_attack(
 					skillratio+= 40*skill_lv;
 					break;
 				case KN_AUTOCOUNTER:
+				case LK_SPIRALPIERCE:
+				case NPC_CRITICALSLASH:
 					flag.idef= flag.idef2= 1;
 					break;
 				case AS_GRIMTOOTH:
@@ -1538,9 +1582,6 @@ static struct Damage battle_calc_weapon_attack(
 				case NPC_GUIDEDATTACK:
 				case NPC_RANGEATTACK:
 				case NPC_PIERCINGATT:
-					break;
-				case NPC_CRITICALSLASH:
-					flag.idef= flag.idef2= 1;
 					break;
 				case RG_BACKSTAP:
 					if(sd && sd->status.weapon == 11 && battle_config.backstab_bow_penalty)
@@ -1590,10 +1631,10 @@ static struct Damage battle_calc_weapon_attack(
 				case MO_EXTREMITYFIST:
 					if (sd)
 					{	//Overflow check. [Skotlex]
-						int ratio = skillratio + 100*(8 + ((sd->status.sp)/10));
+						unsigned int ratio = skillratio + 100*(8 + ((sd->status.sp)/10));
 						//You'd need something like 6K SP to reach this max, so should be fine for most purposes.
 						if (ratio > 60000) ratio = 60000; //We leave some room here in case skillratio gets further increased.
-						skillratio = ratio;
+						skillratio = (unsigned short)ratio;
 						sd->status.sp = 0;
 						clif_updatestatus(sd,SP_SP);
 					}
@@ -1622,14 +1663,6 @@ static struct Damage battle_calc_weapon_attack(
 					break;
 				case CH_PALMSTRIKE:
 					skillratio += 100+100*skill_lv;
-					break;
-				case LK_SPIRALPIERCE:
-					skillratio += 50*skill_lv;
-					flag.idef= flag.idef2= 1;
-					if(tsd)
-						tsd->canmove_tick = gettick() + 1000;
-					else if(tmd)
-						tmd->canmove_tick = gettick() + 1000;
 					break;
 				case LK_HEADCRUSH:
 					skillratio += 40*skill_lv;
@@ -1704,33 +1737,6 @@ static struct Damage battle_calc_weapon_attack(
 			//Constant/misc additions from skills
 			if (skill_num == MO_EXTREMITYFIST)
 				ATK_ADD(250 + 150*skill_lv);
-
-			if (sd)
-			{
-				short index= 0;
-				switch (skill_num)
-				{
-					case CR_SHIELDBOOMERANG:
-					case PA_SHIELDCHAIN:
-						if ((index = sd->equip_index[8]) >= 0 &&
-							sd->inventory_data[index] &&
-							sd->inventory_data[index]->type == 5)
-						{
-							ATK_ADD(sd->inventory_data[index]->weight/10);
-							ATK_ADD(sd->status.inventory[index].refine * status_getrefinebonus(0,1));
-						}
-						break;
-					case LK_SPIRALPIERCE:
-						if ((index = sd->equip_index[9]) >= 0 &&
-							sd->inventory_data[index] &&
-							sd->inventory_data[index]->type == 4)
-						{
-							ATK_ADD((int)(double)(sd->inventory_data[index]->weight*(0.8*skill_lv*4/10)));
-							ATK_ADD(sd->status.inventory[index].refine * status_getrefinebonus(0,1));
-						}
-						break;
-				}	//switch
-			}	//if (sd)
 		}
 
 		if(sd)
@@ -1839,9 +1845,9 @@ static struct Damage battle_calc_weapon_attack(
 	if(skill_num == CR_GRANDCROSS || skill_num == NPC_GRANDDARKNESS)
 		return wd; //Enough, rest is not needed.
 
-	if(sd && (skill=pc_checkskill(sd,BS_WEAPONRESEARCH)) > 0)
+	if(sd && (skill=pc_checkskill(sd,BS_WEAPONRESEARCH)) > 0) 
 		ATK_ADD(skill*2);
-
+	
 	if(skill_num==TF_POISON)
 		ATK_ADD(15*skill_lv);
 
@@ -1932,6 +1938,14 @@ static struct Damage battle_calc_weapon_attack(
 
 			if (cardfix != 1000 || cardfix_ != 1000)
 				ATK_RATE2(cardfix/10, cardfix_/10);	//What happens if you use right-to-left and there's no right weapon, only left?
+		}
+		
+		if (skill_num == CR_SHIELDBOOMERANG || skill_num == PA_SHIELDCHAIN) { //Refine bonus applies after cards and elements.
+			short index= sd->equip_index[8];
+			if (index >= 0 &&
+				sd->inventory_data[index] &&
+				sd->inventory_data[index]->type == 5)
+				ATK_ADD(10*sd->status.inventory[index].refine);
 		}
 	} //if (sd)
 
