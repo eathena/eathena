@@ -33,6 +33,8 @@
 
 	--
 11/27
+	* Updated skill_db to make all ranged skills with range 8 become 9. Also
+	  explained wtf is "maxcount" in skill_db. [Skotlex]
 	* Fixed SA skills showing up. wtf is "maxcount" in skill_db??? [Vicious]
 11/26
 	* Updated effect boxes, according to RO Magazine [Vicious]
