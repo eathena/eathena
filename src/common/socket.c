@@ -223,11 +223,12 @@ static int send_from_fifo(int fd)
 	if (len == SOCKET_ERROR) {
 		if (WSAGetLastError() == WSAECONNABORTED) {
 			ShowWarning("send_from_fifo: Software caused connection abort on session #%d\n", fd);
+			session[fd]->wdata_size = 0; //Clear the send queue as we can't send anymore. [Skotlex]
+			set_eof(fd);
 			FD_CLR(fd, &readfds); //Remove the socket so the select() won't hang on it.
 #ifdef TURBO
 			FD_CLR(fd, &writefds);
 #endif
-//			exit(1);
 		}
 		if (WSAGetLastError() != WSAEWOULDBLOCK) {
 //			ShowDebug("send_from_fifo: error %d, ending connection #%d\n", WSAGetLastError(), fd);
@@ -243,7 +244,8 @@ static int send_from_fifo(int fd)
 		if (errno == ECONNABORTED)
 		{
 			ShowFatalError("send_from_fifo: Network broken (Software caused connection abort on session #%d)\n", fd);
-//			exit(1);
+			session[fd]->wdata_size = 0; //Clear the send queue as we can't send anymore. [Skotlex]
+			set_eof(fd);
 		}
 		if (errno != EAGAIN) {
 //			perror("closing session: send_from_fifo");
@@ -715,15 +717,15 @@ int do_sendrecv(int next)
 	FD_ZERO(&wfd);
 
 	for (i = 1; i < fd_max; i++){ //Session 0 is never a valid session, so it's best to skip it. [Skotlex]
-		if(!session[i] && FD_ISSET(i, &readfds)){
-			ShowDebug("force clr fds %d\n", i);
-			FD_CLR(i, &readfds);
-			FD_CLR(i, &efd);
-			FD_CLR(i, &wfd);
+		if(!session[i]) {
+			if (FD_ISSET(i, &readfds)){
+				ShowDebug("force clear fds %d\n", i);
+				FD_CLR(i, &readfds);
+				FD_CLR(i, &rfd);
+				FD_CLR(i, &efd);
+			}
 			continue;
 		}
-		if(!session[i])
-			continue;
 		if(session[i]->wdata_size)
 			FD_SET(i, &wfd);
 	}
