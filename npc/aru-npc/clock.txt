@@ -88,7 +88,7 @@ OnClock1900:
 
 OnClock2000:
 	Announce "Current Time: 8 PM",0;
-	if(GetTime(4)==2) AgitStart;
+//	if(GetTime(4)==2) AgitStart;
 	Break;
 
 OnClock2100:

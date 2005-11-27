@@ -214,7 +214,7 @@ N_JobList4:
 	next;
 	menu "Mystic Wizard",N_MWizard,
 		"Aww shoot!",N_Shoot,
-		"Emperium",N_Emp,
+//		"Emperium",N_Emp,
 		"Ancient Sage",N_Sage;
 
 ///////Job list 5///////
@@ -523,13 +523,14 @@ N_Shoot:
 	goto L_QuestGiven;
 
 N_Emp:
-	mes "^FF0000Emperium^000000";
-	mes "^FF0000********^000000";
-	mes "This is a strange quest that I know little about.";
-	mes " ";
-	mes "Someone in ^FF0000Prontera Guild Hall^000000 has requested to see one of our members, his name is Czhore.";
-	set four_qset,4;
-	goto L_QuestGiven;
+	close;
+//	mes "^FF0000Emperium^000000";
+//	mes "^FF0000********^000000";
+//	mes "This is a strange quest that I know little about.";
+//	mes " ";
+//	mes "Someone in ^FF0000Prontera Guild Hall^000000 has requested to see one of our members, his name is Czhore.";
+//	set four_qset,4;
+//	goto L_QuestGiven;
 
 N_Sage:
 	mes "^FF0000Ancient Sage";
