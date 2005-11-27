@@ -1,4 +1,7 @@
 Date	Added
+2005/11/27
+	* Autospells now won't trigger if the range between the source and the
+	  target is not satisfied. [Skotlex]
 2005/11/26
 	* Added bonus2 bAddSkillBlown for adding a custom knockback value to a
 	  skill. Note that this knockback bonus is ADDED to whatever the default

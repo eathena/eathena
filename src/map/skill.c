@@ -1254,6 +1254,9 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 			else
 				tbl = bl;
 			
+			if (tbl != src && !battle_check_range(src, tbl, skill_get_range2(src, auto_skillid, auto_skilllv)))
+				continue; //Autoskills DO check for target-src range. [Skotlex]
+			
 			if (skill_get_inf(auto_skillid) & INF_GROUND_SKILL)
 				skill_castend_pos2(src, tbl->x, tbl->y, auto_skillid, auto_skilllv, tick, 0);
 			else {
