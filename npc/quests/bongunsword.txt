@@ -1,20 +1,27 @@
 gef_fild07.gat,183,239,5	script	Old Smith	120,{
-mes "[Old Smith]";
-mes "Ah, isn't it peaceful up here - I used to be one of the legendary Blacksmiths of midgard...sadly my skills have faded.";
-next;
-if(countitem(7110)<1) goto NoItemS;
-mes "[Old Smith]";
-mes "Hmm, it seems as if you need something. What would that be?";
+	mes "[Old Smith]";
+	mes "Ah, isn't it peaceful up here - I used to be one of the legendary Blacksmiths of midgard...sadly my skills have faded.";
+	next;
+	if(countitem(7110)<1) goto NoItemS;
+	mes "[Old Smith]";
+	mes "Hmm, it seems as if you need something. What would that be?";
 
 	menu "Can you fix this broken sword?",ExItems,"Nothing really...",ExEnd;
 
     ExItems:
         mes "[Old Smith]";
-	mes "Ahhh, this is a very old sword and yes I can fix it, I'll need an 'Oridecon' to mend the breaks though.";
-	next;
-	if(countitem(7110)<1) goto NoItem;
-	if(countitem(984)<1) goto NoItem;
-        goto ExGive;
+		mes "Ahhh, this is a very old sword and yes I can fix it, I'll need an 'Oridecon' to mend the breaks though.";
+		next;
+		if(countitem(7110)<1 || countitem(984)<1) goto NoItem;
+
+		delitem 7110,1;
+		delitem 984,1;
+		getitem 10020,1;
+		mes "[Old Smith]";
+		mes "Ah yes here we go!";
+		mes " ";
+		mes "Haha! Gramps still has that old magic touch, Here you go!";
+		close;
 
 	    NoItem:
 		mes "[Old Smith]";
@@ -24,16 +31,6 @@ mes "Hmm, it seems as if you need something. What would that be?";
 	    NoItemS:
 		mes "[Old Smith]";
 		mes "...ah well, go out and live life young one. Time never stops!";
-		close;
-
-	    ExGive:
-		mes "[Old Smith]";
-		mes "Ah yes here we go!";
-		delitem 7110,1;
-		delitem 984,1;
-		getitem 10020,1;
-		mes " ";
-		mes "Haha! Gramps still has that old magic touch, Here you go!";
 		close;
 
     ExEnd:

@@ -26,6 +26,9 @@ Nexon
 
 Date		Added
 ======
+11/28
+	* Updated Umbala. Fixed Umb.Lang.Quest items names. [Lupus]
+	  Now you can go to Niflheim trough Jumping Bungy Area.
 11/27
 	* Added some more npcs to Einbroch and removed some warps [MasterOfMuppets]
 11/26

@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= jAthena (1.0) Fusion Dev Team (1.1) Muad Dib (1.2) Darkchild (1.3)
 //===== Current Version: =====================================
-//= 1.5a
+//= 1.6
 //===== Compatible With: =====================================
 //= Any eAthena Version; RO Episode XX
 //===== Description: =========================================
@@ -26,6 +26,7 @@
 //= 1.3 - Fixed up For eA by Darkchild
 //= 1.4 - Fixed some wrong item names [Lupus]
 //= 1.5 – Spell Checked [massdriller]
+//= 1.6 - Fixed item names, added a chance to get to Niflheim via Jumping Bungy Area [Lupus]
 //============================================================
 
 
@@ -1631,31 +1632,39 @@ LumWord:
 //==============================================================================
 //Bungee jumping!
 //==============================================================================
-//umbala.gat,140,197,0	script	#Shibonochikka	139,0,1,{
-set @jumprand,rand(4);
-if (@jumprand == 1) goto L1;
-if (@jumprand == 2) goto L2;
-if (@jumprand == 3) goto L3;
-mapannounce "umbala.gat","Bungy Jumping Area: " + strcharinfo(0) + " : Iyahaaaaahh!",8;
-end;
+umbala.gat,140,197,0	script	#Shibonochikka	139,0,1,{
+	set @jumprand,rand(0,4);
+	if (@jumprand == 1) goto L1;
+	if (@jumprand == 2) goto L2;
+	if (@jumprand == 3) goto L3;
+	if (@jumprand == 4) goto L4;
+	mapannounce "umbala.gat","Bungy Jumping Area: " + strcharinfo(0) + " : Iyahaaaaahh!",8;
+	end;
 
 L1:
 //Dead
-mapannounce "umbala.gat","Bungy Jumping Area: " + strcharinfo(0) + " : Ukiyaaaaaaaaaa!",8;
+	mapannounce "umbala.gat","Bungy Jumping Area: " + strcharinfo(0) + " : Ukiyaaaaaaaaaa!",8;
 	percentheal -100,0;
-end;
+	end;
 
 L2:
 //HP50% Damage
-mapannounce "umbala.gat","Bungy Jumping Area: " + strcharinfo(0) + " : Kyaaaaaaaaaaa!",8;
+	mapannounce "umbala.gat","Bungy Jumping Area: " + strcharinfo(0) + " : Kyaaaaaaaaaaa!",8;
 	percentheal -50,0;
-end;
+	end;
 
 L3:
-//HP99%‚Ì Damage
-mapannounce "umbala.gat","Bungy Jumping Area: " + strcharinfo(0) + " : Waaaaaaaaaah!",8;
+//HP99% Damage
+	mapannounce "umbala.gat","Bungy Jumping Area: " + strcharinfo(0) + " : Waaaaaaaaaah!",8;
 	percentheal -99,0;
-end;
+	end;
+
+L4:
+//HP99% Damage, warp to Niflheim
+	mapannounce "umbala.gat","Bungy Jumping Area: " + strcharinfo(0) + " : No-o!",8;
+	percentheal -99,0;
+	warp "niflheim.gat",202,171;
+	end;
 }
 
 //=====================================================================
