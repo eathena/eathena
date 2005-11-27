@@ -672,7 +672,7 @@ int inter_guild_CharOnline(int char_id, int guild_id) {
 
 int inter_guild_CharOffline(int char_id) {
 	struct guild *g=NULL;
-	int guild_id, online_count=0, i;
+	int guild_id=0, online_count=0, i;
 
 	//Get guild_id from the database
 	sprintf (tmp_sql , "SELECT guild_id FROM `%s` WHERE char_id='%d'",char_db,char_id);
