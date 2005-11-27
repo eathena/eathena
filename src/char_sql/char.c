@@ -254,29 +254,31 @@ void set_char_offline(int char_id, int account_id) {
 }
 
 void set_all_offline(void) {
+	MYSQL_RES*       sql_res2; //Needed because it is used inside inter_guild_CharOffline; [Skotlex]
+	int char_id;
 	sprintf(tmp_sql, "SELECT `account_id`, `char_id` FROM `%s` WHERE `online`='1'",char_db);
 	if (mysql_query(&mysql_handle, tmp_sql)) {
 		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 	}
 	ShowNotice("Sending all users offline.\n");
-	sql_res = mysql_store_result(&mysql_handle);
-	if (sql_res) {
-	    while((sql_row = mysql_fetch_row(sql_res))) {
-   	    
-	        inter_guild_CharOffline(atoi(sql_row[1]));
-   	    
-	        if ( login_fd > 0 ) {
-	            ShowInfo("send user offline: %d\n",atoi(sql_row[0]));
-	            WFIFOW(login_fd,0) = 0x272c;
-	            WFIFOL(login_fd,2) = atoi(sql_row[0]);
-	            WFIFOSET(login_fd,6);
-            }
-       }
-    }
+	sql_res2 = mysql_store_result(&mysql_handle);
+	if (sql_res2) {
+		while((sql_row = mysql_fetch_row(sql_res2))) {
+			char_id = atoi(sql_row[1]);
+			inter_guild_CharOffline(char_id);
 
-   	mysql_free_result(sql_res);
-    sprintf(tmp_sql,"UPDATE `%s` SET `online`='0' WHERE `online`='1'", char_db);
+			if ( login_fd > 0 ) {
+				ShowInfo("send user offline: %d\n",char_id);
+				WFIFOW(login_fd,0) = 0x272c;
+				WFIFOL(login_fd,2) = char_id;
+				WFIFOSET(login_fd,6);
+			}
+		}
+		mysql_free_result(sql_res2);
+	}
+
+	sprintf(tmp_sql,"UPDATE `%s` SET `online`='0' WHERE `online`='1'", char_db);
 	if (mysql_query(&mysql_handle, tmp_sql)) {
 		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);

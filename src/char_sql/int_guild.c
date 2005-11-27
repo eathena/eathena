@@ -72,7 +72,9 @@ static int guild_save(void *key, void *data, va_list ap) {
 }
 
 static int guild_save_timer(int tid, unsigned int tick, int id, int data) {
-	ShowNotice("Saving all guilds with changes...");
+#ifdef NOISY
+	ShowNotice("Saving all guilds with changes...\n");
+#endif
 	numdb_foreach(guild_db_, guild_save);
 	return 0;
 }
@@ -763,7 +765,7 @@ static int guild_db_final(void *key,void *data,va_list ap)
 void inter_guild_sql_final()
 {
 	numdb_final(guild_db_, guild_db_final);
-	delete_timer(autosave_interval,guild_save_timer);
+//	delete_timer(autosave_interval,guild_save_timer); //Kevin you need the timer-id to be able to delete this one... [Skotlex]
 	return;
 }
 
