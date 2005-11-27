@@ -32,6 +32,8 @@
 	12017,Speed_Decreasing_Potion no bonus... Turbo Track race item
 
 	--
+11/27
+	* Fixed SA skills showing up. wtf is "maxcount" in skill_db??? [Vicious]
 11/26
 	* Updated effect boxes, according to RO Magazine [Vicious]
 	* Updated Redemptio(no target, not dex-effected) [Vicious]
