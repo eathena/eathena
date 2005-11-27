@@ -16,9 +16,8 @@ Massdriller
 	* Gonryunn Quests - 0% - Botting on official Servers
 	* Artifacts of God (MRO GOD ITEM QUESTS) - 1% - resources only from MRO Official
 	  guide book so, probably unofficial
-	* Level 4 forge (MRO Lvl 4 Forging Quest) - 1% - resources only from MRO Official
-	  guide book so, probably unofficial
 MasterOfMuppets
+	* Working on The Sign Quest atm.
 	* Updating Items / Scripts
 Nexon
 	* Adding in the new Abyss/Thanatos/Lighthalzen NPC's and optimizing them.
@@ -27,6 +26,8 @@ Nexon
 
 Date		Added
 ======
+11/27
+	* Added some more npcs to Einbroch and removed some warps [MasterOfMuppets]
 11/26
 	* Added eamobs containing fix for exploitable spawns. Switch is in scripts_main.
 	  The eaMobs is suggested for smaller servers but mobs is official. [Kayla]
