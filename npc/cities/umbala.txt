@@ -1666,7 +1666,7 @@ L4:
 //HP99% Damage, warp to Niflheim
 	mapannounce "umbala.gat","Bungy Jumping Area: " + strcharinfo(0) + " : No-o!",8;
 	percentheal -99,0;
-	warp "niflheim.gat",202,171;
+	warp "nif_in.gat",69,15;
 	end;
 }
 
