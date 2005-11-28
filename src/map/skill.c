@@ -638,9 +638,32 @@ int deluge_eff[5] = { 5, 9, 12, 14, 15 };
 int skill_get_range2(struct block_list *bl, int id, int lv) {
 	int range = skill_get_range(id, lv);
 	if(range < 0)
-		range = status_get_range(bl) - (range + 1);
-	else if (bl->type == BL_PC && //TODO: Find a way better than hardcoding the list of skills affected by AC_VULTURE.
-		(id == AC_SHOWER || id == AC_DOUBLE || id == HT_BLITZBEAT || id == SN_FALCONASSAULT))
+		return status_get_range(bl) - (range + 1);
+	
+	if (battle_config.use_weapon_skill_range && skill_get_type(id)==BF_WEAPON && skill_get_inf(id)&INF_ATTACK_SKILL) {
+		switch (id) {
+			//List here BF_WEAPON INF_ATTACK_SKILL skills that mustn't be converted to weapon range.
+			case KN_SPEARBOOMERANG:
+			case AS_GRIMTOOTH:
+			case AM_ACIDTERROR:
+			case CR_SHIELDBOOMERANG:
+			case MO_FINGEROFFENSIVE:
+			case BA_MUSICALSTRIKE:
+			case DC_THROWARROW:
+			case NPC_RANGEATTACK:
+			case ITM_TOMAHAWK:
+			case ASC_BREAKER:
+			case CG_ARROWVULCAN:
+			case TK_JUMPKICK:
+			case KN_CHARGEATK:
+			case AS_VENOMKNIFE:
+				break;
+			default: //Convert skill range to weapon's. [Skotlex]
+				return status_get_range(bl);
+		}
+	}
+	if (bl->type == BL_PC && //TODO: Find a way better than hardcoding the list of skills affected by AC_VULTURE.
+		(id == AC_SHOWER || id == AC_DOUBLE || id == HT_BLITZBEAT || id == SN_FALCONASSAULT || id == SN_SHARPSHOOTING))
 		range += pc_checkskill((struct map_session_data *)bl, AC_VULTURE);
 	return range;
 }

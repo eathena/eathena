@@ -33,6 +33,8 @@
 
 	--
 11/28
+	* Reduced the range of Focused Arrow Strike by 10, that range should be
+	  added via the Vulture skill. [Skotlex]
 	* Updated skill ranges for Alchemist and Monk, thanks to Komurka. [Skotlex]
 11/27
 	* Added Sonic Blow to skill_castnodex so that the skill delay applies to

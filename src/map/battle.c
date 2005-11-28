@@ -991,7 +991,7 @@ static struct Damage battle_calc_weapon_attack(
 	if(sd) {
 		sd->state.attack_type = BF_WEAPON;
 		if (sd->skillblown[0] != 0)
-		{	//Apply the bonus blewcount. [Skotlex
+		{	//Apply the bonus blewcount. [Skotlex]
 			for (i = 0; i < 5 && sd->skillblown[i][0] != 0 && sd->skillblown[i][0] != skill_num; i++);
 			if (i < 5 && sd->skillblown[i][0] == skill_num)
 				 wd.blewcount += sd->skillblown[i][1];
@@ -3291,6 +3291,7 @@ static const struct battle_data_short {
 	{ "skill_out_range_consume",           &battle_config.skill_out_range_consume	},
 	{ "monster_skill_add_range",           &battle_config.mob_skill_add_range		},
 	{ "skillrange_by_distance",            &battle_config.skillrange_by_distance	},
+	{ "skillrange_from_weapon",            &battle_config.use_weapon_skill_range  },
 	{ "player_damage_delay_rate",          &battle_config.pc_damage_delay_rate		},
 	{ "defunit_not_enemy",                 &battle_config.defnotenemy				},
 	{ "gvg_traps_target_all",	            &battle_config.gvg_traps_bctall			},
@@ -3640,6 +3641,7 @@ void battle_set_defaults() {
 	battle_config.skill_out_range_consume=1;
 	battle_config.mob_skill_add_range=0;
 	battle_config.skillrange_by_distance=6;
+	battle_config.use_weapon_skill_range=0;
 	battle_config.pc_damage_delay_rate=100;
 	battle_config.defnotenemy=0;
 	battle_config.gvg_traps_bctall=1;

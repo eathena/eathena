@@ -1,5 +1,8 @@
 Date	Added
 2005/11/28
+	* Added battle_config option skillrange_from_weapon which, when set, allows
+	  weapon based, target-selected, offensive skills to take the equipped
+	  weapon's range instead of the range defined in the skill_db. [Skotlex]
 	* WARNING/ACHTUNG! Update all your NPCs ASAP. Massive NPC fix's out. [Lupus]
 	* Updated monster_ai&8 so that mobs scatter as soon as they lose their
 	  target. Use this setting for an effective counter measure to Grimtooth
