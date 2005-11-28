@@ -32,6 +32,8 @@
 	12017,Speed_Decreasing_Potion no bonus... Turbo Track race item
 
 	--
+11/29
+	* Update produce_db.txt with cooking items coments, thanks to battousai90 [Lupus]
 11/28
 	* Lighthalzen MVP drop update done by MasterOfMuppets - Still need more work. [Vicious]
 	* Reduced the range of Focused Arrow Strike by 10, that range should be
