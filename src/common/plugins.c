@@ -311,7 +311,7 @@ void plugins_init (void)
 	export_symbol (add_timer_func_list,	9);
 	export_symbol (add_timer_interval,	8);
 	export_symbol (add_timer,			7);
-	export_symbol (get_svn_revision,	6);
+	export_symbol ((void *)get_svn_revision,	6);
 	export_symbol (gettick,				5);
 	// core
 	export_symbol (&runflag,			4);
