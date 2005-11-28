@@ -33,6 +33,7 @@
 
 	--
 11/28
+	* Lighthalzen MVP drop update done by MasterOfMuppets - Still need more work. [Vicious]
 	* Reduced the range of Focused Arrow Strike by 10, that range should be
 	  added via the Vulture skill. [Skotlex]
 	* Updated skill ranges for Alchemist and Monk, thanks to Komurka. [Skotlex]
