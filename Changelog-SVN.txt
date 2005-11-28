@@ -1,5 +1,8 @@
 Date	Added
 2005/11/28
+	* Updated monster_ai&8 so that mobs scatter as soon as they lose their
+	  target. Use this setting for an effective counter measure to Grimtooth
+	  mass-mob training. [Skotlex]
 	* Added pc_damage_walk_delay_rate to separate the walk delay adjustment of
 	  players from that of mobs. The adjustment for players is 20% while for mobs
 	  is 100%, pending further adjustments. [Skotlex]
