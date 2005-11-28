@@ -33,12 +33,12 @@ payon_in03.gat,110,160,4	script	KoneKone	819,{
  menu "Please make me this item.",-,"What are the materials needed?",M_REQ,"Bye.",M_EXIT;
 
  if ((countitem(2213) < 1) || (countitem(914) < 200) || (countitem(983) < 1) || (Zeny < 10000)) GOTO L_NOITEM;//Items: Kitty Band, Fluff, Black Dyestuff,
- mes "[KoneKone]";
- mes "Wow! thankies! I will now take your items!";
  delitem 2213,1;//Items: Kitty Band,
  delitem 914,200;//Items: Fluff,
  delitem 983,1;//Items: Black Dyestuff,
  set Zeny,Zeny-10000;
+ mes "[KoneKone]";
+ mes "Wow! thankies! I will now take your items!";
  next;
  mes "[KoneKone]";
  mes "Mew mew! thanks! Now for your ears!";

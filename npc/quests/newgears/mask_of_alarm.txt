@@ -33,10 +33,10 @@ alde_alche.gat,104,171,3	script	Muslam	819,{
 	menu "Yep!",-,"Nope!",M_EXIT;
 
 	if (countitem(1095) < 3000 || countitem(2288) < 1) GOTO L_NOITEM;//Items: Mr Scream,
-	mes "[Muslam]";
-	mes "Great!";
 	delitem 1095,3000;//Items: Clock Hand
 	delitem 2288,1;//Items: Mr Scream
+	mes "[Muslam]";
+	mes "Great!";
 	next;
 	getitem 5086,1;//Items: Alarm Mask,
 	mes "[Muslam]";

@@ -27,6 +27,7 @@ Nexon
 Date		Added
 ======
 11/28
+	* Massive anti-exploit fix of hat quests [Lupus]
 	* Updated Umbala. Fixed Umb.Lang.Quest items names. [Lupus]
 	  Now you can go to Niflheim trough Jumping Bungy Area.
 11/27

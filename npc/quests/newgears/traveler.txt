@@ -4,7 +4,7 @@
 //= Halca (1.0)
 //= Mass Zero (1.1)
 //===== Current Version: ===================================== 
-//= 1.4a
+//= 1.4b
 //===== Compatible With: ===================================== 
 //= Any eAthena Version.
 //===== Description: ========================================= 
@@ -22,9 +22,8 @@ morocc.gat,273,78,6	script	Traveler	807,{
  if (BaseJob == 0) GOTO L_NOVICE;
  mes "What kind of hat do you want from me?";
  next;
- menu "Lazy Racoon Hat.",M_N1,"Fresh Bluish Fish",M_N2,"Drooping Cat",M_N3,"Transformation Leaf",M_N4,"Nothing.",M_EXIT;
+ menu "Lazy Racoon Hat.",-,"Fresh Bluish Fish",M_N2,"Drooping Cat",M_N3,"Transformation Leaf",M_N4,"Nothing.",M_EXIT;
 
-M_N1:
  mes "[Traveler]";
  mes "Gimme 1000 Acorns,";
  mes "100 Sea Otter Skins,";
@@ -36,11 +35,11 @@ M_N1:
  menu "Yep.",-,"No!",M_EXIT;
 
  if ((countitem(1026) < 1000) || (countitem(7065) < 100) || (countitem(945) < 10)) GOTO L_NOITEM;//Items: Acorn, Sea Otter Fur, Raccoon Leaf,
- mes "[Traveler]";
- mes "Well, then here is your item";
  delitem 1026,1000;//Items: Acorn,
  delitem 7065,100;//Items: Sea Otter Fur,
  delitem 945,10;//Items: Raccoon Leaf,
+ mes "[Traveler]";
+ mes "Well, then here is your item";
  next;
  getitem 5084,1;//Items: Lazy Racoon Hat,
  mes "[Traveler]";
@@ -60,13 +59,13 @@ M_N2:
  menu "Yes",-,"No.",M_EXIT;
 
  if ((countitem(624) < 1) || (countitem(959) < 300) || (countitem(544) < 50) || (countitem(1023) < 1) || (countitem(938) < 100)) GOTO L_NOITEM; //Items: Rotten Fish, Stinky Scale, Sashimi, Fish Tail, Sticky Mucus,
- mes "[Traveler]";
- mes "Okay, thanks.";
  delitem 624,1;//Items: Rotten Fish,
  delitem 959,300;//Items: Stinky Scale,
  delitem 544,50;//Items: Raw Fish,
  delitem 1023,1;//Items: Fish Tail,
  delitem 938,100;//Items: Sticky Mucus,
+ mes "[Traveler]";
+ mes "Okay, thanks.";
  next;
  getitem 5065,1;//Items: Fresh Blueish Fish,
  mes "[Traveler]";
@@ -86,11 +85,11 @@ M_N3:
  menu "Yes",-,"No.",M_EXIT;
 
  if ((countitem(2233) < 1) || (countitem(983) < 1) || (countitem(7206) < 300)) GOTO L_NOITEM;//Items: Circlet, Black Dyestuff, Black Cat Doll,
- mes "[Traveler]";
- mes "Okay, here you are.";
  delitem 2233,1;//Items: Circlet,
  delitem 983,1;//Items: Black Dyestuff,
  delitem 7206,300;//Items: Black Cat Doll,
+ mes "[Traveler]";
+ mes "Okay, here you are.";
  next;
  getitem 5058,1;//Items: Resting Cat,
  mes "[Traveler]";
@@ -107,9 +106,9 @@ M_N4:
  menu "Yes!",-,"Nope.",M_EXIT;
 
  if (countitem(945) < 600) GOTO L_NOITEM;//Items: Raccoon Leaf,
+ delitem 945,600;//Items: Raccoon Leaf,
  mes "[Traveler]";
  mes "Thanks. here's your leaf.";
- delitem 945,600;//Items: Raccoon Leaf,
  next;
  getitem 5064,1;//Items: Transformation Leaf,
  mes "[Traveler]";

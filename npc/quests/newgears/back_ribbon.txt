@@ -26,11 +26,11 @@ prontera.gat,164,232,5	script	Netpia	815,{
  menu "Make me a ^670000Back ribbon^000000.",-,"What are the requirements?",M_REQ,"No, I dont want one.",M_EXIT;
 
  if ((countitem(2244) < 1) || (countitem(2209) < 1) || (countitem(10007) < 1)) GOTO L_NOITEM;//Items: Big Ribbon, Ribbon, Silk Ribbon,
- mes "[Netpia]";
- mes "Wow, thank you! Let me just take your items.";
  delitem 2244,1;//Items: Big Ribbon,
  delitem 2209,1;//Items: Ribbon,
  delitem 10007,1;//Items: Silk Ribbon,
+ mes "[Netpia]";
+ mes "Wow, thank you! Let me just take your items.";
  next;
  getitem 5083,1;//Items: Back Ribbon,
  mes "[Netpia]";

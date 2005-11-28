@@ -31,9 +31,9 @@ geffen.gat,66,87,6	script	Aipo	819,{
  menu "Yes! Now make me the item!",-,"No, thanks!",M_EXIT;
 
  if (countitem(921) < 300) GOTO L_NOITEM;//Items: Mushroom Spore,
+ delitem 921,300;//Items: Mushroom Spore,
  mes "[Aipo]";
  mes "Wow! Thanks! Lemme make the item then.";
- delitem 921,300;//Items: Mushroom Spore,
  next;
  mes "[Aipo]";
  mes "Okay, thanks for the items, now yours in return!";

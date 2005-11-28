@@ -4,13 +4,13 @@
 //= KitsuneStarWind (1.0)
 //= Mass Zero (1.1)
 //===== Current Version: ===================================== 
-//= 1.2
+//= 1.2a
 //===== Compatible With: ===================================== 
 //= Any eAthena version.
 //===== Description: ========================================= 
 // Seperate quest for the Fox Mask.
 //===== Additional Comments: ================================= 
-// 1.2 optimized [Lupus]
+// 1.2a optimized [Lupus]
 //============================================================
 
 pay_dun04.gat,204,152,2	script	Nine Tail	1180,{
@@ -39,7 +39,6 @@ M_MAKE:
 	if (countitem(1022) < 999) goto L_NOITEM;//Items: Nine Tails,
 	delitem 1022,999;//Items: Nine Tails,
 	getitem 5069,1;//Items: Fox Mask,
-	next;
 	mes "[Nine Tails]";
 	mes "Have fun.";
 	close;

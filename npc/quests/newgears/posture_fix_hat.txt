@@ -28,10 +28,10 @@ payon_in01.gat,143,8,5	script	Nan Hyang	814,{
  menu "Please, make me one.",-,"What do I need to get?",M_REQ,"No thanks!",M_EXIT;
 
  if ((countitem(1550) <1) || (countitem(2285) < 1 )) GOTO L_NOITEM;//Items: Book, Apple o' Archer,
- mes "[Nan Hyang]";
- mes "Ahh at last, someone who is serious!";
  delitem 1550,1;//Items: Book,
  delitem 2285,1;//Items: Apple o' Archer,
+ mes "[Nan Hyang]";
+ mes "Ahh at last, someone who is serious!";
  next;
  getitem 5073,1;//Items: Posture Fix Hat,
  mes "[Nan Hyang]";

@@ -18,9 +18,8 @@ yuno_in03.gat,32,15,7	script	Neris	806,{
  mes "[Neris]";
  mes "So, whatcha want then?";
  next;
- menu "Golden Bells.",M_LGB,"Crown of Mistress.",M_COM,"Crown of Ancient Queen.",M_COAQ,"Nothing, thanks.",M_EXIT;
+ menu "Golden Bells.",-,"Crown of Mistress.",M_COM,"Crown of Ancient Queen.",M_COAQ,"Nothing, thanks.",M_EXIT;
 
-M_LGB:
  mes "[Neris]";
  mes "Hehe, so you are a fan of Sohee's eh?";
  mes "Yeah, I guess I like the bell they carry too!";
@@ -32,12 +31,12 @@ M_LGB:
  menu "Make me Golden Bells!",-,"What do I need to make it?",M_REQL,"Nothing, thanks.",M_EXIT;
 
  if ((countitem(10016) < 1) || (countitem(714) < 1) || (countitem(969) < 3) || (Zeny < 1000)) GOTO L_NOITEM;//Items: Golden Bell, Emperium, Gold,
- mes "[Neris]";
- mes "Now, lets swap your items.";
  delitem 10016,1;//Items: Golden Bell,
  delitem 714,1;//Items: Emperium,
  delitem 969,3;//Items: Gold,
  set Zeny,Zeny-1000;
+ mes "[Neris]";
+ mes "Now, lets swap your items.";
  next;
  getitem 5091,1;//Items: Golden Bells,
  mes "[Neris]";
@@ -63,12 +62,12 @@ M_COM:
  menu "Make me the item.",-,"What do I need to make it?",M_REQC,"Nothing, thanks.",M_EXIT;
 
  if ((countitem(2249) < 1) || (countitem(714) < 1) || (countitem(969) < 3) || (Zeny < 1000)) GOTO L_NOITEM;//Items: Coronet, Emperium, Gold,
- mes "[Neris]";
- mes "Now, lets swap your items.";
  delitem 2249,1;//Items: Coronet,
  delitem 714,1;//Items: Emperium,
  delitem 969,3;//Items: Gold,
  set Zeny,Zeny-1000;
+ mes "[Neris]";
+ mes "Now, lets swap your items.";
  next;
  getitem 5081,1;//Items: Crown of Mistress,
  mes "[Neris]";
@@ -94,12 +93,12 @@ M_COAQ:
  menu "Make me the item.",-,"What do I need to make it?",M_REQC2,"Nothing, thanks.",M_EXIT;
 
  if ((countitem(10006) < 1) || (countitem(714) < 1) || (countitem(969) < 3) || (Zeny < 1000)) GOTO L_NOITEM;//Items: Queen's Hair Ornament, Emperium, Gold,
- mes "[Neris]";
- mes "Now, lets swap your items";
  delitem 10006,1;//Items: Queen's Hair Ornament,
  delitem 714,1;//Items: Emperium,
  delitem 969,3;//Items: Gold,
  set Zeny,Zeny-1000;
+ mes "[Neris]";
+ mes "Now, lets swap your items";
  next;
  getitem 5080,1;//Items: Crown of The Ancient Queen,
  mes "[Neris]";

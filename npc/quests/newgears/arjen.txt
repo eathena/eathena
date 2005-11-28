@@ -35,11 +35,11 @@ M_1:
  menu "Make me the hairpin.",-,"What are the requirements?",M_REQ1,"No, thanks.",M_EXIT;
 
  if ((countitem(10011) < 1) || (countitem(7220) < 400)) GOTO L_NOITEM1;//Items: Stellar Hairpin, Ectoplasm,
+ delitem 10011,1;//Items: Stellar Hairpin,
+ delitem 7220,400;//Items: Ectoplasm,
  mes "[Arjen]";
  mes "Yes, that's just what I require!";
  mes "Nayayayaaaaaa!";
- delitem 10011,1;//Items: Stellar Hairpin,
- delitem 7220,400;//Items: Ectoplasm,
  next;
  mes "[Arjen]";
  mes "Hmm... okay, thanks for the items.";
@@ -78,11 +78,11 @@ M_2:
  menu "Yes, please make me one!",-,"What are the requirements?",M_REQ2,"No, thanks.",M_EXIT;
 
  if ((countitem(930) < 500) || (countitem(970) < 1)) GOTO L_NOITEM2;//Items: Rotten Bandage, Alcohol,
+ delitem 930,500;//Items: Rotten Bandage,
+ delitem 970,1;//Items: Alcohol,
  mes "[Arjen]";
  mes "Wow! You have the stuff I need! Thanks!";
  mes "Lemme do a swap, your stuff for the bandage";
- delitem 930,500;//Items: Rotten Bandage,
- delitem 970,1;//Items: Alcohol,
  next;
  getitem 5063,1;//Items: Bandage,
  mes "[Arjen]";
@@ -130,11 +130,11 @@ M_REQ3:
  menu "Yes.",-,"No.",M_EXIT;
  
  if ((countitem(2269) < 1) || (countitem(999) < 10) || (Zeny < 20000)) GOTO L_NOITEM3;//Items: Romantic Flower, Steel,
- mes "[Arjen]";
- mes "Thanks!";
  delitem 2269,1;//Items: Romantic Flower,
  delitem 999,10;//Items: Steel,
  set Zeny,Zeny-20000;
+ mes "[Arjen]";
+ mes "Thanks!";
  next;
  getitem 5061,1;//Items: Flower Hairpin,
  mes "[Arjen]";

@@ -3,7 +3,7 @@
 //===== By: =========================
 //= Lorky, Lupus
 //===== Current Version: ===================
-//= 0.5a
+//= 0.6
 //===== Compatible With: =====================
 //= eAthena 1.0
 //===== Description: ============================================
@@ -13,9 +13,9 @@
 //	Mystic rose
 //	Red Bonnet
 //	Well-Baked Toast
-//	Mask of Zealotus (done!)
+//	Mask of Zealotus
 //	Fashionable Warm Hat
-//	Super Novice Hat (shop item) Soldier's Felt Hat (shop item?)
+//	n/a Soldier's Felt Hat (no info)
 //===== Additional Comments: ==========================================
 // 03.06.2005	:: Lorky ::	First release 0.1a
 // 0.1b Fixed some missing things with temp IDs. [Lupus]
@@ -26,6 +26,7 @@
 // 0.4 Fixed some sprites, npc names and coords [Lupus]
 // 0.5 Removed temp shops, Black Clothes -> Piece of Black Quartz, thx to vicious_Pucca for note [Lupus]
 // 0.5a Updated detective hat to ask for the correct items [Kayla]
+// 0.6 Fixed possible exploits. Update yuor servers! [Lupus]
 //=====================================================================
 
 //Links (some info related to these headgears)
@@ -52,16 +53,16 @@ lighthalzen.gat,360,310,4	script	Boy	818,{
 	next;
 
 	if (countitem(526)<1 || countitem(7270)<1 || countitem(10004)<1 || countitem(941)<1) goto L_EXIT;//Items: Royal_Jelly, Baby_Bottle, Pacifier, Nose_Ring,
-	mes "[Boy]";
-	mes "Th-anke...";
-	emotion 43;
-	next;
-
 	delitem 526,1;//Items: Royal_Jelly,
 	delitem 7270,1;//Items: Baby_Bottle,
 	delitem 10004,1;//Items: Pacifier,
 	delitem 941,1;//Items: Nose_Ring,
+	mes "[Boy]";
+	mes "Th-anke...";
+	emotion 43;
 	getitem 5110,1;//Items: Baby_Rubber_Nipple,
+	next;
+
 L_EXIT:
 	mes "[Boy]";
 	mes "...B...Bye...";
@@ -82,15 +83,15 @@ lighthalzen.gat,140,68,4	script	Morris	818,{
 	mes "Ok then, I shall make one for you.";
 
 	if (countitem(611)<10 || countitem(7301)<1887 || countitem(5120)<1 || Zeny<50000) goto L_NOITEM;//Items: Magnifier, Tassel, Wide_Bunker_Hat_,
+	delitem 611,10;   //Items: Magnifier,
+	delitem 7301,1887;  //Tassel//Items: Tassel,
+	delitem 5120,1;   //Items: Wide_Bunker_Hat_,
+	set Zeny,Zeny-50000;
 	mes "[Morris]";
 	mes "Very well. Now I can make it...";
 	next;
 	mes "[Morris]";
 	mes "Enjoy.";
-	delitem 611,10;   //Items: Magnifier,
-	delitem 7301,1887;  //Tassel//Items: Tassel,
-	delitem 5120,1;   //Items: Wide_Bunker_Hat_,
-	set Zeny,Zeny-50000;
 	getitem 5108,1;//Items: Detective_Hat,
 	close;
 
@@ -124,17 +125,16 @@ lhz_in02.gat,103,31,4	script	Margaret Mary	818,{
 	menu "Make me a ^670000Mystic rose^000000.",-,"No, I dont want one.",L_EXIT;
 	
 	if ((countitem(731) < 10) || (countitem(748) < 3) || (countitem(982) < 1) || Zeny<50000) goto L_NOITEM;//Items: 2_Carat_Diamond, Witherless_Rose, White_Dyestuff,
-	mes "[Margaret Mary]";
-	mes "Wow, thank you! Hand me your items, please.";
 	delitem 731,10;//Items: 2_Carat_Diamond,
 	delitem 748,3;//Items: Witherless_Rose,
 	delitem 982,1;//Items: White_Dyestuff,
 	set Zeny,Zeny-50000;
-	getitem 5117,1;//Items: Mystic_Rose,
+	mes "[Margaret Mary]";
+	mes "Wow, thank you! Hand me your items, please.";
 	next;
-
 	mes "[Margaret Mary]";
 	mes "Enjoy being pretty and mystic!";
+	getitem 5117,1;//Items: Mystic_Rose,
 	close;
 L_NOITEM:
 	mes "[Margaret Mary]";
@@ -174,17 +174,17 @@ lighthalzen.gat,180,88,4	script	Rich Girl	818,{
 	next;
 	menu "Please, make it!",-,"No, thanks",L_EXIT;
 	if ((countitem(10015) < 1) || (countitem(975) < 1) || (countitem(10007) < 1) || (countitem(5032)<1) || Zeny<50000) goto L_NOITEM;//Items: Green_Lace, Scarlet_Dyestuffs, Silk_Ribbon, Sunday_Hat,
-	mes "[Rich Girl]";
-	mes "Ok then, I shall make one for you.";
 	delitem 10015,1;//Items: Green_Lace,
 	delitem 975,1;//Items: Scarlet_Dyestuffs,
 	delitem 10007,1;//Items: Silk_Ribbon,
 	delitem 5032,1;//Items: Sunday_Hat,
-	getitem 5109,1;//Items: Red_Bonnet,
 	set Zeny,Zeny-50000;
+	mes "[Rich Girl]";
+	mes "Ok then, I shall make one for you.";
 	next;
 	mes "[Rich Girl]";
 	mes "Now you can drink tea with your grannie and have fun with wolves.";
+	getitem 5109,1;//Items: Red_Bonnet,
 	close;
 
 L_NOITEM:
@@ -212,16 +212,16 @@ yuno.gat,224,116,4	script	Kacis	818,{
 	menu "Please, make one for me",-,"No, thanks. I'm so full",L_EXIT;
 
 	if ((countitem(519) < 50) || (countitem(548) < 50) || (countitem(539) < 50) || (countitem(7031)<50)) goto L_NOITEM;//Items: Milk, Cheese, Piece_of_Cake, Old_Frying_Pan,
-	mes "[Kacis]";
-	mes "Good, thank you! Let me just take your items.";
 	delitem 519,50;//Items: Milk,
 	delitem 548,50;//Items: Cheese,
 	delitem 539,50;//Items: Piece_of_Cake,
 	delitem 7031,50;//Items: Old_Frying_Pan,
-	getitem 5107,1;//Items: Well_Done_Toast,
+	mes "[Kacis]";
+	mes "Good, thank you! Let me just take your items.";
 	next;
 	mes "[Kacis]";	
 	mes "Well done. Be careful, it's hot.";
+	getitem 5107,1;//Items: Well_Done_Toast,
 	close;
 
 L_NOITEM:
@@ -288,13 +288,12 @@ einbech.gat,70,200,7	script	Mater	818,{
 	menu "Please, make one for me",-,"No, thanks",L_EXIT;
 
 	if ((countitem(7267) < 999) || (countitem(983) < 1) || (countitem(749) < 1) || Zeny<50000) goto L_NOITEM;//Items: Tigerskin_Underwear, Black_Dyestuff, Frozen_Rose,
-
-	mes "[Mater]";
-	mes "Exellent! Now give me the items.";
 	delitem 7267,999;//Items: Tigerskin_Underwear,
 	delitem 983,1;//Items: Black_Dyestuff,
 	delitem 749,1;//Items: Frozen_Rose,
 	set Zeny,Zeny-50000;
+	mes "[Mater]";
+	mes "Exellent! Now give me the items.";
 	next;
 	mes "[Mater]";
 	mes "Here you are.";

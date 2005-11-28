@@ -4,7 +4,7 @@
 //= Halca (1.0)
 //= Mass Zero (1.1)
 //===== Current Version: ===================================== 
-//= 1.3a
+//= 1.3b
 //===== Compatible With: ===================================== 
 //= Any eAthena Version.
 //===== Description: ========================================= 
@@ -29,12 +29,12 @@ M_EOD:
  menu "Dont care, make me the Item!",-,"What are the requirements?",M_EODREQ,"Nothing",M_EXIT;
 
  if ((countitem(2255) < 1) || (countitem(2286) < 1) || (Zeny < 20000)) GOTO L_NOITEM_EOD;//Items: Evil Wing, Elven Ears,
- mes "[Old Blacksmith]";
- mes "Wow, never thought a little fella like you could get tha.t";
- mes "Bwahaha, ok.";
  delitem 2255,1;//Items: Evil Wing,
  delitem 2286,1;//Items: Elven Ears,
  set Zeny,Zeny-20000;
+ mes "[Old Blacksmith]";
+ mes "Wow, never thought a little fella like you could get tha.t";
+ mes "Bwahaha, ok.";
  next;
  getitem 5068,1;//Items: Ears Of Demon,
  mes "[Old Blacksmith]";
@@ -64,12 +64,12 @@ M_EOA:
  menu "Dont care, make me the Item!",-,"What are the requirements?",M_EOAREQ,"Nothing",M_EXIT;
 
  if ((countitem(2286) < 1) || (countitem(2254) < 1) || (Zeny < 20000)) GOTO L_NOITEM_EOA;//Items: Elven Ears, Angel Wing,
- mes "[Old Blacksmith]";
- mes "Well well well! Someone who has the spirit!";
- mes "Okay, gimme the items.";
  delitem 2286,1;//Items: Elven Ears,
  delitem 2254,1;//Items: Angel Wing,
  set Zeny,Zeny-20000;
+ mes "[Old Blacksmith]";
+ mes "Well well well! Someone who has the spirit!";
+ mes "Okay, gimme the items.";
  next;
  mes "[Old Blacksmith]";
  mes "Okay, and here you go.";

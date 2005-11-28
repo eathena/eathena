@@ -29,11 +29,11 @@ geffen.gat,84,189,6	script	Ses	815,{
  menu "Yes!",-,"No!",M_EXIT;
 
  if ((countitem(2278) < 1) || (countitem(975) < 1)) GOTO L_NOITEM;//Items: Mr. Smile, Scarlet Dyestuffs,
+ delitem 2278,1;//Items: Mr. Smile,
+ delitem 975,1;//Items: Scarlet Dyestuffs,
  mes "[Ses]";
  mes "Yay! thanks! Pineapple!";
  mes "Here you go!";
- delitem 2278,1;//Items: Mr. Smile,
- delitem 975,1;//Items: Scarlet Dyestuffs,
  next;
  getitem 5077,1;//Items: Tulip Hairpin,
  mes "[Ses]";

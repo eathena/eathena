@@ -29,12 +29,12 @@ yuno.gat,300,188,6	script	Genbolt	826,{
  menu "Wow! Make me one!",-,"What do I need?",M_REQ,"Naw, bye",M_EXIT;
 
  if ((countitem(7216) < 300) || (countitem(7097) < 300) || (countitem(982) < 1) || (countitem(2211) < 1)) GOTO L_NOITEM;//Items: Red Scarf, Burning Heart, White Dyestuff, Bandana,
- mes "[Genbolt]";
- mes "Very well, here you go.";
  delitem 7216,300;//Items: Red Scarf,
  delitem 7097,300;//Items: Burning Heart,
  delitem 982,1;//Items: White Dyestuff,
  delitem 2211,1;//Items: Bandana,
+ mes "[Genbolt]";
+ mes "Very well, here you go.";
  next;
  mes "[Genbolt]";
  mes "Now I can make it...";

@@ -31,10 +31,10 @@ xmas.gat,184,267,4	script	Pretty Rency	818,{
  menu "Yes.",-,"No.",M_EXIT;
 
  if ((countitem(5033) < 1) || (countitem(5064) < 1)) GOTO L_NOITEM;//Items: Raccoon Hat, Transformation Leaf,
- mes "[Pretty Rency]";
- mes "Congratulations!";
  delitem 5033,1;//Items: Raccoon Hat,
  delitem 5064,1;//Items: Transformation Leaf,
+ mes "[Pretty Rency]";
+ mes "Congratulations!";
  next;
  mes "[Pretty Rency]";
  mes "Thanks for your items! Now I will make yours for you!";
