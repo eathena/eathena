@@ -492,8 +492,12 @@ int battle_walkdelay(struct block_list *bl, unsigned int tick, int adelay, int d
 	if (status_isdead(bl))
 		return 0;
 	
-	if (battle_config.walk_delay_rate != 100)
-		delay = delay*battle_config.walk_delay_rate/100;
+	if (bl->type == BL_PC) {
+		if (battle_config.pc_walk_delay_rate != 100)
+			delay = delay*battle_config.pc_walk_delay_rate/100;
+	} else
+		if (battle_config.walk_delay_rate != 100)
+			delay = delay*battle_config.walk_delay_rate/100;
 	
 	if (div_ > 1) //Multi-hit skills mean higher delays.
 		delay += battle_config.multihit_delay*(div_-1);
@@ -3330,6 +3334,7 @@ static const struct battle_data_short {
 	{ "boss_spawn_delay",                  &battle_config.boss_spawn_delay			},
 	{ "slaves_inherit_speed",              &battle_config.slaves_inherit_speed		},
 	{ "summons_inherit_effects",           &battle_config.summons_inherit_effects	},
+	{ "pc_damage_walk_delay_rate",         &battle_config.pc_walk_delay_rate		},
 	{ "damage_walk_delay_rate",            &battle_config.walk_delay_rate		},
 	{ "multihit_delay",                    &battle_config.multihit_delay			},
 	{ "quest_skill_learn",                 &battle_config.quest_skill_learn		},
@@ -3687,7 +3692,8 @@ void battle_set_defaults() {
 	battle_config.boss_spawn_delay=100;
 	battle_config.slaves_inherit_speed=1;
  	battle_config.summons_inherit_effects=1; 
-	battle_config.walk_delay_rate=20;
+	battle_config.pc_walk_delay_rate=20;
+	battle_config.walk_delay_rate=100;
 	battle_config.multihit_delay=230;
 	battle_config.quest_skill_learn=0;
 	battle_config.quest_skill_reset=1;

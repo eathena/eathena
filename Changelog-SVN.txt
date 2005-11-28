@@ -1,5 +1,8 @@
 Date	Added
 2005/11/28
+	* Added pc_damage_walk_delay_rate to separate the walk delay adjustment of
+	  players from that of mobs. The adjustment for players is 20% while for mobs
+	  is 100%, pending further adjustments. [Skotlex]
 	* Added the weapon upgrade damage bonus of Spiral Pierce [Skotlex]
 	* Removed the mob_stop_walking code from mob_damage as it should be invoked
 	  on battle_walkdelay (the mob walk delay issue will likely need it's own
