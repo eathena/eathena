@@ -16,23 +16,30 @@
 //= Reorganized.  Added complete rogue quest warps.
 //= Removed unused, duplicate warps. [kobra_k88]
 //= 1.3b activated Dancer JQ warp [Lupus]
+//= 1.4 Imported damn noobie warps from jAthena (because it's broken since last year)
 //============================================================
 
 
 //==============================================================================
 //Novice
 //==============================================================================
-new_1-1.gat,148,112,0	warp	new11	2,3,new_1-2.gat,100,9
-new_1-1.gat,166,112,0	warp	new12	2,2,new_1-2.gat,100,153
-new_1-2.gat,100,150,0	warp	new12-1	2,1,new_1-1.gat,162,112
-new_1-1.gat,169,75,0	warp	new13	2,2,new_1-2.gat,182,163
-new_1-2.gat,182,159,0	warp	new13-1	2,2,new_1-1.gat,165,75
-new_1-1.gat,169,147,0	warp	new14	2,2,new_1-2.gat,18,163
-new_1-2.gat,18,159,0	warp	new14-1	2,2,new_1-1.gat,165,147
-new_1-2.gat,100,122,0	warp	new15	2,1,new_1-2.gat,100,162
-new_1-2.gat,100,165,0	warp	new15-1	2,1,new_1-2.gat,100,119
-new_1-2.gat,126,106,0	warp	new16	2,4,new_1-2.gat,156,171
-new_1-2.gat,153,171,0	warp	new16-1	2,4,new_1-2.gat,123,106
+//new_1-1.gat,148,112,0	warp	new11	2,3,new_1-2.gat,100,9
+//new_1-1.gat,166,112,0	warp	new12	2,2,new_1-2.gat,100,153
+//new_1-2.gat,100,150,0	warp	new12-1	2,1,new_1-1.gat,162,112
+//new_1-1.gat,169,75,0	warp	new13	2,2,new_1-2.gat,182,163
+//new_1-2.gat,182,159,0	warp	new13-1	2,2,new_1-1.gat,165,75
+//new_1-1.gat,169,147,0	warp	new14	2,2,new_1-2.gat,18,163
+//new_1-2.gat,18,159,0	warp	new14-1	2,2,new_1-1.gat,165,147
+//new_1-2.gat,100,122,0	warp	new15	2,1,new_1-2.gat,100,162
+//new_1-2.gat,100,165,0	warp	new15-1	2,1,new_1-2.gat,100,119
+//new_1-2.gat,126,106,0	warp	new16	2,4,new_1-2.gat,160,171
+//new_1-2.gat,153,171,0	warp	new16-1	2,4,new_1-2.gat,123,106
+new_1-1.gat,148,112,0		warp	newwarp6001		2,2,new_1-2.gat,100,9
+new_1-2.gat,100,6,0 		warp	newwarp6002		2,2,new_1-1.gat,144,112
+new_1-2.gat,126,106,0		warp	newwarp6003		2,2,new_1-2.gat,160,171
+new_1-2.gat,156,171,0		warp	newwarp6004		2,2,new_1-2.gat,123,106
+new_1-2.gat,73,106,0		warp	newwarp6005		2,2,new_1-2.gat,41,172
+new_1-2.gat,46,172,0		warp	newwarp6006		2,2,new_1-2.gat,78,106
 new_1-3.gat,96,175,0	warp	new17	3,2,new_1-4.gat,100,14
 
 //==============================================================================
