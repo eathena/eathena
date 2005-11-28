@@ -6,7 +6,7 @@
 #ifdef _WIN32
 #include <winsock.h>
 typedef long in_addr_t;
-#pragma lib <libmysql.lib>
+//#pragma lib <libmysql.lib> // Not required [Lance]
 #else
 #include <sys/socket.h>
 #include <netinet/in.h> 
@@ -1266,7 +1266,8 @@ int mmo_char_sql_init(void) {
 int make_new_char_sql(int fd, unsigned char *dat) {
 	struct char_session_data *sd;
 	char t_name[NAME_LENGTH*2];
-	int i, char_id, temp;
+	unsigned int i; // Used in for loop and comparing with strlen, safe to be unsigned. [Lance]
+	int char_id, temp;
 
 	//Check for char name length overflows [Skotlex]
 	if (strlen((char *)dat) > NAME_LENGTH-1)

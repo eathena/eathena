@@ -86,7 +86,7 @@ int num_regs=0;
 int time_allowed=10; //Init this to 10 secs, not 10K secs [Skotlex]
 
 char date_format[32] = "%Y-%m-%d %H:%M:%S";
-int auth_num = 0, auth_max = 0;
+unsigned int auth_num = 0, auth_max = 0;
 
 int min_level_to_connect = 0; // minimum level of player/GM (0: player, 1-99: gm) to connect on the server
 int check_ip_flag = 1; // It's to check IP of a player between login-server and char-server (part of anti-hacking system)
@@ -226,7 +226,7 @@ void read_gm_account(void) {
 	}
 	sql_res = mysql_store_result(&mysql_handle);
 	if (sql_res) {
-		gm_account_db = (struct gm_account*)aCalloc(mysql_num_rows(sql_res), sizeof(struct gm_account));
+		gm_account_db = (struct gm_account*)aCalloc((size_t)mysql_num_rows(sql_res), sizeof(struct gm_account));
 		while ((sql_row = mysql_fetch_row(sql_res))) {
 			gm_account_db[GM_num].account_id = atoi(sql_row[0]);
 			gm_account_db[GM_num].level = atoi(sql_row[1]);
@@ -1398,7 +1398,7 @@ int parse_login(int fd) {
 
 		case 0x64:		// request client login
 		case 0x01dd:	// request client login with encrypt
-			if(RFIFOREST(fd)< ((RFIFOW(fd, 0) ==0x64)?55:47))
+			if((int)RFIFOREST(fd)< ((RFIFOW(fd, 0) ==0x64)?55:47))
 				return 0;
 
 			ShowInfo("client connection request %s from %d.%d.%d.%d\n", RFIFOP(fd, 6), p[0], p[1], p[2], p[3]);

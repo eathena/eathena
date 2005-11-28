@@ -1427,7 +1427,7 @@ int chrif_parse(int fd)
 				return 0;
 			packet_len = RFIFOW(fd,2);
 		}
-		if (RFIFOREST(fd) < packet_len)
+		if ((int)RFIFOREST(fd) < packet_len)
 			return 0;
 
 		switch(cmd) {

@@ -115,7 +115,7 @@ int client_version_to_connect = 20; //Client version needed to connect ..(sirius
 
 
 struct login_session_data {
-	int md5keylen;
+	unsigned int md5keylen;
 	char md5key[20];
 };
 
@@ -147,7 +147,7 @@ struct auth_dat {
 	struct global_reg account_reg2[ACCOUNT_REG2_NUM];
 } *auth_dat = NULL;
 
-int auth_num = 0, auth_max = 0;
+unsigned int auth_num = 0, auth_max = 0;
 
 // define the number of times that some players must authentify them before to save account file.
 // it's just about normal authentification. If an account is created or modified, save is immediatly done.
@@ -160,8 +160,8 @@ int auth_before_save_file = 0; // Counter. First save when 1st char-server do co
 
 int admin_state = 0;
 char admin_pass[24] = "";
-int GM_num;
-int GM_max=256;
+unsigned int GM_num;
+unsigned int GM_max=256;
 char gm_pass[64] = "";
 int level_new_gm = 60;
 
@@ -264,7 +264,7 @@ int waiting_disconnect_timer(int tid, unsigned int tick, int id, int data)
 // and returns its level (or 0 if it isn't a GM account or if not found)
 //----------------------------------------------------------------------
 int isGM(int account_id) {
-	int i;
+	unsigned int i;
 	for(i=0; i < GM_num; i++)
 		if(gm_account_db[i].account_id == account_id)
 			return gm_account_db[i].level;
@@ -275,7 +275,7 @@ int isGM(int account_id) {
 // Adds a new GM using acc id and level
 //----------------------------------------------------------------------
 void addGM(int account_id, int level) {
-	int i;
+	unsigned int i;
 	int do_add = 0;
 	for(i = 0; i < auth_num; i++) {
 		if (auth_dat[i].account_id==account_id) {
@@ -534,7 +534,8 @@ int e_mail_check(char *email) {
 //   and similar to the searched name.
 //-----------------------------------------------
 int search_account_index(char* account_name) {
-	int i, quantity, index;
+	unsigned int i, quantity;
+	int index;
 
 	quantity = 0;
 	index = -1;
@@ -585,7 +586,8 @@ int mmo_auth_tostr(char *str, struct auth_dat *p) {
 //---------------------------------
 int mmo_auth_init(void) {
 	FILE *fp;
-	int account_id, logincount, state, n, i, j, v;
+	int account_id, logincount, state, n, i, v;
+	unsigned int j;
 	char line[2048], *p, userid[2048], pass[2048], lastlogin[2048], sex, email[2048], error_message[2048], last_ip[2048], memo[2048];
 	time_t ban_until_time;
 	time_t connect_until_time;
@@ -911,7 +913,8 @@ int mmo_auth_init(void) {
 //------------------------------------------
 void mmo_auth_sync(void) {
 	FILE *fp;
-	int i, j, k, lock;
+	unsigned int i, j, k;
+	int lock;
 	int account_id;
 	//int id[auth_num];
 	//int *id = (int *)aCalloc(auth_num, sizeof(int));
@@ -1015,7 +1018,7 @@ int charif_sendallwos(int sfd, unsigned char *buf, unsigned int len) {
 // Send GM accounts to all char-server
 //-----------------------------------------------------
 void send_GM_accounts() {
-	int i;
+	unsigned int i;
 	unsigned char buf[32767];
 	int len;
 
@@ -1130,7 +1133,7 @@ int mmo_auth_new(struct mmo_account* account, char sex, char* email) {
 // Check/authentification of a connection
 //---------------------------------------
 int mmo_auth(struct mmo_account* account, int fd) {
-	int i;
+	unsigned int i;
 	struct timeval tv;
 	char tmpstr[256];
 	int len, newaccount = 0;
@@ -1226,7 +1229,7 @@ int mmo_auth(struct mmo_account* account, int fd) {
 #ifdef PASSWORDENC
 			else {
 				char logbuf[512], *p = logbuf;
-				int j;
+				unsigned int j;
 				p += sprintf(p, "Invalid password (account: %s, received md5[", account->userid);
 				for(j = 0; j < 16; j++)
 					p += sprintf(p, "%02x", ((unsigned char *)account->passwd)[j]);
@@ -1346,7 +1349,8 @@ int mmo_auth(struct mmo_account* account, int fd) {
 // Packet parsing for char-servers
 //--------------------------------
 int parse_fromchar(int fd) {
-	int i, j, id;
+	unsigned int i;
+	int j, id;
 	unsigned char *p = (unsigned char *) &session[fd]->client_addr.sin_addr;
 	char ip[16];
 	int acc;
@@ -1399,7 +1403,8 @@ int parse_fromchar(int fd) {
 				    auth_fifo[i].sex == RFIFOB(fd,14) &&
 				    (!check_ip_flag || auth_fifo[i].ip == RFIFOL(fd,15)) &&
 				    !auth_fifo[i].delflag) {
-					int p, k;
+					unsigned int k;
+					int p;
 					auth_fifo[i].delflag = 1;
 					login_log("Char-server '%s': authentification of the account %d accepted (ip: %s)." RETCODE,
 					          server[id].name, acc, ip);
@@ -1839,7 +1844,7 @@ int parse_fromchar(int fd) {
 			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < RFIFOW(fd,2))
 				return 0;
 			{
-				int sex, i = 0;
+				unsigned int sex,i = 0;
 				acc = RFIFOL(fd,4);
 				sex = RFIFOB(fd,8);
 				if (sex != 0 && sex != 1)
@@ -1920,7 +1925,7 @@ int parse_fromchar(int fd) {
 // Packet parsing for administation login
 //---------------------------------------
 int parse_admin(int fd) {
-	int i, j;
+	unsigned int i, j;
 	unsigned char *p = (unsigned char *) &session[fd]->client_addr.sin_addr;
 	char* account_name;
 	char ip[16];
@@ -1977,7 +1982,7 @@ int parse_admin(int fd) {
 				login_log("'ladmin': Sending an accounts list (ask: from %d to %d, ip: %s)" RETCODE, st, ed, ip);
 				// Sort before send
 				for(i = 0; i < auth_num; i++) {
-					int k;
+					unsigned int k;
 					id[i] = i;
 					for(j = 0; j < i; j++) {
 						if (auth_dat[id[i]].account_id < auth_dat[id[j]].account_id) {
@@ -2418,7 +2423,7 @@ int parse_admin(int fd) {
 			break;
 
 		case 0x7942:	// Request to modify memo field
-			if (RFIFOREST(fd) < 28 || RFIFOREST(fd) < (28 + RFIFOW(fd,26)))
+			if ((int)RFIFOREST(fd) < 28 || (int)RFIFOREST(fd) < (28 + RFIFOW(fd,26)))
 				return 0;
 			WFIFOW(fd,0) = 0x7943;
 			WFIFOL(fd,2) = 0xFFFFFFFF; // WTF???
@@ -2906,7 +2911,8 @@ int lan_ip_check(unsigned char *p) {
 //----------------------------------------------------------------------------------------
 int parse_login(int fd) {
 	struct mmo_account account;
-	int result, i, j;
+	int result, j;
+	unsigned int i;
 	unsigned char *p = (unsigned char *) &session[fd]->client_addr.sin_addr;
 	char ip[16];
 
@@ -2922,7 +2928,7 @@ int parse_login(int fd) {
 	while(RFIFOREST(fd) >= 2) {
 		if (display_parse_login == 1) {
 			if (RFIFOW(fd,0) == 0x64 || RFIFOW(fd,0) == 0x01dd) {
-				if (RFIFOREST(fd) >= ((RFIFOW(fd,0) == 0x64) ? 55 : 47))
+				if ((int)RFIFOREST(fd) >= ((RFIFOW(fd,0) == 0x64) ? 55 : 47))
 					ShowDebug("parse_login: connection #%d, packet: 0x%x (with being read: %d), account: %s.\n", fd, RFIFOW(fd,0), RFIFOREST(fd), RFIFOP(fd,6));
 			} else if (RFIFOW(fd,0) == 0x2710) {
 				if (RFIFOREST(fd) >= 86)
@@ -2946,7 +2952,7 @@ int parse_login(int fd) {
 
 		case 0x64:		// Ask connection of a client
 		case 0x01dd:	// Ask connection of a client (encryption mode)
-			if (RFIFOREST(fd) < ((RFIFOW(fd,0) == 0x64) ? 55 : 47))
+			if ((int)RFIFOREST(fd) < ((RFIFOW(fd,0) == 0x64) ? 55 : 47))
 				return 0;
 			
 			account.version = RFIFOL(fd, 2);	//for exe version check [Sirius]
@@ -3180,7 +3186,7 @@ int parse_login(int fd) {
 			return 0;
 
 		case 0x7918:	// Request for administation login
-			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < ((RFIFOW(fd,2) == 0) ? 28 : 20))
+			if ((int)RFIFOREST(fd) < 4 || (int)RFIFOREST(fd) < ((RFIFOW(fd,2) == 0) ? 28 : 20))
 				return 0;
 			WFIFOW(fd,0) = 0x7919;
 			WFIFOB(fd,2) = 1;

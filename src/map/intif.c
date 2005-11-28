@@ -1152,7 +1152,7 @@ int intif_parse(int fd)
 	}
 //	if(battle_config.etc_log)
 //		printf("intif_parse %d %x %d %d\n",fd,cmd,packet_len,RFIFOREST(fd));
-	if(RFIFOREST(fd)<packet_len){
+	if((int)RFIFOREST(fd)<packet_len){
 		return 2;
 	}
 	// ˆ—•ªŠò

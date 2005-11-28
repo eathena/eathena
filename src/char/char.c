@@ -1318,7 +1318,8 @@ static int create_online_files_sub(void* key, void* data, va_list va)
 // Function to create the online files (txt and html). by [Yor]
 //-------------------------------------------------------------
 void create_online_files(void) {
-	int i, j, k, l; // for loops
+	unsigned int k, j; // for loop with strlen comparing
+	int i, l; // for loops
 	int players;    // count the number of players
 	FILE *fp;       // for the txt file
 	FILE *fp2;      // for the html file

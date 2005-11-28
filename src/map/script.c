@@ -3012,7 +3012,7 @@ int buildin_input(struct script_state *st)
 //				clif_tradecancelled(sd); // added "Deal has been cancelled" message by Valaris
 //				buildin_close(st); // ** close
 				sd->npc_amount = 0;
-			} else if (sd->npc_amount > battle_config.vending_max_value) // new fix by Yor
+			} else if ((unsigned int)sd->npc_amount > battle_config.vending_max_value) // new fix by Yor
 				sd->npc_amount = battle_config.vending_max_value;
 
 			// ”’l

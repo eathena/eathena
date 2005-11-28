@@ -76,8 +76,8 @@ enum SessionType {
 struct socket_data{
 	unsigned char eof;
 	unsigned char *rdata, *wdata;
-	int max_rdata, max_wdata;
-	int rdata_size, wdata_size;
+	unsigned int max_rdata, max_wdata;
+	unsigned int rdata_size, wdata_size;
 	int rdata_pos;
 	time_t rdata_tick;
 	struct sockaddr_in client_addr;
@@ -145,7 +145,7 @@ int make_listen_port(int);
 int make_listen_bind(long,int);
 int make_connection(long,int);
 int delete_session(int);
-int realloc_fifo(int fd,int rfifo_size,int wfifo_size);
+int realloc_fifo(int fd,unsigned int rfifo_size,unsigned int wfifo_size);
 int WFIFOSET(int fd,int len);
 int RFIFOSKIP(int fd,int len);
 

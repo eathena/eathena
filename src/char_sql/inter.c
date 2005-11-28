@@ -709,7 +709,7 @@ int inter_check_length(int fd, int length)
 		length = RFIFOW(fd, 2);
 	}
 
-	if(RFIFOREST(fd) < length)	// packet not yet
+	if((int)RFIFOREST(fd) < length)	// packet not yet
 		return 0;
 
 	return length;

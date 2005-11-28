@@ -915,7 +915,7 @@ static int grfio_entryread(char *gfname,int gentry)
 		rSize = getlong(eheader);	// Read Size
 		eSize = getlong(eheader+4);	// Extend Size
 
-		if (rSize > grf_size-ftell(fp)) {
+		if ((int)rSize > grf_size-ftell(fp)) { // Warning fix [Lance]
 			fclose(fp);
 			ShowError("Illegal data format : grf compress entry size\n");
 			return 4;

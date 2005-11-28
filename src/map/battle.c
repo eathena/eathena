@@ -4074,7 +4074,7 @@ void battle_validate_conf() {
 //	if (battle_config.finding_ore_rate < 0)
 //		battle_config.finding_ore_rate = 0;
 
-	if (battle_config.vending_max_value > MAX_ZENY || battle_config.vending_max_value<=0)
+	if (battle_config.vending_max_value > MAX_ZENY || battle_config.vending_max_value==0)
 		battle_config.vending_max_value = MAX_ZENY;
 
 	if (battle_config.min_skill_delay_limit < 10)

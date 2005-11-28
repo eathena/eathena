@@ -258,7 +258,7 @@ static int send_from_fifo(int fd)
 
 	//{ int i; ShowMessage("send %d : ",fd);  for(i=0;i<len;i++){ ShowMessage("%02x ",session[fd]->wdata[i]); } ShowMessage("\n");}
 	if(len>0){
-		if(len<session[fd]->wdata_size){
+		if((unsigned int)len<session[fd]->wdata_size){
 			memmove(session[fd]->wdata,session[fd]->wdata+len,session[fd]->wdata_size-len);
 			session[fd]->wdata_size-=len;
 		} else {
@@ -618,7 +618,7 @@ int delete_session(int fd)
 	return 0;
 }
 
-int realloc_fifo(int fd,int rfifo_size,int wfifo_size)
+int realloc_fifo(int fd,unsigned int rfifo_size,unsigned int wfifo_size)
 {
 	if( !session_isValid(fd) )
 		return 0;
