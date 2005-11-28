@@ -3,6 +3,7 @@ Date	Added
 	* Added joshuali's new Visual Studio files. [Lance]
 	* Novice Warp Portal fixes from jAthena. [Lance]
 	* Final warning elimination in plugins.c (most of them are gone with warning level set to 1). [Lance]
+	* Fixed typo in msg_athena.conf and 'users with autoloot turned on will not have their rare drops announced.'. Thanks to Kaseki.
 2005/11/27
 	* Fixed an overflow pointer bug in the gvg eliminate timer. [Skotlex]
 	* Updated the damage code if Spiral Pierce, Shield Chain and Shield

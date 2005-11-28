@@ -2509,7 +2509,6 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 
 			ditem = mob_setdropitem(md->db->dropitem[i].nameid, 1, md->bl.m, md->bl.x, md->bl.y, mvp_sd, second_sd, third_sd);
 			log_item[i] = ditem->item_data.nameid;
-			mob_item_drop(md, tick+500+i, ditem, 0);
 
 			//A Rare Drop Global Announce by Lupus
 			if(drop_rate<=battle_config.rare_drop_announce) {
@@ -2520,6 +2519,9 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 				//MSG: "'%s' won %s's %s (chance: %%%0.02f)"
 				intif_GMmessage(message,strlen(message)+1,0);
 			}
+
+			// Announce first, or else ditem will be freed. [Lance]
+			mob_item_drop(md, tick+500+i, ditem, 0);
 		}
 
 		// Ore Discovery [Celest]
