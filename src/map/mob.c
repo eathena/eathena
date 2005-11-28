@@ -2155,9 +2155,12 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 		return 0;
 	}
 
+/* The stop walking code is triggered in battle_walkdelay which is invoked from clif_damage after a timer.
+ * So the mob should stop walking in sync with the time the "attack" hits the mob. If this is bugged then the 
+ * fault must be looked at in battle_walkdelay, not here. [Skotlex]
 	if(md->sc_data[SC_ENDURE].timer == -1) // Stop the walking [Lance]
 		mob_stop_walking(md,1);
-
+*/
 	if(damage > max_hp>>2)
 		skill_stop_dancing(&md->bl);
 

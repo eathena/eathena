@@ -1827,8 +1827,13 @@ static struct Damage battle_calc_weapon_attack(
 		}
 
 		//Refine bonus
-		if (sd && skill_num != MO_INVESTIGATE && skill_num != MO_EXTREMITYFIST)
-			ATK_ADD2(status_get_atk2(src), status_get_atk_2(src));
+		if (sd && skill_num != MO_INVESTIGATE && skill_num != MO_EXTREMITYFIST) {
+			if (skill_num == LK_SPIRALPIERCE) { //Spiral Pierce is this bonus x5 [Skotlex]
+				ATK_ADD2(5*status_get_atk2(src), 5*status_get_atk_2(src));
+			} else {
+				ATK_ADD2(status_get_atk2(src), status_get_atk_2(src));
+			}
+		}
 
 		//Set to min of 1
 		if (flag.rh && wd.damage < 1) wd.damage = 1;

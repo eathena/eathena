@@ -248,8 +248,8 @@
 229,9,6,2,3,1,5,1,yes,0,0,0,weapon,0	//AM_DEMONSTRATION#Bomb#
 230,9,6,1,0,0,5,0,yes,0,0,0,weapon,0	//AM_ACIDTERROR#Acid Terror#
 231,9,6,16,0,1,5,1,yes,0,3072,0,none,0	//AM_POTIONPITCHER#Aid Potion#
-232,3,6,2,0,1,5,1,no,0,0,5,none,0	//AM_CANNIBALIZE#Summon Flora#
-233,3,6,2,0,1,5,1,no,0,0,3,none,0	//AM_SPHEREMINE#Summon Marine Sphere#
+232,4,6,2,0,1,5,1,no,0,0,5,none,0	//AM_CANNIBALIZE#Summon Flora#
+233,1,6,2,0,1,5,1,no,0,0,3,none,0	//AM_SPHEREMINE#Summon Marine Sphere#
 234,1,6,16,0,1,5,1,yes,0,0,0,weapon,0	//AM_CP_WEAPON#Alchemical Weapon#
 235,1,6,16,0,1,5,1,yes,0,0,0,weapon,0	//AM_CP_SHIELD#Synthesized Shield#
 236,1,6,16,0,1,5,1,yes,0,0,0,weapon,0	//AM_CP_ARMOR#Synthetic Armor#
@@ -262,8 +262,8 @@
 243,0,6,4,0,1,1,0,no,0,0,0,none,0	//AM_CALLHOMUN#Call Homunculus#
 244,0,6,4,0,1,1,0,no,0,0,0,none,0	//AM_REST#Peaceful Rest#
 //245,0,0,0,0,0,10,0,no,0,0,0,none,0	//AM_DRILLMASTER#Drillmaster#
-//246,0,0,0,0,0,10,0,no,0,0,0,none,0	//AM_HEALHOMUN#Heal Homunculus#
-247,0,6,4,0,1,5,0,no,0,0,0,none,0	//AM_RESURRECTHOMUN#Ressurect Homunculus#
+//246,9,0,0,0,0,10,0,no,0,0,0,none,0	//AM_HEALHOMUN#Heal Homunculus#
+247,9,6,4,0,1,5,0,no,0,0,0,none,0	//AM_RESURRECTHOMUN#Ressurect Homunculus#
 248,0,0,0,0,0,10,0,no,0,0,0,none,0	//CR_TRUST#Faith#
 249,0,6,4,0,1,10,1,no,0,0,0,weapon,0	//CR_AUTOGUARD#Guard#
 250,3,6,1,0,2,5,1,no,0,0,0,weapon,5:6:7:8:9	//CR_SHIELDCHARGE#Smite#
@@ -278,16 +278,16 @@
 259,0,0,0,0,0,10,0,no,0,0,0,weapon,0	//MO_IRONHAND#Iron Fists#
 260,0,0,0,0,0,5,0,no,0,0,0,weapon,0	//MO_SPIRITSRECOVERY#Spiritual Cadence#
 261,0,6,4,0,1,5,1,no,0,0,0,none,0	//MO_CALLSPIRITS#Summon Spirit Sphere#
-262,6,6,16,0,1,1,1,no,0,0,0,weapon,0	//MO_ABSORBSPIRITS#Absorb Spirit Sphere#
-263,0,8,0,-1,0,10,3,no,0,0,0,weapon,0	//MO_TRIPLEATTACK#Raging Triple Blow#
-264,14,6,2,0,1,1,1,no,0,0,0,none,0	//MO_BODYRELOCATION#Snap#
+262,9,6,16,0,1,1,1,no,0,0,0,weapon,0	//MO_ABSORBSPIRITS#Absorb Spirit Sphere#
+263,-1,8,0,-1,0,10,3,no,0,0,0,weapon,0	//MO_TRIPLEATTACK#Raging Triple Blow#
+264,18,6,2,0,1,1,1,no,0,0,0,none,0	//MO_BODYRELOCATION#Snap#
 265,0,0,0,0,0,10,0,no,0,0,0,weapon,0	//MO_DODGE#Dodge#
 266,2,6,1,0,0,5,1,no,0,0,0,weapon,0	//MO_INVESTIGATE#Occult Impact#
-267,10,8,1,-1,0,5,1:2:3:4:5,no,0,0,0,weapon,0	//MO_FINGEROFFENSIVE#Throw Spirit Sphere#
+267,9,8,1,-1,0,5,1:2:3:4:5,no,0,0,0,weapon,0	//MO_FINGEROFFENSIVE#Throw Spirit Sphere#
 268,0,6,4,0,1,5,1,no,0,0,0,weapon,0	//MO_STEELBODY#Mental Strength#
 269,0,6,4,0,1,5,1,no,0,0,0,weapon,0	//MO_BLADESTOP#Root#
 270,0,6,4,0,1,5,0,no,0,0,0,weapon,0	//MO_EXPLOSIONSPIRITS#Fury#
-271,3,6,4,0,0,5,1,yes,0,0,0,weapon,0	//MO_EXTREMITYFIST#Asura Strike#
+271,2,6,4,0,0,5,1,yes,0,0,0,weapon,0	//MO_EXTREMITYFIST#Asura Strike#
 272,-2,8,4,-1,0,5,4,no,0,0,0,weapon,0	//MO_CHAINCOMBO#Raging Quadruple Blow#
 273,-2,6,4,-1,0,5,1,no,0,0,0,weapon,0	//MO_COMBOFINISH#Raging Thrust#
 274,0,0,0,0,0,10,0,no,0,0,0,weapon,0	//SA_ADVANCEDBOOK#Study#

@@ -32,6 +32,8 @@
 	12017,Speed_Decreasing_Potion no bonus... Turbo Track race item
 
 	--
+11/28
+	* Updated skill ranges for Alchemist and Monk, thanks to Komurka. [Skotlex]
 11/27
 	* Added Sonic Blow to skill_castnodex so that the skill delay applies to
 	  walking as well. [Skotlex]

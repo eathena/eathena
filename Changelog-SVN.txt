@@ -1,5 +1,9 @@
 Date	Added
 2005/11/28
+	* Added the weapon upgrade damage bonus of Spiral Pierce [Skotlex]
+	* Removed the mob_stop_walking code from mob_damage as it should be invoked
+	  on battle_walkdelay (the mob walk delay issue will likely need it's own
+	  config option) [Skotlex]
 	* Added joshuali's new Visual Studio files. [Lance]
 	* Novice Warp Portal fixes from jAthena. [Lance]
 	* Final warning elimination in plugins.c (most of them are gone with warning level set to 1). [Lance]
