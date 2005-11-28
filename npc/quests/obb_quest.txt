@@ -175,14 +175,13 @@ L_CREATE:
 	next;
 L_CREATE2:
 	if(countitem(7053)<50 || countitem(7054)<10 || countitem(965)<10 || countitem(964)<15) goto L_NO;//Items: Cyfar, Brigan, Clam_Shell, Crab_Shell,
-
-	mes "[Old Greek]";
-	mes "Here's your Box!";
 	delitem 7053,50;//Items: Cyfar,
 	delitem 7054,10;//Items: Brigan,
 	delitem 965,10;//Items: Clam_Shell,
 	delitem 964,15;//Items: Crab_Shell,
 	getitem 603,1;//Items: Old_Blue_Box,
+	mes "[Old Greek]";
+	mes "Here's your Box!";
 	emotion 21;
 	next;
 	menu "Make another!",L_CREATE2, "It's enough.",-;

@@ -53,6 +53,7 @@ alberta.gat,117,134,8	script	Elin	96,{
 		
 		sM_1:
 			if(countitem(740) < 1) goto L_Liar;
+			delitem 740,1;
 			mes "[Elin]";
 			mes "Wow--! It's a rabbit! It's SOOOO cute!! Thank you SOOO much!";
 			emotion 14;
@@ -65,7 +66,6 @@ alberta.gat,117,134,8	script	Elin	96,{
 			mes "[Elin]";
 			mes "Ummm ... found it! Here take this!";
 			next;
-			delitem 740,1;
 			getitem 530,1;
 			mes "[Elin]";
 			mes "I got this from Santa. It's a candy cane~";
@@ -78,11 +78,11 @@ alberta.gat,117,134,8	script	Elin	96,{
 
 		sM_2:
 			if(countitem(741) < 1) goto L_Liar;
+			delitem 741,1;
 			mes "[Elin]";
 			mes "Yay! It's a poring doll! It's SOOOO cute! Since you gave me a doll I'll give you this....";
 			emotion 14;
 			next;
-			delitem 741,1;
 			getitem 529,1;
 			mes "[Elin]";
 			mes "Thank you for the doll!";
@@ -92,6 +92,7 @@ alberta.gat,117,134,8	script	Elin	96,{
 
 		sM_3:
 			if(countitem(742) < 1) goto L_Liar;
+			delitem 742,1;
 			mes "[Elin]";
 			mes "Ew whats this?.... a Chonchon ... doll? ...";
 			emotion 16;
@@ -101,7 +102,6 @@ alberta.gat,117,134,8	script	Elin	96,{
 			next;
 			mes "[Elin]";
 			mes "Well here's a little something for giving me the doll.  Don't eat too much or you'll get cavities.";
-			delitem 742,1;
 			getitem 530,1;
 			next;
 			mes "[Elin]";
@@ -111,6 +111,7 @@ alberta.gat,117,134,8	script	Elin	96,{
 
 		sM_4:
 			if(countitem(752) < 1) goto L_Liar;
+			delitem 752,1;
 			mes "[Elin]";
 			mes "Oh! a Rocker doll.  I hate hopping things but this doll's kinda cute.";
 			next;
@@ -122,7 +123,6 @@ alberta.gat,117,134,8	script	Elin	96,{
 			next;
 			mes "[Elin]";
 			mes "Here it is.  We've got tons of it at home so I'll share some with you~";
-			delitem 752,1;
 			getitem 532,7;
 			next;
 			mes "[Elin]";
@@ -132,6 +132,7 @@ alberta.gat,117,134,8	script	Elin	96,{
 
 		sM_5:
 			if(countitem(743) < 1) goto L_Liar;
+			delitem 743,1;
 			mes "[Elin]";
 			mes "Blehh .... It's a mushroom... Mom's always scolding me for not eating mushrooms ...";
 			emotion 4;
@@ -144,7 +145,6 @@ alberta.gat,117,134,8	script	Elin	96,{
 			next;
 			mes "[Elin]";
 			mes "My mom made this so please take it.";
-			delitem 743,1;
 			getitem 538,5;
 			next;
 			mes "[Litte Kid]";
@@ -154,12 +154,12 @@ alberta.gat,117,134,8	script	Elin	96,{
 
 		sM_6:
 			if(countitem(751) < 1) goto L_Liar;
+			delitem 751,1;
 			mes "[Elin]";
 			mes "Yay! It's an Osiris doll!";
 			next;
 			mes "[Elin]";
 			mes "Here's something for you too.";
-			delitem 751,1;
 			getitem 522,2;
 			mes "[Elin]";
 			mes "Thank you for the doll!";
@@ -167,12 +167,12 @@ alberta.gat,117,134,8	script	Elin	96,{
 
 		sM_7:
 			if(countitem(750) < 1) goto L_Liar;
+			delitem 750,1;
 			mes "[Elin]";
 			mes "Yay! It's a Baphomet doll!";
 			next;
 			mes "[Elin]";
 			mes "Here's something for you too.";
-			delitem 750,1;
 			getitem 525,5;
 			mes "[Elin]";
 			mes "Thank you for the doll!";
@@ -181,13 +181,13 @@ alberta.gat,117,134,8	script	Elin	96,{
 
 		sM_8:
 			if(countitem(754) < 1) goto L_Liar;
+			delitem 754,1;
 			mes "[Elin]";
 			mes "Ah, it's a Smokie doll.  I hate Smokies, but the doll's really cute! Thank you!";
 			emotion 33;
 			next;
 			mes "[Elin]";
 			mes "Let me give you some of Grandma's home-made cake!";
-			delitem 754,1;
 			getitem 539,3;
 			next;
 			mes "[Elin]";
@@ -200,13 +200,13 @@ alberta.gat,117,134,8	script	Elin	96,{
 
 		sM_9:
 			if(countitem(753) < 1) goto L_Liar;
+			delitem 753,1;
 			mes "[Elin]";
 			mes "WOW--!!! OH MY GOSH! It's a Yoyo doll! This is what I REALLY wanted!! It's SOOOO cute......";
 			emotion 14;
 			next;
 			mes "[Elin]";
 			mes "As a thank you, I'll give you this.";
-			delitem 753,1;
 			getitem 608,1;
 			next;
 			mes "[Elin]";
@@ -303,13 +303,19 @@ alberta_in.gat,28,145,4	script	Grampa	120,{
 
 		sM_Give:
 			mes "[Grampa]";
-			mes "T-Thank YOU!! Thank you SO VERY MUCH!!";
+			if(countitem(1030) < 10) goto L_NoItems;
 			delitem 1030,10;
 			getitem 5016,1;
+			mes "T-Thank YOU!! Thank you SO VERY MUCH!!";
 			emotion 15;
 			next;
 			mes "[Grampa]";
 			mes "Now my body can be reinvigorated!!! I will eat it right away!";
+			close;
+
+		L_NoItems:
+			mes "Get off damn cheater!!!";
+			emotion e_bzz;
 			close;
 
 		sM_End:
@@ -410,14 +416,14 @@ alberta.gat,120,53,3	script	Zic	51,{
 
 		sM_0a:
 			if (countitem(10007)<1 || countitem(968)<50) goto sL_NotEnuf;
+			delitem 10007, 1;
+			delitem 968, 50;
 			mes "[Zic]";
 			mes "Please wait while I make your Bao Bao......";
 			next;
 			mes "[Zic]";
 			mes "There you are, one Bao Bao.  Enjoy.";
 			getitem 5042, 1;
-			delitem 10007, 1;
-			delitem 968, 50;
 			close;
 	M_1:
 		mes "[Zic]";
@@ -432,14 +438,14 @@ alberta.gat,120,53,3	script	Zic	51,{
 
 		sM_1a:
 			if (countitem(5041)<1 || countitem(999)<10) goto sL_NotEnuf;
+			delitem 5041, 1;
+			delitem 999, 10;
 			mes "[Zic]";
 			mes "Please wait while I make your Cresent Hairpin......";
 			next;
 			mes "[Zic]";
 			mes "There you are, one Cresent Hairpin.  Enjoy.";
 			getitem 5048, 1;
-			delitem 5041, 1;
-			delitem 999, 10;
 			close;
 	M_2:
 		mes "[Zic]";
@@ -454,14 +460,14 @@ alberta.gat,120,53,3	script	Zic	51,{
 
 		sM_2a:
 			if (countitem(2271)<1 || countitem(975)<1) goto sL_NotEnuf;
+			delitem 2271, 1;
+			delitem 975, 1;
 			mes "[Zic]";
 			mes "Please wait while I make your Fashionable Glasses......";
 			next;
 			mes "[Zic]";
 			mes "There you are, one Fashionable Glasses.  Enjoy.";
 			getitem 5047, 1;
-			delitem 2271, 1;
-			delitem 975, 1;
 			close;
 	M_3:
 		mes "[Zic]";
@@ -476,13 +482,13 @@ alberta.gat,120,53,3	script	Zic	51,{
 
 		sM_3a:
 			if (countitem(7013)<1200) goto sL_NotEnuf;
+			delitem 7013, 1200;
 			mes "[Zic]";
 			mes "Please wait while I make your Hear Hairpin......";
 			next;
 			mes "[Zic]";
 			mes "There you are, one Heart Hairpin.  Enjoy.";
 			getitem 5041, 1;
-			delitem 7013, 1200;
 			close;
 
 		sL_NotEnuf:

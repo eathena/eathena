@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= kobra_k88
 //===== Current Version: =====================================
-//= 1.2
+//= 1.3
 //===== Compatible With: =====================================
 //= eAthena 7.15 +
 //===== Description: =========================================
@@ -14,6 +14,7 @@
 //===== Additional Comments: =================================
 //=95% done
 //= 1.1 Fixed items count check. For all 3 swords... [Lupus]
+//= 1.3 Fixed exploit [Lupus]
 //============================================================
 
 
@@ -585,6 +586,11 @@ L_Start:
 		close;
 
 		L_GetExec:
+			delitem 7017,2;
+			delitem 7024,10;
+			delitem 1008,3;
+			delitem 609,50;
+			delitem 714,1;
 			mes "[Legendary Blacksmith]";
 			mes "Good! You have brought me all the necessary items.";
 			mes "Please wait a moment while I forge the Executioner Sword.";
@@ -594,11 +600,6 @@ L_Start:
 			mes "[Legendary Blacksmith]";
 			mes "Phew! Once again a perfect sword! Hahaha! Here you are my friend, enjoy.";
 			getitem 1169,1;
-			delitem 7017,2;
-			delitem 7024,10;
-			delitem 1008,3;
-			delitem 609,50;
-			delitem 714,1;
 			close;
 
 	M_Grim:	//1237
@@ -624,6 +625,11 @@ L_Start:
 		close;
 
 		L_GetGrim:
+			delitem 7023,10;
+			delitem 724,5;
+			delitem 7002,100;
+			delitem 7022,1;
+			delitem 714,1;
 			mes "[Legendary Blacksmith]";
 			mes "Good! You have brought me all the necessary items.";
 			mes "Please wait a moment while I forge the Grimtooth Dagger.";
@@ -633,11 +639,6 @@ L_Start:
 			mes "[Legendary Blacksmith]";
 			mes "Phew! Once again a perfect dagger! Hahaha! Here you are my friend, enjoy.";
 			getitem 1237,1;
-			delitem 7023,10;
-			delitem 724,5;
-			delitem 7002,100;
-			delitem 7022,1;
-			delitem 714,1;
 			close;
 
 	M_Myst:	//1138
@@ -663,6 +664,11 @@ L_Start:
 		close;
 	
 		L_GetMyst:
+			delitem 7021,1;
+			delitem 7019,1;
+			delitem 7020,1;
+			delitem 7018,1;
+			delitem 714,1;
 			mes "[Legendary Blacksmith]";
 			mes "Good! You have brought me all the necessary items.";
 			mes " Please wait a moment while I forge the Mysteltain Sword.";
@@ -672,10 +678,5 @@ L_Start:
 			mes "[Legendary Blacksmith]";
 			mes "Phew! Once again a perfect sword! Hahaha! Here you are my friend, enjoy.";
 			getitem 1138,1;
-			delitem 7021,1;
-			delitem 7019,1;
-			delitem 7020,1;
-			delitem 7018,1;
-			delitem 714,1;
 			close;
 }

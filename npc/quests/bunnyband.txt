@@ -11,19 +11,18 @@
 //===== Additional Comments: ================================= 
 //= v1.1 using duplicate command
 //= 1.2 Fixed NPC location, removed NPC dupes [Lupus]
-//= 1.3 Fixed exploit on giving the band, and taking items away. [Nexon]
+//= 1.3 RE-Fixed exploit V_V, also cleared used VAR [Lupus]
 //============================================================ 
 
 
 // Alberta ------------------------------------------------------------------------------------------------------------------------------------------
 alberta.gat,23,232,1	script	Kafra Corp. Rep.#1::KCRep	83,{
 	mes "[Kafra Corp. Rep.]";
-	if (BUNYBND == 1) goto L_Check;
+	if (BUNYBND) goto L_Check;
 	mes "^529DFFSpecial Event, ^FF0000Bunny Band ^529DFFQuest!!^000000";
 	next;
-	menu "Information",M_Info,  "Join",M_Join, "Cancel",M_End;
+	menu "Information",-, "Join",M_Join, "Cancel",M_End;
 
-	M_Info:
 		mes "[Kafra Corp. Rep.]";
 		mes "To thank our customers for using the Kafra Corp. services, we have prepapred a small event for them...";
 		next;
@@ -61,16 +60,17 @@ alberta.gat,23,232,1	script	Kafra Corp. Rep.#1::KCRep	83,{
 
 	L_Check:
 		if(countitem(949)<100 || countitem(706)<1 || countitem(722)<1 || countitem(2213)<1) goto sL_NoItems;
+		delitem 949,100;
+		delitem 706,1;
+		delitem 722,1;
+		delitem 2213,1;
 		mes "Wow! Well-done, well-done! You've got every single item! I will make the Bunny Band for you right away...";
 		emotion 21;
 		next;
 		mes "[Kafra Corp. Rep.]";
 		mes "Tah dah!!! Here is your ^FF0000Bunny Band^000000... Please take it!";
-		delitem 949,100;
-		delitem 706,1;
-		delitem 722,1;
-		delitem 2213,1;
 		getitem 2214,1;
+		set BUNYBND,0;
 		next;
 		mes "[Kafra Corp. Rep.]";
 		mes "We appreciate your participation in this special event. Thank you and enjoy your Bunny Band!";

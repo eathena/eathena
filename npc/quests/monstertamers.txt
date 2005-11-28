@@ -3,16 +3,15 @@
 //===== By: ==================================================
 //= kobra_k88, Darkchild, x[tsk]
 //===== Current Version: =====================================
-//= 1.0
+//= 1.1
 //===== Compatible With: =====================================
 //= eAthena 1.0
 //===== Description: =========================================
 //= Cute pet quest items
 //===== Additional Comments: =================================
 //= May not have all of the Monster Tamers, but the ones here are fully working.
+//= 1.1 Fixed exploits [Lupus]
 //============================================================
-
-
 
 
 //<================================================= Alberta ===============================================>\\
@@ -85,35 +84,35 @@ M_Menu:
 
 		sM_1:
 			if(countitem(702)<1 || countitem(512)<2) goto sL_NoItems;
+			delitem 702,1;
+			delitem 512,2;
 			mes "[Monster Tamer Iwado]";
 			mes "Alright, just a minute while I prepare the tame......";
 			next;
 			mes "[Monster Tamer Iwado]";
 			mes "Here you are! A Monster Juice! Enjoy and feel free to come back anytime.";
 			getitem 626,1;
-			delitem 702,1;
-			delitem 512,2;
 			close;
 		sM_2:
 			if(countitem(707)<1) goto sL_NoItems;
+			delitem 707,1;
 			mes "[Monster Tamer Iwado]";
 			mes "Alright, just a minute while I prepare the tame......";
 			next;
 			mes "[Monster Tamer Iwado]";
 			mes "Here you are! A Singing Flower! Enjoy and feel free to come back anytime.";
 			getitem 629,1;
-			delitem 707,1;
 			close;
 		sM_3:
 			if(countitem(2207)<1 || countitem(705)<1) goto sL_NoItems;
+			delitem 2207,1;
+			delitem 705,1;
 			mes "[Monster Tamer Iwado]";
 			mes "Alright, just a minute while I prepare the tame......";
 			next;
 			mes "[Monster Tamer Iwado]";
 			mes "Here you are! A Wild Flower! Enjoy and feel free to come back anytime.";
 			getitem 10009,1;
-			delitem 2207,1;
-			delitem 705,1;
 			close;
 
 			sL_NoItems:
@@ -252,65 +251,65 @@ M_Menu:
 
 		sM_1:
 			if(countitem(5017)<1) goto sL_NoItems;
+			delitem 5017,1;
 			mes "[Monster Tamer YuU]";
 			mes "Alright, just a minute while I prepare the tame......";
 			next;
 			mes "[Monster Tamer YuU]";
 			mes "Here you are! A Skull Helm! Enjoy and feel free to come back anytime.";
 			getitem 10001,1;
-			delitem 5017,1;
 			close;
 		sM_2:
 			if(countitem(5004)<1) goto sL_NoItems;
+			delitem 5004,1;
 			mes "[Monster Tamer YuU]";
 			mes "Alright, just a minute while I prepare the tame......";
 			next;
 			mes "[Monster Tamer YuU]";
 			mes "Here you are! A Monster Oxygen Mask! Enjoy and feel free to come back anytime.";
 			getitem 10002,1;
-			delitem 5004,1;
 			close;
 		sM_3:
 			if(countitem(2208)<1) goto sL_NoItems;
+			delitem 2208,1;
 			mes "[Monster Tamer YuU]";
 			mes "Alright, just a minute while I prepare the tame......";
 			next;
 			mes "[Monster Tamer YuU]";
 			mes "Here you are! A Silk Ribbon! Enjoy and feel free to come back anytime.";
 			getitem 10007,1;
-			delitem 2208,1;
 			close;
 		sM_4:
 			if(countitem(2294)<1) goto sL_NoItems;
+			delitem 2294,1;
 			mes "[Monster Tamer YuU]";
 			mes "Alright, just a minute while I prepare the tame......";
 			next;
 			mes "[Monster Tamer YuU]";
 			mes "Here you are! Stellar Hairpin! Enjoy and feel free to come back anytime.";
 			getitem 10011,1;
-			delitem 2294,1;
 			close;
 		sM_5:
 			if(countitem(5015)<1) goto sL_NoItems;
+			delitem 5015,1;
 			mes "[Monster Tamer YuU]";
 			mes "Alright, just a minute while I prepare the tame......";
 			next;
 			mes "[Monster Tamer YuU]";
 			mes "Here you are! A Tiny Egg Shell! Enjoy and feel free to come back anytime.";
 			getitem 10012,1;
-			delitem 5015,1;
 			close;
 		sM_6:
 			if(countitem(2208)<1 || countitem(912)<2 || Zeny<400) goto sL_NoItems;
+			delitem 2208,1;
+			delitem 912,2;
+			set Zeny, Zeny-400;
 			mes "[Monster Tamer YuU]";
 			mes "Alright, just a minute while I prepare the tame......";
 			next;
 			mes "[Monster Tamer YuU]";
 			mes "Here you are! A pair of Rocker Glasses! Enjoy and feel free to come back anytime.";
 			getitem 10014,1;
-			delitem 2208,1;
-			delitem 912,2;
-			set Zeny, Zeny-400;
 			close;
 
 			sL_NoItems:
@@ -397,35 +396,35 @@ M_Menu:
 
 		sM_1:
 			if(countitem(1006)<1 || countitem(958)<2) goto sL_NoItems;
+			delitem 1006,1;
+			delitem 958,2;
 			mes "[Monster Tamer Shogo]";
 			mes "Alright, just a minute while I prepare the tame......";
 			next;
 			mes "[Monster Tamer Shogo]";
 			mes "Here you are! A Book of Devil! Enjoy and feel free to come back anytime.";
 			getitem 642,1;
-			delitem 1006,1;
-			delitem 958,2;
 			close;
 		sM_2:
 			if(countitem(7014)<1) goto sL_NoItems;
+			delitem 7014,1;
 			mes "[Monster Tamer Shogo]";
 			mes "Alright, just a minute while I prepare the tame......";
 			next;
 			mes "[Monster Tamer Shogo]";
 			mes "Here you are! A No Recipient! Enjoy and feel free to come back anytime.";
 			getitem 636,1;
-			delitem 7014,1;
 			close;
 		sM_3:
 			if(countitem(1004)<1 || countitem(904)<1) goto sL_NoItems;
+			delitem 1004,1;
+			delitem 904,1;
 			mes "[Monster Tamer Shogo]";
 			mes "Alright, just a minute while I prepare the tame......";
 			next;
 			mes "[Monster Tamer Shogo]";
 			mes "Here you are! A Horror of Tribe! Enjoy and feel free to come back anytime.";
 			getitem 635,1;
-			delitem 1004,1;
-			delitem 904,1;
 			close;
 
 			sL_NoItems:

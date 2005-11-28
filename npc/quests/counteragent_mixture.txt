@@ -4,7 +4,7 @@
 //= kobra_k88
 //= added some dialogs for Morgenstein by Komurka
 //===== Current Version: ===================================== 
-//= 1.6
+//= 1.7
 //===== Compatible With: ===================================== 
 //= eAthena 7.15 +
 //===== Description: ========================================= 
@@ -17,8 +17,8 @@
 //= More li'l thing, added comments for items IDs [Lupus]
 //= 1.5 Fixed Spelling mistakes. [Nexon]
 //= 1.6 Fixed some bugs, also related to Alch Job quest [Lupus]
+//= 1,7 Fixed exploit [Lupus]
 //============================================================ 
-
 
 
 // Merchant Louitz -----------------------------------------------------------
@@ -206,14 +206,14 @@ M_Menu2:
 					close;
 	
 				sl_GetCounter:
-					mes "OhOhOhOh...... Heheheheheh...... Fine... Like this..... Fine... Keep... More........ Heheheheheh";
-					mes ".... Ahhhh.... ..... OhOh.... OhOh!..... OhOhOhOhOhOh!!!...!!!!!!";
-					next;
 					delitem 970,1;//Items: Alcohol,
 					delitem 713,1;//Items: Empty Bottle,
 					delitem 971,1;//Items: Detrimindexta,
-					getitem 973,1;//Items: Counteragent,
 					set Zeny, Zeny-3000;
+					mes "OhOhOhOh...... Heheheheheh...... Fine... Like this..... Fine... Keep... More........ Heheheheheh";
+					mes ".... Ahhhh.... ..... OhOh.... OhOh!..... OhOhOhOhOhOh!!!...!!!!!!";
+					next;
+					getitem 973,1;//Items: Counteragent,
 					mes "[Chemist Morgenstein]";
 					mes ".... Hmmm......";
 					emotion e_hmm;
@@ -246,14 +246,14 @@ M_Menu2:
 					close;
 			
 				sl_GetMix:
-					mes "OhOhOhOh...... Heheheheheh...... Fine... Like this..... Fine... Keep... More........ Heheheheheh";
-					mes ".... Ahhhh.... ..... OhOh.... OhOh!..... OhOhOhOhOhOh!!!...!!!!!!";
-					next;
 					delitem 970,1;//Items: Alcohol,
 					delitem 713,1;//Items: Empty Bottle,
 					delitem 972,1;//Items: Karvodailnirol,
-					getitem 974,1;//Items: Mixture,
 					set Zeny, Zeny-4000;
+					mes "OhOhOhOh...... Heheheheheh...... Fine... Like this..... Fine... Keep... More........ Heheheheheh";
+					mes ".... Ahhhh.... ..... OhOh.... OhOh!..... OhOhOhOhOhOh!!!...!!!!!!";
+					next;
+					getitem 974,1;//Items: Mixture,
 					mes "[Chemist Morgenstein]";
 					mes ".... Hmmm......";
 					emotion e_hmm;
