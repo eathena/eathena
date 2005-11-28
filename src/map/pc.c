@@ -2439,7 +2439,8 @@ int pc_search_inventory(struct map_session_data *sd,int item_id)
 int pc_additem(struct map_session_data *sd,struct item *item_data,int amount)
 {
 	struct item_data *data;
-	int i,w;
+	int i;
+	long w;
 
 	nullpo_retr(1, sd);
 	nullpo_retr(1, item_data);
@@ -2447,7 +2448,8 @@ int pc_additem(struct map_session_data *sd,struct item *item_data,int amount)
 	if(item_data->nameid <= 0 || amount <= 0)
 		return 1;
 	data = itemdb_search(item_data->nameid);
-	if((w = data->weight*amount) + sd->weight > sd->max_weight || (w+sd->weight) < 0) //Weight overflow check?
+	w = data->weight*amount;
+	if(w + (long)sd->weight > sd->max_weight || w + (long)sd->weight < 0) //Weight overflow check?
 		return 2;
 
 	i = MAX_INVENTORY;
@@ -2461,7 +2463,7 @@ int pc_additem(struct map_session_data *sd,struct item *item_data,int amount)
 				sd->status.inventory[i].card[2] == item_data->card[2] &&
 				sd->status.inventory[i].card[3] == item_data->card[3])
 			{
-				if (sd->status.inventory[i].amount + amount > MAX_AMOUNT)
+				if (amount < 0 || amount > MAX_AMOUNT || sd->status.inventory[i].amount + amount > MAX_AMOUNT)
 					return 5;
 				sd->status.inventory[i].amount += amount;
 				clif_additem(sd,i,amount,0);
@@ -2482,7 +2484,7 @@ int pc_additem(struct map_session_data *sd,struct item *item_data,int amount)
 		}
 		else return 4;
 	}
-	sd->weight += w;
+	sd->weight += (int)w;
 	clif_updatestatus(sd,SP_WEIGHT);
 
 	return 0;

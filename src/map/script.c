@@ -3364,6 +3364,7 @@ int buildin_countitem(struct script_state *st)
 int buildin_checkweight(struct script_state *st)
 {
 	int nameid=0,amount;
+	unsigned long weight;
 	struct map_session_data *sd;
 	struct script_data *data;
 
@@ -3385,8 +3386,8 @@ int buildin_checkweight(struct script_state *st)
 		return 0;
 	}
 
-//	sd=script_rid2sd(st);
-	if(itemdb_weight(nameid)*amount + sd->weight > sd->max_weight){
+	weight = itemdb_weight(nameid)*amount;
+	if(amount > MAX_AMOUNT || weight + sd->weight > sd->max_weight){
 		push_val(st->stack,C_INT,0);
 	} else {
 		push_val(st->stack,C_INT,1);
