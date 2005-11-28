@@ -33,6 +33,8 @@
 
 	--
 11/27
+	* Added Sonic Blow to skill_castnodex so that the skill delay applies to
+	  walking as well. [Skotlex]
 	* Fixed Adrenaline2 and Berserk Pitcher's inf2 (were not set to spirit
 	  skill) [Skotlex]
 	* Reverted Ruwach's range to 2. [Skotlex]

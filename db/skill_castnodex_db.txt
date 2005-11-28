@@ -8,6 +8,7 @@
 // Example - 46,1,1 = Double Strafe's casting time and delay is not affected by dex.
 // By default, dex NEVER affects after-cast delay, so no need of putting 'x,0,1' in this file
 
+136,0,0,1 //AS_SONICBLOW
 336,1	//WE_CALLPARTNER
 366,1	//HW_MAGICPOWER
 370,1	//CH_PALMSTRIKE

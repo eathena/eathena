@@ -1,5 +1,6 @@
 Date	Added
 2005/11/27
+	* Fixed an overflow pointer bug in the gvg eliminate timer. [Skotlex]
 	* Updated the damage code if Spiral Pierce, Shield Chain and Shield
 	  boomerang to be closer to official. [Skotlex]
 	* Fixed a crash when setting all chars offline in the char-sql server. Also

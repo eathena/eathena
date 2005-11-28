@@ -1763,7 +1763,7 @@ int guild_gvg_eliminate_timer(int tid,unsigned int tick,int id,int data)
 
 	if(agit_flag)	// Agit not already End
 	{
-		char *evname=(char*)aMalloc( (len + 4) * sizeof(char));
+		char *evname=(char*)aMalloc( (len + 10) * sizeof(char));
 		memcpy(evname,name,len - 5);
 		strcpy(evname + len - 5,"Eliminate");
 		c = npc_event_do(evname);
