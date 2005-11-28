@@ -40,7 +40,6 @@ geffen.gat,115,107,5	script	Lord Kaho's Servant	61,{
 	LSureAm:
 		mes "[Lord Kaho's Servant]";
 		if((countitem(754) < 1) || (countitem(753) < 1) || (countitem(752) < 1) || (countitem(751) < 1) || (countitem(750) < 1) || (countitem(743) < 1) || (countitem(742) < 1) || (countitem(741) < 1) || (countitem(2613) < 1) || (countitem(5053) < 1) || (countitem(7020) < 1) || (countitem(7036) < 1) || (countitem(2268) < 1) || (countitem(734) < 1) || (countitem(923) < 1) || (countitem(968) < 1) || (countitem(7005) < 1) || (countitem(714) < 3) || (Zeny < 5000000)) goto LNotEnough;
-		mes ". . . . .";
 		delitem 754,1;
 		delitem 753,1;
 		delitem 752,1;

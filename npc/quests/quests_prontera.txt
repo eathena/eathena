@@ -3,14 +3,14 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.1
+//= 1.2
 //===== Compatible With: ===================================== 
 //= eAthena 7.15 +
 //===== Description: ========================================= 
 //= Ph.D Hat Quest
 //===== Additional Comments: ================================= 
-//= Fully working
 //= Fixed flower name Dreamy -> Illusion
+//= 1.2 Fixed exploit [Lupus]
 //============================================================ 
 
 
@@ -19,9 +19,8 @@ prt_in.gat,38,108,4	script	Teacher	53,{
 	if((countitem(710) >= 1) && (countitem(703) >= 1) && (countitem(704) >= 1) && (countitem(708) >= 1)) goto L_Start;//Items: Illusion Flower, Hinalle, Aloe, Ment,
 	mes "Don't you think.... ^4444FF'flowers'^000000 are pretty?";
 	next;
-	menu "Talk.",M_Talk, "End Conversation.",M_End;
+	menu "Talk.",-, "End Conversation.",M_End;
 	
-	M_Talk:
 		mes "[Teacher]";
 		mes "When I was young, I didn't play with friends like the other children.  Instead, I spent time studing by myself.";
 		next;
@@ -55,7 +54,7 @@ prt_in.gat,38,108,4	script	Teacher	53,{
 	
 	M_End:
 		mes "[Teacher]";
-		mes "One of thesedays I will cover whole world in Flowers!.....";
+		mes "One of these days I will cover whole world in Flowers!.....";
 		close;
 
 L_Start:
@@ -63,9 +62,8 @@ L_Start:
 	mes "Oh... Those Flowers in your hand are....";
 	M_Menu:
 	next;
-	menu "Show Flowers",M_Show, "Give Flowers",M_Give, "Cancel",M_End;
+	menu "Show Flowers",-, "Give Flowers",M_Give, "Cancel",M_End;
 
-	M_Show:
 		mes "[Teacher]";
 		mes "Ah... How wonderful!! These are definately the 4 kinds of Flowers I was looking for ..";
 		mes "The ^3355FFIllusion Flower, Hinalle, Aloe, and Ment^000000.  Would you give them to me?...";
@@ -75,6 +73,11 @@ L_Start:
 		goto M_Menu;
 
 	M_Give:
+		if((countitem(710) < 1) || (countitem(703) < 1) || (countitem(704) < 1) || (countitem(708) < 1)) goto L_Cheater;//Items: Illusion Flower, Hinalle, Aloe, Ment,
+		delitem 710,1;//Items: Illusion Flower,
+		delitem 703,1;//Items: Hinalle,
+		delitem 704,1;//Items: Aloe,
+		delitem 708,1;//Items: Ment,
 		mes "[Teacher]";
 		mes "I really, really appreciate what you've done for me!! I trully am grateful! I will give you a very special item as I promised.";
 		emotion 15;
@@ -82,10 +85,13 @@ L_Start:
 		mes "[Teacher]";
 		mes "This is the hat I wore at my Graduation Ceremony.  It is a reminder of my joyfull school days at the University.";
 		mes "Please take it...";
-		delitem 710,1;//Items: Illusion Flower,
-		delitem 703,1;//Items: Hinalle,
-		delitem 704,1;//Items: Aloe,
-		delitem 708,1;//Items: Ment,
 		getitem 5012,1;//Items: Ph.D Hat,
+		close;
+
+	L_Cheater:
+		mes "[Teacher]";
+		mes "I won't give a special item to a cheater...";
+		mes "Now go away!";
+		emotion e_bzz;
 		close;
 }

@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= eAthena dev team
 //===== Current Version: =====================================
-//= 1.3
+//= 1.4
 //===== Compatible With: =====================================
 //= eAthena 7.15 +
 //===== Description: =========================================
@@ -16,6 +16,7 @@
 //= for class checks.[kobra_k88]
 //= 1.2 Added Baby Class Support [Lupus]
 //= 1.3 Removed callfunc Is_####_Class in favor of baseClass [Silentdragon]
+//= 1.4 Fixed exploits [Lupus]
 //============================================================
 
 
@@ -91,6 +92,11 @@ L_Start:
 
 L_GetSkill:
 	if ((countitem(907)<20) || (countitem(7033)<7) || (countitem(906)<41) || (countitem(1019)<13) || (countitem(501)<1)) goto L_NotEnuf;
+	delitem 907, 20;
+	delitem 7033, 7;
+	delitem 906, 41;
+	delitem 1019, 13;
+	delitem 501, 1;
 	mes "You've brought all of the items... very good.  Lets begin.....";
 	next;
 	mes "~ hands you a very long list of ingredients ~";
@@ -109,11 +115,6 @@ L_GetSkill:
 	mes "I hope you didn't expect some kind of elaborate ceremony or some";
 	mes "kind of unique and lengthy training.......";
 	next;
-	delitem 907, 20;
-	delitem 7033, 7;
-	delitem 906, 41;
-	delitem 1019, 13;
-	delitem 501, 1;
 	skill 147,1,0;
 	set ARWCRFT, 0;
 	mes "[Roberto]";
@@ -186,14 +187,14 @@ L_LowLvl:
 
 L_Check:
 	if ((countitem(721)<2) || (countitem(942)<3) || (countitem(962)<10) || (countitem(925)<10) || (countitem(532)<36)) goto L_NotEnuf;
-	mes "OH! Marvelous you brought me all the ingredients!";
-	mes "Now It'll be my pleasure to teach you the skill ^0033FFArrow Repel^000000";
-	next;
 	delitem 721,2;
 	delitem 942,3;
 	delitem 962,10;
 	delitem 925,10;
 	delitem 532,36;
+	mes "OH! Marvelous you brought me all the ingredients!";
+	mes "Now It'll be my pleasure to teach you the skill ^0033FFArrow Repel^000000";
+	next;
 	skill 148,1,0;
 	set ARWREP, 0;
 	mes "[Jason]";

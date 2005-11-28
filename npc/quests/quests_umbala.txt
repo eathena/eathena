@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= sabernet09 & eAthena Team
 //===== Current Version: ===================================== 
-//= 1.5
+//= 1.6
 //===== Compatible With: ===================================== 
 //= eAthena 7.15 +
 //===== Description: ========================================= 
@@ -17,8 +17,8 @@
 //=	  you can interact with activated Sphinx Mask Quest
 //=	- with Wise Man Fabius you can learn Umbalian Language
 //=	  in alternative way.
-//= TODO: Put WEREWOLF in Umbla - and add some conditions to
-//=	  the Dungeon entrance quest
+//= 1.6 Fixed bugs [Lupus]
+//= TODO: should I add a jRO Werewolf Quest? 8)
 //============================================================ 
 
 
@@ -33,47 +33,47 @@ morocc.gat,140,156,5	script	Turban Thief	58,{
 	next;
 	mes "[Turban Thief]";
 	mes "Wah? O ho ho ho, so you know thaz I steal dis from those savages no?  Well I won'tz give it back.  But I will for a pricez... wat you say?";
-	menu "Pay 1,000,000z",MonA,"No deal",NoGo;
-	MonA:
-		next;
+	next;
+	menu "Pay 1,000,000z",-,"No deal",NoGo;
+
 		if(Zeny < 1000000) goto NotEnough;
+		set Zeny,Zeny-1000000;
 		mes "[Turban Thief]";
 		mes "O ho ho, its a deal then!";
-		set zeny,zeny-1000000;
 		getitem 7114,1;//Items: Sphinx Mask,
 		set mask_q,2;
 		close;
+
 	NoGo:
-		next;
 		mes "[Turban Thief]";
 		mes "Ahh a business man are you no?  Fine, how about...";
-		menu "Pay 750,000",MonB,"Nope lower",NoGoB;
-		MonB:
-			next;
+		next;
+		menu "Pay 750,000",-,"Nope lower",NoGoB;
+
 			if(Zeny < 750000) goto NotEnough;
+			set Zeny,Zeny-750000;
 			mes "[Turban Thief]";
 			mes "It is a done deal, no refunds!";
-			set zeny,zeny-750000;
 			getitem 7114,1;//Items: Sphinx Mask,
 			set mask_q,2;
 			close;
 		NoGoB:
 			mes "[Turban Thief]";
 			mes "Hmmm... you drive a hard bargain, ok... my final offer...";
-			menu "Pay 500,000",MonC,"It can go lower than that.",NoGoC;
-			MonC:
-				next;
+			next;
+			menu "Pay 500,000",-,"It can go lower than that.",NoGoC;
+
 				if(Zeny < 500000) goto NotEnough;
+				set Zeny,Zeny-500000;
 				mes "[Turban Thief]";
 				mes "Alright, here you go then...";
-				set zeny,zeny-500000;
 				getitem 7114,1;//Items: Sphinx Mask,
-				set mask_q,2;
 				close;
 			NoGoC:
 				next;
 				mes "[Turban Thief]";
 				mes "Ack!  Forgez it!  I can do bettaz en elsez where!";
+				set mask_q,2;
 				close;
 	NoBus:
 		mes "[Turban Thief]";
@@ -193,8 +193,10 @@ amatsu.gat,267,189,4	script	Marie	744,{
 	if(umb_lang==2 || umb_marie==1) goto L_AGAIN;
 	if(countitem(9001)>0 && countitem(643)>0) goto L_DONE;//Items: Poring Egg, Pet Incubator,
 	mes "Hello, is there something you need?";
+	next;
 	menu "No nothing at all.",M_NO,"Your teacher sent me.",-;
 
+	mes "[Marie]";
 	mes "What does he want from me?";
 	emotion 1;
 	next;
@@ -206,22 +208,29 @@ L_NOT_GOT_QUEST:
 	emotion 1;
 	mes "Hi! What do you want from me?";
 	close;
+
 M_NO:
+	mes "[Marie]";
 	mes "Hrrmm okay? Cya then..";
 	close;
+
 L_DONE:
 	mes "Heyyy there, you have a poring egg and the pet incubator to go with it! Are those for me?";
 	menu "Yep!",-, "Sorry, no.",M_DOH;
 
+	mes "[Marie]";
+	if(countitem(9001)==0 && countitem(643)==0) goto M_DOH;//Items: Poring Egg, Pet Incubator,
 	mes "Yatta!  Here's a lil something in return.";
-	getitem 7118,1;//Items: Torn Scroll,
 	delitem 9001,1;//Items: Poring Egg,
 	delitem 643,1;//Items: Pet Incubator,
+	getitem 7118,1;//Items: Torn Scroll,
 	set umb_marie,1; //got Torn Scroll
 	close;
+
 M_DOH:
 	mes "O pooo... sigh...";
 	close;
+
 L_AGAIN:
 	emotion 15;
 	mes "Yay! I love Porings!";

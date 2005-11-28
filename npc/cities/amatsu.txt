@@ -358,11 +358,11 @@ LStart2:
 	mes "You must help me find them!";
 	close;
 Lok:
+	delitem 964,10;
+	getitem 551,20;
 	mes "[ShabuShabu]";
 	mes "Hmm! Thank you so much";
 	next;
-	delitem 964,10;
-	getitem 551,20;
 	mes "[ShabuShabu]";
 	mes "Here is my thanks, take it!";
 	set ama_sushi,0;

@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.3
+//= 1.4
 //===== Compatible With: ===================================== 
 //= eAthena 1.0
 //===== Description: ========================================= 
@@ -16,6 +16,7 @@
 //= Fully working
 //= 1.1 Fixed Spore Doll exploit [Lupus], 1.2 Gramp's Tiger skin label bug
 //= 1.3 Fixed item ID 7031 -> 7013
+//= 1.4 Fixed a bug, Fixed Exploits, Optimized [Lupus]
 //============================================================ 
 
 
@@ -35,9 +36,8 @@ alberta.gat,117,134,8	script	Elin	96,{
 	mes "[Elin]";
 	mes "Ya know..... I REALLY, REALLY, want a new doll.  I hope daddy is going to buy me one for my birthday.....";
 	next;
-	menu "Aww, you must be happy...",M_1,"How about I give you one now?",M_2;
+	menu "Aww, you must be happy...",-,"How about I give you one now?",M_2;
 
-	M_1:
 		mes "[Elin]";
 		mes "Yeah, this time I'm hoping for a Yoyo doll.  Hehe, they're so cute! They're my FAVORITE!";
 		emotion 33;
@@ -48,10 +48,9 @@ alberta.gat,117,134,8	script	Elin	96,{
 		mes "What kinda doll are you going to give me? Are you really gonna give me one?";
 		emotion 0;
 		next;
-		menu "Puppet",sM_1,"Poring doll",sM_2,"Chonchon doll",sM_3,"Rocker doll",sM_4, "Spore doll",sM_5,
+		menu "Puppet",-,"Poring doll",sM_2,"Chonchon doll",sM_3,"Rocker doll",sM_4, "Spore doll",sM_5,
 		           "Osiris doll",sM_6,"Baphomet doll",sM_7,"Racoon doll",sM_8,"Yoyo doll",sM_9, "I am as adorable as a doll!",sM_10;
 		
-		sM_1:
 			if(countitem(740) < 1) goto L_Liar;
 			delitem 740,1;
 			mes "[Elin]";
@@ -75,7 +74,6 @@ alberta.gat,117,134,8	script	Elin	96,{
 			emotion 15;
 			close;
 
-
 		sM_2:
 			if(countitem(741) < 1) goto L_Liar;
 			delitem 741,1;
@@ -88,7 +86,6 @@ alberta.gat,117,134,8	script	Elin	96,{
 			mes "Thank you for the doll!";
 			emotion 15;
 			close;
-
 
 		sM_3:
 			if(countitem(742) < 1) goto L_Liar;
@@ -299,9 +296,8 @@ alberta_in.gat,28,145,4	script	Grampa	120,{
 		mes "[Grampa]";
 		mes "It is the real Tiger's Footskin !! In my wildest dreams I never thought...... P-P-Please.... I beg you.... let me have it.....";
 		next;
-		menu "-Give him the Tiger's Footskin.", sM_Give, "Walk away.", sM_End;
+		menu "-Give him the Tiger's Footskin.",-, "Walk away.", sM_End;
 
-		sM_Give:
 			mes "[Grampa]";
 			if(countitem(1030) < 10) goto L_NoItems;
 			delitem 1030,10;
@@ -354,9 +350,8 @@ alberta_in.gat,122,53,4	script	Cherokee	47,{
 	mes "Say.... do you have any ^5555FF'Evil Horns'^000000?";
 	mes "If you offer me ^5533FF20 Evil Horns^000000, I will give you my precious and famed, ^FF3355'Antlers'^000000.  Is it a deal?";
 	next;
-	menu "You got it!",M_0, "Shut up Dumbo.",M_End;
+	menu "You got it!",-, "Shut up Dumbo.",M_End;
 
-	M_0:
 		mes "[Cherokee]";
 		if(countitem(923) < 20) goto L_NotEnuf;
 		delitem 923,20;
@@ -401,9 +396,8 @@ alberta.gat,120,53,3	script	Zic	51,{
 	mes "[Zic]";
 	mes "So what do you wanna get? Tell me, tell me! It's so easy to guess what you want.....";
 	next;
-	menu "-Bao Bao",M_0, "-Cresent Hairpin",M_1, "-Fashionable Glasses",M_2, "-Heart Hairpin",M_3;
+	menu "-Bao Bao",-, "-Cresent Hairpin",M_1, "-Fashionable Glasses",M_2, "-Heart Hairpin",M_3;
 
-	M_0:
 		mes "[Zic]";
 		mes "To make a Bao Bao I will need:";	//5042
 		mes "- ^5555FF1 Silk Ribbon^000000,";	//10007
@@ -412,9 +406,8 @@ alberta.gat,120,53,3	script	Zic	51,{
 		mes "[Zic]";
 		mes "Would you like me to make you one?";
 		next;
-		menu "Sure.",sM_0a, "No thanks.",M_End;
+		menu "Sure.",-, "No thanks.",M_End;
 
-		sM_0a:
 			if (countitem(10007)<1 || countitem(968)<50) goto sL_NotEnuf;
 			delitem 10007, 1;
 			delitem 968, 50;
@@ -434,9 +427,8 @@ alberta.gat,120,53,3	script	Zic	51,{
 		mes "[Zic]";
 		mes "Would you like me to make you one?";
 		next;
-		menu "Sure.",sM_1a, "No thanks.",M_End;
+		menu "Sure.",-, "No thanks.",M_End;
 
-		sM_1a:
 			if (countitem(5041)<1 || countitem(999)<10) goto sL_NotEnuf;
 			delitem 5041, 1;
 			delitem 999, 10;
@@ -456,9 +448,8 @@ alberta.gat,120,53,3	script	Zic	51,{
 		mes "[Zic]";
 		mes "Would you like me to make you one?";
 		next;
-		menu "Sure.",sM_2a, "No thanks.",M_End;
+		menu "Sure.",-, "No thanks.",M_End;
 
-		sM_2a:
 			if (countitem(2271)<1 || countitem(975)<1) goto sL_NotEnuf;
 			delitem 2271, 1;
 			delitem 975, 1;
@@ -478,9 +469,8 @@ alberta.gat,120,53,3	script	Zic	51,{
 		mes "[Zic]";
 		mes "Would you like me to make you one?";
 		next;
-		menu "Sure.",sM_3a, "No thanks.",M_End;
+		menu "Sure.",-, "No thanks.",M_End;
 
-		sM_3a:
 			if (countitem(7013)<1200) goto sL_NotEnuf;
 			delitem 7013, 1200;
 			mes "[Zic]";
@@ -518,10 +508,10 @@ alberta.gat,135,79,3	script	Tempestra	71,{
 	mes "[Tempestra]";
 	mes "Boy, the heat is making me thirsty.  Nothing would be better right now, than sipping on a perfectly chilled yellow potion.....";
 	next;
-	menu "Here you go, my treat.",M_0, "Then go get one, sheesh....",M_1;
+	menu "Here you go, my treat.",-, "Then go get one, sheesh....",M_1;
 
-	M_0:
 		if(countitem(503) < 1) goto L_NoPot;
+		delitem 503, 1;
 		set TEMPESTRA, 1;
 		mes "[Tempestra]";
 		mes "Oooh! Thank you so much.  I'm so glad to meet such a friendly person here....";
@@ -532,11 +522,10 @@ alberta.gat,135,79,3	script	Tempestra	71,{
 		next;
 		mes "[Tempestra]";
 		mes "Hyaaaaaaa!! It's sooo cold!! Thank you.";
-		sM_Menu:
+	sM_Menu:
 		next;
-		menu "The weather is really hot, isn't it...",sM_0, "You should wear a hat.",sM_1;
+		menu "The weather is really hot, isn't it...",-, "You should wear a hat.",sM_1;
 
-		sM_0:
 			mes "[Tempestra]";
 			mes "Yes, it's very hot indeed.....";
 			next;
@@ -549,11 +538,10 @@ alberta.gat,135,79,3	script	Tempestra	71,{
 			mes "[Tempestra]";
 			mes "I brought these hats with me so that I could sell them and use the money I made for my vacation expenses....";
 			mes "but now it looks like I'll have to wear one.....";
-			ssM_Menu:
+		ssM_Menu:
 			next;
-			menu "Sunday Hat?",ssM_0a, "Mage Hat?",ssM_0b, "Magician Hat?",ssM_0c, "End Conversation.",ssM_End;
+			menu "Sunday Hat?",-, "Mage Hat?",ssM_0b, "Magician Hat?",ssM_0c, "End Conversation.",ssM_End;
 
-			ssM_0a:
 				mes "[Tempestra]";
 				mes "A Sunday Hat is made up of:";
 				mes "- ^5555FF250 Fabric^000000,";
@@ -561,18 +549,18 @@ alberta.gat,135,79,3	script	Tempestra	71,{
 				mes "- ^5555FF1 Slotted Cap^000000,";
 				mes "- ^5555FF600 Soft Feathers^000000.";
 				mes "If you want, I can make one for you.  Just bring me all of those items.";
-				if (countitem(1059)<250 || countitem(2221)<1 || countitem(2227)<1 || countitem(7063)<600) goto ssM_Menu;
 				next;
 				menu "Make one for me.",-, "Cancel",ssM_End;
 
-					mes "[Tempestra]";
-					mes "Please wait just a moment while I make it........";
-					next;
-					getitem 5032, 1;
+					if (countitem(1059)<250 || countitem(2221)<1 || countitem(2227)<1 || countitem(7063)<600) goto ssM_Menu;
 					delitem 1059, 250;
 					delitem 2221, 1;
 					delitem 2227, 1;
 					delitem 7063, 600;
+					mes "[Tempestra]";
+					mes "Please wait just a moment while I make it........";
+					next;
+					getitem 5032, 1;
 					mes "[Tempestra]";
 					mes "All done... one Sunday Hat just for you.  Thank you and come back any time.";
 					emotion 15;
@@ -585,18 +573,18 @@ alberta.gat,135,79,3	script	Tempestra	71,{
 				mes "- ^5555FF50 Mould Powder^000000,";
 				mes "- ^5555FF1 Elder Wilow Card^000000.";
 				mes "If you want, I can make one for you.  Just bring me all of those items.";
-				if (countitem(2252)<1 || countitem(1036)<400 || countitem(7001)<50 || countitem(4052)<1) goto ssM_Menu;
 				next;
 				menu "Make one for me.",-, "Cancel",ssM_End;
 
-					mes "[Tempestra]";
-					mes "Please wait just a moment while I make it........";
-					next;
-					getitem 5027, 1;
+					if (countitem(2252)<1 || countitem(1036)<400 || countitem(7001)<50 || countitem(4052)<1) goto ssM_Menu;
 					delitem 2252, 1;
 					delitem 1036, 400;
 					delitem 7001, 50;
 					delitem 4052, 1;
+					mes "[Tempestra]";
+					mes "Please wait just a moment while I make it........";
+					next;
+					getitem 5027, 1;
 					mes "[Tempestra]";
 					mes "All done... one Mage Hat just for you.  Thank you and come back any time.";
 					emotion 15;
@@ -608,17 +596,17 @@ alberta.gat,135,79,3	script	Tempestra	71,{
 				mes "- ^5555FF450 Ancient Lips^000000,";
 				mes "- ^5555FF1200 Solid Shells^000000,";
 				mes "If you want, I can make one for you.  Just bring me all of those items.";
-				if (countitem(2252)<1 || countitem(1054)<450 || countitem(943)<1200) goto ssM_Menu;
 				next;
 				menu "Make one for me.",-, "Cancel",ssM_End;
 
+					if (countitem(2252)<1 || countitem(1054)<450 || countitem(943)<1200) goto ssM_Menu;
+					delitem 2252, 1;
+					delitem 1054, 450;
+					delitem 943, 1200;
 					mes "[Tempestra]";
 					mes "Please wait just a moment while I make it........";
 					next;
 					getitem 5045, 1;
-					delitem 2252, 1;
-					delitem 1054, 450;
-					delitem 943, 1200;
 					mes "[Tempestra]";
 					mes "All done... one Magician just for you.  Thank you and come back any time.";
 					emotion 15;
@@ -644,19 +632,18 @@ alberta.gat,135,79,3	script	Tempestra	71,{
 			mes "[Tempestra]";
 			mes "I can make you a ^5555FF'Hat of the Sun God'^000000!! It's a fantastic piece of work! How's that sound?";
 			next;
-			menu "Alright.",ssM_1a, "Not right now thanks.",ssM_1b;
+			menu "Alright.",-, "Not right now thanks.",ssM_1b;
 
-			ssM_1a:
 				if(countitem(7086)<1 || countitem(969)<10 || countitem(999)<40 || countitem(1003)<50 || countitem(984)<2) goto ssL_NotEnuf;
-				mes "[Tempestra]";
-				mes "Please wait just a moment while I make it........";
-				next;
-				getitem 5022, 1;
 				delitem 7086, 1;
 				delitem 969, 10;
 				delitem 999, 40;
 				delitem 1003, 50;
 				delitem 984, 2;
+				mes "[Tempestra]";
+				mes "Please wait just a moment while I make it........";
+				next;
+				getitem 5022, 1;
 				mes "[Tempestra]";
 				mes "All done... one Hat of the Sun God just for you.  Thank you again for the potion, and please come back any time.";
 				emotion 15;

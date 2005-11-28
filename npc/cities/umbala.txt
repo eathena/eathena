@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= jAthena (1.0) Fusion Dev Team (1.1) Muad Dib (1.2) Darkchild (1.3)
 //===== Current Version: =====================================
-//= 1.6
+//= 1.7
 //===== Compatible With: =====================================
 //= Any eAthena Version; RO Episode XX
 //===== Description: =========================================
@@ -27,6 +27,7 @@
 //= 1.4 - Fixed some wrong item names [Lupus]
 //= 1.5 – Spell Checked [massdriller]
 //= 1.6 - Fixed item names, added a chance to get to Niflheim via Jumping Bungy Area [Lupus]
+//= 1.7 Fixed bugs and exploits [Lupus]
 //============================================================
 
 
@@ -372,11 +373,11 @@ if(event_umbala < 3) goto LumWord;
 	next;
 	menu "Sure",-,"No way!",L2;
 	if(countitem(517) < 1) goto LError;//Items: Meat,
+		delitem 517,1;//Items: Meat,
 		mes "[Kotan]";
 		mes "Hey, thanks!";
 		mes "Take these!";
 		emotion 10;
-		delitem 517,1;//Items: Meat,
 		getitem 909,2;//Items: Jellopy,
 		getitem 914,2;//Items: Fluff,
 		getitem 705,2;//Items: Clover,
@@ -405,11 +406,11 @@ LumWord:
 	next;
 	menu "Umba",-,"Umbabu",Lu2;
 	if(countitem(517) < 1) goto LuError;//Items: Meat,
+		delitem 517,1;//Items: Meat,
 		mes "[???]";
 		mes "Umbaumbaumbababa.";
 		mes "Umbababauma.";
 		emotion 10;
-		delitem 517,1;//Items: Meat,
 		getitem 909,2;//Items: Jellopy,
 		getitem 914,2;//Items: Fluff,
 		getitem 705,2;//Items: Clover,
@@ -781,6 +782,10 @@ LStart3:
 	mes "you Utan tribal language.";
 	close;
 Lchkok:
+	delitem 7151,10;//Items: Oiled Paper,
+	delitem 7111,5;//Items: String Paper,
+	delitem 1024,1;//Items: Squid Ink,
+	delitem 916,1;//Items: Feather of Birds,
 	mes "[Karukatan]";
 	mes "Good.  You've prepared all the";
 	mes "necessary materials.  Now, I can";
@@ -804,10 +809,6 @@ Lchkok:
 	mes "Try talking to others in the Utan";
 	mes "tribe.  They'll warm up to your quickly";
 	mes "now that you speak the language.";
-	delitem 7151,10;//Items: Oiled Paper,
-	delitem 7111,5;//Items: String Paper,
-	delitem 1024,1;//Items: Squid Ink,
-	delitem 916,1;//Items: Feather of Birds,
 	set event_umbala,3;
 	next;
 	mes "[Karukatan]";
@@ -865,13 +866,13 @@ LStart6:
 	mes "a good mood, also.";
 	close;
 Lsmileok:
+	delitem 2278,1;//Items: Mr. Smile,
 	mes "[Karukatan]";
 	mes "Ahh!  It's a Smile Mask!";
 	mes "I would really like to put this";
 	mes "on just once, but I promised to";
 	mes "give this to Putsuchiritan as";
 	mes "a gift.";
-	delitem 2278,1;//Items: Mr. Smile,
 	set event_umbala,6;
 	next;
 	mes "[Karukatan]";
@@ -1022,6 +1023,7 @@ L1:
 		mes "Damtsuha Ombabaraka! Unba! Shi!";
 		mes "Sukatamba Aburumba! Umba! Shi!";
 		next;
+		if (countitem(@umchange[1])<@umchange[2]) goto L1_cancel;
 		delitem @umchange[1],@umchange[2];
 		getitem @umchange[3],@umchange[4];
 		mes "[Putsuchiritan]";
@@ -1146,6 +1148,7 @@ L2:
 		mes "Onbaruzu Zan Kata!  Unba Ka!";
 		mes "Kan Tsun Rakarakan!  Unba!  Ha!";
 		next;
+		if (countitem(@umchange[1])<@umchange[2]) goto L1_cancel;
 		delitem @umchange[1],@umchange[2];
 		getitem @umchange[3],@umchange[4];
 		mes "[Putsuchiritan]";

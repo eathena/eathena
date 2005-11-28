@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.3
+//= 1.4
 //===== Compatible With: ===================================== 
 //= eAthena 7.15 +
 //===== Description: ========================================= 
@@ -17,8 +17,8 @@
 //= class checks.[kobra_k88]
 //= 1.2 Added Baby Class Support [Lupus]
 //= 1.3 Removed callfunc Is_####_Class in favor of baseClass [Silentdragon]
+//= 1.4 Fixed exploit [Lupus]
 //============================================================ 
-
 
 
 
@@ -175,6 +175,8 @@ M_Menu:
 L_Sand:
 	if (countitem(7041)<5 || countitem(7042)<1) goto L_NotRdy1;
 	if (BaseJob==Job_Thief && JobLevel<25) goto L_LowLvl1;
+	delitem 7041, 5;
+	delitem 7042, 1;
 	mes "Alright, you've got all the items.  Now its time to learn.... the... ultimate.... attack.... Sand Attack!!!";
 	next;
 	mes "[Alcouskou]";
@@ -197,8 +199,6 @@ L_Sand:
 	mes "[Alcouskou]";
 	mes "Oh and it does Earth Property damage....... (I gota finda better way to teach this).........";
 	emotion 4;
-	delitem 7041, 5;
-	delitem 7042, 1;
 	skill 149,1,0;
 	set SANDATTACK, 0;
 	set BAGNFNTY, 0;
@@ -222,6 +222,7 @@ L_Sand:
 L_Back:
 	if (countitem(940)<20) goto L_NotRdy2;
 	if (BaseJob==Thief && JobLevel<35) goto L_LowLvl2;
+	delitem 940,20;
 	mes "Great, you have the grasshopper legs.  While you were collecting them I'm sure you picked up on many of the characteristics of grasshoppers.";
 	next;
 	mes "[Alcouskou]";
@@ -238,7 +239,6 @@ L_Back:
 	next;
 	mes "[Alcouskou]";
 	mes "Ah! You've got it.  Just like a pro.  With this skill being overwhelmed by mobs is a thing of the past.";
-	delitem 940,20;
 	skill 150,1,0;
 	set BACKSLIDE, 0;
 	close;
@@ -255,6 +255,9 @@ L_Back:
 
 L_Find:
 	if (countitem(912)<1 || countitem(948)<1 || countitem(908)<5) goto L_NotRdy3;
+	delitem 912,1;
+	delitem 948,1;
+	delitem 908,5;
 	mes "Ah! I see that you're fully prepared to learn this skill.  Let us begin....";
 	next;
 	mes "[Alcouskou]";
@@ -269,9 +272,6 @@ L_Find:
 	mes "[Alcouskou]";
 	mes "Very good.  You have chosen some fine stones.  This tells me that you have now perfected the Find Stone skill.";
 	emotion 21;
-	delitem 912,1;
-	delitem 948,1;
-	delitem 908,5;
 	skill 151,1,0;
 	set FINDSTONE, 0;
 	next;
@@ -289,6 +289,8 @@ L_Find:
 L_Fling:
 	if (getskilllv(151) == 0) goto L_NotRdy4;
 	if ((countitem(910)<2) || (countitem(911)<2)) goto L_NotRdy4;
+	delitem 910,2;
+	delitem 911,2;
 	mes "Good! You look like your ready for me to teach you the Stone Fling skill.  Let us begin....";
 	next;
 	mes "[Alcouskou]";
@@ -311,8 +313,6 @@ L_Fling:
 	mes "[Alcouskou]";
 	mes "Haha! Excellent! It's a bullseye.  You have now masterd Stone Fling, congratulations.";
 	emotion 21;
-	delitem 910,2;
-	delitem 911,2;
 	skill 152,1,0;
 	set STONEFLING, 0;
 	next;
@@ -369,6 +369,10 @@ L_Check:
 	mes "Nice to see you again.  Do you have all of the items? Lets see........";
 	next;
 	if(countitem(904)<5 || countitem(1025)<1 || countitem(952)<1 || countitem(1055)<1) goto L_List;
+	delitem 904, 5;
+	delitem 1025, 1;
+	delitem 952, 1;
+	delitem 1055, 1;
 	mes "[RuRumuni]";
 	mes "Great you have everything I asked for.  Let me start making the bag right away.......";
 	next;
@@ -377,10 +381,6 @@ L_Check:
 	mes "[RuRumuni]";
 	mes "Here you go, one Leather Bag of Infinity.  Enjoy!";
 	getitem 7042, 1;
-	delitem 904, 5;
-	delitem 1025, 1;
-	delitem 952, 1;
-	delitem 1055, 1;
 	set BAGNFNTY, 2;
 	close;
 }

@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.0 
+//= 1.1
 //===== Compatible With: ===================================== 
 //= eAthena 7.15 +
 //===== Description: ========================================= 
@@ -11,7 +11,7 @@
 //= 'Mine Helmet', 'Parcel Hat', 'Money Loser's Grief',
 //= 'Phantom of the Opera Mask' Quests.
 //===== Additional Comments: ================================= 
-//= Fully working
+//= 1.1 Fixed exploits [Lupus]
 //============================================================ 
 
 
@@ -30,9 +30,8 @@ comodo.gat,227,158,4	script	Hair Ornament Girl	700,{
 	mes "Just by bringing me a few simple items, I can make you a gorgeous Hair Band!  Here, take a look at these....";
 M_Menu:
 	next;
-	menu "-Crosss Hat Hairband",M_Cross, "-Bulb Hairband",M_Bulb, "-Striped Hairband",M_Striped, "-Blue Hairband",M_Blue, "-End Conversation",M_End;
+	menu "-Crosss Hat Hairband",-, "-Bulb Hairband",M_Bulb, "-Striped Hairband",M_Striped, "-Blue Hairband",M_Blue, "-End Conversation",M_End;
 
-	M_Cross:
 		set @BAND$, "Cross Hat Hairband";
 		set @ITEMS$, " ^5555FF1 Rosary^000000 and ^5555FF500 Destroyed Armors^000000.";
 		if (countitem(2608)>=1 && countitem(7069)>=500) set @GETBAND, 1;
@@ -70,29 +69,32 @@ M_Menu:
 			mes "[Hair Ornament Girl]";
 			mes "I see that you have enough items for a "+@BAND$+".  Would you like me to make you one?";
 			next;
-			menu "Yes, I would.",sM_Yes, "No thank you.",M_End;
+			menu "Yes, I would.",-, "No thank you.",M_End;
 
-			sM_Yes:
 				if (@GETBAND == 1) goto ssL_Cross;
 				if (@GETBAND == 2) goto ssL_Bulb;
 				if (@GETBAND == 3) goto ssL_Striped;
 				if (@GETBAND == 4) goto ssL_Blue;
 
 				ssL_Cross:
+					if (countitem(2608)<1 || countitem(7069)<500) goto L_Cheater;
 					delitem 2608,1;
 					delitem 7069,500;
 					getitem  5036,1;
 					goto ssL_End;
 				ssL_Bulb:
+					if (countitem(2233)<1 || countitem(746)<20) goto L_Cheater;
 					delitem 2233,1;
 					delitem 746,20;
 					getitem 5034,1;
 					goto ssL_End;
 				ssL_Striped:
+					if (countitem(1099)<1500) goto L_Cheater;
 					delitem 1099,1500;
 					getitem 5049,1;
 					goto ssL_End;
 				ssL_Blue:
+					if (countitem(2211)<1 || countitem(978)<1 || countitem(7003)<300) goto L_Cheater;
 					delitem 2211,1;
 					delitem 978,1;
 					delitem 7003,300;
@@ -102,12 +104,15 @@ M_Menu:
 					mes "Here is your "+@BAND$+".  Thank you.";
 					set @GETBAND, 0;
 					close;
+	L_Cheater:
+		mes "[Hair Ornament Girl]";
+		mes "Ooops... Where are these items?";
+		close;
 
 	M_End:
 		mes "[Hair Ornament Girl]";
 		mes "Hope to see you again soon.";
 		close;
-
 }
 
 
@@ -128,9 +133,8 @@ M_Menu:
 	menu "Tell me about them.",M_0, "Make me one.",M_1;
 
 	M_0:
-		menu "-Mine Helmet",sM_Mine, "-Parcel Hat",sM_Parcel, "-Money Loser's Grief",sM_Money, "-Phantom of the Opera Mask",sM_Phantom;
+		menu "-Mine Helmet",-, "-Parcel Hat",sM_Parcel, "-Money Loser's Grief",sM_Money, "-Phantom of the Opera Mask",sM_Phantom;
 
-		sM_Mine:
 			mes "[Mari Isac]";
 			mes "I learned how to make the Mine Helmet when I traveled to the old coal mines near Geffen.";
 			next;
@@ -226,50 +230,48 @@ M_Menu:
 			goto M_0;
 
 	M_1:
-		menu "-Mine Helmet",sM_MakeMine, "-Parcel Hat",sM_MakePar, "-Money Loser's Grief",sM_MakeMon, "-Phantom of the Opera Mask",sM_MakePhan;
+		menu "-Mine Helmet",-, "-Parcel Hat",sM_MakePar, "-Money Loser's Grief",sM_MakeMon, "-Phantom of the Opera Mask",sM_MakePhan;
 
-		sM_MakeMine:
 			if (countitem(5009)<1 || countitem(5028)<1 || countitem(747)<1 || countitem(999)<25) goto ssL_NoItems;
-			mes "[Mari Isac]";
-			mes "Here you go.  Enjoy your Mine Helmet!";
 			delitem 5009, 1;
 			delitem 5028, 1;
 			delitem 747, 1;
 			delitem 999, 25;
+			mes "[Mari Isac]";
+			mes "Here you go.  Enjoy your Mine Helmet!";
 			getitem 5031,1;
 			close;
 		sM_MakePar:
 			if (countitem(1059)<150 || countitem(907)<100 || countitem(978)<1) goto ssL_NoItems;
-			mes "[Mari Isac]";
-			mes "Here you go.  Enjoy your Parcel Hat!";
 			delitem 1059, 150;
 			delitem 907, 100;
 			delitem 978, 1;
+			mes "[Mari Isac]";
+			mes "Here you go.  Enjoy your Parcel Hat!";
 			getitem 5023,1;
 			close;
 		sM_MakeMon:
 			if (countitem(2233)<1 || countitem(969)<1 || countitem(999)<20 || countitem(949)<80 || countitem(938)<800) goto ssL_NoItems;
-			mes "[Mari Isac]";
-			mes "Here you go.  Enjoy your Money Loser's Grief!";
 			delitem 2233, 1;
 			delitem 969, 1;
 			delitem 999, 20;
 			delitem 949, 80;
 			delitem 938, 800;
+			mes "[Mari Isac]";
+			mes "Here you go.  Enjoy your Money Loser's Grief!";
 			getitem 5021,1;
 			close;
 		sM_MakePhan:
 			if (countitem(2281)<1 || countitem(1048)<50) goto ssL_NoItems; 
-			mes "[Mari Isac]";
-			mes "Here you go.  Enjoy your Phantom of the Opera Mask!";
 			delitem 2281,1;
 			delitem 1048, 50;
+			mes "[Mari Isac]";
+			mes "Here you go.  Enjoy your Phantom of the Opera Mask!";
 			getitem 5043, 1;
 			close;
 
-			ssL_NoItems:
-				mes "[Mari Isac]";
-				mes "You don't seem to have enough items for me to make that hat.  Please come back when you do.";
-				close;
-
+		ssL_NoItems:
+			mes "[Mari Isac]";
+			mes "You don't seem to have enough items for me to make that hat.  Please come back when you do.";
+			close;
 }

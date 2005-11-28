@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= Reddozen
 //===== Current Version: ===================================== 
-//= 1.4
+//= 1.5
 //===== Compatible With: ===================================== 
 //= eAthena 1.0+
 //===== Description: ========================================= 
@@ -17,6 +17,7 @@
 //= dialogues [Lupus]
 //= 1.4 Fixed spelling, added some dialoguesm optimized
 //= fixed bugs. Tested, fully working [Lupus]
+//= 1.5 More fixes [Lupus]
 //============================================================ 
 
 prt_castle.gat,43,30,6	script	Chef Apprentice	878,{
@@ -114,16 +115,16 @@ prt_castle.gat,43,30,6	script	Chef Apprentice	878,{
 			&& countitem(12041)
 			&& countitem(12051)) {//Items: Frog Spawn Soup, Grape Juice with Honey, Grape Juice and Tea, Fried Monkey Tail, Boiled Locust, Steamed Crab Pincer,
 
-			mes "What!? Through already?";
-			mes "Let me see what you've made";
-			next;
-
 			delitem 12056, 1;//Items: Frog Spawn Soup,
 			delitem 12061, 1;//Items: Grape Juice with Honey,
 			delitem 12046, 1;//Items: Grape Juice and Tea,
 			delitem 12066, 1;//Items: Fried Monkey Tail,
 			delitem 12041, 1;//Items: Boiled Locust,
 			delitem 12051, 1;//Items: Steamed Crab Pincer,
+
+			mes "What!? Through already?";
+			mes "Let me see what you've made";
+			next;
 
 			mes "[Chef's Apprentice]";
 			mes "Great job, but there's";
@@ -295,9 +296,9 @@ payon.gat,209,127,4	script	Cooking Friend	88,{
 	mes "[Cooking Friend]";
 	if(cooking == 5){
 		if(countitem(7432)) {
+			delitem 7432, 1;//Items: Leather Pouch,
 			mes "I see my friend sent you";
 			mes "to give me something.";
-			delitem 7432, 1;//Items: Leather Pouch,
 			set cooking, 6;
 			emotion e_thx;
 		} else {
@@ -418,10 +419,10 @@ prt_castle.gat,45,35,4	script	Sharle	886,{
 
 		if(countitem(@item1) < @item1a || countitem(@item2) < @item2a || countitem(@item3) < @item3a) close;
 
-		next;
 		delitem @item1, @item1a;
 		delitem @item2, @item2a;
 		delitem @item3, @item3a;
+		next;
 		set cooking, 2;
 
 		mes "[Sharle]";
@@ -465,12 +466,11 @@ prt_castle.gat,45,35,4	script	Sharle	886,{
 		mes "10 Pumpkins";
 		next;
 		if(countitem(535) < 10) goto L_No_Items;//Items: Pumpkin,
+		delitem 535, 10;//Items: Pumpkin,
+		set @checkout, 7472;
 		mes "And I see you have";
 		mes "what you need!";
 		next;
-		
-		delitem 535, 10;//Items: Pumpkin,
-		set @checkout, 7472;
 		goto b_trade;
 
 	b_2:
@@ -479,12 +479,11 @@ prt_castle.gat,45,35,4	script	Sharle	886,{
 		mes "5 well-baked cookies";
 		next;
 		if(countitem(538) < 5) goto L_No_Items;//Items: Well-baked Cookie,
+		delitem 538, 5;//Items: Well-baked Cookie,
+		set @checkout, 7473;
 		mes "And I see you have";
 		mes "what you need!";
 		next;
-
-		delitem 538, 5;//Items: Well-baked Cookie,
-		set @checkout, 7473;
 		goto b_trade;
 
 	b_3:
@@ -493,12 +492,11 @@ prt_castle.gat,45,35,4	script	Sharle	886,{
 		mes "5 Sushi";
 		next;
 		if(countitem(551) < 5) goto L_No_Items;//Items: Sushi,
+		delitem 551, 5;//Items: Sushi,
+		set @checkout, 7474;
 		mes "And I see you have";
 		mes "what you need!";
 		next;
-
-		delitem 551, 5;//Items: Sushi,
-		set @checkout, 7474;
 		goto b_trade;
 
 	b_4:
@@ -507,12 +505,11 @@ prt_castle.gat,45,35,4	script	Sharle	886,{
 		mes "5 Dumplings";
 		next;
 		if(countitem(553) < 5) goto L_No_Items;//Items: Dumpling,
+		delitem 553, 5;//Items: Dumpling,
+		set @checkout, 7475;
 		mes "And I see you have";
 		mes "what you need!";
 		next;
-
-		delitem 553, 5;//Items: Dumpling,
-		set @checkout, 7475;
 		goto b_trade;
 
 	b_5:
@@ -521,12 +518,11 @@ prt_castle.gat,45,35,4	script	Sharle	886,{
 		mes "10 shoots";
 		next;
 		if(countitem(711) < 10) goto L_No_Items;//Items: Shoot,
+		delitem 711, 10;//Items: Shoot,
+		set @checkout, 7476;
 		mes "And I see you have";
 		mes "what you need!";
 		next;
-
-		delitem 711, 10;//Items: Shoot,
-		set @checkout, 7476;
 		goto b_trade;
 
 	b_trade:
@@ -536,6 +532,12 @@ prt_castle.gat,45,35,4	script	Sharle	886,{
 		mes "trade.";
 
 		if(cook_book){
+			if(countitem(cook_book)==0){
+				mes "What? You don't have the book I loaned you?";
+				mes "It was a ^800000"+getitemname(cook_book)+"^000000.";
+				emotion e_sry;
+				close;
+			} 
 			delitem cook_book,1;
 			mes "Have fun, and good luck!";
 		} else {
@@ -566,6 +568,12 @@ prt_castle.gat,45,35,4	script	Sharle	886,{
 			close;
 		}
 
+		if(countitem(cook_book)==0){
+			mes "What? You don't have the book I loaned you?";
+			mes "It was a ^800000"+getitemname(cook_book)+"^000000.";
+			emotion e_sry;
+			close;
+		} 
 		delitem cook_book,1;
 		set cook_book, 0;
 		mes "[Sharle]";

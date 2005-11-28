@@ -1,7 +1,7 @@
 //===== eAthena Script =======================================
 //= Quest for Fashion Glasses (Daily Job Quest)
 //===== By: ==================================================
-//= ?
+//= 1.1 None
 //===== Current Version: =====================================
 //= Any
 //===== Compatible With: =====================================
@@ -10,6 +10,7 @@
 //= Quest for Fashion Glasses
 //===== Additional Comments: =================================
 //= 1.0 Fully Working [Lupus]
+//= 1.1 fixed exploit [Lupus]
 //============================================================
 
 izlude.gat,135,96,5	script	Fashion Glasses Quest	76,{
@@ -22,13 +23,12 @@ izlude.gat,135,96,5	script	Fashion Glasses Quest	76,{
 	mes "[Fashionable Glasses Quest]";
 	mes "Good good, let me just check"; 
 	if(countitem(2271)<1 || countitem(975)<1) goto M_NOITEMS;
-
+	delitem 2271,1;
+	delitem 975,1;
 	next;
 	mes "[Fashionable Glasses Quest]";
 	mes "Give me a second.....";
 	next;
-	delitem 2271,1;
-	delitem 975,1;
 	getitem 5047,1;
 	mes "[Fashionable Glasses Quest]";
 	mes "Ok done!";

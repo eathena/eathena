@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.3
+//= 1.4
 //===== Compatible With: ===================================== 
 //= eAthena 7.15 +
 //===== Description: ========================================= 
@@ -13,8 +13,8 @@
 //= 1.2 Added Baby Class Support [Lupus]
 //= 1.3 Fixed a Zeny exploit, made more variables clear
 //= on finishing quests. [Lupus]
+//= 1.4 Fixed exploits [Lupus]
 //============================================================ 
-
 
 
 
@@ -70,14 +70,14 @@ prt_in.gat,235,133,4	script	Nurse Aid	90,{
 			close;
 
 L_GetAid:
-	if((JobLevel <  3) || (CountItem(507) < 5 ) || (CountItem(705) < 5) || (CountItem(930) < 1)) goto sM_Yes;
+	if((JobLevel <  3) || (countitem(507) < 5 ) || (countitem(705) < 5) || (countitem(930) < 1)) goto sM_Yes;
+	delitem 507,5;
+	delitem 705,5;
+	delitem 930,1;
 	mes "Oh good.  You have everything needed for me to teach you first aid.  Here we go...";
 	next;
 	mes "....... 1 hour later.......";
 	next;
-	delitem 507,5;
-	delitem 705,5;
-	delitem 930,1;
 	skill 142,1,0;
 	set FIRSTAID,0;
 	set got_bandage,0;
@@ -173,6 +173,7 @@ L_Start:
 
 L_GetSkill:
 	if(countitem(7039)<1) goto sL_NotRdy;
+	delitem 7039, 1;
 	mes "Good to see you again.  Alright, lets start your training....";
 	next;
 	mes "[Bulma]";
@@ -199,7 +200,6 @@ L_GetSkill:
 	mes "With the right motivation and focus you will be able to play dead anywhere at any given moment.  Congratulations on mastering this skill.";
 	emotion 21;
 	skill 143,1,0;
-	delitem 7039, 1;
 	set PLAYDEAD, 0;
 	set got_novnametag,0;
 	close;

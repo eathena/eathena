@@ -3,13 +3,14 @@
 //===== By: ==================================================
 //= Someone
 //===== Current Version: =====================================
-//= 1.1
+//= 1.2
 //===== Compatible With: =====================================
 //= eAthena 1.0
 //===== Description: =========================================
 //= Elven Ears (require 75+ Base Level)
 //===== Additional Comments: =================================
 //= Optimized [Lupus], 1.1 misc fix
+//= 1.2 Fixed exploit [Lupus]
 //============================================================
 
 geffen.gat,127,49,5	script	Elven Ears Quest	84,{
@@ -21,20 +22,15 @@ geffen.gat,127,49,5	script	Elven Ears Quest	84,{
 
 	mes "[Elven Ears quest]";
 	mes "Good good, let me just check"; 
-	if(countitem(2213)<1)goto L_NoMake;
-	if(countitem(1040)<20)goto L_NoMake;
-	if (countitem(919)<20) goto L_NoMake; 
-	next;
-
-	mes "[Elven Ears quest]";
-	mes "Give me a second.....";
-	next;
-
+	if(countitem(2213)<1 || countitem(1040)<20 || countitem(919)<20) goto L_NoMake; 
 	delitem 2213,1;
 	delitem 1040,20;
 	delitem 919,20;
+	next;
+	mes "[Elven Ears quest]";
+	mes "Give me a second.....";
+	next;
 	getitem 2286,1;
-
 	mes "[Elven Ears Quest]";
 	mes "Ok done!";
 	close;

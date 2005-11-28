@@ -92,4 +92,3 @@ aldeba_in.gat,152,166,4	script	Trader	86,{
 		emotion 6;
 		close;
 }
-

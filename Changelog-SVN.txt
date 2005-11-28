@@ -1,5 +1,6 @@
 Date	Added
 2005/11/28
+	* WARNING/ACHTUNG! Update all your NPCs ASAP. Massive NPC fix's out. [Lupus]
 	* Updated monster_ai&8 so that mobs scatter as soon as they lose their
 	  target. Use this setting for an effective counter measure to Grimtooth
 	  mass-mob training. [Skotlex]

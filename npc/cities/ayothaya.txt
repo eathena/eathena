@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= MasterOfMuppets
 //===== Current Version: =====================================
-//= 1.1
+//= 1.2
 //===== Compatible With: ===================================== 
 //= Any eAthena +
 //===== Description: ========================================= 
@@ -20,6 +20,7 @@
 //= 1.0a some checks, optimization [Lupus]
 //= 1.1 Missing delitem fixed by Poki#3 [Lupus]
 //= 1.1a Fixed a typo and clarified a comment at the bottom of the script [MasterOfMuppets]
+//= 1.2 Fixed exploits [Lupus]
 //============================================================ 
 
 ayothaya.gat,152,68,1	script	Aibakthing	843,{
@@ -507,6 +508,10 @@ s_Sure:
 
 s_Items:
 	if(countitem(7213) < 1 || countitem(7217) < 1 || countitem(7190) < 1 || countitem(523) < 1)goto s_NoItems; //Pin Cusion, Spool, Hard Back Shell, Holy Water
+	delitem 7213,1; //Pin Cusion
+	delitem 7217,1; //Spool
+	delitem 7190,1; //Hard Back Shell
+	delitem 523,1; //Holy Water
 	mes "[Boonthom]";
 	mes "Excellent!";
 	mes "Now you have brought everything I need. Let me make the thing for you as promised...";
@@ -522,10 +527,6 @@ s_Items:
 	mes "Pffff pffff...";
 	next;
 	set ayodunquest,3;
-	delitem 7213,1; //Pin Cusion
-	delitem 7217,1; //Spool
-	delitem 7190,1; //Hard Back Shell
-	delitem 523,1; //Holy Water
 	getitem 7285,1; //Holy Threads
 	mes "[Boonthom]";
 	mes "Here you go.";
@@ -570,6 +571,7 @@ s_Lose:
 	mes "See you later then.";
 	close;
 s_Yes:
+	if(countitem(7213) < 1 || countitem(7217) < 1 || countitem(7190) < 1 || countitem(523) < 1)goto s_NoItems2; //Pin Cusion, Spool, Hard Back Shell, Holy Water
 	delitem 7213,1; //Pin Cusion
 	delitem 7217,1; //Spool
 	delitem 7190,1; //Hard Back Shell
@@ -673,6 +675,7 @@ s_ICheck:
 	mes "Pffff pffff...";
 	next;
 s_Process:
+	if(countitem(523) < 2 || countitem(610) < 1 || countitem(7213) < 2 || countitem(7217) < 2)goto s_NEnoughItems;
 	delitem 523,2;
 	delitem 610,1;
 	delitem 7213,2;
@@ -993,13 +996,13 @@ s_Shrimp:
 	close;
 
 s_EnoughShrimp:
+	delitem 567,20;
 	mes "[Mali the Spicy]";
 	mes "Ah you came back!";
 	mes "Now, let me see what"; 
 	mes "you've brought. Hmmm...";
 	mes "These are...";
 	next;
-	delitem 567,20;
 	set ayopause,1;
 	set ayoshrimps,0;
 	emotion 21;
@@ -1053,6 +1056,7 @@ s_Lemons:
 	mes "Lemons so that I can make some Tom Yum Goong!";
 	close;
 s_EnoughLemon:
+	delitem 568,10;
 	emotion 0;
 	mes "[Mali the Spicy]";
 	mes "Welcome back!";
@@ -1061,7 +1065,6 @@ s_EnoughLemon:
 	mes "see the Lemons";
 	mes "you brought?";
 	next;
-	delitem 568,10;
 	set ayopause,2;
 	mes "[Mali the Spicy]";
 	mes "Wow, great!";

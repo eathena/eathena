@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= eAthena dev team
 //===== Current Version: ===================================== 
-//= 1.6
+//= 1.7
 //===== Compatible With: ===================================== 
 //= eAthena 1.0
 //===== Description: ========================================= 
@@ -19,6 +19,7 @@
 //=  with official prizes (80% official, 4-5 entries are made up)
 //=  also changed typo Orange Potions -> Red Potions [Lupus]
 //= 1.6 Fixed bug (missing label), optimized all menus [Lupus]
+//= 1.7 Fixed exploits [Lupus]
 //============================================================
 
 
@@ -1422,12 +1423,12 @@ c_tower3.gat,10,249,4	script	Gatekeeper	84,{
 	M_2:
 		mes "[Gatekeeper Riku]";
 		if(countitem(7026) < 1) goto L_Check_Key;
+		delitem 7026,1;
 		mes "Hmm! I already felt that you are not an Ordinary person,";
 		mes "Now it seems to be successful in Speculation.";
 		mes "Please, You may enter.";
 		mes "May God bless you ..";
 		next;
-		delitem 7026,1;
 		warp "c_tower4.gat",185,44;
 		close;
 
@@ -1517,12 +1518,12 @@ alde_dun03.gat,264,16,4	script	Gatekeeper	101,{
 	M_2:
 		mes "[Gatekeeper Boy]";
 		if(countitem(7027) < 1) goto L_Check_Key;
+		delitem 7027,1;
 		mes "Hmm! I already felt that you are not an Ordinary person,";
 		mes "Now it seems to be successful in Speculation.";
 		mes "Please,You may enter.";
 		mes "May God bless you ..";
 		next;
-		delitem 7027,1;
 		warp "alde_dun04.gat",79,267;
 		close;
 

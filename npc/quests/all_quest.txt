@@ -44,9 +44,7 @@ L0:
 	mes "And will try to make Ragnarok the most enjoyable game in the world.";
 	close;
 L1:
-	if (countitem(705) < 10) goto L10;
-	if (countitem(909) < 10) goto L10;
-	if (countitem(914) < 10) goto L10;
+	if (countitem(705) < 10 || countitem(909) < 10 || countitem(914) < 10) goto L10;
 	delitem 705,10;
 	delitem 909,10;
 	delitem 914,10;
@@ -152,8 +150,7 @@ LILoveTo:
 	next;
 	menu "Not bad. Alright!",LNotBad,"No thanks.",LNoThx;
 LNotBad:
-	if (countitem(999) < 50) goto LHeyDork;
-	if (Zeny < 2000) goto LHeyDork;
+	if (countitem(999) < 50 || Zeny < 2000) goto LHeyDork;
 	delitem 999,50;
 	set Zeny,zeny-2000;
 	getitem 2292,1;
@@ -191,10 +188,7 @@ EarMuf:
 	menu "Oh Yeah? Sounds Good.",LSoundsGood,"No thank you.",LNoThx1;
 
 	LSoundsGood:
-	if(countitem(724) < 1) goto LWeCant;
-	if(countitem(949) < 200) goto LWeCant;
-	if(countitem(5001) < 1) goto LWeCant;
-	if(Zeny < 5000) goto LWeCant;
+	if(countitem(724) < 1 || countitem(949) < 200 || countitem(5001) < 1 || Zeny < 5000) goto LWeCant;
 	delitem 724,1;
 	delitem 949,200;
 	delitem 5001,1;

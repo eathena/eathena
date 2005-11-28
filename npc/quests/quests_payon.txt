@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.2
+//= 1.3
 //===== Compatible With: ===================================== 
 //= eAthena 7.15 +
 //===== Description: ========================================= 
@@ -12,8 +12,8 @@
 //= Fully working
 //= 1.1 Helm of Angel bug fixed [Lupus]
 //= 1.2 Fixed skirt of virgin [Lupus]
+//= 1.3 Fixed exploits [Lupus]
 //============================================================ 
-
 
 
 
@@ -46,7 +46,8 @@ L_Get:
 	mes "Oh! You have 4 Skirt of Virgin.  Would you be willing to give them to me dear?";
 	next;
 	menu "Why of course granny",-,"Heck no ya old bag!",M_No;
-			
+
+		if(countitem(1049) < 4) goto M_No;
 		mes "[Granny]";
 		mes "Bless your kind heart.  Now I can make some special clothes for my family.  Let me give you a reward for being so genrous dear.";
 		emotion 14;
@@ -102,6 +103,10 @@ payon_in01.gat,18,10,4	script	Mystic Lady	75,{
 	
 	M_Muffs:
 		if((countitem(724)<1) || (countitem(5001)<1) || (countitem(949)<200) || (zeny<5000)) goto sL_NotEnuf;
+		delitem 724,1;
+		delitem 5001,1;
+		delitem 949,200;
+		set Zeny, Zeny-5000;
 		mes "[Mystic Lady]";
 		mes "Oh, I see that you have brought all of the required items.  Just a moment please...";
 		next;
@@ -109,10 +114,6 @@ payon_in01.gat,18,10,4	script	Mystic Lady	75,{
 		mes "... this goes here... that goes there...... some glue here... a couple stitches over there..........";
 		next;
 		getitem 2283,1;
-		delitem 724,1;
-		delitem 5001,1;
-		delitem 949,200;
-		set Zeny, Zeny-5000;
 		mes "[Mystic Lady]";
 		mes "Ah, there you are! One pair of my familys' specialty Ear Muffs.  Enjoy!";
 		close;
@@ -177,11 +178,11 @@ payon_in02.gat,25,71,4	script	Young Man	86,{
 		close;
 
 L_GotOra:
-	mes "ArrrGgghhh!! No!... It can't be!..... I think I'm going mad... they're starting to look so cute... ArrrGgghhh!!... Nooooooo!!";
-	emotion 23;
+		mes "ArrrGgghhh!! No!... It can't be!..... I think I'm going mad... they're starting to look so cute... ArrrGgghhh!!... Nooooooo!!";
+		emotion 23;
 	M_Menu:
-	next;
-	menu "Continue",M_Cont, "Show Ora Ora",M_Show, "Give Ora Ora",M_Give, "Cancel",M_End2;
+		next;
+		menu "Continue",M_Cont, "Show Ora Ora",M_Show, "Give Ora Ora",M_Give, "Cancel",M_End2;
 
 	M_Show:
 		mes "[Young Man]";
@@ -190,6 +191,8 @@ L_GotOra:
 		goto M_Menu;
 
 	M_Give:
+		if(countitem(701) < 5) goto L_Cheater;
+		delitem 701,5;
 		mes "[Young Man]";
 		mes "Muhahahahah!!! Finally, I have it.... Ora Ora! Stupid and distgusting Thief Bugs.... you'll pay for invading MY HOME!!!";
 		emotion 29;
@@ -199,7 +202,6 @@ L_GotOra:
 		emotion 4;
 		next;
 		getitem 5004,1;
-		delitem 701,5;
 		mes "[Young Man]";
 		mes "By wearing this over your mouth, the air you breathe will be filltered so that you can breathe clean air.";
 		mes "I picked it up while I was a Sailor out at sea.  I really have no need for it.";
@@ -207,6 +209,10 @@ L_GotOra:
 		mes "[Young Man]";
 		mes "Hehehehe!! I can't wait to use this Ora Ora!!!";
 		close;
+
+	L_Cheater:
+		mes "Oh... Where is it?!";
+		next;
 
 	M_End2:
 		mes "[Young Man]";
@@ -224,15 +230,13 @@ payon_in01.gat,56,12,4	script	Young Man	89,{
 	mes "[Young Man]";
 	mes "What is it?............";
 	next;
-	menu "Can you make me a special item?",M_0, "Nothing.",M_End;
+	menu "Can you make me a special item?",-, "Nothing.",M_End;
 
-	M_0:
 		mes "[Young Man]";
 		mes "I see.... so you know about me huh?.... Ok, tell me what you want.";
 		next;
-		menu "-Helm of Angel",sM_Angel, "-Deviruchi Cap(Hat of Petite Diablo)",sM_Devir, "-I'll come back later.",M_End;
+		menu "-Helm of Angel",-, "-Deviruchi Hat",sM_Devir, "-I'll come back later.",M_End;
 
-		sM_Angel:
 			mes "[Young Man]";
 			mes "For the Helm of Angel I will need:";
 			mes "- ^5555FF1 Helm (slotted)^000000.";
@@ -243,7 +247,7 @@ payon_in01.gat,56,12,4	script	Young Man	89,{
 			goto sL_GetHat;
 		sM_Devir:
 			mes "[Young Man]";
-			mes "For the Deviruchi Cap(Hat of Petite Diablo) I will need:";
+			mes "For the Deviruchi Hat I will need:";
 			mes "- ^5555FF600 Little Evil Horn^000000.";
 			mes "- ^5555FF40 Talon of Griffon^000000.";
 			set @HAT, 2;
@@ -260,21 +264,20 @@ payon_in01.gat,56,12,4	script	Young Man	89,{
 
 				if(@HAT == 2) goto ssL_Devir;
 
-				ssL_Angel:
 					if(countitem(2229)<1 || countitem(2254)<1 || countitem(7036)<5) goto ssL_NotEnuf;
-					mes "[Young Man]";
-					mes "Here is your Helm of Angel.";
 					delitem 2229, 1;
 					delitem 2254, 1;
 					delitem 7036, 5;
+					mes "[Young Man]";
+					mes "Here is your Helm of Angel.";
 					getitem 5025, 1;
 					close;
 				ssL_Devir:
 					if(countitem(1038)<600 || countitem(7048)<40) goto ssL_NotEnuf;
-					mes "[Young Man]";
-					mes "Here is your Deviruchi Cap(Hat of Petite Diablo).";
 					delitem 1038, 600;
 					delitem 7048, 40;
+					mes "[Young Man]";
+					mes "Here is your Deviruchi Hat.";
 					getitem 5038, 1;
 					close;
 				ssL_NotEnuf:

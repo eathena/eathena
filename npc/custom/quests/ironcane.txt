@@ -1,39 +1,36 @@
 //===== eAthena Script =======================================
 //= Quest For Iron Cain
 //===== By: ==================================================
-//= Dev Team
+//= eA Dev Team
 //===== Current Version: =====================================
-//= 1.0
+//= 1.1
 //===== Compatible With: =====================================
 //= eAthena 1.0
 //===== Description: =========================================
 //= Iron Cain (lower part of a full helmet)
 //===== Additional Comments: =================================
-//= 
+//= 1.1 Fixed exploit [Lupus]
 //============================================================
 
 payon.gat,109,118,5	script	Iron Cain Quest	76,{
 	mes "[Iron Cain Quest]";
-        mes "Here's what you need";
-        mes "The requirements, should you be brave enough to collect them, are:";
-        mes "- 200 Orcish vouchers";
+	mes "Here's what you need";
+	mes "The requirements, should you be brave enough to collect them, are:";
+	mes "- 200 Orcish vouchers";
 	mes "- 1 Heroic Emblem";
 	next;
 	mes "[Iron Cain Quest]";
-	mes ". . . . . .";
 	mes "Are you ready for me to make this special item?";
 	next;
 	menu "Sure am!",-, "The requirements are unfathomable!",L_Unfathomable;
 
 	mes "[Iron Cain Quest]";
 	if((countitem(931) < 200) || (countitem(968) < 1)) goto L_NotEnough;
-	mes ". . . . .";
-	mes "Wow!  You are brave indeed!";
 	delitem 931,200;
 	delitem 968,1;
+	mes "Wow!  You are brave indeed!";
 	next;
 	mes "[Iron Cain Quest]";
-	mes ". . . . .";
 	mes "Enjoy!";
 	getitem 2266,1;
 	close;
@@ -45,7 +42,7 @@ L_NotEnough:
 	close;
 
 L_Unfathomable:
-	mes ". . . . .";
+	mes "[Iron Cain Quest]";
 	mes "What I had to go through was more unfathomable..";
 	mes "If you succeed in getting these items, you will have incredible strength!";
 	close;

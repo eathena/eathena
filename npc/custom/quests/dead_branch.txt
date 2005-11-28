@@ -84,14 +84,13 @@ M_CREATE:
 	if(countitem(7189)<1) goto L_NOHEART;
 	if(countitem(1019)<5) goto L_NOTRUNK;
 	if(countitem(7222)<1) goto L_NOGNARL;
-
-	mes "[Mister Mobry]";
-	mes "Heh... Hope you have fun with the tree spirits... Careful now...";
-	mes "Heh... careful now? What do I care if you di..... Never mind.";
 	delitem 7201,3;
 	delitem 7189,1;
 	delitem 1019,5;
 	delitem 7222,1;
+	mes "[Mister Mobry]";
+	mes "Heh... Hope you have fun with the tree spirits... Careful now...";
+	mes "Heh... careful now? What do I care if you di..... Never mind.";
 	if(rand(1000)==0) goto L_GIVE2;
 	getitem 604,1; //Dead Branch
 	close;

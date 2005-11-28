@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= kobra_k88
 //===== Current Version: =====================================
-//= 1.3
+//= 1.4
 //===== Compatible With: =====================================
 //= eAthena 7.15 +
 //===== Description: =========================================
@@ -15,8 +15,8 @@
 //= for class checks.[kobra_k88]
 //= 1.2 Added Baby Class Support [Lupus]
 //= 1.3 Removed callfunc Is_####_Class in favor of baseClass [Silentdragon]
+//= 1.4 Fixed exploits [Lupus]
 //============================================================
-
 
 
 
@@ -87,6 +87,9 @@ L_Start:
 
 L_GetSkill:
 	if ((countitem(722)<7) || (countitem(532)<1) || (countitem(921)<50)) goto L_Items;
+	delitem 722,7;
+	delitem 532,1;
+	delitem 921,50;
 	mes "Oh You've gathered the items! Very good, very good.  Now it's time to start your training.....";
 	next;
 	mes "[Necko]";
@@ -96,9 +99,6 @@ L_GetSkill:
 	next;
 	mes "[Necko]";
 	mes "Raaaaaawwwwrrrrrrrrrrr!....... Ha ha!! Execellent.  Your voice is now finely tuned for ^3355FFCrazy Uproar^000000.  Good job.";
-	delitem 722,7;
-	delitem 532,1;
-	delitem 921,50;
 	skill 155,1,0;
 	set CRAZYROAR, 0;
 	emotion 21;
@@ -264,6 +264,11 @@ L_Start:
 
 L_GetSkill:
 	if ((countitem(533)<2) || (countitem(998)<15) || (countitem(938)<30) || (countitem(601)<20) || (countitem(962)<5)) goto sM_0;
+	delitem 533,2;
+	delitem 998,15;
+	delitem 938,30;
+	delitem 601,20;
+	delitem 962,5;
 	mes "[Gershaun]";
 	mes "It's Good to see you again.  I'm glad you were able to get all of the items.  Take a minute to prepare, for your training is about to take place....";
 	next;
@@ -284,11 +289,6 @@ L_GetSkill:
 	mes "Give yourself a good pat on the back becuase you have just mastered Cart Revolution!";
 	emotion 21;
 	next;
-	delitem 533,2;
-	delitem 998,15;
-	delitem 938,30;
-	delitem 601,20;
-	delitem 962,5;
 	skill 153,1,0;
 	set CARTREVO, 0;
 	mes "[Gershuan]";

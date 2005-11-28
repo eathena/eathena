@@ -3,13 +3,13 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.0 
+//= 1.1
 //===== Compatible With: ===================================== 
 //= eAthena 7.15 +
 //===== Description: ========================================= 
 //= Stop Post and Binoculars Quest.
 //===== Additional Comments: ================================= 
-//= Fully working
+//= 1.1 Fixed exploits [Lupus]
 //============================================================ 
 
 
@@ -25,9 +25,8 @@ morocc_in.gat,142,100,4	script	William	89,{
 	mes "My Clan, MacMillan, Has been producing professional grade Traffic Signal Posts for more than 250 years.";
 	mes "Nowadays we are taking special orders for our very unique, ^3355FF'Stop Post'^000000.";
 	next;
-	menu "Could I order a ^3355FF'Stop Post'^000000?",M_Order, "I'm not interested.",M_End;
+	menu "Could I order a ^3355FF'Stop Post'^000000?",-, "I'm not interested.",M_End;
 
-	M_Order:
 		mes "[William]";
 		mes "MacMillan's one of a kind ^3355FF'Stop Post'^000000 fits comfortably on a persons head.";
 		mes "Not only does it make an interesting head accessory, but it can actually be used as a stop sign as well.";
@@ -39,7 +38,7 @@ morocc_in.gat,142,100,4	script	William	89,{
 		mes "For us to make you a ^3355FF'Stop Post'^000000, we will need:";
 		mes "^3355FF91100 Zeny,";
 		mes "50 Trunks,";
-		mes "and 1 Black Dyestuffs^000000.";
+		mes "and 1 Black Dyestuff^000000.";
 		next;
 		if((countitem(1019) >= 50) && (countitem(983) >= 1) && (Zeny >= 91100)) goto sL_GetPost;
 		mes "[William]";
@@ -47,12 +46,12 @@ morocc_in.gat,142,100,4	script	William	89,{
 		close;
 
 		sL_GetPost:
-			mes "[William]";
-			mes "Here you are! A hand made, one of a kind, ^3355FF'Stop Post '^000000! Thank you for your patronage!";
-			getitem 2272,1;
 			delitem 1019,50;
 			delitem 983,1;
 			set Zeny, Zeny - 91100;
+			mes "[William]";
+			mes "Here you are! A hand made, one of a kind, ^3355FF'Stop Post '^000000! Thank you for your patronage!";
+			getitem 2272,1;
 			emotion 15;
 			close;
 
@@ -70,9 +69,8 @@ morocc_in.gat,76,163,4	script	Alchemist	64,{
 	mes "[Marius]";
 	mes "Howdy! A new customer........ Wait!!! I know what you're here for....... You're interested in those magical goggles aren't you?";
 	next;
-	menu "What is that ?",M_What, "Make",M_Make, "Ignore him",M_End;
+	menu "What is that ?",-, "Make",M_Make, "Ignore him",M_End;
 
-	M_What:
 		mes "[Marius]";
 		mes "It is actually called ^3355FF'Binoculars'^000000! It is an opitcal device that allows the wearer to see far away objects.";
 		next;
@@ -96,14 +94,14 @@ morocc_in.gat,76,163,4	script	Alchemist	64,{
 	M_Make:
 		mes "[Marius]";
 		if((countitem(2243) < 1) || (countitem(999) < 100) || (Zeny < 50000)) goto sL_NotEnuf;
-		mes "Gr~~~~eat ! You'll definitely enjoy a pair of these!";
-		next;
-		mes "[Marius]";
-		mes "Here it is ! The Binoculars !";
-		getitem 2296,1;
 		delitem 2243,1;
 		delitem 999,100;
 		set Zeny, Zeny - 50000;
+		mes "Gr~~~~eat ! You'll definitely enjoy a pair of these!";
+		next;
+		mes "[Marius]";
+		mes "Here it is ! The Binoculars!";
+		getitem 2296,1;
 		next;
 		mes "[Marius]";
 		mes "But before you go out and use them I have to tell you......";

@@ -107,10 +107,10 @@ prt_castle.gat,54,34,4	script	Carl Orleans	47,{
 	close;
 
 L_ENO:
+	delitem 558,3;
 	mes "[Carl Orleans]";
 	mes "You got 3 pieces of pure chocolate I see.";
 	mes "Give them to me...";
-	delitem 558,3;
 	next;
 	mes "Ok, now I will only create my special hand made chocolates if you promise to use it wisely.";
 	next;

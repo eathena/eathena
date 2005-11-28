@@ -4,7 +4,7 @@
 //= Muad Dib (1.0) Darkchild (1.1) Muad Dib (1.2)
 //= Darkchild (1.3) DracoRPG (1.5)
 //===== Current Version: ===================================== 
-//= 1.6
+//= 1.7
 //===== Compatible With: ===================================== 
 //= Any eAthena Mod
 //===== Description: ========================================= 
@@ -17,6 +17,7 @@
 //= 1.5b1 fixed Gemstone Exchanger NPC [Lupus]
 //= 1.5b2 added adv.classes/baby classes support [Lupus]
 //= 1.6 Fixed typo’s [Nexon]
+//= 1.7 Fixed bugs and exploits V__V [Lupus]
 //============================================================ 
 
 payon.gat,190,115,0	script	Lady	90,{
@@ -787,7 +788,7 @@ L_ExchangeOK:
  menu "Exchange all",L_ExchangeAll,"I want to set a number",L_PointCount,"Cancel",L_Cancel;
 
 L_ExchangeAll:
- if(countitem(@SourceGemstonesID) < 2) goto L_ExchangeNo;
+ if(countitem(@SourceGemstonesID) < @ExchangeCount*2) goto L_ExchangeNo;
  delitem @SourceGemstonesID,@ExchangeCount*2;
  getitem @TargetGemstonesID,@ExchangeCount;
  goto L_ExchangeDone;
@@ -802,6 +803,7 @@ L_InputPointCount:
  if(@number < 0) goto L_ExchangeNo;
  if(@number > 100) goto L_ExchangeAbove;
  if(@number > @ExchangeCount) goto L_ExchangeNotEnough;
+ if(countitem(@SourceGemstonesID) < @number*2) goto L_ExchangeNo;
  delitem @SourceGemstonesID,@number*2;
  getitem @TargetGemstonesID,@number;
  goto L_ExchangeDone;

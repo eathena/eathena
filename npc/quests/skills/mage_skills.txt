@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= kobra_k88
 //===== Current Version: =====================================
-//= 1.3
+//= 1.4
 //===== Compatible With: =====================================
 //= eAthena 7.15 +
 //===== Description: =========================================
@@ -13,6 +13,7 @@
 //= for class checks.[kobra_k88]
 //= 1.2 Added Baby Class Support [Lupus]
 //= 1.3 Removed callfunc Is_####_Class in favor of baseClass [Silentdragon]
+//= 1.4 Fixed exploit [Lupus]
 //============================================================
 
 
@@ -80,14 +81,14 @@ L_Start:
 L_GetSkill:
 	if(BaseJob==Job_Mage && JobLevel < 35) goto L_JobLvl;
 	if(countitem(746)<3 || countitem(730)<1 || countitem(935)<5 || countitem(943)<1) goto L_Items;
-	mes "Ohh my, ohh my...... This is going to be swell.  Hand over the items... Thank you.";
- 	next;
-	mes "~ several hours later ~";
-	next;
 	delitem 746,3;
 	delitem 730,1;
 	delitem 935,5;
 	delitem 943,1;
+	mes "Ohh my, ohh my...... This is going to be swell.  Hand over the items... Thank you.";
+ 	next;
+	mes "~ several hours later ~";
+	next;
 	skill 157,1,0;
 	set ENRGYCOAT,0;
  	mes "[BLIZZARDRISS]";

@@ -27,6 +27,7 @@ Nexon
 Date		Added
 ======
 11/28
+	* More fixes... some things can be fixed by the core. Has to make something [Lupus]
 	* Massive anti-exploit fix of quests. 2B Continued [Lupus]
 	* Updated Umbala. Fixed Umb.Lang.Quest items names. [Lupus]
 	  Now you can go to Niflheim trough Jumping Bungy Area.

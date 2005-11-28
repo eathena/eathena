@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //=
 //===== Current Version: ===================================== 
-//= 1.3
+//= 1.4
 //===== Compatible With: ===================================== 
 //= eAthena 1.0
 //===== Description: ========================================= 
@@ -13,6 +13,7 @@
 //= for the quest.[kobra_k88]
 //= 1.2 Fixed exploit. Checked for Bard Job Quest compatibility [Lupus]
 //= 1.3 Fixed typo’s [Nexon]
+//= 1.4 Fixed exploit [Lupus]
 //============================================================
 
 
@@ -430,12 +431,12 @@ Xmas4:
 	close;
 
 	XmasL0:
+		delitem 1024,1;
+		delitem 938,1;
 		mes "[Hairy Uncle Ken]";
 		mes "Oh ?! *Chuckles* !! You seem to be a reliable person..";
 		mes "Good! Ok, first I need something to drink....";
 		next;
-		delitem 1024,1;
-		delitem 938,1;
 		mes "^3355FF- Handed him Squid Ink and  -^000000";
 		mes "^3355FF- Sticky Muscus. -^000000";
 		next;

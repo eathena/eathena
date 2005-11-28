@@ -5,7 +5,7 @@
 //= eAthena Dev Team
 //= Darlskies, Darkchild, Syrus22, Lupus, kobra_k88 (2.0)
 //===== Current Version: ===================================== 
-//= 3.1a
+//= 3.2
 //===== Compatible With: ===================================== 
 //= eAthena 1.0
 //===== Description: =========================================
@@ -26,6 +26,7 @@
 //= 2.8 Fixed Amatsu Storage problems [Lupus] 2.9 Fixed spelling mistakes. [Nexon]
 //= 3.0 Added special "not working teleport menu" for Einbroch Kafras [Lupus]
 //= 3.1 Removed callfunc Is_####_Class in favor of baseClass [Silentdragon]
+//= 3.2 Fixed an exploit [Lupus]
 //============================================================ 
 
 
@@ -283,12 +284,12 @@ function	script	F_KafPass	{
 		set usedKafPass, usedKafPass + 1;
 		if(usedKafPass>=3) goto sL_PassExpire;
 		if(usedKafPass > 1) goto L_Cont; //fixed Lupus
+		delitem 1084,1;
 		mes "(you hand her your pass)";
 		next;
 		mes "[Kafra]";
 		mes "Great! Everything seems to be in order.  Now that your pass is activated, you may rent a cart or use the teleport services for free.";
 		mes "Your pass number has been entered into our database so you no longer need it.";
-		delitem 1084,1;
 		next;
 
 		L_Cont:

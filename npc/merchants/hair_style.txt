@@ -14,6 +14,7 @@
 //= Change NPC coords according to 
 //= http://www.nattsumi.com/roquest/miscellaneousquest.html
 //= Fixed typos [Nexon]
+//= TODO: Fix exploits V_V [Lupus]
 //============================================================
 
 alberta.gat,137,37,6	script	Stylist	91,{
@@ -405,7 +406,7 @@ mhair1:
 	mes "Is that OK for you??";
 	next;
 	menu "Yeah~ I'd love to.",-,"No..I don't like it..",M_NO1;
-		cutin "",255;
+	cutin "",255;
 	mes "[Veronica]";
 	mes "Now it begins~. Hold still~";
 	mes "If you move, you will have very bad style.";
