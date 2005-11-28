@@ -2538,6 +2538,14 @@
 1625,Porcellio@AL_PNEUMA,attack,25,1,10000,0,10000,yes,self,longrangeattacked,,,,,,,
 1625,Porcellio@NPC_GROUNDATTACK,attack,185,2,500,500,5000,no,target,always,0,,,,,,
 
+//New Ayothaya MVP temp skills
+1688,BANANA_LADY_TANEE@AL_HEAL,idle,28,11,200,0,5000,yes,self,always,0,,,,,,
+1688,BANANA_LADY_TANEE@NPC_SPLASHATTACK,attack,174,51,2000,0,5000,yes,target,attackpcgt,2,,,,,,9
+1688,BANANA_LADY_TANEE@NPC_STUNATTACK,attack,179,10,500,1500,5000,no,target,always,0,,,,,,
+1688,BANANA_LADY_TANEE@NPC_SUMMONSLAVE,attack,196,2,5000,3000,36000,no,self,myhpltmaxrate,5,1587,,,,,
+1688,BANANA_LADY_TANEE@NPC_SUMMONSLAVE,chase,196,2,10000,3000,36000,no,self,slavele,0,1587,,,,,
+1688,BANANA_LADY_TANEE@NPC_SUMMONSLAVE,idle,26,1,1000,0,0,yes,self,rudeattacked,0,,,,,,
+
 //Lighthalzen/Juperos temp skills
 // by MasterOfMuppets
 1626,Dark Priest@MO_BODYRELOCATION,chase,264,1,2000,500,5000,no,target,always,0,,,,,,
