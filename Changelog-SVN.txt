@@ -6,6 +6,7 @@ Date	Added
 	* Fixed typo in msg_athena.conf and 'users with autoloot turned on will not have their rare drops announced.'. Thanks to Kaseki.
 	* Mob should stop walking when hit if not enduring. Thanks to Playtester. [Lance]
 	* Included pcre.dll and libmysql.dll from joshuali. [Lance]
+	* Eliminated Level 3 warnings. Setting compile warnings to Level 3. (Level 4 just kills eAthena XD) [Lance]
 2005/11/27
 	* Fixed an overflow pointer bug in the gvg eliminate timer. [Skotlex]
 	* Updated the damage code if Spiral Pierce, Shield Chain and Shield
