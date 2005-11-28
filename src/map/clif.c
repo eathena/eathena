@@ -836,8 +836,8 @@ static int clif_dis0078(struct map_session_data *sd, unsigned char *buf) {
 	WBUFW(buf,10)=0;
 	WBUFW(buf,12)=sd->status.option;
 	WBUFW(buf,14)=sd->disguise;
-	//WBUFL(buf,22)=sd->status.guild_id;
-	//WBUFL(buf,26)=sd->guild_emblem_id;
+	//WBUFL(buf,34)=sd->status.guild_id;
+	//WBUFL(buf,38)=sd->guild_emblem_id;
 	WBUFW(buf,42)=0;
 	WBUFB(buf,44)=0;
 	WBUFPOS(buf,46,sd->bl.x,sd->bl.y);
@@ -969,8 +969,8 @@ static int clif_dis007b(struct map_session_data *sd,unsigned char *buf) {
 	WBUFW(buf,12)=sd->status.option;
 	WBUFW(buf,14)=sd->disguise;
 	WBUFL(buf,22)=gettick();
-	//WBUFL(buf,24)=sd->status.guild_id;
-	//WBUFL(buf,28)=sd->guild_emblem_id;
+	//WBUFL(buf,38)=sd->status.guild_id;
+	//WBUFL(buf,42)=sd->guild_emblem_id;
 	WBUFPOS2(buf,50,sd->bl.x,sd->bl.y,sd->to_x,sd->to_y);
 	WBUFB(buf,55)=0;
 	WBUFB(buf,56)=5;
@@ -1071,9 +1071,12 @@ static int clif_mob0078(struct mob_data *md, unsigned char *buf)
 		WBUFB(buf,45)=mob_get_sex(md->class_);
 	}
 
-	if (md->guardian_data && md->guardian_data->guild_id) { // Added guardian emblems [Valaris] (updated by [Skotlex])
-		WBUFL(buf,22)=md->guardian_data->emblem_id;
-		WBUFL(buf,26)=md->guardian_data->guild_id;
+	if (md->guardian_data && md->guardian_data->guild_id) { // Added guardian emblems [Valaris]
+//		WBUFL(buf,22)=md->guardian_data->emblem_id;
+//		WBUFL(buf,26)=md->guardian_data->guild_id;
+//		If this packet is the same as the one in sd's, guild and emblem should go... [Skotlex]
+		WBUFL(buf,34)=md->guardian_data->guild_id;
+		WBUFL(buf,38)=md->guardian_data->emblem_id;
 	}	// End addition
 
 	WBUFPOS(buf,46,md->bl.x,md->bl.y);
@@ -1119,9 +1122,12 @@ static int clif_mob007b(struct mob_data *md, unsigned char *buf) {
 	} else
 		WBUFL(buf,22)=gettick();
 
-	if (md->guardian_data && md->guardian_data->guild_id) { // Added guardian emblems [Valaris] (updated by [Skotlex])
-		WBUFL(buf,24)=md->guardian_data->emblem_id;
-		WBUFL(buf,28)=md->guardian_data->guild_id;
+	if (md->guardian_data && md->guardian_data->guild_id) { // Added guardian emblems [Valaris]
+//		WBUFL(buf,24)=md->guardian_data->emblem_id;
+//		WBUFL(buf,28)=md->guardian_data->guild_id;
+//		If this packet is the same as the one in sd's, guild and emblem should go... [Skotlex]
+		WBUFL(buf,38)=md->guardian_data->guild_id;
+		WBUFL(buf,42)=md->guardian_data->emblem_id;
 	}	// End addition
 
 	WBUFPOS2(buf,50,md->bl.x,md->bl.y,md->to_x,md->to_y);
@@ -1149,8 +1155,11 @@ static int clif_npc0078(struct npc_data *nd, unsigned char *buf) {
 	WBUFW(buf,6)=nd->speed;
 	WBUFW(buf,14)=nd->class_;
 	if ((nd->class_ == 722) && (nd->u.scr.guild_id > 0) && ((g=guild_search(nd->u.scr.guild_id)) != NULL)) {
-		WBUFL(buf,22)=g->emblem_id;
-		WBUFL(buf,26)=g->guild_id;
+//		WBUFL(buf,22)=g->emblem_id;
+//		WBUFL(buf,26)=g->guild_id;
+//		pc packet says the actual location of these are: [Skotlex]
+		WBUFL(buf,34)=g->emblem_id;
+		WBUFL(buf,38)=g->guild_id;
 	}
 	WBUFPOS(buf,46,nd->bl.x,nd->bl.y);
 	WBUFB(buf,48)|=nd->dir&0x0f;
@@ -1173,8 +1182,11 @@ static int clif_npc007b(struct npc_data *nd, unsigned char *buf) {
 	WBUFW(buf,6)=nd->speed;
 	WBUFW(buf,14)=nd->class_;
 	if ((nd->class_ == 722) && (nd->u.scr.guild_id > 0) && ((g=guild_search(nd->u.scr.guild_id)) != NULL)) {
-		WBUFL(buf,22)=g->emblem_id;
-		WBUFL(buf,26)=g->guild_id;
+//		WBUFL(buf,22)=g->emblem_id;
+//		WBUFL(buf,26)=g->guild_id;
+//		pc packet says the actual location of these are: [Skotlex]
+		WBUFL(buf,38)=g->emblem_id;
+		WBUFL(buf,42)=g->guild_id;
 	}
 
 	WBUFL(buf,22)=gettick();
@@ -6644,13 +6656,11 @@ int clif_guild_memberlogin_notice(struct guild *g,int idx,int flag)
 int clif_guild_masterormember(struct map_session_data *sd)
 {
 	int type=0x57,fd;
-	struct guild *g;
 
 	nullpo_retr(0, sd);
 
 	fd=sd->fd;
-	g=guild_search(sd->status.guild_id);
-	if(g!=NULL && strcmp(g->master,sd->status.name)==0)
+	if(sd->state.gmaster_flag)
 		type=0xd7;
 	WFIFOW(fd,0)=0x14e;
 	WFIFOL(fd,2)=type;
