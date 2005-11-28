@@ -2155,6 +2155,9 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 		return 0;
 	}
 
+	if(md->sc_date[SC_ENDURE].timer == -1) // Stop the walking [Lance]
+		mob_stop_walking(md,1);
+
 	if(damage > max_hp>>2)
 		skill_stop_dancing(&md->bl);
 
