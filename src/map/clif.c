@@ -1072,11 +1072,11 @@ static int clif_mob0078(struct mob_data *md, unsigned char *buf)
 	}
 
 	if (md->guardian_data && md->guardian_data->guild_id) { // Added guardian emblems [Valaris]
-		WBUFL(buf,22)=md->guardian_data->emblem_id;
-		WBUFL(buf,26)=md->guardian_data->guild_id;
-//		pc packet says the actual location of these are, but they are not. Why the discordance? [Skotlex]
-//		WBUFL(buf,34)=md->guardian_data->guild_id;
-//		WBUFL(buf,38)=md->guardian_data->emblem_id;
+//		WBUFL(buf,22)=md->guardian_data->emblem_id;
+//		WBUFL(buf,26)=md->guardian_data->guild_id;
+//		pc packet says the actual location of these are... [Skotlex]
+		WBUFL(buf,34)=md->guardian_data->guild_id;
+		WBUFL(buf,38)=md->guardian_data->emblem_id;
 	}	// End addition
 
 	WBUFPOS(buf,46,md->bl.x,md->bl.y);
@@ -1123,11 +1123,11 @@ static int clif_mob007b(struct mob_data *md, unsigned char *buf) {
 		WBUFL(buf,22)=gettick();
 
 	if (md->guardian_data && md->guardian_data->guild_id) { // Added guardian emblems [Valaris]
-		WBUFL(buf,24)=md->guardian_data->emblem_id;
-		WBUFL(buf,28)=md->guardian_data->guild_id;
-//		pc packet says the actual location of these are, but they are not. Why the discordance? [Skotlex]
-//		WBUFL(buf,38)=md->guardian_data->guild_id;
-//		WBUFL(buf,42)=md->guardian_data->emblem_id;
+//		WBUFL(buf,24)=md->guardian_data->emblem_id;
+//		WBUFL(buf,28)=md->guardian_data->guild_id;
+//		pc packet says the actual location of these are... [Skotlex]
+		WBUFL(buf,38)=md->guardian_data->guild_id;
+		WBUFL(buf,42)=md->guardian_data->emblem_id;
 	}	// End addition
 
 	WBUFPOS2(buf,50,md->bl.x,md->bl.y,md->to_x,md->to_y);

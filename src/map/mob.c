@@ -2386,7 +2386,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 
 		if(sd) {
 			if (sd->expaddrace[race])
-				per *= sd->expaddrace[race]/100.;	
+				per += per*sd->expaddrace[race]/100.;	
 			if (battle_config.pk_mode && (md->db->lv - sd->status.base_level >= 20))
 				per *= 1.15;	// pk_mode additional exp if monster >20 levels [Valaris]		
 		}
