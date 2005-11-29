@@ -1883,7 +1883,11 @@ static struct Damage battle_calc_weapon_attack(
 	if (sd)
 	{
 		ATK_ADD2(sd->right_weapon.star, sd->left_weapon.star);
-		ATK_ADD(sd->spiritball*3);
+		if (skill_num==MO_FINGEROFFENSIVE) { //The finger offensive spheres on moment of attack do count. [Skotlex]
+			ATK_ADD(sd->spiritball_old*3);
+		} else {
+			ATK_ADD(sd->spiritball*3);
+		}
 
 		//Card Fix, sd side
 		if (flag.cardfix)

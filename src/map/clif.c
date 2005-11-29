@@ -6965,7 +6965,7 @@ int clif_guild_skillinfo(struct map_session_data *sd)
 							guild_checkskill(g,GD_BATTLEORDER) > 0;
 						break;
 					case GD_RESTORE:
-						up = guild_checkskill(g,GD_REGENERATION) >= 2;
+						up = guild_checkskill(g,GD_REGENERATION) > 0;
 						break;
 					case GD_EMERGENCYCALL:
 						up = guild_checkskill(g,GD_GUARDIANRESEARCH) > 0 &&
