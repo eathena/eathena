@@ -33,6 +33,7 @@
 
 	--
 11/29
+	* Updated Earth Elemental Convertor, thanks to reddozen [Vicious]
 	* Added temp skills to Ayothaya MVP Lady Tany. [Lupus]
 	  Also added her real slaves, thanks to MasterOfMuppets for info
 	* Update produce_db.txt with cooking items coments, thanks to battousai90 [Lupus]

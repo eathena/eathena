@@ -26,6 +26,8 @@ Nexon
 
 Date		Added
 ======
+11/29
+	* Updated cooking NPC, thanks to battousai90 [Vicious]
 11/28
 	* Updated the spawnpoint in Niflheim with Bungy jump [Vicious]
 	* More fixes... some things can be fixed by the core. Has to make something [Lupus]

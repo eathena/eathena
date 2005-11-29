@@ -413,7 +413,7 @@ prt_castle.gat,45,35,4	script	Sharle	886,{
 			set @item3a, 1;
 			set @food1, 12051;
 
-			mes "10 Nippers, 1 Green Herb, and";
+			mes "10 Nippers, 10 Green Herbs, and";
 			mes "1 Yellow Potion.";
 		}
 
