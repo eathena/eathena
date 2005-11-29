@@ -1020,7 +1020,7 @@ int atcommand_config_read(const char *cfgName) {
  */
 void do_init_duel() {
 	duel_count = 0;
-	memset(&duel_list[0], 0, sizeof(duel_list)*MAX_DUEL);
+	memset(&duel_list[0], 0, sizeof(duel_list));
 	return;
 }
 
