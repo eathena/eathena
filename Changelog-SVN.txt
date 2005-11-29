@@ -1,5 +1,14 @@
 Date	Added
 2005/11/29
+	* Rewrited and cleaned up duel code. Formed independent duel_xxx functions.
+	  I suggest to place this functions in duel.c/duel.h. New features: [LuzZza]
+	  - Now when you in duel, you can't attack anything out of your duel
+	    (mobs, other players etc...);
+	  - Now you can't take part in duel more often than it set in battle_athena.
+	    Default delay is 60 minutes.
+	  - New battle_athena.conf options: duel_allow_pvp - allow/disallow duel
+	    on pvp-maps; duel_allow_gvg - allow/disallow duel on gvg-maps;
+	    duel_time_interval - delay between using duel in minutes.
 	* Updated damage formula for Spiral Pierce. [Skotlex]
 	* Fixed speed change being lost when speed is increased/decreased while
 	  walking with Free-cast. [Skotlex]
