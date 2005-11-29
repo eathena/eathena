@@ -2653,12 +2653,13 @@ int npc_reload (void)
 
 	for (nsl = npc_src_first; nsl; nsl = nsl->next) {
 		npc_parsesrcfile(nsl->name);
-		printf("\r");
-		if (script_config.verbose_mode)
+		if (script_config.verbose_mode) {
+			printf("\r");
 			ShowStatus("Loading NPCs... %-53s", nsl->name);
-		else {
-			ShowStatus("Loading NPCs... Working: ");
+		} else {
 			if (last_time != time(0)) {
+				printf("\r");
+				ShowStatus("Loading NPCs... Working: ");
 				last_time = time(0);
 				switch(busy) {
 					case 0: c='\\'; busy++; break;
@@ -2666,8 +2667,8 @@ int npc_reload (void)
 					case 2: c='/'; busy++; break;
 					case 3: c='-'; busy=0;
 				}
+				printf("[%c]",c);
 			}
-			printf("[%c]",c);
 		}
 		fflush(stdout);
 	}
