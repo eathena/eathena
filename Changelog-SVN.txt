@@ -3,7 +3,7 @@ Date	Added
 	* Fixed the config variables being "lost" on startup. [Skotlex]
 	* Fixed Restore requiring Regeneration lv2 [Skotlex]
 	* Fixed the spirit sphere bonus not applying to Throw Spirit Sphere. [Skotlex]
-	* Rewrited and cleaned up duel code. Formed independent duel_xxx functions.
+	* Rewrote and cleaned up duel code. Formed independent duel_xxx functions.
 	  I suggest to place this functions in duel.c/duel.h. New features: [LuzZza]
 	  - Now when you in duel, you can't attack anything out of your duel
 	    (mobs, other players etc...);
