@@ -23,7 +23,7 @@ xmas.gat,117,295,3	script	Titicupe	704,{
 	mes "Hmm... spell ingridients are...";
  	mes "100 Alice's Apron";
  	next;
-	menu "Here. Now do your magic!",=,"Cancel",M_Cancel;
+	menu "Here. Now do your magic!",-,"Cancel",M_Cancel;
 	
 	if(countitem(7047)<100) goto L_NoItem;
 	delitem 7047,100;

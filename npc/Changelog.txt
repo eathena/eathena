@@ -27,6 +27,7 @@ Nexon
 Date		Added
 ======
 11/29
+	* Fixed quest_lutie, thanks to Manipulator [Vicious]
 	* Updated cooking NPC, thanks to battousai90 [Vicious]
 11/28
 	* Updated the spawnpoint in Niflheim with Bungy jump [Vicious]
