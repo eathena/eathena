@@ -1,5 +1,7 @@
 Date	Added
 2005/11/29
+	* Fixed speed change being lost when speed is increased/decreased while
+	  walking with Free-cast. [Skotlex]
 	* Fixed pets being renameable after turning them back into eggs. [Skotlex]
 	* Reverted the guild data position in the mob/npc packets, should restore
 	  the emblems in flags. [Skotlex]

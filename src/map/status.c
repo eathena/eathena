@@ -1589,8 +1589,10 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		sd->speed += sd->speed * (100-16*skill)/100;
 	if(pc_iscarton(sd) && (skill=pc_checkskill(sd,MC_PUSHCART))>0)
 		sd->speed += sd->speed * (100-10*skill)/100;
- 	if(sd->skilltimer != -1 && (skill=pc_checkskill(sd,SA_FREECAST))>0)
+ 	if(sd->skilltimer != -1 && (skill=pc_checkskill(sd,SA_FREECAST))>0) {
+		sd->prev_speed = sd->speed; //Store previous speed to correctly restore it. [Skotlex]
 		sd->speed += sd->speed * (75-5*skill)/100;
+	}
 	if(sd->sc_count && sd->sc_data[SC_DANCING].timer!=-1){
 			int s_rate = 500-40*pc_checkskill(sd,(sd->status.sex?BA_MUSICALLESSON:DC_DANCINGLESSON));
 			if (sd->sc_data[SC_LONGING].timer!=-1)
