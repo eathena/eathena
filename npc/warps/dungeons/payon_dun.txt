@@ -3,13 +3,14 @@
 //===== By: ================================================== 
 //= Nana (1.0)
 //===== Current Version: ===================================== 
-//= 1.1
+//= 1.1a
 //===== Compatible With: ===================================== 
 //= Any eAthena Mod
 //===== Description: ========================================= 
 //= Payon Dungeon Warps
 //===== Additional Comments: ================================= 
 //= No Comment
+//= 1.1a Fixed 'payd04r' warping players to a non-existant tile [MasterOfMuppets]
 //============================================================ 
 
 //= Payon Cave ===============================================
@@ -27,7 +28,7 @@ pay_dun03.gat,127,62,4	script	payd04r	45,2,2,{
 	if(@r==2) goto w3;
 	if(@r==3) goto w4;
 	w1:	warp "pay_dun04.gat",201,204; end;
-	w2:	warp "pay_dun04.gat",193,43; end;
+	w2:	warp "pay_dun04.gat",189,43; end;
 	w3:	warp "pay_dun04.gat",43,40; end;
 	w4:	warp "pay_dun04.gat",34,202; end;
 }		

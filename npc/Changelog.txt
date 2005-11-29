@@ -27,6 +27,7 @@ Nexon
 Date		Added
 ======
 11/29
+	* Fixed a Payon dungeon warp that was warping to a non-existant tile [MasterOfMuppets]
 	* Updated the color codes of louyang.txt a little 
 	  and fixed the shouting quest to broadcast green text. [MasterOfMuppets]
 	* Fixed quest_lutie, thanks to Manipulator [Vicious]
