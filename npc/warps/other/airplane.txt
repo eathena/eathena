@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= Sara-chan (1.0)
 //===== Current Version: =====================================
-//= 1.3
+//= 1.5
 //===== Compatible With: =====================================
 //= Any Athena Version; RO Episode 8+
 //===== Description: =========================================
@@ -16,6 +16,7 @@
 //= 1.4 added some warps as recomended by Justin84 [Skotlex]
 //= (those commented are direct warps into the airplanes, left here
 //= temporarily since the NPC isn't quite there yet)
+//= 1.5 Uncomented the airplane warps and remove two unnecessary ones [MasterOfMuppets]
 //============================================================
 
 // -Einbroch Airport-
@@ -27,7 +28,7 @@ einbroch.gat,64,208,0	warp	ein043	1,1,airport.gat,143,15
 airport.gat,143,13,0	warp	ein043a	1,1,einbroch.gat,64,206
 airport.gat,143,63,0	warp	ein044	1,1,einbroch.gat,62,246
 einbroch.gat,64,234,0	warp	ein044a	1,1,airport.gat,143,60
-//einbroch.gat,92,281,0	warp	ein045	1,1,airplane.gat,225,64
+einbroch.gat,92,281,0	warp	ein045	1,1,airplane.gat,224,64
 
 // -Lighthalzen Airport-
 lhz_airport.gat,125,14,0	warp	lairp1	1,1,lhz_airport.gat,19,20
@@ -38,7 +39,7 @@ lighthalzen.gat,267,76,0	warp	lairp3	1,1,lhz_airport.gat,143,15
 lhz_airport.gat,143,13,0	warp	lairp3a	1,1,lighthalzen.gat,265,76
 lhz_airport.gat,143,63,0	warp	lairp4	1,1,lighthalzen.gat,296,76
 lighthalzen.gat,294,76,0	warp	lairp4a	1,1,lhz_airport.gat,143,60
-//lighthalzen.gat,308,76,0	warp	lairp5	1,1,airplane.gat,225,64
+lighthalzen.gat,308,76,0	warp	lairp5	1,1,airplane.gat,224,64
 
 // -Juno Airport-
 y_airport.gat,125,14,0	warp	jairp1	1,1,y_airport.gat,19,20
@@ -47,12 +48,10 @@ y_airport.gat,160,14,0	warp	jairp2	1,1,y_airport.gat,48,20
 y_airport.gat,48,18,0	warp	jairp2a	1,1,y_airport.gat,162,14
 yuno.gat,54,217,0	warp	jairp3	1,1,y_airport.gat,143,15
 y_airport.gat,143,13,0	warp	jairp3a	1,1,yuno.gat,54,215
-y_airport.gat,141,63,0	warp	jairp4	1,1,yuno.gat,50,240
 yuno.gat,52,238,0	warp	jairp4a	1,1,y_airport.gat,143,60
-y_airport.gat,144,63,0	warp	jairp5	1,1,yuno.gat,57,240
 yuno.gat,55,238,0	warp	jairp5a	1,1,y_airport.gat,143,60
-//yuno.gat,8,261,0	warp	jairp6	1,1,airplane.gat,225,64
-//yuno.gat,97,260,0	warp	jairp7	1,1,airplane.gat,225,64
+yuno.gat,8,261,0	warp	jairp6	1,1,airplane_01.gat,224,64
+yuno.gat,97,260,0	warp	jairp7	1,1,airplane.gat,224,64
 
 // -Airplanes-
 airplane.gat,255,55,0	warp	airs01	1,1,airplane.gat,90,68

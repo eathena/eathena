@@ -54,6 +54,8 @@ airport.gat	mapflag	noteleport
 airplane.gat	mapflag	noteleport
 airplane_01.gat	mapflag	noteleport
 // New areas
+lighthalzen.gat	mapflag	noteleport
+yuno.gat	mapflag	noteleport
 yuno_pre.gat	mapflag	noteleport
 y_airport.gat	mapflag	noteleport
 lhz_airport.gat	mapflag	noteleport

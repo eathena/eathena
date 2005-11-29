@@ -67,6 +67,7 @@ airport.gat	mapflag	nomemo
 airplane.gat	mapflag	nomemo
 airplane_01.gat	mapflag	nomemo
 // New areas
+lighthalzen.gat	mapflag	nomemo
 yuno_pre.gat	mapflag	nomemo
 y_airport.gat	mapflag	nomemo
 lhz_airport.gat	mapflag	nomemo
