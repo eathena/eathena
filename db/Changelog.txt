@@ -33,6 +33,9 @@
 
 	--
 11/29
+	* Updated skill ranges so that the range specified is always the skill
+	  range regardless of sign. Those with negative range are now used for the
+	  battle_config option skillrange_from_weapon [Skotlex]
 	* Updated Earth Elemental Convertor, thanks to reddozen [Vicious]
 	* Added temp skills to Ayothaya MVP Lady Tany. [Lupus]
 	  Also added her real slaves, thanks to MasterOfMuppets for info

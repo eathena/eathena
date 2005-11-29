@@ -5062,8 +5062,9 @@ int clif_announce(struct block_list *bl, char* mes, int len, unsigned long color
 	WBUFW(buf,0) = 0x1c3;
 	WBUFW(buf,2) = len + 16;
 	WBUFL(buf,4) = color;
-	WBUFL(buf,8) = bl?bl->id:0; //TODO: These two fields are unconfirmed/unknown [Skotlex]
-	WBUFL(buf,12) = 0;
+	WBUFW(buf,8) = 0x190; //Font style? Type?
+	WBUFW(buf,10) = 0x0c;  //12? Font size?
+	WBUFL(buf,12) = 0;	//Unknown!
 	memcpy(WBUFP(buf,16), mes, len);
 	
 	flag &= 0x07;

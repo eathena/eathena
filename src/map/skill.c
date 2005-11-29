@@ -637,30 +637,10 @@ int deluge_eff[5] = { 5, 9, 12, 14, 15 };
 //Returns actual skill range taking into account attack range and AC_OWL [Skotlex]
 int skill_get_range2(struct block_list *bl, int id, int lv) {
 	int range = skill_get_range(id, lv);
-	if(range < 0)
-		return status_get_range(bl) - (range + 1);
-	
-	if (battle_config.use_weapon_skill_range && skill_get_type(id)==BF_WEAPON && skill_get_inf(id)&INF_ATTACK_SKILL) {
-		switch (id) {
-			//List here BF_WEAPON INF_ATTACK_SKILL skills that mustn't be converted to weapon range.
-			case KN_SPEARBOOMERANG:
-			case AS_GRIMTOOTH:
-			case AM_ACIDTERROR:
-			case CR_SHIELDBOOMERANG:
-			case MO_FINGEROFFENSIVE:
-			case BA_MUSICALSTRIKE:
-			case DC_THROWARROW:
-			case NPC_RANGEATTACK:
-			case ITM_TOMAHAWK:
-			case ASC_BREAKER:
-			case CG_ARROWVULCAN:
-			case TK_JUMPKICK:
-			case KN_CHARGEATK:
-			case AS_VENOMKNIFE:
-				break;
-			default: //Convert skill range to weapon's. [Skotlex]
-				return status_get_range(bl);
-		}
+	if(range < 0) {
+		if (battle_config.use_weapon_skill_range)
+			return status_get_range(bl);
+		range *=-1;
 	}
 	if (bl->type == BL_PC && //TODO: Find a way better than hardcoding the list of skills affected by AC_VULTURE.
 		(id == AC_SHOWER || id == AC_DOUBLE || id == HT_BLITZBEAT || id == SN_FALCONASSAULT || id == SN_SHARPSHOOTING))

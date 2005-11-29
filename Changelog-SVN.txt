@@ -1,5 +1,11 @@
 Date	Added
 2005/11/28
+	* Updated behaviour of skillrange_from_weapon. If set, those skills with
+	  negative range use the weapon's range. If not set, then the skill range
+	  used is the absolute value of the range specified in the skill_db. [Skotlex]
+	* Small cleanup of the color broadcast packet using data provided by Master
+	  of Muppets. It should hopefully fix the font-size on said colored messages.
+	  [Skotlex]
 	* Fixed the setting of the guild id and guild emblem in packets 0x7b and
 	  0x78 for mobs/npcs (this is assuming the position is correct when filling
 	  these same packets for players) [Skotlex]
