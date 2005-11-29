@@ -1,5 +1,7 @@
 Date	Added
 2005/11/28
+	* Fixed a pair of exp exploits possible with to Rich Man Kim and
+	  race-add-exp card bonuses. [Skotlex]
 	* Updated behaviour of skillrange_from_weapon. If set, those skills with
 	  negative range use the weapon's range. If not set, then the skill range
 	  used is the absolute value of the range specified in the skill_db. [Skotlex]
