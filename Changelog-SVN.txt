@@ -1,5 +1,6 @@
 Date	Added
 2005/11/29
+	* Fixed ## account variable saving disconnecting the char-login servers. [Skotlex]
 	* Updated the way multi-hit skills add overrefine/star crumb/spirit sphere
 	  damage so that the total bonus is multiplied by the total number of this.
 	  [Skotlex]

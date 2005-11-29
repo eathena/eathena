@@ -2622,8 +2622,8 @@ int parse_frommap(int fd) {
 				return 0;
 		  {
 			if (login_fd > 0) { // don't send request if no login-server
-				WFIFOW(login_fd, 0) = 0x2728;
 				memcpy(WFIFOP(login_fd,0), RFIFOP(fd,0), RFIFOW(fd,2));
+				WFIFOW(login_fd, 0) = 0x2728;
 				WFIFOSET(login_fd, WFIFOW(login_fd,2));
 			}
 			// ワールドへの同垢ログインがなければmapサーバーに送る必要はない
