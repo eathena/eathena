@@ -42,6 +42,8 @@
 #define MAX_VENDING 12
 #define MOBID_EMPERIUM 1288
 
+#define MAX_DUEL 1024
+
 //These mark the ID of the jobs, as expected by the client. [Skotlex]
 enum {
 	JOB_NOVICE,
@@ -672,16 +674,18 @@ struct map_session_data {
 	int mail_counter;	// mail counter for mail system [Valaris]
 #endif
 
-	// duel vars [LuzZza]
-    int duel_group;
+	int duel_group; // duel vars [LuzZza]
     int duel_invite;
     
 };
 
-// duel arrays [LuzZza]
-int duel_maxpl_list[1024];
-int duel_group_list[1024];
-int duel_invite_list[1024];
+struct {
+	int members_count;
+	int invites_count;
+	int max_players_limit;
+} duel_list[MAX_DUEL];
+
+int duel_count;
 
 struct npc_timerevent_list {
 	int timer,pos;

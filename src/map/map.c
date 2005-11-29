@@ -1286,52 +1286,16 @@ void map_addnickdb(struct map_session_data *sd) {
  *------------------------------------------
  */
 int map_quit(struct map_session_data *sd) {
-    int i;
-    char output[256];
-    struct map_session_data* pl_sd = NULL;    
 
 	//nullpo_retr(0, sd); //Utterly innecessary, all invokations to this function already have an SD non-null check.
 	//Learn to use proper coding and stop relying on nullpo_'s for safety :P [Skotlex]
 
-    // Force exiting from duel when player quit [LuzZza]
-    if(sd->duel_group) {
-
-      for (i=0; i<fd_max; i++)
-  	    if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) 
-	      && pl_sd->state.auth && pl_sd->duel_group == sd->duel_group && pl_sd != sd) {
-	  
-	      sprintf(output, " <- Player %s has left duel -- ", (unsigned char *)sd->status.name);
-	      clif_disp_onlyself(pl_sd,output,strlen(output));
-	    }
-   
-      duel_group_list[sd->duel_group]--; // decrease player count
-
-      if(duel_group_list[sd->duel_group] == 0) {
-    
-        for (i=0; i<fd_max; i++)
-          if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) 
-	        && pl_sd->state.auth && pl_sd->duel_invite == sd->duel_group && pl_sd != sd) pl_sd->duel_invite = 0;
-	      
-	    duel_group_list[0]--; // decrease count of groups
-      }  
-      
-    sd->duel_group = 0; // set group id		    
-    }
-
-    // Force rejecting invitations when player quit [LuzZza]
-    if(sd->duel_invite) {
-    
-      for (i=0; i<fd_max; i++)
-	    if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) 
-	      && pl_sd->state.auth && pl_sd->duel_group == sd->duel_invite && pl_sd != sd) {
-	  
-	      sprintf(output, " -- Player %s has rejected duel -- ", (unsigned char *)sd->status.name);
-	      clif_disp_onlyself(pl_sd,output,strlen(output));
-	    }
-
-      duel_invite_list[sd->duel_invite]--;
-      sd->duel_invite = 0;    
-    }
+    // Force exiting from duel and rejecting
+    // all duel invitations when player quit [LuzZza]
+    if(sd->duel_group > 0)
+    	duel_leave(sd->duel_group, sd);
+    if(sd->duel_invite > 0)
+    	duel_reject(sd->duel_group, sd);
 
 	if(!sd->state.waitingdisconnect) {
 		if (sd->state.event_disconnect) {
@@ -3507,10 +3471,7 @@ int do_init(int argc, char *argv[]) {
 
 	chrif_connected = 0;
 
-	// Init duel [LuzZza]
-	i=0; while(i<1024) duel_maxpl_list[i++] = 0;
-	i=0; while(i<1024) duel_group_list[i++] = 0;
-	i=0; while(i<1024) duel_invite_list[i++] = 0;
+	do_init_duel(); // init duel [LuzZza]
 
 	srand(gettick());
 

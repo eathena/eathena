@@ -3115,11 +3115,18 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 				state |= BCT_ENEMY; //Is on a killing rampage :O
 				strip_enemy = 0;
 			} else
-			if (t_bl->type == BL_PC && t_bl != s_bl &&
-				sd->duel_group && (sd->duel_group == ((struct map_session_data *)t_bl)->duel_group)
-			) {	// Duel [LuzZza]
+			if (sd->duel_group && // Duel [LuzZza]
+				!((!battle_config.duel_allow_pvp && map[m].flag.pvp) ||
+				(!battle_config.duel_allow_gvg && map_flag_gvg(m)))) {
+				if (t_bl->type == BL_PC && t_bl != s_bl &&
+					(sd->duel_group == ((struct map_session_data *)t_bl)->duel_group))
+				{
 					state |= BCT_ENEMY;
 					strip_enemy = 0;
+				} else {
+					// You can't target anything out of your duel
+					return 0;
+				}
 			}
 			if (map_flag_gvg(m) && !sd->status.guild_id &&
 				t_bl->type == BL_MOB && ((struct mob_data *)t_bl)->guardian_data)
@@ -3552,6 +3559,11 @@ static const struct battle_data_short {
 	{ "title_lvl6",				&battle_config.title_lvl6}, // [Lupus]
 	{ "title_lvl7",				&battle_config.title_lvl7}, // [Lupus]
 	{ "title_lvl8",				&battle_config.title_lvl8}, // [Lupus]
+	
+	{ "duel_enable",						&battle_config.duel_enable}, // [LuzZza]
+	{ "duel_allow_pvp",						&battle_config.duel_allow_pvp}, // [LuzZza]
+	{ "duel_allow_gvg",						&battle_config.duel_allow_gvg}, // [LuzZza]
+	{ "duel_time_interval",					&battle_config.duel_time_interval}, // [LuzZza]	
 
 //SQL-only options start
 #ifndef TXT_ONLY
@@ -3926,6 +3938,11 @@ void battle_set_defaults() {
 	battle_config.title_lvl6 = 60;
 	battle_config.title_lvl7 = 80;
 	battle_config.title_lvl8 = 99;
+	
+	battle_config.duel_enable = 1;
+	battle_config.duel_allow_pvp = 0;
+	battle_config.duel_allow_pvp = 0;
+	battle_config.duel_time_interval = 60;
 
 //SQL-only options start
 #ifndef TXT_ONLY
