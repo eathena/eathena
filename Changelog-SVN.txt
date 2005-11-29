@@ -1,5 +1,7 @@
 Date	Added
 2005/11/28
+	* Added dontBR's experimental configure script. It's still in alpha stage,
+	  so use with caution! [Skotlex]
 	* Fixed a pair of exp exploits possible with to Rich Man Kim and
 	  race-add-exp card bonuses. [Skotlex]
 	* Updated behaviour of skillrange_from_weapon. If set, those skills with
