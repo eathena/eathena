@@ -1606,7 +1606,7 @@
 5132,Angeling_Hat,Angeling Hat,5,,10,700,,2,,0,127918079,7,2,256,,38,1,204,{ bonus2 bSubRace,RC_DemiHuman,10; }
 5133,Sheep_Hat,Sheep Hat,5,,10,150,,1,,0,33040,7,2,256,,50,1,205,{ bonus bShortWeaponDamageReturn,5; }
 5134,Pumpkin_Hat,Pumpkin Hat,5,,10,200,,2,,0,127918079,7,2,256,,0,1,206,{}
-5135,Cyclops_Eye,Cyclops Eye,5,,10,200,,0,,0,119529470,7,2,512,,75,1,185,{ bonus bMaxSP,50; }
+5135,Cyclops_Eye,Cyclops Eye,5,,10,200,,0,,0,119529470,7,2,512,,75,1,207,{ bonus bMaxSP,50; }
 
 // More Etc Items
 //===================================================================
@@ -2334,5 +2334,5 @@
 //5136,Luise_Santa's_Hat,Luise's Santa's Hat,5,,10,100,,3,,0,127918079,7,2,256,,0,1,20,{ bonus bMdef,1; bonus bLuk,1; bonus4 bAutoSpellWhenHit,34,10,10,0; bonus4 bAutoSpellWhenHit,75,5,10,0;}
 //12131,Lucky_Potion,Lucky Potion,0,,10,100,,,,,127918079,7,2,,,,,,{}
 //2610,Glove_of_archer,Gloves of Archer,5,,10,300,,0,,0,127918079,7,2,136,,60,0,0,{ bonus bHit,5; bonus bCritical,5; bonus bDex,1; }
-//1725,Gakkung,Gakkung,4,,10,1700,120,,5,1,1706056,7,2,34,4,70,1,11,{ bonus bInt,1; bonus bSPrecovRate,10; } 
+//1725,Wondering_Bard's_Bow,Wondering Bard's Bow,4,,10,1700,120,,5,1,1706056,7,2,34,4,70,1,11,{ bonus bInt,1; bonus bSPrecovRate,10; } 
 //12132,Red_Package,Red Package,,0,,10,200,,,,,127918079,7,2,,,,,,{}
