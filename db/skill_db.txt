@@ -164,7 +164,7 @@
 145,0,0,0,0,0,1,0,no,0,1,0,weapon,0	//SM_FATALBLOW#Attack Weak Point#
 146,0,6,4,0,1,1,1,no,0,1,0,weapon,0	//SM_AUTOBERSERK#Auto Berserk#
 147,0,0,4,0,1,1,0,no,0,1,0,weapon,0	//AC_MAKINGARROW#Arrow Crafting#
-148,-3,6,1,-1,2,1,1,no,0,1,0,weapon,6	//AC_CHARGEARROW#Arrow Repel#
+148,-9,6,1,-1,2,1,1,no,0,1,0,weapon,6	//AC_CHARGEARROW#Arrow Repel#
 149,1,6,1,2,0,1,1,no,0,1,0,weapon,0	//TF_SPRINKLESAND#Throw Sand#
 150,0,6,4,0,1,1,1,no,0,1,0,weapon,5	//TF_BACKSLIDING#Back Sliding#
 151,0,6,4,0,1,1,1,no,0,1,0,none,0	//TF_PICKSTONE#Find Stone#
@@ -525,7 +525,7 @@
 1006,2,6,4,3,1,1,1,yes,0,1,0,magic,3	//WZ_SIGHTBLASTER#Sight Blaster#
 1007,0,6,4,0,1,10,0,no,0,1,0,none,0	//SA_CREATECON#Create Converter#
 1008,9,6,1,1,1,1,1,yes,0,1,0,magic,0	//SA_ELEMENTWATER#Elemental Change Water#
-1009,-3,6,1,0,0,1,1,no,0,1,0,weapon,3	//HT_PHANTASMIC#Phantasmic Arrow#
+1009,-9,6,1,0,0,1,1,no,0,1,0,weapon,3	//HT_PHANTASMIC#Phantasmic Arrow#
 1010,9,6,1,0,1,1,0,no,0,1,0,misc,0	//BA_PANGVOICE#Pang Voice#
 1011,9,6,1,0,1,1,0,no,0,1,0,misc,0	//DC_WINKCHARM#Wink of Charm#
 1012,0,0,0,0,0,1,0,no,0,1,0,weapon,0	//BS_UNFAIRLYTRICK#Unfair Trick#

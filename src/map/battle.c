@@ -1328,6 +1328,8 @@ static struct Damage battle_calc_weapon_attack(
 							ATK_RATE(75);
 							break;
 					}
+					ATK_RATE(wd.div_*100); //Increase overall damage by number of this
+					//FIXME: (shouldn't something like this apply to ALL weapon skills?) [Skotlex]
 					break;
 				}
 			case CR_SHIELDBOOMERANG:
