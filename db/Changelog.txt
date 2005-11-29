@@ -33,6 +33,7 @@
 
 	--
 11/29
+	* Temp plug on new items. Someone check please. :D [Vicious]
 	* Updated skill ranges so that the range specified is always the skill
 	  range regardless of sign. Those with negative range are now used for the
 	  battle_config option skillrange_from_weapon [Skotlex]
