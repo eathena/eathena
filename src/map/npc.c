@@ -2140,11 +2140,8 @@ int npc_parse_mob2 (struct mob_list *mob, int cached)
 		md->spawndelay1 = mob->delay1;
 		md->spawndelay2 = mob->delay2;
 
-//		memset(&md->state,0,sizeof(md->state));
 		md->special_state.cached = cached;	//If cached, mob is dynamically removed
 		md->timer = -1;
-//		md->target_id=0;
-//		md->attacked_id=0;
 		md->speed = mob_db(mob->class_)->speed;
 
 		if (mob_db(mob->class_)->mode & MD_LOOTER)

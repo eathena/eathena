@@ -1024,6 +1024,7 @@ int mob_spawn (int id)
 	md->attacked_id = 0;
 	md->attacked_count = 0;
 	md->target_id = 0;
+	md->mode = 0;
 	md->move_fail_count = 0;
 
 	if (!md->speed)
