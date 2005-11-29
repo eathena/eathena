@@ -1,5 +1,6 @@
 Date	Added
 2005/11/29
+	* Fixed pets being renameable after turning them back into eggs. [Skotlex]
 	* Reverted the guild data position in the mob/npc packets, should restore
 	  the emblems in flags. [Skotlex]
 	* Corrected battle_check_target Guild checks returning true for non-guild,

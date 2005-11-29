@@ -1311,13 +1311,10 @@ static struct Damage battle_calc_weapon_attack(
 
 					if (index >= 0 &&
 						sd->inventory_data[index] &&
-						sd->inventory_data[index]->type == 4) {
-					
+						sd->inventory_data[index]->type == 4)
 						wd.damage = sd->inventory_data[index]->weight*8/100; //80% of weight
-						ATK_ADDRATE(50*skill_lv); //Skill modifier applies to weight only.
-						ATK_ADD(sd->status.inventory[index].refine * status_getrefinebonus(sd->inventory_data[index]->wlv,1)); //Add refine damage
-					}
 					
+					ATK_ADDRATE(50*skill_lv); //Skill modifier applies to weight only.
 					index = status_get_str(src)/10;
 					index = index*index;
 					ATK_ADD(index); //Add str bonus.
