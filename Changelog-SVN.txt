@@ -1,4 +1,9 @@
 Date	Added
+2005/11/29
+	* Reverted the guild data position in the mob/npc packets, should restore
+	  the emblems in flags. [Skotlex]
+	* Corrected battle_check_target Guild checks returning true for non-guild,
+	  party'ed characters and viceversa. [Skotlex]
 2005/11/28
 	* Added dontBR's experimental configure script. It's still in alpha stage,
 	  so use with caution! [Skotlex]

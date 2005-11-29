@@ -64,12 +64,10 @@ int battle_getcurrentskill(struct block_list *bl);
 #define BCT_ENEMY 0x020000
 //This should be (~BCT_ENEMY&BCT_ALL)
 #define BCT_NOENEMY 0x1d0000
-//Party includes self (0x04|0x01)
-#define BCT_PARTY	0x050000
+#define BCT_PARTY	0x040000
 //This should be (~BCT_PARTY&BCT_ALL)
 #define BCT_NOPARTY 0x1b0000
-//Guild includes self (0x08|0x01)
-#define BCT_GUILD	0x090000
+#define BCT_GUILD	0x080000
 //This should be (~BCT_GUILD&BCT_ALL)
 #define BCT_NOGUILD 0x170000
 #define BCT_ALL 0x1f0000
