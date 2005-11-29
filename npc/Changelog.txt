@@ -27,6 +27,8 @@ Nexon
 Date		Added
 ======
 11/29
+	* Updated the color codes of louyang.txt a little 
+	  and fixed the shouting quest to broadcast green text. [MasterOfMuppets]
 	* Fixed quest_lutie, thanks to Manipulator [Vicious]
 	* Updated cooking NPC, thanks to battousai90 [Vicious]
 11/28

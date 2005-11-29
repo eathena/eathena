@@ -22,6 +22,8 @@
 //= 2.1 Optimized, made quest vars unique [Lupus]
 //= 2.1a minor fix, 2.1b Fixed Typo’s [Nexon]
 //= 2.2 Fixed exploits [Lupus]
+//= 2.2a Updated the color codes a little and fixed the shouting quest
+//=	 to broadcast green text.
 //============================================================
 
 alberta.gat,245,45,4	script	Girl	815,{
@@ -369,7 +371,7 @@ lou_fild01.gat,195,177,4	script	Jiu Lian Bu	819,{
 	mes "familiar with you. Hmmm...";
 	next;
 	mes "[Jiu Lian Bu]";
-	mes "Would you sneak into that restaurant and steal the ^3C2EE6Dragon Soup Broth^000000 for me?";
+	mes "Would you sneak into that restaurant and steal the ^3131FFDragon Soup Broth^000000 for me?";
 	next;
 	mes "[Jiu Lian Bu]";
 	mes "The Dragon Soup Broth is the";
@@ -500,7 +502,7 @@ lou_fild01.gat,175,174,4	script	Jiu Lian Bu	819,{
 	mes "Say it out loud!";
 	next;
 	input @loushout$;
-	mapannounce "lou_fild01.gat","'" + strcharinfo(0) + "' shouts: " + @loushout$ ,17;
+	mapannounce "lou_fild01.gat","'" + strcharinfo(0) + "' shouts: " + @loushout$ ,1,0x9CFF00;
 	mes "[" + strcharinfo(0) + "]";
 	mes @loushout$;
 	close;
@@ -568,7 +570,7 @@ L_1STTIME:
 	mes "Say it out loud!";
 	next;
 	input @loushout$;
-	mapannounce "lou_fild01.gat","'" + strcharinfo(0) + "' shouts: " + @loushout$ ,17;
+	mapannounce "lou_fild01.gat","'" + strcharinfo(0) + "' shouts: " + @loushout$ ,1,0x9CFF00;
 	mes "[" + strcharinfo(0) + "]";
 	mes @loushout$;
 	set QL_SOUP2,1;
@@ -609,8 +611,8 @@ S_CAUGHT:
 	if(QL_GOTFAKESOUP == 1) set QL_GOTFAKESOUP,0;
 	if(QL_GOTDRAGONSOUP == 1) set QL_GOTDRAGONSOUP,0;
 	next;
-	mes "^3C2EE6You have failed";
-	mes "^3C2EE6to steal the pot.";
+	mes "^3131FFYou have failed";
+	mes "^3131FFto steal the pot.";
 	close;
 }
 
@@ -623,26 +625,26 @@ lou_in02.gat,54,174,6	script	Employee	822,{
 lou_in02.gat,50,185,4	script	Pot	111,{
 	if(QL_SOUPQUEST == 1) goto L_EMPTY;
 	if(QL_ACCEPTSOUP < 1) goto L_NORMAL;
-	mes "^3C2EE6Beneath the shadows, you find a large pot filled with dark, red liquid. What do you want to do?";
+	mes "^3131FFBeneath the shadows, you find a large pot filled with dark, red liquid. What do you want to do?";
 	next;
 	menu "Take the pot.",-,"Look for another pot.",M_LOOK;
 
 	if (QL_GOTDRAGONSOUP == 1) set QL_GOTDRAGONSOUP,0;
-	mes "^3C2EE6You take a careful look around. It wouldn't be wise to steal this now if anyone is watching.";
+	mes "^3131FFYou take a careful look around. It wouldn't be wise to steal this now if anyone is watching.";
 	next;
-	mes "^3C2EE6Since the restaurant is closed, the whole place is completely quiet. The employees are all asleep.";
+	mes "^3131FFSince the restaurant is closed, the whole place is completely quiet. The employees are all asleep.";
 	next;
-	mes "^3C2EE6You carefully lift the pot, and although it's heavy, you think you can carry it.";
+	mes "^3131FFYou carefully lift the pot, and although it's heavy, you think you can carry it.";
 	next;
-	mes "^3C2EE6All you have";
-	mes "^3C2EE6to do now is get";
-	mes "^3C2EE6away from this restaurant";
-	mes "^3C2EE6without getting caught...";
+	mes "^3131FFAll you have";
+	mes "^3131FFto do now is get";
+	mes "^3131FFaway from this restaurant";
+	mes "^3131FFwithout getting caught...";
 	set QL_GOTFAKESOUP,1;
 	close;
 
 M_LOOK:
-	mes "^3C2EE6You decide to";
+	mes "^3131FFYou decide to";
 	mes "look for another pot.";
 	close;
 
@@ -654,33 +656,33 @@ L_NORMAL:
 	close;
 
 L_EMPTY:
-	mes "^3C2EE6You found a pot, however it's empty.";
+	mes "^3131FFYou found a pot, however it's empty.";
 	close;
 }
 
 lou_in02.gat,49,185,4	script	Pot	111,{
 	if(QL_SOUPQUEST == 1) goto L_EMPTY;
 	if(QL_ACCEPTSOUP < 1) goto L_NORMAL;
-	mes "^3C2EE6Beneath the shadows, you find a large pot filled with dark, red liquid. What do you want to do?";
+	mes "^3131FFBeneath the shadows, you find a large pot filled with dark, red liquid. What do you want to do?";
 	next;
 	menu "Take the pot.",-,"Look for another pot.",M_LOOK;
 
 	if (QL_GOTFAKESOUP == 1) set QL_GOTFAKESOUP,0;
-	mes "^3C2EE6You take a careful look around. It wouldn't be wise to steal this now if anyone is watching.";
+	mes "^3131FFYou take a careful look around. It wouldn't be wise to steal this now if anyone is watching.";
 	next;
-	mes "^3C2EE6Since the restaurant is closed, the whole place is completely quiet. The employees are all asleep.";
+	mes "^3131FFSince the restaurant is closed, the whole place is completely quiet. The employees are all asleep.";
 	next;
-	mes "^3C2EE6You carefully lift the pot, and although it's heavy, you think you can carry it.";
+	mes "^3131FFYou carefully lift the pot, and although it's heavy, you think you can carry it.";
 	next;
-	mes "^3C2EE6All you have";
-	mes "^3C2EE6to do now is get";
-	mes "^3C2EE6away from this restaurant";
-	mes "^3C2EE6without getting caught...";
+	mes "^3131FFAll you have";
+	mes "^3131FFto do now is get";
+	mes "^3131FFaway from this restaurant";
+	mes "^3131FFwithout getting caught...";
 	set QL_GOTDRAGONSOUP,1;
 	close;
 
 M_LOOK:
-	mes "^3C2EE6You decide to";
+	mes "^3131FFYou decide to";
 	mes "look for another pot.";
 	close;
 
@@ -692,7 +694,7 @@ L_NORMAL:
 	close;
 
 L_EMPTY:
-	mes "^3C2EE6You found an empty pot.";
+	mes "^3131FFYou found an empty pot.";
 	close;
 }
 
@@ -920,7 +922,7 @@ lou_in02.gat,58,183,4	script	Chef Assistant	823,{
 	misceffect 121;
 	next;
 	mes "[Jin Wei Ling]";
-	mes "^3C2EE6*Chop chop chop chop chop*^000000";
+	mes "^3131FF*Chop chop chop chop chop*^000000";
 	donpcevent "Lounpc::OnEffect";	
 	next;
 	mes "[Jin Wei Ling]";
@@ -1076,7 +1078,7 @@ lou_in02.gat,156,38,8	script	Studying Officer	822,{
 	mes ".....";
 	mes "^6A6A6A*Mumble mumble*^000000";
 	next;
-	mes "^3C2EE6He appears to be rummaging around for some documents and takes no notice of you.";
+	mes "^3131FFHe appears to be rummaging around for some documents and takes no notice of you.";
 	next;
 	menu "Excuse me.",-,"Pass him.",M_PASS;
 	
@@ -1106,7 +1108,7 @@ L_RANT:
 	close;
 
 L_BRIBED:
-	mes "^3C2EE6*Rummage rummage...*^000000";
+	mes "^3131FF*Rummage rummage...*^000000";
 	next;
 	menu "Sorry about that.",-,"I came to pick up my documents.",L_DOCU;
 
@@ -1116,8 +1118,8 @@ L_BRIBED:
 	mes "Oh I see, I see...";
 	next;
 	emotion 0;
-	mes "^3C2EE6*Rummage rummage...*";
-	mes "^3C2EE6..........";
+	mes "^3131FF*Rummage rummage...*";
+	mes "^3131FF..........";
 	close;	
 
 L_DOCU:
@@ -1326,8 +1328,8 @@ L_FINALLY:
 	mes "Yup this is it!";
 	mes "Good, good...";
 	next;
-	mes "^3C2EE6*Rummage rummage...*";
-	mes "^3C2EE6......";
+	mes "^3131FF*Rummage rummage...*";
+	mes "^3131FF......";
 	next;
 	menu "Excuse me.",-;
 	mes "[Jiang Xiayou]";
@@ -1631,12 +1633,12 @@ L_MED:
 	next;
 L_INGREDIENT:
 	mes "[Hua Tuo]";
-	mes "^3C2EE62 Claw of Panther^000000,";
-	mes "^3C2EE610 Very Hard Peach^000000,";
-	mes "^3C2EE65 Poisonous Toad Skin^000000,";
-	mes "^3C2EE620 Brown Root^000000,";
-	mes "^3C2EE610 Sprout^000000 and";
-	mes "^3C2EE65 Honey Jar^000000.";
+	mes "^3131FF2 Claw of Panther^000000,";
+	mes "^3131FF10 Very Hard Peach^000000,";
+	mes "^3131FF5 Poisonous Toad Skin^000000,";
+	mes "^3131FF20 Brown Root^000000,";
+	mes "^3131FF10 Sprout^000000 and";
+	mes "^3131FF5 Honey Jar^000000.";
 	close;	
 
 L_DONE:
