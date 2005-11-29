@@ -1,5 +1,8 @@
 Date	Added
 2005/11/29
+	* Updated the way multi-hit skills add overrefine/star crumb/spirit sphere
+	  damage so that the total bonus is multiplied by the total number of this.
+	  [Skotlex]
 	* Fixed the config variables being "lost" on startup. [Skotlex]
 	* Fixed Restore requiring Regeneration lv2 [Skotlex]
 	* Fixed the spirit sphere bonus not applying to Throw Spirit Sphere. [Skotlex]

@@ -1831,11 +1831,7 @@ static struct Damage battle_calc_weapon_attack(
 
 		//Refine bonus
 		if (sd && skill_num != MO_INVESTIGATE && skill_num != MO_EXTREMITYFIST) {
-			if (skill_num == LK_SPIRALPIERCE) { //Spiral Pierce is this bonus x5 [Skotlex]
-				ATK_ADD2(5*status_get_atk2(src), 5*status_get_atk_2(src));
-			} else {
-				ATK_ADD2(status_get_atk2(src), status_get_atk_2(src));
-			}
+				ATK_ADD2(wd.div_*status_get_atk2(src), wd.div_*status_get_atk_2(src));
 		}
 
 		//Set to min of 1
@@ -1882,11 +1878,11 @@ static struct Damage battle_calc_weapon_attack(
 
 	if (sd)
 	{
-		ATK_ADD2(sd->right_weapon.star, sd->left_weapon.star);
+		ATK_ADD2(wd.div_*sd->right_weapon.star, wd.div_*sd->left_weapon.star);
 		if (skill_num==MO_FINGEROFFENSIVE) { //The finger offensive spheres on moment of attack do count. [Skotlex]
-			ATK_ADD(sd->spiritball_old*3);
+			ATK_ADD(wd.div_*sd->spiritball_old*3);
 		} else {
-			ATK_ADD(sd->spiritball*3);
+			ATK_ADD(wd.div_*sd->spiritball*3);
 		}
 
 		//Card Fix, sd side
