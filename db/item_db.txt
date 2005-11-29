@@ -1134,7 +1134,7 @@
 2662,Vesper_Core_04,Vesper Core 04,5,,10,500,,1,,0,2088832,2,2,136,,0,0,0,{ bonus bDef,1; bonus bMdef,3; bonus bDex,3; bonus bHit,10; }
 2663,Gauntlet_of_Hit,Gauntlet of Hit,5,,10,900,,0,,0,127918079,7,2,136,,75,0,0,{ bonus bHit,15; bonus bStr,1; }
 2664,Belcarf,Belcarf,5,,10,200,,0,,0,119529470,7,2,136,,75,0,0,{ bonus bDex,2; bonus bInt,1; }
-2665,Ring_of_Exorcism,Ring of Exorcism,5,,10,500,,0,,0,33040,7,2,136,,60,0,0,{ bonus2 bExpAddRace,1,5; bonus2 bExpAddRace,6,5; }
+2665,Ring_of_Exorcism,Ring of Exorcism,5,,10,500,,0,,0,33040,7,2,136,,60,0,0,{ bonus2 bExpAddRace,RC_Undead,5; bonus2 bExpAddRace,RC_Demon,5; }
 2666,Lamp_of_Hope,Lamp of Hope,5,,,100,,0,,0,127918079,7,2,136,,0,0,0,{ bonus bStr,2; bonus2 bResEff,Eff_Blind,10; }
 
 // Cards
