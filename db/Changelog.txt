@@ -40,6 +40,8 @@
 	12132,Red_Package: Turns you into x-mas clothes sprite for 10 minutes
 	--
 11/30
+	* Fixed phen card affecting your after-cast delay instead of castrate, [MasterOfMuppets]
+	  thanks to andz for pointing it out
 	* Mob_db update, added some more G_mobs and Xmas_Orc, thanks to [MasterOfMuppets]
 	  Muad_dib
 	* Changed the range of NPC_CURSEATTACK and NPC_BLINDATTACK to 7, [MasterOfMuppets]

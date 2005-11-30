@@ -1215,7 +1215,7 @@
 4074,BigFoot_Card,BigFoot Card,6,,10,10,,,,,,,,32,,,,,{ bonus2 bSubRace,RC_Insect,30; }
 4075,Argos_Card,Argos Card,6,,10,10,,,,,,,,32,,,,,{ bonus2 bResEff,Eff_Stone,2000; bonus bDef,1; }
 4076,Magnolia_Card,Magnolia Card,6,,10,10,,,,,,,,2,,,,,{ bonus2 bAddEff,Eff_Curse,500; bonus bBaseAtk,5; }
-4077,Phen_Card,Phen Card,6,,10,10,,,,,,,,136,,,,,{ bonus bNoCastCancel,0; bonus bDelayrate,25; }
+4077,Phen_Card,Phen Card,6,,10,10,,,,,,,,136,,,,,{ bonus bNoCastCancel,0; bonus bCastrate,25; }
 4078,Savage_Card,Savage Card,6,,10,10,,,,,,,,16,,,,,{ bonus bVit,3; }
 4079,Mantis_Card,Mantis Card,6,,10,10,,,,,,,,136,,,,,{ bonus bStr,3; }
 4080,Flora_Card,Flora Card,6,,10,10,,,,,,,,2,,,,,{ bonus2 bAddRace,RC_Fish,20; }
