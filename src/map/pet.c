@@ -918,7 +918,6 @@ int pet_return_egg(struct map_session_data *sd)
 			map_addflooritem(&tmp_item,1,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);
 		}
 		sd->pet.incuvate = 1;
-		sd->pet.rename_flag = 0; //Prevents future captured pets from starting as "beloved" [Skotlex]
 		if(battle_config.pet_status_support && sd->pet.intimate > 0) {
 			if(sd->bl.prev != NULL)
 				status_calc_pc(sd,0);
@@ -929,6 +928,7 @@ int pet_return_egg(struct map_session_data *sd)
 		intif_save_petdata(sd->status.account_id,&sd->pet);
 		chrif_save(sd);
 
+		sd->pet.rename_flag = 0; //Prevents future captured pets from starting as "beloved" [Skotlex]
 		sd->petDB = NULL;
 	}
 
