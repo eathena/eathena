@@ -10,8 +10,8 @@ void Gettimeofday(struct timeval *timenow)
 {
 	time_t t;
 	t = clock();
-	timenow->tv_usec = t;
-	timenow->tv_sec = t / CLK_TCK;
+	timenow->tv_usec = (long)t;
+	timenow->tv_sec = (long)(t / CLK_TCK);
 	return;
 }
 #define gettimeofday(timenow, dummy) Gettimeofday(timenow)
@@ -331,7 +331,7 @@ int read_gm_account() {
 	if (stat(GM_account_filename, &file_stat))
 		creation_time_GM_account_file = 0; // error
 	else
-		creation_time_GM_account_file = file_stat.st_mtime;
+		creation_time_GM_account_file = (long)file_stat.st_mtime;
 
 	if ((fp = fopen(GM_account_filename, "r")) == NULL) {
 		ShowError("read_gm_account: GM accounts file [%s] not found.\n", GM_account_filename);
@@ -1052,7 +1052,7 @@ int check_GM_file(int tid, unsigned int tick, int id, int data) {
 	if (stat(GM_account_filename, &file_stat))
 		new_time = 0; // error
 	else
-		new_time = file_stat.st_mtime;
+		new_time = (long)file_stat.st_mtime;
 
 	if (new_time != creation_time_GM_account_file) {
 		read_gm_account();
@@ -1690,7 +1690,7 @@ int parse_fromchar(int fd) {
 									WBUFW(buf,0) = 0x2731;
 									WBUFL(buf,2) = auth_dat[i].account_id;
 									WBUFB(buf,6) = 1; // 0: change of statut, 1: ban
-									WBUFL(buf,7) = timestamp; // status or final date of a banishment
+									WBUFL(buf,7) = (unsigned int)timestamp; // status or final date of a banishment
 									charif_sendallwos(-1, buf, 11);
 									for(j = 0; j < AUTH_FIFO_SIZE; j++)
 										if (auth_fifo[j].account_id == acc)
@@ -2529,7 +2529,7 @@ int parse_admin(int fd) {
 					login_log("'ladmin': Attempt to change the validity limit of an unknown account (account: %s, received validity: %d (%s), ip: %s)" RETCODE,
 					          account_name, timestamp, (timestamp == 0 ? "unlimited" : tmpstr), ip);
 				}
-				WFIFOL(fd,30) = timestamp;
+				WFIFOL(fd,30) = (unsigned int)timestamp;
 			}
 			WFIFOSET(fd,34);
 			RFIFOSKIP(fd,30);
