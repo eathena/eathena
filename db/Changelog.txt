@@ -40,6 +40,8 @@
 	12132,Red_Package: Turns you into x-mas clothes sprite for 10 minutes
 	--
 11/30
+	* Mob_db update, added some more G_mobs and Xmas_Orc, thanks to [MasterOfMuppets]
+	  Muad_dib
 	* Changed the range of NPC_CURSEATTACK and NPC_BLINDATTACK to 7, [MasterOfMuppets]
 	  not sure whether it's supposed to be 7 or 9...
 	* Updated elemental-resist potions in produce_db, thanks to jsk225 [Vicious]
