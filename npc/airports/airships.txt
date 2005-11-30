@@ -11,6 +11,8 @@
 //= one is still about 25% custom and is missing some npcs.
 //===== Additional Comments: ================================= 
 //= 0.1 Added first version, it might be a little buggy [MasterOfMuppets]
+//= 0.1a Fixed the Airport Staff#Iz which was [MasterOfMuppets]
+//= 	 warping you to the same location as Airport Staff#Ein
 //============================================================ 
 
 //============================================================ 
@@ -391,7 +393,7 @@ s_Warp:
 
 }
 	
-y_airport.gat,141,63,4	script	Airport Staff#Ein	91,{
+y_airport.gat,141,63,4	script	Airport Staff#Izl	91,{
 
 	mes "[Airship Staff]";
 	mes "Good day!";
@@ -410,7 +412,7 @@ s_Warp:
 	mes "Thank you and";
 	mes "have a nice day.";
 	close2;
-	warp "yuno.gat",57,240;
+	warp "yuno.gat",50,240;
 	end;
 
 }
