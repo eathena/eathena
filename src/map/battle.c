@@ -513,7 +513,8 @@ int battle_walkdelay(struct block_list *bl, unsigned int tick, int adelay, int d
 			if (DIFF_TICK(sd->canmove_tick, tick+adelay) > 0)
 				return 0;
 			if (!adelay) //No need of timer.
-				sd->canmove_tick = tick + delay;			
+				sd->canmove_tick = tick + delay;
+			break;	
 		}
 		case BL_MOB:
 		{
@@ -522,6 +523,7 @@ int battle_walkdelay(struct block_list *bl, unsigned int tick, int adelay, int d
 				return 0;
 			if (!adelay) //No need of timer.
 				md->canmove_tick = tick + delay;			
+			break;
 		}
 		default:
 			return 0;

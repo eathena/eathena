@@ -1,4 +1,7 @@
 Date	Added
+2005/11/30
+	* Fixed a horrible bug that was making the walk delay not work for sure x.x
+	  [Skotlex]
 2005/11/29
 	* Fixed race exp bonuses. [Skotlex]
 	* Fixed ## account variable saving disconnecting the char-login servers. [Skotlex]
