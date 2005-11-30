@@ -186,7 +186,7 @@ int log_zeny(struct map_session_data *sd, char *type, struct map_session_data *s
 //		if((logfp=fopen(log_config.log_zeny,"a+")) != NULL) {
 //			time(&curtime);
 //			strftime(timestring, 254, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
-//			fprintf(logfp,"%s - %s[%d]\t%s[%d]\t%d\t%s", timestring, sd->status.name, sd->status.account_id, target_sd->status.name, target_sd->status.account_id, sd->deal_zeny, RETCODE);
+//			fprintf(logfp,"%s - %s[%d]\t%s[%d]\t%d\t%s", timestring, sd->status.name, sd->status.account_id, target_sd->status.name, target_sd->status.account_id, sd->deal.zeny, RETCODE);
 //			fclose(logfp);
 //		}
 #ifndef TXT_ONLY

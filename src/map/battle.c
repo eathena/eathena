@@ -992,11 +992,11 @@ static struct Damage battle_calc_weapon_attack(
 
 	if(sd) {
 		sd->state.attack_type = BF_WEAPON;
-		if (sd->skillblown[0] != 0)
+		if (sd->skillblown[0].id != 0)
 		{	//Apply the bonus blewcount. [Skotlex]
-			for (i = 0; i < 5 && sd->skillblown[i][0] != 0 && sd->skillblown[i][0] != skill_num; i++);
-			if (i < 5 && sd->skillblown[i][0] == skill_num)
-				 wd.blewcount += sd->skillblown[i][1];
+			for (i = 0; i < 5 && sd->skillblown[i].id != 0 && sd->skillblown[i].id != skill_num; i++);
+			if (i < 5 && sd->skillblown[i].id == skill_num)
+				 wd.blewcount += sd->skillblown[i].val;
 		}
 	}
 	//Set miscellaneous data that needs be filled regardless of hit/miss
@@ -1729,13 +1729,13 @@ static struct Damage battle_calc_weapon_attack(
 					skillratio += 50;
         	}
 
-			if (sd && sd->skillatk[0] != 0)
+			if (sd && sd->skillatk[0].id != 0)
 			{
-				for (i = 0; i < 5 && sd->skillatk[i][0] != 0 && sd->skillatk[i][0] != skill_num; i++);
-				if (i < 5 && sd->skillatk[i][0] == skill_num)
+				for (i = 0; i < MAX_PC_BONUS && sd->skillatk[i].id != 0 && sd->skillatk[i].id != skill_num; i++);
+				if (i < MAX_PC_BONUS && sd->skillatk[i].id == skill_num)
 					//If we apply skillatk[] as ATK_RATE, it will also affect other skills,
 					//unfortunately this way ignores a skill's constant modifiers...
-					skillratio += sd->skillatk[i][1];
+					skillratio += sd->skillatk[i].val;
 			}
 			ATK_RATE(skillratio);
 
@@ -1974,9 +1974,9 @@ static struct Damage battle_calc_weapon_attack(
  		cardfix=cardfix*(100-tsd->subrace2[s_race2])/100;
 		cardfix=cardfix*(100-tsd->subrace[is_boss(target)?10:11])/100;
 		
-		for(i=0;i<tsd->add_damage_class_count2;i++) {
-				if(tsd->add_damage_classid2[i] == s_class) {
-					cardfix=cardfix*(100+tsd->add_damage_classrate2[i])/100;
+		for(i=0;i<tsd->add_dmg_count;i++) {
+				if(tsd->add_dmg[i].class_ == s_class) {
+					cardfix=cardfix*(100+tsd->add_dmg[i].rate)/100;
 					break;
 				}
 			}
@@ -2240,11 +2240,11 @@ struct Damage battle_calc_magic_attack(
 	if(sd) {
 		sd->state.attack_type = BF_MAGIC;
 		sd->state.arrow_atk = 0;
-		if (sd->skillblown[0] != 0)
-		{	//Apply the bonus blewcount. [Skotlex
-			for (i = 0; i < 5 && sd->skillblown[i][0] != 0 && sd->skillblown[i][0] != skill_num; i++);
-			if (i < 5 && sd->skillblown[i][0] == skill_num)
-				ad.blewcount += sd->skillblown[i][1];
+		if (sd->skillblown[0].id != 0)
+		{	//Apply the bonus blewcount. [Skotlex]
+			for (i = 0; i < MAX_PC_BONUS && sd->skillblown[i].id != 0 && sd->skillblown[i].id != skill_num; i++);
+			if (i < MAX_PC_BONUS && sd->skillblown[i].id == skill_num)
+				ad.blewcount += sd->skillblown[i].val;
 		}
 	}
 
@@ -2421,13 +2421,13 @@ struct Damage battle_calc_magic_attack(
 						break;
 				}
 
-				if (sd && sd->skillatk[0] != 0)
+				if (sd && sd->skillatk[0].id != 0)
 				{
-					for (i = 0; i < 5 && sd->skillatk[i][0] != 0 && sd->skillatk[i][0] != skill_num; i++)
-						if (i < 5 && sd->skillatk[i][0] == skill_num)
+					for (i = 0; i < MAX_PC_BONUS && sd->skillatk[i].id != 0 && sd->skillatk[i].id != skill_num; i++)
+						if (i < MAX_PC_BONUS && sd->skillatk[i].id == skill_num)
 						//If we apply skillatk[] as ATK_RATE, it will also affect other skills,
 						//unfortunately this way ignores a skill's constant modifiers...
-							skillratio += sd->skillatk[i][1];
+							skillratio += sd->skillatk[i].val;
 				}
 
 				MATK_RATE(skillratio);
@@ -2482,9 +2482,9 @@ struct Damage battle_calc_magic_attack(
 			cardfix=cardfix*(100+sd->magic_addele[t_ele])/100;
 			cardfix=cardfix*(100+sd->magic_addsize[t_size])/100;
 			cardfix=cardfix*(100+sd->magic_addrace[is_boss(target)?10:11])/100;
-			for(i=0;i<sd->add_magic_damage_class_count;i++) {
-				if(sd->add_magic_damage_classid[i] == t_class) {
-					cardfix=cardfix*(100+sd->add_magic_damage_classrate[i])/100;
+			for(i=0;i<sd->add_mdmg_count;i++) {
+				if(sd->add_mdmg[i].class_ == t_class) {
+					cardfix=cardfix*(100+sd->add_mdmg[i].rate)/100;
 					continue;
 				}
 			}
@@ -2502,9 +2502,9 @@ struct Damage battle_calc_magic_attack(
 			cardfix=cardfix*(100-tsd->subsize[s_size])/100;
 			cardfix=cardfix*(100-tsd->subrace2[s_race2])/100;
 			cardfix=cardfix*(100-tsd->subrace[is_boss(target)?10:11])/100;
-			for(i=0;i<tsd->add_mdef_class_count;i++) {
-				if(tsd->add_mdef_classid[i] == s_class) {
-					cardfix=cardfix*(100-tsd->add_mdef_classrate[i])/100;
+			for(i=0;i<tsd->add_mdef_count;i++) {
+				if(tsd->add_mdef[i].class_ == s_class) {
+					cardfix=cardfix*(100-tsd->add_mdef[i].rate)/100;
 					continue;
 				}
 			}
@@ -2567,12 +2567,12 @@ struct Damage  battle_calc_misc_attack(
 	if( bl->type == BL_PC && (sd=(struct map_session_data *)bl) ) {
 		sd->state.attack_type = BF_MISC;
 		sd->state.arrow_atk = 0;
-		if (sd->skillblown[0] != 0)
+		if (sd->skillblown[0].id != 0)
 		{	//Apply the bonus blewcount. [Skotlex]
 			int i;
-			for (i = 0; i < 5 && sd->skillblown[i][0] != 0 && sd->skillblown[i][0] != skill_num; i++);
-			if (i < 5 && sd->skillblown[i][0] == skill_num)
-				blewcount += sd->skillblown[i][1];
+			for (i = 0; i < MAX_PC_BONUS && sd->skillblown[i].id != 0 && sd->skillblown[i].id != skill_num; i++);
+			if (i < MAX_PC_BONUS && sd->skillblown[i].id == skill_num)
+				blewcount += sd->skillblown[i].val;
 		}
 	}
 
@@ -2683,12 +2683,12 @@ struct Damage  battle_calc_misc_attack(
 			cardfix=cardfix*(100-tsd->subrace2[race2])/100;
 			damage=damage*cardfix/100;
 		}
-		if (sd && skill_num > 0 && sd->skillatk[0][0] != 0)
+		if (sd && skill_num > 0 && sd->skillatk[0].id != 0)
 		{
 			int i;
-			for (i = 0; i < 5 && sd->skillatk[i][0] != 0 && sd->skillatk[i][0] != skill_num; i++);
-			if (i < 5 && sd->skillatk[i][0] == skill_num)
-				damage += damage*sd->skillatk[i][1]/100;
+			for (i = 0; i < MAX_PC_BONUS && sd->skillatk[i].id != 0 && sd->skillatk[i].id != skill_num; i++);
+			if (i < MAX_PC_BONUS && sd->skillatk[i].id == skill_num)
+				damage += damage*sd->skillatk[i].val/100;
 		}
 
 		if(damage < 0) damage = 0;

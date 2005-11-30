@@ -1744,46 +1744,46 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 		break;
 	case SP_ADD_MAGIC_DAMAGE_CLASS:
 		if(sd->state.lr_flag != 2) {
-			for(i=0;i<sd->add_magic_damage_class_count;i++) {
-				if(sd->add_magic_damage_classid[i] == type2) {
-					sd->add_magic_damage_classrate[i] += val;
+			for(i=0;i<sd->add_mdmg_count;i++) {
+				if(sd->add_mdmg[i].class_ == type2) {
+					sd->add_mdmg[i].rate += val;
 					break;
 				}
 			}
-			if(i >= sd->add_magic_damage_class_count && sd->add_magic_damage_class_count < 10) {
-				sd->add_magic_damage_classid[sd->add_magic_damage_class_count] = type2;
-				sd->add_magic_damage_classrate[sd->add_magic_damage_class_count] += val;
-				sd->add_magic_damage_class_count++;
+			if(i >= sd->add_mdmg_count && sd->add_mdmg_count < MAX_PC_BONUS) {
+				sd->add_mdmg[sd->add_mdmg_count].class_ = type2;
+				sd->add_mdmg[sd->add_mdmg_count].rate += val;
+				sd->add_mdmg_count++;
 			}
 		}
 		break;
 	case SP_ADD_DEF_CLASS:
 		if(sd->state.lr_flag != 2) {
-			for(i=0;i<sd->add_def_class_count;i++) {
-				if(sd->add_def_classid[i] == type2) {
-					sd->add_def_classrate[i] += val;
+			for(i=0;i<sd->add_def_count;i++) {
+				if(sd->add_def[i].class_ == type2) {
+					sd->add_def[i].rate += val;
 					break;
 				}
 			}
-			if(i >= sd->add_def_class_count && sd->add_def_class_count < 10) {
-				sd->add_def_classid[sd->add_def_class_count] = type2;
-				sd->add_def_classrate[sd->add_def_class_count] += val;
-				sd->add_def_class_count++;
+			if(i >= sd->add_def_count && sd->add_def_count < MAX_PC_BONUS) {
+				sd->add_def[sd->add_def_count].class_ = type2;
+				sd->add_def[sd->add_def_count].rate += val;
+				sd->add_def_count++;
 			}
 		}
 		break;
 	case SP_ADD_MDEF_CLASS:
 		if(sd->state.lr_flag != 2) {
-			for(i=0;i<sd->add_mdef_class_count;i++) {
-				if(sd->add_mdef_classid[i] == type2) {
-					sd->add_mdef_classrate[i] += val;
+			for(i=0;i<sd->add_mdef_count;i++) {
+				if(sd->add_mdef[i].class_ == type2) {
+					sd->add_mdef[i].rate += val;
 					break;
 				}
 			}
-			if(i >= sd->add_mdef_class_count && sd->add_mdef_class_count < 10) {
-				sd->add_mdef_classid[sd->add_mdef_class_count] = type2;
-				sd->add_mdef_classrate[sd->add_mdef_class_count] += val;
-				sd->add_mdef_class_count++;
+			if(i >= sd->add_mdef_count && sd->add_mdef_count < MAX_PC_BONUS) {
+				sd->add_mdef[sd->add_mdef_count].class_ = type2;
+				sd->add_mdef[sd->add_mdef_count].rate += val;
+				sd->add_mdef_count++;
 			}
 		}
 		break;
@@ -1887,49 +1887,49 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 		}
 		break;
 	case SP_SKILL_ATK:
-		for (i = 0; i < 5 && sd->skillatk[i][0] != 0 && sd->skillatk[i][0] != type2; i++);
-		if (i == 5)
+		for (i = 0; i < MAX_PC_BONUS && sd->skillatk[i].id != 0 && sd->skillatk[i].id != type2; i++);
+		if (i == MAX_PC_BONUS)
 		{	//Better mention this so the array length can be updated. [Skotlex]
-			ShowDebug("run_script: bonus2 bSkillAtk reached it's limit (5 skills per character), bonus skill %d (+%d%%) lost.\n", type2, val);
+			ShowDebug("run_script: bonus2 bSkillAtk reached it's limit (%d skills per character), bonus skill %d (+%d%%) lost.\n", MAX_PC_BONUS, type2, val);
 			break;
 		}
 		if(sd->state.lr_flag != 2) {
-			if (sd->skillatk[i][0] == type2)
-				sd->skillatk[i][1] += val;
+			if (sd->skillatk[i].id == type2)
+				sd->skillatk[i].val += val;
 			else {
-				sd->skillatk[i][0] = type2;
-				sd->skillatk[i][1] = val;
+				sd->skillatk[i].id = type2;
+				sd->skillatk[i].val = val;
 			}
 		}
 		break;
 	case SP_ADD_SKILL_BLOW:
-		for (i = 0; i < 5 && sd->skillblown[i][0] != 0 && sd->skillblown[i][0] != type2; i++);
-		if (i == 5)
+		for (i = 0; i < MAX_PC_BONUS && sd->skillblown[i].id != 0 && sd->skillblown[i].id != type2; i++);
+		if (i == MAX_PC_BONUS)
 		{	//Better mention this so the array length can be updated. [Skotlex]
-			ShowDebug("run_script: bonus2 bSkillBlown reached it's limit (5 skills per character), bonus skill %d (+%d%%) lost.\n", type2, val);
+			ShowDebug("run_script: bonus2 bSkillBlown reached it's limit (%d skills per character), bonus skill %d (+%d%%) lost.\n", MAX_PC_BONUS, type2, val);
 			break;
 		}
 		if(sd->state.lr_flag != 2) {
-			if (sd->skillblown[i][0] == type2)
-				sd->skillblown[i][1] += val;
+			if (sd->skillblown[i].id == type2)
+				sd->skillblown[i].val += val;
 			else {
-				sd->skillblown[i][0] = type2;
-				sd->skillblown[i][1] = val;
+				sd->skillblown[i].id = type2;
+				sd->skillblown[i].val = val;
 			}
 		}
 		break;
 	case SP_ADD_DAMAGE_BY_CLASS:
 		if(sd->state.lr_flag != 2) {
-			for(i=0;i<sd->add_damage_class_count2;i++) {
-				if(sd->add_damage_classid2[i] == type2) {
-					sd->add_damage_classrate2[i] += val;
+			for(i=0;i<sd->add_dmg_count;i++) {
+				if(sd->add_dmg[i].class_ == type2) {
+					sd->add_dmg[i].rate += val;
 					break;
 				}
 			}
-			if(i >= sd->add_damage_class_count2 && sd->add_damage_class_count2 < 10) {
-				sd->add_damage_classid2[sd->add_damage_class_count2] = type2;
-				sd->add_damage_classrate2[sd->add_damage_class_count2] += val;
-				sd->add_damage_class_count2++;				
+			if(i >= sd->add_dmg_count && sd->add_dmg_count < MAX_PC_BONUS) {
+				sd->add_dmg[sd->add_dmg_count].class_ = type2;
+				sd->add_dmg[sd->add_dmg_count].rate += val;
+				sd->add_dmg_count++;
 			}			
 		}
 		break;
@@ -1969,41 +1969,41 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 		break;
 	case SP_ADD_MONSTER_DROP_ITEM:
 		if (sd->state.lr_flag != 2) {
-			for(i = 0; i < sd->monster_drop_item_count; i++) {
-				if(sd->monster_drop_itemid[i] == type2) {
-					sd->monster_drop_race[i] |= (1<<10)|(1<<11);
-					if(sd->monster_drop_itemrate[i] < val)
-						sd->monster_drop_itemrate[i] = val;
+			for(i = 0; i < sd->add_drop_count; i++) {
+				if(sd->add_drop[i].id == type2) {
+					sd->add_drop[i].race |= (1<<10)|(1<<11);
+					if(sd->add_drop[i].rate < val)
+						sd->add_drop[i].rate = val;
 					break;
 				}
 			}
-			if(i >= sd->monster_drop_item_count && sd->monster_drop_item_count < 10) {
-				sd->monster_drop_itemid[sd->monster_drop_item_count] = type2;
+			if(i >= sd->add_drop_count && sd->add_drop_count < MAX_PC_BONUS) {
+				sd->add_drop[sd->add_drop_count].id = type2;
 				// all monsters, including boss and non boss monsters
-				sd->monster_drop_race[sd->monster_drop_item_count] |= (1<<10)|(1<<11);
-				sd->monster_drop_itemrate[sd->monster_drop_item_count] = val;
-				sd->monster_drop_item_count++;
+				sd->add_drop[sd->add_drop_count].race |= (1<<10)|(1<<11);
+				sd->add_drop[sd->add_drop_count].rate = val;
+				sd->add_drop_count++;
 			}
 		}
 		break;
 	case SP_ADD_MONSTER_DROP_ITEMGROUP:
 		if (sd->state.lr_flag != 2) {
-			for(i = 0; i < sd->monster_drop_item_count; i++) {
-				if(sd->monster_drop_itemgroup[i] == type2) {
-					sd->monster_drop_itemid[i] = 0;
-					sd->monster_drop_race[i] |= (1<<10)|(1<<11);
-					if(sd->monster_drop_itemrate[i] < val)
-						sd->monster_drop_itemrate[i] = val;
+			for(i = 0; i < sd->add_drop_count; i++) {
+				if(sd->add_drop[i].group == type2) {
+					sd->add_drop[i].id = 0;
+					sd->add_drop[i].race |= (1<<10)|(1<<11);
+					if(sd->add_drop[i].rate < val)
+						sd->add_drop[i].rate = val;
 					break;
 				}
 			}
-			if(i >= sd->monster_drop_item_count && sd->monster_drop_item_count < 10) {
-				sd->monster_drop_itemgroup[sd->monster_drop_item_count] = type2;
-				sd->monster_drop_itemid[sd->monster_drop_item_count] = 0;
+			if(i >= sd->add_drop_count && sd->add_drop_count < MAX_PC_BONUS) {
+				sd->add_drop[sd->add_drop_count].group = type2;
+				sd->add_drop[sd->add_drop_count].id = 0;
 				// all monsters, including boss and non boss monsters
-				sd->monster_drop_race[sd->monster_drop_item_count] |= (1<<10)|(1<<11);
-				sd->monster_drop_itemrate[sd->monster_drop_item_count] = val;
-				sd->monster_drop_item_count++;
+				sd->add_drop[sd->add_drop_count].race |= (1<<10)|(1<<11);
+				sd->add_drop[sd->add_drop_count].rate = val;
+				sd->add_drop_count++;
 			}
 		}
 		break;
@@ -2030,32 +2030,32 @@ int pc_bonus3(struct map_session_data *sd,int type,int type2,int type3,int val)
 	switch(type){
 	case SP_ADD_MONSTER_DROP_ITEM:
 		if(sd->state.lr_flag != 2) {
-			for(i=0;i<sd->monster_drop_item_count;i++) {
-				if(sd->monster_drop_itemid[i] == type2) {
-					sd->monster_drop_race[i] |= 1<<type3;
-					if(sd->monster_drop_itemrate[i] < val)
-						sd->monster_drop_itemrate[i] = val;
+			for(i=0;i<sd->add_drop_count;i++) {
+				if(sd->add_drop[i].id == type2) {
+					sd->add_drop[i].race |= 1<<type3;
+					if(sd->add_drop[i].rate < val)
+						sd->add_drop[i].rate = val;
 					break;
 				}
 			}
-			if(i >= sd->monster_drop_item_count && sd->monster_drop_item_count < 10) {
-				sd->monster_drop_itemid[sd->monster_drop_item_count] = type2;
-				sd->monster_drop_race[sd->monster_drop_item_count] |= 1<<type3;
-				sd->monster_drop_itemrate[sd->monster_drop_item_count] = val;
-				sd->monster_drop_item_count++;
+			if(i >= sd->add_drop_count && sd->add_drop_count < MAX_PC_BONUS) {
+				sd->add_drop[sd->add_drop_count].id = type2;
+				sd->add_drop[sd->add_drop_count].race |= 1<<type3;
+				sd->add_drop[sd->add_drop_count].rate = val;
+				sd->add_drop_count++;
 			}
 		}
 		break;
 	case SP_AUTOSPELL:
 		if(sd->state.lr_flag != 2) {
-			for (i = 0; i < 10; i++) {
-				if (sd->autospell_id[i] == 0 ||
-					(sd->autospell_id[i] == type2 && sd->autospell_lv[i] < type3) ||
-					(sd->autospell_id[i] == type2 && sd->autospell_lv[i] == type3 && sd->autospell_rate[i] < val))
+			for (i = 0; i < MAX_PC_BONUS; i++) {
+				if (sd->autospell[i].id == 0 ||
+					(sd->autospell[i].id == type2 && sd->autospell[i].lv < type3) ||
+					(sd->autospell[i].id == type2 && sd->autospell[i].lv == type3 && sd->autospell[i].rate < val))
 				{
-					sd->autospell_id[i] = type2;
-					sd->autospell_lv[i] = type3;
-					sd->autospell_rate[i] = val;
+					sd->autospell[i].id = type2;
+					sd->autospell[i].lv = type3;
+					sd->autospell[i].rate = val;
 					break;
 				}
 			}
@@ -2063,14 +2063,14 @@ int pc_bonus3(struct map_session_data *sd,int type,int type2,int type3,int val)
 		break;
 	case SP_AUTOSPELL_WHENHIT:
 		if(sd->state.lr_flag != 2) {
-			for (i = 0; i < 10; i++) {
-				if (sd->autospell2_id[i] == 0 ||
-					(sd->autospell2_id[i] == type2 && sd->autospell2_lv[i] < type3) ||
-					(sd->autospell2_id[i] == type2 && sd->autospell2_lv[i] == type3 && sd->autospell2_rate[i] < val))
+			for (i = 0; i < MAX_PC_BONUS; i++) {
+				if (sd->autospell2[i].id == 0 ||
+					(sd->autospell2[i].id == type2 && sd->autospell2[i].lv < type3) ||
+					(sd->autospell2[i].id == type2 && sd->autospell2[i].lv == type3 && sd->autospell2[i].rate < val))
 				{
-					sd->autospell2_id[i] = type2;
-					sd->autospell2_lv[i] = type3;
-					sd->autospell2_rate[i] = val;
+					sd->autospell2[i].id = type2;
+					sd->autospell2[i].lv = type3;
+					sd->autospell2[i].rate = val;
 					break;
 				}
 			}
@@ -2096,22 +2096,22 @@ int pc_bonus3(struct map_session_data *sd,int type,int type2,int type3,int val)
 		break;
 	case SP_ADD_MONSTER_DROP_ITEMGROUP:
 		if (sd->state.lr_flag != 2) {
-			for(i = 0; i < sd->monster_drop_item_count; i++) {
-				if(sd->monster_drop_itemgroup[i] == type2) {
-					sd->monster_drop_itemid[i] = 0;
-					sd->monster_drop_race[i] |= 1<<type3;
-					if(sd->monster_drop_itemrate[i] < val)
-						sd->monster_drop_itemrate[i] = val;
+			for(i = 0; i < sd->add_drop_count; i++) {
+				if(sd->add_drop[i].group == type2) {
+					sd->add_drop[i].id = 0;
+					sd->add_drop[i].race |= 1<<type3;
+					if(sd->add_drop[i].rate < val)
+						sd->add_drop[i].rate = val;
 					break;
 				}
 			}
-			if(i >= sd->monster_drop_item_count && sd->monster_drop_item_count < 10) {
-				sd->monster_drop_itemgroup[sd->monster_drop_item_count] = type2;
-				sd->monster_drop_itemid[sd->monster_drop_item_count] = 0;
+			if(i >= sd->add_drop_count && sd->add_drop_count < 10) {
+				sd->add_drop[sd->add_drop_count].group = type2;
+				sd->add_drop[sd->add_drop_count].id = 0;
 				// all monsters, including boss and non boss monsters
-				sd->monster_drop_race[sd->monster_drop_item_count] |= 1<<type3;
-				sd->monster_drop_itemrate[sd->monster_drop_item_count] = val;
-				sd->monster_drop_item_count++;
+				sd->add_drop[sd->add_drop_count].race |= 1<<type3;
+				sd->add_drop[sd->add_drop_count].rate = val;
+				sd->add_drop_count++;
 			}
 		}
 		break;
@@ -2133,14 +2133,14 @@ int pc_bonus4(struct map_session_data *sd,int type,int type2,int type3,int type4
 	switch(type){
 	case SP_AUTOSPELL:
 		if(sd->state.lr_flag != 2) {
-			for (i = 0; i < 10; i++) {
-				if (sd->autospell_id[i] == 0 ||
-					(sd->autospell_id[i] == type2 && sd->autospell_lv[i] < type3) ||
-					(sd->autospell_id[i] == type2 && sd->autospell_lv[i] == type3 && sd->autospell_rate[i] < type4))
+			for (i = 0; i < MAX_PC_BONUS; i++) {
+				if (sd->autospell[i].id == 0 ||
+					(sd->autospell[i].id == type2 && sd->autospell[i].lv < type3) ||
+					(sd->autospell[i].id == type2 && sd->autospell[i].lv == type3 && sd->autospell[i].rate < type4))
 				{
-					sd->autospell_id[i] = (val) ? type2 : -type2;		// val = 0: self, 1: enemy
-					sd->autospell_lv[i] = type3;
-					sd->autospell_rate[i] = type4;
+					sd->autospell[i].id = (val) ? type2 : -type2;		// val = 0: self, 1: enemy
+					sd->autospell[i].lv = type3;
+					sd->autospell[i].rate = type4;
 					break;
 				}
 			}
@@ -2148,14 +2148,14 @@ int pc_bonus4(struct map_session_data *sd,int type,int type2,int type3,int type4
 		break;
 	case SP_AUTOSPELL_WHENHIT:
 		if(sd->state.lr_flag != 2) {
-			for (i = 0; i < 10; i++) {
-				if (sd->autospell2_id[i] == 0 ||
-					(sd->autospell2_id[i] == type2 && sd->autospell2_lv[i] < type3) ||
-					(sd->autospell2_id[i] == type2 && sd->autospell2_lv[i] == type3 && sd->autospell2_rate[i] < type4))
+			for (i = 0; i < MAX_PC_BONUS; i++) {
+				if (sd->autospell2[i].id == 0 ||
+					(sd->autospell2[i].id == type2 && sd->autospell2[i].lv < type3) ||
+					(sd->autospell2[i].id == type2 && sd->autospell2[i].lv == type3 && sd->autospell2[i].rate < type4))
 				{
-					sd->autospell2_id[i] = (val) ? type2 : -type2;		// val = 0: self, 1: enemy
-					sd->autospell2_lv[i] = type3;
-					sd->autospell2_rate[i] = type4;
+					sd->autospell2[i].id = (val) ? type2 : -type2;		// val = 0: self, 1: enemy
+					sd->autospell2[i].lv = type3;
+					sd->autospell2[i].rate = type4;
 					break;
 				}
 			}
@@ -6869,12 +6869,12 @@ int pc_divorce(struct map_session_data *sd)
 		}
 		sd->status.partner_id = 0;
 		p_sd->status.partner_id = 0;
-		for (i = 0; i < MAX_INVENTORY; i++)
+		for (i = 0; i < MAX_INVENTORY; i++) {
 			if (sd->status.inventory[i].nameid == WEDDING_RING_M || sd->status.inventory[i].nameid == WEDDING_RING_F)
 				pc_delitem(sd, i, 1, 0);
-		for (i = 0; i < MAX_INVENTORY; i++)
 			if (p_sd->status.inventory[i].nameid == WEDDING_RING_M || p_sd->status.inventory[i].nameid == WEDDING_RING_F)
 				pc_delitem(p_sd, i, 1, 0);
+		}
 		clif_divorced(sd, p_sd->status.name);
 		clif_divorced(p_sd, sd->status.name);
 	} else {

@@ -1,5 +1,8 @@
 Date	Added
 2005/11/30
+	* Major reorganization of player variables and bonuses. If something broke,
+	  report it up. Otherwise, struct map_session_data should look quite a bit
+	  more clean now. [Skotlex]
 	* Fixed duel bug when you can't cast some skills on yourself. [LuzZza]
 	* Fixed (I think) pets losing the "rename flag" when you sent them back to
 	  egg. [Skotlex]

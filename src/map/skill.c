@@ -1238,21 +1238,21 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		struct block_list *tbl;
 		int i, auto_skillid, auto_skilllv, rate;
 
-		for (i = 0; i < 10; i++) {
-			if (sd->autospell_id[i] == 0)
+		for (i = 0; i < MAX_PC_BONUS; i++) {
+			if (sd->autospell[i].id == 0)
 				break;
 
-			auto_skillid = (sd->autospell_id[i] > 0) ? sd->autospell_id[i] : -sd->autospell_id[i];
+			auto_skillid = (sd->autospell[i].id > 0) ? sd->autospell[i].id : -sd->autospell[i].id;
 
 			if (auto_skillid == skillid) //Prevents skill from retriggering themselves. [Skotlex]
 				continue;
 
-			auto_skilllv = (sd->autospell_lv[i] > 0) ? sd->autospell_lv[i] : 1;
-			rate = (!sd->state.arrow_atk) ? sd->autospell_rate[i] : sd->autospell_rate[i] / 2;
+			auto_skilllv = (sd->autospell[i].lv > 0) ? sd->autospell[i].lv : 1;
+			rate = (!sd->state.arrow_atk) ? sd->autospell[i].rate : sd->autospell[i].rate / 2;
 
 			if (rand()%1000 > rate)
 				continue;
-			if (sd->autospell_id[i] < 0)
+			if (sd->autospell[i].id < 0)
 				tbl = src;
 			else
 				tbl = bl;
@@ -1409,18 +1409,18 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 		struct block_list *tbl;
 		int i, skillid, skilllv, rate;
 
-		for (i = 0; i < 10; i++) {
-			if (dstsd->autospell2_id[i] == 0)
+		for (i = 0; i < MAX_PC_BONUS; i++) {
+			if (dstsd->autospell2[i].id == 0)
 				break;
 
-			skillid = (dstsd->autospell2_id[i] > 0) ? dstsd->autospell2_id[i] : -dstsd->autospell2_id[i];
-			skilllv = (dstsd->autospell2_lv[i] > 0) ? dstsd->autospell2_lv[i] : 1;
+			skillid = (dstsd->autospell2[i].id > 0) ? dstsd->autospell2[i].id : -dstsd->autospell2[i].id;
+			skilllv = (dstsd->autospell2[i].lv > 0) ? dstsd->autospell2[i].lv : 1;
 			rate = ((sd && !sd->state.arrow_atk) || (status_get_range(src)<=2)) ?
-				dstsd->autospell2_rate[i] : dstsd->autospell2_rate[i] / 2;
+				dstsd->autospell2[i].rate : dstsd->autospell2[i].rate / 2;
 			
 			if (rand()%1000 > rate)
 				continue;
-			if (dstsd->autospell2_id[i] < 0)
+			if (dstsd->autospell2[i].id < 0)
 				tbl = bl;
 			else
 				tbl = src;

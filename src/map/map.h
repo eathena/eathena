@@ -42,6 +42,7 @@
 #define MAX_VENDING 12
 #define MOBID_EMPERIUM 1288
 
+#define MAX_PC_BONUS 10
 #define MAX_DUEL 1024
 
 //These mark the ID of the jobs, as expected by the client. [Skotlex]
@@ -282,8 +283,9 @@ struct vending {
 
 struct weapon_data {
  	int atkmods[3];
- 
- 	// to be zeroed
+ 	// all the variables except atkmods get zero'ed in each call of status_calc_pc
+	// NOTE: if you want to add a non-zeroed variable, you need to update the memset call
+	//  in status_calc_pc as well! All the following are automatically zero'ed. [Skotlex]
   	int watk;
   	int watk2;
  	int atk_ele;
@@ -293,7 +295,11 @@ struct weapon_data {
   	int ignore_def_race;
   	int def_ratio_atk_ele;
   	int def_ratio_atk_race;
-  	int add_damage_class_count;
+ 	int addele[10];
+ 	int addrace[12];
+ 	int addrace2[12];
+ 	int addsize[3];
+
   	short ignore_def_mob;
   	short hp_drain_rate;
   	short hp_drain_per;
@@ -301,14 +307,9 @@ struct weapon_data {
   	short sp_drain_rate;
   	short sp_drain_per;
   	short sp_drain_value;
- 
- 	// to be zeroed
- 	int addele[10];
- 	int addrace[12];
- 	int addsize[3];
- 	short add_damage_classid[10];
- 	int add_damage_classrate[10];
- 	int addrace2[12];
+ 	short add_damage_classid[MAX_PC_BONUS];
+ 	int add_damage_classrate[MAX_PC_BONUS];
+  	int add_damage_class_count;
 };
 
 struct skill_unit_group;
@@ -456,8 +457,8 @@ struct map_session_data {
 	short attacktarget_lv;
 	unsigned int attackabletime;
 
-        int followtimer; // [MouseJstr]
-        int followtarget;
+	int followtimer; // [MouseJstr]
+	int followtarget;
 
 	time_t emotionlasttime; // to limit flood with emotion packets
 
@@ -501,6 +502,8 @@ struct map_session_data {
  	int parame[6];
  	int subele[10];
  	int subrace[12];
+  	int subrace2[12];
+  	int subsize[3];
  	int addeff[SC_COMMON_MAX-SC_COMMON_MIN+1];
  	int addeff2[SC_COMMON_MAX-SC_COMMON_MIN+1];
  	int reseff[SC_COMMON_MAX-SC_COMMON_MIN+1];
@@ -516,38 +519,32 @@ struct map_session_data {
  	int magic_addele[10];
  	int magic_addrace[12];
  	int magic_addsize[3];
-  	short add_magic_damage_classid[10];
- 	int add_magic_damage_classrate[10];
- 	int monster_drop_race[10];
- 	int monster_drop_itemrate[10];
- 	short autospell_id[10];
- 	short autospell_lv[10];
- 	short autospell_rate[10];
- 	short autospell2_id[10];
- 	short autospell2_lv[10];
- 	short autospell2_rate[10];
   	int critaddrace[12];
+ 	int expaddrace[12];
+ 	int itemhealrate[7];
   	int addeff3[SC_COMMON_MAX-SC_COMMON_MIN+1];
   	short addeff3_type[SC_COMMON_MAX-SC_COMMON_MIN+1];
-  	int skillatk[5][2]; //For skill damage enhancement bonuses [Skotlex] (index 0 is skillid, 1 damage %bonus)
-  	int skillblown[5][2]; //For skill-blown enhancement bonuses [Skotlex] (index 0 is skillid, 1 blown cells bonus)
- 	short add_def_classid[10];
- 	int add_def_classrate[10];
- 	short add_mdef_classid[10];
- 	int add_mdef_classrate[10];
- 	short add_damage_classid2[10];
-  	int add_damage_classrate2[10];
-  	int subsize[3];
+  	short sp_gain_race[12];
   	short unequip_losehp[11];
   	short unequip_losesp[11];
-  	int subrace2[12];
- 	int expaddrace[12];
-  	short sp_gain_race[12];
- 	int itemhealrate[7];
-  
  	// zeroed arrays end here.
+	// zeroed structures start here
+	struct {
+		short id, lv, rate;
+	} autospell[MAX_PC_BONUS], autospell2[MAX_PC_BONUS];
+	struct { //skillatk raises bonus dmg% of skills, skillblown increases bonus blewcount for some skills.
+		short id, val;
+	} skillatk[MAX_PC_BONUS], skillblown[MAX_PC_BONUS];
+	struct {
+		short class_, rate;
+	}	add_def[MAX_PC_BONUS], add_mdef[MAX_PC_BONUS],
+		add_dmg[MAX_PC_BONUS], add_mdmg[MAX_PC_BONUS];
+	struct { 
+		short id, group;
+		int race, rate;
+	} add_drop[MAX_PC_BONUS];
+	// zeroed structures end here
  	// zeroed vars start here.
- 
  	int hit;
  	int flee, flee2;
  	int critical;
@@ -570,7 +567,6 @@ struct map_session_data {
  	int get_zeny_num; //Added Get Zeny Rate [Skotlex]
  	int double_add_rate;
  	int short_weapon_damage_return,long_weapon_damage_return;
- 	int add_magic_damage_class_count;
   	int magic_damage_return; // AppleGirl Was Here
   	int random_attack_increase_add,random_attack_increase_per; // [Valaris]
  	int break_weapon_rate,break_armor_rate;
@@ -588,12 +584,12 @@ struct map_session_data {
  	short hp_loss_type;
  	short sp_drain_type;
  	short sp_gain_value, hp_gain_value;
- 	short monster_drop_item_count;
+	short add_drop_count;
  	unsigned short unbreakable_equip;
  	unsigned short unstripable_equip;
  	short no_regen;
- 	short add_def_class_count,add_mdef_class_count;
- 	short add_damage_class_count2;
+ 	short add_def_count,add_mdef_count;
+ 	short add_dmg_count,add_mdmg_count;
  
  	// zeroed vars end here.
  
@@ -604,9 +600,6 @@ struct map_session_data {
  	int matk_rate;
  	int critical_rate,hit_rate,flee_rate,flee2_rate,def_rate,def2_rate,mdef_rate,mdef2_rate;
  	int speed_add_rate, aspd_add_rate;
- 
- 	short monster_drop_itemid[10];
- 	short monster_drop_itemgroup[10];
  
  	int hp_loss_tick;
  	int sp_loss_tick;
@@ -633,10 +626,12 @@ struct map_session_data {
 	int devotion[5]; //Stores the char IDs of chars devoted to.
 
 	int trade_partner;
-	int deal_item_index[10];
-	int deal_item_amount[10];
-	int deal_zeny;
-	int deal_weight;	//tracks deal weight [Skotlex]
+	struct { 
+		struct {
+			int index, amount;
+		} item[10];
+		int zeny, weight;
+	} deal;
 
 	int party_invite,party_invite_account;
 	short party_x,party_y; // should be short [zzo]
