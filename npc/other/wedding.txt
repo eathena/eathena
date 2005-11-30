@@ -576,7 +576,7 @@ L_YouCantMarryYourself:
 
 nif_in.gat,190,112,4	script	Deviruchi#Divorce	738,5,5,{
 
-	if(event_wedding == 0)
+	if(getpartnerid() == 0)
 {
 		mes "[Deviruchi]";
 		mes "Kekeke, humans are always alone in the end,";

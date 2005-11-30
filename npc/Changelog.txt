@@ -27,6 +27,8 @@ Nexon
 Date		Added
 ======
 11/30
+	* A small fix to the Divorce NPC in other/wedding.txt, it should [MasterOfMuppets]
+	  now allow people who didn't marry with the other/wedding.txt to divorce as well
 	* Commented the warp from gef_dun02 to gef_dun03, gef_dun03 [MasterOfMuppets]
 	  is an event map >.<
 	* Commented "Traveler" out as it is not needed/official [Vicious]
