@@ -3,13 +3,14 @@
 //===== By: ==================================================
 //= Nana (1.0)
 //===== Current Version: =====================================
-//= 1.0
+//= 1.1
 //===== Compatible With: =====================================
 //= Any Athena Version
 //===== Description: =========================================
 //= Warp Points for Geffen Tower
 //===== Additional Comments: =================================
-//= No comment!
+//= Removed the warp from gef_dun02.gat to gef_dun03.gat, [MasterOfMuppets]
+//= gef_dun03.gat is just an event map...
 //============================================================
 
 //= Geffen Tower =============================================
@@ -41,5 +42,5 @@ gef_dun00.gat,107,169,0	warp	gefd01	2,1,gef_dun01.gat,115,236
 gef_dun01.gat,115,240,0	warp	gefd01-1	2,2,gef_dun00.gat,107,165
 gef_dun01.gat,197,38,0	warp	gefd02	2,1,gef_dun02.gat,106,132
 gef_dun02.gat,106,134,0	warp	gefd02-1	2,1,gef_dun01.gat,197,40
-gef_dun02.gat,215,67,0	warp	gefd03	2,1,gef_dun03.gat,203,200
+//gef_dun02.gat,215,67,0	warp	gefd03	2,1,gef_dun03.gat,203,200
 gef_dun03.gat,203,204,0	warp	gefd03-1	2,1,gef_dun02.gat,215,63
