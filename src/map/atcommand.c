@@ -1042,9 +1042,9 @@ void duel_msg_foreach_sameduel_wos(
 void duel_savetime(struct map_session_data* sd) {
 
 	time_t timer;
-	time(&timer);
 	struct tm *t;
 	
+	time(&timer);
 	t = localtime(&timer);
 	
 	pc_setglobalreg(sd, "PC_LAST_DUEL_TIME",
@@ -1056,14 +1056,13 @@ int duel_checktime(struct map_session_data* sd) {
 
 	int lastt;
 	time_t timer;
-	time(&timer);
 	struct tm *t;
 	
-	t = localtime(&timer);
+	time(&timer);
+    t = localtime(&timer);
 	
 	return !((lastt = pc_readglobalreg(sd, "PC_LAST_DUEL_TIME")) &&
 		t->tm_mday*24*60 + t->tm_hour*60 + t->tm_min - lastt < battle_config.duel_time_interval);
-
 }
 
 int duel_showinfo(
