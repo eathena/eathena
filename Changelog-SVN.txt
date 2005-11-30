@@ -1,5 +1,7 @@
 Date	Added
 2005/11/30
+	* Added a index check in the equip packet, should fix crashes from invalid
+	  packets. [Skotlex]
 	* Fixed a horrible bug that was making the walk delay not work for sure x.x
 	  [Skotlex]
 2005/11/29

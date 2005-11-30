@@ -8877,7 +8877,10 @@ void clif_parse_EquipItem(int fd,struct map_session_data *sd)
 		clif_clearchar_area(&sd->bl,1);
 		return;
 	}
-	index = RFIFOW(fd,2)-2;
+	index = RFIFOW(fd,2)-2; 
+	if (index < 0 || index >= MAX_INVENTORY)
+		return; //Out of bounds check.
+	
 	if(sd->npc_id!=0 || sd->vender_id != 0) return;
 	if(sd->sc_data && ( sd->sc_data[SC_BLADESTOP].timer!=-1 || sd->sc_data[SC_BERSERK].timer!=-1 )) return;
 
