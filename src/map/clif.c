@@ -3954,7 +3954,7 @@ int clif_damage(struct block_list *src,struct block_list *dst,unsigned int tick,
 		clif_send(buf2,packet_len_table[0x8a],src,AREA);
 	}
 	//Because the damage delay must be synced with the client, here is where the can-walk tick must be updated. [Skotlex]
-	if (type != 4 && type != 9) //Non-endure/Non-flinch attack, update walk delay.
+	if (type != 4 && type != 9 && damage+damage2 > 0) //Non-endure/Non-flinch attack, update walk delay.
 		battle_walkdelay(dst, tick, sdelay, ddelay, div);
 	return 0;
 }
@@ -4640,7 +4640,7 @@ int clif_skill_damage(struct block_list *src,struct block_list *dst,
 #endif
 
 	//Because the damage delay must be synced with the client, here is where the can-walk tick must be updated. [Skotlex]
-	if (type != 4 && type != 9) //Non-endure/Non-flinch attack, update walk delay.
+	if (type != 4 && type != 9 && damage > 0) //Non-endure/Non-flinch attack, update walk delay.
 		battle_walkdelay(dst, tick, sdelay, ddelay, div);
 	return 0;
 }
@@ -4682,7 +4682,7 @@ int clif_skill_damage2(struct block_list *src,struct block_list *dst,
 	clif_send(buf,packet_len_table[0x115],src,AREA);
 
 	//Because the damage delay must be synced with the client, here is where the can-walk tick must be updated. [Skotlex]
-	if (type != 4 && type != 9) //Non-endure/Non-flinch attack, update walk delay.
+	if (type != 4 && type != 9 && damage > 0) //Non-endure/Non-flinch attack, update walk delay.
 		battle_walkdelay(dst, tick, sdelay, ddelay, div);
 	return 0;
 }
