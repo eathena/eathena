@@ -1367,7 +1367,7 @@
 4226,Sting_Card,Sting Card,6,,10,10,,,,,,,,32,,,,,{ bonus bDef,2; if(getrefine()>8) bonus bMdef,5; }
 4227,Spring_Rabbit_Card,Spring Rabbit Card,6,,10,10,,,,,,,,136,,,,,{ bonus2 bAddItemHealRate,4,50; bonus3 bAddMonsterDropItem,517,2,5000; bonus3 bAddMonsterDropItem,528,2,5000; }
 4228,Sleeper_Card,Sleeper Card,6,,10,10,,,,,,,,136,,,,,{ bonus3 bAddMonsterDropItem,12031,5,10; }
-4229,Clock_Tower_Manager_Card,Clock Tower Manager Card,6,,10,10,,,,,,,,769,,,,,{ bonus bInt,1; bonus bDelayrate,-5; if(isequipped(4244,4299,4313)==0) end; bonus bDef,3; bonus bMdef,3; }
+4229,Clock_Tower_Manager_Card,Clock Tower Manager Card,6,,10,10,,,,,,,,769,,,,,{ bonus bInt,1; bonus bCastrate,-5; if(isequipped(4244,4299,4313)==0) end; bonus bDef,3; bonus bMdef,3; }
 4230,Shinobi_Card,Shinobi Card,6,,10,10,,,,,,,,136,,,,,{ bonus bAgi,1; bonus4 bAutoSpellWhenHit,135,5,10,0; }
 4231,Increase_Soil_Card,Increase Soil Card,6,,10,10,,,,,,,,32,,,,,{ bonus2 bAddDamageByClass,1285,-50; bonus2 bAddDamageByClass,1286,-50; bonus2 bAddDamageByClass,1287,-50; }
 4232,Hermit_Plant_Card,Hermit Plant Card,6,,10,10,,,,,,,,136,,,,,{ bonus2 bAddItemHealRate,2,50; bonus3 bAddMonsterDropItemGroup,2,3,4000;  }
@@ -1597,7 +1597,7 @@
 5123,Wool_Cap,Wool Cap,5,,10,500,,3,,1,119529470,7,2,256,,65,1,202,{ bonus bDex,2; bonus bAgi,1;  if(isequipped(2353)==0) end; if(bDex>=70) bonus bUseSPrate,-10; }
 5124,Frica_Circlet,Frica Circlet,5,,10,300,,3,,0,119529470,7,2,256,,65,1,203,{ bonus bMdef,10; bonus bInt,2; bonus bMaxSP,50; if(isequipped(2115,2353)==0) end; bonus bDef,2; bonus bMdef,25; }
 5125,Angel_Kiss,Angel's Kiss,5,,10,300,,2,,0,119529470,7,2,256,,50,1,204,{ bonus bSPrecovRate,3; }
-5126,Morphicious_Hood,Hood of Morphicious,5,,10,200,,3,,0,119529470,7,2,256,,33,1,205,{ bonus bInt,2; if(isequipped(2518,2648,2649)==0) end; bonus bInt,5; bonus bMdef,11; bonus bMaxSPrate,20; if(Class>4000 && Class<4023) bonus bDelayrate,25; }
+5126,Morphicious_Hood,Hood of Morphicious,5,,10,200,,3,,0,119529470,7,2,256,,33,1,205,{ bonus bInt,2; if(isequipped(2518,2648,2649)==0) end; bonus bInt,5; bonus bMdef,11; bonus bMaxSPrate,20; if(Class>4000 && Class<4023) bonus bCastrate,25; }
 5127,Helm_of_Morrigan,Helm of Morrigan,5,,10,500,,4,,0,119529470,7,2,256,,61,1,206,{ bonus bLuk,2; bonus bAtk,3; if(isequipped(2519,2650,2651)==0) end; bonus bStr,2; bonus bLuk,9; bonus bCritical,13; bonus bAtk,18; bonus bFlee2,13; }
 5128,Goibniu_Helm,Helm of Goibniu,5,,10,500,,5,,0,119529470,7,2,256,,54,1,207,{ bonus bVit,3; bonus bMdef,3; if(isequipped(2354,2419,2520)==0) end; bonus bVit,5; bonus bMaxHPrate,15; bonus bMaxSPrate,5; bonus bDef,5; bonus bMdef,15; bonus2 bSubEle,Ele_Water,10; bonus2 bSubEle,Ele_Earth,10; bonus2 bSubEle,Ele_Fire,10; bonus2 bSubEle,Ele_Wind,10; }
 5129,Nest,Bird Nest,5,,10,400,,1,,0,127918079,7,2,256,,55,1,201,{ bonus bAgi,2; bonus2 bSubRace,RC_Brute,10; }
