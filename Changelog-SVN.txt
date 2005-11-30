@@ -1,5 +1,6 @@
 Date	Added
 2005/11/30
+	* Fixed duel bug when you can't cast some skills on yourself. [LuzZza]
 	* Fixed (I think) pets losing the "rename flag" when you sent them back to
 	  egg. [Skotlex]
 	* Added a index check in the equip packet, should fix crashes from invalid

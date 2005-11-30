@@ -3125,7 +3125,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 				{
 					state |= BCT_ENEMY;
 					strip_enemy = 0;
-				} else {
+				} else if (t_bl != s_bl) {
 					// You can't target anything out of your duel
 					return 0;
 				}
