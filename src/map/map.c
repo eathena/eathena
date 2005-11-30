@@ -2789,7 +2789,7 @@ int map_readallmaps (void)
 			ShowStatus("Progress: [");
 			for (k=0; k < j; k++) progress[k] = '#';
 			printf(progress);
-			last_time = time(0);
+			last_time = (int)time(0);
 			switch(last_time % 4) {
 				case 0: c='\\'; break;
 				case 1: c='|'; break;

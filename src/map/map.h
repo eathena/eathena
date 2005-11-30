@@ -423,7 +423,7 @@ struct map_session_data {
 	struct item_data *inventory_data[MAX_INVENTORY];
 	short equip_index[11];
 	unsigned short unbreakable;	// chance to prevent equipment breaking [celest]
-	int weight,max_weight;
+	unsigned int weight,max_weight;
 	int cart_weight,cart_max_weight,cart_num,cart_max_num;
 	char mapname[MAP_NAME_LENGTH];
 	int fd;

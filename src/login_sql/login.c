@@ -17,8 +17,8 @@ void Gettimeofday(struct timeval *timenow)
 {
 	time_t t;
 	t = clock();
-	timenow->tv_usec = t;
-	timenow->tv_sec = t / CLK_TCK;
+	timenow->tv_usec = (long)t;
+	timenow->tv_sec = (long)(t / CLK_TCK);
 	return;
 }
 #define gettimeofday(timenow, dummy) Gettimeofday(timenow)
@@ -1141,7 +1141,7 @@ int parse_fromchar(int fd){
 						WBUFW(buf,0) = 0x2731;
 						WBUFL(buf,2) = acc;
 						WBUFB(buf,6) = 1; // 0: change of statut, 1: ban
-						WBUFL(buf,7) = timestamp; // status or final date of a banishment
+						WBUFL(buf,7) = (unsigned int)timestamp; // status or final date of a banishment
 						charif_sendallwos(-1, buf, 11);
 					}
 					ShowNotice("Account: %d Banned until: %ld\n", acc, timestamp);
