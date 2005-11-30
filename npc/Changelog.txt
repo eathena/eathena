@@ -26,6 +26,8 @@ Nexon
 
 Date		Added
 ======
+11/30
+	* Commented "Traveler" out as it is not needed/official [Vicious]
 11/29
 	* Fixed a Payon dungeon warp that was warping to a non-existant tile [MasterOfMuppets]
 	* Updated the color codes of louyang.txt a little 

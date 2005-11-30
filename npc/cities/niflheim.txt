@@ -4,7 +4,7 @@
 //= Fyrien, Dizzy, PKGINGO
 //= Official NPCs translated and re-edited by Celest
 //===== Current Version: ===================================== 
-//= 1.07
+//= 1.08
 //===== Compatible With: ===================================== 
 //= Any eAthena Version; Niflheim Required
 //===== Description: ========================================= 
@@ -17,33 +17,32 @@
 //=     fixed zeny/item, exploit in Sairin, some optimizations [Lupus]
 //= 1.06 some typos in some variables fixed (thx 2 Dr.Evil) [Lupus]
 //= 1.07 Fixed typos [Nexon]
-//=
-//=  TODO: remove any save points from Niflheim (from Kafra)
-//=        remove or commetn Warpers (they make Niflheim Piano Quest meaningless)
+//= 1.08 Commented "Traveler" out as it is not official & we have correct Bungee quest in. 
+//=     Also removed TODO, as they are already done. [Vicious_Pucca]
 //============================================================ 
 
-prontera.gat,164,161,4	script	Traveler::NifTrav	68,{
-	mes "[Traveler]";
-	mes "I've come across some strange things in my time. Things you'd have to see to believe. Have you heard of Niffleheim, the City of the Dead?";
-	next;
-	menu "Show me, please...",M_show, "Sounds scary...Never mind...",-;
-
-	mes "[Traveler]";
-	mes "A wise choice by any means...";
-	close;
-M_show:
-	warp "niflheim.gat",202,171;
-	close;
-}
--	script	EDNifTrav	-1,{
-OnInit:
-OnMinute00:
-	disablenpc "NifTrav";
-	end;
-OnMinute56:
-	enablenpc "NifTrav";
-	end;
-}
+//prontera.gat,164,161,4	script	Traveler::NifTrav	68,{
+//	mes "[Traveler]";
+//	mes "I've come across some strange things in my time. Things you'd have to see to believe. Have you heard of Niffleheim, the City of the Dead?";
+//	next;
+//	menu "Show me, please...",M_show, "Sounds scary...Never mind...",-;
+//
+//	mes "[Traveler]";
+//	mes "A wise choice by any means...";
+//	close;
+//M_show:
+//	warp "niflheim.gat",202,171;
+//	close;
+//}
+//-	script	EDNifTrav	-1,{
+//OnInit:
+//OnMinute00:
+//	disablenpc "NifTrav";
+//	end;
+//OnMinute56:
+//	enablenpc "NifTrav";
+//	end;
+//}
 
 niflheim.gat,52,174,3	script	Kirz	796,{
 	mes "[Kirz]";

@@ -5,6 +5,7 @@
 	Where are us about new towns items/mobs ???
 
 	-- Items that need fixing/implementing
+	-----These items are scrapped(for now,at least)? No desc in desctable, nor kRO website-----
 	1475,Cavalry_Lance: Missing stats
 	2355,Angel_Protection: Autospell rate is unknown
 	2417,Frico_Shoes: Missing Set bonus, and red,orange,yellow,white potion
@@ -21,6 +22,7 @@
 	5125,Angel_Kiss,Angel's Kiss: Description miss.  This item is for Novice/Super Novice, like any other
 		'Angel' equipments.
 	5126,Morphicious_Hood: When using magic, it cannot be dispelled(Maybe it works like Phen card)
+	----------
 	12033,Sunshine_Box: should allow seeing cloaked or hidden enemy (itravision + timer 20 sec)
 	4198,Maya_Purple_Card: intravision not quite right working atm
 	4296,Cramp_Card: Temporal Plug: 10z per mob-level on a 3% chance.
@@ -37,6 +39,9 @@
 	1725,Wondering_Bard's_Bow: need view ID, temp: gakkung
 	12132,Red_Package: Turns you into x-mas clothes sprite for 10 minutes
 	--
+11/30
+	* Updated elemental-resist potions in produce_db, thanks to jsk225 [Vicious]
+	* Updated two-handed sword's weapon level in produce_db, thanks to piroJOKE. [Vicious]
 11/29
 	* Updated range of Phantasmic and Charge Arrow. [Skotlex]
 	* Correct ViewID for Cyclops Eye, Updated to-do [Vicious]
