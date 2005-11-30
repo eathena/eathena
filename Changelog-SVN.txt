@@ -1,5 +1,7 @@
 Date	Added
 2005/11/30
+	* When players are hit while moving, they should now move one last cell
+	  in the same direction they were walking when interrupted. [Skotlex]
 	* Walk delay won't be applied now unless the attack deals damage... [Skotlex]
 	* Major reorganization of player variables and bonuses. If something broke,
 	  report it up. Otherwise, struct map_session_data should look quite a bit

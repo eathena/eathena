@@ -3593,6 +3593,25 @@ int pc_stop_walking (struct map_session_data *sd, int type)
 	nullpo_retr(0, sd);
 
 	if (sd->walktimer != -1) {
+		if(type&2 && pc_can_move(sd)){
+			int dx, dy;
+			dx=sd->to_x-sd->bl.x;
+			if(dx<0)
+				dx=-1;
+			else if(dx>0)
+				dx=1;
+			dy=sd->to_y-sd->bl.y;
+			if(dy<0)
+				dy=-1;
+			else if(dy>0)
+				dy=1;
+			if(dx!=0 || dy!=0){
+				sd->to_x=sd->bl.x+dx;
+				sd->to_y=sd->bl.y+dy;
+				sd->state.change_walk_target = 1;
+				return 0;
+			}
+		}
 		delete_timer(sd->walktimer, pc_walk);
 		sd->walktimer = -1;
 	}

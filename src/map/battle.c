@@ -466,7 +466,7 @@ static int battle_walkdelay_sub(int tid, unsigned int tick, int id, int data)
 			{
 				struct map_session_data *sd = (struct map_session_data*)bl;
 				if (sd->walktimer != -1)
-					pc_stop_walking (sd,1);
+					pc_stop_walking (sd,3);
 				if (sd->canmove_tick < tick)
 					sd->canmove_tick = tick + data;
 			}
