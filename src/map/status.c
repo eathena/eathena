@@ -4076,7 +4076,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_SILENCE:			/* 沈?（レックスデビ?ナ） */
 			if (sc_data && sc_data[SC_GOSPEL].timer!=-1) {
 				if (sc_data[SC_GOSPEL].val4 == BCT_SELF) { //Clear Gospel [Skotlex]
-					skill_delunitgroup((struct skill_unit_group *)sc_data[SC_GOSPEL].val3);
 					status_change_end(bl,SC_GOSPEL,-1);
 				}
 				break;
@@ -4891,6 +4890,11 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			case SC_GOSPEL: //Clear the buffs from other chars.
 				if(sc_data[type].val4 != BCT_SELF)
 					calc_flag = 1;
+				else if (sc_data[type].val3) { //Clear the group.
+					struct skill_unit_group *group = (struct skill_unit_group *)sc_data[type].val3;
+					sc_data[type].val3 = 0;
+					skill_delunitgroup(group);
+				}
 				break;
 			case SC_HERMODE: 
 			case SC_BASILICA: //Clear the skill area. [Skotlex]

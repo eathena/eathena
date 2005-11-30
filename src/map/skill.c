@@ -1858,7 +1858,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 			battle_delay_damage(tick+dmg.amotion,src,bl,attack_type,skillid,skilllv,damage,dmg.dmg_lv,0);
 	}
 
-	if(skillid == RG_INTIMIDATE && damage > 0 && !(status_get_mode(bl)&MD_BOSS) && !map_flag_gvg(src->m)) {
+	if(skillid == RG_INTIMIDATE && damage > 0 && !(status_get_mode(bl)&MD_BOSS)/* && !map_flag_gvg(src->m)*/) {
 		int s_lv = status_get_lv(src),t_lv = status_get_lv(bl);
 		int rate = 50 + skilllv * 5;
 		rate = rate + (s_lv - t_lv);
@@ -4130,10 +4130,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 	case PA_GOSPEL:				/* ƒSƒXƒyƒ‹ */
 		{
-		    struct status_change *sc_data = status_get_sc_data(src);
+			struct status_change *sc_data = status_get_sc_data(src);
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 			if (sc_data[SC_GOSPEL].timer != -1 && sc_data[SC_GOSPEL].val4 == BCT_SELF) {
-				skill_delunitgroup((struct skill_unit_group *)sd->sc_data[SC_GOSPEL].val3);
 				status_change_end(src,SC_GOSPEL,-1);   
 			} else {
 				struct skill_unit_group *sg = skill_unitsetting(src,skillid,skilllv,src->x,src->y,0);
@@ -9805,8 +9804,10 @@ int skill_delunitgroup(struct skill_unit_group *group)
 
 		if (group->unit_id == UNT_GOSPEL) { //Clear Gospel [Skotlex]
 			struct status_change *sc_data = status_get_sc_data(src);
-			if(sc_data && sc_data[SC_GOSPEL].timer != -1)
+			if(sc_data && sc_data[SC_GOSPEL].timer != -1) {
+				sc_data[SC_GOSPEL].val3 = 0; //Remove reference to this group. [Skotlex]
 				status_change_end(src,SC_GOSPEL,-1);
+			}
 		}
 	}
 
