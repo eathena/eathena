@@ -2562,7 +2562,7 @@ int parse_admin(int fd) {
 							WBUFW(buf,0) = 0x2731;
 							WBUFL(buf,2) = auth_dat[i].account_id;
 							WBUFB(buf,6) = 1; // 0: change of statut, 1: ban
-							WBUFL(buf,7) = timestamp; // status or final date of a banishment
+							WBUFL(buf,7) = (unsigned int)timestamp; // status or final date of a banishment
 							charif_sendallwos(-1, buf, 11);
 							for(j = 0; j < AUTH_FIFO_SIZE; j++)
 								if (auth_fifo[j].account_id == auth_dat[i].account_id)
@@ -2576,7 +2576,7 @@ int parse_admin(int fd) {
 					login_log("'ladmin': Attempt to change the final date of a banishment of an unknown account (account: %s, received final date of banishment: %d (%s), ip: %s)" RETCODE,
 					          account_name, timestamp, (timestamp == 0 ? "no banishment" : tmpstr), ip);
 				}
-				WFIFOL(fd,30) = timestamp;
+				WFIFOL(fd,30) = (unsigned int)timestamp;
 			}
 			WFIFOSET(fd,34);
 			RFIFOSKIP(fd,30);
@@ -2622,7 +2622,7 @@ int parse_admin(int fd) {
 								WBUFW(buf,0) = 0x2731;
 								WBUFL(buf,2) = auth_dat[i].account_id;
 								WBUFB(buf,6) = 1; // 0: change of statut, 1: ban
-								WBUFL(buf,7) = timestamp; // status or final date of a banishment
+								WBUFL(buf,7) = (unsigned int)timestamp; // status or final date of a banishment
 								charif_sendallwos(-1, buf, 11);
 								for(j = 0; j < AUTH_FIFO_SIZE; j++)
 									if (auth_fifo[j].account_id == auth_dat[i].account_id)
@@ -3993,7 +3993,7 @@ int do_init(int argc, char **argv) {
 	save_config_in_log(); // not before, because log file name can be changed
 	login_lan_config_read((argc > 1) ? argv[1] : LAN_CONF_NAME);
 
-	srand(time(NULL));
+	srand((unsigned int)time(NULL));
 
 	for(i = 0; i< AUTH_FIFO_SIZE; i++)
 		auth_fifo[i].delflag = 1;
