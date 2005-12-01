@@ -79,6 +79,8 @@ ein_in01.gat,100,142,0	warp	ein032a	1,1,ein_in01.gat,126,86
 //ein_in01.gat,204,81,0	warp	ein034	1,1,mapname.gat,x,y
 //mapname.gat,x,y,0	warp	ein034a	1,1,ein_in01.gat,204,83
 
+ein_in01.gat,108,13,0	warp	ein037	1,1,einbroch.gat,217,212
+einbroch.gat,217,214,0	warp	ein037a	1,1,ein_in01.gat,108,15
 ein_in01.gat,288,25,0	warp	ein040	1,1,einbroch.gat,52,52
 einbroch.gat,50,52,0	warp	ein040a	1,1,ein_in01.gat,286,25
 einbroch.gat,213,263,0	warp	ein041	1,1,einbroch.gat,233,310
