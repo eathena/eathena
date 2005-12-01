@@ -1729,6 +1729,9 @@ static struct Damage battle_calc_weapon_attack(
 				case TK_JUMPKICK:
 					skillratio += -70 + 10*skill_lv;
 					break;
+				case KN_CHARGEATK:
+					skillratio += wflag*15; //FIXME: How much is the actual bonus? [Skotlex]
+					break;
 				case HT_PHANTASMIC:
 					skillratio += 50;
 					break;

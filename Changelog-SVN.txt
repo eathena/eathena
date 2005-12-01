@@ -1,5 +1,7 @@
 Date	Added
 2005/12/01
+	* Moved KN_CHARGEATK code to merge it with Extremity Fist. Skill damage
+	  modifier is currently set to +15% per cell (need actual value here) [Skotlex]
 	* Fixed client crash when logging in with Baby Knights and Crusaders riding Pecos. [Valaris]
 	* Implemented Ki Explosion. [Skotlex]
 	* Fixed client crashes with using baby and advanced player classes as monsters. [Valaris]

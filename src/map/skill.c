@@ -2616,7 +2616,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 	case PA_SHIELDCHAIN:	// Shield Chain
 	case PA_SACRIFICE:	// Sacrifice, Aru's style.
 	case WS_CARTTERMINATION:	// Cart Termination
-	case KN_CHARGEATK:
 	case AS_VENOMKNIFE:
 	case HT_PHANTASMIC:
 		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
@@ -2769,6 +2768,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 				status_change_end(src,SC_BLADESTOP,-1);
 		}
 		break;
+	
+	case KN_CHARGEATK:
 	case MO_EXTREMITYFIST:	/* ˆ¢?C—…”e–PŒ? */
 		{
 			if(sd) {
@@ -2792,8 +2793,9 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 				}
 				sd->to_x = sd->bl.x + dx;
 				sd->to_y = sd->bl.y + dy;
-
-				if (battle_check_target(src, bl, BCT_ENEMY) > 0) //Check must be done here because EF should be broken this way.. [Skotlex]
+				if (skillid == KN_CHARGEATK) //Store distance in flag [Skotlex]
+					flag = wpd.path_len; //Path_len is a pretty good approximate of the distance.
+				if (skillid != MO_EXTREMITYFIST || battle_check_target(src, bl, BCT_ENEMY) > 0) //Check must be done here because EF should be broken this way.. [Skotlex]
 					skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
 				else
 					clif_skill_fail(sd,skillid,0,0);
