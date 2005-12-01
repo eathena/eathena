@@ -35,9 +35,10 @@
 	-----
 	5136,Luise_Santa's_Hat: need view ID, temp: normal santa hat
 	12131,Lucky_Potion: +15 LUK for 3 minutes
-	2610,Glove_of_archer: Just checking
 	12132,Red_Package: Turns you into x-mas clothes sprite for 10 minutes
 	--
+12/01
+	* Implementation of Reddozen's Soul Linker's DB [Vicious]
 11/30
 	* Added the last drops of the Bio lab dungeon bosses [MasterOfMuppets]
 	* Changed the attack range of Rafflesias to 7 [MasterOfMuppets]

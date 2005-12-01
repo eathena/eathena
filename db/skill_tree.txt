@@ -2035,7 +2035,6 @@
 4047,443,10,0,0,0,0,0,0,0,0,0,0	//SG_KNOWLEDGE#Knowledge of the Sun, Moon and Stars#
 4047,444,1,443,9,0,0,0,0,0,0,0,0	//SG_FUSION#Union of the Sun, Moon and Stars#
 4047,410,1,0,0,0,0,0,0,0,0,0,0 //WE_CALLBABY#Call Baby#
-
 //Star Gladiator (Flying)
 4048,1,9,0,0,0,0,0,0,0,0,0,0 //NV_BASIC#Basic Skill#
 4048,142,1,0,0,0,0,0,0,0,0,0,0 //NV_FIRSTAID#First Aid#
@@ -2075,7 +2074,6 @@
 4048,443,10,0,0,0,0,0,0,0,0,0,0	//SG_KNOWLEDGE#Knowledge of the Sun, Moon and Stars#
 4048,444,1,443,9,0,0,0,0,0,0,0,0	//SG_FUSION#Union of the Sun, Moon and Stars#
 4048,410,1,0,0,0,0,0,0,0,0,0,0 //WE_CALLBABY#Call Baby#
-
 //Soul Linker
 4049,1,9,0,0,0,0,0,0,0,0,0,0 //NV_BASIC#Basic Skill#
 4049,142,1,0,0,0,0,0,0,0,0,0,0 //NV_FIRSTAID#First Aid#
@@ -2122,5 +2120,5 @@
 4049,470,7,454,1,0,0,0,0,0,0,0,0	//SL_SWOO#Esu#
 4049,471,3,452,1,0,0,0,0,0,0,0,0	//SL_SKE#Esk#
 4049,472,3,447,1,0,0,0,0,0,0,0,0	//SL_SKA#Eska#
-4049,494,3,451,1,0,0,0,0,0,0,0,0	//SL_HIGH#Spirit of Rebirth#
+4049,494,5,451,1,0,0,0,0,0,0,0,0	//SL_HIGH#Spirit of Rebirth#
 4049,410,1,0,0,0,0,0,0,0,0,0,0 //WE_CALLBABY#Call Baby#

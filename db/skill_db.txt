@@ -461,23 +461,23 @@
 442,0,0,0,0,0,0,0,no,0,0,0,none,0	//SG_FRIEND#Friend of the Sun, Moon and Stars#
 443,0,0,0,0,0,0,0,no,0,0,0,none,0	//SG_KNOWLEDGE#Knowledge of the Sun, Moon and Stars#
 444,0,0,0,0,0,0,0,no,0,0,0,none,0	//SG_FUSION#Union of the Sun, Moon and Stars#
-445,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_ALCHEMIST#Spirit of the Alchemist#
+445,9,6,16,0,1,5,1,yes,0,0,0,magic,0	//SL_ALCHEMIST#Spirit of the Alchemist#
 446,0,0,0,0,0,0,0,no,0,8,0,none,0	//AM_BERSERKPITCHER#Berserk Pitcher#
-447,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_MONK#Spirit of the Monk#
-448,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_STAR#Spirit of the Star Knight#
-449,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_SAGE#Spirit of the Professor#
-450,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_CRUSADER#Spirit of the Crusader#
-451,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_SUPERNOVICE#Spirit of the Supernovice#
-452,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_KNIGHT#Spirit of the Knight#
-453,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_WIZARD#Spirit of the Wizard#
-454,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_PRIEST#Spirit of the Priest#
-455,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_BARDDANCER#Spirit of the Artist#
-456,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_ROGUE#Spirit of the Rogue#
-457,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_ASSASIN#Spirit of the Assasin#
-458,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_BLACKSMITH#Spirit of the Blacksmith#
+447,9,6,16,0,1,5,1,yes,0,0,0,magic,0	//SL_MONK#Spirit of the Monk#
+448,9,6,16,0,1,5,1,yes,0,0,0,magic,0	//SL_STAR#Spirit of the Star Knight#
+449,9,6,16,0,1,5,1,yes,0,0,0,magic,0	//SL_SAGE#Spirit of the Professor#
+450,9,6,16,0,1,5,1,yes,0,0,0,magic,0	//SL_CRUSADER#Spirit of the Crusader#
+451,9,6,16,0,1,5,1,yes,0,0,0,magic,0	//SL_SUPERNOVICE#Spirit of the Supernovice#
+452,9,6,16,0,1,5,1,yes,0,0,0,magic,0	//SL_KNIGHT#Spirit of the Knight#
+453,9,6,16,0,1,5,1,yes,0,0,0,magic,0	//SL_WIZARD#Spirit of the Wizard#
+454,9,6,16,0,1,5,1,yes,0,0,0,magic,0	//SL_PRIEST#Spirit of the Priest#
+455,9,6,16,0,1,5,1,yes,0,0,0,magic,0	//SL_BARDDANCER#Spirit of the Artist#
+456,9,6,16,0,1,5,1,yes,0,0,0,magic,0	//SL_ROGUE#Spirit of the Rogue#
+457,9,6,16,0,1,5,1,yes,0,0,0,magic,0	//SL_ASSASIN#Spirit of the Assasin#
+458,9,6,16,0,1,5,1,yes,0,0,0,magic,0	//SL_BLACKSMITH#Spirit of the Blacksmith#
 459,0,0,0,0,0,0,0,no,0,8,0,none,0	//BS_ADRENALINE2#Full Adrenaline Rush#
-460,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_HUNTER#Spirit of the Hunter#
-461,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_SOULLINKER#Spirit of the Soul Linker#
+460,9,6,16,0,1,5,1,yes,0,0,0,magic,0	//SL_HUNTER#Spirit of the Hunter#
+461,9,6,16,0,1,5,1,yes,0,0,0,magic,0	//SL_SOULLINKER#Spirit of the Soul Linker#
 462,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_KAIZEL#Kaizel#
 463,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_KAAHI#Kahai#
 464,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_KAUPE#Kauf#
