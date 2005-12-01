@@ -1185,6 +1185,11 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		if(rand()%100 < 100*sc_def_vit/100 )
 			status_change_start(bl,SC_STAN,skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
         break;
+
+	case MO_BALKYOUNG: //Note: attack_type is passed as BF_WEAPON for the actual target, BF_MISC for the splash-affected mobs.
+		if(attack_type == BF_MISC &&  rand()%100 < 70*sc_def_vit/100 ) //70% base stun chance...
+			status_change_start(bl,SC_STAN,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
+		break;
 	}
 
 	if (md && battle_config.summons_inherit_effects && md->master_id && md->special_state.ai)
@@ -2940,6 +2945,14 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 			}
 		}
 		break;
+
+	case MO_BALKYOUNG: //Active part of the attack. Skill-attack [Skotlex]
+		skill_area_temp[1] = bl->id; //NOTE: This is used in skill_castend_nodamage_id to avoid affecting the target.
+		if (skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0))
+			map_foreachinarea(skill_area_sub,bl->m,bl->x+1,bl->y+1,bl->x+1,bl->y+1,0,
+				src,skillid,skilllv,tick,flag|BCT_ENEMY|1,
+				skill_castend_nodamage_id);
+		break;	
 	case CH_PALMSTRIKE: //	Palm Strike takes effect 1sec after casting. [Skotlex]
 	//	clif_skill_nodamage(src,bl,skillid,skilllv,0); //Can't make this one display the correct attack animation delay :/
 		clif_damage(src,bl,tick,status_get_amotion(src),0,0,1,4,0); //Displays MISS, but better than nothing :X
@@ -3871,6 +3884,13 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			pc_addspiritball(dstsd,skill_get_time(skillid,skilllv),5);
 		}
 		break;
+
+	case MO_BALKYOUNG: //Passive part of the attack. Splash knock-back+stun. [Skotlex]
+		if (skill_area_temp[1] != bl->id) {
+			skill_blown(src,bl,skill_get_blewcount(skillid,skilllv));
+			skill_additional_effect(src,bl,skillid,skilllv,BF_MISC,tick); //Use Misc rather than weapon to signal passive pushback
+		}
+		break;	
 
 	case MO_BLADESTOP:	// ”’?nŽæ‚è
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);

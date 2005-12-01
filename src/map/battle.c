@@ -1050,6 +1050,7 @@ static struct Damage battle_calc_weapon_attack(
 
 			case KN_SPEARSTAB:
 			case KN_BOWLINGBASH:
+			case MO_BALKYOUNG:
 				wd.blewcount=0;
 				break;
 
@@ -1730,6 +1731,10 @@ static struct Damage battle_calc_weapon_attack(
 					break;
 				case HT_PHANTASMIC:
 					skillratio += 50;
+					break;
+				case MO_BALKYOUNG:
+					skillratio += 200;
+					break;
         	}
 
 			if (sd && sd->skillatk[0].id != 0)
