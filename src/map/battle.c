@@ -1030,6 +1030,7 @@ static struct Damage battle_calc_weapon_attack(
 			case MO_FINGEROFFENSIVE:
 				if(sd && battle_config.finger_offensive_type == 0)
 					wd.div_ = sd->spiritball_old;
+			case AS_GRIMTOOTH:
 			case KN_SPEARBOOMERANG:
 			case NPC_RANGEATTACK:
 			case CR_SHIELDBOOMERANG:

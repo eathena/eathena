@@ -1,5 +1,7 @@
 Date	Added
 2005/12/01
+	* Corrected Grimtooth counting a short-range skill when it's actually
+	  ranged. [Skotlex]
 	* Corrected Venom Splasher's splash range, and the splash damage is now
 	  divided by number of targets (sort of, skill % dmg is adjusted according
 	  number of targets) [Skotlex]
