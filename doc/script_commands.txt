@@ -30,6 +30,7 @@
 //= 2.5 - Added pow, sqrt and distance. [Lance]
 //= 2.6 - Added setd and getd. [Lance]
 //= 2.7 - petstat command. [Lance]
+//= 2.7a - delitem2, countitems2 commands [Lupus]
 //===== Compatible With ===================================
 //= LOL, can be used by anyone hopefully
 //===== Description =======================================
@@ -1766,6 +1767,14 @@ database. If the name is not found, nothing will be deleted.
 
 ---------------------------------------
 
+*delitem2 <item id>,<amount>,<identify>,<refine>,<attribute>,<card1>,<card2>,<card3>,<card4>{,<character ID>};
+*delitem2 "<Item name>",<amount>,<identify>,<refine>,<attribute>,<card1>,<card2>,<card3>,<card4>{,<character ID>};
+
+This command will take a specified amount of items from the invoking character. 
+Check 'getitem2' to understand its expanded parameters.
+
+---------------------------------------
+
 *viewpoint <action>,<x>,<y>,<point number>,<color>;
 
 This command will mark places on the mini map in the client connected to the 
@@ -1805,7 +1814,7 @@ memory of where the points are set whatsoever.
 *countitem("<item name>")
 
 This function will return the number of items for the specified item ID that the 
-invoking character has in their inventory.
+invoking character has in the inventory.
 
     mes "[Item Checker]";
     mes "Hmmm, it seems you have "+countitem(502)+" apples";
@@ -1820,6 +1829,17 @@ adding up strings:
     mes "[Item Checker]";
     mes "Hmmm, the total number of apples you are holding is "+countitem("APPLE");
     close;
+    
+---------------------------------------
+
+*countitem2(<item id>,<amount>,<identify>,<refine>,<attribute>,<card1>,<card2>,<card3>,<card4>)
+*countitem2("<item name>",<amount>,<identify>,<refine>,<attribute>,<card1>,<card2>,<card3>,<card4>)
+
+Expanded version of 'countitem' function, used for created/carded/forged items.
+
+This function will return the number of items for the specified item ID and
+other parameters that the invoking character has in the inventory.
+Check 'getitem2' to understand the arguments of the function.
     
 ---------------------------------------
 

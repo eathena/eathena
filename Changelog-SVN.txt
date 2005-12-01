@@ -1,4 +1,7 @@
 Date	Added
+
+2005/12/02
+	* Added countitem2(itemID,....) script function. [Lupus]
 2005/12/01
 	* Moved KN_CHARGEATK code to merge it with Extremity Fist. Skill damage
 	  modifier is currently set to +15% per cell (need actual value here) [Skotlex]
@@ -29,7 +32,6 @@ Date	Added
 	  To prevent ADDITIONAL Blacksmith FAME TOP10 bonuses, applied to signed but not forged weapons
 		e.g. You have a custom quest for rare weapons. You tag items with players name (using getnameditem command).
 		if a TOP10 BS get an Infiltrator.. then it used to give extra atk bonus 8)
-		
 2005/11/30
 	* Updated item_db.sql to latest. [Skotlex]
 	* Updated mob_db.sql to latest. [Skotlex]

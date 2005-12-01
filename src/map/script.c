@@ -153,6 +153,7 @@ int buildin_delitem(struct script_state *st);
 int buildin_delitem2(struct script_state *st);
 int buildin_viewpoint(struct script_state *st);
 int buildin_countitem(struct script_state *st);
+int buildin_countitem2(struct script_state *st);
 int buildin_checkweight(struct script_state *st);
 int buildin_readparam(struct script_state *st);
 int buildin_getcharid(struct script_state *st);
@@ -430,6 +431,7 @@ struct {
 	{buildin_percentheal,"percentheal","ii"},
 	{buildin_rand,"rand","i*"},
 	{buildin_countitem,"countitem","i"},
+	{buildin_countitem2,"countitem2","iiiiiiii"},
 	{buildin_checkweight,"checkweight","ii"},
 	{buildin_readparam,"readparam","i*"},
 	{buildin_getcharid,"getcharid","i*"},
@@ -3351,6 +3353,60 @@ int buildin_countitem(struct script_state *st)
 	else{
 		if(battle_config.error_log)
 			ShowError("wrong item ID : countitem(%i)\n",nameid);
+	}
+	push_val(st->stack,C_INT,count);
+
+	return 0;
+}
+
+/*==========================================
+ * countitem2(nameID,Identified,Refine,Attribute,Card0,Card1,Card2,Card3)	[Lupus]
+ *	returns number of items that met the conditions
+ *------------------------------------------
+ */
+int buildin_countitem2(struct script_state *st)
+{
+	int nameid=0,count=0,i;
+	int iden,ref,attr,c1,c2,c3,c4;
+	struct map_session_data *sd;
+
+	struct script_data *data;
+
+	sd = script_rid2sd(st);
+
+	data=&(st->stack->stack_data[st->start+2]);
+	get_val(st,data);
+	if( data->type==C_STR || data->type==C_CONSTSTR ){
+		const char *name=conv_str(st,data);
+		struct item_data *item_data;
+		if( (item_data = itemdb_searchname(name)) != NULL)
+			nameid=item_data->nameid;
+	}else
+		nameid=conv_num(st,data);
+
+	iden=conv_num(st,& (st->stack->stack_data[st->start+3]));
+	ref=conv_num(st,& (st->stack->stack_data[st->start+4]));
+	attr=conv_num(st,& (st->stack->stack_data[st->start+5]));
+	c1=conv_num(st,& (st->stack->stack_data[st->start+6]));
+	c2=conv_num(st,& (st->stack->stack_data[st->start+7]));
+	c3=conv_num(st,& (st->stack->stack_data[st->start+8]));
+	c4=conv_num(st,& (st->stack->stack_data[st->start+9]));
+
+	if (nameid>=500) //if no such ID then skip this iteration
+		for(i=0;i<MAX_INVENTORY;i++){
+		if(sd->status.inventory[i].nameid<=0 || sd->inventory_data[i] == NULL ||
+			sd->status.inventory[i].amount<=0 || sd->status.inventory[i].nameid!=nameid ||
+			sd->status.inventory[i].identify!=iden || sd->status.inventory[i].refine!=ref ||
+			sd->status.inventory[i].attribute!=attr || sd->status.inventory[i].card[0]!=c1 ||
+			sd->status.inventory[i].card[1]!=c2 || sd->status.inventory[i].card[2]!=c3 ||
+			sd->status.inventory[i].card[3]!=c4)
+			continue;
+
+			count+=sd->status.inventory[i].amount;
+		}
+	else{
+		if(battle_config.error_log)
+			ShowError("wrong item ID : countitem2(%i)\n",nameid);
 	}
 	push_val(st->stack,C_INT,count);
 
