@@ -1137,7 +1137,7 @@
 2664,Belcarf,Belcarf,5,,10,200,,0,,0,119529470,7,2,136,,75,0,0,{ bonus bDex,2; bonus bInt,1; }
 2665,Ring_of_Exorcism,Ring of Exorcism,5,,10,500,,0,,0,33040,7,2,136,,60,0,0,{ bonus2 bExpAddRace,RC_Undead,5; bonus2 bExpAddRace,RC_Demon,5; }
 2666,Lamp_of_Hope,Lamp of Hope,5,,,100,,0,,0,127918079,7,2,136,,0,0,0,{ bonus bStr,2; bonus2 bResEff,Eff_Blind,10; }
-2667,Glove_of_archer,Gloves of Archer,5,,10,300,,0,,0,127918079,7,2,136,,60,0,0,{ bonus bHit,5; bonus bCritical,5; bonus bDex,1; }
+2667,Glove_of_Archer,Gloves of Archer,5,,10,300,,0,,0,127918079,7,2,136,,60,0,0,{ bonus bHit,5; bonus bCritical,5; bonus bDex,1; }
 // Cards
 //===================================================================
 4001,Poring_Card,Poring Card,6,,10,10,,,,,,,,16,,,,,{ bonus bLuk,2; bonus bFlee2,1; }
