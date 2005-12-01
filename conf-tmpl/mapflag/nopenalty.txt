@@ -55,7 +55,7 @@ prt_are01.gat	mapflag	nopenalty
 prt_castle.gat	mapflag	nopenalty
 prt_church.gat	mapflag	nopenalty
 prt_in.gat	mapflag	nopenalty
-umatsu.gat	mapflag	nopenalty
+umbala.gat	mapflag	nopenalty
 um_in.gat	mapflag	nopenalty
 xmas.gat	mapflag	nopenalty
 xmas_in.gat	mapflag	nopenalty

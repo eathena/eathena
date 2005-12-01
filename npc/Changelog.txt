@@ -27,6 +27,7 @@ Nexon
 Date		Added
 ======
 11/30
+	* Fixed typo in nopenalty. Umatsu? XD [Vicious]
 	* Fixed a minor screw-up in airships.txt [MasterOfMuppets]
 	* A small fix to the Divorce NPC in other/wedding.txt, it should [MasterOfMuppets]
 	  now allow people who didn't marry with the other/wedding.txt to divorce as well
