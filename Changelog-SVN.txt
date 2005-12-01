@@ -1,5 +1,6 @@
 Date	Added
 2005/12/01
+	* Fixed cutting Castle Name (was 14 instead of 24) [Lupus]
 	* Corrected Grimtooth counting a short-range skill when it's actually
 	  ranged. [Skotlex]
 	* Corrected Venom Splasher's splash range, and the splash damage is now

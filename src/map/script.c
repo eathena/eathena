@@ -6639,8 +6639,8 @@ int buildin_getcastlename(struct script_state *st)
 	for(i=0;i<MAX_GUILDCASTLE;i++){
 		if( (gc=guild_castle_search(i)) != NULL ){
 			if(strcmp(mapname,gc->map_name)==0){
-				buf=(char *)aCallocA(MAP_NAME_LENGTH,sizeof(char));
-				memcpy(buf, gc->castle_name, MAP_NAME_LENGTH-1);
+				buf=(char *)aCallocA(NAME_LENGTH,sizeof(char));
+				memcpy(buf, gc->castle_name, NAME_LENGTH-1);
 				break;
 			}
 		}
