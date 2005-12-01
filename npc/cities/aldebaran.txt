@@ -195,16 +195,16 @@ aldebaran.gat,81,61,4	script	Joanne	101,{
 // Bebe -------------------------------------------------------------------
 aldebaran.gat,86,228,4	script	Bebe	703,{
 	mes "[Bebe]";
-	mes "A while back I went out for a walk towards Mt.Mjolnir, carrying a 'Savage Bebe' with me.";
+	mes "A while back I went out for a walk towards Mt.Mjolnir, carrying a 'Savage Babe' with me.";
 M_Menu:
 	next;
-	menu "Savage Bebe??",-,"Mt.Mjolnir??",M_1,"End Conversation",M_End;
+	menu "Savage Babe??",-,"Mt.Mjolnir??",M_1,"End Conversation",M_End;
 
 		mes "[Bebe]";
-		mes "A Savage Bebe is a kind of baby wild boar that has a pink color.  It's very cute and pretty.";
+		mes "A Savage Babe is a kind of baby wild boar that has a pink color.  It's very cute and pretty.";
 		next;
 		mes "[Bebe]";
-		mes "Anyways, I was walking up this narrow path when... out of nowhere, this GIANT, UGLY, PLANT attacked me and my Savage Bebe!";
+		mes "Anyways, I was walking up this narrow path when... out of nowhere, this GIANT, UGLY, PLANT attacked me and my Savage Babe!";
 		emotion 0;
 		next;
 		mes "[Bebe]";
@@ -234,7 +234,7 @@ M_Menu:
 
 	M_End:
 		mes "[Bebe]";
-		mes "Ah?! Where is my Savage Bebe..? Savage Bebe, where are you!";
+		mes "Ah?! Where is my Savage Babe..? Savage Babe, where are you!";
 		emotion 20;
 		close;
 }

@@ -321,8 +321,8 @@
 972,Karvodailnirol,Karvodailnirol,3,,200,30,,,,,,,,,,,,,{}
 973,Counteragent,Counteragent,3,,100,70,,,,,,,,,,,,,{}
 974,Mixture,Mixture,3,,100,70,,,,,,,,,,,,,{}
-975,Scarlet_Dyestuffs,Scarlet Dyestuffs,3,,500,150,,,,,,,,,,,,,{}
-976,Lemon_Dyestuffs,Lemon Dyestuffs,3,,500,150,,,,,,,,,,,,,{}
+975,Scarlet_Dyestuff,Scarlet Dyestuff,3,,500,150,,,,,,,,,,,,,{}
+976,Lemon_Dyestuff,Lemon Dyestuff,3,,500,150,,,,,,,,,,,,,{}
 978,Cobaltblue_Dyestuff,Cobaltblue Dyestuff,3,,500,150,,,,,,,,,,,,,{}
 979,Darkgreen_Dyestuff,Darkgreen Dyestuff,3,,500,150,,,,,,,,,,,,,{}
 980,Orange_Dyestuff,Orange Dyestuff,3,,500,150,,,,,,,,,,,,,{}
@@ -1156,7 +1156,7 @@
 4014,Roda_Frog_Card,Roda Frog Card,6,,10,10,,,,,,,,16,,,,,{ bonus bMaxHP,400; bonus bMaxSP,50; }
 4015,Condor_Card,Condor Card,6,,10,10,,,,,,,,4,,,,,{ bonus bFlee,10; }
 4016,Thief_Bug_Card,Thief Bug Card,6,,10,10,,,,,,,,16,,,,,{ bonus bAgi,1; }
-4017,Savage_Babe_Card,Savage Bebe Card,6,,10,10,,,,,,,,2,,,,,{ bonus2 bAddEff,Eff_Stan,500; }
+4017,Savage_Babe_Card,Savage Babe Card,6,,10,10,,,,,,,,2,,,,,{ bonus2 bAddEff,Eff_Stan,500; }
 4018,Andre_Larva_Card,Andre Larva Card,6,,10,10,,,,,,,,2,,,,,{ bonus bInt,1; bonus bMaxSP,10; }
 4019,Hornet_Card,Hornet Card,6,,10,10,,,,,,,,2,,,,,{ bonus bStr,1; bonus bBaseAtk,3; }
 4020,Farmiliar_Card,Farmiliar Card,6,,10,10,,,,,,,,2,,,,,{ bonus2 bAddEff,Eff_Blind,500; bonus bBaseAtk,5; }
@@ -2112,7 +2112,7 @@
 9007,Steel_Chonchon_Egg,Steel Chonchon Egg,7,,10,0,,,,,,,,,,,,,{}
 9008,Hunter_Fly_Egg,Hunter Fly Egg,7,,10,0,,,,,,,,,,,,,{}
 9009,Savage_Babe_Egg,Savage Babe Egg,7,,10,0,,,,,,,,,,,,,{}
-9010,Baby_Desert_Wolf_Egg,Baby Desert Wolf Egg,7,,10,0,,,,,,,,,,,,,{}
+9010,Baby_Desert_Wolf_Egg,Desert Wolf Babe Egg,7,,10,0,,,,,,,,,,,,,{}
 9011,Rocker_Egg,Rocker Egg,7,,10,0,,,,,,,,,,,,,{}
 9012,Spore_Egg,Spore Egg,7,,10,0,,,,,,,,,,,,,{}
 9013,Poison_Spore_Egg,Poison Spore Egg,7,,10,0,,,,,,,,,,,,,{}

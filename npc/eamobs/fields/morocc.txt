@@ -12,7 +12,7 @@
 
 // moc_fild01 (lv2)
 
-moc_fild01.gat,0,0,0,0	monster	Desert Wolf Puppy	1107,70,0,0,0
+moc_fild01.gat,0,0,0,0	monster	Desert Wolf Babe	1107,70,0,0,0
 moc_fild01.gat,0,0,0,0	monster	Ant Egg	1097,20,0,0,0
 moc_fild01.gat,0,0,0,0	monster	PecoPeco Egg	1047,20,0,0,0
 moc_fild01.gat,0,0,0,0	monster	Picky	1049,10,0,0,0
@@ -108,7 +108,7 @@ moc_fild08.gat,0,0,0,0	monster	Magnolia	1138,30,0,0,0
 moc_fild08.gat,0,0,0,0	monster	Scorpion	1001,80,0,0,0
 moc_fild08.gat,0,0,0,0	monster	Desert Wolf	1106,30,0,0,0
 moc_fild08.gat,0,0,0,0	monster	Anacondaq	1030,30,0,0,0
-moc_fild08.gat,0,0,0,0	monster	Desert Wolf Puppy	1107,10,0,0,0
+moc_fild08.gat,0,0,0,0	monster	Desert Wolf Babe	1107,10,0,0,0
 moc_fild08.gat,0,0,0,0	monster	Drops	1113,10,0,0,0
 
 // moc_fild09 (lv3)
@@ -194,7 +194,7 @@ moc_fild13.gat,161,273,5,5	monster	Yellow Plant	1081,3,180000,90000,1
 
 moc_fild14.gat,0,0,0,0	monster	Desert Wolf	1106,80,0,0,0
 moc_fild14.gat,0,0,0,0	monster	Sidewinder	1037,20,0,0,0
-moc_fild14.gat,0,0,0,0	monster	Desert Wolf Puppy	1107,40,0,0,0
+moc_fild14.gat,0,0,0,0	monster	Desert Wolf Babe	1107,40,0,0,0
 moc_fild14.gat,0,0,0,0	monster	Magnolia	1138,25,0,0,0
 moc_fild14.gat,124,93,5,5	monster	Shining Plant	1083,1,1800000,900000,1
 moc_fild14.gat,85,271,0,0	monster	Yellow Plant	1081,1,180000,90000,1

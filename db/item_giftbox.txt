@@ -15,8 +15,8 @@
 995,Mystic Frozen,10000
 996,Rough Wind,10000
 997,Great Nature,10000
-975,Scarlet Dyestuffs,10000
-976,Lemon Dyestuffs,10000
+975,Scarlet Dyestuff,10000
+976,Lemon Dyestuff,10000
 978,Cobaltblue Dyestuff,10000
 979,Darkgreen Dyestuff,10000
 980,Orange Dyestuff,10000
