@@ -40,6 +40,7 @@
 	12132,Red_Package: Turns you into x-mas clothes sprite for 10 minutes
 	--
 11/30
+	* Cleaned up job_db2.txt by removing the unnecessary trailing 0's. [Skotlex]
 	* Fixed Antonio's defense (was 100, should be 99) [Kayla]
 	* Fixed CTM card affecting after-cast delay instead of castrate [Vicious]
 	* Fixed phen card affecting your after-cast delay instead of castrate, [MasterOfMuppets]
