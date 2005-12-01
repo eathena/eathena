@@ -1,5 +1,7 @@
 Date	Added
 2005/12/01
+	* Now when the guild is not found in the cache it will be loaded from the
+	  sql db first before failing. [Skotlex]
 	* Fixed equip_skill_break_rate equation being messed up for Acid Demonstration. [Skotlex]
 	* Fixed Aura Blade adding damage to Spiral Pierce (it shouldn't) [Skotlex]
 	* Script function getnameditem now sets flag 254 (created) instead of 255 (forged) [Lupus]

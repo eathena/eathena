@@ -700,7 +700,8 @@ int inter_guild_CharOffline(int char_id) {
 	g = numdb_search(guild_db_, guild_id);
 	if (g == NULL) {	//Make sure we have the guild in cache just in case anything goes wrong
 		ShowDebug("inter_guild_CharOffline: For char %d, guild %d is not in cache!\n", char_id, guild_id);
-		return 0;
+		if ((g = inter_guild_fromsql(guild_id)) == NULL)
+			return 0;
 	}
 
 	//Set member offline
@@ -1259,10 +1260,12 @@ int mapif_parse_GuildAddMember(int fd,int guild_id,struct guild_member *m)
 	struct guild * g = (struct guild *)numdb_search(guild_db_, guild_id);
 	int i;
 
-	if(g==NULL||g->guild_id<=0){
-		if (!g) ShowDebug("mapif_parse_GuildAddMember: Guild %d not in cache!\n", guild_id);
-		mapif_guild_memberadded(fd,guild_id,m->account_id,m->char_id,1);
-		return 0;
+	if(g==NULL){
+		ShowDebug("mapif_parse_GuildAddMember: Guild %d not in cache!\n", guild_id);
+		if ((g = inter_guild_fromsql(guild_id)) == NULL) {
+			mapif_guild_memberadded(fd,guild_id,m->account_id,m->char_id,1);
+			return 0;
+		}
 	}
 
 	for(i=0;i<g->max_member;i++){
@@ -1282,7 +1285,7 @@ int mapif_parse_GuildAddMember(int fd,int guild_id,struct guild_member *m)
 // Delete member from guild
 int mapif_parse_GuildLeave(int fd,int guild_id,int account_id,int char_id,int flag,const char *mes)
 {
-	struct guild * g = (struct guild *)numdb_search(guild_db_, guild_id);
+	struct guild * g = inter_guild_fromsql(guild_id);
 
 	if(g!=NULL&&g->guild_id>0){
 		int i;
@@ -1341,9 +1344,10 @@ int mapif_parse_GuildChangeMemberInfoShort(int fd,int guild_id,
 	int i,alv,c;
 	int prev_count;
 
-	if(g==NULL||g->guild_id<=0) {
-		if (!g) ShowDebug("mapif_parse_GuildChangeMemberInfoShort: Guild %d not in cache!\n", guild_id);
-		return 0;
+	if(g==NULL) {
+		ShowDebug("mapif_parse_GuildChangeMemberInfoShort: Guild %d not in cache!\n", guild_id);
+		if ((g = inter_guild_fromsql(guild_id)) == NULL)
+			return 0;
 	}
 	prev_count = g->connect_member;
 	g->connect_member=0;
@@ -1385,7 +1389,8 @@ int mapif_parse_BreakGuild(int fd,int guild_id)
 	
 	if(g==NULL) {
 		ShowDebug("mapif_parse_BreakGuild: Guild %d not in cache!\n", guild_id);
-		return 0;
+		if ((g = inter_guild_fromsql(guild_id)) == NULL)
+			return 0;
 	}
 
 	// Delete guild from sql
@@ -1427,9 +1432,10 @@ int mapif_parse_GuildBasicInfoChange(int fd,int guild_id,
 //	int dd=*((int *)data);
 	short dw=*((short *)data);
 
-	if(g==NULL||g->guild_id<=0) {
-		if (!g) ShowDebug("mapif_parse_GuildBasicInfoChange: Guild %d not in cache!\n", guild_id);
-		return 0;
+	if(g==NULL) {
+		ShowDebug("mapif_parse_GuildBasicInfoChange: Guild %d not in cache!\n", guild_id);
+		if ((g = inter_guild_fromsql(guild_id)) == NULL)
+			return 0;
 	}
 	switch(type){
 	case GBI_GUILDLV: {
@@ -1462,7 +1468,8 @@ int mapif_parse_GuildMemberInfoChange(int fd,int guild_id,int account_id,int cha
 
 	if(g==NULL){
 		ShowDebug("mapif_parse_GuildMemberInfoChange: Guild %d not in cache!\n", guild_id);
-		return 0;
+		if ((g = inter_guild_fromsql(guild_id)) == NULL)
+			return 0;
 	}
 	for(i=0;i<g->max_member;i++)
 		if(	g->member[i].account_id==account_id &&
@@ -1546,8 +1553,12 @@ int mapif_parse_GuildPosition(int fd,int guild_id,int idx,struct guild_position 
 	struct guild * g = (struct guild *)numdb_search(guild_db_, guild_id);
 
 	if(g==NULL || idx<0 || idx>=MAX_GUILDPOSITION){
-		if (!g) ShowDebug("mapif_parse_GuildPosition: Guild %d not in cache!\n", guild_id);
-		return 0;
+		if (!g) {
+			ShowDebug("mapif_parse_GuildPosition: Guild %d not in cache!\n", guild_id);
+			if ((g = inter_guild_fromsql(guild_id)) == NULL)
+				return 0;
+		} else
+			return 0;
 	}
 	memcpy(&g->position[idx],p,sizeof(struct guild_position));
 	mapif_guild_position(g,idx);
@@ -1564,8 +1575,12 @@ int mapif_parse_GuildSkillUp(int fd,int guild_id,int skill_num,int account_id)
 
 
 	if(g == NULL || idx < 0 || idx >= MAX_GUILDSKILL) {
-		if (!g) ShowDebug("mapif_parse_GuildSkillUp: Guild %d not in cache!\n", guild_id);
-		return 0;
+		if (!g) {
+			ShowDebug("mapif_parse_GuildSkillUp: Guild %d not in cache!\n", guild_id);
+			if ((g = inter_guild_fromsql(guild_id)) == NULL)
+				return 0;
+		} else
+			return 0;
 	}
 
 	if(	g->skill_point>0 && g->skill[idx].id>0 &&
@@ -1608,8 +1623,8 @@ int mapif_parse_GuildAlliance(int fd,int guild_id1,int guild_id2,
 	// Could speed up
 	struct guild *g[2];
 	int j,i;
-	g[0] = (struct guild *)numdb_search(guild_db_, guild_id1);
-	g[1] = (struct guild *)numdb_search(guild_db_, guild_id2);
+	g[0] = inter_guild_fromsql(guild_id1);
+	g[1] = inter_guild_fromsql(guild_id2);
 
 	if(g[0] && g[0]->guild_id && g[1]==NULL && (flag&0x8)) //Requested to remove an alliance with a not found guild.
 		return mapif_parse_GuildDeleteAlliance(g[0], guild_id2,
@@ -1649,9 +1664,10 @@ int mapif_parse_GuildNotice(int fd,int guild_id,const char *mes1,const char *mes
 {
 	struct guild * g = (struct guild *)numdb_search(guild_db_, guild_id);
 
-	if(g==NULL||g->guild_id<=0) {
-		if (!g) ShowDebug("mapif_parse_GuildNotice: Guild %d not in cache!\n", guild_id);
-		return 0;
+	if(g==NULL) {
+		ShowDebug("mapif_parse_GuildNotice: Guild %d not in cache!\n", guild_id);
+		if ((g = inter_guild_fromsql(guild_id)) == NULL)
+			return 0;
 	}
 	memcpy(g->mes1,mes1,60);
 	memcpy(g->mes2,mes2,120);
@@ -1663,9 +1679,10 @@ int mapif_parse_GuildEmblem(int fd,int len,int guild_id,int dummy,const char *da
 {
 	struct guild * g = (struct guild *)numdb_search(guild_db_, guild_id);
 
-	if(g==NULL||g->guild_id<=0) {
-		if (!g) ShowDebug("mapif_parse_GuildEmblem: Guild %d not in cache!\n", guild_id);
-		return 0;
+	if(g==NULL) {
+		ShowDebug("mapif_parse_GuildEmblem: Guild %d not in cache!\n", guild_id);
+		if ((g = inter_guild_fromsql(guild_id)) == NULL)
+			return 0;
 	}
 	memcpy(g->emblem_data,data,len);
 	g->emblem_len=len;
@@ -1772,9 +1789,13 @@ int mapif_parse_GuildMasterChange(int fd, int guild_id, const char* name, int le
 	struct guild_member gm;
 	int pos;
 
-	if(g==NULL || g->guild_id<=0 || len > NAME_LENGTH) {
-		if (!g) ShowDebug("mapif_parse_GuildMasterChange: Guild %d not in cache!\n", guild_id);
-		return 0;
+	if(g==NULL || len > NAME_LENGTH) {
+		if (!g) { 
+			ShowDebug("mapif_parse_GuildMasterChange: Guild %d not in cache!\n", guild_id);
+			if ((g = inter_guild_fromsql(guild_id)) == NULL)
+				return 0;
+		} else
+			return 0;	
 	}
 	
 	for (pos = 0; pos < g->max_member && strncmp(g->member[pos].name, name, len); pos++);
