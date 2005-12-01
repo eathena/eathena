@@ -54,11 +54,27 @@ lhz_dun03.gat,0,0,0,0	monster	Harword	1636,30,0,0,0
 lhz_dun03.gat,0,0,0,0	monster	Magaleta	1637,30,0,0,0
 lhz_dun03.gat,0,0,0,0	monster	Shecil	1638,30,0,0,0
 lhz_dun03.gat,0,0,0,0	monster	Katrinn	1639,30,0,0,0
-lhz_dun03.gat,0,0,0,0	monster	Sir Seyren	1646,1,7200000,3600000,1
-lhz_dun03.gat,0,0,0,0	monster	Sir Eremes	1647,1,7200000,3600000,1
-lhz_dun03.gat,0,0,0,0	monster	Sir Harword	1648,1,7200000,3600000,1
-lhz_dun03.gat,0,0,0,0	monster	Sir Magaleta	1649,1,7200000,3600000,1
-lhz_dun03.gat,0,0,0,0	monster	Miss Shecil	1650,1,7200000,3600000,1
-lhz_dun03.gat,0,0,0,0	monster	Miss Katrinn	1651,1,7200000,3600000,1
+lhz_dun03.gat,1,1,0	script	Lhzdun03monster	-1,{
+OnInit:
+
+while(1)
+{	
+		set $@metaspawn,rand(1,6);
+		if($@metaspawn == 1)areamonster "lhz_dun03.gat",1,1,300,300,"Seyren",1646,1,"Lhzdun03monster::OnMonsterDead";
+		if($@metaspawn == 2)areamonster "lhz_dun03.gat",1,1,300,300,"Eremes",1647,1,"Lhzdun03monster::OnMonsterDead";
+		if($@metaspawn == 3)areamonster "lhz_dun03.gat",1,1,300,300,"Harword",1648,1,"Lhzdun03monster::OnMonsterDead";
+		if($@metaspawn == 4)areamonster "lhz_dun03.gat",1,1,300,300,"Magaleta",1649,1,"Lhzdun03monster::OnMonsterDead";
+		if($@metaspawn == 5)areamonster "lhz_dun03.gat",1,1,300,300,"Shecil",1650,1,"Lhzdun03monster::OnMonsterDead";
+		if($@metaspawn == 6)areamonster "lhz_dun03.gat",1,1,300,300,"Katrinn",1651,1,"Lhzdun03monster::OnMonsterDead";
+		end;
+OnMonsterDead:
+	initnpctimer;
+	setnpctimer 0;
+	end;
+OnTimer7200000:
+	stopnpctimer;
+}
+
+}
 
 //=====================================================================================
