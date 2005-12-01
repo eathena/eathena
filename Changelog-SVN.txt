@@ -1,5 +1,10 @@
 Date	Added
 2005/12/01
+	* Corrected Venom Splasher's splash range, and the splash damage is now
+	  divided by number of targets (sort of, skill % dmg is adjusted according
+	  number of targets) [Skotlex]
+	* Tarot Card of Fate won't break equipment now if equip_skill_break_rate is
+	  0. [Skotlex]
 	* Improvements and optimizations to the online db management in the char
 	  txt/sql servers. [Skotlex]
 	* Updated the guild cache (char sql) to have it load/unload characters

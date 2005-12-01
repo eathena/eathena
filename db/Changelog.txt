@@ -38,6 +38,7 @@
 	12132,Red_Package: Turns you into x-mas clothes sprite for 10 minutes
 	--
 12/01
+	* Corrected Venom Splasher's countdown duration. [Skotlex]
 	* Implementation of Reddozen's Soul Linker's DB [Vicious]
 11/30
 	* Added the last drops of the Bio lab dungeon bosses [MasterOfMuppets]

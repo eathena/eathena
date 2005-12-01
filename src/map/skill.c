@@ -2818,7 +2818,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 	case AS_GRIMTOOTH:		/* ƒOƒŠƒ€ƒgƒD?ƒX */
 	case MC_CARTREVOLUTION:	/* ƒJ?ƒgƒŒƒ”ƒHƒŠƒ…?ƒVƒ‡ƒ“ */
 	case NPC_SPLASHATTACK:	/* ƒXƒvƒ‰ƒbƒVƒ…ƒAƒ^ƒbƒN */
-	case AS_SPLASHER:	/* [Valaris] */
 		if(flag&1){
 			/* ŒÂ•Ê‚Éƒ_ƒ??ƒW‚ð?‚¦‚é */
 			if(bl->id!=skill_area_temp[1]){
@@ -2846,6 +2845,27 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 				skill_castend_damage_id);
 		}
 		break;
+
+	case AS_SPLASHER:
+		if (flag & 1) {	//Invoked from map_foreachinarea, skill_area_temp[0] holds number of targets to divide damage by.
+			if (bl->id != skill_area_temp[1])
+				skill_attack(BF_WEAPON, src, src, bl, skillid, skilllv, tick, skill_area_temp[0]);
+			else
+				skill_attack(BF_WEAPON, src, src, bl, skillid, skilllv, tick, 0);
+		} else {
+			skill_area_temp[0] = 0;
+			skill_area_temp[1] = bl->id;
+			map_foreachinarea(skill_area_sub, bl->m, 
+				bl->x-2, bl->y-2, bl->x+2, bl->y+2, 0,
+				src, skillid, skilllv, tick, BCT_ENEMY, skill_area_sub_count);
+			skill_area_temp[0]--; //Substract one, the original target shouldn't count. [Skotlex]
+			map_foreachinarea(skill_area_sub, bl->m,
+				bl->x-1, bl->y-1, bl->x+1, bl->y+1, 0,
+				src, skillid, skilllv, tick, BCT_ENEMY|1,
+				skill_castend_damage_id);
+		}
+		break;
+
 
 	case SM_MAGNUM:
 		if(flag&1){
@@ -5200,7 +5220,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 
 	case AS_SPLASHER:		/* ƒxƒiƒ€ƒXƒvƒ‰ƒbƒVƒƒ? */
-		if((double)status_get_max_hp(bl)*2/3 < status_get_hp(bl)) { //HP‚ª2/3ˆÈ?ã?‚Á‚Ä‚¢‚½‚çŽ¸”s
+		if(status_get_max_hp(bl)*2/3 < status_get_hp(bl)) { //HP‚ª2/3ˆÈ?ã?‚Á‚Ä‚¢‚½‚çŽ¸”s
 			map_freeblock_unlock();
 			return 1;
 		}
@@ -5378,7 +5398,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 						int where[] = { EQP_ARMOR, EQP_SHIELD, EQP_HELM };
 						battle_damage(src, bl, 1000, 0);
 						clif_damage(src,bl,tick,0,0,1000,0,0,0);
-						if (dstsd) pc_break_equip(dstsd, where[rand() % 3]);
+						if (dstsd && battle_config.equip_skill_break_rate) pc_break_equip(dstsd, where[rand() % 3]);
 					}
 					break;
 				case 4:	// atk halved
