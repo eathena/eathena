@@ -40,6 +40,7 @@
 	12132,Red_Package: Turns you into x-mas clothes sprite for 10 minutes
 	--
 11/30
+	* Changed the attack range of Rafflesias to 7 [MasterOfMuppets]
 	* Cleaned up the item_db, checked and added the items previously added and
 	  commented by Viccious. [Skotlex]
 	* Cleaned up the mob_db, corrected Lighthalzen Bosses MVP exp rate (the max
