@@ -26,6 +26,8 @@ Nexon
 
 Date		Added
 ======
+12/01
+	* Implemented k3dt's guild flag exploit fix [Vicious]
 11/30
 	* Updated Hugel field spawns, thanks to battousai [MasterOfMuppets]
 	* Made all (Desert Wolf Puppy / Desert Wolf Puppy) -> Desert Wolf Babe [Lupus]

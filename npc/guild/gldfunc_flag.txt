@@ -4,7 +4,7 @@
 //= jAthena - kalen (1.0)
 //= 1.1 by Akaru, ho|yAnge|X, and Valaris
 //===== Current Version: =====================================
-//= 1.3
+//= 1.4
 //===== Compatible With: =====================================
 //= eAthena 0.1+; RO Episode 4+
 //===== Description: =========================================
@@ -20,6 +20,7 @@
 //===== Additional Comments: =================================
 //= v1.2: All Guild flags scripts use this function. [kobra_k88]
 //= v1.3: Can now only flag in from outside the castle [Kayla]
+//= v1.4: Implemented k3dt's exploit fix [Vicious]
 //============================================================
 
 function	script	F_Flags	{
@@ -55,6 +56,8 @@ L_Startg2:
 	return;
 
 	M_Enter:
+		set @GID, GetCastleData(getarg(1)+".gat",1);
+		if (getcharid(2) != @GID) return;
 		warp getarg(1)+".gat",getarg(2),getarg(3);
 		return;
 }
