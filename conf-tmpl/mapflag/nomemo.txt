@@ -74,6 +74,9 @@ lhz_airport.gat	mapflag	nomemo
 einbroch.gat	mapflag	nomemo
 einbech.gat	mapflag	nomemo
 lhz_cube.gat	mapflag	nomemo
+lhz_in01.gat	mapflag	nomemo
+lhz_in02.gat	mapflag	nomemo
+lhz_in03.gat	mapflag	nomemo
 
 // Job quests ================
 sword_1-1.gat	mapflag	nomemo

@@ -63,6 +63,9 @@ einbroch.gat	mapflag noteleport
 einbech.gat	mapflag noteleport
 lhz_que01.gat	mapflag	noteleport
 lhz_cube.gat	mapflag	noteleport
+lhz_in01.gat	mapflag	noteleport
+lhz_in02.gat	mapflag	noteleport
+lhz_in03.gat	mapflag	noteleport
 juperos_01.gat	mapflag	noteleport
 juperos_02.gat	mapflag	noteleport
 jupe_area1.gat	mapflag	noteleport
