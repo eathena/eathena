@@ -5,6 +5,7 @@
 // Mob must have an equipment it's pet counterpart can use or it will cause problems.  If no equip use 0.
 // The following if a player sprite is used
 // MobID,SpriteID,Sex,Hair,Hair_Color,Weapon,Shield,Head_Top,Head_Middle,Head_Bottom,Option,Dye_Color
+// Use Item ID for weapons and shields, not View ID.
 
 //1002,1039	//Poring,Baphomet (Make Porings look like Baphomet)
 
@@ -17,11 +18,11 @@
 
 // eAthena Dev Team
 // Valaris
-1900,12,1,1,1,16,0,67,12,54,16,1
-// Valaris Worshiping
-1901,6,1,1,1,1,2,67,12,54,0,1
+1900,4013,1,1,1,1254,0,67,12,54,16,1
+// Valaris Worshiper
+1901,6,1,1,1,1219,2101,67,12,54,0,1
 // MC Cameri
-1902,14,1,6,6,16,14,0,0,0,32,3
+1902,14,1,6,6,1101,2105,0,0,0,32,3
 1920,1047,0
 1921,1093,0
 

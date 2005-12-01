@@ -736,6 +736,8 @@ static int clif_set0078(struct map_session_data *sd, unsigned char *buf) {
 		sdoption &= ~OPTION_FALCON;
 		
 #if PACKETVER < 4
+	memset(buf,0,packet_len_table[0x78]);
+
 	WBUFW(buf,0)=0x78;
 	WBUFL(buf,2)=sd->bl.id;
 	WBUFW(buf,6)=sd->speed;
@@ -773,6 +775,8 @@ static int clif_set0078(struct map_session_data *sd, unsigned char *buf) {
 
 	return packet_len_table[0x78];
 #else
+	memset(buf,0,packet_len_table[0x1d8]);
+
 	WBUFW(buf,0)=0x1d8;
 	WBUFL(buf,2)=sd->bl.id;
 	WBUFW(buf,6)=sd->speed;
@@ -866,6 +870,8 @@ static int clif_set007b(struct map_session_data *sd,unsigned char *buf) {
 		sdoption &= ~OPTION_FALCON;
 
 #if PACKETVER < 4
+	memset(buf,0,packet_len_table[0x7b]);
+
 	WBUFW(buf,0)=0x7b;
 	WBUFL(buf,2)=sd->bl.id;
 	WBUFW(buf,6)=sd->speed;
@@ -903,6 +909,8 @@ static int clif_set007b(struct map_session_data *sd,unsigned char *buf) {
 
 	return packet_len_table[0x7b];
 #else
+	memset(buf,0,packet_len_table[0x1da]);
+
 	WBUFW(buf,0)=0x1da;
 	WBUFL(buf,2)=sd->bl.id;
 	WBUFW(buf,6)=sd->speed;
@@ -1047,46 +1055,69 @@ static int clif_mob0078(struct mob_data *md, unsigned char *buf)
 {
 	int level, i;
 
-	memset(buf,0,packet_len_table[0x78]);
-
 	nullpo_retr(0, md);
 
-	WBUFW(buf,0)=0x78;
-	WBUFL(buf,2)=md->bl.id;
-	WBUFW(buf,6)=status_get_speed(&md->bl);
-	WBUFW(buf,8)=md->opt1;
-	WBUFW(buf,10)=md->opt2;
-	WBUFW(buf,12)=md->option;
-	WBUFW(buf,14)=mob_get_viewclass(md->class_);
-	if((i=mob_get_viewclass(md->class_)) <= 23 || i == 812 || i >= 4001) {
-		WBUFW(buf,12)|=md->db->option;
+	level=status_get_lv(&md->bl);
+
+	if((i=mob_get_viewclass(md->class_)) <= 23 || i >= 4001) { // Use 0x1d8 packet for monsters with player sprites [Valaris]
+		memset(buf,0,packet_len_table[0x1d8]);
+
+		WBUFW(buf,0)=0x1d8;
+		WBUFL(buf,2)=md->bl.id;
+		WBUFW(buf,6)=status_get_speed(&md->bl);
+		WBUFW(buf,8)=md->opt1;
+		WBUFW(buf,10)=md->opt2;
+		WBUFW(buf,12)=md->option;
+		WBUFW(buf,14)=mob_get_viewclass(md->class_);
 		WBUFW(buf,16)=mob_get_hair(md->class_);
 		WBUFW(buf,18)=mob_get_weapon(md->class_);
-		WBUFW(buf,20)=mob_get_head_buttom(md->class_);
-		WBUFW(buf,22)=mob_get_shield(md->class_);
+		WBUFW(buf,20)=mob_get_shield(md->class_);
+		WBUFW(buf,22)=mob_get_head_buttom(md->class_);
 		WBUFW(buf,24)=mob_get_head_top(md->class_);
 		WBUFW(buf,26)=mob_get_head_mid(md->class_);
 		WBUFW(buf,28)=mob_get_hair_color(md->class_);
-		WBUFW(buf,30)=mob_get_clothes_color(md->class_);	//Add for player monster dye - Valaris
+		WBUFW(buf,30)=mob_get_clothes_color(md->class_);
+		WBUFW(buf,32)|=md->dir&0x0f; // head direction
+		WBUFL(buf,34)=0; // guild id
+		WBUFW(buf,38)=0; // emblem id
+		WBUFW(buf,40)=0; // manner
+		WBUFW(buf,42)=md->opt3;
+		WBUFB(buf,44)=0; // karma
 		WBUFB(buf,45)=mob_get_sex(md->class_);
+		WBUFPOS(buf,46,md->bl.x,md->bl.y);
+		WBUFB(buf,48)|=md->dir&0x0f;
+		WBUFB(buf,49)=5;
+		WBUFB(buf,50)=5;
+		WBUFB(buf,51)=0; // dead or sit state
+		WBUFW(buf,52)=clif_setlevel(level);
+
+		return packet_len_table[0x1d8];
+	} else {								 // Use 0x78 packet for monsters sprites [Valaris]
+		memset(buf,0,packet_len_table[0x78]);
+
+		WBUFW(buf,0)=0x78;
+		WBUFL(buf,2)=md->bl.id;
+		WBUFW(buf,6)=status_get_speed(&md->bl);
+		WBUFW(buf,8)=md->opt1;
+		WBUFW(buf,10)=md->opt2;
+		WBUFW(buf,12)=md->option;
+		WBUFW(buf,14)=mob_get_viewclass(md->class_);
+		if (md->guardian_data && md->guardian_data->guild_id) { // Added guardian emblems [Valaris]
+		//	WBUFL(buf,22)=md->guardian_data->emblem_id;
+		//	WBUFL(buf,26)=md->guardian_data->guild_id;
+		//	pc packet says the actual location of these are... [Skotlex]
+			WBUFL(buf,34)=md->guardian_data->guild_id;
+			WBUFL(buf,38)=md->guardian_data->emblem_id;
+		}	// End addition
+		WBUFPOS(buf,46,md->bl.x,md->bl.y);
+		WBUFB(buf,48)|=md->dir&0x0f;
+		WBUFB(buf,49)=5;
+		WBUFB(buf,50)=5;
+		level = status_get_lv(&md->bl);
+		WBUFW(buf,52)=clif_setlevel(level);
+
+		return packet_len_table[0x78];
 	}
-
-	if (md->guardian_data && md->guardian_data->guild_id) { // Added guardian emblems [Valaris]
-//		WBUFL(buf,22)=md->guardian_data->emblem_id;
-//		WBUFL(buf,26)=md->guardian_data->guild_id;
-//		pc packet says the actual location of these are... [Skotlex]
-		WBUFL(buf,34)=md->guardian_data->guild_id;
-		WBUFL(buf,38)=md->guardian_data->emblem_id;
-	}	// End addition
-
-	WBUFPOS(buf,46,md->bl.x,md->bl.y);
-	WBUFB(buf,48)|=md->dir&0x0f;
-	WBUFB(buf,49)=5;
-	WBUFB(buf,50)=5;
-	level = status_get_lv(&md->bl);
-	WBUFW(buf,52)= clif_setlevel(level);
-
-	return packet_len_table[0x78];
 }
 
 /*==========================================
@@ -1094,49 +1125,71 @@ static int clif_mob0078(struct mob_data *md, unsigned char *buf)
  *------------------------------------------
  */
 static int clif_mob007b(struct mob_data *md, unsigned char *buf) {
-	int level;
-
-	memset(buf,0,packet_len_table[0x7b]);
+	int level, i;
 
 	nullpo_retr(0, md);
 
-	WBUFW(buf,0)=0x7b;
-	WBUFL(buf,2)=md->bl.id;
-	WBUFW(buf,6)=status_get_speed(&md->bl);
-	WBUFW(buf,8)=md->opt1;
-	WBUFW(buf,10)=md->opt2;
-	WBUFW(buf,12)=md->option;
-	WBUFW(buf,14)=mob_get_viewclass(md->class_);
-	if ((mob_get_viewclass(md->class_) < 24) || (mob_get_viewclass(md->class_) > 4000)) {
-		WBUFW(buf,12)|=md->db->option;
+	level=status_get_lv(&md->bl);
+
+	if((i=mob_get_viewclass(md->class_)) <= 23 || i >= 4001) { // Use 0x1da packet for monsters with player sprites [Valaris]
+		memset(buf,0,packet_len_table[0x1da]);
+
+		WBUFW(buf,0)=0x1da;
+		WBUFL(buf,2)=md->bl.id;
+		WBUFW(buf,6)=status_get_speed(&md->bl);
+		WBUFW(buf,8)=md->opt1;
+		WBUFW(buf,10)=md->opt2;
+		WBUFW(buf,12)=md->option;
+		WBUFW(buf,14)=mob_get_viewclass(md->class_);
 		WBUFW(buf,16)=mob_get_hair(md->class_);
 		WBUFW(buf,18)=mob_get_weapon(md->class_);
-		WBUFW(buf,20)=mob_get_head_buttom(md->class_);
-		WBUFL(buf,22)=gettick();
-		WBUFW(buf,26)=mob_get_shield(md->class_);
+		WBUFW(buf,20)=mob_get_shield(md->class_);
+		WBUFW(buf,22)=mob_get_head_buttom(md->class_);
+		WBUFL(buf,24)=gettick();
 		WBUFW(buf,28)=mob_get_head_top(md->class_);
 		WBUFW(buf,30)=mob_get_head_mid(md->class_);
 		WBUFW(buf,32)=mob_get_hair_color(md->class_);
-		WBUFW(buf,34)=mob_get_clothes_color(md->class_);	//Add for player monster dye - Valaris
+		WBUFW(buf,34)=mob_get_clothes_color(md->class_);
+		WBUFW(buf,36)=md->dir&0x0f; // head direction
+		WBUFL(buf,38)=0; // guild id
+		WBUFW(buf,42)=0; // emblem id
+		WBUFW(buf,44)=0; // manner
+		WBUFW(buf,46)=md->opt3;
+		WBUFB(buf,48)=0; // karma
 		WBUFB(buf,49)=mob_get_sex(md->class_);
-	} else
+		WBUFPOS2(buf,50,md->bl.x,md->bl.y,md->to_x,md->to_y);
+		WBUFB(buf,55)=0;
+		WBUFB(buf,56)=5;
+		WBUFB(buf,57)=5;
+		WBUFW(buf,58)=clif_setlevel(level);
+
+		return packet_len_table[0x1da];
+	} else {								// Use 0x7b packet for monsters sprites [Valaris]
+		memset(buf,0,packet_len_table[0x7b]);
+	
+		WBUFW(buf,0)=0x7b;
+		WBUFL(buf,2)=md->bl.id;
+		WBUFW(buf,6)=status_get_speed(&md->bl);
+		WBUFW(buf,8)=md->opt1;
+		WBUFW(buf,10)=md->opt2;
+		WBUFW(buf,12)=md->option;
+		WBUFW(buf,14)=mob_get_viewclass(md->class_);
 		WBUFL(buf,22)=gettick();
+		if (md->guardian_data && md->guardian_data->guild_id) { // Added guardian emblems [Valaris]
+		//	WBUFL(buf,24)=md->guardian_data->emblem_id;
+		//	WBUFL(buf,28)=md->guardian_data->guild_id;
+		//	pc packet says the actual location of these are... [Skotlex]
+			WBUFL(buf,38)=md->guardian_data->guild_id;
+			WBUFL(buf,42)=md->guardian_data->emblem_id;
+		}	// End addition
+		WBUFPOS2(buf,50,md->bl.x,md->bl.y,md->to_x,md->to_y);
+		WBUFB(buf,56)=5;
+		WBUFB(buf,57)=5;
+		level = status_get_lv(&md->bl);
+		WBUFW(buf,58)=clif_setlevel(level);
 
-	if (md->guardian_data && md->guardian_data->guild_id) { // Added guardian emblems [Valaris]
-//		WBUFL(buf,24)=md->guardian_data->emblem_id;
-//		WBUFL(buf,28)=md->guardian_data->guild_id;
-//		pc packet says the actual location of these are... [Skotlex]
-		WBUFL(buf,38)=md->guardian_data->guild_id;
-		WBUFL(buf,42)=md->guardian_data->emblem_id;
-	}	// End addition
-
-	WBUFPOS2(buf,50,md->bl.x,md->bl.y,md->to_x,md->to_y);
-	WBUFB(buf,56)=5;
-	WBUFB(buf,57)=5;
-	level = status_get_lv(&md->bl);
-	WBUFW(buf,58)=clif_setlevel(level);
-
-	return packet_len_table[0x7b];
+		return packet_len_table[0x7b];
+	}
 }
 
 /*==========================================
