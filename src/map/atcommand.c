@@ -1054,15 +1054,17 @@ void duel_savetime(struct map_session_data* sd) {
 
 int duel_checktime(struct map_session_data* sd) {
 
-	int lastt;
+	int diff;
 	time_t timer;
 	struct tm *t;
 	
 	time(&timer);
     t = localtime(&timer);
 	
-	return !((lastt = pc_readglobalreg(sd, "PC_LAST_DUEL_TIME")) &&
-		t->tm_mday*24*60 + t->tm_hour*60 + t->tm_min - lastt < battle_config.duel_time_interval);
+	diff = t->tm_mday*24*60 + t->tm_hour*60 + t->tm_min -
+		pc_readglobalreg(sd, "PC_LAST_DUEL_TIME");
+	
+	return !(diff >= 0 && diff < battle_config.duel_time_interval);
 }
 
 int duel_showinfo(
@@ -1109,6 +1111,7 @@ int duel_create(
 	duel_count++;
 	sd->duel_group = i;
 	duel_list[i].members_count++;
+	duel_list[i].invites_count = 0;
 	duel_list[i].max_players_limit = maxpl;
 	
 	strcpy(output, " -- Duel has been created (@invite/@leave) -- ");

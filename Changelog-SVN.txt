@@ -1,6 +1,7 @@
 Date	Added
 
 2005/12/02
+	* Some corrects in duel code. [LuzZza]
 	* Sonic Blow and Shield Boomerang's after cast delay is now properly
 	  adjusted by the Soul Link skills. [Skotlex]
 	* Party even share will be now broken after a base level reset. [Skotlex]

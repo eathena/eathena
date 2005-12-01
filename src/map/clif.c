@@ -8045,11 +8045,11 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 	if(sd->status.party_id)
 	    clif_party_hp(sd);
 
-    // set flag, if it's a duel [LuzZza]
-    if(sd->duel_group) {
-    	clif_set0199(fd, 1);
-    	clif_misceffect2(&sd->bl, 159);
-    }
+	// set flag, if it's a duel [LuzZza]
+	if(sd->duel_group) {
+		clif_set0199(fd, 1);
+		clif_misceffect2(&sd->bl, 159);
+	}
 
 	// pvp
 	//if(sd->pvp_timer!=-1 && !battle_config.pk_mode) /PVP Client crash fix* Removed timer deletion
