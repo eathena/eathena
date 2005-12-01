@@ -27,6 +27,7 @@ Nexon
 Date		Added
 ======
 12/01
+	* Removed some duplicate warps in Einbech [MasterOfMuppets]
 	* Fixed tab on pvp_noguild, thanks to NeoSaro [Vicious]
 	* Added the noteleport and nomemo mapflags to the lzh_in-maps [MasterOfMuppets]
 	* Implemented k3dt's guild flag exploit fix [Vicious]

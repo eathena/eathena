@@ -11,6 +11,7 @@
 //===== Additional Comments: =================================
 //= 1.4 Moved all airports to Airplane Warps [Lupus]
 //= 1.5 Commented out some warps which are not in the official servers [MasterOfMuppets]
+//= 1.6	Removed some duplicate warps [MasterOfMuppets]
 //============================================================
 
 
@@ -54,8 +55,6 @@ ein_in01.gat,274,203,0	warp	ein024a	1,1,ein_in01.gat,274,174
 //ein_in01.gat,26,131,0	warp	ein026	1,1,mapname.gat,x,y
 //mapname.gat,x,y,0	warp	ein026a	1,1,ein_in01.gat,26,133
 
-ein_in01.gat,145,152,0	warp	ein027	1,1,einbech.gat,253,110
-einbech.gat,255,110,0	warp	ein027a	1,1,ein_in01.gat,147,152
 ein_in01.gat,39,85,0	warp	ein028	1,1,ein_in01.gat,37,36
 ein_in01.gat,39,36,0	warp	ein028a	1,1,ein_in01.gat,37,85
 ein_in01.gat,14,13,0	warp	ein029	1,1,einbroch.gat,255,109
@@ -80,16 +79,6 @@ ein_in01.gat,100,142,0	warp	ein032a	1,1,ein_in01.gat,126,86
 //ein_in01.gat,204,81,0	warp	ein034	1,1,mapname.gat,x,y
 //mapname.gat,x,y,0	warp	ein034a	1,1,ein_in01.gat,204,83
 
-ein_in01.gat,265,105,0	warp	ein035	1,1,einbech.gat,143,112
-einbech.gat,145,112,0	warp	ein035a	1,1,ein_in01.gat,267,105
-ein_in01.gat,288,89,0	warp	ein036	1,1,einbech.gat,155,106
-einbech.gat,153,106,0	warp	ein036a	1,1,ein_in01.gat,286,89
-ein_in01.gat,108,13,0	warp	ein037	1,1,einbroch.gat,217,212
-einbroch.gat,217,214,0	warp	ein037a	1,1,ein_in01.gat,108,15
-ein_in01.gat,200,32,0	warp	ein038	1,1,einbech.gat,170,144
-einbech.gat,170,146,0	warp	ein038a	1,1,ein_in01.gat,200,30
-ein_in01.gat,189,37,0	warp	ein039	1,1,einbech.gat,177,136
-einbech.gat,177,138,0	warp	ein039a	1,1,ein_in01.gat,189,35
 ein_in01.gat,288,25,0	warp	ein040	1,1,einbroch.gat,52,52
 einbroch.gat,50,52,0	warp	ein040a	1,1,ein_in01.gat,286,25
 einbroch.gat,213,263,0	warp	ein041	1,1,einbroch.gat,233,310
