@@ -1,5 +1,6 @@
 Date	Added
 2005/12/01
+	* Fixed client crash when logging in with Baby Knights and Crusaders riding Pecos. [Valaris]
 	* Implemented Ki Explosion. [Skotlex]
 	* Fixed client crashes with using baby and advanced player classes as monsters. [Valaris]
 	  Make sure to use Item ID for weapons and shields in mob_avail.txt for player monsters and not View ID.

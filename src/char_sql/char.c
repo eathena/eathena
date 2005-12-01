@@ -1849,7 +1849,8 @@ int mmo_char_send006b(int fd, struct char_session_data *sd) {
 
 		// pecopeco knights/crusaders crash fix
 		if (p->class_ == 13 || p->class_ == 21 ||
-			p->class_ == 4014 || p->class_ == 4022)
+			p->class_ == 4014 || p->class_ == 4022 ||
+				p->class_ == 4036 || p->class_ == 4044)
 			WFIFOW(fd,j+56) = 0;
 		else WFIFOW(fd,j+56) = p->weapon;
 
