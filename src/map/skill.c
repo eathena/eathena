@@ -1665,7 +1665,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 			else //‰ñ•œSP+Œ»Ý‚ÌSP‚ªMSP‚æ‚è¬‚³‚¢ê‡‚Í‰ñ•œSP‚ð‰ÁŽZ
 				tsd->status.sp += sp;
 			clif_heal(tsd->fd,SP_SP,sp); //SP‰ñ•œƒGƒtƒFƒNƒg‚Ì•\Ž¦
-			tsd->canact_tick = tick + skill_delayfix(bl, skill_get_delay(SA_MAGICROD,sc_data[SC_MAGICROD].val1)); //
+			tsd->canact_tick = tick + skill_delayfix(bl, SA_MAGICROD, sc_data[SC_MAGICROD].val1, 0);
 		}
 		clif_skill_nodamage(bl,bl,SA_MAGICROD,sc_data[SC_MAGICROD].val1,1); //ƒ}ƒWƒbƒNƒƒbƒhƒGƒtƒFƒNƒg‚ð•\Ž¦
 	}
@@ -5752,7 +5752,7 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 	if (sd->skillid == SA_MAGICROD)
 		delay = 0;
 	else
-		delay = skill_delayfix(&sd->bl, skill_get_delay(sd->skillid, sd->skilllv));
+		delay = skill_delayfix(&sd->bl, sd->skillid, sd->skilllv, 0);
 		
 	sd->canact_tick = tick + delay;
 	if (skill_get_delaynowalk(sd->skillid, sd->skilllv)) //Skills that block you from moving until delay ends. [Skotlex]
@@ -5873,7 +5873,7 @@ int skill_castend_pos( int tid, unsigned int tick, int id,int data )
 		ShowInfo("PC %d skill castend skill=%d\n",sd->bl.id,sd->skillid);
 	pc_stop_walking(sd,0);
 
-	delay = skill_delayfix(&sd->bl, skill_get_delay(sd->skillid, sd->skilllv));
+	delay = skill_delayfix(&sd->bl, sd->skillid, sd->skilllv, 0);
 	sd->canact_tick = tick + delay;
 	if (skill_get_delaynowalk(sd->skillid, sd->skilllv)) //Skills that block you from moving until delay ends. [Skotlex]
 		sd->canmove_tick = tick + delay;
@@ -8158,12 +8158,15 @@ int skill_check_condition(struct map_session_data *sd,int type)
  * ‰r?¥ŽžŠÔŒvŽZ
  *------------------------------------------
  */
-int skill_castfix( struct block_list *bl, int time )
+int skill_castfix( struct block_list *bl, int skill_id, int skill_lv, int time)
 {
 	struct status_change *sc_data;
 	
 	nullpo_retr(0, bl);
 
+	if (!time)
+		time = skill_get_cast(skill_id, skill_lv);
+	
 	if (bl->type == BL_PC){
 		struct map_session_data *sd = (struct map_session_data*)bl;
 		nullpo_retr(0, sd);
@@ -8213,12 +8216,15 @@ int skill_castfix( struct block_list *bl, int time )
  * ƒfƒBƒŒƒCŒvŽZ
  *------------------------------------------
  */
-int skill_delayfix( struct block_list *bl, int time )
+int skill_delayfix( struct block_list *bl, int skill_id, int skill_lv, int time )
 {
 	struct status_change *sc_data;	
 
 	nullpo_retr(0, bl);
 
+	if (!time)
+		time = skill_get_delay(skill_id, skill_lv);
+	
 	if (bl->type == BL_PC){
 		struct map_session_data *sd = (struct map_session_data*)bl;
 		nullpo_retr(0, sd);
@@ -8253,8 +8259,21 @@ int skill_delayfix( struct block_list *bl, int time )
 
 	/* ƒuƒ‰ƒM‚ÌŽ? */
 	sc_data = status_get_sc_data(bl);
-	if (sc_data && sc_data[SC_POEMBRAGI].timer != -1)
-		time -= time * sc_data[SC_POEMBRAGI].val3 / 100;
+	if (sc_data) {
+		if (sc_data[SC_POEMBRAGI].timer != -1)
+			time -= time * sc_data[SC_POEMBRAGI].val3 / 100;
+		if (sc_data[SC_SPIRIT].timer != -1)
+			switch (skill_id) {
+				case CR_SHIELDBOOMERANG:
+					if (sc_data[SC_SPIRIT].val2 == SL_CRUSADER)
+						time /=2;
+					break;
+				case AS_SONICBLOW:
+					if (!map_flag_gvg(bl->m) && sc_data[SC_SPIRIT].val2 == SL_ASSASIN)
+						time /= 2;
+					break;
+			}
+	}
 
 	return (time > 0) ? time : 0;
 }
@@ -8429,14 +8448,14 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 		(skill_num == MO_EXTREMITYFIST && sd->state.skill_flag))
 		pc_stopattack(sd);
 
-	casttime = skill_castfix(&sd->bl, skill_get_cast(skill_num, skill_lv));
+	casttime = skill_castfix(&sd->bl, skill_num, skill_lv, 0);
 	sd->state.skillcastcancel = skill_get_castcancel(skill_num);
 
 	switch (skill_num) {	/* ‰½‚©“ÁŽê‚È?—?‚ª•K—v */
 	case ALL_RESURRECTION:	/* ƒŠƒUƒŒƒNƒVƒ‡ƒ“ */
 		if (!tsd && battle_check_undead(status_get_race(bl),status_get_elem_type(bl))) {	/* “G‚ªƒAƒ“ƒfƒbƒh‚È‚ç */
 			forcecast = 1;	/* ƒ^?ƒ“ƒAƒ“ƒfƒbƒg‚Æ“¯‚¶‰r?¥ŽžŠÔ */
-			casttime = skill_castfix(&sd->bl, skill_get_cast(PR_TURNUNDEAD, skill_lv));
+			casttime = skill_castfix(&sd->bl, PR_TURNUNDEAD, skill_lv, 0);
 		}
 		break;
 
@@ -8631,7 +8650,7 @@ int skill_use_pos (struct map_session_data *sd, int skill_x, int skill_y, int sk
 */
 	pc_stopattack(sd);
 
-	casttime = skill_castfix(&sd->bl, skill_get_cast( skill_num,skill_lv) );
+	casttime = skill_castfix(&sd->bl, skill_num, skill_lv, 0);
 	sd->state.skillcastcancel = skill_db[skill_num].castcancel;
 
 	if (battle_config.pc_skill_log)

@@ -3351,9 +3351,9 @@ int mobskill_use_id(struct mob_data *md,struct block_list *target,int skill_idx)
 	if(!battle_check_range(&md->bl,target,skill_get_range2(&md->bl,skill_id,skill_lv)))
 		return 0;
 
-//	delay=skill_delayfix(&md->bl, skill_get_delay( skill_id,skill_lv) );
+//	delay=skill_delayfix(&md->bl, skill_id, skill_lv, 0);
 
-	casttime=skill_castfix(&md->bl,ms->casttime);
+	casttime=skill_castfix(&md->bl, skill_id, skill_lv, ms->casttime);
 	md->state.skillcastcancel=ms->cancel;
 	md->skilldelay[skill_idx]=gettick();
 
@@ -3361,7 +3361,7 @@ int mobskill_use_id(struct mob_data *md,struct block_list *target,int skill_idx)
 	case ALL_RESURRECTION:	/* リザレクション */
 		if(target->type != BL_PC && battle_check_undead(status_get_race(target),status_get_elem_type(target))){	/* 敵がアンデッドなら */
 			forcecast=1;	/* ターンアンデットと同じ詠唱時間 */
-			casttime=skill_castfix(&md->bl, skill_get_cast(PR_TURNUNDEAD,skill_lv) );
+			casttime=skill_castfix(&md->bl, PR_TURNUNDEAD,skill_lv, 0);
 		}
 		break;
 	case MO_EXTREMITYFIST:	/*阿修羅覇鳳拳*/
@@ -3448,8 +3448,8 @@ int mobskill_use_pos( struct mob_data *md,
 	if(!battle_check_range(&md->bl,&bl,skill_get_range2(&md->bl,skill_id,skill_lv)))
 		return 0;
 
-//	delay=skill_delayfix(&sd->bl, skill_get_delay( skill_id,skill_lv) );
-	casttime=skill_castfix(&md->bl,ms->casttime);
+//	delay=skill_delayfix(&md->bl, skill_id, skill_lv, 0);
+	casttime=skill_castfix(&md->bl,skill_id, skill_lv, ms->casttime);
 	md->skilldelay[skill_idx]=gettick();
 	md->state.skillcastcancel=ms->cancel;
 
