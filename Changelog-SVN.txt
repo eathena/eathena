@@ -1,6 +1,7 @@
 Date	Added
 
 2005/12/02
+	* Party even share will be now broken after a base level reset. [Skotlex]
 	* Merged in Reddozen's Soul Linker current skills work. [Skotlex]
 	* Added countitem2(itemID,....) script function. [Lupus]
 2005/12/01

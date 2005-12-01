@@ -4744,6 +4744,10 @@ int pc_resetlvl(struct map_session_data* sd,int type)
 				pc_unequipitem(sd,sd->equip_index[i],2);
 	}
 
+	if ((type == 1 || type == 2 || type == 3) && sd->status.party_id) {
+		//Check for breaking even share. [Skotlex]
+		party_exp_share_check(sd, party_search(sd->status.party_id));
+	}
 	clif_skillinfoblock(sd);
 	status_calc_pc(sd,0);
 
