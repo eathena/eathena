@@ -3,26 +3,63 @@
 //===== By: ==================================================
 //= Athena (1.0)
 //===== Current Version: =====================================
-//= 0.2
+//= 0.3
 //===== Compatible With: =====================================
 //= Any Athena Version
 //===== Additional Comments: =================================
 //= Spawns for hu_fild05 and hu_fild04, numbers may not be correct [MasterOfMuppets]
 //= 0.2 Fixed Petit ID
+//= 0.3 Updated the spawns using kRO's website as info,  [MasterOfMuppets]
+//= 	thanks to battousai90
 //============================================================
 
-//(hu_fild04.gat)
-hu_fild04.gat,0,0,0,0	monster	Sky Petit	1156,5,60000,30000,0
-hu_fild04.gat,0,0,0,0	monster	Sky Deleter	1384,15,120000,60000,0
-hu_fild04.gat,0,0,0,0	monster	Petit	1155,5,60000,30000,0
-hu_fild04.gat,0,0,0,0	monster	Earth Deleter	1385,5,120000,60000,0
-hu_fild04.gat,0,0,0,0	monster	Earth Deleter	1385,15,0,0,0
-hu_fild04.gat,0,0,0,0	monster	Red Plant	1078,10,180000,90000,0
+//========================================================================================
+// - Hugel Field 01
+//========================================================================================
+hu_fild01.gat,0,0,0,0	monster	Plasma		1694,15,0,0,0
+hu_fild01.gat,0,0,0,0	monster	Plasma		1697,15,0,0,0
+hu_fild01.gat,0,0,0,0	monster	Plasma		1695,15,0,0,0
+hu_fild01.gat,0,0,0,0	monster	Plasma		1696,15,0,0,0
+hu_fild01.gat,0,0,0,0	monster	Demon Pungus	1378,20,0,0,0
+hu_fild01.gat,0,0,0,0	monster	Geographer	1368,20,0,0,0
+hu_fild01.gat,0,0,0,0	monster	Breeze		1692,20,0,0,0
 
-//(hu_fild05.gat)
-hu_fild05.gat,0,0,0,0	monster	Sky Petit	1156,5,60000,30000,0
-hu_fild05.gat,0,0,0,0	monster	Sky Deleter	1384,15,120000,60000,0
-hu_fild05.gat,0,0,0,0	monster	Petit	1155,5,60000,30000,0
-hu_fild05.gat,0,0,0,0	monster	Earth Deleter	1385,5,120000,60000,0
-hu_fild05.gat,0,0,0,0	monster	Earth Deleter	1385,15,0,0,0
+//========================================================================================
+// - Hugel Field 04
+//========================================================================================
+hu_fild04.gat,0,0,0,0	monster	Green Iguana	1687,15,0,0,0
+hu_fild04.gat,0,0,0,0	monster	Sky Petit	1156,15,0,0,0
+hu_fild04.gat,0,0,0,0	monster	Breeze		1692,15,0,0,0
+hu_fild04.gat,0,0,0,0	monster	Petit		1155,15,0,0,0
+hu_fild04.gat,0,0,0,0	monster	Novus		1715,10,0,0,0
+hu_fild04.gat,0,0,0,0	monster	Yellow Plant	1081,10,360000,180000,1
+hu_fild04.gat,0,0,0,0	monster	Green Plant	1080,5,180000,90000,1
+hu_fild04.gat,0,0,0,0	monster	Sleeper 	1386,25,0,0,0
+hu_fild04.gat,0,0,0,0	monster	Novus		1718,20,0,0,0
+hu_fild04.gat,0,0,0,0	monster	Virus		1627,25,0,0,0
+
+//========================================================================================
+// - Hugel Field 05
+//========================================================================================
+hu_fild05.gat,0,0,0,0	monster	Sky Petit		1156,15,0,0,0
+hu_fild05.gat,0,0,0,0	monster	Petit			1155,15,0,0,0
 hu_fild05.gat,0,0,0,0	monster	Mutant Dragonoid	1262,1,7200000,3600000,0
+hu_fild05.gat,0,0,0,0	monster 	Novus			1718,10,0,0,0
+hu_fild05.gat,0,0,0,0	monster	Dragon Egg		1721,10,0,0,0
+hu_fild05.gat,0,0,0,0	monster	Novus			1715,10,0,0,0
+hu_fild05.gat,0,0,0,0	monster	Green Iguana		1687,35,0,0,0
+hu_fild05.gat,0,0,0,0	monster	Virus			1627,25,0,0,0
+
+//========================================================================================
+// - Hugel Field 07
+//========================================================================================
+hu_fild07.gat,0,0,0,0	monster	Sky Deleter		1384,15,120000,60000,0
+hu_fild07.gat,0,0,0,0	monster	Earth Deleter		1385,15,120000,60000,0
+hu_fild07.gat,0,0,0,0	monster	Novus			1715,20,0,0,0
+hu_fild07.gat,0,0,0,0	monster	Green Iguana		1687,35,0,0,0
+hu_fild07.gat,0,0,0,0	monster	Virus			1627,15,0,0,0
+hu_fild07.gat,0,0,0,0	monster	Novus			1718,20,0,0,0
+hu_fild07.gat,0,0,0,0	monster	Yellow Plant		1081,10,360000,180000,1
+hu_fild07.gat,0,0,0,0	monster	Geographer		1368,20,0,0,0
+hu_fild07.gat,0,0,0,0	monster	Demon Pungus		1378,20,0,0,0
+hu_fild07.gat,0,0,0,0	monster	Breeze			1692,20,0,0,0

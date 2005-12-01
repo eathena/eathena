@@ -27,6 +27,7 @@ Nexon
 Date		Added
 ======
 11/30
+	* Updated Hugel field spawns, thanks to battousai [MasterOfMuppets]
 	* Made all (Desert Wolf Puppy / Desert Wolf Puppy) -> Desert Wolf Babe [Lupus]
 	  the same thing is for Savage Babe. Also fixed eggs names
 	* Fixed typo in nopenalty. Umatsu? XD [Vicious]
