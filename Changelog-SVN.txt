@@ -1,5 +1,7 @@
 Date	Added
 2005/12/01
+	* Fixed equip_skill_break_rate equation being messed up for Acid Demonstration. [Skotlex]
+	* Fixed Aura Blade adding damage to Spiral Pierce (it shouldn't) [Skotlex]
 	* Script function getnameditem now sets flag 254 (created) instead of 255 (forged) [Lupus]
 	  To prevent ADDITIONAL Blacksmith FAME TOP10 bonuses, applied to signed but not forged weapons
 		e.g. You have a custom quest for rare weapons. You tag items with players name (using getnameditem command).

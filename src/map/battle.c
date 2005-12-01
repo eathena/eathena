@@ -1825,7 +1825,7 @@ static struct Damage battle_calc_weapon_attack(
 		}
 
 		//Post skill/vit reduction damage increases
-		if (sc_data)
+		if (sc_data && skill_num != LK_SPIRALPIERCE)
 		{	//SC skill damages
 			if(sc_data[SC_AURABLADE].timer!=-1) 
 				ATK_ADD(20*sc_data[SC_AURABLADE].val1);

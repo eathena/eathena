@@ -1173,10 +1173,10 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 
 	case CR_ACIDDEMONSTRATION:
 		if (dstsd) {
-			if ((rand() % 100) * battle_config.equip_skill_break_rate/100  < skilllv)
+			if (rand()%10000 < skilllv * battle_config.equip_skill_break_rate)
 				pc_breakweapon(dstsd);
 			// separate chances?
-			if ((rand() % 100) * battle_config.equip_skill_break_rate/100 < skilllv)
+			if (rand()%10000 < skilllv * battle_config.equip_skill_break_rate)
 				pc_breakarmor(dstsd);
 		}
 		break;
