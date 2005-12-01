@@ -1199,6 +1199,10 @@ static struct Damage battle_calc_weapon_attack(
 				case TK_COUNTER:
 					flag.hit = 1;
 					break;
+				case CR_SHIELDBOOMERANG:
+					if (sc_data && sc_data[SC_SPIRIT].timer != -1 && sc_data[SC_SPIRIT].val2 == SL_CRUSADER)
+						flag.hit = 1;
+					break;
 			}
 		if ((t_sc_data && !flag.hit) &&
 			(t_sc_data[SC_SLEEP].timer!=-1 ||
@@ -1556,6 +1560,8 @@ static struct Damage battle_calc_weapon_attack(
 					break;
 				case AS_SONICBLOW:
 					skillratio += 200+50*skill_lv;
+					if (sc_data && sc_data[SC_SPIRIT].timer != -1 && sc_data[SC_SPIRIT].val2 == SL_ASSASIN)
+						skillratio += map_flag_gvg(src->m)?50:100;
 					if(sd && pc_checkskill(sd,AS_SONICACCEL)>0)
 						skillratio += 10;
 					break;
@@ -1607,6 +1613,8 @@ static struct Damage battle_calc_weapon_attack(
 					break;
 				case CR_SHIELDBOOMERANG:
 					skillratio += 30*skill_lv;
+					if (sc_data && sc_data[SC_SPIRIT].timer != -1 && sc_data[SC_SPIRIT].val2 == SL_CRUSADER)
+						skillratio += 100;
 					break;
 				case NPC_DARKCROSS:
 				case CR_HOLYCROSS:
@@ -2405,6 +2413,8 @@ struct Damage battle_calc_magic_attack(
 						break;
 					case AL_HOLYLIGHT:
 						skillratio += 25;
+						if (sd->sc_data[SC_SPIRIT].timer != -1 && sd->sc_data[SC_SPIRIT].val2 == SL_PRIEST)
+							skillratio *= 5; //Does 5x damage include bonuses from other skills?
 						break;
 					case AL_RUWACH:
 						skillratio += 45;

@@ -4541,7 +4541,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case AM_POTIONPITCHER:		/* ポ?ションピッチャ? */
 		{
 			struct block_list tbl;
-			int i,x,hp = 0,sp = 0;
+			int i,x,hp = 0,sp = 0,bonus=100;
 			if(sd) {
 				x = skilllv%11 - 1;
 				i = pc_search_inventory(sd,skill_db[skillid].itemid[x]);
@@ -4561,23 +4561,25 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				run_script(sd->inventory_data[i]->script,0,sd->bl.id,0);
 				pc_delitem(sd,i,skill_db[skillid].amount[x],0);
 				potion_flag = potion_target = 0;
+				if (sd->sc_data[SC_SPIRIT].timer != -1 && sd->sc_data[SC_SPIRIT].val2 == SL_ALCHEMIST)
+					bonus += sd->status.base_level;
 				if(potion_per_hp > 0 || potion_per_sp > 0) {
 					hp = status_get_max_hp(bl) * potion_per_hp / 100;
-					hp = hp * (100 + pc_checkskill(sd,AM_POTIONPITCHER)*10 + pc_checkskill(sd,AM_LEARNINGPOTION)*5)/100;
+					hp = hp * (100 + pc_checkskill(sd,AM_POTIONPITCHER)*10 + pc_checkskill(sd,AM_LEARNINGPOTION)*5)*bonus/10000;
 					if(dstsd) {
 						sp = dstsd->status.max_sp * potion_per_sp / 100;
-						sp = sp * (100 + pc_checkskill(sd,AM_POTIONPITCHER)*10 + pc_checkskill(sd,AM_LEARNINGPOTION)*5)/100;
+						sp = sp * (100 + pc_checkskill(sd,AM_POTIONPITCHER)*10 + pc_checkskill(sd,AM_LEARNINGPOTION)*5)*bonus/10000;
 					}
 				}
 				else {
 					if(potion_hp > 0) {
-						hp = potion_hp * (100 + pc_checkskill(sd,AM_POTIONPITCHER)*10 + pc_checkskill(sd,AM_LEARNINGPOTION)*5)/100;
+						hp = potion_hp * (100 + pc_checkskill(sd,AM_POTIONPITCHER)*10 + pc_checkskill(sd,AM_LEARNINGPOTION)*5)*bonus/10000;
 						hp = hp * (100 + (status_get_vit(bl)<<1)) / 100;
 						if(dstsd)
 							hp = hp * (100 + pc_checkskill(dstsd,SM_RECOVERY)*10) / 100;
 					}
 					if(potion_sp > 0) {
-						sp = potion_sp * (100 + pc_checkskill(sd,AM_POTIONPITCHER)*10 + pc_checkskill(sd,AM_LEARNINGPOTION)*5)/100;
+						sp = potion_sp * (100 + pc_checkskill(sd,AM_POTIONPITCHER)*10 + pc_checkskill(sd,AM_LEARNINGPOTION)*5)*bonus/10000;
 						sp = sp * (100 + (status_get_int(bl)<<1)) / 100;
 						if(dstsd)
 							sp = sp * (100 + pc_checkskill(dstsd,MG_SRECOVERY)*10) / 100;
@@ -5478,6 +5480,35 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			} while ((--count) > 0);
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		}
+		break;
+
+	case SL_ALCHEMIST:
+	case SL_ASSASIN:
+	case SL_BARDDANCER:
+	case SL_BLACKSMITH:
+	case SL_CRUSADER:
+	case SL_HUNTER:
+	case SL_KNIGHT:
+	case SL_MONK:
+	case SL_PRIEST:
+	case SL_ROGUE:
+	case SL_SAGE:
+	case SL_SOULLINKER:
+	case SL_STAR:
+	case SL_SUPERNOVICE:
+	case SL_WIZARD:
+		if (sd && !(dstsd && (dstsd->class_&MAPID_UPPERMASK) == SkillStatusChangeTable[skillid])) {
+			clif_skill_fail(sd,skillid,0,0);
+			break;
+		}
+		status_change_start(bl,SC_SPIRIT,skilllv,skillid,0,0,skill_get_time(skillid,skilllv),0);
+		break;
+	case SL_HIGH:
+		if (sd && !(dstsd && (dstsd->class_&JOBL_UPPER) && !(dstsd->class_&JOBL_2))) {
+			clif_skill_fail(sd,skillid,0,0);
+			break;
+		}
+		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,skillid,0,0,skill_get_time(skillid,skilllv),0 );
 		break;
 
 	// New guild skills [Celest]
@@ -7661,10 +7692,10 @@ int skill_check_condition(struct map_session_data *sd,int type)
 			if(pc_checkskill(sd,BS_UNFAIRLYTRICK)>0)
 				zeny -= zeny*10/100;
 			break;
-		/*case AL_HOLYLIGHT:
-			if(sd->sc_data[SC_PRIEST].timer!=-1)
+		case AL_HOLYLIGHT:
+			if(sd->sc_data[SC_SPIRIT].timer!=-1 && sd->sc_data[SC_SPIRIT].val2 == SL_PRIEST)
 				sp *= 5;
-			break;*/
+			break;
 		case SL_SMA:
 		case SL_STUN:
 		case SL_STIN:

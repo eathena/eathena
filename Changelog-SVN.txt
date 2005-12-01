@@ -1,6 +1,7 @@
 Date	Added
 
 2005/12/02
+	* Merged in Reddozen's Soul Linker current skills work. [Skotlex]
 	* Added countitem2(itemID,....) script function. [Lupus]
 2005/12/01
 	* Moved KN_CHARGEATK code to merge it with Extremity Fist. Skill damage
