@@ -1,5 +1,6 @@
 Date	Added
 2005/11/30
+	* Updated item_db.sql to latest. [Skotlex]
 	* Updated mob_db.sql to latest. [Skotlex]
 	* Updated Gospel to force the removal of the ground-effect when the status
 	  change ends. [Skotlex]

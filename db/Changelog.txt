@@ -40,6 +40,8 @@
 	12132,Red_Package: Turns you into x-mas clothes sprite for 10 minutes
 	--
 11/30
+	* Cleaned up the item_db, checked and added the items previously added and
+	  commented by Viccious. [Skotlex]
 	* Cleaned up the mob_db, corrected Lighthalzen Bosses MVP exp rate (the max
 	  is 100%, why did you guys set 70000%? I changed that to 70%) [Skotlex]
 	* Cleaned up job_db2.txt by removing the unnecessary trailing 0's. [Skotlex]
