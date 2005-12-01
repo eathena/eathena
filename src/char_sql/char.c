@@ -207,7 +207,12 @@ void set_char_online(int map_id, int char_id, int account_id) {
 	}
 	character->char_id = (char_id==99)?-1:char_id;
 	character->server = (char_id==99)?-1:map_id;
-	
+	if (char_id != 99)
+	{	//Set char online in guild cache. If char is in memory, use the guild id on it, otherwise seek it.
+		struct mmo_charstatus *cp;
+		cp = (struct mmo_charstatus*)numdb_search(char_db_,char_id);
+ 		inter_guild_CharOnline(char_id, cp?cp->guild_id:-1);
+	}
 	if (login_fd <= 0 || session[login_fd]->eof)
 		return;
 	
@@ -224,6 +229,7 @@ void set_char_offline(int char_id, int account_id) {
 		sprintf(tmp_sql,"UPDATE `%s` SET `online`='0' WHERE `account_id`='%d'", char_db, account_id);
 	else {
 		cp = (struct mmo_charstatus*)numdb_search(char_db_,char_id);
+		inter_guild_CharOffline(char_id, cp?cp->guild_id:-1);
 		if (cp != NULL) {
 			aFree(cp);
 			numdb_erase(char_db_,char_id);
@@ -244,7 +250,7 @@ void set_char_offline(int char_id, int account_id) {
 		character->server = -1;
 		character->waiting_disconnect = 0;
 	}
-
+	
    if (login_fd <= 0 || session[login_fd]->eof)
 	return;
 
@@ -253,10 +259,22 @@ void set_char_offline(int char_id, int account_id) {
    WFIFOSET(login_fd,6);
 }
 
+static int char_db_setoffline(void* key, void* data, va_list ap) {
+	struct online_char_data* character = (struct online_char_data*)data;
+	int server = va_arg(ap, int);
+	if (server == -1) {
+		character->char_id = -1;
+		character->server = -1;
+		character->waiting_disconnect = 0;	
+	} else if (character->server == server)
+		character->server = -2; //In some map server that we aren't connected to.
+	return 0;
+}
+
 void set_all_offline(void) {
 	MYSQL_RES*       sql_res2; //Needed because it is used inside inter_guild_CharOffline; [Skotlex]
 	int char_id;
-	sprintf(tmp_sql, "SELECT `account_id`, `char_id` FROM `%s` WHERE `online`='1'",char_db);
+	sprintf(tmp_sql, "SELECT `account_id`, `char_id`, `guild_id` FROM `%s` WHERE `online`='1'",char_db);
 	if (mysql_query(&mysql_handle, tmp_sql)) {
 		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
@@ -266,7 +284,7 @@ void set_all_offline(void) {
 	if (sql_res2) {
 		while((sql_row = mysql_fetch_row(sql_res2))) {
 			char_id = atoi(sql_row[1]);
-			inter_guild_CharOffline(char_id);
+			inter_guild_CharOffline(char_id, atoi(sql_row[2]));
 
 			if ( login_fd > 0 ) {
 				ShowInfo("send user offline: %d\n",char_id);
@@ -283,7 +301,7 @@ void set_all_offline(void) {
 		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 	}
-
+	numdb_foreach(online_char_db,char_db_setoffline,-1);
 }
 //----------------------------------------------------------------------
 // Determine if an account (id) is a GM account
@@ -1899,7 +1917,7 @@ int parse_tologin(int fd) {
 				//exit(1); //fixed for server shutdown.
 			}else {
 				ShowStatus("Connected to login-server (connection #%d).\n", fd);
-                set_all_offline();
+				set_all_offline();
 				// if no map-server already connected, display a message...
 				for(i = 0; i < MAX_MAP_SERVERS; i++)
 					if (server_fd[i] > 0 && server[i].map[0][0]) // if map-server online and at least 1 map
@@ -2298,6 +2316,7 @@ int parse_frommap(int fd) {
 				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 			}
 			server_fd[id] = -1;
+			numdb_foreach(online_char_db,char_db_setoffline,id); //Tag relevant chars as 'in disconnected' server.
 		}
 		do_close(fd);
 		return 0;
@@ -2777,19 +2796,18 @@ int parse_frommap(int fd) {
 				return 0;
 			//printf("Setting %d char offline\n",RFIFOL(fd,2));
 			set_char_offline(RFIFOL(fd,2),RFIFOL(fd,6));
-	      inter_guild_CharOffline(RFIFOL(fd,2));
 			RFIFOSKIP(fd,10);
 			break;
 		// Reset all chars to offline [Wizputer]
 		case 0x2b18:
-		    set_all_offline();
+			ShowNotice("Map server [%d] requested to set all characters offline.", id);
+			set_all_offline();
 			RFIFOSKIP(fd,2);
 			break;
 		// Character set online [Wizputer]
 		case 0x2b19:
 			if (RFIFOREST(fd) < 6 )
 				return 0;
-			//printf("Setting %d char online\n",RFIFOL(fd,2));
 			set_char_online(id, RFIFOL(fd,2),RFIFOL(fd,6));
 			RFIFOSKIP(fd,10);
 			break;
@@ -3257,7 +3275,6 @@ int parse_char(int fd) {
 			WFIFOSET(map_fd, WFIFOW(map_fd,2));
 
 			set_char_online(i, auth_fifo[auth_fifo_pos].char_id, auth_fifo[auth_fifo_pos].account_id);
-	      inter_guild_CharOnline(auth_fifo[auth_fifo_pos].char_id, char_dat[0].guild_id);
 			
 			//Checks to see if the even share setting of the party must be broken.
 			inter_party_logged(char_dat[0].party_id, char_dat[0].account_id);

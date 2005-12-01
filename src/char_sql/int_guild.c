@@ -648,11 +648,27 @@ int inter_guild_CharOnline(int char_id, int guild_id) {
    struct guild *g;
    int i;
    
-   g=NULL;
-   if (guild_id == 0)
-		return 0;
+	if (guild_id == -1) {
+		//Get guild_id from the database
+		sprintf (tmp_sql , "SELECT guild_id FROM `%s` WHERE char_id='%d'",char_db,char_id);
+		if(mysql_query(&mysql_handle, tmp_sql) ) {
+			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+			return 0;
+		}
+
+		sql_res = mysql_store_result(&mysql_handle) ;
+		if(sql_res == NULL)
+			return 0; //Eh? No guild?
+		
+		sql_row = mysql_fetch_row(sql_res);
+		guild_id = sql_row?atoi(sql_row[0]):0;
+		mysql_free_result(sql_res);
+	}
+	if (guild_id == 0)
+		return 0; //No guild...
+	
 	g = inter_guild_fromsql(guild_id);
-	//First guild member to login, load guild into cache
 	if(!g) {
 		ShowError("Character %d's guild %d not found!\n", char_id, guild_id);
 		return 0;
@@ -672,29 +688,29 @@ int inter_guild_CharOnline(int char_id, int guild_id) {
 	return 1;
 }
 
-int inter_guild_CharOffline(int char_id) {
+int inter_guild_CharOffline(int char_id, int guild_id) {
 	struct guild *g=NULL;
-	int guild_id=0, online_count=0, i;
+	int online_count=0, i;
 
-	//Get guild_id from the database
-	sprintf (tmp_sql , "SELECT guild_id FROM `%s` WHERE char_id='%d'",char_db,char_id);
-	if(mysql_query(&mysql_handle, tmp_sql) ) {
-		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
-		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-		return 0;
+	if (guild_id == -1) {
+		//Get guild_id from the database
+		sprintf (tmp_sql , "SELECT guild_id FROM `%s` WHERE char_id='%d'",char_db,char_id);
+		if(mysql_query(&mysql_handle, tmp_sql) ) {
+			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+			return 0;
+		}
+
+		sql_res = mysql_store_result(&mysql_handle) ;
+		if(sql_res == NULL)
+			return 0; //Eh? No guild?
+		
+		sql_row = mysql_fetch_row(sql_res);
+		guild_id = sql_row?atoi(sql_row[0]):0;
+		mysql_free_result(sql_res);
 	}
-
-	sql_res = mysql_store_result(&mysql_handle) ;
-
-	if(sql_res == NULL)
-		return 0; //Eh? No guild?
-	
-	sql_row = mysql_fetch_row(sql_res);
-	if (sql_row) guild_id = atoi(sql_row[0]);
-	mysql_free_result(sql_res);
-	
-	if (sql_row==NULL || guild_id == 0)
-		return 0; //No guild?
+	if (guild_id == 0)
+		return 0; //No guild...
 	
 	//Character has a guild, set character offline and check if they were the only member online
 	g = numdb_search(guild_db_, guild_id);

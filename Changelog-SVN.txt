@@ -1,5 +1,11 @@
 Date	Added
 2005/12/01
+	* Improvements and optimizations to the online db management in the char
+	  txt/sql servers. [Skotlex]
+	* Updated the guild cache (char sql) to have it load/unload characters
+	  whenever they are updated in the char online_db (previously they were only
+	  updated on normal char-select/char-quit when there were more cases where a
+	  char is set online/offline) [Skotlex]
 	* Now when the guild is not found in the cache it will be loaded from the
 	  sql db first before failing. [Skotlex]
 	* Fixed equip_skill_break_rate equation being messed up for Acid Demonstration. [Skotlex]

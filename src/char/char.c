@@ -287,7 +287,21 @@ void set_char_offline(int char_id, int account_id) {
 	WFIFOSET(login_fd,6);
 
 }
+
+static int char_db_setoffline(void* key, void* data, va_list ap) {
+	struct online_char_data* character = (struct online_char_data*)data;
+	int server = va_arg(ap, int);
+	if (server == -1) {
+		character->char_id = -1;
+		character->server = -1;
+		character->waiting_disconnect = 0;	
+	} else if (character->server == server)
+		character->server = -2; //In some map server that we aren't connected to.
+	return 0;
+}
+
 void set_all_offline(void) {
+	numdb_foreach(online_char_db,char_db_setoffline,-1);
 	if (login_fd <= 0 || session[login_fd]->eof)
 		return;
 	WFIFOW(login_fd,0) = 0x272c;
@@ -2274,6 +2288,7 @@ int parse_frommap(int fd) {
 			if (server_fd[i] == fd) {
 				ShowStatus("Map-server %d has disconnected.\n", i);
 				server_fd[i] = -1;
+				numdb_foreach(online_char_db,char_db_setoffline,i); //Tag relevant chars as 'in disconnected' server.
 			}
 		do_close(fd);
 		create_online_files();
@@ -2726,7 +2741,8 @@ int parse_frommap(int fd) {
 
 		// Reset all chars to offline [Wizputer]
 		case 0x2b18:
-		    set_all_offline();
+			ShowNotice("Map server [%d] requested to set all characters offline.", id);
+			set_all_offline();
 			RFIFOSKIP(fd,2);
 			break;
 
