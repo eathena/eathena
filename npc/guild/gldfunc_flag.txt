@@ -56,6 +56,6 @@ L_Startg2:
 	return;
 
 	M_Enter:
-		if (getcharid(2) == @GID) warp getarg(1)+".gat",getarg(2),getarg(3);
+		if (getcharid(2) == GetCastleData(getarg(1)+".gat",1)) warp getarg(1)+".gat",getarg(2),getarg(3);
 		return;
 }
