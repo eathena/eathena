@@ -152,6 +152,8 @@ int buildin_grouprandomitem(struct script_state *st);
 int buildin_makeitem(struct script_state *st);
 int buildin_delitem(struct script_state *st);
 int buildin_delitem2(struct script_state *st);
+int buildin_enableitemuse(struct script_state *st);
+int buildin_disableitemuse(struct script_state *st);
 int buildin_viewpoint(struct script_state *st);
 int buildin_countitem(struct script_state *st);
 int buildin_countitem2(struct script_state *st);
@@ -425,6 +427,8 @@ struct {
 	{buildin_makeitem,"makeitem","iisii"},
 	{buildin_delitem,"delitem","ii"},
 	{buildin_delitem2,"delitem2","iiiiiiiii"},
+	{buildin_enableitemuse,"enable_items",""},
+	{buildin_disableitemuse,"disable_items",""},
 	{buildin_cutin,"cutin","si"},
 	{buildin_cutincard,"cutincard","i"},
 	{buildin_viewpoint,"viewpoint","iiiii"},
@@ -3977,6 +3981,26 @@ int buildin_delitem2(struct script_state *st)
 			pc_delitem(sd,i,sd->status.inventory[i].amount,0);
 		}
 	}
+	return 0;
+}
+
+/*==========================================
+ * Enables/Disables use of items while in an NPC [Skotlex]
+ *------------------------------------------
+ */
+int buildin_enableitemuse(struct script_state *st) {
+	struct map_session_data *sd;
+	sd=script_rid2sd(st);
+	if (sd)
+		sd->npc_item_flag = st->oid;
+	return 0;
+}
+
+int buildin_disableitemuse(struct script_state *st) {
+	struct map_session_data *sd;
+	sd=script_rid2sd(st);
+	if (sd)
+		sd->npc_item_flag = 0;
 	return 0;
 }
 

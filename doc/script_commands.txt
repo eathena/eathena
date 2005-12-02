@@ -1775,6 +1775,19 @@ Check 'getitem2' to understand its expanded parameters.
 
 ---------------------------------------
 
+*enable_items;
+*disable_items;
+
+These commands enable item usage while an npc is running. When enable_items is
+run, items can be used during scripts until disable_items is called. 
+To avoid possible exploits, when enable_items is invoked, it will only enable
+item usage while running that script in particular. Note that if a different
+script also calls enable_items, it will override the last call (so you may
+want to call this command at the start of your script without assuming the
+effect is still in effect).
+
+---------------------------------------
+
 *viewpoint <action>,<x>,<y>,<point number>,<color>;
 
 This command will mark places on the mini map in the client connected to the 

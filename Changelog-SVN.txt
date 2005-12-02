@@ -1,6 +1,9 @@
 Date	Added
 
 2005/12/02
+	* Disabled random-walking for slaves [Skotlex]
+	* Added script commands enable_items/disable_items [Skotlex]
+	* Likely fixed the mob-skill target type "master" [Skotlex]
 	* Added target type "master" to the mobskill_db [Skotlex]
 	* Modified NPC_RUN to allow the caster to run away from the target [Skotlex]
 	* Implemented SL_SAGE (Soul Linker Sage buff for auto-cast bolts) [Skotlex]

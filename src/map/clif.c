@@ -8944,12 +8944,15 @@ void clif_parse_UseItem(int fd, struct map_session_data *sd) {
 		clif_clearchar_area(&sd->bl, 1);
 		return;
 	}
-	if (sd->npc_id!=0 || sd->vender_id != 0 || (sd->opt1 > 0 && sd->opt1 != 6) ||
-	    (sd->sc_data && (sd->sc_data[SC_TRICKDEAD].timer != -1 || //Ž€‚ñ‚¾‚Ó‚è
-	     sd->sc_data[SC_BLADESTOP].timer != -1 || //”’nŽæ‚è
+	if (sd->vender_id != 0 || (sd->opt1 > 0 && sd->opt1 != 6))
+		return;
+	if (sd->npc_id!=0 && sd->npc_id != sd->npc_item_flag) //This flag enables you to use items while in an NPC. [Skotlex]
+		return;
+	if (sd->sc_data[SC_TRICKDEAD].timer != -1 || //Ž€‚ñ‚¾‚Ó‚è
+		sd->sc_data[SC_BLADESTOP].timer != -1 || //”’nŽæ‚è
 		sd->sc_data[SC_BERSERK].timer!=-1 ||	//ƒo[ƒT[ƒN
 		sd->sc_data[SC_NOCHAT].timer!=-1 ||
-		sd->sc_data[SC_GRAVITATION].timer!=-1)) )	//‰ï˜b‹ÖŽ~
+		sd->sc_data[SC_GRAVITATION].timer!=-1)	//‰ï˜b‹ÖŽ~
 		return;
 
 	if (sd->invincible_timer != -1)

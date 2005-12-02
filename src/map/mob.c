@@ -1372,10 +1372,10 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 					if(i<=5){
 						dx=bl->x - md->bl.x;
 						dy=bl->y - md->bl.y;
-						if(dx<0) dx+=(rand()%-dx);
-						else if(dx>0) dx-=(rand()%dx);
-						if(dy<0) dy+=(rand()%-dy);
-						else if(dy>0) dy-=(rand()%dy);
+						if(dx<0) dx+=(rand()%-dx)/2; //On the minimum, half the distance between slave/master. [Skotlex]
+						else if(dx>0) dx-=(rand()%dx)/2;
+						if(dy<0) dy+=(rand()%-dy)/2;
+						else if(dy>0) dy-=(rand()%dy)/2;
 					}else{
 						dx=bl->x - md->bl.x + rand()%11- 5;
 						dy=bl->y - md->bl.y + rand()%11- 5;
@@ -1384,23 +1384,8 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 					ret=mob_walktoxy(md,md->bl.x+dx,md->bl.y+dy,0);
 					i++;
 				} while(ret && i<10);
-				md->next_walktime=tick+500;
+				md->next_walktime=tick+1000;
 			}
-			/* Else do nothing. Let mob_random_walk take care of this. [Skotlex]
-			else {
-				do {
-					dx = rand()%(AREA_SIZE/2 +1) - AREA_SIZE/2;
-					dy = rand()%(AREA_SIZE/2 +1) - AREA_SIZE/2;
-					if( dx == 0 && dy == 0) {
-						dx = (rand()%1)? 1:-1;
-						dy = (rand()%1)? 1:-1;
-					}
-
-					ret=mob_walktoxy(md,bl->x+dx,bl->y+dy,(battle_config.mob_ai&1?1:0));
-					i++;
-				} while(ret && i<10);
-			}
-			*/
 		}
 	}
 	
@@ -1443,6 +1428,9 @@ int mob_randomwalk(struct mob_data *md,int tick)
 
 	nullpo_retr(0, md);
 
+	if (md->master_id) //Slaves don't "randomly walk around". [Skotlex]
+		return 0;
+	
 	speed=status_get_speed(&md->bl);
 	if(DIFF_TICK(md->next_walktime,tick)<0){
 		int i,x,y,c,d=12-md->move_fail_count;
@@ -3700,11 +3688,11 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 						bl = map_id2bl(md->target_id);
 						break;
 					case MST_MASTER:
+						bl = &md->bl;
 						if (md->master_id) 
-							bl = map_id2bl(md->target_id);
-						if (!bl)
-							bl = &md->bl;
-						break;
+							bl = map_id2bl(md->master_id);
+						if (bl) //Otherwise, fall through.
+							break;
 					case MST_FRIEND:
 						if (fbl)
 						{
@@ -3757,11 +3745,11 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 						bl = map_id2bl(md->target_id);
 						break;
 					case MST_MASTER:
+						bl = &md->bl;
 						if (md->master_id) 
-							bl = map_id2bl(md->target_id);
-						if (!bl)
-							bl = &md->bl;
-						break;
+							bl = map_id2bl(md->master_id);
+						if (bl) //Otherwise, fall through.
+							break;
 					case MST_FRIEND:
 						if (fbl) {
 							bl = fbl;

@@ -436,6 +436,7 @@ struct map_session_data {
 	struct walkpath_data walkpath;
 	int walktimer;
 	int npc_id,areanpc_id,npc_shopid;
+	int npc_item_flag; //Marks the npc_id with which you can use items during interactions with said npc (see script command enable_itemuse)
 	int npc_pos;
 	int npc_menu;
 	int npc_amount;
