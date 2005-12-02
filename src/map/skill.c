@@ -4737,7 +4737,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			static const int spellarray[3] = { MG_COLDBOLT,MG_FIREBOLT,MG_LIGHTNINGBOLT };
 			if(skilllv >= 10) {
 				spellid = MG_FROSTDIVER;
-				maxlv = skilllv - 9;
+//				if (sc_data && sc_data[SC_SPIRIT].timer != -1 && sc_data[SC_SPIRIT].val2 == SA_SAGE)
+//					maxlv = 10;
+//				else
+					maxlv = skilllv - 9;
 			}
 			else if(skilllv >=8) {
 				spellid = MG_FIREBALL;
@@ -9032,7 +9035,9 @@ int skill_autospell(struct map_session_data *sd,int skillid)
 
 	if(skillid==MG_NAPALMBEAT)	maxlv=3;
 	else if(skillid==MG_COLDBOLT || skillid==MG_FIREBOLT || skillid==MG_LIGHTNINGBOLT){
-		if(skilllv==2) maxlv=1;
+		if (sd->sc_data[SC_SPIRIT].timer != -1 && sd->sc_data[SC_SPIRIT].val2 == SL_SAGE)
+			maxlv =10; //Soul Linker bonus. [Skotlex]
+		else if(skilllv==2) maxlv=1;
 		else if(skilllv==3) maxlv=2;
 		else if(skilllv>=4) maxlv=3;
 	}

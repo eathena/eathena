@@ -2903,12 +2903,12 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 		int sp = 0, f = 0;
 		int skillid = sc_data[SC_AUTOSPELL].val2;
 		int skilllv = sc_data[SC_AUTOSPELL].val3;
-
 		int i = rand()%100;
+		if (sc_data[SC_SPIRIT].timer != -1 && sc_data[SC_SPIRIT].val2 == SL_SAGE)
+			i = 0; //Max chance, no skilllv reduction. [Skotlex]
 		if (i >= 50) skilllv -= 2;
 		else if (i >= 15) skilllv--;
 		if (skilllv < 1) skilllv = 1;
-
 		if (sd) sp = skill_get_sp(skillid,skilllv) * 2 / 3;
 
 		if ((sd && sd->status.sp >= sp) || !sd) {

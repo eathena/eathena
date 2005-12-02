@@ -1,6 +1,7 @@
 Date	Added
 
 2005/12/02
+	* Implemented SL_SAGE (Soul Linker Sage buff for auto-cast bolts) [Skotlex]
 	* Updated char-sql guild saving so that instead of saving ALL guilds when
 	  the time comes, the save interval is splitted on time-slots (based on guild
 	  count in memory) and a guild is saved per time-slot (just like the map
