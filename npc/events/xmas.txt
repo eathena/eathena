@@ -17,6 +17,8 @@
 //= 1.2 Added monsters to the newer fields, thanks to Muad_Dib [MasterOfMuppets]
 //= 1.2a Fixed a major problem with the monster spawns, thanks to Playtester [MasterOfMuppets]
 //= 1.2b Fixed a minor problem with the mosnter spawns, thanks to Playtester [Kayla]
+//= 1.3 Added Christmas Orc to the places where other orcs spawn [MasterOfMuppets]
+//=	Added Christmas goblins to yuno_fild09, thanks to Playtester for pointing it out
 //============================================================
 
 
@@ -114,6 +116,7 @@ OnInit:
 
 prt_fild11.gat,0,0,0,0	monster	Christmas Goblin	1245,5,0,0,0
 gef_fild11.gat,0,0,0,0	monster	Christmas Goblin	1245,5,0,0,0
+yuno_fild09.gat,0,0,0,0	monster	Christmas Goblin	1245,5,0,0,0
 
 //========================================================================================
 // - Santa Poring Spawns
@@ -349,3 +352,13 @@ hu_fild07.gat,0,0,0,0	monster	Antonio	1247,1,0,0,0
 
 gef_dun01.gat,0,0,0,0	monster	Xmas Jakk	1244,5,0,0,0
 //gefenia02.gat,0,0,0,0	monster	Xmas Jakk	1244,5,0,0,0
+
+//========================================================================================
+// - Xmas Orc
+//========================================================================================
+
+gef_fild02.gat,0,0,0,0	monster	Christmas Orc	1588,5,0,0,0
+gef_fild03.gat,0,0,0,0	monster	Christmas Orc	1588,5,0,0,0
+gef_fild10.gat,0,0,0,0	monster	Christmas Orc	1588,5,0,0,0
+gef_fild14.gat,0,0,0,0	monster	Christmas Orc	1588,5,0,0,0
+alde_dun02.gat,0,0,0,0	monster	Christmas Orc	1588,5,0,0,0

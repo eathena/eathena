@@ -26,6 +26,10 @@ Nexon
 
 Date		Added
 ======
+12/02
+	* Added some Christmas Orcs to event/xmas.txt, thanks to Playtester [MasterOfMuppets]
+	- Christmas Goblins were added to yuno_fild09 as well.
+	- Enabled the christmas event by default as it has started in kRO sakray
 12/01
 	* The bio lab dungeon bosses will now only spawn one at a time, [MasterOfMuppets]
 	  they are randomly selected.
