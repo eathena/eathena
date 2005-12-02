@@ -116,6 +116,7 @@ int potion_target=0;
  *------------------------------------------
  */
 unsigned char* parse_subexpr(unsigned char *,int);
+int buildin_axtoi(struct script_state *st);
 int buildin_mes(struct script_state *st);
 int buildin_goto(struct script_state *st);
 int buildin_callsub(struct script_state *st);
@@ -392,6 +393,7 @@ struct {
 	char *name;
 	char *arg;
 } buildin_func[]={
+	{buildin_axtoi,"axtoi","s"},
 	{buildin_mes,"mes","s"},
 	{buildin_next,"next",""},
 	{buildin_close,"close",""},
@@ -2420,6 +2422,46 @@ void script_free_stack(struct script_stack* stack)
 	}
 	aFree (stack->stack_data);
 	aFree (stack);
+}
+
+int axtoi(char *hexStg) {
+	int n = 0;         // position in string
+	int m = 0;         // position in digit[] to shift
+	int count;         // loop index
+	int intValue = 0;  // integer value of hex string
+	int digit[11];      // hold values to convert
+	while (n < 10) {
+		if (hexStg[n]=='\0')
+			break;
+		if (hexStg[n] > 0x29 && hexStg[n] < 0x40 ) //if 0 to 9
+			digit[n] = hexStg[n] & 0x0f;            //convert to int
+		else if (hexStg[n] >='a' && hexStg[n] <= 'f') //if a to f
+			digit[n] = (hexStg[n] & 0x0f) + 9;      //convert to int
+		else if (hexStg[n] >='A' && hexStg[n] <= 'F') //if A to F
+			digit[n] = (hexStg[n] & 0x0f) + 9;      //convert to int
+		else break;
+		n++;
+	}
+	count = n;
+	m = n - 1;
+	n = 0;
+	while(n < count) {
+		// digit[n] is value of hex digit at position n
+		// (m << 2) is the number of positions to shift
+		// OR the bits into return value
+		intValue = intValue | (digit[n] << (m << 2));
+		m--;   // adjust the position to set
+		n++;   // next digit to process
+	}
+	return (intValue);
+}
+
+// [Lance] Hex string to integer converter
+int buildin_axtoi(struct script_state *st)
+{
+	char *hex = conv_str(st,& (st->stack->stack_data[st->start+2]));
+	push_val(st->stack, C_INT, axtoi(hex));	
+	return 0;
 }
 
 //

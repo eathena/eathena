@@ -16,6 +16,7 @@ Date	Added
 	* Party even share will be now broken after a base level reset. [Skotlex]
 	* Merged in Reddozen's Soul Linker current skills work. [Skotlex]
 	* Added countitem2(itemID,....) script function. [Lupus]
+	* Added axtoi script function that converts hex strings to integers. [Lance]
 2005/12/01
 	* Moved KN_CHARGEATK code to merge it with Extremity Fist. Skill damage
 	  modifier is currently set to +15% per cell (need actual value here) [Skotlex]
