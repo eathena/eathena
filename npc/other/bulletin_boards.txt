@@ -15,6 +15,7 @@
 //= 1.3a Fixed a missing close; [Nexon]
 //= 1.4 Added more BBS MasterOfMuppets
 //= 1.5 Added the last of the bulletin boards, I think... [MasterOfMuppets]
+//= 1.5a Fixed a small screw up with the color codes in the Glastheim BB [MasterOfMuppets]
 //============================================================
 
 alberta.gat,111,59,5	script	Bulletin Board	837,{
@@ -603,7 +604,7 @@ glast_01.gat,369,308,5	script	Bulletin Board	837,{
 	next;
 	mes "[Glast Heim]";
 	mes "There are many fearsome monsters such as ^6B131Dark Lord^000000,";
-	mes "^6B131Owl Baron^000000, ^6B131Owl Duke^000000, ^6B131Dark Illusion^000000, ^6B131Bloody Knight^000000, ^6B131Abysmal Knight^000000, ^6B131Chimera^000000 and various types of doomed swords.";
+	mes "^6B1312Owl Baron^000000, ^6B1312Owl Duke^000000, ^6B1312Dark Illusion^000000, ^6B1312Bloody Knight^000000, ^6B1312Abysmal Knight^000000, ^6B1312Chimera^000000 and various types of doomed swords.";
 	next;
 	mes "[Glast Heim]";
 	mes "However, more difficult the expedition is, greater the reward is.";

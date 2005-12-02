@@ -27,6 +27,8 @@ Nexon
 Date		Added
 ======
 12/02
+	* Fixed a small screw-up in the color codes of the Glastheim Bulletin Board, [MasterOfMuppets]
+	  thanks to Playtester.
 	* Added some Christmas Orcs to event/xmas.txt, thanks to Playtester [MasterOfMuppets]
 	- Christmas Goblins were added to yuno_fild09 as well.
 	- Enabled the christmas event by default as it has started in kRO sakray
