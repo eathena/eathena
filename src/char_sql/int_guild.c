@@ -50,7 +50,9 @@ int inter_guild_tosql(struct guild *g,int flag);
 
 static int guild_save(void *key, void *data, va_list ap) {
 	struct guild *g;
-
+	int *last_id = va_arg(ap, int *);
+	int *state = va_arg(ap, int *);
+	
 	g = (struct guild*)data;
 	if(!g)
 	{
@@ -58,12 +60,18 @@ static int guild_save(void *key, void *data, va_list ap) {
 		return 0;
 	}
 
-	if (g->save_flag&GS_MASK) {
+	if ((*state) == 0 && g->guild_id == (*last_id))
+		(*state)++; //Save next guild in the list.
+	else if (g->save_flag&GS_MASK && (*state) == 1) {
 	   inter_guild_tosql(g, g->save_flag&GS_MASK);
 		g->save_flag &= ~GS_MASK;
+
+		//Some guild saved.
+		(*last_id) = g->guild_id;
+		(*state)++;
 	}
 	
-   if(g->save_flag&GS_REMOVE) {
+   if((g->save_flag&GS_REMOVE) == GS_REMOVE) { //Nothing to save, guild is ready for removal.
 		ShowInfo("Guild Unloaded (%d - %s)\n", g->guild_id, g->name);
 		numdb_erase(guild_db_, g->guild_id);
 		aFree(g);
@@ -72,10 +80,17 @@ static int guild_save(void *key, void *data, va_list ap) {
 }
 
 static int guild_save_timer(int tid, unsigned int tick, int id, int data) {
-#ifdef NOISY
-	ShowNotice("Saving all guilds with changes...\n");
-#endif
-	numdb_foreach(guild_db_, guild_save);
+	static int last_id = 0; //To know in which guild we were.
+	int state = 0; //0: Have not reached last guild. 1: Reached last guild, ready for save. 2: Some guild saved, don't do further saving.
+	if (!last_id) //Save the first guild in the list.
+		state = 1;
+	numdb_foreach(guild_db_, guild_save, &last_id, &state);
+	if (state != 2) //Reached the end of the guild db without saving.
+		last_id = 0; //Reset guild saved, return to beginning.
+
+	state = guild_db_->item_count;
+	if (state < 1) state = 1; //Calculate the time slot for the next save.
+	add_timer(tick  + autosave_interval/state, guild_save_timer, 0, 0);
 	return 0;
 }
 
@@ -765,8 +780,7 @@ int inter_guild_sql_init()
    }
    
 	add_timer_func_list(guild_save_timer, "guild_save_timer");
-	add_timer_interval(gettick() + autosave_interval, guild_save_timer, 0, 0, autosave_interval);
-   
+	add_timer(gettick() + 10000, guild_save_timer, 0, 0);
 	return 0;
 }
 

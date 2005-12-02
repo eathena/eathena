@@ -1,6 +1,10 @@
 Date	Added
 
 2005/12/02
+	* Updated char-sql guild saving so that instead of saving ALL guilds when
+	  the time comes, the save interval is splitted on time-slots (based on guild
+	  count in memory) and a guild is saved per time-slot (just like the map
+	  server saves characters). [Skotlex]
 	* Fixed client crashes with using baby and advanced player classes as pets. [Valaris]
 	* Added missing ban_hack_trade option to battle_athena.conf. [Valaris]
 	* Hopefully fixed Counter Kick. [Skotlex]
