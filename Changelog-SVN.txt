@@ -1,6 +1,8 @@
 Date	Added
 
 2005/12/02
+	* Various cleanups to the char-sql server to prevent corner-case crashes
+	  from queries that return no rows. [Skotlex]
 	* Massive Taekwon Boy skills related code cleanup. [Skotlex]
 	- Flying Side kick and Turn Kick should be fully working now, too.
 	* Cleaned up and reorganized the SC_ data listing. Added sc's for food

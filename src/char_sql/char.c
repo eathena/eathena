@@ -433,7 +433,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		} else { //In case of failure, don't touch the data. [Skotlex
 			sql_res = mysql_store_result(&mysql_handle);
-			sql_row = mysql_fetch_row(sql_res);
+			sql_row = sql_res?mysql_fetch_row(sql_res):NULL;
 			if (sql_row)
 				party_exist = atoi(sql_row[0]);
 			mysql_free_result(sql_res);
@@ -447,7 +447,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		} else { //If we fail to confirm, don't touch the data.
 			sql_res = mysql_store_result(&mysql_handle);
-			sql_row = mysql_fetch_row(sql_res);
+			sql_row = sql_res?mysql_fetch_row(sql_res):NULL;
 			if (sql_row)
 				guild_exist = atoi(sql_row[0]);
 			mysql_free_result(sql_res);
@@ -937,9 +937,8 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p){
 	}
 
 	sql_res = mysql_store_result(&mysql_handle);
-	if (sql_res) {
-		sql_row = mysql_fetch_row(sql_res);
-
+	sql_row = sql_res?mysql_fetch_row(sql_res):NULL;
+	if (sql_row) {
 
 		p->option = atoi(sql_row[0]);	p->karma = atoi(sql_row[1]);	p->manner = atoi(sql_row[2]);
 			p->party_id = atoi(sql_row[3]);	p->guild_id = atoi(sql_row[4]);	p->pet_id = atoi(sql_row[5]);
@@ -1194,8 +1193,8 @@ int mmo_char_fromsql_short(int char_id, struct mmo_charstatus *p){
 	}
 
 	sql_res = mysql_store_result(&mysql_handle);
-	if (sql_res) {
-		sql_row = mysql_fetch_row(sql_res);
+	sql_row = sql_res?mysql_fetch_row(sql_res):NULL;
+	if (sql_row) {
 
 		p->option = atoi(sql_row[0]);	p->karma = atoi(sql_row[1]);	p->manner = atoi(sql_row[2]);
 		p->hair = atoi(sql_row[3]);	p->hair_color = atoi(sql_row[4]);	p->clothes_color = atoi(sql_row[5]);
@@ -1461,7 +1460,7 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 		sql_res = mysql_store_result(&mysql_handle);
 		if(sql_res){
 			sql_row = mysql_fetch_row(sql_res);
-			char_id = atoi(sql_row[0]); //char id :)
+			char_id = sql_row?atoi(sql_row[0]):0; //char id :)
 			mysql_free_result(sql_res);
 			if(char_id <= 0){
 				ShowError("failed (get char id..) CHARID (%d) wrong!\n", char_id);
@@ -2502,12 +2501,9 @@ int parse_frommap(int fd) {
 				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 			}
 			sql_res = mysql_store_result(&mysql_handle);
-			if (sql_res) {
-				sql_row = mysql_fetch_row(sql_res);
-				if (sql_row)
-					i = atoi(sql_row[0]);
-			}
-			mysql_free_result(sql_res);
+			sql_row = sql_res?mysql_fetch_row(sql_res):NULL;
+			if (sql_row) i = atoi(sql_row[0]);
+			if (sql_res) mysql_free_result(sql_res);
 
 			if (i == 1) {
 				memcpy(&char_dat[0], RFIFOP(fd,12), sizeof(struct mmo_charstatus));
@@ -2604,9 +2600,9 @@ int parse_frommap(int fd) {
 				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 			}
+			
 			sql_res = mysql_store_result(&mysql_handle);
-
-			sql_row = mysql_fetch_row(sql_res);
+			sql_row = sql_res?mysql_fetch_row(sql_res):NULL;
 
 			WFIFOW(fd,0) = 0x2b09;
 			WFIFOL(fd,2) = RFIFOL(fd,2);
@@ -3163,8 +3159,8 @@ int parse_char(int fd) {
 				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 			}
 			sql_res = mysql_store_result(&mysql_handle);
-
-			sql_row = mysql_fetch_row(sql_res);
+			sql_row = sql_res?mysql_fetch_row(sql_res):NULL;
+			
 			if (sql_row)
 			{
 				mmo_char_fromsql(atoi(sql_row[0]), char_dat);
@@ -4237,12 +4233,12 @@ int char_child(int parent_id, int child_id) {
 			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		}
 		sql_res = mysql_store_result (&mysql_handle);
-		if (sql_res && (sql_row = mysql_fetch_row (sql_res))) {
+		sql_row = sql_res?mysql_fetch_row (sql_res):NULL;
+		if (sql_row)
 			tmp_id = atoi (sql_row[0]);
-			mysql_free_result (sql_res);
-		}
 		else
 			ShowError("CHAR: child Failed!\n");
+		if (sql_res) mysql_free_result (sql_res);
 		if ( tmp_id == child_id )
 			return 1;
 		else
@@ -4257,16 +4253,16 @@ int char_married(int pl1,int pl2) {
 			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		}
 		sql_res = mysql_store_result (&mysql_handle);
-		if (sql_res && (sql_row = mysql_fetch_row (sql_res))) {
-				tmp_id = atoi (sql_row[0]);
-				mysql_free_result (sql_res);
-		}
+		sql_row = sql_res?mysql_fetch_row (sql_res):NULL;
+		if (sql_row)
+			tmp_id = atoi (sql_row[0]);
 		else
-				ShowError("CHAR: married Failed!\n");
+			ShowError("CHAR: married Failed!\n");
+		if (sql_res) mysql_free_result (sql_res);
 		if ( tmp_id == pl2 )
-				return 1;
+			return 1;
 		else
-				return 0;
+			return 0;
 }
 
 int char_nick2id (char *name) {
@@ -4277,11 +4273,11 @@ int char_nick2id (char *name) {
 			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		}
 		sql_res = mysql_store_result (&mysql_handle);
-		if (sql_res && (sql_row = mysql_fetch_row (sql_res))) {
-				char_id = atoi (sql_row[0]);
-				mysql_free_result (sql_res);
-		}
+		sql_row = sql_res?mysql_fetch_row(sql_res):NULL;
+		if (sql_row)
+			char_id = atoi (sql_row[0]);
 		else
-				ShowError ("CHAR: nick2id Failed!\n");
+			ShowError ("CHAR: nick2id Failed!\n");
+		if (sql_res) mysql_free_result (sql_res);
 		return char_id;
 }
