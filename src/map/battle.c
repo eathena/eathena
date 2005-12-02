@@ -684,7 +684,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 				damage = 0;
 				clif_skill_nodamage(bl,bl,TK_DODGE,1,1);
 				if (sc_data[SC_COMBO].timer == -1)
-					status_change_start(bl, SC_COMBO, TK_JUMPKICK, src->id, 0, 0, 0, 0);
+					status_change_start(bl, SC_COMBO, TK_JUMPKICK, src->id, 0, 0, 2000, 0);
 			}
 	}
 
@@ -955,7 +955,7 @@ static struct Damage battle_calc_weapon_attack(
 	//Initial Values
 	wd.type=0; //Normal attack
 	wd.div_=skill_num?skill_get_num(skill_num,skill_lv):1;
-	wd.amotion=status_get_amotion(src);
+	wd.amotion=(skill_num && skill_get_inf(skill_num)&INF_GROUND_SKILL)?0:status_get_amotion(src); //Amotion should be 0 for ground skills.
 	if(skill_num == KN_AUTOCOUNTER)
 		wd.amotion >>= 1;
 	wd.dmotion=status_get_dmotion(target);
@@ -2207,7 +2207,7 @@ struct Damage battle_calc_magic_attack(
 	//Initial Values
 	ad.damage = 1;
 	ad.div_=skill_get_num(skill_num,skill_lv);
-	ad.amotion=status_get_amotion(src);
+	ad.amotion=skill_get_inf(skill_num)&INF_GROUND_SKILL?0:status_get_amotion(src); //Amotion should be 0 for ground skills.
 	ad.dmotion=status_get_dmotion(target);
 	ad.blewcount = skill_get_blewcount(skill_num,skill_lv);
 	ad.flag=BF_MAGIC|BF_LONG|BF_SKILL;
@@ -2581,7 +2581,7 @@ struct Damage  battle_calc_misc_attack(
 	}
 
 	//Some initial values
-	md.amotion=status_get_amotion(bl);
+	md.amotion=skill_get_inf(skill_num)&INF_GROUND_SKILL?0:status_get_amotion(bl);
 	md.dmotion=status_get_dmotion(target);
 	md.damage2=0;
 	md.type=0;

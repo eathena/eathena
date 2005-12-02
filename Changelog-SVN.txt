@@ -1,6 +1,8 @@
 Date	Added
 
 2005/12/02
+	* The attack motion in packets for ground-based skills is now 0 (it may
+	  help somewhat with current firewall issues). [Skotlex]
 	* Added char-server option "save_log", when disabled, the char server will
 	  stop printing info messages whenever something is loaded/saved. [Skotlex]
 	* Disabled random-walking for slaves [Skotlex]

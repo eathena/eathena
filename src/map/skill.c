@@ -2639,6 +2639,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 			skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
 			pc_movepos(sd,bl->x,bl->y,0); 
 			clif_slide(src,bl->x,bl->y);
+			if (sc_data && sc_data[SC_COMBO].timer != -1)
+				status_change_end(src, SC_COMBO, -1);
 		}
 		break;
 	case ASC_BREAKER:				/* ソウルブレ?カ? */	// [DracoRPG]
