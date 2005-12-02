@@ -1,6 +1,7 @@
 Date	Added
 
 2005/12/02
+	* Added missing ban_hack_trade option to battle_athena.conf. [Valaris]
 	* Hopefully fixed Counter Kick. [Skotlex]
 	* Uncommented and corrected the Soul Linker Monk buff (SP cost reduction
 	  for monk combos) [Skotlex]
