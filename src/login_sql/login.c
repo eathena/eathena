@@ -544,8 +544,7 @@ int charif_sendallwos(int sfd, unsigned char *buf, unsigned int len) {
 // Auth
 //-----------------------------------------------------
 int mmo_auth( struct mmo_account* account , int fd){
-	struct timeval tv;
-	time_t ban_until_time;
+	time_t ban_until_time, raw_time;
 	char tmpstr[256];
 	char t_uid[256], t_pass[256];
 	char user_password[256];
@@ -582,9 +581,10 @@ int mmo_auth( struct mmo_account* account , int fd){
 	}
 
  	// auth start : time seed
-	gettimeofday(&tv, NULL);
-	strftime(tmpstr, 24, "%Y-%m-%d %H:%M:%S",localtime((const time_t*)&(tv.tv_sec)));
-	sprintf(tmpstr+19, ".%03d", (int)tv.tv_usec/1000);
+	// Platform/Compiler dependant clock() for time check is removed. [Lance]
+	// clock() is originally used to track processing ticks on program execution.
+	time(&raw_time);
+	strftime(tmpstr, 24, "%Y-%m-%d %H:%M:%S",localtime(&raw_time));
 
 	jstrescapecpy(t_uid,account->userid);
 	jstrescapecpy(t_pass, account->passwd);

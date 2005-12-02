@@ -184,7 +184,7 @@ int console = 0;
 int login_log(char *fmt, ...) {
 	if (log_login) {
 		va_list ap;
-		struct timeval tv;
+		time_t raw_time;
 		char tmpstr[2048];
 
 		if(!log_fp)
@@ -195,9 +195,10 @@ int login_log(char *fmt, ...) {
 				fprintf(log_fp, RETCODE);
 			else {
 				va_start(ap, fmt);
-				gettimeofday(&tv, NULL);
-				strftime(tmpstr, 24, date_format, localtime((const time_t*)&(tv.tv_sec)));
-				sprintf(tmpstr + strlen(tmpstr), ".%03d: %s", (int)tv.tv_usec / 1000, fmt);
+				// Platform/Compiler dependant clock() for time check is removed. [Lance]
+				// clock() is originally used to track processing ticks on program execution.
+				time(&raw_time);
+				strftime(tmpstr, 24, "%Y-%m-%d %H:%M:%S",localtime(&raw_time));
 				vfprintf(log_fp, tmpstr, ap);
 				va_end(ap);
 			}
@@ -1134,7 +1135,7 @@ int mmo_auth_new(struct mmo_account* account, char sex, char* email) {
 //---------------------------------------
 int mmo_auth(struct mmo_account* account, int fd) {
 	unsigned int i;
-	struct timeval tv;
+	time_t raw_time;
 	char tmpstr[256];
 	int len, newaccount = 0;
 #ifdef PASSWORDENC
@@ -1321,9 +1322,11 @@ int mmo_auth(struct mmo_account* account, int fd) {
 		}
 	}
 
-	gettimeofday(&tv, NULL);
-	strftime(tmpstr, 24, date_format, localtime((const time_t*)&(tv.tv_sec)));
-	sprintf(tmpstr + strlen(tmpstr), ".%03d", (int)tv.tv_usec / 1000);
+	// auth start : time seed
+	// Platform/Compiler dependant clock() for time check is removed. [Lance]
+	// clock() is originally used to track processing ticks on program execution.
+	time(&raw_time);
+	strftime(tmpstr, 24, "%Y-%m-%d %H:%M:%S",localtime(&raw_time));
 
 	account->account_id = auth_dat[i].account_id;
 	account->login_id1 = rand();
@@ -1534,9 +1537,9 @@ int parse_fromchar(int fd) {
 							// if we can open the file to add the new GM
 							if ((fp = fopen(GM_account_filename, "a")) != NULL) {
 								char tmpstr[24];
-								struct timeval tv;
-								gettimeofday(&tv, NULL);
-								strftime(tmpstr, 23, date_format, localtime((const time_t*)&(tv.tv_sec)));
+								time_t raw_time;
+								time(&raw_time);
+								strftime(tmpstr, 23, date_format, localtime(&raw_time));
 								fprintf(fp, RETCODE "// %s: @GM command on account %d" RETCODE "%d %d" RETCODE, tmpstr, acc, acc, level_new_gm);
 								fclose(fp);
 								WBUFL(buf,6) = level_new_gm;
@@ -1875,12 +1878,12 @@ int parse_fromchar(int fd) {
 			{
 				FILE *logfp;
 				char tmpstr[24];
-				struct timeval tv;
+				time_t raw_time;
 				logfp = fopen(login_log_unknown_packets_filename, "a");
 				if (logfp) {
-					gettimeofday(&tv, NULL);
-					strftime(tmpstr, 23, date_format, localtime((const time_t*)&(tv.tv_sec)));
-					fprintf(logfp, "%s.%03d: receiving of an unknown packet -> disconnection" RETCODE, tmpstr, (int)tv.tv_usec / 1000);
+					time(&raw_time);
+					strftime(tmpstr, 23, date_format, localtime(&raw_time));
+					fprintf(logfp, "%s: receiving of an unknown packet -> disconnection" RETCODE, tmpstr);
 					fprintf(logfp, "parse_fromchar: connection #%d (ip: %s), packet: 0x%x (with being read: %d)." RETCODE, fd, ip, RFIFOW(fd,0), RFIFOREST(fd));
 					fprintf(logfp, "Detail (in hex):" RETCODE);
 					fprintf(logfp, "---- 00-01-02-03-04-05-06-07  08-09-0A-0B-0C-0D-0E-0F" RETCODE);
@@ -2325,11 +2328,11 @@ int parse_admin(int fd) {
 							int GM_account, GM_level;
 							int modify_flag;
 							char tmpstr[24];
-							struct timeval tv;
+							time_t raw_time;
 							if ((fp2 = lock_fopen(GM_account_filename, &lock)) != NULL) {
 								if ((fp = fopen(GM_account_filename, "r")) != NULL) {
-									gettimeofday(&tv, NULL);
-									strftime(tmpstr, 23, date_format, localtime((const time_t*)&(tv.tv_sec)));
+									time(&raw_time);
+									strftime(tmpstr, 23, date_format, localtime(&raw_time));
 									modify_flag = 0;
 									// read/write GM file
 									while(fgets(line, sizeof(line)-1, fp)) {
@@ -2837,12 +2840,12 @@ int parse_admin(int fd) {
 			{
 				FILE *logfp;
 				char tmpstr[24];
-				struct timeval tv;
+				time_t raw_time;
 				logfp = fopen(login_log_unknown_packets_filename, "a");
 				if (logfp) {
-					gettimeofday(&tv, NULL);
-					strftime(tmpstr, 23, date_format, localtime((const time_t*)&(tv.tv_sec)));
-					fprintf(logfp, "%s.%03d: receiving of an unknown packet -> disconnection" RETCODE, tmpstr, (int)tv.tv_usec / 1000);
+					time(&raw_time);
+					strftime(tmpstr, 23, date_format, localtime(&raw_time));
+					fprintf(logfp, "%s: receiving of an unknown packet -> disconnection" RETCODE, tmpstr);
 					fprintf(logfp, "parse_admin: connection #%d (ip: %s), packet: 0x%x (with being read: %d)." RETCODE, fd, ip, RFIFOW(fd,0), RFIFOREST(fd));
 					fprintf(logfp, "Detail (in hex):" RETCODE);
 					fprintf(logfp, "---- 00-01-02-03-04-05-06-07  08-09-0A-0B-0C-0D-0E-0F" RETCODE);
@@ -3241,12 +3244,12 @@ int parse_login(int fd) {
 			if (save_unknown_packets) {
 				FILE *logfp;
 				char tmpstr[24];
-				struct timeval tv;
+				time_t raw_time;
 				logfp = fopen(login_log_unknown_packets_filename, "a");
 				if (logfp) {
-					gettimeofday(&tv, NULL);
-					strftime(tmpstr, 23, date_format, localtime((const time_t*)&(tv.tv_sec)));
-					fprintf(logfp, "%s.%03d: receiving of an unknown packet -> disconnection" RETCODE, tmpstr, (int)tv.tv_usec / 1000);
+					time(&raw_time);
+					strftime(tmpstr, 23, date_format, localtime(&raw_time));
+					fprintf(logfp, "%s: receiving of an unknown packet -> disconnection" RETCODE, tmpstr);
 					fprintf(logfp, "parse_login: connection #%d (ip: %s), packet: 0x%x (with being read: %d)." RETCODE, fd, ip, RFIFOW(fd,0), RFIFOREST(fd));
 					fprintf(logfp, "Detail (in hex):" RETCODE);
 					fprintf(logfp, "---- 00-01-02-03-04-05-06-07  08-09-0A-0B-0C-0D-0E-0F" RETCODE);
