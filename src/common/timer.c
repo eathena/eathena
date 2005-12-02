@@ -6,7 +6,8 @@
 
 #ifdef __WIN32
 #define __USE_W32_SOCKETS
-#define _USE_32BIT_TIME_T	// use 32 bit time variables on 64bit windows
+// Well, this won't last another 30++ years (where conversion will truncate).
+//#define _USE_32BIT_TIME_T	// use 32 bit time variables on 64bit windows
 #include <windows.h>
 #else
 #include <sys/socket.h>
