@@ -1210,9 +1210,9 @@ static int clif_npc0078(struct npc_data *nd, unsigned char *buf) {
 	if ((nd->class_ == 722) && (nd->u.scr.guild_id > 0) && ((g=guild_search(nd->u.scr.guild_id)) != NULL)) {
 		WBUFL(buf,22)=g->emblem_id;
 		WBUFL(buf,26)=g->guild_id;
-//		pc packet says the actual location of these are, but they are not. Why the discordance? [Skotlex]
-//		WBUFL(buf,34)=g->emblem_id;
-//		WBUFL(buf,38)=g->guild_id;
+	//	pc packet says the actual location of these are, but they are not. Why the discordance? [Skotlex]
+	//	WBUFL(buf,34)=g->emblem_id;
+	//	WBUFL(buf,38)=g->guild_id;
 	}
 	WBUFPOS(buf,46,nd->bl.x,nd->bl.y);
 	WBUFB(buf,48)|=nd->dir&0x0f;
@@ -1237,11 +1237,10 @@ static int clif_npc007b(struct npc_data *nd, unsigned char *buf) {
 	if ((nd->class_ == 722) && (nd->u.scr.guild_id > 0) && ((g=guild_search(nd->u.scr.guild_id)) != NULL)) {
 		WBUFL(buf,22)=g->emblem_id;
 		WBUFL(buf,26)=g->guild_id;
-//		pc packet says the actual location of these are, but they are not. Why the discordance? [Skotlex]
-//		WBUFL(buf,38)=g->emblem_id;
-//		WBUFL(buf,42)=g->guild_id;
+	//	pc packet says the actual location of these are, but they are not. Why the discordance? [Skotlex]
+	//	WBUFL(buf,38)=g->emblem_id;
+	//	WBUFL(buf,42)=g->guild_id;
 	}
-
 	WBUFL(buf,22)=gettick();
 	WBUFPOS2(buf,50,nd->bl.x,nd->bl.y,nd->to_x,nd->to_y);
 	WBUFB(buf,56)=5;
@@ -1255,42 +1254,65 @@ static int clif_npc007b(struct npc_data *nd, unsigned char *buf) {
  *------------------------------------------
  */
 static int clif_pet0078(struct pet_data *pd, unsigned char *buf) {
-	int view,level;
+	int view,level,i;
 
 	nullpo_retr(0, pd);
 
-	memset(buf,0,packet_len_table[0x78]);
+	level = status_get_lv(&pd->bl);
 
-	WBUFW(buf,0)=0x78;
-	WBUFL(buf,2)=pd->bl.id;
-	WBUFW(buf,6)=pd->speed;
-	WBUFW(buf,14)=mob_get_viewclass(pd->class_);
-	if((mob_get_viewclass(pd->class_) < 24) || (mob_get_viewclass(pd->class_) > 4000)) {
+	if((i=mob_get_viewclass(pd->class_)) <= 23 || i >= 4001) { // Use 0x1d8 packet for pets with player sprites [Valaris]
+		memset(buf,0,packet_len_table[0x1d8]);
+
+		WBUFW(buf,0)=0x1d8;
+		WBUFL(buf,2)=pd->bl.id;
+		WBUFW(buf,6)=pd->speed;
+		WBUFW(buf,8)=0; // opt1
+		WBUFW(buf,10)=0; // opt2
 		WBUFW(buf,12)=pd->db->option;
+		WBUFW(buf,14)=mob_get_viewclass(pd->class_);
 		WBUFW(buf,16)=mob_get_hair(pd->class_);
 		WBUFW(buf,18)=mob_get_weapon(pd->class_);
-		WBUFW(buf,20)=mob_get_head_buttom(pd->class_);
-		WBUFW(buf,22)=mob_get_shield(pd->class_);
+		WBUFW(buf,20)=mob_get_shield(pd->class_);
+		WBUFW(buf,22)=mob_get_head_buttom(pd->class_);
 		WBUFW(buf,24)=mob_get_head_top(pd->class_);
 		WBUFW(buf,26)=mob_get_head_mid(pd->class_);
 		WBUFW(buf,28)=mob_get_hair_color(pd->class_);
-		WBUFW(buf,30)=mob_get_clothes_color(pd->class_);	//Add for player pet dye - Valaris
+		WBUFW(buf,30)=mob_get_clothes_color(pd->class_);
+		WBUFW(buf,32)|=pd->dir&0x0f; // head direction
+		WBUFL(buf,34)=0; // guild id
+		WBUFW(buf,38)=0; // emblem id
+		WBUFW(buf,40)=0; // manner
+		WBUFW(buf,42)=0; // opt3
+		WBUFB(buf,44)=0; // karma
 		WBUFB(buf,45)=mob_get_sex(pd->class_);
-	} else {
+		WBUFPOS(buf,46,pd->bl.x,pd->bl.y);
+		WBUFB(buf,48)|=pd->dir&0x0f;
+		WBUFB(buf,49)=5;
+		WBUFB(buf,50)=5;
+		WBUFB(buf,51)=0; // dead or sit state
+		WBUFW(buf,52)=clif_setlevel(level);
+
+		return packet_len_table[0x1d8];
+	} else {								// Use 0x7b packet for monsters sprites [Valaris]
+		memset(buf,0,packet_len_table[0x78]);
+
+		WBUFW(buf,0)=0x78;
+		WBUFL(buf,2)=pd->bl.id;
+		WBUFW(buf,6)=pd->speed;
+		WBUFW(buf,14)=mob_get_viewclass(pd->class_);
 		WBUFW(buf,16)=battle_config.pet_hair_style;
 		if((view = itemdb_viewid(pd->equip)) > 0)
 			WBUFW(buf,20)=view;
 		else
 			WBUFW(buf,20)=pd->equip;
-	}
-	WBUFPOS(buf,46,pd->bl.x,pd->bl.y);
-	WBUFB(buf,48)|=pd->dir&0x0f;
-	WBUFB(buf,49)=0;
-	WBUFB(buf,50)=0;
-	level = status_get_lv(&pd->bl);
-	WBUFW(buf,52)=clif_setlevel(level);
+		WBUFPOS(buf,46,pd->bl.x,pd->bl.y);
+		WBUFB(buf,48)|=pd->dir&0x0f;
+		WBUFB(buf,49)=0;
+		WBUFB(buf,50)=0;
+		WBUFW(buf,52)=clif_setlevel(level);
 
-	return packet_len_table[0x78];
+		return packet_len_table[0x78];
+	}
 }
 
 /*==========================================
@@ -1298,43 +1320,65 @@ static int clif_pet0078(struct pet_data *pd, unsigned char *buf) {
  *------------------------------------------
  */
 static int clif_pet007b(struct pet_data *pd, unsigned char *buf) {
-	int view,level;
+	int view,level,i;
 
 	nullpo_retr(0, pd);
 
-	memset(buf,0,packet_len_table[0x7b]);
+	level = status_get_lv(&pd->bl);
 
-	WBUFW(buf,0)=0x7b;
-	WBUFL(buf,2)=pd->bl.id;
-	WBUFW(buf,6)=pd->speed;
-	WBUFW(buf,14)=mob_get_viewclass(pd->class_);
-	if((mob_get_viewclass(pd->class_) < 24) || (mob_get_viewclass(pd->class_) > 4000)) {
+	if((i=mob_get_viewclass(pd->class_)) <= 23 || i >= 4001) { // Use 0x1da packet for monsters with player sprites [Valaris]
+		memset(buf,0,packet_len_table[0x1da]);
+
+		WBUFW(buf,0)=0x1da;
+		WBUFL(buf,2)=pd->bl.id;
+		WBUFW(buf,6)=pd->speed;
+		WBUFW(buf,8)=0; // opt1
+		WBUFW(buf,10)=0; // opt2
 		WBUFW(buf,12)=pd->db->option;
+		WBUFW(buf,14)=mob_get_viewclass(pd->class_);
 		WBUFW(buf,16)=mob_get_hair(pd->class_);
 		WBUFW(buf,18)=mob_get_weapon(pd->class_);
-		WBUFW(buf,20)=mob_get_head_buttom(pd->class_);
-		WBUFL(buf,22)=gettick();
-		WBUFW(buf,26)=mob_get_shield(pd->class_);
+		WBUFW(buf,20)=mob_get_shield(pd->class_);
+		WBUFW(buf,22)=mob_get_head_buttom(pd->class_);
+		WBUFL(buf,24)=gettick();
 		WBUFW(buf,28)=mob_get_head_top(pd->class_);
 		WBUFW(buf,30)=mob_get_head_mid(pd->class_);
 		WBUFW(buf,32)=mob_get_hair_color(pd->class_);
-		WBUFW(buf,34)=mob_get_clothes_color(pd->class_);	//Add for player pet dye - Valaris
+		WBUFW(buf,34)=mob_get_clothes_color(pd->class_);
+		WBUFW(buf,36)=pd->dir&0x0f; // head direction
+		WBUFL(buf,38)=0; // guild id
+		WBUFW(buf,42)=0; // emblem id
+		WBUFW(buf,44)=0; // manner
+		WBUFW(buf,46)=0; // opt3
+		WBUFB(buf,48)=0; // karma
 		WBUFB(buf,49)=mob_get_sex(pd->class_);
-	} else {
+		WBUFPOS2(buf,50,pd->bl.x,pd->bl.y,pd->to_x,pd->to_y);
+		WBUFB(buf,55)=0;
+		WBUFB(buf,56)=0;
+		WBUFB(buf,57)=0;
+		WBUFW(buf,58)=clif_setlevel(level);
+
+		return packet_len_table[0x1da];
+	} else {								// Use 0x7b packet for monsters sprites [Valaris]
+		memset(buf,0,packet_len_table[0x7b]);
+
+		WBUFW(buf,0)=0x7b;
+		WBUFL(buf,2)=pd->bl.id;
+		WBUFW(buf,6)=pd->speed;
+		WBUFW(buf,14)=mob_get_viewclass(pd->class_);
 		WBUFW(buf,16)=battle_config.pet_hair_style;
 		if ((view = itemdb_viewid(pd->equip)) > 0)
 			WBUFW(buf,20)=view;
 		else
 			WBUFW(buf,20)=pd->equip;
 		WBUFL(buf,22)=gettick();
-	}
-	WBUFPOS2(buf,50,pd->bl.x,pd->bl.y,pd->to_x,pd->to_y);
-	WBUFB(buf,56)=0;
-	WBUFB(buf,57)=0;
-	level = status_get_lv(&pd->bl);
-	WBUFW(buf,58)=clif_setlevel(level);
+		WBUFPOS2(buf,50,pd->bl.x,pd->bl.y,pd->to_x,pd->to_y);
+		WBUFB(buf,56)=0;
+		WBUFB(buf,57)=0;
+		WBUFW(buf,58)=clif_setlevel(level);
 
-	return packet_len_table[0x7b];
+		return packet_len_table[0x7b];
+	}
 }
 
 /*==========================================
