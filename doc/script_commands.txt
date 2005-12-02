@@ -1925,7 +1925,8 @@ Type is the kind of associated ID number required:
  0 - Character ID number.
  1 - Party ID number.
  2 - Guild ID number.
- 
+ 3 - Account ID number.
+
 For most purposes other than printing it, a number is better to have than a name 
 (people do horrifying things to their character names).
 
