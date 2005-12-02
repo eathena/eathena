@@ -433,7 +433,7 @@
 414,0,6,4,0,1,1,1,no,0,0,0,weapon,0	//TK_READYDOWN#Prepare Axe Kick#
 415,-2,6,4,-1,0,7,1,no,0,0,0,weapon,0	//TK_DOWNKICK#Axe Kick#
 416,0,6,4,0,1,1,1,no,0,0,0,weapon,0	//TK_READYTURN#Prepare Round Kick#
-417,-2,6,4,-1,0,7,1,no,0,0,0,weapon,0	//TK_TURNKICK#Round Kick#
+417,-2,6,4,-1,2,7,1,no,0,0,0,weapon,0	//TK_TURNKICK#Round Kick#
 418,0,6,4,0,1,1,1,no,0,0,0,weapon,0	//TK_READYCOUNTER#Prepare Counter Kick#
 419,-2,6,4,-1,0,7,1,no,0,0,0,weapon,0	//TK_COUNTER#Counter Kick#
 420,0,6,4,0,1,1,1,no,0,0,0,weapon,0	//TK_DODGE#Break Fall#

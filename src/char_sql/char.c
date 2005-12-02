@@ -2797,7 +2797,7 @@ int parse_frommap(int fd) {
 			break;
 		// Reset all chars to offline [Wizputer]
 		case 0x2b18:
-			ShowNotice("Map server [%d] requested to set all characters offline.", id);
+			ShowNotice("Map server [%d] requested to set all characters offline.\n", id);
 			set_all_offline();
 			RFIFOSKIP(fd,2);
 			break;

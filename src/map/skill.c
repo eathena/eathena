@@ -5651,14 +5651,16 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 			skill_failed(sd);
 			return 0;
 		}
+	} else {
+		inf2 = skill_get_inf(sd->skillid);
+		if((inf2&INF_ATTACK_SKILL ||
+			(inf2&INF_SELF_SKILL && sd->bl.id != bl->id && skill_get_nk(sd->skillid) != NK_NO_DAMAGE)) //Self skills that cause damage (EF, Combo Skills, etc)
+			&& battle_check_target(&sd->bl,bl, BCT_ENEMY)<=0
+		) {
+			skill_failed(sd);
+			return 0;
+		}
 	}
-	else if((skill_get_inf(sd->skillid)&INF_ATTACK_SKILL || sd->skillid == TK_JUMPKICK)
-		&& battle_check_target(&sd->bl,bl, BCT_ENEMY)<=0
-	) {
-		skill_failed(sd);
-		return 0;
-	}
-
 	if (tid != -1 && !status_check_skilluse(&sd->bl, bl, sd->skillid, 1))
 	{	//Avoid doing double checks for instant-cast skills.
 		if(sd->skillid == PR_LEXAETERNA) //Eh.. assuming skill failed due to opponent frozen/stone-cursed. [Skotlex]
@@ -7668,13 +7670,13 @@ int skill_check_condition(struct map_session_data *sd,int type)
 				sp -= sp*3*kaina_lv/100;
 		}
 			break;
-		/*case MO_CHAINCOMBO:
+		case MO_CHAINCOMBO:
 		case MO_COMBOFINISH:
 		case CH_TIGERFIST:
 		case CH_CHAINCRUSH:
-			if(sd->sc_data[SC_MONK].timer!=-1)
-				sp -= sp*sd->sc_data[SC_MONK].val1/10;
-			break;*/
+			if(sd->sc_data[SC_SPIRIT].timer!=-1 && sd->sc_data[SC_SPIRIT].val2 == MAPID_MONK)
+				sp -= sp*sd->sc_data[SC_SPIRIT].val1/10;
+			break;
 	}
 
 	if(sd->dsprate!=100)
@@ -7768,6 +7770,7 @@ int skill_check_condition(struct map_session_data *sd,int type)
 	case TK_TURNKICK:
 	case TK_STORMKICK:
 	case TK_DOWNKICK:
+	case TK_COUNTER:
 		if (sd->sc_data[SC_COMBO].timer == -1 || sd->sc_data[SC_COMBO].val1 != skill)
 			if (!pc_istop10fame(sd->char_id,MAPID_TAEKWON))
 			return 0;
@@ -8127,7 +8130,7 @@ int skill_castfix( struct block_list *bl, int skill_id, int skill_lv, int time)
 	
 	nullpo_retr(0, bl);
 
-	if (!time)
+	if (!time && bl->type != BL_MOB)
 		time = skill_get_cast(skill_id, skill_lv);
 	
 	if (bl->type == BL_PC){
@@ -8185,7 +8188,7 @@ int skill_delayfix( struct block_list *bl, int skill_id, int skill_lv, int time 
 
 	nullpo_retr(0, bl);
 
-	if (!time)
+	if (!time && bl->type != BL_MOB)
 		time = skill_get_delay(skill_id, skill_lv);
 	
 	if (bl->type == BL_PC){
@@ -8282,6 +8285,8 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 	case TK_COUNTER:
 		if (sc_data[SC_COMBO].timer != -1 && sc_data[SC_COMBO].val1 == skill_num)
 			target_id = sc_data[SC_COMBO].val2;
+		else if (skill_num == TK_COUNTER)
+			return 0;
 		break;
 // -- moonsoul	(altered to allow proper usage of extremity from new champion combos)
 //

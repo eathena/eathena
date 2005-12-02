@@ -1,6 +1,12 @@
 Date	Added
 
 2005/12/02
+	* Hopefully fixed Counter Kick. [Skotlex]
+	* Uncommented and corrected the Soul Linker Monk buff (SP cost reduction
+	  for monk combos) [Skotlex]
+	* Added a check in skills so that skills that are used on yourself, but had
+	  it's target auto-selected cannot be used on non-enemies if it's nk is
+	  different from 1 (1 = No damage skill) [Skotlex]
 	* Various cleanups to the char-sql server to prevent corner-case crashes
 	  from queries that return no rows. [Skotlex]
 	* Massive Taekwon Boy skills related code cleanup. [Skotlex]
