@@ -651,12 +651,8 @@ int skill_get_range2(struct block_list *bl, int id, int lv) {
 // Making plagirize check its own function [Aru]
 int can_copy(struct map_session_data *sd, int skillid)
 {
-	// NPC Skills, never ok to copy
-	if(skillid >= NPC_PIERCINGATT && skillid <= NPC_SUMMONMONSTER)
-		return 0;
-	if(skillid >= NPC_RANDOMMOVE && skillid <= NPC_RUN)
-		return 0;
-	if(skillid >= WE_BABY && skillid <= NPC_EMOTION_ON)
+	// Never copy NPC/Wedding Skills
+	if (skill_get_inf2(skillid)&(INF2_NPC_SKILL|INF2_WEDDING_SKILL))
 		return 0;
 
 	// High-class skills
@@ -4907,8 +4903,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 	case NPC_RUN:		//後退
 		if(md) {
-			int dist = skilllv;//後退する距離
-			int dir = md->dir; //自分がどの方向に向いてるかチェック
+			int dist = skilllv; //Run skillv tiles.
+			int dir = (bl == src)?md->dir:map_calc_dir(src,bl->x,bl->y); //If cast on self, run forward, else run away.
 			int mask[8][2] = {{0,-1},{1,-1},{1,0},{1,1},{0,1},{-1,1},{-1,0},{-1,-1}};
 
 			md->attacked_id = 0;

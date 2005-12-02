@@ -1,6 +1,8 @@
 Date	Added
 
 2005/12/02
+	* Added target type "master" to the mobskill_db [Skotlex]
+	* Modified NPC_RUN to allow the caster to run away from the target [Skotlex]
 	* Implemented SL_SAGE (Soul Linker Sage buff for auto-cast bolts) [Skotlex]
 	* Updated char-sql guild saving so that instead of saving ALL guilds when
 	  the time comes, the save interval is splitted on time-slots (based on guild

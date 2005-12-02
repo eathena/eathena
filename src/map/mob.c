@@ -3677,7 +3677,8 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 				case MSC_MASTERATTACKED:
 					flag = (md->master_id > 0 && battle_counttargeted(map_id2bl(md->master_id), NULL, 0) > 0); break;
 				case MSC_ALCHEMIST:
-					flag = (md->state.alchemist); break;
+					flag = (md->state.alchemist);
+					break;
 			}
 		}
 		
@@ -3697,6 +3698,12 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 					case MST_AROUND7:
 					case MST_AROUND8:
 						bl = map_id2bl(md->target_id);
+						break;
+					case MST_MASTER:
+						if (md->master_id) 
+							bl = map_id2bl(md->target_id);
+						if (!bl)
+							bl = &md->bl;
 						break;
 					case MST_FRIEND:
 						if (fbl)
@@ -3743,11 +3750,17 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 				return 0;
 		} else {
 			// IDŽw’è
-			if (ms[i].target <= MST_FRIEND) {
+			if (ms[i].target <= MST_MASTER) {
 				struct block_list *bl;
 				switch (ms[i].target) {
 					case MST_TARGET:
 						bl = map_id2bl(md->target_id);
+						break;
+					case MST_MASTER:
+						if (md->master_id) 
+							bl = map_id2bl(md->target_id);
+						if (!bl)
+							bl = &md->bl;
 						break;
 					case MST_FRIEND:
 						if (fbl) {
@@ -4236,6 +4249,7 @@ static int mob_readskilldb(void)
 		{	"target",	MST_TARGET	},
 		{	"self",		MST_SELF	},
 		{	"friend",	MST_FRIEND	},
+		{	"master",	MST_MASTER	},
 		{	"around5",	MST_AROUND5	},
 		{	"around6",	MST_AROUND6	},
 		{	"around7",	MST_AROUND7	},

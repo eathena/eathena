@@ -37,6 +37,8 @@
 	12131,Lucky_Potion: +15 LUK for 3 minutes
 	12132,Red_Package: Turns you into x-mas clothes sprite for 10 minutes
 	--
+12/02
+	* Updated Marine Sphere skills in hopes to make it work correctly.
 12/01
 	* Changed TK_JUMPKICK's inf to self skill (to make it behave like extremity
 	  fist) [Skotlex]
