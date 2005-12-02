@@ -39,8 +39,9 @@ int inter_party_tosql(int party_id,struct party *p)
 	int party_member = 0, party_online_member = 0;
 	int party_exist = 0;
 	int i;
-
+#ifdef NOISY
 	ShowInfo("Save party request (\033[1;64m%d\033[0m).\n", party_id);
+#endif
 	jstrescapecpy(t_name, p->name);
 
 	if (p == NULL || party_id == 0 || p->party_id == 0 || party_id != p->party_id) {
@@ -149,8 +150,8 @@ int inter_party_tosql(int party_id,struct party *p)
 		}
 		//printf("- Insert new party %d  \n",party_id);
 	}
-
-	ShowInfo("Party Saved (%d - %s)\n", party_id, p->name);
+	if (save_log)
+		ShowInfo("Party Saved (%d - %s)\n", party_id, p->name);
 	return 0;
 }
 
@@ -158,8 +159,9 @@ int inter_party_tosql(int party_id,struct party *p)
 int inter_party_fromsql(int party_id, struct party *p)
 {
 	int leader_id = 0;
+#ifdef NOISY
 	ShowInfo("Load party request (\033[1;64m%d\033[0m)\n", party_id);
-
+#endif
 	memset(p, 0, sizeof(struct party));
 
 	sprintf(tmp_sql, "SELECT `party_id`, `name`,`exp`,`item`, `leader_id` FROM `%s` WHERE `party_id`='%d'",
@@ -209,7 +211,8 @@ int inter_party_fromsql(int party_id, struct party *p)
 	}
 	mysql_free_result(sql_res);
 
-	ShowInfo("Party loaded (%d - %s).\n",party_id, p->name);
+	if (save_log)
+		ShowInfo("Party loaded (%d - %s).\n",party_id, p->name);
 	return 0;
 }
 
@@ -217,7 +220,7 @@ int inter_party_sql_init(){
 	int i;
 
 	//memory alloc
-	ShowDebug("interserver party memory initialize.... (%d byte)\n",sizeof(struct party));
+//	ShowDebug("interserver party memory initialize.... (%d byte)\n",sizeof(struct party));
 	party_pt = (struct party*)aCalloc(sizeof(struct party), 1);
 
 	sprintf (tmp_sql , "SELECT count(*) FROM `%s`", party_db);
@@ -299,7 +302,7 @@ struct party* search_partyname(char *str)
 			strncpy(m->map,sql_row[3],MAP_NAME_LENGTH-1);
 			m->online = atoi(sql_row[4]);
 		}
-		ShowInfo("- %d members found in party %d \n",i,p->party_id);
+		ShowDebug("- %d members found in party %d \n",i,p->party_id);
 	}
 	mysql_free_result(sql_res);
 

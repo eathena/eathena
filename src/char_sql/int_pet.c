@@ -63,14 +63,16 @@ int inter_pet_tosql(int pet_id, struct s_pet *p) {
 		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 	}
 
-	ShowInfo("Pet saved %d - %s.\n", pet_id, p->name);
+	if (save_log)
+		ShowInfo("Pet saved %d - %s.\n", pet_id, p->name);
 	return 0;
 }
 
 int inter_pet_fromsql(int pet_id, struct s_pet *p){
 
+#ifdef NOISY
 	ShowInfo("Loading pet (%d)...\n",pet_id);
-
+#endif
 	memset(p, 0, sizeof(struct s_pet));
 
 	//`pet` (`pet_id`, `class`,`name`,`account_id`,`char_id`,`level`,`egg_id`,`equip`,`intimate`,`hungry`,`rename_flag`,`incuvate`)
@@ -109,7 +111,8 @@ int inter_pet_fromsql(int pet_id, struct s_pet *p){
 
 	mysql_free_result(sql_res);
 
-	ShowInfo("Pet loaded (%d - %s).\n", pet_id, p->name);
+	if (save_log)
+		ShowInfo("Pet loaded (%d - %s).\n", pet_id, p->name);
 	return 0;
 }
 //----------------------------------------------

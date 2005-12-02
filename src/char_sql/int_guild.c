@@ -72,7 +72,8 @@ static int guild_save(void *key, void *data, va_list ap) {
 	}
 	
    if((g->save_flag&GS_REMOVE) == GS_REMOVE) { //Nothing to save, guild is ready for removal.
-		ShowInfo("Guild Unloaded (%d - %s)\n", g->guild_id, g->name);
+		if (save_log)
+			ShowInfo("Guild Unloaded (%d - %s)\n", g->guild_id, g->name);
 		numdb_erase(guild_db_, g->guild_id);
 		aFree(g);
    }
@@ -310,7 +311,8 @@ int inter_guild_tosql(struct guild *g,int flag)
 		}
 	}
 
-	ShowInfo("Saved guild (%d - %s):%s\n",g->guild_id,g->name,t_info);
+	if (save_log)
+		ShowInfo("Saved guild (%d - %s):%s\n",g->guild_id,g->name,t_info);
 	return 0;
 }
 
@@ -330,11 +332,10 @@ struct guild * inter_guild_fromsql(int guild_id)
 
 	g = (struct guild*)aCalloc(sizeof(struct guild), 1);
 
-//	printf("Retrieve guild information from sql ......\n");
-//	printf("- Read guild %d from sql \n",guild_id);
-
+#ifdef NOISY
 	ShowInfo("Guild load request (%d)...\n", guild_id);
-
+#endif
+	
 	sprintf(tmp_sql,"SELECT `guild_id`, `name`,`master`,`guild_lv`,`connect_member`,`max_member`,`average_lv`,`exp`,`next_exp`,`skill_point`,`castle_id`,`mes1`,`mes2`,`emblem_len`,`emblem_id`,`emblem_data` "
 		"FROM `%s` WHERE `guild_id`='%d'",guild_db, guild_id);
 	//printf("  %s\n",tmp_sql);
@@ -515,7 +516,8 @@ struct guild * inter_guild_fromsql(int guild_id)
 	}
 	mysql_free_result(sql_res);
 
-	ShowInfo("Guild loaded (%d - %s)\n", guild_id, g->name);
+	if (save_log)
+		ShowInfo("Guild loaded (%d - %s)\n", guild_id, g->name);
 
 	numdb_insert(guild_db_, g->guild_id, g); //Add to cache
 	g->save_flag |= GS_REMOVE; //But set it to be removed, in case it is not needed for long.
@@ -619,8 +621,9 @@ int inter_guildcastle_fromsql(int castle_id,struct guild_castle *gc)
 		gc->guardian[5].hp = atoi (sql_row[23]);
 		gc->guardian[6].hp = atoi (sql_row[24]);
 		gc->guardian[7].hp = atoi (sql_row[25]);
-		
-		ShowInfo("Loaded Castle %d (guild %d)\n",castle_id,gc->guild_id);
+	
+		if (save_log)
+			ShowInfo("Loaded Castle %d (guild %d)\n",castle_id,gc->guild_id);
 
 	}
 	mysql_free_result(sql_res) ; //resource free
@@ -1225,8 +1228,9 @@ int mapif_parse_CreateGuild(int fd,int account_id,char *name,struct guild_member
 {
 	struct guild *g;
 	int i=0;
-
+#ifdef NOISY
 	ShowInfo("Creating Guild (%s)\n", name);
+#endif
 	if(search_guildname(name) != 0){
 		ShowInfo("int_guild: guild with same name exists [%s]\n",name);
 		mapif_guild_created(fd,account_id,NULL);
@@ -1252,7 +1256,7 @@ int mapif_parse_CreateGuild(int fd,int account_id,char *name,struct guild_member
 	for(i=0;i<MAX_GUILDSKILL;i++)
 		g->skill[i].id=i + GD_SKILLBASE;
 	//Add to cache
-	ShowDebug("Create initialize OK!\n");
+	ShowInfo("Created Guild %d - %s (Guild Master: %s)\n", g->guild_id, g->name, g->master);
 	numdb_insert(guild_db_, g->guild_id, g);
 	g->save_flag |= GS_MASK;
 

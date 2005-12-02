@@ -108,6 +108,7 @@ int char_num, char_max;
 int max_connect_user = 0;
 int gm_allow_level = 99;
 int autosave_interval = DEFAULT_AUTOSAVE_INTERVAL;
+int save_log = 1;
 int start_zeny = 500;
 int start_weapon = 1201;
 int start_armor = 2301;
@@ -986,6 +987,8 @@ void mmo_char_sync(void) {
 // Function to save (in a periodic way) datas in files
 //----------------------------------------------------
 int mmo_char_sync_timer(int tid, unsigned int tick, int id, int data) {
+	if (save_log)
+		ShowInfo("Saving all files...\n");
 	mmo_char_sync();
 	inter_save();
 	return 0;
@@ -3826,6 +3829,8 @@ int char_config_read(const char *cfgName) {
 			autosave_interval = atoi(w2)*1000;
 			if (autosave_interval <= 0)
 				autosave_interval = DEFAULT_AUTOSAVE_INTERVAL;
+		} else if (strcmpi(w1, "save_log") == 0) {
+			save_log = config_switch(w2);
 		} else if (strcmpi(w1, "start_point") == 0) {
 			char map[32];
 			int x, y;

@@ -128,6 +128,7 @@ int char_num,char_max;
 int max_connect_user = 0;
 int gm_allow_level = 99;
 int autosave_interval = DEFAULT_AUTOSAVE_INTERVAL;
+int save_log = 1;
 int start_zeny = 500;
 int start_weapon = 1201;
 int start_armor = 2301;
@@ -711,7 +712,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 
 	}
 
-	if (save_status[0]!='\0')
+	if (save_status[0]!='\0' && save_log)
 		ShowInfo("Saved char %d - %s:%s.\n", char_id, char_dat[0].name, save_status);
 	memcpy(cp, p, sizeof(struct mmo_charstatus));
 
@@ -871,7 +872,8 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p){
 	t_msg[0]= '\0';
 	
 	p->char_id = char_id;
-	ShowInfo("Char load request (%d)\n", char_id);
+	if (save_log)
+		ShowInfo("Char load request (%d)\n", char_id);
 	//`char`( `char_id`,`account_id`,`char_num`,`name`,`class`,`base_level`,`job_level`,`base_exp`,`job_exp`,`zeny`, //9
 	//`str`,`agi`,`vit`,`int`,`dex`,`luk`, //15
 	//`max_hp`,`hp`,`max_sp`,`sp`,`status_point`,`skill_point`, //21
@@ -1107,7 +1109,8 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p){
 		strcat (t_msg, " friends");
 	}
 
-	ShowInfo("Loaded char (%d - %s): %s\n", char_id, p->name, t_msg);	//ok. all data load successfuly!
+	if (save_log)
+		ShowInfo("Loaded char (%d - %s): %s\n", char_id, p->name, t_msg);	//ok. all data load successfuly!
 
 	cp = (struct mmo_charstatus *) aMalloc(sizeof(struct mmo_charstatus));
     	memcpy(cp, p, sizeof(struct mmo_charstatus));
@@ -1207,7 +1210,8 @@ int mmo_char_fromsql_short(int char_id, struct mmo_charstatus *p){
 	} else
 		ShowError("Char load failed (%d - table %s)\n", char_id, char_db);	//Error?! ERRRRRR WHAT THAT SAY!?
 
-	ShowInfo("Quick Loaded char (%d - %s): %s\n", char_id, p->name, t_msg);	//ok. all data load successfuly!
+	if (save_log)
+		ShowInfo("Quick Loaded char (%d - %s): %s\n", char_id, p->name, t_msg);	//ok. all data load successfuly!
 
 //	cp = (struct mmo_charstatus *) aMalloc(sizeof(struct mmo_charstatus)); //The loaded char is temporary, so no need for long-term storage [Skotlex]
 //		memcpy(cp, p, sizeof(struct mmo_charstatus));
@@ -1783,7 +1787,7 @@ int mmo_char_send006b(int fd, struct char_session_data *sd) {
 //	int offset = 4;
 //#endif
 
-	ShowDebug("mmo_char_send006b start.. (account:%d)\n",sd->account_id);
+//	ShowDebug("mmo_char_send006b start.. (account:%d)\n",sd->account_id);
 //	printf("offset -> %d...\n",offset);
 
     set_char_online(-1, 99,sd->account_id);
@@ -1797,7 +1801,7 @@ int mmo_char_send006b(int fd, struct char_session_data *sd) {
 	sql_res = mysql_store_result(&mysql_handle);
 	if (sql_res) {
 		found_num = (int)mysql_num_rows(sql_res);
-		ShowInfo("number of chars: %d\n", found_num);
+//		ShowInfo("number of chars: %d\n", found_num);
 		i = 0;
 		while((sql_row = mysql_fetch_row(sql_res))) {
 			sd->found_char[i] = atoi(sql_row[0]);
@@ -1815,7 +1819,8 @@ int mmo_char_send006b(int fd, struct char_session_data *sd) {
 	WFIFOW(fd, 0) = 0x6b;
 	WFIFOW(fd, 2) = offset + found_num * 106;
 
-	ShowInfo("Request Char Data (\033[1;13m%d\033[0m):\n",sd->account_id);
+	if (save_log)
+		ShowInfo("Request Char Data (\033[1;13m%d\033[0m):\n",sd->account_id);
 
 	for(i = 0; i < found_num; i++) {
 		mmo_char_fromsql_short(sd->found_char[i], char_dat);
@@ -4028,6 +4033,8 @@ int char_config_read(const char *cfgName) {
 			autosave_interval = atoi(w2)*1000;
 			if (autosave_interval <= 0)
 				autosave_interval = DEFAULT_AUTOSAVE_INTERVAL;
+		} else if (strcmpi(w1, "save_log") == 0) {
+			save_log = config_switch(w2);
 		} else if (strcmpi(w1, "start_point") == 0) {
 			char map[MAP_NAME_LENGTH];
 			int x, y;
@@ -4126,10 +4133,10 @@ int do_init(int argc, char **argv){
 	mmo_char_sql_init();
 	ShowInfo("char server initialized.\n");
 
-	ShowDebug("set parser -> parse_char()...\n");
+//	ShowDebug("set parser -> parse_char()...\n");
 	set_defaultparse(parse_char);
 
-	ShowDebug("set terminate function -> do_final().....\n");
+//	ShowDebug("set terminate function -> do_final().....\n");
 
         if ((naddr_ != 0) && (login_ip_set_ == 0 || char_ip_set_ == 0)) {
           // The char server should know what IP address it is running on
