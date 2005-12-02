@@ -38,6 +38,8 @@
 	12132,Red_Package: Turns you into x-mas clothes sprite for 10 minutes
 	--
 12/01
+	* Changed TK_JUMPKICK's inf to self skill (to make it behave like extremity
+	  fist) [Skotlex]
 	* Set Ki Explosion's stun time as time2 in skill_cast_db. [Skotlex]
 	* Lowered the MVP exp bonus from the bio lab dungeon bosses [MasterOfMuppets]
 	- fixed a typo in Erend's exp

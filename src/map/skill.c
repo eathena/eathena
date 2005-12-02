@@ -851,14 +851,14 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 				rand() % 100 < sd->sc_data[SC_EDP].val2 * sc_def_vit / 100)
 				status_change_start(bl,SC_DPOISON,sd->sc_data[SC_EDP].val1,0,0,0,skill_get_time2(ASC_EDP,sd->sc_data[SC_EDP].val1),0);
 			// Chance to trigger Taekwon kicks [Dralnu]
-			if(sd->sc_data[SC_READYSTORM].timer != -1 && rand()%100 < 15)
-				status_change_start(src,SC_STORMKICK,1,bl->id,1,0,2000,0);
-			if(sd->sc_data[SC_READYDOWN].timer != -1 && rand()%100 < 15)
-				status_change_start(src,SC_DOWNKICK,1,bl->id,1,0,2000,0);
-			if(sd->sc_data[SC_READYTURN].timer != -1 && rand()%100 < 15)
-				status_change_start(src,SC_TURNKICK,1,bl->id,1,0,2000,0);
-			if(sd->sc_data[SC_READYCOUNTER].timer != -1 && rand()%100 < 20)
-				status_change_start(src,SC_COUNTER,1,bl->id,1,0,2000,0);
+			if(sd->sc_data[SC_READYSTORM].timer != -1 && sd->sc_data[SC_COMBO].timer == -1 && rand()%100 < 15)
+				status_change_start(src,SC_COMBO, TK_STORMKICK,0,0,0,2000,0);
+			if(sd->sc_data[SC_READYDOWN].timer != -1 && sd->sc_data[SC_COMBO].timer == -1 && rand()%100 < 15)
+				status_change_start(src,SC_COMBO, TK_READYDOWN,0,0,0,2000,0);
+			if(sd->sc_data[SC_READYTURN].timer != -1 && sd->sc_data[SC_COMBO].timer == -1 && rand()%100 < 15)
+				status_change_start(src,SC_COMBO, TK_TURNKICK,0,0,0,2000,0);
+			if(sd->sc_data[SC_READYCOUNTER].timer != -1 && sd->sc_data[SC_COMBO].timer == -1 && rand()%100 < 20)
+				status_change_start(src,SC_COMBO, TK_COUNTER,bl->id,0,0,2000,0);
 		}
 		break;
 
@@ -2622,67 +2622,19 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 		break;
 
 	case TK_STORMKICK: // Taekwon kicks [Dralnu]
-		if (sc_data && sc_data[SC_STORMKICK].timer != -1 && (bl = map_id2bl(sc_data[SC_STORMKICK].val2)) != NULL) {
-			status_change_end(src, SC_STORMKICK, -1);
-			status_change_end(src, SC_DOWNKICK, -1);
-			status_change_end(src, SC_TURNKICK, -1);
-        		status_change_end(src, SC_COUNTER, -1);
-			map_foreachinarea(skill_attack_area, src->m,
-				src->x-2, src->y-2, src->x+2, src->y+2, 0,
-				BF_WEAPON, src, src, skillid, skilllv, tick, flag, BCT_ENEMY);	
-			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			if(sd && pc_istop10fame(sd->char_id,MAPID_TAEKWON)){ // Infinite combo of all 4 kicks if ranked top 10
-				status_change_start(src,SC_STORMKICK,1,bl->id,0,0,2000,0);
-				status_change_start(src,SC_DOWNKICK,1,bl->id,0,0,2000,0);
-				status_change_start(src,SC_TURNKICK,1,bl->id,0,0,2000,0);
-				status_change_start(src,SC_COUNTER,1,bl->id,0,0,2000,0);
-			}
-		}
+		clif_skill_nodamage(src,bl,skillid,skilllv,1);
+		map_foreachinarea(skill_attack_area, src->m,
+			src->x-2, src->y-2, src->x+2, src->y+2, 0,
+			BF_WEAPON, src, src, skillid, skilllv, tick, flag, BCT_ENEMY);	
+		if (sc_data && sc_data[SC_COMBO].timer != -1)
+			status_change_end(src, SC_COMBO, -1);
 		break;
+
 	case TK_DOWNKICK:
-	   	if (sc_data && sc_data[SC_DOWNKICK].timer != -1 && (bl = map_id2bl(sc_data[SC_DOWNKICK].val2)) != NULL) {
-			status_change_end(src, SC_STORMKICK, -1);
-			status_change_end(src, SC_DOWNKICK, -1);
-			status_change_end(src, SC_TURNKICK, -1);
-        		status_change_end(src, SC_COUNTER, -1);
-			skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
-			if(sd && pc_istop10fame(sd->char_id,MAPID_TAEKWON)){ // Infinite combo of all 4 kicks if ranked top 10
-				status_change_start(src,SC_STORMKICK,1,bl->id,0,0,2000,0);
-				status_change_start(src,SC_DOWNKICK,1,bl->id,0,0,2000,0);
-				status_change_start(src,SC_TURNKICK,1,bl->id,0,0,2000,0);
-				status_change_start(src,SC_COUNTER,1,bl->id,0,0,2000,0);
-			}
-		}
-      	break;
-	case TK_TURNKICK:
-		if (sc_data && sc_data[SC_TURNKICK].timer != -1 && (bl = map_id2bl(sc_data[SC_TURNKICK].val2)) != NULL) {
-			status_change_end(src, SC_STORMKICK, -1);
-			status_change_end(src, SC_DOWNKICK, -1);
-			status_change_end(src, SC_TURNKICK, -1);
-        		status_change_end(src, SC_COUNTER, -1);
-			skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
-			if(sd && pc_istop10fame(sd->char_id,MAPID_TAEKWON)){ // Infinite combo of all 4 kicks if ranked top 10
-				status_change_start(src,SC_STORMKICK,1,bl->id,0,0,2000,0);
-				status_change_start(src,SC_DOWNKICK,1,bl->id,0,0,2000,0);
-				status_change_start(src,SC_TURNKICK,1,bl->id,0,0,2000,0);
-				status_change_start(src,SC_COUNTER,1,bl->id,0,0,2000,0);
-			}
-		}
-      	break;   
 	case TK_COUNTER:
-		if (sc_data && sc_data[SC_COUNTER].timer != -1 && (bl = map_id2bl(sc_data[SC_COUNTER].val2)) != NULL) {
-			status_change_end(src, SC_STORMKICK, -1);
-			status_change_end(src, SC_DOWNKICK, -1);
-			status_change_end(src, SC_TURNKICK, -1);
-        		status_change_end(src, SC_COUNTER, -1);
 			skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
-			if(sd && pc_istop10fame(sd->char_id,MAPID_TAEKWON)){ // Infinite combo of all 4 kicks if ranked top 10
-				status_change_start(src,SC_STORMKICK,1,bl->id,0,0,2000,0);
-				status_change_start(src,SC_DOWNKICK,1,bl->id,0,0,2000,0);
-				status_change_start(src,SC_TURNKICK,1,bl->id,0,0,2000,0);
-				status_change_start(src,SC_COUNTER,1,bl->id,0,0,2000,0);
-			}
-		}
+			if (sc_data && sc_data[SC_COMBO].timer != -1)
+				status_change_end(src, SC_COMBO, -1);
       	break;
 	case TK_JUMPKICK:
 		if(sd) {
@@ -2948,12 +2900,15 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 		}
 		break;
 
+	case TK_TURNKICK:
 	case MO_BALKYOUNG: //Active part of the attack. Skill-attack [Skotlex]
+	{
 		skill_area_temp[1] = bl->id; //NOTE: This is used in skill_castend_nodamage_id to avoid affecting the target.
 		if (skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0))
-			map_foreachinarea(skill_area_sub,bl->m,bl->x+1,bl->y+1,bl->x+1,bl->y+1,0,
+			map_foreachinarea(skill_area_sub,bl->m,bl->x-1,bl->y-1,bl->x+1,bl->y+1,0,
 				src,skillid,skilllv,tick,flag|BCT_ENEMY|1,
 				skill_castend_nodamage_id);
+	}
 		break;	
 	case CH_PALMSTRIKE: //	Palm Strike takes effect 1sec after casting. [Skotlex]
 	//	clif_skill_nodamage(src,bl,skillid,skilllv,0); //Can't make this one display the correct attack animation delay :/
@@ -3887,6 +3842,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		}
 		break;
 
+	case TK_TURNKICK:
 	case MO_BALKYOUNG: //Passive part of the attack. Splash knock-back+stun. [Skotlex]
 		if (skill_area_temp[1] != bl->id) {
 			skill_blown(src,bl,skill_get_blewcount(skillid,skilllv));
@@ -5696,8 +5652,8 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 			return 0;
 		}
 	}
-	else if(skill_get_inf(sd->skillid)&INF_ATTACK_SKILL &&
-		battle_check_target(&sd->bl,bl, BCT_ENEMY)<=0
+	else if((skill_get_inf(sd->skillid)&INF_ATTACK_SKILL || sd->skillid == TK_JUMPKICK)
+		&& battle_check_target(&sd->bl,bl, BCT_ENEMY)<=0
 	) {
 		skill_failed(sd);
 		return 0;
@@ -7809,6 +7765,13 @@ int skill_check_condition(struct map_session_data *sd,int type)
 			//It should consume whatever is left as long as it's at least 1.
 		}
 		break;
+	case TK_TURNKICK:
+	case TK_STORMKICK:
+	case TK_DOWNKICK:
+		if (sd->sc_data[SC_COMBO].timer == -1 || sd->sc_data[SC_COMBO].val1 != skill)
+			if (!pc_istop10fame(sd->char_id,MAPID_TAEKWON))
+			return 0;
+		break;
 	case BD_ADAPTATION:				/* ƒAƒhƒŠƒu */
 		{
 			struct skill_unit_group *group=NULL;
@@ -8309,7 +8272,16 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 	case MO_COMBOFINISH:
 	case CH_CHAINCRUSH:
 	case CH_TIGERFIST:
+	case TK_STORMKICK: // Taekwon kicks [Dralnu]
+	case TK_DOWNKICK:
+	case TK_TURNKICK:
 		target_id = sd->attacktarget;
+		break;
+
+	case TK_JUMPKICK:
+	case TK_COUNTER:
+		if (sc_data[SC_COMBO].timer != -1 && sc_data[SC_COMBO].val1 == skill_num)
+			target_id = sc_data[SC_COMBO].val2;
 		break;
 // -- moonsoul	(altered to allow proper usage of extremity from new champion combos)
 //

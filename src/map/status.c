@@ -264,13 +264,13 @@ int SkillStatusChangeTable[]={	/* status.hのenumのSC_***とあわせること */
 	-1,
 	SC_RUN,
 	SC_READYSTORM,
-	SC_STORMKICK,
+	-1,
 	SC_READYDOWN,
-	SC_DOWNKICK,
+	-1,
 	SC_READYTURN,
-	SC_TURNKICK,
+	-1,
 	SC_READYCOUNTER,
-	SC_COUNTER,
+	-1,
 /* 420- */
 	SC_DODGE,
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,
@@ -2012,6 +2012,8 @@ int status_calc_batk(struct block_list *bl, int batk)
 	if(sc_data){
 		if(sc_data[SC_ATKPOTION].timer!=-1)
 			batk += sc_data[SC_ATKPOTION].val1;
+		if(sc_data[SC_BATKFOOD].timer!=-1)
+			batk += sc_data[SC_BATKFOOD].val1;
 		if(sc_data[SC_INCATKRATE].timer!=-1)
 			batk += batk * sc_data[SC_INCATKRATE].val1/100;
 		if(sc_data[SC_PROVOKE].timer!=-1)
@@ -2036,6 +2038,8 @@ int status_calc_watk(struct block_list *bl, int watk)
 	if(sc_data){
 		if(sc_data[SC_IMPOSITIO].timer!=-1)
 			watk += 5*sc_data[SC_IMPOSITIO].val1;
+		if(sc_data[SC_WATKFOOD].timer!=-1)
+			watk += sc_data[SC_WATKFOOD].val1;
 		if(sc_data[SC_DRUMBATTLE].timer!=-1)
 			watk += sc_data[SC_DRUMBATTLE].val2;
 		if(sc_data[SC_VOLCANO].timer!=-1 && status_get_elem_type(bl)==3)
@@ -2062,6 +2066,8 @@ int status_calc_matk(struct block_list *bl, int matk)
 	if(sc_data){
 		if(sc_data[SC_MATKPOTION].timer!=-1)
 			matk += sc_data[SC_MATKPOTION].val1;
+		if(sc_data[SC_MATKFOOD].timer!=-1)
+			matk += sc_data[SC_MATKFOOD].val1;
 		if(sc_data[SC_MAGICPOWER].timer!=-1)
 			matk += matk * 5*sc_data[SC_MAGICPOWER].val1/100;
 		if(sc_data[SC_MINDBREAKER].timer!=-1)
@@ -2102,6 +2108,8 @@ int status_calc_hit(struct block_list *bl, int hit)
 	if(sc_data){
 		if(sc_data[SC_INCHIT].timer != -1)
 			hit += sc_data[SC_INCHIT].val1;
+		if(sc_data[SC_HITFOOD].timer!=-1)
+			hit += sc_data[SC_HITFOOD].val1;
 		if(sc_data[SC_TRUESIGHT].timer != -1)
 			hit += 3*sc_data[SC_TRUESIGHT].val1;
 		if(sc_data[SC_HUMMING].timer!=-1)
@@ -2126,6 +2134,8 @@ int status_calc_flee(struct block_list *bl, int flee)
 	if(sc_data){
 		if(sc_data[SC_INCFLEE].timer!=-1)
 			flee += sc_data[SC_INCFLEE].val1;
+		if(sc_data[SC_FLEEFOOD].timer!=-1)
+			flee += sc_data[SC_FLEEFOOD].val1;
 		if(sc_data[SC_WHISTLE].timer!=-1)
 			flee += sc_data[SC_WHISTLE].val2;
 		if(sc_data[SC_WINDWALK].timer!=-1)
@@ -4333,34 +4343,26 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			calc_flag = 1;
 			break;
 
-		// Taekwon Kicks Stances
-		// If val3=1, then display the stance triggering effect and wait 2 sec before attacking again (normal trigger)
-		// If val3=0, then start the SC silently (infinite kick combo, Top-10 ranked Taekwons only)
-		case SC_STORMKICK:
-			if(sd && val3) {
-				clif_skill_nodamage(bl,bl,TK_READYSTORM,1,1);
-				sd->attackabletime = gettick()+2000;
+		case SC_COMBO:
+			switch (val1) { //Val1 contains the skill id
+				case TK_STORMKICK:
+					clif_skill_nodamage(bl,bl,TK_READYSTORM,1,1);
+					if (sd) sd->attackabletime = gettick()+tick;
+					break;
+				case TK_DOWNKICK:
+					clif_skill_nodamage(bl,bl,TK_READYDOWN,1,1);
+					if (sd) sd->attackabletime = gettick()+tick;
+					break;
+				case TK_TURNKICK:
+					clif_skill_nodamage(bl,bl,TK_READYTURN,1,1);
+					if (sd) sd->attackabletime = gettick()+tick;
+					break;
+				case TK_COUNTER:
+					clif_skill_nodamage(bl,bl,TK_READYCOUNTER,1,1);
+					if (sd) sd->attackabletime = gettick()+tick;
+					break;
 			}
 			break;
-  		case SC_DOWNKICK:
-			if(sd && val3) {
-				clif_skill_nodamage(bl,bl,TK_READYDOWN,1,1);
-				sd->attackabletime = gettick()+2000;
-			}
-			break;
- 		case SC_TURNKICK:
-			if(sd && val3) {
-				clif_skill_nodamage(bl,bl,TK_READYTURN,1,1);
-				sd->attackabletime = gettick()+2000;
-			}
-			break;
-		case SC_COUNTER:
-			if(sd && val3) {
-				clif_skill_nodamage(bl,bl,TK_READYCOUNTER,1,1);
-				sd->attackabletime = gettick()+2000;
-			}
-			break;
-
 		case SC_CONCENTRATE:		/* 集中力向上 */
 		case SC_BLESSING:			/* ブレッシング */
 		case SC_ANGELUS:			/* アンゼルス */
@@ -4397,6 +4399,11 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_INTFOOD:
 		case SC_DEXFOOD:
 		case SC_LUKFOOD:
+		case SC_FLEEFOOD:
+		case SC_HITFOOD:
+		case SC_BATKFOOD:
+		case SC_WATKFOOD:
+		case SC_MATKFOOD:
 		case SC_RUN://駆け足
 		case SC_SPORT:
 		case SC_SPIRIT:
@@ -4416,7 +4423,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_CP_HELM:
 		case SC_EXTREMITYFIST:		/* 阿修羅覇凰拳 */
 		case SC_ANKLE:	/* アンクル */
-		case SC_COMBO:
 		case SC_BLADESTOP_WAIT:		/* 白刃取り(待ち) */
 		case SC_HALLUCINATION:
 		case SC_BASILICA: // [celest]
@@ -4433,7 +4439,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_SHRINK:
 		case SC_SIGHTBLASTER:
 		case SC_WINKCHARM:
-		case SC_JUMPKICK:
 			break;
 
 		default:
@@ -4718,6 +4723,11 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			case SC_INTFOOD:
 			case SC_DEXFOOD:
 			case SC_LUKFOOD:
+			case SC_FLEEFOOD:
+			case SC_HITFOOD:
+			case SC_BATKFOOD:
+			case SC_WATKFOOD:
+			case SC_MATKFOOD:
 			case SC_BATTLEORDERS:
 			case SC_REGENERATION:
 			case SC_GUILDAURA:

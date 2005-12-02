@@ -1,6 +1,13 @@
 Date	Added
 
 2005/12/02
+	* Massive Taekwon Boy skills related code cleanup. [Skotlex]
+	- Flying Side kick and Turn Kick should be fully working now, too.
+	* Cleaned up and reorganized the SC_ data listing. Added sc's for food
+	  related bonuses: SC_HITFood, SC_FLEEFood, SC_BAtkFood, SC_WAtkFood,
+	  SC_MAtkFood. [Skotlex]
+	- Some of the saved sc data will be wrong, so wipe the table/file if you
+	  want to play it safe.
 	* Some corrects in duel code. [LuzZza]
 	* Sonic Blow and Shield Boomerang's after cast delay is now properly
 	  adjusted by the Soul Link skills. [Skotlex]
