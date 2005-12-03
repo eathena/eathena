@@ -27,6 +27,7 @@ Nexon
 Date		Added
 ======
 12/02
+	* Removed two duplicates of each gonryun dungeon level in nomemo.txt  [MasterOfMuppets]
 	* Fixed a small screw-up in the color codes of the Glastheim Bulletin Board, [MasterOfMuppets]
 	  thanks to Playtester.
 	* Added some Christmas Orcs to event/xmas.txt, thanks to Playtester [MasterOfMuppets]

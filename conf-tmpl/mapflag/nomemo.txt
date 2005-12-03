@@ -137,10 +137,6 @@ gef_dun00.gat	mapflag	nomemo
 gef_dun01.gat	mapflag	nomemo
 gef_dun02.gat	mapflag	nomemo
 gef_dun03.gat	mapflag	nomemo
-// Gonryun Dun ---------------
-gon_dun01.gat	mapflag	nomemo
-gon_dun02.gat	mapflag	nomemo
-gon_dun03.gat	mapflag	nomemo
 // Glast Hiem ----------------
 gl_cas01.gat	mapflag	nomemo
 gl_cas02.gat	mapflag	nomemo
@@ -163,10 +159,6 @@ gld_dun01.gat	mapflag	nomemo
 gld_dun02.gat	mapflag	nomemo
 gld_dun03.gat	mapflag	nomemo
 gld_dun04.gat	mapflag	nomemo
-// Gongyun Dungeon ------------
-gon_dun01.gat	mapflag	nomemo
-gon_dun02.gat	mapflag	nomemo
-gon_dun03.gat   mapflag	nomemo
 // Bayalan Island ------------
 iz_dun00.gat	mapflag	nomemo
 iz_dun01.gat	mapflag	nomemo
