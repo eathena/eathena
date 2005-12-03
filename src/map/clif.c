@@ -8981,8 +8981,13 @@ void clif_parse_EquipItem(int fd,struct map_session_data *sd)
 	if (index < 0 || index >= MAX_INVENTORY)
 		return; //Out of bounds check.
 	
-	if(sd->npc_id!=0 || sd->vender_id != 0) return;
-	if(sd->sc_data && ( sd->sc_data[SC_BLADESTOP].timer!=-1 || sd->sc_data[SC_BERSERK].timer!=-1 )) return;
+	if(sd->npc_id!=0 && sd->npc_id != sd->npc_item_flag)
+		return;
+	
+	if(sd->vender_id != 0)
+		return;
+	
+	if(sd->sc_data[SC_BLADESTOP].timer!=-1 || sd->sc_data[SC_BERSERK].timer!=-1 ) return;
 
 	if(sd->status.inventory[index].identify != 1) {		// –¢ŠÓ’è
 		clif_equipitemack(sd,index,0,0);	// fail

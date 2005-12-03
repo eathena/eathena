@@ -849,11 +849,11 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 			// Chance to trigger Taekwon kicks [Dralnu]
 			if(sd->sc_data[SC_READYSTORM].timer != -1 && sd->sc_data[SC_COMBO].timer == -1 && rand()%100 < 15)
 				status_change_start(src,SC_COMBO, TK_STORMKICK,0,0,0,2000,0);
-			if(sd->sc_data[SC_READYDOWN].timer != -1 && sd->sc_data[SC_COMBO].timer == -1 && rand()%100 < 15)
-				status_change_start(src,SC_COMBO, TK_READYDOWN,0,0,0,2000,0);
-			if(sd->sc_data[SC_READYTURN].timer != -1 && sd->sc_data[SC_COMBO].timer == -1 && rand()%100 < 15)
+			else if(sd->sc_data[SC_READYDOWN].timer != -1 && sd->sc_data[SC_COMBO].timer == -1 && rand()%100 < 15)
+				status_change_start(src,SC_COMBO, TK_DOWNKICK,0,0,0,2000,0);
+			else if(sd->sc_data[SC_READYTURN].timer != -1 && sd->sc_data[SC_COMBO].timer == -1 && rand()%100 < 15)
 				status_change_start(src,SC_COMBO, TK_TURNKICK,0,0,0,2000,0);
-			if(sd->sc_data[SC_READYCOUNTER].timer != -1 && sd->sc_data[SC_COMBO].timer == -1 && rand()%100 < 20)
+			else if(sd->sc_data[SC_READYCOUNTER].timer != -1 && sd->sc_data[SC_COMBO].timer == -1 && rand()%100 < 20)
 				status_change_start(src,SC_COMBO, TK_COUNTER,bl->id,0,0,2000,0);
 		}
 		break;
@@ -3638,6 +3638,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case LK_BERSERK:		/* バ?サ?ク */
 		if(battle_config.berserk_cancels_buffs)
 		{
+			status_change_end(bl,SC_ONEHAND,-1);
 			status_change_end(bl,SC_TWOHANDQUICKEN,-1);
 			status_change_end(bl,SC_CONCENTRATION,-1);
 			status_change_end(bl,SC_PARRYING,-1);
@@ -3646,6 +3647,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		}
 	case KN_AUTOCOUNTER:		/* オ?トカウンタ? */
 	case KN_TWOHANDQUICKEN:	/* ツ?ハンドクイッケン */
+	case KN_ONEHAND:
 	case CR_SPEARQUICKEN:	/* スピアクイッケン */
 	case CR_REFLECTSHIELD:
 	case AS_POISONREACT:	/* ポイズンリアクト */
@@ -3996,6 +3998,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 
 	case BS_ADRENALINE:		/* アドレナリンラッシュ */
+	case BS_ADRENALINE2:
 	case BS_WEAPONPERFECT:	/* ウェポンパ?フェクション */
 	case BS_OVERTHRUST:		/* オ?バ?トラスト */
 		if (sd == NULL || sd->status.party_id == 0 || (flag & 1)) {
@@ -5461,7 +5464,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		status_change_start(bl,SC_SPIRIT,skilllv,skillid,0,0,skill_get_time(skillid,skilllv),0);
 		break;
 	case SL_HIGH:
-		if (sd && !(dstsd && (dstsd->class_&JOBL_UPPER) && !(dstsd->class_&JOBL_2))) {
+		if (sd && !(dstsd && (dstsd->class_&JOBL_UPPER) && !(dstsd->class_&JOBL_2) && dstsd->status.base_level < 70)) {
 			clif_skill_fail(sd,skillid,0,0);
 			break;
 		}
@@ -7772,10 +7775,11 @@ int skill_check_condition(struct map_session_data *sd,int type)
 	case TK_STORMKICK:
 	case TK_DOWNKICK:
 	case TK_COUNTER:
-		if (sd->sc_data[SC_COMBO].timer == -1 || sd->sc_data[SC_COMBO].val1 != skill)
-			if (!pc_istop10fame(sd->char_id,MAPID_TAEKWON))
-			return 0;
-		break;
+		if(sd->sc_data[SC_COMBO].timer != -1 && sd->sc_data[SC_COMBO].val1 == skill)
+			break; //Combo ready.
+		if (pc_istop10fame(sd->char_id,MAPID_TAEKWON))
+			break; //Unlimited Combo
+		return 0;	
 	case BD_ADAPTATION:				/* アドリブ */
 		{
 			struct skill_unit_group *group=NULL;

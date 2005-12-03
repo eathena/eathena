@@ -3706,40 +3706,39 @@ int pc_checkskill(struct map_session_data *sd,int skill_id)
 int pc_checkallowskill(struct map_session_data *sd)
 {
 	nullpo_retr(0, sd);
-	nullpo_retr(0, sd->sc_data);
 
+	if(!sd->sc_count)
+		return 0;
+	
 	// Skills requiring specific weapon types
-	if(!(skill_get_weapontype(KN_TWOHANDQUICKEN)&(1<<sd->status.weapon)) && sd->sc_data[SC_TWOHANDQUICKEN].timer!=-1) { // Two-Hand Quicken requires a Two-handed sword
+	if(sd->sc_data[SC_TWOHANDQUICKEN].timer!=-1 && !(skill_get_weapontype(KN_TWOHANDQUICKEN)&(1<<sd->status.weapon)))
 		status_change_end(&sd->bl,SC_TWOHANDQUICKEN,-1);
-	}
-	if(!(skill_get_weapontype(LK_AURABLADE)&(1<<sd->status.weapon)) && sd->sc_data[SC_AURABLADE].timer!=-1) { // Aura Blade requires any weapon but bare fists
+	if(sd->sc_data[SC_ONEHAND].timer!=-1 && !(skill_get_weapontype(KN_ONEHAND)&(1<<sd->status.weapon)))
+		status_change_end(&sd->bl,SC_ONEHAND,-1);
+	if(sd->sc_data[SC_AURABLADE].timer!=-1 && !(skill_get_weapontype(LK_AURABLADE)&(1<<sd->status.weapon)))
+		// Aura Blade requires any weapon but bare fists
 		status_change_end(&sd->bl,SC_AURABLADE,-1);
-	}
-	if(!(skill_get_weapontype(LK_PARRYING)&(1<<sd->status.weapon)) && sd->sc_data[SC_PARRYING].timer!=-1) {	// Parrying requires a Two-handed sword
+	if(sd->sc_data[SC_PARRYING].timer!=-1 && !(skill_get_weapontype(LK_PARRYING)&(1<<sd->status.weapon)))
 		status_change_end(&sd->bl,SC_PARRYING,-1);
-	}
-	if(!(skill_get_weapontype(CR_SPEARQUICKEN)&(1<<sd->status.weapon)) && sd->sc_data[SC_SPEARSQUICKEN].timer!=-1){	// Spear Quicken requires a Two-handed spear
+	if(sd->sc_data[SC_SPEARSQUICKEN].timer!=-1 && !(skill_get_weapontype(CR_SPEARQUICKEN)&(1<<sd->status.weapon)))
+		// Spear Quicken requires a Two-handed spear
 		status_change_end(&sd->bl,SC_SPEARSQUICKEN,-1);
-	}
-	if(!(skill_get_weapontype(BS_ADRENALINE)&(1<<sd->status.weapon)) && sd->sc_data[SC_ADRENALINE].timer!=-1){	// Adrenaline Rush requires an Axe or a Mace
+	if(sd->sc_data[SC_ADRENALINE].timer!=-1 && !(skill_get_weapontype(BS_ADRENALINE)&(1<<sd->status.weapon)))
 		status_change_end(&sd->bl,SC_ADRENALINE,-1);
-	}
-	if(sd->status.weapon && sd->sc_data[SC_SPORT].timer!=-1){	// Sport requires bare hands (feet, in fact xD)
+	if(sd->sc_data[SC_ADRENALINE2].timer!=-1 && !(skill_get_weapontype(BS_ADRENALINE2)&(1<<sd->status.weapon)))
+		status_change_end(&sd->bl,SC_ADRENALINE2,-1);
+	if( sd->sc_data[SC_SPORT].timer!=-1 && sd->status.weapon)
+		// Sport requires bare hands (feet, in fact xD)
 		status_change_end(&sd->bl,SC_SPORT,-1);
-	}
 
 	if(sd->status.shield <= 0) { // Skills requiring a shield
-		if(sd->sc_data[SC_AUTOGUARD].timer!=-1){	// Guard
+		if(sd->sc_data[SC_AUTOGUARD].timer!=-1)	// Guard
 			status_change_end(&sd->bl,SC_AUTOGUARD,-1);
-		}
-		if(sd->sc_data[SC_DEFENDER].timer!=-1){	// Defending Aura
+		if(sd->sc_data[SC_DEFENDER].timer!=-1)	// Defending Aura
 			status_change_end(&sd->bl,SC_DEFENDER,-1);
-		}
-		if(sd->sc_data[SC_REFLECTSHIELD].timer!=-1){ // Shield Reflect
+		if(sd->sc_data[SC_REFLECTSHIELD].timer!=-1) // Shield Reflect
 			status_change_end(&sd->bl,SC_REFLECTSHIELD,-1);
-		}
 	}
-
 	return 0;
 }
 

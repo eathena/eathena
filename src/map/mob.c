@@ -1428,9 +1428,6 @@ int mob_randomwalk(struct mob_data *md,int tick)
 
 	nullpo_retr(0, md);
 
-	if (md->master_id) //Slaves don't "randomly walk around". [Skotlex]
-		return 0;
-	
 	speed=status_get_speed(&md->bl);
 	if(DIFF_TICK(md->next_walktime,tick)<0){
 		int i,x,y,c,d=12-md->move_fail_count;

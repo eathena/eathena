@@ -1,6 +1,10 @@
 Date	Added
 
 2005/12/02
+	* Merged Reddozen's work of One-Hand Quicken and Adrenaline Rush 2. [Skotlex]
+	* Fixed Axe-Kick never triggering. [Skotlex]
+	* Slaves walk once again. [Skotlex]
+	* enable_items now also enables equipment stuff. [Skotlex]
 	* The attack motion in packets for ground-based skills is now 0 (it may
 	  help somewhat with current firewall issues). [Skotlex]
 	* Added char-server option "save_log", when disabled, the char server will

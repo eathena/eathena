@@ -2323,8 +2323,10 @@ int status_calc_aspd_rate(struct block_list *bl, int aspd_rate)
 					aspd_rate -= 30;
 				else if(sc_data[SC_ONEHAND].timer!=-1)
 					aspd_rate -= 30;
+				else if(sc_data[SC_ADRENALINE2].timer!=-1)
+					aspd_rate -= (sc_data[SC_ADRENALINE2].val2 || !battle_config.party_skill_penalty)?30:20;
 				else if(sc_data[SC_ADRENALINE].timer!=-1)
-					aspd_rate -= (sc_data[SC_ADRENALINE].val2 || !battle_config.party_skill_penalty)?30:25;
+					aspd_rate -= (sc_data[SC_ADRENALINE].val2 || !battle_config.party_skill_penalty)?30:20;
 				else if(sc_data[SC_SPEARSQUICKEN].timer!=-1)
 					aspd_rate -= sc_data[SC_SPEARSQUICKEN].val2;
 				else if(sc_data[SC_ASSNCROS].timer!=-1 && (bl->type!=BL_PC || ((struct map_session_data*)bl)->status.weapon != 11))
@@ -3626,6 +3628,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		sd=(struct map_session_data *)bl;
 		if( sd && type == SC_ADRENALINE && !(skill_get_weapontype(BS_ADRENALINE)&(1<<sd->status.weapon)))
 			return 0;
+		if( sd && type == SC_ADRENALINE2 && !(skill_get_weapontype(BS_ADRENALINE2)&(1<<sd->status.weapon)))
+			return 0;
 
 		if(SC_COMMON_MIN<=type && type<=SC_COMMON_MAX && !(flag&1)){
 			if( sd && sd->reseff[type-SC_COMMON_MIN] > 0 && rand()%10000<sd->reseff[type-SC_COMMON_MIN]){
@@ -3657,7 +3661,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			status_change_end(bl,SC_STONE,-1);
 	}
 
-	if((type == SC_ADRENALINE || type == SC_WEAPONPERFECTION || type == SC_OVERTHRUST) &&
+	if((type == SC_ADRENALINE || type==SC_ADRENALINE2 || type == SC_WEAPONPERFECTION || type == SC_OVERTHRUST) &&
 		sc_data[type].timer != -1 && sc_data[type].val2 && !val2)
 		return 0;
 
@@ -3693,8 +3697,10 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 	if ((sc_data[SC_QUAGMIRE].timer!=-1 || sc_data[SC_DONTFORGETME].timer!=-1) &&
 		(type==SC_CONCENTRATE || type==SC_INCREASEAGI ||
 		type==SC_TWOHANDQUICKEN || type==SC_SPEARSQUICKEN ||
-		type==SC_ADRENALINE || type==SC_TRUESIGHT ||
-		type==SC_WINDWALK || type==SC_CARTBOOST || type==SC_ASSNCROS))
+		type==SC_ADRENALINE || type==SC_ADRENALINE2 ||
+		type==SC_TRUESIGHT || type==SC_WINDWALK ||
+		type==SC_CARTBOOST || type==SC_ASSNCROS || 
+		type==SC_ONEHAND))
 	return 0;
 
 	switch(type){	/* 異常の種類ごとの?理 */
@@ -3730,12 +3736,16 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 				status_change_end(bl,SC_INCREASEAGI,-1);
 			if(sc_data[SC_ADRENALINE].timer!=-1 )
 				status_change_end(bl,SC_ADRENALINE,-1);
+			if(sc_data[SC_ADRENALINE2].timer!=-1 )
+				status_change_end(bl,SC_ADRENALINE2,-1);
 			if(sc_data[SC_SPEARSQUICKEN].timer!=-1 )
 				status_change_end(bl,SC_SPEARSQUICKEN,-1);
 			if(sc_data[SC_TWOHANDQUICKEN].timer!=-1 )
 				status_change_end(bl,SC_TWOHANDQUICKEN,-1);
 			if(sc_data[SC_CARTBOOST].timer!=-1 )
 				status_change_end(bl,SC_CARTBOOST,-1);
+			if(sc_data[SC_ONEHAND].timer!=-1 )
+				status_change_end(bl,SC_ONEHAND,-1);
 			break;
 		case SC_SIGNUMCRUCIS:		/* シグナムクルシス */
 			calc_flag = 1;
@@ -3748,12 +3758,14 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			if (sc_data[SC_POISON].timer == -1 && sc_data[SC_DPOISON].timer == -1)
 				return 0;
 			break;
+		case SC_ONEHAND:
 		case SC_TWOHANDQUICKEN:		/* 2HQ */
 			if(sc_data[SC_DECREASEAGI].timer!=-1)
 				return 0;
 			*opt3 |= 1;
 			calc_flag = 1;
 			break;
+		case SC_ADRENALINE2:
 		case SC_ADRENALINE:			/* アドレナリンラッシュ */
 			if(sc_data[SC_DECREASEAGI].timer!=-1)
 				return 0;
@@ -3830,10 +3842,14 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 				status_change_end(bl,SC_INCREASEAGI,-1);
 			if(sc_data[SC_TWOHANDQUICKEN].timer!=-1 )
 				status_change_end(bl,SC_TWOHANDQUICKEN,-1);
+			if(sc_data[SC_ONEHAND].timer!=-1 )
+				status_change_end(bl,SC_ONEHAND,-1);
 			if(sc_data[SC_SPEARSQUICKEN].timer!=-1 )
 				status_change_end(bl,SC_SPEARSQUICKEN,-1);
 			if(sc_data[SC_ADRENALINE].timer!=-1 )
 				status_change_end(bl,SC_ADRENALINE,-1);
+			if(sc_data[SC_ADRENALINE2].timer!=-1 )
+				status_change_end(bl,SC_ADRENALINE2,-1);
 			if(sc_data[SC_TRUESIGHT].timer!=-1 )	/* トゥル?サイト */
 				status_change_end(bl,SC_TRUESIGHT,-1);
 			if(sc_data[SC_WINDWALK].timer!=-1 )	/* ウインドウォ?ク */
@@ -3940,10 +3956,14 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 				status_change_end(bl,SC_INCREASEAGI,-1);
 			if(sc_data[SC_TWOHANDQUICKEN].timer!=-1 )
 				status_change_end(bl,SC_TWOHANDQUICKEN,-1);
+			if(sc_data[SC_ONEHAND].timer!=-1 )
+				status_change_end(bl,SC_ONEHAND,-1);
 			if(sc_data[SC_SPEARSQUICKEN].timer!=-1 )
 				status_change_end(bl,SC_SPEARSQUICKEN,-1);
 			if(sc_data[SC_ADRENALINE].timer!=-1 )
 				status_change_end(bl,SC_ADRENALINE,-1);
+			if(sc_data[SC_ADRENALINE2].timer!=-1 )
+				status_change_end(bl,SC_ADRENALINE2,-1);
 			if(sc_data[SC_ASSNCROS].timer!=-1 )
 				status_change_end(bl,SC_ASSNCROS,-1);
 			if(sc_data[SC_TRUESIGHT].timer!=-1 )	/* トゥル?サイト */
@@ -4654,7 +4674,9 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			case SC_DECREASEAGI:		/* 速度減少 */
 			case SC_SIGNUMCRUCIS:		/* シグナムクルシス */
 			case SC_HIDING:
+			case SC_ONEHAND:
 			case SC_TWOHANDQUICKEN:		/* 2HQ */
+			case SC_ADRENALINE2:
 			case SC_ADRENALINE:			/* アドレナリンラッシュ */
 			case SC_ENCPOISON:			/* エンチャントポイズン */
 			case SC_IMPOSITIO:			/* インポシティオマヌス */
@@ -4984,6 +5006,7 @@ int status_change_end( struct block_list* bl , int type,int tid )
 
 		//opt3
 		case SC_TWOHANDQUICKEN:		/* 2HQ */
+		case SC_ONEHAND:		/* 1HQ */
 		case SC_SPEARSQUICKEN:		/* スピアクイッケン */
 		case SC_CONCENTRATION:		/* コンセントレ?ション */
 			*opt3 &= ~1;
