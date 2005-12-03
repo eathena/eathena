@@ -1,6 +1,10 @@
 Date	Added
 
 2005/12/02
+	* Gave the Spirit Status Change a custom effect for now. [Skotlex]
+	* Merged in Reddozen's work for SL_HIGH (Spirit of Rebirth) [Skotlex]
+	* The Bonus skills acquired from being Soul Linked should now show up in
+	  the skill tree. [Skotlex]
 	* Merged Reddozen's work of One-Hand Quicken and Adrenaline Rush 2. [Skotlex]
 	* Fixed Axe-Kick never triggering. [Skotlex]
 	* Slaves walk once again. [Skotlex]

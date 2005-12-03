@@ -317,7 +317,7 @@ enum {
 	//147 SI_ADRENALINE again
 	SI_GHOSTWEAPON		= 148,
 	SI_NIGHT			= 149, //slightly colors the screen with blue (night-like), unused by skills, but used for day/night
-// 153 = causes character after-image effect.
+	SI_SPIRIT		= 153, //causes character after-image effect, temporarily used for Spirit Skills.
 	SI_KAIZEL			= 156,
 	SI_KAAHI			= 157,
 	SI_KAUPE			= 158,

@@ -553,6 +553,7 @@ void initStatusIconChangeTable() {
 	StatusIconChangeTable[SC_DEVOTION] = SI_DEVOTION;
 	StatusIconChangeTable[SC_STEELBODY] = SI_STEELBODY;
 	StatusIconChangeTable[SC_SPORT] = SI_SPORT;
+	StatusIconChangeTable[SC_SPIRIT] = SI_SPIRIT;
 	StatusIconChangeTable[SC_READYSTORM] = SI_READYSTORM;
 	StatusIconChangeTable[SC_READYDOWN] = SI_READYDOWN;
 	StatusIconChangeTable[SC_READYTURN] = SI_READYTURN;
@@ -1248,9 +1249,23 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	sd->paramb[3] = status_calc_int(&sd->bl,sd->paramb[3]);
 	sd->paramb[4] = status_calc_dex(&sd->bl,sd->paramb[4]);
 	sd->paramb[5] = status_calc_luk(&sd->bl,sd->paramb[5]);
-		
+	
 	// Relative modifiers from status changes (only for PC)
 	if(sd->sc_count){
+		if(sd->sc_data[SC_SPIRIT].timer!=-1 && sd->sc_data[SC_SPIRIT].val2 == SL_HIGH) {
+			if (sd->status.str < 50)
+				sd->paramb[0] += 50-sd->status.str;
+			if (sd->status.agi < 50)
+				sd->paramb[1] += 50-sd->status.agi;
+			if (sd->status.vit < 50)
+				sd->paramb[2] += 50-sd->status.vit;
+			if (sd->status.int_ < 50)
+				sd->paramb[3] += 50-sd->status.int_;
+			if (sd->status.dex < 50)
+				sd->paramb[4] += 50-sd->status.dex;
+			if (sd->status.luk < 50)
+				sd->paramb[5] += 50-sd->status.luk;
+		}
 		if(sd->sc_data[SC_MARIONETTE].timer!=-1){
 			sd->paramb[0]-= sd->status.str/2;
 			sd->paramb[1]-= sd->status.agi/2;

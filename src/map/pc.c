@@ -988,54 +988,50 @@ int pc_calc_skilltree(struct map_session_data *sd)
 
 	for(i=0;i<MAX_SKILL;i++){
 		if (sd->status.skill[i].flag != 13)
-		        sd->status.skill[i].id=0;
+			sd->status.skill[i].id=0;
 		if (sd->status.skill[i].flag && sd->status.skill[i].flag != 13){	// cardスキルなら、
 			sd->status.skill[i].lv=(sd->status.skill[i].flag==1)?0:sd->status.skill[i].flag-2;	// 本?のlvに
 			sd->status.skill[i].flag=0;	// flagは0にしておく
 		}
+		else
+		if(sd->sc_data[SC_SPIRIT].timer != -1 && skill_get_inf2(i)&INF2_SPIRIT_SKILL) { //Enable Spirit Skills. [Skotlex]
+			sd->status.skill[i].lv=1;
+			sd->status.skill[i].flag=1; //So it is not saved, and tagged as a "bonus" skill.
+		}
 	}
 
 	if (battle_config.gm_allskill > 0 && pc_isGM(sd) >= battle_config.gm_allskill){
-		for(i=1;i<158;i++)
+		for(i=0;i<MAX_SKILL;i++){
+			if (skill_get_inf2(i)&INF2_NPC_SKILL) //Only skills you can't have are npc ones.
+				continue;
 			sd->status.skill[i].id=i;
-		for(i=210;i<291;i++)
-			sd->status.skill[i].id=i;
-		for(i=304;i<331;i++)
-			sd->status.skill[i].id=i;
-		for(i=334;i<338;i++)			
-			sd->status.skill[i].id=i;
-		for(i=355;i<473;i++)
-			sd->status.skill[i].id=i;
-		for(i=475;i<492;i++)
-			sd->status.skill[i].id=i;
-		for(i=1001;i<1020;i++)
-			sd->status.skill[i].id=i;
-	} else {
-            do {
-                flag=0;
-                for(i=0;i < MAX_SKILL_TREE && (id=skill_tree[c][i].id)>0;i++){
-                    int j,f=1;
-                    if(!battle_config.skillfree) {
-						for(j=0;j<5;j++) {
-							if( skill_tree[c][i].need[j].id &&
-								pc_checkskill(sd,skill_tree[c][i].need[j].id) <
-								skill_tree[c][i].need[j].lv) {
-								f=0;
-								break;
-							}
-						}
-						if (sd->status.job_level < skill_tree[c][i].joblv)
-							f=0;
-						else if (((id >= SM_SWORD && id <= TF_DETOXIFY) || (id >= TK_RUN && id <= TK_HIGHJUMP)) && pc_checkskill(sd, NV_BASIC) < 9)
-							f=0; // Do not unlock job1 skills when Basic Skills is not maxed out (can happen because of skill reset)
-					}
-					if(f && sd->status.skill[id].id==0 ){
-						sd->status.skill[id].id=id;
-						flag=1;
+		}
+		return 0;
+	}
+	do {
+		flag=0;
+		for(i=0;i < MAX_SKILL_TREE && (id=skill_tree[c][i].id)>0;i++){
+			int j,f=1;
+			if(!battle_config.skillfree) {
+				for(j=0;j<5;j++) {
+					if( skill_tree[c][i].need[j].id &&
+						pc_checkskill(sd,skill_tree[c][i].need[j].id) <
+						skill_tree[c][i].need[j].lv) {
+						f=0;
+						break;
 					}
 				}
-			} while(flag);
-	}
+				if (sd->status.job_level < skill_tree[c][i].joblv)
+					f=0;
+				else if (((id >= SM_SWORD && id <= TF_DETOXIFY) || (id >= TK_RUN && id <= TK_HIGHJUMP)) && pc_checkskill(sd, NV_BASIC) < 9)
+					f=0; // Do not unlock job1 skills when Basic Skills is not maxed out (can happen because of skill reset)
+			}
+			if(f && sd->status.skill[id].id==0 ){
+				sd->status.skill[id].id=id;
+				flag=1;
+			}
+		}
+	} while(flag);
 	return 0;
 }
 
