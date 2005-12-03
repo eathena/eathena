@@ -737,9 +737,9 @@ int do_sendrecv(int next)
 
 #ifdef __WIN32
 	if (ret == SOCKET_ERROR) {
-		ShowError("do_sendrecv: select error (code %d)\n", WSAGetLastError());
 		if (WSAGetLastError() == WSAEWOULDBLOCK)
 			return 0; //Eh... try again later?
+		ShowError("do_sendrecv: select error (code %d)\n", WSAGetLastError());
 #else
 	if (ret == -1) {
 		perror("do_sendrecv");
@@ -754,12 +754,31 @@ int do_sendrecv(int next)
 		FD_ZERO(&wfd);
 		FD_ZERO(&efd);
 		for(i = 1; i < fd_max; i++) { //Session 0 is not parsed, it's a 'vacuum' for disconnected sessions. [Skotlex]
-			if (!session[i])
+			if (!session[i]) {
+#ifdef __WIN32
+				//Debug to locate runaway sockets in Windows [Skotlex]
+				if (FD_ISSET(i, &readfds)) {
+					FD_CLR(i, &readfds);
+					ShowDebug("Socket %d was set (read fifos) without a session, removed.\n", i);
+				}
+	#ifdef TURBO
+				if (FD_ISSET(i, &writefds)) {
+					FD_CLR(i, &writefds);
+					ShowDebug("Socket %d was set (write fifos) without a session, removed.\n", i);
+				}
+	#endif
+#endif
 				continue;
+			}
 			if (FD_ISSET(i, &readfds))
 				FD_SET(i, &rfd);
+#ifdef TURBO
+			if (FD_ISSET(i, &writefds))
+				FD_SET(i, &wfd);
+#else
 			if (session[i]->wdata_size)
 				FD_SET(i, &wfd);
+#endif
 			FD_SET(i, &efd);
 			timeout.tv_sec = 0;
 			timeout.tv_usec = 0;
@@ -812,7 +831,8 @@ int do_sendrecv(int next)
 	if (ret == 0) //Nothing to send/recv.
 		return 0;
 
-#ifndef TURBO
+#if !defined(TURBO) || defined(__WIN32)
+	//Win32 doesn't has this FDS_BITS stuff, so it can't do this turbo approach.
 	if (ret <= 0)
 		return 0;
 	for (i = 1; i < fd_max; i++){

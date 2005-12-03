@@ -7669,7 +7669,7 @@ void clif_soundeffect(struct map_session_data *sd,struct block_list *bl,char *na
 
 int clif_soundeffectall(struct block_list *bl, char *name, int type)
 {
-	unsigned char buf[31];
+	unsigned char buf[40];
 	memset(buf, 0, packet_len_table[0x1d3]);
 
 	nullpo_retr(0, bl);

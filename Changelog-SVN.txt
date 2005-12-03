@@ -1,6 +1,8 @@
 Date	Added
 
 2005/12/03
+	* Some cleaning of socket.c to see if TURBO will now work on Windows, it
+	  may also fix the select() problems on that platform as well. [Skotlex]
 	* Fixex "gm_skill_all" crashing the server from generating huge packets (or
 	  so I hope) [Skotlex]
 2005/12/02
