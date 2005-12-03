@@ -1004,7 +1004,8 @@ int pc_calc_skilltree(struct map_session_data *sd)
 		for(i=0;i<MAX_SKILL;i++){
 			if (skill_get_inf2(i)&INF2_NPC_SKILL) //Only skills you can't have are npc ones.
 				continue;
-			sd->status.skill[i].id=i;
+			if (skill_get_max(i) > 0)
+				sd->status.skill[i].id=i;
 		}
 		return 0;
 	}

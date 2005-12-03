@@ -1,5 +1,8 @@
 Date	Added
 
+2005/12/03
+	* Fixex "gm_skill_all" crashing the server from generating huge packets (or
+	  so I hope) [Skotlex]
 2005/12/02
 	* Gave the Spirit Status Change a custom effect for now. [Skotlex]
 	* Merged in Reddozen's work for SL_HIGH (Spirit of Rebirth) [Skotlex]
