@@ -3591,21 +3591,38 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 	int scdef = 0;
 
 	nullpo_retr(0, bl);
-	if(bl->type == BL_SKILL)
+	switch (bl->type)
+	{
+		case BL_PC:
+			sd=(struct map_session_data *)bl;
+			if (status_isdead(bl))
+				return 0;
+			break;
+		case BL_MOB:
+			if (((struct mob_data*)bl)->class_ == MOBID_EMPERIUM && type != SC_SAFETYWALL)
+				return 0; //Emperium can't be afflicted by status changes.
+			if (status_isdead(bl))
+				return 0;
+			break;
+		case BL_PET: //Because pets can't have status changes.
+		case BL_SKILL: //These may happen by attacking traps or the like. [Skotlex]
+			return 0;
+		default:
+			if(battle_config.error_log)
+				ShowError("status_change_start: invalid source type (%d)!\n", bl->type);
+			return 0;
+	}
+	if(type < 0 || type >= SC_MAX) {
+		if(battle_config.error_log)
+			ShowError("status_change_start: invalid status change (%d)!\n", type);
 		return 0;
-	if(bl->type == BL_MOB)
-		if (status_isdead(bl)) return 0;
-	if(bl->type == BL_PET)	//Pets cannot have status effects
-		return 0;
-	if(type < 0 || type >= SC_MAX)
-		return 0;
-
-	nullpo_retr(0, sc_data=status_get_sc_data(bl));
-	nullpo_retr(0, sc_count=status_get_sc_count(bl));
-	nullpo_retr(0, option=status_get_option(bl));
-	nullpo_retr(0, opt1=status_get_opt1(bl));
-	nullpo_retr(0, opt2=status_get_opt2(bl));
-	nullpo_retr(0, opt3=status_get_opt3(bl));
+	}
+	sc_data=status_get_sc_data(bl);
+	sc_count=status_get_sc_count(bl);
+	option=status_get_option(bl);
+	opt1=status_get_opt1(bl);
+	opt2=status_get_opt2(bl);
+	opt3=status_get_opt3(bl);
 
 	race=status_get_race(bl);
 	mode=status_get_mode(bl);
@@ -3639,29 +3656,19 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 	}
 	if(scdef>=100)
 		return 0;
-	if(bl->type==BL_PC){
-		sd=(struct map_session_data *)bl;
-		if( sd && type == SC_ADRENALINE && !(skill_get_weapontype(BS_ADRENALINE)&(1<<sd->status.weapon)))
+	if(sd){
+		if(type == SC_ADRENALINE && !(skill_get_weapontype(BS_ADRENALINE)&(1<<sd->status.weapon)))
 			return 0;
 		if( sd && type == SC_ADRENALINE2 && !(skill_get_weapontype(BS_ADRENALINE2)&(1<<sd->status.weapon)))
 			return 0;
 
 		if(SC_COMMON_MIN<=type && type<=SC_COMMON_MAX && !(flag&1)){
-			if( sd && sd->reseff[type-SC_COMMON_MIN] > 0 && rand()%10000<sd->reseff[type-SC_COMMON_MIN]){
+			if(sd->reseff[type-SC_COMMON_MIN] > 0 && rand()%10000<sd->reseff[type-SC_COMMON_MIN]){
 				if(battle_config.battle_log)
-					ShowInfo("PC %d skill_sc_start: card‚É‚æ‚éˆÙí‘Ï«?“®\n",sd->bl.id);
+					ShowInfo("PC %d skill_sc_start: status change %d blocked by reseff card (AID: %d).\n",type,bl->id);
 				return 0;
 			}
 		}
-	}
-	else if(bl->type == BL_MOB) {
-		if (((struct mob_data*)bl)->class_ == MOBID_EMPERIUM && type != SC_SAFETYWALL)
-			return 0; //Emperium can't be afflicted by status changes.
-	}
-	else {
-		if(battle_config.error_log)
-			ShowError("status_change_start: neither MOB nor PC !\n");
-		return 0;
 	}
 
 	if((type==SC_FREEZE || type==SC_STONE) && undead_flag && !(flag&1))
