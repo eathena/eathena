@@ -38,6 +38,7 @@
 	12132,Red_Package: Turns you into x-mas clothes sprite for 10 minutes
 	--
 12/02
+	* Fixed all Items according to Soul Linker Job (remved forbidden entries, added missing) [Lupus]
 	* Changed the requirment of Vulture's Eye for Falcon Assault [MasterOfMuppets]
 	  from 10 to 5, thanks to Haplo.
 	* Fixed two typos in the mob_skill_db, thanks to Zubasa [MasterOfMuppets]
