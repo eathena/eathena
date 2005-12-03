@@ -38,6 +38,7 @@
 	12132,Red_Package: Turns you into x-mas clothes sprite for 10 minutes
 	--
 12/02
+	* Fixed two typos in the mob_skill_db, thanks to Zubasa [MasterOfMuppets]
 	* Casting time for soul link [Vicious]
 	* Updated Marine Sphere skills in hopes to make it work correctly.
 12/01

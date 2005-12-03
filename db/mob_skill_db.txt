@@ -1,4 +1,4 @@
-// Aegis zone 8.5 -> eAthena conversion by Komurka
+﻿// Aegis zone 8.5 -> eAthena conversion by Komurka
 // + Mob Skills for Einbroch+ by Lupus
 //MOB_ID, a unused dummy character sequence (for information only), STATE, SKILL_ID, SKILL_LV,
 // rate (10000 = 100%), casttime, delay, cancelable, a target, a condition type, a condition value,
@@ -2617,7 +2617,7 @@
 1637,MAGALETA@PR_LEXDIVINA,attack,76,10,500,1000,5000,yes,target,always,0,,,,,,2
 1637,MAGALETA@AL_INCAGI,chase,29,5,500,700,5000,no,self,always,0,,,,,,
 1637,MAGALETA@AL_DECAGI,chase,30,10,2000,0,60000,no,target,always,0,,,,,,29
-1637,MAGALETA@NPC_HOLYATTACK,attact,189,1,500,800,5000,yes,target,always,0,,,,,,
+1637,MAGALETA@NPC_HOLYATTACK,attack,189,1,500,800,5000,yes,target,always,0,,,,,,
 1637,MAGALETA@MG_SAFETYWALL,attack,12,5,1000,1000,5000,no,self,always,0,,,,,,18
 1637,MAGALETA@AL_HEAL,chase,28,9,10000,500,5000,no,self,myhpltmaxrate,30,,,,,,18
 1637,MAGALETA@AL_HEAL,attack,28,10,10000,500,5000,no,self,myhpltmaxrate,30,,,,,,18
@@ -2694,7 +2694,7 @@
 1643,G_MAGALETA@PR_LEXDIVINA,attack,76,10,500,1000,5000,yes,target,always,0,,,,,,2
 1643,G_MAGALETA@AL_INCAGI,chase,29,5,500,700,5000,no,self,always,0,,,,,,
 1643,G_MAGALETA@AL_DECAGI,chase,30,10,2000,0,60000,no,target,always,0,,,,,,29
-1643,G_MAGALETA@NPC_HOLYATTACK,attact,189,1,500,800,5000,yes,target,always,0,,,,,,
+1643,G_MAGALETA@NPC_HOLYATTACK,attack,189,1,500,800,5000,yes,target,always,0,,,,,,
 1643,G_MAGALETA@MG_SAFETYWALL,attack,12,5,1000,1000,5000,no,self,always,0,,,,,,18
 1643,G_MAGALETA@AL_HEAL,chase,28,9,10000,500,5000,no,self,myhpltmaxrate,30,,,,,,18
 1643,G_MAGALETA@AL_HEAL,attack,28,10,10000,500,5000,no,self,myhpltmaxrate,30,,,,,,18
