@@ -8242,6 +8242,9 @@ void clif_parse_WalkToXY(int fd, struct map_session_data *sd) {
 	if (!pc_can_move(sd))
 		return;
 
+	if(sd->sc_data && sd->sc_data[SC_RUN].timer != -1)
+		return;
+
 	if (sd->invincible_timer != -1)
 		pc_delinvincibletimer(sd);
 

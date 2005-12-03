@@ -3335,14 +3335,14 @@ int pc_run(struct map_session_data *sd, int skilllv, int dir)
 	}
 
 	//進めない場合　駆け足終了　障害物で止まった場合スパート状態解除
-	if(to_x == sd->bl.x && to_y == sd->bl.y)
-		pc_stop_walking(sd, 0);
-	else
-	{
-		if (sd->sc_data[SC_RUN].timer == -1)
-			status_change_start(&sd->bl,SC_RUN,skilllv,dir,0,0,0,0);
+	if(to_x == sd->bl.x && to_y == sd->bl.y){
+		if(sd->sc_data && sd->sc_data[SC_RUN].timer!=-1)
+			status_change_end(&sd->bl,SC_RUN,-1);
+		if(sd->sc_data && sd->sc_data[SC_SPORT].timer!=-1)
+			status_change_end(&sd->bl,SC_SPORT,-1);
+	} else
 		pc_walktoxy(sd, to_x, to_y);
-	}
+
 	return 1;
 }
 /*==========================================

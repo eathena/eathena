@@ -1,6 +1,11 @@
 Date	Added
 
 2005/12/03
+	* Fixed up TK Sprint (TK_RUN) skill: [Valaris]
+		-Disabled movement during skill use.
+		-Correct moves player server-side.
+		-Stops without sp use if skill is used during running.
+		-Server will not save status if player logs out.
 	* Some cleaning of socket.c to see if TURBO will now work on Windows, it
 	  may also fix the select() problems on that platform as well. [Skotlex]
 	* Fixex "gm_skill_all" crashing the server from generating huge packets (or

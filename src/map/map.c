@@ -1351,7 +1351,11 @@ int map_quit(struct map_session_data *sd) {
 			status_change_end(&sd->bl,SC_HIDING,-1);
 		else if(sd->sc_data[SC_CLOAKING].timer!=-1)
 			status_change_end(&sd->bl,SC_CLOAKING,-1);
-		
+		if(sd->sc_data[SC_RUN].timer!=-1)
+			status_change_end(&sd->bl,SC_RUN,-1);
+		if(sd->sc_data[SC_SPORT].timer!=-1)
+			status_change_end(&sd->bl,SC_SPORT,-1);
+
 		if(sd->sc_data && sd->sc_data[SC_BERSERK].timer!=-1) //バ?サ?ク中の終了はHPを100に
 		{	//Berserk must not be saved, so it must be ended now. [Skotlex]
 			sd->status.hp = 100;

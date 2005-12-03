@@ -4059,14 +4059,16 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		}
 		break;
 	case TK_RUN:
-		if (dstsd) {
-			if (dstsd->sc_data[SC_RUN].timer == -1)
-			{
-				pc_run(dstsd, skilllv, (int)dstsd->dir);
-				if(skilllv>=7 && dstsd->status.weapon == 0 && (dstsd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON)
-					status_change_start(bl,SC_SPORT,10,0,0,0,skill_get_time2(skillid,skilllv),0);
-			} else
-				pc_stop_walking(dstsd, 0);
+		if(sd && sd->sc_data)
+		{
+			clif_skill_nodamage(src,bl,skillid,skilllv,1);
+			if(sd->sc_data[SC_RUN].timer!=-1)
+				status_change_end(bl,SC_RUN,-1);
+			else{
+				status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,sd->dir,0,0,0,0 );
+				if(skilllv>=7 && sd->weapontype1 == 0 && sd->weapontype2 == 0)
+					status_change_start(&dstsd->bl,SC_SPORT,10,0,0,0,150000,0);
+			}
 		}
 		break;
 	case AS_CLOAKING:		/* ƒNƒ??ƒLƒ“ƒO */
@@ -7701,11 +7703,20 @@ int skill_check_condition(struct map_session_data *sd,int type)
 	case CR_DEFENDER:				/* ƒfƒBƒtƒFƒ“ƒ_? */
 	case ST_CHASEWALK:
 	case PA_GOSPEL:
-	case TK_RUN:
 	case CR_SHRINK:
 		if(sd->sc_data[SkillStatusChangeTable[skill]].timer!=-1)
 			return 1;			/* ‰ð?œ‚·‚é?ê?‡‚ÍSP?Á”ï‚µ‚È‚¢ */
 		break;
+
+	case TK_RUN:
+		if(sd->sc_data[SC_RUN].timer!=-1){
+			status_change_end(&sd->bl,SC_RUN,-1);
+			if(sd->sc_data[SC_SPORT].timer!=-1)
+				status_change_end(&sd->bl,SC_SPORT,-1);
+			return 0;
+		}
+	break;
+
 	case AL_WARP:
 		if(!(type&2)) //Delete the item when the portal has been selected (type&2). [Skotlex]
 			delitem_flag = 0;

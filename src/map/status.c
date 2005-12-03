@@ -4599,6 +4599,9 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 	if (bl->type==BL_PC && sd->pd)
 		pet_sc_check(sd, type); //Skotlex: Pet Status Effect Healing
 
+	if(type==SC_RUN && bl->type==BL_PC)
+		pc_run(sd,val1,val2);
+	
 	return 0;
 }
 /*==========================================
@@ -4802,7 +4805,7 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			{
 				struct map_session_data *sd;
 				if (bl->type == BL_PC && (sd= (struct map_session_data *)bl) && sd->walktimer != -1)
-					pc_stop_walking(sd,0);
+					pc_stop_walking(sd,1);
 				calc_flag = 1;
 				break;
 			}
@@ -5312,6 +5315,7 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 	case SC_READYDOWN:
 	case SC_READYTURN:
 	case SC_READYCOUNTER:
+	case SC_RUN:
 	case SC_DODGE:
 		sc_data[type].timer=add_timer( 1000*600+tick,status_change_timer, bl->id, data );
 		return 0;
