@@ -274,19 +274,19 @@ int pc_istop10fame(int char_id,int job) {
 	case MAPID_BLACKSMITH: // Blacksmith
 	    for(i=0;i<10;i++){
 			if(smith_fame_list[i].id==char_id)
-			    return 1;
+			    return smith_fame_list[i].fame;
 		}
 		break;
 	case MAPID_ALCHEMIST: // Alchemist
 	    for(i=0;i<10;i++){
 	        if(chemist_fame_list[i].id==char_id)
-	            return 1;
+	            return chemist_fame_list[i].fame;
 		}
 		break;
 	case MAPID_TAEKWON: // Taekwon
 	    for(i=0;i<10;i++){
 	        if(taekwon_fame_list[i].id==char_id)
-	            return 1;
+	            return taekwon_fame_list[i].fame;
 		}
 		break;
 	}
@@ -1002,7 +1002,7 @@ int pc_calc_skilltree(struct map_session_data *sd)
 
 	if (battle_config.gm_allskill > 0 && pc_isGM(sd) >= battle_config.gm_allskill){
 		for(i=0;i<MAX_SKILL;i++){
-			if (skill_get_inf2(i)&INF2_NPC_SKILL) //Only skills you can't have are npc ones.
+			if (skill_get_inf2(i)&(INF2_NPC_SKILL|INF2_GUILD_SKILL)) //Only skills you can't have are npc ones.
 				continue;
 			if (skill_get_max(i) > 0)
 				sd->status.skill[i].id=i;

@@ -2523,19 +2523,19 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 	if (src->type == BL_PC) {
 		nullpo_retr(1, sd = (struct map_session_data *)src);
 	}
-	if (sd && pc_isdead(sd))
-		return 1;
 
 	if (bl->prev == NULL)
 		return 1;
 	if (bl->type == BL_PC) {
 		nullpo_retr(1, tsd = (struct map_session_data *)bl);
 	}
-	if (tsd && pc_isdead(tsd))
-		return 1;
 
 	if ((skillid == CR_GRANDCROSS || skillid == NPC_GRANDDARKNESS) && src != bl)
 		bl = src;
+
+	if (status_isdead(src) || (src != bl && status_isdead(bl)))
+		return 1;
+	
 	sc_data = status_get_sc_data(src);
 	
 	map_freeblock_lock();
