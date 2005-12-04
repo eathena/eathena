@@ -1,5 +1,7 @@
 Date	Added
 
+2005/12/04
+	* Fixed too big VVS damage of TOP10 BS weapons [Lupus]
 2005/12/03
 	* Fixed up TK Sprint (TK_RUN) skill: [Valaris]
 		-Disabled movement during skill use.
