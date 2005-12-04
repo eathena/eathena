@@ -3589,12 +3589,6 @@ static const struct battle_data_short {
 	{ "duel_allow_pvp",						&battle_config.duel_allow_pvp}, // [LuzZza]
 	{ "duel_allow_gvg",						&battle_config.duel_allow_gvg}, // [LuzZza]
 	{ "duel_time_interval",					&battle_config.duel_time_interval}, // [LuzZza]	
-
-//SQL-only options start
-#ifndef TXT_ONLY
-	{ "mail_system",                       &battle_config.mail_system	}, // added by [Valaris]
-//SQL-only options end
-#endif
 };
 
 static const struct battle_data_int {
@@ -3968,12 +3962,6 @@ void battle_set_defaults() {
 	battle_config.duel_allow_pvp = 0;
 	battle_config.duel_allow_pvp = 0;
 	battle_config.duel_time_interval = 60;
-
-//SQL-only options start
-#ifndef TXT_ONLY
-	battle_config.mail_system = 0;
-//SQL-only options end
-#endif
 }
 
 void battle_validate_conf() {

@@ -9083,7 +9083,7 @@ int atcommand_listmail(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	if(!battle_config.mail_system)
+	if(!mail_server_enable)
 		return 0;
 
 	nullpo_retr(-1, sd);
@@ -9102,7 +9102,7 @@ int atcommand_readmail(
 	const char* command, const char* message)
 {
 	int index;
-	if(!battle_config.mail_system)
+	if(!mail_server_enable)
 		return 0;
 
 	nullpo_retr(-1, sd);
@@ -9132,7 +9132,7 @@ int atcommand_sendmail(
 {
 	char name[NAME_LENGTH],text[80];
 
-	if(!battle_config.mail_system)
+	if(!mail_server_enable)
 		return 0;
 
 	nullpo_retr(-1, sd);

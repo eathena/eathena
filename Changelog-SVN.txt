@@ -1,6 +1,8 @@
 Date	Added
 
 2005/12/04
+	* Removed mail server switch from battle_athena.conf and added
+	  full mail server configuration to inter_athena.conf. [Valaris]
 	* Fixed too big VVS damage of TOP10 BS weapons [Lupus]
 2005/12/03
 	* Fixed up TK Sprint (TK_RUN) skill: [Valaris]

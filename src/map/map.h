@@ -1242,24 +1242,30 @@ extern int charsave_method; //needed ..
 void char_online_check(void); // [Valaris]
 void char_offline(struct map_session_data *sd);
 
-extern MYSQL mmysql_handle;
+
 extern char tmp_sql[65535];
-extern MYSQL_RES* sql_res ;
+
+extern int db_use_sqldbs;
+extern MYSQL mmysql_handle;
+extern MYSQL_RES*	sql_res ;
 extern MYSQL_ROW	sql_row ;
 
 extern MYSQL lmysql_handle;
-extern MYSQL_RES* lsql_res ;
+extern MYSQL_RES*	lsql_res ;
 extern MYSQL_ROW	lsql_row ;
 
-extern MYSQL logmysql_handle;
-extern MYSQL_RES* logsql_res ;
-extern MYSQL_ROW logsql_row ;
+extern MYSQL charsql_handle;
+extern MYSQL_RES*	charsql_res;
+extern MYSQL_ROW	charsql_row;
 
+extern MYSQL logmysql_handle;
+extern MYSQL_RES*	logsql_res ;
+extern MYSQL_ROW	logsql_row ;
+
+extern int mail_server_enable;
 extern MYSQL mail_handle;
 extern MYSQL_RES* 	mail_res ;
 extern MYSQL_ROW	mail_row ;
-
-extern int db_use_sqldbs;
 
 extern char item_db_db[32];
 extern char item_db2_db[32];
@@ -1276,12 +1282,10 @@ extern char gm_db_account_id[32];
 
 extern int read_gm_interval;
 
-//Own saving
-extern MYSQL charsql_handle;
-extern MYSQL_RES* charsql_res;
-extern MYSQL_ROW charsql_row;
-
 extern char char_db[32];
+
+extern char mail_db[32];
+
 #endif /* not TXT_ONLY */
 
 extern int lowest_gm_level;

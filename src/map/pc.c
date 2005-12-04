@@ -919,7 +919,7 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 	}
 
 #ifndef TXT_ONLY
-	if(battle_config.mail_system)
+	if(mail_server_enable)
 		mail_check(sd,1); // check mail at login [Valaris]
 #endif
 

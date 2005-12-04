@@ -33,8 +33,6 @@
 	#endif
 #endif
 
-char mail_db[32] = "mail";
-
 int MAIL_CHECK_TIME = 120000;
 int mail_timer;
 //extern char *msg_table[1000]; // Server messages (0-499 reserved for GM commands, 500-999 reserved for others)

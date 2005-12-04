@@ -399,10 +399,6 @@ extern struct Battle_Config {
 	unsigned short duel_allow_gvg; // [LuzZza]
 	unsigned short duel_time_interval; // [LuzZza]
 	
-#ifndef TXT_ONLY /* SQL-only options */
-	unsigned short mail_system; // [Valaris]
-#endif
-
 } battle_config;
 
 extern int battle_config_read(const char *cfgName);

@@ -92,11 +92,18 @@ char login_db[32] = "login";
 char login_db_level[32] = "level";
 char login_db_account_id[32] = "account_id";
 
-char log_db[32] = "log";
+int log_db_port = 3306;
 char log_db_ip[16] = "127.0.0.1";
 char log_db_id[32] = "ragnarok";
 char log_db_pw[32] = "ragnarok";
-int log_db_port = 3306;
+char log_db[32] = "log";
+
+int mail_server_port = 3306;
+char mail_server_ip[16] = "127.0.0.1";
+char mail_server_id[32] = "ragnarok";
+char mail_server_pw[32] = "ragnarok";
+char mail_server_db[32] = "ragnarok";
+int mail_server_enable = 0;
 
 char gm_db[32] = "login";
 char gm_db_level[32] = "level";
@@ -105,6 +112,8 @@ char gm_db_account_id[32] = "account_id";
 int read_gm_interval = 600000;
 
 char char_db[32] = "char";
+
+char mail_db[32] = "mail";
 
 char charsql_host[40] = "localhost";
 int charsql_port = 3306;
@@ -3176,6 +3185,22 @@ int inter_config_read(char *cfgName)
 			strcpy(log_db_pw, w2);
 		} else if(strcmpi(w1,"log_db_port")==0) {
 			log_db_port = atoi(w2);
+		// Mail Server SQL 
+		} else if(strcmpi(w1,"mail_server_enable")==0){
+			mail_server_enable = battle_config_switch(w2);
+			ShowStatus ("Using Mail Server: %s\n",w2);
+		} else if(strcmpi(w1,"mail_server_ip")==0){
+			strcpy(mail_server_ip, w2);
+		} else if(strcmpi(w1,"mail_server_port")==0){
+			mail_server_port=atoi(w2);
+		} else if(strcmpi(w1,"mail_server_id")==0){
+			strcpy(mail_server_id, w2);
+		} else if(strcmpi(w1,"mail_server_pw")==0){
+			strcpy(mail_server_pw, w2);
+		} else if(strcmpi(w1,"mail_server_db")==0){
+			strcpy(mail_server_db, w2);
+		} else if(strcmpi(w1,"mail_db")==0) {
+			strcpy(mail_db, w2);
 	#endif
 		//support the import command, just like any other config
 		} else if(strcmpi(w1,"import")==0){
@@ -3223,10 +3248,11 @@ int map_sql_init(void){
 		ShowStatus ("connect success! (Login Server Connection)\n");
 	 }
 
-	if(battle_config.mail_system) { // mail system [Valaris]
+	if(mail_server_enable) { // mail system [Valaris]
 		mysql_init(&mail_handle);
-		if(!mysql_real_connect(&mail_handle, map_server_ip, map_server_id, map_server_pw,
-			map_server_db ,map_server_port, (char *)NULL, 0)) {
+	        ShowInfo("Connecting to the Mail DB Server....\n");
+		if(!mysql_real_connect(&mail_handle, mail_server_ip, mail_server_id, mail_server_pw,
+			mail_server_db ,mail_server_port, (char *)NULL, 0)) {
 				ShowSQL("DB error - %s\n",mysql_error(&mail_handle));
 				exit(1);
 		}
@@ -3584,7 +3610,7 @@ int do_init(int argc, char *argv[]) {
 	do_init_npc();
 
 #ifndef TXT_ONLY /* mail system [Valaris] */
-	if(battle_config.mail_system)
+	if(mail_server_enable)
 		do_init_mail();
 
 	if (log_config.sql_logs)
