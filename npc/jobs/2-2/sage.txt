@@ -1807,17 +1807,16 @@ L_Menu1_2:
 			next;
 			menu "Odin",-,"Loki",L_Menu2_3,"Tooru",L_Menu2_3,"Aragamsaree",L_Menu2_3;
 			set @sage_test2,@sage_test2+5;
-			return;
 
-			L_Menu2_3:
-		mes "[Kreitos]";
-		mes "Are you finished?";
-		mes "Alright, then I'll grade the test.";
-		next;
-		mes "[Kreitos]";
-		mes "Hmmm...";
-		mes "Yes....";
-		next;
+		L_Menu2_3:
+			mes "[Kreitos]";
+			mes "Are you finished?";
+			mes "Alright, then I'll grade the test.";
+			next;
+			mes "[Kreitos]";
+			mes "Hmmm...";
+			mes "Yes....";
+			next;
 			if (@sage_test2 >= 100) goto L_Menu2_5;
 			if (@sage_test2 < 80) goto L_Menu2_4;
 			mes "[Kreitos]";

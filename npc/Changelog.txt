@@ -26,6 +26,8 @@ Nexon
 
 Date		Added
 ======
+12/04
+	* Fixed Sage Job Quest bug, thanks to Lorky [Lupus]
 12/02
 	* Removed two duplicates of each gonryun dungeon level in nomemo.txt  [MasterOfMuppets]
 	* Fixed a small screw-up in the color codes of the Glastheim Bulletin Board, [MasterOfMuppets]
