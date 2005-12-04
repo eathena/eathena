@@ -3195,6 +3195,7 @@ int atcommand_go(
 		   { "ayothaya.gat",   151, 117  },	//  18=Ayothaya
 		   { "einbroch.gat",   64,  200  },	//  19=Einbroch
 		   { "lighthalzen.gat",158,  92  },	//  20=Lighthalzen
+		   { "einbech.gat",    70,   95  },	//  21=Einbech
 	};
 
 	nullpo_retr(-1, sd);
@@ -3222,6 +3223,7 @@ int atcommand_go(
 		clif_displaymessage(fd, " 2=Geffen           10=Amatsu      18=Ayothaya");
 		clif_displaymessage(fd, " 3=Payon            11=Gon Ryun    19=Einbroch");
 		clif_displaymessage(fd, " 4=Alberta          12=Umbala      20=Lighthalzen");
+		clif_displaymessage(fd, "21=Einbech");
 		return -1;
 	} else {
 		// get possible name of the city and add .gat if not in the name
@@ -3279,9 +3281,11 @@ int atcommand_go(
 		} else if (strncmp(map_name, "jawaii.gat", 3) == 0 || // 3 first characters
 		           strncmp(map_name, "jawai.gat", 3) == 0) { // writing error (3 first characters)
 			town = 17;
-		} else if (strncmp(map_name, "ayothaya.gat", 4) == 0 || // 3 first characters
-		           strncmp(map_name, "ayotaya.gat", 4) == 0) { // writing error (3 first characters)
+		} else if (strncmp(map_name, "ayothaya.gat", 2) == 0 || // 2 first characters
+		           strncmp(map_name, "ayotaya.gat", 2) == 0) { // writing error (2 first characters)
 			town = 18;
+		} else if (strncmp(map_name, "einbech.gat", 5) == 0) { // 5 first characters
+			town = 21;
 		} else if (strncmp(map_name, "einbroch.gat", 3) == 0 || // 3 first characters
 		           strncmp(map_name, "ainbroch.gat", 3) == 0) { // writing error (3 first characters)
 			town = 19;

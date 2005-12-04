@@ -1,5 +1,7 @@
 Date	Added
 
+2005/12/05
+	* Added 'Einbech' into @go command (u have to type at least 5 letters) [Lupus]
 2005/12/04
 	* Removed mail server switch from battle_athena.conf and added
 	  full mail server configuration to inter_athena.conf. [Valaris]
