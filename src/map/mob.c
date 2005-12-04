@@ -2395,8 +2395,8 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 					zeny*=2;
 			}
 			if(battle_config.mobs_level_up && md->level > md->db->lv) { // [Valaris]
-				base_exp+=(unsigned long) ((md->level-md->db->lv)*(md->db->base_exp)*.03);
-				job_exp+=(unsigned long) ((md->level-md->db->lv)*(md->db->job_exp)*.03);
+				base_exp+=(unsigned long) (((md->level-md->db->lv)*((md->db->base_exp))*(battle_config.mobs_level_up_exp_rate/100)));
+				job_exp+=(unsigned long) (((md->level-md->db->lv)*((md->db->job_exp))*(battle_config.mobs_level_up_exp_rate/100)));
 			}
 		}
 

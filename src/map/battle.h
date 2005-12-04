@@ -345,6 +345,7 @@ extern struct Battle_Config {
 	
 	unsigned short zeny_from_mobs; // [Valaris]
 	unsigned short mobs_level_up; // [Valaris]
+	unsigned short mobs_level_up_exp_rate; // [Valaris]
 	unsigned short pk_min_level; // [celest]
 	unsigned short skill_steal_type; // [celest]
 	unsigned short skill_steal_rate; // [celest]
@@ -398,7 +399,7 @@ extern struct Battle_Config {
 	unsigned short duel_allow_pvp; // [LuzZza]
 	unsigned short duel_allow_gvg; // [LuzZza]
 	unsigned short duel_time_interval; // [LuzZza]
-	
+
 } battle_config;
 
 extern int battle_config_read(const char *cfgName);

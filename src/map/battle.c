@@ -3545,6 +3545,7 @@ static const struct battle_data_short {
 	{ "muting_players",                    &battle_config.muting_players}, // added by [Apple]
 	{ "zeny_from_mobs",                    &battle_config.zeny_from_mobs}, // [Valaris]
 	{ "mobs_level_up",                     &battle_config.mobs_level_up}, // [Valaris]
+	{ "mobs_level_up_exp_rate",		   &battle_config.mobs_level_up_exp_rate}, // [Valaris]
 	{ "pk_min_level",                      &battle_config.pk_min_level}, // [celest]
 	{ "skill_steal_type",                  &battle_config.skill_steal_type}, // [celest]
 	{ "skill_steal_rate",                  &battle_config.skill_steal_rate}, // [celest]
@@ -3916,7 +3917,8 @@ void battle_set_defaults() {
 	battle_config.max_cloth_color = 4;
 	battle_config.pet_hair_style = 100;
 	battle_config.zeny_from_mobs = 0;
-	battle_config.mobs_level_up = 0;
+	battle_config.mobs_level_up = 0; // [Valaris]
+	battle_config.mobs_level_up_exp_rate = 1; // [Valaris]
 	battle_config.pk_min_level = 55;
 	battle_config.skill_steal_type = 1;
 	battle_config.skill_steal_rate = 100;
@@ -4144,6 +4146,9 @@ void battle_validate_conf() {
 
 	if (battle_config.prevent_logout > 60000)
 		battle_config.prevent_logout = 60000;
+
+	if (battle_config.mobs_level_up_exp_rate < 1) // [Valaris]
+		battle_config.mobs_level_up_exp_rate = 1;
 }
 
 /*==========================================

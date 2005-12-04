@@ -1,6 +1,8 @@
 Date	Added
 
 2005/12/05
+	* Added battle_athena.conf option mobs_level_up_exp_rate to set the extra
+	  exp rate a leveled up monsters gives. [Valaris]
 	* Added a custom X-Mas quest *Sign Your Items* [Lupus]
 	* Applied Harbin's patch to fix Arrow Shower + Traps. Someone test it out.
 	  [Skotlex]
