@@ -908,7 +908,7 @@ int do_sendrecv(int next)
 			if (session[i]->func_parse)
 				session[i]->func_parse(i); //This should close the session inmediately.
 		}
-#ifdef TURBO
+#if defined(TURBO) && !defined(__WIN32)
 		} // for (j = 0;
 #endif
 	} // for (i = 0

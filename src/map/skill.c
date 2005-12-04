@@ -2899,6 +2899,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 		break;
 
 	case TK_TURNKICK:
+		if (sc_data && sc_data[SC_COMBO].timer != -1)
+			status_change_end(src, SC_COMBO, -1);
 	case MO_BALKYOUNG: //Active part of the attack. Skill-attack [Skotlex]
 	{
 		skill_area_temp[1] = bl->id; //NOTE: This is used in skill_castend_nodamage_id to avoid affecting the target.

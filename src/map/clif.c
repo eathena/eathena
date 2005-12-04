@@ -5108,7 +5108,7 @@ int clif_GMmessage(struct block_list *bl, char* mes, int len, int flag)
 	int lp;
 
 	lp = (flag & 0x10) ? 8 : 4;
-	buf = (unsigned char*)aCallocA(len + lp, sizeof(unsigned char));
+	buf = (unsigned char*)aCallocA(len + lp + 8, sizeof(unsigned char));
 
 	WBUFW(buf,0) = 0x9a;
 	WBUFW(buf,2) = len + lp;

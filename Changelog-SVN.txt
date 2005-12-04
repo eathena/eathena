@@ -1,6 +1,9 @@
 Date	Added
 
 2005/12/05
+	* Another fix to socket.c to enable TURBO mode to work on win32. [Skotlex]
+	* Fixed the combo status not ending after using TK_TURNKICK [Skotlex]
+	* Overflowed pointer fix in socket.c [Skotlex]
 	* Added 'Einbech' into @go command (u have to type at least 5 letters) [Lupus]
 2005/12/04
 	* Removed mail server switch from battle_athena.conf and added

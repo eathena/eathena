@@ -37,6 +37,8 @@
 	12131,Lucky_Potion: +15 LUK for 3 minutes
 	12132,Red_Package: Turns you into x-mas clothes sprite for 10 minutes
 	--
+12/04
+	* Updated SL_SOULLINKER to have inf2 = 512 (cant' cast on self) [Skotlex]
 12/02
 	* Fixed Items according to Taekwon / Soul Linker / Star Gladiator [Lupus]
 	* Changed the requirment of Vulture's Eye for Falcon Assault [MasterOfMuppets]
