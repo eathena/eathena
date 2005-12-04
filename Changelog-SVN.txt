@@ -1,6 +1,7 @@
 Date	Added
 
 2005/12/05
+	* Added a custom X-Mas quest *Sign Your Items* [Lupus]
 	* Applied Harbin's patch to fix Arrow Shower + Traps. Someone test it out.
 	  [Skotlex]
 	* Another fix to socket.c to enable TURBO mode to work on win32. [Skotlex]
