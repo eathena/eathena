@@ -559,17 +559,30 @@ static int mob_walk(struct mob_data *md,unsigned int tick,int data)
 
 /*==========================================
  * Reachability to a Specification ID existence place
+ * state indicates type of 'seek' mob should do:
+ * - MSS_LOOT: Looking for item, path must be easy.
+ * - MSS_RUSH: Chasing attacking player, path is determined by mob_ai&1
+ * - MSS_FOLLOW: Initiative/support seek, path must be easy.
  *------------------------------------------
  */
-int mob_can_reach(struct mob_data *md,struct block_list *bl,int range)
+int mob_can_reach(struct mob_data *md,struct block_list *bl,int range, int state)
 {
 	int dx,dy;
 	struct walkpath_data wpd;
-	int i, easy = (battle_config.mob_ai&1?0:1);
+	int i, easy = 0;
 
 	nullpo_retr(0, md);
 	nullpo_retr(0, bl);
-
+	switch (state) {
+		case MSS_RUSH:
+			easy = (battle_config.mob_ai&1?0:1);
+			break;
+		case MSS_LOOT:
+		case MSS_FOLLOW:
+		default:
+			easy = 1;
+			break;
+	}
 	dx=abs(bl->x - md->bl.x);
 	dy=abs(bl->y - md->bl.y);
 
@@ -626,7 +639,7 @@ static int mob_linksearch(struct block_list *bl,va_list ap)
 		&& (!md->target_id || md->state.targettype == NONE_ATTACKABLE))
 	{
 		md->last_linktime = tick;
-		if( mob_can_reach(md,target,md->db->range2) ){	// Reachability judging
+		if( mob_can_reach(md,target,md->db->range2, MSS_FOLLOW) ){	// Reachability judging
 			md->target_id = target->id;
 			md->attacked_count = 0;
 			md->state.targettype = ATTACKABLE;
@@ -1241,7 +1254,7 @@ static int mob_ai_sub_hard_activesearch(struct block_list *bl,va_list ap)
 	case BL_PC:
 	case BL_MOB:
 		if((dist=distance(md->bl.x,md->bl.y,bl->x,bl->y)) < md->db->range2
-			&& (md->db->range > 6 || mob_can_reach(md,bl,dist+1))
+			&& (md->db->range > 6 || mob_can_reach(md,bl,dist+1, MSS_FOLLOW))
 			&& ((*target) == NULL || distance(md->bl.x, md->bl.y, (*target)->x, (*target)->y) > dist) //New target closer than previous one.
 		) {
 			(*target) = bl;
@@ -1312,7 +1325,7 @@ static int mob_ai_sub_hard_lootsearch(struct block_list *bl,va_list ap)
 		return 0;
 	
 	if((dist=distance(md->bl.x,md->bl.y,bl->x,bl->y))<md->db->range2 &&
-		mob_can_reach(md,bl,dist) && rand()%1000<1000/(++(*itc)))
+		mob_can_reach(md,bl,dist, MSS_LOOT) && rand()%1000<1000/(++(*itc)))
 	{	// It is made a probability, such as within the limits PC.
 		md->target_id=bl->id;
 		md->state.targettype = NONE_ATTACKABLE;
@@ -1538,7 +1551,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 				(dist = distance(md->bl.x, md->bl.y, abl->x, abl->y)) >= 32 ||
 				battle_check_target(bl, abl, BCT_ENEMY) <= 0 ||
 				(battle_config.mob_ai&2 && !status_check_skilluse(bl, abl, 0, 0)) ||
-				!mob_can_reach(md, abl, dist+2)) //Some more cells of grace...
+				!mob_can_reach(md, abl, dist+2, MSS_RUSH)) //Some more cells of grace...
 			{	//Can't attack back
 				if (md->attacked_count++ > 3) {
 					if (mobskill_use(md, tick, MSC_RUDEATTACKED) == 0 &&
@@ -1654,11 +1667,13 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 				mobskill_use (md, tick, -1);
 				if (md->timer != -1 && md->state.state != MS_ATTACK &&
 					(DIFF_TICK (md->next_walktime, tick) < 0 ||
-					distance(md->to_x, md->to_y, tbl->x, tbl->y) < 2)) {
+					!(battle_config.mob_ai&1) ||
+					distance(md->to_x, md->to_y, tbl->x, tbl->y) < 2)
+				) {
 					return 0; //No need to follow, already doing it?
 				}
 				search_size = (blind_flag) ? 3 : ((md->min_chase > md->db->range2) ? md->min_chase : md->db->range2);
-				if (!mob_can_reach(md, tbl, search_size))
+				if (!mob_can_reach(md, tbl, search_size, MSS_RUSH))
 				{	//Can't reach
 					mob_unlocktarget(md,tick);
 					return 0;

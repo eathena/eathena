@@ -1,6 +1,10 @@
 Date	Added
 
 2005/12/05
+	* Updated mob ai so that support/aggressive mobs can't 'see' a player until
+	  there's a direct line of sight between them. [Skotlex]
+	* Updated monster_ai&1 so that when not set mob-chase type is Aegis-like
+	  (mobs will not change walk target tiles mid-walk) [Skotlex]
 	* Added battle_athena.conf option mobs_level_up_exp_rate to set the extra
 	  exp rate a leveled up monsters gives. [Valaris]
 	* Added a custom X-Mas quest *Sign Your Items* [Lupus]
