@@ -814,7 +814,7 @@ int do_sendrecv(int next)
 					session[i]->func_parse(i); //This should close the session inmediately.
 #endif
 			} else {
-				ShowDebug("do_sendrecv: Session #d caused error in select(), disconnecting.\n", i);
+				ShowDebug("do_sendrecv: Session #%d caused error in select(), disconnecting.\n", i);
 				set_eof(i); // set eof
 #ifdef TURBO
 				if (session[i]->func_parse)

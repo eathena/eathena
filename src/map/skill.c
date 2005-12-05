@@ -1840,8 +1840,8 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		}
 	}
 	if (skillid != WZ_HEAVENDRIVE && bl->type == BL_SKILL && damage > 0) {
-//		struct skill_unit* su = (struct skill_unit*)bl; // Useless now ? [Harbin]
-//		if (su->group && skill_get_inf(su->group->skill_id)&INF2_TRAP)	// Enables to do normal damage to traps [Harbin] 
+		struct skill_unit* su = (struct skill_unit*)bl;
+		if (su->group && skill_get_inf2(su->group->skill_id)&INF2_TRAP)
 			damage = 0; //Only Heaven's drive may damage traps. [Skotlex]
 	}
 	if ((skillid || flag) && !(attack_type&BF_WEAPON)) {  // do not really deal damage for ASC_BREAKER's 1st attack

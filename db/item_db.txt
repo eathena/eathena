@@ -1061,7 +1061,7 @@
 2512,Novice_Manteau,Novice Manteau,5,50000,,500,,2,,1,8388609,7,2,4,,40,1,0,{ bonus2 bSubEle,Ele_Neutral,10; }
 2513,Heavenly_Wings,Light Wing-cloth,5,,10,500,,3,,1,119529470,7,2,4,,80,1,0,{}
 2514,Fauldren,Fauldren,5,,10,800,,5,,1,414946,7,2,4,,80,1,0,{}
-2515,Wing_of_Eagle,Wings of Eagle,5,,10,300,,1,,1,67174916,7,2,4,,85,1,0,{ if(isequipped(1616)) bonus bSpeed,10; }
+2515,Wing_of_Eagle,Wings of Eagle,5,,10,300,,1,,1,67174916,7,2,4,,85,1,0,{ if(isequipped(1616)) bonus bSpeedRate,10; }
 2516,Hawk_Wing_Muffler,Hawk Wing Cape,5,,10,400,,3,,0,119529470,7,2,4,,65,1,0,{ bonus bFlee,15; bonus bFlee2,5; }
 2517,Manteau_of_Vali,Manteau of Vali,5,,10,600,,4,,0,119529470,7,2,4,,65,1,0,{ bonus2 bSubEle,Ele_Neutral,15; }
 2518,Morphicious_Shawl,Shawl of Morphicious,5,,10,600,,3,,0,119529470,7,2,4,,33,1,0,{ bonus bMaxSPrate,10; bonus bMdef,3; }
