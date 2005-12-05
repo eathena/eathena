@@ -986,17 +986,34 @@ int pc_calc_skilltree(struct map_session_data *sd)
 
 	c = pc_calc_skilltree_normalize_job(sd);
 
-	for(i=0;i<MAX_SKILL;i++){
-		if (sd->status.skill[i].flag != 13)
-			sd->status.skill[i].id=0;
-		if (sd->status.skill[i].flag && sd->status.skill[i].flag != 13){	// cardスキルなら、
-			sd->status.skill[i].lv=(sd->status.skill[i].flag==1)?0:sd->status.skill[i].flag-2;	// 本?のlvに
-			sd->status.skill[i].flag=0;	// flagは0にしておく
+	for(i=0;i<MAX_SKILL;i++){ 
+		if (sd->status.skill[i].flag != 13) //Don't touch plagiarized skills
+			sd->status.skill[i].id=0; //First clear skills.
+	}
+	for(i=0;i<MAX_SKILL;i++){ 
+
+		if (sd->status.skill[i].flag && sd->status.skill[i].flag != 13){	
+			sd->status.skill[i].lv=(sd->status.skill[i].flag==1)?0:sd->status.skill[i].flag-2;
+			sd->status.skill[i].flag=0;
 		}
 		else
-		if(sd->sc_data[SC_SPIRIT].timer != -1 && skill_get_inf2(i)&INF2_SPIRIT_SKILL) { //Enable Spirit Skills. [Skotlex]
-			sd->status.skill[i].lv=1;
-			sd->status.skill[i].flag=1; //So it is not saved, and tagged as a "bonus" skill.
+		if(sd->sc_data[SC_SPIRIT].timer != -1) {
+			if (skill_get_inf2(i)&INF2_SPIRIT_SKILL) { //Enable Spirit Skills. [Skotlex]
+				sd->status.skill[i].id=i;
+				sd->status.skill[i].lv=1;
+				sd->status.skill[i].flag=1; //So it is not saved, and tagged as a "bonus" skill.
+			} else 
+			if(sd->sc_data[SC_SPIRIT].val2 == SL_BARDDANCER &&	i >= DC_HUMMING && i<= DC_SERVICEFORYOU) { //Enable Bard/Dancer spirit linked skills.
+				if (sd->status.sex) { //Link dancer skills to bard.
+					sd->status.skill[i].id=i;
+					sd->status.skill[i].lv=sd->status.skill[i-8].lv; // Set the level to the same as the linking skill
+					sd->status.skill[i].flag=1; // Tag it as a non-savable, non-uppable, bonus skill
+				} else { //Link bard skills to dancer.
+					sd->status.skill[i-8].id=i;
+					sd->status.skill[i-8].lv=sd->status.skill[i].lv; // Set the level to the same as the linking skill
+					sd->status.skill[i-8].flag=1; // Tag it as a non-savable, non-uppable, bonus skill
+				}
+			}
 		}
 	}
 

@@ -1,6 +1,8 @@
 Date	Added
 
 2005/12/05
+	* Merged in Reddozen's work on SL_BARDDANCER and cleaned up a bit the
+	  Spirit Skills code when calculating the skill tree. [Skotlex]
 	* Updated mob ai so that support/aggressive mobs can't 'see' a player until
 	  there's a direct line of sight between them. [Skotlex]
 	* Updated monster_ai&1 so that when not set mob-chase type is Aegis-like
