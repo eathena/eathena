@@ -16,6 +16,7 @@
 //= 1.4 Added more BBS MasterOfMuppets
 //= 1.5 Added the last of the bulletin boards, I think... [MasterOfMuppets]
 //= 1.5a Fixed a small screw up with the color codes in the Glastheim BB [MasterOfMuppets]
+//= 1.5b Fixed another small screw up with the color codes in the Glastheim BB [Kayla]
 //============================================================
 
 alberta.gat,111,59,5	script	Bulletin Board	837,{
@@ -603,7 +604,7 @@ glast_01.gat,369,308,5	script	Bulletin Board	837,{
 	mes "but for dungeon experts.";
 	next;
 	mes "[Glast Heim]";
-	mes "There are many fearsome monsters such as ^6B131Dark Lord^000000,";
+	mes "There are many fearsome monsters such as ^6B1312Dark Lord^000000,";
 	mes "^6B1312Owl Baron^000000, ^6B1312Owl Duke^000000, ^6B1312Dark Illusion^000000, ^6B1312Bloody Knight^000000, ^6B1312Abysmal Knight^000000, ^6B1312Chimera^000000 and various types of doomed swords.";
 	next;
 	mes "[Glast Heim]";

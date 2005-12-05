@@ -27,6 +27,8 @@ Nexon
 Date		Added
 ======
 12/05
+	* Fixed another small screw-up in the color codes of the Glastheim Bulletin Board, 
+	  eaos Bug Report[Kayla]
 	* Fixed a typo in NPC:Raust, eAOS bug report. [Kayla]
 	* Fixed a typo in NPC:Gushenmu, eAOS bug report. [Kayla]
 	* Added a nice custom Perchik's quest ** SIGN YOUR ITEMS ** [Lupus]
