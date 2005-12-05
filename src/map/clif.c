@@ -4527,8 +4527,7 @@ int clif_skillinfo(struct map_session_data *sd,int skillid,int type,int range)
 		range = skill_get_range2(&sd->bl, id,sd->status.skill[skillid].lv);
 
 	WFIFOW(fd,12)= range;
-	memset(WFIFOP(fd,14),0,NAME_LENGTH);
-//	strncpy(WFIFOP(fd,14), skill_get_name(id), NAME_LENGTH); //TODO: Correct a crash here when GM all SKILL is set. [Skotlex]
+	strncpy(WFIFOP(fd,14), skill_get_name(id), NAME_LENGTH);
 	inf2 = skill_get_inf2(id);
 	if(((!(inf2&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) &&
 		!(inf2&(INF2_WEDDING_SKILL|INF2_SPIRIT_SKILL))) ||
@@ -4563,8 +4562,7 @@ int clif_skillinfoblock(struct map_session_data *sd)
 			WFIFOW(fd,len+6) = sd->status.skill[i].lv;
 			WFIFOW(fd,len+8) = skill_get_sp(id,sd->status.skill[i].lv);
 			WFIFOW(fd,len+10)= skill_get_range2(&sd->bl, id,sd->status.skill[i].lv);
-			memset(WFIFOP(fd,len+12),0,NAME_LENGTH);
-//			strncpy(WFIFOP(fd,len+12), skill_get_name(id), NAME_LENGTH); //TODO: Correct a crash here when GM all SKILL is set. [Skotlex]
+			strncpy(WFIFOP(fd,len+12), skill_get_name(id), NAME_LENGTH);
 			inf2 = skill_get_inf2(id);
 			if(((!(inf2&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) &&
 				!(inf2&(INF2_WEDDING_SKILL|INF2_SPIRIT_SKILL))) ||
