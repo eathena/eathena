@@ -294,7 +294,7 @@ einbech.gat,93,139,6	script	Raust	847,{
 	mes "Not only do the people";
 	mes "look more ragged, we're";
 	mes "more tired and older looking";
-	mes "aswell! It's dirty, it's crowded,";
+	mes "as well! It's dirty, it's crowded,";
 	mes "everything in this city is a total";
 	mes "mess! What, you want a list?!";
 	next;
