@@ -1,6 +1,8 @@
 Date	Added
 
 2005/12/05
+	* Modified a bit the player attack code to give an extra range cell when
+	  the target is moving. [Skotlex]
 	* Added skip_teleport_lv1_menu battle_athena option. It give a possibility to
 	  disable (skip) Teleport Lv1 menu, that have only two lines `Random` and `Cancel`.
 	  Of course, by default this option have `no` (don't skip) value. [LuzZza]

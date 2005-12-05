@@ -350,6 +350,21 @@ int battle_stopattack(struct block_list *bl)
 		return pet_stopattack((struct pet_data*)bl);
 	return 0;
 }
+
+// Returns whether the given object is moving or not.
+int battle_iswalking(struct block_list *bl) {
+	switch (bl->type)
+	{
+		case BL_PC:
+			return (((struct map_session_data*)bl)->walktimer != -1);
+		case BL_MOB:
+			return (((struct mob_data*)bl)->state.state == MS_WALK);
+		case BL_PET:
+			return (((struct pet_data*)bl)->state.state == MS_WALK);
+		default:
+			return 0;
+	}
+}
 // ˆÚ“®’â~
 int battle_stopwalking(struct block_list *bl,int type)
 {

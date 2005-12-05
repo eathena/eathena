@@ -193,7 +193,9 @@ static int pet_attack(struct pet_data *pd,unsigned int tick,int data)
 		return 0;
 	}
 
-	range = pd->db->range + 1;
+	range = pd->db->range;
+	if (battle_iswalking(&pd->bl)) range++;
+	if (battle_iswalking(target)) range++;
 	if(distance(pd->bl.x,pd->bl.y,target->x,target->y) > range)
 		return 0;
 	if(battle_config.monster_attack_direction_change)

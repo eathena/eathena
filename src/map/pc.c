@@ -3960,7 +3960,7 @@ int pc_attack_timer(int tid,unsigned int tick,int id,int data)
 {
 	struct map_session_data *sd;
 	struct block_list *bl;
-	int dist,skill,range;
+	int skill,range;
 
 	sd=map_id2sd(id);
 	if(sd == NULL)
@@ -4006,21 +4006,15 @@ int pc_attack_timer(int tid,unsigned int tick,int id,int data)
 		return 0;
 	}
 
-	dist = distance(sd->bl.x,sd->bl.y,bl->x,bl->y);
 	range = sd->attackrange;
 	if(sd->status.weapon != 11) range++;
-	if( dist > range ){	// ? ‚©‚È‚¢‚Ì‚ÅˆÚ“®
+	if(battle_iswalking(bl)) range++;
+	if(!battle_check_range(&sd->bl,bl,range) ) {
 		if(pc_can_reach(sd,bl->x,bl->y))
 			clif_movetoattack(sd,bl);
 		return 0;
 	}
 
-	if(!battle_check_range(&sd->bl,bl,range) ) {
-		if(pc_can_reach(sd,bl->x,bl->y) && pc_can_move(sd))
-			pc_walktoxy(sd,bl->x,bl->y);
-		sd->attackabletime = tick + (sd->aspd<<1);
-	}
-	else {
 		if(battle_config.pc_attack_direction_change)
 			sd->dir=sd->head_dir=map_calc_dir(&sd->bl, bl->x,bl->y );	// Œü‚«İ’è
 
@@ -4044,7 +4038,6 @@ int pc_attack_timer(int tid,unsigned int tick,int id,int data)
 			else
 				sd->attackabletime = tick + (sd->aspd<<1);
 		}
-	}
 
 	if(sd->state.attack_continue) {
 		sd->attacktimer=add_timer(sd->attackabletime,pc_attack_timer,sd->bl.id,0);
