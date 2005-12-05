@@ -37,6 +37,8 @@
 	12131,Lucky_Potion: +15 LUK for 3 minutes
 	12132,Red_Package: Turns you into x-mas clothes sprite for 10 minutes
 	--
+12/05
+	* Fixed Meteor Storm (Was not requiring thunderstorm level 1) [Kayla]
 12/04
 	* Updated SL_SOULLINKER to have inf2 = 512 (cant' cast on self) [Skotlex]
 12/02

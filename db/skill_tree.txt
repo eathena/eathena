@@ -178,7 +178,7 @@
 9,80,10,18,1,0,0,0,0,0,0,0,0 //WZ_FIREPILLAR#Fire Pillar#
 9,81,10,20,1,10,1,0,0,0,0,0,0 //WZ_SIGHTRASHER#Sightrasher#
 //9,82,10,0,0,0,0,0,0,0,0,0,0 //WZ_FIREIVY#Fire Ivy#
-9,83,10,81,2,0,0,0,0,0,0,0,0 //WZ_METEOR#Meteor Storm#
+9,83,10,81,2,21,1,0,0,0,0,0,0 //WZ_METEOR#Meteor Storm#
 9,84,10,11,1,20,1,0,0,0,0,0,0 //WZ_JUPITEL#Jupiter Thunder#
 9,85,10,21,1,84,5,0,0,0,0,0,0 //WZ_VERMILION#Lord of Vermilion#
 9,86,5,14,1,20,1,0,0,0,0,0,0 //WZ_WATERBALL#Water Ball#
@@ -834,7 +834,7 @@
 4010,157,1,0,0,0,0,0,0,0,0,0,0 //MG_ENERGYCOAT#Energy Coat#
 4010,80,10,18,1,0,0,0,0,0,0,0,0 //WZ_FIREPILLAR#Fire Pillar#
 4010,81,10,20,1,10,1,0,0,0,0,0,0 //WZ_SIGHTRASHER#Sightrasher#
-4010,83,10,81,2,0,0,0,0,0,0,0,0 //WZ_METEOR#Meteor Storm#
+4010,83,10,81,2,21,1,0,0,0,0,0,0 //WZ_METEOR#Meteor Storm#
 4010,84,10,11,1,20,1,0,0,0,0,0,0 //WZ_JUPITEL#Jupiter Thunder#
 4010,85,10,21,1,84,5,0,0,0,0,0,0 //WZ_VERMILION#Lord of Vermilion#
 4010,86,5,14,1,20,1,0,0,0,0,0,0 //WZ_WATERBALL#Water Ball#
@@ -1503,7 +1503,7 @@
 4032,409,1,0,0,0,0,0,0,0,0,0,0 //WE_CALLPARENT#Call Parent#
 4032,80,10,18,1,0,0,0,0,0,0,0,0 //WZ_FIREPILLAR#Fire Pillar#
 4032,81,10,20,1,10,1,0,0,0,0,0,0 //WZ_SIGHTRASHER#Sightrasher#
-4032,83,10,81,2,0,0,0,0,0,0,0,0 //WZ_METEOR#Meteor Storm#
+4032,83,10,81,2,21,1,0,0,0,0,0,0 //WZ_METEOR#Meteor Storm#
 4032,84,10,11,1,20,1,0,0,0,0,0,0 //WZ_JUPITEL#Jupiter Thunder#
 4032,85,10,21,1,84,5,0,0,0,0,0,0 //WZ_VERMILION#Lord of Vermilion#
 4032,86,5,14,1,20,1,0,0,0,0,0,0 //WZ_WATERBALL#Water Ball#
