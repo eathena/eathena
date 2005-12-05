@@ -27,6 +27,7 @@ Nexon
 Date		Added
 ======
 12/05
+	* Fixed a typo in NPC:Gushenmu, eAOS bug report. [Kayla]
 	* Added a nice custom Perchik's quest ** SIGN YOUR ITEMS ** [Lupus]
 	  Now your players can sign their rare headgears or weapons with their own name
 12/04

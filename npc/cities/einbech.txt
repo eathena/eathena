@@ -372,7 +372,7 @@ einbech.gat,105,218,6	script	Gushenmu	848,{
 	mes "never come to work the next day.";
 	next;
 	mes "[Gushenmu]"; 
-	mes "And as Einbech and Einbrich";
+	mes "And as Einbech and "Einbroch";
 	mes "have grown, I hear more and";
 	mes "more rumors that unfammiliar";
 	mes "monsters are beginning to";
