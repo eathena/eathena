@@ -27,6 +27,7 @@ Nexon
 Date		Added
 ======
 12/05
+	* Fixed a typo in Aldebarran Guard "Hace a name". eAOS Bug Report [Kayla]
 	* Fixed another small screw-up in the color codes of the Glastheim Bulletin Board, 
 	  eaos Bug Report[Kayla]
 	* Fixed a typo in NPC:Raust, eAOS bug report. [Kayla]

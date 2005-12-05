@@ -21,7 +21,7 @@ aldebaran.gat,139,63,4	script	Soldier::Alde_Guide	105,{
 	mes "[Al De Baran Guard]";
 	mes "I'm just an ordinary guard";
 	mes "that you could find in any other";
-	mes "city. I don't think I even hace a";
+	mes "city. I don't think I even have a";
 	mes "name...";
 	next;
 	mes "[Al De Baran Guard]";
