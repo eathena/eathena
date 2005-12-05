@@ -3590,6 +3590,8 @@ static const struct battle_data_short {
 	{ "duel_allow_pvp",						&battle_config.duel_allow_pvp}, // [LuzZza]
 	{ "duel_allow_gvg",						&battle_config.duel_allow_gvg}, // [LuzZza]
 	{ "duel_time_interval",					&battle_config.duel_time_interval}, // [LuzZza]	
+	
+	{ "skip_teleport_lv1_menu",				&battle_config.skip_teleport_lv1_menu}, // [LuzZza]
 };
 
 static const struct battle_data_int {
@@ -3964,6 +3966,8 @@ void battle_set_defaults() {
 	battle_config.duel_allow_pvp = 0;
 	battle_config.duel_allow_pvp = 0;
 	battle_config.duel_time_interval = 60;
+	
+	battle_config.skip_teleport_lv1_menu = 0;
 }
 
 void battle_validate_conf() {

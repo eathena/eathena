@@ -399,6 +399,8 @@ extern struct Battle_Config {
 	unsigned short duel_allow_pvp; // [LuzZza]
 	unsigned short duel_allow_gvg; // [LuzZza]
 	unsigned short duel_time_interval; // [LuzZza]
+	
+	unsigned short skip_teleport_lv1_menu; // possibility to disable (skip) Teleport Lv1 menu, that have only two lines `Random` and `Cancel` [LuzZza]
 
 } battle_config;
 

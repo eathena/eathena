@@ -4352,7 +4352,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			}
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 			if(sd->skilllv == 1)
-				clif_skill_warppoint(sd,skillid,"Random","","","");
+				if(!battle_config.skip_teleport_lv1_menu) // possibility to skip menu [LuzZza]
+					clif_skill_warppoint(sd,skillid,"Random","","","");
+				else
+					pc_randomwarp(sd,3);
 			else {
 				clif_skill_warppoint(sd,skillid,"Random",
 					sd->status.save_point.map,"","");

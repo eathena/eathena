@@ -1,6 +1,9 @@
 Date	Added
 
 2005/12/05
+	* Added skip_teleport_lv1_menu battle_athena option. It give a possibility to
+	  disable (skip) Teleport Lv1 menu, that have only two lines `Random` and `Cancel`.
+	  Of course, by default this option have `no` (don't skip) value. [LuzZza]
 	* Added FD_SETSIZE 4096 predefination to VC++ Project Files. Should fix 60 player limit bug with native compilations. [Harbin]
 	* Fixed char crash (I hope) when checking for two parents + baby in a party
 	  with more than 3 characters, but from which only 3 were online at a time. [Skotlex]
