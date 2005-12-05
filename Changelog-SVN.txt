@@ -1,6 +1,7 @@
 Date	Added
 
 2005/12/05
+	* Added FD_SETSIZE 4096 predefination to VC++ Project Files. Should fix 60 player limit bug with native compilations. [Harbin]
 	* Fixed char crash (I hope) when checking for two parents + baby in a party
 	  with more than 3 characters, but from which only 3 were online at a time. [Skotlex]
 	* Merged in Reddozen's work on SL_BARDDANCER and cleaned up a bit the
