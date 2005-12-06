@@ -403,6 +403,8 @@ extern struct Battle_Config {
 	
 	unsigned short skip_teleport_lv1_menu; // possibility to disable (skip) Teleport Lv1 menu, that have only two lines `Random` and `Cancel` [LuzZza]
 
+	unsigned short allow_skill_without_day; // [Komurka]
+
 } battle_config;
 
 extern int battle_config_read(const char *cfgName);

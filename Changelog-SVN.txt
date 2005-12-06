@@ -1,6 +1,12 @@
 Date	Added
 
 2005/12/06
+	* Applied Komurka's Star Gladiator patch. [Skotlex]
+	- The following skills are now working: SG_FEEL, SG_HATE, SG_SUN_ANGER,
+	  SG_MOON_ANGER, SG_STAR_ANGER, SG_SUN_BLESS, SG_MOON_BLESS, SG_STAR_BLESS
+	- The designated maps cannot be stored currently (cannot save character
+	  string variables) and is pending on a script update to enable saving of
+	  said type of variables.
 	* Added @away command. [LuzZza]
 	* Mostly fixed intravision making everyone see hidden/cloacked characters.
 	  (the actual option value to see just the player's shadow is currently

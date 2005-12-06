@@ -329,9 +329,11 @@ int clif_disp_overhead(struct map_session_data *sd, char* mes);
 int do_final_clif(void);
 int do_init_clif(void);
 
-//Fix for minimap [Kevin]
-int clif_party_xy_remove(struct map_session_data *sd);
 
+int clif_party_xy_remove(struct map_session_data *sd); //Fix for minimap [Kevin]
+void clif_parse_ReqFell(int fd, struct map_session_data *sd); 
+void clif_fell_info(struct map_session_data *sd);
+void clif_hate_mob(struct map_session_data *sd, int skilllv,int mob_id);
 #endif
 
 

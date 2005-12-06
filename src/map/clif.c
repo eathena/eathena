@@ -105,7 +105,7 @@ static const int packet_len_table[MAX_PACKET_DB] = {
    30,  8, 34, 14,  2,  6, 26,  2,  28, 81,  6, 10, 26,  2, -1, -1,
    -1, -1, 20, 10, 32,  9, 34, 14,   2,  6, 48, 56, -1,  4,  5, 10,
 //#0x200
-   26, -1,  26, 10, 18, 26, 11, 34,  14, 36, 10, 0,  0, -1, 24, 10, // 0x20c change to 0 (was 19)
+   26, -1,  26, 10, 18, 26, 11, 34,  14, 36, 10, 0,  0, -1, 32, 10, // 0x20c change to 0 (was 19)
    22,  0,  26, 26, 42, -1, -1,  2,   2,282,282,10, 10, -1, -1, 66,
    10, -1,  -1,  8, 10,  2,282, 18,  18, 15, 58, 57, 64, 5, 69,  5,
    12, 26,   9, 11, -1, -1, 10,  2, 282, 11,  4, 36, -1,-1,  4,  2,
@@ -10849,6 +10849,24 @@ void clif_parse_RankingPk(int fd,struct map_session_data *sd)
 }
 
 /*==========================================
+ * SG Feel save OK [Komurka]
+ *------------------------------------------
+ */
+void clif_parse_FeelSaveOk(int fd,struct map_session_data *sd)
+{
+	if (sd->feel_map[sd->feel_level].m!=-1)
+	{
+		WFIFOW(fd,0)=0x20e;
+		memcpy(WFIFOP(fd,2),map[sd->bl.m].name, MAP_NAME_LENGTH-1);
+		WFIFOL(fd,18)=sd->bl.id;
+		WFIFOW(fd,packet_len_table[0x20e]-2)=sd->feel_level;
+		strcpy(sd->feel_map[sd->feel_level].name,map[sd->bl.m].name);
+		WFIFOSET(fd, packet_len_table[0x20e]);
+
+	}
+}
+
+/*==========================================
  * パケットデバッグ
  *------------------------------------------
  */
@@ -11212,6 +11230,7 @@ static int packetdb_readdb(void)
 		{clif_parse_Alchemist,"alchemist"},
 		{clif_parse_Alchemist,"taekwon"},
 		{clif_parse_RankingPk,"rankingpk"},
+		{clif_parse_FeelSaveOk,"feelsaveok"},
 		{clif_parse_debug,"debug"},
 
 		{NULL,NULL}
@@ -11426,3 +11445,48 @@ int clif_party_xy_remove(struct map_session_data *sd)
 	clif_send(buf,packet_len_table[0x107],&sd->bl,PARTY_SAMEMAP_WOS);
 	return 0;
 }
+
+
+/*==========================================
+ * Question about Star Glaldiator save map [Komurka]
+ *------------------------------------------
+ */
+void clif_parse_ReqFell(int fd, struct map_session_data *sd) {
+	nullpo_retv(sd);
+
+	WFIFOW(fd,0)=0x253;
+	WFIFOSET(fd, packet_len_table[0x253]);
+}
+
+/*==========================================
+ * Info about Star Glaldiator save map [Komurka]
+ *------------------------------------------
+ */
+void clif_fell_info(struct map_session_data *sd)
+{
+	int fd=sd->fd;
+	WFIFOW(fd,0)=0x20e;
+	memcpy(WFIFOP(fd,2),sd->feel_map[sd->feel_level].name, MAP_NAME_LENGTH-1);
+	WFIFOL(fd,18)=sd->bl.id;
+	WFIFOW(fd,packet_len_table[0x20e]-2)=0x100+sd->feel_level;
+	WFIFOSET(fd, packet_len_table[0x20e]);
+
+
+}
+
+/*==========================================
+ * Info about Star Glaldiator hate mob [Komurka]
+ *------------------------------------------
+ */
+void clif_hate_mob(struct map_session_data *sd, int skilllv,int mob_id)
+{
+	int fd=sd->fd;
+	WFIFOW(fd,0)=0x20e;
+	if (mob_id>1000) strncpy(WFIFOP(fd,2),mob_db(mob_id)->jname, NAME_LENGTH);
+	WFIFOL(fd,18)=sd->bl.id;
+	WFIFOW(fd,packet_len_table[0x20e]-2)=0xa00+skilllv-1;
+	WFIFOSET(fd, packet_len_table[0x20e]);
+
+}
+
+

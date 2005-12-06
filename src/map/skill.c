@@ -24,6 +24,7 @@
 #include "guild.h"
 #include "showmsg.h"
 #include "grfio.h"
+#include "date.h"
 
 #define SKILLUNITTIMER_INVERVAL	100
 #define swap(x,y) { int t; t = x; x = y; y = t; }
@@ -5610,6 +5611,69 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			pc_blockskill_start (sd, skillid, 300000);
 		}
 		break;
+
+	case SG_FEEL:
+		sd->feel_level=skilllv-1;
+		if(strcmp(sd->feel_map[skilllv-1].name,"")==0)
+		{
+			sd->feel_map[skilllv-1].m = sd->bl.m;
+			clif_skill_nodamage(src,bl,skillid,skilllv,1);
+			clif_parse_ReqFell(sd->fd,sd);
+		}
+		else clif_fell_info(sd);
+		break;	
+
+	case SG_HATE:
+		clif_skill_nodamage(src,bl,skillid,skilllv,1);
+		//dunno if this is one-time-skill or player can change mob/pc anytime he wants [Komurka]
+
+		//if (sd->hate_mob[skilllv-1] == 0)
+		{
+			if(dstsd)  //PC
+			{
+				struct pc_base_job s_class;
+				s_class = pc_calc_base_job(dstsd->status.class_);
+				sd->hate_mob[skilllv-1] = s_class.job;
+				pc_setglobalreg(sd,"PC_HATE_MOB_STAR",sd->hate_mob[skilllv-1]+1);
+				clif_hate_mob(sd,skilllv,sd->hate_mob[skilllv-1]);
+			}
+			else if(dstmd) // mob
+				{ 
+					switch(skilllv)
+					{
+					case 1:
+						if (status_get_size(bl)==0)
+						{
+							sd->hate_mob[0] = dstmd->class_;
+							pc_setglobalreg(sd,"PC_HATE_MOB_SUN",sd->hate_mob[0]+1);
+							clif_hate_mob(sd,skilllv,sd->hate_mob[skilllv-1]);
+						} else clif_skill_fail(sd,skillid,0,0);
+						break;
+					case 2:
+						if (status_get_size(bl)==1 && status_get_max_hp(bl)>=6000)
+						{
+							sd->hate_mob[1] = dstmd->class_;
+							pc_setglobalreg(sd,"PC_HATE_MOB_MOON",sd->hate_mob[1]+1);
+							clif_hate_mob(sd,skilllv,sd->hate_mob[skilllv-1]);
+						} else clif_skill_fail(sd,skillid,0,0);
+						break;
+					case 3:
+						if (status_get_size(bl)==2 && status_get_max_hp(bl)>=20000)
+						{
+							sd->hate_mob[2] = dstmd->class_;
+							pc_setglobalreg(sd,"PC_HATE_MOB_STAR",sd->hate_mob[2]+1);
+							clif_hate_mob(sd,skilllv,sd->hate_mob[skilllv-1]);
+						} else clif_skill_fail(sd,skillid,0,0);
+						break;
+					default:
+						clif_skill_fail(sd,skillid,0,0);
+						break;
+					}
+				}
+		} //else clif_skill_fail(sd,skillid,0,0);
+		break;
+
+
 
 	default:
 		ShowWarning("Unknown skill used:%d\n",skillid);

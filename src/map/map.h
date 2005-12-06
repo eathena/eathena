@@ -656,6 +656,13 @@ struct map_session_data {
 	struct pet_data *pd;
 	int pet_hungry_timer;
 
+	struct{
+		int  m; //-1 - none; 0 - Sun; 1 - Moon; 2 - Stars
+		char name[24]; //map name
+	}feel_map[3];
+	int feel_level;
+	short hate_mob[3];
+
 	unsigned int pvp_timer;
 	short pvp_point;
 	unsigned short pvp_rank, pvp_lastusers;

@@ -2017,18 +2017,18 @@
 4047,426,5,0,0,0,0,0,0,0,0,0,0 //TK_HIGHJUMP#High Jump#
 4047,493,1,424,5,0,0,0,0,0,0,0,0 //TK_MISSION#Taekwon Mission#
 4047,427,3,0,0,0,0,0,0,0,0,0,0	//SG_FEEL#Feeling the Sun, Moon and Stars#
-4047,428,1,427,1,0,0,0,0,0,0,0,0	//SG_SUN_WARM#Warmth of the Sun#
-4047,429,1,427,2,0,0,0,0,0,0,0,0	//SG_MOON_WARM#Warmth of the Moon#
-4047,430,1,427,3,0,0,0,0,0,0,0,0	//SG_STAR_WARM#Warmth of the Star#
-4047,431,1,427,1,0,0,0,0,0,0,0,0	//SG_SUN_COMFORT#Comfort of the Sun#
-4047,432,1,427,2,0,0,0,0,0,0,0,0	//SG_MOON_COMFORT#Comfort of the Moon#
-4047,433,1,427,3,0,0,0,0,0,0,0,0	//SG_STAR_COMFORT#Comfort of the Star#
+4047,428,3,427,1,0,0,0,0,0,0,0,0	//SG_SUN_WARM#Warmth of the Sun#
+4047,429,3,427,2,0,0,0,0,0,0,0,0	//SG_MOON_WARM#Warmth of the Moon#
+4047,430,3,427,3,0,0,0,0,0,0,0,0	//SG_STAR_WARM#Warmth of the Star#
+4047,431,4,427,1,0,0,0,0,0,0,0,0	//SG_SUN_COMFORT#Comfort of the Sun#
+4047,432,4,427,2,0,0,0,0,0,0,0,0	//SG_MOON_COMFORT#Comfort of the Moon#
+4047,433,4,427,3,0,0,0,0,0,0,0,0	//SG_STAR_COMFORT#Comfort of the Star#
 4047,434,3,0,0,0,0,0,0,0,0,0,0	//SG_HATE#Hatred of the Sun, Moon and Stars#
-4047,435,1,434,1,0,0,0,0,0,0,0,0	//SG_SUN_ANGER#Sun's Wrath#
-4047,436,1,434,2,0,0,0,0,0,0,0,0	//SG_MOON_ANGER#Moon's Wrath#
-4047,437,1,434,3,0,0,0,0,0,0,0,0	//SG_STAR_ANGER#Stars's Wrath#
-4047,438,1,427,1,434,1,0,0,0,0,0,0	//SG_SUN_BLESS#Blessing of the Sun#
-4047,439,1,427,2,434,2,0,0,0,0,0,0	//SG_MOON_BLESS#Blessing of the Moon#
+4047,435,3,434,1,0,0,0,0,0,0,0,0	//SG_SUN_ANGER#Sun's Wrath#
+4047,436,3,434,2,0,0,0,0,0,0,0,0	//SG_MOON_ANGER#Moon's Wrath#
+4047,437,3,434,3,0,0,0,0,0,0,0,0	//SG_STAR_ANGER#Stars's Wrath#
+4047,438,5,427,1,434,1,0,0,0,0,0,0	//SG_SUN_BLESS#Blessing of the Sun#
+4047,439,5,427,2,434,2,0,0,0,0,0,0	//SG_MOON_BLESS#Blessing of the Moon#
 4047,440,5,427,3,434,3,0,0,0,0,0,0	//SG_STAR_BLESS#Blessing of the Star#
 4047,441,10,0,0,0,0,0,0,0,0,0,0	//SG_DEVIL#Demon of the Sun, Moon and Stars#
 4047,442,3,0,0,0,0,0,0,0,0,0,0	//SG_FRIEND#Friend of the Sun, Moon and Stars#
@@ -2056,18 +2056,18 @@
 4048,426,5,0,0,0,0,0,0,0,0,0,0 //TK_HIGHJUMP#High Jump#
 4048,493,1,424,5,0,0,0,0,0,0,0,0 //TK_MISSION#Taekwon Mission#
 4048,427,3,0,0,0,0,0,0,0,0,0,0	//SG_FEEL#Feeling the Sun, Moon and Stars#
-4048,428,1,427,1,0,0,0,0,0,0,0,0	//SG_SUN_WARM#Warmth of the Sun#
-4048,429,1,427,2,0,0,0,0,0,0,0,0	//SG_MOON_WARM#Warmth of the Moon#
-4048,430,1,427,3,0,0,0,0,0,0,0,0	//SG_STAR_WARM#Warmth of the Star#
-4048,431,1,427,1,0,0,0,0,0,0,0,0	//SG_SUN_COMFORT#Comfort of the Sun#
-4048,432,1,427,2,0,0,0,0,0,0,0,0	//SG_MOON_COMFORT#Comfort of the Moon#
-4048,433,1,427,3,0,0,0,0,0,0,0,0	//SG_STAR_COMFORT#Comfort of the Star#
+4048,428,3,427,1,0,0,0,0,0,0,0,0	//SG_SUN_WARM#Warmth of the Sun#
+4048,429,3,427,2,0,0,0,0,0,0,0,0	//SG_MOON_WARM#Warmth of the Moon#
+4048,430,3,427,3,0,0,0,0,0,0,0,0	//SG_STAR_WARM#Warmth of the Star#
+4048,431,4,427,1,0,0,0,0,0,0,0,0	//SG_SUN_COMFORT#Comfort of the Sun#
+4048,432,4,427,2,0,0,0,0,0,0,0,0	//SG_MOON_COMFORT#Comfort of the Moon#
+4048,433,4,427,3,0,0,0,0,0,0,0,0	//SG_STAR_COMFORT#Comfort of the Star#
 4048,434,3,0,0,0,0,0,0,0,0,0,0	//SG_HATE#Hatred of the Sun, Moon and Stars#
-4048,435,1,434,1,0,0,0,0,0,0,0,0	//SG_SUN_ANGER#Sun's Wrath#
-4048,436,1,434,2,0,0,0,0,0,0,0,0	//SG_MOON_ANGER#Moon's Wrath#
-4048,437,1,434,3,0,0,0,0,0,0,0,0	//SG_STAR_ANGER#Stars's Wrath#
-4048,438,1,427,1,434,1,0,0,0,0,0,0	//SG_SUN_BLESS#Blessing of the Sun#
-4048,439,1,427,2,434,2,0,0,0,0,0,0	//SG_MOON_BLESS#Blessing of the Moon#
+4048,435,3,434,1,0,0,0,0,0,0,0,0	//SG_SUN_ANGER#Sun's Wrath#
+4048,436,3,434,2,0,0,0,0,0,0,0,0	//SG_MOON_ANGER#Moon's Wrath#
+4048,437,3,434,3,0,0,0,0,0,0,0,0	//SG_STAR_ANGER#Stars's Wrath#
+4048,438,5,427,1,434,1,0,0,0,0,0,0	//SG_SUN_BLESS#Blessing of the Sun#
+4048,439,5,427,2,434,2,0,0,0,0,0,0	//SG_MOON_BLESS#Blessing of the Moon#
 4048,440,5,427,3,434,3,0,0,0,0,0,0	//SG_STAR_BLESS#Blessing of the Star#
 4048,441,10,0,0,0,0,0,0,0,0,0,0	//SG_DEVIL#Demon of the Sun, Moon and Stars#
 4048,442,3,0,0,0,0,0,0,0,0,0,0	//SG_FRIEND#Friend of the Sun, Moon and Stars#

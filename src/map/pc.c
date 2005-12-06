@@ -830,6 +830,18 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 	//スパノビ用死にカウンタ?のスクリプト??からの?み出しとsdへのセット
 	sd->die_counter = pc_readglobalreg(sd,"PC_DIE_COUNTER");
 
+	//SG map and mob read [Komurka]
+	for(i=0;i<3;i++) //for now - someone need to make reading from txt/sql
+	{
+		strcpy(sd->feel_map[i].name,"");
+		sd->feel_map[i].m = -1;
+	}
+
+	sd->hate_mob[0] = pc_readglobalreg(sd,"PC_HATE_MOB_SUN")  - 1;
+	sd->hate_mob[1] = pc_readglobalreg(sd,"PC_HATE_MOB_MOON") - 1;
+	sd->hate_mob[2] = pc_readglobalreg(sd,"PC_HATE_MOB_STAR") - 1;
+
+
 	if ((i = pc_checkskill(sd,RG_PLAGIARISM)) > 0) {
 		sd->cloneskill_id = pc_readglobalreg(sd,"CLONE_SKILL");
 		if (sd->cloneskill_id > 0) {

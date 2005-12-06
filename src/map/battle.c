@@ -1881,6 +1881,19 @@ static struct Damage battle_calc_weapon_attack(
 		{	//Add mastery damage
 			wd.damage = battle_addmastery(sd,target,wd.damage,0);
 			if (flag.lh) wd.damage2 = battle_addmastery(sd,target,wd.damage2,1);
+			
+			if (pc_checkskill(sd,SG_SUN_ANGER) || pc_checkskill(sd,SG_MOON_ANGER) || pc_checkskill(sd,SG_STAR_ANGER))
+			{	//SG Anger bonus - ATK_ADDRATE [Komurka]
+				static int type[] = { SG_SUN_ANGER, SG_MOON_ANGER, SG_STAR_ANGER }
+				short t_class = status_get_class(target);
+				for (i = 0; i < 2; i++)
+				{
+					if (t_class == sd->hate_mob[i] && pc_checkskill(sd,type[i])>0) {
+						ATK_ADDRATE((sd->status.base_level + status_get_dex(src)+ status_get_luk(src))/(12-3*pc_checkskill(sd,type[i])));
+						break;
+					}
+				}
+			}
 		}
 	} //Here ends flag.hit section, the rest of the function applies to both hitting and missing attacks
 
@@ -3607,6 +3620,7 @@ static const struct battle_data_short {
 	{ "duel_time_interval",					&battle_config.duel_time_interval}, // [LuzZza]	
 	
 	{ "skip_teleport_lv1_menu",				&battle_config.skip_teleport_lv1_menu}, // [LuzZza]
+	{ "allow_skill_without_day",				&battle_config.allow_skill_without_day}, // [Komurka]
 };
 
 static const struct battle_data_int {
@@ -3983,6 +3997,7 @@ void battle_set_defaults() {
 	battle_config.duel_time_interval = 60;
 	
 	battle_config.skip_teleport_lv1_menu = 0;
+	battle_config.allow_skill_without_day = 0;
 }
 
 void battle_validate_conf() {

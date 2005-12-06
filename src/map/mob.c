@@ -25,6 +25,7 @@
 #include "showmsg.h"
 #include "script.h"
 #include "atcommand.h"
+#include "date.h"
 
 #define MIN_MOBTHINKTIME 100
 #define MIN_MOBLINKTIME 1000
@@ -2388,9 +2389,18 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 		if(sd) {
 			if (sd->expaddrace[race])
 				per += per*sd->expaddrace[race]/100.;	
-			if (battle_config.pk_mode && (md->db->lv - sd->status.base_level >= 20))
-				per *= 1.15;	// pk_mode additional exp if monster >20 levels [Valaris]		
 		}
+		if (battle_config.pk_mode && (md->db->lv - tmpsd[i]->status.base_level >= 20))
+			per *= 1.15;	// pk_mode additional exp if monster >20 levels [Valaris]	
+		
+		//SG additional exp from Blessings [Komurka]
+		if(md->class_ == tmpsd[i]->hate_mob[0] && (battle_config.allow_skill_without_day || is_day_of_sun()))
+			per += per*10*pc_checkskill(tmpsd[i],SG_SUN_BLESS)/100.;
+		else if(md->class_ == tmpsd[i]->hate_mob[1] && (battle_config.allow_skill_without_day || is_day_of_moon()))
+			per += per*10*pc_checkskill(tmpsd[i],SG_MOON_BLESS)/100.;
+		else if(md->class_ == tmpsd[i]->hate_mob[2] && (battle_config.allow_skill_without_day || is_day_of_star()))
+			per += per*20*pc_checkskill(tmpsd[i],SG_STAR_BLESS)/100.;
+
 		if(md->special_state.size==1)	// change experience for different sized monsters [Valaris]
 			per /=2.;
 		else if(md->special_state.size==2)
@@ -2416,7 +2426,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 			}
 		}
 
-		if (per > 3) per = 3; //Limit gained exp to triple the mob's exp.
+		if (per > 4) per = 4; //Limit gained exp to quadro the mob's exp. [3->4 Komurka]
 		base_exp = (unsigned long)(base_exp*per);
 		job_exp = (unsigned long)(job_exp*per);
 	
