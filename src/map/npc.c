@@ -1751,7 +1751,7 @@ static void npc_parse_script_line(unsigned char *p,int *curly_count,int line) {
 		}
 	}
 	if(string_flag) {
-		printf("Missing '\"' at line %d\n",line);
+		printf("Missing '\"' at file %s line %d\n",current_file,line);
 		exit(1);
 	}
 }

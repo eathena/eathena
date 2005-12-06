@@ -28,6 +28,7 @@ Date	Added
 	* Fixed the combo status not ending after using TK_TURNKICK [Skotlex]
 	* Overflowed pointer fix in socket.c [Skotlex]
 	* Added 'Einbech' into @go command (u have to type at least 5 letters) [Lupus]
+	* More detailed error messages for missing '"'s in scripts. [Lance]
 2005/12/04
 	* Removed mail server switch from battle_athena.conf and added
 	  full mail server configuration to inter_athena.conf. [Valaris]
