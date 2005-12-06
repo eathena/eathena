@@ -676,6 +676,8 @@ struct map_session_data {
 	int duel_group; // duel vars [LuzZza]
     int duel_invite;
     
+    char away_message[128]; // [LuzZza]
+    
 };
 
 struct {

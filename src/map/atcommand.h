@@ -251,7 +251,9 @@ enum AtCommandType {
 	AtCommand_Duel, // By LuzZza
 	AtCommand_Leave, // By LuzZza
 	AtCommand_Accept, // By LuzZza
-	AtCommand_Reject, // By LuzZza	
+	AtCommand_Reject, // By LuzZza
+	
+	AtCommand_Away, // LuzZza
 	
 	// end <- Ahem, guys, don't place AtCommands after AtCommand_Unknown! [Skotlex]
 	AtCommand_Unknown,

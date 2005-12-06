@@ -279,6 +279,8 @@ ACMD_FUNC(leave);
 ACMD_FUNC(accept);
 ACMD_FUNC(reject);
 
+ACMD_FUNC(away); // LuzZza
+
 /*==========================================
  *AtCommandInfo atcommand_info[]\‘¢‘Ì‚Ì’è‹`
  *------------------------------------------
@@ -573,11 +575,14 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_ChangeGM,			"@changegm",		10,	atcommand_changegm }, // durf
 	{ AtCommand_ChangeLeader,		"@changeleader",	10,	atcommand_changeleader }, // durf
 	
-	{ AtCommand_Invite,				"@invite",			 1, atcommand_invite }, // By LuzZza
-	{ AtCommand_Duel,				"@duel",			 1, atcommand_duel }, // By LuzZza
-	{ AtCommand_Leave,				"@leave",			 1, atcommand_leave }, // By LuzZza
-	{ AtCommand_Accept,				"@accept",			 1, atcommand_accept }, // By LuzZza
-	{ AtCommand_Reject,				"@reject",			 1, atcommand_reject }, // By LuzZza		
+	{ AtCommand_Invite,				"@invite",			1, atcommand_invite }, // By LuzZza
+	{ AtCommand_Duel,				"@duel",			1, atcommand_duel }, // By LuzZza
+	{ AtCommand_Leave,				"@leave",			1, atcommand_leave }, // By LuzZza
+	{ AtCommand_Accept,				"@accept",			1, atcommand_accept }, // By LuzZza
+	{ AtCommand_Reject,				"@reject",			1, atcommand_reject }, // By LuzZza
+	
+	{ AtCommand_Away,				"@away",			1, atcommand_away }, // [LuzZza]
+	{ AtCommand_Away,				"@aw",				1, atcommand_away }, // [LuzZza]
 
 // add new commands before this line
 	{ AtCommand_Unknown,			NULL,				1,	NULL }
@@ -9856,5 +9861,30 @@ int atcommand_reject(
 
 	duel_reject(sd->duel_invite, sd);
 	clif_displaymessage(fd, "Duel: Invitation has been rejected.");
+	return 0;
+}
+
+/*===================================
+ * Away message (@away, @aw) [LuzZza]
+ *-----------------------------------
+ */
+int atcommand_away(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+	if(strlen(message) > 0) {
+		if(strlen(message) > 128)
+			return -1;
+		strcpy(sd->away_message, message);
+		clif_displaymessage(fd, "Away automessage has been activated.");
+	} else {
+		if(strlen(sd->away_message) > 0) {
+			sd->away_message[0] = '\0';
+			clif_displaymessage(fd, "Away automessage has been disabled.");
+			return 0;
+		}
+		clif_displaymessage(fd, "Usage: @away,@aw <message>. Enter empty message for disable it.");
+	}
+
 	return 0;
 }

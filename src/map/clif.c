@@ -8746,7 +8746,8 @@ void clif_parse_Wis(int fd, struct map_session_data *sd) { // S 0096 <len>.w <ni
 	struct npc_data *npc;
 	char split_data[10][50];
 	int j=0,k=0;
-	char *whisper_tmp;      
+	char *whisper_tmp;    
+	char output[256];  
 
 	//printf("clif_parse_Wis: message: '%s'.\n", RFIFOP(fd,28));
 
@@ -8854,8 +8855,19 @@ if ((strncasecmp((const char*)RFIFOP(fd,4),"NPC:",4) == 0) && (strlen((const cha
 					}
 				// if source player not found in ignore list
 				if (i == MAX_IGNORE_LIST) {
-					clif_wis_message(dstsd->fd, sd->status.name, (char*)RFIFOP(fd,28), RFIFOW(fd,2) - 28);
-					clif_wis_end(fd, 0); // 0: success to send wisper
+					if(strlen(dstsd->away_message) > 0) { // Send away automessage [LuzZza]
+						sprintf(output, "%s (Automessage has been sent)", (char*)RFIFOP(fd,28));
+						clif_wis_message(dstsd->fd, sd->status.name, output, strlen(output) + 1);
+						clif_wis_end(fd, 0); // 0: success to send wisper
+						if(dstsd->state.autotrade)
+							sprintf(output, "Away [AT] - \"%s\"", dstsd->away_message);
+						else
+							sprintf(output, "Away - \"%s\"", dstsd->away_message);
+						clif_wis_message(fd, dstsd->status.name, output, strlen(output) + 1);
+					} else { // Normal message
+						clif_wis_message(dstsd->fd, sd->status.name, (char*)RFIFOP(fd,28), RFIFOW(fd,2) - 28);
+						clif_wis_end(fd, 0); // 0: success to send wisper
+					}
 				}
 			}
 		}
