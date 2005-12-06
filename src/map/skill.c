@@ -3269,7 +3269,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				heal_get_jobexp = heal_get_jobexp * battle_config.heal_exp / 100;
 				if (heal_get_jobexp <= 0)
 					heal_get_jobexp = 1;
-				pc_gainexp (sd, 0, heal_get_jobexp);
+				if (bl->type == BL_PC)	// Give heal experience only when healing players [Harbin]
+					pc_gainexp (sd, 0, heal_get_jobexp);
 			}
 		}
 		break;

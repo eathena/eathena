@@ -1,5 +1,8 @@
 Date	Added
 
+2005/12/06
+	* Fixed healing experience bug. Now only healing another players gives experience. [Harbin]
+
 2005/12/05
 	* Hopefully fixed gm_all_skill.... [Skotlex]
 	* Modified a bit the player attack code to give an extra range cell when
