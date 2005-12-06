@@ -1,6 +1,7 @@
 Date	Added
 
 2005/12/05
+	* Hopefully fixed gm_all_skill.... [Skotlex]
 	* Modified a bit the player attack code to give an extra range cell when
 	  the target is moving. [Skotlex]
 	* Added skip_teleport_lv1_menu battle_athena option. It give a possibility to

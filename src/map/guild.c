@@ -69,6 +69,9 @@ int guild_skill_get_inf(int id)
  // Modified for new skills [Sara]
 int guild_skill_get_max (int id)
 {
+	if (id  < GD_SKILLBASE || id > GD_SKILLBASE+MAX_GUILDSKILL)
+		return 0;
+
 	switch (id) {
 		case GD_GUARDUP:
 			return 3;
