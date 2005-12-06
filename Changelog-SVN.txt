@@ -1,6 +1,11 @@
 Date	Added
 
 2005/12/06
+	* Updated Gospel [Skotlex]
+	- It should clear all buffs/debuffs now.
+	- Party-mates within range cannot use items.
+	* Implemented the SL_BARDDANCER bonus that enables the caster to be buffed
+	  by their own song/dance/encore. [Skotlex]
 	* Completed Sight Thrasher (the option value is still missing, though.
 	  Temporarily uses the one of Sight) [Skotlex]
 	* Corrected possible exp exploits in jA's exp calc method. [Skotlex]

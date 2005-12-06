@@ -49,7 +49,7 @@ enum {
 	SC_TRICKDEAD,
 	SC_LOUD,
 	SC_ENERGYCOAT,
-	SC_BROKENARMOR, //50
+	SC_BROKENARMOR, //50 - NOTE: These two aren't used anywhere, and they have an icon...
 	SC_BROKENWEAPON,
 	SC_HALLUCINATION,
 	SC_WEIGHT50 ,
@@ -213,6 +213,7 @@ enum {
 	SC_BATKFOOD,
 	SC_WATKFOOD,
 	SC_MATKFOOD,
+	SC_SCRESIST, //Increases resistance to status changes.
 	//
 	SC_MAX, //Automatically updated max, used in for's and at startup to check we are within bounds. [Skotlex]
 };

@@ -6669,7 +6669,8 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 	case UNT_ROKISWEIL:
 	case UNT_INTOABYSS:
 	case UNT_SIEGFRIED:
-		if (sg->src_id==bl->id) //Needed to check when a dancer/bard leaves their ensemble area.
+		 //Needed to check when a dancer/bard leaves their ensemble area.
+		if (sg->src_id==bl->id && (!sc_data || sc_data[SC_SPIRIT].timer == -1 || sc_data[SC_SPIRIT].val2 != SL_BARDDANCER))
 			return sg->skill_id;
 		if (sc_data && sc_data[type].timer==-1)
 			status_change_start(bl,type,sg->skill_lv,sg->val1,sg->val2,0,sg->limit,0);
@@ -6684,7 +6685,7 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 	case UNT_FORTUNEKISS:
 	case UNT_SERVICEFORYOU:
 	case UNT_HERMODE:
-		if (sg->src_id==bl->id)
+		if (sg->src_id==bl->id && (!sc_data || sc_data[SC_SPIRIT].timer == -1 || sc_data[SC_SPIRIT].val2 != SL_BARDDANCER))
 			return 0;
 		if (sc_data && sc_data[type].timer==-1)
 			status_change_start(bl,type,sg->skill_lv,sg->val1,sg->val2,0,sg->limit,0);
@@ -6713,6 +6714,11 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 		src->val1 = 0;
 		if(src->limit + sg->tick > tick + 700)
 			src->limit = DIFF_TICK(tick+700,sg->tick);
+		break;
+	case UNT_GOSPEL:
+		if (sg->src_id != bl->id && battle_check_target(ss,bl,BCT_PARTY)>0 &&
+			sc_data && sc_data[type].timer==-1) //Start Gospel Effect to prevent item usage affects party only. [Skotlex]
+			status_change_start(bl,type,sg->skill_lv,0,0,BCT_ALL,sg->limit,0);
 		break;
 	}
 
@@ -7003,8 +7009,8 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 					status_change_start(bl,SC_INCFLEE,50,0,0,0,skill_get_time2(sg->skill_id, sg->skill_lv),0);
 				    break;
 				case 12: // Immunity to all status
-				    status_change_start(bl,SC_GOSPEL,1,0,0,BCT_PARTY,skill_get_time2(sg->skill_id, sg->skill_lv),0);
-				    break;
+					status_change_start(bl,SC_SCRESIST,100,0,0,0,skill_get_time2(sg->skill_id, sg->skill_lv),0);
+					break;
 			}
 		}			
 		else if (battle_check_target(&src->bl,bl,BCT_ENEMY)>0) { // Offensive Effect
@@ -7224,6 +7230,11 @@ static int skill_unit_onleft(int skill_id, struct block_list *bl,unsigned int ti
 				}
 			}
 			break;
+	case UNT_GOSPEL:
+		if (sc_data && sc_data[type].timer != -1 && sc_data[type].val4 == BCT_ALL) //End item-no-use Gospel Effect. [Skotlex]
+			status_change_end(bl, type, -1);
+		break;
+
 	}
 	return skill_id;
 }

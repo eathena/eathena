@@ -3565,8 +3565,8 @@ int status_get_sc_def(struct block_list *bl, int type)
 		struct status_change* sc_data = status_get_sc_data(bl);
 		if (sc_data)
 		{
-			if (sc_data[SC_GOSPEL].timer != -1 && sc_data[SC_GOSPEL].val4 == BCT_PARTY)
-				sc_def = 0; //Status inmunity
+			if (sc_data[SC_SCRESIST].timer != -1)
+				sc_def -= sc_data[SC_SCRESIST].val1; //Status resist
 			else if (sc_data[SC_SIEGFRIED].timer != -1)
 				sc_def -= sc_data[SC_SIEGFRIED].val2; //Status resistance.
 		}
@@ -4303,6 +4303,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 				val2 = tick;
 				tick = 1000;
 				status_change_clear_buffs(bl);
+				status_change_clear_debuffs(bl); //Gospel clears both types.
 			} else
 				calc_flag = 1;
 			break;
@@ -4483,6 +4484,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_ORCISH:
 		case SC_SHRINK:
 		case SC_WINKCHARM:
+		case SC_SCRESIST:
 			break;
 
 		default:
@@ -5560,31 +5562,16 @@ int status_change_clear_buffs (struct block_list *bl)
 	struct status_change *sc_data = status_get_sc_data(bl);
 	if (!sc_data)
 		return 0;		
-	for (i = 0; i <= 26; i++) {
-		if(sc_data[i].timer != -1)
-			status_change_end(bl,i,-1);
-	}
-	for (i = 37; i <= 44; i++) {
-		if(sc_data[i].timer != -1)
-			status_change_end(bl,i,-1);
-	}
-	for (i = 46; i <= 73; i++) {
-		if(sc_data[i].timer != -1)
-			status_change_end(bl,i,-1);
-	}
-	for (i = 90; i <= 93; i++) {
-		if(sc_data[i].timer != -1)
-			status_change_end(bl,i,-1);
-	}
-	for (i = 103; i <= 106; i++) {
-		if(sc_data[i].timer != -1)
-			status_change_end(bl,i,-1);
-	}
-	for (i = 109; i <= 132; i++) {
-		if(sc_data[i].timer != -1)
-			status_change_end(bl,i,-1);
-	}
-	for (i = 172; i <= 188; i++) {
+	for (i = 20; i < SC_MAX; i++) {
+		if(i==SC_HALLUCINATION || i==SC_WEIGHT50 || i==SC_WEIGHT90
+			|| i == SC_QUAGMIRE || i == SC_SIGNUMCRUCIS || i == SC_DECREASEAGI 
+			|| i == SC_SLOWDOWN || i == SC_ANKLE|| i == SC_BLADESTOP
+			|| i == SC_MINDBREAKER || i == SC_WINKCHARM 
+			|| i == SC_STOP || i == SC_NOCHAT || i == SC_ORCISH
+			|| i == SC_STRIPWEAPON || i == SC_STRIPSHIELD || i == SC_STRIPARMOR || i == SC_STRIPHELM
+			|| i == SC_COMBO || i == SC_DANCING || i == SC_GUILDAURA
+			)
+			continue;
 		if(sc_data[i].timer != -1)
 			status_change_end(bl,i,-1);
 	}
