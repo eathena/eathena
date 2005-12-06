@@ -37,6 +37,8 @@
 	12131,Lucky_Potion: +15 LUK for 3 minutes
 	12132,Red_Package: Turns you into x-mas clothes sprite for 10 minutes
 	--
+12/06
+	* Added Thanatos to boss list [Harbin]
 12/05
 	* Fixed Succub+Incub Cards combo bonus -> +1 INT, thanks to Playtester [Lupus]
 	* Fixed Wings of Eagle Script (bSpeed no longer exists, it should be
