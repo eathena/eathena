@@ -38,6 +38,7 @@
 	12132,Red_Package: Turns you into x-mas clothes sprite for 10 minutes
 	--
 12/06
+	* Made Garm's Claw shadow property [Harbin]
 	* Added Thanatos to boss list [Harbin]
 12/05
 	* Fixed Succub+Incub Cards combo bonus -> +1 INT, thanks to Playtester [Lupus]
