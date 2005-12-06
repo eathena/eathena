@@ -1,6 +1,7 @@
 Date	Added
 
 2005/12/06
+	* Corrected possible exp exploits in jA's exp calc method. [Skotlex]
 	* Corrected Spirit Skills showing up in all class trees. [Skotlex]
 	* Invoking @reloadscript now also invokes the OnInit event after loading. [Skotlex]
 	* Expanded Item Groups list from 20 to 32 item groups [Lupus]

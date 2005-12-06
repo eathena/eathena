@@ -2345,14 +2345,15 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 	for(i=0,count=0,mvp_damage=0;i<DAMAGELOG_SIZE;i++){
 		if(md->dmglog[i].id==0)
 			continue;
+		if (md->dmglog[i].dmg) //Total must be stored even if you were killed. [Skotlex]
+			tdmg += (double)md->dmglog[i].dmg;
+		count++; //Count an attacker even if he is dead/logged-out.
 		tmpsd[i] = map_charid2sd(md->dmglog[i].id);
 		if(tmpsd[i] == NULL)
 			continue;
-		count++;
 		if(tmpsd[i]->bl.m != md->bl.m || pc_isdead(tmpsd[i]))
 			continue;
 
-		tdmg += (double)md->dmglog[i].dmg;
 		if(mvp_damage<md->dmglog[i].dmg){
 			third_sd = second_sd;
 			second_sd = mvp_sd;
