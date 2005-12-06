@@ -237,6 +237,9 @@ enum {
 #define OPTION_RUWACH 0x2000
 #define OPTION_CHASEWALK 0x4000
 
+//TODO: Get these Missing options...
+#define OPTION_SIGHTTRASHER 0x0001
+
 //Specifies maps where players may hit each other
 #define map_flag_vs(m) (map[m].flag.pvp || map[m].flag.gvg_dungeon || map[m].flag.gvg || (agit_flag && map[m].flag.gvg_castle))
 //Specifies maps that have special GvG/WoE restrictions

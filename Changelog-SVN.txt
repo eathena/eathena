@@ -1,6 +1,8 @@
 Date	Added
 
 2005/12/06
+	* Completed Sight Thrasher (the option value is still missing, though.
+	  Temporarily uses the one of Sight) [Skotlex]
 	* Corrected possible exp exploits in jA's exp calc method. [Skotlex]
 	* Corrected Spirit Skills showing up in all class trees. [Skotlex]
 	* Invoking @reloadscript now also invokes the OnInit event after loading. [Skotlex]

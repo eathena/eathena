@@ -4192,6 +4192,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			break;
 		case SC_SIGHT:			/* サイト/ルアフ */
 		case SC_RUWACH:
+		case SC_SIGHTBLASTER:
 			if (flag&4)
 				break;
 			val2 = tick/250;
@@ -4481,7 +4482,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_LONGING:
 		case SC_ORCISH:
 		case SC_SHRINK:
-		case SC_SIGHTBLASTER:
 		case SC_WINKCHARM:
 			break;
 
@@ -4572,6 +4572,10 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			break;
 		case SC_ORCISH:
 			*option |= OPTION_ORCISH;
+			opt_flag = 1;
+			break;
+		case SC_SIGHTTRASHER:
+			*option |= OPTION_SIGHTTRASHER;
 			opt_flag = 1;
 			break;
 	}
@@ -5030,7 +5034,10 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			*option &= ~OPTION_RUWACH;
 			opt_flag = 1;
 			break;
-
+		case SC_SIGHTTRASHER:
+			*option &= ~OPTION_SIGHTTRASHER;
+			opt_flag = 1;
+			break;
 		//opt3
 		case SC_TWOHANDQUICKEN:		/* 2HQ */
 		case SC_ONEHAND:		/* 1HQ */
@@ -5163,8 +5170,9 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 
 	case SC_SIGHT:	/* サイト */
 	case SC_RUWACH:	/* ルアフ */
+	case SC_SIGHTBLASTER:
 		{
-			int range = skill_get_range2(bl, type==SC_SIGHT?MG_SIGHT:AL_RUWACH, sc_data[type].val1);
+			int range = skill_get_range2(bl, type==SC_SIGHT?MG_SIGHT:(type==SC_RUWACH?AL_RUWACH:WZ_SIGHTBLASTER), sc_data[type].val1);
 			map_foreachinarea( status_change_timer_sub,
 				bl->m, bl->x-range, bl->y-range, bl->x+range,bl->y+range,0,
 				bl,type,tick);
@@ -5529,6 +5537,16 @@ int status_change_timer_sub(struct block_list *bl, va_list ap )
 				status_change_end( bl, SC_CLOAKING, -1);
 				if(battle_check_target( src, bl, BCT_ENEMY ) > 0)
 					skill_attack(BF_MAGIC,src,src,bl,AL_RUWACH,1,tick,0);
+			}
+		}
+		break;
+	case SC_SIGHTBLASTER:
+		{
+			struct status_change *sc_data = status_get_sc_data(src);
+			if (sc_data && sc_data[type].val2 > 0 && battle_check_target( src, bl, BCT_ENEMY ) > 0)
+			{	//sc_ check prevents a single round of Sight Blaster hitting multiple opponents. [Skotlex]
+				skill_attack(BF_MAGIC,src,src,bl,WZ_SIGHTBLASTER,1,tick,0);
+				sc_data[type].val2 = 0; //This signals it to end.
 			}
 		}
 		break;
