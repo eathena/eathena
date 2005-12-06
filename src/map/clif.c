@@ -260,7 +260,6 @@ int clif_send_sub(struct block_list *bl, va_list ap)
 	struct block_list *src_bl;
 	struct map_session_data *sd;
 	unsigned char *buf;
-	short *src_option = NULL;
 	int len, type;
 	
 	nullpo_retr(0, bl);
@@ -293,29 +292,6 @@ int clif_send_sub(struct block_list *bl, va_list ap)
 		break;
 	}
 
-	//Check if hidden
-	src_option = status_get_option(src_bl);
-	if(src_option && bl != src_bl && /*(sd->sc_data[SC_INTRAVISION].timer!=-1 ||*/ sd->special_state.intravision /*)*/ )
-	{
-		//optionÇÃèCê≥
-		switch(((unsigned short*)buf)[0])
-		{
-			case 0x119:
-				WBUFW(buf,10) &= ~6;
-				break;
-#if PACKETVER < 4
-			case 0x78;
-				WBUFW(buf,12) &=~6;
-				break;
-#else
-			case 0x1da:
-				WBUFW(buf,12) &=~6;
-				break;
-#endif
-		}
-	}
-
-
 	if (session[sd->fd] != NULL) {
 		if (WFIFOP(sd->fd,0) == buf) {
 			printf("WARNING: Invalid use of clif_send function\n");
@@ -325,6 +301,31 @@ int clif_send_sub(struct block_list *bl, va_list ap)
 		} else {
 			if (packet_db[sd->packet_ver][RBUFW(buf,0)].len) { // packet must exist for the client version
 				memcpy(WFIFOP(sd->fd,0), buf, len);
+				//Check if hidden, better to modify the char's buffer than the
+				//given buffer to prevent intravision affecting the packet as 
+				//it's being received by everyone. [Skotlex]
+				if (sd->special_state.intravision && bl != src_bl) {
+					short *src_option = status_get_option(src_bl);
+					if(src_option && (*src_option)&(OPTION_HIDE|OPTION_CLOAK))
+					{	//optionÇÃèCê≥
+						switch(((unsigned short*)buf)[0])
+						{
+							case 0x119:
+								WFIFOW(sd->fd,10) &= ~(OPTION_HIDE|OPTION_CLOAK);
+								break;
+#if PACKETVER < 4
+							case 0x78:
+#else
+							case 0x1da:
+#endif
+							case 0x7b:
+							case 0x7c:
+							case 0x1d8:
+								WFIFOW(sd->fd,12) &=~(OPTION_HIDE|OPTION_CLOAK);
+								break;
+						}
+					}
+				}
 				WFIFOSET(sd->fd,len);
 			}
 		}

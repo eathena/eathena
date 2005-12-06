@@ -1,6 +1,9 @@
 Date	Added
 
 2005/12/06
+	* Mostly fixed intravision making everyone see hidden/cloacked characters.
+	  (the actual option value to see just the player's shadow is currently
+	  unknown) [Skotlex]
 	* Updated Gospel [Skotlex]
 	- It should clear all buffs/debuffs now.
 	- Party-mates within range cannot use items.
