@@ -38,6 +38,7 @@
 	12132,Red_Package: Turns you into x-mas clothes sprite for 10 minutes
 	--
 12/05
+	* Fixed Succub+Incub Cards combo bonus -> +1 INT, thanks to Playtester [Lupus]
 	* Fixed Wings of Eagle Script (bSpeed no longer exists, it should be
 	  bSpeedRate) [Skotlex]
 	* Fixed Meteor Storm (Was not requiring thunderstorm level 1) [Kayla]

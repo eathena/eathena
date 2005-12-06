@@ -15,7 +15,7 @@
 #include "pc.h"
 
 #define MAX_RANDITEM	2000
-#define MAX_ITEMGROUP	20
+#define MAX_ITEMGROUP	32
 // ** ITEMDB_OVERRIDE_NAME_VERBOSE **
 //   定義すると、itemdb.txtとgrfで名前が異なる場合、表示します.
 //#define ITEMDB_OVERRIDE_NAME_VERBOSE	1
