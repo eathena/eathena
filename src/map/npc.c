@@ -2679,6 +2679,9 @@ int npc_reload (void)
 		CL_WHITE"%d"CL_RESET"' Mobs Not Cached\n",
 		npc_id - npc_new_min, "", npc_warp, npc_shop, npc_script, npc_mob, npc_cache_mob, npc_delay_mob);
 
+	//Execute the OnInit event for freshly loaded npcs. [Skotlex]
+	ShowStatus("Event '"CL_WHITE"OnInit"CL_RESET"' executed with '"
+	CL_WHITE"%d"CL_RESET"' NPCs.\n",npc_event_doall("OnInit"));
 	return 0;
 }
 

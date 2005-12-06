@@ -997,22 +997,16 @@ int pc_calc_skilltree(struct map_session_data *sd)
 			sd->status.skill[i].flag=0;
 		}
 		else
-		if(sd->sc_data[SC_SPIRIT].timer != -1) {
-			if (skill_get_inf2(i)&INF2_SPIRIT_SKILL) { //Enable Spirit Skills. [Skotlex]
+		if(sd->sc_data[SC_SPIRIT].timer != -1 && sd->sc_data[SC_SPIRIT].val2 == SL_BARDDANCER && i >= DC_HUMMING && i<= DC_SERVICEFORYOU)
+		{ //Enable Bard/Dancer spirit linked skills.
+			if (sd->status.sex) { //Link dancer skills to bard.
 				sd->status.skill[i].id=i;
-				sd->status.skill[i].lv=1;
-				sd->status.skill[i].flag=1; //So it is not saved, and tagged as a "bonus" skill.
-			} else 
-			if(sd->sc_data[SC_SPIRIT].val2 == SL_BARDDANCER &&	i >= DC_HUMMING && i<= DC_SERVICEFORYOU) { //Enable Bard/Dancer spirit linked skills.
-				if (sd->status.sex) { //Link dancer skills to bard.
-					sd->status.skill[i].id=i;
-					sd->status.skill[i].lv=sd->status.skill[i-8].lv; // Set the level to the same as the linking skill
-					sd->status.skill[i].flag=1; // Tag it as a non-savable, non-uppable, bonus skill
-				} else { //Link bard skills to dancer.
-					sd->status.skill[i-8].id=i;
-					sd->status.skill[i-8].lv=sd->status.skill[i].lv; // Set the level to the same as the linking skill
-					sd->status.skill[i-8].flag=1; // Tag it as a non-savable, non-uppable, bonus skill
-				}
+				sd->status.skill[i].lv=sd->status.skill[i-8].lv; // Set the level to the same as the linking skill
+				sd->status.skill[i].flag=1; // Tag it as a non-savable, non-uppable, bonus skill
+			} else { //Link bard skills to dancer.
+				sd->status.skill[i-8].id=i;
+				sd->status.skill[i-8].lv=sd->status.skill[i].lv; // Set the level to the same as the linking skill
+				sd->status.skill[i-8].flag=1; // Tag it as a non-savable, non-uppable, bonus skill
 			}
 		}
 	}
@@ -1044,6 +1038,11 @@ int pc_calc_skilltree(struct map_session_data *sd)
 				else if (((id >= SM_SWORD && id <= TF_DETOXIFY) || (id >= TK_RUN && id <= TK_HIGHJUMP)) && pc_checkskill(sd, NV_BASIC) < 9)
 					f=0; // Do not unlock job1 skills when Basic Skills is not maxed out (can happen because of skill reset)
 			}
+			if(sd->sc_data[SC_SPIRIT].timer != -1 && skill_get_inf2(id)&INF2_SPIRIT_SKILL) { //Enable Spirit Skills. [Skotlex]
+				sd->status.skill[id].id=id;
+				sd->status.skill[id].lv=1;
+				sd->status.skill[id].flag=1; //So it is not saved, and tagged as a "bonus" skill.
+			} else 
 			if(f && sd->status.skill[id].id==0 ){
 				sd->status.skill[id].id=id;
 				flag=1;
