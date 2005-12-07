@@ -4,6 +4,32 @@
 #include <time.h>
 #include "showmsg.h"
 
+#ifdef _WIN32
+	#ifdef DEBUGLOGMAP
+		#define DEBUGLOGPATH "log\\map-server.log"
+	#else
+		#ifdef DEBUGLOGCHAR
+			#define DEBUGLOGPATH "log\\char-server.log"
+		#else
+			#ifdef DEBUGLOGLOGIN
+				#define DEBUGLOGPATH "log\\login-server.log"
+			#endif
+		#endif
+	#endif
+#else
+	#ifdef DEBUGLOGMAP
+		#define DEBUGLOGPATH "log/map-server.log"
+	#else
+		#ifdef DEBUGLOGCHAR
+			#define DEBUGLOGPATH "log/char-server.log"
+		#else
+			#ifdef DEBUGLOGLOGIN
+				#define DEBUGLOGPATH "log/login-server.log"
+			#endif
+		#endif
+	#endif
+#endif
+
 char tmp_output[1024] = {"\0"};
 char timestamp_format[20] = ""; //For displaying Timestamps
 // by MC Cameri
@@ -13,6 +39,9 @@ int _vShowMessage(enum msg_type flag, const char *string, va_list ap)
 	// Return: 0 = Successful, 1 = Failed.
 //	int ret = 0;
 	char prefix[100];
+#if defined(DEBUGLOGMAP) || defined(DEBUGLOGCHAR) || defined(DEBUGLOGLOGIN)
+	FILE *fp;
+#endif
 	
 	if (!string || strlen(string) <= 0) {
 		ShowError("Empty string passed to _vShowMessage().\n");
@@ -72,6 +101,22 @@ int _vShowMessage(enum msg_type flag, const char *string, va_list ap)
 			fflush (stdout);
 		}
 	}
+
+#if defined(DEBUGLOGMAP) || defined(DEBUGLOGCHAR) || defined(DEBUGLOGLOGIN)
+	if(strlen(DEBUGLOGPATH) > 0) {
+		fp=fopen(DEBUGLOGPATH,"a");
+		if (fp == NULL)	{
+			printf(CL_RED"[ERROR]"CL_RESET": Could not open '"CL_WHITE"%s"CL_RESET"', access denied.\n",DEBUGLOGPATH);
+			fflush(stdout);
+			return 0;
+		}
+		fprintf(fp,"%s ", prefix);
+		vfprintf(fp,string,ap);
+		fclose(fp);
+	} else {
+		printf(CL_RED"[ERROR]"CL_RESET": DEBUGLOGPATH not defined!\n");
+	}
+#endif
 
 	va_end(ap);
 /*
