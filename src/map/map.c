@@ -124,6 +124,13 @@ MYSQL charsql_handle;
 MYSQL_RES* charsql_res;
 MYSQL_ROW charsql_row;
 
+#ifdef MAPREGSQL
+// [zBuffer] SQL Mapreg
+MYSQL mapregsql_handle;
+MYSQL_RES* mapregsql_res ;
+MYSQL_ROW mapregsql_row;
+#endif
+
 #endif /* not TXT_ONLY */
 
 int lowest_gm_level = 1;
@@ -3248,6 +3255,19 @@ int map_sql_init(void){
 		ShowStatus ("connect success! (Login Server Connection)\n");
 	 }
 
+#ifdef MAPREGSQL
+	// [zBuffer] SQL Mapreg connection start
+	ShowInfo("Connect Mapreg DB Server....\n");
+    	if(!mysql_real_connect(&mapregsql_handle, map_server_ip, map_server_id, map_server_pw,
+		map_server_db ,map_server_port, (char *)NULL, 0)) {
+	        //pointer check
+			ShowSQL("DB error - %s\n",mysql_error(&mapregsql_handle));
+			exit(1);
+	} else {
+		ShowStatus ("Connect success! (Mapreg DB Connection)\n");
+	}
+#endif
+
 	if(mail_server_enable) { // mail system [Valaris]
 		mysql_init(&mail_handle);
 	        ShowInfo("Connecting to the Mail DB Server....\n");
@@ -3267,6 +3287,12 @@ int map_sql_close(void){
 
 	mysql_close(&lmysql_handle);
 	ShowStatus("Close Login DB Connection....\n");
+
+#ifdef MAPREGSQL
+	// [zBuffer] SQL Mapreg connection stop
+	mysql_close(&mapregsql_handle);
+	ShowStatus("Close Mapreg DB Connection....\n");
+#endif
 
 	if (log_config.sql_logs)
 //Updating this if each time there's a log_config addition is too much of a hassle.	[Skotlex]

@@ -1300,6 +1300,13 @@ extern int read_gm_interval;
 
 extern char char_db[32];
 
+#ifdef MAPREGSQL
+// [zBuffer] SQL Mapreg
+extern MYSQL mapregsql_handle;
+extern MYSQL_RES* mapregsql_res ;
+extern MYSQL_ROW mapregsql_row;
+#endif
+
 extern char mail_db[32];
 
 #endif /* not TXT_ONLY */
