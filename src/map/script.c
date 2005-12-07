@@ -6035,7 +6035,7 @@ int buildin_changebase(struct script_state *st)
 		return 0;
 
 	vclass = conv_num(st,& (st->stack->stack_data[st->start+2]));
-	if(vclass == 22)
+	if(vclass == JOB_WEDDING)
 	{
 		if (!battle_config.wedding_modifydisplay ||	//Do not show the wedding sprites
 			sd->class_&JOBL_BABY //Baby classes screw up when showing wedding sprites. [Skotlex]

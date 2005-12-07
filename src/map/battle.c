@@ -1884,7 +1884,7 @@ static struct Damage battle_calc_weapon_attack(
 			
 			if (pc_checkskill(sd,SG_SUN_ANGER) || pc_checkskill(sd,SG_MOON_ANGER) || pc_checkskill(sd,SG_STAR_ANGER))
 			{	//SG Anger bonus - ATK_ADDRATE [Komurka]
-				static int type[] = { SG_SUN_ANGER, SG_MOON_ANGER, SG_STAR_ANGER }
+				static int type[] = { SG_SUN_ANGER, SG_MOON_ANGER, SG_STAR_ANGER };
 				short t_class = status_get_class(target);
 				for (i = 0; i < 2; i++)
 				{
@@ -3432,6 +3432,7 @@ static const struct battle_data_short {
 	{ "item_use_interval",                 &battle_config.item_use_interval	},
 	{ "wedding_modifydisplay",             &battle_config.wedding_modifydisplay	},
 	{ "wedding_ignorepalette",             &battle_config.wedding_ignorepalette	},	//[Skotlex]
+	{ "xmas_ignorepalette",                &battle_config.xmas_ignorepalette	},	// [Valaris]
 	{ "natural_heal_weight_rate",          &battle_config.natural_heal_weight_rate	},
 	{ "item_name_override_grffile",        &battle_config.item_name_override_grffile},
 	{ "item_equip_override_grffile",       &battle_config.item_equip_override_grffile},	// [Celest]
@@ -3794,6 +3795,7 @@ void battle_set_defaults() {
 	battle_config.item_use_interval=500;
 	battle_config.wedding_modifydisplay=0;
 	battle_config.wedding_ignorepalette=0;
+	battle_config.xmas_ignorepalette=0; // [Valaris]
 	battle_config.natural_healhp_interval=6000;
 	battle_config.natural_healsp_interval=8000;
 	battle_config.natural_heal_skill_interval=10000;

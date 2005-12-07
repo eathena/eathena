@@ -1,6 +1,16 @@
 Date	Added
 
 2005/12/06
+	* Implemented Xmas Suit: [Valaris]
+		-Added status change state SC_XMAS, and added it to const.txt.
+		-Cannot attack or use skills while in the Xmas state.
+		-Will save if you logout.
+		-"sc_start SC_XMAS,600000,0" added to item 12132 (using item will give you xmas suit for 10 minutes).
+		-Added xmas_ignorepalette option to battle_athena.conf.
+	* Fixed script error in Garm's Claw item causing an error. [Valaris]
+	* Added a missing ; to Skotlex's Previous SG skill editions that caused compile errors. [Valaris]
+	* Added JOB_GUNSLINGER(24), JOB_NINJA(25), and JOB_XMAS(26) to map.h enum list and const.txt. [Valaris]
+	* Added SC_SCRESIST to const.txt. [Valaris]
 	* Applied Komurka's Star Gladiator patch. [Skotlex]
 	- The following skills are now working: SG_FEEL, SG_HATE, SG_SUN_ANGER,
 	  SG_MOON_ANGER, SG_STAR_ANGER, SG_SUN_BLESS, SG_MOON_BLESS, SG_STAR_BLESS

@@ -214,6 +214,7 @@ enum {
 	SC_WATKFOOD,
 	SC_MATKFOOD,
 	SC_SCRESIST, //Increases resistance to status changes.
+	SC_XMAS, // Xmas Suit [Valaris]
 	//
 	SC_MAX, //Automatically updated max, used in for's and at startup to check we are within bounds. [Skotlex]
 };

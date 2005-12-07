@@ -751,7 +751,7 @@ static int clif_set0078(struct map_session_data *sd, unsigned char *buf) {
 	}	
 	WBUFW(buf,14)=sd->view_class;
 	WBUFW(buf,16)=sd->status.hair;
-	if (sd->view_class != 22)
+	if (sd->view_class != 22 && sd->view_class !=26)
 		WBUFW(buf,18) = sd->status.weapon;
 	else
 		WBUFW(buf,18)=0;
@@ -790,14 +790,14 @@ static int clif_set0078(struct map_session_data *sd, unsigned char *buf) {
 	}
 	WBUFW(buf,14)=sd->view_class;
 	WBUFW(buf,16)=sd->status.hair;
-	if (sd->equip_index[9] >= 0 && sd->inventory_data[sd->equip_index[9]] && sd->view_class != 22) {
+	if (sd->equip_index[9] >= 0 && sd->inventory_data[sd->equip_index[9]] && sd->view_class != 22 && sd->view_class !=26) {
 		if (sd->inventory_data[sd->equip_index[9]]->view_id > 0)
 			WBUFW(buf,18) = sd->inventory_data[sd->equip_index[9]]->view_id;
 		else
 			WBUFW(buf,18) = sd->status.inventory[sd->equip_index[9]].nameid;
 	} else
 		WBUFW(buf,18) = 0;
-	if (sd->equip_index[8] >= 0 && sd->equip_index[8] != sd->equip_index[9] && sd->inventory_data[sd->equip_index[8]] && sd->view_class != 22) {
+	if (sd->equip_index[8] >= 0 && sd->equip_index[8] != sd->equip_index[9] && sd->inventory_data[sd->equip_index[8]] && sd->view_class != 22 && sd->view_class != 26) {
 		if (sd->inventory_data[sd->equip_index[8]]->view_id > 0)
 			WBUFW(buf,20) = sd->inventory_data[sd->equip_index[8]]->view_id;
 		else
@@ -885,7 +885,7 @@ static int clif_set007b(struct map_session_data *sd,unsigned char *buf) {
 	}
 	WBUFW(buf,14)=sd->view_class;
 	WBUFW(buf,16)=sd->status.hair;
-	if(sd->view_class != 22)
+	if(sd->view_class != 22 && sd->view_class !=26)
 		WBUFW(buf,18)=sd->status.weapon;
 	else
 		WBUFW(buf,18)=0;
@@ -924,7 +924,7 @@ static int clif_set007b(struct map_session_data *sd,unsigned char *buf) {
 	}
 	WBUFW(buf,14)=sd->view_class;
 	WBUFW(buf,16)=sd->status.hair;
-	if(sd->equip_index[9] >= 0 && sd->inventory_data[sd->equip_index[9]] && sd->view_class != 22) {
+	if(sd->equip_index[9] >= 0 && sd->inventory_data[sd->equip_index[9]] && sd->view_class != 22 && sd->view_class != 26) {
 		if(sd->inventory_data[sd->equip_index[9]]->view_id > 0)
 			WBUFW(buf,18)=sd->inventory_data[sd->equip_index[9]]->view_id;
 		else
@@ -932,7 +932,7 @@ static int clif_set007b(struct map_session_data *sd,unsigned char *buf) {
 	}
 	else
 		WBUFW(buf,18)=0;
-	if(sd->equip_index[8] >= 0 && sd->equip_index[8] != sd->equip_index[9] && sd->inventory_data[sd->equip_index[8]] && sd->view_class != 22) {
+	if(sd->equip_index[8] >= 0 && sd->equip_index[8] != sd->equip_index[9] && sd->inventory_data[sd->equip_index[8]] && sd->view_class != 22 && sd->view_class != 26) {
 		if(sd->inventory_data[sd->equip_index[8]]->view_id > 0)
 			WBUFW(buf,20)=sd->inventory_data[sd->equip_index[8]]->view_id;
 		else
@@ -2915,7 +2915,7 @@ int clif_changelook(struct block_list *bl,int type,int val)
 		sd = (struct map_session_data *)bl;
 
 #if PACKETVER < 4
-	if(sd && (type == LOOK_WEAPON || type == LOOK_SHIELD) && sd->view_class == 22)
+	if(sd && (type == LOOK_WEAPON || type == LOOK_SHIELD) && (sd->view_class == 22 || sd->view_class == 26))
 		val =0;
 	WBUFW(buf,0)=0xc3;
 	WBUFL(buf,2)=bl->id;
@@ -2939,7 +2939,7 @@ int clif_changelook(struct block_list *bl,int type,int val)
 		}
 		else {
 			WBUFB(buf,6)=2;
-			if(sd->equip_index[9] >= 0 && sd->inventory_data[sd->equip_index[9]] && sd->view_class != 22) {
+			if(sd->equip_index[9] >= 0 && sd->inventory_data[sd->equip_index[9]] && sd->view_class != 22 && sd->view_class != 26) {
 				if(sd->inventory_data[sd->equip_index[9]]->view_id > 0)
 					WBUFW(buf,7)=sd->inventory_data[sd->equip_index[9]]->view_id;
 				else
@@ -2947,7 +2947,7 @@ int clif_changelook(struct block_list *bl,int type,int val)
 			} else
 				WBUFW(buf,7)=0;
 			if(sd->equip_index[8] >= 0 && sd->equip_index[8] != sd->equip_index[9] && sd->inventory_data[sd->equip_index[8]] &&
-				sd->view_class != 22) {
+				sd->view_class != 22 && sd->view_class != 26) {
 				if(sd->inventory_data[sd->equip_index[8]]->view_id > 0)
 					WBUFW(buf,9)=sd->inventory_data[sd->equip_index[8]]->view_id;
 				else
@@ -8660,6 +8660,8 @@ void clif_parse_ActionRequest(int fd, struct map_session_data *sd) {
 	case 0x07: // continuous attack
 		if(sd->sc_data[SC_WEDDING].timer != -1 || sd->view_class==22)
 			return;
+		if(sd->sc_data[SC_XMAS].timer != -1 || sd->view_class==26)
+			return;
 		if (sd->vender_id != 0)
 			return;
 		if (!battle_config.sdelay_attack_enable && pc_checkskill(sd, SA_FREECAST) <= 0) {
@@ -9335,7 +9337,9 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd) {
 
 	if ((sd->sc_data[SC_TRICKDEAD].timer != -1 && skillnum != NV_TRICKDEAD) ||
 	    sd->sc_data[SC_BERSERK].timer != -1 || sd->sc_data[SC_NOCHAT].timer != -1 ||
-	    sd->sc_data[SC_WEDDING].timer != -1 || sd->view_class == 22)
+	    sd->sc_data[SC_WEDDING].timer != -1 || sd->view_class == 22 ||
+	    sd->sc_data[SC_XMAS].timer != -1 || sd->view_class == 26)
+
 		return;
 	if (sd->invincible_timer != -1)
 		pc_delinvincibletimer(sd);
@@ -9423,7 +9427,8 @@ void clif_parse_UseSkillToPosSub(int fd, struct map_session_data *sd, int skilll
 
 	if ((sd->sc_data[SC_TRICKDEAD].timer != -1 && skillnum != NV_TRICKDEAD) ||
 	    sd->sc_data[SC_BERSERK].timer != -1 || sd->sc_data[SC_NOCHAT].timer != -1 ||
-	    sd->sc_data[SC_WEDDING].timer != -1 || sd->view_class == 22)
+	    sd->sc_data[SC_WEDDING].timer != -1 || sd->view_class == 22 || 
+	    sd->sc_data[SC_XMAS].timer != -1 || sd->view_class == 26)
 		return;
 	if (sd->invincible_timer != -1)
 		pc_delinvincibletimer(sd);
@@ -9487,7 +9492,9 @@ void clif_parse_UseSkillMap(int fd,struct map_session_data *sd)
 		sd->sc_data[SC_BERSERK].timer!=-1 ||
 		sd->sc_data[SC_NOCHAT].timer!=-1 ||
 		sd->sc_data[SC_WEDDING].timer!=-1 ||
-		sd->view_class==22)))
+		sd->view_class==22 ||
+	      sd->sc_data[SC_XMAS].timer != -1 ||
+		sd->view_class == 26)))
 		return;
 
 	if(sd->invincible_timer != -1)

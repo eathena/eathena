@@ -21,6 +21,9 @@ Job_Bard	19
 Job_Dancer	20
 Job_Crusader2	21
 Job_SuperNovice	23
+Job_Gunslinger	24
+Job_Ninja	25
+Job_Xmas	26
 
 Job_Novice_High	4001
 Job_Swordman_High	4002
@@ -371,6 +374,8 @@ SC_FLEEFood	210
 SC_BAtkFood	211
 SC_WAtkFood	212
 SC_MAtkFood	213
+SC_SCRESIST	214
+SC_XMAS		215
 
 e_gasp	0
 e_what	1

@@ -1790,6 +1790,9 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		return 0;
 	}
 
+	if(sd->sc_data[SC_XMAS].timer != -1 && sd->view_class != JOB_XMAS)
+		sd->view_class=JOB_XMAS;
+
 	if(b_class != sd->view_class) {
 		clif_changelook(&sd->bl,LOOK_BASE,sd->view_class);
 #if PACKETVER < 4
@@ -1799,8 +1802,10 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		clif_changelook(&sd->bl,LOOK_WEAPON,0);
 #endif
 	//Restoring cloth dye color after the view class changes. [Skotlex]
+	// Added Xmas Suit [Valaris]
 	if(battle_config.save_clothcolor && sd->status.clothes_color > 0 &&
-		(sd->view_class != 22 || !battle_config.wedding_ignorepalette))
+		((sd->view_class != JOB_WEDDING && sd->view_class !=JOB_XMAS) || (sd->view_class==JOB_WEDDING && !battle_config.wedding_ignorepalette) ||
+			 (sd->view_class==JOB_XMAS && !battle_config.xmas_ignorepalette)))
 			clif_changelook(&sd->bl,LOOK_CLOTHES_COLOR,sd->status.clothes_color);
 	}
 
@@ -4032,12 +4037,17 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			if (!(flag&4))
 				val2 = 5*(2+type-SC_ASPDPOTION0);
 			break;
+
+		case SC_XMAS: // Xmas Suit [Valaris]
 		case SC_WEDDING:	//結婚用(結婚衣裳になって?くのが?いとか)
 			{
 				struct map_session_data *sd;
 				if (bl->type == BL_PC && (sd= (struct map_session_data *)bl))
 				{	//Change look.
-					sd->view_class = 22;
+					if(type==SC_WEDDING)
+						sd->view_class = JOB_WEDDING;
+					else if(type==SC_XMAS)
+						sd->view_class = JOB_XMAS;
 					clif_changelook(&sd->bl,LOOK_BASE,sd->view_class);
 #if PACKETVER < 4
 					clif_changelook(&sd->bl,LOOK_WEAPON,sd->status.weapon);
@@ -4045,7 +4055,9 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 #else
 					clif_changelook(&sd->bl,LOOK_WEAPON,0);
 #endif
-					if(battle_config.save_clothcolor && sd->status.clothes_color > 0 && !battle_config.wedding_ignorepalette)
+					if(battle_config.save_clothcolor && sd->status.clothes_color > 0 && 
+						((type==SC_WEDDING && !battle_config.wedding_ignorepalette) || 
+							(type==SC_XMAS && !battle_config.xmas_ignorepalette)))
 						clif_changelook(&sd->bl,LOOK_CLOTHES_COLOR,sd->status.clothes_color);
 				}
 			}
@@ -4409,6 +4421,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 					break;
 			}
 			break;
+
 		case SC_CONCENTRATE:		/* 集中力向上 */
 		case SC_BLESSING:			/* ブレッシング */
 		case SC_ANGELUS:			/* アンゼルス */
@@ -4635,8 +4648,9 @@ int status_change_clear(struct block_list *bl,int type)
 	for(i = 0; i < SC_MAX; i++)
 	{
 		//Type 0: PC killed -> EDP and Meltdown must not be dispelled. [Skotlex]
+		// Do not reset Xmas status when killed. [Valaris]
 		if(sc_data[i].timer == -1 ||
-			(type == 0 && (i == SC_EDP || i == SC_MELTDOWN)))
+			(type == 0 && (i == SC_EDP || i == SC_MELTDOWN || i == SC_XMAS)))
 			continue;
 
 		status_change_end(bl, i, -1);
@@ -4791,6 +4805,7 @@ int status_change_end( struct block_list* bl , int type,int tid )
 				calc_flag = 1;
 				break;
 
+			case SC_XMAS: // Xmas Suit [Valaris]
 			case SC_WEDDING:	//結婚用(結婚衣裳になって?くのが?いとか)
 			{
 				struct map_session_data *sd;
