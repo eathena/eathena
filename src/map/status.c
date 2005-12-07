@@ -428,7 +428,7 @@ int SkillStatusChangeTable[]={	/* status.hのenumのSC_***とあわせること */
 	-1,-1,
 	SC_SHRINK,
 	-1,-1,
-	SC_CLOSECONFINE,
+	SC_CLOSECONFINE2,
 	SC_SIGHTBLASTER,
 	-1,-1,-1,
 /* 1010- */
@@ -3746,7 +3746,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		sc_data[type].timer = -1;
 	}
 
-	if(type==SC_FREEZE || type==SC_STAN || type==SC_SLEEP || type==SC_STOP || type == SC_CONFUSION)
+	if(type==SC_FREEZE || type==SC_STAN || type==SC_SLEEP || type==SC_STOP || type == SC_CONFUSION ||
+		type==SC_CLOSECONFINE || type==SC_CLOSECONFINE2)
 		battle_stopwalking(bl,1);
 
 	// クアグマイア/私を忘れないで中は無効なスキル
@@ -4419,10 +4420,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			break;
 		}
 
-		case SC_STOP:
-			battle_stopwalking(bl, 0);
-			break;
-		
 		case SC_COMA: //Coma. Sends a char to 1HP/SP
 			battle_damage(NULL, bl, status_get_hp(bl)-1, 0);
 			if (sd) pc_heal(sd,0,-sd->status.sp+1);
@@ -4437,6 +4434,22 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			calc_flag = 1;
 			break;
 
+		case SC_CLOSECONFINE2:
+			{
+				struct block_list *src = val2?map_id2bl(val2):NULL;
+				struct status_change *sc_data2 = src?status_get_sc_data(src):NULL;
+				if (src && sc_data2) {
+					if (sc_data2[SC_CLOSECONFINE].timer == -1) //Start lock on caster.
+						status_change_start(bl,SC_CLOSECONFINE,1,0,0,0,tick+1000,0);
+					else { //Increase count of locked enemies and refresh time.
+						sc_data2[SC_CLOSECONFINE].val1++;
+						delete_timer(sc_data2[SC_CLOSECONFINE].timer, status_change_timer);
+						sc_data2[SC_CLOSECONFINE].timer = add_timer(gettick()+tick+1000, status_change_timer, src->id, SC_CLOSECONFINE);
+					}
+				}
+			}
+			break;
+			
 		case SC_COMBO:
 			switch (val1) { //Val1 contains the skill id
 				case TK_STORMKICK:
@@ -4538,6 +4551,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_SHRINK:
 		case SC_WINKCHARM:
 		case SC_SCRESIST:
+		case SC_STOP:
+		case SC_CLOSECONFINE:
 			break;
 
 		default:
@@ -4968,7 +4983,26 @@ int status_change_end( struct block_list* bl , int type,int tid )
 					}
 				}
 				break;
-
+			case SC_CLOSECONFINE2:
+				{
+					struct block_list *src = sc_data[type].val2?map_id2bl(sc_data[type].val2):NULL;
+					struct status_change *sc_data2 = src?status_get_sc_data(src):NULL;
+					if (src && sc_data2) {
+						if (sc_data2[SC_CLOSECONFINE].timer != -1) //If status was already ended, do nothing.
+						{ //Decrease count
+							if (--sc_data2[SC_CLOSECONFINE].val1 <= 0) //No more holds, free him up.
+								status_change_end(src, SC_CLOSECONFINE, -1);
+						}
+					}
+				}
+				break;
+			case SC_CLOSECONFINE:
+				if (sc_data[type].val1 > 0) { //Caster has been unlocked... nearby chars need to be unlocked.
+					int range = 2*skill_get_range2(bl, RG_CLOSECONFINE, 1);
+					map_foreachinarea(status_change_timer_sub, 
+						bl->m, bl->x-range, bl->y-range, bl->x+range,bl->y+range,0,bl,type,gettick());
+				}
+				break;
 		/* option1 */
 			case SC_FREEZE:
 				sc_data[type].val3 = 0;
@@ -5646,7 +5680,15 @@ int status_change_timer_sub(struct block_list *bl, va_list ap )
 			}
 		}
 		break;
-
+	case SC_CLOSECONFINE:
+		{	//Lock char has released the hold on everyone...
+			struct status_change *sc_data = status_get_sc_data(bl);
+			if (sc_data && sc_data[SC_CLOSECONFINE2].timer != -1 && sc_data[SC_CLOSECONFINE2].val2 == src->id) {
+				sc_data[SC_CLOSECONFINE2].val2 = 0;
+				status_change_end(bl, SC_CLOSECONFINE2, -1);
+			}
+		}
+		break;
 	}
 	return 0;
 }

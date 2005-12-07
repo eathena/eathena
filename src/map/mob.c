@@ -444,7 +444,9 @@ int mob_can_move(struct mob_data *md)
 		md->sc_data[SC_AUTOCOUNTER].timer != -1 || //オートカウンター
 		md->sc_data[SC_BLADESTOP].timer != -1 || //白刃取り
 		md->sc_data[SC_SPIDERWEB].timer != -1 || //スパイダーウェッブ
-		md->sc_data[SC_STOP].timer != -1
+		md->sc_data[SC_STOP].timer != -1 ||
+		md->sc_data[SC_CLOSECONFINE].timer != -1 ||
+		md->sc_data[SC_CLOSECONFINE2].timer != -1
 		)
 		return 0;
 
@@ -2271,9 +2273,9 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 		}
 	}	// end addition
 
-	if(md->option&2 )
+	if(md->option&OPTION_HIDE)
 		status_change_end(&md->bl, SC_HIDING, -1);
-	if(md->option&4 )
+	if(md->option&OPTION_CLOAK)
 		status_change_end(&md->bl, SC_CLOAKING, -1);
 
 	if(md->special_state.ai == 2 &&	//スフィアーマイン
@@ -2967,6 +2969,24 @@ int mob_warp(struct mob_data *md,int m,int x,int y,int type)
 	if(type >= 0) {
 		if(map[md->bl.m].flag.monster_noteleport)
 			return 0;
+		if(md->sc_count) { //Clear a few status changes (taken directly from pc_setpos). [Skotlex]
+			if(md->sc_data[SC_TRICKDEAD].timer != -1)
+				status_change_end(&md->bl, SC_TRICKDEAD, -1);
+			if(md->sc_data[SC_BLADESTOP].timer!=-1)
+				status_change_end(&md->bl,SC_BLADESTOP,-1);
+			if(md->sc_data && md->sc_data[SC_RUN].timer!=-1)
+				status_change_end(&md->bl,SC_RUN,-1);
+			if(md->sc_data[SC_DANCING].timer!=-1)
+				skill_stop_dancing(&md->bl);
+			if (md->sc_data[SC_DEVOTION].timer!=-1)
+				status_change_end(&md->bl,SC_DEVOTION,-1);
+			if (md->sc_data[SC_CLOSECONFINE].timer!=-1)
+				status_change_end(&md->bl,SC_CLOSECONFINE,-1);
+			if (md->sc_data[SC_CLOSECONFINE2].timer!=-1)
+				status_change_end(&md->bl,SC_CLOSECONFINE2,-1);
+			if (md->sc_data[SC_RUN].timer!=-1)
+				status_change_end(&md->bl,SC_RUN,-1);
+		}
 		clif_clearchar_area(&md->bl,type);
 	}
 	skill_unit_move(&md->bl,tick,4);

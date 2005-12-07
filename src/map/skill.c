@@ -1551,11 +1551,17 @@ int skill_blown( struct block_list *src, struct block_list *target,int count)
 	else if(pd)
 		map_foreachinmovearea(clif_petoutsight,target->m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,dx,dy,BL_PC,pd);
 	
-	if (sc_data && sc_data[SC_DANCING].timer != -1) {//Move the song/dance [Skotlex]
-		if (sc_data[SC_DANCING].val1 == CG_MOONLIT) //Cancel Moonlight Petals if moved from casting position. [Skotlex]
-			skill_stop_dancing(target);
-		else
-			skill_unit_move_unit_group((struct skill_unit_group *)sc_data[SC_DANCING].val2, target->m, dx, dy);
+	if (sc_data) {
+		if (sc_data[SC_DANCING].timer != -1) {	//Move the song/dance [Skotlex]
+			if (sc_data[SC_DANCING].val1 == CG_MOONLIT) //Cancel Moonlight Petals if moved from casting position. [Skotlex]
+				skill_stop_dancing(target);
+			else
+				skill_unit_move_unit_group((struct skill_unit_group *)sc_data[SC_DANCING].val2, target->m, dx, dy);
+		}
+		if (sc_data[SC_CLOSECONFINE].timer != -1)
+			status_change_end(target, SC_CLOSECONFINE, -1);
+		if (sc_data[SC_CLOSECONFINE2].timer != -1)
+			status_change_end(target, SC_CLOSECONFINE2, -1);
 	}
 		
 	if(su){
@@ -3523,7 +3529,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case PR_SUFFRAGIUM:		/* ƒTƒtƒ‰ƒMƒEƒ€ */
 	case PR_BENEDICTIO:		/* ?¹??~•Ÿ */
 		if (status_isimmune(bl))
-			clif_skill_nodamage(src,bl,skillid,skilllv,1);
+			clif_skill_nodamage(src,bl,skillid,skilllv,0);
 		else {
 			status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
@@ -3576,8 +3582,13 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 
 	case RG_CLOSECONFINE:
+		if (status_isimmune(bl))
+			clif_skill_nodamage(src,bl,skillid,skilllv,0);
+		else {
+			clif_skill_nodamage(src,bl,skillid,skilllv,1);
+			status_change_start (bl,SkillStatusChangeTable[skillid],skilllv,src->id,0,0,skill_get_time(skillid,skilllv),0);
+		}
 		break;
-
 	case SA_FLAMELAUNCHER:	// added failure chance and chance to break weapon if turned on [Valaris]
 	case SA_FROSTWEAPON:
 	case SA_LIGHTNINGLOADER:

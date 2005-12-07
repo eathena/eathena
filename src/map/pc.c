@@ -362,7 +362,9 @@ int pc_can_move(struct map_session_data *sd)
 		(sd->sc_data[SC_DANCING].timer !=-1 && sd->sc_data[SC_DANCING].val4 && sd->sc_data[SC_LONGING].timer == -1) ||
 		(sd->sc_data[SC_DANCING].timer !=-1 && sd->sc_data[SC_DANCING].val1 == CG_HERMODE) || //cannot move while Hermod is active.
 		(sd->sc_data[SC_GOSPEL].timer !=-1 && sd->sc_data[SC_GOSPEL].val4 == BCT_SELF) ||	// cannot move while gospel is in effect
-		 sd->sc_data[SC_STOP].timer != -1
+		sd->sc_data[SC_STOP].timer != -1 ||
+		sd->sc_data[SC_CLOSECONFINE].timer != -1 ||
+		sd->sc_data[SC_CLOSECONFINE2].timer != -1
 		)
 		return 0;
 
@@ -3103,19 +3105,25 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 	}
 
 	if (sd->sc_count) {
-		if(sd->sc_data[SC_TRICKDEAD].timer != -1)
+		if (sd->sc_data[SC_TRICKDEAD].timer != -1)
 			status_change_end(&sd->bl, SC_TRICKDEAD, -1);
-		if(sd->sc_data[SC_BLADESTOP].timer!=-1)
+		if (sd->sc_data[SC_BLADESTOP].timer!=-1)
 			status_change_end(&sd->bl,SC_BLADESTOP,-1);
-		if(sd->sc_data && sd->sc_data[SC_RUN].timer!=-1)
+		if (sd->sc_data[SC_RUN].timer!=-1)
 			status_change_end(&sd->bl,SC_RUN,-1);
-		if(sd->sc_data[SC_DANCING].timer!=-1) // clear dance effect when warping [Valaris]
+		if (sd->sc_data[SC_DANCING].timer!=-1) // clear dance effect when warping [Valaris]
 			skill_stop_dancing(&sd->bl);
 		if (sd->sc_data[SC_DEVOTION].timer!=-1)
 			status_change_end(&sd->bl,SC_DEVOTION,-1);
+		if (sd->sc_data[SC_CLOSECONFINE].timer!=-1)
+			status_change_end(&sd->bl,SC_CLOSECONFINE,-1);
+		if (sd->sc_data[SC_CLOSECONFINE2].timer!=-1)
+			status_change_end(&sd->bl,SC_CLOSECONFINE2,-1);
+		if (sd->sc_data[SC_RUN].timer!=-1)
+			status_change_end(&sd->bl,SC_RUN,-1);
 	}
 
-	if(sd->status.option&2)
+	if(sd->status.option&OPTION_HIDE)
 		status_change_end(&sd->bl, SC_HIDING, -1);
 	if(pc_iscloaking(sd))
 		status_change_end(&sd->bl, SC_CLOAKING, -1);
@@ -3368,9 +3376,9 @@ int pc_run(struct map_session_data *sd, int skilllv, int dir)
 
 	//進めない場合　駆け足終了　障害物で止まった場合スパート状態解除
 	if(to_x == sd->bl.x && to_y == sd->bl.y){
-		if(sd->sc_data && sd->sc_data[SC_RUN].timer!=-1)
+		if(sd->sc_data[SC_RUN].timer!=-1)
 			status_change_end(&sd->bl,SC_RUN,-1);
-		if(sd->sc_data && sd->sc_data[SC_SPORT].timer!=-1)
+		if(sd->sc_data[SC_SPORT].timer!=-1)
 			status_change_end(&sd->bl,SC_SPORT,-1);
 	} else
 		pc_walktoxy(sd, to_x, to_y);
@@ -4956,7 +4964,7 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 
 	if (sd->sc_data[SC_TRICKDEAD].timer != -1)
 		status_change_end(&sd->bl, SC_TRICKDEAD, -1);
-	if(sd->status.option&2)
+	if(sd->status.option&OPTION_HIDE)
 		status_change_end(&sd->bl, SC_HIDING, -1);
 	if(pc_iscloaking(sd))
 		status_change_end(&sd->bl, SC_CLOAKING, -1);
@@ -5109,8 +5117,7 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 
 	pc_setdead(sd);
 	skill_unit_move(&sd->bl,gettick(),4);
-	if(sd->sc_data[SC_BLADESTOP].timer!=-1)//白刃は事前に解除
-		status_change_end(&sd->bl,SC_BLADESTOP,-1);
+	
 	pc_setglobalreg(sd,"PC_DIE_COUNTER",++sd->die_counter); //死にカウンタ?書き?み
 	status_change_clear(&sd->bl,0);	// ステ?タス異常を解除する
 	clif_updatestatus(sd,SP_HP);

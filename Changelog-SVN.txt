@@ -1,6 +1,7 @@
 Date	Added
 
 2005/12/07
+	* Implemented Close Confine. [Skotlex]
 	* Change all 0x20e packets (18->26; 22->30) [Komurka]
 	  Also added job_name(mob_id) in clif_hate_mob 
 	  (but it crashes client when U try to use SG_HATE skill on player ><)
