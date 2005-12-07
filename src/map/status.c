@@ -274,10 +274,10 @@ int SkillStatusChangeTable[]={	/* status.hのenumのSC_***とあわせること */
 /* 420- */
 	SC_DODGE,
 	-1,-1,-1,-1,-1,-1,-1,
-	SC_SUN_WARM,
-	SC_MOON_WARM,
+	SC_WARM,
+	SC_WARM,
 /* 430- */
-	SC_STAR_WARM,
+	SC_WARM,
 	SC_SUN_COMFORT,
 	SC_MOON_COMFORT,
 	SC_STAR_COMFORT,
@@ -569,10 +569,9 @@ void initStatusIconChangeTable() {
 	StatusIconChangeTable[SC_DODGE] = SI_DODGE;
 	StatusIconChangeTable[SC_RUN] = SI_RUN;
 	StatusIconChangeTable[SC_SHADOWWEAPON] = SI_SHADOWWEAPON;
-	StatusIconChangeTable[SC_DEVIL] = SI_DEVIL; //SG icons [Komurka]
-	StatusIconChangeTable[SC_SUN_WARM] = SI_SUN_WARM;
-	StatusIconChangeTable[SC_MOON_WARM] = SI_MOON_WARM;
-	StatusIconChangeTable[SC_STAR_WARM] = SI_STAR_WARM;
+	StatusIconChangeTable[SC_SUN_WARM] = SI_WARM;
+	StatusIconChangeTable[SC_MOON_WARM] = SI_WARM;
+	StatusIconChangeTable[SC_STAR_WARM] = SI_WARM;
 	StatusIconChangeTable[SC_SUN_COMFORT] = SI_SUN_COMFORT;
 	StatusIconChangeTable[SC_MOON_COMFORT] = SI_MOON_COMFORT;
 	StatusIconChangeTable[SC_STAR_COMFORT] = SI_STAR_COMFORT;
@@ -1599,12 +1598,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	if((skill=pc_checkskill(sd,SA_ADVANCEDBOOK))>0)
 		sd->aspd_rate -= (skill/2);
 	if((skill = pc_checkskill(sd,SG_DEVIL)) > 0)
-	{
 		sd->aspd_rate -= (skill*3);
-		if(sd->sc_data[SC_DEVIL].timer!=-1 || sd->sc_data[SC_DEVIL].val1<skill)
-			status_change_start(&sd->bl,SC_DEVIL,skill,0,0,0,5000,0);
-		clif_status_change(&sd->bl,SI_DEVIL,1);
-	}
 
 	if(pc_isriding(sd))
 		sd->aspd_rate += 50-10*pc_checkskill(sd,KN_CAVALIERMASTERY);
@@ -3740,7 +3734,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		if(sc_data[type].val1 > val1 && type != SC_COMBO && type != SC_DANCING && type != SC_DEVOTION &&
 			type != SC_ASPDPOTION0 && type != SC_ASPDPOTION1 && type != SC_ASPDPOTION2 && type != SC_ASPDPOTION3
 			&& type != SC_ATKPOTION && type != SC_MATKPOTION // added atk and matk potions [Valaris]
-			&& type!= SC_DEVIL) //added SC_DEVIL [Komurka]
+		)
 			return 0;
 
 		if ((type >=SC_STAN && type <= SC_BLIND) || type == SC_DPOISON)
@@ -4343,9 +4337,11 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			*opt3 |= 2048;
 			break;
 
-		case SC_SUN_WARM: //SG skills [Komurka]
-		case SC_MOON_WARM:
-		case SC_STAR_WARM:
+		case SC_WARM: //SG skills [Komurka]
+			if (!(flag&4)) {
+				val2 = tick/1000;
+				tick = 1000;
+			}
 			*opt3 |= 4096;
 			opt_flag = 1;
 			break;
@@ -4544,7 +4540,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_SHRINK:
 		case SC_WINKCHARM:
 		case SC_SCRESIST:
-		case SC_DEVIL:
 			break;
 
 		default:
@@ -5138,18 +5133,10 @@ int status_change_end( struct block_list* bl , int type,int tid )
 		case SC_ASSUMPTIO:		/* アスムプティオ */
 			*opt3 &= ~2048;
 			break;
-		case SC_SUN_WARM: //SG skills [Komurka]
-		case SC_MOON_WARM:
-		case SC_STAR_WARM:
-			if(sc_data[SC_SUN_WARM].timer==-1 
-				&& sc_data[SC_MOON_WARM].timer==-1 
-				&& sc_data[SC_STAR_WARM].timer==-1)
-			{
-				*opt3 &= ~4096;
-				opt_flag = 1;
-			}
+		case SC_WARM: //SG skills [Komurka]
+			*opt3 &= ~4096;
+			opt_flag = 1;
 			break;
-
 		}
 
 		if(opt_flag)	/* optionの?更を?える */
@@ -5276,15 +5263,12 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 		}
 		break;
 
-	case SC_SUN_WARM: //SG skills [Komurka]
-	case SC_MOON_WARM:
-	case SC_STAR_WARM:
+	case SC_WARM: //SG skills [Komurka]
 		if( (--sc_data[type].val2)>0){
-			
 			map_foreachinarea( status_change_timer_sub,
-				bl->m, bl->x-sc_data[type].val3, bl->y-sc_data[type].val3, bl->x+sc_data[type].val3,bl->y+sc_data[type].val3,0,
+				bl->m, bl->x-sc_data[type].val4, bl->y-sc_data[type].val4, bl->x+sc_data[type].val4,bl->y+sc_data[type].val4,0,
 				bl,type,tick);
-			sc_data[type].timer=add_timer(1000+tick, status_change_timer,bl->id, data);
+			sc_data[type].timer=add_timer(tick+1000, status_change_timer,bl->id, data);
 			return 0;
 		}
 		break;
@@ -5422,10 +5406,6 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 	case SC_DODGE:
 		sc_data[type].timer=add_timer( 1000*600+tick,status_change_timer, bl->id, data );
 		return 0;
-	case SC_DEVIL:
-		clif_status_change(bl,SI_DEVIL,1);
-		sc_data[type].timer=add_timer( 1000*5+tick,status_change_timer, bl->id, data );
-		break;
 
 	case SC_DANCING: //ダンススキルの時間SP消費
 		{
@@ -5652,32 +5632,19 @@ int status_change_timer_sub(struct block_list *bl, va_list ap )
 			}
 		}
 		break;
-	case SC_SUN_WARM: //SG skills [Komurka]
-	case SC_MOON_WARM:
-	case SC_STAR_WARM:
+	case SC_WARM: //SG skills [Komurka]
 		{
 			if(battle_check_target( src,bl, BCT_ENEMY ) > 0) {
+				struct status_change *sc_data = status_get_sc_data(src);
 				if(sd){
-					if(sd->status.sp<2)
-					{
-						status_change_end(&sd->bl,type,-1);
-					}else{
-						sd->status.sp -= 2;
-						clif_updatestatus(sd,SP_SP);	
+					if(sd->status.sp<2) {
+						sd->sc_data[type].val2 = 0; //Makes it end on the next tick.
+						break;
 					}
+					sd->status.sp -= 2;
+					clif_updatestatus(sd,SP_SP);	
 				}
-				if(tsd)
-				{
-					tsd->status.sp -= 5;
-					if(tsd->status.sp < 0)
-						tsd->status.sp = 0;
-					clif_updatestatus(tsd,SP_SP);	
-				}
-				battle_weapon_attack(src,bl,tick,0);
-				if(map[bl->m].flag.gvg==0)
-				{
-					skill_blown(src,bl,2);
-				}
+				skill_attack(BF_WEAPON,src,src,bl,sc_data?sc_data[type].val3:SG_SUN_WARM,1,tick,0);
 			}
 		}
 		break;

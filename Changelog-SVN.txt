@@ -1,6 +1,10 @@
 Date	Added
 
 2005/12/07
+	* Reviewed and cleaned up a bit the latest SG additions from Komurka. [Skotlex]
+	- My skill desc says that SG_DEVIL does not makes you blind until you reach
+	  max job level, so I implemented that. Report if this is incorrect. 
+	- SG_*_WARM skills should be working from what I read there.
 	* Modified a bit the TK_MISSION packet, GUESSING where the progress of the
 	  current mission should go within said packet... [Skotlex]
 	* Implemented TK_MISSION. [Skotlex]

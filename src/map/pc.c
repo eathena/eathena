@@ -846,7 +846,6 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 	sd->hate_mob[1] = pc_readglobalreg(sd,"PC_HATE_MOB_MOON") - 1;
 	sd->hate_mob[2] = pc_readglobalreg(sd,"PC_HATE_MOB_STAR") - 1;
 
-
 	if ((i = pc_checkskill(sd,RG_PLAGIARISM)) > 0) {
 		sd->cloneskill_id = pc_readglobalreg(sd,"CLONE_SKILL");
 		if (sd->cloneskill_id > 0) {
@@ -4261,6 +4260,8 @@ int pc_checkjoblevelup(struct map_session_data *sd)
 		status_calc_pc(sd,0);
 
 		clif_misceffect(&sd->bl,1);
+		if (pc_checkskill(sd, SG_DEVIL) && sd->status.job_level >= battle_config.max_job_level)
+			clif_status_change(&sd->bl,SI_DEVIL, 1); //Permanent blind effect from SG_DEVIL.
 
 		if (script_config.event_script_type == 0) {
 			struct npc_data *npc;
@@ -4845,6 +4846,9 @@ int pc_resetskill(struct map_session_data* sd)
 	int i, skill, inf2;
 	nullpo_retr(0, sd);
 
+	if (pc_checkskill(sd, SG_DEVIL) && sd->status.job_level >= battle_config.max_job_level)
+		clif_status_load(&sd->bl, SI_DEVIL, 0); //Remove perma blindness due to skill-reset. [Skotlex]
+	
 	for (i = 1; i < MAX_SKILL; i++) {
 		if ((skill = sd->status.skill[i].lv) > 0) {
 			inf2 = skill_get_inf2(i);	

@@ -39,6 +39,7 @@
 	--
 
 12/07
+	* Updated SG_*_WARM skills to have range 1. [Skotlex]
 	* Updated SG skills [Komurka]
 
 12/06

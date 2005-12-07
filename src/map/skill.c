@@ -1074,7 +1074,17 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 				clif_updatestatus(dstsd,SP_SP);
 		}
   		break;
-
+		case SG_SUN_WARM:
+		case SG_MOON_WARM:
+		case SG_STAR_WARM:
+			if (dstsd) {
+				dstsd->status.sp -= 5;
+				if(dstsd->status.sp < 0)
+					dstsd->status.sp = 0;
+				clif_updatestatus(dstsd,SP_SP);	
+			}
+			break;
+			
 	/* MOB‚Ì’Ç‰Á?‰Ê•t‚«ƒXƒLƒ‹ */
 
 	case NPC_PETRIFYATTACK:
@@ -5697,32 +5707,15 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				}
 		} //else clif_skill_fail(sd,skillid,0,0);
 		break;
-
 	case SG_SUN_WARM:
-		if(sd->bl.m != sd->feel_map[0].m)
-			clif_skill_fail(sd,skillid,0,0);
-		else
-		{
-			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,skill_get_time(skillid,skilllv)/1000,skill_get_range(skillid,skilllv),0,1000,0);
-		}
-		break;
 	case SG_MOON_WARM:
-		if(sd->bl.m != sd->feel_map[1].m)
-			clif_skill_fail(sd,skillid,0,0);
-		else
-		{
-			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,skill_get_time(skillid,skilllv)/1000,skill_get_range(skillid,skilllv),0,1000,0);
-		}
-		break;
 	case SG_STAR_WARM:
-		if(sd->bl.m != sd->feel_map[2].m)
+		if(sd->bl.m != sd->feel_map[(skillid==SG_SUN_WARM?0:(skillid==SG_MOON_WARM?1:2))].m)
 			clif_skill_fail(sd,skillid,0,0);
 		else
 		{
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,skill_get_time(skillid,skilllv)/1000,skill_get_range(skillid,skilllv),0,1000,0);
+			status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,skillid,skill_get_range(skillid,skilllv),skill_get_time(skillid,skilllv),0);
 		}
 		break;
 	case SG_SUN_COMFORT:

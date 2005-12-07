@@ -1079,31 +1079,6 @@ static struct Damage battle_calc_weapon_attack(
 			case KN_AUTOCOUNTER:
 				wd.flag=(wd.flag&~BF_SKILLMASK)|BF_NORMAL;
 				break;
-			case SG_SUN_WARM: //SG skills - couldn't find a place for this -.- feel free to move it [Komurka]
-			case SG_MOON_WARM:
-			case SG_STAR_WARM:
-				if(sd) {
-					if(sd->status.sp < 2)
-					{
-						status_change_end(src,SkillStatusChangeTable[skill_num],-1);
-						break;
-					}
-					if(tsd)
-					{
-						tsd->status.sp -= 5;
-						if(tsd->status.sp<0)
-							tsd->status.sp = 0;
-						clif_updatestatus(tsd,SP_SP);
-					}
-					sd->status.sp -= 2;
-					clif_updatestatus(sd,SP_SP);
-				} else if(tsd)
-				{
-					tsd->status.sp -= 5;
-					clif_updatestatus(tsd,SP_SP);
-				}
-				break;
-
 		}
 	}
 
@@ -1239,6 +1214,9 @@ static struct Damage battle_calc_weapon_attack(
 				case NPC_GRANDDARKNESS:
 				case PA_SACRIFICE:
 				case TK_COUNTER:
+				case SG_SUN_WARM:
+				case SG_MOON_WARM:
+				case SG_STAR_WARM:
 					flag.hit = 1;
 					break;
 				case CR_SHIELDBOOMERANG:

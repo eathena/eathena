@@ -530,13 +530,13 @@ int party_check_conflict(struct map_session_data *sd)
 	return 0;
 }
 
-int party_twilight_check(struct map_session_data *sd, int skillid)
+int party_twilight_check(int party_id, int skillid)
 {
 	struct party *p;
 	struct map_session_data *p_sd;
 	int i;
 
-	if (p == NULL)
+	if(!party_id || (p=party_search(party_id))==NULL)
 		return 0;
 	for(i=0;i<MAX_PARTY;i++){
 		if ((p_sd = p->member[i].sd) == NULL)

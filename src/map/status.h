@@ -215,14 +215,11 @@ enum {
 	SC_MATKFOOD,
 	SC_SCRESIST, //Increases resistance to status changes.
 	SC_XMAS, // Xmas Suit [Valaris]
-	SC_DEVIL, //SG skills [Komurka]
-	SC_SUN_WARM,
-	SC_MOON_WARM,
-	SC_STAR_WARM,
-	SC_SUN_COMFORT, //220
+	SC_WARM, //SG skills [Komurka]
+	SC_SUN_COMFORT,
 	SC_MOON_COMFORT,
 	SC_STAR_COMFORT,
-	SC_FUSION,
+	SC_FUSION, //220
 	//
 	SC_MAX, //Automatically updated max, used in for's and at startup to check we are within bounds. [Skotlex]
 };
@@ -334,9 +331,9 @@ enum {
 	SI_KAUPE			= 158,
 // 159 = blue sparks and item-heal sound effect. Looks like item-use effect.
 	SI_ONEHAND			= 161,
-	SI_SUN_WARM			= 165,	
-	SI_MOON_WARM			= 166,	
-	SI_STAR_WARM			= 167,	
+	SI_WARM			= 165,	
+//	166, The three show the exact same display: ultra red character (165, 166, 167)	
+//	167,	
 	SI_SUN_COMFORT			= 169,
 	SI_MOON_COMFORT			= 170,	
 	SI_STAR_COMFORT			= 171,	
