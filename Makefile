@@ -46,6 +46,7 @@ endif
 
 ifeq ($(findstring FreeBSD,$(PLATFORM)), FreeBSD)
    MAKE = gmake
+   OS_TYPE = -D__FREEBSD__
 endif
 
 ifeq ($(findstring NetBSD,$(PLATFORM)), NetBSD)

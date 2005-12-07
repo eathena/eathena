@@ -5,9 +5,6 @@
 #include <signal.h>
 #include <string.h>
 #include <time.h>
-#if !defined(CYGWIN) && !defined(_WIN32) && !defined(__NETBSD__)	// HAVE_EXECINFO_H
-	#include <execinfo.h>
-#endif
 #include "../common/plugin.h"
 #include "../common/version.h"
 #include "../common/showmsg.h"
@@ -27,6 +24,26 @@ PLUGIN_EVENTS_TABLE = {
 };
 
 //////////////////////////////////////
+
+#if defined(_WIN32) || defined(MINGW)
+	int sig_init() {
+		printf("This plugin is not supported - Enable 'exchndl' instead!");
+		return 0;
+	}
+	int sig_final() { return 0; }
+#elif defined (__NETBSD__) || defined (__FREEBSD__)
+	int sig_init() {
+		printf("This plugin is not supported!");
+		return 0;
+	}
+	int sig_final() { return 0; }
+#else
+
+//////////////////////////////////////
+
+#if !defined(CYGWIN)
+	#include <execinfo.h>
+#endif
 
 const char* (*getrevision)();
 unsigned long (*getuptime)();
@@ -190,3 +207,5 @@ int sig_init ()
 
 	return 1;
 }
+#endif
+

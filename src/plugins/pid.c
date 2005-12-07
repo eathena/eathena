@@ -2,7 +2,12 @@
 #include <stdio.h>
 #include <string.h>
 #ifndef _WIN32
-#include <unistd.h>
+	#include <unistd.h>
+	#define getpid GetCurrentProcessId
+#endif
+#ifdef MINGW
+	#include <process.h>
+	#include <io.h>
 #endif
 #include "../common/plugin.h"
 
@@ -37,11 +42,7 @@ void pid_create ()
 	strcat(pid_file, ".pid");
 	fp = fopen(pid_file, "w");
 	if (fp) {
-#ifdef _WIN32
-		fprintf(fp, "%d", GetCurrentProcessId());
-#else
 		fprintf(fp, "%d", getpid());
-#endif
 		fclose(fp);
 	}
 }

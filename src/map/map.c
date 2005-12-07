@@ -4,10 +4,13 @@
 #include <string.h>
 #include <stdarg.h>
 #ifdef _WIN32
-#include <winsock.h>
+	#include <winsock.h>
 #else
-#include <netdb.h>
-#include <unistd.h>
+	#include <netdb.h>
+	#include <unistd.h>
+#endif
+#ifdef MINGW
+	#include <io.h>
 #endif
 #include <math.h>
 

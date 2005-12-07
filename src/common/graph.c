@@ -8,7 +8,10 @@
 #include <stdlib.h>
 #include <string.h>
 #ifndef _WIN32
-#include <unistd.h>
+	#include <unistd.h>
+#endif
+#ifdef MINGW
+	#include <io.h>
 #endif
 
 #include "../common/core.h"
