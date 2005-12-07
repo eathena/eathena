@@ -626,6 +626,7 @@ char * job_name(int class_) {
 	case 21:   return "Peco Crusader";
 	case 22:   return "Wedding";
 	case 23:   return "Super Novice";
+	case 24:   return "Taekwon";
 	case 4001: return "Novice High";
 	case 4002: return "Swordsman High";
 	case 4003: return "Mage High";

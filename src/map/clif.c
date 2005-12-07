@@ -10874,8 +10874,8 @@ void clif_parse_FeelSaveOk(int fd,struct map_session_data *sd)
 	{
 		WFIFOW(fd,0)=0x20e;
 		memcpy(WFIFOP(fd,2),map[sd->bl.m].name, MAP_NAME_LENGTH-1);
-		WFIFOL(fd,18)=sd->bl.id;
-		WFIFOW(fd,packet_len_table[0x20e]-2)=sd->feel_level;
+		WFIFOL(fd,26)=sd->bl.id;
+		WFIFOW(fd,30)=sd->feel_level;
 		strcpy(sd->feel_map[sd->feel_level].name,map[sd->bl.m].name);
 		WFIFOSET(fd, packet_len_table[0x20e]);
 		if (pc_checkskill(sd,SG_KNOWLEDGE)) status_calc_pc(sd,0);
@@ -11483,8 +11483,8 @@ void clif_fell_info(struct map_session_data *sd)
 	int fd=sd->fd;
 	WFIFOW(fd,0)=0x20e;
 	memcpy(WFIFOP(fd,2),sd->feel_map[sd->feel_level].name, MAP_NAME_LENGTH-1);
-	WFIFOL(fd,18)=sd->bl.id;
-	WFIFOW(fd,packet_len_table[0x20e]-2)=0x100+sd->feel_level;
+	WFIFOL(fd,26)=sd->bl.id;
+	WFIFOW(fd,30)=0x100+sd->feel_level;
 	WFIFOSET(fd, packet_len_table[0x20e]);
 }
 
@@ -11496,10 +11496,8 @@ void clif_hate_mob(struct map_session_data *sd, int skilllv,int mob_id)
 {
 	int fd=sd->fd;
 	WFIFOW(fd,0)=0x20e;
-	if (mob_id>1000) strncpy(WFIFOP(fd,2),mob_db(mob_id)->jname, NAME_LENGTH);
-	else //TODO: Place here the name of the class.
-		memset(WFIFOP(fd, 2), 0, NAME_LENGTH);
-	WFIFOL(fd,26)=mob_id;
+	if (mob_id>1000 && mob_id<4000) strncpy(WFIFOP(fd,2),(mob_id>1000 && mob_id<4000)?mob_db(mob_id)->jname:job_name(mob_id), NAME_LENGTH);
+	WFIFOL(fd,26)=sd->bl.id;
 	WFIFOW(fd,30)=0xa00+skilllv-1;
 	WFIFOSET(fd, packet_len_table[0x20e]);
 }
