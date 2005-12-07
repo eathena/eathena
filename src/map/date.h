@@ -1,5 +1,6 @@
 #ifndef _DATE_H_
 #define _DATE_H_
+#endif
 
 int date_get_year(void);
 int date_get_month(void);
@@ -12,6 +13,5 @@ int is_day_of_sun(void);
 int is_day_of_moon(void);
 int is_day_of_star(void);
 
-#endif
 
 

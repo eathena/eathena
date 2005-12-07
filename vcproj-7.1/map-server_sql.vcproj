@@ -156,6 +156,9 @@
 				RelativePath="..\src\common\core.c">
 			</File>
 			<File
+				RelativePath="..\src\map\date.c">
+			</File>
+			<File
 				RelativePath="..\src\common\db.c">
 			</File>
 			<File
@@ -284,6 +287,9 @@
 			</File>
 			<File
 				RelativePath="..\src\common\core.h">
+			</File>
+			<File
+				RelativePath="..\src\map\date.h">
 			</File>
 			<File
 				RelativePath="..\src\common\db.h">
