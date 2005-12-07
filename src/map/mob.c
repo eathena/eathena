@@ -2346,7 +2346,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 				sd->mission_mobid = hp;
 				pc_setglobalreg(sd,"TK_MISSION_ID", hp);
 				sd->mission_count = 0;
-				clif_mission_mob(sd, hp);
+				clif_mission_mob(sd, hp, 0);
 			}
 			pc_setglobalreg(sd,"TK_MISSION_COUNT", sd->mission_count);
 			

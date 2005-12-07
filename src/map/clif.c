@@ -11507,12 +11507,13 @@ void clif_hate_mob(struct map_session_data *sd, int skilllv,int mob_id)
  * Info about TaeKwon Do TK_MISSION mob [Skotlex]
  *------------------------------------------
  */
-void clif_mission_mob(struct map_session_data *sd, int mob_id)
+void clif_mission_mob(struct map_session_data *sd, unsigned short mob_id, unsigned short progress)
 {
 	int fd=sd->fd;
 	WFIFOW(fd,0)=0x20e;
 	strncpy(WFIFOP(fd,2),mob_db(mob_id)->jname, NAME_LENGTH);
-	WFIFOL(fd,26)=mob_id;
+	WFIFOW(fd,26)=mob_id;
+	WFIFOW(fd,28)=progress;
 	WFIFOW(fd,30)=0x1400; //Message to display
 	WFIFOSET(fd, packet_len_table[0x20e]);
 }

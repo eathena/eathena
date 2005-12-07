@@ -1,6 +1,8 @@
 Date	Added
 
 2005/12/07
+	* Modified a bit the TK_MISSION packet, GUESSING where the progress of the
+	  current mission should go within said packet... [Skotlex]
 	* Implemented TK_MISSION. [Skotlex]
 	* Added more SG skills (Comfort, Warmth, Demon, Knowledge) [Komurka]
 	All of them should be checked by someone ^^;;
