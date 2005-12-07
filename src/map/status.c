@@ -569,9 +569,7 @@ void initStatusIconChangeTable() {
 	StatusIconChangeTable[SC_DODGE] = SI_DODGE;
 	StatusIconChangeTable[SC_RUN] = SI_RUN;
 	StatusIconChangeTable[SC_SHADOWWEAPON] = SI_SHADOWWEAPON;
-	StatusIconChangeTable[SC_SUN_WARM] = SI_WARM;
-	StatusIconChangeTable[SC_MOON_WARM] = SI_WARM;
-	StatusIconChangeTable[SC_STAR_WARM] = SI_WARM;
+	StatusIconChangeTable[SC_WARM] = SI_WARM;
 	StatusIconChangeTable[SC_SUN_COMFORT] = SI_SUN_COMFORT;
 	StatusIconChangeTable[SC_MOON_COMFORT] = SI_MOON_COMFORT;
 	StatusIconChangeTable[SC_STAR_COMFORT] = SI_STAR_COMFORT;

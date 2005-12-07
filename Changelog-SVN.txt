@@ -1,6 +1,7 @@
 Date	Added
 
 2005/12/07
+	* Fixed compile error in status.c. Check your work skot <3 [Kayla & MoM]
 	* Updated socket.c by adding a lots error reporting for functions that
 	  previously were assumed to not fail. May help figure out what's going on
 	  with the win32 builds... [Skotlex]
