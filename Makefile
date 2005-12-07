@@ -28,7 +28,6 @@ OPT += -Wall -Wno-sign-compare
 # OPT += -DMEMWATCH
 # OPT += -DDMALLOC -DDMALLOC_FUNC_CHECK
 # OPT += -DBCHECK
-# OPT += -DMINGW
 
 # LIBS += -lgc
 # LIBS += -ldmalloc
@@ -55,19 +54,21 @@ ifeq ($(findstring NetBSD,$(PLATFORM)), NetBSD)
 endif
 
 ifeq ($(findstring CYGWIN,$(PLATFORM)), CYGWIN)
-   OS_TYPE = -DCYGWIN
-	OPT += -DFD_SETSIZE=4096
-endif
-
-ifeq ($(findstring MINGW,$(OPT)), MINGW)
-	LIBS += -L../.. -lwsock32
+   OPT += -DFD_SETSIZE=4096
+   ifeq ($(findstring mingw,$(shell gcc --version)), mingw)
+      IS_MINGW = 1
+      OS_TYPE = -DMINGW
+      LIBS += -L../.. -lwsock32
+   else
+      OS_TYPE = -DCYGWIN
+   endif
 endif
 
 CFLAGS = $(OPT) -I../common $(OS_TYPE)
 
 ifdef SQLFLAG
-  ifeq ($(findstring MINGW,$(OPT)), MINGW)
-    CFLAGS += -I/usr/local/include/mysql
+  ifdef IS_MINGW
+    CFLAGS += -I../mysql
     LIBS += -lmysql
   else
     MYSQLFLAG_CONFIG = $(shell which mysql_config)

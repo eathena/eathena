@@ -9,6 +9,7 @@ Date	Added
 		plugins if you can ('exchndl' for Win32, 'sig' for all others') and send in any
 		reports you might get! We all want eA to be stable, ne? ^^
 
+	* Updated Makefile to auto-detect MinGW and include src/mysql [celest]
 	* Debug logging flag for logging output messages (only works well with native Win32) :D (Not enabled by default) [Lance]
 	* joshuali's new vcproj with debug mode correctly set up. [Lance]
 	* Fixed compile errors for Valaris's commit on date.h [Lance]
