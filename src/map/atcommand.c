@@ -9885,6 +9885,6 @@ int atcommand_away(
 		}
 		clif_displaymessage(fd, "Usage: @away,@aw <message>. Enter empty message for disable it.");
 	}
-
 	return 0;
 }
+

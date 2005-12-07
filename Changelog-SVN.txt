@@ -1,6 +1,10 @@
 Date	Added
 
 2005/12/07
+	* skill_get_name now returns "UNKNOWN_SKILL" instead of null (should fix
+	  some crashes when using it on skills with no defined name) [Skotlex]
+	* When weapon_delay_attack is enabled, items should drop inmediately after
+	  mobs are killed rather than 500ms afterwards. [Skotlex]
 	* Added Exception Handling plugin to be used for native Win32 builds [celest]
 	  - crashes will be logged in <server type>.stackdump along with file name and line numbers
 	  - To activate, enable 'exchndl' in plugin_athena.conf

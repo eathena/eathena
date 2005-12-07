@@ -617,7 +617,7 @@ int	skill_get_unit_target( int id ){ skill_get (skill_db[id].unit_target, id, 1)
 int	skill_get_unit_flag( int id ){ skill_get (skill_db[id].unit_flag, id, 1); }
 const char*	skill_get_name( int id ){ 
 	if (id >= 10000 && id < 10015) id -= 9500;
-	if (id < 1 || id > MAX_SKILL_DB) return "UNKNOWN_SKILL"; //Can't use skill_chk because we return a string.
+	if (id < 1 || id > MAX_SKILL_DB || skill_db[id].name==NULL) return "UNKNOWN_SKILL"; //Can't use skill_chk because we return a string.
 	return skill_db[id].name; 
 }
 

@@ -2540,7 +2540,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 			}
 
 			// Announce first, or else ditem will be freed. [Lance]
-			mob_item_drop(md, tick+500+i, ditem, 0);
+			mob_item_drop(md, tick+(battle_config.delay_battle_damage?10:500)+i, ditem, 0);
 		}
 
 		// Ore Discovery [Celest]
@@ -2550,7 +2550,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 			if (drop_ore<0) drop_ore=8; //we have only 10 slots in LOG, there's a check to not overflow (9th item usually a card, so we use 8th slot)
 			log_item[drop_ore] = ditem->item_data.nameid; //it's for logging only
 			drop_items++; //we count if there were any drops
-			mob_item_drop(md, tick+500+drop_ore, ditem, 0);
+			mob_item_drop(md, tick+(battle_config.delay_battle_damage?10:500)+drop_ore, ditem, 0);
 		}
 
 		//this drop log contains ALL dropped items + ORE (if there was ORE Recovery) [Lupus]
@@ -2581,7 +2581,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 						itemdb_searchrandomgroup(sd->add_drop[i].group);
 
 					ditem = mob_setdropitem(itemid, 1, md->bl.m, md->bl.x, md->bl.y, mvp_sd, second_sd, third_sd);
-					mob_item_drop(md, tick+520+i, ditem, 0);
+					mob_item_drop(md, tick+(battle_config.delay_battle_damage?20:520)+i, ditem, 0);
 				}
 			}
 			if(sd->get_zeny_num && rand()%100 < sd->get_zeny_rate) //Gets get_zeny_num per level +/-10% [Skotlex]
@@ -2592,7 +2592,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 				struct delay_item_drop *ditem;
 
 				ditem = mob_setlootitem(&md->lootitem[i], md->bl.m, md->bl.x, md->bl.y, mvp_sd, second_sd, third_sd);
-				mob_item_drop(md, tick+540+i, ditem, 1);
+				mob_item_drop(md, tick+(battle_config.delay_battle_damage?40:540)+i, ditem, 1);
 			}
 		}
 	}
@@ -2712,7 +2712,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 }
 //[lordalfa]
 	(battle_config.mob_clear_delay) ? clif_clearchar_delay(tick+battle_config.mob_clear_delay,&md->bl,1) : clif_clearchar_area(&md->bl,1);
-	clif_clearchar_area(&md->bl,1);
+//	clif_clearchar_area(&md->bl,1); //eh? Why send the same packet twice? [Skotlex]
 	
 	if(md->level) md->level=0;
 	map_delblock(&md->bl);
