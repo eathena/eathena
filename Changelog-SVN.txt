@@ -2,6 +2,7 @@ Date	Added
 
 2005/12/07
 	* Debug logging flag for logging output messages (only works well with native Win32) :D (Not enabled by default) [Lance]
+	* joshuali's new vcproj with debug mode correctly set up. [Lance]
 
 2005/12/06
 	* Updated item 12132 for the Xmas suit effect in item_db.sql. [Valaris]
