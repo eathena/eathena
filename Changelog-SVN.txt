@@ -1,6 +1,7 @@
 Date	Added
 
 2005/12/06
+	* Updated item 12132 for the Xmas suit effect in item_db.sql. [Valaris]
 	* Implemented Xmas Suit: [Valaris]
 		-Added status change state SC_XMAS, and added it to const.txt.
 		-Cannot attack or use skills while in the Xmas state.

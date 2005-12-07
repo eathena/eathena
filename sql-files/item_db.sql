@@ -2349,7 +2349,7 @@ REPLACE INTO `item_db` VALUES (12128,'Court_Cooking_Set','Court Cooking Set','2'
 REPLACE INTO `item_db` VALUES (12129,'Legendary_Cooking_Set','Legendary Cooking Set','2',NULL,'10','70',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'produce 11;');
 REPLACE INTO `item_db` VALUES (12130,'Cookie_Bag','Cookie Bag','3',NULL,'10','70',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,NULL);
 REPLACE INTO `item_db` VALUES (12131,'Lucky_Potion','Lucky Potion','0',NULL,'10','100',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,NULL);
-REPLACE INTO `item_db` VALUES (12132,'Red_Package','Red Package','0',NULL,'10','200',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,NULL);
+REPLACE INTO `item_db` VALUES (12132,'Red_Package','Red Package','0',NULL,'10','200',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_XMAS,600000,0;');
 -- 
 -- // More Weapons
 -- //===================================================================
