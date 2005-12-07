@@ -4523,6 +4523,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		}
 
 	/* PotionPitcher */
+	case AM_BERSERKPITCHER:
 	case AM_POTIONPITCHER:		/* ポ?ションピッチャ? */
 		{
 			struct block_list tbl;
@@ -4539,6 +4540,13 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					clif_skill_fail(sd,skillid,0,0);
 					map_freeblock_unlock();
 					return 1;
+				}
+				if(skillid == AM_BERSERKPITCHER) { //Does not override use-level, and cannot be used on bows.
+					if (dstsd && (dstsd->status.base_level<sd->inventory_data[i]->elv || dstsd->weapontype1 == 11)) {
+						clif_skill_fail(sd,skillid,0,0);
+						map_freeblock_unlock();
+						return 1;
+					 }
 				}
 				potion_flag = 1;
 				potion_hp = potion_sp = potion_per_hp = potion_per_sp = 0;
@@ -5489,6 +5497,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			clif_skill_fail(sd,skillid,0,0);
 			break;
 		}
+		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		status_change_start(bl,SC_SPIRIT,skilllv,skillid,0,0,skill_get_time(skillid,skilllv),0);
 		break;
 	case SL_HIGH:
@@ -5496,6 +5505,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			clif_skill_fail(sd,skillid,0,0);
 			break;
 		}
+		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,skillid,0,0,skill_get_time(skillid,skilllv),0 );
 		break;
 
@@ -7678,8 +7688,9 @@ int skill_check_condition(struct map_session_data *sd,int type)
 	}
 
 	if (sd->state.produce_flag &&
-		(sd->skillid == AM_PHARMACY || sd->skillid == AC_MAKINGARROW || sd->skillid == BS_REPAIRWEAPON))
-	{
+		(sd->skillid == AM_PHARMACY || sd->skillid == AC_MAKINGARROW || sd->skillid == BS_REPAIRWEAPON ||
+		sd->skillid == AM_TWILIGHT1 || sd->skillid == AM_TWILIGHT2  || sd->skillid == AM_TWILIGHT3 
+	)) {
 		sd->skillitem = sd->skillitemlv = -1;
 		return 0;
 	}
@@ -10574,6 +10585,9 @@ int skill_produce_mix( struct map_session_data *sd,
 				}
 				break;
 			case AM_PHARMACY: // Potion Preparation - reviewed with the help of various Ragnainfo sources [DracoRPG]
+			case AM_TWILIGHT1:
+			case AM_TWILIGHT2:
+			case AM_TWILIGHT3:
 				make_per = pc_checkskill(sd,AM_LEARNINGPOTION)*100
 					+ pc_checkskill(sd,AM_PHARMACY)*300 + sd->status.job_level*20
 					+ sd->paramc[3]*5 + sd->paramc[4]*10+sd->paramc[5]*10;
@@ -10660,12 +10674,25 @@ int skill_produce_mix( struct map_session_data *sd,
 			tmp_item.card[1]=((sc*5)<<8)+ele;
 			tmp_item.card[2]=GetWord(sd->char_id,0); // CharId
 			tmp_item.card[3]=GetWord(sd->char_id,1);
-		} else if((battle_config.produce_item_name_input && skill_produce_db[idx].req_skill!=AM_PHARMACY) ||
-			(battle_config.produce_potion_name_input && skill_produce_db[idx].req_skill==AM_PHARMACY)) {
-			tmp_item.card[0]=0x00fe;
-			tmp_item.card[1]=0;
-			tmp_item.card[2]=GetWord(sd->char_id,0); // CharId
-			tmp_item.card[3]=GetWord(sd->char_id,1);
+		} else {
+			//We recycle the make_per variable to decide if we are gonna name the item (make_per is no longer used) [Skotlex]
+			switch (skill_produce_db[idx].req_skill) {
+				case AM_PHARMACY:
+				case AM_TWILIGHT1:
+				case AM_TWILIGHT2:
+				case AM_TWILIGHT3:
+					make_per = battle_config.produce_potion_name_input;
+					break;
+				default:
+					make_per = battle_config.produce_item_name_input;
+					break;
+			}
+			if (make_per) {
+				tmp_item.card[0]=0x00fe;
+				tmp_item.card[1]=0;
+				tmp_item.card[2]=GetWord(sd->char_id,0); // CharId
+				tmp_item.card[3]=GetWord(sd->char_id,1);
+			}
 		}
 
 		if(log_config.produce > 0)
@@ -10679,6 +10706,7 @@ int skill_produce_mix( struct map_session_data *sd,
 		} else {
 			switch (skill_produce_db[idx].req_skill) {
 				case AM_PHARMACY:
+				case AM_TWILIGHT2:
 					clif_produceeffect(sd,2,nameid);
 					clif_misceffect(&sd->bl,5);
 					if(nameid >= 545 && nameid <= 547) { // Fame point system [DracoRPG]
@@ -10722,6 +10750,9 @@ int skill_produce_mix( struct map_session_data *sd,
 		} else {
 			switch (skill_produce_db[idx].req_skill) {
 				case AM_PHARMACY:
+				case AM_TWILIGHT1:
+				case AM_TWILIGHT2:
+				case AM_TWILIGHT3:
 					clif_produceeffect(sd,3,nameid);
 					clif_misceffect(&sd->bl,6);
 					sd->potion_success_counter = 0; // Fame point system [DracoRPG]

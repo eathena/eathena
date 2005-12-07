@@ -315,7 +315,8 @@ int SkillStatusChangeTable[]={	/* status.h‚Ìenum‚ÌSC_***‚Æ‚ ‚í‚¹‚é‚±‚Æ */
 /* 490- */
 	-1,-1,-1,-1,
 	SC_SPIRIT,
-	-1,-1,-1,-1,-1,
+	SC_ONEHAND,
+	-1,-1,-1,-1,
 /* 500- */
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
 /* 510- */
@@ -553,7 +554,7 @@ void initStatusIconChangeTable() {
 	StatusIconChangeTable[SC_DEVOTION] = SI_DEVOTION;
 	StatusIconChangeTable[SC_STEELBODY] = SI_STEELBODY;
 	StatusIconChangeTable[SC_SPORT] = SI_SPORT;
-	StatusIconChangeTable[SC_SPIRIT] = SI_SPIRIT;
+//	StatusIconChangeTable[SC_SPIRIT] = SI_SPIRIT; //Reddozen says it's ok now, so an icon is not needed? [Skotlex]
 	StatusIconChangeTable[SC_READYSTORM] = SI_READYSTORM;
 	StatusIconChangeTable[SC_READYDOWN] = SI_READYDOWN;
 	StatusIconChangeTable[SC_READYTURN] = SI_READYTURN;
@@ -1555,6 +1556,8 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	}
 	if(sd->sc_count && sd->sc_data[SC_DANCING].timer!=-1){
 			int s_rate = 500-40*pc_checkskill(sd,(sd->status.sex?BA_MUSICALLESSON:DC_DANCINGLESSON));
+			if (sd->sc_data[SC_SPIRIT].timer != -1 && sd->sc_data[SC_SPIRIT].val2 == SL_BARDDANCER)
+				s_rate -= 40; //TODO: Figure out real bonus rate.
 			if (sd->sc_data[SC_LONGING].timer!=-1)
 				s_rate -= 20 * sd->sc_data[SC_LONGING].val1;
 			sd->speed += sd->speed * s_rate/100;

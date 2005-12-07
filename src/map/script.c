@@ -5858,9 +5858,10 @@ int buildin_sc_start(struct script_state *st)
 	else
 		bl = map_id2bl(st->rid);
 
-	if (potion_flag==1 && potion_target)
+	if (potion_flag==1 && potion_target) {
 		bl = map_id2bl(potion_target);
-
+		tick/=2; //Thrown potions only last half.
+	}
 	if (bl)
 		status_change_start(bl,type,val1,0,0,0,tick,0);
 	return 0;

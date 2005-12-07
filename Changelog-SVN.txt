@@ -1,6 +1,12 @@
 Date	Added
 
 2005/12/07
+	* Merged in Reddozen's current Soul Linker work. [Skotlex]
+	- Berserk Pitcher should be working now.
+	- Bard/Dancer walk bonus when dancing/singing while soul-linked.
+	- Partial work on Twilight Pharmacy.
+	- proper skill effect
+	* Fixed One Hand quicken doing nothing. [Skotlex]
 	* skill_get_name now returns "UNKNOWN_SKILL" instead of null (should fix
 	  some crashes when using it on skills with no defined name) [Skotlex]
 	* When weapon_delay_attack is enabled, items should drop inmediately after

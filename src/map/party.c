@@ -17,6 +17,7 @@
 #include "intif.h"
 #include "clif.h"
 #include "log.h"
+#include "skill.h"
 
 #define PARTY_SEND_XY_INVERVAL	1000	// À•W‚â‚g‚o‘—M‚ÌŠÔŠu
 
@@ -529,6 +530,24 @@ int party_check_conflict(struct map_session_data *sd)
 	return 0;
 }
 
+int party_twilight_check(struct map_session_data *sd, int skillid)
+{
+	struct party *p;
+	struct map_session_data *p_sd;
+	int i;
+
+	if (p == NULL)
+		return 0;
+	for(i=0;i<MAX_PARTY;i++){
+		if ((p_sd = p->member[i].sd) == NULL)
+			continue;
+		if ((p_sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE && skillid == AM_TWILIGHT2)
+			return 1;
+		if ((p_sd->class_&MAPID_NOVICE) == MAPID_TAEKWON && skillid == AM_TWILIGHT3)
+			return 1;
+	}
+	return 0;
+}
 
 // ˆÊ’u‚â‚g‚o’Ê’m—p
 int party_send_xy_timer_sub(void *key,void *data,va_list ap)

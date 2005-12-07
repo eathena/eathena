@@ -34,6 +34,7 @@ int party_send_logout(struct map_session_data *sd);
 int party_send_message(struct map_session_data *sd,char *mes,int len);
 int party_recv_message(int party_id,int account_id,char *mes,int len);
 int party_check_conflict(struct map_session_data *sd);
+int party_twilight_check(struct map_session_data *sd, int skillid);
 int party_send_xy_clear(struct party *p);
 void party_exp_share_check(struct map_session_data *sd, struct party *p);
 int party_exp_share(struct party *p,int map,int base_exp,int job_exp,int zeny);

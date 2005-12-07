@@ -38,6 +38,8 @@
 	12132,Red_Package: Turns you into x-mas clothes sprite for 10 minutes
 	--
 12/06
+	* Updated Berserk Pitcher in skill_require_db and Full Adrenaline Rush in
+	  skill_db as per Reddozen's info. [Skotlex]
 	* Made Garm's Claw shadow property [Harbin]
 	* Added Thanatos to boss list [Harbin]
 12/05
