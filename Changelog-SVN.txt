@@ -1,6 +1,7 @@
 Date	Added
 
 2005/12/07
+	* Pressure will always pull-off now after it has began casting. [Skotlex]
 	* Implemented Close Confine. [Skotlex]
 	* Change all 0x20e packets (18->26; 22->30) [Komurka]
 	  Also added job_name(mob_id) in clif_hate_mob 

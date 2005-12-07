@@ -619,6 +619,9 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 	if (target && status_isdead(target) && skill_num != ALL_RESURRECTION)
 		return 0;
 	
+	if (skill_num == PA_PRESSURE && flag)
+		return 1; //Once Gloria Domini has been casted, there's nothing you can do to stop it. [Skotlex]
+	
 	mode = status_get_mode(src);
 	
 	if (!skill_num && !(mode&MD_CANATTACK))

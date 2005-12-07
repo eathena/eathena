@@ -39,6 +39,7 @@
 	--
 
 12/07
+	* Updated the element of all treasure boxes to 21 (neutral 1) [Skotlex]
 	* Updated inf2 to 2 (NPC skills) to the Abracadabra skills to prevent them
 	  from displaying on the GM-all-skills menu. [Skotlex]
 	* Updated SG_*_WARM skills to have range 1. [Skotlex]
