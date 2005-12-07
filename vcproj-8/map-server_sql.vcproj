@@ -47,6 +47,7 @@
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
+				DefaultCharIsUnsigned="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="false"
@@ -223,6 +224,10 @@
 			</File>
 			<File
 				RelativePath="..\src\common\core.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\map\date.c"
 				>
 			</File>
 			<File

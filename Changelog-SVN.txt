@@ -11,7 +11,9 @@ Date	Added
 
 	* Debug logging flag for logging output messages (only works well with native Win32) :D (Not enabled by default) [Lance]
 	* joshuali's new vcproj with debug mode correctly set up. [Lance]
-	* Fix compile errors for Valaris's commit on date.h [Lance]
+	* Fixed compile errors for Valaris's commit on date.h [Lance]
+	* Added updated vcproj for native VC8 win32 for date.h/c support. [Lance]
+	* Removed extra returns in date.h. [Lance]
 
 2005/12/06
 	* Updated item 12132 for the Xmas suit effect in item_db.sql. [Valaris]

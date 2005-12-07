@@ -12,6 +12,3 @@ int date_get_sec(void);
 int is_day_of_sun(void);
 int is_day_of_moon(void);
 int is_day_of_star(void);
-
-
-
