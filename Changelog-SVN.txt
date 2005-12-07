@@ -18,6 +18,7 @@ Date	Added
 	* Probably fixed warnings in unzip.c [Lance]
 	* Added message for celest. Please look into the GRFIO matter. Thanks. [Lance]
 	* Added new experimental SQL based mapreg loading/saving. Compile with MAPREGSQL to activate it. [Lance]
+	* Added some goodies to scripts. Will be tested before announced. [Lance]
 
 2005/12/06
 	* Updated item 12132 for the Xmas suit effect in item_db.sql. [Valaris]

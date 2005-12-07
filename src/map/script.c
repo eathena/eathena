@@ -129,6 +129,10 @@ char tmp_sql[65535];
  *------------------------------------------
  */
 unsigned char* parse_subexpr(unsigned char *,int);
+#ifndef TXT_ONLY
+int buildin_query_sql(struct script_state *st);
+#endif
+int buildin_atoi(struct script_state *st);
 int buildin_axtoi(struct script_state *st);
 int buildin_mes(struct script_state *st);
 int buildin_goto(struct script_state *st);
@@ -409,6 +413,10 @@ struct {
 	char *arg;
 } buildin_func[]={
 	{buildin_axtoi,"axtoi","s"},
+#ifndef TXT_ONLY
+	{buildin_query_sql, "query_sql", "s*"},
+#endif
+	{buildin_atoi,"atoi","s"},
 	{buildin_mes,"mes","s"},
 	{buildin_next,"next",""},
 	{buildin_close,"close",""},
@@ -10108,6 +10116,13 @@ npc_changename(name,newname,(short)look);
 return 0;
 }
 
+int buildin_atoi(struct script_state *st) {
+	char *value;
+	value = conv_str(st,& (st->stack->stack_data[st->start+2]));
+	push_val(st->stack, C_INT, atoi(value));
+	return 0;
+}
+
 //-----------------------------------------------------------------------//
 //         BRING STRSTR TO SCRIPTING ENGINE         - LORDALFA  START    //
 //-----------------------------------------------------------------------//
@@ -10189,6 +10204,47 @@ int buildin_setd(struct script_state *st)
 	
 	return 0;
 }
+
+#ifndef TXT_ONLY
+int buildin_query_sql(struct script_state *st) {
+	char *name, *query;
+	int num, i = 0;
+	struct map_session_data *sd = (st->rid)? script_rid2sd(st) : NULL;
+
+	query = conv_str(st,& (st->stack->stack_data[st->start+2]));
+    strcpy(tmp_sql, query);
+	if(mysql_query(&mmysql_handle,tmp_sql)){
+		ShowSQL("DB error - %s\n",mysql_error(&mmysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+		return 0;
+	}
+
+	if(st->end > st->start+3) {
+		if(st->stack->stack_data[st->start+3].type != C_NAME){
+			ShowWarning("buildin_query_sql: 2nd parameter is not a variable!\n");
+		} else {
+			num=st->stack->stack_data[st->start+3].u.num;
+			name=(char *)(str_buf+str_data[num&0x00ffffff].str);
+			if((sql_res = mysql_store_result(&mmysql_handle))){
+				if(name[strlen(name)-1] != '$') {
+					while(i<128 && (sql_row = mysql_fetch_row(sql_res))){
+						setd_sub(sd, name, i, (void *)atoi(sql_row[0]));
+						i++;
+					}
+				} else {
+					while(i<128 && (sql_row = mysql_fetch_row(sql_res))){
+						setd_sub(sd, name, i, (void *)sql_row[0]);
+						i++;
+					}
+				}
+				mysql_free_result(sql_res);
+			}
+		}
+	}
+
+	return 0;
+}
+#endif
 
 int buildin_getd(struct script_state *st)
 {
