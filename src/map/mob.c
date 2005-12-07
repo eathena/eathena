@@ -83,7 +83,6 @@ int mobdb_checkid(const int id)
 {
 	if (mob_db(id) == mob_dummy)
 		return 0;
-
 	return id;
 }
 
@@ -2336,6 +2335,21 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 			sd->status.hp += hp;
 			if (hp > 0 && battle_config.show_hp_sp_gain)
 				clif_heal(sd->fd,SP_HP,hp);
+		}
+		if (sd->mission_mobid == md->class_) { //TK_MISSION [Skotlex]
+			if (++sd->mission_count >= 100)
+			{
+				do { //Recycling hp for new random target id...
+					hp = rand()%MAX_MOB_DB; 
+				} while (!mobdb_checkid(hp) || !mob_db(hp)->base_exp || mob_db(hp)->mode&MD_BOSS); //TODO: Figure out which kind of mobs are valid.
+				pc_addfame(sd, 1);
+				sd->mission_mobid = hp;
+				pc_setglobalreg(sd,"TK_MISSION_ID", hp);
+				sd->mission_count = 0;
+				clif_mission_mob(sd, hp);
+			}
+			pc_setglobalreg(sd,"TK_MISSION_COUNT", sd->mission_count);
+			
 		}
 	}
 

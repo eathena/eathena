@@ -3757,6 +3757,21 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 
 	case TK_MISSION:
+		if (sd) {
+			int id;
+			if (sd->mission_mobid && (sd->mission_count || rand()%100)) { //Cannot change target when already have one
+				clif_mission_mob(sd, sd->mission_mobid);
+				clif_skill_fail(sd,skillid,0,0);
+				break;
+			}
+			do {
+				id = rand()%MAX_MOB_DB; 
+			} while (!mobdb_checkid(id) || !mob_db(id)->base_exp || mob_db(id)->mode&MD_BOSS); //TODO: Figure out which kind of mobs are valid.
+			sd->mission_mobid = id;
+			pc_setglobalreg(sd,"TK_MISSION_ID", id);
+			clif_mission_mob(sd, id);
+			clif_skill_nodamage(src,bl,skillid,skilllv,1);
+		}
 		break;
 
 	case AC_CONCENTRATION:	/* ?W’†—ÍŒü?ã */

@@ -1,7 +1,7 @@
 Date	Added
 
 2005/12/07
-
+	* Implemented TK_MISSION. [Skotlex]
 	* Added more SG skills (Comfort, Warmth, Demon, Knowledge) [Komurka]
 	All of them should be checked by someone ^^;;
 	- SG_xx_WARM for now only shows cool red effect :> There is more code but for now it doesn't work

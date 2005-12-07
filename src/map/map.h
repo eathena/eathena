@@ -631,8 +631,10 @@ struct map_session_data {
 
 	struct status_change sc_data[MAX_STATUSCHANGE];
 	short sc_count;
+	short mission_mobid; //Stores the target mob_id for TK_MISSION
+	short mission_count; //Stores the bounty kill count for TK_MISSION
 	int devotion[5]; //Stores the char IDs of chars devoted to.
-
+	
 	int trade_partner;
 	struct { 
 		struct {
