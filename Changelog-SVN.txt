@@ -1,6 +1,9 @@
 Date	Added
 
 2005/12/07
+	* Updated socket.c by adding a lots error reporting for functions that
+	  previously were assumed to not fail. May help figure out what's going on
+	  with the win32 builds... [Skotlex]
 	* Reviewed and cleaned up a bit the latest SG additions from Komurka. [Skotlex]
 	- My skill desc says that SG_DEVIL does not makes you blind until you reach
 	  max job level, so I implemented that. Report if this is incorrect. 

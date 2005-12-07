@@ -314,22 +314,19 @@ static int connect_client(int listen_fd)
 	fd = accept(listen_fd,(struct sockaddr*)&client_address,(socklen_t*)&len);
 #ifdef __WIN32                                               
 	if (fd == SOCKET_ERROR || fd == INVALID_SOCKET || fd < 0) {
+		ShowError("accept failed (code %d)!\n", fd, WSAGetLastError());
+		return -1;
+	}
 #else                                                        
 	if(fd==-1) {
-#endif   
 		perror("accept");
 		return -1;
 	}
+#endif
 	
 	if(fd_max<=fd) fd_max=fd+1;
 
 	setsocketopts(fd);
-
-	if (ip_rules && !connect_check(*(unsigned int*)(&client_address.sin_addr))) {
-		do_close(fd);
-		return -1;
-	} else
-		FD_SET(fd,&readfds);
 
 #ifdef __WIN32
 	{
@@ -341,6 +338,12 @@ static int connect_client(int listen_fd)
 	if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1)
 		perror("connect_client (set nonblock)");
 #endif
+
+	if (ip_rules && !connect_check(*(unsigned int*)(&client_address.sin_addr))) {
+		do_close(fd);
+		return -1;
+	} else
+		FD_SET(fd,&readfds);
 
 	CREATE(session[fd], struct socket_data, 1);
 	CREATE_A(session[fd]->rdata, unsigned char, rfifo_size);
@@ -366,7 +369,17 @@ int make_listen_port(int port)
 	int result;
 
 	fd = socket( AF_INET, SOCK_STREAM, 0 );
-	if(fd_max<=fd) fd_max=fd+1;
+#ifdef __WIN32
+	if (fd == INVALID_SOCKET) {
+		ShowError("socket() creation failed (code %d)!\n", fd, WSAGetLastError());
+		exit(1);
+	}
+#else
+	if (fd == -1) {
+		perror("make_listen_port:socket()");
+		exit(1);
+	}
+#endif
 
 #ifdef __WIN32
 	{
@@ -386,21 +399,36 @@ int make_listen_port(int port)
 	server_address.sin_port        = htons((unsigned short)port);
 
 	result = bind(fd, (struct sockaddr*)&server_address, sizeof(server_address));
+#ifdef __WIN32
+	if( result == SOCKET_ERROR ) {
+		ShowError("bind failed (socket %d, code %d)!\n", fd, WSAGetLastError());
+		exit(1);
+	}
+#else
 	if( result == -1 ) {
 		perror("bind");
 		exit(1);
 	}
+#endif
 	result = listen( fd, 5 );
+#ifdef __WIN32
+	if( result == SOCKET_ERROR ) {
+		ShowError("listen failed (socket %d, code %d)!\n", fd, WSAGetLastError());
+		exit(1);
+	}
+#else
 	if( result != 0 ) { /* error */
 		perror("listen");
 		exit(1);
 	}
+#endif
 	if ( fd < 0 || fd > FD_SETSIZE ) 
 	{ //Crazy error that can happen in Windows? (info from Freya)
 		ShowFatalError("listen() returned invalid fd %d!\n",fd);
 		exit(1);
 	}
 	
+	if(fd_max<=fd) fd_max=fd+1;
 	FD_SET(fd, &readfds );
 
 	CREATE(session[fd], struct socket_data, 1);
@@ -418,7 +446,18 @@ int make_listen_bind(long ip,int port)
 	int result;
 
 	fd = (int)socket( AF_INET, SOCK_STREAM, 0 );
-	if(fd_max<=fd) fd_max=fd+1;
+
+#ifdef __WIN32
+	if (fd == INVALID_SOCKET) {
+		ShowError("socket() creation failed (code %d)!\n", fd, WSAGetLastError());
+		exit(1);
+	}
+#else
+	if (fd == -1) {
+		perror("make_listen_port:socket()");
+		exit(1);
+	}
+#endif
 
 #ifdef __WIN32
 	{
@@ -438,21 +477,36 @@ int make_listen_bind(long ip,int port)
 	server_address.sin_port        = htons((unsigned short)port);
 
 	result = bind(fd, (struct sockaddr*)&server_address, sizeof(server_address));
+#ifdef __WIN32
+	if( result == SOCKET_ERROR ) {
+		ShowError("bind failed (socket %d, code %d)!\n", fd, WSAGetLastError());
+		exit(1);
+	}
+#else
 	if( result == -1 ) {
 		perror("bind");
 		exit(1);
 	}
+#endif
 	result = listen( fd, 5 );
+#ifdef __WIN32
+	if( result == SOCKET_ERROR ) {
+		ShowError("listen failed (socket %d, code %d)!\n", fd, WSAGetLastError());
+		exit(1);
+	}
+#else
 	if( result != 0) { /* error */
 		perror("listen");
 		exit(1);
 	}
+#endif
 	if ( fd < 0 || fd > FD_SETSIZE ) 
 	{ //Crazy error that can happen in Windows? (info from Freya)
 		ShowFatalError("listen() returned invalid fd %d!\n",fd);
 		exit(1);
 	}
 
+	if(fd_max<=fd) fd_max=fd+1;
 	FD_SET(fd, &readfds );
 
 	CREATE(session[fd], struct socket_data, 1);
@@ -550,8 +604,18 @@ int make_connection(long ip,int port)
 	int result;
 
 	fd = (int)socket( AF_INET, SOCK_STREAM, 0 );
-	if (fd_max <= fd)
-		fd_max = fd + 1;
+
+#ifdef __WIN32
+	if (fd == INVALID_SOCKET) {
+		ShowError("socket() creation failed (code %d)!\n", fd, WSAGetLastError());
+		return -1;
+	}
+#else
+	if (fd == -1) {
+		perror("make_connection:socket()");
+		return -1;
+	}
+#endif
 
 	setsocketopts(fd);
 
@@ -563,11 +627,19 @@ int make_connection(long ip,int port)
 		(ip)&0xFF,(ip>>8)&0xFF,(ip>>16)&0xFF,(ip>>24)&0xFF,port);
 
 	result = connect(fd, (struct sockaddr *)(&server_address), sizeof(struct sockaddr_in));
+#ifdef __WIN32
+	if( result == SOCKET_ERROR ) {
+		ShowError("connect failed (socket %d, code %d)!\n", fd, WSAGetLastError());
+		do_close(fd);
+		return -1;
+	}
+#else
 	if (result < 0) { //This is only used when the map/char server try to connect to each other, so it can be handled. [Skotlex]
 		perror("make_connection");
 		do_close(fd);
 		return -1;
 	}
+#endif
 //Now the socket can be made non-blocking. [Skotlex]
 #ifdef __WIN32
 	{
@@ -580,6 +652,8 @@ int make_connection(long ip,int port)
 		perror("make_connection (set nonblock)");
 #endif
 
+	if (fd_max <= fd)
+		fd_max = fd + 1;
 	FD_SET(fd,&readfds);
 
 	CREATE(session[fd], struct socket_data, 1);
