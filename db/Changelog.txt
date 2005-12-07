@@ -37,6 +37,10 @@
 	12131,Lucky_Potion: +15 LUK for 3 minutes
 	12132,Red_Package: Turns you into x-mas clothes sprite for 10 minutes
 	--
+
+12/07
+	* Updated SG skills [Komurka]
+
 12/06
 	* Updated Berserk Pitcher in skill_require_db and Full Adrenaline Rush in
 	  skill_db as per Reddozen's info. [Skotlex]

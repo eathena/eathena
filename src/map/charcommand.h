@@ -29,6 +29,9 @@ enum CharCommandType {
 	CharCommandSKPoint,
 	CharCommandSTPoint,
 	CharCommandChangeSex,
+	CharCommandFeelReset, // Komurka
+	
+
 
 #ifdef TXT_ONLY
 /* TXT_ONLY */

@@ -1,6 +1,10 @@
 Date	Added
 
 2005/12/07
+
+	* Added more SG skills (Comfort, Warmth, Demon, Knowledge) [Komurka]
+	All of them should be checked by someone ^^;;
+	- SG_xx_WARM for now only shows cool red effect :> There is more code but for now it doesn't work
 	* Added new Geffen Field maps [Harbin]
 	* Disabled Atcommand Nuke (It was commented, not disabled) [Harbin]
 	* Added skip_teleport_lv1_menu option to Battle_Athena. Allows players to cast Teleport level 1 without menu. [Harbin]

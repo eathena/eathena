@@ -1574,7 +1574,7 @@ int clif_spawnpc(struct map_session_data *sd) {
 		clif_specialeffect(&sd->bl,423,0);
 	else if(sd->state.size==1)
 		clif_specialeffect(&sd->bl,421,0);
-		
+	
 	return 0;
 }
 
@@ -8199,6 +8199,14 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		sd->state.night = 0;
 	}
 
+	if (pc_checkskill(sd,SG_KNOWLEDGE)>0    || 
+	    pc_checkskill(sd,SG_SUN_COMFORT)>0  ||
+	    pc_checkskill(sd,SG_MOON_COMFORT)>0 ||
+	    pc_checkskill(sd,SG_STAR_COMFORT)>0)
+		status_calc_pc(sd,0);
+		
+	if (pc_checkskill(sd,SG_DEVIL)>0) clif_status_change(&sd->bl,SI_DEVIL,1); //blindness [Komurka]	
+
 	map_foreachinarea(clif_getareachar,sd->bl.m,sd->bl.x-AREA_SIZE,sd->bl.y-AREA_SIZE,sd->bl.x+AREA_SIZE,sd->bl.y+AREA_SIZE,0,sd);
 }
 
@@ -10869,6 +10877,7 @@ void clif_parse_FeelSaveOk(int fd,struct map_session_data *sd)
 		WFIFOW(fd,packet_len_table[0x20e]-2)=sd->feel_level;
 		strcpy(sd->feel_map[sd->feel_level].name,map[sd->bl.m].name);
 		WFIFOSET(fd, packet_len_table[0x20e]);
+		if (pc_checkskill(sd,SG_KNOWLEDGE)>0) status_calc_pc(sd,0);
 
 	}
 }

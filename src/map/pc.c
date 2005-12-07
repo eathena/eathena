@@ -4664,7 +4664,8 @@ int pc_allskillup(struct map_session_data *sd)
 		// ‘S‚Ä‚ÌƒXƒLƒ‹
 		for(i=0;i<MAX_SKILL;i++){
 			if(!(skill_get_inf2(i)&(INF2_NPC_SKILL|INF2_GUILD_SKILL))) //Get ALL skills except npc/guild ones. [Skotlex]
-				sd->status.skill[i].lv=skill_get_max(i); //Nonexistant skills should return a max of 0 anyway.
+				if (i!=SG_DEVIL) //and except SG_DEVIL [Komurka]
+					sd->status.skill[i].lv=skill_get_max(i); //Nonexistant skills should return a max of 0 anyway.
 		}
 	}
 	else {
@@ -4673,7 +4674,8 @@ int pc_allskillup(struct map_session_data *sd)
 			inf2 = skill_get_inf2(id);
 			if(sd->status.skill[id].id==0 &&
 				(!(inf2&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) &&
-				!(inf2&(INF2_WEDDING_SKILL|INF2_SPIRIT_SKILL))
+				!(inf2&(INF2_WEDDING_SKILL|INF2_SPIRIT_SKILL) &&
+				(id!=SG_DEVIL))
 			) {
 				sd->status.skill[id].id = id;	// celest
 				sd->status.skill[id].lv = skill_tree_get_max(id, sd->status.class_);	// celest
@@ -4862,6 +4864,24 @@ int pc_resetskill(struct map_session_data* sd)
 	clif_updatestatus(sd,SP_SKILLPOINT);
 	clif_skillinfoblock(sd);
 	status_calc_pc(sd,0);
+
+	return 0;
+}
+
+/*==========================================
+ * /resetfeel [Komurka]
+ *------------------------------------------
+ */
+int pc_resetfeel(struct map_session_data* sd)
+{
+	int i;
+	nullpo_retr(0, sd);
+
+	for (i=0; i<3; i++)
+	{
+		sd->feel_map[i].m = -1;
+		strcpy(sd->feel_map[i].name,"");
+	}
 
 	return 0;
 }

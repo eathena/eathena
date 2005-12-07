@@ -215,6 +215,14 @@ enum {
 	SC_MATKFOOD,
 	SC_SCRESIST, //Increases resistance to status changes.
 	SC_XMAS, // Xmas Suit [Valaris]
+	SC_DEVIL, //SG skills [Komurka]
+	SC_SUN_WARM,
+	SC_MOON_WARM,
+	SC_STAR_WARM,
+	SC_SUN_COMFORT, //220
+	SC_MOON_COMFORT,
+	SC_STAR_COMFORT,
+	SC_FUSION,
 	//
 	SC_MAX, //Automatically updated max, used in for's and at startup to check we are within bounds. [Skotlex]
 };
@@ -319,18 +327,19 @@ enum {
 	//147 SI_ADRENALINE again
 	SI_GHOSTWEAPON		= 148,
 	SI_NIGHT			= 149, //slightly colors the screen with blue (night-like), unused by skills, but used for day/night
+	SI_DEVIL			= 152,	// SG devil (permament blindness) [Komurka]
 	SI_SPIRIT		= 153, //causes character after-image effect, temporarily used for Spirit Skills.
 	SI_KAIZEL			= 156,
 	SI_KAAHI			= 157,
 	SI_KAUPE			= 158,
 // 159 = blue sparks and item-heal sound effect. Looks like item-use effect.
 	SI_ONEHAND			= 161,
-// 165 = ultra-red character
-// 166 = ultra-red character
-// 167 = ultra-red character
-// 169 = sun
-// 170 = moon
-// 171 = stars
+	SI_SUN_WARM			= 165,	
+	SI_MOON_WARM			= 166,	
+	SI_STAR_WARM			= 167,	
+	SI_SUN_COMFORT			= 169,
+	SI_MOON_COMFORT			= 170,	
+	SI_STAR_COMFORT			= 171,	
 	SI_PRESERVE			= 181,
 	SI_BATTLEORDERS		= 182,
 // 184 = WTF?? creates the black shape of 4_m_02 NPC, with NPC talk cursor

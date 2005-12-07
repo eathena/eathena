@@ -273,11 +273,18 @@ int SkillStatusChangeTable[]={	/* status.hのenumのSC_***とあわせること */
 	-1,
 /* 420- */
 	SC_DODGE,
-	-1,-1,-1,-1,-1,-1,-1,-1,-1,
+	-1,-1,-1,-1,-1,-1,-1,
+	SC_SUN_WARM,
+	SC_MOON_WARM,
 /* 430- */
-	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+	SC_STAR_WARM,
+	SC_SUN_COMFORT,
+	SC_MOON_COMFORT,
+	SC_STAR_COMFORT,
+	-1,-1,-1,-1,-1,-1,
 /* 440- */
-	-1,-1,-1,-1,-1,
+	-1,-1,-1,-1,
+	SC_FUSION,
 	MAPID_ALCHEMIST, //Storing the required Job rather than SC_SPIRIT simplifies code later on.
 	-1,
 	MAPID_MONK,
@@ -562,6 +569,13 @@ void initStatusIconChangeTable() {
 	StatusIconChangeTable[SC_DODGE] = SI_DODGE;
 	StatusIconChangeTable[SC_RUN] = SI_RUN;
 	StatusIconChangeTable[SC_SHADOWWEAPON] = SI_SHADOWWEAPON;
+	StatusIconChangeTable[SC_DEVIL] = SI_DEVIL; //SG icons [Komurka]
+	StatusIconChangeTable[SC_SUN_WARM] = SI_SUN_WARM;
+	StatusIconChangeTable[SC_MOON_WARM] = SI_MOON_WARM;
+	StatusIconChangeTable[SC_STAR_WARM] = SI_STAR_WARM;
+	StatusIconChangeTable[SC_SUN_COMFORT] = SI_SUN_COMFORT;
+	StatusIconChangeTable[SC_MOON_COMFORT] = SI_MOON_COMFORT;
+	StatusIconChangeTable[SC_STAR_COMFORT] = SI_STAR_COMFORT;
 	StatusIconChangeTable[SC_ADRENALINE2] = SI_ADRENALINE;
 	StatusIconChangeTable[SC_GHOSTWEAPON] = SI_GHOSTWEAPON;
 	StatusIconChangeTable[SC_KAIZEL] = SI_KAIZEL;
@@ -1569,7 +1583,6 @@ int status_calc_pc(struct map_session_data* sd,int first)
 
 	if(sd->speed < battle_config.max_walk_speed)
 		sd->speed = battle_config.max_walk_speed;
-
 // ----- ASPD CALCULATION -----
 // Unlike other stats, ASPD rate modifiers from skills/SCs/items/etc are first all added together, then the final modifier is applied
 
@@ -1585,6 +1598,14 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	// Relative modifiers from passive skills
 	if((skill=pc_checkskill(sd,SA_ADVANCEDBOOK))>0)
 		sd->aspd_rate -= (skill/2);
+	if((skill = pc_checkskill(sd,SG_DEVIL)) > 0)
+	{
+		sd->aspd_rate -= (skill*3);
+		if(sd->sc_data[SC_DEVIL].timer!=-1 || sd->sc_data[SC_DEVIL].val1<skill)
+			status_change_start(&sd->bl,SC_DEVIL,skill,0,0,0,5000,0);
+		clif_status_change(&sd->bl,SI_DEVIL,1);
+	}
+
 	if(pc_isriding(sd))
 		sd->aspd_rate += 50-10*pc_checkskill(sd,KN_CAVALIERMASTERY);
 
@@ -1725,6 +1746,9 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		sd->max_weight += 2000*skill;
 	if(pc_isriding(sd) && pc_checkskill(sd,KN_RIDING)>0)
 		sd->max_weight += 10000;
+	if( (skill=pc_checkskill(sd,SG_KNOWLEDGE))>0) //SG skill [Komurka]
+		if(sd->bl.m == sd->feel_map[0].m || sd->bl.m == sd->feel_map[1].m || sd->bl.m == sd->feel_map[2].m)
+			sd->max_weight += sd->max_weight*skill/10;
 
 	// Skill SP cost
 	if((skill=pc_checkskill(sd,HP_MANARECHARGE))>0 )
@@ -2175,6 +2199,8 @@ int status_calc_flee(struct block_list *bl, int flee)
 			flee -= flee * 50/100;
 		if(sc_data[SC_BLIND].timer!=-1)
 			flee -= flee * 25/100;
+		if(sc_data[SC_MOON_COMFORT].timer!=-1 && bl->m == ((struct map_session_data *)bl)->feel_map[1].m) //SG skill [Komurka]
+			flee += (status_get_lv(bl) + status_get_dex(bl) + status_get_luk(bl))/10;
 	}
 
 	if (bl->type == BL_PC && map_flag_gvg(bl->m)) //GVG grounds flee penalty, placed here because it's "like" a status change. [Skotlex]
@@ -2215,6 +2241,8 @@ int status_calc_def(struct block_list *bl, int def)
 			def -= def * 5*sc_data[SC_CONCENTRATION].val1/100;
 		if(sc_data[SC_PROVOKE].timer!=-1 && bl->type != BL_PC) //Provoke doesn't alters player defense.
 			def -= def * (5+5*sc_data[SC_PROVOKE].val1)/100;
+		if(sc_data[SC_SUN_COMFORT].timer!=-1 && bl->m == ((struct map_session_data *)bl)->feel_map[0].m) //SG skill [Komurka]
+			def += (status_get_lv(bl) + status_get_dex(bl) + status_get_luk(bl))/10;
 	}
 
 	return def;
@@ -2376,6 +2404,9 @@ int status_calc_aspd_rate(struct block_list *bl, int aspd_rate)
 					aspd_rate += 25;
 				else if (sc_data[SC_JOINTBEAT].val2 == 2)
 					aspd_rate += 10;
+
+		if(sc_data[SC_STAR_COMFORT].timer!=-1 && bl->m == ((struct map_session_data *)bl)->feel_map[2].m) //SG skill [Komurka]
+			aspd_rate -= (status_get_lv(bl) + status_get_dex(bl) + status_get_luk(bl))/10;
 			}
 		}
 
@@ -3708,7 +3739,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 	if(sc_data[type].timer != -1){	/* すでに同じ異常になっている場合タイマ解除 */
 		if(sc_data[type].val1 > val1 && type != SC_COMBO && type != SC_DANCING && type != SC_DEVOTION &&
 			type != SC_ASPDPOTION0 && type != SC_ASPDPOTION1 && type != SC_ASPDPOTION2 && type != SC_ASPDPOTION3
-			&& type != SC_ATKPOTION && type != SC_MATKPOTION) // added atk and matk potions [Valaris]
+			&& type != SC_ATKPOTION && type != SC_MATKPOTION // added atk and matk potions [Valaris]
+			&& type!= SC_DEVIL) //added SC_DEVIL [Komurka]
 			return 0;
 
 		if ((type >=SC_STAN && type <= SC_BLIND) || type == SC_DPOISON)
@@ -4311,6 +4343,13 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			*opt3 |= 2048;
 			break;
 
+		case SC_SUN_WARM: //SG skills [Komurka]
+		case SC_MOON_WARM:
+		case SC_STAR_WARM:
+			*opt3 |= 4096;
+			opt_flag = 1;
+			break;
+
 		case SC_GOSPEL:
 			if (val4 == BCT_SELF) {	// self effect
 				if (flag&4)
@@ -4469,6 +4508,10 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_RUN://駆け足
 		case SC_SPORT:
 		case SC_SPIRIT:
+		case SC_SUN_COMFORT:
+		case SC_MOON_COMFORT:
+		case SC_STAR_COMFORT:
+		case SC_FUSION:
 			calc_flag = 1;
 			break;
 
@@ -4501,6 +4544,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_SHRINK:
 		case SC_WINKCHARM:
 		case SC_SCRESIST:
+		case SC_DEVIL:
 			break;
 
 		default:
@@ -4805,6 +4849,10 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			case SC_GUILDAURA:
 			case SC_SPORT:
 			case SC_SPIRIT: 
+			case SC_SUN_COMFORT:
+			case SC_MOON_COMFORT:
+			case SC_STAR_COMFORT:
+			case SC_FUSION:
 				calc_flag = 1;
 				break;
 
@@ -5090,6 +5138,18 @@ int status_change_end( struct block_list* bl , int type,int tid )
 		case SC_ASSUMPTIO:		/* アスムプティオ */
 			*opt3 &= ~2048;
 			break;
+		case SC_SUN_WARM: //SG skills [Komurka]
+		case SC_MOON_WARM:
+		case SC_STAR_WARM:
+			if(sc_data[SC_SUN_WARM].timer==-1 
+				&& sc_data[SC_MOON_WARM].timer==-1 
+				&& sc_data[SC_STAR_WARM].timer==-1)
+			{
+				*opt3 &= ~4096;
+				opt_flag = 1;
+			}
+			break;
+
 		}
 
 		if(opt_flag)	/* optionの?更を?える */
@@ -5213,6 +5273,19 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 				sc_data[type].timer=add_timer(1000*600+tick,status_change_timer, bl->id, data );
 				return 0;
 			}
+		}
+		break;
+
+	case SC_SUN_WARM: //SG skills [Komurka]
+	case SC_MOON_WARM:
+	case SC_STAR_WARM:
+		if( (--sc_data[type].val2)>0){
+			
+			map_foreachinarea( status_change_timer_sub,
+				bl->m, bl->x-sc_data[type].val3, bl->y-sc_data[type].val3, bl->x+sc_data[type].val3,bl->y+sc_data[type].val3,0,
+				bl,type,tick);
+			sc_data[type].timer=add_timer(1000+tick, status_change_timer,bl->id, data);
+			return 0;
 		}
 		break;
 
@@ -5349,6 +5422,10 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 	case SC_DODGE:
 		sc_data[type].timer=add_timer( 1000*600+tick,status_change_timer, bl->id, data );
 		return 0;
+	case SC_DEVIL:
+		clif_status_change(bl,SI_DEVIL,1);
+		sc_data[type].timer=add_timer( 1000*5+tick,status_change_timer, bl->id, data );
+		break;
 
 	case SC_DANCING: //ダンススキルの時間SP消費
 		{
@@ -5528,6 +5605,9 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 int status_change_timer_sub(struct block_list *bl, va_list ap )
 {
 	struct block_list *src;
+	struct map_session_data* sd=NULL;
+	struct map_session_data* tsd=NULL;
+
 	int type;
 	unsigned int tick;
 
@@ -5537,8 +5617,10 @@ int status_change_timer_sub(struct block_list *bl, va_list ap )
 	type=va_arg(ap,int);
 	tick=va_arg(ap,unsigned int);
 
-	if(bl->type!=BL_PC && bl->type!=BL_MOB)
+	if (bl->type!=BL_PC && bl->type!=BL_MOB)
 		return 0;
+	if (src->type==BL_PC) sd= (struct map_session_data*)src;
+	if (bl->type==BL_PC) tsd= (struct map_session_data*)bl;
 
 	switch( type ){
 	case SC_SIGHT:	/* サイト */
@@ -5570,6 +5652,36 @@ int status_change_timer_sub(struct block_list *bl, va_list ap )
 			}
 		}
 		break;
+	case SC_SUN_WARM: //SG skills [Komurka]
+	case SC_MOON_WARM:
+	case SC_STAR_WARM:
+		{
+			if(battle_check_target( src,bl, BCT_ENEMY ) > 0) {
+				if(sd){
+					if(sd->status.sp<2)
+					{
+						status_change_end(&sd->bl,type,-1);
+					}else{
+						sd->status.sp -= 2;
+						clif_updatestatus(sd,SP_SP);	
+					}
+				}
+				if(tsd)
+				{
+					tsd->status.sp -= 5;
+					if(tsd->status.sp < 0)
+						tsd->status.sp = 0;
+					clif_updatestatus(tsd,SP_SP);	
+				}
+				battle_weapon_attack(src,bl,tick,0);
+				if(map[bl->m].flag.gvg==0)
+				{
+					skill_blown(src,bl,2);
+				}
+			}
+		}
+		break;
+
 	}
 	return 0;
 }

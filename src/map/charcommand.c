@@ -55,6 +55,8 @@ CCMD_FUNC(model);
 CCMD_FUNC(stpoint);
 CCMD_FUNC(skpoint);
 CCMD_FUNC(changesex);
+CCMD_FUNC(feelreset);
+
 
 /*==========================================
  *CharCommandInfo charcommand_info[]\‘¢‘Ì‚Ì’è‹`
@@ -99,6 +101,7 @@ static CharCommandInfo charcommand_info[] = {
 	{ CharCommandSKPoint,				"#skpoint",					60, charcommand_skpoint },
 	{ CharCommandSTPoint,				"#stpoint",					60, charcommand_stpoint },
 	{ CharCommandChangeSex,				"#changesex",			60, charcommand_changesex },
+	{ CharCommandFeelReset,				"#feelreset",			60, charcommand_feelreset },
 
 // add new commands before this line
 	{ CharCommand_Unknown,             NULL,                1, NULL }
@@ -1702,6 +1705,43 @@ int charcommand_changesex(
 	} else {
 		chrif_char_ask_name(sd->status.account_id, player, 5, 0, 0, 0, 0, 0, 0); // type: 5 - changesex
 		clif_displaymessage(fd, msg_table[88]); // Character name sends to char-server to ask it.
+	}
+
+	return 0;
+}
+
+/*==========================================
+ * Feel (SG save map) Reset
+ *------------------------------------------
+ */
+int charcommand_feelreset(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+	char character[NAME_LENGTH];
+	char output[200];
+	struct map_session_data *pl_sd;
+
+	memset(character, '\0', sizeof(character));
+	memset(output, '\0', sizeof(output));
+
+	if (!message || !*message || sscanf(message, "%23[^\n]", character) < 1) {
+		clif_displaymessage(fd, "Please, enter a player name (usage: #feelreset <charname>).");
+		return -1;
+	}
+
+	if ((pl_sd = map_nick2sd(character)) != NULL) {
+		if (pc_isGM(sd) >= pc_isGM(pl_sd)) { // you can reset a character only for lower or same GM level
+			pc_resetfeel(pl_sd);
+			sprintf(output, msg_table[267], character); // '%s' designated maps reseted!
+			clif_displaymessage(fd, output);
+		} else {
+			clif_displaymessage(fd, msg_table[81]); // Your GM level don't authorise you to do this action on this player.
+			return -1;
+		}
+	} else {
+		clif_displaymessage(fd, msg_table[3]); // Character not found.
+		return -1;
 	}
 
 	return 0;

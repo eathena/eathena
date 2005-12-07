@@ -5683,6 +5683,67 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		} //else clif_skill_fail(sd,skillid,0,0);
 		break;
 
+	case SG_SUN_WARM:
+		if(sd->bl.m != sd->feel_map[0].m)
+			clif_skill_fail(sd,skillid,0,0);
+		else
+		{
+			clif_skill_nodamage(src,bl,skillid,skilllv,1);
+			status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,skill_get_time(skillid,skilllv)/1000,skill_get_range(skillid,skilllv),0,1000,0);
+		}
+		break;
+	case SG_MOON_WARM:
+		if(sd->bl.m != sd->feel_map[1].m)
+			clif_skill_fail(sd,skillid,0,0);
+		else
+		{
+			clif_skill_nodamage(src,bl,skillid,skilllv,1);
+			status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,skill_get_time(skillid,skilllv)/1000,skill_get_range(skillid,skilllv),0,1000,0);
+		}
+		break;
+	case SG_STAR_WARM:
+		if(sd->bl.m != sd->feel_map[2].m)
+			clif_skill_fail(sd,skillid,0,0);
+		else
+		{
+			clif_skill_nodamage(src,bl,skillid,skilllv,1);
+			status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,skill_get_time(skillid,skilllv)/1000,skill_get_range(skillid,skilllv),0,1000,0);
+		}
+		break;
+	case SG_SUN_COMFORT:
+		if(sd->bl.m == sd->feel_map[0].m && (battle_config.allow_skill_without_day || is_day_of_sun()))
+		{
+			clif_skill_nodamage(src,bl,skillid,skilllv,1);
+			status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
+		} else
+		clif_skill_fail(sd,skillid,0,0);
+		break;
+	case SG_MOON_COMFORT:
+		if(sd->bl.m == sd->feel_map[1].m && (battle_config.allow_skill_without_day || is_day_of_moon()))
+		{
+			clif_skill_nodamage(src,bl,skillid,skilllv,1);
+			status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
+		} else
+		clif_skill_fail(sd,skillid,0,0);
+		break;
+	case SG_STAR_COMFORT:
+		if(sd->bl.m == sd->feel_map[2].m && (battle_config.allow_skill_without_day || is_day_of_star()))
+		{
+			clif_skill_nodamage(src,bl,skillid,skilllv,1);
+			status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
+		} else
+		clif_skill_fail(sd,skillid,0,0);
+		return 0;
+		break;
+	case SG_FUSION:
+		if(!(sd->sc_data[SC_SPIRIT].timer != -1 && sd->sc_data[SC_SPIRIT].val2 == SL_STAR))
+			clif_skill_fail(sd,skillid,0,0);
+		else
+		{
+			clif_skill_nodamage(src,bl,skillid,skilllv,1);
+			status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
+		}
+		break;
 
 
 	default:
@@ -8186,6 +8247,7 @@ int skill_check_condition(struct map_session_data *sd,int type)
 			return 0;
 		}
 		break;
+
 	}
 
 	if (checkitem_flag) {
