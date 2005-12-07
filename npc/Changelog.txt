@@ -26,6 +26,11 @@ Nexon
 
 Date		Added
 ======
+12/07
+	* Added the New Novice Training grounds, beware of potentional bugs and [MasterOfMuppets]
+	  faulty dialogues. I kept the old script as OLDnovice.txt just incase. Thanks to Dr.Evil
+	  for doing most of the work.
+	* A small fix to the Louyang script. [MasterOfMuppets]
 12/05
 	* Fixed a typo in Aldebarran Guard "Hace a name". eAOS Bug Report [Kayla]
 	* Fixed another small screw-up in the color codes of the Glastheim Bulletin Board, 

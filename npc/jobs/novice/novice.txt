@@ -1,2339 +1,3503 @@
 //===== eAthena Script ======================================= 
-//= Novice Training Grounds
+//= Ep 8.5+ Novice Training Grounds
 //===== By: ================================================== 
-//= eAthena Dev Team (1.0)
+//= Dr.Evil & MasterOfMuppets
 //===== Current Version: ===================================== 
 //= 1.0 
 //===== Compatible With: ===================================== 
-//= eAthena 7.15 +
+//= eAthena SVN 3422+(Requires jA Script System)
 //===== Description: ========================================= 
-//= <Description> 
+//= The New Novice Training Grounds Script, Script by yukito
+//= merged with english dialogues from Prometheus.
 //===== Additional Comments: ================================= 
-//= Fully working
+//= 1.0 Added the New Novice Training Grounds, a big thanks [MasterOfMuppets]
+//=	to Dr.Evil who did 90% of the work =)
 //============================================================ 
 
-//--------------------------------------------------------------
-//------------------ EXPLANATION OF VARIABLES ------------------
-// Permanent variables:
-// before first course:
-// - nov_get_item01: flag to know if Usher had given 150 z
-// in first course:
-// - nov_1_2_cos_c: to know first course advancement
-// - nov_1st_cos: to know number of right/correct answers with Leo Von Frisch
-// - Done_milk: to know if milk has been given by the Newbie Instructor
-// in third course:
-// - set nov_1_4_cos_c: to know third course advancement (to avoid to repeat question)
-// - nov_3_merchant: count the number of answers to become merchant
-// - nov_3_swordman: count the number of answers to become swordman
-// - nov_3_archer: count the number of answers to become archer
-// - nov_3_thief: count the number of answers to become thief
-// - nov_3_magician: count the number of answers to become magician
-// - nov_3_acolyte: count the number of answers to become acolyte
-
-
-// == MONSTERS ==
-//Spawn is included in this file so make shure its not elsewhere to!
-new_1-3.gat,0,0,0,0	monster	FABRE	1184,50,0,0,0
-
-
-// == NPCs ==
-// -- Board --
-new_1-1.gat,66,114,1	script	Bulletin Board	111,{
+//====================================================================
+//Ragnarok Online Novice Script by yukito
+//====================================================================
+//Bulletin Board
+new_1-1.gat,66,114,4	script	Bulletin Board	111,{
 	mes "^FF0000=================================^000000";
-	mes "^FF0000 == ^E40CAA[Welcome] ^CC0000to^FF9000Training ^0000FFGround ^FF0000==^000000";
+	mes "^FF0000 ==^000000 ^E40CAA[Welcome] ^CC0000to^FF9000Training ^0000FFGrounds^E40CAA [Welcome] ^FF0000==^000000";
 	mes "^FF0000=================================^000000";
 	close;
 }
 
-// -- Guards --
-new_1-1.gat,117,107,2	script	Guard	105,{
-	set @TEMP,rand(2);
-	if (@TEMP !=0) goto L0;
-	mes "[Guard]";
-	mes "Go! Newbie! Go! You will see a new strength lies in the holy see-er of truth tomorrow!";
-	close;
-
-	L0:
-		mes "[Guard]";
-		mes "Come in! Welcome to the Real world!";
-		mes "We are trying to do our best to support newbies like you!";
+new_1-1.gat,53,114,4	script	Shion	727,{
+	switch (NEW_MES_FLAG0) {
+	case 0:	mes "[Shion]";
+		mes "Hello there~";
+		mes "Welcome to the";
+		mes "Training Grounds!";
+		next;
+		mes "[Shion]";
+		mes "Let's see.";
+		mes "Your name is...";
+		mes "" + strcharinfo(0) + ".";
+		next;
+		mes "[Shion]";
+		mes "My name is Shion.";
+		mes "Yes, this is the first time we've";
+		mes "met, of course. Hahahah~";
+		next;
+		mes "[Shion]";
+		mes "Now that we've met, is there";
+		mes "anything I can help you with?";
+		mes "I'm here for your questions~";
+		next;
+		switch ( select("Where should I go?","About Basic Interfaces.","What the hell are you!") ) {
+		case 1:	mes "[Shion]";
+		mes "Do you see the bridge to your";
+		mes "right side? Just cross the bridge";
+		mes "and you'll arrive at a castle. All";
+		mes "you have to do is walk inside!";
+		next;
+		mes "[Shion]";
+		mes "The entrance of the castle";
+		mes "is a ^0000FFspinning white light.^000000 These";
+		mes "portals are what allow you to move";
+		mes "from one zone to another.";
+		next;
+		mes "[Shion]";
+		mes "Do you know how to move?";
+		mes "Left click on a spot, and you'll";
+		mes "walk over to that spot. Piece of";
+		mes "cake, huh?";
+		next;
+		mes "[Shion]";
+		mes "So go for it!";
+		mes "Basically, you must enter the";
+		mes "castle in order to start your";
+		mes "adventures.";
+		next;
+		mes "[Shion]";
+		mes "There are soldiers";
+		mes "at the entrance, so don't";
+		mes "worry about getting lost.";
+		mes "Take care now~!";
+			set NEW_MES_FLAG0,1;
+			close;
+		case 2:	mes "[Shion]";
+		mes "Interface...";
+		mes "click','double-click'";
+		mes "and  'drag'is? .";
+		mes "click just one time,";
+		mes "it is called 'click'";
+		mes "click twice straightly,";
+		mes "it is called 'double-click'.";
+		next;
+		mes "[Shion]";
+		mes "'Drag' is dragging your mouse";
+		mes "to the right, left,  up and down";
+		mes "when holding 'left-click'.";
+		mes "when you block a sentence in word";
+		mes "processor program";
+		mes "you use this function";
+		mes "don't you?";
+		next;
+		mes "[Shion]";
+		mes "You need to have some basic knowledge";
+		mes "before you know the interface.";
+		mes "You will see it often in the game and...";
+		next;
+		mes "[Shion]";
+		mes "If you cross the bridge on your right side,";
+		mes "you can go learn in the castle.";
+		mes "This is The Training Grounds";
+		mes "for new novices.";
+		mes "You should go there.";
+		next;
+		mes "[Shion]";
+		mes "Ah, the building's entrance is...";
+		mes "^0000FFSmall Spiral  Light.^000000";
+		mes "Click it exactly and jump in there.";
+		mes "If you get in there, you will meet other helpers.";
+		mes "Don't worry too much.";
+			set NEW_MES_FLAG0,1;
+			close;
+		case 3:	mes "[Shion]";
+		mes "Who? me? I am nov_Shion!";
+		mes "Gosh, you are so rude.";
+		mes "I am doing free service, without payment.";
+		mes "I feel so bad.";
+			set NEW_MES_FLAG0,2;
+			close;
+		}
+	case 1:	mes "[Shion]";
+		mes "Huh...?";
+		mes "Why are you";
+		mes "still here?";
+		mes "^6A6A6A*Sigh...*";
+		next;
+		mes "[Shion]";
+		mes "Hey, when you enter the Training";
+		mes "Grounds, you'll earn all sorts of";
+		mes "things that will help you play the";
+		mes "game. You'll even have the chance";
+		mes "to get zeny and other rewards.";
+		next;
+		mes "[Shion]";
+		mes "You can even gain";
+		mes "experience like this!";
+		set NEW_MES_FLAG0,3;
+		set BaseExp,BaseExp+NextBaseExp;
+		next;
+		mes "[Shion]";
+		mes "Everything you'll learn here in the";
+		mes "Training Grounds will benefit your";
+		mes "gameplay. So just think positive,";
+		mes "okay?";
 		close;
-}
-
-new_1-1.gat,117,116,2	script	Guard	105,{
-	mes "[Guard]";
-	mes "Welcome~ Now, you're in Training Ground~";
-	mes "Please go inside the Castle.";
-	close;
-}
-
-// -- Chief --
-new_1-1.gat,157,124,3	script	Training Ground Chief	56,{
-	mes "[Training Ground Chief]";
-	mes "Umm...? Aren't you a Freshman? You have a lot of guts to dare to come up.";
-	mes "Didn't that Guide stop you?";
-	next;
-	menu "He did, but I didn't listen to him.",Lyes,"Nope, he didn't.",Lno;
-
-	Lyes:
-		mes "[Training Ground Chief]";
-		mes "He did? And you came up without any timidity!?";
-		mes "Giggle... giggle...";
-		mes "Muhahahahaha!";
-		next;
-		mes "[Training Ground Chief]";
-		mes "Wow man! You are really something, huh?";
-		mes "Well... Rune-Midgard wants brave man like you. I expect you will be the most efficient man for Ragnarok. Do your best.";
-		close;
-	Lno:
-		mes "[Training Ground Chief]";
-		mes "What...? He didn't? Hmm... I need to improve the moral fiber. Even though the World is in Great fear...";
-		next;
-		mes "[Training Ground Chief]";
-		mes "Go downstairs. Don't disturb me. I need time to think of.";
-		close;
-}
-
-// -- Usher --
-// nov_get_item01: flag to know if Usher had given 150 z.
-// 0: not given
-// 1: given
-new_1-2.gat,100,29,4	script	Usher	86,{
-	mes "[Usher]";
-	mes "Welcome to the ^FF0000Training Ground^000000 .";
-	mes "Please choose ^0099FFIntroduction^000000 first if you need to check detailed information about Training Ground.";
-	next;
-	menu "Sign Up on the Training Ground.",Lsign,"Direct Access to Ragnarok.",Ldirect,"^0099FFIntroduction.^000000",Lintro,"Cancel.",Lcancel;
-
-	Lsign:
-		mes "[Usher]";
-		mes "Registration has been confirmed.";
-		mes "Please inquire at each Guide on the course when you need.";
-		next;
-		if (nov_get_item01 == 1) goto Lsign1;
-
-		set nov_get_item01,1;
-		set Zeny,Zeny+150;
-		mes "[Usher]";
-		mes "Training Subsidy 150 Zeny supplied. Please inquire at a Guide on the Center when you need to know your Current Progress.";
-		mes "I will lead you into the Hall.";
-		next;
-
-	Lsign1:
-		set nov_get_item01,0;
-		warp "new_1-2",100,70;
-		close;
-
-	Ldirect:
-		mes "[Usher]";
-		mes "I see.";
-		mes "Hopefully you will contribute to public wellfare in near future, good luck.";
-		next;
-		set nov_1st_cos,0;
-		set nov_get_item01,0;
-		set nov_1_2_cos_c,0;
-		set Done_milk,0;
-		set nov_1_4_cos_c,0;
-		set nov_3_merchant,0;
-		set nov_3_swordman,0;
-		set nov_3_archer,0;
-		set nov_3_thief,0;
-		set nov_3_magician,0;
-		set nov_3_acolyte,0;
-		set @TEMP,rand(6);
-
-		if (@TEMP !=0) goto Ldirect0;
-			savepoint "prontera.gat",273,354;
-			warp "prontera.gat",273,354;
-			close;
-		Ldirect0:
-			if (@TEMP !=1) goto Ldirect1;
-			savepoint "morocc.gat",160,94;
-			warp "morocc.gat",160,94;
-			close;
-		Ldirect1:
-			if (@TEMP !=2) goto Ldirect2;
-			savepoint "geffen.gat",120,100;
-			warp "geffen.gat",120,100;
-			close;
-		Ldirect2:
-			if (@TEMP !=3) goto Ldirect3;
-			savepoint "payon.gat",87,117;
-			warp "payon.gat",87,117;
-			close;
-		Ldirect3:
-			if (@TEMP !=4) goto Ldirect4;
-			savepoint "alberta.gat",116,57;
-			warp "alberta.gat",116,57;
-			close;
-		Ldirect4:
-			savepoint "izlude.gat",94,103;
-			warp "izlude.gat",94,103;
-			close;
-
-	Lintro:
-		mes "[Usher]";
-		mes "The Training Grounds were founded to support New Players of Ragnarok Online,";
-		mes "under the Auspices of the Ministry of Education in Rune Midgard Kingdom.";
-		next;
-		mes "[Usher]";
-		mes "We guide you on to adapt the Mechanics of Ragnarok at ease, also we recommend the Best profession for your personality through the Typology Test.";
-		next;
-		mes "[Usher]";
-		mes "You can train yourself with 3 courses in here.";
-		next;
-		mes "[Usher]";
-		mes "You can learn entire theoretical information in the First Course.";
-		next;
-		mes "[Usher]";
-		mes "You will practice on the Actual spot in Fabres Field, the Second Course. Please do everything as you can do before jumping into the Real Ragnarok World.";
-		next;
-		mes "[Usher]";
-		mes "The Third course is the Typology Test. You will figure out the best job for you with this test.";
-		mes "You just answer the most suited answer when the course master asks you.";
-		next;
-		mes "[Usher]";
-		mes "When you finish whole courses, we'll inform you the result and recommend the Job for you.";
-		mes "Also if you accept our recommendation, we will tender you with small subsidy and let you begin in the specfic town for that Job.";
-		mes "For example, when the result comes 'Archer', you will start in 'Payon'.";
-		next;
-		mes "[Usher]";
-		mes "If you want to apply on the Training Ground, Please choose 'Sign Up on the Training Ground'.";
-		mes "if you not, choose 'Direct Access to Ragnarok'.";
-		next;
-		menu "Sign Up on the Training Ground.",Lsign,"Direct Access to Ragnarok.",Ldirect,"^0099FFIntroduction.^000000",Lintro,"Cancel.",Lcancel;
-		close;
-
-	Lcancel:
-		mes "[Usher]";
-		mes "Take your time.";
-		close;
-}
-
-
-// == FIRST COURSE ==
-// nov_1_2_cos_c: to know first course advancement
-//  0: newbie. Have not begin to speak (must speak to Leo Von Frish).
-//  1: Question 1 Leo Von Frisch done
-//  2: Question 2 Leo Von Frisch done
-//  3: Question 3 Leo Von Frisch done
-//  4: Question 4 Leo Von Frisch done
-//  5: Question 5 Leo Von Frisch done
-//  6: Question 6 Leo Von Frisch done
-//  7: Question 7 Leo Von Frisch done
-//  8: 'NPC Guide' Master done.
-//  9: 'Manner Master' done. Must register for Fabres forest.
-// 10: Register for Fabres forest. Must begin 2nd Course 1th test
-// 11: have been at least once in the Fabres forest.
-// nov_1st_cos: to know number of right/correct answers with Leo Von Frisch
-
-// Done_milk: to know if milk has been given by the Newbie Instructor
-// 0: not speak to Newbie Instructor (or at Fabres forest or more)
-// 1: speak to Newbie Instructor
-
-// -- Instructor --
-new_1-2.gat,81,110,4	script	Newbie Instructor	84,{
-	if (Done_milk==0) goto Lyes;
-
-	mes "[Newbie Instructor]";
-	mes "Do you want listen me again?";
-	next;
-	menu "Yes!",Lyes,"No, not again.",Lno;
-
-	Lno:
-		mes "[Newbie Instructor]";
-		mes "Move along to the next course!";
-		close;
-
-	Lyes:
-		mes "[Newbie Instructor]";
-		mes "Ho? A Rookie? So, are you gonna get some education from Sir Leo Von Frisch?";
-		mes "Well ~ I must say he is sort of restless person, so that he tends to skip important issues while training.";
-		mes "I am afraid to say you need aditional education besides his lecture... Alright! I will give you a favour, buddy!";
-		next;
-		mes "[Newbie Instructor]";
-		mes "First off all you need to realise yourself. Your Chracter, the avatar of yourself inside the game has various distictive quality.";
-		mes "Level, EXPerience points, Status et cetera et cetera... many facts gather and construct your character.";
-		mes "Now let's take a look on character Status.";
-		next;
-		mes "[Newbie Instructor]";
-		mes "^FF0000STR (Strength)^000000";
-		mes "- Increase hit point and maximum weight.";
-		mes "^FF0000AGI (Agility)^000000";
-		mes "- Increase flee rate and attack speed.";
-		mes "^FF0000VIT (Vitality)^000000";
-		mes "- Increase defence, maximum health point and HP recovering amount.";
-		next;
-		mes "[Newbie Instructor]";
-		mes "^FF0000INT (intelligence)^000000";
-		mes "- Increase magic attack and magic defence.";
-		mes "^FF0000DEX (Dexterity)^000000";
-		mes "- Increase hitting accuracy and weapon damage.";
-		mes "^FF0000LUK (Luck)^000000";
-		mes "- Affect on various parts.";
-		next;
-		mes "[Newbie Instructor]";
-		mes "You must keep Status abilities in mind before everything.";
-		next;
-		mes "[Newbie Instructor]";
-		mes "When right-clicking on the 'status' button, you will see 'Status window' which shows current condition of a character. Shortcut is 'Alt + A'.";
-		mes "When you bring a cursor on each status, you can see the real meaning of it.";
-		mes "You will gain some points everytime Base Level is up, you can freely distribute them into ^FF00006 status^000000.";
-		next;
-		mes "[Newbie Instructor]";
-		mes "The boxes next to each stat show the ^FF0000base value of the stat plus any bonuses from equipment. The left box shows the point cost to upgrade the stat by 1^000000.";
-		mes "When the character levels up, Blue button appears on the bottom of right side of the monitor screen. Click it to open the status window.";
-		mes "Click the blue Arrow to spend the points you get, ^FF0000You can upgrade stats as you want ^000000.";
-		next;
-		mes "[Newbie Instructor]";
-		mes "Oh well, 'Tendency' hasn't been implemented yet, let's talk later then.";
-		next;
-		mes "[Newbie Instructor]";
-		mes "Shall we move onto the next issue?";
-		next;
-		mes "[Newbie Instructor]";
-		mes "Right-clicking on a character leads you to see individual menu including Trade command.";
-		mes "When left-clicking on Trade menu, ^FF0000'Trade window'^000000 pops up. That's the way you can exchange ^FF0000items or zeny, Ragnarok currency^000000 with another character.";
-		mes "There are 2 different buttons on the bottom of trade window, one is OK, the other is Cancel.";
-		mes "Press OK if you are ready or Cancel if you want to cancel the deal.";
-		next;
-		mes "[Newbie Instructor]";
-		mes "Let's check the ^FF0000'Chat Window'^000000 on the bottom of game screen, which allows you to chat with others. It is devided into 2 parts, you can enter a ^FF0000character name you want to whisper^000000 at the left part.";
-		mes "If you click the button beside the left part, you can check all character names who you have already whispered to or you got whispered so far. So you can whisper to the characters without typing their names again.";
-		mes "At the right part of chat window, you can type the message you want to send. And with the first button beside this part, you can choose chat type as public or private among party members.";
-		mes "With the last button on the chat window, you can arrange chat window size.";
-		next;
-		mes "[Newbie Instructor]";
-		mes "The following text tells you more about the 'Character View'.";
-		mes "When you drag mouse from right to left with the right mouse button held down, the character view rotates (360?.";
-		mes "Holding down the 'Ctrl' key and the right mouse button while dragging the mouse up and down, makes the view ^FF0000Zooming in and out toward the character^000000.";
-		mes "Holding down the 'Shift' key and the right mouse button while dragging the mouse up and down, controls the angle of the view ^FF0000for fixed range^000000.";
-		next;
-		mes "[Newbie Instructor]";
-		mes "This is the last thing I have to teach you about shorcuts. You will realize how important Shorcuts are if you want to play with efficiency.";
-		next;
-		mes "[Newbie Instructor]";
-		mes "^FF0000The 'ESC' ^000000key is the function key, it ^0087FFcalls 'Exit to window' command or 'Return to game' command^000000.";
-		mes "^FF0000 Keys From 'F1' to 'F9'^000000 are shortcut keys for ^0087FFeach item registered on Hot key window^000000.";
-		mes "^FF0000The Key 'F10'^000000 adjusts ^0087FFthe size of chat window^000000.";
-		next;
-		mes "[Newbie Instructor]";
-		mes "^FF0000The key 'F11'^000000 clears ^0087FFall windows except basic information window and chatting box^000000.";
-		mes "^FF0000The key 'F12'^000000 calls ^0087FFHot key window^000000.";
-		mes "^FF0000The key 'insert' on the keyboard^000000 is the hot key for character's to ^0087FFsit or stand^000000. Also you can type ^0087FF'/sit or /stand'^000000 in the chatting Box.";
-		next;
-		mes "[Newbie Instructor]";
-		mes "^FF0000The key 'alt+home'^000000 is ^0087FFShorcut for Ground cursor on / off^000000.";
-		mes "^FF0000The key 'alt+end'^000000 is ^0087FFShorcut for character Health and SKill Point gauge on / off ^000000. You'd better turn it on all the time.";
-		mes "^FF0000The key 'page up & down'^000000 will scroll ^0087FFText in interfaces and the chatting box, Mouse whirl will also scroll^000000.";
-		next;
-		mes "[Newbie Instructor]";
-		mes "We have a system called 'Alignment System'.";
-		mes "When you meet somebody nice or somebody helps you, you can give the person a good point in recognition of services.";
-		mes "On the contrary, to someone who is ill-mannered or doing evil things on people, you can give the person 2 bad points. Meanwhile you will get 1 bad point for the penalty. This is to prevent abuse of the alignment system.";
-		next;
-		mes "[Newbie Instructor]";
-		mes "The Alignment system is only available for adult characters over Novice level 8 and can be used once a day.";
-		mes "I know you don't think this is not important right now, but be careful, it causes you the cumulative effects on your character.";
-		mes "Somehow I believe nice persons will play fair even without this kind of restriction!";
-		next;
-		if (Done_milk==1) goto AfterMilk;
-		set Done_milk,1;
-		getitem 519,1;
-		goto AfterMilk;
-
-		AfterMilk:
-			mes "[Newbie Instructor]";
-			mes "Well... This is all I can tell you, buddy. Leo Von Frisch will take care of you from now on.";
-			mes "Do your best, Ok? Ragnarok is a worthwhile game.";
-			mes "By the way... this is my present for you. I sneaked this from mess hall. Promise me you will do your best, OK?";
-			close;
-}
-
-// -- Leo, Quiz Npc --
-new_1-2.gat,84,115,4	script	Leo Von Frisch	85,{
-	if (nov_1_2_cos_c<1) goto startL0;
-	if (nov_1_2_cos_c<7) goto Lcontinue;
-	if (nov_1_2_cos_c==7) goto LNPCMaster;
-	if (nov_1_2_cos_c==8) goto LMannerMaster;
-
-	mes "[Leo Von Frisch]";
-	mes "Umm? What brings you to me? My time is already over. You have finish the First course...";
-	next;
-	goto Lend;
-
-	LMannerMaster:
-		mes "[Leo Von Frisch]";
-		mes "Umm? What brings you to me? My time is already over. Probably your next course will be to speak to the 'Manner Master'...";
-		next;
-		goto Lend;
-
-	LNPCMaster:
-		mes "[Leo Von Frisch]";
-		mes "Um? What's matter? My class is over. Your next course would be 'NPC Guide'...";
-		next;
-		goto Lend;
-
-		Lend:
-			mes "Or... Are you willing to attend again?";
-			next;
-			menu "No, Sir! I apologise about my behaviour!",Lendno,"Yes, Sir! I am!",Lendyes;
-
-			Lendno:
-				mes "[Leo Von Frisch]";
-				mes "If you think not enough, come anytime. Dismissed.";
-				close;
-			Lendyes:
-				mes "[Leo Von Frisch]";
-				mes "Ok! I love your passionate answer!! Let's begin!";
-				next;
-				goto LQ2;
-
-	Lcontinue:
-		set nov_1st_cos, 0;
-		mes "[Leo Von Frisch]";
-		mes "Um... Something interrupted my class without reason.";
-		mes "Anyhow alright. Shall we begin all over again!";
-		next;
-		mes "[Leo Von Frisch]";
-		mes "Are you ready!? Answer me!";
-		next;
-		menu "Yes sir!",LcontinueY,"No,I am not ready yet.",Lno;
-		LcontinueY:
-			if (nov_1_2_cos_c==1) goto LQ2;
-			if (nov_1_2_cos_c==2) goto LQ3;
-			if (nov_1_2_cos_c==3) goto LQ4;
-			if (nov_1_2_cos_c==4) goto LQ5;
-			if (nov_1_2_cos_c==5) goto LQ6;
-			if (nov_1_2_cos_c==6) goto LQ7;
-			close;
-		Lno:
-			mes "[Leo Von Frisch]";
-			mes "'Noooo.'?! You said 'Noooo.'! What were you thinking, you rascal! Go get ready to move! Right now!";
-			close;
-
-	startL0:
-		mes "[Leo Von Frisch]";
-		mes "Come on! Beginner!! Now You are with an Expert of Ragnarok!!";
-		mes "Me! I am God of beginners and I enlighten your pathetic souls from the Darkened World.";
-		mes "Besides I am a Tutor and an itelligence Officer in the 4th Chivarly of Prontera!";
-		mes "You can call me Sir Leo Von Frisch, got that clear?";
-		next;
-		mes "[Leo Von Frisch]";
-		mes "Are you ready!? Answer me!";
-		next;
-		menu "Yes sir!",Lyes,"No, I am not ready yet.",Lno;
-
-		Lyes:
-			mes "[Leo Von Frisch]";
-			mes "Well Done! Ok, Let's begin!! The first chapter is 'Let's Start Ragnarok'!";
-			next;
-			mes "[Leo Von Frisch]";
-			mes "Ah~ I almost forgot to question you something.";
-			mes "What is the best introduction for 'Ragnarok'?";
-			next;
-			menu "War among human beings",LQ1_1,"War between human beings and monsters",LQ1_2,"World that humans have taken over",LQ1_3,"World humans have coexisted with monsters",LQ1_4;
-
-		LQ1_1:
-			set nov_1_2_cos_c,1;
-			mes "[Leo Von Frisch]";
-			mes "Umm... Be cooperate with other people. The world will be end without nothing.";
-			mes "Answer is ^FF0000War between human beings and monsters^000000.";
-			next;
-			mes "[Leo Von Frisch]";
-			mes "I will keep surprising you with unexpectable questions, concentrate on my lesson.";
-			mes "I meant you, dumbhead, alright?";
-			mes "Let's carry on.";
-			next;
-			goto LQ2;
-		LQ1_2:
-			getitem 513,1;
-			set nov_1st_cos, nov_1st_cos+1;
-			set nov_1_2_cos_c,1;
-			mes "[Leo Von Frisch]";
-			mes "Yes, that's right. You know well. We are fighting with evil creatures. In most of MMORPG games, they are known as Monsters or commonly just called as Mob.";
-			next;
-			mes "[Leo Von Frisch]";
-			mes "I will keep surprising you with unexpectable questions, concentrate on my lesson.";
-			mes "I meant you, dumbhead, alright?";
-			mes "Let's carry on.";
-			next;
-			goto LQ2;
-		LQ1_3:
-			set nov_1_2_cos_c,1;
-			mes "[Leo Von Frisch]";
-			mes "...What the bloody hell are you saying? Why would humans torment creatures for?";
-			mes "Answer is ^FF0000War between human beings and monsters^000000.";
-			next;
-			mes "[Leo Von Frisch]";
-			mes "I will keep surprising you with unexpectable questions, concentrate on my lesson.";
-			mes "I meant you, dumbhead, alright?";
-			mes "Let's carry on.";
-			next;
-			goto LQ2;
-		LQ1_4:
-			set nov_1_2_cos_c,1;
-			mes "[Leo Von Frisch]";
-			mes "Oh well... I fully understand your pursue ideal world... Not now, not now.";
-			mes "Answer is ^FF0000War between human beings and monsters^000000.";
-			next;
-			mes "[Leo Von Frisch]";
-			mes "I will keep surprising you with unexpectable questions, concentrate on my lesson.";
-			mes "I meant you, dumbhead, alright?";
-			mes "Let's carry on.";
-			next;
-			goto LQ2;
-
-	LQ2:
-		mes "[Leo Von Frisch]";
-		mes "When you click the shortcut for Ragnarok, it will be automatically connected to patch server, which enables you to continually update game articles. MMORPG game keeps being developed to improve its quality.";
-		mes "In the meantime, you can check ^FF0000the Notice^000000 on the patch window.";
-		mes "Read that notice if you don't want to miss any game event or update articles.";
-		next;
-		mes "[Leo Von Frisch]";
-		mes "You can coose between one or more servers.";
-		mes "After choosing one of game servers, you can make a character.";
-		mes "3 empty slots or more for character are given to you on the first place, you can have 3 kinds of different characters.";
-		mes "For character appearance, you can choose a favourable hairstyle from a lot of kinds and from some kinds of hair colour. In near future, we will introduce more hair colour and clothings.";
-		next;
-		mes "[Leo Von Frisch]";
-		mes "Double Click an empty slot and you can make your character.";
-		mes "^FF0000You can arrange beginning Stats of your character. With that, Your character could be the best for job you wish for.^000000.";
-		mes "So You should consider beginning Stats as well fitting for the job you want your character to be in the future.";
-		next;
-		if (nov_1_2_cos_c>1) goto LQ3;
-		mes "[Leo Von Frisch]";
-		mes "I give you one easy question!";
-		mes "What is the wrong description for each Stat? You should choose WRONG one not right one!!";
-		next;
-		menu "STR - Increase hit point and maximum weight.",LQ2_1,"AGI - Increase flee rate and attack speed.",LQ2_2,"DEX - Increase accuracy and magic defence.",LQ2_3,"INT - Increase magic attack/defence.",LQ2_4;
-
-		LQ2_1:
-			set nov_1_2_cos_c,2;
-			mes "That's wrong!";
-			mes "'DEX -  Increase accuracy and magic defence.' is not correct, it should be:";
-			mes "^FF0000'DEX - Increase accuracy and weapon damage.'^000000.";
-			next;
-			goto LQ3;
-		LQ2_2:
-			set nov_1_2_cos_c,2;
-			mes "That's wrong!";
-			mes "'DEX -  Increase accuracy and magic defence.' is not correct, it should be:";
-			mes "^FF0000'DEX - Increase accuracy and weapon damage.'^000000.";
-			next;
-			goto LQ3;
-		LQ2_3:
-			getitem 513,1;
-			set nov_1st_cos, nov_1st_cos+1;
-			set nov_1_2_cos_c,2;
-			mes "[Leo Von Frisch]";
-			mes "Alright! You got it.";
-			mes "It is not 'DEX - Increase accuracy and magic defence.', correct description is:";
-			mes "^FF0000'DEX - Increase accuracy and weapon damage.'^000000.";
-			mes "This is reward. Take it.";
-			next;
-			goto LQ3;
-		LQ2_4:
-			set nov_1_2_cos_c,2;
-			mes "That's wrong!";
-			mes "'DEX -  Increase accuracy and magic defence.' is not correct, it should be:";
-			mes "^FF0000'DEX - Increase accuracy and weapon damage.'^000000.";
-			next;
-			goto LQ3;
-
-	LQ3:
-		mes "[Leo Von Frisch]";
-		mes "Let's go on.";
-		next;
-		mes "[Leo Von Frisch]";
-		mes "Let's move on to 'Basic Interface'.";
-		mes "Alright, check 'Basic Information window' on the upper-left side of your screen. You can see full screen of it with ^FF0000Double Click^000000, when it's shown as the smallest one.";
-		next;
-		mes "[Leo Von Frisch]";
-		mes "'Basic Information Window shows ^FF0000Every Fundamental Functions^000000. Also, you can click the specific function windows with the pertinent button .";
-		next;
-		mes "[Leo Von Frisch]";
-		mes "^FF0000'Base Lv'^000000 is the level of character. ^FF0000'Job Lv'^000000 Specializes the Character, it allows a character to learn a skill with ^FF0000Skill Point^000000 everytime at levelup.";
-		mes "Let's spare skill point part for later.";
-		mes "The Gauge bar beside each level is shown how much % of EXP Point you've gained for a next levelup. When it goes into 100% you will raise one level up, this bar will reset into 0 for a next turn.";
-		next;
-		mes "[Leo Von Frisch]";
-		mes "Weight shows 'Current Belongings/Maximum Belongings'. When a player possesses things more than a half, it will shown in ^FF0000Red Colour^000000.";
-		mes "From this moment, this player ^FF0000cannot regenerate HP, SP naturally^000000. Furthermore when its amount is over than 90%, ^FF0000a player cannot Fight.^000000";
-		next;
-		mes "[Leo Von Frisch]";
-		mes "If you don't want to be murdered due to your stupidity, lighten your weight as you can.";
-		mes "You can use Kafra Wearhouse to store items. And it will cost you the different local fee from 35 Zeny to 50 Zeny.";
-		next;
-		if (nov_1_2_cos_c>2) goto LQ4;
-		mes "[Leo Von Frisch]";
-		mes "Let's take a break~ Phew...";
-		mes "Ah~ I have an idea~ I will give you a 'for-Fun' question.";
-		next;
-		mes "[Leo Von Frisch]";
-		mes "You... Do you remember who I am?";
-		mes "I told you about me before the lesson got started. Now remember? Or you just ignored me as 'Poof~ you are just a nothing but a NPC~'...";
-		next;
-		mes "[Leo Von Frisch]";
-		mes "Ah Ah~ I don't want to show off myself but because I am your tutor. I am just curious. By the way this is just '^990000for fun^000000', you know.";
-		mes "Choose one thing which has nothing to do with me.";
-		next;
-		menu "Instructor.",LQ3_1,"An Intelligence Officer in the 4th Chivarly of Prontera.",LQ3_2,"Public Prosecutor.",LQ3_3,"I have no idea.",LQ3_4;
-
-		LQ3_1:
-			set nov_1_2_cos_c,3;
-			mes "[Leo Von Frisch]";
-			mes "Damn you!... Next!";
-			next;
-			goto LQ4;
-		LQ3_2:
-			set nov_1_2_cos_c,3;
-			mes "[Leo Von Frisch]";
-			mes "Damn you!... Next!";
-			next;
-			goto LQ4;
-		LQ3_3:
-			mes "[Leo Von Frisch]";
-			mes "Fine! I am not a 'Public Prosecutor' but a ^ff0000'Newbie Tutor^000000!";
-			next;
-			getitem 516,3;
-			set nov_1st_cos, nov_1st_cos+1;
-			set nov_1_2_cos_c,3;
-			mes "[Leo Von Frisch]";
-			mes "Take this. It is nothing, but I am so pleased that you remembered me in detail. Share with your pals.";
-			next;
-			goto LQ4;
-		LQ3_4:
-			set nov_1_2_cos_c,3;
-			mes "[Leo Von Frisch]";
-			mes "Damn you!... Next!";
-			next;
-			goto LQ4;
-
-	LQ4:
-		mes "[Leo Von Frisch]";
-		mes "When you click 'Item' button, it shows your inventory. Shortcut is 'Alt + E'.";
-		mes "Item windows is devided into 3 parts, the equipment you are wearing is not shown on the item window.";
-		mes "^FF0000Right Click^000000on each item, you can see its description and a picture.";
-		next;
-		mes "[Leo Von Frisch]";
-		mes "To equip items, ^FF0000it is possible to change equipment by Dragging & Dropping it onto your equipment window, Shorcut is 'ALT+Q'. You can also double click the item ^000000.";
-		mes "^FF0000You can register 9 items or skills from F1 to F9 in the hotkey window^000000.";
-		mes "You should have the hot key window open at all time. You can play easier that way.";
-		next;
-		mes "[Leo Von Frisch]";
-		mes "You can see ^FF0000Present skills^000000when you click 'Skill' button. Shorcut is 'Alt + S'.";
-		mes "^FF0000Every time the character's job levels up, you get skill points^000000. You will see blue button in the bottom left corner of your monitor screen.";
-		mes "You can check skill informations ^FF0000by right clicking on each Skill Icon^000000.";
-		next;
-		mes "[Leo Von Frisch]";
-		mes "Passive skill means ^FF0000You don't have to spend your SP to use it. It is always in effect^000000. The opposite from Active skill.";
-		mes "Also skills are ^FF0000possible to register on the Hot key window^000000, you can use your favorite skills quickly and easily this way.";
-		next;
-		if (nov_1_2_cos_c>3) goto LQ5;
-		mes "[Leo Von Frisch]";
-		mes "One Question for you!";
-		mes "How to see each item's description and the picture with the mouse?";
-		next;
-		menu "Double Click",LQ4_1,"Right Click",LQ4_2,"Drag & Drop",LQ4_3;
-
-		LQ4_1:
-			set nov_1_2_cos_c,4;
-			mes "[Leo Von Frisch]";
-			mes "That's wrong!";
-			mes "It is ^FF0000'Right Click'^000000!";
-			next;
-			goto LQ5;
-		LQ4_2:
-			getitem 512,1;
-			set nov_1st_cos, nov_1st_cos+1;
-			set nov_1_2_cos_c,4;
-			mes "[Leo Von Frisch]";
-			mes "It is ^FF0000'Right Click'^000000! Correct!";
-			mes "I will reward you for the correct answer. Take it.";
-			next;
-			goto LQ5;
-		LQ4_3:
-			set nov_1_2_cos_c,4;
-			mes "[Leo Von Frisch]";
-			mes "That's wrong!";
-			mes "It is ^FF0000'Right Click'^000000!";
-			next;
-			goto LQ5;
-
-	LQ5:
-		mes "[Leo Von Frisch]";
-		mes "Ok, Back to the Lesson.";
-		next;
-		mes "[Leo Von Frisch]";
-		mes "^FF0000At novice level 4 or above, you can make your own chat room with 'Chat' Button^000000. Shorcut is 'Alt + C'.";
-		mes "You can't move when you are in chatroom, but chatting and item trading are available.";
-		next;
-		mes "[Leo Von Frisch]";
-		mes "With 'Friend' button, a 'Party' window pops up. You can see all party members and their present location.";
-		mes "Shorcut is 'Alt + Z'.";
-		next;
-		mes "[Leo Von Frisch]";
-		mes "Party members being on the same map with you, ^FF0000are shown on the mini-map^000000, Party window is going to be updated.";
-		mes "So that it will act as messenger function like party members log-in. Also it will be upgraded like G-Freind that can connect between Ragnarok and outside.";
-		next;
-		mes "[Leo Von Frisch]";
-		mes "With 'Map' button, you can use mini-map in various ways. It can be translucent, opaque and invisible. Also with the +, - button, ^FF0000it is possible to enlarge and reduce its Size^000000. Shorcut is 'Ctrl + Tab'.";
-		mes "Red spot on the mini-map is the loading point to the next map. Player's location is shown like a white arrow. The direction of the white arrow shows which way the player facing.";
-		next;
-		mes "[Leo Von Frisch]";
-		mes "The 'Equip' button, ^FF0000opens The window showing the character's equipped items^000000. Shorcut is 'Alt + Q'.";
-		mes "Each equipped item can be ^FF0000right clicked for description and picture^000000, ^FF0000You can equip and unequip items by dragging and dropping between the equipment and inventory windows^000000.";
-		mes "Also Every equipment can be registered on the Hot Key window so you can change your weapon easily.";
-		next;
-		mes "[Leo Von Frisch]";
-		mes "The 'Option' button opens the window that allows you to controll the BGM and Sound Effect and turn on/off them. Shorcut is 'Alt + O'.";
-		mes "After Feb 2002, you can also select a window skin from self-made skins shared in fansites.";
-		next;
-		if (nov_1_2_cos_c>4) goto LQ6;
-		mes "[Leo Von Frisch]";
-		mes "Another Question!";
-		mes "Which one is the shortcut for hot key window that hleps you to play easier ?";
-		next;
-		menu "F1",LQ5_1,"F15",LQ5_2,"F16",LQ5_3,"F12",LQ5_4;
-
-		LQ5_1:
-			set nov_1_2_cos_c,5;
-			mes "[Leo Von Frisch]";
-			mes "That's wrong!";
-			mes "The right key is 'F12'";
-			next;
-			goto LQ6;
-		LQ5_2:
-			set nov_1_2_cos_c,5;
-			mes "[Leo Von Frisch]";
-			mes "That's wrong!";
-			mes "The right key is 'F12'";
-			next;
-			goto LQ6;
-		LQ5_3:
-			set nov_1_2_cos_c,5;
-			mes "[Leo Von Frisch]";
-			mes "That's wrong!";
-			mes "The right key is 'F12'";
-			next;
-			goto LQ6;
-		LQ5_4:
-			getitem 517,1;
-			set nov_1st_cos, nov_1st_cos+1;
-			set nov_1_2_cos_c,5;
-			mes "[Leo Von Frisch]";
-			mes "That's right. 'F12' is correct answer.";
-			mes "This is for you.";
-			next;
-			goto LQ6;
-
-	LQ6:
-		mes "[Leo Von Frisch]";
-		mes "OK Let's move on.";
-		next;
-		mes "[Leo Von Frisch]";
-		mes "The End.";
-		next;
-		if (nov_1_2_cos_c>5) goto LQ7;
-		mes "[Leo Von Frisch]";
-		mes "Quiz time!";
-		mes "Choose One showing the Right Shortcut for 'Sit' and the Command you type in the Chat Box.";
-		next;
-		menu "'insert' - /Sit",LQ6_1,"'page down' - /Sitting",LQ6_2,"'home' - /Sitdown",LQ6_3,"'delete' - /stand",LQ6_4;
-
-		LQ6_1:
-			getitem 519,1;
-			set nov_1st_cos, nov_1st_cos+1;
-			set nov_1_2_cos_c,6;
-			mes "[Leo Von Frisch]";
-			mes "Yeah, correct.";
-			next;
-			goto LQ7;
-		LQ6_2:
-			set nov_1_2_cos_c,6;
-			mes "[Leo Von Frisch]";
-			mes "Wrong. 'insert' - /Sit is the correct one.";
-			next;
-			goto LQ7;
-		LQ6_3:
-			set nov_1_2_cos_c,6;
-			mes "[Leo Von Frisch]";
-			mes "Wrong. 'insert' - /Sit is the correct one.";
-			next;
-			goto LQ7;
-		LQ6_4:
-			set nov_1_2_cos_c,6;
-			mes "[Leo Von Frisch]";
-			mes "Wrong. 'insert' - /Sit is the correct one.";
-			next;
-			goto LQ7;
-
-	LQ7:
-		mes "[Leo Von Frisch]";
-		mes "Guys, Thank you for standing my boring class for now. And I am not sure whether you fully understand or not.";
-		mes "If you can't get it, play by yourself. 'The proof of the pudding is in the eating.', the proverb.";
-		mes "I hope my class will be helpful to your wretched future in Ragnarok.";
-		next;
-		if (nov_1_2_cos_c > 6) goto LFinishAgain;
-		if (nov_1st_cos > 0) goto nov1stcosCont;
-		mes "[Leo Von Frisch]";
-		mes "By the way... You've missed all answer!!!";
-		mes "You are the worst trainee I've ever had. Sigh...";
-		next;
-		goto nov1stcosCont;
-
-		nov1stcosCont:
-			if (nov_1st_cos < 5) goto nov1stcosCheckL5;
-			if (nov_1st_cos == 5) goto nov1stcosCheckE5;
-			if (nov_1st_cos == 6) goto nov1stcosCheckE6;
-
-			nov1stcosCheckL5:
-				getitem 507,1;
-				goto nov1stcosContNext;
-			nov1stcosCheckE5:
-				getitem 507,2;
-				goto nov1stcosContNext;
-			nov1stcosCheckE6:
-				getitem 507,4;
-				goto nov1stcosContNext;
-
-			nov1stcosContNext:
-				set nov_1_2_cos_c,7;
-				mes "[Leo Von Frisch]";
-				mes "I will reward you for the successful lesson. Take it. They will be useful when you have a hard time to fight.";
-				next;
-				mes "[Leo Von Frisch]";
-				mes "Anyway, Let's call it a day with me, you may go to the 'NPC' master.";
-				mes "If you can't find him, inquire at the sly dog at the centre";
-				close;
-
-		LFinishAgain:
-			mes "[Leo Von Frisch]";
-			mes "Anyway, Let's call it a day with me, you may go to the 'Guide' to know what you must do now.";
-			mes "If you can't find him, search at the centre of the room.";
-			close;
-
-}
-
-// -- Guide Npc --
-new_1-2.gat,99,156,4	script	Guide	105,{
-	mes "[Guide]";
-	mes "Hey Hey Where are you going? There is nothing for a Newbie like you upstairs.";
-	mes "Go and take the required trainings!";
-	close;
-}
-
-// -- Guide Npc --
-new_1-2.gat,100,113,4	script	Guide	97,{
-	set @R_SEL_NUM,rand(2);
-	mes "[Guide]";
-	if (@R_SEL_NUM != 0) goto tmp1;
-		mes "Mumble~Mumble~Life is getting Sick~What a boring Job I have~~ I was stupid enough to choose this Boring and Solitary thing! Ah~";
-		goto NMes;
-	tmp1:
-		mes "I miss my good-for-nothing day~ Phew~ I should never accepted the Full time job... Eh?!";
-		goto NMes;
-
-	NMes:
-		mes "Hey Buddy~ Want some Help?";
-		next;
-		menu "Current Course State.",-, "Quit.",L0;
-
-		mes "[Guide]";
-		mes "Hmm... Let me see...";
-		if (nov_1_2_cos_c == 9) goto L00a;
-		if (nov_1_2_cos_c == 8) goto L00b;
-		if (nov_1_2_cos_c == 7) goto L00c;
-		mes "I assure you are at the first place with this empty list of yours. You must go toward the Northwest.";
-		mes "And meet 'Leo Von Frisch', the odd veteran Knight. He is a little bit boring, but that's ok. If you work out a correct answer to his question, he will give you some Snacks. So concentrate on him, Okay?";
-		close;
-
-		L00a:
-			mes "Ah...? finished the First Course?";
-			mes "Then meet the guy over there at the southwest, tell him 'I got the 1st lesson.'. He will lead you to the Second Hall.";
-			mes "Well done~ Bye Bye~ Take Care, Okay?";
-			close;
-		L00b:
-			mes "Err...? Didn't you hear the 'NPC Guide' Master's saying? Told you to go to the table right next him. Sigh~ Hurry up~";
-			close;
-		L00c:
-			mes "Did you attend to 'Sir Leo Von Frisch''s Lesson already? Umm the next is...";
-			mes "Go toward next hall at the Southeast, you will see two guys over there.";
-			mes "Ask either of them~";
-			close;
-
-	L0:
-		mes "[Guide]";
-		mes "Alright~ Bye Bye~ Don't comback unless you have no idea~";
-		close;
-}
-
-// -- Monster Explaination --
-new_1-2.gat,115,115,4	script	Monster Expert	93,{
-	mes "[Monster Expert]";
-	mes "Hello My name is 'Rane' the Monster Expert in Rune-Midagrd Kingdom.";
-	mes "I'll explain things about Monsters, Briefly.";
-	next;
-	mes "[Monster Expert]";
-	mes "You can See 2 types of Monsters, Non-Aggressive One and Hostile One.";
-	mes "Luckily, there are Non-Aggressive ones around Every City or town so that you don't have to worry about getting assaulted, but in Caves, Dungeons or even the Deep Forest Hostile Monsters are ready to attack you.";
-	next;
-	mes "[Monster Expert]";
-	mes "Besides, the round and pink monster 'Poring' or 'Thief Bug' tends to swallows items rather than attack.";
-	mes "So just ignore them even if they walk up to near you. They won't harm you before you attack.";
-	next;
-	mes "[Monster Expert]";
-	mes "You can see a living statue of the famous 'Poring', a looter, behind me,";
-	mes "and another of the little 'Baphomet Jr.', one of the strongest agressiv monster.";
-	next;
-	mes "[Monster Expert]";
-	mes "And Just run away when you feel danger while fighting. If you go to the distance they won't be able to follow you.";
-	mes "Good Luck.";
-	close;
-}
-
-// -- Fake Poring --
-new_1-2.gat,112,120,5	script	Statue of Poring	1002,{
-	mes "[Living statue of Poring]";
-	mes "'Don't touch please.'";
-	close;
-}
-
-// -- Fake Bapho Jr. -- 
-new_1-2.gat,119,120,3	script	Statue of Baphomet Jr.	1101,{
-	mes "[Living statue of Baphomet Jr.]";
-	mes "'Don't touch please.'";
-	close;
-}
-
-// -- Fake Kafra --
-new_1-2.gat,158,158,8	script	Kafra	117,{
-	mes "'Please leave me alone.'";
-	close;
-}
-
-// -- Fake Guide --
-new_1-2.gat,161,158,8	script	Guide	105,{
-	mes "'Please leave me alone.'";
-	close;
-}
-
-// -- Npc Explanation --
-new_1-2.gat,160,183,5	script	NPC Master	83,{
-	if (nov_1_2_cos_c==7) goto Lstart;
-	if (nov_1_2_cos_c>7) goto nov12coscM7;
-
-	mes "[NPC Master]";
-	mes "You are not supposed to be here yet. Attend 'Sir Leo Von Frisch''s Lesson first.";
-	mes "If you can't find him, go outside this hall, inquire at the Guide on the Centre.";
-	close;
-
-	nov12coscM7:
-		mes "[NPC Master]";
-		mes "Huh? Why are you here again? I told you everything. Do you want me to do that again?";
-		next;
-		menu "Yeah.",L0,"No not really.",L1;
-
-		L0:
-			mes "[NPC Master]";
-			mes "Alright alrighty. I will repeat for you.";
-			next;
-			goto Ltell;
-		L1:
-			if (nov_1_2_cos_c>8) goto nov12coscM8;
-			mes "[NPC Master]";
-			mes "Next Course is about 'Various examples of rude mannered players and cheaters'. Go to the right table.";
-			close;
-	
-		nov12coscM8:
-			mes "[NPC Master]";
-			mes "Did you finish the Newbie Class? What am I talking about? Err... You know what I am saying~whatever...";
-			close;
-
-	Lstart:
-		mes "[NPC Master]";
-		mes "You said you finished the Newbie Class, didn't you? Then from now on I will give tips about NPCs which serve you in Ragnarok.";
-		next;
-		goto Ltell;
-
-		Ltell:
-			mes "[NPC Master]";
-			mes "First, Rune-Midgard Troops which^ff0000 have building locations of each Town^000000.";
-			next;
-			mes "[NPC Master]";
-			mes "They are standing at ^FF0000the enterance or the centre of Town^000000, if you don't know much about buildings, inquire at them. You won't ever be disappointed.";
-			next;
-			mes "[NPC Master]";
-			mes "Second, Kafra Wearhouse where you can ^ff0000'Save'^000000and ^ff0000'Store items'^000000 and ^ff0000'Rent a Cart'^000000.";
-			mes "'Save' means, ^ff0000set your respawn point preparing death while fighting or for the next time ^000000.";
-			mes "So better save than forget? Kafra Staffs are standing at the similar spots as Rune-Midgard Troops.";
-			mes "If you don't save at all, you walk a long way and bam~!you die. Then~There is no choice but to walk all the way back again. Doesn't it sound horrible?";
-			next;
-			mes "[NPC Master]";
-			mes "And you can store your extra items in 'Kafra Wearhouse'. You can access the Storage wherever Kafra Staffs are located.";
-			mes "I always think: 'Use storage' Service is the best for Infrastructure among MMORPG world!! Muhahahaha!!!";
-			if (nov_1_2_cos_c==7) goto LtellNext;
-			mes "Heh Heh~ And they are all beautiful girls~ What about their boss...? Is it a she or He? I am curious...";
-			goto LtellNext;
-
-			LtellNext:
-			next;
-			mes "[NPC Master]";
-			mes "Unlike 'Save', 'Use the Storage' requires a small fee. The fee is different in different areas.";
-			next;
-			mes "[NPC Master]";
-			mes "Last, Those Babes allow you to rent a Cart for the merchant's skill, 'Pushcart'...";
-			next;
-			mes "[NPC Master]";
-			mes "Now let's check how they look like. So You will find them easily next time.";
-			mes "We display figures of them over there. Just take a look before you go the next course.";
-			next;
-			if (nov_1_2_cos_c>7) goto LtellM7;
-			mes "[NPC Master]";
-			mes "Those figures... they were supposed to be right beside me first time... For me they felt really spooky... Imagine, Someone behind you without motion... spooky, huh?";
-			mes "That's why I moved them over there... And now I can see them in front of my eyes... They feel more spooky now...";
-			next;
-			set nov_1_2_cos_c,8;
-			goto LtellM7;
-
-			LtellM7:
-				mes "[NPC Master]";
-				mes "Let's call it a day. Next Course is about 'Various examples of rude mannered players and cheaters'. Go to the right table.";
-				close;
-}
-
-// -- Guide --
-new_1-2.gat,183,183,3	script	Guide	95,{
-	if (nov_1_2_cos_c==8) goto Lstart;
-	if (nov_1_2_cos_c>=9) goto Lagain;
-	mes "[Manner Master]";
-	mes "Eh... Ah... Not here not yet... Well... What I mean is... Well... uh...";
-	mes "What I mean is... You should attend to ^FF0000Leo Von Frisch's class on beginner help^000000 first...";
-	mes "Eh... And after... Speak to 'NPC Master'... uh...";
-	close;
-
-	Lstart:
-		mes "[Manner Master]";
-		mes "Greetings~ I am just simple man who will inform you of 'Various examples of Ill-mannered players and cheaters'.";
-		mes "Shall we begin?";
-		next;
-		goto Ltell;
-
-	Ltell:
-		mes "[Manner Master]";
-		mes "1st, Let's get Started with ^ff0000Examples for Ill-manners and attentions ^000000. Just sit down and take it easy.";
-		next;
-		mes "[Manner Master]";
-		mes "There are 3 kinds of Rude manners, 'Mob Stealing', 'Looting' and 'Mob Train'. First off I will tell you about 'Mob Stealing'.";
-		mes "Ah~Before get started, let me tell you about 'Experience Points System in Ragnarok' that is much helpful to your understanding of 'Mob Stealing'. This is very important, Please listen.";
-		next;
-		mes "[Manner Master]";
-		mes "The player who deals the most damage to the monster, takes the most Experience Points. It is based on the percentage of damage you do. You can get more Experience Points by doing more damages.";
-		next;
-		mes "[Manner Master]";
-		mes "For example, if the player named 'Kitten the cat' attacks a monster having 100 HP and he does 65 damage on it, 'Kitten the cat' can get 65% of Experience Points from the monster.";
-		mes "Usually this is the way you get Experience Points from Monsters. But it could be different in some situation.";
-		next;
-		mes "[Manner Master]";
-		mes "This is a different situation when someone joins in on the attack.";
-		next;
-		mes "[Manner Master]";
-		mes "First, the previous player 'Kitten the cat' attacks a monster having 100 HP and he does 50 damage, the other player 'Polar bear' attacks that monster and does the same damage.";
-		next;
-		mes "[Manner Master]";
-		mes "In this situation, 'Kitten the cat' can get double  the Experience Points of 'Polar bear'. 'Kitten the cat' gets '66.6%'of the Experience Points, 'Polar bear' gets '33.3%' of the Experience Points.";
-		mes "Get it? Don't ask me about the remaining '0.1' of the Experience Points.I don't know where it goes~.I am not a director.HeHe~";
-		next;
-		mes "[Manner Master]";
-		mes "'Kitten the cat' takes damage from the monster during the fight,";
-		mes "'Polar Bear', a stranger to 'Kitten the cat' can get 1/2 of the Experience Points from 'Kitten the cat' without taking any damage.";
-		mes "That's why we called this '^ff0000Mob Stealing^000000'.";
-		next;
-		mes "[Manner Master]";
-		mes "Briefely and clearly, 'Mob Stealing' is a behaviour of a player ^970197Who doesn't care about the others^000000.";
-		mes "And ^970197Just try to take advantage of others^000000 without any self-effort.";
-		next;
-		mes "[Manner Master]";
-		mes "'Looting' is similar as Mob Stealing. While 'Mob Stealing', when a Player who Never fought  picks up items belonging others, it is called '^ff0000Looting^000000'.";
-		mes "Difference Between 'Mob Stealing' and 'Looting'is 'Experience Points'and 'Item'. Very Simple.";
-		mes "But, after the Anti-Loot Patch came, The Sistuation has been getting better. And Anti-Loot wll be patched continuously.";
-		next;
-		mes "[Manner Master]";
-		mes "Let's talk about 'Mob Train'.";
-		mes "One player starts to attack a bunch of monsters. Those monsters start to follow that player. Because Monster AI is not fully implemented yet.";
-		mes "The player then walks near other players and either exits the game or uses the thief skill hide. The monsters lose their target and immediately attack the nearlest person.";
-		next;
-		mes "[Manner Master]";
-		mes "Briefly, 'Mob Train' means attacking a bunch of monsters with a purpose of abusing other players.";
-		mes "If you want to be infamous in Ragnarokonline, I will suggest you do these things above. But if you do that, you would be the worst enemy to the public. Many players will dislike you.";
-		next;
-		mes "[Manner Master]";
-		mes "OK the Next topic is 'The Cheaters'.";
-		mes "The Cheaters are usually called 'Impersonating Server Staffs', 'Scammers', 'Beginer Scammers'.";
-		mes "Umm... Let's start with 'Server Staff Imposter'.";
-		next;
-		mes "[Manner Master]";
-		mes "Usually There are Players who pretend to be Management Crews. They ask other players let them know things like userID and Password. They then try to steal players' items and zeny.";
-		mes "But Management Crews will never ask you for your userID or password. Please remember.";
-		next;
-		mes "[Manner Master]";
-		mes "And please check out the official board frequently as you can. You can see what is going on clearly.";
-		next;
-		mes "[Manner Master]";
-		mes "'Scammer' means a merchant player who try to cheat on the price of their items to the other players.";
-		mes "For example, A Merchant opens a shop with the name 'Weapon price 20,000 zeny', but the actual weapon price in his Shop is 200,000 zeny.";
-		mes "When you trade with merchants, Please always check the price of item. Here is a tip, Zeny is separated with a comma after every three units.like this:'2,000', '20,000' or '200,000'.";
-		next;
-		mes "[Manner Master]";
-		mes "Our last one is 'Beginner Scammers'.";
-		mes "Beginners are especially easy to be cheated. The cheaters tempt you with unavailable items or weapon upgrading.";
-		next;
-		mes "[Manner Master]";
-		mes "So beginners should refer item descriptions on the website. You can check them in 'Guide' section.";
-		mes "In addition, In Ragnarokonline Unathorized item Duplication is a Violation of applicable laws. Please remember that.";
-		next;
-		mes "[Manner Master]";
-		mes "Heh~ It's a lot of informations for you right...? I didn't mean to take so long. Heh Heh...";
-		mes "Ah~ Right! I forgot one really important thing.";
-		next;
-		mes "[Manner Master]";
-		mes "About 'Swearing'... Heh Heh~~I believe you already know... Anyway... No way No swearwords~~";
-		mes "Rude behaviour plus! Swearing... Ummm This is what they mean by ^970197the audacity of the thief^000000...";
-		mes "... That would be '^FF0000The worst kind of player in Ragnarokonline^000000'...?";
-		next;
-		mes "[Manner Master]";
-		mes "Please E-mail us when you want to report these rude players showing the chat window text. You can use 'Print Screen' button when you want to take a picture of screen.";
-		mes "If you report to us with the perfect proof, The player accused of being rude mannered could be warned at first time. Then he could be banned forever.";
-		next;
-		mes "[Manner Master]";
-		mes "Especially to players with a past conviction for rude behaviour, we take strong actions~.";
-		next;
-		mes "[Manner Master]";
-		mes "Listen, Rude players~! When The day comes to PK...";
-		mes "You might be dead under the feet of outraged players who have been abused...";
-		mes "Also You would be freaked out and could not play forever.";
-		next;
-		mes "[Manner Master]";
-		mes "Ok, This is the end of my lesson. You just finished your 1st course. Congratulations.";
-		mes "When you go to the west side through the centre, See the helper who help you to go to the 2nd Course.";
-		if (nov_1_2_cos_c>8) goto LtellM8;
-		set nov_1_2_cos_c,9;
-		goto LtellM8;
-
-		LtellM8:
-			close;
-
-	Lagain:
-		mes "[Manner Master]";
-		mes "Ah... Well... Going to next is no problem... But...";
-		mes "Would you like to attend to 'Various examples of Ill-mannered players and cheaters' again...?";
-		next;
-		menu "Yes.",Ltell,"No.",Lno;
-
-		Lno:
-			mes "[Manner Master]";
-			mes "Umm Sorry. I don't know well about your next course so please inquire at the guide in the Central Hall.";
-			close;
-}
-
-// == SECOND COURSE ==
-// -- Helper --
-new_1-2.gat,78,101,6	script	Helper	105,{
-	if (nov_1_2_cos_c>= 9) goto Lcourse2;
-	mes "[Helper]";
-	mes "I am a helper who will guide you to the 2nd registration office. Please attend all classes in 1st course First.";
-	close;
-
-	Lcourse2:
-		mes "[Helper]";
-		mes "You just finished 1st course... OK.";
-		mes "I will let you go to the 2nd registration office.";
-		next;
-		set Done_milk,0;
-		warp "new_1-2.gat",44,171;
-		close;
-}
-
-// -- Helper --
-new_1-2.gat,39,183,3	script	Helper	92,{
-	if (nov_1_2_cos_c>=10) goto Lend;
-	mes "[Helper]";
-	mes "Your registration has confirmed. I would like to say 'Congratulations' also.";
-	mes "I will let you know about 2nd course breifly.";
-	next;
-	mes "[Helper]";
-	mes "Your mission is: You must reach at the Castle of the other side from here, through the Fabres Forest. You can do it easily.";
-	next;
-	mes "[Helper]";
-	mes "Notice - If you lose consciousness during fight, you will lose your points and come back here automatically.";
-	next;
-	mes "[Helper]";
-	mes "Ask the helper located in the left side about the entrance of 2nd Course.";
-	mes "OK, We wish you luck.";
-	set nov_1_2_cos_c,10;
-	close;
-
-	Lend:
-		mes "[Helper]";
-		mes "You can ask the helper located in the left side when you are ready for 2nd course.";
-		close;
-}
-
-// -- Helper --
-new_1-2.gat,16,183,5	script	Helper	84,{
-	if (nov_1_2_cos_c==10) goto Lstep2;
-	if (nov_1_2_cos_c>=11) goto Lrespawn;
-	mes "[Helper]";
-	mes "Heh... I can't find your name on the list.";
-	mes "Could you register first at the front desk?";
-	close;
-
-	Lstep2:
-		mes "[Helper]";
-		mes "Heh... I can't find your name on the list...";
-		mes "Ah! Here you are. Ok " + strcharinfo(0) + ". Are you ready?";
-		next;
-		menu "Yes.",Lyes,"No.",Lno;
-
-		Lyes:
-			set nov_1_2_cos_c,11;
-			mes "[Helper]";
-			mes "Well... We wish you luck.";
-			savepoint "new_1-2.gat",23,183;
-			warp "new_1-3.gat",96,21;
-			close;
-		Lno:
-			mes "[Helper]";
-			mes "Take some rest before the 2nd Course.";
-			close;
-	Lrespawn:
-		mes "[Helper]";
-		mes "You've been knocked out by Fabre. Yeah you can't fight with a bunch of Fabres anyway.";
-		mes "By the way, 2nd Course 1th test. Are you going to start now?";
-		next;
-		menu "Yes.",Lspawnyes,"No.",Lno;
-
-		Lspawnyes:
-			mes "[Helper]";
-			mes "Well... We wish you luck.";
-			next;
-			warp "new_1-3.gat",96,21;
-			close;
-}
-
-
-// == THIRD COURSE ==
-// nov_3_merchant: count the number of answers to become merchant
-// nov_3_swordman: count the number of answers to become swordman
-// nov_3_archer: count the number of answers to become archer
-// nov_3_thief: count the number of answers to become thief
-// nov_3_magician: count the number of answers to become magician
-// nov_3_acolyte: count the number of answers to become acolyte
-// set nov_1_4_cos_c: to know third course advancement (to avoid to repeat question)
-
-// -- Helper --
-new_1-4.gat,100,29,4	script	Helper	54,{
-	set nov_get_item01,0;
-	set nov_1_2_cos_c,0;
-	set Done_milk,0;
-	set nov_1_4_cos_c,0;
-	set nov_3_merchant,0;
-	set nov_3_swordman,0;
-	set nov_3_archer,0;
-	set nov_3_thief,0;
-	set nov_3_magician,0;
-	set nov_3_acolyte,0;
-	set @TEMP,rand(4);
-	mes "[Helper]";
-	mes "Welcome, Newbie!! I don't have much time to talk. I just tell you the basic details.";
-	mes "Your registration has been confirmed at the time you arrived here! You can go directly through to the next 3 courses...";
-	mes "Are you gonna start now?";
-	next;
-	menu "Let's Rock!",-,"Quit",L1;
-
-		mes "[Helper]";
-		mes "The guide will inform you details!";
-		mes "Bye!";
-		next;
-		if (@TEMP != 0) goto L0a;
-			warp "new_1-4.gat",94,63;
-			close;
-		L0a:
-			if (@TEMP != 1) goto L0b;
-			warp "new_1-4.gat",99,63;
-			close;
-		L0b:
-			if (@TEMP != 2) goto L0c;
-			warp "new_1-4.gat",100,58;
-			close;
-		L0c:
-			warp "new_1-4.gat",98,62;
-			close;
-
-	L1:
-		mes "[Helper]";
-		mes "Are you waiting for someone here..?";
-		close;
-}
-
-// -- Helper --
-new_1-4.gat,100,70,4	script	Helper	67,{
-	if (nov_1_4_cos_c > 13) goto LQFin;
-	if (nov_1_4_cos_c > 5) goto LQ00;
-	if (nov_1_4_cos_c > 0) goto ContinueQuestions;
-	mes "[Helper]";
-	mes "Here we are. From now on we will have 1st personality test.";
-	mes "Take it easy and choose the right one for you.";
-	mes "There are no standards for good and evil, it's just a test for your personality.";
-	mes "Shall we start now?";
-	next;
-	goto ContinueQuestions;
-
-	ContinueQuestions:
-		mes "[Helper]";
-		mes "Choose one word most familiar to you.";
-		next;
-		if (nov_1_4_cos_c == 1) goto LQ1;
-		if (nov_1_4_cos_c == 2) goto LQ2;
-		if (nov_1_4_cos_c == 3) goto LQ3;
-		if (nov_1_4_cos_c == 4) goto LQ4;
-		if (nov_1_4_cos_c == 5) goto LQ5;
-
-		menu "Individual",LQ0a,"Public",LQ0b;
-
-		LQ0a:
-			set nov_1_4_cos_c,1;
-			set nov_3_archer,nov_3_archer+1;
-			goto LQ1;
-		LQ0b:
-			set nov_1_4_cos_c,1;
-			set nov_3_thief,nov_3_thief+1;
-			goto LQ1;
-
-	LQ1:
-		menu "Chances",LQ1a,"Permanence",LQ1b;
-
-		LQ1a:
-			set nov_1_4_cos_c,2;
-			set nov_3_magician,nov_3_magician+1;
-			goto LQ2;
-		LQ1b:
-			set nov_1_4_cos_c,2;
-			set nov_3_acolyte,nov_3_acolyte+1;
-			goto LQ2;
-
-	LQ2:
-		menu "Consumer",LQ2a,"Distributor",LQ2b;
-
-		LQ2a:
-			set nov_1_4_cos_c,3;
-			set nov_3_swordman,nov_3_swordman+1;
-			goto LQ3;
-		LQ2b:
-			set nov_1_4_cos_c,3;
-			set nov_3_merchant,nov_3_merchant+1;
-			goto LQ3;
-
-	LQ3:
-		menu "Swiftness",LQ3a,"Prudence",LQ3b;
-
-		LQ3a:
-			set nov_1_4_cos_c,4;
-			set nov_3_thief,nov_3_thief+1;
-			goto LQ4;
-		LQ3b:
-			set nov_1_4_cos_c,4;
-			set nov_3_archer,nov_3_archer+1;
-			goto LQ4;
-
-	LQ4:
-		menu "Theory",LQ4a,"Experience",LQ4b;
-
-		LQ4a:
-			set nov_1_4_cos_c,5;
-			set nov_3_magician,nov_3_magician+1;
-			goto LQ5;
-		LQ4b:
-			set nov_1_4_cos_c,5;
-			goto LQ5;
-
-	LQ5:
-		menu "Reality",LQ5a,"Ideal",LQ5b;
-
-		LQ5a:
-			set nov_1_4_cos_c,6;
-			set nov_3_merchant,nov_3_merchant+1;
-			goto LQ00;
-		LQ5b:
-			set nov_1_4_cos_c,6;
-			set nov_3_acolyte,nov_3_acolyte+1;
-			goto LQ00;
-
-	LQ00:
-		mes "[Helper]";
-		mes "Choose 'Yes' or 'No'.";
-		next;
-		if (nov_1_4_cos_c == 7) goto LQ01;
-		if (nov_1_4_cos_c == 8) goto LQ02;
-		if (nov_1_4_cos_c == 9) goto LQ03;
-		if (nov_1_4_cos_c == 10) goto LQ04;
-		if (nov_1_4_cos_c == 11) goto LQ05;
-		if (nov_1_4_cos_c == 12) goto LQ06;
-		if (nov_1_4_cos_c == 13) goto LQ07;
-		mes "[Helper]";
-		mes "To die with honor is better than to live with disgrace.";
-		next;
-		menu "Yes",LQ00a,"No",LQ00b;
-
-		LQ00a:
-			set nov_1_4_cos_c,7;
-			set nov_3_swordman,nov_3_swordman+1;
-			goto LQ01;
-		LQ00b:
-			set nov_1_4_cos_c,7;
-			set nov_3_thief,nov_3_thief+1;
-			goto LQ01;
-
-	LQ01:
-		mes "[Helper]";
-		mes "It gives me headache even when my cousin makes big success.";
-		next;
-		menu "Yes",LQ01a,"No",LQ01b;
-
-		LQ01a:
-			set nov_1_4_cos_c,8;
-			set nov_3_merchant,nov_3_merchant+1;
-			goto LQ02;
-		LQ01b:
-			set nov_1_4_cos_c,8;
-			set nov_3_acolyte,nov_3_acolyte+1;
-			goto LQ02;
-
-	LQ02:
-		mes "[Helper]";
-		mes "Always check the manual first before assemble something like household electric appliance.";
-		next;
-		menu "Yes",LQ02a,"No",LQ02b;
-
-		LQ02a:
-			set nov_1_4_cos_c,9;
-			set nov_3_magician,nov_3_magician+1;
-			goto LQ03;
-		LQ02b:
-			set nov_1_4_cos_c,9;
-			set nov_3_archer,nov_3_archer+1;
-			goto LQ03;
-
-	LQ03:
-		mes "[Helper]";
-		mes "I am always at the head of everything.";
-		next;
-		menu "Yes",LQ03a,"No",LQ03b;
-
-		LQ03a:
-			set nov_1_4_cos_c,10;
-			set nov_3_swordman,nov_3_swordman+1;
-			goto LQ04;
-		LQ03b:
-			set nov_1_4_cos_c,10;
-			set nov_3_archer,nov_3_archer+1;
-			goto LQ04;
-
-	LQ04:
-		mes "[Helper]";
-		mes "When I see the sign 'PULL' on the door I want to PUSH.";
-		next;
-		menu "Yes",LQ04a,"No",LQ04b;
-
-		LQ04a:
-			set nov_1_4_cos_c,11;
-			set nov_3_thief,nov_3_thief+1;
-			goto LQ05;
-		LQ04b:
-			set nov_1_4_cos_c,11;
-			set nov_3_merchant,nov_3_merchant+1;
-			goto LQ05;
-
-	LQ05:
-		mes "[Helper]";
-		mes "Sometimes I see things unreal.";
-		next;
-		menu "Yes",LQ05a,"No",LQ05b;
-
-		LQ05a:
-			set nov_1_4_cos_c,12;
-			set nov_3_acolyte,nov_3_acolyte+1;
-			goto LQ06;
-		LQ05b:
-			set nov_1_4_cos_c,12;
-			set nov_3_swordman,nov_3_swordman+1;
-			goto LQ06;
-
-	LQ06:
-		mes "[Helper]";
-		mes "I could fly if I fall off.";
-		next;
-		menu "Yes",LQ06a,"No",LQ06b;
-
-		LQ06a:
-			set nov_1_4_cos_c,13;
-			goto LQ07;
-		LQ06b:
-			set nov_1_4_cos_c,13;
-			set nov_3_magician,nov_3_magician+1;
-			goto LQ07;
-
-	LQ07:
-		mes "[Helper]";
-		mes "Money talks. I can buy even human being if I want.";
-		next;
-		menu "Yes",LQ07a,"No",LQ07b;
-
-		LQ07a:
-			set nov_1_4_cos_c,14;
-			set nov_3_merchant,nov_3_merchant+1;
-			set nov_3_magician,nov_3_magician+1;
-			set nov_3_thief,nov_3_thief+1;
-			goto LQFin;
-		LQ07b:
-			set nov_1_4_cos_c,14;
-			set nov_3_swordman,nov_3_swordman+1;
-			set nov_3_archer,nov_3_archer+1;
-			set nov_3_acolyte,nov_3_acolyte+1;
-			goto LQFin;
-
-	LQFin:
-		set @TEMP,rand(4);
-		mes "[Helper]";
-		mes "You just finished 1st test. Congratulations.";
-		mes "You can now go to the next test right away";
-		next;
-		if (@TEMP != 0) goto LQFin1;
-			warp "new_1-4.gat",13,96;
-			close;
-		LQFin1:
-			if (@TEMP != 1) goto LQFin2;
-			warp "new_1-4.gat",17,96;
-			close;
-		LQFin2:
-			if (@TEMP != 2) goto LQFin3;
-			warp "new_1-4.gat",21,96;
-			close;
-		LQFin3:
-			warp "new_1-4.gat",25,96;
-			close;
-}
-
-// -- Helper --
-// nov_1_4_cos_c (variable) starts with value 14
-new_1-4.gat,20,109,4	script	Helper	48,{
-	if (nov_1_4_cos_c > 22) goto LQFin;
-	if (nov_1_4_cos_c > 14) goto ContinueQuestions;
-	mes "[Helper]";
-	mes "We start your 2nd test now!";
-	mes "Take it easy and choose the right answer for you!";
-	mes "OK Start now!";
-	next;
-	goto LQ1;
-
-	ContinueQuestions:
-		mes "[Helper]";
-		mes "We continue your 2nd test now!";
-		mes "Take it easy and choose the right answer for you!";
-		mes "OK continue now!";
-		next;
-		if (nov_1_4_cos_c == 15) goto LQ2;
-		if (nov_1_4_cos_c == 16) goto LQ3;
-		if (nov_1_4_cos_c == 17) goto LQ4;
-		if (nov_1_4_cos_c == 18) goto LQ5;
-		if (nov_1_4_cos_c == 19) goto LQ6;
-		if (nov_1_4_cos_c == 20) goto LQ7;
-		if (nov_1_4_cos_c == 21) goto LQ8;
-		if (nov_1_4_cos_c == 22) goto LQ9;
-
-	LQ1:
-		mes "[Helper]";
-		mes "For you life means...";
-		next;
-		menu "Feel irritated.",LQ1a,"I like it.",LQ1b,"Doesn't come to my mind.",LQ1c;
-
-		LQ1a:
-			set nov_1_4_cos_c,15;
-			set nov_3_swordman,nov_3_swordman+1;
-			set nov_3_thief,nov_3_thief+1;
-			goto LQ2;
-		LQ1b:
-			set nov_1_4_cos_c,15;
-			set nov_3_merchant,nov_3_merchant+1;
-			set nov_3_acolyte,nov_3_acolyte+1;
-			goto LQ2;
-		LQ1c:
-			set nov_1_4_cos_c,15;
-			set nov_3_archer,nov_3_archer+1;
-			set nov_3_magician,nov_3_magician+1;
-			goto LQ2;
-
-	LQ2:
-		mes "[Helper]";
-		mes "Before you buy something in a shop...";
-		next;
-		menu "Check first whether it's neccessary.",LQ2a,"Check the cash first.",LQ2b,"Regret after shopping.",LQ2c;
-
-		LQ2a:
-			set nov_1_4_cos_c,16;
-			set nov_3_archer,nov_3_archer+1;
-			goto LQ3;
-		LQ2b:
-			set nov_1_4_cos_c,16;
-			set nov_3_merchant,nov_3_merchant+1;
-			goto LQ3;
-		LQ2c:
-			set nov_1_4_cos_c,16;
-			set nov_3_thief,nov_3_thief+1;
-			goto LQ3;
-
-	LQ3:
-		mes "[Helper]";
-		mes "When you have to compete with others...";
-		next;
-		menu "I enjoy it.",LQ3a,"I do if I have to.",LQ3b,"I hate it.",LQ3c;
-
-		LQ3a:
-			set nov_1_4_cos_c,17;
-			set nov_3_swordman,nov_3_swordman+1;
-			goto LQ4;
-		LQ3b:
-			set nov_1_4_cos_c,17;
-			set nov_3_archer,nov_3_archer+1;
-			goto LQ4;
-		LQ3c:
-			set nov_1_4_cos_c,17;
-			set nov_3_acolyte,nov_3_acolyte+1;
-			goto LQ4;
-
-	LQ4:
-		mes "[Helper]";
-		mes "When you deal something...";
-		next;
-		menu "I prefer to deal alone.",LQ4a,"I prefer to deal together.",LQ4b;
-
-		LQ4a:
-			set nov_1_4_cos_c,18;
-			set nov_3_magician,nov_3_magician+1;
-			goto LQ5;
-		LQ4b:
-			set nov_1_4_cos_c,18;
-			set nov_3_thief,nov_3_thief+1;
-			goto LQ5;
-
-	LQ5:
-		mes "[Helper]";
-		mes "If anyone ask you a favour...";
-		next;
-		menu "Anything I can help, I will do my best.",LQ5a,"Simply I would help.",LQ5b,"Just ignore.",LQ5c;
-
-		LQ5a:
-			set nov_1_4_cos_c,19;
-			set nov_3_acolyte,nov_3_acolyte+1;
-			goto LQ6;
-		LQ5b:
-			set nov_1_4_cos_c,19;
-			set nov_3_archer,nov_3_archer+1;
-			goto LQ6;
-		LQ5c:
-			set nov_1_4_cos_c,19;
-			set nov_3_magician,nov_3_magician+1;
-			goto LQ6;
-
-	LQ6:
-		mes "[Helper]";
-		mes "If anyone offer you to be President / Vise-President / a Congressman...";
-		next;
-		menu "President.",LQ6a,"Vise-President",LQ6b,"Congressman is ok.",LQ6c,"I don't want to be a politican.",LQ6d;
-
-		LQ6a:
-			set nov_1_4_cos_c,20;
-			set nov_3_swordman,nov_3_swordman+1;
-			goto LQ7;
-		LQ6b:
-			set nov_1_4_cos_c,20;
-			set nov_3_merchant,nov_3_merchant+1;
-			goto LQ7;
-		LQ6c:
-			set nov_1_4_cos_c,20;
-			set nov_3_thief,nov_3_thief+1;
-			goto LQ7;
-		LQ6d:
-			set nov_1_4_cos_c,20;
-			goto LQ7;
-
-	LQ7:
-		mes "[Helper]";
-		mes "If you come across the keen knife on the street then you think...";
-		next;
-		menu "'Look so sharp!'",LQ7a,"'Who the hell is the owner of this?'",LQ7b,"'Could be dead harm to people. Should be careful!'",LQ7c,"'Nice Brand~!'",LQ7d;
-
-		LQ7a:
-			set nov_1_4_cos_c,21;
-			set nov_3_swordman,nov_3_swordman+1;
-			goto LQ8;
-		LQ7b:
-			set nov_1_4_cos_c,21;
-			set nov_3_acolyte,nov_3_acolyte+1;
-			goto LQ8;
-		LQ7c:
-			set nov_1_4_cos_c,21;
-			set nov_3_magician,nov_3_magician+1;
-			goto LQ8;
-		LQ7d:
-			set nov_1_4_cos_c,21;
-			set nov_3_merchant,nov_3_merchant+1;
-			goto LQ8;
-
-	LQ8:
-		mes "[Helper]";
-		mes "When you meet a difficult situation during conversation";
-		next;
-		menu "I hush up with a joke.",LQ8a,"I change subject.",LQ8b,"I try to excuse.",LQ8c,"I appoligize even though it's not my fault.",LQ8d;
-
-		LQ8a:
-			set nov_1_4_cos_c,22;
-			set nov_3_thief,nov_3_thief+1;
-			goto LQ9;
-		LQ8b:
-			set nov_1_4_cos_c,22;
-			set nov_3_swordman,nov_3_swordman+1;
-			goto LQ9;
-		LQ8c:
-			set nov_1_4_cos_c,22;
-			set nov_3_magician,nov_3_magician+1;
-			goto LQ9;
-		LQ8d:
-			set nov_1_4_cos_c,22;
-			set nov_3_acolyte,nov_3_acolyte+1;
-			goto LQ9;
-
-	LQ9:
-		mes "[Helper]";
-		if (sex==1) goto SexLQ9;
-		mes "Now your girl friend asks you to buy a useless gift like souvenir...";
-		next;
-		goto LQ9Norm;
-
-		SexLQ9:
-			mes "Now your boy friend asks you to buy a useless gift like souvenir...";
-			next;
-			goto LQ9Norm;
-
-		LQ9Norm:
-			menu "I would do anything for that person.",LQ9a,"I try to bring around not to buy it.",LQ9b;
-
-		LQ9a:
-			set nov_1_4_cos_c,23;
-			set nov_3_archer,nov_3_archer+1;
-			goto LQFin;
-		LQ9b:
-			set nov_1_4_cos_c,23;
-			set nov_3_merchant,nov_3_merchant+1;
-			goto LQFin;
-
-	LQFin:
-		mes "[Helper]";
-		mes "Now you finished 2nd test! Good job!!";
-		mes "You can go to the result room now.";
-		next;
-		set @TEMP,rand(4);
-		if (@TEMP !=0 ) goto LQFin0;
-			warp "new_1-4.gat",54,136;
-			close;
-		LQFin0:
-			if (@TEMP !=1 ) goto LQFin1;
-			warp "new_1-4.gat",58,136;
-			close;
-		LQFin1:
-			if (@TEMP !=2 ) goto LQFin2;
-			warp "new_1-4.gat",62,136;
-			close;
-		LQFin2:
-			warp "new_1-4.gat",66,136;
-			close;
-}
-
-// -- Helper --
-// @job_number: best job (0: Swordman, 1: Archer, 2: Thief, 3: Magican, 4: Acolyte, 5: Merchant)
-// @nov_2nd_cos: number of answers for the best job
-// nov_1_4_cos_c (variable) starts with value 23
-new_1-4.gat,60,149,4	script	Helper	55,{
-	mes "[Helper]";
-	mes "Congratulations~! You finished whole courses by yourself!";
-	mes "You should remember what you've learned from Training Ground. It would be useful to you.";
-	next;
-	mes "[Helper]";
-	mes "Ok, here is the result of your own.";
-	next;
-
-	set @nov_2nd_cos,nov_3_swordman;
-	set @job_number,0;
-
-		if (@nov_2nd_cos >= nov_3_archer) goto L_ROOT_1;
-			set @nov_2nd_cos,nov_3_archer;
-			set @job_number,1;
-			goto L_ROOT_1;
-
-	L_ROOT_1:
-		if (@nov_2nd_cos >= nov_3_thief) goto L_ROOT_2;
-			set @nov_2nd_cos,nov_3_thief;
-			set @job_number,2;
-			goto L_ROOT_2;
-
-	L_ROOT_2:
-		if (@nov_2nd_cos >= nov_3_magician) goto L_ROOT_3;
-			set @nov_2nd_cos,nov_3_magician;
-			set @job_number,3;
-			goto L_ROOT_3;
-
-	L_ROOT_3:
-		if (@nov_2nd_cos >= nov_3_acolyte) goto L_ROOT_4;
-			set @nov_2nd_cos,nov_3_acolyte;
-			set @job_number,4;
-			goto L_ROOT_4;
-
-	L_ROOT_4:
-		if (@nov_2nd_cos >= nov_3_merchant) goto L_START;
-			set @nov_2nd_cos,nov_3_merchant;
-			set @job_number,5;
-			goto L_START;
-
-	L_START:
-		mes "[Helper]";
-		if (nov_1st_cos != 0) goto L_SCORE_1;
-			mes "1st course: 0 / 6 Points.";
-			goto L_SCORE_2;
-		L_SCORE_1:
-			mes "1st course: " + nov_1st_cos + " / 6 Points.";
-			goto L_SCORE_2;
-
-	L_SCORE_2:
-		if (@nov_2nd_cos != 0) goto L_SCORE_3;
-			mes "2nd course: 0 / 10 Points";
-			goto L_SCORE_4;
-		L_SCORE_3:
-			mes "2nd course: " + @nov_2nd_cos + " / 10 Points.";
-			goto L_SCORE_4;
-
-	L_SCORE_4:
-		mes "And the result of personally test is...";
-		next;
-
-	if (@job_number==0) goto JobSwordman;
-	if (@job_number==1) goto JobArcher;
-	if (@job_number==2) goto JobThief;
-	if (@job_number==3) goto JobMagican;
-	if (@job_number==4) goto JobAcolyte;
-	if (@job_number==5) goto JobMerchant;
-
-	JobSwordman:
-		mes "[Helper]";
-		mes "'You have simple-minded and always talk straight. And you have an unshaken faith so that you want to rule the world. Also you always stand by the weak.'";
-		mes "'So We suggest you ^696969Swordman^000000.";
-		goto SelJob;
-	JobArcher:
-		mes "[Helper]";
-		mes "'You are very emotional and sensitive person. And you have open-minded.'";
-		mes "'Also, You don't want to be ordinary, always eager for valuable life of your own.'";
-		mes "'So we suggest you ^696969Archer^000000.'";
-		goto SelJob;
-	JobThief:
-		mes "[Helper]";
-		mes "'You always try to enjoy your life. Life is like adventure for you.'";
-		mes "'So we suggest you ^696969Thief^000000.'";
-		goto SelJob;
-	JobMagican:
-		mes "[Helper]";
-		mes "'You are self-diciplined person. Sometimes you pretend to understand whole things in the world not to be silly to the other person.";
-		mes "'You are man of reason, an introvert, an analyst, a man of keen insight.'";
-		mes "'So we suggest you ^696969Mage^000000.";
-		goto SelJob;
-	JobAcolyte:
-		mes "[Helper]";
-		mes "'You are warm-hearted, easy-going person, taking care of people.'";
-		mes "'But actually you pretend not to need help from the other, people think you are an altruist*.";
-		mes "'So we suggest you ^696969Acolyte^000000.'";
+	case 2:	mes "[Shion]";
+		mes "Hey, man.";
+		mes "Do you still have some business with me?";
+		mes "Whoo, I don't need to be angry.";
+		mes "(Calm down, Calm down)";
+		mes "How can I help you";
+		next;
+		mes "[Shion]";
+		mes "No, no.";
+		mes "Why don't you go back to the";
+		mes "Training Grounds?";
+		mes "Can you see a bridge on your right side?";
+		mes "Cross the bridge and enter the castle.";
+		mes "There will be a helper waiting for you";
+		mes "inside the castle.";
+		next;
+		mes "[Shion]";
+		mes "Ah, if you cannot see the entrance,";
+		mes "try to drag your mouse when holding right click.";
+		mes "It will help you to see the hidden spot.";
+		next;
+		mes "[Shion]";
+		mes "Then, Good bye!";
 		mes " ";
-		mes "'* The person who really enjoy helping people with self-sacrifice.'";
-		goto SelJob;
-	JobMerchant:
-		mes "[Helper]";
-		mes "'You can easily catch what the public wants, and you have a talent to organize system, and you have a strong sense of responsibility.'";
-		mes "'So we suggest you ^696969Merchant^000000.'";
-		goto SelJob;
-
-	SelJob:
+		mes "And when you face a lady,";
+		mes "you need to be a little more polite.";
+		mes "This is a gift for you.";
+		set NEW_MES_FLAG0,3;
+		set BaseExp,BaseExp+NextBaseExp;
+		close;
+	case 3:	mes "[Shion]";
+		mes "The Training Grounds";
+		mes "are located just past";
+		mes "the bridge located";
+		mes "to the right.";
 		next;
-		mes "[Helper]";
-		mes "...Report says like this. It is not my intention, I don't mean to nice to you!! To me you are just a novice!!";
-		mes "Never take it seriously, it's just a game.";
-		next;
-		mes "[Helper]";
-		mes "Here are the subsides from the Training Ground. Even if they are not worthless to veteran players, not to you.";
-		next;
-		if (nov_1_4_cos_c > 23) goto BeL0;
-
-	nov12coscE0:
-		getitem 519,1;
-		set nov_1_4_cos_c,24;
-		set @temp,nov_1st_cos+@nov_2nd_cos;
-		if (@temp <= 8) goto nov1stcosPnov2ndcosL8;
-		if (@temp <= 15) goto nov1stcosPnov2ndcosL15;
-		if (@temp == 16) goto nov1stcosPnov2ndcosE16;
-		set Zeny,Zeny-500;
-		getitem 507,10;
-		goto BeL0;
-
-		nov1stcosPnov2ndcosL8:
-			set Zeny,Zeny+500;
-			getitem 507,10;
-			goto BeL0;
-		nov1stcosPnov2ndcosL15:
-			set Zeny,Zeny+100;
-			getitem 507,1;
-			goto BeL0;
-		nov1stcosPnov2ndcosE16:
-			set Zeny,Zeny+300;
-			getitem 507,3;
-			goto BeL0;
-
-	BeL0:
-	mes "[Helper]";
-	mes "Now I will let you go to the Job Agency. Before going there are a few things you have to know.";
-	next;
-	mes "[Helper]";
-	mes "Are you going to choose the job following the test? Or are you going to choose you job by your own will?";
-	next;
-	mes "[Helper]";
-	mes "If you follow the test, you can get a lot of subsidy for headstart from guild and association and get to start in the specific town for your job.";
-	mes "If you follow your will, you get to start in specific town for your job with 100 zeny before we gave you.";
-	next;
-	mes "[Helper]";
-	mes "Choose one. This is your only chance.";
-	next;
-	menu "I want to be what I wanted!",L0,"I will follow the result of the test",L1;
-
-	L0:
-		mes "[Helper]";
-		mes "Ok. I see. Choose one what you wanted to be. I will send you to the town right away.";
-		if (nov_1_4_cos_c > 24) goto JobMenu;
-		set nov_1_4_cos_c,25;
-		set Zeny,Zeny+100;
-		mes "I give you 100z to begin in the great world or ragnarok.";
-		goto JobMenu;
-
-		JobMenu:
-			next;
-			menu "Swordman.",L00,"Archer.",L01,"Thief.",L02,"Mage.",L03,"Acolyte.",L04,"Merchant",L05;
-
-		L00:
-			mes "[Helper]";
-			mes "I expect you the best.";
-			savepoint "izlude.gat",94,104;
-			next;
-			set nov_1st_cos,0;
-			set nov_get_item01,0;
-			set nov_1_2_cos_c,0;
-			set Done_milk,0;
-			set nov_1_4_cos_c,0;
-			set nov_3_merchant,0;
-			set nov_3_swordman,0;
-			set nov_3_archer,0;
-			set nov_3_thief,0;
-			set nov_3_magician,0;
-			set nov_3_acolyte,0;
-			warp "izlude_in.gat",121,165;
-			close;
-		L01:
-			mes "[Helper]";
-			mes "I expect you the best.";
-			savepoint "payon.gat",87,117;
-			next;
-			set nov_1st_cos,0;
-			set nov_get_item01,0;
-			set nov_1_2_cos_c,0;
-			set Done_milk,0;
-			set nov_1_4_cos_c,0;
-			set nov_3_merchant,0;
-			set nov_3_swordman,0;
-			set nov_3_archer,0;
-			set nov_3_thief,0;
-			set nov_3_magician,0;
-			set nov_3_acolyte,0;
-			warp "payon_in02.gat",21,71;
-			close;
-		L02:
-			mes "[Helper]";
-			mes "I expect you the best.";
-			savepoint "morocc.gat",160,94;
-			next;
-			set nov_1st_cos,0;
-			set nov_get_item01,0;
-			set nov_1_2_cos_c,0;
-			set Done_milk,0;
-			set nov_1_4_cos_c,0;
-			set nov_3_merchant,0;
-			set nov_3_swordman,0;
-			set nov_3_archer,0;
-			set nov_3_thief,0;
-			set nov_3_magician,0;
-			set nov_3_acolyte,0;
-			warp "morocc.gat",27,291;
-			close;
-		L03:
-			mes "[Helper]";
-			mes "I expect you the best.";
-			savepoint "geffen.gat",120,100;
-			next;
-			set nov_1st_cos,0;
-			set nov_get_item01,0;
-			set nov_1_2_cos_c,0;
-			set Done_milk,0;
-			set nov_1_4_cos_c,0;
-			set nov_3_merchant,0;
-			set nov_3_swordman,0;
-			set nov_3_archer,0;
-			set nov_3_thief,0;
-			set nov_3_magician,0;
-			set nov_3_acolyte,0;
-			warp "geffen.gat",66,175;
-			close;
-		L04:
-			mes "[Helper]";
-			mes "I expect you the best.";
-			savepoint "prontera.gat",273,354;
-			next;
-			set nov_1st_cos,0;
-			set nov_get_item01,0;
-			set nov_1_2_cos_c,0;
-			set Done_milk,0;
-			set nov_1_4_cos_c,0;
-			set nov_3_merchant,0;
-			set nov_3_swordman,0;
-			set nov_3_archer,0;
-			set nov_3_thief,0;
-			set nov_3_magician,0;
-			set nov_3_acolyte,0;
-			warp "prontera.gat",233,313;
-			close;
-		L05:
-			mes "[Helper]";
-			mes "I expect you the best.";
-			savepoint "alberta.gat",116,57;
-			next;
-			set nov_1st_cos,0;
-			set nov_get_item01,0;
-			set nov_1_2_cos_c,0;
-			set Done_milk,0;
-			set nov_1_4_cos_c,0;
-			set nov_3_merchant,0;
-			set nov_3_swordman,0;
-			set nov_3_archer,0;
-			set nov_3_thief,0;
-			set nov_3_magician,0;
-			set nov_3_acolyte,0;
-			warp "alberta.gat",40,42;
-			close;
-
-	L1:
-		if (@job_number==0) goto WarpJobSwordman;
-		if (@job_number==1) goto WarpJobArcher;
-		if (@job_number==2) goto WarpJobThief;
-		if (@job_number==3) goto WarpJobMagican;
-		if (@job_number==4) goto WarpJobAcolyte;
-		if (@job_number==5) goto WarpJobMerchant;
-
-		WarpJobSwordman:
-			mes "[Helper]";
-			mes "Let warp you";
-			next;
-			warp "new_1-4.gat",20,176;
-			close;
-		WarpJobArcher:
-			mes "[Helper]";
-			mes "Let warp you";
-			next;
-			warp "new_1-4.gat",60,176;
-			close;
-		WarpJobThief:
-			mes "[Helper]";
-			mes "Let warp you";
-			next;
-			warp "new_1-4.gat",100,176;
-			close;
-		WarpJobMagican:
-			mes "[Helper]";
-			mes "Let warp you";
-			next;
-			warp "new_1-4.gat",140,176;
-			close;
-		WarpJobAcolyte:
-			mes "[Helper]";
-			mes "Let warp you";
-			next;
-			warp "new_1-4.gat",180,176;
-			close;
-		WarpJobMerchant:
-			mes "[Helper]";
-			mes "Let warp you";
-			next;
-			warp "new_1-4.gat",180,136;
-			close;
+		mes "[Shion]";
+		mes "Although you'll";
+		mes "be sitting through";
+		mes "some classes, you";
+		mes "won't regret it.";
+		mes "Now, go for it!";
+		close;
+	}
 }
 
-// == JOB AGENCIES ==
+new_1-1.gat,144,116,2	script	Guard	105,{
+	mes "[Training Grounds Guard]";
+	mes "Welcome to the Training Grounds.";
+	mes "You are now in the outer court yard. Please go inside the castle to begin your training.";
+	close;
+}
 
-// -- Swordman --
-// nov_1_4_cos_c (variable) starts with value 25
-// Bonus: 1 Sword, 1 Red Potion, 3 Meats
-new_1-4.gat,19,189,4	script	Swordman's Helper	105,{
-	save "izlude_in.gat",121,165;
-	mes "['Swordman' Agency Helper]";
+new_1-1.gat,144,107,2	script	Guard	105,{
+	mes "[Training Grounds Guard]";
+	switch ( rand(2) ) {
+	case 0:	mes "Come in!";
+		mes "I would like";
+		mes "to welcome you to";
+		mes "the Training Grounds!";
+		next;
+		mes "[Training Grounds Guard]";
+		mes "In here, you can prepare";
+		mes "yourself for your future";
+		mes "adventures throughout the";
+		mes "Ragnarok world!";
+		break;
+	case 1:	mes "Go, Novice, go!";
+		mes "Fight, and grow stronger! Look towards a brighter tomorrow!";
+	}
+	close;
+}
+
+//Receptionist
+new_1-2.gat,100,29,4	script	Receptionist	86,{
+	mes "[Training Grounds Receptionist]";
 	mes "Welcome!";
-	mes "Here is Swordman Agency";
-	mes "We are so pleased with you doing great until now.";
+	mes "You are at the entrance";
+	mes "of the ^3355FFTraining Grounds^000000.";
 	next;
-	mes "['Swordman' Agency Helper]";
-	mes "Also we hope you will become the greatest adventurer in Ragnarok.";
-	mes "Are you ready?";
+	mes "[Training Grounds Receptionist]";
+	mes "If you're new";
+	mes "to the Ragnarok world,";
+	mes "please choose the";
+	mes "^3355FFTraining Grounds Introduction^000000";
+	mes "menu for more information.";
+L_loop:
 	next;
-	mes "['Swordman' Agency Helper]";
-	mes "Ok.";
-	mes "I will give you a few subsidy and let you get there.";
-	mes "Here are 1 Sword, 1 Red Potion and 3 Meats for you.";
-	if (nov_1_4_cos_c > 25) goto nov_get_item05cont;
-	set nov_1_4_cos_c,26;
-	getitem 1103,1;
-	getitem 501,1;
-	getitem 517,3;
-	goto nov_get_item05cont;
-
-	nov_get_item05cont:
+	switch( select("Apply for training.","Direct access to Ragnarok Online.","^3355FFTraining Grounds Introduction.^000000","I need a moment to think.") ) {
+	case 1:	mes "[Training Grounds Receptionist]";
+		mes "Thank you for applying for Novice training. For detailed information of each training course, please inquire the Guides for assistance.";
 		next;
-		set nov_1st_cos,0;
-		set nov_get_item01,0;
-		set nov_1_2_cos_c,0;
-		set Done_milk,0;
-		set nov_1_4_cos_c,0;
-		set nov_3_merchant,0;
-		set nov_3_swordman,0;
-		set nov_3_archer,0;
-		set nov_3_thief,0;
-		set nov_3_magician,0;
-		set nov_3_acolyte,0;
-		warp "izlude_in.gat",121,165;
+		set Zeny,Zeny+50;
+		mes "[Training Grounds Receptionist]";
+		mes "To get you started, we will supply you with a provision of 50 Zeny. When you have questions about the training course process, please feel free to ask any of the Instructors.";
+		next;
+		mes "[Training Grounds Receptionist]";
+		mes "You will now be transferred";
+		mes "to the Training Grounds.";
+		next;
+		warp "new_1-2.gat",100,70;
+		end;
+	case 2:	mes "[Training Grounds Receptionist]";
+		mes "I understand.";
+		mes "Please do your";
+		mes "best, and I wish you";
+		mes "the best of luck!";
+		close2;
+		set NEW_MES_FLAG0,0;
+		switch( rand(6) ) {
+		case 0:	savepoint "prontera.gat",273,354;
+			warp "prontera.gat",273,354;
+			break;
+		case 1:	savepoint "morocc.gat",160,94;
+			warp "morocc.gat",160,94;
+			break;
+		case 2:	savepoint "geffen.gat",120,100;
+			warp "geffen.gat",120,100;
+			break;
+		case 3:	savepoint "payon.gat",70,100;
+			warp "payon.gat",70,100;
+			break;
+		case 4:	savepoint "alberta.gat",116,57;
+			warp "alberta.gat",116,57;
+			break;
+		case 5:	savepoint "izlude.gat",94,103;
+			warp "izlude.gat",94,103;
+		}
+		end;
+	case 3:	mes "[Training Grounds Receptionist]";
+		mes "This training grounds was established in order to provide useful information to new players of Ragnarok Online by the Rune-Midgarts Kingdom's Board of Education.";
+		next;
+		mes "[Training Grounds Receptionist]";
+		mes "The training course is organized into two parts: the Basic Knowledge classes, and Field Combat training.";
+		next;
+		mes "[Training Grounds Receptionist]";
+		mes "Through the first course, players will learn the necessary knowledge for a smoother gaming experience.";
+		next;
+		mes "[Training Grounds Receptionist]";
+		mes "In Field Combat Training,";
+		mes "players will engage in actual battle with weak monsters so they can learn the basics of fighting.";
+		next;
+		mes "[Training Grounds Receptionist]";
+		mes "With this battle practice,";
+		mes "players will be able to gain more experience before they enter the real world.";
+		next;
+		mes "[Training Grounds Receptionist]";
+		mes "At the end of the training, we will provide an introduction to the 1st Job Classes. This will help players decide which job class is best for them.";
+		next;
+		mes "[Training Grounds Receptionist]";
+		mes "If you wish to participate in the training grounds, please choose '^3355FFApply for training^000000' in the menu.";
+		next;
+		mes "[Training Grounds Receptionist]";
+		mes "Otherwise, if you want to skip the basic training and immediately enter the world of Ragnarok Online, please choose '^3355FFDirect access to Ragnarok Online^000000.'";
+		break;
+	case 4:	mes "[Training Grounds Receptionist]";
+		mes "I understand.";
+		mes "Please, take your time.";
 		close;
+	}
+	goto L_loop;
 }
 
-// -- Archer --
-// nov_1_4_cos_c (variable) starts with value 25
-// Bonus: 3 Red Potions, 50 zenys
-new_1-4.gat,59,186,4	script	Archer's Helper	105,{
-	savepoint "payon.gat",87,117;
-	mes "['Archer' Agency Helper]";
-	mes "Wecome!";
-	mes "Here is Archer Agency.";
-	mes "We are so pleased with you doing great until now.";
-	next;
-	mes "['Archer' Agency Helper]";
-	mes "Also we hope you will become the greatest adventurer in Ragnarok.";
+//Interfaces Instructor
+new_1-2.gat,99,105,4	script	Interfaces Instructor	751,{
+	if (!(NEW_MES_FLAG1)) {
+		mes "[Chris]";
+		mes "Nice to meet you. could you show me your application?";
+		next;
+		mes "[Chris]";
+		mes "Yes, I checked it.";
+		mes "I will teach the real basic interface to "+strcharinfo(0)+".";
+		mes "This is not forced to you so if you don't want,  you don't need to take this course.";
+		next;
+		switch( select("Listen about 'Interface'.","No lecture, I just want Practical Course.","Cancel.") ) {
+		case 1:	mes "[Chris]";
+			mes "You can move any window by dragging your mouse.";
+			mes "I will explain from the basic location where you start on the screen.";
+			next;
+			mes "[Chris]";
+			mes "First of all, if you look at the top left part of the screen,";
+			mes "You can see your name and level in the window.";
+			mes "It also shows how much EXP you have.";
+			mes "This is a Character's ^0000FFBasic Information^000000.";
+			next;
+			mes "[Chris]";
+			mes "I will increase your EXP.";
+			mes "watch how the EXP will change in the basic Information window.";
+			set NEW_MES_FLAG1,1;
+			set BaseExp,BaseExp+NextBaseExp;
+			next;
+			mes "[Chris]";
+			mes "Did you see it?";
+			mes "and let's see...";
+			next;
+			mes "[Chris]";
+			mes "You can open your 'Inventory' and make a party through the Information window.";
+			mes "The secon EXP bar is your Job EXP.";
+			mes "To learn a ^0000FFSkill^000000 you need a skill point.";
+			mes "You will gain a skill point bt getting a Job EXP level.";
+			next;
+			mes "[Chris]";
+			mes "There is a chat window in the bottom left of the screen.";
+			mes "You can scroll with your mouse to see what you've said in the past and";
+			mes "you can change to 'send to party' and 'send to guildsmen' by clicking on the blue dot.";
+			mes "The conversation window is always in open state.";
+			mes "You will use it a lot.";
+			next;
+			mes "[Chris]";
+			mes "In the top right of the screen,";
+			mes "there is a minimap it indicates your current location, party members and guilsmen.";
+			mes "When you stay in a field, the ^0000FF Red Point is an Exit^000000.";
+			mes "Is it helpful?";
+			next;
+			mes "[Chris]";
+			mes "Let's see more, try to open every window by clicking in the Basic Information Window.";
+			mes "Like item window, Equipment, status, etc.";
+			next;
+			mes "[Chris]";
+			mes "You might have gotten bored event hough I tried to teach you briefly.";
+			mes "It is Job EXP this time.";
+			set JobExp,JobExp+NextJobExp;
+			next;
+			mes "[Chris]";
+			mes "Increase Basic Skill with it.";
+			next;
+			mes "[Chris]";
+			mes "Assistant Edwin will give you more details about things.";
+			mes "If you want to learn more, go meet him.";
+			mes "This is a gift for you.";
+			getitem 2352,1;
+			close;
+		case 2:	mes "[Chris]";
+			mes "I will send you to the Practical Course.";
+			mes "If you think you need to take more lectures,";
+			mes "Come to see me anytime.";
+			close2;
+			warp "new_1-2.gat",28,178;
+			end;
+		case 3:	emotion 19;
+			close;
+		}
+	}
+	if (!(NEW_MES_FLAG2)) {
+		mes "[Chris]";
+		mes "Do you need my help?";
+		mes "Can I see your application?";
+		mes "Hmm...";
+		mes "You didn't take the skill lectures.";
+		mes "The Skill Instructor is on your leftside.";
+		next;
+		switch( select("Thanks!","Lectures are boring.","Cancel") ) {
+		case 1:	mes "[Chris]";
+			mes "If you take this course You will learn usefull skill information, so pay attention.";
+			mes "Well, find the skill instructor.";
+			mes "I will send you to him for free of charge.";
+			close2;
+			warp "new_1-2.gat",84,107;
+			end;
+		case 2:	mes "[Chris]";
+			mes "I will send you to the next course,";
+			mes "the Practical Lecture course.";
+			next;
+			if ( select("What? No.","Yes, please send me!") == 1 ) {
+				mes "[Chris]";
+				mes "Then, find me later when you need me..";
+				close;
+			} else {
+				mes "[Chris]";
+				mes "I wish you good luck.";
+				close2;
+				warp "new_1-2.gat",28,178;
+				end;
+			}
+		case 3:	emotion 19;
+			close;
+		}
+	}
+	if (!(NEW_MES_FLAG3)) {
+		mes "[Chris]";
+		mes "Do you need my help?";
+		mes "Can I see your application?";
+		mes "Hmm...";
+		mes "You didn't take the skill lectures.";
+		mes "The Item Instructor is on my rightside.";
+		next;
+		switch( select("Thanks!","Lectures are boring.","Cancel") ) {
+		case 1:	mes "[Chris]";
+			mes "You can learn how to use items, and other windows.";
+			mes "It will be helpful.";
+			mes "Well, Go to the item instructor.";
+			mes "I will send you to him for free of charge.";
+			close2;
+			warp "new_1-2.gat",115,107;
+			end;
+		case 2:	mes "[Chris]";
+			mes "I will send you to the next course,";
+			mes "the Practical Lecture course.";
+			next;
+			if ( select("What? No.","Yes, please send me!") == 1 ) {
+				mes "[Chris]";
+				mes "Then, find me later when you need me..";
+				close;
+			} else {
+				mes "[Chris]";
+				mes "I wish you good luck.";
+				close2;
+				warp "new_1-2.gat",28,178;
+				end;
+			}
+		case 3:	emotion 19;
+			close;
+		}
+	}
+	mes "[Chris]";
+	mes "You finished all the required sourses.";
+	mes "have you listened to the other Assistants?";
+	mes "The next stage is practical monster-hunting.";
 	mes "Are you ready?";
 	next;
-	mes "['Archer' Agency Helper]";
-	mes "Ok.";
-	mes "I will give you a few subsidy and let you get there.";
-	mes "Here are 3 Red potions and 50 zeny for you.";
-	if (nov_1_4_cos_c > 25) goto nov_get_item05cont;
-	set nov_1_4_cos_c,26;
-	getitem 501,3;
-	set Zeny,Zeny+50;
-	goto nov_get_item05cont;
-
-	nov_get_item05cont:
+	switch( select("Move to next course!","I want to look arround more.","Send me to Town!") ) {
+	case 1:	mes "[Chris]";
+		mes "The next course is practical monster-hunting.";
+		mes "Pay attention to what he says, and finish the course safely.";
+		mes "I wish you good luck.";
+		close2;
+		warp "new_1-2.gat",28,178;
+		end;
+	case 2:	mes "[Chris]";
+		mes "That is a good idea.";
+		mes "We have just taught you some of the";
+		mes "required basic knowledge;";
+		mes "however if it is not enough, please meet the";
+		mes "other assistants so you can learn more details.";
 		next;
-		set nov_1st_cos,0;
-		set nov_get_item01,0;
-		set nov_1_2_cos_c,0;
-		set Done_milk,0;
-		set nov_1_4_cos_c,0;
-		set nov_3_merchant,0;
-		set nov_3_swordman,0;
-		set nov_3_archer,0;
-		set nov_3_thief,0;
-		set nov_3_magician,0;
-		set nov_3_acolyte,0;
-		warp "payon_in02.gat",21,71;
+		mes "[Chris]";
+		mes "If you don't know where you have to go,";
+		mes "come and ask me.";
 		close;
+	case 3:	mes "[Chris]";
+		mes "Are you sure you want to move to town?";
+		mes "If you think you've learnt enough,";
+		mes "go to the right side and meet the";
+		mes "^0000FFKafra Service.^000000";
+		next;
+		mes "[Chris]";
+		mes "The Kafra Service offers";
+		mes "'Teleportation Service'";
+		mes "'Storage Service'";
+		mes "Meet them";
+		mes "and use their service..";
+		next;
+		mes "[Chris]";
+		mes ".......If you leave here";
+		mes "I cannot see you anymore";
+		mes "but";
+		mes "I hope that you are blessed wherever you go.";
+		mes "Good luck.";
+		close;
+	}
 }
 
-// -- Thief --
-// nov_1_4_cos_c (variable) starts with value 25
-// Bonus: 1 Jacket, 6 Sweet Patatos
-new_1-4.gat,99,186,4	script	Thief's Helper	105,{
-	savepoint "morocc.gat",160,94;
-	mes "['Thief' Agency Helper]";
-	mes "Welcome!";
-	mes "Here is the thief agency.";
-	mes "We are so pleased with you doing great until now.";
-	next;
-	mes "['Thief' Agency Helper]";
-	mes "Also we hope you will become the greatest adventurer in Ragnarok.";
-	mes "Are you ready?";
-	next;
-	mes "['Thief' Agency Helper]";
-	mes "Ok.";
-	mes "I will give a few subsidy and let you get there.";
-	mes "Here are 1 Jacket and 6 Sweet Patatos for you.";
-	if (nov_1_4_cos_c > 25) goto nov_get_item05cont;
-	set nov_1_4_cos_c,26;
-	getitem 2303,1;
-	getitem 516,6;
-	goto nov_get_item05cont;
-
-	nov_get_item05cont:
+new_1-2.gat,83,111,4	script	Skill Instructor	753,{
+	if (!(NEW_MES_FLAG2)) {
+		mes "[Shecil]";
+		mes ""+strcharinfo(0)+"";
+		mes "It is such a good name!";
+		mes "Let's start this class?";
 		next;
-		set nov_1st_cos,0;
-		set nov_get_item01,0;
-		set nov_1_2_cos_c,0;
-		set Done_milk,0;
-		set nov_1_4_cos_c,0;
-		set nov_3_merchant,0;
-		set nov_3_swordman,0;
-		set nov_3_archer,0;
-		set nov_3_thief,0;
-		set nov_3_magician,0;
-		set nov_3_acolyte,0;
-		warp "morocc.gat",27,291;
+		switch( select("What do you teach me?","Send me to Practical Course!","Cancel") ) {
+		case 1:	mes "[Shecil]";
+			mes "I live and die for fighting!";	
+			mes "Some sort of special skill!!!!!!";
+			mes "Ah! no, I made a mistake.";
+			mes "I will teach you how to use it.";
+			mes "First of all, Increasing your skill level.";
+			next;
+			mes "[Shecil]";
+			mes "Your Skill Window is in Basic Information.";	
+			mes "Click ^0000FFSkill^000000.";
+			mes "Another window pops up, right?";
+			mes "Short key is ^0000FFS when holding down alt^000000.";
+			mes "From now we will say like 'alt+s'.";
+			set NEW_MES_FLAG2,1;
+			set JobExp,JobExp+NextJobExp;
+			next;
+			mes "[Shecil]";
+			mes "Did you open it?";	
+			mes "Do you see Basic Skill down there?";
+			mes "Skill point might be 1.";
+			mes "There is a mumber Clock 'Lv Up Button' at the right side beside basic skill.";
+			next;
+			mes "[Shecil]";
+			mes "Did you increase your skill?";	
+			mes "If you have any questions, ask Pitch Judas";
+			mes "hmmm...";
+			mes "I am thinking of a usefull skill.";	
+			next;
+			mes "[Shecil]";
+			mes "Right, right!";	
+			mes "I will teach you First Aid Skill.";
+			mes "In Emergencies, you can use this skill.";
+			skill 142,1,0;
+			set skill_nov,3;
+			next;
+			mes "^0000FF-You've learned First Aid Skill-^000000";
+			next;
+			mes "[Shecil]";
+			mes "Now, if you open your skill window,";	
+			mes "^0000FFFirst Aid^000000 will be there.";
+			mes "Try to double-click to use it!";
+			next;
+			mes "^0000FF-You received some Job Exp.-^000000";
+			set JobExp,JobExp+NextJobExp;
+			next;
+			mes "[Shecil]";
+			mes "How was it?";	
+			mes "When you use your skill, SP decreases.";
+			mes "If you use First Aid skill, it will recover some HP.";
+			mes "It will be usefull for New Novices.";
+			next;
+			mes "[Shecil]";
+			mes "Thanks for your attention!";	
+			mes "Oh, I am feeling so good.";
+			mes "I will give you a Plus-Exp!";
+			mes "Since I am a cool guy!";
+			set BaseExp,BaseExp+NextBaseExp;
+			next;
+			mes "[Shecil]";
+			mes "My lecture ends here.";	
+			mes "It was short and had many services.";
+			mes "Do you want to know more? then, ask other users.";
+			mes "If you think that is hard, go to talk to Assistant.";	
+			mes "He will teach you well.";
+			next;
+			switch( select("Let me look around.","Send me to the Practical Course.","Cancel.") ) {
+			case 1:	mes "[Shecil]";
+				mes "If you think, you learned enough anybody will be fine.";	
+				mes "Ask one of our insctructors, they will help you.";
+				mes "Cheer Up!";
+				close;
+			case 2:	goto L_battle;
+			case 3:	emotion 23;
+			}
+			close;
+		case 2:	goto L_battle;
+		case 3:	emotion 23;
+		}
 		close;
+	}
+	if (!(NEW_MES_FLAG1)) {
+		mes "[Shecil]";
+		mes "What, can I help you?";
+		mes "Uh?";
+		mes "You didn't take interface lectures";
+		mes "I know the lecture is not worth it!";
+		mes "HaHaHaHa!!!!";
+		next;
+		switch( select("I will go take it!","I am bored. Send me to Practical Course.") ) {
+		case 1:	mes "[Shecil]";
+			mes "Yes, it's good thinking.";
+			mes "Get EXP, Items as much as you can.";
+			mes "HaHaHa.";
+			mes "He is in the middle.";
+			mes "It is easy to find him.";
+			close;
+		case 2:	goto L_battle;
+		case 3:	emotion 23;
+		}
+		close;
+	}
+	if (!(NEW_MES_FLAG3)) {
+		mes "[Shecil]";
+		mes "What can I help you?";
+		mes "Huh?";
+		mes "You didn't take the item lecture?";
+		mes "I know the lecture is not worth it!";
+		mes "HaHaHaHa!!!!";
+		next;
+		switch( select("I will go and take it!","I am bored. Send me to Practical Course.","Cancel.") ) {
+		case 1:	mes "[Shecil]";
+			mes "Yes, it is a good thinking.";
+			mes "Get EXP, Items as much as you can.";
+			mes "Hahaha.";
+			mes "I will send you to the service.";
+			close2;
+			warp "new_1-2.gat",115,107;
+			break;
+		case 2:	goto L_battle;
+		case 3:	emotion 23;
+		}
+		close;
+	}
+	mes "[Shecil]";
+	mes "Do you need my help?";
+	mes "You've finished all the courses.";
+	mes "Ah, you came back to see me";
+	mes "because I am so nice.";
+	mes "is it right?";
+	mes "have you met the Assistants?";
+	next;
+	switch( select("Send me to the next course.","Assistants?","I want to go to town.") ) {
+	case 1:	mes "[Shecil]";
+		mes "Oh, Right.";
+		mes "You should go to the Practical Lecture Course.";
+		mes "Ah, I wish I could hunt mobs in the field.";
+		mes "This job is so boring.";
+		mes "My fists have gotten a bit rusty.";
+		mes "Ok, I will send you! You should grow up well!";
+		close2;
+		warp "new_1-2.gat",28,178;
+		end;
+	case 2:	mes "[Shecil]";
+		mes "Huh? you look like";
+		mes "'you didn't do it before'.";
+		mes "Listen to me. We teach briefly,";
+		mes "not boring, but fast";
+		mes "as much as we can.";
+		next;
+		mes "[Shecil]";
+		mes "However, it is not good enough for";
+		mes "some people educatioally.";
+		mes "There will be some people who";
+		mes "want to learn more.";
+		mes "so, to satisfy this, some";
+		mes "Assistants";
+		mes "exist to help those people.";
+		mes "Go and meet them!";
+		next;
+		mes "[Shecil]";
+		mes "Especially, Pitch Judas...";
+		mes "He will teach you well about skills.";
+		mes "Even though he looks dangerous.";
+		mes "Hahaha!";
+		close;
+	case 3:	mes "[Shecil]";
+		mes "Do you want to go to town? You can";
+		mes "use Kafra services.";
+		mes "Make a right from here and go straight,";
+		mes "you will see her.";
+		mes "HaHaHa!";
+		mes "why don't you hurry up to meet";
+		mes "her?";
+		close;
+	}
+	end;
+L_battle:
+	mes "[Shecil]";
+	mes "Good, there is nothing better than experiencing reality.";
+	mes "Practical Course!";
+	mes "Cheer up!";
+	close2;
+	warp "new_1-2.gat",28,178;
+	end;
 }
 
-// -- Mage --
-// nov_1_4_cos_c (variable) starts with value 25
-// Bonus: 3 Red Potions, 100 zenys
-new_1-4.gat,139,186,4	script	Mage's Helper	105,{
-	savepoint "geffen.gat",120,100;
-	mes "['Mage' Agency Helper]";
-	mes "Wecome!";
-	mes "Here is Mage Agency.";
-	mes "We are so pleased with you doing great until now.";
-	next;
-	mes "['Mage' Agency Helper]";
-	mes "Also we hope you will become the greatest adventurer in Ragnarok.";
-	mes "Are you ready?";
-	next;
-	mes "['Mage'Agency Helper]";
-	mes "Ok.";
-	mes "I will give you a few subsidy and let you get there.";
-	mes "Here are 3 Red potions and 100 Zeny for you.";
-	if (nov_1_4_cos_c > 25) goto nov_get_item05cont;
-	set nov_1_4_cos_c,26;
-	getitem 501,3;
-	set Zeny,Zeny+100;
-	goto nov_get_item05cont;
-
-	nov_get_item05cont:
+new_1-2.gat,115,111,4	script	Item Instructor	726,{
+disable_items;
+	if (!(NEW_MES_FLAG3)) {
+		mes "[Alice]";
+		mes "Hmm... I am so bored.";
+		mes "Huh? are you new hwere?";
+		mes "You want to take an Item Lecture, don't you?";
 		next;
-		set nov_1st_cos,0;
-		set nov_get_item01,0;
-		set nov_1_2_cos_c,0;
-		set Done_milk,0;
-		set nov_1_4_cos_c,0;
-		set nov_3_merchant,0;
-		set nov_3_swordman,0;
-		set nov_3_archer,0;
-		set nov_3_thief,0;
-		set nov_3_magician,0;
-		set nov_3_acolyte,0;
-		warp "geffen.gat",66,175;
+		menu "Yes.",-,"No, I just want to pass.",L_battle,"Where is town?",L_kafra;
+			mes "[Alice]";
+			mes "I will make it a short lecture.";
+			mes "I know you are bored.";
+			mes "Firstly, open the 'Inventory' window.";
+			mes "Click 'Item' in the Basic Information Window.";
+			mes "It will show you the items that it contains.";
+			mes "The inventory is divided into 3 sections such as item, equip and etc.";
+			next;
+			mes "[Alice]";
+			mes "Now, would you click the item tab?";
+			mes "in the Inventory Window? I just";
+			mes "gave you a Novice Potion. You can";
+			mes "drink it by double-clicking it. Go";
+			mes "ahead, try it!";
+			set NEW_MES_FLAG3,1;
+			set @potion,countitem(569);
+			getitem 569,1;
+			enable_items;
+			next;
+			if ( @potion >= countitem(569) ) {
+				mes "[Alice]";
+				mes "Nice~!";
+				mes "And here's";
+				mes "a little reward";
+				mes "just for listening.";
+				set BaseExp,BaseExp+NextBaseExp;
+				next;
+			}
+			disable_items;	
+			mes "[Alice]";
+			mes "Let me explain about";
+			mes "items in the ^0000FFequip^000000 tab";
+			mes "of the Inventory Window.";
+			next;
+			mes "[Alice]";
+			mes "When you click on the 'equip tab,";
+			mes "you can view every item in your";
+			mes "inventory that you can equip. Let";
+			mes "me give you some equipment so that";
+			mes "you can try them on.";
+			next;
+			getitem 2510,1;
+			getitem 2414,1;
+			getitem 5055,1;
+			enable_items;
+			mes "[Alice]";
+			mes "Got them? Good.";
+			mes "Now, double-click";
+			mes "on the Novice Slippers";
+			mes "I just gave you to";
+			mes "put them on.";
+			next;
+			if ( getequipisequiped(6) ) {
+				mes "[Alice]";
+				mes "Hooray~!";
+				mes "You did it!";
+				mes "You deserve a reward!";
+				set BaseExp,BaseExp+NextBaseExp;
+				next;
+			}
+			disable_items;
+			mes "[Alice]";
+			mes "Would you";
+			mes "press the ^0000FF'F12'^000000 key?";
+			mes "This will summon your";
+			mes "Hotkey bar on your screen."; 
+			next;
+			mes "[Alice]";
+			mes "There is a column from ^0000FFF1 to F9^000000";
+			mes "If you took a skill lecture,";
+			mes "you are supposed to have 'First Aid'.";
+			mes "Drag the skill to the 'Short key window'.";
+			next;
+			mes "[Alice]";
+			mes "Do you understand ?";
+			mes "To use skills, you need some skill point,";
+			mes "and anyway, you cannot put passive skills in the 'Short key window'.";
+			set JobExp,JobExp+NextJobExp;
+			next;
+			mes "[Alice]";
+			mes "'Alice' simple and good quality lecture ends here.";
+			mes "Lastly I will give you some items, which can help you.";
+			getitem 601,10;
+			getitem 602,2;
+			getitem 569,50;
+			next;
+			mes "[Alice]";
+			mes "However, ^FF0000do not use the Fly Wing or Butterfly Wing ^000000in these Training Grounds or you could be stuck here forever. Those items are for when you graduate, okay?";
+			next;
+			mes "[Alice]";
+			mes "And lastly...";
+			mes "I will give";
+			mes "you some Job experience!";
+			set JobExp,JobExp+NextJobExp;
+			next;
+			menu "What do I have to do?",-,"Then, Practical Course!",L_battle,"Cancel.",L_bye;
+				mes "[Alice]";
+				mes "Is there any Instructor that you didn't meet yet?";
+				mes "They are not gracious as much as I am";
+				next;
+				mes "[Alice]";
+				mes "However, some assistants are really good,";
+				mes "and there are some hidden things.";
+				mes "So if you want, you can stay here longer and know them.";
+				mes "If not ask anybody and tell them where you want to go.";
+				close;
+	}
+	if (!(NEW_MES_FLAG1)) {
+		mes "[Alice]";
+		mes "How can I help you?";
+		mes "You didn't take a interface lecture.";
+		mes "Chris will be dissapointed.";
+		mes "Why don't you go and meet him?";
+		next;
+		menu "Ok, I will meet him.",-,"It is boring, I want to go to Practical Course.",L_battle1,"What do I have todo to goto town?",L_kafra;
+			mes "[Alice]";
+			mes "It's a good idea.";
+			mes "When you came here, you had to see 'Interface Instructor'.";
+			mes "He is in the middle of the hall.";
+			mes "Also he has some gifts for you!";
+			mes "You don't want to lose those presents, do you?";
+			close;
+	}
+	if (!(NEW_MES_FLAG2)) {
+		mes "[Alice]";
+		mes "How can I help you?";
+		mes "Oh, you didn't take ^0000FFSkill Lecture^000000 yet.";
+		mes "Shecil will be dissapointed.";
+		mes "Why don't you go meet her?";
+		next;
+		menu "yes, I will meet her.",-,"Boring, I want to go to Practical Course.",L_battle1,"What do I have todo to goto town?",L_kafra;
+			mes "[Alice]";
+			mes "It's a good idea.";
+			mes "Shecil is on the left side of the hall.";
+			mes "I will send you there.";
+			mes "Study Hard!";
+			close2;
+			warp "new_1-2.gat",84,107;
+			end;
+	}
+	mes "[Alice]";
+	mes "Huh? did you get lost?";
+	mes "Do you need some help?";
+	mes "I think you learned enough.";
+	mes "Do you want to go somewhere?";
+	next;
+	menu "I don't know where I can go.",-,"I want to go to town.",L_kafra,"Cancel.",L_bye;
+		mes "[Alice]";
+		mes "Hmm... You already know how to use items and skills.";
+		mes "Practical Course still remains.";
+		mes "Do you want to go to Practical Course?";
+		mes "Then, I will send you.";
+		next;
+		if ( select("Let me go!","Wait for a moment.") == 1 ) {
+			mes "[Alice]";
+			mes "You got your equipment that I gave you right?";
+			mes "Wear those tight.";
+			mes "Ok, I will let you go.";
+			close2;
+			warp "new_1-2.gat",28,178;
+			end;
+		} else {
+			mes "[Alice]";
+			mes "Ok.";
+			mes "If you need anything, call me anytime.";
+			close;
+		}
+		end;
+L_battle:
+	mes "[Alice]";
+	mes "Boring";
+	mes "Do you want to go to the Practical Course directly?";
+	mes "Hmmm... Did you meet every instructor?";
+	mes "It's better for you to meet all of them.";
+	next;
+	if ( select("Only Practical Course!","Wait for a moment.") == 1 ) {
+L_battle1:
+		mes "[Alice]";
+		mes "Huh.. You are so energetic.";
+		mes "I want you to listen to the instructor carefully.";
+		mes "The information that you learn there may save your life.";
+		mes "Ok, I will send you there.";
+		mes "Goodbye.";
+		close2;
+		warp "new_1-2.gat",28,178;
+		end;
+	} else {
+		mes "[Alice]";
+		mes "Yes, You might want to meet people more here";
+		mes "there are some Assistants who can help you.";
+		mes "You ought to receive items as much as you can here";
+		mes "then, you can leave.";
 		close;
+	}
+L_kafra:
+	mes "[Alice]";
+	mes "If you want to go to town, you can ask the kafra Employee to go.";  
+	mes "Prontera, Morroc, Payon, etc...";
+	mes "She will send you wherever you want to go";
+	close;
+L_bye:
+	mes "[Alice]";
+	mes "Hmm...";
+	close;
 }
 
-// -- Acolyte --
-// nov_1_4_cos_c (variable) starts with value 25
-// Bonus: 3 Red Potions, 1 Club
-new_1-4.gat,179,186,4	script	Acolyte's Helper	105,{
-	savepoint "prontera.gat",273,354;
-	mes "['Acolyte' Agency Helper]";
-	mes "Wecome!";
-	mes "Here is Acolyte Agency.";
-	mes "We are so pleased with you doing great until now.";
+new_1-2.gat,118,108,4	script	Kafra Employee	94,{
+	mes "[Kafra Employee]";
+	mes "Welcome to";
+	mes "Kafra Corporation.";
+	mes "The Kafra services are";
+	mes "always on your side.";
 	next;
-	mes "['Acolyte' Agency Helper]";
-	mes "Also we hope you will become the greatest adventurer in Ragnarok.";
-	mes "Are you ready?";
+	mes "[Kafra Employee]";
+	mes "I've been dispatched from Kafra Corporation Headquarters to assist new players such as yourself.";
 	next;
-	mes "['Acolyte' Agency Helper]";
-	mes "Ok.";
-	mes "I will give you a few subsidy and let you get there.";
-	mes "Here are 3 Red Potions and a Club for you.";
-	if (nov_1_4_cos_c > 25) goto nov_get_item05cont;
-	set nov_1_4_cos_c,26;
-	getitem 501,3;
-	getitem 1503,1;
-	goto nov_get_item05cont;
-
-	nov_get_item05cont:
+	mes "[Kafra Employee]";
+	mes "Please, take heed!";
+	mes "If you move to a town";
+	mes "^4d4dffYou will be unable to return to the Training Grounds ever again^000000.";
+	next;
+	if ( select("Teleport Service","About Kafra services") == 1 ) {
+		mes "[Kafra Employee]";
+		mes "I see, you must want to teleport to a town in Rune-Midgard imediately. First, let me briefly inform you about the different towns and cities in Ragnarok.";
+	next;
+	mes "[Kafra Employee]";
+	mes "Prontera is the capital of the Rune-Midgarts kingdom, and its satellite, Izlude, is closeby.";
+	next;
+	mes "[Kafra Employee]";
+	mes "^996633Morroc^000000 is in the desert. It's the town where you can change your job to the Thief and Assassin classes.";
+	next;
+	mes "[Kafra Employee]";
+	mes "^006600Payon^000000 is in the mountains, and is famous for its Archer Village, where Novices can change their jobs to Archers.";
+	next;
+	mes "[Kafra Employee]";
+	mes "The city of magic, ^993300Geffen^000000, is where people go to become Mages and Wizards.";
+	next;
+	mes "[Kafra Employee]";
+	mes "^003399Alberta^000000, the port city, is where the Merchant Guild is located. You must also go to Alberta if you wish to travel by sea.";
+	next;
+	mes "[Kafra Employee]";
+	mes "Please choose";
+	mes "your destination.";
 		next;
-		set nov_1st_cos,0;
-		set nov_get_item01,0;
-		set nov_1_2_cos_c,0;
-		set Done_milk,0;
-		set nov_1_4_cos_c,0;
-		set nov_3_merchant,0;
-		set nov_3_swordman,0;
-		set nov_3_archer,0;
-		set nov_3_thief,0;
-		set nov_3_magician,0;
-		set nov_3_acolyte,0;
-		warp "prontera.gat",233,313;
-		close;
+		if ( NEW_MES_FLAG1 || NEW_MES_FLAG2 || NEW_MES_FLAG3 ) {
+			if ( select("Practical Course","Prontera","Morroc","Payon","Alberta","Geffen") == 1 ) {
+				mes "[Kafra Employee]";
+				mes "You will be sent to Practical Course.";
+				close2;
+				warp "new_1-2.gat",28,178;
+				end;
+			}
+			set @menu,@menu-1;
+		} else {
+			menu "Prontera",-,"Morroc",-,"Payon",-,"Alberta",-,"Geffen",-;
+		}
+		switch ( @menu ) {
+		case 1:	mes "[Kafra Employee]";
+			mes "You have decided";
+			mes "to go to Prontera.";
+			mes "May God be with you.";
+			close2;
+			callsub L_prewarp;
+			savepoint "prontera.gat",118,72;
+			warp "prontera.gat",150,50;
+			end;
+		case 2:	mes "[Kafra Employee]";
+			mes "Desert City, Morroc.";
+			mes "In the middle of town, there is a beautiful oasis.";
+			mes "...";
+			mes "I will pray you keep your hope in your heart always.";
+			close2;
+			callsub L_prewarp;
+			savepoint "morocc.gat",151,98;
+			warp "morocc.gat",155,110;
+			end;
+		case 3:	mes "[Kafra Employee]";
+			mes "Hm? do you want to be an archer?";
+			mes "I will send you to Payon.";
+			mes "May God bless you.";
+			close2;
+			callsub L_prewarp;
+			savepoint "payon.gat",160,58;
+			warp "payon.gat",166,67;
+			end;
+		case 4:	mes "[Kafra Employee]";
+			mes "Harbor City, Alberta.";
+			mes "This town is a base of trade.";
+			mes "If you want to see different cultures, you have to go through here.";
+			mes "HuHu... I think you are going to go to the Merchant Association.";
+			mes "May God bless you.";
+			close2;
+			callsub L_prewarp;
+			savepoint "alberta.gat",31,233;
+			warp "alberta.gat",114,58;
+			end;
+		case 5:	mes "[Kafra Employee]";
+			mes "City of Magic.";
+			mes "There is a big 'Geffen Tower' in the middle of town.";
+			mes "I will send you arround the water fountain.";
+			mes "May God bless you.";
+			close2;
+			callsub L_prewarp;
+			savepoint "geffen.gat",118,37;
+			warp "geffen.gat",121,65;
+			end;
+		}
+	} else {
+		mes "[Kafra Employee]";
+		mes "Let me introduce you";
+		mes "to the Kafra Services.";
+		mes "In the menu, please choose";
+		mes "the service you'd like to";
+		mes "learn more about.";
+L_loop:
+		next;
+		switch( select("Save service.","Storage service.","Teleport service.","Cart rental service.","Cancel.") ) {
+		case 1:	mes "[Kafra Employee]";
+			mes "When you talk to a Kafra Employee and ask for the save Service, the location of where you will revive, after being defeated in battle, will be changed.";
+			next;
+			mes "[Kafra Employee]";
+			mes "Your Respawn Point is always the last place where you have saved. Using a Butterfly Wing will return you to the place where you";
+			mes "last saved.";
+			next;
+			if (!(NEW_LVUP0)) {
+				set NEW_LVUP0,1;
+				set BaseExp,BaseExp+NextBaseExp;
+			}
+			mes "[Kafra Employee]";
+			mes "The save Service";
+			mes "is also provided by";
+			mes "the Kafra Corporation";
+			mes "free of charge~!";
+			break;
+		case 2:	mes "[Kafra Employee]";
+			mes "The Kafra Corporation is the world's largest company with a long and distinguished history on the Rune-Midgard continent.";
+			next;
+			mes "[Kafra Employee]";
+			mes "You can store and retrieve";
+			mes "your items in any town at your convenience. This Storage is shared by every character on one account.";
+			next;
+			mes "[Kafra Employee]";
+			mes "It's unreasonable to carry all of your items with you when you don't need them right away. Please use our Storage and keep your items safe and secure.";
+			next;
+			mes "[Kafra Employee]";
+			mes "Our convenient Storage Service";
+			mes "is provided to our customers for a small fee which is different from town to town.";
+			next;
+			mes "[Kafra Employee]";
+			mes "However, you must be";
+			mes "at least ^3355FFBasic Skill Level 6^000000";
+			mes "to use the Storage.";
+			next;
+			mes "[Kafra Employee]";
+			mes "There are 3 different item sections of the Storage into which items are organized: Consumable, Equipment and Etc.";
+			next;
+			mes "[Kafra Employee]";
+			mes "There are a maximum of 300 Inventory Slots in Kafra Storage, meaning you can have up to 300 different kinds of items in Storage.";
+			next;
+			mes "[Kafra Employee]";
+			if (!(NEW_JOBLVUP)) {
+				set NEW_JOBLVUP,1;
+				set JobExp,JobExp+NextJobExp;
+			}
+			mes "Remember though, that in the case of Equipment, each item takes up one Inventory Slot. The maximum number of items that can be placed in Kafra Storage is 30,000.";
+			break;
+		case 3:	mes "[Kafra Employee]";
+			mes "The Kafra Corporation";
+			mes "provides our valued customers with a convenient Teleport Service which greatly cuts down on your";
+			mes "traveling time.";
+			next;
+			mes "[Kafra Employee]";
+			mes "Our Teleport Service is safe and comfortable, and will allow you to fully explore the various lands of the Rune-Midgard continent.";
+			next;
+			mes "[Kafra Employee]";
+			mes "We thank our valued customers for their great support and continue to provide them with the best";
+			mes "of service.";
+			break;
+		case 4:	mes "[Kafra Employee]";
+			mes "The Kafra Corporation";
+			mes "provides a Cart Rental Service to Merchants, as well as Blacksmiths and Alchemists.";
+			next;
+			mes "[Kafra Employee]";
+			mes "The flamboyantly mysterious";
+			mes "^CE6300Super Novice^000000 can use Carts, but we officially don't have a contract with that class. Still, somehow...";
+			next;
+			mes "[Kafra Employee]";
+			mes "Anyway, Merchants, Blacksmiths and Alchemists must also learn the ^3355FFPush Cart^000000 skill in order to be able to rent a cart.";
+			next;
+			mes "[Kafra Employee]";
+			mes "The Cart Rental service";
+			mes "charge will differ from";
+			mes "town to town.";
+			break;
+		case 5:	mes "[Kafra Employee]";
+			mes "I hope you are satisfied with my";
+			mes "explanation about the Kafra corporation.";
+			close;
+		}
+	goto L_loop;
+	}
+	end;
+L_prewarp:
+	if (!(NEW_MES_FLAG1) && !(NEW_MES_FLAG2) && !(NEW_MES_FLAG3)) {
+		getitem 569,100;
+		getitem 1243,1;
+		getitem 2414,1;
+		getitem 2510,1;
+		getitem 2352,1;
+		getitem 2112,1;
+		getitem 601,10;
+		getitem 602,2;
+	}
+	set NEW_MES_FLAG0,0;
+	set NEW_MES_FLAG1,0;
+	set NEW_MES_FLAG2,0;
+	set NEW_MES_FLAG3,0;
+	set NEW_MES_FLAG4,0;
+	set NEW_MES_FLAG5,0;
+	set NEW_LVUP0,0;
+	set NEW_LVUP1,0;
+	set NEW_JOBLVUP,0;
+	return;
 }
 
-// -- Merchant --
-// nov_1_4_cos_c (variable) starts with value 25
-// Bonus: 3 Red Potions, 100 zenys
-new_1-4.gat,180,146,4	script	Merchant's Helper	105,{
-	savepoint "alberta.gat",116,57;
-	mes "['Merchant' Agency Helper]";
-	mes "Wecome!";
-	mes "Here is Merchant Agency.";
-	mes "We are so pleased with you doing great until now.";
+new_1-2.gat,121,101,2	script	Guide Soldier	105,{
+	mes "[Soldier]";
+	mes "We, Soldiers, are guiding Novices here in the gate way of town.";
+	mes "When you go to a new town, Please visit Guide Soldier and receive their information for the map.";
 	next;
-	mes "['Merchant' Agency Helper]";
-	mes "Also we hope you will become the greatest adventurer in Ragnarok.";
-	mes "Are you ready?";
+	mes "[Soldier]";
+	mes "Some soldiers wear different garment in some towns.";
+	mes "I just anted to let you know about it as a reference.";
+	mes "Go meet them and talk to them.";
 	next;
-	mes "['Merchant' Agency Helper]";
-	mes "Ok.";
-	mes "I will give you a few subsidy and let you get there.";
-	mes "Here are 3 Red potions and 100 Zeny for you.";
-	if (nov_1_4_cos_c > 25) goto nov_get_item05cont;
-	set nov_1_4_cos_c,26;
-	getitem 501,3;
-	set Zeny,Zeny+100;
-	goto nov_get_item05cont;
-
-	nov_get_item05cont:
-		next;
-		set nov_1st_cos,0;
-		set nov_get_item01,0;
-		set nov_1_2_cos_c,0;
-		set Done_milk,0;
-		set nov_1_4_cos_c,0;
-		set nov_3_merchant,0;
-		set nov_3_swordman,0;
-		set nov_3_archer,0;
-		set nov_3_thief,0;
-		set nov_3_magician,0;
-		set nov_3_acolyte,0;
-		warp "alberta.gat",40,42;
-		close;
+	mes "[Soldier]";
+	mes "If you want to go to town, ask the Kafra Employee right before you.";
+	mes "She will send you to town.";
+	close;
 }
 
+//Interface Assistant
+new_1-2.gat,161,182,6	script	Interface Assistant	92,{
+	mes "[Edwin]";
+	mes "I am an Interface Assistant.";
+	mes "Choose what you want to know more about.";
+L_loop:
+	next;
+	switch( select("Basic Information Window","Party Window","Item Window","Option Window","Equipment Window","Cancel") ) {
+	case 1:	mes "[Edwin]";
+		mes "Let's see the Basic Information Window.";
+		mes "You can find your name, base level, you job and your job  level displayed on the window.";
+		mes "^800FFFBase lvl^000000 is your character's level.";
+		next;
+		mes "[Edwin]";
+		mes "^800FFFJob level^000000 shown under the base level meant the job level of your character's class.";
+		mes "If you took the Instructors lectures, of course, you will understand those.";
+		next;
+		mes "[Edwin]";
+		mes "On the basic inforamtion window,";
+		mes "your current experience showup aswell.";
+		mes "Experience points in Ragnarok Online are indicated by % and base and job level are seperate.";
+		mes "When either reaches 100% it will be raised by one level,";
+		mes "this bar will then reset to 0% for the next level.";
+		next;
+		mes "[Edwin]";
+		mes "HP means your Health Points.";
+		mes "When it raches 0, you will faint and not be able to fight.";
+		mes "You can either return to your save point or wait until somebody revives you.";
+		mes "If you die on fields or dungeons,";
+		mes "you will receive a^4d4dff -1% EXP penalty^000000.";
+		mes "So be careful.";
+		next;
+		mes "[Edwin]";
+		mes "SP means your Spell Points.";
+		mes "when you become a 1st class,";
+		mes "you will learn unique skills of the class and then you will be able to use your SP.";
+		mes "Your skill instructor will teach you more about your skills.";
+		next;
+		mes "[Edwin]";
+		mes "If you want to check your weight limit,";
+		mes "you can check thr weight at the bottom left of the basic window.";
+		mes "It will show your current weight / your maximum weight limit.";
+		mes "?•?If your weight becomes over 50% of the maximum,";
+		mes "your HP and SP will not restore naturally.";
+		mes "So be carefull.";
+		next;
+		mes "[Edwin]";
+		mes "The numerical value next to the weight limit shows the current amount of money you have.";
+		mes "The currency used in the Rune-Midgard Kingdom is Zeny.";
+		next;
+		mes "[Edwin]";
+		mes "There are buttons at the right side of the window.";
+		mes "They are all part of the interface menu.";
+		mes "Click them one by one, check what you can do with them.";
+		mes "The shortcut key for minimising / maximizing the basic information window is 'Alt+V' refer to your information.";
+		break;
+	case 2:	mes "[Edwin]";
+		mes "You can open the party window by pressing the friend buttin on the basic infomation window,";
+		mes "or you can use 'Alt+Z' for it's shortcut.";
+		mes "You can check all members of your party with this window.";
+		next;
+		mes "[Edwin]";
+		mes "The founder of the party can determine the distribution of EXP and items to the party.";
+		mes "You can also see the location of your members on the mini-map.";
+		next;
+		mes "[Edwin]";
+		mes "On the party window, not only your party members but also your friends showup.";
+		mes "You can whisper them or delete them from your friends list.";
+		next;
+		mes "[Edwin]";
+		mes "You can learn about organizing a party from your skill instructor.";
+		mes "Oh, well, I guess it's best if you try it out on your own.";
+		break;
+	case 3:	mes "[Edwin]";
+		mes "The item window is divided into 3 sections.";
+		mes "Such as item, equip and etc.";
+		mes "Items is used for consumeable items.";
+		mes "Equip is for equipment items";
+		mes "Etc is for miscelanious items.";
+		next;
+		mes "[Edwin]";
+		mes "Your weight limit does limit the amount of items you can carry with you ans the limitation of the amount of an item.";
+		mes "In this case, you must use the Kafra storage.";
+		mes "Also, equipment and consumeable items can be set on the hotkey window.";
+		next;
+		mes "[Edwin]";
+		mes "You can open the Hotkey window by pressing F12, you can put items there from F1 to F9.";
+		mes "You can switch the hotkey windows by pressing the F12 key again.";
+		break;
+	case 4:	mes "[Edwin]";
+		mes "You can open the option window with the option button on the basic information window,";
+		mes "but you can use the 'Alt+O' command aswell.";
+		mes "You can adjust sound, skin and transparency of the skin through the option window.";
+		next;
+		mes "[Edwin]";
+		mes "With the sound button,";
+		mes "you can turn the background music on / off or turn the volume up or down.";
+		mes "With the effect button, you can adjust the sound effects volume.";
+		next;
+		mes "[Edwin]";
+		mes "With the skin option, you can change the menu skin.";
+		mes "Scroll up / down the list of skins you have, and choose a skin.";
+		mes "You can also download skins from our website.";
+		next;
+		mes "[Edwin]";
+		mes "The snap option allows your mouse cursor to automatically move to a nearby target.";
+		mes "When you click to attack,";
+		mes "the cursor of the mouse will automatically change into a sword.";
+		mes "Skill and item targeting also work with the snap option.";
+		next;
+		mes "[Edwin]";
+		mes "It could be usefull or annoying if you're not used to it";
+		mes "Well... once you get used to it,";
+		mes "you will be able to adjust your own snap options.";
+		next;
+		mes "[Edwin]";
+		mes "Well, it all depends on your experience.";
+		mes "That's all there is for the option window.";
+		break;
+	case 5:	mes "[Edwin]";
+		mes "Click the equip button on your basic window or press 'Alt+Q'.";
+		mes "You will see the items that your character has equiped now.";
+		next;
+		mes "[Edwin]";
+		mes "For starters, every character starts with a kife and a cotton shirt.";
+		mes "There are 2 ways of changing your equipment.";
+		mes "Double click equipment in the item window or drag an item to the equipment window.";
+		next;
+		mes "[Edwin]";
+		mes "You can also switch your equipment by placing them on the F12 hotkey bar.";
+		mes "You will understand this when you try it on your own.";
+		break;
+	case 6:	mes "[Edwin]";
+		mes "Feel free to ask me anytime.";
+		close;
+	}
+	goto L_loop;
+}
+
+new_1-2.gat,182,182,4	script	Status Assistant	754,{
+	mes "[Jarre Riotte]";
+	mes "Welcome new adventurer.";
+	mes "I, Jarre Riotte will help you learn about the fundamental rules of your characters status.";
+	next;
+	mes "[Jarre Riotte]";
+	mes "I am willing to help you learn more about the statuses more then anything else,";
+	mes "so feel free to ask me about the character abilities you're wondering about.";
+	next;
+	mes "[Jarre Riotte]";
+	mes "By the way...";
+	mes "It is called 'Status'.";
+	mes "STR stands for Strength, AGI stansds for Agility.";
+	mes "VIT stand for Vitality, INT stands for Intelligence.";
+	mes "DEX stands for Dexterity, LUK stands for Luck.";
+L_loop:
+	next;
+	switch( select("Str and Agi.","Vit and Int.","Dex and Luk.","Cancel") ) {
+	case 1:	mes "[Jarre Riotte]";
+		mes "Let me explain Strength first.";
+		mes "";
+		mes "^4D4DFFFStrength(STR)^000000 increases ^4D4DFFFphysical attack damage(ATK)^000000 ";
+		mes "and your ^4D4DFFFmaximum weight limit^000000.";
+		mes "1 STR increases 1 physical attack damage,";
+		mes "also certain attack damage bonuses occur by increments of 10 STR.";
+		next;
+		mes "[Jarre Riotte]";
+		mes "For instance,";
+		mes "let's say your current strength is";
+		mes "48 + 1. ";
+		mes "Your original STR is 48, 1 at the ";
+		mes "end is a bonus status.";
+		mes "Out of total 49, when you double 4,";
+		mes "the head number of 49 by 4,";
+		mes "you will have 16 as the physical";
+		mes "attack damage bonus";
+		next;
+		mes "[Jarre Riotte]";
+		mes "Let's say you leveled up and now";
+		mes "your strength is 49+1.";
+		mes "Then your STR's total is 50,";
+		mes "the bonus on the physical attack";
+		mes "damage will be 25.";
+		mes "If your STR is 100, 10 the head";
+		mes "number of 100, times 10 will be a";
+		mes "100.";
+		next;
+		mes "[Jarre Riotte]";
+		mes "Ok, now let's move on to Agility.";
+		mes "Agility affects on ^4d4dffthe Flee Rate^000000";
+		mes "which allows you to avoid enemies'";
+		mes "attack and the characters ^4d4dffAttackSpeed^000000.";
+		next;
+		mes "[Jarre Riotte]";
+		mes "1 AGI increases 1 Flee Rate,";
+		mes "1 level increases 1 Flee Rate";
+		mes "as well.";
+		mes "Therefore, ^4d4dffFlee Rate equals AGI +^000000";
+		mes "^4d4dfflevel.^000000";
+		next;
+		mes "[Jarre Riotte]";
+		mes "Alright, I will give you an";
+		mes "example.";
+		mes "Let's say you're at level 40";
+		mes "possessing 40 AGI.";
+		mes "Following the Flee Rate formula,";
+		mes "your flee rate will be a total of";
+		mes "80.";
+		mes "The Flee Rate is divided into";
+		mes "normal Flee Rate + perfect dodge,";
+		mes "AGI is only involved with the";
+		mes "normal Flee Rate.";
+		next;
+		mes "[Jarre Riotte]";
+		mes "The perfect flee rate is related to";
+		mes "LUK status,";
+		mes "we will discuss about the status";
+		mes "later.";
+		mes "As your Attack Speed (ASPD) is";
+		mes "increased, the delay between one";
+		mes "attack and the next is reduced.";
+		mes "ASPD is the numerical value of the";
+		mes "increment and differs by job class.";
+		mes "Please remember that.";
+		break;
+	case 2:	mes "[Jarre Riotte]";
+		mes "Our next subject will be Vitality";
+		mes "(VIT) and Intelligence.";
+		mes "^4D4DFFVitality^000000 affects the ^4D4DFFMaximum HP, amount of HP restoration and defense.^000000";
+		mes "The amount of HP increased by 1 VIT";
+		mes "differs by job class,";
+		mes "the Swordsman class benefit the most";
+		mes "from VIT increment out of all";
+		mes "classes.";
+		next;
+		mes "[Jarre Riotte]";
+		mes "Let's check defenses.";
+		mes "On your stat window,";
+		mes "Defense will show as DEF. Defense";
+		mes "is shown as 2 different numerical";
+		mes "values,";
+		mes "How Vitality affects these values";
+		mes "is shown as the second number of";
+		mes "the two.";
+		next;
+		mes "[Jarre Riotte]";
+		mes "Now you must be wondering about the";
+		mes "first of the 2 numerical values.";
+		mes "The first one shows the defense";
+		mes "from your equipment and armour.";
+		next;
+		mes "[Jarre Riotte]";
+		mes "The defense increased by equipments";
+		mes "reduces the amount of damage";
+		mes "you're dealt from an enemy by a %";
+		mes "of the total damage and the defense";
+		mes "from VIT reduces the amount of";
+		mes "damage by number.";
+		next;
+		mes "[Jarre Riotte]";
+		mes "I guess you understood, didn't you?";
+		mes "The next subject is about";
+		mes "Intelligence (INT).";
+		mes "If you wish to major in some kind";
+		mes "of complicated work,";
+		mes "which requires you to be extremely";
+		mes "intelligence and knowledgeable,";
+		mes "I can recommend you to the";
+		mes "Schwicherbil Magic Academy.";
+		next;
+		mes "[Jarre Riotte]";
+		mes "Oh well, let's talk about INT.";
+		mes "INT affects the maximum amount of";
+		mes "^4D4DFFSP, SP restoration,^000000";
+		mes "the ^4D4DFFdamage of your magic attack^000000";
+		mes "^4d4dff(MATK)^000000 and your ^4D4DFFdefense against magic attack (MDEF)";
+		mes "The SP amount and MATK increased by";
+		mes "1 INT is dependent on job class,";
+		mes "just like VIT.";
+		next;
+		mes "[Jarre Riotte]";
+		mes "Just like normal DEF,";
+		mes "Your MDEF shows as 2 different ";
+		mes "numerical values,";
+		mes "what INT affects are shown on the";
+		mes "second value.";
+		next;
+		mes "[Jarre Riotte]";
+		mes "In order to study elements which";
+		mes "consist of this world";
+		mes "You must be intelligent enough and";
+		mes "must improve the knowledge.";
+		mes "So scholars like me or wizards,";
+		mes "place their priority into INT.";
+		break;
+	case 3:	mes "[Jarre Riotte]";
+		mes "Our last subject is Dexterity (DEX)";
+		mes "and Luck (LUK).";
+		mes "Ironically those 2 stats are";
+		mes "totally opposed to each other by";
+		mes "their means, you know.";
+		mes "Dexterity is result in your effort";
+		mes "to be accurate and Luck is result";
+		mes "in your pure luck.";
+		mes "Hahaha....";
+		mes "Oh, don't worry me, I am just ";
+		mes "talking to myself.";
+		mes "Now, shall we start?";
+		next;
+		mes "[Jarre Riotte]";
+		mes "Dexterity mainly affects your";
+		mes "accuracy,";
+		mes "attack speed (ASPD) and your average";
+		mes "attack strength.";
+		mes "Let me explain...";
+		mes "If you have low DEX, the difference";
+		mes "between the minimum damage and the";
+		mes "maximum damage becomes huge,";
+		mes "also the average damage is not stable.";
+		mes "That's why DEX is important.";
+		next;
+		mes "[Jarre Riotte]";
+		mes "Especially in the case of using";
+		mes "^4D4DFFbows^000000 as your main weapon,";
+		mes "attack strength is based on ^4D4DFFDEX^000000.";
+		mes "If you wish to become an archer,";
+		mes "please focus on DEX.";
+		mes "Also the accuracy is affected by";
+		mes "character level + Dex";
+		next;
+		mes "[Jarre Riotte]";
+		mes "Let's say you're at level 40";
+		mes "possessing 20 DEX,";
+		mes "your accuracy equals 40 + 20, so";
+		mes "60.";
+		mes "Also DEX reduces the casting time";
+		mes "of spells.";
+		mes "Now, let me explain about LUK.";
+		next;
+		mes "[Jarre Riotte]";
+		mes "LUK (Luck) affects the chance for a";
+		mes "critical attack,";
+		mes "the Flee Rate and a small amount of";
+		mes "damage you deal to monsters.";
+		mes "For critical attack,";
+		mes "the start value is 1 for everyone";
+		mes "and it's increased by ^4D4DFF1^000000";
+		mes "for every ^4D4DFF3 LUK.^000000";
+		next;
+		mes "[Jarre Riotte]";
+		mes "With more LUK, comes more chances";
+		mes "to do critical attacks to your";
+		mes "enemies.";
+		mes "A critical attack means an attack ";
+		mes "that pierces the defense of an";
+		mes "enemy.";
+		mes "A critical attack has a";
+		mes "distinguished damage effect as";
+		mes "well.";
+		next;
+		mes "[Jarre Riotte]";
+		mes "For every 10 LUK you get 1 point to";
+		mes "your perfect dodge, which is a kind";
+		mes "of Flee Rate.";
+		mes "When you perform a perfect dodge a";
+		mes "^FF7F00Lucky^000000 effect shows up on your head";
+		mes "and you will perfectly avoid an";
+		mes "attack from an enemy.";
+		next;
+		mes "[Jarre Riotte]";
+		mes "Well, I must, luck is a good";
+		mes "thing to have,";
+		mes "but that doesn't mean you need it";
+		mes "before everything else.";
+		mes "Do you have any other questions?";
+		break;
+	case 4:	mes "[Jarre Riotte]";
+		mes "I hope my class was helpful to you.";
+		mes "I really hope so.";
+		close;
+	}
+	goto L_loop;
+}
+
+new_1-2.gat,184,172,4	script	Skill Assistant	47,{
+	mes "[Pitch Judas]";
+	mes "Welcome. I have been waiting for";
+	mes "you for a long time!!";
+	mes "Oh look at this cute little ";
+	mes "novice!";
+	mes "I, Pitch, feel so responsible for";
+	mes "your performance,";
+	mes "I will be teaching you with my";
+	mes "best effort.";
+	emotion 30;
+L_loop:
+	next;
+	switch( select("Passive and Active Skills.","Passive, Basic Skills.","Use of Emoticons","Cancel") ) {
+	case 1:	mes "[Pitch Judas]";
+		mes "You have chosen the passive and";
+		mes "active skills.";
+		mes "I am explaining the passive skills";
+		mes "first, please pay attention.";
+		mes "First, could you open your skill";
+		mes "windows by pressing 'Alt+S'.";
+		next;
+		mes "[Pitch Judas]";
+		mes "Can you see an available skill in";
+		mes "Skill Tree window?";
+		mes "After you increase Basic Skill,";
+		mes "There will be 'Passive' on the";
+		mes "right";
+		mes "Now, to see Basic Skill's";
+		mes "description";
+		mes "Please, do right-click the icon.";
+		next;
+		mes "[Pitch Judas]";
+		mes "'Enable to apply to Basic Interface";
+		mes "Skills'";
+		mes "Do you see this sentence?";
+		mes "Every skill are really needed when";
+		mes "you play this game.";
+		mes "You must not spend your SP with";
+		mes "these skills.";
+		next;
+		mes "[Pitch Judas]";
+		mes "Briefly, passive skill means a";
+		mes "skill that does not consume SP to";
+		mes "be activated";
+		mes "Most of the time, those are the";
+		mes "most basic skills for a job class.";
+		next;
+		mes "[Pitch Judas]";
+		mes "On the contrary,";
+		mes "um! active skills means a skill that";
+		mes "requires SP to be activated.";
+		mes "Also you must use an active skill";
+		mes "manually by clicking its icon or";
+		mes "by registering it as short key";
+		mes "in order to activate it.";
+		mes "As you use an active skill, a";
+		mes "certain amount of SP will be spent";
+		mes "as much as the skill requires.";
+		mes "The Bash skill for Swordsman, Heal";
+		mes "for Acolytes, are active skills for";
+		mes "instance.";
+		next;
+		mes "[Pitch Judas]";
+		mes "If you did pay attention in your";
+		mes "Classes";
+		mes "you are supposed to have a skill,";
+		mes "which is 'First Aid'";
+		mes "Double-Click it to use it.";
+		mes "The skill will start with spending";
+		mes "SP";
+		next;
+		mes "[Pitch Judas]";
+		mes "For your understanding, I would";
+		mes "say,";
+		mes "most skills which are focused on";
+		mes "mental or physical training of the";
+		mes "job classes";
+		mes "are described as passive skills.";
+		mes "And skills which need its user to";
+		mes "activate them manually";
+		mes "by their needs are described as";
+		mes "active skills.";
+		mes "Do you understand?";
+		next;
+		mes "[Pitch Judas]";
+		mes "If you are still not sure about my";
+		mes "lesson";
+		mes "I am willing to go over it once";
+		mes "again.";
+		break;
+	case 2:	mes "[Pitch Judas]";
+		mes "The pure passive skills!";
+		mes "The starting skills of Ragnarok! 8";
+		mes "things you must be aware of to";
+		mes "play!";
+		mes "Our first subject is basic skills";
+		next;
+		mes "[Pitch Judas]";
+		mes "When you right click with your";
+		mes "mouse on your skill windows,";
+		mes "you can check the descriptions of";
+		mes "the skills.";
+		mes "However, for your better";
+		mes "understanding, I prepared this";
+		mes "lesson.";
+L_loop1:
+		next;
+		switch( select("Trade and Exchange","Organising & Joining party","Opening Chat room","Storage Use","No thanks, I know already.") ) {
+		case 1:	mes "[Pitch Judas]";
+			mes "When you go visit our official";
+			mes "website at ^4d4dffhttp://ragnarok.co.kr^000000,";
+			mes "you can find a full explanation";
+			mes "about trade and exchange with";
+			mes "pictures.";
+			mes "In order to trade items or zeny";
+			mes "with other people, you must learn";
+			mes "at least level 1 basic skill.";
+			next;
+			mes "[Pitch Judas]";
+			mes "For a trade,";
+			mes "the distance between you and the";
+			mes "other person is very important!";
+			mes "You must be very close to trade";
+			mes "with another and then right click";
+			mes "on the person, once.";
+			mes "That's very important, once.";
+			next;
+			mes "[Pitch Judas]";
+			mes "When you choose the ^800fffRequest a deal^000000";
+			mes "^800fffwith^000000 command, doing Right-Click.";
+			mes "it will show a trade request";
+			mes "windows with the person.";
+			mes "The actual trade windows will open";
+			mes "between you and the person at the";
+			mes "same time";
+			mes "after the person accepts your";
+			mes "offer.";
+			mes "If you are more than 2 cells away";
+			mes "from the person,";
+			mes "you cannot ask a trade. So, please";
+			mes "remember that.";
+			next;
+			mes "[Pitch Judas]";
+			mes "For item trade, you should click an";
+			mes "item and drag it to the left side";
+			mes "of the window.";
+			mes "For zeny trade, you can enter the";
+			mes "amount of zeny you want to trade.";
+			mes "After placing items or zeny into";
+			mes "the trade windows";
+			mes "you should press the 'OK' button on";
+			mes "the bottom of the windows.";
+			next;
+			mes "[Pitch Judas]";
+			mes "Of course, you must confirm the";
+			mes "trade of any items by clicking the";
+			mes "'OK' button";
+			mes "before you can complete the trade.";
+			next;
+			mes "[Pitch Judas]";
+			mes "After you confirm that the items";
+			mes "are the ones you want to trade,";
+			mes "press the 'Trade' button to finish";
+			mes "the trade.";
+			mes "If either of the traders do not";
+			mes "press the 'OK' button the trade";
+			mes "cannot be completed.";
+			mes "If either of the traders presses";
+			mes "the 'Cancel' button to the right of";
+			mes "the window,";
+			mes "the trade will be canceled.";
+			break;
+		case 2:	mes "[Pitch Judas]";
+			mes "Now, let me explain to you about";
+			mes "the party system.";
+			mes "Party system allows you to organise";
+			mes "a small group with people";
+			mes "in order to assist you in hunting";
+			mes "aggressive monsters together";
+			mes "or to have fun together.";
+			next;
+			mes "[Pitch Judas]";
+			mes "You can organise a party by";
+			mes "pressing the friend button";
+			mes "on the basic information windows or";
+			mes "by typing a command:";
+			mes "on your chat windows.";
+			mes "Of course, you must be ^4d4dffat least^000000";
+			mes "^4d4dffbasic level 7 or above^000000 for using";
+			mes "this party system.";
+			next;
+			mes "[Pitch Judas]";
+			mes "I could explain more about the";
+			mes "distribution of items or";
+			mes "the distribution of experience";
+			mes "which party members have gained";
+			mes "together,";
+			mes "but I wish you could try on your";
+			mes "own later.";
+			mes "I really want to be in a party with";
+			mes "you and help you to level up...";
+			next;
+			mes "[Pitch Judas]";
+			mes "It will be unfair to other";
+			mes "novices,";
+			mes "you know... Joining a party is";
+			mes "possible by accepting an offer from";
+			mes "a party master.";
+			mes "There is no level requirement for";
+			mes "joining a party.";
+			next;
+			mes "[Pitch Judas]";
+			mes "That's all for the party system.";
+			mes "..........by the way, could you";
+			mes "tell me how to look so cute like";
+			mes "you?";
+			mes "I wish I could look cute as you";
+			mes "do.......";
+			mes "Anyhow, I really thank to God.";
+			mes "Let's shout";
+			mes "'Praise the Creator!'";
+			emotion 30;
+			break;
+		case 3:	mes "[Pitch Judas]";
+			mes "You can ^4d4dffopen a chat room^000000";
+			mes "with ^4d4dffbasic skill level 4 or above.^000000";
+			mes "You can use the chat button on the";
+			mes "basic information windows";
+			mes "or by pressing 'Alt+C'";
+			next;
+			mes "[Pitch Judas]";
+			mes "Once you open a chat room,";
+			mes "you could check chat room member's";
+			mes "information by right clicking on a";
+			mes "character name.";
+			mes "Also you can register the character";
+			mes "as your friend through the same";
+			mes "way.";
+			mes "If you are the master of the room,";
+			mes "you can change the room setup.";
+			next;
+			mes "[Pitch Judas]";
+			mes "While in the chatting room, you";
+			mes "cannot hear any chat outside of the";
+			mes "chat room.";
+			mes "Please remember that.";
+			mes "...if you have some time,";
+			mes "I can spare some of my time for you";
+			mes "to open our own chat room on a boat";
+			mes "in Al De Baran";
+			mes "..... but I am an NPC.";
+			next;
+			mes "[Pitch Judas]";
+			mes "... ... ....I see.... ...";
+			mes "... ... .... Hmm";
+			mes "I know I hang out with you because";
+			mes "I am an NPC.";
+			mes "But it's ok. Don't worry about";
+			mes "me.";
+			mes "I am happy enough for now.";
+			break;
+		case 4:	mes "[Pitch Judas]";
+			mes "All throughout the Rune-Midgard's";
+			mes "kingdom territory there is a huge";
+			mes "trading center named Kafra,";
+			mes "which provides many convenience";
+			mes "services to adventurers";
+			mes "such as personal storage service.";
+			mes "An NPC at the right side of this";
+			mes "hall,";
+			mes "is one of the Kafra employees.";
+			next;
+			mes "[Pitch Judas]";
+			mes "You are allowed to use your";
+			mes "^4d4dffpersonal Kafra storage^000000";
+			mes "at ^4d4dffbasic skill 6 or above.^000000";
+			mes "If you haven't listened to the";
+			mes "Kafra Employee for the services";
+			mes "they're providing to adventurers,";
+			mes "please do.";
+			next;
+			mes "[Pitch Judas]";
+			mes "When you carry too much items at";
+			mes "once,";
+			mes "you cannot attack or recover";
+			mes "yourself.";
+			mes "so I recommend you to have some";
+			mes "available space";
+			mes "and you use Storage, which is Kafra";
+			mes "Service.";
+			break;
+		case 5:	mes "[Pitch Judas]";
+			mes "Oh, do you? you're as smart as much";
+			mes "as you are cute!";
+			mes "I, Pitch am very impressed with";
+			mes "you.";
+			mes "Our official website has many";
+			mes "resources, doesn't it?";
+			next;
+			mes "[Pitch Judas]";
+			mes "Do you wish to learn about a different subject?";
+		}
+		if ( @menu != 5 ) goto L_loop1;
+		break;
+	case 3:	mes "[Pitch Judas]";
+		mes "^4d4dffEmoticons^000000 are commonly used online";
+		mes "for ^4d4dffdisplaying your feelings^000000 and";
+		mes "better communication between ";
+		mes "people.";
+		mes "However, in Ragnarok,";
+		mes "there is a requirement for using";
+		mes "emoticons.";
+		mes "You must be at least ^4d4dffbasic skill^000000";
+		mes "^4d4dfflevel 2 or above^000000 in order to use ";
+		mes "emoticons";
+		next;
+		mes "[Pitch Judas]";
+		mes "You can check emoticons you have";
+		mes "registered as shortcut keys and";
+		mes "the list of available emoticons by";
+		mes "pressing 'Alt+L' and 'Alt+M'.";
+		mes "Oh yes,";
+		mes "this is also fully explained on our";
+		mes "official website as well.";
+		next;
+		mes "[Pitch Judas]";
+		mes "Ah! I must say,";
+		mes "the honest expression of one's";
+		mes "feelings is essential for a";
+		mes "relationship.";
+		mes "Yes, I agree with your point of";
+		mes "view that too much touchy-feely";
+		mes "could be a problem!";
+		mes "However, sice the chatting is the";
+		mes "only way of expressing oneself to";
+		mes "others online,";
+		mes "emoticons are much more helpful to";
+		mes "display your emotions.";
+		next;
+		mes "[Pitch Judas]";
+		mes "Oh well, so what I was saying is,";
+		mes "you can directly use emoticons by";
+		mes "registering them on your shortcut";
+		mes "keys with the 'Alt+M'";
+		mes "or you can type a command for an";
+		mes "emoticon on your chat windows such";
+		mes "as ^4d4dff/heh^000000";
+		mes "You can play rock, scissors and";
+		mes "paper";
+		mes "by pressing ^4d4dffCTRL^000000 and ^4d4dff-^000000, ^4d4dff=^000000 and ^4d4dff\^000000";
+		mes "key.";
+		next;
+		mes "[Pitch Judas]";
+		mes "Of course you can type ^4d4dff/gawi^000000,";
+		mes "^4d4dffbawi^00000 and ^4d4dff/bo^000000";
+		mes "which mean rock, scissors and paper";
+		mes "in Korean on your chat windows.";
+		mes "There are many new emoticons which";
+		mes "have been newly added,";
+		mes "please check all new emoticon";
+		mes "commands by typing ^4d4dff/emotion^000000 on your";
+		mes "chat windows.";
+		mes "............HuHu";
+		emotion 3;
+		break;
+	case 4:	mes "[Pitch Judas]";
+		mes "Don't you need anything else?";
+		mes "I hope you are healthy.";
+		close;
+	}
+	goto L_loop;
+}
+
+//Potato Merchant
+new_1-2.gat,28,185,4	shop	Potato Merchant	90,516:15
+
+new_1-2.gat,38,182,4	script	Helper	92,{
+	if (!(NEW_MES_FLAG5)) {
+		if (!(NEW_MES_FLAG4)) {
+			mes "[Kane]";
+			mes "Do you want to battle without";
+			mes "knowing the basic knowledge?";
+			mes "Go meet the helper right next to";
+			mes "me, and listen to him first.";
+			close;
+		} else {
+			mes "[Kane]";
+			mes "The 2nd course is for Monster hunting,";
+			mes "you can use what you've learned in";
+			mes "the Practical Course.";
+			next;
+			mes "[Kane]";
+			mes "I hope you fight well with monsters,";
+			mes "based on what you know.";
+			next;
+			mes "[Kane]";
+			mes "You don't need to feel the burden, I";
+			mes "just want you to enjoy the experience";
+			mes "of being engaged in battle.";
+			next;
+			mes "[Kane]";
+			mes "If you want to get out of the 2nd";
+			mes "course, talk to the helper who is in";
+			mes "the North section of the field.";
+			mes "Now then, do you want to try?";
+			next;
+			if ( select("Yes","I want to learn more.") == 1 ) {
+				mes "[Kane]";
+				mes "Just feel free to fight.";
+				mes "These will help you if you have";
+				mes "an emergency.";
+				mes "I will give you a weapon and";
+				mes "guard.";
+				set NEW_MES_FLAG5,1;
+				getitem 602,1;
+				getitem 601,9;
+				getitem 1243,1;
+				getitem 2112,1;
+				getitem 611,2;
+				getitem 569,300;
+				close2;
+				savepoint "new_1-2.gat",24,188;
+				warp "new_1-3.gat",96,21;
+				end;
+			} else {
+				mes "[Kane]";
+				mes "Then, you can talk to our";
+				mes "instructor to the left and learn";
+				mes "more. When you are ready, please";
+				mes "come back again.";
+				close;
+			}
+		}
+	}
+	mes "[Kane]";
+	mes "I told you that you have to be";
+	mes "careful.";
+	mes "But as you know 'A failure can";
+	mes "become a stepping stone to";
+	mes "success'";
+	next;
+	mes "[Kane]";
+	mes "Do you want to try again?";
+	next;
+	if ( select("Yes","No, I want to prepare more.") == 1 ) {
+		if (!(NEW_LVUP1)) {
+			mes "[Kane]";
+			mes "Then, I will give you some additional help.";
+			mes "Please be careful.";
+				set NEW_LVUP1,1;
+				set BaseExp,BaseExp+NextBaseExp;
+				getitem 569,50;
+		} else {
+			mes "[Kane]";
+			mes "Then, I will give you some additional help.";
+			mes "Please be careful.";
+			percentheal 100,100;
+		}
+		close2;
+		switch ( rand(3) ) {
+		case 0:	warp "new_1-3.gat",96,21; break;
+		case 1:	warp "new_2-3.gat",96,21; break;
+		case 2:	warp "new_3-3.gat",96,21;
+		}
+		end;
+	} else {
+		mes "[Kane]";
+		mes "Then, why don't you talk to the";
+		mes "helper who is next to me?";
+		mes "When you are ready, please come";
+		mes "back again.";
+		close;
+	}
+}
+
+new_1-2.gat,17,182,6	script	Helper	84,{
+	if (!(NEW_MES_FLAG4)) {
+		mes "[Elmeen]";
+		mes "Congratulations!";
+		mes "You have passed the 1st training";
+		mes "course! Wow~ I guess now you";
+		mes "understand a little bit more about";
+		mes "Ragnarok Online.";
+		next;
+		mes "[Elmeen]";
+		mes "You will learn the fundamentals of";
+		mes "actual battle through this class.";
+		mes "If you did your best throught the";
+		mes "Informative class, you are supposed";
+		mes "to have been given some starting";
+		mes "equipment.";
+		next;
+		mes "[Elmeen]";
+		mes "Please check your";
+		mes "equipment before you engage in";
+		mes "battle. Are you sure you've";
+		mes "equipped all of your equipment,";
+		mes "your weapons and armor?";
+		next;
+		if ( select("Yes","No") == 1 ) {
+			callsub L_battle;
+			next;
+			mes "[Elmeen]";
+			mes "Do you understand these battle commands?";
+			mes "Now, I will teach you about monster";
+			mes "behaviors and properties, experience";
+			mes "gained through battle, and items you";
+			mes "can earn from dead monsters.";
+			next;
+			mes "[Elmeen]";
+			mes "Field Combat Training can be";
+			mes "actually pretty dangerous for";
+			mes "new adventurers. Let me give you";
+			mes "a little more strenght through the";
+			mes "power of my magic.";
+			next;
+			mes "[Elmeen]";
+			mes "Haaaaaaa~!";
+			set NEW_MES_FLAG4,1;
+			set BaseExp,BaseExp+NextBaseExp;
+			next;
+			mes "[Elmeen]";
+			mes "Which subject";
+			mes "should I cover";
+			mes "first for you?";
+		L_loop:
+			next;
+			switch( select("Monster","EXP","Items","Cancel") ) {
+			case 1:	callsub L_monster;
+				break;
+			case 2:	callsub L_exp;
+				break;
+			case 3:	callsub L_item;
+				break;
+			case 4:	mes "[Elmeen]";
+				mes "Feel free to ask me if you have any questions.";
+				close;
+			}
+			goto L_loop;
+		} else {
+			callsub L_equip;
+			close;
+		}
+	}
+	mes "[Elmeen]";
+	mes "Oh, do you want to listen again?";
+	mes "Which one do you want to know?";
+L_loop1:
+	next;
+	switch( select("Monster","EXP","Items","Basic info on Monster Hunting","Cancel") ) {
+	case 1:	callsub L_monster;
+		break;
+	case 2:	callsub L_exp;
+		break;
+	case 3:	callsub L_item;
+		break;
+	case 4:	callsub L_battle;
+		break;
+	case 5:	callsub L_equip;
+		close;
+	}
+	goto L_loop1;
+	end;
+L_battle:
+	mes "[Elmeen]";
+	mes "First, you place the cursor on a";
+	mes "monster. When you left click, you";
+	mes "will hit the monster once.";
+	next;
+	mes "[Elmeen]";
+	mes "If you are too lazy to keep left";
+	mes "clicking, left click on the monster";
+	mes "while holding the ^4D4DFF'CTRL'^000000 key. You";
+	mes "will then continue attacking the";
+	mes "monster until one of you is dead,";
+	mes "or you run away.";
+	next;
+	mes "[Elmeen]";
+	mes "You can also just hold down the";
+	mes "left mouse button while the cursor";
+	mes "is on the monster. Still, there are";
+	mes "some people who are even too lazy";
+	mes "to use the ^4D4DFF'Ctrl'^000000 key every time";
+	mes "they attack a monster.";
+	next;
+	mes "[Elmeen]";
+	mes "If you're one of them, type the";
+	mes "comman ^E79E29/nc^000000 in your Chat Window.";
+	mes "Then, when you left click";
+	mes "a monster, you'll just continuously";
+	mes "attack it!"; 
+	next;
+	mes "[Elmeen]";
+	mes "If a monster happens to have the";
+	mes "Undead property, you can use the";
+	mes "'Heal' skill to attack if you";
+	mes "happen to have it.";
+	next;
+	mes "[Elmeen]";
+	mes "When you use the Heal skill while";
+	mes "holding down the ^4D4DFF'Shift'^000000 key, you";
+	mes "can target the monster with the";
+	mes "Heal skill to damage it.";
+	next;
+	mes "[Elmeen]";
+	mes "Of course for this skill, we do";
+	mes "have a very convenient option for";
+	mes "lazy people too.";
+	mes "Type the command ^E79E29/ns^000000 in your Chat";
+	mes "Window.";
+	next;
+	mes "[Elmeen]";
+	mes "This will allow you to attack";
+	mes "monsters by using the heal skill";
+	mes "without holding the shift key.";
+	mes "Handy, huh?";
+	return;
+L_monster:
+	mes "[Elmeen]";
+	mes "There are many aggressive monsters.";
+	mes "They will attack you, before you're";
+	mes "even close to them.";
+	mes "Also there are few monsters";
+	mes "that are very cooperative with their";
+	mes "tribe. If you attack one of them,";
+	mes "others will come after you for";
+	mes "revenge.";
+	next;
+	mes "[Elmeen]";
+	mes "Every monster are specified with";
+	mes "their types, sizes and properties.";
+	mes "For instance, monster types are ";
+	mes "include: demi-human, brute, immortal";
+	mes "or devil";
+	mes "Once you acknowledge which type a";
+	mes "monster is, you will be able to ";
+	mes "lead an easy battle.";
+	next;
+	mes "[Elmeen]";
+	mes "Also, if you can have some cards";
+	mes "for your weapons which increases";
+	mes "the damage upon certain monster";
+	mes "types,";
+	mes "or cards for your armours which";
+	mes "reduces the damage taken, it will";
+	mes "be much easier for you to battle";
+	mes "against monsters.";
+	next;
+	mes "[Elmeen]";
+	mes "Monsters are seperated by their";
+	mes "sizes such as small, medium and";
+	mes "large.";
+	mes "There are a few cards that allows";
+	mes "you";
+	mes "to do more damage followed by the";
+	mes "monster size.";
+	next;
+	mes "[Elmeen]";
+	mes "Also every weapon have their";
+	mes "strengths and weaknesses. Size of the";
+	mes "weapon affects on the damage of the ";
+	mes "weapon dealth with monsters.";
+	mes "For instance, dagger class weapons";
+	mes "do 100% damage on the small sized";
+	mes "mosnters but they only do 50% on";
+	mes "the large monsters.";
+	next;
+	mes "[Elmeen]";
+	mes "For the monster property, there are";
+	mes "water, wind, earth, fire, shadow";
+	mes "ghost and holy.";
+	mes "If you attack a monster with the";
+	mes "opposite property of it, you can do";
+	mes "more damages than the damage you";
+	mes "normally do.";
+	next;
+	mes "[Elmeen]";
+	mes "Also, if you attack a monster with";
+	mes "the same property of the monster,";
+	mes "the damage will be significantly";
+	mes "reduced or you will do no damage at";
+	mes "all, also there is a possibility ";
+	mes "that you will heal the monster.";
+	mes "For instance, in case of a ghost";
+	mes "property monster, normal weapons";
+	mes "cannot do any damage on the";
+	mes "monster, but weapons with property";
+	mes "can.";
+	return;
+L_exp:
+	mes "[Elmeen]";
+	mes "Basically, a character who deals";
+	mes "the most damage on a monster";
+	mes "receives the most experience points";
+	mes "from the monster.";
+	mes "Therefore you receive a certain %";
+	mes "of experience points in proportion";
+	mes "to the damage you've done on the HP";
+	mes "amount of a monster.";
+	next;
+	mes "[Elmeen]";
+	mes "Let's say, there is a character";
+	mes "name 'Z'. Z does 65 damage on a ";
+	mes "monster that possess 100 HP and";
+	mes "gives 1000 experience points when";
+	mes "it's dead. Then, the expereicen";
+	mes "points Z receives from the monster";
+	mes "will be '650'.";
+	mes "This is how you gain the experience";
+	mes "points.";
+	next;
+	mes "[Elmeen]";
+	mes "However, this rule applies";
+	mes "differently following certain";
+	mes "situations.";
+	mes "If there are two people who did the ";
+	mes "same 65 damage on one monster, the";
+	mes "experience points that each one of";
+	mes "them receives from the monster";
+	mes "beco	mes different, affected by";
+	mes "remaining HP amount of the";
+	mes "monster.";
+	mes "For instance, somebody ";
+	mes "does damage on a monster while";
+	mes "you're hitting it and he did the";
+	mes "same amount of damage you did.";
+	mes "Then, you will receive 2/3 of the";
+	mes "whole experience points that";
+	mes "monster can give you, the other one";
+	mes "will receive 1/3.";
+	next;
+	mes "[Elmeen]";
+	mes "However, attacking a monster that";
+	mes "somebody already started to hit is";
+	mes "not suggested in Ragnarok Online.";
+	mes "That action is regarded as an ";
+	mes "ill-mannered behaviour. For party";
+	mes "play, the master can set up";
+	mes "the experience distribution to the";
+	mes "equally share option.";
+	mes "With this method, party members can ";
+	mes "share their experience followed by ";
+	mes "their character level and numbers";
+	mes "of the party.";
+	next;
+	mes "[Elmeen]";
+	mes "Also there is an experience";
+	mes "benefit for party play which allows";
+	mes "you to gain more experience points";
+	mes "than playing solo,";
+	mes "you can take advantage of the";
+	mes "system for faster leveling.";
+	return;
+L_item:
+	mes "[Elmeen]";
+	mes "When you kill monsters, you can";
+	mes "obtain items by chance. Besides,";
+	mes "certain characters can use the";
+	mes "'Steal' skill in order to steal";
+	mes "items from monsters.";
+	next;
+	mes "[Elmeen]";
+	mes "Don't you worry about the steal";
+	mes "skill causing you to not find any";
+	mes "items after you kill them. The";
+	mes "steal skill works on the item drop";
+	mes "rate independently from the normal";
+	mes "rate.";
+	mes "In case you kill a mosnter with ";
+	mes "other people, a person who did the";
+	mes "most damage has a prior rights to";
+	mes "obtain items.";
+	return;
+L_equip:
+	mes "[Elmeen]";
+	mes "Please take care of the equipment";
+	mes "you've received through the";
+	mes "training courses. Once you lose the";
+	mes "equipment, you can never get them";
+	mes "back.";
+	return;
+}
+
+//Training Center Employee functions
+function	script	training_personnel	{
+	mes "[Hoffman]";
+	mes "Hey there~";
+	mes "I'm here to provide";
+	mes "you with a little instruction";
+	next;
+	mes "[Hoffman]";
+	mes "These monsters are all weak";
+	mes "and easy to kill. But be careful,";
+	mes "a lot of them are aggressive";
+	mes "and out for blood!";
+	next;
+	mes "[Hoffman]";
+	mes "If you think monsters here are too";
+	mes "weak for you, I can send you to";
+	mes "another taining ground where the";
+	mes "monsters are stronger than the ones";
+	mes "over here.";
+	next;
+	mes "[Hoffman]";
+	mes "But don't worry so much,";
+	mes "They're not impossible for";
+	mes "Novices. So would you";
+	mes "like to try?";
+	next;
+	return;
+}
+function	script	training_personnel0	{
+	mes "[Hoffman]";
+	mes "Hmmm...?";
+	mes "Are you worried about going";
+	mes "to more challenging places? That's";
+	mes "understandable, since you're still";
+	mes "a new adventurer. Good luck~";
+	close;
+	return;
+}
+function	script	training_personnel1	{
+	mes "[Hoffman]";
+	mes "Hmmm...?";
+	mes "Are you worried about going";
+	mes "to more challenging places? That's";
+	mes "understandable, since you're still";
+	mes "a new adventurer. Good luck~";	
+	close2;
+	warp "new_1-3.gat",96,21;
+	return;
+}
+function	script	training_personnel2	{
+	mes "[Hoffman]";
+	mes "Hmmm...?";
+	mes "Are you worried about going";
+	mes "to more challenging places? That's";
+	mes "understandable, since you're still";
+	mes "a new adventurer. Good luck~";
+	close2;
+	warp "new_" + rand(2,3) + "-3.gat",96,21;
+	return;
+}
+function	script	training_personnel3	{
+	mes "[Hoffman]";
+	mes "You must like";
+	mes "rough challenges,";
+	mes "don't you? Please";
+	mes "be careful, it can get";
+	mes "pretty difficult...";
+	close2;
+	warp "new_" + rand(4,5) + "-3.gat",96,21;
+	return;
+}
+
+new_1-3.gat,95,30,4	script	Training Center Employee	84,{
+	callfunc "training_personnel";
+	switch( select("I don't want a challenge~","I wanna fight tough monsters!","Cancel.") ) {
+	case 1:	callfunc "training_personnel2"; break;
+	case 2:	callfunc "training_personnel3"; break;
+	case 3:	callfunc "training_personnel0";
+	}
+}
+new_2-3.gat,95,30,4	script	Training Center Employee	84,{
+	callfunc "training_personnel";
+	switch( select("I don't want a challenge~","I wanna fight tough monsters!","Cancel.") ) {
+	case 1:	callfunc "training_personnel1"; break;
+	case 2:	callfunc "training_personnel3"; break;
+	case 3:	callfunc "training_personnel0";
+	}
+}
+new_3-3.gat,95,30,4	script	Training Center Employee	84,{
+	callfunc "training_personnel";
+	switch( select("I don't want a challenge~","I wanna fight tough monsters!","Cancel.") ) {
+	case 1:	callfunc "training_personnel1"; break;
+	case 2:	callfunc "training_personnel3"; break;
+	case 3:	callfunc "training_personnel0";
+	}
+}
+new_4-3.gat,95,30,4	script	Training Center Employee	84,{
+	callfunc "training_personnel";
+	switch( select("I don't want a challenge~","I wanna fight tough monsters!","Cancel.") ) {
+	case 1:	callfunc "training_personnel1"; break;
+	case 2:	callfunc "training_personnel2"; break;
+	case 3:	callfunc "training_personnel0";
+	}
+}
+new_5-3.gat,95,30,4	script	Training Center Employee	84,{
+	callfunc "training_personnel";
+	switch( select("I don't want a challenge~","I wanna fight tough monsters!","Cancel.") ) {
+	case 1:	callfunc "training_personnel1"; break;
+	case 2:	callfunc "training_personnel2"; break;
+	case 3:	callfunc "training_personnel0";
+	}
+}
+
+-	script	supervision	85,{
+	mes "[Keyman]";
+	mes "Hmmm!";
+	mes "You have practised a lot, would you like to go on with further training?";
+	next;
+	menu "Yes",L1,"No",L2;
+L1:		mes "[Keyman]";
+		mes "Don't forget about everything you've learnt here. Have a nice trip.";
+		next;
+		warp "new_1-4.gat",99,10;
+		close2;
+		warp "new_1-4.gat",99,10;
+		end;
+L2:		mes "[Keyman]";
+		mes "So you want to stay here longer? Continue training, and train hard!";
+		close;
+}
+new_1-3.gat,96,174,4	duplicate(supervision)	Petugas Pemeriksa	85
+new_2-3.gat,96,174,4	duplicate(supervision)	Petugas Pemeriksa	85
+new_3-3.gat,96,174,4	duplicate(supervision)	Petugas Pemeriksa	85
+new_4-3.gat,96,174,4	duplicate(supervision)	Petugas Pemeriksa	85
+new_5-3.gat,96,174,4	duplicate(supervision)	Petugas Pemeriksa	85
+
+//Novice Instructor
+new_1-4.gat,91,22,4	script	Novice Instructor	57,{
+	mes "[Bruce]";
+	mes "You have come from far away.";
+	mes "Thank you for coming here";
+	if(Sex == 1) goto L_FEMALE;
+	mes "Mr '"+strcharinfo(0)+"'";
+	goto L_CONT;
+L_FEMALE:
+	mes "Ms '"+strcharinfo(0)+"'";
+L_CONT:
+	mes "It's nice to meet you.";
+	mes "My name is Bruce, and I come";
+	mes "from Rune-Midgard.";
+	next;
+	mes "[Bruce]";
+	mes "My work is to help Novices";
+	mes "to choose their jobs.";
+	mes "So, I will briefly explain each";
+	mes "job.";
+	next;
+	mes "[Bruce]";
+	mes "I will explain the following jobs:";
+	mes "^0000FFSwordsman, Mage, Archer, Merchant, Thief and Acolyte.^000000";
+	next;
+	mes "[Bruce]";
+	mes "Which job do you want to hear about?";
+L_loop:
+	next;
+	switch( select("Swordman","Mage","Archer","Merchant","Thief","Acolyte","End Conversation") ) {
+	case 1:	mes "[Bruce]";
+		mes "Literally, Swordsman means one who";
+		mes "specialises in wielding swords.";
+		mes "Swordsman can also choose to use";
+		mes "spears, but I must say, it is a rare";
+		mes "occurance.";
+		next;
+		mes "[Bruce]";
+		mes "Swordsman posses strong physical";
+		mes "strength.";
+		mes "This is so they can equip heavy armours";
+		mes "and weapons.";
+		mes "Most weapon classes, except for";
+		mes "bows and rods, are equipable by the";
+		mes "Swordsman class.";
+		next;
+		mes "[Bruce]";
+		mes "The only weakness of the Swordman";
+		mes "class is that they cannot use";
+		mes "magic spells.";
+		mes "However, it is compensated for";
+		mes "by using elemental weapons.";
+		next;
+		mes "[Bruce]";
+		mes "The benefits of being a Swordsman";
+		mes "is the enormous amount of HP.";
+		mes "You can bear the damage from your";
+		mes "enemy with ease.";
+		next;
+		mes "[Bruce]";
+		mes "Furthermore, once you learn your";
+		mes "strong attack skills, there is no";
+		mes "one that can beat the Swordsman";
+		mes "class in a melee fight.";
+		next;
+		mes "[Bruce]";
+		mes "In Ragnarok Online,";
+		mes "Swordsman takes the position of";
+		mes "tanker, to protect weaker classes";
+		mes "from being attacked or hurt.";
+		mes "Swordsman is the ideal character for";
+		mes "the party leader position";
+		next;
+		mes "[Bruce]";
+		mes "Swordsman can advance into the";
+		mes "^FF0000Knight, or Crusader^000000 classes";
+		mes "for their 2nd class profession.";
+		break;
+	case 2:	mes "[Bruce]";
+		mes "The mage class specialises in";
+		mes "manipulating: fire, water, earth";
+		mes "and lightening, to damage their";
+		mes "enemies.";
+		next;
+		mes "[Bruce]";
+		mes "However, due to their physical";
+		mes "weakness, they are only allowed";
+		mes "to equip rods and knives as";
+		mes "weapons, and light armours for";
+		mes "defense";
+		next;
+		mes "[Bruce]";
+		mes "Despite their physical weakness,";
+		mes "they are able to do massive damage";
+		mes "with their powerful spells.";
+		mes "This fact alone attracts many";
+		mes "people to this class";
+		next;
+		mes "[Bruce]";
+		mes "In Ragnarok Online,";
+		mes "the Mage is considered as the";
+		mes "damage dealer of the party";
+		next;
+		mes "[Bruce]";
+		mes "Mage can advance into a";
+		mes "^FF0000Wizard^000000 or ^FF0000Sage^000000";
+		mes "as their 2nd class profession.";
+		break;
+	case 3:	mes "[Bruce]";
+		mes "Archer class specialises in";
+		mes "using bows. In a party, archers are";
+		mes "in charge of long range attacks.";
+		mes "This allows them to attack,";
+		mes "and kill monsters from a safe distance";
+		next;
+		mes "[Bruce]";
+		mes "Archers are physically weak,";
+		mes "however, they possess a high";
+		mes "level of accuracy with powerful";
+		mes "long range bows.";
+		next;
+		mes "[Bruce]";
+		mes "Every Archer may advance into";
+		mes "the ^FF0000Hunter^000000 class.";
+		mes "Alternatively, male archers may";
+		mes "advance into the ^FF0000Bard^000000,";
+		mes "and female Archers may become a";
+		mes "^FF0000Dancer^000000, as their 2nd class profession";
+		break;
+	case 4:	mes "[Bruce]";
+		mes "The Merchant class specialises in";
+		mes "commerce. Due to their strong and";
+		mes "influential guild, Merchants can";
+		mes "buy and sell to NPCs for a better";
+		mes "price than other classes.";
+		next;
+		mes "[Bruce]";
+		mes "In Ragnarok Online, the Merchant";
+		mes "class possess various economically";
+		mes "beneficial skills.";
+		mes "They may buy items at a discount";
+		mes "from NPCs, and sell items to NPCs";
+		mes "at a higher price than normal.";
+		next;
+		mes "[Bruce]";
+		mes "In addition Merchants may rent a";
+		mes "cart that greatly expands their";
+		mes "carrying capacity, and allows";
+		mes "them to open shops with their";
+		mes "own items and prices.";
+		next;
+		mes "[Bruce]";
+		mes "Merchant can advance into a";
+		mes "^FF0000Blacksmith^000000 or ^FF0000Alchemist^000000";
+		mes "as their 2nd class profession.";
+		break;
+	case 5:	mes "[Bruce]";
+		mes "The Thief class are experts at using";
+		mes "dagger class weapons as their main";
+		mes "weapon. They attack fast, and they";
+		mes "can dodge attacks from enemies with ease.";
+		next;
+		mes "[Bruce]";
+		mes "The Thief is also an expert at";
+		mes "hiding and stealing from their";
+		mes "enemies. Furthermore, their use";
+		mes "of poison to weaken their foes";
+		mes "is a feared trait of this class.";
+		next;
+		mes "[Bruce]";
+		mes "When you are in a dangerous";
+		mes "situation, or you want to hide";
+		mes "your body, you can use a skill";
+		mes "to dig into the ground.";
+		next;
+		mes "[Bruce]";
+		mes "Thief can advance into either";
+		mes "^FF0000Assassin^000000, or ^FF0000Rogue^000000";
+		mes "as the 2nd class profession.";
+		break;
+	case 6:	mes "[Bruce]";
+		mes "The Acolyte is God's messenger to";
+		mes "Rune-Midgard. Acolytes have";
+		mes "skills that makes all classes";
+		mes "more potent in battle, as well as";
+		mes "the life saving heal ability.";
+		next;
+		mes "[Bruce]";
+		mes "The Acolyte's support abilities";
+		mes "make them a welcome addition to";
+		mes "any party. The acolyte is what";
+		mes "makes parties survive in";
+		mes "difficult situations, allowing";
+		mes "other classes to focus";
+		mes "themselves on defeating the enemy.";
+		next;
+		mes "[Bruce]";
+		mes "'Acolyte' is one of the jobs, who";
+		mes "are really needed when users want";
+		mes "to play in a party.";
+		next;
+		mes "[Bruce]";
+		mes "Acolyte may become a ^FF0000Priest^000000, or";
+		mes "^FF0000Monk^000000 as their 2nd class profession.";
+		break;
+	case 7:	mes "[Bruce]";
+		mes "For more information, please visit";
+		mes "our official website at";
+		mes "'http://ragnarok.co.kr'";
+		mes "Hanson is waitinging for you now,";
+		mes "good luck out there.";
+		close;
+	}
+	set NEW_MES_FLAG6,1;
+	goto L_loop;
+}
+
+new_1-4.gat,100,29,4	script	Final Instructor	46,{
+	if (!(NEW_MES_FLAG6)) {
+		mes "[Hanson]";
+		mes "Nice to meet you.";
+		mes "My name is 'Hanson'";
+		mes "I am in charge of the third course,";
+		mes "which is the 'Personality Test'.";
+		mes "Your name is ^A62A2A'"+strcharinfo(0)+"'^000000.";
+		next;
+		mes "[Hanson]";
+		mes "Before you take this test,";
+		mes "go to meet 'Bruce' right next to";
+		mes "me and listen about Jobs'.";
+		mes "then, come back to me.";
+		close;
+	}
+	if (NEW_GETITEM) {
+		mes "[Hanson]";
+		mes "I understand.";
+		mes "I will now move you directly into the world of Ragnarok Online.";
+		next;
+		mes "[Hanson]";
+		mes "For more information ";
+		mes "please visit the official";
+		mes "Ragnarok Online website.";
+		next;
+		mes "[Hanson]";
+		mes "Finally, "+strcharinfo(0)+"";
+		mes "I hope that you can become a good player.";
+		mes "Good luck, and have a safe journey.";
+		next;
+		goto L_cancel;
+	}
+	mes "[Hanson]";
+	mes "You have made an effort to come";
+	mes "here. You have just finished";
+	mes "learning about job classes.";
+	mes "This will be your 3rd test, the";
+	mes "personality test, but it's not";
+	mes "a mandatory course.";
+	next;
+	mes "[Hanson]";
+	mes "That is, if you do not wish to take";
+	mes "this course, you can decide to pass";
+	mes "without taking it. However, if you";
+	mes "take this course, there will be";
+	mes "some benefits.";
+	next;
+	mes "[Hanson]";
+	mes "Firstly, you will receive many";
+	mes "health items during the course.";
+	mes "They will be very helpful when";
+	mes "you join the Ragnarok Online";
+	mes "community.";
+	next;
+	mes "[Hanson]";
+	mes "Secondly, after you finish the";
+	mes "course, we suggest a job class";
+	mes "best suited to your personality,";
+	mes "and teleport you to a town where";
+	mes "you can change into the job we";
+	mes "suggested. And there are many";
+	mes "other supplies for you besides";
+	mes "these two benefits.";	
+	next;
+	mes "[Hanson]";
+	mes "Now! What would you like to do?";
+	mes "Do you wish to start Ragnarok";
+	mes "Online immediately, or to take";
+	mes "this personality test?";
+	next;
+	if ( select("I'll take the test.","Let me start Ragnarok Online Please.") == 2 ) {
+		mes "[Hanson]";
+		mes "I understand.";
+		mes "I will now move you directly into the world of Ragnarok Online.";
+		next;
+		mes "[Hanson]";
+		mes "For more information ";
+		mes "please visit the official";
+		mes "Ragnarok Online website.";
+		next;
+		mes "[Hanson]";
+		mes "Finally, "+strcharinfo(0)+"";
+		mes "I hope that you can become a good player.";
+		mes "Good luck, and have a safe journey.";
+		next;
+L_cancel:
+		callsub L_cleararg;
+		switch ( rand(6) ) {
+		case 0:	savepoint "izlude.gat",94,103;
+			warp "prt_fild08.gat",357,212;
+			break;
+		case 1:	savepoint "payon.gat",256,242;
+			warp "pay_fild01.gat",334,354;
+			break;
+		case 2:	savepoint "morocc.gat",149,100;
+			warp "moc_fild07.gat",198,39;
+			break;
+		case 3:	savepoint "geffen.gat",120,38;
+			warp "gef_fild07.gat",327,188;
+			break;
+		case 4:	savepoint "prontera.gat",116,72;
+			warp "prt_fild08.gat",170,371;
+			break;
+		case 5:	savepoint "alberta.gat",31,231;
+			warp "pay_fild03.gat",388,70;
+		}
+		end;
+	}
+	mes "[Hanson]";
+	mes "Excellent choice! You're";
+	mes "You're supposed to take every";
+	mes "training course if you really";
+	mes "want to be a well-prepared";
+	mes "player! Honestly, if you";
+	mes "didn't take this course,";
+	mes "I would be disappointed in you.";
+	next;
+	mes "[Hanson]";
+	mes "Alright, let me start the 1st";
+	mes "personality test.";
+	mes "";
+	mes "Please releax and take it easy,";
+	mes "choose the most familiar answer";
+	mes "among the next examples.";
+	next;
+	mes "[Hanson]";
+	mes "Remember, this test is only to";
+	mes "check your personality, there";
+	mes "is no set standard for right";
+	mes "or wrong. Now! Let's start";
+	mes "the test!";
+	next;
+	mes "[Hanson]";
+	mes "Please choose the most familiar";
+	mes "word to you, from these examples.";
+	next;
+	switch ( select("Study","Exercise","Public service","Violence") ) {
+	case 1:	set NOV_3_MAGICIAN,NOV_3_MAGICIAN+1;break;
+	case 2:	set NOV_3_SWORDMAN,NOV_3_SWORDMAN+1;
+		set NOV_3_THIEF,NOV_3_THIEF+1;break;
+	case 3:	set NOV_3_ACOLYTE,NOV_3_ACOLYTE+1;break;
+	case 4:	set NOV_3_THIEF,NOV_3_THIEF+1;
+	}
+	switch ( select("Change","Conserve") ) {
+	case 1:	set NOV_3_MAGICIAN,NOV_3_MAGICIAN+1;break;
+	case 2:	set NOV_3_ACOLYTE,NOV_3_ACOLYTE+1;
+	}
+	switch ( select("Consumer","Seller","Producer") ) {
+	case 1:	set NOV_3_SWORDMAN,NOV_3_SWORDMAN+1;
+		set NOV_3_THIEF,NOV_3_THIEF+1;
+		set NOV_3_ACOLYTE,NOV_3_ACOLYTE+1;break;
+	case 2:	set NOV_3_MERCHANT,NOV_3_MERCHANT+1;break;
+	case 3:	set NOV_3_MAGICIAN,NOV_3_MAGICIAN+1;
+	}
+	switch ( select("Celebrity","Prudence") ) {
+	case 1:	set NOV_3_THIEF,NOV_3_THIEF+1;break;
+	case 2:	set NOV_3_ARCHER,NOV_3_ARCHER+1;
+	}
+	switch ( select("Theory","Experience") ) {
+	case 1:	set NOV_3_MAGICIAN,NOV_3_MAGICIAN+1;break;
+	case 2:	set NOV_3_SWORDMAN,NOV_3_SWORDMAN+1;
+	}
+	switch ( select("The past","The reality","The future") ) {
+	case 1:	set NOV_3_ARCHER,NOV_3_ARCHER+1;break;
+	case 2:	set NOV_3_MERCHANT,NOV_3_MERCHANT+1;
+		set NOV_3_THIEF,NOV_3_THIEF+1;break;
+	case 3: set NOV_3_MAGICIAN,NOV_3_MAGICIAN+1;
+	}
+	mes "[Hanson]";
+	mes "Please answer with 'yes' or 'no' to";
+	mes "the next questions.";
+	next;
+	mes "[Hanson]";
+	mes "To die with honor is better than to live with disgrace.";
+	next;
+	switch ( select("Yes.","No") ) {
+	case 1:	set NOV_3_SWORDMAN,NOV_3_SWORDMAN+1;break;
+	case 2:	set NOV_3_THIEF,NOV_3_THIEF+1;
+		set NOV_3_MERCHAN,NOV_3_MERCHAN+1;
+	}
+	mes "[Hanson]";
+	mes "You are often upset to see someone";
+	mes "who is better than you";
+	next;
+	switch ( select("Yes","No") ) {
+	case 1:	set NOV_3_MERCHANT,NOV_3_MERCHANT+1;break;
+	case 2:set NOV_3_ACOLYTE,NOV_3_ACOLYTE+1;
+	}
+	mes "[Hanson]";
+	mes "You don't mind exploring dangerous";
+	mes "places.";
+	next;
+	switch ( select("Yes","No") ) {
+	case 1:	set NOV_3_SWORDMAN,NOV_3_SWORDMAN+1;break;
+	case 2:	set NOV_3_MAGICIAN,NOV_3_MAGICIAN+1;
+	}
+	mes "[Hanson]";
+	mes "You are a leader-type person.";
+	next;
+	switch ( select("Yes","No") ) {
+	case 1:	set NOV_3_SWORDMAN,NOV_3_SWORDMAN+1;break;
+	case 2:	set NOV_3_ARCHER,NOV_3_ARCHER+1;
+	}
+	mes "[Hanson]";
+	mes "While exploring a dungeon, you";
+	mes "encountered a no-way out.";
+	mes "As you examined a wall beside you,";
+	mes "there was a button-looking stone";
+	mes "with a 'do not push' sign.";
+	next;
+	mes "[Hanson]";
+	mes "You see the 'do not push' sign";
+	mes "and have an urge to push the";
+	mes "button. Do you push it?";
+	next;
+	switch ( select("Yes","No") ) {
+	case 1:	set NOV_3_THIEF,NOV_3_THIEF+1;break;
+	case 2:	set NOV_3_SWORDMAN,NOV_3_SWORDMAN+1;
+	}
+	mes "[Hanson]";
+	mes "You often see things that don't";
+	mes "exist";
+	next;
+	switch ( select("Yes","No") ) {
+	case 1:	set NOV_3_ACOLYTE,NOV_3_ACOLYTE+1;break;
+	case 2:	set NOV_3_MAGICIAN,NOV_3_MAGICIAN+1;
+	}
+	mes "[Hanson]";
+	mes "You feel you can fly";
+	mes "when falling from a cliff.";
+	next;
+	switch ( select("Yes","No") ) {
+	case 1:	set NOV_3_ACOLYTE,NOV_3_ACOLYTE+1;break;
+	case 2:	set NOV_3_MAGICIAN,NOV_3_MAGICIAN+1;
+	}
+	mes "[Hanson]";
+	mes "Money talks. I can buy even human being if I want.";
+	next;
+	switch ( select("Yes","No") ) {
+	case 1:	set NOV_3_MERCHANT,NOV_3_MERCHANT+1;break;
+	case 2:	set NOV_3_ARCHER,NOV_3_ARCHER+1;
+	}
+	mes "[Hanson]";
+	mes "Now, let me give you some different";
+	mes "questions.";
+	mes "Please relax and take it easy,";
+	mes "choose the most familiar answer";
+	mes "from the next examples";
+	next;
+	mes "[Hanson]";
+	mes "As you check your tight";
+	mes "schedule....";
+	next;
+	switch ( select("You feel like a robot.","You are proud and satisfied.","Schedule... what schedule?") ) {
+	case 1:	set NOV_3_SWORDMAN,NOV_3_SWORDMAN+1;
+		set NOV_3_THIEF,NOV_3_THIEF+1;break;
+	case 2:	set NOV_3_MAGICIAN,NOV_3_MAGICIAN+1;
+		set NOV_3_ACOLYTE,NOV_3_ACOLYTE+1;break;
+	case 3:	set NOV_3_ARCHER,NOV_3_ARCHER+1;
+		set NOV_3_MERCHANT,NOV_3_MERCHANT+1;
+	}
+	mes "[Hanson]";
+	mes "During window shopping, you found a";
+	mes "really interesting item in a store";
+	mes "and you're debating whether to buy";
+	mes "it or not.";
+	mes "Before you purchase an item,";
+	mes "first thing you do is...";
+	next;
+	switch ( select("Think about if you need it.","Check the price.","Buy it without thinking twice...!") ) {
+	case 1:	set NOV_3_ARCHER,NOV_3_ARCHER+1;break;
+	case 2:	set NOV_3_MERCHANT,NOV_3_MERCHANT+1;break;
+	case 3:	set NOV_3_THIEF,NOV_3_THIEF+1;
+	}
+	mes "[Hanson]";
+	mes "You (____Fill in blank___) to compete";
+	mes "with other people.......";
+	next;
+	switch ( select("Don't mind...","Don't like...","Don't care...") ) {
+	case 1:	set NOV_3_MERCHANT,NOV_3_MERCHANT+1;break;
+	case 2:	set NOV_3_THIEF,NOV_3_THIEF+1;break;
+	case 3:	set NOV_3_ACOLYTE,NOV_3_ACOLYTE+1;
+		set NOV_3_SWORDMAN,NOV_3_SWORDMAN+1;
+	}
+	mes "[Hanson]";
+	mes "You're responsible for a task that";
+	mes "requires you to cooperate with many";
+	mes "people.";
+	mes "If you handle it by yourself, it";
+	mes "takes a long time with a lot of";
+	mes "effort.";
+	mes "But if you cooperate with others,";
+	mes "it will be simple and an enjoyable";
+	mes "task. You would...";
+	next;
+	switch ( select("Handle it by myself even if it's hard.","Ask friends to help.") ) {
+	case 1:	set NOV_3_MAGICIAN,NOV_3_MAGICIAN+1;break;
+	case 2:	set NOV_3_MERCHANT,NOV_3_MERCHANT+1;
+	}
+	mes "[Hanson]";
+	mes "You happened to find a girl who";
+	mes "fainted on the street.";
+	mes "What would you do?";
+	next;
+	switch ( select("Carry her to a hospital.","Considder my priority before taking an action.","Just ignore it.") ) {
+	case 1:	set NOV_3_ACOLYTE,NOV_3_ACOLYTE+1;break;
+	case 2:	set NOV_3_SWORDMAN,NOV_3_SWORDMAN+1;
+		set NOV_3_ARCHER,NOV_3_ARCHER+1;break;
+	case 3:	set NOV_3_MAGICIAN,NOV_3_MAGICIAN+1;
+		set NOV_3_THIEF,NOV_3_THIEF+1;
+		set NOV_3_MERCHAN,NOV_3_MERCHAN+1;	
+	}
+	mes "[Hanson]";
+	mes "You happened to pick up";
+	mes "some 'clothing'";
+	mes "What would you do?";
+	next;
+	switch ( select("Check the brand.","Wonder who lost it.","Find the owner.","Leave it where it was.") ) {
+	case 1:	set NOV_3_MERCHANT,NOV_3_MERCHANT+1;break;
+	case 2:	set NOV_3_ACOLYTE,NOV_3_ACOLYTE+1;break;
+	case 3:	set NOV_3_MERCHANT,NOV_3_MERCHANT+1;break;
+	case 4:	set NOV_3_MAGICIAN,NOV_3_MAGICIAN+1;
+	}
+	mes "[Hanson]";
+	mes "You happened to slip your tongue in";
+	mes "the middle of a conversation.";
+	mes "What would be your reaction?";
+	next;
+	switch ( select("Pretend it's a joke.","Change the subject.","Analyse it.","Apologise honestly.") ) {
+	case 1:	set NOV_3_THIEF,NOV_3_THIEF+1;break;
+	case 2:	set NOV_3_SWORDMAN,NOV_3_SWORDMAN+1;break;
+	case 3:	set NOV_3_MAGICIAN,NOV_3_MAGICIAN+1;break;
+	case 4:	set NOV_3_ACOLYTE,NOV_3_ACOLYTE+1;
+	}
+	mes "[Hanson]";
+	switch (Sex) {
+	case 0:	mes "You're on a trip with your beloved";
+		mes "one. She asks you to buy a";
+		mes "souvenir that's not particularly";
+		mes "needed.";
+		mes "What would you do?";
+		break;
+	case 1:	mes "You're on a trip with your beloved";
+		mes "one. He asks you to buy a";
+		mes "souvenir that's not particularly";
+		mes "needed.";
+		mes "What would you do?";
+	}
+	next;
+	switch ( select("Buy the item for her/him.","Say 'no'.","Promise to buy it next time.") ) {
+	case 1:	set NOV_3_SWORDMAN,NOV_3_SWORDMAN+1;break;
+	case 2:	set NOV_3_MERCHANT,NOV_3_MERCHANT+1;break;
+	case 3:	set NOV_3_THIEF,NOV_3_THIEF+1;
+	}
+	mes "[Hanson]";
+	mes "Ok!! That's all for the test.";
+	mes "You have finished all training";
+	mes "grounds courses. Congratulations!";
+	mes "I am so proud of you.";
+	next;
+	mes "[Hanson]";
+	mes "I prepared some items for you since";
+	mes "you passed the personality test.";
+	mes "Please take these.";
+	next;
+	set NEW_GETITEM,1;
+	getitem 501,4;
+	getitem 503,2;
+	getitem 506,2;
+	next;
+	mes "[Hanson]";
+	mes "Mr/Ms. ^A62A2A'"+strcharinfo(0)+"'^000000!";
+	mes "I will recommend to you a";
+	mes "suitable job, after I finish";
+	mes "analysing the results of your";
+	mes "personality test.";
+	mes "Please wait.";
+	next;
+	mes "[Hanson]";
+	mes ". . . . . . . . . . . . .";
+	mes "It's almost over . .";
+	mes ". . . . . . . . . . . . .";
+	next;
+	mes "[Hanson]";
+	mes ". . . . . . . .!";
+	next;
+	mes "[Hanson]";
+	mes "Here's the final result of your";
+	mes "test, Mr/Ms. ^A62A2A'"+strcharinfo(0)+"'^000000!!";
+	next;
+	set @JOB_NUMBER,1;
+	set @JOB_WITH_C,0;
+	set @JOB_NUMBER_CHK,0;
+	set @JOB_WITH,NOV_3_SWORDMAN;
+L_loop1:
+	switch ( @JOB_NUMBER ) {
+	case 1:		set @JOB_WITH_C,NOV_3_ARCHER;break;
+	case 2:		set @JOB_WITH_C,NOV_3_THIEF;break;
+	case 3:		set @JOB_WITH_C,NOV_3_MAGICIAN;break;
+	case 4:		set @JOB_WITH_C,NOV_3_ACOLYTE;break;
+	default:	set @JOB_WITH_C,NOV_3_MERCHANT;
+	}
+	if (@JOB_WITH >= @JOB_WITH_C) goto L_loop2;
+	set @JOB_NUMBER_CHK,@JOB_NUMBER;
+	switch ( @JOB_NUMBER ) {
+	case 1:		set @JOB_WITH,NOV_3_ARCHER;break;
+	case 2:		set @JOB_WITH,NOV_3_THIEF;break;
+	case 3:		set @JOB_WITH,NOV_3_MAGICIAN;break;
+	case 4:		set @JOB_WITH,NOV_3_ACOLYTE;break;
+	default:	set @JOB_WITH,NOV_3_MERCHANT;
+	}
+L_loop2:
+	set @JOB_NUMBER,@JOB_NUMBER+1;
+	while ( @JOB_NUMBER < 6 ) goto L_loop1;
+	mes "[Hanson]";
+	switch ( @JOB_NUMBER_CHK ) {
+	case 0:	set @JOB_NAME$,"Swordsman";
+		mes "Although you are direct and";
+		mes "'to the point', you are also";
+		mes "thoughtful and simple.";
+		mes "You clearly wish that you can";
+		mes "become an important person in";
+		mes "this world. In addition to";
+		mes "this, you always try to help";
+		mes "the weak.";
+		next;
+		mes "[Hanson]";
+		mes "The most suitable profession for you is,";
+		mes "^696969Swordsman^000000.";
+		break;
+	case 1:	set @JOB_NAME$,"Archer";
+		mes "You always tried to understand";
+		mes "the feelings of a fallen person";
+		mes "despite not knowing them.";
+		mes "YOu also wanted the other";
+		mes "person to understand your feelings";
+		next;
+		mes "[Hanson]";
+		mes "The most suitable profession for you is,";
+		mes "^696969Archer^000000.";
+		break;
+	case 2:	set @JOB_NAME$,"Thief";
+		mes "You are curious, and want to";
+		mes "explore all around the world.";
+		mes "You also want satisfaction.";
+		next;
+		mes "[Hanson]";
+		mes "The most suitable profession for you is,";
+		mes "^696969Thief^000000.";
+		break;
+	case 3:	set @JOB_NAME$,"Mage";
+		mes "You didn't want to be seen as";
+		mes "stupid, and you really enjoyed the";
+		mes "tests. You also want to be independant.";
+		next;
+		mes "[Hanson]";
+		mes "The most suitable profession for you is,";
+		mes "^696969Mage^000000.";
+		break;
+	case 4:	set @JOB_NAME$,"Acolyte";
+		mes "You are a person whom is really";
+		mes "understanding and kind,";
+		mes "and would suffer for the sake";
+		mes "of another person.";
+		next;
+		mes "[Hanson]";
+		mes "The most suitable profession for you is,";
+		mes "^696969Acolyte^000000s.";
+		break;
+	case 5:	set @JOB_NAME$,"Merchant";
+		mes "You are keen to analyse the market,";
+		mes "you are very neat and want to be";
+		mes "strong. You are also a determined";
+		mes "and are responsible for all your";
+		mes "actions.";
+		next;
+		mes "[Hanson]";
+		mes "The most suitable profession for you is,";
+		mes "^696969Merchant^000000.";
+	}
+	next;
+	
+	mes "[Hanson]";
+	mes "So, would you like to accept our";
+	mes "recommendation, or would you like";
+	mes "to choose a job on your own?";
+	next;
+	if ( select(@JOB_NAME$+"!","No, my own choice!") == 1 ) {
+		mes "[Hanson]";
+		mes "Great! I guarantee that it is";
+		mes "a good decision!";
+		mes "After you receive all the";
+		mes "supplies, I will send you to";
+		mes "the associated town.";
+		next;
+		mes "^882420Item Offer List^000099";
+		switch( @JOB_NUMBER_CHK ) {
+		case 0:	mes "1 Falchion";
+			getitem 1104,1;
+			break;
+		case 1:	mes "1 Composite Bow";
+			getitem 1704,1;
+			break;
+		case 2:	mes "1 Main Gauche";
+			getitem 1207,1;
+			break;
+		case 3:	mes "1 Rod";
+			mes "1 Cutter";
+			getitem 1601,1;
+			getitem 1204,1;
+			break;
+		case 4:	mes "1 Mace";
+			getitem 1504,1;
+			break;
+		case 5:	mes "1 Battle Axe";
+			getitem 1351,1;
+		}
+		mes "7 Phracons";
+		mes "10 Novices Red Potions^000000";
+		getitem 1010,7;
+		getitem 569,10;
+		next;
+		mes "[Hanson]";
+		mes "All the supplies have been given to";
+		mes "you. Please, check it again.";
+		mes "I will give a brief explanation";
+		mes "about these items.";
+		next;
+		mes "[Hanson]";
+		switch( @JOB_NUMBER_CHK ) {
+		case 0:	mes "After you change your job,";
+			mes "you can use the 'Falchion'"; break;
+		case 1:	mes "After you change your job,";
+			mes "you can use the 'Composite Bow'"; break;
+		case 2:	mes "After you change your job,";
+			mes "you can use the 'Main Gauche'"; break;
+		case 3:	mes "After you change your job,";
+			mes "you can use the 'Rod'"; break;
+		case 4:	mes "After you change your job,";
+			mes "you can use the 'Mace'"; break;
+		case 5:	mes "After you change your job,";
+			mes "you can use the 'Battle Axe'";break;
+		}
+		mes "instead of the Novice Knife";
+		mes "which I offered you before.";
+		next;
+		mes "[Hanson]";
+		mes "'Phracon' will be spent when";
+		mes "you refine Lv 1 weapons.";
+		mes "Some of the famous refiners";
+		mes "work only intowns.";
+		mes "After you change your job,";
+		mes "Visit one of them with Phracon.";
+		callsub L_place;
+		next;
+		goto L_warp;
+	}
+	mes "[Hanson]";
+	mes "Yes, yes...";
+	mes "So this is your choice?";
+	mes "Did you not care about";
+	mes "our recommendation?";
+	mes "Please choose the profession";
+	mes "that you want.";
+	next;
+	switch( @JOB_NUMBER_CHK ) {
+	case 0:	switch( select("Mage","Merchant","Thief","Archer","Acolyte") ) {
+		case 1:	set @JOB_NUMBER_CHK,3;
+			set @JOB_NAME$,"Mage";
+			break;
+		case 2:	set @JOB_NUMBER_CHK,5;
+			set @JOB_NAME$,"Merchant";
+			break;
+		case 3:	set @JOB_NUMBER_CHK,2;
+			set @JOB_NAME$,"Thief";
+			break;
+		case 4:	set @JOB_NUMBER_CHK,1;
+			set @JOB_NAME$,"Archer";
+			break;
+		case 5:	set @JOB_NUMBER_CHK,4;
+			set @JOB_NAME$,"Acolyte";
+		}
+		break;
+	case 1:	switch( select("Swordsman","Mage","Merchant","Thief","Acolyte") ) {
+		case 1:	set @JOB_NUMBER_CHK,0;
+			set @JOB_NAME$,"Swordsman";
+			break;
+		case 2:	set @JOB_NUMBER_CHK,3;
+			set @JOB_NAME$,"Mage";
+			break;
+		case 3:	set @JOB_NUMBER_CHK,5;
+			set @JOB_NAME$,"Merchant";
+			break;
+		case 4:	set @JOB_NUMBER_CHK,2;
+			set @JOB_NAME$,"Thief";
+			break;
+		case 5:	set @JOB_NUMBER_CHK,4;
+			set @JOB_NAME$,"Acolyte";
+		}
+		break;
+	case 2:	switch( select("Swordsman","Mage","Merchant","Archer","Acolyte") ) {
+		case 1:	set @JOB_NUMBER_CHK,0;
+			set @JOB_NAME$,"Swordsman";
+			break;
+		case 2:	set @JOB_NUMBER_CHK,3;
+			set @JOB_NAME$,"Mage";
+			break;
+		case 3:	set @JOB_NUMBER_CHK,5;
+			set @JOB_NAME$,"Merchant";
+			break;
+		case 4:	set @JOB_NUMBER_CHK,1;
+			set @JOB_NAME$,"Archer";
+			break;
+		case 5:	set @JOB_NUMBER_CHK,4;
+			set @JOB_NAME$,"Acolyte";
+		}
+		break;
+	case 3:	switch( select("Swordsman","Merchant","Thief","Archer","Acolyte") ) {
+		case 1:	set @JOB_NUMBER_CHK,0;
+			set @JOB_NAME$,"Swordsman";
+			break;
+		case 2:	set @JOB_NUMBER_CHK,5;
+			set @JOB_NAME$,"Merchant";
+			break;
+		case 3:	set @JOB_NUMBER_CHK,2;
+			set @JOB_NAME$,"Thief";
+			break;
+		case 4:	set @JOB_NUMBER_CHK,1;
+			set @JOB_NAME$,"Archer";
+			break;
+		case 5:	set @JOB_NUMBER_CHK,4;
+			set @JOB_NAME$,"Acolyte";
+		}
+		break;
+	case 4:	switch( select("Swordsman","Mage","Merchant","Thief","Archer") ) {
+		case 1:	set @JOB_NUMBER_CHK,0;
+			set @JOB_NAME$,"Swordsman";
+			break;
+		case 2:	set @JOB_NUMBER_CHK,3;
+			set @JOB_NAME$,"Mage";
+			break;
+		case 3:	set @JOB_NUMBER_CHK,5;
+			set @JOB_NAME$,"Merchant";
+			break;
+		case 4:	set @JOB_NUMBER_CHK,2;
+			set @JOB_NAME$,"Thief";
+			break;
+		case 5:	set @JOB_NUMBER_CHK,1;
+			set @JOB_NAME$,"Archer";
+		}
+		break;
+	case 5:	switch( select("Swordsman","Mage","Thief","Archer","Acolyte") ) {
+		case 1:	set @JOB_NUMBER_CHK,0;
+			set @JOB_NAME$,"Swordsman";
+			break;
+		case 2:	set @JOB_NUMBER_CHK,3;
+			set @JOB_NAME$,"Mage";
+			break;
+		case 3:	set @JOB_NUMBER_CHK,2;
+			set @JOB_NAME$,"Thief";
+			break;
+		case 4:	set @JOB_NUMBER_CHK,1;
+			set @JOB_NAME$,"Archer";
+			break;
+		case 5:	set @JOB_NUMBER_CHK,4;
+			set @JOB_NAME$,"Acolyte";
+		}
+	}
+	mes "[Hanson]";
+	mes @JOB_NAME$+" is your choise.";
+	callsub L_place;
+	next;
+	mes "[Hanson]";
+	mes "After you receive all the";
+	mes "supplies, I will send you to";
+	mes "the associated town.";
+	next;
+	mes "^882420Item Offer List";
+	mes "^0000301 Adventurer's Suit";
+	mes "^00009910 Novices Red Potions^000000";
+	getitem 2305,1;
+	getitem 569,10;
+	next;
+	mes "[Hanson]";
+	mes "All the supplies have been given to";
+	mes "you. Please, check it again.";
+	mes "I will give a brief explanation";
+	mes "about these items.";
+	next;
+	mes "[Hanson]";
+	mes "'Zeny' is the current currency";
+	mes "within Ragnarok Online.";
+	mes "Later, you can use the";
+	mes "'Adventurer's Suit'";
+	mes "instead of the Novice Plate";
+	mes "which I offered you before.";
+	next;
+L_warp:
+	mes "[Hanson]";
+	mes "Good luck, ^A62A2A' "+strcharinfo(0)+" '^000000,";
+	mes "and farewell.";
+	close2;
+	callsub L_cleararg;
+	switch( @JOB_NUMBER_CHK ) {
+	case 0:	savepoint "izlude.gat",94,103;
+		warp "izlude_in.gat",74,167;
+		break;
+	case 1:	savepoint "payon.gat",256,242;
+		warp "payon_in02.gat",64,65;
+		break;
+	case 2:	savepoint "morocc.gat",149,100;
+		warp "moc_ruins.gat",155,44;
+		break;
+	case 3:	savepoint "geffen.gat",120,38;
+		warp "geffen_in.gat",163,98;
+		break;
+	case 4:	savepoint "prontera.gat",116,72;
+		warp "prt_church.gat",172,19;
+		break;
+	case 5:	savepoint "alberta.gat",31,231;
+		warp "alberta_in.gat",62,44;
+	}
+	end;
+L_place:
+	switch( @JOB_NUMBER_CHK ) {
+	case 0:	mes "The town you will be sent to";
+		mes "is 'Izlude'. The Swordsman";
+		mes "association is located in the";
+		mes "west side of the city.";
+		mes "Please remember this.";
+		break;
+	case 1:	mes "The town you will be sent to";
+		mes "is named 'Payon'.";
+		mes "The Archer association can be";
+		mes "found in the small village";
+		mes "to the north-east.";
+		mes "Please remember this.";
+		break;
+	case 2:	mes "The town you will be sent to";
+		mes "is called 'Morroc'.";
+		mes "The thief guild is in the";
+		mes "underground 1st floor of the";
+		mes "pyramid, which is North-west";
+		mes "of 'Morroc'.";
+		mes "Please remember this.";
+		break;
+	case 3:	mes "The town you will be sent to";
+		mes "is called 'Geffen'.";
+		mes "The Mage association is located";
+		mes "to the north-west of the city.";
+		mes "Please remember this.";
+		break;
+	case 4:	mes "The town you will be sent to";
+		mes "is called 'Prontera'.";
+		mes "The good father can be found";
+		mes "in the church located in the";
+		mes "north-east corner of 'Prontera'.";
+		mes "Please remember this.";
+		break;
+	case 5:	mes "The town you will be sent to";
+		mes "is called 'Alberta'.";
+		mes "The Merchant association is";
+		mes "located in the south-western";
+		mes "section of the city.";
+		mes "Please remember this.";
+	}
+	mes "You'll now be teleported.";
+	return;
+L_cleararg:
+	set NEW_MES_FLAG0,0;
+	set NEW_MES_FLAG1,0;
+	set NEW_MES_FLAG2,0;
+	set NEW_MES_FLAG3,0;
+	set NEW_MES_FLAG4,0;
+	set NEW_MES_FLAG5,0;
+	set NEW_MES_FLAG6,0;
+	set NEW_LVUP0,0;
+	set NEW_LVUP1,0;
+	set NEW_JOBLVUP,0;
+	set NEW_GETITEM,0;
+	set NOV_3_SWORDMAN,0;
+	set NOV_3_ARCHER,0;
+	set NOV_3_THIEF,0;
+	set NOV_3_MAGICIAN,0;
+	set NOV_3_ACOLYTE,0;
+	set NOV_3_MERCHANT,0;
+	return;
+}
+
+// Training Ground Mobs
+// new_1-3.gat
+new_1-3.gat,0,0,0,0	monster	Fabre	1184,5,0,0,0
+new_1-3.gat,0,0,0,0	monster	Poring	1002,10,0,0,0
+new_1-3.gat,0,0,0,0	monster	ChonChon	1011,10,0,0,0
+new_1-3.gat,0,0,0,0	monster	Lunatic	1063,10,0,0,0
+new_1-3.gat,0,0,0,0	monster	Drops	1113,10,0,0,0
+
+// new_2-3.gat
+new_2-3.gat,0,0,0,0	monster	Condor	1009,10,0,0,0
+new_2-3.gat,0,0,0,0	monster	Willow	1010,10,0,0,0
+new_2-3.gat,0,0,0,0	monster	Roda Frog	1012,10,0,0,0
+new_2-3.gat,0,0,0,0	monster	Shell Picky	1050,10,0,0,0
+new_2-3.gat,0,0,0,0	monster	Fabre	1184,5,0,0,0
+
+// new_3-3.gat
+new_3-3.gat,0,0,0,0	monster	Condor	1009,10,0,0,0
+new_3-3.gat,0,0,0,0	monster	Willow	1010,10,0,0,0
+new_3-3.gat,0,0,0,0	monster	Roda Frog	1012,10,0,0,0
+new_3-3.gat,0,0,0,0	monster	Shell Picky	1050,10,0,0,0
+new_3-3.gat,0,0,0,0	monster	Fabre	1184,5,0,0,0
+
+// new_4-3.gat
+new_4-3.gat,0,0,0,0	monster	Spore	1014,10,0,0,0
+new_4-3.gat,0,0,0,0	monster	Thief Bug Larva	1051,10,0,0,0
+new_4-3.gat,0,0,0,0	monster	Rocker	1052,10,0,0,0
+new_4-3.gat,0,0,0,0	monster	Thief Bug Female	1053,10,0,0,0
+new_4-3.gat,0,0,0,0	monster	Fabre	1184,5,0,0,0
+
+// new_5-3.gat
+new_5-3.gat,0,0,0,0	monster	Spore	1014,10,0,0,0
+new_5-3.gat,0,0,0,0	monster	Thief Bug Larva	1051,10,0,0,0
+new_5-3.gat,0,0,0,0	monster	Rocker	1052,10,0,0,0
+new_5-3.gat,0,0,0,0	monster	Thief Bug Female	1053,10,0,0,0
+new_5-3.gat,0,0,0,0	monster	Fabre	1184,5,0,0,0

@@ -24,6 +24,8 @@
 //= 2.2 Fixed exploits [Lupus]
 //= 2.2a Updated the color codes a little and fixed the shouting quest
 //=	 to broadcast green text.
+//= 2.2b A small fix to the shout quest npc in louyang field not warping you
+//=	 back up to the tower if you died or teleported out of there. [MasterOfMuppets]
 //============================================================
 
 alberta.gat,245,45,4	script	Girl	815,{
@@ -318,6 +320,7 @@ M_CANCEL:
 }
 
 lou_fild01.gat,195,177,4	script	Jiu Lian Bu	819,{
+	if(QL_SOUPQUEST == 1)goto L_WHERE;
 	if(QL_SOUP2 == 1) goto L_DONE;
 	if(QL_GOTFAKESOUP == 1) goto L_FAKE;
 	if(QL_GOTDRAGONSOUP == 1) goto L_SOUP;
@@ -485,6 +488,14 @@ M_NAH:
 	mes "to come see me whenever";
 	mes "you want.";
 	close;
+L_WHERE:
+	mes "[Jiu Lian Bu]";
+	mes "Hey where did you go?";
+	mes "Come up again and I'll";
+	mes "give you your reward.";
+	close2;
+	warp "lou_fild01.gat",180,171;
+	end;
 }
 
 lou_fild01.gat,175,174,4	script	Jiu Lian Bu	819,{
