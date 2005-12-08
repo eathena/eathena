@@ -2779,7 +2779,8 @@ struct Damage  battle_calc_misc_attack(
 		}
 	}
 
-	damage=battle_calc_damage(bl,target,damage,div_,skill_num,skill_lv,aflag);	// ÅIC³
+	if (skill_num != PA_PRESSURE) //Pressure ignores all these things...
+		damage=battle_calc_damage(bl,target,damage,div_,skill_num,skill_lv,aflag);	// ÅIC³
 
 	md.damage=damage;
 	md.div_=div_;

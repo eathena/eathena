@@ -1027,18 +1027,9 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		break;
 
 	case PA_PRESSURE:	/* ƒvƒŒƒbƒVƒƒ? */
-		{
-			/* Official servers seem to indicate this causes neither stun nor bleeding. [Skotlex]
-			int race = status_get_race(bl);
-			if (rand()%100 < 50 * sc_def_vit / 100)	// is chance 50%?
-				status_change_start(bl, SC_STAN, skilllv, 0, 0, 0, skill_get_time2(PA_PRESSURE,skilllv), 0);
-			if (!(battle_check_undead(race, status_get_elem_type(bl)) || race == 6) && rand()%100 < 50 * sc_def_vit / 100)
-				status_change_start(bl, SC_BLEEDING, skilllv, 0, 0, 0, skill_get_time2(skillid,skilllv), 0);
-				*/
-			if (dstsd) {
-				dstsd->status.sp -= dstsd->status.sp * (15 + 5 * skilllv) / 100;
-				clif_updatestatus(dstsd,SP_SP);
-			}
+		if (dstsd) {
+			dstsd->status.sp -= dstsd->status.sp * (15 + 5 * skilllv) / 100;
+			clif_updatestatus(dstsd,SP_SP);
 		}
 		break;
 
