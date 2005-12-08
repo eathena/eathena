@@ -1015,6 +1015,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		+ sizeof(sd->hp_gain_value)
 		+ sizeof(sd->sp_gain_value)
 		+ sizeof(sd->add_drop_count)
+		+ sizeof(sd->unbreakable)
 		+ sizeof(sd->unbreakable_equip)
 		+ sizeof(sd->unstripable_equip)
 		+ sizeof(sd->no_regen)
@@ -1598,7 +1599,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	// Relative modifiers from passive skills
 	if((skill=pc_checkskill(sd,SA_ADVANCEDBOOK))>0)
 		sd->aspd_rate -= (skill/2);
-	if((skill = pc_checkskill(sd,SG_DEVIL)) > 0)
+	if((skill = pc_checkskill(sd,SG_DEVIL)) > 0 && sd->status.job_level >= battle_config.max_job_level)
 		sd->aspd_rate -= (skill*3);
 
 	if(pc_isriding(sd))

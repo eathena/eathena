@@ -1,6 +1,8 @@
 Date	Added
 
 2005/12/08
+	* Corrected SG_DEVIL giving the ASPD bonus below level 50. Only works at
+	  max level... [Skotlex]
 	* Some cleaning to pc_calc_skilltree. Also updated it so that if you don't
 	  use player_skillfree, you can't have ANY skill if you don't have NV_BASIC at
 	  9 (only exception are quest skills). [Skotlex]

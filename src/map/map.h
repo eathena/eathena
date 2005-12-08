@@ -430,7 +430,6 @@ struct map_session_data {
 	struct mmo_charstatus status;
 	struct item_data *inventory_data[MAX_INVENTORY];
 	short equip_index[11];
-	unsigned short unbreakable;	// chance to prevent equipment breaking [celest]
 	unsigned int weight,max_weight;
 	int cart_weight,cart_max_weight,cart_num,cart_max_num;
 	char mapname[MAP_NAME_LENGTH];
@@ -593,7 +592,8 @@ struct map_session_data {
  	short sp_drain_type;
  	short sp_gain_value, hp_gain_value;
 	short add_drop_count;
- 	unsigned short unbreakable_equip;
+	unsigned short unbreakable;	// chance to prevent ANY equipment breaking [celest]
+ 	unsigned short unbreakable_equip; //100% break resistance on certain equipment
  	unsigned short unstripable_equip;
  	short no_regen;
  	short add_def_count,add_mdef_count;
