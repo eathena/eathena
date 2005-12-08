@@ -1,6 +1,7 @@
 Date	Added
 
 2005/12/08
+	* Fixed a typo in pid.c, thanks to akusarujin [celest]
 	* Exploit fix in SG_FEEL [Komurka]
 	* Updated TK_MISSION to pick a random mob in the same way a dead branch
 	  does. [Skotlex]

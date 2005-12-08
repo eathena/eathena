@@ -2,6 +2,11 @@ Map loading from GRF doesn't work in native Win32 builds. Please take a look at 
 
 - Lance
 
+Trying it out, but i'm still not sure what's wrong with it yet o.o
+At which part in grfio.c does the 'Filelist is NULL!' show up?
+
+- Celestia
+
 Log (with added warnings):
           (=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=)
           (        (c)2005 eAthena Development Team presents        )

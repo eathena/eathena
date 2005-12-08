@@ -3,6 +3,7 @@
 #include <string.h>
 #ifndef _WIN32
 	#include <unistd.h>
+#else
 	#define getpid GetCurrentProcessId
 #endif
 #ifdef MINGW
