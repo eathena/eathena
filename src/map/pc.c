@@ -2678,9 +2678,19 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 		clif_skill_teleportmessage(sd,0);
 		return 0;
 	}
-	//Butterfly Wing (can't use noreturn flag is on)
+	//Fly Wing (can't use when you in duel) [LuzZza]
+	if(nameid == 601 && (!battle_config.duel_allow_teleport && sd->duel_group)) {
+		clif_displaymessage(sd->fd, "Duel: Can't use this item in duel.");
+		return 0;
+	}
+	//Butterfly Wing (can't use noreturn flag is on and if duel)
 	if(nameid == 602 && map[sd->bl.m].flag.noreturn)
 		return 0;
+	//BW (can't use when you in duel) [LuzZza]
+	if(nameid == 602 && (!battle_config.duel_allow_teleport && sd->duel_group)) {
+		clif_displaymessage(sd->fd, "Duel: Can't use this item in duel.");
+		return 0;
+	}
 	//Dead Branch & Bloody Branch & Porings Box (can't use at GVG and when nobranch flag is on)
 	if((nameid == 604 || nameid == 12103 || nameid == 12109) && (map[sd->bl.m].flag.nobranch || map_flag_gvg(sd->bl.m)))
 		return 0;
@@ -4997,6 +5007,14 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 				sd->pet.intimate = 0;
 			clif_send_petdata(sd,1,sd->pet.intimate);
 		}
+	}
+
+	// Leave duel if you die [LuzZza]
+	if(battle_config.duel_autoleave_when_die) {
+		if(sd->duel_group > 0)
+			duel_leave(sd->duel_group, sd);
+		if(sd->duel_invite > 0)
+			duel_reject(sd->duel_invite, sd);
 	}
 
 	pc_stop_walking(sd,0);

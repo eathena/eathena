@@ -3629,7 +3629,9 @@ static const struct battle_data_short {
 	{ "duel_enable",						&battle_config.duel_enable}, // [LuzZza]
 	{ "duel_allow_pvp",						&battle_config.duel_allow_pvp}, // [LuzZza]
 	{ "duel_allow_gvg",						&battle_config.duel_allow_gvg}, // [LuzZza]
-	{ "duel_time_interval",					&battle_config.duel_time_interval}, // [LuzZza]	
+	{ "duel_allow_teleport",				&battle_config.duel_allow_teleport}, // [LuzZza]
+	{ "duel_autoleave_when_die",			&battle_config.duel_autoleave_when_die}, //[LuzZza]
+	{ "duel_time_interval",					&battle_config.duel_time_interval}, // [LuzZza]
 	
 	{ "skip_teleport_lv1_menu",				&battle_config.skip_teleport_lv1_menu}, // [LuzZza]
 	{ "allow_skill_without_day",				&battle_config.allow_skill_without_day}, // [Komurka]
@@ -4007,6 +4009,8 @@ void battle_set_defaults() {
 	battle_config.duel_enable = 1;
 	battle_config.duel_allow_pvp = 0;
 	battle_config.duel_allow_pvp = 0;
+	battle_config.duel_allow_teleport = 0;
+	battle_config.duel_autoleave_when_die = 1;
 	battle_config.duel_time_interval = 60;
 	
 	battle_config.skip_teleport_lv1_menu = 0;

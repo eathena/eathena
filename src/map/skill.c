@@ -4414,6 +4414,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				clif_skill_teleportmessage(sd,0);
 				break;
 			}
+			if(!battle_config.duel_allow_teleport && sd->duel_group) { // duel restriction [LuzZza]
+				clif_displaymessage(sd->fd, "Duel: Can't use teleport in duel.");
+				break;
+			}
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 			if(sd->skilllv == 1)
 				if(!battle_config.skip_teleport_lv1_menu) // possibility to skip menu [LuzZza]
@@ -6197,6 +6201,10 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 		if(sd) {
 			if(map[sd->bl.m].flag.noteleport)	/* ƒeƒŒƒ|‹ÖŽ~ */
 				break;
+			if(!battle_config.duel_allow_teleport && sd->duel_group) { // duel restriction [LuzZza]
+				clif_displaymessage(sd->fd, "Duel: Can't use warp in duel.");
+				break;
+			}				
 			clif_skill_warppoint(sd,skillid,sd->status.save_point.map,
 				(sd->skilllv>1)?sd->status.memo_point[0].map:"",
 				(sd->skilllv>2)?sd->status.memo_point[1].map:"",
