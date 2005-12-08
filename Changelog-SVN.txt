@@ -1,6 +1,7 @@
 Date	Added
 
 2005/12/08
+	* Small fix in allskill [Komurka]
 	* Updated Gloria Domini to bypass battle_calc_damage (misc damage
 	  reductions) [Skotlex]
 	* Fixed a typo in pid.c, thanks to akusarujin [celest]

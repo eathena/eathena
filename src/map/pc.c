@@ -4690,9 +4690,9 @@ int pc_allskillup(struct map_session_data *sd)
 			inf2 = skill_get_inf2(id);
 			if(sd->status.skill[id].id==0 &&
 				(!(inf2&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) &&
-				!(inf2&(INF2_WEDDING_SKILL|INF2_SPIRIT_SKILL) &&
+				!(inf2&(INF2_WEDDING_SKILL|INF2_SPIRIT_SKILL)) &&
 				(id!=SG_DEVIL))
-			) {
+			 {
 				sd->status.skill[id].id = id;	// celest
 				sd->status.skill[id].lv = skill_tree_get_max(id, sd->status.class_);	// celest
 			}
