@@ -5765,9 +5765,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		return 0;
 		break;
 	case SG_FUSION:
-		if(!(sd->sc_data[SC_SPIRIT].timer != -1 && sd->sc_data[SC_SPIRIT].val2 == SL_STAR))
-			clif_skill_fail(sd,skillid,0,0);
-		else
+		//if(!(sd->sc_data[SC_SPIRIT].timer != -1 && sd->sc_data[SC_SPIRIT].val2 == SL_STAR))
+		//	clif_skill_fail(sd,skillid,0,0);
+		//else
 		{
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 			status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
@@ -10839,6 +10839,10 @@ int skill_produce_mix( struct map_session_data *sd,
 			clif_additem(sd,0,0,flag);
 			map_addflooritem(&tmp_item,1,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);
 		}
+
+		if (skill_produce_db[idx].itemlv==11)
+				clif_specialeffect(&sd->bl, 608, 0);
+
 	} else {
 		if(log_config.produce > 0)
 			log_produce(sd,nameid,slot1,slot2,slot3,0);
@@ -10864,6 +10868,10 @@ int skill_produce_mix( struct map_session_data *sd,
 					break;
 			}
 		}
+
+		if (skill_produce_db[idx].itemlv==11)
+			clif_specialeffect(&sd->bl, 609, 0);
+
 	}
 	return 0;
 }
