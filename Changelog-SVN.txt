@@ -1,6 +1,7 @@
 Date	Added
 
 2005/12/08
+	* Enabled a few maps needed for the new novice training grounds, sorry I forgot to [MasterOfMuppets]
 	* Removed duplicate maps in maps_athena.conf. Thanks for the report Dr. Evil [Kayla]
 2005/12/07
 	* Pressure will always pull-off now after it has began casting. [Skotlex]
