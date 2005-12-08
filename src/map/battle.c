@@ -811,8 +811,11 @@ int battle_addmastery(struct map_session_data *sd,struct block_list *target,int 
 		//damage += (skill * 3);
 
 	// ビ?[ストベイン(+4 ?` +40) vs 動物 or ?ｩ虫
-	if((skill = pc_checkskill(sd,HT_BEASTBANE)) > 0 && (race==2 || race==4) )
+	if((skill = pc_checkskill(sd,HT_BEASTBANE)) > 0 && (race==2 || race==4) ) {
 		damage += (skill * 4);
+		if (sd->sc_data[SC_SPIRIT].timer != -1 && sd->sc_data[SC_SPIRIT].val2 == SL_HUNTER)
+			damage += sd->status.str;
+	}
 
 	if(type == 0)
 		weapon = sd->weapontype1;
@@ -1035,6 +1038,7 @@ static struct Damage battle_calc_weapon_attack(
 			case DC_THROWARROW:
 			case CG_ARROWVULCAN:
 			case AS_VENOMKNIFE:
+			case HT_POWER:
 				wd.flag=(wd.flag&~BF_RANGEMASK)|BF_LONG;
 				flag.arrow = 1;
 				break;
@@ -1533,6 +1537,9 @@ static struct Damage battle_calc_weapon_attack(
 					break;
 				case MC_MAMMONITE:
 					skillratio += 50*skill_lv;
+					break;
+				case HT_POWER: //FIXME: How exactly is the STR based damage supposed to be done? [Skotlex]
+					skillratio += 10*status_get_str(src);
 					break;
 				case AC_DOUBLE:
 					skillratio += 80+20*skill_lv;

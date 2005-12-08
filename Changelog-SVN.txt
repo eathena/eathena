@@ -1,6 +1,14 @@
 Date	Added
 
 2005/12/08
+	* Implemented HT_POWER/Beast Strafing.  [Skotlex]
+	- The damage equation is unknown.. for now it's the same as Double Strafe
+	  except the skill modifier is +10%*str
+	- Currently the Combo is triggered 100% of Double Strafes done on beast
+	  monsters.
+	* Added Reddozen's work for Hunter's Beast bane spirit bonus. [Skotlex]
+	* Corrected the drop delay for mobs when killed by magic to be 500ms (will
+	  only work if killed by a player) [Skotlex]
 	* Updated SG skills (kRO Patch - 11/29/05) [Komurka]
 	* Enabled a few maps needed for the new novice training grounds, sorry I forgot to [MasterOfMuppets]
 	* Removed duplicate maps in maps_athena.conf. Thanks for the report Dr. Evil [Kayla]

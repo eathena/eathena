@@ -39,6 +39,9 @@
 	--
 
 12/08
+	* Corrected Treasure Box element, now they are Neutral 1. [Skotlex]
+	* Modified Beast Strafing's inf to be a self skill (since it's a combo, it
+	  auto selects target) [Skotlex]
 	* Updated Volet / Blue Box items lists [Lupus]
 	* Fixed 5131,Close_Helmet jobs [Lupus]
 	* Updated Warmth of the Sun / Warmth of the Moon / Warmth of the Star sp usage (20/20/10) [Komurka]

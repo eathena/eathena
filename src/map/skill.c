@@ -663,7 +663,8 @@ int skill_get_range2(struct block_list *bl, int id, int lv) {
 		range *=-1;
 	}
 	if (bl->type == BL_PC && //TODO: Find a way better than hardcoding the list of skills affected by AC_VULTURE.
-		(id == AC_SHOWER || id == AC_DOUBLE || id == HT_BLITZBEAT || id == SN_FALCONASSAULT || id == SN_SHARPSHOOTING))
+		(id == AC_SHOWER || id == AC_DOUBLE || id == HT_BLITZBEAT
+		|| id == SN_FALCONASSAULT || id == SN_SHARPSHOOTING || id == HT_POWER))
 		range += pc_checkskill((struct map_session_data *)bl, AC_VULTURE);
 	return range;
 }
@@ -1787,6 +1788,17 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 				clif_combo_delay(src,delay);
 				break;
 			}
+			case AC_DOUBLE:
+			{
+				int race = status_get_race(bl);
+				if((race == 2 || race == 4) && damage < status_get_hp(bl) && pc_checkskill(sd, HT_POWER)) {
+					//TODO: This code was taken from Triple Blows,is this even how it should be? [Skotlex]
+					status_change_start(src,SC_COMBO,HT_POWER,bl->id,0,0,2000,0);
+					clif_combo_delay(src,2000);
+				}
+				break;
+			}
+
 		}	//Switch End
 	}
 	if(attack_type&BF_WEAPON && damage > 0 && src != bl && src == dsrc)
@@ -2650,6 +2662,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 	case WS_CARTTERMINATION:	// Cart Termination
 	case AS_VENOMKNIFE:
 	case HT_PHANTASMIC:
+	case HT_POWER:
 		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
 		break;
 
@@ -7982,7 +7995,7 @@ int skill_check_condition(struct map_session_data *sd,int type)
 			break; //Combo ready.
 		if (pc_istop10fame(sd->char_id,MAPID_TAEKWON))
 			break; //Unlimited Combo
-		return 0;	
+		return 0;
 	case BD_ADAPTATION:				/* ƒAƒhƒŠƒu */
 		{
 			struct skill_unit_group *group=NULL;
@@ -8071,6 +8084,9 @@ int skill_check_condition(struct map_session_data *sd,int type)
 		}
 		break;
 	// skills require arrows as of 12/07 [celest]
+	case HT_POWER:
+		if(sd->sc_data[SC_COMBO].timer == -1 || sd->sc_data[SC_COMBO].val1 != skill)
+			return 0;
 	case AC_DOUBLE:
 	case AC_SHOWER:
 	case AC_CHARGEARROW:
@@ -8492,9 +8508,10 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 
 	case TK_JUMPKICK:
 	case TK_COUNTER:
+	case HT_POWER:
 		if (sc_data[SC_COMBO].timer != -1 && sc_data[SC_COMBO].val1 == skill_num)
 			target_id = sc_data[SC_COMBO].val2;
-		else if (skill_num == TK_COUNTER)
+		else if (skill_num != TK_JUMPKICK)
 			return 0;
 		break;
 // -- moonsoul	(altered to allow proper usage of extremity from new champion combos)

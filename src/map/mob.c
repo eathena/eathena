@@ -2129,6 +2129,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 	struct item item;
 	int ret, mode;
 	int drop_rate;
+	int base_drop_delay;
 	int race;
 	
 	nullpo_retr(0, md); //srcはNULLで呼ばれる場合もあるので、他でチェック
@@ -2312,9 +2313,11 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 	if(src && src->type == BL_MOB)
 		mob_unlocktarget((struct mob_data *)src,tick);
 
-	
+	base_drop_delay = battle_config.delay_battle_damage?0:500;
 	if(sd) {
 		int sp = 0, hp = 0;
+		if (sd->state.attack_type == BF_MAGIC)
+			base_drop_delay = 500;
 		if (sd->state.attack_type == BF_MAGIC && sd->skilltarget == md->bl.id && (i=pc_checkskill(sd,HW_SOULDRAIN))>0)
 		{	//Soul Drain should only work on targetted spells [Skotlex]
 			if (pc_issit(sd)) pc_setstand(sd); //Character stuck in attacking animation while 'sitting' fix. [Skotlex]
@@ -2556,7 +2559,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 			}
 
 			// Announce first, or else ditem will be freed. [Lance]
-			mob_item_drop(md, tick+(battle_config.delay_battle_damage?10:500)+i, ditem, 0);
+			mob_item_drop(md, tick+base_drop_delay+i, ditem, 0);
 		}
 
 		// Ore Discovery [Celest]
@@ -2566,7 +2569,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 			if (drop_ore<0) drop_ore=8; //we have only 10 slots in LOG, there's a check to not overflow (9th item usually a card, so we use 8th slot)
 			log_item[drop_ore] = ditem->item_data.nameid; //it's for logging only
 			drop_items++; //we count if there were any drops
-			mob_item_drop(md, tick+(battle_config.delay_battle_damage?10:500)+drop_ore, ditem, 0);
+			mob_item_drop(md, tick+base_drop_delay+drop_ore, ditem, 0);
 		}
 
 		//this drop log contains ALL dropped items + ORE (if there was ORE Recovery) [Lupus]
@@ -2597,7 +2600,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 						itemdb_searchrandomgroup(sd->add_drop[i].group);
 
 					ditem = mob_setdropitem(itemid, 1, md->bl.m, md->bl.x, md->bl.y, mvp_sd, second_sd, third_sd);
-					mob_item_drop(md, tick+(battle_config.delay_battle_damage?20:520)+i, ditem, 0);
+					mob_item_drop(md, tick+base_drop_delay+20+i, ditem, 0);
 				}
 			}
 			if(sd->get_zeny_num && rand()%100 < sd->get_zeny_rate) //Gets get_zeny_num per level +/-10% [Skotlex]
@@ -2608,7 +2611,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 				struct delay_item_drop *ditem;
 
 				ditem = mob_setlootitem(&md->lootitem[i], md->bl.m, md->bl.x, md->bl.y, mvp_sd, second_sd, third_sd);
-				mob_item_drop(md, tick+(battle_config.delay_battle_damage?40:540)+i, ditem, 1);
+				mob_item_drop(md, tick+base_drop_delay+40+i, ditem, 1);
 			}
 		}
 	}

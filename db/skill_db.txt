@@ -460,7 +460,7 @@
 441,0,0,0,0,0,10,0,no,0,0,0,none,0	//SG_DEVIL#Demon of the Sun, Moon and Stars#
 442,0,0,0,0,0,3,0,no,0,0,0,none,0	//SG_FRIEND#Friend of the Sun, Moon and Stars#
 443,0,0,0,0,0,10,0,no,0,0,0,none,0	//SG_KNOWLEDGE#Knowledge of the Sun, Moon and Stars#
-444,0,6,4,0,1,1,1,no,0,0,0,misc,0	//SG_FUSION#Union of the Sun, Moon and Stars#
+444,0,6,4,0,1,1,1,no,0,8,0,misc,0	//SG_FUSION#Union of the Sun, Moon and Stars#
 445,9,6,16,0,1,5,1,yes,0,0,0,magic,0	//SL_ALCHEMIST#Spirit of the Alchemist#
 446,0,0,0,0,0,0,0,no,0,8,0,none,0	//AM_BERSERKPITCHER#Berserk Pitcher#
 447,9,6,16,0,1,5,1,yes,0,0,0,magic,0	//SL_MONK#Spirit of the Monk#
@@ -515,7 +515,7 @@
 496,0,6,4,0,1,1,0,no,0,8,0,none,0	//AM_TWILIGHT1#Twilight Alchemy 1#
 497,0,6,4,0,1,1,0,no,0,8,0,none,0	//AM_TWILIGHT2#Twilight Alchemy 2#
 498,0,6,4,0,1,1,0,no,0,8,0,none,0	//AM_TWILIGHT3#Twilight Alchemy 3#
-499,-3,8,1,-1,0,1,1,no,0,8,0,weapon,0	//HT_POWER#Beast Strafing#
+499,-9,8,4,-1,0,1,1,no,0,8,0,weapon,0	//HT_POWER#Beast Strafing#
 
 1001,9,6,1,-1,0,1,1,no,0,1,0,weapon,0	//KN_CHARGEATK#Charge Attack#
 1002,0,6,4,0,1,1,0,no,0,1,0,weapon,2	//CR_SHRINK#Shrink#
