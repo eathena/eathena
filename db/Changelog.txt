@@ -38,6 +38,9 @@
 	12132,Red_Package: Turns you into x-mas clothes sprite for 10 minutes
 	--
 
+12/08
+	* Updated Warmth of the Sun / Warmth of the Moon / Warmth of the Star sp usage (20/20/10) [Komurka]
+
 12/07
 	* Updated the element of all treasure boxes to 21 (neutral 1) [Skotlex]
 	* Updated inf2 to 2 (NPC skills) to the Abracadabra skills to prevent them

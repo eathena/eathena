@@ -2237,7 +2237,7 @@ int status_calc_def(struct block_list *bl, int def)
 		if(sc_data[SC_PROVOKE].timer!=-1 && bl->type != BL_PC) //Provoke doesn't alters player defense.
 			def -= def * (5+5*sc_data[SC_PROVOKE].val1)/100;
 		if(sc_data[SC_SUN_COMFORT].timer!=-1 && bl->m == ((struct map_session_data *)bl)->feel_map[0].m) //SG skill [Komurka]
-			def += (status_get_lv(bl) + status_get_dex(bl) + status_get_luk(bl))/10;
+			def += (status_get_lv(bl) + status_get_dex(bl) + status_get_luk(bl))/2;
 	}
 
 	return def;
