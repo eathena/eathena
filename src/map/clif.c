@@ -1907,16 +1907,9 @@ int clif_changemapserver(struct map_session_data *sd, char *mapname, int x, int 
 }
 
 int clif_blown(struct block_list *bl) {
-	//Empirical results with packet-sniffing tools says this should be a simple clif_fixpos. [Skotlex]
-/*
-	switch (bl->type) {
-	case BL_MOB:
-		return clif_fixmobpos((struct mob_data*)bl);
-	case BL_PET:
-		return clif_fixpetpos((struct pet_data*)bl);
-	default:
-*/
-	return clif_fixpos(bl);
+//Previous Aegis versions simply used clif_fixpos, but it seems clif_slide works better on current clients.
+//	return clif_fixpos(bl);
+	return clif_slide(bl, bl->x, bl->y);
 	
 }
 /*==========================================

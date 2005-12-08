@@ -1,6 +1,9 @@
 Date	Added
 
 2005/12/08
+	* Modified clif_blown to use the clif_slide packet instead of clif_fixpos,
+	  as Komurka tested it and it appears to be handled better by current
+	  clients. [Skotlex]
 	* Added two new battle_athena.conf options:
 	  duel_allow_teleport (def: no) and duel_autoleave_when_die (def: yes) [LuzZza]
 	* Small fix in allskill [Komurka]
