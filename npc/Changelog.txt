@@ -26,6 +26,8 @@ Nexon
 
 Date		Added
 ======
+12/08
+	* Fixed dialouge in blood_bandana quest. Thanks Razor87 for the report. [Kayla]
 12/07
 	* Added the New Novice Training grounds, beware of potentional bugs and [MasterOfMuppets]
 	  faulty dialogues. I kept the old script as OLDnovice.txt just incase. Thanks to Dr.Evil

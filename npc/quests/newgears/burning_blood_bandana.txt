@@ -4,7 +4,7 @@
 //= Halca (1.0)
 //= Mass Zero (1.1)
 //===== Current Version: ===================================== 
-//= 1.3a
+//= 1.3b
 //===== Compatible With: ===================================== 
 //= Any eAthena Version.
 //===== Description: ========================================= 
@@ -12,6 +12,7 @@
 //===== Additional Comments: ================================= 
 //= 1.2 Fixed wrong labels, added missing text, wrong ID [Lupus]
 //= 1.3 Fixed possible exploit, 1.3a coords fixed [Lupus]
+//= 1.3b Fixed NPC dialouge [Kayla]
 //============================================================
 
 
@@ -52,7 +53,7 @@ L_NOITEM:
 M_REQ:
  mes "[Genbolt]";
  mes "Bring me:";
- mes "300 Red Scarfs,";
+ mes "300 Red Mufflers,";
  mes "300 Burning Hearts,";
  mes "1 White Dyestuff,";
  mes "and 1 Bandana.";
