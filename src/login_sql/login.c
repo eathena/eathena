@@ -618,7 +618,7 @@ int mmo_auth( struct mmo_account* account , int fd){
         if(check_client_version == 1 && account->version != 0){
         	if(account->version != client_version_to_connect){
 			mysql_free_result(sql_res);
-			return 6;
+			return 5;
 		}
 	}           
 	                                                                        
