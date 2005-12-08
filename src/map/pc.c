@@ -1009,7 +1009,6 @@ int pc_calc_skilltree(struct map_session_data *sd)
 			sd->status.skill[i].id=0; //First clear skills.
 	}
 	for(i=0;i<MAX_SKILL;i++){ 
-
 		if (sd->status.skill[i].flag && sd->status.skill[i].flag != 13){	
 			sd->status.skill[i].lv=(sd->status.skill[i].flag==1)?0:sd->status.skill[i].flag-2;
 			sd->status.skill[i].flag=0;
@@ -1053,13 +1052,14 @@ int pc_calc_skilltree(struct map_session_data *sd)
 				}
 				if (sd->status.job_level < skill_tree[c][i].joblv)
 					f=0;
-				else if (((id >= SM_SWORD && id <= TF_DETOXIFY) || (id >= TK_RUN && id <= TK_HIGHJUMP)) && pc_checkskill(sd, NV_BASIC) < 9)
-					f=0; // Do not unlock job1 skills when Basic Skills is not maxed out (can happen because of skill reset)
+				else if (pc_checkskill(sd, NV_BASIC) < 9 && id != NV_BASIC && !(skill_get_inf2(id)&INF2_QUEST_SKILL))
+					f=0; // Do not unlock normal skills when Basic Skills is not maxed out (can happen because of skill reset)
 			}
 			if(sd->sc_data[SC_SPIRIT].timer != -1 && skill_get_inf2(id)&INF2_SPIRIT_SKILL) { //Enable Spirit Skills. [Skotlex]
 				sd->status.skill[id].id=id;
 				sd->status.skill[id].lv=1;
 				sd->status.skill[id].flag=1; //So it is not saved, and tagged as a "bonus" skill.
+				flag=1;
 			} else 
 			if(f && sd->status.skill[id].id==0 ){
 				sd->status.skill[id].id=id;

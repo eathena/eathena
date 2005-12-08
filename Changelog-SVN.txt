@@ -1,6 +1,9 @@
 Date	Added
 
 2005/12/08
+	* Some cleaning to pc_calc_skilltree. Also updated it so that if you don't
+	  use player_skillfree, you can't have ANY skill if you don't have NV_BASIC at
+	  9 (only exception are quest skills). [Skotlex]
 	* Implemented HT_POWER/Beast Strafing.  [Skotlex]
 	- The damage equation is unknown.. for now it's the same as Double Strafe
 	  except the skill modifier is +10%*str
