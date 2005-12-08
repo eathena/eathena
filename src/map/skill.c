@@ -3798,9 +3798,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				clif_skill_fail(sd,skillid,0,0);
 				break;
 			}
-			do {
-				id = rand()%MAX_MOB_DB; 
-			} while (!mobdb_checkid(id) || !mob_db(id)->base_exp || mob_db(id)->mode&MD_BOSS); //TODO: Figure out which kind of mobs are valid.
+			id = mob_get_random_id(0,0, sd->status.base_level);
+			if (!id) {
+				clif_skill_fail(sd,skillid,0,0);
+				break;
+			}
 			sd->mission_mobid = id;
 			sd->mission_count = 0;
 			pc_setglobalreg(sd,"TK_MISSION_ID", id);

@@ -120,6 +120,38 @@ int mob_spawn_dataset(struct mob_data *md,const char *mobname,int class_)
 	return 0;
 }
 
+/*==========================================
+ * Fetches a random mob_id [Skotlex]
+ * type: Where to fetch from:
+ * 0: dead branch list
+ * 1: poring list
+ * 2: bloody branch list
+ * flag:
+ * &1: Apply the summon success chance found in the list.
+ * &2: Apply a monster check level.
+ * lv: Mob level to check against
+ *------------------------------------------
+ */
+
+int mob_get_random_id(int type, int flag, int lv) {
+	struct mob_db *mob;
+	int i=0, k=0, class_;
+	if(type < 0 || type >= MAX_RANDOMMONSTER) {
+		if (battle_config.error_log)
+			ShowError("mob_get_random_id: Invalid type (%d) of random monster.\n", type);
+		return 0;
+	}
+	do {
+		class_ = rand() % MAX_MOB_DB;
+		if (flag&1)
+			k = rand() % 1000000;
+		mob = mob_db(class_);
+	} while ((mob == mob_dummy || mob->summonper[type] <= k ||
+		 (flag&2 && lv < mob->lv)) && (i++) < MAX_MOB_DB);
+	if(i >= MAX_MOB_DB)
+		class_ = mob_db_data[0]->summonper[type];
+	return class_;
+}
 
 /*==========================================
  * The MOB appearance for one time (for scripts)
@@ -142,25 +174,12 @@ int mob_once_spawn (struct map_session_data *sd, char *mapname,
 	if (m < 0 || amount <= 0 || (class_ >= 0 && class_ <= 1000) || class_ > MAX_MOB_DB + 2*MAX_MOB_DB)	// ’l‚ªˆÙí‚È‚ç¢Š«‚ğ~‚ß‚é
 		return 0;
 
-	if (class_ < 0) {	// ƒ‰ƒ“ƒ_ƒ€‚É¢Š«
-		struct mob_db *mob;
-		int k;
-		i = 0;
-		j = -class_-1;
-		if(j >= 0 && j < MAX_RANDOMMONSTER) {
-			do {
-				class_ = rand() % 1000 + 1001;
-				k = rand() % 1000000;
-				mob = mob_db(class_);
-			} while ((mob == mob_dummy || mob->summonper[j] <= k ||
-				 (battle_config.random_monster_checklv && lv < mob->lv)) && (i++) < 2000);
-			if(i >= 2000)
-				class_ = mob_db_data[0]->summonper[j];
-		} else 
+	if (class_ < 0) {
+		class_ = mob_get_random_id(-class_ -1, battle_config.random_monster_checklv?3:1, lv);
+		if (!class_)
 			return 0;
-//		if(battle_config.etc_log)
-//			printf("mobclass=%d try=%d\n",class_,i);
 	}
+	
 	if (sd) { //even if the coords were wrong, spawn mob anyways (but look for most suitable coords first) Got from Freya [Lupus]
 		if (x <= 0 || y <= 0) {
 			if (x <= 0) x = sd->bl.x + rand() % 3 - 1;
@@ -2342,11 +2361,9 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 				clif_heal(sd->fd,SP_HP,hp);
 		}
 		if (sd->mission_mobid == md->class_) { //TK_MISSION [Skotlex]
-			if (++sd->mission_count >= 100)
+			//Recycling hp for new random target id...
+			if (++sd->mission_count >= 100 && (hp = mob_get_random_id(0, 0, sd->status.base_level)))
 			{
-				do { //Recycling hp for new random target id...
-					hp = rand()%MAX_MOB_DB; 
-				} while (!mobdb_checkid(hp) || !mob_db(hp)->base_exp || mob_db(hp)->mode&MD_BOSS); //TODO: Figure out which kind of mobs are valid.
 				pc_addfame(sd, 1);
 				sd->mission_mobid = hp;
 				pc_setglobalreg(sd,"TK_MISSION_ID", hp);
