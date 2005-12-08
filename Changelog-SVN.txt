@@ -1,5 +1,7 @@
 Date	Added
 
+2005/12/08
+	* Removed duplicate maps in maps_athena.conf. Thanks for the report Dr. Evil [Kayla]
 2005/12/07
 	* Pressure will always pull-off now after it has began casting. [Skotlex]
 	* Implemented Close Confine. [Skotlex]
