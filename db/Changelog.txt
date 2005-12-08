@@ -18,27 +18,22 @@
 		speed rate
 	2520,Gebneys_Shoulder: maybe item name is wrong.  it doesn't have its own sprite yet(though file
 	exists)
-	2653,Sacrifice_Ring: seems eAthena doesn't have bonus option yet
+	2653,Sacrifice_Ring: seems eAthena doesn't have bonus option yet <- explain how this works so I can code it in. [Skotlex]
 	5125,Angel_Kiss,Angel's Kiss: Description miss.  This item is for Novice/Super Novice, like any other
 		'Angel' equipments.
 	5126,Morphicious_Hood: When using magic, it cannot be dispelled(Maybe it works like Phen card)
 	----------
 	12033,Sunshine_Box: should allow seeing cloaked or hidden enemy (itravision + timer 20 sec)
-	4198,Maya_Purple_Card: intravision not quite right working atm
+	4198,Maya_Purple_Card: intravision not quite right working atm <- someone test, this should work just fine now. [Skotlex]
 	4296,Cramp_Card: Temporal Plug: 10z per mob-level on a 3% chance.
-	12122,Dasik - FOOD should add temporary +30 Hit
-	12123,Oil_and_Honey_Pastry - FOOD should add temporary +30 Flee
-	12124,Various_colored_Rice_Cake - FOOD should add temporary +10 ATK +10 MATK
 	7458,Fortune_Horn - it's a custom name yet
 	12016,Speed_Increasing_Potion no bonus... Turbo Track race item
 	12017,Speed_Decreasing_Potion no bonus... Turbo Track race item
 	-----
 	5136,Luise_Santa's_Hat: need view ID, temp: normal santa hat
-	12131,Lucky_Potion: +15 LUK for 3 minutes
-	12132,Red_Package: Turns you into x-mas clothes sprite for 10 minutes
-	--
 
 12/08
+	* Corrected G_Mobster's element, thanks to Haplo [Skotlex]
 	* Corrected Treasure Box element, now they are Neutral 1. [Skotlex]
 	* Modified Beast Strafing's inf to be a self skill (since it's a combo, it
 	  auto selects target) [Skotlex]
@@ -46,8 +41,11 @@
 	* Fixed 5131,Close_Helmet jobs [Lupus]
 	* Updated Warmth of the Sun / Warmth of the Moon / Warmth of the Star sp usage (20/20/10) [Komurka]
 
-12/07
+12/08
+	* Implemented the script of a few items. Need clarification of a few others
+	  that need implementing (see above comments). [Skotlex]
 	* Updated the element of all treasure boxes to 21 (neutral 1) [Skotlex]
+12/07
 	* Updated inf2 to 2 (NPC skills) to the Abracadabra skills to prevent them
 	  from displaying on the GM-all-skills menu. [Skotlex]
 	* Updated SG_*_WARM skills to have range 1. [Skotlex]

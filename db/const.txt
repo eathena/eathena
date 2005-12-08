@@ -363,6 +363,13 @@ SC_Frost	97
 SC_Lightning	98
 SC_Seismic	99
 SC_EleDef	105
+SC_IncAll	187
+SC_IncStr	188
+SC_IncAgi	189
+SC_IncVit	190
+SC_IncInt	191
+SC_IncDex	192
+SC_IncLuk	193
 SC_STRFood	203
 SC_AGIFood	204
 SC_VITFood	205

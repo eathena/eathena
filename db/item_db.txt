@@ -2312,9 +2312,9 @@
 12119,Resist_Water_Potion,Resist Water Potion,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start4 SC_EleDef,1200000,Ele_Water,20,Ele_Wind,-15; }
 12120,Resist_Earth_Potion,Resist Earth Potion,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start4 SC_EleDef,1200000,Ele_Earth,20,Ele_Fire,-15; }
 12121,Resist_Wind_Potion,Resist Wind Potion,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start4 SC_EleDef,1200000,Ele_Wind,20,Ele_Earth,-15; }
-12122,Dasik,Dasik,0,,1,70,,,,,127918079,7,2,,,,,,{}
-12123,Oil_and_Honey_Pastry,Oil and Honey Pastry,0,,10,70,,,,,127918079,7,2,,,,,,{}
-12124,Various_colored_Rice_Cake,Rainbow colord Rice Cake,0,,10,70,,,,,127918079,7,2,,,,,,{}
+12122,Dasik,Dasik,0,,1,70,,,,,127918079,7,2,,,,,,{ sc_start SC_HITFood,1200000,30; }
+12123,Oil_and_Honey_Pastry,Oil and Honey Pastry,0,,10,70,,,,,127918079,7,2,,,,,,{ sc_start SC_FLEEFood,1200000,30; }
+12124,Various_colored_Rice_Cake,Rainbow colord Rice Cake,0,,10,70,,,,,127918079,7,2,,,,,,{ sc_start SC_BAtkFood,1200000,10; sc_start SC_MAtkFood,120000,10; }
 // Cooking Sets
 12125,Outdoor_Cooker,Outdoor Cooker,2,,10,20,,,,,127918079,7,2,,,,,,{ produce 11; }
 12126,Home_Cooking_Set,Home Cooking Set,2,,10,30,,,,,127918079,7,2,,,,,,{ produce 11; }
@@ -2322,7 +2322,7 @@
 12128,Court_Cooking_Set,Court Cooking Set,2,,10,70,,,,,127918079,7,2,,,,,,{ produce 11; }
 12129,Legendary_Cooking_Set,Legendary Cooking Set,2,,10,70,,,,,127918079,7,2,,,,,,{ produce 11; }
 12130,Cookie_Bag,Cookie Bag,3,,10,70,,,,,127918079,7,2,,,,,,{}
-12131,Lucky_Potion,Lucky Potion,0,,10,100,,,,,127918079,7,2,,,,,,{}
+12131,Lucky_Potion,Lucky Potion,0,,10,100,,,,,127918079,7,2,,,,,,{ sc_start SC_IncLuk,900000,15;}
 12132,Red_Package,Red Package,0,,10,200,,,,,127918079,7,2,,,,,,{ sc_start SC_XMAS,600000,0;}
 
 // More Weapons

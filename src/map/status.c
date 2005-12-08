@@ -4334,10 +4334,9 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			break;
 
 		case SC_ASSUMPTIO:		/* アスムプティオ */
-			if(sc_data[SC_KYRIE].timer!=-1 )
-				status_change_end(bl,SC_KYRIE,-1);
-				break;
 			*opt3 |= 2048;
+			if(sc_data[SC_KYRIE].timer!=-1)
+				status_change_end(bl,SC_KYRIE,-1);
 			break;
 
 		case SC_WARM: //SG skills [Komurka]
