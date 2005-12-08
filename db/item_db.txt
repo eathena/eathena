@@ -1603,7 +1603,7 @@
 5128,Goibniu_Helm,Helm of Goibniu,5,,10,500,,5,,0,119529470,7,2,256,,54,1,207,{ bonus bVit,3; bonus bMdef,3; if(isequipped(2354,2419,2520)==0) end; bonus bVit,5; bonus bMaxHPrate,15; bonus bMaxSPrate,5; bonus bDef,5; bonus bMdef,15; bonus2 bSubEle,Ele_Water,10; bonus2 bSubEle,Ele_Earth,10; bonus2 bSubEle,Ele_Fire,10; bonus2 bSubEle,Ele_Wind,10; }
 5129,Nest,Bird Nest,5,,10,400,,1,,0,127918079,7,2,256,,55,1,201,{ bonus bAgi,2; bonus2 bSubRace,RC_Brute,10; }
 5130,Lion_Mask,Lion Mask,5,,10,700,,0,,0,102752128,7,2,768,,75,1,202,{ bonus2 bAddEffWhenHit,Eff_Silence,300; bonus bMdef,1; }
-5131,Close_Helmet,Close Helmet,5,,10,1200,,8,,0,8405122,7,2,769,,75,1,203,{ bonus bVit,3; bonus bMaxHPrate,3; }
+5131,Close_Helmet,Close Helmet,5,,10,1200,,8,,0,16514,7,2,769,,75,1,203,{ bonus bVit,3; bonus bMaxHPrate,3; }
 5132,Angeling_Hat,Angeling Hat,5,,10,700,,2,,0,127918079,7,2,256,,38,1,204,{ bonus2 bSubRace,RC_DemiHuman,10; }
 5133,Sheep_Hat,Sheep Hat,5,,10,150,,1,,0,33040,7,2,256,,50,1,205,{ bonus bShortWeaponDamageReturn,5; }
 5134,Pumpkin_Hat,Pumpkin Hat,5,,10,200,,2,,0,127918079,7,2,256,,0,1,206,{}

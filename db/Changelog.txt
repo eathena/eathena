@@ -39,6 +39,8 @@
 	--
 
 12/08
+	* Updated Volet / Blue Box items lists [Lupus]
+	* Fixed 5131,Close_Helmet jobs [Lupus]
 	* Updated Warmth of the Sun / Warmth of the Moon / Warmth of the Star sp usage (20/20/10) [Komurka]
 
 12/07
@@ -47,7 +49,6 @@
 	  from displaying on the GM-all-skills menu. [Skotlex]
 	* Updated SG_*_WARM skills to have range 1. [Skotlex]
 	* Updated SG skills [Komurka]
-
 12/06
 	* Updated Berserk Pitcher in skill_require_db and Full Adrenaline Rush in
 	  skill_db as per Reddozen's info. [Skotlex]
