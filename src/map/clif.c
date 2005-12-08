@@ -10870,13 +10870,14 @@ void clif_parse_RankingPk(int fd,struct map_session_data *sd)
  */
 void clif_parse_FeelSaveOk(int fd,struct map_session_data *sd)
 {
-	if (sd->feel_map[sd->feel_level].m!=-1)
+	if (sd->feel_level!=-1)
 	{
 		WFIFOW(fd,0)=0x20e;
 		memcpy(WFIFOP(fd,2),map[sd->bl.m].name, MAP_NAME_LENGTH-1);
 		WFIFOL(fd,26)=sd->bl.id;
 		WFIFOW(fd,30)=sd->feel_level;
 		strcpy(sd->feel_map[sd->feel_level].name,map[sd->bl.m].name);
+		sd->feel_map[sd->feel_level].m = sd->bl.m;
 		WFIFOSET(fd, packet_len_table[0x20e]);
 		if (pc_checkskill(sd,SG_KNOWLEDGE)) status_calc_pc(sd,0);
 

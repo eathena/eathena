@@ -843,6 +843,8 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 		strcpy(sd->feel_map[i].name,"");
 		sd->feel_map[i].m = -1;
 	}
+	
+	sd->feel_level=-1;
 
 	sd->hate_mob[0] = pc_readglobalreg(sd,"PC_HATE_MOB_SUN")  - 1;
 	sd->hate_mob[1] = pc_readglobalreg(sd,"PC_HATE_MOB_MOON") - 1;
