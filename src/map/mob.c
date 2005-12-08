@@ -2434,7 +2434,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 		else if(md->class_ == tmpsd[i]->hate_mob[1] && (battle_config.allow_skill_without_day || is_day_of_moon()))
 			per += per*10*pc_checkskill(tmpsd[i],SG_MOON_BLESS)/100.;
 		else if(md->class_ == tmpsd[i]->hate_mob[2] && (battle_config.allow_skill_without_day || is_day_of_star()))
-			per += per*10*pc_checkskill(tmpsd[i],SG_STAR_BLESS)/100.;
+			per += per*20*pc_checkskill(tmpsd[i],SG_STAR_BLESS)/100.;
 
 		if(md->special_state.size==1)	// change experience for different sized monsters [Valaris]
 			per /=2.;
