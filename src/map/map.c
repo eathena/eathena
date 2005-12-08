@@ -4,13 +4,10 @@
 #include <string.h>
 #include <stdarg.h>
 #ifdef _WIN32
-	#include <winsock.h>
+#include <winsock.h>
 #else
-	#include <netdb.h>
-	#include <unistd.h>
-#endif
-#ifdef MINGW
-	#include <io.h>
+#include <netdb.h>
+#include <unistd.h>
 #endif
 #include <math.h>
 
@@ -1314,7 +1311,7 @@ int map_quit(struct map_session_data *sd) {
     if(sd->duel_group > 0)
     	duel_leave(sd->duel_group, sd);
     if(sd->duel_invite > 0)
-    	duel_reject(sd->duel_group, sd);
+    	duel_reject(sd->duel_invite, sd);
 
 	if(!sd->state.waitingdisconnect) {
 		if (sd->state.event_disconnect) {
