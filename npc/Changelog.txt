@@ -27,6 +27,7 @@ Nexon
 Date		Added
 ======
 12/08
+	* Organized Jobs folder a bit for Expended Classes. [Vicious]
 	* Fixed dialouge in blood_bandana quest. Thanks Razor87 for the report. [Kayla]
 12/07
 	* Added the New Novice Training grounds, beware of potentional bugs and [MasterOfMuppets]

@@ -1,0 +1,46 @@
+//===== eAthena Script ======================================= 
+//= Taekwon Job Quest
+//===== By: ================================================== 
+//= Lupus
+//===== Current Version: ===================================== 
+//= 0.2
+//===== Compatible With: ===================================== 
+//= eAthena 1.0 +
+//===== Description: ========================================= 
+//= 
+//===== Additional Comments: ================================= 
+//= 0.1 Now it's just a questless temp NPC 
+//= We use CLASS instead of BASEJOB to protect from Advanced/Baby Classes
+//= 0.2 Used baseClass == Job_Taekwon instead of Is_Taekwon_Class Function [Silentdragon]
+//============================================================ 
+
+
+payon_in01.gat,6,49,4	script	Taekwon	764,{
+	mes "[Taekwon]";
+	if(Class==Job_Novice) goto L_Check;
+	if(baseClass == Job_Taekwon) mes "Hello, my friend!";
+	mes "What are you looking for?";
+	emotion 1;
+	close;
+
+L_Check:
+	mes "Hello, Novice!";
+	mes "What is it you are looking for?";
+	next;
+	menu "I want to be a Taekwon",-,"Nothing.",M_NOTHING;
+
+	mes "[Taekwon]";
+	if(JobLevel<10 || SkillPoint) mes "I'm sorry. I can't promote you to a Taekwon unless you get 10 Job Level and learn all Basic Skills.";
+	if(JobLevel<10 || SkillPoint) close;
+
+	jobchange Job_Taekwon;
+	callfunc "F_ClearJobVar";
+	mes "My congratulations!";
+	close;
+
+M_NOTHING:
+	mes "[Taekwon]";
+	mes "Goodbye then.";
+	close;	
+
+}
