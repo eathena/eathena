@@ -462,7 +462,7 @@
 443,0,0,0,0,0,10,0,no,0,0,0,none,0	//SG_KNOWLEDGE#Knowledge of the Sun, Moon and Stars#
 444,0,6,4,0,1,1,1,no,0,8,0,misc,0	//SG_FUSION#Union of the Sun, Moon and Stars#
 445,9,6,16,0,1,5,1,yes,0,0,0,magic,0	//SL_ALCHEMIST#Spirit of the Alchemist#
-446,0,0,0,0,0,0,0,no,0,8,0,none,0	//AM_BERSERKPITCHER#Berserk Pitcher#
+446,9,6,16,0,1,1,1,yes,0,3080,0,none,0	//AM_BERSERKPITCHER#Berserk Pitcher#
 447,9,6,16,0,1,5,1,yes,0,0,0,magic,0	//SL_MONK#Spirit of the Monk#
 448,9,6,16,0,1,5,1,yes,0,0,0,magic,0	//SL_STAR#Spirit of the Star Knight#
 449,9,6,16,0,1,5,1,yes,0,0,0,magic,0	//SL_SAGE#Spirit of the Professor#
