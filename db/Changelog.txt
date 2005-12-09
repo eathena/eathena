@@ -33,6 +33,7 @@
 	5136,Luise_Santa's_Hat: need view ID, temp: normal santa hat
 
 12/09
+	* Fixed 5125, Angel's Kiss. Should be novice only. Good eye Kholdstare! [Kayla]
 	* Updated skill_db and skill_require_db info for Soul Linker skills, thanks
 	  to Reddozen to provide the information. [Skotlex]
 	* Updated skill_db SL skills pl to -2 where appropiate (-2 = take

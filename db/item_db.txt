@@ -1597,7 +1597,7 @@
 5122,Megin_Cap,Megin Cap,5,,10,1000,,5,,0,119529470,7,2,256,,65,1,201,{ bonus bStr,2; if(BaseClass == Job_Swordman) bonus bDef,5; if(isequipped(2114,2353)==0) end; bonus bStr,2; bonus bDef,5; bonus bMdef,5; }
 5123,Wool_Cap,Wool Cap,5,,10,500,,3,,1,119529470,7,2,256,,65,1,202,{ bonus bDex,2; bonus bAgi,1;  if(isequipped(2353)==0) end; if(bDex>=70) bonus bUseSPrate,-10; }
 5124,Frica_Circlet,Frica Circlet,5,,10,300,,3,,0,119529470,7,2,256,,65,1,203,{ bonus bMdef,10; bonus bInt,2; bonus bMaxSP,50; if(isequipped(2115,2353)==0) end; bonus bDef,2; bonus bMdef,25; }
-5125,Angel_Kiss,Angel's Kiss,5,,10,300,,2,,0,119529470,7,2,256,,50,1,204,{ bonus bSPrecovRate,3; }
+5125,Angel_Kiss,Angel's Kiss,5,,10,300,,2,,0,8388609,7,2,256,,50,1,204,{ bonus bSPrecovRate,3; }
 5126,Morphicious_Hood,Hood of Morphicious,5,,10,200,,3,,0,119529470,7,2,256,,33,1,205,{ bonus bInt,2; if(isequipped(2518,2648,2649)==0) end; bonus bInt,5; bonus bMdef,11; bonus bMaxSPrate,20; if(Class>4000 && Class<4023) bonus bCastrate,25; }
 5127,Helm_of_Morrigan,Helm of Morrigan,5,,10,500,,4,,0,119529470,7,2,256,,61,1,206,{ bonus bLuk,2; bonus bAtk,3; if(isequipped(2519,2650,2651)==0) end; bonus bStr,2; bonus bLuk,9; bonus bCritical,13; bonus bAtk,18; bonus bFlee2,13; }
 5128,Goibniu_Helm,Helm of Goibniu,5,,10,500,,5,,0,119529470,7,2,256,,54,1,207,{ bonus bVit,3; bonus bMdef,3; if(isequipped(2354,2419,2520)==0) end; bonus bVit,5; bonus bMaxHPrate,15; bonus bMaxSPrate,5; bonus bDef,5; bonus bMdef,15; bonus2 bSubEle,Ele_Water,10; bonus2 bSubEle,Ele_Earth,10; bonus2 bSubEle,Ele_Fire,10; bonus2 bSubEle,Ele_Wind,10; }
