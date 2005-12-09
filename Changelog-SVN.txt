@@ -1,6 +1,9 @@
 Date	Added
 
 2005/12/09
+	* Implemented SL_ROGUE bonuses: can't be dispelled, Chase Walk's str bonus
+	  lasts 10x longer. [Skotlex]
+	* OneHand Quicken now dispels aspd potion effects. [Skotlex]
 	* Updated SL_STIN/SL_STUN to do miserable damage if the target's size is
 	  'incorrect'. [Skotlex]
 	* Updated @disguise so the max npc id you can use is 1000 (1001 is already

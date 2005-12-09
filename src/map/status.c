@@ -3817,7 +3817,15 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			if (sc_data[SC_POISON].timer == -1 && sc_data[SC_DPOISON].timer == -1)
 				return 0;
 			break;
-		case SC_ONEHAND:
+		case SC_ONEHAND: //Removes the Aspd potion effect, as reported by Vicious. [Skotlex]
+			if(sc_data[SC_ASPDPOTION0].timer!=-1)
+				status_change_end(bl,SC_ASPDPOTION0,-1);
+			if(sc_data[SC_ASPDPOTION1].timer!=-1)
+				status_change_end(bl,SC_ASPDPOTION1,-1);
+			if(sc_data[SC_ASPDPOTION2].timer!=-1)
+				status_change_end(bl,SC_ASPDPOTION2,-1);
+			if(sc_data[SC_ASPDPOTION3].timer!=-1)
+				status_change_end(bl,SC_ASPDPOTION3,-1);
 		case SC_TWOHANDQUICKEN:		/* 2HQ */
 			if(sc_data[SC_DECREASEAGI].timer!=-1)
 				return 0;
@@ -5244,7 +5252,9 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 				sd->status.sp -= sp; // update sp cost [Celest]
 				clif_updatestatus(sd,SP_SP);
 				if ((++sc_data[SC_CHASEWALK].val4) == 1) {
-					status_change_start(bl, SC_INCSTR, 1<<(sc_data[SC_CHASEWALK].val1-1), 0, 0, 0, skill_get_time2(ST_CHASEWALK,sc_data[SC_CHASEWALK].val1), 0);
+					status_change_start(bl, SC_INCSTR, 1<<(sc_data[SC_CHASEWALK].val1-1), 0, 0, 0,
+						(sc_data[SC_SPIRIT].timer != -1 && sc_data[SC_SPIRIT].val2 == SL_ROGUE?10:1) //SL bonus -> x10 duration
+						*skill_get_time2(ST_CHASEWALK,sc_data[SC_CHASEWALK].val1), 0);
 				}
 				sc_data[type].timer = add_timer( /* ƒ^ƒCƒ}?ÄÝ’è */
 					sc_data[type].val2+tick, status_change_timer, bl->id, data);
