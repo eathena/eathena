@@ -26,6 +26,9 @@ Nexon
 
 Date		Added
 ======
+12/10
+	* Fixed, optimized 2nd Class Skills Quests, [Lupud]
+	- removed Elemental Potion Guide from Alchemist NPC, due to new Reddozen's quest
 12/09
 	* Cleaned up custom folder, lots of duplicate NPCs. [Kayla]
 12/08
