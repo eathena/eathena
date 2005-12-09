@@ -33,6 +33,8 @@
 	5136,Luise_Santa's_Hat: need view ID, temp: normal santa hat
 
 12/08
+	* View ID changed for Luise's Santa's Hat from 208 to 20 (standard santa's hat) 
+	  because 208 isn't supported yet
 	* Corrected HT_POWER's number of hits (1->2) [Skotlex]
 	* Corrected G_Mobster's element, thanks to Haplo [Skotlex]
 	* Corrected Treasure Box element, now they are Neutral 1. [Skotlex]
