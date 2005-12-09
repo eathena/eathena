@@ -1057,15 +1057,16 @@ int pc_calc_skilltree(struct map_session_data *sd)
 				else if (pc_checkskill(sd, NV_BASIC) < 9 && id != NV_BASIC && !(skill_get_inf2(id)&INF2_QUEST_SKILL))
 					f=0; // Do not unlock normal skills when Basic Skills is not maxed out (can happen because of skill reset)
 			}
-			if(sd->sc_data[SC_SPIRIT].timer != -1 && skill_get_inf2(id)&INF2_SPIRIT_SKILL) { //Enable Spirit Skills. [Skotlex]
-				sd->status.skill[id].id=id;
-				sd->status.skill[id].lv=1;
-				sd->status.skill[id].flag=1; //So it is not saved, and tagged as a "bonus" skill.
-				flag=1;
-			} else 
-			if(f && sd->status.skill[id].id==0 ){
-				sd->status.skill[id].id=id;
-				flag=1;
+			if(sd->status.skill[id].id==0 ){
+				if(sd->sc_data[SC_SPIRIT].timer != -1 && skill_get_inf2(id)&INF2_SPIRIT_SKILL) { //Enable Spirit Skills. [Skotlex]
+					sd->status.skill[id].id=id;
+					sd->status.skill[id].lv=1;
+					sd->status.skill[id].flag=1; //So it is not saved, and tagged as a "bonus" skill.
+					flag=1;
+				} else if (f){
+					sd->status.skill[id].id=id;
+					flag=1;
+				}
 			}
 		}
 	} while(flag);

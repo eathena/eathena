@@ -1,6 +1,8 @@
 Date	Added
 
 2005/12/09
+	* Fixed a possible infinite loop in pc_calc_skilltree when receiving
+	  additional skills when Soul Linked. [Skotlex]
 	* Added the Taekwon bonus that gives you triple Max HP/SP when you are a
 	  top 10 ranker and have base level 90+ [Skotlex]
 	* Added support for skill_db pl == -2. These skills don't take the element
