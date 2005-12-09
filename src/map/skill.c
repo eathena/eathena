@@ -4589,7 +4589,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					return 1;
 				}
 				if(skillid == AM_BERSERKPITCHER) { //Does not override use-level, and cannot be used on bows.
-					if (dstsd && (dstsd->status.base_level<sd->inventory_data[i]->elv || dstsd->weapontype1 == 11)) {
+					if (dstsd && (dstsd->status.base_level<(unsigned int)sd->inventory_data[i]->elv || dstsd->weapontype1 == 11)) {
 						clif_skill_fail(sd,skillid,0,0);
 						map_freeblock_unlock();
 						return 1;
@@ -4769,7 +4769,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 						bl_skilllv = dstmd->skilllv;
 					}
 				}
-				if(bl_skillid > 0 && bl_skillid != PA_PRESSURE/* && skill_db[bl_skillid].skill_type == BF_MAGIC*/) { //Reports indicate Spell Break cancels any type of skill, except Pressure. [Skotlex]
+				if(bl_skillid > 0 /*&& bl_skillid != PA_PRESSURE && skill_db[bl_skillid].skill_type == BF_MAGIC*/) { //Reports indicate Spell Break cancels any type of skill, except Pressure. [Skotlex]
 					clif_skill_nodamage(src,bl,skillid,skilllv,1);
 					skill_castcancel(bl,0);
 					sp = skill_get_sp(bl_skillid,bl_skilllv);

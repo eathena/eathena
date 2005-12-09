@@ -161,8 +161,8 @@ int char_log(char *fmt, ...) {
 			if (fmt[0] == '\0') // jump a line if no message
 				fprintf(logfp, RETCODE);
 			else {
-				time(raw_time);
-				strftime(tmpstr, 24, "%d-%m-%Y %H:%M:%S", localtime(raw_time));
+				time(&raw_time);
+				strftime(tmpstr, 24, "%d-%m-%Y %H:%M:%S", localtime(&raw_time));
 				sprintf(tmpstr + 19, ": %s", fmt);
 				vfprintf(logfp, tmpstr, ap);
 			}

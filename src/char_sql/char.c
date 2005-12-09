@@ -3327,7 +3327,8 @@ int parse_char(int fd) {
 			WFIFOW(fd, 0) = 0x6d;
 			memset(WFIFOP(fd, 2), 0x00, 106);
 
-			mmo_char_fromsql(i, char_dat);
+			mmo_char_fromsql_short(i, char_dat); //Only the short data is needed.
+			//mmo_char_fromsql(i, char_dat);
 			i = 0;
 			WFIFOL(fd, 2) = char_dat[i].char_id;
 			WFIFOL(fd,2+4) = char_dat[i].base_exp;

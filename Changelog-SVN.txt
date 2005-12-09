@@ -1,6 +1,9 @@
 Date	Added
 
 2005/12/09
+	* Should have fixed the crash with raw_time in char/char.c [Skotlex]
+	* Pressure can now be cast-break. [Skotlex]
+	* Likely fixed the client crash when hating a class rather than mob. [Skotlex]
 	* Removed @help2, note to self: do not commit at 4 am. Will redo later. [Kayla]
 	* Added @help2. @help did not fit in the screen. @help2 currently contains
 	  just the char (#) commands. [Kayla]

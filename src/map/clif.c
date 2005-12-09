@@ -11491,7 +11491,7 @@ void clif_hate_mob(struct map_session_data *sd, int skilllv,int mob_id)
 {
 	int fd=sd->fd;
 	WFIFOW(fd,0)=0x20e;
-	if (mob_id>1000 && mob_id<4000) strncpy(WFIFOP(fd,2),(mob_id>1000 && mob_id<4000)?mob_db(mob_id)->jname:job_name(mob_id), NAME_LENGTH);
+	strncpy(WFIFOP(fd,2),(mobdb_checkid(mob_id)?mob_db(mob_id)->jname:job_name(mob_id)), NAME_LENGTH);
 	WFIFOL(fd,26)=sd->bl.id;
 	WFIFOW(fd,30)=0xa00+skilllv-1;
 	WFIFOSET(fd, packet_len_table[0x20e]);
