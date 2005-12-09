@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= Lupus
 //===== Current Version: ===================================== 
-//= 1.1
+//= 1.2
 //===== Compatible With: ===================================== 
 //= eAthena Revision 3800+
 //===== Description: ========================================= 
@@ -12,209 +12,948 @@
 //= 1.0 for fully working skills only [Lupus]
 //= 1.1 Added more new skill quests for more classes [Lupus]
 //= Somehow eA engine doesn't let you keep learn't skill V_V'
+//= 1.2 Added to correct locations, correct NPC's, fixed
+//= some of the items required and made them into real
+//= quests. [Reddozen] 
 //============================================================
 
+//============================================================
+// SAGE SKILL - CREATE CONVERTER + ELEMENTAL CHARGE
+//============================================================
+yuno_in03.gat,176,24,3	script	Mischna	755,{
+	
+	if(BaseJob!=Job_Sage) goto L_sageno;
+	if(sage_skill > 0) goto L_elemental;
+	
+	mes "[Mischna]";
+	mes "I can teach you a new skill";
+	mes "that i discovered, but you";
+	mes "will need to Bring me a few";
+	mes "things to complete the";
+	mes "process";
+	next;
+	
+	mes "[Mischna]";
+	mes "We will need:";	
+	mes "10 Scorpion Tails";
+	mes "7 Horns";
+	mes "12 Rainbow Shells";
+	mes "10 Snail Shells";
+	mes "4 Blank Scrolls";
+	next;
+	
+	mes "[Mischna]";
+	mes "let me check your items";
+	next;
+	
+	if(countitem(904)<10) goto L_itemsno;
+	if(countitem(947)<7) goto L_itemsno;
+	if(countitem(1013)<12) goto L_itemsno;
+	if(countitem(946)<10) goto L_itemsno;
+	if(countitem(7433)<4) goto L_itemsno;
+	delitem 904, 10;
+	delitem 947, 7;
+	delitem 1013, 12;
+	delitem 946, 10;
+	delitem 7433, 4;
+	
+	mes "[Mischna]";
+	mes "I see you have what we need,";
+	mes "so i'll teach you this new";
+	mes "tallent of mine!";
+	skill 1007,1,0;
+	set sage_skill, 1;
+	next;
+	
+	mes "[Mischna]";
+	mes "Do you feel more in tune";
+	mes "with nature?";
+	close;
 
-prontera.gat,165,156,0	script	Skill Master	122,{
-	//Alcohol x 30
-	callfunc "F_Skill2Quest","Skill Master", 1007,"Create Converter", Job_Sage, 970,30, 100000;
-	end;
-}
+L_itemsno:
+		mes "[Mischna]";
+		mes "You dont have enough items.";
+		mes "Come back when you have all";
+		mes "the required items for me";
+		close;
+	
+L_sageno:
+		mes "[Mischna]";
+		mes "Hi I'm Mischna. How are you?";
+		mes "Please enjoy your stay here";
+		mes "within the walls of the great";
+		mes "Sage's guild.";
+		close;
 
-prontera.gat,167,158,1	script	Skill Master	122,{
-	//Mystic Frozen x 35
-	callfunc "F_Skill2Quest","Skill Master", 1008,"Elemental Charge Water", Job_Sage, 995,35, 0;
-	end;
-}
+L_sagefail:
+		mes "[Mischna]";
+		mes "You dont have enough items.";
+		mes "Come back when you have all";
+		mes "the required items for me";
+		mes "to give you this power over";
+		mes "the elements.";
+		close;
+		
+L_alreadyhave:
+		mes "[Mischna]";
+		mes "You are such a wonderfull";
+		mes "student. It's too bad I have";
+		mes "nothing more to teach you.";
+		close;
+					
+L_elemental:
+		if(getskilllv(1008)>0) goto L_alreadyhave;
+		if(getskilllv(1017)>0) goto L_alreadyhave;
+		if(getskilllv(1018)>0) goto L_alreadyhave;
+		if(getskilllv(1019)>0) goto L_alreadyhave;
+		
+		mes "[Mischna]";
+		mes "I have one more skill that";
+		mes "I can teach you, but you";
+		mes "will need to Bring me one of";
+		mes "these sets in return...";
+		next;
+		
+		mes "[Mischna]";
+		mes "I can only except one set.";
+		mes "20 Red blood (fire)";
+		mes "20 Crystal Blue (water)";
+		mes "20 Wind of Verdure (Wind)";
+		mes "20 Green Live (Earth)";
+		next;
+		
+		mes "[Mischna]";
+		mes "Rember that I can only teach";
+		mes "you one, so Choose carefully!";
+		next;
+		
+		menu "Water Charge",sage_1, "Earth Charge",sage_2, "Fire Charge",sage_3, "Wind Charge",sage_4;
 
-prontera.gat,166,153,2	script	Skill Master	122,{
-	//Great Nature x 35
-	callfunc "F_Skill2Quest","Skill Master", 1017,"Elemental Charge Earth", Job_Sage, 997,35, 0;
-	end;
-}
+			sage_1:
+				if(countitem(991)<20)goto L_sagefail;
+				delitem 991, 20;				
+				skill 1008,1,0;
+				goto L_alreadyhave;
 
-prontera.gat,170,153,3	script	Skill Master	122,{
-	//Flame Heart x 35
-	callfunc "F_Skill2Quest","Skill Master", 1018,"Elemental Charge Fire", Job_Sage, 994,35, 0;
-	end;
-}
+			sage_2:
+				if(countitem(993)<20)goto L_sagefail;
+				delitem 993, 20;
+				skill 1017,1,0;
+				goto L_alreadyhave;
 
-prontera.gat,170,159,4	script	Skill Master	122,{
-	//Rough Wind x 35
-	callfunc "F_Skill2Quest","Skill Master", 1019,"Elemental Charge Wind", Job_Sage, 996,35, 0;
-	end;
-}
+			sage_3:
+				if(countitem(990)<20)goto L_sagefail;
+				delitem 990, 20;
+				skill 1018,1,0;
+				goto L_alreadyhave;
 
-prontera.gat,162,152,3	script	Skill Master	727,{
-	//Arrow of Wind x 3000
-	callfunc "F_Skill2Quest","Skill Master", 1009,"Phantasmic Arrow", Job_Hunter, 1755,3000, 100000;
-	end;
-}
+			sage_4:
+				if(countitem(992)<20)goto L_sagefail;
+				delitem 992, 20;
+				skill 1019,1,0;
+				goto L_alreadyhave;
+		}
+//============================================================
+// HUNTER SKILL - PHANTASMIC ARROW
+//============================================================
+payon_in02.gat,54,13,7	script	Master Kabac	55,{
+	if(BaseJob!=Job_Hunter) goto L_hunterno;
+	if(getskilllv(1009)>0) goto L_alreadyhave;
+	if(JobLevel<40) goto L_nojob;
+	mes "[Master Kabac]";
+	mes "I can teach you a secret";
+	mes "technique pased down through";
+	mes "my family for generation. My";
+	mes "family has guarded this secret";
+	mes "for years, but I could teach";
+	mes "for a few supplies.";
+	next;
+	mes "[Master Kabac]";
+	mes "I am running low on on a few";
+	mes "things. Here is my list:";
+	mes "5 Cursed Rubys";
+	mes "5 Harpy's Feathers";
+	mes "30 Pet Food";
+	next;
+	
+	mes "[Master Kabac]";
+	mes "let me check your items";
+	next;
+	
+	if(countitem(724)<5) goto L_itemsno;
+	if(countitem(7115)<5) goto L_itemsno;
+	if(countitem(537)<30) goto L_itemsno;
+	delitem 724, 5;
+	delitem 7115, 5;
+	delitem 537, 30;
+	
+	mes "[Master Kabac]";
+	mes "I see you have what you need,";
+	mes "so i'll teach you my tallent.";
+	skill 1009,1,0;
+	close;
 
-prontera.gat,165,144,5	script	Skill Master	726,{
-	// none, 1.5kk zeny
-	callfunc "F_Skill2Quest","Skill Master", 1013,"Greed", Job_Blacksmith, 0,0, 1500000;
-	end;
-}
+L_itemsno:
+		mes "[Master Kabac]";
+		mes "You dont have enough items.";
+		mes "Come back when you have all";
+		mes "the required items for me";
+		close;
+				
+L_nojob:
+		mes "[Master Kabac]";
+		mes "Come back when you've Learned";
+		mes "more about being a Hunter.";
+		mes "You need to have at least 40";
+		mes "levels as a hunter first.";
+		close;
 
-prontera.gat,168,142,1	script	Skill Master	726,{
-	//Star Crumb x 15
-	callfunc "F_Skill2Quest","Skill Master", 1012,"Unfair Trick", Job_Blacksmith, 1000,15, 200000;
-	end;
-}
-
-prontera.gat,162,143,0	script	Skill Master	752,{
-	//Gold x 3
-	callfunc "F_Skill2Quest","Skill Master", 1002,"Shrink", Job_Crusader, 969,3, 100000;
-	end;
-}
-
-prontera.gat,166,138,1	script	Skill Master	52,{
-	//Poring Card x 15
-	callfunc "F_Skill2Quest","Skill Master", 1015,"Ki Translation", Job_Monk, 4001,15, 50000;
-	end;
-}
-
-prontera.gat,167,130,2	script	Skill Master	725,{
-	//EDP Bottle x 15
-	callfunc "F_Skill2Quest","Skill Master", 1003,"Sonic Acceleration", Job_Assassin, 678,15, 250000;
-	end;
-}
-
-prontera.gat,147,135,6	script	Skill Master	749,{
-	//Rocker Egg x 2
-	callfunc "F_Skill2Quest","Skill Master", 238,"Basis of Life", Job_Alchem, 9011,2, 250000;
-	end;
-}
-
-prontera.gat,171,129,0	script	Skill Master	725,{
-	//Karvodailnirol x 10
-	callfunc "F_Skill2Quest","Skill Master", 1004,"Throw Venom Knife", Job_Assassin, 972,10, 50000;
-	end;
-}
-
-prontera.gat,144,153,3	script	Skill Master	741,{
-	//Singing Flower x 1
-	callfunc "F_Skill2Quest","Skill Master", 1010,"Pang Voice", Job_Bard, 629,1, 150000;
-	end;
-}
-
-prontera.gat,142,150,7	script	Skill Master	101,{
-	//Aloevera x 15
-	callfunc "F_Skill2Quest","Skill Master", 1011,"Wink of Charm", Job_Dancer, 606,15, 70000;
-	end;
-}
-
-prontera.gat,164,147,3	script	Skill Master	56,{
-	//Gold x 3
-	callfunc "F_Skill2Quest","Skill Master", 1001,"Charge Attack", Job_Knight, 969,3, 100000;
-	end;
-}
-
-prontera.gat,148,130,2	script	Skill Master	735,{
-	//Silver Robe[1] x 1
-	callfunc "F_Skill2Quest","Skill Master", 1006,"Sight Blaster", Job_Wizard, 2333,1, 0;
-	end;
-}
-
-//Args:
-//0 - NPC name
-//1 - Skill Number
-//2 - Skill Name
-//3 - Base Class (that can obtain the skill)
-//4 - Quest Item ID
-//5 - How many Quest Items you need
-//6 - Zeny fee (if > 0 )
-
-function	script	F_Skill2Quest	{
-//	mes "-> " + getarg(3);
-//	mes "Class: " + Class + ". BaseClass: " + BaseClass;
-//	mes "BaseJob: " + BaseJob+ ". Upper: " + Uppser;
-	mes "[" + getarg(0) + "]";
-	if(getskilllv(getarg(1)))goto L_Already;
-	if(sex) {
-		mes "Hello, good man!";
-	} else {
-		mes "Hello, beautiful lady!";
+L_alreadyhave:
+		mes "[Master Kabac]";
+		mes "Ahh, my apprentence, you";
+		mes "came to visit me...";
+		close;
+		
+L_hunterno:
+		mes "[Master Kabac]";
+		mes "Is there something I can";
+		mes "help you with? I believe";
+		mes "you have the wrong old man.";
+		close;
 	}
-	if(BaseJob!=getarg(3)) {
+
+//============================================================
+// BLACKSMITH SKILL - GREED + UNFAIR TRICK
+//============================================================
+//== DOODDAY - GREED SKILL ===================================
+geffen.gat,172,53,7	script	Goodday	826,{
+	if(BaseJob!=Job_Blacksmith) goto L_nosmith;
+	if(getskilllv(1013)>0) goto L_alreadyhave;
+	set @current, MaxWeight - Weight;
+	if(5000 > @current) goto L_nostrong;
+	mes "[Goodday]";
+	mes "You look pretty strong, so I'll";
+	mes "teach you a little trick I found";
+	mes "while watching some wizards move";
+	mes "things around without lifting a";
+	mes "finger!";
+	skill 1013,1,0;
+	close;
+
+L_nostrong:
+		mes "[Goodday]";
+		mes "Come back when you're strong";
+		mes "enough to handle the weight";
+		mes "of my ability. You will need";
+		mes "to be able to carry over 500";
+		mes "weight, and not be over 90%.";
+		close;
+
+L_nosmith:
+		mes "[Goodday]";
+		mes "Geffen is such a great town";
+		mes "Don't you think so too?";
+		next;
+		emotion 23;
+		mes "[Goodday]";
+		mes "WHAT...";
+		mes "You don't!";		
+		close;
+
+L_alreadyhave:
+		mes "[Goodday]";
+		mes "I've already tought you";
+		mes "everything I know, so I";
+		mes "need to get back to my";
+		mes "work.";
+		close;
+}
+
+//== AKI - UNFAIR TRICK SKILL ==================================
+geffen.gat,178,72,7	script	Aki	726,{
+	if(BaseJob!=Job_Blacksmith) goto L_nosmith;
+	if(getskilllv(1012)>0) goto L_alreadyhave;
+	if(getskilllv(1013)<1) goto L_nogreed;
+	if(JobLevel<30) goto L_nojob;
+	mes "[Aki]";
+	mes "We're going to need a few things";
+	mes "for this lesson. Bring me:";
+	mes "2 Steel";
+	mes "8 Coal";
+	mes "2 Iron Hammers";
+	mes "1 Detrimindexta";
+	mes "500 Zeny";
+	next;
+	
+	mes "[Aki]";
+	mes "let me check your items";
+	next;
+	
+	if(countitem(999)<2) goto L_noitems;
+	if(countitem(1003)<8) goto L_noitems;
+	if(countitem(613)<2) goto L_noitems;
+	if(countitem(971)<1) goto L_noitems;
+	if(zeny<500) goto L_noitems;
+	delitem 999, 2;
+	delitem 1003, 8;
+	delitem 613, 2;
+	delitem 971, 1;
+	set zeny, zeny-500;
+	
+	mes "[Aki]";
+	mes "Good, You brought everything";
+	mes "with you already! We'll start";
+	mes "the process now.";
+	skill 1012,1,0;
+	next;
+	
+	specialeffect 183;
+	mes "Wow, you're a fast learner.";
+	mes "Enjoy your new tallents!";
+	close;
+
+L_noitems:
+		mes "[Aki]";
+		mes "You dont have enough items.";
+		mes "Come back when you have all";
+		mes "the required items for me";
+		close;
+		
+L_nosmith:
+		mes "[Aki]";
+		mes "Don't mind Goodday overthere.";
+		mes "He thinks everyone should like";
+		mes "this boring place!";
+		emotion e_laugh;
+		close;
+
+L_nogreed:
+		mes "[Aki]";
+		mes "If you're looking for more";
+		mes "to learn, then you should";
+		mes "talk to Goodday over there";
+		close;
+
+L_alreadyhave:
+		mes "[Aki]";
+		mes "WOW, i guess you've learned";
+		mes "all that the Blacksmith's of";
+		mes "Geffen can teach. Good luck";
+		mes "with your travels.";
+		close;
+		
+L_nojob:
+		mes "[Aki]";
+		mes "Come back when you've Learned";
+		mes "more about being a blacksmith.";
+		mes "You will need a Job level of at";
+		mes "least lv 30 to learn what I";
+		mes "know.";
+		close;
+}
+//============================================================
+// CRUSADER SKILL - SHRINK
+//============================================================
+geffen.gat,110,118,3	script	Ford	752,{
+	if(BaseJob!=Job_Crusader) goto L_nocruz;
+	if(getskilllv(1002)>0) goto L_alreadyhave;
+	mes "[Ford]";
+	mes "Maybe I'll teach you a little skill";
+	mes "if you bring me a few things...";
+	mes "Bring me these items and we'll";
+	mes "see if i feel like giving it to you.";
+	next;
+	mes "[Ford]";
+	mes "1 Red Potion";
+	mes "20 Sticky Mucus";
+	mes "3 Empty Bottles";
+	mes "5 Jellopies";
+	mes "1 Unripe Apple";
+	mes "1 Grape";
+	mes "1 Coal";
+	mes "3 Cyfars";
+	next;
+	
+	mes "[Ford]";
+	mes "let me check your items";
+	next;
+	
+	if(countitem(501)<1) goto L_noitems;
+	if(countitem(938)<20)goto L_noitems;
+	if(countitem(713)<3)goto L_noitems;
+	if(countitem(909)<5)goto L_noitems;
+	if(countitem(619)<1)goto L_noitems;
+	if(countitem(514)<1)goto L_noitems;
+	if(countitem(1003)<1)goto L_noitems;
+	if(countitem(7053)<3)goto L_noitems;
+	mes "[Ford]";
+	mes "Time to roll my lucky die.";
+	mes "Good luck, I dont loose often.";
+	emotion 29;
+	next;
+	set @shrink, rand (1,6);
+	if(@shrink!=3) goto L_loose;
+	emotion 58;
+	next;
+	
+	delitem 501, 1;
+	delitem 938, 20;
+	delitem 713, 3;
+	delitem 909, 5;
+	delitem 619, 1;
+	delitem 514, 1;
+	delitem 1003, 1;
+	delitem 7053, 3;
+	skill 1002,1,0;
+	mes "[Ford]";
+	mes "I can't believe that I lost!";
+	mes "I NEVER loose...";
+	emotion 28;
+	close;
+	
+L_noitems:
+		mes "[Ford]";
+		mes "You dont have enough items.";
+		mes "Come back when you have all";
+		mes "the required items for me";
+		close;
+			
+L_loose:
+		emotion 63;
+		next;
+		mes "[Ford]";
+		mes "I win again!!";
+		mes "I'm not teaching you";
+		mes "anything this time. Come";
+		mes "back if you want to Try";
+		mes "again";
+		close;
+		
+L_nocruz:
+		mes "[Ford]";
+		mes "If you are not a Crusader,";
+		mes "then you have no business";
+		mes "with me...";
+		close;
+		
+L_alreadyhave:
+		mes "[Ford]";
+		mes "Hey, you were lucky I";
+		mes "even tought you the";
+		mes "skill I did! Don't press";
+		mes "your luck.";
+		close;
+}
+
+//============================================================
+// MONK - KI TRANSLATION + KI EXPLOSION
+//============================================================
+monk_test.gat,316,69,3	script	Krate	823,{
+	if(BaseJob!=Job_Monk) goto L_nomonk;
+	if(monk_skill==2) goto L_alreadyhave;
+	if(monk_skill==1) goto L_verif;
+	if(Weight>0) goto L_heavymonk;
+	mes "[Krate]";
+	mes "I'll teach you all i know, but you must bring me:";
+	mes "40 Stems";
+	mes "3 Shoots";
+	set monk_skill, 1;
+	next;
+	goto L_verif;
+	
+L_verif:
+		mes "[Krate]";
+		mes "let me check your items";
+		next;
+		if(countitem(711)<3) goto L_noitems;
+		if(countitem(905)<40) goto L_noitems;
+		delitem 711, 3;
+		delitem 905, 40;
+		next;
+		mes "[Krate]";
+		mes "I see you have what you need,";
+		mes "so i'll teach you my tallent.";
+		skill 1015,1,0;
+		skill 1016,1,0;
+		set monk_skill, 2;
+		close;
+		
+L_noitems:
+		mes "[Krate]";
+		mes "You dont have enough items.";
+		mes "Come back when you have all";
+		mes "the required items for me";
+		close;
+	
+L_nomonk:
+		mes "[Krate]";
+		mes "It's seems that your soul is disagree with your body";
+		mes "come back when your body and your soul will be like Ying and Yang.";
+		emotion e_gasp;
+		close;
+		
+L_alreadyhave:
+		mes "[Krate]";
+		mes "I've already tought you";
+		mes "everything i know...";
+		close;
+
+L_heavymonk:
+		mes "[Krate]";
+		mes "Come back when you've cleansed";
+		mes "youself of your worldly possesions";
+		close;
+}
+
+//============================================================
+// ALCHEMIST - ELEMENTAL POTION CREATION
+//============================================================
+yuno_in04.gat,33,108,5	script	Pislik	750,{
+	if(BaseJob!=Job_Alchem) goto L_noalche;
+	if(alchemist_skill==1) goto L_alreadyhave;
+	if(JobLevel<40) goto L_nojob;
+	mes "[Pislik]";
+	mes "I'll teach you all i know, but";
+	mes "you have to Bring me some things";
+	mes "first.";
+	mes "5 Yellow Gemstones";
+	mes "4 Empty Potion Bottles";
+	mes "10 Hearts of Mermaid";
+	mes "10 Moth Dust";
+	mes "20 Maneater Blossoms";
+	mes "1 Geek Glasses";
+	next;
+	
+	mes "[Pislik]";
+	mes "let me check your items";
+	next;
+	
+	if(countitem(715)<5) goto L_noitems;
+	if(countitem(1093)<4) goto L_noitems;
+	if(countitem(950)<10) goto L_noitems;
+	if(countitem(1057)<10) goto L_noitems;
+	if(countitem(1032)<20) goto L_noitems;
+	if(countitem(2243)<1) goto L_noitems;
+	delitem 715, 5;
+	delitem 1093, 4;
+	delitem 950, 10;
+	delitem 1057, 10;
+	delitem 1032, 20;
+	delitem 2243, 1;
+
+	mes "[Pislik]";
+	mes "I see you have what you need,";
+	mes "so i'll teach you my tallent.";
+	getitem 7434, 1;
+	set alchemist_skill, 1;
+	close;
+	
+L_noitems:
+		mes "[Pislik]";
+		mes "You dont have enough items.";
+		mes "Come back when you have all";
+		mes "the required items for me";
+		close;
+		
+L_noalche:
+	mes "[Pislik]";
+		mes "Sorry, but my knowledge its only about alchemy.";
+		mes "I can't help you.";
+		emotion e_gasp;
+		close;
+
+L_alreadyhave:
+		mes "[Pislik]";
+		mes "I've already tought you";
+		mes "everything i know...";
+		close;
+
+L_nojob:
+		mes "[Pislik]";
+		mes "Come back when you've Learned";
+		mes "more about being an Alchemist.";
+		close;
+}
+//prontera.gat,147,135,6	script	Skill Master	749,{
+//	//Rocker Egg x 2
+//	callfunc "F_Skill2Quest","Skill Master", 238,"Basis of Life", Job_Alchem, 9011,2, //250000;
+//	end;
+//}
+
+//============================================================
+// ASSASSIN - SONIC ACCELERATION + THROW VENOM KNIFE
+//============================================================
+in_moc_16.gat,14,21,3	script	Kiltin	884,{
+	if(BaseJob!=Job_Assassin) goto L_nosin;
+	if(sin_skill==1) goto L_alreadyhave;
+	if(getskilllv(1003)>0 && getskilllv(1004)>0) goto L_alreadyhave;
+	mes "[Kiltin]";
+	mes "I'll teach you all i know, but";
+	mes "you need to steal some things";
+	mes "for me:";
+	mes "3 Sapphire's";
+	mes "1 Ruby";
+	next;
+	
+	mes "[Kiltin]";
+	mes "let me check your items";
+	next;
+	
+	if(countitem(726)<3) goto L_noitems;
+	if(countitem(723)<1) goto L_noitems;
+	delitem 732, 1;
+	delitem 726, 3;
+
+	mes "[Kiltin]";
+	mes "I see you have what you need,";
+	mes "so i'll teach you my tallent.";
+	skill 1003,1,0;
+	skill 1004,1,0;
+	close;
+	
+L_noitems:
+		mes "[Kiltin]";
+		mes "You dont have enough items.";
+		mes "Come back when you have all";
+		mes "the required items for me";
+		close;
+			
+L_nosin:
+		mes "[Kiltin]";
+		mes "Sorry, but im on service of Shadowmen.";
+		emotion e_gasp;
+		close;
+
+L_alreadyhave:
+		mes "[Kiltin]";
+		mes "I've already tought you";
+		mes "everything i know...";
+		close;
+}
+//============================================================
+// BARD - PANG VOICE
+//============================================================
+prontera.gat,134,328,7	script	Timided man	89,{
+	if(BaseJob!=Job_Bard) goto L_nobard;
+	if(getskilllv(1010)>0) goto L_alreadyhave;
+	if(JobLevel<40) goto L_nojob;
+	mes "[Timided man]";
+	mes "I'll teach you all i know, but";
+	mes "I'm a little thirsty. Bring me";
+	mes "1 Tropical Sograt";
+	next;
+	
+	mes "[Timided man]";
+	mes "let me check your items";
+	next;
+	
+	if (countitem(12112)<1) goto L_noitems;
+	delitem 12112, 1;
+	mes "[Timided man]";
+	mes "I see you have what you need,";
+	mes "so i'll teach you my tallent.";
+	skill 1010,1,0;
+	close;
+	
+L_noitems:
+		mes "[Timided man]";
+		mes "You dont have enough items.";
+		mes "Come back when you have all";
+		mes "the required items for me";
+		close;
+				
+L_nobard:
+		mes "[Timided man]";
+		mes "Hum... you don't seems to be a musician";
+		emotion e_gasp;
+		close;
+
+L_alreadyhave:
+		mes "[Timided man]";
+		mes "I've already tought you";
+		mes "everything i know...";
+		close;
+
+L_nojob:
+		mes "[Timided man]";
+		mes "Come back when you've learned";
+		mes "more about being a bard.";
+		close;
+}
+
+//============================================================
+// DANCER - WINK OF CHARM
+//============================================================
+comodo.gat,205,171,7	script	Chanel	724,{
+	if(BaseJob!=Job_Dancer) goto L_nodancer;
+	if(getskilllv(1011)>0) goto L_alreadyhave;
+	mes "[Chanel]";
+	mes "I'll teach you all i know for:";
+	mes "1 Crystal Mirror";
+	mes "1 Alcohol";
+	mes "1 China";
+	mes "1 Apple";
+	mes "3 Bananas";
+	mes "5 Well-baked Cookies";
+	next;
+	
+	mes "[Chanel]";
+	mes "let me check your items";
+	next;
+	
+	if(countitem(747)<1) goto L_noitems;
+	if(countitem(970)<1) goto L_noitems;
+	if(countitem(736)<1) goto L_noitems;
+	if(countitem(512)<1) goto L_noitems;
+	if(countitem(513)<3) goto L_noitems;
+	if(countitem(538)<5) goto L_noitems;
+	delitem 747, 1;
+	delitem 970, 1;
+	delitem 736, 1;
+	delitem 512, 1;
+	delitem 513, 3;
+	delitem 538, 5;
+
+	mes "[Chanel]";
+	mes "I see you have what you need,";
+	mes "so i'll teach you my tallent.";
+	skill 1011,1,0;
+	close;
+	
+L_noitems:
+		mes "[Chanel]";
+		mes "You dont have enough items.";
+		mes "Come back when you have all";
+		mes "the required items for me";
+		close;
+			
+L_nodancer:
+		mes "[Chanel]";
+		mes "Hum... you don't seems to be a musician";
+		emotion e_gasp;
+		close;
+
+L_alreadyhave:
+		mes "[Chanel]";
+		mes "I've already tought you";
+		mes "everything i know...";
+		close;
+}
+//============================================================
+// KNIGHT - CHARGE ATTACK
+//============================================================
+prt_in.gat,84,98,3	script	Esope	734,{
+	if(BaseJob!=Job_Knight) goto L_noknight;
+	if(getskilllv(1001)>0) goto L_alreadyhave;
+	mes "[Esope]";
+	mes "I'll teach you all i know for:";
+	mes "5 Candy canes";
+	mes "3 Witherless Roses";
+	next;
+	
+	mes "[Esope]";
+	mes "let me check your items";
+	next;
+	
+	if(countitem(530)<5) goto L_noitems;
+	if(countitem(748)<3)goto L_noitems;
+	delitem 530, 5;
+	delitem 748, 3;
+	
+	mes "[Esope]";
+	mes "I see you have what you need,";
+	mes "so i'll teach you my tallent.";
+	skill 1001,1,0;
+	close;
+
+L_noitems:
+		mes "[Esope]";
+		mes "You dont have enough items.";
+		mes "Come back when you have all";
+		mes "the required items for me";
+		close;
+			
+L_noknight:
+		mes "[Esope]";
 		mes "Looking for your master?";
 		emotion e_gasp;
 		close;
-	}
 
-	//Sage can obtain only ONE property skill
-	if(BaseJob==Job_Sage) {
-		//got Create Converter?
-		if(getskilllv(1007)==0 && (getarg(1)==1008 || getarg(1)==1017 || getarg(1)==1018 || getarg(1)==1019)){
-			mes "I can't teach you ^FF0000"+getarg(2)+"^000000 now.";	
-			mes "You have to learn ^FF0000Create Converter^000000 before.";
-			emotion e_sry;
-			close;
-		}
-		//got other ELEMENTS already?
-		if(getskilllv(1008) || getskilllv(1017) || getskilllv(1018) || getskilllv(1019)){
-			mes "I can't teach you ^FF0000"+getarg(2)+"^000000.";	
-			mes "Because you've already learnt another Charge Element Skill.";
-			emotion e_sry;
-			close;
-		}
-	}
+L_alreadyhave:
+		mes "[Esope]";
+		mes "I've already tought you";
+		mes "everything i know...";
+		close;
+}
 
-	if(rand(2))	{
-		mes "I can teach you a new skill ^FF0000"+getarg(2)+"^000000.";
-	} else {
-		mes "Would you like to obtain an unique skill ^FF0000"+getarg(2)+"^000000?";
-	}
-	mes "So, what do you think?";
+//============================================================
+// ROGUE - CLOSE CONFINE
+//============================================================
+in_rogue.gat,387,94,3	script	Hyzaragrack	84,{
+	if(BaseJob!=Job_Rogue) goto L_norogue;
+	if(getskilllv(1005)>0) goto L_alreadyhave;
+	mes "[Hyzaragrack]";
+	mes "I'll teach you all i know, but";
+	mes "you'll have to steel some things";
+	mes "for me first...";
+	mes "5 Immortal Hearts";
+	mes "5 Stone Hearts";
+	mes "2 Burning hearts";
 	next;
-	menu "Teach me the ^FF0000"+getarg(2)+"^000000",-,"No, thank you",L_Cancel;
-
-	mes "[" + getarg(0) + "]";
-	mes "Oh, ^FF0000"+getarg(2)+"^000000 is a very strong skill!";
-	if(getarg(5)) mes "If you want to learn it, then bring me ^008F00"+getarg(5)+" ^00008F"+getitemname(getarg(4))+"^000000";
-	if(getarg(5) && getarg(6)) mes "and ^00008F"+getarg(6)+" zeny^000000 for my work.";
-	if(getarg(5)==0) mes "If you want to learn it, then bring me ^00008F"+getarg(6)+" zeny^000000.";
-	emotion e_gasp;
+	
+	mes "[Hyzaragrack]";
+	mes "let me check your items";
 	next;
-	menu "I'm ready to learn it",-,"No, thanks",L_Cancel;
-
-	mes "[" + getarg(0) + "]";
-	mes "OK. Hand me all the stuff...";
-
-	if(getarg(5) && countitem(getarg(4))<getarg(5))goto L_NoItem;
-	if(getarg(6) && Zeny<getarg(6))goto L_NoZeny;
-
-	set Zeny,Zeny-getarg(6);
-	if(getarg(5))delitem getarg(4),getarg(5);
-
-	mes "Well...";
-	next;
-	skill getarg(1),1,0;
-	mes "[" + getarg(0) + "]";
-	mes "Done. Now you can use ^FF0000"+getarg(2)+"^000000.";
-	mes "My congratulations!";
-	emotion e_grat;
+	
+	if(countitem(929)<5) goto L_noitems;
+	if(countitem(953)<5) goto L_noitems;
+	if(countitem(7097)<2) goto L_noitems;
+	delitem 929, 5;
+	delitem 953, 5;
+	delitem 7097, 2;
+	
+	mes "[Hyzaragrack]";
+	mes "I see you have what you need,";
+	mes "so i'll teach you my tallent.";
+	skill 1005,1,0;
 	close;
-
-	L_Already:
-		mes ""+strcharinfo(0)+"! Please use your ^FF0000"+getarg(2)+"^000000 for good.";
-		emotion e_pat;
+		
+L_norogue:
+		mes "[Hyzaragrack]";
+		mes "Looking for your master?";
+		emotion e_gasp;
+		close;
+		
+L_noitems:
+		mes "[Hyzaragrack]";
+		mes "You dont have enough items.";
+		mes "Come back when you have all";
+		mes "the required items for me";
+		close;
+				
+L_alreadyhave:
+		mes "[Hyzaragrack]";
+		mes "I've already tought you";
+		mes "everything i know...";
+		close;
+}
+//============================================================
+// WIZARD - SIGHTBLASTER
+//============================================================
+gef_tower.gat,116,37,1	script	Nyao	748,{
+	if(BaseJob!=Job_Wizard) goto L_nowiz;
+	if(getskilllv(1006)>0) goto L_alreadyhave;
+	mes "[Nyao]";
+	mes "I'll teach you all i know for:";
+	mes "10 Crystal Blue";
+	mes "10 Green Live";
+	mes "10 Red Blood";
+	mes "10 Wind of Verdure";
+	next;
+	
+	mes "[Nyao]";
+	mes "let me check your items";
+	next;
+	
+	if(countitem(990)<10) goto L_noitems;
+	if(countitem(991)<10) goto L_noitems;
+	if(countitem(992)<10) goto L_noitems;
+	if(countitem(993)<10) goto L_noitems;
+	delitem 990, 10;
+	delitem 991, 10;
+	delitem 992, 10;
+	delitem 993, 10;
+	
+	mes "[Nyao]";
+	mes "I see you have what you need,";
+	mes "so i'll teach you my tallent.";
+	skill 1006,1,0;
+	close;
+	
+L_noitems:
+		mes "[Nyao]";
+		mes "You dont have enough items.";
+		mes "Come back when you have all";
+		mes "the required items for me";
+		close;
+		
+L_nowiz:
+		mes "[Nyao]";
+		mes "You must have the magical power";
+		emotion e_gasp;
 		close;
 
-	L_NoItem:
-		mes "You don't have ^008F00"+getarg(5)+" ^00008F"+getitemname(getarg(4))+"^000000.";
-		emotion e_sry;
+L_alreadyhave:
+		mes "[Nyao]";
+		mes "I've already tought you";
+		mes "everything i know...";
+		close;
+}
+//============================================================
+// PRIEST - REDEMPTIO
+//============================================================
+prt_church.gat,111,112,3	script	Nun Linus	79,{
+	if(BaseJob!=Job_Priest) goto L_nopriest;
+	if(getskilllv(1014)>0) goto L_alreadyhave;
+	if(getskilllv(54)<1) goto L_norez;
+	mes "[Nun Linus]";
+	mes "I can teach you the mercy of God";
+	mes "if you bring me a couple things,";
+	mes "and if God finds you worthy!";
+	mes "1 Blue Gemstone";
+	mes "1 Holy Water";
+	next;
+	
+	mes "[Nun Linus]";
+	mes "let me check your items";
+	next;
+	
+	if(countitem(717)<1) goto L_noitems;
+	if(countitem(523)<1) goto L_noitems;
+	delitem 717, 1;
+	delitem 523, 1;
+	
+	mes "[Nun Linus]";
+	mes "I see you have what you need,";
+	mes "so we shall see if God finds";
+	mes "you worthy yet!";
+	next;
+	if rand(100)<(JobLevel+25) goto L_bless;
+	mes "[Nun Linus]";
+	mes "Sorry, but God has not";
+	mes "shined on you as of yet.";
+	mes "Try again when you are a";
+	mes "stronger Priest.";
+	close;
+	
+L_norez:
+		mes "[Nun Linus]";
+		mes "Come back when you've learned";
+		mes "more about priest and God.";
 		close;
 
-	L_NoZeny:
-		mes "You don't have enough zeny.";
-		emotion e_cash;
+L_bless:
+	mes "[Nun Linus]";
+	mes "Hum... I see god is shined on you this time";
+	skill 1014,1,0;
+	close;
+	
+L_noitems:
+		mes "[Nun Linus]";
+		mes "You dont have enough items.";
+		mes "Come back when you have all";
+		mes "the required items for me";
+		close;
+			
+L_nopriest:
+		mes "[Nun Linus]";
+		mes "Sorry, you need to have some faith in God.";
+		emotion e_gasp;
 		close;
 
-	L_Cancel:
-		mes "[" + getarg(0) + "]";
-		mes "...";
-		emotion e_dots;
+L_alreadyhave:
+		mes "[Nun Linus]";
+		mes "I've already tought you";
+		mes "everything i know...";
 		close;
 }

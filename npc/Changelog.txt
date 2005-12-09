@@ -27,6 +27,7 @@ Nexon
 Date		Added
 ======
 12/08
+	* Updated 2nd class quest skills NPCs, made by Reddozen and battousai90. [Vicious]
 	* Organized Jobs folder a bit for Expended Classes. [Vicious]
 	* Fixed dialouge in blood_bandana quest. Thanks Razor87 for the report. [Kayla]
 12/07
