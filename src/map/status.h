@@ -397,6 +397,7 @@ int status_get_adelay(struct block_list *bl);
 int status_get_amotion(struct block_list *bl);
 int status_get_dmotion(struct block_list *bl);
 int status_get_element(struct block_list *bl);
+int status_get_attack_sc_element(struct block_list *bl);
 int status_get_attack_element(struct block_list *bl);
 int status_get_attack_element2(struct block_list *bl);  //¶è•Ší‘®«æ“¾
 #define status_get_elem_type(bl)	(status_get_element(bl)%10)

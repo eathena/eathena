@@ -1131,14 +1131,15 @@ static struct Damage battle_calc_weapon_attack(
 	t_ele = status_get_elem_type(target);
 		
 	s_race = status_get_race(src);
-	s_ele = status_get_attack_element(src);
-	s_ele_ = status_get_attack_element2(src);
-
-	if (flag.arrow && sd && sd->arrow_ele)
-		s_ele = sd->arrow_ele;
-
-	if (skill_num && skill_get_pl(skill_num) != -1) // pl=-1 : the skill takes the weapon's element
-		s_ele = s_ele_ = skill_get_pl(skill_num);
+	s_ele = s_ele_ = skill_get_pl(skill_num);
+	if (!skill_num || s_ele == -1) { //Take weapon's element
+		s_ele = status_get_attack_element(src);
+		s_ele_ = status_get_attack_element2(src);	
+		if (flag.arrow && sd && sd->arrow_ele)
+			s_ele = sd->arrow_ele;
+	} else if (s_ele == -2) { //Use enchantment's element
+		s_ele = s_ele_ = status_get_attack_sc_element(src);
+	}
 
 	if (sd)
 	{	//Set whether damage1 or damage2 (or both) will be used
@@ -2291,7 +2292,9 @@ struct Damage battle_calc_magic_attack(
 
 	if (s_ele == -1) // pl=-1 : the skill takes the weapon's element
 		s_ele = status_get_attack_element(src);
-
+	else if (s_ele == -2) //Use status element
+		s_ele = status_get_attack_sc_element(src);
+	
 	if (skill_num == ASC_BREAKER) // Soul Breaker's magical part is neutral, although pl=-1 for the physical part to take weapon element
 		s_ele = 0;
 

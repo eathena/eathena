@@ -1,6 +1,12 @@
 Date	Added
 
 2005/12/09
+	* Added the Taekwon bonus that gives you triple Max HP/SP when you are a
+	  top 10 ranker and have base level 90+ [Skotlex]
+	* Added support for skill_db pl == -2. These skills don't take the element
+	  of the weapon, but will take the element of any enchantment elemental
+	  change (so the element used is neutral unless you are enchanted with
+	  Fire/Wind/etc) [Skotlex]
 	* Coded in SL_STIN, SL_STUN and SL_SMA. [Skotlex]
 	* Should have fixed the crash with raw_time in char/char.c [Skotlex]
 	* Pressure can now be cast-break. [Skotlex]

@@ -1627,6 +1627,9 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		index += index * 30/100;
 	else if (sd->class_&JOBL_BABY)
 		index -= index * 30/100;
+	if ((sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON && sd->status.base_level >= 90 && pc_istop10fame(sd->char_id, MAPID_TAEKWON))
+		index *= 3; //Triple max HP for top ranking Taekwons over level 90.
+	
 	sd->status.max_hp += index;
 
 	if((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE && sd->status.base_level >= 99)
@@ -1680,6 +1683,9 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		index += index * 30/100;
 	else if (sd->class_&JOBL_BABY)
 		index -= index * 30/100;
+	if ((sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON && sd->status.base_level >= 90 && pc_istop10fame(sd->char_id, MAPID_TAEKWON))
+		index *= 3; //Triple max SP for top ranking Taekwons over level 90.
+	
 	sd->status.max_sp += index;
 
 	// Absolute modifiers from passive skills
@@ -3284,13 +3290,10 @@ int status_get_element(struct block_list *bl)
 
 	return 20;
 }
-
-int status_get_attack_element(struct block_list *bl)
+//Retrieves the object's element acquired by status changes only.
+int status_get_attack_sc_element(struct block_list *bl)
 {
 	struct status_change *sc_data=status_get_sc_data(bl);
-
-	nullpo_retr(0, bl);
-	
 	if(sc_data) {
 		if( sc_data[SC_WATERWEAPON].timer!=-1)	// フロストウェポン
 			return 1;
@@ -3309,6 +3312,18 @@ int status_get_attack_element(struct block_list *bl)
 		if( sc_data[SC_GHOSTWEAPON].timer!=-1)
 			return 8;
 	}
+	return 0;
+}
+
+
+int status_get_attack_element(struct block_list *bl)
+{
+	int ret = status_get_attack_sc_element(bl);
+
+	nullpo_retr(0, bl);
+	
+	if (ret)	return ret;
+	
 	if(bl->type==BL_MOB && (struct mob_data *)bl)
 		return 0;
 	if(bl->type==BL_PC && (struct map_session_data *)bl)
@@ -3323,26 +3338,9 @@ int status_get_attack_element2(struct block_list *bl)
 	nullpo_retr(0, bl);
 	if(bl->type==BL_PC) {
 		// removed redundant var, speeded up a bit [zzo]
-		struct status_change *sc_data = ((struct map_session_data *)bl)->sc_data;
+		int ret = status_get_attack_sc_element(bl);
 
-		if(sc_data) {
-			if( sc_data[SC_WATERWEAPON].timer!=-1)	// フロストウェポン
-				return 1;
-			if( sc_data[SC_EARTHWEAPON].timer!=-1)	// サイズミックウェポン
-				return 2;
-			if( sc_data[SC_FIREWEAPON].timer!=-1)	// フレームランチャー
-				return 3;
-			if( sc_data[SC_WINDWEAPON].timer!=-1)	// ライトニングローダー
-				return 4;
-			if( sc_data[SC_ENCPOISON].timer!=-1)	// エンチャントポイズン
-				return 5;
-			if( sc_data[SC_ASPERSIO].timer!=-1)		// アスペルシオ
-				return 6;
-			if( sc_data[SC_SHADOWWEAPON].timer!=-1)
-				return 7;
-			if( sc_data[SC_GHOSTWEAPON].timer!=-1)
-				return 8;
-		}
+		if(ret) return ret;
 		return ((struct map_session_data *)bl)->left_weapon.atk_ele;
 	}
 	return 0;

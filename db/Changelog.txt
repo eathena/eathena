@@ -33,6 +33,10 @@
 	5136,Luise_Santa's_Hat: need view ID, temp: normal santa hat
 
 12/09
+	* Updated skill_db and skill_require_db info for Soul Linker skills, thanks
+	  to Reddozen to provide the information. [Skotlex]
+	* Updated skill_db SL skills pl to -2 where appropiate (-2 = take
+	  status-change's element, but not weapon's one -> For Warm Wind) [Skotlex]
 	* Added in skill data for SL_STIN/SL_STUN/SL_SMA [Skotlex]
 	* Updated skill_require_db to enable songs/dances to be performed with
 	  either whips/musical instruments. [Skotlex]
