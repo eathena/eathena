@@ -5679,7 +5679,7 @@ int clif_cart_itemlist(struct map_session_data *sd)
 		WBUFB(buf,n*18+8)=itemtype(id->type);
 		WBUFB(buf,n*18+9)=sd->status.cart[i].identify;
 		WBUFW(buf,n*18+10)=sd->status.cart[i].amount;
-		WBUFW(buf,n*18+12)=0;
+		WBUFW(buf,n*18+12)=0; //Here goes the equip location, which seems unnecessary to fill for the cart data.
 		clif_addcards(WBUFP(buf,n*18+14), &sd->status.cart[i]);
 		n++;
 	}

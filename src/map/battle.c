@@ -2484,10 +2484,10 @@ struct Damage battle_calc_magic_attack(
 						skillratio += 10*skill_lv-30;
 						break;
 					case SL_STIN:
-						skillratio += (t_size?1:10)*skill_lv; //target size must be small (0) for full damage.
+						skillratio += (t_size?-99:10*skill_lv); //target size must be small (0) for full damage.
 						break;
 					case SL_STUN:
-						skillratio += (t_size!=2?5:1)*skill_lv; //Full damage is dealt on small/medium targets
+						skillratio += (t_size!=2?5*skill_lv:-99); //Full damage is dealt on small/medium targets
 						break;
 					case SL_SMA:
 						skillratio += -60 + status_get_lv(src); //Base damage is 40% + lv%

@@ -1,6 +1,10 @@
 Date	Added
 
 2005/12/09
+	* Updated SL_STIN/SL_STUN to do miserable damage if the target's size is
+	  'incorrect'. [Skotlex]
+	* Updated @disguise so the max npc id you can use is 1000 (1001 is already
+	  the first mob, Scorpion) [Skotlex]
 	* Fixed a possible infinite loop in pc_calc_skilltree when receiving
 	  additional skills when Soul Linked. [Skotlex]
 	* Added the Taekwon bonus that gives you triple Max HP/SP when you are a

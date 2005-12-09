@@ -6404,7 +6404,7 @@ int atcommand_disguise(
 		{ //TODO: There's no numdb_search for npcs, so we use hard-coded seeks for now.
 			id = atoi(message);
 			//Valid NPC numbers (including npcs from jRO/tRO that are not in kRO by default)
-			if ((id >=  46 && id <= 125) || (id >= 700 && id <= 858));
+			if ((id >=  46 && id <= 125) || (id >= 700 && id <= 1000)); //Bumped max cap to minimum mob id (1000)
 			else
 				id = 0;
 			}
