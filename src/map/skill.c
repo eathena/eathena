@@ -1066,6 +1066,10 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 				clif_updatestatus(dstsd,SP_SP);
 		}
   		break;
+		case SL_STUN:
+			if (status_get_size(bl)==1 && rand()%100 < (30+10*skilllv)*sc_def_vit/100 ) //Only stuns mid-sized mobs.
+				status_change_start(bl,SC_STAN,skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
+			break;
 		case SG_SUN_WARM:
 		case SG_MOON_WARM:
 		case SG_STAR_WARM:
@@ -1789,7 +1793,11 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 				}
 				break;
 			}
-
+			case SL_STIN:
+			case SL_STUN:
+				if (skilllv >= 7 && sd->sc_data[SC_COMBO].timer == -1)
+					status_change_start(src,SC_COMBO,SL_SMA,skilllv,0,0,skill_get_time2(skillid, skilllv),0);
+				break;
 		}	//Switch End
 	}
 	if(attack_type&BF_WEAPON && damage > 0 && src != bl && src == dsrc)
@@ -3081,6 +3089,17 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 				BF_MAGIC, src, src, skillid, skilllv, tick, flag, BCT_ENEMY);
 		break;
 
+	case SL_STIN:
+	case SL_STUN:
+	case SL_SMA:
+		if (sd && bl->type != BL_MOB) {
+			status_change_start(src,SC_STAN,skilllv,0,0,0,3000,0);
+			clif_skill_fail(sd,skillid,0,0);
+			break;
+		}
+		skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag);
+		break;
+		
 	/* その他 */
 	case HT_BLITZBEAT:			/* ブリッツビ?ト */
 		if (flag & 1) {	//Invoked from map_foreachinarea, skill_area_temp[0] holds number of targets to divide damage by.
@@ -5546,6 +5565,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		}
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		status_change_start(bl,SC_SPIRIT,skilllv,skillid,0,0,skill_get_time(skillid,skilllv),0);
+		status_change_start(src,SC_COMBO,SL_SMA,skilllv,0,0,skill_get_time2(skillid,skilllv),0);
 		break;
 	case SL_HIGH:
 		if (sd && !(dstsd && (dstsd->class_&JOBL_UPPER) && !(dstsd->class_&JOBL_2) && dstsd->status.base_level < 70)) {
@@ -5554,6 +5574,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		}
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,skillid,0,0,skill_get_time(skillid,skilllv),0 );
+		status_change_start(src,SC_COMBO,SL_SMA,skilllv,0,0,skill_get_time2(skillid,skilllv),0);
 		break;
 
 	// New guild skills [Celest]
@@ -8083,6 +8104,11 @@ int skill_check_condition(struct map_session_data *sd,int type)
 			}
 		}
 		break;
+	case SL_SMA:
+		if(type) break; //Only do the combo check when the target is selected (type == 0)
+		if(sd->sc_data[SC_COMBO].timer == -1 || sd->sc_data[SC_COMBO].val1 != skill)
+			return 0;
+		break;	
 	// skills require arrows as of 12/07 [celest]
 	case HT_POWER:
 		if(sd->sc_data[SC_COMBO].timer == -1 || sd->sc_data[SC_COMBO].val1 != skill)

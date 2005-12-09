@@ -1,6 +1,7 @@
 Date	Added
 
 2005/12/09
+	* Coded in SL_STIN, SL_STUN and SL_SMA. [Skotlex]
 	* Should have fixed the crash with raw_time in char/char.c [Skotlex]
 	* Pressure can now be cast-break. [Skotlex]
 	* Likely fixed the client crash when hating a class rather than mob. [Skotlex]

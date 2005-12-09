@@ -32,6 +32,11 @@
 	-----
 	5136,Luise_Santa's_Hat: need view ID, temp: normal santa hat
 
+12/09
+	* Added in skill data for SL_STIN/SL_STUN/SL_SMA [Skotlex]
+	* Updated skill_require_db to enable songs/dances to be performed with
+	  either whips/musical instruments. [Skotlex]
+	* Added a bunch of Soul Linker skills to skill_castnodex_db.txt [Skotlex]
 12/08
 	* View ID changed for Luise's Santa's Hat from 208 to 20 (standard santa's hat) 
 	  because 208 isn't supported yet
