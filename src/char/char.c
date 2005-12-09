@@ -151,7 +151,7 @@ int char_log(char *fmt, ...) {
 	{
 		FILE *logfp;
 		va_list ap;
-		struct timeval tv;
+		time_t raw_time;
 		char tmpstr[2048];
 
 		va_start(ap, fmt);
@@ -161,9 +161,9 @@ int char_log(char *fmt, ...) {
 			if (fmt[0] == '\0') // jump a line if no message
 				fprintf(logfp, RETCODE);
 			else {
-				gettimeofday(&tv, NULL);
-				strftime(tmpstr, 24, "%d-%m-%Y %H:%M:%S", localtime((const time_t*)&(tv.tv_sec)));
-				sprintf(tmpstr + 19, ".%03d: %s", (int)tv.tv_usec / 1000, fmt);
+				time(raw_time);
+				strftime(tmpstr, 24, "%d-%m-%Y %H:%M:%S", localtime(raw_time));
+				sprintf(tmpstr + 19, ": %s", fmt);
 				vfprintf(logfp, tmpstr, ap);
 			}
 			fclose(logfp);
