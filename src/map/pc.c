@@ -556,13 +556,11 @@ int pc_setequipindex(struct map_session_data *sd)
 int pc_isequip(struct map_session_data *sd,int n)
 {
 	struct item_data *item;
-	struct status_change *sc_data;
 	//?¶‚â—{Žq‚Ìê‡‚ÌŒ³‚ÌE‹Æ‚ðŽZo‚·‚é
 
 	nullpo_retr(0, sd);
 
 	item = sd->inventory_data[n];
-	sc_data = status_get_sc_data(&sd->bl);
 
 	if( battle_config.gm_allequip>0 && pc_isGM(sd)>=battle_config.gm_allequip )
 		return 1;
@@ -577,15 +575,29 @@ int pc_isequip(struct map_session_data *sd,int n)
 		return 0;
 	if(map_flag_gvg(sd->bl.m) && (item->flag.no_equip>1)) //optimized by Lupus
 		return 0;
-	if((item->equip & 0x0002 || item->equip & 0x0020) && item->type == 4 && sc_data && sc_data[SC_STRIPWEAPON].timer != -1) // Also works with left-hand weapons [DracoRPG]
+	if((item->equip & 0x0002 || item->equip & 0x0020) && item->type == 4 && sd->sc_data[SC_STRIPWEAPON].timer != -1) // Also works with left-hand weapons [DracoRPG]
 		return 0;
-	if(item->equip & 0x0020 && item->type == 5 && sc_data && sc_data[SC_STRIPSHIELD].timer != -1) // Also works with left-hand weapons [DracoRPG]
+	if(item->equip & 0x0020 && item->type == 5 && sd->sc_data[SC_STRIPSHIELD].timer != -1) // Also works with left-hand weapons [DracoRPG]
 		return 0;
-	if(item->equip & 0x0010 && sc_data && sc_data[SC_STRIPARMOR].timer != -1)
+	if(item->equip & 0x0010 && sd->sc_data[SC_STRIPARMOR].timer != -1)
 		return 0;
-	if(item->equip & 0x0100 && sc_data && sc_data[SC_STRIPHELM].timer != -1)
+	if(item->equip & 0x0100 && sd->sc_data[SC_STRIPHELM].timer != -1)
 		return 0;
 
+	if (sd->sc_data[SC_SPIRIT].timer != -1 && sd->sc_data[SC_SPIRIT].val2 == SL_SUPERNOVICE) {
+		//Spirit of Super Novice equip bonuses. [Skotlex]
+		if (sd->status.base_level > 90 && item->equip & 0x100)
+			return 1; //Can equip all helms
+		if (sd->status.base_level > 96 && item->equip & 0x022 && item->type == 4)
+			switch(item->look) { //In weapons, the look determines type of weapon.
+				case 0x01: //Level 4 Knives are equippable.. this means all knives, I'd guess?
+				case 0x02: //All 1H swords
+				case 0x06: //All 1H Axes
+				case 0x08: //All Maces
+				case 0x0a: //All Staffs
+					return 1;
+			}
+	}
 	//Not equipable by class. [Skotlex]
 	if (!(1<<(sd->class_&MAPID_BASEMASK)&item->class_base[(sd->class_&JOBL_2_1)?1:((sd->class_&JOBL_2_2)?2:0)]))
 		return 0;

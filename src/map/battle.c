@@ -823,7 +823,7 @@ int battle_addmastery(struct map_session_data *sd,struct block_list *target,int 
 		weapon = sd->weapontype2;
 	switch(weapon)
 	{
-		case 0x01:	// ’ZŒ• Knife
+		case 0x01:	// Knife
 		case 0x02:	// 1HS
 		{
 			// Œ•?C—û(+4 ?` +40) •ÐŽèŒ• ’ZŒ•ŠÜ‚Þ
@@ -852,17 +852,16 @@ int battle_addmastery(struct map_session_data *sd,struct block_list *target,int 
 			}
 			break;
 		}
-		case 0x06: // •ÐŽè•€
-		case 0x07: // Axe by Tato
+		case 0x06: // 1H Axe
+		case 0x07: // 2H Axe by Tato
 		{
 			if((skill = pc_checkskill(sd,AM_AXEMASTERY)) > 0) {
 				damage += (skill * 3);
 			}
 			break;
 		}
-		case 0x08:	// ƒ?ƒCƒX
+		case 0x08:	// Maces
 		{
-			// ƒ?ƒCƒX?C—û(+3 ?` +30) ƒ?ƒCƒX
 			if((skill = pc_checkskill(sd,PR_MACEMASTERY)) > 0) {
 				damage += (skill * 3);
 			}
@@ -870,14 +869,13 @@ int battle_addmastery(struct map_session_data *sd,struct block_list *target,int 
 		}
 		case 0x09:	// ‚È‚µ?
 			break;
-		case 0x0a:	// ?ñ
+		case 0x0a:	// Staffs
 			break;
-		case 0x0b:	// ‹|
+		case 0x0b:	// Bows
 			break;
-		case 0x00:	// ‘fŽè Bare Hands
+		case 0x00:	// Bare Hands
 		case 0x0c:	// Knuckles
 		{
-			// “SŒ?(+3 ?` +30) ‘fŽè,ƒiƒbƒNƒ‹
 			if((skill = pc_checkskill(sd,MO_IRONHAND)) > 0) {
 				damage += (skill * 3);
 			}
@@ -891,7 +889,7 @@ int battle_addmastery(struct map_session_data *sd,struct block_list *target,int 
 			}
 			break;
 		}
-		case 0x0e:	// Dance Mastery
+		case 0x0e:	// Whips
 		{
 			// Dance Lesson Skill Effect(+3 damage for every lvl = +30) •Ú
 			if((skill = pc_checkskill(sd,DC_DANCINGLESSON)) > 0) {
