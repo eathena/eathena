@@ -7,6 +7,16 @@ At which part in grfio.c does the 'Filelist is NULL!' show up?
 
 - Celestia
 
+I added that 'Filelist is NULL!' in filelist_find(char *fname).
+	if (!filelist) {
+		ShowWarning("Dang! Filelist is NULL! PANIC!!\n");
+		return NULL;
+	}
+
+I suppose this forces the server to stop loading from GRF.
+
+- Lance
+
 Log (with added warnings):
           (=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=)
           (        (c)2005 eAthena Development Team presents        )
