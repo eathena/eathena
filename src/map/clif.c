@@ -7716,6 +7716,7 @@ int clif_specialeffect(struct block_list *bl, int type, int flag)
 int clif_refresh(struct map_session_data *sd) {
 	nullpo_retr(-1, sd);
 	clif_changemap(sd,sd->mapname,sd->bl.x,sd->bl.y);
+	map_foreachinarea(clif_getareachar,sd->bl.m,sd->bl.x-AREA_SIZE,sd->bl.y-AREA_SIZE,sd->bl.x+AREA_SIZE,sd->bl.y+AREA_SIZE,0,sd);
 	return 0;
 }
 
