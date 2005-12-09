@@ -2077,15 +2077,15 @@
 //Soul Linker
 4049,1,9,0,0,0,0,0,0,0,0,0,0 //NV_BASIC#Basic Skill#
 4049,142,1,0,0,0,0,0,0,0,0,0,0 //NV_FIRSTAID#First Aid#
-//4049,411,10,0,0,0,0,0,0,0,0,0,0 //TK_RUN#Running#
-//4049,412,1,413,1,0,0,0,0,0,0,0,0 //TK_READYSTORM#Prepare Whirlwind#
-//4049,413,7,0,0,0,0,0,0,0,0,0,0 //TK_STORMKICK#Whirlwind Kick#
-//4049,414,1,415,1,0,0,0,0,0,0,0,0 //TK_READYDOWN#Prepare Axe Kick#
-//4049,415,7,0,0,0,0,0,0,0,0,0,0 //TK_DOWNKICK#Axe Kick#
-//4049,416,1,417,1,0,0,0,0,0,0,0,0 //TK_READYTURN#Prepare Round Kick#
-//4049,417,7,0,0,0,0,0,0,0,0,0,0 //TK_TURNKICK#Round Kick#
-//4049,418,1,419,1,0,0,0,0,0,0,0,0 //TK_READYCOUNTER#Prepare Counter Kick#
-//4049,419,7,0,0,0,0,0,0,0,0,0,0 //TK_COUNTER#Counter Kick#
+4049,411,10,0,0,0,0,0,0,0,0,0,0 //TK_RUN#Running#
+4049,412,1,413,1,0,0,0,0,0,0,0,0 //TK_READYSTORM#Prepare Whirlwind#
+4049,413,7,0,0,0,0,0,0,0,0,0,0 //TK_STORMKICK#Whirlwind Kick#
+4049,414,1,415,1,0,0,0,0,0,0,0,0 //TK_READYDOWN#Prepare Axe Kick#
+4049,415,7,0,0,0,0,0,0,0,0,0,0 //TK_DOWNKICK#Axe Kick#
+4049,416,1,417,1,0,0,0,0,0,0,0,0 //TK_READYTURN#Prepare Round Kick#
+4049,417,7,0,0,0,0,0,0,0,0,0,0 //TK_TURNKICK#Round Kick#
+4049,418,1,419,1,0,0,0,0,0,0,0,0 //TK_READYCOUNTER#Prepare Counter Kick#
+4049,419,7,0,0,0,0,0,0,0,0,0,0 //TK_COUNTER#Counter Kick#
 4049,420,1,421,7,0,0,0,0,0,0,0,0 //TK_DODGE#Break Fall#
 4049,421,7,0,0,0,0,0,0,0,0,0,0 //TK_JUMPKICK#Flying Side Kick#
 4049,422,10,0,0,0,0,0,0,0,0,0,0 //TK_HPTIME#Peacefull Rest#
@@ -2093,7 +2093,7 @@
 4049,424,5,0,0,0,0,0,0,0,0,0,0 //TK_POWER#Fighting Chant#
 4049,425,7,422,5,423,5,424,5,0,0,0,0 //TK_SEVENWIND#Warm Wind#
 4049,426,5,0,0,0,0,0,0,0,0,0,0 //TK_HIGHJUMP#High Jump#
-//4049,493,1,424,5,0,0,0,0,0,0,0,0 //TK_MISSION#Taekwon Mission#
+4049,493,1,424,5,0,0,0,0,0,0,0,0 //TK_MISSION#Taekwon Mission#
 4049,445,5,0,0,0,0,0,0,0,0,0,0	//SL_ALCHEMIST#Spirit of the Alchemist#
 4049,447,5,0,0,0,0,0,0,0,0,0,0	//SL_MONK#Spirit of the Monk#
 4049,448,5,0,0,0,0,0,0,0,0,0,0	//SL_STAR#Spirit of the Star Knight#
