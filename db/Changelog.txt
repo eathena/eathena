@@ -33,7 +33,7 @@
 	5136,Luise_Santa's_Hat: need view ID, temp: normal santa hat
 
 12/09
-	* Commented all TK skills except Dodge out from skill tree of Soul Linker.
+	* Commented most TK skills except Dodge out from skill tree of Soul Linker.
 	  If we find SL could use any other TK skills, we'll enable them later. [Vicious]
 	* Fixed 5125, Angel's Kiss. Should be novice only. Good eye Kholdstare! [Kayla]
 	* Updated skill_db and skill_require_db info for Soul Linker skills, thanks
