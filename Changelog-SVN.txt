@@ -1,6 +1,8 @@
 Date	Added
 
 2005/12/09
+	* Added @help2. @help did not fit in the screen. @help2 currently contains
+	  just the char (#) commands. [Kayla]
 	* MAPREGSQL disabled (experimental) in VC7. To enable, define MAPREGSQL in preprocessor. [Lance]
 
 2005/12/08
