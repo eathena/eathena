@@ -32,6 +32,9 @@
 	-----
 	5136,Luise_Santa's_Hat: need view ID, temp: normal santa hat
 
+12/10
+	* Fixed the aftercast delay of lex divina, thanks to marquis007. [MasterOfMuppets]
+	* Updated the sell/buy price of some Homunculus related items [MasterOfMuppets]
 12/09
 	* Made Berserk Pitcher Potion-Pitcher-like. [Vicious]
 	* Fixed 5125, Angel's Kiss. Should be novice only. Good eye Kholdstare! [Kayla]
