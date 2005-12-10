@@ -1149,6 +1149,7 @@ enum {
 
 extern char motd_txt[];
 extern char help_txt[];
+extern char help2_txt[];
 
 extern char talkie_mes[];
 
