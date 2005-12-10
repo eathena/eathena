@@ -1,8 +1,10 @@
+//This quest is custom. Don't use it.
+
 geffen.gat,115,107,5	script	Lord Kaho's Servant	61,{
 	mes "[Lord Kaho's Servant]";
 	mes "I worked myself to death trying to fulfill Lord Kaho's ridiculous expectations for a headgear!";
-        mes "Now that I've finally found the formula for the perfect headgear, I'm willing to share my time and talents";
-        next;
+	mes "Now that I've finally found the formula for the perfect headgear, I'm willing to share my time and talents";
+	next;
 	mes "You need the following to get the Kaho horns!";
 	mes "3 emperiums";
 	mes "Oh yea... i also forgot to mention these X_X";
@@ -11,8 +13,8 @@ geffen.gat,115,107,5	script	Lord Kaho's Servant	61,{
 	mes "1 Heroic Emblem - From Orc Hero";
 	mes "1 Evil Horn - From Baphomet";
 	mes "1 Red Frame - From Doppelganger";
-        mes "1 Smoking Pipe - From Eddga";
-        mes "1 Fang of Garm - From Garm";
+	mes "1 Smoking Pipe - From Eddga";
+	mes "1 Fang of Garm - From Garm";
 	mes "1 Mother's Nightmare - From Maya";
 	mes "1 Sphynx Hat - from Osiris";
 	mes "1 Diamond Ring - from Mistress";
@@ -23,7 +25,7 @@ geffen.gat,115,107,5	script	Lord Kaho's Servant	61,{
 	mes "1 Chonchon Doll - a Chonchon Drop";
 	mes "1 Baphomet Doll - a Baphomet drop";
 	mes "1 Osiris Doll - an Osiris drop";
-        mes "1 Rocker Doll - a Rocker drop";
+	mes "1 Rocker Doll - a Rocker drop";
 	mes "1 Apez Fanitem Doll - a Yoyo drop";
 	mes "1 Racoon Doll - a Smokie drop";
 	mes "1 Spore Doll - a Spore drop";
@@ -35,11 +37,14 @@ geffen.gat,115,107,5	script	Lord Kaho's Servant	61,{
 	mes ". . . . . .";
 	mes "Are you ready for me to make this special item?";
 	next;
-	menu "Sure am!",LSureAm,"These requirements are unfathomable!",LUnfathomable;
+	menu "Sure am!",-,"These requirements are unfathomable!",LUnfathomable;
 
-	LSureAm:
 		mes "[Lord Kaho's Servant]";
-		if((countitem(754) < 1) || (countitem(753) < 1) || (countitem(752) < 1) || (countitem(751) < 1) || (countitem(750) < 1) || (countitem(743) < 1) || (countitem(742) < 1) || (countitem(741) < 1) || (countitem(2613) < 1) || (countitem(5053) < 1) || (countitem(7020) < 1) || (countitem(7036) < 1) || (countitem(2268) < 1) || (countitem(734) < 1) || (countitem(923) < 1) || (countitem(968) < 1) || (countitem(7005) < 1) || (countitem(714) < 3) || (Zeny < 5000000)) goto LNotEnough;
+		if(countitem(754) < 1 || countitem(753) < 1 || countitem(752) < 1 || countitem(751) < 1 || countitem(750) < 1
+			|| countitem(743) < 1 || countitem(742) < 1 || countitem(741) < 1 || countitem(2613) < 1
+			|| countitem(5053) < 1 || countitem(7020) < 1 || countitem(7036) < 1 || countitem(2268) < 1
+			|| countitem(734) < 1 || countitem(923) < 1 || countitem(968) < 1 || countitem(7005) < 1
+			|| countitem(714) < 3 || Zeny < 5000000) goto LNotEnough;
 		delitem 754,1;
 		delitem 753,1;
 		delitem 752,1;

@@ -1,3 +1,5 @@
+//Custom quest
+
 geffen.gat,126,107,5	script	Magic Pimp Hat Dude	51,{
 	mes "[Magic Pimp Hat Dude]";
 	mes "Huh! What do you want?";
@@ -11,11 +13,10 @@ geffen.gat,126,107,5	script	Magic Pimp Hat Dude	51,{
 	mes ". . . . . .";
 	mes "Are you ready for me to make this magical item?";
 	next;
-	menu "Sure am!",LSureAm,"These requirements are unfathomable!",LUnfathomable;
+	menu "Sure am!",-,"These requirements are unfathomable!",LUnfathomable;
 
-	LSureAm:
 		mes "[Magic Pimp Hat Dude]";
-		if((countitem(2252) < 1) || (countitem(4119) < 1) || (Zeny < 200000)) goto LNotEnough;
+		if(countitem(2252) < 1 || countitem(4119) < 1 || Zeny < 200000) goto LNotEnough;
 		delitem 2252,1;
 		delitem 4119,1;
 		set Zeny,Zeny-200000;

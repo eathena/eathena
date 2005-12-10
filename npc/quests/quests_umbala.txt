@@ -228,7 +228,7 @@ L_DONE:
 	close;
 
 M_DOH:
-	mes "O pooo... sigh...";
+	mes "Oh.. pooo... sigh...";
 	close;
 
 L_AGAIN:
@@ -239,8 +239,8 @@ L_AGAIN:
 
 yuno.gat,157,366,2	script	Wise Man Fabius	743,{
 	mes "[Fabius]";
-	if (event_umbala >= 3) set umb_lang,2; //You already learnt Umbalian language from Umbalian Chief. So this Quest is disabled
-	if (umb_lang<2) goto L_QUEST;
+	if(event_umbala >= 3) set umb_lang,2; //You already learnt Umbalian language from Umbalian Chief. So this Quest is disabled
+	if(umb_lang<2) goto L_QUEST;
 	mes "You speak Umbalian fluently! So you will never forget the language of Umbalians!";
 	close;
 L_QUEST:
@@ -276,13 +276,13 @@ L_DONE:
 	next;
 	mes "[Fabius]";
 	mes "From what I know, they're in different seperate towns making something out of themselves.";
-	if (umb_marie==0 && umb_mason==0 && umb_mojo==0) goto L_NOT_MET;
-	if (umb_marie==1) mes "Oh... You found Marie in Amatsu.";
-	if (umb_mojo==1) mes "You saw Mojo in Aldebaran?";
-	if (umb_mason==1) mes "So... Mason's in Prontera now... Well...";
-	if (umb_marie==0) mes "I wonder where is our sea girl Marie?";
-	if (umb_mojo==0) mes "Mojo should be somewhere near water...";
-	if (umb_mason==0) mes "Where'd Mason go then...";
+	if(umb_marie==0 && umb_mason==0 && umb_mojo==0) goto L_NOT_MET;
+	if(umb_marie==1) mes "Oh... You found Marie in Amatsu.";
+	if(umb_mojo==1) mes "You saw Mojo in Aldebaran?";
+	if(umb_mason==1) mes "So... Mason's in Prontera now... Well...";
+	if(umb_marie==0) mes "I wonder where is our sea girl Marie?";
+	if(umb_mojo==0) mes "Mojo should be somewhere near water...";
+	if(umb_mason==0) mes "Where'd Mason go then...";
 	mes "Oh yeah, tell them I sent you";
 	close;
 L_NOT_MET:
@@ -345,8 +345,8 @@ M_TALKUMB:
 	close; 
 M_DUN: 
 	mes "[Tree Guardian]"; 
-	if (umbdun != 1) mes "We do not permit weak people to enter!";
-	if (umbdun != 1) close;
+	if(umbdun != 1) mes "We do not permit weak people to enter!";
+	if(umbdun != 1) close;
 	mes "Come on in, brave warrior!"; 
 	warp "um_dun01.gat",42,30; 
 M_Leave:  

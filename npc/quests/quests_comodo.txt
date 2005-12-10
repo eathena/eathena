@@ -34,32 +34,32 @@ M_Menu:
 
 		set @BAND$, "Cross Hat Hairband";
 		set @ITEMS$, " ^5555FF1 Rosary^000000 and ^5555FF500 Destroyed Armors^000000.";
-		if (countitem(2608)>=1 && countitem(7069)>=500) set @GETBAND, 1;
+		if(countitem(2608)>=1 && countitem(7069)>=500) set @GETBAND, 1;
 		goto sL_0;
 
 	M_Bulb:
 		set @BAND$, "Bulb Hairband";
 		set @ITEMS$, "^5555FF1 Slotted Circlet^000000 and ^5555FF20 Glass Beads^000000.";
-		if (countitem(2233)>=1 && countitem(746)>=20) set @GETBAND, 2;
+		if(countitem(2233)>=1 && countitem(746)>=20) set @GETBAND, 2;
 		goto sL_0;
 
 	M_Striped:
 		set @BAND$, "Striped Hairband";
 		set @ITEMS$, "^5555FF1500 Worn-out Prison Uniforms^000000.";
-		if (countitem(1099)>=1500) set @GETBAND, 3;
+		if(countitem(1099)>=1500) set @GETBAND, 3;
 		goto sL_0;
 
 	M_Blue:
 		set @BAND$, "Blue Hairband";
 		set @ITEMS$, "^5555FF1 Bandana^000000, ^5555FF1 Cobaltblue Dyestuffs^000000, and ^5555FF300 Anolian Skins^000000.";
-		if (countitem(2211)>=1 && countitem(978)>=1 && countitem(7003)>=300) set @GETBAND, 4;
+		if(countitem(2211)>=1 && countitem(978)>=1 && countitem(7003)>=300) set @GETBAND, 4;
 
 		sL_0:
 			mes "[Hair Ornament Girl]";
 			mes "So you're interested in the "+@BAND$+" huh? Here are the items you'll need for the "+@BAND$+":";
 			mes @ITEMS$;
 			next;
-			if (@GETBAND > 0) goto sL_GetBand;
+			if(@GETBAND > 0) goto sL_GetBand;
 
 			mes "[Hair Ornament Girl]";
 			mes "Bring me all of these items and I will be able to make you a "+@BAND$+".";
@@ -71,30 +71,30 @@ M_Menu:
 			next;
 			menu "Yes, I would.",-, "No thank you.",M_End;
 
-				if (@GETBAND == 1) goto ssL_Cross;
-				if (@GETBAND == 2) goto ssL_Bulb;
-				if (@GETBAND == 3) goto ssL_Striped;
-				if (@GETBAND == 4) goto ssL_Blue;
+				if(@GETBAND == 1) goto ssL_Cross;
+				if(@GETBAND == 2) goto ssL_Bulb;
+				if(@GETBAND == 3) goto ssL_Striped;
+				if(@GETBAND == 4) goto ssL_Blue;
 
 				ssL_Cross:
-					if (countitem(2608)<1 || countitem(7069)<500) goto L_Cheater;
+					if(countitem(2608)<1 || countitem(7069)<500) goto L_Cheater;
 					delitem 2608,1;
 					delitem 7069,500;
 					getitem  5036,1;
 					goto ssL_End;
 				ssL_Bulb:
-					if (countitem(2233)<1 || countitem(746)<20) goto L_Cheater;
+					if(countitem(2233)<1 || countitem(746)<20) goto L_Cheater;
 					delitem 2233,1;
 					delitem 746,20;
 					getitem 5034,1;
 					goto ssL_End;
 				ssL_Striped:
-					if (countitem(1099)<1500) goto L_Cheater;
+					if(countitem(1099)<1500) goto L_Cheater;
 					delitem 1099,1500;
 					getitem 5049,1;
 					goto ssL_End;
 				ssL_Blue:
-					if (countitem(2211)<1 || countitem(978)<1 || countitem(7003)<300) goto L_Cheater;
+					if(countitem(2211)<1 || countitem(978)<1 || countitem(7003)<300) goto L_Cheater;
 					delitem 2211,1;
 					delitem 978,1;
 					delitem 7003,300;
@@ -232,7 +232,7 @@ M_Menu:
 	M_1:
 		menu "-Mine Helmet",-, "-Parcel Hat",sM_MakePar, "-Money Loser's Grief",sM_MakeMon, "-Phantom of the Opera Mask",sM_MakePhan;
 
-			if (countitem(5009)<1 || countitem(5028)<1 || countitem(747)<1 || countitem(999)<25) goto ssL_NoItems;
+			if(countitem(5009)<1 || countitem(5028)<1 || countitem(747)<1 || countitem(999)<25) goto ssL_NoItems;
 			delitem 5009, 1;
 			delitem 5028, 1;
 			delitem 747, 1;
@@ -242,7 +242,7 @@ M_Menu:
 			getitem 5031,1;
 			close;
 		sM_MakePar:
-			if (countitem(1059)<150 || countitem(907)<100 || countitem(978)<1) goto ssL_NoItems;
+			if(countitem(1059)<150 || countitem(907)<100 || countitem(978)<1) goto ssL_NoItems;
 			delitem 1059, 150;
 			delitem 907, 100;
 			delitem 978, 1;
@@ -251,7 +251,7 @@ M_Menu:
 			getitem 5023,1;
 			close;
 		sM_MakeMon:
-			if (countitem(2233)<1 || countitem(969)<1 || countitem(999)<20 || countitem(949)<80 || countitem(938)<800) goto ssL_NoItems;
+			if(countitem(2233)<1 || countitem(969)<1 || countitem(999)<20 || countitem(949)<80 || countitem(938)<800) goto ssL_NoItems;
 			delitem 2233, 1;
 			delitem 969, 1;
 			delitem 999, 20;
@@ -262,7 +262,7 @@ M_Menu:
 			getitem 5021,1;
 			close;
 		sM_MakePhan:
-			if (countitem(2281)<1 || countitem(1048)<50) goto ssL_NoItems; 
+			if(countitem(2281)<1 || countitem(1048)<50) goto ssL_NoItems; 
 			delitem 2281,1;
 			delitem 1048, 50;
 			mes "[Mari Isac]";

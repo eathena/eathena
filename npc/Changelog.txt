@@ -25,6 +25,8 @@ Nexon
 
 Date		Added
 ======
+12/11
+	* Revised again all the quests, found and fixed 2 bugs, also optimized conditions [Lupus]
 12/10
 	* Added the Lighthalzen Kafras, thanks to Vicious_Pucca for information. [MasterOfMuppets]
 	* Added the Homunculus shop in Aldebaran, it's commented for now until [MasterOfMuppets]

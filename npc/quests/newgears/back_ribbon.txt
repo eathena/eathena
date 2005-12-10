@@ -25,7 +25,7 @@ prontera.gat,164,232,5	script	Netpia	815,{
  next;
  menu "Make me a ^670000Back ribbon^000000.",-,"What are the requirements?",M_REQ,"No, I dont want one.",M_EXIT;
 
- if ((countitem(2244) < 1) || (countitem(2209) < 1) || (countitem(10007) < 1)) GOTO L_NOITEM;//Items: Big Ribbon, Ribbon, Silk Ribbon,
+ if(countitem(2244) < 1 || countitem(2209) < 1 || countitem(10007) < 1) GOTO L_NOITEM;//Items: Big Ribbon, Ribbon, Silk Ribbon,
  delitem 2244,1;//Items: Big Ribbon,
  delitem 2209,1;//Items: Ribbon,
  delitem 10007,1;//Items: Silk Ribbon,

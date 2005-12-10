@@ -36,7 +36,7 @@ M_MAKE:
 	mes "Ok then, I shall make one for you.";
 	next;
 
-	if (countitem(1022) < 999) goto L_NOITEM;//Items: Nine Tails,
+	if(countitem(1022) < 999) goto L_NOITEM;//Items: Nine Tails,
 	delitem 1022,999;//Items: Nine Tails,
 	getitem 5069,1;//Items: Fox Mask,
 	mes "[Nine Tails]";

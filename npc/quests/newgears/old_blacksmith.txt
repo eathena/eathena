@@ -28,7 +28,7 @@ M_EOD:
  next;
  menu "Dont care, make me the Item!",-,"What are the requirements?",M_EODREQ,"Nothing",M_EXIT;
 
- if ((countitem(2255) < 1) || (countitem(2286) < 1) || (Zeny < 20000)) GOTO L_NOITEM_EOD;//Items: Evil Wing, Elven Ears,
+ if(countitem(2255) < 1 || countitem(2286) < 1 || Zeny < 20000) GOTO L_NOITEM_EOD;//Items: Evil Wing, Elven Ears,
  delitem 2255,1;//Items: Evil Wing,
  delitem 2286,1;//Items: Elven Ears,
  set Zeny,Zeny-20000;
@@ -63,7 +63,7 @@ M_EOA:
  next;
  menu "Dont care, make me the Item!",-,"What are the requirements?",M_EOAREQ,"Nothing",M_EXIT;
 
- if ((countitem(2286) < 1) || (countitem(2254) < 1) || (Zeny < 20000)) GOTO L_NOITEM_EOA;//Items: Elven Ears, Angel Wing,
+ if(countitem(2286) < 1 || countitem(2254) < 1 || Zeny < 20000) GOTO L_NOITEM_EOA;//Items: Elven Ears, Angel Wing,
  delitem 2286,1;//Items: Elven Ears,
  delitem 2254,1;//Items: Angel Wing,
  set Zeny,Zeny-20000;

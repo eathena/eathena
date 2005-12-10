@@ -52,8 +52,8 @@ OnStart:
 		close;
 
 L_Check:
-	if((countitem(974) < 1) || (countitem(612) < 5) || (countitem(7068) < 5) || (countitem(1003) < 5) || (countitem(7043) < 5) || 
-	(countitem(757) < 3) || (countitem(756) < 3) || (Zeny < 2000)) goto L_NotEnuf;
+	if(countitem(974) < 1 || countitem(612) < 5 || countitem(7068) < 5 || countitem(1003) < 5 || countitem(7043) < 5 || 
+		countitem(757) < 3 || countitem(756) < 3 || Zeny < 2000) goto L_NotEnuf;
 	delitem 974,1;
 	delitem 612,5;
 	delitem 7068,5;

@@ -48,7 +48,7 @@ alberta.gat,113,53,3	script	Smile Assistance::SmileAT	92,{
 		close;
 	M_1:
 		mes "[Smile Assistant]";
-		if((countitem(705) < 10) | (countitem(909) < 10) | (countitem(914) < 10)) goto sL_NoItems;
+		if(countitem(705) < 10 || countitem(909) < 10 || countitem(914) < 10) goto sL_NoItems;
 		delitem 705,10;
 		delitem 909,10;
 		delitem 914,10;

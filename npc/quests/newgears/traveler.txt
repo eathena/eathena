@@ -19,7 +19,7 @@
 
 morocc.gat,273,78,6	script	Traveler	807,{ 
  mes "[Traveler]";
- if (BaseJob == 0) GOTO L_NOVICE;
+ if(BaseJob == Job_Novice) GOTO L_NOVICE;
  mes "What kind of hat do you want from me?";
  next;
  menu "Lazy Racoon Hat.",-,"Fresh Bluish Fish",M_N2,"Drooping Cat",M_N3,"Transformation Leaf",M_N4,"Nothing.",M_EXIT;
@@ -34,7 +34,7 @@ morocc.gat,273,78,6	script	Traveler	807,{
  next;
  menu "Yep.",-,"No!",M_EXIT;
 
- if ((countitem(1026) < 1000) || (countitem(7065) < 100) || (countitem(945) < 10)) GOTO L_NOITEM;//Items: Acorn, Sea Otter Fur, Raccoon Leaf,
+ if(countitem(1026) < 1000 || countitem(7065) < 100 || countitem(945) < 10) GOTO L_NOITEM;//Items: Acorn, Sea Otter Fur, Raccoon Leaf,
  delitem 1026,1000;//Items: Acorn,
  delitem 7065,100;//Items: Sea Otter Fur,
  delitem 945,10;//Items: Raccoon Leaf,
@@ -58,7 +58,7 @@ M_N2:
  mes "Got these items?";
  menu "Yes",-,"No.",M_EXIT;
 
- if ((countitem(624) < 1) || (countitem(959) < 300) || (countitem(544) < 50) || (countitem(1023) < 1) || (countitem(938) < 100)) GOTO L_NOITEM; //Items: Rotten Fish, Stinky Scale, Sashimi, Fish Tail, Sticky Mucus,
+ if(countitem(624) < 1 || countitem(959) < 300 || countitem(544) < 50 || countitem(1023) < 1 || countitem(938) < 100) GOTO L_NOITEM; //Items: Rotten Fish, Stinky Scale, Sashimi, Fish Tail, Sticky Mucus,
  delitem 624,1;//Items: Rotten Fish,
  delitem 959,300;//Items: Stinky Scale,
  delitem 544,50;//Items: Raw Fish,
@@ -84,7 +84,7 @@ M_N3:
  next;
  menu "Yes",-,"No.",M_EXIT;
 
- if ((countitem(2233) < 1) || (countitem(983) < 1) || (countitem(7206) < 300)) GOTO L_NOITEM;//Items: Circlet, Black Dyestuff, Black Cat Doll,
+ if(countitem(2233) < 1 || countitem(983) < 1 || countitem(7206) < 300) GOTO L_NOITEM;//Items: Circlet, Black Dyestuff, Black Cat Doll,
  delitem 2233,1;//Items: Circlet,
  delitem 983,1;//Items: Black Dyestuff,
  delitem 7206,300;//Items: Black Cat Doll,
@@ -105,7 +105,7 @@ M_N4:
  next;
  menu "Yes!",-,"Nope.",M_EXIT;
 
- if (countitem(945) < 600) GOTO L_NOITEM;//Items: Raccoon Leaf,
+ if(countitem(945) < 600) GOTO L_NOITEM;//Items: Raccoon Leaf,
  delitem 945,600;//Items: Raccoon Leaf,
  mes "[Traveler]";
  mes "Thanks. here's your leaf.";

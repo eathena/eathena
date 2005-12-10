@@ -43,7 +43,7 @@ cake_hat:
  	next;
 	menu "Here. Now do your magic!",-,"Cancel",M_Cancel;
 	
-	if((countitem(529)<10) || (countitem(530)<5) || (countitem(539)<20) || (countitem(999)<10) || (countitem(538)<15)) goto L_NoItem;
+	if(countitem(529)<10 || countitem(530)<5 || countitem(539)<20 || countitem(999)<10 || countitem(538)<15) goto L_NoItem;
 	delitem 529,10;
 	delitem 530,5;
 	delitem 539,20;
@@ -63,7 +63,7 @@ candle:
  	next;
 	menu "Here. Now do your magic!",-,"Cancel",M_Cancel;
 	
-	if((countitem(2279)<1) || (countitem(7035)<50) || (countitem(526)<100)) goto L_NoItem;
+	if(countitem(2279)<1 || countitem(7035)<50 || countitem(526)<100) goto L_NoItem;
 	delitem 2279,1;
 	delitem 7035,50;
 	delitem 526,100;
@@ -82,7 +82,7 @@ chef_hat:
  	next;
 	menu "Here. Now do your magic!",-,"Cancel",M_Cancel;
 	
-	if((countitem(1036)<450) || (countitem(949)<300) || (countitem(539)<120) || (countitem(982)<1)) goto L_NoItem;
+	if(countitem(1036)<450 || countitem(949)<300 || countitem(539)<120 || countitem(982)<1) goto L_NoItem;
 	delitem 1036,450;
 	delitem 949,300;
 	delitem 539,120;
@@ -102,7 +102,7 @@ raccoon_hat:
  	next;
 	menu "Here. Now do your magic!",-,"Cancel",M_Cancel;
 	
-	if((countitem(1036)<20) || (countitem(2213)<1) || (countitem(7065)<300) || (countitem(7012)<200)) goto L_NoItem;
+	if(countitem(1036)<20 || countitem(2213)<1 || countitem(7065)<300 || countitem(7012)<200) goto L_NoItem;
 	delitem 1036,20;
 	delitem 2213,1;
 	delitem 7065,300;
@@ -121,7 +121,7 @@ rainbow_egg:
  	next;
 	menu "Here. Now do your magic!",-,"Cancel",M_Cancel;
 	
-	if((countitem(7030)<50) || (countitem(978)<1) || (countitem(5015)<1)) goto L_NoItem;
+	if(countitem(7030)<50 || countitem(978)<1 || countitem(5015)<1) goto L_NoItem;
 	delitem 7030,50;
 	delitem 978,1;
 	delitem 5015,1;
@@ -139,7 +139,7 @@ spore_hat:
  	next;
 	menu "Here. Now do your magic!",-,"Cancel",M_Cancel;
 	
-	if((countitem(7068)<300) || (countitem(7033)<850) || (countitem(1015)<1)) goto L_NoItem;
+	if(countitem(7068)<300 || countitem(7033)<850 || countitem(1015)<1) goto L_NoItem;
 	delitem 7068,300;
 	delitem 7033,850;
 	delitem 1015,1;
@@ -157,7 +157,7 @@ wonder_nut:
  	next;
 	menu "Here. Now do your magic!",-,"Cancel",M_Cancel;
 	
-	if((countitem(5037)<1) || (countitem(7064)<500)) goto L_NoItem;
+	if(countitem(5037)<1 || countitem(7064)<500) goto L_NoItem;
 	delitem 5037,1;
 	delitem 7064,500;
 	getitem 5050,1;

@@ -21,13 +21,13 @@ alberta.gat,88,193,5	script	Sunglasses Trader	73,{
 	mes "[Sunglasses Trader]";
 	mes "Hello. What can I do for you?";
 	next;
-	menu "I heard that you can make ^0000FFSlotted Sunglasses^000000.",L_SG_Yes,"Nothing, sorry to bother you.",L_SG_No;
-L_SG_Yes:
+	menu "I heard that you can make ^0000FFSlotted Sunglasses^000000.",-,"Nothing, sorry to bother you.",L_SG_No;
+
 	mes "[Sunglasses Trader]";
 	mes "I do not make them, but I can tell you where to find the person who does. For a small fee...";
 	next;
-	menu "How much?",L_SG_1,"No way, I will find her, myself!",L_SG_No1;
-L_SG_No1:
+	menu "How much?",L_SG_1,"No way, I will find her, myself!",-;
+
 	mes "[Sunglasses Trader]";
 	mes "Suit yourself, the Maker will not make you ^0000FFSlotted Sunglasses^000000 unless she knows that you are coming.";
 	mes "Only I can tell her you are coming.";
@@ -42,8 +42,8 @@ L_SG_1:
 	mes "^00008850 Feathers^000000, ";
 	mes "and ^000088100000z^000000.";
 	next;
-	menu "Alright, here.",L_SG_1_Check,"That's too much!",L_SG_NO;
-L_SG_NO:
+	menu "Alright, here.",L_SG_1_Check,"That's too much!",-;
+
 	mes "[Sunglasses Trader]";
 	mes "Suit Yourself.";
 	close;
@@ -101,8 +101,8 @@ L_SG_2:
 	mes "[Maseph]";
 	mes "You came for the ^000088Slotted Sunglasses^000000, right?";
 	next;
-	menu "Yes",L_SG_2_Start,"No, sorry to bother you.",L_SG_2_No;
-L_SG_2_No:
+	menu "Yes",L_SG_2_Start,"No, sorry to bother you.",-;
+
 	mes "[Maseph]";
 	mes "Off you go, then.";
 	close;
@@ -110,8 +110,8 @@ L_SG_2_Start:
 	mes "[Maseph]";
 	mes "To make one, I will need one pair of ^000088Sunglasses^000000 and 400000z.";
 	next;
-	menu "Here you go.",L_SG_Q2_Check,"No, thanks.",L_SG_2_StartNo;
-L_SG_2_StartNo:
+	menu "Here you go.",L_SG_Q2_Check,"No, thanks.",-;
+
 	mes "[Maseph]";
 	mes "As you wish.";
 	close;

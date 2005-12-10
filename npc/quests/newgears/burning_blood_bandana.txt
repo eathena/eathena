@@ -29,7 +29,7 @@ yuno.gat,300,188,6	script	Genbolt	826,{
  next;
  menu "Wow! Make me one!",-,"What do I need?",M_REQ,"Naw, bye",M_EXIT;
 
- if ((countitem(7216) < 300) || (countitem(7097) < 300) || (countitem(982) < 1) || (countitem(2211) < 1)) GOTO L_NOITEM;//Items: Red Muffler, Burning Heart, White Dyestuff, Bandana,
+ if(countitem(7216) < 300 || countitem(7097) < 300 || countitem(982) < 1 || countitem(2211) < 1) GOTO L_NOITEM;//Items: Red Muffler, Burning Heart, White Dyestuff, Bandana,
  delitem 7216,300;//Items: Red Muffler,
  delitem 7097,300;//Items: Burning Heart,
  delitem 982,1;//Items: White Dyestuff,

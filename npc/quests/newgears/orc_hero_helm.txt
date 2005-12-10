@@ -104,7 +104,7 @@ Q4:
 	mes "And don't forget the Orc Helm I gave ya, I need it too. Cheeit!";
 	next;
 	mes "[Orc Warrior]";
-	if((countitem(968)<100) || (countitem(2299)<1)) goto Q4_noitem;
+	if(countitem(968)<100 || countitem(2299)<1) goto Q4_noitem;
 	delitem 968,100;
 	delitem 2299,1;
 	mes "Ya got all of them! Cheeit! Ya're a true warrior, one of our heroes!";

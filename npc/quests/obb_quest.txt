@@ -26,9 +26,8 @@ alberta.gat,115,204,5	script	Tourist	97,{
 	next;
 
 L_MENU:
-	menu "What do you like?",L_ITEMS,"I've got food.",L_FOOD, "See you later.", L_END;
+	menu "What do you like?",-,"I've got food.",L_FOOD, "See you later.", L_END;
 
-L_ITEMS:
 	mes "[Tourist]";
 	mes "Me.. I.. Today I'd like:";
 	mes "20 ^0000FFMeat^000000";
@@ -118,8 +117,8 @@ L_YES:
 	mes "[Jacob]";
 	mes "Let me see...";
 	if(countitem(636)<2) goto L_NOITM;//Items: No_Recipient,
-	mes "Thank you, that's all I need.";
 	delitem 636,2;//Items: No_Recipient,
+	mes "Thank you, that's all I need.";
 	emotion 15;
 	next;
 	mes "[Jacob]";

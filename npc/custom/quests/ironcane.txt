@@ -25,7 +25,7 @@ payon.gat,109,118,5	script	Iron Cain Quest	76,{
 	menu "Sure am!",-, "The requirements are unfathomable!",L_Unfathomable;
 
 	mes "[Iron Cain Quest]";
-	if((countitem(931) < 200) || (countitem(968) < 1)) goto L_NotEnough;
+	if(countitem(931) < 200 || countitem(968) < 1) goto L_NotEnough;
 	delitem 931,200;
 	delitem 968,1;
 	mes "Wow!  You are brave indeed!";

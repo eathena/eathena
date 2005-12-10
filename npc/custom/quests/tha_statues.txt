@@ -33,7 +33,7 @@ tha_t08.gat,69,106,4	script	Statue	111,{
 
 tha_t09.gat,17,158,4	script	Thalos	111,{
 
-      if(TSQ_CHK == 1) goto done;
+	if(TSQ_CHK == 1) goto done;
 	mes "[Thalos]";
 	mes "You must find the 2nd Statue now.";
 	set TSQ_CHK,1;
@@ -98,7 +98,7 @@ nook:
 
 tha_t10.gat,99,97,4	script	Veriaelle	111,{
 
-      if(TSQ_CHK != 2) goto nook;
+	if(TSQ_CHK != 2) goto nook;
 	mes "[Veriaelle]";
 	mes "Okay, i am warping you to the next floor.";
 	next;

@@ -39,8 +39,8 @@ prontera.gat,147,171,5	script	Lenneth	811,{
 	next;
 	menu "Yes",-,"No",L_OUT;
 
-	if (countitem(984) < 20 || countitem(985) < 5 || countitem(969) < 40 || countitem(1531) < 2 || countitem(7089) < 5) goto L_NOTENOUGH;
-	if (countitem(7074) < 2 || countitem(7075) < 4 || countitem(7078) < 5 || countitem(7087) < 5) goto L_NOTENOUGH;
+	if(countitem(984) < 20 || countitem(985) < 5 || countitem(969) < 40 || countitem(1531) < 2 || countitem(7089) < 5
+		|| countitem(7074) < 2 || countitem(7075) < 4 || countitem(7078) < 5 || countitem(7087) < 5) goto L_NOTENOUGH;
 
 	delitem 984,20;
 	delitem 985,5;
@@ -74,8 +74,8 @@ L_SLE:
 	next;
 	menu "Yes",-,"No",L_OUT;
 
-	if (countitem(969) < 20 || countitem(985) < 10 || countitem(984) < 1 || countitem(2406) < 2 || countitem(7076) < 3) goto L_NOTENOUGH;
-	if (countitem(7079) < 5 || countitem(7083) < 3 || countitem(7086) < 3) goto L_NOTENOUGH;
+	if(countitem(969) < 20 || countitem(985) < 10 || countitem(984) < 1 || countitem(2406) < 2 || countitem(7076) < 3
+		|| countitem(7079) < 5 || countitem(7083) < 3 || countitem(7086) < 3) goto L_NOTENOUGH;
 
 	delitem 969,20;
 	delitem 985,10;
@@ -110,9 +110,9 @@ L_BRI:
 	next;
 	menu "Yes",-,"No",L_OUT;
 
-	if (countitem(969) < 20 || countitem(723) < 5 || countitem(727) < 10 || countitem(722) < 3 || countitem(726) < 2) goto L_NOTENOUGH;
-	if (countitem(7090) < 3 || countitem(7088) < 3 || countitem(7077) < 4 || countitem(7073) < 4 || countitem(2603) < 1) goto L_NOTENOUGH;
-	if (countitem(7092) < 3) goto L_NOTENOUGH;
+	if(countitem(969) < 20 || countitem(723) < 5 || countitem(727) < 10 || countitem(722) < 3 || countitem(726) < 2
+		|| countitem(7090) < 3 || countitem(7088) < 3 || countitem(7077) < 4 || countitem(7073) < 4 || countitem(2603) < 1
+		|| countitem(7092) < 3) goto L_NOTENOUGH;
 
 	delitem 726,2;
 	delitem 722,3;
@@ -147,7 +147,7 @@ L_GLE:
 	next;
 	menu "Yes",-,"No",L_OUT;
 
-	if (countitem(7085) < 3 || countitem(7084) < 3 || countitem(7082) < 4 || countitem(7081) < 5 || countitem(7080) < 4) goto L_NOTENOUGH;
+	if(countitem(7085) < 3 || countitem(7084) < 3 || countitem(7082) < 4 || countitem(7081) < 5 || countitem(7080) < 4) goto L_NOTENOUGH;
 
 	delitem 7080,4;
 	delitem 7081,5;
@@ -173,7 +173,7 @@ L_MEG:
 	next;
 	menu "Yes",-,"No",L_OUT;
 
-	if (countitem(2627) < 1 || countitem(984) < 5 || countitem(726) < 10 || countitem(969) < 10 || countitem(7058) < 1) goto L_NOTENOUGH;
+	if(countitem(2627) < 1 || countitem(984) < 5 || countitem(726) < 10 || countitem(969) < 10 || countitem(7058) < 1) goto L_NOTENOUGH;
 
 	delitem 7058,1;
 	delitem 969,10;

@@ -30,7 +30,7 @@ yuno_in03.gat,32,15,7	script	Neris	806,{
  next;
  menu "Make me Golden Bells!",-,"What do I need to make it?",M_REQL,"Nothing, thanks.",M_EXIT;
 
- if ((countitem(10016) < 1) || (countitem(714) < 1) || (countitem(969) < 3) || (Zeny < 1000)) GOTO L_NOITEM;//Items: Golden Bell, Emperium, Gold,
+ if(countitem(10016) < 1 || countitem(714) < 1 || countitem(969) < 3 || Zeny < 1000) GOTO L_NOITEM;//Items: Golden Bell, Emperium, Gold,
  delitem 10016,1;//Items: Golden Bell,
  delitem 714,1;//Items: Emperium,
  delitem 969,3;//Items: Gold,
@@ -61,7 +61,7 @@ M_COM:
  next;
  menu "Make me the item.",-,"What do I need to make it?",M_REQC,"Nothing, thanks.",M_EXIT;
 
- if ((countitem(2249) < 1) || (countitem(714) < 1) || (countitem(969) < 3) || (Zeny < 1000)) GOTO L_NOITEM;//Items: Coronet, Emperium, Gold,
+ if(countitem(2249) < 1 || countitem(714) < 1 || countitem(969) < 3 || Zeny < 1000) GOTO L_NOITEM;//Items: Coronet, Emperium, Gold,
  delitem 2249,1;//Items: Coronet,
  delitem 714,1;//Items: Emperium,
  delitem 969,3;//Items: Gold,
@@ -92,7 +92,7 @@ M_COAQ:
  next;
  menu "Make me the item.",-,"What do I need to make it?",M_REQC2,"Nothing, thanks.",M_EXIT;
 
- if ((countitem(10006) < 1) || (countitem(714) < 1) || (countitem(969) < 3) || (Zeny < 1000)) GOTO L_NOITEM;//Items: Queen's Hair Ornament, Emperium, Gold,
+ if(countitem(10006) < 1 || countitem(714) < 1 || countitem(969) < 3 || Zeny < 1000) GOTO L_NOITEM;//Items: Queen's Hair Ornament, Emperium, Gold,
  delitem 10006,1;//Items: Queen's Hair Ornament,
  delitem 714,1;//Items: Emperium,
  delitem 969,3;//Items: Gold,

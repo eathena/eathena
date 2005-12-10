@@ -16,7 +16,7 @@
 
 geffen.gat,66,87,6	script	Aipo	819,{
  mes "[Aipo]";
- if (BaseJob == 0) GOTO L_NOVICE;
+ if(BaseJob == Job_Novice) GOTO L_NOVICE;
  mes "Heeeeee.";
  next;
  mes "[Aipo]";
@@ -30,7 +30,7 @@ geffen.gat,66,87,6	script	Aipo	819,{
  next;
  menu "Yes! Now make me the item!",-,"No, thanks!",M_EXIT;
 
- if (countitem(921) < 300) GOTO L_NOITEM;//Items: Mushroom Spore,
+ if(countitem(921) < 300) GOTO L_NOITEM;//Items: Mushroom Spore,
  delitem 921,300;//Items: Mushroom Spore,
  mes "[Aipo]";
  mes "Wow! Thanks! Lemme make the item then.";

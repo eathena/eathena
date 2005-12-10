@@ -24,7 +24,7 @@
 //= 1.3 – Fixed exploit [Lupus]
 
 ayo_dun02.gat,277,178,1	script	OBB	139,4,4,{
-	if (AyoOBB==1 || weddingring!=3) goto L_Cancel;
+	if(AyoOBB==1 || weddingring!=3) goto L_Cancel;
 	mes "["+strcharinfo(0)+"]";
 	mes "Huh what is this?, not foot prints, this is an Old Blue coloured Box";
 	next;
@@ -39,7 +39,7 @@ L_Cancel:
 }
 //Dungeon 1 foot prints x 5
 ayo_dun01.gat,30,149,1	script	Clue	139,5,5,{
-	if (weddingring!=3) goto L_Cancel;
+	if(weddingring!=3) goto L_Cancel;
 	npctalk "There are some foot prints here, they head off to the East.";
 	set @footprints1,1;
 	close;
@@ -47,7 +47,7 @@ L_Cancel:
 	end;
 }
 ayo_dun01.gat,70,149,1	script	Clue	139,5,5,{
-	if (weddingring!=3) goto L_Cancel;
+	if(weddingring!=3) goto L_Cancel;
 	npctalk "There are some more foot prints, they are heading off to the East too!";
 	set @footprints2,1;
 	close;
@@ -55,7 +55,7 @@ L_Cancel:
 	end;
 }
 ayo_dun01.gat,100,149,1	script	Clue	139,5,5,{
-	if (weddingring!=3) goto L_Cancel;
+	if(weddingring!=3) goto L_Cancel;
 	npctalk "More foot prints heading to the East, who do they belong too?";
 	set @footprints3,1;
 	close;
@@ -63,7 +63,7 @@ L_Cancel:
 	end;
 }
 ayo_dun01.gat,190,149,1	script	Clue	139,5,5,{
-	if (weddingring!=3) goto L_Cancel;
+	if(weddingring!=3) goto L_Cancel;
 	npctalk "More foot prints, but these are going North.";
 	set @footprints4,1;
 	close;
@@ -71,7 +71,7 @@ L_Cancel:
 	end;
 }
 ayo_dun01.gat,261,263,1	script	Clue	139,5,5,{
-	if (weddingring!=3) goto L_Cancel;
+	if(weddingring!=3) goto L_Cancel;
 	npctalk "There are some foot prints, they seem to head into that hole there.";
 	set @footprints5,1;
 	close;
@@ -81,7 +81,7 @@ L_Cancel:
 
 //Dungeon 2 foot prints x 4 + 1 fake
 ayo_dun02.gat,222,204,1	script	Clue	139,5,5,{
-	if (weddingring!=3) goto L_Cancel;
+	if(weddingring!=3) goto L_Cancel;
 	npctalk "Yet more foot prints, they are either going South or West.";
 	set @footprints6,1;
 	close;
@@ -89,7 +89,7 @@ L_Cancel:
 	end;
 }
 ayo_dun02.gat,169,212,1	script	Clue	139,5,5,{
-	if (weddingring!=3) goto L_Cancel;
+	if(weddingring!=3) goto L_Cancel;
 	npctalk "Looks like there are foot print going to the West.";
 	set @footprints7,1;
 	close;
@@ -97,7 +97,7 @@ L_Cancel:
 	end;
 }
 ayo_dun02.gat,129,212,1	script	Clue	139,5,5,{
-	if (weddingring!=3) goto L_Cancel;
+	if(weddingring!=3) goto L_Cancel;
 	npctalk "Ok these foot prints are either going to the North or West.";
 	set @footprints8,1;
 	close;
@@ -105,7 +105,7 @@ L_Cancel:
 	end;
 }
 ayo_dun02.gat,79,212,1	script	Clue	139,7,7,{
-	if (weddingring!=3) goto L_Cancel;
+	if(weddingring!=3) goto L_Cancel;
 	npctalk "These are very new, they are going North.";
 	set @footprints9,1;
 	close;
@@ -114,7 +114,7 @@ L_Cancel:
 }
 //FAKE
 ayo_dun02.gat,245,166,1	script	Clue	139,7,7,{
-	if (weddingring!=3) goto L_Cancel;
+	if(weddingring!=3) goto L_Cancel;
 	npctalk "Seems something came by this way, to the East.";
 	close;
 L_Cancel:
@@ -123,13 +123,13 @@ L_Cancel:
 
 ayothaya.gat,233,105,7	script	Shuda	818,{
 	mes "[Shuda]";
-	if (BaseLevel<50) mes "Where is my ring!?!";
-	if (BaseLevel<50) close;
-	if (weddingring==2) goto L_Quest2;
-	if (weddingring==3) goto L_OnQ2;
-	if (weddingring==4) goto L_QuestComplete;
-	if (weddingring==5) goto L_QuestOver;
-	if (countitem(7288)==1) goto L_RingFound;
+	if(BaseLevel<50) mes "Where is my ring!?!";
+	if(BaseLevel<50) close;
+	if(weddingring==2) goto L_Quest2;
+	if(weddingring==3) goto L_OnQ2;
+	if(weddingring==4) goto L_QuestComplete;
+	if(weddingring==5) goto L_QuestOver;
+	if(countitem(7288)>=1) goto L_RingFound;
 	mes "Oh please wont you help me, my partner has gone missing, but not before droping our ^FF0000Engagement Ring^000000 maybe there is a way of ^0000FFfishing^000000 it out of the sea.";
 	set weddingring,1;
 	close;
@@ -147,7 +147,7 @@ L_RingFound:
 	close;
 N_Yes:
 	mes "[Shuda]";
-	if (countitem(7288)<1) {
+	if(countitem(7288)<1) {
 		mes "Go away, cheater!";
 		close;
 	}
@@ -212,7 +212,7 @@ ayothaya.gat,208,102,4	script	Fisher Man	100,{
 	mes "So, do you want to have a go?";
 	next;
 	menu "Yes",-,"No",L_No;
-	if (countitem(528) < 1 || zeny < 50) goto L_Fail;
+	if(countitem(528) < 1 || zeny < 50) goto L_Fail;
 	delitem 528,1;
 	set zeny,zeny-50;
 	mes "[Fisher Man]";
@@ -221,9 +221,9 @@ ayothaya.gat,208,102,4	script	Fisher Man	100,{
 	next;
 	set @fishing, rand(1,10);
 	mes "[Fisher Man]";
-	if (@fishing<5) goto L_Nothing;
-	if (@fishing<10) goto L_Fish;
-	if (@fishing==10) goto L_RingCheck;
+	if(@fishing<5) goto L_Nothing;
+	if(@fishing<10) goto L_Fish;
+	if(@fishing==10) goto L_RingCheck;
 L_No:
 	mes "[Fisher Man]";
 	mes "Come back anytime.";
@@ -241,7 +241,7 @@ L_Fish:
 	mes "Look at this you got yourself a fish, well done.";
 	close;
 L_RingCheck:
-	if (weddingring!=1 || recoveredring==1) goto L_Fish;
+	if(weddingring!=1 || recoveredring==1) goto L_Fish;
 	mes "What is this, some sort of ring!!!";
 	mes "Well I guess since you fished it out you can keep it";
 	next;
@@ -254,7 +254,7 @@ L_RingCheck:
 }
 ayothaya.gat,192,171,4	script	Old Man	824,{
 	mes "[Old Man]";
-	if (weddingring==3) goto L_OnQ2;
+	if(weddingring==3) goto L_OnQ2;
 	mes "What a nice day it is today, don't you agree?";
 	close;
 L_OnQ2:
@@ -274,9 +274,9 @@ L_OnQ2:
 }
 
 ayo_dun02.gat,91,264,4	script	Anon	822,{
-	if (weddingring==4) goto L_QuestComplete;
-	if (weddingring==5) goto L_TalkedShuda;
-	if (@footprints1==1 && @footprints2==1 && @footprints3==1 && @footprints4==1 && @footprints5==1 && @footprints6==1 && @footprints7==1 && @footprints8==1 && @footprints9==1) goto L_Groom;
+	if(weddingring==4) goto L_QuestComplete;
+	if(weddingring==5) goto L_TalkedShuda;
+	if(@footprints1==1 && @footprints2==1 && @footprints3==1 && @footprints4==1 && @footprints5==1 && @footprints6==1 && @footprints7==1 && @footprints8==1 && @footprints9==1) goto L_Groom;
 end;
 L_Groom:
 	mes "[Anon]";

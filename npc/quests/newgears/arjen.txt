@@ -19,8 +19,8 @@ geffen.gat,128,148,6	script	Arjen	807,{
  mes "[Arjen]";
  mes "What item information do you require?";
  next;
- menu "X-Shaped Hairpin.",M_1,"Bandage",M_2,"Flower Hairpin.",M_3,"Quit.",M_EXIT;
-M_1:
+ menu "X-Shaped Hairpin.",-,"Bandage",M_2,"Flower Hairpin.",M_3,"Quit.",M_EXIT;
+
  mes "[Arjen]";
  mes "Hyaaaaaaaa!";
  next;
@@ -34,7 +34,7 @@ M_1:
  next;
  menu "Make me the hairpin.",-,"What are the requirements?",M_REQ1,"No, thanks.",M_EXIT;
 
- if ((countitem(10011) < 1) || (countitem(7220) < 400)) GOTO L_NOITEM1;//Items: Stellar Hairpin, Ectoplasm,
+ if(countitem(10011) < 1 || countitem(7220) < 400) GOTO L_NOITEM1;//Items: Stellar Hairpin, Ectoplasm,
  delitem 10011,1;//Items: Stellar Hairpin,
  delitem 7220,400;//Items: Ectoplasm,
  mes "[Arjen]";
@@ -77,7 +77,7 @@ M_2:
  next;
  menu "Yes, please make me one!",-,"What are the requirements?",M_REQ2,"No, thanks.",M_EXIT;
 
- if ((countitem(930) < 500) || (countitem(970) < 1)) GOTO L_NOITEM2;//Items: Rotten Bandage, Alcohol,
+ if(countitem(930) < 500 || countitem(970) < 1) GOTO L_NOITEM2;//Items: Rotten Bandage, Alcohol,
  delitem 930,500;//Items: Rotten Bandage,
  delitem 970,1;//Items: Alcohol,
  mes "[Arjen]";
@@ -110,14 +110,8 @@ M_3:
  mes "[Arjen]";
  mes "Well, I'm sure you would like me to make you a ^660000Flower Hairpin^000000.";
  next;
- menu "Yes, please.",M_REQ3,"No, thanks.",M_EXIT;
+ menu "Yes, please.",-,"No, thanks.",M_EXIT;
 
-L_NOITEM3:
- mes "[Arjen]";
- mes "Sorry, but you don't have the correct items.";
- next;
-
-M_REQ3:
  mes "[Arjen]";
  mes "Well, I need...";
  mes "1 Romantic Flower, for the element of love,";
@@ -129,7 +123,7 @@ M_REQ3:
  next;
  menu "Yes.",-,"No.",M_EXIT;
  
- if ((countitem(2269) < 1) || (countitem(999) < 10) || (Zeny < 20000)) GOTO L_NOITEM3;//Items: Romantic Flower, Steel,
+ if(countitem(2269) < 1 || countitem(999) < 10 || Zeny < 20000) GOTO L_NOITEM3;//Items: Romantic Flower, Steel,
  delitem 2269,1;//Items: Romantic Flower,
  delitem 999,10;//Items: Steel,
  set Zeny,Zeny-20000;
@@ -140,6 +134,11 @@ M_REQ3:
  mes "[Arjen]";
  mes "Enjoy!";
  close;
+
+L_NOITEM3:
+ mes "[Arjen]";
+ mes "Sorry, but you don't have the correct items.";
+ next;
 
 M_EXIT:
  mes "[Arjen]";

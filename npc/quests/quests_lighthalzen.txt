@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= Persian, Vicious_Pucca, Completed by aoa00
 //===== Current Version: ===================================== 
-//= 1.0a
+//= 1.1
 //===== Compatible With: ===================================== 
 //= eAthena SVN
 //===== Description: ========================================= 
@@ -69,7 +69,7 @@ MakeMob:
 	mapannounce "lighthalzen.gat","Maintenance Organization of the Public Order: Currently the security of the city has been compromized, We ask the citizens to be more careful. I repeat. We ask the citizens to be more careful.", 1;
 	
 	for( set $@i, 0; $@i < $@mob; set $@i, $@i + 1 ) {
-	monster "lighthalzen.gat",0,0,"Mobster",1313,1,"Mobs::MobKilled";
+		monster "lighthalzen.gat",0,0,"Mobster",1313,1,"Mobs::MobKilled";
 	}
 
 	set $@lhz_alert, 1;	
@@ -78,7 +78,7 @@ MakeMob:
 	end;
 	
 ClearMob:
-	if ($@lhz_alert == 0) goto ChkEnd;
+	if($@lhz_alert == 0) goto ChkEnd;
 	set $@mobcount, 0;
 	mapannounce "lighthalzen.gat","Maintenance organization of the Public Order: We were able to get rid of all the trouble makers in the city. You may relax now.", 1;	
 	killmonster "lighthalzen.gat","Mobs::MobKilled";
@@ -100,118 +100,114 @@ ChkEnd:
 
 lighthalzen.gat,267,200,3	script	Security Guard	868,{
 
-if (countitem(7350)==1) goto Lhzpass1;
-if ($@lhz_alert == 1) goto Lhzstop;
-if ((gettime(2)>00 && gettime(2)<10)) goto LhzTalk2;
-if ((gettime(2)>30 && gettime(2)<40)) goto LhzTalk2;
-set @LhzTalk,rand(1,10);
-if (@LhzTalk  < 2 ) goto LhzTalk1;
-
+	if(countitem(7350)>=1) goto Lhzpass1;
+	if($@lhz_alert == 1) goto Lhzstop;
+	if((gettime(2)>00 && gettime(2)<10)) goto LhzTalk2;
+	if((gettime(2)>30 && gettime(2)<40)) goto LhzTalk2;
+	set @LhzTalk,rand(1,10);
+	if(@LhzTalk  < 2 ) goto LhzTalk1;
 
 LhzTalk:
-mes "[Guard]";
-mes "Hey! Where do you think you are going?";
-mes "I can not send nobody to the slum district!";
-mes "If we let suspecious people like you pass,";
-mes "there is no point in piece keeping!";
-close;
+	mes "[Guard]";
+	mes "Hey! Where do you think you are going?";
+	mes "I can not send nobody to the slum district!";
+	mes "If we let suspecious people like you pass,";
+	mes "there is no point in piece keeping!";
+	close;
 
 LhzTalk1:
-mes "-Looks like the guard is doing something else";
-mes "Now is a good time to sneak by.-";
-next;
-warp "lighthalzen.gat",297,227;
-set $@sneakguard, $@sneakguard + 1;
-close;
+	mes "-Looks like the guard is doing something else";
+	mes "Now is a good time to sneak by.-";
+	next;
+	warp "lighthalzen.gat",297,227;
+	set $@sneakguard, $@sneakguard + 1;
+	close;
 
 LhzTalk2:
-set @LhzTalk,rand(1,10);
-if (@LhzTalk  < 2 ) goto LhzTalk;
-mes "[Guard]";
-mes "zzZ... zzZ... zzZ...";
-mes "hmm. hmm... zzZ...";
-next;
-mes "-Looks like the guard is sleeping";
-mes "Now is a good time to sneak by.-";
-next;
-warp "lighthalzen.gat",297,227;
-close;
+	set @LhzTalk,rand(1,10);
+	if(@LhzTalk  < 2 ) goto LhzTalk;
+	mes "[Guard]";
+	mes "zzZ... zzZ... zzZ...";
+	mes "hmm. hmm... zzZ...";
+	next;
+	mes "-Looks like the guard is sleeping";
+	mes "Now is a good time to sneak by.-";
+	next;
+	warp "lighthalzen.gat",297,227;
+	close;
 
 Lhzpass1:
-mes "[Guard]";
-mes "Who are you! ...Hmm? You have a pass?";
-mes "I'm sorry. You look like an adventurer,";
-mes "but I guess you got the authority.";
-mes "You may pass.";
-next; 
-warp "lighthalzen.gat",297,227;
-close;
+	mes "[Guard]";
+	mes "Who are you! ...Hmm? You have a pass?";
+	mes "I'm sorry. You look like an adventurer,";
+	mes "but I guess you got the authority.";
+	mes "You may pass.";
+	next; 
+	warp "lighthalzen.gat",297,227;
+	close;
 
 Lhzstop:
-mes "[Guard]";
-mes "Recently, there were too many people sneaking pass us,";
-mes "so we raised the security level.";
-mes "Who sneak past us anyway?";
-mes "It's troublesome...";
-close;
-	
+	mes "[Guard]";
+	mes "Recently, there were too many people sneaking pass us,";
+	mes "so we raised the security level.";
+	mes "Who sneak past us anyway?";
+	mes "It's troublesome...";
+	close;
 }
 
 lighthalzen.gat,294,223,7	script	Security Guard	868,{
 
-if (countitem(7350)==1) goto Lhzpass1;
-if ($@lhz_alert == 1) goto Lhzstop;
-if ((gettime(2)>00 && gettime(2)<10)) goto LhzTalk2;
-if ((gettime(2)>30 && gettime(2)<40)) goto LhzTalk2;
-set @LhzTalk,rand(1,10);
-if (@LhzTalk  < 2 ) goto LhzTalk1;
-
+	if(countitem(7350)==1) goto Lhzpass1;
+	if($@lhz_alert == 1) goto Lhzstop;
+	if((gettime(2)>00 && gettime(2)<10)) goto LhzTalk2;
+	if((gettime(2)>30 && gettime(2)<40)) goto LhzTalk2;
+	set @LhzTalk,rand(1,10);
+	if(@LhzTalk  < 2 ) goto LhzTalk1;
 
 LhzTalk:
-mes "[Guard]";
-mes "Hey! Where do you think you are going?";
-mes "I can not send nobody to the slum district!";
-mes "If we let suspecious people like you pass,";
-mes "there is no point in piece keeping!";
-close;
+	mes "[Guard]";
+	mes "Hey! Where do you think you are going?";
+	mes "I can not send nobody to the slum district!";
+	mes "If we let suspecious people like you pass,";
+	mes "there is no point in piece keeping!";
+	close;
 
 LhzTalk1:
-mes "-Looks like the guard is doing something else";
-mes "Now is a good time to sneak by.-";
-next;
-warp "lighthalzen.gat",264,200;
-set $@sneakguard, $@sneakguard + 1;
-close;
+	mes "-Looks like the guard is doing something else";
+	mes "Now is a good time to sneak by.-";
+	next;
+	warp "lighthalzen.gat",264,200;
+	set $@sneakguard, $@sneakguard + 1;
+	close;
 
 LhzTalk2:
-set @LhzTalk,rand(1,10);
-if (@LhzTalk  < 2 ) goto LhzTalk;
-mes "[Guard]";
-mes "zzZ... zzZ... zzZ...";
-mes "hmm. hmm... zzZ...";
-next;
-mes "-Looks like the guard is sleeping";
-mes "Now is a good time to sneak by.-";
-next;
-warp "lighthalzen.gat",264,200;
-close;
+	set @LhzTalk,rand(1,10);
+	if(@LhzTalk  < 2 ) goto LhzTalk;
+	mes "[Guard]";
+	mes "zzZ... zzZ... zzZ...";
+	mes "hmm. hmm... zzZ...";
+	next;
+	mes "-Looks like the guard is sleeping";
+	mes "Now is a good time to sneak by.-";
+	next;
+	warp "lighthalzen.gat",264,200;
+	close;
 
 Lhzpass1:
-mes "[Guard]";
-mes "Who are you! ...Hmm? You have a pass?";
-mes "I'm sorry. You look like an adventurer,";
-mes "but I guess you got the authority.";
-mes "You may pass.";
-next; 
-warp "lighthalzen.gat",264,200;
-close;
+	mes "[Guard]";
+	mes "Who are you! ...Hmm? You have a pass?";
+	mes "I'm sorry. You look like an adventurer,";
+	mes "but I guess you got the authority.";
+	mes "You may pass.";
+	next; 
+	warp "lighthalzen.gat",264,200;
+	close;
 
 Lhzstop:
-mes "[Guard]";
-mes "Recently, there were too many people sneaking pass us,";
-mes "so we raised the security level.";
-mes "Who sneak past us anyway?";
-mes "It's troublesome...";
-close;
-
+	mes "[Guard]";
+	mes "Recently, there were too many people sneaking pass us,";
+	mes "so we raised the security level.";
+	mes "Who sneak past us anyway?";
+	mes "It's troublesome...";
+	close;
 }

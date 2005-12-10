@@ -13,6 +13,8 @@
 //= Fixed MAJOR exploit. - players could buy for free
 //= Low prices likely to rise, High prices likely to drop
 //= Small fix by Galeon
+//= Lupus: This script lets players make 40,000,000z a day
+//= 	so use it on your own risk
 //============================================================
 
 prontera.gat,140,181,5	script	sharenames	-1,{

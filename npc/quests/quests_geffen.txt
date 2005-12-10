@@ -50,7 +50,7 @@ geffen_in.gat,144,166,4	script	Blacksmith	63,{
 		menu "Hm.. Not bad. Alright.",-, "No thanks.  I'd have no use for it.",sM_No;
 
 			mes "[Blacksmith]";
-			if((countitem(999) < 50) || (Zeny < 2000)) goto sL_NotEnuf;
+			if(countitem(999) < 50 || Zeny < 2000) goto sL_NotEnuf;
 			delitem 999,50;
 			set Zeny, Zeny - 2000;
 			mes "Great! I'll make one right away.......";
@@ -150,7 +150,7 @@ geffen_in.gat,30,71,4	script	Eric	83,{
 
 	M_Make:
 		mes "[Eric]";
-		if(countitem(999) < 40) || (countitem(984) < 1) || (countitem(970)<1) || (countitem(1003) < 1) goto L_NotEnuf;
+		if(countitem(999) < 40 || countitem(984) < 1 || countitem(970)<1 || countitem(1003) < 1) goto L_NotEnuf;
 		delitem 999,40;
 		delitem 984,1;
 		delitem 970,1;

@@ -526,11 +526,11 @@ s_Name:
 	if(arianstest == 1)
 {
 	if(countitem(914) < 100)goto s_Bringfluff;
+	delitem 914,100;
 	mes "[Arian]";
 	mes "What the hell took you so";
 	mes "long? Now bring me ^FF000050 Poison Spores^000000";
 	mes "or I'll kick your ass.";
-	delitem 914,100;
 	set arianstest,2;
 	close2;
 	goto Verifyitems;
@@ -547,13 +547,13 @@ s_Bringfluff:
 	else if(arianstest == 2)
 {
 	if(countitem(7033) < 50)goto s_Bringspore;
+	delitem 7033,50;
 	mes "[Arian]";
 	mes "...";
 	mes "It's about time you";
 	mes "got here with those";
 	mes "Poison Spores. Now, go";
 	mes "and get ^FF000030 Scorpion Tails";
-	delitem 7033,50;
 	set arianstest,3;
 	close2;
 	goto Verifyitems;
@@ -570,13 +570,13 @@ s_Bringspore:
 	else if(arianstest == 3)
 {
 	if(countitem(904) < 30)goto s_Bringtails;
+	delitem 904,30;
 	mes "[Arian]";
 	mes "...";
 	mes "Damn, you sure took your";
 	mes "sweet time bringing over this";
 	mes "crap. Okay, now bring";
 	mes "^FF000020 Rotten Bandages^000000.";
-	delitem 904,30;
 	set arianstest,4;
 	close2;
 	goto Verifyitems;
@@ -593,6 +593,7 @@ s_Bringtails:
 	else if(arianstest == 4)
 {
 	if(countitem(930) < 20)goto s_Bringbandages;
+	delitem 930,20;
 	mes "[Arian]";
 	mes "...";
 	mes "You brought the bandages.";
@@ -600,7 +601,6 @@ s_Bringtails:
 	mes "me ^FF000015 Little Evil Horn^000000. What";
 	mes "are you waiting for, a memo?";
 	mes "Get outta here~!";
-	delitem 930,20;
 	set arianstest,5;
 	close2;
 	goto Verifyitems;
@@ -617,6 +617,7 @@ s_Bringbandages:
 	else if(arianstest == 5)
 {
 	if(countitem(1038) < 15)goto s_Bringhorns;
+	delitem 1038,15;
 	mes "[Arian]";
 	mes "...";
 	mes "My grandma coulda grown";
@@ -624,7 +625,6 @@ s_Bringbandages:
 	mes "it took you to come back.";
 	mes "Now hurry it up and get";
 	mes "me ^FF000010 Coral Reefs^000000!";
-	delitem 1038,15;
 	set arianstest,6;
 	close2;
 	goto Verifyitems;
@@ -649,6 +649,7 @@ s_Bringhorns:
 	else if(arianstest == 6)
 {
 	if(countitem(7013) < 10)goto s_Bringcorals;
+	delitem 7013,10;
 	mes "[Arian]";
 	mes "Finally you're back";
 	mes "Gimme a sec to count";
@@ -656,7 +657,6 @@ s_Bringhorns:
 	mes "sure you're not trying to";
 	mes "cheat. God help you if you";
 	mes "try to pull a fast one on me...!";
-	delitem 7013,10;
 	set arianstest,7;
 	close;
 
@@ -728,7 +728,7 @@ Verifyitems:
 
 	if(arianstest == 2 && countitem(7033) > 49)
 {
-
+	delitem 7033,countitem(7033);
 	mes "[Arian]";
 	mes "Hey! What did I tell you";
 	mes "about bringing stuff before";
@@ -736,12 +736,11 @@ Verifyitems:
 	next;
 	mes "[Arian]";
 	mes "I'll confiscate those Poison Spores.";
-	delitem 7033,countitem(7033);
 	close2;	
 }
 	else if(arianstest == 3 && countitem(904) > 29)
 {
-
+	delitem 904,countitem(904);
 	mes "[Arian]";
 	mes "Hey! What did I tell you";
 	mes "about bringing stuff before";
@@ -749,12 +748,11 @@ Verifyitems:
 	next;
 	mes "[Arian]";
 	mes "I'll take those Scorpion Tails.";
-	delitem 904,countitem(904);
 	close2;	
 }
 	else if(arianstest == 4 && countitem(930) > 19)
 {
-
+	delitem 930,countitem(930);
 	mes "[Arian]";
 	mes "Hey! What did I tell you";
 	mes "about bringing stuff before";
@@ -762,12 +760,11 @@ Verifyitems:
 	next;
 	mes "[Arian]";
 	mes "I'll take those Rotten Bandages.";
-	delitem 930,countitem(930);
 	close2;	
 }
 	else if(arianstest == 5 && countitem(1038) > 14)
 {
-
+	delitem 1038,countitem(1038);
 	mes "[Arian]";
 	mes "Hey! What did I tell you";
 	mes "about bringing stuff before";
@@ -775,12 +772,11 @@ Verifyitems:
 	next;
 	mes "[Arian]";
 	mes "I'll confiscate those Little Evil Horns.";
-	delitem 1038,countitem(1038);
 	close2;	
 }
 	else if(arianstest == 6 && countitem(7013) > 9)
 {
-
+	delitem 7013,countitem(7013);
 	mes "[Arian]";
 	mes "Hey! What did I tell you";
 	mes "about bringing stuff before";
@@ -788,7 +784,6 @@ Verifyitems:
 	next;
 	mes "[Arian]";
 	mes "I'll confiscate those Coral Reefs.";
-	delitem 7013,countitem(7013);
 	close2;	
 }
 	end;
