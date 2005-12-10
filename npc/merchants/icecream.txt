@@ -29,25 +29,22 @@ alberta.gat,120,45,2	script	Ice Cream Maker::IceCreamer	85,{
 		mes "so you can only purchase 5 at a time!!";
 		next;
 		input @input;
+		mes "[Ice Cream Maker]";
 		if(@input<1) goto L_inpC;
 		if(@input>5) goto L_inpM;
 		if(Zeny< @input*100) goto L_NoZ;
 		getitem 536,@input;
 		set Zeny,Zeny-100*@input;
-		mes "[Ice Cream Maker]";
 		mes "Here you go  " +@input+ "  Ice Cream for you.";
 		close;
 		
 		L_inpC:
-			mes "[Ice Cream Maker]";
 			mes "Deal is canceled.";
 			close;
 		L_inpM:
-			mes "[Ice Cream Maker]";
 			mes "Sorry, but you can only buy 5 at a time.";
 			close;
 		L_NoZ:
-			mes "[Ice Cream Maker]";
 			mes "Sorry, but you need more money.";
 			close;
 	L_End:

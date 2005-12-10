@@ -660,7 +660,7 @@ function	script	orimain	{
 	menu "Make Oridecon",M_Ori, "Make Elunium",M_Elu, "Ask about enchanted stones",M_Stones;
 
 	M_Ori:
-		if ((countitem(756) < 5)) goto L_NoOri;
+		if(countitem(756) < 5) goto L_NoOri;
 		delitem 756,5;
 		getitem 984,1;
 		mes "[" + @name$ + "]";
@@ -673,7 +673,7 @@ function	script	orimain	{
 			mes "Huh? You're kidding, right? Didn't I say I can't make you an Oridecon unless you bring me 5 rough ones?";
 			close;
 	M_Elu:
-		if ((countitem(757) < 5)) goto L_NoElu;
+		if(countitem(757) < 5) goto L_NoElu;
 		delitem 757,5;
 		getitem 985,1;
 		mes "[" + @name$ + "]";

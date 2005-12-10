@@ -3,7 +3,6 @@ Person	Working On
 Lupus
 	* Looking for exploits, optimization, bugs hunt
 	* Adding new cards, checking/adding mobs/items
-	* Yuno Monsters Museum - 0%
 Mass Zero
 	* Fixing grammatical errors.
 	* Fixing small bugs.
