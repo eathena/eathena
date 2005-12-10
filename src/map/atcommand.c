@@ -485,7 +485,7 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_AdjCmdLvl,			"@adjcmdlvl",		99, atcommand_adjcmdlvl },
 	{ AtCommand_Trade,				"@trade",			60, atcommand_trade },
 	{ AtCommand_Send,				"@send",			60, atcommand_send },
-	{ AtCommand_SetBattleFlag,		"@setbattleflag",	60, atcommand_setbattleflag },
+	{ AtCommand_SetBattleFlag,		"@setbattleflag",	99, atcommand_setbattleflag },
 	{ AtCommand_UnMute,				"@unmute",			60, atcommand_unmute }, // [Valaris]
 	{ AtCommand_Clearweather,		"@clearweather",	99, atcommand_clearweather }, // Dexity
 	{ AtCommand_UpTime,				"@uptime",			 1, atcommand_uptime }, // by MC Cameri

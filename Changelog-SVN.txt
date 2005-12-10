@@ -1,6 +1,7 @@
 Date	Added
 
 2005/12/09
+	* Changed default GM level for @setbattleflag to 99. [Valaris]
 	* Implemented the SL_SUPERNOVICE bonus to wear all heagears/various weapons
 	  at high base levels. [Skotlex]
 	* Implemented SL_ROGUE bonuses: can't be dispelled, Chase Walk's str bonus
@@ -30,7 +31,7 @@ Date	Added
 2005/12/08
 	* Changed default value of start_zeny to 0 to prevent packet exploits.
 	  Also is 0z on offical servers. [Kayla]
-	* Fixed bug with objects (npcs, monsters, players, etc) not appearing when using @refresh.
+	* Fixed bug with objects (npcs, monsters, players, etc) not appearing when using @refresh. [Valaris]
 	* Updated effects for food production thx to Poki#3 [Komurka]
 	* SG_STAR_BLESS now gives 20%*skill lvl additional exp [Komurka]
 	* Modified clif_blown to use the clif_slide packet instead of clif_fixpos,
