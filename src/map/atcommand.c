@@ -76,6 +76,7 @@ ACMD_FUNC(itemcheck);
 ACMD_FUNC(baselevelup);
 ACMD_FUNC(joblevelup);
 ACMD_FUNC(help);
+ACMD_FUNC(help2);
 ACMD_FUNC(gm);
 ACMD_FUNC(pvpoff);
 ACMD_FUNC(pvpon);
@@ -333,6 +334,8 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_JobLevelUp,			"@joblvlup",		60, atcommand_joblevelup },
 	{ AtCommand_H,					"@h",				20, atcommand_help },
 	{ AtCommand_Help,				"@help",			20, atcommand_help },
+	{ AtCommand_H2,					"@h2",				20, atcommand_help2 },
+	{ AtCommand_Help2,				"@help2",			20, atcommand_help2 },
 	{ AtCommand_GM,					"@gm",				100, atcommand_gm },
 	{ AtCommand_PvPOff,				"@pvpoff",			40, atcommand_pvpoff },
 	{ AtCommand_PvPOn,				"@pvpon",			40, atcommand_pvpon },
@@ -2861,6 +2864,48 @@ int atcommand_help(
 
 	return 0;
 }
+
+/*==========================================
+ * @help2 - Char commands [Kayla]
+ *------------------------------------------
+ */
+int atcommand_help2(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+	char buf[2048], w1[2048], w2[2048];
+	int i, gm_level;
+	FILE* fp;
+	nullpo_retr(-1, sd);
+
+	memset(buf, '\0', sizeof(buf));
+
+	if ((fp = fopen(help2_txt, "r")) != NULL) {
+		clif_displaymessage(fd, msg_table[26]); /* Help commands: */
+		gm_level = pc_isGM(sd);
+		while(fgets(buf, sizeof(buf) - 1, fp) != NULL) {
+			if (buf[0] == '/' && buf[1] == '/')
+				continue;
+			for (i = 0; buf[i] != '\0'; i++) {
+				if (buf[i] == '\r' || buf[i] == '\n') {
+					buf[i] = '\0';
+					break;
+				}
+			}
+			if (sscanf(buf, "%2047[^:]:%2047[^\n]", w1, w2) < 2)
+				clif_displaymessage(fd, buf);
+			else if (gm_level >= atoi(w1))
+				clif_displaymessage(fd, w2);
+		}
+		fclose(fp);
+	} else {
+		clif_displaymessage(fd, msg_table[27]); /*  File help.txt not found. */
+		return -1;
+	}
+
+	return 0;
+}
+
 
 /*==========================================
  * @gm
