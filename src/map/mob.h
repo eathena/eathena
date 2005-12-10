@@ -9,6 +9,10 @@
 		a larger mob database. Be sure to note that IDs 4001 to 4048 are reserved for advanced/baby/expanded classes.
 	*/
 
+// These define the range of available IDs for clones. [Valaris]
+#define MOB_CLONE_START 9001
+#define MOB_CLONE_END 10000
+
 struct mob_skill {
 	short state;
 	short skill_id,skill_lv;
@@ -156,6 +160,10 @@ int mobskill_castend_id( int tid, unsigned int tick, int id,int data );
 int mobskill_castend_pos( int tid, unsigned int tick, int id,int data );
 int mob_summonslave(struct mob_data *md2,int *value,int amount,int skill_id);
 int mob_countslave(struct mob_data *md);
+
+int mob_is_clone(int class_);
+int mob_clone_spawn(struct map_session_data *sd, char *mapname, int x, int y, const char *event);
+int mob_clone_delete(int class_);
 
 void mob_reload(void);
 

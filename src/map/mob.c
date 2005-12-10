@@ -3882,6 +3882,87 @@ int mobskill_deltimer(struct mob_data *md )
 	}
 	return 0;
 }
+
+// Player cloned mobs. [Valaris]
+int mob_is_clone(int class_)
+{
+	if(class_ >= MOB_CLONE_START && class_ <= MOB_CLONE_END)
+		return 1;
+
+	return 0;
+}
+
+int mob_clone_spawn(struct map_session_data *sd, char *mapname, int x, int y, const char *event)
+{
+	nullpo_retr(0, sd);
+	int class_;
+
+	for(class_=MOB_CLONE_START; class_<MOB_CLONE_END; class_++){
+		if(mob_db_data[class_]==NULL)
+			break;
+	}
+
+	if(class_>MOB_CLONE_END)
+		return -1;
+
+	mob_db_data[class_] = (struct mob_db*)aCalloc(1, sizeof(struct mob_db)); // Initializing the clone mob.
+	mob_db_data[class_]->view_class=sd->status.class_;
+	sprintf(mob_db_data[class_]->name,sd->status.name);
+	sprintf(mob_db_data[class_]->jname,sd->status.name);
+	mob_db_data[class_]->lv=status_get_lv(&sd->bl);
+	mob_db_data[class_]->max_hp=status_get_max_hp(&sd->bl);
+	mob_db_data[class_]->max_sp=0;
+	mob_db_data[class_]->base_exp=1;
+	mob_db_data[class_]->job_exp=1;
+	mob_db_data[class_]->range=status_get_range(&sd->bl);
+	mob_db_data[class_]->atk1=status_get_atk(&sd->bl);
+	mob_db_data[class_]->atk2=status_get_atk2(&sd->bl);
+	mob_db_data[class_]->def=status_get_def(&sd->bl);
+	mob_db_data[class_]->mdef=status_get_mdef(&sd->bl);
+	mob_db_data[class_]->str=status_get_str(&sd->bl);
+	mob_db_data[class_]->agi=status_get_agi(&sd->bl);
+	mob_db_data[class_]->vit=status_get_vit(&sd->bl);
+	mob_db_data[class_]->int_=status_get_int(&sd->bl);
+	mob_db_data[class_]->dex=status_get_dex(&sd->bl);
+	mob_db_data[class_]->luk=status_get_luk(&sd->bl);
+	mob_db_data[class_]->range2=10;
+	mob_db_data[class_]->range3=10;
+	mob_db_data[class_]->race=status_get_race(&sd->bl);
+	mob_db_data[class_]->element=status_get_element(&sd->bl);
+	mob_db_data[class_]->mode=0;
+	mob_db_data[class_]->speed=status_get_speed(&sd->bl);
+	mob_db_data[class_]->adelay=status_get_adelay(&sd->bl);
+	mob_db_data[class_]->amotion=status_get_amotion(&sd->bl);
+	mob_db_data[class_]->dmotion=status_get_dmotion(&sd->bl);
+	mob_db_data[class_]->sex=sd->status.sex;
+	mob_db_data[class_]->hair=sd->status.hair;
+	mob_db_data[class_]->hair_color=sd->status.hair_color;
+	mob_db_data[class_]->weapon=sd->status.weapon;
+	mob_db_data[class_]->shield=sd->status.shield;
+	mob_db_data[class_]->head_top=sd->status.head_top;
+	mob_db_data[class_]->head_mid=sd->status.head_mid;
+	mob_db_data[class_]->head_buttom=sd->status.head_bottom;
+	mob_db_data[class_]->option=sd->status.option;
+	mob_db_data[class_]->clothes_color=sd->status.clothes_color;
+
+	mob_once_spawn(sd,mapname,x,y,"--en--",class_,1,event);
+
+	return class_;
+}
+
+int mob_clone_delete(int class_)
+{
+	int i;
+	for(i=MOB_CLONE_START; i<MOB_CLONE_END; i++){
+		if(i==class_ && mob_db_data[i]!=NULL){
+			aFree(mob_db_data[i]);
+			mob_db_data[i]=NULL;
+			break;
+		}
+	}
+	return 0;
+}
+
 //
 // ‰Šú‰»
 //
