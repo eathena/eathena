@@ -306,7 +306,7 @@
 1498,Wootan Shooter,1000000
 1499,Wootan Fighter,1000000
 1500,Parasite,1000000
-1502,Fire Poring,1000000
+//1502,Fire Poring,1000000
 1503,Gibbet,1000000
 1504,Dullahan,1000000
 1505,Loli Ruri,1000000

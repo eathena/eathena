@@ -33,7 +33,7 @@
 	5136,Luise_Santa's_Hat: need view ID, temp: normal santa hat
 
 12/10
-
+	* Removed V_poring from dead branch, it's a boss monster >.> [MasterOfMuppets]
 	* Added slot to angel's kiss [Kayla]
 	* Updated some items to allow soullinkers wear them, thanks to lunaus [MasterOfMuppets]
 	  for all the work.
