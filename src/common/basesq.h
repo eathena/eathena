@@ -32,6 +32,27 @@ protected:
 
 class CAccountDB_sql : public CMySQL, private CConfig, public CAccountDBInterface
 {
+protected:
+	///////////////////////////////////////////////////////////////////////////
+	// data
+
+	// table names
+	char login_auth_db[128];
+	char login_reg_db[128];
+	char login_log_db[128];
+	char login_status_db[128];
+
+	// options
+	bool case_sensitive;
+	bool log_login;
+
+	///////////////////////////////////////////////////////////////////////////
+	// data for alternative interface
+	CLoginAccount	cTempAccount;
+	Mutex			cMx;
+	MYSQL_RES*		cSqlRes;
+	MYSQL_ROW		cSqlRow;
+
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// construct/destruct
@@ -42,8 +63,8 @@ public:
 	// functions for db interface
 
 	//!! todo, add some functionality if needed
-	virtual size_t size()	{ return 0; }
-	virtual CLoginAccount& operator[](size_t i) { static CLoginAccount dummy; return dummy; }
+//	virtual size_t size()	{ return 0; }
+//	virtual CLoginAccount& operator[](size_t i) { static CLoginAccount dummy; return dummy; }
 
 	virtual bool existAccount(const char* userid);
 	virtual bool searchAccount(const char* userid, CLoginAccount&account);
@@ -52,18 +73,20 @@ public:
 	virtual bool removeAccount(uint32 accid);
 	virtual bool saveAccount(const CLoginAccount& account);
 
+
 	///////////////////////////////////////////////////////////////////////////
 	// alternative interface
-	CLoginAccount	cTempAccount;
-	Mutex			cMx;
-	MYSQL_RES*		cSqlRes;
-	MYSQL_ROW		cSqlRow;
 
+	///////////////////////////////////////////////////////////////////////////
+	// get exclusive access on the database
 	virtual bool aquire()
 	{
 		release();	// just in case
+		cMx.lock();
 		return this->first();
 	}
+	///////////////////////////////////////////////////////////////////////////
+	// return exclusive access
 	virtual bool release()
 	{
 		if(cSqlRes)
@@ -71,12 +94,21 @@ public:
 			mysql_free_result(cSqlRes);
 			cSqlRes=NULL;
 		}
+		cMx.unlock();
 		return true;
 	}
+	///////////////////////////////////////////////////////////////////////////
+	// set database reader to first entry
 	virtual bool first()
 	{
+		ScopeLock sl(cMx);
 		char query[2048];
 		size_t sz=snprintf(query, sizeof(query), "SELECT `*` FROM `%s`", login_auth_db);
+		if(cSqlRes)
+		{
+			mysql_free_result(cSqlRes);
+			cSqlRes=NULL;
+		}
 		if( this->mysql_SendQuery(cSqlRes, query, sz) )
 		{
 			if( mysql_num_rows(cSqlRes) > 0 )
@@ -86,9 +118,14 @@ public:
 		}
 		return false;
 	}
-	virtual operator bool()		{ return (NULL!=cSqlRow); }
-	virtual bool operator ++(int)
+	///////////////////////////////////////////////////////////////////////////
+	// check if current data position is valid
+	virtual operator bool()		{ ScopeLock sl(cMx); return (NULL!=cSqlRow); }
+	///////////////////////////////////////////////////////////////////////////
+	// go to the next data position
+	virtual bool operator++(int)
 	{
+		ScopeLock sl(cMx);
 		cSqlRow = mysql_fetch_row(cSqlRes);	//row fetching
 		if(cSqlRow)
 		{
@@ -115,36 +152,32 @@ public:
 		}
 		return (cSqlRow!=NULL);
 	}
+	///////////////////////////////////////////////////////////////////////////
+	// store the current data
 	virtual bool save()
 	{
+		ScopeLock sl(cMx);
 		return saveAccount(cTempAccount);
 	}
+	///////////////////////////////////////////////////////////////////////////
+	// search data (limited functionality)
 	virtual bool find(const char* userid)
 	{
+		ScopeLock sl(cMx);
 		return searchAccount(userid, cTempAccount);
 	}
 	virtual bool find(uint32 accid)
 	{
+		ScopeLock sl(cMx);
 		return searchAccount(accid, cTempAccount);
 	}
+	///////////////////////////////////////////////////////////////////////////
+	// access currently selected data
 	virtual CLoginAccount& operator()()
 	{
+		ScopeLock sl(cMx);
 		return cTempAccount;
 	}
-
-protected:
-	///////////////////////////////////////////////////////////////////////////
-	// data
-
-	// table names
-	char login_auth_db[128];
-	char login_reg_db[128];
-	char login_log_db[128];
-	char login_status_db[128];
-
-	// options
-	bool case_sensitive;
-	bool log_login;
 
 	///////////////////////////////////////////////////////////////////////////
 	// functions internal access

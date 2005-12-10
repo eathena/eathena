@@ -2682,6 +2682,7 @@ void npc_parsesinglefile(const char *filename, struct npc_mark*& npcmarkerbase)
 				else
 				line[j++]=line[i];
 			}
+			line[j]=0;
 			// 最初はタブ区切りでチェックしてみて、ダメならスペース区切りで確認
 			if ((count = sscanf(line,"%[^\t]\t%[^\t]\t%[^\t\r\n]\t%n%[^\t\r\n]", w1, w2, w3, &w4pos, w4)) < 3 &&
 					(count = sscanf(line,"%s%s%s%n%s", w1, w2, w3, &w4pos, w4)) < 3)
@@ -2933,6 +2934,10 @@ int npc_reload (void)
 	
 	npc_parsesrcfiles( );
 
+	//Execute the OnInit event for freshly loaded npcs. [Skotlex]
+	ShowStatus("Event '"CL_WHITE"OnInit"CL_RESET"' executed with '"
+	CL_WHITE"%d"CL_RESET"' NPCs.\n",npc_event_doall("OnInit"));
+
 	return 0;
 				}
 
@@ -2951,6 +2956,28 @@ int npc_remove_map (struct npc_data *nd)
 
     return 0;
 }
+
+
+class CDBNPCunloadevents : public CDBProcessor
+{
+	const char *npcname;
+public:
+	CDBNPCunloadevents(const char *n) 
+		: npcname(n)	{}
+	virtual ~CDBNPCunloadevents()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		struct event_data *ev=(struct event_data *)data;
+		if(ev && strcmp(ev->nd->exname,npcname)==0)
+		{
+			strdb_erase(ev_db, key);
+			aFree(ev);
+			if (strstr((const char *)key,"::") != NULL)
+				aFree(key);
+		}
+		return true;
+	}
+};
 
 int npc_unload(struct npc_data *nd, bool erase_strdb)//erase_strdb is default true 
 {
@@ -2984,6 +3011,9 @@ int npc_unload(struct npc_data *nd, bool erase_strdb)//erase_strdb is default tr
 			}
 			nd->u.scr.ref=NULL;
 		}
+		//Clean up all events related.
+		strdb_foreach(ev_db, CDBNPCunloadevents(nd->exname) );
+
 		// quite inconsistent, but:
 		// script npc's have 'exname' in the db
 		if(erase_strdb)

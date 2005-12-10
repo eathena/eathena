@@ -2393,7 +2393,7 @@ int set_var(const char *name, void *v)
 		}
 		else
 		{
-			ShowError("script: set_var: illegal scope string variable !");
+			ShowError("script: set_var: illegal scope string variable '%s'!", name);
 		}
 	}
     return 0;
@@ -2418,7 +2418,7 @@ int set_var(struct map_session_data &sd, const char *name, void *v)
 		}
 		else
 		{
-			ShowError("script: set_var: illegal scope string variable !");
+			ShowError("script: set_var: illegal scope string variable '%s'!", name);
 		}
 	}
     return 0;
@@ -2449,7 +2449,7 @@ int set_reg(CScriptEngine &st,int num,const char *name, void *v)
 			}
 			else
 			{
-				ShowError("script: set_reg: illegal scope string variable !");
+				ShowError("script: set_reg: illegal scope string variable '%s'!", name);
 			}
 		}
 		else 
@@ -2797,7 +2797,7 @@ void CScriptEngine::pop_stack(size_t start, size_t end)
 		size_t i, k;
 		if(end>stack_ptr)
 			end = stack_ptr;
-		// move the values behine 'end' to 'start'
+		// move the values behind 'end' to 'start'
 		for(i=start,k=end; k<stack_ptr; i++,k++)
 			stack_data[i] << stack_data[k];
 		// reduce the stack pointer
@@ -2903,7 +2903,7 @@ void CScriptEngine::op_2int(int op)
 		if(i2!=0)
 			i1%=i2;
 		else
-			i1 = 0;	// not mathematical correct
+			i1 = 0;	// not mathematical correct op
 		break;
 	case C_AND:
 		i1&=i2;
@@ -3313,11 +3313,11 @@ int CScriptEngine::run(const char *rootscript, size_t pos, uint32 rid, uint32 oi
 					CScriptEngine::run(engine.script, engine.pos, engine.rid, engine.oid);
 				}
 
-				// and stop this script here
+				// and end this script here
 				engine.state=END;
 			}
 			else if( STOP==engine.state || RERUNLINE==engine.state )
-			{	// script has stoped to wait for a player responce
+			{	// script has stoped to wait for a player response
 				if(!sd)
 				{
 					ShowWarning("Server Script not finished with state 'End'. Terminating.\n");
@@ -3411,7 +3411,6 @@ int buildin_next(CScriptEngine &st)
 		st.Stop();
 		clif_scriptnext(*st.sd, st.send_defaultnpc());
 	}
-	
 	return 0;
 }
 
@@ -3441,7 +3440,7 @@ int buildin_close(CScriptEngine &st)
 ///////////////////////////////////////////////////////////////////////////////
 // display close button which closes the window on the client
 // continue the script when button is pressed
-// skip command if no message window exists
+// skip the command if no message window exists
 int buildin_close2(CScriptEngine &st)
 {
 	if(st.sd && st.isMessage() )
@@ -3688,7 +3687,7 @@ int buildin_callsub(CScriptEngine &st)
 	for(i=st.start+3,j=0;i<st.end;i++,j++)
 		st.push_copy(i);
 
-	st.push_val(CScriptEngine::C_INT,j);					// 引数の数をプッシュ
+	st.push_val(CScriptEngine::C_INT,j);				// 引数の数をプッシュ
 	st.push_val(CScriptEngine::C_INT,st.defsp);			// 現在の基準スタックポインタをプッシュ
 	st.push_str(CScriptEngine::C_CONSTSTR,st.script);	// 現在のスクリプトをプッシュ
 	st.push_val(CScriptEngine::C_RETINFO,st.pos);		// 現在のスクリプト位置をプッシュ
@@ -3750,9 +3749,9 @@ int buildin_return(CScriptEngine &st)
  */
 int buildin_attachrid(CScriptEngine &st)
 {
+	int val = 0;
 	uint32 rid = st.GetInt(st[2]);
 	map_session_data *sd = map_id2sd(rid);
-	int val = 0;
 	if(sd)
 	{	// need to swap the environment if not in the targeted context already
 		if(st.sd != sd)
@@ -3846,20 +3845,25 @@ int buildin_rand(CScriptEngine &st)
 	int range;
 	int min = 0;
 	if( st.Arguments() > 3 )
-	{
+	{	// numbers from #1...#2 (sign independend, including the limits)
 		int max;
 		min = st.GetInt(st[2]);
 		max = st.GetInt(st[3]);
 		if(min>max)	swap(max, min);
-		range = max - min + 1;
-		if (range == 0) range = 1;
+		range = max - min;
 	}
 	else
-	{
+	{	// zero based numbers
 		range = st.GetInt(st[2]);
-		if (range == 0) range = 1;
+		if(range<0)
+		{	// numbers from -#...0
+			min = range;
+			range = -range;
+		}
+		// else	numbers from 0...#
 	}
-	min += rand()%range;
+	if(range>0)	// include the limits
+		min += rand()%(range+1);
 	st.push_val(CScriptEngine::C_INT,min);
 	return 0;
 }
@@ -3870,26 +3874,28 @@ int buildin_rand(CScriptEngine &st)
 int buildin_set(CScriptEngine &st)
 {
 	int num=st[2].num;
-	char *name=str_buf+str_data[num&0x00ffffff].str;
-	char postfix=name[strlen(name)-1];
+	if( (num&0x00ffffff) < str_num )
+	{
+		char *name=str_buf+str_data[num&0x00ffffff].str;
+		char postfix=name[strlen(name)-1];
 
-	if( st[2].type!=CScriptEngine::C_NAME )
-	{
-		ShowMessage("script: buildin_set: not name\n");
+		if( st[2].type!=CScriptEngine::C_NAME )
+		{
+			ShowMessage("script: buildin_set: not name\n");
+		}
+		else if( postfix=='$' )
+		{
+			// 文字列
+			const char *str = st.GetString((st[3]));
+			set_reg(st,num,name,(void*)str);
+		}
+		else
+		{
+			// 数値
+			int val = st.GetInt(st[3]);
+			set_reg(st,num,name,(void*)((size_t)val));
+		}
 	}
-	else if( postfix=='$' )
-	{
-		// 文字列
-		const char *str = st.GetString((st[3]));
-		set_reg(st,num,name,(void*)str);
-	}
-	else
-	{
-		// 数値
-		int val = st.GetInt(st[3]);
-		set_reg(st,num,name,(void*)((size_t)val));
-	}
-
 	return 0;
 }
 /*==========================================
@@ -3899,24 +3905,27 @@ int buildin_set(CScriptEngine &st)
 int buildin_setarray(CScriptEngine &st)
 {
 	int num=st[2].num;
-	char *name=str_buf+str_data[num&0x00ffffff].str;
-	char prefix=*name;
-	char postfix=name[strlen(name)-1];
-	size_t i,j;
+	if( (num&0x00ffffff) < str_num )
+	{
+		char *name=str_buf+str_data[num&0x00ffffff].str;
+		char prefix=*name;
+		char postfix=name[strlen(name)-1];
+		size_t i,j;
 
-	if( prefix!='$' && prefix!='@' )
-	{
-		ShowMessage("buildin_setarray: illegal scope !\n");
-	}
-	else
-	{
-		for(j=0,i=st.start+3; i<st.end && j<128;i++,j++){
-			void *v;
-			if( postfix=='$' )
-				v=(void*)st.GetString(st.stack_data[i]);
-			else
-				v=(void*)((size_t)st.GetInt(st.stack_data[i]));
-			set_reg(st, num+(j<<24), name, v);
+		if( prefix!='$' && prefix!='@' )
+		{
+			ShowMessage("buildin_setarray: illegal scope !\n");
+		}
+		else
+		{
+			for(j=0,i=st.start+3; i<st.end && j<128;i++,j++){
+				void *v;
+				if( postfix=='$' )
+					v=(void*)st.GetString(st.stack_data[i]);
+				else
+					v=(void*)((size_t)st.GetInt(st.stack_data[i]));
+				set_reg(st, num+(j<<24), name, v);
+			}
 		}
 	}
 	return 0;
@@ -3928,26 +3937,29 @@ int buildin_setarray(CScriptEngine &st)
 int buildin_cleararray(CScriptEngine &st)
 {
 	int num=st[2].num;
-	char *name=str_buf+str_data[num&0x00ffffff].str;
-	char prefix=*name;
-	char postfix=name[strlen(name)-1];
-	int sz=st.GetInt(st[4]);
-	int i;
-	void *v;
+	if( (num&0x00ffffff) < str_num )
+	{
+		char *name=str_buf+str_data[num&0x00ffffff].str;
+		char prefix=*name;
+		char postfix=name[strlen(name)-1];
+		int sz=st.GetInt(st[4]);
+		int i;
+		void *v;
 
-	if( prefix!='$' && prefix!='@' )
-	{
-		ShowMessage("buildin_cleararray: illegal scope !\n");
-	}
-	else
-	{
-		if( postfix=='$' )
-			v=(void*)st.GetString((st[3]));
+		if( prefix!='$' && prefix!='@' )
+		{
+			ShowMessage("buildin_cleararray: illegal scope !\n");
+		}
 		else
-			v=(void*)((size_t)st.GetInt(st[3]));
+		{
+			if( postfix=='$' )
+				v=(void*)st.GetString((st[3]));
+			else
+				v=(void*)((size_t)st.GetInt(st[3]));
 
-		for(i=0;i<sz;i++)
-			set_reg(st,num+(i<<24),name,v);
+			for(i=0;i<sz;i++)
+				set_reg(st,num+(i<<24),name,v);
+		}
 	}
 	return 0;
 }
@@ -3958,28 +3970,31 @@ int buildin_cleararray(CScriptEngine &st)
 int buildin_copyarray(CScriptEngine &st)
 {
 	int num=st[2].num;
-	char *name=str_buf+str_data[num&0x00ffffff].str;
-	char prefix=*name;
-	char postfix=name[strlen(name)-1];
 	int num2=st[3].num;
-	char *name2=str_buf+str_data[num2&0x00ffffff].str;
-	char prefix2=*name2;
-	char postfix2=name2[strlen(name2)-1];
-	int sz=st.GetInt(st[4]);
-	int i;
+	if( (num&0x00ffffff) < str_num && (num2&0x00ffffff) < str_num )
+	{
+		char *name=str_buf+str_data[num&0x00ffffff].str;
+		char prefix=*name;
+		char postfix=name[strlen(name)-1];
+		char *name2=str_buf+str_data[num2&0x00ffffff].str;
+		char prefix2=*name2;
+		char postfix2=name2[strlen(name2)-1];
+		int sz=st.GetInt(st[4]);
+		int i;
 
-	if( prefix!='$' && prefix!='@' && prefix2!='$' && prefix2!='@' )
-	{
-		ShowMessage("buildin_copyarray: illegal scope !\n");
-	}
-	else if( (postfix=='$' || postfix2=='$') && postfix!=postfix2 )
-	{
-		ShowMessage("buildin_copyarray: type mismatch !\n");
-	}
-	else
-	{
-		for(i=0;i<sz;i++)
-			set_reg(st,num+(i<<24),name, get_val2(st,num2+(i<<24)) );
+		if( prefix!='$' && prefix!='@' && prefix2!='$' && prefix2!='@' )
+		{
+			ShowMessage("buildin_copyarray: illegal scope !\n");
+		}
+		else if( (postfix=='$' || postfix2=='$') && postfix!=postfix2 )
+		{
+			ShowMessage("buildin_copyarray: type mismatch !\n");
+		}
+		else
+		{
+			for(i=0;i<sz;i++)
+				set_reg(st,num+(i<<24),name, get_val2(st,num2+(i<<24)) );
+		}
 	}
 	return 0;
 }
@@ -4000,17 +4015,20 @@ int getarraysize(CScriptEngine &st,int num,int postfix)
 int buildin_getarraysize(CScriptEngine &st)
 {
 	int num=st[2].num;
-	char *name=str_buf+str_data[num&0x00ffffff].str;
-	char prefix=*name;
-	char postfix=name[strlen(name)-1];
+	if( (num&0x00ffffff) < str_num )
+	{
+		char *name=str_buf+str_data[num&0x00ffffff].str;
+		char prefix=*name;
+		char postfix=name[strlen(name)-1];
 
-	if( prefix!='$' && prefix!='@' )
-	{
-		ShowMessage("buildin_copyarray: illegal scope !\n");
-	}
-	else
-	{
-		st.push_val(CScriptEngine::C_INT,getarraysize(st,num,postfix) );
+		if( prefix!='$' && prefix!='@' )
+		{
+			ShowMessage("buildin_copyarray: illegal scope !\n");
+		}
+		else
+		{
+			st.push_val(CScriptEngine::C_INT,getarraysize(st,num,postfix) );
+		}
 	}
 	return 0;
 }
@@ -4021,28 +4039,31 @@ int buildin_getarraysize(CScriptEngine &st)
 int buildin_deletearray(CScriptEngine &st)
 {
 	int num=st[2].num;
-	char *name=str_buf+str_data[num&0x00ffffff].str;
-	char prefix=*name;
-	char postfix=name[strlen(name)-1];
-	int count=1;
-	int i,sz=getarraysize(st,num,postfix)-(num>>24)-count+1;
-
-
-	if( st.Arguments() > 3 )
-		count=st.GetInt(st[3]);
-
-	if( prefix!='$' && prefix!='@' )
+	if( (num&0x00ffffff) < str_num )
 	{
-		ShowMessage("buildin_deletearray: illegal scope !\n");
-	}
-	else
-	{
-		for(i=0;i<sz;i++){
-			set_reg(st,num+(i<<24),name, get_val2(st,num+((i+count)<<24) ) );
+		char *name=str_buf+str_data[num&0x00ffffff].str;
+		char prefix=*name;
+		char postfix=name[strlen(name)-1];
+		int count=1;
+		int i,sz=getarraysize(st,num,postfix)-(num>>24)-count+1;
+
+
+		if( st.Arguments() > 3 )
+			count=st.GetInt(st[3]);
+
+		if( prefix!='$' && prefix!='@' )
+		{
+			ShowMessage("buildin_deletearray: illegal scope !\n");
 		}
-		for(;i<(128-(num>>24));i++){
-			if( postfix!='$' ) set_reg(st,num+(i<<24),name, 0);
-			if( postfix=='$' ) set_reg(st,num+(i<<24),name, (void *) "");
+		else
+		{
+			for(i=0;i<sz;i++){
+				set_reg(st,num+(i<<24),name, get_val2(st,num+((i+count)<<24) ) );
+			}
+			for(;i<(128-(num>>24));i++){
+				if( postfix!='$' ) set_reg(st,num+(i<<24),name, 0);
+				if( postfix=='$' ) set_reg(st,num+(i<<24),name, (void *) "");
+			}
 		}
 	}
 	return 0;
@@ -4528,11 +4549,10 @@ int buildin_getitem2(CScriptEngine &st)
  */
 int buildin_getnameditem(CScriptEngine &st)
 {
-	int nameid;
+	int nameid, type;
 	struct item item_tmp;
 	struct map_session_data *tsd;
 	CScriptEngine::CValue &data = st[2];
-
 
 	if(st.sd == NULL)
 	{	//Player not attached!
@@ -4550,8 +4570,14 @@ int buildin_getnameditem(CScriptEngine &st)
 			return 0;
 		}
 		nameid = item_data->nameid;
-	}else
+		type   = item_data->type;
+	}
+	else
+	{
 		nameid = st.GetInt(data);
+		struct item_data *item_data = itemdb_exists(nameid);
+		type   = (item_data) ? item_data->type : 0;
+	}
 
 	if(!itemdb_exists(nameid) || !itemdb_isEquipment(nameid))
 	{	//We don't allow non-equipable/stackable items to be named
@@ -4577,7 +4603,8 @@ int buildin_getnameditem(CScriptEngine &st)
 	item_tmp.nameid=nameid;
 	item_tmp.amount=1;
 	item_tmp.identify=1;
-	item_tmp.card[0]=255;
+	item_tmp.card[0]=(type==4) ? 0xff : 0xfe;
+	item_tmp.card[1]=0;
 	item_tmp.card[2]=tsd->status.char_id;
 	item_tmp.card[3]=tsd->status.char_id >> 16;
 	if(pc_additem(*st.sd,item_tmp,1)) {
@@ -4974,7 +5001,7 @@ int buildin_getequipid(CScriptEngine &st)
 	if(sd)
 	{
 		num = st.GetInt( (st[2])) - 1;
-		if(num<10)
+		if(num<(sizeof(equip)/sizeof(equip[0])))
 		{
 			itempos=pc_checkequip(*sd,equip[num]);
 			if(itempos < MAX_INVENTORY)
@@ -5001,7 +5028,7 @@ int buildin_getequipname(CScriptEngine &st)
 	if(sd)
 	{
 		num = st.GetInt(st[2]) - 1;
-		if(num<10)
+		if(num<(sizeof(equip)/sizeof(equip[0])))
 		{
 			itempos=pc_checkequip(*sd,equip[num]);
 			if(itempos < MAX_INVENTORY && (item=sd->inventory_data[itempos])!=NULL)
@@ -5092,7 +5119,7 @@ int buildin_getequipisequiped(CScriptEngine &st)
 	if(sd)
 	{
 		num=st.GetInt( (st[2])) - 1;
-		if(num<10)
+		if(num<(sizeof(equip)/sizeof(equip[0])))
 		{
 			itempos=pc_checkequip(*sd,equip[num]);
 			if(itempos < MAX_INVENTORY)
@@ -5117,7 +5144,7 @@ int buildin_getequipisenableref(CScriptEngine &st)
 	if(sd)
 	{
 		num=st.GetInt( (st[2])) - 1;
-		if(num<10)
+		if(num<(sizeof(equip)/sizeof(equip[0])))
 		{
 			itempos=pc_checkequip(*sd,equip[num]);
 			if( itempos<MAX_INVENTORY && num<7 && 
@@ -5142,7 +5169,7 @@ int buildin_getequipisidentify(CScriptEngine &st)
 	if(sd)
 	{
 		num=st.GetInt( (st[2])) - 1;
-		if(num<10)
+		if(num<(sizeof(equip)/sizeof(equip[0])))
 		{
 			itempos=pc_checkequip(*sd,equip[num]);
 			if(itempos < MAX_INVENTORY)
@@ -5166,7 +5193,7 @@ int buildin_getequiprefinerycnt(CScriptEngine &st)
 	if(sd)
 	{
 		num=st.GetInt( (st[2])) - 1;
-		if(num<10)
+		if(num<(sizeof(equip)/sizeof(equip[0])))
 		{
 			itempos=pc_checkequip(*sd,equip[num]);
 			if(itempos < MAX_INVENTORY)
@@ -5190,7 +5217,7 @@ int buildin_getequipweaponlv(CScriptEngine &st)
 	if(sd)
 	{
 		num=st.GetInt( (st[2])) - 1;
-		if(num<10)
+		if(num<(sizeof(equip)/sizeof(equip[0])))
 		{
 			itempos=pc_checkequip(*sd,equip[num]);
 			if(itempos < MAX_INVENTORY && sd->inventory_data[itempos])
@@ -5214,7 +5241,7 @@ int buildin_getequippercentrefinery(CScriptEngine &st)
 	if(sd)
 	{
 		num=st.GetInt( (st[2])) - 1;
-		if(num<10)
+		if(num<(sizeof(equip)/sizeof(equip[0])))
 		{
 			itempos=pc_checkequip(*sd,equip[num]);
 			if(itempos < MAX_INVENTORY)
@@ -5238,7 +5265,7 @@ int buildin_successrefitem(CScriptEngine &st)
 	if(sd)
 	{
 		num=st.GetInt( (st[2])) - 1;
-		if(num<10)
+		if(num<(sizeof(equip)/sizeof(equip[0])))
 		{
 			itempos=pc_checkequip(*sd,equip[num]);
 			if(itempos < MAX_INVENTORY)
@@ -5292,7 +5319,7 @@ int buildin_failedrefitem(CScriptEngine &st)
 	if(sd)
 	{
 		num=st.GetInt( (st[2])) - 1;
-		if(num<10)
+		if(num<(sizeof(equip)/sizeof(equip[0])))
 		{
 			itempos=pc_checkequip(*sd,equip[num]);
 			if(itempos < MAX_INVENTORY)
@@ -6208,8 +6235,8 @@ int buildin_announce(CScriptEngine &st)
 
 	if(flag&0x0f)
 	{
-		struct block_list *bl=(flag&0x08)? map_id2bl(st.oid) : &st.sd->bl;
-		clif_GMmessage(bl,str,len,flag);
+		struct block_list *bl=(flag&0x08) ? map_id2bl(st.oid) : &st.sd->bl;
+		clif_GMmessage(bl, str, len, flag);
 	}
 	else
 		intif_GMmessage(str,len,flag);
@@ -6242,7 +6269,8 @@ public:
 	~CBuildinMapannounce()	{}
 	virtual int process(struct block_list& bl) const
 	{
-		clif_GMmessage(&bl,str,len,flag);
+		if(bl.type==BL_PC)
+			clif_GMmessage(&bl,str,len,flag);
 		return 0;
 	}
 };
@@ -6531,8 +6559,11 @@ int buildin_sc_start(CScriptEngine &st)
 	if(bl)
 	{
 		if(bl->type == BL_PC && ((struct map_session_data *)bl)->state.potion_flag==1)
+		{
 			bl = map_id2bl(((struct map_session_data *)bl)->skilltarget);
-		status_change_start(bl,type,val1,0,0,0,tick,0);
+			tick/=2; //Thrown potions only last half.
+		}
+		if(bl) status_change_start(bl,type,val1,0,0,0,tick,0);
 	}
 	return 0;
 }
@@ -7616,31 +7647,27 @@ int buildin_requestguildinfo(CScriptEngine &st)
  */
 int buildin_getequipcardcnt(CScriptEngine &st)
 {
-	int i,num;
-	struct map_session_data *sd;
-	int c=4;
-
-	num=st.GetInt(st[2]);
-	sd=st.sd;
-	if(!sd)
+	int c=0;
+	size_t num=st.GetInt(st[2]);
+	if( st.sd && num<(sizeof(equip)/sizeof(equip[0])) )
 	{
-		st.push_val(CScriptEngine::C_INT,0);
-		return 0;
-	}
-	i=pc_checkequip(*sd,equip[num-1]);
-	if(sd->status.inventory[i].card[0] == 0x00ff){ // 製造武器はカードなし
-		st.push_val(CScriptEngine::C_INT,0);
-		return 0;
-	}
-	do{
-		if( (sd->status.inventory[i].card[c-1] > 4000 &&
-			sd->status.inventory[i].card[c-1] < 5000) ||
-			itemdb_type(sd->status.inventory[i].card[c-1]) == 6){	// [Celest]
-			st.push_val(CScriptEngine::C_INT,(c));
-			return 0;
+		size_t i=pc_checkequip(*st.sd,equip[num-1]);
+		if( i<MAX_INVENTORY && st.sd->status.inventory[i].card[0] != 0x00ff )
+		{	
+			c=4;
+			do
+			{
+				if( (st.sd->status.inventory[i].card[c-1] > 4000 &&
+					st.sd->status.inventory[i].card[c-1] < 5000) ||
+					itemdb_type(st.sd->status.inventory[i].card[c-1]) == 6)
+				{
+					break;
+				}
+				c--;
+			} while(c);
 		}
-	}while(c--);
-	st.push_val(CScriptEngine::C_INT,0);
+	}
+	st.push_val(CScriptEngine::C_INT,c);
 	return 0;
 }
 
@@ -7650,48 +7677,66 @@ int buildin_getequipcardcnt(CScriptEngine &st)
  */
 int buildin_successremovecards(CScriptEngine &st)
 {
-	int i,num,cardflag=0,flag;
-	struct map_session_data *sd;
-	struct item item_tmp;
-	int c=4;
+	size_t num=st.GetInt(st[2]);
+	if( st.sd && num < (sizeof(equip)/sizeof(equip[0])) )
+	{
+		size_t i=pc_checkequip(*st.sd,equip[num-1]);
+		if(i<MAX_INVENTORY && st.sd->status.inventory[i].card[0]!=0x00ff)
+		{
+			int cardflag=0,flag;
+			struct item item_tmp;
+			int c=4;
+			do
+			{
+				if( (st.sd->status.inventory[i].card[c-1] > 4000 &&
+					st.sd->status.inventory[i].card[c-1] < 5000) ||
+					itemdb_type(st.sd->status.inventory[i].card[c-1]) == 6)
+				{	// [Celest]
 
-	num=st.GetInt(st[2]);
-	sd=st.sd;
-	i=pc_checkequip(*sd,equip[num-1]);
-	if(sd->status.inventory[i].card[0]==0x00ff){ // 製造武器は処理しない
-		return 0;
-	}
-	do{
-		if( (sd->status.inventory[i].card[c-1] > 4000 &&
-			sd->status.inventory[i].card[c-1] < 5000) ||
-			itemdb_type(sd->status.inventory[i].card[c-1]) == 6){	// [Celest]
+					item_tmp.id=0;
+					item_tmp.nameid = st.sd->status.inventory[i].card[c-1];
+					item_tmp.equip=0;
+					item_tmp.identify=1;
+					item_tmp.refine=0;
+					item_tmp.attribute=0;
+					item_tmp.card[0]=0;
+					item_tmp.card[1]=0;
+					item_tmp.card[2]=0;
+					item_tmp.card[3]=0;
 
-			cardflag = 1;
-			item_tmp.id=0,item_tmp.nameid=sd->status.inventory[i].card[c-1];
-			item_tmp.equip=0,item_tmp.identify=1,item_tmp.refine=0;
-			item_tmp.attribute=0;
-			item_tmp.card[0]=0,item_tmp.card[1]=0,item_tmp.card[2]=0,item_tmp.card[3]=0;
+					cardflag = 1;
+					flag=pc_additem(*st.sd,item_tmp,1);
+					if(flag)
+					{	// 持てないならドロップ
+						clif_additem(*st.sd,0,0,flag);
+						map_addflooritem(item_tmp,1,st.sd->bl.m,st.sd->bl.x,st.sd->bl.y,NULL,NULL,NULL,0);
+					}
+				}
+				c--;
+			}while(c);
 
-			if((flag=pc_additem(*sd,item_tmp,1))){	// 持てないならドロップ
-				clif_additem(*sd,0,0,flag);
-				map_addflooritem(item_tmp,1,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);
+			if(cardflag == 1)
+			{	// カードを取り除いたアイテム所得
+				item_tmp.id=0;
+				item_tmp.nameid=st.sd->status.inventory[i].nameid;
+				item_tmp.equip=0;
+				item_tmp.identify=1;
+				item_tmp.refine=st.sd->status.inventory[i].refine;
+				item_tmp.attribute=st.sd->status.inventory[i].attribute;
+				item_tmp.card[0]=0;
+				item_tmp.card[1]=0;
+				item_tmp.card[2]=0;
+				item_tmp.card[3]=0;
+				pc_delitem(*st.sd,i,1,0);
+				flag=pc_additem(*st.sd,item_tmp,1);
+				if(flag)
+				{	// もてないならドロップ
+					clif_additem(*st.sd,0,0,flag);
+					map_addflooritem(item_tmp,1,st.sd->bl.m,st.sd->bl.x,st.sd->bl.y,NULL,NULL,NULL,0);
+				}
+				clif_misceffect(st.sd->bl,3);
 			}
 		}
-	}while(c--);
-
-	if(cardflag == 1){	// カードを取り除いたアイテム所得
-		flag=0;
-		item_tmp.id=0,item_tmp.nameid=sd->status.inventory[i].nameid;
-		item_tmp.equip=0,item_tmp.identify=1,item_tmp.refine=sd->status.inventory[i].refine;
-		item_tmp.attribute=sd->status.inventory[i].attribute;
-		item_tmp.card[0]=0,item_tmp.card[1]=0,item_tmp.card[2]=0,item_tmp.card[3]=0;
-		pc_delitem(*sd,i,1,0);
-		if((flag=pc_additem(*sd,item_tmp,1))){	// もてないならドロップ
-			clif_additem(*sd,0,0,flag);
-			map_addflooritem(item_tmp,1,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);
-		}
-		clif_misceffect(sd->bl,3);
-		return 0;
 	}
 	return 0;
 }
@@ -7703,59 +7748,77 @@ int buildin_successremovecards(CScriptEngine &st)
  */
 int buildin_failedremovecards(CScriptEngine &st)
 {
-	int i,num,cardflag=0,flag,typefail;
-	struct map_session_data *sd;
-	struct item item_tmp;
-	int c=4;
+	size_t num=st.GetInt(st[2]);
+	int typefail=st.GetInt(st[3]);
 
-	num=st.GetInt(st[2]);
-	typefail=st.GetInt(st[3]);
-	sd=st.sd;
-	i=pc_checkequip(*sd,equip[num-1]);
-	if(sd->status.inventory[i].card[0]==0x00ff){ // 製造武器は処理しない
-		return 0;
-	}
-	do{
-		if( (sd->status.inventory[i].card[c-1] > 4000 &&
-			sd->status.inventory[i].card[c-1] < 5000) ||
-			itemdb_type(sd->status.inventory[i].card[c-1]) == 6){	// [Celest]
-
-			cardflag = 1;
-
-			if(typefail == 2){ // 武具のみ損失なら、カードは受け取らせる
-				item_tmp.id=0,item_tmp.nameid=sd->status.inventory[i].card[c-1];
-				item_tmp.equip=0,item_tmp.identify=1,item_tmp.refine=0;
-				item_tmp.attribute=0;
-				item_tmp.card[0]=0,item_tmp.card[1]=0,item_tmp.card[2]=0,item_tmp.card[3]=0;
-				if((flag=pc_additem(*sd,item_tmp,1))){
-					clif_additem(*sd,0,0,flag);
-					map_addflooritem(item_tmp,1,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);
+	if( st.sd && num < (sizeof(equip)/sizeof(equip[0])) )
+	{
+		int cardflag=0,flag;
+		struct item item_tmp;
+		int c=4;
+		size_t i=pc_checkequip(*st.sd,equip[num-1]);
+		if(i<MAX_INVENTORY && st.sd->status.inventory[i].card[0]!=0x00ff)
+		{
+			do
+			{
+				if( (st.sd->status.inventory[i].card[c-1] > 4000 &&
+					st.sd->status.inventory[i].card[c-1] < 5000) ||
+					itemdb_type(st.sd->status.inventory[i].card[c-1]) == 6)
+				{
+					cardflag = 1;
+					if(typefail == 2)
+					{	// 武具のみ損失なら、カードは受け取らせる
+						item_tmp.id=0;
+						item_tmp.nameid=st.sd->status.inventory[i].card[c-1];
+						item_tmp.equip=0;
+						item_tmp.identify=1;
+						item_tmp.refine=0;
+						item_tmp.attribute=0;
+						item_tmp.card[0]=0;
+						item_tmp.card[1]=0;
+						item_tmp.card[2]=0;
+						item_tmp.card[3]=0;
+						flag=pc_additem(*st.sd,item_tmp,1);
+						if(flag)
+						{
+							clif_additem(*st.sd,0,0,flag);
+							map_addflooritem(item_tmp,1,st.sd->bl.m,st.sd->bl.x,st.sd->bl.y,NULL,NULL,NULL,0);
+						}
+					}
 				}
+				c--;
+			}
+			while(c);
+
+			if(cardflag == 1)
+			{
+				if(typefail == 0 || typefail == 2)
+				{	// 武具損失
+					pc_delitem(*st.sd,i,1,0);
+				}
+				else if(typefail == 1)
+				{	// カードのみ損失（武具を返す）
+					flag=0;
+					item_tmp.id=0;
+					item_tmp.nameid=st.sd->status.inventory[i].nameid;
+					item_tmp.equip=0;
+					item_tmp.identify=1;
+					item_tmp.refine=st.sd->status.inventory[i].refine;
+					item_tmp.attribute=st.sd->status.inventory[i].attribute;
+					item_tmp.card[0]=0;
+					item_tmp.card[1]=0;
+					item_tmp.card[2]=0;
+					item_tmp.card[3]=0;
+					pc_delitem(*st.sd,i,1,0);
+					if((flag=pc_additem(*st.sd,item_tmp,1)))
+					{
+						clif_additem(*st.sd,0,0,flag);
+						map_addflooritem(item_tmp,1,st.sd->bl.m,st.sd->bl.x,st.sd->bl.y,NULL,NULL,NULL,0);
+					}
+				}
+				clif_misceffect(st.sd->bl,2);
 			}
 		}
-	}while(c--);
-
-	if(cardflag == 1){
-
-		if(typefail == 0 || typefail == 2){	// 武具損失
-			pc_delitem(*sd,i,1,0);
-			clif_misceffect(sd->bl,2);
-			return 0;
-		}
-		if(typefail == 1){	// カードのみ損失（武具を返す）
-			flag=0;
-			item_tmp.id=0,item_tmp.nameid=sd->status.inventory[i].nameid;
-			item_tmp.equip=0,item_tmp.identify=1,item_tmp.refine=sd->status.inventory[i].refine;
-			item_tmp.attribute=sd->status.inventory[i].attribute;
-			item_tmp.card[0]=0,item_tmp.card[1]=0,item_tmp.card[2]=0,item_tmp.card[3]=0;
-			pc_delitem(*sd,i,1,0);
-			if((flag=pc_additem(*sd,item_tmp,1))){
-				clif_additem(*sd,0,0,flag);
-				map_addflooritem(item_tmp,1,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);
-			}
-		}
-		clif_misceffect(sd->bl,2);
-		return 0;
 	}
 	return 0;
 }
@@ -9130,57 +9193,55 @@ int buildin_isday(CScriptEngine &st)
 #if 0
 int buildin_isequipped(CScriptEngine &st)
 {
-	struct map_session_data *sd;
 	int i, j, k, id = 1;
 	int ret = -1;
-
-	sd = st.sd;
-	if(sd)
+	if(st.sd)
 	{
-	for (i=0; id!=0; i++) {
-		int flag = 0;
-	
-			if(st.end > st.start+i+2)
-				id = st.GetInt((st[i+2]));
-			else 
-				id = 0;
-
-		if (id <= 0)
-			continue;
+		for (i=0; id!=0; i++)
+		{
+			int flag = 0;
 		
-		for (j=0; j<10; j++) {
-			int index, type;
-			index = sd->equip_index[j];
-			if(index >= MAX_INVENTORY) continue;
-			if(j == 9 && sd->equip_index[8] == index) continue;
-			if(j == 5 && sd->equip_index[4] == index) continue;
-			if(j == 6 && (sd->equip_index[5] == index || sd->equip_index[4] == index)) continue;
-			type = itemdb_type(id);
+				if(st.end > st.start+i+2)
+					id = st.GetInt((st[i+2]));
+				else 
+					id = 0;
+
+			if (id <= 0)
+				continue;
 			
-			if(sd->inventory_data[index]) {
-				if (type == 4 || type == 5) {
-					if (sd->inventory_data[index]->nameid == id)
-						flag = 1;
-				} else if (type == 6) {
-					for(k=0; k<sd->inventory_data[index]->slot; k++) {
-						if (sd->status.inventory[index].card[0]!=0x00ff &&
-							sd->status.inventory[index].card[0]!=0x00fe &&
-								sd->status.inventory[index].card[0]!=0xff00 &&
-							sd->status.inventory[index].card[k] == id) {
+			for (j=0; j<10; j++) {
+				int index, type;
+				index = sd->equip_index[j];
+				if(index >= MAX_INVENTORY) continue;
+				if(j == 9 && sd->equip_index[8] == index) continue;
+				if(j == 5 && sd->equip_index[4] == index) continue;
+				if(j == 6 && (sd->equip_index[5] == index || st.sd->equip_index[4] == index)) continue;
+				type = itemdb_type(id);
+				
+				if(sd->inventory_data[index]) {
+					if (type == 4 || type == 5) {
+						if (st.sd->inventory_data[index]->nameid == id)
 							flag = 1;
-							break;
+					} else if (type == 6) {
+						for(k=0; k<sd->inventory_data[index]->slot; k++) {
+							if (st.sd->status.inventory[index].card[0]!=0x00ff &&
+								st.sd->status.inventory[index].card[0]!=0x00fe &&
+									st.sd->status.inventory[index].card[0]!=0xff00 &&
+								st.sd->status.inventory[index].card[k] == id) {
+								flag = 1;
+								break;
+							}
 						}
 					}
+					if (flag) break;
 				}
-				if (flag) break;
 			}
+			if (ret == -1)
+				ret = flag;
+			else
+				ret &= flag;
+			if (!ret) break;
 		}
-		if (ret == -1)
-			ret = flag;
-		else
-			ret &= flag;
-		if (!ret) break;
-	}
 	}
 	st.push_val(CScriptEngine::C_INT,ret);
 	return 0;
@@ -9454,7 +9515,7 @@ int buildin_unequip(CScriptEngine &st)
 {
 	int i;
 	size_t num = st.GetInt(st[2]) - 1;
-	if(st.sd && num<10)
+	if(st.sd && num<(sizeof(equip)/sizeof(equip[0])))
 	{
 		i=pc_checkequip(*st.sd, equip[num]);
 		pc_unequipitem(*st.sd,i,2);

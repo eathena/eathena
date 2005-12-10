@@ -208,20 +208,16 @@ int petskill_castend2(struct pet_data &pd, struct block_list &target, short skil
 int pet_attackskill(struct pet_data &pd, unsigned int tick, int data)
 {
 
-	struct mob_data *md;
-	
-//	pd.state.state=MS_IDLE;
-
-	md=(struct mob_data *)map_id2bl(pd.target_id);
-	if(md == NULL || pd.bl.m != md->bl.m || md->bl.prev == NULL ||
+	struct block_list *bl;
+	bl = map_id2bl(pd.target_id);
+	if(bl == NULL || pd.bl.m != bl->m || bl->prev == NULL ||
 		NULL==pd.a_skill ||
-		distance(pd.bl.x,pd.bl.y,md->bl.x,md->bl.y) > 13)
+		distance(pd.bl.x,pd.bl.y,bl->x,bl->y) > 13)
 	{
 		pet_unlocktarget(pd);
 		return 0;
 	}
-
-	petskill_use(pd, md->bl, pd.a_skill->id, pd.a_skill->lv, tick);
+	petskill_use(pd, *bl, pd.a_skill->id, pd.a_skill->lv, tick);
 	return 0;
 }
 
@@ -251,13 +247,14 @@ int petskill_use(struct pet_data &pd, struct block_list &target, short skill_id,
 	//Casting time
 	casttime=skill_castfix(&pd.bl, skill_get_cast(skill_id, skill_lv));
 		
+	pet_stop_walking(pd,1);
 	pd.attackabletime = tick;
 	pd.state.state=MS_ATTACK;
 
 	if (casttime > 0)
 	{
 		pd.attackabletime += casttime;
-		pet_stop_walking(pd,1);
+		
 		
 		dat = (struct castend_delay *)aCalloc(1, sizeof(struct castend_delay));
 		dat->src = &pd;
@@ -651,10 +648,9 @@ int pet_stop_walking(struct pet_data &pd,int type)
 
 int pet_hungry(int tid, unsigned long tick, int id, intptr data)
 {
-	struct map_session_data *sd;
-	int interval,t;
+	int interval, t;
 
-	sd=map_id2sd(id);
+	struct map_session_data *sd=map_id2sd(id);
 	if(sd==NULL)
 		return 1;
 
@@ -670,6 +666,24 @@ int pet_hungry(int tid, unsigned long tick, int id, intptr data)
 		return 1;
 
 	sd->pet.hungry--;
+	
+	// remind owner to feed the pet
+	// "*~ Original code by Kitty, adapted by flaviojs ~*"
+	if( sd->pet.hungry <= 35 && (sd->pet.hungry <= 25 || sd->pet.hungry%2) )
+	{
+		const static unsigned char petemicon_list[] = 
+		{
+			 7,	// Smoke cloud (angry) /ag
+			16,	// Wah (crying) /wah
+			43,	// Obsessed 2 (eyes popping) /e8 or /slur
+			37,	// Obsessed 1 (drooling) /e2 or /rice
+			20	// Hmm /hmm			 
+		};
+		unsigned char i = (sd->pet.hungry) ? ((sd->pet.hungry+4)/10+1) : 0;
+		clif_pet_emotion(*sd->pd, petemicon_list[i%(sizeof(petemicon_list)/sizeof(petemicon_list[0]))]);
+	}
+
+
 	t = sd->pet.intimate;
 	if(sd->pet.hungry < 0) {
 		if(sd->pd->target_id > 0)
@@ -833,10 +847,11 @@ int pet_return_egg(struct map_session_data &sd)
 		pet_remove_map(sd);
 		sd.status.pet_id = 0;
 		sd.pd = NULL;
-
 		if(sd.petDB == NULL)
 			return 1;
+
 		sd.pet.incuvate = 1;
+
 		memset(&tmp_item,0,sizeof(tmp_item));
 		tmp_item.nameid = sd.petDB->EggID;
 		tmp_item.identify = 1;
@@ -844,22 +859,27 @@ int pet_return_egg(struct map_session_data &sd)
 		tmp_item.card[1] = GetWord(sd.pet.pet_id,0);
 		tmp_item.card[2] = GetWord(sd.pet.pet_id,1);
 		tmp_item.card[3] = sd.pet.rename_flag;
-		if((flag = pc_additem(sd,tmp_item,1))) {
+		flag = pc_additem(sd,tmp_item,1);
+		if( flag )
+		{
 			clif_additem(sd,0,0,flag);
 			map_addflooritem(tmp_item,1,sd.bl.m,sd.bl.x,sd.bl.y,NULL,NULL,NULL,0);
 		}
-		if(battle_config.pet_status_support && sd.pet.intimate > 0) {
+		if(battle_config.pet_status_support && sd.pet.intimate > 0)
+		{
 			if(sd.bl.prev != NULL)
 				status_calc_pc(sd,0);
 			else
 				status_calc_pc(sd,2);
 		}
 
+		
 		intif_save_petdata(sd.status.account_id,sd.pet);
 		pc_makesavestatus(sd);
 		chrif_save(sd);
 		storage_storage_save(sd);
 
+		sd.pet.rename_flag = 0;
 		sd.petDB = NULL;
 	}
 

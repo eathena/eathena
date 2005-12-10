@@ -90,8 +90,32 @@ public:
 // キャラの競合がないかチェック
 int guild_check_conflict(uint32 guild_id, uint32 account_id, uint32 char_id)
 {
-	size_t i,k;
 
+	size_t k;
+	cGuildDB.aquireGuild();
+	while( cGuildDB.isGuildOk() )
+	{	CGuild &g = cGuildDB.getGuild();
+		if( g.guild_id != guild_id )
+		{
+			for(k=0; k<MAX_GUILD; k++)
+			{
+				if( g.member[k].account_id == account_id && 
+					g.member[k].char_id == char_id)
+				{	// 別のギルドに偽の所属データがあるので脱退
+					ShowMessage("int_guild: guild conflict! %d,%d %d!=%d\n", 
+						account_id, char_id, guild_id, g.guild_id);
+					mapif_parse_GuildLeave(-1, g.guild_id, account_id, char_id, 0, "**データ競合**");
+					
+					goto finish; // not nice but fast
+				}
+			}
+		}
+		cGuildDB.nextGuild();
+	}
+finish:
+	cGuildDB.releaseGuild();
+/*
+	size_t i,k;
 	for(i=0; i<cGuildDB.size(); i++)
 	{
 		if( cGuildDB[i].guild_id != guild_id )
@@ -109,6 +133,7 @@ int guild_check_conflict(uint32 guild_id, uint32 account_id, uint32 char_id)
 			}
 		}
 	}
+*/
 	return 0;
 }
 
@@ -386,13 +411,23 @@ int mapif_guild_castle_alldataload(int fd)
 {
 	if( session_isActive(fd) )
 	{
-		size_t i, len = 4;
-		for(i=0; i<cGuildDB.castlesize(); i++)
+		size_t /*i,*/ len = 4;
+
+		cGuildDB.aquireCastle();
+		while( cGuildDB.isCastleOk() )
+		{
+			guild_castle_tobuffer( cGuildDB.getCastle(), WFIFOP(fd,len));
+			len += sizeof(struct guild_castle);
+
+			cGuildDB.nextCastle();
+		}
+		cGuildDB.releaseCastle();
+/*		for(i=0; i<cGuildDB.castlesize(); i++)
 		{
 			guild_castle_tobuffer( cGuildDB.castle(i), WFIFOP(fd,len));
 			len += sizeof(struct guild_castle);
 		}
-		WFIFOW(fd,0) = 0x3842;
+*/		WFIFOW(fd,0) = 0x3842;
 		WFIFOW(fd,2) = len;
 		WFIFOSET(fd, len);
 	}
@@ -455,7 +490,6 @@ int mapif_parse_GuildInfo(int fd, uint32 guild_id)
 // ギルドメンバ追加要求
 int mapif_parse_GuildAddMember(int fd, int guild_id, unsigned char *buf)
 {
-	bool ok=false;
 	CGuild g;
 	if( cGuildDB.searchGuild(guild_id, g) )
 	{

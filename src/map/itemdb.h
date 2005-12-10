@@ -23,6 +23,9 @@ struct item_data
 //0 Healing, 2: Usable, 3: Misc, 4: Weapon, 5: Armor, 6: Card, 7: Pet Egg,
 //8: Pet Equipment, 10: Arrow, 11: Usable with delayed consumption (all items with script "pet" or "itemskill": Lures, Scrolls, Magnifier, Yggdrasil Leaf)
 
+	unsigned char getType()	{ return (type==7) ? 4 : type; } // pet eggs are handled as weapons by the client
+
+
 	unsigned char gm_lv_trade_override;
 
 	uint32 class_array;
@@ -49,6 +52,10 @@ struct item_data
 
 	char *use_script;	// ‰ñ•œ‚Æ‚©‚à‘S•”‚±‚Ì’†‚Å‚â‚ë‚¤‚©‚È‚Æ
 	char *equip_script;	// UŒ‚,–hŒä‚Ì‘®«İ’è‚à‚±‚Ì’†‚Å‰Â”\‚©‚È?
+
+
+
+
 };
 
 

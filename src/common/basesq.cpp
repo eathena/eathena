@@ -44,7 +44,8 @@ bool CMySQL::mysql_SendQuery(MYSQL_RES*& sql_res, const char* q, size_t sz) {
 }
 
 // Send a MySQL query to send data
-bool CMySQL::mysql_SendQuery(const char* q, size_t sz) {
+bool CMySQL::mysql_SendQuery(const char* q, size_t sz)
+{
 
 	#ifdef DEBUG_SQL
 		ShowSQL("%s\n", q);
@@ -140,7 +141,7 @@ bool CAccountDB_sql::existAccount(const char* userid)
 		MYSQL_RES* sql_res=NULL;
 
 		escape_string(uid, userid, sizeof(userid));
-		size_t sz=sprintf(query, "SELECT `userid` FROM `%s` WHERE %s `userid` = '%s'", login_auth_db, case_sensitive ? "BINARY" : "", uid);
+		size_t sz=snprintf(query, sizeof(query), "SELECT `userid` FROM `%s` WHERE %s `userid` = '%s'", login_auth_db, case_sensitive ? "BINARY" : "", uid);
 		if( this->mysql_SendQuery(sql_res, query, sz) )
 		{
 			ret = (mysql_num_rows(sql_res) == 1);
@@ -161,7 +162,7 @@ bool CAccountDB_sql::searchAccount(const char* userid, CLoginAccount& account)
 		MYSQL_RES *sql_res1=NULL, *sql_res2=NULL;
 
 		escape_string(uid, userid, strlen(userid));
-		sz=sprintf(query, "SELECT"
+		sz=snprintf(query,sizeof(query),  "SELECT"
 			"`account_id`,"		//  0
 			"`userid`,"			//  1
 			"`user_pass`,"		//  2
@@ -205,7 +206,7 @@ bool CAccountDB_sql::searchAccount(const char* userid, CLoginAccount& account)
 				account.memo[0]=0;
 				account.last_ip[0]=0;
 
-				sz = sprintf(query, "SELECT `str`,`value` FROM `%s` WHERE `account_id`='%ld'", login_reg_db, (unsigned long)account.account_id);
+				sz = snprintf(query,sizeof(query), "SELECT `str`,`value` FROM `%s` WHERE `account_id`='%ld'", login_reg_db, (unsigned long)account.account_id);
 				if( this->mysql_SendQuery(sql_res2, query, sz) )
 				{
 					size_t i=0;
@@ -234,7 +235,7 @@ bool CAccountDB_sql::searchAccount(uint32 accid, CLoginAccount& account)
 	char query[4096];
 	MYSQL_RES *sql_res1=NULL, *sql_res2=NULL;
 
-	sz=sprintf(query, "SELECT "
+	sz=snprintf(query,sizeof(query), "SELECT "
 			"`account_id`,"		//  0
 			"`userid`,"			//  1
 			"`user_pass`,"		//  2
@@ -277,7 +278,7 @@ bool CAccountDB_sql::searchAccount(uint32 accid, CLoginAccount& account)
 			account.memo[0]=0;
 			account.last_ip[0]=0;
 
-			sz = sprintf(query, "SELECT `str`,`value` FROM `%s` WHERE `account_id`='%ld'", login_reg_db, (unsigned long)account.account_id);
+			sz = snprintf(query,sizeof(query), "SELECT `str`,`value` FROM `%s` WHERE `account_id`='%ld'", login_reg_db, (unsigned long)account.account_id);
 			if( this->mysql_SendQuery(sql_res2, query, sz) )
 			{
 				size_t i=0;
@@ -305,7 +306,7 @@ bool CAccountDB_sql::insertAccount(const char* userid, const char* passwd, unsig
 
 	escape_string(uid, userid, strlen(userid));
 	escape_string(pwd, passwd, strlen(passwd));
-	sz = sprintf(query, "INSERT INTO `%s` (`userid`, `user_pass`, `sex`, `email`) VALUES ('%s', '%s', '%c', '%s')", login_auth_db, uid, pwd, sex, email);
+	sz = snprintf(query,sizeof(query), "INSERT INTO `%s` (`userid`, `user_pass`, `sex`, `email`) VALUES ('%s', '%s', '%c', '%s')", login_auth_db, uid, pwd, sex, email);
 	if( this->mysql_SendQuery(query, sz) )
 	{
 		// read the complete account back from db
@@ -320,10 +321,10 @@ bool CAccountDB_sql::removeAccount(uint32 accid)
 	size_t sz;
 	char query[1024];
 
-	sz=sprintf(query,"DELETE FROM `%s` WHERE `account_id`='%d';",login_auth_db, accid);
+	sz=snprintf(query,sizeof(query),"DELETE FROM `%s` WHERE `account_id`='%d';",login_auth_db, accid);
 	ret = this->mysql_SendQuery(query, sz);
 
-	sz=sprintf(query,"DELETE FROM `%s` WHERE `account_id`='%d';",login_reg_db, accid); // must update with the variable login_reg_db
+	sz=snprintf(query,sizeof(query),"DELETE FROM `%s` WHERE `account_id`='%d';",login_reg_db, accid); // must update with the variable login_reg_db
 	ret &=this->mysql_SendQuery(query, sz);
 	return ret;
 }
@@ -332,39 +333,39 @@ bool CAccountDB_sql::init(const char* configfile)
 {	// init db
 	size_t sz;		 // Used for size of queries
 	bool wipe=false; // i dont know how a bool is set..
-	char query[512]; // used for the queries themselves
+	char query[1024]; // used for the queries themselves
 
 	CConfig::LoadConfig(configfile);
 
-	mysql_init(&mysqldb_handle);
+	mysql_init(&(this->mysqldb_handle));
 
 	// All tables used for login: login_auth, login_reg, login_log, login_status
 
 	// DB connection start
 	ShowMessage("Connect Database Server on %s%u....\n", mysqldb_ip, mysqldb_port);
-	if( mysql_real_connect(&mysqldb_handle, mysqldb_ip, mysqldb_id, mysqldb_pw, mysqldb_db, mysqldb_port, (char *)NULL, 0) )
+	if( mysql_real_connect(&(this->mysqldb_handle), mysqldb_ip, mysqldb_id, mysqldb_pw, mysqldb_db, mysqldb_port, (char *)NULL, 0) )
 	{
 		ShowMessage("connect success!\n");
 		if (log_login)
 		{
-			sz = sprintf(query, "INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '', 'Login', '100','login server started')", login_log_db);
+			sz = snprintf(query, sizeof(query), "INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '', 'Login', '100','login server started')", login_log_db);
 			//query
 			this->mysql_SendQuery(query, sz);
 		}
 	}
 	else
 	{	// pointer check
-		ShowMessage("%s\n", mysql_error(&mysqldb_handle));
+		ShowMessage("%s\n", mysql_error(&(this->mysqldb_handle)));
 		return false;
 	}
 
 	if (wipe)
 	{
-		sz = sprintf(query, "DROP TABLE IF EXISTS %s", login_auth_db);
+		sz = snprintf(query, sizeof(query), "DROP TABLE IF EXISTS %s", login_auth_db);
 		this->mysql_SendQuery(query, sz);
 	}
 
-	sz = sprintf(query,
+	sz = snprintf(query, sizeof(query),
 		"CREATE TABLE IF NOT EXISTS `%s` ("
 		"`account_id` INTEGER UNSIGNED AUTO_INCREMENT,"
 		"`user_id` VARCHAR(24) NOT NULL,"
@@ -386,11 +387,11 @@ bool CAccountDB_sql::init(const char* configfile)
 
 	if (wipe)
 	{
-		sz = sprintf(query, "DROP TABLE IF EXISTS %s", login_reg_db);
+		sz = snprintf(query, sizeof(query), "DROP TABLE IF EXISTS %s", login_reg_db);
 		this->mysql_SendQuery(query, sz);
 	}
 
-	sz = sprintf(query,
+	sz = snprintf(query,sizeof(query),
 		"CREATE TABLE IF NOT EXISTS `%s` ("
 		"`account_id` INTEGER UNSIGNED AUTO_INCREMENT,"
 		"`str` VARCHAR(34) NOT NULL,"  // Not sure on the length needed. (struct global_reg::str[32]) but better read the size from the struct later
@@ -402,11 +403,11 @@ bool CAccountDB_sql::init(const char* configfile)
 
 	if (wipe)
 	{
-		sz = sprintf(query, "DROP TABLE IF EXISTS %s", login_log_db);
+		sz = snprintf(query, sizeof(query), "DROP TABLE IF EXISTS %s", login_log_db);
 		this->mysql_SendQuery(query, sz);
 	}
 
-	sz = sprintf(query,
+	sz = snprintf(query, sizeof(query),
 		"CREATE TABLE IF NOT EXISTS `%s` ("
 		"`time` INTEGER UNSIGNED,"
 		"`ip` VARCHAR(16) NOT NULL,"
@@ -419,11 +420,11 @@ bool CAccountDB_sql::init(const char* configfile)
 
 	if (wipe)
 	{
-		sz = sprintf(query, "DROP TABLE IF EXISTS %s", login_status_db);
+		sz = snprintf(query, sizeof(query), "DROP TABLE IF EXISTS %s", login_status_db);
 		this->mysql_SendQuery(query, sz);
 	}
 
-	sz = sprintf(query,
+	sz = snprintf(query, sizeof(query),
 		"CREATE TABLE IF NOT EXISTS `%s` ("
 		"`index` INTEGER UNSIGNED NOT NULL,"
 		"`name` VARCHAR(24) NOT NULL,"
@@ -443,15 +444,15 @@ bool CAccountDB_sql::close()
 	//set log.
 	if (log_login)
 	{
-		sz = sprintf(query,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '', 'lserver','100', 'login server shutdown')", login_log_db);
+		sz = snprintf(query, sizeof(query),"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '', 'lserver','100', 'login server shutdown')", login_log_db);
 		this->mysql_SendQuery(query, sz);
 	}
 
 	//delete all server status
-	sz = sprintf(query,"DELETE FROM `%s`", login_status_db);
+	sz = snprintf(query, sizeof(query),"DELETE FROM `%s`", login_status_db);
 	this->mysql_SendQuery(query, sz);
 
-	mysql_close(&mysqldb_handle);
+	mysql_close(&(this->mysqldb_handle));
 
 	return true;
 }
@@ -462,7 +463,7 @@ bool CAccountDB_sql::saveAccount(const CLoginAccount& account)
 	size_t sz, i;
 	char query[2048], tempstr[64];
 
-	sz = sprintf(query, "UPDATE `%s` SET "
+	sz = snprintf(query, sizeof(query), "UPDATE `%s` SET "
 		"`user_id` = '%s', "
 		"`user_pass` = '%s', "
 		"`sex` = '%c', "
@@ -495,14 +496,15 @@ bool CAccountDB_sql::saveAccount(const CLoginAccount& account)
 
 	ret = this->mysql_SendQuery(query, sz);
 
-	sz=sprintf(query,"DELETE FROM `%s` WHERE `account_id`='%d';",login_reg_db, account.account_id);
+	sz=snprintf(query, sizeof(query),"DELETE FROM `%s` WHERE `account_id`='%d';",login_reg_db, account.account_id);
 	this->mysql_SendQuery(query, sz);
 
-	sz = sprintf(query,"INSERT INTO `%s` (`account_id`, `str`, `value`) VALUES ",  login_reg_db);
+	sz = snprintf(query, sizeof(query),"INSERT INTO `%s` (`account_id`, `str`, `value`) VALUES ",  login_reg_db);
 	for(i=0; i<account.account_reg2_num; i++)
 	{
-		mysql_real_escape_string(&mysqldb_handle, tempstr, account.account_reg2[i].str, strlen(account.account_reg2[i].str));
-		sz += sprintf(query, "%s %s( '%d' , '%s' , '%d')",query,i?",":"", account.account_id, tempstr, account.account_reg2[i].value);
+		this->escape_string(tempstr, account.account_reg2[i].str, strlen(account.account_reg2[i].str));
+		sz += snprintf(query+sz, sizeof(query)-sz, "%s %s( '%d' , '%s' , '%d')",
+			i?",":"", account.account_id, tempstr, account.account_reg2[i].value);
 	}
 
 	ret &= this->mysql_SendQuery(query, sz);
@@ -1755,7 +1757,7 @@ private:
 		char t_name[128];
 		size_t i, sz;
 
-		mysql_real_escape_string(&mysqldb_handle, t_name, tempchar.name, strlen(tempchar.name));
+		this->escape_string(t_name, tempchar.name, strlen(tempchar.name));
 
 		//check stat error
 		if (

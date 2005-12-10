@@ -32,8 +32,8 @@
 #define MAX_MEMO 10
 #define MAX_GUARDIAN 8
 #define GLOBAL_REG_NUM 96
-#define ACCOUNT_REG_NUM 16
-#define ACCOUNT_REG2_NUM 16
+#define ACCOUNT_REG_NUM 32
+#define ACCOUNT_REG2_NUM 32
 #define DEFAULT_WALK_SPEED 150
 #define MIN_WALK_SPEED 0
 #define MAX_WALK_SPEED 1000
@@ -47,7 +47,7 @@
 #define MAX_GUILDSKILL	15 // increased max guild skills because of new skills [Sara-chan]
 #define MAX_GUILDCASTLE 24	// increased to include novice castles [Valaris]
 #define MAX_GUILDLEVEL 50
-#define MAX_FRIENDLIST 20
+#define MAX_FRIENDLIST 40
 
 #define MIN_HAIR_STYLE battle_config.min_hair_style
 #define MAX_HAIR_STYLE battle_config.max_hair_style

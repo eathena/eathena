@@ -2968,7 +2968,36 @@ int map_calc_dir( struct block_list &src,int x,int y)
 	}
 	return dir;
 }
+/*==========================================
+ * Randomizes target cell x,y to a random walkable cell that 
+ * has the same distance from object as given coordinates do. [Skotlex]
+ *------------------------------------------
+ */
+int map_random_dir(struct block_list &bl, unsigned short &x, unsigned short &y)
+{
+	static const signed char dirx[8]={0,-1,-1,-1,0,1,1,1};
+	static const signed char diry[8]={1,1,0,-1,-1,-1,0,1};
 
+	unsigned short xi, yi;
+	unsigned short dist = distance( bl.x, bl.y, x, y);
+	int i=0;
+	
+	if (dist < 1) dist =1;
+	
+	do
+	{
+		xi = x + rand()%(2*dist) - dist;
+		yi = y + rand()%(2*dist) - dist;
+	} while( map_getcell(bl.m, x, y, CELL_CHKNOPASS) && (++i)<100 );
+
+	if (i < 100)
+	{
+		x = xi;
+		y = yi;
+		return 1;
+	}
+	return 0;
+}
 // gatŒn
 /*==========================================
  * (m,x,y)‚Ìó‘Ô‚ð’²‚×‚é

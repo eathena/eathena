@@ -48,8 +48,9 @@ void vending_purchasereq(struct map_session_data &sd,unsigned short len,uint32 i
 {
 	size_t i, j, w;
 	uint32 z;
-	unsigned short blank, vend_list[12];
+	unsigned short blank, vend_list[MAX_VENDING];
 	unsigned short amount, index, new_ = 0;
+	struct vending vending[MAX_VENDING]; // against duplicate packets
 	struct map_session_data *vsd = map_id2sd(id);
 
 	if(vsd == NULL)
@@ -60,6 +61,9 @@ void vending_purchasereq(struct map_session_data &sd,unsigned short len,uint32 i
 		return;
 	if( vsd->vend_num>MAX_VENDING )
 		vsd->vend_num=MAX_VENDING;
+
+	// duplicate item in vending to check hacker with multiple packets
+	memcpy(&vending, &vsd->vending, sizeof(struct vending) * MAX_VENDING); // copy vending list
 
 	// number of blank entries in inventory
 	blank = pc_inventoryblank(sd);
@@ -96,7 +100,19 @@ void vending_purchasereq(struct map_session_data &sd,unsigned short len,uint32 i
 			clif_buyvending(sd, index, amount, 2);
 			return; // d—Ê’´‰ß
 		}
-		switch(pc_checkadditem(sd, vsd->status.cart[index].nameid, amount)) {
+		
+		if (vending[j].amount > vsd->status.cart[index].amount) //Check to see if cart/vend info is in sync.
+			vending[j].amount = vsd->status.cart[index].amount;
+
+		// if they try to add packets (example: get twice or more 2 apples if marchand has only 3 apples).
+		// here, we check cumulativ amounts
+		if (vending[j].amount < amount) { // send more quantity is not a hack (an other player can have buy items just before)
+			clif_buyvending(sd, index, vsd->vending[j].amount, 4); // not enough quantity
+			return;
+		} else
+			vending[j].amount -= amount;
+
+		switch( pc_checkadditem(sd, vsd->status.cart[index].nameid, amount) ) {
 		case ADDITEM_EXIST:
 			break;
 		case ADDITEM_NEW:

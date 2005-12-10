@@ -250,12 +250,10 @@ void display_title(void)
  *	CORE : MAINROUTINE
  *--------------------------------------
  */
-void parameertest();
 
 int main (int argc, char **argv)
 {
 	int next;
-parameertest();
 	///////////////////////////////////////////////////////////////////////////
 	// startup
 	init_signal();

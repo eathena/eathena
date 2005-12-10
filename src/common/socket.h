@@ -255,6 +255,7 @@ public:
 			(cAddr>>0x18)&0xFF,(cAddr>>0x10)&0xFF,(cAddr>>0x8)&0xFF,(cAddr)&0xFF);
 		return buf;
 	}
+	operator const char*()	{ return this->getstring(); }
 	///////////////////////////////////////////////////////////////////////////
 	// boolean operators
 	bool operator == (const ipaddress s) const { return cAddr==s.cAddr; }
@@ -401,12 +402,15 @@ public:
 			cPort);
 		return buf;
 	}
+	operator const char*() const { return this->getstring(); }
 	///////////////////////////////////////////////////////////////////////////
 	// boolean operators
 	bool operator == (const netaddress s) const { return this->cAddr==s.cAddr && this->cPort==s.cPort; }
 	bool operator != (const netaddress s) const { return this->cAddr!=s.cAddr || this->cPort!=s.cPort; }
-
 };
+
+
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 // class for a subnetwork address (ip address, subnetmask and port number)

@@ -685,8 +685,16 @@ int clif_send (unsigned char *buf, size_t len, struct block_list *bl, int type)
 	struct guild *g = NULL;
 	int x0 = 0, x1 = 0, y0 = 0, y1 = 0;
 
-	if (type != ALL_CLIENT) {
-		nullpo_retr(0, bl);
+	if (type != ALL_CLIENT)
+	{
+		if(!bl)
+		{
+			printf("clif_send nullpo, head: %02X%02X%02X%02X type %i, len%i\n", buf[0], buf[1], buf[2], buf[3], type, len);
+		
+			return 0;
+		}
+
+//		nullpo_retr(0, bl);
 		if(bl->type == BL_PC)
 			sd = (struct map_session_data *)bl;
 	}
@@ -1094,6 +1102,7 @@ int clif_set0078(struct map_session_data &sd, unsigned char *buf)
 
 	if(sd.disguise_id > 23 && sd.disguise_id < 4001)
 	{	// mob disguises [Valaris]
+		memset(buf, 0, packet_len_table[0x78]);
 		WBUFW(buf,0) = 0x78;
 		WBUFL(buf,2) = sd.bl.id;
 		WBUFW(buf,6) = status_get_speed(&sd.bl);
@@ -1113,6 +1122,7 @@ int clif_set0078(struct map_session_data &sd, unsigned char *buf)
 	}
 
 #if PACKETVER < 4
+	memset(buf, 0, packet_len_table[0x78]);
 	WBUFW(buf,0)=0x78;
 	WBUFL(buf,2)=sd.bl.id;
 	WBUFW(buf,6)=status_get_speed(&sd->bl);
@@ -1149,6 +1159,7 @@ int clif_set0078(struct map_session_data &sd, unsigned char *buf)
 
 	return packet_len_table[0x78];
 #else
+	memset(buf, 0, packet_len_table[0x1d8]);
 	WBUFW(buf,0)=0x1d8;
 	WBUFL(buf,2) = sd.bl.id;
 	WBUFW(buf,6) = status_get_speed(&sd.bl);
@@ -1211,8 +1222,8 @@ size_t clif_dis0078(struct map_session_data &sd, unsigned char *buf)
 	WBUFW(buf,10)=0;
 	WBUFW(buf,12)=sd.status.option;
 	WBUFW(buf,14)=sd.disguise_id;
-	//WBUFL(buf,22)=sd->status.guild_id;
-	//WBUFL(buf,26)=sd->guild_emblem_id;
+	//WBUFL(buf,34)=sd->status.guild_id;
+	//WBUFL(buf,38)=sd->guild_emblem_id;
 	WBUFW(buf,42)=0;
 	WBUFB(buf,44)=0;
 	WBUFPOS(buf,46,sd.bl.x,sd.bl.y, sd.dir);
@@ -1232,6 +1243,7 @@ int clif_set007b(struct map_session_data &sd,unsigned char *buf)
 {
 
 #if PACKETVER < 4
+	memset(buf, 0, packet_len_table[0x7b]);
 	WBUFW(buf,0)=0x7b;
 	WBUFL(buf,2)=sd.bl.id;
 	WBUFW(buf,6)=status_get_speed(&sd->bl);
@@ -1281,6 +1293,7 @@ int clif_set007b(struct map_session_data &sd,unsigned char *buf)
 
 	return packet_len_table[0x7b];
 #else
+	memset(buf, 0, packet_len_table[0x1da]);
 	WBUFW(buf,0)=0x1da;
 	WBUFL(buf,2)=sd.bl.id;
 	WBUFW(buf,6)=status_get_speed(&sd.bl);
@@ -1345,8 +1358,8 @@ int clif_dis007b(struct map_session_data &sd,unsigned char *buf)
 	WBUFW(buf,12)=sd.status.option;
 	WBUFW(buf,14)=sd.disguise_id;
 	WBUFL(buf,22)=gettick();
-	//WBUFL(buf,24)=sd.status.guild_id;
-	//WBUFL(buf,28)=sd.guild_emblem_id;
+	//WBUFL(buf,38)=sd.status.guild_id;
+	//WBUFL(buf,42)=sd.guild_emblem_id;
 	WBUFPOS2(buf,50,sd.bl.x,sd.bl.y,sd.to_x,sd.to_y);
 	WBUFB(buf,55)=0;
 	WBUFB(buf,56)=5;
@@ -1414,101 +1427,164 @@ int clif_mob_equip(struct mob_data &md, unsigned short nameid)
  */
 int clif_mob0078(struct mob_data &md, unsigned char *buf)
 {
-	unsigned int level, i;
+	unsigned short level=status_get_lv(&md.bl);
+	int id=mob_get_viewclass(md.class_);
 
-	memset(buf,0,packet_len_table[0x78]);
+	if( id <= 23 || id >= 4001)
+	{	// Use 0x1d8 packet for monsters with player sprites [Valaris]
+		memset(buf,0,packet_len_table[0x1d8]);
 
-	WBUFW(buf,0)=0x78;
-	WBUFL(buf,2)=md.bl.id;
-	WBUFW(buf,6)=status_get_speed(&md.bl);
-	WBUFW(buf,8)=md.opt1;
-	WBUFW(buf,10)=md.opt2;
-	WBUFW(buf,12)=md.option;
-	WBUFW(buf,14)=mob_get_viewclass(md.class_);
-	if((i=mob_get_viewclass(md.class_)) <= 23 || i == 812 || i >= 4001) {
-		WBUFW(buf,12)= WBUFW(buf,12) | mob_db[md.class_].option;
+		WBUFW(buf,0)=0x1d8;
+		WBUFL(buf,2)=md.bl.id;
+		WBUFW(buf,6)=status_get_speed(&md.bl);
+		WBUFW(buf,8)=md.opt1;
+		WBUFW(buf,10)=md.opt2;
+		WBUFW(buf,12)=md.option;
+		WBUFW(buf,14)=mob_get_viewclass(md.class_);
+
+
 		WBUFW(buf,16)=mob_get_hair(md.class_);
 		WBUFW(buf,18)=mob_get_weapon(md.class_);
-		WBUFW(buf,20)=mob_get_head_buttom(md.class_);
-		WBUFW(buf,22)=mob_get_shield(md.class_);
+		WBUFW(buf,20)=mob_get_shield(md.class_);
+		WBUFW(buf,22)=mob_get_head_buttom(md.class_);
 		WBUFW(buf,24)=mob_get_head_top(md.class_);
 		WBUFW(buf,26)=mob_get_head_mid(md.class_);
 		WBUFW(buf,28)=mob_get_hair_color(md.class_);
-		WBUFW(buf,30)=mob_get_clothes_color(md.class_);	//Add for player monster dye - Valaris
+		WBUFW(buf,30)=mob_get_clothes_color(md.class_);
+		WBUFW(buf,32)=md.dir; // head direction
+		WBUFL(buf,34)=0; // guild id
+		WBUFW(buf,38)=0; // emblem id
+		WBUFW(buf,40)=0; // manner
+		WBUFW(buf,42)=md.opt3;
+		WBUFB(buf,44)=0; // karma
 		WBUFB(buf,45)=mob_get_sex(md.class_);
+		WBUFPOS(buf,46,md.bl.x,md.bl.y,md.dir);
+		WBUFB(buf,49)=5;
+		WBUFB(buf,50)=5;
+		WBUFB(buf,51)=0; // dead or sit state
+		WBUFW(buf,52)=(level>battle_config.max_base_level)? battle_config.max_base_level:level;
+
+		return packet_len_table[0x1d8];
 	}
+	else
+	{	// Use 0x78 packet for monsters sprites [Valaris]
+		memset(buf,0,packet_len_table[0x78]);
 
-	if (md.class_ >= 1285 && md.class_ <= 1287 && md.guild_id) {	// Added guardian emblems [Valaris]
-		struct guild *g;
-		struct guild_castle *gc=guild_mapname2gc(map[md.bl.m].mapname);
-		if (gc && gc->guild_id > 0) {
-			g=guild_search(gc->guild_id);
-			if (g) {
-				WBUFL(buf,22)=g->emblem_id;
-				WBUFL(buf,26)=gc->guild_id;
+		WBUFW(buf,0)=0x78;
+		WBUFL(buf,2)=md.bl.id;
+		WBUFW(buf,6)=status_get_speed(&md.bl);
+		WBUFW(buf,8)=md.opt1;
+		WBUFW(buf,10)=md.opt2;
+		WBUFW(buf,12)=md.option;
+		WBUFW(buf,14)=mob_get_viewclass(md.class_);
+
+		if (md.class_ >= 1285 && md.class_ <= 1287 && md.guild_id) {	// Added guardian emblems [Valaris]
+			struct guild *g;
+			struct guild_castle *gc=guild_mapname2gc(map[md.bl.m].mapname);
+			if (gc && gc->guild_id > 0) {
+				g=guild_search(gc->guild_id);
+				if (g) {
+					WBUFL(buf,34)=g->emblem_id;
+					WBUFL(buf,38)=gc->guild_id;
+				}
 			}
-		}
-	}	// End addition
+		}	// End addition
 
-	WBUFPOS(buf,46,md.bl.x,md.bl.y,md.dir);
-	WBUFB(buf,49)=5;
-	WBUFB(buf,50)=5;
-	WBUFW(buf,52)=((level = status_get_lv(&md.bl))>battle_config.max_base_level)? battle_config.max_base_level:level;
+		WBUFPOS(buf,46,md.bl.x,md.bl.y,md.dir);
+		WBUFB(buf,49)=5;
+		WBUFB(buf,50)=5;
+		level = status_get_lv(&md.bl);
+		WBUFW(buf,52)=((level = status_get_lv(&md.bl))>battle_config.max_base_level)? battle_config.max_base_level:level;
 
-	return packet_len_table[0x78];
+		return packet_len_table[0x78];
+	}
 }
+
+
 
 /*==========================================
  * MOB表示2
  *------------------------------------------
  */
-int clif_mob007b(struct mob_data &md, unsigned char *buf) {
-	unsigned int level;
+int clif_mob007b(struct mob_data &md, unsigned char *buf)
+{
+	unsigned short level = status_get_lv(&md.bl);
+	int id = mob_get_viewclass(md.class_);
 
-	memset(buf,0,packet_len_table[0x7b]);
+	if(id <= 23 || id >= 4001)
+	{	// Use 0x1da packet for monsters with player sprites [Valaris]
+		memset(buf,0,packet_len_table[0x1da]);
 
-	WBUFW(buf,0)=0x7b;
-	WBUFL(buf,2)=md.bl.id;
-	WBUFW(buf,6)=status_get_speed(&md.bl);
-	WBUFW(buf,8)=md.opt1;
-	WBUFW(buf,10)=md.opt2;
-	WBUFW(buf,12)=md.option;
-	WBUFW(buf,14)=mob_get_viewclass(md.class_);
-	if ((mob_get_viewclass(md.class_) < 24) || (mob_get_viewclass(md.class_) > 4000)) {
-		WBUFW(buf,12)= WBUFW(buf,12) | mob_db[md.class_].option;
+		WBUFW(buf,0)=0x1da;
+		WBUFL(buf,2)=md.bl.id;
+		WBUFW(buf,6)=status_get_speed(&md.bl);
+		WBUFW(buf,8)=md.opt1;
+		WBUFW(buf,10)=md.opt2;
+		WBUFW(buf,12)=md.option;
+		WBUFW(buf,14)=mob_get_viewclass(md.class_);
+
+
 		WBUFW(buf,16)=mob_get_hair(md.class_);
 		WBUFW(buf,18)=mob_get_weapon(md.class_);
-		WBUFW(buf,20)=mob_get_head_buttom(md.class_);
-		WBUFL(buf,22)=gettick();
-		WBUFW(buf,26)=mob_get_shield(md.class_);
+		WBUFW(buf,20)=mob_get_shield(md.class_);
+		WBUFW(buf,22)=mob_get_head_buttom(md.class_);
+		WBUFL(buf,24)=gettick();
 		WBUFW(buf,28)=mob_get_head_top(md.class_);
 		WBUFW(buf,30)=mob_get_head_mid(md.class_);
 		WBUFW(buf,32)=mob_get_hair_color(md.class_);
-		WBUFW(buf,34)=mob_get_clothes_color(md.class_);	//Add for player monster dye - Valaris
+		WBUFW(buf,34)=mob_get_clothes_color(md.class_);
+		WBUFW(buf,36)=md.dir&0x0f; // head direction
+		WBUFL(buf,38)=0; // guild id
+		WBUFW(buf,42)=0; // emblem id
+		WBUFW(buf,44)=0; // manner
+		WBUFW(buf,46)=md.opt3;
+		WBUFB(buf,48)=0; // karma
 		WBUFB(buf,49)=mob_get_sex(md.class_);
-	} else
+		WBUFPOS2(buf,50,md.bl.x,md.bl.y,md.to_x,md.to_y);
+		WBUFB(buf,55)=0;
+		WBUFB(buf,56)=5;
+		WBUFB(buf,57)=5;
+		WBUFW(buf,58)=(level>battle_config.max_base_level)? battle_config.max_base_level:level;
+
+		return packet_len_table[0x1da];
+	}
+	else
+	{	// Use 0x7b packet for monsters sprites [Valaris]
+		memset(buf,0,packet_len_table[0x7b]);
+	
+		WBUFW(buf,0)=0x7b;
+		WBUFL(buf,2)=md.bl.id;
+		WBUFW(buf,6)=status_get_speed(&md.bl);
+		WBUFW(buf,8)=md.opt1;
+		WBUFW(buf,10)=md.opt2;
+		WBUFW(buf,12)=md.option;
+		WBUFW(buf,14)=mob_get_viewclass(md.class_);
 		WBUFL(buf,22)=gettick();
 
-	if(md.class_ >= 1285 && md.class_ <= 1287 && md.guild_id)	{	// Added guardian emblems [Valaris]
-		struct guild *g;
-		struct guild_castle *gc=guild_mapname2gc(map[md.bl.m].mapname);
-		if(gc && gc->guild_id > 0){
-			g=guild_search(gc->guild_id);
-				if(g) {
-				WBUFL(buf,28)=gc->guild_id;
-				WBUFL(buf,24)=g->emblem_id;
+		if(md.class_ >= 1285 && md.class_ <= 1287 && md.guild_id)
+		{	// Added guardian emblems [Valaris]
+			struct guild *g;
+			struct guild_castle *gc=guild_mapname2gc(map[md.bl.m].mapname);
+			if(gc && gc->guild_id > 0)
+			{
+				g=guild_search(gc->guild_id);
+				if(g)
+				{
+					WBUFL(buf,38)=gc->guild_id;
+					WBUFL(buf,42)=g->emblem_id;
 				}
-		}
-	}									// End addition
+			}
+		} // End addition
 
-	WBUFPOS2(buf,50,md.bl.x,md.bl.y,md.to_x,md.to_y);
-	WBUFB(buf,56)=5;
-	WBUFB(buf,57)=5;
-	WBUFW(buf,58)=((level = status_get_lv(&md.bl))>battle_config.max_base_level)? battle_config.max_base_level:level;
+		WBUFPOS2(buf,50,md.bl.x,md.bl.y,md.to_x,md.to_y);
+		WBUFB(buf,56)=5;
+		WBUFB(buf,57)=5;
+		level = status_get_lv(&md.bl);
+		WBUFW(buf,58)=((level = status_get_lv(&md.bl))>battle_config.max_base_level)? battle_config.max_base_level:level;
 
-	return packet_len_table[0x7b];
+		return packet_len_table[0x7b];
+	}
 }
-
 /*==========================================
  *
  *------------------------------------------
@@ -1524,8 +1600,8 @@ int clif_npc0078(struct npc_data &nd, unsigned char *buf)
 	WBUFW(buf,6)=status_get_speed(&nd.bl);
 	WBUFW(buf,14)=nd.class_;
 	if ((nd.class_ == 722) && (nd.u.scr.guild_id > 0) && ((g=guild_search(nd.u.scr.guild_id)) != NULL)) {
-		WBUFL(buf,22)=g->emblem_id;
-		WBUFL(buf,26)=g->guild_id;
+		WBUFL(buf,34)=g->emblem_id;
+		WBUFL(buf,38)=g->guild_id;
 	}
 	WBUFPOS(buf,46,nd.bl.x,nd.bl.y,nd.dir);
 	WBUFB(buf,49)=5;
@@ -1547,8 +1623,8 @@ int clif_npc007b(struct npc_data &nd, unsigned char *buf)
 	WBUFW(buf,14)=nd.class_;
 	if ((nd.class_ == 722) && (nd.u.scr.guild_id > 0) && ((g=guild_search(nd.u.scr.guild_id)) != NULL))
 	{
-		WBUFL(buf,22)=g->emblem_id;
-		WBUFL(buf,26)=g->guild_id;
+		WBUFL(buf,38)=g->emblem_id;
+		WBUFL(buf,42)=g->guild_id;
 	}
 
 	WBUFL(buf,22)=gettick();
@@ -1565,87 +1641,140 @@ int clif_npc007b(struct npc_data &nd, unsigned char *buf)
  */
 int clif_pet0078(struct pet_data &pd, unsigned char *buf)
 {
-	unsigned int view,level;
+	int view;
+	unsigned short level = status_get_lv(&pd.bl);
+	int id=mob_get_viewclass(pd.class_);
 
-	memset(buf,0,packet_len_table[0x78]);
+	if(id <= 23 || id >= 4001)
+	{	// Use 0x1d8 packet for pets with player sprites [Valaris]
+		memset(buf,0,packet_len_table[0x1d8]);
 
-	WBUFW(buf,0)=0x78;
-	WBUFL(buf,2)=pd.bl.id;
-	WBUFW(buf,6)=status_get_speed(&pd.bl);
-	WBUFW(buf,14)=mob_get_viewclass(pd.class_);
-	if((mob_get_viewclass(pd.class_) < 24) || (mob_get_viewclass(pd.class_) > 4000))
-	{
+		WBUFW(buf,0)=0x1d8;
+		WBUFL(buf,2)=pd.bl.id;
+		WBUFW(buf,6)=pd.speed;
+		WBUFW(buf,8)=0; // opt1
+		WBUFW(buf,10)=0; // opt2
 		WBUFW(buf,12)=mob_db[pd.class_].option;
+		WBUFW(buf,14)=mob_get_viewclass(pd.class_);
+
+
 		WBUFW(buf,16)=mob_get_hair(pd.class_);
 		WBUFW(buf,18)=mob_get_weapon(pd.class_);
-		WBUFW(buf,20)=mob_get_head_buttom(pd.class_);
-		WBUFW(buf,22)=mob_get_shield(pd.class_);
+		WBUFW(buf,20)=mob_get_shield(pd.class_);
+		WBUFW(buf,22)=mob_get_head_buttom(pd.class_);
 		WBUFW(buf,24)=mob_get_head_top(pd.class_);
 		WBUFW(buf,26)=mob_get_head_mid(pd.class_);
 		WBUFW(buf,28)=mob_get_hair_color(pd.class_);
-		WBUFW(buf,30)=mob_get_clothes_color(pd.class_);	//Add for player pet dye - Valaris
+		WBUFW(buf,30)=mob_get_clothes_color(pd.class_);
+		WBUFW(buf,32)=pd.dir&0x0f; // head direction
+		WBUFL(buf,34)=0; // guild id
+		WBUFW(buf,38)=0; // emblem id
+		WBUFW(buf,40)=0; // manner
+		WBUFW(buf,42)=0; // opt3
+		WBUFB(buf,44)=0; // karma
 		WBUFB(buf,45)=mob_get_sex(pd.class_);
+		WBUFPOS(buf,46,pd.bl.x,pd.bl.y,pd.dir);
+		WBUFB(buf,49)=5;
+		WBUFB(buf,50)=5;
+		WBUFB(buf,51)=0; // dead or sit state
+		WBUFW(buf,52)=((level = status_get_lv(&pd.bl))>battle_config.max_base_level)? battle_config.max_base_level:level;
+
+		return packet_len_table[0x1d8];
 	}
 	else
-	{
+	{	// Use 0x7b packet for monsters sprites [Valaris]
+		memset(buf,0,packet_len_table[0x78]);
+
+		WBUFW(buf,0)=0x78;
+		WBUFL(buf,2)=pd.bl.id;
+		WBUFW(buf,6)=pd.speed;
+		WBUFW(buf,14)=mob_get_viewclass(pd.class_);
 		WBUFW(buf,16)=battle_config.pet_hair_style;
 		if((view = itemdb_viewid(pd.equip_id)) > 0)
 			WBUFW(buf,20)=view;
 		else
 			WBUFW(buf,20)=pd.equip_id;
+
+		WBUFPOS(buf,46,pd.bl.x,pd.bl.y,pd.dir);
+		WBUFB(buf,49)=0;
+		WBUFB(buf,50)=0;
+
+		WBUFW(buf,52)=((level = status_get_lv(&pd.bl))>battle_config.max_base_level)? battle_config.max_base_level:level;
+
+		return packet_len_table[0x78];
 	}
-	WBUFPOS(buf,46,pd.bl.x,pd.bl.y,pd.dir);
-	WBUFB(buf,49)=0;
-	WBUFB(buf,50)=0;
-	WBUFW(buf,52)=((level = status_get_lv(&pd.bl))>battle_config.max_base_level)? battle_config.max_base_level:level;
-
-	return packet_len_table[0x78];
 }
-
 /*==========================================
  *
  *------------------------------------------
  */
 int clif_pet007b(struct pet_data &pd, unsigned char *buf)
 {
-	unsigned int view,level;
-	memset(buf,0,packet_len_table[0x7b]);
+	int view;
+	unsigned short level = status_get_lv(&pd.bl);
+	int id=mob_get_viewclass(pd.class_);
 
-	WBUFW(buf,0)=0x7b;
-	WBUFL(buf,2)=pd.bl.id;
-	WBUFW(buf,6)=status_get_speed(&pd.bl);
-	WBUFW(buf,14)=mob_get_viewclass(pd.class_);
-	if((mob_get_viewclass(pd.class_) < 24) || (mob_get_viewclass(pd.class_) > 4000))
-	{
+	if(id <= 23 || id >= 4001)
+	{	// Use 0x1da packet for monsters with player sprites [Valaris]
+		memset(buf,0,packet_len_table[0x1da]);
+
+		WBUFW(buf,0)=0x1da;
+		WBUFL(buf,2)=pd.bl.id;
+		WBUFW(buf,6)=pd.speed;
+		WBUFW(buf,8)=0; // opt1
+		WBUFW(buf,10)=0; // opt2
 		WBUFW(buf,12)=mob_db[pd.class_].option;
+		WBUFW(buf,14)=mob_get_viewclass(pd.class_);
+
+
 		WBUFW(buf,16)=mob_get_hair(pd.class_);
 		WBUFW(buf,18)=mob_get_weapon(pd.class_);
-		WBUFW(buf,20)=mob_get_head_buttom(pd.class_);
-		WBUFL(buf,22)=gettick();
-		WBUFW(buf,26)=mob_get_shield(pd.class_);
+		WBUFW(buf,20)=mob_get_shield(pd.class_);
+		WBUFW(buf,22)=mob_get_head_buttom(pd.class_);
+		WBUFL(buf,24)=gettick();
 		WBUFW(buf,28)=mob_get_head_top(pd.class_);
 		WBUFW(buf,30)=mob_get_head_mid(pd.class_);
 		WBUFW(buf,32)=mob_get_hair_color(pd.class_);
-		WBUFW(buf,34)=mob_get_clothes_color(pd.class_);	//Add for player pet dye - Valaris
+		WBUFW(buf,34)=mob_get_clothes_color(pd.class_);
+		WBUFW(buf,36)=pd.dir&0x0f; // head direction
+		WBUFL(buf,38)=0; // guild id
+		WBUFW(buf,42)=0; // emblem id
+		WBUFW(buf,44)=0; // manner
+		WBUFW(buf,46)=0; // opt3
+		WBUFB(buf,48)=0; // karma
 		WBUFB(buf,49)=mob_get_sex(pd.class_);
+		WBUFPOS2(buf,50,pd.bl.x,pd.bl.y,pd.to_x,pd.to_y);
+		WBUFB(buf,55)=0;
+		WBUFB(buf,56)=0;
+		WBUFB(buf,57)=0;
+		WBUFW(buf,58)=(level>battle_config.max_base_level)? battle_config.max_base_level:level;
+
+		return packet_len_table[0x1da];
 	}
 	else
-	{
+	{	// Use 0x7b packet for monsters sprites [Valaris]
+		memset(buf,0,packet_len_table[0x7b]);
+
+		WBUFW(buf,0)=0x7b;
+		WBUFL(buf,2)=pd.bl.id;
+		WBUFW(buf,6)=pd.speed;
+		WBUFW(buf,14)=mob_get_viewclass(pd.class_);
 		WBUFW(buf,16)=battle_config.pet_hair_style;
-		if((view = itemdb_viewid(pd.equip_id)) > 0)
+		if ((view = itemdb_viewid(pd.equip_id)) > 0)
 			WBUFW(buf,20)=view;
 		else
 			WBUFW(buf,20)=pd.equip_id;
 		WBUFL(buf,22)=gettick();
+
+		WBUFPOS2(buf,50,pd.bl.x,pd.bl.y,pd.to_x,pd.to_y);
+		WBUFB(buf,56)=0;
+		WBUFB(buf,57)=0;
+
+		WBUFW(buf,58)=(level>battle_config.max_base_level)? battle_config.max_base_level:level;
+
+		return packet_len_table[0x7b];
 	}
-	WBUFPOS2(buf,50,pd.bl.x,pd.bl.y,pd.to_x,pd.to_y);
-	WBUFB(buf,56)=0;
-	WBUFB(buf,57)=0;
-	WBUFW(buf,58)=((level = status_get_lv(&pd.bl))>battle_config.max_base_level)? battle_config.max_base_level:level;
-
-	return packet_len_table[0x7b];
 }
-
 /*==========================================
  *
  *------------------------------------------
@@ -2197,7 +2326,7 @@ int clif_buylist(struct map_session_data &sd, struct npc_data &nd)
 		if (!id->flag.value_notdc)
 			val=pc_modifybuyvalue(sd,val);
 		WFIFOL(fd,8+i*11)=val;
-		WFIFOB(fd,12+i*11)=id->type;
+		WFIFOB(fd,12+i*11)=id->getType();
 		if (id->view_id > 0)
 			WFIFOW(fd,13+i*11)=id->view_id;
 		else
@@ -2397,6 +2526,50 @@ int clif_cutin(struct map_session_data &sd, const char *image, unsigned char typ
 
 	return 0;
 }
+/*==========================================
+ * Fills in card data from the given item and into the buffer. [Skotlex]
+ *------------------------------------------
+ */
+void clif_cards_to_buffer(unsigned char* buf, struct item& item)
+{
+	unsigned j;
+	if(item.card[0]==0xff00)
+	{	//pet eggs
+		WBUFW(buf,0)=0;
+		WBUFW(buf,2)=0;
+		WBUFW(buf,4)=0;
+		WBUFW(buf,6)=item.card[3]; //Pet renamed flag.
+	}
+	else if(item.card[0]==0x00ff || item.card[0]==0x00fe)
+	{	//Forged/created items
+		WBUFW(buf,0)=item.card[0];
+		WBUFW(buf,2)=item.card[1];
+		WBUFW(buf,4)=item.card[2];
+		WBUFW(buf,6)=item.card[3];
+	}
+	else
+	{	//Normal items.
+		if (item.card[0] > 0 && (j=itemdb_viewid(item.card[0])) > 0)
+			WBUFW(buf,0)=j;
+		else
+			WBUFW(buf,0)= item.card[0];
+
+		if (item.card[1] > 0 && (j=itemdb_viewid(item.card[1])) > 0)
+			WBUFW(buf,2)=j;
+		else
+			WBUFW(buf,2)=item.card[1];
+
+		if (item.card[2] > 0 && (j=itemdb_viewid(item.card[2])) > 0)
+			WBUFW(buf,4)=j;
+		else
+			WBUFW(buf,4)=item.card[2];
+
+		if (item.card[3] > 0 && (j=itemdb_viewid(item.card[3])) > 0)
+			WBUFW(buf,6)=j;
+		else
+			WBUFW(buf,6)=item.card[3];
+	}
+}
 
 /*==========================================
  *
@@ -2404,7 +2577,7 @@ int clif_cutin(struct map_session_data &sd, const char *image, unsigned char typ
  */
 int clif_additem(struct map_session_data &sd, unsigned short n, unsigned short amount, unsigned char fail)
 {
-	int fd, j;
+	int fd;
 	unsigned char *buf;
 
 	fd = sd.fd;
@@ -2412,7 +2585,8 @@ int clif_additem(struct map_session_data &sd, unsigned short n, unsigned short a
 		return 0;
 
 	buf = WFIFOP(fd,0);
-	if(fail) {
+	if(fail)
+	{
 		WBUFW(buf,0)=0xa0;
 		WBUFW(buf,2)=n+2;
 		WBUFW(buf,4)=amount;
@@ -2427,7 +2601,9 @@ int clif_additem(struct map_session_data &sd, unsigned short n, unsigned short a
 		WBUFW(buf,19)=0;
 		WBUFB(buf,21)=0;
 		WBUFB(buf,22)=fail;
-	} else {
+	}
+	else
+	{
 		if( n>=MAX_INVENTORY || sd.status.inventory[n].nameid <=0 || sd.inventory_data[n] == NULL)
 			return 1;
 
@@ -2441,31 +2617,10 @@ int clif_additem(struct map_session_data &sd, unsigned short n, unsigned short a
 		WBUFB(buf,8)=sd.status.inventory[n].identify;
 		WBUFB(buf,9)=sd.status.inventory[n].attribute;
 		WBUFB(buf,10)=sd.status.inventory[n].refine;
-		if(sd.status.inventory[n].card[0]==0x00ff || sd.status.inventory[n].card[0]==0x00fe || sd.status.inventory[n].card[0]==0xff00) {
-			WBUFW(buf,11)=sd.status.inventory[n].card[0];
-			WBUFW(buf,13)=sd.status.inventory[n].card[1];
-			WBUFW(buf,15)=sd.status.inventory[n].card[2];
-			WBUFW(buf,17)=sd.status.inventory[n].card[3];
-		} else {
-			if (sd.status.inventory[n].card[0] > 0 && (j=itemdb_viewid(sd.status.inventory[n].card[0])) > 0)
-				WBUFW(buf,11)=j;
-			else
-				WBUFW(buf,11)=sd.status.inventory[n].card[0];
-			if (sd.status.inventory[n].card[1] > 0 && (j=itemdb_viewid(sd.status.inventory[n].card[1])) > 0)
-				WBUFW(buf,13)=j;
-			else
-				WBUFW(buf,13)=sd.status.inventory[n].card[1];
-			if (sd.status.inventory[n].card[2] > 0 && (j=itemdb_viewid(sd.status.inventory[n].card[2])) > 0)
-				WBUFW(buf,15)=j;
-			else
-				WBUFW(buf,15)=sd.status.inventory[n].card[2];
-			if (sd.status.inventory[n].card[3] > 0 && (j=itemdb_viewid(sd.status.inventory[n].card[3])) > 0)
-				WBUFW(buf,17)=j;
-			else
-				WBUFW(buf,17)=sd.status.inventory[n].card[3];
-		}
+		clif_cards_to_buffer( WBUFP(buf,11), sd.status.inventory[n]);
+
 		WBUFW(buf,19)=pc_equippoint(sd,n);
-		WBUFB(buf,21)=(sd.inventory_data[n]->type == 7)? 4:sd.inventory_data[n]->type;
+		WBUFB(buf,21)=sd.inventory_data[n]->getType();
 		WBUFB(buf,22)=fail;
 	}
 
@@ -2516,7 +2671,7 @@ int clif_itemlist(struct map_session_data &sd)
 			WBUFW(buf,n*10+6)=sd.inventory_data[i]->view_id;
 		else
 			WBUFW(buf,n*10+6)=sd.status.inventory[i].nameid;
-		WBUFB(buf,n*10+8)=sd.inventory_data[i]->type;
+		WBUFB(buf,n*10+8)=sd.inventory_data[i]->getType();
 		WBUFB(buf,n*10+9)=sd.status.inventory[i].identify;
 		WBUFW(buf,n*10+10)=sd.status.inventory[i].amount;
 		if (sd.inventory_data[i]->equip == 0x8000) {
@@ -2541,7 +2696,7 @@ int clif_itemlist(struct map_session_data &sd)
 			WBUFW(buf,n*18+6)=sd.inventory_data[i]->view_id;
 		else
 			WBUFW(buf,n*18+6)=sd.status.inventory[i].nameid;
-		WBUFB(buf,n*18+8)=sd.inventory_data[i]->type;
+		WBUFB(buf,n*18+8)=sd.inventory_data[i]->getType();
 		WBUFB(buf,n*18+9)=sd.status.inventory[i].identify;
 		WBUFW(buf,n*18+10)=sd.status.inventory[i].amount;
 		if (sd.inventory_data[i]->equip == 0x8000) {
@@ -2550,10 +2705,7 @@ int clif_itemlist(struct map_session_data &sd)
 				arrow=i;	// ついでに矢装備チェック
 		} else
 			WBUFW(buf,n*18+12)=0;
-		WBUFW(buf,n*18+14)=sd.status.inventory[i].card[0];
-		WBUFW(buf,n*18+16)=sd.status.inventory[i].card[1];
-		WBUFW(buf,n*18+18)=sd.status.inventory[i].card[2];
-		WBUFW(buf,n*18+20)=sd.status.inventory[i].card[3];
+		clif_cards_to_buffer( WBUFP(buf,n*18+14), sd.status.inventory[i]);
 		n++;
 	}
 	if (n) {
@@ -2572,7 +2724,7 @@ int clif_itemlist(struct map_session_data &sd)
  */
 int clif_equiplist(struct map_session_data &sd)
 {
-	int i,j,n,fd;
+	int i,n,fd;
 	unsigned char *buf;
 
 	fd=sd.fd;
@@ -2589,35 +2741,13 @@ int clif_equiplist(struct map_session_data &sd)
 			WBUFW(buf,n*20+6)=sd.inventory_data[i]->view_id;
 		else
 			WBUFW(buf,n*20+6)=sd.status.inventory[i].nameid;
-		WBUFB(buf,n*20+8)=(sd.inventory_data[i]->type == 7)? 4:sd.inventory_data[i]->type;
+		WBUFB(buf,n*20+8)=sd.inventory_data[i]->getType();
 		WBUFB(buf,n*20+9)=sd.status.inventory[i].identify;
 		WBUFW(buf,n*20+10)=pc_equippoint(sd,i);
 		WBUFW(buf,n*20+12)=sd.status.inventory[i].equip;
 		WBUFB(buf,n*20+14)=sd.status.inventory[i].attribute;
 		WBUFB(buf,n*20+15)=sd.status.inventory[i].refine;
-		if(sd.status.inventory[i].card[0]==0x00ff || sd.status.inventory[i].card[0]==0x00fe || sd.status.inventory[i].card[0]==0xff00) {
-			WBUFW(buf,n*20+16)=sd.status.inventory[i].card[0];
-			WBUFW(buf,n*20+18)=sd.status.inventory[i].card[1];
-			WBUFW(buf,n*20+20)=sd.status.inventory[i].card[2];
-			WBUFW(buf,n*20+22)=sd.status.inventory[i].card[3];
-		} else {
-			if(sd.status.inventory[i].card[0] > 0 && (j=itemdb_viewid(sd.status.inventory[i].card[0])) > 0)
-				WBUFW(buf,n*20+16)=j;
-			else
-				WBUFW(buf,n*20+16)=sd.status.inventory[i].card[0];
-			if(sd.status.inventory[i].card[1] > 0 && (j=itemdb_viewid(sd.status.inventory[i].card[1])) > 0)
-				WBUFW(buf,n*20+18)=j;
-			else
-				WBUFW(buf,n*20+18)=sd.status.inventory[i].card[1];
-			if(sd.status.inventory[i].card[2] > 0 && (j=itemdb_viewid(sd.status.inventory[i].card[2])) > 0)
-				WBUFW(buf,n*20+20)=j;
-			else
-				WBUFW(buf,n*20+20)=sd.status.inventory[i].card[2];
-			if(sd.status.inventory[i].card[3] > 0 && (j=itemdb_viewid(sd.status.inventory[i].card[3])) > 0)
-				WBUFW(buf,n*20+22)=j;
-			else
-				WBUFW(buf,n*20+22)=sd.status.inventory[i].card[3];
-		}
+		clif_cards_to_buffer( WBUFP(buf,n*20+16), sd.status.inventory[i]);
 		n++;
 	}
 	if(n){
@@ -2656,7 +2786,7 @@ int clif_storageitemlist(struct map_session_data &sd,struct pc_storage &stor)
 			WBUFW(buf,n*10+6)=id->view_id;
 		else
 			WBUFW(buf,n*10+6)=stor.storage[i].nameid;
-		WBUFB(buf,n*10+8)=id->type;;
+		WBUFB(buf,n*10+8)=id->getType();
 		WBUFB(buf,n*10+9)=stor.storage[i].identify;
 		WBUFW(buf,n*10+10)=stor.storage[i].amount;
 		WBUFW(buf,n*10+12)=0;
@@ -2680,14 +2810,11 @@ int clif_storageitemlist(struct map_session_data &sd,struct pc_storage &stor)
 			WBUFW(buf,n*18+6)=id->view_id;
 		else
 			WBUFW(buf,n*18+6)=stor.storage[i].nameid;
-		WBUFB(buf,n*18+8)=id->type;;
+		WBUFB(buf,n*18+8)=id->getType();
 		WBUFB(buf,n*18+9)=stor.storage[i].identify;
 		WBUFW(buf,n*18+10)=stor.storage[i].amount;
 		WBUFW(buf,n*18+12)=0;
-		WBUFW(buf,n*18+14)=stor.storage[i].card[0];
-		WBUFW(buf,n*18+16)=stor.storage[i].card[1];
-		WBUFW(buf,n*18+18)=stor.storage[i].card[2];
-		WBUFW(buf,n*18+20)=stor.storage[i].card[3];
+		clif_cards_to_buffer( WBUFP(buf,n*18+14), stor.storage[i]);
 		n++;
 	}
 	if(n){
@@ -2705,7 +2832,7 @@ int clif_storageitemlist(struct map_session_data &sd,struct pc_storage &stor)
 int clif_storageequiplist(struct map_session_data &sd,struct pc_storage &stor)
 {
 	struct item_data *id;
-	int i,j,n,fd;
+	int i,n,fd;
 	unsigned char *buf;
 
 	fd=sd.fd;
@@ -2725,35 +2852,13 @@ int clif_storageequiplist(struct map_session_data &sd,struct pc_storage &stor)
 			WBUFW(buf,n*20+6)=id->view_id;
 		else
 			WBUFW(buf,n*20+6)=stor.storage[i].nameid;
-		WBUFB(buf,n*20+8)=id->type;
+		WBUFB(buf,n*20+8)=id->getType();
 		WBUFB(buf,n*20+9)=stor.storage[i].identify;
 		WBUFW(buf,n*20+10)=id->equip;
 		WBUFW(buf,n*20+12)=stor.storage[i].equip;
 		WBUFB(buf,n*20+14)=stor.storage[i].attribute;
 		WBUFB(buf,n*20+15)=stor.storage[i].refine;
-		if(stor.storage[i].card[0]==0x00ff || stor.storage[i].card[0]==0x00fe || stor.storage[i].card[0]==0xff00) {
-			WBUFW(buf,n*20+16)=stor.storage[i].card[0];
-			WBUFW(buf,n*20+18)=stor.storage[i].card[1];
-			WBUFW(buf,n*20+20)=stor.storage[i].card[2];
-			WBUFW(buf,n*20+22)=stor.storage[i].card[3];
-		} else {
-			if(stor.storage[i].card[0] > 0 && (j=itemdb_viewid(stor.storage[i].card[0])) > 0)
-				WBUFW(buf,n*20+16)=j;
-			else
-				WBUFW(buf,n*20+16)=stor.storage[i].card[0];
-			if(stor.storage[i].card[1] > 0 && (j=itemdb_viewid(stor.storage[i].card[1])) > 0)
-				WBUFW(buf,n*20+18)=j;
-			else
-				WBUFW(buf,n*20+18)=stor.storage[i].card[1];
-			if(stor.storage[i].card[2] > 0 && (j=itemdb_viewid(stor.storage[i].card[2])) > 0)
-				WBUFW(buf,n*20+20)=j;
-			else
-				WBUFW(buf,n*20+20)=stor.storage[i].card[2];
-			if(stor.storage[i].card[3] > 0 && (j=itemdb_viewid(stor.storage[i].card[3])) > 0)
-				WBUFW(buf,n*20+22)=j;
-			else
-				WBUFW(buf,n*20+22)=stor.storage[i].card[3];
-		}
+		clif_cards_to_buffer( WBUFP(buf,n*20+16), stor.storage[i]);
 		n++;
 	}
 	if(n){
@@ -2793,7 +2898,7 @@ int clif_guildstorageitemlist(struct map_session_data &sd,struct guild_storage &
 			WBUFW(buf,n*10+6)=id->view_id;
 		else
 			WBUFW(buf,n*10+6)=stor.storage[i].nameid;
-		WBUFB(buf,n*10+8)=id->type;;
+		WBUFB(buf,n*10+8)=id->getType();
 		WBUFB(buf,n*10+9)=stor.storage[i].identify;
 		WBUFW(buf,n*10+10)=stor.storage[i].amount;
 		WBUFW(buf,n*10+12)=0;
@@ -2817,14 +2922,11 @@ int clif_guildstorageitemlist(struct map_session_data &sd,struct guild_storage &
 			WBUFW(buf,n*18+6)=id->view_id;
 		else
 			WBUFW(buf,n*18+6)=stor.storage[i].nameid;
-		WBUFB(buf,n*18+8)=id->type;;
+		WBUFB(buf,n*18+8)=id->getType();
 		WBUFB(buf,n*18+9)=stor.storage[i].identify;
 		WBUFW(buf,n*18+10)=stor.storage[i].amount;
 		WBUFW(buf,n*18+12)=0;
-		WBUFW(buf,n*18+14)=stor.storage[i].card[0];
-		WBUFW(buf,n*18+16)=stor.storage[i].card[1];
-		WBUFW(buf,n*18+18)=stor.storage[i].card[2];
-		WBUFW(buf,n*18+20)=stor.storage[i].card[3];
+		clif_cards_to_buffer( WBUFP(buf,n*18+14), stor.storage[i]);
 		n++;
 	}
 	if(n){
@@ -2842,7 +2944,7 @@ int clif_guildstorageitemlist(struct map_session_data &sd,struct guild_storage &
 int clif_guildstorageequiplist(struct map_session_data &sd,struct guild_storage &stor)
 {
 	struct item_data *id;
-	int i,j,n,fd;
+	int i,n,fd;
 	unsigned char *buf;
 
 	fd=sd.fd;
@@ -2863,35 +2965,14 @@ int clif_guildstorageequiplist(struct map_session_data &sd,struct guild_storage 
 			WBUFW(buf,n*20+6)=id->view_id;
 		else
 			WBUFW(buf,n*20+6)=stor.storage[i].nameid;
-		WBUFB(buf,n*20+8)=id->type;
+		WBUFB(buf,n*20+8)=id->getType();
 		WBUFB(buf,n*20+9)=stor.storage[i].identify;
 		WBUFW(buf,n*20+10)=id->equip;
 		WBUFW(buf,n*20+12)=stor.storage[i].equip;
 		WBUFB(buf,n*20+14)=stor.storage[i].attribute;
 		WBUFB(buf,n*20+15)=stor.storage[i].refine;
-		if(stor.storage[i].card[0]==0x00ff || stor.storage[i].card[0]==0x00fe || stor.storage[i].card[0]==0xff00) {
-			WBUFW(buf,n*20+16)=stor.storage[i].card[0];
-			WBUFW(buf,n*20+18)=stor.storage[i].card[1];
-			WBUFW(buf,n*20+20)=stor.storage[i].card[2];
-			WBUFW(buf,n*20+22)=stor.storage[i].card[3];
-		} else {
-			if(stor.storage[i].card[0] > 0 && (j=itemdb_viewid(stor.storage[i].card[0])) > 0)
-				WBUFW(buf,n*20+16)=j;
-			else
-				WBUFW(buf,n*20+16)=stor.storage[i].card[0];
-			if(stor.storage[i].card[1] > 0 && (j=itemdb_viewid(stor.storage[i].card[1])) > 0)
-				WBUFW(buf,n*20+18)=j;
-			else
-				WBUFW(buf,n*20+18)=stor.storage[i].card[1];
-			if(stor.storage[i].card[2] > 0 && (j=itemdb_viewid(stor.storage[i].card[2])) > 0)
-				WBUFW(buf,n*20+20)=j;
-			else
-				WBUFW(buf,n*20+20)=stor.storage[i].card[2];
-			if(stor.storage[i].card[3] > 0 && (j=itemdb_viewid(stor.storage[i].card[3])) > 0)
-				WBUFW(buf,n*20+22)=j;
-			else
-				WBUFW(buf,n*20+22)=stor.storage[i].card[3];
-		}
+		clif_cards_to_buffer( WBUFP(buf,n*20+16), stor.storage[i]);
+
 		n++;
 	}
 	if(n){
@@ -3787,7 +3868,6 @@ int clif_tradestart(struct map_session_data &sd,unsigned char type)
  */
 int clif_tradeadditem(struct map_session_data &sd, struct map_session_data &tsd,unsigned short index, uint32 amount)
 {
-	unsigned short j;
 	int fd=tsd.fd;
 	if( !session_isActive(fd) )
 		return 0;
@@ -3816,29 +3896,8 @@ int clif_tradeadditem(struct map_session_data &sd, struct map_session_data &tsd,
 		WFIFOB(fd,8) = sd.status.inventory[index].identify; //identify flag
 		WFIFOB(fd,9) = sd.status.inventory[index].attribute; // attribute
 		WFIFOB(fd,10)= sd.status.inventory[index].refine; //refine
-		if(sd.status.inventory[index].card[0]==0x00ff || sd.status.inventory[index].card[0]==0x00fe || sd.status.inventory[index].card[0]==0xff00) {
-			WFIFOW(fd,11)= sd.status.inventory[index].card[0]; //card (4w)
-			WFIFOW(fd,13)= sd.status.inventory[index].card[1]; //card (4w)
-			WFIFOW(fd,15)= sd.status.inventory[index].card[2]; //card (4w)
-			WFIFOW(fd,17)= sd.status.inventory[index].card[3]; //card (4w)
-		} else {
-			if(sd.status.inventory[index].card[0] > 0 && (j=itemdb_viewid(sd.status.inventory[index].card[0])) > 0)
-				WFIFOW(fd,11)= j;
-			else
-				WFIFOW(fd,11)= sd.status.inventory[index].card[0];
-			if(sd.status.inventory[index].card[1] > 0 && (j=itemdb_viewid(sd.status.inventory[index].card[1])) > 0)
-				WFIFOW(fd,13)= j;
-			else
-				WFIFOW(fd,13)= sd.status.inventory[index].card[1];
-			if(sd.status.inventory[index].card[2] > 0 && (j=itemdb_viewid(sd.status.inventory[index].card[2])) > 0)
-				WFIFOW(fd,15)= j;
-			else
-				WFIFOW(fd,15)= sd.status.inventory[index].card[2];
-			if(sd.status.inventory[index].card[3] > 0 && (j=itemdb_viewid(sd.status.inventory[index].card[3])) > 0)
-				WFIFOW(fd,17)= j;
-			else
-				WFIFOW(fd,17)= sd.status.inventory[index].card[3];
-		}
+		clif_cards_to_buffer( WFIFOP(fd,11), sd.status.inventory[index]);
+
 	}
 	WFIFOSET(fd,packet_len_table[0xe9]);
 
@@ -3937,7 +3996,7 @@ int clif_updatestorageamount(struct map_session_data &sd,struct pc_storage &stor
  */
 int clif_storageitemadded(struct map_session_data &sd,struct pc_storage &stor,unsigned short index,uint32 amount)
 {
-	int view,fd,j;
+	int view,fd;
 
 	fd=sd.fd;
 	if( !session_isActive(fd) )
@@ -3953,29 +4012,9 @@ int clif_storageitemadded(struct map_session_data &sd,struct pc_storage &stor,un
 	WFIFOB(fd,10)=stor.storage[index].identify; //identify flag
 	WFIFOB(fd,11)=stor.storage[index].attribute; // attribute
 	WFIFOB(fd,12)=stor.storage[index].refine; //refine
-	if(stor.storage[index].card[0]==0x00ff || stor.storage[index].card[0]==0x00fe || stor.storage[index].card[0]==0xff00) {
-		WFIFOW(fd,13)=stor.storage[index].card[0]; //card (4w)
-		WFIFOW(fd,15)=stor.storage[index].card[1]; //card (4w)
-		WFIFOW(fd,17)=stor.storage[index].card[2]; //card (4w)
-		WFIFOW(fd,19)=stor.storage[index].card[3]; //card (4w)
-	} else {
-		if(stor.storage[index].card[0] > 0 && (j=itemdb_viewid(stor.storage[index].card[0])) > 0)
-			WFIFOW(fd,13)= j;
-		else
-			WFIFOW(fd,13)= stor.storage[index].card[0];
-		if(stor.storage[index].card[1] > 0 && (j=itemdb_viewid(stor.storage[index].card[1])) > 0)
-			WFIFOW(fd,15)= j;
-		else
-			WFIFOW(fd,15)= stor.storage[index].card[1];
-		if(stor.storage[index].card[2] > 0 && (j=itemdb_viewid(stor.storage[index].card[2])) > 0)
-			WFIFOW(fd,17)= j;
-		else
-			WFIFOW(fd,17)= stor.storage[index].card[2];
-		if(stor.storage[index].card[3] > 0 && (j=itemdb_viewid(stor.storage[index].card[3])) > 0)
-			WFIFOW(fd,19)= j;
-		else
-			WFIFOW(fd,19)= stor.storage[index].card[3];
-	}
+
+	clif_cards_to_buffer( WFIFOP(fd,13), stor.storage[index] );
+
 	WFIFOSET(fd,packet_len_table[0xf4]);
 
 	return 0;
@@ -4005,7 +4044,7 @@ int clif_updateguildstorageamount(struct map_session_data &sd,struct guild_stora
  */
 int clif_guildstorageitemadded(struct map_session_data &sd,struct guild_storage &stor,unsigned short index,uint32 amount)
 {
-	int view,fd,j;
+	int view,fd;
 
 	fd=sd.fd;
 	if( !session_isActive(fd) )
@@ -4021,29 +4060,9 @@ int clif_guildstorageitemadded(struct map_session_data &sd,struct guild_storage 
 	WFIFOB(fd,10)=stor.storage[index].identify; //identify flag
 	WFIFOB(fd,11)=stor.storage[index].attribute; // attribute
 	WFIFOB(fd,12)=stor.storage[index].refine; //refine
-	if(stor.storage[index].card[0]==0x00ff || stor.storage[index].card[0]==0x00fe || stor.storage[index].card[0]==0xff00) {
-		WFIFOW(fd,13)=stor.storage[index].card[0]; //card (4w)
-		WFIFOW(fd,15)=stor.storage[index].card[1]; //card (4w)
-		WFIFOW(fd,17)=stor.storage[index].card[2]; //card (4w)
-		WFIFOW(fd,19)=stor.storage[index].card[3]; //card (4w)
-	} else {
-		if(stor.storage[index].card[0] > 0 && (j=itemdb_viewid(stor.storage[index].card[0])) > 0)
-			WFIFOW(fd,13)= j;
-		else
-			WFIFOW(fd,13)= stor.storage[index].card[0];
-		if(stor.storage[index].card[1] > 0 && (j=itemdb_viewid(stor.storage[index].card[1])) > 0)
-			WFIFOW(fd,15)= j;
-		else
-			WFIFOW(fd,15)= stor.storage[index].card[1];
-		if(stor.storage[index].card[2] > 0 && (j=itemdb_viewid(stor.storage[index].card[2])) > 0)
-			WFIFOW(fd,17)= j;
-		else
-			WFIFOW(fd,17)= stor.storage[index].card[2];
-		if(stor.storage[index].card[3] > 0 && (j=itemdb_viewid(stor.storage[index].card[3])) > 0)
-			WFIFOW(fd,19)= j;
-		else
-			WFIFOW(fd,19)= stor.storage[index].card[3];
-	}
+
+	clif_cards_to_buffer( WFIFOP(fd,13), stor.storage[index] );
+
 	WFIFOSET(fd,packet_len_table[0xf4]);
 
 	return 0;
@@ -4981,7 +5000,8 @@ int clif_skillinfo(struct map_session_data &sd, unsigned short skillid, short ty
 	}
 	WFIFOW(fd,12)= range;
 
-	memset(WFIFOP(fd,14),0,24);
+	memset(WFIFOP(fd,14), 0, 24);
+	//safestrcpy((char*)WFIFOP(fd,14), skill_get_name(id), 24);
 	inf2 = skill_get_inf2(id);
 	if( ((!(inf2&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) && !(inf2&INF2_WEDDING_SKILL)) ||
 		(battle_config.gm_allskill && pc_isGM(sd) >= battle_config.gm_allskill) )
@@ -5490,54 +5510,24 @@ int clif_displaymessage(int fd, const char* mes)
  */
 int clif_GMmessage(struct block_list *bl, const char* mes, size_t len, int flag)
 {
-	if(mes)
+	if(mes && *mes && len)
 	{
 		unsigned char buf[512];
-		size_t lp;
-		//Altered by Trancid to support more colors.
-		switch ((flag & 0xf0)>>4)
-		{
-		case 1:	//Blue
-			WBUFW(buf,0) = 0x9a;
-			lp = 8;
-			break;
-		case 2:  //Blueish Green
-			WBUFW(buf,0) = 0x17f;
-			lp = 4;
-			break;
-		case 3:  //White
-			WBUFW(buf,0) = 0x8d;
-			lp = 8;
-			break;
-		case 4: //Pink
-			WBUFW(buf,0) = 0x109;
-			lp = 8;
-			break;
-		case 5:  //Lightyellow? Doesn't work yet because this is a self-guild message.
-			WBUFW(buf,0) = 0x17f;
-			lp = 8;
-			break;
-		case 6:  //White above head and green in chat, incorrect as it's a self-message.
-			WBUFW(buf,0) = 0x08e;
-			lp = 4;
-			break;
-
-		default:	//Yellow (normal announce color)
-			WBUFW(buf,0) = 0x9a;
-			lp = 4;
-			break;
-		}
+		size_t lp = (flag & 0x10) ? 8 : 4;
 		if( len > 512-lp ) len = 512-lp;
+		
+		WBUFW(buf,0) = 0x9a;
 		WBUFW(buf,2) = len + lp;
 		WBUFL(buf,4) = 0x65756c62;
 		memcpy(WBUFP(buf,lp), mes, len);
-			buf[511] = 0; //force EOS
+		buf[511] = 0; //force EOS
 		flag &= 0x07;
-		clif_send(buf, len + lp, bl,
-	          (flag == 1) ? ALL_SAMEMAP :
-	          (flag == 2) ? AREA :
-	          (flag == 3) ? SELF :
-	          ALL_CLIENT);
+		flag =	(flag == 1) ? ALL_SAMEMAP : 
+				(flag == 2) ? AREA :
+				(flag == 3) ? SELF :
+				ALL_CLIENT;
+		if( flag==ALL_CLIENT || bl )
+			clif_send(buf, len + lp, bl,flag);
 	}
 	return 0;
 }
@@ -5922,12 +5912,12 @@ int clif_repaireffect(struct map_session_data &sd, unsigned short nameid, unsign
 }
 
 /*==========================================
- * Weapon Refining [Celest]
+ * Weapon Refining - Taken from jAthena
  *------------------------------------------
  */
 int clif_item_refine_list(struct map_session_data &sd)
 {
-	int i,c;
+/*	int i,c;
 	int fd=sd.fd;
 	if( !session_isActive(fd) )
 		return 0;
@@ -5944,8 +5934,42 @@ int clif_item_refine_list(struct map_session_data &sd)
 		WFIFOSET(fd,WFIFOW(fd,2));
 	}
 	return 0;
-}
+*/
+	int i,c;
+	int fd=sd.fd;
+	int skilllv;
+	int wlv;
+	int refine_item[5];
 
+	skilllv = pc_checkskill(sd,WS_WEAPONREFINE);
+
+	refine_item[0] = -1;
+	refine_item[1] = pc_search_inventory(sd,1010);
+	refine_item[2] = pc_search_inventory(sd,1011);
+	refine_item[3] = refine_item[4] = pc_search_inventory(sd,984);
+
+	WFIFOW(fd,0)=0x221;
+	for(i=c=0;i<MAX_INVENTORY;i++)
+	{
+		if( sd.status.inventory[i].nameid > 0 && sd.status.inventory[i].refine < skilllv &&
+			sd.status.inventory[i].identify==1 && (wlv=itemdb_wlv(sd.status.inventory[i].nameid)) >=1 &&
+			refine_item[wlv]!=-1 && !(sd.status.inventory[i].equip&0x0022))
+		{
+			WFIFOW(fd,c*13+ 4)=i+2;
+			WFIFOW(fd,c*13+ 6)=sd.status.inventory[i].nameid;
+			WFIFOW(fd,c*13+ 8)=0; //TODO: Wonder what are these for? Perhaps ID of weapon's crafter if any?
+			WFIFOW(fd,c*13+10)=0;
+			WFIFOB(fd,c*13+12)=c;
+			c++;
+		}
+	}
+	WFIFOW(fd,2)=c*13+4;
+
+	WFIFOSET(fd,WFIFOW(fd,2));
+	sd.state.produce_flag = 1;
+
+	return 0;
+}
 /*==========================================
  * アイテムによる一時的なスキル効果
  *------------------------------------------
@@ -5978,7 +6002,7 @@ int clif_item_skill(struct map_session_data &sd,unsigned short skillid,unsigned 
  */
 int clif_cart_additem(struct map_session_data &sd,unsigned short n,uint32 amount,unsigned char fail)
 {
-	int view,j,fd;
+	int view,fd;
 	unsigned char *buf;
 
 	fd=sd.fd;
@@ -5999,29 +6023,9 @@ int clif_cart_additem(struct map_session_data &sd,unsigned short n,uint32 amount
 	WBUFB(buf,10)=sd.status.cart[n].identify;
 	WBUFB(buf,11)=sd.status.cart[n].attribute;
 	WBUFB(buf,12)=sd.status.cart[n].refine;
-	if(sd.status.cart[n].card[0]==0x00ff || sd.status.cart[n].card[0]==0x00fe || sd.status.cart[n].card[0]==0xff00) {
-		WBUFW(buf,13)=sd.status.cart[n].card[0];
-		WBUFW(buf,15)=sd.status.cart[n].card[1];
-		WBUFW(buf,17)=sd.status.cart[n].card[2];
-		WBUFW(buf,19)=sd.status.cart[n].card[3];
-	} else {
-		if(sd.status.cart[n].card[0] > 0 && (j=itemdb_viewid(sd.status.cart[n].card[0])) > 0)
-			WBUFW(buf,13)= j;
-		else
-			WBUFW(buf,13)= sd.status.cart[n].card[0];
-		if(sd.status.cart[n].card[1] > 0 && (j=itemdb_viewid(sd.status.cart[n].card[1])) > 0)
-			WBUFW(buf,15)= j;
-		else
-			WBUFW(buf,15)= sd.status.cart[n].card[1];
-		if(sd.status.cart[n].card[2] > 0 && (j=itemdb_viewid(sd.status.cart[n].card[2])) > 0)
-			WBUFW(buf,17)= j;
-		else
-			WBUFW(buf,17)= sd.status.cart[n].card[2];
-		if(sd.status.cart[n].card[3] > 0 && (j=itemdb_viewid(sd.status.cart[n].card[3])) > 0)
-			WBUFW(buf,19)= j;
-		else
-			WBUFW(buf,19)= sd.status.cart[n].card[3];
-	}
+
+	clif_cards_to_buffer( WBUFP(buf,13), sd.status.cart[n] );
+
 	WFIFOSET(fd,packet_len_table[0x124]);
 	return 0;
 }
@@ -6073,7 +6077,7 @@ int clif_cart_itemlist(struct map_session_data &sd)
 			WBUFW(buf,n*10+6)=id->view_id;
 		else
 			WBUFW(buf,n*10+6)=sd.status.cart[i].nameid;
-		WBUFB(buf,n*10+8)=id->type;
+		WBUFB(buf,n*10+8)=id->getType();
 		WBUFB(buf,n*10+9)=sd.status.cart[i].identify;
 		WBUFW(buf,n*10+10)=sd.status.cart[i].amount;
 		WBUFW(buf,n*10+12)=0;
@@ -6096,14 +6100,11 @@ int clif_cart_itemlist(struct map_session_data &sd)
 			WBUFW(buf,n*18+6)=id->view_id;
 		else
 			WBUFW(buf,n*18+6)=sd.status.cart[i].nameid;
-		WBUFB(buf,n*18+8)=id->type;
+		WBUFB(buf,n*18+8)=id->getType();
 		WBUFB(buf,n*18+9)=sd.status.cart[i].identify;
 		WBUFW(buf,n*18+10)=sd.status.cart[i].amount;
 		WBUFW(buf,n*18+12)=0;
-		WBUFW(buf,n*18+14)=sd.status.cart[i].card[0];
-		WBUFW(buf,n*18+16)=sd.status.cart[i].card[1];
-		WBUFW(buf,n*18+18)=sd.status.cart[i].card[2];
-		WBUFW(buf,n*18+20)=sd.status.cart[i].card[3];
+		clif_cards_to_buffer( WBUFP(buf,n*18+14), sd.status.cart[i] );
 		n++;
 	}
 	if(n){
@@ -6121,7 +6122,7 @@ int clif_cart_itemlist(struct map_session_data &sd)
 int clif_cart_equiplist(struct map_session_data &sd)
 {
 	struct item_data *id;
-	int i,j,n,fd;
+	int i,n,fd;
 	unsigned char *buf;
 
 	fd=sd.fd;
@@ -6141,35 +6142,13 @@ int clif_cart_equiplist(struct map_session_data &sd)
 			WBUFW(buf,n*20+6)=id->view_id;
 		else
 			WBUFW(buf,n*20+6)=sd.status.cart[i].nameid;
-		WBUFB(buf,n*20+8)=id->type;
+		WBUFB(buf,n*20+8)=id->getType();
 		WBUFB(buf,n*20+9)=sd.status.cart[i].identify;
 		WBUFW(buf,n*20+10)=id->equip;
 		WBUFW(buf,n*20+12)=sd.status.cart[i].equip;
 		WBUFB(buf,n*20+14)=sd.status.cart[i].attribute;
 		WBUFB(buf,n*20+15)=sd.status.cart[i].refine;
-		if(sd.status.cart[i].card[0]==0x00ff || sd.status.cart[i].card[0]==0x00fe || sd.status.cart[i].card[0]==0xff00) {
-			WBUFW(buf,n*20+16)=sd.status.cart[i].card[0];
-			WBUFW(buf,n*20+18)=sd.status.cart[i].card[1];
-			WBUFW(buf,n*20+20)=sd.status.cart[i].card[2];
-			WBUFW(buf,n*20+22)=sd.status.cart[i].card[3];
-		} else {
-			if(sd.status.cart[i].card[0] > 0 && (j=itemdb_viewid(sd.status.cart[i].card[0])) > 0)
-				WBUFW(buf,n*20+16)= j;
-			else
-				WBUFW(buf,n*20+16)= sd.status.cart[i].card[0];
-			if(sd.status.cart[i].card[1] > 0 && (j=itemdb_viewid(sd.status.cart[i].card[1])) > 0)
-				WBUFW(buf,n*20+18)= j;
-			else
-				WBUFW(buf,n*20+18)= sd.status.cart[i].card[1];
-			if(sd.status.cart[i].card[2] > 0 && (j=itemdb_viewid(sd.status.cart[i].card[2])) > 0)
-				WBUFW(buf,n*20+20)= j;
-			else
-				WBUFW(buf,n*20+20)= sd.status.cart[i].card[2];
-			if(sd.status.cart[i].card[3] > 0 && (j=itemdb_viewid(sd.status.cart[i].card[3])) > 0)
-				WBUFW(buf,n*20+22)= j;
-			else
-				WBUFW(buf,n*20+22)= sd.status.cart[i].card[3];
-		}
+		clif_cards_to_buffer( WBUFP(buf,n*20+16), sd.status.cart[i] );
 		n++;
 	}
 	if(n){
@@ -6242,7 +6221,7 @@ int clif_closevendingboard(struct block_list &bl,int fd)
 int clif_vendinglist(struct map_session_data &sd,uint32 id,struct vending vending[])
 {
 	struct item_data *data;
-	int i,j,n,index,fd;
+	int i,n,index,fd;
 	struct map_session_data *vsd;
 	unsigned char *buf;
 
@@ -6264,7 +6243,7 @@ int clif_vendinglist(struct map_session_data &sd,uint32 id,struct vending vendin
 		if(vsd->status.cart[index].nameid <= 0 || vsd->status.cart[index].amount <= 0)
 			continue;
 		data = itemdb_search(vsd->status.cart[index].nameid);
-		WBUFB(buf,16+n*22)=data->type;
+		WBUFB(buf,16+n*22)=data->getType();
 		if(data->view_id > 0)
 			WBUFW(buf,17+n*22)=data->view_id;
 		else
@@ -6272,31 +6251,7 @@ int clif_vendinglist(struct map_session_data &sd,uint32 id,struct vending vendin
 		WBUFB(buf,19+n*22)=vsd->status.cart[index].identify;
 		WBUFB(buf,20+n*22)=vsd->status.cart[index].attribute;
 		WBUFB(buf,21+n*22)=vsd->status.cart[index].refine;
-		if(vsd->status.cart[index].card[0]==0x00ff || vsd->status.cart[index].card[0]==0x00fe || vsd->status.cart[index].card[0]==0xff00) {
-			WBUFW(buf,22+n*22)=(data->type==7)?0:vsd->status.cart[index].card[0];
-			WBUFW(buf,24+n*22)=(data->type==7)?0:vsd->status.cart[index].card[1];
-			WBUFW(buf,26+n*22)=(data->type==7)?0:vsd->status.cart[index].card[2];
-			WBUFW(buf,28+n*22)=vsd->status.cart[index].card[3];
-
-
-		} else {
-			if(vsd->status.cart[index].card[0] > 0 && (j=itemdb_viewid(vsd->status.cart[index].card[0])) > 0)
-				WBUFW(buf,22+n*22)= j;
-			else
-				WBUFW(buf,22+n*22)= vsd->status.cart[index].card[0];
-			if(vsd->status.cart[index].card[1] > 0 && (j=itemdb_viewid(vsd->status.cart[index].card[1])) > 0)
-				WBUFW(buf,24+n*22)= j;
-			else
-				WBUFW(buf,24+n*22)= vsd->status.cart[index].card[1];
-			if(vsd->status.cart[index].card[2] > 0 && (j=itemdb_viewid(vsd->status.cart[index].card[2])) > 0)
-				WBUFW(buf,26+n*22)= j;
-			else
-				WBUFW(buf,26+n*22)= vsd->status.cart[index].card[2];
-			if(vsd->status.cart[index].card[3] > 0 && (j=itemdb_viewid(vsd->status.cart[index].card[3])) > 0)
-				WBUFW(buf,28+n*22)= j;
-			else
-				WBUFW(buf,28+n*22)= vsd->status.cart[index].card[3];
-		}
+		clif_cards_to_buffer( WBUFP(buf,n*22+22), vsd->status.cart[index] );
 		n++;
 	}
 	if(n > 0){
@@ -6333,7 +6288,7 @@ int clif_buyvending(struct map_session_data &sd,unsigned short index,unsigned sh
 int clif_openvending(struct map_session_data &sd,uint32 id,struct vending vending[])
 {
 	struct item_data *data;
-	int i,j,n,index,fd;
+	int i,n,index,fd;
 	unsigned char *buf;
 
 	fd=sd.fd;
@@ -6353,7 +6308,7 @@ int clif_openvending(struct map_session_data &sd,uint32 id,struct vending vendin
 			sd.status.cart[index].attribute==1) // Prevent unidentified and broken items from being sold [Valaris]
 			continue;
 		data = itemdb_search(sd.status.cart[index].nameid);
-		WBUFB(buf,16+n*22)=data->type;
+		WBUFB(buf,16+n*22)=data->getType();
 		if(data->view_id > 0)
 			WBUFW(buf,17+n*22)=data->view_id;
 		else
@@ -6361,29 +6316,7 @@ int clif_openvending(struct map_session_data &sd,uint32 id,struct vending vendin
 		WBUFB(buf,19+n*22)=sd.status.cart[index].identify;
 		WBUFB(buf,20+n*22)=sd.status.cart[index].attribute;
 		WBUFB(buf,21+n*22)=sd.status.cart[index].refine;
-		if(sd.status.cart[index].card[0]==0x00ff || sd.status.cart[index].card[0]==0x00fe || sd.status.cart[index].card[0]==0xff00) {
-			WBUFW(buf,22+n*22)=(data->type==7)?0:sd.status.cart[index].card[0];
-			WBUFW(buf,24+n*22)=(data->type==7)?0:sd.status.cart[index].card[1];
-			WBUFW(buf,26+n*22)=(data->type==7)?0:sd.status.cart[index].card[2];
-			WBUFW(buf,28+n*22)=sd.status.cart[index].card[3];
-		} else {
-			if(sd.status.cart[index].card[0] > 0 && (j=itemdb_viewid(sd.status.cart[index].card[0])) > 0)
-				WBUFW(buf,22+n*22)= j;
-			else
-				WBUFW(buf,22+n*22)= sd.status.cart[index].card[0];
-			if(sd.status.cart[index].card[1] > 0 && (j=itemdb_viewid(sd.status.cart[index].card[1])) > 0)
-				WBUFW(buf,24+n*22)= j;
-			else
-				WBUFW(buf,24+n*22)= sd.status.cart[index].card[1];
-			if(sd.status.cart[index].card[2] > 0 && (j=itemdb_viewid(sd.status.cart[index].card[2])) > 0)
-				WBUFW(buf,26+n*22)= j;
-			else
-				WBUFW(buf,26+n*22)= sd.status.cart[index].card[2];
-			if(sd.status.cart[index].card[3] > 0 && (j=itemdb_viewid(sd.status.cart[index].card[3])) > 0)
-				WBUFW(buf,28+n*22)= j;
-			else
-				WBUFW(buf,28+n*22)= sd.status.cart[index].card[3];
-		}
+		clif_cards_to_buffer( WBUFP(buf,n*22+22), sd.status.cart[index] );
 		n++;
 	}
 	if(n > 0){
@@ -6998,6 +6931,23 @@ int clif_devotion(struct map_session_data &sd,uint32 target_id)
 	WBUFB(buf,27)=0;
 
 	return clif_send(buf,packet_len_table[0x1cf],&sd.bl,AREA);
+}
+int clif_marionette(struct block_list &src, struct block_list *target)
+{
+	unsigned char buf[64];
+	int n;
+
+	WBUFW(buf,0)=0x1cf;
+	WBUFL(buf,2)=src.id;
+	for(n=0;n<5;n++)
+		WBUFL(buf,6+4*n)=0;
+	if (target) //The target goes on the second slot.
+		WBUFL(buf,6+4) = target->id;
+	WBUFB(buf,26)=8;
+	WBUFB(buf,27)=0;
+
+	clif_send(buf,packet_len_table[0x1cf],&src,AREA);
+	return 0;
 }
 
 /*==========================================
@@ -8619,7 +8569,7 @@ int clif_parse_WalkToXY(int fd, struct map_session_data &sd)
 		return 0;
 
 	// ステータス異常やハイディング中(トンネルドライブ無)で動けない
-	if ((sd.opt1 > 0 && sd.opt1 != 6) ||
+	if( (sd.opt1 > 0 && sd.opt1 != 6) ||
 	     sd.sc_data[SC_ANKLE].timer !=-1 || //アンクルスネア
 	     sd.sc_data[SC_AUTOCOUNTER].timer !=-1 || //オートカウンター
 	     sd.sc_data[SC_TRICKDEAD].timer !=-1 || //死んだふり
@@ -8627,8 +8577,8 @@ int clif_parse_WalkToXY(int fd, struct map_session_data &sd)
 	     sd.sc_data[SC_SPIDERWEB].timer !=-1 || //スパイダーウェッブ
 	     (sd.sc_data[SC_DANCING].timer !=-1 && sd.sc_data[SC_DANCING].val4.num) || //合奏スキル演奏中は動けない
 		 (sd.sc_data[SC_GOSPEL].timer !=-1 && sd.sc_data[SC_GOSPEL].val4.num == BCT_SELF) ||	// cannot move while gospel is in effect
-		 (sd.sc_data[SC_DANCING].timer !=-1 && sd.sc_data[SC_DANCING].val1.num == CG_HERMODE) || //cannot move while Hermod is active.
-		 sd.sc_data[SC_CONFUSION].timer !=-1)
+		 (sd.sc_data[SC_DANCING].timer !=-1 && sd.sc_data[SC_DANCING].val1.num == CG_HERMODE)  //cannot move while Hermod is active.
+		)
 		return 0;
 	if ((sd.status.option & 2) && pc_checkskill(sd, RG_TUNNELDRIVE) <= 0)
 		return 0;
@@ -9301,7 +9251,7 @@ int clif_parse_UseItem(int fd, struct map_session_data &sd)
  */
 int clif_parse_EquipItem(int fd,struct map_session_data &sd)
 {
-	int index;
+	unsigned short index;
 
 	if( !session_isActive(fd) )
 		return 0;
@@ -9310,12 +9260,12 @@ int clif_parse_EquipItem(int fd,struct map_session_data &sd)
 		return clif_clearchar_area(sd.bl, 1);
 	}
 	index = RFIFOW(fd,2)-2;
-	if(sd.ScriptEngine.isRunning() || sd.vender_id != 0)
+	if( index >= MAX_INVENTORY || sd.ScriptEngine.isRunning() || sd.vender_id != 0)
 		return 0;
 	if(sd.sc_data && ( sd.sc_data[SC_BLADESTOP].timer!=-1 || sd.sc_data[SC_BERSERK].timer!=-1 )) 
 		return 0;
 
-	if(sd.status.inventory[index].identify != 1) {		// 未鑑定
+	if(	sd.status.inventory[index].identify != 1) {		// 未鑑定
 		return clif_equipitemack(sd,index,0,0);	// fail
 	}
 	//ペット用装備であるかないか
@@ -9914,6 +9864,13 @@ int clif_parse_RepairItem(int fd, struct map_session_data &sd)
 	return pc_item_repair(sd, RFIFOW(fd,2));
 }
 
+int clif_parse_WeaponRefine(int fd, struct map_session_data &sd)
+{
+	if( !session_isActive(fd) )
+		return 0;
+
+	return pc_item_refine(sd, RFIFOW(fd, packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[0])-2);
+}
 /*==========================================
  *
  *------------------------------------------
@@ -11384,12 +11341,33 @@ void clif_parse_Taekwon(int fd,struct map_session_data &sd)
 	int i;
 
 	WFIFOW(fd,0) = 0x226;
-	for (i = 0; i < 10; i++) {
-		memcpy(WFIFOP(fd, 2 + 24 * i), "Unknown", 24);
-		WFIFOL(fd, 242 + i * 4) = 0;
+	for (i=0; i<10; i++) {
+		memcpy(WFIFOP(fd, 2+24*i), "Unknown", 24);
+		WFIFOL(fd, 242+i*4) = 0;
 	}
 	WFIFOSET(fd, packet_db[sd.packet_ver][0x226].len);
 }
+
+/*==========================================
+ * PK Ranking table?
+ *------------------------------------------
+ */
+int clif_parse_RankingPk(int fd, struct map_session_data &sd)
+{
+	size_t i;
+
+	if( !session_isActive(fd) )
+		return 0;
+
+	WFIFOW(fd,0) = 0x238;
+	for(i=0; i<10; i++){
+		memcpy(WFIFOP(fd,2+24*i), "Unknown", 24);
+		WFIFOL(fd,i*4+242) = 0;
+	}
+	WFIFOSET(fd, packet_db[sd.packet_ver][0x238].len);
+	return 0;
+}
+
 
 /*==========================================
  * パケットデバッグ
@@ -12149,7 +12127,7 @@ int packetdb_readdb(void)
 	packet_db[0][0x0234] = packet_cmd(-1);
 	packet_db[0][0x0235] = packet_cmd(-1);
 	packet_db[0][0x0236] = packet_cmd(10);
-	packet_db[0][0x0237] = packet_cmd(2);
+	packet_db[0][0x0237] = packet_cmd(2, clif_parse_RankingPk, 0);	// shows top 10 slayers in the server
 	packet_db[0][0x0238] = packet_cmd(282);
 	packet_db[0][0x0239] = packet_cmd(11);
 	packet_db[0][0x0240] = packet_cmd(-1);
@@ -12372,7 +12350,7 @@ int packetdb_readdb(void)
 	packet_db[15][0x021d] = packet_cmd(6);
 	packet_db[15][0x021e] = packet_cmd(6);
 	packet_db[15][0x0221] = packet_cmd(-1);
-	packet_db[15][0x0222] = packet_cmd(6);
+	packet_db[15][0x0222] = packet_cmd(6,clif_parse_WeaponRefine,2);
 	packet_db[15][0x0223] = packet_cmd(8);
 	///////////////////////////////////////////////////////////////////////////
 	// packet version 16 (2005-01-10)
@@ -12523,6 +12501,7 @@ int packetdb_readdb(void)
 		{clif_parse_SkillUp,"skillup"},
 		{clif_parse_UseSkillToId,"useskilltoid"},
 		{clif_parse_UseSkillToPos,"useskilltopos"},
+//		{clif_parse_UseSkillToPosMoreInfo,"useskilltoposinfo"},
 		{clif_parse_UseSkillMap,"useskillmap"},
 		{clif_parse_RequestMemo,"requestmemo"},
 		{clif_parse_ProduceMix,"producemix"},
@@ -12536,6 +12515,8 @@ int packetdb_readdb(void)
 		{clif_parse_AutoSpell,"autospell"},
 		{clif_parse_UseCard,"usecard"},
 		{clif_parse_InsertCard,"insertcard"},
+		{clif_parse_RepairItem,"repairitem"},
+		{clif_parse_WeaponRefine,"weaponrefine"},
 		{clif_parse_SolveCharName,"solvecharname"},
 		{clif_parse_ResetChar,"resetchar"},
 		{clif_parse_LGMmessage,"lgmmessage"},
@@ -12597,6 +12578,7 @@ int packetdb_readdb(void)
 		{clif_parse_Shift,"shift"},
 		{clif_parse_Blacksmith,"blacksmith"},
 		{clif_parse_Alchemist,"alchemist"},
+		{clif_parse_RankingPk,"rankingpk"},
 		{clif_parse_debug,"debug"},
 
 		{NULL,NULL}

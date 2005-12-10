@@ -60,7 +60,6 @@ bool pc_setpos(struct map_session_data &sd,const char *mapname_org,unsigned shor
 int pc_setsavepoint(struct map_session_data &sd,const char *mapname,unsigned short x,unsigned short y);
 int pc_randomwarp(struct map_session_data &sd,int type);
 int pc_memo(struct map_session_data &sd,int i);
-int pc_randomwalk(struct map_session_data &sd,unsigned long tick);
 
 int pc_checkadditem(struct map_session_data &sd,unsigned short nameid,unsigned short amount);
 size_t pc_inventoryblank(struct map_session_data &sd);

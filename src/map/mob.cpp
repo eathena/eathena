@@ -415,8 +415,9 @@ int mob_get_equip(int class_) // mob equip [Valaris]
  */
 int mob_can_move(struct mob_data &md)
 {
-	if( DIFF_TICK(md.canmove_tick,gettick())>0  || (md.opt1 > 0 && md.opt1 != 6) || md.option&2)
+	if( DIFF_TICK(md.canmove_tick,gettick())>0  || md.skilltimer != -1 || (md.opt1 > 0 && md.opt1 != 6) || md.option&2)
 		return 0;
+
 	// アンクル中で動けないとか
 	if( md.sc_data[SC_ANKLE].timer != -1 || //アンクルスネア
 		md.sc_data[SC_AUTOCOUNTER].timer != -1 || //オートカウンター
@@ -424,7 +425,6 @@ int mob_can_move(struct mob_data &md)
 		md.sc_data[SC_SPIDERWEB].timer != -1  //スパイダーウェッブ
 		)
 		return 0;
-
 	return 1;
 }
 
@@ -844,6 +844,10 @@ int mob_walktoxy(struct mob_data &md,int x,int y,int easy)
 	md.state.walk_easy = easy;
 	md.to_x=x;
 	md.to_y=y;
+
+	if (md.sc_data[SC_CONFUSION].timer != -1) //Randomize target direction.
+		map_random_dir(md.bl, md.to_x, md.to_y);
+
 	if(md.state.state == MS_WALK)
 		md.state.change_walk_target=1;
 	else
@@ -1076,7 +1080,7 @@ int mob_stop_walking(struct mob_data &md,int type)
 		int dx=0,dy=0;
 
 		md.walkpath.path_len=0;
-		if(type&4){
+		if(type&0x02 && mob_can_move(md)){
 			dx=md.to_x-md.bl.x;
 			if(dx<0)
 				dx=-1;
@@ -1680,8 +1684,8 @@ int mob_randomwalk(struct mob_data &md,unsigned long tick)
 	int speed=status_get_speed(&md.bl);
 	if( DIFF_TICK(md.next_walktime,tick)<0 )
 	{
+		static const signed char mask[8][2] = {{0,1},{-1,1},{-1,0},{-1,-1},{0,-1},{1,-1},{1,0},{1,1}};
 		int i,x,y,c,d=12-md.move_fail_count;
-		int mask[8][2] = {{0,1},{-1,1},{-1,0},{-1,-1},{0,-1},{1,-1},{1,0},{1,1}};
 		if(d<5) d=5;
 		for(i=0;i<retrycount;i++){	// Search of a movable place
 			int r=rand();
@@ -3361,10 +3365,12 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 		if(pt[i].p) party_exp_share(*pt[i].p,md.bl.m,pt[i].base_exp,pt[i].job_exp,pt[i].zeny);
 
 	// item drop
-	if (!(type&1)) {
+	if (!(type&1))
+	{
 		int log_item[10] = {0}; //8 -> 10 Lupus
 		int drop_ore = -1, drop_items = 0; //slot N for DROP LOG, number of dropped items
-		for (i = 0; i < 10; i++) { // 8 -> 10 Lupus
+		for (i = 0; i < 10; i++)
+		{ // 8 -> 10 Lupus
 			struct delay_item_drop *ditem;
 			int drop_rate;
 			
@@ -3431,8 +3437,8 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 			struct delay_item_drop *ditem;
 			ditem=(struct delay_item_drop *)aCalloc(1,sizeof(struct delay_item_drop));
 			ditem->nameid = itemdb_searchrandomid(6);
-			if (drop_ore<0) i=8; //we have only 10 slots in LOG, there's a check to not overflow (9th item usually a card, so we use 8th slot)
-			log_item[i] = ditem->nameid; //it's for logging only
+			if (drop_ore<0) drop_ore=8; //we have only 10 slots in LOG, there's a check to not overflow (9th item usually a card, so we use 8th slot)
+			log_item[drop_ore] = ditem->nameid; //it's for logging only
 			drop_items++; //we count if there were any drops
 			ditem->amount = 1;
 			ditem->m = md.bl.m;
@@ -3441,7 +3447,7 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 			ditem->first_sd = mvp_sd;
 			ditem->second_sd = second_sd;
 			ditem->third_sd = third_sd;
-			add_timer(tick+500+i,mob_delay_item_drop,0,intptr(ditem),false); //!!todo!!
+			add_timer(tick+500+drop_ore,mob_delay_item_drop,0,intptr(ditem),false); //!!todo!!
 		}
 
 		//this drop log contains ALL dropped items + ORE (if there was ORE Recovery) [Lupus]
@@ -4248,7 +4254,7 @@ int mobskill_use_id(struct mob_data &md,struct block_list *target,unsigned short
 	{	// 詠唱が必要
 		
 		if (!selfdestruct_flag)
-			mob_stop_walking(md,0);		// 歩行停止
+			mob_stop_walking(md,1);		// 歩行停止
 		clif_skillcasting(md.bl, md.bl.id, target->id, 0,0, skill_id, casttime);
 	}
 
@@ -4338,7 +4344,7 @@ int mobskill_use_pos( struct mob_data *md, int skill_x, int skill_y, unsigned sh
 			skill_x,skill_y,skill_id,skill_lv,casttime,md->class_);
 
 	if( casttime>0 ) {	// A cast time is required.
-		mob_stop_walking(*md,0);		// 歩行停止
+		mob_stop_walking(*md,1);		// 歩行停止
 		clif_skillcasting(md->bl,
 			md->bl.id, 0, skill_x,skill_y, skill_id,casttime);
 	}

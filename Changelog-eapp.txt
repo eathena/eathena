@@ -1,4 +1,8 @@
 Date	Added
+12/10
+	* since returned from travel I clean up the stuff a bit first
+	  to get some consistency between different working copies and svn code
+	  before processing and forwarding items from the task list [Shinomori]
 11/11
 	* New readme content/layout (IE warning: IE hates new readme) [Evera]
 10/29

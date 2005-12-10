@@ -39,7 +39,6 @@ void inter_party_final()
 bool party_check_exp_share(CParty &p)
 {
 	size_t i, cnt_lo=0, cnt_hi=0;
-	size_t pl1=0,pl2=0,pl3=0;
 	unsigned short maxlv = 0, minlv = 0xFFFF;
 
 	for(i = 0; i < MAX_PARTY; i++)
@@ -434,7 +433,6 @@ int mapif_parse_PartyChangeMap(int fd, uint32 party_id, uint32 account_id, const
 		{
 			if (p.member[i].account_id == account_id)
 			{
-				int flag = 0;
 				memcpy(p.member[i].mapname, map, 24);
 				p.member[i].online = online;
 				p.member[i].lv = lv;
@@ -445,7 +443,6 @@ int mapif_parse_PartyChangeMap(int fd, uint32 party_id, uint32 account_id, const
 					p.itemshare = p.expshare = 0;
 					mapif_party_optionchanged(fd, p, 0, 0);
 				}
-
 				cPartyDB.saveParty(p);
 				break;
 			}

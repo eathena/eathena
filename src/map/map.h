@@ -399,7 +399,7 @@ struct map_session_data
 	uint32 client_tick;
 	struct walkpath_data walkpath;
 	int walktimer;
-	uint32 next_walktime;
+//	uint32 next_walktime;
 
 	uint32 areanpc_id;
 	uint32 npc_shopid;
@@ -736,6 +736,13 @@ struct npc_data {
 		unsigned walk_easy : 1;
 	} state;
 
+
+	short arenaflag;
+	void *chatdb;
+
+	npc_data() : chatdb(NULL)	{} 
+
+
 	union {
 		struct {
 			struct npc_reference *ref; // char pointer with reference counter
@@ -760,11 +767,6 @@ struct npc_data {
 		} warp;
 	} u;
 	// ‚±‚±‚Éƒƒ“ƒo‚ğ’Ç‰Á‚µ‚Ä‚Í‚È‚ç‚È‚¢(shop_item‚ª‰Â•Ï’·‚Ìˆ×)
-
-	short arenaflag;
-	void *chatdb;
-
-	npc_data() : chatdb(NULL)	{} 
 };
 
 
@@ -1375,13 +1377,13 @@ bool compare_item(const struct item &a, const struct item &b);
 // ‚»‚Ì‘¼
 int map_check_dir(int s_dir,int t_dir);
 int map_calc_dir( struct block_list &src,int x,int y);
+int map_random_dir(struct block_list &bl, unsigned short &x, unsigned short &y); // [Skotlex]
 
 // path.c‚æ‚è
 int path_search(struct walkpath_data &wpd,unsigned short m,int x0,int y0,int x1,int y1,int flag);
 bool path_search_long(unsigned short m,unsigned short x0,unsigned short y0,unsigned short x1,unsigned short y1);
 int path_blownpos(unsigned short m,int x0,int y0,int dx,int dy,int count);
 
-int map_who(int fd);
 
 void map_helpscreen(); // [Valaris]
 int map_delmap(const char *mapname);

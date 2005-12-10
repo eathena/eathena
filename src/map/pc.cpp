@@ -2833,7 +2833,7 @@ int pc_item_identify(struct map_session_data &sd, unsigned short idx)
  */
 int pc_item_repair(struct map_session_data &sd, unsigned short idx)
 {
-	if(sd.state.produce_flag==1)
+	if(sd.state.produce_flag==1 && idx!=0xFFFF)
 	{
 		static int materials[5] = { 0, 1002, 998, 999, 756 };
 		int flag=1, material;
@@ -2876,11 +2876,13 @@ int pc_item_refine(struct map_session_data &sd, unsigned short idx)
 	int flag = 1, i = 0, ep = 0, per;
 	int material[5] = { 0, 1010, 1011, 984, 984 };
 
-	if(idx < MAX_INVENTORY)
+	if(idx < MAX_INVENTORY && sd.state.produce_flag)
 	{
 		struct item &item		= sd.status.inventory[idx];
 		struct item_data *ditem	= sd.inventory_data[idx];
 	
+		sd.state.produce_flag = 0;
+
 		if(item.nameid > 0 && ditem && ditem->type == 4)
 		{
 			if (item.refine >= sd.skilllv ||
@@ -3657,6 +3659,9 @@ int pc_walktoxy (struct map_session_data &sd, unsigned short x,unsigned short y)
 	sd.to_y = y;
 	sd.idletime = last_tick;
 
+	if( sd.sc_data[SC_CONFUSION].timer != -1 ) //Randomize the target position
+		map_random_dir(sd.bl, sd.to_x, sd.to_y);
+
 	if( sd.walktimer != -1 && sd.state.change_walk_target == 0)
 	{	// 現在?いている最中の目的地?更なのでマス目の中心に?た暫ﾉ
 		// timer??からpc_walktoxy_subを呼ぶようにする
@@ -3725,39 +3730,7 @@ int pc_stop_walking (struct map_session_data &sd, int type)
 	return 0;
 }
 
-/*==========================================
- * Random walk
- *------------------------------------------
- */
-int pc_randomwalk(struct map_session_data &sd,unsigned long tick)
-{
-	const int retrycount = 20;
-	if (DIFF_TICK(sd.next_walktime, tick) < 0) {
-		int i, x, y, d;
-		d = rand() % 7 + 5;
-		for(i = 0; i < retrycount; i++)
-		{	// Search of a movable place
-			int r = rand();
-			x = sd.bl.x + r % (d*2+1) - d;
-			y = sd.bl.y + r / (d*2+1) % (d*2+1) - d;
-			if ((map_getcell(sd.bl.m, x, y, CELL_CHKPASS)) &&
-				pc_walktoxy(sd, x, y) == 0)
-				break;
-		}
-		// Working on this part later [celest]
-		/*for(i=c=0;i<sd->walkpath.path_len;i++)
-		{	// The next walk start time is calculated.
-			if(sd->walkpath.path[i]&1)
-				c+=sd->speed*14/10;
-			else
-				c+=sd->speed;
-		}
-		sd->next_walktime = (d=tick+rand()%3000+c);
-		return d;*/
-		return 1;
-	}
-	return 0;
-}
+
 
 /*==========================================
  *
@@ -4924,6 +4897,19 @@ int pc_resetskill(struct map_session_data &sd)
 	return 0;
 }
 
+
+int pc_respawn(int tid, unsigned long tick, int id, intptr data)
+{
+	struct map_session_data *sd = map_id2sd(id);
+	if (sd && pc_isdead(*sd))
+	{	//Auto-respawn [Skotlex]
+		pc_setstand(*sd);
+		pc_setrestartvalue(*sd,3);
+		pc_setpos(*sd,sd->status.save_point.map,sd->status.save_point.x,sd->status.save_point.y,0);
+	}
+	return 0;
+}
+
 /*==========================================
  * pcにダメ?ジを?える
  *------------------------------------------
@@ -5154,7 +5140,7 @@ int pc_damage(struct map_session_data &sd, long damage, struct block_list *src)
 	if (s_class.job == 23) {
 		if ((i=pc_nextbaseexp(sd))<=0)
 			i=sd.status.base_exp;
-		if((i>0) && (j=sd.status.base_exp*1000/i)>=990 && j<=1000)
+		if((i>0) && (j=sd.status.base_exp*1000/i)>=990 && j<1000)
 			sd.state.snovice_flag = 4;
 	}
 
@@ -5296,18 +5282,14 @@ int pc_damage(struct map_session_data &sd, long damage, struct block_list *src)
 		// ?制送還
 		if( sd.pvp_point < 0 ){
 			sd.pvp_point=0;
-			pc_setstand(sd);
-			pc_setrestartvalue(sd,3);
-			pc_setpos(sd,sd.status.save_point.map,sd.status.save_point.x,sd.status.save_point.y,0);
+			add_timer(gettick()+1000, pc_respawn,sd.bl.id,0);
+			return damage;
 		}
 	}
 	//GvG
 	if(map[sd.bl.m].flag.gvg){
-		pc_setstand(sd);
-		pc_setrestartvalue(sd,3);
-		pc_setpos(sd,sd.status.save_point.map,sd.status.save_point.x,sd.status.save_point.y,0);
+		add_timer(gettick()+1000, pc_respawn,sd.bl.id,0);
 	}
-
 	return damage;
 }
 
@@ -6079,7 +6061,6 @@ int pc_readglobalreg(struct map_session_data &sd,const char *reg)
 		if(strcmp(sd.status.global_reg[i].str,reg)==0)
 			return sd.status.global_reg[i].value;
 	}
-
 	return 0;
 }
 
@@ -6639,6 +6620,10 @@ int pc_checkitem(struct map_session_data &sd)
 	unsigned short id;
 	int calc_flag = 0;
 	struct item_data *it=NULL;
+
+	if (sd.vender_id) //Avoid reorganizing items when we are vending, as that leads to exploits (pointed out by End of Exam)
+		return 0;
+	
 
 	// 所持品空き詰め
 	for(i=j=0;i<MAX_INVENTORY;i++)

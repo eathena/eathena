@@ -3,6 +3,7 @@
 // new version of the login-server by [Yor]
 
 #include "base.h"
+#include "baseparam.h"
 #include "baseio.h"
 #include "core.h"
 #include "socket.h"
@@ -26,6 +27,21 @@
 // server address
 netaddress loginaddress(INADDR_ANY, 6900);
 int login_fd;
+
+
+
+
+
+bool callback_loginaddress(const char* name, const netaddress& newval, netaddress& oldval)
+{
+	printf("loading new parameter '%s', new value = %s (was %s)\n",
+		name, (const char*)MiniString((const char*)newval), (const char*)MiniString((const char*)oldval));
+	return true;
+}
+
+CParam<netaddress> _loginaddress("login_address", netaddress(INADDR_ANY, 6900), callback_loginaddress);
+
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // char connections
@@ -1082,8 +1098,8 @@ int parse_admin(int fd)
 		{
 			if (RFIFOREST(fd) < 10)
 				return 0;
-
-			size_t i, len;
+//			size_t i;
+			size_t len;
 			uint32 st = RFIFOL(fd,2);
 			uint32 ed = RFIFOL(fd,6);
 
@@ -1097,6 +1113,30 @@ int parse_admin(int fd)
 			WFIFOW(fd,0) = 0x7921;
 			len = 4;
 
+			// lock the database
+			account_db.aquire();
+			// go through accounts
+			while( account_db && len < 65536 )
+			{
+				if(account_db().account_id >= st && account_db().account_id <= ed)
+				{
+					WFIFOL(fd,len) = account_db().account_id;
+					WFIFOB(fd,len+4) = account_db().gm_level;
+					memcpy(WFIFOP(fd,len+5), account_db().userid, 24);
+					WFIFOB(fd,len+29) = account_db().sex;
+					WFIFOL(fd,len+30) = account_db().login_count;
+					if(account_db().state == 0 && account_db().ban_until != 0) // if no state and banished
+						WFIFOL(fd,len+34) = 7; // 6 = Your are Prohibited to log in until %s
+					else
+						WFIFOL(fd,len+34) = account_db().state;
+					len += 38;
+				}
+				// next account
+				account_db++;
+			}
+			// release the database
+			account_db.release();
+/*
 			for(i=0; i<account_db.size() && len < 65536; i++)
 			{
 				CLoginAccount &account = account_db[i]; // sorted by index 0
@@ -1114,7 +1154,7 @@ int parse_admin(int fd)
 					len += 38;
 				}
 			}
-
+*/
 
 			WFIFOW(fd,2) = len;
 			WFIFOSET(fd,len);
@@ -1138,7 +1178,7 @@ int parse_admin(int fd)
 			remove_control_chars(passwd);
 
 			WFIFOW(fd,0) = 0x7931;
-			WFIFOL(fd,2) = ~0;
+			WFIFOL(fd,2) = 0xFFFFFFFF;
 			memcpy(WFIFOP(fd,6), userid, 24);
 
 			if( strlen(userid) > 23 || strlen(passwd) > 23 )
@@ -1190,7 +1230,7 @@ int parse_admin(int fd)
 			remove_control_chars(userid);
 
 			WFIFOW(fd,0) = 0x7933;
-			WFIFOL(fd,2) = ~0;
+			WFIFOL(fd,2) = 0xFFFFFFFF;
 
 			if( account_db.searchAccount(userid, account) )
 			{	// save deleted account in log file
@@ -1235,7 +1275,7 @@ int parse_admin(int fd)
 			remove_control_chars(userid);
 
 			WFIFOW(fd,0) = 0x7935;
-			WFIFOL(fd,2) = ~0;
+			WFIFOL(fd,2) = 0xFFFFFFFF;
 
 			if( account_db.searchAccount(userid, account) )
 			{
@@ -1283,7 +1323,7 @@ int parse_admin(int fd)
 				}
 
 				WFIFOW(fd,0) = 0x7937;
-				WFIFOL(fd,2) = ~0;
+				WFIFOL(fd,2) = 0xFFFFFFFF;
 
 				if( account_db.searchAccount(userid, account) )
 				{
@@ -1374,7 +1414,7 @@ int parse_admin(int fd)
 			remove_control_chars(userid);
 
 			WFIFOW(fd,0) = 0x793b;
-			WFIFOL(fd,2) = ~0;
+			WFIFOL(fd,2) = 0xFFFFFFFF;
 			
 			if( account_db.searchAccount(userid, account) )
 			{
@@ -1419,7 +1459,7 @@ int parse_admin(int fd)
 			remove_control_chars(userid);
 
 			WFIFOW(fd,0) = 0x793d;
-			WFIFOL(fd,2) = ~0;
+			WFIFOL(fd,2) = 0xFFFFFFFF;
 			memcpy(WFIFOP(fd,6), userid, 24);
 			
 			char sex = toupper( RFIFOB(fd,26) );
@@ -1480,7 +1520,7 @@ int parse_admin(int fd)
 			remove_control_chars(userid);
 			
 			WFIFOW(fd,0) = 0x793f;
-			WFIFOL(fd,2) = ~0;
+			WFIFOL(fd,2) = 0xFFFFFFFF;
 			memcpy(WFIFOP(fd,6), userid, 24);
 
 
@@ -1534,7 +1574,7 @@ int parse_admin(int fd)
 			remove_control_chars(userid);
 
 			WFIFOW(fd,0) = 0x7941;
-			WFIFOL(fd,2) = ~0;
+			WFIFOL(fd,2) = 0xFFFFFFFF;
 			
 			if( !email_check(email) )
 			{
@@ -1580,7 +1620,7 @@ int parse_admin(int fd)
 			remove_control_chars(userid);
 
 			WFIFOW(fd,0) = 0x7943;
-			WFIFOL(fd,2) = ~0;
+			WFIFOL(fd,2) = 0xFFFFFFFF;
 			
 			if( account_db.searchAccount(userid, account) )
 			{
@@ -1624,7 +1664,7 @@ int parse_admin(int fd)
 			remove_control_chars(userid);
 			
 			WFIFOW(fd,0) = 0x7945;
-			WFIFOL(fd,2) = ~0;
+			WFIFOL(fd,2) = 0xFFFFFFFF;
 			
 			if( account_db.searchAccount(userid, account) )
 			{
@@ -1689,7 +1729,7 @@ int parse_admin(int fd)
 			strftime(tmpstr, 24, date_format, localtime(&timestamp));
 
 			WFIFOW(fd,0) = 0x7949;
-			WFIFOL(fd,2) = ~0;
+			WFIFOL(fd,2) = 0xFFFFFFFF;
 
 			if( account_db.searchAccount( userid, account) )
 			{
@@ -1735,7 +1775,7 @@ int parse_admin(int fd)
 			strftime(tmpstr, 24, date_format, localtime(&timestamp));
 
 			WFIFOW(fd,0) = 0x794b;
-			WFIFOL(fd,2) = ~0;
+			WFIFOL(fd,2) = 0xFFFFFFFF;
 
 			if( account_db.searchAccount( userid, account) )
 			{
@@ -1785,7 +1825,7 @@ int parse_admin(int fd)
 			remove_control_chars(userid);
 			
 			WFIFOW(fd,0) = 0x794d;
-			WFIFOL(fd,2) = ~0;
+			WFIFOL(fd,2) = 0xFFFFFFFF;
 			
 			if( account_db.searchAccount( userid, account) )
 			{
@@ -1859,7 +1899,7 @@ int parse_admin(int fd)
 			if (RFIFOREST(fd) < 8 || RFIFOREST(fd) < (8 + (int)RFIFOL(fd,4)))
 				return 0;
 			WFIFOW(fd,0) = 0x794f;
-			WFIFOW(fd,2) = ~0;
+			WFIFOW(fd,2) = 0xFFFF;
 			if (RFIFOL(fd,4) < 1)
 			{
 				login_log("'ladmin': Receiving a message for broadcast, but message is void (ip: %s)" RETCODE,
@@ -1915,7 +1955,7 @@ int parse_admin(int fd)
 			remove_control_chars(userid);
 
 			WFIFOW(fd,0) = 0x7951;
-			WFIFOL(fd,2) = ~0;
+			WFIFOL(fd,2) = 0xFFFFFFFF;
 			
 			if( account_db.searchAccount( userid, account) )
 			{
@@ -1990,7 +2030,7 @@ int parse_admin(int fd)
 			remove_control_chars(userid);
 
 			WFIFOW(fd,0) = 0x7953;
-			WFIFOL(fd,2) = ~0;
+			WFIFOL(fd,2) = 0xFFFFFFFF;
 			
 			if( account_db.searchAccount(userid, account) )
 			{
@@ -2121,7 +2161,7 @@ int parse_login(int fd)
 			}
 			else if( command == 0x2710 )
 			{
-				if( RFIFOREST(fd) >= 86 )
+				if( RFIFOREST(fd) >= 90 )
 					ShowMessage("parse_login: connection #%d, packet: 0x%x (with being read: %d), server: %s.\n", fd, command, RFIFOREST(fd), RFIFOP(fd,60));
 			}
 			else
@@ -2167,7 +2207,7 @@ int parse_login(int fd)
 				return 0;
 
 			CLoginAccount account;
-			uint32 version = RFIFOL(fd, 2);	//for exe version check [Sirius]
+//			uint32 version = RFIFOL(fd, 2);	//for exe version check [Sirius]
 			char* userid = (char*)RFIFOP(fd,6);
 			userid[23] = '\0';
 			remove_control_chars(userid);
@@ -2406,10 +2446,6 @@ int parse_login(int fd)
 				}
 				else
 				{
-					login_log("Connection of the char-server '%s' accepted (account: %s, pass: %s, ip: %s)" RETCODE,
-							  server_name, account.userid, account.passwd, ip_str);
-					ShowStatus("Connection of the char-server '%s' accepted.\n", server_name);
-
 					memset(&server[i], 0, sizeof(struct mmo_char_server));
 					
 					memcpy(server[i].name,server_name,20);
@@ -2422,6 +2458,11 @@ int parse_login(int fd)
 					
 					session[fd]->func_parse = parse_fromchar;
 					realloc_fifo(fd, FIFOSIZE_SERVERLINK, FIFOSIZE_SERVERLINK);
+
+					login_log("Connection of the char-server '%s' accepted (account: %s, pass: %s, ip: %s)" RETCODE,
+							  server[i].name, account.userid, account.passwd, server[i].address.getstring());
+					ShowStatus("Connection of the char-server '%s' (%s) accepted.\n", server[i].name, server[i].address.getstring());
+
 					
 					WFIFOW(fd,0) = 0x2711;
 					WFIFOB(fd,2) = 0;
@@ -2559,7 +2600,6 @@ int login_config_read(const char *cfgName)
 {
 	char line[1024], w1[1024], w2[1024];
 	FILE *fp;
-	struct hostent *h = NULL;
 	
 	if ((fp = safefopen(cfgName, "r")) == NULL)
 	{
@@ -3073,6 +3113,10 @@ int do_init(int argc, char **argv)
 	login_config_read((argc > 1) ? argv[1] : LOGIN_CONF_NAME);
 	display_conf_warnings(); // not in login_config_read, because we can use 'import' option, and display same message twice or more
 	save_config_in_log(); // not before, because log file name can be changed
+
+
+	CParamStorage::loadFile(LOGIN_CONF_NAME);
+
 
 	if (!account_db.init( (argc > 1) ? argv[1] : LOGIN_CONF_NAME ))
 	{

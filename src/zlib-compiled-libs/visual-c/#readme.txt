@@ -1,10 +1,7 @@
-zlib-asm-st-zlib.lib 
-- zlib static library build with asm option on single thread model
-  link with this if your app is single thread
+zlib 1.2.3
 
-zlib-asm-mt-zlib.lib 
-- zlib static library build with asm option on multithread model
-  link with this if your app is multithread
+zlib.lib 
+- zlib static library build with asm option
 
 zlib1.lib
 - dll stub library for dynamically loading zlib1.dll

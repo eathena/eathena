@@ -173,6 +173,7 @@ int	skill_get_inf2( int id );
 int	skill_get_maxcount( int id );
 int	skill_get_blewcount( int id ,int lv );
 int	skill_get_unit_flag( int id );
+const char*	skill_get_name( unsigned short id );
 
 
 // スキルの使用

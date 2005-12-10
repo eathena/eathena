@@ -323,15 +323,20 @@ public:
 
 
 
-
-
+class CDBInterface : public noncopyable, public global
+{
+protected:
+	CDBInterface()	{}
+public:
+	~CDBInterface()	{}
+};
 
 
 ///////////////////////////////////////////////////////////////////////////////
 // Account Database Interface
 // for storing accounts stuff in login
 ///////////////////////////////////////////////////////////////////////////////
-class CAccountDBInterface : public global, public noncopyable
+class CAccountDBInterface : public CDBInterface
 {
 public:
 	///////////////////////////////////////////////////////////////////////////
@@ -342,8 +347,8 @@ public:
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// access interface
-	virtual size_t size()=0;
-	virtual CLoginAccount& operator[](size_t i)=0;
+//	virtual size_t size()=0;
+//	virtual CLoginAccount& operator[](size_t i)=0;
 
 	virtual bool existAccount(const char* userid) =0;
 	virtual bool searchAccount(const char* userid, CLoginAccount&account) =0;
@@ -375,8 +380,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 class CAccountDB : public CAccountDBInterface
 {
-	CAccountDBInterface *db;
-
+	CAccountDBInterface* db;
 	CAccountDBInterface* getDB(const char *dbcfgfile);
 public:
 	///////////////////////////////////////////////////////////////////////////
@@ -404,8 +408,8 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// access interface
-	virtual size_t size()	{ return db->size(); }
-	virtual CLoginAccount& operator[](size_t i)	{ return (*db)[i]; }
+//	virtual size_t size()	{ return db->size(); }
+//	virtual CLoginAccount& operator[](size_t i)	{ return (*db)[i]; }
 
 	virtual bool existAccount(const char* userid)	{ return db->existAccount(userid); }
 	virtual bool searchAccount(const char* userid, CLoginAccount&account)	{ return db->searchAccount(userid, account); }
@@ -417,12 +421,12 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// alternative interface
-	virtual bool aquire()		{ return db->aquire(); }
-	virtual bool release()		{ return db->release(); }
-	virtual bool first()		{ return db->first(); }
-	virtual operator bool()		{ return *db; }
-	virtual bool operator++(int){ return (*db)++; }
-	virtual bool save()			{ return db->save(); }
+	virtual bool aquire()					{ return db->aquire(); }
+	virtual bool release()					{ return db->release(); }
+	virtual bool first()					{ return db->first(); }
+	virtual operator bool()					{ return *db; }
+	virtual bool operator++(int)			{ return (*db)++; }
+	virtual bool save()						{ return db->save(); }
 
 	virtual bool find(const char* userid)	{ return db->find(userid); }
 	virtual bool find(uint32 accid)			{ return db->find(accid); }
@@ -434,7 +438,7 @@ public:
 // Char Database Interface
 // for storing stuff in char
 ///////////////////////////////////////////////////////////////////////////////
-class CCharDBInterface : public global, public noncopyable
+class CCharDBInterface : public CDBInterface
 {
 public:
 	///////////////////////////////////////////////////////////////////////////
@@ -445,11 +449,11 @@ public:
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// access interface
-	virtual size_t size()=0;
-	virtual CCharCharacter& operator[](size_t i)=0;
+//	virtual size_t size()=0;
+//	virtual CCharCharacter& operator[](size_t i)=0;
 
 	virtual bool existChar(const char* name) =0;
-	virtual bool searchChar(const char* userid, CCharCharacter&character) =0;
+	virtual bool searchChar(const char* name, CCharCharacter&character) =0;
 	virtual bool searchChar(uint32 charid, CCharCharacter&character) =0;
 	virtual bool insertChar(CCharAccount &account, const char *name, unsigned char str, unsigned char agi, unsigned char vit, unsigned char int_, unsigned char dex, unsigned char luk, unsigned char slot, unsigned char hair_style, unsigned char hair_color, CCharCharacter&data) =0;
 	virtual bool removeChar(uint32 charid) =0;
@@ -458,6 +462,20 @@ public:
 	virtual bool searchAccount(uint32 accid, CCharCharAccount& account) =0;
 	virtual bool saveAccount(CCharAccount& account) =0;
 	virtual bool removeAccount(uint32 accid)=0;
+
+
+	///////////////////////////////////////////////////////////////////////////
+	// alternative interface
+	virtual bool aquire()=0;
+	virtual bool release()=0;
+	virtual bool first()=0;
+	virtual operator bool()=0;
+	virtual bool operator++(int)=0;
+	virtual bool save()=0;
+
+	virtual bool find(const char* name)=0;
+	virtual bool find(uint32 charid)=0;
+	virtual CCharCharacter& operator()()=0;
 };
 ///////////////////////////////////////////////////////////////////////////////
 // Dynamic Account Database Implementation
@@ -496,8 +514,8 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// access interface
-	virtual size_t size()	{ return db->size(); }
-	virtual CCharCharacter& operator[](size_t i)	{ return (*db)[i]; }
+//	virtual size_t size()	{ return db->size(); }
+//	virtual CCharCharacter& operator[](size_t i)	{ return (*db)[i]; }
 
 	virtual bool existChar(const char* name)	{ return db->existChar(name); }
 	virtual bool searchChar(const char* name, CCharCharacter&data)	{ return db->searchChar(name, data); }
@@ -509,6 +527,19 @@ public:
 	virtual bool searchAccount(uint32 accid, CCharCharAccount& account)	{ return db->searchAccount(accid, account); }
 	virtual bool saveAccount(CCharAccount& account)	{ return db->saveAccount(account); }
 	virtual bool removeAccount(uint32 accid)	{ return db->removeAccount(accid); }
+
+	///////////////////////////////////////////////////////////////////////////
+	// alternative interface
+	virtual bool aquire()					{ return db->aquire(); }
+	virtual bool release()					{ return db->release(); }
+	virtual bool first()					{ return db->first(); }
+	virtual operator bool()					{ return *db; }
+	virtual bool operator++(int)			{ return (*db)++; }
+	virtual bool save()						{ return db->save(); }
+
+	virtual bool find(const char* name)		{ return db->find(name); }
+	virtual bool find(uint32 charid)		{ return db->find(charid); }
+	virtual CCharCharacter& operator()()	{ return db->operator()(); }
 };
 
 
@@ -648,7 +679,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 // Guild Database Interface
 ///////////////////////////////////////////////////////////////////////////////
-class CGuildDBInterface : public global, public noncopyable
+class CGuildDBInterface : public CDBInterface
 {
 public:
 	///////////////////////////////////////////////////////////////////////////
@@ -659,10 +690,10 @@ public:
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// access interface
-	virtual size_t size()=0;
-	virtual CGuild& operator[](size_t i)=0;
-	virtual size_t castlesize()	=0;
-	virtual CCastle& castle(size_t i) =0;
+//	virtual size_t size()=0;
+//	virtual CGuild& operator[](size_t i)=0;
+//	virtual size_t castlesize()	=0;
+//	virtual CCastle& castle(size_t i) =0;
 
 	virtual bool searchGuild(const char* name, CGuild& guild) =0;
 	virtual bool searchGuild(uint32 guildid, CGuild& guild) =0;
@@ -673,6 +704,28 @@ public:
 	virtual bool searchCastle(ushort castleid, CCastle& castle) =0;
 	virtual bool saveCastle(CCastle& castle) =0;
 	virtual bool removeCastle(ushort castleid)=0;
+
+	///////////////////////////////////////////////////////////////////////////
+	// alternative interface
+	virtual bool aquireGuild()=0;
+	virtual bool aquireCastle()=0;
+	virtual bool releaseGuild()=0;
+	virtual bool releaseCastle()=0;
+	virtual bool firstGuild()=0;
+	virtual bool firstCastle()=0;
+	virtual bool isGuildOk()=0;
+	virtual bool isCastleOk()=0;
+	virtual bool nextGuild()=0;
+	virtual bool nextCastle()=0;
+	virtual bool saveGuild()=0;
+	virtual bool saveCastle()=0;
+
+	virtual bool findGuild(const char* name)=0;
+	virtual bool findGuild(uint32 guildid)=0;
+	virtual bool findCastle(ushort cid)=0;
+
+	virtual CGuild& getGuild()=0;
+	virtual CCastle& getCastle()=0;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -709,10 +762,10 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// access interface
-	virtual size_t size()					{ return db->size(); }
-	virtual CGuild& operator[](size_t i)	{ return (*db)[i]; }
-	virtual size_t castlesize()				{ return db->castlesize(); }
-	virtual CCastle& castle(size_t i)		{ return db->castle(i); }
+//	virtual size_t size()					{ return db->size(); }
+//	virtual CGuild& operator[](size_t i)	{ return (*db)[i]; }
+//	virtual size_t castlesize()				{ return db->castlesize(); }
+//	virtual CCastle& castle(size_t i)		{ return db->castle(i); }
 
 	virtual bool searchGuild(const char* name, CGuild& guild)	{ return db->searchGuild(name, guild); }
 	virtual bool searchGuild(uint32 guildid, CGuild& guild)	{ return db->searchGuild(guildid, guild); }
@@ -723,6 +776,29 @@ public:
 	virtual bool searchCastle(ushort cid, CCastle& castle)	{ return db->searchCastle(cid, castle); }
 	virtual bool saveCastle(CCastle& castle)	{ return db->saveCastle(castle); }
 	virtual bool removeCastle(ushort cid)	{ return db->removeCastle(cid); }
+
+
+	///////////////////////////////////////////////////////////////////////////
+	// alternative interface
+	virtual bool aquireGuild()				{ return db->aquireGuild(); }
+	virtual bool aquireCastle()				{ return db->aquireCastle(); }
+	virtual bool releaseGuild()				{ return db->releaseGuild(); }
+	virtual bool releaseCastle()			{ return db->releaseCastle(); }
+	virtual bool firstGuild()				{ return db->firstGuild(); }
+	virtual bool firstCastle()				{ return db->firstCastle(); }
+	virtual bool isGuildOk()				{ return db->isGuildOk(); }
+	virtual bool isCastleOk()				{ return db->isCastleOk(); }
+	virtual bool nextGuild()				{ return db->nextGuild(); }
+	virtual bool nextCastle()				{ return db->nextCastle(); }
+	virtual bool saveGuild()				{ return db->saveGuild(); }
+	virtual bool saveCastle()				{ return db->saveCastle(); }
+
+	virtual bool findGuild(const char* name){ return db->findGuild(name); }
+	virtual bool findGuild(uint32 guildid)	{ return db->findGuild(guildid); }
+	virtual bool findCastle(ushort cid)		{ return db->findCastle(cid); }
+
+	virtual CGuild& getGuild()				{ return db->getGuild(); }
+	virtual CCastle& getCastle()			{ return db->getCastle(); }
 };
 
 
@@ -775,7 +851,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 // Party Database Interface
 ///////////////////////////////////////////////////////////////////////////////
-class CPartyDBInterface : public global, public noncopyable
+class CPartyDBInterface : public CDBInterface
 {
 public:
 	///////////////////////////////////////////////////////////////////////////
@@ -880,7 +956,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 // Storage Database Interface
 ///////////////////////////////////////////////////////////////////////////////
-class CPCStorageDBInterface : public global, public noncopyable
+class CPCStorageDBInterface : public CDBInterface
 {
 public:
 	///////////////////////////////////////////////////////////////////////////
@@ -898,7 +974,7 @@ public:
 	virtual bool removeStorage(uint32 accid) =0;
 	virtual bool saveStorage(const CPCStorage& stor) =0;
 };
-class CGuildStorageDBInterface : public global, public noncopyable
+class CGuildStorageDBInterface : public CDBInterface
 {
 public:
 	///////////////////////////////////////////////////////////////////////////
@@ -1061,7 +1137,7 @@ class CPet : public s_pet
 ///////////////////////////////////////////////////////////////////////////////
 // Pet Database Interface
 ///////////////////////////////////////////////////////////////////////////////
-class CPetDBInterface : public global, public noncopyable
+class CPetDBInterface : public CDBInterface
 {
 public:
 	///////////////////////////////////////////////////////////////////////////

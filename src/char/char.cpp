@@ -618,7 +618,8 @@ int mmo_char_send006b(int fd, struct char_session_data &sd)
 
 			// pecopeco knights/crusaders crash fix
 			if (character.class_ == 13 || character.class_ == 21 ||
-				character.class_ == 4014 || character.class_ == 4022)
+				character.class_ == 4014 || character.class_ == 4022 ||
+				character.class_ == 4036 || character.class_ == 4044)
 				WFIFOW(fd,j+56) = 0;
 			else 
 				WFIFOW(fd,j+56) = character.weapon;
@@ -1434,6 +1435,10 @@ int parse_frommap(int fd)
 				WBUFW(buf,2) = j*16+20;
 				mapif_sendallwos(fd, buf, j*16+20);
 			}
+
+			ShowStatus("Map-Server %d updated: %s (%d maps)\n",
+				id, server[id].address.getstring(), j);
+
 			RFIFOSKIP(fd,70);
 			break;
 		}
@@ -1450,13 +1455,12 @@ int parse_frommap(int fd)
 				j++;
 			}
 			server[id].maps = j;
-			{
-				ShowStatus("Map-Server %d connected from %s:%d (%d maps)\n",
-					id, server[id].address.LANIP().getstring(), server[id].address.LANPort(), j);
-				
-				char_log("Map-Server %d connected from %s:%d (%d maps)"RETCODE,
-					id, server[id].address.LANIP().getstring(), server[id].address.LANPort(), j);
-			}
+			ShowStatus("Map-Server %d connected from %s (%d maps)\n",
+				id, server[id].address.getstring(), j);
+			
+			char_log("Map-Server %d connected from %s (%d maps)"RETCODE,
+				id, server[id].address.getstring(), j);
+
 			WFIFOW(fd,0) = 0x2afb;
 			WFIFOB(fd,2) = 0;
 			memcpy(WFIFOP(fd,3), wisp_server_name, 24); // name for wisp to player
@@ -1932,14 +1936,109 @@ int parse_frommap(int fd)
 			if (RFIFOREST(fd) < 2)
 				return 0;
 			
+			struct famesort
+			{
+			public:
+				uint32	char_id;
+				uint32	fame_points;
+				char	name[24];
+				
+				famesort()	{}
+				famesort(uint32 c, const char *n, uint32 f) : char_id(c), fame_points(f)
+				{
+					safestrcpy(name,n,sizeof(name));
+				}
+			};
+
+			register size_t k;
+			size_t cnt_black=0, cnt_alche=0;
+			struct famesort fame_black[MAX_FAMELIST];
+			struct famesort fame_alche[MAX_FAMELIST];
+			unsigned char buf[1024]; // sending max 6 + 2*10*(4+4+24) bytes
+			size_t len = 6;
+
+			char_db.aquire();
+			while( char_db )
+			{
+				if( char_db().fame_points>0 )
+				{
+					if( char_db().class_ == 10 ||
+						char_db().class_ == 4011 ||
+						char_db().class_ == 4033 )
+					{	// blacksmiths
+						for(k=0; k<cnt_black; k++)
+						{
+							if(char_db().fame_points > fame_black[k].fame_points)
+								break;
+						}
+						if(k<MAX_FAMELIST)
+						{
+							if(k<cnt_black)
+								memmove(fame_black+k, fame_black+k+1, (cnt_black-1-k)*sizeof(struct famesort));
+							fame_black[k] = famesort(char_db().char_id, char_db().name, char_db().fame_points);
+							cnt_black++;
+						}
+					}
+					else if( char_db().class_ == 18 ||
+							 char_db().class_ == 4019 ||
+							 char_db().class_ == 4041 )
+					{	// alchemists
+						for(k=0; k<cnt_alche;k++)
+						{
+							if(char_db().fame_points > fame_alche[k].fame_points)
+								break;
+						}
+						if(k<MAX_FAMELIST)
+						{
+							if(k<cnt_alche)
+								memmove(fame_alche+k, fame_alche+k+1, (cnt_alche-1-k)*sizeof(int));
+							fame_alche[k] = famesort(char_db().char_id, char_db().name, char_db().fame_points);
+							cnt_alche++;
+						}
+					}
+				}
+				// next char
+				char_db++;
+			}
+			char_db.release();
+
+			// starting to send to map
+			WBUFW(buf,0) = 0x2b1b;
+			// send first list for blacksmiths
+			for(k=0; k<cnt_black; k++)
+			{
+				WBUFL(buf, len) = fame_black[k].char_id;
+				WBUFL(buf, len+4) = fame_black[k].fame_points;
+				memcpy(WBUFP(buf, len+8), fame_black[k].name, 24);
+				len += 32;
+			}
+			// adding blacksmith's list length
+			WBUFW(buf, 4) = len;
+			// adding second list for alchemists
+			for(k=0; k<cnt_alche; k++)
+			{
+				WBUFL(buf, len) = fame_black[k].char_id;
+				WBUFL(buf, len+4) = fame_black[k].fame_points;
+				memcpy(WBUFP(buf, len+8), fame_black[k].name, 24);
+				len += 32;
+			}
+			// adding packet length			
+			WBUFW(buf, 2) = len;
+			// sending to all maps
+			mapif_sendall(buf, len);
+
+/*
 			unsigned char buf[1024]; // sending max 6 + 2*10*(4+4+24) bytes
 			size_t len = 6;
 			register size_t k;
 			register size_t i;
-			
-			int inx_fame_black[MAX_FAMELIST];
-			int inx_fame_alche[MAX_FAMELIST];
+
+			uint32 val_fame_black[MAX_FAMELIST];
+			uint32 cid_fame_black[MAX_FAMELIST];
+			uint32 val_fame_alche[MAX_FAMELIST];
+			uint32 inx_fame_alche[MAX_FAMELIST];
 			size_t cnt_black=0, cnt_alche=0;
+
 			for(i=0; i<char_db.size(); i++)
 			{
 				if( char_db[i].fame_points>0 )
@@ -1953,11 +2052,13 @@ int parse_frommap(int fd)
 							if(char_db[i].fame_points > char_db[inx_fame_black[k]].fame_points)
 								break;
 						}
-						if(k<cnt_black)
-							memmove(inx_fame_black+k, inx_fame_black+k+1, (cnt_black-1-k)*sizeof(int));
-						inx_fame_black[k] = i;
-						if(cnt_black<MAX_FAMELIST)
+						if(k<MAX_FAMELIST)
+						{
+							if(k<cnt_black)
+								memmove(inx_fame_black+k, inx_fame_black+k+1, (cnt_black-1-k)*sizeof(int));
+							inx_fame_black[k] = i;
 							cnt_black++;
+						}
 					}
 					else if( char_db[i].class_ == 18 ||
 							 char_db[i].class_ == 4019 ||
@@ -1968,14 +2069,17 @@ int parse_frommap(int fd)
 							if(char_db[i].fame_points > char_db[inx_fame_alche[k]].fame_points)
 								break;
 						}
-						if(k<cnt_black)
-							memmove(inx_fame_alche+k, inx_fame_alche+k+1, (cnt_alche-1-k)*sizeof(int));
-						inx_fame_alche[k] = i;
-						if(cnt_alche<MAX_FAMELIST)
+						if(k<MAX_FAMELIST)
+						{
+							if(k<cnt_alche)
+								memmove(inx_fame_alche+k, inx_fame_alche+k+1, (cnt_alche-1-k)*sizeof(int));
+							inx_fame_alche[k] = i;
 							cnt_alche++;
+						}
 					}
 				}
 			}
+
 			// starting to send to map
 			WBUFW(buf,0) = 0x2b1b;
 			// send first list for blacksmiths
@@ -1998,7 +2102,7 @@ int parse_frommap(int fd)
 			WBUFW(buf, 2) = len;
 			// sending to all maps
 			mapif_sendall(buf, len);
-
+*/
 			RFIFOSKIP(fd,2);
 			break;
 		}
@@ -2493,7 +2597,6 @@ int parse_char(int fd)
 				session[fd]->func_parse = parse_frommap;
 
 				server[i].address = ipset(RFIFOLIP(fd,54), RFIFOLIP(fd,58), RFIFOW(fd,62),RFIFOLIP(fd,64), RFIFOW(fd,68));
-
 				server[i].fd    = fd;
 				server[i].users = 0;
 				memset(server[i].map, 0, sizeof(server[i].map));
@@ -2503,7 +2606,7 @@ int parse_char(int fd)
 				char_mapif_init(fd);
 			}
 			RFIFOSKIP(fd,70);
-			break;
+			return parse_frommap(fd);
 		}
 		///////////////////////////////////////////////////////////////////////
 		case 0x187:	// AliveêMçÜÅH
@@ -2668,7 +2771,6 @@ int check_connect_login_server(int tid, unsigned long tick, int id, intptr data)
 ///////////////////////////////////////////////////////////////////////////////
 int char_config_read(const char *cfgName)
 {
-	struct hostent *h = NULL;
 	char line[1024], w1[1024], w2[1024];
 
 	FILE *fp = safefopen(cfgName, "r");

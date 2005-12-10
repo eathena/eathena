@@ -573,7 +573,12 @@ int	skill_get_unit_interval( int id ){ skill_get (skill_db[id].unit_interval, id
 int	skill_get_unit_range( int id ){ skill_get (skill_db[id].unit_range, id, 1); }
 int	skill_get_unit_target( int id ){ skill_get (skill_db[id].unit_target, id, 1); }
 int	skill_get_unit_flag( int id ){ skill_get (skill_db[id].unit_flag, id, 1); }
-
+const char*	skill_get_name( int id )
+{ 
+	if (id >= 10000 && id < 10015) id -= 9500;
+	if (id < 1 || id > MAX_SKILL_DB) return "UNKNOWN_SKILL"; //Can't use skill_chk because we return a string.
+	return skill_db[id].name; 
+}
 
 /* プロトタイプ */
 int skill_check_condition( struct map_session_data *sd,int type);
@@ -4825,39 +4830,42 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 		break;
 
 	case CG_MARIONETTE:		/* マリオネットコントロ?ル */
-		if (sd && dstsd){
-			struct status_change *sc_data = status_get_sc_data(src);
-			struct status_change *tsc_data = status_get_sc_data(bl);
-			int sc = SkillStatusChangeTable[skillid];
-			int sc2 = SC_MARIONETTE2;
+	{
+		struct status_change *sc_data = status_get_sc_data(src);
+		struct status_change *tsc_data = status_get_sc_data(bl);
+		int sc = SkillStatusChangeTable[skillid];
+		int sc2 = SC_MARIONETTE2;
 
-			if ((sd == dstsd)
-			 || (!sd->status.party_id)
-			 || (sd->status.party_id != dstsd->status.party_id)) {
-			 	clif_skill_fail(*sd,skillid,0,0);
+		if( sd && ((sd == dstsd) || (!sd->status.party_id) || 
+			(sd->status.party_id != dstsd->status.party_id)) )
+		{
+			clif_skill_fail(*sd,skillid,0,0);
+			map_freeblock_unlock();
+			return 1;
+		}
+		if(sc_data && tsc_data)
+		{
+			if (sc_data[sc].timer == -1 && tsc_data[sc2].timer == -1) {
+				status_change_start (src,sc,skilllv,0,bl->id,0,skill_get_time(skillid,skilllv),0);
+				status_change_start (bl,sc2,skilllv,0,src->id,0,skill_get_time(skillid,skilllv),0);
+				clif_marionette(*src, bl);
+			}
+			else if (sc_data[sc].timer != -1 && tsc_data[sc2].timer != -1 &&
+				(uint32)sc_data[sc].val3.num == bl->id && (uint32)tsc_data[sc2].val3.num == src->id) {
+				status_change_end(src, sc, -1);
+				status_change_end(bl, sc2, -1);
+				clif_marionette(*src, NULL);
+			}
+			else
+			{
+				if (sd) clif_skill_fail(*sd,skillid,0,0);
 				map_freeblock_unlock();
 				return 1;
 			}
-			if(sc_data && tsc_data){
-				if (sc_data[sc].timer == -1 && tsc_data[sc2].timer == -1) {
-					status_change_start (src,sc,skilllv,0,bl->id,0,skill_get_time(skillid,skilllv),0);
-					status_change_start (bl,sc2,skilllv,0,src->id,0,skill_get_time(skillid,skilllv),0);
-				}
-				else if (sc_data[sc].timer != -1 && tsc_data[sc2].timer != -1 &&
-					(uint32)sc_data[sc].val3.num == bl->id && (uint32)tsc_data[sc2].val3.num == src->id) {
-					status_change_end(src, sc, -1);
-					status_change_end(bl, sc2, -1);
-				}
-				else {
-					clif_skill_fail(*sd,skillid,0,0);
-					map_freeblock_unlock();
-					return 1;
-				}
-				clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
-			}
+			clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
 		}
 		break;
-
+	}
 	case SA_FLAMELAUNCHER:	// added failure chance and chance to break weapon if turned on [Valaris]
 	case SA_FROSTWEAPON:
 	case SA_LIGHTNINGLOADER:
@@ -8143,9 +8151,10 @@ int skill_unit_onout(struct skill_unit *src,struct block_list *bl,unsigned long 
 	sc_data = status_get_sc_data(bl);
 	type = SkillStatusChangeTable[sg->skill_id];
 
-	if (bl->prev==NULL || !src->alive ||
-		(bl->type == BL_PC && pc_isdead(*((struct map_session_data *)bl))))
+	if (bl->prev==NULL || !src->alive || //Need to delete the trap if the source died.
+		(status_isdead(bl) && sg->unit_id != UNT_ANKLESNARE && sg->unit_id != UNT_SPIDERWEB))
 		return 0;
+
 
 	switch(sg->unit_id){
 	case UNT_SAFETYWALL:	/* セイフティウォール */
@@ -10712,14 +10721,13 @@ int skill_can_produce_mix( struct map_session_data &sd, unsigned short nameid, i
 int skill_produce_mix(struct map_session_data &sd, unsigned short nameid, unsigned short slot1, unsigned short slot2, unsigned short slot3)
 {
 	unsigned short slot[3];
-	int i,sc,ele,idx,equip,make_per,flag;
+	int i,sc,ele,equip,make_per,flag;
 	int wlv=0;
-	struct pc_base_job s_class;
-
 	//Calculate Common Class and Baby/High/Common flags
-	s_class = pc_calc_base_job(sd.status.class_);
+	struct pc_base_job s_class = pc_calc_base_job(sd.status.class_);
+	int idx=skill_can_produce_mix(sd,nameid,-1);
 
-	if( !(idx=skill_can_produce_mix(sd,nameid,-1)) || sd.state.produce_flag==0 )	/* ?件不足 */
+	if( !idx || !sd.state.produce_flag )	/* ?件不足 */
 		return 0;
 
 	sd.state.produce_flag=0;

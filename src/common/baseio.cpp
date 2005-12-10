@@ -470,37 +470,6 @@ void CCharAccount::_frombuffer(const unsigned char* &buf)
 ///////////////////////////////////////////////////////////////////////////////
 class CAccountDB_txt : public CTimerBase, private CConfig, public CAccountDBInterface
 {
-	///////////////////////////////////////////////////////////////////////////
-	// config stuff
-	uint32 next_account_id;
-	char account_filename[1024];
-	char GM_account_filename[1024];
-	time_t creation_time_GM_account_file;
-
-	size_t savecount;
-
-
-	///////////////////////////////////////////////////////////////////////////
-	// data
-	TMultiListP<CLoginAccount, 2> cList;
-public:
-	///////////////////////////////////////////////////////////////////////////
-	// construct/destruct
-	CAccountDB_txt(const char* configfile):
-		CTimerBase(60000),		// 60sec save interval
-		next_account_id(200000),//!! START_ACCOUNT_NUM
-		creation_time_GM_account_file(0),
-		savecount(0)
-	{
-		safestrcpy(account_filename,"save/account.txt",sizeof(account_filename));
-		safestrcpy(GM_account_filename,"conf/GM_account.txt",sizeof(GM_account_filename));
-
-		init(configfile);
-	}
-	virtual ~CAccountDB_txt()
-	{
-		close();
-	}
 private:
 	///////////////////////////////////////////////////////////////////////////
 	// helper class for gm_level reading
@@ -888,6 +857,43 @@ private:
 		return true;
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	// config stuff
+	uint32 next_account_id;
+	char account_filename[1024];
+	char GM_account_filename[1024];
+	time_t creation_time_GM_account_file;
+
+	size_t savecount;
+
+	///////////////////////////////////////////////////////////////////////////
+	// data
+	TMultiListP<CLoginAccount, 2> cList;
+
+	///////////////////////////////////////////////////////////////////////////
+	// alternative interface data
+	size_t	cPos;
+	Mutex	cMx;
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// construct/destruct
+	CAccountDB_txt(const char* configfile):
+		CTimerBase(60000),		// 60sec save interval
+		next_account_id(200000),//!! START_ACCOUNT_NUM
+		creation_time_GM_account_file(0),
+		savecount(0)
+	{
+		safestrcpy(account_filename,"save/account.txt",sizeof(account_filename));
+		safestrcpy(GM_account_filename,"conf/GM_account.txt",sizeof(GM_account_filename));
+
+		init(configfile);
+	}
+	virtual ~CAccountDB_txt()
+	{
+		close();
+	}
+
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// functions for db interface
@@ -897,6 +903,7 @@ public:
 	virtual bool existAccount(const char* userid);
 	virtual bool searchAccount(const char* userid, CLoginAccount&account);
 	virtual bool searchAccount(uint32 accid, CLoginAccount&account);
+
 	virtual bool insertAccount(const char* userid, const char* passwd, unsigned char sex, const char* email, CLoginAccount&account);
 	virtual bool removeAccount(uint32 accid);
 	virtual bool saveAccount(const CLoginAccount& account);
@@ -949,17 +956,6 @@ private:
 		return true;
 	}
 
-
-
-
-
-
-
-	///////////////////////////////////////////////////////////////////////////
-	// alternative interface
-	Mutex cMx;
-	size_t cPos;
-
 	virtual bool aquire()
 	{
 		cMx.lock();
@@ -972,15 +968,17 @@ private:
 	}
 	virtual bool first()
 	{
+		ScopeLock sl(cMx);
 		cPos=0;
 		return cList.size()>0; 
 	}
-	virtual operator bool()		{ return cPos<cList.size(); }
-	virtual bool operator++(int){ return cPos++; }
-	virtual bool save()			{ return true; }
+	virtual operator bool()		{ ScopeLock sl(cMx); return cPos<cList.size(); }
+	virtual bool operator++(int){ ScopeLock sl(cMx); cPos++; return (*this); }
+	virtual bool save()			{ ScopeLock sl(cMx); return true; }
 
 	virtual bool find(const char* userid)
 	{
+		ScopeLock sl(cMx);
 		size_t pos;
 		// search in index 1
 		if( cList.find( CLoginAccount(userid), pos, 1) )
@@ -991,10 +989,12 @@ private:
 	}
 	virtual bool find(uint32 accid)
 	{
+		ScopeLock sl(cMx);
 		return cList.find( CLoginAccount(accid), cPos, 0);
 	}
 	virtual CLoginAccount& operator()()
 	{
+		ScopeLock sl(cMx);
 		if( cPos>=cList.size() )
 			throw "access out of bound";
 		return cList(cPos,0);
@@ -1105,58 +1105,6 @@ CAccountDBInterface* CAccountDB::getDB(const char *dbcfgfile)
 
 class CCharDB_txt : public CTimerBase, private CConfig, public CCharDBInterface
 {
-	///////////////////////////////////////////////////////////////////////////
-	// config stuff
-	uint32 next_char_id;
-
-	char char_txt[1024];
-	char backup_txt[1024];
-	char friends_txt[1024];
-	bool backup_txt_flag;
-
-	bool name_ignoring_case;
-	int char_name_option;
-	char char_name_letters[256];
-	uint32 start_zeny;
-	unsigned short start_weapon;
-	unsigned short start_armor;
-	struct point start_point;
-
-	size_t savecount;
-
-	///////////////////////////////////////////////////////////////////////////
-	// data
-	TMultiListP<CCharCharacter, 2>	cCharList;
-	TslistDCT<CCharCharAccount>		cAccountList;
-
-public:
-	CCharDB_txt(const char *dbcfgfile) :
-		CTimerBase(300*1000)		// 300sec save interval
-	{
-		next_char_id = 150000;
-		safestrcpy(char_txt, "save/athena.txt", sizeof(char_txt));
-		safestrcpy(backup_txt, "save/backup.txt", sizeof(backup_txt));
-		safestrcpy(friends_txt, "save/friends.txt", sizeof(friends_txt));
-
-		backup_txt_flag=0;
-
-		char_name_option=0;
-		memset(char_name_letters,0,sizeof(char_name_letters));
-
-		name_ignoring_case=0;
-
-		start_zeny = 500;
-		start_weapon = 1201;
-		start_armor = 2301;
-		safestrcpy(start_point.map, "new_1-1.gat", sizeof(start_point.map));
-		start_point.x=53;
-		start_point.x=111;
-
-		init(dbcfgfile);
-	}
-	~CCharDB_txt()	{ close(); }
-
-
 private:
 	///////////////////////////////////////////////////////////////////////////
 	// Function to create the character line (for save)
@@ -2168,6 +2116,61 @@ CREATE TABLE IF NOT EXISTS `char_skill` (
 		return false;
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	// config stuff
+	uint32 next_char_id;
+
+	char char_txt[1024];
+	char backup_txt[1024];
+	char friends_txt[1024];
+	bool backup_txt_flag;
+
+	bool name_ignoring_case;
+	int char_name_option;
+	char char_name_letters[256];
+	uint32 start_zeny;
+	unsigned short start_weapon;
+	unsigned short start_armor;
+	struct point start_point;
+
+	size_t savecount;
+
+	///////////////////////////////////////////////////////////////////////////
+	// data
+	TMultiListP<CCharCharacter, 2>	cCharList;
+	TslistDCT<CCharCharAccount>		cAccountList;
+	///////////////////////////////////////////////////////////////////////////
+	// data for alternative interface
+	Mutex	cMx;
+	size_t	cPos;
+
+public:
+	CCharDB_txt(const char *dbcfgfile) :
+		CTimerBase(300*1000),		// 300sec save interval
+		cPos(0)
+	{
+		next_char_id = 150000;
+		safestrcpy(char_txt, "save/athena.txt", sizeof(char_txt));
+		safestrcpy(backup_txt, "save/backup.txt", sizeof(backup_txt));
+		safestrcpy(friends_txt, "save/friends.txt", sizeof(friends_txt));
+
+		backup_txt_flag=0;
+
+		char_name_option=0;
+		memset(char_name_letters,0,sizeof(char_name_letters));
+
+		name_ignoring_case=0;
+
+		start_zeny = 500;
+		start_weapon = 1201;
+		start_armor = 2301;
+		safestrcpy(start_point.map, "new_1-1.gat", sizeof(start_point.map));
+		start_point.x=53;
+		start_point.x=111;
+
+		init(dbcfgfile);
+	}
+	~CCharDB_txt()	{ close(); }
 
 public:
 	///////////////////////////////////////////////////////////////////////////
@@ -2185,6 +2188,63 @@ public:
 	virtual bool searchAccount(uint32 accid, CCharCharAccount& account);
 	virtual bool saveAccount(CCharAccount& account);
 	virtual bool removeAccount(uint32 accid);
+
+	///////////////////////////////////////////////////////////////////////////
+	// alternative interface
+	virtual bool aquire()
+	{
+		cMx.lock();
+		return this->first();
+	}
+	virtual bool release()
+	{
+		cPos=0;
+		cMx.unlock();
+		return true;
+	}
+	virtual bool first()
+	{
+		ScopeLock sl(cMx);
+		cPos=0;
+		return this->operator bool();
+	}
+	virtual operator bool()					
+	{
+		ScopeLock sl(cMx);
+		return cCharList.size() > cPos;
+	}
+	virtual bool operator++(int)
+	{
+		ScopeLock sl(cMx);
+		cPos++;
+		return this->operator bool();
+	}
+	virtual bool save()
+	{
+		return true; 
+	}
+
+	virtual bool find(const char* name)
+	{
+		ScopeLock sl(cMx);
+		size_t pos;
+		// search in index 1
+		if( cCharList.find( CCharCharacter(name), pos, 1) )
+		{	// set position based to index 0 
+			return cCharList.find( cCharList(pos,1), cPos, 0);
+		}
+		return false; 
+
+	}
+	virtual bool find(uint32 charid)
+	{
+		ScopeLock sl(cMx);
+		return cCharList.find( CCharCharacter(charid), cPos, 0);
+	}
+	virtual CCharCharacter& operator()()
+	{
+		return cCharList[cPos]; 
+	}
 
 private:
 	///////////////////////////////////////////////////////////////////////////
@@ -2871,7 +2931,8 @@ public:
 	CGuildDB_txt(const char *configfile) :
 		CTimerBase(60000),		// 60sec save interval
 		next_guild_id(10000),
-		savecount(0)
+		savecount(0),
+		cPosGuild(0), cPosCastle(0)
 	{
 		safestrcpy(guild_filename,"save/guild.txt",sizeof(guild_filename));
 		safestrcpy(castle_filename,"save/castle.txt",sizeof(castle_filename));
@@ -2892,6 +2953,12 @@ private:
 	char					guild_filename[1024];
 	char					castle_filename[1024];
 	char					guildexp_filename[1024];
+	///////////////////////////////////////////////////////////////////////////
+	// data for alternative interface
+	Mutex cMxGuild;
+	Mutex cMxCastle;
+	size_t cPosGuild;
+	size_t cPosCastle;
 
 
 	///////////////////////////////////////////////////////////////////////////
@@ -3052,6 +3119,86 @@ public:
 		}
 		return false;
 	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// alternative interface
+	virtual bool aquireGuild()
+	{
+		cMxGuild.lock();
+		return this->firstGuild(); 
+	}
+	virtual bool aquireCastle()
+	{
+		cMxCastle.lock();
+		return this->firstCastle(); 
+	}
+	virtual bool releaseGuild()
+	{
+		cMxGuild.unlock();
+		return true; 
+	}
+	virtual bool releaseCastle()
+	{
+		cMxCastle.unlock();
+		return true; 
+	}
+	virtual bool firstGuild()
+	{
+		cPosGuild=0;
+		return this->isGuildOk();
+	}
+	virtual bool firstCastle()
+	{
+		cPosCastle=0;
+		return this->isCastleOk();
+	}
+	virtual bool isGuildOk()
+	{
+		return (cGuilds.size() < cPosGuild); 
+	}
+	virtual bool isCastleOk()
+	{
+		return (cCastles.size() < cPosCastle); 
+	}
+	virtual bool nextGuild()
+	{
+		cPosGuild++;
+		return this->isGuildOk();
+	}
+	virtual bool nextCastle()
+	{
+		cPosGuild++;
+		return this->isGuildOk();
+	}
+	virtual bool saveGuild()				{ return true; }
+	virtual bool saveCastle()				{ return true; }
+
+	virtual bool findGuild(const char* name)
+	{
+		size_t pos;
+		if( cGuilds.find( CGuild(name), pos, 1) )
+		{	// need index base 0
+			return cGuilds.find( cGuilds(pos,1), cPosGuild, 0);
+		}
+		return false;
+	}
+	virtual bool findGuild(uint32 guildid)
+	{
+		return cGuilds.find( CGuild(guildid), cPosCastle, 0);
+	}
+	virtual bool findCastle(ushort cid)
+	{
+		return cCastles.find( CCastle(cid), 0, cPosCastle);
+	}
+	virtual CGuild& getGuild()
+	{
+		return cGuilds[cPosGuild];
+	}
+	virtual CCastle& getCastle()
+	{
+		return cCastles[cPosCastle];
+	}
+
 };
 
 

@@ -11,10 +11,29 @@
 #include "script.h"
 #include "battle.h"
 
+#define PCRE_SUPPORT
+
+
+#define pcre void
+#define pcre_extra void
+#define PCRE_CASELESS 0
+void *pcre_compile(const char *pattern, int type, const char **err, int *erroff, void*)
+{
+	return NULL;
+}
+void *pcre_study(pcre* pcre_, int, const char **err)
+{
+	return NULL;
+}
+int pcre_exec(pcre* pcre_,pcre_extra *pcre_extra_, const char *msg, size_t len, int i, int k, int* offsets, size_t sz)
+{
+	return 0;
+}
+
 
 #ifdef PCRE_SUPPORT
 
-#include <pcre.h>
+//#include <pcre.h>
 
 /**
  *  Written by MouseJstr in a vision... (2/21/2005)
@@ -105,11 +124,12 @@ struct npc_parse {
  * This does NOT do the list management
  */
 
-void finalize_pcrematch_entry(struct pcrematch_entry *e) {
-    free(e->pcre_);
-    free(e->pcre_extra_);
-    aFree(e->pattern_);
-    aFree(e->label_);
+void finalize_pcrematch_entry(struct pcrematch_entry *e)
+{
+    if(e->pcre_) { free(e->pcre_); e->pcre_=NULL; }
+	if(e->pcre_extra_) { free(e->pcre_extra_); e->pcre_extra_=NULL; }
+	if(e->pattern_) { free(e->pattern_); e->pattern_=NULL; }
+	if(e->label_) { free(e->label_); e->label_=NULL; }
 }
 
 /**
@@ -324,8 +344,8 @@ void npc_chat_def_pattern(struct npc_data *nd, int setid,
 
     struct pcrematch_set * s = lookup_pcreset(nd, setid);
     struct pcrematch_entry *e = create_pcrematch_entry(s);
-    e->pattern_ = aStrdup(pattern);
-    e->label_ = aStrdup(label);
+    e->pattern_ = strdup(pattern);
+    e->label_ = strdup(label);
     e->pcre_ = pcre_compile(pattern, PCRE_CASELESS, &err, &erroff, NULL);
     e->pcre_extra_ = pcre_study(e->pcre_, 0, &err);
 }
@@ -463,7 +483,7 @@ int npc_chat_sub(struct block_list &bl, va_list &ap)
 int CNpcChat::process(block_list &bl) const
 {
     struct npc_data &nd = (struct npc_data &)bl;
-    struct npc_parse *npcParse = (struct npc_parse *)nd->chatdb;
+    struct npc_parse *npcParse = (struct npc_parse *)nd.chatdb;
     int pos, i;
     struct npc_label_list *lst;
     struct pcrematch_set *pcreset;
@@ -531,11 +551,11 @@ int CNpcChat::process(block_list &bl) const
                 }
 
                 // find the target label.. this sucks..
-				if( nd->u.scr.ref )
+				if( nd.u.scr.ref )
 				{
 					pos = -1;
 					lst=nd.u.scr.ref->label_list;           
-					for (i = 0; i < nd.u.scr.ref->label_list_num; i++) {
+					for (i = 0; (size_t)i < nd.u.scr.ref->label_list_num; i++) {
 						if( strcmp(lst[i].labelname, e->label_ ) == 0) {
 							pos = lst[i].pos;
 							break;
@@ -563,39 +583,38 @@ int CNpcChat::process(block_list &bl) const
 // Various script builtins used to support these functions
 int buildin_defpattern(CScriptEngine &st)
 {
-    int setid=conv_num(st,(st.stack->stack_data[st.start+2]));
-    char *pattern=conv_str(st,(st.stack->stack_data[st.start+3]));
-    char *label=conv_str(st,(st.stack->stack_data[st.start+4]));
+    int setid=st.GetInt(st[2]);
+    const char *pattern=st.GetString(st[3]);
+    const char *label=st.GetString(st[4]);
     struct npc_data *nd=(struct npc_data *)map_id2bl(st.oid);
-    
-    npc_chat_def_pattern(nd, setid, pattern, label);
-
+	if(nd) 
+		npc_chat_def_pattern(nd, setid, pattern, label);
     return 0;
 }
 int buildin_activatepset(CScriptEngine &st)
 {
-    int setid=conv_num(st,(st.stack->stack_data[st->start+2]));
+    int setid=st.GetInt(st[2]);
     struct npc_data *nd=(struct npc_data *)map_id2bl(st.oid);
-
-    activate_pcreset(nd, setid);
+	if(nd)
+		activate_pcreset(nd, setid);
 
     return 0;
 }
 int buildin_deactivatepset(CScriptEngine &st)
 {
-    int setid=conv_num(st,(st.stack->stack_data[st->start+2]));
+    int setid=st.GetInt(st[2]);
     struct npc_data *nd=(struct npc_data *)map_id2bl(st.oid);
-
-    deactivate_pcreset(nd, setid);
+	if(nd)
+		deactivate_pcreset(nd, setid);
 
     return 0;
 }
 int buildin_deletepset(CScriptEngine &st)
 {
-    int setid=conv_num(st,(st.stack->stack_data[st->start+2]));
+    int setid=st.GetInt(st[2]);
     struct npc_data *nd=(struct npc_data *)map_id2bl(st.oid);
-
-    delete_pcreset(nd, setid);
+	if(nd)
+		delete_pcreset(nd, setid);
     return 0;
 }
 

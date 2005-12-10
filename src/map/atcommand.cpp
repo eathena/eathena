@@ -6265,10 +6265,11 @@ bool atcommand_disguise(int fd, struct map_session_data &sd, const char* command
 	if( mob_id == 0 ) // check name first (to avoid possible name begining by a number)
 		mob_id = atoi(message);
 
-	if( (mob_id >=  46 && mob_id <= 125) || (mob_id >= 700 && mob_id <= 718) || // NPC
-	    (mob_id >= 721 && mob_id <= 755) || (mob_id >= 757 && mob_id <= 811) || // NPC
-	    (mob_id >= 813 && mob_id <= 858) || // NPC
+	if( (mob_id >=  46 && mob_id <= 125) || // NPC
+//		(mob_id >= 700 && mob_id <= 718) || (mob_id >= 721 && mob_id <= 755) || (mob_id >= 757 && mob_id <= 811) || (mob_id >= 813 && mob_id <= 858) || // NPC
+		(mob_id >= 700 && mob_id <= 858) || // NPC
 	    (mob_id > 1000 && mob_id < 1582)) { // monsters
+
 		pc_stop_walking(sd,0);
 		clif_clearchar(sd.bl, 0);
 		sd.disguise_id = mob_id;
@@ -6888,7 +6889,7 @@ bool atcommand_addwarp(int fd, struct map_session_data &sd, const char* command,
 		sprintf(output, "New warp NPC => %s",w3);
 		clif_displaymessage(fd, output);
 		return true;
-}
+	}
 	return false;
 }
 
@@ -6912,10 +6913,9 @@ bool atcommand_follow(int fd, struct map_session_data &sd, const char* command, 
 			pc_stop_following(sd);
 		else
 			pc_follow(sd, pl_sd->bl.id);
-		return 0;
+		return true;
 	}
-	
-	return 1;
+	return false;
 }
 
 

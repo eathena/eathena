@@ -2,9 +2,10 @@
 #ifndef _SCRIPT_H_
 #define _SCRIPT_H_
 
+#include <baseparam.h>
 // predeclaration
 struct map_session_data;
-
+class CScriptEngine;
 
 
 extern struct Script_Config

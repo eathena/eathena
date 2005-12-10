@@ -1691,20 +1691,19 @@ int guild_agit_end(void)
 int guild_gvg_eliminate_timer(int tid, unsigned long tick, int id, intptr data)
 {	// Run One NPC_Event[OnAgitEliminate]
 	char *name = (char*)data.ptr;
-	size_t len = (name) ? strlen(name) : 0; 
-	// the rest is dangerous, but let it crash,
-	// if this happens, it's ruined anyway
-	char *evname=(char*)aMalloc( (len + 4) * sizeof(char));
-	int c=0;
-
-	if(agit_flag)	// Agit not already End
+	if(name)
 	{
-		memcpy(evname,name,len - 5);
-		strcpy(evname + len - 5,"Eliminate");
-		c = npc_event_do(evname);
-		ShowMessage("NPC_Event:[%s] Run (%d) Events.\n",evname,c);
+		if(agit_flag)	// Agit not already End
+		{
+			size_t len = strlen(name); 
+			CREATE_BUFFER(evname, char, len+5);
+			memcpy(evname,name,len-5);
+			strcpy(evname+len-5,"Eliminate");
+			ShowMessage("NPC_Event:[%s] Run (%d) Events.\n",evname, npc_event_do(evname) );
+			DELETE_BUFFER(evname);
+		}
+		aFree(name);
 	}
-	if(name) aFree(name);
 	return 0;
 }
 

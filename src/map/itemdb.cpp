@@ -106,7 +106,7 @@ public:
 struct item_data* itemdb_searchname(const char *str)
 {
 	struct item_data *item=NULL;
-	numdb_foreach(item_db, CDBItemSearchjname(str,item) );
+	numdb_foreach(item_db, CDBItemSearchname(str,item) );
 //	numdb_foreach(item_db,itemdb_searchname_sub,str,&item);
 	return item;
 }

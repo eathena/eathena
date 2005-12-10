@@ -33,13 +33,13 @@ bool CConfig::LoadConfig(const char* cfgName)
 		while( isspace((int)((unsigned char)*ip) ) ) ip++;
 
 		// skipping comment lines
-		if( ip[0] == '/' && ip[1] == '/')
+		if( !ip[0] || (ip[0] == '/' && ip[1] == '/'))
 			continue;
 
 		memset(w2, 0, sizeof(w2));
 		// format: "name:value"
-		if( sscanf(ip, "%[^:]: %[^\r\n]", w1, w2) == 2 ||
-			sscanf(ip, "%[^=]= %[^\r\n]", w1, w2) == 2 )
+		if( sscanf(ip, "%[^=]= %[^\r\n]", w1, w2) == 2 ||
+			sscanf(ip, "%[^:]: %[^\r\n]", w1, w2) == 2 )
 		{
 			CleanControlChars(w1);
 			CleanControlChars(w2);
@@ -161,112 +161,70 @@ int CTimerBase::timercallback(int timer, unsigned long tick, int id, intptr data
 
 ///////////////////////////////////////////////////////////////////////////////
 // static data
-CParamStorage::CParamLoader	CParamStorage::cLoader;
-TslistDCT<CParamStorage>	CParamStorage::cParams;
-Mutex						CParamStorage::cLock;
-
-
-
-
-template <class T> T& CParam<T>::convert(const char* name, const T& value, CParamStorage &basestor)
+CParamStorage::CSingletonData &CParamStorage::getSingletonData()
 {
-	ScopeLock sl(CParamStorage::getMutex());
-	// get a reference to the parameter
-	CParamStorage &stor = CParamStorage::getParam(name);
-	CParamData<T>* tmp=NULL;
+	static CParamStorage::CSingletonData sd;
+	return sd;
+}
 
-	if( !stor.cParam.exists() )
-	{	// there is no data pointer
-		// create one
-		stor.cParam = tmp = new CParamData<T>(value);
-	}
-	else if( stor.cParam->getType() == typeid(T) )
-	{	// data has same type as requested, so can use it directly
-		tmp = dynamic_cast< CParamData<T>* >( (class CParamBase*)stor.cParam.get() );
-		// dynamic_cast is here because of my paranoia
-	}
-	else if( stor.cParam->getType() == typeid(MiniString) )
-	{	// otherwise we only accept MiniString to convert the data
-		//CParamData<MiniString> *old = dynamic_cast< CParamData<MiniString>* >( stor.cParam.operator->() );
-		// dynamic cast does not work here even if actually should, just hard cast it then
-		CParamData<MiniString> *old = (CParamData<MiniString>*)stor.cParam.get();
-		if( !old )
-			throw CException("Params: data conversion wrong type");
-		stor.cParam = tmp = new CParamData<T>(old->cData);
-		// this creation will change the pointer in the database
-		// and disconnect all existing references to this node
-	}
-	if(!tmp) throw CException("Params: data conversion failed");
-	// return a reference to the data and copy the storage
-	basestor = stor;
-	basestor.cTime++;
-	tmp->setReference();
-	return tmp->cData;
-}
-template <class T> T& CParam<T>::convert(const char* name, const char* value, CParamStorage &basestor)
-{
-	ScopeLock sl(CParamStorage::getMutex());
-	// get a reference to the parameter
-	CParamStorage &stor = CParamStorage::getParam(name);
-	CParamData<T>* tmp=NULL;
-	if( !stor.cParam.exists() )
-	{	// there is no data pointer
-		// create one
-		stor.cParam = tmp = new CParamData<T>(value);
-	}
-	else if( stor.cParam->getType() == typeid(T) )
-	{	// data has same type as requested, so can use it directly
-		tmp = dynamic_cast< CParamData<T>* >( (class CParamBase*)stor.cParam.get() );
-		// dynamic_cast is here because of my paranoia
-	}
-	else if( stor.cParam->getType() == typeid(MiniString) )
-	{	// otherwise we only accept MiniString to convert the data
-		//CParamData<MiniString> *old = dynamic_cast< CParamData<MiniString>* >( stor.cParam.operator->() );
-		CParamData<MiniString> *old = (CParamData<MiniString>*)stor.cParam.get();
-		if( !old )
-			throw CException("Params: data conversion wrong type");
-		stor.cParam = tmp = new CParamData<T>(old->cData);
-		// this creation will change the pointer in the database
-		// and disconnect all existing references to this node
-	}
-	if(!tmp) throw CException("Params: data conversion failed");
-	// return a reference to the data and copy the storage
-	basestor = stor;
-	basestor.cTime++;
-	tmp->setReference();
-	return tmp->cData;
-}
 ///////////////////////////////////////////////////////////////////////////
-// create a new variable / overwrite the content of an existing
-template <class T> void CParam<T>::create(const char* name, const T& value)
+// static access functions
+CParamStorage& CParamStorage::getParam(const char* name)
 {
-	ScopeLock sl(CParamStorage::getMutex());
-	// get a reference to the parameter
-	CParamStorage &stor = CParamStorage::getParam(name);
-	if( !stor.cParam.exists() )
-	{	// there is no data pointer
-		// create one
-		stor.cParam = new CParamData<T>(value);
+	CSingletonData &sd = getSingletonData();
+	ScopeLock sl(sd);
+	size_t pos;
+	CParamStorage tmp(name);
+	if( !sd.cParams.find(tmp, 0, pos) )
+	{
+		tmp.cTime = gettick();
+		sd.cParams.insert(tmp);
+		if( !sd.cParams.find(tmp, 0, pos) )
+			throw CException("Params: insert failed");		
 	}
-	else if( stor.cParam->getType() == typeid(T) )
-	{	// data is of same type and can be used directly
-		CParamData<T>* tmp = dynamic_cast< CParamData<T>* >( (class CParamBase*)stor.cParam.get() );
-		if( tmp->cData != value )
-		{
-			tmp->cData = value;
-			stor.cTime = gettick();
-		}
+	return sd.cParams[pos];
+}
+// clean unreferenced parameters
+void CParamStorage::clean()
+{
+	CSingletonData &sd = getSingletonData();
+	ScopeLock sl(sd);
+	size_t i=sd.cParams.size();
+	while(i>0)
+	{
+		i--;
+		if( !sd.cParams[i].cParam->isReferenced() )
+			sd.cParams.removeindex(i);
 	}
-	else
-	{	// otherwise assign the new value
-		if( stor.cParam->assign(value) )
-			stor.cTime = gettick();
-	}
+}
+void CParamStorage::listall()
+{
+	CSingletonData &sd = getSingletonData();
+	ScopeLock sl(sd);
+	size_t i;
+	printf("\nList of Parameters (existing %i):", sd.cParams.size());
+	for(i=0; i<sd.cParams.size(); i++)
+		sd.cParams[i].print();
+	printf("\n---------------\n", sd.cParams.size());
+
+}
+void CParamStorage::loadFile(const char* name)
+{
+	CSingletonData &sd = getSingletonData();
+	ScopeLock sl(sd);
+	sd.cLoader.loadFile(name);
 }
 
 
 
 
+
+
+bool doublecallback(const char*name, const double&newval, double&oldval)
+{
+	printf( "%s is changing from %lf to %lf\n", name, oldval, newval);
+	return true;
+}
 
 
 void parameertest()
@@ -280,10 +238,17 @@ void parameertest()
 		createParam("double param2", "0.2111");
 		createParam("double param3", "0.999");
 
-		CParam<MiniString> parameter2("double param", "0.0");
+		try
+		{
+			CParam<MiniString> parameter2("double param", "0.0");
+		}
+		catch(...)
+		{
+			printf("'double param' not creatable with type MiniString");
+		}
 
 		// create scope persistant object
-		CParam<double> parameter("double param", 0.0);
+		CParam<double> parameter("double param", 0.0, doublecallback);
 
 		a=parameter;
 		printf("%lf %s\n", a, (const char*)b);
@@ -294,7 +259,7 @@ void parameertest()
 		a=parameter;
 		printf("%lf %s\n", a, (const char*)b);
 
-		CParam<double> testvar("double param", 0.0);
+		CParam<double> testvar("double param", 0.0, doublecallback);
 
 		a=parameter;
 		b=testvar;
