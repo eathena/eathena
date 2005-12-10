@@ -519,55 +519,55 @@
 1169,Executioner_,Executioner,4,,10,2200,155,,1,0,16514,7,2,34,4,48,1,3,{ bonus bIgnoreDefRace,RC_DemiHuman; bonus2 bAddRace,RC_DemiHuman,20; bonus2 bSubRace,RC_DemiHuman,-10; bonus bAtkEle,Ele_Dark; }
 1170,Katzbalger,Katzbalger,4,,10,2000,175,,1,0,16514,7,2,34,4,48,1,3,{ bonus bVit,5; bonus bDef,10; }
 // Daggers
-1201,Knife,Knife,4,50,,400,17,,1,3,10444527,7,2,2,1,1,1,1,{}
-1202,Knife_,Knife,4,50,,400,17,,1,4,10444527,7,2,2,1,1,1,1,{}
-1203,Knife__,Knife,4,50,,400,17,,1,0,10444527,7,2,2,1,1,1,1,{}
-1204,Cutter,Cutter,4,1250,,500,30,,1,3,10444527,7,2,2,1,1,1,1,{}
-1205,Cutter_,Cutter,4,1250,,500,30,,1,4,10444527,7,2,2,1,1,1,1,{}
-1206,Cutter__,Cutter,4,1250,,500,30,,1,0,10444527,7,2,2,1,1,1,1,{}
-1207,Main_Gauche,Main Gauche,4,2400,,600,43,,1,3,10444527,7,2,2,1,1,1,1,{}
-1208,Main_Gauche_,Main Gauche,4,2400,,600,43,,1,4,10444527,7,2,2,1,1,1,1,{}
-1209,Main_Gauche__,Main Gauche,4,2400,,600,43,,1,0,10444527,7,2,2,1,1,1,1,{}
-1210,Dirk,Dirk,4,8500,,500,59,,1,2,10444527,7,2,2,2,12,1,1,{}
-1211,Dirk_,Dirk,4,8500,,500,59,,1,3,10444527,7,2,2,2,12,1,1,{}
-1212,Dirk__,Dirk,4,8500,,500,59,,1,0,10444527,7,2,2,2,12,1,1,{}
-1213,Dagger,Dagger,4,14000,,600,73,,1,2,10444527,7,2,2,2,12,1,1,{}
-1214,Dagger_,Dagger,4,14000,,600,73,,1,3,10444527,7,2,2,2,12,1,1,{}
-1215,Dagger__,Dagger,4,14000,,600,73,,1,0,10444527,7,2,2,2,12,1,1,{}
-1216,Stiletto,Stiletto,4,19500,,700,87,,1,2,10444527,7,2,2,2,12,1,1,{}
-1217,Stiletto_,Stiletto,4,19500,,700,87,,1,3,10444527,7,2,2,2,12,1,1,{}
-1218,Stiletto__,Stiletto,4,19500,,700,87,,1,0,10444527,7,2,2,2,12,1,1,{}
-1219,Gladius,Gladius,4,43000,,700,105,,1,2,2055918,7,2,2,3,24,1,1,{}
-1220,Gladius_,Gladius,4,43000,,700,105,,1,3,2055918,7,2,2,3,24,1,1,{}
-1221,Gladius__,Gladius,4,43000,,700,105,,1,0,2055918,7,2,2,3,24,1,1,{}
-1222,Damascus,Damascus,4,49000,,800,118,,1,1,2055918,7,2,2,3,24,1,1,{ bonus bUnbreakableWeapon,0; }
-1223,Fortune_Sword,Fortune Sword,4,,10,500,90,,1,0,2055918,7,2,2,4,24,1,1,{ bonus bLuk,5; bonus bFlee2,20; }
-1224,Sword_Breaker,Swordbreaker,4,,10,1000,70,,1,0,2055918,7,2,2,4,36,1,1,{ bonus bBreakWeaponRate,500; }
-1225,Mail_Breaker,Mailbreaker,4,,10,1000,70,,1,0,2055918,7,2,2,4,36,1,1,{ bonus bBreakArmorRate,500; }
-1226,Damascus_,Damascus,4,49000,,800,118,,1,2,2055918,7,2,2,3,24,1,1,{ bonus bUnbreakableWeapon,0; }
-1227,Weeder_Knife,Weeder Knife,4,,10,400,80,,1,0,2055918,7,2,2,4,36,1,1,{ bonus bIgnoreDefRace,RC_Plant; bonus2 bAddRace,RC_Plant,15; bonus2 bSubRace,RC_Plant,15; }
-1228,Combat_Knife,Combat Knife,4,,10,400,80,,1,0,2055918,7,2,2,4,36,1,1,{ bonus bIgnoreDefRace,RC_DemiHuman; bonus2 bSubRace,RC_DemiHuman,10; bonus2 bSubRace,RC_Demon,-10; }
-1229,Mama's_Knife,Mama's Knife,4,,10,500,75,,1,0,2055918,7,2,2,4,36,1,1,{ bonus bCritical,30; bonus2 bAddRace,RC_DemiHuman,3; bonus3 bAddMonsterDropItem,517,2,5000; }
-1230,House_Auger,House Auger,4,,10,600,80,,1,0,2055918,7,2,2,4,36,1,1,{ bonus bDefRatioAtkRace,RC_Boss; bonus bDefRatioAtkRace,RC_NonBoss; }
-1231,Bazerald,Bazerald,4,,10,500,70,,1,0,2055918,7,2,2,4,36,1,1,{ bonus bAtkEle,Ele_Fire; bonus bInt,5; bonus bMatkRate,10; }
+1201,Knife,Knife,4,50,,400,17,,1,3,77553391,7,2,2,1,1,1,1,{}
+1202,Knife_,Knife,4,50,,400,17,,1,4,77553391,7,2,2,1,1,1,1,{}
+1203,Knife__,Knife,4,50,,400,17,,1,0,77553391,7,2,2,1,1,1,1,{}
+1204,Cutter,Cutter,4,1250,,500,30,,1,3,77553391,7,2,2,1,1,1,1,{}
+1205,Cutter_,Cutter,4,1250,,500,30,,1,4,77553391,7,2,2,1,1,1,1,{}
+1206,Cutter__,Cutter,4,1250,,500,30,,1,0,77553391,7,2,2,1,1,1,1,{}
+1207,Main_Gauche,Main Gauche,4,2400,,600,43,,1,3,77553391,7,2,2,1,1,1,1,{}
+1208,Main_Gauche_,Main Gauche,4,2400,,600,43,,1,4,77553391,7,2,2,1,1,1,1,{}
+1209,Main_Gauche__,Main Gauche,4,2400,,600,43,,1,0,77553391,7,2,2,1,1,1,1,{}
+1210,Dirk,Dirk,4,8500,,500,59,,1,2,77553391,7,2,2,2,12,1,1,{}
+1211,Dirk_,Dirk,4,8500,,500,59,,1,3,77553391,7,2,2,2,12,1,1,{}
+1212,Dirk__,Dirk,4,8500,,500,59,,1,0,77553391,7,2,2,2,12,1,1,{}
+1213,Dagger,Dagger,4,14000,,600,73,,1,2,77553391,7,2,2,2,12,1,1,{}
+1214,Dagger_,Dagger,4,14000,,600,73,,1,3,77553391,7,2,2,2,12,1,1,{}
+1215,Dagger__,Dagger,4,14000,,600,73,,1,0,77553391,7,2,2,2,12,1,1,{}
+1216,Stiletto,Stiletto,4,19500,,700,87,,1,2,77553391,7,2,2,2,12,1,1,{}
+1217,Stiletto_,Stiletto,4,19500,,700,87,,1,3,77553391,7,2,2,2,12,1,1,{}
+1218,Stiletto__,Stiletto,4,19500,,700,87,,1,0,77553391,7,2,2,2,12,1,1,{}
+1219,Gladius,Gladius,4,43000,,700,105,,1,2,69164782,7,2,2,3,24,1,1,{}
+1220,Gladius_,Gladius,4,43000,,700,105,,1,3,69164782,7,2,2,3,24,1,1,{}
+1221,Gladius__,Gladius,4,43000,,700,105,,1,0,69164782,7,2,2,3,24,1,1,{}
+1222,Damascus,Damascus,4,49000,,800,118,,1,1,69164782,7,2,2,3,24,1,1,{ bonus bUnbreakableWeapon,0; }
+1223,Fortune_Sword,Fortune Sword,4,,10,500,90,,1,0,69164782,7,2,2,4,24,1,1,{ bonus bLuk,5; bonus bFlee2,20; }
+1224,Sword_Breaker,Swordbreaker,4,,10,1000,70,,1,0,69164782,7,2,2,4,36,1,1,{ bonus bBreakWeaponRate,500; }
+1225,Mail_Breaker,Mailbreaker,4,,10,1000,70,,1,0,69164782,7,2,2,4,36,1,1,{ bonus bBreakArmorRate,500; }
+1226,Damascus_,Damascus,4,49000,,800,118,,1,2,69164782,7,2,2,3,24,1,1,{ bonus bUnbreakableWeapon,0; }
+1227,Weeder_Knife,Weeder Knife,4,,10,400,80,,1,0,69164782,7,2,2,4,36,1,1,{ bonus bIgnoreDefRace,RC_Plant; bonus2 bAddRace,RC_Plant,15; bonus2 bSubRace,RC_Plant,15; }
+1228,Combat_Knife,Combat Knife,4,,10,400,80,,1,0,69164782,7,2,2,4,36,1,1,{ bonus bIgnoreDefRace,RC_DemiHuman; bonus2 bSubRace,RC_DemiHuman,10; bonus2 bSubRace,RC_Demon,-10; }
+1229,Mama's_Knife,Mama's Knife,4,,10,500,75,,1,0,69164782,7,2,2,4,36,1,1,{ bonus bCritical,30; bonus2 bAddRace,RC_DemiHuman,3; bonus3 bAddMonsterDropItem,517,2,5000; }
+1230,House_Auger,House Auger,4,,10,600,80,,1,0,69164782,7,2,2,4,36,1,1,{ bonus bDefRatioAtkRace,RC_Boss; bonus bDefRatioAtkRace,RC_NonBoss; }
+1231,Bazerald,Bazerald,4,,10,500,70,,1,0,69164782,7,2,2,4,36,1,1,{ bonus bAtkEle,Ele_Fire; bonus bInt,5; bonus bMatkRate,10; }
 1232,Assassin_Dagger,Assasin Dagger,4,,10,600,140,,1,0,4096,7,2,2,4,36,1,1,{ bonus bMaxHPrate,20; bonus bMaxSPrate,15; bonus bAspdRate,2; bonus bAtkEle,Ele_Dark; }
-1233,Exercise,Excorcise,4,,10,700,90,,1,0,2055918,7,2,2,4,36,1,1,{ bonus bIgnoreDefRace,RC_Demon; bonus2 bSubRace,RC_Demon,5; bonus2 bSubRace,RC_DemiHuman,-10; }
-1234,Moonlight_Sword,Walgwanggum,4,,10,700,50,,1,0,2055918,7,2,2,4,36,1,1,{ bonus bMaxSPrate,10; bonus bSPDrainValue,3; }
+1233,Exercise,Excorcise,4,,10,700,90,,1,0,69164782,7,2,2,4,36,1,1,{ bonus bIgnoreDefRace,RC_Demon; bonus2 bSubRace,RC_Demon,5; bonus2 bSubRace,RC_DemiHuman,-10; }
+1234,Moonlight_Sword,Walgwanggum,4,,10,700,50,,1,0,69164782,7,2,2,4,36,1,1,{ bonus bMaxSPrate,10; bonus bSPDrainValue,3; }
 1235,Azoth,Azoth,4,,10,700,110,,1,0,262144,7,2,2,4,36,1,1,{ bonus bClassChange,300; }
-1236,Sucsamad,Sucsamad,4,,10,800,140,,1,0,2055918,7,2,2,4,36,1,1,{ bonus2 bAddEle,2,Ele_Earth; bonus2 bAddEle,Ele_Wind,10; bonus bUnbreakableWeapon,0; }
-1237,Grimtooth_,Grimtooth,4,,10,800,180,,1,0,2055918,7,2,2,4,36,1,1,{ bonus bFlee,10; bonus bFlee2,5; bonus bDefRate,-50; bonus bDef2Rate,-50; }
-1238,Zeny_Knife,Zeny Knife,4,,10,700,64,,1,0,2055918,7,2,2,3,40,1,1,{ bonus2 bGetZenyNum,10,100; }
-1239,Poison_Knife,Poison Knife,4,,10,800,64,,1,0,2055918,7,2,2,3,65,1,1,{ bonus bAtkEle,Ele_Poison; bonus2 bAddEff,Eff_Poison,3000; }
-1240,Princess_Knife,Princess Knife,4,,10,400,84,,1,0,2055918,7,2,2,4,1,1,1,{ bonus bAllStats,1; }
-1241,Cursed_Dagger,Cursed Dagger,4,,10,400,55,,1,0,66052,7,2,2,4,85,1,1,{ bonus2 bAddEff,Eff_Curse,500; }
-1242,Counter_Dagger,Counter Dagger,4,,10,550,140,,1,0,66052,7,2,2,4,55,1,1,{ bonus bCritical,90; bonus3 bAutoSpell,61,1,250; }
+1236,Sucsamad,Sucsamad,4,,10,800,140,,1,0,69164782,7,2,2,4,36,1,1,{ bonus2 bAddEle,2,Ele_Earth; bonus2 bAddEle,Ele_Wind,10; bonus bUnbreakableWeapon,0; }
+1237,Grimtooth_,Grimtooth,4,,10,800,180,,1,0,69164782,7,2,2,4,36,1,1,{ bonus bFlee,10; bonus bFlee2,5; bonus bDefRate,-50; bonus bDef2Rate,-50; }
+1238,Zeny_Knife,Zeny Knife,4,,10,700,64,,1,0,69164782,7,2,2,3,40,1,1,{ bonus2 bGetZenyNum,10,100; }
+1239,Poison_Knife,Poison Knife,4,,10,800,64,,1,0,69164782,7,2,2,3,65,1,1,{ bonus bAtkEle,Ele_Poison; bonus2 bAddEff,Eff_Poison,3000; }
+1240,Princess_Knife,Princess Knife,4,,10,400,84,,1,0,69164782,7,2,2,4,1,1,1,{ bonus bAllStats,1; }
+1241,Cursed_Dagger,Cursed Dagger,4,,10,400,55,,1,0,67174916,7,2,2,4,85,1,1,{ bonus2 bAddEff,Eff_Curse,500; }
+1242,Counter_Dagger,Counter Dagger,4,,10,550,140,,1,0,67174916,7,2,2,4,55,1,1,{ bonus bCritical,90; bonus3 bAutoSpell,61,1,250; }
 1243,Main_Gauche_For_Novice,Novice Main Gauche,4,,10,1,45,,1,0,8388609,7,2,2,1,1,0,1,{}
 1244,Holy_Dagger,Holy Dagger,4,,10,800,100,,1,0,135232,7,2,2,4,55,1,1,{ bonus bAtkEle,Ele_Holy; }
 1245,Cinquedia,Cinquedia,4,40000,,700,110,,1,1,8388609,7,2,2,3,30,1,1,{}
 1246,Cinquedia_,Cinquedia,4,40000,,700,110,,1,2,8388609,7,2,2,3,30,1,1,{}
-1247,Kindling_Dagger,Kindling Dagger,4,,10,600,39,,1,0,10444527,7,2,2,1,0,1,1,{ bonus bAtkEle,Ele_Fire; }
-1248,Obsidian_Dagger,Obsidian Dagger,4,,10,600,39,,1,0,10444527,7,2,2,1,0,1,1,{ bonus bAtkEle,Ele_Earth; }
-1249,Fisherman's_Knife,Fisherman's Knife,4,,10,600,39,,1,0,10444527,7,2,2,1,0,1,1,{ bonus bAtkEle,Ele_Water; }
+1247,Kindling_Dagger,Kindling Dagger,4,,10,600,39,,1,0,77553391,7,2,2,1,0,1,1,{ bonus bAtkEle,Ele_Fire; }
+1248,Obsidian_Dagger,Obsidian Dagger,4,,10,600,39,,1,0,77553391,7,2,2,1,0,1,1,{ bonus bAtkEle,Ele_Earth; }
+1249,Fisherman's_Knife,Fisherman's Knife,4,,10,600,39,,1,0,77553391,7,2,2,1,0,1,1,{ bonus bAtkEle,Ele_Water; }
 // Katars
 1250,Jur,Jur,4,19500,,800,125,,1,2,4096,7,2,34,2,18,1,16,{}
 1251,Jur_,Jur,4,19500,,800,125,,1,3,4096,7,2,34,2,18,1,16,{}
@@ -656,8 +656,8 @@
 1470,Brionac,Brionac,4,,10,3000,190,,3,0,16514,7,2,34,4,48,1,5,{ bonus bAtkEle,Ele_Holy; skill 28,5; bonus3 bAutoSpell,13,3,90; bonus2 bAddRace,RC_Boss,5; }
 1471,Hellfire,Hellfire,4,,10,3500,200,,3,0,16514,7,2,34,4,48,1,5,{ bonus bAtkEle,Ele_Fire; bonus3 bAutoSpell,17,3,90; bonus bStr,3; }
 // 2-Handed Staffs
-1472,Staff_of_Soul,Soul Staff,4,,10,1400,25,,1,0,66052,7,2,34,3,73,1,10,{ bonus bInt,5; bonus bAgi,2; bonus bMatkRate,15; }
-1473,Wizardy_Staff,Wizardy Staff,4,,10,2400,120,,1,0,66052,7,2,34,4,90,1,10,{ bonus bInt,6; bonus bDex,2; bonus bMatkRate,15; }
+1472,Staff_of_Soul,Soul Staff,4,,10,1400,25,,1,0,67174916,7,2,34,3,73,1,10,{ bonus bInt,5; bonus bAgi,2; bonus bMatkRate,15; }
+1473,Wizardy_Staff,Wizardy Staff,4,,10,2400,120,,1,0,67174916,7,2,34,4,90,1,10,{ bonus bInt,6; bonus bDex,2; bonus bMatkRate,15; }
 // 2-Handed Spears
 1474,Gaebolg,Gae Bulg,4,,10,2000,160,,3,0,16514,7,2,34,4,60,1,5,{ bonus bIgnoreDefRace,RC_Dragon; bonus2 bAddRace,RC_Boss,10; }
 1475,Cavalry_Lance,Cavalry Lance,4,,10,10,0,,0,0,0,,0,0,0,0,0,0,{}
@@ -709,28 +709,28 @@
 1562,Battlefield_Textbook,Textbook on Battlefield,4,,10,1500,140,,1,0,33620224,7,2,2,4,55,1,15,{ bonus bInt,3; bonus4 bAutoSpell,34,3+(getskilllv(34)>3)*(getskilllv(34)-3),10,0; }
 1599,Angra_Manyu,Angra Manyu,4,120,,10,1,,1,4,10477567,7,2,2,4,2,1,8,{ bonus bBaseAtk,3800; bonus2 bHPDrainRate,1000,100; }
 // Staffs
-1601,Rod,Rod,4,50,,400,15,,1,3,142705429,7,2,2,1,1,1,10,{ bonus bMatkRate,15; }
-1602,Rod_,Rod,4,50,,400,15,,1,4,142705429,7,2,2,1,1,1,10,{ bonus bMatkRate,15; }
-1603,Rod__,Rod,4,50,,400,15,,1,0,142705429,7,2,2,1,1,1,10,{ bonus bMatkRate,15; }
-1604,Wand,Wand,4,2500,,400,25,,1,2,142705429,7,2,2,2,12,1,10,{ bonus bInt,1; bonus bMatkRate,15; }
-1605,Wand_,Wand,4,2500,,400,25,,1,3,142705429,7,2,2,2,12,1,10,{ bonus bInt,1; bonus bMatkRate,15; }
-1606,Wand__,Wand,4,2500,,400,25,,1,0,142705429,7,2,2,2,12,1,10,{ bonus bInt,1; bonus bMatkRate,15; }
-1607,Staff,Staff,4,9500,,400,40,,1,2,134316820,7,2,2,2,12,1,10,{ bonus bInt,2; bonus bMatkRate,15; }
-1608,Staff_,Staff,4,9500,,400,40,,1,3,134316820,7,2,2,2,12,1,10,{ bonus bInt,2; bonus bMatkRate,15; }
-1609,Staff__,Staff,4,9500,,400,40,,1,0,134316820,7,2,2,2,12,1,10,{ bonus bInt,2; bonus bMatkRate,15; }
-1610,Arc_Wand,Arc Wand,4,45000,,400,60,,1,1,134316820,7,2,2,3,24,1,10,{ bonus bInt,3; bonus bMatkRate,15; }
-1611,Arc_Wand_,Arc Wand,4,45000,,400,60,,1,2,134316820,7,2,2,3,24,1,10,{ bonus bInt,3; bonus bMatkRate,15; }
-1612,Arc_Wand__,Arc Wand,4,45000,,400,60,,1,0,134316820,7,2,2,3,24,1,10,{ bonus bInt,3; bonus bMatkRate,15; }
-1613,Mighty_Staff,Mighty Staff,4,,10,700,130,,1,0,134316820,7,2,2,3,24,1,10,{ bonus bStr,15; bonus bMatkRate,15; bonus2 bSpDrainRate,1000,-2; }
-1614,Blessed_Wand,Wand of Occult,4,,10,700,75,,1,0,134316820,7,2,2,3,24,1,10,{ bonus bInt,3; bonus bMatkRate,15; }
-1615,Bone_Wand,Evil Bone Wand,4,,10,700,40,,1,0,134316820,7,2,2,3,24,1,10,{ bonus bInt,4; bonus bAtkEle,Ele_Undead; bonus bMatkRate,15; }
-1616,Staff_of_Wing,Staff of Wing,4,86000,,500,60,,1,0,134283780,7,2,2,4,40,1,10,{ bonus bMatkRate,15; bonus bCastrate,-5; }
-1617,Wand_of_Survival,Wand of Survival,4,85000,,1000,50,,1,0,134316820,7,2,2,3,24,1,10,{ bonus bDex,2; bonus bMatkRate,15; bonus bMaxHP,300; }
-1618,Wand_of_Survival_,Wand of Survival,4,85000,,1000,50,,1,1,134316820,7,2,2,3,24,1,10,{ bonus bDex,3; bonus bMatkRate,15; bonus bMaxHP,400; }
-1619,Wand_of_Survival__,Wand of Survival,4,85000,,1000,50,,1,0,134316820,7,2,2,3,24,1,10,{ bonus bInt,2; bonus bMatkRate,15; bonus bMaxHP,300; }
-1620,Wand_of_Survival___,Wand of Survival,4,85000,,1000,50,,1,1,134316820,7,2,2,3,24,1,10,{ bonus bInt,3; bonus bMatkRate,15; bonus bMaxHP,400; }
-1621,Wand_of_Hypnotist,Wand of Hypnotist,4,86000,,500,70,,1,1,142606337,7,2,2,3,30,1,10,{ bonus bInt,1; bonus bMatkRate,25; }
-1622,Wand_of_Hypnotist_,Wand of Hypnotist,4,86000,,500,70,,1,2,142606337,7,2,2,3,30,1,10,{ bonus bInt,1; bonus bMatkRate,25; }
+1601,Rod,Rod,4,50,,400,15,,1,3,75596565,7,2,2,1,1,1,10,{ bonus bMatkRate,15; }
+1602,Rod_,Rod,4,50,,400,15,,1,4,75596565,7,2,2,1,1,1,10,{ bonus bMatkRate,15; }
+1603,Rod__,Rod,4,50,,400,15,,1,0,75596565,7,2,2,1,1,1,10,{ bonus bMatkRate,15; }
+1604,Wand,Wand,4,2500,,400,25,,1,2,75596565,7,2,2,2,12,1,10,{ bonus bInt,1; bonus bMatkRate,15; }
+1605,Wand_,Wand,4,2500,,400,25,,1,3,75596565,7,2,2,2,12,1,10,{ bonus bInt,1; bonus bMatkRate,15; }
+1606,Wand__,Wand,4,2500,,400,25,,1,0,75596565,7,2,2,2,12,1,10,{ bonus bInt,1; bonus bMatkRate,15; }
+1607,Staff,Staff,4,9500,,400,40,,1,2,67207956,7,2,2,2,12,1,10,{ bonus bInt,2; bonus bMatkRate,15; }
+1608,Staff_,Staff,4,9500,,400,40,,1,3,67207956,7,2,2,2,12,1,10,{ bonus bInt,2; bonus bMatkRate,15; }
+1609,Staff__,Staff,4,9500,,400,40,,1,0,67207956,7,2,2,2,12,1,10,{ bonus bInt,2; bonus bMatkRate,15; }
+1610,Arc_Wand,Arc Wand,4,45000,,400,60,,1,1,67207956,7,2,2,3,24,1,10,{ bonus bInt,3; bonus bMatkRate,15; }
+1611,Arc_Wand_,Arc Wand,4,45000,,400,60,,1,2,67207956,7,2,2,3,24,1,10,{ bonus bInt,3; bonus bMatkRate,15; }
+1612,Arc_Wand__,Arc Wand,4,45000,,400,60,,1,0,67207956,7,2,2,3,24,1,10,{ bonus bInt,3; bonus bMatkRate,15; }
+1613,Mighty_Staff,Mighty Staff,4,,10,700,130,,1,0,67207956,7,2,2,3,24,1,10,{ bonus bStr,15; bonus bMatkRate,15; bonus2 bSpDrainRate,1000,-2; }
+1614,Blessed_Wand,Wand of Occult,4,,10,700,75,,1,0,67207956,7,2,2,3,24,1,10,{ bonus bInt,3; bonus bMatkRate,15; }
+1615,Bone_Wand,Evil Bone Wand,4,,10,700,40,,1,0,67207956,7,2,2,3,24,1,10,{ bonus bInt,4; bonus bAtkEle,Ele_Undead; bonus bMatkRate,15; }
+1616,Staff_of_Wing,Staff of Wing,4,86000,,500,60,,1,0,67174916,7,2,2,4,40,1,10,{ bonus bMatkRate,15; bonus bCastrate,-5; }
+1617,Wand_of_Survival,Wand of Survival,4,85000,,1000,50,,1,0,67207956,7,2,2,3,24,1,10,{ bonus bDex,2; bonus bMatkRate,15; bonus bMaxHP,300; }
+1618,Wand_of_Survival_,Wand of Survival,4,85000,,1000,50,,1,1,67207956,7,2,2,3,24,1,10,{ bonus bDex,3; bonus bMatkRate,15; bonus bMaxHP,400; }
+1619,Wand_of_Survival__,Wand of Survival,4,85000,,1000,50,,1,0,67207956,7,2,2,3,24,1,10,{ bonus bInt,2; bonus bMatkRate,15; bonus bMaxHP,300; }
+1620,Wand_of_Survival___,Wand of Survival,4,85000,,1000,50,,1,1,67207956,7,2,2,3,24,1,10,{ bonus bInt,3; bonus bMatkRate,15; bonus bMaxHP,400; }
+1621,Wand_of_Hypnotist,Wand of Hypnotist,4,86000,,500,70,,1,1,8388609,7,2,2,3,30,1,10,{ bonus bInt,1; bonus bMatkRate,25; }
+1622,Wand_of_Hypnotist_,Wand of Hypnotist,4,86000,,500,70,,1,2,8388609,7,2,2,3,30,1,10,{ bonus bInt,1; bonus bMatkRate,25; }
 // Bows
 1701,Bow,Bow,4,1000,,500,15,,5,3,1706056,7,2,34,1,4,1,11,{}
 1702,Bow_,Bow,4,1000,,500,15,,5,4,1706056,7,2,34,1,4,1,11,{}
@@ -918,9 +918,9 @@
 2253,Sunflower,Sunflower,5,,10,100,,1,,0,127918079,7,2,256,,0,0,37,{ bonus2 bSubRace,RC_Insect,10; }
 2254,Angel_Wing,Angel Wing,5,,10,100,,2,,0,119529470,7,2,256,,0,1,38,{ bonus bMdef,3; bonus bAgi,1; bonus bLuk,1; bonus2 bSubRace,RC_Demon,3; }
 2255,Evil_Wing,Evil Wing,5,,10,100,,3,,0,119529470,7,2,256,,0,1,39,{ bonus bMdef,2; bonus bStr,1; bonus2 bSubRace,RC_Angel,3; }
-2256,Majestic_Goat,Majestic Goat,5,,10,800,,5,,0,33834146,7,2,256,,0,1,41,{ bonus bStr,1; }
+2256,Majestic_Goat,Majestic Goat,5,,10,800,,5,,0,61088929,7,2,256,,0,1,41,{ bonus bStr,1; }
 2257,Snow_Horn,Snow Horn,5,,10,100,,2,,0,127918079,7,2,256,,0,1,42,{}
-2258,Spiky_Band,Spiky Band,5,,10,1000,,6,,0,34002418,7,2,256,,50,1,43,{}
+2258,Spiky_Band,Spiky Band,5,,10,1000,,6,,0,61257201,7,2,256,,50,1,43,{}
 2259,Mini_Propeller,Mini Propeller,5,,10,100,,1,,0,127918079,7,2,256,,0,1,46,{}
 2260,Mini_Glasses,Mini Glasses,5,28000,,100,,1,,0,119529470,7,2,512,,0,0,47,{}
 2261,Army_Cap,Army Cap,5,,10,400,,4,,0,414946,7,2,256,,0,1,48,{}
@@ -2330,9 +2330,9 @@
 // More Weapons
 //===================================================================
 // Daggers
-13000,Jujube_Dagger,Dagger with Jujube hilt,4,,10,600,39,,1,0,10444527,7,2,2,1,0,1,1,{ bonus bAtkEle,Ele_Wind; }
-13001,Dragon_Killer,Dragon Killer,4,,10,900,110,,1,0,10444527,7,2,2,4,60,1,1,{ bonus bIgnoreDefRace,RC_Dragon; bonus2 bExpAddRace,RC_Dragon,10; }
-13002,Ginnungagap,Ginnungagap,4,,10,700,120,,1,0,10444527,7,2,2,4,70,1,1,{ bonus bAtkEle,Ele_Dark; bonus2 bAddEff,Eff_Blind,500; bonus2 bAddEff2,Eff_Blind,50; }
-13003,Coward,Coward,4,52000,,700,80,,1,1,10444527,7,2,2,3,55,1,1,{ bonus bDef,5; }
-13004,Coward_,Coward,4,52000,,700,80,,1,2,10444527,7,2,2,3,55,1,1,{ bonus bDef,5; }
+13000,Jujube_Dagger,Dagger with Jujube hilt,4,,10,600,39,,1,0,77553391,7,2,2,1,0,1,1,{ bonus bAtkEle,Ele_Wind; }
+13001,Dragon_Killer,Dragon Killer,4,,10,900,110,,1,0,77553391,7,2,2,4,60,1,1,{ bonus bIgnoreDefRace,RC_Dragon; bonus2 bExpAddRace,RC_Dragon,10; }
+13002,Ginnungagap,Ginnungagap,4,,10,700,120,,1,0,77553391,7,2,2,4,70,1,1,{ bonus bAtkEle,Ele_Dark; bonus2 bAddEff,Eff_Blind,500; bonus2 bAddEff2,Eff_Blind,50; }
+13003,Coward,Coward,4,52000,,700,80,,1,1,77553391,7,2,2,3,55,1,1,{ bonus bDef,5; }
+13004,Coward_,Coward,4,52000,,700,80,,1,2,77553391,7,2,2,3,55,1,1,{ bonus bDef,5; }
 13005,Angel_Wing_Dagger,Angel Wing Dagger,4,,10,10,0,,1,0,0,,3,0,0,0,0,0,{}
