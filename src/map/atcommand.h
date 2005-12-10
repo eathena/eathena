@@ -45,6 +45,8 @@ enum AtCommandType {
 	AtCommand_JobLevelUp,
 	AtCommand_H,
 	AtCommand_Help,
+	AtCommand_H2,
+	AtCommand_Help2,
 	AtCommand_GM,
 	AtCommand_PvPOff,
 	AtCommand_PvPOn,
