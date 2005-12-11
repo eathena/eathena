@@ -33,6 +33,7 @@ typedef long in_addr_t;
 #include "inter.h"
 #include "db.h"
 #include "malloc.h"
+#include "int_guild.h"
 
 static struct dbt *char_db_;
 
@@ -1688,56 +1689,7 @@ int delete_char_sql(int char_id, int partner_id)
 			int rows = (int)mysql_num_rows(sql_res);
 			mysql_free_result(sql_res);
 			if (rows > 0) {
-				//We assume the guild found is the same as the char belongs (how would this NOT be possible?) [Skotlex]
-
-				sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_db, guild_id);
-				if (mysql_query(&mysql_handle, tmp_sql)) {
-					ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
-					ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-				}
-
-				sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_member_db, guild_id);
-				if (mysql_query(&mysql_handle, tmp_sql)) {
-					ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
-					ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-				}
-
-				sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_castle_db, guild_id);
-				if (mysql_query(&mysql_handle, tmp_sql)) {
-					ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
-					ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-				}
-
-				sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_storage_db, guild_id);
-				if (mysql_query(&mysql_handle, tmp_sql)) {
-					ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
-					ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-				}
-
-				sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d' OR `alliance_id` = '%d'", guild_alliance_db, guild_id, guild_id);
-				if (mysql_query(&mysql_handle, tmp_sql)) {
-					ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
-					ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-				}
-
-				sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_position_db, guild_id);
-				if (mysql_query(&mysql_handle, tmp_sql)) {
-					ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
-					ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-				}
-
-				sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_skill_db, guild_id);
-				if (mysql_query(&mysql_handle, tmp_sql)) {
-					ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
-					ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-				}
-
-				sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_expulsion_db, guild_id);
-				if (mysql_query(&mysql_handle, tmp_sql)) {
-					ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
-					ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-				}
-				inter_guild_broken(guild_id); //Signal the map server that this guild has been deleted.
+				mapif_parse_BreakGuild(0,guild_id);
 			}
 			else if (guild_id) //Leave your guild.
 				inter_guild_leave(guild_id, account_id, char_id);
