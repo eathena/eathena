@@ -26,6 +26,7 @@ Nexon
 Date		Added
 ======
 12/11
+	* Also fixed 'Lutie quest reset' bug [Lupus]
 	* Fixed Bard & Lutie quests passable during the X-Mas Event. thanks Zephiris for pointing it out [Lupus]
 	* Revised again all the quests, found and fixed 2 bugs, also optimized conditions [Lupus]
 12/10
