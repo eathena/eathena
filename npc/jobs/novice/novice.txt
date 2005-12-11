@@ -711,7 +711,7 @@ disable_items;
 	if (!(NEW_MES_FLAG3)) {
 		mes "[Alice]";
 		mes "Hmm... I am so bored.";
-		mes "Huh? are you new hwere?";
+		mes "Huh? are you new where?";
 		mes "You want to take an Item Lecture, don't you?";
 		next;
 		menu "Yes.",-,"No, I just want to pass.",L_battle,"Where is town?",L_kafra;

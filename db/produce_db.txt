@@ -237,7 +237,7 @@
 //--------------------LEVEL 7-----------
 
 //-- Barbecue <-- 10 Meat, 1 Live Coal, 2 Coal, 1 Hot Sauce, 15 Trunk, 10 White Herb
-12072,11,0,7478,0,517,10,7098,1,1003,2,7455,1019,15,509,10
+12072,11,0,7478,0,517,10,7098,1,1003,2,7455,1,1019,15,509,10
 //-- Royal Jelly and Herb Tea <-- 4 Royal Jelly, 2 Honey, 5 White Herb, 10 Hinalle Leaflet, 1 Yellow Spice
 12077,11,0,7478,0,526,4,518,2,509,5,520,10,7452,1,
 //-- Soul Hunt Bread <-- 10 Bread, 5 Mastela Fruit, 1 Sweet Sauce, 5 Ment, 5 Amulet, 2 Unripe Apple

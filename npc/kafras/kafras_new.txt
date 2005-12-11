@@ -112,7 +112,7 @@ lhz_in02.gat,237,284,4	script	Kafra	861,{
 
 // Louyang -----------------------------------------------------------------
 louyang.gat,210,104,5	script	Kafra	117,{
-	cutin "kafra_04",2;
+	cutin "kafra_01",2;
 	callfunc "F_Kafra",4,3,1;
 
 	M_Save:
