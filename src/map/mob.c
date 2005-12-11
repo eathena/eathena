@@ -2078,8 +2078,10 @@ int mob_delete(struct mob_data *md)
 	nullpo_retr(1, md);
 
 	mob_remove_map(md, 1);
-	if (mob_get_viewclass(md->class_) <= 1000)
+	if(mob_get_viewclass(md->class_) <= JOB_SUPER_NOVICE || (mob_get_viewclass(md->class_) >= JOB_NOVICE_HIGH && mob_get_viewclass(md->class_) <= JOB_SUPER_BABY))
 		clif_clearchar_delay(gettick()+3000,&md->bl,0);
+	if(mob_is_clone(md->class_))
+		mob_clone_delete(md->class_);
 	mob_deleteslave(md);
 	mob_setdelayspawn(md->bl.id);
 	return 0;
@@ -2748,11 +2750,12 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 //[lordalfa]
 	(battle_config.mob_clear_delay) ? clif_clearchar_delay(tick+battle_config.mob_clear_delay,&md->bl,1) : clif_clearchar_area(&md->bl,1);
 //	clif_clearchar_area(&md->bl,1); //eh? Why send the same packet twice? [Skotlex]
-	
 	if(md->level) md->level=0;
 	map_delblock(&md->bl);
 	if(mob_get_viewclass(md->class_) <= JOB_SUPER_NOVICE || (mob_get_viewclass(md->class_) >= JOB_NOVICE_HIGH && mob_get_viewclass(md->class_) <= JOB_SUPER_BABY))
 		clif_clearchar_delay(tick+3000,&md->bl,0);
+	if(mob_is_clone(md->class_))
+		mob_clone_delete(md->class_);
 	mob_deleteslave(md);
 	mob_setdelayspawn(md->bl.id);
 	map_freeblock_unlock();
@@ -3906,7 +3909,7 @@ int mob_clone_spawn(struct map_session_data *sd, char *mapname, int x, int y, co
 	if(class_>MOB_CLONE_END)
 		return -1;
 
-	mob_db_data[class_] = (struct mob_db*)aCalloc(1, sizeof(struct mob_db)); // Initializing the clone mob.
+	mob_db_data[class_]=(struct mob_db*)aCalloc(1, sizeof(struct mob_db));
 	mob_db_data[class_]->view_class=sd->status.class_;
 	sprintf(mob_db_data[class_]->name,sd->status.name);
 	sprintf(mob_db_data[class_]->jname,sd->status.name);
@@ -3930,7 +3933,7 @@ int mob_clone_spawn(struct map_session_data *sd, char *mapname, int x, int y, co
 	mob_db_data[class_]->range3=10;
 	mob_db_data[class_]->race=status_get_race(&sd->bl);
 	mob_db_data[class_]->element=status_get_element(&sd->bl);
-	mob_db_data[class_]->mode=0;
+	mob_db_data[class_]->mode|=MD_AGGRESSIVE|MD_CANATTACK|MD_CANMOVE;
 	mob_db_data[class_]->speed=status_get_speed(&sd->bl);
 	mob_db_data[class_]->adelay=status_get_adelay(&sd->bl);
 	mob_db_data[class_]->amotion=status_get_amotion(&sd->bl);
@@ -3938,8 +3941,20 @@ int mob_clone_spawn(struct map_session_data *sd, char *mapname, int x, int y, co
 	mob_db_data[class_]->sex=sd->status.sex;
 	mob_db_data[class_]->hair=sd->status.hair;
 	mob_db_data[class_]->hair_color=sd->status.hair_color;
-	mob_db_data[class_]->weapon=sd->status.weapon;
-	mob_db_data[class_]->shield=sd->status.shield;
+	if (sd->equip_index[9] >= 0 && sd->inventory_data[sd->equip_index[9]] && sd->view_class != 22 && sd->view_class !=26) {
+		if (sd->inventory_data[sd->equip_index[9]]->view_id > 0)
+			mob_db_data[class_]->weapon=sd->inventory_data[sd->equip_index[9]]->view_id;
+		else
+			mob_db_data[class_]->weapon=sd->status.inventory[sd->equip_index[9]].nameid;
+	} else
+		mob_db_data[class_]->shield=0;
+	if (sd->equip_index[8] >= 0 && sd->equip_index[8] != sd->equip_index[9] && sd->inventory_data[sd->equip_index[8]] && sd->view_class != 22 && sd->view_class != 26) {
+		if (sd->inventory_data[sd->equip_index[8]]->view_id > 0)
+			mob_db_data[class_]->shield=sd->inventory_data[sd->equip_index[8]]->view_id;
+		else
+			mob_db_data[class_]->shield=sd->status.inventory[sd->equip_index[8]].nameid;
+	} else
+		mob_db_data[class_]->shield=0;
 	mob_db_data[class_]->head_top=sd->status.head_top;
 	mob_db_data[class_]->head_mid=sd->status.head_mid;
 	mob_db_data[class_]->head_buttom=sd->status.head_bottom;

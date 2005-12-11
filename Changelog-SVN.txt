@@ -1,5 +1,8 @@
 Date	Added
 2005/12/10
+	* Added @evilclone commands.  Syntax is @evilclone <playername>, [Valaris]
+	  It will spawn an aggresive clone of the given player.
+	  By default it will use mob id ranges 9001-10000, this range is #defined in mob.h.
 	* Fixed VS compile error in mob_clone_spawn. [Valaris]
 	* Added core player cloning code. Just need to create some commands. [Valaris]
 	* Redid the @help2 (char commands). [Kayla]
