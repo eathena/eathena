@@ -5692,21 +5692,20 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 
 	case SG_FEEL:
-		sd->feel_level=skilllv-1;
-		if(sd->feel_map[skilllv-1].m==-1)
-		{
-			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			clif_parse_ReqFell(sd->fd,sd);
+		if (sd) {
+			sd->feel_level=skilllv-1;
+			if(sd->feel_map[skilllv-1].m==-1) {
+				clif_skill_nodamage(src,bl,skillid,skilllv,1);
+				clif_parse_ReqFell(sd->fd,sd);
+			}
+			else
+				clif_fell_info(sd);
 		}
-		else clif_fell_info(sd);
 		break;	
 
 	case SG_HATE:
-		clif_skill_nodamage(src,bl,skillid,skilllv,1);
-		//dunno if this is one-time-skill or player can change mob/pc anytime he wants [Komurka]
-
-		//if (sd->hate_mob[skilllv-1] == 0)
-		{
+		if (sd) {
+			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 			if(dstsd)  //PC
 			{
 				struct pc_base_job s_class;
@@ -5716,74 +5715,73 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				clif_hate_mob(sd,skilllv,sd->hate_mob[skilllv-1]);
 			}
 			else if(dstmd) // mob
-				{ 
-					switch(skilllv)
+			{ 
+				switch(skilllv)
+				{
+				case 1:
+					if (status_get_size(bl)==0)
 					{
-					case 1:
-						if (status_get_size(bl)==0)
-						{
-							sd->hate_mob[0] = dstmd->class_;
-							pc_setglobalreg(sd,"PC_HATE_MOB_SUN",sd->hate_mob[0]+1);
-							clif_hate_mob(sd,skilllv,sd->hate_mob[skilllv-1]);
-						} else clif_skill_fail(sd,skillid,0,0);
-						break;
-					case 2:
-						if (status_get_size(bl)==1 && status_get_max_hp(bl)>=6000)
-						{
-							sd->hate_mob[1] = dstmd->class_;
-							pc_setglobalreg(sd,"PC_HATE_MOB_MOON",sd->hate_mob[1]+1);
-							clif_hate_mob(sd,skilllv,sd->hate_mob[skilllv-1]);
-						} else clif_skill_fail(sd,skillid,0,0);
-						break;
-					case 3:
-						if (status_get_size(bl)==2 && status_get_max_hp(bl)>=20000)
-						{
-							sd->hate_mob[2] = dstmd->class_;
-							pc_setglobalreg(sd,"PC_HATE_MOB_STAR",sd->hate_mob[2]+1);
-							clif_hate_mob(sd,skilllv,sd->hate_mob[skilllv-1]);
-						} else clif_skill_fail(sd,skillid,0,0);
-						break;
-					default:
-						clif_skill_fail(sd,skillid,0,0);
-						break;
-					}
+						sd->hate_mob[0] = dstmd->class_;
+						pc_setglobalreg(sd,"PC_HATE_MOB_SUN",sd->hate_mob[0]+1);
+						clif_hate_mob(sd,skilllv,sd->hate_mob[skilllv-1]);
+					} else clif_skill_fail(sd,skillid,0,0);
+					break;
+				case 2:
+					if (status_get_size(bl)==1 && status_get_max_hp(bl)>=6000)
+					{
+						sd->hate_mob[1] = dstmd->class_;
+						pc_setglobalreg(sd,"PC_HATE_MOB_MOON",sd->hate_mob[1]+1);
+						clif_hate_mob(sd,skilllv,sd->hate_mob[skilllv-1]);
+					} else clif_skill_fail(sd,skillid,0,0);
+					break;
+				case 3:
+					if (status_get_size(bl)==2 && status_get_max_hp(bl)>=20000)
+					{
+						sd->hate_mob[2] = dstmd->class_;
+						pc_setglobalreg(sd,"PC_HATE_MOB_STAR",sd->hate_mob[2]+1);
+						clif_hate_mob(sd,skilllv,sd->hate_mob[skilllv-1]);
+					} else clif_skill_fail(sd,skillid,0,0);
+					break;
+				default:
+					clif_skill_fail(sd,skillid,0,0);
+					break;
 				}
-		} //else clif_skill_fail(sd,skillid,0,0);
+			}
+		}
 		break;
 	case SG_SUN_WARM:
 	case SG_MOON_WARM:
 	case SG_STAR_WARM:
-		if(sd->bl.m != sd->feel_map[(skillid==SG_SUN_WARM?0:(skillid==SG_MOON_WARM?1:2))].m)
+		if(sd && sd->bl.m != sd->feel_map[(skillid==SG_SUN_WARM?0:(skillid==SG_MOON_WARM?1:2))].m) {
 			clif_skill_fail(sd,skillid,0,0);
-		else
-		{
-			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,skillid,skill_get_range(skillid,skilllv),skill_get_time(skillid,skilllv),0);
+			break;
 		}
+		clif_skill_nodamage(src,bl,skillid,skilllv,1);
+		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,skillid,skill_get_range(skillid,skilllv),skill_get_time(skillid,skilllv),0);
 		break;
 	case SG_SUN_COMFORT:
-		if(sd->bl.m == sd->feel_map[0].m && (battle_config.allow_skill_without_day || is_day_of_sun()))
+		if((!sd || sd->bl.m == sd->feel_map[0].m) && (battle_config.allow_skill_without_day || is_day_of_sun()))
 		{
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 			status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
-		} else
-		clif_skill_fail(sd,skillid,0,0);
+		} else if (sd)
+			clif_skill_fail(sd,skillid,0,0);
 		break;
 	case SG_MOON_COMFORT:
-		if(sd->bl.m == sd->feel_map[1].m && (battle_config.allow_skill_without_day || is_day_of_moon()))
+		if((!sd || sd->bl.m == sd->feel_map[1].m) && (battle_config.allow_skill_without_day || is_day_of_moon()))
 		{
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 			status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
-		} else
-		clif_skill_fail(sd,skillid,0,0);
+		} else if (sd)
+			clif_skill_fail(sd,skillid,0,0);
 		break;
 	case SG_STAR_COMFORT:
-		if(sd->bl.m == sd->feel_map[2].m && (battle_config.allow_skill_without_day || is_day_of_star()))
+		if((!sd || sd->bl.m == sd->feel_map[2].m) && (battle_config.allow_skill_without_day || is_day_of_star()))
 		{
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 			status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
-		} else
-		clif_skill_fail(sd,skillid,0,0);
+		} else if (sd)
+			clif_skill_fail(sd,skillid,0,0);
 		return 0;
 		break;
 	case SG_FUSION:
