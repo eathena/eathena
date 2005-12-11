@@ -461,13 +461,13 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_UnDisguise,			"@undisguise",		20, atcommand_undisguise }, // by Yor
 	{ AtCommand_CharDisguise,		"@chardisguise",		60, atcommand_chardisguise }, // Kalaspuff
 	{ AtCommand_CharUnDisguise,		"@charundisguise",	60, atcommand_charundisguise }, // Kalaspuff
-	{ AtCommand_EMail,			"@email",			 1, atcommand_email }, // by Yor
-	{ AtCommand_Effect,			"@effect",			40, atcommand_effect }, // by Apple
-	{ AtCommand_Char_Cart_List,		"@charcartlist",		40, atcommand_character_cart_list }, // by Yor
-	{ AtCommand_Follow,			"@follow",			10, atcommand_follow }, // by MouseJstr
-	{ AtCommand_AddWarp,			"@addwarp",			20, atcommand_addwarp }, // by MouseJstr
-	{ AtCommand_SkillOn,			"@skillon",			20, atcommand_skillon }, // by MouseJstr
-	{ AtCommand_SkillOff,			"@skilloff",		20, atcommand_skilloff }, // by MouseJstr
+	{ AtCommand_EMail,				"@email",			 1, atcommand_email }, // by Yor
+	{ AtCommand_Effect,				"@effect",			40, atcommand_effect }, // by Apple
+	{ AtCommand_Char_Cart_List,		"@charcartlist",	40, atcommand_character_cart_list }, // by Yor
+	{ AtCommand_Follow,				"@follow",			20, atcommand_follow }, // by MouseJstr
+	{ AtCommand_AddWarp,			"@addwarp",			60, atcommand_addwarp }, // by MouseJstr
+	{ AtCommand_SkillOn,			"@skillon",			80, atcommand_skillon }, // by MouseJstr
+	{ AtCommand_SkillOff,			"@skilloff",		80, atcommand_skilloff }, // by MouseJstr
 	{ AtCommand_Killer,			"@killer",			60, atcommand_killer }, // by MouseJstr
 	{ AtCommand_NpcMove,			"@npcmove",			20, atcommand_npcmove }, // by MouseJstr
 	{ AtCommand_Killable,			"@killable",		40, atcommand_killable }, // by MouseJstr
@@ -575,11 +575,11 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_Size,				"@size",			20, atcommand_size },
 	{ AtCommand_ShowExp,			"@showexp", 		10, atcommand_showexp},
 	{ AtCommand_ShowZeny,			"@showzeny", 		10, atcommand_showzeny},
-	{ AtCommand_ShowDelay,			"@showdelay",		 1, atcommand_showdelay},
-	{ AtCommand_AutoTrade,			"@autotrade",		10, atcommand_autotrade }, // durf
-	{ AtCommand_ChangeGM,			"@changegm",		10, atcommand_changegm }, // durf
-	{ AtCommand_ChangeLeader,		"@changeleader",		10, atcommand_changeleader }, // durf
-	
+	{ AtCommand_ShowDelay,			"@showdelay",		1, atcommand_showdelay},
+	{ AtCommand_AutoTrade,			"@autotrade",		10,	atcommand_autotrade }, // durf
+	{ AtCommand_AutoTrade,			"@at",				10,	atcommand_autotrade },
+	{ AtCommand_ChangeGM,			"@changegm",		10,	atcommand_changegm }, // durf
+	{ AtCommand_ChangeLeader,		"@changeleader",	10,	atcommand_changeleader }, // durf
 	{ AtCommand_Invite,			"@invite",			 1, atcommand_invite }, // By LuzZza
 	{ AtCommand_Duel,				"@duel",			 1, atcommand_duel }, // By LuzZza
 	{ AtCommand_Leave,			"@leave",			 1, atcommand_leave }, // By LuzZza
@@ -7587,7 +7587,8 @@ atcommand_autotrade(
 	}
 	else 
 	{
-		clif_displaymessage(fd, "You should be vending to use @Autotrade.");
+		//"You should be vending to use @Autotrade."
+		clif_displaymessage(fd, msg_txt(549));
 	}
 	return 0;  
 }   
@@ -9925,14 +9926,17 @@ int atcommand_away(
 		if(strlen(message) > 128)
 			return -1;
 		strcpy(sd->away_message, message);
-		clif_displaymessage(fd, "Away automessage has been activated.");
+		//"Away automessage has been activated."
+		clif_displaymessage(fd, msg_txt(546));
 	} else {
 		if(strlen(sd->away_message) > 0) {
-			sd->away_message[0] = '\0';
-			clif_displaymessage(fd, "Away automessage has been disabled.");
+			sd->away_message[0] = 0;
+			//"Away automessage has been disabled."
+			clif_displaymessage(fd, msg_txt(547));
 			return 0;
 		}
-		clif_displaymessage(fd, "Usage: @away,@aw <message>. Enter empty message for disable it.");
+		//"Usage: @away,@aw <message>. Enter empty message for disable it."
+		clif_displaymessage(fd, msg_txt(548));
 	}
 	return 0;
 }
