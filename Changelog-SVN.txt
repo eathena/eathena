@@ -3,6 +3,7 @@ Date	Added
 	* Fixed VS compile error in mob_clone_spawn. [Valaris]
 	* Added core player cloning code. Just need to create some commands. [Valaris]
 	* Redid the @help2 (char commands). [Kayla]
+	* Added jobname retrieving script function getJobName. [Lance]
 2005/12/09
 	* Changed default GM level for @setbattleflag to 99. [Valaris]
 	* Implemented the SL_SUPERNOVICE bonus to wear all heagears/various weapons
