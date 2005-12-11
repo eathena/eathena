@@ -33,7 +33,7 @@
 	5136,Luise_Santa's_Hat: need view ID, temp: normal santa hat
 
 12/11
-	* Added missing quantity value to Barbecue Food recepe, thanks to Haplo [Lupus]
+	* Added missing quantity value to Herb Tea With Grape Juice and Barbecue, thanks to Haplo [Lupus]
 12/10
 	* Removed V_poring from dead branch, it's a boss monster >.> [MasterOfMuppets]
 	* Added slot to angel's kiss [Kayla]
