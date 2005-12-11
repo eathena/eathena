@@ -1,5 +1,6 @@
 Date	Added
 2005/12/10
+	* Fixed VS compile error in mob_clone_spawn. [Valaris]
 	* Added core player cloning code. Just need to create some commands. [Valaris]
 	* Redid the @help2 (char commands). [Kayla]
 2005/12/09

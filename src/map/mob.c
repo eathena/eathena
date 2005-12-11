@@ -3894,8 +3894,9 @@ int mob_is_clone(int class_)
 
 int mob_clone_spawn(struct map_session_data *sd, char *mapname, int x, int y, const char *event)
 {
-	nullpo_retr(0, sd);
 	int class_;
+
+	nullpo_retr(0, sd);
 
 	for(class_=MOB_CLONE_START; class_<MOB_CLONE_END; class_++){
 		if(mob_db_data[class_]==NULL)
