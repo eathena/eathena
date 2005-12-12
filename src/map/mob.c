@@ -82,6 +82,8 @@ int mobdb_checkid(const int id)
 {
 	if (mob_db(id) == mob_dummy)
 		return 0;
+	if (mob_is_clone(id)) //checkid is used mostly for random ID based code, therefore clone mobs are out of the question.
+		return 0;
 	return id;
 }
 
@@ -603,18 +605,18 @@ int mob_can_reach(struct mob_data *md,struct block_list *bl,int range, int state
 			easy = 1;
 			break;
 	}
-	dx=abs(bl->x - md->bl.x);
-	dy=abs(bl->y - md->bl.y);
 
 	if( md->bl.m != bl->m)	// ˆá‚¤ƒƒbƒv
 		return 0;
 
-	if( range>0 && range < ((dx>dy)?dx:dy) )	// ‰“‚·‚¬‚é
-		return 0;
-
 	if( md->bl.x==bl->x && md->bl.y==bl->y )	// “¯‚¶ƒ}ƒX
 		return 1;
+		
+	if( range>0 && !check_distance_bl(&md->bl, bl, range))
+		return 0;
 
+	dx=abs(bl->x - md->bl.x);
+	dy=abs(bl->y - md->bl.y);
 	// Obstacle judging
 	wpd.path_len=0;
 	wpd.path_pos=0;

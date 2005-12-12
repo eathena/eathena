@@ -3428,7 +3428,7 @@ int atcommand_monster(
 	if ((mob_id = mobdb_searchname(monster)) == 0) // check name first (to avoid possible name begining by a number)
 		mob_id = mobdb_checkid(atoi(monster));
 
-	if (mob_id == 0 || mob_is_clone(mob_id)) {
+	if (mob_id == 0) {
 		clif_displaymessage(fd, msg_table[40]); // Invalid monster ID or name.
 		return -1;
 	}
@@ -3519,7 +3519,7 @@ int atcommand_spawn(
 	if ((mob_id = mobdb_searchname(monster)) == 0) // check name first (to avoid possible name begining by a number)
 		mob_id = mobdb_checkid(atoi(monster));
 
-	if (mob_id == 0 || mob_is_clone(mob_id)) {
+	if (mob_id == 0) {
 		clif_displaymessage(fd, msg_table[40]); // Invalid monster ID or name.
 		return -1;
 	}
@@ -3607,7 +3607,7 @@ int atcommand_monstersmall(
 	if ((mob_id = mobdb_searchname(monster)) == 0) // check name first (to avoid possible name begining by a number)
 		mob_id = atoi(monster);
 
-	if (mob_id == 0 || mob_is_clone(mob_id)) {
+	if (mob_id == 0) {
 		clif_displaymessage(fd, msg_table[40]);
 		return -1;
 	}
@@ -3684,7 +3684,7 @@ int atcommand_monsterbig(
 	if ((mob_id = mobdb_searchname(monster)) == 0) // check name first (to avoid possible name begining by a number)
 		mob_id = atoi(monster);
 
-	if (mob_id == 0 || mob_is_clone(mob_id)) {
+	if (mob_id == 0) {
 		clif_displaymessage(fd, msg_table[40]);
 		return -1;
 	}
@@ -8139,7 +8139,7 @@ atcommand_summon(
 	
 	if ((mob_id = atoi(name)) == 0)
 		mob_id = mobdb_searchname(name);
-	if(mob_id == 0 || mob_is_clone(mob_id))
+	if(mob_id == 0 || mobdb_checkid(mob_id) == 0)
 		return -1;
 
 	x = sd->bl.x + (rand() % 10 - 5);
@@ -9264,7 +9264,7 @@ int atcommand_mobinfo(
 	if ((mob_id = mobdb_searchname(message)) == 0) // check name first (to avoid possible name begining by a number)
 		mob_id = mobdb_checkid(atoi(message));
 
-	if (mob_id == 0 || mob_is_clone(mob_id)) {
+	if (mob_id == 0) {
 		clif_displaymessage(fd, msg_table[40]); // Invalid monster ID or name.
 		return -1;
 	}

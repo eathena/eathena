@@ -9475,7 +9475,13 @@ int run_script_main(struct script_state *st)
 		switch(c){
 		case C_EOL:
 			if(stack->sp!=stack->defsp){
-				if(battle_config.error_log && stack->sp < stack->defsp) //sp > defsp is valid in cases when you invoke functions and don't use the returned value. [Skotlex]
+				if(stack->sp > stack->defsp)
+				{	//sp > defsp is valid in cases when you invoke functions and don't use the returned value. [Skotlex]
+					//Since sp is supposed to be defsp in these cases, we could assume the extra stack elements are unneeded.
+					if (battle_config.etc_log)
+						ShowWarning("Clearing unused stack stack.sp(%d) -> default(%d)\n",stack->sp,stack->defsp);
+					pop_stack(stack, stack->defsp, stack->sp); //Clear out the unused stack-section.
+				} else if(battle_config.error_log)
 					ShowError("stack.sp(%d) != default(%d)\n",stack->sp,stack->defsp);
 				stack->sp=stack->defsp;
 			}

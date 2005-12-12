@@ -1,5 +1,11 @@
 Date	Added
 2005/12/12
+	*  Removed some unused entries in msg_athena.txt [Skotlex]
+	*  When there are unused stack sections (invoked functions and ignored
+	   return values) the unused stack section is free'd. This is still notified
+	   when the etc_log is active. [Skotlex]
+	* Removed the TURBO code from socket.c as requested by MouseJstr. [Skotlex]
+	- It was actually slower than the normal code.
 	* Updated warp portal and script commands partywarp/guildwarp to take into
 	  consideration mapflag nowarp as restriction rather than noteleport.
 	  [Skotlex]
