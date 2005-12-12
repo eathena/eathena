@@ -18,7 +18,6 @@
 		speed rate
 	2520,Gebneys_Shoulder: maybe item name is wrong.  it doesn't have its own sprite yet(though file
 	exists)
-	2653,Sacrifice_Ring: seems eAthena doesn't have bonus option yet <- explain how this works so I can code it in. [Skotlex]
 	5125,Angel_Kiss,Angel's Kiss: Description miss.  This item is for Novice/Super Novice, like any other
 		'Angel' equipments.
 	5126,Morphicious_Hood: When using magic, it cannot be dispelled(Maybe it works like Phen card)
@@ -32,6 +31,8 @@
 	-----
 	5136,Luise_Santa's_Hat: need view ID (should be 208, but not supported by
 	client yet), temp: normal santa hat (20)
+	2653,Sacrifice_Ring: seems eAthena doesn't have bonus option yet <- explain how this works so I can code it in. [Skotlex]
+		* * * On your death it breaks (BS can fix it), you drop all Equipment (equipped, even the ring). And revive with 1 HP / 1 SP at the place of your death.
 
 12/12
 	* Changed available jobs for some items. If it is wrong job...

@@ -26,6 +26,9 @@ Nexon
 Date		Added
 ======
 12/12
+	* Added 4 functions to spiff up your dialogues: F_Hi, F_Bye, F_RandMes, F_SexMes [Lupus]
+	- Moved jobName to Global_Functions.txt
+	* Fixed Monk quest [Lupus]
 	* Fixed Bard Quest, added check for exploits, added a new flower 'Izidor' [Lupus]
 		thanx to VicHoX for pointing out the bug. Now RTFM ^_-
 12/11

@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= Lupus, kobra_k88
 //===== Current Version: ===================================== 
-//= 1.5b
+//= 1.6
 //===== Compatible With: ===================================== 
 //= eAthena 1.0
 //===== Description: ========================================= 
@@ -15,6 +15,8 @@
 //= 1.3b a fix, due to const.txt change [Lupus]
 //= 1.4 Added Is_Taekwon_Class: Taekwondo, Star Knight(Gladiator),Soul Linker [Lupus]
 //= 1.5 Added clear of Bard Quest variables. 1.5a updated [Lupus]
+//= 1.6 Added F_RandMes, F_SexMes, F_Hi, F_Bye functions [Lupus]
+//= Moved here usefule function 'getJobName'
 //============================================================ 
 
 
@@ -44,7 +46,7 @@ function	script	F_ClearJobVar	{
 	set ROGUE_Q,0; set ROGUE_Q2,0;
 	set ALCH_Q,0; set ALCH_Q2,0; set al_morgen,0;
 	set CRUS_Q,0;
-	set MONK_Q,0;
+	set MONK_Q,0; set JOB_MONK_C,0;
 	set SAGE_Q,0; set SAGE_Q2,0;
 	set DANC_Q,0;
 	set BARD_Q,0;
@@ -111,4 +113,185 @@ function	script	Is_Sword_Class	{
 // these classes can't be adopted nor reborn ()
 function	script	Is_Taekwon_Class	{
 	return ( Class==Job_Taekwon || Class==Job_Star_Gladiator || Class==Job_Star_Gladiator2 || Class==Job_Soul_Linker );
+}
+
+//=====================================================
+// Functions used to spiff up dialoges [Lupus]
+//----------------------------------------------------
+//returns random string
+//sample: check F_Bye or F_Hi functions
+function	script	F_RandMes	{
+	return getarg(rand(1,getarg(0)));
+}
+
+//returns 1st string if female, 2nd string otherwise
+//sample: mes callfunc("F_Sex","What a beautiful lady!","What a handsom man!");
+function	script	F_SexMes	{
+	return getarg(Sex);
+}
+
+//returns random HELLO message
+function	script	F_Hi	{
+	return callfunc("F_RandMes",5,"Hi!","Hello!","Good day!","How are you?","Hello there.");
+}
+
+//returns random BYE message
+function	script	F_Bye	{
+	return callfunc("F_RandMes",6,"Bye. See you again.","Later.","Goodbye.","Good luck!","Have a nice day!","Byebye!!!");
+}
+
+//////////////////////////////////////////////////////////////////////////////////
+// [Usage] : callfunc("getJobName",Class);                                      //
+//////////////////////////////////////////////////////////////////////////////////
+function	script	getJobName	{
+	switch(getarg(0)){
+		case Job_Novice:
+			return "Novice";
+		case Job_Swordman:
+			return "Swordman";
+		case Job_Mage:
+			return "Magician";
+		case Job_Archer:
+			return "Archer";
+		case Job_Acolyte:
+			return "Acolyte";
+		case Job_Merchant:
+			return "Merchant";
+		case Job_Thief:
+			return "Thief";
+		case Job_Knight:
+		case Job_Knight2:
+			return "Knight";
+		case Job_Priest:
+			return "Priest";
+		case Job_Wizard:
+			return "Wizard";
+		case Job_Blacksmith:
+			return "Blacksmith";
+		case Job_Hunter:
+			return "Hunter";
+		case Job_Assassin:
+			return "Assassin";
+		case Job_Crusader:
+		case Job_Crusader2:
+			return "Crusader";
+		case Job_Monk:
+			return "Monk";
+		case Job_Sage:
+			return "Sage";
+		case Job_Rogue:
+			return "Rogue";
+		case Job_Alchem:
+			return "Alchemist";
+		case Job_Bard:
+			return "Bard";
+		case Job_Dancer:
+			return "Dancer";
+		case Job_SuperNovice:
+			return "Super Novice";
+		case Job_Gunslinger:
+			return "Gunsligner";
+		case Job_Ninja:
+			return "Ninja";
+		case Job_Xmas:
+			return "Xmas";
+		case Job_Novice_High:
+			return "Novice High";
+		case Job_Swordman_High:
+			return "Swordman High";
+		case Job_Mage_High:
+			return "Magician High";
+		case Job_Archer_High:
+			return "Archer High";
+		case Job_Acolyte_High:
+			return "Acolyte High";
+		case Job_Merchant_High:
+			return "Merchant High";
+		case Job_Thief_High:
+			return "Thief High";
+		case Job_Lord_Knight:
+		case Job_Lord_Knight2:
+			return "Lord Knight";
+		case Job_High_Priest:
+			return "High Priest";
+		case Job_High_Wizard:
+			return "High Wizard";
+		case Job_Whitesmith:
+			return "Whitesmith";
+		case Job_Sniper:
+			return "Sniper";
+		case Job_Assassin_Cross:
+			return "Assassin Cross";
+		case Job_Paladin:
+		case Job_Paladin2:
+			return "Paladin";
+		case Job_Champion:
+			return "Champion";
+		case Job_Professor:
+			return "Professor";
+		case Job_Stalker:
+			return "Stalker";
+		case Job_Creator:
+			return "Creator";
+		case Job_Clown:
+			return "Clown";
+		case Job_Gypsy:
+			return "Gypsy";
+		case Job_Baby:
+			return "Baby";
+		case Job_Baby_Swordman:
+			return "Baby Swordman";
+		case Job_Baby_Mage:
+			return "Baby Magician";
+		case Job_Baby_Archer:
+			return "Baby Archer";
+		case Job_Baby_Acolyte:
+			return "Baby Acolyte";
+		case Job_Baby_Merchant:
+			return "Baby Merchant";
+		case Job_Baby_Thief:
+			return "Baby Thief";
+		case Job_Baby_Knight:
+		case Job_Baby_Knight2:
+			return "Baby Knight";
+		case Job_Baby_Priest:
+			return "Baby Priest";
+		case Job_Baby_Wizard:
+			return "Baby Wizard";
+		case Job_Baby_Blacksmith:
+			return "Baby Blacksmith";
+		case Job_Baby_Hunter:
+			return "Baby Hunter";
+		case Job_Baby_Assassin:
+			return "Baby Assassin";
+		case Job_Baby_Crusader:
+		case Job_Baby_Crusader2:
+			return "Baby Crusader";
+		case Job_Baby_Monk:
+			return "Baby Monk";
+		case Job_Baby_Sage:
+			return "Baby Sage";
+		case Job_Baby_Rogue:
+			return "Baby Rogue";
+		case Job_Baby_Alchem:
+			return "Baby Alchemist";
+		case Job_Baby_Bard:
+			return "Baby Bard";
+		case Job_Baby_Dancer:
+			return "Baby Dancer";
+		case Job_Super_Baby:
+			return "Super Baby";
+		case Job_Taekwon:
+			if(Sex == 0)
+				return "Taekwon Girl";
+			else
+				return "Taekwon Boy";
+		case Job_Star_Gladiator:
+		case Job_Star_Gladiator2:
+			return "Star Gladiator";
+		case Job_Soul_Linker:
+			return "Soul Linker";
+		default:
+			return "omghaxor";
+	}
 }
