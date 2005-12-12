@@ -1574,14 +1574,13 @@ static struct Damage battle_calc_weapon_attack(
 					skillratio += 30*skill_lv;
 					break;
 				case AS_SONICBLOW:
+					skillratio += 200+50*skill_lv;
 					if (sc_data && sc_data[SC_SPIRIT].timer != -1 && sc_data[SC_SPIRIT].val2 == SL_ASSASIN) {
 						if (map_flag_gvg(src->m))
-							skillratio += 300+75*skill_lv; //+50% dmg on woe, 
+							skillratio += skillratio/4; //+25% dmg on woe, 
 						else
-							skillratio += 400+100*skill_lv; //+100% dmg on nonwoe
-					}else
-						skillratio += 200+50*skill_lv;
-					
+							skillratio += skillratio; //+100% dmg on nonwoe
+					}					
 					if(sd && pc_checkskill(sd,AS_SONICACCEL)>0)
 						skillratio += 10;
 					break;
