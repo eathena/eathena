@@ -3826,8 +3826,10 @@ void clif_getareachar_pc(struct map_session_data* sd,struct map_session_data* ds
 		clif_specialeffect(&sd->bl,421,0);
 
 	// pvp circle for duel [LuzZza]
+	/*
 	if(dstsd->duel_group)
 		clif_specialeffect(&dstsd->bl, 159, 4);
+	*/
 
 }
 
@@ -8085,7 +8087,7 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 	// set flag, if it's a duel [LuzZza]
 	if(sd->duel_group) {
 		clif_set0199(fd, 1);
-		clif_misceffect2(&sd->bl, 159);
+		//clif_misceffect2(&sd->bl, 159);
 	}
 
 	// pvp

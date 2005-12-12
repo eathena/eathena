@@ -1,5 +1,7 @@
 Date	Added
 2005/12/12
+	* Added all duel-commands messages into msg_athena.conf. Commented out
+	  code of drawing PVP-circle in duel because it not hiding when player use hide. [LuzZza]
 	* Removed @monster2, merged the code of atcommand_spawn/atcommand_monster
 	  as suggested by Flaviojs. [Skotlex]
 	* Removed some unused entries in msg_athena.txt [Skotlex]
