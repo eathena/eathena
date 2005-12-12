@@ -347,9 +347,8 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_GvGOn,			"@gpvpon",			40, atcommand_gvgon },
 	{ AtCommand_Model,			"@model",			20, atcommand_model },
 	{ AtCommand_Go,				"@go",			10, atcommand_go },
-	{ AtCommand_Spawn,			"@monster",			50, atcommand_spawn },
-	{ AtCommand_Spawn,			"@spawn",			50, atcommand_spawn },
-	{ AtCommand_Monster,			"@monster2",		50, atcommand_monster },
+	{ AtCommand_Spawn,			"@monster",			50, atcommand_monster },
+	{ AtCommand_Spawn,			"@spawn",			50, atcommand_monster },
 	{ AtCommand_MonsterSmall,		"@monstersmall",		50, atcommand_monstersmall },
 	{ AtCommand_MonsterBig,			"@monsterbig",		50, atcommand_monsterbig },
 	{ AtCommand_KillMonster,		"@killmonster",		60, atcommand_killmonster },
@@ -3418,9 +3417,11 @@ int atcommand_monster(
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
 
 	if (!message || !*message ||
-	    (sscanf(message, "\"23%[^\"]\" %23s %d %d %d", name, monster, &number, &x, &y) < 2 &&
+	    (sscanf(message, "\"%23[^\"]\" %23s %d %d %d", name, monster, &number, &x, &y) < 2 &&
 	     sscanf(message, "%23s \"%23[^\"]\" %d %d %d", monster, name, &number, &x, &y) < 2 &&
-	     sscanf(message, "%23s %23s %d %d %d", name, monster, &number, &x, &y) < 2)) {
+	     sscanf(message, "%23s %d %23s %d %d", monster, &number, name, &x, &y) < 2 &&
+	     sscanf(message, "%23s %23s %d %d %d", name, monster, &number, &x, &y) < 2 &&
+		  scanf(message, "%23s", monster) < 1)) {
 		clif_displaymessage(fd, msg_table[80]); // Give a display name and monster name/id please.
 		return -1;
 	}
@@ -3486,96 +3487,6 @@ int atcommand_monster(
 	return 0;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
-int atcommand_spawn(
-	const int fd, struct map_session_data* sd,
-	const char* command, const char* message) {
-	char name[NAME_LENGTH];
-	char monster[NAME_LENGTH];
-	int mob_id;
-	int number = 0;
-	int x = 0, y = 0;
-	int count;
-	int i, j, k;
-	int mx, my, range;
-
-	nullpo_retr(-1, sd);
-	memset(name, '\0', sizeof(name));
-	memset(monster, '\0', sizeof(monster));
-	memset(atcmd_output, '\0', sizeof(atcmd_output));
-
-	if (!message || !*message ||
-	    (sscanf(message, "\"%23[^\"]\" %23s %d %d %d", name, monster, &number, &x, &y) < 2 &&
-	     sscanf(message, "%23s \"%23[^\"]\" %d %d %d", monster, name, &number, &x, &y) < 2 &&
-	     sscanf(message, "%23s %d %23s %d %d", monster, &number, name, &x, &y) < 1)) {
-		clif_displaymessage(fd, msg_table[143]); // Give a monster name/id please.
-		return -1;
-	}
-
-	// If monster identifier/name argument is a name
-	if ((mob_id = mobdb_searchname(monster)) == 0) // check name first (to avoid possible name begining by a number)
-		mob_id = mobdb_checkid(atoi(monster));
-
-	if (mob_id == 0) {
-		clif_displaymessage(fd, msg_table[40]); // Invalid monster ID or name.
-		return -1;
-	}
-
-	if (mob_id == MOBID_EMPERIUM) {
-		clif_displaymessage(fd, msg_table[83]); // Cannot spawn emperium.
-		return -1;
-	}
-
-	if (number <= 0)
-		number = 1;
-
-	if (strlen(name) < 1)
-		strcpy(name, "--ja--");
-
-	// If value of atcommand_spawn_quantity_limit directive is greater than or equal to 1 and quantity of monsters is greater than value of the directive
-	if (battle_config.atc_spawn_quantity_limit >= 1 && number > battle_config.atc_spawn_quantity_limit)
-		number = battle_config.atc_spawn_quantity_limit;
-
-	if (battle_config.etc_log)
-		ShowInfo("%s monster='%s' name='%s' id=%d count=%d (%d,%d)\n", command, monster, name, mob_id, number, x, y);
-
-	count = 0;
-	range = (int)sqrt(number) / 2;
-	range = range * 2 + 5; // calculation of an odd number (+ 4 area around)
-	for (i = 0; i < number; i++) {
-		j = 0;
-		k = 0;
-		while(j++ < 8 && k == 0) { // try 8 times to spawn the monster (needed for close area)
-			if (x <= 0)
-				mx = sd->bl.x + (rand() % range - (range / 2));
-			else
-				mx = x;
-			if (y <= 0)
-				my = sd->bl.y + (rand() % range - (range / 2));
-			else
-				my = y;
-			k = mob_once_spawn((struct map_session_data*)sd, "this", mx, my, name, mob_id, 1, "");
-		}
-		count += (k != 0) ? 1 : 0;
-	}
-
-	if (count != 0)
-		if (number == count)
-			clif_displaymessage(fd, msg_table[39]); // All monster summoned!
-		else {
-			sprintf(atcmd_output, msg_table[240], count); // %d monster(s) summoned!
-			clif_displaymessage(fd, atcmd_output);
-		}
-	else {
-		clif_displaymessage(fd, msg_table[40]); // Invalid monster ID or name.
-		return -1;
-	}
-
-	return 0;
-}
 // small monster spawning [Valaris]
 int atcommand_monstersmall(
 	const int fd, struct map_session_data* sd,

@@ -4215,9 +4215,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			if (sc_data[SC_GOSPEL].timer != -1 && sc_data[SC_GOSPEL].val4 == BCT_SELF) {
 				status_change_end(src,SC_GOSPEL,-1);   
 			} else {
+				struct skill_unit_group *sg = skill_unitsetting(src,skillid,skilllv,src->x,src->y,0);
 				if (sc_data[SC_GOSPEL].timer != -1)
 					status_change_end(src,SC_GOSPEL,-1); //Was under someone else's Gospel. [Skotlex]
-				struct skill_unit_group *sg = skill_unitsetting(src,skillid,skilllv,src->x,src->y,0);
 				status_change_start(src,SkillStatusChangeTable[skillid],skilllv,0,(int)sg,BCT_SELF,skill_get_time(skillid,skilllv),0);
 			}
 		}

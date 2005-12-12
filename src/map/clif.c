@@ -10225,7 +10225,7 @@ void clif_parse_GM_Monster_Item(int fd, struct map_session_data *sd) {
 		if (mobdb_searchname(monster_item_name) != 0) {
 			if (pc_isGM(sd) >= (level =get_atcommand_level(AtCommand_Monster)))
 			{
-				atcommand_spawn(fd, sd, "@spawn", monster_item_name); // as @spawn
+				atcommand_monster(fd, sd, "@spawn", monster_item_name); // as @spawn
 				if(log_config.gm && level >= log_config.gm)
 				{	//Log action. [Skotlex]
 					snprintf(monster_item_name, sizeof(monster_item_name)-1, "@spawn %s", RFIFOP(fd,2));

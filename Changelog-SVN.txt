@@ -1,7 +1,9 @@
 Date	Added
 2005/12/12
-	*  Removed some unused entries in msg_athena.txt [Skotlex]
-	*  When there are unused stack sections (invoked functions and ignored
+	* Removed @monster2, merged the code of atcommand_spawn/atcommand_monster
+	  as suggested by Flaviojs. [Skotlex]
+	* Removed some unused entries in msg_athena.txt [Skotlex]
+	* When there are unused stack sections (invoked functions and ignored
 	   return values) the unused stack section is free'd. This is still notified
 	   when the etc_log is active. [Skotlex]
 	* Removed the TURBO code from socket.c as requested by MouseJstr. [Skotlex]

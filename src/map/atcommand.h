@@ -287,9 +287,9 @@ char * player_title_txt(int level); // [Lupus]
 
 int atcommand_item(const int fd, struct map_session_data* sd,const char* command, const char* message); // [Valaris]
 int atcommand_rura(const int fd, struct map_session_data* sd,const char* command, const char* message); // [Yor]
-int atcommand_spawn(const int fd, struct map_session_data* sd, const char* command, const char* message); // [Valaris]
 int atcommand_jumpto(const int fd, struct map_session_data* sd, const char* command, const char* message); // [Yor]
 int atcommand_recall(const int fd, struct map_session_data* sd, const char* command, const char* message); // [Yor]
+int atcommand_monster(const int fd, struct map_session_data* sd, const char* command, const char* message);
 
 void do_init_duel(); // [LuzZza]
 int duel_leave(const unsigned int did, struct map_session_data* sd); // [LuzZza]
