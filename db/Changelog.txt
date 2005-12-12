@@ -34,6 +34,8 @@
 	client yet), temp: normal santa hat (20)
 
 12/12
+	* Changed available jobs for some items. If it is wrong job...
+	  Blame Item'o'luper since I used it. XD Doubt it is wrong though. [Vicious]
 	* Changed Marionette's blowcount to 0 rather than 1... [Skotlex]
 	* Added EOL before '//SG_FUSION#Union of the Sun, Moon and Stars#' in skill_tree.txt [Komurka]
 	  Dunno what's wrong but ... before server hasn't been reading SG_FUSION skill at all -.-

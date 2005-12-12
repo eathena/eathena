@@ -918,9 +918,9 @@
 2253,Sunflower,Sunflower,5,,10,100,,1,,0,127918079,7,2,256,,0,0,37,{ bonus2 bSubRace,RC_Insect,10; }
 2254,Angel_Wing,Angel Wing,5,,10,100,,2,,0,119529470,7,2,256,,0,1,38,{ bonus bMdef,3; bonus bAgi,1; bonus bLuk,1; bonus2 bSubRace,RC_Demon,3; }
 2255,Evil_Wing,Evil Wing,5,,10,100,,3,,0,119529470,7,2,256,,0,1,39,{ bonus bMdef,2; bonus bStr,1; bonus2 bSubRace,RC_Angel,3; }
-2256,Majestic_Goat,Majestic Goat,5,,10,800,,5,,0,61088929,7,2,256,,0,1,41,{ bonus bStr,1; }
+2256,Majestic_Goat,Majestic Goat,5,,10,800,,5,,0,50611362,7,2,256,,0,1,41,{ bonus bStr,1; }
 2257,Snow_Horn,Snow Horn,5,,10,100,,2,,0,127918079,7,2,256,,0,1,42,{}
-2258,Spiky_Band,Spiky Band,5,,10,1000,,6,,0,61257201,7,2,256,,50,1,43,{}
+2258,Spiky_Band,Spiky Band,5,,10,1000,,6,,0,50779634,7,2,256,,50,1,43,{}
 2259,Mini_Propeller,Mini Propeller,5,,10,100,,1,,0,127918079,7,2,256,,0,1,46,{}
 2260,Mini_Glasses,Mini Glasses,5,28000,,100,,1,,0,119529470,7,2,512,,0,0,47,{}
 2261,Army_Cap,Army Cap,5,,10,400,,4,,0,414946,7,2,256,,0,1,48,{}
@@ -1028,8 +1028,8 @@
 2402,Sandals_,Sandals,5,400,,200,,1,,1,127918079,7,2,64,,0,1,0,{}
 2403,Shoes,Shoes,5,3500,,400,,2,,0,119529470,7,2,64,,0,1,0,{}
 2404,Shoes_,Shoes,5,3500,,400,,2,,1,119529470,7,2,64,,0,1,0,{}
-2405,Boots,Boots,5,18000,,600,,4,,0,35544298,7,2,64,,0,1,0,{}
-2406,Boots_,Boots,5,18000,,600,,4,,1,35544298,7,2,64,,0,1,0,{}
+2405,Boots,Boots,5,18000,,600,,4,,0,52321514,7,2,64,,0,1,0,{}
+2406,Boots_,Boots,5,18000,,600,,4,,1,52321514,7,2,64,,0,1,0,{}
 2407,Crystal_Pumps,Crystal Pumps,5,,10,100,,0,,0,127918079,7,0,64,,0,1,0,{ bonus bMdef,10; bonus bLuk,5; }
 2408,Cuffs,Shackles,5,5000,,3000,,3,,0,127918079,7,2,64,,0,1,0,{}
 2409,Spiky_Heel,Spiky Heel,5,8500,,600,,2,,0,127918079,7,2,64,,0,1,0,{ bonus bMdef,5; }
@@ -1038,7 +1038,7 @@
 2412,Greaves_,Greaves,5,48000,,750,,5,,1,16512,7,2,64,,65,1,0,{}
 2413,Safety_Shoes,Safety Shoes,5,,10,350,,6,,0,16514,7,2,64,,30,0,0,{}
 2414,Sandal_For_Novice,Novice Sandals,5,,10,1,,2,,0,8388609,7,2,64,,0,0,0,{}
-2415,Bunny_Slippers,Bunny Slippers,5,34000,,300,,3,,1,119529470,7,0,64,,30,0,0,{ bonus bLuk,3; bonus bMdef,3; }
+2415,Bunny_Slippers,Bunny Slippers,5,34000,,300,,3,,1,119529470,7,0,64,,30,1,0,{ bonus bLuk,3; bonus bMdef,3; }
 2416,Novice_Shoes,Novice Shoes,5,35000,,500,,2,,1,8388609,7,2,64,,40,1,0,{ bonus bMaxHPrate,5; }
 2417,Frico_Shoes,Frico Shoes,5,,10,500,,3,,0,119529470,7,2,64,,65,1,0,{ bonus bAgi,2; }
 2418,Boots_of_Vidar,Boots of Vidar,5,,10,650,,4,,0,119529470,7,2,64,,65,1,0,{ bonus bMaxHPrate,9; bonus bMaxSPrate,9; }
@@ -1051,8 +1051,8 @@
 2502,Hood_,Hood,5,1000,,200,,1,,1,127918079,7,2,4,,0,1,0,{}
 2503,Muffler,Muffler,5,5000,,400,,2,,0,119529470,7,2,4,,0,1,0,{}
 2504,Muffler_,Muffler,5,5000,,400,,2,,1,119529470,7,2,4,,0,1,0,{}
-2505,Manteau,Manteau,5,32000,,600,,4,,0,33969378,7,2,4,,0,1,0,{}
-2506,Manteau_,Manteau,5,32000,,600,,4,,1,33969378,7,2,4,,0,1,0,{}
+2505,Manteau,Manteau,5,32000,,600,,4,,0,50746594,7,2,4,,0,1,0,{}
+2506,Manteau_,Manteau,5,32000,,600,,4,,1,50746594,7,2,4,,0,1,0,{}
 2507,Cape_Of_Ancient_Lord,Cape of Old Marquess,5,,10,600,,2,,0,119529470,7,2,4,,40,1,0,{ bonus bAgi,1; }
 2508,Ragamuffin_Cape,Ragamuffin Manteau,5,,10,500,,1,,0,119529470,7,2,4,,0,1,0,{ bonus bMdef,10; bonus bUnbreakableArmor,0; }
 2509,Manteau_of_Survival,Manteau of Life,5,,10,550,,0,,0,67174916,7,2,4,,75,0,0,{ bonus bVit,10; }
