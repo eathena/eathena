@@ -1710,7 +1710,7 @@ int guild_castlealldataload(int len,struct guild_castle *gc)
 
 	nullpo_retr(0, gc);
 
-	// イベント付きで要求するデータ位置を探す(最後の占拠データ)
+	//Last owned castle in the list invokes ::OnAgitinit
 	for(i = 0; i < n; i++) {
 		if ((gc + i)->guild_id)
 			ev = i;
@@ -1732,9 +1732,8 @@ int guild_castlealldataload(int len,struct guild_castle *gc)
 				guild_npc_request_info(c->guild_id, "::OnAgitInit");
 		}
 	}
-//What is this for? AgitStart already does this call, this seems to be redundant code from when WoE was not npc-controlled. [Skotlex]
-//	if (ev == -1)
-//		npc_event_doall("OnAgitInit");
+	if (ev == -1) //No castles owned, invoke OnAgitInit as it is.
+		npc_event_doall("OnAgitInit");
 	return 0;
 }
 
