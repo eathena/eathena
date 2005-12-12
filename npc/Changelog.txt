@@ -25,6 +25,9 @@ Nexon
 
 Date		Added
 ======
+12/12
+	* Fixed Bard Quest, added check for exploits, added a new flower 'Izidor' [Lupus]
+		thanx to VicHoX for pointing out the bug. Now RTFM ^_-
 12/11
 	* Fixed some typos, thanks to Haplo [Lupus]
 	* Also fixed 'Lutie quest reset' bug [Lupus]

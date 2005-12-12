@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= Muad_Dib(The Prometheus Project), Lupus
 //===== Current Version: ===================================== 
-//= 1.3
+//= 1.4
 //===== Compatible With: ===================================== 
 //= eAthena Final
 //===== Description: ========================================= 
@@ -17,6 +17,8 @@
 // 1.1a minor song test fix [Lupus]
 // 1.2 Fixed wrong item ID, added missing commands [Lupus]
 // 1.3 Updated flower sub-quest according to official [Lupus]
+// 1.4 Changed priority for the gifts. Now you can win the 1st
+// prize, too. Added Izidor flower [Lupus]
 //============================================================
 
 
@@ -162,17 +164,19 @@ L_BQ1:
 	mes "Welcome! Archer friend.";
 	mes "Did you bring a Flower? Let me see.";
 	next;
-	if(countitem(1032) >= 1) goto L_UGLYFLOWER; //Item: //Items: Maneater_Blossom,
-	if(countitem(703) >= 1) goto L_FLOWER1; //Item: Hinalle//Items: Hinalle,
+	if(countitem(1032) >= 1) goto L_UGLYFLOWER; //Items: Maneater_Blossom,
+	if(countitem(703) >= 1) goto L_FLOWER1; //Items: Hinalle,
 L_NEXT2:
-	if(countitem(708) >= 1) goto L_FLOWER2; //Item: Ment//Items: Ment,
+	if(countitem(708) >= 1) goto L_FLOWER2; //Items: Ment,
 L_NEXT3:
-	if(countitem(629) >= 1) goto L_FLOWER3; //Item: Singing Flower//Items: Singing_Flower,
+	if(countitem(629) >= 1) goto L_FLOWER3; //Items: Singing_Flower,
 L_NEXT4:
-	if(countitem(710) >= 1) goto L_FLOWER4; //Item: Illusion_Flower//Items: Illusion_Flower,
+	if(countitem(710) >= 1) goto L_FLOWER4; //Items: Illusion_Flower,
 L_NEXT5:
-	if(countitem(748) >= 1) goto L_FLOWER5; //Item: Witherless_Rose//Items: Witherless_Rose,
+	if(countitem(748) >= 1) goto L_FLOWER5; //Items: Witherless_Rose,
 L_NEXT6:
+	if(countitem(709) >= 1) goto L_FLOWER6; //Item: Izidor
+L_NEXT7:
 	if(countitem(712) < 1) goto M_NOTHAVE; //Item: Flower//Items: Flower,
 
 	mes "[Lalo]";
@@ -200,7 +204,7 @@ L_FLOWER1:
 	mes "Can I have that Hinalle?";
 	next;
 	menu "Yes",-,"No",L_NEXT2;
-
+	if(countitem(703) < 1) goto M_NOTHAVE;
 	delitem 703,1;	//Items: Hinalle,
 	goto L_GOOD;
 
@@ -209,7 +213,7 @@ L_FLOWER2:
 	mes "Can I have that Ment?";
 	next;
 	menu "Yes",-,"No",L_NEXT3;
-
+	if(countitem(708) < 1) goto M_NOTHAVE;
 	delitem 708,1;	//Items: Ment,
 	goto L_GOOD;
 
@@ -218,7 +222,7 @@ L_FLOWER3:
 	mes "Can I have that Singing Flower?";
 	next;
 	menu "Yes",-,"No",L_NEXT4;
-
+	if(countitem(629) < 1) goto M_NOTHAVE;
 	delitem 629,1;	//Items: Singing_Flower,
 	goto L_GOOD;
 
@@ -227,7 +231,7 @@ L_FLOWER4:
 	mes "Can I have that Illusion Flower?";
 	next;
 	menu "Yes",-,"No",L_NEXT5;
-
+	if(countitem(710) < 1) goto M_NOTHAVE;
 	delitem 710,1;	//Items: Illusion_Flower,
 	goto L_GOOD;
 
@@ -236,8 +240,17 @@ L_FLOWER5:
 	mes "Can I have that Witherless Rose?";
 	next;
 	menu "Yes",-,"No",L_NEXT6;
-
+	if(countitem(748) < 1) goto M_NOTHAVE;
 	delitem 748,1;	//Items: Witherless_Rose,
+	goto L_GOOD;
+
+L_FLOWER6:
+	mes "[Lalo]";
+	mes "Can I have that Izidor?";
+	next;
+	menu "Yes",-,"No",L_NEXT7;
+	if(countitem(709) < 1) goto M_NOTHAVE;
+	delitem 709,1;	//Items: Izidor
 
 L_GOOD:
 	mes "[Lalo]";
@@ -393,11 +406,11 @@ L_SKILLSLEFT:
 
 L_BQ4:
 	set @gift,0;
-	if (JBLVL == 50 && countitem(1066) >=60) set @gift,1;	// Fine-grained_Trunk//Items: Fine-grained_Trunk,
-	if (countitem(1066) >= 60) set @gift,2;	// Fine-grained_Trunk//Items: Fine-grained_Trunk,
-	if (countitem(1067) >= 60) set @gift,3;	// Solid_Trunk//Items: Solid_Trunk,
-	if (countitem(1068) >= 60) set @gift,4;	// Barren_Trunk//Items: Barren_Trunk,
 	if (countitem(1019) >= 60) set @gift,5;	// Trunk//Items: Trunk,
+	if (countitem(1068) >= 60) set @gift,4;	// Barren_Trunk//Items: Barren_Trunk,
+	if (countitem(1067) >= 60) set @gift,3;	// Solid_Trunk//Items: Solid_Trunk,
+	if (countitem(1066) >= 60) set @gift,2;	// Fine-grained_Trunk//Items: Fine-grained_Trunk,
+	if (JBLVL == 50 && countitem(1066) >=60) set @gift,1;	// Fine-grained_Trunk//Items: Fine-grained_Trunk,
 
 	if (@gift!=0) goto L_CHANGE;
 
@@ -417,7 +430,7 @@ L_CHANGE:
 	callfunc "F_ClearJobVar";
 
 	mes "[Lalo]";
-	if (@gift==0) goto L_CHANGE3;
+	if (@gift==0) goto L_NOGIFT;
 
 	mes "Good job. I will make you a";
 	mes "job change with this souvenir.";
@@ -427,40 +440,33 @@ L_CHANGE:
 	mes "Squeak Squeak Scratch Scratch";
 	next;
 
-	if(@gift==2) goto L_GIFT2;
-	if(@gift==3) goto L_GIFT3;
-	if(@gift==4) goto L_GIFT4;
-	if(@gift==5) goto L_GIFT5;
+	switch(@gift){
+		case 1:
+			delitem 1066,60;	//Fine-grained_Trunk + 50 JobLvl --> Harp [2]
+			getitem 1910,1;
+			break;
+		case 2:
+			delitem 1066,60;	//Fine-grained_Trunk --> Lute [2]
+			getitem 1905,1;
+			break;
+		case 3:
+			delitem 1067,60;	//Solid_Trunk --> Mandolin [2]
+			getitem 1903,1;
+			break;
+		case 4:
+			delitem 1068,60;	//Barren_Trunk --> Mandolin [2]
+			getitem 1903,1;
+			break;
+		case 5:
+			delitem 1019,60;	//Trunk --> Violin [3]
+			getitem 1901,1;
+	}
 
-	delitem 1066,60;	//Fine-grained_Trunk + 50 JobLvl --> Harp [2]
-	getitem 1910,1;
-	goto L_CHANGE2;
-
-L_GIFT2: 
-	delitem 1066,60;	//Fine-grained_Trunk --> Lute [2]
-	getitem 1905,1;
-	goto L_CHANGE2;
-
-L_GIFT3: 
-	delitem 1067,60;	//Solid_Trunk --> Mandolin [2]
-	getitem 1903,1;
-	goto L_CHANGE2;
-
-L_GIFT4:
-	delitem 1068,60;	//Barren_Trunk --> Mandolin [2]
-	getitem 1903,1;
-	goto L_CHANGE2;
-
-L_GIFT5:
-	delitem 1019,60;	//Trunk --> Violin [3]
-	getitem 1901,1;
-	//goto L_CHANGE2;
-
-L_CHANGE2:
+	emotion e_grat;
 	mes "[Lalo]";
 	mes "Here you go, a souvenir. It is";
 	mes "useful when you sing.";
-L_CHANGE3:
+L_NOGIFT:
 	mes "Hope you sing happy songs.";
 	next;
 L_CLOSE:
