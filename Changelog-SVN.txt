@@ -1,5 +1,7 @@
 Date	Added
 2005/12/12
+	* Implemented SG_FUSION skill [Komurka]
+	  Don't ask me why in newer exe U see flying ... Santa ... -.-
 	* Updated the distance() function definition with one which uses a much
 	  better approximation [Skotlex]
 	* Updated sql-files/ mob_db.sql & item_db.sql to latest. [Skotlex]

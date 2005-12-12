@@ -1221,6 +1221,9 @@ static struct Damage battle_calc_weapon_attack(
 			)
 			flag.hit = 1;
 	}
+	
+	//SG_FUSION always hit [Komurka]
+	if (sc_data && sc_data[SC_FUSION].timer != -1) flag.hit = 1;
 
 	if (!flag.hit)
 	{	//Hit/Flee calculation
@@ -1812,6 +1815,9 @@ static struct Damage battle_calc_weapon_attack(
 				sd->left_weapon.ignore_def_race & (is_boss(target)?1<<10:1<<11)
 				))
 				flag.idef2 = 1;
+
+			//SG_FUSION def ignore [Komurka]
+			if (sc_data && sc_data[SC_FUSION].timer != -1) flag.idef = flag.idef2 = 1;
 		}
 
 		if (!flag.idef || !flag.idef2)
@@ -3023,6 +3029,20 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 		}
 		if (tsc_data[SC_SPLASHER].timer != -1)	//‰£‚Á‚½‚Ì‚Å‘Î?Û‚Ìƒxƒiƒ€ƒXƒvƒ‰ƒbƒVƒƒ?[?ó‘Ô‚ð‰ð?œ
 			status_change_end(target, SC_SPLASHER, -1);
+	}
+
+	//SG_FUSION hp penalty [Komurka]
+	if (sd && sc_data && sc_data[SC_FUSION].timer!=-1)
+	{
+		int hp=0;
+		if(target->type == BL_PC)
+		{
+			hp = sd->status.max_hp * 8 / 100;
+			if((sd->status.hp * 100/sd->status.max_hp) <= 20)
+				hp = sd->status.hp;
+		}else
+			hp = sd->status.max_hp * 2 / 100;
+		pc_heal(sd,-hp,0);
 	}
 
 	map_freeblock_unlock();

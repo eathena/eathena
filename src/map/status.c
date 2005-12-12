@@ -4657,6 +4657,10 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			*option |= OPTION_SIGHTTRASHER;
 			opt_flag = 1;
 			break;
+		case SC_FUSION:
+			*option |= OPTION_FLYING;
+			opt_flag = 1;
+			break;
 	}
 
 	if(opt_flag)	/* optionÇÃ?çX */
@@ -5140,6 +5144,10 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			break;
 		case SC_SIGHTTRASHER:
 			*option &= ~OPTION_SIGHTTRASHER;
+			opt_flag = 1;
+			break;
+		case SC_FUSION:
+			*option &= ~OPTION_FLYING;
 			opt_flag = 1;
 			break;
 		//opt3
