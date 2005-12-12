@@ -6217,7 +6217,7 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 
 	case AL_WARP:				/* ƒ??ƒvƒ|?ƒ^ƒ‹ */
 		if(sd) {
-			if(map[sd->bl.m].flag.noteleport)	/* ƒeƒŒƒ|‹ÖŽ~ */
+			if(map[sd->bl.m].flag.nowarp)	/* ƒeƒŒƒ|‹ÖŽ~ */
 				break;
 			if(!battle_config.duel_allow_teleport && sd->duel_group) { // duel restriction [LuzZza]
 				clif_displaymessage(sd->fd, "Duel: Can't use warp in duel.");

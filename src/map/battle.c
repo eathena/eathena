@@ -1575,7 +1575,10 @@ static struct Damage battle_calc_weapon_attack(
 					break;
 				case AS_SONICBLOW:
 					skillratio += 200+50*skill_lv;
-					if (sc_data && sc_data[SC_SPIRIT].timer != -1 && sc_data[SC_SPIRIT].val2 == SL_ASSASIN) {
+					if (sc_data && sc_data[SC_SPIRIT].timer != -1 && sc_data[SC_SPIRIT].val2 == SL_ASSASIN)
+				  	{ //This is incorrect because it also multiplies damage bonuses from other sources!!!
+					  //Are you SURE this is what you want? Whatever happened to "skill modifiers 
+					  //stack linearly"? T.T [Skotlex]
 						if (map_flag_gvg(src->m))
 							skillratio += skillratio/4; //+25% dmg on woe, 
 						else

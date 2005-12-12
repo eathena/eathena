@@ -1,5 +1,8 @@
 Date	Added
 2005/12/12
+	* Updated warp portal and script commands partywarp/guildwarp to take into
+	  consideration mapflag nowarp as restriction rather than noteleport.
+	  [Skotlex]
 	* Applied dontBR's update to his configure script [Kayla]
 	* Changed the bonus on Sonic blow.(It was giving 1500% instead of 1600%) [Vicious]
 	* Updated gettimetick() to use flag 2 and return System's tick, thanks to
