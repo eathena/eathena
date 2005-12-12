@@ -192,7 +192,8 @@ function helptext {
 
 function make_installable {
 	echo	-e ''										>>	Makefile
-	echo	-e 'install:	$(shell mkdir -p '$prefix'bin/)'				>>	Makefile
+	echo	-e 'install:	conf/%.conf conf/%.txt'					>>	Makefile
+	echo	-e '		$(shell mkdir -p '$prefix'bin/)'				>>	Makefile
 	echo	-e '		$(shell mkdir -p '$prefix'etc/eathena/)'			>>	Makefile
 	echo	-e '		$(shell mkdir -p '$prefix'var/log/eathena/)'			>>	Makefile
 	echo	-e '		$(shell mv save '$prefix'etc/eathena/save)'			>>	Makefile
@@ -208,12 +209,14 @@ function make_installable {
 	echo	-e '		$(shell ln -s '$prefix'etc/eathena/npc/ '$prefix'bin/)'	>>	Makefile
 	echo	-e '		$(shell ln -s '$prefix'var/log/eathena/ '$prefix'bin/log)'	>>	Makefile
 	echo			''								>>	Makefile
-	echo	-e 'bin-clean:	$(shell rm '$prefix'bin/login-server*)'			>>	Makefile
+	echo	-e 'bin-clean:'									>>	Makefile
+	echo	-e '		$(shell rm '$prefix'bin/login-server*)'			>>	Makefile
 	echo	-e '		$(shell rm '$prefix'bin/char-server*)'				>>	Makefile
 	echo	-e '		$(shell rm '$prefix'bin/map-server*)'				>>	Makefile
 	echo	-e '		$(shell rm '$prefix'bin/ladmin)'				>>	Makefile
 	echo	 		''								>>	Makefile
-	echo	-e 'uninstall:	bin-clean'							>>	Makefile
+	echo	-e 'uninstall:'									>>	Makefile
+	echo	-e '		bin-clean'							>>	Makefile
 	echo	-e '		$(shell rm '$prefix'bin/save)'					>>	Makefile
 	echo	-e '		$(shell rm '$prefix'bin/db)'					>>	Makefile
 	echo	-e '		$(shell rm '$prefix'bin/conf)'					>>	Makefile
