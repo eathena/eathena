@@ -33,6 +33,9 @@
 	5136,Luise_Santa's_Hat: need view ID (should be 208, but not supported by
 	client yet), temp: normal santa hat (20)
 
+12/12
+	* Added EOL before '//SG_FUSION#Union of the Sun, Moon and Stars#' in skill_tree.txt [Komurka]
+	  Dunno what's wrong but ... before server hasn't been reading SG_FUSION skill at all -.-
 12/11
 	* Corrected again the mvp exp percent of Lighthalzen bosses (max is 10000
 	  = 100%, why was it set to 700000? Made 7000 = 70%) [Skotlex]

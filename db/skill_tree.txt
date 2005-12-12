@@ -2033,7 +2033,8 @@
 4047,441,10,0,0,0,0,0,0,0,0,0,0	//SG_DEVIL#Demon of the Sun, Moon and Stars#
 4047,442,3,0,0,0,0,0,0,0,0,0,0	//SG_FRIEND#Friend of the Sun, Moon and Stars#
 4047,443,10,0,0,0,0,0,0,0,0,0,0	//SG_KNOWLEDGE#Knowledge of the Sun, Moon and Stars#
-4047,444,1,443,9,0,0,0,0,0,0,0,0	//SG_FUSION#Union of the Sun, Moon and Stars#
+4047,444,1,443,9,0,0,0,0,0,0,0,0	
+//SG_FUSION#Union of the Sun, Moon and Stars#
 4047,410,1,0,0,0,0,0,0,0,0,0,0 //WE_CALLBABY#Call Baby#
 //Star Gladiator (Flying)
 4048,1,9,0,0,0,0,0,0,0,0,0,0 //NV_BASIC#Basic Skill#
@@ -2072,7 +2073,8 @@
 4048,441,10,0,0,0,0,0,0,0,0,0,0	//SG_DEVIL#Demon of the Sun, Moon and Stars#
 4048,442,3,0,0,0,0,0,0,0,0,0,0	//SG_FRIEND#Friend of the Sun, Moon and Stars#
 4048,443,10,0,0,0,0,0,0,0,0,0,0	//SG_KNOWLEDGE#Knowledge of the Sun, Moon and Stars#
-4048,444,1,443,9,0,0,0,0,0,0,0,0	//SG_FUSION#Union of the Sun, Moon and Stars#
+4048,444,1,443,9,0,0,0,0,0,0,0,0	
+//SG_FUSION#Union of the Sun, Moon and Stars#
 4048,410,1,0,0,0,0,0,0,0,0,0,0 //WE_CALLBABY#Call Baby#
 //Soul Linker
 4049,1,9,0,0,0,0,0,0,0,0,0,0 //NV_BASIC#Basic Skill#
