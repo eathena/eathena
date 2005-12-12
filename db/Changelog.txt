@@ -35,6 +35,8 @@
 		* * * On your death it breaks (BS can fix it), you drop all Equipment (equipped, even the ring). And revive with 1 HP / 1 SP at the place of your death.
 
 12/12
+	* Fixed some items, such as Kafra Ring. Also updated accessaries.
+	  Novices/Super Novices are not allowed to wear lots of accessaries. [Vicious]
 	* Changed available jobs for some items. If it is wrong job...
 	  Blame Item'o'luper since I used it. XD Doubt it is wrong though. [Vicious]
 	* Changed Marionette's blowcount to 0 rather than 1... [Skotlex]

@@ -704,7 +704,7 @@
 1557,Book_of_the_Apocalypse,Book of the Apocalypse,4,35000,,800,120,,1,0,33620224,7,2,2,4,40,1,15,{ bonus bAtkEle,Ele_Dark; bonus2 bSubEle,Ele_Holy,-5; bonus2 bAddEle,Ele_Water,7; bonus2 bAddEle,Ele_Earth,7; bonus2 bAddEle,Ele_Fire,7; bonus2 bAddEle,Ele_Wind,7; }
 1558,Girl's_Diary,Girl's Diary,4,,10,300,60,,1,1,33620224,7,2,2,4,40,1,15,{ bonus2 bAddDamageClass,1188,150; }
 1559,Dragon_Legacy,Legacy of Dragon,4,,10,700,130,,1,0,33620224,7,2,2,4,70,1,15,{ bonus bInt,3; bonus bIgnoreDefRace,RC_Dragon; bonus2 bSPGainRace,RC_Dragon,10; }
-1560,Sage's_Diary,Sage's Diary,4,,10,1100,100,,1,2,33619968,7,2,2,3,60,1,15,{ bonus bMatkRate,15; if(readparam(bStr>=50)) bonus bAspdRate,5; if(readparam(bInt>=70)) bonus bMatkRate,5; }
+1560,Sage's_Diary,Sage's Diary,4,,10,1100,100,,1,2,33620224,7,2,2,3,60,1,15,{ bonus bMatkRate,15; if(readparam(bStr)>=50) bonus bAspdRate,5; if(readparam(bInt)>=70) bonus bMatkRate,5; }
 1561,Hard_Covered_Book,Hard Covered Book,4,,10,1500,140,,1,1,33620224,7,2,2,4,55,1,15,{ bonus bStr,3; bonus bDex,2; }
 1562,Battlefield_Textbook,Textbook on Battlefield,4,,10,1500,140,,1,0,33620224,7,2,2,4,55,1,15,{ bonus bInt,3; bonus4 bAutoSpell,34,3+(getskilllv(34)>3)*(getskilllv(34)-3),10,0; }
 1599,Angra_Manyu,Angra Manyu,4,120,,10,1,,1,4,10477567,7,2,2,4,2,1,8,{ bonus bBaseAtk,3800; bonus2 bHPDrainRate,1000,100; }
@@ -1073,11 +1073,11 @@
 
 // Accessories
 //===================================================================
-2601,Ring,Ring,5,30000,,100,,0,,0,127918079,7,2,136,,20,0,0,{ bonus bStr,2; }
-2602,Earring,Earring,5,30000,,100,,0,,0,127918079,7,2,136,,20,0,0,{ bonus bInt,2; }
-2603,Necklace,Necklace,5,30000,,100,,0,,0,127918079,7,2,136,,20,0,0,{ bonus bVit,2; }
-2604,Glove,Glove,5,30000,,100,,0,,0,127918079,7,2,136,,20,0,0,{ bonus bDex,2; }
-2605,Brooch,Brooch,5,30000,,100,,0,,0,127918079,7,2,136,,20,0,0,{ bonus bAgi,2; }
+2601,Ring,Ring,5,30000,,100,,0,,0,119529470,7,2,136,,20,0,0,{ bonus bStr,2; }
+2602,Earring,Earring,5,30000,,100,,0,,0,119529470,7,2,136,,20,0,0,{ bonus bInt,2; }
+2603,Necklace,Necklace,5,30000,,100,,0,,0,119529470,7,2,136,,20,0,0,{ bonus bVit,2; }
+2604,Glove,Glove,5,30000,,100,,0,,0,119529470,7,2,136,,20,0,0,{ bonus bDex,2; }
+2605,Brooch,Brooch,5,30000,,100,,0,,0,119529470,7,2,136,,20,0,0,{ bonus bAgi,2; }
 2607,Clip,Clip,5,30000,,100,,0,,1,127918079,7,2,136,,0,0,0,{ bonus bMaxSP,10; }
 2608,Rosary,Rosary,5,15000,,100,,0,,0,127918079,7,2,136,,20,0,0,{ bonus bMdef,5; bonus bLuk,2; }
 2609,Skull_Ring,Skull Ring,5,10000,,100,,0,,0,127918079,7,2,136,,0,0,0,{}
@@ -1085,19 +1085,19 @@
 2611,Silver_Ring,Silver Ring,5,20000,,100,,0,,0,127918079,7,2,136,,0,0,0,{}
 2612,Flower_Ring,Flower Ring,5,1500,,100,,0,,0,127918079,7,2,136,,0,0,0,{}
 2613,Diamond_Ring,Diamond Ring,5,45000,,100,,0,,0,127918079,7,2,136,,0,0,0,{}
-2614,Eye_of_Dullahan,Eye of Dullahan,5,90000,,100,,0,,0,127918079,7,2,136,,50,0,0,{ bonus2 bResEff,Eff_Poison,10000; }
-2615,Safety_Ring,Safety Ring,5,75000,,100,,3,,0,127918079,7,2,136,,40,0,0,{ bonus bMdef,3; }
-2616,Critical_Ring,Critical Ring,5,75000,,100,,0,,0,127918079,7,2,136,,40,0,0,{ bonus bCritical,5; }
-2617,Celebrant's_Mitten,Celebrant's Mitten,5,,10,100,,1,,0,127918079,7,2,136,,35,0,0,{ bonus bInt,1; }
-2618,Matyr's_Leash,Matyr's Leash,5,,10,100,,1,,0,127918079,7,2,136,,35,0,0,{ bonus bAgi,1; }
+2614,Eye_of_Dullahan,Eye of Dullahan,5,90000,,100,,0,,0,119529470,7,2,136,,50,0,0,{ bonus2 bResEff,Eff_Poison,10000; }
+2615,Safety_Ring,Safety Ring,5,75000,,100,,3,,0,119529470,7,2,136,,40,0,0,{ bonus bMdef,3; }
+2616,Critical_Ring,Critical Ring,5,75000,,100,,0,,0,119529470,7,2,136,,40,0,0,{ bonus bCritical,5; }
+2617,Celebrant's_Mitten,Celebrant's Mitten,5,,10,100,,1,,0,119529470,7,2,136,,35,0,0,{ bonus bInt,1; }
+2618,Matyr's_Leash,Matyr's Leash,5,,10,100,,1,,0,119529470,7,2,136,,35,0,0,{ bonus bAgi,1; }
 2619,Thimble_Of_Archer,Bow Thimble,5,10000,,100,,0,,0,1574920,7,2,136,,65,0,0,{ bonus bLongAtkRate,3; }
 2620,Ring_Of_Rogue,Rogue's Treasure,5,30000,,100,,0,,0,135232,7,2,136,,70,0,0,{ bonus bAddStealRate,100; }
-2621,Ring_,Ring,5,30000,,200,,0,,1,127918079,7,2,136,,90,0,0,{ bonus bStr,1; }
-2622,Earring_,Earring,5,30000,,200,,0,,1,127918079,7,2,136,,90,0,0,{ bonus bInt,1; }
-2623,Necklace_,Necklace,5,30000,,200,,0,,1,127918079,7,2,136,,90,0,0,{ bonus bVit,1; }
-2624,Glove_,Glove,5,30000,,200,,0,,1,127918079,7,2,136,,90,0,0,{ bonus bDex,1; }
-2625,Brooch_,Brooch,5,30000,,200,,0,,1,127918079,7,2,136,,90,0,0,{ bonus bAgi,1; }
-2626,Rosary_,Rosary,5,15000,,200,,0,,1,127918079,7,2,136,,90,0,0,{ bonus bMdef,3; bonus bLuk,1; }
+2621,Ring_,Ring,5,30000,,200,,0,,1,119529470,7,2,136,,90,0,0,{ bonus bStr,1; }
+2622,Earring_,Earring,5,30000,,200,,0,,1,119529470,7,2,136,,90,0,0,{ bonus bInt,1; }
+2623,Necklace_,Necklace,5,30000,,200,,0,,1,119529470,7,2,136,,90,0,0,{ bonus bVit,1; }
+2624,Glove_,Glove,5,30000,,200,,0,,1,119529470,7,2,136,,90,0,0,{ bonus bDex,1; }
+2625,Brooch_,Brooch,5,30000,,200,,0,,1,119529470,7,2,136,,90,0,0,{ bonus bAgi,1; }
+2626,Rosary_,Rosary,5,15000,,200,,0,,1,119529470,7,2,136,,90,0,0,{ bonus bMdef,3; bonus bLuk,1; }
 2627,Belt,Belt,5,20000,,1200,,0,,1,127918079,7,2,136,,25,0,0,{}
 2628,Novice_Armlet,Novice Armlet,5,400,,200,,0,,1,8388609,7,2,136,,0,0,0,{ bonus bStr,1; bonus bInt,1; bonus bLuk,1; }
 2629,Megingjard,Megingjard,5,,10,8000,,2,,0,127918079,7,2,136,,94,0,0,{ bonus bStr,40; bonus bMdef,7; }
@@ -1109,7 +1109,7 @@
 2637,Silver_Christmas_Ring,Silver Xmas Ring,5,,10,0,,0,,0,127918079,7,2,136,,0,0,0,{}
 2638,Exorcize_Sachet,Sacred Incense,5,,10,100,,0,,0,127918079,7,2,136,,0,0,0,{ bonus bStr,1; bonus bLuk,1; }
 2639,Purification_Sachet,Occult Incense,5,,10,100,,0,,0,127918079,7,2,136,,0,0,0,{ bonus bAgi,1; bonus bInt,1; }
-2640,Kafra_Ring,Kafra Ring,5,,10,200,,0,,0,127918079,7,2,136,,0,0,0,{ bonus bStr,1; bonus bAgi,1; bonus bInt,1; bonus bLuk,1; }
+2640,Kafra_Ring,Kafra Ring,5,,10,200,,1,,0,127918079,7,2,136,,0,0,0,{ bonus bStr,1; bonus bAgi,1; bonus bInt,1; bonus bLuk,1; bonus bMdef,1; }
 2641,Fashion_Hip_Sack,Fashion Hip Sack,5,,10,700,,0,,0,263200,7,2,136,,50,0,0,{ bonus bStr,2; }
 2642,Serin's_Gold_Ring,Serin's Gold Ring,5,,10,100,,0,,0,127918079,7,2,136,,0,0,0,{}
 2643,Serin's_Gold_Ring_,Serin's Gold Ring,5,,10,100,,0,,0,127918079,7,2,136,,0,0,0,{}
