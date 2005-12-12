@@ -1,5 +1,19 @@
 Date	Added
 2005/12/12
+	* Updated gettimetick() to use flag 2 and return System's tick, thanks to
+	  Kyoki [Skotlex]
+	* Removed the mismatch stack error message caused by scripts where the
+	  returning value of a function was ignored. [Skotlex]
+	* Corrected the Spirit of Assassin damage bonus of Sonic Blows. [Skotlex]
+	* Corrected BSS check versus undead, checking for partners on the Priest's
+	  exact left and right, and sending partner's SP to negative. [Skotlex]
+	* Another Paladin's Gospel effect ends when you cast it (should fix Gospel
+	  in Gospel bugs). Also, now Gospel only blocks usage of items of type 0
+	  (healing). [Skotlex]
+	* Corrected berserk Pitcher displaying 0 heal. [Skotlex]
+	* Added Close Confine's flee bonus. [Skotlex]
+	* Corrected Slow Poison. Can be used when not poisoned, will not "pause"
+	  poison's timer. [Skotlex]
 	* Implemented SG_FUSION skill [Komurka]
 	  Don't ask me why in newer exe U see flying ... Santa ... -.-
 	* Updated the distance() function definition with one which uses a much

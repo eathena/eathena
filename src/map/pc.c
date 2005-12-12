@@ -2707,6 +2707,8 @@ int pc_useitem(struct map_session_data *sd,int n)
 			sd->sc_data[SC_BERSERK].timer!=-1 ||
 			sd->sc_data[SC_MARIONETTE].timer!=-1 ||
 			sd->sc_data[SC_GRAVITATION].timer!=-1 ||
+			//Cannot use Potions/Healing items while under Gospel.
+			(sd->sc_data[SC_GOSPEL].timer!=-1 && sd->sc_data[SC_GOSPEL].val4 != BCT_SELF && sd->inventory_data[n]->type == 0) ||
 			(pc_issit(sd) && (sd->itemid == 605 || sd->itemid == 606)) ||
 			//added item_noequip.txt items check by Maya&[Lupus]
 			(map[sd->bl.m].flag.pvp && (sd->inventory_data[n]->flag.no_equip&1) ) || // PVP

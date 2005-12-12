@@ -1574,9 +1574,14 @@ static struct Damage battle_calc_weapon_attack(
 					skillratio += 30*skill_lv;
 					break;
 				case AS_SONICBLOW:
-					skillratio += 200+50*skill_lv;
-					if (sc_data && sc_data[SC_SPIRIT].timer != -1 && sc_data[SC_SPIRIT].val2 == SL_ASSASIN)
-						skillratio += map_flag_gvg(src->m)?50:100;
+					if (sc_data && sc_data[SC_SPIRIT].timer != -1 && sc_data[SC_SPIRIT].val2 == SL_ASSASIN) {
+						if (map_flag_gvg(src->m))
+							skillratio += 300+75*skill_lv; //+50% dmg on woe, 
+						else
+							skillratio += 400+100*skill_lv; //+100% dmg on nonwoe
+					}else
+						skillratio += 200+50*skill_lv;
+					
 					if(sd && pc_checkskill(sd,AS_SONICACCEL)>0)
 						skillratio += 10;
 					break;
@@ -3324,28 +3329,20 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
  */
 int battle_check_range(struct block_list *src,struct block_list *bl,int range)
 {
-
-	int dx,dy;
 	int arange;
 
 	nullpo_retr(0, src);
 	nullpo_retr(0, bl);
 
-	dx=abs(bl->x-src->x);
-	dy=abs(bl->y-src->y);
-	arange=((dx>dy)?dx:dy);
-
 	if(src->m != bl->m)	// 違うマップ
 		return 0;
-
-	if( range>0 && range < arange )	// 遠すぎる
+	
+	arange = distance_bl(src, bl);
+	if( range>0 && range < arange)
 		return 0;
 
-	if( arange<2 )	// 同じマスか隣?ﾚ
+	if( arange<2 ) //No need for path checking.
 		return 1;
-
-//	if(bl->type == BL_SKILL && ((struct skill_unit *)bl)->group->unit_id == 0x8d)
-//		return 1;
 
 	// ?瘧Q物判定
 	return path_search_long(NULL,src->m,src->x,src->y,bl->x,bl->y);
@@ -3625,7 +3622,7 @@ static const struct battle_data_short {
 	{ "use_statpoint_table",               &battle_config.use_statpoint_table}, // [Skotlex]
 	{ "ignore_items_gender",               &battle_config.ignore_items_gender}, // [Lupus]
 	{ "copyskill_restrict",		       &battle_config.copyskill_restrict}, // [Aru]
-	{ "berserk_candels_buffs",		&battle_config.berserk_cancels_buffs}, // [Aru]
+	{ "berserk_cancels_buffs",		&battle_config.berserk_cancels_buffs}, // [Aru]
 	{ "monster_ai",                        &battle_config.mob_ai},
 	{ "dynamic_mobs",                      &battle_config.dynamic_mobs},
 	{ "mob_remove_damaged",                &battle_config.mob_remove_damaged},

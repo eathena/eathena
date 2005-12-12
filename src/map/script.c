@@ -5021,6 +5021,11 @@ int buildin_gettimetick(struct script_state *st)	/* Asgard Version */
 	type=conv_num(st,& (st->stack->stack_data[st->start+2]));
 
 	switch(type){
+	case 2: 
+		//type 2:(Get the number of seconds elapsed since 00:00 hours, Jan 1, 1970 UTC
+		//        from the system clock.)
+		push_val(st->stack,C_INT,time(NULL));
+		break;
 	case 1:
 		//type 1:(Second Ticks: 0-86399, 00:00:00-23:59:59)
 		time(&timer);
@@ -9470,7 +9475,7 @@ int run_script_main(struct script_state *st)
 		switch(c){
 		case C_EOL:
 			if(stack->sp!=stack->defsp){
-				if(battle_config.error_log)
+				if(battle_config.error_log && stack->sp < stack->defsp) //sp > defsp is valid in cases when you invoke functions and don't use the returned value. [Skotlex]
 					ShowError("stack.sp(%d) != default(%d)\n",stack->sp,stack->defsp);
 				stack->sp=stack->defsp;
 			}

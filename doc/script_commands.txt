@@ -2715,8 +2715,11 @@ teleportation is otherwise possible.
 
 *gettimetick(<tick type>)
 
-This function will return the system time in UNIX epoch time (if tick type is 0) 
+This function will return the system time in UNIX epoch time (if tick type is 2) 
 or the time since the start of the current day in seconds if tick type is 1.
+Passing 0 will make it return the server's tick, which is a measurement in
+milliseconds used by the server's timer system. The server's tick is an
+unsigned int which loops every ~50 days.
 
 Just in case you don't know, UNIX epoch time is the number of seconds elapsed 
 since 1st of January 1970, and is useful to see, for example, for how long the 

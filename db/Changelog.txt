@@ -34,6 +34,7 @@
 	client yet), temp: normal santa hat (20)
 
 12/12
+	* Changed Marionette's blowcount to 0 rather than 1... [Skotlex]
 	* Added EOL before '//SG_FUSION#Union of the Sun, Moon and Stars#' in skill_tree.txt [Komurka]
 	  Dunno what's wrong but ... before server hasn't been reading SG_FUSION skill at all -.-
 12/11

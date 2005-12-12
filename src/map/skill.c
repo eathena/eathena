@@ -2995,7 +2995,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 		break;
 
 	case PR_BENEDICTIO:			/* ?¹??~•Ÿ */
-		if (status_get_race(bl) == 1 || status_get_race(bl) == 6)
+		if (battle_check_undead(status_get_race(bl), status_get_elem_type(bl)))
 			skill_attack(BF_MAGIC, src, src, bl, skillid, skilllv, tick, flag);
 		break;
 
@@ -4210,10 +4210,13 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case PA_GOSPEL:				/* ƒSƒXƒyƒ‹ */
 		{
 			struct status_change *sc_data = status_get_sc_data(src);
+			if (!sc_data) break;
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 			if (sc_data[SC_GOSPEL].timer != -1 && sc_data[SC_GOSPEL].val4 == BCT_SELF) {
 				status_change_end(src,SC_GOSPEL,-1);   
 			} else {
+				if (sc_data[SC_GOSPEL].timer != -1)
+					status_change_end(src,SC_GOSPEL,-1); //Was under someone else's Gospel. [Skotlex]
 				struct skill_unit_group *sg = skill_unitsetting(src,skillid,skilllv,src->x,src->y,0);
 				status_change_start(src,SkillStatusChangeTable[skillid],skilllv,0,(int)sg,BCT_SELF,skill_get_time(skillid,skilllv),0);
 			}
@@ -4649,7 +4652,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			tbl.x = src->x;
 			tbl.y = src->y;
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			if(hp > 0 || (hp <= 0 && sp <= 0))
+			if(hp > 0 || (skillid == AM_POTIONPITCHER && hp <= 0 && sp <= 0))
 				clif_skill_nodamage(&tbl,bl,AL_HEAL,hp,1);
 			if(sp > 0)
 				clif_skill_nodamage(&tbl,bl,MG_SRECOVERY,sp,1);
@@ -7626,7 +7629,7 @@ static int skill_check_condition_char_sub (struct block_list *bl, va_list ap)
 	if (bl == src)
 		return 0;
 
-	if(pc_issit(tsd) || pc_isdead(tsd) || tsd->skilltimer!=-1 || tsd->canmove_tick > tick)
+	if(pc_isdead(tsd))
 		return 0;
 
 	if (tsd->sc_count && (tsd->sc_data[SC_SILENCE].timer != -1 || tsd->sc_data[SC_STAN].timer != -1))
@@ -7635,14 +7638,18 @@ static int skill_check_condition_char_sub (struct block_list *bl, va_list ap)
 	switch(skillid)
 	{
 		case PR_BENEDICTIO:				/* ?¹??~•Ÿ */
-			if ((tsd->class_&MAPID_BASEMASK) == MAPID_ACOLYTE &&
-//				(sd->bl.x == tsd->bl.x - 1 || sd->bl.x == tsd->bl.x + 1) && <- the heck? This check seems unnecessary, and even if it is necessary, where's the parallel check on the y axis? [Skotlex]
-				sd->status.sp >= 10)
+		{
+			int dir = map_calc_dir(&sd->bl,tsd->bl.x,tsd->bl.y);
+			if ((tsd->class_&MAPID_BASEMASK) == MAPID_ACOLYTE && (dir == 2 || dir == 6) //Must be standing to the left/right of Priest.
+				&& sd->status.sp >= 10)
 				p_sd[(*c)++]=tsd->bl.id;
 			return 1;
+		}
 		default: //Warning: Assuming Ensemble Dance/Songs for code speed. [Skotlex]
 			{
 				int skilllv;
+				if(pc_issit(tsd) || tsd->skilltimer!=-1 || tsd->canmove_tick > tick)
+					return 0;
 				if (sd->status.sex != tsd->status.sex &&
 						(tsd->class_&MAPID_UPPERMASK) == MAPID_BARDDANCER &&
 						(skilllv = pc_checkskill(tsd, skillid)) > 0 &&
@@ -7682,6 +7689,8 @@ static int skill_check_pc_partner(struct map_session_data *sd, int skill_id, int
 					if ((tsd = map_id2sd(p_sd[i])) != NULL)
 					{
 						tsd->status.sp -= 10;
+						if (tsd->status.sp < 0)
+							tsd->status.sp = 0;
 						clif_updatestatus(tsd,SP_SP);
 					}
 				}

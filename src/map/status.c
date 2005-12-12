@@ -2195,14 +2195,16 @@ int status_calc_flee(struct block_list *bl, int flee)
 			flee += flee * sc_data[SC_INCFLEERATE].val1/100;
 		if(sc_data[SC_VIOLENTGALE].timer!=-1 && status_get_elem_type(bl)==4)
 			flee += flee * sc_data[SC_VIOLENTGALE].val3/100;
+		if(sc_data[SC_MOON_COMFORT].timer!=-1 && bl->m == ((struct map_session_data *)bl)->feel_map[1].m) //SG skill [Komurka]
+			flee += (status_get_lv(bl) + status_get_dex(bl) + status_get_luk(bl))/10;
+		if(sc_data[SC_CLOSECONFINE].timer!=-1)
+			flee += 10;
 		if(sc_data[SC_SPIDERWEB].timer!=-1)
 			flee -= flee * 50/100;
 		if(sc_data[SC_BERSERK].timer!=-1)
 			flee -= flee * 50/100;
 		if(sc_data[SC_BLIND].timer!=-1)
 			flee -= flee * 25/100;
-		if(sc_data[SC_MOON_COMFORT].timer!=-1 && bl->m == ((struct map_session_data *)bl)->feel_map[1].m) //SG skill [Komurka]
-			flee += (status_get_lv(bl) + status_get_dex(bl) + status_get_luk(bl))/10;
 	}
 
 	if (bl->type == BL_PC && map_flag_gvg(bl->m)) //GVG grounds flee penalty, placed here because it's "like" a status change. [Skotlex]
@@ -3813,10 +3815,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 				tick = 600*1000;
 			clif_emotion(bl,4);
 			break;
-		case SC_SLOWPOISON:
-			if (sc_data[SC_POISON].timer == -1 && sc_data[SC_DPOISON].timer == -1)
-				return 0;
-			break;
 		case SC_ONEHAND: //Removes the Aspd potion effect, as reported by Vicious. [Skotlex]
 			if(sc_data[SC_ASPDPOTION0].timer!=-1)
 				status_change_end(bl,SC_ASPDPOTION0,-1);
@@ -4532,6 +4530,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			break;
 
 		case SC_SAFETYWALL:
+		case SC_SLOWPOISON: //Slow potion can be activated even if not poisoned.
 		case SC_SUFFRAGIUM:			/* サフラギム */
 		case SC_BENEDICTIO:			/* 聖? */
 		case SC_MAGNIFICAT:			/* マグニフィカ?ト */
@@ -5378,7 +5377,7 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 
 	case SC_POISON:
 	case SC_DPOISON:
-		if (sc_data[SC_SLOWPOISON].timer == -1 && (--sc_data[type].val3) > 0) {
+		if ((--sc_data[type].val3) > 0 && sc_data[SC_SLOWPOISON].timer == -1) {
 			int hp = status_get_max_hp(bl);
 			if (type == SC_POISON && status_get_hp(bl) < hp>>2)
 				break;
