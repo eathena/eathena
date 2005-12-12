@@ -1,5 +1,6 @@
 Date	Added
 2005/12/12
+	* Updated sql-files/ mob_db.sql & item_db.sql to latest. [Skotlex]
 	* Added @autotrade/@at and @away/@aw messages into msg_athena.conf (you can customize them) [Lupus]
 	* Updated default hardcoded GMlevel values of some @ATCommands according atcommand_athena.conf [Lupus]
 		and removed doubles of some commands, thanks to Rideword

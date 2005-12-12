@@ -3496,7 +3496,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 	case SA_INSTANTDEATH:
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
-		battle_damage(NULL,src,status_get_max_hp(src),0);
+		battle_damage(NULL,src,status_get_hp(src)-1,0);
 		break;
 	case SA_QUESTION:
 	case SA_GRAVITY:
@@ -3534,7 +3534,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 	case SA_TAMINGMONSTER:
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
-		if (dstmd) {
+		if (sd && dstmd) {
 			for (i = 0; i < MAX_PET_DB; i++) {
 				if (dstmd->class_ == pet_db[i].class_) {
 					pet_catch_process1 (sd, dstmd->class_);
@@ -3791,8 +3791,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 	case LK_TENSIONRELAX:	/* テンションリラックス */
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
-		pc_setsit(sd);
-		clif_sitting(sd);
+		if (sd) {
+			pc_setsit(sd);
+			clif_sitting(sd);
+		}
 		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
 		break;
 
@@ -4144,15 +4146,17 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		}
 		break;
 	case TK_RUN:
-		if(sd && sd->sc_data)
 		{
+			struct status_change *sc_data = status_get_sc_data(bl);
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			if(sd->sc_data[SC_RUN].timer!=-1)
+			if(!sc_data)
+				break;
+			if (sc_data[SC_RUN].timer!=-1)
 				status_change_end(bl,SC_RUN,-1);
 			else{
-				status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,sd->dir,0,0,0,0 );
-				if(skilllv>=7 && sd->weapontype1 == 0 && sd->weapontype2 == 0)
-					status_change_start(&dstsd->bl,SC_SPORT,10,0,0,0,150000,0);
+				status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,status_get_dir(bl),0,0,0,0 );
+				if(skilllv>=7 && (!dstsd || (dstsd->weapontype1 == 0 && dstsd->weapontype2 == 0)))
+					status_change_start(bl,SC_SPORT,10,0,0,0,150000,0);
 			}
 		}
 		break;
@@ -4712,18 +4716,21 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 
 	case TK_HIGHJUMP:
-		if(sd) {
-			int x,y;
+		{
+			int x,y, dir = status_get_dir(src);
 
-			if (!pc_can_move(sd))
+			if (sd && !pc_can_move(sd))
 				return 0; 
+			if (md && !mob_can_move(md))
+				return 0;
 
-			x = src->x + dirx[(int)sd->dir]*skilllv*2;
-			y = src->y + diry[(int)sd->dir]*skilllv*2;
+			x = src->x + dirx[dir]*skilllv*2;
+			y = src->y + diry[dir]*skilllv*2;
 
 			clif_skill_nodamage(src,bl,TK_HIGHJUMP,skilllv,1);
 			if(map_getcell(src->m,x,y,CELL_CHKPASS)) {
-				pc_movepos(sd,x,y,0); 
+				if (sd) pc_movepos(sd,x,y,0);
+				if (md) mob_warp(md, src->m, x, y, 0);
 				clif_slide(src,x,y);
 			}
 		}
@@ -4780,7 +4787,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 						{	//Only 10% success chance against bosses. [Skotlex]
 							if (rand()%100 < 90)
 							{
-								clif_skill_fail(sd,skillid,0,0);
+								if (sd) clif_skill_fail(sd,skillid,0,0);
 								break;
 							}
 						} else

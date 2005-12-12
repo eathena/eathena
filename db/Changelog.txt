@@ -30,9 +30,12 @@
 	12016,Speed_Increasing_Potion no bonus... Turbo Track race item
 	12017,Speed_Decreasing_Potion no bonus... Turbo Track race item
 	-----
-	5136,Luise_Santa's_Hat: need view ID, temp: normal santa hat
+	5136,Luise_Santa's_Hat: need view ID (should be 208, but not supported by
+	client yet), temp: normal santa hat (20)
 
 12/11
+	* Corrected again the mvp exp percent of Lighthalzen bosses (max is 10000
+	  = 100%, why was it set to 700000? Made 7000 = 70%) [Skotlex]
 	* TKs, SGs and SLs should now be able to use berserk potions. [MasterOfMuppets]
 	* Added missing quantity value to Herb Tea With Grape Juice and Barbecue, thanks to Haplo [Lupus]
 12/10

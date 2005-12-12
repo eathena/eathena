@@ -1609,8 +1609,6 @@
 5134,Pumpkin_Hat,Pumpkin Hat,5,,10,200,,2,,0,127918079,7,2,256,,0,1,206,{}
 5135,Cyclops_Eye,Cyclops Eye,5,,10,200,,0,,0,119529470,7,2,512,,75,1,207,{ bonus bMaxSP,50; }
 5136,Luise_Santa's_Hat,Luise's Santa's Hat,5,,10,100,,3,,0,127918079,7,2,256,,0,1,20,{ bonus bMdef,1; bonus bLuk,1; bonus4 bAutoSpellWhenHit,34,10,10,0; bonus4 bAutoSpellWhenHit,75,5,10,0;}
-//View ID changed from 208 to 20 (standard santa's hat) beacuse 208 isn't supported yet
-//5136,Luise_Santa's_Hat,Luise's Santa's Hat,5,,10,100,,3,,0,127918079,7,2,256,,0,1,208,{ bonus bMdef,1; bonus bLuk,1; bonus4 bAutoSpellWhenHit,34,10,10,0; bonus4 bAutoSpellWhenHit,75,5,10,0;}
 
 // More Etc Items
 //===================================================================
@@ -1783,7 +1781,7 @@
 7167,Strange_Piece_of_Iron,Strange Piece of Iron,3,,215,10,,,,,,,,,,,,,{}
 7168,Big_Wing_of_Butterfly,Big Wing of Butterfly,3,,307,10,,,,,,,,,,,,,{}
 7169,Tae_Guk_Tablet,Tae Guk Tablet,3,,1400,10,,,,,,,,,,,,,{}
-7170,Tuxedo,Tuxedo,5,,21500,10,,0,,0,127918078,7,1,16,,0,1,0,{ changebase 22; }
+7170,Tuxedo,Tuxedo,5,,21500,10,,0,,0,127918078,7,1,16,,0,1,0,{}
 7171,Skin_of_Panther,Skin of Panther,3,,141,10,,,,,,,,,,,,,{}
 7172,Claw_of_Panther,Claw of Panther,3,,145,10,,,,,,,,,,,,,{}
 7173,Bun_Buster_Bag,Bun Buster Bag,3,,10,10,,,,,,,,,,,,,{}
