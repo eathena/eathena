@@ -46,7 +46,6 @@ struct mob_db *mob_db(int index) { if (index < 0 || index > MAX_MOB_DB || mob_db
  * Local prototype declaration   (only required thing)
  *------------------------------------------
  */
-static int distance(int,int,int,int);
 static int mob_makedummymobdb(int);
 static int mob_timer(int,unsigned int,int,int);
 static int mob_spawn_guardian_sub(int,unsigned int,int,int);
@@ -698,7 +697,7 @@ static int mob_attack(struct mob_data *md,unsigned int tick,int data)
 		return 0;
 	}
 
-	if (distance(md->bl.x,md->bl.y,tbl->x,tbl->y)>=md->db->range3){
+	if (!check_distance_bl(&md->bl, tbl, md->db->range3)){
 		mob_stopattack(md);
 		return 0;
 	}
@@ -709,7 +708,7 @@ static int mob_attack(struct mob_data *md,unsigned int tick,int data)
 	if(battle_iswalking(&md->bl)) range++;
 	if(battle_iswalking(tbl)) range++;
 	*/
-	if(distance(md->bl.x,md->bl.y,tbl->x,tbl->y) > range)
+	if(!check_distance_bl(&md->bl, tbl, range))
 		return 0;
 	if(battle_config.monster_attack_direction_change)
 		md->dir=map_calc_dir(&md->bl, tbl->x,tbl->y );	// Œü‚«Ý’è
@@ -1132,19 +1131,6 @@ int mob_spawn (int id)
 }
 
 /*==========================================
- * Distance calculation between two points
- *------------------------------------------
- */
-static int distance(int x0,int y0,int x1,int y1)
-{
-	int dx,dy;
-
-	dx=abs(x0-x1);
-	dy=abs(y0-y1);
-	return dx>dy ? dx : dy;
-}
-
-/*==========================================
  * The stop of MOB's attack
  *------------------------------------------
  */
@@ -1204,7 +1190,7 @@ static int mob_can_changetarget(struct mob_data* md, struct block_list* target, 
 	switch (md->state.skillstate) {
 		case MSS_BERSERK: //Only Assist, Angry or Aggressive+CastSensor mobs can change target while attacking.
 			if (mode&(MD_ASSIST|MD_ANGRY) || (mode&(MD_AGGRESSIVE|MD_CASTSENSOR)) == (MD_AGGRESSIVE|MD_CASTSENSOR))
-				return (battle_config.mob_ai&4 || distance(md->bl.x, md->bl.y, target->x, target->y) <= 3);
+				return (battle_config.mob_ai&4 || check_distance_bl(&md->bl, target, 3));
 			else
 				return 0;
 		case MSS_RUSH:
@@ -1274,9 +1260,9 @@ static int mob_ai_sub_hard_activesearch(struct block_list *bl,va_list ap)
 	{
 	case BL_PC:
 	case BL_MOB:
-		if((dist=distance(md->bl.x,md->bl.y,bl->x,bl->y)) < md->db->range2
+		if((dist=distance_bl(&md->bl, bl)) < md->db->range2
 			&& (md->db->range > 6 || mob_can_reach(md,bl,dist+1, MSS_FOLLOW))
-			&& ((*target) == NULL || distance(md->bl.x, md->bl.y, (*target)->x, (*target)->y) > dist) //New target closer than previous one.
+			&& ((*target) == NULL || !check_distance_bl(&md->bl, *target, dist)) //New target closer than previous one.
 		) {
 			(*target) = bl;
 			md->target_id=bl->id;
@@ -1312,7 +1298,7 @@ static int mob_ai_sub_hard_changechase(struct block_list *bl,va_list ap)
 	{
 	case BL_PC:
 	case BL_MOB:
-		if((distance(md->bl.x,md->bl.y,bl->x,bl->y)) <= md->db->range &&
+		if(check_distance_bl(&md->bl, bl, md->db->range) &&
 			battle_check_range (&md->bl, bl, md->db->range)
 		) {
 			(*target) = bl;
@@ -1345,7 +1331,7 @@ static int mob_ai_sub_hard_lootsearch(struct block_list *bl,va_list ap)
 	if(!md->lootitem || (battle_config.monster_loot_type == 1 && md->lootitem_count >= LOOTITEM_SIZE))
 		return 0;
 	
-	if((dist=distance(md->bl.x,md->bl.y,bl->x,bl->y))<md->db->range2 &&
+	if((dist=distance_bl(&md->bl, bl)) < md->db->range2 &&
 		mob_can_reach(md,bl,dist, MSS_LOOT) && rand()%1000<1000/(++(*itc)))
 	{	// It is made a probability, such as within the limits PC.
 		md->target_id=bl->id;
@@ -1389,7 +1375,7 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 
 		// Distance with between slave and master is measured.
 		old_dist=md->master_dist;
-		md->master_dist=distance(md->bl.x,md->bl.y,bl->x,bl->y);
+		md->master_dist=distance_bl(&md->bl, bl);
 
 		// Since the master was in near immediately before, teleport is carried out and it pursues.
 		if(old_dist<10 && md->master_dist>18){
@@ -1430,7 +1416,7 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 			md->target_id=sd->bl.id;
 			md->state.targettype = ATTACKABLE;
 			md->state.aggressive = (status_get_mode(&md->bl)&MD_ANGRY)?1:0;
-			md->min_chase=md->db->range2+distance(md->bl.x,md->bl.y,sd->bl.x,sd->bl.y);
+			md->min_chase=md->db->range2+distance_bl(&md->bl, &sd->bl);
 		}
 	}
 
@@ -1569,7 +1555,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 		abl = map_id2bl(md->attacked_id);
 		if (abl && (!tbl || mob_can_changetarget(md, abl, mode))) {
 			if (md->bl.m != abl->m || abl->prev == NULL ||
-				(dist = distance(md->bl.x, md->bl.y, abl->x, abl->y)) >= 32 ||
+				(dist = distance_bl(&md->bl, abl)) >= 32 ||
 				battle_check_target(bl, abl, BCT_ENEMY) <= 0 ||
 				(battle_config.mob_ai&2 && !status_check_skilluse(bl, abl, 0, 0)) ||
 				!mob_can_reach(md, abl, dist+2, MSS_RUSH)) //Some more cells of grace...
@@ -1599,7 +1585,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 					}
 				}
 			} else { //Attackable
-				if (!tbl || dist < md->db->range || distance(md->bl.x, md->bl.y, tbl->x, tbl->y) > dist
+				if (!tbl || dist < md->db->range || !check_distance_bl(&md->bl, tbl, dist)
 					|| battle_gettarget(tbl) != md->bl.id)
 				{	//Change if the new target is closer than the actual one
 					//or if the previous target is not attacking the mob. [Skotlex]
@@ -1662,7 +1648,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 		if (tbl->type != BL_ITEM)
 		{	//Attempt to attack.
 			//At this point we know the target is attackable, we just gotta check if the range matches.
-			if (blind_flag && DIFF_TICK(tick,md->next_walktime) < 0 && distance(md->bl.x, md->bl.y, tbl->x, tbl->y) > 2)
+			if (blind_flag && DIFF_TICK(tick,md->next_walktime) < 0 && !check_distance_bl(&md->bl, tbl, 2))
 			{	//Run towards the enemy when out of range?
 				md->target_id = 0;
 				md->state.targettype = NONE_ATTACKABLE;
@@ -1689,7 +1675,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 				if (md->timer != -1 && md->state.state != MS_ATTACK &&
 					(DIFF_TICK (md->next_walktime, tick) < 0 ||
 					!(battle_config.mob_ai&1) ||
-					distance(md->to_x, md->to_y, tbl->x, tbl->y) < 2)
+					check_distance_blxy(tbl, md->to_x, md->to_y, 2))
 				) {
 					return 0; //No need to follow, already doing it?
 				}
@@ -1735,7 +1721,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 		} else {	//Target is BL_ITEM, attempt loot.
 			struct flooritem_data *fitem;
 			
-			if ((dist = distance(md->bl.x, md->bl.y, tbl->x, tbl->y)) >= md->min_chase || (blind_flag && dist >= 4) || md->lootitem == NULL)
+			if ((dist = distance_bl(&md->bl, tbl)) >= md->min_chase || (blind_flag && dist >= 4) || md->lootitem == NULL)
 			{	//Can't loot...
 				mob_unlocktarget (md, tick);
 				if (md->state.state == MS_WALK)
@@ -1755,7 +1741,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 				mobskill_use(md, tick, -1);
 				if (md->timer != -1 && md->state.state != MS_ATTACK &&
 					(DIFF_TICK(md->next_walktime,tick) < 0 ||
-					distance(md->to_x, md->to_y, tbl->x, tbl->y) <= 0))
+					check_distance_blxy(tbl, md->to_x, md->to_y, 0)))
 				{	//Already on the way to looting.
 					return 0;
 				}
@@ -3235,7 +3221,7 @@ int mobskill_castend_id( int tid, unsigned int tick, int id,int data )
 		
 	if(md->skillid == RG_BACKSTAP) {
 		int dir = map_calc_dir(&md->bl,bl->x,bl->y),t_dir = status_get_dir(bl);
-		if(bl->type != BL_SKILL && (distance(md->bl.x,md->bl.y,bl->x,bl->y) == 0 || map_check_dir(dir,t_dir))) {
+		if(bl->type != BL_SKILL && (check_distance_bl(&md->bl, bl, 0) || map_check_dir(dir,t_dir))) {
 			skill_failed(md);
 			return 0;
 		}
@@ -3252,7 +3238,7 @@ int mobskill_castend_id( int tid, unsigned int tick, int id,int data )
 			skill_failed(md);
 			return 0;
 		}
-		if(skill_get_range2(&md->bl, md->skillid,md->skilllv) + battle_config.mob_skill_add_range < distance(md->bl.x,md->bl.y,bl->x,bl->y)) {
+		if(!check_distance_bl(&md->bl, bl, skill_get_range2(&md->bl, md->skillid,md->skilllv) + battle_config.mob_skill_add_range)) {
 			skill_failed(md);
 			return 0;
 		}
@@ -3324,7 +3310,7 @@ int mobskill_castend_pos( int tid, unsigned int tick, int id,int data )
 			skill_failed(md);
 			return 0;
 		}
-		if(skill_get_range2(&md->bl,md->skillid,md->skilllv) + battle_config.mob_skill_add_range < distance(md->bl.x,md->bl.y,md->skillx,md->skilly)) {
+		if(!check_distance_blxy(&md->bl, md->skillx, md->skilly, skill_get_range2(&md->bl, md->skillid,md->skilllv) + battle_config.mob_skill_add_range)) {
 			skill_failed(md);
 			return 0;
 		}

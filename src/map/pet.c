@@ -33,15 +33,6 @@ static int diry[8]={1,1,0,-1,-1,-1,0,1};
 static int pet_timer(int tid,unsigned int tick,int id,int data);
 static int pet_walktoxy_sub(struct pet_data *pd);
 
-static int distance(int x0,int y0,int x1,int y1)
-{
-	int dx,dy;
-
-	dx=abs(x0-x1);
-	dy=abs(y0-y1);
-	return dx>dy ? dx : dy;
-}
-
 static int calc_next_walk_step(struct pet_data *pd)
 {
 	nullpo_retr(0, pd);
@@ -187,7 +178,7 @@ static int pet_attack(struct pet_data *pd,unsigned int tick,int data)
 		return 0;
 	
 	if(target == NULL || pd->bl.m != target->m || target->prev == NULL ||
-		distance(pd->bl.x,pd->bl.y,target->x,target->y) > pd->db->range3)
+		!check_distance_bl(&pd->bl, target, pd->db->range3))
 	{
 		pet_unlocktarget(pd);
 		return 0;
@@ -196,7 +187,7 @@ static int pet_attack(struct pet_data *pd,unsigned int tick,int data)
 	range = pd->db->range;
 	if (battle_iswalking(&pd->bl)) range++;
 	if (battle_iswalking(target)) range++;
-	if(distance(pd->bl.x,pd->bl.y,target->x,target->y) > range)
+	if(!check_distance_bl(&pd->bl, target, range))
 		return 0;
 	if(battle_config.monster_attack_direction_change)
 		pd->dir=map_calc_dir(&pd->bl, target->x,target->y );
@@ -229,7 +220,7 @@ static int pet_attackskill(struct pet_data *pd, unsigned int tick, int data)
 
 	bl=map_id2bl(pd->target_id);
 	if(bl == NULL || pd->bl.m != bl->m || bl->prev == NULL ||
-		distance(pd->bl.x,pd->bl.y,bl->x,bl->y) > pd->db->range3)
+		!check_distance_bl(&pd->bl, bl, pd->db->range3))
 	{
 		pet_unlocktarget(pd);
 		return 0;
@@ -338,8 +329,8 @@ static int petskill_castend2(struct pet_data *pd, struct block_list *target, sho
 		if (!target || !status_check_skilluse(&pd->bl, target, skill_id, 1))
 			return 0; 
 		//Skills with inf = 4 (cast on self) have view range (assumed party skills)
-		if(distance(pd->bl.x, pd->bl.y, target->x, target->y) >
-			(skill_get_inf(skill_id) & INF_SELF_SKILL?battle_config.area_size:skill_get_range2(&pd->bl, skill_id, skill_lv)))
+		if(!check_distance_bl(&pd->bl, target,
+			(skill_get_inf(skill_id) & INF_SELF_SKILL?battle_config.area_size:skill_get_range2(&pd->bl, skill_id, skill_lv))))
 			return 0;
 		switch( skill_get_nk(skill_id) )
 		{
@@ -462,23 +453,21 @@ int pet_stopattack(struct pet_data *pd)
 int pet_target_check(struct map_session_data *sd,struct block_list *bl,int type)
 {
 	struct pet_data *pd;
-	struct mob_data *md;
 	int rate;
 
 	pd = sd->pd;
-	md=(struct mob_data *)bl;
 	
 	Assert((pd->msd == 0) || (pd->msd->pd == pd));
 
-	if(bl == NULL || bl->type != BL_MOB || md->bl.prev == NULL ||
+	if(bl == NULL || bl->type != BL_MOB || bl->prev == NULL ||
 		sd->pet.intimate < battle_config.pet_support_min_friendly ||
 		sd->pet.hungry < 1 ||
 		pd->class_ == status_get_class(bl) ||
 		pd->state.state == MS_DELAY)
 		return 0;
 
-	if(pd->bl.m != md->bl.m ||
-		distance(pd->bl.x,pd->bl.y,md->bl.x,md->bl.y) > pd->db->range2 || md->guardian_data) // Cannot attack Guardians/Emperium
+	if(pd->bl.m != bl->m ||
+		!check_distance_bl(&pd->bl, bl, pd->db->range2))
 		return 0;
 
 	if (!status_check_skilluse(&pd->bl, bl, 0, 0))
@@ -1450,7 +1439,7 @@ static int pet_randomwalk(struct pet_data *pd,int tick)
 static int pet_ai_sub_hard(struct pet_data *pd,unsigned int tick)
 {
 	struct map_session_data *sd = pd->msd;
-	struct mob_data *md = NULL;
+	struct block_list *bl = NULL;
 	int dist,i=0,dx,dy,ret;
 	int mode,race;
 
@@ -1479,11 +1468,11 @@ static int pet_ai_sub_hard(struct pet_data *pd,unsigned int tick)
 						  BL_ITEM,pd,&i);
 
 	if(sd->pet.intimate > 0) {
-		dist = distance(sd->bl.x,sd->bl.y,pd->bl.x,pd->bl.y);
+		dist = distance_bl(&sd->bl, &pd->bl);
 		if(dist > 12) {
 			if(pd->target_id > 0)
 				pet_unlocktarget(pd);
-			if(pd->timer != -1 && pd->state.state == MS_WALK && distance(pd->to_x,pd->to_y,sd->bl.x,sd->bl.y) < 3)
+			if(pd->timer != -1 && pd->state.state == MS_WALK && check_distance_blxy(&sd->bl, pd->to_x, pd->to_y, 3))
 				return 0;
 			pd->speed = (sd->speed>>1);
 			if(pd->speed <= 0)
@@ -1495,30 +1484,30 @@ static int pet_ai_sub_hard(struct pet_data *pd,unsigned int tick)
 		else if(pd->target_id - MAX_FLOORITEM > 0) {	//Mob targeted
 			mode=pd->db->mode;
 			race=pd->db->race;
-			md=(struct mob_data *)map_id2bl(pd->target_id);
-			if(md == NULL || pd->bl.m != md->bl.m || md->bl.prev == NULL ||
-				distance(pd->bl.x,pd->bl.y,md->bl.x,md->bl.y) > pd->db->range3)
+			bl= map_id2bl(pd->target_id);
+			if(bl == NULL || pd->bl.m != bl->m || bl->prev == NULL ||
+				!check_distance_bl(&pd->bl, bl, pd->db->range3))
 				pet_unlocktarget(pd);
-			else if(!battle_check_range(&pd->bl,&md->bl,pd->db->range && !pd->state.casting_flag)){ //Skotlex Don't interrupt a casting spell when targed moved
-				if(pd->timer != -1 && pd->state.state == MS_WALK && distance(pd->to_x,pd->to_y,md->bl.x,md->bl.y) < 2)
+			else if(!battle_check_range(&pd->bl,bl,pd->db->range) && !pd->state.casting_flag){ //Skotlex Don't interrupt a casting spell when targed moved
+				if(pd->timer != -1 && pd->state.state == MS_WALK && check_distance_blxy(bl, pd->to_x, pd->to_y, 2))
 					return 0;
-				if( !pet_can_reach(pd,md->bl.x,md->bl.y))
+				if(!pet_can_reach(pd, bl->x, bl->y))
 					pet_unlocktarget(pd);
 				else {
 					i=0;
 					pd->speed = status_get_speed(&pd->bl);
 					do {
 						if(i==0) {	// 最初はAEGISと同じ方法で検索
-							dx=md->bl.x - pd->bl.x;
-							dy=md->bl.y - pd->bl.y;
+							dx=bl->x - pd->bl.x;
+							dy=bl->y - pd->bl.y;
 							if(dx<0) dx++;
 							else if(dx>0) dx--;
 							if(dy<0) dy++;
 							else if(dy>0) dy--;
 						}
 						else {	// だめならAthena式(ランダム)
-							dx=md->bl.x - pd->bl.x + rand()%3 - 1;
-							dy=md->bl.y - pd->bl.y + rand()%3 - 1;
+							dx=bl->x - pd->bl.x + rand()%3 - 1;
+							dy=bl->y - pd->bl.y + rand()%3 - 1;
 						}
 						ret=pet_walktoxy(pd,pd->bl.x+dx,pd->bl.y+dy);
 						i++;
@@ -1547,12 +1536,12 @@ static int pet_ai_sub_hard(struct pet_data *pd,unsigned int tick)
 
 			bl_item = map_id2bl(pd->target_id);
 			if(bl_item == NULL || bl_item->type != BL_ITEM ||bl_item->m != pd->bl.m ||
-				 (dist=distance(pd->bl.x,pd->bl.y,bl_item->x,bl_item->y))>=5){
+				 (dist=distance_bl(&pd->bl, bl_item))>=5){
 				 // 遠すぎるかアイテムがなくなった
  				pet_unlocktarget(pd);
 			}
 			else if(dist){
-				if(pd->timer != -1 && pd->state.state!=MS_ATTACK && (DIFF_TICK(pd->next_walktime,tick)<0 || distance(pd->to_x,pd->to_y,bl_item->x,bl_item->y) <= 0))
+				if(pd->timer != -1 && pd->state.state!=MS_ATTACK && (DIFF_TICK(pd->next_walktime,tick)<0 || !check_distance_blxy(bl_item, pd->to_x, pd->to_y, 0)))
 					return 0; // 既に移動中
 
 				pd->next_walktime=tick+500;
@@ -1581,7 +1570,7 @@ static int pet_ai_sub_hard(struct pet_data *pd,unsigned int tick)
 			}
 		}
 		else {
-			if(dist <= 3 || pd->state.casting_flag || (pd->timer != -1 && pd->state.state == MS_WALK && distance(pd->to_x,pd->to_y,sd->bl.x,sd->bl.y) < 3) )
+			if(dist <= 3 || pd->state.casting_flag || (pd->timer != -1 && pd->state.state == MS_WALK && check_distance_blxy(&sd->bl, pd->to_x,pd->to_y, 3)))
 				return 0;
 			pd->speed = status_get_speed(&pd->bl);
 			pet_calc_pos(pd,sd->bl.x,sd->bl.y,sd->dir);
@@ -1623,7 +1612,7 @@ static int pet_ai_hard(int tid,unsigned int tick,int id,int data)
 int pet_ai_sub_hard_lootsearch(struct block_list *bl,va_list ap)
 {
 	struct pet_data* pd;
-	int dist,*itc;
+	int *itc;
 
 	nullpo_retr(0, bl);
 	nullpo_retr(0, ap);
@@ -1642,7 +1631,7 @@ int pet_ai_sub_hard_lootsearch(struct block_list *bl,va_list ap)
 
 		if(pd->loot == NULL || pd->loot->item == NULL || (pd->loot->count >= pd->loot->max) || (sd && sd->pd != pd))
 			return 0;
-		if(bl->m == pd->bl.m && (dist=distance(pd->bl.x,pd->bl.y,bl->x,bl->y))<5){
+		if(bl->m == pd->bl.m && check_distance_bl(&pd->bl, bl, 5)){
 			if( pet_can_reach(pd,bl->x,bl->y)		// 到達可能性判定
 				 && rand()%1000<1000/(++(*itc)) ){	// 範囲内PCで等確率にする
 				pd->target_id=bl->id;

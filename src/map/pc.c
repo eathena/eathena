@@ -114,14 +114,6 @@ int pc_set_gm_level(int account_id, int level) {
     return 0;
 }
 
-static int distance(int x0, int y0, int x1, int y1) {
-	int dx, dy;
-
-	dx = abs(x0-x1);
-	dy = abs(y0-y1);
-	return dx>dy ? dx : dy;
-}
-
 static int pc_invincible_timer(int tid,unsigned int tick,int id,int data) {
 	struct map_session_data *sd;
 
@@ -2581,7 +2573,7 @@ int pc_takeitem(struct map_session_data *sd,struct flooritem_data *fitem)
 	nullpo_retr(0, sd);
 	nullpo_retr(0, fitem);
 
-	if(distance(fitem->bl.x,fitem->bl.y,sd->bl.x,sd->bl.y)>2 && sd->skillid!=BS_GREED)
+	if(!check_distance_bl(&fitem->bl, &sd->bl, 2) && sd->skillid!=BS_GREED)
 		return 0;	// ‹——£‚ª‰“‚¢
 
 	if(fitem->first_get_id > 0) {
@@ -4150,7 +4142,7 @@ int pc_follow_timer(int tid,unsigned int tick,int id,int data)
 			sd->skilltimer == -1 && sd->attacktimer == -1 && sd->walktimer == -1)
 		{
 			if((sd->bl.m == tsd->bl.m) && pc_can_reach(sd,tsd->bl.x,tsd->bl.y)) {
-				if (distance(sd->bl.x,sd->bl.y,tsd->bl.x,tsd->bl.y) > 5 && pc_can_move(sd))
+				if (!check_distance_bl(&sd->bl, &tsd->bl, 5) && pc_can_move(sd))
 					pc_walktoxy(sd,tsd->bl.x,tsd->bl.y);
 			} else
 				pc_setpos(sd, tsd->mapname, tsd->bl.x, tsd->bl.y, 3);

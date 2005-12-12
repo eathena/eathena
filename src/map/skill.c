@@ -735,16 +735,6 @@ int skillnotok(int skillid, struct map_session_data *sd)
 	}
 }
 
-
-static int distance(int x0,int y0,int x1,int y1)
-{
-	int dx,dy;
-
-	dx = abs(x0 - x1);
-	dy = abs(y0 - y1);
-	return dx > dy ? dx : dy;
-}
-
 /* ƒXƒLƒ‹ƒ†ƒjƒbƒg‚Ì”z’u?î•ñ‚ð•Ô‚· */
 struct skill_unit_layout skill_unit_layout[MAX_SKILL_UNIT_LAYOUT];
 int firewall_unit_pos;
@@ -2726,8 +2716,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 	case RG_BACKSTAP:		/* ƒoƒbƒNƒXƒ^ƒu */
 		{
 			int dir = map_calc_dir(src, bl->x, bl->y), t_dir = status_get_dir(bl);
-			int dist = distance(src->x, src->y, bl->x, bl->y);
-			if ((dist > 0 && !map_check_dir(dir, t_dir)) || bl->type == BL_SKILL) {
+			if ((!check_distance_bl(src, bl, 0) && !map_check_dir(dir, t_dir)) || bl->type == BL_SKILL) {
 				if (sc_data && sc_data[SC_HIDING].timer != -1)
 					status_change_end(src, SC_HIDING, -1);	// ƒnƒCƒfƒBƒ“ƒO‰ð?œ
 				skill_attack(BF_WEAPON, src, src, bl, skillid, skilllv, tick, flag);
@@ -2874,7 +2863,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 
 	case SM_MAGNUM:
 		if(flag&1){
-			int dist = distance (bl->x, bl->y, skill_area_temp[2], skill_area_temp[3]);
+			int dist = distance_blxy (bl, skill_area_temp[2], skill_area_temp[3]);
 			skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,
 				0x0500|dist);
 		} else {
@@ -3018,7 +3007,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 			/* ŒÂ•Ê‚Éƒ_ƒ??ƒW‚ð?‚¦‚é */
 			if (bl->id != skill_area_temp[1]){
 				if(skillid == MG_FIREBALL){	/* ƒtƒ@ƒCƒ„?ƒ{?ƒ‹‚È‚ç’†?S‚©‚ç‚Ì‹——£‚ðŒvŽZ */
-					skill_area_temp[0] = distance(bl->x, bl->y, skill_area_temp[2], skill_area_temp[3]);
+					skill_area_temp[0] = distance_blxy(bl, skill_area_temp[2], skill_area_temp[3]);
 				}
 				skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,
 					skill_area_temp[0]| 0x0500);
@@ -5856,8 +5845,7 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 	
 	if(sd->skillid == RG_BACKSTAP) {
 		int dir = map_calc_dir(&sd->bl,bl->x,bl->y),t_dir = status_get_dir(bl);
-		int dist = distance(sd->bl.x,sd->bl.y,bl->x,bl->y);
-		if(bl->type != BL_SKILL && (dist == 0 || map_check_dir(dir,t_dir))) {
+		if(bl->type != BL_SKILL && (check_distance_bl(&sd->bl, bl, 0) || map_check_dir(dir,t_dir))) {
 			clif_skill_fail(sd,sd->skillid,0,0);
 			skill_failed(sd);
 			return 0;
@@ -5910,7 +5898,7 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 		}
 	}
 
-	if(skill_get_range2(&sd->bl,sd->skillid,sd->skilllv)+battle_config.pc_skill_add_range < distance(sd->bl.x,sd->bl.y,bl->x,bl->y))
+	if(!check_distance_bl(&sd->bl, bl, skill_get_range2(&sd->bl,sd->skillid,sd->skilllv)+battle_config.pc_skill_add_range))
 	{
 		clif_skill_fail(sd,sd->skillid,0,0);
 		if(battle_config.skill_out_range_consume) //Consume items anyway. [Skotlex]
@@ -6035,7 +6023,7 @@ int skill_castend_pos( int tid, unsigned int tick, int id,int data )
 			skill_failed(sd);
 			return 0;
 		}
-		if(skill_get_range2(&sd->bl,sd->skillid,sd->skilllv)+battle_config.pc_skill_add_range < distance(sd->bl.x,sd->bl.y,sd->skillx,sd->skilly)) {
+		if(check_distance_blxy(&sd->bl, sd->skillx, sd->skilly, skill_get_range2(&sd->bl,sd->skillid,sd->skilllv)+battle_config.pc_skill_add_range)) {
 			clif_skill_fail(sd,sd->skillid,0,0);
 			if(battle_config.skill_out_range_consume) //Consume items anyway.
 				skill_check_condition(sd,1);
@@ -8715,7 +8703,7 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 		break;
 
 	case KN_CHARGEATK:
-		casttime *= distance(sd->bl.x,sd->bl.y,bl->x,bl->y);
+		casttime *= distance_bl(&sd->bl, bl);
 		break;
 
 	// parent-baby skills

@@ -27,20 +27,6 @@ int attr_fix_table[4][10][10];
 struct Battle_Config battle_config;
 
 /*==========================================
- * “ñ“_ŠÔ‚Ì‹——£‚ğ•Ô‚·
- * –ß‚è‚Í?®?”‚Å0ˆÈ?ã
- *------------------------------------------
- */
-static int distance(int x0,int y0,int x1,int y1)
-{
-	int dx,dy;
-
-	dx=abs(x0-x1);
-	dy=abs(y0-y1);
-	return dx>dy ? dx : dy;
-}
-
-/*==========================================
  * ©•ª‚ğƒ?ƒbƒN‚µ‚Ä‚¢‚éMOB‚Ì?‚ğ?‚¦‚é(foreachclient)
  *------------------------------------------
  */
@@ -207,7 +193,7 @@ int battle_delay_damage_sub (int tid, unsigned int tick, int id, int data)
 	struct delay_damage *dat = (struct delay_damage *)data;
 	struct block_list *target = map_id2bl(dat->target);
 	if (target && dat && map_id2bl(id) == dat->src && target->prev != NULL && !status_isdead(target) &&
-		target->m == dat->src->m && distance(dat->src->x, dat->src->y, target->x, target->y) <= dat->distance) //Check to see if you haven't teleported. [Skotlex]
+		target->m == dat->src->m && check_distance_bl(dat->src, target, dat->distance)) //Check to see if you haven't teleported. [Skotlex]
 	{
 		battle_damage(dat->src, target, dat->damage, dat->flag);
 		if (!status_isdead(target) && (dat->dmg_lv == ATK_DEF || dat->damage > 0) && dat->attack_type)
@@ -238,7 +224,7 @@ int battle_delay_damage (unsigned int tick, struct block_list *src, struct block
 	dat->damage = damage;
 	dat->dmg_lv = dmg_lv;
 	dat->flag = flag;
-	dat->distance = distance(src->x, src->y, target->x, target->y)+10; //Attack should connect regardless unless you teleported.
+	dat->distance = distance_bl(src, target)+10; //Attack should connect regardless unless you teleported.
 	add_timer(tick, battle_delay_damage_sub, src->id, (int)dat);
 	
 	return 0;
@@ -1090,10 +1076,10 @@ static struct Damage battle_calc_weapon_attack(
 			|| (md && battle_config.skillrange_by_distance&2)
 			|| (pd && battle_config.skillrange_by_distance&4)
 		) {
-			if (distance(src->x, src->y, target->x, target->y) > 3)
-				wd.flag=(wd.flag&~BF_RANGEMASK)|BF_LONG;
-			else
+			if (check_distance_bl(src, target, 3))
 				wd.flag=(wd.flag&~BF_RANGEMASK)|BF_SHORT;
+			else
+				wd.flag=(wd.flag&~BF_RANGEMASK)|BF_LONG;
 		}
 	}
 	
@@ -2314,10 +2300,10 @@ struct Damage battle_calc_magic_attack(
 			|| (md && battle_config.skillrange_by_distance&2)
 			|| (pd && battle_config.skillrange_by_distance&4)
 		) {
-			if (distance(src->x, src->y, target->x, target->y) > 3)
-				ad.flag=(ad.flag&~BF_RANGEMASK)|BF_LONG;
-			else
+			if (check_distance_bl(src, target, 3))
 				ad.flag=(ad.flag&~BF_RANGEMASK)|BF_SHORT;
+			else
+				ad.flag=(ad.flag&~BF_RANGEMASK)|BF_LONG;
 		}
 	}
 
@@ -2782,10 +2768,10 @@ struct Damage  battle_calc_misc_attack(
 			|| (bl->type == BL_MOB && battle_config.skillrange_by_distance&2)
 			|| (bl->type == BL_PET && battle_config.skillrange_by_distance&4)
 		) {
-			if (distance(bl->x, bl->y, target->x, target->y) > 3)
-				aflag=(aflag&~BF_RANGEMASK)|BF_LONG;
-			else
+			if (check_distance_bl(bl, target, 3))
 				aflag=(aflag&~BF_RANGEMASK)|BF_SHORT;
+			else
+				aflag=(aflag&~BF_RANGEMASK)|BF_LONG;
 		}
 	}
 
@@ -2873,7 +2859,7 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 		{
 			int dir = map_calc_dir(target,src->x,src->y);
 			int t_dir = status_get_dir(target);
-			int dist = distance(src->x,src->y,target->x,target->y);
+			int dist = distance_bl(src, target);
 			if(dist <= 0 || (!map_check_dir(dir,t_dir) && dist <= status_get_range(target)+1))
 			{
 				int skilllv = tsc_data[SC_AUTOCOUNTER].val1;
@@ -3023,7 +3009,7 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 
 	if (tsc_data) {
 		if (tsc_data && tsc_data[SC_POISONREACT].timer != -1 && 
-			distance(src->x,src->y,target->x,target->y) <= status_get_range(target)+1)
+			check_distance_bl(src, target, status_get_range(target)+1))
 		{	//Poison React
 			if (status_get_elem_type(src) == 5) {
 				tsc_data[SC_POISONREACT].val2 = 0;
@@ -3221,6 +3207,10 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 		case BL_PET:
 		{
 			struct pet_data *pd = (struct pet_data *)s_bl;
+			if (t_bl->type != BL_MOB && flag&BCT_ENEMY)
+				return 0; //Pet may not attack non-mobs/items.
+			if (t_bl->type == BL_MOB && ((struct mob_data *)t_bl)->guardian_data && flag&BCT_ENEMY)
+				return 0; //pet may not attack Guardians/Emperium
 			if (pd->msd)
 				s_bl = &pd->msd->bl; //"My master's enemies are my enemies..."
 			break;

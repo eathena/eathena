@@ -10162,16 +10162,13 @@ int buildin_pow(struct script_state *st){
 }
 int buildin_distance(struct script_state *st){
 	int x0, y0, x1, y1;
-	int dx,dy;
 
 	x0 = conv_num(st, &(st->stack->stack_data[st->start+2]));
 	y0 = conv_num(st, &(st->stack->stack_data[st->start+3]));
 	x1 = conv_num(st, &(st->stack->stack_data[st->start+4]));
 	y1 = conv_num(st, &(st->stack->stack_data[st->start+5]));
 
-	dx=abs(x0-x1);
-	dy=abs(y0-y1);
-	push_val(st->stack, C_INT, (dx>dy ? dx : dy));
+	push_val(st->stack, C_INT, distance(x0-x1, y0-y1));
 	return 0;
 }
 // <--- [zBuffer] List of mathematics commands
