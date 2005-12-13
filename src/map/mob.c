@@ -3886,7 +3886,9 @@ int mob_is_clone(int class_)
 int mob_clone_spawn(struct map_session_data *sd, char *mapname, int x, int y, const char *event)
 {
 	int class_;
-
+	int c,i,j,skill_id;
+	struct mob_skill *ms;
+	
 	nullpo_retr(0, sd);
 
 	for(class_=MOB_CLONE_START; class_<MOB_CLONE_END; class_++){
@@ -3949,6 +3951,78 @@ int mob_clone_spawn(struct map_session_data *sd, char *mapname, int x, int y, co
 	mob_db_data[class_]->option=sd->status.option;
 	mob_db_data[class_]->clothes_color=sd->status.clothes_color;
 
+	//Skill copy [Skotlex]
+	c = pc_calc_skilltree_normalize_job(sd);
+	ms = &mob_db_data[class_]->skill[0];
+	for(j=0;i < MAX_SKILL_TREE && skill_tree[c][j].id>0;i++);
+	//Go Backwards to give better priority to advanced skills.
+	for (i=0;j>0 && i< MAX_MOBSKILL ;j--) {
+		skill_id = skill_tree[c][j].id;	
+		if (sd->status.skill[skill_id].lv < 1 || (skill_get_inf2(skill_id)&(INF2_WEDDING_SKILL|INF2_GUILD_SKILL|INF2_QUEST_SKILL)))
+			continue;
+
+		memset (&ms[i], 0, sizeof(struct mob_skill));
+		ms[i].skill_id = skill_id;
+		ms[i].skill_lv = sd->status.skill[skill_id].lv;
+		ms[i].state = -1;
+		ms[i].permillage = 500; //5% chance to cast?
+		ms[i].emotion = -1;
+		ms[i].cancel = 0;
+		ms[i].delay = skill_delayfix(&sd->bl,skill_id, ms[i].skill_lv, 0);
+		ms[i].casttime = skill_castfix(&sd->bl,skill_id, ms[i].skill_lv, 0);
+
+		switch(skill_get_inf(skill_id)) {
+			case INF_ATTACK_SKILL:
+				ms[i].target = MST_TARGET;
+				ms[i].cond1 = MSC_ALWAYS;
+				if (skill_get_range(skill_id, ms[i].skill_lv)  > 3) {
+					ms[i].state = MSS_RUSH;
+					ms[i].permillage = 1000;
+				} else
+					ms[i].state = MSS_BERSERK;
+				break;
+			case INF_GROUND_SKILL:
+				if (skill_get_inf2(skill_id)&INF2_TRAP) { //Traps!
+					ms[i].state = MSS_IDLE;
+					ms[i].target = MST_AROUND2;
+					ms[i].delay = 60000;
+					break;
+				}
+				if (skill_get_unit_target(skill_id) == BCT_ENEMY) { //Target Enemy
+					ms[i].target = MST_TARGET;
+					ms[i].cond1 = MSC_ALWAYS;
+				} else { //Target allies
+					ms[i].target = MST_FRIEND;
+					ms[i].cond1 = MSC_FRIENDHPLTMAXRATE;
+					ms[i].val[0] = 95;
+				}
+				break;
+			case INF_SELF_SKILL:
+				if (skill_get_nk(skill_id) != NK_NO_DAMAGE) { //Offensive skill
+					ms[i].target = MST_TARGET;
+					ms[i].state = MSS_BERSERK;
+				} else //Self skill
+					ms[i].target = MST_SELF;
+				ms[i].cond1 = MSC_MYHPLTMAXRATE;
+				ms[i].val[0] = 90;
+				break;
+			case INF_SUPPORT_SKILL:
+				ms[i].target = MST_FRIEND;
+				ms[i].cond1 = MSC_FRIENDHPLTMAXRATE;
+				ms[i].val[0] = 90;
+				if (i+1 < MAX_MOBSKILL) { //duplicate this so it also triggers on self.
+					memcpy(&ms[i+1], &ms[i], sizeof(struct mob_skill));
+					mob_db_data[class_]->maxskill = i++;
+					ms[i].target = MST_SELF;
+					ms[i].cond1 = MSC_MYHPLTMAXRATE;
+				}
+				break;
+			default:
+				continue;
+		}
+		mob_db_data[class_]->maxskill = i++;
+	}
+	//Finally, spawn it.
 	mob_once_spawn(sd,mapname,x,y,"--en--",class_,1,event);
 
 	return class_;

@@ -1,5 +1,7 @@
 Date	Added
 2005/12/12
+	* Updated the max number of ingredients of produce_db to 12. [Skotelx]
+	* Updated clone code to also copy the skills from the source player. [Skotlex]
 	* Added Reddozen's implementation of SL_SKE and SL_MONK (sp recovery, Combo
 	  Finisher splash damage, SP regen while in Fury) [Skotlex]
 	* Some reorganization of the Star Gladiator map-based skills. [Skotlex]

@@ -6,7 +6,7 @@
 
 #define MAX_SKILL_DB			1100
 #define MAX_SKILL_PRODUCE_DB	150
-#define MAX_PRODUCE_RESOURCE	7
+#define MAX_PRODUCE_RESOURCE	12
 #define MAX_SKILL_ARROW_DB		150
 #define MAX_SKILL_ABRA_DB		350
 
@@ -152,6 +152,7 @@ int	skill_get_inf2( int id );
 int	skill_get_maxcount( int id );
 int	skill_get_blewcount( int id ,int lv );
 int	skill_get_unit_flag( int id );
+int	skill_get_unit_target( int id );
 int	skill_tree_get_max( int id, int b_class );	// Celest
 const char*	skill_get_name( int id ); 	// [Skotlex]
 
