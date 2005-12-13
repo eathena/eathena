@@ -1,5 +1,8 @@
 Date	Added
 2005/12/13
+	* Merged in Reddozen's work with SL_KAIZEL [Skotlex]
+	* Added the check to prevent KA skills from being usable until you are Soul
+	  Linked. [Skotlex]
 	* Enabled clif_parse_Taekwon (Why was taekwon parsed as clif_parse_Alchemist?) [Vicious]
 	* Moved the base attack code into it's own function to properly implement
 	  the magnum break's elemental damage bonus (watch out for bugs as the code

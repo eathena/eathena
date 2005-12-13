@@ -4129,7 +4129,20 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				status_change_start(bl,sc,skilllv,0,0,0,skill_get_time(skillid,skilllv),0);				
 		}
 		break;
-
+	case SL_KAIZEL:
+		if (sd) {
+			if (!dstsd || (
+				(dstsd->class_&MAPID_UPPERMASK) != MAPID_SOUL_LINKER && 
+				dstsd->char_id != sd->status.partner_id &&
+				dstsd->char_id != sd->status.child
+			)) {
+				status_change_start(src,SC_STAN,skilllv,0,0,0,3000,0);
+				clif_skill_fail(sd,skillid,0,0);
+				break;
+			}
+		}
+		status_change_start(src,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid, skilllv),0);
+		break;
 	case SM_AUTOBERSERK:	// Celest
 		{
 			struct status_change *tsc_data = status_get_sc_data(bl);
@@ -8200,6 +8213,14 @@ int skill_check_condition(struct map_session_data *sd,int type)
 			}
 			break;
 		}
+	case SL_KAAHI:
+	case SL_KAINA:
+	case SL_KAIZEL:
+	case SL_KAITE:
+	case SL_KAUPE:
+		if(sd->sc_data[SC_SPIRIT].timer != -1 && sd->sc_data[SC_SPIRIT].val2 == SL_SOULLINKER)
+			break; //Needs to be Soul Linked to do all these skills.
+		return 0;
 	case SG_SUN_WARM:
 		if(sd->bl.m == sd->feel_map[0].m)
 			break;

@@ -1,0 +1,30 @@
+- This is a small summary of the roles of trunk vs a branch, as well as their
+  current state in eA. 
+
+- Trunk: This should be the base source-codebase, well all the flashy lights
+  and new enhacements get added. It gets updated a lot, breaks often.
+
+- Current situation: Noone works on trunk anymore and it's seriously outdated.
+
+
+- Branch: This should be a snapshot of the trunk at some given time, and
+  receives no enhancements at all, only bug fixes. Once the branch becomes
+  stable enough, it is "released" to the public with an appropiate version
+  number, and the next branch is created from a new snapshot from the trunk.
+
+- Current situation: Everyone is working on branches/stable s if it were a
+  stable + development source.
+
+As Akaru has pointed out, we need to sort this out inmediately:
+- branches/stable must be moved and become the new trunk/
+- We should probably make a branch snapshot from a few days ago (before the
+  latest feature additions like string permanent variables?) for next release
+  base.
+- All devs should stick to the roles of branch/trunk.
+- It appears most devs who have heard of this agree with Akaru, however the
+  initial steps to clean up the SVN repository have yet to be taken. This task
+  seems assigned to Kayla, maintainer of said repository.
+
+Post your thoughts/ideas about here...
+- [Skotlex] I think fixing skills counts as bug fixing, and goes to branch.
+  But implementing missing skills should go to trunk.

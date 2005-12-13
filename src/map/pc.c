@@ -4918,7 +4918,7 @@ static int pc_respawn(int tid,unsigned int tick,int id,int data)
  */
 int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 {
-	int i=0,j=0;
+	int i=0,j=0, resurrect_flag=0;
 
 	nullpo_retr(0, sd);
 
@@ -5125,6 +5125,7 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 	skill_unit_move(&sd->bl,gettick(),4);
 	
 	pc_setglobalreg(sd,"PC_DIE_COUNTER",++sd->die_counter); //死にカウンタ?書き?み
+	resurrect_flag = (sd->sc_data[SC_KAIZEL].timer != -1)?sd->sc_data[SC_KAIZEL].val1:0; //Auto-resurrect later in the code.
 	status_change_clear(&sd->bl,0);	// ステ?タス異常を解除する
 	clif_updatestatus(sd,SP_HP);
 	status_calc_pc(sd,0);
@@ -5257,18 +5258,25 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 		return damage;
 	}
 
-	if (sd->state.snovice_flag == 4) {
-		sd->state.snovice_flag = 0;
-		sd->status.hp = sd->status.max_hp;
-		sd->status.sp = sd->status.max_sp;
+	if (sd->state.snovice_flag == 4 || resurrect_flag) {
+		if (sd->state.snovice_flag == 4 || sd->special_state.restart_full_recover) {
+			sd->status.hp = sd->status.max_hp;
+			sd->status.sp = sd->status.max_sp;
+		} else { //10% life per each level in Kaizel
+			sd->status.hp = 10*resurrect_flag*sd->status.max_hp/100;
+		}
 		clif_skill_nodamage(&sd->bl,&sd->bl,ALL_RESURRECTION,1,1);
 		pc_setstand(sd);
 		clif_updatestatus(sd, SP_HP);
 		clif_updatestatus(sd, SP_SP);
 		clif_resurrection(&sd->bl, 1);
-		if(battle_config.pc_invincible_time > 0)
+		sd->state.snovice_flag = 0;
+		if(battle_config.pc_invincible_time)
 			pc_setinvincibletimer(sd, battle_config.pc_invincible_time);
-		status_change_start(&sd->bl,SkillStatusChangeTable[MO_STEELBODY],1,0,0,0,skill_get_time(MO_STEELBODY,1),0 );
+		if (resurrect_flag)
+			status_change_start(&sd->bl,SkillStatusChangeTable[SL_KAIZEL],10,0,0,0,skill_get_time2(SL_KAIZEL, resurrect_flag),0);
+		else
+			status_change_start(&sd->bl,SkillStatusChangeTable[MO_STEELBODY],1,0,0,0,skill_get_time(MO_STEELBODY,1),0 );
 		return 0;
 	}
 
