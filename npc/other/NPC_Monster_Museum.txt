@@ -39,19 +39,19 @@ L_Tip:
 	close;
 }
 
-yuno_in03.gat,32,102,1	script	Biology Professor	755,{	
-	mes "[Ruthy Celsus]";
-	mes "Hmm? What is it? Do you want to take a look at monsters?";
-	next;
-	mes "[Ruthy Celsus]";
-	mes "It is okay to look at it but do not touch it and make noises in here.";
-	mes "There are many dangerous stuff to touch in here.";
-	next;
-	mes "[Ruthy Celsus]";
-	mes "And also, tell me if you catch rare monsters.";
-	mes "I will buy your info. with high price.";
-	close;
-}
+//yuno_in03.gat,32,102,1	script	Biology Professor	755,{	
+//	mes "[Ruthy Celsus]";
+//	mes "Hmm? What is it? Do you want to take a look at monsters?";
+//	next;
+//	mes "[Ruthy Celsus]";
+//	mes "It is okay to look at it but do not touch it and make noises in here.";
+//	mes "There are many dangerous stuff to touch in here.";
+//	next;
+//	mes "[Ruthy Celsus]";
+//	mes "And also, tell me if you catch rare monsters.";
+//	mes "I will buy your info. with high price.";
+//	close;
+//}
 
 yuno_in03.gat,36,21,3	script	Deviace	1108,{
 	end;

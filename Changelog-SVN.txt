@@ -23,7 +23,7 @@ Date	Added
 	 = Requires recheck on packets again to see if I missed any pointer alterations =
 	* Improved @evilclone to accept character IDs [Lance]
 	* Corrected partywarp/guildwarp to correctly take into account nowarp/nowarpto mapflags. [Skotlex]
-	* Added some custom scripts due to high demand. [Lance]
+	* Added a few custom scripts due to high demand. [Lance]
 	* Added monster museum. Adapted from Prometheus. [Lance]
 2005/12/12
 	* added manner_system battle conf variable (now you can have PK server without manner system - which is unfinished ;/) [Komurka]
