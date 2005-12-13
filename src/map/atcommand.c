@@ -9878,11 +9878,11 @@ int atcommand_evilclone(
 	struct map_session_data *pl_sd=NULL;
 
 	if (!message || !*message) {
-		clif_displaymessage(sd->fd,"You must enter a name.");
+		clif_displaymessage(sd->fd,"You must enter a name or character ID.");
 		return 0;
 	}
-	pl_sd=map_nick2sd((char *)message);
-	if(pl_sd == NULL) {
+
+	if((pl_sd=map_nick2sd((char *)message)) || (pl_sd=map_charid2sd(atoi(message)))) {
 		clif_displaymessage(fd, "Player not found.");
 		return 0;
 	}
