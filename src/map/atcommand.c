@@ -7690,7 +7690,7 @@ atcommand_sakura(
 	nullpo_retr(-1, sd);
 	if (map[sd->bl.m].flag.sakura) {
 		map[sd->bl.m].flag.sakura=0;
-		clif_displaymessage(fd, "Cherry tree leaves is made to fall.");
+		clif_displaymessage(fd, "Cherry tree leaves no longer fall.");
 	} else {
 		map[sd->bl.m].flag.sakura=1;
 		clif_specialeffect(&sd->bl,effno,2);
@@ -7784,7 +7784,7 @@ atcommand_fireworks(
 	if (map[sd->bl.m].flag.fireworks) {
 		map[sd->bl.m].flag.fireworks=0;
 		clif_clearweather(sd->bl.m);
-		clif_displaymessage(fd, "Fireworks are launched.");
+		clif_displaymessage(fd, "Fireworks are ended.");
 	} else {
 		map[sd->bl.m].flag.fireworks=1;
 		clif_weather2(sd->bl.m, 297);
@@ -9174,7 +9174,7 @@ int atcommand_mobinfo(
 	memset(atcmd_output2, '\0', sizeof(atcmd_output2));
 
 	if (!message || !*message) {
-		clif_displaymessage(fd, "Please, enter a Monster/NPC name/id (usage: @mobinfo <monster_name_or_monster_ID>).");
+		clif_displaymessage(fd, "Please, enter a Monster/ID (usage: @mobinfo <monster_name_or_monster_ID>).");
 		return -1;
 	}
 
@@ -9191,7 +9191,7 @@ int atcommand_mobinfo(
 
 	// stats
 	if (mob->mexp)
-		sprintf(atcmd_output, "Monster (MVP): '%s'/'%s' (%d)", mob->name, mob->jname, mob_id);
+		sprintf(atcmd_output, "MVP Monster: '%s'/'%s' (%d)", mob->name, mob->jname, mob_id);
 	else
 		sprintf(atcmd_output, "Monster: '%s'/'%s' (%d)", mob->name, mob->jname, mob_id);
 	clif_displaymessage(fd, atcmd_output);
@@ -9226,7 +9226,7 @@ int atcommand_mobinfo(
 		}
 	}
 	if (j == 0)
-		clif_displaymessage(fd, "This monster has no drop.");
+		clif_displaymessage(fd, "This monster has no drops.");
 	else if (j % 3 != 0)
 		clif_displaymessage(fd, atcmd_output);
 	// mvp
@@ -9248,7 +9248,7 @@ int atcommand_mobinfo(
 			}
 		}
 		if (j == 0)
-			clif_displaymessage(fd, "This monster has no MVP drop.");
+			clif_displaymessage(fd, "This monster has no MVP prizes.");
 		else
 			clif_displaymessage(fd, atcmd_output);
 	}
