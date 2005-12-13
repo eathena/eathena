@@ -1,5 +1,6 @@
 Date	Added
 2005/12/13
+	* Added carts, falcons and pecos to clone and mob_avail class monster spawns. [Valaris]
 	* Likely fixed the @spawn names issue. [Skotlex]
 	* Fixed @*clone commands not resolving properly the target char. [Skotlex]
 	* Implemented the SL_ROGUE bonus to potions. They heal +100% more rather
