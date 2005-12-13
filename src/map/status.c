@@ -4573,6 +4573,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_SCRESIST:
 		case SC_STOP:
 		case SC_CLOSECONFINE:
+		case SC_COUNTER_RATE_UP:
+		case SC_TRIPLEATTACK_RATE_UP:
 			break;
 
 		default:

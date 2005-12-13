@@ -1695,7 +1695,7 @@ static struct Damage battle_calc_weapon_attack(
 									continue;
 								if(sd->bl.m == psrc_sd->bl.m && pc_checkskill(psrc_sd,TK_COUNTER)>0)
 								{
-									status_change_start(&psrc_sd->bl,SC_COUNTER_RATE_UP,1,0,0,0,2000,0); //upkeep 2000
+									status_change_start(&psrc_sd->bl,SC_COUNTER_RATE_UP,1,0,0,0,10000,0); //upkeep 10000
 								}
 							}
 						}
@@ -1792,7 +1792,7 @@ static struct Damage battle_calc_weapon_attack(
 									
 								if(sd->bl.m == psrc_sd->bl.m && pc_checkskill(psrc_sd,MO_TRIPLEATTACK)>0)
 								{
-									status_change_start(&psrc_sd->bl,SC_TRIPLEATTACK_RATE_UP,skill,0,0,0,2000,0); //uptime 2000 
+									status_change_start(&psrc_sd->bl,SC_TRIPLEATTACK_RATE_UP,skill,0,0,0,10000,0); //uptime 10000 
 								}
 							}
 						}
