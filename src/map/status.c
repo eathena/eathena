@@ -563,7 +563,7 @@ void initStatusIconChangeTable() {
 	StatusIconChangeTable[SC_DEVOTION] = SI_DEVOTION;
 	StatusIconChangeTable[SC_STEELBODY] = SI_STEELBODY;
 	StatusIconChangeTable[SC_SPORT] = SI_SPORT;
-//	StatusIconChangeTable[SC_SPIRIT] = SI_SPIRIT; //Reddozen says it's ok now, so an icon is not needed? [Skotlex]
+	StatusIconChangeTable[SC_SPIRIT] = SI_SOULLINK;
 	StatusIconChangeTable[SC_READYSTORM] = SI_READYSTORM;
 	StatusIconChangeTable[SC_READYDOWN] = SI_READYDOWN;
 	StatusIconChangeTable[SC_READYTURN] = SI_READYTURN;
@@ -577,6 +577,7 @@ void initStatusIconChangeTable() {
 	StatusIconChangeTable[SC_STAR_COMFORT] = SI_STAR_COMFORT;
 	StatusIconChangeTable[SC_ADRENALINE2] = SI_ADRENALINE;
 	StatusIconChangeTable[SC_GHOSTWEAPON] = SI_GHOSTWEAPON;
+	StatusIconChangeTable[SC_KAITE] = SI_KAITE;
 	StatusIconChangeTable[SC_KAIZEL] = SI_KAIZEL;
 	StatusIconChangeTable[SC_KAAHI] = SI_KAAHI;
 	StatusIconChangeTable[SC_KAUPE] = SI_KAUPE;
@@ -2245,8 +2246,6 @@ int status_calc_def(struct block_list *bl, int def)
 			def += sc_data[SC_DRUMBATTLE].val3;
 		if(sc_data[SC_INCDEFRATE].timer!=-1)
 			def += def * sc_data[SC_INCDEFRATE].val1/100;
-		if(sc_data[SC_SUN_COMFORT].timer!=-1) //SG skill [Komurka]
-			def += (status_get_lv(bl) + status_get_dex(bl) + status_get_luk(bl))/2;
 		if(sc_data[SC_SIGNUMCRUCIS].timer!=-1)
 			def -= def * sc_data[SC_SIGNUMCRUCIS].val2/100;
 		if(sc_data[SC_CONCENTRATION].timer!=-1)
@@ -2271,6 +2270,8 @@ int status_calc_def2(struct block_list *bl, int def2)
 			return 0;
 		if(sc_data[SC_ETERNALCHAOS].timer!=-1)
 			return 0;
+		if(sc_data[SC_SUN_COMFORT].timer!=-1) //SG skill [Komurka]
+			def2 += (status_get_lv(bl) + status_get_dex(bl) + status_get_luk(bl))/2;
 		if(sc_data[SC_ANGELUS].timer!=-1)
 			def2 += def2 * (10+5*sc_data[SC_ANGELUS].val1)/100;
 		if(sc_data[SC_CONCENTRATION].timer!=-1)
@@ -4991,7 +4992,7 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			case SC_NOCHAT:	//チャット禁止?態
 				{
 					struct map_session_data *sd=NULL;
-					if(bl->type == BL_PC && (sd=(struct map_session_data *)bl)){
+					if(bl->type == BL_PC && (sd=(struct map_session_data *)bl) && battle_config.manner_system){
 						if (sd->status.manner >= 0) // weeee ^^ [celest]
 							sd->status.manner = 0;
 						clif_updatestatus(sd,SP_MANNER);
@@ -5554,7 +5555,7 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 		}
 		break;
 	case SC_NOCHAT:	//チャット禁止?態
-		if(sd){
+		if(sd && battle_config.manner_system){
 			sd->status.manner++;
 			clif_updatestatus(sd,SP_MANNER);
 			if (sd->status.manner < 0)

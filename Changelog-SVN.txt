@@ -1,5 +1,14 @@
 Date	Added
 2005/12/12
+	* added manner_system battle conf variable (now you can have PK server without manner system - which is unfinished ;/) [Komurka]
+	- some corrections in SI_ data (night uses soullink effect)
+	- changed global_reg value from int to char
+	  added two new functions (pc_readglobalreg_str and pc_setglobalreg_str)
+	  SG_FEEL now saves maps to global_reg
+	  I've 'marked' all changes that SHOULD be checked with '//komurka'
+	- SG_FUSION hp penalty changed from 2% to 0.5%
+	- SG_SUN_COMFORT now increase VIT DEF
+	- implemented SG_FRIEND skill - this is the last SG skill - now it's a good time for bug reports :]
 	* Updated the max number of ingredients of produce_db to 12. [Skotelx]
 	* Updated clone code to also copy the skills from the source player. [Skotlex]
 	* Added Reddozen's implementation of SL_SKE and SL_MONK (sp recovery, Combo

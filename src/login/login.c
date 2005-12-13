@@ -577,7 +577,7 @@ int mmo_auth_tostr(char *str, struct auth_dat *p) {
 
 	for(i = 0; i < p->account_reg2_num; i++)
 		if (p->account_reg2[i].str[0])
-			str_p += sprintf(str_p, "%s,%d ", p->account_reg2[i].str, p->account_reg2[i].value);
+			str_p += sprintf(str_p, "%s,%s ", p->account_reg2[i].str, p->account_reg2[i].value);
 
 	return 0;
 }
@@ -587,12 +587,13 @@ int mmo_auth_tostr(char *str, struct auth_dat *p) {
 //---------------------------------
 int mmo_auth_init(void) {
 	FILE *fp;
-	int account_id, logincount, state, n, i, v;
+	int account_id, logincount, state, n, i;
 	unsigned int j;
 	char line[2048], *p, userid[2048], pass[2048], lastlogin[2048], sex, email[2048], error_message[2048], last_ip[2048], memo[2048];
 	time_t ban_until_time;
 	time_t connect_until_time;
 	char str[2048];
+	char v[2048];
 	int GM_count = 0;
 	int server_count = 0;
 
@@ -730,10 +731,10 @@ int mmo_auth_init(void) {
 
 			for(j = 0; j < ACCOUNT_REG2_NUM; j++) {
 				p += n;
-				if (sscanf(p, "%[^\t,],%d %n", str, &v, &n) != 2) {
+				if (sscanf(p, "%[^\t,],%[^\t ] %n", str, v, &n) != 2) { //komurka
 					// We must check if a str is void. If it's, we can continue to read other REG2.
 					// Account line will have something like: str2,9 ,9 str3,1 (here, ,9 is not good)
-					if (p[0] == ',' && sscanf(p, ",%d %n", &v, &n) == 1) {
+					if (p[0] == ',' && sscanf(p, ",%[^\t ] %n", v, &n) == 1) { //komurka
 						j--;
 						continue;
 					} else
@@ -742,7 +743,7 @@ int mmo_auth_init(void) {
 				str[31] = '\0';
 				remove_control_chars((unsigned char *)str);
 				strncpy(auth_dat[auth_num].account_reg2[j].str, str, 32);
-				auth_dat[auth_num].account_reg2[j].value = v;
+				strncpy(auth_dat[auth_num].account_reg2[j].value,v,32);
 			}
 			auth_dat[auth_num].account_reg2_num = j;
 
@@ -837,10 +838,10 @@ int mmo_auth_init(void) {
 
 			for(j = 0; j < ACCOUNT_REG2_NUM; j++) {
 				p += n;
-				if (sscanf(p, "%[^\t,],%d %n", str, &v, &n) != 2) {
+				if (sscanf(p, "%[^\t,],%[^\t ] %n", str, v, &n) != 2) { //komurka
 					// We must check if a str is void. If it's, we can continue to read other REG2.
 					// Account line will have something like: str2,9 ,9 str3,1 (here, ,9 is not good)
-					if (p[0] == ',' && sscanf(p, ",%d %n", &v, &n) == 1) {
+					if (p[0] == ',' && sscanf(p, ",%[^\t ] %n", v, &n) == 1) { //komurka
 						j--;
 						continue;
 					} else
@@ -849,7 +850,7 @@ int mmo_auth_init(void) {
 				str[31] = '\0';
 				remove_control_chars((unsigned char *)str);
 				strncpy(auth_dat[auth_num].account_reg2[j].str, str, 32);
-				auth_dat[auth_num].account_reg2[j].value = v;
+				strncpy(auth_dat[auth_num].account_reg2[j].value,v,32);
 			}
 			auth_dat[auth_num].account_reg2_num = j;
 
@@ -1418,7 +1419,7 @@ int parse_fromchar(int fd) {
 							WFIFOL(fd,4) = acc;
 							for(p = 8, j = 0; j < auth_dat[k].account_reg2_num; p += 36, j++) {
 								memcpy(WFIFOP(fd,p), auth_dat[k].account_reg2[j].str, 32);
-								WFIFOL(fd,p+32) = auth_dat[k].account_reg2[j].value;
+								memcpy(WFIFOP(fd,p+32), auth_dat[k].account_reg2[j].value, 32);
 							}
 							WFIFOW(fd,2) = p;
 							WFIFOSET(fd,p);
@@ -1779,9 +1780,11 @@ int parse_fromchar(int fd) {
 						          server[id].name, acc, ip);
 						for(p = 8, j = 0; p < RFIFOW(fd,2) && j < ACCOUNT_REG2_NUM; p += 36, j++) {
 							memcpy(auth_dat[i].account_reg2[j].str, RFIFOP(fd,p), 32);
+							memcpy(auth_dat[i].account_reg2[j].value, RFIFOP(fd,p+32), 32);
 							auth_dat[i].account_reg2[j].str[31] = '\0';
+							auth_dat[i].account_reg2[j].value[31] = '\0';
 							remove_control_chars((unsigned char *)auth_dat[i].account_reg2[j].str);
-							auth_dat[i].account_reg2[j].value = RFIFOL(fd,p+32);
+							remove_control_chars((unsigned char *)auth_dat[i].account_reg2[j].value);
 						}
 						auth_dat[i].account_reg2_num = j;
 						// Sending information towards the other char-servers.

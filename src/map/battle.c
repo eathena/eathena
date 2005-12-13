@@ -1679,6 +1679,27 @@ static struct Damage battle_calc_weapon_attack(
 					break;
 				case MO_TRIPLEATTACK:
 					skillratio += 20*skill_lv;
+					//bonus from SG_FRIEND - dunno where to place it ;/ [Komurka]
+					if (sd && sd->status.party_id>0)
+					{
+						struct party *pt = party_search(sd->status.party_id);
+						if(pt!=NULL)
+						{
+							int i;
+							struct map_session_data* psrc_sd = NULL;
+	
+							for(i=0;i<MAX_PARTY;i++)
+							{
+								psrc_sd = pt->member[i].sd;
+								if(!psrc_sd || sd == psrc_sd)
+									continue;
+								if(sd->bl.m == psrc_sd->bl.m && pc_checkskill(psrc_sd,TK_COUNTER)>0)
+								{
+									status_change_start(&psrc_sd->bl,SC_COUNTER_RATE_UP,1,0,0,0,2000,0); //upkeep 2000
+								}
+							}
+						}
+					}
 					break;
 				case MO_CHAINCOMBO:
 					skillratio += 50+50*skill_lv;
@@ -1755,6 +1776,27 @@ static struct Damage battle_calc_weapon_attack(
 					break;
 				case TK_COUNTER:
 					skillratio += 90 + 30*skill_lv;
+					//bonus from SG_FRIEND - dunno where to place it ;/ [Komurka]
+					if(sd && sd->status.party_id>0 && (skill = pc_checkskill(sd,SG_FRIEND))>0)
+					{
+						struct party *pt = party_search(sd->status.party_id);
+						if(pt && skill>0)
+						{
+							int i;
+							struct map_session_data* psrc_sd = NULL;
+							for(i=0;i<MAX_PARTY;i++)
+							{
+								psrc_sd = pt->member[i].sd;
+								if(!psrc_sd || sd==psrc_sd)
+									continue;
+									
+								if(sd->bl.m == psrc_sd->bl.m && pc_checkskill(psrc_sd,MO_TRIPLEATTACK)>0)
+								{
+									status_change_start(&psrc_sd->bl,SC_TRIPLEATTACK_RATE_UP,skill,0,0,0,2000,0); //uptime 2000 
+								}
+							}
+						}
+					}
 					break;
 				case TK_JUMPKICK:
 					skillratio += -70 + 10*skill_lv;
@@ -2896,8 +2938,16 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 
 	}
 	//Recycled the rdamage variable rather than use a new one... [Skotlex]
-	if(sd && (rdamage = pc_checkskill(sd,MO_TRIPLEATTACK)) > 0 && sd->status.weapon <= 16 && rand()%100 < (30 - rdamage)) // triple blow works with bows ^^ [celest]
-		return skill_attack(BF_WEAPON,src,src,target,MO_TRIPLEATTACK,rdamage,tick,0);
+	if(sd && (rdamage = pc_checkskill(sd,MO_TRIPLEATTACK)) > 0 && sd->status.weapon <= 16) // triple blow works with bows ^^ [celest]
+	{
+		int triple_rate=100;
+		if (sc_data && sc_data[SC_TRIPLEATTACK_RATE_UP].timer!=-1)
+		{
+			triple_rate+=50*(sc_data[SC_TRIPLEATTACK_RATE_UP].val1);
+			status_change_end(src,SC_TRIPLEATTACK_RATE_UP,-1);
+		}
+		if (rand()%100 < (30 - rdamage)*(triple_rate/100)) return skill_attack(BF_WEAPON,src,src,target,MO_TRIPLEATTACK,rdamage,tick,0);
+	}
 	else if (sc_data && sc_data[SC_SACRIFICE].timer != -1)
 		return skill_attack(BF_WEAPON,src,src,target,PA_SACRIFICE,sc_data[SC_SACRIFICE].val1,tick,0);
 			
@@ -3048,7 +3098,7 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 			if((sd->status.hp * 100/sd->status.max_hp) <= 20)
 				hp = sd->status.hp;
 		}else
-			hp = sd->status.max_hp * 2 / 100;
+			hp = sd->status.max_hp * 5 / 1000;
 		pc_heal(sd,-hp,0);
 	}
 
@@ -3583,6 +3633,7 @@ static const struct battle_data_short {
 	{ "equip_self_break_rate",             &battle_config.equip_self_break_rate	},
 	{ "equip_skill_break_rate",            &battle_config.equip_skill_break_rate	},
 	{ "pk_mode",                           &battle_config.pk_mode			},  	// [Valaris]
+	{ "manner_system",                     &battle_config.manner_system		},  	// [Komurka]
 	{ "pet_equip_required",                &battle_config.pet_equip_required	},	// [Valaris]
 	{ "multi_level_up",                    &battle_config.multi_level_up		}, // [Valaris]
 	{ "backstab_bow_penalty",              &battle_config.backstab_bow_penalty	},
@@ -3963,6 +4014,7 @@ void battle_set_defaults() {
 	battle_config.equip_self_break_rate = 100; // [Valaris], adapted by [Skotlex]
 	battle_config.equip_skill_break_rate = 100; // [Valaris], adapted by [Skotlex]
 	battle_config.pk_mode = 0; // [Valaris]
+	battle_config.manner_system = 1; // [Valaris]
 	battle_config.pet_equip_required = 0; // [Valaris]
 	battle_config.multi_level_up = 0; // [Valaris]
 	battle_config.backstab_bow_penalty = 0; // Akaru

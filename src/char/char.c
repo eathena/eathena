@@ -399,7 +399,7 @@ int mmo_char_tostr(char *str, struct mmo_charstatus *p) {
 
 	for(i = 0; i < p->global_reg_num; i++)
 		if (p->global_reg[i].str[0])
-			str_p += sprintf(str_p, "%s,%d ", p->global_reg[i].str, p->global_reg[i].value);
+			str_p += sprintf(str_p, "%s,%s ", p->global_reg[i].str, p->global_reg[i].value);
 	*(str_p++) = '\t';
 
 	*str_p = '\0';
@@ -683,11 +683,11 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p) {
 	next++;
 
 	for(i = 0; str[next] && str[next] != '\t' && str[next] != '\n' && str[next] != '\r'; i++) { // global_reg実装以前のathena.txt互換のため一応'\n'チェック
-		if (sscanf(str + next, "%[^,],%d%n", p->global_reg[i].str, &p->global_reg[i].value, &len) != 2) {
+		if (sscanf(str + next, "%[^,],%[^ ] %n", p->global_reg[i].str, p->global_reg[i].value, &len) != 2) { //komurka
 			// because some scripts are not correct, the str can be "". So, we must check that.
 			// If it's, we must not refuse the character, but just this REG value.
 			// Character line will have something like: nov_2nd_cos,9 ,9 nov_1_2_cos_c,1 (here, ,9 is not good)
-			if (str[next] == ',' && sscanf(str + next, ",%d%n", &p->global_reg[i].value, &len) == 1)
+			if (str[next] == ',' && sscanf(str + next, ",%[^ ] %n", p->global_reg[i].value, &len) == 1) //komurka
 				i--;
 			else
 				return -7;
@@ -2069,7 +2069,7 @@ int parse_tologin(int fd) {
 			acc = RFIFOL(fd,4);
 			for (p = 8, j = 0; p < RFIFOW(fd,2) && j < ACCOUNT_REG2_NUM; p += 36, j++) {
 				memcpy(reg[j].str, RFIFOP(fd,p), 32);
-				reg[j].value = RFIFOL(fd,p+32);
+				memcpy(reg[j].value,RFIFOP(fd,p+32), 32);
 			}
 			set_account_reg2(acc, j, reg);
 			// 同垢ログインを禁止していれば送る必要は無い
@@ -2708,7 +2708,7 @@ int parse_frommap(int fd) {
 			acc = RFIFOL(fd,4);
 			for(p = 8, j = 0; p < RFIFOW(fd,2) && j < ACCOUNT_REG2_NUM; p += 36, j++) {
 				memcpy(reg[j].str, RFIFOP(fd,p), 32);
-				reg[j].value = RFIFOL(fd, p+32);
+				memcpy(reg[j].value, RFIFOP(fd, p+32), 32);
 			}
 			set_account_reg2(acc, j, reg);
 			// loginサーバーへ送る

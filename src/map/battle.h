@@ -297,6 +297,7 @@ extern struct Battle_Config {
 	unsigned short pet_equip_required;
 	unsigned short multi_level_up;
 	unsigned short pk_mode;
+	unsigned short manner_system;
 	unsigned short show_mob_hp;  // end additions [Valaris]
 
 	unsigned short agi_penalty_count_lv;

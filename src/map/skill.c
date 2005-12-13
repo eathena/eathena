@@ -857,15 +857,25 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 			if(sd->sc_data[SC_EDP].timer != -1 && !(status_get_mode(bl)&MD_BOSS) && sc_data && sc_data[SC_DPOISON].timer == -1 &&
 				rand() % 100 < sd->sc_data[SC_EDP].val2 * sc_def_vit / 100)
 				status_change_start(bl,SC_DPOISON,sd->sc_data[SC_EDP].val1,0,0,0,skill_get_time2(ASC_EDP,sd->sc_data[SC_EDP].val1),0);
+
 			// Chance to trigger Taekwon kicks [Dralnu]
-			if(sd->sc_data[SC_READYSTORM].timer != -1 && sd->sc_data[SC_COMBO].timer == -1 && rand()%100 < 15)
+			if(sd->sc_data[SC_READYSTORM].timer != -1 && sd->sc_data[SC_COMBO].timer == -1 && rand()%100 < 15) 
 				status_change_start(src,SC_COMBO, TK_STORMKICK,0,0,0,2000,0);
 			else if(sd->sc_data[SC_READYDOWN].timer != -1 && sd->sc_data[SC_COMBO].timer == -1 && rand()%100 < 15)
 				status_change_start(src,SC_COMBO, TK_DOWNKICK,0,0,0,2000,0);
 			else if(sd->sc_data[SC_READYTURN].timer != -1 && sd->sc_data[SC_COMBO].timer == -1 && rand()%100 < 15)
 				status_change_start(src,SC_COMBO, TK_TURNKICK,0,0,0,2000,0);
-			else if(sd->sc_data[SC_READYCOUNTER].timer != -1 && sd->sc_data[SC_COMBO].timer == -1 && rand()%100 < 20)
-				status_change_start(src,SC_COMBO, TK_COUNTER,bl->id,0,0,2000,0);
+			else if(sd->sc_data[SC_READYCOUNTER].timer != -1 && sd->sc_data[SC_COMBO].timer == -1) //additional chance from SG_FRIEND [Komurka]
+			{			
+				int counter_rate[4] = {20,40,50,60};	//{100%,200%,250%,300%};
+				int counter_lvl=0;
+				if (sd->sc_data[SC_COUNTER_RATE_UP].timer != -1 && (skill = pc_checkskill(sd,SG_FRIEND)) > 0)
+				{
+					counter_lvl=skill;
+					status_change_end(src,SC_COUNTER_RATE_UP,-1);
+				} 
+				if (rand()%100 < counter_rate[counter_lvl]) status_change_start(src,SC_COMBO, TK_COUNTER,bl->id,0,0,2000,0);
+			}
 		}
 		break;
 
@@ -2673,13 +2683,12 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 		if (sc_data && sc_data[SC_COMBO].timer != -1)
 			status_change_end(src, SC_COMBO, -1);
 		break;
-
 	case TK_DOWNKICK:
 	case TK_COUNTER:
-			skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
-			if (sc_data && sc_data[SC_COMBO].timer != -1)
-				status_change_end(src, SC_COMBO, -1);
-      	break;
+		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
+		if (sc_data && sc_data[SC_COMBO].timer != -1)
+			status_change_end(src, SC_COMBO, -1);
+      		break;
 	case TK_JUMPKICK:
 		if(sd) {
 			if (!pc_can_move(sd))

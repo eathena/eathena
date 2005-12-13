@@ -227,7 +227,7 @@ struct mmo_charstatus *charsave_loadchar(int charid){
          if(charsql_res){
          	for(i = 0; (charsql_row = mysql_fetch_row(charsql_res)); i++){
                  	strcpy(c->global_reg[i].str, charsql_row[1]);
-                        c->global_reg[i].value = atoi(charsql_row[2]);
+                 	strcpy(c->global_reg[i].value, charsql_row[2]);
                  }
                  mysql_free_result(charsql_res);
 				c->global_reg_num = i;
@@ -397,7 +397,7 @@ int charsave_savechar(int charid, struct mmo_charstatus *c){
            if(c->global_reg[i].str){
                  if(c->global_reg[i].value != 0){
                  	//jstrescapecpy(tmp_str, c->global_reg[i].str);
-                 	sprintf(tmp_sql, "INSERT INTO `global_reg_value` (`char_id`, `str`, `value`) VALUES ('%d', '%s', '%d')", charid, jstrescapecpy(tmp_str,c->global_reg[i].str), c->global_reg[i].value);
+                 	sprintf(tmp_sql, "INSERT INTO `global_reg_value` (`char_id`, `str`, `value`) VALUES ('%d', '%s', '%s')", charid, jstrescapecpy(tmp_str,c->global_reg[i].str), c->global_reg[i].value);
 	                if(mysql_query(&charsql_handle, tmp_sql)){
 							ShowSQL("DB error - %s\n",mysql_error(&charsql_handle));
 							ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);

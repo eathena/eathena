@@ -873,7 +873,7 @@ int chrif_saveaccountreg2(struct map_session_data *sd)
 		struct global_reg *reg = &sd->status.account_reg2[j];
 		if (reg->str[0] && reg->value != 0) {
 			memcpy(WFIFOP(char_fd,p), reg->str, 32);
-			WFIFOL(char_fd,p+32) = reg->value;
+			memcpy(WFIFOP(char_fd,p+32), reg->value, 32);
 			p += 36;
 		}
 	}
@@ -899,7 +899,7 @@ int chrif_accountreg2(int fd)
 
 	for(p = 8, j = 0; p < RFIFOW(fd,2) && j < ACCOUNT_REG2_NUM; p += 36, j++) {
 		memcpy(sd->status.account_reg2[j].str, RFIFOP(fd,p), 32);
-		sd->status.account_reg2[j].value = RFIFOL(fd, p + 32);
+		memcpy(sd->status.account_reg2[j].value, RFIFOP(fd,p + 32), 32);
 	}
 	sd->status.account_reg2_num = j;
 //	printf("chrif: accountreg2\n");

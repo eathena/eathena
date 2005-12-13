@@ -107,7 +107,7 @@ int inter_accreg_tosql(int account_id,struct accreg *reg){
 
 	for(j=0;j<reg->reg_num;j++){
 		if(reg->reg[j].str != NULL){
-			sprintf(tmp_sql,"INSERT INTO `%s` (`type`, `account_id`, `str`, `value`) VALUES (2,'%d', '%s','%d')",
+			sprintf(tmp_sql,"INSERT INTO `%s` (`type`, `account_id`, `str`, `value`) VALUES (2,'%d', '%s','%s')",
 				reg_db, reg->account_id, jstrescapecpy(temp_str,reg->reg[j].str), reg->reg[j].value);
 			if(mysql_query(&mysql_handle, tmp_sql) ) {
 				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
@@ -137,7 +137,7 @@ int inter_accreg_fromsql(int account_id,struct accreg *reg)
 	if (sql_res) {
 		for(j=0;(sql_row = mysql_fetch_row(sql_res));j++){
 			memcpy(reg->reg[j].str, sql_row[0],32);
-			reg->reg[j].value = atoi(sql_row[1]);
+			memcpy(reg->reg[j].value, sql_row[1],32);
 		}
 		mysql_free_result(sql_res);
 	}
@@ -436,7 +436,7 @@ int mapif_account_reg_reply(int fd,int account_id)
 		int j,p;
 		for(j=0,p=8;j<reg->reg_num;j++,p+=36){
 			memcpy(WFIFOP(fd,p),reg->reg[j].str,32);
-			WFIFOL(fd,p+32)=reg->reg[j].value;
+			memcpy(WFIFOP(fd,p+32),reg->reg[j].value,32);
 		}
 		WFIFOW(fd,2)=p;
 	}
@@ -644,7 +644,7 @@ int mapif_parse_AccReg(int fd)
 
 	for(j=0,p=8;j<ACCOUNT_REG_NUM && p<RFIFOW(fd,2);j++,p+=36){
 		memcpy(reg->reg[j].str,RFIFOP(fd,p),32);
-		reg->reg[j].value=RFIFOL(fd,p+32);
+		memcpy(reg->reg[j].value,RFIFOP(fd,p+32),32);
 	}
 	reg->reg_num=j;
 

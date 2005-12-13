@@ -153,6 +153,8 @@ char *pc_readregstr(struct map_session_data *sd,int reg);
 int pc_setregstr(struct map_session_data *sd,int reg,char *str);
 int pc_readglobalreg(struct map_session_data*,char*);
 int pc_setglobalreg(struct map_session_data*,char*,int);
+char *pc_readglobalreg_str(struct map_session_data*,char*);
+int pc_setglobalreg_str(struct map_session_data*,char*,char*);
 int pc_readaccountreg(struct map_session_data*,char*);
 int pc_setaccountreg(struct map_session_data*,char*,int);
 int pc_readaccountreg2(struct map_session_data*,char*);

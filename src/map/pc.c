@@ -663,6 +663,7 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 	struct guild *g;
 	int i;
 	unsigned long tick = gettick();
+	char feel_var[3][24] = {"PC_FEEL_SUN","PC_FEEL_MOON","PC_FEEL_STAR"};
 
 	if (sd->state.auth) //Temporary debug. [Skotlex]
 	{
@@ -809,8 +810,8 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 	//SG map and mob read [Komurka]
 	for(i=0;i<3;i++) //for now - someone need to make reading from txt/sql
 	{
-		strcpy(sd->feel_map[i].name,"");
-		sd->feel_map[i].m = -1;
+		if (pc_readglobalreg_str(sd,feel_var[i])!=NULL) strcpy(sd->feel_map[i].name,pc_readglobalreg_str(sd,feel_var[i]));
+		sd->feel_map[i].m = map_mapname2mapid(sd->feel_map[i].name);
 	}
 	
 	sd->feel_level=-1;
@@ -4888,11 +4889,13 @@ int pc_resetfeel(struct map_session_data* sd)
 {
 	int i;
 	nullpo_retr(0, sd);
+	char feel_var[3][24] = {"PC_FEEL_SUN","PC_FEEL_MOON","PC_FEEL_STAR"};
 
 	for (i=0; i<3; i++)
 	{
 		sd->feel_map[i].m = -1;
 		strcpy(sd->feel_map[i].name,"");
+		pc_setglobalreg_str(sd,feel_var[i],"");
 	}
 
 	return 0;
@@ -5028,7 +5031,7 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 						npc_event_doall_id(script_config.kill_event_name, sd->bl.id), script_config.kill_event_name);
 				}
 			}
-			if (battle_config.pk_mode && ssd->status.manner >= 0) {
+			if (battle_config.pk_mode && ssd->status.manner >= 0 && battle_config.manner_system) {
 				ssd->status.manner -= 5;
 				if(ssd->status.manner < 0)
 					status_change_start(src,SC_NOCHAT,0,0,0,0,0,0);
@@ -5809,7 +5812,7 @@ int pc_jobchange(struct map_session_data *sd,int job, int upper)
 		((sd->view_class != JOB_WEDDING && sd->view_class !=JOB_XMAS) || (sd->view_class==JOB_WEDDING && !battle_config.wedding_ignorepalette) ||
 			 (sd->view_class==26 && !battle_config.xmas_ignorepalette)))
 		clif_changelook(&sd->bl,LOOK_CLOTHES_COLOR,sd->status.clothes_color);
-	if(battle_config.muting_players && sd->status.manner < 0)
+	if(battle_config.muting_players && sd->status.manner < 0  && battle_config.manner_system)
 		clif_changestatus(&sd->bl,SP_MANNER,sd->status.manner);
 
 	status_calc_pc(sd,0);
@@ -6171,7 +6174,7 @@ int pc_readglobalreg(struct map_session_data *sd,char *reg)
 
 	for(i=0;i<sd->status.global_reg_num;i++){
 		if(strcmp(sd->status.global_reg[i].str,reg)==0)
-			return sd->status.global_reg[i].value;
+			return sscanf("%d",sd->status.global_reg[i].value);
 	}
 
 	return 0;
@@ -6216,7 +6219,7 @@ int pc_setglobalreg(struct map_session_data *sd,char *reg,int val)
 	// change value if found
 	for(i = 0; i < sd->status.global_reg_num; i++) {
 		if (strcmp(sd->status.global_reg[i].str, reg) == 0) {
-			sd->status.global_reg[i].value = val;
+			sprintf(sd->status.global_reg[i].value, "%d", val); //komurka
 			return 0;
 		}
 	}
@@ -6224,7 +6227,72 @@ int pc_setglobalreg(struct map_session_data *sd,char *reg,int val)
 	if (sd->status.global_reg_num < GLOBAL_REG_NUM) {
 		memset(&sd->status.global_reg[i], 0, sizeof(struct global_reg));
 		strncpy(sd->status.global_reg[i].str, reg, 32);
-		sd->status.global_reg[i].value = val;
+		sprintf(sd->status.global_reg[i].value, "%d", val); //komurka
+		sd->status.global_reg_num++;
+		return 0;
+	}
+
+	if(battle_config.error_log)
+		ShowError("pc_setglobalreg : couldn't set %s, limit of account registries reached (GLOBAL_REG_NUM = %d)\n", reg, GLOBAL_REG_NUM);
+
+	return 1;
+}
+
+/*==========================================
+ * reads global_reg variable (string) [Komurka]
+ *------------------------------------------
+ */
+char *pc_readglobalreg_str(struct map_session_data *sd,char *reg)
+{
+	int i;
+
+	nullpo_retr(0, sd);
+
+	for(i=0;i<sd->status.global_reg_num;i++){
+		if(strcmp(sd->status.global_reg[i].str,reg)==0)
+			return sd->status.global_reg[i].value;
+	}
+
+	return 0;
+}
+
+/*==========================================
+ * saves global_reg variable (string) [Komurka]
+ *------------------------------------------
+ */
+int pc_setglobalreg_str(struct map_session_data *sd,char *reg,char *val)
+{
+	int i;
+
+	nullpo_retr(0, sd);
+
+
+	// delete reg
+	if (strcmp(val,"")==0) {
+		for(i = 0; i < sd->status.global_reg_num; i++) {
+			if (strcmp(sd->status.global_reg[i].str, reg) == 0) {
+				if (i != sd->status.global_reg_num - 1)
+					memcpy(&sd->status.global_reg[i], &sd->status.global_reg[sd->status.global_reg_num - 1], sizeof(struct global_reg));
+				memset(&sd->status.global_reg[sd->status.global_reg_num - 1], 0, sizeof(struct global_reg));
+				sd->status.global_reg_num--;
+				break;
+			}
+		}
+		return 0;
+	}
+
+	// change value if found
+	for(i = 0; i < sd->status.global_reg_num; i++) {
+		if (strcmp(sd->status.global_reg[i].str, reg) == 0) {
+			strncpy(sd->status.global_reg[i].value, val, 32);
+			return 0;
+		}
+	}
+	// add value if not found
+	if (sd->status.global_reg_num < GLOBAL_REG_NUM) {
+		memset(&sd->status.global_reg[i], 0, sizeof(struct global_reg));
+		strncpy(sd->status.global_reg[i].str, reg, 32);
+		strncpy(sd->status.global_reg[i].value, val, 32);
 		sd->status.global_reg_num++;
 		return 0;
 	}
@@ -6247,7 +6315,7 @@ int pc_readaccountreg(struct map_session_data *sd,char *reg)
 
 	for(i=0;i<sd->status.account_reg_num;i++){
 		if(strcmp(sd->status.account_reg[i].str,reg)==0)
-			return sd->status.account_reg[i].value;
+			return sscanf("%d",sd->status.account_reg[i].value);
 	}
 
 	return 0;
@@ -6288,7 +6356,7 @@ int pc_setaccountreg(struct map_session_data *sd,char *reg,int val)
 	// change value if found
 	for(i = 0; i < sd->status.account_reg_num; i++) {
 		if (strcmp(sd->status.account_reg[i].str, reg) == 0) {
-			sd->status.account_reg[i].value = val;
+			sprintf(sd->status.account_reg[i].value, "%d", val); //komurka
 			intif_saveaccountreg(sd);
 			return 0;
 		}
@@ -6297,7 +6365,7 @@ int pc_setaccountreg(struct map_session_data *sd,char *reg,int val)
 	if (sd->status.account_reg_num < ACCOUNT_REG_NUM) {
 		memset(&sd->status.account_reg[i], 0, sizeof(struct global_reg));
 		strncpy(sd->status.account_reg[i].str, reg, 32);
-		sd->status.account_reg[i].value = val;
+		sprintf(sd->status.account_reg[i].value, "%d", val); //komurka
 		sd->status.account_reg_num++;
 		intif_saveaccountreg(sd);
 		return 0;
@@ -6320,7 +6388,7 @@ int pc_readaccountreg2(struct map_session_data *sd,char *reg)
 
 	for(i=0;i<sd->status.account_reg2_num;i++){
 		if(strcmp(sd->status.account_reg2[i].str,reg)==0)
-			return sd->status.account_reg2[i].value;
+			return sscanf("%d",sd->status.account_reg2[i].value);
 	}
 
 	return 0;
@@ -6353,7 +6421,7 @@ int pc_setaccountreg2(struct map_session_data *sd,char *reg,int val)
 	// change value if found
 	for(i = 0; i < sd->status.account_reg2_num; i++) {
 		if (strcmp(sd->status.account_reg2[i].str, reg) == 0) {
-			sd->status.account_reg2[i].value = val;
+			sprintf(sd->status.account_reg2[i].value, "%d", val); //komurka
 			chrif_saveaccountreg2(sd);
 			return 0;
 		}
@@ -6362,7 +6430,7 @@ int pc_setaccountreg2(struct map_session_data *sd,char *reg,int val)
 	if (sd->status.account_reg2_num < ACCOUNT_REG2_NUM) {
 		memset(&sd->status.account_reg2[i], 0, sizeof(struct global_reg));
 		strncpy(sd->status.account_reg2[i].str, reg, 32);
-		sd->status.account_reg2[i].value = val;
+		sprintf(sd->status.account_reg2[i].value, "%d", val); //komurka
 		sd->status.account_reg2_num++;
 		chrif_saveaccountreg2(sd);
 		return 0;

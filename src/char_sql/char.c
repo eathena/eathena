@@ -638,9 +638,9 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 		count = 0;
 		for(i=0;i<p->global_reg_num;i++)
 		{
-			if (p->global_reg[i].str && p->global_reg[i].value !=0)
+			if (p->global_reg[i].str && p->global_reg[i].value)
 			{
-				tmp_ptr += sprintf(tmp_ptr,"('3','%d','%s','%d'),",
+				tmp_ptr += sprintf(tmp_ptr,"('3','%d','%s','%s'),",
 					char_id, jstrescapecpy(temp_str,p->global_reg[i].str), p->global_reg[i].value);
 				if (++count%100 == 0)
 				{ //Save every X registers to avoid overflowing tmp_sql [Skotlex]
@@ -1077,7 +1077,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p){
 	if (sql_res) {
 		for(i=0;(sql_row = mysql_fetch_row(sql_res));i++){
 			strcpy (p->global_reg[i].str, sql_row[0]);
-			p->global_reg[i].value = atoi (sql_row[1]);
+			strcpy (p->global_reg[i].value, sql_row[1]);
 		}
 		mysql_free_result(sql_res);
 		strcat (t_msg, " reg_values");
@@ -2093,7 +2093,7 @@ int parse_tologin(int fd) {
 			acc = RFIFOL(fd,4);
 			for(p = 8, j = 0; p < RFIFOW(fd,2) && j < ACCOUNT_REG2_NUM; p += 36, j++) {
 				memcpy(reg[j].str, RFIFOP(fd,p), 32);
-				reg[j].value = RFIFOL(fd,p+32);
+				memcpy(reg[j].value, RFIFOP(fd,p+32), 32);
 			}
 			// set_account_reg2(acc,j,reg);
 			// “¯CƒƒOƒCƒ“‚ð‹ÖŽ~‚µ‚Ä‚¢‚ê‚Î‘—‚é•K—v‚Í–³‚¢

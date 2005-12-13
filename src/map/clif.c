@@ -3817,7 +3817,7 @@ void clif_getareachar_pc(struct map_session_data* sd,struct map_session_data* ds
 		)
 		clif_hpmeter_single(sd->fd, dstsd);
 
-	if(sd->status.manner < 0)
+	if(sd->status.manner < 0 && battle_config.manner_system)
 		clif_changestatus(&sd->bl,SP_MANNER,sd->status.manner);
 		
 	if(sd->state.size==2) // tiny/big players [Valaris]
@@ -8157,7 +8157,7 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		// オートバーサーク発動
 		status_change_start(&sd->bl,SC_PROVOKE,10,1,0,0,0,0);
 	*/
-	if(battle_config.muting_players && sd->status.manner < 0)
+	if(battle_config.muting_players && sd->status.manner < 0 && battle_config.manner_system)
 		status_change_start(&sd->bl,SC_NOCHAT,0,0,0,0,0,0);
 
 // Lance
@@ -10300,12 +10300,16 @@ void clif_parse_GMReqNoChat(int fd,struct map_session_data *sd)
 		((level = pc_isGM(sd)) > pc_isGM(dstsd) && level >= get_atcommand_level(AtCommand_Mute))
 		|| (type == 2 && !level)) {
 		clif_GM_silence(sd, dstsd, ((type == 2) ? 1 : type));
-		dstsd->status.manner -= limit;
-		if(dstsd->status.manner < 0)
-			status_change_start(bl,SC_NOCHAT,0,0,0,0,0,0);
-		else{
-			dstsd->status.manner = 0;
-			status_change_end(bl,SC_NOCHAT,-1);
+		if (battle_config.manner_system)
+		{
+			dstsd->status.manner -= limit;
+			if(dstsd->status.manner < 0)
+				status_change_start(bl,SC_NOCHAT,0,0,0,0,0,0);
+			else
+			{
+				dstsd->status.manner = 0;
+				status_change_end(bl,SC_NOCHAT,-1);
+			}
 		}
 		ShowDebug("GMReqNoChat: name:%s type:%d limit:%d manner:%d\n", dstsd->status.name, type, limit, dstsd->status.manner);
 	}
@@ -10870,12 +10874,14 @@ void clif_parse_FeelSaveOk(int fd,struct map_session_data *sd)
 {
 	if (sd->feel_level!=-1)
 	{
+		char feel_var[3][24] = {"PC_FEEL_SUN","PC_FEEL_MOON","PC_FEEL_STAR"};
 		WFIFOW(fd,0)=0x20e;
 		memcpy(WFIFOP(fd,2),map[sd->bl.m].name, MAP_NAME_LENGTH-1);
 		WFIFOL(fd,26)=sd->bl.id;
 		WFIFOW(fd,30)=sd->feel_level;
 		strcpy(sd->feel_map[sd->feel_level].name,map[sd->bl.m].name);
 		sd->feel_map[sd->feel_level].m = sd->bl.m;
+		pc_setglobalreg_str(sd,feel_var[sd->feel_level],map[sd->bl.m].name);
 		WFIFOSET(fd, packet_len_table[0x20e]);
 		if (pc_checkskill(sd,SG_KNOWLEDGE)) status_calc_pc(sd,0);
 

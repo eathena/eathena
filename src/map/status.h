@@ -220,7 +220,10 @@ enum {
 	SC_MOON_COMFORT,
 	SC_STAR_COMFORT,
 	SC_FUSION, //220
+	SC_COUNTER_RATE_UP,
+	SC_TRIPLEATTACK_RATE_UP,
 	SC_SKE,
+	SC_KAITE,
 	//
 	SC_MAX, //Automatically updated max, used in for's and at startup to check we are within bounds. [Skotlex]
 };
@@ -325,8 +328,9 @@ enum {
 	//147 SI_ADRENALINE again
 	SI_GHOSTWEAPON		= 148,
 	SI_NIGHT			= 149, //slightly colors the screen with blue (night-like), unused by skills, but used for day/night
+	SI_SOULLINK			= 149, //it IS used by skill ... every soullink ... [Komurka]
 	SI_DEVIL			= 152,	// SG devil (permament blindness) [Komurka]
-	SI_SPIRIT		= 153, //causes character after-image effect, temporarily used for Spirit Skills.
+	SI_KAITE		= 153, //causes character after-image effect
 	SI_KAIZEL			= 156,
 	SI_KAAHI			= 157,
 	SI_KAUPE			= 158,
