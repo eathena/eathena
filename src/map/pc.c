@@ -3088,6 +3088,14 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 		skill_gangsterparadise(sd,0);
 	}
 
+	memcpy(mapname, mapname_org, MAP_NAME_LENGTH-1);
+	mapname[MAP_NAME_LENGTH-1]= '\0';
+	if(strstr(mapname,".gat")==NULL && strstr(mapname,".afm")==NULL && strlen(mapname)<MAP_NAME_LENGTH-5){	//It has to be -5 for a .gat to fit!(5th is \0) [Skotlex]
+		strcat(mapname,".gat");
+	}
+
+	m=map_mapname2mapid(mapname);
+
 	if (sd->sc_count) {
 		if (sd->sc_data[SC_TRICKDEAD].timer != -1)
 			status_change_end(&sd->bl, SC_TRICKDEAD, -1);
@@ -3129,13 +3137,6 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 		pet_changestate(sd->pd,MS_IDLE,0);
 	}
 
-	memcpy(mapname, mapname_org, MAP_NAME_LENGTH-1);
-	mapname[MAP_NAME_LENGTH-1]= '\0';
-	if(strstr(mapname,".gat")==NULL && strstr(mapname,".afm")==NULL && strlen(mapname)<MAP_NAME_LENGTH-5){	//It has to be -5 for a .gat to fit!(5th is \0) [Skotlex]
-		strcat(mapname,".gat");
-	}
-
-	m=map_mapname2mapid(mapname);
 
 	if(m<0){
 		if(sd->mapname[0]){
