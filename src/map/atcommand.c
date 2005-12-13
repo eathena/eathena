@@ -9885,7 +9885,9 @@ int atcommand_clone(
 		return 0;
 	}
 
-	if((pl_sd=map_nick2sd((char *)message)) || (pl_sd=map_charid2sd(atoi(message)))) {
+	if((pl_sd=map_nick2sd((char *)message)) == NULL &&
+ 		(pl_sd=map_charid2sd(atoi(message))) == NULL
+	) {
 		clif_displaymessage(fd, "Player not found.");
 		return 0;
 	}
