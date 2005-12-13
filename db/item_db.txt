@@ -1009,13 +1009,13 @@
 2342,Legion_Plate_Armor_,Legion Plate Armor,5,94000,,5500,,11,,1,16384,7,2,16,,70,1,0,{}
 2343,Robe_of_Casting,Casting Robe,5,,10,1100,,5,,0,67174912,7,2,16,,75,1,0,{ bonus bCastrate,-3; }
 2344,Armor_of_Fire,Lucias's Volcano Armor,5,136000,,2200,,4,,0,279714,7,2,16,,45,1,0,{ bonus bDefEle,Ele_Fire; }
-2345,Armor_of_Fire_,Lucias's Volcano Armor,5,136000,,2200,,4,,1,279714,7,2,16,,45,1,0,{ bonus bDefEle,Ele_Fire; }
+2345,Armor_of_Fire_,Lucias's Volcano Armor,5,136000,,2200,,4,,1,119529470,7,2,16,,45,1,0,{ bonus bDefEle,Ele_Fire; }
 2346,Armor_of_Water,Sapien's Ocean Armor,5,136000,,2200,,4,,0,279714,7,2,16,,45,1,0,{ bonus bDefEle,Ele_Water; }
-2347,Armor_of_Water_,Sapien's Ocean Armor,5,136000,,2200,,4,,1,279714,7,2,16,,45,1,0,{ bonus bDefEle,Ele_Water; }
+2347,Armor_of_Water_,Sapien's Ocean Armor,5,136000,,2200,,4,,1,119529470,7,2,16,,45,1,0,{ bonus bDefEle,Ele_Water; }
 2348,Armor_of_Wind,Ebeshi's Typhoon Armor,5,136000,,2200,,4,,0,279714,7,2,16,,45,1,0,{ bonus bDefEle,Ele_Wind; }
-2349,Armor_of_Wind_,Ebeshi's Typhoon Armor,5,136000,,2200,,4,,1,279714,7,2,16,,45,1,0,{ bonus bDefEle,Ele_Wind; }
+2349,Armor_of_Wind_,Ebeshi's Typhoon Armor,5,136000,,2200,,4,,1,119529470,7,2,16,,45,1,0,{ bonus bDefEle,Ele_Wind; }
 2350,Armor_of_Land,Kreitos's Earth Armor,5,136000,,2200,,4,,0,279714,7,2,16,,45,1,0,{ bonus bDefEle,Ele_Earth; }
-2351,Armor_of_Land_,Kreitos's Earth Armor,5,136000,,2200,,4,,1,279714,7,2,16,,45,1,0,{ bonus bDefEle,Ele_Earth; }
+2351,Armor_of_Land_,Kreitos's Earth Armor,5,136000,,2200,,4,,1,119529470,7,2,16,,45,1,0,{ bonus bDefEle,Ele_Earth; }
 2352,Armor_For_Novice,Novice Ninja Suit,5,,10,1,,4,,0,8388609,7,2,16,,0,0,0,{}
 2353,Blessing_of_Odin,Blessing of Odin,5,,10,2500,,6,,1,119529470,7,2,16,,65,1,0,{}
 2354,Gebney_Armor,Gebney's Armor,5,,10,3500,,7,,0,119529470,7,2,16,,54,1,0,{ bonus bVit,2; bonus bMaxHPrate,10; }

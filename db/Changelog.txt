@@ -35,6 +35,7 @@
 		* * * On your death it breaks (BS can fix it), you drop all Equipment (equipped, even the ring). And revive with 1 HP / 1 SP at the place of your death.
 
 12/12
+	* Slotted Elemental Armors can be worn by anyone except novice. [Vicious]
 	* Updated packet_db for /taekwon [Vicious]
 	* Added SL_KAIZEL data to skill_cast_db.txt/skill_cast_nodex_db.txt [Skotlex]
 	* Updated some KA skill info in skill_db, thanks to Reddozen. [Skotlex]
