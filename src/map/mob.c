@@ -705,9 +705,10 @@ static int mob_attack(struct mob_data *md,unsigned int tick,int data)
 	}
 
 	range = md->db->range;
-
+	if (range <= 3)
+		range++; //Melee attackers get a bonus range cell when attacking.
+	
 	/* It seems mobs always teleport the last two tiles when chasing players, so do not give them this bonus range tile.[Skotlex]
-	if(battle_iswalking(&md->bl)) range++;
 	if(battle_iswalking(tbl)) range++;
 	*/
 	if(!check_distance_bl(&md->bl, tbl, range))
@@ -1677,7 +1678,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 				if (md->timer != -1 && md->state.state != MS_ATTACK &&
 					(DIFF_TICK (md->next_walktime, tick) < 0 ||
 					!(battle_config.mob_ai&1) ||
-					check_distance_blxy(tbl, md->to_x, md->to_y, 2))
+					check_distance_blxy(tbl, md->to_x, md->to_y, md->db->range)) //Current target tile is still within attack range.
 				) {
 					return 0; //No need to follow, already doing it?
 				}
@@ -3883,7 +3884,11 @@ int mob_is_clone(int class_)
 	return 0;
 }
 
-int mob_clone_spawn(struct map_session_data *sd, char *mapname, int x, int y, const char *event)
+//Flag values:
+//&1: Set special ai (fight mobs, not players)
+//&2: Set the original copy as Master
+//Returns: ID of newly crafted copy.
+int mob_clone_spawn(struct map_session_data *sd, char *mapname, int x, int y, const char *event, int flag, unsigned int duration)
 {
 	int class_;
 	int c,i,j,skill_id;
@@ -3897,7 +3902,7 @@ int mob_clone_spawn(struct map_session_data *sd, char *mapname, int x, int y, co
 	}
 
 	if(class_>MOB_CLONE_END)
-		return -1;
+		return 0;
 
 	mob_db_data[class_]=(struct mob_db*)aCalloc(1, sizeof(struct mob_db));
 	mob_db_data[class_]->view_class=sd->status.class_;
@@ -3909,8 +3914,8 @@ int mob_clone_spawn(struct map_session_data *sd, char *mapname, int x, int y, co
 	mob_db_data[class_]->base_exp=1;
 	mob_db_data[class_]->job_exp=1;
 	mob_db_data[class_]->range=status_get_range(&sd->bl);
-	mob_db_data[class_]->atk1=status_get_atk(&sd->bl);
-	mob_db_data[class_]->atk2=status_get_atk2(&sd->bl);
+	mob_db_data[class_]->atk1=status_get_batk(&sd->bl); //Base attack as minimum damage.
+	mob_db_data[class_]->atk2=mob_db_data[class_]->atk1 + status_get_atk(&sd->bl)+status_get_atk2(&sd->bl); //batk + weapon dmg
 	mob_db_data[class_]->def=status_get_def(&sd->bl);
 	mob_db_data[class_]->mdef=status_get_mdef(&sd->bl);
 	mob_db_data[class_]->str=status_get_str(&sd->bl);
@@ -3919,8 +3924,8 @@ int mob_clone_spawn(struct map_session_data *sd, char *mapname, int x, int y, co
 	mob_db_data[class_]->int_=status_get_int(&sd->bl);
 	mob_db_data[class_]->dex=status_get_dex(&sd->bl);
 	mob_db_data[class_]->luk=status_get_luk(&sd->bl);
-	mob_db_data[class_]->range2=10;
-	mob_db_data[class_]->range3=10;
+	mob_db_data[class_]->range2=AREA_SIZE*2/3; //Chase area of 2/3rds of a screen.
+	mob_db_data[class_]->range3=AREA_SIZE; //Let them have the same view-range as players.
 	mob_db_data[class_]->race=status_get_race(&sd->bl);
 	mob_db_data[class_]->element=status_get_element(&sd->bl);
 	mob_db_data[class_]->mode|=MD_AGGRESSIVE|MD_CANATTACK|MD_CANMOVE;
@@ -4023,9 +4028,20 @@ int mob_clone_spawn(struct map_session_data *sd, char *mapname, int x, int y, co
 		mob_db_data[class_]->maxskill = i++;
 	}
 	//Finally, spawn it.
-	mob_once_spawn(sd,mapname,x,y,"--en--",class_,1,event);
+	i = mob_once_spawn(sd,mapname,x,y,"--en--",class_,1,event);
+	if ((flag || duration) && i) { //Further manipulate crafted char.
+		struct mob_data* md = (struct mob_data*)map_id2bl(i);
+		if (md && md->bl.type == BL_MOB) {
+			if (flag&1) //Friendly Character
+				md->special_state.ai = 1;
+			if (flag&2) //Attach to Master
+				md->master_id = sd->bl.id;
+			if (duration) //Auto Delete after a while.
+				md->deletetimer = add_timer (gettick() + duration, mob_timer_delete, i, 0);
+		}
+	}
 
-	return class_;
+	return i;
 }
 
 int mob_clone_delete(int class_)

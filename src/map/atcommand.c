@@ -282,7 +282,7 @@ ACMD_FUNC(reject);
 
 ACMD_FUNC(away); // LuzZza
 
-ACMD_FUNC(evilclone); // [Valaris]
+ACMD_FUNC(clone); // [Valaris]
 
 /*==========================================
  *AtCommandInfo atcommand_info[]ç\ë¢ëÃÇÃíËã`
@@ -587,7 +587,9 @@ static AtCommandInfo atcommand_info[] = {
 	
 	{ AtCommand_Away,				"@away",			 1, atcommand_away }, // [LuzZza]
 	{ AtCommand_Away,				"@aw",			 1, atcommand_away }, // [LuzZza]
-	{ AtCommand_EvilClone,			"@evilclone",		50, atcommand_evilclone }, // [Valaris]
+	{ AtCommand_Clone,			"@clone",		50, atcommand_clone },
+	{ AtCommand_Clone,			"@slaveclone",		50, atcommand_clone },
+	{ AtCommand_Clone,			"@evilclone",		50, atcommand_clone }, // [Valaris]
 
 // add new commands before this line
 	{ AtCommand_Unknown,			NULL,				 1, NULL }
@@ -9869,13 +9871,14 @@ int atcommand_away(
 	return 0;
 }
 
-// @evilclone <playername> [Valaris]
-int atcommand_evilclone(
+// @clone/@slaveclone/@evilclone <playername> [Valaris]
+int atcommand_clone(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	int x=0,y=0;
+	int x=0,y=0,flag=0;
 	struct map_session_data *pl_sd=NULL;
+	struct mob_data *md=NULL; 
 
 	if (!message || !*message) {
 		clif_displaymessage(sd->fd,"You must enter a name or character ID.");
@@ -9890,10 +9893,18 @@ int atcommand_evilclone(
 	x = sd->bl.x + (rand() % 10 - 5);
 	y = sd->bl.y + (rand() % 10 - 5);
 
-	if((mob_clone_spawn(pl_sd, sd->mapname, x, y, "")) > 0)
-		clif_displaymessage(fd, "Evil clone spawned.");
-	else
-		clif_displaymessage(fd, "Unable to spawn evil clone.");
-
+	if (strcmpi(command, "@clone") == 0) flag = 1;
+	else if (strcmpi(command, "@slaveclone") == 0) flag = 2;
+			
+	if((x = mob_clone_spawn(pl_sd, sd->mapname, x, y, "", flag, 0)) > 0) {
+		if (flag == 2) {
+			md = (struct mob_data*)map_id2bl(x);
+			if (md && md->bl.type == BL_MOB)
+				md->master_id = sd->bl.id;
+		}
+		clif_displaymessage(fd, msg_txt(126+flag*2));
+		return 0;
+	}
+	clif_displaymessage(fd, msg_txt(127+flag*2));
 	return 0;
 }

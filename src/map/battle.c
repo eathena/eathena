@@ -1191,6 +1191,8 @@ static struct Damage battle_calc_weapon_attack(
 	} else {	//Check for Perfect Hit
 		if(sd && sd->perfect_hit > 0 && rand()%100 < sd->perfect_hit)
 			flag.hit = 1;
+		if (sc_data && sc_data[SC_FUSION].timer != -1)
+			flag.hit = 1; //SG_FUSION always hit [Komurka]
 		if (skill_num && !flag.hit)
 			switch(skill_num)
 			{
@@ -1221,9 +1223,6 @@ static struct Damage battle_calc_weapon_attack(
 			)
 			flag.hit = 1;
 	}
-	
-	//SG_FUSION always hit [Komurka]
-	if (sc_data && sc_data[SC_FUSION].timer != -1) flag.hit = 1;
 
 	if (!flag.hit)
 	{	//Hit/Flee calculation

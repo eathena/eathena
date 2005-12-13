@@ -257,7 +257,7 @@ enum AtCommandType {
 	
 	AtCommand_Away, // LuzZza
 
-	AtCommand_EvilClone, // [Valaris]
+	AtCommand_Clone, // [Valaris]
 	
 	// end <- Ahem, guys, don't place AtCommands after AtCommand_Unknown! [Skotlex]
 	AtCommand_Unknown,
