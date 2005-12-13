@@ -35,6 +35,7 @@
 		* * * On your death it breaks (BS can fix it), you drop all Equipment (equipped, even the ring). And revive with 1 HP / 1 SP at the place of your death.
 
 12/12
+	* Updated some KA skill info in skill_db, thanks to Reddozen. [Skotlex]
 	* Fixed some items, such as Kafra Ring. Also updated accessaries.
 	  Novices/Super Novices are not allowed to wear lots of accessaries. [Vicious]
 	* Changed available jobs for some items. If it is wrong job...

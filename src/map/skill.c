@@ -8371,6 +8371,9 @@ int skill_check_condition(struct map_session_data *sd,int type)
 					clif_skill_fail(sd,skill,0,0);
 				return 0;
 			}
+			if((itemid[i] >= 715 && itemid[i] <= 717) && sd->sc_data[SC_SPIRIT].timer != -1 && sd->sc_data[SC_SPIRIT].val2 == SL_WIZARD)
+				index[i] = -1; //Gemstones are checked, but not substracted from inventory.
+				
 		}
 	}
 

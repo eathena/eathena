@@ -1651,7 +1651,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 		if (tbl->type != BL_ITEM)
 		{	//Attempt to attack.
 			//At this point we know the target is attackable, we just gotta check if the range matches.
-			if (blind_flag && DIFF_TICK(tick,md->next_walktime) < 0 && !check_distance_bl(&md->bl, tbl, 2))
+			if (blind_flag && DIFF_TICK(tick,md->next_walktime) < 0 && !check_distance_bl(&md->bl, tbl, 1))
 			{	//Run towards the enemy when out of range?
 				md->target_id = 0;
 				md->state.targettype = NONE_ATTACKABLE;

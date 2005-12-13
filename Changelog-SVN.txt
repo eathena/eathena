@@ -1,5 +1,6 @@
 Date	Added
 2005/12/13
+	* Merged in Reddozen's work for SL_WIZARD [Skotlex]
 	* Updated clone command to allow attaching the clone to the invoking player
 	  as a slave. @clone creates a friendly clone that attacks mobs. @slaveclone
 	  makes a clone that follows the creator (it's a slave), @evilclone is the
