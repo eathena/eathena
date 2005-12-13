@@ -1,5 +1,6 @@
 Date	Added
 2005/12/13
+	* Fixed SG_FRIEND - should work now [Komurka]
 	* Realtered global_reg value size to 256. [Lance]
 	* Adjusted pointers location for packets for new global_reg value (it's wrong + I adjusted the size) to 256 + 32 = 288 [Lance]
 	* Improved variable scope for scripts to accept all string variables. [Lance]
