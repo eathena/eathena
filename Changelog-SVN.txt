@@ -1,5 +1,9 @@
 Date	Added
 2005/12/13
+	* Moved the base attack code into it's own function to properly implement
+	  the magnum break's elemental damage bonus (watch out for bugs as the code
+	  was proof-read, but that usually doesn't says quite enough when it comes to
+	  code). [Skotlex]
 	* Merged in Reddozen's work for SL_WIZARD [Skotlex]
 	* Updated clone command to allow attaching the clone to the invoking player
 	  as a slave. @clone creates a friendly clone that attacks mobs. @slaveclone

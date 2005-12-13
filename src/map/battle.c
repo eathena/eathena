@@ -426,15 +426,6 @@ int battle_attr_fix(struct block_list *src, struct block_list *target, int damag
 	ratio = attr_fix_table[def_lv-1][atk_elem][def_type];
 	if (sc_data)
 	{
-		if(sc_data[SC_WATK_ELEMENT].timer != -1 && sc_data[SC_WATK_ELEMENT].val4 == 0)
-		{	//Part of the attack becomes elemental. [Skotlex]
-			int percent = sc_data[SC_WATK_ELEMENT].val1;
-			sc_data[SC_WATK_ELEMENT].val4 = 1;
-			damage = battle_attr_fix(src, target, damage*percent/100, sc_data[SC_WATK_ELEMENT].val2, def_elem)
-				+ battle_attr_fix(src, target, damage, atk_elem, def_elem);
-			sc_data[SC_WATK_ELEMENT].val4 = 0;
-			return damage;
-		}
 		if(sc_data[SC_VOLCANO].timer!=-1 && atk_elem == 3)
 			ratio += enchant_eff[sc_data[SC_VOLCANO].val1-1];
 		if(sc_data[SC_VIOLENTGALE].timer!=-1 && atk_elem == 4)
@@ -907,7 +898,138 @@ int battle_addmastery(struct map_session_data *sd,struct block_list *target,int 
 	}
 	return (damage);
 }
+/*==========================================
+ * Calculates the standard damage of a normal attack assuming it hits,
+ * it calculates nothing extra fancy, is needed for magnum break's WATK_ELEMENT bonus. [Skotlex]
+ *------------------------------------------
+ * Pass damage2 as NULL to not calc it.
+ * Flag values:
+ * &1: Critical hit
+ * &2: Arrow attack
+ * &4: Skill is Magic Crasher
+ * &8: Skip target size adjustment (Extremity Fist?)
+ */
+static void battle_calc_base_damage(struct block_list *src, struct block_list *target, int* damage1, int* damage2, int flag)
+{
+	unsigned short baseatk=0, baseatk_=0, atkmin=0, atkmax=0, atkmin_=0, atkmax_=0;
+	struct map_session_data *sd;
+	struct status_change *sc_data = status_get_sc_data(src);
+	int t_size = status_get_size(target);
 
+	if (src->type == BL_PC)
+		sd = (struct map_session_data*)src;
+	else
+		sd = NULL;
+	
+	if (!sd)
+	{	//Mobs/Pets
+		if ((target->type==BL_MOB && battle_config.enemy_str) ||
+			(target->type==BL_PET && battle_config.pet_str))
+			baseatk = status_get_batk(src);
+
+		if(flag&4)
+		{		  
+			if (!(flag&1))
+				atkmin = status_get_matk2(src);
+			atkmax = status_get_matk1(src);
+		} else {
+			if (!(flag&1))
+				atkmin = status_get_atk(src);
+			atkmax = status_get_atk2(src);
+		}
+		if (atkmin > atkmax)
+			atkmin = atkmax;
+	} else {	//PCs
+		if(flag&4)
+		{
+			baseatk = status_get_matk2(src);
+			if (damage2) baseatk_ = baseatk;
+		} else { 
+			baseatk = status_get_batk(src);
+			if (damage2) baseatk_ = baseatk;
+		}
+		//rodatazone says that Overrefine bonuses are part of baseatk
+		if(sd->right_weapon.overrefine>0)
+			baseatk+= rand()%sd->right_weapon.overrefine+1;
+		if (damage2 && sd->left_weapon.overrefine>0)
+			baseatk_+= rand()%sd->left_weapon.overrefine+1;
+		
+		atkmax = status_get_atk(src);
+		if (damage2)
+			atkmax_ = status_get_atk(src);
+
+		if (!(flag&1))
+		{	//Normal attacks
+			atkmin = atkmin_ = status_get_dex(src);
+			
+			if (sd->equip_index[9] >= 0 && sd->inventory_data[sd->equip_index[9]])
+				atkmin = atkmin*(80 + sd->inventory_data[sd->equip_index[9]]->wlv*20)/100;
+			
+			if (atkmin > atkmax)
+				atkmin = atkmax;
+			
+			if(damage2)
+			{
+				if (sd->equip_index[8] >= 0 && sd->inventory_data[sd->equip_index[8]])
+					atkmin_ = atkmin_*(80 + sd->inventory_data[sd->equip_index[8]]->wlv*20)/100;
+			
+				if (atkmin_ > atkmax_)
+					atkmin_ = atkmax_;
+			}
+			
+			if(sd->status.weapon == 11)
+			{	//Bows
+				atkmin = atkmin*atkmax/100;
+				if (atkmin > atkmax)
+					atkmax = atkmin;
+			}
+		}
+	}
+	
+	if (sc_data && sc_data[SC_MAXIMIZEPOWER].timer!=-1)
+	{
+		atkmin = atkmax;
+		atkmin_ = atkmax_;
+	}
+	
+	//Weapon Damage calculation
+	if (!(flag&1))
+	{
+		(*damage1) += (atkmax>atkmin? rand()%(atkmax-atkmin):0)+atkmin;
+		if (damage2)
+			(*damage2) += (atkmax_>atkmin_? rand()%(atkmax_-atkmin_) :0) +atkmin_;
+	} else {
+		(*damage1) += atkmax;
+		if (damage2)
+			(*damage2) += atkmax_;
+	}
+	
+	if (sd)
+	{
+		//rodatazone says the range is 0~arrow_atk-1 for non crit
+		if (flag&2 && sd->arrow_atk)
+			(*damage1) += ((flag&1)?sd->arrow_atk:rand()%sd->arrow_atk);
+
+		//SizeFix only for players
+		if (!(
+			sd->special_state.no_sizefix ||
+			(sc_data && sc_data[SC_WEAPONPERFECTION].timer!=-1) ||
+			(pc_isriding(sd) && (sd->status.weapon==4 || sd->status.weapon==5) && t_size==1) ||
+			(!(flag&8))
+			))
+		{
+			(*damage1) = (*damage1)*(sd->right_weapon.atkmods[t_size])/100;
+			if (damage2)
+				(*damage2) = (*damage2)*(sd->left_weapon.atkmods[t_size])/100;
+		}
+	}
+	
+	//Finally, add baseatk
+	(*damage1) += baseatk;
+	if (damage2)
+		(*damage2) += baseatk_;
+	return;
+}
 /*==========================================
  * battle_calc_weapon_attack (by Skotlex)
  *------------------------------------------
@@ -1367,105 +1489,8 @@ static struct Damage battle_calc_weapon_attack(
 				}
 			default:
 			{
-				unsigned short baseatk=0, baseatk_=0, atkmin=0, atkmax=0, atkmin_=0, atkmax_=0;
-				if (!sd)
-				{	//Mobs/Pets
-					if ((md && battle_config.enemy_str) ||
-						(pd && battle_config.pet_str))
-						baseatk = status_get_batk(src);
-
-					if(skill_num==HW_MAGICCRASHER)
-					{		  
-						if (!flag.cri)
-							atkmin = status_get_matk2(src);
-						atkmax = status_get_matk1(src);
-					} else {
-						if (!flag.cri)
-							atkmin = status_get_atk(src);
-						atkmax = status_get_atk2(src);
-					}
-					if (atkmin > atkmax)
-						atkmin = atkmax;
-				} else {	//PCs
-					if(skill_num==HW_MAGICCRASHER)
-					{
-						baseatk = status_get_matk2(src);
-						if (flag.lh) baseatk_ = baseatk;
-					} else { 
-						baseatk = status_get_batk(src);
-						if (flag.lh) baseatk_ = baseatk;
-					}
-					//rodatazone says that Overrefine bonuses are part of baseatk
-					if(sd->right_weapon.overrefine>0)
-						baseatk+= rand()%sd->right_weapon.overrefine+1;
-					if (flag.lh && sd->left_weapon.overrefine>0)
-						baseatk_+= rand()%sd->left_weapon.overrefine+1;
-					
-					atkmax = status_get_atk(src);
-					if (flag.lh)
-						atkmax_ = status_get_atk(src);
-
-					if (!flag.cri)
-					{	//Normal attacks
-						atkmin = atkmin_ = status_get_dex(src);
-						
-						if (sd->equip_index[9] >= 0 && sd->inventory_data[sd->equip_index[9]])
-							atkmin = atkmin*(80 + sd->inventory_data[sd->equip_index[9]]->wlv*20)/100;
-						
-						if (atkmin > atkmax)
-							atkmin = atkmax;
-						
-						if(flag.lh)
-						{
-							if (sd->equip_index[8] >= 0 && sd->inventory_data[sd->equip_index[8]])
-								atkmin_ = atkmin_*(80 + sd->inventory_data[sd->equip_index[8]]->wlv*20)/100;
-						
-							if (atkmin_ > atkmax_)
-								atkmin_ = atkmax_;
-						}
-						
-						if(sd->status.weapon == 11)
-						{	//Bows
-							atkmin = atkmin*atkmax/100;
-							if (atkmin > atkmax)
-								atkmax = atkmin;
-						}
-					}
-				}
-				
-				if (sc_data && sc_data[SC_MAXIMIZEPOWER].timer!=-1)
-				{
-					atkmin = atkmax;
-					atkmin_ = atkmax_;
-				}
-				//Weapon Damage calculation
-				//Store watk in wd.damage to use the above defines for easy handling, and then add baseatk
-				if (!flag.cri)
-				{
-					ATK_ADD2((atkmax>atkmin? rand()%(atkmax-atkmin) :0) +atkmin,
-						(atkmax_>atkmin_? rand()%(atkmax_-atkmin_) :0) +atkmin_);
-				} else 
-					ATK_ADD2(atkmax, atkmax_);
-				
-				if (sd)
-				{
-					//rodatazone says the range is 0~arrow_atk-1 for non crit
-					if (flag.arrow && sd->arrow_atk)
-						ATK_ADD(flag.cri?sd->arrow_atk:rand()%sd->arrow_atk);
-
-					//SizeFix only for players
-					if (!(
-						/*!tsd || //rodatazone claims that target human players don't have a size! -- I really don't believe it... removed until we find some evidence*/
-						sd->special_state.no_sizefix ||
-						(sc_data && sc_data[SC_WEAPONPERFECTION].timer!=-1) ||
-						(pc_isriding(sd) && (sd->status.weapon==4 || sd->status.weapon==5) && t_size==1) ||
-						(skill_num == MO_EXTREMITYFIST)
-						))
-						ATK_RATE2(sd->right_weapon.atkmods[t_size], sd->left_weapon.atkmods[t_size]);	}
-				
-				//Finally, add baseatk
-				ATK_ADD2(baseatk, baseatk_);
-
+				battle_calc_base_damage(src, target, &wd.damage, flag.lh?&wd.damage2:NULL,
+					(flag.cri?1:0)|(flag.arrow?2:0)|(skill_num == HW_MAGICCRASHER?4:0)|(skill_num == MO_EXTREMITYFIST?8:0));
 				//Add any bonuses that modify the base baseatk+watk (pre-skills)
 				if(sd)
 				{
@@ -1959,9 +1984,9 @@ static struct Damage battle_calc_weapon_attack(
 		(md && (skill_num || !battle_config.mob_attack_attr_none)) ||
 		(pd && (skill_num || !battle_config.pet_attack_attr_none)))
 	{	//Elemental attribute fix
+		short t_element = status_get_element(target);
 		if	(!(!sd && tsd && battle_config.mob_ghostring_fix && t_ele==8))
 		{
-			short t_element = status_get_element(target);
 			if (wd.damage > 0)
 			{
 				wd.damage=battle_attr_fix(src,target,wd.damage,s_ele,t_element);
@@ -1971,7 +1996,16 @@ static struct Damage battle_calc_weapon_attack(
 			if (flag.lh && wd.damage2 > 0)
 				wd.damage2 = battle_attr_fix(src,target,wd.damage2,s_ele_,t_element);
 		}
+		if(sc_data && sc_data[SC_WATK_ELEMENT].timer != -1)
+		{	//Descriptions indicate this means adding a percent of a normal attack in another element. [Skotlex]
+			int damage=0;
+			battle_calc_base_damage(src, target, &damage, NULL, (flag.arrow?2:0));
+			damage = damage*sc_data[SC_WATK_ELEMENT].val2/100;
+			damage = battle_attr_fix(src,target,damage,sc_data[SC_WATK_ELEMENT].val1,t_element);
+			ATK_ADD(damage);
+		}
 	}
+
 
 	if ((!flag.rh || wd.damage == 0) && (!flag.lh || wd.damage2 == 0))
 		flag.cardfix = 0;	//When the attack does no damage, avoid doing %bonuses
