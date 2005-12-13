@@ -306,7 +306,9 @@ int SkillStatusChangeTable[]={	/* status.h‚Ìenum‚ÌSC_***‚Æ‚ ‚í‚¹‚é‚±‚Æ */
 	MAPID_SOUL_LINKER,
 	-1,-1,-1,-1,-1,-1,-1,-1,
 /* 470- */
-	-1,-1,-1,-1,-1,
+	-1,
+	SC_SKE,
+	-1,-1,-1,
 	SC_PRESERVE,
 	-1,-1,-1,-1,
 /* 480- */
@@ -2071,6 +2073,8 @@ int status_calc_batk(struct block_list *bl, int batk)
 			batk += batk * (2+3*sc_data[SC_PROVOKE].val1)/100;
 		if(sc_data[SC_CONCENTRATION].timer!=-1)
 			batk += batk * 5*sc_data[SC_CONCENTRATION].val1/100;
+		if(sc_data[SC_SKE].timer!=-1)
+			batk += batk * 3;
 		if(sc_data[SC_JOINTBEAT].timer!=-1 && sc_data[SC_JOINTBEAT].val2==4)
   			batk -= batk * 25/100;
 		if(sc_data[SC_CURSE].timer!=-1)
@@ -2101,6 +2105,8 @@ int status_calc_watk(struct block_list *bl, int watk)
 			watk += watk * (2+3*sc_data[SC_PROVOKE].val1)/100;
 		if(sc_data[SC_CONCENTRATION].timer!=-1)
 			watk += watk * 5*sc_data[SC_CONCENTRATION].val1/100;
+		if(sc_data[SC_SKE].timer!=-1)
+			watk += watk * 3;
 		if(sc_data[SC_CURSE].timer!=-1)
 			watk -= watk * 75/100;
 	}
@@ -2195,7 +2201,7 @@ int status_calc_flee(struct block_list *bl, int flee)
 			flee += flee * sc_data[SC_INCFLEERATE].val1/100;
 		if(sc_data[SC_VIOLENTGALE].timer!=-1 && status_get_elem_type(bl)==4)
 			flee += flee * sc_data[SC_VIOLENTGALE].val3/100;
-		if(sc_data[SC_MOON_COMFORT].timer!=-1 && bl->m == ((struct map_session_data *)bl)->feel_map[1].m) //SG skill [Komurka]
+		if(sc_data[SC_MOON_COMFORT].timer!=-1) //SG skill [Komurka]
 			flee += (status_get_lv(bl) + status_get_dex(bl) + status_get_luk(bl))/10;
 		if(sc_data[SC_CLOSECONFINE].timer!=-1)
 			flee += 10;
@@ -2239,14 +2245,16 @@ int status_calc_def(struct block_list *bl, int def)
 			def += sc_data[SC_DRUMBATTLE].val3;
 		if(sc_data[SC_INCDEFRATE].timer!=-1)
 			def += def * sc_data[SC_INCDEFRATE].val1/100;
+		if(sc_data[SC_SUN_COMFORT].timer!=-1) //SG skill [Komurka]
+			def += (status_get_lv(bl) + status_get_dex(bl) + status_get_luk(bl))/2;
 		if(sc_data[SC_SIGNUMCRUCIS].timer!=-1)
 			def -= def * sc_data[SC_SIGNUMCRUCIS].val2/100;
 		if(sc_data[SC_CONCENTRATION].timer!=-1)
 			def -= def * 5*sc_data[SC_CONCENTRATION].val1/100;
 		if(sc_data[SC_PROVOKE].timer!=-1 && bl->type != BL_PC) //Provoke doesn't alters player defense.
 			def -= def * (5+5*sc_data[SC_PROVOKE].val1)/100;
-		if(sc_data[SC_SUN_COMFORT].timer!=-1 && bl->m == ((struct map_session_data *)bl)->feel_map[0].m) //SG skill [Komurka]
-			def += (status_get_lv(bl) + status_get_dex(bl) + status_get_luk(bl))/2;
+		if(sc_data[SC_SKE].timer!=-1)
+			def /= 2;
 	}
 
 	return def;
@@ -2271,6 +2279,8 @@ int status_calc_def2(struct block_list *bl, int def2)
 			def2 -= def2 * 25/100;
 		if(sc_data[SC_PROVOKE].timer!=-1)
 			def2 -= def2 * (5+5*sc_data[SC_PROVOKE].val1)/100;
+		if(sc_data[SC_SKE].timer!=-1)
+			def2 /= 2;
 		if(sc_data[SC_JOINTBEAT].timer!=-1){
 			if(sc_data[SC_JOINTBEAT].val2==3)
 				def2 -= def2 * 50/100;
@@ -4526,6 +4536,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_MOON_COMFORT:
 		case SC_STAR_COMFORT:
 		case SC_FUSION:
+		case SC_SKE:
 			calc_flag = 1;
 			break;
 
@@ -4873,6 +4884,7 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			case SC_MOON_COMFORT:
 			case SC_STAR_COMFORT:
 			case SC_FUSION:
+			case SC_SKE:
 				calc_flag = 1;
 				break;
 

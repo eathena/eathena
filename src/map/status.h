@@ -220,6 +220,7 @@ enum {
 	SC_MOON_COMFORT,
 	SC_STAR_COMFORT,
 	SC_FUSION, //220
+	SC_SKE,
 	//
 	SC_MAX, //Automatically updated max, used in for's and at startup to check we are within bounds. [Skotlex]
 };

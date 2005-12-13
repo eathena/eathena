@@ -3105,6 +3105,16 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 			status_change_end(&sd->bl,SC_CLOSECONFINE2,-1);
 		if (sd->sc_data[SC_RUN].timer!=-1)
 			status_change_end(&sd->bl,SC_RUN,-1);
+		if (sd->bl.m != m) { //Cancel some map related stuff.
+			if (sd->sc_data[SC_WARM].timer != -1)
+				status_change_end(&sd->bl,SC_WARM,-1);
+			if (sd->sc_data[SC_SUN_COMFORT].timer != -1)
+				status_change_end(&sd->bl,SC_SUN_COMFORT,-1);
+			if (sd->sc_data[SC_MOON_COMFORT].timer != -1)
+				status_change_end(&sd->bl,SC_MOON_COMFORT,-1);
+			if (sd->sc_data[SC_STAR_COMFORT].timer != -1)
+				status_change_end(&sd->bl,SC_STAR_COMFORT,-1);
+		}
 	}
 
 	if(sd->status.option&OPTION_HIDE)
@@ -7232,7 +7242,7 @@ static int pc_natural_heal_sp(struct map_session_data *sd)
 	bsp=sd->status.sp;
 
 	inc_num = pc_spheal(sd);
-	if(sd->sc_data[SC_EXPLOSIONSPIRITS].timer == -1)
+	if(sd->sc_data[SC_EXPLOSIONSPIRITS].timer == -1 || (sd->sc_data[SC_SPIRIT].timer!=-1 && sd->sc_data[SC_SPIRIT].val2 == SL_MONK))
 		sd->sp_sub += inc_num;
 	if(sd->walktimer == -1)
 		sd->inchealsptick += natural_heal_diff_tick;

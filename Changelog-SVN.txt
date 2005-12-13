@@ -1,5 +1,8 @@
 Date	Added
 2005/12/12
+	* Added Reddozen's implementation of SL_SKE and SL_MONK (sp recovery, Combo
+	  Finisher splash damage, SP regen while in Fury) [Skotlex]
+	* Some reorganization of the Star Gladiator map-based skills. [Skotlex]
 	* Fixed @spawn/@monster atcommands 'freezing' server when used. [Skotlex]
 	* Fixed ground-based skills having their range-check messed up... [Skotlex]
 	* Corrected melee-ranged mobs failing the range check even if they were

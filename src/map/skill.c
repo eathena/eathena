@@ -2643,7 +2643,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 	case ASC_METEORASSAULT:	/* ƒ?ƒeƒIƒAƒTƒ‹ƒg */
 	case ITM_TOMAHAWK:
 	case MO_TRIPLEATTACK:
-	case MO_COMBOFINISH:	/* –Ò—´Œ? */
 	case CH_CHAINCRUSH:		/* ˜A’Œ•ö? */
 	case CH_TIGERFIST:		/* •šŒÕŒ? */
 	case PA_SHIELDCHAIN:	// Shield Chain
@@ -2653,6 +2652,17 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 	case HT_PHANTASMIC:
 	case HT_POWER:
 		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
+		break;
+
+	case MO_COMBOFINISH:
+		if (!(flag&1) && sc_data && sc_data[SC_SPIRIT].timer != -1 && sc_data[SC_SPIRIT].val2 == SL_MONK)
+		{	//Becomes a splash attack when Soul Linked.
+			map_foreachinarea(skill_area_sub,
+				bl->m,bl->x-5,bl->y-5,bl->x+5,bl->y+5,0,
+				src,skillid,skilllv,tick, flag|BCT_ENEMY|1,
+				skill_castend_damage_id);
+		} else
+			skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
 		break;
 
 	case TK_STORMKICK: // Taekwon kicks [Dralnu]
@@ -5577,6 +5587,17 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		status_change_start(src,SC_COMBO,SL_SMA,skilllv,0,0,skill_get_time2(skillid,skilllv),0);
 		break;
 
+	case SL_SKE:
+		if (sd && bl->type != BL_MOB) {
+			status_change_start(src,SC_STAN,skilllv,0,0,0,3000,0);
+			clif_skill_fail(sd,skillid,0,0);
+			break;
+		}
+		clif_skill_nodamage(src,bl,skillid,skilllv,1);
+		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,skillid,0,0,skill_get_time(skillid,skilllv),0 );
+		status_change_start(src,SC_COMBO,SL_SMA,skilllv,0,0,skill_get_time2(skillid,skilllv),0);
+		break;
+		
 	// New guild skills [Celest]
 	case GD_BATTLEORDER:
 		{
@@ -5751,48 +5772,16 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case SG_SUN_WARM:
 	case SG_MOON_WARM:
 	case SG_STAR_WARM:
-		if(sd && sd->bl.m != sd->feel_map[(skillid==SG_SUN_WARM?0:(skillid==SG_MOON_WARM?1:2))].m) {
-			clif_skill_fail(sd,skillid,0,0);
-			break;
-		}
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,skillid,skill_get_range(skillid,skilllv),skill_get_time(skillid,skilllv),0);
 		break;
 	case SG_SUN_COMFORT:
-		if((!sd || sd->bl.m == sd->feel_map[0].m) && (battle_config.allow_skill_without_day || is_day_of_sun()))
-		{
-			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
-		} else if (sd)
-			clif_skill_fail(sd,skillid,0,0);
-		break;
 	case SG_MOON_COMFORT:
-		if((!sd || sd->bl.m == sd->feel_map[1].m) && (battle_config.allow_skill_without_day || is_day_of_moon()))
-		{
-			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
-		} else if (sd)
-			clif_skill_fail(sd,skillid,0,0);
-		break;
 	case SG_STAR_COMFORT:
-		if((!sd || sd->bl.m == sd->feel_map[2].m) && (battle_config.allow_skill_without_day || is_day_of_star()))
-		{
-			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
-		} else if (sd)
-			clif_skill_fail(sd,skillid,0,0);
-		return 0;
-		break;
 	case SG_FUSION:
-		//if(!(sd->sc_data[SC_SPIRIT].timer != -1 && sd->sc_data[SC_SPIRIT].val2 == SL_STAR))
-		//	clif_skill_fail(sd,skillid,0,0);
-		//else
-		{
-			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
-		}
+		clif_skill_nodamage(src,bl,skillid,skilllv,1);
+		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
 		break;
-
 
 	default:
 		ShowWarning("Unknown skill used:%d\n",skillid);
@@ -7905,12 +7894,13 @@ int skill_check_condition(struct map_session_data *sd,int type)
 				sp -= sp*3*kaina_lv/100;
 		}
 			break;
+		case MO_TRIPLEATTACK:
 		case MO_CHAINCOMBO:
 		case MO_COMBOFINISH:
 		case CH_TIGERFIST:
 		case CH_CHAINCRUSH:
-			if(sd->sc_data[SC_SPIRIT].timer!=-1 && sd->sc_data[SC_SPIRIT].val2 == MAPID_MONK)
-				sp -= sp*sd->sc_data[SC_SPIRIT].val1/10;
+			if(sd->sc_data[SC_SPIRIT].timer!=-1 && sd->sc_data[SC_SPIRIT].val2 == SL_MONK)
+				sp -= sp*5/100; //5% LESS sp? that's nothing, what's the real value? There's no SP reduction unless the skill costs 20 or more...
 			break;
 	}
 
@@ -8201,6 +8191,39 @@ int skill_check_condition(struct map_session_data *sd,int type)
 			}
 			break;
 		}
+	case SG_SUN_WARM:
+		if(sd->bl.m == sd->feel_map[0].m)
+			break;
+		clif_skill_fail(sd,skill,0,0);
+		return 0;
+		break;
+	case SG_MOON_WARM:
+		if(sd->bl.m == sd->feel_map[1].m)
+			break;
+		clif_skill_fail(sd,skill,0,0);
+		return 0;
+		break;
+	case SG_STAR_WARM:
+		if(sd->bl.m == sd->feel_map[2].m)
+			break;
+		clif_skill_fail(sd,skill,0,0);
+		return 0;
+		break;
+	case SG_SUN_COMFORT:
+		if(sd->bl.m == sd->feel_map[0].m && (battle_config.allow_skill_without_day || is_day_of_sun()))
+			break;
+		clif_skill_fail(sd,skill,0,0);
+		return 0;
+	case SG_MOON_COMFORT:
+		if(sd->bl.m == sd->feel_map[1].m && (battle_config.allow_skill_without_day || is_day_of_moon()))
+			break;
+		clif_skill_fail(sd,skill,0,0);
+		return 0;
+	case SG_STAR_COMFORT:
+		if(sd->bl.m == sd->feel_map[2].m && (battle_config.allow_skill_without_day || is_day_of_star()))
+			break;
+		clif_skill_fail(sd,skill,0,0);
+		return 0;
 	}
 
 	if(!(type&2)){
