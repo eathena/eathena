@@ -6026,7 +6026,7 @@ int skill_castend_pos( int tid, unsigned int tick, int id,int data )
 			skill_failed(sd);
 			return 0;
 		}
-		if(check_distance_blxy(&sd->bl, sd->skillx, sd->skilly, skill_get_range2(&sd->bl,sd->skillid,sd->skilllv)+battle_config.pc_skill_add_range)) {
+		if(!check_distance_blxy(&sd->bl, sd->skillx, sd->skilly, skill_get_range2(&sd->bl,sd->skillid,sd->skilllv)+battle_config.pc_skill_add_range)) {
 			clif_skill_fail(sd,sd->skillid,0,0);
 			if(battle_config.skill_out_range_consume) //Consume items anyway.
 				skill_check_condition(sd,1);
