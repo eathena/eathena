@@ -2818,8 +2818,8 @@ int buildin_warpparty(struct script_state *st)
 	y=conv_num(st,& (st->stack->stack_data[st->start+4]));
 	p=conv_num(st,& (st->stack->stack_data[st->start+5]));
 	sd=script_rid2sd(st);
-	if(map[sd->bl.m].flag.noreturn || map[sd->bl.m].flag.noteleport){
-	return 0; }
+	if(map[sd->bl.m].flag.noreturn || map[sd->bl.m].flag.nowarpto)
+		return 0;
 
 	if(p < 1)
 		return 0;
@@ -2828,8 +2828,6 @@ int buildin_warpparty(struct script_state *st)
 
 	if(strcmp(str,"Random")==0)
 	{
-		if(map[sd->bl.m].flag.nowarp)
-			return 0;
 		
 		for (i = 0; i < users; i++)
 		{
@@ -2880,7 +2878,7 @@ int buildin_warpparty(struct script_state *st)
 		{
 			if ((pl_sd = pl_allsd[i]) && pl_sd->status.party_id == p)
 			{
-				if(map[pl_sd->bl.m].flag.noreturn)
+				if(map[pl_sd->bl.m].flag.noreturn || map[pl_sd->bl.m].flag.nowarp)
 					continue;
 				pc_setpos(pl_sd,str,x,y,3);
 			}
@@ -2908,7 +2906,7 @@ int buildin_warpguild(struct script_state *st)
 	g=conv_num(st,& (st->stack->stack_data[st->start+5]));
 	sd=script_rid2sd(st);
 	
-	if(map[sd->bl.m].flag.noreturn || map[sd->bl.m].flag.nowarp)
+	if(map[sd->bl.m].flag.noreturn || map[sd->bl.m].flag.nowarpto)
 		return 0;
 	
 	if(g < 1)
@@ -2918,8 +2916,6 @@ int buildin_warpguild(struct script_state *st)
 
 	if(strcmp(str,"Random")==0)
 	{
-		if(map[sd->bl.m].flag.nowarp)
-			return 0;
 		
 		for (i = 0; i < users; i++)
 		{
@@ -2970,7 +2966,7 @@ int buildin_warpguild(struct script_state *st)
 		{
 			if ((pl_sd = pl_allsd[i]) && pl_sd->status.guild_id == g)
 			{
-				if(map[pl_sd->bl.m].flag.noreturn)
+				if(map[pl_sd->bl.m].flag.noreturn || map[pl_sd->bl.m].flag.nowarp)
 					continue;
 				pc_setpos(pl_sd,str,x,y,3);
 			}

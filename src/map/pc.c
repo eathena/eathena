@@ -4888,8 +4888,9 @@ int pc_resetskill(struct map_session_data* sd)
 int pc_resetfeel(struct map_session_data* sd)
 {
 	int i;
-	nullpo_retr(0, sd);
 	char feel_var[3][24] = {"PC_FEEL_SUN","PC_FEEL_MOON","PC_FEEL_STAR"};
+
+	nullpo_retr(0, sd);
 
 	for (i=0; i<3; i++)
 	{
