@@ -227,8 +227,8 @@ int map_getusers(void) {
 
 //Distance functions, taken from http://www.flipcode.com/articles/article_fastdistance.shtml
 int check_distance(int dx, int dy, int distance) {
-	//In this case, we just do a square comparison.
-	return (dx*dx + dy*dy <= distance*distance);
+	//In this case, we just do a square comparison. Add 1 tile grace for diagonal range checks.
+	return (dx*dx + dy*dy <= distance*distance + (dx&&dy?1:0));
 }
 
 unsigned int distance(int dx, int dy) {
