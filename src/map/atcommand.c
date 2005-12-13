@@ -3420,12 +3420,13 @@ int atcommand_monster(
 	memset(monster, '\0', sizeof(monster));
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
 
-	if (!message || !*message ||
-	    (sscanf(message, "\"%23[^\"]\" %23s %d %d %d", name, monster, &number, &x, &y) < 2 &&
-	     sscanf(message, "%23s \"%23[^\"]\" %d %d %d", monster, name, &number, &x, &y) < 2 &&
-	     sscanf(message, "%23s %d %23s %d %d", monster, &number, name, &x, &y) < 2 &&
-	     sscanf(message, "%23s %23s %d %d %d", name, monster, &number, &x, &y) < 2 &&
-		  scanf(message, "%23s", monster) < 1)) {
+	if (!message || !*message || (
+		sscanf(message, "\"%23[^\"]\" %23s %d %d %d", name, monster, &number, &x, &y) < 2 &&
+		sscanf(message, "%23s \"%23[^\"]\" %d %d %d", monster, name, &number, &x, &y) < 2 &&
+		sscanf(message, "%23s %d %23s %d %d", monster, &number, name, &x, &y) < 2 &&
+		sscanf(message, "%23s %23s %d %d %d", name, monster, &number, &x, &y) < 2 &&
+		sscanf(message, "%23s", monster) < 1
+	)) {
 		clif_displaymessage(fd, msg_table[80]); // Give a display name and monster name/id please.
 		return -1;
 	}

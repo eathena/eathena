@@ -1,5 +1,6 @@
 Date	Added
 2005/12/12
+	* Fixed @spawn/@monster atcommands 'freezing' server when used. [Skotlex]
 	* Fixed ground-based skills having their range-check messed up... [Skotlex]
 	* Corrected melee-ranged mobs failing the range check even if they were
 	  standing next to you. [Skotlex]
