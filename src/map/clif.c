@@ -1637,6 +1637,10 @@ int clif_spawnmob(struct mob_data *md)
 	len = clif_mob0078(md,buf);
 	clif_send(buf,len,&md->bl,AREA);
 
+	if(battle_config.save_clothcolor && ((mob_get_viewclass(md->class_) <= 23) ||  // [Valaris]
+		(mob_get_viewclass(md->class_) >= 4001)) && (mob_get_clothes_color(md->class_) > 0))
+			clif_changelook(&md->bl, LOOK_CLOTHES_COLOR, mob_get_clothes_color(md->class_));
+
 	if (mob_get_equip(md->class_) > 0) // mob equipment [Valaris]
 		clif_mob_equip(md,mob_get_equip(md->class_));
 
@@ -3871,6 +3875,10 @@ int clif_movemob(struct mob_data *md)
 	len = clif_mob007b(md,buf);
 	clif_send(buf,len,&md->bl,AREA);
 
+	if(battle_config.save_clothcolor && ((mob_get_viewclass(md->class_) <= 23) ||  // [Valaris]
+		(mob_get_viewclass(md->class_) >= 4001)) && (mob_get_clothes_color(md->class_) > 0))
+			clif_changelook(&md->bl, LOOK_CLOTHES_COLOR, mob_get_clothes_color(md->class_));
+
 	if(mob_get_equip(md->class_) > 0) // mob equipment [Valaris]
 		clif_mob_equip(md,mob_get_equip(md->class_));
 
@@ -4072,6 +4080,10 @@ void clif_getareachar_mob(struct map_session_data* sd,struct mob_data* md)
 		len = clif_mob0078(md,WFIFOP(sd->fd,0));
 		WFIFOSET(sd->fd,len);
 	}
+
+	if(battle_config.save_clothcolor && ((mob_get_viewclass(md->class_) <= 23) ||  // [Valaris]
+		(mob_get_viewclass(md->class_) >= 4001)) && (mob_get_clothes_color(md->class_) > 0))
+			clif_changelook(&md->bl, LOOK_CLOTHES_COLOR, mob_get_clothes_color(md->class_));
 
 	if(mob_get_equip(md->class_) > 0) // mob equipment [Valaris]
 		clif_mob_equip(md,mob_get_equip(md->class_));

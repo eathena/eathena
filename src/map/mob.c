@@ -1115,7 +1115,7 @@ int mob_spawn (int id)
 	md->sc_count = 0;
 	md->opt1 = md->opt2 = md->opt3 = md->option = 0;
 
-	if(mob_db_data[md->class_]->option){
+	if(mob_db_data[md->class_]->option){ // Added for carts, falcons and pecos for cloned monsters. [Valaris]
 		if(mob_db_data[md->class_]->option & 0x0008)
 			md->option |= 0x0008;
 		if(mob_db_data[md->class_]->option & 0x0008)

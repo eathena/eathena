@@ -1,5 +1,7 @@
 Date	Added
 2005/12/13
+	* Dyes will now work correctly on cloned or mob_avail class monsters.
+	  save_clothcolor must be enable in battle_athena.conf. [Valaris]
 	* Added carts, falcons and pecos to clone and mob_avail class monster spawns. [Valaris]
 	* Likely fixed the @spawn names issue. [Skotlex]
 	* Fixed @*clone commands not resolving properly the target char. [Skotlex]
