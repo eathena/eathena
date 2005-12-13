@@ -1,5 +1,6 @@
 Date	Added
 2005/12/13
+	* Likely fixed the @spawn names issue. [Skotlex]
 	* Fixed @*clone commands not resolving properly the target char. [Skotlex]
 	* Implemented the SL_ROGUE bonus to potions. They heal +100% more rather
 	  than 50% (potions from ranking Alchemists, that is) [Skotlex]

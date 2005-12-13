@@ -3422,13 +3422,23 @@ int atcommand_monster(
 	memset(monster, '\0', sizeof(monster));
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
 
-	if (!message || !*message || (
-		sscanf(message, "\"%23[^\"]\" %23s %d %d %d", name, monster, &number, &x, &y) < 2 &&
-		sscanf(message, "%23s \"%23[^\"]\" %d %d %d", monster, name, &number, &x, &y) < 2 &&
-		sscanf(message, "%23s %d %23s %d %d", monster, &number, name, &x, &y) < 2 &&
-		sscanf(message, "%23s %23s %d %d %d", name, monster, &number, &x, &y) < 2 &&
-		sscanf(message, "%23s", monster) < 1
-	)) {
+	if (!message || !*message) {
+			clif_displaymessage(fd, msg_table[80]); // Give a display name and monster name/id please.
+			return -1;
+	}
+	if (sscanf(message, "\"%23[^\"]\" %23s %d %d %d", name, monster, &number, &x, &y) > 1 ||
+		sscanf(message, "%23s \"%23[^\"]\" %d %d %d", monster, name, &number, &x, &y) > 1) {
+		//All data can be left as it is.
+	} else if ((count=sscanf(message, "%23s %d %23s %d %d", monster, &number, name, &x, &y)) > 1) {
+		//Here, it is possible name was not given and we are using monster for it.
+		if (count < 3) //Blank mob's name.
+			name[0] = '\0';
+	} else if (sscanf(message, "%23s %23s %d %d %d", name, monster, &number, &x, &y) > 1) {
+		//All data can be left as it is.
+	} else if (sscanf(message, "%23s", monster) > 0) {
+		//As before, name may be already filled.
+		name[0] = '\0';
+	} else {
 		clif_displaymessage(fd, msg_table[80]); // Give a display name and monster name/id please.
 		return -1;
 	}
