@@ -216,9 +216,9 @@ int intif_saveaccountreg(struct map_session_data *sd) {
 
 	WFIFOW(inter_fd,0) = 0x3004;
 	WFIFOL(inter_fd,4) = sd->bl.id;
-	for(j=0,p=8;j<sd->status.account_reg_num;j++,p+=36){
+	for(j=0,p=8;j<sd->status.account_reg_num;j++,p+=288){
 		memcpy(WFIFOP(inter_fd,p),sd->status.account_reg[j].str,32);
-		memcpy(WFIFOP(inter_fd,p+32),sd->status.account_reg[j].value,32);
+		memcpy(WFIFOP(inter_fd,p+32),sd->status.account_reg[j].value,256);
 	}
 	WFIFOW(inter_fd,2)=p;
 	WFIFOSET(inter_fd,p);
@@ -744,9 +744,9 @@ int intif_parse_AccountReg(int fd) {
 
 	if( (sd=map_id2sd(RFIFOL(fd,4)))==NULL )
 		return 1;
-	for(p=8,j=0;p<RFIFOW(fd,2) && j<ACCOUNT_REG_NUM;p+=36,j++){
+	for(p=8,j=0;p<RFIFOW(fd,2) && j<ACCOUNT_REG_NUM;p+=288,j++){
 		memcpy(sd->status.account_reg[j].str,RFIFOP(fd,p),32);
-		memcpy(sd->status.account_reg[j].value,RFIFOP(fd,p+32),32);
+		memcpy(sd->status.account_reg[j].value,RFIFOP(fd,p+32),256);
 	}
 	sd->status.account_reg_num = j;
 	sd->state.accreg_dirty = 0; //Accounts are sync'd.

@@ -743,7 +743,7 @@ int mmo_auth_init(void) {
 				str[31] = '\0';
 				remove_control_chars((unsigned char *)str);
 				strncpy(auth_dat[auth_num].account_reg2[j].str, str, 32);
-				strncpy(auth_dat[auth_num].account_reg2[j].value,v,32);
+				strncpy(auth_dat[auth_num].account_reg2[j].value,v,256);
 			}
 			auth_dat[auth_num].account_reg2_num = j;
 
@@ -850,7 +850,7 @@ int mmo_auth_init(void) {
 				str[31] = '\0';
 				remove_control_chars((unsigned char *)str);
 				strncpy(auth_dat[auth_num].account_reg2[j].str, str, 32);
-				strncpy(auth_dat[auth_num].account_reg2[j].value,v,32);
+				strncpy(auth_dat[auth_num].account_reg2[j].value,v,256);
 			}
 			auth_dat[auth_num].account_reg2_num = j;
 
@@ -1417,9 +1417,9 @@ int parse_fromchar(int fd) {
 						if (auth_dat[k].account_id == acc) {
 							WFIFOW(fd,0) = 0x2729;	// Sending of the account_reg2
 							WFIFOL(fd,4) = acc;
-							for(p = 8, j = 0; j < auth_dat[k].account_reg2_num; p += 36, j++) {
+							for(p = 8, j = 0; j < auth_dat[k].account_reg2_num; p += 288, j++) {
 								memcpy(WFIFOP(fd,p), auth_dat[k].account_reg2[j].str, 32);
-								memcpy(WFIFOP(fd,p+32), auth_dat[k].account_reg2[j].value, 32);
+								memcpy(WFIFOP(fd,p+32), auth_dat[k].account_reg2[j].value, 256);
 							}
 							WFIFOW(fd,2) = p;
 							WFIFOSET(fd,p);
@@ -1778,11 +1778,11 @@ int parse_fromchar(int fd) {
 						buf = (unsigned char*)aCalloc(RFIFOW(fd,2)+1, sizeof(unsigned char));
 						login_log("Char-server '%s': receiving (from the char-server) of account_reg2 (account: %d, ip: %s)." RETCODE,
 						          server[id].name, acc, ip);
-						for(p = 8, j = 0; p < RFIFOW(fd,2) && j < ACCOUNT_REG2_NUM; p += 36, j++) {
+						for(p = 8, j = 0; p < RFIFOW(fd,2) && j < ACCOUNT_REG2_NUM; p += 288, j++) {
 							memcpy(auth_dat[i].account_reg2[j].str, RFIFOP(fd,p), 32);
-							memcpy(auth_dat[i].account_reg2[j].value, RFIFOP(fd,p+32), 32);
+							memcpy(auth_dat[i].account_reg2[j].value, RFIFOP(fd,p+32), 256);
 							auth_dat[i].account_reg2[j].str[31] = '\0';
-							auth_dat[i].account_reg2[j].value[31] = '\0';
+							auth_dat[i].account_reg2[j].value[255] = '\0';
 							remove_control_chars((unsigned char *)auth_dat[i].account_reg2[j].str);
 							remove_control_chars((unsigned char *)auth_dat[i].account_reg2[j].value);
 						}

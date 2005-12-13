@@ -897,9 +897,9 @@ int chrif_accountreg2(int fd)
 	if ((sd = map_id2sd(RFIFOL(fd,4))) == NULL)
 		return 1;
 
-	for(p = 8, j = 0; p < RFIFOW(fd,2) && j < ACCOUNT_REG2_NUM; p += 36, j++) {
+	for(p = 8, j = 0; p < RFIFOW(fd,2) && j < ACCOUNT_REG2_NUM; p += 288, j++) {
 		memcpy(sd->status.account_reg2[j].str, RFIFOP(fd,p), 32);
-		memcpy(sd->status.account_reg2[j].value, RFIFOP(fd,p + 32), 32);
+		memcpy(sd->status.account_reg2[j].value, RFIFOP(fd,p + 32), 256);
 	}
 	sd->status.account_reg2_num = j;
 //	printf("chrif: accountreg2\n");

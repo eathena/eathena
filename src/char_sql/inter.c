@@ -93,6 +93,7 @@ int inter_accreg_tosql(int account_id,struct accreg *reg){
 
 	int j;
 	char temp_str[64]; //Needs be twice the source to ensure it fits [Skotlex]
+	char temp_str2[512];
 	if (account_id<=0) return 0;
 	reg->account_id=account_id;
 
@@ -108,7 +109,7 @@ int inter_accreg_tosql(int account_id,struct accreg *reg){
 	for(j=0;j<reg->reg_num;j++){
 		if(reg->reg[j].str != NULL){
 			sprintf(tmp_sql,"INSERT INTO `%s` (`type`, `account_id`, `str`, `value`) VALUES (2,'%d', '%s','%s')",
-				reg_db, reg->account_id, jstrescapecpy(temp_str,reg->reg[j].str), reg->reg[j].value);
+				reg_db, reg->account_id, jstrescapecpy(temp_str,reg->reg[j].str), jstrescapecpy(temp_str2,reg->reg[j].value));
 			if(mysql_query(&mysql_handle, tmp_sql) ) {
 				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
@@ -136,8 +137,8 @@ int inter_accreg_fromsql(int account_id,struct accreg *reg)
 
 	if (sql_res) {
 		for(j=0;(sql_row = mysql_fetch_row(sql_res));j++){
-			memcpy(reg->reg[j].str, sql_row[0],32);
-			memcpy(reg->reg[j].value, sql_row[1],32);
+			strcpy(reg->reg[j].str, sql_row[0]);
+			strcpy(reg->reg[j].value, sql_row[1]);
 		}
 		mysql_free_result(sql_res);
 	}
@@ -434,9 +435,9 @@ int mapif_account_reg_reply(int fd,int account_id)
 		WFIFOW(fd,2)=8;
 	}else{
 		int j,p;
-		for(j=0,p=8;j<reg->reg_num;j++,p+=36){
+		for(j=0,p=8;j<reg->reg_num;j++,p+=288){
 			memcpy(WFIFOP(fd,p),reg->reg[j].str,32);
-			memcpy(WFIFOP(fd,p+32),reg->reg[j].value,32);
+			memcpy(WFIFOP(fd,p+32),reg->reg[j].value,256);
 		}
 		WFIFOW(fd,2)=p;
 	}
@@ -642,9 +643,9 @@ int mapif_parse_AccReg(int fd)
 	int account_id = RFIFOL(fd,4);
 	memset(accreg_pt,0,sizeof(struct accreg));
 
-	for(j=0,p=8;j<ACCOUNT_REG_NUM && p<RFIFOW(fd,2);j++,p+=36){
+	for(j=0,p=8;j<ACCOUNT_REG_NUM && p<RFIFOW(fd,2);j++,p+=288){
 		memcpy(reg->reg[j].str,RFIFOP(fd,p),32);
-		memcpy(reg->reg[j].value,RFIFOP(fd,p+32),32);
+		memcpy(reg->reg[j].value,RFIFOP(fd,p+32),256);
 	}
 	reg->reg_num=j;
 

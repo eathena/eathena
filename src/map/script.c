@@ -2216,10 +2216,22 @@ int get_val(struct script_state*st,struct script_data* data)
 				data->u.str = pc_readregstr(sd,data->u.num);
 			}else if(prefix=='$'){
 				data->u.str = (char *)numdb_search(mapregstr_db,data->u.num);
-			}else{
+			}else if(prefix=='#'){
+				if( name[1]=='#'){
+					if(sd)
+					data->u.str = pc_readaccountreg2str(sd,name);
+				}else{
+					if(sd)
+					data->u.str = pc_readaccountregstr(sd,name);
+				}
+ 			}else{
+				if(sd)
+				data->u.str = pc_readglobalreg_str(sd,name);
+ 			} // [zBuffer]
+			/*else{
 				ShowWarning("script: get_val: illegal scope string variable.\n");
 				data->u.str = "!!ERROR!!";
-			}
+			}*/
 			if( data->u.str == NULL )
 				data->u.str ="";
 
@@ -2281,9 +2293,18 @@ static int set_reg(struct map_session_data *sd,int num,char *name,void *v)
 			pc_setregstr(sd,num,str);
 		}else if(prefix=='$') {
 			mapreg_setregstr(num,str);
-		}else{
+		}else if(prefix=='#') {
+			if( name[1]=='#' )
+				pc_setaccountreg2str(sd,name,str);
+			else
+				pc_setaccountregstr(sd,name,str);
+ 		}else{
+			pc_setglobalreg_str(sd,name,str);
+ 		} // [zBuffer]
+
+		/*else{
 			ShowWarning("script: set_reg: illegal scope string variable !");
-		}
+		}*/
 	}else{
 		// ”’l
 		int val = (int)v;

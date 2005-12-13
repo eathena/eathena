@@ -266,7 +266,8 @@ struct mmo_charstatus *charsave_loadchar(int charid){
 int charsave_savechar(int charid, struct mmo_charstatus *c){
 	int i,j;
 	char *str_p;
-	char tmp_str[128];
+	char tmp_str[64];
+	char tmp_str2[512];
          //First save the 'char'
 	sprintf(tmp_sql ,"UPDATE `char` SET `class`='%d', `base_level`='%d', `job_level`='%d',"
 		"`base_exp`='%d', `job_exp`='%d', `zeny`='%d',"
@@ -395,9 +396,9 @@ int charsave_savechar(int charid, struct mmo_charstatus *c){
          }
          for(i = 0; i < c->global_reg_num; i++){
            if(c->global_reg[i].str){
-                 if(c->global_reg[i].value != 0){
+                 if(c->global_reg[i].value){
                  	//jstrescapecpy(tmp_str, c->global_reg[i].str);
-                 	sprintf(tmp_sql, "INSERT INTO `global_reg_value` (`char_id`, `str`, `value`) VALUES ('%d', '%s', '%s')", charid, jstrescapecpy(tmp_str,c->global_reg[i].str), c->global_reg[i].value);
+                 	sprintf(tmp_sql, "INSERT INTO `global_reg_value` (`char_id`, `str`, `value`) VALUES ('%d', '%s', '%s')", charid, jstrescapecpy(tmp_str,c->global_reg[i].str), jstrescapecpy(tmp_str2,c->global_reg[i].value));
 	                if(mysql_query(&charsql_handle, tmp_sql)){
 							ShowSQL("DB error - %s\n",mysql_error(&charsql_handle));
 							ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);

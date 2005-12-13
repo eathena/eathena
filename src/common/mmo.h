@@ -132,7 +132,7 @@ struct skill {
 
 struct global_reg {
 	char str[32];
-	char value[32];
+	char value[256]; // [zBuffer]
 };
 
 //For saving status changes across sessions. [Skotlex]

@@ -2067,9 +2067,9 @@ int parse_tologin(int fd) {
 			unsigned char buf[4096];
 			int j, p, acc;
 			acc = RFIFOL(fd,4);
-			for (p = 8, j = 0; p < RFIFOW(fd,2) && j < ACCOUNT_REG2_NUM; p += 36, j++) {
+			for (p = 8, j = 0; p < RFIFOW(fd,2) && j < ACCOUNT_REG2_NUM; p += 288, j++) {
 				memcpy(reg[j].str, RFIFOP(fd,p), 32);
-				memcpy(reg[j].value,RFIFOP(fd,p+32), 32);
+				memcpy(reg[j].value,RFIFOP(fd,p+32), 256);
 			}
 			set_account_reg2(acc, j, reg);
 			// 同垢ログインを禁止していれば送る必要は無い
@@ -2706,9 +2706,9 @@ int parse_frommap(int fd) {
 			struct global_reg reg[ACCOUNT_REG2_NUM];
 			int p, acc;
 			acc = RFIFOL(fd,4);
-			for(p = 8, j = 0; p < RFIFOW(fd,2) && j < ACCOUNT_REG2_NUM; p += 36, j++) {
+			for(p = 8, j = 0; p < RFIFOW(fd,2) && j < ACCOUNT_REG2_NUM; p += 288, j++) {
 				memcpy(reg[j].str, RFIFOP(fd,p), 32);
-				memcpy(reg[j].value, RFIFOP(fd, p+32), 32);
+				memcpy(reg[j].value, RFIFOP(fd, p+32), 256);
 			}
 			set_account_reg2(acc, j, reg);
 			// loginサーバーへ送る

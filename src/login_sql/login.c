@@ -924,9 +924,9 @@ int parse_fromchar(int fd){
 					if (sql_res) {
 						WFIFOW(fd,0) = 0x2729;
 						WFIFOL(fd,4) = account_id;
-						for(p = 8; (sql_row = mysql_fetch_row(sql_res));p+=36){
+						for(p = 8; (sql_row = mysql_fetch_row(sql_res));p+=288){
 							memcpy(WFIFOP(fd,p), sql_row[0], 32);
-							WFIFOL(fd,p+32) = atoi(sql_row[1]);
+							memcpy(WFIFOP(fd,p+32),sql_row[1],256);
 						}
 						WFIFOW(fd,2) = p;
 						WFIFOSET(fd,p);
@@ -1208,21 +1208,22 @@ int parse_fromchar(int fd){
 				int acc,p,j;
 				char str[32];
 				char temp_str[64]; //Needs twice as much space as the original string.
-				int value;
+				char temp_str2[512];
+				char value[256];
 				acc=RFIFOL(fd,4);
 
 				if (acc>0){
 					unsigned char *buf;
 					buf = (unsigned char*)aCalloc(RFIFOW(fd,2)+1, sizeof(unsigned char));
-					for(p=8,j=0;p<RFIFOW(fd,2) && j<ACCOUNT_REG2_NUM;p+=36,j++){
+					for(p=8,j=0;p<RFIFOW(fd,2) && j<ACCOUNT_REG2_NUM;p+=288,j++){
 						memcpy(str,RFIFOP(fd,p),32);
-						value=RFIFOL(fd,p+32);
+						memcpy(value,RFIFOP(fd,p+32),256);
 						sprintf(tmpsql,"DELETE FROM `global_reg_value` WHERE `type`='1' AND `account_id`='%d' AND `str`='%s';",acc,jstrescapecpy(temp_str,str));
 						if(mysql_query(&mysql_handle, tmpsql)) {
 							ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 							ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 						}
-						sprintf(tmpsql,"INSERT INTO `global_reg_value` (`type`, `account_id`, `str`, `value`) VALUES ( 1 , '%d' , '%s' , '%d');",  acc, jstrescapecpy(temp_str,str), value);
+						sprintf(tmpsql,"INSERT INTO `global_reg_value` (`type`, `account_id`, `str`, `value`) VALUES ( 1 , '%d' , '%s' , '%s');",  acc, jstrescapecpy(temp_str,str), jstrescapecpy(temp_str2,value));
 						if(mysql_query(&mysql_handle, tmpsql)) {
 							ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 							ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);

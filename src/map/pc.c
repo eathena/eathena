@@ -4889,7 +4889,6 @@ int pc_resetfeel(struct map_session_data* sd)
 {
 	int i;
 	char feel_var[3][24] = {"PC_FEEL_SUN","PC_FEEL_MOON","PC_FEEL_STAR"};
-
 	nullpo_retr(0, sd);
 
 	for (i=0; i<3; i++)
@@ -6175,7 +6174,7 @@ int pc_readglobalreg(struct map_session_data *sd,char *reg)
 
 	for(i=0;i<sd->status.global_reg_num;i++){
 		if(strcmp(sd->status.global_reg[i].str,reg)==0)
-			return sscanf("%d",sd->status.global_reg[i].value);
+			return atoi(sd->status.global_reg[i].value);
 	}
 
 	return 0;
@@ -6254,7 +6253,7 @@ char *pc_readglobalreg_str(struct map_session_data *sd,char *reg)
 			return sd->status.global_reg[i].value;
 	}
 
-	return 0;
+	return NULL;
 }
 
 /*==========================================
@@ -6285,7 +6284,7 @@ int pc_setglobalreg_str(struct map_session_data *sd,char *reg,char *val)
 	// change value if found
 	for(i = 0; i < sd->status.global_reg_num; i++) {
 		if (strcmp(sd->status.global_reg[i].str, reg) == 0) {
-			strncpy(sd->status.global_reg[i].value, val, 32);
+			strcpy(sd->status.global_reg[i].value, val);
 			return 0;
 		}
 	}
@@ -6293,7 +6292,7 @@ int pc_setglobalreg_str(struct map_session_data *sd,char *reg,char *val)
 	if (sd->status.global_reg_num < GLOBAL_REG_NUM) {
 		memset(&sd->status.global_reg[i], 0, sizeof(struct global_reg));
 		strncpy(sd->status.global_reg[i].str, reg, 32);
-		strncpy(sd->status.global_reg[i].value, val, 32);
+		strcpy(sd->status.global_reg[i].value, val);
 		sd->status.global_reg_num++;
 		return 0;
 	}
@@ -6316,11 +6315,26 @@ int pc_readaccountreg(struct map_session_data *sd,char *reg)
 
 	for(i=0;i<sd->status.account_reg_num;i++){
 		if(strcmp(sd->status.account_reg[i].str,reg)==0)
-			return sscanf("%d",sd->status.account_reg[i].value);
+			return atoi(sd->status.account_reg[i].value);
 	}
 
 	return 0;
 }
+
+char *pc_readaccountregstr(struct map_session_data *sd,char *reg) // [zBuffer]
+{
+	int i;
+
+	nullpo_retr(0, sd);
+
+	for(i=0;i<sd->status.account_reg_num;i++){
+		if(strcmp(sd->status.account_reg[i].str,reg)==0)
+			return sd->status.account_reg[i].value;
+	}
+
+	return NULL;
+}
+
 /*==========================================
  * script用アカウント??の値を設定
  *------------------------------------------
@@ -6377,6 +6391,66 @@ int pc_setaccountreg(struct map_session_data *sd,char *reg,int val)
 
 	return 1;
 }
+
+int pc_setaccountregstr(struct map_session_data *sd,char *reg,char *val) // [zBuffer]
+{
+	int i;
+
+	nullpo_retr(0, sd);
+
+	if (sd->status.account_reg_num == -1) {
+		if(battle_config.error_log)
+			ShowError("pc_setaccountregstr : refusing to set until vars are received\n");
+		return 1;
+	}
+
+	if (reg[strlen(reg)-1] != '$') {
+		if(battle_config.error_log)
+			ShowError("pc_setaccountregstr : must be string to use this!\n");
+		return 1;
+	}
+	
+	sd->state.accreg_dirty = 1; //Mark the registry dirty until saved. [Skotlex]
+
+	// delete reg
+	if (strlen(val) == 0) {
+		for(i = 0; i < sd->status.account_reg_num; i++) {
+			if (strcmp(sd->status.account_reg[i].str, reg) == 0) {
+				if (i != sd->status.account_reg_num - 1)
+					memcpy(&sd->status.account_reg[i], &sd->status.account_reg[sd->status.account_reg_num - 1], sizeof(struct global_reg));
+				memset(&sd->status.account_reg[sd->status.account_reg_num - 1], 0, sizeof(struct global_reg));
+				sd->status.account_reg_num--;
+				intif_saveaccountreg(sd);
+				break;
+			}
+		}
+		return 0;
+	}
+
+	// change value if found
+	for(i = 0; i < sd->status.account_reg_num; i++) {
+		if (strcmp(sd->status.account_reg[i].str, reg) == 0) {
+			strcpy(sd->status.account_reg[i].value,val);
+			intif_saveaccountreg(sd);
+			return 0;
+		}
+	}
+	// add value if not found
+	if (sd->status.account_reg_num < ACCOUNT_REG_NUM) {
+		memset(&sd->status.account_reg[i], 0, sizeof(struct global_reg));
+		strncpy(sd->status.account_reg[i].str, reg, 32);
+		strcpy(sd->status.account_reg[i].value,val);
+		sd->status.account_reg_num++;
+		intif_saveaccountreg(sd);
+		return 0;
+	}
+
+	if(battle_config.error_log)
+		ShowError("pc_setaccountregstr : couldn't set %s (ACCOUNT_REG_NUM = %d)\n", reg, ACCOUNT_REG_NUM);
+
+	return 1;
+}
+
 /*==========================================
  * script用アカウント??2の値を?む
  *------------------------------------------
@@ -6389,11 +6463,26 @@ int pc_readaccountreg2(struct map_session_data *sd,char *reg)
 
 	for(i=0;i<sd->status.account_reg2_num;i++){
 		if(strcmp(sd->status.account_reg2[i].str,reg)==0)
-			return sscanf("%d",sd->status.account_reg2[i].value);
+			return atoi(sd->status.account_reg2[i].value);
 	}
 
 	return 0;
 }
+
+char *pc_readaccountreg2str(struct map_session_data *sd,char *reg) // [zBuffer]
+{
+	int i;
+
+	nullpo_retr(0, sd);
+
+	for(i=0;i<sd->status.account_reg2_num;i++){
+		if(strcmp(sd->status.account_reg2[i].str,reg)==0)
+			return sd->status.account_reg2[i].value;
+	}
+
+	return NULL;
+}
+
 /*==========================================
  * script用アカウント??2の値を設定
  *------------------------------------------
@@ -6439,6 +6528,53 @@ int pc_setaccountreg2(struct map_session_data *sd,char *reg,int val)
 
 	if (battle_config.error_log)
 		ShowError("pc_setaccountreg2 : couldn't set %s, limit of account registries reached (ACCOUNT_REG2_NUM = %d)\n", reg, ACCOUNT_REG2_NUM);
+
+	return 1;
+}
+
+int pc_setaccountreg2str(struct map_session_data *sd,char *reg,char *val) // [zBuffer]
+{
+	int i;
+
+	nullpo_retr(1, sd);
+
+	if(reg[strlen(reg)-1] == '$'){
+		// delete reg
+		if (strlen(val) == 0) {
+			for(i = 0; i < sd->status.account_reg2_num; i++) {
+				if (strcmp(sd->status.account_reg2[i].str, reg) == 0) {
+					if (i != sd->status.account_reg2_num - 1)
+						memcpy(&sd->status.account_reg2[i], &sd->status.account_reg2[sd->status.account_reg2_num - 1], sizeof(struct global_reg));
+					memset(&sd->status.account_reg2[sd->status.account_reg2_num - 1], 0, sizeof(struct global_reg));
+					sd->status.account_reg2_num--;
+					chrif_saveaccountreg2(sd);
+					break;
+				}
+			}
+			return 0;
+		}	
+
+		// change value if found
+		for(i = 0; i < sd->status.account_reg2_num; i++) {
+			if (strcmp(sd->status.account_reg2[i].str, reg) == 0) {
+				strcpy(sd->status.account_reg2[i].value,val);
+				chrif_saveaccountreg2(sd);
+				return 0;
+			}
+		}
+		// add value if not found
+		if (sd->status.account_reg2_num < ACCOUNT_REG2_NUM) {
+			memset(&sd->status.account_reg2[i], 0, sizeof(struct global_reg));
+			strncpy(sd->status.account_reg2[i].str, reg, 32);
+			strcpy(sd->status.account_reg2[i].value,val);
+			sd->status.account_reg2_num++;
+			chrif_saveaccountreg2(sd);
+			return 0;
+		}
+	}
+
+	if (battle_config.error_log)
+		ShowError("pc_setaccountreg2str : couldn't set %s (ACCOUNT_REG2_NUM = %d)\n", reg, ACCOUNT_REG2_NUM);
 
 	return 1;
 }

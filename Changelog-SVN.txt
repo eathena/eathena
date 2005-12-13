@@ -1,4 +1,11 @@
 Date	Added
+2005/12/13
+	* Realtered global_reg value size to 256. [Lance]
+	* Adjusted pointers location for packets for new global_reg value (it's wrong + I adjusted the size) to 256 + 32 = 288 [Lance]
+	* Improved variable scope for scripts to accept all string variables. [Lance]
+	* Altered map, char and login server to correctly use global_reg [Lance]
+	* do_sendrecv merges from Freya [Lance]
+	 = Requires recheck on packets again to see if I missed any pointer alterations =
 2005/12/12
 	* Corrected partywarp/guildwarp to correctly take into account nowarp/nowarpto mapflags. [Skotlex]
 	* added manner_system battle conf variable (now you can have PK server without manner system - which is unfinished ;/) [Komurka]

@@ -342,6 +342,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 	int count = 0;
 	int diff = 0;
 	char temp_str[64]; //2x the value of the string before jstrescapecpy [Skotlex]
+	char temp_str2[512];
 	char *tmp_ptr; //Building a single query should be more efficient than running
 		//multiple queries for each thing about to be saved, right? [Skotlex]
 	char save_status[128]; //For displaying save information. [Skotlex]
@@ -613,7 +614,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 		if ((p->global_reg[i].str == NULL) && (cp->global_reg[i].str == NULL))
 			continue;
 		if (((p->global_reg[i].str == NULL) != (cp->global_reg[i].str == NULL)) ||
-			(p->global_reg[i].value != cp->global_reg[i].value) ||
+			strcmp(p->global_reg[i].value, cp->global_reg[i].value) != 0 ||
 			strcmp(p->global_reg[i].str, cp->global_reg[i].str) != 0
 		) {
 			diff = 1;
@@ -641,7 +642,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 			if (p->global_reg[i].str && p->global_reg[i].value)
 			{
 				tmp_ptr += sprintf(tmp_ptr,"('3','%d','%s','%s'),",
-					char_id, jstrescapecpy(temp_str,p->global_reg[i].str), p->global_reg[i].value);
+					char_id, jstrescapecpy(temp_str,p->global_reg[i].str), jstrescapecpy(temp_str2,p->global_reg[i].value));
 				if (++count%100 == 0)
 				{ //Save every X registers to avoid overflowing tmp_sql [Skotlex]
 					tmp_ptr[-1] = '\0';
@@ -2091,9 +2092,9 @@ int parse_tologin(int fd) {
 			unsigned char buf[4096];
 			int j, p, acc;
 			acc = RFIFOL(fd,4);
-			for(p = 8, j = 0; p < RFIFOW(fd,2) && j < ACCOUNT_REG2_NUM; p += 36, j++) {
+			for(p = 8, j = 0; p < RFIFOW(fd,2) && j < ACCOUNT_REG2_NUM; p += 288, j++) {
 				memcpy(reg[j].str, RFIFOP(fd,p), 32);
-				memcpy(reg[j].value, RFIFOP(fd,p+32), 32);
+				memcpy(reg[j].value, RFIFOP(fd,p+32), 256);
 			}
 			// set_account_reg2(acc,j,reg);
 			// “¯CƒƒOƒCƒ“‚ð‹ÖŽ~‚µ‚Ä‚¢‚ê‚Î‘—‚é•K—v‚Í–³‚¢

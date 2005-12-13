@@ -273,7 +273,7 @@ void flush_fifos()
 static int null_parse(int fd)
 {
 	ShowMessage("null_parse : %d\n",fd);
-	RFIFOSKIP(fd,RFIFOREST(fd));
+	session[fd]->rdata_pos = session[fd]->rdata_size; //RFIFOSKIP(fd, RFIFOREST(fd)); simplify calculation
 	return 0;
 }
 
@@ -286,12 +286,16 @@ static int connect_client(int listen_fd)
 {
 	int fd;
 	struct sockaddr_in client_address;
+#ifdef __WIN32
 	int len;
+#else
+	socklen_t len;
+#endif
 	//ShowMessage("connect_client : %d\n",listen_fd);
 
 	len=sizeof(client_address);
 
-	fd = accept(listen_fd,(struct sockaddr*)&client_address,(socklen_t*)&len);
+	fd = accept(listen_fd,(struct sockaddr*)&client_address,&len);
 #ifdef __WIN32                                               
 	if (fd == SOCKET_ERROR || fd == INVALID_SOCKET || fd < 0) {
 		ShowError("accept failed (code %d)!\n", fd, WSAGetLastError());
@@ -752,8 +756,8 @@ int do_sendrecv(int next)
 
 	last_tick = time(0);
 
-	memcpy(&rfd, &readfds, sizeof(rfd));
-	memcpy(&efd, &readfds, sizeof(efd));
+	//memcpy(&rfd, &readfds, sizeof(rfd));
+	//memcpy(&efd, &readfds, sizeof(efd));
 	FD_ZERO(&wfd);
 
 	for (i = 1; i < fd_max; i++){ //Session 0 is never a valid session, so it's best to skip it. [Skotlex]
@@ -761,8 +765,8 @@ int do_sendrecv(int next)
 			if (FD_ISSET(i, &readfds)){
 				ShowDebug("force clear fds %d\n", i);
 				FD_CLR(i, &readfds);
-				FD_CLR(i, &rfd);
-				FD_CLR(i, &efd);
+				//FD_CLR(i, &rfd);
+				//FD_CLR(i, &efd);
 			}
 			continue;
 		}
@@ -772,6 +776,8 @@ int do_sendrecv(int next)
 
 	timeout.tv_sec  = next/1000;
 	timeout.tv_usec = next%1000*1000;
+	memcpy(&rfd, &readfds, sizeof(rfd));
+	memcpy(&efd, &readfds, sizeof(efd));
 	ret = select(fd_max, &rfd, &wfd, &efd, &timeout);
 
 #ifdef __WIN32
@@ -780,7 +786,7 @@ int do_sendrecv(int next)
 			return 0; //Eh... try again later?
 		ShowError("do_sendrecv: select error (code %d)\n", WSAGetLastError());
 #else
-	if (ret == -1) {
+	if (ret < 0) {
 		perror("do_sendrecv");
 		if (errno == 11) //Isn't there a constantI can use instead of this hardcoded value? This should be "resource temporarily unavailable": ie: try again.
 			return 0;
@@ -803,14 +809,15 @@ int do_sendrecv(int next)
 #endif
 				continue;
 			}
-			if (FD_ISSET(i, &readfds))
+			if (FD_ISSET(i, &readfds)){
 				FD_SET(i, &rfd);
+				FD_SET(i, &efd);
+			}
 			if (session[i]->wdata_size)
 				FD_SET(i, &wfd);
-			FD_SET(i, &efd);
 			timeout.tv_sec = 0;
 			timeout.tv_usec = 0;
-			if (select(i + 1, &rfd, &wfd, &efd, &timeout) >= 0) {
+			if (select(i + 1, &rfd, &wfd, &efd, &timeout) >= 0 && !FD_ISSET(i, &efd)) {
 				if (FD_ISSET(i, &wfd)) {
 					if (session[i]->func_send)
 						session[i]->func_send(i);
@@ -821,11 +828,7 @@ int do_sendrecv(int next)
 						session[i]->func_recv(i);
 					FD_CLR(i, &rfd);
 				}
-				if (FD_ISSET(i, &efd)) {
-					ShowDebug("do_sendrecv: Connection error on Session %d.\n", i);
-					set_eof(i);
-					FD_CLR(i, &efd);
-				}
+				FD_CLR(i, &efd);
 			} else {
 				ShowDebug("do_sendrecv: Session #%d caused error in select(), disconnecting.\n", i);
 				set_eof(i); // set eof
@@ -836,43 +839,38 @@ int do_sendrecv(int next)
 			}
 		}
 		return 0;
+	}else if(ret > 0) {
+		for (i = 1; i < fd_max; i++){
+			if(!session[i])
+				continue;
+
+			if(FD_ISSET(i,&efd)){
+				//ShowMessage("error:%d\n",i);
+				ShowDebug("do_sendrecv: Connection error on Session %d.\n", i);
+				set_eof(i);
+				continue;
+			}
+	
+			if (FD_ISSET(i, &wfd)) {
+				//ShowMessage("write:%d\n",i);
+				if(session[i]->func_send)
+					session[i]->func_send(i);
+			}
+	
+			if(FD_ISSET(i,&rfd)){
+				//ShowMessage("read:%d\n",i);
+				if(session[i]->func_recv)
+					session[i]->func_recv(i);
+			}
+
+		
+			if(session[i] && session[i]->eof) //The session check is for when the connection ended in func_parse
+			{	//Finally, even if there is no data to parse, connections signalled eof should be closed, so we call parse_func [Skotlex]
+				if (session[i]->func_parse)
+					session[i]->func_parse(i); //This should close the session inmediately.
+			}
+		} // for (i = 0
 	}
-	if (ret == 0) //Nothing to send/recv.
-		return 0;
-
-	if (ret <= 0)
-		return 0;
-	for (i = 1; i < fd_max; i++){
-
-		if(!session[i])
-			continue;
-
-		if (FD_ISSET(i, &wfd)) {
-			//ShowMessage("write:%d\n",i);
-			if(session[i]->func_send)
-				session[i]->func_send(i);
-			ret--;
-		}
-
-		if(FD_ISSET(i,&rfd)){
-			//ShowMessage("read:%d\n",i);
-			if(session[i]->func_recv)
-				session[i]->func_recv(i);
-		}
-
-		if(FD_ISSET(i,&efd)){
-			//ShowMessage("error:%d\n",i);
-			ShowDebug("do_sendrecv: Connection error on Session %d.\n", i);
-			set_eof(i);
-			ret--;
-		}
-
-		if(session[i] && session[i]->eof) //The session check is for when the connection ended in func_parse
-		{	//Finally, even if there is no data to parse, connections signalled eof should be closed, so we call parse_func [Skotlex]
-			if (session[i]->func_parse)
-				session[i]->func_parse(i); //This should close the session inmediately.
-		}
-	} // for (i = 0
 	return 0;
 }
 
@@ -897,6 +895,11 @@ int do_parsepacket(void)
 				sd->func_parse(i);
 			if(!session[i])
 				continue;
+			/* after parse, check client's RFIFO size to know if there is an invalid packet (too big and not parsed) */
+			if (session[i]->rdata_size == rfifo_size && session[i]->max_rdata == rfifo_size) {
+				session[i]->eof = 1;
+				continue;
+			}
 		}
 		RFIFOFLUSH(i);
 	}

@@ -159,6 +159,10 @@ int pc_readaccountreg(struct map_session_data*,char*);
 int pc_setaccountreg(struct map_session_data*,char*,int);
 int pc_readaccountreg2(struct map_session_data*,char*);
 int pc_setaccountreg2(struct map_session_data*,char*,int);
+char *pc_readaccountregstr(struct map_session_data*,char*); // [zBuffer]
+int pc_setaccountregstr(struct map_session_data*,char*,char*); // [zBuffer]
+char *pc_readaccountreg2str(struct map_session_data*,char*); // [zBuffer]
+int pc_setaccountreg2str(struct map_session_data*,char*,char*); // [zBuffer]
 
 int pc_addeventtimer(struct map_session_data *sd,int tick,const char *name);
 int pc_deleventtimer(struct map_session_data *sd,const char *name);

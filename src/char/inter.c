@@ -88,18 +88,14 @@ int inter_accreg_tostr(char *str, struct accreg *reg) {
 // アカウント変数を文字列から変換
 int inter_accreg_fromstr(const char *str, struct accreg *reg) {
 	int j, n;
-	char buf[128];
-	char v[128];
 	const char *p = str;
 
 	if (sscanf(p, "%d\t%n", &reg->account_id, &n ) != 1 || reg->account_id <= 0)
 		return 1;
 
 	for(j = 0, p += n; j < ACCOUNT_REG_NUM; j++, p += n) {
-		if (sscanf(p, "%[^,],%[^ ] %n", buf, v, &n) != 2) //komurka
+		if (sscanf(p, "%[^,],%[^ ] %n", reg->reg[j].str, reg->reg[j].value, &n) != 2) //komurka
 			break;
-		memcpy(reg->reg[j].str, buf, 32);
-		memcpy(reg->reg[j].value, v, 32);
 	}
 	reg->reg_num = j;
 
@@ -381,9 +377,9 @@ int mapif_account_reg_reply(int fd,int account_id) {
 		WFIFOW(fd,2) = 8;
 	} else {
 		int j, p;
-		for(j = 0, p = 8; j < reg->reg_num; j++, p += 36) {
+		for(j = 0, p = 8; j < reg->reg_num; j++, p += 288) {
 			memcpy(WFIFOP(fd,p), reg->reg[j].str, 32);
-			memcpy(WFIFOP(fd,p+32), reg->reg[j].value, 32);
+			memcpy(WFIFOP(fd,p+32), reg->reg[j].value, 256);
 		}
 		WFIFOW(fd,2) = p;
 	}
@@ -554,9 +550,9 @@ int mapif_parse_AccReg(int fd) {
 		numdb_insert(accreg_db, RFIFOL(fd,4), reg);
 	}
 
-	for(j = 0, p = 8; j < ACCOUNT_REG_NUM && p < RFIFOW(fd,2); j++, p += 36) {
+	for(j = 0, p = 8; j < ACCOUNT_REG_NUM && p < RFIFOW(fd,2); j++, p += 288) {
 		memcpy(reg->reg[j].str, RFIFOP(fd,p), 32);
-		memcpy(reg->reg[j].value, RFIFOP(fd,p + 32), 32);
+		memcpy(reg->reg[j].value, RFIFOP(fd,p + 32), 256);
 	}
 	reg->reg_num = j;
 
