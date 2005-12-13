@@ -25,6 +25,8 @@ Nexon
 
 Date		Added
 ======
+12/13
+	* Fixed a Lighthalzen warp warping you to a non-walkable tile [MasterOfMuppets]
 12/12
 	* Added 4 functions to spiff up your dialogues: F_Hi, F_Bye, F_RandMes, F_SexMes [Lupus]
 	- Moved jobName to Global_Functions.txt
