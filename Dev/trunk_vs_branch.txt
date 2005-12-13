@@ -28,3 +28,16 @@ As Akaru has pointed out, we need to sort this out inmediately:
 Post your thoughts/ideas about here...
 - [Skotlex] I think fixing skills counts as bug fixing, and goes to branch.
   But implementing missing skills should go to trunk.
+
+----
+Vicious says:
+* Have you read this? http://eathena.ws/board/index.php?showtopic=65827
+At least one of dev seems to agree with me(on irc) that we don't have enough resources(on devs or testers) to do trunk/stable.
+simply.
+1. who's going to test trunk? if no one is gonna test it, and bugs slips into stable... what's the point. good example would be whole guild cache. i'm sure it worked fine on kevin's setting. but when lots of people tested, in various settings, we found out how broke it was.
+2. who's gonna manage trunk->stable transfer? and when? as you know, there always will be some bug... it's like whole eA 1.0 thing. There is always something to fix. It was never quite "stable" enough to do "stable" release. so trunk is gonna be our current stable branch, except even more broken... great. :o
+imo, eA is fine as is.
+and if you REALLY want to dev, should be 3 branches.
+dev: where you commit things. broken often. do-whatever-dev-wants
+trunk/"testing": things that are "complete," but needs testing. primary bug fixes
+stable: the release. should be almost no bugs. shouldn't need update, unless it's critical update.
