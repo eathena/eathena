@@ -11250,7 +11250,7 @@ static int packetdb_readdb(void)
 		{clif_parse_Shift,"shift"},
 		{clif_parse_Blacksmith,"blacksmith"},
 		{clif_parse_Alchemist,"alchemist"},
-		{clif_parse_Alchemist,"taekwon"},
+		{clif_parse_Taekwon,"taekwon"},
 		{clif_parse_RankingPk,"rankingpk"},
 		{clif_parse_FeelSaveOk,"feelsaveok"},
 		{clif_parse_debug,"debug"},

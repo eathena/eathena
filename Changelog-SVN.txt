@@ -1,5 +1,6 @@
 Date	Added
 2005/12/13
+	* Enabled clif_parse_Taekwon (Why was taekwon parsed as clif_parse_Alchemist?) [Vicious]
 	* Moved the base attack code into it's own function to properly implement
 	  the magnum break's elemental damage bonus (watch out for bugs as the code
 	  was proof-read, but that usually doesn't says quite enough when it comes to
