@@ -2734,8 +2734,11 @@ int pc_useitem(struct map_session_data *sd,int n)
 
 			pc_delitem(sd,n,1,1);
 		}
-		if(sd->status.inventory[n].card[0]==0x00fe && pc_istop10fame(MakeDWord(sd->status.inventory[n].card[2],sd->status.inventory[n].card[3]), MAPID_ALCHEMIST))
+		if(sd->status.inventory[n].card[0]==0x00fe && pc_istop10fame(MakeDWord(sd->status.inventory[n].card[2],sd->status.inventory[n].card[3]), MAPID_ALCHEMIST)) {
 		    potion_flag = 2; // Famous player's potions have 50% more efficiency
+			 if (sd->sc_data[SC_SPIRIT].timer != -1 && sd->sc_data[SC_SPIRIT].val2 == SL_ROGUE)
+				 potion_flag = 3; //Even more effective potions.
+		}
 		sd->canuseitem_tick= gettick() + battle_config.item_use_interval; //Update item use time.
 		run_script(script,0,sd->bl.id,0);
 		potion_flag = 0;
@@ -5649,7 +5652,9 @@ int pc_itemheal(struct map_session_data *sd,int hp,int sp)
 
 	if(hp > 0) {
 		bonus = (sd->paramc[2]<<1) + 100 + pc_checkskill(sd,SM_RECOVERY)*10
-			+ pc_checkskill(sd,AM_LEARNINGPOTION)*5 + (potion_flag == 2)*50; // A potion produced by an Alchemist in the Fame Top 10 gets +50% effect [DracoRPG]
+			+ pc_checkskill(sd,AM_LEARNINGPOTION)*5;
+		// A potion produced by an Alchemist in the Fame Top 10 gets +50% effect [DracoRPG]
+		bonus += (potion_flag==2)?50:(potion_flag==3?100:0);
 		if ((type = itemdb_group(sd->itemid)) > 0 && type <= 7)
 			bonus = bonus * (100+sd->itemhealrate[type - 1]) / 100;
 		if(bonus != 100)
@@ -5657,7 +5662,8 @@ int pc_itemheal(struct map_session_data *sd,int hp,int sp)
 	}
 	if(sp > 0) {
 		bonus = (sd->paramc[3]<<1) + 100 + pc_checkskill(sd,MG_SRECOVERY)*10
-			+ pc_checkskill(sd,AM_LEARNINGPOTION)*5 + (potion_flag == 2)*50; // A potion produced by an Alchemist in the Fame Top 10 gets +50% effect [DracoRPG]
+			+ pc_checkskill(sd,AM_LEARNINGPOTION)*5;
+		bonus += (potion_flag==2)?50:(potion_flag==3?100:0);
 		if(bonus != 100)
 			sp = sp * bonus / 100;
 	}
