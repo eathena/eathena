@@ -3954,7 +3954,7 @@ int mob_clone_spawn(struct map_session_data *sd, char *mapname, int x, int y, co
 	//Skill copy [Skotlex]
 	c = pc_calc_skilltree_normalize_job(sd);
 	ms = &mob_db_data[class_]->skill[0];
-	for(j=0;i < MAX_SKILL_TREE && skill_tree[c][j].id>0;i++);
+	for(j=0;j < MAX_SKILL_TREE && skill_tree[c][j].id>0;j++);
 	//Go Backwards to give better priority to advanced skills.
 	for (i=0;j>0 && i< MAX_MOBSKILL ;j--) {
 		skill_id = skill_tree[c][j].id;	
@@ -3965,7 +3965,7 @@ int mob_clone_spawn(struct map_session_data *sd, char *mapname, int x, int y, co
 		ms[i].skill_id = skill_id;
 		ms[i].skill_lv = sd->status.skill[skill_id].lv;
 		ms[i].state = -1;
-		ms[i].permillage = 500; //5% chance to cast?
+		ms[i].permillage = 1000; //10% chance to cast?
 		ms[i].emotion = -1;
 		ms[i].cancel = 0;
 		ms[i].delay = skill_delayfix(&sd->bl,skill_id, ms[i].skill_lv, 0);
