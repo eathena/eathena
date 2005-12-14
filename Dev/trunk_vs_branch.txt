@@ -52,3 +52,9 @@ stable: the release. should be almost no bugs. shouldn't need update, unless it'
 - [Kayla] I was speaking with Devi, do we have the OK from Mass to do this? If so we should reset to
   revision 0, wipe the trunk, dump stable into the trunk and toss the Preview Release inside of Stable 
   (or youngest version). 
+
+- [Vicious_Pucca] We should talk about this in dev forum.=p
+Anyway, if this trunk/stable DOES happen, it should happen AFTER TK/SL/SG are DONE-done. really, no half-assed classes please. :o (well, more like 3/4-assed classes right now)
+Another thing. how would DB/NPC update would work? let's say, new npc that are missing, such as Swordie class quest. Is it required? no. Is it official? yes. Is it a bug? not really. Is it a feature? to some, appearantly is... so. what about that?
+and fixes for stable means probably fixes for trunk as well. :o
+If trunk/stable happens, i'm breaking trunk so bad. XD
