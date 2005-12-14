@@ -1,5 +1,6 @@
 Date	Added
 2005/12/14
+	* Fixed saving account variables [Komurka]
 	* Fixed SL_KAIZEL not starting the proper effect. [Skotlex]
 	* Merged Reddozen's work of SL_KAUPE [Skotlex]
 	* Updated checkweight() script command to return false when the player has

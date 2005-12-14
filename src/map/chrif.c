@@ -873,8 +873,8 @@ int chrif_saveaccountreg2(struct map_session_data *sd)
 		struct global_reg *reg = &sd->status.account_reg2[j];
 		if (reg->str[0] && reg->value != 0) {
 			memcpy(WFIFOP(char_fd,p), reg->str, 32);
-			memcpy(WFIFOP(char_fd,p+32), reg->value, 32);
-			p += 36;
+			memcpy(WFIFOP(char_fd,p+32), reg->value, 256);
+			p += 288;
 		}
 	}
 	WFIFOW(char_fd,0) = 0x2b10;
