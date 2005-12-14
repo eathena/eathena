@@ -1276,20 +1276,6 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	
 	// Relative modifiers from status changes (only for PC)
 	if(sd->sc_count){
-		if(sd->sc_data[SC_SPIRIT].timer!=-1 && sd->sc_data[SC_SPIRIT].val2 == SL_HIGH) {
-			if (sd->status.str < 50)
-				sd->paramb[0] += 50-sd->status.str;
-			if (sd->status.agi < 50)
-				sd->paramb[1] += 50-sd->status.agi;
-			if (sd->status.vit < 50)
-				sd->paramb[2] += 50-sd->status.vit;
-			if (sd->status.int_ < 50)
-				sd->paramb[3] += 50-sd->status.int_;
-			if (sd->status.dex < 50)
-				sd->paramb[4] += 50-sd->status.dex;
-			if (sd->status.luk < 50)
-				sd->paramb[5] += 50-sd->status.luk;
-		}
 		if(sd->sc_data[SC_MARIONETTE].timer!=-1){
 			sd->paramb[0]-= sd->status.str/2;
 			sd->paramb[1]-= sd->status.agi/2;
@@ -1319,6 +1305,35 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	sd->paramc[4]=sd->status.dex+sd->paramb[4]+sd->parame[4];
 	sd->paramc[5]=sd->status.luk+sd->paramb[5]+sd->parame[5];
 
+	if(sd->sc_count){
+		if(sd->sc_data[SC_SPIRIT].timer!=-1 && sd->sc_data[SC_SPIRIT].val2 == SL_HIGH)
+	  	{	//Ups any status under 50 to 50.
+			if (sd->paramc[0] < 50) {
+				sd->paramb[0] += 50-sd->paramc[0];
+				sd->paramc[0] = 50;
+			}
+			if (sd->paramc[1] < 50) {
+				sd->paramb[1] += 50-sd->paramc[1];
+				sd->paramc[1] = 50;
+			}
+			if (sd->paramc[2] < 50) {
+				sd->paramb[2] += 50-sd->paramc[2];
+				sd->paramc[2] = 50;
+			}
+			if (sd->paramc[3] < 50) {
+				sd->paramb[3] += 50-sd->paramc[3];
+				sd->paramc[3] = 50;
+			}
+			if (sd->paramc[4] < 50) {
+				sd->paramb[4] += 50-sd->paramc[4];
+				sd->paramc[4] = 50;
+			}
+			if (sd->paramc[5] < 50) {
+				sd->paramb[5] += 50-sd->paramc[5];
+				sd->paramc[5] = 50;
+			}
+		}
+	}
 	for(i=0;i<6;i++)
 		if(sd->paramc[i] < 0) sd->paramc[i] = 0;
 

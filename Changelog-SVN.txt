@@ -1,5 +1,7 @@
 Date	Added
 2005/12/14
+	* Corrected SL_HIGH so that the total of each stat is always 50...
+	  [Skotlex]
 	* Optimized graffiti display packets (what was I thinking?) [Valaris]
 	* Corrected a statement in guild.c (== to =) in nulling out the guild cache. [Valaris]
 	* Implemented a mini cache for guilds/parties in the map server. Looking up
