@@ -25,6 +25,9 @@ Nexon
 
 Date		Added
 ======
+12/15
+	* Updated wedding costs to offical values (600k for groom, 500k for bride). Deleted
+	  npc/other/wedding.txt (very old). Enabled marriage.txt by default. [Kayla]
 12/13
 	* Fixed a Lighthalzen warp warping you to a non-walkable tile [MasterOfMuppets]
 12/12
