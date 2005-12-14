@@ -33,8 +33,11 @@ moc_prydb1.gat,39,129,5	script	Thief Guide	69,{
 	if(job_thief_q==1) goto L_Back;
 
 	mes "[Thief Guide]";
-	if(Sex == 0)mes "Heh... You look like a well to do boy... what brought you down to this rat hole?";
-	if(Sex == 1)mes "Heh... You look like a well to do girl... what brought you down to this rat hole?";
+	if(Sex) {
+		mes "Heh... You look like a well to do boy... what brought you down to this rat hole?";
+	}else{
+		mes "Heh... You look like a well to do girl... what brought you down to this rat hole?";
+	}
 	next;
 M_Menu:
 	menu "'I didn't come here for the atmosphere.....",M_0,"Me? I'm just looking around...",M_End,"Just looking for the one truth",M_Truth;
