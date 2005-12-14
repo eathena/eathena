@@ -7656,6 +7656,7 @@ atcommand_rain(
 	nullpo_retr(-1, sd);
 	if (map[sd->bl.m].flag.rain) {
 		map[sd->bl.m].flag.rain=0;
+		clif_clearweather(sd->bl.m);
 		clif_displaymessage(fd, "The rain has stopped.");
 	} else {
 		map[sd->bl.m].flag.rain=1;
@@ -7677,6 +7678,7 @@ atcommand_snow(
 	nullpo_retr(-1, sd);
 	if (map[sd->bl.m].flag.snow) {
 		map[sd->bl.m].flag.snow=0;
+		clif_clearweather(sd->bl.m);
 		clif_displaymessage(fd, "Snow has stopped falling.");
 	} else {
 		map[sd->bl.m].flag.snow=1;
@@ -7700,6 +7702,7 @@ atcommand_sakura(
 	nullpo_retr(-1, sd);
 	if (map[sd->bl.m].flag.sakura) {
 		map[sd->bl.m].flag.sakura=0;
+		clif_clearweather(sd->bl.m);
 		clif_displaymessage(fd, "Cherry tree leaves no longer fall.");
 	} else {
 		map[sd->bl.m].flag.sakura=1;
@@ -7722,6 +7725,7 @@ atcommand_clouds(
 	nullpo_retr(-1, sd);
 	if (map[sd->bl.m].flag.clouds) {
 		map[sd->bl.m].flag.clouds=0;
+		clif_clearweather(sd->bl.m);
 		clif_displaymessage(fd, "The clouds has gone.");
 	} else {
 		map[sd->bl.m].flag.clouds=1;

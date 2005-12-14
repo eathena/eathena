@@ -1450,33 +1450,36 @@ int clif_clearweather(int m) {
 			WFIFOB(sd->fd,6) = 0;
 			WFIFOSET(sd->fd,packet_len_table[0x80]);
 
-			WFIFOW(sd->fd,0)=0x7c;
-			WFIFOL(sd->fd,2)=-10;
-			WFIFOW(sd->fd,6)=0;
-			WFIFOW(sd->fd,8)=0;
-			WFIFOW(sd->fd,10)=0;
-			WFIFOW(sd->fd,12)=OPTION_INVISIBLE;
-			WFIFOW(sd->fd,20)=100;
-			WFIFOPOS(sd->fd,36,sd->bl.x,sd->bl.y);
-			WFIFOSET(sd->fd,packet_len_table[0x7c]);
+			if (map[sd->bl.m].flag.snow || map[sd->bl.m].flag.clouds || map[sd->bl.m].flag.fog || map[sd->bl.m].flag.fireworks ||
+			    map[sd->bl.m].flag.sakura || map[sd->bl.m].flag.leaves || map[sd->bl.m].flag.rain) {
+				WFIFOW(sd->fd,0)=0x7c;
+				WFIFOL(sd->fd,2)=-10;
+				WFIFOW(sd->fd,6)=0;
+				WFIFOW(sd->fd,8)=0;
+				WFIFOW(sd->fd,10)=0;
+				WFIFOW(sd->fd,12)=OPTION_INVISIBLE;
+				WFIFOW(sd->fd,20)=100;
+				WFIFOPOS(sd->fd,36,sd->bl.x,sd->bl.y);
+				WFIFOSET(sd->fd,packet_len_table[0x7c]);
 
-			if (map[sd->bl.m].flag.snow)
-				clif_weather1(sd->fd, 162);
-			if (map[sd->bl.m].flag.clouds)
-				clif_weather1(sd->fd, 233);
-			if (map[sd->bl.m].flag.fog)
-				clif_weather1(sd->fd, 515);
-			if (map[sd->bl.m].flag.fireworks) {
-				clif_weather1(sd->fd, 297);
-				clif_weather1(sd->fd, 299);
-				clif_weather1(sd->fd, 301);
+				if (map[sd->bl.m].flag.snow)
+					clif_weather1(sd->fd, 162);
+				if (map[sd->bl.m].flag.clouds)
+					clif_weather1(sd->fd, 233);
+				if (map[sd->bl.m].flag.fog)
+					clif_weather1(sd->fd, 515);
+				if (map[sd->bl.m].flag.fireworks) {
+					clif_weather1(sd->fd, 297);
+					clif_weather1(sd->fd, 299);
+					clif_weather1(sd->fd, 301);
+				}
+				if (map[sd->bl.m].flag.sakura)
+					clif_weather1(sd->fd, 163);
+				if (map[sd->bl.m].flag.leaves)
+					clif_weather1(sd->fd, 333);
+				if (map[sd->bl.m].flag.rain)
+					clif_weather1(sd->fd, 161);
 			}
-			if (map[sd->bl.m].flag.sakura)
-				clif_weather1(sd->fd, 163);
-			if (map[sd->bl.m].flag.leaves)
-				clif_weather1(sd->fd, 333);
-			if (map[sd->bl.m].flag.rain)
-				clif_weather1(sd->fd, 161);
 		}
 	}
 
@@ -1529,33 +1532,36 @@ int clif_spawnpc(struct map_session_data *sd) {
 			clif_guild_emblem(sd,g);
 	}	// end addition [Valaris]
 
-	WFIFOW(sd->fd,0)=0x7c;
-	WFIFOL(sd->fd,2)=-10;
-	WFIFOW(sd->fd,6)=0;
-	WFIFOW(sd->fd,8)=0;
-	WFIFOW(sd->fd,10)=0;
-	WFIFOW(sd->fd,12)=OPTION_INVISIBLE;
-	WFIFOW(sd->fd,20)=100;
-	WFIFOPOS(sd->fd,36,sd->bl.x,sd->bl.y);
-	WFIFOSET(sd->fd,packet_len_table[0x7c]);
+	if (map[sd->bl.m].flag.snow || map[sd->bl.m].flag.clouds || map[sd->bl.m].flag.fog || map[sd->bl.m].flag.fireworks ||
+	    map[sd->bl.m].flag.sakura || map[sd->bl.m].flag.leaves || map[sd->bl.m].flag.rain) {
+		WFIFOW(sd->fd,0)=0x7c;
+		WFIFOL(sd->fd,2)=-10;
+		WFIFOW(sd->fd,6)=0;
+		WFIFOW(sd->fd,8)=0;
+		WFIFOW(sd->fd,10)=0;
+		WFIFOW(sd->fd,12)=OPTION_INVISIBLE;
+		WFIFOW(sd->fd,20)=100;
+		WFIFOPOS(sd->fd,36,sd->bl.x,sd->bl.y);
+		WFIFOSET(sd->fd,packet_len_table[0x7c]);
 
-	if (map[sd->bl.m].flag.snow)
-		clif_weather1(sd->fd, 162);
-	if (map[sd->bl.m].flag.clouds)
-		clif_weather1(sd->fd, 233);
-	if (map[sd->bl.m].flag.fog)
-		clif_weather1(sd->fd, 515);
-	if (map[sd->bl.m].flag.fireworks) {
-		clif_weather1(sd->fd, 297);
-		clif_weather1(sd->fd, 299);
-		clif_weather1(sd->fd, 301);
+		if (map[sd->bl.m].flag.snow)
+			clif_weather1(sd->fd, 162);
+		if (map[sd->bl.m].flag.clouds)
+			clif_weather1(sd->fd, 233);
+		if (map[sd->bl.m].flag.fog)
+			clif_weather1(sd->fd, 515);
+		if (map[sd->bl.m].flag.fireworks) {
+			clif_weather1(sd->fd, 297);
+			clif_weather1(sd->fd, 299);
+			clif_weather1(sd->fd, 301);
+		}
+		if (map[sd->bl.m].flag.sakura)
+			clif_weather1(sd->fd, 163);
+		if (map[sd->bl.m].flag.leaves)
+			clif_weather1(sd->fd, 333);
+		if (map[sd->bl.m].flag.rain)
+			clif_weather1(sd->fd, 161);
 	}
-	if (map[sd->bl.m].flag.sakura)
-		clif_weather1(sd->fd, 163);
-	if (map[sd->bl.m].flag.leaves)
-		clif_weather1(sd->fd, 333);
-	if (map[sd->bl.m].flag.rain)
-		clif_weather1(sd->fd, 161);
 
 	//New 'night' effect by dynamix [Skotlex]
 	if (night_flag && map[sd->bl.m].flag.nightenabled)
@@ -1761,8 +1767,6 @@ int clif_movechar(struct map_session_data *sd) {
 	int fd;
 	int len;
 	unsigned char buf[256];
-	unsigned char buf2[256];
-	unsigned char buf3[256];
 
 	nullpo_retr(0, sd);
 
@@ -1771,31 +1775,33 @@ int clif_movechar(struct map_session_data *sd) {
 	len = clif_set007b(sd, buf);
 	clif_send(buf, len, &sd->bl, AREA_WOS);
 
-	memset(buf2,0,packet_len_table[0x7b]);
-	WBUFW(buf2,0)=0x7b;
-	WBUFL(buf2,2)=-10;
-	WBUFW(buf2,6)=sd->speed;
-	WBUFW(buf2,8)=0;
-	WBUFW(buf2,10)=0;
-	WBUFW(buf2,12)=OPTION_INVISIBLE;
-	WBUFW(buf2,14)=100;
-	WBUFL(buf2,22)=gettick();
-	WBUFPOS2(buf2,50,sd->bl.x,sd->bl.y,sd->to_x,sd->to_y);
-	WBUFB(buf2,56)=5;
-	WBUFB(buf2,57)=5;
-	clif_send(buf2, len, &sd->bl, SELF);
+	if (map[sd->bl.m].flag.snow || map[sd->bl.m].flag.clouds || map[sd->bl.m].flag.fog || map[sd->bl.m].flag.fireworks ||
+	    map[sd->bl.m].flag.sakura || map[sd->bl.m].flag.leaves || map[sd->bl.m].flag.rain) {
+		memset(buf,0,packet_len_table[0x7b]);
+		WBUFW(buf,0)=0x7b;
+		WBUFL(buf,2)=-10;
+		WBUFW(buf,6)=sd->speed;
+		WBUFW(buf,8)=0;
+		WBUFW(buf,10)=0;
+		WBUFW(buf,12)=OPTION_INVISIBLE;
+		WBUFW(buf,14)=100;
+		WBUFL(buf,22)=gettick();
+		WBUFPOS2(buf,50,sd->bl.x,sd->bl.y,sd->to_x,sd->to_y);
+		WBUFB(buf,56)=5;
+		WBUFB(buf,57)=5;
+		clif_send(buf, len, &sd->bl, SELF);
+	}
 
 	if(sd->disguise) {
-		len = clif_dis007b(sd, buf3);
-		clif_send(buf3, len, &sd->bl, AREA);
+		memset(buf,0,packet_len_table[0x7b]);
+		len = clif_dis007b(sd, buf);
+		clif_send(buf, len, &sd->bl, AREA);
 		return 0;
 	}
 
-//Stupid client that needs this resent every time someone walks :X
-	if(battle_config.save_clothcolor &&
-		sd->status.clothes_color > 0 &&
-		(sd->view_class != 22 || !battle_config.wedding_ignorepalette)
-		)
+	//Stupid client that needs this resent every time someone walks :X
+	if(battle_config.save_clothcolor && sd->status.clothes_color > 0 &&
+		(sd->view_class != 22 || !battle_config.wedding_ignorepalette))
 		clif_changelook(&sd->bl, LOOK_CLOTHES_COLOR, sd->status.clothes_color);
 
 	if(sd->state.size==2) // tiny/big players [Valaris]
@@ -4032,27 +4038,27 @@ int clif_damage(struct block_list *src,struct block_list *dst,unsigned int tick,
 	clif_send(buf,packet_len_table[0x8a],src,AREA);
 
 	if((src->type==BL_PC && ((struct map_session_data *)src)->disguise) || (dst->type==BL_PC && ((struct map_session_data *)dst)->disguise)) {
-		unsigned char buf2[256];
-		WBUFW(buf2,0)=0x8a;
+		memset(buf,0,packet_len_table[0x8a]);
+		WBUFW(buf,0)=0x8a;
 		if(src->type==BL_PC && ((struct map_session_data *)src)->disguise)
-			WBUFL(buf2,2)=src->id;
+			WBUFL(buf,2)=src->id;
 		else 
-			WBUFL(buf2,2)=-src->id;
+			WBUFL(buf,2)=-src->id;
 		if(dst->type==BL_PC && ((struct map_session_data *)dst)->disguise)
-			WBUFL(buf2,6)=dst->id;
+			WBUFL(buf,6)=dst->id;
 		else 
-			WBUFL(buf2,2)=-dst->id;
-		WBUFL(buf2,10)=tick;
-		WBUFL(buf2,14)=sdelay;
-		WBUFL(buf2,18)=ddelay;
+			WBUFL(buf,2)=-dst->id;
+		WBUFL(buf,10)=tick;
+		WBUFL(buf,14)=sdelay;
+		WBUFL(buf,18)=ddelay;
 		if(damage > 0)
-			WBUFW(buf2,22)=-1;
+			WBUFW(buf,22)=-1;
 		else
-			WBUFW(buf2,22)=0;
-		WBUFW(buf2,24)=div;
-		WBUFB(buf2,26)=type;
-		WBUFW(buf2,27)=0;
-		clif_send(buf2,packet_len_table[0x8a],src,AREA);
+			WBUFW(buf,22)=0;
+		WBUFW(buf,24)=div;
+		WBUFB(buf,26)=type;
+		WBUFW(buf,27)=0;
+		clif_send(buf,packet_len_table[0x8a],src,AREA);
 	}
 	//Because the damage delay must be synced with the client, here is where the can-walk tick must be updated. [Skotlex]
 	if (type != 4 && type != 9 && damage+damage2 > 0) //Non-endure/Non-flinch attack, update walk delay.

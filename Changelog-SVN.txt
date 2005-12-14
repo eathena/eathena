@@ -1,5 +1,8 @@
 Date	Added
 2005/12/14
+	* Optimized use of weather effects, or should I say, no use.
+	  Also re-added clif_clearweather to some of the weather effects, when they are turned off. 
+	  Why those were removed are beyond me.. [Valaris]
 	* Temporarily changed the walk speed during Charge Attack and Extremity
 	  Fist to simulate a faster 'zoom' to the target (somewhat untested yet)
 	  [Skotlex]
