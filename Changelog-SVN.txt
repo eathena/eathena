@@ -45,6 +45,7 @@ Date	Added
 	* Corrected partywarp/guildwarp to correctly take into account nowarp/nowarpto mapflags. [Skotlex]
 	* Added a few custom scripts due to high demand. [Lance]
 	* Added monster museum. Adapted from Prometheus. [Lance]
+	* Corrected OnTouch to use exname instead of name to prevent conflicts. [Lance]
 2005/12/12
 	* added manner_system battle conf variable (now you can have PK server without manner system - which is unfinished ;/) [Komurka]
 	- some corrections in SI_ data (night uses soullink effect)

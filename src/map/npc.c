@@ -86,7 +86,7 @@ int npc_enable_sub( struct block_list *bl, va_list ap )
 			return 1;
 		sd->areanpc_id=nd->bl.id;
 
-		snprintf(name, 50, "%s::OnTouch", nd->name);
+		snprintf(name, 50, "%s::OnTouch", nd->exname); // exname to be specific. exname is the unique identifier for script events. [Lance]
 		npc_event(sd,name,0);
 	}
 	//aFree(name);
@@ -820,7 +820,7 @@ int npc_touch_areanpc(struct map_session_data *sd,int m,int x,int y)
 				return 1;
 			sd->areanpc_id = map[m].npc[i]->bl.id;
 
-			sprintf(name,"%s::OnTouch", map[m].npc[i]->name);
+			sprintf(name,"%s::OnTouch", map[m].npc[i]->exname); // It goes here too. exname being the unique identifier. [Lance]
 
 			if( npc_event(sd,name,0)>0 )
 				npc_click(sd,map[m].npc[i]->bl.id);
