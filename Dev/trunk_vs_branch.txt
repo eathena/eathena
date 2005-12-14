@@ -48,3 +48,7 @@ stable: the release. should be almost no bugs. shouldn't need update, unless it'
   There's no viceversa since the bug fixes in trunk are for features in trunk
   itself that haven't gone into the branch yet. So to answer yer question,
   everyone who codes would be in charge. :X
+
+- [Kayla] I was speaking with Devi, do we have the OK from Mass to do this? If so we should reset to
+  revision 0, wipe the trunk, dump stable into the trunk and toss the Preview Release inside of Stable 
+  (or youngest version). 
