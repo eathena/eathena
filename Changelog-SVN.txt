@@ -1,5 +1,8 @@
 Date	Added
 2005/12/13
+	* Fixed @slaveclone not attacking enemies. [Skotlex]
+	* Some more cleaning to the clone skills, proper support for Heal,
+	  Resurrection, Double Attack, Triple Blows. [Skotlex]
 	* Updates/fixes/corrections to battle check target so that mobs with
 	  special AI can fight mobs without it even if the mob doesn't has a human
 	  master. Also updated it so that mobs with no special AI are all friends by

@@ -1118,13 +1118,13 @@ int mob_spawn (int id)
 	if(mob_db_data[md->class_]->option){ // Added for carts, falcons and pecos for cloned monsters. [Valaris]
 		if(mob_db_data[md->class_]->option & 0x0008)
 			md->option |= 0x0008;
-		if(mob_db_data[md->class_]->option & 0x0008)
+		if(mob_db_data[md->class_]->option & 0x0080)
 			md->option |= 0x0080;
-		if(mob_db_data[md->class_]->option & 0x0008)
+		if(mob_db_data[md->class_]->option & 0x0100)
 			md->option |= 0x0100;
-		if(mob_db_data[md->class_]->option & 0x0008)
+		if(mob_db_data[md->class_]->option & 0x0200)
 			md->option |= 0x0200;
-		if(mob_db_data[md->class_]->option & 0x0008)
+		if(mob_db_data[md->class_]->option & 0x0400)
 			md->option |= 0x0400;
 		if(mob_db_data[md->class_]->option & OPTION_FALCON)
 			md->option |= OPTION_FALCON;
@@ -3221,7 +3221,7 @@ int mobskill_castend_id( int tid, unsigned int tick, int id,int data )
 {
 	struct mob_data* md=NULL;
 	struct block_list *bl;
-
+	int inf;
 //Code cleanup. Insert any code that should be executed if the skill fails here.
 #define skill_failed(md) { md->skillid = md->skilllv = -1; }
 	
@@ -3256,8 +3256,11 @@ int mobskill_castend_id( int tid, unsigned int tick, int id,int data )
 			return 0;
 		}
 	}
-	if( ( skill_get_inf(md->skillid) & INF_ATTACK_SKILL || md->skillid == MO_EXTREMITYFIST ) &&
-		battle_check_target(&md->bl,bl, BCT_ENEMY)<=0 ) {
+
+	inf = skill_get_inf(md->skillid);
+	if((inf&INF_ATTACK_SKILL ||
+		(inf&INF_SELF_SKILL && md->bl.id != bl->id && skill_get_nk(md->skillid) != NK_NO_DAMAGE))
+		&& battle_check_target(&md->bl,bl, BCT_ENEMY)<=0 ) {
 		skill_failed(md);
 		return 0;
 	}
@@ -3986,18 +3989,16 @@ int mob_clone_spawn(struct map_session_data *sd, char *mapname, int x, int y, co
 	//Skill copy [Skotlex]
 	c = pc_calc_skilltree_normalize_job(sd);
 	ms = &mob_db_data[class_]->skill[0];
-	for(j=0;j < MAX_SKILL_TREE && skill_tree[c][j].id>0;j++);
 	//Go Backwards to give better priority to advanced skills.
-	for (i=0;j>0 && i< MAX_MOBSKILL ;j--) {
-		skill_id = skill_tree[c][j].id;	
-		if (sd->status.skill[skill_id].lv < 1 || (skill_get_inf2(skill_id)&(INF2_WEDDING_SKILL|INF2_GUILD_SKILL|INF2_QUEST_SKILL)))
+	for (i=0,j = MAX_SKILL_TREE-1;j>=0 && i< MAX_MOBSKILL ;j--) {
+		skill_id = skill_tree[c][j].id;
+		if (!skill_id || sd->status.skill[skill_id].lv < 1 || (skill_get_inf2(skill_id)&(INF2_WEDDING_SKILL|INF2_GUILD_SKILL|INF2_QUEST_SKILL)))
 			continue;
-
 		memset (&ms[i], 0, sizeof(struct mob_skill));
 		ms[i].skill_id = skill_id;
 		ms[i].skill_lv = sd->status.skill[skill_id].lv;
 		ms[i].state = -1;
-		ms[i].permillage = 100; //1% chance since it's on any state.
+		ms[i].permillage = 100; //Default chance for moving/idle skills.
 		ms[i].emotion = -1;
 		ms[i].cancel = 0;
 		ms[i].delay = 5000+skill_delayfix(&sd->bl,skill_id, ms[i].skill_lv, 0);
@@ -4009,10 +4010,9 @@ int mob_clone_spawn(struct map_session_data *sd, char *mapname, int x, int y, co
 				ms[i].cond1 = MSC_ALWAYS;
 				if (skill_get_range(skill_id, ms[i].skill_lv)  > 3) {
 					ms[i].state = MSS_RUSH;
-					ms[i].permillage = 1000;
 				} else {
 					ms[i].state = MSS_BERSERK;
-					ms[i].permillage = 500;
+					ms[i].permillage = 1000;
 				}
 				break;
 			case INF_GROUND_SKILL:
@@ -4025,12 +4025,10 @@ int mob_clone_spawn(struct map_session_data *sd, char *mapname, int x, int y, co
 				if (skill_get_unit_target(skill_id) == BCT_ENEMY) { //Target Enemy
 					ms[i].target = MST_TARGET;
 					ms[i].cond1 = MSC_ALWAYS;
-					ms[i].permillage = 500;
 				} else { //Target allies
 					ms[i].target = MST_FRIEND;
 					ms[i].cond1 = MSC_FRIENDHPLTMAXRATE;
 					ms[i].cond2 = 95;
-					ms[i].permillage = 500;
 				}
 				break;
 			case INF_SELF_SKILL:
@@ -4046,22 +4044,36 @@ int mob_clone_spawn(struct map_session_data *sd, char *mapname, int x, int y, co
 				ms[i].target = MST_FRIEND;
 				ms[i].cond1 = MSC_FRIENDHPLTMAXRATE;
 				ms[i].cond2 = 90;
-				if (skill_id == AL_HEAL)
-					ms[i].permillage = 500; //Higher skill rate usage for heal.
+				if (skill_id == AL_HEAL) {
+					ms[i].permillage = 1000; //Higher skill rate usage for heal.
+					ms[i].delay -= 3500; //Decrease Heal delay for spammage.
+				} else if (skill_id == ALL_RESURRECTION)
+					ms[i].cond2 = 1;
 				else
 					ms[i].delay += 5000; //For other skills, they don't need to be reused so often.
 				
 				if (i+1 < MAX_MOBSKILL) { //duplicate this so it also triggers on self.
 					memcpy(&ms[i+1], &ms[i], sizeof(struct mob_skill));
-					mob_db_data[class_]->maxskill = i++;
+					mob_db_data[class_]->maxskill = ++i;
 					ms[i].target = MST_SELF;
 					ms[i].cond1 = MSC_MYHPLTMAXRATE;
 				}
 				break;
 			default:
-				continue;
+				switch (skill_id) { //Certain Special skills that are passive, and thus, never triggered.
+					case MO_TRIPLEATTACK:
+					case TF_DOUBLE:
+						ms[i].state = MSS_BERSERK;
+						ms[i].target = MST_TARGET;
+						ms[i].cond1 = MSC_ALWAYS;
+						ms[i].permillage = skill_id==TF_DOUBLE?(ms[i].skill_lv*500):(3000-ms[i].skill_lv*100);
+						ms[i].delay -= 5000; //Remove the added delay as these could trigger on "all hits".
+						break;
+					default: //Untreated Skill
+						continue;
+				}
 		}
-		mob_db_data[class_]->maxskill = i++;
+		mob_db_data[class_]->maxskill = ++i;
 	}
 	//Finally, spawn it.
 	i = mob_once_spawn(sd,mapname,x,y,"--en--",class_,1,event);

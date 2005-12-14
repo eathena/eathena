@@ -1854,6 +1854,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		break;
 	case KN_AUTOCOUNTER: //Skills that need be passed as a normal attack for the client to display correctly.
 	case SN_SHARPSHOOTING:
+	case TF_DOUBLE:
 		clif_damage(src,bl,tick,dmg.amotion,dmg.dmotion,damage,dmg.div_,dmg.type,dmg.damage2);
 		break;
 	default:
@@ -2592,6 +2593,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 	/* •?Ší?U?ŒnƒXƒLƒ‹ */
 	case SM_BASH:			/* ƒoƒbƒVƒ… */
 	case MC_MAMMONITE:		/* ƒ?ƒ}?ƒiƒCƒg */
+	case TF_DOUBLE:
 	case AC_DOUBLE:			/* ƒ_ƒuƒ‹ƒXƒgƒŒƒCƒtƒBƒ“ƒO */
 	case AC_SHOWER:			/* ƒAƒ??ƒVƒƒƒ?? */
 	case AS_SONICBLOW:		/* ƒ\ƒjƒbƒNƒuƒ?? */

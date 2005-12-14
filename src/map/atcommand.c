@@ -9908,7 +9908,7 @@ int atcommand_clone(
 	if (strcmpi(command, "@clone") == 0) flag = 1;
 	else if (strcmpi(command, "@slaveclone") == 0) flag = 2;
 			
-	if((x = mob_clone_spawn(pl_sd, sd->mapname, x, y, "", flag, 0)) > 0) {
+	if((x = mob_clone_spawn(pl_sd, sd->mapname, x, y, "", flag==2?3:flag, 0)) > 0) {
 		if (flag == 2) {
 			md = (struct mob_data*)map_id2bl(x);
 			if (md && md->bl.type == BL_MOB)

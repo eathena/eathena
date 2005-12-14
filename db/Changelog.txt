@@ -34,6 +34,8 @@
 	2653,Sacrifice_Ring: seems eAthena doesn't have bonus option yet <- explain how this works so I can code it in. [Skotlex]
 		* * * On your death it breaks (BS can fix it), you drop all Equipment (equipped, even the ring). And revive with 1 HP / 1 SP at the place of your death.
 12/13
+	* Modified a bit a few skills in skill_db to enable mobs to properly use
+	  them. [Skotlex]
 	* Fixed G_BAPHOMET_ to show up as "Baphomet" instead of "Baphomet Jr." [MasterOfMuppets]
 12/12
 	* Slotted Elemental Armors can be worn by anyone except novice. [Vicious]

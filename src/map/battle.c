@@ -1175,6 +1175,10 @@ static struct Damage battle_calc_weapon_attack(
 				wd.div_= t_size+1;
 				break;
 
+			case TF_DOUBLE: //For NPC used skill.
+				wd.type = 0x08;
+				break;
+				
 			case KN_SPEARSTAB:
 			case KN_BOWLINGBASH:
 			case MO_BALKYOUNG:
@@ -1552,6 +1556,9 @@ static struct Damage battle_calc_weapon_attack(
 					break;
 				case HT_POWER: //FIXME: How exactly is the STR based damage supposed to be done? [Skotlex]
 					skillratio += 10*status_get_str(src);
+					break;
+				case TF_DOUBLE: //This is the mob-used Double Attack. [Skotlex]
+					skillratio += 100;
 					break;
 				case AC_DOUBLE:
 					skillratio += 80+20*skill_lv;
@@ -3240,8 +3247,6 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 				state |= BCT_ENEMY;
 				strip_enemy = 0;
 			}
-			else if (md->special_state.ai && src->type == BL_MOB)
-				state |= BCT_ENEMY;	//Summoned creatures can target other mobs.
 			if (md->master_id && (t_bl = map_id2bl(md->master_id)) == NULL)
 				t_bl = &md->bl; //Fallback on the mob itself, otherwise consider this a "versus master" scenario.
 			break;
