@@ -27,8 +27,8 @@ OnInit:
 //Id of the item that is traded for the wedding ring (use 0 to disable):
 	set $@wed_ring, 2613;
 
-	set $@wed_groom_reg, 600000;	//Registration cost for the Groom
-	set $@wed_bride_reg, 500000; //Registration cost for the Bride
+	set $@wed_groom_reg, 1300000;	//Registration cost for the Groom
+	set $@wed_bride_reg, 1200000; //Registration cost for the Bride
 	set $@wed_divorce_fee, 50000;	//Divorcing fee
 	set $@wedding_effect, 1; //On who to display the FX: 0: Priest, 1: Bride, 2: Groom
 	end;
