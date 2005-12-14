@@ -1485,7 +1485,7 @@ int guild_broken(int guild_id,int flag)
 	numdb_foreach(castle_db,castle_guild_broken_sub,guild_id);
 	numdb_erase(guild_db,guild_id);
 	if (guild_cache && guild_cache->guild_id == guild_id)
-		guild_cache == NULL;
+		guild_cache = NULL;
 	guild_storage_delete(guild_id);
 	aFree(g);
 	return 0;

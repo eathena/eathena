@@ -1,5 +1,7 @@
 Date	Added
 2005/12/14
+	* Optimized graffiti display packets (what was I thinking?) [Valaris]
+	* Corrected a statement in guild.c (== to =) in nulling out the guild cache. [Valaris]
 	* Implemented a mini cache for guilds/parties in the map server. Looking up
 	  the same guild/party twice or more should result in instant seek times
 	  until a different one is looked up. [Skotlex]
