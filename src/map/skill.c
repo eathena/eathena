@@ -866,15 +866,14 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 			else if(sd->sc_data[SC_READYTURN].timer != -1 && sd->sc_data[SC_COMBO].timer == -1 && rand()%100 < 15)
 				status_change_start(src,SC_COMBO, TK_TURNKICK,0,0,0,2000,0);
 			else if(sd->sc_data[SC_READYCOUNTER].timer != -1 && sd->sc_data[SC_COMBO].timer == -1) //additional chance from SG_FRIEND [Komurka]
-			{			
-				int counter_rate[4] = {20,40,50,60};	//{100%,200%,250%,300%};
-				int counter_lvl=0;
-				if (sd->sc_data[SC_COUNTER_RATE_UP].timer != -1 && (skill = pc_checkskill(sd,SG_FRIEND)) > 0)
-				{
-					counter_lvl=skill;
-					status_change_end(src,SC_COUNTER_RATE_UP,-1);
+			{	
+				int rate = 20;
+				if (sd->sc_data[SC_SKILLRATE_UP].timer != -1 && sd->sc_data[SC_SKILLRATE_UP].val1 == TK_COUNTER) {
+					rate += rate*sd->sc_data[SC_SKILLRATE_UP].val2/100;
+					status_change_end(src,SC_SKILLRATE_UP,-1);
 				} 
-				if (rand()%100 < counter_rate[counter_lvl]) status_change_start(src,SC_COMBO, TK_COUNTER,bl->id,0,0,2000,0);
+				if (rand()%100 < rate)
+				  status_change_start(src,SC_COMBO, TK_COUNTER,bl->id,0,0,2000,0);
 			}
 		}
 		break;
@@ -1731,6 +1730,9 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 				status_change_start(src,SC_COMBO,MO_TRIPLEATTACK,skilllv,0,0,delay,0);
 				sd->attackabletime = sd->canmove_tick = tick + delay;
 				clif_combo_delay(src, delay);
+				
+				if (sd->status.party_id>0) //bonus from SG_FRIEND [Komurka]
+					party_skill_check(sd, sd->status.party_id, MO_TRIPLEATTACK, skilllv);
 				break;
 			}
 			case MO_CHAINCOMBO:
@@ -1791,6 +1793,13 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 					status_change_start(src,SC_COMBO,HT_POWER,bl->id,0,0,2000,0);
 					clif_combo_delay(src,2000);
 				}
+				break;
+			}
+			case TK_COUNTER:
+			{	//bonus from SG_FRIEND [Komurka]
+				int level;
+				if(sd->status.party_id>0 && (level = pc_checkskill(sd,SG_FRIEND)))
+					party_skill_check(sd, sd->status.party_id, TK_COUNTER,level);
 				break;
 			}
 			case SL_STIN:

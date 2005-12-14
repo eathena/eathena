@@ -1717,27 +1717,6 @@ static struct Damage battle_calc_weapon_attack(
 					break;
 				case MO_TRIPLEATTACK:
 					skillratio += 20*skill_lv;
-					//bonus from SG_FRIEND - dunno where to place it ;/ [Komurka]
-					if (sd && sd->status.party_id>0)
-					{
-						struct party *pt = party_search(sd->status.party_id);
-						if(pt!=NULL)
-						{
-							int i;
-							struct map_session_data* psrc_sd = NULL;
-	
-							for(i=0;i<MAX_PARTY;i++)
-							{
-								psrc_sd = pt->member[i].sd;
-								if(!psrc_sd || sd == psrc_sd)
-									continue;
-								if(sd->bl.m == psrc_sd->bl.m && pc_checkskill(psrc_sd,TK_COUNTER)>0)
-								{
-									status_change_start(&psrc_sd->bl,SC_COUNTER_RATE_UP,1,0,0,0,10000,0); //upkeep 10000
-								}
-							}
-						}
-					}
 					break;
 				case MO_CHAINCOMBO:
 					skillratio += 50+50*skill_lv;
@@ -1814,27 +1793,6 @@ static struct Damage battle_calc_weapon_attack(
 					break;
 				case TK_COUNTER:
 					skillratio += 90 + 30*skill_lv;
-					//bonus from SG_FRIEND - dunno where to place it ;/ [Komurka]
-					if(sd && sd->status.party_id>0 && (skill = pc_checkskill(sd,SG_FRIEND))>0)
-					{
-						struct party *pt = party_search(sd->status.party_id);
-						if(pt && skill>0)
-						{
-							int i;
-							struct map_session_data* psrc_sd = NULL;
-							for(i=0;i<MAX_PARTY;i++)
-							{
-								psrc_sd = pt->member[i].sd;
-								if(!psrc_sd || sd==psrc_sd)
-									continue;
-									
-								if(sd->bl.m == psrc_sd->bl.m && pc_checkskill(psrc_sd,MO_TRIPLEATTACK)>0)
-								{
-									status_change_start(&psrc_sd->bl,SC_TRIPLEATTACK_RATE_UP,skill,0,0,0,10000,0); //uptime 10000 
-								}
-							}
-						}
-					}
 					break;
 				case TK_JUMPKICK:
 					skillratio += -70 + 10*skill_lv;
@@ -2987,13 +2945,13 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 	//Recycled the rdamage variable rather than use a new one... [Skotlex]
 	if(sd && (rdamage = pc_checkskill(sd,MO_TRIPLEATTACK)) > 0 && sd->status.weapon <= 16) // triple blow works with bows ^^ [celest]
 	{
-		int triple_rate=100;
-		if (sc_data && sc_data[SC_TRIPLEATTACK_RATE_UP].timer!=-1)
+		int triple_rate= 30 - rdamage; //Base Rate
+		if (sc_data && sc_data[SC_SKILLRATE_UP].timer!=-1 && sc_data[SC_SKILLRATE_UP].val1 == MO_TRIPLEATTACK)
 		{
-			triple_rate+=50*(sc_data[SC_TRIPLEATTACK_RATE_UP].val1);
-			status_change_end(src,SC_TRIPLEATTACK_RATE_UP,-1);
+			triple_rate+= triple_rate*(sc_data[SC_SKILLRATE_UP].val2)/100;
+			status_change_end(src,SC_SKILLRATE_UP,-1);
 		}
-		if (rand()%100 < (30 - rdamage)*(triple_rate/100)) return skill_attack(BF_WEAPON,src,src,target,MO_TRIPLEATTACK,rdamage,tick,0);
+		if (rand()%100 < triple_rate) return skill_attack(BF_WEAPON,src,src,target,MO_TRIPLEATTACK,rdamage,tick,0);
 	}
 	else if (sc_data && sc_data[SC_SACRIFICE].timer != -1)
 		return skill_attack(BF_WEAPON,src,src,target,PA_SACRIFICE,sc_data[SC_SACRIFICE].val1,tick,0);

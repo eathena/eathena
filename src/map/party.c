@@ -18,6 +18,7 @@
 #include "clif.h"
 #include "log.h"
 #include "skill.h"
+#include "status.h"
 
 #define PARTY_SEND_XY_INVERVAL	1000	// À•W‚â‚g‚o‘—M‚ÌŠÔŠu
 
@@ -530,7 +531,7 @@ int party_check_conflict(struct map_session_data *sd)
 	return 0;
 }
 
-int party_twilight_check(int party_id, int skillid)
+int party_skill_check(struct map_session_data *sd, int party_id, int skillid, int skilllv)
 {
 	struct party *p;
 	struct map_session_data *p_sd;
@@ -541,10 +542,34 @@ int party_twilight_check(int party_id, int skillid)
 	for(i=0;i<MAX_PARTY;i++){
 		if ((p_sd = p->member[i].sd) == NULL)
 			continue;
-		if ((p_sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE && skillid == AM_TWILIGHT2)
-			return 1;
-		if ((p_sd->class_&MAPID_NOVICE) == MAPID_TAEKWON && skillid == AM_TWILIGHT3)
-			return 1;
+		switch(skillid) {
+			case TK_COUNTER: //Increase Triple Attack rate of Monks.
+				if((p_sd->class_&MAPID_UPPERMASK) == MAPID_MONK
+					&& sd->bl.m == p_sd->bl.m
+					&& pc_checkskill(p_sd,MO_TRIPLEATTACK)) {
+					int rate = 50 +50*skilllv; //+100/150/200% success rate
+					status_change_start(&p_sd->bl,SC_SKILLRATE_UP,MO_TRIPLEATTACK,rate,0,0,skill_get_time(SG_FRIEND, 1),0);
+				}
+				break;
+			case MO_TRIPLEATTACK: //Increase Counter rate of Star Gladiators
+				if((p_sd->class_&MAPID_UPPERMASK) == MAPID_STAR_GLADIATOR
+					&& sd->bl.m == p_sd->bl.m
+					&& pc_checkskill(p_sd,TK_COUNTER)) {
+					int rate = 50 +50*pc_checkskill(p_sd,TK_COUNTER); //+100/150/200% success rate
+					status_change_start(&p_sd->bl,SC_SKILLRATE_UP,TK_COUNTER,rate,0,0,skill_get_time(SG_FRIEND, 1),0);
+				}
+				break;
+			case AM_TWILIGHT2: //Twilight Pharmacy, requires Super Novice
+				if ((p_sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE
+					&& sd->bl.m == p_sd->bl.m)
+					return 1;
+				break;
+			case AM_TWILIGHT3: //Twilight Pharmacy, Requires Taekwon
+				if ((p_sd->class_&MAPID_NOVICE) == MAPID_TAEKWON
+					&& sd->bl.m == p_sd->bl.m)
+					return 1;
+				break;
+		}
 	}
 	return 0;
 }
