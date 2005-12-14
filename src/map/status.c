@@ -3372,9 +3372,9 @@ int status_get_party_id(struct block_list *bl)
 			struct map_session_data *msd;
 			if (md->special_state.ai && (msd = map_id2sd(md->master_id)) != NULL)
 				return msd->status.party_id;
-//			return -md->master_id;
+			return -md->master_id;
 		}
-		return -MAX_MOB_DB; //Make all mobs belong to the same party to avoid them fighting.
+		return 0; //No party.
 	}
 	if(bl->type==BL_SKILL)
 		return ((struct skill_unit *)bl)->group->party_id;
@@ -3396,8 +3396,7 @@ int status_get_guild_id(struct block_list *bl)
 			return md->guardian_data->guild_id;
 		if (md->special_state.ai && (msd = map_id2sd(md->master_id)) != NULL)
 			return msd->status.guild_id; //Alchemist's mobs [Skotlex]
-		//Why Max_mob_db? Dunno... just a random pick to make all mobs be allied during WoE. [Skotlex]
-		return -MAX_MOB_DB;
+		return 0; //No guild.
 	}
 	if(bl->type==BL_SKILL)
 		return ((struct skill_unit *)bl)->group->guild_id;

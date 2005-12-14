@@ -3301,6 +3301,8 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 			if (map_flag_gvg(m) && !sd->status.guild_id &&
 				t_bl->type == BL_MOB && ((struct mob_data *)t_bl)->guardian_data)
 				return 0; //If you don't belong to a guild, can't target guardians/emperium.
+			if (t_bl->type != BL_PC)
+				state |= BCT_ENEMY; //Natural enemy.
 			break;
 		}
 		case BL_MOB:
@@ -3308,8 +3310,13 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 			struct mob_data *md = (struct mob_data *)s_bl;
 			if (!agit_flag && md->guardian_data && md->guardian_data->guild_id)
 				return 0; //Disable guardians/emperium owned by Guilds on non-woe times.
-			if (md->special_state.ai && target->type == BL_MOB)
-				state |= BCT_ENEMY;	//Summoned creatures can target other mobs.
+			if (!md->special_state.ai) { //Normal mobs.
+				if (t_bl->type == BL_MOB && !((struct mob_data*)t_bl)->special_state.ai)
+					state |= BCT_PARTY; //Normal mobs with no ai are friends.
+				else
+					state |= BCT_ENEMY; //However, all else are enemies.
+			} else if (t_bl->type != BL_PC)
+				state |= BCT_ENEMY; //Natural enemy for AI mobs are nonplayers.
 			if (md->master_id && (s_bl = map_id2bl(md->master_id)) == NULL)
 				s_bl = &md->bl; //Fallback on the mob itself, otherwise consider this a "from master" scenario.
 			break;
@@ -3321,6 +3328,8 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 				return 0; //Pet may not attack non-mobs/items.
 			if (t_bl->type == BL_MOB && ((struct mob_data *)t_bl)->guardian_data && flag&BCT_ENEMY)
 				return 0; //pet may not attack Guardians/Emperium
+			if (t_bl->type != BL_PC)
+				state |= BCT_ENEMY; //Stock enemy type.
 			if (pd->msd)
 				s_bl = &pd->msd->bl; //"My master's enemies are my enemies..."
 			break;
@@ -3346,11 +3355,6 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 			state&=~BCT_ENEMY;
 		return (flag&state)?1:-1;
 	}
-
-	//Check default enemy settings.
-	if ((s_bl->type == BL_MOB && t_bl->type == BL_PC) ||
-		(s_bl->type == BL_PC && t_bl->type == BL_MOB))
-		state |= BCT_ENEMY;
 	
 	if (map_flag_vs(m)) { //Check rivalry settings.
 		if (flag&(BCT_PARTY|BCT_ENEMY)) {

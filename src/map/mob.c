@@ -3955,7 +3955,7 @@ int mob_clone_spawn(struct map_session_data *sd, char *mapname, int x, int y, co
 	mob_db_data[class_]->range3=AREA_SIZE; //Let them have the same view-range as players.
 	mob_db_data[class_]->race=status_get_race(&sd->bl);
 	mob_db_data[class_]->element=status_get_element(&sd->bl);
-	mob_db_data[class_]->mode|=MD_AGGRESSIVE|MD_CANATTACK|MD_CANMOVE;
+	mob_db_data[class_]->mode=MD_AGGRESSIVE|MD_ASSIST|MD_CANATTACK|MD_CANMOVE;
 	mob_db_data[class_]->speed=status_get_speed(&sd->bl);
 	mob_db_data[class_]->adelay=status_get_adelay(&sd->bl);
 	mob_db_data[class_]->amotion=status_get_amotion(&sd->bl);
@@ -3997,10 +3997,10 @@ int mob_clone_spawn(struct map_session_data *sd, char *mapname, int x, int y, co
 		ms[i].skill_id = skill_id;
 		ms[i].skill_lv = sd->status.skill[skill_id].lv;
 		ms[i].state = -1;
-		ms[i].permillage = 1000; //10% chance to cast?
+		ms[i].permillage = 100; //1% chance since it's on any state.
 		ms[i].emotion = -1;
 		ms[i].cancel = 0;
-		ms[i].delay = skill_delayfix(&sd->bl,skill_id, ms[i].skill_lv, 0);
+		ms[i].delay = 5000+skill_delayfix(&sd->bl,skill_id, ms[i].skill_lv, 0);
 		ms[i].casttime = skill_castfix(&sd->bl,skill_id, ms[i].skill_lv, 0);
 
 		switch(skill_get_inf(skill_id)) {
@@ -4010,8 +4010,10 @@ int mob_clone_spawn(struct map_session_data *sd, char *mapname, int x, int y, co
 				if (skill_get_range(skill_id, ms[i].skill_lv)  > 3) {
 					ms[i].state = MSS_RUSH;
 					ms[i].permillage = 1000;
-				} else
+				} else {
 					ms[i].state = MSS_BERSERK;
+					ms[i].permillage = 500;
+				}
 				break;
 			case INF_GROUND_SKILL:
 				if (skill_get_inf2(skill_id)&INF2_TRAP) { //Traps!
@@ -4023,10 +4025,12 @@ int mob_clone_spawn(struct map_session_data *sd, char *mapname, int x, int y, co
 				if (skill_get_unit_target(skill_id) == BCT_ENEMY) { //Target Enemy
 					ms[i].target = MST_TARGET;
 					ms[i].cond1 = MSC_ALWAYS;
+					ms[i].permillage = 500;
 				} else { //Target allies
 					ms[i].target = MST_FRIEND;
 					ms[i].cond1 = MSC_FRIENDHPLTMAXRATE;
-					ms[i].val[0] = 95;
+					ms[i].cond2 = 95;
+					ms[i].permillage = 500;
 				}
 				break;
 			case INF_SELF_SKILL:
@@ -4036,12 +4040,17 @@ int mob_clone_spawn(struct map_session_data *sd, char *mapname, int x, int y, co
 				} else //Self skill
 					ms[i].target = MST_SELF;
 				ms[i].cond1 = MSC_MYHPLTMAXRATE;
-				ms[i].val[0] = 90;
+				ms[i].cond2 = 90;
 				break;
 			case INF_SUPPORT_SKILL:
 				ms[i].target = MST_FRIEND;
 				ms[i].cond1 = MSC_FRIENDHPLTMAXRATE;
-				ms[i].val[0] = 90;
+				ms[i].cond2 = 90;
+				if (skill_id == AL_HEAL)
+					ms[i].permillage = 500; //Higher skill rate usage for heal.
+				else
+					ms[i].delay += 5000; //For other skills, they don't need to be reused so often.
+				
 				if (i+1 < MAX_MOBSKILL) { //duplicate this so it also triggers on self.
 					memcpy(&ms[i+1], &ms[i], sizeof(struct mob_skill));
 					mob_db_data[class_]->maxskill = i++;

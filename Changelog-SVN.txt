@@ -1,5 +1,11 @@
 Date	Added
 2005/12/13
+	* Updates/fixes/corrections to battle check target so that mobs with
+	  special AI can fight mobs without it even if the mob doesn't has a human
+	  master. Also updated it so that mobs with no special AI are all friends by
+	  default. [Skotlex]
+	* Clone skill fixes, support/self skills are now triggering (never
+	  triggered before), adjusted some of the skill usage rates. [Skotlex]
 	* Dyes will now work correctly on cloned or mob_avail class monsters.
 	  save_clothcolor must be enable in battle_athena.conf. [Valaris]
 	* Added carts, falcons and pecos to clone and mob_avail class monster spawns. [Valaris]
