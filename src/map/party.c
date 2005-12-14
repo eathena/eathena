@@ -23,6 +23,7 @@
 #define PARTY_SEND_XY_INVERVAL	1000	// 座標やＨＰ送信の間隔
 
 static struct dbt* party_db;
+static struct party* party_cache = NULL; //party in cache for skipping consecutive lookups. [Skotlex]
 int party_share_level = 10;
 int party_send_xy_timer(int tid,unsigned int tick,int id,int data);
 /*==========================================
@@ -50,7 +51,11 @@ void do_init_party(void)
 // 検索
 struct party *party_search(int party_id)
 {
-	return (struct party *) numdb_search(party_db,party_id);
+	if (party_cache && party_cache->party_id == party_id)
+		return party_cache;
+
+	party_cache = (struct party *) numdb_search(party_db,party_id);
+	return party_cache;
 }
 int party_searchname_sub(void *key,void *data,va_list ap)
 {
@@ -383,6 +388,8 @@ int party_broken(int party_id)
 		}
 	}
 	numdb_erase(party_db,party_id);
+	if (party_cache && party_cache->party_id == party_id)
+		party_cache = NULL;
 	return 0;
 }
 // パーティの設定変更要求

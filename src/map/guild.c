@@ -22,6 +22,7 @@
 #include "showmsg.h"
 #include "log.h"
 
+static struct guild* guild_cache; //For fast retrieval of the same guild over and over. [Skotlex]
 static struct dbt *guild_db;
 static struct dbt *castle_db;
 static struct dbt *guild_expcache_db;
@@ -167,7 +168,10 @@ void do_init_guild(void)
 // ŒŸõ
 struct guild *guild_search(int guild_id)
 {
-	return (struct guild *) numdb_search(guild_db,guild_id);
+	if(guild_cache && guild_cache->guild_id == guild_id)
+		return guild_cache;
+	guild_cache = (struct guild *) numdb_search(guild_db,guild_id);
+	return guild_cache;
 }
 int guild_searchname_sub(void *key,void *data,va_list ap)
 {
@@ -1480,6 +1484,8 @@ int guild_broken(int guild_id,int flag)
 	numdb_foreach(guild_db,guild_broken_sub,guild_id);
 	numdb_foreach(castle_db,castle_guild_broken_sub,guild_id);
 	numdb_erase(guild_db,guild_id);
+	if (guild_cache && guild_cache->guild_id == guild_id)
+		guild_cache == NULL;
 	guild_storage_delete(guild_id);
 	aFree(g);
 	return 0;

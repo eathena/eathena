@@ -1,5 +1,8 @@
 Date	Added
 2005/12/14
+	* Implemented a mini cache for guilds/parties in the map server. Looking up
+	  the same guild/party twice or more should result in instant seek times
+	  until a different one is looked up. [Skotlex]
 	* Fixed saving account variables [Komurka]
 	* Fixed SL_KAIZEL not starting the proper effect. [Skotlex]
 	* Merged Reddozen's work of SL_KAUPE [Skotlex]
