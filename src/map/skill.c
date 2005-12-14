@@ -2791,7 +2791,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 		{
 			if(sd) {
 				struct walkpath_data wpd;
-				int dx,dy;
+				int dx,dy,speed;
 
 				dx = bl->x - sd->bl.x;
 				dy = bl->y - sd->bl.y;
@@ -2816,8 +2816,13 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 					skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
 				else
 					clif_skill_fail(sd,skillid,0,0);
+				speed = sd->speed;
+				sd->speed = 20; //Simulate ultra fast walk speed. [Skotlex]
+//				clif_updatestatus(sd, SP_SPEED); //Not sure yet if this is needed.
 				clif_walkok(sd);
 				clif_movechar(sd);
+				sd->speed = speed;
+//				clif_updatestatus(sd, SP_SPEED);
 				if(dx < 0) dx = -dx;
 				if(dy < 0) dy = -dy;
 				sd->attackabletime = sd->canmove_tick = tick + 100 + sd->speed * ((dx > dy)? dx:dy);

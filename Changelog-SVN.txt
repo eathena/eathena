@@ -1,5 +1,8 @@
 Date	Added
 2005/12/14
+	* Temporarily changed the walk speed during Charge Attack and Extremity
+	  Fist to simulate a faster 'zoom' to the target (somewhat untested yet)
+	  [Skotlex]
 	* Corrected SL_HIGH so that the total of each stat is always 50...
 	  [Skotlex]
 	* Optimized graffiti display packets (what was I thinking?) [Valaris]
