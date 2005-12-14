@@ -374,6 +374,40 @@ extern int current_equip_item_index;
 #define MD_ANGRY 0x800
 #define MD_MASK 0xFFF
 
+//Status change option definitions (options are what makes status changes visible to chars
+//who were not on your field of sight when it happened)
+//opt1: Non stackable status changes.
+enum {
+	OPT1_STONE = 1, //Petrified
+	OPT1_FREEZE,
+	OPT1_STUN,
+	OPT1_SLEEP,
+	//What is 5?
+	OPT1_STONEWAIT=6 //Petrifying
+};
+
+//opt2: Stackable status changes.
+#define OPT2_POISON 0x001
+#define OPT2_CURSE 0x002
+#define OPT2_SILENCE 0x004
+#define OPT2_BLIND 0x008
+#define OPT2_SIGNUMCRUCIS 0x040
+
+//Opt3: Skill state changes, stackable.
+#define OPT3_SPEEDUP 0x001 //Quicken skills
+#define OPT3_POWERUP 0x002 //Power Thrust
+#define OPT3_SHIELD 0x004 //Energy Coat
+#define OPT3_FURY 0x008 //Explosion spirits
+#define OPT3_ELECTRIC 0x010 //Steel Body
+#define OPT3_STOP 0x020 //Blade Stop
+//64 Unknown
+#define OPT3_BERSERK 0x080 //Berserk
+//256 Unknown
+//512 Unknown
+#define OPT3_PINKAURA 0x400 //Marionette
+#define OPT3_AURASHIELD 0x800 //Assumptio
+#define OPT3_HEAT 0x1000 //Warmth Skills
+
 // ÉpÉâÉÅÅ[É^èäìæån battle.c ÇÊÇËà⁄ìÆ
 int status_get_class(struct block_list *bl);
 int status_get_dir(struct block_list *bl);

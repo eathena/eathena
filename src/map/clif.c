@@ -8980,7 +8980,7 @@ void clif_parse_UseItem(int fd, struct map_session_data *sd) {
 		clif_clearchar_area(&sd->bl, 1);
 		return;
 	}
-	if (sd->vender_id != 0 || (sd->opt1 > 0 && sd->opt1 != 6))
+	if (sd->vender_id != 0 || (sd->opt1 > 0 && sd->opt1 != OPT1_STONEWAIT))
 		return;
 	if (sd->npc_id!=0 && sd->npc_id != sd->npc_item_flag) //This flag enables you to use items while in an NPC. [Skotlex]
 		return;

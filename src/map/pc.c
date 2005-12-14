@@ -345,7 +345,7 @@ int pc_setrestartvalue(struct map_session_data *sd,int type) {
  */
 int pc_can_move(struct map_session_data *sd)
 {
-	if (sd->canmove_tick > gettick() || (sd->opt1 > 0 && sd->opt1 != 6) ||
+	if (sd->canmove_tick > gettick() || (sd->opt1 > 0 && sd->opt1 != OPT1_STONEWAIT) ||
 		sd->sc_data[SC_ANKLE].timer != -1 ||
    	sd->sc_data[SC_AUTOCOUNTER].timer !=-1 ||
 		sd->sc_data[SC_TRICKDEAD].timer !=-1 ||

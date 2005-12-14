@@ -4132,6 +4132,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		}
 		break;
 	case SL_KAIZEL:
+	case SL_KAUPE:
 		if (sd) {
 			if (!dstsd || (
 				(dstsd->class_&MAPID_UPPERMASK) != MAPID_SOUL_LINKER && 

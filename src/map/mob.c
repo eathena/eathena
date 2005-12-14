@@ -457,7 +457,7 @@ int mob_can_move(struct mob_data *md)
 {
 	nullpo_retr(0, md);
 
-	if(md->canmove_tick > gettick() || md->skilltimer != -1 || (md->opt1 > 0 && md->opt1 != 6) || md->option&2)
+	if(md->canmove_tick > gettick() || md->skilltimer != -1 || (md->opt1 > 0 && md->opt1 != OPT1_STONEWAIT) || md->option&OPTION_HIDE)
 		return 0;
 	// アンクル中で動けないとか
 	if( md->sc_data[SC_ANKLE].timer != -1 || //アンクルスネア
@@ -1549,7 +1549,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 	}
 
 	// Abnormalities
-	if((md->opt1 > 0 && md->opt1 != 6) || md->state.state == MS_DELAY || md->sc_data[SC_BLADESTOP].timer != -1)
+	if((md->opt1 > 0 && md->opt1 != OPT1_STONEWAIT) || md->state.state == MS_DELAY || md->sc_data[SC_BLADESTOP].timer != -1)
 		return 0;
 
 	if (md->sc_data && md->sc_data[SC_BLIND].timer != -1)

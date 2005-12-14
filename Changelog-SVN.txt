@@ -1,5 +1,9 @@
 Date	Added
 2005/12/14
+	* Fixed SL_KAIZEL not starting the proper effect. [Skotlex]
+	* Merged Reddozen's work of SL_KAUPE [Skotlex]
+	* Updated checkweight() script command to return false when the player has
+	  inventory full. [Skotlex]
 	* Soullink check for SG_FUSION [Komurka]
 2005/12/13
 	* Fixed @slaveclone not attacking enemies. [Skotlex]

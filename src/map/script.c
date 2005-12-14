@@ -3503,7 +3503,7 @@ int buildin_countitem2(struct script_state *st)
  */
 int buildin_checkweight(struct script_state *st)
 {
-	int nameid=0,amount;
+	int nameid=0,amount,i;
 	unsigned long weight;
 	struct map_session_data *sd;
 	struct script_data *data;
@@ -3529,8 +3529,16 @@ int buildin_checkweight(struct script_state *st)
 	weight = itemdb_weight(nameid)*amount;
 	if(amount > MAX_AMOUNT || weight + sd->weight > sd->max_weight){
 		push_val(st->stack,C_INT,0);
-	} else {
-		push_val(st->stack,C_INT,1);
+	} else { 
+		//Check if the inventory ain't full.
+		//TODO: Currently does not checks if you can just stack it on top of another item you already have....
+
+		i = pc_search_inventory(sd,0);
+		if (i >= 0) //Empty slot available.
+			push_val(st->stack,C_INT,1);
+		else //Inventory full
+			push_val(st->stack,C_INT,0);
+			
 	}
 
 	return 0;

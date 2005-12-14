@@ -304,7 +304,10 @@ int SkillStatusChangeTable[]={	/* status.hのenumのSC_***とあわせること */
 /* 460- */
 	MAPID_HUNTER,
 	MAPID_SOUL_LINKER,
-	-1,-1,-1,-1,-1,-1,-1,-1,
+	SC_KAIZEL,
+	-1,
+	SC_KAUPE,
+	-1,-1,-1,-1,-1,
 /* 470- */
 	-1,
 	SC_SKE,
@@ -4466,7 +4469,23 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 				}
 			}
 			break;
-			
+		case SC_KAUPE:
+			if (flag&4)
+				break; //Do nothing when loading.
+			switch (val1) {
+				case 3: //33*3 + 1 -> 100%
+					val2++;
+				case 1:
+				case 2: //33, 66%
+					val2 += 33*val1;
+					val3 = 1; //Dodge 1 attack total.
+					break;
+				default: //Custom. For high level mob usage, higher level means more blocks. [Skotlex]
+					val2 = 100;
+					val3 = val1-2;
+					break;
+			}
+			break;
 		case SC_COMBO:
 			switch (val1) { //Val1 contains the skill id
 				case TK_STORMKICK:
@@ -4619,9 +4638,9 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 				}
 			}
 			if(type == SC_STONE)
-				*opt1 = 6;
+				*opt1 = OPT1_STONEWAIT;
 			else
-				*opt1 = type - SC_STONE + 1;
+				*opt1 = OPT1_STONE + (type - SC_STONE);
 			opt_flag = 1;
 			break;
 		case SC_POISON:
@@ -4632,11 +4651,11 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			opt_flag = 1;
 			break;
 		case SC_DPOISON:	// 暫定で毒のエフェクトを使用
-			*opt2 |= 1;
+			*opt2 |= OPT2_POISON;
 			opt_flag = 1;
 			break;
 		case SC_SIGNUMCRUCIS:
-			*opt2 |= 0x40;
+			*opt2 |= OPT2_SIGNUMCRUCIS;
 			opt_flag = 1;
 			break;
 		case SC_HIDING:
@@ -5113,17 +5132,17 @@ int status_change_end( struct block_list* bl , int type,int tid )
 		case SC_POISON:
 			if (sc_data[SC_DPOISON].timer != -1)	//
 				break;						// DPOISON用のオプション
-			*opt2 &= ~1;					// が?用に用意された場合には
+			*opt2 &= ~OPT2_POISON;					// が?用に用意された場合には
 			opt_flag = 1;					// ここは削除する
 			break;							//
 		case SC_DPOISON:
 			if (sc_data[SC_POISON].timer != -1)	// DPOISON用のオプションが
 				break;							// 用意されたら削除
-			*opt2 &= ~1;	// 毒?態解除
+			*opt2 &= ~OPT2_POISON;	// 毒?態解除
 			opt_flag = 1;
 			break;
 		case SC_SIGNUMCRUCIS:
-			*opt2 &= ~0x40;
+			*opt2 &= ~OPT2_SIGNUMCRUCIS;
 			opt_flag = 1;
 			break;
 
@@ -5365,7 +5384,7 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 			sc_data[type].val4 = 0;
 			battle_stopwalking(bl,1);
 			if(opt1) {
-				*opt1 = 1;
+				*opt1 = OPT1_STONE;
 				clif_changeoption(bl);
 			}
 			sc_data[type].timer=add_timer(1000+tick,status_change_timer, bl->id, data );
