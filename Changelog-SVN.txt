@@ -1,4 +1,6 @@
 Date	Added
+2005/12/14
+	* Soullink check for SG_FUSION [Komurka]
 2005/12/13
 	* Fixed @slaveclone not attacking enemies. [Skotlex]
 	* Some more cleaning to the clone skills, proper support for Heal,

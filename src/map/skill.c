@@ -8256,6 +8256,10 @@ int skill_check_condition(struct map_session_data *sd,int type)
 			break;
 		clif_skill_fail(sd,skill,0,0);
 		return 0;
+	case SG_FUSION:
+		if(sd->sc_data[SC_SPIRIT].timer != -1 && sd->sc_data[SC_SPIRIT].val2 == SL_STAR)
+			break;
+		return 0;
 	}
 
 	if(!(type&2)){
