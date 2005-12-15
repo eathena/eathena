@@ -26,6 +26,8 @@ Nexon
 Date		Added
 ======
 12/15
+	* Added kobold leader to geffen feild 12 in eamobs and omobs. [Kayla]
+12/14
 	* Updated wedding costs to offical values (600k for groom, 500k for bride). Deleted
 	  npc/other/wedding.txt (very old). Enabled marriage.txt by default. [Kayla]
 12/13
