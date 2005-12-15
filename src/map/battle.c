@@ -2072,11 +2072,11 @@ static struct Damage battle_calc_weapon_attack(
 		s_race2 = status_get_race2(src);
 		s_class = status_get_class(src);
 		
-		cardfix=cardfix*(100-tsd->subrace[s_race])/100;
 		cardfix=cardfix*(100-tsd->subele[s_ele])/100;
 		cardfix=cardfix*(100-tsd->subsize[s_size])/100;
  		cardfix=cardfix*(100-tsd->subrace2[s_race2])/100;
-		cardfix=cardfix*(100-tsd->subrace[is_boss(target)?10:11])/100;
+		cardfix=cardfix*(100-tsd->subrace[s_race])/100;
+		cardfix=cardfix*(100-tsd->subrace[is_boss(src)?10:11])/100;
 		
 		for(i=0;i<tsd->add_dmg_count;i++) {
 				if(tsd->add_dmg[i].class_ == s_class) {
@@ -2614,11 +2614,11 @@ struct Damage battle_calc_magic_attack(
 			short s_class= status_get_class(src);
 			short cardfix=100;
 
-			cardfix=cardfix*(100-tsd->subrace[s_race])/100;
 			cardfix=cardfix*(100-tsd->subele[s_ele])/100;
 			cardfix=cardfix*(100-tsd->subsize[s_size])/100;
 			cardfix=cardfix*(100-tsd->subrace2[s_race2])/100;
-			cardfix=cardfix*(100-tsd->subrace[is_boss(target)?10:11])/100;
+			cardfix=cardfix*(100-tsd->subrace[s_race])/100;
+			cardfix=cardfix*(100-tsd->subrace[is_boss(src)?10:11])/100;
 			for(i=0;i<tsd->add_mdef_count;i++) {
 				if(tsd->add_mdef[i].class_ == s_class) {
 					cardfix=cardfix*(100-tsd->add_mdef[i].rate)/100;
@@ -2793,11 +2793,12 @@ struct Damage  battle_calc_misc_attack(
 
 		if( tsd ){
 			cardfix=100;
-			cardfix=cardfix*(100-tsd->subele[ele])/100;	// ‘®?«‚É‚æ‚éƒ_ƒ??[ƒW‘Ï?«
-			cardfix=cardfix*(100-tsd->subrace[race])/100;	// Ží‘°‚É‚æ‚éƒ_ƒ??[ƒW‘Ï?«
+			cardfix=cardfix*(100-tsd->subele[ele])/100;
 			cardfix=cardfix*(100-tsd->subsize[size])/100;
-			cardfix=cardfix*(100-tsd->misc_def_rate)/100;
 			cardfix=cardfix*(100-tsd->subrace2[race2])/100;
+			cardfix=cardfix*(100-tsd->subrace[race])/100;
+			cardfix=cardfix*(100-tsd->subrace[is_boss(bl)?10:11])/100;
+			cardfix=cardfix*(100-tsd->misc_def_rate)/100;
 			damage=damage*cardfix/100;
 		}
 		if (sd && skill_num > 0 && sd->skillatk[0].id != 0)

@@ -1,5 +1,7 @@
 Date	Added
 2005/12/15
+	* Fixed race defense bonus against Boss/Nonboss checking versus the target
+	  instead of the attacker (should fix Alice Card) [Skotlex]
 	* Some cleaning in clif.c [Skotlex]
 2005/12/14
 	* Fixed 'dead_branch_active' option. [Skotlex]
