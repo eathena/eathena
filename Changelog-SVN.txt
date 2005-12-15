@@ -1,4 +1,6 @@
 Date	Added
+2005/12/15
+	* Some cleaning in clif.c [Skotlex]
 2005/12/14
 	* Fixed 'dead_branch_active' option. [Skotlex]
 	* Optimized use of weather effects, or should I say, no use.

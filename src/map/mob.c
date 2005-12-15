@@ -4090,6 +4090,22 @@ int mob_clone_spawn(struct map_session_data *sd, char *mapname, int x, int y, co
 			if (duration) //Auto Delete after a while.
 				md->deletetimer = add_timer (gettick() + duration, mob_timer_delete, i, 0);
 		}
+#if 0
+		//I am playing with this for packet-research purposes, enable it if you want, but don't remove it :X [Skotlex]
+		//Guardian data
+		if (sd->status.guild_id) {
+			struct guild* g = guild_search(sd->status.guild_id);
+			md->guardian_data = aCalloc(1, sizeof(struct guardian_data));
+			md->guardian_data->castle = NULL;
+			md->guardian_data->number = MAX_GUARDIANS;
+			md->guardian_data->guild_id = sd->status.guild_id;
+			if (g)
+			{
+				md->guardian_data->emblem_id = g->emblem_id;
+				memcpy(md->guardian_data->guild_name, g->name, NAME_LENGTH);
+			}
+		}
+#endif
 	}
 
 	return i;
