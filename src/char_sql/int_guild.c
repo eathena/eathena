@@ -1484,13 +1484,13 @@ int mapif_parse_BreakGuild(int fd,int guild_id)
 		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 	}
 
-	//Remove the guild from memory. [Skotlex]
-	numdb_erase(guild_db_, guild_id);
 	mapif_guild_broken(guild_id,0);
 	
 	if(log_inter)
 		inter_log("guild %s (id=%d) broken" RETCODE,g->name,guild_id);
 	
+	//Remove the guild from memory. [Skotlex]
+	numdb_erase(guild_db_, guild_id);
 	aFree(g);
 	return 0;
 }

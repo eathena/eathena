@@ -175,12 +175,6 @@ int mob_once_spawn (struct map_session_data *sd, char *mapname,
 	if (m < 0 || amount <= 0 || (class_ >= 0 && class_ <= 1000) || class_ > MAX_MOB_DB + 2*MAX_MOB_DB)	// ’l‚ªˆÙí‚È‚ç¢Š«‚ğ~‚ß‚é
 		return 0;
 
-	if (class_ < 0) {
-		class_ = mob_get_random_id(-class_ -1, battle_config.random_monster_checklv?3:1, lv);
-		if (!class_)
-			return 0;
-	}
-	
 	if (sd) { //even if the coords were wrong, spawn mob anyways (but look for most suitable coords first) Got from Freya [Lupus]
 		if (x <= 0 || y <= 0) {
 			if (x <= 0) x = sd->bl.x + rand() % 3 - 1;
@@ -213,6 +207,20 @@ int mob_once_spawn (struct map_session_data *sd, char *mapname,
 			class_ -= MAX_MOB_DB;
 		}
 
+		if (class_ < 0) {
+			if (battle_config.dead_branch_active)
+			//Behold Aegis's masterful decisions yet again...
+			//"I understand the "Aggressive" part, but the "Can Move" and "Can Attack" is just stupid" - Poki#3
+				md->mode = md->db->mode|MD_AGGRESSIVE|MD_CANATTACK|MD_CANMOVE;
+
+			class_ = mob_get_random_id(-class_ -1, battle_config.random_monster_checklv?3:1, lv);
+			if (!class_) {
+				aFree(md);
+				return 0;
+			}
+		}
+	
+
 		if(mob_db(class_)->mode & MD_LOOTER)
 			md->lootitem = (struct item *)aCalloc(LOOTITEM_SIZE,sizeof(struct item));
 
@@ -220,10 +228,6 @@ int mob_once_spawn (struct map_session_data *sd, char *mapname,
 		md->bl.m = m;
 		md->bl.x = x;
 		md->bl.y = y;
-		if (class_ < 0 && battle_config.dead_branch_active)
-			//Behold Aegis's masterful decisions yet again...
-			//"I understand the "Aggressive" part, but the "Can Move" and "Can Attack" is just stupid" - Poki#3
-			md->mode = md->db->mode|MD_AGGRESSIVE|MD_CANATTACK|MD_CANMOVE;
 		md->m = m;
 		md->x0 = x;
 		md->y0 = y;
