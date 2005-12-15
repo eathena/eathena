@@ -10,8 +10,9 @@
 //
 //========================================================================================
 // Adapted to eAthena Scripting Language by [Lance]
+// 1.1 Fixed missing TABs [Lupus]
 
-yuno_in03.gat,32,15,3	script Guide of Monster Museum	67,{
+yuno_in03.gat,32,15,3	script	Guide of Monster Museum	67,{
 	mes "[Shenya]";
 	mes "Welcome.";
 	mes "You are in the Monster Museum.";
@@ -58,7 +59,7 @@ yuno_in03.gat,36,21,3	script	Deviace	1108,{
 }
 
 yuno_in03.gat,33,21,1	script	#Deviace	111,{	
-	mes "　";
+	mes "*";
 	mes "- Scientific Name : Deviace";
 	mes "- Size : Medium";
 	mes "- Property : Water";
@@ -77,7 +78,7 @@ yuno_in03.gat,36,27,3	script	Fur Seal	1317,{
 }
 
 yuno_in03.gat,33,27,1	script	#Fur Seal	111,{	
-	mes "　";
+	mes "*";
 	mes "- Scientific Name : Fur Seal";
 	mes "- Size : Medium";
 	mes "- Property : Water";
@@ -88,12 +89,12 @@ yuno_in03.gat,33,27,1	script	#Fur Seal	111,{
 	close;
 }
 
-yuno_in03.gat,36,33,3	script	"Sageworm"	1281,{
+yuno_in03.gat,36,33,3	script	Sageworm	1281,{
 	end;
 }
 
-yuno_in03.gat,33,33,1	script	"#Sageworm" 111,{	
-	mes "　";
+yuno_in03.gat,33,33,1	script	#Sageworm	111,{	
+	mes "*";
 	mes "- Scientific Name : Sageworm";
 	mes "- Size : Small";
 	mes "- Property : Neutral";
@@ -106,12 +107,12 @@ yuno_in03.gat,33,33,1	script	"#Sageworm" 111,{
 	close;
 }
 
-yuno_in03.gat,39,39,3	script	"Penomena" 1216,{
+yuno_in03.gat,39,39,3	script	Penomena	1216,{
 	end;
 }
 
-yuno_in03.gat,38,39,1	script	"#Penomena" 111,{
-	mes "　";
+yuno_in03.gat,38,39,1	script	#Penomena	111,{
+	mes "*";
 	mes "- Scientific Name : Penomena";
 	mes "- Size : Medium";
 	mes "- Property : Poison";
@@ -124,12 +125,12 @@ yuno_in03.gat,38,39,1	script	"#Penomena" 111,{
 	close;
 }
 
-yuno_in03.gat,39,44,3	script	"Galapago" 1391,{
+yuno_in03.gat,39,44,3	script	Galapago	1391,{
 	end;
 }
 
-yuno_in03.gat,37,44,1	script	"#Galapago" 111,{	
-	mes "　";
+yuno_in03.gat,37,44,1	script	#Galapago	111,{	
+	mes "*";
 	mes "- Scientific Name : Galapago";
 	mes "- Size : Small";
 	mes "- Property : Earth";
@@ -142,7 +143,7 @@ yuno_in03.gat,37,44,1	script	"#Galapago" 111,{
 	close;
 }
 
-yuno_in03.gat,38,50,3	script Pecopeco Egg	1047,{
+yuno_in03.gat,38,50,3	script	Pecopeco Egg	1047,{
 	end;
 }
 
@@ -159,7 +160,7 @@ yuno_in03.gat,10,45,5	script	Assulter	1315,{
 }
 
 yuno_in03.gat,12,45,1	script	#Assulter	111,{
-	mes "　";
+	mes "*";
 	mes "- Scientific Name : Assulter";
 	mes "- Size : Medium";
 	mes "- Property : Wind";
@@ -178,7 +179,7 @@ yuno_in03.gat,10,39,5	script	Alice	1275,{
 }
 
 yuno_in03.gat,12,39,1	script	#Alice	111,{
-	mes "　";
+	mes "*";
 	mes "- Scientific Name : Alice";
 	mes "- Size : Medium";
 	mes "- Property : Neutral";
@@ -194,7 +195,7 @@ yuno_in03.gat,15,33,5	script	Violy	1390,{
 }
 
 yuno_in03.gat,19,33,1	script	#Violy	111,{		
-	mes "　";
+	mes "*";
 	mes "- Scientific Name : Violy";
 	mes "- Size : Medium";
 	mes "- Property : Neutral";
@@ -210,7 +211,7 @@ yuno_in03.gat,15,27,5	script	Chepet	1250,{
 }
 
 yuno_in03.gat,19,27,1	script	#Chepet	111,{		
-	mes "　";
+	mes "*";
 	mes "- Scientific Name : Chepet";
 	mes "- Size : Medium";
 	mes "- Property : Fire";
@@ -227,7 +228,7 @@ yuno_in03.gat,15,21,5	script	Raydric	1163,{
 }
 
 yuno_in03.gat,19,21,1	script	#Raydric	111,{	
-	mes "　";
+	mes "*";
 	mes "- Scientific Name : Raydric";
 	mes "- Size : Large";
 	mes "- Property : Darkness";
@@ -245,7 +246,7 @@ yuno_in03.gat,46,96,3	script	Owl Duke	1320,{
 }
 
 yuno_in03.gat,44,96,1	script	#Owl Duke	111,{		
-	mes "　";
+	mes "*";
 	mes "- Scientific Name : Owl Duke";
 	mes "- Size : Large";
 	mes "- Property : Neutral";
@@ -264,7 +265,7 @@ yuno_in03.gat,48,100,3	script	Marine Sphere	1142,{
 }
 
 yuno_in03.gat,46,101,1	script	#Marine Sphere	111,{	
-	mes "　";
+	mes "*";
 	mes "- Scientific Name : Marine Sphere";
 	mes "- Size : Small";
 	mes "- Property : Water";
@@ -282,7 +283,7 @@ yuno_in03.gat,48,104,3	script	Mandragora	1020,{
 }
 
 yuno_in03.gat,46,105,1	script	#Mandragora	111,{	
-	mes "　";
+	mes "*";
 	mes "- Scientific Name : Mandragora";
 	mes "- Size : Medium";
 	mes "- Property : Earth";
@@ -301,7 +302,7 @@ yuno_in03.gat,48,108,3	script	Geographer	1368,{
 }
 
 yuno_in03.gat,46,108,1	script	#Geographer	111,{	
-	mes "　";
+	mes "*";
 	mes "- Scientific Name : Geographer";
 	mes "- Size : Medium";
 	mes "- Property : Earth";
@@ -322,7 +323,7 @@ yuno_in03.gat,48,112,3	script	Rafflesia	1162,{
 }
 
 yuno_in03.gat,46,112,1	script	#Rafflesia	111,{	
-	mes "　";
+	mes "*";
 	mes "- Scientific Name : Rafflesia";
 	mes "- Size : Small";
 	mes "- Property : Earth";
@@ -342,7 +343,7 @@ yuno_in03.gat,48,116,3	script	Stem Worm	1215,{
 }
 
 yuno_in03.gat,45,116,1	script	#Stem Worm	111,{	
-	mes "　";
+	mes "*";
 	mes "- Scientific Name : Stem Worm";
 	mes "- Size : Medium";
 	mes "- Property : Wind";
@@ -376,7 +377,7 @@ yuno_in03.gat,39,124,3	script	Ancient Mummy	1297,{
 }
 
 yuno_in03.gat,39,122,1	script	#Ancient Mummy	111,{	
-	mes "　";
+	mes "*";
 	mes "- Scientific Name : Ancient Mummy";
 	mes "- Size : Medium";
 	mes "- Property : Undead";
@@ -396,7 +397,7 @@ yuno_in03.gat,35,124,3	script	Sleeper	1386,{
 }
 
 yuno_in03.gat,35,122,1	script	#Sleeper	111,{	
-	mes "　";
+	mes "*";
 	mes "- Scientific Name : Sleeper";
 	mes "- Size : Medium";
 	mes "- Property : Earth";
@@ -414,7 +415,7 @@ yuno_in03.gat,31,124,3	script	Megalodon	1064,{
 }
 
 yuno_in03.gat,31,122,1	script	#Megalodon	111,{		
-	mes "　";
+	mes "*";
 	mes "- Scientific Name : Megalodon";
 	mes "- Size : Medium";
 	mes "- Property : Undead";
@@ -432,7 +433,7 @@ yuno_in03.gat,28,124,5	script	Rideword	1195,{
 }
 
 yuno_in03.gat,28,122,1	script	#Rideword	111,{		
-	mes "　";
+	mes "*";
 	mes "- Scientific Name : Rideword";
 	mes "- Size : Small";
 	mes "- Property : Neutral";
@@ -448,7 +449,7 @@ yuno_in03.gat,24,124,3	script	Blazzer	1367,{
 }
 
 yuno_in03.gat,24,122,1	script	#Blazzer	111,{	
-	mes "　";
+	mes "*";
 	mes "- Scientific Name : Blazzer";
 	mes "- Size : Medium";
 	mes "- Property : Fire";
@@ -467,7 +468,7 @@ yuno_in03.gat,18,122,5	script	Incubus	1374,{
 }
 
 yuno_in03.gat,19,120,1	script	#Incubus	111,{		
-	mes "　";
+	mes "*";
 	mes "- Scientific Name : Incubus";
 	mes "- Size : Medium";
 	mes "- Property : Darkness";
@@ -483,7 +484,7 @@ yuno_in03.gat,16,116,5	script	Dragon Tail	1321,{
 }
 
 yuno_in03.gat,18,116,1	script	#Dragon Tail	111,{		
-	mes "　";
+	mes "*";
 	mes "- Scientific Name : Dragon Tail";
 	mes "- Size : Medium";
 	mes "- Property : Wind";
@@ -499,7 +500,7 @@ yuno_in03.gat,16,111,5	script	Arclouse	1194,{
 }
 
 yuno_in03.gat,18,111,1	script	#Arclouse	111,{	
-	mes "　";
+	mes "*";
 	mes "- Scientific Name : Arclouse";
 	mes "- Size : Medium";
 	mes "- Property : Earth";
@@ -515,7 +516,7 @@ yuno_in03.gat,16,108,5	script	Tri Joint	1279,{
 }
 
 yuno_in03.gat,18,108,1	script	#Tri Joint	111,{	
-	mes "　";
+	mes "*";
 	mes "- Scientific Name : Tri Joint";
 	mes "- Size : Small";
 	mes "- Property : Earth";
@@ -535,7 +536,7 @@ yuno_in03.gat,16,104,5	script	Thiefbug Male	1054,{
 }
 
 yuno_in03.gat,18,104,1	script	#Thiefbug Male	111,{	
-	mes "　";
+	mes "*";
 	mes "- Scientific Name : Thiefbug Male";
 	mes "- Size : Medium";
 	mes "- Property : Darkness";
@@ -553,7 +554,7 @@ yuno_in03.gat,16,100,5	script	Cater Pillar	1300,{
 }
 
 yuno_in03.gat,18,100,1	script	#Cater Pillar	111,{
-	mes "　";
+	mes "*";
 	mes "- Scientific Name : Caterpillar";
 	mes "- Size : Small";
 	mes "- Property : Earth";
@@ -571,7 +572,7 @@ yuno_in03.gat,18,96,5	script	Wanderer	1208,{
 }
 
 yuno_in03.gat,20,96,1	script	#Wander Man	111,{
-	mes "　";
+	mes "*";
 	mes "- Scientific Name : Wanderer";
 	mes "- Size : Medium";
 	mes "- Property : Wind";

@@ -10344,3 +10344,57 @@ int buildin_petstat(struct script_state *st){
 	}
 	return 0;
 }
+
+
+/*==========================================
+ * Returns some values of an item [Lupus]
+ * Price, Weight, etc...
+	setiteminfo(itemID,"{new item bonus script}");
+ *------------------------------------------
+ */
+/* Work In Progress [Lupus]
+int buildin_setitemscript(struct script_state *st)
+{
+	int item_id;
+	char *script;
+	struct item_data *i_data;
+
+	item_id	= conv_num(st,& (st->stack->stack_data[st->start+2]));
+	script = conv_str(st,& (st->stack->stack_data[st->start+3]));
+	i_data = itemdb_exists(item_id);
+
+	if (i_data && script!=NULL && script[0]=='{') {
+		if(i_data->script!=NULL)
+			aFree(i_data->script);
+		i_data->script = parse_script((unsigned char *) script, 0);
+		push_val(st->stack,C_INT,1);
+	} else
+		push_val(st->stack,C_INT,0);
+	return 0;
+}
+
+int buildin_addmonsterdrop(struct script_state *st)
+{
+	int class_,item_id,chance;
+	class_=conv_num(st,& (st->stack->stack_data[st->start+2]));
+	item_id=conv_num(st,& (st->stack->stack_data[st->start+3]));
+	chance=conv_num(st,& (st->stack->stack_data[st->start+4]));
+	if(class_>1000 && item_id>500 && chance>0) {
+		push_val(st->stack,C_INT,1);
+	} else {
+		push_val(st->stack,C_INT,0);
+	}
+}
+
+int buildin_delmonsterdrop(struct script_state *st)
+{
+	int class_,item_id;
+	class_=conv_num(st,& (st->stack->stack_data[st->start+2]));
+	item_id=conv_num(st,& (st->stack->stack_data[st->start+3]));
+	if(class_>1000 && item_id>500) {
+		push_val(st->stack,C_INT,1);
+	} else {
+		push_val(st->stack,C_INT,0);
+	}
+}
+*/
