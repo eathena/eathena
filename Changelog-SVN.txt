@@ -1,5 +1,7 @@
 Date	Added
 2005/12/15
+	* Updated SG_HATE to pick the specific class (Select a Monk, and the bonus
+	  is against monks only, not Champions/Acolytes/Baby Monks) [Skotlex]
 	* Removed hardcoded table names in login_sql/login.c [Foruken]
 	* Some cleaning regarding the job tree skill-raising restrictions code.
 	  [Skotlex]

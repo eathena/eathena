@@ -301,7 +301,6 @@ void do_final_msg();
 
 char *estr_lower(char *str);
 
-char * job_name(int class_);
 int e_mail_check(char *email);
 
 #define MAX_MSG 1000

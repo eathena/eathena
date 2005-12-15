@@ -5767,9 +5767,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 			if(dstsd)  //PC
 			{
-				struct pc_base_job s_class;
-				s_class = pc_calc_base_job(dstsd->status.class_);
-				sd->hate_mob[skilllv-1] = s_class.job;
+				sd->hate_mob[skilllv-1] = dstsd->status.class_;
 				pc_setglobalreg(sd,"PC_HATE_MOB_STAR",sd->hate_mob[skilllv-1]+1);
 				clif_hate_mob(sd,skilllv,sd->hate_mob[skilllv-1]);
 			}

@@ -197,6 +197,8 @@ int pc_calc_base_job2(int b_class);	// Celest
 unsigned short pc_jobid2mapid(unsigned short b_class);	// Skotlex
 unsigned short pc_mapid2jobid(unsigned short class_, int sex);	// Skotlex
 
+char * job_name(int class_);
+
 struct skill_tree_entry {
 	short id;
 	unsigned char max;
