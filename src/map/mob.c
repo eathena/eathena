@@ -208,16 +208,15 @@ int mob_once_spawn (struct map_session_data *sd, char *mapname,
 		}
 
 		if (class_ < 0) {
-			if (battle_config.dead_branch_active)
-			//Behold Aegis's masterful decisions yet again...
-			//"I understand the "Aggressive" part, but the "Can Move" and "Can Attack" is just stupid" - Poki#3
-				md->mode = md->db->mode|MD_AGGRESSIVE|MD_CANATTACK|MD_CANMOVE;
-
 			class_ = mob_get_random_id(-class_ -1, battle_config.random_monster_checklv?3:1, lv);
 			if (!class_) {
 				aFree(md);
 				return 0;
 			}
+			if (battle_config.dead_branch_active)
+			//Behold Aegis's masterful decisions yet again...
+			//"I understand the "Aggressive" part, but the "Can Move" and "Can Attack" is just stupid" - Poki#3
+				md->mode = mob_db(class_)->mode|MD_AGGRESSIVE|MD_CANATTACK|MD_CANMOVE;
 		}
 	
 

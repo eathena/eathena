@@ -8028,6 +8028,8 @@ int skill_check_condition(struct map_session_data *sd,int type)
 			return 0;
 		break;
 	case MO_EXTREMITYFIST:					// ˆ¢?C—…”e–PŒ?
+//		if(sd->sc_data[SC_EXTREMITYFIST].timer != -1) //To disable Asura during the 5 min skill block uncomment this...
+//			return 0;
 		if(sd->sc_data[SC_BLADESTOP].timer!=-1)
 			spiritball--;
 		else if (sd->sc_data[SC_COMBO].timer != -1) {
