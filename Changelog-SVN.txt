@@ -1,5 +1,6 @@
 Date	Added
 2005/12/15
+	* Removed hardcoded table names in login_sql/login.c [Foruken]
 	* Some cleaning regarding the job tree skill-raising restrictions code.
 	  [Skotlex]
 	* Optimized/cleaned up the job_name function, job names are now acquired

@@ -121,6 +121,8 @@ char login_db_userid[256] = "userid";
 char login_db_user_pass[256] = "user_pass";
 char login_db_level[256] = "level";
 
+char reg_db[256] = "global_reg_value";
+
 int lowest_gm_level;
 struct gm_account *gm_account_db;
 int GM_num;
@@ -915,7 +917,7 @@ int parse_fromchar(int fd){
 				}
 				mysql_free_result(sql_res);
 				if (account_id > 0) {
-					sprintf(tmpsql, "SELECT `str`,`value` FROM `global_reg_value` WHERE `type`='1' AND `account_id`='%d'",account_id);
+					sprintf(tmpsql, "SELECT `str`,`value` FROM `%s` WHERE `type`='1' AND `account_id`='%d'",reg_db, account_id);
 					if (mysql_query(&mysql_handle, tmpsql)) {
 						ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 						ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
@@ -1218,12 +1220,12 @@ int parse_fromchar(int fd){
 					for(p=8,j=0;p<RFIFOW(fd,2) && j<ACCOUNT_REG2_NUM;p+=288,j++){
 						memcpy(str,RFIFOP(fd,p),32);
 						memcpy(value,RFIFOP(fd,p+32),256);
-						sprintf(tmpsql,"DELETE FROM `global_reg_value` WHERE `type`='1' AND `account_id`='%d' AND `str`='%s';",acc,jstrescapecpy(temp_str,str));
+						sprintf(tmpsql,"DELETE FROM `%s` WHERE `type`='1' AND `account_id`='%d' AND `str`='%s';",reg_db,acc,jstrescapecpy(temp_str,str));
 						if(mysql_query(&mysql_handle, tmpsql)) {
 							ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 							ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 						}
-						sprintf(tmpsql,"INSERT INTO `global_reg_value` (`type`, `account_id`, `str`, `value`) VALUES ( 1 , '%d' , '%s' , '%s');",  acc, jstrescapecpy(temp_str,str), jstrescapecpy(temp_str2,value));
+						sprintf(tmpsql,"INSERT INTO `%s` (`type`, `account_id`, `str`, `value`) VALUES ( 1 , '%d' , '%s' , '%s');",  reg_db, acc, jstrescapecpy(temp_str,str), jstrescapecpy(temp_str2,value));
 						if(mysql_query(&mysql_handle, tmpsql)) {
 							ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 							ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
@@ -2022,6 +2024,9 @@ void sql_config_read(const char *cfgName){ /* Kalaspuff, to get login_db */
 		}
 		else if (strcmpi(w1, "lowest_gm_level") == 0) {
 			lowest_gm_level = atoi(w2);
+		}
+		else if (strcmpi(w1, "reg_db") == 0) {
+			strcpy(reg_db, w2);
 		}
 		//support the import command, just like any other config
 		else if(strcmpi(w1,"import")==0){
