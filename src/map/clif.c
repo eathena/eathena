@@ -8433,8 +8433,8 @@ void clif_parse_QuitGame(int fd, struct map_session_data *sd) {
 void check_fake_id(int fd, struct map_session_data *sd, int target_id) {
 	// if player asks for the fake player (only bot and modified client can see a hiden player)
 /*	if (target_id == server_char_id) {
-		char message_to_gm[strlen(msg_txt(622)) + strlen(msg_txt(540)) + strlen(msg_txt(507)) + strlen(msg_txt(508))];
-		sprintf(message_to_gm, msg_txt(622), sd->status.name, sd->status.account_id); // Character '%s' (account: %d) try to use a bot (it tries to detect a fake player).
+		char message_to_gm[strlen(msg_txt(536)) + strlen(msg_txt(540)) + strlen(msg_txt(507)) + strlen(msg_txt(508))];
+		sprintf(message_to_gm, msg_txt(536), sd->status.name, sd->status.account_id); // Character '%s' (account: %d) try to use a bot (it tries to detect a fake player).
 		intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, message_to_gm);
 		// if we block people
 		if (battle_config.ban_bot < 0) {
@@ -8474,8 +8474,8 @@ void check_fake_id(int fd, struct map_session_data *sd, int target_id) {
 	// if player asks for the fake mob (only bot and modified client can see a hiden mob)
 	if (target_id == server_fake_mob_id) {
 		int fake_mob;
-		char message_to_gm[strlen(msg_txt(623)) + strlen(msg_txt(540)) + strlen(msg_txt(507)) + strlen(msg_txt(508))];
-		sprintf(message_to_gm, msg_txt(623), sd->status.name, sd->status.account_id); // Character '%s' (account: %d) try to use a bot (it tries to detect a fake mob).
+		char message_to_gm[strlen(msg_txt(537)) + strlen(msg_txt(540)) + strlen(msg_txt(507)) + strlen(msg_txt(508))];
+		sprintf(message_to_gm, msg_txt(537), sd->status.name, sd->status.account_id); // Character '%s' (account: %d) try to use a bot (it tries to detect a fake mob).
 		intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, message_to_gm);
 		// if we block people
 		if (battle_config.ban_bot < 0) {

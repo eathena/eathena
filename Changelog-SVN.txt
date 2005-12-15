@@ -1,5 +1,7 @@
 Date	Added
 2005/12/15
+	* Optimized/cleaned up the job_name function, job names are now acquired
+	  from msg_athena.txt. [Skotlex]
 	* Fixed race defense bonus against Boss/Nonboss checking versus the target
 	  instead of the attacker (should fix Alice Card) [Skotlex]
 	* Some cleaning in clif.c [Skotlex]

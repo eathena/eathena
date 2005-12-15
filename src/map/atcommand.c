@@ -609,82 +609,123 @@ char atcmd_temp[100];
  */
 char * job_name(int class_) {
 	switch (class_) {
-	case 0:    return "Novice";
-	case 1:    return "Swordsman";
-	case 2:    return "Mage";
-	case 3:    return "Archer";
-	case 4:    return "Acolyte";
-	case 5:    return "Merchant";
-	case 6:    return "Thief";
-	case 7:    return "Knight";
-	case 8:    return "Priest";
-	case 9:    return "Wizard";
-	case 10:   return "Blacksmith";
-	case 11:   return "Hunter";
-	case 12:   return "Assassin";
-	case 13:   return "Peco Knight";
-	case 14:   return "Crusader";
-	case 15:   return "Monk";
-	case 16:   return "Sage";
-	case 17:   return "Rogue";
-	case 18:   return "Alchemist";
-	case 19:   return "Bard";
-	case 20:   return "Dancer";
-	case 21:   return "Peco Crusader";
-	case 22:   return "Wedding";
-	case 23:   return "Super Novice";
-	case 24:   return "Taekwon";
-	case 4001: return "Novice High";
-	case 4002: return "Swordsman High";
-	case 4003: return "Mage High";
-	case 4004: return "Archer High";
-	case 4005: return "Acolyte High";
-	case 4006: return "Merchant High";
-	case 4007: return "Thief High";
-	case 4008: return "Lord Knight";
-	case 4009: return "High Priest";
-	case 4010: return "High Wizard";
-	case 4011: return "Whitesmith";
-	case 4012: return "Sniper";
-	case 4013: return "Assassin Cross";
-	case 4014: return "Peko Knight";
-	case 4015: return "Paladin";
-	case 4016: return "Champion";
-	case 4017: return "Professor";
-	case 4018: return "Stalker";
-	case 4019: return "Creator";
-	case 4020: return "Clown";
-	case 4021: return "Gypsy";
-	case 4022: return "Peko Paladin";
-	case 4023: return "Baby Novice";
-	case 4024: return "Baby Swordsman";
-	case 4025: return "Baby Mage";
-	case 4026: return "Baby Archer";
-	case 4027: return "Baby Acolyte";
-	case 4028: return "Baby Merchant";
-	case 4029: return "Baby Thief";
-	case 4030: return "Baby Knight";
-	case 4031: return "Baby Priest";
-	case 4032: return "Baby Wizard";
-	case 4033: return "Baby Blacksmith";
-	case 4034: return "Baby Hunter";
-	case 4035: return "Baby Assassin";
-	case 4036: return "Baby Peco Knight";
-	case 4037: return "Baby Crusader";
-	case 4038: return "Baby Monk";
-	case 4039: return "Baby Sage";
-	case 4040: return "Baby Rogue";
-	case 4041: return "Baby Alchemist";
-	case 4042: return "Baby Bard";
-	case 4043: return "Baby Dancer";
-	case 4044: return "Baby Peco Crusader";
-	case 4045: return "Super Baby";
-	case 4046: return "Taekwon";
-	case 4047: return "Star Gladiator";
-	case 4048: return "Flying Star Gladiator";
-	case 4049: return "Soul Linker";
+	case JOB_NOVICE:
+	case JOB_SWORDMAN:
+	case JOB_MAGE:
+	case JOB_ARCHER:
+	case JOB_ACOLYTE:
+	case JOB_MERCHANT:
+	case JOB_THIEF:
+		return msg_txt(550 - JOB_NOVICE+class_);
+		
+	case JOB_KNIGHT:
+	case JOB_PRIEST:
+	case JOB_WIZARD:
+	case JOB_BLACKSMITH:
+	case JOB_HUNTER:
+	case JOB_ASSASSIN:
+		return msg_txt(557 - JOB_KNIGHT+class_);
+		
+	case JOB_KNIGHT2:
+		return msg_txt(557);
+		
+	case JOB_CRUSADER:
+	case JOB_MONK:
+	case JOB_SAGE:
+	case JOB_ROGUE:
+	case JOB_ALCHEMIST:
+	case JOB_BARD:
+	case JOB_DANCER:
+		return msg_txt(563 - JOB_CRUSADER+class_);
+			
+	case JOB_CRUSADER2:
+		return msg_txt(563);
+		
+	case JOB_WEDDING:
+	case JOB_SUPER_NOVICE:
+	case JOB_GUNSLINGER:
+	case JOB_NINJA:
+	case JOB_XMAS:
+		return msg_txt(570 - JOB_WEDDING+class_);
+		
+	case JOB_NOVICE_HIGH:
+	case JOB_SWORDMAN_HIGH:
+	case JOB_MAGE_HIGH:
+	case JOB_ARCHER_HIGH:
+	case JOB_ACOLYTE_HIGH:
+	case JOB_MERCHANT_HIGH:
+	case JOB_THIEF_HIGH:
+		return msg_txt(574 - JOB_NOVICE_HIGH+class_);
+
+	case JOB_LORD_KNIGHT:
+	case JOB_HIGH_PRIEST:
+	case JOB_HIGH_WIZARD:
+	case JOB_WHITESMITH:
+	case JOB_SNIPER:
+	case JOB_ASSASSIN_CROSS:
+		return msg_txt(581 - JOB_LORD_KNIGHT+class_);
+		
+	case JOB_LORD_KNIGHT2:
+		return msg_txt(581);
+		
+	case JOB_PALADIN:
+	case JOB_CHAMPION:
+	case JOB_PROFESSOR:
+	case JOB_STALKER:
+	case JOB_CREATOR:
+	case JOB_CLOWN:
+	case JOB_GYPSY:
+		return msg_txt(587 - JOB_PALADIN + class_);
+		
+	case JOB_PALADIN2:
+		return msg_txt(587);
+
+	case JOB_BABY:
+	case JOB_BABY_SWORDMAN:
+	case JOB_BABY_MAGE:
+	case JOB_BABY_ARCHER:
+	case JOB_BABY_ACOLYTE:
+	case JOB_BABY_MERCHANT:
+	case JOB_BABY_THIEF:
+		return msg_txt(594 - JOB_BABY + class_);
+		
+	case JOB_BABY_KNIGHT:
+	case JOB_BABY_PRIEST:
+	case JOB_BABY_WIZARD:
+	case JOB_BABY_BLACKSMITH:
+	case JOB_BABY_HUNTER:
+	case JOB_BABY_ASSASSIN:
+		return msg_txt(601 - JOB_BABY_KNIGHT + class_);
+		
+	case JOB_BABY_KNIGHT2:
+		return msg_txt(601);
+		
+	case JOB_BABY_CRUSADER:
+	case JOB_BABY_MONK:
+	case JOB_BABY_SAGE:
+	case JOB_BABY_ROGUE:
+	case JOB_BABY_ALCHEMIST:
+	case JOB_BABY_BARD:
+	case JOB_BABY_DANCER:
+		return msg_txt(607 - JOB_BABY_CRUSADER +class_);
+		
+	case JOB_BABY_CRUSADER2:
+		return msg_txt(607);
+		
+	case JOB_SUPER_BABY:
+		return msg_txt(614);
+		
+	case JOB_TAEKWON:
+		return msg_txt(615);
+	case JOB_STAR_GLADIATOR:
+	case JOB_STAR_GLADIATOR2:
+		return msg_txt(616);
+	case JOB_SOUL_LINKER:
+		return msg_txt(617);
+	
+	default:
+		return msg_txt(650);
 	}
-	return "Unknown Job";
 }
 
 /*==========================================
