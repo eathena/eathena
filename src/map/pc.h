@@ -195,6 +195,7 @@ struct pc_base_job{
 struct pc_base_job pc_calc_base_job(int b_class);//“]¶‚â—{qE‚ÌŒ³‚ÌE‹Æ‚ğ•Ô‚·
 int pc_calc_base_job2(int b_class);	// Celest
 unsigned short pc_jobid2mapid(unsigned short b_class);	// Skotlex
+unsigned short pc_mapid2jobid(unsigned short class_, int sex);	// Skotlex
 
 struct skill_tree_entry {
 	short id;
