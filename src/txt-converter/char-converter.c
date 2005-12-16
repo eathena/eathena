@@ -349,11 +349,11 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p) {
 	next++;
 
 	for(i = 0; str[next] && str[next] != '\t' && str[next] != '\n' && str[next] != '\r'; i++) { // global_regÀÈOÌathena.txtÝ·Ì½ßê'\n'`FbN
-		if (sscanf(str + next, "%[^,],%d%n", p->global_reg[i].str, &p->global_reg[i].value, &len) != 2) {
+		if (sscanf(str + next, "%[^,],%s%n", p->global_reg[i].str, p->global_reg[i].value, &len) != 2) {
 			// because some scripts are not correct, the str can be "". So, we must check that.
 			// If it's, we must not refuse the character, but just this REG value.
 			// Character line will have something like: nov_2nd_cos,9 ,9 nov_1_2_cos_c,1 (here, ,9 is not good)
-			if (str[next] == ',' && sscanf(str + next, ",%d%n", &p->global_reg[i].value, &len) == 1)
+			if (str[next] == ',' && sscanf(str + next, ",%s%n", p->global_reg[i].value, &len) == 1)
 				i--;
 			else
 				return -7;
@@ -808,7 +808,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 		{
 			if (p->global_reg[i].str && p->global_reg[i].value !=0)
 			{
-				tmp_ptr += sprintf(tmp_ptr,"('%d','%s','%d'),",
+				tmp_ptr += sprintf(tmp_ptr,"('%d','%s','%s'),",
 					char_id, jstrescapecpy(temp_str,p->global_reg[i].str), p->global_reg[i].value);
 				if (++count%100 == 0)
 				{ //Save every X registers to avoid overflowing tmp_sql [Skotlex]

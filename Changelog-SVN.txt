@@ -1,4 +1,6 @@
 Date	Added
+2005/12/16
+	* Fixed char-converter being broken for a type mismatch [Foruken]
 2005/12/15
 	* Fixed clone skills again. This time ground-based skills are working, and
 	  support skills have a re-cast delay of half the skill's actual effect. [Skotlex]
