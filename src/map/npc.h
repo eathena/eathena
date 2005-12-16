@@ -8,6 +8,10 @@
 #define WARP_DEBUG_CLASS 722
 #define INVISIBLE_CLASS 32767
 
+//Checks if a given id is a valid npc id. [Skotlex]
+//Since new npcs are added all the time, the max valid value is the one before the first mob (Scorpion = 1001)
+#define npcdb_checkid(id) ((id >=  46 && id <= 125) || (id >= 700 && id <= 1000))
+
 #ifdef PCRE_SUPPORT
 void npc_chat_finalize(struct npc_data *nd);
 #endif

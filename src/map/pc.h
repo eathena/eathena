@@ -27,6 +27,8 @@
 #define pc_is50overweight(sd) (sd->weight*2 >= sd->max_weight) 
 #define pc_is90overweight(sd) (sd->weight*10 >= sd->max_weight*9)
 #define pc_maxparameter(sd) ((sd->class_&JOBL_BABY) ? battle_config.max_baby_parameter : battle_config.max_parameter)
+//Checks if the given class value corresponds to a player class. [Skotlex]
+#define pcdb_checkid(class_) ((class_ >= JOB_NOVICE && class_ <= JOB_XMAS) || (class_ >= JOB_NOVICE_HIGH && class_ <= JOB_SOUL_LINKER))
 
 int pc_isGM(struct map_session_data *sd);
 int pc_iskiller(struct map_session_data *src, struct map_session_data *target); // [MouseJstr]

@@ -2089,7 +2089,7 @@ int mob_delete(struct mob_data *md)
 	nullpo_retr(1, md);
 
 	mob_remove_map(md, 1);
-	if(mob_get_viewclass(md->class_) <= JOB_SUPER_NOVICE || (mob_get_viewclass(md->class_) >= JOB_NOVICE_HIGH && mob_get_viewclass(md->class_) <= JOB_SUPER_BABY))
+	if(pcdb_checkid(mob_get_viewclass(md->class_))) //Player mobs are not removed automatically by the client.
 		clif_clearchar_delay(gettick()+3000,&md->bl,0);
 	if(mob_is_clone(md->class_))
 		mob_clone_delete(md->class_);
@@ -2773,7 +2773,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 //	clif_clearchar_area(&md->bl,1); //eh? Why send the same packet twice? [Skotlex]
 	if(md->level) md->level=0;
 	map_delblock(&md->bl);
-	if(mob_get_viewclass(md->class_) <= JOB_SUPER_NOVICE || (mob_get_viewclass(md->class_) >= JOB_NOVICE_HIGH && mob_get_viewclass(md->class_) <= JOB_SUPER_BABY))
+	if(pcdb_checkid(mob_get_viewclass(md->class_)))
 		clif_clearchar_delay(tick+3000,&md->bl,0);
 	if(mob_is_clone(md->class_))
 		mob_clone_delete(md->class_);
@@ -3971,20 +3971,25 @@ int mob_clone_spawn(struct map_session_data *sd, char *mapname, int x, int y, co
 	mob_db_data[class_]->sex=sd->status.sex;
 	mob_db_data[class_]->hair=sd->status.hair;
 	mob_db_data[class_]->hair_color=sd->status.hair_color;
-	if (sd->equip_index[9] >= 0 && sd->inventory_data[sd->equip_index[9]] && sd->view_class != 22 && sd->view_class !=26) {
+#if PACKETVER < 4
+	mob_db_data[class_]->weapon =	sd->status.weapon;
+	mob_db_data[class_]->shield = sd->status.shield;
+#else 
+	if (sd->equip_index[9] >= 0 && sd->inventory_data[sd->equip_index[9]] && sd->view_class != JOB_WEDDING && sd->view_class != JOB_XMAS) {
 		if (sd->inventory_data[sd->equip_index[9]]->view_id > 0)
 			mob_db_data[class_]->weapon=sd->inventory_data[sd->equip_index[9]]->view_id;
 		else
 			mob_db_data[class_]->weapon=sd->status.inventory[sd->equip_index[9]].nameid;
 	} else
 		mob_db_data[class_]->shield=0;
-	if (sd->equip_index[8] >= 0 && sd->equip_index[8] != sd->equip_index[9] && sd->inventory_data[sd->equip_index[8]] && sd->view_class != 22 && sd->view_class != 26) {
+	if (sd->equip_index[8] >= 0 && sd->equip_index[8] != sd->equip_index[9] && sd->inventory_data[sd->equip_index[8]] && sd->view_class != JOB_WEDDING && sd->view_class != JOB_XMAS) {
 		if (sd->inventory_data[sd->equip_index[8]]->view_id > 0)
 			mob_db_data[class_]->shield=sd->inventory_data[sd->equip_index[8]]->view_id;
 		else
 			mob_db_data[class_]->shield=sd->status.inventory[sd->equip_index[8]].nameid;
 	} else
 		mob_db_data[class_]->shield=0;
+#endif
 	mob_db_data[class_]->head_top=sd->status.head_top;
 	mob_db_data[class_]->head_mid=sd->status.head_mid;
 	mob_db_data[class_]->head_buttom=sd->status.head_bottom;
@@ -4228,7 +4233,7 @@ static int mob_readdb(void)
 			{
 				ShowWarning("Mob with ID: %d not loaded. ID must be in range [%d-%d]\n", class_, 1000, MAX_MOB_DB);
 				continue;
-			} else if (class_ >= JOB_NOVICE_HIGH && class_ < MAX_PC_CLASS)
+			} else if (pcdb_checkid(class_))
 			{
 				ShowWarning("Mob with ID: %d not loaded. That ID is reserved for player classes.\n");
 				continue;
@@ -4422,7 +4427,8 @@ static int mob_readdb_mobavail(void)
 			k += 3977;	// advanced job/baby class
 		mob_db_data[class_]->view_class=k;
 
-		if((k < 24) || (k > 4000)) {
+		//Player sprites
+		if(pcdb_checkid(k)) {
 			mob_db_data[class_]->sex=atoi(str[2]);
 			mob_db_data[class_]->hair=atoi(str[3]);
 			mob_db_data[class_]->hair_color=atoi(str[4]);
@@ -4787,7 +4793,7 @@ static int mob_read_sqldb(void)
 				{
 					ShowWarning("Mob with ID: %d not loaded. ID must be in range [%d-%d]\n", class_, 1000, MAX_MOB_DB);
 					continue;
-				} else if (class_ >= JOB_NOVICE_HIGH && class_ <= JOB_SUPER_BABY)
+				} else if (pcdb_checkid(class_))
 				{
 					ShowWarning("Mob with ID: %d not loaded. That ID is reserved for Upper Classes.\n");
 					continue;

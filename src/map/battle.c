@@ -2199,7 +2199,7 @@ static struct Damage battle_calc_weapon_attack(
 		do {
 			do {
 				class_ = rand() % MAX_MOB_DB;
-			} while (mobdb_checkid(class_)==0);
+			} while (!mobdb_checkid(class_));
 			
 			k = rand() % 1000000;
 			mob = mob_db(class_);

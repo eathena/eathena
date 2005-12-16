@@ -6292,14 +6292,8 @@ int atcommand_disguise(
 
 	if ((id = atoi(message)) > 0)
 	{	//Acquired an ID
-		if ((id = mobdb_checkid(id)) == 0)
-		{ //TODO: There's no numdb_search for npcs, so we use hard-coded seeks for now.
-			id = atoi(message);
-			//Valid NPC numbers (including npcs from jRO/tRO that are not in kRO by default)
-			if ((id >=  46 && id <= 125) || (id >= 700 && id <= 1000)); //Bumped max cap to minimum mob id (1000)
-			else
-				id = 0;
-			}
+		if (!mobdb_checkid(id) && !npcdb_checkid(id))
+			id = 0; //Invalid id for either mobs or npcs.
 	}	else	{ //Acquired a Name
 		if ((id = mobdb_searchname(message)) == 0)
 		{
@@ -6356,10 +6350,7 @@ int atcommand_disguiseall(
 	if ((mob_id = mobdb_searchname(message)) == 0) // check name first (to avoid possible name begining by a number)
 		mob_id = atoi(message);
 
-	if ((mob_id >=  46 && mob_id <= 125) || (mob_id >= 700 && mob_id <= 718) || // NPC
-	    (mob_id >= 721 && mob_id <= 755) || (mob_id >= 757 && mob_id <= 811) || // NPC
-	    (mob_id >= 813 && mob_id <= 834) || // NPC
-	    (mobdb_checkid(mob_id))) { // monsters
+	if (mobdb_checkid(mob_id) || npcdb_checkid(mob_id)) { //if mob or npc...
 		pl_allsd = map_getallusers(&users);
 		for(i=0; i < users; i++) {
 			if((pl_sd = pl_allsd[i])) {

@@ -1041,8 +1041,8 @@ static int clif_mob0078(struct mob_data *md, unsigned char *buf)
 	nullpo_retr(0, md);
 
 	level=status_get_lv(&md->bl);
-
-	if((i=mob_get_viewclass(md->class_)) <= 23 || i >= 4001) { 
+	i = mob_get_viewclass(md->class_);
+	if(pcdb_checkid(i)) { 
 #if PACKETVER < 4
 		memset(buf,0,packet_len_table[0x78]);
 
@@ -1147,8 +1147,8 @@ static int clif_mob007b(struct mob_data *md, unsigned char *buf) {
 	nullpo_retr(0, md);
 
 	level=status_get_lv(&md->bl);
-
-	if((i=mob_get_viewclass(md->class_)) <= 23 || i >= 4001) {
+	i = mob_get_viewclass(md->class_);
+	if(pcdb_checkid(i)) {
 #if PACKETVER < 4
 		memset(buf,0,packet_len_table[0x7b]);
 	
@@ -1312,8 +1312,8 @@ static int clif_pet0078(struct pet_data *pd, unsigned char *buf) {
 	nullpo_retr(0, pd);
 
 	level = status_get_lv(&pd->bl);
-
-	if((i=mob_get_viewclass(pd->class_)) <= 23 || i >= 4001) {
+	i = mob_get_viewclass(pd->class_);
+	if(pcdb_checkid(i)) {
 #if PACKETVER < 4
 		memset(buf,0,packet_len_table[0x78]);
 
@@ -1413,8 +1413,8 @@ static int clif_pet007b(struct pet_data *pd, unsigned char *buf) {
 	nullpo_retr(0, pd);
 
 	level = status_get_lv(&pd->bl);
-
-	if((i=mob_get_viewclass(pd->class_)) <= 23 || i >= 4001) {
+	i = mob_get_viewclass(pd->class_);
+	if(pcdb_checkid(i)) {
 #if PACKETVER < 4
 		memset(buf,0,packet_len_table[0x7b]);
 	
@@ -1748,7 +1748,7 @@ int clif_spawnmob(struct mob_data *md)
 
 	nullpo_retr(0, md);
 
-	if (viewclass > 23 && viewclass < 4000) {
+	if (!pcdb_checkid(viewclass)) {
 		memset(buf,0,packet_len_table[0x7c]);
 
 		WBUFW(buf,0)=0x7c;
@@ -1765,9 +1765,8 @@ int clif_spawnmob(struct mob_data *md)
 	len = clif_mob0078(md,buf);
 	clif_send(buf,len,&md->bl,AREA);
 
-	if(battle_config.save_clothcolor && ((mob_get_viewclass(md->class_) <= 23) ||  // [Valaris]
-		(mob_get_viewclass(md->class_) >= 4001)) && (mob_get_clothes_color(md->class_) > 0))
-			clif_changelook(&md->bl, LOOK_CLOTHES_COLOR, mob_get_clothes_color(md->class_));
+	if(battle_config.save_clothcolor && pcdb_checkid(viewclass) && mob_get_clothes_color(md->class_) > 0) // [Valaris]
+		clif_changelook(&md->bl, LOOK_CLOTHES_COLOR, mob_get_clothes_color(md->class_));
 
 	if (mob_get_equip(md->class_) > 0) // mob equipment [Valaris]
 		clif_mob_equip(md,mob_get_equip(md->class_));
@@ -4003,8 +4002,7 @@ int clif_movemob(struct mob_data *md)
 	len = clif_mob007b(md,buf);
 	clif_send(buf,len,&md->bl,AREA);
 
-	if(battle_config.save_clothcolor && ((mob_get_viewclass(md->class_) <= 23) ||  // [Valaris]
-		(mob_get_viewclass(md->class_) >= 4001)) && (mob_get_clothes_color(md->class_) > 0))
+	if(battle_config.save_clothcolor && pcdb_checkid(mob_get_viewclass(md->class_)) && mob_get_clothes_color(md->class_)) // [Valaris]
 			clif_changelook(&md->bl, LOOK_CLOTHES_COLOR, mob_get_clothes_color(md->class_));
 
 	if(mob_get_equip(md->class_) > 0) // mob equipment [Valaris]
@@ -4209,8 +4207,7 @@ void clif_getareachar_mob(struct map_session_data* sd,struct mob_data* md)
 		WFIFOSET(sd->fd,len);
 	}
 
-	if(battle_config.save_clothcolor && ((mob_get_viewclass(md->class_) <= 23) ||  // [Valaris]
-		(mob_get_viewclass(md->class_) >= 4001)) && (mob_get_clothes_color(md->class_) > 0))
+	if(battle_config.save_clothcolor && pcdb_checkid(mob_get_viewclass(md->class_)) && mob_get_clothes_color(md->class_)) // [Valaris]
 			clif_changelook(&md->bl, LOOK_CLOTHES_COLOR, mob_get_clothes_color(md->class_));
 
 	if(mob_get_equip(md->class_) > 0) // mob equipment [Valaris]
@@ -8499,7 +8496,7 @@ void check_fake_id(int fd, struct map_session_data *sd, int target_id) {
 		WPACKETW(0) = 0x95;
 		WPACKETL(2) = server_fake_mob_id;
 		fake_mob = fake_mob_list[(sd->bl.m + sd->fd + sd->status.char_id) % (sizeof(fake_mob_list) / sizeof(fake_mob_list[0]))]; // never same mob
-		if (mobdb_checkid(fake_mob) == 0)
+		if (!mobdb_checkid(fake_mob))
 			fake_mob = 1002; // poring (default)
 		strncpy(WPACKETP(6), mob_db[fake_mob].name, 24);
 		SENDPACKET(fd, packet_len_table[0x95]);
@@ -11636,7 +11633,12 @@ void clif_hate_mob(struct map_session_data *sd, int skilllv,int mob_id)
 {
 	int fd=sd->fd;
 	WFIFOW(fd,0)=0x20e;
-	strncpy(WFIFOP(fd,2),(mobdb_checkid(mob_id)?mob_db(mob_id)->jname:job_name(mob_id)), NAME_LENGTH);
+	if (pcdb_checkid(mob_id))
+		strncpy(WFIFOP(fd,2),job_name(mob_id), NAME_LENGTH);
+	else if (mobdb_checkid(mob_id))
+		strncpy(WFIFOP(fd,2),mob_db(mob_id)->jname, NAME_LENGTH);
+	else //Really shouldn't happen...
+		memset(WFIFOP(fd,2), 0, NAME_LENGTH);
 	WFIFOL(fd,26)=sd->bl.id;
 	WFIFOW(fd,30)=0xa00+skilllv-1;
 	WFIFOSET(fd, packet_len_table[0x20e]);
