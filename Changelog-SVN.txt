@@ -1,5 +1,9 @@
 Date	Added
 2005/12/16
+	* Some fixes to the job_name functions (rearranging inside msg_athena.txt
+	  as well) [Skotlex]
+	* Left card to right fix will now also apply to defense piercing effects
+	  (Ice Pick) [Skotlex]
 	* Fixed char-converter being broken for a type mismatch [Foruken]
 2005/12/15
 	* Fixed clone skills again. This time ground-based skills are working, and

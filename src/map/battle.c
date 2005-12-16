@@ -1324,8 +1324,10 @@ static struct Damage battle_calc_weapon_attack(
 	} else {	//Check for Perfect Hit
 		if(sd && sd->perfect_hit > 0 && rand()%100 < sd->perfect_hit)
 			flag.hit = 1;
-		if (sc_data && sc_data[SC_FUSION].timer != -1)
+		if (sc_data && sc_data[SC_FUSION].timer != -1) {
 			flag.hit = 1; //SG_FUSION always hit [Komurka]
+			flag.idef = flag.idef2 = 1; //def ignore [Komurka]
+		}
 		if (skill_num && !flag.hit)
 			switch(skill_num)
 			{
@@ -1831,14 +1833,18 @@ static struct Damage battle_calc_weapon_attack(
 				if(sd->right_weapon.def_ratio_atk_ele & (1<<t_ele) ||
 					sd->right_weapon.def_ratio_atk_race & (1<<t_race) ||
 					sd->right_weapon.def_ratio_atk_race & (is_boss(target)?1<<10:1<<11)
-					)
+				)
 					raceele_flag = flag.idef = 1;
 
 				if(sd->left_weapon.def_ratio_atk_ele & (1<<t_ele) ||
 					sd->left_weapon.def_ratio_atk_race & (1<<t_race) ||
 					sd->left_weapon.def_ratio_atk_race & (is_boss(target)?1<<10:1<<11)
-					)
-					raceele_flag_ = flag.idef2 = 1;
+				) {	//Pass effect onto right hand if configured so. [Skotlex]
+					if (battle_config.left_cardfix_to_right)
+						raceele_flag = flag.idef = 1;
+					else
+						raceele_flag_ = flag.idef2 = 1;
+				}
 
 				if (raceele_flag || raceele_flag_)
 					ATK_RATE2(raceele_flag?(def1 + def2):100, raceele_flag_?(def1 + def2):100);
@@ -1850,7 +1856,7 @@ static struct Damage battle_calc_weapon_attack(
 				sd->right_weapon.ignore_def_ele & (1<<t_ele) ||
 				sd->right_weapon.ignore_def_race & (1<<t_race) ||
 				sd->right_weapon.ignore_def_race & (is_boss(target)?1<<10:1<<11)
-				))
+			))
 				flag.idef = 1;
 
 			if (!flag.idef2 && (
@@ -1858,11 +1864,8 @@ static struct Damage battle_calc_weapon_attack(
 				sd->left_weapon.ignore_def_ele & (1<<t_ele) ||
 				sd->left_weapon.ignore_def_race & (1<<t_race) ||
 				sd->left_weapon.ignore_def_race & (is_boss(target)?1<<10:1<<11)
-				))
+			))
 				flag.idef2 = 1;
-
-			//SG_FUSION def ignore [Komurka]
-			if (sc_data && sc_data[SC_FUSION].timer != -1) flag.idef = flag.idef2 = 1;
 		}
 
 		if (!flag.idef || !flag.idef2)

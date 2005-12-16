@@ -4144,7 +4144,7 @@ char * job_name(int class_) {
 	case JOB_ACOLYTE_HIGH:
 	case JOB_MERCHANT_HIGH:
 	case JOB_THIEF_HIGH:
-		return msg_txt(574 - JOB_NOVICE_HIGH+class_);
+		return msg_txt(575 - JOB_NOVICE_HIGH+class_);
 
 	case JOB_LORD_KNIGHT:
 	case JOB_HIGH_PRIEST:
@@ -4152,10 +4152,10 @@ char * job_name(int class_) {
 	case JOB_WHITESMITH:
 	case JOB_SNIPER:
 	case JOB_ASSASSIN_CROSS:
-		return msg_txt(581 - JOB_LORD_KNIGHT+class_);
+		return msg_txt(582 - JOB_LORD_KNIGHT+class_);
 		
 	case JOB_LORD_KNIGHT2:
-		return msg_txt(581);
+		return msg_txt(582);
 		
 	case JOB_PALADIN:
 	case JOB_CHAMPION:
@@ -4164,10 +4164,10 @@ char * job_name(int class_) {
 	case JOB_CREATOR:
 	case JOB_CLOWN:
 	case JOB_GYPSY:
-		return msg_txt(587 - JOB_PALADIN + class_);
+		return msg_txt(588 - JOB_PALADIN + class_);
 		
 	case JOB_PALADIN2:
-		return msg_txt(587);
+		return msg_txt(588);
 
 	case JOB_BABY:
 	case JOB_BABY_SWORDMAN:
@@ -4176,7 +4176,7 @@ char * job_name(int class_) {
 	case JOB_BABY_ACOLYTE:
 	case JOB_BABY_MERCHANT:
 	case JOB_BABY_THIEF:
-		return msg_txt(594 - JOB_BABY + class_);
+		return msg_txt(595 - JOB_BABY + class_);
 		
 	case JOB_BABY_KNIGHT:
 	case JOB_BABY_PRIEST:
@@ -4184,10 +4184,10 @@ char * job_name(int class_) {
 	case JOB_BABY_BLACKSMITH:
 	case JOB_BABY_HUNTER:
 	case JOB_BABY_ASSASSIN:
-		return msg_txt(601 - JOB_BABY_KNIGHT + class_);
+		return msg_txt(602 - JOB_BABY_KNIGHT + class_);
 		
 	case JOB_BABY_KNIGHT2:
-		return msg_txt(601);
+		return msg_txt(602);
 		
 	case JOB_BABY_CRUSADER:
 	case JOB_BABY_MONK:
@@ -4196,21 +4196,21 @@ char * job_name(int class_) {
 	case JOB_BABY_ALCHEMIST:
 	case JOB_BABY_BARD:
 	case JOB_BABY_DANCER:
-		return msg_txt(607 - JOB_BABY_CRUSADER +class_);
+		return msg_txt(608 - JOB_BABY_CRUSADER +class_);
 		
 	case JOB_BABY_CRUSADER2:
-		return msg_txt(607);
+		return msg_txt(608);
 		
 	case JOB_SUPER_BABY:
-		return msg_txt(614);
+		return msg_txt(615);
 		
 	case JOB_TAEKWON:
-		return msg_txt(615);
+		return msg_txt(616);
 	case JOB_STAR_GLADIATOR:
 	case JOB_STAR_GLADIATOR2:
-		return msg_txt(616);
-	case JOB_SOUL_LINKER:
 		return msg_txt(617);
+	case JOB_SOUL_LINKER:
+		return msg_txt(618);
 	
 	default:
 		return msg_txt(650);
