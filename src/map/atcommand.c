@@ -9806,7 +9806,7 @@ int atcommand_clone(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	int x=0,y=0,flag=0;
+	int x=0,y=0,flag=0,i=0;
 	struct map_session_data *pl_sd=NULL;
 	struct mob_data *md=NULL; 
 
@@ -9822,8 +9822,14 @@ int atcommand_clone(
 		return 0;
 	}
 
-	x = sd->bl.x + (rand() % 10 - 5);
-	y = sd->bl.y + (rand() % 10 - 5);
+	do {
+		x = sd->bl.x + (rand() % 10 - 5);
+		y = sd->bl.y + (rand() % 10 - 5);
+	} while (map_getcell(sd->bl.m,x,y,CELL_CHKNOPASS) && i++ < 10);
+	if (i >= 10) {
+		x = sd->bl.x;
+		y = sd->bl.y;
+	}
 
 	if (strcmpi(command, "@clone") == 0) flag = 1;
 	else if (strcmpi(command, "@slaveclone") == 0) flag = 2;

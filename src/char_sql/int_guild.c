@@ -72,9 +72,9 @@ static int guild_save(void *key, void *data, va_list ap) {
 	}
 	
    if((g->save_flag&GS_REMOVE) == GS_REMOVE) { //Nothing to save, guild is ready for removal.
-		if (save_log)
-			ShowInfo("Guild Unloaded (%d - %s)\n", g->guild_id, g->name);
 		numdb_erase(guild_db_, g->guild_id);
+		if (save_log)
+			ShowInfo("Guild Unloaded (%d - %s) [%d - guilds in memory]\n", g->guild_id, g->name, guild_db_->item_count);
 		aFree(g);
    }
 	return 0;
@@ -336,7 +336,7 @@ struct guild * inter_guild_fromsql(int guild_id)
 	ShowInfo("Guild load request (%d)...\n", guild_id);
 #endif
 	
-	sprintf(tmp_sql,"SELECT `guild_id`, `name`,`master`,`guild_lv`,`connect_member`,`max_member`,`average_lv`,`exp`,`next_exp`,`skill_point`,`castle_id`,`mes1`,`mes2`,`emblem_len`,`emblem_id`,`emblem_data` "
+	sprintf(tmp_sql,"SELECT `name`,`master`,`guild_lv`,`connect_member`,`max_member`,`average_lv`,`exp`,`next_exp`,`skill_point`,`castle_id`,`mes1`,`mes2`,`emblem_len`,`emblem_id`,`emblem_data` "
 		"FROM `%s` WHERE `guild_id`='%d'",guild_db, guild_id);
 	//printf("  %s\n",tmp_sql);
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
@@ -355,26 +355,26 @@ struct guild * inter_guild_fromsql(int guild_id)
 			return NULL;
 		}
 
-		g->guild_id=atoi(sql_row[0]);
-		strncpy(g->name,sql_row[1],NAME_LENGTH-1);
-		strncpy(g->master,sql_row[2],NAME_LENGTH-1);
-		g->guild_lv=atoi(sql_row[3]);
-		g->connect_member=atoi(sql_row[4]);
-                if (atoi(sql_row[5]) > MAX_GUILD) // Fix reduction of MAX_GUILD [PoW]
+		g->guild_id=guild_id;
+		strncpy(g->name,sql_row[0],NAME_LENGTH-1);
+		strncpy(g->master,sql_row[1],NAME_LENGTH-1);
+		g->guild_lv=atoi(sql_row[2]);
+		g->connect_member=atoi(sql_row[3]);
+                if (atoi(sql_row[4]) > MAX_GUILD) // Fix reduction of MAX_GUILD [PoW]
                         g->max_member = MAX_GUILD;
                 else
-                        g->max_member = atoi(sql_row[5]);
-		g->average_lv=atoi(sql_row[6]);
-		g->exp=atoi(sql_row[7]);
-		g->next_exp=atoi(sql_row[8]);
-		g->skill_point=atoi(sql_row[9]);
-		g->castle_id=atoi(sql_row[10]);
+                        g->max_member = atoi(sql_row[4]);
+		g->average_lv=atoi(sql_row[5]);
+		g->exp=atoi(sql_row[6]);
+		g->next_exp=atoi(sql_row[7]);
+		g->skill_point=atoi(sql_row[8]);
+		g->castle_id=atoi(sql_row[9]);
 		//There shouldn't be a need to copy the very last char, as it's the \0 [Skotlex]
-		strncpy(g->mes1,sql_row[11],59);
-		strncpy(g->mes2,sql_row[12],119);
-		g->emblem_len=atoi(sql_row[13]);
-		g->emblem_id=atoi(sql_row[14]);
-		strncpy(emblem_data,sql_row[15],4096);
+		strncpy(g->mes1,sql_row[10],59);
+		strncpy(g->mes2,sql_row[11],119);
+		g->emblem_len=atoi(sql_row[12]);
+		g->emblem_id=atoi(sql_row[13]);
+		strncpy(emblem_data,sql_row[14],4096);
 		for(i=0,pstr=emblem_data;i<g->emblem_len;i++,pstr+=2){
 			int c1=pstr[0],c2=pstr[1],x1=0,x2=0;
 			if(c1>='0' && c1<='9')x1=c1-'0';
@@ -516,11 +516,12 @@ struct guild * inter_guild_fromsql(int guild_id)
 	}
 	mysql_free_result(sql_res);
 
-	if (save_log)
-		ShowInfo("Guild loaded (%d - %s)\n", guild_id, g->name);
-
-	numdb_insert(guild_db_, g->guild_id, g); //Add to cache
+	numdb_insert(guild_db_, guild_id, g); //Add to cache
 	g->save_flag |= GS_REMOVE; //But set it to be removed, in case it is not needed for long.
+	
+	if (save_log)
+		ShowInfo("Guild loaded (%d - %s) [%d guilds in memory]\n", guild_id, g->name, guild_db_->item_count);
+
 	return g;
 }
 
@@ -1239,6 +1240,8 @@ int mapif_parse_CreateGuild(int fd,int account_id,char *name,struct guild_member
 	g = (struct guild *)aMalloc(sizeof(struct guild));
 	memset(g,0,sizeof(struct guild));
 	g->guild_id=guild_newid++;
+	if (numdb_search(guild_db_, g->guild_id) != NULL)
+		ShowWarning("mapif_parse_CreateGuild: New Guild ID [%d] already exists!\n", g->guild_id);
 	memcpy(g->name,name,NAME_LENGTH-1);
 	memcpy(g->master,master->name,NAME_LENGTH-1);
 	memcpy(&g->member[0],master,sizeof(struct guild_member));

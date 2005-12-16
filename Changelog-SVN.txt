@@ -1,5 +1,9 @@
 Date	Added
 2005/12/15
+	* Fixed clone commands sometimes spawning the clone on a non-walkable tile
+	  (which in turn sends the clone to a random map location) [Skotlex]
+	* Added debug information to the guild cache. Total number of guilds in the
+	  db will be printed now (as long as the save log is active) [Skotlex]
 	* Updated SG_HATE to pick the specific class (Select a Monk, and the bonus
 	  is against monks only, not Champions/Acolytes/Baby Monks) [Skotlex]
 	* Removed hardcoded table names in login_sql/login.c [Foruken]
