@@ -1,5 +1,7 @@
 Date	Added
 2005/12/15
+	* Fixed clone skills again. This time ground-based skills are working, and
+	  support skills have a re-cast delay of half the skill's actual effect. [Skotlex]
 	* Fixed clone commands sometimes spawning the clone on a non-walkable tile
 	  (which in turn sends the clone to a random map location) [Skotlex]
 	* Added debug information to the guild cache. Total number of guilds in the

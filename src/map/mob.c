@@ -467,6 +467,8 @@ int mob_can_move(struct mob_data *md)
 		md->sc_data[SC_AUTOCOUNTER].timer != -1 || //オートカウンター
 		md->sc_data[SC_BLADESTOP].timer != -1 || //白刃取り
 		md->sc_data[SC_SPIDERWEB].timer != -1 || //スパイダーウェッブ
+		(md->sc_data[SC_DANCING].timer !=-1 && md->sc_data[SC_DANCING].val1 == CG_HERMODE) || //cannot move while Hermod is active.
+		(md->sc_data[SC_GOSPEL].timer !=-1 && md->sc_data[SC_GOSPEL].val4 == BCT_SELF) ||	// cannot move while gospel is in effect
 		md->sc_data[SC_STOP].timer != -1 ||
 		md->sc_data[SC_CLOSECONFINE].timer != -1 ||
 		md->sc_data[SC_CLOSECONFINE2].timer != -1
@@ -1410,7 +1412,7 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 		if((!md->target_id || md->state.targettype == NONE_ATTACKABLE) && mob_can_move(md) &&
 			md->master_dist<md->db->range3 && (md->walkpath.path_pos>=md->walkpath.path_len || md->walkpath.path_len==0)){
 			int i=0,dx,dy,ret;
-			if(md->master_dist>AREA_SIZE/2 && DIFF_TICK(md->next_walktime,tick)<0) {
+			if(md->master_dist>AREA_SIZE/2 && DIFF_TICK(md->next_walktime,tick)<3000) { //Allow it to cut down the walk time to chase back. [Skotlex]
 				do {
 					if(i<=5){
 						dx=bl->x - md->bl.x;
@@ -3924,7 +3926,7 @@ int mob_is_clone(int class_)
 int mob_clone_spawn(struct map_session_data *sd, char *mapname, int x, int y, const char *event, int flag, unsigned int duration)
 {
 	int class_;
-	int c,i,j,skill_id;
+	int i,j,inf,skill_id;
 	struct mob_skill *ms;
 	
 	nullpo_retr(0, sd);
@@ -3990,12 +3992,11 @@ int mob_clone_spawn(struct map_session_data *sd, char *mapname, int x, int y, co
 	mob_db_data[class_]->clothes_color=sd->status.clothes_color;
 
 	//Skill copy [Skotlex]
-	c = pc_calc_skilltree_normalize_job(sd);
 	ms = &mob_db_data[class_]->skill[0];
 	//Go Backwards to give better priority to advanced skills.
 	for (i=0,j = MAX_SKILL_TREE-1;j>=0 && i< MAX_MOBSKILL ;j--) {
-		skill_id = skill_tree[c][j].id;
-		if (!skill_id || sd->status.skill[skill_id].lv < 1 || (skill_get_inf2(skill_id)&(INF2_WEDDING_SKILL|INF2_GUILD_SKILL|INF2_QUEST_SKILL)))
+		skill_id = skill_tree[sd->status.class_][j].id;
+		if (!skill_id || sd->status.skill[skill_id].lv < 1 || (skill_get_inf2(skill_id)&(INF2_WEDDING_SKILL|INF2_GUILD_SKILL)))
 			continue;
 		memset (&ms[i], 0, sizeof(struct mob_skill));
 		ms[i].skill_id = skill_id;
@@ -4007,74 +4008,71 @@ int mob_clone_spawn(struct map_session_data *sd, char *mapname, int x, int y, co
 		ms[i].delay = 5000+skill_delayfix(&sd->bl,skill_id, ms[i].skill_lv, 0);
 		ms[i].casttime = skill_castfix(&sd->bl,skill_id, ms[i].skill_lv, 0);
 
-		switch(skill_get_inf(skill_id)) {
-			case INF_ATTACK_SKILL:
+		inf = skill_get_inf(skill_id);
+		if (inf&INF_ATTACK_SKILL) {
+			ms[i].target = MST_TARGET;
+			ms[i].cond1 = MSC_ALWAYS;
+			if (skill_get_range(skill_id, ms[i].skill_lv)  > 3) {
+				ms[i].state = MSS_RUSH;
+			} else {
+				ms[i].state = MSS_BERSERK;
+				ms[i].permillage = 1000;
+			}
+		} else if(inf&INF_GROUND_SKILL) {
+			ms[i].permillage = 500;
+			if (skill_get_inf2(skill_id)&INF2_TRAP) { //Traps!
+				ms[i].state = MSS_IDLE;
+				ms[i].target = MST_AROUND2;
+				ms[i].delay = 60000;
+			} else if (skill_get_unit_target(skill_id) == BCT_ENEMY) { //Target Enemy
 				ms[i].target = MST_TARGET;
 				ms[i].cond1 = MSC_ALWAYS;
-				if (skill_get_range(skill_id, ms[i].skill_lv)  > 3) {
-					ms[i].state = MSS_RUSH;
-				} else {
-					ms[i].state = MSS_BERSERK;
-					ms[i].permillage = 1000;
-				}
-				break;
-			case INF_GROUND_SKILL:
-				if (skill_get_inf2(skill_id)&INF2_TRAP) { //Traps!
-					ms[i].state = MSS_IDLE;
-					ms[i].target = MST_AROUND2;
-					ms[i].delay = 60000;
-					break;
-				}
-				if (skill_get_unit_target(skill_id) == BCT_ENEMY) { //Target Enemy
-					ms[i].target = MST_TARGET;
-					ms[i].cond1 = MSC_ALWAYS;
-				} else { //Target allies
-					ms[i].target = MST_FRIEND;
-					ms[i].cond1 = MSC_FRIENDHPLTMAXRATE;
-					ms[i].cond2 = 95;
-				}
-				break;
-			case INF_SELF_SKILL:
-				if (skill_get_nk(skill_id) != NK_NO_DAMAGE) { //Offensive skill
-					ms[i].target = MST_TARGET;
-					ms[i].state = MSS_BERSERK;
-				} else //Self skill
-					ms[i].target = MST_SELF;
-				ms[i].cond1 = MSC_MYHPLTMAXRATE;
-				ms[i].cond2 = 90;
-				break;
-			case INF_SUPPORT_SKILL:
+			} else { //Target allies
 				ms[i].target = MST_FRIEND;
 				ms[i].cond1 = MSC_FRIENDHPLTMAXRATE;
-				ms[i].cond2 = 90;
-				if (skill_id == AL_HEAL) {
-					ms[i].permillage = 1000; //Higher skill rate usage for heal.
-					ms[i].delay -= 3500; //Decrease Heal delay for spammage.
-				} else if (skill_id == ALL_RESURRECTION)
-					ms[i].cond2 = 1;
-				else
-					ms[i].delay += 5000; //For other skills, they don't need to be reused so often.
-				
-				if (i+1 < MAX_MOBSKILL) { //duplicate this so it also triggers on self.
-					memcpy(&ms[i+1], &ms[i], sizeof(struct mob_skill));
-					mob_db_data[class_]->maxskill = ++i;
-					ms[i].target = MST_SELF;
-					ms[i].cond1 = MSC_MYHPLTMAXRATE;
-				}
-				break;
-			default:
-				switch (skill_id) { //Certain Special skills that are passive, and thus, never triggered.
-					case MO_TRIPLEATTACK:
-					case TF_DOUBLE:
-						ms[i].state = MSS_BERSERK;
-						ms[i].target = MST_TARGET;
-						ms[i].cond1 = MSC_ALWAYS;
-						ms[i].permillage = skill_id==TF_DOUBLE?(ms[i].skill_lv*500):(3000-ms[i].skill_lv*100);
-						ms[i].delay -= 5000; //Remove the added delay as these could trigger on "all hits".
-						break;
-					default: //Untreated Skill
-						continue;
-				}
+				ms[i].cond2 = 95;
+			}
+		} else if (inf&INF_SELF_SKILL) {
+			if (skill_get_nk(skill_id) != NK_NO_DAMAGE) { //Offensive skill
+				ms[i].target = MST_TARGET;
+				ms[i].state = MSS_BERSERK;
+			} else //Self skill
+				ms[i].target = MST_SELF;
+			ms[i].cond1 = MSC_MYHPLTMAXRATE;
+			ms[i].cond2 = 90;
+			ms[i].permillage = 1000;
+		} else if (inf&INF_SUPPORT_SKILL) {
+			ms[i].target = MST_FRIEND;
+			ms[i].cond1 = MSC_FRIENDHPLTMAXRATE;
+			ms[i].cond2 = 90;
+			if (skill_id == AL_HEAL)
+				ms[i].permillage = 2000; //Higher skill rate usage for heal.
+			else if (skill_id == ALL_RESURRECTION)
+				ms[i].cond2 = 1;
+			//Delay: Remove the stock 5 secs and add half of the support time.
+			ms[i].delay += -5000 +(skill_get_time(skill_id, ms[i].skill_lv) + skill_get_time2(skill_id, ms[i].skill_lv))/2;
+			if (ms[i].delay < 2000)
+				ms[i].delay = 2000; //With a minimum of 2 secs.
+			
+			if (i+1 < MAX_MOBSKILL) { //duplicate this so it also triggers on self.
+				memcpy(&ms[i+1], &ms[i], sizeof(struct mob_skill));
+				mob_db_data[class_]->maxskill = ++i;
+				ms[i].target = MST_SELF;
+				ms[i].cond1 = MSC_MYHPLTMAXRATE;
+			}
+		} else {
+			switch (skill_id) { //Certain Special skills that are passive, and thus, never triggered.
+				case MO_TRIPLEATTACK:
+				case TF_DOUBLE:
+					ms[i].state = MSS_BERSERK;
+					ms[i].target = MST_TARGET;
+					ms[i].cond1 = MSC_ALWAYS;
+					ms[i].permillage = skill_id==TF_DOUBLE?(ms[i].skill_lv*500):(3000-ms[i].skill_lv*100);
+					ms[i].delay -= 5000; //Remove the added delay as these could trigger on "all hits".
+					break;
+				default: //Untreated Skill
+					continue;
+			}
 		}
 		mob_db_data[class_]->maxskill = ++i;
 	}
