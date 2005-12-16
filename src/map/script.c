@@ -10280,7 +10280,7 @@ int buildin_query_sql(struct script_state *st) {
 }
 #endif
 
-int buildin_getd(struct script_state *st)
+int buildin_getd (struct script_state *st)
 {
 	char varname[100], *buffer;
 	struct script_data dat;

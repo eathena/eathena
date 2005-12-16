@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= TonyMan
 //===== Current Version: ===================================== 
-//= 1.1
+//= 1.2
 //===== Compatible With: ===================================== 
 //= eAthena 1.0
 //===== Description: ========================================= 
@@ -11,6 +11,7 @@
 //= Spore Hat, Wonder Nutshell Quests
 //===== Additional Comments: ================================= 
 //= 1.1 Optimized [Lupus]
+//= 1.2 Fixed Chef Hat items [Lupus]
 //============================================================ 
 
 xmas.gat,117,295,3	script	Titicupe	704,{
@@ -76,15 +77,15 @@ chef_hat:
 	mes "[^469ED2Titicupe^000000]";
 	mes "Hmm... spell ingridients are...";
 	mes "450 Dragon Scale";
- 	mes "300 Feather";
+ 	mes "330 Feather";
  	mes "120 Piece of Cake";
  	mes "  1 White Dyestuffs";
  	next;
 	menu "Here. Now do your magic!",-,"Cancel",M_Cancel;
 	
-	if(countitem(1036)<450 || countitem(949)<300 || countitem(539)<120 || countitem(982)<1) goto L_NoItem;
+	if(countitem(1036)<450 || countitem(949)<330 || countitem(539)<120 || countitem(982)<1) goto L_NoItem;
 	delitem 1036,450;
-	delitem 949,300;
+	delitem 949,330;
 	delitem 539,120;
 	delitem 982,1;
 	getitem 5026,1;

@@ -25,6 +25,10 @@ Nexon
 
 Date		Added
 ======
+12/16
+	* Updated Chef Hat quest items Feather 300->330. Thanks to Ishizu-chan [Lupus]
+	* Reversed custom Wizard Hat quest due to Treasure Box drop changes [Lupus]
+	* Updated exploitable custom quest for Berzebub Card [Lupus]
 12/15
 	* Added kobold leader to geffen feild 12 in eamobs and omobs. [Kayla]
 12/14
