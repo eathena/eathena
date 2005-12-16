@@ -25,6 +25,8 @@ Nexon
 
 Date		Added
 ======
+12/17
+	* Fixed more Monsters Museum typos, thx 2Haplo. Also fixed some monsters names [Lupus]
 12/16
 	* Updated Chef Hat quest items Feather 300->330. Thanks to Ishizu-chan [Lupus]
 	* Reversed custom Wizard Hat quest due to Treasure Box drop changes [Lupus]
