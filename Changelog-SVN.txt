@@ -1,5 +1,7 @@
 Date	Added
 2005/12/16
+	* left_cardfix_to_right now also moves the ignore race/element defense
+	  bonuses (Ice Pick, Weed Killer, etc) [Skotlex]
 	* Some fixes to the job_name functions (rearranging inside msg_athena.txt
 	  as well) [Skotlex]
 	* Left card to right fix will now also apply to defense piercing effects

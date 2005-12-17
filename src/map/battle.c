@@ -1864,8 +1864,12 @@ static struct Damage battle_calc_weapon_attack(
 				sd->left_weapon.ignore_def_ele & (1<<t_ele) ||
 				sd->left_weapon.ignore_def_race & (1<<t_race) ||
 				sd->left_weapon.ignore_def_race & (is_boss(target)?1<<10:1<<11)
-			))
-				flag.idef2 = 1;
+			)) {
+					if(battle_config.left_cardfix_to_right) //Move effect to right hand. [Skotlex]
+						flag.idef = 1;
+					else
+						flag.idef2 = 1;
+			}
 		}
 
 		if (!flag.idef || !flag.idef2)

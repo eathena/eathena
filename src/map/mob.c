@@ -4046,6 +4046,10 @@ int mob_clone_spawn(struct map_session_data *sd, char *mapname, int x, int y, co
 			ms[i].cond1 = MSC_MYHPLTMAXRATE;
 			ms[i].cond2 = 90;
 			ms[i].permillage = 1000;
+			//Delay: Remove the stock 5 secs and add half of the support time.
+			ms[i].delay += -5000 +(skill_get_time(skill_id, ms[i].skill_lv) + skill_get_time2(skill_id, ms[i].skill_lv))/2;
+			if (ms[i].delay < 5000)
+				ms[i].delay = 5000; //With a minimum of 5 secs.
 		} else if (inf&INF_SUPPORT_SKILL) {
 			ms[i].target = MST_FRIEND;
 			ms[i].cond1 = MSC_FRIENDHPLTMAXRATE;
