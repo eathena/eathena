@@ -400,6 +400,8 @@ int run_func(struct script_state *st);
 int mapreg_setreg(int num,int val);
 int mapreg_setregstr(int num,const char *str);
 
+int buildin_setitemscript(struct script_state *st);
+
 #ifdef PCRE_SUPPORT
 int buildin_defpattern(struct script_state *st); // MouseJstr
 int buildin_activatepset(struct script_state *st); // MouseJstr
@@ -686,6 +688,8 @@ struct {
 	{buildin_setd,"setd","*"},
 	// <--- [zBuffer] List of dynamic var commands
 	{buildin_petstat,"petstat","i"},
+	{buildin_setitemscript,"setitemscript","is"}, //Set NEW item bonus script. Lupus
+
 	{NULL,NULL,NULL},
 };
 
@@ -10352,7 +10356,6 @@ int buildin_petstat(struct script_state *st){
 	setiteminfo(itemID,"{new item bonus script}");
  *------------------------------------------
  */
-/* Work In Progress [Lupus]
 int buildin_setitemscript(struct script_state *st)
 {
 	int item_id;
@@ -10372,7 +10375,7 @@ int buildin_setitemscript(struct script_state *st)
 		push_val(st->stack,C_INT,0);
 	return 0;
 }
-
+/* Work In Progress [Lupus]
 int buildin_addmonsterdrop(struct script_state *st)
 {
 	int class_,item_id,chance;
