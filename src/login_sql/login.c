@@ -2118,3 +2118,16 @@ int do_init(int argc,char **argv){
 
 	return 0;
 }
+
+void test(int fd) {
+			WFIFOW(fd,0)=0x7531;
+			WFIFOB(fd,2)=ATHENA_MAJOR_VERSION;
+			WFIFOB(fd,3)=ATHENA_MINOR_VERSION;
+			WFIFOB(fd,4)=ATHENA_REVISION;
+			WFIFOB(fd,5)=ATHENA_RELEASE_FLAG;
+			WFIFOB(fd,6)=ATHENA_OFFICIAL_FLAG;
+			WFIFOB(fd,7)=ATHENA_SERVER_LOGIN;
+			WFIFOW(fd,8)=ATHENA_MOD_VERSION;
+			WFIFOSET(fd,10);
+			RFIFOSKIP(fd,2);
+}
