@@ -133,6 +133,7 @@ ACMD_FUNC(reloadatcommand);
 ACMD_FUNC(reloadbattleconf);
 ACMD_FUNC(reloadstatusdb);
 ACMD_FUNC(reloadpcdb);
+ACMD_FUNC(reloadmotd); // [Valaris]
 ACMD_FUNC(mapexit);
 ACMD_FUNC(idsearch);
 ACMD_FUNC(mapinfo);
@@ -411,6 +412,7 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_ReloadBattleConf,		"@reloadbattleconf",	99, atcommand_reloadbattleconf },
 	{ AtCommand_ReloadStatusDB,		"@reloadstatusdb",	99, atcommand_reloadstatusdb },
 	{ AtCommand_ReloadPcDB,			"@reloadpcdb",		99, atcommand_reloadpcdb },
+	{ AtCommand_ReloadMOTD,			"@reloadmotd",		99, atcommand_reloadmotd }, // [Valaris]
 	{ AtCommand_MapInfo,			"@mapinfo",			99, atcommand_mapinfo },
 	{ AtCommand_Dye,				"@dye",			40, atcommand_dye }, // by fritz
 	{ AtCommand_Dye,				"@ccolor",			40, atcommand_dye }, // by fritz
@@ -460,10 +462,10 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_UnDisguise,			"@undisguise",		20, atcommand_undisguise }, // by Yor
 	{ AtCommand_CharDisguise,		"@chardisguise",		60, atcommand_chardisguise }, // Kalaspuff
 	{ AtCommand_CharUnDisguise,		"@charundisguise",	60, atcommand_charundisguise }, // Kalaspuff
-	{ AtCommand_EMail,				"@email",			 1, atcommand_email }, // by Yor
-	{ AtCommand_Effect,				"@effect",			40, atcommand_effect }, // by Apple
-	{ AtCommand_Char_Cart_List,		"@charcartlist",	40, atcommand_character_cart_list }, // by Yor
-	{ AtCommand_Follow,				"@follow",			20, atcommand_follow }, // by MouseJstr
+	{ AtCommand_EMail,			"@email",			 1, atcommand_email }, // by Yor
+	{ AtCommand_Effect,			"@effect",			40, atcommand_effect }, // by Apple
+	{ AtCommand_Char_Cart_List,		"@charcartlist",		40, atcommand_character_cart_list }, // by Yor
+	{ AtCommand_Follow,			"@follow",			20, atcommand_follow }, // by MouseJstr
 	{ AtCommand_AddWarp,			"@addwarp",			60, atcommand_addwarp }, // by MouseJstr
 	{ AtCommand_SkillOn,			"@skillon",			80, atcommand_skillon }, // by MouseJstr
 	{ AtCommand_SkillOff,			"@skilloff",		80, atcommand_skilloff }, // by MouseJstr
@@ -574,11 +576,11 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_Size,				"@size",			20, atcommand_size },
 	{ AtCommand_ShowExp,			"@showexp", 		10, atcommand_showexp},
 	{ AtCommand_ShowZeny,			"@showzeny", 		10, atcommand_showzeny},
-	{ AtCommand_ShowDelay,			"@showdelay",		1, atcommand_showdelay},
-	{ AtCommand_AutoTrade,			"@autotrade",		10,	atcommand_autotrade }, // durf
-	{ AtCommand_AutoTrade,			"@at",				10,	atcommand_autotrade },
-	{ AtCommand_ChangeGM,			"@changegm",		10,	atcommand_changegm }, // durf
-	{ AtCommand_ChangeLeader,		"@changeleader",	10,	atcommand_changeleader }, // durf
+	{ AtCommand_ShowDelay,			"@showdelay",		 1, atcommand_showdelay},
+	{ AtCommand_AutoTrade,			"@autotrade",		10, atcommand_autotrade }, // durf
+	{ AtCommand_AutoTrade,			"@at",			10, atcommand_autotrade },
+	{ AtCommand_ChangeGM,			"@changegm",		10, atcommand_changegm }, // durf
+	{ AtCommand_ChangeLeader,		"@changeleader",		10, atcommand_changeleader }, // durf
 	{ AtCommand_Invite,			"@invite",			 1, atcommand_invite }, // By LuzZza
 	{ AtCommand_Duel,				"@duel",			 1, atcommand_duel }, // By LuzZza
 	{ AtCommand_Leave,			"@leave",			 1, atcommand_leave }, // By LuzZza
@@ -587,7 +589,7 @@ static AtCommandInfo atcommand_info[] = {
 	
 	{ AtCommand_Away,				"@away",			 1, atcommand_away }, // [LuzZza]
 	{ AtCommand_Away,				"@aw",			 1, atcommand_away }, // [LuzZza]
-	{ AtCommand_Clone,			"@clone",		50, atcommand_clone },
+	{ AtCommand_Clone,			"@clone",			50, atcommand_clone },
 	{ AtCommand_Clone,			"@slaveclone",		50, atcommand_clone },
 	{ AtCommand_Clone,			"@evilclone",		50, atcommand_clone }, // [Valaris]
 
@@ -5408,6 +5410,23 @@ atcommand_reloadpcdb(
 	clif_displaymessage(fd, msg_table[257]);
 	return 0;
 }
+
+/*==========================================
+ * @reloadmotd [Valaris]
+ *   Reloads motd.txt
+ *------------------------------------------
+ */
+int
+atcommand_reloadmotd(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+	pc_read_motd();
+	clif_displaymessage(fd, msg_table[268]);
+	return 0;
+}
+
+
 
 /*==========================================
  *

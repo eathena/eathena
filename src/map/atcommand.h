@@ -112,6 +112,7 @@ enum AtCommandType {
 	AtCommand_ReloadBattleConf,
 	AtCommand_ReloadStatusDB,
 	AtCommand_ReloadPcDB,
+	AtCommand_ReloadMOTD, // [Valaris]
 	AtCommand_MapInfo,
 	AtCommand_Dye,
 	AtCommand_Hstyle,
