@@ -60,6 +60,9 @@ static unsigned int equip_pos[11]={0x0080,0x0008,0x0040,0x0004,0x0001,0x0200,0x0
 static struct gm_account *gm_account = NULL;
 static int GM_num = 0;
 
+#define MOTD_LINE_SIZE 128
+char motd_text[MOTD_LINE_SIZE][256]; // Message of the day buffer [Valaris]
+
 int pc_isGM(struct map_session_data *sd) {
 	int i;
 
@@ -883,28 +886,14 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 		clif_displaymessage(sd->fd, buf);
 	}
 
-	// Message of the DayÇÃëóêM
+	// Message of the Day [Valaris]
 	{
-		char buf[256];
-		FILE *fp;
-		if ((fp = fopen(motd_txt, "r")) != NULL) {
-			while (fgets(buf, sizeof(buf)-1, fp) != NULL) {
-				int i;
-				for(i=0; buf[i]; i++) {
-					if (buf[i] == '\r' || buf[i]== '\n') {
-						buf[i] = 0;
-						break;
-					}
-				}
-				if (battle_config.motd_type)
-					clif_disp_onlyself(sd,buf,strlen(buf));
-				else
-					clif_displaymessage(sd->fd, buf);
-			}
-			fclose(fp);
-		}
-		else if(battle_config.error_log) {
-			ShowWarning("In function pc_authok() -> File '"CL_WHITE"%s"CL_RESET"' not found.\n", motd_txt);
+		int ln;
+		for(ln=0; motd_text[ln][0] && ln < MOTD_LINE_SIZE; ln++) {
+			if (battle_config.motd_type)
+				clif_disp_onlyself(sd,motd_text[ln],strlen(motd_text[ln]));
+			else
+				clif_displaymessage(sd->fd, motd_text[ln]);
 		}
 	}
 
@@ -8315,6 +8304,32 @@ int pc_readdb(void)
 	return 0;
 }
 
+// Read MOTD on startup. [Valaris]
+int pc_read_motd(void) {
+	memset(motd_text,0,sizeof(motd_text));
+	FILE *fp;
+	if ((fp = fopen(motd_txt, "r")) != NULL) {
+		int ln=0;
+		while ((ln < MOTD_LINE_SIZE) && fgets(motd_text[ln], sizeof(motd_text[ln])-1, fp) != NULL) {
+			if(motd_text[ln][0] == '/' && motd_text[ln][1] == '/')
+				continue;
+			int i;
+			for(i=0; motd_text[ln][i]; i++) {
+				if (motd_text[ln][i] == '\r' || motd_text[ln][i]== '\n') {
+					motd_text[ln][i]=0;
+					ln++;
+					break;
+				}
+			}
+		}
+		fclose(fp);
+	}
+	else if(battle_config.error_log)
+		ShowWarning("In function pc_read_motd() -> File '"CL_WHITE"%s"CL_RESET"' not found.\n", motd_txt);
+	
+	return 0;
+}
+
 /*==========================================
  * pc? åWèâä˙âª
  *------------------------------------------
@@ -8326,6 +8341,7 @@ void do_final_pc(void) {
 }
 int do_init_pc(void) {
 	pc_readdb();
+	pc_read_motd(); // Read MOTD [Valaris]
 
 	add_timer_func_list(pc_walk, "pc_walk");
 	add_timer_func_list(pc_attack_timer, "pc_attack_timer");
