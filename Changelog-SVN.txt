@@ -1,4 +1,8 @@
 Date	Added
+2005/12/17
+        * Updated the svn eol-style properties to make merging between
+          linux and windows easier when we use more complex branching
+          system  [4544: MouseJstr]
 2005/12/16
 	* left_cardfix_to_right now also moves the ignore race/element defense
 	  bonuses (Ice Pick, Weed Killer, etc) [Skotlex]
