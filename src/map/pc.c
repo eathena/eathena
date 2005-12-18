@@ -8306,14 +8306,14 @@ int pc_readdb(void)
 
 // Read MOTD on startup. [Valaris]
 int pc_read_motd(void) {
-	memset(motd_text,0,sizeof(motd_text));
 	FILE *fp;
+	int ln=0,i=0;
+
+	memset(motd_text,0,sizeof(motd_text));
 	if ((fp = fopen(motd_txt, "r")) != NULL) {
-		int ln=0;
 		while ((ln < MOTD_LINE_SIZE) && fgets(motd_text[ln], sizeof(motd_text[ln])-1, fp) != NULL) {
 			if(motd_text[ln][0] == '/' && motd_text[ln][1] == '/')
 				continue;
-			int i;
 			for(i=0; motd_text[ln][i]; i++) {
 				if (motd_text[ln][i] == '\r' || motd_text[ln][i]== '\n') {
 					motd_text[ln][i]=0;

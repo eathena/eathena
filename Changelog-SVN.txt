@@ -1,5 +1,6 @@
 Date	Added
 2005/12/18
+	* Updated new MOTD code so that it can compile on VC. [Valaris]
 	* Fixed clone's dyes changing when they attack. [Valaris]
 	* Declared pc_read_motd(void) in pc.h for the motd reload command. [Valaris]
 	* Added @reloadmotd for reloading the motd.txt into memory. [Valaris]
