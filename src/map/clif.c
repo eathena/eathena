@@ -4183,6 +4183,12 @@ int clif_damage(struct block_list *src,struct block_list *dst,unsigned int tick,
 	//Because the damage delay must be synced with the client, here is where the can-walk tick must be updated. [Skotlex]
 	if (type != 4 && type != 9 && damage+damage2 > 0) //Non-endure/Non-flinch attack, update walk delay.
 		battle_walkdelay(dst, tick, sdelay, ddelay, div);
+
+	// [Valaris]
+	if(battle_config.save_clothcolor && src->type==BL_MOB &&
+		pcdb_checkid(mob_get_viewclass(((struct mob_data *)src)->class_)) && mob_get_clothes_color(((struct mob_data *)src)->class_) > 0)
+			clif_changelook(src, LOOK_CLOTHES_COLOR, mob_get_clothes_color(((struct mob_data *)src)->class_));
+
 	return 0;
 }
 

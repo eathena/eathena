@@ -1,5 +1,6 @@
 Date	Added
 2005/12/18
+	* Fixed clone's dyes changing when they attack. [Valaris]
 	* Declared pc_read_motd(void) in pc.h for the motd reload command. [Valaris]
 	* Added @reloadmotd for reloading the motd.txt into memory. [Valaris]
 	* motd.txt will now load into memory at startup instead of being read everytime a player logs in. [Valaris]
