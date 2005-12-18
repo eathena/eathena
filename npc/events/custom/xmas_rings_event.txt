@@ -137,7 +137,6 @@ M_END:
 	mes "[Sneewy]";
 	mes "Pity... I've got a magic Santa's ring... I'd exchange it for 4 Gift Boxes...";
 	emotion e_swt;
-//	if(Q_XMSRINGS==0) set Q_XMSRINGS,1;
 	close;
 }
 
@@ -162,9 +161,9 @@ izlu2dun.gat,133,160,2	script	Snoowy	714,{
 		mes "You've helped my sis? It's just great!";
 		next;
 		mes "[Snoowy]";
-		mes "But I too need 3 more gifts for my marine flok friends...";
+		mes "But I too need 3 more gifts for my marine folk friends...";
 		next;
-		menu "Have these gifts!",-, "I need li'l something in return",M_END;
+		menu "Have these gifts!",-, "I need a li'l something in return",M_END;
 
 		mes "[Snoowy]";
 		if(countitem(644)<3){
@@ -181,7 +180,7 @@ izlu2dun.gat,133,160,2	script	Snoowy	714,{
 	}
 	emotion e_thx;
 	mes "Oh... the whole marine folk send you their thanks! They love presents so much!!!";
-	if(rand(2))mes "Didn't you know that Santa's Hat reveals real power of the rings?";
+	if(rand(2))mes "Didn't you know that Santa's Hat reveals the real power of the rings?";
 	close;
 
 M_END:
