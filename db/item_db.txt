@@ -755,7 +755,7 @@
 1722,Ballista,Ballista,4,,10,3500,145,,5,0,1574912,7,2,34,4,77,1,11,{}
 1723,Lunar_Bow,Lunar Bow,4,,10,2000,100,,5,2,2048,7,2,34,3,30,1,11,{ bonus bDef,2+3*(getrefine()>9)+(getrefine()>6 && getrefine()<=9); }
 1724,Dragon_Wing,Dragon Wing,4,,10,1200,100,,5,0,1706056,7,2,34,4,60,1,11,{ bonus3 bAddMonsterDropItem,1765,9,300; bonus bIgnoreDefRace,RC_Dragon; }
-1725,Wondering_Bard's_Bow,Wondering Bard's Bow,4,,10,1700,120,,5,1,1706056,7,2,34,4,70,1,11,{ bonus bInt,1; bonus bSPrecovRate,10; }
+1725,Wondering_Bard's_Bow,Wondering Bard's Bow,4,,10,1700,120,,5,1,1574912,7,2,34,4,70,1,11,{ bonus bInt,2; bonus bSPrecovRate,10; }
 // Arrows
 1750,Arrow,Arrow,10,1,,1,25,,,,1706056,7,2,32768,,1,,,{}
 1751,Silver_Arrow,Silver Arrow,10,3,,2,30,,,,1706056,7,2,32768,,1,,,{ bonus bAtkEle,Ele_Holy; }
