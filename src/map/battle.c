@@ -1022,7 +1022,7 @@ static void battle_calc_base_damage(struct block_list *src, struct block_list *t
 			sd->special_state.no_sizefix ||
 			(sc_data && sc_data[SC_WEAPONPERFECTION].timer!=-1) ||
 			(pc_isriding(sd) && (sd->status.weapon==4 || sd->status.weapon==5) && t_size==1) ||
-			(!(flag&8))
+			(flag&8)
 			))
 		{
 			(*damage1) = (*damage1)*(sd->right_weapon.atkmods[t_size])/100;

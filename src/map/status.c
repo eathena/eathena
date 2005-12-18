@@ -4475,7 +4475,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 				struct status_change *sc_data2 = src?status_get_sc_data(src):NULL;
 				if (src && sc_data2) {
 					if (sc_data2[SC_CLOSECONFINE].timer == -1) //Start lock on caster.
-						status_change_start(bl,SC_CLOSECONFINE,1,0,0,0,tick+1000,0);
+						status_change_start(src,SC_CLOSECONFINE,1,0,0,0,tick+1000,0);
 					else { //Increase count of locked enemies and refresh time.
 						sc_data2[SC_CLOSECONFINE].val1++;
 						delete_timer(sc_data2[SC_CLOSECONFINE].timer, status_change_timer);

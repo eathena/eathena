@@ -5550,42 +5550,14 @@ int pc_readparam(struct map_session_data *sd,int type)
 		else
 		val= sd->status.class_;
 		break;
-	case SP_BASEJOB:
-		val= pc_mapid2jobid(sd->class_&MAPID_BASEMASK, sd->status.sex);
+	case SP_BASEJOB: //Base job, extracting upper type.
+		val= pc_mapid2jobid(sd->class_&MAPID_UPPERMASK, sd->status.sex);
 		break;
 	case SP_UPPER:
 		val= sd->class_&JOBL_UPPER?1:(sd->class_&JOBL_BABY?2:0);
 		break;
-	case SP_BASECLASS: //Extract base class. [Skotlex]
-		switch(sd->class_&MAPID_BASEMASK)
-		{
-			case MAPID_NOVICE:
-				val= JOB_NOVICE;
-				break;
-			case MAPID_ACOLYTE:
-				val= JOB_ACOLYTE;
-				break;
-			case MAPID_SWORDMAN:
-				val= JOB_SWORDMAN;
-				break;
-			case MAPID_ARCHER:
-				val= JOB_ARCHER;
-				break;
-			case MAPID_MERCHANT:
-				val= JOB_MERCHANT;
-				break;
-			case MAPID_MAGE:
-				val= JOB_MAGE;
-				break;
-			case MAPID_THIEF:
-				val= JOB_THIEF;
-				break;
-			case MAPID_TAEKWON:
-				val= JOB_TAEKWON;
-				break;
-			default: //Is this even possible?
-				val= 0;
-		}
+	case SP_BASECLASS: //Extract base class tree. [Skotlex]
+		val= pc_mapid2jobid(sd->class_&MAPID_BASEMASK, sd->status.sex);
 		break;
 	case SP_SEX:
 		val= sd->sex;
@@ -7643,10 +7615,9 @@ static int pc_natural_heal_hp(struct map_session_data *sd)
 	if(sd->nshealhp > 0) {
 		if(sd->inchealhptick >= battle_config.natural_heal_skill_interval && sd->status.hp < sd->status.max_hp) {
 			if(sd->doridori_counter && pc_checkskill(sd,TK_HPTIME)) //TK_HPTIME doridori provided bonus [Dralnu]
-				bonus = sd->nshealhp+30;
+				bonus = sd->nshealhp+30; //Doridori counter will be cleared out in the sp regen routine.
 			else
-			bonus = sd->nshealhp;
-			sd->doridori_counter = 0;
+				bonus = sd->nshealhp;
 			while(sd->inchealhptick >= battle_config.natural_heal_skill_interval) {
 				sd->inchealhptick -= battle_config.natural_heal_skill_interval;
 				if(sd->status.hp + bonus <= sd->status.max_hp)
@@ -7717,7 +7688,7 @@ static int pc_natural_heal_sp(struct map_session_data *sd)
 			if(sd->doridori_counter && pc_checkskill(sd,TK_SPTIME)) //TK_SPTIME doridori provided bonus [Dralnu]
 				bonus = sd->nshealsp+3;
 			else
-			bonus = sd->nshealsp;
+				bonus = sd->nshealsp;
 			sd->doridori_counter = 0;
 			while(sd->inchealsptick >= battle_config.natural_heal_skill_interval) {
 				sd->inchealsptick -= battle_config.natural_heal_skill_interval;

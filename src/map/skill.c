@@ -7976,6 +7976,10 @@ int skill_check_condition(struct map_session_data *sd,int type)
 	case AL_WARP:
 		if(!(type&2)) //Delete the item when the portal has been selected (type&2). [Skotlex]
 			delitem_flag = 0;
+		if(map[sd->bl.m].flag.nowarp) {
+			clif_skill_teleportmessage(sd,0);
+			return 0;
+		}
 	case AL_TELEPORT:
 		if(map[sd->bl.m].flag.noteleport) {
 			clif_skill_teleportmessage(sd,0);

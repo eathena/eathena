@@ -1,5 +1,12 @@
 Date	Added
 2005/12/18
+	* Fixed Close Confine not affecting the caster. [Skotlex]
+	* Fixed all skills except Extremity Fist not getting the weapon size
+	  modifiers [Skotlex]
+	* Fixed Warp Portal checking for noteleport instead of nowarp mapflag
+	  (again?) [Skotlex]
+	* Fixed baseJob working as baseClass (I hope it works fine now) [Skotlex]
+	* Fixed Doridori bonus for Super Novices [Skotlex]
 	* Updated new MOTD code so that it can compile on VC. [Valaris]
 	* Fixed clone's dyes changing when they attack. [Valaris]
 	* Declared pc_read_motd(void) in pc.h for the motd reload command. [Valaris]

@@ -1845,8 +1845,8 @@ adding up strings:
     
 ---------------------------------------
 
-*countitem2(<item id>,<amount>,<identify>,<refine>,<attribute>,<card1>,<card2>,<card3>,<card4>)
-*countitem2("<item name>",<amount>,<identify>,<refine>,<attribute>,<card1>,<card2>,<card3>,<card4>)
+*countitem2(<item id>,<identify>,<refine>,<attribute>,<card1>,<card2>,<card3>,<card4>)
+*countitem2("<item name>",<identify>,<refine>,<attribute>,<card1>,<card2>,<card3>,<card4>)
 
 Expanded version of 'countitem' function, used for created/carded/forged items.
 
