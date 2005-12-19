@@ -4159,7 +4159,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				break;
 			}
 		}
-		status_change_start(src,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid, skilllv),0);
+		clif_skill_nodamage(src,bl,skillid,skilllv,1);
+		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid, skilllv),0);
 		break;
 	case SM_AUTOBERSERK:	// Celest
 		{
