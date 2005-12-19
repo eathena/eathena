@@ -52,8 +52,8 @@ static const int packet_len_table[0x3d] = {
 //2afb: Incomming, chrif_sendmapack -> 'Maps received successfully / or not ..'
 //2afc: Outgoing, chrif_scdata_request -> request sc_data for pc_authok'ed char. <- new command reuses previous one.
 //2afd: Incomming, chrif_authok -> 'character selected, add to auth db'
-//2afe: FREE (packet deprecated by Kevin's new login system)
-//2aff: Outgoing, send_users_tochar -> 'sends all actual connected charactersids to charserver'
+//2afe: Outgoing, send_usercount_tochar -> 'sends player count of this map server to charserver'
+//2aff: Outgoing, send_users_tochar -> 'sends all actual connected character ids to charserver'
 //2b00: Incomming, map_setusers -> 'set the actual usercount? PACKET.2B COUNT.L.. ?' (not sure)
 //2b01: Outgoing, chrif_save -> 'charsave of char XY account XY (complete struct)'
 //2b02: Outgoing, chrif_charselectreq -> 'player returns from ingame to charserver to select another char.., this packets includes sessid etc' ? (not 100% sure)
@@ -63,13 +63,13 @@ static const int packet_len_table[0x3d] = {
 //2b06: Incomming, chrif_changemapserverack -> 'awnser of 2b05, ok/fail, data: dunno^^'
 //2b07: Incoming, clif_updatemaxid -> Received when updating the max account/char known
 //2b08: Outgoing, chrif_searchcharid -> '...'
-//2b09: Incomming, map_addchariddb -> 'dunno^^'
+//2b09: Incomming, map_addchariddb -> 'Adds a name to the nick db'
 //2b0a: Outgoing, chrif_changegm -> 'level change of acc/char XY'
-//2b0b: Incomming, chrif_changedgm -> 'awnser of 2b0a..'
+//2b0b: Incomming, chrif_changedgm -> 'answer of 2b0a..'
 //2b0c: Outgoing, chrif_changeemail -> 'change mail address ...'
 //2b0d: Incomming, chrif_changedsex -> 'Change sex of acc XY'
 //2b0e: Outgoing, chrif_char_ask_name -> 'Do some operations (change sex, ban / unban etc)'
-//2b0f: Incomming, chrif_char_ask_name_answer -> 'awnser of the 2b0e'
+//2b0f: Incomming, chrif_char_ask_name_answer -> 'answer of the 2b0e'
 //2b10: Outgoing, chrif_saveaccountreg2 -> dunno? (register an account??)
 //2b11: Outgoing, chrif_changesex -> 'change sex of acc X'
 //2b12: Incomming, chrif_divorce -> 'divorce a wedding of charid X and partner id X'
@@ -98,8 +98,10 @@ static int char_port = 6121;
 static char userid[NAME_LENGTH], passwd[NAME_LENGTH];
 static int chrif_state = 0;
 static int char_init_done = 0;
-
-static int CHECK_INTERVAL = 3600000; //Interval at which map server updates online listing. [Valaris]
+//Interval at which map server updates online listing. [Valaris]
+#define CHECK_INTERVAL 3600000
+//Interval at which map server sends number of connected users. [Skotlex]
+#define UPDATE_INTERVAL 10000
 //This define should spare writing the check in every function. [Skotlex]
 #define chrif_check(a) { if(!chrif_isconnect()) return a; }
 
@@ -1447,6 +1449,23 @@ int chrif_parse(int fd)
 	return 0;
 }
 
+int send_usercount_tochar(int tid, unsigned int tick, int id, int data) {
+	int count;
+	static int last_count = 0;
+
+	chrif_check(-1);
+	
+	map_getallusers(&count);
+	
+	if (count == last_count) //No need to waste packets.
+		return 0;
+	last_count = count;
+
+	WFIFOW(char_fd,0) = 0x2afe;
+	WFIFOL(char_fd,2) = count;
+	WFIFOSET(char_fd,6);
+}
+
 /*==========================================
  * timerŠÖ”
  * ¡‚±‚ÌmapI‚ÉŒq‚ª‚Á‚Ä‚¢‚éƒNƒ‰ƒCƒAƒ“ƒgl”‚ğcharI‚Ö‘—‚é
@@ -1549,10 +1568,12 @@ int do_final_chrif(void)
 int do_init_chrif(void)
 {
 	add_timer_func_list(check_connect_char_server, "check_connect_char_server");
+	add_timer_func_list(send_usercount_tochar, "send_usercount_tochar");
 	add_timer_func_list(send_users_tochar, "send_users_tochar");
 	add_timer_func_list(auth_db_cleanup, "auth_db_cleanup");
 	add_timer_interval(gettick() + 1000, check_connect_char_server, 0, 0, 10 * 1000);
 	add_timer_interval(gettick() + 1000, send_users_tochar, 0, 0, CHECK_INTERVAL);
+	add_timer_interval(gettick() + 1000, send_usercount_tochar, 0, 0, UPDATE_INTERVAL);
 	add_timer_interval(gettick() + 1000, auth_db_cleanup, 0, 0, 30 * 1000);
 
 	auth_db = numdb_init();

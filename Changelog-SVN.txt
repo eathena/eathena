@@ -1,5 +1,8 @@
 Date	Added
 2005/12/19
+	* Added a new timer which updates only the count of characters on the
+	  current map server to the char server. Update interval is 10 secs.
+	  [Skotlex]
 	* Updated status_clear_debuffs to clear many other types of ailments
 	  (Gospel should be clearing up most negative status changes now) [Skotlex]
 	* Fixed exp calc type 0 (dmg/total dmg) being calculated as 0 always. [Skotlex]

@@ -2413,6 +2413,16 @@ int parse_frommap(int fd) {
 #endif
 			break;
 		}
+		//set MAP user count
+		case 0x2afe:
+			if (RFIFOREST(fd) < 6)
+				return 0;
+			if (RFIFOW(fd,4) != server[id].users) {
+				server[id].users = RFIFOW(fd,4);
+				ShowInfo("User Count: %d (Server: %d)\n", server[id].users, id);
+			}
+			RFIFOSKIP(fd, 6);
+			break;
 		// set MAP user
 		case 0x2aff:
 			if (RFIFOREST(fd) < 6 || RFIFOREST(fd) < RFIFOW(fd,2))
@@ -2420,8 +2430,6 @@ int parse_frommap(int fd) {
 		{
 			int i, aid, cid;
 			struct online_char_data* character;
-			if (RFIFOW(fd,4) != server[id].users)
-				ShowInfo("User Count: %d (Server: %d)\n", RFIFOW(fd,4), id);
 
 			numdb_foreach(online_char_db,char_db_setoffline,id); //Set all chars from this server as 'unknown'
 			server[id].users = RFIFOW(fd,4);
@@ -3235,10 +3243,8 @@ int parse_char(int fd) {
 			WFIFOSET(map_fd, WFIFOW(map_fd,2));
 
 			set_char_online(i, auth_fifo[auth_fifo_pos].char_id, auth_fifo[auth_fifo_pos].account_id);
-			
 			//Checks to see if the even share setting of the party must be broken.
 			inter_party_logged(char_dat[0].party_id, char_dat[0].account_id);
-			
 			auth_fifo_pos++;
 			break;
 

@@ -2417,8 +2417,17 @@ int parse_frommap(int fd) {
 			break;
 		}
 		
-		// MAPサーバー上のユーザー数受信
-		// Recieve alive message from map-server
+		//set MAP user count
+		case 0x2afe:
+			if (RFIFOREST(fd) < 6)
+				return 0;
+			if (RFIFOW(fd,4) != server[id].users) {
+				server[id].users = RFIFOW(fd,4);
+				ShowInfo("User Count: %d (Server: %d)\n", server[id].users, id);
+			}
+			RFIFOSKIP(fd, 6);
+			break;
+		//set MAP users
 		case 0x2aff:
 			if (RFIFOREST(fd) < 6 || RFIFOREST(fd) < RFIFOW(fd,2))
 				return 0;
