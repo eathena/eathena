@@ -2525,7 +2525,7 @@ int pc_dropitem(struct map_session_data *sd,int n,int amount)
  */
 int pc_takeitem(struct map_session_data *sd,struct flooritem_data *fitem)
 {
-	int flag;
+	int flag=0;
 	unsigned int tick = gettick();
 	struct map_session_data *first_sd = NULL,*second_sd = NULL,*third_sd = NULL;
 	struct party *p=NULL;
