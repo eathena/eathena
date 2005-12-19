@@ -1805,7 +1805,8 @@ int parse_tologin(int fd) {
 				exit(1);
 			} else {
 				ShowStatus("Connected to login-server (connection #%d).\n", fd);
-				set_all_offline();
+				if (kick_on_disconnect)
+					set_all_offline();
 				// if no map-server already connected, display a message...
 				for(i = 0; i < MAX_MAP_SERVERS; i++)
 					if (server_fd[i] >= 0 && server[i].map[0][0]) // if map-server online and at least 1 map

@@ -136,7 +136,6 @@ MYSQL_ROW mapregsql_row;
 int lowest_gm_level = 1;
 
 static int online_timer(int,unsigned int,int,int);
-int CHECK_INTERVAL = 3600000; // [Valaris]
 
 char *INTER_CONF_NAME;
 char *LOG_CONF_NAME;
@@ -3354,26 +3353,6 @@ int log_sql_init(void){
 }
 #endif /* not TXT_ONLY */
 
-void char_online_check(void)
-{
-	int i, users;
-	struct map_session_data *sd, **all_sd;
-
-	chrif_char_reset_offline();
-
-	all_sd = map_getallusers(&users);
-
-	for (i = 0; i < users; i++) {
-		if ((sd = all_sd[i]) && !(battle_config.hide_GM_session && pc_isGM(sd)))
-			 chrif_char_online(sd);
-	}
-}
-int online_timer (int tid,unsigned int tick,int id,int data)
-{
-	char_online_check();
-	return 0;
-}
-
 int id_db_final(void *k,void *d,va_list ap) { return 0; }
 int pc_db_final(void *k,void *d,va_list ap) { return 0; }
 int map_db_final(void *k,void *d,va_list ap)
@@ -3645,10 +3624,6 @@ int do_init(int argc, char *argv[]) {
 	add_timer_func_list(map_clearflooritem_timer, "map_clearflooritem_timer");
 	add_timer_func_list(map_removemobs_timer, "map_removemobs_timer");
 	add_timer_interval(gettick()+1000, map_freeblock_timer, 0, 0, 60*1000);
-
-	// online status timer, checks every hour [Valaris]
-	add_timer_func_list(online_timer, "online_timer");
-	add_timer_interval(gettick()+1000, online_timer, 0, 0, CHECK_INTERVAL);
 
 	do_init_chrif();
 	do_init_clif();

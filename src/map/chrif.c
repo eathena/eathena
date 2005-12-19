@@ -78,7 +78,7 @@ static const int packet_len_table[0x3d] = {
 //2b15: Incomming, chrif_recvgmaccounts -> 'recive gm accs from charserver (seems to be incomplete !)'
 //2b16: Outgoing, chrif_ragsrvinfo -> 'sends motd / rates ....'
 //2b17: Outgoing, chrif_char_offline -> 'tell the charserver that the char is now offline'
-//2b18: Outgoing, chrif_chardisconnect/chrif_char_reset_offline -> 'same as 2b17 LOL!/set all players OFF!'
+//2b18: Outgoing, chrif_char_reset_offline -> 'set all players OFF!'
 //2b19: Outgoing, chrif_char_online -> 'tell the charserver that the char .. is online'
 //2b1a: Outgoing, chrif_reqfamelist -> 'Request the fame list (top10)'
 //2b1b: Incomming, chrif_recvfamelist -> 'answer of 2b1a ..... the famelist top10^^'
@@ -99,6 +99,7 @@ static char userid[NAME_LENGTH], passwd[NAME_LENGTH];
 static int chrif_state = 0;
 static int char_init_done = 0;
 
+static int CHECK_INTERVAL = 3600000; //Interval at which map server updates online listing. [Valaris]
 //This define should spare writing the check in every function. [Skotlex]
 #define chrif_check(a) { if(!chrif_isconnect()) return a; }
 
@@ -1076,26 +1077,6 @@ int chrif_disconnectplayer(int fd){
 return 0;
 }
 
-
-/*==========================================
- * キャラクター切断通知
- *------------------------------------------
- */
-int chrif_chardisconnect(struct map_session_data *sd)
-{
-	nullpo_retr(-1, sd);
-
-	chrif_check(-1);
-
-	WFIFOW(char_fd,0)=0x2b18;
-	WFIFOL(char_fd,2)=sd->status.account_id;
-	WFIFOL(char_fd,6)=sd->status.char_id;
-	WFIFOSET(char_fd,10);
-	//printf("chrif: char disconnect: %d %s\n",sd->bl.id,sd->status.name);
-	return 0;
-
-}
-
 /*==========================================
  * Request to reload GM accounts and their levels: send to char-server by [Yor]
  *------------------------------------------
@@ -1571,8 +1552,8 @@ int do_init_chrif(void)
 	add_timer_func_list(send_users_tochar, "send_users_tochar");
 	add_timer_func_list(auth_db_cleanup, "auth_db_cleanup");
 	add_timer_interval(gettick() + 1000, check_connect_char_server, 0, 0, 10 * 1000);
-	add_timer_interval(gettick() + 1000, send_users_tochar, 0, 0, 5 * 1000);
-	add_timer_interval(gettick() + 1000, auth_db_cleanup, 0, 0, 10 * 1000);
+	add_timer_interval(gettick() + 1000, send_users_tochar, 0, 0, CHECK_INTERVAL);
+	add_timer_interval(gettick() + 1000, auth_db_cleanup, 0, 0, 30 * 1000);
 
 	auth_db = numdb_init();
 

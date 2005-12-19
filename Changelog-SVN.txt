@@ -1,5 +1,6 @@
 Date	Added
 2005/12/19
+	* Optimized map server's online-listing update timers. [Skotlex]
 	* Some updates to the online db in the char/char_sql servers, should help
 	  fix some memory leaks due to chars left tagged as 'online' even though
 	  that's incorrect. [Skotlex]
