@@ -4052,7 +4052,7 @@ void set_server_type(void)
 static int online_data_cleanup_sub(void *key, void *data, va_list ap)
 {
 	struct online_char_data *character= (struct online_char_data*)data;
-	if (charcter->server == -2) //Unknown server.. set them offline
+	if (character->server == -2) //Unknown server.. set them offline
 		set_char_offline(character->char_id, character->account_id);
 	if (character->server < 0)
 	{	//Free data from players that have not been online for a while.
