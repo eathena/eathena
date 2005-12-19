@@ -2228,8 +2228,10 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 			for(i=0,minpos=DAMAGELOG_SIZE-1,mindmg=0x7fffffff;i<DAMAGELOG_SIZE;i++){
 				if(md->dmglog[i].id==id)
 					break;
-				if(md->dmglog[i].id==0) //Store data in first empty slot.
+				if(md->dmglog[i].id==0) {	//Store data in first empty slot.
+					md->dmglog[i].id = id;
 					break;
+				}
 				if(md->dmglog[i].dmg<mindmg){
 					minpos=i;
 					mindmg=md->dmglog[i].dmg;

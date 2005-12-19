@@ -1,5 +1,9 @@
 Date	Added
 2005/12/19
+	* Corrected Kaupe/Kaizel so that you can cast it on self/family when
+	  not-linked, and anyone when linked. [Skotlex]
+	* Fixed the mob damage log not getting the ID of the attacker registered...
+	  [Skotlex]
 	* Added a new timer which updates only the count of characters on the
 	  current map server to the char server. Update interval is 10 secs.
 	  [Skotlex]

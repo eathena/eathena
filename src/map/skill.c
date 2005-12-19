@@ -4148,10 +4148,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case SL_KAIZEL:
 	case SL_KAUPE:
 		if (sd) {
-			if (!dstsd || (
-				(dstsd->class_&MAPID_UPPERMASK) != MAPID_SOUL_LINKER && 
-				dstsd->char_id != sd->status.partner_id &&
-				dstsd->char_id != sd->status.child
+			if (!dstsd || !(
+				(sd->sc_data[SC_SPIRIT].timer != -1 && sd->sc_data[SC_SPIRIT].val2 == SL_SOULLINKER) ||
+				dstsd->char_id == sd->char_id ||
+				dstsd->char_id == sd->status.partner_id ||
+				dstsd->char_id == sd->status.child
 			)) {
 				status_change_start(src,SC_STAN,skilllv,0,0,0,3000,0);
 				clif_skill_fail(sd,skillid,0,0);
@@ -8234,14 +8235,6 @@ int skill_check_condition(struct map_session_data *sd,int type)
 			}
 			break;
 		}
-	case SL_KAAHI:
-	case SL_KAINA:
-	case SL_KAIZEL:
-	case SL_KAITE:
-	case SL_KAUPE:
-		if(sd->sc_data[SC_SPIRIT].timer != -1 && sd->sc_data[SC_SPIRIT].val2 == SL_SOULLINKER)
-			break; //Needs to be Soul Linked to do all these skills.
-		return 0;
 	case SG_SUN_WARM:
 		if(sd->bl.m == sd->feel_map[0].m)
 			break;
