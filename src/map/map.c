@@ -135,8 +135,6 @@ MYSQL_ROW mapregsql_row;
 
 int lowest_gm_level = 1;
 
-static int online_timer(int,unsigned int,int,int);
-
 char *INTER_CONF_NAME;
 char *LOG_CONF_NAME;
 char *MAP_CONF_NAME;

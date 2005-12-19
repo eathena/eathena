@@ -1271,10 +1271,6 @@ extern int charsave_method; //needed ..
 #endif
 #include <mysql.h>
 
-void char_online_check(void); // [Valaris]
-void char_offline(struct map_session_data *sd);
-
-
 extern char tmp_sql[65535];
 
 extern int db_use_sqldbs;
