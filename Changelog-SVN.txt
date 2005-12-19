@@ -1,5 +1,10 @@
 Date	Added
 2005/12/19
+	* Implemented the item pickup style for parties. [Skotlex]
+	- Party share distributes items in round-robin fashion among players who
+	  are in the same map.
+	- Pick-up Style shared is needed for anyone to be able to pick up the item
+	  bypassing the timers set for first/second/third sd. [Skotlex]
 	* Optimized map server's online-listing update timers. [Skotlex]
 	* Some updates to the online db in the char/char_sql servers, should help
 	  fix some memory leaks due to chars left tagged as 'online' even though

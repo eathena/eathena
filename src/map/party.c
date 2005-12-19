@@ -395,11 +395,9 @@ int party_broken(int party_id)
 // パーティの設定変更要求
 int party_changeoption(struct map_session_data *sd,int exp,int item)
 {
-	struct party *p;
-
 	nullpo_retr(0, sd);
 
-	if( sd->status.party_id==0 || (p=party_search(sd->status.party_id))==NULL )
+	if( sd->status.party_id==0)
 		return 0;
 	intif_party_changeoption(sd->status.party_id,sd->status.account_id,exp,item);
 	return 0;

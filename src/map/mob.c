@@ -1996,32 +1996,6 @@ static int mob_delay_item_drop(int tid,unsigned int tick,int id,int data)
 	struct delay_item_drop *ditem;
 	ditem=(struct delay_item_drop *)id;
 
-#if 0
-	if (ditem->first_sd){
-		if (ditem->first_sd->status.party_id > 0){
-			struct party *p;
-			if((p=party_search(ditem->first_sd->status.party_id)) && p->item){
-				struct map_session_data *sd = NULL;
-				int i;
-				for (i = p->itemc + 1; i!=p->itemc; i++) {	// initialise counter and loop through the party
-					if (i >= MAX_PARTY)
-						i = 0;	// reset counter to 1st person in party so it'll stop when it reaches "itemc"
-					if ((sd=p->member[i].sd)!=NULL && sd->bl.m == ditem->first_sd->bl.m)
-						break;
-				}
-				if (sd){	// if an appropiate party member was found
-					drop_flag = 0;
-					if ((p->itemc++) >= MAX_PARTY)
-						p->itemc = 0;
-					if ((flag = pc_additem(ditem->first_sd,&temp_item,ditem->amount))) {
-						clif_additem(ditem->first_sd,0,0,flag);
-						drop_flag = 1;
-					}
-				}
-			}
-		}
-	}
-#endif
 	map_addflooritem(&ditem->item_data,1,ditem->m,ditem->x,ditem->y,ditem->first_sd,ditem->second_sd,ditem->third_sd,0);
 	aFree(ditem);
 	return 0;

@@ -2528,6 +2528,7 @@ int pc_takeitem(struct map_session_data *sd,struct flooritem_data *fitem)
 	int flag;
 	unsigned int tick = gettick();
 	struct map_session_data *first_sd = NULL,*second_sd = NULL,*third_sd = NULL;
+	struct party *p=NULL;
 
 	nullpo_retr(0, sd);
 	nullpo_retr(0, fitem);
@@ -2535,29 +2536,38 @@ int pc_takeitem(struct map_session_data *sd,struct flooritem_data *fitem)
 	if(!check_distance_bl(&fitem->bl, &sd->bl, 2) && sd->skillid!=BS_GREED)
 		return 0;	// ‹——£‚ª‰“‚¢
 
-	if(fitem->first_get_id > 0) {
+	if (sd->status.party_id)
+		p = party_search(sd->status.party_id);
+	
+	if(fitem->first_get_id > 0 && fitem->first_get_id != sd->bl.id) {
 		first_sd = map_id2sd(fitem->first_get_id);
-		if(tick < fitem->first_get_tick) {
-			if(fitem->first_get_id != sd->bl.id && !(first_sd && first_sd->status.party_id == sd->status.party_id)) {
+		if(DIFF_TICK(tick,fitem->first_get_tick) < 0) {
+			if (!(p && p->item&2 &&
+				first_sd && first_sd->status.party_id != sd->status.party_id
+			)) {
 				clif_additem(sd,0,0,6);
 				return 0;
 			}
 		}
-		else if(fitem->second_get_id > 0) {
+		else if(fitem->second_get_id > 0 && fitem->second_get_id != sd->bl.id) {
 			second_sd = map_id2sd(fitem->second_get_id);
-			if(tick < fitem->second_get_tick) {
-				if(fitem->first_get_id != sd->bl.id && fitem->second_get_id != sd->bl.id &&
-					!(first_sd && first_sd->status.party_id == sd->status.party_id) && !(second_sd && second_sd->status.party_id == sd->status.party_id)) {
+			if(DIFF_TICK(tick, fitem->second_get_tick) < 0) {
+				if(!(p && p->item&2 &&
+					((first_sd && first_sd->status.party_id == sd->status.party_id) ||
+					(second_sd && second_sd->status.party_id == sd->status.party_id))
+				)) {
 					clif_additem(sd,0,0,6);
 					return 0;
 				}
 			}
-			else if(fitem->third_get_id > 0) {
+			else if(fitem->third_get_id > 0 && fitem->third_get_id != sd->bl.id) {
 				third_sd = map_id2sd(fitem->third_get_id);
-				if(tick < fitem->third_get_tick) {
-					if(fitem->first_get_id != sd->bl.id && fitem->second_get_id != sd->bl.id && fitem->third_get_id != sd->bl.id &&
-						!(first_sd && first_sd->status.party_id == sd->status.party_id) && !(second_sd && second_sd->status.party_id == sd->status.party_id) &&
-						!(third_sd && third_sd->status.party_id == sd->status.party_id)) {
+				if(DIFF_TICK(tick,fitem->third_get_tick) < 0) {
+					if(!(p && p->item&2 &&
+						((first_sd && first_sd->status.party_id == sd->status.party_id) ||
+						(second_sd && second_sd->status.party_id == sd->status.party_id) ||
+						(third_sd && third_sd->status.party_id == sd->status.party_id))
+					)) {
 						clif_additem(sd,0,0,6);
 						return 0;
 					}
@@ -2565,22 +2575,46 @@ int pc_takeitem(struct map_session_data *sd,struct flooritem_data *fitem)
 			}
 		}
 	}
-	if((flag = pc_additem(sd,&fitem->item_data,fitem->item_data.amount)))
-		// d—Êover‚ÅŽæ“¾Ž¸”s
+	if (p && p->item&1) { //Random item distribution to party members.
+		struct map_session_data *psd = NULL;
+		int i, flag2;
+		for (i = p->itemc + 1; i!=p->itemc; i++) {	// initialise counter and loop through the party
+			if (i >= MAX_PARTY)
+				i = 0;	// reset counter to 1st person in party so it'll stop when it reaches "itemc"
+			if ((psd=p->member[i].sd)==NULL || sd->bl.m != psd->bl.m)
+				continue;
+			
+			flag2 = pc_additem(psd,&fitem->item_data,fitem->item_data.amount);
+			if (flag2) {
+				if (psd == sd) //Store error flag in case picked char can't pick it up.
+					flag = flag2;
+				continue; //Chosen char can't pick up loot.
+			}
+			if(log_config.pick) //Logs items, taken by (P)layers [Lupus]
+				log_pick(psd, "P", 0, fitem->item_data.nameid, fitem->item_data.amount, (struct item*)&fitem->item_data);
+			// if an appropiate party member was found, iterate to next one.
+			if ((p->itemc++) >= MAX_PARTY)
+				p->itemc = 0;
+			break;
+		}
+		if (i==p->itemc) {
+			clif_additem(sd,0,0,flag); //Display error only to the char that tried to pick it up.
+			return 1;
+		}
+	} else if((flag = pc_additem(sd,&fitem->item_data,fitem->item_data.amount)))
+  	{	// d—Êover‚ÅŽæ“¾Ž¸”s
 		clif_additem(sd,0,0,flag);
-	else {
-		/* Žæ“¾¬Œ÷ */
-		if(sd->attacktimer != -1)
-			pc_stopattack(sd);
+		return 1;
+	} else if(log_config.pick) //Logs items, taken by (P)layers [Lupus]
+		log_pick(sd, "P", 0, fitem->item_data.nameid, fitem->item_data.amount, (struct item*)&fitem->item_data);
+	//Logs
 
-		//Logs items, taken by (P)layers [Lupus]
-		if(log_config.pick > 0 )
-			log_pick(sd, "P", 0, fitem->item_data.nameid, fitem->item_data.amount, (struct item*)&fitem->item_data);
-		//Logs
+	//Display pickup animation.
+	if(sd->attacktimer != -1)
+		pc_stopattack(sd);
 
-		clif_takeitem(&sd->bl,&fitem->bl);
-		map_clearflooritem(fitem->bl.id);
-	}
+	clif_takeitem(&sd->bl,&fitem->bl);
+	map_clearflooritem(fitem->bl.id);
 	return 0;
 }
 

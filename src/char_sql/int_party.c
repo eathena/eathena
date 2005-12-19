@@ -550,10 +550,7 @@ int mapif_parse_CreateParty(int fd,int account_id,char *name,char *nick,char *ma
 	p->party_id=party_newid++;
 	memcpy(p->name,name,NAME_LENGTH-1);
 	p->exp=0;
-	p->item=item;
-	//<item1>アイテム?集方法。0で個人別、1でパ?ティ公有
-	//<item2>アイテム分配方法。0で個人別、1でパ?ティに均等分配
-	//difference between "collection" and "distribution" is...? ^^;
+	p->item=(item?1:0)|(item2?2:0);
 	p->itemc = 0;
 
 	p->member[0].account_id=account_id;

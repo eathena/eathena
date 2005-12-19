@@ -241,8 +241,8 @@ struct party {
 	int party_id;
 	char name[NAME_LENGTH];
 	unsigned exp : 1,
-				item : 1,
-				itemc : 1;
+				item : 2; //&1: Party-Share (round-robin), &2: pickup style: shared.
+	short itemc; //For item sharing through round-robin, holds last item receiver.
 	struct party_member member[MAX_PARTY];
 };
 
