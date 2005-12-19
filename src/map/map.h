@@ -804,6 +804,7 @@ struct mob_data {
 		int id;
 		int dmg;
 	} dmglog[DAMAGELOG_SIZE];
+	unsigned long tdmg; //Stores total damage given to the mob, for exp calculations. [Skotlex]
 	short n;
 	short base_class,class_,dir,mode,level;
 	short m,x0,y0,xs,ys;

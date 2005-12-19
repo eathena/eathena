@@ -152,7 +152,7 @@ int storage_storageopen(struct map_session_data *sd)
 //Storage loading always from sql idea from Komurka [Skotlex] - removed as it opens exploits when server lags.
 //#ifdef TXT_ONLY
 	if((stor = (struct storage *) numdb_search(storage_db,sd->status.account_id)) != NULL) {
-		if (stor->storage_status == 0) {
+		if (stor->storage_status == 0 && sd->state.storage_flag == 0) {
 			stor->storage_status = 1;
 			sd->state.storage_flag = 1;
 			clif_storageitemlist(sd,stor);
@@ -474,6 +474,8 @@ int storage_guild_storageopen(struct map_session_data *sd)
 	if((gstor = guild2storage2(sd->status.guild_id)) != NULL) {
 		if(gstor->storage_status)
 			return 1;
+		if(sd->state.storage_flag)
+			return 1; //Can't open both storages at a time.
 		gstor->storage_status = 1;
 		sd->state.storage_flag = 2;
 		clif_guildstorageitemlist(sd,gstor);

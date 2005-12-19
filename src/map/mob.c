@@ -1106,6 +1106,7 @@ int mob_spawn (int id)
 	md->skilllv = 0;
 
 	memset(md->dmglog, 0, sizeof(md->dmglog));
+	md->tdmg = 0;
 	if (md->lootitem)
 		memset(md->lootitem, 0, sizeof(md->lootitem));
 	md->lootitem_count = 0;
@@ -2157,7 +2158,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 	unsigned int tick = gettick();
 	struct map_session_data *mvp_sd = NULL, *second_sd = NULL,*third_sd = NULL;
 	struct block_list *master = NULL;
-	double tdmg,temp;
+	double temp;
 	struct item item;
 	int ret, mode;
 	int drop_rate;
@@ -2206,17 +2207,56 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 	// The amount of overkill rounds to hp.
 	if(damage>md->hp)
 		damage=md->hp;
-
+	md->hp-=damage;
+	md->tdmg+=damage; //Store total damage...
+	
 	if(!(type&2)) {
-		if(sd){
-			for(i=0,minpos=0,mindmg=0x7fffffff;i<DAMAGELOG_SIZE;i++){
-				if(md->dmglog[i].id==sd->status.char_id)
+		int id = 0;
+		if (src) {
+			switch (src->type) {
+				case BL_PC: 
+					id = sd->status.char_id;
+					if(md->attacked_id <= 0)
+						md->attacked_id = sd->bl.id;
 					break;
-				if(md->dmglog[i].id==0){
-					minpos=i;
-					mindmg=0;
+				case BL_PET:
+				{
+					struct pet_data *pd = (struct pet_data*)src;
+					if (battle_config.pet_attack_exp_to_master) {
+						id = pd->msd->status.char_id;
+						damage=(damage*battle_config.pet_attack_exp_rate)/100; //Modify logged damage accordingly.
+					}
+					//Let mobs retaliate against the pet's master [Skotlex]
+					if(md->attacked_id <= 0)
+						md->attacked_id = pd->msd->bl.id;
+					break;
 				}
-				else if(md->dmglog[i].dmg<mindmg){
+				case BL_MOB:
+				{
+					struct mob_data* md2 = (struct mob_data*)src;
+					if(md2->special_state.ai && md2->master_id) {
+						struct map_session_data* msd = map_id2sd(md2->master_id);
+						if (msd) id = msd->status.char_id;
+					}
+					if(md->attacked_id <= 0)
+					{	//Let players decide whether to retaliate versus the master or the mob. [Skotlex]
+						if (md2->master_id && battle_config.retaliate_to_master)
+							md->attacked_id = md2->master_id;
+						else
+							md->attacked_id = md2->bl.id;
+					}
+					break;
+				}
+			}
+		}
+		//Log damage...
+		if (id && damage > 0) {
+			for(i=0,minpos=DAMAGELOG_SIZE-1,mindmg=0x7fffffff;i<DAMAGELOG_SIZE;i++){
+				if(md->dmglog[i].id==id)
+					break;
+				if(md->dmglog[i].id==0) //Store data in first empty slot.
+					break;
+				if(md->dmglog[i].dmg<mindmg){
 					minpos=i;
 					mindmg=md->dmglog[i].dmg;
 				}
@@ -2224,80 +2264,12 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 			if(i<DAMAGELOG_SIZE)
 				md->dmglog[i].dmg+=damage;
 			else {
-				//md->dmglog[minpos].id=sd->bl.id;
-				md->dmglog[minpos].id=sd->status.char_id;
+				md->dmglog[minpos].id=id;
 				md->dmglog[minpos].dmg=damage;
-			}
-
-			if(md->attacked_id <= 0 && md->special_state.ai==0)
-				md->attacked_id = sd->bl.id;
-		}
-		if(src && src->type == BL_PET && battle_config.pet_attack_exp_to_master==1) {
-			struct pet_data *pd = (struct pet_data *)src;
-			nullpo_retr(0, pd);
-			for(i=0,minpos=0,mindmg=0x7fffffff;i<DAMAGELOG_SIZE;i++){
-				//if(md->dmglog[i].id==pd->msd->bl.id)
-				if(md->dmglog[i].id==pd->msd->status.char_id)
-					break;
-				if(md->dmglog[i].id==0){
-					minpos=i;
-					mindmg=0;
-				}
-				else if(md->dmglog[i].dmg<mindmg){
-					minpos=i;
-					mindmg=md->dmglog[i].dmg;
-				}
-			}
-			if(i<DAMAGELOG_SIZE)
-				md->dmglog[i].dmg+=(damage*battle_config.pet_attack_exp_rate)/100;
-			else {
-				//md->dmglog[minpos].id=pd->msd->bl.id;
-				md->dmglog[minpos].id=pd->msd->status.char_id;
-				md->dmglog[minpos].dmg=(damage*battle_config.pet_attack_exp_rate)/100;
-			}
-			//Let mobs retaliate against the pet's master [Skotlex]
-			if(md->attacked_id <= 0 && md->special_state.ai==0)
-				md->attacked_id = pd->msd->bl.id;
-		}
-		if(src && src->type == BL_MOB)
-		{
-			struct mob_data *md2 = (struct mob_data *)src;
-			struct map_session_data *msd = NULL;
-			if (md2->special_state.ai && md2->master_id)
-				msd = map_id2sd(md2->master_id);
-			if (msd)	
-			{	//If master is not logged on, we just make his share of exp be lost. [Skotlex]
-				for(i=0,minpos=0,mindmg=0x7fffffff;i<DAMAGELOG_SIZE;i++){
-					if(md->dmglog[i].id==msd->status.char_id)
-						break;
-					if(md->dmglog[i].id==0){
-						minpos=i;
-						mindmg=0;
-					}
-					else if(md->dmglog[i].dmg<mindmg){
-						minpos=i;
-						mindmg=md->dmglog[i].dmg;
-					}
-				}
-				if(i<DAMAGELOG_SIZE)
-					md->dmglog[i].dmg+=damage;
-				else {
-					md->dmglog[minpos].id=msd->status.char_id;
-					md->dmglog[minpos].dmg=damage;
-				}
-			}
-			if(md->attacked_id <= 0)
-			{	//Let players decide whether to retaliate versus the master or the mob. [Skotlex]
-				if (md2->master_id && battle_config.retaliate_to_master)
-					md->attacked_id = md2->master_id;
-				else
-					md->attacked_id = md2->bl.id;
 			}
 		}
 	}
-
-	md->hp-=damage;
-
+	
 	if(md->guardian_data && md->guardian_data->number < MAX_GUARDIANS) { // guardian hp update [Valaris] (updated by [Skotlex])
 		if ((md->guardian_data->castle->guardian[md->guardian_data->number].hp = md->hp) <= 0)
 		{
@@ -2400,12 +2372,9 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 	// mapŠO‚ÉÁ‚¦‚½l‚ÍŒvŽZ‚©‚çœ‚­‚Ì‚Å
 	// overkill•ª‚Í–³‚¢‚¯‚Çsum‚Ímax_hp‚Æ‚Íˆá‚¤
 
-	tdmg = 0;
 	for(i=0,count=0,mvp_damage=0;i<DAMAGELOG_SIZE;i++){
 		if(md->dmglog[i].id==0)
-			continue;
-		if (md->dmglog[i].dmg) //Total must be stored even if you were killed. [Skotlex]
-			tdmg += (double)md->dmglog[i].dmg;
+			break; //Reached end of log.
 		count++; //Count an attacker even if he is dead/logged-out.
 		tmpsd[i] = map_charid2sd(md->dmglog[i].id);
 		if(tmpsd[i] == NULL)
@@ -2436,7 +2405,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 		if (battle_config.exp_calc_type)	// eAthena's exp formula based on max hp.
 			per = (double)md->dmglog[i].dmg*(9.+(double)((count > 6)? 6:count))/10./(double)max_hp;
 		else //jAthena's exp formula based on total damage.
-			per = (double)md->dmglog[i].dmg*(9.+(double)((count > 6)? 6:count))/10./tdmg;
+			per = (double)md->dmglog[i].dmg*(9.+(double)((count > 6)? 6:count))/10./md->tdmg;
 
 		base_exp = (unsigned long)md->db->base_exp;
 		job_exp = (unsigned long)md->db->job_exp;
@@ -2878,6 +2847,7 @@ int mob_class_change (struct mob_data *md, int class_)
 	if (battle_config.monster_class_change_full_recover) {
 		md->hp = md->max_hp;
 		memset(md->dmglog, 0, sizeof(md->dmglog));
+		md->tdmg = 0;
 	} else
 		md->hp = md->max_hp*hp_rate/100;
 	if(md->hp > md->max_hp) md->hp = md->max_hp;

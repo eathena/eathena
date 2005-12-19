@@ -1,4 +1,9 @@
 Date	Added
+2005/12/19
+	* Now opening storage will fial if the guild storage is open and viceversa.
+	  [Skotlex]
+	* Total damage a mob receives is now stored on it's own variable. Damage
+	  log implementation clean-up. [Skotlex]
 2005/12/18
 	* Fixed Close Confine not affecting the caster. [Skotlex]
 	* Fixed all skills except Extremity Fist not getting the weapon size
