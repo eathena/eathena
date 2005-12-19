@@ -490,7 +490,7 @@
 1139,Talefing_,Talefing,4,,10,1000,200,,1,0,414946,7,2,2,4,40,1,2,{ bonus bAtkEle,Ele_Dark; bonus2 bHPLossRate,35,10000; }
 1140,Byeollungum,Byeollungum,4,,10,900,150,,1,0,414946,7,2,2,4,40,1,2,{ bonus2 bSubRace,RC_NonBoss,-10; bonus2 bAddRace,RC_Boss,5; bonus bAllStats,2; }
 1141,Immaterial_Sword,Immaterial Sword,4,,10,900,140,,1,0,414946,7,2,2,4,40,1,2,{ bonus bAtkEle,Ele_Ghost; bonus2 bSPDrainRate,1,30; bonus bSPDrainValue,-1; bonus bUnbreakableWeapon,0; }
-1142,Jewel_Sword,Crystal Sword,4,,10,2200,104,,1,0,414946,7,2,2,3,68,1,2,{}
+1142,Jewel_Sword,Crystal Sword,4,,10,2200,104,,1,0,414946,7,2,2,3,68,1,2,{ bonus2 bAddMonsterDropItemGroup,20,5; }
 1143,Gaia_Sword,Gaia Sword,4,,10,2500,115,,1,0,414946,7,2,2,3,74,1,2,{ bonus2 bAddMonsterDropItemGroup,11,5; }
 1144,Sashimi,Sashimi,4,,10,1400,75,,1,0,414946,7,2,2,3,48,1,2,{ bonus bAtkEle,Ele_Wind; bonus3 bAddMonsterDropItem,544,5,4000; }
 1145,Holy_Avenger,Holy Avenger,4,,10,1350,125,,1,0,16384,7,2,2,3,75,1,2,{ bonus bAtkEle,Ele_Holy; }
@@ -554,7 +554,7 @@
 1233,Exercise,Excorcise,4,,10,700,90,,1,0,69164782,7,2,2,4,36,1,1,{ bonus bIgnoreDefRace,RC_Demon; bonus2 bSubRace,RC_Demon,5; bonus2 bSubRace,RC_DemiHuman,-10; }
 1234,Moonlight_Sword,Walgwanggum,4,,10,700,50,,1,0,69164782,7,2,2,4,36,1,1,{ bonus bMaxSPrate,10; bonus bSPDrainValue,3; }
 1235,Azoth,Azoth,4,,10,700,110,,1,0,262144,7,2,2,4,36,1,1,{ bonus bClassChange,300; }
-1236,Sucsamad,Sucsamad,4,,10,800,140,,1,0,69164782,7,2,2,4,36,1,1,{ bonus2 bAddEle,2,Ele_Earth; bonus2 bAddEle,Ele_Wind,10; bonus bUnbreakableWeapon,0; }
+1236,Sucsamad,Sucsamad,4,,10,800,140,,1,0,69164782,7,2,2,4,36,1,1,{ bonus2 bAddEle,Ele_Earth,2; bonus2 bAddEle,Ele_Wind,10; bonus bUnbreakableWeapon,0; }
 1237,Grimtooth_,Grimtooth,4,,10,800,180,,1,0,69164782,7,2,2,4,36,1,1,{ bonus bFlee,10; bonus bFlee2,5; bonus bDefRate,-50; bonus bDef2Rate,-50; }
 1238,Zeny_Knife,Zeny Knife,4,,10,700,64,,1,0,69164782,7,2,2,3,40,1,1,{ bonus2 bGetZenyNum,10,100; }
 1239,Poison_Knife,Poison Knife,4,,10,800,64,,1,0,69164782,7,2,2,3,65,1,1,{ bonus bAtkEle,Ele_Poison; bonus2 bAddEff,Eff_Poison,3000; }
