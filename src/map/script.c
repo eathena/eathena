@@ -147,6 +147,7 @@ int buildin_menu(struct script_state *st);
 int buildin_rand(struct script_state *st);
 int buildin_warp(struct script_state *st);
 int buildin_areawarp(struct script_state *st);
+int buildin_warpchar(struct script_state *st); // [LuzZza]
 int buildin_warpparty(struct script_state *st); //[Fredzilla]
 int buildin_warpguild(struct script_state *st); //[Fredzilla]
 int buildin_heal(struct script_state *st);
@@ -433,6 +434,7 @@ struct {
 	{buildin_input,"input","*"},
 	{buildin_warp,"warp","sii"},
 	{buildin_areawarp,"areawarp","siiiisii"},
+	{buildin_warpchar,"warpchar","siii"}, // [LuzZza]
 	{buildin_warpparty,"warpparty","siii"}, // [Fredzilla]
 	{buildin_warpguild,"warpguild","siii"}, // [Fredzilla]
 	{buildin_setlook,"setlook","ii"},
@@ -2824,6 +2826,47 @@ int buildin_areawarp(struct script_state *st)
 		m,x0,y0,x1,y1,BL_PC,	str,x,y );
 	return 0;
 }
+
+/*==========================================
+ * warpchar [LuzZza]
+ * Useful for warp one player from 
+ * another player npc-session.
+ * Using: warpchar "mapname.gat",x,y,Char_ID;
+ *------------------------------------------
+ */
+int buildin_warpchar(struct script_state *st)
+{
+	int x,y,a,i;
+	char *str;
+	struct map_session_data *sd, **pl_allsd;
+	int users;
+	
+	str=conv_str(st,& (st->stack->stack_data[st->start+2]));
+	x=conv_num(st,& (st->stack->stack_data[st->start+3]));
+	y=conv_num(st,& (st->stack->stack_data[st->start+4]));
+	a=conv_num(st,& (st->stack->stack_data[st->start+5]));
+	
+	pl_allsd = map_getallusers(&users);
+	
+	for(i=0; i<users; i++) {
+		sd = pl_allsd[i];
+		if(sd->status.char_id == a) {
+		
+			if(strcmp(str, "Random") == 0)
+				pc_randomwarp(sd, 3);
+				
+			else if(strcmp(str, "SavePoint") == 0)
+				pc_setpos(sd, sd->status.save_point.map,
+					sd->status.save_point.x, sd->status.save_point.y, 3);
+			
+			else	
+				pc_setpos(sd, str, x, y, 3);
+		}
+	}
+	
+	return 0;
+} 
+ 
 /*==========================================
  * Warpparty - [Fredzilla]
  * Syntax: warpparty "mapname.gat",x,y,Party_ID;
@@ -10401,3 +10444,4 @@ int buildin_delmonsterdrop(struct script_state *st)
 	}
 }
 */
+

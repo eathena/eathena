@@ -1,5 +1,7 @@
 Date	Added
 2005/12/19
+	* Added buildin_warpchar script function. Useful for warp one player from
+	  another player npc-session. Sytax: warpchar "map.gat",x,y,Char_ID; [LuzZza]
 	* Now opening storage will fial if the guild storage is open and viceversa.
 	  [Skotlex]
 	* Total damage a mob receives is now stored on it's own variable. Damage
