@@ -1,5 +1,8 @@
 Date	Added
 2005/12/19
+	* Some updates to the online db in the char/char_sql servers, should help
+	  fix some memory leaks due to chars left tagged as 'online' even though
+	  that's incorrect. [Skotlex]
 	* Added buildin_warpchar script function. Useful for warp one player from
 	  another player npc-session. Sytax: warpchar "map.gat",x,y,Char_ID; [LuzZza]
 	* Now opening storage will fial if the guild storage is open and viceversa.

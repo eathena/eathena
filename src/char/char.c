@@ -2424,6 +2424,7 @@ int parse_frommap(int fd) {
 			server[id].users = RFIFOW(fd,4);
 			// add online players in the list by [Yor], adapted to use dbs by [Skotlex]
 			j = 0;
+			numdb_foreach(online_char_db,char_db_setoffline,id); //Set all chars from this server as 'unknown'
 			for(i = 0; i < server[id].users; i++) {
 				int aid, cid;
 				struct online_char_data* character;
@@ -2453,6 +2454,7 @@ int parse_frommap(int fd) {
 				create_online_files(); // only every 8 sec. (normally, 1 server send users every 5 sec.) Don't update every time, because that takes time, but only every 2 connection.
 				                       // it set to 8 sec because is more than 5 (sec) and if we have more than 1 map-server, informations can be received in shifted.
 			}
+			//If any chars remain in -2, they will be cleaned in the cleanup timer.
 			RFIFOSKIP(fd,6+i*8);
 			break;
 
@@ -3944,7 +3946,9 @@ void set_server_type(void)
 static int online_data_cleanup_sub(void *key, void *data, va_list ap)
 {
 	struct online_char_data *character= (struct online_char_data*)data;
-	if (character->server == -1)
+	if (character->server == -2) //Unknown server.. set them offline
+		set_char_offline(character->char_id, character->account_id);
+	if (character->server < 0)
 	{	//Free data from players that have not been online for a while.
 		numdb_erase(online_char_db, character->account_id);
 		aFree(data);

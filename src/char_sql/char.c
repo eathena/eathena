@@ -2421,6 +2421,8 @@ int parse_frommap(int fd) {
 			struct online_char_data* character;
 			if (RFIFOW(fd,4) != server[id].users)
 				ShowInfo("User Count: %d (Server: %d)\n", RFIFOW(fd,4), id);
+
+			numdb_foreach(online_char_db,char_db_setoffline,id); //Set all chars from this server as 'unknown'
 			server[id].users = RFIFOW(fd,4);
 			for(i = 0; i < server[id].users; i++) {
 				aid = RFIFOL(fd,6+i*8);
@@ -2443,7 +2445,9 @@ int parse_frommap(int fd) {
 					character->server = id;
 					character->char_id = cid;
 				}
+
 			}
+			//If any chars remain in -2, they will be cleaned in the cleanup timer.
 			RFIFOSKIP(fd,RFIFOW(fd,2));
 			break;
 		}
@@ -4048,7 +4052,9 @@ void set_server_type(void)
 static int online_data_cleanup_sub(void *key, void *data, va_list ap)
 {
 	struct online_char_data *character= (struct online_char_data*)data;
-	if (character->server == -1)
+	if (charcter->server == -2) //Unknown server.. set them offline
+		set_char_offline(character->char_id, character->account_id);
+	if (character->server < 0)
 	{	//Free data from players that have not been online for a while.
 		numdb_erase(online_char_db, character->account_id);
 		aFree(data);
