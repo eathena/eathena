@@ -1464,6 +1464,7 @@ int send_usercount_tochar(int tid, unsigned int tick, int id, int data) {
 	WFIFOW(char_fd,0) = 0x2afe;
 	WFIFOL(char_fd,2) = count;
 	WFIFOSET(char_fd,6);
+	return 0;
 }
 
 /*==========================================
