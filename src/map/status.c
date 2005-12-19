@@ -5790,7 +5790,33 @@ int status_change_clear_debuffs (struct block_list *bl)
 		if(sc_data[i].timer != -1)
 			status_change_end(bl,i,-1);
 	}
-
+	//Other ailments not in the common range.
+	if(sc_data[SC_HALLUCINATION].timer != -1)
+		status_change_end(bl,SC_HALLUCINATION,-1);
+	if(sc_data[SC_QUAGMIRE].timer != -1)
+		status_change_end(bl,SC_QUAGMIRE,-1);
+	if(sc_data[SC_SIGNUMCRUCIS].timer != -1)
+		status_change_end(bl,SC_SIGNUMCRUCIS,-1);
+	if(sc_data[SC_DECREASEAGI].timer != -1)
+		status_change_end(bl,SC_DECREASEAGI,-1);
+	if(sc_data[SC_SLOWDOWN].timer != -1)
+		status_change_end(bl,SC_SLOWDOWN,-1);
+	if(sc_data[SC_MINDBREAKER].timer != -1)
+		status_change_end(bl,SC_MINDBREAKER,-1);
+	if(sc_data[SC_WINKCHARM].timer != -1)
+		status_change_end(bl,SC_WINKCHARM,-1);
+	if(sc_data[SC_STOP].timer != -1)
+		status_change_end(bl,SC_STOP,-1);
+	if(sc_data[SC_ORCISH].timer != -1)
+		status_change_end(bl,SC_ORCISH,-1);
+	if(sc_data[SC_STRIPWEAPON].timer != -1)
+		status_change_end(bl,SC_STRIPWEAPON,-1);
+	if(sc_data[SC_STRIPSHIELD].timer != -1)
+		status_change_end(bl,SC_STRIPSHIELD,-1);
+	if(sc_data[SC_STRIPARMOR].timer != -1)
+		status_change_end(bl,SC_STRIPARMOR,-1);
+	if(sc_data[SC_STRIPHELM].timer != -1)
+		status_change_end(bl,SC_STRIPHELM,-1);
 	return 0;
 }
 

@@ -2375,11 +2375,14 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 		struct party *p;
 		if(tmpsd[i]==NULL || tmpsd[i]->bl.m != md->bl.m || pc_isdead(tmpsd[i]))
 			continue;
-
+		
 		if (battle_config.exp_calc_type)	// eAthena's exp formula based on max hp.
-			per = (double)md->dmglog[i].dmg*(9.+(double)((count > 6)? 6:count))/10./(double)max_hp;
+			per = (double)md->dmglog[i].dmg/(double)max_hp;
 		else //jAthena's exp formula based on total damage.
-			per = (double)md->dmglog[i].dmg*(9.+(double)((count > 6)? 6:count))/10./md->tdmg;
+			per = (double)md->dmglog[i].dmg/(double)md->tdmg;
+	
+		if (count>1)	
+			per *= (9.+(double)((count > 6)? 6:count))/10.; //attackers count bonus.
 
 		base_exp = (unsigned long)md->db->base_exp;
 		job_exp = (unsigned long)md->db->job_exp;

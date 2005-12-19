@@ -1,5 +1,8 @@
 Date	Added
 2005/12/19
+	* Updated status_clear_debuffs to clear many other types of ailments
+	  (Gospel should be clearing up most negative status changes now) [Skotlex]
+	* Fixed exp calc type 0 (dmg/total dmg) being calculated as 0 always. [Skotlex]
 	* Implemented the item pickup style for parties. [Skotlex]
 	- Party share distributes items in round-robin fashion among players who
 	  are in the same map.
