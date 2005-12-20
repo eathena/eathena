@@ -1255,7 +1255,7 @@ int mapif_parse_CreateGuild(int fd,int account_id,char *name,struct guild_member
 	// Initialize guild property
 	g->max_member=16;
 	g->average_lv=master->lv;
-	g->castle_id=-1;
+	g->castle_id=0; //Useless, this ain't used anymore.
 	for(i=0;i<MAX_GUILDSKILL;i++)
 		g->skill[i].id=i + GD_SKILLBASE;
 	//Add to cache
