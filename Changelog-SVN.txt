@@ -12,7 +12,7 @@ Date	Added
 	* Merged in Reddozen's work to get Twilight Pharmacy working. [Skotlex]
 	- Create Deadly Poison Bottle and Holy Water are now both handled by the
 	  item producing code.
-	* Fixed char_sql crash because of buffer overrun. [Lance]
+	* Fixed char_sql and char crash because of buffer overrun. [Lance]
 2005/12/19
 	* Fixed char servers not parsing correctly the online count packet (/who
 	  should work fine now) [Skotlex]

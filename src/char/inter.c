@@ -358,11 +358,13 @@ int mapif_wis_end(struct WisData *wd, int flag) {
 
 // アカウント変数送信
 int mapif_account_reg(int fd, unsigned char *src) {
-	unsigned char buf[2048];
+	unsigned char *buf = aCalloc(1,WBUFW(src,2));;
 
 	memcpy(WBUFP(buf,0),src,WBUFW(src,2));
 	WBUFW(buf, 0) = 0x3804;
 	mapif_sendallwos(fd, buf, WBUFW(buf,2));
+
+	aFree(buf);
 
 	return 0;
 }
