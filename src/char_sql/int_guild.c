@@ -98,7 +98,7 @@ static int guild_save_timer(int tid, unsigned int tick, int id, int data) {
 // Save guild into sql
 int inter_guild_tosql(struct guild *g,int flag)
 {
-	// GS_BASIC `guild` (`guild_id`, `name`,`master`,`guild_lv`,`connect_member`,`max_member`,`average_lv`,`exp`,`next_exp`,`skill_point`,`castle_id`,`mes1`,`mes2`,`emblem_len`,`emblem_id`,`emblem_data`)
+	// GS_BASIC `guild` (`guild_id`, `name`,`master`,`guild_lv`,`connect_member`,`max_member`,`average_lv`,`exp`,`next_exp`,`skill_point`,`mes1`,`mes2`,`emblem_len`,`emblem_id`,`emblem_data`)
 	// GS_MEMBER `guild_member` (`guild_id`,`account_id`,`char_id`,`hair`,`hair_color`,`gender`,`class`,`lv`,`exp`,`exp_payper`,`online`,`position`,`rsv1`,`rsv2`,`name`)
 	// GS_POSITION `guild_position` (`guild_id`,`position`,`name`,`mode`,`exp_mode`)
 	// GS_ALLIANCE `guild_alliance` (`guild_id`,`opposition`,`alliance_id`,`name`)
@@ -159,20 +159,20 @@ int inter_guild_tosql(struct guild *g,int flag)
 		if (updateflag) {
 			sprintf(tmp_sql,"UPDATE `%s` SET"
 				" `guild_id`=%d, `name`='%s', `master`='%s',`guild_lv`=%d, `connect_member`=%d,`max_member`=%d, "
-				"`average_lv`=%d,`exp`=%d,`next_exp`=%d,`skill_point`=%d,`castle_id`=%d,`mes1`='%s',`mes2`='%s',"
+				"`average_lv`=%d,`exp`=%d,`next_exp`=%d,`skill_point`=%d,`mes1`='%s',`mes2`='%s',"
 				"`emblem_len`=%d,`emblem_id`=%d,`emblem_data`='%s',`char_id`=%d WHERE `guild_id`=%d",
 				guild_db, g->guild_id,t_name,jstrescapecpy(t_master,g->master),
-				g->guild_lv,g->connect_member,g->max_member,g->average_lv,g->exp,g->next_exp,g->skill_point,g->castle_id,
+				g->guild_lv,g->connect_member,g->max_member,g->average_lv,g->exp,g->next_exp,g->skill_point,
 				jstrescapecpy(t_mes1,g->mes1),jstrescapecpy(t_mes2,g->mes2),g->emblem_len,g->emblem_id,emblem_data,
 				g->member[0].char_id, g->guild_id);
 				//printf(" %s\n",tmp_sql);
 				
 		} else {
 			sprintf(tmp_sql,"INSERT INTO `%s` "
-				"(`guild_id`, `name`,`master`,`guild_lv`,`connect_member`,`max_member`,`average_lv`,`exp`,`next_exp`,`skill_point`,`castle_id`,`mes1`,`mes2`,`emblem_len`,`emblem_id`,`emblem_data`,`char_id`) "
-				"VALUES ('%d', '%s', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%s', '%s', '%d', '%d', '%s', '%d')",
+				"(`guild_id`, `name`,`master`,`guild_lv`,`connect_member`,`max_member`,`average_lv`,`exp`,`next_exp`,`skill_point`,`mes1`,`mes2`,`emblem_len`,`emblem_id`,`emblem_data`,`char_id`) "
+				"VALUES ('%d', '%s', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%s', '%s', '%d', '%d', '%s', '%d')",
 				guild_db, g->guild_id,t_name,jstrescapecpy(t_master,g->master),
-				g->guild_lv,g->connect_member,g->max_member,g->average_lv,g->exp,g->next_exp,g->skill_point,g->castle_id,
+				g->guild_lv,g->connect_member,g->max_member,g->average_lv,g->exp,g->next_exp,g->skill_point,
 				jstrescapecpy(t_mes1,g->mes1),jstrescapecpy(t_mes2,g->mes2),g->emblem_len,g->emblem_id,emblem_data,
 				g->member[0].char_id);
 				//printf(" %s\n",tmp_sql);
@@ -336,7 +336,7 @@ struct guild * inter_guild_fromsql(int guild_id)
 	ShowInfo("Guild load request (%d)...\n", guild_id);
 #endif
 	
-	sprintf(tmp_sql,"SELECT `name`,`master`,`guild_lv`,`connect_member`,`max_member`,`average_lv`,`exp`,`next_exp`,`skill_point`,`castle_id`,`mes1`,`mes2`,`emblem_len`,`emblem_id`,`emblem_data` "
+	sprintf(tmp_sql,"SELECT `name`,`master`,`guild_lv`,`connect_member`,`max_member`,`average_lv`,`exp`,`next_exp`,`skill_point`,`mes1`,`mes2`,`emblem_len`,`emblem_id`,`emblem_data` "
 		"FROM `%s` WHERE `guild_id`='%d'",guild_db, guild_id);
 	//printf("  %s\n",tmp_sql);
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
@@ -368,13 +368,12 @@ struct guild * inter_guild_fromsql(int guild_id)
 		g->exp=atoi(sql_row[6]);
 		g->next_exp=atoi(sql_row[7]);
 		g->skill_point=atoi(sql_row[8]);
-		g->castle_id=atoi(sql_row[9]);
 		//There shouldn't be a need to copy the very last char, as it's the \0 [Skotlex]
-		strncpy(g->mes1,sql_row[10],59);
-		strncpy(g->mes2,sql_row[11],119);
-		g->emblem_len=atoi(sql_row[12]);
-		g->emblem_id=atoi(sql_row[13]);
-		strncpy(emblem_data,sql_row[14],4096);
+		strncpy(g->mes1,sql_row[9],59);
+		strncpy(g->mes2,sql_row[10],119);
+		g->emblem_len=atoi(sql_row[11]);
+		g->emblem_id=atoi(sql_row[12]);
+		strncpy(emblem_data,sql_row[13],4096);
 		for(i=0,pstr=emblem_data;i<g->emblem_len;i++,pstr+=2){
 			int c1=pstr[0],c2=pstr[1],x1=0,x2=0;
 			if(c1>='0' && c1<='9')x1=c1-'0';
@@ -1255,7 +1254,6 @@ int mapif_parse_CreateGuild(int fd,int account_id,char *name,struct guild_member
 	// Initialize guild property
 	g->max_member=16;
 	g->average_lv=master->lv;
-	g->castle_id=0; //Useless, this ain't used anymore.
 	for(i=0;i<MAX_GUILDSKILL;i++)
 		g->skill[i].id=i + GD_SKILLBASE;
 	//Add to cache

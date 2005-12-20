@@ -283,7 +283,11 @@ struct guild_skill {
 struct guild {
 	int guild_id;
 	short guild_lv, connect_member, max_member, average_lv;
-	int exp,next_exp,skill_point,castle_id;
+	int exp,next_exp,skill_point;
+#ifdef TXT_ONLY
+	//FIXME: Gotta remove this variable completely, but doing so screws up the format of the txt save file...
+	int castle_id;
+#endif
 	char name[NAME_LENGTH],master[NAME_LENGTH];
 	struct guild_member member[MAX_GUILD];
 	struct guild_position position[MAX_GUILDPOSITION];

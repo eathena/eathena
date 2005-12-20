@@ -147,7 +147,6 @@ CREATE TABLE `guild` (
   `exp` int(11) unsigned NOT NULL default '0',
   `next_exp` int(11) unsigned NOT NULL default '0',
   `skill_point` tinyint(11) unsigned NOT NULL default '0',
-  `castle_id` tinyint(11) unsigned NOT NULL default '0',
   `mes1` varchar(60) NOT NULL default '',
   `mes2` varchar(120) NOT NULL default '',
   `emblem_len` int(11) unsigned NOT NULL default '0',

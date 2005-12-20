@@ -1,6 +1,11 @@
 Date	Added
 	
 2005/12/20
+	* Removed use of castle_id for guilds in char-sql server (use corresponding
+	  upgrade_svn* file). TXT servers haven't been touched yet because that
+	  would mess up the guild save files. [Skotlex]
+	* Online list of characters will be sync'ed every 10 secs for TXT servers.
+	  [Skotlex]
 	* Merged in Reddozen's work to get Twilight Pharmacy working. [Skotlex]
 	- Create Deadly Poison Bottle and Holy Water are now both handled by the
 	  item producing code.
