@@ -416,10 +416,11 @@ int mapif_wis_end(struct WisData *wd,int flag)
 int mapif_account_reg(int fd,unsigned char *src)
 {
 //	unsigned char buf[WBUFW(src,2)]; <- Hey, can this really be done? [Skotlex]
-	unsigned char buf[2048];
+	unsigned char* buf = aCalloc(1,WBUFW(src,2)); // [Lance] - Skot... Dynamic allocation is better :D
 	memcpy(WBUFP(buf,0),src,WBUFW(src,2));
 	WBUFW(buf, 0)=0x3804;
 	mapif_sendallwos(fd, buf, WBUFW(buf,2));
+	aFree(buf);
 	return 0;
 }
 
@@ -650,6 +651,7 @@ int mapif_parse_AccReg(int fd)
 	reg->reg_num=j;
 
 	inter_accreg_tosql(account_id,reg);
+
 	mapif_account_reg(fd,RFIFOP(fd,0));	// Send confirm message to map
 	return 0;
 }
@@ -697,6 +699,7 @@ int inter_parse_frommap(int fd)
 			break;
 		return 0;
 	}
+
 	RFIFOSKIP(fd, len);
 	return 1;
 }

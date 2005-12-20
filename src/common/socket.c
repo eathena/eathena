@@ -1189,8 +1189,7 @@ int socket_config_read(const char *cfgName) {
 
 int RFIFOSKIP(int fd,int len)
 {
-
-         struct socket_data *s;
+    struct socket_data *s;
 
 	if ( !session_isActive(fd) ) //Nullpo error here[Kevin]
 		return 0;
@@ -1205,7 +1204,6 @@ int RFIFOSKIP(int fd,int len)
 		len = RFIFOREST(fd);
 	}
 	s->rdata_pos = s->rdata_pos+len;
-
 	return 0;
 }
 
