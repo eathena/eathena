@@ -4500,23 +4500,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 	case AL_HOLYWATER:			/* ƒAƒNƒAƒxƒlƒfƒBƒNƒ^ */
 		if(sd) {
-			int eflag;
-			struct item item_tmp;
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			memset(&item_tmp,0,sizeof(item_tmp));
-			item_tmp.nameid = 523;
-			item_tmp.identify = 1;
-			if(battle_config.holywater_name_input) {
-				item_tmp.card[0] = 0xfe;
-				item_tmp.card[1] = 0;
-				item_tmp.card[2] = GetWord(sd->char_id,0); // CharId
-				item_tmp.card[3] = GetWord(sd->char_id,1);
-			}
-			eflag = pc_additem(sd,&item_tmp,1);
-			if(eflag) {
-				clif_additem(sd,0,0,eflag);
-				map_addflooritem(&item_tmp,1,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);
-			}
+			skill_produce_mix(sd, skillid, 523, 0, 0, 0, 1);
 		}
 		break;
 	case TF_PICKSTONE:
@@ -4539,32 +4524,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		}
 		break;
 	case ASC_CDP:
-       	if(sd) {
-			int eflag;
-			struct item item_tmp;
+     	if(sd) {
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			if(rand()%10000 < (2000 + 40*sd->paramc[4] + 20*sd->paramc[5])){
-				clif_produceeffect(sd,2,678);
-				clif_misceffect(&sd->bl,5);
-				memset(&item_tmp,0,sizeof(item_tmp));
-				item_tmp.nameid = 678;
-				item_tmp.identify = 1;
-				if(battle_config.cdp_name_input) {
-					item_tmp.card[0] = 0xfe;
-					item_tmp.card[1] = 0;
-					item_tmp.card[2] = GetWord(sd->char_id,0); // CharId
-					item_tmp.card[3] = GetWord(sd->char_id,1);
-				}
-				eflag = pc_additem(sd,&item_tmp,1);
-				if(eflag) {
-					clif_additem(sd,0,0,eflag);
-					map_addflooritem(&item_tmp,1,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);
-				}
-			} else {
-				clif_produceeffect(sd,3,678);
-				clif_misceffect(&sd->bl,6);
-				pc_heal(sd,-(sd->status.max_hp>>2),0);
-			}
+			skill_produce_mix(sd, skillid, 678, 0, 0, 0, 1); //Produce a Deadly Poison Bottle.
 		}
 		break;
 
@@ -4723,7 +4685,38 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
 		}
 		break;
-
+	case AM_TWILIGHT1:
+		if (sd) {
+			clif_skill_nodamage(src,bl,skillid,skilllv,1);
+			//Prepare 200 White Potions.
+			if (!skill_produce_mix(sd, skillid, 504, 0, 0, 0, 200))
+				clif_skill_fail(sd,skillid,0,0);
+		}
+		break;
+	case AM_TWILIGHT2:
+		if (sd) {
+			clif_skill_nodamage(src,bl,skillid,skilllv,1);
+			//Prepare 200 Slim White Potions.
+			if (!skill_produce_mix(sd, skillid, 547, 0, 0, 0, 200))
+				clif_skill_fail(sd,skillid,0,0);
+		}
+		break;
+	case AM_TWILIGHT3:
+		if (sd) {
+			//check if you can produce all three, if not, then fail:
+			if (!skill_can_produce_mix(sd,970,-1, 100) //100 Alcohol
+				|| !skill_can_produce_mix(sd,7136,-1, 50) //50 Acid Bottle
+				|| !skill_can_produce_mix(sd,7135,-1, 50) //50 Flame Bottle
+			) {
+				clif_skill_fail(sd,skillid,0,0);
+				break;
+			}
+			clif_skill_nodamage(src,bl,skillid,skilllv,1);
+			skill_produce_mix(sd, skillid, 970, 0, 0, 0, 100);
+			skill_produce_mix(sd, skillid, 7136, 0, 0, 0, 50);
+			skill_produce_mix(sd, skillid, 7135, 0, 0, 0, 50);
+		}
+		break;
 	case SA_DISPELL:			/* ƒfƒBƒXƒyƒ‹ */
 		{
 			int i;
@@ -8236,6 +8229,13 @@ int skill_check_condition(struct map_session_data *sd,int type)
 			}
 			break;
 		}
+	case AM_TWILIGHT2:
+	case AM_TWILIGHT3:
+		if (!party_skill_check(sd, sd->status.party_id, skill, lv))
+		{
+			clif_skill_fail(sd,skill,0,0);
+			return 0;
+		}
 	case SG_SUN_WARM:
 		if(sd->bl.m == sd->feel_map[0].m)
 			break;
@@ -10651,7 +10651,7 @@ int skill_unit_move_unit_group( struct skill_unit_group *group, int m,int dx,int
  * ƒAƒCƒeƒ€?‡?¬‰Â”\”»’è
  *------------------------------------------
  */
-int skill_can_produce_mix( struct map_session_data *sd, int nameid, int trigger )
+int skill_can_produce_mix( struct map_session_data *sd, int nameid, int trigger, int qty)
 {
 	int i,j;
 
@@ -10661,11 +10661,8 @@ int skill_can_produce_mix( struct map_session_data *sd, int nameid, int trigger 
 		return 0;
 
 	for(i=0;i<MAX_SKILL_PRODUCE_DB;i++){
-		if(skill_produce_db[i].nameid == nameid )
-			break;
-	}
-	if( i >= MAX_SKILL_PRODUCE_DB )	/* ƒf?ƒ^ƒx?ƒX‚É‚È‚¢ */
-		return 0;
+		if(skill_produce_db[i].nameid != nameid)
+			continue;
 
 	if(trigger>=0){
 		if(trigger>20) { // Non-weapon, non-food item (itemlv must match)
@@ -10681,7 +10678,11 @@ int skill_can_produce_mix( struct map_session_data *sd, int nameid, int trigger 
 	}
 	if( (j=skill_produce_db[i].req_skill)>0 && pc_checkskill(sd,j)<=0 )
 		return 0;		/* ƒXƒLƒ‹‚ª‘«‚è‚È‚¢ */
+	}
 
+	if( i >= MAX_SKILL_PRODUCE_DB )	/* ƒf?ƒ^ƒx?ƒX‚É‚È‚¢ */
+		return 0;
+	
 	for(j=0;j<MAX_PRODUCE_RESOURCE;j++){
 		int id,x,y;
 		if( (id=skill_produce_db[i].mat_id[j]) <= 0 )	/* ‚±‚êˆÈ?ã‚Í?Þ—¿—v‚ç‚È‚¢ */
@@ -10694,7 +10695,7 @@ int skill_can_produce_mix( struct map_session_data *sd, int nameid, int trigger 
 			for(y=0,x=0;y<MAX_INVENTORY;y++)
 				if( sd->status.inventory[y].nameid == id )
 					x+=sd->status.inventory[y].amount;
-			if(x<skill_produce_db[i].mat_amount[j]) /* ƒAƒCƒeƒ€‚ª‘«‚è‚È‚¢ */
+			if(x<qty*skill_produce_db[i].mat_amount[j]) /* ƒAƒCƒeƒ€‚ª‘«‚è‚È‚¢ */
 				return 0;
 		}
 	}
@@ -10705,23 +10706,30 @@ int skill_can_produce_mix( struct map_session_data *sd, int nameid, int trigger 
  * ƒAƒCƒeƒ€?‡?¬‰Â”\”»’è
  *------------------------------------------
  */
-int skill_produce_mix( struct map_session_data *sd,
-	int nameid, int slot1, int slot2, int slot3 )
+int skill_produce_mix( struct map_session_data *sd, int skill_id,
+	int nameid, int slot1, int slot2, int slot3, int qty)
 {
 	int slot[3];
 	int i,sc,ele,idx,equip,wlv,make_per,flag;
 
 	nullpo_retr(0, sd);
 
-	if( !(idx=skill_can_produce_mix(sd,nameid,-1)) )	/* ?Œ?•s‘« */
+	if( !(idx=skill_can_produce_mix(sd,nameid,-1, qty)) )	/* ?Œ?•s‘« */
 		return 0;
 	idx--;
+
+	if (qty < 1)
+		qty = 1;
+	
+	if (!skill_id) //A skill can be specified for some override cases.
+		skill_id = skill_produce_db[idx].req_skill;
+	
 	slot[0]=slot1;
 	slot[1]=slot2;
 	slot[2]=slot3;
 
 	/* –„‚ß?‚Ý?—? */
-	for(i=0,sc=0,ele=0;i<3;i++){
+	for(i=0,sc=0,ele=0;i<3;i++){ //Note that qty should always be one if you are using these!
 		int j;
 		if( slot[i]<=0 )
 			continue;
@@ -10744,7 +10752,7 @@ int skill_produce_mix( struct map_session_data *sd,
 		int j,id,x;
 		if( (id=skill_produce_db[idx].mat_id[i]) <= 0 )
 			continue;
-		x=skill_produce_db[idx].mat_amount[i];	/* •K—v‚ÈŒÂ? */
+		x=qty*skill_produce_db[idx].mat_amount[i];	/* •K—v‚ÈŒÂ? */
 		do{	/* ‚Q‚ÂˆÈ?ã‚ÌƒCƒ“ƒfƒbƒNƒX‚É‚Ü‚½‚ª‚Á‚Ä‚¢‚é‚©‚à‚µ‚ê‚È‚¢ */
 			int y=0;
 			j = pc_search_inventory(sd,id);
@@ -10765,12 +10773,12 @@ int skill_produce_mix( struct map_session_data *sd,
 	if((equip=itemdb_isequip(nameid)))
 		wlv = itemdb_wlv(nameid);
 	if(!equip) {
-		switch(skill_produce_db[idx].req_skill){
+		switch(skill_id){
 			case BS_IRON:
 			case BS_STEEL:
 			case BS_ENCHANTEDSTONE:
 				{ // Ores & Metals Refining - skill bonuses are straight from kRO website [DracoRPG]
-				int skill = pc_checkskill(sd,skill_produce_db[idx].req_skill);
+				int skill = pc_checkskill(sd,skill_id);
 				make_per = sd->status.job_level*20 + sd->paramc[4]*10 + sd->paramc[5]*10; //Base chance
 				switch(nameid){
 					case 998: // Iron
@@ -10786,6 +10794,12 @@ int skill_produce_mix( struct map_session_data *sd,
 						make_per += 1000+skill*500; // Enchantedstone Craft bonus: +15/+20/+25/+30/+35
 					break;
 				}
+				break;
+			case ASC_CDP:
+				make_per = (2000 + 40*sd->paramc[4] + 20*sd->paramc[5]);
+				break;
+			case AL_HOLYWATER:
+				make_per = 100000; //100% success
 				break;
 			case AM_PHARMACY: // Potion Preparation - reviewed with the help of various Ragnainfo sources [DracoRPG]
 			case AM_TWILIGHT1:
@@ -10850,7 +10864,7 @@ int skill_produce_mix( struct map_session_data *sd,
 		}
 	} else { // Weapon Forging - skill bonuses are straight from kRO website, other things from a jRO calculator [DracoRPG]
 		make_per = 5000 + sd->status.job_level*20 + sd->paramc[4]*10 + sd->paramc[5]*10; // Base
-		make_per += pc_checkskill(sd,skill_produce_db[idx].req_skill)*500; // Smithing skills bonus: +5/+10/+15
+		make_per += pc_checkskill(sd,skill_id)*500; // Smithing skills bonus: +5/+10/+15
 		make_per += pc_checkskill(sd,BS_WEAPONRESEARCH)*100 +((wlv >= 3)? pc_checkskill(sd,BS_ORIDEOCON)*100:0); // Weaponry Research bonus: +1/+2/+3/+4/+5/+6/+7/+8/+9/+10, Oridecon Research bonus (custom): +1/+2/+3/+4/+5
 		make_per -= (ele?2000:0) + sc*1500 + (wlv>1?wlv*1000:0); // Element Stone: -20%, Star Crumb: -15% each, Weapon level malus: -0/-20/-30
 		if(pc_search_inventory(sd,989) > 0) make_per+= 1000; // Emperium Anvil: +10
@@ -10866,7 +10880,8 @@ int skill_produce_mix( struct map_session_data *sd,
 
 	if(make_per < 1) make_per = 1;
 
-	if(rand()%10000 < make_per){
+	
+	if(rand()%10000 < make_per || qty > 1){ //Success, or crafting multiple items.
 		struct item tmp_item;
 		memset(&tmp_item,0,sizeof(tmp_item));
 		tmp_item.nameid=nameid;
@@ -10878,19 +10893,25 @@ int skill_produce_mix( struct map_session_data *sd,
 			tmp_item.card[2]=GetWord(sd->char_id,0); // CharId
 			tmp_item.card[3]=GetWord(sd->char_id,1);
 		} else {
-			//We recycle the make_per variable to decide if we are gonna name the item (make_per is no longer used) [Skotlex]
-			switch (skill_produce_db[idx].req_skill) {
+			//Flag is only used on the end, so it can be used here. [Skotlex]
+			switch (skill_id) {
 				case AM_PHARMACY:
 				case AM_TWILIGHT1:
 				case AM_TWILIGHT2:
 				case AM_TWILIGHT3:
-					make_per = battle_config.produce_potion_name_input;
+					flag = battle_config.produce_potion_name_input;
+					break;
+				case AL_HOLYWATER:
+					flag = battle_config.holywater_name_input;
+					break;
+				case ASC_CDP:
+					flag = battle_config.cdp_name_input;
 					break;
 				default:
-					make_per = battle_config.produce_item_name_input;
+					flag = battle_config.produce_item_name_input;
 					break;
 			}
-			if (make_per) {
+			if (flag) {
 				tmp_item.card[0]=0x00fe;
 				tmp_item.card[1]=0;
 				tmp_item.card[2]=GetWord(sd->char_id,0); // CharId
@@ -10907,28 +10928,50 @@ int skill_produce_mix( struct map_session_data *sd,
 			if(itemdb_wlv(nameid) >= 3 && ((ele? 1 : 0) + sc) >= 3) // Fame point system [DracoRPG]
 				pc_addfame(sd,10); // Success to forge a lv3 weapon with 3 additional ingredients = +10 fame point
 		} else {
-			switch (skill_produce_db[idx].req_skill) {
+			int fame = 0;
+			tmp_item.amount = 0;
+			for (i=0; i< qty; i++)
+			{	//Apply quantity modifiers.
+				if (rand()%10000 < make_per || qty == 1)
+				{ //Success
+					tmp_item.amount++;
+					if(nameid < 545 || nameid > 547)
+						continue;
+					switch (skill_id) { //Add fame as needed.
+						case AM_PHARMACY:
+						case AM_TWILIGHT1:
+						case AM_TWILIGHT2:
+						case AM_TWILIGHT3:
+							switch(++sd->potion_success_counter) {
+								case 3:
+									fame+=1; // Success to prepare 3 Condensed Potions in a row
+									break;
+								case 5:
+									fame+=3; // Success to prepare 5 Condensed Potions in a row
+									break;
+								case 7:
+									fame+=10; // Success to prepare 7 Condensed Potions in a row
+									break;
+								case 10:
+									fame+=50; // Success to prepare 10 Condensed Potions in a row
+									sd->potion_success_counter = 0;
+									break;
+							}
+					}
+				} else //Failure
+					sd->potion_success_counter = 0;
+			}
+			if (fame)
+				pc_addfame(sd,fame);
+			//Visual effects and the like.
+			switch (skill_id) {
 				case AM_PHARMACY:
+				case AM_TWILIGHT1:
 				case AM_TWILIGHT2:
+				case AM_TWILIGHT3:
+				case ASC_CDP:
 					clif_produceeffect(sd,2,nameid);
 					clif_misceffect(&sd->bl,5);
-					if(nameid >= 545 && nameid <= 547) { // Fame point system [DracoRPG]
-			  			switch(++sd->potion_success_counter) {
-							case 3:
-								pc_addfame(sd,1); // Success to prepare 3 Condensed Potions in a row = +1 fame point
-								break;
-							case 5:
-								pc_addfame(sd,3); // Success to prepare 5 Condensed Potions in a row = +3 fame point
-								break;
-				  			case 7:
-								pc_addfame(sd,10); // Success to prepare 7 Condensed Potions in a row = +10 fame point
-								break;
-							case 10:
-								pc_addfame(sd,50); // Success to prepare 10 Condensed Potions in a row = +50 fame point
-								sd->potion_success_counter = 0;
-								break;
-						}
-					} else sd->potion_success_counter = 0;
 					break;
 				case BS_IRON:
 				case BS_STEEL:
@@ -10936,46 +10979,49 @@ int skill_produce_mix( struct map_session_data *sd,
 					clif_produceeffect(sd,0,nameid);
 					clif_misceffect(&sd->bl,3);
 					break;
+				default: //Those that don't require a skill?
+					if (skill_produce_db[idx].itemlv==11) //Cooking items.
+						clif_specialeffect(&sd->bl, 608, 0);
+					break;
 			}
 		}
-
-		if((flag = pc_additem(sd,&tmp_item,1))) {
-			clif_additem(sd,0,0,flag);
-			map_addflooritem(&tmp_item,1,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);
+		if (tmp_item.amount) { //Success
+			if((flag = pc_additem(sd,&tmp_item,1))) {
+				clif_additem(sd,0,0,flag);
+				map_addflooritem(&tmp_item,1,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);
+			}
+			return 1;
 		}
+	}
+	//Failure	
+	if(log_config.produce)
+		log_produce(sd,nameid,slot1,slot2,slot3,0);
 
-		if (skill_produce_db[idx].itemlv==11)
-				clif_specialeffect(&sd->bl, 608, 0);
-
+	if(equip){
+		clif_produceeffect(sd,1,nameid);
+		clif_misceffect(&sd->bl,2);
 	} else {
-		if(log_config.produce > 0)
-			log_produce(sd,nameid,slot1,slot2,slot3,0);
-
-		if(equip){
-			clif_produceeffect(sd,1,nameid);
-			clif_misceffect(&sd->bl,2);
-		} else {
-			switch (skill_produce_db[idx].req_skill) {
-				case AM_PHARMACY:
-				case AM_TWILIGHT1:
-				case AM_TWILIGHT2:
-				case AM_TWILIGHT3:
-					clif_produceeffect(sd,3,nameid);
-					clif_misceffect(&sd->bl,6);
-					sd->potion_success_counter = 0; // Fame point system [DracoRPG]
-					break;
-				case BS_IRON:
-				case BS_STEEL:
-				case BS_ENCHANTEDSTONE:
-					clif_produceeffect(sd,1,nameid);
-					clif_misceffect(&sd->bl,2);
-					break;
-			}
+		switch (skill_id) {
+			case ASC_CDP: //Damage yourself, and display same effect as failed potion.
+				pc_heal(sd,-(sd->status.max_hp>>2),0);
+			case AM_PHARMACY:
+			case AM_TWILIGHT1:
+			case AM_TWILIGHT2:
+			case AM_TWILIGHT3:
+				clif_produceeffect(sd,3,nameid);
+				clif_misceffect(&sd->bl,6);
+				sd->potion_success_counter = 0; // Fame point system [DracoRPG]
+				break;
+			case BS_IRON:
+			case BS_STEEL:
+			case BS_ENCHANTEDSTONE:
+				clif_produceeffect(sd,1,nameid);
+				clif_misceffect(&sd->bl,2);
+				break;
+			default:
+				if (skill_produce_db[idx].itemlv==11)
+					clif_specialeffect(&sd->bl, 609, 0);
 		}
-
-		if (skill_produce_db[idx].itemlv==11)
-			clif_specialeffect(&sd->bl, 609, 0);
-
 	}
 	return 0;
 }

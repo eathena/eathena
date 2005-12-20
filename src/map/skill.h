@@ -222,9 +222,9 @@ int skill_enchant_elemental_end(struct block_list *bl, int type);
 int skillnotok(int skillid, struct map_session_data *sd);
 
 // ƒAƒCƒeƒ€ì¬
-int skill_can_produce_mix( struct map_session_data *sd, int nameid, int trigger );
+int skill_can_produce_mix( struct map_session_data *sd, int nameid, int trigger, int qty);
 int skill_produce_mix( struct map_session_data *sd,
-	int nameid, int slot1, int slot2, int slot3 );
+	int skill_id, int nameid, int slot1, int slot2, int slot3, int qty );
 
 int skill_arrow_create( struct map_session_data *sd,int nameid);
 

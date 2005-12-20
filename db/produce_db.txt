@@ -1,7 +1,7 @@
 // Blacksmith and Alchemist Produce Database
 //
 // Structure of Database:
-// ProduceItemID,ItemLV,RequireSkill,MaterialID1,MaterialAmount1,...,MaterialID5,MaterialAmount5
+// ProduceItemID,ItemLV,RequireSkill,MaterialID1,MaterialAmount1,......
 //
 // Comments:
 // If MaterialAmount = 0, then you just need that item in your inventory (guides)
@@ -342,6 +342,10 @@
 //----------------------------------------------
 
 //---- Skill-related Mixtures ------------------
+//-- Holy Water <-- AL_HOLYWATER
+523,22,31
+//-- Deadly Poison Bottle <-- ASC_CDP & 1 Venom Canine, 1 Cactus Needle, 1 Bee Sting, 1 Poison Spore, 1 Karvodailnirol, 1 Berserk Potion, 1 Empty Bottle
+678,22,407,937,1,952,1,939,1,7033,1,972,1,657,1,713,1
 //-- Bottle Grenade <-- AM_PHARMACY & Bottle Grenade Creation Guide & 1 Alcohol, 1 Fabric, 1 Empty Bottle
 7135,22,228,7128,0,970,1,1059,1,713,1
 //-- Acid Bottle <-- AM_PHARMACY & Acid Bottle Creation Guide & 1 Empty Bottle, 1 Immortal Heart
