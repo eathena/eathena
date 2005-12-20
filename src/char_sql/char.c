@@ -2415,13 +2415,13 @@ int parse_frommap(int fd) {
 		}
 		//set MAP user count
 		case 0x2afe:
-			if (RFIFOREST(fd) < 6)
+			if (RFIFOREST(fd) < 4)
 				return 0;
-			if (RFIFOW(fd,4) != server[id].users) {
-				server[id].users = RFIFOW(fd,4);
+			if (RFIFOW(fd,2) != server[id].users) {
+				server[id].users = RFIFOW(fd,2);
 				ShowInfo("User Count: %d (Server: %d)\n", server[id].users, id);
 			}
-			RFIFOSKIP(fd, 6);
+			RFIFOSKIP(fd, 4);
 			break;
 		// set MAP user
 		case 0x2aff:

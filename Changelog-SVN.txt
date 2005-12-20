@@ -1,5 +1,8 @@
 Date	Added
 2005/12/19
+	* Fixed char servers not parsing correctly the online count packet (/who
+	  should work fine now) [Skotlex]
+	* Fixed the Dodge walking speed bonus to Assassin. [Skotlex]
 	* Added the new Garden City Hugel and Kiehl maps. [Valaris]
 	* Corrected Kaupe/Kaizel so that you can cast it on self/family when
 	  not-linked, and anyone when linked. [Skotlex]

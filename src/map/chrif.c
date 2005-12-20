@@ -1462,8 +1462,8 @@ int send_usercount_tochar(int tid, unsigned int tick, int id, int data) {
 	last_count = count;
 
 	WFIFOW(char_fd,0) = 0x2afe;
-	WFIFOL(char_fd,2) = count;
-	WFIFOSET(char_fd,6);
+	WFIFOW(char_fd,2) = count;
+	WFIFOSET(char_fd,4);
 	return 0;
 }
 

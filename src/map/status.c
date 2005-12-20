@@ -1578,7 +1578,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	sd->speed = status_calc_speed(&sd->bl,sd->speed);
 
 	// Relative modifiers from passive skills
-	if((skill=pc_checkskill(sd,TF_MISS))>0 && (sd->class_&MAPID_UPPERMASK) == MAPID_ASSASSIN && sd->sc_count && sd->sc_data[SC_CLOAKING].timer==-1)
+	if((skill=pc_checkskill(sd,TF_MISS))>0 && (sd->class_&MAPID_UPPERMASK) == MAPID_ASSASSIN && sd->sc_data[SC_CLOAKING].timer==-1)
 		sd->speed -= sd->speed * skill/100;
 	if(pc_isriding(sd) && pc_checkskill(sd,KN_RIDING)>0)
 		sd->speed -= sd->speed * 25/100;
