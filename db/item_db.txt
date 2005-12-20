@@ -554,7 +554,7 @@
 1233,Exercise,Excorcise,4,,10,700,90,,1,0,69164782,7,2,2,4,36,1,1,{ bonus bIgnoreDefRace,RC_Demon; bonus2 bSubRace,RC_Demon,5; bonus2 bSubRace,RC_DemiHuman,-10; }
 1234,Moonlight_Sword,Walgwanggum,4,,10,700,50,,1,0,69164782,7,2,2,4,36,1,1,{ bonus bMaxSPrate,10; bonus bSPDrainValue,3; }
 1235,Azoth,Azoth,4,,10,700,110,,1,0,262144,7,2,2,4,36,1,1,{ bonus bClassChange,300; }
-1236,Sucsamad,Sucsamad,4,,10,800,140,,1,0,69164782,7,2,2,4,36,1,1,{ bonus2 bAddEle,Ele_Earth,2; bonus2 bAddEle,Ele_Wind,10; bonus bUnbreakableWeapon,0; }
+1236,Sucsamad,Sucsamad,4,,10,800,140,,1,0,69164782,7,2,2,4,36,1,1,{ bonus2 bAddEle,Ele_Earth,10; bonus2 bAddEle,Ele_Wind,10; bonus bUnbreakableWeapon,0; }
 1237,Grimtooth_,Grimtooth,4,,10,800,180,,1,0,69164782,7,2,2,4,36,1,1,{ bonus bFlee,10; bonus bFlee2,5; bonus bDefRate,-50; bonus bDef2Rate,-50; }
 1238,Zeny_Knife,Zeny Knife,4,,10,700,64,,1,0,69164782,7,2,2,3,40,1,1,{ bonus2 bGetZenyNum,10,100; }
 1239,Poison_Knife,Poison Knife,4,,10,800,64,,1,0,69164782,7,2,2,3,65,1,1,{ bonus bAtkEle,Ele_Poison; bonus2 bAddEff,Eff_Poison,3000; }
