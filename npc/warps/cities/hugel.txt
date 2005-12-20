@@ -1,0 +1,73 @@
+//===== Athena Script ========================================
+//= Garden City Hugel Warp Script
+//===== By: ==================================================
+//= Sara-chan (1.0)
+//===== Current Version: =====================================
+//= 1.0
+//===== Compatible With: =====================================
+//= Any Athena Version; RO Episode 10+
+//===== Description: =========================================
+//= Warp Points for Hugel
+//===== Additional Comments: =================================
+//= Initial Release
+//============================================================
+
+//= Hugel City ================================================
+hu_fild06.gat,199,373,0	warp	hugel015	1,1,hugel.gat,95,34
+hugel.gat,95,32,0	warp	hugel015a	1,1,hu_fild06.gat,199,371
+hu_in01.gat,212,172,0	warp	hugel016	1,1,hugel.gat,158,116
+hugel.gat,156,116,0	warp	hugel016a	1,1,hu_in01.gat,212,174
+hu_in01.gat,212,172,0	warp	hugel017	1,1,hugel.gat,127,96
+hugel.gat,127,94,0	warp	hugel017a	1,1,hu_in01.gat,212,174
+hu_in01.gat,111,369,0	warp	hugel018	1,1,hu_in01.gat,72,158
+hugel.gat,70,158,0	warp	hugel018a	1,1,hu_in01.gat,111,371
+hu_in01.gat,266,124,0	warp	hugel019	1,1,hu_in01.gat,264,39
+hu_in01.gat,262,39,0	warp	hugel019a	1,1,hu_in01.gat,264,124
+hu_in01.gat,195,220,0	warp	hugel020	1,1,hu_in01.gat,159,169
+hu_in01.gat,161,169,0	warp	hugel020a	1,1,hu_in01.gat,197,220
+hugel.gat,296,229,0	warp	hugel021	1,1,hu_in01.gat,159,169
+hu_in01.gat,381,364,0	warp	hugel021a	1,1,hugel.gat,296,227
+hu_in01.gat,380,319,0	warp	hugel022	1,1,hu_in01.gat,385,389
+hu_in01.gat,387,389,0	warp	hugel022a	1,1,hu_in01.gat,382,319
+hu_in01.gat,30,300,0	warp	hugel023	1,1,hugel.gat,93,104
+hugel.gat,91,104,0	warp	hugel023a	1,1,hu_in01.gat,30,302
+hu_in01.gat,263,253,0	warp	hugel024	1,1,hu_in01.gat,363,253
+hu_in01.gat,365,253,0	warp	hugel024a	1,1,hu_in01.gat,265,253
+hu_in01.gat,168,307,0	warp	hugel025	1,1,hu_in01.gat,168,377
+hu_in01.gat,168,379,0	warp	hugel025a	1,1,hu_in01.gat,168,309
+hu_in01.gat,229,313,0	warp	hugel026	1,1,hu_in01.gat,166,315
+hu_in01.gat,168,315,0	warp	hugel026a	1,1,hu_in01.gat,231,313
+hu_in01.gat,33,318,0	warp	hugel027	1,1,hu_in01.gat,33,248
+hu_in01.gat,33,246,0	warp	hugel027a	1,1,hu_in01.gat,33,316
+hu_in01.gat,246,359,0	warp	hugel028	1,1,hugel.gat,92,165
+hugel.gat,92,167,0	warp	hugel028a	1,1,hu_in01.gat,246,361
+hu_in01.gat,244,315,0	warp	hugel029	1,1,hu_in01.gat,246,389
+hu_in01.gat,248,389,0	warp	hugel029a	1,1,hu_in01.gat,246,315
+hu_in01.gat,107,390,0	warp	hugel030	1,1,hu_in01.gat,111,322
+hu_in01.gat,113,322,0	warp	hugel030a	1,1,hu_in01.gat,109,390
+hu_in01.gat,314,386,0	warp	hugel031	1,1,hu_in01.gat,309,322
+hu_in01.gat,307,322,0	warp	hugel031a	1,1,hu_in01.gat,312,386
+hu_in01.gat,176,90,0	warp	hugel032	1,1,hu_in01.gat,14,153
+hu_in01.gat,14,151,0	warp	hugel032a	1,1,hu_in01.gat,174,90
+hu_in01.gat,154,71,0	warp	hugel033	1,1,hu_in01.gat,15,26
+hu_in01.gat,15,28,0	warp	hugel033a	1,1,hu_in01.gat,154,73
+hu_in01.gat,149,90,0	warp	hugel034	1,1,hu_in01.gat,104,90
+hu_in01.gat,106,90,0	warp	hugel034a	1,1,hu_in01.gat,151,90
+hu_in01.gat,85,108,0	warp	hugel035	1,1,hu_in01.gat,84,153
+hu_in01.gat,84,151,0	warp	hugel036a	1,1,hu_in01.gat,85,106
+hu_in01.gat,84,71,0	warp	hugel037	1,1,hu_in01.gat,86,26
+hu_in01.gat,85,28,0	warp	hugel037a	1,1,hu_in01.gat,84,73
+hu_in01.gat,231,301,0	warp	hugel038	1,1,hugel.gat,83,181
+hugel.gat,85,181,0	warp	hugel038a	1,1,hu_in01.gat,231,303
+hu_in01.gat,345,108,0	warp	hugel039	1,1,hugel.gat,127,65
+hugel.gat,129,65,0	warp	hugel039a	1,1,hu_in01.gat,347,108
+hu_in01.gat,380,118,0	warp	hugel040	1,1,hu_in01.gat,378,176
+hu_in01.gat,378,178,0	warp	hugel040a	1,1,hu_in01.gat,378,118
+hu_in01.gat,287,227,0	warp	hugel041	1,1,hugel.gat,58,208
+hugel.gat,56,208,0	warp	hugel041a	1,1,hu_in01.gat,287,229
+hu_in01.gat,24,361,0	warp	hugel042	1,1,hugel.gat,82,230
+hugel.gat,80,230,0	warp	hugel042a	1,1,hu_in01.gat,24,363
+hu_in01.gat,155,108,0	warp	hugel043	1,1,hugel.gat,153,151
+hugel.gat,153,153,0	warp	hugel043a	1,1,hu_in01.gat,155,106
+hu_in01.gat,301,380,0	warp	hugel044	1,1,hugel.gat,53,199
+hugel.gat,93,201,0	warp	hugel044a	1,1,hu_in01.gat,303,380

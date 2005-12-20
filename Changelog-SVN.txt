@@ -1,5 +1,6 @@
 Date	Added
 2005/12/19
+	* Added the new Garden City Hugel and Kiehl maps. [Valaris]
 	* Corrected Kaupe/Kaizel so that you can cast it on self/family when
 	  not-linked, and anyone when linked. [Skotlex]
 	* Fixed the mob damage log not getting the ID of the attacker registered...
