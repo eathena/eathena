@@ -2593,8 +2593,8 @@ int pc_takeitem(struct map_session_data *sd,struct flooritem_data *fitem)
 			if(log_config.pick) //Logs items, taken by (P)layers [Lupus]
 				log_pick(psd, "P", 0, fitem->item_data.nameid, fitem->item_data.amount, (struct item*)&fitem->item_data);
 			// if an appropiate party member was found, iterate to next one.
-			if ((p->itemc++) >= MAX_PARTY)
-				p->itemc = 0;
+			// Skip to the current receiver of an item, so the next pick should not go to him again.
+			p->itemc = i;
 			break;
 		}
 		if (i==p->itemc) {
