@@ -1,6 +1,7 @@
 Date	Added
 	
 2005/12/20
+	* Fixed char_sql and char crash because of buffer overrun. [Lance]
 	* Added a flag to tag non-weapon based skills so that they don't get the
 	  following bonuses: Star crumb damage, Mastery bonuses, Weapon Refine damage
 	  upgrades. Currently applies only to shield skills. [Skotlex]
@@ -12,7 +13,6 @@ Date	Added
 	* Merged in Reddozen's work to get Twilight Pharmacy working. [Skotlex]
 	- Create Deadly Poison Bottle and Holy Water are now both handled by the
 	  item producing code.
-	* Fixed char_sql and char crash because of buffer overrun. [Lance]
 2005/12/19
 	* Fixed char servers not parsing correctly the online count packet (/who
 	  should work fine now) [Skotlex]
