@@ -1067,6 +1067,7 @@ static struct Damage battle_calc_weapon_attack(
 		unsigned arrow : 1;	//Attack is arrow-based
 		unsigned rh : 1;		//Attack considers right hand (wd.damage)
 		unsigned lh : 1;		//Attack considers left hand (wd.damage2)
+		unsigned weapon : 1; //It's a weapon attack (consider VVS, and all that)
 		unsigned cardfix : 1;
 	}	flag;	
 
@@ -1080,6 +1081,7 @@ static struct Damage battle_calc_weapon_attack(
 	}
 	//Initial flag
 	flag.rh=1;
+	flag.weapon=1;
 	flag.cardfix=1;
 	flag.infdef=(t_mode&MD_PLANT?1:0);
 
@@ -1164,13 +1166,17 @@ static struct Damage battle_calc_weapon_attack(
 			case MO_FINGEROFFENSIVE:
 				if(sd && battle_config.finger_offensive_type == 0)
 					wd.div_ = sd->spiritball_old;
+				wd.flag=(wd.flag&~BF_RANGEMASK)|BF_LONG;
+				break;
+				
+			case CR_SHIELDBOOMERANG:
+			case PA_SHIELDCHAIN:
+				flag.weapon = 0;
 			case AS_GRIMTOOTH:
 			case KN_SPEARBOOMERANG:
 			case NPC_RANGEATTACK:
-			case CR_SHIELDBOOMERANG:
 			case LK_SPIRALPIERCE:
 			case ASC_BREAKER:
-			case PA_SHIELDCHAIN: //Since Pneuma and Defending Aura block it, it has to be long range. [Skotlex]
 			case AM_ACIDTERROR:
 			case ITM_TOMAHAWK:	//Tomahawk is a ranged attack! [Skotlex]
 			case CR_GRANDCROSS:
@@ -1192,14 +1198,17 @@ static struct Damage battle_calc_weapon_attack(
 				wd.blewcount=0;
 				break;
 
-			case NPC_PIERCINGATT:
 			case CR_SHIELDCHARGE:
+				flag.weapon = 0;
+			case NPC_PIERCINGATT:
 				wd.flag=(wd.flag&~BF_RANGEMASK)|BF_SHORT;
 				break;
 
 			case KN_AUTOCOUNTER:
 				wd.flag=(wd.flag&~BF_SKILLMASK)|BF_NORMAL;
 				break;
+
+
 		}
 	}
 
@@ -1921,7 +1930,7 @@ static struct Damage battle_calc_weapon_attack(
 		}
 
 		//Refine bonus
-		if (sd && skill_num != MO_INVESTIGATE && skill_num != MO_EXTREMITYFIST) {
+		if (sd && flag.weapon && skill_num != MO_INVESTIGATE && skill_num != MO_EXTREMITYFIST) {
 				ATK_ADD2(wd.div_*status_get_atk2(src), wd.div_*status_get_atk_2(src));
 		}
 
@@ -1929,7 +1938,7 @@ static struct Damage battle_calc_weapon_attack(
 		if (flag.rh && wd.damage < 1) wd.damage = 1;
 		if (flag.lh && wd.damage2 < 1) wd.damage2 = 1;
 
-		if (sd && skill_num != MO_INVESTIGATE && skill_num != MO_EXTREMITYFIST
+		if (sd && flag.weapon && skill_num != MO_INVESTIGATE && skill_num != MO_EXTREMITYFIST
 			&& skill_num != CR_GRANDCROSS)
 		{	//Add mastery damage
 			wd.damage = battle_addmastery(sd,target,wd.damage,0);
@@ -1991,7 +2000,8 @@ static struct Damage battle_calc_weapon_attack(
 
 	if (sd)
 	{
-		ATK_ADD2(wd.div_*sd->right_weapon.star, wd.div_*sd->left_weapon.star);
+		if (flag.weapon)
+			ATK_ADD2(wd.div_*sd->right_weapon.star, wd.div_*sd->left_weapon.star);
 		if (skill_num==MO_FINGEROFFENSIVE) { //The finger offensive spheres on moment of attack do count. [Skotlex]
 			ATK_ADD(wd.div_*sd->spiritball_old*3);
 		} else {

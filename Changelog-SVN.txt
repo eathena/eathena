@@ -1,6 +1,9 @@
 Date	Added
 	
 2005/12/20
+	* Added a flag to tag non-weapon based skills so that they don't get the
+	  following bonuses: Star crumb damage, Mastery bonuses, Weapon Refine damage
+	  upgrades. Currently applies only to shield skills. [Skotlex]
 	* Removed use of castle_id for guilds in char-sql server (use corresponding
 	  upgrade_svn* file). TXT servers haven't been touched yet because that
 	  would mess up the guild save files. [Skotlex]
