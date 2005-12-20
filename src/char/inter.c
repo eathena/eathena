@@ -358,7 +358,7 @@ int mapif_wis_end(struct WisData *wd, int flag) {
 
 // アカウント変数送信
 int mapif_account_reg(int fd, unsigned char *src) {
-	unsigned char *buf = aCalloc(1,WBUFW(src,2));;
+	unsigned char *buf = aCalloc(1,WBUFW(src,2));
 
 	memcpy(WBUFP(buf,0),src,WBUFW(src,2));
 	WBUFW(buf, 0) = 0x3804;
