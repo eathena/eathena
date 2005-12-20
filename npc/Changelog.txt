@@ -26,7 +26,8 @@ Nexon
 Date		Added
 ======
 12/19
-	* Added Garden City Hugel city and field maps and warps (thanks for Sara-chan ^_^) [Valaris]
+	* Added Sara-chan's corrections to Hugel warps. [Valaris]
+	* Added Garden City Hugel city and field maps and warps (thanks to Sara-chan ^_^) [Valaris]
 	* Added a custom event/quest 'Karachun' (for magic Christmas rings) [Lupus]
 12/17
 	* Fixed more Monsters Museum typos, thx 2Haplo. Also fixed some monsters names [Lupus]

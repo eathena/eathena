@@ -1,7 +1,7 @@
 //===== Athena Script ========================================
 //= Garden City Hugel Warp Script
 //===== By: ==================================================
-//= Sara-chan (1.0)
+//= Sara-chan (1.1)
 //===== Current Version: =====================================
 //= 1.0
 //===== Compatible With: =====================================
@@ -17,9 +17,9 @@ hu_fild06.gat,199,373,0	warp	hugel015	1,1,hugel.gat,95,34
 hugel.gat,95,32,0	warp	hugel015a	1,1,hu_fild06.gat,199,371
 hu_in01.gat,212,172,0	warp	hugel016	1,1,hugel.gat,158,116
 hugel.gat,156,116,0	warp	hugel016a	1,1,hu_in01.gat,212,174
-hu_in01.gat,212,172,0	warp	hugel017	1,1,hugel.gat,127,96
-hugel.gat,127,94,0	warp	hugel017a	1,1,hu_in01.gat,212,174
-hu_in01.gat,111,369,0	warp	hugel018	1,1,hu_in01.gat,72,158
+hu_in01.gat,231,108,0	warp	hugel017	1,1,hugel.gat,102,78
+hugel.gat,104,78,0	warp	hugel017a	1,1,hu_in01.gat,233,108
+hu_in01.gat,111,369,0	warp	hugel018	1,1,hugel.gat,72,158
 hugel.gat,70,158,0	warp	hugel018a	1,1,hu_in01.gat,111,371
 hu_in01.gat,266,124,0	warp	hugel019	1,1,hu_in01.gat,264,39
 hu_in01.gat,262,39,0	warp	hugel019a	1,1,hu_in01.gat,264,124
@@ -70,4 +70,4 @@ hugel.gat,80,230,0	warp	hugel042a	1,1,hu_in01.gat,24,363
 hu_in01.gat,155,108,0	warp	hugel043	1,1,hugel.gat,153,151
 hugel.gat,153,153,0	warp	hugel043a	1,1,hu_in01.gat,155,106
 hu_in01.gat,301,380,0	warp	hugel044	1,1,hugel.gat,53,199
-hugel.gat,93,201,0	warp	hugel044a	1,1,hu_in01.gat,303,380
+hugel.gat,93,201,0	warp	hugel044a	1,1,hu_in01.gat
