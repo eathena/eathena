@@ -1,6 +1,6 @@
 // Water Heigh Value for maps.
 // It affects WATER related skills as Water Ball, creation Holy Water, etc
-//water_height.txt eAthenaDB 2005/07/09 4:42:09 +0900 (JST)
+//water_height.txt eAthenaDB 2005/12/21 11:23:09 +0900 (JST)
 
 xmas.gat	3
 mjolnir_01.gat	0
@@ -77,3 +77,6 @@ ayothaya.gat	20
 ayo_dun01.gat	20
 ayo_dun02.gat	15
 lhz_dun03.gat	30
+abyss_01.gat	20
+abyss_03.gat	-20
+nguild_alde.gat	40

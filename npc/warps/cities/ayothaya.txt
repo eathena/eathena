@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= Muad_Dib, L0ne_W0lf (1.0)
 //===== Current Version: =====================================
-//= 1.2
+//= 1.3
 //===== Compatible With: =====================================
 //= Any Athena Version; RO Episode 8+
 //===== Description: =========================================
@@ -11,6 +11,7 @@
 //===== Additional Comments: =================================
 //= 1.1 Fixed Armory part by massdriller [Thanks to akusarujin]
 //= 1.2 Revised warps, due to official Ayothaya Town NPC [MasterOfMuppets]
+//= 1.3 Fixed swapped Inn Exits, thanks to Sir_Loon [Lupus]
 //============================================================
 
 
@@ -67,17 +68,17 @@ ayothaya.gat,111,109,0	warp	ayothayawarp033	2,2,ayo_in01.gat,180,128
 ayo_in01.gat,177,128,0	warp	ayothayawarp034	2,2,ayothaya.gat,111,105
 
 //Inn -- North Door
-ayothaya.gat,202,158,0	warp	ayothayawarp035	2,2,ayo_in01.gat,48,94
-ayo_in01.gat,50,94,0	warp	ayothayawarp036	2,2,ayothaya.gat,202,161
-//Inn -- West Door
-ayothaya.gat,193,149,0	warp	ayothayawarp037	2,2,ayo_in01.gat,30,107
-ayo_in01.gat,30,110,0	warp	ayothayawarp038	2,2,ayothaya.gat,189,149
+ayothaya.gat,202,158,0	warp	ayothayawarp035	2,2,ayo_in01.gat,30,107
+ayo_in01.gat,30,110,0	warp	ayothayawarp036	2,2,ayothaya.gat,202,161
+//Inn -- West Door 
+ayothaya.gat,193,149,0	warp	ayothayawarp037	2,2,ayo_in01.gat,14,94
+ayo_in01.gat,11,94,0	warp	ayothayawarp038	2,2,ayothaya.gat,189,149
 //Inn -- South Door
-ayothaya.gat,202,141,0	warp	ayothayawarp039	2,2,ayo_in01.gat,14,94
-ayo_in01.gat,11,94,0	warp	ayothayawarp040	2,2,ayothaya.gat,202,138
-//Inn -- East Door
-ayothaya.gat,211,149,0	warp	ayothayawarp041	2,2,ayo_in01.gat,30,82
-ayo_in01.gat,30,79,0	warp	ayothayawarp042	2,2,ayothaya.gat,214,149
+ayothaya.gat,202,141,0	warp	ayothayawarp039	2,2,ayo_in01.gat,30,82
+ayo_in01.gat,30,79,0	warp	ayothayawarp040	2,2,ayothaya.gat,202,138
+//Inn -- East Door 
+ayothaya.gat,211,149,0	warp	ayothayawarp041	2,2,ayo_in01.gat,48,94
+ayo_in01.gat,50,94,0	warp	ayothayawarp042	2,2,ayothaya.gat,214,149 
 //Inn Room --Upper Right
 ayo_in01.gat,48,83,0	warp	ayothayawarp043	2,2,ayo_in01.gat,61,15
 ayo_in01.gat,59,15,0	warp	ayothayawarp044	2,2,ayo_in01.gat,45,83

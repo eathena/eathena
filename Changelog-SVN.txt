@@ -1,6 +1,8 @@
 Date	Added
 	
 2005/12/20
+	* Updated wather heights for some maps, thanks to [Lupus]
+	- removed p_track02.gat from the maps list. Thanks to Justin84
 	* Fixed produce_db items always failing... [Skotlex]
 	* Hopefully fixed picking up items on a party-share type of party. [Skotlex]
 	* Txt map servers will now send the whole list of online characters at
