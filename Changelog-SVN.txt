@@ -1,10 +1,14 @@
 Date	Added
 	
-2005/12/20
+2005/12/21
+	* Merged in Marquis007's work on SL_SKA/SL_SWOO [Skotlex]
+	* All skills except Shield Boomerang get the weapon's refine bonus now.
+	  [Skotlex]
 	* Taekwon Ready Stances will now fail if you are a Second Job of the
 	  Taekwon Tree (SL, SG) [Skotlex]
 	* Another fix to item picking for party-share. Hopefully it works alright
 	  now (at least I believe it should be dupe-proof now) [Skotlex]
+2005/12/20
 	* Updated water heights for some maps, thanks to [Lupus]
 	- removed p_track02.gat from the maps list. Thanks to Justin84
 	* Fixed produce_db items always failing... [Skotlex]

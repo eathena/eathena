@@ -4506,6 +4506,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				clif_skill_fail(sd,skillid,0,0);
 		}
 		break;
+		
 	case TF_PICKSTONE:
 		if(sd) {
 			int eflag;
@@ -5623,6 +5624,16 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		status_change_start(src,SC_COMBO,SL_SMA,skilllv,0,0,skill_get_time2(skillid,skilllv),0);
 		break;
 
+	case SL_SKA: // [marquis007]
+	case SL_SWOO:
+		if (sd && bl->type != BL_MOB) {
+			status_change_start(src,SC_STAN,skilllv,0,0,0,3000,0);
+			clif_skill_fail(sd,skillid,0,0);
+			break;
+		}
+		clif_skill_nodamage(src,bl,skillid,skilllv,1);
+		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
+		break;
 	case SL_SKE:
 		if (sd && bl->type != BL_MOB) {
 			status_change_start(src,SC_STAN,skilllv,0,0,0,3000,0);

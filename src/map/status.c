@@ -309,9 +309,10 @@ int SkillStatusChangeTable[]={	/* status.hのenumのSC_***とあわせること */
 	SC_KAUPE,
 	-1,-1,-1,-1,-1,
 /* 470- */
-	-1,
+	SC_SWOO, // [marquis007]
 	SC_SKE,
-	-1,-1,-1,
+	SC_SKA, // [marquis007]
+	-1,-1,
 	SC_PRESERVE,
 	-1,-1,-1,-1,
 /* 480- */
@@ -674,7 +675,8 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 				(sc_data[SC_MARIONETTE].timer != -1 && skill_num != CG_MARIONETTE) ||
 				(sc_data[SC_MARIONETTE2].timer != -1 && skill_num == CG_MARIONETTE) ||
 				(sc_data[SC_HERMODE].timer != -1 && skill_get_inf(skill_num) & INF_SUPPORT_SKILL) ||
-				sc_data[SC_SILENCE].timer != -1 || sc_data[SC_STEELBODY].timer != -1 || sc_data[SC_BERSERK].timer != -1
+				sc_data[SC_SILENCE].timer != -1 || sc_data[SC_STEELBODY].timer != -1 ||
+				sc_data[SC_BERSERK].timer != -1 || sc_data[SC_SKA].timer != -1
 			)
 				return 0;
 
@@ -2260,6 +2262,8 @@ int status_calc_def(struct block_list *bl, int def)
 	if(sc_data){
 		if(sc_data[SC_BERSERK].timer!=-1)
 			return 0;
+		if(sc_data[SC_SKA].timer != -1) // [marquis007]
+			return 90;
 		if(sc_data[SC_DRUMBATTLE].timer!=-1)
 			def += sc_data[SC_DRUMBATTLE].val3;
 		if(sc_data[SC_INCDEFRATE].timer!=-1)
@@ -2320,6 +2324,8 @@ int status_calc_mdef(struct block_list *bl, int mdef)
 	if(sc_data){
 		if(sc_data[SC_BERSERK].timer!=-1)
 			return 0;
+		if(sc_data[SC_SKA].timer != -1) // [marquis007]
+			return 90; // should it up mdef too?
 		if(sc_data[SC_ENDURE].timer!=-1)
 			mdef += sc_data[SC_ENDURE].val1;
 	}
@@ -2351,6 +2357,8 @@ int status_calc_speed(struct block_list *bl, int speed)
 		if(sc_data) {
 			if(sc_data[SC_CURSE].timer!=-1)
 				speed += 450;
+			if(sc_data[SC_SWOO].timer != -1) // [marquis007]
+				speed += 450; //Let's use Curse's slow down momentarily (exact value unknown)
 			if(sc_data[SC_SPEEDUP1].timer!=-1)
 				speed -= speed*50/100;
 			else if(sc_data[SC_SPEEDUP0].timer!=-1)
@@ -3434,15 +3442,22 @@ int status_get_race(struct block_list *bl)
 int status_get_size(struct block_list *bl)
 {
 	nullpo_retr(1, bl);
-	if(bl->type==BL_MOB)
-		return ((struct mob_data *)bl)->db->size;
-	if(bl->type==BL_PET)
-		return ((struct pet_data *)bl)->db->size;
-	if(bl->type==BL_PC) {
-		struct map_session_data *sd = (struct map_session_data *)bl;
-		if (sd->class_&JOBL_BABY) //[Lupus]
-			return (pc_isriding(sd)!=0 && battle_config.character_size&2); //Baby Class Peco Rider + enabled option -> size = 1, else 0
-		return 1+(pc_isriding(sd)!=0 && battle_config.character_size&1);	//Peco Rider + enabled option -> size = 2, else 1
+	switch (bl->type) {
+		case BL_MOB:
+			if (((struct mob_data *)bl)->sc_data[SC_SWOO].timer != -1) // [marquis007]
+				return 0;
+			return ((struct mob_data *)bl)->db->size;
+		case BL_PET:	
+			return ((struct pet_data *)bl)->db->size;
+		case BL_PC:
+		{
+			struct map_session_data *sd = (struct map_session_data *)bl;
+			if (sd->sc_data[SC_SWOO].timer != -1)
+				return 0;
+			if (sd->class_&JOBL_BABY) //[Lupus]
+				return (pc_isriding(sd) && battle_config.character_size&2); //Baby Class Peco Rider + enabled option -> size = 1, else 0
+			return 1+(pc_isriding(sd) && battle_config.character_size&1);	//Peco Rider + enabled option -> size = 2, else 1
+		}
 	}
 	return 1;
 }
@@ -4521,7 +4536,11 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 					break;
 			}
 			break;
-
+		case SC_SWOO: // [marquis007]
+			if (flag&4 && status_get_mode(bl)&MD_BOSS)
+				tick /= 4; //Reduce skill's duration. But for how long?
+			calc_flag = 1;
+			break;
 		case SC_CONCENTRATE:		/* 集中力向上 */
 		case SC_BLESSING:			/* ブレッシング */
 		case SC_ANGELUS:			/* アンゼルス */
@@ -4571,6 +4590,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_STAR_COMFORT:
 		case SC_FUSION:
 		case SC_SKE:
+		case SC_SKA: // [marquis007]
 			calc_flag = 1;
 			break;
 
@@ -4921,6 +4941,8 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			case SC_STAR_COMFORT:
 			case SC_FUSION:
 			case SC_SKE:
+			case SC_SWOO: // [marquis007]
+			case SC_SKA: // [marquis007]
 				calc_flag = 1;
 				break;
 

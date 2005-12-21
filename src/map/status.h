@@ -223,6 +223,8 @@ enum {
 	SC_SKILLRATE_UP,
 	SC_SKE,
 	SC_KAITE,
+	SC_SWOO, // [marquis007]
+	SC_SKA, // [marquis007]
 	//
 	SC_MAX, //Automatically updated max, used in for's and at startup to check we are within bounds. [Skotlex]
 };

@@ -2000,7 +2000,7 @@ static struct Damage battle_calc_weapon_attack(
 
 	if (sd)
 	{
-		if (flag.weapon)
+		if (skill_num != CR_SHIELDBOOMERANG) //Only Shield boomerang doesn't takes the Star Crumbs bonus.
 			ATK_ADD2(wd.div_*sd->right_weapon.star, wd.div_*sd->left_weapon.star);
 		if (skill_num==MO_FINGEROFFENSIVE) { //The finger offensive spheres on moment of attack do count. [Skotlex]
 			ATK_ADD(wd.div_*sd->spiritball_old*3);
