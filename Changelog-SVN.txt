@@ -1,6 +1,7 @@
 Date	Added
 	
 2005/12/21
+	* Prepare kick skills now only fail for Soul Linkers. [Skotlex]
 	* Merged in Marquis007's work on SL_SKA/SL_SWOO [Skotlex]
 	* All skills except Shield Boomerang get the weapon's refine bonus now.
 	  [Skotlex]

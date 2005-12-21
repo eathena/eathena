@@ -8057,8 +8057,8 @@ int skill_check_condition(struct map_session_data *sd,int type)
 	case TK_READYDOWN:
 	case TK_READYSTORM:
 	case TK_READYTURN:
-		//Taekwon tree: Only 1-1 job (TK) can prepare the stances.
-		if ((sd->class_&MAPID_BASEMASK) == MAPID_TAEKWON && sd->class_&JOBL_2) {
+		if ((sd->class_&MAPID_UPPERMASK) == MAPID_SOUL_LINKER) {
+			//They do not work on Soul Linkers.
 			clif_skill_fail(sd,skill,0,0);
 			return 0;
 		}
