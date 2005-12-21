@@ -48,6 +48,9 @@ extern time_t stall_time;
 #define WBUFW(p,pos) (*(unsigned short*)((p) + (pos)))
 #define WBUFL(p,pos) (*(unsigned int*)((p) + (pos)))
 
+//FD_SETSIZE must be modified on the project files/Makefile, since a change here won't affect
+// dependant windows libraries.
+/*
 #ifdef __WIN32
 //The default FD_SETSIZE is kinda small for windows systems.
 	#ifdef FD_SETSIZE
@@ -55,7 +58,7 @@ extern time_t stall_time;
 	#endif
 #define FD_SETSIZE 4096
 #endif
-
+*/
 #ifdef __INTERIX
 #define FD_SETSIZE 4096
 #endif // __INTERIX

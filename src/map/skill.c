@@ -7067,9 +7067,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 
 	case UNT_SKIDTRAP:
 		{
-			int c = skill_get_blewcount(sg->skill_id,sg->skill_lv);
-			if(map_flag_gvg(bl->m)) c = 0;
-			skill_blown(&src->bl,bl,c|0x10000);
+			skill_blown(&src->bl,bl,skill_get_blewcount(sg->skill_id,sg->skill_lv)|0x10000);
 			sg->unit_id = UNT_USED_TRAPS;
 			clif_changelook(&src->bl,LOOK_BASE,sg->unit_id);
 			sg->limit=DIFF_TICK(tick,sg->tick)+1500;
