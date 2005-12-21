@@ -1,6 +1,7 @@
 Date	Added
 	
 2005/12/20
+	* Fixed produce_db items always failing... [Skotlex]
 	* Hopefully fixed picking up items on a party-share type of party. [Skotlex]
 	* Txt map servers will now send the whole list of online characters at
 	  UPDATE_INTERVAL (10 secs) rather than CHECK_INTERVAL (1 hour) so that the

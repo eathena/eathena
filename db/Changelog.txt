@@ -35,6 +35,7 @@
 		* * * On your death it breaks (BS can fix it), you drop all Equipment (equipped, even the ring). And revive with 1 HP / 1 SP at the place of your death.
 
 12/20
+	* Moved item requirements for Aqua Benedicta to produce_db. [Skotlex]
 	* A small fix to sucsamad [MasterOfMuppets]
 	* Moved item requirements for Create Deadly Poison from skill_require_db to
 	  produce_db [Skotlex]

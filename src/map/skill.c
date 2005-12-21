@@ -4500,8 +4500,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 	case AL_HOLYWATER:			/* アクアベネディクタ */
 		if(sd) {
-			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			skill_produce_mix(sd, skillid, 523, 0, 0, 0, 1);
+			if (skill_produce_mix(sd, skillid, 523, 0, 0, 0, 1))
+				clif_skill_nodamage(src,bl,skillid,skilllv,1);
+			else
+				clif_skill_fail(sd,skillid,0,0);
 		}
 		break;
 	case TF_PICKSTONE:
@@ -10661,8 +10663,11 @@ int skill_can_produce_mix( struct map_session_data *sd, int nameid, int trigger,
 		return 0;
 
 	for(i=0;i<MAX_SKILL_PRODUCE_DB;i++){
-		if(skill_produce_db[i].nameid != nameid)
-			continue;
+		if(skill_produce_db[i].nameid == nameid )
+			break;
+	}
+	if( i >= MAX_SKILL_PRODUCE_DB )	/* デ?タベ?スにない */
+		return 0;
 
 	if(trigger>=0){
 		if(trigger>20) { // Non-weapon, non-food item (itemlv must match)
@@ -10678,11 +10683,7 @@ int skill_can_produce_mix( struct map_session_data *sd, int nameid, int trigger,
 	}
 	if( (j=skill_produce_db[i].req_skill)>0 && pc_checkskill(sd,j)<=0 )
 		return 0;		/* スキルが足りない */
-	}
 
-	if( i >= MAX_SKILL_PRODUCE_DB )	/* デ?タベ?スにない */
-		return 0;
-	
 	for(j=0;j<MAX_PRODUCE_RESOURCE;j++){
 		int id,x,y;
 		if( (id=skill_produce_db[i].mat_id[j]) <= 0 )	/* これ以?繧ﾍ?ﾞ料要らない */
