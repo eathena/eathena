@@ -1,6 +1,9 @@
 Date	Added
 	
 2005/12/20
+	* Txt map servers will now send the whole list of online characters at
+	  UPDATE_INTERVAL (10 secs) rather than CHECK_INTERVAL (1 hour) so that the
+	  online.html file will be correctly updated. [Skotlex]
 	* Fixed char_sql and char crash because of buffer overrun. [Lance]
 	* Added a flag to tag non-weapon based skills so that they don't get the
 	  following bonuses: Star crumb damage, Mastery bonuses, Weapon Refine damage
