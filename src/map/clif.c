@@ -4748,15 +4748,16 @@ int clif_skillup(struct map_session_data *sd,int skill_num)
 int clif_skillcasting(struct block_list* bl,
 	int src_id,int dst_id,int dst_x,int dst_y,int skill_num,int casttime)
 {
+	int pl = skill_get_pl(skill_num);
 	unsigned char buf[32];
 	WBUFW(buf,0) = 0x13e;
 	WBUFL(buf,2) = src_id;
 	WBUFL(buf,6) = dst_id;
 	WBUFW(buf,10) = dst_x;
 	WBUFW(buf,12) = dst_y;
-	WBUFW(buf,14) = skill_num;//–‚–@‰r¥ƒXƒLƒ‹
-	WBUFL(buf,16) = skill_get_pl(skill_num);//‘®«
-	WBUFL(buf,20) = casttime;//skill‰r¥ŠÔ
+	WBUFW(buf,14) = skill_num;
+	WBUFL(buf,16) = pl<0?0:pl; //Avoid sending negatives as element [Skotlex]
+	WBUFL(buf,20) = casttime;
 	clif_send(buf,packet_len_table[0x13e], bl, AREA);
 
 	return 0;
