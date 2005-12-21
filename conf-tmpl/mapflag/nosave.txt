@@ -2,7 +2,7 @@
 //= Map flags that disable auto saving
 //===== By: ==================================================
 //= eAthena Dev Team
-//= 1.2 [Lupus]
+//= 1.3 [Lupus]
 //===== Current Version: =====================================
 
 // Job Quests ====================
@@ -26,6 +26,9 @@ monk_test.gat	mapflag	nosave	SavePoint
 monk_in.gat	mapflag	nosave	SavePoint
 in_rogue.gat	mapflag	nosave	SavePoint
 job_sage.gat	mapflag	nosave	SavePoint
+
+job_star.gat	mapflag	nosave	SavePoint
+job_soul.gat	mapflag	nosave	SavePoint
 
 // Special Quests Places =====
 que_god01.gat	mapflag	nosave	SavePoint

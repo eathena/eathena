@@ -2,7 +2,7 @@
 //= Map flags that disable use of fly wings
 //===== By: ==================================================
 //= eAthena Dev Team
-//= 1.4 [Lupus]
+//= 1.5 [Lupus]
 //===== Notes: ===============================================
 //= For disabling Butterfly wings use noreturn
 //===== Current Version: =====================================
@@ -108,6 +108,9 @@ monk_test.gat	mapflag	noteleport
 monk_in.gat	mapflag	noteleport
 in_rogue.gat	mapflag	noteleport
 job_sage.gat	mapflag	noteleport
+
+job_star.gat	mapflag	noteleport
+job_soul.gat	mapflag	noteleport
 
 // Special Quests Places =========
 que_god01.gat	mapflag	noteleport
