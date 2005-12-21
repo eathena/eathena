@@ -8041,6 +8041,18 @@ int skill_check_condition(struct map_session_data *sd,int type)
 			//It should consume whatever is left as long as it's at least 1.
 		}
 		break;
+	
+	case TK_READYCOUNTER:
+	case TK_READYDOWN:
+	case TK_READYSTORM:
+	case TK_READYTURN:
+		//Taekwon tree: Only 1-1 job (TK) can prepare the stances.
+		if ((sd->class_&MAPID_BASEMASK) == MAPID_TAEKWON && sd->class_&JOBL_2) {
+			clif_skill_fail(sd,skill,0,0);
+			return 0;
+		}
+		break;
+
 	case TK_TURNKICK:
 	case TK_STORMKICK:
 	case TK_DOWNKICK:

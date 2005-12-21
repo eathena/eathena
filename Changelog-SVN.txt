@@ -1,7 +1,11 @@
 Date	Added
 	
 2005/12/20
-	* Updated wather heights for some maps, thanks to [Lupus]
+	* Taekwon Ready Stances will now fail if you are a Second Job of the
+	  Taekwon Tree (SL, SG) [Skotlex]
+	* Another fix to item picking for party-share. Hopefully it works alright
+	  now (at least I believe it should be dupe-proof now) [Skotlex]
+	* Updated water heights for some maps, thanks to [Lupus]
 	- removed p_track02.gat from the maps list. Thanks to Justin84
 	* Fixed produce_db items always failing... [Skotlex]
 	* Hopefully fixed picking up items on a party-share type of party. [Skotlex]

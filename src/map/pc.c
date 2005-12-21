@@ -2578,7 +2578,9 @@ int pc_takeitem(struct map_session_data *sd,struct flooritem_data *fitem)
 	if (p && p->item&1) { //Random item distribution to party members.
 		struct map_session_data *psd = NULL;
 		int i, flag2;
-		for (i = p->itemc + 1; i!=p->itemc; i++) {	// initialise counter and loop through the party
+		i = p->itemc;
+		do {
+			i++;
 			if (i >= MAX_PARTY)
 				i = 0;	// reset counter to 1st person in party so it'll stop when it reaches "itemc"
 			if ((psd=p->member[i].sd)==NULL || sd->bl.m != psd->bl.m)
@@ -2593,8 +2595,8 @@ int pc_takeitem(struct map_session_data *sd,struct flooritem_data *fitem)
 			if(log_config.pick) //Logs items, taken by (P)layers [Lupus]
 				log_pick(psd, "P", 0, fitem->item_data.nameid, fitem->item_data.amount, (struct item*)&fitem->item_data);
 			break;
-		}
-		if (i==p->itemc) {
+		} while (i != p->itemc);
+		if (i==p->itemc && flag) {
 			clif_additem(sd,0,0,flag); //Display error only to the char that tried to pick it up.
 			return 1;
 		}
