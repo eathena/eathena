@@ -2592,15 +2592,15 @@ int pc_takeitem(struct map_session_data *sd,struct flooritem_data *fitem)
 			}
 			if(log_config.pick) //Logs items, taken by (P)layers [Lupus]
 				log_pick(psd, "P", 0, fitem->item_data.nameid, fitem->item_data.amount, (struct item*)&fitem->item_data);
-			// if an appropiate party member was found, iterate to next one.
-			// Skip to the current receiver of an item, so the next pick should not go to him again.
-			p->itemc = i;
 			break;
 		}
 		if (i==p->itemc) {
 			clif_additem(sd,0,0,flag); //Display error only to the char that tried to pick it up.
 			return 1;
 		}
+		// if an appropiate party member was found, iterate to next one.
+		// Skip to the current receiver of an item, so the next pick should not go to him again.
+		p->itemc = i;
 	} else if((flag = pc_additem(sd,&fitem->item_data,fitem->item_data.amount)))
   	{	// d—Êover‚Åæ“¾¸”s
 		clif_additem(sd,0,0,flag);
