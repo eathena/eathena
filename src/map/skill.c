@@ -2789,10 +2789,14 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 	case KN_CHARGEATK:
 	case MO_EXTREMITYFIST:	/* ˆ¢?C—…”e–PŒ? */
 		{
-			if(sd) {
+			if(sd && !check_distance_bl(src, bl, 1)) { //Need to move to target.
 				struct walkpath_data wpd;
 				int dx,dy,speed;
 
+				if (!pc_can_move(sd)) { //You need to be able to move to attack/reach target.
+					clif_skill_fail(sd,skillid,0,0);
+					break;
+				}
 				dx = bl->x - sd->bl.x;
 				dy = bl->y - sd->bl.y;
 				if(dx > 0) dx++;
@@ -2821,24 +2825,25 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 //				clif_updatestatus(sd, SP_SPEED); //Not sure yet if this is needed.
 				clif_walkok(sd);
 				clif_movechar(sd);
-				sd->speed = speed;
-//				clif_updatestatus(sd, SP_SPEED);
 				if(dx < 0) dx = -dx;
 				if(dy < 0) dy = -dy;
 				sd->attackabletime = sd->canmove_tick = tick + 100 + sd->speed * ((dx > dy)? dx:dy);
 				if(sd->canact_tick < sd->canmove_tick)
 					sd->canact_tick = sd->canmove_tick;
+				sd->speed = speed;
+//				clif_updatestatus(sd, SP_SPEED);
 				pc_movepos(sd,sd->to_x,sd->to_y,1);
-				if (skillid == MO_EXTREMITYFIST)
-					status_change_end(&sd->bl,SC_COMBO,-1);
 			}
-			else
-				skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
-			if (skillid == MO_EXTREMITYFIST)
+			else //Assume minimum distance of 1 for Charge.
+				skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,skillid == KN_CHARGEATK?1:flag);
+			if (skillid == MO_EXTREMITYFIST && sc_data)
 			{
-				status_change_end(src, SC_EXPLOSIONSPIRITS, -1);
-				if (sc_data && sc_data[SC_BLADESTOP].timer != -1)
+				if (sc_data[SC_EXPLOSIONSPIRITS].timer != -1)
+					status_change_end(src, SC_EXPLOSIONSPIRITS, -1);
+				if (sc_data[SC_BLADESTOP].timer != -1)
 					status_change_end(src,SC_BLADESTOP,-1);
+				if (sc_data[SC_COMBO].timer != -1) 
+					status_change_end(src,SC_COMBO,-1);
 			}
 		}
 		break;
@@ -8549,15 +8554,15 @@ int skill_delayfix( struct block_list *bl, int skill_id, int skill_lv, int time 
 
 		// instant cast attack skills depend on aspd as delay [celest]
 		if (time == 0) {
-			if (skill_get_type(sd->skillid) == BF_WEAPON)
-				time = status_get_adelay (bl)/2;
+			if (skill_get_type(skill_id) == BF_WEAPON)
+				time = status_get_adelay (bl); //Use weapon's attack delay as default.
 			else
 				time = 300;	// default delay, according to official servers
 		} else if (time < 0)
-			time = abs(time) + status_get_adelay (bl)/2;	// if set to <0, the aspd delay will be added
+			time = abs(time) + status_get_adelay (bl);	// if set to <0, the aspd delay will be added
 
 		if (battle_config.delay_dependon_dex &&	/* dex‚Ì‰e‹¿‚ðŒvŽZ‚·‚é */
-			!skill_get_delaynodex(sd->skillid, sd->skilllv))	// if skill casttime is allowed to be reduced by dex
+			!skill_get_delaynodex(skill_id, skill_lv))	// if skill casttime is allowed to be reduced by dex
 		{
 			int scale = battle_config.castrate_dex_scale - status_get_dex(bl);
 			if (scale < 0)

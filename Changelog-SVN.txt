@@ -1,6 +1,10 @@
 Date	Added
 	
 2005/12/21
+	* Default skill delay for skills with no delay is now the normal attack
+	  delay. [Skotlex] 
+	* Extremity Fist/Charge Attack will fail if the player can't move to the
+	  target. [Skotlex]
 	* Prepare kick skills now only fail for Soul Linkers. [Skotlex]
 	* Merged in Marquis007's work on SL_SKA/SL_SWOO [Skotlex]
 	* All skills except Shield Boomerang get the weapon's refine bonus now.

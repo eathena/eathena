@@ -1407,7 +1407,9 @@ int parse_login(int fd) {
 			ShowInfo("client connection request %s from %d.%d.%d.%d\n", RFIFOP(fd, 6), p[0], p[1], p[2], p[3]);
 			account.version = RFIFOL(fd, 2);
 			account.userid = (char*)RFIFOP(fd, 6);
+			account.userid[23] = '\0';
 			account.passwd = (char*)RFIFOP(fd, 30);
+			account.passwd[NAME_LENGTH-1] = '\0';
 #ifdef PASSWORDENC
 			account.passwdenc= (RFIFOW(fd,0)==0x64)?0:PASSWORDENC;
 #else

@@ -2967,8 +2967,8 @@ int parse_login(int fd) {
 			remove_control_chars((unsigned char *)account.userid);
 			if (RFIFOW(fd,0) == 0x64) {
 				login_log("Request for connection (non encryption mode) of %s (ip: %s)." RETCODE, account.userid, ip);
-				memcpy(account.passwd, RFIFOP(fd,30), 24);
-				account.passwd[24] = '\0';
+				memcpy(account.passwd, RFIFOP(fd,30), NAME_LENGTH);
+				account.passwd[NAME_LENGTH-1] = '\0';
 				remove_control_chars((unsigned char *)account.passwd);
 			} else {
 				login_log("Request for connection (encryption mode) of %s (ip: %s)." RETCODE, account.userid, ip);
