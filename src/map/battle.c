@@ -2389,9 +2389,10 @@ struct Damage battle_calc_magic_attack(
 	switch(skill_num)
 	{
 		case MG_FIREWALL:
-			if(mflag > 1 || t_ele==3 || battle_check_undead(t_race,t_ele)) {
-				ad.div_ = mflag; // mflag contains the number of hits against undead. [Skotlex]
-				ad.blewcount = 0;
+			if(mflag) { //mflag has a value when it was checked it works against an undead in skill.c [Skotlex]
+				ad.div_ = mflag; //mflag contains the number of hits against undead.
+				ad.blewcount = 0; //No knockback
+				ad.dmotion = 0; //No flinch animation.
 			} else
 				ad.blewcount |= 0x10000;
 			break;

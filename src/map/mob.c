@@ -1591,7 +1591,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 		tbl = map_id2bl(md->target_id);
 		if (!tbl || tbl->m != md->bl.m || !status_check_skilluse(&md->bl, tbl, 0, 0))
 		{	//Unlock current target.
-			if (md->state.state == MS_WALK && battle_config.mob_ai&8) //Inmediately stop chasing.
+			if (md->state.state == MS_WALK && (battle_config.mob_ai&8 || !tbl)) //Inmediately stop chasing.
 				mob_stop_walking(md, 2);
 			mob_unlocktarget(md, tick-(battle_config.mob_ai&8?3000:0)); //Imediately do random walk.
 			tbl = NULL;

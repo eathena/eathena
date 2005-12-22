@@ -1,6 +1,11 @@
 Date	Added
 	
 2005/12/22
+	* Mobs will now stop walking if their target no longer exists (picked up
+	  items, for instance) [Skotlex]
+	* Modified firewall to cause no damage delay when hitting undead
+	  characters. It may fix undead mobs warping when walking through the
+	  firewall. [Skotlex]
 	* Added script command "clone" for cloning of players. See
 	  doc/script_commands.txt for further information. [Skotlex]
 	* Added @waterlevel debug command to read/change the current's map
