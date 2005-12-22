@@ -328,8 +328,8 @@ enum {
 	SI_SHADOWWEAPON		= 146,
 	//147 SI_ADRENALINE again
 	SI_GHOSTWEAPON		= 148,
-	SI_NIGHT			= 149, //slightly colors the screen with blue (night-like), unused by skills, but used for day/night
-	SI_SOULLINK			= 149, //it IS used by skill ... every soullink ... [Komurka]
+	SI_NIGHT			= 149, //slightly colors the screen with blue (night-like)
+	SI_SOULLINK			= 149, //Soullinked effect [Komurka]
 	SI_DEVIL			= 152,	// SG devil (permament blindness) [Komurka]
 	SI_KAITE		= 153, //causes character after-image effect
 	SI_KAIZEL			= 156,

@@ -8310,7 +8310,11 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
 			npc_event_doall_id(script_config.loadmap_event_name, sd->bl.id), script_config.loadmap_event_name);
 	}
-
+/* These should not be needed anymore. [Skotlex]
+ * - the option is sent on every player packet, why send it?
+ * - There should be no need to do a signum check on map change, it is done on equipment change.
+ * - Trick-dead is finished on pc_setpos
+ * - Night effect is handled on clif_spawnpc
 	// option
 	clif_changeoption(&sd->bl);
 	if(sd->sc_data[SC_TRICKDEAD].timer != -1)
@@ -8333,16 +8337,16 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		clif_status_load(&sd->bl, SI_NIGHT, 0);
 		sd->state.night = 0;
 	}
-
+*/
 	if (pc_checkskill(sd,SG_KNOWLEDGE)    || 
 	    pc_checkskill(sd,SG_SUN_COMFORT)  ||
 	    pc_checkskill(sd,SG_MOON_COMFORT) ||
 	    pc_checkskill(sd,SG_STAR_COMFORT))
 		status_calc_pc(sd,0);
-		
+	
 	if (pc_checkskill(sd, SG_DEVIL) && sd->status.job_level >= battle_config.max_job_level)
-		clif_status_load(&sd->bl, SI_DEVIL, 1);  //blindness [Komurka]		
-
+		clif_status_load(&sd->bl, SI_DEVIL, 1);  //blindness [Komurka]
+	
 	map_foreachinarea(clif_getareachar,sd->bl.m,sd->bl.x-AREA_SIZE,sd->bl.y-AREA_SIZE,sd->bl.x+AREA_SIZE,sd->bl.y+AREA_SIZE,0,sd);
 }
 
