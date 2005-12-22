@@ -1,5 +1,8 @@
 Date	Added
 	
+2005/12/22
+	* Enabled names for forged weapon/created Potions by default [Lupus]
+	- Old issues have beed solved long time ago, now items by TOP10 BS/ALCH gain their TOP1 bonuses
 2005/12/21
 	* Now left_cardfix_to_right won't take effect when there's no weapon equipped
 	  on the right hand. [Skotlex]
