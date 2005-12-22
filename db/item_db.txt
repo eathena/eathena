@@ -1454,7 +1454,7 @@
 4312,Seal_Card,Seal Card,6,,10,10,,,,,,,,2,,,,,{ bonus bFlee,3; bonus bHit,10; if(BaseClass != Job_Acolyte) end; bonus2 bCriticalAddRace,RC_Undead,9; bonus2 bCriticalAddRace,RC_Demon,9; }
 4313,Punk_Card,Punk Card,6,,10,10,,,,,,,,4,,,,,{ bonus4 bAutoSpellWhenHit,92,1+4*(getskilllv(92)==5),10,0; }
 4314,Penomena_Card,Penomena Card,6,,10,10,,,,,,,,32,,,,,{ bonus2 bSubRace,RC_Formless,30; }
-4315,Pest_Card,Pest Card,6,,10,10,,,,,,,,16,,,,,{ bonus2 bAddEffWhenHit,Eff_Stone,1000+2000*(readparam(bInt)>77); }
+4315,Pest_Card,Pest Card,6,,10,10,,,,,,,,16,,,,,{ bonus2 bAddEffWhenHit,Eff_Stone,1000+2000*(readparam(bInt)>=77); }
 4316,False_Angel_Card,False Angel Card,6,,10,10,,,,,,,,2,,,,,{ bonus2 bSPGainRace,RC_Angel,5; bonus bLoseSPWhenUnequip,5; }
 4317,Mobster_Card,Mobster Card,6,,10,10,,,,,,,,2,,,,,{ bonus bCritAtkRate,15; if(BaseClass == Job_Thief) bonus bCritical,4; }
 4318,Stormy_Knight_Card,Stormy Knight Card,6,,10,10,,,,,,,,2,,,,,{ bonus3 bAutoSpell,89,1,20; bonus2 bAddEffWhenHit,Eff_Freeze,2000; }

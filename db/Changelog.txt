@@ -32,6 +32,10 @@
 	2653,Sacrifice_Ring: seems eAthena doesn't have bonus option yet <- explain how this works so I can code it in. [Skotlex]
 		* * * On your death it breaks (BS can fix it), you drop all Equipment (equipped, even the ring). And revive with 1 HP / 1 SP at the place of your death.
 
+12/22
+	* Changed the autospell chance of Lude card from 2% to 20%. [MasterOfMuppets]
+	* Changed pest card to get its additional bonus if you have 77 int or [MasterOfMuppets]
+	  higher instead of 77 and higher.
 12/21
 	* Item_DB update for Tuesday's kRO sakray update. Temp plugs. [Vicious]
 	  - THQ Quest Items needs new item number!!!!
