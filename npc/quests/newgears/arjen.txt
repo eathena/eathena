@@ -4,7 +4,7 @@
 //= Halca (1.0)
 //= Mass Zero (1.1)
 //===== Current Version: ===================================== 
-//= 1.3
+//= 1.4
 //===== Compatible With: ===================================== 
 //= Any eAthena Version.
 //===== Description: ========================================= 
@@ -12,9 +12,10 @@
 //===== Additional Comments: ================================= 
 //= 1.2 Fixed wrong labels, wrong items ID. [Lupus]
 //= 1.3 Fixed possible exploit [Lupus]
+//= 1.4 Stel.Hairpin->Stellar item ID fix,thx2 Komurka [Lupus]
 //============================================================
 
-//86
+
 geffen.gat,128,148,6	script	Arjen	807,{ 
  mes "[Arjen]";
  mes "What item information do you require?";
@@ -34,8 +35,8 @@ geffen.gat,128,148,6	script	Arjen	807,{
  next;
  menu "Make me the hairpin.",-,"What are the requirements?",M_REQ1,"No, thanks.",M_EXIT;
 
- if(countitem(10011) < 1 || countitem(7220) < 400) GOTO L_NOITEM1;//Items: Stellar Hairpin, Ectoplasm,
- delitem 10011,1;//Items: Stellar Hairpin,
+ if(countitem(2294) < 1 || countitem(7220) < 400) GOTO L_NOITEM1;//Items: Stellar Hairpin, Ectoplasm,
+ delitem 2294,1;//Items: Stellar,
  delitem 7220,400;//Items: Ectoplasm,
  mes "[Arjen]";
  mes "Yes, that's just what I require!";
@@ -59,8 +60,8 @@ L_NOITEM1:
 M_REQ1:
  mes "[Arjen]";
  mes "Hmm, it's a very rare Item.";
- mes "I need 1 Stellar Hairpin for its spacial properties.";
- mes "And I need 400 Ectoiplasm to give it its special powers.";
+ mes "I need 1 Stellar for its special properties.";
+ mes "And I need 400 Ectoiplasms to give it their special powers.";
  next;
  mes "[Arjen]";
  mes "You need to have travelled well to get these items...";
@@ -82,7 +83,7 @@ M_2:
  delitem 970,1;//Items: Alcohol,
  mes "[Arjen]";
  mes "Wow! You have the stuff I need! Thanks!";
- mes "Lemme do a swap, your stuff for the bandage";
+ mes "Lemme do a swap, your stuff for the bandage.";
  next;
  getitem 5063,1;//Items: Bandage,
  mes "[Arjen]";
