@@ -611,6 +611,7 @@ int status_getrefinebonus(int lv,int type)
  * Checks whether the src can use the skill on the target,
  * taking into account status/option of both source/target. [Skotlex]
  * flag: 1 to indicate this call is done after the casting (target already selected)
+ * src MAY be null to indicate we shouldn't check it, this is a ground-based skill attack.
  * target MAY Be null, in which case the checks are only to see 
  * whether the source can cast or not the skill on the ground.
  *------------------------------------------
@@ -618,10 +619,10 @@ int status_getrefinebonus(int lv,int type)
 int status_check_skilluse(struct block_list *src, struct block_list *target, int skill_num, int flag)
 {
 	int mode, race, hide_flag;
-	struct status_change *sc_data, *tsc_data;
-	short *option, *opt1;
+	struct status_change *sc_data=NULL, *tsc_data;
+	short *option=NULL, *opt1=NULL;
 
-	if (status_isdead(src))
+	if (src && status_isdead(src))
 		return 0;
 	if (target && status_isdead(target) && skill_num != ALL_RESURRECTION)
 		return 0;
@@ -629,23 +630,27 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 	if (skill_num == PA_PRESSURE && flag)
 		return 1; //Once Gloria Domini has been casted, there's nothing you can do to stop it. [Skotlex]
 	
-	mode = status_get_mode(src);
+	mode = src?status_get_mode(src):MD_CANATTACK;
 	
 	if (!skill_num && !(mode&MD_CANATTACK))
 		return 0; //This mode is only needed for melee attacking.
 	
 	//Check for Basilica when the target is null (the basilica check normally is done in battle_check_target,
 	//and it's correct there, however, it allows mages to stand inside basilica and cast AoE spells to the outside!)
-	if (target == NULL  && map_getcell(src->m,src->x,src->y,CELL_CHKBASILICA)
+	if (target == NULL && src && map_getcell(src->m,src->x,src->y,CELL_CHKBASILICA)
 		&& skill_get_inf(skill_num)&INF_GROUND_SKILL && skill_get_unit_flag(skill_num)==BCT_ENEMY
 		&& !(mode&MD_BOSS))
 		return 0;
 			
-	opt1 = status_get_opt1(src);
+	if (src) {
+		option = status_get_option(src);
+		opt1 = status_get_opt1(src);
+		sc_data = status_get_sc_data(src);
+	}
+	
 	if (opt1 && (*opt1) >0)
 		return 0;
 	
-	sc_data = status_get_sc_data(src);
 	if(sc_data)
 	{
 		if (
@@ -691,7 +696,6 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 		}
 	}
 
-	option = status_get_option(src);
 	if (option)
 	{
 		if ((*option)&OPTION_HIDE && skill_num != TF_HIDING && skill_num != AS_GRIMTOOTH
@@ -710,12 +714,19 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 	{	
 		if (!(mode & MD_BOSS) && (tsc_data[SC_BASILICA].timer != -1 || tsc_data[SC_TRICKDEAD].timer != -1))
 			return 0;
-
+		if(skill_num == WZ_STORMGUST && tsc_data[SC_FREEZE].timer != -1)
+			return 0;
 		if(skill_num == PR_LEXAETERNA && (tsc_data[SC_FREEZE].timer != -1 || (tsc_data[SC_STONE].timer != -1 && tsc_data[SC_STONE].val2 == 0)))
 			return 0;
 	}
 
-	race = status_get_race(src);
+	if (src) {
+		race = status_get_race(src); 
+	} else { //Ground skill, only earth-elemental skills have detecting-hitting capabilities.
+		race = 0;
+		if(skill_get_pl(skill_num) == 2)
+			mode|= MD_DETECTOR;
+	}
 	option = status_get_option(target);
 	hide_flag = flag?OPTION_HIDE:(OPTION_HIDE|OPTION_CLOAK); //If targetting, cloak+hide protect you, otherwise only hiding does.
 		

@@ -2934,8 +2934,9 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 	if(tsc_data)
 	{
 		if(tsc_data[SC_AUTOCOUNTER].timer != -1 &&
-			(!sc_data || sc_data[SC_AUTOCOUNTER].timer == -1))
-		{
+			(!sc_data || sc_data[SC_AUTOCOUNTER].timer == -1) &&
+			status_check_skilluse(target, src, KN_AUTOCOUNTER, 0)
+		)	{
 			int dir = map_calc_dir(target,src->x,src->y);
 			int t_dir = status_get_dir(target);
 			int dist = distance_bl(src, target);
@@ -3095,9 +3096,10 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 		battle_delay_damage(tick+wd.amotion, target, src, 0, 0, 0, rdamage, ATK_DEF, 0);
 
 	if (tsc_data) {
-		if (tsc_data && tsc_data[SC_POISONREACT].timer != -1 && 
-			check_distance_bl(src, target, status_get_range(target)+1))
-		{	//Poison React
+		if (tsc_data[SC_POISONREACT].timer != -1 && 
+			check_distance_bl(src, target, status_get_range(target)+1) &&
+			status_check_skilluse(target, src, TF_POISON, 0)
+		) {	//Poison React
 			if (status_get_elem_type(src) == 5) {
 				tsc_data[SC_POISONREACT].val2 = 0;
 				skill_attack(BF_WEAPON,target,target,src,AS_POISONREACT,sc_data[SC_POISONREACT].val1,tick,0);

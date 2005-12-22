@@ -1612,18 +1612,20 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 	nullpo_retr(0, dsrc); //dsrc is the actual originator of the damage, can be the same as src, or a skill casted by src.
 	nullpo_retr(0, bl); //Target to be attacked.
 
-	sc_data = status_get_sc_data(bl);
-
 	if(src->prev == NULL || dsrc->prev == NULL || bl->prev == NULL)
+		return 0;
+	//When caster is not the src of attack, this is a ground skill, and as such, do the relevant target checking. [Skotlex]
+	if (src != dsrc && !status_check_skilluse(NULL, bl, skillid, 1))
+		return 0;
+	
+	//Note that splash attacks often only check versus the targetted mob, those around the splash area normally don't get checked for being hidden/cloaked/etc. [Skotlex]
+	if (skill_get_nk(skillid) == NK_SPLASH_DAMAGE && !status_check_skilluse(dsrc, bl, skillid, 1))
 		return 0;
 
 	//uncomment the following to do a check between caster and target. [Skotlex]
 	//eg: if you want storm gust to do no damage if the caster runs to another map after invoking the skill.
 //	if(src->m != bl->m) 
 //		return 0;
-
-	if(status_isdead(dsrc) || status_isdead(bl))
-		return 0;
 
 	//Uncomment the following to disable trap-ground skills from hitting when the caster is dead [Skotlex]
 	//eg: You cast meteor and then are killed, if you uncomment the following the meteors that fall afterwards cause no damage.
@@ -1638,16 +1640,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 //Shouldn't be needed, skillnotok's return value is highly unlikely to have changed after you started casting. [Skotlex]
 //	if(dsrc->type == BL_PC && skillnotok(skillid, (struct map_session_data *)dsrc))
 //		return 0; // [MouseJstr]
-	if(sc_data && sc_data[SC_HIDING].timer != -1) {
-		if(skill_get_pl(skillid) != 2) // Earth-elemental skills can attack hidden people??
-			return 0;
-	}
-	if(sc_data && sc_data[SC_TRICKDEAD].timer != -1)
-		return 0;
-	if(skillid == WZ_STORMGUST) {
-		if(sc_data && sc_data[SC_FREEZE].timer != -1)
-			return 0;
-	}
+// Is this check really needed? FrostNova won't hurt you if you step right where the caster is?
 	if(skillid == WZ_FROSTNOVA && dsrc->x == bl->x && dsrc->y == bl->y) //g—pƒXƒLƒ‹‚ªƒtƒ?ƒXƒgƒmƒ”ƒ@‚Å?Adsrc‚Æbl‚ª“¯‚¶?ê?Š‚È‚ç‰½‚à‚µ‚È‚¢
 		return 0;
 	if(sd && sd->chatID) //pÒ‚ªPC‚Åƒ`ƒƒƒbƒg’†‚È‚ç‰½‚à‚µ‚È‚¢
@@ -1673,6 +1666,8 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 			dmg.div_= pd->a_skill->div_;
 		}
 	}
+
+	sc_data = status_get_sc_data(bl);
 
 //ƒ}ƒWƒbƒNƒƒbƒh?—‚±‚±‚©‚ç
 	if(attack_type&BF_MAGIC && sc_data && sc_data[SC_MAGICROD].timer != -1 && src == dsrc) { //–‚–@U?‚Åƒ}ƒWƒbƒNƒƒbƒh?‘Ô‚Åsrc=dsrc‚È‚ç
