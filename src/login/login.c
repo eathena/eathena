@@ -2031,8 +2031,9 @@ int parse_admin(int fd) {
 			{
 				struct mmo_account ma;
 				ma.userid = (char*)RFIFOP(fd, 2);
+				ma.userid[23] = '\0';
 				memcpy(ma.passwd, RFIFOP(fd, 26), 24);
-				ma.passwd[24] = '\0';
+				ma.passwd[23] = '\0';
 				memcpy(ma.lastlogin, "-", 2);
 				ma.sex = RFIFOB(fd,50);
 				WFIFOW(fd,0) = 0x7931;
@@ -2968,7 +2969,7 @@ int parse_login(int fd) {
 			if (RFIFOW(fd,0) == 0x64) {
 				login_log("Request for connection (non encryption mode) of %s (ip: %s)." RETCODE, account.userid, ip);
 				memcpy(account.passwd, RFIFOP(fd,30), NAME_LENGTH);
-				account.passwd[NAME_LENGTH-1] = '\0';
+				account.passwd[23] = '\0';
 				remove_control_chars((unsigned char *)account.passwd);
 			} else {
 				login_log("Request for connection (encryption mode) of %s (ip: %s)." RETCODE, account.userid, ip);
@@ -2999,7 +3000,7 @@ int parse_login(int fd) {
 					login_log("Connection refused: the minimum GM level for connection is %d (account: %s, GM level: %d, ip: %s)." RETCODE,
 					          min_level_to_connect, account.userid, gm_level, ip);
 					WFIFOW(fd,0) = 0x81;
-					WFIFOL(fd,2) = 1; // 01 = Server closed
+					WFIFOB(fd,2) = 1; // 01 = Server closed
 					WFIFOSET(fd,3);
 				} else {
 					if (gm_level)
@@ -3046,7 +3047,7 @@ int parse_login(int fd) {
 						login_log("Connection refused: there is no char-server online (account: %s, ip: %s)." RETCODE,
 						          account.userid, ip);
 						WFIFOW(fd,0) = 0x81;
-						WFIFOL(fd,2) = 1; // 01 = Server closed
+						WFIFOB(fd,2) = 1; // 01 = Server closed
 						WFIFOSET(fd,3);
 					}
 				}
@@ -3115,7 +3116,7 @@ int parse_login(int fd) {
 				account.userid[23] = '\0';
 				remove_control_chars((unsigned char *)account.userid);
 				memcpy(account.passwd, RFIFOP(fd,26), 24);
-				account.passwd[24] = '\0';
+				account.passwd[23] = '\0';
 				remove_control_chars((unsigned char *)account.passwd);
 				account.passwdenc = 0;
 				server_name = (char*)RFIFOP(fd,60);

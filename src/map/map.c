@@ -2181,7 +2181,40 @@ static struct waterlist_ {
 
 #define NO_WATER 1000000
 
-static int map_waterheight(char *mapname) {
+static int map_setwaterheight_sub(int m, int wh) {
+	int y, x;
+	struct gat_1cell {float high[4]; int type;} *p = NULL;
+	if (m == -1)
+		return 0;
+	for (y = 0; y < map[m].ys; y++) {
+		p = (struct gat_1cell*)(map[m].gat+y*map[m].xs*20+14);
+		for (x = 0; x < map[m].xs; x++) {
+			if (wh != NO_WATER && p->type == 0) //Set water cell
+				map[m].gat[x+y*map[m].xs] = (p->high[0]>wh || p->high[1]>wh || p->high[2]>wh || p->high[3]>wh) ? 3 : 0;
+			else //Remove water cell
+				map[m].gat[x+y*map[m].xs] = p->type==3?0:p->type;
+			p++;
+		}
+	}
+	return 1;
+}
+int map_setwaterheight(int m, char *mapname, int height) {
+	int i;
+	if (height < 0) height = NO_WATER;
+	if(waterlist){
+		for(i=0;waterlist[i].mapname[0] && i < MAX_MAP_PER_SERVER;i++)
+			if(strcmp(waterlist[i].mapname,mapname)==0) {
+				waterlist[i].waterheight = height;
+			}
+	}
+	if (i < MAX_MAP_PER_SERVER) {
+		memcpy(waterlist[i].mapname,mapname, MAP_NAME_LENGTH-1);
+		waterlist[i].waterheight = height;
+	}
+	return map_setwaterheight_sub(m, height);
+}
+
+int map_waterheight(char *mapname) {
 	if(waterlist){
 		int i;
 		for(i=0;waterlist[i].mapname[0] && i < MAX_MAP_PER_SERVER;i++)

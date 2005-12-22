@@ -95,6 +95,7 @@ ACMD_FUNC(produce);
 ACMD_FUNC(memo);
 ACMD_FUNC(gat);
 ACMD_FUNC(packet);
+ACMD_FUNC(waterlevel);
 ACMD_FUNC(statuspoint);
 ACMD_FUNC(skillpoint);
 ACMD_FUNC(zeny);
@@ -360,6 +361,7 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_GAT,				"@gat",			99, atcommand_gat }, // debug function
 	{ AtCommand_Packet,			"@packet",			99, atcommand_packet }, // debug function
 	{ AtCommand_Packet,			"@packetmode",		99, atcommand_packet }, // debug function
+	{ AtCommand_WaterLevel,			"@waterlevel",		99, atcommand_waterlevel }, // debug function
 	{ AtCommand_StatusPoint,		"@stpoint",			60, atcommand_statuspoint },
 	{ AtCommand_SkillPoint,			"@skpoint",			60, atcommand_skillpoint },
 	{ AtCommand_Zeny,				"@zeny",			60, atcommand_zeny },
@@ -3925,6 +3927,32 @@ int atcommand_packet(
 		//added later
 	}
 
+	return 0;
+}
+
+/*==========================================
+ * @waterlevel [Skotlex]
+ *------------------------------------------
+ */
+
+int atcommand_waterlevel(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+	int newlevel;
+	if (!message || !*message || sscanf(message, "%d", &newlevel) < 1) {
+		sprintf(atcmd_output, "%s's current water level: %d\n", map[sd->bl.m].name, map_waterheight(map[sd->bl.m].name));
+		clif_displaymessage(fd, atcmd_output);
+		return 0;
+	}
+
+	if (map_setwaterheight(sd->bl.m, map[sd->bl.m].name, newlevel)) {
+		sprintf(atcmd_output, "%s's water level changed to: %d\n", map[sd->bl.m].name, newlevel);
+		clif_displaymessage(fd, atcmd_output);
+	} else {
+		sprintf(atcmd_output, "Failed to change %s's water level.\n", map[sd->bl.m].name);
+		clif_displaymessage(fd, atcmd_output);
+	}
 	return 0;
 }
 

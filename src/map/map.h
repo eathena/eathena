@@ -1221,6 +1221,11 @@ int map_check_dir(int s_dir,int t_dir);
 int map_calc_dir( struct block_list *src,int x,int y);
 int map_random_dir(struct block_list *bl, short *x, short *y); // [Skotlex]
 
+// Water functions...
+// 
+int map_setwaterheight(int m, char *mapname, int height);
+int map_waterheight(char *mapname);
+
 // path.c‚æ‚è
 int path_search(struct walkpath_data*,int,int,int,int,int,int);
 int path_search_long(struct shootpath_data *,int,int,int,int,int);

@@ -2222,7 +2222,7 @@ int parse_tologin(int fd) {
 							if (session[i] && (tsd = (struct char_session_data*)session[i]->session_data) && tsd->account_id == aid)
 							{
 								WFIFOW(i,0) = 0x81;
-								WFIFOL(i,2) = 2;
+								WFIFOB(i,2) = 2;
 								WFIFOSET(i,3);
 								break;
 							}
@@ -3065,7 +3065,7 @@ int parse_char(int fd) {
 								if (session[i] && i != fd && (tsd = (struct char_session_data*)session[i]->session_data) && tsd->account_id == sd->account_id)
 								{
 									WFIFOW(i,0) = 0x81;
-									WFIFOL(i,2) = 2;
+									WFIFOB(i,2) = 2;
 									WFIFOSET(i,3);
 									break;
 								}
@@ -3074,8 +3074,8 @@ int parse_char(int fd) {
 							}
 						*/
 							WFIFOW(fd,0) = 0x81;
-							WFIFOL(fd,2) = 8;
-							WFIFOSET(fd,3); //TODO: This is fishy, how can this packet be length 3, yet it has a long in field 2? [Skotlex]
+							WFIFOB(fd,2) = 8;
+							WFIFOSET(fd,3);
 							break;
 						}
 					}
@@ -3195,7 +3195,7 @@ int parse_char(int fd) {
 					// if no map-servers are connected, we send: server closed
 					if (j == MAX_MAP_SERVERS) {
 						WFIFOW(fd,0) = 0x81;
-						WFIFOL(fd,2) = 1; // 01 = Server closed
+						WFIFOB(fd,2) = 1; // 01 = Server closed
 						WFIFOSET(fd,3);
 						break;
 					}

@@ -1409,7 +1409,7 @@ int parse_login(int fd) {
 			account.userid = (char*)RFIFOP(fd, 6);
 			account.userid[23] = '\0';
 			account.passwd = (char*)RFIFOP(fd, 30);
-			account.passwd[NAME_LENGTH-1] = '\0';
+			account.passwd[23] = '\0';
 #ifdef PASSWORDENC
 			account.passwdenc= (RFIFOW(fd,0)==0x64)?0:PASSWORDENC;
 #else
@@ -1425,7 +1425,7 @@ int parse_login(int fd) {
 
         	    if (min_level_to_connect > account.level) {
 					WFIFOW(fd,0) = 0x81;
-					WFIFOL(fd,2) = 1; // 01 = Server closed
+					WFIFOB(fd,2) = 1; // 01 = Server closed
 					WFIFOSET(fd,3);
 		    } else {
 		    
@@ -1479,7 +1479,7 @@ int parse_login(int fd) {
                         auth_fifo_pos++;
                     } else {
                         WFIFOW(fd,0) = 0x81;
-                        WFIFOL(fd,2) = 1; // 01 = Server closed
+                        WFIFOB(fd,2) = 1; // 01 = Server closed
                         WFIFOSET(fd,3);
                     }
             }
@@ -1643,7 +1643,9 @@ int parse_login(int fd) {
 						RFIFOP(fd, 60), RFIFOB(fd, 54), RFIFOB(fd, 55), RFIFOB(fd, 56), RFIFOB(fd, 57), RFIFOW(fd, 58),
 						p[0], p[1], p[2], p[3]);
 				account.userid = (char*)RFIFOP(fd, 2);
+				account.userid[23] = '\0';
 				account.passwd = (char*)RFIFOP(fd, 26);
+				account.passwd[23] = '\0';
 				account.passwdenc = 0;
 				server_name = RFIFOP(fd,60);
 				result = mmo_auth(&account, fd);

@@ -564,7 +564,7 @@ int clif_authfail_fd(int fd, int type) {
 		return 0;
 
 	WFIFOW(fd,0) = 0x81;
-	WFIFOL(fd,2) = type;
+	WFIFOB(fd,2) = type;
 	WFIFOSET(fd,packet_len_table[0x81]);
 	clif_setwaitclose(fd);
 	return 0;

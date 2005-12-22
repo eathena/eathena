@@ -65,6 +65,7 @@ enum AtCommandType {
 	AtCommand_Memo,
 	AtCommand_GAT,
 	AtCommand_Packet,
+	AtCommand_WaterLevel,
 	AtCommand_StatusPoint,
 	AtCommand_SkillPoint,
 	AtCommand_Zeny,
