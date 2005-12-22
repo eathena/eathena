@@ -3,13 +3,13 @@
 //===== By: ==================================================
 //= Lupus (1.0)
 //===== Current Version: =====================================
-//= 1.0
+//= 1.0a
 //===== Compatible With: =====================================
 //= eAthena Version; 4880+ (with 'setItemScript' command)
 //===== Description: =========================================
 //= Custom event: Karachun (from 8 Dec till 8 Jan), X-Mas, HNY
 //===== Additional Comments: =================================
-//= 1.0 Lupus. Tested, fully working
+//= 1.0 Lupus. Tested, fully working. 1.0a a few typos fix
 //============================================================
 
 
@@ -101,21 +101,22 @@ OnInit:
 louyang.gat,224,249,4	script	Sneewy	717,{
 	mes "[Sneewy]";
 	if(Q_XMSRINGS==0){
-		mes "Hi! I'm waithing for my sister's birdy with mail...";		
+		mes "Hi! I'm waithing for my sister's birdy with mail...";
 		emotion e_sob;
 		close;
 	}
 	if(Q_XMSRINGS==1){
-		mes "I need only 4 gray Gift Boxes for native children...";
+		mes "I wish I had 4 more gray Gift Boxes for native children...";
+		emotion e_sob;
 		next;
 		mes "[Sneewy]";
-		mes "Oh, hello. Has my brother told you everything?";
+		mes "Oh, hello. Has my brother Snower told you everything?";
 		next;
-		menu "Here are your 4 Gift Boxes",-, "I don't know any Snower...",M_END;
+		menu "Here are your 4 Gift Boxes",-, "I don't know any Snowhatevers...",M_END;
 
 		mes "[Sneewy]";
 		if(countitem(644)<4){
-			mes "Gimme 4 gifts for poor kids... Wait, you haven't gout 4 of them!";
+			mes "Gimme 4 gifts for poor kids... Wait, you haven't got 4 of them!";
 			emotion e_sry;
 			close;
 		}
@@ -126,11 +127,11 @@ louyang.gat,224,249,4	script	Sneewy	717,{
 		mes "Thank you! Here's my li'l something for you!";
 		next;
 		mes "[Sneewy]";
-		mes "By the way, if you put on 2 different rings then your holidays leveling would be nice!";
+		mes "By the way, if you put on 2 different rings then your holidays leveling would be easier!";
 		close;
 	}
 	emotion e_thx;
-	mes "Thanks again! The children won't meet the holidays without gifts!";
+	mes "Thanks again! No children will meet the holidays without the gifts!";
 	close;
 
 M_END:
@@ -148,7 +149,7 @@ izlu2dun.gat,133,160,2	script	Snoowy	714,{
 		close;
 	}
 	if(Q_XMSRINGS==1){
-		mes "Darn... How could poor children be more important than the marine folks.. Am I wrong?";		
+		mes "Darn... How could poor children be more important than the marine folks.. Am I wrong?";
 		next;
 		mes "[Snoowy]";
 		mes "Errr. Helloou there. My sister Sneewy's sent me a birdie message. The letter was wet and I couldn't read anything but some ending letters of her address...";
