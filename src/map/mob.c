@@ -3893,9 +3893,10 @@ int mob_is_clone(int class_)
 
 //Flag values:
 //&1: Set special ai (fight mobs, not players)
-//&2: Set the original copy as Master
+//If mode is not passed, a default aggressive mode is used.
+//If master_id is passed, clone is attached to him.
 //Returns: ID of newly crafted copy.
-int mob_clone_spawn(struct map_session_data *sd, char *mapname, int x, int y, const char *event, int flag, unsigned int duration)
+int mob_clone_spawn(struct map_session_data *sd, char *mapname, int x, int y, const char *event, int master_id, int mode, int flag, unsigned int duration)
 {
 	int class_;
 	int i,j,inf,skill_id;
@@ -3935,7 +3936,7 @@ int mob_clone_spawn(struct map_session_data *sd, char *mapname, int x, int y, co
 	mob_db_data[class_]->range3=AREA_SIZE; //Let them have the same view-range as players.
 	mob_db_data[class_]->race=status_get_race(&sd->bl);
 	mob_db_data[class_]->element=status_get_element(&sd->bl);
-	mob_db_data[class_]->mode=MD_AGGRESSIVE|MD_ASSIST|MD_CANATTACK|MD_CANMOVE;
+	mob_db_data[class_]->mode=mode?mode:(MD_AGGRESSIVE|MD_ASSIST|MD_CANATTACK|MD_CANMOVE);
 	mob_db_data[class_]->speed=status_get_speed(&sd->bl);
 	mob_db_data[class_]->adelay=status_get_adelay(&sd->bl);
 	mob_db_data[class_]->amotion=status_get_amotion(&sd->bl);
@@ -4059,13 +4060,13 @@ int mob_clone_spawn(struct map_session_data *sd, char *mapname, int x, int y, co
 	}
 	//Finally, spawn it.
 	i = mob_once_spawn(sd,mapname,x,y,"--en--",class_,1,event);
-	if ((flag || duration) && i) { //Further manipulate crafted char.
+	if ((master_id || flag || duration) && i) { //Further manipulate crafted char.
 		struct mob_data* md = (struct mob_data*)map_id2bl(i);
 		if (md && md->bl.type == BL_MOB) {
 			if (flag&1) //Friendly Character
 				md->special_state.ai = 1;
-			if (flag&2) //Attach to Master
-				md->master_id = sd->bl.id;
+			if (master_id) //Attach to Master
+				md->master_id = master_id;
 			if (duration) //Auto Delete after a while.
 				md->deletetimer = add_timer (gettick() + duration, mob_timer_delete, i, 0);
 		}

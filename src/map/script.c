@@ -232,6 +232,7 @@ int buildin_monster(struct script_state *st);
 int buildin_areamonster(struct script_state *st);
 int buildin_killmonster(struct script_state *st);
 int buildin_killmonsterall(struct script_state *st);
+int buildin_clone(struct script_state *st);
 int buildin_doevent(struct script_state *st);
 int buildin_donpcevent(struct script_state *st);
 int buildin_addtimer(struct script_state *st);
@@ -520,6 +521,7 @@ struct {
 	{buildin_areamonster,"areamonster","siiiisii*"},
 	{buildin_killmonster,"killmonster","ss"},
 	{buildin_killmonsterall,"killmonsterall","s"},
+	{buildin_clone,"clone","siisi*"},
 	{buildin_doevent,"doevent","s"},
 	{buildin_donpcevent,"donpcevent","s"},
 	{buildin_addtimer,"addtimer","is"},
@@ -5425,6 +5427,50 @@ int buildin_killmonsterall(struct script_state *st)
 	return 0;
 }
 
+/*==========================================
+ * Creates a clone of a player.
+ * clone map, x, y, event, char_id, master_id, mode, flag, duration
+ *------------------------------------------
+ */
+int buildin_clone(struct script_state *st) {
+	struct map_session_data *sd, *msd=NULL;
+	int char_id,master_id=0,x,y, mode = 0, flag = 0;
+	unsigned int duration = 0;
+	char *map,*event="";
+
+	map	=conv_str(st,& (st->stack->stack_data[st->start+2]));
+	x	=conv_num(st,& (st->stack->stack_data[st->start+3]));
+	y	=conv_num(st,& (st->stack->stack_data[st->start+4]));
+	event = conv_str(st,& (st->stack->stack_data[st->start+5]));
+	char_id	=conv_num(st,& (st->stack->stack_data[st->start+6]));
+
+	if( st->end>st->start+7 )
+		master_id	=conv_num(st,& (st->stack->stack_data[st->start+7]));
+
+	if( st->end>st->start+8 )
+		mode =conv_num(st,& (st->stack->stack_data[st->start+8]));
+
+	if( st->end>st->start+9 )
+		flag =conv_num(st,& (st->stack->stack_data[st->start+9]));
+	
+	if( st->end>st->start+10 )
+		duration	=conv_num(st,& (st->stack->stack_data[st->start+10]));
+
+	sd = map_charid2sd(char_id);
+	if (master_id) {
+		msd = map_charid2sd(master_id);
+		if (msd)
+			master_id = msd->bl.id;
+		else
+			master_id = 0;
+	}
+	if (sd) //Return ID of newly crafted clone.
+		push_val(st->stack,C_INT,
+			mob_clone_spawn(sd, map, x, y, event, master_id, mode, flag, duration)	
+		);
+	else //Failed to create clone.
+		push_val(st->stack,C_INT,0);
+}
 /*==========================================
  * イベント実行
  *------------------------------------------

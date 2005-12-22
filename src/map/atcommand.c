@@ -9841,7 +9841,7 @@ int atcommand_clone(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	int x=0,y=0,flag=0,i=0;
+	int x=0,y=0,flag=0,master=0,i=0;
 	struct map_session_data *pl_sd=NULL;
 	struct mob_data *md=NULL; 
 
@@ -9867,14 +9867,12 @@ int atcommand_clone(
 	}
 
 	if (strcmpi(command, "@clone") == 0) flag = 1;
-	else if (strcmpi(command, "@slaveclone") == 0) flag = 2;
+	else if (strcmpi(command, "@slaveclone") == 0) {
+	  	flag = 2;
+		master = sd->bl.id;
+	}
 			
-	if((x = mob_clone_spawn(pl_sd, sd->mapname, x, y, "", flag==2?3:flag, 0)) > 0) {
-		if (flag == 2) {
-			md = (struct mob_data*)map_id2bl(x);
-			if (md && md->bl.type == BL_MOB)
-				md->master_id = sd->bl.id;
-		}
+	if((x = mob_clone_spawn(pl_sd, sd->mapname, x, y, "", master, 0, flag?1:0, 0)) > 0) {
 		clif_displaymessage(fd, msg_txt(126+flag*2));
 		return 0;
 	}

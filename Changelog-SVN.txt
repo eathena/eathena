@@ -1,6 +1,8 @@
 Date	Added
 	
 2005/12/22
+	* Added script command "clone" for cloning of players. See
+	  doc/script_commands.txt for further information. [Skotlex]
 	* Added @waterlevel debug command to read/change the current's map
 	  water-level (command untested) [Skotlex]
 	* Enabled names for forged weapon/created Potions by default [Lupus]
