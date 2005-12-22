@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.5
+//= 1.6
 //===== Compatible With: ===================================== 
 //= eAthena 7.15 +
 //===== Description: ========================================= 
@@ -16,6 +16,7 @@
 //= 1.3b mobs name corrected [Lupus], 1.3c - Adv classes support
 //= 1.4 Fixed typo’s [Nexon]
 //= 1.5 Added a lvl 4 weapon quest related NPC [MasterOfMuppets]
+//= 1.6 Added Bartender NPC, made by Persian69 [Vicious_Pucca]
 //============================================================
 
 
@@ -358,6 +359,44 @@ M_Menu:
 		mes "Morroc......!! I HATE YOU!!!!!!";
 		emotion 32;
 		close;
+}
+
+//Bartender
+morocc_in.gat,166,76,3	script	Bartender	46,{
+	mes "[Bartender]";
+	mes "What are you going to order?";
+	next;
+	menu "Tropical Sograt",L1,"Vemillion the Beach",L2,"Nothing.",-;
+
+	mes "[Bartender]";
+	mes "Hmm...";
+	close;
+
+L1:
+	if (zeny < 1000 ) goto Nomoney;
+	getitem 12112,1;
+	set zeny,zeny-1000;
+	mes "[Bartender]";
+	mes "Here you go.";
+	mes "Fruits are major ingredients,";
+	mes "but don't drink too much.";
+	close;
+
+L2:
+	if (zeny < 1000 ) goto Nomoney;
+	getitem 12113,1;
+	set zeny,zeny-1000;
+	mes "[Bartender]";
+	mes "Here you go.";
+	mes "but don't drink too much.";
+	close;
+
+Nomoney:
+	mes "[Bartender]";
+	mes "Are you asking me to give it for free?";
+	mes "You are one crazy person.";
+	mes "Don't even think about drinking if you don't have 1,000 zeny.";
+	close;
 }
 
 // Lvl 4 weapon quest related NPC ================================

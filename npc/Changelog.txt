@@ -25,7 +25,10 @@ Nexon
 
 Date		Added
 ======
-12/22	* Fixed X-Hairpin ingredients, thx2 Komurka [Lupus]
+12/22
+	* Added a Bartender NPC in morroc, thanks to Persian69 [Vicious]
+
+	* Fixed X-Hairpin ingredients, thx2 Komurka [Lupus]
 12/21
 	* Fixed Hugel warps, thanks to... ppl.. ^^; [Vicious]
 	* Fixed Ayothaya warps, thanks to Sir_Loon [Lupus]
