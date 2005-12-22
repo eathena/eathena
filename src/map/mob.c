@@ -1373,14 +1373,12 @@ static int mob_ai_sub_hard_lootsearch(struct block_list *bl,va_list ap)
  */
 static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 {
-	struct mob_data *mmd=NULL;
 	struct block_list *bl;
 	int old_dist;
 
 	nullpo_retr(0, md);
 
-	if((bl=map_id2bl(md->master_id)) != NULL && bl->type == BL_MOB)
-		mmd=(struct mob_data *)bl;
+	bl=map_id2bl(md->master_id);
 
 	if (!bl || status_isdead(bl)) {	//å‚ª€–S‚µ‚Ä‚¢‚é‚©Œ©‚Â‚©‚ç‚È‚¢
 		if(md->special_state.ai>0)
@@ -1435,17 +1433,42 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 		}
 	}
 	
-	// There is the master, the master locks a target and he does not lock.
-	if( mmd && (mmd->target_id>0 && mmd->state.targettype == ATTACKABLE) && (!md->target_id || md->state.targettype == NONE_ATTACKABLE) ){
-		struct map_session_data *sd=map_id2sd(mmd->target_id);
-		if(sd && status_check_skilluse(&md->bl, &sd->bl, 0, 0)) {
-			md->target_id=sd->bl.id;
-			md->state.targettype = ATTACKABLE;
-			md->state.aggressive = (status_get_mode(&md->bl)&MD_ANGRY)?1:0;
-			md->min_chase=md->db->range2+distance_bl(&md->bl, &sd->bl);
-		}
+	//Avoid attempting to lock the master's target too often to avoid unnecessary overload. [Skotlex]
+	if (DIFF_TICK(md->last_linktime, tick) < MIN_MOBLINKTIME && (!md->target_id || md->state.targettype == NONE_ATTACKABLE)) {
+		md->last_linktime = tick;
+		switch (bl->type) {
+			case BL_MOB:	
+				{
+					struct mob_data *mmd= (struct mob_data*)bl;
+					struct block_list *tbl;
+					if(mmd->target_id>0 && mmd->state.targettype == ATTACKABLE &&
+						(tbl=map_id2bl(mmd->target_id)) && status_check_skilluse(&md->bl, tbl, 0, 0)
+					) {
+						md->target_id=tbl->id;
+						md->state.targettype = ATTACKABLE;
+						md->state.aggressive = (status_get_mode(&md->bl)&MD_ANGRY)?1:0;
+						md->min_chase=md->db->range2+distance_bl(&md->bl, tbl);
+					}
+				}
+			break;
+			case BL_PC:
+				{
+					struct map_session_data *msd = (struct map_session_data*)bl;
+					struct block_list *tbl = NULL;
+					if(msd->attacktarget)
+						tbl = map_id2bl(msd->attacktarget);
+					else if (msd->skilltarget)
+						tbl = map_id2bl(msd->skilltarget);
+					if(tbl && status_check_skilluse(&md->bl, tbl, 0, 0)) {
+						md->target_id=tbl->id;
+						md->state.targettype = ATTACKABLE;
+						md->state.aggressive = (status_get_mode(&md->bl)&MD_ANGRY)?1:0;
+						md->min_chase=md->db->range2+distance_bl(&md->bl, tbl);
+					}
+				}
+			break;
+		}	
 	}
-
 	return 0;
 }
 

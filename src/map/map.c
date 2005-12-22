@@ -1330,12 +1330,6 @@ int map_quit(struct map_session_data *sd) {
 	//nullpo_retr(0, sd); //Utterly innecessary, all invokations to this function already have an SD non-null check.
 	//Learn to use proper coding and stop relying on nullpo_'s for safety :P [Skotlex]
 
-    // Force exiting from duel and rejecting
-    // all duel invitations when player quit [LuzZza]
-    if(sd->duel_group > 0)
-    	duel_leave(sd->duel_group, sd);
-    if(sd->duel_invite > 0)
-    	duel_reject(sd->duel_invite, sd);
 
 	if(!sd->state.waitingdisconnect) {
 		if (sd->state.event_disconnect) {
@@ -1364,6 +1358,14 @@ int map_quit(struct map_session_data *sd) {
 			guild_reply_invite(sd,sd->guild_invite,0);
 		if(sd->guild_alliance>0)	// ギルド同盟?誘を拒否する
 			guild_reply_reqalliance(sd,sd->guild_alliance_account,0);
+	    
+		// Force exiting from duel and rejecting
+   	 // all duel invitations when player quit [LuzZza]
+		if(sd->duel_group > 0)
+			duel_leave(sd->duel_group, sd);
+	   
+		if(sd->duel_invite > 0)
+			duel_reject(sd->duel_invite, sd);
 
 		party_send_logout(sd);	// パ?ティのログアウトメッセ?ジ送信
 

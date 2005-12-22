@@ -1,6 +1,16 @@
 Date	Added
 	
 2005/12/21
+	* Now left_cardfix_to_right won't take effect when there's no weapon equipped
+	  on the right hand. [Skotlex]
+	* Updated slave AI to support player masters as well (that is, you could
+	  have a non aggressive slave, and it will target any mobs the master
+	  targets) [Skotlex]
+	* Added battle option skill_wall_check, when enabled, all ground skills
+	  will do a check for each cell to guarantee a straight path between the
+	  cells and the target tile. Should prevent AOE skills from hitting through
+	  walls. Due to the possible performance penalty this setting brings, it
+	  defaults to no currently. [Skotlex]
 	* Default skill delay for skills with no delay is now the normal attack
 	  delay. [Skotlex] 
 	* Extremity Fist/Charge Attack will fail if the player can't move to the

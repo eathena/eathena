@@ -5989,8 +5989,10 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 	if(sd->sc_data[SC_MAGICPOWER].timer != -1 && sd->skillid != HW_MAGICPOWER)
 		status_change_end(&sd->bl,SC_MAGICPOWER,-1);		
 		
-	if (sd->skillid != AL_TELEPORT && sd->skillid != WS_WEAPONREFINE)
+	if (sd->skillid != AL_TELEPORT && sd->skillid != WS_WEAPONREFINE) {
 		sd->skillid = sd->skilllv = -1; //Clean this up for future references to battle_getcurrentskill. [Skotlex]
+		sd->skilltarget = 0;
+	}
 	return 0;
 }
 
@@ -6781,6 +6783,16 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 		if(alive && map_getcell(src->m,ux,uy,CELL_CHKWALL))
 			alive = 0;
 		
+		if (alive && battle_config.skill_wall_check) {
+			//Check if there's a path between cell and center of casting.
+			struct walkpath_data wpd;
+			wpd.path_len=0;
+			wpd.path_pos=0;
+			wpd.path_half=0;
+			if (path_search(&wpd,src->m,ux,uy,x,y,1)==-1)
+				alive = 0;
+		}
+					
 		if(alive && skillid == WZ_ICEWALL) {
 			if(src->x == x && src->y==y) // Ice Wall not allowed on self [DracoRPG]
 				alive=0;

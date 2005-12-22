@@ -1849,7 +1849,7 @@ static struct Damage battle_calc_weapon_attack(
 					sd->left_weapon.def_ratio_atk_race & (1<<t_race) ||
 					sd->left_weapon.def_ratio_atk_race & (is_boss(target)?1<<10:1<<11)
 				) {	//Pass effect onto right hand if configured so. [Skotlex]
-					if (battle_config.left_cardfix_to_right)
+					if (battle_config.left_cardfix_to_right && flag.rh)
 						raceele_flag = flag.idef = 1;
 					else
 						raceele_flag_ = flag.idef2 = 1;
@@ -1874,7 +1874,7 @@ static struct Damage battle_calc_weapon_attack(
 				sd->left_weapon.ignore_def_race & (1<<t_race) ||
 				sd->left_weapon.ignore_def_race & (is_boss(target)?1<<10:1<<11)
 			)) {
-					if(battle_config.left_cardfix_to_right) //Move effect to right hand. [Skotlex]
+					if(battle_config.left_cardfix_to_right && flag.rh) //Move effect to right hand. [Skotlex]
 						flag.idef = 1;
 					else
 						flag.idef2 = 1;
@@ -3629,6 +3629,7 @@ static const struct battle_data_short {
 	{ "disp_hpmeter",                      &battle_config.disp_hpmeter				},
 	{ "bone_drop",		                   &battle_config.bone_drop				},
 	{ "buyer_name",                        &battle_config.buyer_name		},
+	{ "skill_wall_check",                  &battle_config.skill_wall_check     },
 
 // eAthena additions
 	{ "item_logarithmic_drops",            &battle_config.logarithmic_drops	},
@@ -4001,7 +4002,7 @@ void battle_set_defaults() {
 	battle_config.sp_rate = 100;
 	battle_config.gm_can_drop_lv = 0;
 	battle_config.disp_hpmeter = 60;
-
+	battle_config.skill_wall_check = 0;
 	battle_config.bone_drop = 0;
 	battle_config.buyer_name = 1;
 
