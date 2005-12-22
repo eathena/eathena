@@ -1853,6 +1853,10 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		return 0;
 	}
 
+	
+	if(sd->sc_data[SC_WEDDING].timer != -1 && sd->view_class != JOB_WEDDING)
+		sd->view_class=JOB_WEDDING;
+	
 	if(sd->sc_data[SC_XMAS].timer != -1 && sd->view_class != JOB_XMAS)
 		sd->view_class=JOB_XMAS;
 

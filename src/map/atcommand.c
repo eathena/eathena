@@ -9843,7 +9843,6 @@ int atcommand_clone(
 {
 	int x=0,y=0,flag=0,master=0,i=0;
 	struct map_session_data *pl_sd=NULL;
-	struct mob_data *md=NULL; 
 
 	if (!message || !*message) {
 		clif_displaymessage(sd->fd,"You must enter a name or character ID.");

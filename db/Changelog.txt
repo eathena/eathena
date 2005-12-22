@@ -33,6 +33,7 @@
 		* * * On your death it breaks (BS can fix it), you drop all Equipment (equipped, even the ring). And revive with 1 HP / 1 SP at the place of your death.
 
 12/22
+	* Added back the changebase script to Tuxedo. [Skotlex]
 	* Changed the autospell chance of Lude card from 2% to 20%. [MasterOfMuppets]
 	* Changed pest card to get its additional bonus if you have 77 int or [MasterOfMuppets]
 	  higher instead of 77 and higher.
