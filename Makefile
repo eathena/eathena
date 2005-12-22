@@ -11,7 +11,7 @@ MAKE = make
 # MAKE = gmake
 
 OPT = -g
-OPT += -O2
+# OPT += -O2
 # OPT += -O3
 # OPT += -mmmx
 # OPT += -msse

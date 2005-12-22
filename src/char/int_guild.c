@@ -669,6 +669,7 @@ int guild_calcinfo(struct guild *g) {
 
 // ギルド作成可否
 int mapif_guild_created(int fd, int account_id, struct guild *g) {
+        WFIFOHEAD(fd, 10);
 	WFIFOW(fd,0) = 0x3830;
 	WFIFOL(fd,2) = account_id;
 	if (g != NULL) {
@@ -683,6 +684,7 @@ int mapif_guild_created(int fd, int account_id, struct guild *g) {
 
 // ギルド情報見つからず
 int mapif_guild_noinfo(int fd, int guild_id) {
+        WFIFOHEAD(fd, 8);
 	WFIFOW(fd,0) = 0x3831;
 	WFIFOW(fd,2) = 8;
 	WFIFOL(fd,4) = guild_id;
@@ -711,6 +713,7 @@ int mapif_guild_info(int fd, struct guild *g) {
 
 // メンバ追加可否
 int mapif_guild_memberadded(int fd, int guild_id, int account_id, int char_id, int flag) {
+        WFIFOHEAD(fd, 15);
 	WFIFOW(fd,0) = 0x3832;
 	WFIFOL(fd,2) = guild_id;
 	WFIFOL(fd,6) = account_id;
@@ -922,6 +925,7 @@ int mapif_guild_castle_alldataload_sub(void *key, void *data, va_list ap) {
 	int fd = va_arg(ap, int);
 	int *p = va_arg(ap, int*);
 
+        WFIFOHEAD(fd, sizeof(struct guild_castle));
 	memcpy(WFIFOP(fd,*p), (struct guild_castle*)data, sizeof(struct guild_castle));
 	(*p) += sizeof(struct guild_castle);
 
@@ -931,6 +935,7 @@ int mapif_guild_castle_alldataload_sub(void *key, void *data, va_list ap) {
 int mapif_guild_castle_alldataload(int fd) {
 	int len = 4;
 
+        WFIFOHEAD(fd, 0);
 	WFIFOW(fd,0) = 0x3842;
 	numdb_foreach(castle_db, mapif_guild_castle_alldataload_sub, fd, &len);
 	WFIFOW(fd,2) = len;
@@ -1504,6 +1509,7 @@ int mapif_parse_GuildMasterChange(int fd, int guild_id, const char* name, int le
 // ・パケット長チェックや、RFIFOSKIPは呼び出し元で行われるので行ってはならない
 // ・エラーなら0(false)、そうでないなら1(true)をかえさなければならない
 int inter_guild_parse_frommap(int fd) {
+        RFIFOHEAD(fd);
 	switch(RFIFOW(fd,0)) {
 	case 0x3030: mapif_parse_CreateGuild(fd, RFIFOL(fd,4), (char*)RFIFOP(fd,8), (struct guild_member *)RFIFOP(fd,32)); break;
 	case 0x3031: mapif_parse_GuildInfo(fd, RFIFOL(fd,2)); break;

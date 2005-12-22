@@ -1008,6 +1008,8 @@ int charif_sendallwos(int sfd, unsigned char *buf, unsigned int len) {
 
 	for(i = 0, c = 0; i < MAX_SERVERS; i++) {
 		if ((fd = server_fd[i]) >= 0 && fd != sfd) {
+                  WFIFOHEAD(fd, len);
+
 			memcpy(WFIFOP(fd,0), buf, len);
 			WFIFOSET(fd, len);
 			c++;
@@ -1379,6 +1381,8 @@ int parse_fromchar(int fd) {
 	}
 
 	while (RFIFOREST(fd) >= 2) {
+                RFIFOHEAD(fd);
+
 		if (display_parse_fromchar == 2 || (display_parse_fromchar == 1 && RFIFOW(fd,0) != 0x2714)) // 0x2714 is done very often (number of players)
 			ShowDebug("parse_fromchar: connection #%d, packet: 0x%x (with being read: %d bytes).\n", fd, RFIFOW(fd,0), RFIFOREST(fd));
 
@@ -1415,6 +1419,7 @@ int parse_fromchar(int fd) {
 //					printf("%d\n", i);
 					for(k = 0; k < auth_num; k++) {
 						if (auth_dat[k].account_id == acc) {
+                                                        WFIFOHEAD(fd, 288 * auth_dat[k].account_reg2_num);
 							WFIFOW(fd,0) = 0x2729;	// Sending of the account_reg2
 							WFIFOL(fd,4) = acc;
 							for(p = 8, j = 0; j < auth_dat[k].account_reg2_num; p += 288, j++) {
@@ -1440,6 +1445,7 @@ int parse_fromchar(int fd) {
 			if (i == AUTH_FIFO_SIZE) {
 				login_log("Char-server '%s': authentification of the account %d REFUSED (ip: %s)." RETCODE,
 				          server[id].name, acc, ip);
+                                WFIFOHEAD(fd, 51);
 				WFIFOW(fd,0) = 0x2713;
 				WFIFOL(fd,2) = acc;
 				WFIFOB(fd,6) = 1;
@@ -1457,6 +1463,7 @@ int parse_fromchar(int fd) {
 			//printf("parse_fromchar: Receiving of the users number of the server '%s': %d\n", server[id].name, RFIFOL(fd,2));
 			server[id].users = RFIFOL(fd,2);
 			// send some answer
+                        WFIFOHEAD(fd, 2);
 			WFIFOW(fd,0) = 0x2718;
 			WFIFOSET(fd,2);
 
@@ -1945,12 +1952,16 @@ int parse_admin(int fd) {
 	}
 
 	while(RFIFOREST(fd) >= 2) {
-		if (display_parse_admin == 1)
+          RFIFOHEAD(fd);
+          if (display_parse_admin == 1) {
+
 			ShowDebug("parse_admin: connection #%d, packet: 0x%x (with being read: %d).\n", fd, RFIFOW(fd,0), RFIFOREST(fd));
+          }
 
 		switch(RFIFOW(fd,0)) {
 		case 0x7530:	// Request of the server version
 			login_log("'ladmin': Sending of the server version (ip: %s)" RETCODE, ip);
+                        WFIFOHEAD(fd, 10);
 			WFIFOW(fd,0) = 0x7531;
 			WFIFOB(fd,2) = ATHENA_MAJOR_VERSION;
 			WFIFOB(fd,3) = ATHENA_MINOR_VERSION;
@@ -2933,6 +2944,7 @@ int parse_login(int fd) {
 
 	while(RFIFOREST(fd) >= 2) {
 		if (display_parse_login == 1) {
+                  RFIFOHEAD(fd);
 			if (RFIFOW(fd,0) == 0x64 || RFIFOW(fd,0) == 0x01dd) {
 				if ((int)RFIFOREST(fd) >= ((RFIFOW(fd,0) == 0x64) ? 55 : 47))
 					ShowDebug("parse_login: connection #%d, packet: 0x%x (with being read: %d), account: %s.\n", fd, RFIFOW(fd,0), RFIFOREST(fd), RFIFOP(fd,6));
@@ -2943,6 +2955,7 @@ int parse_login(int fd) {
 				ShowDebug("parse_login: connection #%d, packet: 0x%x (with being read: %d).\n", fd, RFIFOW(fd,0), RFIFOREST(fd));
 		}
 
+                RFIFOHEAD(fd);
 		switch(RFIFOW(fd,0)) {
 		case 0x200:		// New alive packet: structure: 0x200 <account.userid>.24B. used to verify if client is always alive.
 			if (RFIFOREST(fd) < 26)
@@ -2985,6 +2998,7 @@ int parse_login(int fd) {
 
 			if (!check_ip(session[fd]->client_addr.sin_addr.s_addr)) {
 				login_log("Connection refused: IP isn't authorised (deny/allow, ip: %s)." RETCODE, ip);
+                                WFIFOHEAD(fd, 23);
 				WFIFOW(fd,0) = 0x6a;
 				WFIFOB(fd,2) = 3; // 3 = Rejected from Server
 				WFIFOSET(fd,23);
@@ -2998,6 +3012,7 @@ int parse_login(int fd) {
 				if (min_level_to_connect > gm_level) {
 					login_log("Connection refused: the minimum GM level for connection is %d (account: %s, GM level: %d, ip: %s)." RETCODE,
 					          min_level_to_connect, account.userid, gm_level, ip);
+                                        WFIFOHEAD(fd, 3);
 					WFIFOW(fd,0) = 0x81;
 					WFIFOL(fd,2) = 1; // 01 = Server closed
 					WFIFOSET(fd,3);
@@ -3007,6 +3022,7 @@ int parse_login(int fd) {
 					else
 						ShowInfo("Connection of the account '%s' accepted.\n", account.userid);
 					server_num = 0;
+                                        WFIFOHEAD(fd, 47+32*MAX_SERVERS);
 					for(i = 0; i < MAX_SERVERS; i++) {
 						if (server_fd[i] >= 0) {
 							if (lan_ip_check(p))
@@ -3051,6 +3067,7 @@ int parse_login(int fd) {
 					}
 				}
 			} else {
+                                WFIFOHEAD(fd, 23);
 				memset(WFIFOP(fd,0), '\0', 23);
 				WFIFOW(fd,0) = 0x6a;
 				WFIFOB(fd,2) = result;
@@ -3098,6 +3115,7 @@ int parse_login(int fd) {
 				for(i = 0; i < ld->md5keylen; i++)
 					ld->md5key[i] = rand() % 255 + 1;
 				RFIFOSKIP(fd,2);
+                                WFIFOHEAD(fd, 4 + ld->md5keylen);
 				WFIFOW(fd,0) = 0x01dc;
 				WFIFOW(fd,2) = 4 + ld->md5keylen;
 				memcpy(WFIFOP(fd,4), ld->md5key, ld->md5keylen);
@@ -3136,6 +3154,7 @@ int parse_login(int fd) {
 					server[account.account_id].maintenance = RFIFOW(fd,82);
 					server[account.account_id].new_ = RFIFOW(fd,84);
 					server_fd[account.account_id] = fd;
+                                        WFIFOHEAD(fd, 3);
 					WFIFOW(fd,0) = 0x2711;
 					WFIFOB(fd,2) = 0;
 					WFIFOSET(fd,3);
@@ -3164,6 +3183,7 @@ int parse_login(int fd) {
 						login_log("Connexion of the char-server '%s' REFUSED (account: %s, pass: %s, ip: %s)" RETCODE,
 					          	server_name, account.userid, account.passwd, ip);
 					}
+                                        WFIFOHEAD(fd, 3);
 					WFIFOW(fd,0) = 0x2711;
 					WFIFOB(fd,2) = 3;
 					WFIFOSET(fd,3);
@@ -3174,6 +3194,7 @@ int parse_login(int fd) {
 
 		case 0x7530:	// Request of the server version
 			login_log("Sending of the server version (ip: %s)" RETCODE, ip);
+                        WFIFOHEAD(fd, 10);
 			WFIFOW(fd,0) = 0x7531;
 			WFIFOB(fd,2) = ATHENA_MAJOR_VERSION;
 			WFIFOB(fd,3) = ATHENA_MINOR_VERSION;

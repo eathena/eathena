@@ -1160,6 +1160,7 @@ int atcommand_send(
 		switch (type)
 		{
 		case 0x209:
+                        WFIFOHEAD(fd, packet_db[sd->packet_ver][type].len);
 			WFIFOW(fd,0) = 0x209;
 			WFIFOW(fd,2) = 2;
 			memcpy(WFIFOP(fd, 12), sd->status.name, NAME_LENGTH);
@@ -1171,6 +1172,7 @@ int atcommand_send(
 		//	add others here
 		//	break;
 		default:
+                        WFIFOHEAD(fd, packet_db[sd->packet_ver][type].len);
 			WFIFOW(fd,0) = type;
 			for(i=1;i<=sizeof(info);i++)
 				if(info[i])

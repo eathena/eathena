@@ -371,6 +371,7 @@ int mapif_account_reg(int fd, unsigned char *src) {
 int mapif_account_reg_reply(int fd,int account_id) {
 	struct accreg *reg = (struct accreg*)numdb_search(accreg_db,account_id);
 
+        WFIFOHEAD(fd, (reg->reg_num * 288) + 8);
 	WFIFOW(fd,0) = 0x3804;
 	WFIFOL(fd,4) = account_id;
 	if (reg == NULL) {
@@ -394,6 +395,7 @@ int mapif_disconnectplayer(int fd, int account_id, int char_id, int reason)
 	if (fd < 0)
 		return -1;
 	
+        WFIFOHEAD(fd, 7);
 	WFIFOW(fd,0) = 0x2b1f;
 	WFIFOL(fd,2) = account_id;
 	WFIFOB(fd,6) = reason;
@@ -441,6 +443,7 @@ int check_ttl_wisdata() {
 
 // GMメッセージ送信
 int mapif_parse_GMmessage(int fd) {
+        RFIFOHEAD(fd);
 	mapif_GMmessage(RFIFOP(fd,8), RFIFOW(fd,2), RFIFOL(fd,4), fd);
 
 	return 0;
@@ -453,6 +456,7 @@ int mapif_parse_WisRequest(int fd) {
 	static int wisid = 0;
 	int index;
 
+        RFIFOHEAD(fd);
 	if (RFIFOW(fd,2)-52 >= sizeof(wd->msg)) {
 		ShowWarning("inter: Wis message size too long.\n");
 		return 0;
@@ -510,6 +514,7 @@ int mapif_parse_WisRequest(int fd) {
 
 // Wisp/page transmission result
 int mapif_parse_WisReply(int fd) {
+        RFIFOHEAD(fd);
 	int id = RFIFOL(fd,2), flag = RFIFOB(fd,6);
 	struct WisData *wd = (struct WisData*)numdb_search(wis_db, id);
 
@@ -529,6 +534,7 @@ int mapif_parse_WisReply(int fd) {
 int mapif_parse_WisToGM(int fd) {
 	unsigned char buf[2048]; // 0x3003/0x3803 <packet_len>.w <wispname>.24B <min_gm_level>.w <message>.?B
 
+        RFIFOHEAD(fd);
 	memcpy(WBUFP(buf,0), RFIFOP(fd,0), RFIFOW(fd,2));
 	WBUFW(buf, 0) = 0x3803;
 	mapif_sendall(buf, RFIFOW(fd,2));
@@ -539,6 +545,7 @@ int mapif_parse_WisToGM(int fd) {
 // アカウント変数保存要求
 int mapif_parse_AccReg(int fd) {
 	int j, p;
+        RFIFOHEAD(fd);
 	struct accreg *reg = (struct accreg*)numdb_search(accreg_db, RFIFOL(fd,4));
 
 	if (reg == NULL) {
@@ -564,6 +571,7 @@ int mapif_parse_AccReg(int fd) {
 // アカウント変数送信要求
 int mapif_parse_AccRegRequest(int fd) {
 //	printf("mapif: accreg request\n");
+        RFIFOHEAD(fd);
 	return mapif_account_reg_reply(fd, RFIFOL(fd,2));
 }
 
@@ -573,6 +581,7 @@ int mapif_parse_AccRegRequest(int fd) {
 // エラーなら0(false)、処理できたなら1、
 // パケット長が足りなければ2をかえさなければならない
 int inter_parse_frommap(int fd) {
+        RFIFOHEAD(fd);
 	int cmd = RFIFOW(fd,0);
 	int len = 0;
 
@@ -615,6 +624,7 @@ int inter_check_length(int fd, int length) {
 	if (length == -1) {	// 可変パケット長
 		if (RFIFOREST(fd) < 4)	// パケット長が未着
 			return 0;
+                RFIFOHEAD(fd);
 		length = RFIFOW(fd,2);
 	}
 

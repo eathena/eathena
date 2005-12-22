@@ -63,6 +63,7 @@ int intif_create_pet(int account_id,int char_id,short pet_class,short pet_lv,sho
 {
 	if (CheckForCharServer())
 		return 0;
+	WFIFOHEAD(fd, 24 + NAME_LENGTH);
 	WFIFOW(inter_fd,0) = 0x3080;
 	WFIFOL(inter_fd,2) = account_id;
 	WFIFOL(inter_fd,6) = char_id;
@@ -84,6 +85,7 @@ int intif_request_petdata(int account_id,int char_id,int pet_id)
 {
 	if (CheckForCharServer())
 		return 0;
+	WFIFOHEAD(fd, 14);
 	WFIFOW(inter_fd,0) = 0x3081;
 	WFIFOL(inter_fd,2) = account_id;
 	WFIFOL(inter_fd,6) = char_id;
@@ -97,6 +99,7 @@ int intif_save_petdata(int account_id,struct s_pet *p)
 {
 	if (CheckForCharServer())
 		return 0;
+	WFIFOHEAD(fd, sizeof(struct s_pet) + 8);
 	WFIFOW(inter_fd,0) = 0x3082;
 	WFIFOW(inter_fd,2) = sizeof(struct s_pet) + 8;
 	WFIFOL(inter_fd,4) = account_id;
@@ -110,6 +113,7 @@ int intif_delete_petdata(int pet_id)
 {
 	if (CheckForCharServer())
 		return 0;
+	WFIFOHEAD(inter_fd,6);
 	WFIFOW(inter_fd,0) = 0x3083;
 	WFIFOL(inter_fd,2) = pet_id;
 	WFIFOSET(inter_fd,6);
@@ -126,6 +130,7 @@ int intif_GMmessage(char* mes,int len,int flag)
 	
 	if (CheckForCharServer())
 		return 0;
+	WFIFOSET(inter_fd, lp + len + 4);
 	WFIFOW(inter_fd,0) = 0x3000;
 	WFIFOW(inter_fd,2) = lp + len + 4;
 	WFIFOL(inter_fd,4) = 0xFF000000; //"invalid" color signals standard broadcast.
@@ -142,6 +147,7 @@ int intif_announce(char* mes,int len, unsigned long color, int flag)
 	
 	if (CheckForCharServer())
 		return 0;
+	WFIFOSET(inter_fd, 8 + len);
 	WFIFOW(inter_fd,0) = 0x3000;
 	WFIFOW(inter_fd,2) = 8 + len;
 	WFIFOL(inter_fd,4) = color;
@@ -156,6 +162,7 @@ int intif_wis_message(struct map_session_data *sd, char *nick, char *mes, int me
 	if (CheckForCharServer())
 		return 0;
 
+	WFIFOSET(inter_fd,mes_len + 52);
 	WFIFOW(inter_fd,0) = 0x3001;
 	WFIFOW(inter_fd,2) = mes_len + 52;
 	memcpy(WFIFOP(inter_fd,4), sd->status.name, NAME_LENGTH);
@@ -173,6 +180,7 @@ int intif_wis_message(struct map_session_data *sd, char *nick, char *mes, int me
 int intif_wis_replay(int id, int flag) {
 	if (CheckForCharServer())
 		return 0;
+	WFIFOSET(inter_fd,7);
 	WFIFOW(inter_fd,0) = 0x3002;
 	WFIFOL(inter_fd,2) = id;
 	WFIFOB(inter_fd,6) = flag; // flag: 0: success to send wisper, 1: target character is not loged in?, 2: ignored by target
@@ -190,6 +198,7 @@ int intif_wis_message_to_gm(char *Wisp_name, int min_gm_level, char *mes) {
 	if (CheckForCharServer())
 		return 0;
 	mes_len = strlen(mes) + 1; // + null
+	WFIFOSET(inter_fd, mes_len + 30);
 	WFIFOW(inter_fd,0) = 0x3003;
 	WFIFOW(inter_fd,2) = mes_len + 30;
 	memcpy(WFIFOP(inter_fd,4), Wisp_name, NAME_LENGTH);
@@ -214,6 +223,7 @@ int intif_saveaccountreg(struct map_session_data *sd) {
 	if (sd->status.account_reg_num == -1)
 		return 0;
 
+	WFIFOSET(inter_fd, sd->status.account_reg_num * 288);
 	WFIFOW(inter_fd,0) = 0x3004;
 	WFIFOL(inter_fd,4) = sd->bl.id;
 	for(j=0,p=8;j<sd->status.account_reg_num;j++,p+=288){
@@ -231,6 +241,7 @@ int intif_request_accountreg(struct map_session_data *sd)
 	if (CheckForCharServer())
 		return 0;
 
+	WFIFOHEAD(inter_fd,6);
 	WFIFOW(inter_fd,0) = 0x3005;
 	WFIFOL(inter_fd,2) = sd->bl.id;
 	WFIFOSET(inter_fd,6);
@@ -245,6 +256,7 @@ int intif_request_storage(int account_id)
 {
 	if (CheckForCharServer())
 		return 0;
+	WFIFOHEAD(inter_fd,6);
 	WFIFOW(inter_fd,0) = 0x3010;
 	WFIFOL(inter_fd,2) = account_id;
 	WFIFOSET(inter_fd,6);
@@ -256,6 +268,7 @@ int intif_send_storage(struct storage *stor)
 	if (CheckForCharServer())
 		return 0;
 	nullpo_retr(0, stor);
+	WFIFOHEAD(inter_fd,sizeof(struct storage)+8);
 	WFIFOW(inter_fd,0) = 0x3011;
 	WFIFOW(inter_fd,2) = sizeof(struct storage)+8;
 	WFIFOL(inter_fd,4) = stor->account_id;
@@ -268,6 +281,7 @@ int intif_request_guild_storage(int account_id,int guild_id)
 {
 	if (CheckForCharServer())
 		return 0;
+	WFIFOHEAD(inter_fd,10);
 	WFIFOW(inter_fd,0) = 0x3018;
 	WFIFOL(inter_fd,2) = account_id;
 	WFIFOL(inter_fd,6) = guild_id;
@@ -278,6 +292,7 @@ int intif_send_guild_storage(int account_id,struct guild_storage *gstor)
 {
 	if (CheckForCharServer())
 		return 0;
+	WFIFOHEAD(inter_fd,sizeof(struct guild_storage)+12);
 	WFIFOW(inter_fd,0) = 0x3019;
 	WFIFOW(inter_fd,2) = sizeof(struct guild_storage)+12;
 	WFIFOL(inter_fd,4) = account_id;
@@ -294,6 +309,7 @@ int intif_create_party(struct map_session_data *sd,char *name,int item,int item2
 		return 0;
 	nullpo_retr(0, sd);
 
+	WFIFOHEAD(inter_fd,10+2*NAME_LENGTH+MAP_NAME_LENGTH);
 	WFIFOW(inter_fd,0) = 0x3020;
 	WFIFOL(inter_fd,2) = sd->status.account_id;
 	memcpy(WFIFOP(inter_fd,6),name, NAME_LENGTH);
@@ -312,6 +328,7 @@ int intif_request_partyinfo(int party_id)
 {
 	if (CheckForCharServer())
 		return 0;
+	WFIFOHEAD(inter_fd,6);
 	WFIFOW(inter_fd,0) = 0x3021;
 	WFIFOL(inter_fd,2) = party_id;
 	WFIFOSET(inter_fd,6);
@@ -329,6 +346,7 @@ int intif_party_addmember(int party_id,int account_id)
 //	if(battle_config.etc_log)
 //		printf("intif: party add member %d %d\n",party_id,account_id);
 	if(sd!=NULL){
+                WFIFOHEAD(inter_fd,12+NAME_LENGTH+MAP_NAME_LENGTH);
 		WFIFOW(inter_fd,0)=0x3022;
 		WFIFOL(inter_fd,2)=party_id;
 		WFIFOL(inter_fd,6)=account_id;
@@ -344,6 +362,7 @@ int intif_party_changeoption(int party_id,int account_id,int exp,int item)
 {
 	if (CheckForCharServer())
 		return 0;
+	WFIFOHEAD(inter_fd,14);
 	WFIFOW(inter_fd,0)=0x3023;
 	WFIFOL(inter_fd,2)=party_id;
 	WFIFOL(inter_fd,6)=account_id;
@@ -359,6 +378,7 @@ int intif_party_leave(int party_id,int account_id)
 		return 0;
 //	if(battle_config.etc_log)
 //		printf("intif: party leave %d %d\n",party_id,account_id);
+	WFIFOHEAD(inter_fd,10);
 	WFIFOW(inter_fd,0)=0x3024;
 	WFIFOL(inter_fd,2)=party_id;
 	WFIFOL(inter_fd,6)=account_id;
@@ -371,6 +391,7 @@ int intif_party_changemap(struct map_session_data *sd,int online)
 	if (CheckForCharServer())
 		return 0;
 	if(sd!=NULL){
+            WFIFOHEAD(inter_fd,13 + MAP_NAME_LENGTH);
 	    WFIFOW(inter_fd,0)=0x3025;
 	    WFIFOL(inter_fd,2)=sd->status.party_id;
 	    WFIFOL(inter_fd,6)=sd->status.account_id;
@@ -388,6 +409,7 @@ int intif_break_party(int party_id)
 {
 	if (CheckForCharServer())
 		return 0;
+	WFIFOHEAD(inter_fd,6);
 	WFIFOW(inter_fd,0)=0x3026;
 	WFIFOL(inter_fd,2)=party_id;
 	WFIFOSET(inter_fd,6);
@@ -400,6 +422,7 @@ int intif_party_message(int party_id,int account_id,char *mes,int len)
 		return 0;
 //	if(battle_config.etc_log)
 //		printf("intif_party_message: %s\n",mes);
+	WFIFOHEAD(inter_fd,len + 12);
 	WFIFOW(inter_fd,0)=0x3027;
 	WFIFOW(inter_fd,2)=len+12;
 	WFIFOL(inter_fd,4)=party_id;
@@ -413,6 +436,7 @@ int intif_party_checkconflict(int party_id,int account_id,char *nick)
 {
 	if (CheckForCharServer())
 		return 0;
+	WFIFOHEAD(inter_fd,10 + NAME_LENGTH);
 	WFIFOW(inter_fd,0)=0x3028;
 	WFIFOL(inter_fd,2)=party_id;
 	WFIFOL(inter_fd,6)=account_id;
@@ -428,6 +452,7 @@ int intif_guild_create(const char *name,const struct guild_member *master)
 		return 0;
 	nullpo_retr(0, master);
 
+	WFIFOHEAD(inter_fd,sizeof(struct guild_member)+(8+NAME_LENGTH));
 	WFIFOW(inter_fd,0)=0x3030;
 	WFIFOW(inter_fd,2)=sizeof(struct guild_member)+(8+NAME_LENGTH);
 	WFIFOL(inter_fd,4)=master->account_id;
@@ -441,6 +466,7 @@ int intif_guild_request_info(int guild_id)
 {
 	if (CheckForCharServer())
 		return 0;
+	WFIFOHEAD(inter_fd,6);
 	WFIFOW(inter_fd,0) = 0x3031;
 	WFIFOL(inter_fd,2) = guild_id;
 	WFIFOSET(inter_fd,6);
@@ -451,6 +477,7 @@ int intif_guild_addmember(int guild_id,struct guild_member *m)
 {
 	if (CheckForCharServer())
 		return 0;
+	WFIFOHEAD(inter_fd,sizeof(struct guild_member)+8);
 	WFIFOW(inter_fd,0) = 0x3032;
 	WFIFOW(inter_fd,2) = sizeof(struct guild_member)+8;
 	WFIFOL(inter_fd,4) = guild_id;
@@ -463,6 +490,7 @@ int intif_guild_change_gm(int guild_id, const char* name, int len)
 {
 	if (CheckForCharServer())
 		return 0;
+	WFIFOHEAD(inter_fd, len + 8);
 	WFIFOW(inter_fd, 0)=0x3033;
 	WFIFOW(inter_fd, 2)=len+8;
 	WFIFOL(inter_fd, 4)=guild_id;
@@ -476,6 +504,7 @@ int intif_guild_leave(int guild_id,int account_id,int char_id,int flag,const cha
 {
 	if (CheckForCharServer())
 		return 0;
+	WFIFOHEAD(inter_fd, 55);
 	WFIFOW(inter_fd, 0) = 0x3034;
 	WFIFOL(inter_fd, 2) = guild_id;
 	WFIFOL(inter_fd, 6) = account_id;
@@ -491,6 +520,7 @@ int intif_guild_memberinfoshort(int guild_id,
 {
 	if (CheckForCharServer())
 		return 0;
+	WFIFOHEAD(inter_fd, 19);
 	WFIFOW(inter_fd, 0) = 0x3035;
 	WFIFOL(inter_fd, 2) = guild_id;
 	WFIFOL(inter_fd, 6) = account_id;
@@ -506,6 +536,7 @@ int intif_guild_break(int guild_id)
 {
 	if (CheckForCharServer())
 		return 0;
+	WFIFOHEAD(inter_fd, 6);
 	WFIFOW(inter_fd, 0) = 0x3036;
 	WFIFOL(inter_fd, 2) = guild_id;
 	WFIFOSET(inter_fd,6);
@@ -516,6 +547,7 @@ int intif_guild_message(int guild_id,int account_id,char *mes,int len)
 {
 	if (CheckForCharServer())
 		return 0;
+	WFIFOHEAD(inter_fd, len + 12);
 	WFIFOW(inter_fd,0)=0x3037;
 	WFIFOW(inter_fd,2)=len+12;
 	WFIFOL(inter_fd,4)=guild_id;
@@ -530,6 +562,7 @@ int intif_guild_checkconflict(int guild_id,int account_id,int char_id)
 {
 	if (CheckForCharServer())
 		return 0;
+	WFIFOHEAD(inter_fd, 14);
 	WFIFOW(inter_fd, 0)=0x3038;
 	WFIFOL(inter_fd, 2)=guild_id;
 	WFIFOL(inter_fd, 6)=account_id;
@@ -542,6 +575,7 @@ int intif_guild_change_basicinfo(int guild_id,int type,const void *data,int len)
 {
 	if (CheckForCharServer())
 		return 0;
+	WFIFOHEAD(inter_fd, len + 10);
 	WFIFOW(inter_fd,0)=0x3039;
 	WFIFOW(inter_fd,2)=len+10;
 	WFIFOL(inter_fd,4)=guild_id;
@@ -556,6 +590,7 @@ int intif_guild_change_memberinfo(int guild_id,int account_id,int char_id,
 {
 	if (CheckForCharServer())
 		return 0;
+	WFIFOHEAD(inter_fd, len + 18);
 	WFIFOW(inter_fd, 0)=0x303a;
 	WFIFOW(inter_fd, 2)=len+18;
 	WFIFOL(inter_fd, 4)=guild_id;
@@ -571,6 +606,7 @@ int intif_guild_position(int guild_id,int idx,struct guild_position *p)
 {
 	if (CheckForCharServer())
 		return 0;
+	WFIFOHEAD(inter_fd, sizeof(struct guild_position)+12);
 	WFIFOW(inter_fd,0)=0x303b;
 	WFIFOW(inter_fd,2)=sizeof(struct guild_position)+12;
 	WFIFOL(inter_fd,4)=guild_id;
@@ -584,6 +620,7 @@ int intif_guild_skillup(int guild_id,int skill_num,int account_id,int flag)
 {
 	if (CheckForCharServer())
 		return 0;
+	WFIFOHEAD(inter_fd,14);
 	WFIFOW(inter_fd, 0)=0x303c;
 	WFIFOL(inter_fd, 2)=guild_id;
 	WFIFOL(inter_fd, 6)=skill_num;
@@ -597,6 +634,7 @@ int intif_guild_alliance(int guild_id1,int guild_id2,int account_id1,int account
 {
 	if (CheckForCharServer())
 		return 0;
+	WFIFOHEAD(inter_fd,19);
 	WFIFOW(inter_fd, 0)=0x303d;
 	WFIFOL(inter_fd, 2)=guild_id1;
 	WFIFOL(inter_fd, 6)=guild_id2;
@@ -611,6 +649,7 @@ int intif_guild_notice(int guild_id,const char *mes1,const char *mes2)
 {
 	if (CheckForCharServer())
 		return 0;
+	WFIFOHEAD(inter_fd,186);
 	WFIFOW(inter_fd,0)=0x303e;
 	WFIFOL(inter_fd,2)=guild_id;
 	memcpy(WFIFOP(inter_fd,6),mes1,60);
@@ -625,6 +664,7 @@ int intif_guild_emblem(int guild_id,int len,const char *data)
 		return 0;
 	if(guild_id<=0 || len<0 || len>2000)
 		return 0;
+	WFIFOHEAD(inter_fd,len + 12);
 	WFIFOW(inter_fd,0)=0x303f;
 	WFIFOW(inter_fd,2)=len+12;
 	WFIFOL(inter_fd,4)=guild_id;
@@ -638,6 +678,7 @@ int intif_guild_castle_dataload(int castle_id,int index)
 {
 	if (CheckForCharServer())
 		return 0;
+	WFIFOHEAD(inter_fd,5);
 	WFIFOW(inter_fd,0)=0x3040;
 	WFIFOW(inter_fd,2)=castle_id;
 	WFIFOB(inter_fd,4)=index;
@@ -650,6 +691,7 @@ int intif_guild_castle_datasave(int castle_id,int index, int value)
 {
 	if (CheckForCharServer())
 		return 0;
+	WFIFOHEAD(inter_fd,9);
 	WFIFOW(inter_fd,0)=0x3041;
 	WFIFOW(inter_fd,2)=castle_id;
 	WFIFOB(inter_fd,4)=index;

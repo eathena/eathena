@@ -19,10 +19,28 @@
 extern time_t last_tick;
 extern time_t stall_time;
 
+#if defined(_WIN32) || defined(__CYGWIN__)
+typedef char e_int8;
+typedef unsigned char e_uint8;
+typedef short e_int16;
+typedef unsigned short e_uint16;
+typedef int e_int32;
+typedef unsigned int e_uint32;
+#else
+#include <bits/types.h>
+typedef char e_int8;
+typedef unsigned char e_uint8;
+typedef __int16_t e_int16;
+typedef __uint16_t e_uint16;
+typedef __int32_t e_int32;
+typedef __uint32_t e_uint32;
+#endif
+
 // define declaration
 
 #define RFIFOSPACE(fd) (session[fd]->max_rdata-session[fd]->rdata_size)
-#define RFIFOP(fd,pos) (session[fd]->rdata+session[fd]->rdata_pos+(pos))
+#define RFIFOHEAD(fd) char *rbPtr = session[fd]->rdata+session[fd]->rdata_pos;
+#define RFIFOP(fd,pos) (&rbPtr[pos])
 // use function instead of macro.
 #define RFIFOB(fd,pos) (*(unsigned char*)RFIFOP(fd,pos))
 #define RFIFOW(fd,pos) (*(unsigned short*)RFIFOP(fd,pos))
@@ -37,7 +55,8 @@ extern time_t stall_time;
 #define RBUFL(p,pos) (*(unsigned int*)RBUFP((p),(pos)))
 
 #define WFIFOSPACE(fd) (session[fd]->max_wdata-session[fd]->wdata_size)
-#define WFIFOP(fd,pos) (session[fd]->wdata+session[fd]->wdata_size+(pos))
+#define WFIFOHEAD(fd, x) char *wbPtr = session[fd]->wdata+session[fd]->wdata_size;
+#define WFIFOP(fd,pos) (&wbPtr[pos])
 #define WFIFOB(fd,pos) (*(unsigned char*)WFIFOP(fd,pos))
 #define WFIFOW(fd,pos) (*(unsigned short*)WFIFOP(fd,pos))
 #define WFIFOL(fd,pos) (*(unsigned int*)WFIFOP(fd,pos))

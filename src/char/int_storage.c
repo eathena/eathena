@@ -363,6 +363,7 @@ int inter_guild_storage_delete(int guild_id)
 int mapif_load_storage(int fd,int account_id)
 {
 	struct storage *s=account2storage(account_id);
+        WFIFOHEAD(fd, sizeof(struct storage)+8);
 	WFIFOW(fd,0)=0x3810;
 	WFIFOW(fd,2)=sizeof(struct storage)+8;
 	WFIFOL(fd,4)=account_id;
@@ -373,6 +374,7 @@ int mapif_load_storage(int fd,int account_id)
 // 倉庫データ保存完了送信
 int mapif_save_storage_ack(int fd,int account_id)
 {
+        WFIFOHEAD(fd, 7);
 	WFIFOW(fd,0)=0x3811;
 	WFIFOL(fd,2)=account_id;
 	WFIFOB(fd,6)=0;
@@ -383,6 +385,7 @@ int mapif_save_storage_ack(int fd,int account_id)
 int mapif_load_guild_storage(int fd,int account_id,int guild_id)
 {
 	struct guild_storage *gs=guild2storage(guild_id);
+        WFIFOHEAD(fd, sizeof(struct guild_storage)+12);
 	WFIFOW(fd,0)=0x3818;
 	if(gs) {
 		WFIFOW(fd,2)=sizeof(struct guild_storage)+12;
@@ -401,6 +404,7 @@ int mapif_load_guild_storage(int fd,int account_id,int guild_id)
 }
 int mapif_save_guild_storage_ack(int fd,int account_id,int guild_id,int fail)
 {
+        WFIFOHEAD(fd, 11);
 	WFIFOW(fd,0)=0x3819;
 	WFIFOL(fd,2)=account_id;
 	WFIFOL(fd,6)=guild_id;
@@ -415,6 +419,7 @@ int mapif_save_guild_storage_ack(int fd,int account_id,int guild_id,int fail)
 // 倉庫データ要求受信
 int mapif_parse_LoadStorage(int fd)
 {
+        RFIFOHEAD(fd);
 	mapif_load_storage(fd,RFIFOL(fd,2));
 	return 0;
 }
@@ -422,6 +427,7 @@ int mapif_parse_LoadStorage(int fd)
 int mapif_parse_SaveStorage(int fd)
 {
 	struct storage *s;
+        RFIFOHEAD(fd);
 	int account_id=RFIFOL(fd,4);
 	int len=RFIFOW(fd,2);
 	if(sizeof(struct storage)!=len-8){
@@ -437,12 +443,14 @@ int mapif_parse_SaveStorage(int fd)
 
 int mapif_parse_LoadGuildStorage(int fd)
 {
+        RFIFOHEAD(fd);
 	mapif_load_guild_storage(fd,RFIFOL(fd,2),RFIFOL(fd,6));
 	return 0;
 }
 int mapif_parse_SaveGuildStorage(int fd)
 {
 	struct guild_storage *gs;
+        RFIFOHEAD(fd);
 	int guild_id=RFIFOL(fd,8);
 	int len=RFIFOW(fd,2);
 	if(sizeof(struct guild_storage)!=len-12){
@@ -467,6 +475,7 @@ int mapif_parse_SaveGuildStorage(int fd)
 // ・エラーなら0(false)、そうでないなら1(true)をかえさなければならない
 int inter_storage_parse_frommap(int fd)
 {
+        RFIFOHEAD(fd);
 	switch(RFIFOW(fd,0)){
 	case 0x3010: mapif_parse_LoadStorage(fd); break;
 	case 0x3011: mapif_parse_SaveStorage(fd); break;

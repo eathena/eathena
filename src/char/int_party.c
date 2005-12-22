@@ -273,6 +273,7 @@ int party_check_conflict(int party_id, int account_id, char *nick) {
 
 // パ?ティ作成可否
 int mapif_party_created(int fd,int account_id, struct party *p) {
+        WFIFOHEAD(fd, 11+NAME_LENGTH);
 	WFIFOW(fd,0) = 0x3820;
 	WFIFOL(fd,2) = account_id;
 	if (p != NULL) {
@@ -293,6 +294,7 @@ int mapif_party_created(int fd,int account_id, struct party *p) {
 
 // パ?ティ情報見つからず
 int mapif_party_noinfo(int fd, int party_id) {
+        WFIFOHEAD(fd, 8);
 	WFIFOW(fd,0) = 0x3821;
 	WFIFOW(fd,2) = 8;
 	WFIFOL(fd,4) = party_id;
@@ -320,6 +322,7 @@ int mapif_party_info(int fd, struct party *p) {
 
 // パ?ティメンバ追加可否
 int mapif_party_memberadded(int fd, int party_id, int account_id, int flag) {
+        WFIFOHEAD(fd, 11);
 	WFIFOW(fd,0) = 0x3822;
 	WFIFOL(fd,2) = party_id;
 	WFIFOL(fd,6) = account_id;
@@ -637,6 +640,7 @@ int mapif_parse_PartyCheck(int fd, int party_id, int account_id, char *nick) {
 // ?パケット長チェックや、RFIFOSKIPは呼び出し元で行われるので行ってはならない
 // ?エラ?なら0(false)、そうでないなら1(true)をかえさなければならない
 int inter_party_parse_frommap(int fd) {
+        RFIFOHEAD(fd);
 	switch(RFIFOW(fd,0)) {
 	case 0x3020: mapif_parse_CreateParty(fd, RFIFOL(fd,2), (char*)RFIFOP(fd,6), (char*)RFIFOP(fd,30), (char*)RFIFOP(fd,54), RFIFOW(fd,70), RFIFOB(fd,72), RFIFOB(fd,73)); break;
 	case 0x3021: mapif_parse_PartyInfo(fd, RFIFOL(fd,2)); break;
