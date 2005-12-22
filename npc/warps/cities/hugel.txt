@@ -69,5 +69,5 @@ hu_in01.gat,24,361,0	warp	hugel042	1,1,hugel.gat,82,230
 hugel.gat,80,230,0	warp	hugel042a	1,1,hu_in01.gat,24,363
 hu_in01.gat,155,108,0	warp	hugel043	1,1,hugel.gat,153,151
 hugel.gat,153,153,0	warp	hugel043a	1,1,hu_in01.gat,155,106
-hu_in01.gat,301,380,0	warp	hugel044	1,1,hugel.gat,53,199
-hugel.gat,93,201,0	warp	hugel044a	1,1,hu_in01.gat
+hu_in01.gat,301,380,0	warp	hugel044	1,1,hugel.gat,93,199
+hugel.gat,93,201,0	warp	hugel044a	1,1,hu_in01.gat,303,380

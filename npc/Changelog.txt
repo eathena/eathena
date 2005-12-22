@@ -26,6 +26,7 @@ Nexon
 Date		Added
 ======
 12/21
+	* Fixed Hugel warps, thanks to... ppl.. ^^; [Vicious]
 	* Fixed Ayothaya warps, thanks to Sir_Loon [Lupus]
 12/19
 	* Added Sara-chan's corrections to Hugel warps. [Valaris]
