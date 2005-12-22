@@ -1,6 +1,7 @@
 Date	Added
 	
 2005/12/22
+	* Fixed compile warnings in atcommand.c and map.c. Fixed compile error in script.c. [Valaris]
 	* wedding_modifydisplay's default is now no (that's how it is on official)
 	  [Skotlex]
 	* Some cleaning to skill_attack, also added target checking for splash

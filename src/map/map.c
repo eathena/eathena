@@ -2199,8 +2199,9 @@ static int map_setwaterheight_sub(int m, int wh) {
 	return 1;
 }
 int map_setwaterheight(int m, char *mapname, int height) {
-	int i;
-	if (height < 0) height = NO_WATER;
+	int i=0;
+	if (height < 0)
+		height = NO_WATER;
 	if(waterlist){
 		for(i=0;waterlist[i].mapname[0] && i < MAX_MAP_PER_SERVER;i++)
 			if(strcmp(waterlist[i].mapname,mapname)==0) {

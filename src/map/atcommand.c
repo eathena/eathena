@@ -9849,9 +9849,7 @@ int atcommand_clone(
 		return 0;
 	}
 
-	if((pl_sd=map_nick2sd((char *)message)) == NULL &&
- 		(pl_sd=map_charid2sd(atoi(message))) == NULL
-	) {
+	if((pl_sd=map_nick2sd((char *)message)) == NULL && (pl_sd=map_charid2sd(atoi(message))) == NULL) {
 		clif_displaymessage(fd, "Player not found.");
 		return 0;
 	}
@@ -9860,12 +9858,14 @@ int atcommand_clone(
 		x = sd->bl.x + (rand() % 10 - 5);
 		y = sd->bl.y + (rand() % 10 - 5);
 	} while (map_getcell(sd->bl.m,x,y,CELL_CHKNOPASS) && i++ < 10);
+
 	if (i >= 10) {
 		x = sd->bl.x;
 		y = sd->bl.y;
 	}
 
-	if (strcmpi(command, "@clone") == 0) flag = 1;
+	if (strcmpi(command, "@clone") == 0) 
+		flag = 1;
 	else if (strcmpi(command, "@slaveclone") == 0) {
 	  	flag = 2;
 		master = sd->bl.id;

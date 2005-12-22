@@ -5438,23 +5438,23 @@ int buildin_clone(struct script_state *st) {
 	unsigned int duration = 0;
 	char *map,*event="";
 
-	map	=conv_str(st,& (st->stack->stack_data[st->start+2]));
-	x	=conv_num(st,& (st->stack->stack_data[st->start+3]));
-	y	=conv_num(st,& (st->stack->stack_data[st->start+4]));
-	event = conv_str(st,& (st->stack->stack_data[st->start+5]));
-	char_id	=conv_num(st,& (st->stack->stack_data[st->start+6]));
+	map=conv_str(st,& (st->stack->stack_data[st->start+2]));
+	x=conv_num(st,& (st->stack->stack_data[st->start+3]));
+	y=conv_num(st,& (st->stack->stack_data[st->start+4]));
+	event=conv_str(st,& (st->stack->stack_data[st->start+5]));
+	char_id=conv_num(st,& (st->stack->stack_data[st->start+6]));
 
 	if( st->end>st->start+7 )
-		master_id	=conv_num(st,& (st->stack->stack_data[st->start+7]));
+		master_id=conv_num(st,& (st->stack->stack_data[st->start+7]));
 
 	if( st->end>st->start+8 )
-		mode =conv_num(st,& (st->stack->stack_data[st->start+8]));
+		mode=conv_num(st,& (st->stack->stack_data[st->start+8]));
 
 	if( st->end>st->start+9 )
-		flag =conv_num(st,& (st->stack->stack_data[st->start+9]));
+		flag=conv_num(st,& (st->stack->stack_data[st->start+9]));
 	
 	if( st->end>st->start+10 )
-		duration	=conv_num(st,& (st->stack->stack_data[st->start+10]));
+		duration=conv_num(st,& (st->stack->stack_data[st->start+10]));
 
 	sd = map_charid2sd(char_id);
 	if (master_id) {
@@ -5465,11 +5465,11 @@ int buildin_clone(struct script_state *st) {
 			master_id = 0;
 	}
 	if (sd) //Return ID of newly crafted clone.
-		push_val(st->stack,C_INT,
-			mob_clone_spawn(sd, map, x, y, event, master_id, mode, flag, duration)	
-		);
+		push_val(st->stack,C_INT,mob_clone_spawn(sd, map, x, y, event, master_id, mode, flag, duration));
 	else //Failed to create clone.
 		push_val(st->stack,C_INT,0);
+
+	return 0;
 }
 /*==========================================
  * イベント実行
