@@ -1,6 +1,10 @@
 Date	Added
 	
 2005/12/23
+	* Inverted the handling of Individual/Shared item pickup rule for parties.
+	  [Skotlex]
+	* Fixed the item ruling for parties not being correctly read from the save
+	  files. [Skotlex]
 	* Now Star Gladiator uses 2nd Adv.Class Job EXP table (13th column) [Lupus]
 	- In future there could be added the 14th EXP column, specially for Star Gladiator
 2005/12/22

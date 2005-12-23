@@ -178,7 +178,7 @@ int inter_party_fromsql(int party_id, struct party *p)
 		p->party_id = party_id;
 		memcpy(p->name, sql_row[1], NAME_LENGTH-1);
 		p->exp = atoi(sql_row[2])?1:0;
-		p->item = atoi(sql_row[3])?1:0;
+		p->item = atoi(sql_row[3]);
 		leader_id = atoi(sql_row[4]);
 	} else {
 		mysql_free_result(sql_res);
