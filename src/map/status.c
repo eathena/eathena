@@ -2011,6 +2011,8 @@ int status_calc_vit(struct block_list *bl, int vit)
 			vit += sc_data[SC_VITFOOD].val1;
   		if(sc_data[SC_TRUESIGHT].timer!=-1)
 			vit += 5;
+		if(sc_data[SC_STRIPARMOR].timer!=-1 && bl->type != BL_PC)
+			vit -= vit * 8*sc_data[SC_STRIPARMOR].val1/100;
 	}
 
 	return vit;
@@ -2037,6 +2039,8 @@ int status_calc_int(struct block_list *bl, int int_)
 				int_ >>= 1;
 			else int_ += sc_data[SC_BLESSING].val1;
 		}
+		if(sc_data[SC_STRIPHELM].timer!=-1 && bl->type != BL_PC)
+			int_ -= int_ * 8*sc_data[SC_STRIPHELM].val1/100;
 	}
 
 	return int_;
@@ -2143,10 +2147,15 @@ int status_calc_watk(struct block_list *bl, int watk)
 			watk += watk * 5*sc_data[SC_CONCENTRATION].val1/100;
 		if(sc_data[SC_SKE].timer!=-1)
 			watk += watk * 3;
+		if(sc_data[SC_NIBELUNGEN].timer!=-1 && bl->type != BL_PC && (status_get_element(bl)/10)>=8)
+			watk += sc_data[SC_NIBELUNGEN].val2;
+		if(sc_data[SC_EXPLOSIONSPIRITS].timer!=-1 && bl->type != BL_PC)
+			watk += (1000*sc_data[SC_EXPLOSIONSPIRITS].val1);
 		if(sc_data[SC_CURSE].timer!=-1)
 			watk -= watk * 75/100;
+		if(sc_data[SC_STRIPWEAPON].timer!=-1 && bl->type != BL_PC)
+			watk -= watk * 5*sc_data[SC_STRIPWEAPON].val1/100;
 	}
-
 	return watk;
 }
 
@@ -2289,8 +2298,11 @@ int status_calc_def(struct block_list *bl, int def)
 			def -= def * 5*sc_data[SC_CONCENTRATION].val1/100;
 		if(sc_data[SC_PROVOKE].timer!=-1 && bl->type != BL_PC) //Provoke doesn't alters player defense.
 			def -= def * (5+5*sc_data[SC_PROVOKE].val1)/100;
+		if(sc_data[SC_STRIPSHIELD].timer!=-1 && bl->type != BL_PC)
+			def -= def * 3*sc_data[SC_STRIPSHIELD].val1/100;
 		if(sc_data[SC_SKE].timer!=-1)
 			def /= 2;
+			
 	}
 
 	return def;
@@ -2969,42 +2981,27 @@ int status_get_batk(struct block_list *bl)
  */
 int status_get_atk(struct block_list *bl)
 {
+	int atk=0;
 	nullpo_retr(0, bl);
-	if(bl->type==BL_PC)
-		return ((struct map_session_data*)bl)->right_weapon.watk;
-	else {
-		struct status_change *sc_data=status_get_sc_data(bl);
-		int atk=0;
-		if(bl->type == BL_MOB){
+	switch (bl->type) {
+		case BL_PC:
+			return ((struct map_session_data*)bl)->right_weapon.watk;
+		case BL_MOB:
 			atk = ((struct mob_data*)bl)->db->atk1;
-
 			if(((struct mob_data *)bl)->guardian_data)
 				atk += atk * 10*((struct mob_data *)bl)->guardian_data->guardup_lv/100; // Strengthen Guardians - custom value +10% ATK / lv
-		} else if(bl->type == BL_PET) { //<Skotlex> Use pet's stats
+		break;
+		case BL_PET:	//<Skotlex> Use pet's stats
 			if (battle_config.pet_lv_rate && ((struct pet_data *)bl)->status)
 				atk = ((struct pet_data *)bl)->status->atk1;
 			else
 				atk = ((struct pet_data*)bl)->db->atk1;
-		}
-
-		// Absolute modifiers from status changes (only for NPC)
-		if(sc_data) {
-			if(sc_data[SC_EXPLOSIONSPIRITS].timer!=-1)
-				atk += (1000*sc_data[SC_EXPLOSIONSPIRITS].val1);
-		}
-
-		// Absolute, then relative modifiers from status changes (shared between PC and NPC)
-		atk = status_calc_watk(bl,atk);
-
-		// Relative modifiers from status changes (only for NPC)
-		if(sc_data) {
-			if(sc_data[SC_STRIPWEAPON].timer!=-1)
-				atk -= atk * 10/100;
-		}
-
+		break;
+	}
+	// Absolute, then relative modifiers from status changes (shared between PC and NPC)
+	atk = status_calc_watk(bl,atk);
 	if(atk < 0) atk = 0;
 	return atk;
-	}
 }
 /*==========================================
  * ‘ÎÛ‚Ì¶ŽèAtk‚ð•Ô‚·(”Ä—p)
@@ -3026,44 +3023,31 @@ int status_get_atk_(struct block_list *bl)
  */
 int status_get_atk2(struct block_list *bl)
 {
+	int atk2=0;
 	nullpo_retr(0, bl);
-	if(bl->type==BL_PC)
-		return ((struct map_session_data*)bl)->right_weapon.watk2;
-	else {
-		struct status_change *sc_data=status_get_sc_data(bl);
-		int atk2=0;
-		if(bl->type==BL_MOB) {
+
+	switch (bl->type) {
+		case BL_PC:
+			return ((struct map_session_data*)bl)->right_weapon.watk2;
+		case BL_MOB:
 			atk2 = ((struct mob_data*)bl)->db->atk2;
 			
 			if(((struct mob_data *)bl)->guardian_data)
 				atk2 += atk2 * 10*((struct mob_data *)bl)->guardian_data->guardup_lv/100; // Strengthen Guardians - custom value +10% ATK / lv
-		} else if(bl->type==BL_PET) {	//<Skotlex> Use pet's stats
+		break;
+		case BL_PET:	//<Skotlex> Use pet's stats
 			if (battle_config.pet_lv_rate && ((struct pet_data *)bl)->status)
 				atk2 = ((struct pet_data *)bl)->status->atk2;
 			else
 				atk2 = ((struct pet_data*)bl)->db->atk2;
-		}		  
+		break;
+	}		  
 
-		// Absolute modifiers from status changes (only for NPC)
-		if(sc_data) {
-			if(sc_data[SC_EXPLOSIONSPIRITS].timer!=-1)
-				atk2 += (1000*sc_data[SC_EXPLOSIONSPIRITS].val1);
-			if(sc_data[SC_NIBELUNGEN].timer!=-1 && (status_get_element(bl)/10)>=8)
-				atk2 += sc_data[SC_NIBELUNGEN].val2;
-		}
+	// Absolute, then relative modifiers from status changes (shared between PC and NPC)
+	atk2 = status_calc_watk(bl,atk2);
 
-		// Absolute, then relative modifiers from status changes (shared between PC and NPC)
-		atk2 = status_calc_watk(bl,atk2);
-
-		// Relative modifiers from status changes (only for NPC)
-		if(sc_data) {
-			if(sc_data[SC_STRIPWEAPON].timer!=-1)
-				atk2 = atk2 * sc_data[SC_STRIPWEAPON].val2/100;
-		}
-
-		if(atk2 < 0) atk2 = 0;
+	if(atk2 < 0) atk2 = 0;
 		return atk2;
-	}
 }
 /*==========================================
  * ‘ÎÛ‚Ì¶ŽèAtk2‚ð•Ô‚·(”Ä—p)

@@ -4581,7 +4581,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					}
 				}
 			}
-		} else if (dstmd) {
+		} else if (dstmd && !(status_get_mode(bl)&MD_BOSS)) {
 			if (equip &EQP_WEAPON)
 				sclist[0] = SC_STRIPWEAPON;
 			if (equip &EQP_SHIELD)

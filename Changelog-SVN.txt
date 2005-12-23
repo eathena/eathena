@@ -1,6 +1,7 @@
 Date	Added
 	
 2005/12/23
+	* Implemented the Strip equipment effects on mobs. [Skotlex]
 	* Now when Berserk ends, the char's HP goes to 100. [Skotlex]
 	* LK's Concentration now gives +50 hit rather than +50% [Skotlex]
 	* Inverted the handling of Individual/Shared item pickup rule for parties.
