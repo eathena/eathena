@@ -180,11 +180,11 @@ extern inline void _W_tobuffer(const signed short &valin, uchar *&buf)
 	*buf++ = (uchar)((valin & 0xFF00)>> 0x08 );
 }
 
-extern inline void _B_tobuffer(const uchar &valin, uchar *&buf)
+extern inline void _B_tobuffer(const unsigned char &valin, uchar *&buf)
 {	
 	*buf++ = (uchar)((valin & 0xFF)        );
 }
-extern inline void _B_tobuffer(const char &valin, uchar *&buf)
+extern inline void _B_tobuffer(const signed char &valin, uchar *&buf)
 {	
 	*buf++ = (uchar)((valin & 0xFF)        );
 }
@@ -240,11 +240,11 @@ extern inline void _W_frombuffer(signed short &valin, const uchar *&buf)
 	buf += 2;
 }
 
-extern inline void _B_frombuffer(uchar &valin, const uchar *&buf)
+extern inline void _B_frombuffer(unsigned char &valin, const uchar *&buf)
 {	
 	valin	= *buf++;
 }
-extern inline void _B_frombuffer(char &valin, const uchar *&buf)
+extern inline void _B_frombuffer(signed char &valin, const uchar *&buf)
 {	
 	valin	= (char)(*buf++);
 }
@@ -424,14 +424,14 @@ extern inline void item_frombuffer(struct item &p, const uchar *buf)
 /////////////////////////////////////////////////////////////////////////////
 struct point
 {
-	char map[24];
+	char mapname[24];
 	signed short x;
 	signed short y;
 };
 extern inline void _point_tobuffer(const struct point &p, uchar *&buf)
 {
 	if( NULL==buf )	return;
-	_S_tobuffer( (p.map),		buf, 24);
+	_S_tobuffer( (p.mapname),	buf, 24);
 	_W_tobuffer( (p.x),			buf);
 	_W_tobuffer( (p.y),			buf);
 }
@@ -443,7 +443,10 @@ extern inline void point_tobuffer(const struct point &p, uchar *buf)
 extern inline void _point_frombuffer(struct point &p, const uchar *&buf)
 {
 	if( NULL==buf )	return;
-	_S_frombuffer( (p.map),		buf, 24);
+	_S_frombuffer( (p.mapname),	buf, 24);
+	char*ip = strchr(p.mapname,'.');
+	if(ip) *ip=0;
+
 	_W_frombuffer( (p.x),		buf);
 	_W_frombuffer( (p.y),		buf);
 }
@@ -530,8 +533,8 @@ struct s_pet
 	signed short intimate;//pet friendly
 	signed short hungry;//pet hungry
 	char name[24];
-	char rename_flag;
-	char incuvate;
+	unsigned char rename_flag;
+	unsigned char incuvate;
 };
 extern inline void _s_pet_tobuffer(const struct s_pet &p, uchar *&buf)
 {
@@ -604,8 +607,8 @@ struct mmo_charstatus
 	sint32 sp;
 	sint32 max_sp;
 
-	char karma;		// good<->evil
-	char chaos;		// chaotic<->lawful
+	signed char karma;		// good<->evil
+	signed char chaos;		// chaotic<->lawful
 	signed short manner;	// stores negative values of mute
 	signed short option;
 	unsigned short hair;
@@ -974,6 +977,9 @@ extern inline void _party_member_frombuffer(struct party_member &p, const uchar 
 	_L_frombuffer( (p.account_id),	buf);
 	_S_frombuffer( (p.name),		buf, 24);
 	_S_frombuffer( (p.mapname),		buf, 24);
+	char*ip = strchr(p.mapname,'.');
+	if(ip) *ip=0;
+
 	_B_frombuffer( (p.leader),		buf);
 	_B_frombuffer( (p.online),		buf);
 	_W_frombuffer( (p.lv),			buf);
@@ -1242,7 +1248,6 @@ struct guild {
 	uint32 exp;
 	uint32 next_exp;
 	unsigned short skill_point;
-	unsigned short castle_id;
 	char name[24];
 	char master[24];
 	struct guild_member member[MAX_GUILD];
@@ -1274,7 +1279,6 @@ extern inline void _guild_tobuffer(const struct guild &p, uchar *&buf)
 	_L_tobuffer( (p.exp),				buf);
 	_L_tobuffer( (p.next_exp),			buf);
 	_W_tobuffer( (p.skill_point),		buf);
-	_W_tobuffer( (p.castle_id),			buf);
 	_S_tobuffer( (p.name),				buf, 24);
 	_S_tobuffer( (p.master),			buf, 24);
 	for(i=0; i< MAX_GUILD; i++)
@@ -1309,7 +1313,6 @@ extern inline void _guild_frombuffer(struct guild &p, const uchar *&buf)
 	_L_frombuffer( (p.exp),				buf);
 	_L_frombuffer( (p.next_exp),		buf);
 	_W_frombuffer( (p.skill_point),		buf);
-	_W_frombuffer( (p.castle_id),		buf);
 	_S_frombuffer( (p.name),			buf, 24);
 	_S_frombuffer( (p.master),			buf, 24);
 	for(i=0; i< MAX_GUILD; i++)
@@ -1410,6 +1413,9 @@ extern inline void _guild_castle_frombuffer(struct guild_castle &p, const uchar 
 	if( NULL==buf )	return;
 	_W_frombuffer( (p.castle_id),	buf);
 	_S_frombuffer( (p.mapname),		buf, 24);
+	char*ip = strchr(p.mapname,'.');
+	if(ip) *ip=0;
+
 	_S_frombuffer( (p.castle_name),	buf, 24);
 	_S_frombuffer( (p.castle_event),buf, 24);
 	_L_frombuffer( (p.guild_id),	buf);

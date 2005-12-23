@@ -213,7 +213,7 @@ int inter_guild_tosql(struct guild *g,int flag)
 			"(`guild_id`, `name`,`master`,`guild_lv`,`connect_member`,`max_member`,`average_lv`,`exp`,`next_exp`,`skill_point`,`castle_id`,`mes1`,`mes2`,`emblem_len`,`emblem_id`,`emblem_data`) "
 			"VALUES ('%ld', '%s', '%s', '%d', '%d', '%d', '%d', '%ld', '%ld', '%d', '%d', '%s', '%s', '%d', '%ld', '%s')",
 			guild_db, (unsigned long)g->guild_id,t_name,jstrescapecpy(t_master,g->master),
-			g->guild_lv,g->connect_member,g->max_member,g->average_lv,(unsigned long)g->exp,(unsigned long)g->next_exp,g->skill_point,g->castle_id,
+			g->guild_lv,g->connect_member,g->max_member,g->average_lv,(unsigned long)g->exp,(unsigned long)g->next_exp,g->skill_point,0,//g->castle_id,
 			jstrescapecpy(t_mes1,g->mes1),jstrescapecpy(t_mes2,g->mes2),g->emblem_len,(unsigned long)g->emblem_id,emblem_data);
 		//ShowMessage(" %s\n",tmp_sql);
 		if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
@@ -385,7 +385,7 @@ struct guild * inter_guild_fromsql(int guild_id)
 		g->exp=atoi(sql_row[7]);
 		g->next_exp=atoi(sql_row[8]);
 		g->skill_point=atoi(sql_row[9]);
-		g->castle_id=atoi(sql_row[10]);
+		//g->castle_id=atoi(sql_row[10]);
 		safestrcpy(g->mes1,sql_row[11],60);
 		safestrcpy(g->mes2,sql_row[12],120);
 		g->emblem_len=atoi(sql_row[13]);
@@ -534,37 +534,8 @@ struct guild * inter_guild_fromsql(int guild_id)
 	numdb_insert(guild_db_, guild_id,g);
 	return g;
 }
-/*
-int _set_guild_castle(void *key, void *data, va_list &ap)
-{
-    unsigned short castle_id = (unsigned short)va_arg(ap, int);
-    uint32 guild_id   = va_arg(ap, uint32);
-    struct guild * g = (struct guild *) data;
 
-    if (g->castle_id == castle_id)
-        g->castle_id = 0xFFFF;
-    if (g->guild_id == guild_id)
-        g->castle_id = castle_id;
-    return 0;
-}
-*/
-class CDBset_guild_castle : public CDBProcessor
-{
-	ushort castle_id;
-	uint32 guild_id;
-public:
-	CDBset_guild_castle(ushort c, uint32 g) : castle_id(c), guild_id(g)	{}
-	virtual ~CDBset_guild_castle()	{}
-	virtual bool process(void *key, void *data) const
-	{
-		struct guild * g = (struct guild *) data;
-		if( g->castle_id == castle_id )
-			g->castle_id = 0xFFFF;
-		if( g->guild_id == guild_id )
-			g->castle_id = castle_id;
-		return 0;
-	}
-};
+
 int inter_guildcastle_tosql(struct guild_castle *gc)
 {
 	struct guild_castle *gcopy;
@@ -624,10 +595,6 @@ int inter_guildcastle_tosql(struct guild_castle *gc)
 		return 0;
 	}
 	mysql_free_result(sql_res) ; //resource free
-	
-	db_foreach(guild_db_, CDBset_guild_castle(gc->castle_id,gc->guild_id) );
-//	db_foreach(guild_db_, _set_guild_castle, gc->castle_id,gc->guild_id);
-
 	return 0;
 }
 
@@ -712,7 +679,7 @@ int inter_guild_readdb()
 	}
 	i=0;
 	while(fgets(line,sizeof(line),fp) && i<100){
-		if( !skip_empty_line(line) )
+		if( !get_prepared_line(line) )
 			continue;
 		guild_exp[i]=atoi(line);
 		i++;
@@ -1255,7 +1222,6 @@ int mapif_parse_CreateGuild(int fd,uint32 account_id,char *name,unsigned char *b
 	// Initialize guild property
 	g->max_member=16;
 	g->average_lv=g->member[0].lv;
-	g->castle_id=0xFFFF;
 	for(i=0;i<MAX_GUILDSKILL;i++)
 		g->skill[i].id = i + GD_SKILLBASE;
 

@@ -252,11 +252,11 @@ bool check_password(struct login_session_data* ld, int passwdenc, const char* pa
 		{
 			if(j == 1)
 			{
-				snprintf(md5str, 128, "%s%s", ld->md5key, refpass); // 20 + 24
+				snprintf(md5str, sizeof(md5str), "%s%s", ld->md5key, refpass); // 20 + 24
 			}
 			else if (j == 2)
 			{
-				sprintf(md5str, "%s%s", refpass, ld->md5key); // 24 + 20
+				snprintf(md5str, sizeof(md5str), "%s%s", refpass, ld->md5key); // 24 + 20
 			}
 			else
 				md5str[0] = '\0';
@@ -286,12 +286,13 @@ const char* timestamp2string(char* string, size_t sz)
 // Test of the IP mask
 // (ip: IP to be tested, str: mask x.x.x.x/# or x.x.x.x/y.y.y.y)
 //--------------------------------------------------------------
-int check_ipmask(uint32 ip, const unsigned char *str) {
+bool check_ipmask(uint32 ip, const unsigned char *str)
+{
 	unsigned int mask = 0, i = 0, m, ip2, a0, a1, a2, a3;
 	unsigned char *p = (unsigned char *)&ip2, *p2 = (unsigned char *)&mask;
 
 	if (sscanf((char *)str, "%d.%d.%d.%d/%n", &a0, &a1, &a2, &a3, &i) != 4 || i == 0)
-		return 0;
+		return false;
 	p[0] = a0; p[1] = a1; p[2] = a2; p[3] = a3;
 
 	if (sscanf((char *)(str+i), "%d.%d.%d.%d", &a0, &a1, &a2, &a3) == 4) {
@@ -302,7 +303,7 @@ int check_ipmask(uint32 ip, const unsigned char *str) {
 			mask = (mask >> 1) | 0x80000000;
 	} else {
 		ShowWarning("check_ipmask: invalid mask [%s].\n", str);
-		return 0;
+		return false;
 	}
 	return ((ntohl(ip) & mask) == (ntohl(ip2) & mask));
 }
@@ -310,7 +311,8 @@ int check_ipmask(uint32 ip, const unsigned char *str) {
 //---------------------
 // Access control by IP
 //---------------------
-int check_ip(uint32 ip) {
+bool check_ip(uint32 ip)
+{
 	int i;
 	unsigned char *p = (unsigned char *)&ip;
 	char buf[16];
@@ -335,7 +337,7 @@ int check_ip(uint32 ip) {
 		access_ip = access_allow + i * ACO_STRSIZE;
 		if (memcmp(access_ip, buf, strlen(access_ip)) == 0 || check_ipmask(ip, (unsigned char*)access_ip)) {
 			if(access_order == ACO_ALLOW_DENY)
-				return 1; // With 'allow, deny' (deny if not allow), allow has priority
+				return true; // With 'allow, deny' (deny if not allow), allow has priority
 			flag = ACF_ALLOW;
 			break;
 		}
@@ -345,11 +347,11 @@ int check_ip(uint32 ip) {
 		access_ip = access_deny + i * ACO_STRSIZE;
 		if (memcmp(access_ip, buf, strlen(access_ip)) == 0 || check_ipmask(ip, (unsigned char*)access_ip)) {
 			//flag = ACF_DENY; // not necessary to define flag
-			return 0; // At this point, if it's 'deny', we refuse connection.
+			return false; // At this point, if it's 'deny', we refuse connection.
 		}
 	}
 
-	return (flag == ACF_ALLOW || access_order == ACO_DENY_ALLOW) ? 1:0;
+	return (flag == ACF_ALLOW || access_order == ACO_DENY_ALLOW);
 		// With 'mutual-failture', only 'allow' and non 'deny' IP are authorised.
 		//   A non 'allow' (even non 'deny') IP is not authorised. It's like: if allowed and not denied, it's authorised.
 		//   So, it's disapproval if you have no description at the time of 'mutual-failture'.
@@ -359,14 +361,15 @@ int check_ip(uint32 ip) {
 //--------------------------------
 // Access control by IP for ladmin
 //--------------------------------
-int check_ladminip(uint32 ip) {
+bool check_ladminip(uint32 ip)
+{
 	int i;
 	unsigned char *p = (unsigned char *)&ip;
 	char buf[16];
 	char * access_ip;
 
 	if (access_ladmin_allownum == 0)
-		return 1; // When there is no restriction, all IP are authorised.
+		return true; // When there is no restriction, all IP are authorised.
 
 //	+   012.345.: front match form, or
 //	    all: all IP are matched, or
@@ -379,13 +382,13 @@ int check_ladminip(uint32 ip) {
 //	    So, DNS notation isn't authorised for ip checking.
 	sprintf(buf, "%d.%d.%d.%d.", p[0], p[1], p[2], p[3]);
 
-	for(i = 0; i < access_ladmin_allownum; i++) {
+	for(i = 0; i < access_ladmin_allownum; i++)
+	{
 		access_ip = access_ladmin_allow + i * ACO_STRSIZE;
-		if (memcmp(access_ip, buf, strlen(access_ip)) == 0 || check_ipmask(ip, (unsigned char*)access_ip)) {
-			return 1;
-		}
+		if (memcmp(access_ip, buf, strlen(access_ip)) == 0 || check_ipmask(ip, (unsigned char*)access_ip))
+			return true;
 	}
-	return 0;
+	return false;
 }
 
 
@@ -2609,7 +2612,7 @@ int login_config_read(const char *cfgName)
 	ShowStatus("Reading Login Configuration %s\n", cfgName);
 	while( fgets(line, sizeof(line), fp) )
 	{
-		if( !skip_empty_line(line) )
+		if( !get_prepared_line(line) )
 			continue;
 		
 		line[sizeof(line)-1] = '\0';

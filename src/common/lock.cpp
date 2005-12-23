@@ -59,7 +59,8 @@ const char* strerror(int err, char* buf, size_t size)
 // （書き込みが終わるまで、旧ファイルを保管しておく）
 
 // 新しいファイルの書き込み開始
-FILE* lock_fopen (const char* filename, int *info) {
+FILE* lock_fopen (const char* filename, int &info)
+{
 	char newfile[512];
 	FILE *fp;
 	int no = 0;
@@ -68,19 +69,20 @@ FILE* lock_fopen (const char* filename, int *info) {
 	do {
 		sprintf(newfile, "%s_%04d.tmp", filename, ++no);
 	} while((fp = safefopen(newfile,"r")) && (fclose(fp), no<9999) );
-	*info = no;
-	return safefopen(newfile,"w");
+	info = no;
+	return safefopen(newfile,"wb");
 }
 
 // 旧ファイルを削除＆新ファイルをリネーム
-int lock_fclose (FILE *fp, const char* filename, int *info) {
+int lock_fclose (FILE *fp, const char* filename, int info)
+{
 	int ret = 1;
 	char newfile[512];
 	char oldfile[512];
 	if (fp != NULL)
 	{
 		ret = fclose(fp);
-		sprintf(newfile, "%s_%04d.tmp", filename, *info);
+		sprintf(newfile, "%s_%04d.tmp", filename, info);
 		sprintf(oldfile, "%s.bak", filename);	// old backup file
 
 		if (exists(oldfile)) remove(oldfile);	// remove backup file if it already exists

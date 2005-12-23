@@ -248,6 +248,82 @@ public:
 	// no buffer transfer necessary
 };
 
+///////////////////////////////////////////////////////////////////////////////
+// mail structures
+///////////////////////////////////////////////////////////////////////////////
+class CMailHead
+{
+public:
+	uint32 msid;
+	unsigned char read;
+	char name[24];
+	char head[32];
+
+	CMailHead()	{}
+	CMailHead(uint32 id, unsigned char r, const char *n, const char *h) : msid(id), read(r)
+	{
+		safestrcpy(name,	n, sizeof(name));
+		safestrcpy(head,	h, sizeof(head));
+	}
+	~CMailHead()	{}
+	///////////////////////////////////////////////////////////////////////////
+	// buffer transfer
+	size_t size() const	
+	{
+		return ( sizeof(msid)+sizeof(read)+sizeof(name)+sizeof(head) );	
+	}	// Return size of class
+
+	void _tobuffer(unsigned char* &buf) const		// Put class into given buffer
+	{
+		_L_tobuffer(msid,	buf);
+		_B_tobuffer(read,	buf);
+		_S_tobuffer(name,	buf, 24);
+		_S_tobuffer(head,	buf, 32);
+	}
+	void _frombuffer(const unsigned char* &buf)		// Get class from given buffer
+	{
+		_L_frombuffer(msid,	buf);
+		_B_frombuffer(read,	buf);
+		_S_frombuffer(name,	buf, 24);
+		_S_frombuffer(head,	buf, 32);
+	}
+	void tobuffer(unsigned char* buf) const	{ _tobuffer(buf); }		// Put class into given buffer
+	void frombuffer(const unsigned char* buf) {	_frombuffer(buf); } // Get class from given buffer
+};
+
+class CMail : public CMailHead
+{
+public:
+	char body[80];
+
+	CMail()	{}
+	CMail(uint32 id, unsigned char r, const char *n, const char *h, const char *b)
+		: CMailHead(id, r, n, h)
+	{
+		safestrcpy(body,	b, sizeof(body));
+	}
+	~CMail()	{}
+	
+	///////////////////////////////////////////////////////////////////////////
+	// buffer transfer
+	size_t size() const	
+	{
+		return ( CMailHead::size()+sizeof(body) );	
+	}	// Return size of class
+
+	void _tobuffer(unsigned char* &buf) const		// Put class into given buffer
+	{
+		CMailHead::_tobuffer(buf);
+		_S_tobuffer(body,	buf, 80);
+	}
+	void _frombuffer(const unsigned char* &buf)		// Get class from given buffer
+	{
+		CMailHead::_frombuffer(buf);
+		_S_frombuffer(body,	buf, 80);
+	}
+	void tobuffer(unsigned char* buf) const	{ _tobuffer(buf); }		// Put class into given buffer
+	void frombuffer(const unsigned char* buf) {	_frombuffer(buf); } // Get class from given buffer
+};
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -463,6 +539,11 @@ public:
 	virtual bool saveAccount(CCharAccount& account) =0;
 	virtual bool removeAccount(uint32 accid)=0;
 
+	virtual size_t getMailCount(uint32 cid, uint32 &all, uint32 &unread) =0;
+	virtual size_t listMail(uint32 cid, unsigned char box, unsigned char *buffer) =0;
+	virtual bool readMail(uint32 cid, uint32 mid, CMail& mail) =0;
+	virtual bool deleteMail(uint32 cid, uint32 mid) =0;
+	virtual bool sendMail(uint32 senderid, const char* sendername, const char* targetname, const char *head, const char *body, uint32& msgid, uint32& tid) =0;
 
 	///////////////////////////////////////////////////////////////////////////
 	// alternative interface
@@ -527,6 +608,14 @@ public:
 	virtual bool searchAccount(uint32 accid, CCharCharAccount& account)	{ return db->searchAccount(accid, account); }
 	virtual bool saveAccount(CCharAccount& account)	{ return db->saveAccount(account); }
 	virtual bool removeAccount(uint32 accid)	{ return db->removeAccount(accid); }
+
+
+	virtual size_t getMailCount(uint32 cid, uint32 &all, uint32 &unread) { return db->getMailCount(cid,all,unread); }
+	virtual size_t listMail(uint32 cid, unsigned char box, unsigned char *buffer) { return db->listMail(cid, box, buffer); }
+	virtual bool readMail(uint32 cid, uint32 mid, CMail& mail) { return db->readMail(cid, mid, mail); }
+	virtual bool deleteMail(uint32 cid, uint32 mid) { return db->deleteMail(cid, mid); }
+	virtual bool sendMail(uint32 senderid, const char* sendername, const char* targetname, const char *head, const char *body, uint32& msgid, uint32& tid) { return db->sendMail(senderid, sendername, targetname, head, body, msgid, tid); }
+
 
 	///////////////////////////////////////////////////////////////////////////
 	// alternative interface

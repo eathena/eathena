@@ -962,7 +962,7 @@ public:
 			return 1;
 		}
 		while(fgets(line,sizeof(line),fp)){
-			if( !skip_empty_line(line) )
+			if( !get_prepared_line(line) )
 				continue;
 			i=sscanf(line,"%[^:]: %[^\r\n]",w1,w2);
 			if(i!=2)

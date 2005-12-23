@@ -1480,7 +1480,7 @@ int login_config_read(const char *cfgName){
 	}
 	ShowStatus("Reading Login Configuration %s\n", cfgName);
 	while(fgets(line, sizeof(line), fp)){
-		if( !skip_empty_line(line) )
+		if( !get_prepared_line(line) )
 			continue;
 
 		i=sscanf(line,"%[^:]: %[^\r\n]",w1,w2);
@@ -1583,7 +1583,7 @@ void sql_config_read(const char *cfgName){ /* Kalaspuff, to get login_db */
 	}
 	ShowMessage("reading configure: %s\n", cfgName);
 	while(fgets(line, sizeof(line), fp)){
-		if( !skip_empty_line(line) )
+		if( !get_prepared_line(line) )
 			continue;
 		i=sscanf(line,"%[^:]: %[^\r\n]",w1,w2);
 		if(i!=2)

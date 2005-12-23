@@ -5445,7 +5445,7 @@ int status_readdb(void) {
 	i=0;
 	while(fgets(line, sizeof(line), fp)){
 		char *split[50];
-		if( !skip_empty_line(line) )
+		if( !get_prepared_line(line) )
 			continue;
 		for(j=0,p=line;j<21 && p;j++){
 			split[j]=p;
@@ -5479,7 +5479,7 @@ int status_readdb(void) {
 	}
 	i=0;
 	while(fgets(line, sizeof(line), fp)){
-		if( !skip_empty_line(line) )
+		if( !get_prepared_line(line) )
 			continue;
 		for(j=0,p=line;j<MAX_LEVEL && p;j++){
 			if(sscanf(p,"%d",&k)==0)
@@ -5507,7 +5507,7 @@ int status_readdb(void) {
 	}
 	i=0;
 	while(fgets(line, sizeof(line), fp)){
-		if( !skip_empty_line(line) )
+		if( !get_prepared_line(line) )
 			continue;
 		for(j=0,p=line;j<MAX_LEVEL && p;j++){
 			if(sscanf(p,"%d",&k)==0)
@@ -5535,7 +5535,7 @@ int status_readdb(void) {
 	i=0;
 	while(fgets(line, sizeof(line), fp)){
 		char *split[20];
-		if( !skip_empty_line(line) )
+		if( !get_prepared_line(line) )
 			continue;
 		if(atoi(line)<=0)
 			continue;
@@ -5569,7 +5569,7 @@ int status_readdb(void) {
 	i=0;
 	while(fgets(line, sizeof(line), fp) && i<MAX_REFINE_BONUS){
 		char *split[16];
-		if( !skip_empty_line(line) )
+		if( !get_prepared_line(line) )
 			continue;
 		if(atoi(line)<=0)
 			continue;

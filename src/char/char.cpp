@@ -27,6 +27,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 CCharDB	char_db;
 
+
 ///////////////////////////////////////////////////////////////////////////////
 netaddress	loginaddress(ipaddress::GetSystemIP(0), 6900);	 // first lanip as default
 ipset		charaddress(6121);								 // automatic setup as default
@@ -2118,7 +2119,124 @@ int parse_frommap(int fd)
 			break;
 		}
 		///////////////////////////////////////////////////////////////////////
-//!! reorder for proper returns
+		// mail system
+		// check
+		case 0x2b23:
+		{	size_t sz;
+			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < (sz=RFIFOW(fd,2)))
+				return 0;
+			uint32 charid = RFIFOL(fd,4);
+			uchar showall = RFIFOB(fd,8);
+			uint32 all, unread;
+			char_db.getMailCount(charid, all, unread);	// check unread mail count
+
+			WFIFOW(fd,0) = 0x2b23;
+			WFIFOW(fd,2) = 17;
+			WFIFOL(fd,4) = charid;
+			WFIFOL(fd,8) = all;
+			WFIFOL(fd,12) = unread;
+			WFIFOL(fd,16) = showall;
+			WFIFOSET(fd, 17);
+
+			RFIFOSKIP(fd,sz);
+			break;
+		}
+		// fetch
+		case 0x2b24:
+		{	size_t sz;
+			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < (sz=RFIFOW(fd,2)))
+				return 0;
+
+			CMailHead dummy;
+			uint32 charid = RFIFOL(fd,4);
+			unsigned char box = RFIFOB(fd, 8);
+			uint32 count  = char_db.listMail(charid, box, WFIFOP(fd,12));
+			WFIFOW(fd,0) = 0x2b24;
+			WFIFOW(fd,2) = 12 + count*dummy.size();
+			WFIFOL(fd,4) = charid;
+			WFIFOL(fd,8) = count;
+			WFIFOSET(fd, 12 + count*dummy.size());
+
+			RFIFOSKIP(fd,sz);
+			break;
+		}
+		// read
+		case 0x2b25:
+		{	size_t sz;
+			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < (sz=RFIFOW(fd,2)))
+				return 0;
+			uint32 charid = RFIFOL(fd,4);
+			uint32 msgid  = RFIFOL(fd,8);
+			CMail mail;
+			char_db.readMail(charid, msgid, mail);
+			WFIFOW(fd, 0) = 0x2b25;
+			WFIFOW(fd, 2) = 8+mail.size();
+			WFIFOL(fd, 4) = charid;
+			mail.tobuffer( WFIFOP(fd, 8) );
+			WFIFOSET(fd, 8+mail.size());
+
+			RFIFOSKIP(fd,sz);
+			break;
+		}
+		// delete
+		case 0x2b26:
+		{	size_t sz;
+			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < (sz=RFIFOW(fd,2)))
+				return 0;
+			uint32 charid = RFIFOL(fd,4);
+			uint32 msgid  = RFIFOL(fd,8);
+			uchar  ok     = char_db.deleteMail(charid, msgid);
+
+			WFIFOW(fd, 0) = 0x2b26;
+			WFIFOW(fd, 2) = 13;
+			WFIFOL(fd, 4) = charid;
+			WFIFOL(fd, 8) = msgid;
+			WFIFOB(fd,12) = ok;
+			WFIFOSET(fd, 13);
+
+			RFIFOSKIP(fd,sz);
+			break;
+		}
+		// send
+		case 0x2b27:
+		{	size_t sz;
+			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < (sz=RFIFOW(fd,2)))
+				return 0;
+			bool ok = false;
+			uint32 tid, msgid=0;
+			uint32 senderid = RFIFOL(fd,4);
+			char* sender  = (char*)RFIFOP(fd,8);
+			char* target  = (char*)RFIFOP(fd,32);
+			char* head    = (char*)RFIFOP(fd,56);
+			char* body    = (char*)RFIFOP(fd,88);
+		
+			// store mail
+			ok = char_db.sendMail(senderid, sender, target, head, body, msgid, tid);
+			if(ok)
+			{	// send "you have new mail" to addressee
+				unsigned char buf[16];
+
+				WBUFW(buf,0) = 0x2b23;
+				WBUFW(buf,2) = 12;
+				WBUFL(buf,4) = tid;
+				WBUFL(buf,8) = 1;
+				mapif_sendallwos(-1, buf, 12);
+			}
+			// send answer back to sender
+			WFIFOW(fd,0) = 0x2b27;
+			WFIFOW(fd,2) = 13;
+			WFIFOL(fd,4) = senderid;
+			WFIFOL(fd,8) = msgid;
+			WFIFOB(fd,12) = ok;
+			WFIFOSET(fd, 13);
+
+			RFIFOSKIP(fd,sz);
+			break;
+		}
+
+
+		///////////////////////////////////////////////////////////////////////
+//!! reorder for proper returns or just integrate
 		default:
 			// inter serverˆ—‚É“n‚·
 			{
@@ -2332,32 +2450,32 @@ int parse_char(int fd)
 						char_log("Character Selected, Account ID: %d, Character Slot: %d, Character ID: %ld, Name: %s." RETCODE,
 							(unsigned long)sd->account_id, slot, (unsigned long)character.char_id, character.name);
 						// searching map server
-						int j = search_mapserver(character.last_point.map);
+						int j = search_mapserver(character.last_point.mapname);
 						// if map is not found, we check major cities
 						if(j < 0)
 						{
-							if((j = search_mapserver("prontera.gat")) >= 0) { // check is done without 'gat'.
-								safestrcpy(character.last_point.map, "prontera.gat", sizeof(character.last_point.map));
+							if((j = search_mapserver("prontera")) >= 0) { // check is done without 'gat'.
+								safestrcpy(character.last_point.mapname, "prontera", sizeof(character.last_point.mapname));
 								character.last_point.x = 273; // savepoint coordonates
 								character.last_point.y = 354;
-							} else if((j = search_mapserver("geffen.gat")) >= 0) { // check is done without 'gat'.
-								memcpy(character.last_point.map, "geffen.gat", 16);
+							} else if((j = search_mapserver("geffen")) >= 0) { // check is done without 'gat'.
+								safestrcpy(character.last_point.mapname, "geffen", 16);
 								character.last_point.x = 120; // savepoint coordonates
 								character.last_point.y = 100;
-							} else if((j = search_mapserver("morocc.gat")) >= 0) { // check is done without 'gat'.
-								safestrcpy(character.last_point.map, "morocc.gat", sizeof(character.last_point.map));
+							} else if((j = search_mapserver("morocc")) >= 0) { // check is done without 'gat'.
+								safestrcpy(character.last_point.mapname, "morocc", sizeof(character.last_point.mapname));
 								character.last_point.x = 160; // savepoint coordonates
 								character.last_point.y = 94;
-							} else if((j = search_mapserver("alberta.gat")) >= 0) { // check is done without 'gat'.
-								safestrcpy(character.last_point.map, "alberta.gat", sizeof(character.last_point.map));
+							} else if((j = search_mapserver("alberta")) >= 0) { // check is done without 'gat'.
+								safestrcpy(character.last_point.mapname, "alberta", sizeof(character.last_point.mapname));
 								character.last_point.x = 116; // savepoint coordonates
 								character.last_point.y = 57;
-							} else if((j = search_mapserver("payon.gat")) >= 0) { // check is done without 'gat'.
-								safestrcpy(character.last_point.map, "payon.gat", sizeof(character.last_point.map));
+							} else if((j = search_mapserver("payon")) >= 0) { // check is done without 'gat'.
+								safestrcpy(character.last_point.mapname, "payon", sizeof(character.last_point.mapname));
 								character.last_point.x = 87; // savepoint coordonates
 								character.last_point.y = 117;
-							} else if((j = search_mapserver("izlude.gat")) >= 0) { // check is done without 'gat'.
-								safestrcpy(character.last_point.map, "izlude.gat", sizeof(character.last_point.map));
+							} else if((j = search_mapserver("izlude")) >= 0) { // check is done without 'gat'.
+								safestrcpy(character.last_point.mapname, "izlude", sizeof(character.last_point.mapname));
 								character.last_point.x = 94; // savepoint coordonates
 								character.last_point.y = 103;
 							} else {
@@ -2366,7 +2484,7 @@ int parse_char(int fd)
 								{
 									if( session_isActive(server[j].fd) && server[j].map[0][0])
 									{	// change save point to one of map found on the server (the first)
-										safestrcpy(character.last_point.map, server[j].map[0], sizeof(character.last_point.map));
+										safestrcpy(character.last_point.mapname, server[j].map[0], sizeof(character.last_point.mapname));
 										ShowMessage("Map-server #%d found with a map: '%s'.\n", j, server[j].map[0]);
 										// coordonates are unknown
 										break;
@@ -2386,7 +2504,9 @@ int parse_char(int fd)
 
 						WFIFOW(fd,0) = 0x71;
 						WFIFOL(fd,2) = character.char_id;
-						memcpy(WFIFOP(fd,6), character.last_point.map, 16);
+						mapname2buffer(WFIFOP(fd,6), character.last_point.mapname, 16);
+
+
 						ShowMessage("Character selection '%s' (account: %ld, charid: %ld, slot: %d).\n", 
 							character.name, (unsigned long)character.account_id, (unsigned long)character.char_id, slot);
 						
@@ -2780,7 +2900,7 @@ int char_config_read(const char *cfgName)
 	}
 
 	while(fgets(line, sizeof(line), fp)) {
-		if( !skip_empty_line(line) )
+		if( !get_prepared_line(line) )
 			continue;
 
 		line[sizeof(line)-1] = '\0';
@@ -2931,7 +3051,6 @@ int do_init(int argc, char **argv)
 	int i;
 
 	char_config_read((argc < 2) ? CHAR_CONF_NAME : argv[1]);
-
 	char_db.init( (argc < 2) ? CHAR_CONF_NAME : argv[1] );
 
 	// a newline in the log...
@@ -2943,7 +3062,6 @@ int do_init(int argc, char **argv)
 		memset(&server[i], 0, sizeof(struct mmo_map_server));
 		server[i].fd = -1;
 	}
-
 
 	update_online = time(NULL);
 	create_online_files(); // update online players files at start of the server
@@ -2969,6 +3087,6 @@ int do_init(int argc, char **argv)
 	}
 	char_log("The char-server is ready (Server is listening on %s:%d)." RETCODE, charaddress.LANIP().getstring(),charaddress.LANPort());
 	ShowStatus("The char-server is "CL_BT_GREEN"ready"CL_NORM" (listening on %s:%d).\n", charaddress.LANIP().getstring(),charaddress.LANPort());
+
 	return 0;
 }
-

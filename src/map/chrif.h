@@ -44,4 +44,11 @@ int chrif_flush_fifo(void);
 
 bool getAthentification(uint32 accid, CAuth& auth);
 
+bool chrif_mail_check(struct map_session_data &sd, bool showall=false);
+bool chrif_mail_fetch(struct map_session_data &sd, bool unreadonly);
+bool chrif_mail_read(struct map_session_data &sd, uint32 msgid);
+bool chrif_mail_delete(struct map_session_data &sd, uint32 msgid);
+bool chrif_mail_send(struct map_session_data &sd, const char *target, const char *header, const char *body);
+
+
 #endif

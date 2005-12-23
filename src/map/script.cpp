@@ -612,7 +612,7 @@ void CScript::CStringBuffer::loadConstDB(void)
 	{
 		while(fgets(line,sizeof(line),fp))
 		{
-			if( !skip_empty_line(line) )
+			if( !get_prepared_line(line) )
 				continue;
 			type=0;
 			if( sscanf(line,"%[A-Za-z0-9_],%d,%d",name,&val,&type)>=2 ||
@@ -2151,7 +2151,7 @@ void read_constdb(void)
 		return ;
 	}
 	while(fgets(line,sizeof(line),fp)){
-		if( !skip_empty_line(line) )
+		if( !get_prepared_line(line) )
 			continue;
 		type=0;
 		if(sscanf(line,"%[A-Za-z0-9_],%d,%d",name,&val,&type)>=2 ||
@@ -2440,7 +2440,8 @@ int set_reg(CScriptEngine &st,int num,const char *name, void *v)
 				if(st.sd)
 					pc_setregstr(*st.sd,num,str);
 				else
-					ShowError("set_reg error name?:%s\n",name);
+					mapreg_setregstr(num,str);
+					//ShowError("set_reg error name?:%s\n",name);
 					
 			}
 			else if(prefix=='$')
@@ -2465,7 +2466,8 @@ int set_reg(CScriptEngine &st,int num,const char *name, void *v)
 				if(st.sd)
 					pc_setreg(*st.sd,num,val);
 				else
-					ShowError("set_reg error name?:%s\n",name);
+					mapreg_setregnum(num,val);
+					//ShowError("set_reg error name?:%s\n",name);
 					
 			}
 			else if(prefix=='$')
@@ -2629,6 +2631,7 @@ void CScriptEngine::ConvertName(CScriptEngine::CValue &data)
 {
 	if(data.type==CScriptEngine::C_NAME)
 	{
+		int datanum = data.num;
 		char *name=str_buf+str_data[data.num&0x00ffffff].str;
 		char prefix=*name;
 		char postfix=name[strlen(name)-1];
@@ -2636,43 +2639,48 @@ void CScriptEngine::ConvertName(CScriptEngine::CValue &data)
 		if(postfix=='$')
 		{
 			data.type=CScriptEngine::C_CONSTSTR;
+			//data.str = ""; // default
 			if( prefix=='@')
 			{
 				if(this->sd)
-					data.str = pc_readregstr(*sd,data.num);
+					data.str = pc_readregstr(*sd,datanum);
+				else
+					data.str = (char *)numdb_search(mapregstr_db,datanum);
 			}
 			else if(prefix=='$')
 			{
-				data.str = (char *)numdb_search(mapregstr_db,data.num);
+				data.str = (char *)numdb_search(mapregstr_db,datanum);
 			}
 			else
 			{
 				ShowError("script: get_val: illegal scope string variable.\n");
 				data.str = "!!ERROR!!";
 			}
-			if( data.str == NULL )
-				data.str = "";
 		}
 		else
 		{
 			data.type=CScriptEngine::C_INT;
-			if(str_data[data.num&0x00ffffff].type==CScriptEngine::C_INT)
+			data.num = 0; // default
+			
+			if(str_data[datanum&0x00ffffff].type==CScriptEngine::C_INT)
 			{
-				data.num = str_data[data.num&0x00ffffff].val;
+				data.num = str_data[datanum&0x00ffffff].val;
 			}
-			else if(str_data[data.num&0x00ffffff].type==CScriptEngine::C_PARAM)
+			else if(str_data[datanum&0x00ffffff].type==CScriptEngine::C_PARAM)
 			{
 				if(this->sd)
-					data.num = pc_readparam(*sd,str_data[data.num&0x00ffffff].val);
+					data.num = pc_readparam(*sd,str_data[datanum&0x00ffffff].val);
 			}
 			else if(prefix=='@')
 			{
 				if(this->sd)
-					data.num = pc_readreg(*sd,data.num);
+					data.num = pc_readreg(*sd,datanum);
+				else
+					data.num = (size_t)numdb_search(mapreg_db,datanum);
 			}
 			else if(prefix=='$')
 			{
-				data.num = (size_t)numdb_search(mapreg_db,data.num);
+				data.num = (size_t)numdb_search(mapreg_db,datanum);
 			}
 			else if(prefix=='#')
 			{
@@ -3366,6 +3374,13 @@ int CScriptEngine::run(const char *rootscript, size_t pos, uint32 rid, uint32 oi
 				// clear the npc, if the default npc was used
 				if(engine.npcstate == NPC_DEFAULT)
 					engine.send_defaultnpc(false);
+
+				// clear the default engine completely
+				//!! necessary at the moment of mixed c and c++ allocation
+				//!! the static defaultengine is cleared at program exit and
+				//!! might still hold elements from the already cleard memory manager
+				//!! remove when c++ allocation
+				if(!sd)	engine.temporaty_close();
 
 				//!! ... other necessary clearing
 
@@ -4118,12 +4133,12 @@ int buildin_warp(CScriptEngine &st)
 	else if( 0==strcmp(str,"SavePoint") )
 	{
 		if( !map[st.sd->bl.m].flag.noreturn )	// ’±‹ÖŽ~
-			pc_setpos(*st.sd,st.sd->status.save_point.map,st.sd->status.save_point.x,st.sd->status.save_point.y,3);
+			pc_setpos(*st.sd,st.sd->status.save_point.mapname,st.sd->status.save_point.x,st.sd->status.save_point.y,3);
 	}
 	else if( 0==strcmp(str,"Save") )
 	{
 		if( !map[st.sd->bl.m].flag.noreturn )	// ’±‹ÖŽ~
-			pc_setpos(*st.sd,st.sd->status.save_point.map,st.sd->status.save_point.x,st.sd->status.save_point.y,3);
+			pc_setpos(*st.sd,st.sd->status.save_point.mapname,st.sd->status.save_point.x,st.sd->status.save_point.y,3);
 	}
 	else
 	{
@@ -5670,6 +5685,10 @@ int buildin_gettimetick(CScriptEngine &st)	/* Asgard Version */
 	int type=st.GetInt(st[2]);
 
 	switch(type){
+	case 2: 
+		//type 2:(Get the number of seconds elapsed since 00:00 hours, Jan 1, 1970 UTC from the system clock.)
+		st.push_val(CScriptEngine::C_INT,time(NULL));
+		break;
 	case 1:
 		//type 1:(Second Ticks: 0-86399, 00:00:00-23:59:59)
 		time(&timer);
@@ -7002,7 +7021,7 @@ int buildin_warpwaitingpc(CScriptEngine &st)
 			if(map[sd->bl.m].flag.noteleport)	// ƒeƒŒƒ|‹ÖŽ~
 				return 0;
 
-			pc_setpos(*sd,sd->status.save_point.map,sd->status.save_point.x,sd->status.save_point.y,3);
+			pc_setpos(*sd,sd->status.save_point.mapname,sd->status.save_point.x,sd->status.save_point.y,3);
 		}else
 			pc_setpos(*sd,str,x,y,0);
 	}
@@ -7059,7 +7078,9 @@ int buildin_setmapflagnosave(CScriptEngine &st)
 //!! broadcast command if not on this mapserver
 	if(m >= 0) {
 		map[m].flag.nosave=1;
-		memcpy(map[m].save.map,str2,16);
+		safestrcpy(map[m].save.mapname,str2,16);
+		char*ip=strchr(map[m].save.mapname,'.');
+		if(ip) *ip=0;
 		map[m].save.x=x;
 		map[m].save.y=y;
 	}
@@ -7415,7 +7436,7 @@ public:
 				((sd.status.guild_id == g_id) && (flag&1)) ||
 				((sd.status.guild_id != g_id) && (flag&2)) )
 			{	// move players out that not belong here
-				pc_setpos(sd,sd.status.save_point.map,sd.status.save_point.x,sd.status.save_point.y,3);
+				pc_setpos(sd,sd.status.save_point.mapname,sd.status.save_point.x,sd.status.save_point.y,3);
 			}
 		}
 		else if(bl.type == BL_MOB)
@@ -7509,10 +7530,7 @@ int buildin_getcastlename(CScriptEngine &st)
 			}
 		}
 	}
-	if(buf)
-		st.push_str(CScriptEngine::C_STR, buf);
-	else
-		st.push_str(CScriptEngine::C_CONSTSTR, "");
+	st.push_str(buf?CScriptEngine::C_STR:CScriptEngine::C_CONSTSTR, buf?buf:"");
 	return 0;
 }
 
@@ -8928,30 +8946,26 @@ int buildin_getlook(CScriptEngine &st){
 */
 int buildin_getsavepoint(CScriptEngine &st)
 {
-        int x,y,type;
-        char *mapname;
-        struct map_session_data *sd;
-
-        sd=st.sd;
-
-        type=st.GetInt(st[2]);
-		mapname=(char*)aMalloc(24*sizeof(char));
-		memcpy(mapname,sd->status.save_point.map,24);//EOS included
-
-        x=sd->status.save_point.x;
-        y=sd->status.save_point.y;
-        switch(type){
-            case 0:
-                st.push_str(CScriptEngine::C_STR,mapname);
-                break;
-            case 1:
-                st.push_val(CScriptEngine::C_INT,x);
-                break;
-            case 2:
-                st.push_val(CScriptEngine::C_INT,y);
-                break;
-        }
-        return 0;
+	int type=st.GetInt(st[2]);
+	switch(type)
+	{
+	case 0:
+	{
+		char *mapname=(char*)aMalloc(24*sizeof(char));
+		safestrcpy(mapname,st.sd ? st.sd->status.save_point.mapname : "unknown", 24);
+		st.push_str(CScriptEngine::C_STR,mapname);
+		break;
+	}
+	case 1:
+		st.push_val(CScriptEngine::C_INT, st.sd ? st.sd->status.save_point.x : 0 );
+		break;
+	case 2:
+		st.push_val(CScriptEngine::C_INT, st.sd ? st.sd->status.save_point.y : 0);
+		break;
+	default:
+		st.push_str(CScriptEngine::C_CONSTSTR, "");
+	}
+	return 0;
 }
 
 /*==========================================
@@ -8976,121 +8990,114 @@ int buildin_getsavepoint(CScriptEngine &st)
 */
 int buildin_getmapxy(CScriptEngine &st)
 {
-	struct map_session_data *sd=NULL;
-	struct npc_data *nd;
-	struct pet_data *pd;
-	int num;
-	char *name;
-	int x,y,type;
-	char *mapname=NULL;
-
-	if( st[2].type!=CScriptEngine::C_NAME )
+	int ret = -1;
+	if(st.sd)
 	{
-		ShowMessage("script: buildin_getmapxy: not mapname variable\n");
-		st.push_val(CScriptEngine::C_INT,-1);
-                return 0;
-        }
-	if( st[3].type!=CScriptEngine::C_NAME )
-	{
-		ShowMessage("script: buildin_getmapxy: not mapx variable\n");
-		st.push_val(CScriptEngine::C_INT,-1);
-                return 0;
-        }
-	if( st[4].type!=CScriptEngine::C_NAME )
-	{
-		ShowMessage("script: buildin_getmapxy: not mapy variable\n");
-		st.push_val(CScriptEngine::C_INT,-1);
-                return 0;
-        }
+		struct map_session_data *sd=NULL;
+		struct npc_data *nd;
+		struct pet_data *pd;
+		int num;
+		char *name;
+		int x,y,type;
+		char *mapname=NULL;
 
-
-//??????????? >>>  Possible needly check function parameters on C_STR,CScriptEngine::C_INT,CScriptEngine::C_INT <<< ???????????//
-	type=st.GetInt(st[5]);
-
-	switch(type)
-	{
-            case 0:                                             //Get Character Position
-		if( st.Arguments() > 6 )
-			sd=map_nick2sd(st.GetString( (st[6])));
-		else
-			sd=st.sd;
-		if( sd==NULL )
-		{	//wrong char name or char offline
+		if( st[2].type!=CScriptEngine::C_NAME )
+		{
+			ShowMessage("script: buildin_getmapxy: not mapname variable\n");
 			st.push_val(CScriptEngine::C_INT,-1);
 			return 0;
 		}
-                    x=sd->bl.x;
-                    y=sd->bl.y;
-		mapname = sd->mapname;
-		ShowMessage(">>>>%s %d %d\n",mapname,x,y);
-                    break;
-            case 1:                                             //Get NPC Position
-		if( st.Arguments() > 6 )
-			nd=npc_name2id(st.GetString(st[6]));
-                    else
-			nd=(struct npc_data *)map_id2bl(st.oid);
-		if( nd==NULL )
-		{	//wrong npc name or char offline
+		if( st[3].type!=CScriptEngine::C_NAME )
+		{
+			ShowMessage("script: buildin_getmapxy: not mapx variable\n");
 			st.push_val(CScriptEngine::C_INT,-1);
-                        return 0;
-                    }
-                    x=nd->bl.x;
-                    y=nd->bl.y;
-		mapname=map[nd->bl.m].mapname;
-		ShowMessage(">>>>%s %d %d\n",mapname,x,y);
-                    break;
-            case 2:                                             //Get Pet Position
-		if( st.Arguments() > 6 )
-			sd=map_nick2sd(st.GetString(st[6]));
-                    else
-                        sd=st.sd;
-		if( sd==NULL )
-		{	//wrong char name or char offline
+			return 0;
+		}
+		if( st[4].type!=CScriptEngine::C_NAME )
+		{
+			ShowMessage("script: buildin_getmapxy: not mapy variable\n");
 			st.push_val(CScriptEngine::C_INT,-1);
-                        return 0;
-                    }
-                    pd=sd->pd;
-		if(pd==NULL)
-		{	//ped data not found
+			return 0;
+		}
+		
+		type=st.GetInt(st[5]);
+		switch(type)
+		{
+		case 0:	//Get Character Position
+			if( st.Arguments() > 6 )
+				sd=map_nick2sd( st.GetString(st[6]) );
+			else
+				sd=st.sd;
+			if( sd==NULL )
+			{	//wrong char name or char offline
+				st.push_val(CScriptEngine::C_INT,-1);
+				return 0;
+			}
+			x=sd->bl.x;
+			y=sd->bl.y;
+			mapname = sd->mapname;
+			ShowMessage(">>>>%s %d %d\n",mapname,x,y);
+			break;
+		case 1:	//Get NPC Position
+			if( st.Arguments() > 6 )
+				nd=npc_name2id( st.GetString(st[6]) );
+			else
+				nd=(struct npc_data *)map_id2bl(st.oid);
+			if( nd==NULL )
+			{	//wrong npc name or char offline
+				st.push_val(CScriptEngine::C_INT,-1);
+				return 0;
+			}
+			x=nd->bl.x;
+			y=nd->bl.y;
+			mapname=map[nd->bl.m].mapname;
+			ShowMessage(">>>>%s %d %d\n",mapname,x,y);
+			break;
+		case 2:	//Get Pet Position
+			if( st.Arguments() > 6 )
+				sd=map_nick2sd( st.GetString(st[6]) );
+			else
+				sd=st.sd;
+			if( sd==NULL )
+			{	//wrong char name or char offline
+				st.push_val(CScriptEngine::C_INT,-1);
+				return 0;
+			}
+			pd=sd->pd;
+			if(pd==NULL)
+			{	//ped data not found
+				st.push_val(CScriptEngine::C_INT,-1);
+				return 0;
+			}
+			x=pd->bl.x;
+			y=pd->bl.y;
+			mapname=map[pd->bl.m].mapname;
+			ShowMessage(">>>>%s %d %d\n",mapname,x,y);
+			break;
+		case 3:	//Get Mob Position
 			st.push_val(CScriptEngine::C_INT,-1);
-                        return 0;
-                    }
-                    x=pd->bl.x;
-                    y=pd->bl.y;
-		mapname=map[pd->bl.m].mapname;
-		ShowMessage(">>>>%s %d %d\n",mapname,x,y);
-                    break;
-            case 3:                                             //Get Mob Position
-		st.push_val(CScriptEngine::C_INT,-1);
-                        return 0;
-            default:                                            //Wrong type parameter
-		st.push_val(CScriptEngine::C_INT,-1);
-                        return 0;
-	}//end switch
-
-	sd=st.sd;
-	if(sd)
-	{
-     //Set MapName$
+			return 0;
+		default:	//Wrong type parameter
+			st.push_val(CScriptEngine::C_INT,-1);
+			return 0;
+		}//end switch
+	
+		//Set MapName$
 		num=st[2].num;
-        name=(char *)(str_buf+str_data[num&0x00ffffff].str);
+		name=(char *)(str_buf+str_data[num&0x00ffffff].str);
 		set_reg(st,num,name,mapname);
-
-     //Set MapX
+		//Set MapX
 		num=st[3].num;
-        name=(char *)(str_buf+str_data[num&0x00ffffff].str);
+		name=(char *)(str_buf+str_data[num&0x00ffffff].str);
 		set_reg(st,num,name,(void*)((size_t)x));
-
-     //Set MapY
+		//Set MapY
 		num=st[4].num;
-        name=(char *)(str_buf+str_data[num&0x00ffffff].str);
+		name=(char *)(str_buf+str_data[num&0x00ffffff].str);
 		set_reg(st,num,name,(void*)((size_t)y));
-
-     //Return Success value
-		st.push_val(CScriptEngine::C_INT,0);
-        return 0;
+		//Return Success value
+		ret = 0;
 	}
-	st.push_val(CScriptEngine::C_INT,-1);
+	st.push_val(CScriptEngine::C_INT, ret);
 	return 0;
 }
 
@@ -9100,13 +9107,13 @@ int buildin_getmapxy(CScriptEngine &st)
  */
 int buildin_skilluseid (CScriptEngine &st)
 {
-   int skid,sklv;
-   struct map_session_data *sd;
-   skid=st.GetInt(st[2]);
-   sklv=st.GetInt(st[3]);
-   sd=st.sd;
-   if(sd) skill_use_id(sd,sd->status.account_id,skid,sklv);
-   return 0;
+	int skid,sklv;
+	struct map_session_data *sd;
+	skid=st.GetInt(st[2]);
+	sklv=st.GetInt(st[3]);
+	sd=st.sd;
+	if(sd) skill_use_id(sd,sd->status.account_id,skid,sklv);
+	return 0;
 }
 
 /*=====================================================
@@ -9115,15 +9122,15 @@ int buildin_skilluseid (CScriptEngine &st)
  */
 int buildin_skillusepos(CScriptEngine &st)
 {
-   int skid,sklv,x,y;
-   struct map_session_data *sd;
-   skid=st.GetInt(st[2]);
-   sklv=st.GetInt(st[3]);
-   x=st.GetInt(st[4]);
-   y=st.GetInt(st[5]);
-   sd=st.sd;
-   if(sd) skill_use_pos(sd,x,y,skid,sklv);
-   return 0;
+	int skid,sklv,x,y;
+	struct map_session_data *sd;
+	skid=st.GetInt(st[2]);
+	sklv=st.GetInt(st[3]);
+	x=st.GetInt(st[4]);
+	y=st.GetInt(st[5]);
+	sd=st.sd;
+	if(sd) skill_use_pos(sd,x,y,skid,sklv);
+	return 0;
 }
 
 /*==========================================
@@ -9132,10 +9139,8 @@ int buildin_skillusepos(CScriptEngine &st)
  */
 int buildin_logmes(CScriptEngine &st)
 {
-	if (log_config.npc <= 0 ) return 0;
-	st.GetString(st[2]);
-	map_session_data *sd = st.sd;
-	if(sd) log_npc(*sd,st[2].str);
+	if( log_config.npc && st.sd)
+		log_npc(*st.sd, st.GetString(st[2]));
 	return 0;
 }
 
@@ -9589,7 +9594,7 @@ int buildin_warpparty(CScriptEngine &st)
 	uint32 p	=st.GetInt(st[5]);
 	struct map_session_data *sd=st.sd;
 
-	if(!sd || map[sd->bl.m].flag.noreturn || map[sd->bl.m].flag.noteleport || NULL==party_search(p))
+	if(!sd || map[sd->bl.m].flag.noreturn || map[sd->bl.m].flag.nowarp || NULL==party_search(p))
 		return 0;
 	
 	if(p!=0)
@@ -9604,7 +9609,7 @@ int buildin_warpparty(CScriptEngine &st)
 				if(session[i] && (pl_sd = (struct map_session_data *)session[i]->session_data) && pl_sd->state.auth &&
 					pl_sd->status.party_id == p)
 				{
-					if(!map[pl_sd->bl.m].flag.noteleport)
+					if(!map[pl_sd->bl.m].flag.nowarp)
 						pc_randomwarp(*pl_sd,3);
 				}
 			}
@@ -9617,13 +9622,13 @@ int buildin_warpparty(CScriptEngine &st)
 					pl_sd->status.party_id == p)
 				{
 					if(!map[pl_sd->bl.m].flag.noreturn)
-						pc_setpos(*pl_sd,pl_sd->status.save_point.map,pl_sd->status.save_point.x,pl_sd->status.save_point.y,3);
+						pc_setpos(*pl_sd,pl_sd->status.save_point.mapname,pl_sd->status.save_point.x,pl_sd->status.save_point.y,3);
 				}
 			}
 		}
 		else if( 0==strcasecmp(str,"SavePoint") )
 		{
-			str=sd->status.save_point.map;
+			str=sd->status.save_point.mapname;
 			x=sd->status.save_point.x;
 			y=sd->status.save_point.y;
 			for (i = 0; i < fd_max; i++)
@@ -9664,7 +9669,7 @@ int buildin_warpguild(CScriptEngine &st)
 	uint32 g	=st.GetInt(st[5]);
 	struct map_session_data *sd=st.sd;
 
-	if(!sd || map[sd->bl.m].flag.noreturn || map[sd->bl.m].flag.noteleport || NULL==guild_search(g) )
+	if(!sd || map[sd->bl.m].flag.noreturn || map[sd->bl.m].flag.nowarp || NULL==guild_search(g) )
 		return 0;
 	
 	if(g!=0)
@@ -9679,7 +9684,7 @@ int buildin_warpguild(CScriptEngine &st)
 				if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth &&
 					pl_sd->status.guild_id == g)
 				{
-					if(!map[pl_sd->bl.m].flag.noteleport)
+					if(!map[pl_sd->bl.m].flag.nowarp)
 						pc_randomwarp(*pl_sd,3);
 				}
 			}
@@ -9692,13 +9697,13 @@ int buildin_warpguild(CScriptEngine &st)
 					pl_sd->status.guild_id == g)
 				{
 					if(!map[pl_sd->bl.m].flag.noreturn)
-						pc_setpos(*pl_sd,pl_sd->status.save_point.map,pl_sd->status.save_point.x,pl_sd->status.save_point.y,3);
+						pc_setpos(*pl_sd,pl_sd->status.save_point.mapname,pl_sd->status.save_point.x,pl_sd->status.save_point.y,3);
 				}
 			}
 		}
 		else if( 0==strcasecmp(str,"SavePoint")==0 )
 		{
-			str=sd->status.save_point.map;
+			str=sd->status.save_point.mapname;
 			x=sd->status.save_point.x;
 			y=sd->status.save_point.y;
 			for(i=0; i<fd_max; i++)
@@ -9809,10 +9814,9 @@ int mapreg_setregnum(int num,int val)
  * •¶Žš—ñŒ^ƒ}ƒbƒv•Ï”‚Ì•ÏX
  *------------------------------------------
  */
-int mapreg_setregstr(int num,const char *str)
+int mapreg_setregstr(int num, const char *str)
 {
 	char *p;
-
 	if( (p=(char *) numdb_search(mapregstr_db,num))!=NULL )
 		aFree(p);
 
@@ -9942,7 +9946,7 @@ int script_save_mapreg()
 {
 	FILE *fp;
 	int lock;
-	if( (fp=lock_fopen(mapreg_txt,&lock))==NULL )
+	if( (fp=lock_fopen(mapreg_txt, lock))==NULL )
 		return -1;
 
 	numdb_foreach(mapreg_db,    CDBScriptSaveMapregInt(fp) );
@@ -9950,7 +9954,7 @@ int script_save_mapreg()
 //	numdb_foreach(mapreg_db,script_save_mapreg_intsub,fp);
 //	numdb_foreach(mapregstr_db,script_save_mapreg_strsub,fp);
 
-	lock_fclose(fp,mapreg_txt,&lock);
+	lock_fclose(fp,mapreg_txt, lock);
 	mapreg_dirty=0;
 	return 0;
 }
@@ -10011,7 +10015,7 @@ int script_config_read(const char *cfgName)
 		return 1;
 	}
 	while (fgets(line, sizeof(line), fp)) {
-		if( !skip_empty_line(line) )
+		if( !get_prepared_line(line) )
 			continue;
 		i = sscanf(line,"%[^:]: %[^\r\n]",w1,w2);
 		if (i != 2)

@@ -648,27 +648,30 @@ void db_foreach(struct dbt *table,int (*func)(void*,void*,va_list &),...)
 */
 void db_foreach(struct dbt* table, const CDBProcessor& elem)
 {
-	int count = table->item_count;
-	struct dbn *p = table->head;
-	db_free_lock(table);
-	while(p)
+	if(table)
 	{
-		if(!p->deleted)
-		{	// stop traversal on request
-			if( !elem.process(p->key, p->data) )
-			{
-				count=0;
-				break;
+		int count = table->item_count;
+		struct dbn *p = table->head;
+		db_free_lock(table);
+		while(p)
+		{
+			if(!p->deleted)
+			{	// stop traversal on request
+				if( !elem.process(p->key, p->data) )
+				{
+					count=0;
+					break;
+				}
 			}
+			count--;
+			p=p->next;
 		}
-		count--;
-		p=p->next;
-	}
-	db_free_unlock(table);
-	if(count)
-	{
-		ShowError("db_foreach : data lost %d item(s) allocated from %s line %d\n",
-			count, table->alloc_file, table->alloc_line);
+		db_free_unlock(table);
+		if(count)
+		{
+			ShowError("db_foreach : data lost %d item(s) allocated from %s line %d\n",
+				count, table->alloc_file, table->alloc_line);
+		}
 	}
 }
 /*
@@ -733,90 +736,91 @@ void db_final(struct dbt *table,int (*func)(void*,void*,va_list &),...)
 	}
 }
 */
-void db_final(struct dbt *table,int (*func)(void*,void*))
+void db_final(struct dbt *&table,int (*func)(void*,void*))
 {
-	struct dbn *pn, *p = table->head;
-	db_free_lock(table);
-	while(p)
-	{
-		if(func && !p->deleted)
-		{
-			func(p->key,p->data);
-			p->key=NULL;
-			p->data=NULL;
-		}
-
-		pn=p->next;
-
-		if (p->prev)
-			p->prev->next = p->next;
-		else
-			table->head = p->next;
-		if (p->next)
-			p->next->prev = p->prev;
-		else
-			table->tail = p->prev;
-
-#ifdef MALLOC_DBN
-		free_dbn(p);
-#else
-		aFree(p);
-#endif
-
-		p=pn;
-	}
-	db_free_unlock(table);
-	if(table->free_list)
-	{
-		aFree(table->free_list);
-		table->free_list=NULL;
-	}
 	if(table)
 	{
+		struct dbn *pn, *p = table->head;
+		db_free_lock(table);
+		while(p)
+		{
+			if(func && !p->deleted)
+			{
+				func(p->key,p->data);
+				p->key=NULL;
+				p->data=NULL;
+			}
+
+			pn=p->next;
+
+			if (p->prev)
+				p->prev->next = p->next;
+			else
+				table->head = p->next;
+			if (p->next)
+				p->next->prev = p->prev;
+			else
+				table->tail = p->prev;
+
+#ifdef MALLOC_DBN
+			free_dbn(p);
+#else
+			aFree(p);
+#endif
+
+			p=pn;
+		}
+		db_free_unlock(table);
+		if(table->free_list)
+		{
+			aFree(table->free_list);
+			table->free_list=NULL;
+		}
 		aFree(table);
 		table=NULL;
 	}
 }
-void db_final(struct dbt* table, const CDBProcessor& elem)
+void db_final(struct dbt*&table, const CDBProcessor& elem)
 {
-	struct dbn *pn, *p = table->head;
-	db_free_lock(table);
-	while(p)
-	{
-		if(!p->deleted)
-		{
-			// ignore return value
-			elem.process(p->key,p->data);
-			p->key=NULL;
-			p->data=NULL;
-		}
-		pn = p->next;
-
-		if (p->prev)
-			p->prev->next = p->next;
-		else
-			table->head = p->next;
-		if (p->next)
-			p->next->prev = p->prev;
-		else
-			table->tail = p->prev;
-
-#ifdef MALLOC_DBN
-		free_dbn(p);
-#else
-		aFree(p);
-#endif
-
-		p=pn;
-	}
-	db_free_unlock(table);
-	if(table->free_list)
-	{
-		aFree(table->free_list);
-		table->free_list=NULL;
-	}
 	if(table)
 	{
+		struct dbn *pn, *p = table->head;
+		db_free_lock(table);
+		while(p)
+		{
+			if(!p->deleted)
+			{
+				// ignore return value
+				elem.process(p->key,p->data);
+				p->key=NULL;
+				p->data=NULL;
+			}
+			pn = p->next;
+
+			if (p->prev)
+				p->prev->next = p->next;
+			else
+				table->head = p->next;
+			if (p->next)
+				p->next->prev = p->prev;
+			else
+				table->tail = p->prev;
+
+#ifdef MALLOC_DBN
+			free_dbn(p);
+#else
+			aFree(p);
+#endif
+
+			p=pn;
+		}
+		db_free_unlock(table);
+		if(table->free_list)
+		{
+			aFree(table->free_list);
+			table->free_list=NULL;
+		}
+
 		aFree(table);
 		table=NULL;
 	}

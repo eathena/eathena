@@ -1801,7 +1801,7 @@ int clif_set0192(int fd, unsigned short m, unsigned short x, unsigned short y, u
 	WFIFOW(fd,2) = x;
 	WFIFOW(fd,4) = y;
 	WFIFOW(fd,6) = type;
-	memcpy(WFIFOP(fd,8),map[m].mapname,16);
+	mapname2buffer(WFIFOP(fd,8), map[m].mapname, 16);
 	WFIFOSET(fd,packet_len_table[0x192]);
 
 	return 0;
@@ -1854,33 +1854,43 @@ int clif_clearweather(unsigned short m)
 			WFIFOB(sd->fd,6) = 0;
 			WFIFOSET(sd->fd,packet_len_table[0x80]);
 
-			WFIFOW(sd->fd,0)=0x7c;
-			WFIFOL(sd->fd,2)=0xFFFFFFF6;//-10;
-			WFIFOW(sd->fd,6)=0;
-			WFIFOW(sd->fd,8)=0;
-			WFIFOW(sd->fd,10)=0;
-			WFIFOW(sd->fd,12)=OPTION_HIDE;
-			WFIFOW(sd->fd,20)=100;
-			WFIFOPOS(sd->fd,36,sd->bl.x,sd->bl.y, sd->dir);
-			WFIFOSET(sd->fd,packet_len_table[0x7c]);
+			
+			if( map[sd->bl.m].flag.snow || 
+				map[sd->bl.m].flag.clouds || 
+				map[sd->bl.m].flag.fog || 
+				map[sd->bl.m].flag.fireworks ||
+				map[sd->bl.m].flag.sakura || 
+				map[sd->bl.m].flag.leaves || 
+				map[sd->bl.m].flag.rain )
+			{
+				WFIFOW(sd->fd,0)=0x7c;
+				WFIFOL(sd->fd,2)=0xFFFFFFF6;//-10;
+				WFIFOW(sd->fd,6)=0;
+				WFIFOW(sd->fd,8)=0;
+				WFIFOW(sd->fd,10)=0;
+				WFIFOW(sd->fd,12)=OPTION_HIDE;
+				WFIFOW(sd->fd,20)=100;
+				WFIFOPOS(sd->fd,36,sd->bl.x,sd->bl.y, sd->dir);
+				WFIFOSET(sd->fd,packet_len_table[0x7c]);
 
-			if (map[sd->bl.m].flag.snow)
-				clif_weather1(sd->fd, EFFECT_SNOW);
-			if (map[sd->bl.m].flag.clouds)
-				clif_weather1(sd->fd, EFFECT_CLOUDS);
-			if (map[sd->bl.m].flag.fog)
-				clif_weather1(sd->fd, EFFECT_FOG);
-			if (map[sd->bl.m].flag.fireworks) {
-				clif_weather1(sd->fd, EFFECT_FIRE1);
-				clif_weather1(sd->fd, EFFECT_FIRE2);
-				clif_weather1(sd->fd, EFFECT_FIRE3);
+				if (map[sd->bl.m].flag.snow)
+					clif_weather1(sd->fd, EFFECT_SNOW);
+				if (map[sd->bl.m].flag.clouds)
+					clif_weather1(sd->fd, EFFECT_CLOUDS);
+				if (map[sd->bl.m].flag.fog)
+					clif_weather1(sd->fd, EFFECT_FOG);
+				if (map[sd->bl.m].flag.fireworks) {
+					clif_weather1(sd->fd, EFFECT_FIRE1);
+					clif_weather1(sd->fd, EFFECT_FIRE2);
+					clif_weather1(sd->fd, EFFECT_FIRE3);
+				}
+				if (map[sd->bl.m].flag.sakura)
+					clif_weather1(sd->fd, EFFECT_SAKURA);
+				if (map[sd->bl.m].flag.leaves)
+					clif_weather1(sd->fd, EFFECT_LEAVES);
+				if (map[sd->bl.m].flag.rain)
+					clif_weather1(sd->fd, EFFECT_RAIN);
 			}
-			if (map[sd->bl.m].flag.sakura)
-				clif_weather1(sd->fd, EFFECT_SAKURA);
-			if (map[sd->bl.m].flag.leaves)
-				clif_weather1(sd->fd, EFFECT_LEAVES);
-			if (map[sd->bl.m].flag.rain)
-				clif_weather1(sd->fd, EFFECT_RAIN);
 		}
 	}
 	return 0;
@@ -1942,34 +1952,42 @@ int clif_spawnpc(struct map_session_data &sd)
 		(sd.status.class_==7 || sd.status.class_==14 || sd.status.class_==4008 || sd.status.class_==4015 || sd.status.class_==4030 || sd.status.class_==4037))
 		pc_setriding(sd); // update peco riders for people upgrading athena [Valaris]
 
+	if( map[sd.bl.m].flag.snow || 
+		map[sd.bl.m].flag.clouds || 
+		map[sd.bl.m].flag.fog || 
+		map[sd.bl.m].flag.fireworks ||
+		map[sd.bl.m].flag.sakura || 
+		map[sd.bl.m].flag.leaves || 
+		map[sd.bl.m].flag.rain )
+	{
+		WFIFOW(fd,0)=0x7c;
+		WFIFOL(fd,2)=0xFFFFFFF6;//-10;
+		WFIFOW(fd,6)=0;
+		WFIFOW(fd,8)=0;
+		WFIFOW(fd,10)=0;
+		WFIFOW(fd,12)=OPTION_HIDE;
+		WFIFOW(fd,20)=100;
+		WFIFOPOS(fd,36,sd.bl.x,sd.bl.y,sd.dir);
+		WFIFOSET(fd,packet_len_table[0x7c]);
 
-	WFIFOW(fd,0)=0x7c;
-	WFIFOL(fd,2)=0xFFFFFFF6;//-10;
-	WFIFOW(fd,6)=0;
-	WFIFOW(fd,8)=0;
-	WFIFOW(fd,10)=0;
-	WFIFOW(fd,12)=OPTION_HIDE;
-	WFIFOW(fd,20)=100;
-	WFIFOPOS(fd,36,sd.bl.x,sd.bl.y,sd.dir);
-	WFIFOSET(fd,packet_len_table[0x7c]);
-
-	if (map[sd.bl.m].flag.snow)
-		clif_weather1(fd, EFFECT_SNOW);
-	if (map[sd.bl.m].flag.clouds)
-		clif_weather1(fd, EFFECT_CLOUDS);
-	if (map[sd.bl.m].flag.fog)
-		clif_weather1(fd, EFFECT_FOG);
-	if (map[sd.bl.m].flag.fireworks) {
-		clif_weather1(fd, EFFECT_FIRE1);
-		clif_weather1(fd, EFFECT_FIRE2);
-		clif_weather1(fd, EFFECT_FIRE3);
+		if (map[sd.bl.m].flag.snow)
+			clif_weather1(fd, EFFECT_SNOW);
+		if (map[sd.bl.m].flag.clouds)
+			clif_weather1(fd, EFFECT_CLOUDS);
+		if (map[sd.bl.m].flag.fog)
+			clif_weather1(fd, EFFECT_FOG);
+		if (map[sd.bl.m].flag.fireworks) {
+			clif_weather1(fd, EFFECT_FIRE1);
+			clif_weather1(fd, EFFECT_FIRE2);
+			clif_weather1(fd, EFFECT_FIRE3);
+		}
+		if (map[sd.bl.m].flag.sakura)
+			clif_weather1(fd, EFFECT_SAKURA);
+		if (map[sd.bl.m].flag.leaves)
+			clif_weather1(fd, EFFECT_LEAVES);
+		if (map[sd.bl.m].flag.rain)
+			clif_weather1(fd, EFFECT_RAIN);
 	}
-	if (map[sd.bl.m].flag.sakura)
-		clif_weather1(fd, EFFECT_SAKURA);
-	if (map[sd.bl.m].flag.leaves)
-		clif_weather1(fd, EFFECT_LEAVES);
-	if (map[sd.bl.m].flag.rain)
-		clif_weather1(fd, EFFECT_RAIN);
 
 	if(sd.state.viewsize==2) // tiny/big players [Valaris]
 		clif_specialeffect(sd.bl,EFFECT_BIG,0);
@@ -2176,19 +2194,28 @@ int clif_movechar(struct map_session_data &sd)
 	len = clif_set007b(sd, buf);
 	clif_send(buf, len, &sd.bl, AREA_WOS);
 
-	memset(buf2,0,packet_len_table[0x7b]);
-	WBUFW(buf2,0)=0x7b;
-	WBUFL(buf2,2)=0xFFFFFFF6;//-10;
-	WBUFW(buf2,6)=status_get_speed(&sd.bl);
-	WBUFW(buf2,8)=0;
-	WBUFW(buf2,10)=0;
-	WBUFW(buf2,12)=OPTION_HIDE;
-	WBUFW(buf2,14)=100;
-	WBUFL(buf2,22)=gettick();
-	WBUFPOS2(buf2,50,sd.bl.x,sd.bl.y,sd.to_x,sd.to_y);
-	WBUFB(buf2,56)=5;
-	WBUFB(buf2,57)=5;
-	clif_send(buf2, len, &sd.bl, SELF);
+	if( map[sd.bl.m].flag.snow || 
+		map[sd.bl.m].flag.clouds || 
+		map[sd.bl.m].flag.fog || 
+		map[sd.bl.m].flag.fireworks ||
+		map[sd.bl.m].flag.sakura || 
+		map[sd.bl.m].flag.leaves || 
+		map[sd.bl.m].flag.rain )
+	{
+		memset(buf2,0,packet_len_table[0x7b]);
+		WBUFW(buf2,0)=0x7b;
+		WBUFL(buf2,2)=0xFFFFFFF6;//-10;
+		WBUFW(buf2,6)=status_get_speed(&sd.bl);
+		WBUFW(buf2,8)=0;
+		WBUFW(buf2,10)=0;
+		WBUFW(buf2,12)=OPTION_HIDE;
+		WBUFW(buf2,14)=100;
+		WBUFL(buf2,22)=gettick();
+		WBUFPOS2(buf2,50,sd.bl.x,sd.bl.y,sd.to_x,sd.to_y);
+		WBUFB(buf2,56)=5;
+		WBUFB(buf2,57)=5;
+		clif_send(buf2, len, &sd.bl, SELF);
+	}
 
 	if(sd.disguise_id)
 	{
@@ -2222,7 +2249,7 @@ int clif_changemap(struct map_session_data &sd, const char *mapname, unsigned sh
 	return 0;
 
 	WFIFOW(fd,0) = 0x91;
-	memcpy(WFIFOP(fd,2), mapname, 16);
+	mapname2buffer(WFIFOP(fd,2), mapname, 16);
 	WFIFOW(fd,18) = x;
 	WFIFOW(fd,20) = y;
 	WFIFOSET(fd, packet_len_table[0x91]);
@@ -2241,7 +2268,7 @@ int clif_changemapserver(struct map_session_data &sd, const char *mapname, unsig
 		return 0;
 
 	WFIFOW(fd,0) = 0x92;
-	memcpy(WFIFOP(fd,2), mapname, 16);
+	mapname2buffer(WFIFOP(fd,2), mapname, 16);
 	WFIFOW(fd,18) = x;
 	WFIFOW(fd,20) = y;
 	WFIFOLIP(fd,22) = ip;
@@ -4465,30 +4492,6 @@ int clif_getareachar_skillunit(struct map_session_data &sd,struct skill_unit &un
 	WFIFOW(fd,10)=unit.bl.x;
 	WFIFOW(fd,12)=unit.bl.y;
 	WFIFOB(fd,14)=unit.group->unit_id;
-	WFIFOB(fd,15)=1;
-	WFIFOL(fd,15+1)=0;						//1-4調べた限り固定
-	WFIFOL(fd,15+5)=0;						//5-8調べた限り固定
-											//9-12マップごとで一定の77-80とはまた違う4バイトのかなり大きな数字
-	WFIFOL(fd,15+13)=unit.bl.y - 0x12;		//13-16ユニットのY座標-18っぽい(Y:17でFF FF FF FF)
-	WFIFOL(fd,15+17)=0x004f37dd;			//17-20調べた限り固定
-	WFIFOL(fd,15+21)=0x0012f674;			//21-24調べた限り固定
-	WFIFOL(fd,15+25)=0x0012f664;			//25-28調べた限り固定
-	WFIFOL(fd,15+29)=0x0012f654;			//29-32調べた限り固定
-	WFIFOL(fd,15+33)=0x77527bbc;			//33-36調べた限り固定
-											//37-39
-	WFIFOB(fd,15+40)=0x2d;					//40調べた限り固定
-	WFIFOL(fd,15+41)=0;						//41-44調べた限り0固定
-	WFIFOL(fd,15+45)=0;						//45-48調べた限り0固定
-	WFIFOL(fd,15+49)=0;						//49-52調べた限り0固定
-	WFIFOL(fd,15+53)=0x0048d919;			//53-56調べた限り固定
-	WFIFOL(fd,15+57)=0x0000003e;			//57-60調べた限り固定
-	WFIFOL(fd,15+61)=0x0012f66c;			//61-64調べた限り固定
-											//65-68
-											//69-72
-	if(bl) WFIFOL(fd,15+73)=bl->y;			//73-76術者のY座標
-	WFIFOL(fd,15+77)=unit.bl.m;				//77-80マップIDかなぁ？かなり2バイトで足りそうな数字
-	WFIFOB(fd,15+81)=0xaa;					//81終端文字0xaa
-
 	/*	Graffiti [Valaris]	*/
 	if(unit.group->unit_id==0xb0)
 	{
@@ -4496,7 +4499,32 @@ int clif_getareachar_skillunit(struct map_session_data &sd,struct skill_unit &un
 		WFIFOL(fd,16)=1;
 		memcpy(WFIFOP(fd,17),unit.group->valstr,80);
 	}
-
+	else
+	{
+		WFIFOB(fd,15)=1;
+		WFIFOL(fd,15+1)=0;						//1-4調べた限り固定
+		WFIFOL(fd,15+5)=0;						//5-8調べた限り固定
+												//9-12マップごとで一定の77-80とはまた違う4バイトのかなり大きな数字
+		WFIFOL(fd,15+13)=unit.bl.y - 0x12;		//13-16ユニットのY座標-18っぽい(Y:17でFF FF FF FF)
+		WFIFOL(fd,15+17)=0x004f37dd;			//17-20調べた限り固定
+		WFIFOL(fd,15+21)=0x0012f674;			//21-24調べた限り固定
+		WFIFOL(fd,15+25)=0x0012f664;			//25-28調べた限り固定
+		WFIFOL(fd,15+29)=0x0012f654;			//29-32調べた限り固定
+		WFIFOL(fd,15+33)=0x77527bbc;			//33-36調べた限り固定
+												//37-39
+		WFIFOB(fd,15+40)=0x2d;					//40調べた限り固定
+		WFIFOL(fd,15+41)=0;						//41-44調べた限り0固定
+		WFIFOL(fd,15+45)=0;						//45-48調べた限り0固定
+		WFIFOL(fd,15+49)=0;						//49-52調べた限り0固定
+		WFIFOL(fd,15+53)=0x0048d919;			//53-56調べた限り固定
+		WFIFOL(fd,15+57)=0x0000003e;			//57-60調べた限り固定
+		WFIFOL(fd,15+61)=0x0012f66c;			//61-64調べた限り固定
+												//65-68
+												//69-72
+		if(bl) WFIFOL(fd,15+73)=bl->y;			//73-76術者のY座標
+		WFIFOL(fd,15+77)=unit.bl.m;				//77-80マップIDかなぁ？かなり2バイトで足りそうな数字
+		WFIFOB(fd,15+81)=0xaa;					//81終端文字0xaa
+	}
 	WFIFOSET(fd,packet_len_table[0x1c9]);
 #endif
 	if(unit.group && unit.group->skill_id == WZ_ICEWALL)
@@ -5297,24 +5325,32 @@ int clif_skill_setunit(struct skill_unit &unit)
 	WBUFB(buf,15)=0;
 	return clif_send(buf,packet_len_table[0x11f],&unit->bl,AREA);
 #else
-		memset(WBUFP(buf, 0),0,packet_len_table[0x1c9]);
-		WBUFW(buf, 0)=0x1c9;
+	memset(WBUFP(buf, 0),0,packet_len_table[0x1c9]);
+	WBUFW(buf, 0)=0x1c9;
 	WBUFL(buf, 2)=unit.bl.id;
 	WBUFL(buf, 6)=(unit.group) ? unit.group->src_id : unit.bl.id;
 	WBUFW(buf,10)=unit.bl.x;
 	WBUFW(buf,12)=unit.bl.y;
 	WBUFB(buf,14)=(unit.group) ? unit.group->unit_id : unit.bl.id;
+	if(unit.group && unit.group->unit_id==0xb0)
+	{
+		WBUFL(buf,15)=1;
+		WBUFL(buf,16)=1;
+		memcpy(WBUFP(buf,17),unit.group->valstr,80);
+	}
+	else
+	{
 		WBUFB(buf,15)=1;
 		WBUFL(buf,15+1)=0;						//1-4調べた限り固定
 		WBUFL(buf,15+5)=0;						//5-8調べた限り固定
-											//9-12マップごとで一定の77-80とはまた違う4バイトのかなり大きな数字
-	WBUFL(buf,15+13)=unit.bl.y - 0x12;		//13-16ユニットのY座標-18っぽい(Y:17でFF FF FF FF)
+												//9-12マップごとで一定の77-80とはまた違う4バイトのかなり大きな数字
+		WBUFL(buf,15+13)=unit.bl.y - 0x12;		//13-16ユニットのY座標-18っぽい(Y:17でFF FF FF FF)
 		WBUFL(buf,15+17)=0x004f37dd;			//17-20調べた限り固定(0x1b2で0x004fdbddだった)
 		WBUFL(buf,15+21)=0x0012f674;			//21-24調べた限り固定
 		WBUFL(buf,15+25)=0x0012f664;			//25-28調べた限り固定
 		WBUFL(buf,15+29)=0x0012f654;			//29-32調べた限り固定
 		WBUFL(buf,15+33)=0x77527bbc;			//33-36調べた限り固定
-											//37-39
+												//37-39
 		WBUFB(buf,15+40)=0x2d;					//40調べた限り固定
 		WBUFL(buf,15+41)=0;						//41-44調べた限り0固定
 		WBUFL(buf,15+45)=0;						//45-48調べた限り0固定
@@ -5322,19 +5358,12 @@ int clif_skill_setunit(struct skill_unit &unit)
 		WBUFL(buf,15+53)=0x0048d919;			//53-56調べた限り固定(0x01b2で0x00495119だった)
 		WBUFL(buf,15+57)=0x0000003e;			//57-60調べた限り固定
 		WBUFL(buf,15+61)=0x0012f66c;			//61-64調べた限り固定
-											//65-68
-											//69-72
+												//65-68
+												//69-72
 		if(bl) WBUFL(buf,15+73)=bl->y;			//73-76術者のY座標
-	WBUFL(buf,15+77)=unit.bl.m;				//77-80マップIDかなぁ？かなり2バイトで足りそうな数字
+		WBUFL(buf,15+77)=unit.bl.m;				//77-80マップIDかなぁ？かなり2バイトで足りそうな数字
 		WBUFB(buf,15+81)=0xaa;					//81終端文字0xaa
-
-		/*		Graffiti [Valaris]		*/
-	if(unit.group && unit.group->unit_id==0xb0)
-	{
-			WBUFL(buf,15)=1;
-			WBUFL(buf,16)=1;
-		memcpy(WBUFP(buf,17),unit.group->valstr,80);
-		}
+	}
 	return clif_send(buf,packet_len_table[0x1c9],&unit.bl,AREA);
 #endif
 }
@@ -6380,7 +6409,7 @@ int clif_party_info(struct party &p,int fd)
 			if(sd==NULL) sd=m.sd;
 			WBUFL(buf,28+c*46)=m.account_id;
 			memcpy(WBUFP(buf,28+c*46+ 4),m.name,24);
-			memcpy(WBUFP(buf,28+c*46+28),m.mapname,16);
+			mapname2buffer(WBUFP(buf,28+c*46+28),m.mapname,16);
 			WBUFB(buf,28+c*46+44)=(m.leader)?0:1;
 			WBUFB(buf,28+c*46+45)=(m.online)?0:1;
 			c++;
@@ -6651,7 +6680,7 @@ int clif_party_move(struct party &p,struct map_session_data &sd,unsigned char on
 	WBUFB(buf,14) = !online;
 	memcpy(WBUFP(buf,15),p.name,24);
 	memcpy(WBUFP(buf,39),sd.status.name,24);
-	memcpy(WBUFP(buf,63),map[sd.bl.m].mapname,16);
+	mapname2buffer(WBUFP(buf,63),map[sd.bl.m].mapname,16);
 	return clif_send(buf,packet_len_table[0x104],&sd.bl,PARTY);
 }
 /*==========================================
@@ -7009,7 +7038,7 @@ int clif_changemapcell(unsigned short m,unsigned short x,unsigned short y,unsign
 	WBUFW(buf,2) = x;
 	WBUFW(buf,4) = y;
 	WBUFW(buf,6) = cell_type;
-	memcpy(WBUFP(buf,8),map[m].mapname,16);
+	mapname2buffer(WBUFP(buf,8),map[m].mapname,16);
 	return clif_send(buf,packet_len_table[0x192],&bl, (!type)?AREA:ALL_SAMEMAP);
 }
 
@@ -8308,12 +8337,12 @@ int clif_parse_WantToConnection(int fd, struct map_session_data &sd)
 		return 0;
 
 	struct map_session_data *old_sd;
-	unsigned short cmd			= RFIFOW(fd,0);
+	unsigned short cmd	= RFIFOW(fd,0);
 	uint32 account_id	= RFIFOL(fd, packet_db[sd.packet_ver][cmd].pos[0]);
 	uint32 char_id		= RFIFOL(fd, packet_db[sd.packet_ver][cmd].pos[1]);
-	uint32 login_id1		= RFIFOL(fd, packet_db[sd.packet_ver][cmd].pos[2]);
+	uint32 login_id1	= RFIFOL(fd, packet_db[sd.packet_ver][cmd].pos[2]);
 	uint32 client_tick	= RFIFOL(fd, packet_db[sd.packet_ver][cmd].pos[3]);
-	unsigned char sex			= RFIFOB(fd, packet_db[sd.packet_ver][cmd].pos[4]);
+	unsigned char sex	= RFIFOB(fd, packet_db[sd.packet_ver][cmd].pos[4]);
 
 	//ShowMessage("WantToConnection: Received %d bytes with packet 0x%X -> ver %i\n", RFIFOREST(fd), cmd, sd.packet_ver);
 
@@ -8449,7 +8478,7 @@ int clif_parse_LoadEndAck(int fd, struct map_session_data &sd)
 		// Stop players from spawning inside castles [Valaris]
 		struct guild_castle *gc=guild_mapname2gc(map[sd.bl.m].mapname);
 			if (gc)
-			pc_setpos(sd,sd.status.save_point.map,sd.status.save_point.x,sd.status.save_point.y,2);
+			pc_setpos(sd,sd.status.save_point.mapname,sd.status.save_point.x,sd.status.save_point.y,2);
 		// End Addition [Valaris]
 			}
 	// view equipment item
@@ -8788,16 +8817,16 @@ int clif_message(struct block_list &bl, const char* msg)
  */
 int clif_parse_MapMove(int fd, struct map_session_data &sd)
 {	// /m /mapmove (as @rura GM command)
-	char output[30]; // 17+4+4=26, 30 max.
-	char map_name[17];
-
+	char output[32];
+	char mapname[32], *ip;
 
 	if( (battle_config.atc_gmonly == 0 || pc_isGM(sd)) &&
 	    pc_isGM(sd) >= get_atcommand_level(AtCommand_MapMove) )
 	{
-		memcpy(map_name, RFIFOP(fd,2), 16);
-		map_name[16]='\0';
-		sprintf(output, "%s %d %d", map_name, (unsigned char)RFIFOW(fd,18), (unsigned char)RFIFOW(fd,20));
+		safestrcpy(mapname, (const char*)RFIFOP(fd,2), sizeof(mapname));
+		ip = strchr(mapname, '.');
+		if(ip) *ip=0;
+		sprintf(output, "%s %d %d", mapname, (unsigned char)RFIFOW(fd,18), (unsigned char)RFIFOW(fd,20));
 		atcommand_rura(fd, sd, "@rura", output);
 	}
 
@@ -8996,7 +9025,7 @@ int clif_parse_Restart(int fd, struct map_session_data &sd)
 		if (pc_isdead(sd)) {
 			pc_setstand(sd);
 			pc_setrestartvalue(sd, 3);
-			pc_setpos(sd, sd.status.save_point.map, sd.status.save_point.x, sd.status.save_point.y, 2);
+			pc_setpos(sd, sd.status.save_point.mapname, sd.status.save_point.x, sd.status.save_point.y, 2);
 		}
 		// in case the player's status somehow wasn't updated yet [Celest]
 		else if (sd.status.hp <= 0)
@@ -12452,7 +12481,7 @@ int packetdb_readdb(void)
 	int k;
 	char *str[64],*p,*str2[64],*p2,w1[64],w2[64];
 
-	const struct {
+	static const struct {
 		int (*func)(int, struct map_session_data &);
 		char *name;
 	} clif_parse_func[]={
@@ -12594,7 +12623,7 @@ int packetdb_readdb(void)
 	while( fgets(line,sizeof(line),fp) )
 	{
 		ln++;
-		if( !skip_empty_line(line) )
+		if( !get_prepared_line(line) )
 			continue;
 
 		if (sscanf(line,"%[^:]: %[^\r\n]",w1,w2) == 2)

@@ -454,8 +454,8 @@ int mmo_char_tosql(uint32 char_id, struct mmo_charstatus *p)
 		p->option, MakeWord(p->karma, p->chaos), p->manner, (unsigned long)p->party_id, (unsigned long)p->guild_id, (unsigned long)p->pet_id,
 		p->hair, p->hair_color, p->clothes_color,
 		p->weapon, p->shield, p->head_top, p->head_mid, p->head_bottom,
-		p->last_point.map, p->last_point.x, p->last_point.y,
-		p->save_point.map, p->save_point.x, p->save_point.y, 
+		p->last_point.mapname, p->last_point.x, p->last_point.y,
+		p->save_point.mapname, p->save_point.x, p->save_point.y, 
 		(unsigned long)p->partner_id,(unsigned long)p->father_id, (unsigned long)p->mother_id, (unsigned long)p->child_id,(unsigned long)p->fame_points,
 		(unsigned long)p->account_id, (unsigned long)p->char_id
 	);
@@ -469,7 +469,7 @@ int mmo_char_tosql(uint32 char_id, struct mmo_charstatus *p)
 	diff = 0;
 
 	for(i=0;i<MAX_MEMO;i++){
-	  if((strcmp(p->memo_point[i].map,cp->memo_point[i].map) == 0) && (p->memo_point[i].x == cp->memo_point[i].x) && (p->memo_point[i].y == cp->memo_point[i].y))
+	  if((strcmp(p->memo_point[i].mapname,cp->memo_point[i].mapname) == 0) && (p->memo_point[i].x == cp->memo_point[i].x) && (p->memo_point[i].y == cp->memo_point[i].y))
 	    continue;
 	  diff = 1;
 	  break;
@@ -485,9 +485,9 @@ int mmo_char_tosql(uint32 char_id, struct mmo_charstatus *p)
 
 	//insert here.
 	for(i=0;i<MAX_MEMO;i++){
-		if(p->memo_point[i].map[0]){
+		if(p->memo_point[i].mapname[0]){
 			sprintf(tmp_sql,"INSERT INTO `%s`(`char_id`,`map`,`x`,`y`) VALUES ('%ld', '%s', '%d', '%d')",
-				memo_db, (unsigned long)char_id, p->memo_point[i].map, p->memo_point[i].x, p->memo_point[i].y);
+				memo_db, (unsigned long)char_id, p->memo_point[i].mapname, p->memo_point[i].x, p->memo_point[i].y);
 			if(mysql_SendQuery(&mysql_handle, tmp_sql))
 				ShowMessage("DB server Error (insert `memo`)- %s\n", mysql_error(&mysql_handle));
 		}
@@ -808,10 +808,14 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online)
 		p->head_top = atoi(sql_row[11]);
 		p->head_mid = atoi(sql_row[12]);
 		p->head_bottom = atoi(sql_row[13]);
-		strcpy(p->last_point.map,sql_row[14]);
+		strcpy(p->last_point.mapname,sql_row[14]);
+		char*ip = strchr(p->last_point.mapname,'.');
+		if(ip) *ip=0;
 		p->last_point.x = atoi(sql_row[15]);
 		p->last_point.y = atoi(sql_row[16]);
-		strcpy(p->save_point.map,sql_row[17]);
+		strcpy(p->save_point.mapname,sql_row[17]);
+		ip = strchr(p->last_point.mapname,'.');
+		if(ip) *ip=0;
 		p->save_point.x = atoi(sql_row[18]);
 		p->save_point.y = atoi(sql_row[19]);
 		p->partner_id = atoi(sql_row[20]); 
@@ -825,10 +829,10 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online)
 	} else
 		ShowMessage("char2 - failed\n");	//Error?! ERRRRRR WHAT THAT SAY!?
 
-	if (p->last_point.x == 0 || p->last_point.y == 0 || p->last_point.map[0] == '\0')
+	if (p->last_point.x == 0 || p->last_point.y == 0 || p->last_point.mapname[0] == '\0')
 		memcpy(&p->last_point, &start_point, sizeof(start_point));
 
-	if (p->save_point.x == 0 || p->save_point.y == 0 || p->save_point.map[0] == '\0')
+	if (p->save_point.x == 0 || p->save_point.y == 0 || p->save_point.mapname[0] == '\0')
 		memcpy(&p->save_point, &start_point, sizeof(start_point));
 
 	ShowMessage("char2 ");
@@ -843,7 +847,9 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online)
 
 	if (sql_res) {
 		for(i=0;(sql_row = mysql_fetch_row(sql_res))&&i<MAX_MEMO;i++){
-			strcpy (p->memo_point[i].map,sql_row[0]);
+			strcpy (p->memo_point[i].mapname,sql_row[0]);
+			char*ip=strchr(p->memo_point[i].mapname,'.');
+			if(ip) *ip=0;
 			p->memo_point[i].x=atoi(sql_row[1]);
 			p->memo_point[i].y=atoi(sql_row[2]);
 			//i ++;
@@ -1322,7 +1328,8 @@ int make_new_char_sql(int fd, unsigned char *dat)
 	
 	//New Querys [Sirius]
 	//Insert the char to the 'chardb' ^^
-	sprintf(tmp_sql, "INSERT INTO `%s` (`account_id`, `char_num`, `name`, `zeny`, `str`, `agi`, `vit`, `int`, `dex`, `luk`, `max_hp`, `hp`, `max_sp`, `sp`, `hair`, `hair_color`, `last_map`, `last_x`, `last_y`, `save_map`, `save_x`, `save_y`) VALUES ('%ld', '%d', '%s', '%d',  '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d','%d', '%d','%d', '%d', '%s', '%d', '%d', '%s', '%d', '%d')", char_db, (unsigned long)sd->account_id , dat[30] , t_name, start_zeny, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], (40 * (100 + dat[26])/100) , (40 * (100 + dat[26])/100 ),  (11 * (100 + dat[27])/100), (11 * (100 + dat[27])/100), dat[33], dat[31], start_point.map, start_point.x, start_point.y, start_point.map, start_point.x, start_point.y);
+	sprintf(tmp_sql, "INSERT INTO `%s` (`account_id`, `char_num`, `name`, `zeny`, `str`, `agi`, `vit`, `int`, `dex`, `luk`, `max_hp`, `hp`, `max_sp`, `sp`, `hair`, `hair_color`, `last_map`, `last_x`, `last_y`, `save_map`, `save_x`, `save_y`) VALUES ('%ld', '%d', '%s', '%d',  '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d','%d', '%d','%d', '%d', '%s', '%d', '%d', '%s', '%d', '%d')", 
+		char_db, (unsigned long)sd->account_id , dat[30] , t_name, start_zeny, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], (40 * (100 + dat[26])/100) , (40 * (100 + dat[26])/100 ),  (11 * (100 + dat[27])/100), (11 * (100 + dat[27])/100), dat[33], dat[31], start_point.mapname, start_point.x, start_point.y, start_point.mapname, start_point.x, start_point.y);
 	if(mysql_SendQuery(&mysql_handle, tmp_sql))
 	{
 		ShowMessage("failed (insert in chardb), SQL error: %s\n", mysql_error(&mysql_handle));
@@ -2519,6 +2526,12 @@ int parse_frommap(int fd)
 		// status changes
 		// for testing purpose
 		case 0x2b22:
+		// new mail system
+		case 0x2b23:
+		case 0x2b24:
+		case 0x2b25:
+		case 0x2b26:
+		case 0x2b27:
 		{	
 			size_t sz;
 			if( RFIFOREST(fd) < 4 || RFIFOREST(fd) < (sz=RFIFOW(fd,2)) )
@@ -2747,32 +2760,32 @@ int parse_char(int fd)
 			}
 			ShowMessage("("CL_BT_BLUE"%d"CL_NORM") char selected ("CL_BT_GREEN"%d"CL_NORM") "CL_BT_GREEN"%s"CL_NORM RETCODE, sd->account_id, (unsigned char)RFIFOB(fd, 2), char_dat[0].name);
 
-			j = search_mapserver(char_dat[0].last_point.map);
+			j = search_mapserver(char_dat[0].last_point.mapname);
 
 			// if map is not found, we check major cities
 			if (j < 0) {
-				if ((j = search_mapserver("prontera.gat")) >= 0) { // check is done without 'gat'.
-					memcpy(char_dat[0].last_point.map, "prontera.gat", 24);
+				if ((j = search_mapserver("prontera")) >= 0) { // check is done without 'gat'.
+					memcpy(char_dat[0].last_point.mapname, "prontera", 24);
 					char_dat[0].last_point.x = 273; // savepoint coordonates
 					char_dat[0].last_point.y = 354;
-				} else if ((j = search_mapserver("geffen.gat")) >= 0) { // check is done without 'gat'.
-					memcpy(char_dat[0].last_point.map, "geffen.gat", 24);
+				} else if ((j = search_mapserver("geffen")) >= 0) { // check is done without 'gat'.
+					memcpy(char_dat[0].last_point.mapname, "geffen", 24);
 					char_dat[0].last_point.x = 120; // savepoint coordonates
 					char_dat[0].last_point.y = 100;
-				} else if ((j = search_mapserver("morocc.gat")) >= 0) { // check is done without 'gat'.
-					memcpy(char_dat[0].last_point.map, "morocc.gat", 24);
+				} else if ((j = search_mapserver("morocc")) >= 0) { // check is done without 'gat'.
+					memcpy(char_dat[0].last_point.mapname, "morocc", 24);
 					char_dat[0].last_point.x = 160; // savepoint coordonates
 					char_dat[0].last_point.y = 94;
-				} else if ((j = search_mapserver("alberta.gat")) >= 0) { // check is done without 'gat'.
-					memcpy(char_dat[0].last_point.map, "alberta.gat", 24);
+				} else if ((j = search_mapserver("alberta")) >= 0) { // check is done without 'gat'.
+					memcpy(char_dat[0].last_point.mapname, "alberta", 24);
 					char_dat[0].last_point.x = 116; // savepoint coordonates
 					char_dat[0].last_point.y = 57;
-				} else if ((j = search_mapserver("payon.gat")) >= 0) { // check is done without 'gat'.
-					memcpy(char_dat[0].last_point.map, "payon.gat", 24);
+				} else if ((j = search_mapserver("payon")) >= 0) { // check is done without 'gat'.
+					memcpy(char_dat[0].last_point.mapname, "payon", 24);
 					char_dat[0].last_point.x = 87; // savepoint coordonates
 					char_dat[0].last_point.y = 117;
-				} else if ((j = search_mapserver("izlude.gat")) >= 0) { // check is done without 'gat'.
-					memcpy(char_dat[0].last_point.map, "izlude.gat", 24);
+				} else if ((j = search_mapserver("izlude")) >= 0) { // check is done without 'gat'.
+					memcpy(char_dat[0].last_point.mapname, "izlude", 24);
 					char_dat[0].last_point.x = 94; // savepoint coordonates
 					char_dat[0].last_point.y = 103;
 				} else {
@@ -2797,7 +2810,7 @@ int parse_char(int fd)
 			}
 			WFIFOW(fd, 0) =0x71;
 			WFIFOL(fd, 2) =char_dat[0].char_id;
-			memcpy(WFIFOP(fd, 6), char_dat[0].last_point.map, 24);
+			mapname2buffer(WFIFOP(fd, 6), char_dat[0].last_point.mapname, 24);
 			if( server[j].address.isLAN(client_ip) )
 			{
 				ShowMessage("Send IP of map-server: %s:%d (%s)\n", server[j].address.LANIP().getstring(), server[j].address.LANPort(), CL_BT_GREEN"LAN"CL_NORM);
@@ -3485,7 +3498,7 @@ void sql_config_read(const char *cfgName){ /* Kalaspuff, to get login_db */
 	}
 
 	while(fgets(line, sizeof(line), fp)){
-		if( !skip_empty_line(line) )
+		if( !get_prepared_line(line) )
 			continue;
 
 		if (sscanf(line, "%[^:]: %[^\r\n]", w1, w2) != 2)
@@ -3566,7 +3579,7 @@ int char_config_read(const char *cfgName) {
 	}
 
 	while(fgets(line, sizeof(line), fp)) {
-		if( !skip_empty_line(line) )
+		if( !get_prepared_line(line) )
 			continue;
 
 		line[sizeof(line)-1] = '\0';
@@ -3625,15 +3638,18 @@ else if(strcasecmp(w1, "char_port") == 0) {
 			if (autosave_interval <= 0)
 				autosave_interval = DEFAULT_AUTOSAVE_INTERVAL;
 		} else if (strcasecmp(w1, "start_point") == 0) {
-			char map[64];
+			char map[64], *ip;
 			int x, y;
 			if (sscanf(w2,"%15[^,],%d,%d", map, &x, &y) < 3)
 				continue;
-			if (strstr(map, ".gat") != NULL) { // Verify at least if '.gat' is in the map name
-				memcpy(start_point.map, map, 24);
+				ip=strchr(map,'.');
+				if(ip) *ip=0;
+				safestrcpy(start_point.mapname, map, sizeof(start_point.mapname));
+				
+				
 				start_point.x = x;
 				start_point.y = y;
-			}
+
 		} else if (strcasecmp(w1, "start_zeny") == 0) {
 			start_zeny = atoi(w2);
 			if (start_zeny < 0)

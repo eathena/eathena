@@ -648,8 +648,8 @@ struct map_session_data
 	uint32 party_invite;
 	uint32 party_invite_account;
 	sint32 party_hp;
-	short party_x;
-	short party_y;
+	unsigned short party_x;
+	unsigned short party_y;
 
 	uint32 guild_sended;
 	uint32 guild_invite;
@@ -686,7 +686,7 @@ struct map_session_data
 	unsigned short change_level;	// [celest]
 	uint32 canuseitem_tick;
 	char fakename[24];
-	uint32 mail_counter;	// mail counter for mail system [Valaris]
+	unsigned long mail_tick;	// mail counter for mail system [Valaris]
 };
 
 
@@ -1078,7 +1078,6 @@ struct map_data
 	char mapname[24];
 	struct mapgat	*gat;	// NULL‚È‚ç‰º‚Ìmap_data_other_server‚Æ‚µ‚Äˆµ‚¤
 	///////////////////////////////////////////////////////////////////////////
-	char *alias; // [MouseJstr]
 	struct block_list **block;
 	struct block_list **block_mob;
 	int *block_count;
@@ -1419,7 +1418,14 @@ static inline int distance(int x0,int y0,int x1,int y1)
 
 	dx=abs(x0-x1);
 	dy=abs(y0-y1);
-	return dx>dy ? dx : dy;
+	//return dx>dy ? dx : dy;
+
+	// euclidean distance approximation with piecewise linear octagon
+
+	//http://www.flipcode.com/articles/article_fastdistance.shtml
+	if(dy > dx) swap(dx,dy);
+	return ( (( dx << 8 ) + ( dx << 3 ) - ( dx << 4 ) - ( dx << 1 ) +
+			  ( dy << 7 ) - ( dy << 5 ) + ( dy << 3 ) - ( dy << 1 )) >> 8 );
 }
 
 

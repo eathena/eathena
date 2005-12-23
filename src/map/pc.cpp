@@ -373,7 +373,7 @@ int pc_makesavestatus(struct map_session_data &sd)
 	}
 	else
 	{
-		memcpy(sd.status.last_point.map,sd.mapname,24);
+		memcpy(sd.status.last_point.mapname, sd.mapname,24);
 		sd.status.last_point.x = sd.bl.x;
 		sd.status.last_point.y = sd.bl.y;
 	}
@@ -381,10 +381,10 @@ int pc_makesavestatus(struct map_session_data &sd)
 		// セ?ブ禁止マップだったので指定位置に移動
 	if(map[sd.bl.m].flag.nosave)
 	{
-		if( strcmp(map[sd.bl.m].save.map,"SavePoint")==0 )
-			memcpy(&sd.status.last_point,&sd.status.save_point,sizeof(sd.status.last_point));
+		if( strcmp(map[sd.bl.m].save.mapname,"SavePoint")==0 )
+			sd.status.last_point = sd.status.save_point;
 		else
-			memcpy(&sd.status.last_point,&map[sd.bl.m].save,sizeof(sd.status.last_point));
+			sd.status.last_point = map[sd.bl.m].save;
 	}
 	return 0;
 }
@@ -721,8 +721,8 @@ int pc_setnewpc(int fd, struct map_session_data &sd, uint32 account_id, uint32 c
 	// パ?ティ??係の初期化
 //	sd.party_sended = 0;
 //	sd.party_invite = 0;
-	sd.party_x = (short)0xFFFF;
-	sd.party_y = (short)0xFFFF;
+	sd.party_x = 0xFFFF;
+	sd.party_y = 0xFFFF;
 	sd.party_hp = -1;
 
 	// ギルド?係の初期化
@@ -785,11 +785,11 @@ int pc_authok(uint32 id, uint32 login_id2, time_t connect_until_time, unsigned c
 		sd->status.option &= OPTION_MASK;
 
 	// 位置の設定
-	if( !pc_setpos(*sd,sd->status.last_point.map, sd->status.last_point.x, sd->status.last_point.y, 0) ) 
+	if( !pc_setpos(*sd,sd->status.last_point.mapname, sd->status.last_point.x, sd->status.last_point.y, 0) ) 
 	{
 		size_t i;
 		if(battle_config.error_log) 
-			ShowError("Last_point_map %s not found\n", sd->status.last_point.map);
+			ShowError("Last_point_map %s not found\n", sd->status.last_point.mapname);
 
 		// try warping to a default map instead
 		for(i=0; i<map_num; i++)
@@ -879,26 +879,31 @@ int pc_authok(uint32 id, uint32 login_id2, time_t connect_until_time, unsigned c
 	// Message of the Dayの送信
 	{
 		char buf[256];
+		size_t sl;
 		FILE *fp;
-		if((fp = safefopen(motd_txt, "r")) != NULL) {
+		if((fp = safefopen(motd_txt, "r")) != NULL)
+		{
 			while( fgets(buf, sizeof(buf), fp) != NULL )
 			{
-				if(battle_config.motd_type || pc_ishiding(*sd) || pc_iscloaking(*sd) || pc_ischasewalk(*sd) )
-					clif_disp_onlyself(*sd,buf);
-				else
-					clif_displaymessage(sd->fd, buf);
+				sl = prepare_line(buf);
+				if(sl)
+				{
+					if(battle_config.motd_type || pc_ishiding(*sd) || pc_iscloaking(*sd) || pc_ischasewalk(*sd) )
+						clif_disp_onlyself(*sd,buf);
+					else
+						clif_displaymessage(sd->fd, buf);
+				}
 			}
 			fclose(fp);
 		}
 		else if(battle_config.error_log) {
 			ShowWarning("In function pc_authok() -> File '"CL_WHITE"%s"CL_RESET"' not found.\n", motd_txt);
 		}
-		sprintf(buf,"You are using client packet version %i", sd->packet_ver);
+		snprintf(buf,sizeof(buf),"You are using client packet version %i", sd->packet_ver);
 		clif_disp_onlyself(*sd,buf);
 	}
 
-	if(battle_config.mail_system)
-		mail_check(*sd,1); // check mail at login [Valaris]
+	chrif_mail_check(*sd); // check mail at login [Valaris]
 
 	// message of the limited time of the account
 	if( connect_until_time != 0 )
@@ -3120,7 +3125,7 @@ int pc_steal_coin(struct map_session_data &sd,struct block_list *bl)
  */
 bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned short x, unsigned short y, int clrtype)
 {
-	char mapname[24];
+	char mapname[24], *ip;
 	int m=0;
 	size_t i;
 
@@ -3212,9 +3217,9 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 
 
 	safestrcpy(mapname, mapname_org, sizeof(mapname));
-	if(strstr(mapname,".gat")==NULL && strstr(mapname,".afm")==NULL && strlen(mapname)<16){
-		strcat(mapname,".gat");
-	}
+	ip = strchr(mapname, '.');
+	if(ip) *ip=0;
+
 	m=map_mapname2mapid(mapname);
 
 	if(m<0)
@@ -3416,7 +3421,7 @@ int pc_memo(struct map_session_data &sd, int i)
 
 	for(j = 0 ; j < 3; j++)
 	{
-		if(strcmp(sd.status.memo_point[j].map, map[sd.bl.m].mapname) == 0)
+		if(strcmp(sd.status.memo_point[j].mapname, map[sd.bl.m].mapname) == 0)
 		{
 			i = j;
 			break;
@@ -3431,7 +3436,7 @@ int pc_memo(struct map_session_data &sd, int i)
 		}
 		i = 0;
 	}
-	memcpy(sd.status.memo_point[i].map, map[sd.bl.m].mapname, 24);
+	memcpy(sd.status.memo_point[i].mapname, map[sd.bl.m].mapname, 24);
 	sd.status.memo_point[i].x = sd.bl.x;
 	sd.status.memo_point[i].y = sd.bl.y;
 
@@ -4905,7 +4910,7 @@ int pc_respawn(int tid, unsigned long tick, int id, intptr data)
 	{	//Auto-respawn [Skotlex]
 		pc_setstand(*sd);
 		pc_setrestartvalue(*sd,3);
-		pc_setpos(*sd,sd->status.save_point.map,sd->status.save_point.x,sd->status.save_point.y,0);
+		pc_setpos(*sd,sd->status.save_point.mapname,sd->status.save_point.x,sd->status.save_point.y,0);
 	}
 	return 0;
 }
@@ -7404,10 +7409,9 @@ int pc_natural_heal(int tid, unsigned long tick, int id, intptr data)
  * セ?ブポイントの保存
  *------------------------------------------
  */
-int pc_setsavepoint(struct map_session_data &sd,const char *mapname,unsigned short x,unsigned short y)
+int pc_setsavepoint(struct map_session_data &sd, const char *mapname, unsigned short x, unsigned short y)
 {
-	safestrcpy(sd.status.save_point.map, mapname, sizeof(sd.status.save_point.map));
-	sd.status.save_point.map[sizeof(sd.status.save_point.map)-1]=0;
+	safestrcpy(sd.status.save_point.mapname, mapname, sizeof(sd.status.save_point.mapname));
 	sd.status.save_point.x = x;
 	sd.status.save_point.y = y;
 
@@ -7627,7 +7631,7 @@ int pc_readdb(void)
 	i=0;
 	while(fgets(line, sizeof(line), fp)){
 		int bn,b1,b2,b3,b4,b5,b6,jn,j1,j2,j3,j4,j5,j6;
-		if( !skip_empty_line(line) )
+		if( !get_prepared_line(line) )
 			continue;
 		if(sscanf(line,"%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",&bn,&b1,&b2,&b3,&b4,&b5,&b6,&jn,&j1,&j2,&j3,&j4,&j5,&j6)!=14)
 			continue;
@@ -7665,7 +7669,7 @@ int pc_readdb(void)
 	{
 		char *split[50];
 		int f=0, m=3, jobid;
-		if( !skip_empty_line(line) )
+		if( !get_prepared_line(line) )
 			continue;
 		memset(split,0,sizeof(split));
 		for(j=0,p=line;j<14 && p;j++)
@@ -7718,7 +7722,7 @@ int pc_readdb(void)
 	while(fgets(line, sizeof(line), fp)){
 		char *split[10];
 		size_t lv,n;
-		if( !skip_empty_line(line) )
+		if( !get_prepared_line(line) )
 			continue;
 		for(j=0,p=line;j<3 && p;j++){
 			split[j]=p;
@@ -7732,7 +7736,7 @@ int pc_readdb(void)
 		for(i=0;i<n;){
 			if( !fgets(line, sizeof(line), fp) )
 				break;
-			if( !skip_empty_line(line) )
+			if( !get_prepared_line(line) )
 				continue;
 
 			for(j=0,p=line;j<n && p;j++){
@@ -7761,7 +7765,7 @@ int pc_readdb(void)
 		//return 1;
 	} else {
 		while(fgets(line, sizeof(line), fp)){
-			if( !skip_empty_line(line) )
+			if( !get_prepared_line(line) )
 				continue;
 			if ((j=atoi(line))<0)
 				j=0;

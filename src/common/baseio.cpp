@@ -21,24 +21,34 @@
 // but should be as fast as file access allows
 // faster than sql anyway + threadsafe (not shareable though)
 ///////////////////////////////////////////////////////////////////////////////
-#define DB_OPCOUNTMAX 100	// # of db ops before forced cache flush
-
-class txt_database : private Mutex
+#define DB_OPCOUNTMAX 4	// # of db ops before forced cache flush
+class simple_database : private Mutex
 {
+private:
 	///////////////////////////////////////////////////////////////////////////
-	// index structure
+	// index structures
 	class _key
 	{
 	public:
-		ulong cKey;	// key value
-		ulong cPos;	// position in file
-		ulong cLen;	// data length
+		uint32 cKey1;	// key value
+		uint32 cKey2;	// key2 value
+		uchar cFlag;	// flag value
+		ulong cPos;		// position in file
+		ulong cLen;		// data length
 
-		_key(ulong k=0, ulong p=0, ulong l=0):cKey(k), cPos(p), cLen(l)	{}
-		bool operator==(const _key& k) const	{ return cKey==k.cKey; }
-		bool operator> (const _key& k) const	{ return cKey> k.cKey; }
-		bool operator< (const _key& k) const	{ return cKey< k.cKey; }
+		_key()	{}
+		_key(uint32 k1, uint32 k2)
+			: cKey1(k1), cKey2(k2)
+		{}
+		_key(uint32 k1, uint32 k2, uchar f, ulong p, ulong l)
+			: cKey1(k1), cKey2(k2), cFlag(f), cPos(p), cLen(l)
+		{}
+		bool operator==(const _key& k) const	{ return (cKey1==k.cKey1) && (cKey2==k.cKey2); }
+		bool operator> (const _key& k) const	{ return (cKey1==k.cKey1) ?  (cKey2> k.cKey2) : (cKey1> k.cKey1); }
+		bool operator< (const _key& k) const	{ return (cKey1==k.cKey1) ?  (cKey2< k.cKey2) : (cKey1< k.cKey1); }
 	};
+
+private:
 	///////////////////////////////////////////////////////////////////////////
 	// class data
 	char *cName;			// path/name of db file
@@ -46,20 +56,58 @@ class txt_database : private Mutex
 	FILE *cIX;				// file handle to index
 
 	size_t cOpCount;		// count of operations
-
 	TslistDST<_key>	cIndex;	// the index
+	
+	
 
+public:
+	class iterator
+	{
+		simple_database &cDB;
+	public:
+		size_t cPos;
+		iterator(simple_database& sdb, bool last=false) : cDB(sdb), cPos((last)?((sdb.cIndex.size())?(sdb.cIndex.size()-1):0):0)	{}
+		iterator(simple_database& sdb, const uint32 key1, const uint32 key2) : cDB(sdb)
+		{
+			if( !cDB.cIndex.find( simple_database::_key(key1, key2), 0, cPos) )
+				cPos = cDB.cIndex.size();
+		}
+
+		iterator  operator++(int)	{ iterator temp(*this); next(); return temp; }
+		iterator& operator++()		{ next(); return *this; }
+		iterator  operator--(int)	{ iterator temp(*this); prev(); return temp; }
+		iterator& operator--()		{ prev(); return *this;}
+		bool next()					{ cPos++; return (cPos<cDB.cIndex.size()); }
+		bool prev()					{ cPos--; return (cPos<cDB.cIndex.size()); }
+
+		operator const bool() const { return (cPos<cDB.cIndex.size()); }
+		bool isValid() const		{ return (cPos<cDB.cIndex.size()); }
+
+		uint32 Key1()				{ return isValid()?cDB.cIndex[cPos].cKey1:0; }
+		uint32 Key2()				{ return isValid()?cDB.cIndex[cPos].cKey2:0; }
+		uchar& Flag()				{ static uchar dummy; return isValid()?cDB.cIndex[cPos].cFlag:dummy; }
+
+		bool find(const uint32 key1, const uint32 key2)
+		{
+			return cDB.cIndex.find( simple_database::_key(key1, key2), 0, cPos);
+		}
+		bool read(char* data, size_t maxlen)
+		{
+			return cDB.read(cPos, data, maxlen);
+		}
+	};
+	friend class simple_database::iterator;
 	///////////////////////////////////////////////////////////////////////////
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// construction/destruction
-	txt_database() : cName(NULL),cDB(NULL), cIX(NULL), cOpCount(0)
+	simple_database() : cName(NULL),cDB(NULL), cIX(NULL), cOpCount(0)
 	{}
-	txt_database(const char *name) : cName(NULL),cDB(NULL), cIX(NULL), cOpCount(0)
+	simple_database(const char *name) : cName(NULL),cDB(NULL), cIX(NULL), cOpCount(0)
 	{
 		open(name);
 	}
-	~txt_database()
+	~simple_database()
 	{
 		close();
 	}
@@ -111,15 +159,15 @@ public:
 
 		// read index
 		// structure is:
-		// <# of entries> \n <i>(0), <p>(0), <l>(0) \n ...
+		// <# of entries> \n <i1>(0), <i2>(0), <f>(0), <p>(0), <l>(0) \n ...
 		fseek(cIX, 0, SEEK_SET);
-		unsigned long sz, p, l;
+		unsigned long sz,k1,k2,f,p,l;
 		if( 1==fscanf(cIX,"%li\n", &sz) )
 		{
 			cIndex.realloc(sz);
-			while( 3==fscanf(cIX,"%li,%li,%li\n",  &sz, &p, &l) )
+			while( 5==fscanf(cIX,"%li,%li,%li,%li,%li\n",  &k1,&k2,&f,&p,&l) )
 			{
-				cIndex.insert( _key(sz,p,l) );
+				cIndex.insert( _key(k1,k2,f,p,l) );
 			}
 		}
 
@@ -167,6 +215,7 @@ public:
 			if(cDB)
 			{
 				// nothing to flush here right now
+				fflush(cDB);
 			}
 			if(cIX)
 			{
@@ -175,8 +224,9 @@ public:
 				fprintf(cIX,"%li\n", (unsigned long)cIndex.size());
 				for(size_t i=0; i<cIndex.size(); i++)
 				{
-					fprintf(cIX,"%li,%li,%li\n",
-						(unsigned long)cIndex[i].cKey, (unsigned long)cIndex[i].cPos, (unsigned long)cIndex[i].cLen);
+					fprintf(cIX,"%li,%li,%li,%li,%li\n",
+						(unsigned long)cIndex[i].cKey1, (unsigned long)cIndex[i].cKey2,
+						(unsigned long)cIndex[i].cFlag, (unsigned long)cIndex[i].cPos, (unsigned long)cIndex[i].cLen);
 				}
 				fflush(cIX);
 			}
@@ -187,44 +237,44 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	// insert/udate
-	bool insert(const ulong key, char* data)
+	bool insert(const uint32 key1, const uint32 key2, char* data, size_t len)
 	{
-		if(!data)
-			return false;
-
-		ScopeLock sl(*this);
-		ulong len = strlen(data);
-		size_t i;
-		if( cIndex.find( _key(key), 0, i) )
-		{	// update
-			if( cIndex[i].cLen >= len )
-			{	// rewrite the old position
-				fseek(cDB, cIndex[i].cPos, SEEK_SET);
+		
+		if(data)
+		{
+			ScopeLock sl(*this);
+			size_t i;
+			if( cIndex.find( _key(key1, key2), 0, i) )
+			{	// update
+				if( cIndex[i].cLen >= len )
+				{	// rewrite the old position
+					fseek(cDB, cIndex[i].cPos, SEEK_SET);
+				}
+				else
+				{	// insert new at the end
+					fseek(cDB, 0, SEEK_END);
+				}
+				cIndex[i].cLen = len;
+				cIndex[i].cPos = ftell(cDB);
 			}
 			else
 			{	// insert new at the end
 				fseek(cDB, 0, SEEK_END);
+				cIndex.insert( _key(key1, key2, 0, ftell(cDB), len) );
 			}
-			cIndex[i].cLen = len;
-			cIndex[i].cPos = ftell(cDB);
+			fwrite(data, 1, len, cDB);
+			fflush(cDB);
+			this->flush();
 		}
-		else
-		{	// insert new at the end
-			fseek(cDB, 0, SEEK_END);
-			cIndex.insert( _key(key, ftell(cDB), len) );
-		}
-		fwrite(data, 1, len, cDB);
-
-		this->flush();
 		return true;
 	}
 	///////////////////////////////////////////////////////////////////////////
 	// delete
-	bool remove(const ulong key)
+	bool remove(const uint32 key1, const uint32 key2)
 	{
 		ScopeLock sl(*this);
 		size_t pos;
-		if( cIndex.find( _key(key), 0, pos) )
+		if( cIndex.find( _key(key1, key2), 0, pos) )
 		{
 			cIndex.removeindex(pos);
 			this->flush();
@@ -235,23 +285,59 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// search
-	bool find(const ulong key, char* data) const
+	bool find(const uint32 key1, const uint32 key2, char* data, size_t maxlen) const
 	{
 		if(!data)
 			return false;
 
 		ScopeLock sl(*this);
 		size_t i;
-		if( cIndex.find( _key(key), 0, i) )
+		if( cIndex.find( _key(key1, key2), 0, i) )
+		{	
+			return read(i, data, maxlen);
+		}
+		return false;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// read index to buffer
+	bool read(size_t inx, char* data, size_t maxlen) const
+	{
+		if( inx<cIndex.size() )
 		{
-			fseek(cDB, cIndex[i].cPos, SEEK_SET);
-			fread(data, cIndex[i].cLen, 1, cDB);
-			data[cIndex[i].cLen]=0;
+			size_t sz = (cIndex[inx].cLen<maxlen)?cIndex[inx].cLen:maxlen;
+			fseek(cDB, cIndex[inx].cPos, SEEK_SET);
+			fread(data, sz, 1, cDB);
+			data[sz]=0;
 			return true;
 		}
 		return false;
 	}
-
+	///////////////////////////////////////////////////////////////////////////
+	// gets a free index
+	uint32 getfreekey()
+	{	// only use keys 1..0xFFFFFFFE
+		uint32 key=cIndex.size();
+		if( key >= 0xFFFFFFFE )
+			key=0;	// return 0 if no free key, 
+		else if( !key )
+			key=1;	// start with 1
+		else if( key == cIndex[key-1].cKey1 )
+			key++;	// increment last when range is fully used
+		else
+		{	// find some unused key within
+			size_t a=0, b=key, c;
+			while( b > a+1 )
+			{
+				c=(a+b)/2;
+				if( (cIndex[c].cKey1-cIndex[a].cKey1) > (c-a) )
+					b=c;
+				else
+					a=c;
+			}
+			key = cIndex[a].cKey1 + 1;
+		}
+		return key;
+	}
 	///////////////////////////////////////////////////////////////////////////
 	// rebuild database and index
 	bool rebuild()
@@ -262,7 +348,7 @@ public:
 		ScopeLock sl(*this);
 		char buffer[1024];		// the fixed size here might be a problem
 		TslistDST<_key>	inx;	// new index
-		ulong k, p, l;
+		ulong k1,k2,f,p,l;
 
 		char *ip = cName+strlen(cName);
 		strcpy(ip, ".tmp");
@@ -273,16 +359,16 @@ public:
 
 		for(size_t i=0; i<cIndex.size(); i++)
 		{
-			k=cIndex[i].cKey;
+			k1=cIndex[i].cKey1;
+			k2=cIndex[i].cKey2;
+			f=cIndex[i].cFlag;
 			p=ftell(tmp);
 			l=cIndex[i].cLen;
 
 			fseek(cDB,cIndex[i].cPos, SEEK_SET);
 			fread (buffer, l,1,cDB);
-
 			fwrite(buffer, l,1,tmp);
-
-			inx.insert( _key(k,p,l) );
+			inx.insert( _key(k1,k2,f,p,l) );
 		}
 		fclose(tmp);
 		fclose(cDB);
@@ -514,7 +600,7 @@ private:
 			while( fgets(line, sizeof(line), fp) )
 			{
 				line_counter++;
-				if( !skip_empty_line(line) )
+				if( !get_prepared_line(line) )
 					continue;
 				is_range = (sscanf(line, "%lu%*[-~]%lu %d",&start_range,&end_range,&level)==3); // ID Range [MC Cameri]
 				if (!is_range && sscanf(line, "%lu %d", &account_id, &level) != 2 && sscanf(line, "%ld: %d", &account_id, &level) != 2)
@@ -587,7 +673,7 @@ private:
 
 			while( fgets(line, sizeof(line), fp) )
 			{
-				if( !skip_empty_line(line) )
+				if( !get_prepared_line(line) )
 					continue;
 				*userid=0;
 				*pass=0;
@@ -710,9 +796,18 @@ private:
 					last_ip[15] = '\0';
 					remove_control_chars(last_ip);
 					if(*last_ip && *last_ip!='-')
-						temp.client_ip = ipaddress(last_ip);
+					{
+						ipaddress ip(last_ip);
+						temp.client_ip = ip;
+						ip.getstring(temp.last_ip);
+					}
 					else
+					{
 						temp.client_ip = 0;
+						temp.last_ip[0] = 0;
+					}
+					
+
 
 					p = line;
 					for(j = 0; j < ACCOUNT_REG2_NUM; j++)
@@ -746,49 +841,49 @@ private:
 			if( cList.size() == 0 )
 			{
 				ShowError("No account found in %s.\n", account_filename);
-				sprintf(line, "No account found in %s.", account_filename);
+				snprintf(line, sizeof(line), "No account found in %s.", account_filename);
 			}
 			else
 			{
 				if( cList.size() == 1)
 				{
 					ShowStatus("1 account read in %s,\n", account_filename);
-					sprintf(line, "1 account read in %s,", account_filename);
+					snprintf(line, sizeof(line), "1 account read in %s,", account_filename);
 				}
 				else
 				{
 					ShowStatus("%d accounts read in %s,\n", cList.size(), account_filename);
-					sprintf(line, "%d accounts read in %s,", cList.size(), account_filename);
+					snprintf(line, sizeof(line), "%d accounts read in %s,", cList.size(), account_filename);
 				}
 				if (GM_count == 0)
 				{
 					ShowMessage("           of which is no GM account, and ");
-					sprintf(str, "%s of which is no GM account and", line);
+					snprintf(str, sizeof(str), "%s of which is no GM account and", line);
 				}
 				else if (GM_count == 1)
 				{
 					ShowMessage("           of which is 1 GM account, and ");
-					sprintf(str, "%s of which is 1 GM account and", line);
+					snprintf(str, sizeof(str), "%s of which is 1 GM account and", line);
 				}
 				else
 				{
 					ShowMessage("           of which is %d GM accounts, and ", GM_count);
-					sprintf(str, "%s of which is %d GM accounts and", line, GM_count);
+					snprintf(str, sizeof(str), "%s of which is %d GM accounts and", line, GM_count);
 				}
 				if (server_count == 0)
 				{
 					ShowMessage("no server account ('S').\n");
-					sprintf(line, "%s no server account ('S').", str);
+					snprintf(line, sizeof(line), "%s no server account ('S').", str);
 				}
 				else if (server_count == 1)
 				{
 					ShowMessage("1 server account ('S').\n");
-					sprintf(line, "%s 1 server account ('S').", str);
+					snprintf(line, sizeof(line), "%s 1 server account ('S').", str);
 				}
 				else
 				{
 					ShowMessage("%d server accounts ('S').\n", server_count);
-					sprintf(line, "%s %d server accounts ('S').", str, server_count);
+					snprintf(line, sizeof(line), "%s %d server accounts ('S').", str, server_count);
 				}
 			}
 	//		login_log("%s" RETCODE, line);
@@ -804,7 +899,7 @@ private:
 		int lock;
 
 		// Data save
-		if ((fp = lock_fopen(account_filename, &lock)) == NULL) {
+		if ((fp = lock_fopen(account_filename, lock)) == NULL) {
 			return false;
 		}
 		fprintf(fp, "// Accounts file: here are saved all information about the accounts.\n");
@@ -844,7 +939,7 @@ private:
 						(*cList[i].email)?cList[i].email:"a@a.com",
 						(*cList[i].error_message)?cList[i].error_message:"-",
 						(unsigned long)cList[i].valid_until,
-						(*cList[i].last_ip)?cList[i].last_ip:"-",
+						(cList[i].last_ip[0])?cList[i].last_ip:"-",
 						(*cList[i].memo)?cList[i].memo:"-",
 						(unsigned long)cList[i].ban_until);
 			for(k = 0; k< cList[i].account_reg2_num; k++)
@@ -853,7 +948,7 @@ private:
 			fprintf(fp, RETCODE);
 		}
 		fprintf(fp, "%ld\t%%newid%%"RETCODE, (unsigned long)next_account_id);
-		lock_fclose(fp, account_filename, &lock);
+		lock_fclose(fp, account_filename, lock);
 		return true;
 	}
 
@@ -1115,13 +1210,13 @@ private:
 
 		point last_point = p.last_point;
 
-		if (last_point.map[0] == '\0') {
-			memcpy(last_point.map, "prontera.gat", 16);
+		if (last_point.mapname[0] == '\0') {
+			safestrcpy(last_point.mapname, "prontera", 16);
 			last_point.x = 273;
 			last_point.y = 354;
 		}
 
-		str_p += sprintf(str_p,
+		str_p += snprintf(str_p, str+sz-str_p,
 			"%ld"
 			"\t%ld,%d"
 			"\t%s"
@@ -1152,19 +1247,19 @@ private:
 			p.hair, p.hair_color, p.clothes_color,
 			p.weapon, p.shield, p.head_top, p.head_mid, p.head_bottom,
 			// store the checked lastpoint
-			last_point.map, last_point.x, last_point.y,
-			p.save_point.map, p.save_point.x, p.save_point.y,
+			last_point.mapname, last_point.x, last_point.y,
+			p.save_point.mapname, p.save_point.x, p.save_point.y,
 			(unsigned long)p.partner_id,(unsigned long)p.father_id,(unsigned long)p.mother_id,(unsigned long)p.child_id,
 			(unsigned long)p.fame_points);
 		for(i = 0; i < MAX_MEMO; i++)
-			if (p.memo_point[i].map[0]) {
-				str_p += sprintf(str_p, "%s,%d,%d", p.memo_point[i].map, p.memo_point[i].x, p.memo_point[i].y);
+			if (p.memo_point[i].mapname[0]) {
+				str_p += snprintf(str_p, str+sz-str_p, "%s,%d,%d", p.memo_point[i].mapname, p.memo_point[i].x, p.memo_point[i].y);
 			}
 		*(str_p++) = '\t';
 
 		for(i = 0; i < MAX_INVENTORY; i++)
 			if (p.inventory[i].nameid) {
-				str_p += sprintf(str_p, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d ",
+				str_p += snprintf(str_p, str+sz-str_p, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d ",
 						 p.inventory[i].id, p.inventory[i].nameid, p.inventory[i].amount, p.inventory[i].equip,
 						 p.inventory[i].identify, p.inventory[i].refine, p.inventory[i].attribute,
 						 p.inventory[i].card[0], p.inventory[i].card[1], p.inventory[i].card[2], p.inventory[i].card[3]);
@@ -1173,7 +1268,7 @@ private:
 
 		for(i = 0; i < MAX_CART; i++)
 			if (p.cart[i].nameid) {
-				str_p += sprintf(str_p, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d ",
+				str_p += snprintf(str_p, str+sz-str_p, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d ",
 						 p.cart[i].id, p.cart[i].nameid, p.cart[i].amount, p.cart[i].equip,
 						 p.cart[i].identify, p.cart[i].refine, p.cart[i].attribute,
 						 p.cart[i].card[0], p.cart[i].card[1], p.cart[i].card[2], p.cart[i].card[3]);
@@ -1182,13 +1277,13 @@ private:
 
 		for(i = 0; i < MAX_SKILL; i++)
 			if (p.skill[i].id && p.skill[i].flag != 1) {
-				str_p += sprintf(str_p, "%d,%d ", p.skill[i].id, (p.skill[i].flag == 0) ? p.skill[i].lv : p.skill[i].flag-2);
+				str_p += snprintf(str_p, str+sz-str_p, "%d,%d ", p.skill[i].id, (p.skill[i].flag == 0) ? p.skill[i].lv : p.skill[i].flag-2);
 			}
 		*(str_p++) = '\t';
 
 		for(i = 0; i < p.global_reg_num; i++)
 			if (p.global_reg[i].str[0])
-				str_p += sprintf(str_p, "%s,%ld ", p.global_reg[i].str, (long)p.global_reg[i].value);
+				str_p += snprintf(str_p, str+sz-str_p, "%s,%ld ", p.global_reg[i].str, (long)p.global_reg[i].value);
 		*(str_p++) = '\t';
 
 		*str_p = '\0';
@@ -1234,8 +1329,8 @@ private:
 			&tmp_int[24], &tmp_int[25], &tmp_int[26],
 			&tmp_int[27], &tmp_int[28], &tmp_int[29],
 			&tmp_int[30], &tmp_int[31], &tmp_int[32], &tmp_int[33], &tmp_int[34],
-			p.last_point.map, &tmp_int[35], &tmp_int[36], //
-			p.save_point.map, &tmp_int[37], &tmp_int[38], &tmp_int[39],
+			p.last_point.mapname, &tmp_int[35], &tmp_int[36], //
+			p.save_point.mapname, &tmp_int[37], &tmp_int[38], &tmp_int[39],
 			&tmp_int[40], &tmp_int[41], &tmp_int[42], &tmp_int[43], &next) == 47 )
 		{
 			// my personal reordering
@@ -1254,8 +1349,8 @@ private:
 			&tmp_int[24], &tmp_int[25], &tmp_int[26],
 			&tmp_int[27], &tmp_int[28], &tmp_int[29],
 			&tmp_int[30], &tmp_int[31], &tmp_int[32], &tmp_int[33], &tmp_int[34],
-			p.last_point.map, &tmp_int[35], &tmp_int[36], //
-			p.save_point.map, &tmp_int[37], &tmp_int[38], &tmp_int[39],
+			p.last_point.mapname, &tmp_int[35], &tmp_int[36], //
+			p.save_point.mapname, &tmp_int[37], &tmp_int[38], &tmp_int[39],
 			&tmp_int[40], &tmp_int[41], &tmp_int[42], &tmp_int[43], &next) == 47 )
 		{
 			// Char structture of version 1488+
@@ -1274,8 +1369,8 @@ private:
 			&tmp_int[24], &tmp_int[25], &tmp_int[26],
 			&tmp_int[27], &tmp_int[28], &tmp_int[29],
 			&tmp_int[30], &tmp_int[31], &tmp_int[32], &tmp_int[33], &tmp_int[34],
-			p.last_point.map, &tmp_int[35], &tmp_int[36], //
-			p.save_point.map, &tmp_int[37], &tmp_int[38], &tmp_int[39],
+			p.last_point.mapname, &tmp_int[35], &tmp_int[36], //
+			p.save_point.mapname, &tmp_int[37], &tmp_int[38], &tmp_int[39],
 			&tmp_int[40], &tmp_int[41], &tmp_int[42], &next) == 46 )
 		{
 			// Char structture of version 1363+
@@ -1295,8 +1390,8 @@ private:
 			&tmp_int[24], &tmp_int[25], &tmp_int[26],
 			&tmp_int[27], &tmp_int[28], &tmp_int[29],
 			&tmp_int[30], &tmp_int[31], &tmp_int[32], &tmp_int[33], &tmp_int[34],
-			p.last_point.map, &tmp_int[35], &tmp_int[36],
-			p.save_point.map, &tmp_int[37], &tmp_int[38], &tmp_int[39], &next) == 43 )
+			p.last_point.mapname, &tmp_int[35], &tmp_int[36],
+			p.save_point.mapname, &tmp_int[37], &tmp_int[38], &tmp_int[39], &next) == 43 )
 		{
 			// Char structture of version 1008 and before 1363
 			tmp_int[40] = 0; // father
@@ -1318,8 +1413,8 @@ private:
 			&tmp_int[24], &tmp_int[25], &tmp_int[26],
 			&tmp_int[27], &tmp_int[28], &tmp_int[29],
 			&tmp_int[30], &tmp_int[31], &tmp_int[32], &tmp_int[33], &tmp_int[34],
-			p.last_point.map, &tmp_int[35], &tmp_int[36], //
-			p.save_point.map, &tmp_int[37], &tmp_int[38], &next) == 42 )
+			p.last_point.mapname, &tmp_int[35], &tmp_int[36], //
+			p.save_point.mapname, &tmp_int[37], &tmp_int[38], &next) == 42 )
 		{
 			// Char structture from version 384 to 1007
 			tmp_int[39] = 0; // partner id
@@ -1342,8 +1437,8 @@ private:
 			&tmp_int[24], &tmp_int[25],
 			&tmp_int[27], &tmp_int[28], &tmp_int[29],
 			&tmp_int[30], &tmp_int[31], &tmp_int[32], &tmp_int[33], &tmp_int[34],
-			p.last_point.map, &tmp_int[35], &tmp_int[36], //
-			p.save_point.map, &tmp_int[37], &tmp_int[38], &next) == 41 )
+			p.last_point.mapname, &tmp_int[35], &tmp_int[36], //
+			p.save_point.mapname, &tmp_int[37], &tmp_int[38], &next) == 41 )
 		{
 			// Char structure of version 384 or older
 			tmp_int[26] = 0; // pet id
@@ -1628,13 +1723,16 @@ CREATE TABLE IF NOT EXISTS `char_skill` (
 			next++;
 			for(i = 0; str[next] && str[next] != '\t'&&i<MAX_MEMO; i++)
 			{
-				if (sscanf(str+next, "%[^,],%d,%d%n", p.memo_point[i].map, &tmp_int[0], &tmp_int[1], &len) != 3)
+				if (sscanf(str+next, "%[^,],%d,%d%n", p.memo_point[i].mapname, &tmp_int[0], &tmp_int[1], &len) != 3)
 				{
 					ShowError(CL_BT_RED"Character Memo points invalid (id #%ld, name '%s').\n"CL_NORM, (unsigned long)p.char_id, p.name);
 					ShowMessage("           Rest skipped, line saved to log file.\n", p.name);
 					ret = false;
 					break;
 				}
+				char*ip = strchr(p.memo_point[i].mapname, '.');
+				if(ip) *ip=0;
+				
 				p.memo_point[i].x = tmp_int[0];
 				p.memo_point[i].y = tmp_int[1];
 				next += len;
@@ -1659,6 +1757,7 @@ CREATE TABLE IF NOT EXISTS `char_skill` (
 						  &tmp_int[4], &tmp_int[5], &tmp_int[6],
 						  &tmp_int[7], &tmp_int[8], &tmp_int[9], &tmp_int[10], &len) == 11)
 				{
+					// do nothing, it's ok
 				}
 				else // invalid structure
 				{
@@ -1811,7 +1910,7 @@ CREATE TABLE IF NOT EXISTS `char_skill` (
 			int j;
 			line_count++;
 
-			if( !skip_empty_line(line) )
+			if( !get_prepared_line(line) )
 				continue;
 			line[sizeof(line)-1] = '\0';
 
@@ -1861,10 +1960,10 @@ CREATE TABLE IF NOT EXISTS `char_skill` (
 		FILE *fp, *fb=NULL;
 
 		if(backup_txt_flag)
-			fb= lock_fopen(backup_txt, &lock);
+			fb= lock_fopen(backup_txt, lock);
 
 		// Data save
-		fp = lock_fopen(char_txt, &lock);
+		fp = lock_fopen(char_txt, lock);
 		if (fp == NULL)
 		{
 			ShowWarning("Server can't not save characters.\n");
@@ -1877,12 +1976,12 @@ CREATE TABLE IF NOT EXISTS `char_skill` (
 			for(i=0; i<cCharList.size(); i++)
 			{
 				char_to_str(line, sizeof(line), cCharList[i]);
-				fprintf(fp, "%s"RETCODE, line);
-				if(fb) fprintf(fb, "%s"RETCODE, line);
+				fprintf(fp, line); fprintf(fp, RETCODE);
+				if(fb) { fprintf(fb, line); fprintf(fb, RETCODE); }
 			}
 			fprintf(fp, "%d\t%%newid%%" RETCODE, next_char_id);
-			lock_fclose(fp, char_txt, &lock);
-			if(fb) lock_fclose(fp, backup_txt, &lock);
+			lock_fclose(fp, char_txt, lock);
+			if(fb) lock_fclose(fp, backup_txt, lock);
 			return true;
 		}
 
@@ -2070,7 +2169,7 @@ CREATE TABLE IF NOT EXISTS `char_skill` (
 
 			while(fgets(line, sizeof(line), fp))
 			{
-				if( !skip_empty_line(line) )
+				if( !get_prepared_line(line) )
 					continue;
 
 				memset(friendlist,0,sizeof(friendlist));
@@ -2139,6 +2238,7 @@ CREATE TABLE IF NOT EXISTS `char_skill` (
 	// data
 	TMultiListP<CCharCharacter, 2>	cCharList;
 	TslistDCT<CCharCharAccount>		cAccountList;
+	simple_database					cMailDB;
 	///////////////////////////////////////////////////////////////////////////
 	// data for alternative interface
 	Mutex	cMx;
@@ -2164,7 +2264,7 @@ public:
 		start_zeny = 500;
 		start_weapon = 1201;
 		start_armor = 2301;
-		safestrcpy(start_point.map, "new_1-1.gat", sizeof(start_point.map));
+		safestrcpy(start_point.mapname, "new_1-1", sizeof(start_point.mapname));
 		start_point.x=53;
 		start_point.x=111;
 
@@ -2188,6 +2288,276 @@ public:
 	virtual bool searchAccount(uint32 accid, CCharCharAccount& account);
 	virtual bool saveAccount(CCharAccount& account);
 	virtual bool removeAccount(uint32 accid);
+
+
+	///////////////////////////////////////////////////////////////////////////
+	// mail access interface
+/*
+	size_t tostring(char*&str, const uint32 val)
+	{
+		if(str)
+		{
+			*str++ = ((val>>0x1C)&0xF) + ( (((val>>0x1C)&0xF)<10) ? '0' : 'A'-10 );
+			*str++ = ((val>>0x18)&0xF) + ( (((val>>0x18)&0xF)<10) ? '0' : 'A'-10 );
+			*str++ = ((val>>0x14)&0xF) + ( (((val>>0x14)&0xF)<10) ? '0' : 'A'-10 );
+			*str++ = ((val>>0x10)&0xF) + ( (((val>>0x10)&0xF)<10) ? '0' : 'A'-10 );
+			*str++ = ((val>>0x0C)&0xF) + ( (((val>>0x0C)&0xF)<10) ? '0' : 'A'-10 );
+			*str++ = ((val>>0x08)&0xF) + ( (((val>>0x08)&0xF)<10) ? '0' : 'A'-10 );
+			*str++ = ((val>>0x04)&0xF) + ( (((val>>0x04)&0xF)<10) ? '0' : 'A'-10 );
+			*str++ = ((val>>0x00)&0xF) + ( (((val>>0x00)&0xF)<10) ? '0' : 'A'-10 );
+			return 8;
+		}
+		return 0;
+	}
+	size_t fromstring(const char*&str, uint32 &val)
+	{
+		if(str)
+		{
+			val =	(((uint32)(str[0]>='0' && str[0]<='9') ? (str[0]-'0') : ( (str[0]>='A' && str[0]<='F') ? (str[0]-'A'+10) : ( (str[0]>='a' && str[0]<='f') ? (str[0]-'a'+10) : 0 ))) << 0x1C) |
+					(((uint32)(str[1]>='0' && str[1]<='9') ? (str[1]-'0') : ( (str[1]>='A' && str[1]<='F') ? (str[1]-'A'+10) : ( (str[1]>='a' && str[1]<='f') ? (str[1]-'a'+10) : 0 ))) << 0x18) |
+					(((uint32)(str[2]>='0' && str[2]<='9') ? (str[2]-'0') : ( (str[2]>='A' && str[2]<='F') ? (str[2]-'A'+10) : ( (str[2]>='a' && str[2]<='f') ? (str[2]-'a'+10) : 0 ))) << 0x14) |
+					(((uint32)(str[3]>='0' && str[3]<='9') ? (str[3]-'0') : ( (str[3]>='A' && str[3]<='F') ? (str[3]-'A'+10) : ( (str[3]>='a' && str[3]<='f') ? (str[3]-'a'+10) : 0 ))) << 0x10) |
+					(((uint32)(str[4]>='0' && str[4]<='9') ? (str[4]-'0') : ( (str[4]>='A' && str[4]<='F') ? (str[4]-'A'+10) : ( (str[4]>='a' && str[4]<='f') ? (str[4]-'a'+10) : 0 ))) << 0x0C) |
+					(((uint32)(str[5]>='0' && str[5]<='9') ? (str[5]-'0') : ( (str[5]>='A' && str[5]<='F') ? (str[5]-'A'+10) : ( (str[5]>='a' && str[5]<='f') ? (str[5]-'a'+10) : 0 ))) << 0x08) |
+					(((uint32)(str[6]>='0' && str[6]<='9') ? (str[6]-'0') : ( (str[6]>='A' && str[6]<='F') ? (str[6]-'A'+10) : ( (str[6]>='a' && str[6]<='f') ? (str[6]-'a'+10) : 0 ))) << 0x04) |
+					(((uint32)(str[7]>='0' && str[7]<='9') ? (str[7]-'0') : ( (str[7]>='A' && str[7]<='F') ? (str[7]-'A'+10) : ( (str[7]>='a' && str[7]<='f') ? (str[7]-'a'+10) : 0 ))) << 0x00) ;
+			str+=8;
+			return 8;
+		}
+		else
+		{
+			val = 0;
+			return 0;
+		}
+	}
+	size_t tostring(char*&str, const char* val, size_t sz, char stop='\t')
+	{
+		if(str)
+		{	char *strtmp=str;
+			if(val)
+			{
+				const char*ip=val;
+				while( *ip && (val+sz-1 > ip) )
+				{
+					if(*ip == stop)
+						*str++ =' ', ip++;
+					else
+						*str++ = *ip++;
+				}
+			}
+			*str=0;
+			return str-strtmp;
+		}
+		return 0;
+	}
+	size_t fromstring(const char*&str, char* val, size_t sz, char stop='\t')
+	{
+		if(val)
+		{
+			char*ip=val;
+			if(str)
+			{
+				while( *str && (*str!=stop) && (val+sz-1 > ip) )
+				{
+					*ip++ = *str++;
+				}
+			}
+			*ip=0;
+			return ip-val;
+		}
+		return 0;
+	}
+	size_t mail_tostring(char*string, uint32 mid, unsigned char read, uint32 sid, const char*sname, uint32 tid, const char* tname, const char* head, const char* body)
+	{
+		if(string)
+		{
+			char* ip = string;
+			tostring(ip, mid);
+			*ip++='\t';
+			*ip++='0'+((read<10)?read:9);
+			*ip++='\t';
+			tostring(ip, sid);
+			*ip++='\t';
+			tostring(ip, sname, 24);
+			*ip++='\t';
+			tostring(ip, tid);
+			*ip++='\t';
+			tostring(ip, tname, 24);
+			*ip++='\t';
+			tostring(ip, head, 32);
+			*ip++='\t';
+			tostring(ip, body, 80);
+			*ip++='\t';
+			*ip++='\n';
+			*ip=0;
+			return ip-string;
+		}
+		return 0;
+	}
+	size_t mail_fromstring(const char*string, uint32 &mid, unsigned char &read, uint32 &sid, char*sname, uint32 &tid, char* tname, char* head, char* body)
+	{
+		if(string)
+		{
+			const char* ip = string;
+			fromstring(ip, mid); 
+			while(*ip && *ip!='\t') ip++; ip++;
+			read = (*ip>='0' && *ip<='9') ? (*ip-'0') : ( (*ip>='A' && *ip<='F') ? (*ip-'A'+10) : ( (*ip>='a' && *ip<='f') ? (*ip-'a'+10) : 0 ) );
+			while(*ip && *ip!='\t') ip++; ip++;
+			fromstring(ip, sid);
+			while(*ip && *ip!='\t') ip++; ip++;
+			fromstring(ip, sname, 24);
+			while(*ip && *ip!='\t') ip++; ip++;
+			fromstring(ip, tid);
+			while(*ip && *ip!='\t') ip++; ip++;
+			fromstring(ip, tname, 24);
+			while(*ip && *ip!='\t') ip++; ip++;
+			fromstring(ip, head, 32);
+			while(*ip && *ip!='\t') ip++; ip++;
+			fromstring(ip, body, 80);
+			return ip-string;
+		}
+		return 0;
+	}
+*/
+	virtual size_t getMailCount(uint32 cid, uint32 &all, uint32 &unread)
+	{
+		ScopeLock sl(cMx);
+		simple_database::iterator iter(cMailDB);
+		
+		unread=all=0;
+		while(iter)
+		{
+			if( iter.Key2()==cid )
+			{
+				all++;
+				if( iter.Flag()==0 )
+					unread++;
+			}
+			// next
+			++iter;
+		}
+		return all;
+	}
+
+	virtual size_t listMail(uint32 cid, unsigned char box, unsigned char *buffer)
+	{
+		ScopeLock sl(cMx);
+		simple_database::iterator iter(cMailDB);
+		char buf[1024]="";
+		unsigned long mmid, tid, sid;
+		size_t count=0;
+		char sname[32], tname[32], head[32], body[80];
+		unsigned char read;
+		while(iter)
+		{
+			if( iter.Key2()==cid &&
+				(!iter.Flag() || box) &&
+				iter.read(buf, sizeof(buf)) &&
+				//!! replace the whole thing with regex
+				8==sscanf(buf,
+					"%lu\t%c\t%lu\t%24[^\t]\t%lu\t%24[^\t]\t%32[^\t]\t%80[^\t]\t\n",
+					&mmid, &read, &sid, sname, &tid, tname, head, body) 
+				)
+			{
+				CMailHead mh(mmid, iter.Flag(), sname, head);
+				mh._tobuffer(buffer);// automatic buffer increment
+				count++;
+			}
+			// next element
+			++iter;
+		}
+		return count;
+	}
+
+	virtual bool readMail(uint32 cid, uint32 mid, CMail& mail)
+	{
+		ScopeLock sl(cMx);
+		bool ret = false;
+		char buffer[1024], sname[32], tname[32];
+		unsigned long mmid=0, tid=0, sid=0;
+		int read;
+		simple_database::iterator iter(cMailDB, mid, cid);
+
+		ret = ( iter.isValid() &&
+				iter.read(buffer, sizeof(buffer)) &&
+				//!! replace the whole thing with regex
+				8==sscanf(buffer,
+					"%lu\t%i\t%lu\t%24[^\t]\t%lu\t%24[^\t]\t%32[^\t]\t%80[^\t]\t\n",
+					&mmid, &read, &sid, sname, &tid, tname, mail.head, mail.body) &&
+				mid==mmid && ( cid==tid || cid==sid) );
+
+		if(ret)
+		{	
+			safestrcpy(mail.name, (cid==tid)?sname:tname, sizeof(mail.name));
+			mail.msid = mmid;
+			mail.read = iter.Flag();
+			if( !mail.read && cid==tid )
+			{	// update readflag of own unread mails				
+				size_t sz = snprintf(buffer, sizeof(buffer),
+					"%lu\t%c\t%lu\t%.24s\t%lu\t%.24s\t%.32s\t%.80s\t\n",
+					mmid, '1', 
+					(unsigned long)sid, sname,
+					(unsigned long)tid, mail.name,
+					mail.head, mail.body);
+				// will update entry and index
+				cMailDB.insert(mmid, tid, buffer, sz);
+				// update readflag
+				iter.Flag() = mail.read = 1;
+			}
+		}
+		else
+		{
+			mail.msid=mail.read = mail.name[0] = mail.head[0] = mail.body[0] = 0;
+		}
+		return ret;
+	}
+	virtual bool deleteMail(uint32 cid, uint32 mid)
+	{
+		ScopeLock sl(cMx);
+		return cMailDB.remove(mid, cid);
+	}
+	virtual bool sendMail(uint32 senderid, const char* sendername, const char* targetname, const char *head, const char *body, uint32& msgid, uint32& tid)
+	{
+		ScopeLock sl(cMx);
+		bool ret = false;
+		size_t pos;
+		// search in index 1
+		if( cCharList.find( CCharCharacter(targetname), pos, 1) &&
+			cCharList[pos].char_id!=senderid )
+		{
+			char buffer[1024];
+			simple_database::iterator iter(cMailDB, true);
+			uint32 targetid = cCharList(pos,1).char_id;
+			uint32 mid = cMailDB.getfreekey();
+			if(mid)
+			{
+				char sname[24], tname[24], h[32], b[80];
+				replacecpy(sname, sendername, 24);
+				replacecpy(tname, targetname, 24);
+				replacecpy(h,     head,       32);
+				replacecpy(b,     body,       80);
+				
+				// sscanf cannot handle empty/whitespaced strings
+				// so just put in something harmless
+				if(sname[0]==0) strcpy(sname, ".");
+				if(tname[0]==0) strcpy(tname, ".");
+				if(h[0]==0) strcpy(h, ".");
+				if(b[0]==0) strcpy(b, ".");
+
+				size_t sz = snprintf(buffer, sizeof(buffer),
+					"%lu\t%c\t%lu\t%.24s\t%lu\t%.24s\t%.32s\t%.80s\t\n",
+					mid, '0', 
+					(unsigned long)senderid, sname,
+					(unsigned long)targetid, tname,
+					h, b);
+
+				msgid = mid;
+				tid   = targetid;
+				ret = cMailDB.insert(mid, tid, buffer, sz);
+			}
+		}
+		return ret;
+	}
 
 	///////////////////////////////////////////////////////////////////////////
 	// alternative interface
@@ -2257,10 +2627,12 @@ private:
 	{	// init db
 		if(configfile)
 			CConfig::LoadConfig(configfile);
+		cMailDB.open("save/mail");
 		return read_chars() && read_friends();
 	}
 	bool close()
 	{
+		cMailDB.close();
 		return save_chars() && save_friends();
 	}
 
@@ -2273,6 +2645,7 @@ private:
 		if( savecount > 100 )
 		{
 			savecount=0;
+			cMailDB.flush(true);
 			save_chars();
 			save_friends();
 		}
@@ -2307,11 +2680,13 @@ bool CCharDB_txt::ProcessConfig(const char*w1, const char*w2)
 	}
 	else if(strcasecmp(w1, "start_point") == 0)
 	{
-		char map[32];
+		char mapname[32];
 		int x, y;
-		if(sscanf(w2, "%[^,],%d,%d", map, &x, &y) == 3 &&  NULL!=strstr(map, ".gat") )
-		{	// Verify at least if '.gat' is in the map name
-			safestrcpy(start_point.map, map, sizeof(start_point.map));
+		if(sscanf(w2, "%[^,],%d,%d", mapname, &x, &y) == 3 )
+		{	
+			char *ip=strchr(mapname, '.');
+			if( ip != NULL ) *ip=0;
+			safestrcpy(start_point.mapname, mapname, sizeof(start_point.mapname));
 			start_point.x = x;
 			start_point.y = y;
 		}
@@ -2498,7 +2873,7 @@ class CGuildDB_txt : public CTimerBase, private CConfig, public CGuildDBInterfac
 		g.max_member = tmp_int[2];
 		g.exp = tmp_int[3];
 		g.skill_point = tmp_int[4];
-		g.castle_id = tmp_int[5];
+		//g.castle_id = tmp_int[5]; just skip it
 		safestrcpy(g.name, tmp_str[0], sizeof(g.name));
 		safestrcpy(g.master, tmp_str[1], sizeof(g.master));
 		safestrcpy(g.mes1, tmp_str[2], sizeof(g.mes1));
@@ -2510,27 +2885,26 @@ class CGuildDB_txt : public CTimerBase, private CConfig, public CGuildDBInterfac
 		// メンバー
 		if(g.max_member>MAX_GUILD)
 			g.max_member=0;
+		memset(&g.member,0, sizeof(g.member));
 		for(i=0; i<g.max_member; i++)
 		{
-			struct guild_member &m = g.member[i];
-
 			if( sscanf(str+1, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\t%[^\t]\t",
 				&tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3], &tmp_int[4],
 				&tmp_int[5], &tmp_int[6], &tmp_int[7], &tmp_int[8], &tmp_int[9],
 				tmp_str[0]) < 11)
 				return false;
 
-			m.account_id = tmp_int[0];
-			m.char_id = tmp_int[1];
-			m.hair = tmp_int[2];
-			m.hair_color = tmp_int[3];
-			m.gender = tmp_int[4];
-			m.class_ = tmp_int[5];
-			m.lv = tmp_int[6];
-			m.exp = tmp_int[7];
-			m.exp_payper = tmp_int[8];
-			m.position = tmp_int[9];
-			safestrcpy(m.name, tmp_str[0], sizeof(m.name));
+			g.member[i].account_id	= tmp_int[0];
+			g.member[i].char_id		= tmp_int[1];
+			g.member[i].hair		= tmp_int[2];
+			g.member[i].hair_color	= tmp_int[3];
+			g.member[i].gender		= tmp_int[4];
+			g.member[i].class_		= tmp_int[5];
+			g.member[i].lv			= tmp_int[6];
+			g.member[i].exp			= tmp_int[7];
+			g.member[i].exp_payper	= tmp_int[8];
+			g.member[i].position	= tmp_int[9];
+			safestrcpy(g.member[i].name, tmp_str[0], sizeof(g.member[i].name));
 
 			for(j=0; j<2 && str!=NULL; j++)	// 位置スキップ
 				str = strchr(str+1, '\t');
@@ -2538,15 +2912,15 @@ class CGuildDB_txt : public CTimerBase, private CConfig, public CGuildDBInterfac
 
 		// 役職
 		i = 0;
+		memset(&g.position,0, sizeof(g.position));
 		while( sscanf(str+1, "%d,%d%n", &tmp_int[0], &tmp_int[1], &j) == 2 &&
 			str[1+j] == '\t')
 		{
-			struct guild_position &p = g.position[i];
 			if( sscanf(str+1, "%d,%d\t%[^\t]\t", &tmp_int[0], &tmp_int[1], tmp_str[0]) < 3)
 				return false;
-			p.mode = tmp_int[0];
-			p.exp_mode = tmp_int[1];
-			safestrcpy(p.name, tmp_str[0], sizeof(p.name));
+			g.position[i].mode		= tmp_int[0];
+			g.position[i].exp_mode	= tmp_int[1];
+			safestrcpy(g.position[i].name, tmp_str[0], sizeof(g.position[i].name));
 
 			for(j=0; j<2 && str!=NULL; j++)	// 位置スキップ
 				str = strchr(str+1, '\t');
@@ -2579,14 +2953,14 @@ class CGuildDB_txt : public CTimerBase, private CConfig, public CGuildDBInterfac
 			return false;
 
 		str = strchr(str + 1, '\t');	// 位置スキップ
+		memset(&g.alliance,0, sizeof(g.alliance));
 		for(i = 0; i < c; i++)
 		{
-			struct guild_alliance &a = g.alliance[i];
 			if( sscanf(str + 1, "%d,%d\t%[^\t]\t", &tmp_int[0], &tmp_int[1], tmp_str[0]) < 3)
 				return false;
-			a.guild_id = tmp_int[0];
-			a.opposition = tmp_int[1];
-			safestrcpy(a.name, tmp_str[0], sizeof(a.name));
+			g.alliance[i].guild_id		= tmp_int[0];
+			g.alliance[i].opposition	= tmp_int[1];
+			safestrcpy(g.alliance[i].name, tmp_str[0], sizeof(g.alliance[i].name));
 
 			for(j=0; j<2 && str!=NULL; j++)	// 位置スキップ
 				str = strchr(str + 1, '\t');
@@ -2597,26 +2971,27 @@ class CGuildDB_txt : public CTimerBase, private CConfig, public CGuildDBInterfac
 			return false;
 
 		str = strchr(str + 1, '\t');	// 位置スキップ
+		memset(&g.explusion,0, sizeof(g.explusion));
 		for(i=0; i<c; i++)
 		{
-			struct guild_explusion &e = g.explusion[i];
 			if( sscanf(str + 1, "%d,%d,%d,%d\t%[^\t]\t%[^\t]\t%[^\t]\t",
 				&tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3],
 				tmp_str[0], tmp_str[1], tmp_str[2]) < 6)
 				return false;
-			e.account_id = tmp_int[0];
-			e.rsv1 = tmp_int[1];
-			e.rsv2 = tmp_int[2];
-			e.rsv3 = tmp_int[3];
-			safestrcpy(e.name, tmp_str[0], sizeof(e.name));
-			safestrcpy(e.acc, tmp_str[1], sizeof(e.acc));
-			safestrcpy(e.mes, tmp_str[2], sizeof(e.mes));
+			g.explusion[i].account_id = tmp_int[0];
+			g.explusion[i].rsv1 = tmp_int[1];
+			g.explusion[i].rsv2 = tmp_int[2];
+			g.explusion[i].rsv3 = tmp_int[3];
+			safestrcpy(g.explusion[i].name, tmp_str[0], sizeof(g.explusion[i].name));
+			safestrcpy(g.explusion[i].acc, tmp_str[1], sizeof(g.explusion[i].acc));
+			safestrcpy(g.explusion[i].mes, tmp_str[2], sizeof(g.explusion[i].mes));
 
 			for(j=0; j<4 && str!=NULL; j++)	// 位置スキップ
 				str = strchr(str+1, '\t');
 		}
 
 		// ギルドスキル
+		memset(&g.skill,0, sizeof(g.skill));
 		for(i=0; i<MAX_GUILDSKILL; i++)
 		{
 			if (sscanf(str+1,"%d,%d ", &tmp_int[0], &tmp_int[1]) < 2)
@@ -2635,14 +3010,14 @@ class CGuildDB_txt : public CTimerBase, private CConfig, public CGuildDBInterfac
 		ssize_t i, c, len;
 
 		// 基本データ
-		len = sprintf(str, "%ld\t%s\t%s\t%d,%d,%ld,%d,%d\t%s#\t%s#\t",
+		len = snprintf(str, maxlen, "%ld\t%s\t%s\t%d,%d,%ld,%d,%d\t%s#\t%s#\t",
 					  (unsigned long)g.guild_id, g.name, g.master,
-					  g.guild_lv, g.max_member, (unsigned long)g.exp, g.skill_point, g.castle_id,
+					  g.guild_lv, g.max_member, (unsigned long)g.exp, g.skill_point, 0,//g.castle_id,
 					  g.mes1, g.mes2);
 		// メンバー
 		for(i = 0; i < g.max_member; i++) {
 			const struct guild_member &m = g.member[i];
-			len += sprintf(str + len, "%ld,%ld,%d,%d,%d,%d,%d,%ld,%ld,%d\t%s\t",
+			len += snprintf(str + len, maxlen-len, "%ld,%ld,%d,%d,%d,%d,%d,%ld,%ld,%d\t%s\t",
 						   (unsigned long)m.account_id, (unsigned long)m.char_id,
 						   m.hair, m.hair_color, m.gender,
 						   m.class_, m.lv, (unsigned long)m.exp, (unsigned long)m.exp_payper, m.position,
@@ -2651,43 +3026,48 @@ class CGuildDB_txt : public CTimerBase, private CConfig, public CGuildDBInterfac
 		// 役職
 		for(i = 0; i < MAX_GUILDPOSITION; i++) {
 			const struct guild_position &p = g.position[i];
-			len += sprintf(str + len, "%ld,%ld\t%s#\t", (unsigned long)p.mode, (unsigned long)p.exp_mode, p.name);
+			len += snprintf(str + len, maxlen-len, "%ld,%ld\t%s#\t", (unsigned long)p.mode, (unsigned long)p.exp_mode, p.name);
 		}
 		// エンブレム
-		len += sprintf(str + len, "%d,%ld,", g.emblem_len, (unsigned long)g.emblem_id);
+		len += snprintf(str + len, maxlen-len, "%d,%ld,", g.emblem_len, (unsigned long)g.emblem_id);
 		for(i = 0; i < g.emblem_len; i++) {
-			len += sprintf(str + len, "%02x", (unsigned char)(g.emblem_data[i]));
+			len += snprintf(str + len, maxlen-len, "%02x", (unsigned char)(g.emblem_data[i]));
 		}
-		len += sprintf(str + len, "$\t");
+		len += snprintf(str + len, maxlen-len, "$\t");
 		// 同盟リスト
-		c = 0;
-		for(i = 0; i < MAX_GUILDALLIANCE; i++)
-			if (g.alliance[i].guild_id > 0)
+		
+		for(i=0, c=0; i<MAX_GUILDALLIANCE; i++)
+			if(g.alliance[i].guild_id > 0)
 				c++;
-		len += sprintf(str + len, "%d\t", c);
-		for(i = 0; i < MAX_GUILDALLIANCE; i++) {
+
+		len += snprintf(str + len, maxlen-len, "%d\t", c);
+
+		for(i = 0; i < MAX_GUILDALLIANCE; i++)
+		{
 			const struct guild_alliance &a = g.alliance[i];
 			if (a.guild_id > 0)
-				len += sprintf(str + len, "%ld,%ld\t%s\t", (unsigned long)a.guild_id, (unsigned long)a.opposition, a.name);
+				len += snprintf(str + len, maxlen-len, "%ld,%ld\t%s\t", (unsigned long)a.guild_id, (unsigned long)a.opposition, a.name);
 		}
 		// 追放リスト
-		c = 0;
-		for(i = 0; i < MAX_GUILDEXPLUSION; i++)
+		for(i=0,c=0; i<MAX_GUILDEXPLUSION; i++)
 			if (g.explusion[i].account_id > 0)
 				c++;
-		len += sprintf(str + len, "%d\t", c);
-		for(i = 0; i < MAX_GUILDEXPLUSION; i++) {
+
+		len += snprintf(str + len, maxlen-len, "%d\t", c);
+		for(i = 0; i < MAX_GUILDEXPLUSION; i++)
+		{
 			const struct guild_explusion &e = g.explusion[i];
 			if (e.account_id > 0)
-				len += sprintf(str + len, "%ld,%ld,%ld,%ld\t%s\t%s\t%s#\t",
+				len += snprintf(str + len, maxlen-len, "%ld,%ld,%ld,%ld\t%s\t%s\t%s#\t",
 							   (unsigned long)e.account_id, (unsigned long)e.rsv1, (unsigned long)e.rsv2, (unsigned long)e.rsv3,
 							   e.name, e.acc, e.mes );
 		}
 		// ギルドスキル
-		for(i = 0; i < MAX_GUILDSKILL; i++) {
-			len += sprintf(str + len, "%d,%d ", g.skill[i].id, g.skill[i].lv);
+		for(i = 0; i < MAX_GUILDSKILL; i++)
+		{
+			len += snprintf(str + len, maxlen-len, "%d,%d ", g.skill[i].id, g.skill[i].lv);
 		}
-		len += sprintf(str+len, "\t"RETCODE);
+		len += snprintf(str + len, maxlen-len, "\t"RETCODE);
 		return len;
 	}
 
@@ -2796,7 +3176,7 @@ class CGuildDB_txt : public CTimerBase, private CConfig, public CGuildDBInterfac
 		while(fgets(line, sizeof(line), fp))
 		{
 			c++;
-			if( !skip_empty_line(line) )
+			if( !get_prepared_line(line) )
 				continue;
 
 			CGuild g;
@@ -2848,7 +3228,7 @@ class CGuildDB_txt : public CTimerBase, private CConfig, public CGuildDBInterfac
 		{
 			c++;
 
-			if( !skip_empty_line(line) )
+			if( !get_prepared_line(line) )
 				continue;
 
 			size_t pos;
@@ -2886,7 +3266,7 @@ class CGuildDB_txt : public CTimerBase, private CConfig, public CGuildDBInterfac
 		int lock;
 		size_t i, sz;
 		///////////////////////////////////////////////////////////////////////
-		fp = lock_fopen(guild_filename,&lock);
+		fp = lock_fopen(guild_filename, lock);
 		if( fp == NULL) {
 			ShowError("Guild: cannot open [%s]\n", guild_filename);
 			ret = false;
@@ -2896,16 +3276,15 @@ class CGuildDB_txt : public CTimerBase, private CConfig, public CGuildDBInterfac
 			for(i=0; i<cGuilds.size(); i++)
 			{
 				sz=guild2string(line, sizeof(line), cGuilds[i]);
-				//fprintf(fp, "%s" RETCODE, line); // retcode integrated to line generation
 				if(sz>0)
 					fwrite(line, sz,1,fp);
 			}
-			lock_fclose(fp, guild_filename, &lock);
+			lock_fclose(fp, guild_filename, lock);
 		}
 
 
 		///////////////////////////////////////////////////////////////////////
-		fp = lock_fopen(castle_filename,&lock);
+		fp = lock_fopen(castle_filename, lock);
 		if( fp == NULL) {
 			ShowError("Guild: cannot open [%s]\n", castle_filename);
 			ret = false;
@@ -2918,7 +3297,7 @@ class CGuildDB_txt : public CTimerBase, private CConfig, public CGuildDBInterfac
 				//fprintf(fp, "%s" RETCODE, line);	// retcode integrated to line generation
 				if(sz>0) fwrite(line, sz,1,fp);
 			}
-			lock_fclose(fp, castle_filename, &lock);
+			lock_fclose(fp, castle_filename, lock);
 		}
 		///////////////////////////////////////////////////////////////////////
 		return ret;
@@ -3045,7 +3424,6 @@ public:
 
 			tmp.max_member=16;
 			tmp.average_lv=tmp.member[0].lv;
-			tmp.castle_id=0xFFFF;
 			for(i=0;i<MAX_GUILDSKILL;i++)
 				tmp.skill[i].id = i+GD_SKILLBASE;
 
@@ -3241,7 +3619,7 @@ void CGuildExp::init(const char* filename)
 		int c=0;
 		while(fgets(line,sizeof(line),fp) && c<100)
 		{
-			if( !skip_empty_line(line) )
+			if( !get_prepared_line(line) )
 				continue;
 			exp[c]=atoi(line);
 			c++;
@@ -3267,13 +3645,13 @@ class CPartyDB_txt : public CTimerBase, private CConfig, public CPartyDBInterfac
 	ssize_t party_to_string(char *str, size_t maxlen, const CParty &p)
 	{
 		ssize_t i, len;
-		len = sprintf(str, "%ld\t%s\t%d,%d\t", (unsigned long)p.party_id, p.name, p.expshare, p.itemshare);
+		len = snprintf(str, maxlen, "%ld\t%s\t%d,%d\t", (unsigned long)p.party_id, p.name, p.expshare, p.itemshare);
 		for(i = 0; i < MAX_PARTY; i++)
 		{
 			const struct party_member &m = p.member[i];
-			len += sprintf(str+len, "%ld,%ld\t%s\t", (unsigned long)m.account_id, (unsigned long)m.leader, ((m.account_id > 0) ? m.name : "NoMember"));
+			len += snprintf(str+len, maxlen-len, "%ld,%ld\t%s\t", (unsigned long)m.account_id, (unsigned long)m.leader, ((m.account_id > 0) ? m.name : "NoMember"));
 		}
-		sprintf(str+len, RETCODE);
+		snprintf(str+len, maxlen-len, RETCODE);
 		return len;
 	}
 	bool party_from_string(const char *str, CParty &p)
@@ -3323,7 +3701,7 @@ class CPartyDB_txt : public CTimerBase, private CConfig, public CPartyDBInterfac
 		while(fgets(line, sizeof(line), fp))
 		{
 			c++;
-			if( !skip_empty_line(line) )
+			if( !get_prepared_line(line) )
 				continue;
 
 			j = 0;
@@ -3362,7 +3740,7 @@ class CPartyDB_txt : public CTimerBase, private CConfig, public CPartyDBInterfac
 		size_t i;
 		ssize_t sz;
 
-		if ((fp = lock_fopen(party_filename, &lock)) == NULL) {
+		if ((fp = lock_fopen(party_filename, lock)) == NULL) {
 			ShowError("Party: cannot open [%s]\n", party_filename);
 			return false;
 		}
@@ -3372,7 +3750,7 @@ class CPartyDB_txt : public CTimerBase, private CConfig, public CPartyDBInterfac
 			if(sz>0) fwrite(line, sz,1, fp);
 		}
 		fprintf(fp, "%d\t%%newid%%\n", next_party_id);
-		lock_fclose(fp,party_filename, &lock);
+		lock_fclose(fp,party_filename, lock);
 		return 0;
 	}
 
@@ -3471,6 +3849,9 @@ private:
 			temp.member[0].account_id = accid;
 			safestrcpy(temp.member[0].name, nick, sizeof(temp.member[0].name));
 			safestrcpy(temp.member[0].mapname, map, sizeof(temp.member[0].mapname));
+			char*ip = strchr(temp.member[0].mapname,'.');
+			if(ip) *ip=0;
+
 			temp.member[0].leader = 1;
 			temp.member[0].online = 1;
 			temp.member[0].lv = lv;
@@ -3542,12 +3923,12 @@ class CPCStorageDB_txt : public CTimerBase, private CConfig, public CPCStorageDB
 	{
 		int i,f=0;
 		char *str_p = str;
-		str_p += sprintf(str_p,"%ld,%d\t",(unsigned long)stor.account_id, stor.storage_amount);
+		str_p += snprintf(str_p,maxlen,"%ld,%d\t",(unsigned long)stor.account_id, stor.storage_amount);
 		for(i=0;i<MAX_STORAGE;i++)
 		{
 			if( (stor.storage[i].nameid) && (stor.storage[i].amount) )
 			{
-				str_p += sprintf(str_p,"%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d ",
+				str_p += snprintf(str_p,str+maxlen-str_p,"%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d ",
 					stor.storage[i].id,stor.storage[i].nameid,stor.storage[i].amount,stor.storage[i].equip,
 					stor.storage[i].identify,stor.storage[i].refine,stor.storage[i].attribute,
 					stor.storage[i].card[0],stor.storage[i].card[1],stor.storage[i].card[2],stor.storage[i].card[3]);
@@ -3639,7 +4020,7 @@ class CPCStorageDB_txt : public CTimerBase, private CConfig, public CPCStorageDB
 		while(fgets(line,sizeof(line),fp))
 		{
 			c++;
-			if( !skip_empty_line(line) )
+			if( !get_prepared_line(line) )
 				continue;
 
 			sscanf(line,"%ld",&tmp);
@@ -3661,7 +4042,7 @@ class CPCStorageDB_txt : public CTimerBase, private CConfig, public CPCStorageDB
 		char line[65536];
 		int lock;
 		size_t i, sz;
-		FILE *fp=lock_fopen(pcstorage_filename,&lock);
+		FILE *fp=lock_fopen(pcstorage_filename, lock);
 
 		if( fp==NULL )
 		{
@@ -3673,7 +4054,7 @@ class CPCStorageDB_txt : public CTimerBase, private CConfig, public CPCStorageDB
 			sz = storage_to_string(line, sizeof(line), cPCStorList[i]);
 			if(sz>0) fprintf(fp,"%s"RETCODE,line);
 		}
-		lock_fclose(fp, pcstorage_filename, &lock);
+		lock_fclose(fp, pcstorage_filename, lock);
 		return true;
 	}
 
@@ -3810,13 +4191,13 @@ class CGuildStorageDB_txt : public CTimerBase, private CConfig, public CGuildSto
 	{
 		int i,f=0;
 		char *str_p = str;
-		str_p+=sprintf(str,"%ld,%d\t",(unsigned long)stor.guild_id, stor.storage_amount);
+		str_p+=snprintf(str,maxlen,"%ld,%d\t",(unsigned long)stor.guild_id, stor.storage_amount);
 
 		for(i=0;i<MAX_GUILD_STORAGE;i++)
 		{
 			if( (stor.storage[i].nameid) && (stor.storage[i].amount) )
 			{
-				str_p += sprintf(str_p,"%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d ",
+				str_p += snprintf(str_p,str+maxlen-str_p,"%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d ",
 					stor.storage[i].id,stor.storage[i].nameid,stor.storage[i].amount,stor.storage[i].equip,
 					stor.storage[i].identify,stor.storage[i].refine,stor.storage[i].attribute,
 					stor.storage[i].card[0],stor.storage[i].card[1],stor.storage[i].card[2],stor.storage[i].card[3]);
@@ -3904,7 +4285,7 @@ class CGuildStorageDB_txt : public CTimerBase, private CConfig, public CGuildSto
 		while(fgets(line,sizeof(line),fp))
 		{
 			c++;
-			if( !skip_empty_line(line) )
+			if( !get_prepared_line(line) )
 				continue;
 
 			sscanf(line,"%ld",&tmp);
@@ -3926,7 +4307,7 @@ class CGuildStorageDB_txt : public CTimerBase, private CConfig, public CGuildSto
 		char line[65536];
 		int lock;
 		size_t i, sz;
-		FILE *fp=lock_fopen(guildstorage_filename,&lock);
+		FILE *fp=lock_fopen(guildstorage_filename, lock);
 
 		if( fp==NULL )
 		{
@@ -3938,7 +4319,7 @@ class CGuildStorageDB_txt : public CTimerBase, private CConfig, public CGuildSto
 			sz = guild_storage_to_string(line, sizeof(line), cGuildStorList[i]);
 			if(sz>0) fprintf(fp,"%s"RETCODE,line);
 		}
-		lock_fclose(fp, guildstorage_filename, &lock);
+		lock_fclose(fp, guildstorage_filename, lock);
 		return true;
 	}
 
@@ -4137,7 +4518,7 @@ class CPetDB_txt : public CTimerBase, private CConfig, public CPetDBInterface
 		while(fgets(line,sizeof(line),fp))
 		{
 			c++;
-			if( !skip_empty_line(line) )
+			if( !get_prepared_line(line) )
 				continue;
 
 			if( pet_from_string(line,pet) )
@@ -4157,7 +4538,7 @@ class CPetDB_txt : public CTimerBase, private CConfig, public CPetDBInterface
 		char line[65536];
 		int lock;
 		size_t i, sz;
-		FILE *fp=lock_fopen(pet_filename,&lock);
+		FILE *fp=lock_fopen(pet_filename, lock);
 
 		if( fp==NULL )
 		{
@@ -4169,7 +4550,7 @@ class CPetDB_txt : public CTimerBase, private CConfig, public CPetDBInterface
 			sz = pet_to_string(line, sizeof(line), cPetList[i]);
 			if(sz>0) fprintf(fp,"%s"RETCODE,line);
 		}
-		lock_fclose(fp, pet_filename, &lock);
+		lock_fclose(fp, pet_filename, lock);
 		return true;
 	}
 public:
@@ -4306,5 +4687,9 @@ CPetDBInterface* CPetDB::getDB(const char *dbcfgfile)
 //	return new CPetDB_sql(dbcfgfile);
 #endif// SQL
 }
+
+
+
+
 
 

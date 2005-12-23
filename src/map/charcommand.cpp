@@ -175,7 +175,7 @@ bool charcommand_config_read(const char *cfgName)
 
 	while (fgets(line, sizeof(line), fp))
 	{
-		if( !skip_empty_line(line) )
+		if( !get_prepared_line(line) )
 			continue;
 
 		if (sscanf(line, "%1023[^:]:%1023s", w1, w2) != 2)
@@ -674,26 +674,25 @@ bool charcommand_option(int fd, struct map_session_data &sd,const char *command,
  */
 bool charcommand_save(int fd, struct map_session_data &sd,const char *command, const char *message)
 {
-	char map_name[100];
-	char character[100];
+	char mapname[128], *ip;
+	char character[128];
 	struct map_session_data* pl_sd;
 	int x = 0, y = 0;
 	int m;
 
-	memset(map_name, '\0', sizeof(map_name));
+	memset(mapname, '\0', sizeof(mapname));
 	memset(character, '\0', sizeof(character));
 
-	if (!message || !*message || sscanf(message, "%99s %d %d %99[^\n]", map_name, &x, &y, character) < 4 || x < 0 || y < 0) {
+	if (!message || !*message || sscanf(message, "%99s %d %d %99[^\n]", mapname, &x, &y, character) < 4 || x < 0 || y < 0) {
 		clif_displaymessage(fd, "Please, enter a valid save point and a player name (usage: #save <map> <x> <y> <charname>).");
 		return false;
 	}
-
-	if (strstr(map_name, ".gat") == NULL && strstr(map_name, ".afm") == NULL && strlen(map_name) < 13) // 16 - 4 (.gat)
-		strcat(map_name, ".gat");
+	ip = strchr(mapname, '.');
+	if(ip) *ip=0;
 
 	if ((pl_sd = map_nick2sd(character)) != NULL) {
 		if (pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can change save point only to lower or same gm level
-			m = map_mapname2mapid(map_name);
+			m = map_mapname2mapid(mapname);
 			if (m < 0) {
 				clif_displaymessage(fd, msg_txt(1)); // Map not found.
 				return false;
@@ -702,7 +701,7 @@ bool charcommand_save(int fd, struct map_session_data &sd,const char *command, c
 					clif_displaymessage(fd, "You are not authorised to set this map as a save map.");
 					return false;
 				}
-				pc_setsavepoint(*pl_sd, map_name, x, y);
+				pc_setsavepoint(*pl_sd, mapname, x, y);
 				clif_displaymessage(fd, msg_txt(57)); // Character's respawn point changed.
 			}
 		} else {
@@ -1135,16 +1134,16 @@ bool charcommand_item(int fd, struct map_session_data &sd,const char *command, c
  */
 bool charcommand_warp(int fd, struct map_session_data &sd,const char *command, const char *message)
 {
-	char map_name[100];
-	char character[100];
+	char mapname[128], *ip;
+	char character[128];
 	int x = 0, y = 0;
 	struct map_session_data *pl_sd;
 	int m;
 
-	memset(map_name, '\0', sizeof(map_name));
+	memset(mapname, '\0', sizeof(mapname));
 	memset(character, '\0', sizeof(character));
 
-	if (!message || !*message || sscanf(message, "%99s %d %d %99[^\n]", map_name, &x, &y, character) < 4) {
+	if (!message || !*message || sscanf(message, "%99s %d %d %99[^\n]", mapname, &x, &y, character) < 4) {
 		clif_displaymessage(fd, "Usage: #warp/#rura/#rura+ <mapname> <x> <y> <char name>");
 		return false;
 	}
@@ -1153,13 +1152,13 @@ bool charcommand_warp(int fd, struct map_session_data &sd,const char *command, c
 		x = rand() % 399 + 1;
 	if (y <= 0)
 		y = rand() % 399 + 1;
-	if (strstr(map_name, ".gat") == NULL && strstr(map_name, ".afm") == NULL && strlen(map_name) < 13) // 16 - 4 (.gat)
-		strcat(map_name, ".gat");
+	ip = strchr(mapname, '.');
+	if(ip) *ip=0;
 
 	if ((pl_sd = map_nick2sd(character)) != NULL) {
 		if (pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can rura+ only lower or same GM level
 			if (x > 0 && x < 400 && y > 0 && y < 400) {
-				m = map_mapname2mapid(map_name);
+				m = map_mapname2mapid(mapname);
 				if (m >= 0 && map[m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
 					clif_displaymessage(fd, "You are not authorised to warp someone to this map.");
 					return false;
@@ -1168,7 +1167,7 @@ bool charcommand_warp(int fd, struct map_session_data &sd,const char *command, c
 					clif_displaymessage(fd, "You are not authorised to warp this player from its actual map.");
 					return false;
 				}
-				if(pc_setpos(*pl_sd, map_name, x, y, 3) == 0) {
+				if(pc_setpos(*pl_sd, mapname, x, y, 3) == 0) {
 					clif_displaymessage(pl_sd->fd, msg_txt(0)); // Warped.
 					clif_displaymessage(fd, msg_txt(15)); // Player warped (message sends to player too).
 				}

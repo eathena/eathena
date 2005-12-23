@@ -1890,7 +1890,7 @@ int read_petdb()
 			
 			lines++;
 
-			if( !skip_empty_line(line) )
+			if( !get_prepared_line(line) )
 				continue;
 
 			for(k=0,p=line;k<20;k++){

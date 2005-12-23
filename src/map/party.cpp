@@ -625,8 +625,8 @@ int party_send_xy_clear(struct party &p)
 	for(i=0;i<MAX_PARTY;i++){
 		struct map_session_data *sd=p.member[i].sd;
 		if(sd!=NULL){
-			sd->party_x=-1;
-			sd->party_y=-1;
+			sd->party_x=0xFFFF;
+			sd->party_y=0xFFFF;
 			sd->party_hp=-1;
 		}
 	}

@@ -79,8 +79,48 @@ static inline const char *safestrcpy(char *tar, const char *src, size_t cnt)
 	}
 	return tar;
 }
+static inline const char *replacecpy(char *tar, const char* src, size_t sz, char rplc='\t', char with=' ')
+{
+	if(tar)
+	{	char *strtmp=tar;
+		if(src)
+		{
+			const char*ip=src;
+			while( *ip && (src+sz-1 > ip) )
+			{
+				if(*ip == rplc)
+					*strtmp++ =with, ip++;
+				else
+					*strtmp++ = *ip++;
+			}
+		}
+		*strtmp=0;
+	}
+	return tar;
+}
 
-static inline const char *skip_empty_line(const char *line)
+static inline const char *mapname2buffer(unsigned char *buffer, const char *mapname, size_t cnt)
+{
+	if(buffer)
+	{
+		if(mapname)
+		{
+			unsigned char*ip = buffer, *ep= buffer+cnt-5; // space for ".gat<eos>"
+			while(*mapname && *mapname!='.' && ip<ep)
+				*ip++ = *mapname++;
+			*ip++ = '.';
+			*ip++ = 'g';
+			*ip++ = 'a';
+			*ip++ = 't';
+			*ip++ = 0;
+		}
+		else
+			buffer[0]=0;
+	}
+	return (const char *)buffer;
+}
+
+static inline const char *get_prepared_line(const char *line)
 {	// skip whitespaces and returns (0x09-0x0D or 0x20) 
 	// and return NULL on EOF or following "//"
 	if(line)
@@ -93,7 +133,29 @@ static inline const char *skip_empty_line(const char *line)
 	return NULL;
 }
 
-
+static inline size_t prepare_line(char *line)
+{	// skip whitespaces and returns (0x09-0x0D or 0x20) 
+	// and return NULL on EOF or following "//"
+	if(line)
+	{	char *ip=line, *kp=line;
+		while( *ip )
+		{
+			if(*ip>=0x09 && *ip<=0x0D)
+				ip++;
+			else if(*ip==0x20 && kp>line && kp[-1]==0x20)
+				ip++;
+			else if(ip[0]=='/' && ip[1]=='/')
+				break;
+			else
+				*kp++ = *ip++;
+		}
+		if(kp>line && kp[-1]==0x20)
+			kp--;
+		*kp=0;
+		return kp-line;
+	}
+	return 0;
+}
 
 
 

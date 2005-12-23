@@ -3,8 +3,8 @@
 
 #include "base.h"
 
-FILE* lock_fopen(const char* filename,int *info);
-int   lock_fclose(FILE *fp,const char* filename,int *info);
+FILE* lock_fopen(const char* filename,int &info);
+int   lock_fclose(FILE *fp,const char* filename,int info);
 
 #endif
 

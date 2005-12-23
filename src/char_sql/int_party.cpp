@@ -193,7 +193,11 @@ bool inter_party_fromsql(int party_id, struct party &p)
 			m->lv = atoi(sql_row[2]);
 			m->online = atoi(sql_row[4]);
 			if(m->online)
-				safestrcpy(m->mapname, sql_row[3], 24);
+			{
+				safestrcpy(m->mapname, sql_row[3], sizeof(m->mapname));
+				char* ip=strchr(m->mapname,'.');
+				if(ip) *ip=0;
+			}
 			else
 				m->mapname[0]=0;
 		}
@@ -459,7 +463,7 @@ int mapif_party_membermoved(struct party *p,int idx)
 		WBUFW(buf,0) = 0x3825;
 		WBUFL(buf,2) = p->party_id;
 		WBUFL(buf,6) = p->member[idx].account_id;
-		memcpy(WBUFP(buf,10), p->member[idx].mapname, 16);
+		mapname2buffer(WBUFP(buf,10), p->member[idx].mapname, 16);
 		WBUFB(buf,26) = p->member[idx].online;
 		WBUFW(buf,27) = p->member[idx].lv;
 		mapif_sendall(buf, 29);
@@ -495,7 +499,7 @@ int mapif_party_message(uint32 party_id,uint32 account_id,char *mes,int len, int
 
 
 // Create Party
-int mapif_parse_CreateParty(int fd,uint32 account_id,char *name,char *nick,char *map,int lv, int item, int item2)
+int mapif_parse_CreateParty(int fd,uint32 account_id,const char *name,const char *nick,const char *map,int lv, int item, int item2)
 {
 	if( search_partyname(name) )
 	{
@@ -518,6 +522,9 @@ int mapif_parse_CreateParty(int fd,uint32 account_id,char *name,char *nick,char 
 		p.member[0].account_id=account_id;
 		safestrcpy(p.member[0].name,nick,24);
 		safestrcpy(p.member[0].mapname,map,24);
+		char* ip=strchr(p.member[0].mapname,'.');
+		if(ip) *ip=0;
+
 		p.member[0].leader=1;
 		p.member[0].online=1;
 		p.member[0].lv=lv;
@@ -543,7 +550,7 @@ int mapif_parse_PartyInfo(int fd,int party_id)
 	return 0;
 }
 // パーティ追加要求
-int mapif_parse_PartyAddMember(int fd,uint32 party_id,uint32 account_id,char *nick,char *map,int lv)
+int mapif_parse_PartyAddMember(int fd,uint32 party_id,uint32 account_id,const char *nick, const char *map,int lv)
 {
 	struct party p;
 	int i;
@@ -563,6 +570,8 @@ int mapif_parse_PartyAddMember(int fd,uint32 party_id,uint32 account_id,char *ni
 			p.member[i].account_id=account_id;
 			memcpy(p.member[i].name,nick,24);
 			memcpy(p.member[i].mapname,map,24);
+			char* ip=strchr(p.member[i].mapname,'.');
+			if(ip) *ip=0;
 			p.member[i].leader=0;
 			p.member[i].online=1;
 			p.member[i].lv=lv;
@@ -708,7 +717,7 @@ int mapif_parse_PartyLeave(int fd, uint32 party_id, uint32 account_id)
 	return 0;
 }
 // When member goes to other map
-int mapif_parse_PartyChangeMap(int fd,uint32 party_id,uint32 account_id,char *map,int online,int lv)
+int mapif_parse_PartyChangeMap(int fd,uint32 party_id,uint32 account_id,const char *map,int online,int lv)
 {
 	struct party p;
 	int i;
@@ -722,6 +731,8 @@ int mapif_parse_PartyChangeMap(int fd,uint32 party_id,uint32 account_id,char *ma
 		if(p.member[i].account_id==account_id)
 		{
 			safestrcpy(p.member[i].mapname,map,24);
+			char* ip=strchr(p.member[i].mapname,'.');
+			if(ip) *ip=0;
 			p.member[i].online=online;
 			p.member[i].lv=lv;
 			mapif_party_membermoved(&p,i);

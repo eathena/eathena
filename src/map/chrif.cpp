@@ -6,6 +6,7 @@
 #include "utils.h"
 #include "showmsg.h"
 
+#include "atcommand.h"
 #include "map.h"
 #include "battle.h"
 #include "chrif.h"
@@ -15,7 +16,7 @@
 #include "pc.h"
 #include "status.h"
 
-static const int packet_len_table[0x3d] = {
+static const int packet_len_table[] = {
 	70,	// 2af8: Outgoing, chrif_connect -> 'connect to charserver / auth @ charserver' 
 	 3,	// 2af9: Incomming, chrif_connectack -> 'awnser of the 2af8 login(ok / fail)' 
 	-1,	// 2afa: Outgoing, chrif_sendmap -> 'sending our maps'
@@ -59,11 +60,11 @@ static const int packet_len_table[0x3d] = {
 	-1,	// 2b20: Incomming, chrif_removemap -> 'remove maps of a server (sample: its going offline)' [Sirius]
 	-1,	// 2b21: Auth in/out (out not used)
 	-1,	// 2b22: SC in/out
-	-1,	// 2b23: FREE
-	-1,	// 2b24: FREE
-	-1,	// 2b25: FREE
-	-1,	// 2b26: FREE
-	-1,	// 2b27: FREE
+	-1,	// 2b23: check mail in/out
+	-1,	// 2b24: fetch mail in/out
+	-1,	// 2b25: read mail in/out
+	-1,	// 2b26: delete mail in/out
+	-1,	// 2b27: send mail in/out
 };
 
 
@@ -88,7 +89,19 @@ bool getAthentification(uint32 accid, CAuth& auth)
 	}
 	return false;
 }
-
+void chrif_parse_StoreAthentification(int fd)
+{
+	if( session_isActive(fd) )
+	{
+		size_t pos;
+		CAuth auth;
+		auth.frombuffer(RFIFOP(fd,4));
+		if( cAuthList.find(auth,0,pos) )
+			cAuthList[pos]=auth;
+		else
+			cAuthList.insert(auth);
+	}
+}
 
 // 設定ファイル読み込み関係
 /*==========================================
@@ -318,7 +331,7 @@ int chrif_save_sc(struct map_session_data &sd)
 	return 0;
 }
 
-int chrif_read_sc(int fd)
+int chrif_parse_ReadSC(int fd)
 {
 	if( !session_isActive(fd) || !chrif_isconnect() )
 		return -1;
@@ -376,12 +389,8 @@ int chrif_sendmap(int fd)
 		return -1;
 	
 	WFIFOW(fd,0) = 0x2afa;
-	for(i = 0; i < map_num; i++) {
-		if (map[i].alias != '\0') // [MouseJstr] map aliasing
-			memcpy(WFIFOP(fd,4+i*16), map[i].alias, 16);
-		else
-			memcpy(WFIFOP(fd,4+i*16), map[i].mapname, 16);
-	}
+	for(i = 0; i < map_num; i++)
+		memcpy(WFIFOP(fd,4+i*16), map[i].mapname, 16);
 	WFIFOW(fd,2) = 4 + i * 16;
 	WFIFOSET(fd,WFIFOW(fd,2));
 	
@@ -1284,11 +1293,11 @@ int chrif_recvfamelist(int fd)
  * Send rates and motd to char server [Wizputer]
  *------------------------------------------
  */
- int chrif_ragsrvinfo(unsigned short base_rate, unsigned short job_rate, unsigned short drop_rate)
+int chrif_ragsrvinfo(unsigned short base_rate, unsigned short job_rate, unsigned short drop_rate)
 {
 	char buf[256];
 	FILE *fp;
-	int i;
+	size_t sl, sz = 10;
 
 	if( !session_isActive(char_fd) || !chrif_isconnect() )
 		return -1;
@@ -1298,24 +1307,32 @@ int chrif_recvfamelist(int fd)
 	WFIFOW(char_fd,4) = job_rate;
 	WFIFOW(char_fd,6) = drop_rate;
 
-	if( (fp = safefopen(motd_txt, "r")) != NULL) {
-		if (fgets(buf, sizeof(buf), fp) != NULL) {
-			for(i = 0; buf[i]; i++) {
-				if (buf[i] == '\r' || buf[i] == '\n') {
-					buf[i] = 0;
-					break;
-				}
+	if( (fp = safefopen(motd_txt, "r")) != NULL)
+	{
+		while( fgets(buf, sizeof(buf), fp) )
+		{
+			sl = prepare_line(buf);
+			if(sl)
+			{
+				memcpy(WFIFOP(char_fd,sz), buf, sl);
+				sz += sl;
+				WFIFOB(char_fd,sz)='\n';
+				sz++;
 			}
-			WFIFOW(char_fd,8) = sizeof(buf) + 10;
-			memcpy(WFIFOP(char_fd,10), buf, sizeof(buf));
 		}
+		if(sz>0) sz--;
+		WFIFOB(char_fd,sz)=0;
+		sz ++;
+
 		fclose(fp);
-	} else {
-		memset(buf, 0, sizeof(buf));
-		WFIFOW(char_fd,8) = sizeof(buf) + 10;
-		memcpy(WFIFOP(char_fd,10), buf, sizeof(buf));
 	}
-	WFIFOSET(char_fd,WFIFOW(char_fd,8));
+	else
+	{
+		WFIFOB(char_fd,10) = 0;
+	}
+	sz++;// eof
+	WFIFOW(char_fd,8) = sz;
+	WFIFOSET(char_fd, sz);
 	return 0;
 }
 
@@ -1385,6 +1402,225 @@ int chrif_char_online(struct map_session_data &sd)
 	return 0;
 }
 
+
+
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+// chrif mail system
+///////////////////////////////////////////////////////////////////////////////
+//	mail packets
+//	2b23: check mail => returns number of unread
+//	2b24: fetch mail => returns the mail headers/fail, param: box
+//	2b25: read mail  => returns specified mail/fail, param: msg_id
+//	2b26: delete mail=> deletes specified mail returns ok/fail, param: msg_id
+//	2b27: send mail  => sends mail returns ok/fail, param: target, header, body
+///////////////////////////////////////////////////////////////////////////////
+
+bool chrif_mail_check(struct map_session_data &sd, bool showall)
+{
+	if( session_isActive(char_fd) )
+	{
+		WFIFOW(char_fd, 0) = 0x2b23;
+		WFIFOW(char_fd, 2) = 9;
+		WFIFOL(char_fd, 4) = sd.status.char_id;
+		WFIFOB(char_fd, 8) = showall;
+		WFIFOSET(char_fd, 9);
+	}
+	return true;
+}
+int chrif_parse_mail_check(int fd)
+{
+	if( session_isActive(fd) )
+	{
+		uint32 charid = RFIFOL(fd,4);
+		uint32 all    = RFIFOL(fd,8);
+		uint32 unread = RFIFOL(fd,12);
+		uchar showall = RFIFOB(fd,16);
+		map_session_data *sd = map_charid2sd(charid);
+		if(sd)
+		{
+			char message[512];
+			if(showall && all>0)
+			{
+				snprintf(message, sizeof(message), "You have %i unread of %i mails", unread, all);
+				clif_disp_onlyself(*sd, message);
+			}
+			else if(unread>0)
+			{
+				snprintf(message, sizeof(message), msg_txt(514), unread);
+				clif_disp_onlyself(*sd, message);
+			}
+			else
+			{
+				clif_disp_onlyself(*sd, msg_txt(516));
+			}
+		}
+	}
+	return 0;
+}
+bool chrif_mail_fetch(struct map_session_data &sd, bool all)
+{
+	if( session_isActive(char_fd) )
+	{
+		WFIFOW(char_fd, 0) = 0x2b24;
+		WFIFOW(char_fd, 2) = 9;
+		WFIFOL(char_fd, 4) = sd.status.char_id;
+		WFIFOB(char_fd, 8) = all;
+		WFIFOSET(char_fd, 9);
+	}
+	return true;
+}
+int chrif_parse_mail_fetch(int fd)
+{
+	if( session_isActive(fd) )
+	{
+		uint32 charid = RFIFOL(fd,4);
+		uint32 count  = RFIFOL(fd,8);
+		map_session_data *sd = map_charid2sd(charid);
+		if(sd)
+		{
+			if(count)
+			{
+				char message[512];
+				CMailHead head;
+				size_t i, k;
+				for(i=1, k=12; i<=count; i++, k+=head.size())
+				{
+					head.frombuffer( RFIFOP(fd,k) );
+					snprintf(message, sizeof(message), "%c %-8lu %-24s %s", head.read?' ':'*', (unsigned long)head.msid, head.name, head.head);
+					clif_disp_onlyself(*sd, message);
+				}
+			}
+			else
+			{
+				clif_disp_onlyself(*sd, "no mails");
+			}
+		}
+	}
+	return 0;
+}
+bool chrif_mail_read(struct map_session_data &sd, uint32 msgid)
+{
+	if( session_isActive(char_fd) )
+	{
+		WFIFOW(char_fd, 0) = 0x2b25;
+		WFIFOW(char_fd, 2) = 12;
+		WFIFOL(char_fd, 4) = sd.status.char_id;
+		WFIFOL(char_fd, 8) = msgid;
+		WFIFOSET(char_fd, 12);
+	}
+	return true;
+}
+int chrif_parse_mail_read(int fd)
+{
+	if( session_isActive(fd) )
+	{
+		uint32 charid = RFIFOL(fd,4);
+		map_session_data *sd = map_charid2sd(charid);
+		if(sd)
+		{
+			CMail mail;
+			char message[512], *ip=mail.body, *kp;
+			mail.frombuffer( RFIFOP(fd, 8) );
+
+			if( *mail.body )
+				snprintf(message, sizeof(message), "%c %-8lu %-24s %s", mail.read?' ':'*', (unsigned long)mail.msid, mail.name, mail.head);
+			else
+				snprintf(message, sizeof(message), "mail not found");
+			clif_disp_onlyself(*sd, message);
+			// linewise print of mail body
+			while(ip)
+			{
+				kp = strchr(ip, '\n');
+				if(kp) *kp++=0;
+				clif_disp_onlyself(*sd, ip);
+				ip = kp;
+			}
+		}
+	}
+	return 0;
+}
+bool chrif_mail_delete(struct map_session_data &sd, uint32 msgid)
+{
+	if( session_isActive(char_fd) )
+	{
+		WFIFOW(char_fd, 0) = 0x2b26;
+		WFIFOW(char_fd, 2) = 12;
+		WFIFOL(char_fd, 4) = sd.status.char_id;
+		WFIFOL(char_fd, 8) = msgid;
+		WFIFOSET(char_fd, 12);
+	}
+	return true;
+}
+int chrif_parse_mail_delete(int fd)
+{
+	if( session_isActive(fd) )
+	{
+		uint32 charid = RFIFOL(fd,4);
+		uint32 msgid  = RFIFOL(fd,8);
+		uchar ok      = RFIFOB(fd,12);
+		map_session_data *sd = map_charid2sd(charid);
+		if(sd)
+		{
+			char message[512];
+			sprintf(message, "mail %i delet%s.", msgid, (ok?"ed":"ion failed"));
+			clif_disp_onlyself(*sd, message);
+		}
+	}
+	return 0;
+}
+
+bool chrif_mail_send(struct map_session_data &sd, const char *target, const char *header, const char *body)
+{
+	if(pc_isGM(sd) < 80 && DIFF_TICK(gettick(), sd.mail_tick) < 10*60*1000)
+	{
+		//clif_displaymessage(sd.fd,"You must wait 10 minutes before sending another message");
+		clif_disp_onlyself(sd,msg_txt(522));
+	}
+	else if( (pc_isGM(sd) < 80 && 0==strcmp(target,"*")) || (0==strcmp(target,sd.status.name)) )
+	{
+		//clif_displaymessage(sd.fd, "Access Denied.");
+		clif_disp_onlyself(sd, msg_txt(523));
+	}
+	else if( session_isActive(char_fd) )
+	{
+		WFIFOW(char_fd, 0) = 0x2b27;
+		WFIFOW(char_fd, 2) = 168;
+		WFIFOL(char_fd, 4) = sd.status.char_id;
+		safestrcpy((char*)WFIFOP(char_fd, 8), sd.status.name, 24);
+		safestrcpy((char*)WFIFOP(char_fd, 32), target, 24);
+		safestrcpy((char*)WFIFOP(char_fd, 56), header, 32);
+		safestrcpy((char*)WFIFOP(char_fd, 88), body, 80);
+		WFIFOSET(char_fd, 168);
+		sd.mail_tick = gettick();
+	}
+	return true;
+}
+int chrif_parse_mail_send(int fd)
+{
+	if( session_isActive(fd) )
+	{
+		uint32 charid = RFIFOL(fd,4);
+		uint32 msgid  = RFIFOL(fd,8);
+		char ok       = RFIFOB(fd,12);
+		map_session_data *sd = map_charid2sd(charid);
+		if(sd)
+		{
+			char message[512];
+			sprintf(message, "mail (%i) send %s.", msgid, ok?"ok":"failed");
+			clif_disp_onlyself(*sd, message);
+		}
+	}
+	return 0;
+}
+
+
 /*==========================================
  *
  *------------------------------------------
@@ -1452,8 +1688,9 @@ int chrif_parse(int fd)
 	{
 		//ShowMessage("chrif_parse: connection #%d, packet: 0x%x (with being read: %d bytes).\n", fd, (unsigned short)RFIFOW(fd,0), RFIFOREST(fd));
 		cmd = RFIFOW(fd,0);
-		if (cmd < 0x2af8 || cmd >= 0x2af8 + (sizeof(packet_len_table) / sizeof(packet_len_table[0])) ||
-		    packet_len_table[cmd-0x2af8] == 0) {
+		if(cmd < 0x2af8 || cmd >= 0x2af8 + (sizeof(packet_len_table) / sizeof(packet_len_table[0])) ||
+		    packet_len_table[cmd-0x2af8] == 0)
+		{
 
 			int r = intif_parse(fd); // intifに渡す
 
@@ -1461,7 +1698,7 @@ int chrif_parse(int fd)
 			if (r == 2) return 0;	// intifで処理したが、データが足りない
 
 			session_Remove(fd);
-			ShowWarning("chrif_parse: session #%d, intif_parse failed -> disconnected.\n", fd);
+			ShowWarning("chrif_parse: session #%d, cmd 0x%04X intif_parse failed -> disconnected.\n", fd, cmd);
 			return 0;
 		}
 		packet_len = packet_len_table[cmd-0x2af8];
@@ -1501,18 +1738,17 @@ int chrif_parse(int fd)
 		case 0x2b1f: chrif_disconnectplayer(fd); break;
 		case 0x2b20: chrif_removemap(fd); break; //Remove maps of a server [Sirius]
 
-		case 0x2b21:
-		{
-			size_t pos;
-			CAuth auth;
-			auth.frombuffer(RFIFOP(fd,4));
-			if( cAuthList.find(auth,0,pos) )
-				cAuthList[pos]=auth;
-			else
-				cAuthList.insert(auth);
-			break;
-		}
-		case 0x2b22: chrif_read_sc(fd); break;
+		// new authentification system
+		case 0x2b21: chrif_parse_StoreAthentification(fd); break;
+		// status saving
+		case 0x2b22: chrif_parse_ReadSC(fd); break;
+		// new mail system
+		case 0x2b23: chrif_parse_mail_check(fd); break;
+		case 0x2b24: chrif_parse_mail_fetch(fd); break;
+		case 0x2b25: chrif_parse_mail_read(fd); break;
+		case 0x2b26: chrif_parse_mail_delete(fd); break;
+		case 0x2b27: chrif_parse_mail_send(fd); break;
+
 		default:
 			if (battle_config.error_log)
 				ShowMessage("chrif_parse : unknown packet %d %d\n", fd, (unsigned short)RFIFOW(fd,0));
@@ -1601,6 +1837,5 @@ int do_init_chrif(void)
 	add_timer_func_list(send_users_tochar, "send_users_tochar");
 	add_timer_interval(gettick() + 1000, 10 * 1000, check_connect_char_server, 0, 0);
 	add_timer_interval(gettick() + 1000, 5 * 1000, send_users_tochar, 0, 0);
-
 	return 0;
 }

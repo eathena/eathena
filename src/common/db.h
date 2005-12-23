@@ -91,8 +91,8 @@ public:
 };
 
 void db_foreach(struct dbt* table, const CDBProcessor& elem);
-void db_final(struct dbt* table, const CDBProcessor& elem=CDBProcessor());
-void db_final(struct dbt* table, int(*)(void*,void*));
+void db_final(struct dbt*&table, const CDBProcessor& elem=CDBProcessor());
+void db_final(struct dbt*&table, int(*)(void*,void*));
 
 void db_free_lock(struct dbt *table);
 void db_free_unlock(struct dbt *table);

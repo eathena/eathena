@@ -2381,9 +2381,9 @@ int map_reqchariddb(struct map_session_data &sd, uint32 charid)
 	struct charid2nick *p= (struct charid2nick*)numdb_search(charid_db,charid);
 	if(p==NULL)
 	{	// not in database -> create new
-	p = (struct charid2nick *)aCalloc(1,sizeof(struct charid2nick));
+		p = (struct charid2nick *)aCalloc(1,sizeof(struct charid2nick));
 		p->req_id=sd.bl.id;
-	numdb_insert(charid_db,charid,p);
+		numdb_insert(charid_db,charid,p);
 	}
 	return 0;
 }
@@ -2518,7 +2518,7 @@ int map_quit(struct map_session_data &sd)
 	map_delblock(sd.bl);
 
 	
-	sd.ScriptEngine.~CScriptEngine(); //!! calling the destructor here directly since still c-style allocation
+	sd.ScriptEngine.temporaty_close(); //!! calling the destructor here directly since still c-style allocation
 
 	chrif_char_offline(sd);
 
@@ -2859,19 +2859,7 @@ void map_removemobs(unsigned short m)
 int map_mapname2mapid(const char *name)
 {
 	struct map_data *md=NULL;
-
 	md = (struct map_data*)strdb_search(map_db,name);
-
-#ifdef USE_AFM
-	// If we can't find the .gat map try .afm instead [celest]
-		if( (md==NULL) && (NULL!=strstr(name,".gat")) ) {
-			char afm_name[50];
-			memcpy(afm_name, name, strlen(name) - 3);	// copy without extension including the point
-			memcpy(afm_name+strlen(name) - 3, "afm",4);	// add the extension including the eos
-	  md = (struct map_data*)strdb_search(map_db,afm_name);
-	}
-#endif
-
 	if(md==NULL || md->gat==NULL)
 		return -1;
 	return md->m;
@@ -2885,7 +2873,7 @@ bool map_mapname2ipport(const char *name, ipset &mapset)
 {
 	struct map_data_other_server *mdos=NULL;
 
-	mdos = (struct map_data_other_server*)strdb_search(map_db,name);
+	mdos = (struct map_data_other_server*)strdb_search(map_db, name);
 	if(mdos==NULL || mdos->gat)
 		return false;
 	mapset = mdos->mapset;
@@ -3013,7 +3001,7 @@ int map_random_dir(struct block_list &bl, unsigned short &x, unsigned short &y)
 // GAT_GROUND	= 5,
 // GAT_HOLE		= 6,	// holes in morroc desert
 // GAT_UNUSED3	= 7,
-// change the gat to a bitfield with tree bits 
+// change the gat to a bitfield with three bits 
 // instead of using an unsigned char have it merged with other usages
 /////////////////////////////////////////////////////////////////////
 
@@ -3304,12 +3292,14 @@ public:
 		while( n < MAX_MAP_PER_SERVER && fgets(line,sizeof(line),fp) )
 		{
 			int wh,count;
-			if( !skip_empty_line(line) )
+			if( !get_prepared_line(line) )
 				continue;
 			if((count=sscanf(line,"%s%d",w1,&wh)) < 1){
 				continue;
 			}
-			memcpy(cWaterlist[n].mapname,w1, sizeof(cWaterlist[n].mapname));
+			char*ip=strchr(w1,'.');
+			if(ip) *ip=0;
+			memcpy(cWaterlist[n].mapname, w1, sizeof(cWaterlist[n].mapname));
 			cWaterlist[n].mapname[sizeof(cWaterlist[n].mapname)-1]=0;
 
 			if(count >= 2)
@@ -3798,10 +3788,17 @@ bool map_readgrf(struct map_data& cmap, char *fn=NULL)
 		snprintf(buf, sizeof(buf), "data\\%s", cmap.mapname);
 		ip = strrchr(buf,'.');
 		if(ip) *ip=0;
+		// append ".gat" for reading in grf's
 		strcat(buf, ".gat");
 	}
 	else
+	{	
 		safestrcpy(buf, fn, sizeof(buf));
+		// append ".gat" if not already exist
+		if( NULL == strstr(buf,".gat") )
+			strcat(buf, ".gat");
+	}
+
 
 	gat = (unsigned char *)grfio_read(buf);
 	if( gat )
@@ -3868,28 +3865,6 @@ int map_readallmap(void)
 	// 先に全部のャbプの存在を確認
 	for(i=0;i<map_num;i++)
 	{
-		/////////////////////////////////////////////////////////////////
-		// maybe remove this, beeing a bit useless
-		char *p = strchr(map[i].mapname, '<'); // [MouseJstr]
-		if (p != NULL) 
-		{	// swap mapname and the stuff after the '<' 
-			// asuming following ('.' is EOS marker):
-			// buffer: aaaaaaaa<bbbbb. change to:
-			// buffer: bbbbb.aaaaaaaa.
-			// use bbbbb as mapname and aaaaaaaa as alias with pointer at map[i].alias
-			// so we do not need a strdup
-			char alias[64];
-				*p++ = '\0';
-			strcpy(alias, map[i].mapname);
-			strcpy(map[i].mapname, p);
-			p = map[i].mapname+strlen(map[i].mapname)+1; // the first position after the EOF of the new mapname
-			strcpy(p,alias);
-			map[i].alias = p;
-		}
-		else
-			map[i].alias = NULL;
-		/////////////////////////////////////////////////////////////////
-
 		map[i].wh=waterlist.map_waterheight(map[i].mapname);
 		map[i].m=i;
 
@@ -3918,10 +3893,7 @@ int map_readallmap(void)
 			map[i].block_count = (int *)aCalloc(map[i].bxs*map[i].bys, sizeof(int));
 			map[i].block_mob_count=(int *)aCalloc(map[i].bxs*map[i].bys, sizeof(int));
 
-			if( map[i].alias )
-				strdb_insert(map_db,map[i].alias,&map[i]);
-			else
-				strdb_insert(map_db,map[i].mapname,&map[i]);
+			strdb_insert(map_db,map[i].mapname,&map[i]);
 
 			// cache it
 			if(!ch) map_cache_write(map[i]);
@@ -3962,6 +3934,9 @@ int map_addmap(const char *mapname)
 		return 1;
 	}
 	safestrcpy(map[map_num].mapname, mapname, sizeof(map[map_num].mapname));
+	char *ip = strchr(map[map_num].mapname, '.');
+	if(ip) *ip=0;
+
 	map_num++;
 	return 0;
 }
@@ -3972,20 +3947,25 @@ int map_addmap(const char *mapname)
  */
 int map_delmap(const char *mapname)
 {
-	size_t i;
-
 	if (strcasecmp(mapname, "all") == 0)
 	{
 		map_num = 0;
-		return 0;
 	}
-
-	for(i=0; i<map_num; i++)
+	else
 	{
-		if (strcmp(map[i].mapname, mapname) == 0) {
-		    ShowMessage("Removing map [ %s ] from maplist\n",map[i].mapname);
-			memmove(map+i, map+i+1, sizeof(map[0])*(map_num-i-1));
-			map_num--;
+		size_t i;
+		char buffer[32], *ip;
+		strcpy(buffer, mapname);
+		ip = strchr(buffer, '.');
+		if(ip) *ip=0;
+		
+		for(i=0; i<map_num; i++)
+		{
+			if (strcmp(map[i].mapname, buffer) == 0) {
+				ShowMessage("Removing map [ %s ] from maplist\n", buffer);
+				memmove(map+i, map+i+1, sizeof(map[0])*(map_num-i-1));
+				map_num--;
+			}
 		}
 	}
 	return 0;
@@ -4089,7 +4069,7 @@ int map_config_read(const char *cfgName)
 	}
 	
 	while(fgets(line, sizeof(line), fp)) {
-		if( !skip_empty_line(line) )
+		if( !get_prepared_line(line) )
 			continue;
 		if (sscanf(line, "%[^:]: %[^\r\n]", w1, w2) == 2) {
 			if (strcasecmp(w1, "userid")==0){
@@ -4173,7 +4153,7 @@ int inter_config_read(const char *cfgName)
 		return 1;
 	}
 	while(fgets(line,sizeof(line),fp)){
-		if( !skip_empty_line(line) )
+		if( !get_prepared_line(line) )
 			continue;
 		i=sscanf(line,"%[^:]: %[^\r\n]",w1,w2);
 		if(i!=2)
@@ -4290,15 +4270,6 @@ int map_sql_init(void)
 	 else {
 		ShowMessage ("connect success! (Login Server)\n");
 	 }
-
-	if(battle_config.mail_system) { // mail system [Valaris]
-		mysql_init(&mail_handle);
-		if(!mysql_real_connect(&mail_handle, map_server_ip, map_server_id, map_server_pw,
-			map_server_db ,map_server_port, (char *)NULL, 0)) {
-				ShowMessage("%s\n",mysql_error(&mail_handle));
-				exit(1);
-		}
-	}
 
 	return 0;
 }
@@ -4703,9 +4674,6 @@ int do_init(int argc, char *argv[])
 	do_init_npc();
 	do_init_chrif();
 	do_init_clif();
-
-	if(battle_config.mail_system)
-		do_init_mail();
 
 #ifndef TXT_ONLY
 	if (log_config.sql_logs && (log_config.branch || log_config.drop || log_config.mvpdrop ||

@@ -110,7 +110,7 @@ int guild_read_castledb(void)
 	}
 
 	while(fgets(line,sizeof(line),fp)){
-		if( !skip_empty_line(line) )
+		if( !get_prepared_line(line) )
 			continue;
 		memset(str,0,sizeof(str));
 		for(j=0,p=line;j<6 && p;j++){
@@ -124,6 +124,8 @@ int guild_read_castledb(void)
 			gc=(struct guild_castle *)aCalloc(1,sizeof(struct guild_castle));
 			if(str[0]) gc->castle_id=atoi(str[0]);
 			if(str[1]) memcpy(gc->mapname,str[1],24); 
+			char*ip=strchr(gc->mapname,'.');
+			if(ip) *ip=0;
 			if(str[2]) memcpy(gc->castle_name,str[2],24);
 			if(str[3]) memcpy(gc->castle_event,str[3],24);
 

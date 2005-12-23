@@ -104,7 +104,7 @@ int itemdb_readdb(void)
 		exit(1);
 	}
 	while(fgets(line,sizeof(line),fp)){
-		if( !skip_empty_line(line) )
+		if( !get_prepared_line(line) )
 			continue;
 		memset(str,0,sizeof(str));
 		for(j=0,np=p=line;j<17 && p;j++){

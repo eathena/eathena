@@ -140,7 +140,7 @@ bool CAccountDB_sql::existAccount(const char* userid)
 		char query[1024];
 		MYSQL_RES* sql_res=NULL;
 
-		escape_string(uid, userid, sizeof(userid));
+		escape_string(uid, userid, strlen(userid));
 		size_t sz=snprintf(query, sizeof(query), "SELECT `userid` FROM `%s` WHERE %s `userid` = '%s'", login_auth_db, case_sensitive ? "BINARY" : "", uid);
 		if( this->mysql_SendQuery(sql_res, query, sz) )
 		{
@@ -981,7 +981,7 @@ CREATE TABLE IF NOT EXISTS `char_skill` (
 			int j;
 			line_count++;
 
-			if( !skip_empty_line(line) )
+			if( !get_prepared_line(line) )
 				continue;
 			line[sizeof(line)-1] = '\0';
 
@@ -1031,6 +1031,7 @@ class CCharDB_sql : public CMySQL, private CConfig, public CCharDBInterface
 	// uint32 next_char_id;
 
 	char char_db[256];
+	char mail_db[256];
 	char friend_db[256];
 	char memo_db[256];
 	char cart_db[256];
@@ -1060,6 +1061,7 @@ public:
 	CCharDB_sql(const char *dbcfgfile)
 	{
 		safestrcpy(char_db, "char", sizeof(char_db));
+		safestrcpy(mail_db, "mail", sizeof(mail_db));
 		safestrcpy(friend_db, "friends", sizeof(friend_db));
 		safestrcpy(memo_db, "memo", sizeof(memo_db));
 		safestrcpy(cart_db, "cart_inventory", sizeof(cart_db));
@@ -1077,7 +1079,7 @@ public:
 		start_zeny = 500;
 		start_weapon = 1201;
 		start_armor = 2301;
-		safestrcpy(start_point.map, "new_1-1.gat", sizeof(start_point.map));
+		safestrcpy(start_point.mapname, "new_1-1.gat", sizeof(start_point.mapname));
 		start_point.x=53;
 		start_point.y=111;
 
@@ -1170,8 +1172,8 @@ private:
 			p.hair,p.hair_color,p.clothes_color,
 			p.weapon,p.shield,p.head_top,p.head_mid,p.head_bottom,
 
-			p.last_point.map,p.last_point.x,p.last_point.y,
-			p.save_point.map,p.save_point.x,p.save_point.y,
+			p.last_point.mapname,p.last_point.x,p.last_point.y,
+			p.save_point.mapname,p.save_point.x,p.save_point.y,
 			p.partner_id,p.father_id,p.mother_id,p.child_id,
 
 			p.fame_points,
@@ -1192,7 +1194,7 @@ private:
 		for(i=0;i<MAX_MEMO;i++)
 		{
 			if(
-				(strcmp(p.memo_point[i].map,cp.memo_point[i].map) == 0) &&
+				(strcmp(p.memo_point[i].mapname, cp.memo_point[i].mapname) == 0) &&
 				(p.memo_point[i].x == cp.memo_point[i].x) &&
 				(p.memo_point[i].y == cp.memo_point[i].y)
 				)continue;
@@ -1212,11 +1214,11 @@ private:
 			l=false;
 			for(i=0;i<MAX_MEMO;i++)
 			{
-				if(p.memo_point[i].map[0])
+				if(p.memo_point[i].mapname[0])
 				{
 					sz +=snprintf(query+sz, sizeof(query)-sz,"%s('%ld', '%d', '%s', '%d', '%d')",
 						l?",":"",
-						(unsigned long)p.char_id, i, p.memo_point[i].map, p.memo_point[i].x, p.memo_point[i].y);
+						(unsigned long)p.char_id, i, p.memo_point[i].mapname, p.memo_point[i].x, p.memo_point[i].y);
 					l= true;
 				}
 			}
@@ -1884,8 +1886,8 @@ private:
 					"    `save_map` = '%s', `save_x` = '%d', `save_y` = '%d'  "
 					"WHERE `char_id` = '%ld'",
 					char_db,
-					start_point.map, start_point.x, start_point.y,
-					start_point.map, start_point.x, start_point.y,
+					start_point.mapname, start_point.x, start_point.y,
+					start_point.mapname, start_point.x, start_point.y,
 					(unsigned long)tempchar.char_id);
 
 
@@ -2016,6 +2018,166 @@ public:
 	virtual bool saveAccount(CCharAccount& account);
 	virtual bool removeAccount(uint32 accid);
 
+
+
+	///////////////////////////////////////////////////////////////////////////
+	// mail access interface
+
+/*
+	//!! need rework
+	current fields in table 'mail'
+	------------------------------
+	message_id			// used as is
+	to_account_id		// used for target charid
+	to_char_name		// used as is, not necessary though
+	from_account_id		// used for sender charid
+	from_char_name		// used as is, not necessary though
+	message				// used as is
+	read_flag			// used as is
+	priority			// not used
+	check_flag			// not used
+
+	head				// missing
+*/
+	virtual size_t getUnreadCount(uint32 cid)
+	{
+		MYSQL_RES *sql_res=NULL;
+		MYSQL_ROW sql_row;
+		char query[1024];
+		size_t count = 0;
+		size_t sz = snprintf(query, sizeof(query),
+			"SELECT count(*) "
+			"FROM `%s` WHERE `to_account_id` = \"%ld\" AND `read_flag` = \"0\"", 
+			mail_db, (unsigned long)cid);
+		if( this->mysql_SendQuery(sql_res, query, sz) )
+		{
+			sql_row = mysql_fetch_row(sql_res);
+			count = atol(sql_row[0]);
+
+			mysql_free_result(sql_res);
+		}
+		return count;
+	}
+	virtual size_t listMail(uint32 cid, unsigned char box, unsigned char *buffer)
+	{
+		MYSQL_RES *sql_res=NULL;
+		MYSQL_ROW sql_row;
+		char query[1024];
+		size_t sz = snprintf(query, sizeof(query),
+			"SELECT `message_id`,`read_flag`,`from_char_name` "
+			"FROM `%s` WHERE `to_account_id` = \"%ld\" ", 
+			mail_db, (unsigned long)cid);
+		if( this->mysql_SendQuery(sql_res, query, sz) )
+		{
+			size_t count=0;
+			unsigned char *buf = buffer;
+			while( (sql_row = mysql_fetch_row(sql_res)) ) 
+			{
+				CMailHead mailhead( atol(sql_row[0]), atol(sql_row[1]), sql_row[2], "" );
+				mailhead._tobuffer(buf); // automatic buffer increment
+				count++;
+			}
+			mysql_free_result(sql_res);
+			return count;
+		}
+		return 0;
+	}
+	virtual bool readMail(uint32 cid, uint32 mid, CMail& mail)
+	{
+		MYSQL_RES *sql_res=NULL;
+		MYSQL_ROW sql_row;
+		char query[1024];
+		bool ret = false;
+		size_t sz = snprintf(query, sizeof(query),
+			"SELECT `read_flag`,`from_char_name`,`message` "
+			"FROM `%s` WHERE `to_account_id` = \"%ld\" AND `message_id` = \"%ld\" ", 
+			mail_db, (unsigned long)cid, (unsigned long)mid);
+
+		// default clearing
+		mail.read    = 0;
+		mail.name[0] = 0;
+		mail.head[0] = 0;
+		mail.body[0] = 0;
+
+		if( this->mysql_SendQuery(sql_res, query, sz) )
+		{
+			if( (sql_row = mysql_fetch_row(sql_res)) ) 
+			{
+				ret = true;
+				mail = CMail(mid, atol(sql_row[0]), sql_row[1], "", sql_row[2] );
+				if( 0==mail.read )
+				{
+					sz = snprintf(query, sizeof(query),
+						"UPDATE `%s` SET `read_flag`='1' WHERE `message_id`= \"%ld\"",
+						mail_db, (unsigned long)mid);
+					this->mysql_SendQuery(query, sz);
+				}
+			}
+			mysql_free_result(sql_res);
+		}
+		return ret;
+	}
+	virtual bool deleteMail(uint32 cid, uint32 mid)
+	{
+		char query[1024];
+		size_t sz = snprintf(query, sizeof(query),
+			"DELETE "
+			"FROM `%s` WHERE `to_account_id` = \"%ld\" AND `message_id` = \"%ld\" ", 
+			mail_db, (unsigned long)cid, (unsigned long)mid);
+		return this->mysql_SendQuery(query, sz);
+	}
+	virtual bool sendMail(uint32 senderid, const char* sendername, const char* targetname, const char *head, const char *body, uint32& msgid, uint32& tid)
+	{
+		MYSQL_RES *sql_res=NULL;
+		MYSQL_ROW sql_row;
+		bool ret = false;
+		size_t sz;
+		char query[1024];
+		char _head[128];
+		char _body[128];
+		char _targetname[32];
+		escape_string(_targetname, targetname, strlen(targetname));
+		escape_string(_head, head, strlen(head));
+		escape_string(_body, body, strlen(body));
+
+		if( 0==strcmp(targetname,"*") )
+		{
+			sz = snprintf(query, sizeof(query),
+				"SELECT DISTINCT `char_id`,`name` "
+				"FROM `%s` WHERE `char_id` <> '%ld' ORDER BY `char_id`", 
+				char_db, (unsigned long)senderid);
+		}
+		else
+		{
+			sz = snprintf(query, sizeof(query),
+				"SELECT `char_id`,`name` "
+				"FROM `%s` WHERE `name` = \"%s\"", 
+				char_db, _targetname);
+		}
+		if( this->mysql_SendQuery(sql_res, query, sz) )
+		{
+			ret = true;
+			while( (sql_row = mysql_fetch_row(sql_res)) ) 
+			{
+				sz = snprintf(query, sizeof(query),
+					"INSERT DELAYED INTO `%s` "
+					"(`to_account_id`,`to_char_name`,"
+					"`from_account_id`,`from_char_name`,"
+					"`message`,`read_flag`)"
+					" VALUES ('%ld', '%s', '%ld', '%s', '%s', '%d')",
+					mail_db, 
+					atol(sql_row[0]), sql_row[1],
+					(unsigned long)senderid, sendername,
+					_body, 0);
+
+				ret &= this->mysql_SendQuery(query, sz);
+			}
+			mysql_free_result(sql_res);
+		}
+		return ret;
+	}
+
+
 private:
 	///////////////////////////////////////////////////////////////////////////
 	// Config processor
@@ -2043,11 +2205,13 @@ bool CCharDB_sql::ProcessConfig(const char*w1, const char*w2)
 
 	if(strcasecmp(w1, "start_point") == 0)
 	{
-		char map[32];
+		char mapname[32];
 		int x, y;
-		if(sscanf(w2, "%[^,],%d,%d", map, &x, &y) == 3 &&  NULL!=strstr(map, ".gat") )
-		{	// Verify at least if '.gat' is in the map name
-			safestrcpy(start_point.map, map, sizeof(start_point.map));
+		if(sscanf(w2, "%[^,],%d,%d", mapname, &x, &y) == 3 )
+		{	
+			char *ip=strchr(mapname, '.');
+			if( ip != NULL ) *ip=0;
+			safestrcpy(start_point.mapname, mapname, sizeof(start_point.mapname));
 			start_point.x = x;
 			start_point.y = y;
 		}
@@ -2382,7 +2546,7 @@ class CPartyDB_sql : public CMySQL, private CConfig, public CPartyDBInterface
 		while(fgets(line, sizeof(line), fp))
 		{
 			c++;
-			if( !skip_empty_line(line) )
+			if( !get_prepared_line(line) )
 				continue;
 
 			j = 0;
@@ -2647,7 +2811,7 @@ class CPCStorageDB_sql : public CMySQL, private CConfig, public CPCStorageDBInte
 		while(fgets(line,sizeof(line),fp))
 		{
 			c++;
-			if( !skip_empty_line(line) )
+			if( !get_prepared_line(line) )
 				continue;
 
 			sscanf(line,"%ld",&tmp);
@@ -2856,7 +3020,7 @@ class CGuildStorageDB_sql : public CMySQL, private CConfig, public CGuildStorage
 		while(fgets(line,sizeof(line),fp))
 		{
 			c++;
-			if( !skip_empty_line(line) )
+			if( !get_prepared_line(line) )
 				continue;
 
 			sscanf(line,"%ld",&tmp);

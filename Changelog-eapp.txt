@@ -1,4 +1,17 @@
 Date	Added
+12/23
+	* small bugfixes/protections here and there, mostly replacing sprintf with snprintf
+	  and supplementing initialisation/destruction for c++ object that need to run 
+	  temporarily in the old c style allocation model, but not looked over all places yet
+	* finished debugging of char rewrite and removed commented fallback code
+	* moved mail system from map over to char and added mail support for txt
+	* corrected automatic change of temporary variable scope to enable temp map vars
+	* removed necessity of using ".gat" for mapnames and unified some naming convention
+	  the extension is now omitted whenever mapnames are read/transfered internally
+	  and added automatically when sending mapnames to the client, rebuilding the mapcache 
+	  is mandatory since the maps were originally identified by the full name
+	  the search order for map loading is cache/gat/afm/af2
+	  (whenever zipped af2 support is not yet added)
 12/10
 	* since returned from travel I clean up the stuff a bit first
 	  to get some consistency between different working copies and svn code

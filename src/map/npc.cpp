@@ -1681,15 +1681,20 @@ bool npc_parse_warp(const char *w1,const char *w2,const char *w3,const char *w4)
 {
 	int x, y, xs, ys, to_x, to_y, m;
 	int i, j;
-	char mapname[24], to_mapname[24];
+	char mapname[32], to_mapname[32], *ip;
 	struct npc_data *nd;
 
 	// 引数の個数チェック
-	if (sscanf(w1, "%[^,],%d,%d", mapname, &x, &y) != 3 ||
-	   sscanf(w4, "%d,%d,%[^,],%d,%d", &xs, &ys, to_mapname, &to_x, &to_y) != 5) {
+	if( sscanf(w1, "%[^,],%d,%d", mapname, &x, &y) != 3 ||
+		sscanf(w4, "%d,%d,%[^,],%d,%d", &xs, &ys, to_mapname, &to_x, &to_y) != 5)
+	{
 		ShowError("bad warp line : %s\n", w3);
 		return false;
 	}
+	ip = strchr(mapname, '.');
+	if(ip) *ip=0;
+	ip = strchr(to_mapname, '.');
+	if(ip) *ip=0;
 
 	m = map_mapname2mapid(mapname);
 
@@ -1751,7 +1756,7 @@ int npc_parse_shop(const char *w1,const char *w2,const char *w3,const char *w4)
 	#define MAX_SHOPITEM 100
 	const char *p;
 	int x, y, dir, m, pos = 0;
-	char mapname[24];
+	char mapname[32], *ip;
 	struct npc_data *nd;
 
 	// 引数の個数チェック
@@ -1760,6 +1765,9 @@ int npc_parse_shop(const char *w1,const char *w2,const char *w3,const char *w4)
 		ShowError("bad shop line : %s\n", w3);
 		return 1;
 	}
+	ip = strchr(mapname, '.');
+	if(ip) *ip=0;
+
 	m = map_mapname2mapid(mapname);
 
 	nd = (struct npc_data *) aCalloc (1, sizeof(struct npc_data) +
@@ -1922,7 +1930,7 @@ public:
 int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4,const char *first_line,FILE *fp,int *lines, struct npc_data **dummy_npc)
 {
 	int x, y, dir = 0, m, xs = 0, ys = 0, class_ = 0;	// [Valaris] thanks to fov
-	char mapname[24];
+	char mapname[32], *ip;
 	unsigned char *srcbuf=NULL;
 	size_t srcsize=65536;
 	int startline = 0;
@@ -1948,6 +1956,8 @@ int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4
 			ShowMessage("bad script line : %s\n",w3);
 			return 1;
 		}
+		ip = strchr(mapname, '.');
+		if(ip) *ip=0;
 		m = map_mapname2mapid(mapname);
 	}
 
@@ -2367,7 +2377,7 @@ int npc_parse_mob2(struct mob_list &mob)
 int npc_parse_mob(const char *w1, const char *w2, const char *w3, const char *w4)
 {
 	int level;
-	char mapname[64];
+	char mapname[64], *ip;
 	char mobname[64];
 	char eventname[64];
 	int v1,v2,v3,v4,v5,v6,v7,v8;
@@ -2380,6 +2390,8 @@ int npc_parse_mob(const char *w1, const char *w2, const char *w3, const char *w4
 		ShowError("bad monster line : %s\n", w3);
 		return 1;
 	}
+	ip = strchr(mapname, '.');
+	if(ip) *ip=0;
 
 	m = map_mapname2mapid(mapname);
 	if(m >= MAX_MAP_PER_SERVER)
@@ -2440,12 +2452,13 @@ int npc_parse_mob(const char *w1, const char *w2, const char *w3, const char *w4
 int npc_parse_mapflag(const char *w1,const char *w2,const char *w3,const char *w4)
 {
 	int m;
-	char mapname[24];
+	char mapname[32], *ip;
 
 	// 引数の個数チェック
 	if (sscanf(w1, "%[^,]",mapname) != 1)
 		return 1;
-
+	ip = strchr(mapname,'.');
+	if(ip) *ip=0;
 	m = map_mapname2mapid(mapname);
 	if (m < 0)
 		return 1;
@@ -2455,11 +2468,13 @@ int npc_parse_mapflag(const char *w1,const char *w2,const char *w3,const char *w
 		char savemap[16];
 		int savex, savey;
 		if (strcmp(w4, "SavePoint") == 0) {
-			memcpy(map[m].save.map, "SavePoint", 10);
+			safestrcpy(map[m].save.mapname, "SavePoint", sizeof(map[m].save.mapname));
 			map[m].save.x = -1;
 			map[m].save.y = -1;
 		} else if (sscanf(w4, "%[^,],%d,%d", savemap, &savex, &savey) == 3) {
-			memcpy(map[m].save.map, savemap, 16);
+			char*ip = strchr(savemap, '.');
+			if(ip) *ip=0;
+			safestrcpy(map[m].save.mapname, savemap, sizeof(map[m].save.mapname));			
 			map[m].save.x = savex;
 			map[m].save.y = savey;
 		}
@@ -2613,11 +2628,13 @@ int npc_parse_mapflag(const char *w1,const char *w2,const char *w3,const char *w
 int npc_parse_mapcell(const char *w1,const char *w2,const char *w3,const char *w4)
 {
 	int m, cell, x, y, x0, y0, x1, y1;
-	char type[24], mapname[24];
+	char type[32], mapname[32], *ip;
 
 	if (sscanf(w1, "%[^,]", mapname) != 1)
 		return 1;
 
+	ip = strchr(mapname,'.');
+	if(ip) *ip=0;
 	m = map_mapname2mapid(mapname);
 	if (m < 0)
 		return 1;
@@ -2646,7 +2663,7 @@ void npc_parsesinglefile(const char *filename, struct npc_mark*& npcmarkerbase)
 {
 	int m, lines = 0;
 	char line[1024];
-	char w1[1024], w2[1024], w3[1024], w4[1024], mapname[1024];
+	char w1[1024], w2[1024], w3[1024], w4[1024], mapname[1024], *ip;
 	unsigned int i, j;
 	int count, w4pos;
 	FILE *fp;
@@ -2662,7 +2679,7 @@ void npc_parsesinglefile(const char *filename, struct npc_mark*& npcmarkerbase)
 		while( fgets(line, sizeof(line), fp) )
 		{
 			lines++;
-			if( !skip_empty_line(line) )
+			if( !get_prepared_line(line) )
 				continue;
 
 			// 不要なスペースやタブの連続は詰める
@@ -2694,6 +2711,8 @@ void npc_parsesinglefile(const char *filename, struct npc_mark*& npcmarkerbase)
 			if( strcmp(w1,"-")!=0 && strcasecmp(w1,"function")!=0 )
 			{
 				sscanf(w1,"%[^,]",mapname);
+				ip = strchr(mapname,'.');
+				if(ip) *ip=0;
 				m = map_mapname2mapid(mapname);
 				if( strlen(mapname)>16 || m<0 )
 				{	// "mapname" is not assigned to this server
@@ -2838,11 +2857,12 @@ int npc_read_indoors (void)
 		p = buf;
 		while( p && *p && (p<buf+s) )
 		{
-		char map_name[64];
-		if (sscanf(p, "%[^#]#", map_name) == 1) {
-			size_t pos = strlen(map_name) - 4;	// replace '.xxx' extension
-			memcpy(map_name+pos,".gat",4);		// with '.gat'
-			if ((m = map_mapname2mapid(map_name)) >= 0)
+		char mapname[64];
+		if (sscanf(p, "%[^#]#", mapname) == 1)
+		{
+			char* ip = strchr(mapname, '.');
+			if(ip) *ip=0;
+			if ((m = map_mapname2mapid(mapname)) >= 0)
 				map[m].flag.indoors = 1;
 		}
 			p=strchr(p, '\n');

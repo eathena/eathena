@@ -5032,7 +5032,8 @@ int battle_weapon_attack(struct block_list *src, struct block_list *target, unsi
 		}
 		if(sc_data && sc_data[SC_AUTOSPELL].timer != -1 && rand()%100 < sc_data[SC_AUTOSPELL].val4.num)
 		{
-			int sp = 0, f = 0;
+			int sp = 0;
+			int f = 0;
 			int skillid = sc_data[SC_AUTOSPELL].val2.num;
 			int skilllv = sc_data[SC_AUTOSPELL].val3.num;
 
@@ -5064,8 +5065,8 @@ int battle_weapon_attack(struct block_list *src, struct block_list *target, unsi
 				if(sd && !f)
 				{
 					pc_heal(*sd, 0, -sp);
+				}
 			}
-		}
 		}
 		if(sd)
 		{
@@ -5857,7 +5858,6 @@ static struct {
 	{ "job_exp_rate",						&battle_config.job_exp_rate				},
 	{ "left_cardfix_to_right",             &battle_config.left_cardfix_to_right	},
 	{ "magic_defense_type",                &battle_config.magic_defense_type		},
-	{ "mail_system",						&battle_config.mail_system	}, // added by [Valaris]
 	{ "making_arrow_name_input",           &battle_config.making_arrow_name_input	},
 	{ "max_adv_level",						&battle_config.max_adv_level				},
 	{ "max_aspd",                          &battle_config.max_aspd					},
@@ -6156,7 +6156,6 @@ void battle_set_defaults()
 	battle_config.job_exp_rate=100;
 	battle_config.left_cardfix_to_right=0;
 	battle_config.magic_defense_type = 0;
-	battle_config.mail_system = 0;
 	battle_config.making_arrow_name_input = 1;
 	battle_config.max_adv_level=70;
 	battle_config.max_aspd = 199;
@@ -6471,7 +6470,7 @@ int battle_config_read(const char *cfgName)
 		return 1;
 	}
 	while(fgets(line,sizeof(line),fp)){
-		if( !skip_empty_line(line) )
+		if( !get_prepared_line(line) )
 			continue;
 		if (sscanf(line, "%[^:]:%s", w1, w2) != 2)
 			continue;

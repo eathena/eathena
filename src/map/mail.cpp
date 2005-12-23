@@ -1,3 +1,5 @@
+
+/*
 #ifndef TXT_ONLY
 // Mail System for eAthena SQL
 // Created by Valaris
@@ -370,3 +372,4 @@ int do_init_mail(void)
 }
 
 #endif//TXT_ONLY
+*/

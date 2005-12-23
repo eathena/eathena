@@ -249,7 +249,7 @@ private:
 	///////////////////////////////////////////////////////////////////////////
 	// ŽÀsŒn
 	enum STATES		{ OFF=0,RUN, STOP,END,RERUNLINE,GOTO,RETFUNC,ENVSWAP }; // 0...6 ->3bit
-	enum NPCSTATE	{ NONE=0, NPC_GIVEN, NPC_DEFAULT };						// 0...2 ->2bit
+	enum NPCSTATE	{ NONE=0, NPC_GIVEN=1, NPC_DEFAULT=2 };					// 0...2 ->2bit
 public:
 	enum
 	{
@@ -274,7 +274,7 @@ public:
 			int num;
 			const char *str;
 		};
-	
+
 		///////////////////////////////////////////////////////////////////////
 		// constructions
 		CValue() :type(C_INT), num(0)					{}
@@ -449,7 +449,10 @@ private:
 			max = stack_max;
 			if(stack) delete[] stack;
 			stack = stack_data;
+			// clear the internals
 			stack_data = NULL;
+			stack_ptr=0;
+			stack_max=0;
 		}
 	};
 
@@ -465,12 +468,15 @@ private:
 
 	///////////////////////////////////////////////////////////////////////////
 
-	static uint32 defoid;// id of the default npc
+	static uint32 defoid;		// id of the default npc
 
 	bool rerun_flag : 1;		// reruning line (used for inputs, menu, select and close)
 	bool messageopen : 1;		// set when the client has got some message window to display
-	NPCSTATE npcstate : 2;		// what npc is used
-	STATES state : 3;			// state of execution (externally visible states are OFF or STOP)
+	// visualc does not allow bitfield types other than ints
+	//NPCSTATE npcstate : 2;		// what npc is used
+	//STATES state : 3;			// state of execution (externally visible states are OFF or STOP)
+	unsigned npcstate : 2;		// what npc is used
+	unsigned state : 3;			// state of execution (externally visible states are OFF or STOP)
 	unsigned _unused : 1;
 
 	const char *script;			// the executed programm
@@ -496,8 +502,24 @@ public:
 	{ }
 	CScriptEngine::~CScriptEngine()
 	{
-		if(queue) delete(queue);
-		if(stack_data) delete[] stack_data;
+		if(queue) { delete(queue); queue=NULL; }
+		if(stack_data) { delete[] stack_data; stack_data=NULL; }
+		stack_ptr=0;
+		stack_max=0;
+	}
+
+	void temporaty_close() //!! remove when c++ allocation is enabled
+	{
+		if(queue) { delete(queue); queue=NULL; }
+		if(stack_data) { delete[] stack_data; stack_data=NULL; }
+		stack_ptr=0;
+		stack_max=0;
+		rerun_flag=false;
+		messageopen=false;
+		npcstate=NONE;
+		state=OFF;
+		script=NULL;
+		sd=NULL;
 	}
 
 	void temporaty_init() //!! remove when c++ allocation is enabled
@@ -507,6 +529,8 @@ public:
 		stack_max=0;
 		stack_data=NULL;
 		rerun_flag=false;
+		messageopen=false;
+		npcstate=NONE;
 		state=OFF;
 		script=NULL;
 		sd=NULL;
@@ -545,7 +569,7 @@ private:
 	// check stacksize and reallocate if necessary
 	void alloc()
 	{
-		if(stack_ptr >= stack_max)
+		if(!stack_data || (stack_ptr >= stack_max))
 		{
 			stack_max += 64;
 			CValue *temp = new CValue[stack_max];

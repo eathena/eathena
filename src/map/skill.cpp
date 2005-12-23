@@ -5607,7 +5607,7 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 				clif_skill_warppoint(*sd,sd->skillid,"Random","","","");
 			else {
 				clif_skill_warppoint(*sd,sd->skillid,"Random",
-					sd->status.save_point.map,"","");
+					sd->status.save_point.mapname,"","");
 			}
 		} else if(dstmd)
 			mob_warp(*dstmd,-1,-1,-1,3);
@@ -7207,12 +7207,12 @@ int skill_castend_pos2(struct block_list *src, int x,int y,unsigned short skilli
 
 	case AL_WARP:				/* ワ?プポ?タル */
 		if(sd) {
-			if(map[sd->bl.m].flag.noteleport)	/* テレポ禁止 */
+			if(map[sd->bl.m].flag.nowarp)	/* テレポ禁止 */
 				break;
-			clif_skill_warppoint(*sd,sd->skillid,sd->status.save_point.map,
-				(sd->skilllv>1)?sd->status.memo_point[0].map:"",
-				(sd->skilllv>2)?sd->status.memo_point[1].map:"",
-				(sd->skilllv>3)?sd->status.memo_point[2].map:"");
+			clif_skill_warppoint(*sd,sd->skillid,sd->status.save_point.mapname,
+				(sd->skilllv>1)?sd->status.memo_point[0].mapname:"",
+				(sd->skilllv>2)?sd->status.memo_point[1].mapname:"",
+				(sd->skilllv>3)?sd->status.memo_point[2].mapname:"");
 		}
 		break;
 
@@ -7397,7 +7397,7 @@ int skill_castend_map( struct map_session_data *sd,int skill_num, const char *ma
 		if(strcmp(map,"Random")==0)
 			pc_randomwarp(*sd,3);
 		else
-			pc_setpos(*sd,sd->status.save_point.map,
+			pc_setpos(*sd,sd->status.save_point.mapname,
 				sd->status.save_point.x,sd->status.save_point.y,3);
 		break;
 
@@ -7430,7 +7430,7 @@ int skill_castend_map( struct map_session_data *sd,int skill_num, const char *ma
 
 			if(sd->skilllv <= 0) return 0;
 			for(i=0;i<sd->skilllv;i++){
-				if(strcmp(map,p[i]->map)==0){
+				if(strcmp(map,p[i]->mapname)==0){
 					x=p[i]->x;
 					y=p[i]->y;
 					break;
@@ -11243,7 +11243,7 @@ int skill_readdb(void)
 	}
 	while(fgets(line,sizeof(line),fp)){
 		char *split[50];
-		if( !skip_empty_line(line) )
+		if( !get_prepared_line(line) )
 			continue;
 		j = skill_split_str(line,split,14);
 		if(j < 14 || split[13]==NULL)
@@ -11301,7 +11301,7 @@ int skill_readdb(void)
 	}
 	while(fgets(line,sizeof(line),fp)){
 		char *split[50];
-		if( !skip_empty_line(line) )
+		if( !get_prepared_line(line) )
 			continue;
 		j = skill_split_str(line,split,30);
 		if(j < 30 || split[29]==NULL)
@@ -11383,7 +11383,7 @@ int skill_readdb(void)
 	while(fgets(line,sizeof(line),fp)){
 		char *split[50];
 		memset(split,0,sizeof(split));	// [Valaris] thanks to fov
-		if( !skip_empty_line(line) )
+		if( !get_prepared_line(line) )
 			continue;
 		j = skill_split_str(line,split,5);
 		if(split[4]==NULL || j<5)
@@ -11413,7 +11413,7 @@ int skill_readdb(void)
         k = 0;
 	while (fgets(line,sizeof(line),fp)) {
 		char *split[50];
-		if( !skip_empty_line(line) )
+		if( !get_prepared_line(line) )
 			continue;
 		j = skill_split_str(line,split,8);
 		if (split[7]==NULL || j<8)
@@ -11462,7 +11462,7 @@ int skill_readdb(void)
 		while(fgets(line,sizeof(line),fp)){
 			char *split[6 + MAX_PRODUCE_RESOURCE * 2];
 			int x,y;
-			if( !skip_empty_line(line) )
+			if( !get_prepared_line(line) )
 				continue;
 			memset(split,0,sizeof(split));
 			j = skill_split_str(line,split,(3 + MAX_PRODUCE_RESOURCE * 2));
@@ -11498,7 +11498,7 @@ int skill_readdb(void)
 	while(fgets(line,sizeof(line),fp)){
 		char *split[16];
 		int x,y;
-		if( !skip_empty_line(line) )
+		if( !get_prepared_line(line) )
 			continue;
 		memset(split,0,sizeof(split));
 		j = skill_split_str(line,split,13);
@@ -11530,7 +11530,7 @@ int skill_readdb(void)
 	k=0;
 	while(fgets(line,sizeof(line),fp)){
 		char *split[16];
-		if( !skip_empty_line(line) )
+		if( !get_prepared_line(line) )
 			continue;
 		memset(split,0,sizeof(split));
 		j = skill_split_str(line,split,13);
@@ -11557,7 +11557,7 @@ int skill_readdb(void)
 	}
 	while(fgets(line,sizeof(line),fp)){
 		char *split[50];
-		if( !skip_empty_line(line) )
+		if( !get_prepared_line(line) )
 			continue;
 		memset(split,0,sizeof(split));
 		j = skill_split_str(line,split,3);
@@ -11585,7 +11585,7 @@ int skill_readdb(void)
 	k=0;
 	while(fgets(line,sizeof(line),fp)){
 		char *split[16];
-		if( !skip_empty_line(line) )
+		if( !get_prepared_line(line) )
 			continue;
 		memset(split,0,sizeof(split));
 		j = skill_split_str(line,split,2);

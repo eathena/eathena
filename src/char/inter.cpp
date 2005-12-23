@@ -178,13 +178,13 @@ int inter_accreg_save(void) {
 	FILE *fp;
 	int lock;
 
-	if ((fp = lock_fopen(accreg_txt,&lock)) == NULL) {
+	if ((fp = lock_fopen(accreg_txt, lock)) == NULL) {
 		ShowMessage("int_accreg: cant write [%s] !!! data is lost !!!\n", accreg_txt);
 		return 1;
 	}
 	numdb_foreach(accreg_db, CDBAccregSave(fp) );
 //	numdb_foreach(accreg_db, inter_accreg_save_sub,fp);
-	lock_fclose(fp, accreg_txt, &lock);
+	lock_fclose(fp, accreg_txt, lock);
 //	ShowMessage("inter: %s saved.\n", accreg_txt);
 
 	return 0;
@@ -206,7 +206,7 @@ int inter_config_read(const char *cfgName) {
 		return 1;
 	}
 	while(fgets(line, sizeof(line), fp)) {
-		if( !skip_empty_line(line) )
+		if( !get_prepared_line(line) )
 			continue;
 		line[sizeof(line)-1] = '\0';
 
@@ -668,4 +668,3 @@ int inter_check_length(int fd, int length)
 
 	return length;
 }
-

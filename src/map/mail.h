@@ -1,3 +1,4 @@
+/*
 // Mail System for eAthena
 // Created by Valaris
 
@@ -20,3 +21,4 @@ inline int mail_send(struct map_session_data &sd, char *name, char *message, int
 inline int do_init_mail(void)	{ return 0; }
 
 #endif//TXT_ONLY
+*/

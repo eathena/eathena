@@ -4869,7 +4869,7 @@ int mob_readdb(void)
 			long exp, maxhp;
 			char *str[60], *p, *np; // 55->60 Lupus
 
-			if( !skip_empty_line(line) )
+			if( !get_prepared_line(line) )
 				continue;
 
 			for(i=0,p=line;i<60;i++){
@@ -5025,7 +5025,7 @@ int mob_readdb_mobavail(void)
 	}
 
 	while(fgets(line,sizeof(line),fp)){
-		if( !skip_empty_line(line) )
+		if( !get_prepared_line(line) )
 			continue;
 		memset(str,0,sizeof(str));
 
@@ -5098,7 +5098,7 @@ int mob_read_randommonster(void)
 		}
 		while(fgets(line,sizeof(line),fp)){
 			int class_,per;
-			if( !skip_empty_line(line) )
+			if( !get_prepared_line(line) )
 				continue;
 			memset(str,0,sizeof(str));
 			for(j=0,p=line;j<3 && p;j++){
@@ -5206,7 +5206,7 @@ int mob_readskilldb(void)
 			struct mob_skill *ms=NULL;
 			size_t j=0;
 
-			if( !skip_empty_line(line) )
+			if( !get_prepared_line(line) )
 				continue;
 
 			memset(sp,0,sizeof(sp));
@@ -5302,7 +5302,7 @@ int mob_readdb_race(void)
 	}
 	
 	while(fgets(line,sizeof(line),fp)){
-		if( !skip_empty_line(line) )
+		if( !get_prepared_line(line) )
 			continue;
 		memset(str,0,sizeof(str));
 

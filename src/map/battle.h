@@ -214,7 +214,6 @@ struct Battle_Config
 	uint32 job_exp_rate;
 	uint32 left_cardfix_to_right;
 	uint32 magic_defense_type;
-	uint32 mail_system; // [Valaris]
 	uint32 making_arrow_name_input;
 	uint32 max_adv_level;
 	uint32 max_aspd;
