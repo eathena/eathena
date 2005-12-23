@@ -99,7 +99,7 @@ prt_fild08.gat,0,0,0,0	monster	Drops	1113,10,0,0,0
 // prt_fild09 (lv2)
 
 prt_fild09.gat,0,0,0,0	monster	Savage Babe	1167,70,0,0,0
-prt_fild09.gat,0,0,0,0	monster	Desert Wolf Babe	1107,20,0,0,0
+prt_fild09.gat,0,0,0,0	monster	Baby Desert Wolf	1107,20,0,0,0
 prt_fild09.gat,0,0,0,0	monster	PecoPeco Egg	1047,20,0,0,0
 prt_fild09.gat,0,0,0,0	monster	Picky	1049,20,0,0,0
 prt_fild09.gat,0,0,0,0	monster	Condor	1009,10,0,0,0

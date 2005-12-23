@@ -1162,7 +1162,7 @@
 4020,Farmiliar_Card,Farmiliar Card,6,,10,10,,,,,,,,2,,,,,{ bonus2 bAddEff,Eff_Blind,500; bonus bBaseAtk,5; }
 4021,Rocker_Card,Rocker Card,6,,10,10,,,,,,,,16,,,,,{ bonus bDex,1; bonus bBaseAtk,5; }
 4022,Spore_Card,Spore Card,6,,10,10,,,,,,,,136,,,,,{ bonus bVit,2; }
-4023,Desert_Wolf_Babe_Card,Desert Wolf Babe Card,6,,10,10,,,,,,,,16,,,,,{ bonus bInt,1; }
+4023,Desert_Wolf_Babe_Card,Baby Desert Wolf Card,6,,10,10,,,,,,,,16,,,,,{ bonus bInt,1; }
 4024,Plankton_Card,Plankton Card,6,,10,10,,,,,,,,2,,,,,{ bonus2 bAddEff,Eff_Sleep,500; bonus bBaseAtk,5; }
 4025,Skeleton_Card,Skeleton Card,6,,10,10,,,,,,,,2,,,,,{ bonus bBaseAtk,10; bonus2 bAddEff,Eff_Stan,200; }
 4026,Thief_bug_Female_Card,Thief bug Female Card,6,,10,10,,,,,,,,2,,,,,{ bonus bAgi,1; bonus bFlee,1; }
@@ -2144,7 +2144,7 @@
 9007,Steel_Chonchon_Egg,Steel Chonchon Egg,7,,10,0,,,,,,,,,,,,,{}
 9008,Hunter_Fly_Egg,Hunter Fly Egg,7,,10,0,,,,,,,,,,,,,{}
 9009,Savage_Babe_Egg,Savage Babe Egg,7,,10,0,,,,,,,,,,,,,{}
-9010,Baby_Desert_Wolf_Egg,Desert Wolf Babe Egg,7,,10,0,,,,,,,,,,,,,{}
+9010,Baby_Desert_Wolf_Egg,Baby Desert Wolf Egg,7,,10,0,,,,,,,,,,,,,{}
 9011,Rocker_Egg,Rocker Egg,7,,10,0,,,,,,,,,,,,,{}
 9012,Spore_Egg,Spore Egg,7,,10,0,,,,,,,,,,,,,{}
 9013,Poison_Spore_Egg,Poison Spore Egg,7,,10,0,,,,,,,,,,,,,{}

@@ -33,6 +33,7 @@
 		* * * On your death it breaks (BS can fix it), you drop all Equipment (equipped, even the ring). And revive with 1 HP / 1 SP at the place of your death.
 
 12/23
+	* Desert Wolf Babe -> Baby Desert Wolf (iRO), thx to Poki#3 [Komurka]
 	* Fixed the drops of RSX 0806, thanks to Poki#3 [MasterOfMuppets]
 12/22
 	* Added back the changebase script to Tuxedo. [Skotlex]
