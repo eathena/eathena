@@ -11020,9 +11020,9 @@ int skill_produce_mix( struct map_session_data *sd, int skill_id,
 			}
 		}
 		if (tmp_item.amount) { //Success
-			if((flag = pc_additem(sd,&tmp_item,tmp_item.amount))) {
+			if((flag = pc_additem(sd,&tmp_item,1))) {
 				clif_additem(sd,0,0,flag);
-				map_addflooritem(&tmp_item,tmp_item.amount,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);
+				map_addflooritem(&tmp_item,1,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);
 			}
 			return 1;
 		}

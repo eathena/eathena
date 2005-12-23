@@ -1,7 +1,6 @@
 Date	Added
 	
 2005/12/23
-	* Fix for producing item skills only producing 1 item. [Valaris]
 	* Inverted the handling of Individual/Shared item pickup rule for parties.
 	  [Skotlex]
 	* Fixed the item ruling for parties not being correctly read from the save
