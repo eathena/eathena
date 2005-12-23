@@ -1,6 +1,8 @@
 Date	Added
 	
 2005/12/23
+	* Now when Berserk ends, the char's HP goes to 100. [Skotlex]
+	* LK's Concentration now gives +50 hit rather than +50% [Skotlex]
 	* Inverted the handling of Individual/Shared item pickup rule for parties.
 	  [Skotlex]
 	* Fixed the item ruling for parties not being correctly read from the save

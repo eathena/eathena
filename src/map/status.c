@@ -2207,10 +2207,10 @@ int status_calc_hit(struct block_list *bl, int hit)
 			hit += 3*sc_data[SC_TRUESIGHT].val1;
 		if(sc_data[SC_HUMMING].timer!=-1)
 			hit += sc_data[SC_HUMMING].val2;
+		if(sc_data[SC_CONCENTRATION].timer != -1)
+			hit += 10*sc_data[SC_CONCENTRATION].val1;
 		if(sc_data[SC_INCHITRATE].timer != -1)
 			hit += hit * sc_data[SC_INCHITRATE].val1/100;
-		if(sc_data[SC_CONCENTRATION].timer != -1)
-			hit += hit * 10*sc_data[SC_CONCENTRATION].val1/100;
 		if(sc_data[SC_BLIND].timer != -1)
 			hit -= hit * 25 / 100;
 	}
@@ -4830,6 +4830,7 @@ int status_change_clear(struct block_list *bl,int type)
  */
 int status_change_end( struct block_list* bl , int type,int tid )
 {
+	struct map_session_data *sd;
 	struct status_change* sc_data;
 	int opt_flag=0, calc_flag = 0;
 	short *sc_count, *option, *opt1, *opt2, *opt3;
@@ -4843,13 +4844,15 @@ int status_change_end( struct block_list* bl , int type,int tid )
 
 	if(type < 0 || type >= SC_MAX)
 		return 0;
+
+	sd = bl->type==BL_PC?(struct map_session_data *)bl:NULL;
 	
-	nullpo_retr(0, sc_data = status_get_sc_data(bl));
-	nullpo_retr(0, sc_count = status_get_sc_count(bl));
-	nullpo_retr(0, option = status_get_option(bl));
-	nullpo_retr(0, opt1 = status_get_opt1(bl));
-	nullpo_retr(0, opt2 = status_get_opt2(bl));
-	nullpo_retr(0, opt3 = status_get_opt3(bl));
+	sc_data = status_get_sc_data(bl);
+	sc_count = status_get_sc_count(bl);
+	option = status_get_option(bl);
+	opt1 = status_get_opt1(bl);
+	opt2 = status_get_opt2(bl);
+	opt3 = status_get_opt3(bl);
 
 	if (sc_data[type].timer != -1 && (sc_data[type].timer == tid || tid == -1)) {
 
@@ -4910,7 +4913,6 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			case SC_MELTDOWN:		/* メルトダウン */
 			case SC_CARTBOOST:
 			case SC_MINDBREAKER:		/* マインドブレーカー */
-			case SC_BERSERK:
 			case SC_EDP:	// Celest
 			case SC_SLOWDOWN:
 			case SC_ASPDPOTION0:		/* ?速ポ?ション */
@@ -4963,27 +4965,23 @@ int status_change_end( struct block_list* bl , int type,int tid )
 
 			case SC_XMAS: // Xmas Suit [Valaris]
 			case SC_WEDDING:	//結婚用(結婚衣裳になって?くのが?いとか)
-			{
-				struct map_session_data *sd;
-				if (bl->type == BL_PC && (sd= (struct map_session_data *)bl))
-				{	//Restore look
-					sd->view_class = sd->status.class_;
-					clif_changelook(&sd->bl,LOOK_BASE,sd->view_class);
+			if (sd) {
+				//Restore look
+				sd->view_class = sd->status.class_;
+				clif_changelook(&sd->bl,LOOK_BASE,sd->view_class);
 #if PACKETVER < 4
-					clif_changelook(&sd->bl,LOOK_WEAPON,sd->status.weapon);
-					clif_changelook(&sd->bl,LOOK_SHIELD,sd->status.shield);
+				clif_changelook(&sd->bl,LOOK_WEAPON,sd->status.weapon);
+				clif_changelook(&sd->bl,LOOK_SHIELD,sd->status.shield);
 #else
-					clif_changelook(&sd->bl,LOOK_WEAPON,0);
+				clif_changelook(&sd->bl,LOOK_WEAPON,0);
 #endif
-					if(battle_config.save_clothcolor && sd->status.clothes_color > 0)
-						clif_changelook(&sd->bl,LOOK_CLOTHES_COLOR,sd->status.clothes_color);
-				}
+				if(battle_config.save_clothcolor && sd->status.clothes_color > 0)
+					clif_changelook(&sd->bl,LOOK_CLOTHES_COLOR,sd->status.clothes_color);
 			}
 			break;
 			case SC_RUN://駆け足
-			{
-				struct map_session_data *sd;
-				if (bl->type == BL_PC && (sd= (struct map_session_data *)bl) && sd->walktimer != -1)
+			if (sd) {
+  				if (sd->walktimer != -1)
 					pc_stop_walking(sd,1);
 				calc_flag = 1;
 				break;
@@ -4997,18 +4995,16 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			case SC_DEFENDER:
 				calc_flag = 1;
 			case SC_AUTOGUARD:
-			{
-				struct map_session_data *sd, *tsd;
+			if (sd) {
+				struct map_session_data *tsd;
 				int i;
-				if (bl->type == BL_PC && (sd= (struct map_session_data *)bl))
-					for (i = 0; i < 5; i++)
-					{	//Clear the status from the others too [Skotlex]
-						if (sd->devotion[i] && (tsd = map_id2sd(sd->devotion[i])) && tsd->sc_data[type].timer != -1)
-							status_change_end(&tsd->bl,type,-1);
-					}
-				break;
+				for (i = 0; i < 5; i++)
+				{	//Clear the status from the others too [Skotlex]
+					if (sd->devotion[i] && (tsd = map_id2sd(sd->devotion[i])) && tsd->sc_data[type].timer != -1)
+						status_change_end(&tsd->bl,type,-1);
+				}
 			}
-				
+			break;
 			case SC_DEVOTION:		/* ディボ?ション */
 				{
 					struct map_session_data *md = map_id2sd(sc_data[type].val1);
@@ -5062,9 +5058,8 @@ int status_change_end( struct block_list* bl , int type,int tid )
 				calc_flag = 1;
 				break;
 			case SC_NOCHAT:	//チャット禁止?態
-				{
-					struct map_session_data *sd=NULL;
-					if(bl->type == BL_PC && (sd=(struct map_session_data *)bl) && battle_config.manner_system){
+				if (sd) {
+					if(battle_config.manner_system){
 						if (sd->status.manner >= 0) // weeee ^^ [celest]
 							sd->status.manner = 0;
 						clif_updatestatus(sd,SP_MANNER);
@@ -5129,15 +5124,20 @@ int status_change_end( struct block_list* bl , int type,int tid )
 				}
 				break;
 
+			case SC_BERSERK:
+				if (sd && sd->status.hp > 100) {
+					sd->status.hp = 100;
+					clif_updatestatus(sd,SP_HP);
+				}
+				calc_flag = 1;
+				break;
+				
 			case SC_GRAVITATION:
-				if (bl->type == BL_PC) {
+				if (sd) {
 					if (sc_data[type].val3 == BCT_SELF) {
-						struct map_session_data *sd = (struct map_session_data *)bl;
-						if (sd) {
-							int tick = gettick();
-							sd->canmove_tick = tick;
-							sd->canact_tick = tick;
-						}
+						unsigned int tick = gettick();
+						sd->canmove_tick = tick;
+						sd->canact_tick = tick;
 					} else calc_flag = 1;
 				}
 				break;
@@ -5162,7 +5162,7 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			}
 
 
-		if (bl->type == BL_PC && (battle_config.display_hallucination || type != SC_HALLUCINATION))
+		if (sd && (battle_config.display_hallucination || type != SC_HALLUCINATION))
 			clif_status_change(bl,StatusIconChangeTable[type],0);
 
 		switch(type){	/* 正常に?るときなにか?理が必要 */
@@ -5275,7 +5275,7 @@ int status_change_end( struct block_list* bl , int type,int tid )
 		if(opt_flag)	/* optionの?更を?える */
 			clif_changeoption(bl);
 
-		if (bl->type == BL_PC && calc_flag)
+		if (sd && calc_flag)
 			status_calc_pc((struct map_session_data *)bl,0);	/* ステ?タス再計算 */
 	}
 
