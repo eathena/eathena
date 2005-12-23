@@ -43,7 +43,8 @@ typedef __uint32_t e_uint32;
 #define RFIFOHEAD(fd) char *rbPtr = session[fd]->rdata+session[fd]->rdata_pos;
 #define RFIFOP(fd,pos) (&rbPtr[pos])
 #else
-#define RFIFOHEAD(fd) ;
+//Make it a comment so it does not disrupts the rest of code.
+#define RFIFOHEAD(fd) //
 #define RFIFOP(fd,pos) (session[fd]->rdata+session[fd]->rdata_pos+(pos))
 #endif
 // use function instead of macro.

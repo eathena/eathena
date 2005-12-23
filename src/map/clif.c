@@ -2181,12 +2181,12 @@ int clif_selllist(struct map_session_data *sd) {
  */
 int clif_scriptmes(struct map_session_data *sd, int npcid, char *mes) {
 	int fd;
+	int slen = strlen(mes) + 9;
+	WFIFOHEAD(fd, slen);
 
 	nullpo_retr(0, sd);
 
 	fd=sd->fd;
-        int slen = strlen(mes) + 9;
-        WFIFOHEAD(fd, slen);
 	WFIFOW(fd,0)=0xb4;
 	WFIFOW(fd,2)=slen;
 	WFIFOL(fd,4)=npcid;
@@ -2238,12 +2238,12 @@ int clif_scriptclose(struct map_session_data *sd, int npcid) {
  */
 int clif_scriptmenu(struct map_session_data *sd, int npcid, char *mes) {
 	int fd;
+	int slen = strlen(mes) + 8;
+	WFIFOHEAD(fd, slen);
 
 	nullpo_retr(0, sd);
 
 	fd=sd->fd;
-        int slen = strlen(mes) + 8;
-        WFIFOHEAD(fd, slen);
 	WFIFOW(fd,0)=0xb7;
 	WFIFOW(fd,2)=slen;
 	WFIFOL(fd,4)=npcid;
