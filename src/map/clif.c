@@ -10586,9 +10586,11 @@ void clif_parse_ChangePetName(int fd, struct map_session_data *sd) {
 // Kick (right click menu for GM "(name) force to quit")
 void clif_parse_GMKick(int fd, struct map_session_data *sd) {
 	struct block_list *target;
-	RFIFOHEAD(fd);
-	int tid = RFIFOL(fd,2);
+	int tid;
 
+	RFIFOHEAD(fd);
+	tid = RFIFOL(fd,2);
+	
 	nullpo_retv(sd);
 
 	if ((battle_config.atc_gmonly == 0 || pc_isGM(sd)) &&
