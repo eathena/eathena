@@ -419,7 +419,7 @@ int mapif_save_guild_storage_ack(int fd,int account_id,int guild_id,int fail)
 // 倉庫データ要求受信
 int mapif_parse_LoadStorage(int fd)
 {
-        RFIFOHEAD(fd);
+	RFIFOHEAD(fd);
 	mapif_load_storage(fd,RFIFOL(fd,2));
 	return 0;
 }
@@ -427,7 +427,7 @@ int mapif_parse_LoadStorage(int fd)
 int mapif_parse_SaveStorage(int fd)
 {
 	struct storage *s;
-        RFIFOHEAD(fd);
+	RFIFOHEAD(fd);
 	int account_id=RFIFOL(fd,4);
 	int len=RFIFOW(fd,2);
 	if(sizeof(struct storage)!=len-8){
@@ -443,14 +443,14 @@ int mapif_parse_SaveStorage(int fd)
 
 int mapif_parse_LoadGuildStorage(int fd)
 {
-        RFIFOHEAD(fd);
+	RFIFOHEAD(fd);
 	mapif_load_guild_storage(fd,RFIFOL(fd,2),RFIFOL(fd,6));
 	return 0;
 }
 int mapif_parse_SaveGuildStorage(int fd)
 {
 	struct guild_storage *gs;
-        RFIFOHEAD(fd);
+	RFIFOHEAD(fd);
 	int guild_id=RFIFOL(fd,8);
 	int len=RFIFOW(fd,2);
 	if(sizeof(struct guild_storage)!=len-12){
@@ -475,7 +475,7 @@ int mapif_parse_SaveGuildStorage(int fd)
 // ・エラーなら0(false)、そうでないなら1(true)をかえさなければならない
 int inter_storage_parse_frommap(int fd)
 {
-        RFIFOHEAD(fd);
+	RFIFOHEAD(fd);
 	switch(RFIFOW(fd,0)){
 	case 0x3010: mapif_parse_LoadStorage(fd); break;
 	case 0x3011: mapif_parse_SaveStorage(fd); break;

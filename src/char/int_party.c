@@ -637,7 +637,7 @@ int mapif_parse_PartyCheck(int fd, int party_id, int account_id, char *nick) {
 // ?パケット長チェックや、RFIFOSKIPは呼び出し元で行われるので行ってはならない
 // ?エラ?なら0(false)、そうでないなら1(true)をかえさなければならない
 int inter_party_parse_frommap(int fd) {
-        RFIFOHEAD(fd);
+	RFIFOHEAD(fd);
 	switch(RFIFOW(fd,0)) {
 	case 0x3020: mapif_parse_CreateParty(fd, RFIFOL(fd,2), (char*)RFIFOP(fd,6), (char*)RFIFOP(fd,30), (char*)RFIFOP(fd,54), RFIFOW(fd,70), RFIFOB(fd,72), RFIFOB(fd,73)); break;
 	case 0x3021: mapif_parse_PartyInfo(fd, RFIFOL(fd,2)); break;

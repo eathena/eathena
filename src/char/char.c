@@ -1777,6 +1777,7 @@ static int char_delete(struct mmo_charstatus *cs) {
 int parse_tologin(int fd) {
 	int i;
 	struct char_session_data *sd;
+	RFIFOHEAD(fd);
 
 	// only login-server can have an access to here.
 	// so, if it isn't the login-server, we disconnect the session (fd != login_fd).
@@ -1796,7 +1797,6 @@ int parse_tologin(int fd) {
 	while(RFIFOREST(fd) >= 2 && !session[fd]->eof) {
 //		printf("parse_tologin: connection #%d, packet: 0x%x (with being read: %d bytes).\n", fd, RFIFOW(fd,0), RFIFOREST(fd));
 
-                RFIFOHEAD(fd);
 		switch(RFIFOW(fd,0)) {
 		case 0x2711:
 			if (RFIFOREST(fd) < 3)
@@ -2280,7 +2280,6 @@ int parse_tologin(int fd) {
 			return 0;
 		}
 	}
-        RFIFOHEAD(fd);
 	RFIFOFLUSH(fd);
 
 	return 0;
@@ -2291,6 +2290,7 @@ int search_mapserver(char *map, long ip, short port);
 int parse_frommap(int fd) {
 	int i, j;
 	int id;
+	RFIFOHEAD(fd);
 
 	for(id = 0; id < MAX_MAP_SERVERS; id++)
 		if (server_fd[id] == fd)
@@ -2312,7 +2312,6 @@ int parse_frommap(int fd) {
 	while(RFIFOREST(fd) >= 2 && !session[fd]->eof) {
 //		printf("parse_frommap: connection #%d, packet: 0x%x (with being read: %d bytes).\n", fd, RFIFOW(fd,0), RFIFOREST(fd));
 
-                RFIFOHEAD(fd);
 		switch(RFIFOW(fd,0)) {
 
 		// map-server alive packet
@@ -2975,6 +2974,7 @@ int parse_char(int fd) {
 	int map_fd;
 	struct char_session_data *sd;
 	unsigned char *p = (unsigned char *) &session[fd]->client_addr.sin_addr;
+	RFIFOHEAD(fd);
 
 	sd = (struct char_session_data*)session[fd]->session_data;
 
@@ -2994,7 +2994,6 @@ int parse_char(int fd) {
 	}
 
 	while(RFIFOREST(fd) >= 2 && !session[fd]->eof) {
-                RFIFOHEAD(fd);
 		cmd = RFIFOW(fd,0);
 		// crc32のスキップ用
 		if(	sd==NULL			&&	// 未ログインor管理パケット
@@ -3502,7 +3501,6 @@ int parse_char(int fd) {
 			return 0;
 		}
 	}
-        RFIFOHEAD(fd);
 	RFIFOFLUSH(fd);
 	return 0;
 }
