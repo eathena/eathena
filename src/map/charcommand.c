@@ -66,24 +66,24 @@ CCMD_FUNC(feelreset);
 // First char of commands is configured in charcommand_athena.conf. Leave # in this list for default value.
 // to set default level, read charcommand_athena.conf first please.
 static CharCommandInfo charcommand_info[] = {
-	{ CharCommandJobChange,				"#job",						60,	charcommand_jobchange },
-	{ CharCommandJobChange,				"#jobchange",				60,	charcommand_jobchange },
+	{ CharCommandJobChange,				"#job",					60, charcommand_jobchange },
+	{ CharCommandJobChange,				"#jobchange",				60, charcommand_jobchange },
 	{ CharCommandPetRename,				"#petrename",				50, charcommand_petrename },
 	{ CharCommandPetFriendly,			"#petfriendly",				50, charcommand_petfriendly },
-	{ CharCommandStats,					"#stats",					40, charcommand_stats },
+	{ CharCommandStats,				"#stats",					40, charcommand_stats },
 	{ CharCommandOption,				"#option",					60, charcommand_option },
-	{ CharCommandReset,					"#reset",					60, charcommand_reset },
-	{ CharCommandSave,					"#save",					60, charcommand_save },
+	{ CharCommandReset,				"#reset",					60, charcommand_reset },
+	{ CharCommandSave,				"#save",					60, charcommand_save },
 	{ CharCommandStatsAll,				"#statsall",				40, charcommand_stats_all },
 	{ CharCommandSpiritball,			"#spiritball",				40, charcommand_spiritball },
-	{ CharCommandItemList,				"#itemlist",				40,	charcommand_itemlist },
+	{ CharCommandItemList,				"#itemlist",				40, charcommand_itemlist },
 	{ CharCommandEffect,				"#effect",					40, charcommand_effect },
 	{ CharCommandStorageList,			"#storagelist",				40, charcommand_storagelist },
-	{ CharCommandItem,					"#item",					60, charcommand_item },
-	{ CharCommandWarp,					"#warp",					60, charcommand_warp },
-	{ CharCommandWarp,					"#rura",					60, charcommand_warp },
-	{ CharCommandWarp,					"#rura+",					60, charcommand_warp },
-	{ CharCommandZeny,					"#zeny",					60, charcommand_zeny },
+	{ CharCommandItem,				"#item",					60, charcommand_item },
+	{ CharCommandWarp,				"#warp",					60, charcommand_warp },
+	{ CharCommandWarp,				"#rura",					60, charcommand_warp },
+	{ CharCommandWarp,				"#rura+",					60, charcommand_warp },
+	{ CharCommandZeny,				"#zeny",					60, charcommand_zeny },
 	{ CharCommandFakeName,				"#fakename",				20, charcommand_fakename},
 	
 	//*********************************Recently added commands*********************************************
@@ -97,14 +97,14 @@ static CharCommandInfo charcommand_info[] = {
 	{ CharCommandLostSkill,				"#lostskill",				60, charcommand_lostskill },
 	{ CharCommandSkReset,				"#skreset",					60, charcommand_skreset },
 	{ CharCommandStReset,				"#streset",					60, charcommand_streset },
-	{ CharCommandModel,					"#model",				50, charcommand_model },
+	{ CharCommandModel,				"#model",					50, charcommand_model },
 	{ CharCommandSKPoint,				"#skpoint",					60, charcommand_skpoint },
 	{ CharCommandSTPoint,				"#stpoint",					60, charcommand_stpoint },
-	{ CharCommandChangeSex,				"#changesex",			60, charcommand_changesex },
-	{ CharCommandFeelReset,				"#feelreset",			60, charcommand_feelreset },
+	{ CharCommandChangeSex,				"#changesex",				60, charcommand_changesex },
+	{ CharCommandFeelReset,				"#feelreset",				60, charcommand_feelreset },
 
 // add new commands before this line
-	{ CharCommand_Unknown,             NULL,                1, NULL }
+	{ CharCommand_Unknown, 		            NULL, 				       1, NULL }
 };
 
 int get_charcommand_level(const CharCommandType type) {
