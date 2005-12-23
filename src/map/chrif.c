@@ -168,6 +168,7 @@ int chrif_save(struct map_session_data *sd)
 		charsave_savechar(sd->char_id, &sd->status);
 	}else{
 #endif
+                WFIFOHEAD(char_fd, sizeof(sd->status) + 12);
 		WFIFOW(char_fd,0) = 0x2b01;
 		WFIFOW(char_fd,2) = sizeof(sd->status) + 12;
 		WFIFOL(char_fd,4) = sd->bl.id;
@@ -196,6 +197,7 @@ int chrif_save(struct map_session_data *sd)
 int chrif_connect(int fd)
 {
 	ShowStatus("Logging in to char server...\n", char_fd);
+        WFIFOHEAD(fd, 60);
 	WFIFOW(fd,0) = 0x2af8;
 	memcpy(WFIFOP(fd,2), userid, NAME_LENGTH);
 	memcpy(WFIFOP(fd,26), passwd, NAME_LENGTH);
@@ -215,6 +217,7 @@ int chrif_sendmap(int fd)
 {
 	int i;
 	ShowStatus("Sending maps to char server...\n");
+        WFIFOHEAD(fd, 4 + map_num * 16);
 	WFIFOW(fd,0) = 0x2afa;
 	for(i = 0; i < map_num; i++)
 		if (map[i].alias != '\0') // [MouseJstr] map aliasing
@@ -239,6 +242,7 @@ int chrif_recvmap(int fd)
 	if (chrif_state < 2)	// ‚Ü‚¾€”õ’†
 		return -1;
 
+        RFIFOHEAD(fd);
 	ip = RFIFOL(fd,4);
 	port = RFIFOW(fd,8);
 	for(i = 10, j = 0; i < RFIFOW(fd,2); i += 16, j++) {
@@ -265,6 +269,7 @@ int chrif_removemap(int fd){
 		return -1; //i dunno, but i know if its 3 the link is ok^^
 	}
 
+        RFIFOHEAD(fd);
 	ip = RFIFOL(fd, 4);
 	port = RFIFOW(fd, 8);
 
@@ -299,6 +304,7 @@ int chrif_changemapserver(struct map_session_data *sd, char *name, int x, int y,
 			break;
 		}
 
+        WFIFOHEAD(char_fd, 49);
 	WFIFOW(char_fd, 0) = 0x2b05;
 	WFIFOL(char_fd, 2) = sd->bl.id;
 	WFIFOL(char_fd, 6) = sd->login_id1;
@@ -322,6 +328,7 @@ int chrif_changemapserver(struct map_session_data *sd, char *name, int x, int y,
  */
 int chrif_changemapserverack(int fd)
 {
+        RFIFOHEAD(fd);
 	struct map_session_data *sd = map_id2sd(RFIFOL(fd,2));
 
 	if (sd == NULL || sd->status.char_id != RFIFOL(fd,14))
@@ -343,6 +350,7 @@ int chrif_changemapserverack(int fd)
  */
 int chrif_connectack(int fd)
 {
+        RFIFOHEAD(fd);
 	if (RFIFOB(fd,2)) {
 		ShowFatalError("Connection to char-server failed %d.\n", RFIFOB(fd,2));
 		exit(1);
@@ -369,6 +377,7 @@ int chrif_connectack(int fd)
  */
 int chrif_sendmapack(int fd)
 {
+        RFIFOHEAD(fd);
 	if (RFIFOB(fd,2)) {
 		ShowFatalError("chrif : send map list to char server failed %d\n", RFIFOB(fd,2));
 		exit(1);
@@ -396,6 +405,7 @@ int chrif_scdata_request(int account_id, int char_id)
 #endif
 	chrif_check(-1);
 
+        WFIFOHEAD(char_fd, 10);
 	WFIFOW(char_fd, 0) = 0x2afc;
 	WFIFOL(char_fd, 2) = account_id;
 	WFIFOL(char_fd, 6) = char_id;
@@ -444,6 +454,7 @@ void chrif_authreq(struct map_session_data *sd)
 void chrif_authok(int fd) {
 	struct auth_node *auth_data;
 	
+        RFIFOHEAD(fd);
 	if (map_id2sd(RFIFOL(fd, 4)) != NULL)
 	//Someone with this account is already in! Do not store the info to prevent possible sync exploits. [Skotlex]
 		return;
@@ -533,6 +544,7 @@ int chrif_charselectreq(struct map_session_data *sd)
 			break;
 		}
 
+        WFIFOHEAD(char_fd, 18);
 	WFIFOW(char_fd, 0) = 0x2b02;
 	WFIFOL(char_fd, 2) = sd->bl.id;
 	WFIFOL(char_fd, 6) = sd->login_id1;
@@ -553,6 +565,7 @@ int chrif_searchcharid(int char_id)
 		return -1;
 	chrif_check(-1);
 
+        WFIFOHEAD(char_fd, 6);
 	WFIFOW(char_fd,0) = 0x2b08;
 	WFIFOL(char_fd,2) = char_id;
 	WFIFOSET(char_fd,6);
@@ -571,6 +584,7 @@ int chrif_changegm(int id, const char *pass, int len)
 
 	chrif_check(-1);
 
+        WFIFOHEAD(char_fd, len + 8);
 	WFIFOW(char_fd,0) = 0x2b0a;
 	WFIFOW(char_fd,2) = len + 8;
 	WFIFOL(char_fd,4) = id;
@@ -591,6 +605,7 @@ int chrif_changeemail(int id, const char *actual_email, const char *new_email)
 
 	chrif_check(-1);
 
+        WFIFOHEAD(char_fd, 86);
 	WFIFOW(char_fd,0) = 0x2b0c;
 	WFIFOL(char_fd,2) = id;
 	memcpy(WFIFOP(char_fd,6), actual_email, 40);
@@ -615,6 +630,7 @@ int chrif_char_ask_name(int id, char * character_name, short operation_type, int
 {
 	chrif_check(-1);
 
+        WFIFOHEAD(char_fd, 44);
 	WFIFOW(char_fd, 0) = 0x2b0e;
 	WFIFOL(char_fd, 2) = id; // account_id of who ask (for answer) -1 if nobody
 	memcpy(WFIFOP(char_fd,6), character_name, NAME_LENGTH);
@@ -640,6 +656,7 @@ int chrif_char_ask_name(int id, char * character_name, short operation_type, int
 int chrif_changesex(int id, int sex) {
 	chrif_check(-1);
 
+        WFIFOHEAD(char_fd, 9);
 	WFIFOW(char_fd,0) = 0x2b11;
 	WFIFOW(char_fd,2) = 9;
 	WFIFOL(char_fd,4) = id;
@@ -672,6 +689,7 @@ int chrif_char_ask_name_answer(int fd)
 	char output[256];
 	char player_name[NAME_LENGTH];
 
+        RFIFOHEAD(fd);
 	acc = RFIFOL(fd,2); // account_id of who has asked (-1 if nobody)
 	memcpy(player_name, RFIFOP(fd,6), NAME_LENGTH-1);
 	player_name[NAME_LENGTH-1] = '\0';
@@ -773,6 +791,7 @@ int chrif_changedgm(int fd)
 	int acc, level;
 	struct map_session_data *sd = NULL;
 
+        RFIFOHEAD(fd);
 	acc = RFIFOL(fd,2);
 	level = RFIFOL(fd,6);
 
@@ -799,6 +818,7 @@ int chrif_changedsex(int fd)
 	int acc, sex, i;
 	struct map_session_data *sd;
 
+        RFIFOHEAD(fd);
 	acc = RFIFOL(fd,2);
 	sex = RFIFOL(fd,6);
 	if (battle_config.etc_log)
@@ -872,6 +892,8 @@ int chrif_saveaccountreg2(struct map_session_data *sd)
 	chrif_check(-1);
 
 	p = 8;
+
+        WFIFOHEAD(char_fd, 288 * sd->status.account_reg2_num);
 	for(j = 0; j < sd->status.account_reg2_num; j++) {
 		struct global_reg *reg = &sd->status.account_reg2[j];
 		if (reg->str[0] && reg->value != 0) {
@@ -897,6 +919,7 @@ int chrif_accountreg2(int fd)
 	int j, p;
 	struct map_session_data *sd;
 
+        RFIFOHEAD(fd);
 	if ((sd = map_id2sd(RFIFOL(fd,4))) == NULL)
 		return 1;
 
@@ -945,6 +968,7 @@ int chrif_accountdeletion(int fd)
 	int acc;
 	struct map_session_data *sd;
 
+        RFIFOHEAD(fd);
 	acc = RFIFOL(fd,2);
 	if (battle_config.etc_log)
 		ShowNotice("chrif_accountdeletion %d.\n", acc);
@@ -972,6 +996,7 @@ int chrif_accountban(int fd)
 	int acc;
 	struct map_session_data *sd;
 
+        RFIFOHEAD(fd);
 	acc = RFIFOL(fd,2);
 	if (battle_config.etc_log)
 		ShowNotice("chrif_accountban %d.\n", acc);
@@ -1037,6 +1062,7 @@ int chrif_accountban(int fd)
 //packet.w AID.L WHY.B 2+4+1 = 7byte
 int chrif_disconnectplayer(int fd){
 	struct map_session_data *sd;
+        RFIFOHEAD(fd);
 	sd = map_id2sd(RFIFOL(fd, 2));
 
 	if(sd == NULL){
@@ -1087,6 +1113,7 @@ int chrif_reloadGMdb(void)
 {
 	chrif_check(-1);
 
+        WFIFOHEAD(char_fd, 2);
 	WFIFOW(char_fd,0) = 0x2af7;
 	WFIFOSET(char_fd, 2);
 
@@ -1111,6 +1138,7 @@ int chrif_reqfamelist(void)
 {
 	chrif_check(-1);
 
+        WFIFOHEAD(char_fd, 2);
 	WFIFOW(char_fd,0) = 0x2b1a;
 	WFIFOSET(char_fd, 2);
 
@@ -1126,6 +1154,7 @@ int chrif_recvfamelist(int fd)
 	memset (chemist_fame_list, 0, sizeof(chemist_fame_list));
 	memset (chemist_fame_list, 0, sizeof(taekwon_fame_list));
 
+        RFIFOHEAD(fd);
 	size = RFIFOW(fd,6); //Blacksmith block size
 	for (num = 0; len < size && num < 10; num++) {
 		memcpy(&smith_fame_list[num], RFIFOP(fd,len), sizeof(struct fame_list));
@@ -1171,6 +1200,7 @@ int chrif_save_scdata(struct map_session_data *sd)
 	chrif_check(-1);
 	tick = gettick();
 	
+        WFIFOHEAD(char_fd, 14 + SC_MAX*sizeof(struct status_change_data));
 	WFIFOW(char_fd,0) = 0x2b1c;
 	WFIFOL(char_fd,4) = sd->status.account_id;
 	WFIFOL(char_fd,8) = sd->status.char_id;
@@ -1207,6 +1237,7 @@ int chrif_load_scdata(int fd)
 	struct status_change_data data;
 	int aid, cid, i, count;
 
+        RFIFOHEAD(fd);
 	aid = RFIFOL(fd,4); //Player Account ID
 	cid = RFIFOL(fd,8); //Player Char ID
 	
@@ -1248,6 +1279,7 @@ int chrif_load_scdata(int fd)
 
 	chrif_check(-1);
 
+        WFIFOHEAD(char_fd, sizeof(buf) + 10);
 	WFIFOW(char_fd,0) = 0x2b16;
 	WFIFOW(char_fd,2) = base_rate;
 	WFIFOW(char_fd,4) = job_rate;
@@ -1284,6 +1316,7 @@ int chrif_char_offline(struct map_session_data *sd)
 {
 	chrif_check(-1);
 
+        WFIFOHEAD(char_fd, 10);
 	WFIFOW(char_fd,0) = 0x2b17;
 	WFIFOL(char_fd,2) = sd->status.char_id;
 	WFIFOL(char_fd,6) = sd->status.account_id;
@@ -1313,6 +1346,7 @@ int chrif_flush_fifo(void) {
 int chrif_char_reset_offline(void) {
 	chrif_check(-1);
 
+        WFIFOHEAD(char_fd, 2);
 	WFIFOW(char_fd,0) = 0x2b18;
 	WFIFOSET(char_fd,2);
 
@@ -1328,6 +1362,7 @@ int chrif_char_online(struct map_session_data *sd)
 {
 	chrif_check(-1);
 
+        WFIFOHEAD(char_fd, 10);
 	WFIFOW(char_fd,0) = 0x2b19;
 	WFIFOL(char_fd,2) = sd->status.char_id;
 	WFIFOL(char_fd,6) = sd->status.account_id;
@@ -1391,6 +1426,7 @@ int chrif_parse(int fd)
 	}
 
 	while (RFIFOREST(fd) >= 2 && !session[fd]->eof) { //Infinite loop on broken pipe fix. [Skotlex]
+                RFIFOHEAD(fd);
 		cmd = RFIFOW(fd,0);
 		if (cmd < 0x2af8 || cmd >= 0x2af8 + (sizeof(packet_len_table) / sizeof(packet_len_table[0])) ||
 		    packet_len_table[cmd-0x2af8] == 0) {
@@ -1479,6 +1515,7 @@ int send_users_tochar(int tid, unsigned int tick, int id, int data) {
 	chrif_check(-1);
 
 	all_sd = map_getallusers(&count);
+        WFIFOHEAD(char_fd, 6+8*users);
 	WFIFOW(char_fd,0) = 0x2aff;
 	for (i = 0; i < count; i++) {
 		if (all_sd[i] && 

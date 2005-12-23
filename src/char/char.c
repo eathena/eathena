@@ -266,6 +266,7 @@ void set_char_online(int map_id, int char_id, int account_id) {
 
 	if (login_fd <= 0 || session[login_fd]->eof)
 		return;
+        WFIFOHEAD(login_fd, 6);
 	WFIFOW(login_fd,0) = 0x272b;
 	WFIFOL(login_fd,2) = account_id;
 	WFIFOSET(login_fd,6);
@@ -283,6 +284,7 @@ void set_char_offline(int char_id, int account_id) {
 	}
 	if (login_fd <= 0 || session[login_fd]->eof)
 		return;
+        WFIFOHEAD(login_fd, 6);
 	WFIFOW(login_fd,0) = 0x272c;
 	WFIFOL(login_fd,2) = account_id;
 	WFIFOSET(login_fd,6);
@@ -305,6 +307,7 @@ void set_all_offline(void) {
 	numdb_foreach(online_char_db,char_db_setoffline,-1);
 	if (login_fd <= 0 || session[login_fd]->eof)
 		return;
+        WFIFOHEAD(login_fd, 6);
 	WFIFOW(login_fd,0) = 0x272c;
 	WFIFOL(login_fd,2) = 99;
 	WFIFOSET(login_fd,6);
@@ -1569,6 +1572,7 @@ int mmo_char_send006b(int fd, struct char_session_data *sd) {
 	for(i = found_num; i < 9; i++)
 		sd->found_char[i] = -1;
 
+        WFIFOHEAD(fd, offset + found_num * 106);
 	memset(WFIFOP(fd,0), 0, offset + found_num * 106);
 	WFIFOW(fd,0) = 0x6b;
 	WFIFOW(fd,2) = offset + found_num * 106;
@@ -1792,6 +1796,7 @@ int parse_tologin(int fd) {
 	while(RFIFOREST(fd) >= 2 && !session[fd]->eof) {
 //		printf("parse_tologin: connection #%d, packet: 0x%x (with being read: %d bytes).\n", fd, RFIFOW(fd,0), RFIFOREST(fd));
 
+                RFIFOHEAD(fd);
 		switch(RFIFOW(fd,0)) {
 		case 0x2711:
 			if (RFIFOREST(fd) < 3)
@@ -1824,6 +1829,7 @@ int parse_tologin(int fd) {
 			for(i = 0; i < fd_max; i++) {
 				if (session[i] && (sd = (struct char_session_data*)session[i]->session_data) && sd->account_id == RFIFOL(fd,2)) {
 					if (RFIFOB(fd,6) != 0) {
+                                                WFIFOHEAD(i, 3);
 						WFIFOW(i,0) = 0x6c;
 						WFIFOB(i,2) = 0x42;
 						WFIFOSET(i,3);
@@ -1845,6 +1851,7 @@ int parse_tologin(int fd) {
 					} else {
 						// refuse connection: too much online players
 //						printf("count_users(): %d < max_connect_use (%d) -> fail...\n", count_users(), max_connect_user);
+                                                WFIFOHEAD(fd, 3);
 						WFIFOW(i,0) = 0x6c;
 						WFIFOW(i,2) = 0;
 						WFIFOSET(i,3);
@@ -2253,6 +2260,7 @@ int parse_tologin(int fd) {
 						for(i = 0; i < fd_max; i++) {
 							if (session[i] && (tsd = (struct char_session_data*)session[i]->session_data) && tsd->account_id == aid)
 							{
+                                                                WFIFOHEAD(fd, 3);
 								WFIFOW(i,0) = 0x81;
 								WFIFOB(i,2) = 2;
 								WFIFOSET(i,3);
@@ -2272,6 +2280,7 @@ int parse_tologin(int fd) {
 			return 0;
 		}
 	}
+        RFIFOHEAD(fd);
 	RFIFOFLUSH(fd);
 
 	return 0;
@@ -2303,6 +2312,7 @@ int parse_frommap(int fd) {
 	while(RFIFOREST(fd) >= 2 && !session[fd]->eof) {
 //		printf("parse_frommap: connection #%d, packet: 0x%x (with being read: %d bytes).\n", fd, RFIFOW(fd,0), RFIFOREST(fd));
 
+                RFIFOHEAD(fd);
 		switch(RFIFOW(fd,0)) {
 
 		// map-server alive packet
@@ -2315,6 +2325,7 @@ int parse_frommap(int fd) {
 		// request from map-server to reload GM accounts. Transmission to login-server (by Yor)
 		case 0x2af7:
 			if (login_fd > 0) { // don't send request if no login-server
+                                WFIFOHEAD(login_fd, 2);
 				WFIFOW(login_fd,0) = 0x2709;
 				WFIFOSET(login_fd, 2);
 //				printf("char : request from map-server to reload GM accounts -> login-server.\n");
@@ -2345,6 +2356,7 @@ int parse_frommap(int fd) {
 				if (max_account_id != DEFAULT_MAX_ACCOUNT_ID || max_char_id != DEFAULT_MAX_CHAR_ID)
 					mapif_send_maxid(max_account_id, max_char_id); //Send the current max ids to the server to keep in sync [Skotlex]
 			}
+                        WFIFOHEAD(fd, 3 + NAME_LENGTH);
 			WFIFOW(fd,0) = 0x2afb;
 			WFIFOB(fd,2) = 0;
 			memcpy(WFIFOP(fd,3), wisp_server_name, NAME_LENGTH); // name for wisp to player
@@ -2982,6 +2994,7 @@ int parse_char(int fd) {
 	}
 
 	while(RFIFOREST(fd) >= 2 && !session[fd]->eof) {
+                RFIFOHEAD(fd);
 		cmd = RFIFOW(fd,0);
 		// crc32のスキップ用
 		if(	sd==NULL			&&	// 未ログインor管理パケット
@@ -3028,6 +3041,7 @@ int parse_char(int fd) {
 			sd->login_id2 = RFIFOL(fd,10);
 			sd->sex = RFIFOB(fd,16);
 			// send back account_id
+                        WFIFOHEAD(fd, 4);
 			WFIFOL(fd,0) = RFIFOL(fd,2);
 			WFIFOSET(fd,4);
 			// search authentification
@@ -3123,6 +3137,7 @@ int parse_char(int fd) {
 
 			// if we activated email creation and email is default email
 			if (email_creation != 0 && strcmp(sd->email, "a@a.com") == 0 && login_fd > 0) { // to modify an e-mail, login-server must be online
+                                WFIFOHEAD(fd, 3);
 				WFIFOW(fd, 0) = 0x70;
 				WFIFOB(fd, 2) = 0; // 00 = Incorrect Email address
 				WFIFOSET(fd, 3);
@@ -3183,6 +3198,7 @@ int parse_char(int fd) {
 						}
 					// if no map-server is connected, we send: server closed
 					if (j == MAX_MAP_SERVERS) {
+                                                WFIFOHEAD(fd, 3);
 						WFIFOW(fd,0) = 0x81;
 						WFIFOB(fd,2) = 1; // 01 = Server closed
 						WFIFOSET(fd,3);
@@ -3190,6 +3206,7 @@ int parse_char(int fd) {
 					}
 				}
 			}
+                        WFIFOHEAD(fd, 28);
 			WFIFOW(fd,0) = 0x71;
 			WFIFOL(fd,2) = char_dat[sd->found_char[ch]].char_id;
 			memcpy(WFIFOP(fd,6), char_dat[sd->found_char[ch]].last_point.map, MAP_NAME_LENGTH);
@@ -3251,6 +3268,7 @@ int parse_char(int fd) {
 				
 			if(i == -1){ //added some better faile reporting to client on the txt version [Kevin]
                          //already exists
+                            WFIFOHEAD(fd, 3);
                             WFIFOW(fd, 0) = 0x6e;
                             WFIFOB(fd, 2) = 0x00;
                             WFIFOSET(fd, 3);
@@ -3258,6 +3276,7 @@ int parse_char(int fd) {
                             break;
                         }else if(i == -2){
                             //denied
+                            WFIFOHEAD(fd, 3);
                             WFIFOW(fd, 0) = 0x6e;
                             WFIFOB(fd, 2) = 0x02;
                             WFIFOSET(fd, 3); 
@@ -3265,6 +3284,7 @@ int parse_char(int fd) {
                             break;
                         }else if(i == -3){
                             //underaged XD
+                            WFIFOHEAD(fd, 3);
                             WFIFOW(fd, 0) = 0x6e;
                             WFIFOB(fd, 2) = 0x01;
                             WFIFOSET(fd, 3);
@@ -3272,6 +3292,7 @@ int parse_char(int fd) {
                             break;
                         }
 
+                        WFIFOHEAD(fd, 108);
 			WFIFOW(fd,0) = 0x6d;
 			memset(WFIFOP(fd,2), 0, 106);
 
@@ -3481,6 +3502,7 @@ int parse_char(int fd) {
 			return 0;
 		}
 	}
+        RFIFOHEAD(fd);
 	RFIFOFLUSH(fd);
 	return 0;
 }
@@ -3529,6 +3551,7 @@ int mapif_sendall(unsigned char *buf, unsigned int len) {
 				ShowError("mapif_sendall: Cannot send to session %d, not enough space in buffer (data length: %d, remaining buffer: %d)\n", fd, len, WFIFOSPACE(fd));
 				continue;
 			}
+                        WFIFOHEAD(fd, len);
 			memcpy(WFIFOP(fd,0), buf, len);
 			WFIFOSET(fd,len);
 			c++;
@@ -3550,6 +3573,7 @@ int mapif_sendallwos(int sfd, unsigned char *buf, unsigned int len) {
 				ShowError("mapif_sendallwos: Cannot send to session %d, not enough space in buffer (data length: %d, remaining buffer: %d)\n", fd, len, WFIFOSPACE(fd));
 				continue;
 			}
+                        WFIFOHEAD(fd, len);
 			memcpy(WFIFOP(fd,0), buf, len);
 			WFIFOSET(fd, len);
 			c++;
@@ -3569,6 +3593,7 @@ int mapif_send(int fd, unsigned char *buf, unsigned int len) {
 					ShowError("mapif_send: Cannot send to session %d, not enough space in buffer (data length: %d, remaining buffer: %d)\n", fd, len, WFIFOSPACE(fd));
 					continue;
 				}
+                                WFIFOHEAD(fd, len);
 				memcpy(WFIFOP(fd,0), buf, len);
 				WFIFOSET(fd,len);
 				return 1;
@@ -3584,6 +3609,7 @@ int send_users_tologin(int tid, unsigned int tick, int id, int data) {
 
 	if (login_fd > 0 && session[login_fd]) {
 		// send number of user to login server
+                WFIFOHEAD(login_fd, 6);
 		WFIFOW(login_fd,0) = 0x2714;
 		WFIFOL(login_fd,2) = users;
 		WFIFOSET(login_fd,6);
@@ -3607,6 +3633,7 @@ int check_connect_login_server(int tid, unsigned int tick, int id, int data) {
 		}
 		session[login_fd]->func_parse = parse_tologin;
 		realloc_fifo(login_fd, FIFOSIZE_SERVERLINK, FIFOSIZE_SERVERLINK);
+                WFIFOHEAD(login_fd, 86);
 		WFIFOW(login_fd,0) = 0x2710;
 		memset(WFIFOP(login_fd,2), 0, 24);
 		memcpy(WFIFOP(login_fd,2), userid, strlen(userid) < 24 ? strlen(userid) : 24);
