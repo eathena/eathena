@@ -1,4 +1,3 @@
-  0:
  40:--- CHARACTER CMD ---
  40:#statsall - Displays stats of all characters.
  40:#itemlist <char name> - Displays all items of a player.

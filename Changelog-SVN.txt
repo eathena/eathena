@@ -1,6 +1,8 @@
 Date	Added
 	
 2005/12/22
+	* Finished work on @help/@help2. @help will no longer show # commands. @help2 shows 
+	  them instead. [Kayla]
 	* Fixed compile warnings in atcommand.c and map.c. Fixed compile error in script.c. [Valaris]
 	* wedding_modifydisplay's default is now no (that's how it is on official)
 	  [Skotlex]
