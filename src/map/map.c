@@ -207,8 +207,8 @@ static const int diry[8]={1,1,0,-1,-1,-1,0,1};
  */
 void map_setusers(int fd)
 {
-        RFIFOHEAD(fd);
-        WFIFOHEAD(fd, 2);
+	RFIFOHEAD(fd);
+	WFIFOHEAD(fd, 2);
 
 	map_users = RFIFOL(fd,2);
 	// send some anser

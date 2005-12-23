@@ -1360,6 +1360,7 @@ int parse_fromchar(int fd) {
 	unsigned char *p = (unsigned char *) &session[fd]->client_addr.sin_addr;
 	char ip[16];
 	int acc;
+	RFIFOHEAD(fd);
 
 	sprintf(ip, "%d.%d.%d.%d", p[0], p[1], p[2], p[3]);
 
@@ -1381,7 +1382,6 @@ int parse_fromchar(int fd) {
 	}
 
 	while (RFIFOREST(fd) >= 2) {
-                RFIFOHEAD(fd);
 
 		if (display_parse_fromchar == 2 || (display_parse_fromchar == 1 && RFIFOW(fd,0) != 0x2714)) // 0x2714 is done very often (number of players)
 			ShowDebug("parse_fromchar: connection #%d, packet: 0x%x (with being read: %d bytes).\n", fd, RFIFOW(fd,0), RFIFOREST(fd));
@@ -1942,6 +1942,7 @@ int parse_admin(int fd) {
 	unsigned char *p = (unsigned char *) &session[fd]->client_addr.sin_addr;
 	char* account_name;
 	char ip[16];
+	RFIFOHEAD(fd);
 
 	sprintf(ip, "%d.%d.%d.%d", p[0], p[1], p[2], p[3]);
 
@@ -1952,7 +1953,6 @@ int parse_admin(int fd) {
 	}
 
 	while(RFIFOREST(fd) >= 2) {
-          RFIFOHEAD(fd);
           if (display_parse_admin == 1) {
 
 			ShowDebug("parse_admin: connection #%d, packet: 0x%x (with being read: %d).\n", fd, RFIFOW(fd,0), RFIFOREST(fd));
@@ -2933,6 +2933,7 @@ int parse_login(int fd) {
 	unsigned int i;
 	unsigned char *p = (unsigned char *) &session[fd]->client_addr.sin_addr;
 	char ip[16];
+	RFIFOHEAD(fd);
 
 	sprintf(ip, "%d.%d.%d.%d", p[0], p[1], p[2], p[3]);
 
@@ -2945,7 +2946,6 @@ int parse_login(int fd) {
 
 	while(RFIFOREST(fd) >= 2) {
 		if (display_parse_login == 1) {
-                  RFIFOHEAD(fd);
 			if (RFIFOW(fd,0) == 0x64 || RFIFOW(fd,0) == 0x01dd) {
 				if ((int)RFIFOREST(fd) >= ((RFIFOW(fd,0) == 0x64) ? 55 : 47))
 					ShowDebug("parse_login: connection #%d, packet: 0x%x (with being read: %d), account: %s.\n", fd, RFIFOW(fd,0), RFIFOREST(fd), RFIFOP(fd,6));
@@ -2956,7 +2956,6 @@ int parse_login(int fd) {
 				ShowDebug("parse_login: connection #%d, packet: 0x%x (with being read: %d).\n", fd, RFIFOW(fd,0), RFIFOREST(fd));
 		}
 
-                RFIFOHEAD(fd);
 		switch(RFIFOW(fd,0)) {
 		case 0x200:		// New alive packet: structure: 0x200 <account.userid>.24B. used to verify if client is always alive.
 			if (RFIFOREST(fd) < 26)
