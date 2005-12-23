@@ -26,6 +26,7 @@ Nexon
 Date		Added
 ======
 12/23
+	* Small fix (Falcon Taming -> Falcon Mastery) [Komurka]
 	* Desert Wolf Babe -> Baby Desert Wolf (iRO), thx to Poki#3 [Komurka]
 12/22
 	* Added a Bartender NPC in morroc, thanks to Persian69 [Vicious]

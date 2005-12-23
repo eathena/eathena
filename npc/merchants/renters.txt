@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88, mod by Lupus
 //===== Current Version: ===================================== 
-//= 1.5
+//= 1.5a
 //===== Compatible With: ===================================== 
 //= eAthena 7.15 +
 //===== Description: ========================================= 
@@ -16,6 +16,7 @@
 //= 1.4: Added different prices for normal, advanced and baby classes
 //= but you could set them to the same [Lupus]
 //= 1.5: Fixed spelling mistakes [Nexon]
+//= 1.5a: Small fix (Falcon Taming -> Falcon Mastery) [Komurka]
 //============================================================ 
 
 // PecoPeco Breeder (for Knights)-------------------------------------------
@@ -137,9 +138,9 @@ in_hunter.gat,146,100,2	script	Falcon Master	59,{
 
 	M_0:
 		mes "[Falcon Master]";
-		if(Upper==0)mes "I can train a Falcon for you, but you need "+@prize+"z and be a Hunter with mastered ^5555FF'Falcon Taming'^000000 skill.";
-		if(Upper==1)mes "I can train a Scarf Falcon for you, but you need "+@prize+"z and be a Sniper with mastered ^5555FF'Falcon Taming'^000000 skill.";
-		if(Upper==2)mes "I can train a Baby Falcon for you, but you need "+@prize+"z and be a Baby Hunter with mastered ^5555FF'Falcon Taming'^000000 skill.";
+		if(Upper==0)mes "I can train a Falcon for you, but you need "+@prize+"z and be a Hunter with mastered ^5555FF'Falcon Mastery'^000000 skill.";
+		if(Upper==1)mes "I can train a Scarf Falcon for you, but you need "+@prize+"z and be a Sniper with mastered ^5555FF'Falcon Mastery'^000000 skill.";
+		if(Upper==2)mes "I can train a Baby Falcon for you, but you need "+@prize+"z and be a Baby Hunter with mastered ^5555FF'Falcon Mastery'^000000 skill.";
 		next;
 		menu "Ok",sM_0, "No thanks",M_End;
 
@@ -167,7 +168,7 @@ in_hunter.gat,146,100,2	script	Falcon Master	59,{
 				close;
 			sL_NoSkill:
 				mes "[Falcon Master]";
-				mes "I'm sorry but you do not have the Falcon Taming skill.  Please come back when you have learned it.";
+				mes "I'm sorry but you do not have the Falcon Mastery skill.  Please come back when you have learned it.";
 				close;
 			sL_Zeny:
 				mes "[Falcon Master]";
