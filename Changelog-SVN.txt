@@ -1,6 +1,8 @@
 Date	Added
 	
 2005/12/23
+	* Fog of Wall update... Blindess won't affect bosses, blindness ends as
+	  soon as you step out (players only) [Skotlex]
 	* Implemented the Strip equipment effects on mobs. [Skotlex]
 	* Now when Berserk ends, the char's HP goes to 100. [Skotlex]
 	* LK's Concentration now gives +50 hit rather than +50% [Skotlex]

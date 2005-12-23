@@ -1136,7 +1136,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 	case PF_FOGWALL:		/* ƒz?ƒŠ?ƒNƒ?ƒX */
 		if (src != bl) {
 			struct status_change *sc_data = status_get_sc_data(bl);
-			if (sc_data && sc_data[SC_DELUGE].timer == -1)
+			if (sc_data && sc_data[SC_DELUGE].timer == -1 && !(status_get_mode(bl)&MD_BOSS))
 				status_change_start(bl,SC_BLIND,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
 		}
 		break;
@@ -7455,8 +7455,12 @@ static int skill_unit_onleft(int skill_id, struct block_list *bl,unsigned int ti
 				status_change_end(bl,type,-1);
 				if (sc_data[SC_BLIND].timer!=-1)
 				{
-					delete_timer(sc_data[SC_BLIND].timer, status_change_timer);
-					sc_data[SC_BLIND].timer = add_timer(30000+tick, status_change_timer, bl->id, SC_BLIND);
+					if (bl->type == BL_PC) //Players get blind ended inmediately, others have it still for 30 secs. [Skotlex]
+						status_change_end(bl, SC_BLIND, -1);
+					else {
+						delete_timer(sc_data[SC_BLIND].timer, status_change_timer);
+						sc_data[SC_BLIND].timer = add_timer(30000+tick, status_change_timer, bl->id, SC_BLIND);
+					}
 				}
 			}
 			break;
