@@ -39,8 +39,13 @@ typedef __uint32_t e_uint32;
 // define declaration
 
 #define RFIFOSPACE(fd) (session[fd]->max_rdata-session[fd]->rdata_size)
+#ifdef TURBO
 #define RFIFOHEAD(fd) char *rbPtr = session[fd]->rdata+session[fd]->rdata_pos;
 #define RFIFOP(fd,pos) (&rbPtr[pos])
+#else
+#define RFIFOHEAD(fd) ;
+#define RFIFOP(fd,pos) (session[fd]->rdata+session[fd]->rdata_pos+(pos))
+#endif
 // use function instead of macro.
 #define RFIFOB(fd,pos) (*(unsigned char*)RFIFOP(fd,pos))
 #define RFIFOW(fd,pos) (*(unsigned short*)RFIFOP(fd,pos))
@@ -55,8 +60,13 @@ typedef __uint32_t e_uint32;
 #define RBUFL(p,pos) (*(unsigned int*)RBUFP((p),(pos)))
 
 #define WFIFOSPACE(fd) (session[fd]->max_wdata-session[fd]->wdata_size)
+#ifdef TURBO
 #define WFIFOHEAD(fd, x) char *wbPtr = session[fd]->wdata+session[fd]->wdata_size;
 #define WFIFOP(fd,pos) (&wbPtr[pos])
+#else
+#define WFIFOHEAD(fd, x) ;
+#define WFIFOP(fd,pos) (session[fd]->wdata+session[fd]->wdata_size+(pos))
+#endif
 #define WFIFOB(fd,pos) (*(unsigned char*)WFIFOP(fd,pos))
 #define WFIFOW(fd,pos) (*(unsigned short*)WFIFOP(fd,pos))
 #define WFIFOL(fd,pos) (*(unsigned int*)WFIFOP(fd,pos))
