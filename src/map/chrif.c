@@ -238,11 +238,11 @@ int chrif_recvmap(int fd)
 {
 	int i, j, ip, port;
 	unsigned char *p = (unsigned char *)&ip;
+	RFIFOHEAD(fd);
 
 	if (chrif_state < 2)	// ‚Ü‚¾€”õ’†
 		return -1;
 
-        RFIFOHEAD(fd);
 	ip = RFIFOL(fd,4);
 	port = RFIFOW(fd,8);
 	for(i = 10, j = 0; i < RFIFOW(fd,2); i += 16, j++) {
@@ -262,14 +262,14 @@ int chrif_recvmap(int fd)
  */
 int chrif_removemap(int fd){
 	int i, j, ip, port;
-        unsigned char *p = (unsigned char *)&ip;
+	unsigned char *p = (unsigned char *)&ip;
+	RFIFOHEAD(fd);
 
 
 	if(chrif_state < 2){
 		return -1; //i dunno, but i know if its 3 the link is ok^^
 	}
 
-        RFIFOHEAD(fd);
 	ip = RFIFOL(fd, 4);
 	port = RFIFOW(fd, 8);
 
@@ -328,8 +328,8 @@ int chrif_changemapserver(struct map_session_data *sd, char *name, int x, int y,
  */
 int chrif_changemapserverack(int fd)
 {
-        RFIFOHEAD(fd);
 	struct map_session_data *sd = map_id2sd(RFIFOL(fd,2));
+	RFIFOHEAD(fd);
 
 	if (sd == NULL || sd->status.char_id != RFIFOL(fd,14))
 		return -1;
@@ -350,7 +350,7 @@ int chrif_changemapserverack(int fd)
  */
 int chrif_connectack(int fd)
 {
-        RFIFOHEAD(fd);
+	RFIFOHEAD(fd);
 	if (RFIFOB(fd,2)) {
 		ShowFatalError("Connection to char-server failed %d.\n", RFIFOB(fd,2));
 		exit(1);
@@ -377,7 +377,7 @@ int chrif_connectack(int fd)
  */
 int chrif_sendmapack(int fd)
 {
-        RFIFOHEAD(fd);
+	RFIFOHEAD(fd);
 	if (RFIFOB(fd,2)) {
 		ShowFatalError("chrif : send map list to char server failed %d\n", RFIFOB(fd,2));
 		exit(1);
@@ -453,8 +453,8 @@ void chrif_authreq(struct map_session_data *sd)
 //character selected, insert into auth db
 void chrif_authok(int fd) {
 	struct auth_node *auth_data;
+	RFIFOHEAD(fd);
 	
-        RFIFOHEAD(fd);
 	if (map_id2sd(RFIFOL(fd, 4)) != NULL)
 	//Someone with this account is already in! Do not store the info to prevent possible sync exploits. [Skotlex]
 		return;
@@ -688,8 +688,8 @@ int chrif_char_ask_name_answer(int fd)
 	struct map_session_data *sd;
 	char output[256];
 	char player_name[NAME_LENGTH];
+	RFIFOHEAD(fd);
 
-        RFIFOHEAD(fd);
 	acc = RFIFOL(fd,2); // account_id of who has asked (-1 if nobody)
 	memcpy(player_name, RFIFOP(fd,6), NAME_LENGTH-1);
 	player_name[NAME_LENGTH-1] = '\0';
@@ -790,8 +790,8 @@ int chrif_changedgm(int fd)
 {
 	int acc, level;
 	struct map_session_data *sd = NULL;
+	RFIFOHEAD(fd);
 
-        RFIFOHEAD(fd);
 	acc = RFIFOL(fd,2);
 	level = RFIFOL(fd,6);
 
@@ -817,8 +817,8 @@ int chrif_changedsex(int fd)
 {
 	int acc, sex, i;
 	struct map_session_data *sd;
+	RFIFOHEAD(fd);
 
-        RFIFOHEAD(fd);
 	acc = RFIFOL(fd,2);
 	sex = RFIFOL(fd,6);
 	if (battle_config.etc_log)
@@ -918,8 +918,8 @@ int chrif_accountreg2(int fd)
 {
 	int j, p;
 	struct map_session_data *sd;
+	RFIFOHEAD(fd);
 
-        RFIFOHEAD(fd);
 	if ((sd = map_id2sd(RFIFOL(fd,4))) == NULL)
 		return 1;
 
@@ -967,8 +967,8 @@ int chrif_accountdeletion(int fd)
 {
 	int acc;
 	struct map_session_data *sd;
+	RFIFOHEAD(fd);
 
-        RFIFOHEAD(fd);
 	acc = RFIFOL(fd,2);
 	if (battle_config.etc_log)
 		ShowNotice("chrif_accountdeletion %d.\n", acc);
@@ -995,8 +995,8 @@ int chrif_accountban(int fd)
 {
 	int acc;
 	struct map_session_data *sd;
+	RFIFOHEAD(fd);
 
-        RFIFOHEAD(fd);
 	acc = RFIFOL(fd,2);
 	if (battle_config.etc_log)
 		ShowNotice("chrif_accountban %d.\n", acc);
@@ -1062,7 +1062,8 @@ int chrif_accountban(int fd)
 //packet.w AID.L WHY.B 2+4+1 = 7byte
 int chrif_disconnectplayer(int fd){
 	struct map_session_data *sd;
-        RFIFOHEAD(fd);
+	RFIFOHEAD(fd);
+
 	sd = map_id2sd(RFIFOL(fd, 2));
 
 	if(sd == NULL){
@@ -1149,12 +1150,12 @@ int chrif_recvfamelist(int fd)
 {	// response from 0x2b1b
 	int num, size;
 	int total = 0, len = 8;
+	RFIFOHEAD(fd);
 
 	memset (smith_fame_list, 0, sizeof(smith_fame_list));
 	memset (chemist_fame_list, 0, sizeof(chemist_fame_list));
 	memset (chemist_fame_list, 0, sizeof(taekwon_fame_list));
 
-        RFIFOHEAD(fd);
 	size = RFIFOW(fd,6); //Blacksmith block size
 	for (num = 0; len < size && num < 10; num++) {
 		memcpy(&smith_fame_list[num], RFIFOP(fd,len), sizeof(struct fame_list));
@@ -1236,8 +1237,8 @@ int chrif_load_scdata(int fd)
 	struct map_session_data *sd;
 	struct status_change_data data;
 	int aid, cid, i, count;
+	RFIFOHEAD(fd);
 
-        RFIFOHEAD(fd);
 	aid = RFIFOL(fd,4); //Player Account ID
 	cid = RFIFOL(fd,8); //Player Char ID
 	
@@ -1426,7 +1427,7 @@ int chrif_parse(int fd)
 	}
 
 	while (RFIFOREST(fd) >= 2 && !session[fd]->eof) { //Infinite loop on broken pipe fix. [Skotlex]
-                RFIFOHEAD(fd);
+		RFIFOHEAD(fd);
 		cmd = RFIFOW(fd,0);
 		if (cmd < 0x2af8 || cmd >= 0x2af8 + (sizeof(packet_len_table) / sizeof(packet_len_table[0])) ||
 		    packet_len_table[cmd-0x2af8] == 0) {

@@ -458,7 +458,7 @@ int mapif_parse_WisRequest(int fd) {
 	static int wisid = 0;
 	int index;
 
-        RFIFOHEAD(fd);
+	RFIFOHEAD(fd);
 	if (RFIFOW(fd,2)-52 >= sizeof(wd->msg)) {
 		ShowWarning("inter: Wis message size too long.\n");
 		return 0;
@@ -516,7 +516,7 @@ int mapif_parse_WisRequest(int fd) {
 
 // Wisp/page transmission result
 int mapif_parse_WisReply(int fd) {
-        RFIFOHEAD(fd);
+	RFIFOHEAD(fd);
 	int id = RFIFOL(fd,2), flag = RFIFOB(fd,6);
 	struct WisData *wd = (struct WisData*)numdb_search(wis_db, id);
 
@@ -535,8 +535,7 @@ int mapif_parse_WisReply(int fd) {
 // Received wisp message from map-server for ALL gm (just copy the message and resends it to ALL map-servers)
 int mapif_parse_WisToGM(int fd) {
 	unsigned char buf[2048]; // 0x3003/0x3803 <packet_len>.w <wispname>.24B <min_gm_level>.w <message>.?B
-
-        RFIFOHEAD(fd);
+	RFIFOHEAD(fd);
 	memcpy(WBUFP(buf,0), RFIFOP(fd,0), RFIFOW(fd,2));
 	WBUFW(buf, 0) = 0x3803;
 	mapif_sendall(buf, RFIFOW(fd,2));

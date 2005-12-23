@@ -1,10 +1,10 @@
 Date	Added
 	
 2005/12/23
-        * Now Star Gladiator uses 2nd Adv.Class Job EXP table (13th column) [Lupus]
+	* Now Star Gladiator uses 2nd Adv.Class Job EXP table (13th column) [Lupus]
 	- In future there could be added the 14th EXP column, specially for Star Gladiator
 2005/12/22
-        * Begin work on packet optimization .. not done yet [MouseJstr]
+	* Begin work on packet optimization .. not done yet [MouseJstr]
 	* Finished work on @help/@help2. @help will no longer show # commands. @help2 shows 
 	  them instead. [Kayla]
 	* Fixed compile warnings in atcommand.c and map.c. Fixed compile error in script.c. [Valaris]
