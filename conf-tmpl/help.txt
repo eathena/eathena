@@ -111,9 +111,8 @@
  40:  147 = Arrow Creation   Acolyte                    152 = Stone Throw    Magician
  40:  148 = Charge Arrows    156 = Holy Light                                157 = Energy Coat
  40: @skilltree <
- 40: @marry <player1> <player2> - marry two players
- 40: @divorce <player>  - divorces the two players
- 40: @rings - gives you the two wedding rings
+ 40: @marry <player1>,<player2> - marry two players
+ 40: @divorce <player>  - divorces the two players (you need just one name of them)
  60: @addwarp <map name> <x coord> <y coord>
  40: 
  40:--- MONSTERS CMD ---

@@ -7281,7 +7281,7 @@ atcommand_marry(const int fd, struct map_session_data* sd,
   nullpo_retr(-1, sd);
 
   if (!message || !*message || sscanf(message, "%23[^,],%23[^\r\n]", player1, player2) != 2) {
-	clif_displaymessage(fd, "Usage: @marry <player1>,<player2>.");
+	clif_displaymessage(fd, "Usage: @marry <player1>,<player2>");
 	return -1;
   }
 
