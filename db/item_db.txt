@@ -755,7 +755,7 @@
 1722,Ballista,Ballista,4,,10,3500,145,,5,0,1574912,7,2,34,4,77,1,11,{}
 1723,Lunar_Bow,Lunar Bow,4,,10,2000,100,,5,2,2048,7,2,34,3,30,1,11,{ bonus bDef,2+3*(getrefine()>9)+(getrefine()>6 && getrefine()<=9); }
 1724,Dragon_Wing,Dragon Wing,4,,10,1200,100,,5,0,1706056,7,2,34,4,60,1,11,{ bonus3 bAddMonsterDropItem,1765,9,300; bonus bIgnoreDefRace,RC_Dragon; }
-1725,Wondering_Bard's_Bow,Wondering Bard's Bow,4,,10,1700,120,,5,1,1574912,7,2,34,4,70,1,11,{ bonus bInt,2; bonus bSPrecovRate,10; }
+1725,Wandering_Bard's_Bow,Wandering Bard's Bow,4,,10,1700,120,,5,1,1574912,7,2,34,4,70,1,11,{ bonus bInt,2; bonus bSPrecovRate,10; }
 // Arrows
 1750,Arrow,Arrow,10,1,,1,25,,,,1706056,7,2,32768,,1,,,{}
 1751,Silver_Arrow,Silver Arrow,10,3,,2,30,,,,1706056,7,2,32768,,1,,,{ bonus bAtkEle,Ele_Holy; }
@@ -1935,7 +1935,6 @@
 7321,Quartz_Piece,Crystal Fragment,3,,276,10,,,,,,,,,,,,,{}
 7322,Poison_Gas,Toxic Gas,3,,333,10,,,,,,,,,,,,,{}
 7323,Battered_Kettle,Battered Kettle,3,,128,10,,,,,,,,,,,,,{}
-7324,Toothed_Wheel,Gear,3,,10,10,,,,,,,,,,,,,{}
 7325,Tube,Flexible Tube,3,,51,10,,,,,,,,,,,,,{}
 7326,Fluorescent_Colored_Liquid,Fluorescent Liquid,3,,356,10,,,,,,,,,,,,,{}
 7327,Flashlight,Flashlight,3,,512,10,,,,,,,,,,,,,{}
@@ -2127,11 +2126,7 @@
 7512,Burnt_Pieces_of_something,Burnt Pieces of something,3,,10,10,,,,,,0,2,,,,,,{}
 7513,Clock_something,Clock something,3,,10,10,,,,,,0,2,,,,,,{}
 7514,Monster_Ticket,Monster Ticket,3,,10,0,,,,,,0,2,,,,,,{}
-7515,Interesting_Medel,Interesting Medel,3,,10,0,,,,,,0,2,,,,,,{}
-
-//THQ Quest Items
-//7500,THG_Membership,THG Membership,3,,10,10,,,,,,,,,,,,,{}
-//7501,Token_Bag,Token Bag,3,,10,10,,,,,,,,,,,,,{}
+7515,Interesting_Medal,Interesting Medal,3,,10,0,,,,,,0,2,,,,,,{}
 
 // Pet Eggs
 //===================================================================
@@ -2162,8 +2157,6 @@
 9025,Bongun_Egg,Bongun Egg,7,,10,0,,,,,,,,,,,,,{}
 9026,Zherlthsh_Egg,Zherlthsh Egg,7,,10,0,,,,,,,,,,,,,{}
 9027,Alice_Egg,Alice Egg,7,,10,0,,,,,,,,,,,,,{}
-9028,Test_Egg,Test Egg,7,,10,0,,,,,,,,,,,,,{}
-9029,Test_Egg_,Test Egg,7,,10,0,,,,,,,,,,,,,{}
 
 // Pet Accessories
 //===================================================================

@@ -17,5 +17,7 @@
 
 // Custom Items go here
 //=============================================================
-0,DEFAULT,Default,0,,10,10,,,,,127918079,7,2,,,,,,{}
-                                               
+//THQ Quest Items
+//7950,THG_Membership,THG Membership,3,,10,10,,,,,,,,,,,,,{}
+//7951,Token_Bag,Token Bag,3,,10,10,,,,,,,,,,,,,{}
+                                 
