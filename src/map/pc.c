@@ -4661,6 +4661,8 @@ int pc_nextjobexp(struct map_session_data *sd)
 		; //Add 0, it's novice.
 	else if ((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE)
 		i = 10; //Super Novice/Super Baby
+	else if ((sd->class_&MAPID_UPPERMASK) == MAPID_STAR_GLADIATOR)
+		i = 13; //Star Gladiator - slow JExp (as for 2nd class)
 	else 
 		i+= (sd->class_&JOBL_2)?2:1;	//Add 2 for second classes, add 1 for first classes.
 
@@ -4711,6 +4713,8 @@ int pc_nextjobafter(struct map_session_data *sd)
 		; //Add 0, it's novice.
 	else if ((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE)
 		i = 10; //Super Novice/Super Baby
+	else if ((sd->class_&MAPID_UPPERMASK) == MAPID_STAR_GLADIATOR)
+		i = 13; //Star Gladiator - slow JExp (as for 2nd class)
 	else 
 		i+= (sd->class_&JOBL_2)?2:1;	//Add 2 for second classes, add 1 for first classes.
 
