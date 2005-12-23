@@ -1159,19 +1159,20 @@ int atcommand_send(
 
 		switch (type)
 		{
-		case 0x209:
+		case 0x209: {
                         WFIFOHEAD(fd, packet_db[sd->packet_ver][type].len);
 			WFIFOW(fd,0) = 0x209;
 			WFIFOW(fd,2) = 2;
 			memcpy(WFIFOP(fd, 12), sd->status.name, NAME_LENGTH);
 			WFIFOSET(fd, packet_db[sd->packet_ver][type].len);
 			break;
+                }
 		case 0x1b1:
 		case 0x1c2:
 		//case xxx:
 		//	add others here
 		//	break;
-		default:
+		default: {
                         WFIFOHEAD(fd, packet_db[sd->packet_ver][type].len);
 			WFIFOW(fd,0) = type;
 			for(i=1;i<=sizeof(info);i++)
@@ -1179,6 +1180,7 @@ int atcommand_send(
 					WFIFOW(fd,i) = info[i];
 			WFIFOSET(fd, packet_db[sd->packet_ver][type].len);
 			break;
+                }
 		}
 
 		sprintf (atcmd_output, msg_table[258], type, type);

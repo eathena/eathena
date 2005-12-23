@@ -7994,6 +7994,7 @@ int pc_read_gm_account(int fd)
 		aFree(gm_account);
 	GM_num = 0;
 #ifdef TXT_ONLY
+        RFIFOHEAD(fd);
 	gm_account = (struct gm_account *) aCallocA(((RFIFOW(fd,2) - 4) / 5), sizeof(struct gm_account));
 	for (i = 4; i < RFIFOW(fd,2); i = i + 5) {
 		gm_account[GM_num].account_id = RFIFOL(fd,i);
