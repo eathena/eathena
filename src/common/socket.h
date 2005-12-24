@@ -19,23 +19,6 @@
 extern time_t last_tick;
 extern time_t stall_time;
 
-#if defined(_WIN32) || defined(__CYGWIN__)
-typedef char e_int8;
-typedef unsigned char e_uint8;
-typedef short e_int16;
-typedef unsigned short e_uint16;
-typedef int e_int32;
-typedef unsigned int e_uint32;
-#else
-#include <bits/types.h>
-typedef char e_int8;
-typedef unsigned char e_uint8;
-typedef __int16_t e_int16;
-typedef __uint16_t e_uint16;
-typedef __int32_t e_int32;
-typedef __uint32_t e_uint32;
-#endif
-
 // define declaration
 
 #define RFIFOSPACE(fd) (session[fd]->max_rdata-session[fd]->rdata_size)
