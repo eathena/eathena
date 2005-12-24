@@ -11774,7 +11774,7 @@ int skill_read_sqldb(void)
 	if (mysql_query(&mmysql_handle, tmp_sql)) {
 		ShowSQL("DB error (%s) - %s\n", skill_sqldb, mysql_error(&mmysql_handle));
 		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-		return 0;
+		return 1;
 	}
 	sql_res = mysql_store_result(&mmysql_handle);
 	if (sql_res) {
@@ -11824,87 +11824,86 @@ int skill_read_sqldb(void)
 		ln=0;
 	}
 
-	sprintf(path, "%s/skill_require_db.txt", db_path);
-	fp=fopen(path,"r");
-	if(fp==NULL){
-		ShowError("can't read %s\n", path);
+	sprintf (tmp_sql, "SELECT * FROM `%s`", skill_require_sqldb);
+	if (mysql_query(&mmysql_handle, tmp_sql)) {
+		ShowSQL("DB error (%s) - %s\n", skill_require_sqldb, mysql_error(&mmysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		return 1;
 	}
-	while(fgets(line,1020,fp)){
-		char *split[50];
-		if(line[0]=='/' && line[1]=='/')
-			continue;
-		j = skill_split_str(line,split,30);
-		if(j < 30 || split[29]==NULL)
-			continue;
+	sql_res = mysql_store_result(&mmysql_handle);
+	if (sql_res) {
+		while((sql_row = mysql_fetch_row(sql_res))){
+			i=TO_INT(0);
+			if (i>=10000 && i<10015) // for guild skills [Celest]
+				i -= 9500;
+			else if(i<=0 || i>MAX_SKILL_DB)
+				continue;
+	
+			ln++;
 
-		i=atoi(split[0]);
-		if (i>=10000 && i<10015) // for guild skills [Celest]
-			i -= 9500;
-		else if(i<=0 || i>MAX_SKILL_DB)
-			continue;
-
-		skill_split_atoi(split[1],skill_db[i].hp);
-		skill_split_atoi(split[2],skill_db[i].mhp);
-		skill_split_atoi(split[3],skill_db[i].sp);
-		skill_split_atoi(split[4],skill_db[i].hp_rate);
-		skill_split_atoi(split[5],skill_db[i].sp_rate);
-		skill_split_atoi(split[6],skill_db[i].zeny);
+			skill_split_atoi(sql_row[1],skill_db[i].hp);
+			skill_split_atoi(sql_row[2],skill_db[i].mhp);
+			skill_split_atoi(sql_row[3],skill_db[i].sp);
+			skill_split_atoi(sql_row[4],skill_db[i].hp_rate);
+			skill_split_atoi(sql_row[5],skill_db[i].sp_rate);
+			skill_split_atoi(sql_row[6],skill_db[i].zeny);
 		
-		p = split[7];
-		for(j=0;j<32;j++){
-			l = atoi(p);
-			if (l==99) {
-				skill_db[i].weapon = 0xffffffff;
-				break;
+			p = sql_row[7];
+			for(j=0;j<32;j++){
+				l = atoi(p);
+				if (l==99) {
+					skill_db[i].weapon = 0xffffffff;
+					break;
+				}
+				else
+					skill_db[i].weapon |= 1<<l;
+				p=strchr(p,':');
+				if(!p)
+					break;
+				p++;
 			}
-			else
-				skill_db[i].weapon |= 1<<l;
-			p=strchr(p,':');
-			if(!p)
-				break;
-			p++;
+
+			if( strcmpi(TO_STR(8),"hiding")==0 ) skill_db[i].state=ST_HIDING;
+			else if( strcmpi(TO_STR(8),"cloaking")==0 ) skill_db[i].state=ST_CLOAKING;
+			else if( strcmpi(TO_STR(8),"hidden")==0 ) skill_db[i].state=ST_HIDDEN;
+			else if( strcmpi(TO_STR(8),"riding")==0 ) skill_db[i].state=ST_RIDING;
+			else if( strcmpi(TO_STR(8),"falcon")==0 ) skill_db[i].state=ST_FALCON;
+			else if( strcmpi(TO_STR(8),"cart")==0 ) skill_db[i].state=ST_CART;
+			else if( strcmpi(TO_STR(8),"shield")==0 ) skill_db[i].state=ST_SHIELD;
+			else if( strcmpi(TO_STR(8),"sight")==0 ) skill_db[i].state=ST_SIGHT;
+			else if( strcmpi(TO_STR(8),"explosionspirits")==0 ) skill_db[i].state=ST_EXPLOSIONSPIRITS;
+			else if( strcmpi(TO_STR(8),"cartboost")==0 ) skill_db[i].state=ST_CARTBOOST;
+			else if( strcmpi(TO_STR(8),"recover_weight_rate")==0 ) skill_db[i].state=ST_RECOV_WEIGHT_RATE;
+			else if( strcmpi(TO_STR(8),"move_enable")==0 ) skill_db[i].state=ST_MOVE_ENABLE;
+			else if( strcmpi(TO_STR(8),"water")==0 ) skill_db[i].state=ST_WATER;
+			else skill_db[i].state=ST_NONE;
+
+			skill_split_atoi(sql_row[9],skill_db[i].spiritball);
+			skill_db[i].itemid[0]=TO_INT(10);
+			skill_db[i].amount[0]=TO_INT(11);
+			skill_db[i].itemid[1]=TO_INT(12);
+			skill_db[i].amount[1]=TO_INT(13);
+			skill_db[i].itemid[2]=TO_INT(14);
+			skill_db[i].amount[2]=TO_INT(15);
+			skill_db[i].itemid[3]=TO_INT(16);
+			skill_db[i].amount[3]=TO_INT(17);
+			skill_db[i].itemid[4]=TO_INT(18);
+			skill_db[i].amount[4]=TO_INT(19);
+			skill_db[i].itemid[5]=TO_INT(20);
+			skill_db[i].amount[5]=TO_INT(21);
+			skill_db[i].itemid[6]=TO_INT(22);
+			skill_db[i].amount[6]=TO_INT(23);
+			skill_db[i].itemid[7]=TO_INT(24);
+			skill_db[i].amount[7]=TO_INT(25);
+			skill_db[i].itemid[8]=TO_INT(26);
+			skill_db[i].amount[8]=TO_INT(27);
+			skill_db[i].itemid[9]=TO_INT(28);
+			skill_db[i].amount[9]=TO_INT(29);
 		}
-
-		if( strcmpi(split[8],"hiding")==0 ) skill_db[i].state=ST_HIDING;
-		else if( strcmpi(split[8],"cloaking")==0 ) skill_db[i].state=ST_CLOAKING;
-		else if( strcmpi(split[8],"hidden")==0 ) skill_db[i].state=ST_HIDDEN;
-		else if( strcmpi(split[8],"riding")==0 ) skill_db[i].state=ST_RIDING;
-		else if( strcmpi(split[8],"falcon")==0 ) skill_db[i].state=ST_FALCON;
-		else if( strcmpi(split[8],"cart")==0 ) skill_db[i].state=ST_CART;
-		else if( strcmpi(split[8],"shield")==0 ) skill_db[i].state=ST_SHIELD;
-		else if( strcmpi(split[8],"sight")==0 ) skill_db[i].state=ST_SIGHT;
-		else if( strcmpi(split[8],"explosionspirits")==0 ) skill_db[i].state=ST_EXPLOSIONSPIRITS;
-		else if( strcmpi(split[8],"cartboost")==0 ) skill_db[i].state=ST_CARTBOOST;
-		else if( strcmpi(split[8],"recover_weight_rate")==0 ) skill_db[i].state=ST_RECOV_WEIGHT_RATE;
-		else if( strcmpi(split[8],"move_enable")==0 ) skill_db[i].state=ST_MOVE_ENABLE;
-		else if( strcmpi(split[8],"water")==0 ) skill_db[i].state=ST_WATER;
-		else skill_db[i].state=ST_NONE;
-
-		skill_split_atoi(split[9],skill_db[i].spiritball);
-		skill_db[i].itemid[0]=atoi(split[10]);
-		skill_db[i].amount[0]=atoi(split[11]);
-		skill_db[i].itemid[1]=atoi(split[12]);
-		skill_db[i].amount[1]=atoi(split[13]);
-		skill_db[i].itemid[2]=atoi(split[14]);
-		skill_db[i].amount[2]=atoi(split[15]);
-		skill_db[i].itemid[3]=atoi(split[16]);
-		skill_db[i].amount[3]=atoi(split[17]);
-		skill_db[i].itemid[4]=atoi(split[18]);
-		skill_db[i].amount[4]=atoi(split[19]);
-		skill_db[i].itemid[5]=atoi(split[20]);
-		skill_db[i].amount[5]=atoi(split[21]);
-		skill_db[i].itemid[6]=atoi(split[22]);
-		skill_db[i].amount[6]=atoi(split[23]);
-		skill_db[i].itemid[7]=atoi(split[24]);
-		skill_db[i].amount[7]=atoi(split[25]);
-		skill_db[i].itemid[8]=atoi(split[26]);
-		skill_db[i].amount[8]=atoi(split[27]);
-		skill_db[i].itemid[9]=atoi(split[28]);
-		skill_db[i].amount[9]=atoi(split[29]);
+		mysql_free_result(sql_res);
+		ShowStatus("Done reading '"CL_WHITE"%lu"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", ln, skill_require_sqldb);
+		ln=0;
 	}
-	fclose(fp);
-	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n",path);
 
 	/* キャスティングデ?タベ?ス */
 

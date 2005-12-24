@@ -1,6 +1,7 @@
 Date	Added
 
 2005/12/24
+	* Added SQL read of skill_require_db. [Valaris]
 	* Added SQL read of skill_db. [Valaris]
 	* Added setting use_new_sql_db to inter_athena.conf for development.
 	  Do not enable this setting, it will be merged into use_sql_db once all work is finished. [Valaris]
