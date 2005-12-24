@@ -31,8 +31,10 @@
 	-----
 	2653,Sacrifice_Ring: seems eAthena doesn't have bonus option yet <- explain how this works so I can code it in. [Skotlex]
 		* * * On your death it breaks (BS can fix it), you drop all Equipment (equipped, even the ring). And revive with 1 HP / 1 SP at the place of your death.
+		* * * From where this info is? ... Mine: On your death you'll loose this ring and get 50% HP [Komurka]
 
 12/23
+	* Added missing Amon Ra skills (he won't be so lame anymore) [Komurka]
 	* Some fixes thx to Poki#3 [Komurka]
 	* Desert Wolf Babe -> Baby Desert Wolf (iRO), thx to Poki#3 [Komurka]
 	* Fixed the drops of RSX 0806, thanks to Poki#3 [MasterOfMuppets]

@@ -176,7 +176,6 @@
 1038,Osiris@SM_BASH,attack,5,10,2000,0,5000,yes,target,always,0,,,,,,
 1038,Osiris@WZ_QUAGMIRE,chase,92,5,200,0,5000,no,target,always,0,,,,,,
 1039,Baphomet@AL_TELEPORT,idle,26,1,10000,0,0,yes,self,rudeattacked,,,,,,,
-1039,Baphomet@AL_TELEPORT,idle,26,1,500,0,5000,yes,self,rudeattacked,,,,,,,
 1039,Baphomet@AL_TELEPORT,walk,26,1,500,0,5000,yes,self,rudeattacked,,,,,,,
 1039,Baphomet@KN_BRANDISHSPEAR,attack,57,10,2000,500,5000,no,target,always,0,,,,,,29
 1039,Baphomet@MO_BODYRELOCATION,chase,264,1,200,200,1000,yes,target,always,0,,,,,,
@@ -1179,7 +1178,6 @@
 1271,Alligator@NPC_EMOTION,chase,197,1,20,0,5000,yes,self,always,0,19,145,,,,
 1271,Alligator@NPC_WATERATTACK,attack,184,2,500,500,5000,no,target,always,0,,,,,,6
 1272,Dark Lord@AL_TELEPORT,idle,26,1,10000,0,0,yes,self,rudeattacked,,,,,,,
-1272,Dark Lord@AL_TELEPORT,idle,26,1,500,0,5000,yes,self,rudeattacked,,,,,,,
 1272,Dark Lord@AL_TELEPORT,walk,26,1,500,0,5000,yes,self,rudeattacked,,,,,,,
 1272,Dark Lord@MG_FIREWALL,chase,18,10,200,500,5000,no,target,always,0,,,,,,
 1272,Dark Lord@NPC_AGIUP,attack,350,5,10000,0,30000,yes,self,myhpltmaxrate,30,,,,,,6
@@ -1664,7 +1662,6 @@
 1388,Archangeling@AL_HEAL,chase,28,11,10000,0,1000,no,friend,friendhpltmaxrate,50,,,,,,18
 1388,Archangeling@AL_HEAL,chase,28,11,10000,0,10000,no,self,myhpltmaxrate,50,,,,,,18
 1388,Archangeling@AL_TELEPORT,idle,26,1,10000,0,0,yes,self,rudeattacked,,,,,,,
-1388,Archangeling@AL_TELEPORT,idle,26,1,500,0,5000,yes,self,rudeattacked,,,,,,,18
 1388,Archangeling@AL_TELEPORT,walk,26,1,500,0,5000,yes,self,rudeattacked,,,,,,,18
 1388,Archangeling@CR_GRANDCROSS,attack,254,1,2000,0,0,yes,target,always,0,,,,,,
 1388,Archangeling@NPC_BARRIER,attack,204,1,500,1000,5000,no,self,myhpltmaxrate,30,,,,,,18
