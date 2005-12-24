@@ -3460,11 +3460,9 @@ int login_lan_config_read(const char *lancfgName) {
 // Reading general configuration file
 //-----------------------------------
 int login_config_read(const char *cfgName) {
+	struct hostent *h = NULL;
 	char line[1024], w1[1024], w2[1024];
 	FILE *fp;
-	struct hostent *h = NULL;
-
-        bind_ip_str[0] = '\0';
 
 	if ((fp = fopen(cfgName, "r")) == NULL) {
 		ShowError("Configuration file (%s) not found.\n", cfgName);
@@ -3523,7 +3521,7 @@ int login_config_read(const char *cfgName) {
 			} else if (strcmpi(w1, "new_account") == 0) {
 				new_account_flag = config_switch(w2);
 			} else if (strcmpi(w1, "bind_ip") == 0) {
-				//bind_ip_set_ = 1;
+				bind_ip_set_ = 1;
 				h = gethostbyname (w2);
 				if (h != NULL) {
 					ShowStatus("Login server binding IP address : %s -> %d.%d.%d.%d\n", w2, (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
@@ -4038,13 +4036,10 @@ int do_init(int argc, char **argv) {
 	online_db = numdb_init();
 	add_timer_func_list(waiting_disconnect_timer, "waiting_disconnect_timer");
 
-        if (bind_ip_str[0] != '\0')
-            bind_ip = inet_addr(bind_ip_str);
-        else
-            bind_ip = INADDR_ANY;
-
-	//login_fd = make_listen_port(login_port);
-	login_fd = make_listen_bind(bind_ip,login_port);
+	if (bind_ip_set_)
+		login_fd = make_listen_bind(inet_addr(bind_ip_str),login_port);
+	else
+		login_fd = make_listen_bind(INADDR_ANY,login_port);
 
 	add_timer_func_list(check_auth_sync, "check_auth_sync");
 	i = add_timer_interval(gettick() + 60000, check_auth_sync, 0, 0, 60000); // every 60 sec we check if we must save accounts file (only if necessary to save)
