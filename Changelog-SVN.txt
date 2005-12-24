@@ -1,6 +1,8 @@
 Date	Added
 
 2005/12/24
+	* Added setting use_new_sql_db to inter_athena.conf for development.
+	  Do not enable this setting, it will be merged into use_sql_db once all work is finished. [Valaris]
 	* Added some work towards sqlizing the rest of the databases. [Valaris]
 	* Changed @help2 to #help to display char commands. Cut @help in half
 	  @help2 has the other half. [Kayla]

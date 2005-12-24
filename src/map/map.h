@@ -1308,6 +1308,8 @@ extern char mob_db2_db[32];
 extern char login_db[32];
 
 // SQL for databases not supported yet. [Valaris]
+extern int db_use_newsqldbs;
+
 extern char abra_sqldb[32];
 extern char attr_fix_sqldb[32];
 extern char cast_sqldb[32];

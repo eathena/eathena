@@ -90,6 +90,8 @@ char mob_db_db[32] = "mob_db";
 char mob_db2_db[32] = "mob_db2";
 
 // SQL for databases not supported yet. [Valaris]
+int db_use_newsqldbs = 0;
+
 char abra_sqldb[32]="abra_db";
 char attr_fix_sqldb[32]="attr_fix";
 char cast_sqldb[32]="cast_db";
@@ -3250,6 +3252,9 @@ int inter_config_read(char *cfgName)
 		} else if(strcmpi(w1,"use_sql_db")==0){
 			db_use_sqldbs = battle_config_switch(w2);
 			ShowStatus ("Using SQL dbs: %s\n",w2);
+		} else if(strcmpi(w1,"use_new_sql_db")==0){
+			db_use_newsqldbs = battle_config_switch(w2);
+			ShowStatus ("Using New SQL dbs: %s\n",w2);
 		//Login Server SQL DB
 		} else if(strcmpi(w1,"login_server_ip")==0){
 			strcpy(login_server_ip, w2);

@@ -12202,7 +12202,7 @@ int do_init_skill(void)
 {
 
 #ifndef TXT_ONLY
-	if(db_use_sqldbs)
+	if(db_use_newsqldbs)
 	      skill_read_sqldb();
 	else
 #endif /* TXT_ONLY */
