@@ -1,6 +1,7 @@
 Date	Added
 	
 2005/12/23
+	* Missed a change in txt login.c for bind_up. [Valaris]
 	* Cleanup organization of clif.c and script.c.
 	  Please don't put extra functions beyond inits, try and organize a little. [Valaris]
 	* Removed login_ip option from login_athena.conf as it is not used. [Valaris]

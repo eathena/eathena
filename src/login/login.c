@@ -53,8 +53,8 @@ void Gettimeofday(struct timeval *timenow)
 int account_id_count = START_ACCOUNT_NUM;
 int server_num;
 int new_account_flag = 0;
-char bind_ip_str[16];
-in_addr_t bind_ip;
+int bind_ip_set_ = 0;
+char bind_ip_str[128];
 int login_port = 6900;
 char lan_char_ip[16];
 int subneti[4];
