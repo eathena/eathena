@@ -63,7 +63,7 @@ int intif_create_pet(int account_id,int char_id,short pet_class,short pet_lv,sho
 {
 	if (CheckForCharServer())
 		return 0;
-	WFIFOHEAD(fd, 24 + NAME_LENGTH);
+	WFIFOHEAD(inter_fd, 24 + NAME_LENGTH);
 	WFIFOW(inter_fd,0) = 0x3080;
 	WFIFOL(inter_fd,2) = account_id;
 	WFIFOL(inter_fd,6) = char_id;
@@ -85,7 +85,7 @@ int intif_request_petdata(int account_id,int char_id,int pet_id)
 {
 	if (CheckForCharServer())
 		return 0;
-	WFIFOHEAD(fd, 14);
+	WFIFOHEAD(inter_fd, 14);
 	WFIFOW(inter_fd,0) = 0x3081;
 	WFIFOL(inter_fd,2) = account_id;
 	WFIFOL(inter_fd,6) = char_id;
@@ -125,13 +125,14 @@ int intif_delete_petdata(int pet_id)
 int intif_GMmessage(char* mes,int len,int flag)
 {
 	int lp = (flag&0x10) ? 8 : 4;
-	WFIFOHEAD(inter_fd,lp + len + 4);
 
 	// Send to the local players
 	clif_GMmessage(NULL, mes, len, flag);
 	
 	if (CheckForCharServer())
 		return 0;
+	
+	WFIFOHEAD(inter_fd,lp + len + 4);
 	WFIFOW(inter_fd,0) = 0x3000;
 	WFIFOW(inter_fd,2) = lp + len + 4;
 	WFIFOL(inter_fd,4) = 0xFF000000; //"invalid" color signals standard broadcast.
@@ -148,7 +149,7 @@ int intif_announce(char* mes,int len, unsigned long color, int flag)
 	
 	if (CheckForCharServer())
 		return 0;
-	WFIFOSET(inter_fd, 8 + len);
+	WFIFOHEAD(inter_fd, 8 + len);
 	WFIFOW(inter_fd,0) = 0x3000;
 	WFIFOW(inter_fd,2) = 8 + len;
 	WFIFOL(inter_fd,4) = color;
@@ -163,7 +164,7 @@ int intif_wis_message(struct map_session_data *sd, char *nick, char *mes, int me
 	if (CheckForCharServer())
 		return 0;
 
-	WFIFOSET(inter_fd,mes_len + 52);
+	WFIFOHEAD(inter_fd,mes_len + 52);
 	WFIFOW(inter_fd,0) = 0x3001;
 	WFIFOW(inter_fd,2) = mes_len + 52;
 	memcpy(WFIFOP(inter_fd,4), sd->status.name, NAME_LENGTH);
@@ -181,7 +182,7 @@ int intif_wis_message(struct map_session_data *sd, char *nick, char *mes, int me
 int intif_wis_replay(int id, int flag) {
 	if (CheckForCharServer())
 		return 0;
-	WFIFOSET(inter_fd,7);
+	WFIFOHEAD(inter_fd,7);
 	WFIFOW(inter_fd,0) = 0x3002;
 	WFIFOL(inter_fd,2) = id;
 	WFIFOB(inter_fd,6) = flag; // flag: 0: success to send wisper, 1: target character is not loged in?, 2: ignored by target
@@ -199,7 +200,7 @@ int intif_wis_message_to_gm(char *Wisp_name, int min_gm_level, char *mes) {
 	if (CheckForCharServer())
 		return 0;
 	mes_len = strlen(mes) + 1; // + null
-	WFIFOSET(inter_fd, mes_len + 30);
+	WFIFOHEAD(inter_fd, mes_len + 30);
 	WFIFOW(inter_fd,0) = 0x3003;
 	WFIFOW(inter_fd,2) = mes_len + 30;
 	memcpy(WFIFOP(inter_fd,4), Wisp_name, NAME_LENGTH);
@@ -224,7 +225,7 @@ int intif_saveaccountreg(struct map_session_data *sd) {
 	if (sd->status.account_reg_num == -1)
 		return 0;
 
-	WFIFOSET(inter_fd, sd->status.account_reg_num * 288);
+	WFIFOHEAD(inter_fd, 4+sd->status.account_reg_num * 288);
 	WFIFOW(inter_fd,0) = 0x3004;
 	WFIFOL(inter_fd,4) = sd->bl.id;
 	for(j=0,p=8;j<sd->status.account_reg_num;j++,p+=288){
@@ -347,7 +348,7 @@ int intif_party_addmember(int party_id,int account_id)
 //	if(battle_config.etc_log)
 //		printf("intif: party add member %d %d\n",party_id,account_id);
 	if(sd!=NULL){
-                WFIFOHEAD(inter_fd,12+NAME_LENGTH+MAP_NAME_LENGTH);
+		WFIFOHEAD(inter_fd,12+NAME_LENGTH+MAP_NAME_LENGTH);
 		WFIFOW(inter_fd,0)=0x3022;
 		WFIFOL(inter_fd,2)=party_id;
 		WFIFOL(inter_fd,6)=account_id;
@@ -392,14 +393,14 @@ int intif_party_changemap(struct map_session_data *sd,int online)
 	if (CheckForCharServer())
 		return 0;
 	if(sd!=NULL){
-            WFIFOHEAD(inter_fd,13 + MAP_NAME_LENGTH);
-	    WFIFOW(inter_fd,0)=0x3025;
-	    WFIFOL(inter_fd,2)=sd->status.party_id;
-	    WFIFOL(inter_fd,6)=sd->status.account_id;
-	    memcpy(WFIFOP(inter_fd,10),map[sd->bl.m].name,MAP_NAME_LENGTH);
-	    WFIFOB(inter_fd,10+MAP_NAME_LENGTH)=online;
-	    WFIFOW(inter_fd,11+MAP_NAME_LENGTH)=sd->status.base_level;
-	    WFIFOSET(inter_fd,13+MAP_NAME_LENGTH);
+		WFIFOHEAD(inter_fd,13 + MAP_NAME_LENGTH);
+		WFIFOW(inter_fd,0)=0x3025;
+		WFIFOL(inter_fd,2)=sd->status.party_id;
+		WFIFOL(inter_fd,6)=sd->status.account_id;
+		memcpy(WFIFOP(inter_fd,10),map[sd->bl.m].name,MAP_NAME_LENGTH);
+		WFIFOB(inter_fd,10+MAP_NAME_LENGTH)=online;
+		WFIFOW(inter_fd,11+MAP_NAME_LENGTH)=sd->status.base_level;
+		WFIFOSET(inter_fd,13+MAP_NAME_LENGTH);
 	}
 //	if(battle_config.etc_log)
 //		printf("party: change map\n");

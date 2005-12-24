@@ -1,6 +1,7 @@
 Date	Added
 	
 2005/12/23
+	* Fixed a bunch of terrible typos in chrif.c [Skotlex]
 	* Fixed a terrible typo in the handling of broadcast messages which was
 	  causing the map server to send garbage packets to the char server.
 	  [Skotlex]
