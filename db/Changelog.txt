@@ -34,6 +34,8 @@
 		* * * From where this info is? ... Mine: On your death you'll loose this ring and get 50% HP [Komurka]
 
 12/23
+	* Corrected the Critical Race bonus of the Sabbath and cleaned up the
+	  script of Morphicious' Hood. [Skotlex]
 	* Added 1 sec cast time to Stone Curse [Komurka]
 	* Added missing Amon Ra skills (he won't be so lame anymore) [Komurka]
 	* Some fixes thx to Poki#3 [Komurka]
