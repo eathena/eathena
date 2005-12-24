@@ -99,7 +99,7 @@ int intif_save_petdata(int account_id,struct s_pet *p)
 {
 	if (CheckForCharServer())
 		return 0;
-	WFIFOHEAD(fd, sizeof(struct s_pet) + 8);
+	WFIFOHEAD(inter_fd, sizeof(struct s_pet) + 8);
 	WFIFOW(inter_fd,0) = 0x3082;
 	WFIFOW(inter_fd,2) = sizeof(struct s_pet) + 8;
 	WFIFOL(inter_fd,4) = account_id;
@@ -125,12 +125,13 @@ int intif_delete_petdata(int pet_id)
 int intif_GMmessage(char* mes,int len,int flag)
 {
 	int lp = (flag&0x10) ? 8 : 4;
+	WFIFOHEAD(inter_fd,lp + len + 4);
+
 	// Send to the local players
 	clif_GMmessage(NULL, mes, len, flag);
 	
 	if (CheckForCharServer())
 		return 0;
-	WFIFOSET(inter_fd, lp + len + 4);
 	WFIFOW(inter_fd,0) = 0x3000;
 	WFIFOW(inter_fd,2) = lp + len + 4;
 	WFIFOL(inter_fd,4) = 0xFF000000; //"invalid" color signals standard broadcast.

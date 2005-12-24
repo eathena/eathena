@@ -1,6 +1,9 @@
 Date	Added
 	
 2005/12/23
+	* Fixed a terrible typo in the handling of broadcast messages which was
+	  causing the map server to send garbage packets to the char server.
+	  [Skotlex]
 	* Added resistance (int + luk/3) to Stone Curse's equation [Skotlex]
 	* Updated sql-files/item_db.sql to current txt version. [Skotlex]
 	* Fog of Wall update... Blindess won't affect bosses, blindness ends as
