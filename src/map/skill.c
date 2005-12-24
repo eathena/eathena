@@ -11757,67 +11757,72 @@ int skill_readdb(void)
 // SQL Skill database reading [Valaris]
 int skill_read_sqldb(void)
 {
+	const char unknown_str[NAME_LENGTH] ="unknown";
 	int i,j,k,l,m;
 	FILE *fp;
 	char line[1024],path[1024],*p;
 	char *filename[]={"produce_db.txt","produce_db2.txt"};
+	long unsigned int ln = 0;
 
 	/* スキルデ?タベ?ス */
 	memset(skill_db,0,sizeof(skill_db));
-	sprintf(path, "%s/skill_db.txt", db_path);
-	fp=fopen(path,"r");
-	if(fp==NULL){
-		ShowError("can't read %s\n", path);
-		return 1;
+
+	//For easier handling of converting. [Skotlex]
+#define TO_INT(a) (sql_row[a]==NULL?0:atoi(sql_row[a]))
+#define TO_STR(a) (sql_row[a]==NULL?unknown_str:sql_row[a])
+	sprintf (tmp_sql, "SELECT * FROM `%s`", skill_sqldb);
+	if (mysql_query(&mmysql_handle, tmp_sql)) {
+		ShowSQL("DB error (%s) - %s\n", skill_sqldb, mysql_error(&mmysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+		return 0;
 	}
-	while(fgets(line,1020,fp)){
-		char *split[50];
-		if(line[0]=='/' && line[1]=='/')
-			continue;
-		j = skill_split_str(line,split,14);
-		if(j < 14 || split[13]==NULL)
-			continue;
+	sql_res = mysql_store_result(&mmysql_handle);
+	if (sql_res) {
+		while((sql_row = mysql_fetch_row(sql_res))){
+			i=TO_INT(0);
+			if (i>=10000 && i<10015) // for guild skills [Celest]
+				i -= 9500;
+			else if(i<=0 || i>MAX_SKILL_DB)
+				continue;
 
-		i=atoi(split[0]);
-		if (i>=10000 && i<10015) // for guild skills [Celest]
-			i -= 9500;
-		else if(i<=0 || i>MAX_SKILL_DB)
-			continue;
+			ln++;
 
-		skill_split_atoi(split[1],skill_db[i].range);
-		skill_db[i].hit=atoi(split[2]);
-		skill_db[i].inf=atoi(split[3]);
-		skill_db[i].pl=atoi(split[4]);
-		skill_db[i].nk=atoi(split[5]);
-		skill_db[i].max=atoi(split[6]);
-		skill_split_atoi(split[7],skill_db[i].num);
+			skill_split_atoi(sql_row[1],skill_db[i].range);
+			skill_db[i].hit=TO_INT(2);
+			skill_db[i].inf=TO_INT(3);
+			skill_db[i].pl=TO_INT(4);
+			skill_db[i].nk=TO_INT(5);
+			skill_db[i].max=TO_INT(6);
+			skill_split_atoi(sql_row[7],skill_db[i].num);
 
-		if(strcmpi(split[8],"yes") == 0)
-			skill_db[i].castcancel=1;
-		else
-			skill_db[i].castcancel=0;
-		skill_db[i].cast_def_rate=atoi(split[9]);
-		skill_db[i].inf2=atoi(split[10]);
-		skill_db[i].maxcount=atoi(split[11]);
-		if(strcmpi(split[12],"weapon") == 0)
-			skill_db[i].skill_type=BF_WEAPON;
-		else if(strcmpi(split[12],"magic") == 0)
-			skill_db[i].skill_type=BF_MAGIC;
-		else if(strcmpi(split[12],"misc") == 0)
-			skill_db[i].skill_type=BF_MISC;
-		else
-			skill_db[i].skill_type=0;
-		skill_split_atoi(split[13],skill_db[i].blewcount);
+			if(strcmpi(TO_STR(8),"yes") == 0)
+				skill_db[i].castcancel=1;
+			else
+				skill_db[i].castcancel=0;
+			skill_db[i].cast_def_rate=TO_INT(9);
+			skill_db[i].inf2=TO_INT(10);
+			skill_db[i].maxcount=TO_INT(11);
+			if(strcmpi(TO_STR(12),"weapon") == 0)
+				skill_db[i].skill_type=BF_WEAPON;
+			else if(strcmpi(TO_STR(12),"magic") == 0)
+				skill_db[i].skill_type=BF_MAGIC;
+			else if(strcmpi(TO_STR(12),"misc") == 0)
+				skill_db[i].skill_type=BF_MISC;
+			else
+				skill_db[i].skill_type=0;
+			skill_split_atoi(sql_row[13],skill_db[i].blewcount);
 
-		for (j = 0; skill_names[j].id != 0; j++)
-			if (skill_names[j].id == i) {
-				skill_db[i].name = skill_names[j].name;
-				skill_db[i].desc = skill_names[j].desc;
-				break;
-			}
+			for (j = 0; skill_names[j].id != 0; j++)
+				if (skill_names[j].id == i) {
+					skill_db[i].name = skill_names[j].name;
+					skill_db[i].desc = skill_names[j].desc;
+					break;
+				}
+		}
+		mysql_free_result(sql_res);
+		ShowStatus("Done reading '"CL_WHITE"%lu"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", ln, skill_sqldb);
+		ln=0;
 	}
-	fclose(fp);
-	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n",path);
 
 	sprintf(path, "%s/skill_require_db.txt", db_path);
 	fp=fopen(path,"r");
