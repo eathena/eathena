@@ -30,6 +30,7 @@ enum CharCommandType {
 	CharCommandSTPoint,
 	CharCommandChangeSex,
 	CharCommandFeelReset, // Komurka
+	CharCommandHelp,
 	
 
 

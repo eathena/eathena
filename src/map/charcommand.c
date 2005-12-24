@@ -56,6 +56,7 @@ CCMD_FUNC(stpoint);
 CCMD_FUNC(skpoint);
 CCMD_FUNC(changesex);
 CCMD_FUNC(feelreset);
+CCMD_FUNC(help);
 
 
 /*==========================================
@@ -102,7 +103,7 @@ static CharCommandInfo charcommand_info[] = {
 	{ CharCommandSTPoint,				"#stpoint",					60, charcommand_stpoint },
 	{ CharCommandChangeSex,				"#changesex",				60, charcommand_changesex },
 	{ CharCommandFeelReset,				"#feelreset",				60, charcommand_feelreset },
-
+	{ CharCommandHelp,				"#help",				20, charcommand_help },
 // add new commands before this line
 	{ CharCommand_Unknown, 		            NULL, 				       1, NULL }
 };
@@ -1230,6 +1231,7 @@ int charcommand_fakename(
 	return 0;
 }
 
+
 /*==========================================
  * #baselvl <#> <nickname> 
  * Transferred by: Kevin
@@ -1741,6 +1743,47 @@ int charcommand_feelreset(
 		}
 	} else {
 		clif_displaymessage(fd, msg_table[3]); // Character not found.
+		return -1;
+	}
+
+	return 0;
+}
+
+/*==========================================
+ * #help - Char commands [Kayla]
+ *------------------------------------------
+ */
+int atcommand_help2(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+	char buf[2048], w1[2048], w2[2048];
+	int i, gm_level;
+	FILE* fp;
+	nullpo_retr(-1, sd);
+
+	memset(buf, '\0', sizeof(buf));
+
+	if ((fp = fopen(charhelp_txt, "r")) != NULL) {
+		clif_displaymessage(fd, msg_table[26]); /* Help commands: */
+		gm_level = pc_isGM(sd);
+		while(fgets(buf, sizeof(buf) - 1, fp) != NULL) {
+			if (buf[0] == '/' && buf[1] == '/')
+				continue;
+			for (i = 0; buf[i] != '\0'; i++) {
+				if (buf[i] == '\r' || buf[i] == '\n') {
+					buf[i] = '\0';
+					break;
+				}
+			}
+			if (sscanf(buf, "%2047[^:]:%2047[^\n]", w1, w2) < 2)
+				clif_displaymessage(fd, buf);
+			else if (gm_level >= atoi(w1))
+				clif_displaymessage(fd, w2);
+		}
+		fclose(fp);
+	} else {
+		clif_displaymessage(fd, msg_table[27]); /*  File help.txt not found. */
 		return -1;
 	}
 
