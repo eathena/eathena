@@ -1753,7 +1753,7 @@ int charcommand_feelreset(
  * #help - Char commands [Kayla]
  *------------------------------------------
  */
-int atcommand_help2(
+int charcommand_help(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
