@@ -4372,7 +4372,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					clif_skill_fail(sd,skillid,0,0);
 				}
 			}
-			else if( rand()%100 < skilllv*4+20 && !battle_check_undead(status_get_race(bl),status_get_elem_type(bl)))
+			else if( rand()%100 < (skilllv*4+20)*status_get_sc_def_int(bl)/100
+				&& !battle_check_undead(status_get_race(bl),status_get_elem_type(bl)))
 			{
 				clif_skill_nodamage(src,bl,skillid,skilllv,1);
 				status_change_start(bl,SC_STONE,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);

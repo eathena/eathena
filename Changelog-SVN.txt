@@ -1,6 +1,7 @@
 Date	Added
 	
 2005/12/23
+	* Added resistance (int + luk/3) to Stone Curse's equation [Skotlex]
 	* Updated sql-files/item_db.sql to current txt version. [Skotlex]
 	* Fog of Wall update... Blindess won't affect bosses, blindness ends as
 	  soon as you step out (players only) [Skotlex]
