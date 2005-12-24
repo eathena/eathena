@@ -88,6 +88,34 @@ char item_db_db[32] = "item_db";
 char item_db2_db[32] = "item_db2";
 char mob_db_db[32] = "mob_db";
 char mob_db2_db[32] = "mob_db2";
+
+// SQL for databases not supported yet. [Valaris]
+char abra_sqldb[32]="abra_db";
+char attr_fix_sqldb[32]="attr_fix";
+char cast_sqldb[32]="cast_db";
+char castle_sqldb[32]="castle_db";
+char create_arrow_sqldb[32]="create_arrow_db";
+char exp_sqldb[32]="exp";
+char exp_guild_sqldb[32]="exp_guild";
+char item_bluebox_sqldb[32]="item_bluebox";
+char item_cardalbum_sqldb[32]="item_cardalbum";
+char item_giftbox_sqldb[32]="item_giftbox";
+char item_scroll_sqldb[32]="item_scroll";
+char item_violetbox_sqldb[32]="item_violetbox";
+char job_sqldb1[32]="job_db1";
+char mob_boss_sqldb[32]="mob_boss";
+char mob_branch_sqldb[32]="mob_branch";
+char mob_poring_sqldb[32]="mob_poring";
+char mob_skill_sqldb[32]="mob_skill_db";
+char pet_sqldb[32]="pet_db";
+char produce_sqldb[32]="produce_db";
+char refine_sqldb[32]="refine_db";
+char size_fix_sqldb[32]="size_fix";
+char skill_sqldb[32]="skill_db";
+char skill_require_sqldb[32]="skill_require_db";
+char skill_tree_sqldb[32]="skill_tree";
+// End [Valaris]
+
 char login_db[32] = "login";
 char login_db_level[32] = "level";
 char login_db_account_id[32] = "account_id";

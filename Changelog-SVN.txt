@@ -1,6 +1,7 @@
 Date	Added
 
 2005/12/24
+	* Added some work towards sqlizing the rest of the databases. [Valaris]
 	* Changed @help2 to #help to display char commands. Cut @help in half
 	  @help2 has the other half. [Kayla]
 2005/12/23

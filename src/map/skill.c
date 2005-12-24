@@ -11754,6 +11754,394 @@ int skill_readdb(void)
 	return 0;
 }
 
+// SQL Skill database reading [Valaris]
+int skill_read_sqldb(void)
+{
+	int i,j,k,l,m;
+	FILE *fp;
+	char line[1024],path[1024],*p;
+	char *filename[]={"produce_db.txt","produce_db2.txt"};
+
+	/* スキルデ?タベ?ス */
+	memset(skill_db,0,sizeof(skill_db));
+	sprintf(path, "%s/skill_db.txt", db_path);
+	fp=fopen(path,"r");
+	if(fp==NULL){
+		ShowError("can't read %s\n", path);
+		return 1;
+	}
+	while(fgets(line,1020,fp)){
+		char *split[50];
+		if(line[0]=='/' && line[1]=='/')
+			continue;
+		j = skill_split_str(line,split,14);
+		if(j < 14 || split[13]==NULL)
+			continue;
+
+		i=atoi(split[0]);
+		if (i>=10000 && i<10015) // for guild skills [Celest]
+			i -= 9500;
+		else if(i<=0 || i>MAX_SKILL_DB)
+			continue;
+
+		skill_split_atoi(split[1],skill_db[i].range);
+		skill_db[i].hit=atoi(split[2]);
+		skill_db[i].inf=atoi(split[3]);
+		skill_db[i].pl=atoi(split[4]);
+		skill_db[i].nk=atoi(split[5]);
+		skill_db[i].max=atoi(split[6]);
+		skill_split_atoi(split[7],skill_db[i].num);
+
+		if(strcmpi(split[8],"yes") == 0)
+			skill_db[i].castcancel=1;
+		else
+			skill_db[i].castcancel=0;
+		skill_db[i].cast_def_rate=atoi(split[9]);
+		skill_db[i].inf2=atoi(split[10]);
+		skill_db[i].maxcount=atoi(split[11]);
+		if(strcmpi(split[12],"weapon") == 0)
+			skill_db[i].skill_type=BF_WEAPON;
+		else if(strcmpi(split[12],"magic") == 0)
+			skill_db[i].skill_type=BF_MAGIC;
+		else if(strcmpi(split[12],"misc") == 0)
+			skill_db[i].skill_type=BF_MISC;
+		else
+			skill_db[i].skill_type=0;
+		skill_split_atoi(split[13],skill_db[i].blewcount);
+
+		for (j = 0; skill_names[j].id != 0; j++)
+			if (skill_names[j].id == i) {
+				skill_db[i].name = skill_names[j].name;
+				skill_db[i].desc = skill_names[j].desc;
+				break;
+			}
+	}
+	fclose(fp);
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n",path);
+
+	sprintf(path, "%s/skill_require_db.txt", db_path);
+	fp=fopen(path,"r");
+	if(fp==NULL){
+		ShowError("can't read %s\n", path);
+		return 1;
+	}
+	while(fgets(line,1020,fp)){
+		char *split[50];
+		if(line[0]=='/' && line[1]=='/')
+			continue;
+		j = skill_split_str(line,split,30);
+		if(j < 30 || split[29]==NULL)
+			continue;
+
+		i=atoi(split[0]);
+		if (i>=10000 && i<10015) // for guild skills [Celest]
+			i -= 9500;
+		else if(i<=0 || i>MAX_SKILL_DB)
+			continue;
+
+		skill_split_atoi(split[1],skill_db[i].hp);
+		skill_split_atoi(split[2],skill_db[i].mhp);
+		skill_split_atoi(split[3],skill_db[i].sp);
+		skill_split_atoi(split[4],skill_db[i].hp_rate);
+		skill_split_atoi(split[5],skill_db[i].sp_rate);
+		skill_split_atoi(split[6],skill_db[i].zeny);
+		
+		p = split[7];
+		for(j=0;j<32;j++){
+			l = atoi(p);
+			if (l==99) {
+				skill_db[i].weapon = 0xffffffff;
+				break;
+			}
+			else
+				skill_db[i].weapon |= 1<<l;
+			p=strchr(p,':');
+			if(!p)
+				break;
+			p++;
+		}
+
+		if( strcmpi(split[8],"hiding")==0 ) skill_db[i].state=ST_HIDING;
+		else if( strcmpi(split[8],"cloaking")==0 ) skill_db[i].state=ST_CLOAKING;
+		else if( strcmpi(split[8],"hidden")==0 ) skill_db[i].state=ST_HIDDEN;
+		else if( strcmpi(split[8],"riding")==0 ) skill_db[i].state=ST_RIDING;
+		else if( strcmpi(split[8],"falcon")==0 ) skill_db[i].state=ST_FALCON;
+		else if( strcmpi(split[8],"cart")==0 ) skill_db[i].state=ST_CART;
+		else if( strcmpi(split[8],"shield")==0 ) skill_db[i].state=ST_SHIELD;
+		else if( strcmpi(split[8],"sight")==0 ) skill_db[i].state=ST_SIGHT;
+		else if( strcmpi(split[8],"explosionspirits")==0 ) skill_db[i].state=ST_EXPLOSIONSPIRITS;
+		else if( strcmpi(split[8],"cartboost")==0 ) skill_db[i].state=ST_CARTBOOST;
+		else if( strcmpi(split[8],"recover_weight_rate")==0 ) skill_db[i].state=ST_RECOV_WEIGHT_RATE;
+		else if( strcmpi(split[8],"move_enable")==0 ) skill_db[i].state=ST_MOVE_ENABLE;
+		else if( strcmpi(split[8],"water")==0 ) skill_db[i].state=ST_WATER;
+		else skill_db[i].state=ST_NONE;
+
+		skill_split_atoi(split[9],skill_db[i].spiritball);
+		skill_db[i].itemid[0]=atoi(split[10]);
+		skill_db[i].amount[0]=atoi(split[11]);
+		skill_db[i].itemid[1]=atoi(split[12]);
+		skill_db[i].amount[1]=atoi(split[13]);
+		skill_db[i].itemid[2]=atoi(split[14]);
+		skill_db[i].amount[2]=atoi(split[15]);
+		skill_db[i].itemid[3]=atoi(split[16]);
+		skill_db[i].amount[3]=atoi(split[17]);
+		skill_db[i].itemid[4]=atoi(split[18]);
+		skill_db[i].amount[4]=atoi(split[19]);
+		skill_db[i].itemid[5]=atoi(split[20]);
+		skill_db[i].amount[5]=atoi(split[21]);
+		skill_db[i].itemid[6]=atoi(split[22]);
+		skill_db[i].amount[6]=atoi(split[23]);
+		skill_db[i].itemid[7]=atoi(split[24]);
+		skill_db[i].amount[7]=atoi(split[25]);
+		skill_db[i].itemid[8]=atoi(split[26]);
+		skill_db[i].amount[8]=atoi(split[27]);
+		skill_db[i].itemid[9]=atoi(split[28]);
+		skill_db[i].amount[9]=atoi(split[29]);
+	}
+	fclose(fp);
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n",path);
+
+	/* キャスティングデ?タベ?ス */
+
+	sprintf(path, "%s/skill_cast_db.txt", db_path);
+	fp=fopen(path,"r");
+	if(fp==NULL){
+		ShowError("can't read %s\n", path);
+		return 1;
+	}
+	while(fgets(line,1020,fp)){
+		char *split[50];
+		memset(split,0,sizeof(split));	// [Valaris] thanks to fov
+		if(line[0]=='/' && line[1]=='/')
+			continue;
+		j = skill_split_str(line,split,5);
+		if(split[4]==NULL || j<5)
+			continue;
+
+		i=atoi(split[0]);
+		if (i>=10000 && i<10015) // for guild skills [Celest]
+			i -= 9500;
+		else if(i<=0 || i>MAX_SKILL_DB)
+			continue;
+
+		skill_split_atoi(split[1],skill_db[i].cast);
+		skill_split_atoi(split[2],skill_db[i].delay);
+		skill_split_atoi(split[3],skill_db[i].upkeep_time);
+		skill_split_atoi(split[4],skill_db[i].upkeep_time2);
+	}
+	fclose(fp);
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n",path);
+
+	/* スキルユニットデ?[タベ?[ス */
+
+	sprintf(path, "%s/skill_unit_db.txt", db_path);
+	fp=fopen(path,"r");
+	if (fp==NULL) {
+		ShowError("can't read %s\n", path);
+		return 1;
+	}
+        k = 0;
+	while (fgets(line,1020,fp)) {
+		char *split[50];
+		if (line[0]=='/' && line[1]=='/')
+			continue;
+		j = skill_split_str(line,split,8);
+		if (split[7]==NULL || j<8)
+			continue;
+
+		i=atoi(split[0]);
+		if (i>=10000 && i<10015) // for guild skills [Celest]
+			i -= 9500;
+		else if(i<=0 || i>MAX_SKILL_DB)
+			continue;
+		skill_db[i].unit_id[0] = strtol(split[1],NULL,16);
+		skill_db[i].unit_id[1] = strtol(split[2],NULL,16);
+		skill_split_atoi(split[3],skill_db[i].unit_layout_type);
+		skill_db[i].unit_range = atoi(split[4]);
+		skill_db[i].unit_interval = atoi(split[5]);
+
+		if( strcmpi(split[6],"noenemy")==0 ) skill_db[i].unit_target=BCT_NOENEMY;
+		else if( strcmpi(split[6],"friend")==0 ) skill_db[i].unit_target=BCT_NOENEMY;
+		else if( strcmpi(split[6],"party")==0 ) skill_db[i].unit_target=BCT_PARTY;
+		else if( strcmpi(split[6],"ally")==0 ) skill_db[i].unit_target=BCT_PARTY|BCT_GUILD;
+		else if( strcmpi(split[6],"all")==0 ) skill_db[i].unit_target=BCT_ALL;
+		else if( strcmpi(split[6],"enemy")==0 ) skill_db[i].unit_target=BCT_ENEMY;
+		else if( strcmpi(split[6],"self")==0 ) skill_db[i].unit_target=BCT_SELF;
+		else if( strcmpi(split[6],"noone")==0 ) skill_db[i].unit_target=BCT_NOONE;
+		else skill_db[i].unit_target = strtol(split[6],NULL,16);
+
+		skill_db[i].unit_flag = strtol(split[7],NULL,16);
+		k++;
+	}
+	fclose(fp);
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n",path);
+	skill_init_unit_layout();
+
+	/* ?ｻ造系スキルデ?タベ?ス */
+	memset(skill_produce_db,0,sizeof(skill_produce_db));
+	for(m=0;m<2;m++){
+		sprintf(path, "%s/%s", db_path, filename[m]);
+		fp=fopen(path,"r");
+		if(fp==NULL){
+			if(m>0)
+				continue;
+			ShowError("can't read %s\n",path);
+			return 1;
+		}
+		k=0;
+		while(fgets(line,1020,fp)){
+			char *split[6 + MAX_PRODUCE_RESOURCE * 2];
+			int x,y;
+			if(line[0]=='/' && line[1]=='/')
+				continue;
+			memset(split,0,sizeof(split));
+			j = skill_split_str(line,split,(3 + MAX_PRODUCE_RESOURCE * 2));
+			if(split[0]==0) //fixed by Lupus
+				continue;
+			i=atoi(split[0]);
+			if(i<=0) continue;
+
+			skill_produce_db[k].nameid=i;
+			skill_produce_db[k].itemlv=atoi(split[1]);
+			skill_produce_db[k].req_skill=atoi(split[2]);
+
+			for(x=3,y=0; split[x] && split[x+1] && y<MAX_PRODUCE_RESOURCE; x+=2,y++){
+				skill_produce_db[k].mat_id[y]=atoi(split[x]);
+				skill_produce_db[k].mat_amount[y]=atoi(split[x+1]);
+			}
+			k++;
+			if(k >= MAX_SKILL_PRODUCE_DB)
+				break;
+		}
+		fclose(fp);
+		ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",k,path);
+	}
+
+	memset(skill_arrow_db,0,sizeof(skill_arrow_db));
+
+	sprintf(path, "%s/create_arrow_db.txt", db_path);
+	fp=fopen(path,"r");
+	if(fp==NULL){
+		ShowError("can't read %s\n", path);
+		return 1;
+	}
+	k=0;
+	while(fgets(line,1020,fp)){
+		char *split[16];
+		int x,y;
+		if(line[0]=='/' && line[1]=='/')
+			continue;
+		memset(split,0,sizeof(split));
+		j = skill_split_str(line,split,13);
+		if(split[0]==0) //fixed by Lupus
+			continue;
+		i=atoi(split[0]);
+		if(i<=0)
+			continue;
+
+		skill_arrow_db[k].nameid=i;
+
+		for(x=1,y=0;split[x] && split[x+1] && y<5;x+=2,y++){
+			skill_arrow_db[k].cre_id[y]=atoi(split[x]);
+			skill_arrow_db[k].cre_amount[y]=atoi(split[x+1]);
+		}
+		k++;
+		if(k >= MAX_SKILL_ARROW_DB)
+			break;
+	}
+	fclose(fp);
+	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",k,path);
+
+	memset(skill_abra_db,0,sizeof(skill_abra_db));
+	sprintf(path, "%s/abra_db.txt", db_path);
+	fp=fopen(path,"r");
+	if(fp==NULL){
+		ShowError("can't read %s\n", path);
+		return 1;
+	}
+	k=0;
+	while(fgets(line,1020,fp)){
+		char *split[16];
+		if(line[0]=='/' && line[1]=='/')
+			continue;
+		memset(split,0,sizeof(split));
+		j = skill_split_str(line,split,13);
+		if(split[0]==0) //fixed by Lupus
+			continue;
+		i=atoi(split[0]);
+		if(i<=0)
+			continue;
+
+		skill_abra_db[i].req_lv=atoi(split[2]);
+		skill_abra_db[i].per=atoi(split[3]);
+
+		k++;
+		if(k >= MAX_SKILL_ABRA_DB)
+			break;
+	}
+	fclose(fp);
+	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",k,path);
+
+	sprintf(path, "%s/skill_castnodex_db.txt", db_path);
+	fp=fopen(path,"r");
+	if(fp==NULL){
+		ShowError("can't read %s\n", path);
+		return 1;
+	}
+	while(fgets(line,1020,fp)){
+		char *split[50];
+		if(line[0]=='/' && line[1]=='/')
+			continue;
+		memset(split,0,sizeof(split));
+		j = skill_split_str(line,split,4);
+		if(split[0]==0) //fixed by Lupus
+			continue;
+		i=atoi(split[0]);
+		if (i>=10000 && i<10015) // for guild skills [Celest]
+			i -= 9500;
+		else if(i<=0 || i>MAX_SKILL_DB)
+			continue;
+
+		skill_split_atoi(split[1],skill_db[i].castnodex);
+		if (!split[2])
+			continue;
+		skill_split_atoi(split[2],skill_db[i].delaynodex);
+		if(!split[3])
+			continue;
+		skill_split_atoi(split[3],skill_db[i].delaynowalk);
+	}
+	fclose(fp);
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n",path);
+
+	sprintf(path, "%s/skill_nocast_db.txt", db_path);
+	fp=fopen(path,"r");
+	if(fp==NULL){
+		ShowError("can't read %s\n", path);
+		return 1;
+	}
+	k=0;
+	while(fgets(line,1020,fp)){
+		char *split[16];
+		if(line[0]=='/' && line[1]=='/')
+			continue;
+		memset(split,0,sizeof(split));
+		j = skill_split_str(line,split,2);
+		if(split[0]==0) //fixed by Lupus
+			continue;
+		i=atoi(split[0]);
+		if (i>=10000 && i<10015) // for guild skills [Celest]
+			i -= 9500;
+		else if(i<=0 || i>MAX_SKILL_DB)
+			continue;
+		skill_db[i].nocast=atoi(split[1]);
+		k++;
+	}
+	fclose(fp);
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n",path);
+
+	return 0;
+}
+
 /*===============================================
  * For reading leveluseskillspamount.txt [Celest]
  *-----------------------------------------------
@@ -11812,7 +12200,14 @@ void skill_reload(void)
  */
 int do_init_skill(void)
 {
+
+#ifndef TXT_ONLY
+	if(db_use_sqldbs)
+	      skill_read_sqldb();
+	else
+#endif /* TXT_ONLY */
 	skill_readdb();
+
 	if (battle_config.skill_sp_override_grffile)
 		skill_read_skillspamount();
 
