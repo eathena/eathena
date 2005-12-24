@@ -1,6 +1,7 @@
 Date	Added
 
 2005/12/24
+	* Fixed compile for TXT map-server. [Valaris]
 	* Fixed stone curse's defense being checked versus int rather than mdef. [Skotlex]
 	* Fixed firewall treating everyone as undead/fire-element. [Skotlex]
 	* Added SQL read of cast_db. [Valaris]

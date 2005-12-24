@@ -11755,6 +11755,7 @@ int skill_readdb(void)
 }
 
 // SQL Skill database reading [Valaris]
+#ifndef TXT_ONLY
 int skill_read_sqldb(void)
 {
 	const char unknown_str[NAME_LENGTH] ="unknown";
@@ -12141,6 +12142,7 @@ int skill_read_sqldb(void)
 
 	return 0;
 }
+#endif
 
 /*===============================================
  * For reading leveluseskillspamount.txt [Celest]
