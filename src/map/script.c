@@ -9184,6 +9184,267 @@ int buildin_charisalpha(struct script_state *st) {
 	return 0;
 }
 
+// [Lance]
+int buildin_fakenpcname(struct script_state *st)
+{
+char *name;
+char *newname;
+int look;
+name = conv_str(st,& (st->stack->stack_data[st->start+2]));
+newname = conv_str(st,& (st->stack->stack_data[st->start+3]));
+look = conv_num(st,& (st->stack->stack_data[st->start+4]));
+if(look > 32767 || look < -32768) return 0; // Safety measure to prevent runtime errors
+npc_changename(name,newname,(short)look);
+return 0;
+}
+
+int buildin_atoi(struct script_state *st) {
+	char *value;
+	value = conv_str(st,& (st->stack->stack_data[st->start+2]));
+	push_val(st->stack, C_INT, atoi(value));
+	return 0;
+}
+
+//-----------------------------------------------------------------------//
+//         BRING STRSTR TO SCRIPTING ENGINE         - LORDALFA  START    //
+//-----------------------------------------------------------------------//
+int buildin_compare(struct script_state *st)                                 {
+   char *message;
+   char *cmpstring;
+   int j;
+   message = conv_str(st,& (st->stack->stack_data[st->start+2]));
+   cmpstring = conv_str(st,& (st->stack->stack_data[st->start+3]));
+   for (j = 0; message[j]; j++)
+    message[j] = tolower(message[j]);
+   for (j = 0; cmpstring[j]; j++)
+    cmpstring[j] = tolower(cmpstring[j]);    
+   push_val(st->stack,C_INT,(strstr(message,cmpstring) != NULL));
+   return 0;
+}
+
+//-----------------------------------------------------------------------//
+//         BRING STRSTR TO SCRIPTING ENGINE         - LORDALFA  END      //
+//-----------------------------------------------------------------------//
+// [zBuffer] List of mathematics commands --->
+int buildin_sqrt(struct script_state *st){
+	double i, a;
+	i = conv_num(st, &(st->stack->stack_data[st->start+2]));
+	a = sqrt(i);
+	push_val(st->stack, C_INT, (int)a);
+	return 0;
+}
+
+int buildin_pow(struct script_state *st){
+	double i, a, b;
+	a = conv_num(st, &(st->stack->stack_data[st->start+2]));
+	b = conv_num(st, &(st->stack->stack_data[st->start+3]));
+	i = pow(a,b);
+	push_val(st->stack, C_INT, (int)i);
+	return 0;
+}
+int buildin_distance(struct script_state *st){
+	int x0, y0, x1, y1;
+
+	x0 = conv_num(st, &(st->stack->stack_data[st->start+2]));
+	y0 = conv_num(st, &(st->stack->stack_data[st->start+3]));
+	x1 = conv_num(st, &(st->stack->stack_data[st->start+4]));
+	y1 = conv_num(st, &(st->stack->stack_data[st->start+5]));
+
+	push_val(st->stack, C_INT, distance(x0-x1, y0-y1));
+	return 0;
+}
+
+// <--- [zBuffer] List of mathematics commands
+// [zBuffer] List of dynamic var commands --->
+void setd_sub(struct map_session_data *sd, char *varname, int elem, void *value)
+{
+	set_reg(sd, add_str((unsigned char *) varname)+(elem<<24), varname, value);
+	return;
+}
+
+int buildin_setd(struct script_state *st)
+{
+	struct map_session_data *sd=NULL;
+	char varname[100], *buffer;
+	char *value;
+	int elem;
+	buffer = conv_str(st, & (st->stack->stack_data[st->start+2]));
+	value = conv_str(st,  & (st->stack->stack_data[st->start+3]));
+
+	if(sscanf(buffer, "%[^[][%d]", varname, &elem) < 2)
+		elem = 0;
+
+	if(st->rid)
+		sd = script_rid2sd(st);
+
+	if(varname[strlen(varname)-1] != '$') {
+		setd_sub(sd, varname, elem, (void *)atoi(value));
+	} else {
+		setd_sub(sd, varname, elem, (void *)value);
+	}
+	
+	return 0;
+}
+
+#ifndef TXT_ONLY
+int buildin_query_sql(struct script_state *st) {
+	char *name, *query;
+	int num, i = 0;
+	struct map_session_data *sd = (st->rid)? script_rid2sd(st) : NULL;
+
+	query = conv_str(st,& (st->stack->stack_data[st->start+2]));
+    strcpy(tmp_sql, query);
+	if(mysql_query(&mmysql_handle,tmp_sql)){
+		ShowSQL("DB error - %s\n",mysql_error(&mmysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+		return 0;
+	}
+
+	if(st->end > st->start+3) {
+		if(st->stack->stack_data[st->start+3].type != C_NAME){
+			ShowWarning("buildin_query_sql: 2nd parameter is not a variable!\n");
+		} else {
+			num=st->stack->stack_data[st->start+3].u.num;
+			name=(char *)(str_buf+str_data[num&0x00ffffff].str);
+			if((sql_res = mysql_store_result(&mmysql_handle))){
+				if(name[strlen(name)-1] != '$') {
+					while(i<128 && (sql_row = mysql_fetch_row(sql_res))){
+						setd_sub(sd, name, i, (void *)atoi(sql_row[0]));
+						i++;
+					}
+				} else {
+					while(i<128 && (sql_row = mysql_fetch_row(sql_res))){
+						setd_sub(sd, name, i, (void *)sql_row[0]);
+						i++;
+					}
+				}
+				mysql_free_result(sql_res);
+			}
+		}
+	}
+
+	return 0;
+}
+#endif
+
+int buildin_getd (struct script_state *st)
+{
+	char varname[100], *buffer;
+	struct script_data dat;
+	int elem;
+
+	buffer = conv_str(st, & (st->stack->stack_data[st->start+2]));
+
+	if(sscanf(buffer, "%[^[][%d]", varname, &elem) < 2)
+		elem = 0;
+
+	dat.type=C_NAME;
+	dat.u.num=add_str((unsigned char *) varname)+(elem<<24);
+	get_val(st,&dat);
+
+	if(dat.type == C_INT)
+		push_val(st->stack, C_INT, dat.u.num);
+	else if(dat.type == C_CONSTSTR){
+		buffer = aStrdup((char *)dat.u.str);
+		// dat.u.str holds the actual pointer to the data, must be duplicated.
+		// It will be freed later. Tested.
+		push_str(st->stack, C_STR, buffer);
+	}
+
+	return 0;
+}
+
+// <--- [zBuffer] List of dynamic var commands
+// Pet stat [Lance]
+int buildin_petstat(struct script_state *st){
+	struct map_session_data *sd = NULL;
+	char *tmp;
+	int flag = conv_num(st, & (st->stack->stack_data[st->start+2]));
+	sd = script_rid2sd(st);
+	if(!sd || !sd->pet.pet_id){
+		if(flag == 2)
+			push_str(st->stack, C_CONSTSTR, "");
+		else
+			push_val(st->stack, C_INT, 0);
+	}
+	else {
+		switch(flag){
+			case 1:
+				push_val(st->stack, C_INT, (int)sd->pet.class_);
+				break;
+			case 2:
+				tmp = aStrdup(sd->pet.name);
+				push_str(st->stack, C_STR, tmp);
+				break;
+			case 3:
+				push_val(st->stack, C_INT, (int)sd->pet.level);
+				break;
+			case 4:
+				push_val(st->stack, C_INT, (int)sd->pet.hungry);
+				break;
+			case 5:
+				push_val(st->stack, C_INT, (int)sd->pet.intimate);
+				break;
+			default:
+				push_val(st->stack, C_INT, 0);
+				break;
+		}
+	}
+	return 0;
+}
+
+/*==========================================
+ * Returns some values of an item [Lupus]
+ * Price, Weight, etc...
+	setiteminfo(itemID,"{new item bonus script}");
+ *------------------------------------------
+ */
+int buildin_setitemscript(struct script_state *st)
+{
+	int item_id;
+	char *script;
+	struct item_data *i_data;
+
+	item_id	= conv_num(st,& (st->stack->stack_data[st->start+2]));
+	script = conv_str(st,& (st->stack->stack_data[st->start+3]));
+	i_data = itemdb_exists(item_id);
+
+	if (i_data && script!=NULL && script[0]=='{') {
+		if(i_data->script!=NULL)
+			aFree(i_data->script);
+		i_data->script = parse_script((unsigned char *) script, 0);
+		push_val(st->stack,C_INT,1);
+	} else
+		push_val(st->stack,C_INT,0);
+	return 0;
+}
+
+/* Work In Progress [Lupus]
+int buildin_addmonsterdrop(struct script_state *st)
+{
+	int class_,item_id,chance;
+	class_=conv_num(st,& (st->stack->stack_data[st->start+2]));
+	item_id=conv_num(st,& (st->stack->stack_data[st->start+3]));
+	chance=conv_num(st,& (st->stack->stack_data[st->start+4]));
+	if(class_>1000 && item_id>500 && chance>0) {
+		push_val(st->stack,C_INT,1);
+	} else {
+		push_val(st->stack,C_INT,0);
+	}
+}
+
+int buildin_delmonsterdrop(struct script_state *st)
+{
+	int class_,item_id;
+	class_=conv_num(st,& (st->stack->stack_data[st->start+2]));
+	item_id=conv_num(st,& (st->stack->stack_data[st->start+3]));
+	if(class_>1000 && item_id>500) {
+		push_val(st->stack,C_INT,1);
+	} else {
+		push_val(st->stack,C_INT,0);
+	}
+}
+*/
 
 //
 // ŽÀs•”main
@@ -10231,263 +10492,3 @@ int do_init_script()
 	  scriptlabel_db=strdb_init(50);
 	return 0;
 }
-
-// [Lance]
-int buildin_fakenpcname(struct script_state *st)
-{
-char *name;
-char *newname;
-int look;
-name = conv_str(st,& (st->stack->stack_data[st->start+2]));
-newname = conv_str(st,& (st->stack->stack_data[st->start+3]));
-look = conv_num(st,& (st->stack->stack_data[st->start+4]));
-if(look > 32767 || look < -32768) return 0; // Safety measure to prevent runtime errors
-npc_changename(name,newname,(short)look);
-return 0;
-}
-
-int buildin_atoi(struct script_state *st) {
-	char *value;
-	value = conv_str(st,& (st->stack->stack_data[st->start+2]));
-	push_val(st->stack, C_INT, atoi(value));
-	return 0;
-}
-
-//-----------------------------------------------------------------------//
-//         BRING STRSTR TO SCRIPTING ENGINE         - LORDALFA  START    //
-//-----------------------------------------------------------------------//
-int buildin_compare(struct script_state *st)                                 {
-   char *message;
-   char *cmpstring;
-   int j;
-   message = conv_str(st,& (st->stack->stack_data[st->start+2]));
-   cmpstring = conv_str(st,& (st->stack->stack_data[st->start+3]));
-   for (j = 0; message[j]; j++)
-    message[j] = tolower(message[j]);
-   for (j = 0; cmpstring[j]; j++)
-    cmpstring[j] = tolower(cmpstring[j]);    
-   push_val(st->stack,C_INT,(strstr(message,cmpstring) != NULL));
-   return 0;
-}
-//-----------------------------------------------------------------------//
-//         BRING STRSTR TO SCRIPTING ENGINE         - LORDALFA  END      //
-//-----------------------------------------------------------------------//
-// [zBuffer] List of mathematics commands --->
-int buildin_sqrt(struct script_state *st){
-	double i, a;
-	i = conv_num(st, &(st->stack->stack_data[st->start+2]));
-	a = sqrt(i);
-	push_val(st->stack, C_INT, (int)a);
-	return 0;
-}
-
-int buildin_pow(struct script_state *st){
-	double i, a, b;
-	a = conv_num(st, &(st->stack->stack_data[st->start+2]));
-	b = conv_num(st, &(st->stack->stack_data[st->start+3]));
-	i = pow(a,b);
-	push_val(st->stack, C_INT, (int)i);
-	return 0;
-}
-int buildin_distance(struct script_state *st){
-	int x0, y0, x1, y1;
-
-	x0 = conv_num(st, &(st->stack->stack_data[st->start+2]));
-	y0 = conv_num(st, &(st->stack->stack_data[st->start+3]));
-	x1 = conv_num(st, &(st->stack->stack_data[st->start+4]));
-	y1 = conv_num(st, &(st->stack->stack_data[st->start+5]));
-
-	push_val(st->stack, C_INT, distance(x0-x1, y0-y1));
-	return 0;
-}
-// <--- [zBuffer] List of mathematics commands
-// [zBuffer] List of dynamic var commands --->
-void setd_sub(struct map_session_data *sd, char *varname, int elem, void *value)
-{
-	set_reg(sd, add_str((unsigned char *) varname)+(elem<<24), varname, value);
-	return;
-}
-
-int buildin_setd(struct script_state *st)
-{
-	struct map_session_data *sd=NULL;
-	char varname[100], *buffer;
-	char *value;
-	int elem;
-	buffer = conv_str(st, & (st->stack->stack_data[st->start+2]));
-	value = conv_str(st,  & (st->stack->stack_data[st->start+3]));
-
-	if(sscanf(buffer, "%[^[][%d]", varname, &elem) < 2)
-		elem = 0;
-
-	if(st->rid)
-		sd = script_rid2sd(st);
-
-	if(varname[strlen(varname)-1] != '$') {
-		setd_sub(sd, varname, elem, (void *)atoi(value));
-	} else {
-		setd_sub(sd, varname, elem, (void *)value);
-	}
-	
-	return 0;
-}
-
-#ifndef TXT_ONLY
-int buildin_query_sql(struct script_state *st) {
-	char *name, *query;
-	int num, i = 0;
-	struct map_session_data *sd = (st->rid)? script_rid2sd(st) : NULL;
-
-	query = conv_str(st,& (st->stack->stack_data[st->start+2]));
-    strcpy(tmp_sql, query);
-	if(mysql_query(&mmysql_handle,tmp_sql)){
-		ShowSQL("DB error - %s\n",mysql_error(&mmysql_handle));
-		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-		return 0;
-	}
-
-	if(st->end > st->start+3) {
-		if(st->stack->stack_data[st->start+3].type != C_NAME){
-			ShowWarning("buildin_query_sql: 2nd parameter is not a variable!\n");
-		} else {
-			num=st->stack->stack_data[st->start+3].u.num;
-			name=(char *)(str_buf+str_data[num&0x00ffffff].str);
-			if((sql_res = mysql_store_result(&mmysql_handle))){
-				if(name[strlen(name)-1] != '$') {
-					while(i<128 && (sql_row = mysql_fetch_row(sql_res))){
-						setd_sub(sd, name, i, (void *)atoi(sql_row[0]));
-						i++;
-					}
-				} else {
-					while(i<128 && (sql_row = mysql_fetch_row(sql_res))){
-						setd_sub(sd, name, i, (void *)sql_row[0]);
-						i++;
-					}
-				}
-				mysql_free_result(sql_res);
-			}
-		}
-	}
-
-	return 0;
-}
-#endif
-
-int buildin_getd (struct script_state *st)
-{
-	char varname[100], *buffer;
-	struct script_data dat;
-	int elem;
-
-	buffer = conv_str(st, & (st->stack->stack_data[st->start+2]));
-
-	if(sscanf(buffer, "%[^[][%d]", varname, &elem) < 2)
-		elem = 0;
-
-	dat.type=C_NAME;
-	dat.u.num=add_str((unsigned char *) varname)+(elem<<24);
-	get_val(st,&dat);
-
-	if(dat.type == C_INT)
-		push_val(st->stack, C_INT, dat.u.num);
-	else if(dat.type == C_CONSTSTR){
-		buffer = aStrdup((char *)dat.u.str);
-		// dat.u.str holds the actual pointer to the data, must be duplicated.
-		// It will be freed later. Tested.
-		push_str(st->stack, C_STR, buffer);
-	}
-
-	return 0;
-}
-// <--- [zBuffer] List of dynamic var commands
-// Pet stat [Lance]
-int buildin_petstat(struct script_state *st){
-	struct map_session_data *sd = NULL;
-	char *tmp;
-	int flag = conv_num(st, & (st->stack->stack_data[st->start+2]));
-	sd = script_rid2sd(st);
-	if(!sd || !sd->pet.pet_id){
-		if(flag == 2)
-			push_str(st->stack, C_CONSTSTR, "");
-		else
-			push_val(st->stack, C_INT, 0);
-	}
-	else {
-		switch(flag){
-			case 1:
-				push_val(st->stack, C_INT, (int)sd->pet.class_);
-				break;
-			case 2:
-				tmp = aStrdup(sd->pet.name);
-				push_str(st->stack, C_STR, tmp);
-				break;
-			case 3:
-				push_val(st->stack, C_INT, (int)sd->pet.level);
-				break;
-			case 4:
-				push_val(st->stack, C_INT, (int)sd->pet.hungry);
-				break;
-			case 5:
-				push_val(st->stack, C_INT, (int)sd->pet.intimate);
-				break;
-			default:
-				push_val(st->stack, C_INT, 0);
-				break;
-		}
-	}
-	return 0;
-}
-
-
-/*==========================================
- * Returns some values of an item [Lupus]
- * Price, Weight, etc...
-	setiteminfo(itemID,"{new item bonus script}");
- *------------------------------------------
- */
-int buildin_setitemscript(struct script_state *st)
-{
-	int item_id;
-	char *script;
-	struct item_data *i_data;
-
-	item_id	= conv_num(st,& (st->stack->stack_data[st->start+2]));
-	script = conv_str(st,& (st->stack->stack_data[st->start+3]));
-	i_data = itemdb_exists(item_id);
-
-	if (i_data && script!=NULL && script[0]=='{') {
-		if(i_data->script!=NULL)
-			aFree(i_data->script);
-		i_data->script = parse_script((unsigned char *) script, 0);
-		push_val(st->stack,C_INT,1);
-	} else
-		push_val(st->stack,C_INT,0);
-	return 0;
-}
-/* Work In Progress [Lupus]
-int buildin_addmonsterdrop(struct script_state *st)
-{
-	int class_,item_id,chance;
-	class_=conv_num(st,& (st->stack->stack_data[st->start+2]));
-	item_id=conv_num(st,& (st->stack->stack_data[st->start+3]));
-	chance=conv_num(st,& (st->stack->stack_data[st->start+4]));
-	if(class_>1000 && item_id>500 && chance>0) {
-		push_val(st->stack,C_INT,1);
-	} else {
-		push_val(st->stack,C_INT,0);
-	}
-}
-
-int buildin_delmonsterdrop(struct script_state *st)
-{
-	int class_,item_id;
-	class_=conv_num(st,& (st->stack->stack_data[st->start+2]));
-	item_id=conv_num(st,& (st->stack->stack_data[st->start+3]));
-	if(class_>1000 && item_id>500) {
-		push_val(st->stack,C_INT,1);
-	} else {
-		push_val(st->stack,C_INT,0);
-	}
-}
-*/
-

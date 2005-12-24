@@ -1,6 +1,8 @@
 Date	Added
 	
 2005/12/23
+	* Cleanup organization of clif.c and script.c.
+	  Please don't put extra functions beyond inits, try and organize a little. [Valaris]
 	* Removed login_ip option from login_athena.conf as it is not used. [Valaris]
 	* Fixed bind_ip option in login servers. [Valaris]
 	* Fixed a bunch of terrible typos in chrif.c [Skotlex]

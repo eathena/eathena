@@ -8260,6 +8260,111 @@ int clif_slide(struct block_list *bl, int x, int y){
 	return 0;
 }
 
+/*------------------------------------------
+ * @me command by lordalfa, rewritten implementation by Skotlex
+ *------------------------------------------
+*/
+int clif_disp_overhead(struct map_session_data *sd, char* mes)
+{
+	unsigned char buf[256]; //This should be more than sufficient, the theorical max is MESSAGE_SIZE+NAME_LENGTH + 8 (pads and extra inserted crap)
+	int len_mes = strlen(mes)+1; //Account for \0
+
+	// send message to others
+	WBUFW(buf,0) = 0x8d;
+	WBUFW(buf,2) = len_mes + 8; // len of message + 8 (command+len+id)
+	WBUFL(buf,4) = sd->bl.id;
+	memcpy(WBUFP(buf,8), mes, len_mes);
+	clif_send(buf, WBUFW(buf,2), &sd->bl, AREA_CHAT_WOC);
+
+	// send back message to the speaker
+	WBUFW(buf,0) = 0x8e;
+	WBUFW(buf, 2) = len_mes + 4;
+	memcpy(WBUFP(buf,4), mes, len_mes);  
+	clif_send(buf, WBUFW(buf,2), &sd->bl, SELF);
+
+/* Previous non-expected behaviour
+	nullpo_retr(-1, mes);
+
+	len_mes = strlen(mes);
+		buf = (unsigned char*)aCallocA(len_mes + 8, sizeof(unsigned char));
+			if (len_mes > 0) {
+	WBUFW(buf, 0) = 0x08e; //SelfSpeech
+	WBUFW(buf, 2) = len_mes + 5;
+	memcpy(WBUFP(buf,4), mes, len_mes + 1);  
+		clif_send(buf, WBUFW(buf,2), &sd->bl, AREA); //Sends self speech to Area
+	}
+	*/
+	return 0;
+}
+
+/*==========================
+ * Minimap fix [Kevin]
+ * Remove dot from minimap 
+ *--------------------------
+*/
+int clif_party_xy_remove(struct map_session_data *sd)
+{
+	unsigned char buf[16];
+	nullpo_retr(0, sd);
+	WBUFW(buf,0)=0x107;
+	WBUFL(buf,2)=sd->status.account_id;
+	WBUFW(buf,6)=-1;
+	WBUFW(buf,8)=-1;
+	clif_send(buf,packet_len_table[0x107],&sd->bl,PARTY_SAMEMAP_WOS);
+	return 0;
+}
+
+/*==========================================
+ * Info about Star Glaldiator save map [Komurka]
+ *------------------------------------------
+ */
+void clif_fell_info(struct map_session_data *sd)
+{
+	int fd=sd->fd;
+	WFIFOHEAD(fd,packet_len_table[0x20e]);
+	WFIFOW(fd,0)=0x20e;
+	memcpy(WFIFOP(fd,2),sd->feel_map[sd->feel_level].name, MAP_NAME_LENGTH-1);
+	WFIFOL(fd,26)=sd->bl.id;
+	WFIFOW(fd,30)=0x100+sd->feel_level;
+	WFIFOSET(fd, packet_len_table[0x20e]);
+}
+
+/*==========================================
+ * Info about Star Glaldiator hate mob [Komurka]
+ *------------------------------------------
+ */
+void clif_hate_mob(struct map_session_data *sd, int skilllv,int mob_id)
+{
+	int fd=sd->fd;
+	WFIFOHEAD(fd,packet_len_table[0x20e]);
+	WFIFOW(fd,0)=0x20e;
+	if (pcdb_checkid(mob_id))
+		strncpy(WFIFOP(fd,2),job_name(mob_id), NAME_LENGTH);
+	else if (mobdb_checkid(mob_id))
+		strncpy(WFIFOP(fd,2),mob_db(mob_id)->jname, NAME_LENGTH);
+	else //Really shouldn't happen...
+		memset(WFIFOP(fd,2), 0, NAME_LENGTH);
+	WFIFOL(fd,26)=sd->bl.id;
+	WFIFOW(fd,30)=0xa00+skilllv-1;
+	WFIFOSET(fd, packet_len_table[0x20e]);
+}
+
+/*==========================================
+ * Info about TaeKwon Do TK_MISSION mob [Skotlex]
+ *------------------------------------------
+ */
+void clif_mission_mob(struct map_session_data *sd, unsigned short mob_id, unsigned short progress)
+{
+	int fd=sd->fd;
+	WFIFOHEAD(fd,packet_len_table[0x20e]);
+	WFIFOW(fd,0)=0x20e;
+	strncpy(WFIFOP(fd,2),mob_db(mob_id)->jname, NAME_LENGTH);
+	WFIFOW(fd,26)=mob_id;
+	WFIFOW(fd,28)=progress;
+	WFIFOW(fd,30)=0x1400; //Message to display
+	WFIFOSET(fd, packet_len_table[0x20e]);
+}
+
 // ---------------------
 // clif_guess_PacketVer
 // ---------------------
@@ -11364,6 +11469,17 @@ void clif_parse_FeelSaveOk(int fd,struct map_session_data *sd)
 }
 
 /*==========================================
+ * Question about Star Glaldiator save map [Komurka]
+ *------------------------------------------
+ */
+void clif_parse_ReqFell(int fd, struct map_session_data *sd) {
+	nullpo_retv(sd);
+	WFIFOHEAD(fd,packet_len_table[0x253]);
+	WFIFOW(fd,0)=0x253;
+	WFIFOSET(fd, packet_len_table[0x253]);
+}
+
+/*==========================================
  * パケットデバッグ
  *------------------------------------------
  */
@@ -11891,123 +12007,5 @@ int do_init_clif(void) {
 	add_timer_func_list(clif_delayquit, "clif_delayquit");
 
 	return 0;
-}
-
-
-/*------------------------------------------
- * @me command by lordalfa, rewritten implementation by Skotlex
- *------------------------------------------
-*/
-int clif_disp_overhead(struct map_session_data *sd, char* mes)
-{
-	unsigned char buf[256]; //This should be more than sufficient, the theorical max is MESSAGE_SIZE+NAME_LENGTH + 8 (pads and extra inserted crap)
-	int len_mes = strlen(mes)+1; //Account for \0
-
-	// send message to others
-	WBUFW(buf,0) = 0x8d;
-	WBUFW(buf,2) = len_mes + 8; // len of message + 8 (command+len+id)
-	WBUFL(buf,4) = sd->bl.id;
-	memcpy(WBUFP(buf,8), mes, len_mes);
-	clif_send(buf, WBUFW(buf,2), &sd->bl, AREA_CHAT_WOC);
-
-	// send back message to the speaker
-	WBUFW(buf,0) = 0x8e;
-	WBUFW(buf, 2) = len_mes + 4;
-	memcpy(WBUFP(buf,4), mes, len_mes);  
-	clif_send(buf, WBUFW(buf,2), &sd->bl, SELF);
-
-/* Previous non-expected behaviour
-	nullpo_retr(-1, mes);
-
-	len_mes = strlen(mes);
-		buf = (unsigned char*)aCallocA(len_mes + 8, sizeof(unsigned char));
-			if (len_mes > 0) {
-	WBUFW(buf, 0) = 0x08e; //SelfSpeech
-	WBUFW(buf, 2) = len_mes + 5;
-	memcpy(WBUFP(buf,4), mes, len_mes + 1);  
-		clif_send(buf, WBUFW(buf,2), &sd->bl, AREA); //Sends self speech to Area
-	}
-	*/
-	return 0;
-}
-
-//minimap fix [Kevin]
-
-/* Remove dot from minimap 
- *------------------------------------------
-*/
-int clif_party_xy_remove(struct map_session_data *sd)
-{
-	unsigned char buf[16];
-	nullpo_retr(0, sd);
-	WBUFW(buf,0)=0x107;
-	WBUFL(buf,2)=sd->status.account_id;
-	WBUFW(buf,6)=-1;
-	WBUFW(buf,8)=-1;
-	clif_send(buf,packet_len_table[0x107],&sd->bl,PARTY_SAMEMAP_WOS);
-	return 0;
-}
-
-
-/*==========================================
- * Question about Star Glaldiator save map [Komurka]
- *------------------------------------------
- */
-void clif_parse_ReqFell(int fd, struct map_session_data *sd) {
-	nullpo_retv(sd);
-	WFIFOHEAD(fd,packet_len_table[0x253]);
-	WFIFOW(fd,0)=0x253;
-	WFIFOSET(fd, packet_len_table[0x253]);
-}
-
-/*==========================================
- * Info about Star Glaldiator save map [Komurka]
- *------------------------------------------
- */
-void clif_fell_info(struct map_session_data *sd)
-{
-	int fd=sd->fd;
-	WFIFOHEAD(fd,packet_len_table[0x20e]);
-	WFIFOW(fd,0)=0x20e;
-	memcpy(WFIFOP(fd,2),sd->feel_map[sd->feel_level].name, MAP_NAME_LENGTH-1);
-	WFIFOL(fd,26)=sd->bl.id;
-	WFIFOW(fd,30)=0x100+sd->feel_level;
-	WFIFOSET(fd, packet_len_table[0x20e]);
-}
-
-/*==========================================
- * Info about Star Glaldiator hate mob [Komurka]
- *------------------------------------------
- */
-void clif_hate_mob(struct map_session_data *sd, int skilllv,int mob_id)
-{
-	int fd=sd->fd;
-	WFIFOHEAD(fd,packet_len_table[0x20e]);
-	WFIFOW(fd,0)=0x20e;
-	if (pcdb_checkid(mob_id))
-		strncpy(WFIFOP(fd,2),job_name(mob_id), NAME_LENGTH);
-	else if (mobdb_checkid(mob_id))
-		strncpy(WFIFOP(fd,2),mob_db(mob_id)->jname, NAME_LENGTH);
-	else //Really shouldn't happen...
-		memset(WFIFOP(fd,2), 0, NAME_LENGTH);
-	WFIFOL(fd,26)=sd->bl.id;
-	WFIFOW(fd,30)=0xa00+skilllv-1;
-	WFIFOSET(fd, packet_len_table[0x20e]);
-}
-
-/*==========================================
- * Info about TaeKwon Do TK_MISSION mob [Skotlex]
- *------------------------------------------
- */
-void clif_mission_mob(struct map_session_data *sd, unsigned short mob_id, unsigned short progress)
-{
-	int fd=sd->fd;
-	WFIFOHEAD(fd,packet_len_table[0x20e]);
-	WFIFOW(fd,0)=0x20e;
-	strncpy(WFIFOP(fd,2),mob_db(mob_id)->jname, NAME_LENGTH);
-	WFIFOW(fd,26)=mob_id;
-	WFIFOW(fd,28)=progress;
-	WFIFOW(fd,30)=0x1400; //Message to display
-	WFIFOSET(fd, packet_len_table[0x20e]);
 }
 
