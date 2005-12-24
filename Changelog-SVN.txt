@@ -1,6 +1,8 @@
 Date	Added
 
 2005/12/24
+	* Fixed stone curse's defense being checked versus int rather than mdef. [Skotlex]
+	* Fixed firewall treating everyone as undead/fire-element. [Skotlex]
 	* Added SQL read of cast_db. [Valaris]
 	* Added SQL read of skill_require_db. [Valaris]
 	* Added SQL read of skill_db. [Valaris]

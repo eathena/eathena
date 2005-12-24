@@ -33,6 +33,8 @@
 		* * * On your death it breaks (BS can fix it), you drop all Equipment (equipped, even the ring). And revive with 1 HP / 1 SP at the place of your death.
 		* * * From where this info is? ... Mine: On your death you'll loose this ring and get 50% HP [Komurka]
 
+12/24
+	* Moved the sell price of the Tuxedo to the buy column (21500->43000) [Skotlex]
 12/23
 	* Corrected the Critical Race bonus of the Sabbath and cleaned up the
 	  script of Morphicious' Hood. [Skotlex]

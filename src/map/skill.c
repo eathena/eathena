@@ -4363,16 +4363,16 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				if (sd) clif_skill_fail(sd,skillid,0,0);
 				break;
 			}
-			if(status_isimmune(bl))
+			if(status_isimmune(bl) || !sc_data)
 				break;
-			if (sc_data && sc_data[SC_STONE].timer != -1) {
+			if (sc_data[SC_STONE].timer != -1) {
 				status_change_end(bl,SC_STONE,-1);
 				if (sd) {
 					fail_flag = 1;
 					clif_skill_fail(sd,skillid,0,0);
 				}
 			}
-			else if( rand()%100 < (skilllv*4+20)*status_get_sc_def_int(bl)/100
+			else if( rand()%100 < (skilllv*4+20)*status_get_sc_def(bl, SC_STONE)/100
 				&& !battle_check_undead(status_get_race(bl),status_get_elem_type(bl)))
 			{
 				clif_skill_nodamage(src,bl,skillid,skilllv,1);
@@ -7017,12 +7017,12 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 	switch (sg->unit_id) {
 	case UNT_FIREWALL:
 		{
-			int flag=1, t_ele = status_get_elem_type(bl);
+			int flag=0, t_ele = status_get_elem_type(bl);
 			if (t_ele == 3 || battle_check_undead(status_get_race(bl), t_ele))
 				flag = src->val2>battle_config.firewall_hits_on_undead?battle_config.firewall_hits_on_undead:src->val2; 
 			
 			skill_attack(BF_MAGIC,ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,flag);
-			src->val2-=flag;
+			src->val2-=flag?flag:1;
 			if (src->val2<=0)
 				skill_delunit(src);
 		break;
