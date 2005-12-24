@@ -328,8 +328,8 @@ int chrif_changemapserver(struct map_session_data *sd, char *name, int x, int y,
  */
 int chrif_changemapserverack(int fd)
 {
-	struct map_session_data *sd = map_id2sd(RFIFOL(fd,2));
 	RFIFOHEAD(fd);
+	struct map_session_data *sd = map_id2sd(RFIFOL(fd,2));
 
 	if (sd == NULL || sd->status.char_id != RFIFOL(fd,14))
 		return -1;
@@ -1498,6 +1498,7 @@ int send_usercount_tochar(int tid, unsigned int tick, int id, int data) {
 		return 0;
 	last_count = count;
 
+	WFIFOHEAD(char_fd, 4);
 	WFIFOW(char_fd,0) = 0x2afe;
 	WFIFOW(char_fd,2) = count;
 	WFIFOSET(char_fd,4);
@@ -1516,7 +1517,7 @@ int send_users_tochar(int tid, unsigned int tick, int id, int data) {
 	chrif_check(-1);
 
 	all_sd = map_getallusers(&count);
-        WFIFOHEAD(char_fd, 6+8*users);
+	WFIFOHEAD(char_fd, 6+8*users);
 	WFIFOW(char_fd,0) = 0x2aff;
 	for (i = 0; i < count; i++) {
 		if (all_sd[i] && 

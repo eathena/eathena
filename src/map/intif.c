@@ -710,6 +710,7 @@ int intif_parse_WisMessage(int fd) { // rewritten by [Yor]
 	struct map_session_data* sd;
 	char *wisp_source;
 	char name[NAME_LENGTH];
+	RFIFOHEAD(fd);
 	int id=RFIFOL(fd,4);
 	int i=0; //,j=0;
 
@@ -744,6 +745,7 @@ int intif_parse_WisMessage(int fd) { // rewritten by [Yor]
 // Wisp/page transmission result reception
 int intif_parse_WisEnd(int fd) {
 	struct map_session_data* sd;
+	RFIFOHEAD(fd);
 
 	if (battle_config.etc_log)
 		ShowInfo("intif_parse_wisend: player: %s, flag: %d\n", RFIFOP(fd,2), RFIFOB(fd,26)); // flag: 0: success to send wisper, 1: target character is not loged in?, 2: ignored by target
@@ -759,8 +761,10 @@ int mapif_parse_WisToGM(int fd) { // 0x3003/0x3803 <packet_len>.w <wispname>.24B
 	int i, min_gm_level, mes_len;
 	struct map_session_data *pl_sd;
 	char Wisp_name[NAME_LENGTH];
-        char mbuf[255];
+	char mbuf[255];
 	char *message;
+	RFIFOHEAD(fd);
+
 	mes_len =  RFIFOW(fd,2) - 30;
 	message = (char *) (mes_len >= 255 ? (char *) aMallocA(mes_len) : mbuf);
 
@@ -785,6 +789,7 @@ int mapif_parse_WisToGM(int fd) { // 0x3003/0x3803 <packet_len>.w <wispname>.24B
 int intif_parse_AccountReg(int fd) {
 	int j,p;
 	struct map_session_data *sd;
+	RFIFOHEAD(fd);
 
 	if( (sd=map_id2sd(RFIFOL(fd,4)))==NULL )
 		return 1;
@@ -803,7 +808,8 @@ int intif_parse_AccountReg(int fd) {
 int intif_parse_LoadStorage(int fd) {
 	struct storage *stor;
 	struct map_session_data *sd;
-
+	RFIFOHEAD(fd);
+	
 	stor = account2storage( RFIFOL(fd,4));
 
 	if (stor->storage_status == 1) { // Already open.. lets ignore this update
@@ -839,6 +845,7 @@ int intif_parse_LoadStorage(int fd) {
 // 倉庫データ送信成功
 int intif_parse_SaveStorage(int fd)
 {
+	RFIFOHEAD(fd);
 	if(battle_config.save_log)
 		ShowInfo("intif_savestorage: done %d %d\n",RFIFOL(fd,2),RFIFOB(fd,6) );
 	storage_storage_saved(RFIFOL(fd,2));
@@ -849,6 +856,7 @@ int intif_parse_LoadGuildStorage(int fd)
 {
 	struct guild_storage *gstor;
 	struct map_session_data *sd;
+	RFIFOHEAD(fd);
 	int guild_id = RFIFOL(fd,8);
 	if(guild_id > 0) {
 		gstor=guild2storage(guild_id);
@@ -882,6 +890,7 @@ int intif_parse_LoadGuildStorage(int fd)
 }
 int intif_parse_SaveGuildStorage(int fd)
 {
+	RFIFOHEAD(fd);
 	if(battle_config.save_log) {
 		ShowInfo("intif_save_guild_storage: done %d %d %d\n",RFIFOL(fd,2),RFIFOL(fd,6),RFIFOB(fd,10) );
 	}
@@ -892,6 +901,7 @@ int intif_parse_SaveGuildStorage(int fd)
 // パーティ作成可否
 int intif_parse_PartyCreated(int fd)
 {
+	RFIFOHEAD(fd);
 	if(battle_config.etc_log)
 		ShowInfo("intif: party created by account %d\n\n", RFIFOL(fd,2));
 	party_created(RFIFOL(fd,2), RFIFOB(fd,6),RFIFOL(fd,7),(char *) RFIFOP(fd,11));
@@ -900,6 +910,7 @@ int intif_parse_PartyCreated(int fd)
 // パーティ情報
 int intif_parse_PartyInfo(int fd)
 {
+	RFIFOHEAD(fd);
 	if( RFIFOW(fd,2)==8){
 		if(battle_config.error_log)
 			ShowWarning("intif: party noinfo %d\n",RFIFOL(fd,4));
@@ -918,6 +929,7 @@ int intif_parse_PartyInfo(int fd)
 // パーティ追加通知
 int intif_parse_PartyMemberAdded(int fd)
 {
+	RFIFOHEAD(fd);
 	if(battle_config.etc_log)
 		ShowInfo("intif: party member added %d %d %d\n",RFIFOL(fd,2),RFIFOL(fd,6),RFIFOB(fd,10));
 	party_member_added(RFIFOL(fd,2),RFIFOL(fd,6),RFIFOB(fd,10));
@@ -926,12 +938,14 @@ int intif_parse_PartyMemberAdded(int fd)
 // パーティ設定変更通知
 int intif_parse_PartyOptionChanged(int fd)
 {
+	RFIFOHEAD(fd);
 	party_optionchanged(RFIFOL(fd,2),RFIFOL(fd,6),RFIFOW(fd,10),RFIFOW(fd,12),RFIFOB(fd,14));
 	return 0;
 }
 // パーティ脱退通知
 int intif_parse_PartyMemberLeaved(int fd)
 {
+	RFIFOHEAD(fd);
 	if(battle_config.etc_log)
 		ShowInfo("intif: party member leaved %d %d %s\n",RFIFOL(fd,2),RFIFOL(fd,6),RFIFOP(fd,10));
 	party_member_leaved(RFIFOL(fd,2),RFIFOL(fd,6),(char *) RFIFOP(fd,10));
@@ -940,12 +954,14 @@ int intif_parse_PartyMemberLeaved(int fd)
 // パーティ解散通知
 int intif_parse_PartyBroken(int fd)
 {
+	RFIFOHEAD(fd);
 	party_broken(RFIFOL(fd,2));
 	return 0;
 }
 // パーティ移動通知
 int intif_parse_PartyMove(int fd)
 {
+	RFIFOHEAD(fd);
 //	if(battle_config.etc_log)
 //		printf("intif: party move %d %d %s %d %d\n",RFIFOL(fd,2),RFIFOL(fd,6),RFIFOP(fd,10),RFIFOB(fd,26),RFIFOW(fd,27));
 	party_recv_movemap(RFIFOL(fd,2),RFIFOL(fd,6),(char *) RFIFOP(fd,10),RFIFOB(fd,26),RFIFOW(fd,27));
@@ -954,6 +970,7 @@ int intif_parse_PartyMove(int fd)
 // パーティメッセージ
 int intif_parse_PartyMessage(int fd)
 {
+	RFIFOHEAD(fd);
 //	if(battle_config.etc_log)
 //		printf("intif_parse_PartyMessage: %s\n",RFIFOP(fd,12));
 	party_recv_message(RFIFOL(fd,4),RFIFOL(fd,8),(char *) RFIFOP(fd,12),RFIFOW(fd,2)-12);
@@ -963,12 +980,14 @@ int intif_parse_PartyMessage(int fd)
 // ギルド作成可否
 int intif_parse_GuildCreated(int fd)
 {
+	RFIFOHEAD(fd);
 	guild_created(RFIFOL(fd,2),RFIFOL(fd,6));
 	return 0;
 }
 // ギルド情報
 int intif_parse_GuildInfo(int fd)
 {
+	RFIFOHEAD(fd);
 	if( RFIFOW(fd,2)==8){
 		if(battle_config.error_log)
 			ShowWarning("intif: guild noinfo %d\n",RFIFOL(fd,4));
@@ -988,6 +1007,7 @@ int intif_parse_GuildInfo(int fd)
 // ギルドメンバ追加通知
 int intif_parse_GuildMemberAdded(int fd)
 {
+	RFIFOHEAD(fd);
 	if(battle_config.etc_log)
 		ShowInfo("intif: guild member added %d %d %d %d\n",RFIFOL(fd,2),RFIFOL(fd,6),RFIFOL(fd,10),RFIFOB(fd,14));
 	guild_member_added(RFIFOL(fd,2),RFIFOL(fd,6),RFIFOL(fd,10),RFIFOB(fd,14));
@@ -996,6 +1016,7 @@ int intif_parse_GuildMemberAdded(int fd)
 // ギルドメンバ脱退/追放通知
 int intif_parse_GuildMemberLeaved(int fd)
 {
+	RFIFOHEAD(fd);
 	guild_member_leaved(RFIFOL(fd,2),RFIFOL(fd,6),RFIFOL(fd,10),RFIFOB(fd,14),
 		(char *) RFIFOP(fd,55), (char *) RFIFOP(fd,15));
 	return 0;
@@ -1004,12 +1025,14 @@ int intif_parse_GuildMemberLeaved(int fd)
 // ギルドメンバオンライン状態/Lv変更通知
 int intif_parse_GuildMemberInfoShort(int fd)
 {
+	RFIFOHEAD(fd);
 	guild_recv_memberinfoshort(RFIFOL(fd,2),RFIFOL(fd,6),RFIFOL(fd,10),RFIFOB(fd,14),RFIFOW(fd,15),RFIFOW(fd,17));
 	return 0;
 }
 // ギルド解散通知
 int intif_parse_GuildBroken(int fd)
 {
+	RFIFOHEAD(fd);
 	guild_broken(RFIFOL(fd,2),RFIFOB(fd,6));
 	return 0;
 }
@@ -1017,6 +1040,7 @@ int intif_parse_GuildBroken(int fd)
 // ギルド基本情報変更通知
 int intif_parse_GuildBasicInfoChanged(int fd)
 {
+	RFIFOHEAD(fd);
 	int type=RFIFOW(fd,8),guild_id=RFIFOL(fd,4);
 	void *data=RFIFOP(fd,10);
 	struct guild *g=guild_search(guild_id);
@@ -1034,6 +1058,7 @@ int intif_parse_GuildBasicInfoChanged(int fd)
 // ギルドメンバ情報変更通知
 int intif_parse_GuildMemberInfoChanged(int fd)
 {
+	RFIFOHEAD(fd);
 	int type=RFIFOW(fd,16),guild_id=RFIFOL(fd,4);
 	int account_id=RFIFOL(fd,8),char_id=RFIFOL(fd,12);
 	void *data=RFIFOP(fd,18);
@@ -1072,6 +1097,7 @@ int intif_parse_GuildMemberInfoChanged(int fd)
 // ギルド役職変更通知
 int intif_parse_GuildPosition(int fd)
 {
+	RFIFOHEAD(fd);
 	if( RFIFOW(fd,2)!=sizeof(struct guild_position)+12 ){
 		if(battle_config.error_log)
 			ShowError("intif: guild info : data size error\n %d %d %d",RFIFOL(fd,4),RFIFOW(fd,2),sizeof(struct guild_position)+12);
@@ -1082,12 +1108,14 @@ int intif_parse_GuildPosition(int fd)
 // ギルドスキル割り振り通知
 int intif_parse_GuildSkillUp(int fd)
 {
+	RFIFOHEAD(fd);
 	guild_skillupack(RFIFOL(fd,2),RFIFOL(fd,6),RFIFOL(fd,10));
 	return 0;
 }
 // ギルド同盟/敵対通知
 int intif_parse_GuildAlliance(int fd)
 {
+	RFIFOHEAD(fd);
 	guild_allianceack(RFIFOL(fd,2),RFIFOL(fd,6),RFIFOL(fd,10),RFIFOL(fd,14),
 		RFIFOB(fd,18),(char *) RFIFOP(fd,19),(char *) RFIFOP(fd,43));
 	return 0;
@@ -1095,46 +1123,54 @@ int intif_parse_GuildAlliance(int fd)
 // ギルド告知変更通知
 int intif_parse_GuildNotice(int fd)
 {
+	RFIFOHEAD(fd);
 	guild_notice_changed(RFIFOL(fd,2),(char *) RFIFOP(fd,6),(char *) RFIFOP(fd,66));
 	return 0;
 }
 // ギルドエンブレム変更通知
 int intif_parse_GuildEmblem(int fd)
 {
+	RFIFOHEAD(fd);
 	guild_emblem_changed(RFIFOW(fd,2)-12,RFIFOL(fd,4),RFIFOL(fd,8), (char *)RFIFOP(fd,12));
 	return 0;
 }
 // ギルド会話受信
 int intif_parse_GuildMessage(int fd)
 {
+	RFIFOHEAD(fd);
 	guild_recv_message(RFIFOL(fd,4),RFIFOL(fd,8),(char *) RFIFOP(fd,12),RFIFOW(fd,2)-12);
 	return 0;
 }
 // ギルド城データ要求返信
 int intif_parse_GuildCastleDataLoad(int fd)
 {
+	RFIFOHEAD(fd);
 	return guild_castledataloadack(RFIFOW(fd,2),RFIFOB(fd,4),RFIFOL(fd,5));
 }
 // ギルド城データ変更通知
 int intif_parse_GuildCastleDataSave(int fd)
 {
+	RFIFOHEAD(fd);
 	return guild_castledatasaveack(RFIFOW(fd,2),RFIFOB(fd,4),RFIFOL(fd,5));
 }
 
 // ギルド城データ一括受信(初期化時)
 int intif_parse_GuildCastleAllDataLoad(int fd)
 {
+	RFIFOHEAD(fd);
 	return guild_castlealldataload(RFIFOW(fd,2),(struct guild_castle *)RFIFOP(fd,4));
 }
 
 int intif_parse_GuildMasterChanged(int fd)
 {
+	RFIFOHEAD(fd);
 	return guild_gm_changed(RFIFOL(fd,2),RFIFOL(fd,6));
 }
 
 // pet
 int intif_parse_CreatePet(int fd)
 {
+	RFIFOHEAD(fd);
 	pet_get_egg(RFIFOL(fd,2),RFIFOL(fd,7),RFIFOB(fd,6));
 
 	return 0;
@@ -1143,6 +1179,7 @@ int intif_parse_CreatePet(int fd)
 int intif_parse_RecvPetData(int fd)
 {
 	struct s_pet p;
+	RFIFOHEAD(fd);
 	int len=RFIFOW(fd,2);
 	if(sizeof(struct s_pet)!=len-9) {
 		if(battle_config.etc_log)
@@ -1157,6 +1194,7 @@ int intif_parse_RecvPetData(int fd)
 }
 int intif_parse_SavePetOk(int fd)
 {
+	RFIFOHEAD(fd);
 	if(RFIFOB(fd,6) == 1) {
 		if(battle_config.error_log)
 			ShowError("pet data save failure\n");
@@ -1167,6 +1205,7 @@ int intif_parse_SavePetOk(int fd)
 
 int intif_parse_DeletePetOk(int fd)
 {
+	RFIFOHEAD(fd);
 	if(RFIFOB(fd,2) == 1) {
 		if(battle_config.error_log)
 			ShowError("pet data delete failure\n");
@@ -1181,6 +1220,7 @@ int intif_parse_DeletePetOk(int fd)
 int intif_parse(int fd)
 {
 	int packet_len;
+	RFIFOHEAD(fd);
 	int cmd = RFIFOW(fd,0);
 	// パケットのID確認
 	if(cmd<0x3800 || cmd>=0x3800+(sizeof(packet_len_table)/sizeof(packet_len_table[0])) ||

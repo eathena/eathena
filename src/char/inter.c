@@ -516,9 +516,9 @@ int mapif_parse_WisRequest(int fd) {
 
 // Wisp/page transmission result
 int mapif_parse_WisReply(int fd) {
+	RFIFOHEAD(fd);
 	int id = RFIFOL(fd,2), flag = RFIFOB(fd,6);
 	struct WisData *wd = (struct WisData*)numdb_search(wis_db, id);
-	RFIFOHEAD(fd);
 
 	if (wd == NULL)
 		return 0;	// This wisp was probably suppress before, because it was timeout of because of target was found on another map-server
@@ -546,8 +546,8 @@ int mapif_parse_WisToGM(int fd) {
 // アカウント変数保存要求
 int mapif_parse_AccReg(int fd) {
 	int j, p;
-	struct accreg *reg = (struct accreg*)numdb_search(accreg_db, RFIFOL(fd,4));
 	RFIFOHEAD(fd);
+	struct accreg *reg = (struct accreg*)numdb_search(accreg_db, RFIFOL(fd,4));
 
 	if (reg == NULL) {
 		if ((reg = (struct accreg*)aCalloc(sizeof(struct accreg), 1)) == NULL) {
@@ -582,9 +582,9 @@ int mapif_parse_AccRegRequest(int fd) {
 // エラーなら0(false)、処理できたなら1、
 // パケット長が足りなければ2をかえさなければならない
 int inter_parse_frommap(int fd) {
+	RFIFOHEAD(fd);
 	int cmd = RFIFOW(fd,0);
 	int len = 0;
-	RFIFOHEAD(fd);
 
 	// inter鯖管轄かを調べる
 	if (cmd < 0x3000 || cmd >= 0x3000 + (sizeof(inter_recv_packet_length) / sizeof(inter_recv_packet_length[0])))

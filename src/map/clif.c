@@ -293,7 +293,7 @@ int clif_send_sub(struct block_list *bl, va_list ap)
 	}
 
 	if (session[sd->fd] != NULL) {
-                WFIFOHEAD(sd->fd, len);
+		WFIFOHEAD(sd->fd, len);
 		if (WFIFOP(sd->fd,0) == buf) {
 			printf("WARNING: Invalid use of clif_send function\n");
 			printf("         Packet x%4x use a WFIFO of a player instead of to use a buffer.\n", WBUFW(buf,0));
@@ -9916,6 +9916,7 @@ void clif_parse_RequestMemo(int fd,struct map_session_data *sd)
  */
 void clif_parse_ProduceMix(int fd,struct map_session_data *sd)
 {
+	RFIFOHEAD(fd);
 	nullpo_retv(sd);
 
 	if (!sd->state.produce_flag)
@@ -10430,8 +10431,8 @@ void clif_parse_GuildChangeMemberPosition(int fd, struct map_session_data *sd) {
  *------------------------------------------
  */
 void clif_parse_GuildRequestEmblem(int fd,struct map_session_data *sd) {
-	struct guild *g=guild_search(RFIFOL(fd,2));
 	RFIFOHEAD(fd);
+	struct guild *g=guild_search(RFIFOL(fd,2));
 	if(g!=NULL)
 		clif_guild_emblem(sd,g);
 }
@@ -10771,8 +10772,8 @@ void clif_parse_GMReqNoChat(int fd,struct map_session_data *sd)
  */
 void clif_parse_GMReqNoChatCount(int fd, struct map_session_data *sd)
 {
-	int tid = RFIFOL(fd,2);
 	RFIFOHEAD(fd);
+	int tid = RFIFOL(fd,2);
 
 	WFIFOHEAD(fd,packet_len_table[0x1e0]);
 	WFIFOW(fd,0) = 0x1e0;

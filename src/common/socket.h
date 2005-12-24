@@ -40,7 +40,7 @@ typedef __uint32_t e_uint32;
 
 #define RFIFOSPACE(fd) (session[fd]->max_rdata-session[fd]->rdata_size)
 #ifdef TURBO
-#define RFIFOHEAD(fd) char *rbPtr = session[fd]->rdata+session[fd]->rdata_pos;
+#define RFIFOHEAD(fd) char *rbPtr = session[fd]->rdata+session[fd]->rdata_pos
 #define RFIFOP(fd,pos) (&rbPtr[pos])
 #else
 //Make it a comment so it does not disrupts the rest of code.
