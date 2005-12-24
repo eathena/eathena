@@ -191,6 +191,7 @@ char db_path[256] = "db";
 char motd_txt[256] = "conf/motd.txt";
 char help_txt[256] = "conf/help.txt";
 char help2_txt[256] = "conf/help2.txt";
+char charhelp_txt[256] = "conf/charhelp.txt";
 
 char wisp_server_name[NAME_LENGTH] = "Server"; // can be modified in char-server configuration file
 
@@ -3122,6 +3123,8 @@ int map_config_read(char *cfgName) {
 				strcpy(help_txt, w2);
 			} else if (strcmpi(w1, "help2_txt") == 0) {
 				strcpy(help2_txt, w2);
+			} else if (strcmpi(w1, "charhelp_txt") == 0) {
+				strcpy(charhelp_txt, w2);
 			} else if (strcmpi(w1, "mapreg_txt") == 0) {
 				strcpy(mapreg_txt, w2);
 			} else if(strcmpi(w1,"read_map_from_cache") == 0){
