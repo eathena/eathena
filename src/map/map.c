@@ -3478,6 +3478,8 @@ int cleanup_sub(struct block_list *bl, va_list ap) {
  */
 void do_final(void) {
 	int i, j;
+	struct map_session_data **pl_allsd;
+
 	ShowStatus("Terminating...\n");
 
 	// we probably don't need the cache open at all times 'yet', so this is closed by mapsource_final [celest]
@@ -3488,6 +3490,11 @@ void do_final(void) {
 		if (map[i].m >= 0)
 			map_foreachinarea(cleanup_sub, i, 0, 0, map[i].xs, map[i].ys, 0);
 
+	//Scan any remaining players (between maps?) to kick them out. [Skotlex]
+	pl_allsd = map_getallusers(&j);
+	for (i = 0; i < j; i++)
+		map_quit(pl_allsd[i]);
+		
 	chrif_char_reset_offline();
 	chrif_flush_fifo();
 
