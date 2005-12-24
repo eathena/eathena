@@ -347,19 +347,20 @@ int path_search(struct walkpath_data *wpd,int m,int x0,int y0,int x1,int y1,int 
 				break;
 			x+=dx;
 			wpd->path[i++]=(dx<0) ? 2 : 6;
-		} else { // y!=y1
+		} else if(y!=y1){
 			if(!can_move(md,x,y,x   ,y+dy,flag))
 				break;
 			y+=dy;
 			wpd->path[i++]=(dy>0) ? 0 : 4;
 		}
-		if(x==x1 && y==y1){
-			wpd->path_len=i;
-			wpd->path_pos=0;
-			wpd->path_half=0;
-			return 0;
-		}
 	}
+	if (x==x1 && y==y1) { //easy path successful.
+		wpd->path_len=i;
+		wpd->path_pos=0;
+		wpd->path_half=0;
+		return 0;
+	}
+	
 	if(flag&1)
 		return -1;
 

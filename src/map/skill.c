@@ -6782,9 +6782,6 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 		if (alive && battle_config.skill_wall_check) {
 			//Check if there's a path between cell and center of casting.
 			struct walkpath_data wpd;
-			wpd.path_len=0;
-			wpd.path_pos=0;
-			wpd.path_half=0;
 			if (path_search(&wpd,src->m,ux,uy,x,y,1)==-1)
 				alive = 0;
 		}

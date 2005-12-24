@@ -38,7 +38,7 @@ CREATE TABLE `char` (
   `job_level` smallint(20) unsigned NOT NULL default '1',
   `base_exp` bigint(20) unsigned NOT NULL default '0',
   `job_exp` bigint(20) unsigned NOT NULL default '0',
-  `zeny` int(11) unsigned NOT NULL default '500',
+  `zeny` int(11) unsigned NOT NULL default '0',
   `str` smallint(11) unsigned NOT NULL default '0',
   `agi` smallint(11) unsigned NOT NULL default '0',
   `vit` smallint(11) unsigned NOT NULL default '0',

@@ -1,6 +1,8 @@
 Date	Added
 
 2005/12/24
+	* Corrected easy path searching algorithm failing for some cases (which
+	  incidentally seemed to be the reason skill_wall_check was broken) [Skotlex]
 	* Fixed compile for TXT map-server. [Valaris]
 	* Fixed stone curse's defense being checked versus int rather than mdef. [Skotlex]
 	* Fixed firewall treating everyone as undead/fire-element. [Skotlex]
