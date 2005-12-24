@@ -34,6 +34,9 @@
 		* * * From where this info is? ... Mine: On your death you'll loose this ring and get 50% HP [Komurka]
 
 12/24
+	* Removed the item requirements for Twilight Pharmacy from
+	  skill_require_db, since the requirements are acquired from produce_db.txt
+	  [Skotlex]
 	* Moved the sell price of the Tuxedo to the buy column (21500->43000) [Skotlex]
 12/23
 	* Corrected the Critical Race bonus of the Sabbath and cleaned up the

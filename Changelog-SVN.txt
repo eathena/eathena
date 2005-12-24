@@ -1,6 +1,8 @@
 Date	Added
 
 2005/12/24
+	* Fixed the production code always giving 1 item instead of the value they
+	  should (50/100/200 for Twilight Pharmacy skills) [Skotlex]
 	* Corrected easy path searching algorithm failing for some cases (which
 	  incidentally seemed to be the reason skill_wall_check was broken) [Skotlex]
 	* Fixed compile for TXT map-server. [Valaris]
