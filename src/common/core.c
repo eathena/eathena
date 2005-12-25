@@ -178,10 +178,9 @@ static void display_title(void)
 	ShowInfo("SVN Revision: '"CL_WHITE"%s"CL_RESET"'.\n", get_svn_revision());
 }
 
-//Do not run as superuser (root)
+// Warning if logged in as superuser (root)
 void usercheck(void){
 #ifndef _WIN32
-    /* If we're root, issue a warning now */
     if ((getuid() == 0) && (getgid() == 0)) {
 	ShowWarning ("You are running eAthena as the root superuser.\n");
 	ShowWarning ("It is unnecessary and unsafe to run eAthena with root privileges.\n");
