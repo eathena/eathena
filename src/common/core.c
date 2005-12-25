@@ -180,6 +180,14 @@ static void display_title(void)
 
 //Do not run as superuser (root)
 void usercheck(void){
+#ifndef _WIN32
+    /* If we're root, issue a warning now */
+    if ((getuid() == 0) && (getgid() == 0)) {
+	ShowWarning ("You are running eAthena as the root superuser.\n");
+	ShowWarning ("It is unnecessary and unsafe to run eAthena with root privileges.\n");
+	sleep(3);
+    }
+#endif
 }
 
 /*======================================
@@ -200,10 +208,9 @@ int main (int argc, char **argv)
 		arg_v = argv;
 	}
 
-         usercheck();
-
 	set_server_type();
 	display_title();
+      usercheck();
 	malloc_init(); /* ˆê”ÔÅ‰‚ÉÀs‚·‚é•K—v‚ª‚ ‚é */
 	signals_init();
 
@@ -247,9 +254,8 @@ int main (int argc, char **argv)
 		arg_v = argv;
 	}
 
-         usercheck();
-
 	display_title();
+      usercheck();
 	do_init(argc,argv);
 	do_final();
 

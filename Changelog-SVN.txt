@@ -1,6 +1,7 @@
 Date	Added
 
 2005/12/24
+	* Added root user check and warning to non-Windows compiles. [Valaris]
 	* Added a check to remove characters that would normally be left unremoved
 	  during shutdown because they just happened to be between maps. [Skotlex]
 	* Fixed the production code always giving 1 item instead of the value they
