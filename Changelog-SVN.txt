@@ -1,6 +1,7 @@
 Date	Added
 
 2005/12/27
+	* Likely fixed lose Hp/Sp script commands when used on accesories. [Skotlex]
 	* Added 2 new script commands: getfatherid, getmotherid [Lupus]
 2005/12/26
 	* Added check for free'd guild pointer beforing freeing in guild_save in int_guild.c. [Valaris]

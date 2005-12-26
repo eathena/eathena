@@ -1568,7 +1568,10 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 	case SP_DAMAGE_WHEN_UNEQUIP:
 		if(!sd->state.lr_flag) {
 			for (i=0; i<11; i++) {
-				if (sd->inventory_data[current_equip_item_index]->equip & equip_pos[i]) {
+				//I think this one is bugged, notice how it uses the item_db info rather
+				// than inventory equipped position index [Skotlex]
+//				if (sd->inventory_data[current_equip_item_index]->equip & equip_pos[i]) {
+				if(sd->status.inventory[current_equip_item_index].equip & equip_pos[i]) {
 					sd->unequip_losehp[i] += val;
 					break;
 				}
@@ -1578,7 +1581,8 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 	case SP_LOSESP_WHEN_UNEQUIP:
 		if(!sd->state.lr_flag) {
 			for (i=0; i<11; i++) {
-				if (sd->inventory_data[current_equip_item_index]->equip & equip_pos[i]) {
+//				if (sd->inventory_data[current_equip_item_index]->equip & equip_pos[i]) {
+				if(sd->status.inventory[current_equip_item_index].equip & equip_pos[i]) {
 					sd->unequip_losesp[i] += val;
 					break;
 				}
