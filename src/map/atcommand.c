@@ -9938,6 +9938,10 @@ int atcommand_main(
 				sd->state.mainchat = 1;
 				clif_displaymessage(fd, msg_txt(380)); // Main chat has been activated.
 			}
+			if (sd->sc_data[SC_NOCHAT].timer != -1) {
+				clif_displaymessage(fd, msg_txt(387));
+				return -1;
+			}
 			sprintf(atcmd_output, msg_txt(386), sd->status.name, message);
 			// I use 0xFE000000 color for signalizing that this message is
 			// main chat message. 0xFE000000 is invalid color, same using
