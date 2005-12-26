@@ -366,7 +366,7 @@
 1018,Mole_Claw,Mole Claw,3,,105,10,,,,,,,,,,,,,{}
 1019,Trunk,Trunk,3,,30,10,,,,,,,,,,,,,{}
 1020,Black_Hair,Black Hair,3,,146,10,,,,,,,,,,,,,{}
-1021,Dokkaebi_Horn,Dokkaebi Horn,3,,146,10,,,,,,,,,,,,,{}
+1021,Dokebi_Horn,Dokebi Horn,3,,146,10,,,,,,,,,,,,,{}
 1022,Nine_Tails,Nine Tails,3,,325,10,,,,,,,,,,,,,{}
 1023,Fish_Tail,Fish Tail,3,,98,10,,,,,,,,,,,,,{}
 1024,Squid_Ink,Squid Ink,3,,132,10,,,,,,,,,,,,,{}
@@ -2148,7 +2148,7 @@
 9016,Yoyo_Egg,Yoyo Egg,7,,10,0,,,,,,,,,,,,,{}
 9017,Orc_Warrior_Egg,Orc Warrior Egg,7,,10,0,,,,,,,,,,,,,{}
 9018,Munak_Egg,Munak Egg,7,,10,0,,,,,,,,,,,,,{}
-9019,Dokkaebi_Egg,Dokkaebi Egg,7,,10,0,,,,,,,,,,,,,{}
+9019,Dokebi_Egg,Dokebi Egg,7,,10,0,,,,,,,,,,,,,{}
 9020,Sohee_Egg,Sohee Egg,7,,10,0,,,,,,,,,,,,,{}
 9021,Isis_Egg,Isis Egg,7,,10,0,,,,,,,,,,,,,{}
 9022,Green_Petite_Egg,Green Petite Egg,7,,10,0,,,,,,,,,,,,,{}

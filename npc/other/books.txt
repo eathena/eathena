@@ -333,9 +333,9 @@ prt_in.gat,161,50,4	script	Monster Encyclopedia	111,{
 			mes "^0099FFFound Items^000000: Tooth of Bat,Red Herb";
 			next;
 			mes "^FF0000[Dark,Small Monster Encyclopedia]^000000";
-			mes "5.Dokkaebi";
+			mes "5.Dokebi";
 			mes "Korean Traditional Ghost with Dark Skin. It looks so cute and has a small horn on the head.";
-			mes "^0099FFFound Items^000000: Dokkaebi Horn";
+			mes "^0099FFFound Items^000000: Dokebi Horn";
 			next;
 			mes "^FF0000[Dark,Small Monster Encyclopedia]^000000";
 			mes "6.Deviruchi";

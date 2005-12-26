@@ -34,6 +34,7 @@
 		* * * From where this info is? ... Mine: On your death you'll loose this ring and get 50% HP [Komurka]
 
 12/24
+	* Changed Dokkaebi to Dokebi, by Harbin [Vicious]
 	* Removed the item requirements for Twilight Pharmacy from
 	  skill_require_db, since the requirements are acquired from produce_db.txt
 	  [Skotlex]

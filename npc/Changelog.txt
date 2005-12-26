@@ -26,6 +26,7 @@ Nexon
 Date		Added
 ======
 12/26
+	* Changed Dokkaebi to Dokebi, by Harbin [Vicious]
 	* Updated Culvert Recruiter to allow novices to go to Culvert
 	 & Al De turbo track warps by Harbin [Vicious]
 	* Added missing cutin's in Priest Quest [Komurka]

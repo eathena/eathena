@@ -113,7 +113,7 @@
 1018,1770,50,1756,60
 // Trunk --> 40 Arrows
 1019,1750,40
-// Dokkaebi Horn --> 40 Iron Arrows, 2 Shadow Arrows
+// Dokebi Horn --> 40 Iron Arrows, 2 Shadow Arrows
 1021,1770,40,1767,2
 // Porcupine Quill --> 70 Arrows, 1 Stone Arrow
 1027,1750,70,1756,1

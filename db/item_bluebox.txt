@@ -219,7 +219,7 @@
 1018,Mole Claw,20000
 1019,Trunk,20000
 1020,Black Hair,20000
-1021,Dokkaebi Horn,20000
+1021,Dokebi Horn,20000
 1022,Nine Tails,20000
 1023,Fish Tail,20000
 1024,Squid Ink,20000
