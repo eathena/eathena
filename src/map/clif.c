@@ -8300,6 +8300,11 @@ int clif_disp_overhead(struct map_session_data *sd, char* mes)
 	unsigned char buf[256]; //This should be more than sufficient, the theorical max is MESSAGE_SIZE+NAME_LENGTH + 8 (pads and extra inserted crap)
 	int len_mes = strlen(mes)+1; //Account for \0
 
+	if (len_mes + 8 >= 256) {
+		if (battle_config.error_log)
+			ShowError("clif_disp_overhead: Message too long (length %d)\n", len_mes);
+		len_mes = 247; //Trunk it to avoid problems.
+	}
 	// send message to others
 	WBUFW(buf,0) = 0x8d;
 	WBUFW(buf,2) = len_mes + 8; // len of message + 8 (command+len+id)
@@ -8313,18 +8318,6 @@ int clif_disp_overhead(struct map_session_data *sd, char* mes)
 	memcpy(WBUFP(buf,4), mes, len_mes);  
 	clif_send(buf, WBUFW(buf,2), &sd->bl, SELF);
 
-/* Previous non-expected behaviour
-	nullpo_retr(-1, mes);
-
-	len_mes = strlen(mes);
-		buf = (unsigned char*)aCallocA(len_mes + 8, sizeof(unsigned char));
-			if (len_mes > 0) {
-	WBUFW(buf, 0) = 0x08e; //SelfSpeech
-	WBUFW(buf, 2) = len_mes + 5;
-	memcpy(WBUFP(buf,4), mes, len_mes + 1);  
-		clif_send(buf, WBUFW(buf,2), &sd->bl, AREA); //Sends self speech to Area
-	}
-	*/
 	return 0;
 }
 

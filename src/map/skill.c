@@ -10973,26 +10973,26 @@ int skill_produce_mix( struct map_session_data *sd, int skill_id,
 					tmp_item.amount++;
 					if(nameid < 545 || nameid > 547)
 						continue;
-					switch (skill_id) { //Add fame as needed.
-						case AM_PHARMACY:
-						case AM_TWILIGHT1:
-						case AM_TWILIGHT2:
-						case AM_TWILIGHT3:
-							switch(++sd->potion_success_counter) {
-								case 3:
-									fame+=1; // Success to prepare 3 Condensed Potions in a row
-									break;
-								case 5:
-									fame+=3; // Success to prepare 5 Condensed Potions in a row
-									break;
-								case 7:
-									fame+=10; // Success to prepare 7 Condensed Potions in a row
-									break;
-								case 10:
-									fame+=50; // Success to prepare 10 Condensed Potions in a row
-									sd->potion_success_counter = 0;
-									break;
-							}
+					if(skill_id != AM_PHARMACY &&
+						skill_id != AM_TWILIGHT1 &&
+						skill_id != AM_TWILIGHT2 &&
+						skill_id != AM_TWILIGHT3)
+						continue;						
+					//Add fame as needed.
+					switch(++sd->potion_success_counter) {
+						case 3:
+							fame+=1; // Success to prepare 3 Condensed Potions in a row
+							break;
+						case 5:
+							fame+=3; // Success to prepare 5 Condensed Potions in a row
+							break;
+						case 7:
+							fame+=10; // Success to prepare 7 Condensed Potions in a row
+							break;
+						case 10:
+							fame+=50; // Success to prepare 10 Condensed Potions in a row
+							sd->potion_success_counter = 0;
+							break;
 					}
 				} else //Failure
 					sd->potion_success_counter = 0;
