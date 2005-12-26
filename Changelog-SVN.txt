@@ -1,6 +1,7 @@
 Date	Added
 
 2005/12/26
+	* Added check for free'd guild pointer beforing freeing in guild_save in int_guild.c. [Valaris]
 	* Added @kamic command. Now you can send colored GM-messages.
 	  Syntax: @kamic <color> <message>. Color is 3-bytes hexadecimal number RRGGBB. [LuzZza]
 	* Implemented main chat (global chat channel). Usage: @main <on|off>, @main <message>. [LuzZza]

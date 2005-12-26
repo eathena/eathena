@@ -75,7 +75,7 @@ static int guild_save(void *key, void *data, va_list ap) {
 		numdb_erase(guild_db_, g->guild_id);
 		if (save_log)
 			ShowInfo("Guild Unloaded (%d - %s) [%d - guilds in memory]\n", g->guild_id, g->name, guild_db_->item_count);
-		aFree(g);
+		if(g) aFree(g);
    }
 	return 0;
 }
