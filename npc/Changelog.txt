@@ -26,6 +26,8 @@ Nexon
 Date		Added
 ======
 12/26
+	* Updated Culvert Recruiter to allow novices to go to Culvert
+	 & Al De turbo track warps by Harbin [Vicious]
 	* Added missing cutin's in Priest Quest [Komurka]
 12/23
 	* Small fix (Falcon Taming -> Falcon Mastery) [Komurka]
