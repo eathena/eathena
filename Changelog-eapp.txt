@@ -1,4 +1,9 @@
 Date	Added
+12/26
+	* adding elements for replacing existing structures
+	  such as dynamic buffers as replacement for session fifos,
+	  experimental stringbuffers and adding some enhancements on temporary ministrings
+	* set type of variables/parameters to ipaddress wherever appropriate [Shinomori]
 12/23
 	* small bugfixes/protections here and there, mostly replacing sprintf with snprintf
 	  and supplementing initialisation/destruction for c++ object that need to run 

@@ -989,7 +989,7 @@ bool CParser::parseSimpleExpr(const char *&p)
 					p++;
 				else if(*p=='\n')
 				{
-					ErrorMessage("unexpected newline @ string",p);
+					ErrorMessage("unexpected newline @ string", p);
 					return false;
 				}
 				appendByte(*p++);
@@ -1871,13 +1871,13 @@ char* parse_simpleexpr(char *p)
 			if(p[-1]<=0x7e && *p=='\\')
 				p++;
 			else if(*p=='\n'){
-				disp_error_message("unexpected newline @ string",p);
+				disp_error_message("unexpected newline @ string", p);
 				exit(1);
 			}
 			add_scriptb(*p++);
 		}
 		if(!*p){
-			disp_error_message("unexpected eof @ string",p);
+			disp_error_message("unexpected eof @ string", p);
 			exit(1);
 		}
 		add_scriptb(0);

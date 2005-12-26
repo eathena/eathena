@@ -32,6 +32,12 @@
 #define __DARWIN__
 #endif
 
+// 64bit OS
+#if defined(_M_IA64) || defined(_M_X64) || defined(_WIN64) || defined(_LP64) || defined(_ILP64) || defined(__LP64__) || defined(__ppc64__)
+#define __64BIT__
+#endif
+
+
 #if defined(_DEBUG) && !defined(DEBUG)
 #define DEBUG
 #endif
@@ -370,7 +376,7 @@ static inline int gettimeofday(struct timeval *timenow, void *tz)
 		FILETIME	ft;
 		GetSystemTimeAsFileTime(&ft);
 		
-#if !(defined _M_X64) && !(defined _WIN64)  // not a naive 64bit platform
+#if !(defined __64BIT__)	// not a naive 64bit platform
 		/////////////////////////////////////////////////////////////////////////////	
 		// Apparently Win32 has units of 1e-7 sec (100-nanosecond intervals)
 		// 4294967296 is 2^32, to shift high word over
@@ -695,7 +701,7 @@ static inline unsigned long log2(unsigned long  v)
 //	if (v & b[0]) { v >>= S[0]; c |= S[0]; }
 	// put values in for more speed...
 // 64bit unix defines long as 64bit
-#if (defined _M_X64)
+#if (defined __64BIT__)
 	if (v & LLCONST(0xFFFFFFFF00000000)) { v >>= 0x20; c |= 0x20; } 
 #endif
 	if (v & 0xFFFF0000) { v >>= 0x10; c |= 0x10; } 
@@ -2239,8 +2245,6 @@ public:
 
 
 
-
-
 ///////////////////////////////////////////////////////////////////////////////
 // fixed size arrays
 ///////////////////////////////////////////////////////////////////////////////
@@ -2251,7 +2255,7 @@ template <class T> class TArrayDST : public TArray<T>
 	friend class String;
 	friend class SubString;
 	friend class MiniString;
-	virtual const T* array() const	{return cField;}
+	virtual const T* array() const	{ return cField; }
 protected:
 	///////////////////////////////////////////////////////////////////////////
 	// data elements
@@ -4126,6 +4130,18 @@ public:
 	MiniString(const char *c)			{ copy(c); }
 	MiniString(const char *c, size_t len){ copy(c, len); }
 	MiniString(const MiniString &str)	{ cStrPtr = str.cStrPtr; }
+	/////////////////////////////////////////////////////////////////
+	// a special constructor for creating an addition objects
+	/////////////////////////////////////////////////////////////////
+	MiniString(const char *c1, const size_t len1, const char *c2, const size_t len2)
+	{	// double initialisation to concatenate two strings within the constructor
+		// the given len values are only the number of characters without the EOS
+		cStrPtr->realloc(len1+len2+1);
+		cStrPtr->copy(c1,len1, 0);
+		cStrPtr->copy(c2,len2, len1);
+		cStrPtr->append(0);
+	}
+
 	virtual ~MiniString()				{  }
 
 	const MiniString &operator=(const MiniString &str)
@@ -4134,7 +4150,7 @@ public:
 		return *this; 
 	}
 	const MiniString& operator=(const char *c)	{ copy(c); return *this; }
-	const char* get()							{ return cStrPtr->array(); }
+	const char* get() const						{ return cStrPtr->array(); }
 	operator const char*() const				{ return cStrPtr->array(); }
 
 	bool operator==(const char *b) const		{return (0==compareTo(b));}
@@ -4171,6 +4187,29 @@ public:
 		cStrPtr->append(0);
 		return true;
 	}
+	bool append(const char *c)
+	{
+		if(c)
+		{
+			if(cStrPtr.exists())
+				cStrPtr->strip(1); //strip EOS
+			cStrPtr->append(c,strlen(c)+1);
+		}
+		return true;
+	}
+	bool append(const char *c, size_t len)
+	{
+		if(c)
+		{
+			size_t sz = (len) ? min(len,strlen(c)) : (0);
+			if(cStrPtr.exists())
+				cStrPtr->strip(1); //strip EOS
+			cStrPtr->append(c,sz);
+			cStrPtr->append(0);
+		}
+		return true;
+	}
+
 	bool resize(size_t sz)
 	{
 		if(cStrPtr.exists())
@@ -4187,29 +4226,56 @@ public:
 		cStrPtr->append(0);
 		return true;
 	}
-	size_t Length() const	{ return (cStrPtr.exists() && cStrPtr->size()>0) ? ( cStrPtr->size()-1):0; }
+	size_t length() const	{ return (cStrPtr.exists() && cStrPtr->size()>0) ? ( cStrPtr->size()-1):0; }
 
 
 
 	//////////////////////////////////////////////////////
 	// type to string conversions
-	MiniString(double v)					{ assign(v); }
-	const MiniString &operator=(double v)	{ assign(v); return *this;}
+	MiniString(double v)						{ assign(v); }
+	const MiniString &operator=(double v)		{ assign(v); return *this;}
 
-	MiniString(int v)						{ assign(v); }
-	const MiniString &operator=(int v)		{ assign(v); return *this;}
+	MiniString(int v)							{ assign(v); }
+	const MiniString &operator=(int v)			{ assign(v); return *this;}
+
+	MiniString(unsigned int v)					{ assign(v); }
+	const MiniString &operator=(unsigned int v)	{ assign(v); return *this;}
 
 	void assign(double v)
 	{
 		char buf[128];
-		snprintf(buf,sizeof(buf), "%.3lf", v);
-		copy(buf);
+		size_t sz = snprintf(buf,sizeof(buf), "%.3lf", v);
+		copy(buf, sz);
 	}
 	void assign(int v)
 	{
 		char buf[128];
-		snprintf(buf,sizeof(buf), "%i", v);
-		copy(buf);
+		size_t sz = snprintf(buf,sizeof(buf), "%i", v);
+		copy(buf, sz);
+	}
+	void assign(unsigned int v)
+	{
+		char buf[128];
+		size_t sz = snprintf(buf,sizeof(buf), "%u", v);
+		copy(buf, sz);
+	}
+	void append(double v)
+	{
+		char buf[128];
+		size_t sz = snprintf(buf,sizeof(buf), "%.3lf", v);
+		append(buf, sz);
+	}
+	void append(int v)
+	{
+		char buf[128];
+		size_t sz = snprintf(buf,sizeof(buf), "%i", v);
+		append(buf, sz);
+	}
+	void append(unsigned int v)
+	{
+		char buf[128];
+		size_t sz = snprintf(buf,sizeof(buf), "%u", v);
+		append(buf, sz);
 	}
 
 	//////////////////////////////////////////////////////
@@ -4224,6 +4290,85 @@ public:
 		}
 		return *this;
 	}
+	MiniString& operator+=(const char* str)
+	{	// append two strings
+		this->append(str);
+		return *this;
+	}
+	MiniString& operator+=(double v)
+	{	// append two strings
+		this->append(v);
+		return *this;
+	}
+	MiniString& operator+=(int v)
+	{	// append two strings
+		this->append(v);
+		return *this;
+	}
+	MiniString& operator+=(unsigned int v)
+	{	// append two strings
+		this->append(v);
+		return *this;
+	}
+
+	MiniString operator +(const MiniString &s)
+	{
+		return MiniString(cStrPtr->array(),length(), s.cStrPtr->array(), s.length());
+	}
+	MiniString operator +(const char* c)
+	{
+		if(c)
+		{
+			return MiniString(cStrPtr->array(),length(), c, strlen(c));
+		}
+		return *this;
+	}
+	MiniString operator +(const char ch)
+	{
+		if(ch)
+			return MiniString(cStrPtr->array(),length(), &ch, 1);
+		return *this;
+	}
+	MiniString operator +(double v)
+	{
+		MiniString s(v);
+		return MiniString(cStrPtr->array(),length(), s.cStrPtr->array(), s.length());
+	}
+	MiniString operator +(int v)
+	{
+		MiniString s(v);
+		return MiniString(cStrPtr->array(),length(), s.cStrPtr->array(), s.length());
+	}
+	MiniString operator +(unsigned int v)
+	{
+		MiniString s(v);
+		return MiniString(cStrPtr->array(),length(), s.cStrPtr->array(), s.length());
+	}
+
+	friend MiniString operator+(const char *c, const MiniString &b)
+	{
+		return MiniString(c, strlen(c), b.get(),b.length() );
+	}
+	friend MiniString operator+(const char c, const MiniString &b)
+	{
+		return MiniString(&c, 1, b.get(),b.length() );
+	}
+	friend MiniString operator +(double v, const MiniString &b)
+	{
+		MiniString s(v);
+		return MiniString(s.get(), s.length(), b.get(), b.length());
+	}
+	friend MiniString operator +(int v, const MiniString &b)
+	{
+		MiniString s(v);
+		return MiniString(s.get(), s.length(), b.get(), b.length());
+	}
+	friend MiniString operator +(unsigned int v, const MiniString &b)
+	{
+		MiniString s(v);
+		return MiniString(s.get(), s.length(), b.get(), b.length());
+	}
+
 };
 
 

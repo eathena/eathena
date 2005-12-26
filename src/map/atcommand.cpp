@@ -2772,6 +2772,8 @@ bool atcommand_go(int fd, struct map_session_data &sd, const char* command, cons
 		{ "ayothaya",   151, 117  },	//  18=Ayothaya
 		{ "einbroch",    64, 200  },	//  19=Einbroch
 		{ "lighthalzen",158,  92  },	//  20=Lighthalzen
+		{ "einbech.gat", 70,  95  },	//  21=Einbech
+		{ "hugel",		 96, 145  },	//  22=Hugel
 	};
 
 
@@ -2787,55 +2789,58 @@ bool atcommand_go(int fd, struct map_session_data &sd, const char* command, cons
 	if (!message || !*message || sscanf(message, "%99s", mapname) < 1 || town < -3 || town >= (int)(sizeof(data) / sizeof(data[0]))) {
 		clif_displaymessage(fd, msg_table[38]); // Invalid location number or name.
 		clif_displaymessage(fd, msg_table[82]); // Please, use one of this number/name:
-		clif_displaymessage(fd, "-3=(Memo point 2)   5=Izlude       13=Niflheim");
-		clif_displaymessage(fd, "-2=(Memo point 1)   6=Al de Baran  14=Lou Yang");
-		clif_displaymessage(fd, "-1=(Memo point 0)   7=Lutie        15=Training Grounds");
-		clif_displaymessage(fd, " 0=Prontera         8=Comodo       16=Prison");
-		clif_displaymessage(fd, " 1=Morroc           9=Yuno         17=Jawaii");
-		clif_displaymessage(fd, " 2=Geffen           10=Amatsu      18=Ayothaya");
-		clif_displaymessage(fd, " 3=Payon            11=Gon Ryun    19=Einbroch");
-		clif_displaymessage(fd, " 4=Alberta          12=Umbala      20=Lighthalzen");
+		clif_displaymessage(fd, "  0=Prontera         1=Morroc       2=Geffen");
+		clif_displaymessage(fd, "  3=Payon            4=Alberta      5=Izlude");
+		clif_displaymessage(fd, "  6=Aldebaran        7=Lutie        8=Comodo");
+		clif_displaymessage(fd, "  9=Yuno            10=Amatsu      11=Gon Ryun");
+		clif_displaymessage(fd, " 12=Umbala          13=Niflheim    14=Lou Yang");
+		clif_displaymessage(fd, " 15=Novice Grounds  16=Prison      17=Jawaii");
+		clif_displaymessage(fd, " 18=Ayothaya        19=Einbroch    20=Lighthalzen");
+		clif_displaymessage(fd, " 21=Einbech         22=Hugel");
+
 		return false;
 	}
 	else
 	{	// map with different writings
-		static const struct { const char *map; int no; } towns[] = 
+		static const struct { const char *map; int ch; int no; } towns[] = 
 		{
-			{"prontera",	 0},
-			{"morocc",		 1},
-			{"geffen",		 2},
-			{"payon",		 3},
-			{"paion",		 3},
-			{"alberta",		 4},
-			{"izlude",		 5},
-			{"islude",		 5},
-			{"aldebaran",	 6},
-			{"al de baran",	 6},
-			{"lutie",		 7},
-			{"christmas",	 7},
-			{"xmas",		 7},
-			{"x-mas",		 7},
-			{"comodo",		 8},
-			{"yuno",		 9},
-			{"juno",		 9},
-			{"amatsu",		10},
-			{"ammatsu",		10},
-			{"gonryun",		11},
-			{"umbala",		12},
-			{"niflheim",	13},
-			{"louyang",		14},
-			{"new_1-1",		15},
-			{"startpoint",	15},
-			{"begining",	15},
-			{"sec_pri",		16},
-			{"prison",		16},
-			{"jail",		16},
-			{"jawaii",		17},
-			{"ayothaya",	18},
-			{"einbroch",	19},
-			{"ainbroch",	19},
-			{"lighthalzen",	20},
-			{"reichthalzen",20}
+			{"prontera",	3,	 0},
+			{"morocc",		3,	 1},
+			{"geffen",		3,	 2},
+			{"payon",		3,	 3},
+			{"paion",		3,	 3},
+			{"alberta",		3,	 4},
+			{"izlude",		3,	 5},
+			{"islude",		3,	 5},
+			{"aldebaran",	3,	 6},
+			{"al de baran",	3,	 6},
+			{"lutie",		3,	 7},
+			{"christmas",	3,	 7},
+			{"xmas",		3,	 7},
+			{"x-mas",		3,	 7},
+			{"comodo",		3,	 8},
+			{"yuno",		3,	 9},
+			{"juno",		3,	 9},
+			{"amatsu",		3,	10},
+			{"ammatsu",		3,	10},
+			{"gonryun",		3,	11},
+			{"umbala",		3,	12},
+			{"niflheim",	3,	13},
+			{"louyang",		3,	14},
+			{"new_1-1",		3,	15},
+			{"startpoint",	3,	15},
+			{"begining",	3,	15},
+			{"sec_pri",		3,	16},
+			{"prison",		3,	16},
+			{"jail",		3,	16},
+			{"jawaii",		3,	17},
+			{"ayothaya",	3,	18},
+			{"einbroch",	6,	19},
+			{"ainbroch",	3,	19},
+			{"lighthalzen",	3,	20},
+			{"reichthalzen",3,	20},
+			{"einbech",     6,	21},
+			{"hugel",       3,	22}
 		};
 		size_t i;
 
@@ -2847,7 +2852,7 @@ bool atcommand_go(int fd, struct map_session_data &sd, const char* command, cons
 
 		for(i=0; i<(sizeof(towns)/sizeof(towns[0])); i++)
 		{
-			if( strncmp(mapname, towns[i].map, 3) == 0)
+			if( strncmp(mapname, towns[i].map, towns[i].ch) == 0)
 				break;
 		}
 		if( i<(sizeof(towns)/sizeof(towns[0])) )

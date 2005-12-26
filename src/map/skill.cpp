@@ -5447,8 +5447,8 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 		skill_addtimerskill(src,tick+3000,bl->id,0,0,skillid,skilllv,0,flag);
 		if(md) {	// Mob‚Í’‚ê‚È‚¢‚©‚çAƒXƒLƒ‹–¼‚ð‹©‚Î‚¹‚Ä‚Ý‚é
 			char temp[128];
-			snprintf(temp,sizeof(temp), "%s : %s !!",md->name,skill_db[skillid].desc);
-			clif_GlobalMessage(md->bl,temp);
+			size_t sz=snprintf(temp,sizeof(temp), "%s: %s!!",md->name,skill_db[skillid].desc);
+			clif_GlobalMessage(md->bl,temp,sz);
 		}
 		break;
 

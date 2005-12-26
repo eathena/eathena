@@ -168,6 +168,13 @@ extern inline void _L_tobuffer(const sint32 &valin, uchar *&buf)
 	*buf++ = (uchar)((valin & 0x00FF0000)>> 0x10 );
 	*buf++ = (uchar)((valin & 0xFF000000)>> 0x18 );
 }
+extern inline void _L_tobuffer(const ipaddress &valin, uchar *&buf)
+{	
+	*buf++ = (uchar)((valin & 0xFF000000)>> 0x18 );
+	*buf++ = (uchar)((valin & 0x00FF0000)>> 0x10 );
+	*buf++ = (uchar)((valin & 0x0000FF00)>> 0x08 );
+	*buf++ = (uchar)((valin & 0x000000FF)        );
+}
 
 extern inline void _W_tobuffer(const unsigned short &valin, uchar *&buf)
 {	
@@ -224,6 +231,15 @@ extern inline void _L_frombuffer(sint32 &valin, const uchar *&buf)
 			|( ((uint32)(buf[1])) << 0x08)
 			|( ((uint32)(buf[2])) << 0x10)
 			|( ((uint32)(buf[3])) << 0x18);
+	buf += 4;
+}
+
+extern inline void _L_frombuffer(ipaddress &valin, const uchar *&buf)
+{	
+	valin =  ( ((uint32)(buf[3]))        )
+			|( ((uint32)(buf[2])) << 0x08)
+			|( ((uint32)(buf[1])) << 0x10)
+			|( ((uint32)(buf[0])) << 0x18);
 	buf += 4;
 }
 

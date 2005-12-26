@@ -13,4 +13,38 @@
 #define END_ACCOUNT_NUM 100000000
 
 
+
+
+
+//////////////////////////////////////////////
+/*
+	stuff for universal login
+
+	login holds char server sessions with
+		ipset
+		user count
+		name
+		flags
+		list of accounts (on this specific char server)
+
+	account holds
+		account_id
+		userid
+		passwd
+		last_login
+		last_ip
+		login_count
+		login_id1
+		login_id2
+		ban_until
+		valid_until
+
+	the protocol between login and char then could be reduced to
+		"login/re-login+ack"	login<- char 
+		"add account(s)"		login<->char
+		"update account(s)"		login<->char
+		"delete account(s)"		login<- char
+
+*/
+//////////////////////////////////////////////
 #endif

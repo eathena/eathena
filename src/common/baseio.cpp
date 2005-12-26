@@ -803,7 +803,7 @@ private:
 					}
 					else
 					{
-						temp.client_ip = 0;
+						temp.client_ip  = INADDR_ANY;
 						temp.last_ip[0] = 0;
 					}
 					

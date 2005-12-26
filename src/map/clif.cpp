@@ -2261,7 +2261,7 @@ int clif_changemap(struct map_session_data &sd, const char *mapname, unsigned sh
  *
  *------------------------------------------
  */
-int clif_changemapserver(struct map_session_data &sd, const char *mapname, unsigned short x, unsigned short y, uint32 ip, unsigned short port)
+int clif_changemapserver(struct map_session_data &sd, const char *mapname, unsigned short x, unsigned short y, ipaddress ip, unsigned short port)
 {
 	int fd = sd.fd;
 	if( !session_isActive(fd) )
@@ -5565,20 +5565,20 @@ int clif_GMmessage(struct block_list *bl, const char* mes, size_t len, int flag)
  * グローバルメッセージ
  *------------------------------------------
  */
-int clif_GlobalMessage(struct block_list &bl,const char *message)
+int clif_GlobalMessage(struct block_list &bl,const char *message, size_t len)
 {
 	if(message && *message)
 	{
-		unsigned char buf[108];
-		size_t len = (message)? strlen(message)+1 : 0;
-		if(len>100) len=100;
+		unsigned char buf[128];
+		len++;
+		if(len>119) len=119;
 
 		WBUFW(buf,0)=0x8d;
-		WBUFW(buf,2)=len+8;
+		WBUFW(buf,2)=len+9;
 		WBUFL(buf,4)=bl.id;
-		memcpy(WBUFP(buf,8),message,len);
-		buf[sizeof(buf)-1]=0;// just paranoid
-		return clif_send(buf,len+8,&bl,AREA_CHAT_WOC);
+		memcpy(WBUFP(buf,8),message,len+1);
+		buf[sizeof(buf)-1]=0;// force eos
+		return clif_send(buf,len+9,&bl,AREA_CHAT_WOC);
 	}
 	return 0;
 }

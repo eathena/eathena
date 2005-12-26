@@ -101,11 +101,11 @@ int case_sensitive = 1;
 //-----------------------------------------------------
 
 #define AUTH_FIFO_SIZE 256
-struct {
+struct _auth_fifo{
 	uint32 account_id;
 	uint32 login_id1;
 	uint32 login_id2;
-	uint32 ip;
+	ipaddress ip;
 	unsigned char sex;
 	int delflag;
 } auth_fifo[AUTH_FIFO_SIZE];
@@ -298,8 +298,7 @@ int mmo_auth( struct mmo_account* account , int fd)
 	char md5str[64], md5bin[32];
 
 	char ip_str[16];
-	uint32 client_ip = session[fd]->client_ip;
-	sprintf(ip_str, "%ld.%ld.%ld.%ld", (unsigned long)(client_ip>>24)&0xFF, (unsigned long)(client_ip>>16)&0xFF, (unsigned long)(client_ip>>8)&0xFF, (unsigned long)(client_ip)&0xFF);
+	session[fd]->client_ip.getstring(ip_str);
 
 
 	ShowMessage ("auth start...\n");
@@ -602,9 +601,7 @@ int parse_fromchar(int fd){
 	MYSQL_ROW  sql_row = NULL;
 
 	char ip_str[16];
-	uint32 client_ip = session[fd]->client_ip;
-
-	sprintf(ip_str, "%ld.%ld.%ld.%ld", (unsigned long)(client_ip>>24)&0xFF, (unsigned long)(client_ip>>16)&0xFF, (unsigned long)(client_ip>>8)&0xFF, (unsigned long)(client_ip)&0xFF);
+	session[fd]->client_ip.getstring(ip_str);
 
 	for(id = 0; id < MAX_SERVERS; id++)
 		if( server[id].fd == fd )
@@ -1055,9 +1052,8 @@ int parse_login(int fd)
 
 	int result, i;
 	char ip_str[16];
-	uint32 client_ip = session[fd]->client_ip;
-	unsigned char p[] = {(unsigned char)(client_ip>>24)&0xFF,(unsigned char)(client_ip>>16)&0xFF,(unsigned char)(client_ip>>8)&0xFF,(unsigned char)(client_ip)&0xFF};
-	sprintf(ip_str, "%d.%d.%d.%d", p[0], p[1], p[2], p[3]);
+	session[fd]->client_ip.getstring(ip_str);
+	unsigned char p[] = {(unsigned char)(session[fd]->client_ip>>24)&0xFF,(unsigned char)(session[fd]->client_ip>>16)&0xFF,(unsigned char)(session[fd]->client_ip>>8)&0xFF,(unsigned char)(session[fd]->client_ip)&0xFF};
 
 	if (ipban > 0)
 	{	//ip ban
@@ -1159,7 +1155,7 @@ int parse_login(int fd)
 					{
 						if( session_isActive(server[i].fd) )
 						{	
-							if( server[i].address.isLAN(client_ip) )
+							if( server[i].address.isLAN(session[fd]->client_ip) )
 							{
 								ShowMessage("Send IP of char-server: %s:%d (%s)\n", server[i].address.LANIP().getstring(), server[i].address.LANPort(), CL_BT_GREEN"LAN"CL_NORM);
 								WFIFOLIP(fd,47+server_num*32) = server[i].address.LANIP();
@@ -1196,7 +1192,7 @@ int parse_login(int fd)
 						auth_fifo[auth_fifo_pos].login_id2=account.login_id2;
 						auth_fifo[auth_fifo_pos].sex=account.sex;
 						auth_fifo[auth_fifo_pos].delflag=0;
-						auth_fifo[auth_fifo_pos].ip = client_ip;
+						auth_fifo[auth_fifo_pos].ip = session[fd]->client_ip;
 						auth_fifo_pos++;
 					} else {
 						WFIFOW(fd,0) = 0x81;

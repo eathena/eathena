@@ -1050,8 +1050,8 @@ int npc_globalmessage(const char *name, const char *mes)
 	ltemp=strchr(ntemp,'#');				// check for a # numerator
 	if(ltemp) *ltemp=0;						// and remove it
 
-	snprintf(temp, sizeof(temp),"%s: %s",ntemp, mes);
-	clif_GlobalMessage(nd->bl,temp);
+	size_t sz = snprintf(temp, sizeof(temp),"%s: %s",ntemp, mes);
+	clif_GlobalMessage(nd->bl, temp, sz);
 
 	return 0;
 }

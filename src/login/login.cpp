@@ -420,9 +420,10 @@ int charif_sendallwos(int sfd, unsigned char *buf, unsigned int len)
 int parse_fromchar(int fd)
 {
 	size_t id;
-	char ip_str[16];
-	uint32 client_ip = (session[fd]) ? session[fd]->client_ip : 0;
-	sprintf(ip_str, "%d.%d.%d.%d", (unsigned char)(client_ip>>24)&0xFF, (unsigned char)(client_ip>>16)&0xFF, (unsigned char)(client_ip>>8)&0xFF, (unsigned char)(client_ip)&0xFF);
+	char ip_str[16]="unknown";
+	if(session[fd])
+		session[fd]->client_ip.getstring(ip_str);
+
 
 	for(id = 0; id < MAX_SERVERS; id++)
 		if (server[id].fd == fd)
@@ -1051,8 +1052,7 @@ int parse_fromchar(int fd)
 int parse_admin(int fd)
 {
 	char ip_str[16];
-	uint32 client_ip = session[fd]->client_ip;
-	sprintf(ip_str, "%ld.%ld.%ld.%ld", (unsigned long)(client_ip>>24)&0xFF, (unsigned long)(client_ip>>16)&0xFF, (unsigned long)(client_ip>>8)&0xFF, (unsigned long)(client_ip)&0xFF);
+	session[fd]->client_ip.getstring(ip_str);
 
 	if( !session_isActive(fd) )
 	{
@@ -2143,8 +2143,7 @@ int parse_admin(int fd)
 int parse_login(int fd)
 {
 	char ip_str[16];
-	uint32 client_ip = session[fd]->client_ip;
-	sprintf(ip_str, "%ld.%ld.%ld.%ld", (unsigned long)(client_ip>>24)&0xFF, (unsigned long)(client_ip>>16)&0xFF, (unsigned long)(client_ip>>8)&0xFF, (unsigned long)(client_ip)&0xFF);
+	session[fd]->client_ip.getstring(ip_str);
 
 	if ( !session_isActive(fd) )
 	{
@@ -2215,7 +2214,7 @@ int parse_login(int fd)
 			userid[23] = '\0';
 			remove_control_chars(userid);
 
-			if ( !check_ip(client_ip) )
+			if ( !check_ip(session[fd]->client_ip) )
 			{
 				login_log("Connection refused: IP isn't authorised (deny/allow, ip: %s)." RETCODE, ip_str);
 
@@ -2291,7 +2290,7 @@ int parse_login(int fd)
 					{
 						if( session_isActive(server[i].fd) )
 						{
-							if( server[i].address.isLAN(client_ip) )
+							if( server[i].address.isLAN(session[fd]->client_ip) )
 							{
 								ShowMessage("Send IP of char-server: %s:%d (%s)\n", server[i].address.LANIP().getstring(), server[i].address.LANPort(), CL_BT_GREEN"LAN"CL_NORM);
 								WFIFOLIP(fd,47+server_num*32) = server[i].address.LANIP();
@@ -2321,10 +2320,10 @@ int parse_login(int fd)
 						// build authentification data
 						account.login_id1 = rand();
 						account.login_id2 = rand();
-						account.client_ip = client_ip;
+						account.client_ip = session[fd]->client_ip;
 						// update account information
 						timestamp2string(account.last_login, sizeof(account.last_login));
-						ipaddress(client_ip).getstring(account.last_ip);
+						session[fd]->client_ip.getstring(account.last_ip);
 						account.login_count++;
 						account.state = 0;
 
@@ -2506,7 +2505,7 @@ int parse_login(int fd)
 				return 0;
 			WFIFOW(fd,0) = 0x7919;
 			WFIFOB(fd,2) = 1;
-			if (!check_ladminip( client_ip )) {
+			if (!check_ladminip( session[fd]->client_ip )) {
 				login_log("'ladmin'-login: Connection in administration mode refused: IP isn't authorised (ladmin_allow, ip: %s)." RETCODE, ip_str);
 			} else {
 				struct login_session_data *ld = (struct login_session_data*)session[fd]->session_data;

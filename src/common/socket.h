@@ -232,11 +232,11 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// pod access on the ip (host byte order)
-    operator const uint32() const	{ return cAddr; }
+    operator uint32() const	{ return cAddr; }
 
 	///////////////////////////////////////////////////////////////////////////
 	// virtual access interface
-	virtual const uint32 addr() const { return cAddr; }
+	virtual uint32 addr() const { return cAddr; }
 	virtual uint32& addr() { return cAddr; }
 	///////////////////////////////////////////////////////////////////////////
 	virtual const uint32 mask() const { return INADDR_BROADCAST; }
@@ -681,71 +681,142 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 // predeclares
 class streamable;
-class buffer_iterator;
 
 
 //////////////////////////////////////////////////////////////////////////
-// char buffer access
+// uchar buffer access
+//
+// uses seperated read and write pointer; pointers do not go rounds, 
+// so it needs an explicit sync at r/w operations
+//
 //////////////////////////////////////////////////////////////////////////
-
-
-class buffer_iterator
+class buffer_iterator : public global
 {
-	mutable unsigned char *ipp;	// read/write pointer inside the buffer
-	const unsigned char *start;	// pointer to the start of the buffer
-	const unsigned char *end;	// pointer to the end of the buffer
-public:
-	buffer_iterator(const unsigned char* b, size_t sz)
-		: ipp(const_cast<unsigned char*>(b)), start(b), end(b+sz)
+	friend class buffer;
+
+protected:
+	mutable unsigned char *rpp;	// read pointer inside the buffer
+	mutable unsigned char *wpp;	// write pointer inside the buffer
+	unsigned char *start;		// pointer to the start of the buffer
+	unsigned char *end;			// pointer to the end of the buffer
+
+
+	buffer_iterator()
+		: rpp(NULL), wpp(NULL), start(NULL), end(NULL)
 	{}
 
-	bool eof() const		{ return !(ipp && ipp<end); }
-	size_t size() const		{ return ipp-start; }
-	size_t freesize() const	{ return end-ipp; }
+	// don't define a copy constructor
+	buffer_iterator(const buffer_iterator& bi);
+public:
+	buffer_iterator(unsigned char* b, size_t sz)
+	{
+		this->rpp  =b;
+		this->wpp  =b;
+		this->start=b;
+		this->end  =b+sz;
+	}
+	virtual ~buffer_iterator()
+	{
+		this->rpp=this->wpp=this->start=this->end=NULL;
+	}
+
+	// assignment
+	const buffer_iterator& operator=(const buffer_iterator& bi)
+	{
+		write(bi.rpp, bi.wpp-bi.rpp);
+		return *this;
+	}
+
+	// access functions
+	bool eof() const		{ return !(this->wpp && this->wpp<this->end); }
+	size_t size() const		{ return this->end-this->start; }
+	size_t datasize() const	{ return this->wpp-this->rpp; }
+	size_t freesize() const	{ return this->end-this->wpp; }
+
+
+	///////////////////////////////////////////////////////////////////////////
+	virtual bool checkwrite(size_t addsize)
+	{
+		if( this->wpp+addsize > this->end && this->start < this->rpp )
+		{	// move the current buffer data when necessary and possible 
+			memmove(this->start, this->rpp, this->wpp-this->rpp);
+			this->wpp = this->start+(this->wpp-this->rpp);
+			this->rpp = this->start;
+		}
+		return ( this->wpp && this->wpp+addsize<=this->end );
+	}
+	virtual bool checkread(size_t addsize) const
+	{
+
+		return ( this->rpp && this->rpp+addsize<=this->wpp );
+	}
 
 	///////////////////////////////////////////////////////////////////////////
 	unsigned char operator = (const unsigned char ch)
 	{
-		if( ipp && ipp<end)
-			*ipp++ = ch;
+		if( checkwrite(1) )
+		{
+			*this->wpp++ = ch;
+		}
 		return ch;
 	}
 	char operator = (const char ch)
 	{	
-		if( ipp && ipp<end)
-			*ipp++ = (unsigned char)ch;
+		if( checkwrite(1) )
+		{
+			*this->wpp++ = (unsigned char)ch;
+		}
 		return ch;
 	}
+	bool assign_char(const unsigned char ch)
+	{
+		if( checkwrite(1) )
+		{
+			*this->wpp++ = ch;
+			return true;
+		}
+		return false;
+	}
+	bool assign_char(const char ch)
+	{
+		if( checkwrite(1) )
+		{
+			*this->wpp++ = (unsigned char)ch;
+			return true;
+		}
+		return false;
+	}
+
 	///////////////////////////////////////////////////////////////////////////
 	operator unsigned char () const
 	{	
-		if( ipp && ipp<end)
-			return *ipp++;
+		if( checkread(1) )
+			return *this->rpp++;
 		return 0;
 	}
 	operator char() const
 	{	
-		if( ipp && ipp<end)
-			return *ipp++;
+		if( checkread(1) )
+			return *this->rpp++;
 		return 0;
 
 	}
 	///////////////////////////////////////////////////////////////////////////
 	unsigned short operator = (const unsigned short sr)
 	{	// implement little endian buffer format
-		if( ipp && ipp+1<end)
+		if( checkwrite(2) )
 		{
-			*ipp++ = (unsigned char)(sr         ); 
-			*ipp++ = (unsigned char)(sr  >> 0x08);
+			*this->wpp++ = (unsigned char)(sr         ); 
+			*this->wpp++ = (unsigned char)(sr  >> 0x08);
 		}
 		return sr;
 	}
 	short operator = (const short sr)
 	{	// implement little endian buffer format
-		if( ipp && ipp+1<end)
+		if( checkwrite(2) )
 		{
-			*ipp++ = (unsigned char)(sr         ); 
-			*ipp++ = (unsigned char)(sr  >> 0x08);
+			*this->wpp++ = (unsigned char)(sr         ); 
+			*this->wpp++ = (unsigned char)(sr  >> 0x08);
 		}
 		return sr;
 	}
@@ -753,43 +824,43 @@ public:
 	operator unsigned short() const
 	{	// implement little endian buffer format
 		unsigned short sr=0;
-		if( ipp && ipp+1<end)
+		if( checkread(2) )
 		{	
-			sr  = ((unsigned short)(*ipp++)        ); 
-			sr |= ((unsigned short)(*ipp++) << 0x08);
+			sr  = ((unsigned short)(*this->rpp++)        ); 
+			sr |= ((unsigned short)(*this->rpp++) << 0x08);
 		}
 		return sr;
 	}
 	operator short () const
 	{	// implement little endian buffer format
 		short sr=0;
-		if( ipp && ipp+1<end)
+		if( checkread(2) )
 		{	
-			sr  = ((unsigned short)(*ipp++)        ); 
-			sr |= ((unsigned short)(*ipp++) << 0x08);
+			sr  = ((unsigned short)(*this->rpp++)        ); 
+			sr |= ((unsigned short)(*this->rpp++) << 0x08);
 		}
 		return sr;
 	}
 	///////////////////////////////////////////////////////////////////////////
 	uint32 operator = (const uint32 ln)
 	{	// implement little endian buffer format
-		if( ipp && ipp+3<end)
+		if( checkwrite(4) )
 		{
-			*ipp++ = (unsigned char)(ln          );
-			*ipp++ = (unsigned char)(ln  >> 0x08 );
-			*ipp++ = (unsigned char)(ln  >> 0x10 );
-			*ipp++ = (unsigned char)(ln  >> 0x18 );
+			*this->wpp++ = (unsigned char)(ln          );
+			*this->wpp++ = (unsigned char)(ln  >> 0x08 );
+			*this->wpp++ = (unsigned char)(ln  >> 0x10 );
+			*this->wpp++ = (unsigned char)(ln  >> 0x18 );
 		}
 		return ln;
 	}
 	sint32 operator = (const sint32 ln)
 	{	// implement little endian buffer format
-		if( ipp && ipp+3<end)
+		if( checkwrite(4) )
 		{
-			*ipp++ = (unsigned char)(ln          );
-			*ipp++ = (unsigned char)(ln  >> 0x08 );
-			*ipp++ = (unsigned char)(ln  >> 0x10 );
-			*ipp++ = (unsigned char)(ln  >> 0x18 );
+			*this->wpp++ = (unsigned char)(ln          );
+			*this->wpp++ = (unsigned char)(ln  >> 0x08 );
+			*this->wpp++ = (unsigned char)(ln  >> 0x10 );
+			*this->wpp++ = (unsigned char)(ln  >> 0x18 );
 		}
 		return ln;
 	}
@@ -797,147 +868,146 @@ public:
 	operator uint32 () const
 	{	// implement little endian buffer format
 		unsigned long ln=0;
-		if( ipp && ipp+3<end)
+		if( checkread(4) )
 		{	
-			ln  = ((uint32)(*ipp++)        ); 
-			ln |= ((uint32)(*ipp++) << 0x08);
-			ln |= ((uint32)(*ipp++) << 0x10);
-			ln |= ((uint32)(*ipp++) << 0x18);
+			ln  = ((uint32)(*this->rpp++)        ); 
+			ln |= ((uint32)(*this->rpp++) << 0x08);
+			ln |= ((uint32)(*this->rpp++) << 0x10);
+			ln |= ((uint32)(*this->rpp++) << 0x18);
 		}
 		return ln;
 	}
 	operator sint32 () const
 	{	// implement little endian buffer format
 		long ln=0;
-		if( ipp && ipp+3<end)
+		if( checkread(4) )
 		{	
-			ln  = ((sint32)(*ipp++)        ); 
-			ln |= ((sint32)(*ipp++) << 0x08);
-			ln |= ((sint32)(*ipp++) << 0x10);
-			ln |= ((sint32)(*ipp++) << 0x18);
+			ln  = ((uint32)(*this->rpp++)        ); 
+			ln |= ((uint32)(*this->rpp++) << 0x08);
+			ln |= ((uint32)(*this->rpp++) << 0x10);
+			ln |= ((uint32)(*this->rpp++) << 0x18);
 		}
 		return ln;
 	}
 // 64bit unix defines long/ulong as 64bit
-#if (defined _M_X64)
+#if (defined __64BIT__)
 	///////////////////////////////////////////////////////////////////////////
 	unsigned long operator = (const unsigned long ln)
 	{	// implement little endian buffer format
-		if( ipp && ipp+7<end)
+		if( checkwrite(8) )
 		{
-			*ipp++ = (unsigned char)(ln          );
-			*ipp++ = (unsigned char)(ln  >> 0x08 );
-			*ipp++ = (unsigned char)(ln  >> 0x10 );
-			*ipp++ = (unsigned char)(ln  >> 0x18 );
-			*ipp++ = (unsigned char)(ln  >> 0x20 );
-			*ipp++ = (unsigned char)(ln  >> 0x28 );
-			*ipp++ = (unsigned char)(ln  >> 0x30 );
-			*ipp++ = (unsigned char)(ln  >> 0x38 );
+			*this->wpp++ = (unsigned char)(ln          );
+			*this->wpp++ = (unsigned char)(ln  >> 0x08 );
+			*this->wpp++ = (unsigned char)(ln  >> 0x10 );
+			*this->wpp++ = (unsigned char)(ln  >> 0x18 );
+			*this->wpp++ = (unsigned char)(ln  >> 0x20 );
+			*this->wpp++ = (unsigned char)(ln  >> 0x28 );
+			*this->wpp++ = (unsigned char)(ln  >> 0x30 );
+			*this->wpp++ = (unsigned char)(ln  >> 0x38 );
 		}
 		return ln;
 	}
 	long operator = (const long ln)
 	{	// implement little endian buffer format
-		if( ipp && ipp+7<end)
+		if( checkwrite(8) )
 		{
-			*ipp++ = (unsigned char)(ln          );
-			*ipp++ = (unsigned char)(ln  >> 0x08 );
-			*ipp++ = (unsigned char)(ln  >> 0x10 );
-			*ipp++ = (unsigned char)(ln  >> 0x18 );
-			*ipp++ = (unsigned char)(ln  >> 0x20 );
-			*ipp++ = (unsigned char)(ln  >> 0x28 );
-			*ipp++ = (unsigned char)(ln  >> 0x30 );
-			*ipp++ = (unsigned char)(ln  >> 0x38 );
+			*this->wpp++ = (unsigned char)(ln          );
+			*this->wpp++ = (unsigned char)(ln  >> 0x08 );
+			*this->wpp++ = (unsigned char)(ln  >> 0x10 );
+			*this->wpp++ = (unsigned char)(ln  >> 0x18 );
+			*this->wpp++ = (unsigned char)(ln  >> 0x20 );
+			*this->wpp++ = (unsigned char)(ln  >> 0x28 );
+			*this->wpp++ = (unsigned char)(ln  >> 0x30 );
+			*this->wpp++ = (unsigned char)(ln  >> 0x38 );
 		}
 		return ln;
 	}
 	///////////////////////////////////////////////////////////////////////////
 	operator unsigned long () const
 	{	// implement little endian buffer format
-		unsigned long ln=0;
-		if( ipp && ipp+7<end)
+		unsigned long lx=0;
+		if( checkread(8) )
 		{	
-			lx  = ((unsigned long)(*ipp++)        ); 
-			lx |= ((unsigned long)(*ipp++) << 0x08);
-			lx |= ((unsigned long)(*ipp++) << 0x10);
-			lx |= ((unsigned long)(*ipp++) << 0x18);
-			lx |= ((unsigned long)(*ipp++) << 0x20);
-			lx |= ((unsigned long)(*ipp++) << 0x28);
-			lx |= ((unsigned long)(*ipp++) << 0x30);
-			lx |= ((unsigned long)(*ipp++) << 0x38);
+			lx  = ((unsigned long)(*this->rpp++)        ); 
+			lx |= ((unsigned long)(*this->rpp++) << 0x08);
+			lx |= ((unsigned long)(*this->rpp++) << 0x10);
+			lx |= ((unsigned long)(*this->rpp++) << 0x18);
+			lx |= ((unsigned long)(*this->rpp++) << 0x20);
+			lx |= ((unsigned long)(*this->rpp++) << 0x28);
+			lx |= ((unsigned long)(*this->rpp++) << 0x30);
+			lx |= ((unsigned long)(*this->rpp++) << 0x38);
 		}
-		return ln;
+		return lx;
 	}
 	operator long () const
 	{	// implement little endian buffer format
-		long ln=0;
-		if( ipp && ipp+7<end)
+		long lx=0;
+		if( checkread(8) )
 		{	
-			lx  = ((unsigned long)(*ipp++)        ); 
-			lx |= ((unsigned long)(*ipp++) << 0x08);
-			lx |= ((unsigned long)(*ipp++) << 0x10);
-			lx |= ((unsigned long)(*ipp++) << 0x18);
-			lx |= ((unsigned long)(*ipp++) << 0x20);
-			lx |= ((unsigned long)(*ipp++) << 0x28);
-			lx |= ((unsigned long)(*ipp++) << 0x30);
-			lx |= ((unsigned long)(*ipp++) << 0x38);
+			lx  = ((unsigned long)(*this->rpp++)        ); 
+			lx |= ((unsigned long)(*this->rpp++) << 0x08);
+			lx |= ((unsigned long)(*this->rpp++) << 0x10);
+			lx |= ((unsigned long)(*this->rpp++) << 0x18);
+			lx |= ((unsigned long)(*this->rpp++) << 0x20);
+			lx |= ((unsigned long)(*this->rpp++) << 0x28);
+			lx |= ((unsigned long)(*this->rpp++) << 0x30);
+			lx |= ((unsigned long)(*this->rpp++) << 0x38);
 		}
-		return ln;
+		return lx;
 	}
 #endif
 	///////////////////////////////////////////////////////////////////////////
 	ipaddress operator = (const ipaddress ip)
 	{	// implement little endian buffer format
 		// IPs are given in network byte order to the buffer
-		if( ipp && ipp+3<end)
+		if( checkwrite(4) )
 		{
-			*ipp++ = (unsigned char)(ip[3]);
-			*ipp++ = (unsigned char)(ip[2]);
-			*ipp++ = (unsigned char)(ip[1]);
-			*ipp++ = (unsigned char)(ip[0]);
+			*this->wpp++ = (unsigned char)(ip[3]);
+			*this->wpp++ = (unsigned char)(ip[2]);
+			*this->wpp++ = (unsigned char)(ip[1]);
+			*this->wpp++ = (unsigned char)(ip[0]);
 		}
 		return ip;
 	}
 	///////////////////////////////////////////////////////////////////////////
 	operator ipaddress () const
 	{	// implement little endian buffer format
-
-		if( ipp && ipp+3<end)
+		if( checkread(4) )
 		{
-			ipaddress ip( ipp[0],ipp[1],ipp[2],ipp[3] );
-			ipp+=4;
+			ipaddress ip( this->rpp[0],this->rpp[1],this->rpp[2],this->rpp[3] );
+			this->rpp+=4;
 			return  ip;
 		}
-		return ((uint32)0);
+		return INADDR_ANY;
 	}
 	///////////////////////////////////////////////////////////////////////////
 	sint64 operator = (const sint64 lx)
 	{	// implement little endian buffer format
-		if( ipp && ipp+7<end)
+		if( checkwrite(8) )
 		{
-			*ipp++ = (unsigned char)(lx          );
-			*ipp++ = (unsigned char)(lx  >> 0x08 );
-			*ipp++ = (unsigned char)(lx  >> 0x10 );
-			*ipp++ = (unsigned char)(lx  >> 0x18 );
-			*ipp++ = (unsigned char)(lx  >> 0x20 );
-			*ipp++ = (unsigned char)(lx  >> 0x28 );
-			*ipp++ = (unsigned char)(lx  >> 0x30 );
-			*ipp++ = (unsigned char)(lx  >> 0x38 );
+			*this->wpp++ = (unsigned char)(lx          );
+			*this->wpp++ = (unsigned char)(lx  >> 0x08 );
+			*this->wpp++ = (unsigned char)(lx  >> 0x10 );
+			*this->wpp++ = (unsigned char)(lx  >> 0x18 );
+			*this->wpp++ = (unsigned char)(lx  >> 0x20 );
+			*this->wpp++ = (unsigned char)(lx  >> 0x28 );
+			*this->wpp++ = (unsigned char)(lx  >> 0x30 );
+			*this->wpp++ = (unsigned char)(lx  >> 0x38 );
 		}
 		return lx;
 	}
 	uint64 operator = (const uint64 lx)
 	{	// implement little endian buffer format
-		if( ipp && ipp+7<end)
+		if( checkwrite(8) )
 		{
-			*ipp++ = (unsigned char)(lx          );
-			*ipp++ = (unsigned char)(lx  >> 0x08 );
-			*ipp++ = (unsigned char)(lx  >> 0x10 );
-			*ipp++ = (unsigned char)(lx  >> 0x18 );
-			*ipp++ = (unsigned char)(lx  >> 0x20 );
-			*ipp++ = (unsigned char)(lx  >> 0x28 );
-			*ipp++ = (unsigned char)(lx  >> 0x30 );
-			*ipp++ = (unsigned char)(lx  >> 0x38 );
+			*this->wpp++ = (unsigned char)(lx          );
+			*this->wpp++ = (unsigned char)(lx  >> 0x08 );
+			*this->wpp++ = (unsigned char)(lx  >> 0x10 );
+			*this->wpp++ = (unsigned char)(lx  >> 0x18 );
+			*this->wpp++ = (unsigned char)(lx  >> 0x20 );
+			*this->wpp++ = (unsigned char)(lx  >> 0x28 );
+			*this->wpp++ = (unsigned char)(lx  >> 0x30 );
+			*this->wpp++ = (unsigned char)(lx  >> 0x38 );
 		}
 		return lx;
 	}
@@ -945,32 +1015,32 @@ public:
 	operator sint64 () const
 	{	// implement little endian buffer format
 		sint64 lx=0;
-		if( ipp && ipp+7<end)
+		if( checkread(8) )
 		{	
-			lx  = ((uint64)(*ipp++)        ); 
-			lx |= ((uint64)(*ipp++) << 0x08);
-			lx |= ((uint64)(*ipp++) << 0x10);
-			lx |= ((uint64)(*ipp++) << 0x18);
-			lx |= ((uint64)(*ipp++) << 0x20);
-			lx |= ((uint64)(*ipp++) << 0x28);
-			lx |= ((uint64)(*ipp++) << 0x30);
-			lx |= ((uint64)(*ipp++) << 0x38);
+			lx  = ((uint64)(*this->rpp++)        ); 
+			lx |= ((uint64)(*this->rpp++) << 0x08);
+			lx |= ((uint64)(*this->rpp++) << 0x10);
+			lx |= ((uint64)(*this->rpp++) << 0x18);
+			lx |= ((uint64)(*this->rpp++) << 0x20);
+			lx |= ((uint64)(*this->rpp++) << 0x28);
+			lx |= ((uint64)(*this->rpp++) << 0x30);
+			lx |= ((uint64)(*this->rpp++) << 0x38);
 		}
 		return lx;
 	}
 	operator uint64 () const
 	{	// implement little endian buffer format
 		uint64 lx=0;
-		if( ipp && ipp+7<end)
+		if( checkread(8) )
 		{	
-			lx  = ((uint64)(*ipp++)        ); 
-			lx |= ((uint64)(*ipp++) << 0x08);
-			lx |= ((uint64)(*ipp++) << 0x10);
-			lx |= ((uint64)(*ipp++) << 0x18);
-			lx |= ((uint64)(*ipp++) << 0x20);
-			lx |= ((uint64)(*ipp++) << 0x28);
-			lx |= ((uint64)(*ipp++) << 0x30);
-			lx |= ((uint64)(*ipp++) << 0x38);
+			lx  = ((uint64)(*this->rpp++)        ); 
+			lx |= ((uint64)(*this->rpp++) << 0x08);
+			lx |= ((uint64)(*this->rpp++) << 0x10);
+			lx |= ((uint64)(*this->rpp++) << 0x18);
+			lx |= ((uint64)(*this->rpp++) << 0x20);
+			lx |= ((uint64)(*this->rpp++) << 0x28);
+			lx |= ((uint64)(*this->rpp++) << 0x30);
+			lx |= ((uint64)(*this->rpp++) << 0x38);
 		}
 		return lx;
 	}
@@ -982,27 +1052,33 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	const char* operator = (const char * c)
 	{	
-		if( c && ipp+strlen(c)+1 < end )
+		size_t sz= (c) ? strlen(c)+1 : 1;
+		if( checkwrite(sz) )
 		{
-			memcpy(ipp, c, strlen(c)+1);
-			ipp+=strlen(c)+1;
+			if( c )
+			{
+				memcpy(this->wpp, c, sz);
+				this->wpp+=sz;
+			}
+			else
+				*this->wpp++=0;
 		}
 		return c;
 	}
 	operator const char*() const
 	{	// find the EOS
 		// cannot do anything else then going through the array
-		unsigned char *ix = ipp;
-		while( ipp<end && ipp);
-		if(ipp<end)
+		unsigned char *ix = this->rpp;
+		while( this->rpp<this->wpp && this->rpp );
+		if(this->rpp<this->wpp)
 		{	// skip the eos in the buffer
 			// it belongs to the string
-			ipp++;
+			this->rpp++;
 			return (char*)ix;
 		}
 		else
 		{	// no eos, so there is no string
-			ipp = ix;
+			this->rpp = ix;
 			return NULL;
 		}
 	}
@@ -1011,26 +1087,32 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	bool str2buffer(const char *c, size_t sz)
 	{
-		if( c && ipp+sz < end )
-		{	
-			size_t cpsz=sz;
-			if( cpsz > strlen(c)+1 )
-				cpsz = strlen(c)+1;
-			memcpy(ipp, c, cpsz);
-			ipp[cpsz-1] = 0;	// force an EOS
-			ipp+=sz;
+		if( checkwrite(sz) )
+		{
+			if( c )
+			{
+				size_t cpsz = ( cpsz > strlen(c)+1 ) ? sz : strlen(c)+1;
+				memcpy(this->wpp, c, cpsz);
+				this->wpp[cpsz-1] = 0;	// force an EOS
+			}
+			else
+				memset(this->wpp, 0, sz);
+			this->wpp+=sz;
 			return true;
 		}
 		return false;
 	}
 	bool buffer2str(char *c, size_t sz) const
 	{
-		if( c && ipp+sz < end )
-		{	
-			memcpy(c, ipp, sz);
-			c[sz-1] = 0;	// force an EOS
-			ipp+=sz;
-			return true;
+		if( checkread(sz) )
+		{
+			if( c )
+			{	
+				memcpy(c, this->rpp, sz);
+				c[sz-1] = 0;	// force an EOS
+				this->rpp+=sz;
+				return true;
+			}
 		}
 		return false;
 	}
@@ -1040,21 +1122,25 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	bool write(const unsigned char *c, size_t sz)
 	{
-		if( c && ipp+sz < end )
-		{	
-			memcpy(ipp, c, sz);
-			ipp+=sz;
+		if( checkwrite(sz) )
+		{
+			if( c )
+				memcpy(this->wpp, c, sz);
+			this->wpp+=sz;
 			return true;
 		}
 		return false;
 	}
 	bool read(unsigned char *c, size_t sz)
 	{
-		if( c && ipp+sz < end )
-		{	
-			memcpy(c, ipp, sz);
-			ipp+=sz;
-			return true;
+		if( checkread(sz) )
+		{
+			if( c )
+			{	
+				memcpy(c, this->rpp, sz);
+				this->rpp+=sz;
+				return true;
+			}
 		}
 		return false;
 	}
@@ -1063,18 +1149,66 @@ public:
 	// direct access to the buffer and "manual" contol
 	// use with care
 	///////////////////////////////////////////////////////////////////////////
-	unsigned char* operator()()	{ return ipp; }
-
-	bool step(int i)
+	unsigned char* operator()(size_t offset=0, size_t size=0)
+	{
+		return get_rptr(offset); 
+	}
+	unsigned char* get_rptr(size_t offset=0, size_t size=0)
+	{
+		if( !checkread(offset+size) )
+#ifdef CHECK_EXCEPTIONS
+			throw exception_bound("Buffer GetReadpointer out of bound");
+#else
+			return NULL;
+#endif
+		return this->rpp+offset; 
+	}
+	unsigned char* get_wptr(size_t offset=0, size_t size=0)
+	{
+		if( !checkwrite(offset+size) )
+#ifdef CHECK_EXCEPTIONS
+			throw exception_bound("Buffer GetWritepointer out of bound");
+#else
+			return NULL;
+#endif
+		return this->wpp+offset; 
+	}
+	bool step_rptr(int i)
 	{	// can go backwards with negative offset
-		if(ipp+i <= end && ipp+i >= start)
+		if(this->rpp+i <= this->wpp && this->rpp+i >= this->start)
 		{
-			ipp+=i;
+			this->rpp+=i;
 			return true;
 		}
 		return false;
 	}
-
+	bool step_wptr(int i)
+	{	// can go backwards with negative offset
+		if(this->wpp+i <= this->end && this->wpp+i >= this->rpp)
+		{
+			this->wpp+=i;
+			return true;
+		}
+		return false;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// returning readable/writable and size checked portions of the buffer
+	// that behave like a fixed buffer for inserting packets directly
+	///////////////////////////////////////////////////////////////////////////
+	buffer_iterator get_readbuffer(size_t sz)
+	{
+		if( checkread(sz) )
+			return buffer_iterator(this->rpp, sz);
+		else
+			return buffer_iterator();
+	}
+	buffer_iterator get_writebuffer(size_t sz)
+	{
+		if( checkwrite(sz) )
+			return buffer_iterator(this->wpp, sz);
+		else
+			return buffer_iterator();
+	}
 	///////////////////////////////////////////////////////////////////////////
 	// the next will combine the buffer_iterator with the 
 	// virtual streamable class allowing to derive
@@ -1091,7 +1225,6 @@ public:
 	// which has to be solved by casting to a proper type with fixed size
 	///////////////////////////////////////////////////////////////////////////
 /*
-
 	int operator = (const int i)
 	{	// implement little endian buffer format
 		switch(sizeof(int))
@@ -1103,7 +1236,7 @@ public:
 			(*this) = (short)i;
 			break;
 		case 4:	// 32bits (still) exist
-			(*this) = (long)i;
+			(*this) = (sint32)i;
 			break;
 		case 8:	// 64bits are rising
 			(*this) = (sint64)i;
@@ -1121,7 +1254,7 @@ public:
 		case 2:
 			return (short)(*this);
 		case 4:
-			return (long)(*this);
+			return (sint32)(*this);
 		case 8:
 			return (sint64)(*this);
 		}
@@ -1131,16 +1264,16 @@ public:
 		switch(sizeof(int))
 		{
 		case 1:
-			(*this) = (char)i;
+			(*this) = (uchar)i;
 			break;
 		case 2:
-			(*this) = (short)i;
+			(*this) = (ushort)i;
 			break;
 		case 4:
-			(*this) = (long)i;
+			(*this) = (uint32)i;
 			break;
 		case 8:
-			(*this) = (sint64)i;
+			(*this) = (uint64)i;
 			break;
 		}
 		return i;
@@ -1150,16 +1283,386 @@ public:
 		switch(sizeof(int))
 		{
 		case 1:
-			return (char)(*this);
+			return (uchar)(*this);
 		case 2:
-			return (short)(*this);
+			return (ushort)(*this);
 		case 4:
-			return (long)(*this);
+			return (uint32)(*this);
 		case 8:
-			return (sint64)(*this);
+			return (uint64)(*this);
 		}
 	}
 */
+};
+
+
+
+template <size_t SZ> class buffer_fixed : public buffer_iterator
+{
+	unsigned char cBuf[ (SZ<=16) ? 16 : (SZ<=32) ? 32 : (SZ<=2048) ? (SZ+63)&(~63) : (SZ+4095)&(~4095) ];
+public:
+	buffer_fixed() : buffer_iterator(cBuf, (SZ<=16) ? 16 : (SZ<=32) ? 32 : (SZ<=2048) ? (SZ+63)&(~63) : (SZ+4095)&(~4095))
+	{}
+	virtual ~buffer_fixed()
+	{}
+
+	// copy/assignment
+	buffer_fixed(const buffer_fixed& bi) : buffer_iterator()
+	{
+		write(bi.rpp, bi.wpp-bi.rpp);
+	}
+	const buffer_fixed& operator=(const buffer_fixed& bi)
+	{
+		write(bi.rpp, bi.wpp-bi.rpp);
+		return *this;
+	}
+
+	// baseclass copy/assignment
+	buffer_fixed(const buffer_iterator& bi) : buffer_iterator()
+	{
+		write(bi.rpp, bi.wpp-bi.rpp);
+	}
+	const buffer_fixed& operator=(const buffer_iterator& bi)
+	{
+		write(bi.rpp, bi.wpp-bi.rpp);
+		return *this;
+	}
+
+
+
+	///////////////////////////////////////////////////////////////////////////
+	unsigned char operator = (const unsigned char ch)
+	{
+		return this->buffer_iterator::operator=(ch);
+	}
+	char operator = (const char ch)
+	{
+		return this->buffer_iterator::operator=(ch);
+	}
+	///////////////////////////////////////////////////////////////////////////
+	operator unsigned char () const
+	{
+		return this->buffer_iterator::operator unsigned char();
+	}
+	operator char() const
+	{
+		return this->buffer_iterator::operator char();
+	}
+	///////////////////////////////////////////////////////////////////////////
+	unsigned short operator = (const unsigned short sr)
+	{
+		return this->buffer_iterator::operator=(sr);
+	}
+	short operator = (const short sr)
+	{
+		return this->buffer_iterator::operator=(sr);
+	}
+	///////////////////////////////////////////////////////////////////////////
+	operator unsigned short() const
+	{
+		return this->buffer_iterator::operator unsigned short();
+	}
+	operator short () const
+	{
+		return this->buffer_iterator::operator short();
+	}
+	///////////////////////////////////////////////////////////////////////////
+	uint32 operator = (const uint32 ln)
+	{
+		return this->buffer_iterator::operator=(ln);
+	}
+	sint32 operator = (const sint32 ln)
+	{
+		return this->buffer_iterator::operator=(ln);
+	}
+	///////////////////////////////////////////////////////////////////////////
+	operator uint32 () const
+	{
+		return this->buffer_iterator::operator uint32();
+	}
+	operator sint32 () const
+	{
+		return this->buffer_iterator::operator sint32();
+	}
+// 64bit unix defines long/ulong as 64bit
+#if (defined __64BIT__)
+	///////////////////////////////////////////////////////////////////////////
+	unsigned long operator = (const unsigned long ln)
+	{
+		return this->buffer_iterator::operator=(ln);
+	}
+	long operator = (const long ln)
+	{
+		return this->buffer_iterator::operator=(ln);
+	}
+	///////////////////////////////////////////////////////////////////////////
+	operator unsigned long () const
+	{
+		return this->buffer_iterator::operator unsigned long();
+	}
+	operator long () const
+	{
+		return this->buffer_iterator::operator long();
+	}
+#endif
+	///////////////////////////////////////////////////////////////////////////
+	ipaddress operator = (const ipaddress ip)
+	{
+		return this->buffer_iterator::operator=(ip);
+	}
+	///////////////////////////////////////////////////////////////////////////
+	operator ipaddress () const
+	{
+		return this->buffer_iterator::operator ipaddress();
+	}
+	///////////////////////////////////////////////////////////////////////////
+	sint64 operator = (const sint64 lx)
+	{
+		return this->buffer_iterator::operator=(lx);
+	}
+	uint64 operator = (const uint64 lx)
+	{
+		return this->buffer_iterator::operator=(lx);
+	}
+	///////////////////////////////////////////////////////////////////////////
+	operator sint64 () const
+	{
+		return this->buffer_iterator::operator uint64();
+	}
+	operator uint64 () const
+	{
+		return this->buffer_iterator::operator sint64();
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// direct assignements of strings to buffers should be avoided
+	// if a fixed buffer scheme is necessary;
+	// use str2buffer / buffer2str instead
+	///////////////////////////////////////////////////////////////////////////
+	const char* operator = (const char * c)
+	{
+		return this->buffer_iterator::operator=(c);
+	}
+	operator const char*() const
+	{
+		return this->buffer_iterator::operator const char*();
+	}
+};
+
+class buffer : public buffer_iterator
+{
+public:
+	buffer() : buffer_iterator()
+	{}
+	virtual ~buffer()
+	{
+		if(this->start) delete[] this->start;
+		this->rpp=this->wpp=this->start=this->end=NULL;
+	}
+
+	// copy/assignment
+	buffer(const buffer& bi) : buffer_iterator()
+	{
+		write(bi.rpp, bi.wpp-bi.rpp);
+	}
+	const buffer& operator=(const buffer& bi)
+	{
+		write(bi.rpp, bi.wpp-bi.rpp);
+		return *this;
+	}
+
+	// baseclass copy/assignment
+	buffer(const buffer_iterator& bi) : buffer_iterator()
+	{
+		write(bi.rpp, bi.wpp-bi.rpp);
+	}
+	const buffer& operator=(const buffer_iterator& bi)
+	{
+		write(bi.rpp, bi.wpp-bi.rpp);
+		return *this;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	virtual bool checkwrite(size_t addsize)
+	{
+		static const size_t quant1 = (size_t)(   64);
+		static const size_t qmask1 = (size_t)(  ~63);
+		static const size_t quant2 = (size_t)( 4096);
+		static const size_t qmask2 = (size_t)(~4095);
+
+		size_t sz = this->wpp-this->rpp + addsize;
+
+		if( this->start+sz > this->end ||
+			(this->start+8092 > this->end && this->start+4*sz < this->end) )
+		{	// allocate new
+			// enlarge when not fit
+			// shrink when using less than a quater of the buffer
+			if( sz <= 16 )
+				sz = 16;
+			else if( sz <= 32 )
+				sz = 32;
+			else if( sz <= 2048 )
+				sz = (sz + quant1 - 1) & qmask1;
+			else
+				sz = (sz + quant2 - 1) & qmask2;
+
+			unsigned char *tmp = new unsigned char[sz];
+			if(this->start)
+			{
+				memcpy(tmp, this->rpp, this->wpp-this->rpp);
+				delete[] this->start;
+			}
+			this->end = tmp+sz;
+			this->wpp = tmp+(this->wpp-this->rpp);
+			this->rpp = tmp;
+			this->start = tmp;
+		}
+		else if( this->wpp+addsize > this->end )
+		{	// moving the current buffer data is sufficient
+			memmove(this->start, this->rpp, this->wpp-this->rpp);
+			this->wpp = this->start+(this->wpp-this->rpp);
+			this->rpp = this->start;
+		}
+		// else everything ok
+		return (this->end > this->start);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	unsigned char operator = (const unsigned char ch)
+	{
+		return this->buffer_iterator::operator=(ch);
+	}
+	char operator = (const char ch)
+	{
+		return this->buffer_iterator::operator=(ch);
+	}
+	///////////////////////////////////////////////////////////////////////////
+	operator unsigned char () const
+	{
+		return this->buffer_iterator::operator unsigned char();
+	}
+	operator char() const
+	{
+		return this->buffer_iterator::operator char();
+	}
+	///////////////////////////////////////////////////////////////////////////
+	unsigned short operator = (const unsigned short sr)
+	{
+		return this->buffer_iterator::operator=(sr);
+	}
+	short operator = (const short sr)
+	{
+		return this->buffer_iterator::operator=(sr);
+	}
+	///////////////////////////////////////////////////////////////////////////
+	operator unsigned short() const
+	{
+		return this->buffer_iterator::operator unsigned short();
+	}
+	operator short () const
+	{
+		return this->buffer_iterator::operator short();
+	}
+	///////////////////////////////////////////////////////////////////////////
+	uint32 operator = (const uint32 ln)
+	{
+		return this->buffer_iterator::operator=(ln);
+	}
+	sint32 operator = (const sint32 ln)
+	{
+		return this->buffer_iterator::operator=(ln);
+	}
+	///////////////////////////////////////////////////////////////////////////
+	operator uint32 () const
+	{
+		return this->buffer_iterator::operator uint32();
+	}
+	operator sint32 () const
+	{
+		return this->buffer_iterator::operator sint32();
+	}
+// 64bit unix defines long/ulong as 64bit
+#if (defined __64BIT__)
+	///////////////////////////////////////////////////////////////////////////
+	unsigned long operator = (const unsigned long ln)
+	{
+		return this->buffer_iterator::operator=(ln);
+	}
+	long operator = (const long ln)
+	{
+		return this->buffer_iterator::operator=(ln);
+	}
+	///////////////////////////////////////////////////////////////////////////
+	operator unsigned long () const
+	{
+		return this->buffer_iterator::operator unsigned long();
+	}
+	operator long () const
+	{
+		return this->buffer_iterator::operator long();
+	}
+#endif
+	///////////////////////////////////////////////////////////////////////////
+	ipaddress operator = (const ipaddress ip)
+	{
+		return this->buffer_iterator::operator=(ip);
+	}
+	///////////////////////////////////////////////////////////////////////////
+	operator ipaddress () const
+	{
+		return this->buffer_iterator::operator ipaddress();
+	}
+	///////////////////////////////////////////////////////////////////////////
+	sint64 operator = (const sint64 lx)
+	{
+		return this->buffer_iterator::operator=(lx);
+	}
+	uint64 operator = (const uint64 lx)
+	{
+		return this->buffer_iterator::operator=(lx);
+	}
+	///////////////////////////////////////////////////////////////////////////
+	operator sint64 () const
+	{
+		return this->buffer_iterator::operator uint64();
+	}
+	operator uint64 () const
+	{
+		return this->buffer_iterator::operator sint64();
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// direct assignements of strings to buffers should be avoided
+	// if a fixed buffer scheme is necessary;
+	// use str2buffer / buffer2str instead
+	///////////////////////////////////////////////////////////////////////////
+	const char* operator = (const char * c)
+	{
+		return this->buffer_iterator::operator=(c);
+	}
+	operator const char*() const
+	{
+		return this->buffer_iterator::operator const char*();
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// returning readable/writable and size checked portions of the buffer
+	// that behave like a fixed buffer for inserting packets directly
+	///////////////////////////////////////////////////////////////////////////
+	buffer_iterator get_readbuffer(size_t sz)
+	{
+		if( checkread(sz) )
+			return buffer_iterator(this->rpp, sz);
+		else
+			return buffer_iterator();
+	}
+	buffer_iterator get_writebuffer(size_t sz)
+	{
+		if( checkwrite(sz) )
+			return buffer_iterator(this->wpp, sz);
+		else
+			return buffer_iterator();
+	}
 };
 
 
@@ -1175,7 +1678,8 @@ public:
 
 	buffer_iterator& operator=(buffer_iterator& bi)
 	{
-		this->fromBuffer(bi);
+		if( bi.checkread(this->BufferSize()) )
+			this->fromBuffer(bi);
 		return bi;
 	}
 
@@ -1191,11 +1695,381 @@ public:
 };
 
 
+
 inline const streamable& buffer_iterator::operator = (const streamable& s)
 {
-	s.toBuffer(*this);
+	if( checkwrite(s.BufferSize()) )
+		s.toBuffer(*this);
 	return s;
 }
+
+
+/*
+extern inline void buffer_test()
+{
+	try
+	{
+		size_t i;
+
+		buffer ba;
+		unsigned char buf[16];
+		buffer_iterator bb(buf, sizeof(buf));
+		
+		ba = (unsigned long)1;
+
+		for(i=0; i<5; i++)
+			bb = (unsigned short)i;
+
+		printf("buffer\n");
+		for(i=0; i<sizeof(buf); i++)
+			printf("%02x ", buf[i]);
+		printf("\n");
+
+		for(i=5; i<10; i++)
+			printf("%02x ", (unsigned short)bb);
+		printf("\n");
+
+		printf("buffer\n");
+		for(i=0; i<sizeof(buf); i++)
+			printf("%02x ", buf[i]);
+		printf("\n");
+
+
+		for(i=5; i<10; i++)
+			bb = (unsigned short)i;
+
+		printf("buffer\n");
+		for(i=0; i<sizeof(buf); i++)
+			printf("%02x ", buf[i]);
+		printf("\n");
+
+		for(i=0; i<10; i++)
+			printf("%i", (unsigned short)bb);
+		printf("\n");
+	
+	}
+	catch( CException e )
+	{
+		printf((const char*)e);
+	}
+}
+*/
+
+
+
+
+
+
+class allocator : public global, public noncopyable
+{
+protected:
+	char*cBuf;
+	char*cEnd;
+	char*cPtr;
+
+	allocator()	: cBuf(NULL), cEnd(NULL), cPtr(NULL)						{}
+	allocator(char*buf, size_t sz) : cBuf(buf), cEnd(buf+sz-1), cPtr(buf)	{}
+	virtual ~allocator()	{}
+
+	virtual bool checkwrite(size_t addsize) = 0;
+};
+
+class static_allocator : public allocator
+{
+protected:
+	static_allocator(char*buf, size_t sz) : allocator(buf, sz)	{}
+	static_allocator();
+	virtual ~static_allocator()	{}
+	virtual bool checkwrite(size_t addsize)
+	{
+		return ( this->cPtr && this->cPtr +addsize<=this->cEnd );
+	}
+};
+
+class dynamic_allocator : public allocator
+{
+protected:
+	dynamic_allocator(char*buf, size_t sz);
+	dynamic_allocator() : allocator()		{}
+	virtual ~dynamic_allocator()
+	{
+		if(cBuf) delete[] cBuf;
+	}
+	virtual bool checkwrite(size_t addsize)
+	{
+		static const size_t quant1 = (size_t)(   64);
+		static const size_t qmask1 = (size_t)(  ~63);
+		static const size_t quant2 = (size_t)( 4096);
+		static const size_t qmask2 = (size_t)(~4095);
+
+		size_t sz = this->cPtr-this->cBuf + addsize;
+
+		if( this->cBuf+sz >= this->cEnd )
+		{	// allocate new
+			// enlarge when not fit
+			// shrink when using less than a quater of the buffer
+			if( sz <= 16 )
+				sz = 16;
+			else if( sz <= 32 )
+				sz = 32;
+			else if( sz <= 2048 )
+				sz = (sz + quant1 - 1) & qmask1;
+			else
+				sz = (sz + quant2 - 1) & qmask2;
+
+			char *tmp = new char[sz];
+			if(this->cBuf)
+			{
+				memcpy(tmp, this->cBuf, this->cPtr-this->cBuf);
+				delete[] this->cBuf;
+			}
+			this->cEnd = tmp+sz-1;
+			this->cPtr = tmp+(this->cPtr-this->cBuf);
+			this->cBuf = tmp;
+		}
+		return (this->cEnd > this->cBuf);
+	}
+};
+
+
+template <class A> class stringbuffer : public A
+{
+public:
+	stringbuffer() : A()	{}
+	stringbuffer(char*buf, size_t sz) : A(buf, sz)
+	{
+		if(this->cBuf)
+			*this->cBuf = 0;
+	}
+	virtual ~stringbuffer()
+	{}
+
+	operator const char*()	{ return this->cBuf; }
+	const char* c_str()		{ return this->cBuf; }
+
+	void clear()
+	{
+		this->cPtr = this->cBuf;
+		if(this->cPtr) *this->cPtr=0;
+	}
+
+	template <class T> stringbuffer& operator =(T t)
+	{
+		this->cPtr = this->cBuf;
+		return *this<<t;
+	}
+
+	stringbuffer& operator <<(const char* ip)
+	{
+		if(ip)
+		{
+			while( *ip && this->checkwrite(1) )
+				*this->cPtr++ = *ip++;
+			if(this->cPtr) *this->cPtr=0;
+		}
+		return *this;
+	}
+	stringbuffer& operator <<(char ch)
+	{
+		if( ch && this->checkwrite(1) )
+		{
+			*this->cPtr++ = ch;
+			*this->cPtr=0;
+		}
+		return *this;
+	}
+	stringbuffer& operator <<(int v)
+	{
+		int sz;
+		while(1)
+		{
+			sz = snprintf(this->cPtr, this->cEnd-this->cPtr, "%i", v);
+			if(sz<0)
+			{	// buffer not sufficient
+				if( !this->checkwrite(1+2*(this->cEnd-this->cPtr)) )
+				{	// give up
+					// should throw something here
+					*this->cPtr=0;
+					break;
+				}
+			}
+			else
+			{
+				this->cPtr += sz;
+				break;
+			}
+		}
+		return *this;
+	}
+	stringbuffer& operator <<(unsigned int v)
+	{
+		int sz;
+		while(1)
+		{
+			sz = snprintf(this->cPtr, this->cEnd-this->cPtr, "%u", v);
+			if(sz<0)
+			{	// buffer not sufficient
+				if( !this->checkwrite(1+2*(this->cEnd-this->cPtr)) )
+				{	// give up
+					// should throw something here
+					*this->cPtr=0;
+					break;
+				}
+			}
+			else
+			{
+				this->cPtr += sz;
+				break;
+			}
+		}
+		return *this;
+	}
+	stringbuffer& operator <<(long v)
+	{
+		int sz;
+		while(1)
+		{
+			sz = snprintf(this->cPtr, this->cEnd-this->cPtr, "%li", v);
+			if(sz<0)
+			{	// buffer not sufficient
+				if( !this->checkwrite(1+2*(this->cEnd-this->cPtr)) )
+				{	// give up
+					// should throw something here
+					*this->cPtr=0;
+					break;
+				}
+			}
+			else
+			{
+				this->cPtr += sz;
+				break;
+			}
+		}
+		return *this;
+	}
+	stringbuffer& operator <<(unsigned long v)
+	{
+		int sz;
+		while(1)
+		{
+			sz = snprintf(this->cPtr, this->cEnd-this->cPtr, "%lu", v);
+			if(sz<0)
+			{	// buffer not sufficient
+				if( !this->checkwrite(1+2*(this->cEnd-this->cPtr)) )
+				{	// give up
+					// should throw something here
+					*this->cPtr=0;
+					break;
+				}
+			}
+			else
+			{
+				this->cPtr += sz;
+				break;
+			}
+		}
+		return *this;
+	}
+	stringbuffer& operator <<(ipaddress ip)
+	{
+		int sz;
+		while(1)
+		{
+			sz = snprintf(this->cPtr, this->cEnd-this->cPtr, ip.getstring());
+			if(sz<0)
+			{	// buffer not sufficient
+				if( !this->checkwrite(1+2*(this->cEnd-this->cPtr)) )
+				{	// give up
+					// should throw something here
+					*this->cPtr=0;
+					break;
+				}
+			}
+			else
+			{
+				this->cPtr += sz;
+				break;
+			}
+		}
+		return *this;
+	}
+
+	stringbuffer& operator <<(double v)
+	{
+		int sz;
+		while(1)
+		{
+			sz = snprintf(this->cPtr, this->cEnd-this->cPtr, "%lf", v);
+			if(sz<0)
+			{	// buffer not sufficient
+				if( !this->checkwrite(1+2*(this->cEnd-this->cPtr)) )
+				{	// give up
+					// should throw something here
+					*this->cPtr=0;
+					break;
+				}
+			}
+			else
+			{
+				this->cPtr += sz;
+				break;
+			}
+		}
+		return *this;
+	}
+};
+/*
+extern inline void stringbuffer_test()
+{
+	size_t i, sz;
+	char buffer1[1024];
+
+	char buffer2[1024];
+	stringbuffer<static_allocator> sa(buffer2, sizeof(buffer2));
+	stringbuffer<dynamic_allocator> sb;
+	MiniString a;
+
+
+	sa = "hallo";
+	sa << "test" << 1;
+
+
+	ulong tick = gettick();
+	for(i=0; i<10000; i++)
+		sz = snprintf(buffer1, sizeof(buffer1), "hallo %i ballo %i no %lf", i, i*2/3+i, ((double)i)*1.3);
+	printf("%i\n", gettick()-tick);
+
+	tick = gettick();
+	for(i=0; i<10000; i++)
+		a = MiniString("hallo ") + (int)i + " ballo " + (int)(i*2/3+i) + " no " +(((double)i)*1.3);
+	printf("%i\n", gettick()-tick);
+
+
+	tick = gettick();
+	for(i=0; i<10000; i++)
+	{
+		sa.clear();
+		sa << "hallo " << (int)i << " ballo " << (int)(i*2/3+i) << " no " << (((double)i)*1.3);
+	}
+	printf("%i\n", gettick()-tick);
+	
+	tick = gettick();
+	for(i=0; i<10000; i++)
+	{
+		sb.clear();
+		sb << "hallo " << (int)i << " ballo " << (int)(i*2/3+i) << " no " << (((double)i)*1.3);
+	}
+	printf("%i\n", gettick()-tick);
+
+}
+*/
+
+
+
+
+
+
+
 
 
 
@@ -1339,10 +2213,12 @@ public:
 	objLIP& init(char* x)					{ip=(unsigned char*)x;return *this;}
 	objLIP& init(char* x,int pos)			{if(x) ip=(unsigned char*)(x+pos);return *this;}
 
-	operator unsigned long() const
-	{return this->operator()();
+	
+	operator ipaddress() const
+	{
+		return this->operator()();
 	}
-	unsigned long operator()()	const
+	ipaddress operator()()	const
 	{
 		if(ip)
 		{	
@@ -1353,7 +2229,7 @@ public:
 
 
 		}
-		return 0;
+		return INADDR_ANY;
 	}
 	objLIP& operator=(const objLIP& objl)
 	{
@@ -1363,7 +2239,7 @@ public:
 		}
 		return *this;
 	}
-	unsigned long operator=(unsigned long valin)
+	ipaddress operator=(ipaddress valin)
 	{	
 		if(ip)
 		{
@@ -1460,18 +2336,21 @@ struct socket_data
 		bool marked : 1;		// true when deleayed removal is initiated (optional)
 	}flag;
 
+	time_t rdata_tick;			// tick of last read
+
+	buffer rbuffer;
+	buffer wbuffer;
+
 	unsigned char *rdata;		// buffer
 	size_t rdata_max;			// size of buffer
 	size_t rdata_size;			// size of data
 	size_t rdata_pos;			// iterator within data
 
-	time_t rdata_tick;			// tick of last read
-
 	unsigned char *wdata;		// buffer
 	size_t wdata_max;			// size of buffer
 	size_t wdata_size;			// size of data
 
-	unsigned long client_ip;	// just an ip in host byte order is enough (4byte instead of 16)
+	ipaddress client_ip;	// just an ip in host byte order is enough (4byte instead of 16)
 
 	int (*func_recv)(int);
 	int (*func_send)(int);

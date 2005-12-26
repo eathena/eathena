@@ -76,7 +76,7 @@ public:
 	uint32 account_id;
 	uint32 login_id1;
 	uint32 login_id2;
-	uint32 client_ip;
+	ipaddress client_ip;
 
 	CAuth(uint32 aid=0) : account_id(aid)	{}
 	~CAuth()	{}

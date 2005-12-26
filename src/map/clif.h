@@ -34,7 +34,7 @@ int clif_movemob(struct mob_data &md);	//area
 int clif_movepet(struct pet_data &pd);	//area
 int clif_movenpc(struct npc_data &nd);	// [Valaris]
 int clif_changemap(struct map_session_data &sd, const char *mapname, unsigned short x, unsigned short y);	//self
-int clif_changemapserver(struct map_session_data &sd, const char *mapname, unsigned short x, unsigned short y, uint32 ip, unsigned short port);	//self
+int clif_changemapserver(struct map_session_data &sd, const char *mapname, unsigned short x, unsigned short y, ipaddress ip, unsigned short port);	//self
 int clif_fixpos(struct block_list &bl);	// area
 int clif_fixmobpos(struct mob_data &md);
 int clif_fixpcpos(struct map_session_data &sd);
@@ -68,7 +68,7 @@ int clif_misceffect(struct block_list &bl, uint32 type);	// area
 int clif_misceffect2(struct block_list &bl, uint32 type);
 int clif_changeoption(struct block_list&bl);	// area
 int clif_useitemack(struct map_session_data &sd,unsigned short index,unsigned short amount,unsigned char ok);	// self
-int clif_GlobalMessage(struct block_list &bl,const char *message);
+int clif_GlobalMessage(struct block_list &bl,const char *message, size_t len);
 int clif_createchat(struct map_session_data &sd,unsigned char fail);	// self
 int clif_dispchat(struct chat_data &cd,int fd);	// area or fd
 int clif_joinchatfail(struct map_session_data &sd,unsigned char fail);	// self

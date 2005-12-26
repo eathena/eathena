@@ -99,16 +99,17 @@ struct char_session_data{
 };
 
 #define AUTH_FIFO_SIZE 256
-struct {
+struct _auth_fifo{
 	uint32 account_id;
 	uint32 char_id;
 	uint32 login_id1;
 	uint32 login_id2;
-	uint32 client_ip;
+	ipaddress client_ip;
 	int char_pos;
 	int delflag;
 	unsigned char sex;
 	time_t connect_until_time; // # of seconds 1/1/1970 (timestamp): Validity limit of the account (0 = unlimited)
+
 } auth_fifo[AUTH_FIFO_SIZE];
 int auth_fifo_pos = 0;
 
@@ -2598,7 +2599,7 @@ int parse_char(int fd)
 	if( !session_isValid(fd) )
 		return 0;
 
-	uint32 client_ip = session[fd]->client_ip;
+	ipaddress client_ip = session[fd]->client_ip;
 	struct char_session_data *sd = (struct char_session_data*)session[fd]->session_data;
 
 	if( !session_isActive(login_fd) )

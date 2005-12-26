@@ -763,7 +763,7 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////
 // iterator for traversing through the data
-// deletion safe and deletion safe 
+// deletion safe and iteration safe 
 class CIterator
 {
 	CDBBase*			table;

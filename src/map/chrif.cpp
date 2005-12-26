@@ -404,7 +404,7 @@ int chrif_sendmap(int fd)
 int chrif_recvmap(int fd)
 {
 	int i, j;
-	uint32 ip;
+	ipaddress ip;
 	unsigned short port;
 
 	if( !session_isActive(char_fd) || !chrif_isconnect() )	// ‚Ü‚¾€”õ’†
@@ -453,7 +453,7 @@ int chrif_removemap(int fd)
 int chrif_changemapserver(struct map_session_data &sd, const char *name, unsigned short x, unsigned short y, ipset& mapset)
 {
 	size_t i;
-	uint32 s_ip=0;
+	ipaddress s_ip=INADDR_ANY;
 
 	if( !session_isActive(char_fd) || !chrif_isconnect() )
 		return -1;
@@ -619,14 +619,13 @@ int chrif_authreq(struct map_session_data &sd)
 int chrif_charselectreq(struct map_session_data &sd)
 {
 	size_t i; 
-	uint32 s_ip;
+	ipaddress s_ip=INADDR_ANY;
 
 	if( !sd.bl.id || !sd.login_id1 )
 		return -1;
 	if( !session_isActive(char_fd) || !chrif_isconnect() )
 		return -1;
 
-	s_ip = 0;
 	for(i = 0; i < fd_max; i++)
 		if (session[i] && session[i]->session_data == &sd)
 		{
