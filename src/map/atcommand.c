@@ -283,6 +283,7 @@ ACMD_FUNC(accept);
 ACMD_FUNC(reject);
 
 ACMD_FUNC(away); // LuzZza
+ACMD_FUNC(main); // LuzZza
 
 ACMD_FUNC(clone); // [Valaris]
 
@@ -325,6 +326,7 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_Alive,			"@alive",			60, atcommand_alive },
 	{ AtCommand_Kami,				"@kami",			40, atcommand_kami },
 	{ AtCommand_KamiB,			"@kamib",			40, atcommand_kami },
+	{ AtCommand_KamiC,				"@kamic",			40, atcommand_kami }, //[LuzZza]
 	{ AtCommand_Heal,				"@heal",			40, atcommand_heal },
 	{ AtCommand_Item,				"@item",			60, atcommand_item },
 	{ AtCommand_Item2,			"@item2",			60, atcommand_item2 },
@@ -572,7 +574,7 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_ItemInfo,			"@ii",			 1, atcommand_iteminfo }, // [Lupus]
 	{ AtCommand_MapFlag,			"@mapflag",			99, atcommand_mapflag }, // [Lupus]
 
-	{ AtCommand_Me,				"@me",			20, atcommand_me }, //added by massdriller, code by lordalfa
+	{ AtCommand_Me,					"@me",			20, atcommand_me }, //added by massdriller, code by lordalfa
 	{ AtCommand_MonsterIgnore,		"@monsterignore",		99, atcommand_monsterignore }, // [Valaris]
 	{ AtCommand_FakeName,			"@fakename",		20, atcommand_fakename }, // [Valaris]
 	{ AtCommand_Size,				"@size",			20, atcommand_size },
@@ -583,17 +585,17 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_AutoTrade,			"@at",			10, atcommand_autotrade },
 	{ AtCommand_ChangeGM,			"@changegm",		10, atcommand_changegm }, // durf
 	{ AtCommand_ChangeLeader,		"@changeleader",		10, atcommand_changeleader }, // durf
-	{ AtCommand_Invite,			"@invite",			 1, atcommand_invite }, // By LuzZza
+	{ AtCommand_Invite,				"@invite",			 1, atcommand_invite }, // By LuzZza
 	{ AtCommand_Duel,				"@duel",			 1, atcommand_duel }, // By LuzZza
-	{ AtCommand_Leave,			"@leave",			 1, atcommand_leave }, // By LuzZza
-	{ AtCommand_Accept,			"@accept",			 1, atcommand_accept }, // By LuzZza
-	{ AtCommand_Reject,			"@reject",			 1, atcommand_reject }, // By LuzZza
-	
+	{ AtCommand_Leave,				"@leave",			 1, atcommand_leave }, // By LuzZza
+	{ AtCommand_Accept,				"@accept",			 1, atcommand_accept }, // By LuzZza
+	{ AtCommand_Reject,				"@reject",			 1, atcommand_reject }, // By LuzZza
 	{ AtCommand_Away,				"@away",			 1, atcommand_away }, // [LuzZza]
-	{ AtCommand_Away,				"@aw",			 1, atcommand_away }, // [LuzZza]
-	{ AtCommand_Clone,			"@clone",			50, atcommand_clone },
-	{ AtCommand_Clone,			"@slaveclone",		50, atcommand_clone },
-	{ AtCommand_Clone,			"@evilclone",		50, atcommand_clone }, // [Valaris]
+	{ AtCommand_Away,				"@aw",				 1, atcommand_away }, // [LuzZza]
+	{ AtCommand_Main,				"@main",			 1, atcommand_main }, // [LuzZza]
+	{ AtCommand_Clone,				"@clone",			50, atcommand_clone },
+	{ AtCommand_Clone,				"@slaveclone",		50, atcommand_clone },
+	{ AtCommand_Clone,				"@evilclone",		50, atcommand_clone }, // [Valaris]
 
 // add new commands before this line
 	{ AtCommand_Unknown,			NULL,				 1, NULL }
@@ -2367,25 +2369,43 @@ int atcommand_alive(
 }
 
 /*==========================================
- *
+ * +kamic [LuzZza]
  *------------------------------------------
  */
 int atcommand_kami(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
+
+	unsigned long color=0;
 	nullpo_retr(-1, sd);
 
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
 
-	if (!message || !*message) {
-		clif_displaymessage(fd, "Please, enter a message (usage: @kami <message>).");
-		return -1;
+	if(*(command + 5) != 'c') {
+
+		if (!message || !*message) {
+			clif_displaymessage(fd, "Please, enter a message (usage: @kami <message>).");
+			return -1;
+		}
+
+		sscanf(message, "%199[^\n]", atcmd_output);
+		intif_GMmessage(atcmd_output, strlen(atcmd_output) + 1, (*(command + 5) == 'b') ? 0x10 : 0);
+	
+	} else {
+	
+		if(!message || !*message || (sscanf(message, "%lx %199[^\n]", &color, atcmd_output) < 2)) {
+			clif_displaymessage(fd, "Please, enter color and message (usage: @kamic <color> <message>).");
+			return -1;
+		}
+	
+		if(color < 0 || color > 0xFFFFFF) {
+			clif_displaymessage(fd, "Invalid color.");
+			return -1;
+		}
+	
+		intif_announce(atcmd_output, strlen(atcmd_output) + 1, color, 0);
 	}
-
-	sscanf(message, "%199[^\n]", atcmd_output);
-	intif_GMmessage(atcmd_output, strlen(atcmd_output) + 1, (*(command + 5) == 'b') ? 0x10 : 0);
-
 	return 0;
 }
 
@@ -9882,5 +9902,57 @@ int atcommand_clone(
 		return 0;
 	}
 	clif_displaymessage(fd, msg_txt(127+flag*2));
+	return 0;
+}
+
+/*===================================
+ * Main chat [LuzZza]
+ * Usage: @main <on|off|message>
+ *-----------------------------------
+ */
+int atcommand_main(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+	if(strlen(message) > 0) {
+
+		if(strlen(message) > 128)
+			return -1;
+
+		if(strcmpi(message, "on") == 0) {
+			if(!sd->state.mainchat) {
+				sd->state.mainchat = 1;
+				clif_displaymessage(fd, msg_txt(380)); // Main chat has been activated.
+			} else {
+				clif_displaymessage(fd, msg_txt(381)); // Main chat already activated.
+			}
+		} else if(strcmpi(message, "off") == 0) {
+			if(sd->state.mainchat) {
+				sd->state.mainchat = 0;
+				clif_displaymessage(fd, msg_txt(382)); // Main chat has been disabled.
+			} else {
+				clif_displaymessage(fd, msg_txt(383)); // Main chat already disabled.
+			}
+		} else {
+			if(!sd->state.mainchat) {
+				sd->state.mainchat = 1;
+				clif_displaymessage(fd, msg_txt(380)); // Main chat has been activated.
+			}
+			sprintf(atcmd_output, msg_txt(386), sd->status.name, message);
+			// I use 0xFE000000 color for signalizing that this message is
+			// main chat message. 0xFE000000 is invalid color, same using
+			// 0xFF000000 for simple (not colored) GM messages. [LuzZza]
+			intif_announce(atcmd_output, strlen(atcmd_output) + 1, 0xFE000000, 0);
+		}
+		
+	} else {
+	
+		if(sd->state.mainchat) 
+			// Main chat currently enabled. Usage: @main <on|off>, @main <message>.
+			clif_displaymessage(fd, msg_txt(384));
+		else
+			// Main chat currently disabled. Usage: @main <on|off>, @main <message>.
+			clif_displaymessage(fd, msg_txt(385));
+	}
 	return 0;
 }

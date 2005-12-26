@@ -404,6 +404,7 @@ struct map_session_data {
 		unsigned showdelay :1;
 		unsigned showexp :1;
 		unsigned showzeny :1;
+		unsigned mainchat :1; //[LuzZza] 
 		unsigned disguised :1; //[Valaris]
 		unsigned deal_locked :2;
 		unsigned party_sent :1;

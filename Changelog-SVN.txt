@@ -1,6 +1,7 @@
 Date	Added
 
 2005/12/26
+	* Implemented main chat (global chat channel). Usage: @main <on|off>, @main <message>. [LuzZza]
 	* Chasewalk players can now be hit in the same way a Cloaked player could.
 	  [Skotlex]
 	* Added option mob_npc_event_type, read battle_athena.conf for details.

@@ -124,6 +124,7 @@ enum {
 	AREA_CHAT_WOC,
 	CHAT,
 	CHAT_WOS,
+	CHAT_MAINCHAT,
 	PARTY,
 	PARTY_WOS,
 	PARTY_SAMEMAP,
@@ -346,7 +347,8 @@ int clif_send (unsigned char *buf, int len, struct block_list *bl, int type) {
 	struct guild *g = NULL;
 	int x0 = 0, x1 = 0, y0 = 0, y1 = 0;
 
-	if (type != ALL_CLIENT) {
+	if (type != ALL_CLIENT &&
+		type != CHAT_MAINCHAT) {
 		nullpo_retr(0, bl);
 		if (bl->type == BL_PC) {
 			sd = (struct map_session_data *)bl;
@@ -413,7 +415,15 @@ int clif_send (unsigned char *buf, int len, struct block_list *bl, int type) {
 			}
 		}
 		break;
-
+	case CHAT_MAINCHAT: //[LuzZza]
+		for(i=1; i<fd_max; i++) {
+			if(session[i] && (sd = (struct map_session_data*)session[i]->session_data) != NULL &&
+				sd->state.mainchat && sd->fd) {
+					memcpy(WFIFOP(sd->fd,0), buf, len);
+					WFIFOSET(sd->fd, len);								
+			}
+		}
+		break;
 	case PARTY_AREA:		// 同じ画面内の全パーティーメンバに送信
 	case PARTY_AREA_WOS:	// 自分以外の同じ画面内の全パーティーメンバに送信
 		x0 = bl->x - AREA_SIZE;
@@ -5404,6 +5414,27 @@ void clif_GlobalMessage(struct block_list *bl,char *message)
 	WBUFL(buf,4)=bl->id;
 	strncpy((char *) WBUFP(buf,8),message,len);
 	clif_send((unsigned char *) buf,WBUFW(buf,2),bl,AREA_CHAT_WOC);
+}
+
+/*==========================================
+ * Send main chat message [LuzZza]
+ *------------------------------------------
+ */
+void clif_MainChatMessage(char* message) {
+
+	char buf[100];
+	int len;
+	
+	if(!message)
+		return;
+		
+	len = strlen(message)+1;
+	
+	WBUFW(buf,0)=0x8d;
+	WBUFW(buf,2)=len+8;
+	WBUFL(buf,4)=0;
+	strncpy((char *) WBUFP(buf,8),message,len);
+	clif_send((unsigned char *) buf,WBUFW(buf,2),NULL,CHAT_MAINCHAT);
 }
 
 /*==========================================

@@ -145,7 +145,10 @@ int intif_GMmessage(char* mes,int len,int flag)
 int intif_announce(char* mes,int len, unsigned long color, int flag)
 {
 	// Send to the local players
-	clif_announce(NULL, mes, len, color, flag);
+	if(color == 0xFE000000) // This is main chat message [LuzZza]
+		clif_MainChatMessage(mes);
+	else
+		clif_announce(NULL, mes, len, color, flag);
 	
 	if (CheckForCharServer())
 		return 0;
@@ -1244,6 +1247,8 @@ int intif_parse(int fd)
 	case 0x3800:	
 		if (RFIFOL(fd,4) == 0xFF000000) //Normal announce.
 			clif_GMmessage(NULL,(char *) RFIFOP(fd,8),packet_len-8,0);
+		else if (RFIFOL(fd,4) == 0xFE000000) //Main chat message [LuzZza]
+			clif_MainChatMessage((char *)RFIFOP(fd,8));
 		else //Color announce.
 			clif_announce(NULL,(char *) RFIFOP(fd,8),packet_len-8,RFIFOL(fd,4),0);
 		break;

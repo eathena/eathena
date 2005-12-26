@@ -36,6 +36,7 @@ enum AtCommandType {
 	AtCommand_Alive,
 	AtCommand_Kami,
 	AtCommand_KamiB,
+	AtCommand_KamiC, //LuzZza
 	AtCommand_Heal,
 	AtCommand_Item,
 	AtCommand_Item2,
@@ -258,6 +259,7 @@ enum AtCommandType {
 	AtCommand_Reject, // By LuzZza
 	
 	AtCommand_Away, // LuzZza
+	AtCommand_Main, // LuzZza
 
 	AtCommand_Clone, // [Valaris]
 	
