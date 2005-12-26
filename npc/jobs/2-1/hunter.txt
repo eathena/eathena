@@ -405,7 +405,7 @@ L_Start:
 			goto L_Cont;
 		sL_3:
 			mes "[Demon Hunter]";
-			mes "^5533FF3 Dokaebi Horns";
+			mes "^5533FF3 Dokebi Horns";
 			mes "3 Pieces of Egg Shell.";
 			mes "and 10 Feathers^000000.";
 			goto L_Cont;

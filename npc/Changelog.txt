@@ -26,6 +26,7 @@ Nexon
 Date		Added
 ======
 12/26
+	* Changed remaining Dokkaebi Items into Dokebi, by Harbin, reported by Haplo [LuzZza]
 	* Changed Dokkaebi to Dokebi, by Harbin [Vicious]
 	* Updated Culvert Recruiter to allow novices to go to Culvert
 	 & Al De turbo track warps by Harbin [Vicious]

@@ -299,7 +299,7 @@ ID	Ename
 1018	Mole Claw
 1019	Trunk
 1020	Black Hair
-1021	Dokkaebi Horn
+1021	Dokebi Horn
 1022	Nine Tails
 1023	Fish Tail
 1024	Squid ink
@@ -1418,7 +1418,7 @@ bonus bDef2Rate
 9016	Yoyo Egg
 9017	Orc Warrior Egg
 9018	Munak Egg
-9019	Dokkaebi Egg
+9019	Dokebi Egg
 9020	Sohee Egg
 9021	Isis Egg
 9022	Green Petite Egg

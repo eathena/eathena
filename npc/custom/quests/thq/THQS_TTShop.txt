@@ -437,7 +437,7 @@ N_BuyCards:
 	mes "[Ash]";
 	mes "This is what we have to offer. All Cards are 300T";
 	next;
-	menu "Poring Card - 2T",-,"Pasana Card - 420T",N_CPasana,"Dokkebi Card - 420T",N_CDokk,"Swordfish Card - 420T",N_CSFish,
+	menu "Poring Card - 2T",-,"Pasana Card - 420T",N_CPasana,"Dokebi Card - 420T",N_CDok,"Swordfish Card - 420T",N_CSFish,
 		"Sandman Card - 420T",N_CSMan,"Drainliar Card - 360T",N_CDrain,"Kaho Card - 360T",N_CKaho,"Mandragora Card - 360T",N_CMand,
 		"Vadon Card - 360T",N_CVadon,"Mummy Card - 540T",N_CMummy,"Zenorc Card - 240T",N_CZeno,"Condor Card - 240T",N_CCond,
 		"Zombie Card - 210T",N_CZomb,"Nevermind",N_NVM;
@@ -454,10 +454,10 @@ N_CPasana:
 	logmes "Treasure Token: Bought a Pasana Card";
 	getitem 4099,1;//Items: Pasana_Card,
 	close;
-N_CDokk:
+N_CDok:
 	if (#Treasure_Token < 420) goto N_NeedToken;
 	set #Treasure_Token,#Treasure_Token-420;
-	logmes "Treasure Token: Bought a Dokkebi Card";
+	logmes "Treasure Token: Bought a Dokebi Card";
 	getitem 4098,1;//Items: Dokebi_Card,
 	close;
 N_CSFish:
