@@ -630,7 +630,7 @@ int chrif_char_ask_name(int id, char * character_name, short operation_type, int
 {
 	chrif_check(-1);
 
-        WFIFOHEAD(char_fd, 44);
+	WFIFOHEAD(char_fd, 44);
 	WFIFOW(char_fd, 0) = 0x2b0e;
 	WFIFOL(char_fd, 2) = id; // account_id of who ask (for answer) -1 if nobody
 	memcpy(WFIFOP(char_fd,6), character_name, NAME_LENGTH);

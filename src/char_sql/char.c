@@ -1533,7 +1533,7 @@ int make_new_char_sql(int fd, unsigned char *dat) {
  */
 int delete_char_sql(int char_id, int partner_id)
 {
-	char char_name[NAME_LENGTH];
+	char char_name[NAME_LENGTH], t_name[NAME_LENGTH*2]; //Name needs be escaped.
 	int account_id=0, party_id=0, guild_id=0;
 	
 	sprintf(tmp_sql, "SELECT `name`,`account_id`,`party_id`,`guild_id` FROM `%s` WHERE `char_id`='%d'",char_db, char_id);
@@ -1554,6 +1554,8 @@ int delete_char_sql(int char_id, int partner_id)
 		return -1;
 	}
 	strncpy(char_name, sql_row[0], NAME_LENGTH);
+	char_name[NAME_LENGTH-1] = '\0';
+	jstrescapecpy(t_name, char_name); //Escape string for sql use... [Skotlex]
 	account_id = atoi(sql_row[1]);
 	party_id = atoi(sql_row[2]);
 	guild_id = atoi(sql_row[3]);
@@ -1670,7 +1672,7 @@ int delete_char_sql(int char_id, int partner_id)
 	}
 	*/
 
-	sprintf(tmp_sql, "SELECT `guild_id` FROM `%s` WHERE `master` = '%s'", guild_db, char_name);
+	sprintf(tmp_sql, "SELECT `guild_id` FROM `%s` WHERE `master` = '%s'", guild_db, t_name);
 	
 	if (mysql_query(&mysql_handle, tmp_sql))
 	{
@@ -2565,7 +2567,7 @@ int parse_frommap(int fd) {
 		case 0x2b08:
 			if (RFIFOREST(fd) < 6)
 				return 0;
-
+		
 			sprintf(tmp_sql, "SELECT `name` FROM `%s` WHERE `char_id`='%d'", char_db, RFIFOL(fd,2));
 			if (mysql_query(&mysql_handle, tmp_sql)) {
 				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
@@ -2638,15 +2640,17 @@ int parse_frommap(int fd) {
 			if (RFIFOREST(fd) < 44)
 				return 0;
 		  {
-			char character_name[NAME_LENGTH];
+			char character_name[NAME_LENGTH], t_name[NAME_LENGTH*2];
 			int acc = RFIFOL(fd,2); // account_id of who ask (-1 if nobody)
 			memcpy(character_name, RFIFOP(fd,6), NAME_LENGTH);
 			character_name[NAME_LENGTH-1] = '\0';
+			jstrescapecpy(t_name, character_name); //Escape string for sql use... [Skotlex]
 			// prepare answer
 			WFIFOW(fd,0) = 0x2b0f; // answer
 			WFIFOL(fd,2) = acc; // who want do operation
 			WFIFOW(fd,30) = RFIFOW(fd, 30); // type of operation: 1-block, 2-ban, 3-unblock, 4-unban
-			sprintf(tmp_sql, "SELECT `account_id`,`name` FROM `%s` WHERE `name` = '%s'",char_db, character_name);
+			sprintf(tmp_sql, "SELECT `account_id`,`name` FROM `%s` WHERE `name` = '%s'",char_db, t_name);
+
 			if (mysql_query(&mysql_handle, tmp_sql)) {
 				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
