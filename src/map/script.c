@@ -307,6 +307,8 @@ int buildin_divorce(struct script_state *st);
 int buildin_ispartneron(struct script_state *st); // MouseJstr
 int buildin_getpartnerid(struct script_state *st); // MouseJstr
 int buildin_getchildid(struct script_state *st); // Skotlex
+int buildin_getmotherid(struct script_state *st); // Lupus
+int buildin_getfatherid(struct script_state *st); // Lupus
 int buildin_warppartner(struct script_state *st); // MouseJstr
 int buildin_getitemname(struct script_state *st);
 int buildin_getitemslots(struct script_state *st);
@@ -597,6 +599,8 @@ struct {
 	{buildin_ispartneron,"ispartneron",""},
 	{buildin_getpartnerid,"getpartnerid",""},
 	{buildin_getchildid,"getchildid",""},
+	{buildin_getmotherid,"getmotherid",""},
+	{buildin_getfatherid,"getfatherid",""},
 	{buildin_warppartner,"warppartner","sii"},
 	{buildin_getitemname,"getitemname","i"},
 	{buildin_getitemslots,"getitemslots","i"},
@@ -7402,6 +7406,29 @@ int buildin_getchildid(struct script_state *st)
     return 0;
 }
 
+int buildin_getmotherid(struct script_state *st)
+{
+    struct map_session_data *sd=script_rid2sd(st);
+    if (sd == NULL) {
+        push_val(st->stack,C_INT,0);
+        return 0;
+    }
+
+    push_val(st->stack,C_INT,sd->status.mother);
+    return 0;
+}
+
+int buildin_getfatherid(struct script_state *st)
+{
+    struct map_session_data *sd=script_rid2sd(st);
+    if (sd == NULL) {
+        push_val(st->stack,C_INT,0);
+        return 0;
+    }
+
+    push_val(st->stack,C_INT,sd->status.father);
+    return 0;
+}
 
 int buildin_warppartner(struct script_state *st)
 {

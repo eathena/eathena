@@ -1,5 +1,7 @@
 Date	Added
 
+2005/12/27
+	* Added 2 new script commands: getfatherid, getmotherid [Lupus]
 2005/12/26
 	* Added check for free'd guild pointer beforing freeing in guild_save in int_guild.c. [Valaris]
 	* Added @kamic command. Now you can send colored GM-messages.
@@ -162,7 +164,7 @@ Date	Added
 	  - motd.txt can now have lines commented with "//" .
 	  - MOTD_LINE_SIZE is defined in pc.c, change this to increase maximum amount of lines allowed in motd.txt.
 	  - Default motd line maximum is 128.
-	* Added a new script function 'setnitemscript ItemID,"{ end; }"' [Lupus]
+	* Added a new script function 'setitemscript ItemID,"{ end; }"' [Lupus]
 	- Very useful for events that give TEMP item bonuses for short time period 8) A Custom New Year Event NPC's coming soon.
 2005/12/17
         * Updated the svn eol-style properties to make merging between

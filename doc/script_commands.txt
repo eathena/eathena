@@ -3951,6 +3951,16 @@ online.
 
 ---------------------------------------
 
+*getchildid()
+*getmotherid()
+*getfatherid()
+
+These functions return the characters (shild/mother/father) ID
+
+    if (getmotherid()) mes "Oh... I know your mother's ID:"+getmotherid();
+
+---------------------------------------
+
 *getitemname(<item id>)
 
 Given the database ID number of an item, this function will return the text 
@@ -4880,3 +4890,12 @@ set @i, petstat(PET_CLASS);
 
 Whew.
 What's about all of them.
+
+---------------------------------------
+
+*setitemscript(<ItemID>,<"{ new item script }">)
+
+Set a new script bonus to the Item. Very useful for game events.
+
+Example:
+setitemscript 2637,"{ bonus bDamageWhenUnequip,40; if(isequipped(2236)==0)end; if(getskilllv(26)){skill 40,1;}else{skill 26,1+isequipped(2636);} }";
