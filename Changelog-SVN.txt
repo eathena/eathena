@@ -1,6 +1,7 @@
 Date	Added
 
 2005/12/24
+	* Fixed @go, thanks to Persian [Vicious]
 	* Updated @go command for new cities, done by Harbin [Vicious]
 	* Added root user check and warning to non-Windows compiles. [Valaris]
 	* Added a check to remove characters that would normally be left unremoved

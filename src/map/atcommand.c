@@ -3179,7 +3179,7 @@ int atcommand_go(
 		{ "einbroch.gat",	64,  200  },		//  19=Einbroch
 		{ "lighthalzen.gat",	158,  92  },	//  20=Lighthalzen
 		{ "einbech.gat",		70,   95  },	//  21=Einbech
-		( "hugel.gat",		96,  145  ),		//  22=Hugel
+		{ "hugel.gat",		96,  145  },		//  22=Hugel
 	};
  
 	nullpo_retr(-1, sd);
