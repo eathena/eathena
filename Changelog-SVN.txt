@@ -1,6 +1,8 @@
 Date	Added
 
 2005/12/26
+	* Added @kamic command. Now you can send colored GM-messages.
+	  Syntax: @kamic <color> <message>. Color is 3-bytes hexadecimal number RRGGBB. [LuzZza]
 	* Implemented main chat (global chat channel). Usage: @main <on|off>, @main <message>. [LuzZza]
 	* Chasewalk players can now be hit in the same way a Cloaked player could.
 	  [Skotlex]
