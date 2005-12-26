@@ -1209,14 +1209,3 @@ job_hunte.gat,126,70,1	duplicate(HntTrap)	97-1	139,0,0
 job_hunte.gat,126,71,1	duplicate(HntTrap)	97-2	139,0,0
 job_hunte.gat,127,70,1	duplicate(HntTrap)	97-3	139,0,0
 job_hunte.gat,127,71,1	duplicate(HntTrap)	97-4	139,0,0
-
-//==============================================================================
-// mapflag
-//==============================================================================
-job_hunte.gat	mapflag	nomemo
-job_hunte.gat	mapflag	noteleport
-job_hunte.gat	mapflag	nosave	SavePoint
-job_hunte.gat	mapflag	nopenalty
-job_hunte.gat	mapflag	nobranch
-job_hunte.gat	mapflag	noexp
-job_hunte.gat	mapflag	noloot

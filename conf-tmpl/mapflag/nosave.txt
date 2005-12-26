@@ -11,11 +11,11 @@ sword_2-1.gat	mapflag	nosave	SavePoint
 sword_3-1.gat	mapflag	nosave	SavePoint
 //job_thief1.gat	mapflag	nosave	SavePoint
 // 2-1
-job_hunte.gat	mapflag	nosave	SavePoint
 job_knt.gat	mapflag	nosave	SavePoint
 job_prist.gat	mapflag	nosave	SavePoint
 job_wiz.gat	mapflag	nosave	SavePoint
 in_moc_16.gat	mapflag	nosave	SavePoint
+job_hunte.gat	mapflag	nosave	SavePoint
 //in_hunter.gat	mapflag	nosave	SavePoint
 // 2-2
 alde_alche.gat	mapflag	nosave	SavePoint

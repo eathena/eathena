@@ -66,12 +66,12 @@ sword_2-1.gat	mapflag	nobranch
 sword_3-1.gat	mapflag	nobranch
 job_thief1.gat	mapflag	nobranch
 // 2-1
-job_hunte.gat	mapflag	nobranch
 job_knt.gat	mapflag	nobranch
 job_prist.gat	mapflag	nobranch
 job_wiz.gat	mapflag	nobranch
-in_moc_16.gat	mapflag	nobranch
+job_hunte.gat	mapflag	nobranch
 in_hunter.gat	mapflag	nobranch
+in_moc_16.gat	mapflag	nobranch
 // 2-2
 alde_alche.gat	mapflag	nobranch
 job_cru.gat	mapflag	nobranch

@@ -26,6 +26,7 @@ Nexon
 Date		Added
 ======
 12/26
+	* Removed duplicate job_hunter.gat mapflags, by Harbin [LuzZza]
 	* Changed remaining Dokkaebi Items into Dokebi, by Harbin, reported by Haplo [LuzZza]
 	* Changed Dokkaebi to Dokebi, by Harbin [Vicious]
 	* Updated Culvert Recruiter to allow novices to go to Culvert

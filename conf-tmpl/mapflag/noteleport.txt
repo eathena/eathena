@@ -93,10 +93,10 @@ sword_2-1.gat	mapflag	noteleport
 sword_3-1.gat	mapflag	noteleport
 job_thief1.gat	mapflag	noteleport
 // 2-1 -----------------------
-job_hunte.gat	mapflag	noteleport
 job_knight.gat	mapflag	noteleport
 job_prist.gat	mapflag	noteleport
 job_wiz.gat	mapflag	noteleport
+job_hunte.gat	mapflag	noteleport
 in_hunter.gat	mapflag	noteleport
 in_moc_16.gat	mapflag	noteleport
 // 2-2 --------------------
