@@ -25,6 +25,8 @@ Nexon
 
 Date		Added
 ======
+12/26
+	* Added missing cutin's in Priest Quest [Komurka]
 12/23
 	* Small fix (Falcon Taming -> Falcon Mastery) [Komurka]
 	* Desert Wolf Babe -> Baby Desert Wolf (iRO), thx to Poki#3 [Komurka]

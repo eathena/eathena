@@ -635,7 +635,7 @@ L_Aco:
 		mes "[Deviruchi]";
 		mes "If you give up now, i'll give you a nice gift.  This gift is so hard to find.";
 		next;
-		//showimage "미스트레스카드.bmp" 4;
+		cutin "미스트레스카드.bmp",4;
 		mes "[Deviruchi]";
 		mes "Do you think you can find a card like that? Decide now, don't regret when you become a priest...";
 		next;
@@ -644,14 +644,14 @@ L_Aco:
 			mes "[Deviruchi]";
 			mes "Hahaha all the human beings are like this, good choice! Okay, let me give you this card!";
 			next;
-			//showimage "미스트레스카드.bmp" 255
+			cutin "미스트레스카드.bmp",255;
 			mes "[Deviruchi]";
 			mes "Well, too bad i can't give it to you.  Go look for it YOURSELF!";
 			next;
 			warp "mjolnir_05.gat", 200, 200;
 			end;
 		sM_1a:
-			//showimage "미스트레스카드.bmp" 255
+			cutin "미스트레스카드.bmp",255;
 			mes "[Deviruchi]";
 			mes "Wow, your one tough acolyte, if you keep denying you better becareful.";
 			mes "I will be watching, I'll see if you can become a good priest or not.";
