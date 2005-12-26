@@ -3710,6 +3710,7 @@ static const struct battle_data_short {
 	{ "mob_remove_damaged",                &battle_config.mob_remove_damaged},
 	{ "show_hp_sp_drain",                  &battle_config.show_hp_sp_drain}, // [Skotlex]
 	{ "show_hp_sp_gain",                   &battle_config.show_hp_sp_gain}, // [Skotlex]
+	{ "mob_npc_event_type",                &battle_config.mob_npc_event_type},
 	{ "mob_clear_delay",                   &battle_config.mob_clear_delay}, // [Valaris]
 	{ "character_size",						&battle_config.character_size}, // [Lupus]
 	{ "mob_max_skilllvl",				&battle_config.mob_max_skilllvl}, // [Lupus]
@@ -4091,6 +4092,7 @@ void battle_set_defaults() {
 	battle_config.mob_remove_delay = 60000;
 	battle_config.show_hp_sp_drain = 0; //Display drained hp/sp from attacks
 	battle_config.show_hp_sp_gain = 1;	//Display gained hp/sp from mob-kills
+	battle_config.mob_npc_event_type = 1; //Execute npc-event on player that delivered final blow.
 	battle_config.mob_clear_delay = 0;
 	battle_config.character_size = 3; //3: Peco riders Size=2, Baby Class Riders Size=1 [Lupus]
 	battle_config.mob_max_skilllvl = MAX_SKILL_LEVEL; //max possible level of monsters skills [Lupus]

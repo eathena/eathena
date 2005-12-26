@@ -2706,23 +2706,9 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 //			printf("mob_damage : run event : %s\n",md->npc_event);
 		if(src && src->type == BL_PET)
 			sd = ((struct pet_data *)src)->msd;
-		if(sd == NULL) {
-			if(mvp_sd != NULL)
-				sd = mvp_sd;
-			else {
-				struct map_session_data *tmpsd;
-				int i;
-				for(i=0;i<fd_max;i++){
-					if(session[i] && (tmpsd= (struct map_session_data *) session[i]->session_data) && tmpsd->state.auth) {
-						if(md->bl.m == tmpsd->bl.m) {
-							sd = tmpsd;
-							break;
-						}
-					}
-				}
-			}
-		}
-		if(mvp_sd)
+		if(sd && battle_config.mob_npc_event_type)
+			npc_event(sd,md->npc_event,0);
+		else if(mvp_sd)
 			npc_event(mvp_sd,md->npc_event,0);
 
 	} else if (mvp_sd) {

@@ -380,6 +380,7 @@ extern struct Battle_Config {
 
 	unsigned short show_hp_sp_drain, show_hp_sp_gain;	//[Skotlex]
 
+	unsigned short mob_npc_event_type; //Determines on who the npc_event is executed. [Skotlex]
 	unsigned short mob_clear_delay; // [Valaris]
 
 	unsigned short character_size; // if riders have size=2, and baby class riders size=1 [Lupus]

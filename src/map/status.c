@@ -728,7 +728,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 			mode|= MD_DETECTOR;
 	}
 	option = status_get_option(target);
-	hide_flag = flag?OPTION_HIDE:(OPTION_HIDE|OPTION_CLOAK); //If targetting, cloak+hide protect you, otherwise only hiding does.
+	hide_flag = flag?OPTION_HIDE:(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK); //If targetting, cloak+hide protect you, otherwise only hiding does.
 		
 	switch (target->type)
 	{
@@ -736,8 +736,6 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 		{
 			struct map_session_data *sd = (struct map_session_data*) target;
 			if (pc_isinvisible(sd))
-				return 0;
-			if ((*option)&OPTION_CHASEWALK && !(mode & MD_BOSS)) //Chasewalk is inmune to all but bosses.
 				return 0;
 			if (((*option)&hide_flag || sd->state.gangsterparadise)
 				&& (sd->state.perfect_hiding || !(race == 4 || race == 6 || mode&MD_DETECTOR))
@@ -757,8 +755,6 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 		//Check for chase-walk/hiding/cloaking opponents.
 		if (option && !(mode&MD_BOSS))
 		{
-			if ((*option)&OPTION_CHASEWALK) //Chasewalk
-				return 0;
 			if ((*option)&hide_flag && !(race == 4 || race == 6 || mode&MD_DETECTOR))
 				return 0;
 		}

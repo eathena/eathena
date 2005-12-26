@@ -1,5 +1,10 @@
 Date	Added
 
+2005/12/26
+	* Chasewalk players can now be hit in the same way a Cloaked player could.
+	  [Skotlex]
+	* Added option mob_npc_event_type, read battle_athena.conf for details.
+	  [Skotlex]
 2005/12/24
 	* Fixed @go, thanks to Persian [Vicious]
 	* Updated @go command for new cities, done by Harbin [Vicious]
