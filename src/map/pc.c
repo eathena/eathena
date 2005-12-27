@@ -1081,7 +1081,8 @@ int pc_checkweighticon(struct map_session_data *sd)
 
 	nullpo_retr(0, sd);
 
-	if(sd->weight*2 >= sd->max_weight)
+	//Consider the battle option 50% criteria....
+	if(sd->weight*100 >= sd->max_weight*battle_config.natural_heal_weight_rate)
 		flag=1;
 	if(sd->weight*10 >= sd->max_weight*9)
 		flag=2;
@@ -1090,13 +1091,15 @@ int pc_checkweighticon(struct map_session_data *sd)
 		if(sd->sc_data[SC_WEIGHT50].timer==-1)
 			status_change_start(&sd->bl,SC_WEIGHT50,0,0,0,0,0,0);
 	}else{
-		status_change_end(&sd->bl,SC_WEIGHT50,-1);
-	}
+		if(sd->sc_data[SC_WEIGHT50].timer!=-1)
+			status_change_end(&sd->bl,SC_WEIGHT50,-1);
+	} 
 	if(flag==2){
 		if(sd->sc_data[SC_WEIGHT90].timer==-1)
 			status_change_start(&sd->bl,SC_WEIGHT90,0,0,0,0,0,0);
 	}else{
-		status_change_end(&sd->bl,SC_WEIGHT90,-1);
+		if(sd->sc_data[SC_WEIGHT90].timer!=-1)
+			status_change_end(&sd->bl,SC_WEIGHT90,-1);
 	}
 	return 0;
 }

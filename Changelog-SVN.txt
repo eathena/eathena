@@ -1,6 +1,11 @@
 Date	Added
 
 2005/12/27
+	* The 50% Weight Icon will now show up at whatever % was specified in
+	  natural_heal_weight_rate [Skotlex]
+	* Fixed char-txt server crashing if trying to read storage lines with more
+	  items than the max (excess items will simply not be read and a warning
+	  printed) [Skotlex]
 	* Added silent_console config option to the servers to filter out the
 	  console output (login_athena, char_athena, map_athena config files). Makes
 	  it possible to hide unwanted messages by category, so for example you can

@@ -63,7 +63,7 @@ int storage_fromstr(char *str,struct storage *p)
 	if(str[next]=='\n' || str[next]=='\r')
 		return 0;
 	next++;
-	for(i=0;str[next] && str[next]!='\t';i++){
+	for(i=0;str[next] && str[next]!='\t' && i < MAX_STORAGE;i++){
 		if(sscanf(str + next, "%d,%d,%d,%d,%d,%d,%d%[0-9,-]%n",
 		      &tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3],
 		      &tmp_int[4], &tmp_int[5], &tmp_int[6], tmp_str, &len) == 8) {
@@ -84,6 +84,8 @@ int storage_fromstr(char *str,struct storage *p)
 		}
 		else return 1;
 	}
+	if (i >= MAX_STORAGE)
+		ShowWarning("storage_fromstr: Found a storage line with more items than MAX_STORAGE (%d), remaining items have been discarded!\n", MAX_STORAGE);
 	return 0;
 }
 
@@ -126,7 +128,7 @@ int guild_storage_fromstr(char *str,struct guild_storage *p)
 	if(str[next]=='\n' || str[next]=='\r')
 		return 0;
 	next++;
-	for(i=0;str[next] && str[next]!='\t';i++){
+	for(i=0;str[next] && str[next]!='\t' && i < MAX_GUILD_STORAGE;i++){
 		if(sscanf(str + next, "%d,%d,%d,%d,%d,%d,%d%[0-9,-]%n",
 			&tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3],
 			&tmp_int[4], &tmp_int[5], &tmp_int[6], tmp_str, &len) == 8)
@@ -146,6 +148,8 @@ int guild_storage_fromstr(char *str,struct guild_storage *p)
 		}
 		else return 1;
 	}
+	if (i >= MAX_GUILD_STORAGE)
+		ShowWarning("guild_storage_fromstr: Found a storage line with more items than MAX_GUILD_STORAGE (%d), remaining items have been discarded!\n", MAX_GUILD_STORAGE);
 	return 0;
 }
 
