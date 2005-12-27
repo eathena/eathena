@@ -22,8 +22,6 @@
 		'Angel' equipments.
 	5126,Morphicious_Hood: When using magic, it cannot be dispelled(Maybe it works like Phen card)
 	----------
-	12033,Sunshine_Box: should allow seeing cloaked or hidden enemy (itravision + timer 20 sec)
-	4198,Maya_Purple_Card: intravision not quite right working atm <- someone test, this should work just fine now. [Skotlex]
 	4296,Cramp_Card: Temporal Plug: 10z per mob-level on a 3% chance.
 	7458,Fortune_Horn - it's a custom name yet
 	12016,Speed_Increasing_Potion no bonus... Turbo Track race item
@@ -33,6 +31,8 @@
 		* * * On your death it breaks (BS can fix it), you drop all Equipment (equipped, even the ring). And revive with 1 HP / 1 SP at the place of your death.
 		* * * From where this info is? ... Mine: On your death you'll loose this ring and get 50% HP [Komurka]
 
+12/27
+	* Small cleanup in item names [DracoRPG]
 12/24
 	* Changed Dokkaebi to Dokebi, by Harbin [Vicious]
 	* Removed the item requirements for Twilight Pharmacy from
