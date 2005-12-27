@@ -10,6 +10,7 @@ Date	Added
 	* Likely fixed lose Hp/Sp script commands when used on accesories. [Skotlex]
 	* Added 2 new script commands: getfatherid, getmotherid [Lupus]
 	* Fixed compatibility problems with stricter compilers. [Lance]
+	* Added joshuali's new VC8 project files and SQL database upgrade script. [Lance]
 2005/12/26
 	* Added check for free'd guild pointer beforing freeing in guild_save in int_guild.c. [Valaris]
 	* Added @kamic command. Now you can send colored GM-messages.
