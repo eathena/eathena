@@ -1,6 +1,10 @@
 Date	Added
 
 2005/12/27
+	* Added silent_console config option to the servers to filter out the
+	  console output (login_athena, char_athena, map_athena config files). Makes
+	  it possible to hide unwanted messages by category, so for example you can
+	  remove all info messages, or all warning+notice messages, etc. [Skotlex]
 	* Removed unused battle switches enable_upper_class and unit_movement_type. [Skotlex]
 	* Reenabled battle switches pet_defense_type, mob_defense_type and
 	  mob_remove_damaged. [Skotlex]

@@ -1,8 +1,6 @@
 #ifndef _SHOWMSG_H_
 #define _SHOWMSG_H_
 
-//davidsiaw, 'lookee' here!
-//ok thanks MC I see it
 #define SHOW_DEBUG_MSG 1
 
 // for help with the console colors look here:
@@ -57,6 +55,7 @@
 	#define CL_PASS			"\033[0;32;42m"	// green on green
 #endif
 
+extern int msg_silent; //Specifies how silent the console is. [Skotlex]
 extern char timestamp_format[20]; //For displaying Timestamps [Skotlex]
 extern char tmp_output[1024];
 

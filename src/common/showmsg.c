@@ -30,6 +30,7 @@
 	#endif
 #endif
 
+int msg_silent; //Specifies how silent the console is.
 char tmp_output[1024] = {"\0"};
 char timestamp_format[20] = ""; //For displaying Timestamps
 // by MC Cameri
@@ -87,8 +88,15 @@ int _vShowMessage(enum msg_type flag, const char *string, va_list ap)
 			return 1;
 	}
 
-	if (!(flag == MSG_DEBUG && !SHOW_DEBUG_MSG)) {
-
+	if ((flag == MSG_DEBUG && !SHOW_DEBUG_MSG) ||
+		(flag == MSG_INFORMATION && msg_silent&1) ||
+		(flag == MSG_STATUS && msg_silent&2) ||
+		(flag == MSG_NOTICE && msg_silent&4) ||
+		(flag == MSG_WARNING && msg_silent&8) ||
+		(flag == MSG_ERROR && msg_silent&16) ||
+		(flag == MSG_SQL && msg_silent&16)
+		) ; //Do not print it.
+	else {
 		if (flag == MSG_ERROR || flag == MSG_FATALERROR || flag == MSG_SQL)
 		{	//Send Errors to StdErr [Skotlex]
 			fprintf (stderr, "%s ", prefix);

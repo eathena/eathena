@@ -1859,6 +1859,10 @@ int login_config_read(const char *cfgName){
 		remove_control_chars((unsigned char *) w2);
 		if(strcmpi(w1,"timestamp_format") == 0) {
 			strncpy(timestamp_format, w2, 20);
+		} else if(strcmpi(w1,"console_silent")==0){
+			msg_silent = 0; //To always allow the next line to show up.
+			ShowInfo("Console Silent Setting: %d\n", atoi(w2));
+			msg_silent = atoi(w2);
 		} else if (strcmpi(w1, "bind_ip") == 0) {
 			bind_ip_set_ = 1;
 			h = gethostbyname (w2);
