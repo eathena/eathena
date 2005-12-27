@@ -32,6 +32,7 @@
 		* * * From where this info is? ... Mine: On your death you'll loose this ring and get 50% HP [Komurka]
 
 12/27
+	* Reverted Draco's cleanup [Komurka]
 	* Small cleanup in item names [DracoRPG]
 12/24
 	* Changed Dokkaebi to Dokebi, by Harbin [Vicious]
