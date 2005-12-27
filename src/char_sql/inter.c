@@ -44,6 +44,7 @@ char char_server_ip[32] = "127.0.0.1";
 char char_server_id[32] = "ragnarok";
 char char_server_pw[32] = "ragnarok";
 char char_server_db[32] = "ragnarok";
+char default_codepage[32] = ""; //Feature by irmin.
 
 int login_server_port = 3306;
 char login_server_ip[32] = "127.0.0.1";
@@ -196,6 +197,10 @@ int inter_config_read(const char *cfgName) {
 			strcpy(char_server_db, w2);
 			ShowStatus ("set char_server_db : %s\n",w2);
 		}
+		else if(strcmpi(w1,"default_codepage")==0){
+			strcpy(default_codepage, w2);
+			ShowStatus ("set default_codepage : %s\n",w2);
+		}
 		//Logins information to be read from the inter_athena.conf
 		//for character deletion (checks email in the loginDB)
 
@@ -293,6 +298,17 @@ int inter_init(const char *file)
 			exit(1);
 	}else {
 		ShowStatus ("Connect Success! (Login Server)\n");
+	}
+	if(strlen(default_codepage) > 0 ) {
+		sprintf( tmp_sql, "SET NAMES %s", default_codepage );
+		if (mysql_query(&mysql_handle, tmp_sql)) {
+			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+		}
+		if (mysql_query(&lmysql_handle, tmp_sql)) {
+			ShowSQL("DB error - %s\n",mysql_error(&lmysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+		}
 	}
 	wis_db = numdb_init();
 	inter_guild_sql_init();

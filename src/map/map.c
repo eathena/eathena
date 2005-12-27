@@ -76,6 +76,7 @@ char map_server_ip[16] = "127.0.0.1";
 char map_server_id[32] = "ragnarok";
 char map_server_pw[32] = "ragnarok";
 char map_server_db[32] = "ragnarok";
+char default_codepage[32] = ""; //Feature by irmin.
 int db_use_sqldbs = 0;
 
 int login_server_port = 3306;
@@ -3249,6 +3250,8 @@ int inter_config_read(char *cfgName)
 			strcpy(map_server_pw, w2);
 		} else if(strcmpi(w1,"map_server_db")==0){
 			strcpy(map_server_db, w2);
+		} else if(strcmpi(w1,"default_codepage")==0){
+			strcpy(default_codepage, w2);
 		} else if(strcmpi(w1,"use_sql_db")==0){
 			db_use_sqldbs = battle_config_switch(w2);
 			ShowStatus ("Using SQL dbs: %s\n",w2);
@@ -3363,9 +3366,15 @@ int map_sql_init(void){
 			exit(1);
 	} else {
 		ShowStatus ("Connect success! (Mapreg DB Connection)\n");
+		if( strlen(default_codepage) > 0 ) {
+			sprintf( tmp_sql, "SET NAMES %s", default_codepage );
+			if (mysql_query(&mapregsql_handle, tmp_sql)) {
+				ShowSQL("DB error - %s\n",mysql_error(&mapregsql_handle));
+				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+			}
+		}
 	}
 #endif
-
 	if(mail_server_enable) { // mail system [Valaris]
 		mysql_init(&mail_handle);
 	        ShowInfo("Connecting to the Mail DB Server....\n");
@@ -3374,8 +3383,25 @@ int map_sql_init(void){
 				ShowSQL("DB error - %s\n",mysql_error(&mail_handle));
 				exit(1);
 		}
+		if( strlen(default_codepage) > 0 ) {
+			sprintf( tmp_sql, "SET NAMES %s", default_codepage );
+			if (mysql_query(&mail_handle, tmp_sql)) {
+				ShowSQL("DB error - %s\n",mysql_error(&mail_handle));
+				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+			}
+		}
 	}
-
+	if( strlen(default_codepage) > 0 ) {
+		sprintf( tmp_sql, "SET NAMES %s", default_codepage );
+		if (mysql_query(&mmysql_handle, tmp_sql)) {
+			ShowSQL("DB error - %s\n",mysql_error(&mmysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+		}
+		if (mysql_query(&lmysql_handle, tmp_sql)) {
+			ShowSQL("DB error - %s\n",mysql_error(&lmysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+		}
+	}
 	return 0;
 }
 
@@ -3415,10 +3441,16 @@ int log_sql_init(void){
 			//pointer check
 			ShowSQL("DB error - %s\n",mysql_error(&logmysql_handle));
 			exit(1);
-	} else {
-		ShowStatus(""CL_WHITE"[SQL]"CL_RESET": Successfully '"CL_GREEN"connected"CL_RESET"' to Database '"CL_WHITE"%s"CL_RESET"'.\n", log_db);
 	}
-
+  
+	ShowStatus(""CL_WHITE"[SQL]"CL_RESET": Successfully '"CL_GREEN"connected"CL_RESET"' to Database '"CL_WHITE"%s"CL_RESET"'.\n", log_db);
+	if( strlen(default_codepage) > 0 ) {
+		sprintf( tmp_sql, "SET NAMES %s", default_codepage );
+		if (mysql_query(&logmysql_handle, tmp_sql)) {
+			ShowSQL("DB error - %s\n",mysql_error(&logmysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+		}
+	}
 	return 0;
 }
 #endif /* not TXT_ONLY */
@@ -3758,23 +3790,28 @@ int compare_item(struct item *a, struct item *b) {
 #ifndef TXT_ONLY
 int charsql_db_init(int method){
 
+	if(method == 1){ //'INIT / START'
+		ShowInfo("Connecting to 'character' Database... ");
+		mysql_init(&charsql_handle);
 
-    	if(method == 1){ //'INIT / START'
-                  ShowInfo("Connecting to 'character' Database... ");
-	         mysql_init(&charsql_handle);
-
-	         if(!mysql_real_connect(&charsql_handle, charsql_host, charsql_user, charsql_pass, charsql_db, charsql_port, (char *)NULL, 0)){
-							ShowSQL("DB error - %s\n",mysql_error(&charsql_handle));
-	                 exit(1);
-	         }else{
-	                 printf("success.\n");
-	         }
-         }else if(method == 0){ //'FINAL' / Shutdown
-         	ShowInfo("Closing 'character' Database connection ... ");
-                 mysql_close(&charsql_handle);
-                 printf("done.\n");
-         }
-
-    return 0;
+		if(!mysql_real_connect(&charsql_handle, charsql_host, charsql_user, charsql_pass, charsql_db, charsql_port, (char *)NULL, 0)){
+			ShowSQL("DB error - %s\n",mysql_error(&charsql_handle));
+			exit(1);
+		}else{
+			printf("success.\n");
+			if( strlen(default_codepage) > 0 ) {
+				sprintf( tmp_sql, "SET NAMES %s", default_codepage );
+				if (mysql_query(&charsql_handle, tmp_sql)) {
+					ShowSQL("DB error - %s\n",mysql_error(&charsql_handle));
+					ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+				}
+			}
+		}
+	}else if(method == 0){ //'FINAL' / Shutdown
+		ShowInfo("Closing 'character' Database connection ... ");
+		mysql_close(&charsql_handle);
+		printf("done.\n");
+	}
+	return 0;
 }
 #endif

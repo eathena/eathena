@@ -109,6 +109,7 @@ char login_server_ip[32] = "127.0.0.1";
 char login_server_id[32] = "ragnarok";
 char login_server_pw[32] = "ragnarok";
 char login_server_db[32] = "ragnarok";
+char default_codepage[32] = ""; //Feature by irmin.
 int use_md5_passwds = 0;
 char login_db[256] = "login";
 int log_login=1; //Whether to log the logins or not. [Skotlex]
@@ -363,6 +364,13 @@ int mmo_auth_sqldb_init(void) {
 		exit(1);
 	} else {
 		ShowStatus("Connect success!\n");
+	}
+	if( strlen(default_codepage) > 0 ) {
+		sprintf( tmpsql, "SET NAMES %s", default_codepage );
+		if (mysql_query(&mysql_handle, tmpsql)) {
+			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmpsql);
+		}
 	}
 
 	if (log_login)
@@ -2009,6 +2017,10 @@ void sql_config_read(const char *cfgName){ /* Kalaspuff, to get login_db */
 		else if(strcmpi(w1,"login_server_db")==0){
 			strcpy(login_server_db, w2);
 			ShowStatus ("set login_server_db : %s\n",w2);
+		}
+		else if(strcmpi(w1,"default_codepage")==0){
+			strcpy(default_codepage, w2);
+			ShowStatus ("set default_codepage : %s\n",w2);
 		}
 		//added for custom column names for custom login table
 		else if(strcmpi(w1,"login_db_account_id")==0){
