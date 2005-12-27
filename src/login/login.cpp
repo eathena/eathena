@@ -269,16 +269,16 @@ bool check_password(struct login_session_data* ld, int passwdenc, const char* pa
 	return false;
 }
 
-const char* timestamp2string(char* string, size_t sz)
+const char* timestamp2string(char* str, size_t sz)
 {
 	size_t csz;
 	timeval tv;
 	time_t unixtime;
-	gettimeofday(&tv, NULL);											// get time
-	unixtime = (time_t)tv.tv_sec;										// pick out seconds from unix epoch 
-	csz=strftime(string, sz, "%Y-%m-%d %H:%M:%S", localtime(&unixtime));// print string with given dateformat
-	snprintf(string+csz, sz-csz, ".%03ld", tv.tv_usec / 1000);			// add milliseconds
-	return string;
+	gettimeofday(&tv, NULL);										// get time
+	unixtime = (time_t)tv.tv_sec;									// pick out seconds from unix epoch 
+	csz=strftime(str, sz, "%Y-%m-%d %H:%M:%S", localtime(&unixtime));// print string with given dateformat
+	snprintf(str+csz, sz-csz, ".%03ld", tv.tv_usec / 1000);			// add milliseconds
+	return str;
 }
 
 
@@ -421,8 +421,7 @@ int parse_fromchar(int fd)
 {
 	size_t id;
 	char ip_str[16]="unknown";
-	if(session[fd])
-		session[fd]->client_ip.getstring(ip_str);
+	if(session[fd]) session[fd]->client_ip.getstring(ip_str);
 
 
 	for(id = 0; id < MAX_SERVERS; id++)
@@ -1051,8 +1050,8 @@ int parse_fromchar(int fd)
 //---------------------------------------
 int parse_admin(int fd)
 {
-	char ip_str[16];
-	session[fd]->client_ip.getstring(ip_str);
+	char ip_str[16]="";
+	if(session[fd]) session[fd]->client_ip.getstring(ip_str);
 
 	if( !session_isActive(fd) )
 	{
@@ -2143,7 +2142,7 @@ int parse_admin(int fd)
 int parse_login(int fd)
 {
 	char ip_str[16];
-	session[fd]->client_ip.getstring(ip_str);
+	if(session[fd]) session[fd]->client_ip.getstring(ip_str);
 
 	if ( !session_isActive(fd) )
 	{

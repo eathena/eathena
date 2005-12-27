@@ -153,15 +153,17 @@
 //////////////////////////////
 #ifdef WIN32
 //////////////////////////////
-#pragma warning(disable : 4996)	// disable deprecated warnings
+
 #pragma warning(disable : 4100) // unreferenced formal parameter
-#pragma warning(disable : 4244) // converting type on return will shorten
-#pragma warning(disable : 4310)	// converting constant will shorten
-#pragma warning(disable : 4706) // assignment within conditional
 #pragma warning(disable : 4127)	// constant assignment
-#pragma warning(disable : 4710)	// is no inline function
+#pragma warning(disable : 4244) // converting type on return will shorten
+#pragma warning(disable : 4250) // dominant derive, is only informational
+#pragma warning(disable : 4310)	// converting constant will shorten
 #pragma warning(disable : 4511)	// no copy constructor
 #pragma warning(disable : 4512)	// no assign operator
+#pragma warning(disable : 4706) // assignment within conditional
+#pragma warning(disable : 4710)	// is no inline function
+#pragma warning(disable : 4996)	// disable deprecated warnings
 //////////////////////////////
 #endif
 //////////////////////////////
@@ -1397,7 +1399,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// find an element in the list
 	virtual bool find(const T& elem, size_t startpos, size_t& pos) const=0;
-	virtual int  find(const T& elem, size_t startpos=0) const=0;
+	virtual ssize_t find(const T& elem, size_t startpos=0) const=0;
 };
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -1861,7 +1863,7 @@ public:
 		}
 		return false;
 	}
-	virtual int  find(const T& elem, size_t startpos=0) const
+	virtual ssize_t find(const T& elem, size_t startpos=0) const
 	{
 		ScopeLock scopelock(*this);
 		for(size_t i=startpos; i<cCnt; i++)
@@ -2230,7 +2232,7 @@ public:
 		return ret;
 	}
 */
-	virtual int  find(const T& elem, size_t startpos=0) const
+	virtual ssize_t find(const T& elem, size_t startpos=0) const
 	{
 		ScopeLock scopelock(*this);
 		size_t pos;
@@ -2800,7 +2802,7 @@ public:
 			}
 		return false;
 	}
-	virtual int  find(const T& elem, size_t startpos=0) const
+	virtual ssize_t find(const T& elem, size_t startpos=0) const
 	{
 		ScopeLock scopelock(*this);
 		for(size_t i=startpos; i<cCnt; i++)
@@ -3171,7 +3173,7 @@ public:
 		return ret;
 	}
 */
-	virtual int  find(const T& elem, size_t startpos=0) const
+	virtual ssize_t find(const T& elem, size_t startpos=0) const
 	{
 		ScopeLock scopelock(*this);
 		size_t pos;
@@ -4344,31 +4346,6 @@ public:
 		MiniString s(v);
 		return MiniString(cStrPtr->array(),length(), s.cStrPtr->array(), s.length());
 	}
-
-	friend MiniString operator+(const char *c, const MiniString &b)
-	{
-		return MiniString(c, strlen(c), b.get(),b.length() );
-	}
-	friend MiniString operator+(const char c, const MiniString &b)
-	{
-		return MiniString(&c, 1, b.get(),b.length() );
-	}
-	friend MiniString operator +(double v, const MiniString &b)
-	{
-		MiniString s(v);
-		return MiniString(s.get(), s.length(), b.get(), b.length());
-	}
-	friend MiniString operator +(int v, const MiniString &b)
-	{
-		MiniString s(v);
-		return MiniString(s.get(), s.length(), b.get(), b.length());
-	}
-	friend MiniString operator +(unsigned int v, const MiniString &b)
-	{
-		MiniString s(v);
-		return MiniString(s.get(), s.length(), b.get(), b.length());
-	}
-
 };
 
 

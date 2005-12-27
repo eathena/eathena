@@ -697,7 +697,7 @@ public:
 
 		// スキルIDの設定
 		for(i=0;i<MAX_GUILDSKILL;i++)
-			this->skill[i].id=i+GD_SKILLBASE;
+			this->skill[i].id = i+GD_SKILLBASE;
 
 		// ギルドレベル
 		if(this->guild_lv<=0) this->guild_lv=1;

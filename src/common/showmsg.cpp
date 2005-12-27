@@ -262,15 +262,15 @@ int	PRINTF(const char *fmt, ...)
 
 
 
-int _vShowMessage(enum msg_type flag, const char *string, va_list ap)
+int _vShowMessage(enum msg_type flag, const char *str, va_list ap)
 {	// Return: 0 = Successful, 1 = Failed.
 	const char *prefix = "";
 
 	if(flag == MSG_DEBUG && !SHOW_DEBUG_MSG)
 		return 0;
 
-	if( (NULL==string) || (0==*string) ) {
-		ShowError("Empty string flag %i passed to _ShowMessage().\n", flag);
+	if( (NULL==str) || (0==*str) ) {
+		ShowError("Empty str flag %i passed to _ShowMessage().\n", flag);
 		return 1;
 	}
 	switch (flag) {
@@ -310,19 +310,19 @@ int _vShowMessage(enum msg_type flag, const char *string, va_list ap)
 
 	if(flag!=MSG_NONE)
 		PRINTF("%s ", prefix);
-	VPRINTF(string, ap);
+	VPRINTF(str, ap);
 	fflush(stdout);
 
 	return 0;
 }
 
 
-int _ShowMessage(enum msg_type flag, const char *string, ...){ 
+int _ShowMessage(enum msg_type flag, const char *str, ...){ 
 
 	int ret;
 	va_list ap;
-	va_start(ap,string);
-	ret = _vShowMessage(flag,string,ap);
+	va_start(ap,str);
+	ret = _vShowMessage(flag,str,ap);
 	va_end(ap);
 	return ret;
 }

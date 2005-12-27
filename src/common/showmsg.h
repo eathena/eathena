@@ -68,202 +68,202 @@
 
 enum msg_type {MSG_NONE,MSG_STATUS,MSG_SQL,MSG_INFORMATION,MSG_CONSOLE,MSG_NOTICE,MSG_WARNING,MSG_DEBUG,MSG_ERROR,MSG_FATALERROR};
 
-extern int _vShowMessage(enum msg_type flag, const char *string, va_list va);
-extern int _ShowMessage(enum msg_type flag, const char *string, ...);
+extern int _vShowMessage(enum msg_type flag, const char *str, va_list va);
+extern int _ShowMessage(enum msg_type flag, const char *str, ...);
 
 #ifdef __GNUC__ 
 
 // direct printf replacement
-	#define ShowMessage(string...) _ShowMessage(MSG_NONE,##string)
+	#define ShowMessage(str...) _ShowMessage(MSG_NONE,##str)
 
 /* MSG_XX */
-	#define ShowMsg(flag,string...) _ShowMessage(flag,##string)
-//	#define DisplayMsg(flag,string...) _ShowMessage(flag,##string)
-//	#define ShowMessage(flag,string...) _ShowMessage(flag,##string)
+	#define ShowMsg(flag,str...) _ShowMessage(flag,##str)
+//	#define DisplayMsg(flag,str...) _ShowMessage(flag,##str)
+//	#define ShowMessage(flag,str...) _ShowMessage(flag,##str)
 
 /* MSG_STATUS */
-	#define ShowStatus(string...) _ShowMessage(MSG_STATUS,##string)
-//	#define DisplayStatus(string...) _ShowMessage(MSG_STATUS,##string)
+	#define ShowStatus(str...) _ShowMessage(MSG_STATUS,##str)
+//	#define DisplayStatus(str...) _ShowMessage(MSG_STATUS,##str)
 
 /* MSG_SQL*/
-	#define ShowSQL(string...) _ShowMessage(MSG_SQL,##string)
-//	#define DisplaySQL(string...) _ShowMessage(MSG_SQL,##string)
+	#define ShowSQL(str...) _ShowMessage(MSG_SQL,##str)
+//	#define DisplaySQL(str...) _ShowMessage(MSG_SQL,##str)
 
 /* MSG_INFORMATION */
-	#define ShowInfo(string...) _ShowMessage(MSG_INFORMATION,##string)
-//	#define DisplayInfo(string...) _ShowMessage(MSG_INFORMATION,##string)
-//	#define ShowInformation(string...) _ShowMessage(MSG_INFORMATION,##string)
-//	#define DisplayInformation(string...) _ShowMessage(MSG_INFORMATION,##string)
+	#define ShowInfo(str...) _ShowMessage(MSG_INFORMATION,##str)
+//	#define DisplayInfo(str...) _ShowMessage(MSG_INFORMATION,##str)
+//	#define ShowInformation(str...) _ShowMessage(MSG_INFORMATION,##str)
+//	#define DisplayInformation(str...) _ShowMessage(MSG_INFORMATION,##str)
 
 /* MSG_CONSOLE */
-	#define ShowConsole(string...) _ShowMessage(MSG_CONSOLE,##string)
-//	#define DisplayNotice(string...) _ShowMessage(MSG_NOTICE,##string)
+	#define ShowConsole(str...) _ShowMessage(MSG_CONSOLE,##str)
+//	#define DisplayNotice(str...) _ShowMessage(MSG_NOTICE,##str)
 
 /* MSG_NOTICE */
-	#define ShowNotice(string...) _ShowMessage(MSG_NOTICE,##string)
-//	#define DisplayNotice(string...) _ShowMessage(MSG_NOTICE,##string)
+	#define ShowNotice(str...) _ShowMessage(MSG_NOTICE,##str)
+//	#define DisplayNotice(str...) _ShowMessage(MSG_NOTICE,##str)
 
 /* MSG_WARNING */
-	#define ShowWarning(string...) _ShowMessage(MSG_WARNING,##string)
-//	#define DisplayWarning(string...) _ShowMessage(MSG_WARNING,##string)
-//	#define Warn(string...) _ShowMessage(MSG_WARNING,##string)
+	#define ShowWarning(str...) _ShowMessage(MSG_WARNING,##str)
+//	#define DisplayWarning(str...) _ShowMessage(MSG_WARNING,##str)
+//	#define Warn(str...) _ShowMessage(MSG_WARNING,##str)
 
 /* MSG_DEBUG */
-	#define ShowDebug(string...) _ShowMessage(MSG_DEBUG,##string)
-	#define DisplayDebug(string...) _ShowMessage(MSG_DEBUG,##string)
-	#define Debug(string...) _ShowMessage(MSG_DEBUG,##string)
-	#define printDebug(string...) _ShowMessage(MSG_DEBUG,##string)
+	#define ShowDebug(str...) _ShowMessage(MSG_DEBUG,##str)
+	#define DisplayDebug(str...) _ShowMessage(MSG_DEBUG,##str)
+	#define Debug(str...) _ShowMessage(MSG_DEBUG,##str)
+	#define printDebug(str...) _ShowMessage(MSG_DEBUG,##str)
 
 /* MSG_ERROR */
-	#define ShowError(string...) _ShowMessage(MSG_ERROR,##string)
-//	#define DisplayError(string...) _ShowMessage(MSG_ERROR,##string)
-//	#define OutputError(string...) _ShowMessage(MSG_ERROR,##string)
+	#define ShowError(str...) _ShowMessage(MSG_ERROR,##str)
+//	#define DisplayError(str...) _ShowMessage(MSG_ERROR,##str)
+//	#define OutputError(str...) _ShowMessage(MSG_ERROR,##str)
 
 /* MSG_FATALERROR */
-	#define ShowFatalError(string...) _ShowMessage(MSG_FATALERROR,##string)
-//	#define DisplayFatalError(string...) _ShowMessage(MSG_ERROR,##string)
-//	#define Terminate(string...) _ShowMessage(MSG_FATALERROR,##string)
-//	#define Kill(string...) _ShowMessage(MSG_FATALERROR,##string)
-//	#define AbortEx(string...) _ShowMessage(MSG_FATALERROR,##string)
+	#define ShowFatalError(str...) _ShowMessage(MSG_FATALERROR,##str)
+//	#define DisplayFatalError(str...) _ShowMessage(MSG_ERROR,##str)
+//	#define Terminate(str...) _ShowMessage(MSG_FATALERROR,##str)
+//	#define Kill(str...) _ShowMessage(MSG_FATALERROR,##str)
+//	#define AbortEx(str...) _ShowMessage(MSG_FATALERROR,##str)
 
 #else// no __GNUC__
 
 // direct printf replacement
-static inline int ShowMessage(const char *string, ...)
+static inline int ShowMessage(const char *str, ...)
 {
 	va_list va;
 	int ret;
-	va_start(va,string);
-	ret = _vShowMessage(MSG_NONE, string, va);
+	va_start(va,str);
+	ret = _vShowMessage(MSG_NONE, str, va);
 	va_end(va);
 	return ret;
 }
 
 /* MSG_XX */
-static inline int ShowMsg(enum msg_type flag, const char *string, ...)
-//	static inline int DisplayMsg(enum msg_type flag, const char *string, ...)
-//	static inline int ShowMessage(enum msg_type flag, const char *string, ...)
+static inline int ShowMsg(enum msg_type flag, const char *str, ...)
+//	static inline int DisplayMsg(enum msg_type flag, const char *str, ...)
+//	static inline int ShowMessage(enum msg_type flag, const char *str, ...)
 {
 	va_list va;
 	int ret;
-	va_start(va,string);
-	ret = _vShowMessage(flag, string, va);
+	va_start(va,str);
+	ret = _vShowMessage(flag, str, va);
 	va_end(va);
 	return ret;
 }
 
 /* MSG_STATUS */
-static inline int ShowStatus(const char *string, ...)
-//	static inline int DisplayStatus(const char *string, ...)
+static inline int ShowStatus(const char *str, ...)
+//	static inline int DisplayStatus(const char *str, ...)
 {
 	va_list va;
 	int ret;
-	va_start(va,string);
-	ret = _vShowMessage(MSG_STATUS, string, va);
+	va_start(va,str);
+	ret = _vShowMessage(MSG_STATUS, str, va);
 	va_end(va);
 	return ret;
 }
 
 
 /* MSG_SQL*/
-static inline int ShowSQL(const char *string, ...)
-//	static inline int DisplaySQL(const char *string, ...)
+static inline int ShowSQL(const char *str, ...)
+//	static inline int DisplaySQL(const char *str, ...)
 {
 	va_list va;
 	int ret;
-	va_start(va,string);
-	ret = _vShowMessage(MSG_SQL, string, va);
+	va_start(va,str);
+	ret = _vShowMessage(MSG_SQL, str, va);
 	va_end(va);
 	return ret;
 }
 
 /* MSG_INFORMATION */
-static inline int ShowInfo(const char *string, ...)
-//	static inline int DisplayInfo(const char *string, ...)
-//	static inline int ShowInformation(const char *string, ...)
-//	static inline int DisplayInformation(const char *string, ...)
+static inline int ShowInfo(const char *str, ...)
+//	static inline int DisplayInfo(const char *str, ...)
+//	static inline int ShowInformation(const char *str, ...)
+//	static inline int DisplayInformation(const char *str, ...)
 {
 	va_list va;
 	int ret;
-	va_start(va,string);
-	ret = _vShowMessage(MSG_INFORMATION, string, va);
+	va_start(va,str);
+	ret = _vShowMessage(MSG_INFORMATION, str, va);
 	va_end(va);
 	return ret;
 }
 /* MSG_CONSOLE */
-static inline int ShowConsole(const char *string, ...)
+static inline int ShowConsole(const char *str, ...)
 {
 	va_list va;
 	int ret;
-	va_start(va,string);
-	ret = _vShowMessage(MSG_CONSOLE, string, va);
+	va_start(va,str);
+	ret = _vShowMessage(MSG_CONSOLE, str, va);
 	va_end(va);
 	return ret;
 }
 
 /* MSG_NOTICE */
-static inline int ShowNotice(const char *string, ...)
-//	static inline int DisplayNotice(const char *string, ...)
+static inline int ShowNotice(const char *str, ...)
+//	static inline int DisplayNotice(const char *str, ...)
 {
 	va_list va;
 	int ret;
-	va_start(va,string);
-	ret = _vShowMessage(MSG_NOTICE, string, va);
+	va_start(va,str);
+	ret = _vShowMessage(MSG_NOTICE, str, va);
 	va_end(va);
 	return ret;
 }
 
 /* MSG_WARNING */
-static inline int ShowWarning(const char *string, ...)
-//	static inline int DisplayWarning(const char *string, ...)
-//	static inline int Warn(const char *string, ...)
+static inline int ShowWarning(const char *str, ...)
+//	static inline int DisplayWarning(const char *str, ...)
+//	static inline int Warn(const char *str, ...)
 {
 	va_list va;
 	int ret;
-	va_start(va,string);
-	ret = _vShowMessage(MSG_WARNING, string, va);
+	va_start(va,str);
+	ret = _vShowMessage(MSG_WARNING, str, va);
 	va_end(va);
 	return ret;
 }
 
 /* MSG_DEBUG */
-static inline int ShowDebug(const char *string, ...)
-//	static inline int DisplayDebug(const char *string, ...)
-//	static inline int Debug(const char *string, ...)
-//	static inline int printDebug(const char *string, ...)
+static inline int ShowDebug(const char *str, ...)
+//	static inline int DisplayDebug(const char *str, ...)
+//	static inline int Debug(const char *str, ...)
+//	static inline int printDebug(const char *str, ...)
 {
 	va_list va;
 	int ret;
-	va_start(va,string);
-	ret = _vShowMessage(MSG_DEBUG, string, va);
+	va_start(va,str);
+	ret = _vShowMessage(MSG_DEBUG, str, va);
 	va_end(va);
 	return ret;
 }
 
 /* MSG_ERROR */
-static inline int ShowError(const char *string, ...)
-//	static inline int DisplayError(const char *string, ...)
-//	static inline int OutputError(const char *string, ...)
+static inline int ShowError(const char *str, ...)
+//	static inline int DisplayError(const char *str, ...)
+//	static inline int OutputError(const char *str, ...)
 {
 	va_list va;
 	int ret;
-	va_start(va,string);
-	ret = _vShowMessage(MSG_ERROR, string, va);
+	va_start(va,str);
+	ret = _vShowMessage(MSG_ERROR, str, va);
 	va_end(va);
 	return ret;
 }
 
 /* MSG_FATALERROR */
-static inline int ShowFatalError(const char *string, ...)
-//	static inline int DisplayFatalError(const char *string, ...)
-//	static inline int Terminate(const char *string, ...)
-//	static inline int Kill(const char *string, ...)
-//	static inline int AbortEx(const char *string, ...)
+static inline int ShowFatalError(const char *str, ...)
+//	static inline int DisplayFatalError(const char *str, ...)
+//	static inline int Terminate(const char *str, ...)
+//	static inline int Kill(const char *str, ...)
+//	static inline int AbortEx(const char *str, ...)
 {
 	va_list va;
 	int ret;
-	va_start(va,string);
-	ret = _vShowMessage(MSG_FATALERROR, string, va);
+	va_start(va,str);
+	ret = _vShowMessage(MSG_FATALERROR, str, va);
 	va_end(va);
 	return ret;
 }

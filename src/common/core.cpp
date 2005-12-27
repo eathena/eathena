@@ -253,6 +253,8 @@ void display_title(void)
 
 int main (int argc, char **argv)
 {
+//	stringbuffer_test();
+//	return 0;
 	int next;
 	///////////////////////////////////////////////////////////////////////////
 	// startup

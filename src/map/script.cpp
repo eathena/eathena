@@ -9190,130 +9190,6 @@ int buildin_isday(CScriptEngine &st)
 }
 
 /*================================================
- * Check whether another item/card has been
- * equipped - used for 2/15's cards patch [celest]
- *------------------------------------------------
- */
-// leave this here, just in case
-#if 0
-int buildin_isequipped(CScriptEngine &st)
-{
-	int i, j, k, id = 1;
-	int ret = -1;
-	if(st.sd)
-	{
-		for (i=0; id!=0; i++)
-		{
-			int flag = 0;
-		
-				if(st.end > st.start+i+2)
-					id = st.GetInt((st[i+2]));
-				else 
-					id = 0;
-
-			if (id <= 0)
-				continue;
-			
-			for (j=0; j<10; j++) {
-				int index, type;
-				index = sd->equip_index[j];
-				if(index >= MAX_INVENTORY) continue;
-				if(j == 9 && sd->equip_index[8] == index) continue;
-				if(j == 5 && sd->equip_index[4] == index) continue;
-				if(j == 6 && (sd->equip_index[5] == index || st.sd->equip_index[4] == index)) continue;
-				type = itemdb_type(id);
-				
-				if(sd->inventory_data[index]) {
-					if (type == 4 || type == 5) {
-						if (st.sd->inventory_data[index]->nameid == id)
-							flag = 1;
-					} else if (type == 6) {
-						for(k=0; k<sd->inventory_data[index]->slot; k++) {
-							if (st.sd->status.inventory[index].card[0]!=0x00ff &&
-								st.sd->status.inventory[index].card[0]!=0x00fe &&
-									st.sd->status.inventory[index].card[0]!=0xff00 &&
-								st.sd->status.inventory[index].card[k] == id) {
-								flag = 1;
-								break;
-							}
-						}
-					}
-					if (flag) break;
-				}
-			}
-			if (ret == -1)
-				ret = flag;
-			else
-				ret &= flag;
-			if (!ret) break;
-		}
-	}
-	st.push_val(CScriptEngine::C_INT,ret);
-	return 0;
-}
-#endif
-
-/*================================================
- * Check how many items/cards in the list are
- * equipped - used for 2/15's cards patch [celest]
- *------------------------------------------------
- */
-int buildin_isequippedcnt(CScriptEngine &st)
-{
-	size_t i, j, k;
-	uint32 id = 1;
-	int ret = 0;
-	int index, type;
-
-	if(st.sd)
-	{
-		for (i=0; id!=0; i++)
-		{
-			if( st.Arguments() > i+2 )
-				id = st.GetInt(st[i+2]);
-			else 
-				id = 0;
-			if (id <= 0)
-				continue;
-			for (j=0; j<10; j++)
-			{
-				index = st.sd->equip_index[j];
-				if(index >= MAX_INVENTORY) continue;
-				if(j == 9 && st.sd->equip_index[8] == index) continue;
-				if(j == 5 && st.sd->equip_index[4] == index) continue;
-				if(j == 6 && (st.sd->equip_index[5] == index || st.sd->equip_index[4] == index)) continue;
-				
-				type = itemdb_type(id);
-				
-				if(st.sd->inventory_data[index])
-				{
-					if(type == 4 || type == 5)
-					{
-						if(st.sd->inventory_data[index]->nameid == id)
-							ret++; //[Lupus]
-					}
-					else if (type == 6)
-					{
-						for(k=0; k<st.sd->inventory_data[index]->flag.slot; k++)
-						{
-							if( st.sd->status.inventory[index].card[0]!=0x00ff &&
-								st.sd->status.inventory[index].card[0]!=0x00fe &&
-								st.sd->status.inventory[index].card[0]!=0xff00 &&
-								st.sd->status.inventory[index].card[k] == id)
-							{
-								ret++; //[Lupus]
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-	st.push_val(CScriptEngine::C_INT,ret);
-	return 0;
-}
-
-/*================================================
  * Check whether another card has been
  * equipped - used for 2/15's cards patch [celest]
  * -- Items checked cannot be reused in another
@@ -9322,12 +9198,13 @@ int buildin_isequippedcnt(CScriptEngine &st)
  */
 int buildin_isequipped(CScriptEngine &st)
 {
-	size_t i, j, k;
-	unsigned short id = 1;
-	int ret = -1;
-	
+	int ret = 0;
 	if(st.sd)
 	{
+		size_t i, j, k;
+		unsigned short id = 1;
+		ret = -1;
+
 		for (i=0; id!=0; i++)
 		{
 			int flag = 0;
@@ -9402,6 +9279,66 @@ int buildin_isequipped(CScriptEngine &st)
 			else
 				ret &= flag;
 			if (!ret) break;
+		}
+	}
+	st.push_val(CScriptEngine::C_INT,ret);
+	return 0;
+}
+
+/*================================================
+ * Check how many items/cards in the list are
+ * equipped - used for 2/15's cards patch [celest]
+ *------------------------------------------------
+ */
+int buildin_isequippedcnt(CScriptEngine &st)
+{
+	size_t i, j, k;
+	uint32 id = 1;
+	int ret = 0;
+	int index, type;
+
+	if(st.sd)
+	{
+		for (i=0; id!=0; i++)
+		{
+			if( st.Arguments() > i+2 )
+				id = st.GetInt(st[i+2]);
+			else 
+				id = 0;
+			if (id <= 0)
+				continue;
+			for (j=0; j<10; j++)
+			{
+				index = st.sd->equip_index[j];
+				if(index >= MAX_INVENTORY) continue;
+				if(j == 9 && st.sd->equip_index[8] == index) continue;
+				if(j == 5 && st.sd->equip_index[4] == index) continue;
+				if(j == 6 && (st.sd->equip_index[5] == index || st.sd->equip_index[4] == index)) continue;
+				
+				type = itemdb_type(id);
+				
+				if(st.sd->inventory_data[index])
+				{
+					if(type == 4 || type == 5)
+					{
+						if(st.sd->inventory_data[index]->nameid == id)
+							ret++; //[Lupus]
+					}
+					else if (type == 6)
+					{
+						for(k=0; k<st.sd->inventory_data[index]->flag.slot; k++)
+						{
+							if( st.sd->status.inventory[index].card[0]!=0x00ff &&
+								st.sd->status.inventory[index].card[0]!=0x00fe &&
+								st.sd->status.inventory[index].card[0]!=0xff00 &&
+								st.sd->status.inventory[index].card[k] == id)
+							{
+								ret++; //[Lupus]
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 	st.push_val(CScriptEngine::C_INT,ret);

@@ -1495,26 +1495,35 @@ int connect_client(int listen_fd)
 		return -1;
 	}
 
-//	CREATE(session[fd], struct socket_data, 1);
+
 	session[fd] = new struct socket_data;
-	memset(session[fd],0,sizeof(struct socket_data));
-//	CREATE(session[fd]->rdata, unsigned char, RFIFO_SIZE);
-	session[fd]->rdata = new unsigned char[RFIFO_SIZE];
-
-//	CREATE(session[fd]->wdata, unsigned char, WFIFO_SIZE);
-	session[fd]->wdata = new unsigned char[WFIFO_SIZE];
-
+	////////////////
+	// init members
+	// move to constructor
 	session[fd]->flag.connected   = true;
 	session[fd]->flag.remove      = false;
 	session[fd]->flag.marked      = false;
 
-	session[fd]->rdata_max   = RFIFO_SIZE;
-	session[fd]->wdata_max   = WFIFO_SIZE;
-	session[fd]->func_recv   = recv_to_fifo;
-	session[fd]->func_send   = send_from_fifo;
-	session[fd]->func_parse  = default_func_parse;
-	session[fd]->client_ip	 = ntohl(client_address.sin_addr.s_addr);
-	session[fd]->rdata_tick  = last_tick;
+	session[fd]->rdata_tick   = last_tick;	
+	
+	session[fd]->rdata = new unsigned char[RFIFO_SIZE];
+	session[fd]->rdata_max  = RFIFO_SIZE;
+	session[fd]->rdata_size = 0;
+	session[fd]->rdata_pos  = 0;
+
+	session[fd]->wdata = new unsigned char[WFIFO_SIZE];
+	session[fd]->wdata_max  = WFIFO_SIZE;
+	session[fd]->wdata_size = 0;
+
+	session[fd]->client_ip    = ntohl(client_address.sin_addr.s_addr);
+
+	session[fd]->func_recv    = recv_to_fifo;
+	session[fd]->func_send    = send_from_fifo;
+	session[fd]->func_parse   = default_func_parse;
+	session[fd]->func_term    = NULL;
+	session[fd]->func_console = NULL;
+	
+	session[fd]->session_data = NULL;
 
 	ShowStatus("Incoming connection from %d.%d.%d.%d:%i\n",
 		(session[fd]->client_ip>>24)&0xFF,(session[fd]->client_ip>>16)&0xFF,(session[fd]->client_ip>>8)&0xFF,(session[fd]->client_ip)&0xFF,
@@ -1642,25 +1651,34 @@ int make_connection(unsigned long ip, unsigned short port)
 		return -1;
 	}
 
-//	CREATE(session[fd], struct socket_data, 1);
 	session[fd] = new struct socket_data;
-	memset(session[fd],0,sizeof(struct socket_data));
-
-//	CREATE(session[fd]->rdata, unsigned char, RFIFO_SIZE);
-	session[fd]->rdata = new unsigned char[RFIFO_SIZE];
-//	CREATE(session[fd]->wdata, unsigned char, WFIFO_SIZE);
-	session[fd]->wdata = new unsigned char[WFIFO_SIZE];
-
+	////////////////
+	// init members
+	// move to constructor
 	session[fd]->flag.connected   = true;
 	session[fd]->flag.remove      = false;
 	session[fd]->flag.marked      = false;
 
+	session[fd]->rdata_tick   = last_tick;	
+	
+	session[fd]->rdata = new unsigned char[RFIFO_SIZE];
 	session[fd]->rdata_max  = RFIFO_SIZE;
+	session[fd]->rdata_size = 0;
+	session[fd]->rdata_pos  = 0;
+
+	session[fd]->wdata = new unsigned char[WFIFO_SIZE];
 	session[fd]->wdata_max  = WFIFO_SIZE;
-	session[fd]->func_recv  = recv_to_fifo;
-	session[fd]->func_send  = send_from_fifo;
-	session[fd]->func_parse = default_func_parse;
-	session[fd]->rdata_tick = last_tick;
+	session[fd]->wdata_size = 0;
+
+	session[fd]->client_ip    = ip;
+
+	session[fd]->func_recv    = recv_to_fifo;
+	session[fd]->func_send    = send_from_fifo;
+	session[fd]->func_parse   = default_func_parse;
+	session[fd]->func_term    = NULL;
+	session[fd]->func_console = NULL;
+	
+	session[fd]->session_data = NULL;
 
 	return fd;
 }
@@ -1712,15 +1730,35 @@ int start_console(void) {
 		return -1;
 	}
 
-	CREATE(session[fd], struct socket_data, 1);
-	
+	session[fd] = new struct socket_data;
+	////////////////
+	// init members
+	// move to constructor
 	session[fd]->flag.connected   = true;
 	session[fd]->flag.remove      = false;
 	session[fd]->flag.marked      = false;
 
+	session[fd]->rdata_tick   = last_tick;	
+	
+	session[fd]->rdata = new unsigned char[RFIFO_SIZE];
+	session[fd]->rdata_max    = RFIFO_SIZE;
+	session[fd]->rdata_size   = 0;
+	session[fd]->rdata_pos    = 0;
+
+	session[fd]->wdata = new unsigned char[WFIFO_SIZE];
+	session[fd]->wdata_max    = WFIFO_SIZE;
+	session[fd]->wdata_size   = 0;
+
+	session[fd]->client_ip    = INADDR_ANY;
+
 	session[fd]->func_recv    = console_recieve;
+	session[fd]->func_send    = NULL;
+	session[fd]->func_parse   = NULL;
+	session[fd]->func_term    = NULL;
 	session[fd]->func_console = default_console_parse;
 	
+	session[fd]->session_data = NULL;
+
 	return 0;
 }   
 
@@ -2058,12 +2096,9 @@ bool session_Delete(int fd)
 			session[fd]->func_term(fd);
 
 		// and clean up
-//		if(session[fd]->rdata)			aFree(session[fd]->rdata);
 		if(session[fd]->rdata)			delete[] session[fd]->rdata;
-//		if(session[fd]->wdata)			aFree(session[fd]->wdata);
 		if(session[fd]->wdata)			delete[] session[fd]->wdata;
 		if(session[fd]->session_data)	aFree(session[fd]->session_data);
-//		aFree(session[fd]);
 		delete session[fd];
 		session[fd]=NULL;
 
@@ -2096,12 +2131,9 @@ void socket_final(void)
 		// just force deletion of the sessions
 		if( session_isValid(fd) )
 		{
-//			if(session[fd]->rdata)			aFree(session[fd]->rdata);
 			if(session[fd]->rdata)			delete[] session[fd]->rdata;
-//			if(session[fd]->wdata)			aFree(session[fd]->wdata);
 			if(session[fd]->wdata)			delete[] session[fd]->wdata;
 			if(session[fd]->session_data)	aFree(session[fd]->session_data);
-//			aFree(session[fd]);
 			delete session[fd];
 			session[fd]=NULL;
 			SessionRemoveIndex( fd );

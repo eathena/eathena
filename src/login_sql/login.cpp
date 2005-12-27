@@ -298,7 +298,7 @@ int mmo_auth( struct mmo_account* account , int fd)
 	char md5str[64], md5bin[32];
 
 	char ip_str[16];
-	session[fd]->client_ip.getstring(ip_str);
+	if(session[fd]) session[fd]->client_ip.getstring(ip_str);
 
 
 	ShowMessage ("auth start...\n");
@@ -601,7 +601,7 @@ int parse_fromchar(int fd){
 	MYSQL_ROW  sql_row = NULL;
 
 	char ip_str[16];
-	session[fd]->client_ip.getstring(ip_str);
+	if(session[fd]) session[fd]->client_ip.getstring(ip_str);
 
 	for(id = 0; id < MAX_SERVERS; id++)
 		if( server[id].fd == fd )
@@ -1052,7 +1052,7 @@ int parse_login(int fd)
 
 	int result, i;
 	char ip_str[16];
-	session[fd]->client_ip.getstring(ip_str);
+	if(session[fd]) session[fd]->client_ip.getstring(ip_str);
 	unsigned char p[] = {(unsigned char)(session[fd]->client_ip>>24)&0xFF,(unsigned char)(session[fd]->client_ip>>16)&0xFF,(unsigned char)(session[fd]->client_ip>>8)&0xFF,(unsigned char)(session[fd]->client_ip)&0xFF};
 
 	if (ipban > 0)

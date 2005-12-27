@@ -145,7 +145,7 @@ static void MD5_Round_Calculate(const unsigned char *block,
 // The function for the exteriors
 
 /** output is the coded binary in the character sequence which wants to code string. */
-void MD5_String2binary(const char * string, char * output)
+void MD5_String2binary(const char * str, char * output)
 {
 //var
    /*8bit*/
@@ -173,8 +173,8 @@ void MD5_String2binary(const char * string, char * output)
 
    //Step 1.Append Padding Bits (extension of a mark bit)
    //1-1
-   string_byte_len = strlen(string);    //The byte chief of a character sequence is acquired.
-   pstring = (unsigned char *)string; //The position of the present character sequence is set.
+   string_byte_len = strlen(str);    //The byte chief of a character sequence is acquired.
+   pstring = (unsigned char *)str; //The position of the present character sequence is set.
 
    //1-2  Repeat calculation until length becomes less than 64 bytes.
    for (i=string_byte_len; 64<=i; i-=64,pstring+=64)
@@ -221,10 +221,10 @@ void MD5_String2binary(const char * string, char * output)
 }
 
 /** output is the coded character sequence in the character sequence which wants to code string. */
-void MD5_String(const char * string, char * output)
+void MD5_String(const char * str, char * output)
 {
 	unsigned char digest[16];
-	MD5_String2binary(string, (char*)digest);
+	MD5_String2binary(str, (char*)digest);
 	sprintf(output,
 		"%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
 		digest[ 0], digest[ 1], digest[ 2], digest[ 3],

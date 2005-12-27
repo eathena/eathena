@@ -471,12 +471,12 @@ void CAccountReg::_frombuffer(const unsigned char* &buf)
 size_t CMapAccount::size() const
 {
 	return
-	sizeof(sex) +
-	sizeof(gm_level) +
-	sizeof(ban_until) +
-	sizeof(valid_until) +
-	CAuth::size();
-	CAccountReg::size();
+		sizeof(sex) +
+		sizeof(gm_level) +
+		sizeof(ban_until) +
+		sizeof(valid_until) +
+		CAuth::size()+
+		CAccountReg::size();
 }
 
 void CMapAccount::_tobuffer(unsigned char* &buf) const
@@ -1730,11 +1730,15 @@ CREATE TABLE IF NOT EXISTS `char_skill` (
 					ret = false;
 					break;
 				}
-				char*ip = strchr(p.memo_point[i].mapname, '.');
-				if(ip) *ip=0;
-				
-				p.memo_point[i].x = tmp_int[0];
-				p.memo_point[i].y = tmp_int[1];
+
+				if( i<MAX_MEMO )
+				{
+					char*ip = strchr(p.memo_point[i].mapname, '.');
+					if(ip) *ip=0;
+
+					p.memo_point[i].x = tmp_int[0];
+					p.memo_point[i].y = tmp_int[1];
+				}
 				next += len;
 				if (str[next] == ' ')
 					next++;
@@ -1766,18 +1770,20 @@ CREATE TABLE IF NOT EXISTS `char_skill` (
 					ret = false;
 					break;
 				}
-
-				p.inventory[i].id = tmp_int[0];
-				p.inventory[i].nameid = tmp_int[1];
-				p.inventory[i].amount = tmp_int[2];
-				p.inventory[i].equip = tmp_int[3];
-				p.inventory[i].identify = tmp_int[4];
-				p.inventory[i].refine = tmp_int[5];
-				p.inventory[i].attribute = tmp_int[6];
-				p.inventory[i].card[0] = tmp_int[7];
-				p.inventory[i].card[1] = tmp_int[8];
-				p.inventory[i].card[2] = tmp_int[9];
-				p.inventory[i].card[3] = tmp_int[10];
+				if( i<MAX_INVENTORY )
+				{
+					p.inventory[i].id = tmp_int[0];
+					p.inventory[i].nameid = tmp_int[1];
+					p.inventory[i].amount = tmp_int[2];
+					p.inventory[i].equip = tmp_int[3];
+					p.inventory[i].identify = tmp_int[4];
+					p.inventory[i].refine = tmp_int[5];
+					p.inventory[i].attribute = tmp_int[6];
+					p.inventory[i].card[0] = tmp_int[7];
+					p.inventory[i].card[1] = tmp_int[8];
+					p.inventory[i].card[2] = tmp_int[9];
+					p.inventory[i].card[3] = tmp_int[10];
+				}
 				next += len;
 				if (str[next] == ' ')
 					next++;
@@ -1810,17 +1816,20 @@ CREATE TABLE IF NOT EXISTS `char_skill` (
 					break;
 				}
 
-				p.cart[i].id = tmp_int[0];
-				p.cart[i].nameid = tmp_int[1];
-				p.cart[i].amount = tmp_int[2];
-				p.cart[i].equip = tmp_int[3];
-				p.cart[i].identify = tmp_int[4];
-				p.cart[i].refine = tmp_int[5];
-				p.cart[i].attribute = tmp_int[6];
-				p.cart[i].card[0] = tmp_int[7];
-				p.cart[i].card[1] = tmp_int[8];
-				p.cart[i].card[2] = tmp_int[9];
-				p.cart[i].card[3] = tmp_int[10];
+				if( i<MAX_CART )
+				{
+					p.cart[i].id = tmp_int[0];
+					p.cart[i].nameid = tmp_int[1];
+					p.cart[i].amount = tmp_int[2];
+					p.cart[i].equip = tmp_int[3];
+					p.cart[i].identify = tmp_int[4];
+					p.cart[i].refine = tmp_int[5];
+					p.cart[i].attribute = tmp_int[6];
+					p.cart[i].card[0] = tmp_int[7];
+					p.cart[i].card[1] = tmp_int[8];
+					p.cart[i].card[2] = tmp_int[9];
+					p.cart[i].card[3] = tmp_int[10];
+				}
 				next += len;
 				if (str[next] == ' ')
 					next++;
@@ -1838,8 +1847,11 @@ CREATE TABLE IF NOT EXISTS `char_skill` (
 					ret = false;
 					break;
 				}
-				p.skill[tmp_int[0]].id = tmp_int[0];
-				p.skill[tmp_int[0]].lv = tmp_int[1];
+				if(tmp_int[0] < MAX_SKILL )
+				{
+					p.skill[tmp_int[0]].id = tmp_int[0];
+					p.skill[tmp_int[0]].lv = tmp_int[1];
+				}
 				next += len;
 				if (str[next] == ' ')
 					next++;
@@ -1849,10 +1861,11 @@ CREATE TABLE IF NOT EXISTS `char_skill` (
 		if(ret)
 		{	// start with the next char after the delimiter
 			unsigned long val;
+			char str[32];
 			next++;
 			for(i = 0; str[next] && str[next] != '\t' && str[next] != '\n' && str[next] != '\r'; i++)
 			{	// global_reg実装以前のathena.txt互換のため一応'\n'チェック
-				if(sscanf(str + next, "%[^,],%ld%n", p.global_reg[i].str, &val, &len) != 2)
+				if(sscanf(str + next, "%32[^,],%ld%n", str, &val, &len) != 2)
 				{	// because some scripts are not correct, the str can be "". So, we must check that.
 					// If it's, we must not refuse the character, but just this REG value.
 					// Character line will have something like: nov_2nd_cos,9 ,9 nov_1_2_cos_c,1 (here, ,9 is not good)
@@ -1867,7 +1880,11 @@ CREATE TABLE IF NOT EXISTS `char_skill` (
 					}
 
 				}
-				p.global_reg[i].value = val;
+				if( i<GLOBAL_REG_NUM )
+				{
+					safestrcpy(p.global_reg[i].str, str, sizeof(p.global_reg[i].str));
+					p.global_reg[i].value = val;
+				}
 				next += len;
 				if (str[next] == ' ')
 					next++;
@@ -3950,14 +3967,14 @@ class CPCStorageDB_txt : public CTimerBase, private CConfig, public CPCStorageDB
 		int set,next,len,i;
 
 		set=sscanf(str,"%d,%d%n",&tmp_int[0],&tmp_int[1],&next);
-		stor.storage_amount=tmp_int[1];
+		stor.storage_amount = (tmp_int[1]<MAX_STORAGE)?tmp_int[1]:MAX_STORAGE;
 
 		if(set!=2)
 			return false;
 		if(str[next]=='\n' || str[next]=='\r')
 			return false;
 		next++;
-		for(i=0;str[next] && str[next]!='\t';i++)
+		for(i=0;str[next] && str[next]!='\t' && i<MAX_STORAGE;i++)
 		{
 			if(sscanf(str + next, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d%n",
 				&tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3],
@@ -4225,8 +4242,8 @@ class CGuildStorageDB_txt : public CTimerBase, private CConfig, public CGuildSto
 			return false;
 		next++;
 
-		stor.storage_amount = (((ushort)tmp_int[1])<MAX_GUILD_STORAGE) ? tmp_int[1] : MAX_GUILD_STORAGE;
-		for(i=0; str[next] && str[next]!='\t'; i++)
+		stor.storage_amount = (tmp_int[1]<MAX_GUILD_STORAGE) ? tmp_int[1] : MAX_GUILD_STORAGE;
+		for(i=0; str[next] && str[next]!='\t' && i<MAX_GUILD_STORAGE; i++)
 		{
 			if(sscanf(str + next, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d%n",
 				&tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3],

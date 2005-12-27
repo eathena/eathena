@@ -4,7 +4,7 @@
 
 #include "base.h"
 
-void MD5_String(const char * string, char * output);
-void MD5_String2binary(const char * string, char * output);
+void MD5_String(const char * str, char * output);
+void MD5_String2binary(const char * str, char * output);
 
 #endif

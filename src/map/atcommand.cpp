@@ -2970,7 +2970,7 @@ bool atcommand_monster(int fd, struct map_session_data &sd, const char* command,
 		ShowMessage("%s monster='%s' name='%s' id=%d count=%d (%d,%d)\n", command, monster, name, mob_id, number, x, y);
 
 	count = 0;
-	range = (unsigned int)sqrt(number) + 5; // calculation of an odd number (+ 4 area around)
+	range = (unsigned int)sqrt((double)number) + 5; // calculation of an odd number (+ 4 area around)
 	for (i = 0; i < number; i++) {
 		j = 0;
 		k = 0;
@@ -3056,7 +3056,7 @@ bool atcommand_spawn(int fd, struct map_session_data &sd, const char* command, c
 		ShowMessage("%s monster='%s' name='%s' id=%d count=%d (%d,%d)\n", command, monster, name, mob_id, number, x, y);
 
 	count = 0;
-	range = (unsigned int)sqrt(number) + 5; // calculation of an odd number (+ 4 area around)
+	range = (unsigned int)sqrt((double)number) + 5; // calculation of an odd number (+ 4 area around)
 	for (i = 0; i < number; i++) {
 		j = 0;
 		k = 0;

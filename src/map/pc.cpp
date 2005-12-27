@@ -1138,7 +1138,8 @@ int pc_checkweighticon(struct map_session_data &sd)
 {
 	int flag=0;
 
-	if(sd.weight*2 >= sd.max_weight)
+	if(sd.weight*100 >= sd.max_weight*battle_config.natural_heal_weight_rate)
+	//if(sd.weight*2 >= sd.max_weight)
 		flag=1;
 	if(sd.weight*10 >= sd.max_weight*9)
 		flag=2;

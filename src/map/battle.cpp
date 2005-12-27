@@ -4788,7 +4788,7 @@ struct Damage battle_calc_misc_attack(struct block_list *bl,struct block_list *t
 	case CR_ACIDDEMONSTRATION:
 		//This equation is not official, but it's the closest to the official one 
 		//that Viccious Pucca and the other folks at the forums could come up with. [Skotlex]
-		damage = int_ * (int)sqrt(100*status_get_vit(target))/3;
+		damage = int_ * (int)sqrt((double)(100*status_get_vit(target)))/3;
 		if (tsd) damage/=2;
 		aflag |= (flag&~BF_RANGEMASK)|BF_LONG;
 		break;
@@ -6332,8 +6332,8 @@ void battle_validate_conf()
 		battle_config.natural_heal_skill_interval=NATURAL_HEAL_INTERVAL;
 	if(battle_config.natural_heal_weight_rate < 50)
 		battle_config.natural_heal_weight_rate = 50;
-	if(battle_config.natural_heal_weight_rate > 101)
-		battle_config.natural_heal_weight_rate = 101;
+	if(battle_config.natural_heal_weight_rate > 100)
+		battle_config.natural_heal_weight_rate = 100;
 	
 	////////////////////////////////////////////////
 	if( battle_config.monster_max_aspd< 200 )
