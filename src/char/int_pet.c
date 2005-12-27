@@ -291,9 +291,9 @@ int mapif_load_pet(int fd,int account_id,int char_id,int pet_id)
 int mapif_save_pet(int fd,int account_id,struct s_pet *data)
 {
 	struct s_pet *p;
-	int pet_id;
+	int pet_id, len;
 	RFIFOHEAD(fd);
-	int len=RFIFOW(fd,2);
+	len=RFIFOW(fd,2);
 	
 	if(sizeof(struct s_pet)!=len-8) {
 		ShowError("inter pet: data size error %d %d\n",sizeof(struct s_pet),len-8);

@@ -10560,8 +10560,9 @@ void clif_parse_GuildChangeMemberPosition(int fd, struct map_session_data *sd) {
  *------------------------------------------
  */
 void clif_parse_GuildRequestEmblem(int fd,struct map_session_data *sd) {
+	struct guild *g;
 	RFIFOHEAD(fd);
-	struct guild *g=guild_search(RFIFOL(fd,2));
+	g=guild_search(RFIFOL(fd,2));
 	if(g!=NULL)
 		clif_guild_emblem(sd,g);
 }
@@ -10901,8 +10902,9 @@ void clif_parse_GMReqNoChat(int fd,struct map_session_data *sd)
  */
 void clif_parse_GMReqNoChatCount(int fd, struct map_session_data *sd)
 {
+	int tid;
 	RFIFOHEAD(fd);
-	int tid = RFIFOL(fd,2);
+	tid = RFIFOL(fd,2);
 
 	WFIFOHEAD(fd,packet_len_table[0x1e0]);
 	WFIFOW(fd,0) = 0x1e0;

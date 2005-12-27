@@ -328,8 +328,9 @@ int chrif_changemapserver(struct map_session_data *sd, char *name, int x, int y,
  */
 int chrif_changemapserverack(int fd)
 {
+	struct map_session_data *sd;
 	RFIFOHEAD(fd);
-	struct map_session_data *sd = map_id2sd(RFIFOL(fd,2));
+	sd = map_id2sd(RFIFOL(fd,2));
 
 	if (sd == NULL || sd->status.char_id != RFIFOL(fd,14))
 		return -1;

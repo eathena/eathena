@@ -713,9 +713,10 @@ int intif_parse_WisMessage(int fd) { // rewritten by [Yor]
 	struct map_session_data* sd;
 	char *wisp_source;
 	char name[NAME_LENGTH];
+	int id, i;
 	RFIFOHEAD(fd);
-	int id=RFIFOL(fd,4);
-	int i=0; //,j=0;
+	id=RFIFOL(fd,4);
+	i=0; //,j=0;
 
 //	if(battle_config.etc_log)
 //		printf("intif_parse_wismessage: %d %s %s %s\n",id,RFIFOP(fd,6),RFIFOP(fd,30),RFIFOP(fd,54) );
@@ -859,8 +860,9 @@ int intif_parse_LoadGuildStorage(int fd)
 {
 	struct guild_storage *gstor;
 	struct map_session_data *sd;
+	int guild_id;
 	RFIFOHEAD(fd);
-	int guild_id = RFIFOL(fd,8);
+	guild_id = RFIFOL(fd,8);
 	if(guild_id > 0) {
 		gstor=guild2storage(guild_id);
 		if(!gstor) {
@@ -1043,12 +1045,17 @@ int intif_parse_GuildBroken(int fd)
 // ギルド基本情報変更通知
 int intif_parse_GuildBasicInfoChanged(int fd)
 {
+	int type, guild_id, dd;
+	void *data;
+	struct guild *g;
+	short dw;
 	RFIFOHEAD(fd);
-	int type=RFIFOW(fd,8),guild_id=RFIFOL(fd,4);
-	void *data=RFIFOP(fd,10);
-	struct guild *g=guild_search(guild_id);
-	short dw=*((short *)data);
-	int dd=*((int *)data);
+	type=RFIFOW(fd,8);
+	guild_id=RFIFOL(fd,4);
+	data=RFIFOP(fd,10);
+	g=guild_search(guild_id);
+	dw=*((short *)data);
+	dd=*((int *)data);
 	if( g==NULL )
 		return 0;
 	switch(type){
@@ -1061,12 +1068,17 @@ int intif_parse_GuildBasicInfoChanged(int fd)
 // ギルドメンバ情報変更通知
 int intif_parse_GuildMemberInfoChanged(int fd)
 {
+	int type, guild_id, account_id, char_id, idx, dd;
+	void* data;
+	struct guild *g;
 	RFIFOHEAD(fd);
-	int type=RFIFOW(fd,16),guild_id=RFIFOL(fd,4);
-	int account_id=RFIFOL(fd,8),char_id=RFIFOL(fd,12);
-	void *data=RFIFOP(fd,18);
-	struct guild *g=guild_search(guild_id);
-	int idx,dd=*((int *)data);
+	type=RFIFOW(fd,16);
+	guild_id=RFIFOL(fd,4);
+	account_id=RFIFOL(fd,8);
+	char_id=RFIFOL(fd,12);
+	data=RFIFOP(fd,18);
+	g=guild_search(guild_id);
+	dd=*((int *)data);
 	if( g==NULL )
 		return 0;
 	idx=guild_getindex(g,account_id,char_id);
@@ -1182,8 +1194,9 @@ int intif_parse_CreatePet(int fd)
 int intif_parse_RecvPetData(int fd)
 {
 	struct s_pet p;
+	int len;
 	RFIFOHEAD(fd);
-	int len=RFIFOW(fd,2);
+	len=RFIFOW(fd,2);
 	if(sizeof(struct s_pet)!=len-9) {
 		if(battle_config.etc_log)
 			ShowError("intif: pet data: data size error %d %d\n",sizeof(struct s_pet),len-9);
@@ -1222,9 +1235,9 @@ int intif_parse_DeletePetOk(int fd)
 // パケットが処理できれば1,パケット長が足りなければ2を返すこと
 int intif_parse(int fd)
 {
-	int packet_len;
+	int packet_len, cmd;
 	RFIFOHEAD(fd);
-	int cmd = RFIFOW(fd,0);
+	cmd = RFIFOW(fd,0);
 	// パケットのID確認
 	if(cmd<0x3800 || cmd>=0x3800+(sizeof(packet_len_table)/sizeof(packet_len_table[0])) ||
 	   packet_len_table[cmd-0x3800]==0){

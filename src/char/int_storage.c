@@ -427,9 +427,10 @@ int mapif_parse_LoadStorage(int fd)
 int mapif_parse_SaveStorage(int fd)
 {
 	struct storage *s;
+	int account_id, len;
 	RFIFOHEAD(fd);
-	int account_id=RFIFOL(fd,4);
-	int len=RFIFOW(fd,2);
+	account_id=RFIFOL(fd,4);
+	len=RFIFOW(fd,2);
 	if(sizeof(struct storage)!=len-8){
 		ShowError("inter storage: data size error %d %d\n",sizeof(struct storage),len-8);
 	}
@@ -450,9 +451,10 @@ int mapif_parse_LoadGuildStorage(int fd)
 int mapif_parse_SaveGuildStorage(int fd)
 {
 	struct guild_storage *gs;
+	int guild_id, len;
 	RFIFOHEAD(fd);
-	int guild_id=RFIFOL(fd,8);
-	int len=RFIFOW(fd,2);
+	guild_id=RFIFOL(fd,8);
+	len=RFIFOW(fd,2);
 	if(sizeof(struct guild_storage)!=len-12){
 		ShowError("inter storage: data size error %d %d\n",sizeof(struct guild_storage),len-12);
 	}
