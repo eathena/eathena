@@ -1155,7 +1155,7 @@ int chrif_recvfamelist(int fd)
 
 	memset (smith_fame_list, 0, sizeof(smith_fame_list));
 	memset (chemist_fame_list, 0, sizeof(chemist_fame_list));
-	memset (chemist_fame_list, 0, sizeof(taekwon_fame_list));
+	memset (taekwon_fame_list, 0, sizeof(taekwon_fame_list));
 
 	size = RFIFOW(fd,6); //Blacksmith block size
 	for (num = 0; len < size && num < 10; num++) {
