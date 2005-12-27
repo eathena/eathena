@@ -2148,7 +2148,7 @@ int status_calc_watk(struct block_list *bl, int watk)
 		if(sc_data[SC_EXPLOSIONSPIRITS].timer!=-1 && bl->type != BL_PC)
 			watk += (1000*sc_data[SC_EXPLOSIONSPIRITS].val1);
 		if(sc_data[SC_CURSE].timer!=-1)
-			watk -= watk * 75/100;
+			watk -= watk * 25/100;
 		if(sc_data[SC_STRIPWEAPON].timer!=-1 && bl->type != BL_PC)
 			watk -= watk * 5*sc_data[SC_STRIPWEAPON].val1/100;
 	}

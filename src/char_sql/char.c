@@ -2812,7 +2812,7 @@ int parse_frommap(int fd) {
 						break;
 				}
 			}
-   			mysql_free_result(sql_res);
+   		mysql_free_result(sql_res);
 			WBUFW(buf, 6) = len; //Blacksmith block size
 
 			num = 0;
