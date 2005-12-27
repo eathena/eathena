@@ -1794,7 +1794,10 @@ int mob_cache_cleanup_sub(struct block_list *bl, va_list ap) {
 	//Mob has the cached flag on 0
 	if (!md->special_state.cached)
 		return 0;
-
+	if (!battle_config.mob_remove_damaged && 
+		md->hp < md->db->max_hp) //don't use status_get_maxhp for speed (by the time you have to remove a mob, their status changes should have expired anyway)
+		return 0; //Do not remove damaged mobs.
+	
 	mob_remove_map(md, 0);
 	map_deliddb(&md->bl);
 	aFree(md);

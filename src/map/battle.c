@@ -1915,7 +1915,10 @@ static struct Damage battle_calc_weapon_attack(
 				vit_def = def2 + (vit_def>0?rand()%vit_def:0);
 			}
 			
-			if(battle_config.player_defense_type)
+			if ((sd && battle_config.player_defense_type)
+				|| (md && battle_config.monster_defense_type)
+				|| (pd && battle_config.pet_defense_type)
+			)
 				vit_def += def1*battle_config.player_defense_type;
 			else
 				ATK_RATE2(flag.idef?100:100-def1, flag.idef2?100:100-def1);
@@ -3620,7 +3623,6 @@ static const struct battle_data_short {
 	{ "devotion_level_difference",         &battle_config.devotion_level_difference	},
 	{ "player_skill_partner_check",        &battle_config.player_skill_partner_check},
 	{ "hide_GM_session",                   &battle_config.hide_GM_session			},
-	{ "unit_movement_type",                &battle_config.unit_movement_type		},
 	{ "invite_request_check",              &battle_config.invite_request_check		},
 	{ "skill_removetrap_type",             &battle_config.skill_removetrap_type	},
 	{ "disp_experience",                   &battle_config.disp_experience			},
@@ -3996,7 +3998,6 @@ void battle_set_defaults() {
 	battle_config.devotion_level_difference = 10;
 	battle_config.player_skill_partner_check = 1;
 	battle_config.hide_GM_session = 0;
-	battle_config.unit_movement_type = 0;
 	battle_config.invite_request_check = 1;
 	battle_config.skill_removetrap_type = 0;
 	battle_config.disp_experience = 0;

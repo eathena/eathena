@@ -1,6 +1,9 @@
 Date	Added
 
 2005/12/27
+	* Removed unused battle switches enable_upper_class and unit_movement_type. [Skotlex]
+	* Reenabled battle switches pet_defense_type, mob_defense_type and
+	  mob_remove_damaged. [Skotlex]
 	* Applied Irmin's patch to add support for SQL codepages. [Skotlex]
 	* Fixed friend list saving if using a custom char table name (SQL version). [Valaris]
 	* Added check for mute in main chat [Foruken]

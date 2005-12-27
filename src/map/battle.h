@@ -308,7 +308,6 @@ extern struct Battle_Config {
 	unsigned short devotion_level_difference;
 	unsigned short player_skill_partner_check;
 	unsigned short hide_GM_session;
-	unsigned short unit_movement_type;
 	unsigned short invite_request_check;
 	unsigned short skill_removetrap_type;
 	unsigned short disp_experience;
