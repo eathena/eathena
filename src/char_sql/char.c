@@ -1087,7 +1087,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p){
 
 	//Shamelessly stolen from its_sparky (ie: thanks) and then assimilated by [Skotlex]
 	//Friend list 
-	sprintf(tmp_sql, "SELECT f.friend_account, f.friend_id, c.name FROM `%s` f LEFT JOIN `char` c ON f.friend_account=c.account_id AND f.friend_id=c.char_id WHERE f.char_id='%d'", friend_db, char_id);
+	sprintf(tmp_sql, "SELECT f.friend_account, f.friend_id, c.name FROM `%s` f LEFT JOIN `%s` c ON f.friend_account=c.account_id AND f.friend_id=c.char_id WHERE f.char_id='%d'", friend_db, char_db, char_id);
 
 	if(mysql_query(&mysql_handle, tmp_sql)){
 		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));

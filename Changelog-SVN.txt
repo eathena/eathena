@@ -1,6 +1,7 @@
 Date	Added
 
 2005/12/27
+	* Fixed friend list saving if using a custom char table name (SQL version). [Valaris]
 	* Added check for mute in main chat [Foruken]
 	* Likely fixed lose Hp/Sp script commands when used on accesories. [Skotlex]
 	* Added 2 new script commands: getfatherid, getmotherid [Lupus]
