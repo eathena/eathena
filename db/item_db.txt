@@ -1925,7 +1925,7 @@
 7311,Airship_Coupon,Airship Free Coupon,3,,10,10,,,,,,,,,,,,,{}
 7312,Jubile,Jubilee,3,,16,10,,,,,,,,,,,,,{}
 7313,Witch's_Medal,Witch's Medal,3,,10,10,,,,,,,,,,,,,{}
-7314,The_Sign,The Sign,3,,0,10,,,,,,,,,,,,,{}
+7314,The_Sign_,The Sign,3,,0,10,,,,,,,,,,,,,{}
 7315,Black_Quartz_Piece,Dark Crystal Fragment,3,,211,10,,,,,,,,,,,,,{}
 7316,Insect_Long_leg,Insect Leg,3,,329,10,,,,,,,,,,,,,{}
 7317,Rusted_Bolt,Rusty Screw,3,,267,10,,,,,,,,,,,,,{}
