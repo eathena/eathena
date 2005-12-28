@@ -1013,7 +1013,7 @@
 2346,Armor_of_Water,Saphien's Armor of Ocean,5,136000,,2200,,4,,0,279714,7,2,16,,45,1,0,{ bonus bDefEle,Ele_Water; }
 2347,Armor_of_Water_,Saphien's Armor of Ocean,5,136000,,2200,,4,,1,119529470,7,2,16,,45,1,0,{ bonus bDefEle,Ele_Water; }
 2348,Armor_of_Wind,Aebeccee's Raging Typhoon Armor,5,136000,,2200,,4,,0,279714,7,2,16,,45,1,0,{ bonus bDefEle,Ele_Wind; }
-2349,Armor_of_Wind_,Aebeshee's Raging Typhoon Armor,5,136000,,2200,,4,,1,119529470,7,2,16,,45,1,0,{ bonus bDefEle,Ele_Wind; }
+2349,Armor_of_Wind_,Aebeccee's Raging Typhoon Armor,5,136000,,2200,,4,,1,119529470,7,2,16,,45,1,0,{ bonus bDefEle,Ele_Wind; }
 2350,Armor_of_Land,Claytos Cracking Earth Armor,5,136000,,2200,,4,,0,279714,7,2,16,,45,1,0,{ bonus bDefEle,Ele_Earth; }
 2351,Armor_of_Land_,Claytos Cracking Earth Armor,5,136000,,2200,,4,,1,119529470,7,2,16,,45,1,0,{ bonus bDefEle,Ele_Earth; }
 2352,Novice_Ninja_Suit,Tattered Novice Ninja Suit,5,,10,1,,4,,0,8388609,7,2,16,,0,0,0,{}
@@ -1608,7 +1608,7 @@
 5133,Sheep_Hat,Sheep Hat,5,,10,150,,1,,0,33040,7,2,256,,50,1,205,{ bonus bShortWeaponDamageReturn,5; }
 5134,Pumpkin_Hat,Pumpkin Hat,5,,10,200,,2,,0,127918079,7,2,256,,0,1,206,{}
 5135,Cyclops_Eye,Cyclops Eye,5,,10,200,,0,,0,119529470,7,2,512,,75,1,207,{ bonus bMaxSP,50; }
-5136,Luise's_Santa_Hat,Luise's Santa's Hat,5,,10,100,,3,,0,127918079,7,2,256,,0,1,20,{ bonus bMdef,1; bonus bLuk,1; bonus4 bAutoSpellWhenHit,34,10,10,0; bonus4 bAutoSpellWhenHit,75,5,10,0;}
+5136,Louise's_Santa_Hat,Louise's Santa's Hat,5,,10,100,,3,,0,127918079,7,2,256,,0,1,20,{ bonus bMdef,1; bonus bLuk,1; bonus4 bAutoSpellWhenHit,34,10,10,0; bonus4 bAutoSpellWhenHit,75,5,10,0;}
 
 // More Etc Items
 //===================================================================
