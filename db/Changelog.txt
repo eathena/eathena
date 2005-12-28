@@ -27,6 +27,7 @@
 =========================
 
 12/28
+	* Moved some THQ items [Komurka]
 	* Fixed duplicate the_sign [DracoRPG]
 	* Fixed 2 name inconstitencies in item_db, thanks to Haplo [DracoRPG]
 	* Added SC_Intravision to Sunshine Box and const list [DracoRPG]

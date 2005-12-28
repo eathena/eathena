@@ -5,7 +5,7 @@
 
 //Treasure Hunters Quest Items
 //use these aliases if your game client doesn't support them normally
-7500,7021
-7501,7042
-1998,1250
-1999,1472
+//7950,7021
+//7951,7042
+//1998,1250
+//1999,1472
