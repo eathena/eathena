@@ -1,3 +1,6 @@
+// (c) eAthena Dev Team - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
+
 /*
 	This program adds an user to account.txt
 	Don't usr it When login-sever is working.

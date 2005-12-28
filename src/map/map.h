@@ -1,4 +1,6 @@
-// $Id: map.h,v 1.8 2004/09/25 11:39:17 MouseJstr Exp $
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
+
 #ifndef _MAP_H_
 #define _MAP_H_
 

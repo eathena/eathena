@@ -1,4 +1,6 @@
-// $Id: battle.h,v 1.6 2004/09/29 21:08:17 Akitasha Exp $
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
+
 #ifndef _BATTLE_H_
 #define _BATTLE_H_
 

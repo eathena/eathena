@@ -1,3 +1,6 @@
+// (c) eAthena Dev Team - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
+
 #include <stdio.h>
 #include <stdlib.h>
 

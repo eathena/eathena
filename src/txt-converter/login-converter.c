@@ -1,7 +1,6 @@
-// $Id: login-converter.c,v 1.1.1.1 2004/09/10 17:45:03 MagicalTux Exp $
-// original : login2.c 2003/01/28 02:29:17 Rev.1.1.1.1
-// login data file to mysql conversion utility.
-//
+// (c) eAthena Dev Team - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

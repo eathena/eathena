@@ -1,4 +1,6 @@
-// $Id: map.c,v 1.6 2004/09/25 17:37:01 MouseJstr Exp $
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -1431,8 +1433,8 @@ int map_quit(struct map_session_data *sd) {
 				status_change_end(&sd->bl,SC_CLOAKING,-1);
 			if(sd->sc_data[SC_RUN].timer!=-1)
 				status_change_end(&sd->bl,SC_RUN,-1);
-			if(sd->sc_data[SC_SPORT].timer!=-1)
-				status_change_end(&sd->bl,SC_SPORT,-1);
+			if(sd->sc_data[SC_SPURT].timer!=-1)
+				status_change_end(&sd->bl,SC_SPURT,-1);
 			if(sd->sc_data && sd->sc_data[SC_BERSERK].timer!=-1)
 				status_change_end(&sd->bl,SC_BERSERK,-1);
 		}

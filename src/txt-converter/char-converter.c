@@ -1,5 +1,5 @@
-// $Id: char-converter.c,v 1.1.1.1 2004/09/10 17:45:03 MagicalTux Exp $
-// original : char2.c 2003/03/14 11:58:35 Rev.1.5
+// (c) eAthena Dev Team - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
 
 #include <stdio.h>
 #include <stdlib.h>

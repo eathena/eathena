@@ -1,4 +1,6 @@
-// $Id: md5calc.c,v 1.1.1.1 2004/09/10 17:26:53 MagicalTux Exp $
+// (c) eAthena Dev Team - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
+
 /***********************************************************
  * md5 calculation algorithm
  *

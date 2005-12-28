@@ -1,4 +1,5 @@
-// Original : mmo.h 2003/03/14 12:07:02 Rev.1.7
+// (c) eAthena Dev Team - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
 
 #ifndef	_MMO_H_
 #define	_MMO_H_

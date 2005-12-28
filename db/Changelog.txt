@@ -1,10 +1,4 @@
-	Post here any database changes ok guys? [shadowlady]
-
-	==== progress ====
-	
-	Where are us about new towns items/mobs ???
-
-	-- Items that need fixing/implementing
+========================= Items that need fixing/implementing
 	-----These items are scrapped(for now,at least)? No desc in desctable, nor kRO website-----
 	1475,Cavalry_Lance: Missing stats
 	2355,Angel_Protection: Autospell rate is unknown
@@ -30,7 +24,11 @@
 	2653,Sacrifice_Ring: seems eAthena doesn't have bonus option yet <- explain how this works so I can code it in. [Skotlex]
 		* * * On your death it breaks (BS can fix it), you drop all Equipment (equipped, even the ring). And revive with 1 HP / 1 SP at the place of your death.
 		* * * From where this info is? ... Mine: On your death you'll loose this ring and get 50% HP [Komurka]
+=========================
 
+12/28
+	* Added SC_Intravision to Sunshine Box and const list [DracoRPG]
+	* Cleaned up even further, no conflict should occur now [DracoRPG]
 12/27
 	* Reverted Draco's cleanup [Komurka]
 	* Small cleanup in item names [DracoRPG]

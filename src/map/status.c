@@ -1,3 +1,6 @@
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
+
 #include <time.h>
 #include <ctype.h>
 #include <stdio.h>
@@ -22,11 +25,9 @@
 #include "script.h"
 #include "showmsg.h"
 
-/* スキル番?＝＞ステ?タス異常番??換テ?ブル */
-int SkillStatusChangeTable[]={	/* status.hのenumのSC_***とあわせること */
-/* 0- */
+int SkillStatusChangeTable[]={
 	-1,-1,-1,-1,-1,-1,
-	SC_PROVOKE,			/* プロボック */
+	SC_PROVOKE,
 	SC_WATK_ELEMENT,		//Adds part of your final attack as elemental damage. [Skotlex]
 	SC_ENDURE,
 	-1,
@@ -213,7 +214,9 @@ int SkillStatusChangeTable[]={	/* status.hのenumのSC_***とあわせること */
 	SC_SERVICE4U,
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,
 /* 340- */
-	-1,-1,SC_STOP,-1,-1,-1,-1,-1,-1,-1,
+	-1,-1,
+	SC_STOP,
+	-1,-1,-1,-1,-1,-1,-1,
 /* 350- */
 	-1,-1,-1,-1,-1,
 	SC_AURABLADE,
@@ -285,7 +288,7 @@ int SkillStatusChangeTable[]={	/* status.hのenumのSC_***とあわせること */
 /* 440- */
 	-1,-1,-1,-1,
 	SC_FUSION,
-	MAPID_ALCHEMIST, //Storing the required Job rather than SC_SPIRIT simplifies code later on.
+	MAPID_ALCHEMIST, // Storing the target job rather than simply SC_SPIRIT simplifies code later on.
 	-1,
 	MAPID_MONK,
 	MAPID_STAR_GLADIATOR,
@@ -562,12 +565,12 @@ void initStatusIconChangeTable() {
 	StatusIconChangeTable[SC_CARTBOOST] = SI_CARTBOOST;
 	StatusIconChangeTable[SC_REJECTSWORD] = SI_REJECTSWORD;
 	StatusIconChangeTable[SC_MARIONETTE] = SI_MARIONETTE;
-	StatusIconChangeTable[SC_MARIONETTE2] = SI_MARIONETTE;
+	StatusIconChangeTable[SC_MARIONETTE2] = SI_MARIONETTE2;
 	StatusIconChangeTable[SC_MOONLIT] = SI_MOONLIT;
 	StatusIconChangeTable[SC_DEVOTION] = SI_DEVOTION;
 	StatusIconChangeTable[SC_STEELBODY] = SI_STEELBODY;
-	StatusIconChangeTable[SC_SPORT] = SI_SPORT;
-	StatusIconChangeTable[SC_SPIRIT] = SI_SOULLINK;
+	StatusIconChangeTable[SC_SPURT] = SI_SPURT;
+	StatusIconChangeTable[SC_SPIRIT] = SI_SPIRIT;
 	StatusIconChangeTable[SC_READYSTORM] = SI_READYSTORM;
 	StatusIconChangeTable[SC_READYDOWN] = SI_READYDOWN;
 	StatusIconChangeTable[SC_READYTURN] = SI_READYTURN;
@@ -579,7 +582,7 @@ void initStatusIconChangeTable() {
 	StatusIconChangeTable[SC_SUN_COMFORT] = SI_SUN_COMFORT;
 	StatusIconChangeTable[SC_MOON_COMFORT] = SI_MOON_COMFORT;
 	StatusIconChangeTable[SC_STAR_COMFORT] = SI_STAR_COMFORT;
-	StatusIconChangeTable[SC_ADRENALINE2] = SI_ADRENALINE;
+	StatusIconChangeTable[SC_ADRENALINE2] = SI_ADRENALINE2;
 	StatusIconChangeTable[SC_GHOSTWEAPON] = SI_GHOSTWEAPON;
 	StatusIconChangeTable[SC_KAITE] = SI_KAITE;
 	StatusIconChangeTable[SC_KAIZEL] = SI_KAIZEL;
@@ -1513,27 +1516,19 @@ int status_calc_pc(struct map_session_data* sd,int first)
 
 // ----- EQUIPMENT-DEF CALCULATION -----
 
-	// Special fixed values from status changes
-	if(sd->sc_count && sd->sc_data[SC_KEEPING].timer!=-1)
-		sd->def = 100;
-	else if(sd->sc_count && sd->sc_data[SC_STEELBODY].timer!=-1)
-		sd->def = 90;
-	else if(sd->sc_count && sd->sc_data[SC_BERSERK].timer!=-1)
-		sd->def = 0;
-	else {
-		// Absolute, then relative modifiers from status changes (shared between PC and NPC)
-		sd->def = status_calc_def(&sd->bl,sd->def);
+	// Absolute, then relative modifiers from status changes (shared between PC and NPC)
+	sd->def = status_calc_def(&sd->bl,sd->def);
 
-		// Apply relative modifiers from equipment
-		if(sd->def_rate != 100)
-			sd->def = sd->def * sd->def_rate/100;
+	// Apply relative modifiers from equipment
+	if(sd->def_rate != 100)
+		sd->def = sd->def * sd->def_rate/100;
 
-		if(sd->def < 0) sd->def = 0;
-		else if (!battle_config.player_defense_type && sd->def > battle_config.max_def)
-		{
-			sd->def2 += battle_config.over_def_bonus*(sd->def -battle_config.max_def);
-			sd->def = battle_config.max_def;
-		}
+	if(sd->def < 0) sd->def = 0;
+
+	else if (!battle_config.player_defense_type && sd->def > battle_config.max_def)
+	{
+		sd->def2 += battle_config.over_def_bonus*(sd->def -battle_config.max_def);
+		sd->def = battle_config.max_def;
 	}
 
 // ----- INT-MDEF CALCULATION -----
@@ -1545,8 +1540,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		// Basic INT-MDEF value
 		sd->mdef2 += sd->paramc[3];
 
-		// Absolute, then relative modifiers from status changes (shared between PC and NPC)
-		sd->mdef2 = status_calc_mdef2(&sd->bl,sd->mdef2);
+		// sd->mdef2 = status_calc_mdef2(&sd->bl,sd->mdef2);
 
 		// Apply relative modifiers from equipment
 		if(sd->mdef2_rate != 100)
@@ -1555,30 +1549,21 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		if(sd->mdef2 < 1) sd->mdef2 = 1;
 	}
 
-
 // ----- EQUIPMENT-MDEF CALCULATION -----
 
-	// Special fixed values from status changes
-	if(sd->sc_count && sd->sc_data[SC_BARRIER].timer!=-1)
-		sd->mdef = 100;
-	else if(sd->sc_count && sd->sc_data[SC_STEELBODY].timer!=-1)
-		sd->mdef = 90;
-	else if(sd->sc_count && sd->sc_data[SC_BERSERK].timer!=-1)
-		sd->mdef = 0;
-	else {
-		// Absolute, then relative modifiers from status changes (shared between PC and NPC)
-		sd->mdef = status_calc_mdef(&sd->bl,sd->mdef);
+	// Absolute, then relative modifiers from status changes (shared between PC and NPC)
+	sd->mdef = status_calc_mdef(&sd->bl,sd->mdef);
 
-		// Apply relative modifiers from equipment
-		if(sd->mdef_rate != 100)
-			sd->mdef = sd->mdef * sd->mdef_rate/100;
+	// Apply relative modifiers from equipment
+	if(sd->mdef_rate != 100)
+		sd->mdef = sd->mdef * sd->mdef_rate/100;
 
-		if(sd->mdef < 0) sd->mdef = 0;
-		else if (!battle_config.player_defense_type && sd->mdef > battle_config.max_def)
-		{
-			sd->mdef2 += battle_config.over_def_bonus*(sd->mdef -battle_config.max_def);
-			sd->mdef = battle_config.max_def;
-		}
+	if(sd->mdef < 0) sd->mdef = 0;
+
+	else if (!battle_config.player_defense_type && sd->mdef > battle_config.max_def)
+	{
+		sd->mdef2 += battle_config.over_def_bonus*(sd->mdef -battle_config.max_def);
+		sd->mdef = battle_config.max_def;
 	}
 	
 // ----- WALKING SPEED CALCULATION -----
@@ -1614,6 +1599,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 
 	if(sd->speed < battle_config.max_walk_speed)
 		sd->speed = battle_config.max_walk_speed;
+
 // ----- ASPD CALCULATION -----
 // Unlike other stats, ASPD rate modifiers from skills/SCs/items/etc are first all added together, then the final modifier is applied
 
@@ -1953,8 +1939,8 @@ int status_calc_str(struct block_list *bl, int str)
 			str += 4;
   		if(sc_data[SC_TRUESIGHT].timer!=-1)
 			str += 5;
-		if(sc_data[SC_SPORT].timer!=-1)
-			str += sc_data[SC_SPORT].val1;
+		if(sc_data[SC_SPURT].timer!=-1)
+			str += sc_data[SC_SPURT].val1;
 		if(sc_data[SC_BLESSING].timer != -1){
 			int race = status_get_race(bl);
 			if(battle_check_undead(race,status_get_elem_type(bl)) || race == 6)
@@ -2282,6 +2268,10 @@ int status_calc_def(struct block_list *bl, int def)
 	if(sc_data){
 		if(sc_data[SC_BERSERK].timer!=-1)
 			return 0;
+		if(sc_data[SC_KEEPING].timer!=-1)
+			return 100;
+		if(sc_data[SC_STEELBODY].timer!=-1)
+			return 90;
 		if(sc_data[SC_SKA].timer != -1) // [marquis007]
 			return 90;
 		if(sc_data[SC_DRUMBATTLE].timer!=-1)
@@ -2292,13 +2282,12 @@ int status_calc_def(struct block_list *bl, int def)
 			def -= def * sc_data[SC_SIGNUMCRUCIS].val2/100;
 		if(sc_data[SC_CONCENTRATION].timer!=-1)
 			def -= def * 5*sc_data[SC_CONCENTRATION].val1/100;
-		if(sc_data[SC_PROVOKE].timer!=-1 && bl->type != BL_PC) //Provoke doesn't alters player defense.
+		if(sc_data[SC_SKE].timer!=-1)
+			def -= def  * 50/100;
+		if(sc_data[SC_PROVOKE].timer!=-1 && bl->type != BL_PC) // Provoke doesn't alter player defense.
 			def -= def * (5+5*sc_data[SC_PROVOKE].val1)/100;
 		if(sc_data[SC_STRIPSHIELD].timer!=-1 && bl->type != BL_PC)
 			def -= def * 3*sc_data[SC_STRIPSHIELD].val1/100;
-		if(sc_data[SC_SKE].timer!=-1)
-			def /= 2;
-			
 	}
 
 	return def;
@@ -2315,7 +2304,7 @@ int status_calc_def2(struct block_list *bl, int def2)
 			return 0;
 		if(sc_data[SC_ETERNALCHAOS].timer!=-1)
 			return 0;
-		if(sc_data[SC_SUN_COMFORT].timer!=-1) //SG skill [Komurka]
+		if(sc_data[SC_SUN_COMFORT].timer!=-1)
 			def2 += (status_get_lv(bl) + status_get_dex(bl) + status_get_luk(bl))/2;
 		if(sc_data[SC_ANGELUS].timer!=-1)
 			def2 += def2 * (10+5*sc_data[SC_ANGELUS].val1)/100;
@@ -2323,6 +2312,8 @@ int status_calc_def2(struct block_list *bl, int def2)
 			def2 -= def2 * 5*sc_data[SC_CONCENTRATION].val1/100;
 		if(sc_data[SC_POISON].timer!=-1)
 			def2 -= def2 * 25/100;
+		if(sc_data[SC_SKE].timer!=-1)
+			def2 -= def2 * 50/100;
 		if(sc_data[SC_PROVOKE].timer!=-1)
 			def2 -= def2 * (5+5*sc_data[SC_PROVOKE].val1)/100;
 		if(sc_data[SC_SKE].timer!=-1)
@@ -2347,6 +2338,10 @@ int status_calc_mdef(struct block_list *bl, int mdef)
 	if(sc_data){
 		if(sc_data[SC_BERSERK].timer!=-1)
 			return 0;
+		if(sc_data[SC_BARRIER].timer!=-1)
+			return 100;
+		if(sc_data[SC_STEELBODY].timer!=-1)
+			return 90;
 		if(sc_data[SC_SKA].timer != -1) // [marquis007]
 			return 90; // should it up mdef too?
 		if(sc_data[SC_ENDURE].timer!=-1)
@@ -4578,7 +4573,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_WATKFOOD:
 		case SC_MATKFOOD:
 		case SC_RUN://駆け足
-		case SC_SPORT:
+		case SC_SPURT:
 		case SC_SPIRIT:
 		case SC_SUN_COMFORT:
 		case SC_MOON_COMFORT:
@@ -4623,6 +4618,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_CLOSECONFINE:
 		case SC_SKILLRATE_UP:
 		case SC_KAIZEL:
+		case SC_INTRAVISION:
 			break;
 
 		default:
@@ -4931,7 +4927,7 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			case SC_BATTLEORDERS:
 			case SC_REGENERATION:
 			case SC_GUILDAURA:
-			case SC_SPORT:
+			case SC_SPURT:
 			case SC_SPIRIT: 
 			case SC_SUN_COMFORT:
 			case SC_MOON_COMFORT:

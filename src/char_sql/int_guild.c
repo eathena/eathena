@@ -1,7 +1,8 @@
-//
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
+
 // original code from athena
 // SQL conversion by hack
-//
 
 #include <string.h>
 #include <stdio.h>

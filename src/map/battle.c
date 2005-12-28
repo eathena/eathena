@@ -1,3 +1,6 @@
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -678,7 +681,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 			if(rand()%100 < 75)
 				damage = 0;
 
-		if(sc_data[SC_DODGE].timer != -1 && (flag&BF_LONG || (sc_data[SC_SPORT].timer != -1 && flag&BF_WEAPON)))
+		if(sc_data[SC_DODGE].timer != -1 && (flag&BF_LONG || (sc_data[SC_SPURT].timer != -1 && flag&BF_WEAPON)))
 			if(rand()%100 < 20) {
 				damage = 0;
 				clif_skill_nodamage(bl,bl,TK_DODGE,1,1);

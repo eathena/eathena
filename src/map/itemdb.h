@@ -1,4 +1,6 @@
-// $Id: itemdb.h,v 1.3 2004/09/25 05:32:18 MouseJstr Exp $
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
+
 #ifndef _ITEMDB_H_
 #define _ITEMDB_H_
 

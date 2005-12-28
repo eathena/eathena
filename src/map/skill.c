@@ -1,3 +1,6 @@
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -4196,7 +4199,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			else{
 				status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,status_get_dir(bl),0,0,0,0 );
 				if(skilllv>=7 && (!dstsd || (dstsd->weapontype1 == 0 && dstsd->weapontype2 == 0)))
-					status_change_start(bl,SC_SPORT,10,0,0,0,150000,0);
+					status_change_start(bl,SC_SPURT,10,0,0,0,150000,0);
 			}
 		}
 		break;
@@ -7987,8 +7990,8 @@ int skill_check_condition(struct map_session_data *sd,int type)
 	case TK_RUN:
 		if(sd->sc_data[SC_RUN].timer!=-1){
 			status_change_end(&sd->bl,SC_RUN,-1);
-			if(sd->sc_data[SC_SPORT].timer!=-1)
-				status_change_end(&sd->bl,SC_SPORT,-1);
+			if(sd->sc_data[SC_SPURT].timer!=-1)
+				status_change_end(&sd->bl,SC_SPURT,-1);
 			return 0;
 		}
 	break;

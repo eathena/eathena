@@ -1,5 +1,5 @@
-// $Id: trade.c 375 2005-03-04 21:33:31Z Yor $
-//#include <config.h>
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
 
 #include <stdio.h>
 #include <string.h>

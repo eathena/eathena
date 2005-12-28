@@ -1,6 +1,5 @@
-// $Id: login.c,v 1.6 2004/09/19 21:12:07 Valaris Exp $
-// original : login2.c 2003/01/28 02:29:17 Rev.1.1.1.1
-// txt version 1.100
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
 
 #include <sys/types.h>
 

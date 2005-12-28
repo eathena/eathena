@@ -1,4 +1,6 @@
-// $Id: intif.h,v 1.2 2004/09/25 05:32:18 MouseJstr Exp $
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
+
 #ifndef _INTIF_H_
 #define _INFIF_H_
 

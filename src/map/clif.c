@@ -1,3 +1,6 @@
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
+
 #define DUMP_UNKNOWN_PACKET	0
 #define DUMP_ALL_PACKETS	0
 
@@ -306,7 +309,7 @@ int clif_send_sub(struct block_list *bl, va_list ap)
 				//Check if hidden, better to modify the char's buffer than the
 				//given buffer to prevent intravision affecting the packet as 
 				//it's being received by everyone. [Skotlex]
-				if (sd->special_state.intravision && bl != src_bl) {
+				if ((sd->special_state.intravision || sd->sc_data[SC_INTRAVISION].timer != -1 ) && bl != src_bl) {
 					short *src_option = status_get_option(src_bl);
 					if(src_option && (*src_option)&(OPTION_HIDE|OPTION_CLOAK))
 					{	//optionÇÃèCê≥

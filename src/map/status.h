@@ -1,3 +1,6 @@
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
+
 #ifndef _STATUS_H_
 #define _STATUS_H_
 
@@ -182,7 +185,7 @@ enum {
 	SC_FORTUNE, //180
 	SC_SERVICE4U,
 	SC_STOP,	//Prevents inflicted chars from walking. [Skotlex]
-	SC_SPORT,
+	SC_SPURT,
 	SC_SPIRIT,
 	SC_COMA, //Not a real SC_, it makes a char's HP/SP hit 1.
 	SC_INTRAVISION,
@@ -232,44 +235,44 @@ extern int SkillStatusChangeTable[];
 
 //Numerates the Number for the status changes (client-dependent), imported from jA
 enum {
-	SI_BLANK			= -1,
-	SI_PROVOKE			= 0,
-	SI_ENDURE			= 1,
-	SI_TWOHANDQUICKEN		= 2,
+	SI_BLANK		= -1,
+	SI_PROVOKE		= 0,
+	SI_ENDURE		= 1,
+	SI_TWOHANDQUICKEN	= 2,
 	SI_CONCENTRATE		= 3,
-	SI_HIDING			= 4,
-	SI_CLOAKING			= 5,
+	SI_HIDING		= 4,
+	SI_CLOAKING		= 5,
 	SI_ENCPOISON		= 6,
 	SI_POISONREACT		= 7,
-	SI_QUAGMIRE			= 8,
-	SI_ANGELUS			= 9,
-	SI_BLESSING			= 10,
+	SI_QUAGMIRE		= 8,
+	SI_ANGELUS		= 9,
+	SI_BLESSING		= 10,
 	SI_SIGNUMCRUCIS		= 11,
 	SI_INCREASEAGI		= 12,
 	SI_DECREASEAGI		= 13,
 	SI_SLOWPOISON		= 14,
 	SI_IMPOSITIO  		= 15,
 	SI_SUFFRAGIUM		= 16,
-	SI_ASPERSIO			= 17,
+	SI_ASPERSIO		= 17,
 	SI_BENEDICTIO		= 18,
-	SI_KYRIE			= 19,
+	SI_KYRIE		= 19,
 	SI_MAGNIFICAT		= 20,
-	SI_GLORIA			= 21,
-	SI_AETERNA			= 22,
+	SI_GLORIA		= 21,
+	SI_AETERNA		= 22,
 	SI_ADRENALINE		= 23,
 	SI_WEAPONPERFECTION	= 24,
 	SI_OVERTHRUST		= 25,
-	SI_MAXIMIZEPOWER		= 26,
-	SI_RIDING			= 27,
-	SI_FALCON			= 28,
+	SI_MAXIMIZEPOWER	= 26,
+	SI_RIDING		= 27,
+	SI_FALCON		= 28,
 	SI_TRICKDEAD		= 29,
 	SI_LOUD			= 30,
 	SI_ENERGYCOAT		= 31,
 	SI_BROKENARMOR		= 32,
 	SI_BROKENWEAPON		= 33,
-	SI_HALLUCINATION		= 34,
+	SI_HALLUCINATION	= 34,
 	SI_WEIGHT50 		= 35,
-	SI_WEIGHT90			= 36,
+	SI_WEIGHT90		= 36,
 	SI_ASPDPOTION		= 37,
 	//38: Again Aspd Potion
 	//39: Again Aspd Potion
@@ -282,12 +285,12 @@ enum {
 	SI_STRIPHELM		= 53,
 	SI_CP_WEAPON		= 54,
 	SI_CP_SHIELD		= 55,
-	SI_CP_ARMOR			= 56,
-	SI_CP_HELM			= 57,
+	SI_CP_ARMOR		= 56,
+	SI_CP_HELM		= 57,
 	SI_AUTOGUARD		= 58,
-	SI_REFLECTSHIELD		= 59,
+	SI_REFLECTSHIELD	= 59,
 	SI_PROVIDENCE		= 61,
-	SI_DEFENDER			= 62,
+	SI_DEFENDER		= 62,
 	SI_AUTOSPELL		= 65,
 	SI_SPEARQUICKEN		= 68,
 	SI_EXPLOSIONSPIRITS	= 86,
@@ -298,62 +301,63 @@ enum {
 	SI_EARTHWEAPON		= 93,
 // 102 = again gloria - from what I saw on screenshots, I wonder if it isn't gospel... [DracoRPG]
 	SI_AURABLADE		= 103,
-	SI_PARRYING			= 104,
-	SI_CONCENTRATION		= 105,
+	SI_PARRYING		= 104,
+	SI_CONCENTRATION	= 105,
 	SI_TENSIONRELAX		= 106,
-	SI_BERSERK			= 107,
+	SI_BERSERK		= 107,
 	SI_ASSUMPTIO		= 110,
 	SI_GUILDAURA		= 112,
 	SI_MAGICPOWER		= 113,
 	SI_EDP			= 114,
 	SI_TRUESIGHT		= 115,
-	SI_WINDWALK			= 116,
-	SI_MELTDOWN			= 117,
+	SI_WINDWALK		= 116,
+	SI_MELTDOWN		= 117,
 	SI_CARTBOOST		= 118,
 	SI_REJECTSWORD		= 120,
 	SI_MARIONETTE		= 121,
-// 122 SI_MARIONETTE again
-	SI_MOONLIT			= 123,
-	SI_BLEEDING			= 124,
+	SI_MARIONETTE2		= 122,
+	SI_MOONLIT		= 123,
+	SI_BLEEDING		= 124,
 	SI_JOINTBEAT		= 125,
-	SI_DEVOTION			= 130,
+	SI_DEVOTION		= 130,
 	SI_STEELBODY		= 132,
-	SI_SPORT			= 134, //It "wiggles" the character sprite on start/end. Used for SC_ORCISH
+	SI_SPURT		= 134,
 	SI_READYSTORM		= 135,
 	SI_READYDOWN		= 137,
 	SI_READYTURN		= 139,
 	SI_READYCOUNTER		= 141,
-	SI_DODGE			= 143,
+	SI_DODGE		= 143,
 	SI_RUN			= 145,
 	SI_SHADOWWEAPON		= 146,
-	//147 SI_ADRENALINE again
+	SI_ADRENALINE2		= 147,
 	SI_GHOSTWEAPON		= 148,
-	SI_NIGHT			= 149, //slightly colors the screen with blue (night-like)
-	SI_SOULLINK			= 149, //Soullinked effect [Komurka]
-	SI_DEVIL			= 152,	// SG devil (permament blindness) [Komurka]
-	SI_KAITE		= 153, //causes character after-image effect
-	SI_KAIZEL			= 156,
-	SI_KAAHI			= 157,
-	SI_KAUPE			= 158,
+	SI_NIGHT		= 149,
+	SI_SPIRIT		= 149,
+	SI_DEVIL		= 152,
+	SI_KAITE		= 153,
+	SI_KAIZEL		= 156,
+	SI_KAAHI		= 157,
+	SI_KAUPE		= 158,
 // 159 = blue sparks and item-heal sound effect. Looks like item-use effect.
-	SI_ONEHAND			= 161,
+// 160
+	SI_ONEHAND		= 161,
 	SI_WARM			= 165,	
-//	166, The three show the exact same display: ultra red character (165, 166, 167)	
-//	167,	
-	SI_SUN_COMFORT			= 169,
-	SI_MOON_COMFORT			= 170,	
-	SI_STAR_COMFORT			= 171,	
-	SI_PRESERVE			= 181,
+//	166 | The three show the exact same display: ultra red character (165, 166, 167)	
+//	167 |	
+	SI_SUN_COMFORT		= 169,
+	SI_MOON_COMFORT		= 170,	
+	SI_STAR_COMFORT		= 171,	
+	SI_PRESERVE		= 181,
 	SI_BATTLEORDERS		= 182,
 // 184 = WTF?? creates the black shape of 4_m_02 NPC, with NPC talk cursor
 	SI_DOUBLECAST		= 186,
-	SI_MAXOVERTHRUST		= 188,
-	SI_TAROT			= 191, // the icon allows no doubt... but what is it really used for ?? [DracoRPG]
-	SI_SHRINK			= 197,
+	SI_MAXOVERTHRUST	= 188,
+	SI_TAROT		= 191, // the icon allows no doubt... but what is it really used for ?? [DracoRPG]
+	SI_SHRINK		= 197,
 	SI_SIGHTBLASTER		= 198,
 	SI_WINKCHARM		= 199,
 	SI_CLOSECONFINE		= 200,
-	SI_CLOSECONFINE2		= 201,
+	SI_CLOSECONFINE2	= 201,
 };
 extern int StatusIconChangeTable[];
 

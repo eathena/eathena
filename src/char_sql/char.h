@@ -1,3 +1,6 @@
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
+
 #include "../common/core.h"
 #include "../common/socket.h"
 #include "../common/timer.h"

@@ -1,3 +1,6 @@
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -3378,8 +3381,8 @@ int pc_run(struct map_session_data *sd, int skilllv, int dir)
 	if(to_x == sd->bl.x && to_y == sd->bl.y){
 		if(sd->sc_data[SC_RUN].timer!=-1)
 			status_change_end(&sd->bl,SC_RUN,-1);
-		if(sd->sc_data[SC_SPORT].timer!=-1)
-			status_change_end(&sd->bl,SC_SPORT,-1);
+		if(sd->sc_data[SC_SPURT].timer!=-1)
+			status_change_end(&sd->bl,SC_SPURT,-1);
 	} else
 		pc_walktoxy(sd, to_x, to_y);
 
@@ -3764,9 +3767,9 @@ int pc_checkallowskill(struct map_session_data *sd)
 		status_change_end(&sd->bl,SC_ADRENALINE,-1);
 	if(sd->sc_data[SC_ADRENALINE2].timer!=-1 && !(skill_get_weapontype(BS_ADRENALINE2)&(1<<sd->status.weapon)))
 		status_change_end(&sd->bl,SC_ADRENALINE2,-1);
-	if( sd->sc_data[SC_SPORT].timer!=-1 && sd->status.weapon)
-		// Sport requires bare hands (feet, in fact xD)
-		status_change_end(&sd->bl,SC_SPORT,-1);
+	if( sd->sc_data[SC_SPURT].timer!=-1 && sd->status.weapon)
+		// Spurt requires bare hands (feet, in fact xD)
+		status_change_end(&sd->bl,SC_SPURT,-1);
 
 	if(sd->status.shield <= 0) { // Skills requiring a shield
 		if(sd->sc_data[SC_AUTOGUARD].timer!=-1)	// Guard
@@ -6074,17 +6077,19 @@ int pc_jobchange(struct map_session_data *sd,int job, int upper)
 	if(battle_config.muting_players && sd->status.manner < 0  && battle_config.manner_system)
 		clif_changestatus(&sd->bl,SP_MANNER,sd->status.manner);
 
-	status_calc_pc(sd,0);
-	pc_checkallowskill(sd);
-	pc_equiplookall(sd);
-	clif_equiplist(sd);
-
 	if(pc_isriding(sd)) {	// remove peco status if changing into invalid class [Valaris]
 		if(!(pc_checkskill(sd,KN_RIDING)))
 			pc_setoption(sd,sd->status.option&~OPTION_RIDING);
 		else
 			pc_setriding(sd);
 	}
+
+	status_calc_pc(sd,0);
+	pc_checkallowskill(sd);
+	pc_equiplookall(sd);
+	clif_equiplist(sd);
+	chrif_save(sd);
+	chrif_reqfamelist();
 
 	return 0;
 }
@@ -6207,7 +6212,7 @@ int pc_setoption(struct map_session_data *sd,int type)
 				break;
 		}
 		clif_status_load(&sd->bl,SI_RIDING,1);
-		status_calc_pc(sd,0); //Mounting/Umounting affects walk speed.
+		status_calc_pc(sd,0); //Mounting/Umounting affects walk and attack speeds.
 	}
 	else if (!(type&OPTION_RIDING) && sd->status.option&OPTION_RIDING && (sd->class_&MAPID_BASEMASK) == MAPID_SWORDMAN)
 	{	//We are going to dismount.
@@ -6233,7 +6238,7 @@ int pc_setoption(struct map_session_data *sd,int type)
 				break;
 		}
 		clif_status_load(&sd->bl,SI_RIDING,0);
-		status_calc_pc(sd,0); //Mounting/Umounting affects walk speed.
+		status_calc_pc(sd,0); //Mounting/Umounting affects walk and attack speeds.
 	}
 	if (type&OPTION_FALCON && !(sd->status.option&OPTION_FALCON)) //Falcon ON
 		clif_status_load(&sd->bl,SI_FALCON,1);

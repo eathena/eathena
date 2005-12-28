@@ -1,3 +1,6 @@
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
+
 #ifndef _J_STR_LIB_H_
 #define _J_STR_LIB_H_
 #define J_MAX_MALLOC_SIZE 65535

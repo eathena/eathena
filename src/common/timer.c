@@ -1,7 +1,6 @@
-// $Id: timer.c,v 1.1.1.1 2004/09/10 17:44:49 Yor Exp $
-// original : core.c 2003/02/26 18:03:12 Rev 1.7
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
 
-//#include <config.h>
 #include <sys/types.h>
 
 #ifdef __WIN32

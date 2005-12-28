@@ -1,4 +1,6 @@
-// $Id: skill.h,v 1.5 2004/12/23 7:43:16 PM Celestia $
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
+
 #ifndef _SKILL_H_
 #define _SKILL_H_
 
@@ -766,7 +768,7 @@ enum {
 	CG_TAROTCARD,
 	CR_ACIDDEMONSTRATION,
 	CR_CULTIVATION,
-//492,missing?
+	//492,missing?
 	TK_MISSION = 493,
 	SL_HIGH,
 	KN_ONEHAND,
@@ -774,25 +776,6 @@ enum {
 	AM_TWILIGHT2,
 	AM_TWILIGHT3,
 	HT_POWER,
-	
-	//500 unknown
-	//Need to figure out the actual number for the following... [Skotlex]
-	HLIF_HEAL,
-	HLIF_AVOID,
-	HLIF_BRAIN,
-	HLIF_CHANGE,
-	HAMI_CASTLE,
-	HAMI_DEFENCE,
-	HAMI_SKIN,
-	HAMI_BLOODLUST,
-	HFLI_MOON,
-	HFLI_FLEET,
-	HFLI_SPEED,
-	HFLI_SBR44,
-	HVAN_CAPRICE,
-	HVAN_CHAOTIC,
-	HVAN_INSTRUCT,
-	HVAN_EXPLOSION,
 
 	KN_CHARGEATK = 1001,
 	CR_SHRINK,
@@ -813,6 +796,23 @@ enum {
 	SA_ELEMENTGROUND,
 	SA_ELEMENTFIRE,
 	SA_ELEMENTWIND,
+
+	HLIF_HEAL = 8001,
+	HLIF_AVOID,
+	HLIF_BRAIN,
+	HLIF_CHANGE,
+	HAMI_CASTLE,
+	HAMI_DEFENCE,
+	HAMI_SKIN,
+	HAMI_BLOODLUST,
+	HFLI_MOON,
+	HFLI_FLEET,
+	HFLI_SPEED,
+	HFLI_SBR44,
+	HVAN_CAPRICE,
+	HVAN_CHAOTIC,
+	HVAN_INSTRUCT,
+	HVAN_EXPLOSION,
 };
 
 enum {
