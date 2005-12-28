@@ -3,13 +3,14 @@
 //===== By: ==================================================
 //= Lupus (1.0)
 //===== Current Version: =====================================
-//= 1.0a
+//= 1.1
 //===== Compatible With: =====================================
 //= eAthena Version; 4880+ (with 'setItemScript' command)
 //===== Description: =========================================
 //= Custom event: Karachun (from 8 Dec till 8 Jan), X-Mas, HNY
 //===== Additional Comments: =================================
-//= 1.0 Lupus. Tested, fully working. 1.0a a few typos fix
+//= 1.0 Tested, fully working. 1.0a a few typos fix
+//= 1.1 Readded Mdef +1 and  Luk +1 to Santa's Hat [Lupus]
 //============================================================
 
 
@@ -90,7 +91,7 @@ M_QUEST:
 
 OnInit:
 //Santa's Hat
-	setitemscript 2236,"{ if(isequipped(2636,2637)){if(@xmr == gettime(2))end; set @xmr,gettime(2); misceffect 410; end;} if(isequipped(2636)){if(@xmr == gettime(2))end; set @xmr,gettime(2); misceffect 72;} if(isequipped(2637)){if(@xmr == gettime(2))end; set @xmr,gettime(2); misceffect 338;}}";
+	setitemscript 2236,"{ bonus bMdef,1; bonus bLuk,1; if(isequipped(2636,2637)){if(@xmr == gettime(2))end; set @xmr,gettime(2); misceffect 410; end;} if(isequipped(2636)){if(@xmr == gettime(2))end; set @xmr,gettime(2); misceffect 72;} if(isequipped(2637)){if(@xmr == gettime(2))end; set @xmr,gettime(2); misceffect 338;}}";
 //Gold Xmas Ring
 	setitemscript 2636,"{ bonus bLoseSPWhenUnequip,30; if(isequipped(2236)==0)end; if(getskilllv(28)){skill 51,4+isequipped(2637);}else{skill 28,1+4*isequipped(2637);} }";
 //Silver Xmas Ring

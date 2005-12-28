@@ -26,6 +26,7 @@ Nexon
 Date		Added
 ======
 12/28
+	* Karachun Event: Readded Mdef +1 and Luk +1 to Santa's Hat [Lupus]
 	* Fixed juicer exploit due to typo (ipnut) o.O [Lance]
 12/27
 	* Added Soul Linker / Star Gladiator temp job quests. Accordingly updated Taekwon Job NPC [Lupus]
