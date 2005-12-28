@@ -27,6 +27,7 @@
 =========================
 
 12/28
+	* Removed Guilds Glory from guild skill tree [Komurka]
 	* Moved some THQ items [Komurka]
 	* Fixed duplicate the_sign [DracoRPG]
 	* Fixed 2 name inconstitencies in item_db, thanks to Haplo [DracoRPG]

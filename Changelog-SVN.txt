@@ -1,6 +1,8 @@
 Date	Added
 
 2005/12/28
+	* Removed Guilds Glory from guild skill tree, can be enabled with require_glory_guild
+	  battle conf switch [Komurka]
 	* Cleaned up the implementation of Poison and Deadly Poison. Corrected a bug
 	  on Deadly Poison that was KO'ing human players when it triggers under
 	  certain circumstances. [Skotlex]

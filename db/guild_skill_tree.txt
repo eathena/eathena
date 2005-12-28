@@ -5,7 +5,7 @@
 10002,1,10000,1,0,0,0,0,0,0,0,0	//GD_GUARDRESEARCH#Guardian Research#
 10003,3,0,0,0,0,0,0,0,0,0,0	//GD_GUARDUP#Strengthen Guardians#
 10004,10,0,0,0,0,0,0,0,0,0,0	//GD_EXTENSION#Guild Extension#
-10005,1,0,0,0,0,0,0,0,0,0,0	//GD_GLORYGUILD#Guilds Glory#
+10005,0,0,0,0,0,0,0,0,0,0,0	//GD_GLORYGUILD#Guilds Glory#
 10006,5,0,0,0,0,0,0,0,0,0,0	//GD_LEADERSHIP#Great Leadership#
 10007,5,0,0,0,0,0,0,0,0,0,0	//GD_GLORYWOUNDS#Glorious Wounds#
 10008,5,10007,1,0,0,0,0,0,0,0,0	//GD_SOULCOLD#Cold Heart#

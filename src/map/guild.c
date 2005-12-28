@@ -127,6 +127,7 @@ int guild_read_guildskill_tree_db(void)
 			continue;
 		guild_skill_tree[id].id=atoi(split[0]);
 		guild_skill_tree[id].max=atoi(split[1]);
+		if (guild_skill_tree[id].id==GD_GLORYGUILD && battle_config.require_glory_guild && guild_skill_tree[id].max==0) guild_skill_tree[id].max=1;
 		for(k=0;k<5;k++){
 			guild_skill_tree[id].need[k].id=atoi(split[k*2+2]);
 			guild_skill_tree[id].need[k].lv=atoi(split[k*2+3]);
