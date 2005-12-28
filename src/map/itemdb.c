@@ -870,7 +870,9 @@ static int itemdb_read_sqldb(void)
 					id->sex = itemdb_gendercheck(id); //Apply gender filtering.
 
 					// ----------
-
+					
+					if (id->script)
+						aFree(id->script);
 					if (sql_row[19] != NULL) {
 						if (sql_row[19][0] == '{')
 							id->script = parse_script((unsigned char *) sql_row[19], 0);
@@ -1015,8 +1017,10 @@ static int itemdb_readdb(void)
 			id->view_id=0;
 			id->sex = itemdb_gendercheck(id); //Apply gender filtering.
 
-			id->script=NULL;
-
+			if (id->script) {
+				aFree(id->script);
+				id->script=NULL;
+			}
 			if((p=strchr(np,'{'))==NULL)
 				continue;
 			id->script = parse_script((unsigned char *) p,lines);

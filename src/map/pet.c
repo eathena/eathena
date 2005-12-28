@@ -1875,7 +1875,15 @@ int read_petdb()
 	int lines;
 	char *filename[]={"pet_db.txt","pet_db2.txt"};
 	char *str[32],*p,*np;
-	
+
+
+//Remove any previous scripts in case reloaddb was invoked.	
+	for(j =0; j < MAX_PET_DB; j++)
+		if (pet_db[j].script) {
+			aFree(pet_db[j].script);
+			pet_db[j].script = NULL;
+		}
+	j = 0;
 	memset(pet_db,0,sizeof(pet_db));
 	for(i=0;i<2;i++){
 		sprintf(line, "%s/%s", db_path, filename[i]);
@@ -1887,7 +1895,7 @@ int read_petdb()
 			return -1;
 		}
 		lines = 0;
-		while(fgets(line,1020,fp)){
+		while(fgets(line,1020,fp) && j < MAX_PET_DB){
 			
 			lines++;
 
@@ -1938,6 +1946,8 @@ int read_petdb()
 			pet_db[j].script = parse_script((unsigned char *) np,lines);
 			j++;
 		}
+		if (j >= MAX_PET_DB)
+			ShowWarning("read_petdb: Reached max number of pets [%d]. Remaining pets were not read.\n ", MAX_PET_DB);
 		fclose(fp);
 		ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' pets in '"CL_WHITE"%s"CL_RESET"'.\n",j,filename[i]);
 	}
@@ -1950,6 +1960,7 @@ int read_petdb()
  */
 int do_init_pet(void)
 {
+	memset(pet_db,0,sizeof(pet_db));
 	read_petdb();
 
 	add_timer_func_list(pet_timer,"pet_timer");

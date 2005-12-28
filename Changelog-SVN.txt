@@ -1,6 +1,8 @@
 Date	Added
 
 2005/12/28
+	* Some code cleanup meant to fix possible memory leaks regarding
+	  parse_script() [Skotlex]
 	* Small fix to party-share item pickup which should fix the current item
 	  dup exploit. [Skotlex]
 	* Merged Reddozen's implementation of Kahai. [Skotlex]
