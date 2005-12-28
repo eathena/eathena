@@ -5671,7 +5671,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					src->m,src->x-15,src->y-15,src->x+15,src->y+15,0,
 					src,skillid,skilllv,tick, flag|BCT_ALL|1,
 					skill_castend_nodamage_id);
-				pc_blockskill_start (sd, skillid, 300000);
+				guild_block_skill(sd,300000);
 			}
 		}
 		break;
@@ -5696,7 +5696,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					src->m,src->x-15,src->y-15,src->x+15,src->y+15,0,
 					src,skillid,skilllv,tick, flag|BCT_ALL|1,
 					skill_castend_nodamage_id);
-				pc_blockskill_start (sd, skillid, 300000);
+				guild_block_skill(sd,300000);
 			}
 		}
 		break;
@@ -5726,7 +5726,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					src->m,src->x-15,src->y-15,src->x+15,src->y+15,0,
 					src,skillid,skilllv,tick, flag|BCT_ALL|1,
 					skill_castend_nodamage_id);
-				pc_blockskill_start (sd, skillid, 300000);
+				guild_block_skill(sd,300000);
 			}
 		}
 		break;
@@ -5758,7 +5758,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					pc_setpos(dstsd, sd->mapname, sd->bl.x+dx[j], sd->bl.y+dy[j], 2);
 				}
 			}
-			pc_blockskill_start (sd, skillid, 300000);
+			guild_block_skill(sd,300000);
 		}
 		break;
 

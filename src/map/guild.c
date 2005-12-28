@@ -503,10 +503,7 @@ int guild_recv_info(struct guild *sg)
 		//and as such, his guild skills should be blocked to avoid login/logout abuse [Skotlex]
 		if ((sd = map_nick2sd(sg->master)) != NULL)
 		{
-			int skill_num[] = { GD_BATTLEORDER, GD_REGENERATION, GD_RESTORE, GD_EMERGENCYCALL };
-			for (i = 0; i < 4; i++)
-				if (guild_checkskill(sg, skill_num[i]))
-					pc_blockskill_start(sd, skill_num[i], 300000);
+			guild_block_skill(sd, 30000);
 			//Also set the guild master flag.
 			sd->state.gmaster_flag = g;
 			clif_charnameupdate(sd); // [LuzZza]			
@@ -1168,6 +1165,15 @@ int guild_get_alliance_count(struct guild *g,int flag)
 	}
 	return c;
 }
+
+// Blocks all guild skills which have a common delay time.
+void guild_block_skill(struct map_session_data *sd, int time) {
+	int skill_num[] = { GD_BATTLEORDER, GD_REGENERATION, GD_RESTORE, GD_EMERGENCYCALL };
+	int i;
+	for (i = 0; i < 4; i++)
+		pc_blockskill_start(sd, skill_num[i], time);
+}
+
 // 同盟関係かどうかチェック
 // 同盟なら1、それ以外は0
 int guild_check_alliance(int guild_id1, int guild_id2, int flag)

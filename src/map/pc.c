@@ -785,10 +785,7 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 			guild_request_info(sd->status.guild_id);
 		else if (strcmp(sd->status.name,g->master) == 0)
 		{	//Block Guild Skills to prevent logout/login reuse exploiting. [Skotlex]
-			int skill_num[] = { GD_BATTLEORDER, GD_REGENERATION, GD_RESTORE, GD_EMERGENCYCALL };
-			for (i = 0; i < 4; i++)
-				if (guild_checkskill(g, skill_num[i]))
-					pc_blockskill_start(sd, skill_num[i], 300000);
+			guild_block_skill(sd, 300000);
 			//Also set the Guild Master flag.
 			sd->state.gmaster_flag = g;
 		}

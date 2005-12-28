@@ -1,6 +1,8 @@
 Date	Added
 
 2005/12/28
+	* Battle Orders, Regeneration, Restore and Emergency Recall now share their
+	  5 minute delay. [Skotlex]]
 	* Implemented SC_INTRAVISION [DracoRPG]
 	* Reorganized a bit DEF/MDEF calculation code [DracoRPG]
 	* Added a small licence notice at the top of every Athena source/header file, I've tried
