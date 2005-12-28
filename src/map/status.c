@@ -308,9 +308,10 @@ int SkillStatusChangeTable[]={
 	MAPID_HUNTER,
 	MAPID_SOUL_LINKER,
 	SC_KAIZEL,
-	-1,
+	SC_KAAHI,
 	SC_KAUPE,
-	-1,-1,-1,-1,-1,
+	SC_KAITE,
+	-1,-1,-1,-1,
 /* 470- */
 	SC_SWOO, // [marquis007]
 	SC_SKE,
@@ -4501,6 +4502,9 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 				}
 			}
 			break;
+		case SC_KAITE:
+			val3 = 1+val2/5; //Number of bounces: 1 + skilllv/5
+			break;
 		case SC_KAUPE:
 			if (flag&4)
 				break; //Do nothing when loading.
@@ -4630,6 +4634,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_CLOSECONFINE:
 		case SC_SKILLRATE_UP:
 		case SC_KAIZEL:
+		case SC_KAAHI:
 		case SC_INTRAVISION:
 			break;
 

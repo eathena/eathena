@@ -878,6 +878,10 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 				if (rand()%100 < rate)
 				  status_change_start(src,SC_COMBO, TK_COUNTER,bl->id,0,0,2000,0);
 			}
+			if (sc_data && sc_data[SC_KAAHI].timer != -1) {
+				battle_heal(bl, bl, 200*sc_data[SC_KAAHI].val2, -5*sc_data[SC_KAAHI].val2, 1);
+				clif_skill_nodamage(bl,bl,SL_KAAHI,200*sc_data[SC_KAAHI].val2, 0);
+			}
 		}
 		break;
 
@@ -1651,6 +1655,17 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 
 //‰½‚à‚µ‚È‚¢”»’è‚±‚±‚Ü‚Å
 
+	sc_data = status_get_sc_data(bl);
+	if (attack_type&BF_MAGIC && sc_data && sc_data[SC_KAITE].timer != -1 && src == dsrc
+		&& !(status_get_mode(src)&MD_BOSS) && status_get_lv(src) <= 80
+	) { //Bounce back the skill.
+		if (--sc_data[SC_KAITE].val3 <= 0)
+			status_change_end(bl, SC_KAITE, -1);
+		bl = src; //Just make the skill attack yourself @.@
+		sc_data = status_get_sc_data(bl);
+		tsd = (bl->type == BL_PC)?(struct map_session_data *)bl:NULL;
+	}
+	
 	type=-1;
 	lv=(flag>>20)&0xf;
 	dmg=battle_calc_attack(attack_type,src,bl,skillid,skilllv,flag&0xff ); //ƒ_ƒ??ƒWŒvŽZ
@@ -1669,8 +1684,6 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 			dmg.div_= pd->a_skill->div_;
 		}
 	}
-
-	sc_data = status_get_sc_data(bl);
 
 //ƒ}ƒWƒbƒNƒƒbƒh?—‚±‚±‚©‚ç
 	if(attack_type&BF_MAGIC && sc_data && sc_data[SC_MAGICROD].timer != -1 && src == dsrc) { //–‚–@U?‚Åƒ}ƒWƒbƒNƒƒbƒh?‘Ô‚Åsrc=dsrc‚È‚ç
@@ -3315,7 +3328,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			int heal = skill_calc_heal(src, skilllv);
 			int heal_get_jobexp;
 			int skill;
-			
+			struct status_change *sc_data = status_get_sc_data(bl);
+
+	
 			if (skilllv > 10)
 				heal = 9999; //9999ƒq?[ƒ‹
 			if (status_isimmune(bl) || (dstmd && dstmd->class_ == MOBID_EMPERIUM))
@@ -3328,8 +3343,18 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					heal = heal*2;	//ƒXƒpƒmƒr‚Ì‰Å‚ª’U“ß‚Éƒq?ƒ‹‚·‚é‚Æ2”{‚É‚È‚é
 			}
 
-			clif_skill_nodamage (src, bl, skillid, heal, 1);
-			heal_get_jobexp = battle_heal(NULL,bl,heal,0,0);
+			if (sc_data && sc_data[SC_KAITE].timer != -1 
+				&& !(status_get_mode(src)&MD_BOSS) && status_get_lv(src) <= 80
+			) { //Bounce back heal
+				if (--sc_data[SC_KAITE].val3 <= 0)
+					status_change_end(bl, SC_KAITE, -1);
+				heal/=2; //Weakened heal. TODO: How much weaker should it be?
+				clif_skill_nodamage (src, src, skillid, heal, 1);
+				heal_get_jobexp = battle_heal(NULL,src,heal,0,0);
+			} else {
+				clif_skill_nodamage (src, bl, skillid, heal, 1);
+				heal_get_jobexp = battle_heal(NULL,bl,heal,0,0);
+			}
 
 			// JOB??’lŠl“¾
 			if(sd && dstsd && heal > 0 && sd != dstsd && battle_config.heal_exp > 0){
@@ -4148,6 +4173,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				status_change_start(bl,sc,skilllv,0,0,0,skill_get_time(skillid,skilllv),0);				
 		}
 		break;
+	case SL_KAITE:
+	case SL_KAAHI:
 	case SL_KAIZEL:
 	case SL_KAUPE:
 		if (sd) {

@@ -27,6 +27,7 @@
 =========================
 
 12/28
+	* Added Kahai and Kaite spell times to skill_cast_db [Skotlex]
 	* Removed Guilds Glory from guild skill tree [Komurka]
 	* Moved some THQ items [Komurka]
 	* Fixed duplicate the_sign [DracoRPG]

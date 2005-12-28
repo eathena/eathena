@@ -1,6 +1,10 @@
 Date	Added
 
 2005/12/28
+	* Merged Reddozen's implementation of Kahai. [Skotlex]
+	* Implemented Kaite (it simply changes the target of spell to the caster,
+	  so the caster's status changes and defense are the ones considered)
+	  [Skotlex]
 	* Removed Guilds Glory from guild skill tree, can be enabled with require_glory_guild
 	  battle conf switch [Komurka]
 	* Cleaned up the implementation of Poison and Deadly Poison. Corrected a bug
