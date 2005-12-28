@@ -5350,7 +5350,7 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 	}
 
 // PK/Karma system code (not enabled yet) [celest]
-	/*if(sd->status.karma < 0) {
+	/*if(sd->status.karma > 0) {
 		int eq_num=0,eq_n[MAX_INVENTORY];
 		memset(eq_n,0,sizeof(eq_n));
 		for(i=0;i<MAX_INVENTORY;i++){

@@ -5104,7 +5104,7 @@ int buildin_gettimetick(struct script_state *st)	/* Asgard Version */
 	case 2: 
 		//type 2:(Get the number of seconds elapsed since 00:00 hours, Jan 1, 1970 UTC
 		//        from the system clock.)
-		push_val(st->stack,C_INT,time(NULL));
+		push_val(st->stack,C_INT,(int)time(NULL));
 		break;
 	case 1:
 		//type 1:(Second Ticks: 0-86399, 00:00:00-23:59:59)
