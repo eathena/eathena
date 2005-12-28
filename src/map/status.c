@@ -4177,15 +4177,16 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			/* option2 */
 		case SC_DPOISON:			/* 猛毒 */
 		{
-			int mhp = status_get_max_hp(bl);
 			int hp = status_get_hp(bl);
+			int mhp = status_get_max_hp(bl);
+
 			// MHP?1/4????????
 			if (hp > mhp>>2) {
 				if(bl->type == BL_PC) {
 					int diff = mhp*10/100;
 					if (hp - diff < mhp>>2)
-						hp = hp - (mhp>>2);
-					pc_heal((struct map_session_data *)bl, -hp, 0);
+						diff = hp - (mhp>>2);
+					pc_heal((struct map_session_data *)bl, -diff, 0);
 				} else if(bl->type == BL_MOB) {
 					struct mob_data *md = (struct mob_data *)bl;
 					hp -= mhp*15/100;
@@ -4197,6 +4198,9 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			}
 		}	// fall through
 		case SC_POISON:				/* 毒 */
+		{
+			int mhp;
+
 			calc_flag = 1;
 			if(!(flag&2)) {
 				int sc_def = 100 - (status_get_vit(bl) + status_get_luk(bl)/5);
@@ -4205,9 +4209,17 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			if(!(flag&4))
 				val3 = tick/1000;
 			if(val3 < 1) val3 = 1;
-			if (!(flag&4))
-				tick = 1000;
-			break;
+			if (flag&4)
+				break;
+			tick = 1000;
+			mhp = status_get_max_hp(bl);
+			if (bl->type == BL_PC)
+				val4 = (type == SC_DPOISON) ? 3 + mhp/50 : 3 + mhp*3/200;
+			else
+				val4 = (type == SC_DPOISON) ? 3 + mhp/100 : 3 + mhp/200;
+		
+		}
+		break;
 		case SC_SILENCE:			/* 沈?（レックスデビ?ナ） */
 			if (sc_data && sc_data[SC_GOSPEL].timer!=-1) {
 				if (sc_data[SC_GOSPEL].val4 == BCT_SELF) { //Clear Gospel [Skotlex]
@@ -5439,18 +5451,12 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 	case SC_POISON:
 	case SC_DPOISON:
 		if ((--sc_data[type].val3) > 0 && sc_data[SC_SLOWPOISON].timer == -1) {
-			int hp = status_get_max_hp(bl);
-			if (type == SC_POISON && status_get_hp(bl) < hp>>2)
-				break;
 			if(sd) {
-				hp = (type == SC_DPOISON) ? 3 + hp/50 : 3 + hp*3/200;
-				pc_heal(sd, -hp, 0);
+				pc_heal(sd, -sc_data[type].val4, 0);
 			} else if (bl->type == BL_MOB) {
-				struct mob_data *md;
-				nullpo_retr(0, md=(struct mob_data *)bl);
-				hp = (type == SC_DPOISON) ? 3 + hp/100 : 3 + hp/200;
-				md->hp -= hp;
-			}
+				((struct mob_data*)bl)->hp -= sc_data[type].val4;
+			} else 
+				battle_heal(NULL, bl, -sc_data[type].val4, 0, 1);
 		}
 		if (sc_data[type].val3 > 0 && !status_isdead(bl))
 		{

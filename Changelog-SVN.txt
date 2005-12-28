@@ -1,6 +1,9 @@
 Date	Added
 
 2005/12/28
+	* Cleaned up the implementation of Poison and Deadly Poison. Corrected a bug
+	  on Deadly Poison that was KO'ing human players when it triggers under
+	  certain circumstances. [Skotlex]
 	* Added guild_skill_tree.txt [Komurka]
 	- corrected guild skill tree
 	* Battle Orders, Regeneration, Restore and Emergency Recall now share their
