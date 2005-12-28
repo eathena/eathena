@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= kobra_k88
 //===== Current Version: =====================================
-//= 1.5
+//= 1.6
 //===== Compatible With: =====================================
 //= eAthena 7.15 +
 //===== Description: =========================================
@@ -16,6 +16,7 @@
 //= 1.3a Turned the juice making part of the Juicer npc into a
 //= subfunc.  Changed fruit amount needed to 1.[kobra_k88]
 //= Fixed exploits [Lupus]
+//= 1.6 fixed typo (where did @ipnut came from?) [Lance]
 //============================================================
 
 
@@ -257,7 +258,7 @@ sF_Make:
 
 		set @amount,1000;		//max possible amount of Juice
 		//calc max possible # juices
-		if(Zeny/3 < @amount) set @ipnut, Zeny/3;
+		if(Zeny/3 < @amount) set @amount, Zeny/3;
 		if(countitem(getarg(0)) < @amount) set @amount, countitem(getarg(0));
 		if(countitem(713) < @amount) set @amount, countitem(713);
 		if(@amount > 0) goto L_Make;

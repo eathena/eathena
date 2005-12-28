@@ -25,6 +25,8 @@ Nexon
 
 Date		Added
 ======
+12/28
+	* Fixed juicer exploit due to typo (ipnut) o.O [Lance]
 12/27
 	* Added Soul Linker / Star Gladiator temp job quests. Accordingly updated Taekwon Job NPC [Lupus]
 12/26

@@ -20,6 +20,7 @@ Date	Added
 	* Added 2 new script commands: getfatherid, getmotherid [Lupus]
 	* Fixed compatibility problems with stricter compilers. [Lance]
 	* Added joshuali's new VC8 project files and SQL database upgrade script. [Lance]
+	* Fixed juicer script typo, eliminating unlimited juicing capability with zero zeny. [Lance]
 2005/12/26
 	* Added check for free'd guild pointer beforing freeing in guild_save in int_guild.c. [Valaris]
 	* Added @kamic command. Now you can send colored GM-messages.
