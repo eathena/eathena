@@ -1,6 +1,8 @@
 Date	Added
 
 2005/12/28
+	* Small fix to party-share item pickup which should fix the current item
+	  dup exploit. [Skotlex]
 	* Merged Reddozen's implementation of Kahai. [Skotlex]
 	* Implemented Kaite (it simply changes the target of spell to the caster,
 	  so the caster's status changes and defense are the ones considered)

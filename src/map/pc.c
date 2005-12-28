@@ -2599,6 +2599,7 @@ int pc_takeitem(struct map_session_data *sd,struct flooritem_data *fitem)
 					flag = flag2;
 				continue; //Chosen char can't pick up loot.
 			}
+			flag = 0; //Since it was picked, guarantee that the next check will fail.
 			if(log_config.pick) //Logs items, taken by (P)layers [Lupus]
 				log_pick(psd, "P", 0, fitem->item_data.nameid, fitem->item_data.amount, (struct item*)&fitem->item_data);
 			break;
