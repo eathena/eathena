@@ -46,6 +46,15 @@ struct guild_expcache {
 	int guild_id, account_id, char_id, exp;
 };
 
+struct{
+	int id;
+	int max;
+	struct{
+		short id;
+		short lv;
+	}need[6];
+} guild_skill_tree[MAX_GUILDSKILL];
+
 // timer for auto saving guild data during WoE
 #define GUILD_SAVE_INTERVAL 300000
 int guild_save_timer = -1;
@@ -69,27 +78,12 @@ int guild_skill_get_inf(int id)
 	return 0;
 }
 
- // Modified for new skills [Sara]
+ // Modified [Komurka]
 int guild_skill_get_max (int id)
 {
 	if (id  < GD_SKILLBASE || id > GD_SKILLBASE+MAX_GUILDSKILL)
 		return 0;
-
-	switch (id) {
-		case GD_GUARDUP:
-			return 3;
-		case GD_EXTENSION:
-			return 10;
-		case GD_LEADERSHIP: // Those aura skills DO HAVE 5 LV and give +1 stat/lv, don't listen to outdated sources ! [DracoRPG]
-		case GD_GLORYWOUNDS:
-		case GD_SOULCOLD:
-		case GD_HAWKEYES:
-			return 5;
-		case GD_REGENERATION:
-			return 3;
-		default:
-			return 1;
-	}
+	return guild_skill_tree[id-GD_SKILLBASE].max;
 }
 
 // ギルドスキルがあるか確認
@@ -99,6 +93,74 @@ int guild_checkskill(struct guild *g,int id)
 	if (idx < 0 || idx >= MAX_GUILDSKILL)
 		return 0;
 	return g->skill[idx].lv;
+}
+
+/*==========================================
+ * guild_skill_tree.txt reading - from jA [Komurka]
+ *------------------------------------------
+ */
+int guild_read_guildskill_tree_db(void)
+{
+	int i,k,id=0,ln=0;
+	FILE *fp;
+	char line[1024],*p;
+
+	memset(guild_skill_tree,0,sizeof(guild_skill_tree));
+	sprintf(line, "%s/guild_skill_tree.txt", db_path);
+	if( (fp=fopen(line,"r"))==NULL){
+		ShowError("can't read %s\n", line);
+		return -1;
+	}
+	while(fgets(line,1020,fp)){
+		char *split[50];
+		if(line[0]=='/' && line[1]=='/')
+			continue;
+		for(i=0,p=line;i<12 && p;i++){
+			split[i]=p;
+			p=strchr(p,',');
+			if(p) *p++=0;
+		}
+		if(i<12)
+			continue;
+		id = atoi(split[0]) - GD_SKILLBASE;
+		if(id<0 || id>=MAX_GUILDSKILL)
+			continue;
+		guild_skill_tree[id].id=atoi(split[0]);
+		guild_skill_tree[id].max=atoi(split[1]);
+		for(k=0;k<5;k++){
+			guild_skill_tree[id].need[k].id=atoi(split[k*2+2]);
+			guild_skill_tree[id].need[k].lv=atoi(split[k*2+3]);
+		}
+	ln++;
+	}
+	fclose(fp);
+	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",ln,"guild_skill_tree.txt");
+
+	return 0;
+}
+
+/*==========================================
+ * Guild skill check - from jA [Komurka]
+ *------------------------------------------
+ */
+int guild_check_skill_require(struct guild *g,int id)
+{
+	int i;
+	int idx = id-GD_SKILLBASE;
+
+	if(g == NULL)
+		return 0;
+
+	if (idx < 0 || idx >= MAX_GUILDSKILL)
+		return 0;
+
+	for(i=0;i<5;i++)
+	{
+		if(guild_skill_tree[idx].need[i].id == 0) break;
+		if(guild_skill_tree[idx].need[i].lv > guild_checkskill(g,guild_skill_tree[idx].need[i].id))
+			return 0;
+	}
+	return 1;
 }
 
 static int guild_read_castledb(void)
@@ -157,6 +219,8 @@ void do_init_guild(void)
 	guild_castleinfoevent_db=numdb_init();
 
 	guild_read_castledb();
+
+	guild_read_guildskill_tree_db(); //guild skill tree [Komurka]
 
 	add_timer_func_list(guild_gvg_eliminate_timer,"guild_gvg_eliminate_timer");
 	add_timer_func_list(guild_payexp_timer,"guild_payexp_timer");

@@ -7366,7 +7366,7 @@ int clif_guild_skillinfo(struct map_session_data *sd)
 	WFIFOW(fd,0)=0x0162;
 	WFIFOW(fd,4)=g->skill_point;
 	for(i=c=0;i<MAX_GUILDSKILL;i++){
-		if(g->skill[i].id>0){
+		if(g->skill[i].id>0 && guild_check_skill_require(g,g->skill[i].id)){
 			WFIFOW(fd,c*37+ 6) = id = g->skill[i].id;
 			WFIFOW(fd,c*37+ 8) = guild_skill_get_inf(id);
 			WFIFOW(fd,c*37+10) = 0;
@@ -7374,57 +7374,10 @@ int clif_guild_skillinfo(struct map_session_data *sd)
 			WFIFOW(fd,c*37+14) = skill_get_sp(id,g->skill[i].lv);
 			WFIFOW(fd,c*37+16) = skill_get_range(id,g->skill[i].lv);
 			memset(WFIFOP(fd,c*37+18),0,24);
-			if(g->skill[i].lv < guild_skill_get_max(id)) {
-				//Kafra and Guardian changed to require Approval [Sara]
-				switch (g->skill[i].id)
-				{
-					case GD_KAFRACONTRACT:
-					case GD_GUARDIANRESEARCH:
-					case GD_GUARDUP:
-					case GD_DEVELOPMENT:
-						up = guild_checkskill(g,GD_APPROVAL) > 0;
-						break;
-					case GD_LEADERSHIP:
-						//Glory skill requirements -- Pretty sure correct [Sara]
-						up = (battle_config.require_glory_guild) ?
-							guild_checkskill(g,GD_GLORYGUILD) > 0 : 1;
-						// what skill does it need now that glory guild was removed? [celest]
-						break;
-					case GD_GLORYWOUNDS:
-						up = (battle_config.require_glory_guild) ?
-							guild_checkskill(g,GD_GLORYGUILD) > 0 : 1;
-						break;
-					case GD_SOULCOLD:
-						up = guild_checkskill(g,GD_GLORYWOUNDS) > 0;
-						break;
-					case GD_HAWKEYES:
-						up = guild_checkskill(g,GD_LEADERSHIP) > 0;
-						break;
-					case GD_BATTLEORDER:
-						up = guild_checkskill(g,GD_APPROVAL) > 0 &&
-							guild_checkskill(g,GD_EXTENSION) >= 2;
-						break;
-					case GD_REGENERATION:
-						up = guild_checkskill(g,GD_EXTENSION) >= 5 &&
-							guild_checkskill(g,GD_BATTLEORDER) > 0;
-						break;
-					case GD_RESTORE:
-						up = guild_checkskill(g,GD_REGENERATION) > 0;
-						break;
-					case GD_EMERGENCYCALL:
-						up = guild_checkskill(g,GD_GUARDIANRESEARCH) > 0 &&
-							guild_checkskill(g,GD_REGENERATION) > 0;
-						break;
-					case GD_GLORYGUILD:
-						up = (battle_config.require_glory_guild) ? 1 : 0;
-						break;
-					default:
-						up = 1;
-				}
-			}
-			else {
+			if(g->skill[i].lv < guild_skill_get_max(id) && (sd == g->member[0].sd))
+				up = 1;
+			else
 				up = 0;
-			}
 			WFIFOB(fd,c*37+42)= up;
 			c++;
 		}
