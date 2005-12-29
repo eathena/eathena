@@ -1,6 +1,7 @@
 Date	Added
 
 2005/12/28
+	* Fixed xmas and wedding palette ignore options.  It will also no longer send the dye packet if @dye is used. [Valaris]
 	* Some code cleanup meant to fix possible memory leaks regarding
 	  parse_script() [Skotlex]
 	* Small fix to party-share item pickup which should fix the current item

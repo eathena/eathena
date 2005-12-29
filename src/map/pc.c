@@ -6070,7 +6070,7 @@ int pc_jobchange(struct map_session_data *sd,int job, int upper)
 	if(battle_config.save_clothcolor &&
 		sd->status.clothes_color > 0 &&
 		((sd->view_class != JOB_WEDDING && sd->view_class !=JOB_XMAS) || (sd->view_class==JOB_WEDDING && !battle_config.wedding_ignorepalette) ||
-			 (sd->view_class==26 && !battle_config.xmas_ignorepalette)))
+			 (sd->view_class==JOB_XMAS && !battle_config.xmas_ignorepalette)))
 		clif_changelook(&sd->bl,LOOK_CLOTHES_COLOR,sd->status.clothes_color);
 	if(battle_config.muting_players && sd->status.manner < 0  && battle_config.manner_system)
 		clif_changestatus(&sd->bl,SP_MANNER,sd->status.manner);
@@ -6174,6 +6174,11 @@ int pc_changelook(struct map_session_data *sd,int type,int val)
 	case LOOK_SHOES:
 		break;
 	}
+
+	if((type==LOOK_CLOTHES_COLOR) && ((sd->view_class==JOB_WEDDING && battle_config.wedding_ignorepalette) ||
+	 (sd->view_class==JOB_XMAS && battle_config.xmas_ignorepalette)))
+		return 0;
+
 	clif_changelook(&sd->bl,type,val);
 
 	return 0;

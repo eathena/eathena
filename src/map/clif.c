@@ -1956,9 +1956,10 @@ int clif_movechar(struct map_session_data *sd) {
 	}
 
 	//Stupid client that needs this resent every time someone walks :X
-	if(battle_config.save_clothcolor && sd->status.clothes_color > 0 &&
-		(sd->view_class != JOB_WEDDING || !battle_config.wedding_ignorepalette))
-		clif_changelook(&sd->bl, LOOK_CLOTHES_COLOR, sd->status.clothes_color);
+	if(battle_config.save_clothcolor && sd->status.clothes_color > 0 && ((sd->view_class != JOB_WEDDING && sd->view_class !=JOB_XMAS) ||
+	   (sd->view_class==JOB_WEDDING && !battle_config.wedding_ignorepalette) || (sd->view_class==JOB_XMAS && !battle_config.xmas_ignorepalette)))
+		clif_changelook(&sd->bl,LOOK_CLOTHES_COLOR,sd->status.clothes_color);
+
 
 	if(sd->state.size==2) // tiny/big players [Valaris]
 		clif_specialeffect(&sd->bl,423,0);
@@ -4037,10 +4038,9 @@ void clif_getareachar_pc(struct map_session_data* sd,struct map_session_data* ds
 		clif_set01e1(dstsd,WFIFOP(sd->fd,0));
 		WFIFOSET(sd->fd,packet_len_table[0x1e1]);
 	}
-	if(battle_config.save_clothcolor &&
-		dstsd->status.clothes_color > 0 &&
-		(dstsd->view_class != JOB_WEDDING || !battle_config.wedding_ignorepalette)
-		)
+
+	if(battle_config.save_clothcolor && dstsd->status.clothes_color > 0 && ((dstsd->view_class != JOB_WEDDING && dstsd->view_class !=JOB_XMAS) ||
+	   (dstsd->view_class==JOB_WEDDING && !battle_config.wedding_ignorepalette) || (dstsd->view_class==JOB_XMAS && !battle_config.xmas_ignorepalette)))
 		clif_changelook(&dstsd->bl, LOOK_CLOTHES_COLOR, dstsd->status.clothes_color);
 
 	if((sd->status.party_id && dstsd->status.party_id == sd->status.party_id) || //Party-mate, or hpdisp setting.
@@ -8571,10 +8571,8 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 #else
 	clif_changelook(&sd->bl,LOOK_WEAPON,0);
 #endif
-	if(battle_config.save_clothcolor &&
-		sd->status.clothes_color > 0 &&
-		(sd->view_class != JOB_WEDDING || !battle_config.wedding_ignorepalette)
-		)
+	if(battle_config.save_clothcolor && sd->status.clothes_color > 0 && ((sd->view_class != JOB_WEDDING && sd->view_class !=JOB_XMAS) ||
+	   (sd->view_class==JOB_WEDDING && !battle_config.wedding_ignorepalette) || (sd->view_class==JOB_XMAS && !battle_config.xmas_ignorepalette)))
 		clif_changelook(&sd->bl,LOOK_CLOTHES_COLOR,sd->status.clothes_color);
 
 	/* There shouldn't be a need for this anymore because... [Skotlex]
