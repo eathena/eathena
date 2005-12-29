@@ -1,6 +1,10 @@
 Date	Added
 
 2005/12/29
+	* Set value of the last byte in packet 0x87 (walkok) to 0x88 (10001000).
+	  This is a default value in Aegis, and has something to do with animation speed in certain directions.
+	  This byte is going to need to be fully analyzed since it does change in Aegis, just that I have
+	  been unable to figure out what the conditions are. [Valaris]
 	* Mob skills are not even read now if mob skills are disabled in
 	  battle_athena. [Skotlex]
 2005/12/28

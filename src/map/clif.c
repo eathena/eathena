@@ -1905,11 +1905,11 @@ int clif_walkok(struct map_session_data *sd)
 	nullpo_retr(0, sd);
 
 	fd=sd->fd;
-        WFIFOHEAD(fd, packet_len_table[0x87]);
+      WFIFOHEAD(fd, packet_len_table[0x87]);
 	WFIFOW(fd,0)=0x87;
 	WFIFOL(fd,2)=gettick();
 	WFIFOPOS2(fd,6,sd->bl.x,sd->bl.y,sd->to_x,sd->to_y);
-	WFIFOB(fd,11)=0;
+	WFIFOB(fd,11)=0x88;
 	WFIFOSET(fd,packet_len_table[0x87]);
 
 	return 0;
