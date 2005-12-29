@@ -4540,6 +4540,10 @@ static int mob_readskilldb(void)
 	int x;
 	char *filename[]={ "mob_skill_db.txt","mob_skill_db2.txt" };
 
+	if (!battle_config.mob_skill_rate) {
+		ShowStatus("Mob skill use disabled. Not reading mob skills.\n");
+		return 0;
+	}
 	for(x=0;x<2;x++){
 		sprintf(line, "%s/%s", db_path, filename[x]); 
 		fp=fopen(line,"r");

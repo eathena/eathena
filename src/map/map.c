@@ -3653,8 +3653,6 @@ int do_init(int argc, char *argv[]) {
 
 	chrif_connected = 0;
 
-	do_init_duel(); // init duel [LuzZza]
-
 	srand(gettick());
 
 	for (i = 1; i < argc ; i++) {
@@ -3715,6 +3713,8 @@ int do_init(int argc, char *argv[]) {
 	if (SHOW_DEBUG_MSG)
 		ShowNotice("Server running in '"CL_WHITE"Debug Mode"CL_RESET"'.\n");
 
+
+	do_init_duel(); // init duel [LuzZza]
 	battle_config_read(BATTLE_CONF_FILENAME);
 	msg_config_read(MSG_CONF_NAME);
 	atcommand_config_read(ATCOMMAND_CONF_FILENAME);

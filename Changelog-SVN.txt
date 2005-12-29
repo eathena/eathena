@@ -1,5 +1,8 @@
 Date	Added
 
+2005/12/29
+	* Mob skills are not even read now if mob skills are disabled in
+	  battle_athena. [Skotlex]
 2005/12/28
 	* Fixed xmas and wedding palette ignore options.  It will also no longer send the dye packet if @dye is used. [Valaris]
 	* Some code cleanup meant to fix possible memory leaks regarding
