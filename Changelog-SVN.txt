@@ -1,6 +1,27 @@
 Date	Added
 
 2005/12/29
+	* Implemented a map-index which maps map-names to a unique number, this
+	  reduces memory required to store maps as well as the size of related
+	  packets between the char/map server. Maps and their indexes are stored in
+	  db/map_index.txt, and the index of a map should NEVER change (see file for
+	  more details). The index is translated to/from map-names for saving, so
+	  save-structures are not required to be modified. [Skotlex]
+	- PD: The new mapindex also found a bunch of broken map names in various
+	  NPCs, someone will have to go fix them up.
+	* Updated the party member structure to hold the char_id. For end users,
+	  the most noticable change is that now you can have more than one
+	  character from the same account belong to the same party. [Skotlex]
+	- TXT users will have to wipe the party files, SQL users use the respective
+	  upgrade file (upgrade_svn4726.sql) to generate the new party column.
+	* Updated the char-sql server to hold parties in memories until they are no
+	  longer needed (like the guild-cache), also optimized the save routine to
+	  avoid needless SQL calls. [Skotlex]
+	** WARNING: Because of the previous optimizations, a lot of code was changed around
+	  the map/char servers, the char-sql's party system got pretty much a
+	  rewrite, so some problems are to be expected. Some basic testing with
+	  parties over here showed no problems, hence the work is getting commited
+	  as it is because it isn't getting any better without further testing. 
 	* Set value of the last byte in packet 0x87 (walkok) to 0x88 (10001000).
 	  This is a default value in Aegis, and has something to do with animation speed in certain directions.
 	  This byte is going to need to be fully analyzed since it does change in Aegis, just that I have

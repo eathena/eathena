@@ -409,7 +409,7 @@ int pc_makesavestatus(struct map_session_data *sd)
 			pc_setrestartvalue(sd,0);
 			memcpy(&sd->status.last_point,&sd->status.save_point,sizeof(sd->status.last_point));
 		} else {
-			memcpy(sd->status.last_point.map, sd->mapname, MAP_NAME_LENGTH-1);
+			sd->status.last_point.map = sd->mapindex;
 			sd->status.last_point.x = sd->bl.x;
 			sd->status.last_point.y = sd->bl.y;
 		}
@@ -417,10 +417,10 @@ int pc_makesavestatus(struct map_session_data *sd)
 		// セ?ブ禁止マップだったので指定位置に移動
 		if(map[sd->bl.m].flag.nosave){
 			struct map_data *m=&map[sd->bl.m];
-			if(strcmp(m->save.map,"SavePoint")==0)
-				memcpy(&sd->status.last_point,&sd->status.save_point,sizeof(sd->status.last_point));
-			else
+			if(m->save.map)
 				memcpy(&sd->status.last_point,&m->save,sizeof(sd->status.last_point));
+			else
+				memcpy(&sd->status.last_point,&sd->status.save_point,sizeof(sd->status.last_point));
 		}
 	}
 
@@ -765,7 +765,7 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 			ShowError ("Last_point_map %s not found\n", sd->status.last_point.map);
 
 		// try warping to a default map instead (church graveyard)
-		if (pc_setpos(sd, "prontera.gat", 273, 354, 0) != 0) {
+		if (pc_setpos(sd, mapindex_name2id(MAP_PRONTERA), 273, 354, 0) != 0) {
 			// if we fail again
 			clif_authfail_fd(sd->fd, 0);
 			return 1;
@@ -3049,13 +3049,16 @@ int pc_steal_coin(struct map_session_data *sd,struct block_list *bl)
  * PCの位置設定
  *------------------------------------------
  */
-int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrtype)
+int pc_setpos(struct map_session_data *sd,unsigned short mapindex,int x,int y,int clrtype)
 {
-	char mapname[MAP_NAME_LENGTH];
 	int m;
 
 	nullpo_retr(0, sd);
 
+	if (!mapindex || !mapindex_id2name(mapindex)) {
+		ShowDebug("pc_setpos: Passed mapindex(%d) is invalid!\n", mapindex);
+		return 1;
+	}
 	if(sd->state.auth && sd->bl.prev == NULL)
 	{	//Should NOT move a character while it is not in a map (changing between maps, for example)
 		//state.auth helps identifies if this is the initial setpos rather than a normal map-change set pos.
@@ -3094,13 +3097,7 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 		skill_gangsterparadise(sd,0);
 	}
 
-	memcpy(mapname, mapname_org, MAP_NAME_LENGTH-1);
-	mapname[MAP_NAME_LENGTH-1]= '\0';
-	if(strstr(mapname,".gat")==NULL && strstr(mapname,".afm")==NULL && strlen(mapname)<MAP_NAME_LENGTH-5){	//It has to be -5 for a .gat to fit!(5th is \0) [Skotlex]
-		strcat(mapname,".gat");
-	}
-
-	m=map_mapname2mapid(mapname);
+	m=map_mapindex2mapid(mapindex);
 
 	if (sd->sc_count) {
 		if (sd->sc_data[SC_TRICKDEAD].timer != -1)
@@ -3143,11 +3140,10 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 		pet_changestate(sd->pd,MS_IDLE,0);
 	}
 
-
 	if(m<0){
-		if(sd->mapname[0]){
+		if(sd->mapindex){
 			int ip,port;
-			if(map_mapname2ipport(mapname,&ip,&port)==0){
+			if(map_mapname2ipport(mapindex,&ip,&port)==0){
 				skill_stop_dancing(&sd->bl);
 				skill_unit_move(&sd->bl,gettick(),4);
 				clif_clearchar_area(&sd->bl,clrtype&0xffff);
@@ -3170,7 +3166,7 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 						map_delblock(&sd->pd->bl);
 					}
 				}
-				memcpy(sd->mapname, mapname, MAP_NAME_LENGTH-1);
+				sd->mapindex = mapindex;
 				sd->bl.x=x;
 				sd->bl.y=y;
 				sd->state.waitingdisconnect=1;
@@ -3189,7 +3185,7 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 				else if (sd->state.storage_flag == 2)
 					storage_guild_storageclose(sd);
 					
-				chrif_changemapserver(sd, mapname, x, y, ip, (short)port);
+				chrif_changemapserver(sd, mapindex, x, y, ip, (short)port);
 				return 0;
 			}
 		}
@@ -3201,7 +3197,7 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 	if((x==0 && y==0) || map_getcell(m,x,y,CELL_CHKNOPASS)){
 		if(x||y) {
 			if(battle_config.error_log)
-				ShowError("pc_setpos: attempt to place player on non-walkable tile (%s-%d,%d)\n",mapname,x,y);
+				ShowError("pc_setpos: attempt to place player on non-walkable tile (%s-%d,%d)\n",mapindex_id2name(mapindex),x,y);
 		}
 		do {
 			x=rand()%(map[m].xs-2)+1;
@@ -3209,7 +3205,7 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 		} while(map_getcell(m,x,y,CELL_CHKNOPASS));
 	}
 
-	if(sd->mapname[0] && sd->bl.prev != NULL){
+	if(sd->mapindex && sd->bl.prev != NULL){
 		skill_unit_move(&sd->bl,gettick(),4);
 		clif_clearchar_area(&sd->bl,clrtype&0xffff);
 		skill_gangsterparadise(sd,0);
@@ -3242,16 +3238,16 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 				map_delblock(&sd->pd->bl);
 			}
 		}
-		clif_changemap(sd,map[m].name,x,y); // [MouseJstr]
+		clif_changemap(sd,map[m].index,x,y); // [MouseJstr]
 	}
 		
-	if (strcmp(sd->mapname,mapname)!=0) //minimap dot fix [Kevin]
+	if (sd->mapindex != mapindex) //minimap dot fix [Kevin]
 	{
 		party_send_dot_remove(sd);
 		guild_send_dot_remove(sd);
 	}
 
-	memcpy(sd->mapname, mapname, MAP_NAME_LENGTH-1);
+	sd->mapindex =  mapindex;
 	sd->bl.m = m;
 	sd->to_x = x;
 	sd->to_y = y;
@@ -3292,7 +3288,7 @@ int pc_randomwarp(struct map_session_data *sd, int type) {
 	}while(map_getcell(m,x,y,CELL_CHKNOPASS) && (i++)<1000 );
 
 	if (i < 1000)
-		pc_setpos(sd,map[m].name,x,y,type);
+		pc_setpos(sd,map[sd->bl.m].index,x,y,type);
 
 	return 0;
 }
@@ -3326,7 +3322,7 @@ int pc_memo(struct map_session_data *sd, int i) {
 	}
 
 	for(j = 0 ; j < 3; j++) {
-		if (strcmp(sd->status.memo_point[j].map, map[sd->bl.m].name) == 0) {
+		if (sd->status.memo_point[j].map == map[sd->bl.m].index) {
 			i = j;
 			break;
 		}
@@ -3339,7 +3335,7 @@ int pc_memo(struct map_session_data *sd, int i) {
 		}
 		i = 0;
 	}
-	memcpy(sd->status.memo_point[i].map, map[sd->bl.m].name, MAP_NAME_LENGTH-1);
+	sd->status.memo_point[i].map = map[sd->bl.m].index;
 	sd->status.memo_point[i].x = sd->bl.x;
 	sd->status.memo_point[i].y = sd->bl.y;
 
@@ -4435,7 +4431,7 @@ int pc_follow_timer(int tid,unsigned int tick,int id,int data)
 				if (!check_distance_bl(&sd->bl, &tsd->bl, 5) && pc_can_move(sd))
 					pc_walktoxy(sd,tsd->bl.x,tsd->bl.y);
 			} else
-				pc_setpos(sd, tsd->mapname, tsd->bl.x, tsd->bl.y, 3);
+				pc_setpos(sd, tsd->mapindex, tsd->bl.x, tsd->bl.y, 3);
 		}
 		sd->followtimer = add_timer(
 			tick + sd->aspd + rand() % 1000,	// increase time a bit to loosen up map's load
@@ -7560,7 +7556,7 @@ static int pc_spheal(struct map_session_data *sd)
 		//a += a*skill*3/100;
 	
 	if (sd->status.guild_id > 0) {
-		struct guild_castle *gc = guild_mapname2gc(sd->mapname);	// Increased guild castle regen [Valaris]
+		struct guild_castle *gc = guild_mapindex2gc(sd->mapindex);	// Increased guild castle regen [Valaris]
 		if(gc)	{
 			struct guild *g = guild_search(sd->status.guild_id);
 			if(g && g->guild_id == gc->guild_id)
@@ -7593,7 +7589,7 @@ static int pc_hpheal(struct map_session_data *sd)
 			a *= sd->sc_data[SC_REGENERATION].val1;
 	}
 	if (sd->status.guild_id > 0) {
-		struct guild_castle *gc = guild_mapname2gc(sd->mapname);	// Increased guild castle regen [Valaris]
+		struct guild_castle *gc = guild_mapindex2gc(sd->mapindex);	// Increased guild castle regen [Valaris]
 		if(gc)	{
 			struct guild *g = guild_search(sd->status.guild_id);
 			if(g && g->guild_id == gc->guild_id)
@@ -7943,11 +7939,11 @@ int pc_natural_heal(int tid,unsigned int tick,int id,int data)
  * セ?ブポイントの保存
  *------------------------------------------
  */
-int pc_setsavepoint(struct map_session_data *sd,char *mapname,int x,int y)
+int pc_setsavepoint(struct map_session_data *sd, short mapindex,int x,int y)
 {
 	nullpo_retr(0, sd);
 
-	memcpy(sd->status.save_point.map, mapname, MAP_NAME_LENGTH-1);
+	sd->status.save_point.map = mapindex;
 	sd->status.save_point.x = x;
 	sd->status.save_point.y = y;
 

@@ -40,7 +40,7 @@ struct dbt *auth_db;
 
 static const int packet_len_table[0x3d] = {
 	60, 3,-1,27,10,-1, 6,-1,	// 2af8-2aff: U->2af8, U->2af9, U->2afa, U->2afb, U->2afc, U->2afd, U->2afe, U->2aff
-	 6,-1,18, 7,-1,49,44,10,	// 2b00-2b07: U->2b00, U->2b01, U->2b02, U->2b03, U->2b04, U->2b05, U->2b06, U->2b07
+	 6,-1,18, 7,-1,49,30,10,	// 2b00-2b07: U->2b00, U->2b01, U->2b02, U->2b03, U->2b04, U->2b05, U->2b06, U->2b07
 	 6,30,-1,10,86, 7,44,34,	// 2b08-2b0f: U->2b08, U->2b09, U->2b0a, U->2b0b, U->2b0c, U->2b0d, U->2b0e, U->2b0f
 	-1,-1,10, 6,11,-1, 0, 0,	// 2b10-2b17: U->2b10, U->2b11, U->2b12, U->2b13, U->2b14, U->2b15, U->2b16, U->2b17
 	-1,-1,-1,-1,-1,-1,-1, 7,	// 2b18-2b1f: U->2b18, U->2b19, U->2b1a, U->2b1b, U->2b1c, U->2b1d, F->2b1e, U->2b1f
@@ -199,7 +199,7 @@ int chrif_save(struct map_session_data *sd)
 int chrif_connect(int fd)
 {
 	ShowStatus("Logging in to char server...\n", char_fd);
-        WFIFOHEAD(fd, 60);
+	WFIFOHEAD(fd, 60);
 	WFIFOW(fd,0) = 0x2af8;
 	memcpy(WFIFOP(fd,2), userid, NAME_LENGTH);
 	memcpy(WFIFOP(fd,26), passwd, NAME_LENGTH);
@@ -219,14 +219,11 @@ int chrif_sendmap(int fd)
 {
 	int i;
 	ShowStatus("Sending maps to char server...\n");
-        WFIFOHEAD(fd, 4 + map_num * 16);
+	WFIFOHEAD(fd, 4 + map_num * 4);
 	WFIFOW(fd,0) = 0x2afa;
 	for(i = 0; i < map_num; i++)
-		if (map[i].alias != '\0') // [MouseJstr] map aliasing
-		    memcpy(WFIFOP(fd,4+i*16), map[i].alias, MAP_NAME_LENGTH);
-		else
-		    memcpy(WFIFOP(fd,4+i*16), map[i].name, MAP_NAME_LENGTH);
-	WFIFOW(fd,2) = 4 + i * 16;
+		WFIFOW(fd,4+i*4) = map[i].index;
+	WFIFOW(fd,2) = 4 + i * 4;
 	WFIFOSET(fd,WFIFOW(fd,2));
 
 	return 0;
@@ -247,8 +244,8 @@ int chrif_recvmap(int fd)
 
 	ip = RFIFOL(fd,4);
 	port = RFIFOW(fd,8);
-	for(i = 10, j = 0; i < RFIFOW(fd,2); i += 16, j++) {
-		map_setipport((char*)RFIFOP(fd,i), ip, port);
+	for(i = 10, j = 0; i < RFIFOW(fd,2); i += 4, j++) {
+		map_setipport(RFIFOW(fd,i), ip, port);
 //		if (battle_config.etc_log)
 //			printf("recv map %d %s\n", j, RFIFOP(fd,i));
 	}
@@ -267,7 +264,6 @@ int chrif_removemap(int fd){
 	unsigned char *p = (unsigned char *)&ip;
 	RFIFOHEAD(fd);
 
-
 	if(chrif_state < 2){
 		return -1; //i dunno, but i know if its 3 the link is ok^^
 	}
@@ -275,15 +271,13 @@ int chrif_removemap(int fd){
 	ip = RFIFOL(fd, 4);
 	port = RFIFOW(fd, 8);
 
-	for(i = 10, j = 0; i < RFIFOW(fd, 2); i += 16, j++){
-		map_eraseipport((char*)RFIFOP(fd, i), ip, port);
+	for(i = 10, j = 0; i < RFIFOW(fd, 2); i += 4, j++){
+		map_eraseipport(RFIFOW(fd, i), ip, port);
 	}
-
 
 	if(battle_config.etc_log){
 		ShowStatus("remove map of server %d.%d.%d.%d:%d (%d maps)\n", p[0], p[1], p[2], p[3], port, j);
 	}
-
 	return 0;
 }
 
@@ -291,7 +285,7 @@ int chrif_removemap(int fd){
  * マップ鯖間移動のためのデータ準備要求
  *------------------------------------------
  */
-int chrif_changemapserver(struct map_session_data *sd, char *name, int x, int y, int ip, short port)
+int chrif_changemapserver(struct map_session_data *sd, short map, int x, int y, int ip, short port)
 {
 	int i, s_ip;
 
@@ -306,20 +300,20 @@ int chrif_changemapserver(struct map_session_data *sd, char *name, int x, int y,
 			break;
 		}
 
-        WFIFOHEAD(char_fd, 49);
+	WFIFOHEAD(char_fd, 35);
 	WFIFOW(char_fd, 0) = 0x2b05;
 	WFIFOL(char_fd, 2) = sd->bl.id;
 	WFIFOL(char_fd, 6) = sd->login_id1;
 	WFIFOL(char_fd,10) = sd->login_id2;
 	WFIFOL(char_fd,14) = sd->status.char_id;
-	memcpy(WFIFOP(char_fd,18), name, MAP_NAME_LENGTH);
-	WFIFOW(char_fd,34) = x;
-	WFIFOW(char_fd,36) = y;
-	WFIFOL(char_fd,38) = ip;
-	WFIFOW(char_fd,42) = port;
-	WFIFOB(char_fd,44) = sd->status.sex;
-	WFIFOL(char_fd,45) = s_ip;
-	WFIFOSET(char_fd,49);
+	WFIFOW(char_fd,18) = map;
+	WFIFOW(char_fd,20) = x;
+	WFIFOW(char_fd,22) = y;
+	WFIFOL(char_fd,24) = ip;
+	WFIFOW(char_fd,28) = port;
+	WFIFOB(char_fd,30) = sd->status.sex;
+	WFIFOL(char_fd,31) = s_ip;
+	WFIFOSET(char_fd,35);
 
 	return 0;
 }
@@ -343,7 +337,7 @@ int chrif_changemapserverack(int fd)
 		pc_authfail(sd);
 		return 0;
 	}
-	clif_changemapserver(sd, (char*)RFIFOP(fd,18), RFIFOW(fd,34), RFIFOW(fd,36), RFIFOL(fd,38), RFIFOW(fd,42));
+	clif_changemapserver(sd, (char*)mapindex_id2name(RFIFOW(fd,18)), RFIFOW(fd,20), RFIFOW(fd,22), RFIFOL(fd,24), RFIFOW(fd,28));
 	return 0;
 }
 

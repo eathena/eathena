@@ -452,6 +452,7 @@ CREATE TABLE `party` (
   `exp` tinyint(11) unsigned NOT NULL default '0',
   `item` tinyint(11) unsigned NOT NULL default '0',
   `leader_id` int(11) unsigned NOT NULL default '0',
+  `leader_char` int(11) unsigned NOT NULL default '0',
   PRIMARY KEY  (`party_id`)
 ) TYPE=MyISAM;
 

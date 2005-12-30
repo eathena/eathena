@@ -6,6 +6,7 @@
 
 #include <stdarg.h>
 #include "../common/mmo.h"
+#include "../common/mapindex.h"
 
 #define MAX_PC_CLASS 4050
 #define PC_CLASS_BASE 0
@@ -437,8 +438,8 @@ struct map_session_data {
 	short equip_index[11];
 	unsigned int weight,max_weight;
 	int cart_weight,cart_max_weight,cart_num,cart_max_num;
-	char mapname[MAP_NAME_LENGTH];
 	int fd;
+	unsigned short mapindex;
 	short to_x,to_y;
 	short speed,prev_speed;
 	short opt1,opt2,opt3;
@@ -760,7 +761,7 @@ struct npc_data {
 		struct {
 			short xs,ys;
 			short x,y;
-			char name[MAP_NAME_LENGTH];
+			unsigned short mapindex;
 		} warp;
 	} u;
 	//Do NOT place anything afterwards... shop data NPC will override any variables from here and on! [Skotlex]
@@ -938,6 +939,7 @@ struct mob_list {
 
 struct map_data {
 	char name[MAP_NAME_LENGTH];
+	unsigned short index; //Index is the map index used by the mapindex* functions.
 	unsigned char *gat;	// NULL‚È‚ç‰º‚Ìmap_data_other_server‚Æ‚µ‚Äˆµ‚¤
 	unsigned char *cell; //Contains temporary cell data that is set/unset on tiles.
 	char *alias; // [MouseJstr]
@@ -1002,6 +1004,7 @@ struct map_data {
 
 struct map_data_other_server {
 	char name[NAME_LENGTH];
+	unsigned short index; //Index is the map index used by the mapindex* functions.
 	unsigned char *gat;	// NULLŒÅ’è‚É‚µ‚Ä”»’f
 	unsigned long ip;
 	unsigned int port;
@@ -1207,10 +1210,11 @@ struct map_session_data * map_charid2sd(int);
 
 struct map_session_data * map_id2sd(int);
 struct block_list * map_id2bl(int);
+int map_mapindex2mapid(unsigned short mapindex);
 int map_mapname2mapid(char*);
-int map_mapname2ipport(char*,int*,int*);
-int map_setipport(char *name,unsigned long ip,int port);
-int map_eraseipport(char *name,unsigned long ip,int port);
+int map_mapname2ipport(short,int*,int*);
+int map_setipport(unsigned short map,unsigned long ip,int port);
+int map_eraseipport(unsigned short map,unsigned long ip,int port);
 int map_eraseallipport(void);
 void map_addiddb(struct block_list *);
 void map_deliddb(struct block_list *bl);

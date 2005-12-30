@@ -275,6 +275,20 @@ struct guild_castle *guild_mapname2gc(char *mapname)
 	return NULL;
 }
 
+struct guild_castle *guild_mapindex2gc(short mapname)
+{
+	int i;
+	struct guild_castle *gc=NULL;
+	for(i=0;i<MAX_GUILDCASTLE;i++){
+		gc=guild_castle_search(i);
+		if(!gc) continue;
+		if(strcmp(gc->map_name,mapindex_id2name(mapname))==0) return gc;
+	}
+	return NULL;
+}
+
+
+
 // ログイン中のギルドメンバーの１人のsdを返す
 struct map_session_data *guild_getavailablesd(struct guild *g)
 {
@@ -981,7 +995,7 @@ int guild_send_message(struct map_session_data *sd,char *mes,int len)
 	if(log_config.chat&1 //we log everything then
 		|| ( log_config.chat&8 //if Guild bit is on
 		&& ( !agit_flag || !(log_config.chat&16) ))) //if WOE ONLY flag is off or AGIT is OFF
-		log_chat("G", sd->status.guild_id, sd->status.char_id, sd->status.account_id, (char*)sd->mapname, sd->bl.x, sd->bl.y, NULL, mes);
+		log_chat("G", sd->status.guild_id, sd->status.char_id, sd->status.account_id, (char*)mapindex_id2name(sd->mapindex), sd->bl.x, sd->bl.y, NULL, mes);
 
 	return 0;
 }

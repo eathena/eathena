@@ -165,7 +165,7 @@ int mob_countslave(struct mob_data *md);
 
 int mob_is_clone(int class_);
 
-int mob_clone_spawn(struct map_session_data *sd, char *mapname, int x, int y, const char *event, int master_id, int mode, int flag, unsigned int duration);
+int mob_clone_spawn(struct map_session_data *sd, char *map, int x, int y, const char *event, int master_id, int mode, int flag, unsigned int duration);
 int mob_clone_delete(int class_);
 
 void mob_reload(void);

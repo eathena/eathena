@@ -2791,7 +2791,7 @@ int buildin_warp(struct script_state *st)
 		pc_setpos(sd,sd->status.save_point.map,
 			sd->status.save_point.x,sd->status.save_point.y,3);
 	}else
-		pc_setpos(sd,str,x,y,0);
+		pc_setpos(sd,mapindex_name2id(str),x,y,0);
 	return 0;
 }
 /*==========================================
@@ -2801,11 +2801,11 @@ int buildin_warp(struct script_state *st)
 int buildin_areawarp_sub(struct block_list *bl,va_list ap)
 {
 	int x,y;
-	char *map;
-	map=va_arg(ap, char *);
+	unsigned int map;
+	map=va_arg(ap, unsigned int);
 	x=va_arg(ap,int);
 	y=va_arg(ap,int);
-	if(strcmp(map,"Random")==0)
+	if(map == 0)
 		pc_randomwarp((struct map_session_data *)bl,3);
 	else
 		pc_setpos((struct map_session_data *)bl,map,x,y,0);
@@ -2814,6 +2814,7 @@ int buildin_areawarp_sub(struct block_list *bl,va_list ap)
 int buildin_areawarp(struct script_state *st)
 {
 	int x,y,m;
+	unsigned int index;
 	char *str;
 	char *mapname;
 	int x0,y0,x1,y1;
@@ -2830,8 +2831,13 @@ int buildin_areawarp(struct script_state *st)
 	if( (m=map_mapname2mapid(mapname))< 0)
 		return 0;
 
+	if(strcmp(str,"Random")==0)
+		index = 0;
+	else if(!(index=mapindex_name2id(str)))
+		return 0;
+
 	map_foreachinarea(buildin_areawarp_sub,
-		m,x0,y0,x1,y1,BL_PC,	str,x,y );
+		m,x0,y0,x1,y1,BL_PC,	index,x,y );
 	return 0;
 }
 
@@ -2868,7 +2874,7 @@ int buildin_warpchar(struct script_state *st)
 					sd->status.save_point.x, sd->status.save_point.y, 3);
 			
 			else	
-				pc_setpos(sd, str, x, y, 3);
+				pc_setpos(sd, mapindex_name2id(str), x, y, 3);
 		}
 	}
 	
@@ -2886,6 +2892,7 @@ int buildin_warpparty(struct script_state *st)
 	char *str;
 	int p;
 	int i;
+	unsigned short mapindex;
 	struct map_session_data *pl_sd, **pl_allsd;
 	struct map_session_data *sd;
 	int users;
@@ -2935,7 +2942,7 @@ int buildin_warpparty(struct script_state *st)
 		if(map[sd->bl.m].flag.noreturn)
 			return 0;
 	
-		str=sd->status.save_point.map;
+		mapindex=sd->status.save_point.map;
 		x=sd->status.save_point.x;
 		y=sd->status.save_point.y;
 		for (i = 0; i < users; i++)
@@ -2944,19 +2951,20 @@ int buildin_warpparty(struct script_state *st)
 			{
 				if(map[pl_sd->bl.m].flag.noreturn)
 					continue;			
-				pc_setpos(pl_sd,str,x,y,3);
+				pc_setpos(pl_sd,mapindex,x,y,3);
 			}
 		}
 	}
 	else
 	{
+		mapindex = mapindex_name2id(str);
 		for (i = 0; i < users; i++)
 		{
 			if ((pl_sd = pl_allsd[i]) && pl_sd->status.party_id == p)
 			{
 				if(map[pl_sd->bl.m].flag.noreturn || map[pl_sd->bl.m].flag.nowarp)
 					continue;
-				pc_setpos(pl_sd,str,x,y,3);
+				pc_setpos(pl_sd,mapindex,x,y,3);
 			}
 		}
 	}
@@ -2970,6 +2978,7 @@ int buildin_warpparty(struct script_state *st)
 int buildin_warpguild(struct script_state *st)
 {
 	int x,y;
+	unsigned short mapindex;
 	char *str;
 	int g;
 	int i;
@@ -3023,7 +3032,7 @@ int buildin_warpguild(struct script_state *st)
 		if(map[sd->bl.m].flag.noreturn)
 			return 0;
 		
-		str=sd->status.save_point.map;
+		mapindex=sd->status.save_point.map;
 		x=sd->status.save_point.x;
 		y=sd->status.save_point.y;
 		for (i = 0; i < users; i++)
@@ -3032,19 +3041,20 @@ int buildin_warpguild(struct script_state *st)
 			{
 				if(map[pl_sd->bl.m].flag.noreturn)
 					continue;
-				pc_setpos(pl_sd,str,x,y,3);
+				pc_setpos(pl_sd,mapindex,x,y,3);
 			}
 		}
 	}
 	else
 	{
+		mapindex = mapindex_name2id(str);
 		for (i = 0; i < users; i++)
 		{
 			if ((pl_sd = pl_allsd[i]) && pl_sd->status.guild_id == g)
 			{
 				if(map[pl_sd->bl.m].flag.noreturn || map[pl_sd->bl.m].flag.nowarp)
 					continue;
-				pc_setpos(pl_sd,str,x,y,3);
+				pc_setpos(pl_sd,mapindex,x,y,3);
 			}
 		}
 	}
@@ -5079,12 +5089,15 @@ int buildin_setriding(struct script_state *st)
 int buildin_savepoint(struct script_state *st)
 {
 	int x,y;
+	short map;
 	char *str;
 
 	str=conv_str(st,& (st->stack->stack_data[st->start+2]));
 	x=conv_num(st,& (st->stack->stack_data[st->start+3]));
 	y=conv_num(st,& (st->stack->stack_data[st->start+4]));
-	pc_setsavepoint(script_rid2sd(st),str,x,y);
+	map = mapindex_name2id(str);
+	if (map)
+		pc_setsavepoint(script_rid2sd(st),map,x,y);
 	return 0;
 }
 
@@ -6435,7 +6448,7 @@ int buildin_warpwaitingpc(struct script_state *st)
 			pc_setpos(sd,sd->status.save_point.map,
 				sd->status.save_point.x,sd->status.save_point.y,3);
 		}else
-			pc_setpos(sd,str,x,y,0);
+			pc_setpos(sd,mapindex_name2id(str),x,y,0);
 	}
 	mapreg_setreg(add_str((unsigned char *) "$@warpwaitingpcnum"),n);
 	return 0;
@@ -6483,6 +6496,7 @@ enum {  MF_NOMEMO,MF_NOTELEPORT,MF_NOSAVE,MF_NOBRANCH,MF_NOPENALTY,MF_NOZENYPENA
 int buildin_setmapflagnosave(struct script_state *st)
 {
 	int m,x,y;
+	unsigned short mapindex;
 	char *str,*str2;
 
 	str=conv_str(st,& (st->stack->stack_data[st->start+2]));
@@ -6490,9 +6504,11 @@ int buildin_setmapflagnosave(struct script_state *st)
 	x=conv_num(st,& (st->stack->stack_data[st->start+4]));
 	y=conv_num(st,& (st->stack->stack_data[st->start+5]));
 	m = map_mapname2mapid(str);
-	if(m >= 0) {
+	mapindex = mapindex_name2id(str2);	
+	
+	if(m >= 0 && mapindex) {
 		map[m].flag.nosave=1;
-		memcpy(map[m].save.map, str2, MAP_NAME_LENGTH-1);
+		map[m].save.map=mapindex;
 		map[m].save.x=x;
 		map[m].save.y=y;
 	}
@@ -7435,23 +7451,27 @@ int buildin_getfatherid(struct script_state *st)
 int buildin_warppartner(struct script_state *st)
 {
 	int x,y;
+	unsigned short mapindex;
 	char *str;
 	struct map_session_data *sd=script_rid2sd(st);
 	struct map_session_data *p_sd=NULL;
 
 	if(sd==NULL || !pc_ismarried(sd) ||
-            (p_sd=map_charid2sd(sd->status.partner_id)) == NULL) {
+   	(p_sd=map_charid2sd(sd->status.partner_id)) == NULL) {
 		push_val(st->stack,C_INT,0);
 		return 0;
 	}
 
-        str=conv_str(st,& (st->stack->stack_data[st->start+2]));
+	str=conv_str(st,& (st->stack->stack_data[st->start+2]));
 	x=conv_num(st,& (st->stack->stack_data[st->start+3]));
 	y=conv_num(st,& (st->stack->stack_data[st->start+4]));
 
-        pc_setpos(p_sd,str,x,y,0);
-
-	push_val(st->stack,C_INT,1);
+	mapindex = mapindex_name2id(str);
+	if (mapindex) {
+		pc_setpos(p_sd,mapindex,x,y,0);
+		push_val(st->stack,C_INT,1);
+	} else
+		push_val(st->stack,C_INT,0);
 	return 0;
 }
 
@@ -8591,30 +8611,31 @@ int buildin_getlook(struct script_state *st){
 */
 int buildin_getsavepoint(struct script_state *st)
 {
-        int x,y,type;
-        char *mapname;
-        struct map_session_data *sd;
+	int x,y,type;
+	char *mapname;
+	struct map_session_data *sd;
 
-        sd=script_rid2sd(st);
+	sd=script_rid2sd(st);
 
-        type=conv_num(st,& (st->stack->stack_data[st->start+2]));
-        mapname=(char *) aCallocA(MAP_NAME_LENGTH, sizeof(char));
+	type=conv_num(st,& (st->stack->stack_data[st->start+2]));
 
-        x=sd->status.save_point.x;
-        y=sd->status.save_point.y;
-        memcpy(mapname, sd->status.save_point.map, MAP_NAME_LENGTH-1);
-        switch(type){
-            case 0:
-                push_str(st->stack,C_STR,(unsigned char *) mapname);
-                break;
-            case 1:
-                push_val(st->stack,C_INT,x);
-                break;
-            case 2:
-                push_val(st->stack,C_INT,y);
-                break;
-        }
-        return 0;
+	x=sd->status.save_point.x;
+	y=sd->status.save_point.y;
+	switch(type){
+		case 0:
+			mapname=(char *) aCallocA(MAP_NAME_LENGTH+1, sizeof(char));
+			memcpy(mapname, mapindex_id2name(sd->status.save_point.map), MAP_NAME_LENGTH);
+			mapname[MAP_NAME_LENGTH]='\0';
+			push_str(st->stack,C_STR,(unsigned char *) mapname);
+		break;
+		case 1:
+			push_val(st->stack,C_INT,x);
+		break;
+		case 2:
+			push_val(st->stack,C_INT,y);
+		break;
+	}
+	return 0;
 }
 
 /*==========================================
@@ -8647,7 +8668,7 @@ int buildin_getmapxy(struct script_state *st){
 	char prefix;
 
 	int x,y,type;
-	char mapname[MAP_NAME_LENGTH];
+	char mapname[MAP_NAME_LENGTH+1];
 	memset(mapname, 0, sizeof(mapname));
 
         if( st->stack->stack_data[st->start+2].type!=C_NAME ){
@@ -8684,7 +8705,7 @@ int buildin_getmapxy(struct script_state *st){
 
                     x=sd->bl.x;
                     y=sd->bl.y;
-                    memcpy(mapname,sd->mapname, MAP_NAME_LENGTH-1);
+                    memcpy(mapname,mapindex_id2name(sd->mapindex), MAP_NAME_LENGTH);
                     break;
             case 1:                                             //Get NPC Position
                     if( st->end > st->start+6 )
@@ -8699,7 +8720,7 @@ int buildin_getmapxy(struct script_state *st){
 
                     x=nd->bl.x;
                     y=nd->bl.y;
-                    memcpy(mapname, map[nd->bl.m].name, MAP_NAME_LENGTH-1);
+                    memcpy(mapname, map[nd->bl.m].name, MAP_NAME_LENGTH);
                     break;
             case 2:                                             //Get Pet Position
                     if( st->end>st->start+6 )
@@ -8720,7 +8741,7 @@ int buildin_getmapxy(struct script_state *st){
                     }
                     x=pd->bl.x;
                     y=pd->bl.y;
-                    memcpy(mapname, map[pd->bl.m].name, MAP_NAME_LENGTH-1);
+                    memcpy(mapname, map[pd->bl.m].name, MAP_NAME_LENGTH);
                     break;
 
             case 3:                                             //Get Mob Position

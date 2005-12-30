@@ -7,6 +7,7 @@
 #include "../common/mmo.h"
 #include "../common/version.h"
 #include "../common/db.h"
+#include "../common/mapindex.h"
 
 #ifndef _CHAR_H_
 #define _CHAR_H_
@@ -22,7 +23,7 @@ struct mmo_map_server{
   long ip;
   short port;
   int users;
-  char map[MAX_MAP_PER_SERVER][16];
+  unsigned short map[MAX_MAP_PER_SERVER];
 };
 struct itemtmp {
 	int flag;//checked = 1 else 0

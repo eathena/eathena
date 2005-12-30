@@ -6,7 +6,7 @@ obj:
 common: obj/core.o obj/socket.o obj/timer.o obj/db.o obj/plugins.o obj/lock.o \
 	obj/nullpo.o obj/malloc.o obj/showmsg.o  obj/strlib.o obj/utils.o \
 	obj/graph.o obj/grfio.o obj/minicore.o obj/minisocket.o obj/minimalloc.o \
-	obj/unz.o
+	obj/mapindex.o obj/unz.o
 
 
 obj/%.o: %.c
@@ -52,3 +52,4 @@ obj/malloc.o: malloc.c malloc.h showmsg.h
 obj/plugins.o: plugins.c plugins.h plugin.h
 obj/showmsg.o: showmsg.c showmsg.h
 obj/strlib.o: strlib.c strlib.h utils.h
+obj/mapindex.o: mapindex.c mapindex.h

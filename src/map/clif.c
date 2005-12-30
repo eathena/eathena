@@ -2032,16 +2032,16 @@ void clif_setwaitclose(int fd) {
  *
  *------------------------------------------
  */
-int clif_changemap(struct map_session_data *sd, char *mapname, int x, int y) {
+int clif_changemap(struct map_session_data *sd, short map, int x, int y) {
 	int fd;
-
+	
 	nullpo_retr(0, sd);
 
 	fd = sd->fd;
-
-        WFIFOHEAD(fd, packet_len_table[0x91]);
+	
+	WFIFOHEAD(fd, packet_len_table[0x91]);
 	WFIFOW(fd,0) = 0x91;
-	memcpy(WFIFOP(fd,2), mapname, MAP_NAME_LENGTH);
+	memcpy(WFIFOP(fd,2), mapindex_id2name(map), MAP_NAME_LENGTH);
 	WFIFOW(fd,18) = x;
 	WFIFOW(fd,20) = y;
 	WFIFOSET(fd, packet_len_table[0x91]);
@@ -6290,7 +6290,7 @@ int clif_party_info(struct party *p,int fd)
 			if(sd==NULL) sd=m->sd;
 			WBUFL(buf,28+c*46)=m->account_id;
 			memcpy(WBUFP(buf,28+c*46+ 4),m->name,NAME_LENGTH);
-			memcpy(WBUFP(buf,28+c*46+28),m->map,MAP_NAME_LENGTH);
+			memcpy(WBUFP(buf,28+c*46+28),mapindex_id2name(m->map),MAP_NAME_LENGTH);
 			WBUFB(buf,28+c*46+44)=(m->leader)?0:1;
 			WBUFB(buf,28+c*46+45)=(m->online)?0:1;
 			c++;
@@ -8044,7 +8044,7 @@ int clif_specialeffect(struct block_list *bl, int type, int flag)
 // refresh the client's screen, getting rid of any effects
 int clif_refresh(struct map_session_data *sd) {
 	nullpo_retr(-1, sd);
-	clif_changemap(sd,sd->mapname,sd->bl.x,sd->bl.y);
+	clif_changemap(sd,sd->mapindex,sd->bl.x,sd->bl.y);
 	map_foreachinarea(clif_getareachar,sd->bl.m,sd->bl.x-AREA_SIZE,sd->bl.y-AREA_SIZE,sd->bl.x+AREA_SIZE,sd->bl.y+AREA_SIZE,0,sd);
 	return 0;
 }
@@ -9222,7 +9222,7 @@ void clif_parse_Wis(int fd, struct map_session_data *sd) { // S 0096 <len>.w <ni
 	if(log_config.chat&1 //we log everything then
 		|| ( log_config.chat&2 //if Whisper bit is on
 		&& ( !agit_flag || !(log_config.chat&16) ))) //if WOE ONLY flag is off or AGIT is OFF
-		log_chat("W", 0, sd->status.char_id, sd->status.account_id, (char*)sd->mapname, sd->bl.x, sd->bl.y, (char*)RFIFOP(fd, 4), (char*)RFIFOP(fd, 28));
+		log_chat("W", 0, sd->status.char_id, sd->status.account_id, (char*)mapindex_id2name(sd->mapindex), sd->bl.x, sd->bl.y, (char*)RFIFOP(fd, 4), (char*)RFIFOP(fd, 28));
 
 
 //-------------------------------------------------------//

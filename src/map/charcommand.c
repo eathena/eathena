@@ -609,11 +609,11 @@ int charcommand_save(
 				clif_displaymessage(fd, msg_table[1]); // Map not found.
 				return -1;
 			} else {
-				if (m >= 0 && map[m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
+				if (map[m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
 					clif_displaymessage(fd, "You are not authorised to set this map as a save map.");
 					return -1;
 				}
-				pc_setsavepoint(pl_sd, map_name, x, y);
+				pc_setsavepoint(pl_sd, map[m].index, x, y);
 				clif_displaymessage(fd, msg_table[57]); // Character's respawn point changed.
 			}
 		} else {
@@ -1116,7 +1116,7 @@ int charcommand_warp(
 					clif_displaymessage(fd, "You are not authorised to warp this player from its actual map.");
 					return -1;
 				}
-				if (pc_setpos(pl_sd, map_name, x, y, 3) == 0) {
+				if (pc_setpos(pl_sd, map[m].index, x, y, 3) == 0) {
 					clif_displaymessage(pl_sd->fd, msg_table[0]); // Warped.
 					clif_displaymessage(fd, msg_table[15]); // Player warped (message sends to player too).
 				} else {
@@ -1214,7 +1214,7 @@ int charcommand_fakename(
 	if(strlen(name) < 1 || !name) {
 		if(strlen(pl_sd->fakename) > 1) {
 			pl_sd->fakename[0]='\0';
-			pc_setpos(pl_sd, pl_sd->mapname, pl_sd->bl.x, sd->bl.y, 3);
+			pc_setpos(pl_sd, pl_sd->mapindex, pl_sd->bl.x, sd->bl.y, 3);
 			clif_displaymessage(sd->fd,"Returned to real name.");
 		} else {
 			clif_displaymessage(sd->fd,"Character does not has a fake name.");
@@ -1228,7 +1228,7 @@ int charcommand_fakename(
 	}
 	
 	memcpy(pl_sd->fakename,name, NAME_LENGTH-1);
-	pc_setpos(pl_sd, pl_sd->mapname, pl_sd->bl.x, pl_sd->bl.y, 3);
+	pc_setpos(pl_sd, pl_sd->mapindex, pl_sd->bl.x, pl_sd->bl.y, 3);
 	clif_displaymessage(sd->fd,"Fake name enabled.");
 	
 	return 0;

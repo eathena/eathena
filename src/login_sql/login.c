@@ -849,7 +849,7 @@ int parse_fromchar(int fd){
 		session[fd]->eof = 1;
 	if(session[fd]->eof) {
 		if (id < MAX_SERVERS) {
-			ShowWarning("Char-server '%s' has disconnected.\n", server[id].name);
+			ShowStatus("Char-server '%s' has disconnected.\n", server[id].name);
 			server_fd[id] = -1;
 			memset(&server[id], 0, sizeof(struct mmo_char_server));
 			// server delete

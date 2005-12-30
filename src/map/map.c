@@ -1847,18 +1847,24 @@ void map_removemobs(int m)
  *------------------------------------------
  */
 int map_mapname2mapid(char *name) {
+	unsigned short map_index;
+	map_index = mapindex_name2id(name);
+	if (!map_index)
+		return -1;
+	return map_mapindex2mapid(map_index);
+}
+
+/*==========================================
+ * Returns the map of the given mapindex. [Skotlex]
+ *------------------------------------------
+ */
+int map_mapindex2mapid(unsigned short mapindex) {
 	struct map_data *md=NULL;
-
-	md = (struct map_data*)strdb_search(map_db,name);
-
-	// If we can't find the .gat map try .afm instead [celest]
-	if(md==NULL && strstr(name,".gat")) {
-	  char *afm_name = aStrdup(name);
-	  strcpy(&afm_name[strlen(name) - 3], "afm");
-	  md = (struct map_data*)strdb_search(map_db,afm_name);
-	  aFree(afm_name);
-	}
-
+	
+	if (!mapindex)
+		return -1;
+	
+	md = (struct map_data*)numdb_search(map_db,(int)mapindex);
 	if(md==NULL || md->gat==NULL)
 		return -1;
 	return md->m;
@@ -1868,10 +1874,10 @@ int map_mapname2mapid(char *name) {
  * 他鯖map名からip,port?換
  *------------------------------------------
  */
-int map_mapname2ipport(char *name,int *ip,int *port) {
+int map_mapname2ipport(short name,int *ip,int *port) {
 	struct map_data_other_server *mdos=NULL;
 
-	mdos = (struct map_data_other_server*)strdb_search(map_db,name);
+	mdos = (struct map_data_other_server*)numdb_search(map_db,(int)name);
 	if(mdos==NULL || mdos->gat)
 		return -1;
 	*ip=mdos->ip;
@@ -2103,19 +2109,20 @@ void map_setcell(int m,int x,int y,int cell)
  * 他鯖管理のマップをdbに追加
  *------------------------------------------
  */
-int map_setipport(char *name,unsigned long ip,int port) {
+int map_setipport(unsigned short mapindex,unsigned long ip,int port) {
 	struct map_data *md=NULL;
 	struct map_data_other_server *mdos=NULL;
 
-	md = (struct map_data*)strdb_search(map_db,name);
+	md = (struct map_data*)numdb_search(map_db,(int)mapindex);
 	if(md==NULL){ // not exist -> add new data
 		mdos=(struct map_data_other_server *)aCalloc(1,sizeof(struct map_data_other_server));
-		memcpy(mdos->name, name, NAME_LENGTH-1);
+		memcpy(mdos->name, mapindex_id2name(mapindex), NAME_LENGTH);
+		mdos->index = mapindex;
 //		mdos->gat  = NULL;
 		mdos->ip   = ip;
 		mdos->port = port;
 //		mdos->map  = NULL;
-		strdb_insert(map_db,mdos->name,mdos);
+		numdb_insert(map_db,(int)mapindex,mdos);
 	} else if(md->gat){
 		//We are SO NOT DOING this, this would cause a conflict in the map_db, 
 		//and since we already have a local map, don't risk overwriting it! [Skotlex]
@@ -2127,7 +2134,7 @@ int map_setipport(char *name,unsigned long ip,int port) {
 			mdos->ip   = ip;
 			mdos->port = port;
 			mdos->map  = md;
-			strdb_insert(map_db,mdos->name,mdos);
+			numdb_insert(map_db,(int)mapindex,mdos);
 			// printf("from char server : %s -> %08lx:%d\n",name,ip,port);
 		} else {
 			// 読み甲ﾅいて、担当になったマップ（何もしない）
@@ -2139,13 +2146,13 @@ int map_setipport(char *name,unsigned long ip,int port) {
 			// 自分の担当になったマップ
 			if(mdos->map == NULL) {
 				// 読み甲ﾅいないので終了する
-				ShowFatalError("map_setipport : %s is not loaded.\n",name);
+				ShowFatalError("map_setipport : %s is not loaded.\n",mapindex_id2name(mapindex));
 				exit(1);
 			} else {
 				// 読み甲ﾅいるので置き換える
 				md = mdos->map;
 				aFree(mdos);
-				strdb_insert(map_db,md->name,md);
+				numdb_insert(map_db,(int)mapindex,md);
 			}
 		} else {
 			// 他の鯖の担当マップなので置き換えるだけ
@@ -2163,14 +2170,14 @@ int map_setipport(char *name,unsigned long ip,int port) {
 int map_eraseallipport_sub(void *key,void *data,va_list va) {
 	struct map_data_other_server *mdos = (struct map_data_other_server*)data;
 	if(mdos->gat == NULL && mdos->map == NULL) {
-		strdb_erase(map_db,key);
+		numdb_erase(map_db,key);
 		aFree(mdos);
 	}
 	return 0;
 }
 
 int map_eraseallipport(void) {
-	strdb_foreach(map_db,map_eraseallipport_sub);
+	numdb_foreach(map_db,map_eraseallipport_sub);
 	return 1;
 }
 
@@ -2178,13 +2185,13 @@ int map_eraseallipport(void) {
  * 他鯖管理のマップをdbから削除
  *------------------------------------------
  */
-int map_eraseipport(char *name,unsigned long ip,int port)
+int map_eraseipport(unsigned short mapindex,unsigned long ip,int port)
 {
 	struct map_data *md;
 	struct map_data_other_server *mdos;
 //	unsigned char *p=(unsigned char *)&ip;
 
-	md=(struct map_data *) strdb_search(map_db,name);
+	md=(struct map_data *) numdb_search(map_db,(int)mapindex);
 	if(md){
 		if(md->gat) // local -> check data
 			return 0;
@@ -2195,7 +2202,7 @@ int map_eraseipport(char *name,unsigned long ip,int port)
 					// このマップ鯖でも読み甲ﾅいるので移動できる
 					return 1; // 呼び出し元で chrif_sendmap() をする
 				} else {
-					strdb_erase(map_db,name);
+					numdb_erase(map_db,(int)mapindex);
 					aFree(mdos);
 				}
 //				if(battle_config.etc_log)
@@ -2952,9 +2959,26 @@ int map_readallmaps (void)
 
 				if (map[i].alias && (alias = strstr(map[i].name, "<")) != NULL) {	// alias has been set by one of the sources
 					*alias++ = '\0';
-					strdb_insert(map_db, alias, &map[i]);
-				} else
-					strdb_insert(map_db, map[i].name, &map[i]);
+				}
+				if (map[i].alias)
+					map[i].index = mapindex_name2id(map[i].alias);
+				else
+					map[i].index = mapindex_name2id(map[i].name);
+				
+				if (!map[i].index) {
+					if (map[i].alias)
+						ShowWarning("Map %s (alias %s) is not in the map-index cache!\n", map[i].name, map[i].alias);
+					else
+						ShowWarning("Map %s is not in the map-index cache!\n", map[i].name);
+					success = 0; //Can't load a map that isn't in our cache.
+					break;
+				}
+				if (numdb_search(map_db, (int)map[i].index) != NULL) {
+					ShowWarning("Map %s already loaded!\n", map[i].name);
+					success = 0; //Can't load a map already in the db
+					break;
+				}
+				numdb_insert(map_db, (int)map[i].index, &map[i]);
 
 				// cache our map if necessary
 				if (j != MAP_CACHE && mapsource_read[MAP_CACHE] != NULL) {	// map data is not cached yet
@@ -3568,9 +3592,11 @@ void do_final(void) {
 		}
 	}
 
+	mapindex_final();
+	
 	numdb_final(id_db, id_db_final);
 	numdb_final(pc_db, pc_db_final);
-	strdb_final(map_db, map_db_final);
+	numdb_final(map_db, map_db_final);
 	strdb_final(nick_db, nick_db_final);
 	numdb_final(charid_db, charid_db_final);
 
@@ -3725,7 +3751,7 @@ int do_init(int argc, char *argv[]) {
 
 	id_db = numdb_init();
 	pc_db = numdb_init();	//Added for reliable map_id2sd() use. [Skotlex]
-	map_db = strdb_init(MAP_NAME_LENGTH);
+	map_db = numdb_init();
 	nick_db = strdb_init(NAME_LENGTH);
 	charid_db = numdb_init();
 #ifndef TXT_ONLY
@@ -3734,6 +3760,7 @@ int do_init(int argc, char *argv[]) {
 		charsql_db_init(1); //Connecting to chardb
 #endif /* not TXT_ONLY */
 
+	mapindex_init();
 	grfio_init(GRF_PATH_FILENAME);
 
 	map_readallmaps();

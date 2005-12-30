@@ -3885,7 +3885,7 @@ int mob_is_clone(int class_)
 //If mode is not passed, a default aggressive mode is used.
 //If master_id is passed, clone is attached to him.
 //Returns: ID of newly crafted copy.
-int mob_clone_spawn(struct map_session_data *sd, char *mapname, int x, int y, const char *event, int master_id, int mode, int flag, unsigned int duration)
+int mob_clone_spawn(struct map_session_data *sd, char *map, int x, int y, const char *event, int master_id, int mode, int flag, unsigned int duration)
 {
 	int class_;
 	int i,j,inf,skill_id;
@@ -4048,7 +4048,7 @@ int mob_clone_spawn(struct map_session_data *sd, char *mapname, int x, int y, co
 		mob_db_data[class_]->maxskill = ++i;
 	}
 	//Finally, spawn it.
-	i = mob_once_spawn(sd,mapname,x,y,"--en--",class_,1,event);
+	i = mob_once_spawn(sd,(char*)map,x,y,"--en--",class_,1,event);
 	if ((master_id || flag || duration) && i) { //Further manipulate crafted char.
 		struct mob_data* md = (struct mob_data*)map_id2bl(i);
 		if (md && md->bl.type == BL_MOB) {

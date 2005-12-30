@@ -811,7 +811,7 @@ int npc_touch_areanpc(struct map_session_data *sd,int m,int x,int y)
 				(!battle_config.duel_allow_teleport && sd->duel_group)) // duel rstrct [LuzZza]
 				break;
 			skill_stop_dancing(&sd->bl);
-			pc_setpos(sd,map[m].npc[i]->u.warp.name,map[m].npc[i]->u.warp.x,map[m].npc[i]->u.warp.y,0);
+			pc_setpos(sd,map[m].npc[i]->u.warp.mapindex,map[m].npc[i]->u.warp.x,map[m].npc[i]->u.warp.y,0);
 			break;
 		case SCRIPT:
 		{
@@ -1529,7 +1529,12 @@ int npc_parse_warp (char *w1,char *w2,char *w3,char *w4)
 	}
 
 	m = map_mapname2mapid(mapname);
-
+	i = mapindex_name2id(to_mapname);
+	if (!i) {
+		ShowError("bad warp line (destination map not found): %s\n", w3);
+		return 1;
+	}
+		
 	nd = (struct npc_data *) aCalloc (1, sizeof(struct npc_data));
 
 	nd->bl.id = npc_get_new_npc_id();
@@ -1538,26 +1543,16 @@ int npc_parse_warp (char *w1,char *w2,char *w3,char *w4)
 	nd->bl.m = m;
 	nd->bl.x = x;
 	nd->bl.y = y;
-/*
-	nd->dir = 0;
-	nd->flag = 0;
-*/
 	memcpy(nd->name, w3, NAME_LENGTH-1);
 	memcpy(nd->exname, w3, NAME_LENGTH-1);
 
-//	nd->chat_id = 0;
 	if (!battle_config.warp_point_debug)
 		nd->class_ = WARP_CLASS;
 	else
 		nd->class_ = WARP_DEBUG_CLASS;
 	nd->speed = 200;
-/*
-	nd->option = 0;
-	nd->opt1 = 0;
-	nd->opt2 = 0;
-	nd->opt3 = 0;
-*/
-	memcpy(nd->u.warp.name, to_mapname, MAP_NAME_LENGTH-1);
+	
+	nd->u.warp.mapindex = (short)i;
 	xs += 2;
 	ys += 2;
 	nd->u.warp.x = to_x;
@@ -2292,11 +2287,11 @@ static int npc_parse_mapflag (char *w1, char *w2, char *w3, char *w4)
 		char savemap[MAP_NAME_LENGTH];
 		int savex, savey;
 		if (strcmp(w4, "SavePoint") == 0) {
-			memcpy(map[m].save.map, "SavePoint", 10);
+			map[m].save.map = 0;
 			map[m].save.x = -1;
 			map[m].save.y = -1;
 		} else if (sscanf(w4, "%15[^,],%d,%d", savemap, &savex, &savey) == 3) {
-			memcpy(map[m].save.map, savemap, MAP_NAME_LENGTH-1);
+			map[m].save.map = mapindex_name2id(savemap);
 			map[m].save.x = savex;
 			map[m].save.y = savey;
 		}
@@ -2525,8 +2520,11 @@ void npc_parsesrcfile (char *name)
 		// マップの存在確認
 		if (strcmp(w1,"-") !=0 && strcmpi(w1,"function") != 0 ){
 			sscanf(w1,"%[^,]",mapname);
-			if (strlen(mapname)>MAP_NAME_LENGTH-1 ||
-				(m = map_mapname2mapid(mapname)) < 0)
+			if (!mapindex_name2id(mapname)) { //Incorrect map
+				ShowError("Invalid map '%s' in line %d, file %s\n", mapname, lines, current_file);
+				continue;
+			}
+			if ((m = map_mapname2mapid(mapname)) < 0)
 			// "mapname" is not assigned to this server
 				continue;
 		}
@@ -2549,7 +2547,7 @@ void npc_parsesrcfile (char *name)
 		} else if (strcmpi(w2,"setcell") == 0 && count >= 3) {
 			npc_parse_mapcell(w1,w2,w3,w4);
 		} else {
-			ShowError("Probably TAB is missing: %s %s %s %s line '%i'\n",w1,w2,w3,w4,lines); //Lupus
+			ShowError("Probably TAB is missing: %s %s %s %s line '%i', file '%s'\n",w1,w2,w3,w4,lines,current_file); //Lupus
 		}
 	}
 	fclose(fp);

@@ -125,7 +125,7 @@ struct item {
 };
 
 struct point{
-	char map[MAP_NAME_LENGTH];
+	unsigned short map;
 	short x,y;
 };
 
@@ -233,11 +233,13 @@ struct gm_account {
 
 struct party_member {
 	int account_id;
-	char name[NAME_LENGTH],map[MAP_NAME_LENGTH];
+	int char_id;
+	char name[NAME_LENGTH];
+	struct map_session_data *sd;
+	unsigned short map;
+	unsigned short lv;
 	unsigned leader : 1,
 				online : 1;
-	unsigned short lv;
-	struct map_session_data *sd;
 };
 
 struct party {
@@ -324,32 +326,6 @@ struct guild_castle {
 		int hp;
 		int id;
 	} guardian[MAX_GUARDIANS]; //New simplified structure. [Skotlex]
-/*
-	int visibleG0;
-	int visibleG1;
-	int visibleG2;
-	int visibleG3;
-	int visibleG4;
-	int visibleG5;
-	int visibleG6;
-	int visibleG7;
-	int Ghp0;	// added Guardian HP [Valaris]
-	int Ghp1;
-	int Ghp2;
-	int Ghp3;
-	int Ghp4;
-	int Ghp5;
-	int Ghp6;
-	int Ghp7;
-	int GID0;
-	int GID1;
-	int GID2;
-	int GID3;
-	int GID4;
-	int GID5;
-	int GID6;
-	int GID7;	// end addition [Valaris]
-*/
 };
 struct square {
 	int val1[5];

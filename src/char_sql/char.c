@@ -143,7 +143,7 @@ int start_armor = 2301;
 unsigned int save_flag = 0;
 
 // start point (you can reset point on conf file)
-struct point start_point = {"new_1-1.gat", 53, 111};
+struct point start_point = { 0, 53, 111};
 
 struct gm_account *gm_account = NULL;
 int GM_num = 0;
@@ -477,8 +477,8 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 			p->str, p->agi, p->vit, p->int_, p->dex, p->luk,
 			p->option, p->party_id, p->guild_id, p->pet_id,
 			p->weapon, p->shield, p->head_top, p->head_mid, p->head_bottom,
-			p->last_point.map, p->last_point.x, p->last_point.y,
-			p->save_point.map, p->save_point.x, p->save_point.y,
+			mapindex_id2name(p->last_point.map), p->last_point.x, p->last_point.y,
+			mapindex_id2name(p->save_point.map), p->save_point.x, p->save_point.y,
 			p->account_id, p->char_id
 		);
 
@@ -523,7 +523,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 	diff = 0;
 
 	for(i=0;i<MAX_MEMOPOINTS;i++){
-		if((strcmp(p->memo_point[i].map,cp->memo_point[i].map) == 0) && (p->memo_point[i].x == cp->memo_point[i].x) && (p->memo_point[i].y == cp->memo_point[i].y))
+		if(p->memo_point[i].map == cp->memo_point[i].map && p->memo_point[i].x == cp->memo_point[i].x && p->memo_point[i].y == cp->memo_point[i].y)
 			continue;
 		diff = 1;
 		break;
@@ -544,9 +544,9 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 		tmp_ptr += sprintf(tmp_ptr, "INSERT INTO `%s`(`char_id`,`map`,`x`,`y`) VALUES ", memo_db);
 		count = 0;
 		for(i=0;i<MAX_MEMOPOINTS;i++){
-			if(p->memo_point[i].map[0]){
+			if(p->memo_point[i].map){
 				tmp_ptr += sprintf(tmp_ptr,"('%d', '%s', '%d', '%d'),",
-					char_id, p->memo_point[i].map, p->memo_point[i].x, p->memo_point[i].y);
+					char_id, mapindex_id2name(p->memo_point[i].map), p->memo_point[i].x, p->memo_point[i].y);
 				count++;
 			}
 		}
@@ -953,8 +953,8 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p){
 		p->hair = atoi(sql_row[6]);	p->hair_color = atoi(sql_row[7]);	p->clothes_color = atoi(sql_row[8]);
 		p->weapon = atoi(sql_row[9]);	p->shield = atoi(sql_row[10]);
 		p->head_top = atoi(sql_row[11]);	p->head_mid = atoi(sql_row[12]);	p->head_bottom = atoi(sql_row[13]);
-		strcpy(p->last_point.map,sql_row[14]); p->last_point.x = atoi(sql_row[15]);	p->last_point.y = atoi(sql_row[16]);
-		strcpy(p->save_point.map,sql_row[17]); p->save_point.x = atoi(sql_row[18]);	p->save_point.y = atoi(sql_row[19]);
+		p->last_point.map = mapindex_name2id(sql_row[14]); p->last_point.x = atoi(sql_row[15]);	p->last_point.y = atoi(sql_row[16]);
+		p->save_point.map = mapindex_name2id(sql_row[17]); p->save_point.x = atoi(sql_row[18]);	p->save_point.y = atoi(sql_row[19]);
 		p->partner_id = atoi(sql_row[20]); p->father = atoi(sql_row[21]); p->mother = atoi(sql_row[22]); p->child = atoi(sql_row[23]);
 		p->fame = atoi(sql_row[24]);
 
@@ -964,10 +964,10 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p){
 	} else
 		ShowError("Char load failed (%d - table %s)\n", char_id, char_db);	//Error?! ERRRRRR WHAT THAT SAY!?
 
-	if (p->last_point.x == 0 || p->last_point.y == 0 || p->last_point.map[0] == '\0')
+	if (p->last_point.x == 0 || p->last_point.y == 0 || p->last_point.map == 0)
 		memcpy(&p->last_point, &start_point, sizeof(start_point));
 
-	if (p->save_point.x == 0 || p->save_point.y == 0 || p->save_point.map[0] == '\0')
+	if (p->save_point.x == 0 || p->save_point.y == 0 || p->save_point.map == 0)
 		memcpy(&p->save_point, &start_point, sizeof(start_point));
 
 	//read memo data
@@ -981,7 +981,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p){
 
 	if (sql_res) {
 		for(i=0;(sql_row = mysql_fetch_row(sql_res));i++){
-			strcpy (p->memo_point[i].map,sql_row[0]);
+			p->memo_point[i].map = mapindex_name2id(sql_row[0]);
 			p->memo_point[i].x=atoi(sql_row[1]);
 			p->memo_point[i].y=atoi(sql_row[2]);
 			//i ++;
@@ -1443,9 +1443,19 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 	//New Querys [Sirius]
 	//Insert the char to the 'chardb' ^^
 	if (char_id_count) //Force initial char id. [Skotlex]
-		sprintf(tmp_sql, "INSERT INTO `%s` (`char_id`,`account_id`, `char_num`, `name`, `zeny`, `str`, `agi`, `vit`, `int`, `dex`, `luk`, `max_hp`, `hp`, `max_sp`, `sp`, `hair`, `hair_color`, `last_map`, `last_x`, `last_y`, `save_map`, `save_x`, `save_y`) VALUES ('%d', '%d', '%d', '%s', '%d',  '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d','%d', '%d','%d', '%d', '%s', '%d', '%d', '%s', '%d', '%d')", char_db, char_id_count, sd->account_id , dat[30] , t_name, start_zeny, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], (40 * (100 + dat[26])/100) , (40 * (100 + dat[26])/100 ),  (11 * (100 + dat[27])/100), (11 * (100 + dat[27])/100), dat[33], dat[31], start_point.map, start_point.x, start_point.y, start_point.map, start_point.x, start_point.y);
+		sprintf(tmp_sql, "INSERT INTO `%s` (`char_id`,`account_id`, `char_num`, `name`, `zeny`, `str`, `agi`, `vit`, `int`, `dex`, `luk`, `max_hp`, `hp`,"
+			"`max_sp`, `sp`, `hair`, `hair_color`, `last_map`, `last_x`, `last_y`, `save_map`, `save_x`, `save_y`) VALUES ("
+			"'%d', '%d', '%d', '%s', '%d',  '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d','%d', '%d','%d', '%d', '%16s', '%d', '%d', '%16s', '%d', '%d')",
+			char_db, char_id_count, sd->account_id , dat[30] , t_name, start_zeny, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29],
+			(40 * (100 + dat[26])/100) , (40 * (100 + dat[26])/100 ),  (11 * (100 + dat[27])/100), (11 * (100 + dat[27])/100), dat[33], dat[31],
+			mapindex_id2name(start_point.map), start_point.x, start_point.y, mapindex_id2name(start_point.map), start_point.x, start_point.y);
 	else
-		sprintf(tmp_sql, "INSERT INTO `%s` (`account_id`, `char_num`, `name`, `zeny`, `str`, `agi`, `vit`, `int`, `dex`, `luk`, `max_hp`, `hp`, `max_sp`, `sp`, `hair`, `hair_color`, `last_map`, `last_x`, `last_y`, `save_map`, `save_x`, `save_y`) VALUES ('%d', '%d', '%s', '%d',  '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d','%d', '%d','%d', '%d', '%s', '%d', '%d', '%s', '%d', '%d')", char_db, sd->account_id , dat[30] , t_name, start_zeny, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], (40 * (100 + dat[26])/100) , (40 * (100 + dat[26])/100 ),  (11 * (100 + dat[27])/100), (11 * (100 + dat[27])/100), dat[33], dat[31], start_point.map, start_point.x, start_point.y, start_point.map, start_point.x, start_point.y);
+		sprintf(tmp_sql, "INSERT INTO `%s` (`account_id`, `char_num`, `name`, `zeny`, `str`, `agi`, `vit`, `int`, `dex`, `luk`, `max_hp`, `hp`,"
+			"`max_sp`, `sp`, `hair`, `hair_color`, `last_map`, `last_x`, `last_y`, `save_map`, `save_x`, `save_y`) VALUES ("
+			"'%d', '%d', '%s', '%d',  '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d','%d', '%d','%d', '%d', '%16s', '%d', '%d', '%16s', '%d', '%d')",
+			char_db, sd->account_id , dat[30] , t_name, start_zeny, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29],
+			(40 * (100 + dat[26])/100) , (40 * (100 + dat[26])/100 ),  (11 * (100 + dat[27])/100), (11 * (100 + dat[27])/100), dat[33], dat[31],
+			mapindex_id2name(start_point.map), start_point.x, start_point.y, mapindex_id2name(start_point.map), start_point.x, start_point.y);
 	if(mysql_query(&mysql_handle, tmp_sql)){
 		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
@@ -1580,7 +1590,7 @@ int delete_char_sql(int char_id, int partner_id)
 
 	//Make the character leave the party [Skotlex]
 	if (party_id)
-		inter_party_leave(party_id, account_id);
+		inter_party_leave(party_id, account_id, char_id);
 
 	/* delete char's pet */
 	//Delete the hatched pet if you have one...
@@ -1884,7 +1894,7 @@ int parse_tologin(int fd) {
 					set_all_offline();
 				// if no map-server already connected, display a message...
 				for(i = 0; i < MAX_MAP_SERVERS; i++)
-					if (server_fd[i] > 0 && server[i].map[0][0]) // if map-server online and at least 1 map
+					if (server_fd[i] > 0 && server[i].map[0]) // if map-server online and at least 1 map
 						break;
 				if (i == MAX_MAP_SERVERS)
 					ShowStatus("Awaiting maps from map-server.\n");
@@ -2252,7 +2262,7 @@ int parse_tologin(int fd) {
 	return 0;
 }
 
-int search_mapserver(char *map, long ip, short port);
+int search_mapserver(unsigned short map, long ip, short port);
 
 int parse_frommap(int fd) {
 	int i = 0, j = 0;
@@ -2272,8 +2282,21 @@ int parse_frommap(int fd) {
 		session[fd]->eof = 1;
 	if(session[fd]->eof) {
 		if (id < MAX_MAP_SERVERS) {
-			memset(&server[id], 0, sizeof(struct mmo_map_server));
+			unsigned char buf[16384];
 			ShowStatus("Map-server %d (session #%d) has disconnected.\n", id, fd);
+			//Notify other map servers that this one is gone. [Skotlex]
+			WBUFW(buf,0) = 0x2b20;
+			WBUFL(buf,4) = server[id].ip;
+			WBUFW(buf,8) = server[id].port;
+			j = 0;
+			for(i = 0; i < MAX_MAP_PER_SERVER; i++)
+				if (server[id].map[i])
+					WBUFW(buf,10+(j++)*4) = server[id].map[i];
+			if (j > 0) {
+				WBUFW(buf,2) = j * 4 + 10;
+				mapif_sendallwos(fd, buf, WBUFW(buf,2));
+			}
+			memset(&server[id], 0, sizeof(struct mmo_map_server));
 			sprintf(tmp_sql, "DELETE FROM `ragsrvinfo` WHERE `index`='%d'", server_fd[id]);
 			if (mysql_query(&mysql_handle, tmp_sql)) {
 				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
@@ -2312,8 +2335,8 @@ int parse_frommap(int fd) {
 				return 0;
 			memset(server[id].map, 0, sizeof(server[id].map));
 			j = 0;
-			for(i = 4; i < RFIFOW(fd,2); i += MAP_NAME_LENGTH) {
-				memcpy(server[id].map[j], RFIFOP(fd,i), MAP_NAME_LENGTH);
+			for(i = 4; i < RFIFOW(fd,2); i += 4) {
+				server[id].map[j] = RFIFOW(fd,i);
 //				printf("set map %d.%d : %s\n", id, j, server[id].map[j]);
 				j++;
 			}
@@ -2341,10 +2364,10 @@ int parse_frommap(int fd) {
 				// Transmitting maps information to the other map-servers
 				} else {
 					WBUFW(buf,0) = 0x2b04;
-					WBUFW(buf,2) = j * 16 + 10;
+					WBUFW(buf,2) = j * 4 + 10;
 					WBUFL(buf,4) = server[id].ip;
 					WBUFW(buf,8) = server[id].port;
-					memcpy(WBUFP(buf,10), RFIFOP(fd,4), j * 16);
+					memcpy(WBUFP(buf,10), RFIFOP(fd,4), j * 4);
 					mapif_sendallwos(fd, buf, WBUFW(buf,2));
 				}
 				// Transmitting the maps of the other map-servers to the new map-server
@@ -2355,10 +2378,10 @@ int parse_frommap(int fd) {
 						WFIFOW(fd,8) = server[x].port;
 						j = 0;
 						for(i = 0; i < MAX_MAP_PER_SERVER; i++)
-							if (server[x].map[i][0])
-								memcpy(WFIFOP(fd,10+(j++)*16), server[x].map[i], 16);
+							if (server[x].map[i])
+								WFIFOW(fd,10+(j++)*4) = server[x].map[i];
 						if (j > 0) {
-							WFIFOW(fd,2) = j * 16 + 10;
+							WFIFOW(fd,2) = j * 4 + 10;
 							WFIFOSET(fd,WFIFOW(fd,2));
 						}
 					}
@@ -2517,21 +2540,17 @@ int parse_frommap(int fd) {
 
 		// request "change map server"
 		case 0x2b05:
-			if (RFIFOREST(fd) < 49)
+			if (RFIFOREST(fd) < 35)
 				return 0;
 			{
-				char name[MAP_NAME_LENGTH];
+				unsigned short name;
 				int map_id, map_fd = -1;
 				struct online_char_data* data;
 				struct mmo_charstatus* char_data;
 
-				WFIFOW(fd, 0) = 0x2b06;
-				memcpy(WFIFOP(fd,2), RFIFOP(fd,2), 42);
-				WFIFOSET(fd, 44);
 
-				memcpy(name, RFIFOP(fd,18), MAP_NAME_LENGTH);
-				name[MAP_NAME_LENGTH-1]= '\0';
-				map_id = search_mapserver(name, RFIFOL(fd,38), RFIFOW(fd,42)); //Locate mapserver by ip and port.
+				name = RFIFOW(fd,18);
+				map_id = search_mapserver(name, RFIFOL(fd,24), RFIFOW(fd,28)); //Locate mapserver by ip and port.
 				if (map_id >= 0)
 					map_fd = server_fd[map_id];
 				//Char should just had been saved before this packet, so this should be safe. [Skotlex]
@@ -2544,11 +2563,10 @@ int parse_frommap(int fd) {
 				//Tell the new map server about this player using Kevin's new auth packet. [Skotlex]
 				if (map_fd>=0 && session[map_fd] && char_data) 
 				{	//Send the map server the auth of this player.
-					char_data->sex = RFIFOB(fd,44);
 					//Update the "last map" as this is where the player must be spawned on the new map server.
-					memcpy(char_data->last_point.map, RFIFOP(fd,18), MAP_NAME_LENGTH);
-					char_data->last_point.x = RFIFOW(fd,34);
-					char_data->last_point.y = RFIFOW(fd,36);
+					char_data->last_point.map = RFIFOW(fd,18);
+					char_data->last_point.x = RFIFOW(fd,20);
+					char_data->last_point.y = RFIFOW(fd,22);
 
 					WFIFOW(map_fd,0) = 0x2afd;
 					WFIFOW(map_fd,2) = 20 + sizeof(struct mmo_charstatus);
@@ -2561,8 +2579,18 @@ int parse_frommap(int fd) {
 					data = numdb_search(online_char_db, RFIFOL(fd, 2));
 					if (data) //This check should really never fail...
 						data->server = map_id; //Update server where char is.
+					
+					//Reply with an ack.
+					WFIFOW(fd, 0) = 0x2b06;
+					memcpy(WFIFOP(fd,2), RFIFOP(fd,2), 28);
+					WFIFOSET(fd, 30);
+				} else { //Reply with nak
+					WFIFOW(fd, 0) = 0x2b06;
+					memcpy(WFIFOP(fd,2), RFIFOP(fd,2), 28);
+					WFIFOL(fd, 6) = 0; //Set login1 to 0.
+					WFIFOSET(fd, 30);
 				}
-				RFIFOSKIP(fd, 49);
+				RFIFOSKIP(fd, 35);
 			}
 			break;
 
@@ -2915,23 +2943,16 @@ int parse_frommap(int fd) {
 	return 0;
 }
 
-int search_mapserver(char *map, long ip, short port) {
+int search_mapserver(unsigned short map, long ip, short port) {
 	int i, j;
-	char temp_map[MAP_NAME_LENGTH];
-	int temp_map_len;
 
-//	printf("Searching the map-server for map '%s'... ", map);
-	strncpy(temp_map, map, MAP_NAME_LENGTH-1);
-	temp_map[MAP_NAME_LENGTH-1] = '\0';
-	if (strchr(temp_map, '.') != NULL)
-		temp_map[strchr(temp_map, '.') - temp_map + 1] = '\0'; // suppress the '.gat', but conserve the '.' to be sure of the name of the map
-
-	temp_map_len = strlen(temp_map);
+	if (!map)
+		return -1;
+	
 	for(i = 0; i < MAX_MAP_SERVERS; i++)
 		if (server_fd[i] > 0)
-			for (j = 0; server[i].map[j][0]; j++)
-				//printf("%s : %s = %d\n", server[i].map[j], map, strncmp(server[i].map[j], temp_map, temp_map_len));
-				if (strncmp(server[i].map[j], temp_map, temp_map_len) == 0) {
+			for (j = 0; server[i].map[j]; j++)
+				if (server[i].map[j] == map) {
 					if (ip > 0 && server[i].ip != ip)
 						continue;
 					if (port > 0 && server[i].port != port)
@@ -2939,7 +2960,6 @@ int search_mapserver(char *map, long ip, short port) {
 					return i;
 				}
 
-//	printf("not found.\n");
 	return -1;
 }
 
@@ -3164,37 +3184,37 @@ int parse_char(int fd) {
 
 			// if map is not found, we check major cities
 			if (i < 0) {
-				ShowWarning("Unable to find map-server for %s, resorting to sending to a major city.\n", char_dat[0].last_point.map);
-				if ((i = search_mapserver("prontera.gat", -1, -1)) >= 0) { // check is done without 'gat'.
-					memcpy(char_dat[0].last_point.map, "prontera.gat", MAP_NAME_LENGTH);
-					char_dat[0].last_point.x = 273; // savepoint coordonates
+				unsigned short j;
+				ShowWarning("Unable to find map-server for %s, resorting to sending to a major city.\n", mapindex_id2name(char_dat[0].last_point.map));
+				if ((i = search_mapserver((j=mapindex_name2id(MAP_PRONTERA)),-1,-1)) >= 0) {
+					char_dat[0].last_point.map = j;
+					char_dat[0].last_point.x = 273; // savepoint coordinates
 					char_dat[0].last_point.y = 354;
-				} else if ((i = search_mapserver("geffen.gat", -1, -1)) >= 0) { // check is done without 'gat'.
-					memcpy(char_dat[0].last_point.map, "geffen.gat", MAP_NAME_LENGTH);
-					char_dat[0].last_point.x = 120; // savepoint coordonates
+				} else if ((i = search_mapserver((j=mapindex_name2id(MAP_GEFFEN)),-1,-1)) >= 0) {
+					char_dat[0].last_point.map = j;
+					char_dat[0].last_point.x = 120; // savepoint coordinates
 					char_dat[0].last_point.y = 100;
-				} else if ((i = search_mapserver("morocc.gat", -1, -1)) >= 0) { // check is done without 'gat'.
-					memcpy(char_dat[0].last_point.map, "morocc.gat", MAP_NAME_LENGTH);
-					char_dat[0].last_point.x = 160; // savepoint coordonates
+				} else if ((i = search_mapserver((j=mapindex_name2id(MAP_MORROC)),-1,-1)) >= 0) {
+					char_dat[0].last_point.map = j;
+					char_dat[0].last_point.x = 160; // savepoint coordinates
 					char_dat[0].last_point.y = 94;
-				} else if ((i = search_mapserver("alberta.gat", -1, -1)) >= 0) { // check is done without 'gat'.
-					memcpy(char_dat[0].last_point.map, "alberta.gat", MAP_NAME_LENGTH);
-					char_dat[0].last_point.x = 116; // savepoint coordonates
+				} else if ((i = search_mapserver((j=mapindex_name2id(MAP_ALBERTA)),-1,-1)) >= 0) {
+					char_dat[0].last_point.map = j;
+					char_dat[0].last_point.x = 116; // savepoint coordinates
 					char_dat[0].last_point.y = 57;
-				} else if ((i = search_mapserver("payon.gat", -1, -1)) >= 0) { // check is done without 'gat'.
-					memcpy(char_dat[0].last_point.map, "payon.gat", MAP_NAME_LENGTH);
-					char_dat[0].last_point.x = 87; // savepoint coordonates
+				} else if ((i = search_mapserver((j=mapindex_name2id(MAP_PAYON)),-1,-1)) >= 0) {
+					char_dat[0].last_point.map = j;
+					char_dat[0].last_point.x = 87; // savepoint coordinates
 					char_dat[0].last_point.y = 117;
-				} else if ((i = search_mapserver("izlude.gat", -1, -1)) >= 0) { // check is done without 'gat'.
-					memcpy(char_dat[0].last_point.map, "izlude.gat", MAP_NAME_LENGTH);
-					char_dat[0].last_point.x = 94; // savepoint coordonates
+				} else if ((i = search_mapserver((j=mapindex_name2id(MAP_IZLUDE)),-1,-1)) >= 0) {
+					char_dat[0].last_point.map = j;
+					char_dat[0].last_point.x = 94; // savepoint coordinates
 					char_dat[0].last_point.y = 103;
 				} else {
-					int j;
 					// get first online server
 					i = 0;
 					for(j = 0; j < MAX_MAP_SERVERS; j++)
-						if (server_fd[j] > 0 && server[j].map[0][0])  {
+						if (server_fd[j] > 0 && server[j].map[0])  {
 							i = j;
 							ShowDebug("Map-server #%d found with a map: '%s'.\n", j, server[j].map[0]);
 							break;
@@ -3210,14 +3230,14 @@ int parse_char(int fd) {
 			}
 			WFIFOW(fd, 0) =0x71;
 			WFIFOL(fd, 2) =char_dat[0].char_id;
-			memcpy(WFIFOP(fd, 6), char_dat[0].last_point.map, MAP_NAME_LENGTH);
+			memcpy(WFIFOP(fd,6), mapindex_id2name(char_dat[0].last_point.map), MAP_NAME_LENGTH);
 			//Lan check added by Kashy
 			if (lan_ip_check(p))
 				WFIFOL(fd, 22) = inet_addr(lan_map_ip);
 			else
 				WFIFOL(fd, 22) = server[i].ip;
-			WFIFOW(fd, 26) = server[i].port;
-			WFIFOSET(fd, 28);
+			WFIFOW(fd,26) = server[i].port;
+			WFIFOSET(fd,28);
 			if (auth_fifo_pos >= AUTH_FIFO_SIZE) {
 				auth_fifo_pos = 0;
 			}
@@ -3251,7 +3271,7 @@ int parse_char(int fd) {
 
 			set_char_online(i, auth_fifo[auth_fifo_pos].char_id, auth_fifo[auth_fifo_pos].account_id);
 			//Checks to see if the even share setting of the party must be broken.
-			inter_party_logged(char_dat[0].party_id, char_dat[0].account_id);
+			inter_party_logged(char_dat[0].party_id, char_dat[0].account_id, char_dat[0].char_id);
 			auth_fifo_pos++;
 			break;
 
@@ -3807,6 +3827,8 @@ void do_final(void) {
 
 	flush_fifos();
 
+	mapindex_final();
+	
 	sprintf(tmp_sql,"DELETE FROM `ragsrvinfo");
 	if (mysql_query(&mysql_handle, tmp_sql))
 	{
@@ -4014,10 +4036,12 @@ int char_config_read(const char *cfgName) {
 		} else if (strcmpi(w1, "start_point") == 0) {
 			char map[MAP_NAME_LENGTH];
 			int x, y;
-			if (sscanf(w2,"%15[^,],%d,%d", map, &x, &y) < 3)
+			if (sscanf(w2,"%16[^,],%d,%d", map, &x, &y) < 3)
 				continue;
 			if (strstr(map, ".gat") != NULL) { // Verify at least if '.gat' is in the map name
-				memcpy(start_point.map, map, MAP_NAME_LENGTH);
+				start_point.map = mapindex_name2id(map);
+				if (!start_point.map)
+					ShowError("Specified start_point %s not found in map-index cache.\n", map);
 				start_point.x = x;
 				start_point.y = y;
 			}
@@ -4094,6 +4118,10 @@ int do_init(int argc, char **argv){
 		server_fd[i] = -1;
 	}
 
+	//Read map indexes
+	mapindex_init();
+	start_point.map = mapindex_name2id("new_1-1.gat");
+	
 	char_config_read((argc < 2) ? CHAR_CONF_NAME : argv[1]);
 	char_lan_config_read((argc > 1) ? argv[1] : LAN_CONF_NAME);
 	sql_config_read(SQL_CONF_NAME);
@@ -4102,7 +4130,7 @@ int do_init(int argc, char **argv){
 
 	inter_init((argc > 2) ? argv[2] : inter_cfgName); // inter server √ ±‚»≠
 	ShowInfo("Finished reading the inter-server configuration.\n");
-
+	
 	//Read ItemDB
 	do_init_itemdb();
 

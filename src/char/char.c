@@ -117,7 +117,7 @@ int start_weapon = 1201;
 int start_armor = 2301;
 
 // Initial position (it's possible to set it in conf file)
-struct point start_point = {"new_1-1.gat", 53, 111};
+struct point start_point = { 0, 53, 111};
 
 struct gm_account *gm_account = NULL;
 int GM_num = 0;
@@ -269,7 +269,7 @@ void set_char_online(int map_id, int char_id, int account_id) {
 
 	if (login_fd <= 0 || session[login_fd]->eof)
 		return;
-        WFIFOHEAD(login_fd, 6);
+	WFIFOHEAD(login_fd, 6);
 	WFIFOW(login_fd,0) = 0x272b;
 	WFIFOL(login_fd,2) = account_id;
 	WFIFOSET(login_fd,6);
@@ -287,7 +287,7 @@ void set_char_offline(int char_id, int account_id) {
 	}
 	if (login_fd <= 0 || session[login_fd]->eof)
 		return;
-        WFIFOHEAD(login_fd, 6);
+	WFIFOHEAD(login_fd, 6);
 	WFIFOW(login_fd,0) = 0x272c;
 	WFIFOL(login_fd,2) = account_id;
 	WFIFOSET(login_fd,6);
@@ -310,7 +310,7 @@ void set_all_offline(void) {
 	numdb_foreach(online_char_db,char_db_setoffline,-1);
 	if (login_fd <= 0 || session[login_fd]->eof)
 		return;
-        WFIFOHEAD(login_fd, 6);
+	WFIFOHEAD(login_fd, 6);
 	WFIFOW(login_fd,0) = 0x272c;
 	WFIFOL(login_fd,2) = 99;
 	WFIFOSET(login_fd,6);
@@ -347,15 +347,15 @@ int mmo_char_tostr(char *str, struct mmo_charstatus *p) {
 	char *str_p = str;
 
 	// on multi-map server, sometimes it's posssible that last_point become void. (reason???) We check that to not lost character at restart.
-	if (p->last_point.map[0] == '\0') {
-		memcpy(p->last_point.map, "prontera.gat", MAP_NAME_LENGTH-1);
+	if (!p->last_point.map) {
+		p->last_point.map = mapindex_name2id(MAP_PRONTERA);
 		p->last_point.x = 273;
 		p->last_point.y = 354;
 	}
 
 	str_p += sprintf(str_p, "%d\t%d,%d\t%s\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
 		"\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
-		"\t%s,%d,%d\t%s,%d,%d,%d,%d,%d,%d,%d\t",
+		"\t%16s,%d,%d\t%16s,%d,%d,%d,%d,%d,%d,%d\t",
 		p->char_id, p->account_id, p->char_num, p->name, //
 		p->class_, p->base_level, p->job_level,
 		p->base_exp, p->job_exp, p->zeny,
@@ -366,12 +366,12 @@ int mmo_char_tostr(char *str, struct mmo_charstatus *p) {
 		p->party_id, p->guild_id, p->pet_id,
 		p->hair, p->hair_color, p->clothes_color,
 		p->weapon, p->shield, p->head_top, p->head_mid, p->head_bottom,
-		p->last_point.map, p->last_point.x, p->last_point.y, //
-		p->save_point.map, p->save_point.x, p->save_point.y,
+		mapindex_id2name(p->last_point.map), p->last_point.x, p->last_point.y, //
+		mapindex_id2name(p->save_point.map), p->save_point.x, p->save_point.y,
 		p->partner_id,p->father,p->mother,p->child,p->fame);
 	for(i = 0; i < 10; i++)
-		if (p->memo_point[i].map[0]) {
-			str_p += sprintf(str_p, "%s,%d,%d", p->memo_point[i].map, p->memo_point[i].x, p->memo_point[i].y);
+		if (p->memo_point[i].map) {
+			str_p += sprintf(str_p, "%s,%d,%d", mapindex_id2name(p->memo_point[i].map), p->memo_point[i].x, p->memo_point[i].y);
 		}
 	*(str_p++) = '\t';
 
@@ -575,10 +575,10 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p) {
 	p->head_top = tmp_int[32];
 	p->head_mid = tmp_int[33];
 	p->head_bottom = tmp_int[34];
-	memcpy(p->last_point.map, tmp_str[1], MAP_NAME_LENGTH-1);	//Checks to prevent overflows [Skotlex]
+	p->last_point.map = mapindex_name2id(tmp_str[1]);
 	p->last_point.x = tmp_int[35];
 	p->last_point.y = tmp_int[36];
-	memcpy(p->save_point.map, tmp_str[2], MAP_NAME_LENGTH-1);
+	p->save_point.map = mapindex_name2id(tmp_str[2]);
 	p->save_point.x = tmp_int[37];
 	p->save_point.y = tmp_int[38];
 	p->partner_id = tmp_int[39];
@@ -616,8 +616,9 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p) {
 	next++;
 
 	for(i = 0; str[next] && str[next] != '\t'; i++) {
-		if (sscanf(str+next, "%[^,],%d,%d%n", p->memo_point[i].map, &tmp_int[0], &tmp_int[1], &len) != 3)
+		if (sscanf(str+next, "%[^,],%d,%d%n", tmp_str[0], &tmp_int[0], &tmp_int[1], &len) != 3)
 			return -3;
+		p->memo_point[i].map = mapindex_name2id(tmp_str[0]);
 		p->memo_point[i].x = tmp_int[0];
 		p->memo_point[i].y = tmp_int[1];
 		next += len;
@@ -1318,17 +1319,25 @@ static int create_online_files_sub(void* key, void* data, va_list va)
 				}
 			break;
 		case 5: // by location map name
-			for(k = 0; k < *players; k++)
-				if (stricmp(char_dat[j].last_point.map, char_dat[id[k]].last_point.map) < 0 ||
+		{
+			const char *map1, *map2;
+			map1 = mapindex_id2name(char_dat[j].last_point.map);
+			
+			for(k = 0; k < *players; k++) {
+				map2 = mapindex_id2name(char_dat[id[k]].last_point.map);
+				if (!map1 || !map2 || //Avoid sorting if either one failed to resolve.
+					stricmp(map1, map2) < 0 ||
 					// if same map name, we sort by name.
-					(stricmp(char_dat[j].last_point.map, char_dat[id[k]].last_point.map) == 0 &&
+					(stricmp(map1, map2) == 0 &&
 					 stricmp(char_dat[j].name, char_dat[id[k]].name) < 0)) {
 					for(l = *players; l > k; l--)
 						id[l] = id[l-1];
 					id[k] = j; // id[*players]
 					break;
 				}
-			break;
+			}
+		}
+		break;
 		default: // 0 or invalid value: no sorting
 			break;
 		}
@@ -1480,13 +1489,13 @@ void create_online_files(void) {
 				// displaying of the map
 				if (online_display_option & 24) { // 8 or 16
 					// prepare map name
-					memset(temp, 0, 17); //There should be no need of this, last_point.map does contains the \0. But I leave it here just in case... [Skotlex]
-					strncpy(temp, char_dat[j].last_point.map, MAP_NAME_LENGTH);
+					memcpy(temp, mapindex_id2name(char_dat[j].last_point.map), MAP_NAME_LENGTH);
+					temp[MAP_NAME_LENGTH] = '\0';
 					if (strstr(temp, ".gat") != NULL) {
 						temp[strstr(temp, ".gat") - temp] = 0; // suppress the '.gat'
 					}
 					// write map name
-					if (online_display_option & 16) { // map-name AND coordonates
+					if (online_display_option & 16) { // map-name AND coordinates
 						fprintf(fp2, "        <td>%s (%d, %d)</td>\n", temp, char_dat[j].last_point.x, char_dat[j].last_point.y);
 						fprintf(fp, "%-12s (%3d,%3d) ", temp, char_dat[j].last_point.x, char_dat[j].last_point.y);
 					} else {
@@ -1762,7 +1771,7 @@ static int char_delete(struct mmo_charstatus *cs) {
 		inter_guild_leave(cs->guild_id, cs->account_id, cs->char_id);
 	// パーティー脱退
 	if (cs->party_id)
-		inter_party_leave(cs->party_id, cs->account_id);
+		inter_party_leave(cs->party_id, cs->account_id, cs->char_id);
 	// 離婚
 	if (cs->partner_id){
 		// 離婚情報をmapに通知
@@ -1817,7 +1826,7 @@ int parse_tologin(int fd) {
 					set_all_offline();
 				// if no map-server already connected, display a message...
 				for(i = 0; i < MAX_MAP_SERVERS; i++)
-					if (server_fd[i] >= 0 && server[i].map[0][0]) // if map-server online and at least 1 map
+					if (server_fd[i] >= 0 && server[i].map[0]) // if map-server online and at least 1 map
 						break;
 				if (i == MAX_MAP_SERVERS)
 					ShowStatus("Awaiting maps from map-server.\n");
@@ -2288,7 +2297,7 @@ int parse_tologin(int fd) {
 	return 0;
 }
 
-int search_mapserver(char *map, long ip, short port);
+int search_mapserver(unsigned short map, long ip, short port);
 
 int parse_frommap(int fd) {
 	int i, j;
@@ -2301,12 +2310,24 @@ int parse_frommap(int fd) {
 	if(id==MAX_MAP_SERVERS)
 		session[fd]->eof=1;
 	if(session[fd]->eof){
-		for(i = 0; i < MAX_MAP_SERVERS; i++)
-			if (server_fd[i] == fd) {
-				ShowStatus("Map-server %d has disconnected.\n", i);
-				server_fd[i] = -1;
-				numdb_foreach(online_char_db,char_db_setoffline,i); //Tag relevant chars as 'in disconnected' server.
+		if (id < MAX_MAP_SERVERS) {
+			unsigned char buf[16384];
+			ShowStatus("Map-server %d has disconnected.\n", id);
+			//Notify other map servers that this one is gone. [Skotlex]
+			WBUFW(buf,0) = 0x2b20;
+			WBUFL(buf,4) = server[id].ip;
+			WBUFW(buf,8) = server[id].port;
+			j = 0;
+			for(i = 0; i < MAX_MAP_PER_SERVER; i++)
+				if (server[id].map[i])
+					WBUFW(buf,10+(j++)*4) = server[id].map[i];
+			if (j > 0) {
+				WBUFW(buf,2) = j * 4 + 10;
+				mapif_sendallwos(fd, buf, WBUFW(buf,2));
 			}
+			server_fd[id] = -1;
+			numdb_foreach(online_char_db,char_db_setoffline,i); //Tag relevant chars as 'in disconnected' server.
+		}
 		do_close(fd);
 		create_online_files();
 		return 0;
@@ -2341,9 +2362,8 @@ int parse_frommap(int fd) {
 				return 0;
 			memset(server[id].map, 0, sizeof(server[id].map));
 			j = 0;
-			for(i = 4; i < RFIFOW(fd,2); i += MAP_NAME_LENGTH) {
-				memcpy(server[id].map[j], RFIFOP(fd,i), MAP_NAME_LENGTH);
-//				printf("set map %d.%d : %s\n", id, j, server[id].map[j]);
+			for(i = 4; i < RFIFOW(fd,2); i += 4) {
+				server[id].map[j] =  RFIFOW(fd,i);
 				j++;
 			}
 			{
@@ -2373,10 +2393,10 @@ int parse_frommap(int fd) {
 				// Transmitting maps information to the other map-servers
 				} else {
 					WBUFW(buf,0) = 0x2b04;
-					WBUFW(buf,2) = j * 16 + 10;
+					WBUFW(buf,2) = j * 4 + 10;
 					WBUFL(buf,4) = server[id].ip;
 					WBUFW(buf,8) = server[id].port;
-					memcpy(WBUFP(buf,10), RFIFOP(fd,4), j * 16);
+					memcpy(WBUFP(buf,10), RFIFOP(fd,4), j * 4);
 					mapif_sendallwos(fd, buf, WBUFW(buf,2));
 				}
 				// Transmitting the maps of the other map-servers to the new map-server
@@ -2387,10 +2407,10 @@ int parse_frommap(int fd) {
 						WFIFOW(fd,8) = server[x].port;
 						j = 0;
 						for(i = 0; i < MAX_MAP_PER_SERVER; i++)
-							if (server[x].map[i][0])
-								memcpy(WFIFOP(fd,10+(j++)*MAP_NAME_LENGTH), server[x].map[i], MAP_NAME_LENGTH);
+							if (server[x].map[i])
+								WFIFOW(fd,10+(j++)*4) = server[x].map[i];
 						if (j > 0) {
-							WFIFOW(fd,2) = j * 16 + 10;
+							WFIFOW(fd,2) = j * 4 + 10;
 							WFIFOSET(fd,WFIFOW(fd,2));
 						}
 					}
@@ -2521,21 +2541,16 @@ int parse_frommap(int fd) {
 
 		// request "change map server"
 		case 0x2b05:
-			if (RFIFOREST(fd) < 49)
+			if (RFIFOREST(fd) < 35)
 				return 0;
 			{
-				char name[MAP_NAME_LENGTH];
+				unsigned short name;
 				int map_id, map_fd = -1, i;
 				struct online_char_data* data;
 				struct mmo_charstatus* char_data;
 
-				WFIFOW(fd, 0) = 0x2b06;
-				memcpy(WFIFOP(fd,2), RFIFOP(fd,2), 42);
-				WFIFOSET(fd, 44);
-
-				memcpy(name, RFIFOP(fd,18), MAP_NAME_LENGTH);
-				name[MAP_NAME_LENGTH-1]= '\0';
-				map_id = search_mapserver(name, RFIFOL(fd,38), RFIFOW(fd,42)); //Locate mapserver by ip and port.
+				name = RFIFOW(fd,18);
+				map_id = search_mapserver(name, RFIFOL(fd,24), RFIFOW(fd,28)); //Locate mapserver by ip and port.
 				if (map_id >= 0)
 					map_fd = server_fd[map_id];
 				for(i = 0; i < char_num; i++) {
@@ -2548,9 +2563,9 @@ int parse_frommap(int fd) {
 				if (map_fd>=0 && session[map_fd] && char_data) 
 				{	//Send the map server the auth of this player.
 					//Update the "last map" as this is where the player must be spawned on the new map server.
-					memcpy(char_data->last_point.map, RFIFOP(fd,18), MAP_NAME_LENGTH);
-					char_data->last_point.x = RFIFOW(fd,34);
-					char_data->last_point.y = RFIFOW(fd,36);
+					char_data->last_point.map = RFIFOW(fd,18);
+					char_data->last_point.x = RFIFOW(fd,20);
+					char_data->last_point.y = RFIFOW(fd,22);
 
 					WFIFOW(map_fd,0) = 0x2afd;
 					WFIFOW(map_fd,2) = 20 + sizeof(struct mmo_charstatus);
@@ -2563,8 +2578,18 @@ int parse_frommap(int fd) {
 					data = numdb_search(online_char_db, RFIFOL(fd, 2));
 					if (data) //This check should really never fail...
 						data->server = map_id; //Update server where char is.
+
+					//Reply with an ack.
+					WFIFOW(fd, 0) = 0x2b06;
+					memcpy(WFIFOP(fd,2), RFIFOP(fd,2), 28);
+					WFIFOSET(fd, 30);
+				} else { //Reply with nak
+					WFIFOW(fd, 0) = 0x2b06;
+					memcpy(WFIFOP(fd,2), RFIFOP(fd,2), 28);
+					WFIFOL(fd, 6) = 0; //Set login1 to 0.
+					WFIFOSET(fd, 30);
 				}
-				RFIFOSKIP(fd, 49);
+				RFIFOSKIP(fd, 35);
 			}
 			break;
 
@@ -2918,22 +2943,13 @@ int parse_frommap(int fd) {
 	return 0;
 }
 
-int search_mapserver(char *map, long ip, short port) {
+int search_mapserver(unsigned short map, long ip, short port) {
 	int i, j;
-	char temp_map[MAP_NAME_LENGTH];
-	int temp_map_len;
-
-//	printf("Searching the map-server for map '%s'... ", map);
-	memcpy(temp_map, map, MAP_NAME_LENGTH-1);
-	temp_map[MAP_NAME_LENGTH-1] = '\0';
-	if (strchr(temp_map, '.') != NULL)
-		temp_map[strchr(temp_map, '.') - temp_map + 1] = '\0'; // suppress the '.gat', but conserve the '.' to be sure of the name of the map
-
-	temp_map_len = strlen(temp_map);
+	
 	for(i = 0; i < MAX_MAP_SERVERS; i++)
 		if (server_fd[i] >= 0)
-			for (j = 0; server[i].map[j][0]; j++)
-				if (strncmp(server[i].map[j], temp_map, temp_map_len) == 0) {
+			for (j = 0; server[i].map[j]; j++)
+				if (server[i].map[j] == map) {
 					if (ip > 0 && server[i].ip != ip)
 						continue;
 					if (port > 0 && server[i].port != port)
@@ -3139,7 +3155,7 @@ int parse_char(int fd) {
 
 			// if we activated email creation and email is default email
 			if (email_creation != 0 && strcmp(sd->email, "a@a.com") == 0 && login_fd > 0) { // to modify an e-mail, login-server must be online
-                                WFIFOHEAD(fd, 3);
+				WFIFOHEAD(fd, 3);
 				WFIFOW(fd, 0) = 0x70;
 				WFIFOB(fd, 2) = 0; // 00 = Incorrect Email address
 				WFIFOSET(fd, 3);
@@ -3162,45 +3178,46 @@ int parse_char(int fd) {
 			i = search_mapserver(char_dat[sd->found_char[ch]].last_point.map,-1,-1);
 			// if map is not found, we check major cities
 			if (i < 0) {
-				if ((i = search_mapserver("prontera.gat",-1,-1)) >= 0) { // check is done without 'gat'.
-					memcpy(char_dat[sd->found_char[ch]].last_point.map, "prontera.gat", MAP_NAME_LENGTH-1);
-					char_dat[sd->found_char[ch]].last_point.x = 273; // savepoint coordonates
+				unsigned short j;
+				ShowWarning("Unable to find map-server for %s, resorting to sending to a major city.\n", mapindex_id2name(char_dat[0].last_point.map));
+				if ((i = search_mapserver((j=mapindex_name2id(MAP_PRONTERA)),-1,-1)) >= 0) {
+					char_dat[sd->found_char[ch]].last_point.map = j;
+					char_dat[sd->found_char[ch]].last_point.x = 273; // savepoint coordinates
 					char_dat[sd->found_char[ch]].last_point.y = 354;
-				} else if ((i = search_mapserver("geffen.gat",-1,-1)) >= 0) { // check is done without 'gat'.
-					memcpy(char_dat[sd->found_char[ch]].last_point.map, "geffen.gat", MAP_NAME_LENGTH-1);
-					char_dat[sd->found_char[ch]].last_point.x = 120; // savepoint coordonates
+				} else if ((i = search_mapserver((j=mapindex_name2id(MAP_GEFFEN)),-1,-1)) >= 0) {
+					char_dat[sd->found_char[ch]].last_point.map = j;
+					char_dat[sd->found_char[ch]].last_point.x = 120; // savepoint coordinates
 					char_dat[sd->found_char[ch]].last_point.y = 100;
-				} else if ((i = search_mapserver("morocc.gat",-1,-1)) >= 0) { // check is done without 'gat'.
-					memcpy(char_dat[sd->found_char[ch]].last_point.map, "morocc.gat", MAP_NAME_LENGTH-1);
-					char_dat[sd->found_char[ch]].last_point.x = 160; // savepoint coordonates
+				} else if ((i = search_mapserver((j=mapindex_name2id(MAP_MORROC)),-1,-1)) >= 0) {
+					char_dat[sd->found_char[ch]].last_point.map = j;
+					char_dat[sd->found_char[ch]].last_point.x = 160; // savepoint coordinates
 					char_dat[sd->found_char[ch]].last_point.y = 94;
-				} else if ((i = search_mapserver("alberta.gat",-1,-1)) >= 0) { // check is done without 'gat'.
-					memcpy(char_dat[sd->found_char[ch]].last_point.map, "alberta.gat", MAP_NAME_LENGTH-1);
-					char_dat[sd->found_char[ch]].last_point.x = 116; // savepoint coordonates
+				} else if ((i = search_mapserver((j=mapindex_name2id(MAP_ALBERTA)),-1,-1)) >= 0) {
+					char_dat[sd->found_char[ch]].last_point.map = j;
+					char_dat[sd->found_char[ch]].last_point.x = 116; // savepoint coordinates
 					char_dat[sd->found_char[ch]].last_point.y = 57;
-				} else if ((i = search_mapserver("payon.gat",-1,-1)) >= 0) { // check is done without 'gat'.
-					memcpy(char_dat[sd->found_char[ch]].last_point.map, "payon.gat", MAP_NAME_LENGTH-1);
-					char_dat[sd->found_char[ch]].last_point.x = 87; // savepoint coordonates
+				} else if ((i = search_mapserver((j=mapindex_name2id(MAP_PAYON)),-1,-1)) >= 0) {
+					char_dat[sd->found_char[ch]].last_point.map = j;
+					char_dat[sd->found_char[ch]].last_point.x = 87; // savepoint coordinates
 					char_dat[sd->found_char[ch]].last_point.y = 117;
-				} else if ((i = search_mapserver("izlude.gat",-1,-1)) >= 0) { // check is done without 'gat'.
-					memcpy(char_dat[sd->found_char[ch]].last_point.map, "izlude.gat", MAP_NAME_LENGTH-1);
-					char_dat[sd->found_char[ch]].last_point.x = 94; // savepoint coordonates
+				} else if ((i = search_mapserver((j=mapindex_name2id(MAP_IZLUDE)),-1,-1)) >= 0) {
+					char_dat[sd->found_char[ch]].last_point.map = j;
+					char_dat[sd->found_char[ch]].last_point.x = 94; // savepoint coordinates
 					char_dat[sd->found_char[ch]].last_point.y = 103;
 				} else {
-					int j;
 					// get first online server (with a map)
 					i = 0;
 					for(j = 0; j < MAX_MAP_SERVERS; j++)
-						if (server_fd[j] >= 0 && server[j].map[0][0]) { // change save point to one of map found on the server (the first)
+						if (server_fd[j] >= 0 && server[j].map[0]) { // change save point to one of map found on the server (the first)
 							i = j;
-							memcpy(char_dat[sd->found_char[ch]].last_point.map, server[j].map[0], MAP_NAME_LENGTH-1);
-							ShowInfo("Map-server #%d found with a map: '%s'.\n", j, server[j].map[0]);
+							char_dat[sd->found_char[ch]].last_point.map = server[j].map[0];
+							ShowInfo("Map-server #%d found with a map: '%s'.\n", j, mapindex_id2name(server[j].map[0]));
 							// coordinates are unknown
 							break;
 						}
 					// if no map-server is connected, we send: server closed
 					if (j == MAX_MAP_SERVERS) {
-                                                WFIFOHEAD(fd, 3);
+						WFIFOHEAD(fd, 3);
 						WFIFOW(fd,0) = 0x81;
 						WFIFOB(fd,2) = 1; // 01 = Server closed
 						WFIFOSET(fd,3);
@@ -3208,10 +3225,10 @@ int parse_char(int fd) {
 					}
 				}
 			}
-                        WFIFOHEAD(fd, 28);
+			WFIFOHEAD(fd, 28);
 			WFIFOW(fd,0) = 0x71;
 			WFIFOL(fd,2) = char_dat[sd->found_char[ch]].char_id;
-			memcpy(WFIFOP(fd,6), char_dat[sd->found_char[ch]].last_point.map, MAP_NAME_LENGTH);
+			memcpy(WFIFOP(fd,6), mapindex_id2name(char_dat[sd->found_char[ch]].last_point.map), MAP_NAME_LENGTH);
 			ShowInfo("Character selection '%s' (account: %d, slot: %d).\n", char_dat[sd->found_char[ch]].name, sd->account_id, ch);
 			if (lan_ip_check(p))
 				WFIFOL(fd, 22) = inet_addr(lan_map_ip);
@@ -3254,7 +3271,7 @@ int parse_char(int fd) {
 
 			set_char_online(i, auth_fifo[auth_fifo_pos].char_id, auth_fifo[auth_fifo_pos].account_id);
 			//Checks to see if the even share setting of the party must be broken.
-			inter_party_logged(char_dat[sd->found_char[ch]].party_id, char_dat[sd->found_char[ch]].account_id);
+			inter_party_logged(char_dat[sd->found_char[ch]].party_id, char_dat[sd->found_char[ch]].account_id, char_dat[sd->found_char[ch]].char_id);
 
 			auth_fifo_pos++;
 		}
@@ -3610,7 +3627,7 @@ int send_users_tologin(int tid, unsigned int tick, int id, int data) {
 
 	if (login_fd > 0 && session[login_fd]) {
 		// send number of user to login server
-                WFIFOHEAD(login_fd, 6);
+		WFIFOHEAD(login_fd, 6);
 		WFIFOW(login_fd,0) = 0x2714;
 		WFIFOL(login_fd,2) = users;
 		WFIFOSET(login_fd,6);
@@ -3881,7 +3898,11 @@ int char_config_read(const char *cfgName) {
 			if (sscanf(w2, "%[^,],%d,%d", map, &x, &y) < 3)
 				continue;
 			if (strstr(map, ".gat") != NULL) { // Verify at least if '.gat' is in the map name
-				memcpy(start_point.map, map, MAP_NAME_LENGTH);
+				start_point.map = mapindex_name2id(map);
+				if (!start_point.map) {
+					ShowError("Specified start_point %s not found in map-index cache.\n", map);
+					start_point.map = 0;
+				}
 				start_point.x = x;
 				start_point.y = y;
 			}
@@ -3965,7 +3986,7 @@ void do_final(void) {
 	mmo_char_sync();
 	inter_save();
 	set_all_offline();
-
+	
 	if(gm_account) aFree(gm_account);
 	if(char_dat) aFree(char_dat);
 
@@ -3976,6 +3997,7 @@ void do_final(void) {
 	status_final();
 #endif
 	inter_final();
+	mapindex_final();
 
 	char_log("----End of char-server (normal end with closing of all files)." RETCODE);
 }
@@ -4007,6 +4029,8 @@ static int online_data_cleanup(int tid, unsigned int tick, int id, int data)
 int do_init(int argc, char **argv) {
 	int i;
 
+	mapindex_init(); //Needed here for the start-point reading.
+	start_point.map = mapindex_name2id("new_1-1.gat");
 	char_config_read((argc < 2) ? CHAR_CONF_NAME : argv[1]);
 	lan_config_read((argc > 1) ? argv[1] : LOGIN_LAN_CONF_NAME);
 

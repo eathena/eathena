@@ -59,7 +59,7 @@ int clif_movechar(struct map_session_data*);	// area
 int clif_movemob(struct mob_data*);	//area
 int clif_movepet(struct pet_data *pd);	//area
 int clif_movenpc(struct npc_data *nd);	// [Valaris]
-int clif_changemap(struct map_session_data*,char*,int,int);	//self
+int clif_changemap(struct map_session_data*,short,int,int);	//self
 int clif_changemapserver(struct map_session_data*,char*,int,int,int,int);	//self
 int clif_blown(struct block_list *); // area
 int clif_slide(struct block_list *,int,int); // area

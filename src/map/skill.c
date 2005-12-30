@@ -2328,7 +2328,7 @@ static int skill_timerskill(int tid, unsigned int tick, int id,int data )
 					}
 					if(target->prev != NULL) {
 						if(target->type == BL_PC && !pc_isdead((struct map_session_data *)target))
-							pc_setpos((struct map_session_data *)target,map[sd->bl.m].name,x,y,3);
+							pc_setpos((struct map_session_data *)target,map[sd->bl.m].index,x,y,3);
 						else if(target->type == BL_MOB)
 							mob_warp((struct mob_data *)target,-1,x,y,3);
 					}
@@ -2349,7 +2349,7 @@ static int skill_timerskill(int tid, unsigned int tick, int id,int data )
 					}
 					if(target->prev != NULL) {
 						if(target->type == BL_PC && !pc_isdead((struct map_session_data *)target))
-							pc_setpos((struct map_session_data *)target,map[md->bl.m].name,x,y,3);
+							pc_setpos((struct map_session_data *)target,map[md->bl.m].index,x,y,3);
 						else if(target->type == BL_MOB)
 							mob_warp((struct mob_data *)target,-1,x,y,3);
 					}
@@ -4523,7 +4523,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					pc_randomwarp(sd,3);
 			else {
 				clif_skill_warppoint(sd,skillid,"Random",
-					sd->status.save_point.map,"","");
+					mapindex_id2name(sd->status.save_point.map),"","");
 			}
 		} else if(dstmd)
 			mob_warp(dstmd,-1,-1,-1,3);
@@ -5270,9 +5270,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			}
 			//Warp those that can be warped.
 			if (f_sd && !map[f_sd->bl.m].flag.nowarp)
-				pc_setpos(f_sd,map[sd->bl.m].name,sd->bl.x,sd->bl.y,3);
+				pc_setpos(f_sd,map[sd->bl.m].index,sd->bl.x,sd->bl.y,3);
 			if (m_sd && !map[m_sd->bl.m].flag.nowarp)
-				pc_setpos(m_sd,map[sd->bl.m].name,sd->bl.x,sd->bl.y,3);
+				pc_setpos(m_sd,map[sd->bl.m].index,sd->bl.x,sd->bl.y,3);
 		}
 		break;
 
@@ -5284,7 +5284,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				map_freeblock_unlock();
 				return 0;
 			}
-			pc_setpos(dstsd,map[sd->bl.m].name,sd->bl.x,sd->bl.y,3);
+			pc_setpos(dstsd,map[sd->bl.m].index,sd->bl.x,sd->bl.y,3);
 		}
 		break;
 
@@ -5570,7 +5570,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					break;
 				case 5:	// 2000HP heal, random teleported
 					battle_heal(src, src, 2000, 0, 0);
-					if(sd && !map[src->m].flag.noteleport) pc_setpos(sd,sd->mapname,-1,-1,3);
+					if(sd && !map[src->m].flag.noteleport) pc_setpos(sd,sd->mapindex,-1,-1,3);
 					else if(md && !map[src->m].flag.monster_noteleport) mob_warp(md,-1,-1,-1,3);
 					break;
 				case 6:	// random 2 other effects
@@ -5782,7 +5782,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					clif_skill_nodamage(src,bl,skillid,skilllv,1);
 					if(map_getcell(sd->bl.m,sd->bl.x+dx[j],sd->bl.y+dy[j],CELL_CHKNOPASS))
 						dx[j] = dy[j] = 0;
-					pc_setpos(dstsd, sd->mapname, sd->bl.x+dx[j], sd->bl.y+dy[j], 2);
+					pc_setpos(dstsd, sd->mapindex, sd->bl.x+dx[j], sd->bl.y+dy[j], 2);
 				}
 			}
 			guild_block_skill(sd,300000);
@@ -6290,10 +6290,10 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 				clif_displaymessage(sd->fd, "Duel: Can't use warp in duel.");
 				break;
 			}				
-			clif_skill_warppoint(sd,skillid,sd->status.save_point.map,
-				(sd->skilllv>1)?sd->status.memo_point[0].map:"",
-				(sd->skilllv>2)?sd->status.memo_point[1].map:"",
-				(sd->skilllv>3)?sd->status.memo_point[2].map:"");
+			clif_skill_warppoint(sd,skillid,mapindex_id2name(sd->status.save_point.map),
+				(sd->skilllv>1)?mapindex_id2name(sd->status.memo_point[0].map):"",
+				(sd->skilllv>2)?mapindex_id2name(sd->status.memo_point[1].map):"",
+				(sd->skilllv>3)?mapindex_id2name(sd->status.memo_point[2].map):"");
 		}
 		break;
 
@@ -6471,6 +6471,7 @@ int skill_castend_map( struct map_session_data *sd,int skill_num, const char *ma
 		skill_failed(sd);
 		return 0;
 	}
+
 	pc_stopattack(sd);
 
 	if(battle_config.pc_skill_log)
@@ -6497,6 +6498,13 @@ int skill_castend_map( struct map_session_data *sd,int skill_num, const char *ma
 			struct skill_unit_group *group;
 			int i;
 			int maxcount=0;
+			unsigned short mapindex;
+			mapindex  = mapindex_name2id((char*)map);
+			if(!mapindex) { //Given map not found?
+				clif_skill_fail(sd,skill_num,0,0);
+				skill_failed(sd);
+				return 0;
+			}
 			p[0] = &sd->status.save_point;
 			p[1] = &sd->status.memo_point[0];
 			p[2] = &sd->status.memo_point[1];
@@ -6517,7 +6525,7 @@ int skill_castend_map( struct map_session_data *sd,int skill_num, const char *ma
 
 			if(sd->skilllv <= 0) return 0;
 			for(i=0;i<sd->skilllv;i++){
-				if(strcmp(map,p[i]->map)==0){
+				if(mapindex == p[i]->map){
 					x=p[i]->x;
 					y=p[i]->y;
 					break;
@@ -6543,8 +6551,10 @@ int skill_castend_map( struct map_session_data *sd,int skill_num, const char *ma
 				skill_failed(sd);
 				return 0;
 			}
-			group->valstr=(char *)aCallocA(MAP_NAME_LENGTH,sizeof(char));
-			memcpy(group->valstr,map,MAP_NAME_LENGTH-1);
+			//Now that there's a mapindex, use that in val3 rather than a string. [Skotlex]
+			group->val3 = mapindex;
+//			group->valstr=(char *)aCallocA(MAP_NAME_LENGTH,sizeof(char));
+//			memcpy(group->valstr,map,MAP_NAME_LENGTH-1);
 			group->val2=(x<<16)|y;
 		}
 		break;
@@ -6896,13 +6906,13 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 			struct map_session_data *sd = (struct map_session_data *)bl;
 			if((!sd->chatID || battle_config.chat_warpportal)
 				&& sd->to_x == src->bl.x && sd->to_y == src->bl.y) {
-				if (pc_setpos(sd,sg->valstr,sg->val2>>16,sg->val2&0xffff,3) == 0) {
+				if (pc_setpos(sd,sg->val3,sg->val2>>16,sg->val2&0xffff,3) == 0) {
 					if (--sg->val1<=0 || sg->src_id == bl->id)
 						skill_delunitgroup(sg);
 				}
 			}
 		} else if(bl->type==BL_MOB && battle_config.mob_warpportal){
-			int m = map_mapname2mapid(sg->valstr);
+			int m = map_mapindex2mapid(sg->val3);
 			mob_warp((struct mob_data *)bl,m,sg->val2>>16,sg->val2&0xffff,3);
 		}
 		break;
@@ -7602,7 +7612,7 @@ int skill_unit_onlimit(struct skill_unit *src,unsigned int tick)
 			if((sd = pc_get_partner(sd)) == NULL)
 				return 0;
 
-			pc_setpos(sd,map[src->bl.m].name,src->bl.x,src->bl.y,3);
+			pc_setpos(sd,map[src->bl.m].index,src->bl.x,src->bl.y,3);
 		}
 		break;
 	}

@@ -1210,8 +1210,9 @@ int atcommand_rura(
 	const char* command, const char* message)
 {
 	char map_name[MAP_NAME_LENGTH];
+	unsigned short mapindex;
 	int x = 0, y = 0;
-	int m;
+	int m = -1;
 
 	nullpo_retr(-1, sd);
 
@@ -1230,9 +1231,17 @@ int atcommand_rura(
 	if (strstr(map_name, ".gat") == NULL && strstr(map_name, ".afm") == NULL && strlen(map_name) < MAP_NAME_LENGTH-4) // 16 - 4 (.gat)
 		strcat(map_name, ".gat");
 
+	mapindex = mapindex_name2id(map_name);
+	if (mapindex)
+		m = map_mapindex2mapid(mapindex);
+	
+	if (!mapindex || m < 0) {
+		clif_displaymessage(fd, msg_table[1]); // Map not found.
+		return -1;
+	}
+	
 	if (x > 0 && x < 400 && y > 0 && y < 400) {
-		m = map_mapname2mapid(map_name);
-		if (m >= 0 && map[m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
+		if (map[m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
 			clif_displaymessage(fd, msg_table[247]);
 			return -1;
 		}
@@ -1240,7 +1249,7 @@ int atcommand_rura(
 			clif_displaymessage(fd, msg_table[248]);
 			return -1;
 		}
-		if (pc_setpos(sd, map_name, x, y, 3) == 0)
+		if (pc_setpos(sd, mapindex, x, y, 3) == 0)
 			clif_displaymessage(fd, msg_table[0]); // Warped.
 		else {
 			clif_displaymessage(fd, msg_table[1]); // Map not found.
@@ -1292,7 +1301,7 @@ int atcommand_where(
 	}
 
 	snprintf(atcmd_output, sizeof atcmd_output, "%s %s %d %d",
-		atcmd_player_name, pl_sd->mapname, pl_sd->bl.x, pl_sd->bl.y);
+		atcmd_player_name, mapindex_id2name(pl_sd->mapindex), pl_sd->bl.x, pl_sd->bl.y);
 	clif_displaymessage(fd, atcmd_output);
 
 	return 0;
@@ -1330,7 +1339,7 @@ int atcommand_jumpto(
 			clif_displaymessage(fd, msg_table[248]);
 			return -1;
 		}
-		pc_setpos(sd, pl_sd->mapname, pl_sd->bl.x, pl_sd->bl.y, 3);
+		pc_setpos(sd, pl_sd->mapindex, pl_sd->bl.x, pl_sd->bl.y, 3);
 		sprintf(atcmd_output, msg_table[4], atcmd_player_name); // Jump to %s
 		clif_displaymessage(fd, atcmd_output);
 	} else {
@@ -1365,7 +1374,7 @@ int atcommand_jump(
 		clif_displaymessage(fd, msg_table[248]);
 		return -1;
 	}
-	pc_setpos(sd, sd->mapname, x, y, 3);
+	pc_setpos(sd, sd->mapindex, x, y, 3);
 	sprintf(atcmd_output, msg_table[5], sd->bl.x, sd->bl.y); // Jump to %d %d
 	clif_displaymessage(fd, atcmd_output);
 	return 0;
@@ -1424,8 +1433,7 @@ int atcommand_who3(
 						strcat(atcmd_output,temp0);
 					}
 					//Players Location: map x y
-					//sprintf(temp0, "Location: %s %d %d", pl_sd->mapname, pl_sd->bl.x, pl_sd->bl.y);
-					sprintf(temp0, msg_txt(338), pl_sd->mapname, pl_sd->bl.x, pl_sd->bl.y);
+					sprintf(temp0, msg_txt(338), mapindex_id2name(pl_sd->mapindex), pl_sd->bl.x, pl_sd->bl.y);
 					strcat(atcmd_output,temp0);
 
 					clif_displaymessage(fd, atcmd_output);
@@ -1635,9 +1643,9 @@ int atcommand_whomap3(
 			if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_INVISIBLE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
 				if (pl_sd->bl.m == map_id) {
 					if (pl_GM_level > 0)
-						sprintf(atcmd_output, "Name: %s (GM:%d) | Location: %s %d %d", pl_sd->status.name, pl_GM_level, pl_sd->mapname, pl_sd->bl.x, pl_sd->bl.y);
+						sprintf(atcmd_output, "Name: %s (GM:%d) | Location: %s %d %d", pl_sd->status.name, pl_GM_level, mapindex_id2name(pl_sd->mapindex), pl_sd->bl.x, pl_sd->bl.y);
 					else
-						sprintf(atcmd_output, "Name: %s | Location: %s %d %d", pl_sd->status.name, pl_sd->mapname, pl_sd->bl.x, pl_sd->bl.y);
+						sprintf(atcmd_output, "Name: %s | Location: %s %d %d", pl_sd->status.name, mapindex_id2name(pl_sd->mapindex), pl_sd->bl.x, pl_sd->bl.y);
 					clif_displaymessage(fd, atcmd_output);
 					count++;
 				}
@@ -1837,7 +1845,7 @@ int atcommand_whogm(
 					for (j = 0; player_name[j]; j++)
 						player_name[j] = tolower(player_name[j]);
 					if (strstr(player_name, match_text) != NULL) { // search with no case sensitive
-						sprintf(atcmd_output, "Name: %s (GM:%d) | Location: %s %d %d", pl_sd->status.name, pl_GM_level, pl_sd->mapname, pl_sd->bl.x, pl_sd->bl.y);
+						sprintf(atcmd_output, "Name: %s (GM:%d) | Location: %s %d %d", pl_sd->status.name, pl_GM_level, mapindex_id2name(pl_sd->mapindex), pl_sd->bl.x, pl_sd->bl.y);
 						clif_displaymessage(fd, atcmd_output);
 						sprintf(atcmd_output, "       BLvl: %d | Job: %s (Lvl: %d)", pl_sd->status.base_level, job_name(pl_sd->status.class_), pl_sd->status.job_level);
 						clif_displaymessage(fd, atcmd_output);
@@ -1984,7 +1992,7 @@ int atcommand_save(
 {
 	nullpo_retr(-1, sd);
 
-	pc_setsavepoint(sd, sd->mapname, sd->bl.x, sd->bl.y);
+	pc_setsavepoint(sd, sd->mapindex, sd->bl.x, sd->bl.y);
 	if (sd->status.pet_id > 0 && sd->pd)
 		intif_save_petdata(sd->status.account_id, &sd->pet);
 
@@ -2007,7 +2015,7 @@ int atcommand_load(
 
 	nullpo_retr(-1, sd);
 
-	m = map_mapname2mapid(sd->status.save_point.map);
+	m = map_mapindex2mapid(sd->status.save_point.map);
 	if (m >= 0 && map[m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
 		clif_displaymessage(fd, msg_table[249]);
 		return -1;
@@ -3179,29 +3187,29 @@ int atcommand_go(
 	int m;
  
 	const struct { char map[MAP_NAME_LENGTH]; int x,   y; } data[] = {
-		{ "prontera.gat",	156, 191  },		//	 0=Prontera
-		{ "morocc.gat",		156, 93  },			//	 1=Morroc
-		{ "geffen.gat",		119, 59  },			//	 2=Geffen
-		{ "payon.gat",		162, 233  },		//	 3=Payon
-		{ "alberta.gat",		192, 147  },	//	 4=Alberta
-		{ "izlude.gat",		128, 114  },		//	 5=Izlude
-		{ "aldebaran.gat",	140, 131  },		//	 6=Al de Baran
-		{ "xmas.gat",		147, 134  },		//	 7=Lutie
-		{ "comodo.gat",		209, 143  },		//	 8=Comodo
-		{ "yuno.gat",		157,  51  },		//	 9=Yuno
-		{ "amatsu.gat",		198,  84  },		//	10=Amatsu
-		{ "gonryun.gat",		160, 120  },	//	11=Gon Ryun
-		{ "umbala.gat",		89,  157  },		//	12=Umbala
-		{ "niflheim.gat",	21,  153  },		//	13=Niflheim
-		{ "louyang.gat",		217,  40  },	//	14=Lou Yang
+		{ MAP_PRONTERA,	156, 191  },		//	 0=Prontera
+		{ MAP_MORROC,		156, 93  },			//	 1=Morroc
+		{ MAP_GEFFEN,		119, 59  },			//	 2=Geffen
+		{ MAP_PAYON,		162, 233  },		//	 3=Payon
+		{ MAP_ALBERTA,		192, 147  },	//	 4=Alberta
+		{ MAP_IZLUDE,		128, 114  },		//	 5=Izlude
+		{ MAP_ALDEBARAN,	140, 131  },		//	 6=Al de Baran
+		{ MAP_LUTIE,		147, 134  },		//	 7=Lutie
+		{ MAP_COMODO,		209, 143  },		//	 8=Comodo
+		{ MAP_YUNO,		157,  51  },		//	 9=Yuno
+		{ MAP_AMATSU,		198,  84  },		//	10=Amatsu
+		{ MAP_GONRYUN,		160, 120  },	//	11=Gon Ryun
+		{ MAP_UMBALA,		89,  157  },		//	12=Umbala
+		{ MAP_NIFLHEIM,	21,  153  },		//	13=Niflheim
+		{ MAP_LOUYANG,		217,  40  },	//	14=Lou Yang
 		{ "new_1-1.gat",		53,  111  },	//	15=Training Grounds
-		{ "sec_pri.gat",		23,   61  },	//	16=Prison
-		{ "jawaii.gat",		249, 127  },		//  17=Jawaii
-		{ "ayothaya.gat",	151, 117  },		//  18=Ayothaya
-		{ "einbroch.gat",	64,  200  },		//  19=Einbroch
-		{ "lighthalzen.gat",	158,  92  },	//  20=Lighthalzen
-		{ "einbech.gat",		70,   95  },	//  21=Einbech
-		{ "hugel.gat",		96,  145  },		//  22=Hugel
+		{ MAP_JAIL,		23,   61  },	//	16=Prison
+		{ MAP_JAWAII,		249, 127  },		//  17=Jawaii
+		{ MAP_AYOTHAYA,	151, 117  },		//  18=Ayothaya
+		{ MAP_EINBROCH,	64,  200  },		//  19=Einbroch
+		{ MAP_LIGHTHALZEN,	158,  92  },	//  20=Lighthalzen
+		{ MAP_EINBECH,		70,   95  },	//  21=Einbech
+		{ MAP_HUGEL,		96,  145  },		//  22=Hugel
 	};
  
 	nullpo_retr(-1, sd);
@@ -3302,8 +3310,8 @@ int atcommand_go(
 		}
  
 		if (town >= -3 && town <= -1) {
-			if (sd->status.memo_point[-town-1].map[0]) {
-				m = map_mapname2mapid(sd->status.memo_point[-town-1].map);
+			if (sd->status.memo_point[-town-1].map) {
+				m = map_mapindex2mapid(sd->status.memo_point[-town-1].map);
 				if (m >= 0 && map[m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
 					clif_displaymessage(fd, msg_table[247]);
 					return -1;
@@ -3333,7 +3341,7 @@ int atcommand_go(
 				clif_displaymessage(fd, msg_table[248]);
 				return -1;
 			}
-			if (pc_setpos(sd, (char *)data[town].map, data[town].x, data[town].y, 3) == 0) {
+			if (pc_setpos(sd, mapindex_name2id((char *)data[town].map), data[town].x, data[town].y, 3) == 0) {
 				clif_displaymessage(fd, msg_table[0]); // Warped.
 			} else {
 				clif_displaymessage(fd, msg_table[1]); // Map not found.
@@ -3826,8 +3834,8 @@ void atcommand_memo_sub(struct map_session_data* sd) {
 
 	clif_displaymessage(sd->fd,  "Your actual memo positions are (except respawn point):");
 	for (i = MIN_PORTAL_MEMO; i <= MAX_PORTAL_MEMO; i++) {
-		if (sd->status.memo_point[i].map[0])
-			sprintf(atcmd_output, "%d - %s (%d,%d)", i, sd->status.memo_point[i].map, sd->status.memo_point[i].x, sd->status.memo_point[i].y);
+		if (sd->status.memo_point[i].map)
+			sprintf(atcmd_output, "%d - %s (%d,%d)", i, mapindex_id2name(sd->status.memo_point[i].map), sd->status.memo_point[i].x, sd->status.memo_point[i].y);
 		else
 			sprintf(atcmd_output, msg_table[171], i); // %d - void
 		clif_displaymessage(sd->fd, atcmd_output);
@@ -3857,11 +3865,11 @@ int atcommand_memo(
 				clif_displaymessage(fd, msg_table[253]);
 				return -1;
 			}
-			if (sd->status.memo_point[position].map[0]) {
-				sprintf(atcmd_output, msg_table[172], position, sd->status.memo_point[position].map, sd->status.memo_point[position].x, sd->status.memo_point[position].y); // You replace previous memo position %d - %s (%d,%d).
+			if (sd->status.memo_point[position].map) {
+				sprintf(atcmd_output, msg_table[172], position, mapindex_id2name(sd->status.memo_point[position].map), sd->status.memo_point[position].x, sd->status.memo_point[position].y); // You replace previous memo position %d - %s (%d,%d).
 				clif_displaymessage(fd, atcmd_output);
 			}
-			memcpy(sd->status.memo_point[position].map, map[sd->bl.m].name, MAP_NAME_LENGTH);
+			sd->status.memo_point[position].map = map[sd->bl.m].index;
 			sd->status.memo_point[position].x = sd->bl.x;
 			sd->status.memo_point[position].y = sd->bl.y;
 			clif_skill_memo(sd, 0);
@@ -4455,7 +4463,7 @@ atcommand_recall(
 				clif_displaymessage(fd, "You are not authorized to warp this player from its actual map.");
 				return -1;
 			}
-			pc_setpos(pl_sd, sd->mapname, sd->bl.x, sd->bl.y, 2);
+			pc_setpos(pl_sd, sd->mapindex, sd->bl.x, sd->bl.y, 2);
 			sprintf(atcmd_output, msg_table[46], atcmd_player_name); // %s recalled!
 			clif_displaymessage(fd, atcmd_output);
 		} else {
@@ -5235,7 +5243,7 @@ int atcommand_recallall(
 					pc_setstand(pl_sd);
 					pc_setrestartvalue(pl_sd,1);
 				}
-				pc_setpos(pl_sd, sd->mapname, sd->bl.x, sd->bl.y, 2);
+				pc_setpos(pl_sd, sd->mapindex, sd->bl.x, sd->bl.y, 2);
 			}
 		}
 	}
@@ -5286,7 +5294,7 @@ int atcommand_guildrecall(
 				if (pl_sd->bl.m >= 0 && map[pl_sd->bl.m].flag.nowarp && battle_config.any_warp_GM_min_level > pc_isGM(sd))
 					count++;
 				else
-					pc_setpos(pl_sd, sd->mapname, sd->bl.x, sd->bl.y, 2);
+					pc_setpos(pl_sd, sd->mapindex, sd->bl.x, sd->bl.y, 2);
 			}
 		}
 		sprintf(atcmd_output, msg_table[93], g->name); // All online characters of the %s guild are near you.
@@ -5342,7 +5350,7 @@ int atcommand_partyrecall(
 				if (pl_sd->bl.m >= 0 && map[pl_sd->bl.m].flag.nowarp && battle_config.any_warp_GM_min_level > pc_isGM(sd))
 					count++;
 				else
-					pc_setpos(pl_sd, sd->mapname, sd->bl.x, sd->bl.y, 2);
+					pc_setpos(pl_sd, sd->mapindex, sd->bl.x, sd->bl.y, 2);
 			}
 		}
 		sprintf(atcmd_output, msg_table[95], p->name); // All online characters of the %s party are near you.
@@ -5542,6 +5550,7 @@ int atcommand_mapinfo(
 	struct chat_data *cd = NULL;
 	char direction[12];
 	int m_id, i, chat_num, users, list = 0;
+	unsigned short m_index;
 	nullpo_retr(-1, sd);
 
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
@@ -5555,16 +5564,21 @@ int atcommand_mapinfo(
 		return -1;
 	}
 
-	if (atcmd_player_name[0] == '\0')
-		strcpy(atcmd_player_name, sd->mapname);
-	if (strstr(atcmd_player_name, ".gat") == NULL && strstr(atcmd_player_name, ".afm") == NULL && strlen(atcmd_player_name) < MAP_NAME_LENGTH-4) // 16 - 4 (.gat)
-		strcat(atcmd_player_name, ".gat");
-
-	if ((m_id = map_mapname2mapid(atcmd_player_name)) < 0) {
+	if (atcmd_player_name[0] == '\0') {
+		memcpy(atcmd_player_name, mapindex_id2name(sd->mapindex), MAP_NAME_LENGTH);
+		atcmd_player_name[MAP_NAME_LENGTH] = '\0';
+		m_id =  map_mapindex2mapid(sd->mapindex);
+	} else {
+		if (strstr(atcmd_player_name, ".gat") == NULL && strstr(atcmd_player_name, ".afm") == NULL && strlen(atcmd_player_name) < MAP_NAME_LENGTH-4) // 16 - 4 (.gat)
+			strcat(atcmd_player_name, ".gat");
+		m_id = map_mapname2mapid(atcmd_player_name);
+	}
+	if (m_id < 0) {
 		clif_displaymessage(fd, msg_table[1]); // Map not found.
 		return -1;
 	}
-
+	m_index = mapindex_name2id(atcmd_player_name); //This one shouldn't fail since the previous seek did not.
+	
 	clif_displaymessage(fd, "------ Map Info ------");
 	chat_num = 0;
 	pl_allsd = map_getallusers(&users);
@@ -5626,10 +5640,10 @@ int atcommand_mapinfo(
 
 	if (map[m_id].flag.nosave) {
 		if (map[m_id].save.x == -1 || map[m_id].save.y == -1 )
-			sprintf(atcmd_output, "No Save, Save Point: %s,Random",map[m_id].save.map);
+			sprintf(atcmd_output, "No Save, Save Point: %s,Random",mapindex_id2name(map[m_id].save.map));
 		else
 			sprintf(atcmd_output, "No Save, Save Point: %s,%d,%d",
-				map[m_id].save.map,map[m_id].save.x,map[m_id].save.y);
+				mapindex_id2name(map[m_id].save.map),map[m_id].save.x,map[m_id].save.y);
 		clif_displaymessage(fd, atcmd_output);
 	}
 
@@ -5684,7 +5698,7 @@ int atcommand_mapinfo(
 	case 1:
 		clif_displaymessage(fd, "----- Players in Map -----");
 		for (i = 0; i < users; i++) {
-			if ((pl_sd = pl_allsd[i]) && strcmp(pl_sd->mapname, atcmd_player_name) == 0) {
+			if ((pl_sd = pl_allsd[i]) && pl_sd->mapindex == m_index) {
 				sprintf(atcmd_output, "Player '%s' (session #%d) | Location: %d,%d",
 				        pl_sd->status.name, pl_sd->fd, pl_sd->bl.x, pl_sd->bl.y);
 				clif_displaymessage(fd, atcmd_output);
@@ -5716,7 +5730,7 @@ int atcommand_mapinfo(
 		clif_displaymessage(fd, "----- Chats in Map -----");
 		for (i = 0; i < users; i++) {
 			if ((pl_sd = pl_allsd[i]) && (cd = (struct chat_data*)map_id2bl(pl_sd->chatID)) &&
-			    strcmp(pl_sd->mapname, atcmd_player_name) == 0 &&
+			    pl_sd->mapindex == m_index &&
 			    cd->usersd[0] == pl_sd) {
 				sprintf(atcmd_output, "Chat %d: %s | Player: %s | Location: %d %d",
 				        i, cd->title, pl_sd->status.name, cd->bl.x, cd->bl.y);
@@ -6265,6 +6279,7 @@ int atcommand_jail(
 {
 	struct map_session_data *pl_sd;
 	int x, y;
+	unsigned short m_index;
 	nullpo_retr(-1, sd);
 
 	memset(atcmd_player_name, '\0', sizeof(atcmd_player_name));
@@ -6286,8 +6301,9 @@ int atcommand_jail(
 				y = 75;
 				break;
 			}
-			if (pc_setpos(pl_sd, "sec_pri.gat", x, y, 3) == 0) {
-				pc_setsavepoint(pl_sd, "sec_pri.gat", x, y); // Save Char Respawn Point in the jail room [Lupus]
+			m_index = mapindex_name2id(MAP_JAIL);
+			if (pc_setpos(pl_sd, m_index, x, y, 3) == 0) {
+				pc_setsavepoint(pl_sd, m_index, x, y); // Save Char Respawn Point in the jail room [Lupus]
 				clif_displaymessage(pl_sd->fd, msg_table[117]); // GM has send you in jails.
 				clif_displaymessage(fd, msg_table[118]); // Player warped in jails.
 			} else {
@@ -6316,6 +6332,7 @@ int atcommand_unjail(
 	const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
+	unsigned short m_index;
 
 	memset(atcmd_player_name, '\0', sizeof(atcmd_player_name));
 
@@ -6325,12 +6342,13 @@ int atcommand_unjail(
 	}
 
 	if ((pl_sd = map_nick2sd(atcmd_player_name)) != NULL) {
+		m_index = mapindex_name2id(MAP_PRONTERA);
 		if (pc_isGM(sd) >= pc_isGM(pl_sd)) { // you can jail only lower or same GM
-			if (pl_sd->bl.m != map_mapname2mapid("sec_pri.gat")) {
+			if (pl_sd->bl.m != map_mapname2mapid(MAP_JAIL)) {
 				clif_displaymessage(fd, msg_table[119]); // This player is not in jails.
 				return -1;
-			} else if (pc_setpos(pl_sd, "prontera.gat", 0, 0, 3) == 0) { //old coords: 156,191
-				pc_setsavepoint(pl_sd, "prontera.gat", 0, 0); // Save char respawn point in Prontera
+			} else if (pc_setpos(pl_sd, m_index, 0, 0, 3) == 0) { //old coords: 156,191
+				pc_setsavepoint(pl_sd, m_index, 0, 0); // Save char respawn point in Prontera
 				clif_displaymessage(pl_sd->fd, msg_table[120]); // GM has discharge you.
 				clif_displaymessage(fd, msg_table[121]); // Player warped to Prontera.
 			} else {
@@ -6955,7 +6973,7 @@ atcommand_addwarp(const int fd, struct map_session_data* sd,
 	if (sscanf(message, "%99s %d %d[^\n]", atcmd_player_name, &x, &y ) < 3)
 		return -1;
 
-	sprintf(w1,"%s,%d,%d", sd->mapname, sd->bl.x, sd->bl.y);
+	sprintf(w1,"%s,%d,%d", mapindex_id2name(sd->mapindex), sd->bl.x, sd->bl.y);
 	sprintf(w3,"%s%d%d%d%d", atcmd_player_name,sd->bl.x, sd->bl.y, x, y);
 	sprintf(w4,"1,1,%s.gat,%d,%d", atcmd_player_name, x, y);
 
@@ -7594,6 +7612,7 @@ atcommand_changeleader(
 	if (p->member[pl_mi].sd->fd)
 		clif_displaymessage(p->member[pl_mi].sd->fd, "You've become the party leader.");
 
+	intif_party_leaderchange(p->party_id,p->member[pl_mi].account_id,p->member[pl_mi].char_id);
 	//Update info.
 	clif_party_info(p,-1);
 	
@@ -7896,7 +7915,7 @@ int atcommand_mobsearch(
 	map_id = sd->bl.m;
 
 	snprintf(atcmd_output, sizeof atcmd_output, "Mob Search... %s %s",
-		mob_name, sd->mapname);
+		mob_name, mapindex_id2name(sd->mapindex));
 	clif_displaymessage(fd, atcmd_output);
 
 	map_foreachinarea(atmobsearch_sub, map_id, 0, 0,
@@ -7991,16 +8010,16 @@ static struct dbt *users_db;
 static int users_all;
 
 static int atcommand_users_sub1(struct map_session_data* sd,va_list va) {
-	int users = (int)strdb_search(users_db,sd->mapname) + 1;
+	int users = (int)((int*)numdb_search(users_db,(int)sd->mapindex)) + 1;
 	users_all++;
-	strdb_insert(users_db,sd->mapname,(void *)users);
+	numdb_insert(users_db,(int)sd->mapindex,(void *)users);
 	return 0;
 }
 
 static int atcommand_users_sub2(void* key,void* val,va_list va) {
 	char buf[256];
 	struct map_session_data* sd = va_arg(va,struct map_session_data*);
-	sprintf(buf,"%s : %d (%d%%)",(char *)key,(int)val,(int)val * 100 / users_all);
+	sprintf(buf,"%s : %d (%d%%)",mapindex_id2name(*((int*)key)),(int)val,(int)val * 100 / users_all);
 	clif_displaymessage(sd->fd,buf);
 	return 0;
 }
@@ -8012,12 +8031,12 @@ atcommand_users(
 {
 	char buf[256];
 	users_all = 0;
-	users_db = strdb_init(NAME_LENGTH);
+	users_db = numdb_init();
 	clif_foreachclient(atcommand_users_sub1);
-	strdb_foreach(users_db,atcommand_users_sub2,sd);
+	numdb_foreach(users_db,atcommand_users_sub2,sd);
 	sprintf(buf,"all : %d",users_all);
 	clif_displaymessage(fd,buf);
-	strdb_final(users_db,NULL);
+	numdb_final(users_db,NULL);
 	return 0;
 }
 
@@ -8491,7 +8510,7 @@ int atcommand_jumptoid(
             clif_displaymessage(fd, msg_table[248]);
             return -1;
          }
-         pc_setpos(sd, pl_sd->mapname, pl_sd->bl.x, pl_sd->bl.y, 3);
+         pc_setpos(sd, pl_sd->mapindex, pl_sd->bl.x, pl_sd->bl.y, 3);
          sprintf(atcmd_output, msg_table[4], pl_sd->status.name); // Jump to %s
          clif_displaymessage(fd, atcmd_output);
       } else {
@@ -8544,7 +8563,7 @@ int atcommand_jumptoid2(
             clif_displaymessage(fd, msg_table[248]);
             return -1;
          }
-         pc_setpos(sd, pl_sd->mapname, pl_sd->bl.x, pl_sd->bl.y, 3);
+         pc_setpos(sd, pl_sd->mapindex, pl_sd->bl.x, pl_sd->bl.y, 3);
          sprintf(atcmd_output, msg_table[4], pl_sd->status.name); // Jump to %s
          clif_displaymessage(fd, atcmd_output);
       } else {
@@ -8597,7 +8616,7 @@ int atcommand_recallid(
                clif_displaymessage(fd, msg_table[248]);
                return -1;
             }
-            pc_setpos(pl_sd, sd->mapname, sd->bl.x, sd->bl.y, 2);
+            pc_setpos(pl_sd, sd->mapindex, sd->bl.x, sd->bl.y, 2);
             sprintf(atcmd_output, msg_table[46], pl_sd->status.name); // Jump to %s
             clif_displaymessage(fd, atcmd_output);
          } else {
@@ -8654,7 +8673,7 @@ int atcommand_recallid2(
                clif_displaymessage(fd, msg_table[248]);
                return -1;
             }
-            pc_setpos(pl_sd, sd->mapname, sd->bl.x, sd->bl.y, 2);
+            pc_setpos(pl_sd, sd->mapindex, sd->bl.x, sd->bl.y, 2);
             sprintf(atcmd_output, msg_table[46], pl_sd->status.name); // Jump to %s
             clif_displaymessage(fd, atcmd_output);
          } else {
@@ -9427,7 +9446,7 @@ static int atcommand_shuffle_sub(struct block_list *bl,va_list ap)
     return 0;
 
   if (!pc_isGM(pl_sd)) 
-    pc_setpos(pl_sd, pl_sd->mapname, rand() % 399 + 1, rand() % 399 + 1, 3);
+    pc_setpos(pl_sd, pl_sd->mapindex, rand() % 399 + 1, rand() % 399 + 1, 3);
 
   return 0;
 }
@@ -9528,7 +9547,7 @@ int atcommand_size(
 
 	if(sd->state.size) {
 		sd->state.size=0;
-		pc_setpos(sd, sd->mapname, sd->bl.x, sd->bl.y, 3);
+		pc_setpos(sd, sd->mapindex, sd->bl.x, sd->bl.y, 3);
 	}
 
 	if(size==1) {
@@ -9579,7 +9598,7 @@ int atcommand_fakename(
 	
 	if((!message || !*message) && strlen(sd->fakename) > 1) {
 		sd->fakename[0]='\0';
-		pc_setpos(sd, sd->mapname, sd->bl.x, sd->bl.y, 3);
+		pc_setpos(sd, sd->mapindex, sd->bl.x, sd->bl.y, 3);
 		clif_displaymessage(sd->fd,"Returned to real name.");
 		return 0;
 	}
@@ -9899,7 +9918,7 @@ int atcommand_clone(
 		master = sd->bl.id;
 	}
 			
-	if((x = mob_clone_spawn(pl_sd, sd->mapname, x, y, "", master, 0, flag?1:0, 0)) > 0) {
+	if((x = mob_clone_spawn(pl_sd, (char*)mapindex_id2name(sd->mapindex), x, y, "", master, 0, flag?1:0, 0)) > 0) {
 		clif_displaymessage(fd, msg_txt(126+flag*2));
 		return 0;
 	}

@@ -5,6 +5,7 @@
 #define _CHAR_H_
 
 #include "../common/mmo.h"
+#include "../common/mapindex.h"
 
 #define START_CHAR_NUM 150000
 #define MAX_MAP_SERVERS 30
@@ -19,7 +20,7 @@ struct mmo_map_server{
 	long ip;
 	short port;
 	int users;
-	char map[MAX_MAP_PER_SERVER][16];
+	unsigned short map[MAX_MAP_PER_SERVER];
 };
 
 int search_character_index(char* character_name);

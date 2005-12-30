@@ -26,7 +26,7 @@ void chrif_authok(int fd);
 int chrif_save(struct map_session_data*);
 int chrif_charselectreq(struct map_session_data *);
 void check_fake_id(int fd, struct map_session_data *sd, int target_id);
-int chrif_changemapserver(struct map_session_data *sd,char *name,int x,int y,int ip,short port);
+int chrif_changemapserver(struct map_session_data *sd,short map,int x,int y,int ip,short port);
 
 int chrif_searchcharid(int char_id);
 int chrif_changegm(int id,const char *pass,int len);
