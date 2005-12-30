@@ -8,7 +8,7 @@
 
 #include "../common/core.h"
 #include "../common/db.h"
-#include "mmo.h"
+#include "../common/mmo.h"
 
 struct auth_dat_ {
 	int account_id, sex;

@@ -152,9 +152,14 @@ webserver:
 
 tools:
 	$(MAKE) -C src/tool $(MKDEF)
-
+	
+ifdef SQLFLAG
 converters: src/txt-converter/GNUmakefile common
 	$(MAKE) -C src/txt-converter $(MKDEF)
+else
+converters:
+	$(MAKE) SQLFLAG=1 $@
+endif
 
 zlib:
 	$(MAKE) -C src/$@ $(MKDEF)

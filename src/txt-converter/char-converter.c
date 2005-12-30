@@ -9,6 +9,7 @@
 #include "../common/strlib.h"
 #include "../common/mmo.h"
 #include "../common/showmsg.h"
+#include "../common/mapindex.h"
 
 #include <mysql.h>
 
@@ -232,10 +233,10 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p) {
 	p->head_top = tmp_int[32];
 	p->head_mid = tmp_int[33];
 	p->head_bottom = tmp_int[34];
-	memcpy(p->last_point.map, tmp_str[1], MAP_NAME_LENGTH-1);	//Checks to prevent overflows [Skotlex]
+	p->last_point.map = mapindex_name2id(tmp_str[1]);
 	p->last_point.x = tmp_int[35];
 	p->last_point.y = tmp_int[36];
-	memcpy(p->save_point.map, tmp_str[2], MAP_NAME_LENGTH-1);
+	p->save_point.map = mapindex_name2id(tmp_str[2]);
 	p->save_point.x = tmp_int[37];
 	p->save_point.y = tmp_int[38];
 	p->partner_id = tmp_int[39];
@@ -265,8 +266,9 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p) {
 	next++;
 
 	for(i = 0; str[next] && str[next] != '\t'; i++) {
-		if (sscanf(str+next, "%[^,],%d,%d%n", p->memo_point[i].map, &tmp_int[0], &tmp_int[1], &len) != 3)
+		if (sscanf(str+next, "%[^,],%d,%d%n", tmp_str[0], &tmp_int[0], &tmp_int[1], &len) != 3)
 			return -3;
+		p->memo_point[i].map = mapindex_name2id(tmp_str[0]);
 		p->memo_point[i].x = tmp_int[0];
 		p->memo_point[i].y = tmp_int[1];
 		next += len;
@@ -685,8 +687,8 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 			p->option, p->karma, p->manner, p->party_id, p->guild_id, p->pet_id,
 			p->hair, p->hair_color, p->clothes_color,
 			p->weapon, p->shield, p->head_top, p->head_mid, p->head_bottom,
-			p->last_point.map, p->last_point.x, p->last_point.y,
-			p->save_point.map, p->save_point.x, p->save_point.y, p->partner_id, p->father, p->mother,
+			mapindex_id2name(p->last_point.map), p->last_point.x, p->last_point.y,
+			mapindex_id2name(p->save_point.map), p->save_point.x, p->save_point.y, p->partner_id, p->father, p->mother,
 			p->child, p->fame, p->account_id, p->char_id
 		);
 
@@ -717,9 +719,9 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 		tmp_ptr += sprintf(tmp_ptr, "INSERT INTO `%s`(`char_id`,`map`,`x`,`y`) VALUES ", memo_db);
 		count = 0;
 		for(i=0;i<MAX_MEMOPOINTS;i++){
-			if(p->memo_point[i].map[0]){
+			if(p->memo_point[i].map){
 				tmp_ptr += sprintf(tmp_ptr,"('%d', '%s', '%d', '%d'),",
-					char_id, p->memo_point[i].map, p->memo_point[i].x, p->memo_point[i].y);
+					char_id, mapindex_id2name(p->memo_point[i].map), p->memo_point[i].x, p->memo_point[i].y);
 				count++;
 			}
 		}
@@ -1060,8 +1062,6 @@ int mmo_char_init(void){
 	char input;
 	FILE *fp;
 
-
-	//DB connection initialized
 	mysql_init(&mysql_handle);
 	ShowInfo("Connect DB server.... (inter server)\n");
 	if(!mysql_real_connect(&mysql_handle, db_server_ip, db_server_id, db_server_pw,
@@ -1292,9 +1292,11 @@ int do_init(int argc, char **argv){
 
 	char_config_read((argc>1)?argv[1]:CHAR_CONF_NAME);
 	inter_config_read((argc>2)?argv[2]:INTER_CONF_NAME);
+	mapindex_init();
 
 	mmo_char_init();
 	ShowStatus("Everything's been converted!\n");
+	mapindex_final();
 	exit (0);
 }
 

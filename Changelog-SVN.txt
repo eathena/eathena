@@ -1,6 +1,7 @@
 Date	Added
 
 2005/12/30
+	* Fixed the txt-converters so they compile cleanly again. [Skotlex]
 	* Added mapflag script support for no loot, no exp, no return, no warp to,
 	  nightmare drops (see db/const.txt for names) [Skotlex]
 	* Removed an extra } in int_party.c that caused compile errors. [Valaris]
