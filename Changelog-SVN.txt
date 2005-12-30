@@ -1,6 +1,12 @@
 Date	Added
 
 2005/12/30
+	* Updated mapindex so that name lookups ignore extensions, and the loaded
+	  maps are always terminated in .gat. Id lookups will always return a string
+	  terminated in gat. Purpose? It enables specifying mapnames without the .gat
+	  extension, so you can have npcs in prontera, no need for the .gat. And the
+	  returned string always has a .gat for needed when it is passed to the
+	  client. Now you can safely get rid of the .gat extension in all mapnames. [Skotlex]
 	* Fixed the txt-converters so they compile cleanly again. [Skotlex]
 	* Added mapflag script support for no loot, no exp, no return, no warp to,
 	  nightmare drops (see db/const.txt for names) [Skotlex]
