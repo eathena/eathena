@@ -51,7 +51,6 @@ int inter_party_tosql(int party_id,struct party *p, int flag, int index)
 	// 'party' ('party_id','name','exp','item','leader_id','leader_char')
 	char t_name[NAME_LENGTH*2]; //Required for jstrescapecpy [Skotlex]
 	int party_exist = 0;
-	int i;
 #ifdef NOISY
 	ShowInfo("Save party request (\033[1;64m%d\033[0m).\n", party_id);
 #endif
@@ -123,7 +122,6 @@ int inter_party_tosql(int party_id,struct party *p, int flag, int index)
 
 	if (flag&PS_LEADER) {
 		//Update leader
-		if(i < MAX_PARTY) {
 			sprintf(tmp_sql, "UPDATE `%s`  SET `leader_id`='%d', `leader_char`='%d' WHERE `party_id`='%d'",
 				party_db, p->member[index].account_id, p->member[index].char_id, party_id);
 			if (mysql_query(&mysql_handle, tmp_sql)) {

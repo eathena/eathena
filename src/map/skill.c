@@ -7590,13 +7590,8 @@ int skill_unit_onlimit(struct skill_unit *src,unsigned int tick)
 					src->bl.x,src->bl.y,1);
 			if(group == NULL)
 				return 0;
-			group->valstr=(char *) aCallocA(MESSAGE_SIZE, sizeof(char));
-			if(group->valstr==NULL){
-				ShowFatalError("skill_unit_onlimit: out of memory !\n");
-				exit(1);
-			}
-			strncpy(group->valstr,sg->valstr,MESSAGE_SIZE-1);
-			group->val2=sg->val2;
+			group->val2=sg->val2; //Copy the (x,y) position you warp to
+			group->val3=sg->val3; //as well as the mapindex to warp to.
 		}
 		break;
 

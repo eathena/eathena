@@ -1,6 +1,7 @@
 Date	Added
 
 2005/12/30
+	* Fixed a crash when warp portals passed from passive to active. [Skotlex]
 	* Added a missing label (M_0) that was causing people to freeze when viewing the city list from "Miss Yoon" [Zephiris]
 2005/12/29
 	* Newly created char-SQL guilds will be saved inmediately rather than at
