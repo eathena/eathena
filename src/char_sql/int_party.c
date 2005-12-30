@@ -122,12 +122,12 @@ int inter_party_tosql(int party_id,struct party *p, int flag, int index)
 
 	if (flag&PS_LEADER) {
 		//Update leader
-			sprintf(tmp_sql, "UPDATE `%s`  SET `leader_id`='%d', `leader_char`='%d' WHERE `party_id`='%d'",
-				party_db, p->member[index].account_id, p->member[index].char_id, party_id);
-			if (mysql_query(&mysql_handle, tmp_sql)) {
-				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
-				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-			}
+		sprintf(tmp_sql, "UPDATE `%s`  SET `leader_id`='%d', `leader_char`='%d' WHERE `party_id`='%d'",
+			party_db, p->member[index].account_id, p->member[index].char_id, party_id);
+		if (mysql_query(&mysql_handle, tmp_sql)) {
+			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+		}
 	}
 	
 	if (flag&PS_ADDMEMBER) {

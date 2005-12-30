@@ -6491,7 +6491,9 @@ int buildin_isloggedin(struct script_state *st)
 enum {  MF_NOMEMO,MF_NOTELEPORT,MF_NOSAVE,MF_NOBRANCH,MF_NOPENALTY,MF_NOZENYPENALTY,
 	MF_PVP,MF_PVP_NOPARTY,MF_PVP_NOGUILD,MF_GVG,MF_GVG_NOPARTY,MF_NOTRADE,MF_NOSKILL,
 	MF_NOWARP,MF_NOPVP,MF_NOICEWALL,MF_SNOW,MF_FOG,MF_SAKURA,MF_LEAVES,MF_RAIN,
-	MF_INDOORS,MF_NOGO,MF_CLOUDS,MF_FIREWORKS,MF_GVG_CASTLE,MF_GVG_DUNGEON,MF_NIGHTENABLED };
+	MF_INDOORS,MF_NOGO,MF_CLOUDS,MF_FIREWORKS,MF_GVG_CASTLE,MF_GVG_DUNGEON,MF_NIGHTENABLED,
+	MF_NOBASEEXP, MF_NOJOBEXP, MF_NOMOBLOOT, MF_NOMVPLOOT, MF_NORETURN, MF_NOWARPTO, MF_NIGHTMAREDROP
+	};
 
 int buildin_setmapflagnosave(struct script_state *st)
 {
@@ -6607,7 +6609,27 @@ int buildin_setmapflag(struct script_state *st)
 			case MF_NOGO: // celest
 				map[m].flag.nogo=1;
 				break;
-
+			case MF_NOBASEEXP:
+				map[m].flag.nobaseexp=1;
+				break;
+			case MF_NOJOBEXP:
+				map[m].flag.nojobexp=1;
+				break;
+			case MF_NOMOBLOOT:
+				map[m].flag.nomobloot=1;
+				break;
+			case MF_NOMVPLOOT:
+				map[m].flag.nomvploot=1;
+				break;
+			case MF_NORETURN:
+				map[m].flag.noreturn=1;
+				break;
+			case MF_NOWARPTO:
+				map[m].flag.nowarpto=1;
+				break;
+			case MF_NIGHTMAREDROP:
+				map[m].flag.pvp_nightmaredrop=1;
+				break;
 		}
 	}
 
@@ -6704,6 +6726,27 @@ int buildin_removemapflag(struct script_state *st)
 				break;
 			case MF_NOGO: // celest
 				map[m].flag.nogo=0;
+				break;
+			case MF_NOBASEEXP:
+				map[m].flag.nobaseexp=0;
+				break;
+			case MF_NOJOBEXP:
+				map[m].flag.nojobexp=0;
+				break;
+			case MF_NOMOBLOOT:
+				map[m].flag.nomobloot=0;
+				break;
+			case MF_NOMVPLOOT:
+				map[m].flag.nomvploot=0;
+				break;
+			case MF_NORETURN:
+				map[m].flag.noreturn=0;
+				break;
+			case MF_NOWARPTO:
+				map[m].flag.nowarpto=0;
+				break;
+			case MF_NIGHTMAREDROP:
+				map[m].flag.pvp_nightmaredrop=0;
 				break;
 		}
 	}

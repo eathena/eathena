@@ -114,6 +114,13 @@ mf_fireworks	24
 mf_gvg_castle	25
 mf_gvg_dungeon	26
 mf_nightenabled	27
+mf_nobaseexp	28
+mf_nojobexp	29
+mf_nomobloot	30
+mf_nomvploot	31
+mf_noreturn	32
+mf_nowarpto	33
+mf_nonightmaredrop	34
 
 cell_wall	1
 cell_water	3

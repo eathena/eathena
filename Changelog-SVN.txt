@@ -1,6 +1,8 @@
 Date	Added
 
 2005/12/30
+	* Added mapflag script support for no loot, no exp, no return, no warp to,
+	  nightmare drops (see db/const.txt for names) [Skotlex]
 	* Removed an extra } in int_party.c that caused compile errors. [Valaris]
 	* Fixed a crash when warp portals passed from passive to active. [Skotlex]
 	* Added a missing label (M_0) that was causing people to freeze when viewing the city list from "Miss Yoon" [Zephiris]
