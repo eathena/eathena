@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <showmsg.h>
 
-#define MAX_MAPINDEX 1000
+#define MAX_MAPINDEX 2000
 
 //Leave an extra char of space to hold the terminator, in case for the strncpy(mapindex_id2name()) calls.
 char indexes[MAX_MAPINDEX][MAP_NAME_LENGTH+1];
