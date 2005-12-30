@@ -139,7 +139,6 @@ ordeal_3-2.gat	mapflag	nobranch
 ordeal_3-3.gat	mapflag	nobranch
 pvp_2vs2.gat	mapflag	nobranch
 pvp_c_room.gat	mapflag	nobranch
-pvp_room.gat	mapflag	nobranch
 quiz_00.gat	mapflag	nobranch
 quiz_01.gat	mapflag	nobranch
 sec_in01.gat	mapflag	nobranch
@@ -154,9 +153,6 @@ priest_2-1.gat	mapflag	nobranch
 priest_3-1.gat	mapflag	nobranch
 prt_are_in.gat	mapflag	nobranch
 prt_are01.gat	mapflag	nobranch
-thief_1-1.gat	mapflag	nobranch
-thief_2-1.gat	mapflag	nobranch
-thief_3-1.gat	mapflag	nobranch
 wizard_1-1.gat	mapflag	nobranch
 wizard_2-1.gat	mapflag	nobranch
 wizard_3-1.gat	mapflag	nobranch

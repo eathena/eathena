@@ -85,7 +85,6 @@ sword_3-1.gat	mapflag	nomemo
 job_thief1.gat	mapflag	nomemo
 job_star.gat	mapflag	nomemo
 // Primary Second Job Class
-job_knight.gat	mapflag	nomemo
 job_prist.gat	mapflag	nomemo
 job_wiz.gat	mapflag	nomemo
 job_hunte.gat	mapflag	nomemo
@@ -329,7 +328,6 @@ ordeal_3-2.gat	mapflag	nomemo
 ordeal_3-3.gat	mapflag	nomemo
 pvp_2vs2.gat	mapflag	nomemo
 pvp_c_room.gat	mapflag	nomemo
-pvp_room.gat	mapflag	nomemo
 quiz_00.gat	mapflag	nomemo
 quiz_01.gat	mapflag	nomemo
 sec_in01.gat	mapflag	nomemo
@@ -346,9 +344,6 @@ priest_3-1.gat	mapflag	nomemo
 prt_are_in.gat	mapflag	nomemo
 prt_are_in.gat	mapflag	nomemo
 prt_are01.gat	mapflag	nomemo
-thief_1-1.gat	mapflag	nomemo
-thief_2-1.gat	mapflag	nomemo
-thief_3-1.gat	mapflag	nomemo
 wizard_1-1.gat	mapflag	nomemo
 wizard_2-1.gat	mapflag	nomemo
 wizard_3-1.gat	mapflag	nomemo

@@ -27,6 +27,7 @@
 =========================
 
 12/30
+	* Removed some maps from mapflag that were not in either maps_athena nor map_index. [Vicious]
 	* Updated the active guild skill cast times to 5 secs. Now their time2 is
 	  used as cool-down (300000 -> 5 mins). Also made them interruptable. [Skotlex]
 12/28

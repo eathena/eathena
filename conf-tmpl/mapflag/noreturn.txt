@@ -70,7 +70,6 @@ sword_3-1.gat	mapflag	noreturn
 job_thief1.gat	mapflag	noreturn
 // 2-1 -----------------------
 job_hunte.gat	mapflag	noreturn
-job_knight.gat	mapflag	noreturn
 job_prist.gat	mapflag	noreturn
 job_wiz.gat	mapflag	noreturn
 in_hunter.gat	mapflag	noreturn
