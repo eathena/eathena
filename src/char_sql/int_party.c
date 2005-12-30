@@ -128,7 +128,6 @@ int inter_party_tosql(int party_id,struct party *p, int flag, int index)
 				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 			}
-		}
 	}
 	
 	if (flag&PS_ADDMEMBER) {
