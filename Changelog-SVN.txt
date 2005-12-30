@@ -1,6 +1,9 @@
 Date	Added
 
 2005/12/29
+	* Newly created char-SQL guilds will be saved inmediately rather than at
+	  their next turn in the cache (may fix those guild disappearing errors)
+	  [Skotlex]
 	* Implemented a map-index which maps map-names to a unique number, this
 	  reduces memory required to store maps as well as the size of related
 	  packets between the char/map server. Maps and their indexes are stored in

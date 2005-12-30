@@ -1260,7 +1260,7 @@ int mapif_parse_CreateGuild(int fd,int account_id,char *name,struct guild_member
 	//Add to cache
 	ShowInfo("Created Guild %d - %s (Guild Master: %s)\n", g->guild_id, g->name, g->master);
 	numdb_insert(guild_db_, g->guild_id, g);
-	g->save_flag |= GS_MASK;
+	inter_guild_tosql(g,GS_MASK); //Better save the whole guild right now.
 
 	if (i<0) {
 		mapif_guild_created(fd,account_id,NULL);
