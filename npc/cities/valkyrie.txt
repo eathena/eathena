@@ -153,10 +153,10 @@ yuno_in02.gat,90,77,4	script	Researcher	744,{
 }
 
 // -== Valhallana ==-
-	mes "Please go over there, to the person representing your class.";
-	mes "Good Luck.";
-	mes "You don't belong here yet.";
-}
+//	mes "Please go over there, to the person representing your class.";
+//	mes "Good Luck.";
+//	mes "You don't belong here yet.";
+//}
 
 // -== Valhallana ==-
 valkyrie.gat,48,86,6	script	Valkyrie	811,{
