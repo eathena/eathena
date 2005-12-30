@@ -2941,6 +2941,36 @@ int map_readallmaps (void)
 				size_t size;
 				char *alias;
 
+				if (map[i].alias && (alias = strstr(map[i].name, "<")) != NULL) {	// alias has been set by one of the sources
+					*alias++ = '\0';
+				}
+				if (map[i].alias)
+					map[i].index = mapindex_name2id(map[i].alias);
+				else
+					map[i].index = mapindex_name2id(map[i].name);
+				
+				if (!map[i].index) {
+					if (map[i].alias)
+						ShowWarning("Map %s (alias %s) is not in the map-index cache!\n", map[i].name, map[i].alias);
+					else
+						ShowWarning("Map %s is not in the map-index cache!\n", map[i].name);
+					success = 0; //Can't load a map that isn't in our cache.
+					if (map[i].gat) {
+						aFree(map[i].gat);
+						map[i].gat = NULL;	
+					}
+					break;
+				}
+				if (numdb_search(map_db, (int)map[i].index) != NULL) {
+					ShowWarning("Map %s already loaded!\n", map[i].name);
+					success = 0; //Can't load a map already in the db
+					if (map[i].gat) {
+						aFree(map[i].gat);
+						map[i].gat = NULL;	
+					}
+					break;
+				}
+
 				map[i].cell = (unsigned char *)aCalloc(map[i].xs * map[i].ys, sizeof(unsigned char));
 
 				map[i].bxs = (map[i].xs + BLOCK_SIZE - 1) / BLOCK_SIZE;
@@ -2957,27 +2987,6 @@ int map_readallmaps (void)
 				map[i].block_mob_count = (int*)aCallocA(size, 1);
 				memset(map[i].block_mob_count, 0, size);
 
-				if (map[i].alias && (alias = strstr(map[i].name, "<")) != NULL) {	// alias has been set by one of the sources
-					*alias++ = '\0';
-				}
-				if (map[i].alias)
-					map[i].index = mapindex_name2id(map[i].alias);
-				else
-					map[i].index = mapindex_name2id(map[i].name);
-				
-				if (!map[i].index) {
-					if (map[i].alias)
-						ShowWarning("Map %s (alias %s) is not in the map-index cache!\n", map[i].name, map[i].alias);
-					else
-						ShowWarning("Map %s is not in the map-index cache!\n", map[i].name);
-					success = 0; //Can't load a map that isn't in our cache.
-					break;
-				}
-				if (numdb_search(map_db, (int)map[i].index) != NULL) {
-					ShowWarning("Map %s already loaded!\n", map[i].name);
-					success = 0; //Can't load a map already in the db
-					break;
-				}
 				numdb_insert(map_db, (int)map[i].index, &map[i]);
 
 				// cache our map if necessary
