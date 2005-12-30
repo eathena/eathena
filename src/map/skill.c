@@ -5698,7 +5698,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					src->m,src->x-15,src->y-15,src->x+15,src->y+15,0,
 					src,skillid,skilllv,tick, flag|BCT_ALL|1,
 					skill_castend_nodamage_id);
-				guild_block_skill(sd,300000);
+				guild_block_skill(sd,skill_get_time2(skillid,skilllv));
 			}
 		}
 		break;
@@ -5723,7 +5723,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					src->m,src->x-15,src->y-15,src->x+15,src->y+15,0,
 					src,skillid,skilllv,tick, flag|BCT_ALL|1,
 					skill_castend_nodamage_id);
-				guild_block_skill(sd,300000);
+				guild_block_skill(sd,skill_get_time2(skillid,skilllv));
 			}
 		}
 		break;
@@ -5753,7 +5753,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					src->m,src->x-15,src->y-15,src->x+15,src->y+15,0,
 					src,skillid,skilllv,tick, flag|BCT_ALL|1,
 					skill_castend_nodamage_id);
-				guild_block_skill(sd,300000);
+				guild_block_skill(sd,skill_get_time2(skillid,skilllv));
 			}
 		}
 		break;
@@ -5766,7 +5766,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			if (!sd || !sd->state.gmaster_flag)
 				break;
 			//Reports say this particular skill is usable anywhere! o.o [Skotlex]
-			if	(map[sd->bl.m].flag.nowarpto && !map_flag_gvg(sd->bl.m))
+			//And now people say that's not true... MEH. Will they EVER make up their mind?
+			if	(/*map[sd->bl.m].flag.nowarpto &&*/ !map_flag_gvg(sd->bl.m))
 			{	//if not allowed to warp to the map (castles are always allowed)
 				clif_skill_fail(sd,skillid,0,0);
 				map_freeblock_unlock();
@@ -5785,7 +5786,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					pc_setpos(dstsd, sd->mapindex, sd->bl.x+dx[j], sd->bl.y+dy[j], 2);
 				}
 			}
-			guild_block_skill(sd,300000);
+			guild_block_skill(sd,skill_get_time2(skillid,skilllv));
 		}
 		break;
 

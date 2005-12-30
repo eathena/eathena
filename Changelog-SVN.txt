@@ -1,6 +1,7 @@
 Date	Added
 
 2005/12/30
+	* Emergency Recall now only works from within woe grounds... [Skotlex]
 	* Removed returns from non-null lines in MOTD. Replaced returns in null lines with a space. [Valaris]
 	* Fixed a bug where MOTD wasn't displaying blank returned lines. [Valaris]
 	* Updated mapindex so that name lookups ignore extensions, and the loaded

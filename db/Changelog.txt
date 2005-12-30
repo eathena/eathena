@@ -26,6 +26,9 @@
 		* * * From where this info is? ... Mine: On your death you'll loose this ring and get 50% HP [Komurka]
 =========================
 
+12/30
+	* Updated the active guild skill cast times to 5 secs. Now their time2 is
+	  used as cool-down (300000 -> 5 mins). Also made them interruptable. [Skotlex]
 12/28
 	* Added Kahai and Kaite spell times to skill_cast_db [Skotlex]
 	* Removed Guilds Glory from guild skill tree [Komurka]
