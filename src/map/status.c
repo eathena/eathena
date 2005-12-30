@@ -3341,12 +3341,31 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		sc_data[type].timer != -1 && sc_data[type].val2 && !val2)
 		return 0;
 
-	if(mode & 0x20 && (type==SC_STONE || type==SC_FREEZE ||
-		type==SC_STAN || type==SC_SLEEP || type==SC_SILENCE || type==SC_QUAGMIRE || type == SC_DECREASEAGI || type == SC_SIGNUMCRUCIS || type == SC_PROVOKE ||
-		(type == SC_BLESSING && (undead_flag || race == 6))) && !(flag&1)){
-		/* ボスには?かない(ただしカ?ドによる?果は適用される) */
-		return 0;
+	if(mode & 0x20 && !(flag&1))
+	switch (type)
+	{
+		case SC_STONE:
+		case SC_FREEZE:
+		case SC_STAN:
+		case SC_SILENCE:
+		case SC_POISON:
+		case SC_DPOISON:
+		case SC_SLEEP:
+		case SC_BLIND:
+		case SC_CURSE:
+		case SC_BLEEDING:
+		case SC_QUAGMIRE:
+		case SC_DECREASEAGI:
+		case SC_SIGNUMCRUCIS:
+		case SC_PROVOKE:
+			return 0;
+		case SC_BLESSING: 
+			if (undead_flag || race == 6) return 0;
+			break;
+		default:
+			break;			
 	}
+
 	if(type==SC_FREEZE || type==SC_STAN || type==SC_SLEEP)
 		battle_stopwalking(bl,1);
 
@@ -3653,7 +3672,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			calc_flag = 1;
 			break;
 		case SC_UGLYDANCE:			/* 自分勝手なダンス */
-			val2 = 10;
 			break;
 		case SC_HUMMING:			/* ハミング */
 			calc_flag = 1;
@@ -4665,8 +4683,8 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 	case SC_SIGHT:	/* サイト */
 	case SC_RUWACH:	/* ルアフ */
 		{
-			int range = 5;
-			if ( type == SC_SIGHT ) range = 7;
+			int range = 2;
+			if ( type == SC_SIGHT ) range = 3;
 			map_foreachinarea( status_change_timer_sub,
 				bl->m, bl->x-range, bl->y-range, bl->x+range,bl->y+range,0,
 				bl,type,tick);
@@ -4766,6 +4784,15 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 			// hmm setting up a timer and breaking then to call status_change_end just right away?
 			// I think you're missing brackets and a:
 			return 0;
+		}
+		break;
+
+	case SC_UGLYDANCE:
+		if(sd) {
+			sd->status.sp -= sc_data[type].val3;
+			if(sd->status.sp<0)
+				sd->status.sp=0;
+			clif_updatestatus(sd,SP_SP);
 		}
 		break;
 

@@ -4541,7 +4541,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			if(status_isimmune(bl))
 				break;
 			for(i=0;i<SC_SENDMAX;i++){
-				if(i==SC_RIDING || i==SC_FALCON || i==SC_HALLUCINATION || i==SC_WEIGHT50
+				if(i == SC_EDP || i==SC_RIDING || i==SC_FALCON || i==SC_HALLUCINATION || i==SC_WEIGHT50
 					|| i==SC_WEIGHT90 || i==SC_STRIPWEAPON || i==SC_STRIPSHIELD || i==SC_STRIPARMOR
 					|| i==SC_STRIPHELM || i==SC_CP_WEAPON || i==SC_CP_SHIELD || i==SC_CP_ARMOR
 					|| i==SC_CP_HELM || i==SC_COMBO || i==SC_GRAVITATION || i==SC_HERMODE || i==SC_MOONLIT)
@@ -6253,7 +6253,12 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 			val1 = (pc_checkskill((struct map_session_data *)src,DC_DANCINGLESSON)+1)>>1;
 		val2 = status_get_luk(src)/10;
 		break;
-
+	case DC_UGLYDANCE:
+		if(src->type == BL_PC)
+			val1 = pc_checkskill((struct map_session_data *)src,DC_DANCINGLESSON)+1;
+		val1+=skilllv;
+		val2=val1*5;
+		break;
 	case PF_FOGWALL:	/* フォグウォ?ル */
 		if(sc_data && sc_data[SC_DELUGE].timer!=-1) limit *= 2;
 		break;
@@ -6686,13 +6691,6 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 
 	case 0xa6:
 		skill_attack(BF_MISC, ss, &src->bl, bl, sg->skill_id, sg->skill_lv, tick, 0);
-		break;
-
-	case 0xab:
-		if (ss->id == bl->id)
-			break;
-		if (bl->type == BL_PC)
-			skill_additional_effect(ss, bl, sg->skill_id, sg->skill_lv, BF_LONG|BF_SKILL|BF_MISC, tick);
 		break;
 
 	case 0xb1:	/* デモンストレ?ション */
@@ -7769,17 +7767,21 @@ int skill_delayfix( struct block_list *bl, int time )
 
 		// instant cast attack skills depend on aspd as delay [celest]
 		if (time == 0) {
-			if (skill_get_type(sd->skillid) == BF_WEAPON || 
-				sd->skillid==WS_CARTTERMINATION) // how'd that escape?
+			if (skill_get_type(sd->skillid)== BF_WEAPON) // how'd that escape?
 			{
 				time = status_get_adelay (bl)/2;
+				dex_fix = 0;
+			}
+			else if(sd->skillid==WS_CARTTERMINATION)
+			{
+				time = status_get_adelay (bl);
 				dex_fix = 0;
 			}
 			else
 				time = 300;	// default delay, according to official servers
 		} else if (time < 0)
 			time = abs(time) + status_get_adelay (bl)/2;	// if set to <0, the aspd delay will be added
-
+#if 0
 		if (battle_config.delay_dependon_dex &&	dex_fix)	// if skill casttime is allowed to be reduced by dex
 		{
 			int scale = battle_config.delayrate_dex_scale - status_get_dex(bl);
@@ -7789,7 +7791,7 @@ int skill_delayfix( struct block_list *bl, int time )
 			if (time < base_time/2) 
 				time = base_time/2;
 		}
-
+#endif
 		if (battle_config.delay_rate != 100)
 			time = time * battle_config.delay_rate / 100;
 
@@ -7991,8 +7993,6 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 	casttime = skill_castfix(&sd->bl, skill_get_cast(skill_num, skill_lv));
 	if (skill_num != SA_MAGICROD)
 		delay = skill_delayfix(&sd->bl, skill_get_delay(skill_num, skill_lv));
-	if(sd->skillid == CG_ARROWVULCAN && sd->canmove_tick < (tick + delay))
-		sd->canmove_tick = tick + delay;
 
 	sd->state.skillcastcancel = skill_get_castcancel(skill_num);
 
@@ -8155,6 +8155,9 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 	sd->skilly = 0;
 	sd->canact_tick = tick + casttime + delay;
 	sd->canmove_tick = tick;
+
+	if(sd->skillid == CG_ARROWVULCAN)
+		sd->canmove_tick = sd->canact_tick;
 
 	if (!(battle_config.pc_cloak_check_type & 2) && sc_data && sc_data[SC_CLOAKING].timer != -1 && sd->skillid != AS_CLOAKING)
 		status_change_end(&sd->bl,SC_CLOAKING,-1);

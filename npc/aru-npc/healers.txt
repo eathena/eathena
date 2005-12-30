@@ -13,3 +13,4 @@ prontera.gat,147,175,5	script	Shaman::healer	784,{
 payon.gat,179,112,3	duplicate(healer)	Shaman	783
 aldebaran.gat,136,119,5	duplicate(healer)	Shaman	782
 geffen.gat,117,107,5	duplicate(healer)	Shaman	788
+gon_test.gat,53,13,7	duplicate(healer)	Shaman	783

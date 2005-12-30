@@ -1105,101 +1105,52 @@ int pc_clean_skilltree(struct map_session_data *sd) {
 }
 
 int pc_calc_skilltree_normalize_job(int c, struct map_session_data *sd) {
-	//if((battle_config.skillup_limit) && ((c >= 0 && c < 23) || (c >= 4001 && c < 4023) || (c >= 4023 && c < 4045))) {
-	if (battle_config.skillup_limit && c >= 0 && c < 23) {
-		int skill_point = pc_calc_skillpoint(sd);
-		if(skill_point < 9)
-			c = 0;
-		//else if((sd->status.skill_point >= sd->status.job_level && skill_point < 47) && ((c > 6 && c < 23) || (c > 4007 && c < 4023) || (c > 4029 && c < 4045))) {
-		//else if ((sd->status.skill_point >= sd->status.job_level && skill_point < 47) && (c > 6 && c < 23)) {
-//		else if (sd->status.skill_point >= sd->status.job_level && ((sd->change_level > 0 && skill_point < sd->change_level+8) || skill_point < 58)  && (c > 6 && c < 23)) {
-		else if((sd->status.skill_point >= sd->status.job_level
-			&& skill_point < 47) && ((c > 6 && c < 23) || (c > 4007 && c < 4023) || (c > 4029 && c < 4045))) {
-			switch(c) {
-				case 7:
-				case 13:
-				case 14:
-				case 21:
-					c = 1;
-					break;
-				case 8:
-				case 15:
-					c = 4;
-					break;
-				case 9:
-				case 16:
-					c = 2;
-					break;
-				case 10:
-				case 18:
-					c = 5;
-					break;
-				case 11:
-				case 19:
-				case 20:
-					c = 3;
-					break;
-				case 12:
-				case 17:
-					c = 6;
-					break;
-#if 0
-				case 4008:
-				case 4014:
-				case 4015:
-				case 4022:
-					c = 4002;
-					break;
-				case 4009:
-				case 4016:
-					c = 4005;
-					break;
-				case 4010:
-				case 4017:
-					c = 4003;
-					break;
-				case 4011:
-				case 4019:
-					c = 4006;
-					break;
-				case 4012:
-				case 4020:
-				case 4021:
-					c = 4004;
-					break;
-				case 4013:
-				case 4018:
-					c = 4007;
-					break;
-				case 4030:
-				case 4036:
-				case 4037:
-				case 4044:
-					c = 4024;
-					break;
-				case 4031:
-				case 4038:
-					c = 4027;
-					break;
-				case 4032:
-				case 4039:
-					c = 4025;
-					break;
-				case 4033:
-				case 4040:
-					c = 4028;
-					break;
-				case 4034:
-				case 4041:
-				case 4042:
-					c = 4026;
-					break;
-				case 4035:
-				case 4043:
-					c = 4029;
-					break;
-#endif
-			}
+	int skill_point = pc_calc_skillpoint(sd);
+	int total_skill_point = skill_point + sd->status.skill_point;
+
+	if(!battle_config.skillup_limit)
+		return c;
+	if(skill_point < 9)
+		return 0;
+	if(c == 23)
+		return c;
+	if(c <= 6)
+		return c;
+	if(c > 23)
+	{
+		printf("%s is strange class %d\n",sd->status.name, c);
+		return c;
+	}
+
+	if(sd->status.skill_point >= sd->status.job_level && skill_point < (38+9)) {
+		switch(c) {
+			case 7:
+			case 13:
+			case 14:
+			case 21:
+				c = 1;
+				break;
+			case 8:
+			case 15:
+				c = 4;
+				break;
+			case 9:
+			case 16:
+				c = 2;
+				break;
+			case 10:
+			case 18:
+				c = 5;
+				break;
+			case 11:
+			case 19:
+			case 20:
+				c = 3;
+				break;
+			case 12:
+			case 17:
+				c = 6;
+				break;
 		}
 	}
 	return c;
@@ -2000,7 +1951,7 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 		break;
 	case SP_ADD_ITEM_HEAL_RATE:
 		if(sd->state.lr_flag != 2)
-			sd->itemhealrate[type2 - 1] += val;
+			sd->itemhealrate[type2 - 1] = val;
 		break;
 	case SP_EXP_ADDRACE:
 		if(sd->state.lr_flag != 2)

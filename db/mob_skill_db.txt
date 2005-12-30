@@ -2446,3 +2446,21 @@
 // Valaris's Worshipper
 //1901,Envenom,attack,52,10,500,0,10000,no,target,always,0,,,,,,
 // MC Cameri
+
+1925,XMAS_PORING@NPC_SUMMONSLAVE,attack,196,5,1000,650,8500,no,self,slavele,3,1096,,,,,
+1925,XMAS_PORING@CR_ACIDDEMONSTRATION,attack,490,10,300,0,200,yes,target,always,0,,,,,,
+1925,XMAS_PORING@ASC_BREAKER,attack,379,10,500,0,3500,yes,target,always0,,,,,,
+1925,XMAS_PORING@WZ_METEOR,chase,83,10,500,0,2000,yes,target,always,0,,,,,,
+1925,XMAS_PORING@WZ_METEOR,attack,83,10,500,0,2000,yes,target,always,0,,,,,,
+1925,XMAS_PORING@WZ_VERMILION,chase,85,10,500,0,3750,yes,target,always,0,,,,,,
+1925,XMAS_PORING@WZ_VERMILION,attack,85,10,500,0,3750,yes,target,always,0,,,,,,
+1925,XMAS_PORING@WZ_STORMGUST,chase,89,10,500,0,4000,yes,target,always,0,,,,,,
+1925,XMAS_PORING@WZ_STORMGUST,attack,89,10,500,0,4000,yes,target,always,0,,,,,,
+1925,XMAS_PORING@NPC_BrakeShield,chase,346,10,300,0,400,no,target,always,0,,,,,,
+1925,XMAS_PORING@NPC_BreakHelm,chase,345,10,300,0,400,no,target,always,0,,,,,,
+1925,XMAS_PORING@ST_FULLSTRIP,chase,476,10,200,0,400,no,target,always,0,,,,,,
+1925,XMAS_PORING@ST_FULLSTRIP,idle,476,10,200,0,400,no,target,always,0,,,,,,
+1925,XMAS_PORING@ST_FULLSTRIP,attack,476,10,200,0,400,no,target,always,0,,,,,,
+
+
+

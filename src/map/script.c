@@ -5679,8 +5679,15 @@ int buildin_ispartneron(struct script_state *st)
 	struct map_session_data *sd=script_rid2sd(st);
 	struct map_session_data *p_sd=NULL;
 
-	if(sd==NULL || !pc_ismarried(sd) ||
-            ((p_sd=map_nick2sd(map_charid2nick(sd->status.partner_id))) == NULL)) {
+	if(sd==NULL || !pc_ismarried(sd))
+	{
+		push_val(st->stack,C_INT,0);
+		return 0;
+	}
+	p_sd=map_nick2sd(map_charid2nick(sd->status.partner_id));
+
+	if(p_sd == NULL || pc_readglobalreg(p_sd,"PC_JAILED")>0)
+	{
 		push_val(st->stack,C_INT,0);
 		return 0;
 	}

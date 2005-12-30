@@ -25,6 +25,7 @@ pay_gld.gat	mapflag	nobranch
 gef_fild13.gat	mapflag	nobranch
 
 // Guild Vs Guild On ===============
+aldeg_cas01.gat	mapflag	gvg
 aldeg_cas02.gat	mapflag	gvg
 aldeg_cas03.gat	mapflag	gvg
 aldeg_cas04.gat	mapflag	gvg
@@ -120,3 +121,30 @@ prtg_cas02.gat	mapflag	nowarpto
 prtg_cas03.gat	mapflag	nowarpto
 prtg_cas04.gat	mapflag	nowarpto
 prtg_cas05.gat	mapflag	nowarpto
+
+
+// No exp ===================
+aldeg_cas01.gat	mapflag	noexp
+aldeg_cas02.gat	mapflag	noexp
+aldeg_cas03.gat	mapflag	noexp
+aldeg_cas04.gat	mapflag	noexp
+aldeg_cas05.gat	mapflag	noexp
+gefg_cas01.gat	mapflag	noexp
+gefg_cas02.gat	mapflag	noexp
+gefg_cas03.gat	mapflag	noexp
+gefg_cas04.gat	mapflag	noexp
+gefg_cas05.gat	mapflag	noexp
+payg_cas01.gat	mapflag	noexp
+payg_cas02.gat	mapflag	noexp
+payg_cas03.gat	mapflag	noexp
+payg_cas04.gat	mapflag	noexp
+payg_cas05.gat	mapflag	noexp
+prtg_cas01.gat	mapflag	noexp
+prtg_cas02.gat	mapflag	noexp
+prtg_cas03.gat	mapflag	noexp
+prtg_cas04.gat	mapflag	noexp
+prtg_cas05.gat	mapflag	noexp
+
+
+// No drops ===============
+// deleted, caused chests not to drop

@@ -2,56 +2,148 @@
 //= Umbala Monster Spawn 
 //===== By: ================================================== 
 //= Darkchild (1.0)
-//= Akaru (1.1)
-//= jAthena (1.2)
-//= Poki#3 (2.0)
 //===== Current Version: ===================================== 
-//= 2.0 
+//= 1.3
 //===== Compatible With: ===================================== 
 //= Any eAthena Version; RO Ep6+
-//===== Description: ========================================= 
-//= Umbala field and dungeon monster spawn
 //===== Additional Comments: ================================= 
-//= Updated up to Umbala Spawns (v.2.0 by Poki#3)
-//= ...Umbala updated to umbala...LOL! Whel, there where off ;P
+//=
 //============================================================ 
 
-//um_fild01 (Luluka Forest)
-um_fild01.gat,0,0,0,0	monster	Dryad	1493,15,0,0,0
+
+//um_fild01
+
+um_fild01.gat,0,0,0,0	monster	Wootan Fighter	1499,10,0,0,0
+um_fild01.gat,0,0,0,0	monster	Stem Worm	1215,30,0,0,0
 um_fild01.gat,0,0,0,0	monster	Harpy	1376,2,0,0,0
-um_fild01.gat,0,0,0,0	monster	Stem Worm	1215,45,0,0,0
-um_fild01.gat,0,0,0,0	monster	Wootan Fighter	1499,55,0,0,0
+um_fild01.gat,0,0,0,0	monster	Dryad	1493,40,0,0,0
+um_fild01.gat,0,0,0,0	monster	Dustiness	1114,20,0,0,0
 
-//um_fild02 (Hoomga Forest)
-um_fild02.gat,0,0,0,0	monster	Beetle	1494,30,0,0,0
+
+//um_fild02
+
+um_fild02.gat,0,0,0,0	monster	Beetle King	1494,30,0,0,0
 um_fild02.gat,0,0,0,0	monster	Dustiness	1114,20,0,0,0
-um_fild02.gat,0,0,0,0	monster	Wootan Fighter	1499,42,0,0,0
-um_fild02.gat,0,0,0,0	monster	Wootan Shooter	1498,44,0,0,0
+um_fild02.gat,0,0,0,0	monster	Wootan Fighter	1499,26,0,0,0
+um_fild02.gat,0,0,0,0	monster	Stone Shooter	1495,13,0,0,0
+um_fild02.gat,169,215,10,10	monster	Stone Shooter	1495,1,120000,60000,0
+um_fild02.gat,169,215,10,10	monster	Wootan Fighter	1499,2,120000,60000,0
+um_fild02.gat,159,285,10,10	monster	Stone Shooter	1495,1,120000,60000,0
+um_fild02.gat,159,285,10,10	monster	Wootan Fighter	1499,2,120000,60000,0
+um_fild02.gat,99,303,10,10	monster	Stone Shooter	1495,1,120000,60000,0
+um_fild02.gat,99,303,10,10	monster	Wootan Fighter	1499,2,120000,60000,0
+um_fild02.gat,122,242,10,10	monster	Stone Shooter	1495,1,120000,60000,0
+um_fild02.gat,122,242,10,10	monster	Wootan Fighter	1499,2,120000,60000,0
+um_fild02.gat,124,198,10,10	monster	Stone Shooter	1495,1,120000,60000,0
+um_fild02.gat,124,198,10,10	monster	Wootan Fighter	1499,2,120000,60000,0
+um_fild02.gat,126,133,10,10	monster	Stone Shooter	1495,1,120000,60000,0
+um_fild02.gat,126,133,10,10	monster	Wootan Fighter	1499,2,120000,60000,0
+um_fild02.gat,159,171,10,10	monster	Stone Shooter	1495,1,120000,60000,0
+um_fild02.gat,159,171,10,10	monster	Wootan Fighter	1499,2,120000,60000,0
+um_fild02.gat,284,247,10,10	monster	Stone Shooter	1495,1,120000,60000,0
+um_fild02.gat,284,247,10,10	monster	Wootan Fighter	1499,2,120000,60000,0
+um_fild02.gat,330,262,10,10	monster	Stone Shooter	1495,1,120000,60000,0
+um_fild02.gat,330,262,10,10	monster	Wootan Fighter	1499,2,120000,60000,0
+um_fild02.gat,296,187,10,10	monster	Stone Shooter	1495,1,120000,60000,0
+um_fild02.gat,296,187,10,10	monster	Wootan Fighter	1499,2,120000,60000,0
+um_fild02.gat,285,105,10,10	monster	Stone Shooter	1495,1,120000,60000,0
+um_fild02.gat,285,105,10,10	monster	Wootan Fighter	1499,2,120000,60000,0
+um_fild02.gat,257,137,10,10	monster	Stone Shooter	1495,1,120000,60000,0
+um_fild02.gat,257,137,10,10	monster	Wootan Fighter	1499,2,120000,60000,0
+um_fild02.gat,360,320,20,30	monster	Flora	1118,3,180000,120000,0
+um_fild02.gat,0,0,0,0	monster	Coco	1104,10,0,0,0
+um_fild02.gat,0,0,0,0	monster	Choco	1214,3,0,0,0
 
-//um_fild03 (Kalala Swamp)
-um_fild03.gat,0,0,0,0	monster	Alligator	1271,30,0,0,0
-um_fild03.gat,0,0,0,0	monster	Dragon Tail	1321,25,0,0,0
-um_fild03.gat,0,0,0,0	monster	Parasite	1500,55,0,0,0
-um_fild03.gat,0,0,0,0	monster	Pest	1256,10,0,0,0
-um_fild03.gat,0,0,0,0	monster	Gryphon	1259,1,3600000,3600000,1
 
-//um_fild04 (Hoomga Jungle)
-um_fild04.gat,0,0,0,0	monster	Beetle	1494,30,0,0,0
-um_fild04.gat,0,0,0,0	monster	Choco	1214,11,0,0,0
-um_fild04.gat,0,0,0,0	monster	Stainer	1174,30,0,0,0
-um_fild04.gat,0,0,0,0	monster	Wootan Shooter	1498,10,0,0,0
-um_fild04.gat,0,0,0,0	monster	Wootan Fighter	1499,29,0,0,0
+//um_fild03
 
-//um_dun01 (Carpenter's Shop in the Tree)
-um_dun01.gat,0,0,0,0	monster	Dustiness	1114,30,0,0,0
-um_dun01.gat,0,0,0,0	monster	Stainer	1174,30,0,0,0
-um_dun01.gat,0,0,0,0	monster	Stone Shooter	1495,10,0,0,0
-um_dun01.gat,0,0,0,0	monster	Wooden Golem	1497,5,0,0,0
-um_dun01.gat,0,0,0,0	monster	Wootan Fighter	1499,30,0,0,0
+um_fild03.gat,0,0,0,0	monster	Parasite	1500,60,0,0,0
+um_fild03.gat,0,0,0,0	monster	Dragon Tail	1321,45,0,0,0
+um_fild03.gat,0,0,0,0	monster	Alligator	1271,15,0,0,0
+um_fild03.gat,0,0,0,0	monster	Stainer	1174,10,0,0,0
+um_fild03.gat,0,0,0,0	monster	Gryphon	1259,1,3500000,1900000,0
 
-//um_dun02 (Passage to a Forein World)
-um_dun02.gat,0,0,0,0	monster	Dryad	1493,30,0,0,0
-um_dun02.gat,0,0,0,0	monster	Stone Shooter	1495,20,0,0,0
-um_dun02.gat,0,0,0,0	monster	Wooden Golem	1497,30,0,0,0
-um_dun02.gat,0,0,0,0	monster	Wootan Fighter	1499,20,0,0,0
+//um_fild04
+
+um_fild04.gat,0,0,0,0	monster	Beetle King	1494,30,0,0,0
+um_fild04.gat,0,0,0,0	monster	Horn	1128,15,0,0,0
+um_fild04.gat,0,0,0,0	monster	Choco	1214,2,0,0,0
+um_fild04.gat,0,0,0,0	monster	Wootan Shooter	1498,7,0,0,0
+um_fild04.gat,264,293,10,10	monster	Horn	1128,2,1200000,60000,0
+um_fild04.gat,264,293,10,10	monster	Beetle King	1494,4,120000,60000,0
+um_fild04.gat,121,239,10,10	monster	Beetle King	1494,2,120000,60000,0
+um_fild04.gat,91,79,10,10	monster	Beetle King	1494,2,120000,60000,0
+um_fild04.gat,244,339,10,10	monster	Beetle King	1494,2,120000,60000,0
+um_fild04.gat,295,93,10,10	monster	Beetle King	1494,2,120000,60000,0
+um_fild04.gat,118,237,10,10	monster	Beetle King	1494,2,120000,60000,0
+um_fild04.gat,118,237,10,10	monster	Horn	1128,1,120000,60000,0
+um_fild04.gat,311,285,10,10	monster	Beetle King	1494,2,120000,60000,0
+um_fild04.gat,311,285,10,10	monster	Horn	1128,1,120000,60000,0
+um_fild04.gat,206,188,10,10	monster	Beetle King	1494,2,120000,60000,0
+um_fild04.gat,206,188,10,10	monster	Horn	1128,1,120000,60000,0
+um_fild04.gat,239,245,10,10	monster	Beetle King	1494,2,120000,60000,0
+um_fild04.gat,239,245,10,10	monster	Horn	1128,1,120000,60000,0
+um_fild04.gat,239,245,10,10	monster	Wootan Shooter	1498,1,300000,60000,0
+um_fild04.gat,91,79,10,10	monster	Wootan Shooter	1498,1,300000,60000,0
+um_fild04.gat,295,93,10,10	monster	Wootan Shooter	1498,1,300000,60000,0
+
+//===== eAthena Script =======================================
+//= Umbala Dungeon Monster Spawn Script
+//===== By: ==================================================
+//= Athena (1.0)
+//===== Current Version: =====================================
+//= 1.2
+//===== Compatible With: =====================================
+//= Any Athena Version
+//===== Additional Comments: =================================
+//=
+//============================================================
+
+//um_dun01
+
+um_dun01.gat,0,0,0,0	monster	Stainer	1174,10,0,0,0
+um_dun01.gat,0,0,0,0	monster	Dustiness	1114,10,0,0,0
+um_dun01.gat,0,0,0,0	monster	Stone Shooter	1495,70,0,0,0
+um_dun01.gat,0,0,0,0	monster	Wootan Fighter	1499,10,0,0,0
+um_dun01.gat,0,0,0,0	monster	Wootan Shooter	1498,10,0,0,0
+um_dun01.gat,0,0,0,0	monster	Beetle King	1494,10,0,0,0
+um_dun01.gat,0,0,0,0	monster	Yellow Plant	1081,5,180000,90000,1
+um_dun01.gat,0,0,0,0	monster	Green Plant	1080,5,180000,90000,1
+
+
+//um_dun02
+
+um_dun02.gat,0,0,0,0	monster	Wooden Golem	1497,15,0,0,0
+um_dun02.gat,79,227,5,5	monster	Wooden Golem	1497,5,120000,60000,0
+um_dun02.gat,87,189,5,5	monster	Wooden Golem	1497,2,120000,60000,0
+um_dun02.gat,170,145,5,5	monster	Wooden Golem	1497,3,120000,60000,0
+um_dun02.gat,196,131,7,7	monster	Wooden Golem	1497,5,120000,60000,0
+um_dun02.gat,244,129,10,10	monster	Wooden Golem	1497,5,120000,60000,0
+um_dun02.gat,0,0,0,0	monster	Beetle King	1494,30,0,0,0
+um_dun02.gat,117,43,10,10	monster	Beetle King	1494,3,120000,60000,0
+um_dun02.gat,209,34,10,10	monster	Beetle King	1494,3,120000,60000,0
+um_dun02.gat,205,265,10,10	monster	Beetle King	1494,4,120000,60000,0
+um_dun02.gat,0,0,0,0	monster	Wooden Golem	1497,10,0,0,0
+um_dun02.gat,90,97,10,10	monster	Wooden Golem	1497,3,120000,60000,0
+um_dun02.gat,32,83,10,10	monster	Wooden Golem	1497,2,120000,60000,0
+um_dun02.gat,180,238,10,10	monster	Wooden Golem	1497,3,120000,60000,0
+um_dun02.gat,144,277,10,10	monster	Wooden Golem	1497,2,120000,60000,0
+um_dun02.gat,272,163,10,10	monster	Wooden Golem	1497,2,120000,60000,0
+um_dun02.gat,232,156,10,10	monster	Wooden Golem	1497,3,120000,60000,0
+um_dun02.gat,0,0,0,0	monster	Driller	1380,5,0,0,0
+um_dun02.gat,197,138,10,10	monster	Driller	1380,2,120000,60000,0
+um_dun02.gat,164,203,10,10	monster	Driller	1380,1,120000,60000,0
+um_dun02.gat,32,83,10,10	monster	Driller	1380,1,120000,60000,0
+um_dun02.gat,244,129,10,10	monster	Driller	1380,2,120000,60000,0
 um_dun02.gat,0,0,0,0	monster	Wootan Shooter	1498,10,0,0,0
+um_dun02.gat,213,217,10,10	monster	Wootan Shooter	1498,2,120000,60000,0
+um_dun02.gat,72,258,10,10	monster	Wootan Shooter	1498,3,120000,60000,0
+um_dun02.gat,79,227,5,5	monster	Wootan Shooter	1498,1,120000,60000,0
+um_dun02.gat,170,145,5,5	monster	Wootan Shooter	1498,1,120000,60000,0
+um_dun02.gat,209,34,10,10	monster	Wootan Shooter	1498,1,120000,60000,0
+um_dun02.gat,272,163,10,10	monster	Wootan Shooter	1498,1,120000,60000,0
+um_dun02.gat,232,156,10,10	monster	Wootan Shooter	1498,1,120000,60000,0
+um_dun02.gat,0,0,0,0	monster	Dryad	1493,10,0,0,0
+um_dun02.gat,0,0,0,0	monster	Yellow Plant	1081,5,180000,90000,1
+um_dun02.gat,0,0,0,0	monster	Red Plant	1078,5,180000,90000,1
+um_dun02.gat,0,0,0,0	monster	Shining Plant	1083,6,180000,90000,1

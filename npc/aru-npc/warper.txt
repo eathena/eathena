@@ -162,6 +162,7 @@ moc_fild04.gat,207,331,4	duplicate(warpra)	Warpmaster	721
 izlu2dun.gat,104,82,0	duplicate(warpra)	Warpmaster	721
 mjolnir_02.gat,85,363,4	duplicate(warpra)	Warpmaster	721
 prt_fild05.gat,273,215,4	duplicate(warpra)	Warpmaster	721
+gon_test.gat,44,12,3	duplicate(warpra)	Warpmaster	721
 glast_01.gat,370,308,4	duplicate(warpra)	Warpmaster	721
 yuno_fild03.gat,37,135,4	duplicate(warpra)	Warpmaster	721
 gef_fild10.gat,71,339,4	duplicate(warpra)	Warpmaster	721

@@ -8806,7 +8806,9 @@ void clif_parse_TakeItem(int fd, struct map_session_data *sd) {
 	if( sd->npc_id!=0 || sd->vender_id != 0 || sd->opt1 > 0 ||
 		(sd->sc_data && (sd->sc_data[SC_TRICKDEAD].timer != -1 || //死んだふり
 		sd->sc_data[SC_BLADESTOP].timer != -1 || //白刃取り
+#if 0	// pickups are allowed wihle berserk on kRO
 		sd->sc_data[SC_BERSERK].timer!=-1 ||
+#endif
 		sd->sc_data[SC_CHASEWALK].timer!=-1 ||
 		sd->sc_data[SC_CLOAKING].timer!=-1)) )	//会話禁止
 		{
@@ -8835,8 +8837,7 @@ void clif_parse_DropItem(int fd, struct map_session_data *sd) {
 	}
 	if (sd->npc_id != 0 || sd->vender_id != 0 || sd->opt1 > 0 ||
 		(sd->sc_data && (sd->sc_data[SC_AUTOCOUNTER].timer != -1 || //オートカウンター
-		sd->sc_data[SC_BLADESTOP].timer != -1 || //白刃取り
-		sd->sc_data[SC_BERSERK].timer != -1)) ) //バーサーク
+		sd->sc_data[SC_BLADESTOP].timer != -1)) ) //バーサーク
 		return;
 
 	if (USE_PACKET_DB(sd)) {
@@ -10526,7 +10527,11 @@ void clif_parse_GMReqNoChat(int fd,struct map_session_data *sd)
 	if (dstsd && (((level = pc_isGM(sd)) > pc_isGM(dstsd)) || (type == 2 && !level))) {
 		clif_GM_silence(sd, dstsd, ((type == 2) ? 1 : type));
 		dstsd->status.manner -= limit;
-		if(dstsd->status.manner < 0)
+		if(dstsd->status.manner < 30000)
+		{
+			clif_setwaitclose(dstsd->fd);
+		}
+		else if(dstsd->status.manner < 0)
 			status_change_start(bl,SC_NOCHAT,0,0,0,0,0,0);
 		else{
 			dstsd->status.manner = 0;

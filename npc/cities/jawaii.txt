@@ -308,3 +308,51 @@ jawaii.gat,196,218,3	script	Doorman	109,{
 	mes "Please enjoy the Jawaii Hot Spot Bar";
 	close;
 }
+
+//===== Athena Script =======================================
+//= Arms Guild Castle
+//===== By ================================================
+//= Mega Man Expert
+//===== Version ===========================================
+//= 1.0
+//===== Compatible With ===================================
+//= eAthena 0.52
+//===== Description =======================================
+//= A Place where Arms memmbers can let off some steam and 
+//= have a place to go.
+//===== Comments ==========================================
+//= Nothing here will reflect the game play only as a place
+//= to chill and hang out. All is welcome. Also it's my
+// wife gift from me to her.
+//=========================================================
+ 
+gon_in.gat,72,84,4	script	Plant Specialist	865,{
+	if (getcharid(2) == 30182) goto G_W;
+		
+	mes "[Plant Specialist]";
+	mes "Hello my name is Dave.";
+	mes "I study all types of plants and research.";
+	next;
+	mes "[Dave]";
+	mes "Please Excuse my mess but I am looking for a rare Plant.";
+	mes "Seems though that I can't locate it.";
+	mes "So if you happen to find a plant thats seems rare then bring it to me.";
+	close;
+	
+	G_W:
+	mes "[Dave]";
+	mes "Hello Arms Member.";
+	mes "Would you like to enter the Arms Hide out?";
+	next;
+	menu "Yes",yes,"No",no;
+	close;
+	
+	yes:
+	warp "gon_test",49,4;
+	end;
+	
+	No:
+	close;
+}
+
+gon_test.gat,48,2,0	warp	gunt001	2,2,gun_in.gat,72,86

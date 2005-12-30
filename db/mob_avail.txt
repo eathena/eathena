@@ -8,10 +8,7 @@
 
 //1002,1039	//Poring,Baphomet (Make Porings look like Baphomet)
 
-//Lif
-1800,1137
-//Filir
-1801,1098
+1925,1062,0
 
 // eAthena Dev Team
 // Valaris

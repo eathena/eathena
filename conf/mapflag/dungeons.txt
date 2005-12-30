@@ -138,3 +138,41 @@ ayo_dun02.gat	mapflag	nomemo
 // Umbala tree
 um_dun01.gat	mapflag	nomemo
 um_dun02.gat	mapflag	nomemo
+// Einbroch
+ein_dun01.gat	mapflag	nomemo
+ein_dun02.gat	mapflag	nomemo
+// Lighthalzen
+lhz_dun01.gat	mapflag	nomemo
+lhz_dun02.gat	mapflag	nomemo
+lhz_dun03.gat	mapflag	nomemo
+lhz_cube.gat	mapflag	nomemo
+// LouYang
+lou_dun01.gat	mapflag	nomemo
+lou_dun02.gat	mapflag	nomemo
+lou_dun03.gat	mapflag	nomemo
+// Juperos
+juperos_01.gat	mapflag	nomemo
+juperos_02.gat	mapflag	nomemo
+jupe_area1.gat	mapflag	nomemo
+jupe_area2.gat	mapflag	nomemo
+jupe_core.gat	mapflag	nomemo
+jupe_ele.gat	mapflag	nomemo
+jupe_ele_r.gat	mapflag	nomemo
+jupe_gate.gat	mapflag	nomemo
+jupe_cave.gat	mapflag	nomemo
+// Abyss Lake
+abyss_01.gat	mapflag	nomemo
+abyss_02.gat	mapflag	nomemo
+abyss_03.gat	mapflag	nomemo
+// Tower of Thanatos
+thana_step.gat	mapflag	nomemo
+thana_boss.gat	mapflag	nomemo
+tha_scene01.gat	mapflag	nomemo
+tha_t01.gat	mapflag	nomemo
+tha_t02.gat	mapflag	nomemo
+tha_t03.gat	mapflag	nomemo
+tha_t04.gat	mapflag	nomemo
+tha_t07.gat	mapflag	nomemo
+tha_t05.gat	mapflag	nomemo
+tha_t06.gat	mapflag	nomemo
+tha_t08.gat	mapflag	nomemo

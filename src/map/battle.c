@@ -1386,8 +1386,10 @@ static struct Damage battle_calc_mob_weapon_attack(
 				damage += damage*(5*sc_data[SC_OVERTHRUST].val1)/100;
 			if(sc_data[SC_TRUESIGHT].timer!=-1)	// トゥルーサイト
 				damage += damage*(2*sc_data[SC_TRUESIGHT].val1)/100;
+#if 0	// moved (aru)
 			if(sc_data[SC_BERSERK].timer!=-1)	// バーサーク
 				damage += damage;
+#endif
 			if(sc_data && sc_data[SC_AURABLADE].timer!=-1)	//[DracoRPG]
 				damage += sc_data[SC_AURABLADE].val1 * 20;
 			if(sc_data[SC_MAXOVERTHRUST].timer!=-1)
@@ -2080,8 +2082,10 @@ static struct Damage battle_calc_pc_weapon_attack(
 				damage_rate += 5*sc_data[SC_OVERTHRUST].val1;
 			if(sc_data[SC_TRUESIGHT].timer!=-1)	// トゥルーサイト
 				damage_rate += 2*sc_data[SC_TRUESIGHT].val1;
+#if 0	// moved (aru
 			if(sc_data[SC_BERSERK].timer!=-1)	// バーサーク
 				damage_rate += 200;
+#endif
 			if(sc_data[SC_MAXOVERTHRUST].timer!=-1)
 				damage_rate += 20*sc_data[SC_MAXOVERTHRUST].val1;
 		}
@@ -2683,7 +2687,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 			break;
 		}
 	}
-	if(!no_cardfix && !is_emperium)
+	if(!no_cardfix)
 		damage=damage*cardfix/100; //カード補正によるダメージ増加
 //カードによるダメージ増加処理ここまで
 
@@ -2706,7 +2710,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 			break;
 		}
 	}
-	if(!no_cardfix && !is_emperium)
+	if(!no_cardfix)
 		damage2=damage2*cardfix/100;
 
 //カード補正による左手ダメージ増加
@@ -3465,8 +3469,10 @@ static struct Damage battle_calc_weapon_attack_sub(
 				skillratio += 5*sc_data[SC_OVERTHRUST].val1;
 			if(sc_data[SC_TRUESIGHT].timer!=-1)
 				skillratio += 2*sc_data[SC_TRUESIGHT].val1;
+#if 0 //moved (aru)
 			if(sc_data[SC_BERSERK].timer!=-1)
 				skillratio += 100; // Although RagnaInfo says +200%, it's *200% so +100%
+#endif
 			if(sc_data[SC_MAXOVERTHRUST].timer!=-1)
 				skillratio += 20*sc_data[SC_MAXOVERTHRUST].val1;
 			if(sc_data[SC_EDP].timer != -1 &&
@@ -4678,10 +4684,11 @@ struct Damage  battle_calc_misc_attack(
 		{
 			float fdamage;
 			fdamage = status_get_int(bl)*0.28;
-			fdamage *= (1+status_get_vit(target))*0.8;
+			fdamage *= (1+status_get_vit(target))*1.4;
 			damage = (int)fdamage;
 			if(target->type == BL_PC) damage/=2;
 		}
+		aflag |= (flag&~BF_RANGEMASK)|BF_LONG;
 		break;
 	}
 
@@ -4844,6 +4851,12 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 			if(sc_data[SC_SACRIFICE].val2 < 1)
 				status_change_end(src, SC_SACRIFICE, -1);
 		}			
+
+		if(sc_data && sc_data[SC_BERSERK].timer!=-1)
+		{
+			wd.damage *= 2;
+			wd.damage2 *= 2;
+		}
 
 		if ((damage = wd.damage + wd.damage2) > 0 && src != target) {
 			if(battle_config.pet_attack_support && sd && sd->status.pet_id > 0 && sd->pd && sd->petDB)
