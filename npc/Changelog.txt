@@ -25,6 +25,8 @@ Nexon
 
 Date		Added
 ======
+12/30
+	* Added a missing label (M_0) that was causing people to freeze when viewing the city list from "Miss Yoon" [Zephiris]
 12/28
 	* Karachun Event: Readded Mdef +1 and Luk +1 to Santa's Hat [Lupus]
 	* Fixed juicer exploit due to typo (ipnut) o.O [Lance]

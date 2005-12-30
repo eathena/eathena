@@ -1,5 +1,7 @@
 Date	Added
 
+2005/12/30
+	* Added a missing label (M_0) that was causing people to freeze when viewing the city list from "Miss Yoon" [Zephiris]
 2005/12/29
 	* Newly created char-SQL guilds will be saved inmediately rather than at
 	  their next turn in the cache (may fix those guild disappearing errors)

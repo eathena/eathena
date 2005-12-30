@@ -145,6 +145,7 @@ function	script	F_YunoLoc	{
 	next;
 	menu "View city locations.",-, @menu1$,M_1, "End conversation.",M_End;
 
+	M_0:
 		mes @name$;
 		mes "Please choose a building to view...";
 		sM_Menu:
