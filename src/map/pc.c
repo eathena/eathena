@@ -8339,7 +8339,6 @@ int pc_read_motd(void) {
 				continue;
 			for(i=0; motd_text[ln][i]; i++) {
 				if (motd_text[ln][i] == '\r' || motd_text[ln][i]== '\n') {
-					motd_text[ln][i]=0;
 					ln++;
 					break;
 				}
