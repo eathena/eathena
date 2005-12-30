@@ -1,6 +1,9 @@
 Date	Added
 
 2005/12/30
+	* Disabled certain packets from taking effect during trades to prevent
+	  possible exploits (such as picking and dropping items, buying selling from
+	  npcs, etc) [Skotlex]
 	* Now you can't move items to/from your inventory to the cart/storage
 	  during a trade (this is to prevent possible item dup exploits) [Skotlex]
 	* Emergency Recall now only works from within woe grounds... [Skotlex]

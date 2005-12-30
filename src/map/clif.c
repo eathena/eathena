@@ -9365,11 +9365,11 @@ void clif_parse_TakeItem(int fd, struct map_session_data *sd) {
 		return;
 	}
 
-	if( sd->npc_id!=0 || sd->vender_id != 0 || sd->opt1 > 0 || 
+	if( sd->npc_id!=0 || sd->vender_id != 0 || sd->opt1 > 0 || sd->trade_partner!=0 ||
 		pc_iscloaking(sd) || pc_ischasewalk(sd) || //Disable cloaking/chasewalking characters from looting [Skotlex]
-		(sd->sc_data && (sd->sc_data[SC_TRICKDEAD].timer != -1 || //死んだふり
+		sd->sc_data[SC_TRICKDEAD].timer != -1 || //死んだふり
 		sd->sc_data[SC_BLADESTOP].timer != -1 || //白刃取り
-		sd->sc_data[SC_NOCHAT].timer!=-1 )) )	//会話禁止
+		sd->sc_data[SC_NOCHAT].timer!=-1 )	//会話禁止
 		{
 			clif_additem(sd,0,0,6); // send fail packet! [Valaris]
 			return;
@@ -9395,9 +9395,9 @@ void clif_parse_DropItem(int fd, struct map_session_data *sd) {
 		clif_clearchar_area(&sd->bl, 1);
 		return;
 	}
-	if (sd->npc_id != 0 || sd->vender_id != 0 || sd->opt1 > 0 ||
-		(sd->sc_data && (sd->sc_data[SC_AUTOCOUNTER].timer != -1 || //オートカウンター
-		sd->sc_data[SC_BLADESTOP].timer != -1)) )//白刃取り
+	if (sd->npc_id != 0 || sd->vender_id != 0 || sd->opt1 > 0 || sd->trade_partner != 0 ||
+		sd->sc_data[SC_AUTOCOUNTER].timer != -1 || //オートカウンター
+		sd->sc_data[SC_BLADESTOP].timer != -1)//白刃取り
 		return;
 
 	item_index = RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0])-2;
@@ -9417,7 +9417,7 @@ void clif_parse_UseItem(int fd, struct map_session_data *sd) {
 		clif_clearchar_area(&sd->bl, 1);
 		return;
 	}
-	if (sd->vender_id != 0 || (sd->opt1 > 0 && sd->opt1 != OPT1_STONEWAIT))
+	if (sd->vender_id != 0 || (sd->opt1 > 0 && sd->opt1 != OPT1_STONEWAIT) || sd->trade_partner != 0)
 		return;
 	if (sd->npc_id!=0 && sd->npc_id != sd->npc_item_flag) //This flag enables you to use items while in an NPC. [Skotlex]
 		return;
@@ -9458,7 +9458,7 @@ void clif_parse_EquipItem(int fd,struct map_session_data *sd)
 	if(sd->npc_id!=0 && sd->npc_id != sd->npc_item_flag)
 		return;
 	
-	if(sd->vender_id != 0)
+	if(sd->vender_id != 0 || sd->trade_partner != 0)
 		return;
 	
 	if(sd->sc_data[SC_BLADESTOP].timer!=-1 || sd->sc_data[SC_BERSERK].timer!=-1 ) return;
@@ -9493,7 +9493,7 @@ void clif_parse_UnequipItem(int fd,struct map_session_data *sd)
 		clif_clearchar_area(&sd->bl,1);
 		return;
 	}
-	if(sd->npc_id!=0 || sd->vender_id != 0 || sd->opt1 > 0)
+	if(sd->npc_id!=0 || sd->vender_id != 0 || sd->opt1 > 0 || sd->trade_partner != 0)
 		return;
 	index = RFIFOW(fd,2)-2;
 
@@ -9525,6 +9525,8 @@ void clif_parse_NpcClicked(int fd,struct map_session_data *sd)
 void clif_parse_NpcBuySellSelected(int fd,struct map_session_data *sd)
 {
 	RFIFOHEAD(fd);
+	if (sd->trade_partner != 0)
+		return;
 	npc_buysellsel(sd,RFIFOL(fd,2),RFIFOB(fd,6));
 }
 
@@ -9541,7 +9543,10 @@ void clif_parse_NpcBuyListSend(int fd,struct map_session_data *sd)
 	n = (RFIFOW(fd,2)-4) /4;
 	item_list = (unsigned short*)RFIFOP(fd,4);
 
-	fail = npc_buylist(sd,n,item_list);
+	if (sd->trade_partner != 0)
+		fail = 1;
+	else
+		fail = npc_buylist(sd,n,item_list);
 
 	WFIFOHEAD(fd,packet_len_table[0xca]);
 	WFIFOW(fd,0)=0xca;
@@ -9562,7 +9567,10 @@ void clif_parse_NpcSellListSend(int fd,struct map_session_data *sd)
 	n = (RFIFOW(fd,2)-4) /4;
 	item_list = (unsigned short*)RFIFOP(fd,4);
 
-	fail = npc_selllist(sd,n,item_list);
+	if (sd->trade_partner != 0)
+		fail = 1;
+	else
+		fail = npc_selllist(sd,n,item_list);
 
 	WFIFOHEAD(fd,packet_len_table[0xcb]);
 	WFIFOW(fd,0)=0xcb;
@@ -10145,6 +10153,8 @@ void clif_parse_AutoSpell(int fd,struct map_session_data *sd)
 void clif_parse_UseCard(int fd,struct map_session_data *sd)
 {
 	RFIFOHEAD(fd);
+	if (sd->trade_partner != 0)
+		return;
 	clif_use_card(sd,RFIFOW(fd,2)-2);
 }
 /*==========================================
@@ -10154,6 +10164,8 @@ void clif_parse_UseCard(int fd,struct map_session_data *sd)
 void clif_parse_InsertCard(int fd,struct map_session_data *sd)
 {
 	RFIFOHEAD(fd);
+	if (sd->trade_partner != 0)
+		return;
 	pc_insert_card(sd,RFIFOW(fd,2)-2,RFIFOW(fd,4)-2);
 }
 
@@ -10419,6 +10431,9 @@ void clif_parse_VendingListReq(int fd, struct map_session_data *sd) {
  */
 void clif_parse_PurchaseReq(int fd, struct map_session_data *sd) {
 	RFIFOHEAD(fd);
+	nullpo_retv(sd);
+	if (sd->trade_partner != 0)
+		return;
 	vending_purchasereq(sd, RFIFOW(fd,2), RFIFOL(fd,4), RFIFOP(fd,8));
 }
 
@@ -10428,6 +10443,9 @@ void clif_parse_PurchaseReq(int fd, struct map_session_data *sd) {
  */
 void clif_parse_OpenVending(int fd,struct map_session_data *sd) {
 	RFIFOHEAD(fd);
+	nullpo_retv(sd);
+	if (sd->trade_partner != 0)
+		return;
 	vending_openvending(sd, RFIFOW(fd,2), (char*)RFIFOP(fd,4), RFIFOB(fd,84), RFIFOP(fd,85));
 }
 
