@@ -82,9 +82,15 @@ lhz_dun02.gat,0,0,0,0	monster	--ja--		1658,1,7200000,3600000,1
 // - Lighthalzen Dungeon 02
 //========================================================================================
 lhz_dun02.gat,0,0,0,0	monster	Gemini		1681,15,0,0,0
-lhz_dun03.gat,0,0,0,0	monster	--ja--	1634,10,0,0,0
-lhz_dun03.gat,0,0,0,0	monster	--ja--	1635,10,0,0,0
-lhz_dun03.gat,0,0,0,0	monster	--ja--	1636,10,0,0,0
-lhz_dun03.gat,0,0,0,0	monster	--ja--	1637,10,0,0,0
-lhz_dun03.gat,0,0,0,0	monster	--ja--	1638,10,0,0,0
-lhz_dun03.gat,0,0,0,0	monster	--ja--	1639,10,0,0,0
+lhz_dun03.gat,0,0,0,0	monster	--ja--	1634,5,0,0,0
+lhz_dun03.gat,0,0,0,0	monster	--ja--	1635,5,0,0,0
+lhz_dun03.gat,0,0,0,0	monster	--ja--	1636,5,0,0,0
+lhz_dun03.gat,0,0,0,0	monster	--ja--	1637,5,0,0,0
+lhz_dun03.gat,0,0,0,0	monster	--ja--	1638,5,0,0,0
+lhz_dun03.gat,0,0,0,0	monster	--ja--	1639,5,0,0,0
+lhz_dun03.gat,0,0,0,0	monster	--ja--		1652,7,0,0,0
+lhz_dun03.gat,0,0,0,0	monster	--ja--		1653,7,0,0,0
+lhz_dun03.gat,0,0,0,0	monster	--ja--		1654,7,0,0,0
+lhz_dun03.gat,0,0,0,0	monster	--ja--		1655,7,0,0,0
+lhz_dun03.gat,0,0,0,0	monster	--ja--		1656,7,0,0,0
+lhz_dun03.gat,0,0,0,0	monster	--ja--		1657,7,0,0,0

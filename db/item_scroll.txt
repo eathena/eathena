@@ -10,7 +10,6 @@
 5006,Machoman_Glasses           ,20000
 5028,Candle                     ,20000
 5031,Miner's_Helmet             ,20000
-2266,Iron_Cain                  ,20000
 2260,Mini_Glasses               ,20000
 5049,Striped_Bandana            ,20000
 2217,Biretta_                   ,10000
@@ -26,7 +25,7 @@
 5032,Sunday_Hat                 ,10000
 5036,Cross_Hairband             ,10000
 5043,Opera_Ghost_Mask           ,10000
-5084,Lazy_Raccoon_Hat           ,10000
+5084,Lazy_Raccoon_Hat           ,20000
 5071,Indian_Headband            ,10000
 5042,Hair_Protector             ,10000
 2295,Blinker                    ,20000
@@ -56,28 +55,24 @@
 1469,Longinus's_Spear		,10000
 1470,Brionac			,10000
 1814,Berserk			,10000
-1908,Guitar_			,10000
 2219,Flu_Mask_			,10000
 2202,Sunglasses_		,10000
 2204,Glasses_			,10000
 2412,Greaves_			,10000
-2638,Exorcize_Sachet		,10000
-2639,Purification_Sachet	,10000
+2638,Exorcize_Sachet		,20000
+2639,Purification_Sachet	,20000
 1364,Great_Axe			,10000
 1369,Guillotine			,10000
 1415,Skewer			,10000
-1531,Spanner			,10000
-1720,Rudra_Bow			,10000
-1721,Repeating_Crossbow		,10000
 1233,Excorssize			,10000
 1228,Combat_Knife		,10000
-2640,Kafra Ring			,10000
+2640,Kafra Ring			,20000
 5104,Black blindfold		,10000
 5099,Neko Mimi			,10000
 5108,Detective Hat		,10000
-5131,Close Helm			,10000
-1471,HEllfire			,10000
-1368,Tomahawk			,10000
+5131,Close Helm			,20000
 1261,Loki's Talon		,10000
 1224,Swordbreaker		,10000
 1225,Mailbreaker		,10000
+1721,Repeating_Crossbow		,10000
+5132,Angeling_HAt		,20000

@@ -21,7 +21,7 @@
  21,0x86,    ,  0, 2,1000,enemy, 0x008	//MG_THUNDERSTORM#サンダーストーム
  25,0x85,    ,  1, 0,  -1,all,   0x003	//AL_PNEUMA#ニューマ
  27,0x81,0x80,  0, 0,  -1,all,   0x006	//AL_WARP#ワープポータル
- 70,0x83,    , -1, 1,1000,all,   0x000	//PR_SANCTUARY#サンクチュアリ
+ 70,0x83,    , -1, 1,1000,all,   0x008	//PR_SANCTUARY#サンクチュアリ
  79,0x84,    , -1, 1,3000,enemy, 0x000	//PR_MAGNUS#マグヌスエクソシズム
  80,0x87,0x88,  0, 1,2000,enemy, 0x006	//WZ_FIREPILLAR#ファイアーピラー
  83,0x86,    ,  0, 3,1000,enemy, 0x008	//WZ_METEOR#メテオストーム

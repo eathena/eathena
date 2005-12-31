@@ -4404,7 +4404,7 @@ int pc_gainexp_core(struct map_session_data *sd,int base_exp,int job_exp, int ta
 
 	if(battle_config.disp_experience && !sd->noexp){
 		sprintf(output,
-			"Experienced Gained Base:%d (%.2f%%) Job:%d (%.2f%%)",base_exp,nextbp*(float)100,job_exp,nextjp*(float)100);
+			"Experienced Gained Base:%d (%.3f%%) Job:%d (%.3f%%)",base_exp,nextbp*(float)100,job_exp,nextjp*(float)100);
 		clif_disp_onlyself(sd,output,strlen(output));
 	}
 
@@ -4413,7 +4413,7 @@ int pc_gainexp_core(struct map_session_data *sd,int base_exp,int job_exp, int ta
 
 	if(showbase && showjob)
 	{
-		sprintf(output,"%d Exp. (%.2f%%) -- %d JExp. (%.2f%%)",
+		sprintf(output,"%d Exp. (%.3f%%) -- %d JExp. (%.3f%%)",
 			base_exp,nextbp*(float)100,job_exp,nextjp*(float)100);
 		clif_disp_onlyself(sd,output,strlen(output));
 	}
@@ -4421,12 +4421,12 @@ int pc_gainexp_core(struct map_session_data *sd,int base_exp,int job_exp, int ta
 	{
 		if(showbase)
 		{
-			sprintf(output,"%d Exp. (%.2f%%)",base_exp,nextbp*(float)100);
+			sprintf(output,"%d Exp. (%.3f%%)",base_exp,nextbp*(float)100);
 			clif_disp_onlyself(sd,output,strlen(output));
 		}
 		if(showjob)
 		{
-			sprintf(output,"%d JExp. (%.2f%%)",job_exp,nextjp*(float)100);
+			sprintf(output,"%d JExp. (%.3f%%)",job_exp,nextjp*(float)100);
 			clif_disp_onlyself(sd,output,strlen(output));
 		}
 	}
