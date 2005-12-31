@@ -5550,7 +5550,7 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 		if(battle_config.pc_invincible_time)
 			pc_setinvincibletimer(sd, battle_config.pc_invincible_time);
 		if (resurrect_flag)
-			status_change_start(&sd->bl,SkillStatusChangeTable[SL_KAIZEL],10,0,0,0,skill_get_time2(SL_KAIZEL, resurrect_flag),0);
+			status_change_start(&sd->bl,SkillStatusChangeTable[PR_KYRIE],10,0,0,0,skill_get_time2(SL_KAIZEL, resurrect_flag),0);
 		else
 			status_change_start(&sd->bl,SkillStatusChangeTable[MO_STEELBODY],1,0,0,0,skill_get_time(MO_STEELBODY,1),0 );
 		return 0;

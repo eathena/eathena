@@ -4503,7 +4503,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			}
 			break;
 		case SC_KAITE:
-			val3 = 1+val2/5; //Number of bounces: 1 + skilllv/5
+			val2 = 1+val1/5; //Number of bounces: 1 + skilllv/5
 			break;
 		case SC_KAUPE:
 			if (flag&4)

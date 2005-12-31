@@ -1,6 +1,9 @@
 Date	Added
 
 2005/12/31
+	* Fixed Kaziel not starting Kyrie Elison upon resurrection. [Skotlex]
+	* Fixed Kahai's healing display. [Skotlex]
+	* Fixed Kaite bouncing back always one spell. [Skotlex]
 	* Fixed and tested @waterlevel. It requires the grfs to be present as the
 	  map layout height information is stored there but not in the map data kept
 	  in memory. [Skotlex]

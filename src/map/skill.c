@@ -880,7 +880,8 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 			}
 			if (sc_data && sc_data[SC_KAAHI].timer != -1) {
 				battle_heal(bl, bl, 200*sc_data[SC_KAAHI].val2, -5*sc_data[SC_KAAHI].val2, 1);
-				clif_skill_nodamage(bl,bl,SL_KAAHI,200*sc_data[SC_KAAHI].val2, 0);
+				if(dstsd && dstsd->fd)
+					clif_heal(dstsd->fd,SP_HP,200*sc_data[SC_KAAHI].val2);
 			}
 		}
 		break;
@@ -1659,7 +1660,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 	if (attack_type&BF_MAGIC && sc_data && sc_data[SC_KAITE].timer != -1 && src == dsrc
 		&& !(status_get_mode(src)&MD_BOSS) && status_get_lv(src) <= 80
 	) { //Bounce back the skill.
-		if (--sc_data[SC_KAITE].val3 <= 0)
+		if (--sc_data[SC_KAITE].val2 <= 0)
 			status_change_end(bl, SC_KAITE, -1);
 		bl = src; //Just make the skill attack yourself @.@
 		sc_data = status_get_sc_data(bl);
@@ -3346,7 +3347,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			if (sc_data && sc_data[SC_KAITE].timer != -1 
 				&& !(status_get_mode(src)&MD_BOSS) && status_get_lv(src) <= 80
 			) { //Bounce back heal
-				if (--sc_data[SC_KAITE].val3 <= 0)
+				if (--sc_data[SC_KAITE].val2 <= 0)
 					status_change_end(bl, SC_KAITE, -1);
 				heal/=2; //Weakened heal. TODO: How much weaker should it be?
 				clif_skill_nodamage (src, src, skillid, heal, 1);
