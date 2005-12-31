@@ -1,6 +1,8 @@
 Date	Added
 
 2005/12/31
+	* Set the 56th byte in packets 7b and 1da. It deals with acceleration in directions.
+	  It's just like the final byte in packet 0x87.  Server-side update of this still needs to be figured out. [Valaris]
 	* Fixed Kaziel not starting Kyrie Elison upon resurrection. [Skotlex]
 	* Fixed Kahai's healing display. [Skotlex]
 	* Fixed Kaite bouncing back always one spell. [Skotlex]

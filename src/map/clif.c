@@ -922,7 +922,7 @@ static int clif_set007b(struct map_session_data *sd,unsigned char *buf) {
 	WBUFB(buf,48)=sd->status.karma;
 	WBUFB(buf,49)=sd->sex;
 	WBUFPOS2(buf,50,sd->bl.x,sd->bl.y,sd->to_x,sd->to_y);
-	WBUFB(buf,55)=0;
+	WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
 	WBUFB(buf,56)=5;
 	WBUFB(buf,57)=5;
 	WBUFW(buf,58)=clif_setlevel(sd->status.base_level);
@@ -961,7 +961,7 @@ static int clif_set007b(struct map_session_data *sd,unsigned char *buf) {
 	WBUFB(buf,48)=sd->status.karma;
 	WBUFB(buf,49)=sd->sex;
 	WBUFPOS2(buf,50,sd->bl.x,sd->bl.y,sd->to_x,sd->to_y);
-	WBUFB(buf,55)=0;
+	WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
 	WBUFB(buf,56)=5;
 	WBUFB(buf,57)=5;
 	WBUFW(buf,58)=clif_setlevel(sd->status.base_level);
@@ -988,7 +988,7 @@ static int clif_dis007b(struct map_session_data *sd,unsigned char *buf) {
 	//WBUFL(buf,38)=sd->status.guild_id;
 	//WBUFL(buf,42)=sd->guild_emblem_id;
 	WBUFPOS2(buf,50,sd->bl.x,sd->bl.y,sd->to_x,sd->to_y);
-	WBUFB(buf,55)=0;
+	WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
 	WBUFB(buf,56)=5;
 	WBUFB(buf,57)=5;
 	WBUFW(buf,58)=0;
@@ -1202,6 +1202,7 @@ static int clif_mob007b(struct mob_data *md, unsigned char *buf) {
 		WBUFB(buf,48)=0; // karma
 		WBUFB(buf,49)=mob_get_sex(md->class_);
 		WBUFPOS2(buf,50,md->bl.x,md->bl.y,md->to_x,md->to_y);
+		WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
 		WBUFB(buf,56)=5;
 		WBUFB(buf,57)=5;
 		WBUFW(buf,58)=clif_setlevel(level);
@@ -1237,7 +1238,7 @@ static int clif_mob007b(struct mob_data *md, unsigned char *buf) {
 		WBUFB(buf,48)=0; // karma
 		WBUFB(buf,49)=mob_get_sex(md->class_);
 		WBUFPOS2(buf,50,md->bl.x,md->bl.y,md->to_x,md->to_y);
-		WBUFB(buf,55)=0;
+		WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
 		WBUFB(buf,56)=5;
 		WBUFB(buf,57)=5;
 		WBUFW(buf,58)=clif_setlevel(level);
@@ -1261,6 +1262,7 @@ static int clif_mob007b(struct mob_data *md, unsigned char *buf) {
 			WBUFL(buf,42)=md->guardian_data->emblem_id;
 		}	// End addition
 		WBUFPOS2(buf,50,md->bl.x,md->bl.y,md->to_x,md->to_y);
+		WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
 		WBUFB(buf,56)=5;
 		WBUFB(buf,57)=5;
 		level = status_get_lv(&md->bl);
@@ -1321,6 +1323,7 @@ static int clif_npc007b(struct npc_data *nd, unsigned char *buf) {
 	}
 	WBUFL(buf,22)=gettick();
 	WBUFPOS2(buf,50,nd->bl.x,nd->bl.y,nd->to_x,nd->to_y);
+	WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
 	WBUFB(buf,56)=5;
 	WBUFB(buf,57)=5;
 
@@ -1466,6 +1469,7 @@ static int clif_pet007b(struct pet_data *pd, unsigned char *buf) {
 		WBUFB(buf,48)=0; // karma
 		WBUFB(buf,49)=mob_get_sex(pd->class_);
 		WBUFPOS2(buf,50,pd->bl.x,pd->bl.y,pd->to_x,pd->to_y);
+		WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
 		WBUFB(buf,56)=0; //0? These are always five for mobs and pets, /hmm [Skotlex]
 		WBUFB(buf,57)=0;
 		WBUFW(buf,58)=clif_setlevel(level);
@@ -1499,7 +1503,7 @@ static int clif_pet007b(struct pet_data *pd, unsigned char *buf) {
 		WBUFB(buf,48)=0; // karma
 		WBUFB(buf,49)=mob_get_sex(pd->class_);
 		WBUFPOS2(buf,50,pd->bl.x,pd->bl.y,pd->to_x,pd->to_y);
-		WBUFB(buf,55)=0;
+		WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
 		WBUFB(buf,56)=0;
 		WBUFB(buf,57)=0;
 		WBUFW(buf,58)=clif_setlevel(level);
@@ -1521,6 +1525,7 @@ static int clif_pet007b(struct pet_data *pd, unsigned char *buf) {
 			WBUFW(buf,20)=pd->equip;
 		WBUFL(buf,22)=gettick();
 		WBUFPOS2(buf,50,pd->bl.x,pd->bl.y,pd->to_x,pd->to_y);
+		WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
 		WBUFB(buf,56)=0;
 		WBUFB(buf,57)=0;
 		WBUFW(buf,58)=clif_setlevel(level);
