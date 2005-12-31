@@ -519,7 +519,7 @@ int clif_send (unsigned char *buf, int len, struct block_list *bl, int type) {
 						continue;
 
 					if (packet_db[sd->packet_ver][RBUFW(buf,0)].len) { // packet must exist for the client version
-                                                WFIFOHEAD(sd->fd,len);
+						WFIFOHEAD(sd->fd,len);
 						memcpy(WFIFOP(sd->fd,0), buf, len);
 						WFIFOSET(sd->fd,len);
 					}
@@ -1686,7 +1686,7 @@ int clif_spawnpc(struct map_session_data *sd) {
 
 	if (map[sd->bl.m].flag.snow || map[sd->bl.m].flag.clouds || map[sd->bl.m].flag.fog || map[sd->bl.m].flag.fireworks ||
 	    map[sd->bl.m].flag.sakura || map[sd->bl.m].flag.leaves || map[sd->bl.m].flag.rain) {
-                WFIFOHEAD(sd->fd, packet_len_table[0x7c]);
+		WFIFOHEAD(sd->fd, packet_len_table[0x7c]);
 		WFIFOW(sd->fd,0)=0x7c;
 		WFIFOL(sd->fd,2)=-10;
 		WFIFOW(sd->fd,6)=0;

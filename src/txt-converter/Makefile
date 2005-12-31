@@ -1,13 +1,13 @@
 all sql: char-converter login-converter
 
 char-converter: char-converter.o ../common/obj/minicore.o ../common/obj/malloc.o ../common/obj/showmsg.o ../common/obj/strlib.o ../common/obj/mapindex.o
-	$(CC) -o ../../tool/$@ $^ $(LIB_S)
+	$(CC) -o ../../tools/$@ $^ $(LIB_S)
 
 login-converter: login-converter.o ../common/obj/minicore.o ../common/obj/db.o ../common/obj/malloc.o ../common/obj/showmsg.o
-	$(CC) -o ../../tool/$@ $^ $(LIB_S)
+	$(CC) -o ../../tools/$@ $^ $(LIB_S)
 
 clean:
-	rm -f *.o ../../tool/login-converter ../../tool/char-converter
+	rm -f *.o ../../tools/login-converter ../../tools/char-converter
 
 # DO NOT DELETE
 
