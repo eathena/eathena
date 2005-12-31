@@ -473,7 +473,7 @@ int mapif_parse_PartyInfo(int fd, int party_id) {
 }
 
 // パ?ティ追加要求
-int mapif_parse_PartyAddMember(int fd, int party_id, int account_id, int char_id, char *nick, unsigned char map, int lv) {
+int mapif_parse_PartyAddMember(int fd, int party_id, int account_id, int char_id, char *nick, unsigned short map, int lv) {
 	struct party *p;
 	int i;
 
