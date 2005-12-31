@@ -2294,6 +2294,11 @@ static int npc_parse_mapflag (char *w1, char *w2, char *w3, char *w4)
 			map[m].save.map = mapindex_name2id(savemap);
 			map[m].save.x = savex;
 			map[m].save.y = savey;
+			if (!map[m].save.map) {
+				ShowError("Specified save point map '%s' for mapflag 'nosave' not found (file %s).\n",savemap,current_file);
+				map[m].save.x = -1;
+				map[m].save.y = -1;
+			}
 		}
 		map[m].flag.nosave = 1;
 	}
