@@ -16,16 +16,6 @@ lhz_fild02.gat,25,213,0	warp	lhz001	2,2,lhz_fild01.gat,365,225
 lhz_fild01.gat,367,225,0	warp	lhz001a	1,5,lhz_fild02.gat,33,222
 lhz_fild01.gat,210,16,0	warp	lhz002	1,1,lighthalzen.gat,214,327
 lighthalzen.gat,214,329,0	warp	lhz002a	1,1,lhz_fild01.gat,210,18
-lhz_dun03.gat,140,139,0	warp	lhz003	1,1,lhz_dun02.gat,150,147
-lhz_dun02.gat,150,149,0	warp	lhz003a	1,1,lhz_dun03.gat,140,137
-lhz_dun02.gat,18,150,0	warp	lhz004	1,1,lhz_dun01.gat,18,148
-lhz_dun01.gat,18,146,0	warp	lhz004a	1,1,lhz_dun02.gat,18,148
-lhz_dun02.gat,382,155,0	warp	lhz005	1,1,lhz_dun01.gat,281,152
-lhz_dun01.gat,281,150,0	warp	lhz005a	1,1,lhz_dun02.gat,382,153
-lhz_dun02.gat,148,18,0	warp	lhz006	1,1,lhz_dun01.gat,146,10
-lhz_dun01.gat,148,10,0	warp	lhz006a	1,1,lhz_dun02.gat,150,18
-lhz_dun01.gat,150,290,0	warp	lhz007	1,1,lighthalzen.gat,73,54
-lighthalzen.gat,73,52,0	warp	lhz007a	1,1,lhz_dun01.gat,150,288
 lhz_in01.gat,106,15,0	warp	lhz008	1,1,lhz_in01.gat,88,213
 lhz_in01.gat,88,215,0	warp	lhz008a	1,1,lhz_in01.gat,106,17
 lhz_in01.gat,159,15,0	warp	lhz009	1,1,lhz_in01.gat,140,213
