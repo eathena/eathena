@@ -3349,7 +3349,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			) { //Bounce back heal
 				if (--sc_data[SC_KAITE].val2 <= 0)
 					status_change_end(bl, SC_KAITE, -1);
-				heal/=2; //Weakened heal. TODO: How much weaker should it be?
+				if (src == bl) heal=0; //When you try to heal yourself and you are under Kaite, the heal is voided.
 				clif_skill_nodamage (src, src, skillid, heal, 1);
 				heal_get_jobexp = battle_heal(NULL,src,heal,0,0);
 			} else {
