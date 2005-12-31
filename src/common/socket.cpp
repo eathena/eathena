@@ -1720,7 +1720,7 @@ int null_console_parse(char *buf)
 int start_console(void) {
 	
 	SOCKET sock=0; // default zero socket, is not used regulary
-	size_t fd;
+	int fd;
     
 	// insert the socket to the fields and get the position
 	fd = SessionInsertSocket(sock);

@@ -421,7 +421,7 @@ int parse_fromchar(int fd)
 {
 	size_t id;
 	char ip_str[16]="unknown";
-	if(session[fd]) session[fd]->client_ip.getstring(ip_str);
+	if(session[fd]) session[fd]->client_ip.getstring(ip_str, sizeof(ip_str));
 
 
 	for(id = 0; id < MAX_SERVERS; id++)
@@ -1051,7 +1051,7 @@ int parse_fromchar(int fd)
 int parse_admin(int fd)
 {
 	char ip_str[16]="";
-	if(session[fd]) session[fd]->client_ip.getstring(ip_str);
+	if(session[fd]) session[fd]->client_ip.getstring(ip_str, sizeof(ip_str));
 
 	if( !session_isActive(fd) )
 	{
@@ -2142,7 +2142,7 @@ int parse_admin(int fd)
 int parse_login(int fd)
 {
 	char ip_str[16];
-	if(session[fd]) session[fd]->client_ip.getstring(ip_str);
+	if(session[fd]) session[fd]->client_ip.getstring(ip_str, sizeof(ip_str));
 
 	if ( !session_isActive(fd) )
 	{
@@ -2322,7 +2322,7 @@ int parse_login(int fd)
 						account.client_ip = session[fd]->client_ip;
 						// update account information
 						timestamp2string(account.last_login, sizeof(account.last_login));
-						session[fd]->client_ip.getstring(account.last_ip);
+						session[fd]->client_ip.getstring(account.last_ip, sizeof(account.last_ip));
 						account.login_count++;
 						account.state = 0;
 

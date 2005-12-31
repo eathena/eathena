@@ -9200,7 +9200,7 @@ int clif_parse_TakeItem(int fd, struct map_session_data &sd)
 		return clif_clearchar_area(sd.bl, 1);
 	}
 
-	if( sd.ScriptEngine.isRunning() || sd.vender_id != 0 || sd.opt1 > 0 ||
+	if( sd.ScriptEngine.isRunning() || sd.vender_id != 0  || sd.trade_partner != 0 || sd.opt1 > 0 ||
 		pc_iscloaking(sd) || pc_ischasewalk(sd) || //Disable cloaking/chasewalking characters from looting [Skotlex]
 		(sd.sc_data && (sd.sc_data[SC_TRICKDEAD].timer != -1 || //死んだふり
 		 sd.sc_data[SC_BLADESTOP].timer != -1 || //白刃取り
@@ -9233,7 +9233,7 @@ int clif_parse_DropItem(int fd, struct map_session_data &sd)
 	if (pc_isdead(sd)) {
 		return clif_clearchar_area(sd.bl, 1);
 	}
-	if( sd.ScriptEngine.isRunning() || sd.vender_id != 0 || sd.opt1 > 0 ||
+	if( sd.ScriptEngine.isRunning() || sd.vender_id != 0  || sd.trade_partner != 0 || sd.opt1 > 0 ||
 		(sd.sc_data && (sd.sc_data[SC_AUTOCOUNTER].timer != -1 || //オートカウンター
 		sd.sc_data[SC_BLADESTOP].timer != -1 || //白刃取り
 		sd.sc_data[SC_BERSERK].timer != -1)) ) //バーサーク
@@ -9258,7 +9258,7 @@ int clif_parse_UseItem(int fd, struct map_session_data &sd)
 	if (pc_isdead(sd)) {
 		return clif_clearchar_area(sd.bl, 1);
 	}
-	if( sd.ScriptEngine.isRunning() || sd.vender_id != 0 || (sd.opt1 > 0 && sd.opt1 != 6) ||
+	if( sd.ScriptEngine.isRunning() || sd.vender_id != 0  || sd.trade_partner != 0 || (sd.opt1 > 0 && sd.opt1 != 6) ||
 	    (sd.sc_data && (sd.sc_data[SC_TRICKDEAD].timer != -1 || //死んだふり
 	     sd.sc_data[SC_BLADESTOP].timer != -1 || //白刃取り
 		sd.sc_data[SC_BERSERK].timer!=-1 ||	//バーサーク
@@ -9289,7 +9289,7 @@ int clif_parse_EquipItem(int fd,struct map_session_data &sd)
 		return clif_clearchar_area(sd.bl, 1);
 	}
 	index = RFIFOW(fd,2)-2;
-	if( index >= MAX_INVENTORY || sd.ScriptEngine.isRunning() || sd.vender_id != 0)
+	if( index >= MAX_INVENTORY || sd.ScriptEngine.isRunning() || sd.vender_id != 0 || sd.trade_partner != 0)
 		return 0;
 	if(sd.sc_data && ( sd.sc_data[SC_BLADESTOP].timer!=-1 || sd.sc_data[SC_BERSERK].timer!=-1 )) 
 		return 0;
@@ -9323,7 +9323,7 @@ int clif_parse_UnequipItem(int fd,struct map_session_data &sd)
 	if(pc_isdead(sd)) {
 		return clif_clearchar_area(sd.bl, 1);
 	}
-	if(sd.ScriptEngine.isRunning() || sd.vender_id != 0 || sd.opt1 > 0)
+	if(sd.ScriptEngine.isRunning() || sd.vender_id != 0  || sd.trade_partner != 0 || sd.opt1 > 0)
 		return 0;
 	index = RFIFOW(fd,2)-2;
 
@@ -9362,6 +9362,10 @@ int clif_parse_NpcClicked(int fd,struct map_session_data &sd)
  */
 int clif_parse_NpcBuySellSelected(int fd,struct map_session_data &sd)
 {
+	if( !session_isActive(fd) )
+		return 0;
+	if(sd.vender_id != 0  || sd.trade_partner != 0)
+		return 0;
 	npc_buysellsel(sd,RFIFOL(fd,2),RFIFOB(fd,6));
 	return 0;
 }
@@ -9372,14 +9376,13 @@ int clif_parse_NpcBuySellSelected(int fd,struct map_session_data &sd)
  */
 int clif_parse_NpcBuyListSend(int fd,struct map_session_data &sd)
 {
-	int fail=3;
-	unsigned short n;
-
+	int fail=1;
 	if( !session_isActive(fd) )
 		return 0;
 
-	n = (RFIFOW(fd,2)-4) /4;
-	fail = npc_buylist(sd,n,RFIFOP(fd,4));
+	if(sd.vender_id == 0  && sd.trade_partner == 0)
+		fail = npc_buylist(sd,(RFIFOW(fd,2)-4)/4, RFIFOP(fd,4));
+
 	WFIFOW(fd,0)=0xca;
 	WFIFOB(fd,2)=fail;
 	WFIFOSET(fd,packet_len_table[0xca]);
@@ -9393,12 +9396,12 @@ int clif_parse_NpcBuyListSend(int fd,struct map_session_data &sd)
 int clif_parse_NpcSellListSend(int fd,struct map_session_data &sd)
 {
 	int fail=1;
-	unsigned short n;
+
 	if( !session_isActive(fd) )
 		return 0;
 
-	n = (RFIFOW(fd,2)-4) /4;
-	fail = npc_selllist(sd,n,RFIFOP(fd,4));
+	if(sd.vender_id == 0  && sd.trade_partner == 0)
+		fail = npc_selllist(sd, (RFIFOW(fd,2)-4)/4, RFIFOP(fd,4));
 
 	WFIFOW(fd,0)=0xcb;
 	WFIFOB(fd,2)=fail;
@@ -9578,7 +9581,7 @@ int clif_parse_PutItemToCart(int fd,struct map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	if(sd.ScriptEngine.isRunning() || sd.vender_id != 0)
+	if(sd.ScriptEngine.isRunning() || sd.vender_id != 0 || sd.trade_partner != 0)
 		return 0;
 	pc_putitemtocart(sd,RFIFOW(fd,2)-2,RFIFOL(fd,4));
 	return 0;
@@ -9592,7 +9595,8 @@ int clif_parse_GetItemFromCart(int fd,struct map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	if(sd.ScriptEngine.isRunning() || sd.vender_id != 0) return 0;
+	if(sd.ScriptEngine.isRunning() || sd.vender_id != 0 || sd.trade_partner != 0)
+		return 0;
 	pc_getitemfromcart(sd,RFIFOW(fd,2)-2,RFIFOL(fd,4));
 	return 0;
 }
@@ -10012,7 +10016,8 @@ int clif_parse_UseCard(int fd,struct map_session_data &sd)
 {
 	if( !session_isActive(fd) )
 		return 0;
-
+	if (sd.trade_partner != 0)
+		return 0;
 	clif_use_card(sd,RFIFOW(fd,2)-2);
 	return 0;
 }
@@ -10024,7 +10029,8 @@ int clif_parse_InsertCard(int fd,struct map_session_data &sd)
 {
 	if( !session_isActive(fd) )
 		return 0;
-
+	if (sd.trade_partner != 0)
+		return 0;
 	pc_insert_card(sd,RFIFOW(fd,2)-2,RFIFOW(fd,4)-2);
 	return 0;
 }
@@ -10098,7 +10104,7 @@ int clif_parse_MoveToKafra(int fd, struct map_session_data &sd) {
 	if( !session_isActive(fd) )
 		return 0;
 
-	if( sd.ScriptEngine.isRunning() || sd.vender_id != 0 )
+	if( sd.ScriptEngine.isRunning() || sd.vender_id != 0  || sd.trade_partner != 0)
 		return 0;
 
 	item_index = RFIFOW(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[0])-2;
@@ -10125,12 +10131,11 @@ int clif_parse_MoveFromKafra(int fd,struct map_session_data &sd) {
 	if( !session_isActive(fd) )
 		return 0;
 
+	if( sd.ScriptEngine.isRunning() || sd.vender_id != 0  || sd.trade_partner != 0)
+		return 0;
+
 	item_index = RFIFOW(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[0])-1;
 	item_amount = RFIFOL(fd,packet_db[sd.packet_ver][RFIFOW(fd,0)].pos[1]);
-
-
-	if( sd.ScriptEngine.isRunning() || sd.vender_id != 0 )
-		return 0;
 
 	if (sd.state.storage_flag)
 		storage_guild_storageget(sd, item_index, item_amount);
@@ -10166,7 +10171,7 @@ int clif_parse_MoveFromKafraToCart(int fd, struct map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	if( sd.ScriptEngine.isRunning() || sd.vender_id != 0 )
+	if( sd.ScriptEngine.isRunning() || sd.vender_id != 0 || sd.trade_partner != 0 )
 		return 0;
 	if( sd.state.storage_flag )
 		storage_guild_storagegettocart(sd, RFIFOW(fd,2)-1, RFIFOL(fd,4));
@@ -10327,8 +10332,8 @@ int clif_parse_VendingListReq(int fd, struct map_session_data &sd)
 {
 	if( !session_isActive(fd) )
 		return 0;
-
-	vending_vendinglistreq(sd,RFIFOL(fd,2));
+	if(sd.trade_partner == 0)
+		vending_vendinglistreq(sd,RFIFOL(fd,2));
 //	if( sd.ScriptEngine.isRunning() )
 //		npc_event_dequeue(sd);
 	return 0;
@@ -10342,8 +10347,8 @@ int clif_parse_PurchaseReq(int fd, struct map_session_data &sd)
  {
 	if( !session_isActive(fd) )
 		return 0;
-
-	vending_purchasereq(sd, RFIFOW(fd,2), RFIFOL(fd,4), RFIFOP(fd,8));
+	if(sd.trade_partner == 0)
+		vending_purchasereq(sd, RFIFOW(fd,2), RFIFOL(fd,4), RFIFOP(fd,8));
 	return 0;
 }
 
@@ -10355,8 +10360,8 @@ int clif_parse_OpenVending(int fd,struct map_session_data &sd)
 {
 	if( !session_isActive(fd) )
 		return 0;
-
-	vending_openvending(sd, RFIFOW(fd,2), (char*)RFIFOP(fd,4), RFIFOB(fd,84), RFIFOP(fd,85));
+	if(sd.vender_id == 0  && sd.trade_partner == 0)
+		vending_openvending(sd, RFIFOW(fd,2), (char*)RFIFOP(fd,4), RFIFOB(fd,84), RFIFOP(fd,85));
 	return 0;
 }
 

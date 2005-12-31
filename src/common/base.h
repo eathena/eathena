@@ -161,6 +161,7 @@
 #pragma warning(disable : 4310)	// converting constant will shorten
 #pragma warning(disable : 4511)	// no copy constructor
 #pragma warning(disable : 4512)	// no assign operator
+#pragma warning(disable : 4702) // disable "unreachable code" warning for throw (known compiler bug)
 #pragma warning(disable : 4706) // assignment within conditional
 #pragma warning(disable : 4710)	// is no inline function
 #pragma warning(disable : 4996)	// disable deprecated warnings
@@ -173,20 +174,20 @@
 //////////////////////////////////////////////////////////////////////////
 // useful typedefs
 //////////////////////////////////////////////////////////////////////////
-typedef   signed int    sint;	// don't use (only for ie. scanf)
-typedef unsigned int    uint;	// don't use
-typedef   signed long   slong;	// don't use (only for ie. file-io)
-typedef unsigned long   ulong;	// don't use
-typedef   signed short  sshort;
-typedef unsigned short  ushort;
-typedef unsigned char   uchar;
-typedef   signed char   schar;
+typedef   signed int	sint;	// don't use (only for ie. scanf)
+typedef unsigned int	uint;	// don't use
+typedef   signed long	slong;	// don't use (only for ie. file-io)
+typedef unsigned long	ulong;	// don't use
+typedef   signed short	sshort;
+typedef unsigned short	ushort;
+typedef unsigned char	uchar;
+typedef   signed char	schar;
 
-typedef char*           pschar;
-typedef unsigned char*  puchar;
-typedef const char*     pcschar;
-typedef void*           ptr;
-typedef int*            pint;
+typedef char*			pchar;
+typedef unsigned char*	puchar;
+typedef const char*		pcchar;
+typedef void*			ptr;
+typedef int*			pint;
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -759,10 +760,12 @@ template<class T> static inline T isqrt(T n)
 //////////////////////////////////////////////////////////////////////////
 class noncopyable
 {
+// my gnu ver. 3.4 don't like private constructors
 // looks like some gcc really insists on having this members readable
 // even if not used and not disturbing in any way, 
 // stupid move, but ok, go on, read it 
-// (but protected declaration will then generate linker errors instead of compiler errors)
+// but the protected declaration will then generate errors in linker instead of compiler 
+// and the source is then harder to find
 #ifdef __GNUC__
 protected:
 #else
@@ -901,7 +904,7 @@ public:
 // a simple fixed size buffer
 // need size argument at compile time
 ///////////////////////////////////////////////////////////////////////////////
-template <class T, size_t SZ> class TBuffer
+template <class T, size_t SZ> class TFixedBuffer
 {
 private:
 	T	cField[SZ];
@@ -918,7 +921,7 @@ public:
 		if(inx>SZ)
 		{
 #ifdef CHECK_EXCEPTIONS
-			throw exception_bound("TBuffer out of bound");
+			throw exception_bound("TFixedBuffer out of bound");
 #else
 			static T dummy;
 			return dummy;
@@ -935,7 +938,7 @@ public:
 		if(inx>SZ)
 		{
 #ifdef CHECK_EXCEPTIONS
-			throw exception_bound("TBuffer out of bound");
+			throw exception_bound("TFixedBuffer out of bound");
 #else
 			return this->cField[0];
 #endif
@@ -1267,11 +1270,6 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 template <class T> class TArray : public Mutex, public global
 {
-	///////////////////////////////////////////////////////////////////////////
-	// friends
-	friend class String;
-	friend class SubString;
-
 protected:
 	virtual const T* array() const=0;
 
@@ -1412,10 +1410,6 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 template <class T, size_t SZ> class TArrayFST : public TArray<T>
 {
-	///////////////////////////////////////////////////////////////////////////
-	// friends
-	friend class String;
-	friend class SubString;
 	virtual const T* array() const	{return cField;}
 protected:
 	///////////////////////////////////////////////////////////////////////////
@@ -2254,8 +2248,6 @@ template <class T> class TArrayDST : public TArray<T>
 {
 	///////////////////////////////////////////////////////////////////////////
 	// friends
-	friend class String;
-	friend class SubString;
 	friend class MiniString;
 	virtual const T* array() const	{ return cField; }
 protected:
@@ -3933,11 +3925,8 @@ protected:
 public:
 	TPtrCount() : itsCounter(NULL)
 	{}
-	explicit TPtrCount(X* p) : itsCounter(NULL)
-	{	// allocate a new counter
-		if(p)
-			this->itsCounter = new CCounter(p);
-	}
+	explicit TPtrCount(X* p) : itsCounter( (p)?new CCounter(p):NULL)
+	{}
 	TPtrCount(const TPtrCount& r) : itsCounter(NULL)
 	{
 		this->acquire(r);
@@ -4128,50 +4117,58 @@ protected:
 		return 1;
 	}
 public:
-	MiniString()						{  }
-	MiniString(const char *c)			{ copy(c); }
-	MiniString(const char *c, size_t len){ copy(c, len); }
-	MiniString(const MiniString &str)	{ cStrPtr = str.cStrPtr; }
-	/////////////////////////////////////////////////////////////////
-	// a special constructor for creating an addition objects
-	/////////////////////////////////////////////////////////////////
-	MiniString(const char *c1, const size_t len1, const char *c2, const size_t len2)
-	{	// double initialisation to concatenate two strings within the constructor
-		// the given len values are only the number of characters without the EOS
-		cStrPtr->realloc(len1+len2+1);
-		cStrPtr->copy(c1,len1, 0);
-		cStrPtr->copy(c2,len2, len1);
-		cStrPtr->append(0);
-	}
+	MiniString()							{  }
 
-	virtual ~MiniString()				{  }
-
+	/////////////////////////////////////////////////////////////////
+	// copy/assignment
+	MiniString(const MiniString &str)		{ cStrPtr = str.cStrPtr; }
 	const MiniString &operator=(const MiniString &str)
 	{
 		cStrPtr = str.cStrPtr;
 		return *this; 
 	}
-	const MiniString& operator=(const char *c)	{ copy(c); return *this; }
+	/////////////////////////////////////////////////////////////////
+	// a special constructor for creating an addition objects
+	MiniString(const char *c1, const size_t len1, const char *c2, const size_t len2)
+	{	// double initialisation to concatenate two strings within the constructor
+		// the given len values are only the number of characters without the EOS
+		cStrPtr->realloc(len1+len2+1);
+		cStrPtr->copy(c1,len1, 0);
+		cStrPtr->copy(c2,len2, cStrPtr->size());
+		cStrPtr->append(0);
+	}
+
+	//////////////////////////////////////////////////////
+	// type to string conversions
+	MiniString(const char *c)					{ assign(c); }
+	MiniString(const char *c, size_t len)		{ assign(c, len); }
+	const MiniString& operator=(const char *c)	{ assign(c); return *this; }
+
+	explicit MiniString(const char v)			{ assign(v); }
+	const MiniString &operator=(const char v)	{ assign(v); return *this;}
+
+	explicit MiniString(int v)					{ assign(v); }
+	const MiniString &operator=(int v)			{ assign(v); return *this;}
+
+	explicit MiniString(unsigned int v)			{ assign(v); }
+	const MiniString &operator=(unsigned int v)	{ assign(v); return *this;}
+
+	explicit MiniString(double v)				{ assign(v); }
+	const MiniString &operator=(double v)		{ assign(v); return *this;}
+
+	explicit MiniString(bool v)					{ assign(v); }
+	const MiniString &operator=(bool v)			{ assign(v); return *this;}
+
+	//////////////////////////////////////////////////////
+	// destruct
+	virtual ~MiniString()				{  }
+
+	//////////////////////////////////////////////////////
+	// 
 	const char* get() const						{ return cStrPtr->array(); }
+	const char* c_str() const					{ return cStrPtr->array(); }
 	operator const char*() const				{ return cStrPtr->array(); }
-
-	bool operator==(const char *b) const		{return (0==compareTo(b));}
-	bool operator==(const MiniString &b) const	{return (0==compareTo(b));}
-	bool operator!=(const char *b) const		{return (0!=compareTo(b));}
-	bool operator!=(const MiniString &b) const	{return (0!=compareTo(b));}
-	bool operator> (const char *b) const		{return (0> compareTo(b));}
-	bool operator> (const MiniString &b) const	{return (0> compareTo(b));}
-	bool operator< (const char *b) const		{return (0< compareTo(b));}
-	bool operator< (const MiniString &b) const	{return (0< compareTo(b));}
-	bool operator>=(const char *b) const		{return (0>=compareTo(b));}
-	bool operator>=(const MiniString &b) const	{return (0>=compareTo(b));}
-	bool operator<=(const char *b) const		{return (0<=compareTo(b));}
-	bool operator<=(const MiniString &b) const	{return (0<=compareTo(b));}
-
-	friend bool operator==(const char *a, const MiniString &b) {return (0==b.compareTo(a));}
-	friend bool operator!=(const char *a, const MiniString &b) {return (0!=b.compareTo(a));}
-
-	friend int compare(const MiniString &a,const MiniString &b){ return a.compareTo(b); }
+	size_t length() const	{ return (cStrPtr.exists() && cStrPtr->size()>0) ? ( cStrPtr->size()-1):0; }
 
 	void clear()
 	{
@@ -4180,36 +4177,6 @@ public:
 			cStrPtr->resize(0);
 			cStrPtr->append(0);
 		}
-	}
-	bool append(char c)
-	{
-		if(cStrPtr.exists())
-			cStrPtr->strip(1); //strip EOS
-		cStrPtr->append(c);
-		cStrPtr->append(0);
-		return true;
-	}
-	bool append(const char *c)
-	{
-		if(c)
-		{
-			if(cStrPtr.exists())
-				cStrPtr->strip(1); //strip EOS
-			cStrPtr->append(c,strlen(c)+1);
-		}
-		return true;
-	}
-	bool append(const char *c, size_t len)
-	{
-		if(c)
-		{
-			size_t sz = (len) ? min(len,strlen(c)) : (0);
-			if(cStrPtr.exists())
-				cStrPtr->strip(1); //strip EOS
-			cStrPtr->append(c,sz);
-			cStrPtr->append(0);
-		}
-		return true;
 	}
 
 	bool resize(size_t sz)
@@ -4228,61 +4195,60 @@ public:
 		cStrPtr->append(0);
 		return true;
 	}
-	size_t length() const	{ return (cStrPtr.exists() && cStrPtr->size()>0) ? ( cStrPtr->size()-1):0; }
 
 
-
-	//////////////////////////////////////////////////////
-	// type to string conversions
-	MiniString(double v)						{ assign(v); }
-	const MiniString &operator=(double v)		{ assign(v); return *this;}
-
-	MiniString(int v)							{ assign(v); }
-	const MiniString &operator=(int v)			{ assign(v); return *this;}
-
-	MiniString(unsigned int v)					{ assign(v); }
-	const MiniString &operator=(unsigned int v)	{ assign(v); return *this;}
-
-	void assign(double v)
-	{
-		char buf[128];
-		size_t sz = snprintf(buf,sizeof(buf), "%.3lf", v);
-		copy(buf, sz);
-	}
-	void assign(int v)
-	{
-		char buf[128];
-		size_t sz = snprintf(buf,sizeof(buf), "%i", v);
-		copy(buf, sz);
-	}
-	void assign(unsigned int v)
-	{
-		char buf[128];
-		size_t sz = snprintf(buf,sizeof(buf), "%u", v);
-		copy(buf, sz);
-	}
-	void append(double v)
-	{
-		char buf[128];
-		size_t sz = snprintf(buf,sizeof(buf), "%.3lf", v);
-		append(buf, sz);
-	}
-	void append(int v)
-	{
-		char buf[128];
-		size_t sz = snprintf(buf,sizeof(buf), "%i", v);
-		append(buf, sz);
-	}
-	void append(unsigned int v)
-	{
-		char buf[128];
-		size_t sz = snprintf(buf,sizeof(buf), "%u", v);
-		append(buf, sz);
-	}
 
 	//////////////////////////////////////////////////////
 	// string operations
-	MiniString& operator+=(const MiniString& str)
+	MiniString& assign(const MiniString& str)
+	{	
+		cStrPtr = str.cStrPtr;
+		return *this;
+	}
+	MiniString& assign(const char *c, size_t sz)
+	{
+		copy(c, sz);
+		return *this;
+	}
+	MiniString& assign(const char* c)
+	{	
+		copy(c);
+		return *this;
+	}
+	MiniString& assign(char c)
+	{
+		if(cStrPtr.exists())
+			cStrPtr->strip(1); //strip EOS
+		cStrPtr->append(c);
+		cStrPtr->append(0);
+		return *this;
+	}
+	MiniString& assign(int v)
+	{
+		char buf[128];
+		size_t sz = snprintf(buf,sizeof(buf), "%i", v);
+		return assign(buf, sz);
+	}
+	MiniString& assign(unsigned int v)
+	{
+		char buf[128];
+		size_t sz = snprintf(buf,sizeof(buf), "%u", v);
+		return assign(buf, sz);
+	}
+	MiniString& assign(double v)
+	{
+		char buf[128];
+		size_t sz = snprintf(buf,sizeof(buf), "%.3lf", v);
+		return assign(buf, sz);
+	}
+	MiniString& assign(bool b)
+	{
+		return assign((b)?"true":"false", (b)?4:5);
+	}
+
+
+	//////////////////////////////////////////////////////
+	MiniString& append(const MiniString& str)
 	{	// append two strings
 		if(str.cStrPtr.exists())
 		{
@@ -4292,27 +4258,70 @@ public:
 		}
 		return *this;
 	}
-	MiniString& operator+=(const char* str)
-	{	// append two strings
-		this->append(str);
+	MiniString& append(const char *c, size_t len)
+	{
+		if(c)
+		{
+			size_t sz = (len) ? min(len,strlen(c)) : (0);
+			if(cStrPtr.exists())
+				cStrPtr->strip(1); //strip EOS
+			cStrPtr->append(c,sz);
+			cStrPtr->append(0);
+		}
 		return *this;
 	}
-	MiniString& operator+=(double v)
+	MiniString& append(const char* c)
 	{	// append two strings
-		this->append(v);
+		if(c)
+		{
+			if(cStrPtr.exists())
+				cStrPtr->strip(1); //strip EOS
+			cStrPtr->append(c,strlen(c)+1);
+		}
 		return *this;
 	}
-	MiniString& operator+=(int v)
-	{	// append two strings
-		this->append(v);
+	MiniString& append(char c)
+	{
+		if(cStrPtr.exists())
+			cStrPtr->strip(1); //strip EOS
+		cStrPtr->append(c);
+		cStrPtr->append(0);
 		return *this;
 	}
-	MiniString& operator+=(unsigned int v)
-	{	// append two strings
-		this->append(v);
-		return *this;
+	MiniString& append(int v)
+	{
+		char buf[128];
+		size_t sz = snprintf(buf,sizeof(buf), "%i", v);
+		return append(buf, sz);
+	}
+	MiniString& append(unsigned int v)
+	{
+		char buf[128];
+		size_t sz = snprintf(buf,sizeof(buf), "%u", v);
+		return append(buf, sz);
+	}
+	MiniString& append(double v)
+	{
+		char buf[128];
+		size_t sz = snprintf(buf,sizeof(buf), "%.3lf", v);
+		return append(buf, sz);
+	}
+	MiniString& append(bool b)
+	{
+		return append((b)?"true":"false", (b)?4:5);
 	}
 
+	//////////////////////////////////////////////////////
+	template<class X> const MiniString& operator+=(const X& x)
+	{	
+		return this->append(x);
+	}
+	//////////////////////////////////////////////////////
+	template<class X> MiniString& operator<<(const X& x)
+	{	
+		return this->append(x);
+	}
+	//////////////////////////////////////////////////////
 	MiniString operator +(const MiniString &s)
 	{
 		return MiniString(cStrPtr->array(),length(), s.cStrPtr->array(), s.length());
@@ -4346,6 +4355,27 @@ public:
 		MiniString s(v);
 		return MiniString(cStrPtr->array(),length(), s.cStrPtr->array(), s.length());
 	}
+
+	//////////////////////////////////////////////////////
+	bool operator==(const char *b) const		{return (0==compareTo(b));}
+	bool operator==(const MiniString &b) const	{return (0==compareTo(b));}
+	bool operator!=(const char *b) const		{return (0!=compareTo(b));}
+	bool operator!=(const MiniString &b) const	{return (0!=compareTo(b));}
+	bool operator> (const char *b) const		{return (0> compareTo(b));}
+	bool operator> (const MiniString &b) const	{return (0> compareTo(b));}
+	bool operator< (const char *b) const		{return (0< compareTo(b));}
+	bool operator< (const MiniString &b) const	{return (0< compareTo(b));}
+	bool operator>=(const char *b) const		{return (0>=compareTo(b));}
+	bool operator>=(const MiniString &b) const	{return (0>=compareTo(b));}
+	bool operator<=(const char *b) const		{return (0<=compareTo(b));}
+	bool operator<=(const MiniString &b) const	{return (0<=compareTo(b));}
+
+	//////////////////////////////////////////////////////
+	friend bool operator==(const char *a, const MiniString &b) {return (0==b.compareTo(a));}
+	friend bool operator!=(const char *a, const MiniString &b) {return (0!=b.compareTo(a));}
+
+	//////////////////////////////////////////////////////
+	friend int compare(const MiniString &a,const MiniString &b){ return a.compareTo(b); }
 };
 
 

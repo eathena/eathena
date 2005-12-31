@@ -451,7 +451,7 @@ private:
 		if( !stor.cParam.exists() )
 		{	// there is no data pointer
 			// create one
-			stor.cParam = new CParamData<T>(value);
+			stor.cParam = (CParamBase*)new CParamData<T>(value);
 		}
 		else if( stor.cParam->getType() == typeid(T) )
 		{	// data is of same type and can be used directly

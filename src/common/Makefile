@@ -1,4 +1,4 @@
-all sql txt: baseio.o baseparam.o basesq.o core.o db.o plugins.o grfio.o lock.o malloc.o md5calc.o mmo.o nullpo.o showmsg.o socket.o strlib.o timer.o utils.o
+all sql txt: baseio.o baseparam.o basesq.o basestring.o core.o db.o plugins.o grfio.o lock.o malloc.o md5calc.o mmo.o nullpo.o showmsg.o socket.o strlib.o timer.o utils.o
 
 
 ##########################################################
@@ -26,6 +26,7 @@ plugins.o: plugins.cpp base.h plugins.h mmo.h core.h utils.h malloc.h version.h 
 baseio.o: baseio.cpp baseio.h base.h
 basesq.o: basesq.cpp basesq.h baseio.h base.h
 baseparam.o: baseparam.cpp baseparam.h base.h
+basestring.o: basestring.cpp basestring.h base.h
 clean:
 	rm -rf *.o obj
 

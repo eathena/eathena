@@ -3,7 +3,7 @@
 
 #define LOG_UPTIME 0
 
-
+#include "basestring.h"
 
 #include "mmo.h"
 #include "malloc.h"
@@ -253,6 +253,7 @@ void display_title(void)
 
 int main (int argc, char **argv)
 {
+//	stringtest();
 //	stringbuffer_test();
 //	return 0;
 	int next;

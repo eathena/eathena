@@ -5687,7 +5687,7 @@ int buildin_gettimetick(CScriptEngine &st)	/* Asgard Version */
 	switch(type){
 	case 2: 
 		//type 2:(Get the number of seconds elapsed since 00:00 hours, Jan 1, 1970 UTC from the system clock.)
-		st.push_val(CScriptEngine::C_INT,time(NULL));
+		st.push_val(CScriptEngine::C_INT,(int)time(NULL));
 		break;
 	case 1:
 		//type 1:(Second Ticks: 0-86399, 00:00:00-23:59:59)
@@ -5697,7 +5697,7 @@ int buildin_gettimetick(CScriptEngine &st)	/* Asgard Version */
 		break;
 	default:
 		//type 0:(System Ticks)
-		st.push_val(CScriptEngine::C_INT,gettick());
+		st.push_val(CScriptEngine::C_INT,(int)gettick());
 		break;
 	}
 	return 0;

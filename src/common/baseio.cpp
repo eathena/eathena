@@ -799,7 +799,7 @@ private:
 					{
 						ipaddress ip(last_ip);
 						temp.client_ip = ip;
-						ip.getstring(temp.last_ip);
+						ip.getstring(temp.last_ip, sizeof(temp.last_ip));
 					}
 					else
 					{

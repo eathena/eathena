@@ -255,6 +255,11 @@ public:
 			(cAddr>>0x18)&0xFF,(cAddr>>0x10)&0xFF,(cAddr>>0x8)&0xFF,(cAddr)&0xFF);
 		return buf;
 	}
+	virtual ssize_t getstring(char *buffer, size_t sz) const
+	{	
+		return snprintf(buffer, sz, "%d.%d.%d.%d",
+			(cAddr>>0x18)&0xFF,(cAddr>>0x10)&0xFF,(cAddr>>0x8)&0xFF,(cAddr)&0xFF);
+	}
 	operator const char*()	{ return this->getstring(); }
 	///////////////////////////////////////////////////////////////////////////
 	// boolean operators
@@ -402,6 +407,12 @@ public:
 			cPort);
 		return buf;
 	}
+	virtual ssize_t getstring(char *buffer, size_t sz) const
+	{	
+		return snprintf(buffer, sz, "%d.%d.%d.%d:%d",
+			(cAddr>>0x18)&0xFF,(cAddr>>0x10)&0xFF,(cAddr>>0x8)&0xFF,(cAddr)&0xFF,
+			cPort);
+	}
 	operator const char*() const { return this->getstring(); }
 	///////////////////////////////////////////////////////////////////////////
 	// boolean operators
@@ -465,6 +476,19 @@ public:
 				this->cMask[3],this->cMask[2],this->cMask[1],this->cMask[0], 
 				this->cPort);
 		return buf;
+	}
+	virtual ssize_t getstring(char *buffer, size_t sz) const
+	{	
+		if(this->cMask.cAddr==INADDR_ANY)
+			return snprintf(buffer, sz, "%d.%d.%d.%d:%d",
+				(cAddr>>0x18)&0xFF,(cAddr>>0x10)&0xFF,(cAddr>>0x8)&0xFF,(cAddr)&0xFF, 
+				this->cPort);
+		else
+			return snprintf(buffer, sz, "%d.%d.%d.%d/%d.%d.%d.%d:%d",
+				(cAddr>>0x18)&0xFF,(cAddr>>0x10)&0xFF,(cAddr>>0x8)&0xFF,(cAddr)&0xFF, 
+				this->cMask[3],this->cMask[2],this->cMask[1],this->cMask[0], 
+				this->cPort);
+
 	}
 	///////////////////////////////////////////////////////////////////////////
 	// boolean operators
@@ -666,7 +690,24 @@ public:
 		}
 		return buf;
 	}
-
+	virtual ssize_t getstring(char *buffer, size_t sz) const
+	{	
+		if(this->cMask.cAddr == INADDR_ANY)
+		{	// have only one accessable ip
+			return snprintf(buffer, sz, "%d.%d.%d.%d:%d",
+				(this->cAddr>>0x18)&0xFF,(this->cAddr>>0x10)&0xFF,(this->cAddr>>0x8)&0xFF,(this->cAddr)&0xFF, 
+				this->cPort);
+		}
+		else
+		{	// have a full set
+			return snprintf(buffer, sz, "%d.%d.%d.%d/%d.%d.%d.%d:%d, %d.%d.%d.%d:%d",
+				(this->cAddr>>0x18)&0xFF,(this->cAddr>>0x10)&0xFF,(this->cAddr>>0x8)&0xFF,(this->cAddr)&0xFF,
+				(this->cMask>>0x18)&0xFF,(this->cMask>>0x10)&0xFF,(this->cMask>>0x8)&0xFF,(this->cMask)&0xFF,
+				this->cPort,
+				(wanaddr.cAddr>>0x18)&0xFF,(wanaddr.cAddr>>0x10)&0xFF,(wanaddr.cAddr>>0x8)&0xFF,(wanaddr.cAddr)&0xFF,
+				wanaddr.cPort);
+		}
+	}
 	///////////////////////////////////////////////////////////////////////////
 
 
@@ -686,185 +727,6 @@ class streamable;
 
 
 
-
-//////////////////////////////////////////////////////////////////////////
-// allocators for write buffers
-//
-// dynamic one creates on its own
-// static is using an external buffer for writing
-//
-// size is calculated with one element holding in advance
-// so it can be used for cstring allocation
-//////////////////////////////////////////////////////////////////////////
-template <class T> class allocator_w : public global, public noncopyable
-{
-protected:
-	T* cBuf;
-	T* cEnd;
-	T* cPtr;
-
-	// std construct/destruct
-	allocator_w()	: cBuf(NULL), cEnd(NULL), cPtr(NULL)				{}
-	allocator_w(T* buf, size_t sz) : cBuf(buf), cEnd(buf+sz), cPtr(buf)	{}
-	virtual ~allocator_w()	{}
-
-	virtual bool checkwrite(size_t addsize)	=0;
-};
-
-///////////////////////////////////////////////////////////////////////////////
-template <class T> class allocator_w_st : public allocator_w<T>
-{
-protected:
-	allocator_w_st(T* buf, size_t sz) : allocator_w<T>(buf, sz)	{}
-	allocator_w_st();						// no implementation here
-	allocator_w_st(size_t sz);				// no implementation here
-	virtual ~allocator_w_st()				{}
-	virtual bool checkwrite(size_t addsize)
-	{
-		return ( this->cPtr && this->cPtr +addsize < this->cEnd );
-	}
-};
-///////////////////////////////////////////////////////////////////////////////
-template <class T> class allocator_w_dy : public allocator_w<T>
-{
-protected:
-	allocator_w_dy(T* buf, size_t sz);		// no implementation here
-	allocator_w_dy() : allocator_w<T>()			{}
-	allocator_w_dy(size_t sz) : allocator_w<T>(){ checkwrite(sz); }
-	virtual ~allocator_w_dy()				{ if(this->cBuf) delete[] this->cBuf; }
-	virtual bool checkwrite(size_t addsize)
-	{
-		static const size_t quant1 = (size_t)(   64);
-		static const size_t qmask1 = (size_t)(  ~63);
-		static const size_t quant2 = (size_t)( 4096);
-		static const size_t qmask2 = (size_t)(~4095);
-
-		size_t sz = this->cPtr-this->cBuf + addsize;
-
-		if( this->cBuf+sz >= this->cEnd  ||
-			(this->cBuf+1024 >= this->cEnd && this->cBuf+4*sz < this->cEnd))
-		{	// allocate new
-			// enlarge when not fit
-			// shrink when using less than a quater of the buffer for >1k strings
-			if( sz <= 16 )
-				sz = 16;
-			else if( sz <= 32 )
-				sz = 32;
-			else if( sz <= 2048 )
-				sz = (sz + quant1 - 1) & qmask1;
-			else
-				sz = (sz + quant2 - 1) & qmask2;
-
-			char *tmp = new char[sz];
-			if(this->cBuf)
-			{
-				memcpy(tmp, this->cBuf, this->cPtr-this->cBuf);
-				delete[] this->cBuf;
-			}
-			this->cEnd = tmp+sz;
-			this->cPtr = tmp+(this->cPtr-this->cBuf);
-			this->cBuf = tmp;
-		}
-		return (this->cEnd > this->cBuf);
-	}
-};
-
-//////////////////////////////////////////////////////////////////////////
-// allocators for read/write buffers
-//
-// dynamic one creates on its own
-// static is using an external buffer for writing
-//
-//////////////////////////////////////////////////////////////////////////
-template <class T> class allocator_rw : public global, public noncopyable
-{
-protected:
-	T* cBuf;
-	T* cEnd;
-	T* cRpp;
-	T* cWpp;
-
-	// std construct/destruct
-	allocator_rw()	: cBuf(NULL), cEnd(NULL), cRpp(NULL), cWpp(NULL)				{}
-	allocator_rw(T* buf, size_t sz) : cBuf(buf), cEnd(buf+sz), cRpp(buf), cWpp(buf)	{}
-	virtual ~allocator_rw()	{}
-
-	virtual bool checkwrite(size_t addsize)	=0;
-	virtual bool checkread(size_t addsize) const
-	{
-		return ( this->cRpp && this->cRpp + addsize <=this->cWpp );
-	}
-};
-///////////////////////////////////////////////////////////////////////////////
-template <class T> class allocator_rw_st : public allocator_rw<T>
-{
-protected:
-	allocator_rw_st(T* buf, size_t sz) : allocator_rw<T>(buf, sz)	{}
-	allocator_rw_st();						// no implementation here
-	allocator_rw_st(size_t sz);				// no implementation here
-	virtual ~allocator_rw_st()				{}
-	virtual bool checkwrite(size_t addsize)
-	{
-		if( this->cWpp+addsize >= this->cEnd && this->cBuf < this->cRpp )
-		{	// move the current buffer data when necessary and possible 
-			memmove(this->cBuf, this->cRpp, this->cWpp-this->cRpp);
-			this->cWpp = this->cBuf+(this->cWpp-this->cRpp);
-			this->cRpp = this->cBuf;
-		}
-		return ( this->cWpp && this->cWpp + addsize < this->cEnd );
-	}
-};
-///////////////////////////////////////////////////////////////////////////////
-template <class T> class allocator_rw_dy : public allocator_rw<T>
-{
-protected:
-	allocator_rw_dy(T* buf, size_t sz);		// no implementation here
-	allocator_rw_dy() : allocator_rw<T>()		{}
-	allocator_rw_dy(size_t sz) : allocator_rw<T>(){ checkwrite(sz); }
-	virtual ~allocator_rw_dy()				{ if(this->cBuf) delete[] this->cBuf; }
-	virtual bool checkwrite(size_t addsize)
-	{
-		static const size_t quant1 = (size_t)(   64);
-		static const size_t qmask1 = (size_t)(  ~63);
-		static const size_t quant2 = (size_t)( 4096);
-		static const size_t qmask2 = (size_t)(~4095);
-
-		size_t sz = this->cPtr-this->cBuf + addsize;
-
-		if( this->cBuf+sz > this->cEnd  ||
-			(this->cBuf+8092 > this->cEnd && this->cBuf+4*sz < this->cEnd))
-		{	// allocate new
-			// enlarge when not fit
-			// shrink when using less than a quater of the buffer for >8k buffers
-			if( sz <= 16 )
-				sz = 16;
-			else if( sz <= 32 )
-				sz = 32;
-			else if( sz <= 2048 )
-				sz = (sz + quant1 - 1) & qmask1;
-			else
-				sz = (sz + quant2 - 1) & qmask2;
-
-			char *tmp = new char[sz];
-			if(this->cBuf)
-			{
-				memcpy(tmp, this->cRpp, this->cWpp-this->cRpp);
-				delete[] this->cBuf;
-			}
-			this->cEnd = tmp+sz;
-			this->cWpp = tmp+(this->cWpp-this->cRpp);
-			this->cRpp = tmp;
-			this->cBuf = tmp;
-		}
-		else if( this->wpp+addsize > this->end )
-		{	// moving the current buffer data is sufficient
-			memmove(this->cBuf, this->cRpp, this->cWpp-this->cRpp);
-			this->cWpp = this->cBuf+(this->cWpp-this->cRpp);
-			this->cRpp = this->cBuf;
-		}
-		return (this->cEnd > this->cBuf);
-	}
-};
 
 
 
@@ -1678,7 +1540,7 @@ public:
 		size_t sz = this->wpp-this->rpp + addsize;
 
 		if( this->start+sz > this->end ||
-			(this->start+8092 > this->end && this->start+4*sz < this->end) )
+			(this->start+8092 < this->end && this->start+4*sz < this->end) )
 		{	// allocate new
 			// enlarge when not fit
 			// shrink when using less than a quater of the buffer
@@ -1939,409 +1801,6 @@ extern inline void buffer_test()
 	}
 }
 */
-
-
-///////////////////////////////////////////////////////////////////////////////
-template < class alloc=allocator_w_dy<char> > class stringbuffer : public alloc
-{
-public:
-	stringbuffer() : alloc()									{}
-	stringbuffer(size_t sz) : alloc(sz)							{}
-	stringbuffer(char*buf, size_t sz) : alloc(buf, sz)			{}
-	virtual ~stringbuffer()										{}
-
-	template <class T> stringbuffer(const stringbuffer<T>& sb) : alloc(sb.length())
-	{
-		*this<<sb;
-	}
-
-	// standard string functions
-	operator const char*() const	{ return this->cBuf; }
-	const char* c_str()	const		{ return this->cBuf; }
-	size_t length()	const			{ return (this->cPtr-this->cBuf); }
-	void clear()					{ this->cPtr=this->cBuf; if(this->cPtr) *this->cPtr=0; }
-
-	// operators
-	template <class T> stringbuffer& operator =(const T t)
-	{
-		this->cPtr = this->cBuf;
-		return *this<<t;
-	}
-	template <class T> stringbuffer& operator +=(const T t)
-	{
-		return *this<<t;
-	}
-	template <class T> stringbuffer< allocator_w_dy<char> > operator +(const T t)
-	{
-		return (stringbuffer< allocator_w_dy<char> >(*this)<< t);
-	}
-
-
-	// operator realisations for supported types
-	template <class T> stringbuffer& operator <<(const stringbuffer<T>& sb)
-	{
-		if(sb.length())
-		{
-			if( this->checkwrite(sb.length()) )
-			{
-				memcpy(this->cPtr, sb.c_str(), sb.length());
-				this->cPtr += sb.length();
-			}
-			if(this->cPtr) *this->cPtr=0;
-		}
-		return *this;
-	}
-	stringbuffer& operator <<(const char* ip)
-	{
-		if(ip)
-		{
-			while( *ip && this->checkwrite(1) )
-				*this->cPtr++ = *ip++;
-			if(this->cPtr) *this->cPtr=0;
-		}
-		return *this;
-	}
-	stringbuffer& operator <<(char ch)
-	{
-		if( ch && this->checkwrite(1) )
-		{
-			*this->cPtr++ = ch;
-			*this->cPtr=0;
-		}
-		return *this;
-	}
-	stringbuffer& operator <<(int v)
-	{
-		int sz;
-		while(1)
-		{
-			sz = snprintf(this->cPtr, this->cEnd-this->cPtr, "%i", v);
-			if(sz<0)
-			{	// buffer not sufficient
-				if( !this->checkwrite(1+2*(this->cEnd-this->cPtr)) )
-				{	// give up
-					// should throw something here
-					*this->cPtr=0;
-					break;
-				}
-			}
-			else
-			{
-				this->cPtr += sz;
-				break;
-			}
-		}
-		return *this;
-	}
-	stringbuffer& operator <<(unsigned int v)
-	{
-		int sz;
-		while(1)
-		{
-			sz = snprintf(this->cPtr, this->cEnd-this->cPtr, "%u", v);
-			if(sz<0)
-			{	// buffer not sufficient
-				if( !this->checkwrite(1+2*(this->cEnd-this->cPtr)) )
-				{	// give up
-					// should throw something here
-					*this->cPtr=0;
-					break;
-				}
-			}
-			else
-			{
-				this->cPtr += sz;
-				break;
-			}
-		}
-		return *this;
-	}
-	stringbuffer& operator <<(long v)
-	{
-		int sz;
-		while(1)
-		{
-			sz = snprintf(this->cPtr, this->cEnd-this->cPtr, "%li", v);
-			if(sz<0)
-			{	// buffer not sufficient
-				if( !this->checkwrite(1+2*(this->cEnd-this->cPtr)) )
-				{	// give up
-					// should throw something here
-					*this->cPtr=0;
-					break;
-				}
-			}
-			else
-			{
-				this->cPtr += sz;
-				break;
-			}
-		}
-		return *this;
-	}
-	stringbuffer& operator <<(unsigned long v)
-	{
-		int sz;
-		while(1)
-		{
-			sz = snprintf(this->cPtr, this->cEnd-this->cPtr, "%lu", v);
-			if(sz<0)
-			{	// buffer not sufficient
-				if( !this->checkwrite(1+2*(this->cEnd-this->cPtr)) )
-				{	// give up
-					// should throw something here
-					*this->cPtr=0;
-					break;
-				}
-			}
-			else
-			{
-				this->cPtr += sz;
-				break;
-			}
-		}
-		return *this;
-	}
-	stringbuffer& operator <<(ipaddress ip)
-	{
-		int sz;
-		while(1)
-		{
-			sz = snprintf(this->cPtr, this->cEnd-this->cPtr, ip.getstring());
-			if(sz<0)
-			{	// buffer not sufficient
-				if( !this->checkwrite(1+2*(this->cEnd-this->cPtr)) )
-				{	// give up
-					// should throw something here
-					*this->cPtr=0;
-					break;
-				}
-			}
-			else
-			{
-				this->cPtr += sz;
-				break;
-			}
-		}
-		return *this;
-	}
-
-	stringbuffer& operator <<(double v)
-	{
-		int sz;
-		while(1)
-		{
-			sz = snprintf(this->cPtr, this->cEnd-this->cPtr, "%lf", v);
-			if(sz<0)
-			{	// buffer not sufficient
-				if( !this->checkwrite(1+2*(this->cEnd-this->cPtr)) )
-				{	// give up
-					// should throw something here
-					*this->cPtr=0;
-					break;
-				}
-			}
-			else
-			{
-				this->cPtr += sz;
-				break;
-			}
-		}
-		return *this;
-	}
-};
-
-
-
-//?? static string	-> cntptr, stc char	-> TPtrCount< stringbuffer< allocator_w_st<char> > >
-// global string	-> cntptr, dyn char	-> TPtrAutoCount< stringbuffer< allocator_w_dy<char> > >
-// dynamic string	-> cpwptr, dyn char	-> TPtrAutoRef< stringbuffer< allocator_w_dy<char> > >
-
-
-template <class X> class string
-{
-//	friend class string< TPtrCount< stringbuffer< allocator_w_st<char> > > >;
-	friend class string< TPtrAutoCount< stringbuffer< allocator_w_dy<char> > > >;
-	friend class string< TPtrAutoRef< stringbuffer< allocator_w_dy<char> > > >;
-protected:
-	X strptr;
-public:
-	string()
-	{}
-
-	// standard string functions
-	operator const char*() const	{ return strptr->c_str(); }
-	const char* c_str()	const		{ return strptr->c_str(); }
-	size_t length()	const			{ return strptr->length(); }
-	void clear()					{ return strptr->clear(); }
-
-
-	// assignment operators
-	template<class T> string& operator =(const string<T> sb)
-	{
-		strptr = sb.strptr;
-		return *this;
-	}
-
-	string& operator =(const char* t)
-	{
-		strptr->operator=(t);
-		return *this;
-	}
-	string& operator =(char t)
-	{
-		strptr->operator=(t);
-		return *this;
-	}
-	string& operator =(int t)
-	{
-		strptr->operator=(t);
-		return *this;
-	}
-	string& operator =(unsigned int t)
-	{
-		strptr->operator=(t);
-		return *this;
-	}
-	string& operator =(double t)
-	{
-		strptr->operator=(t);
-		return *this;
-	}
-
-	template <class T> string& operator +=(const string<T> t)
-	{
-		strptr->operator+=(*t.strptr);
-		return *this;
-	}
-	template <class T> string& operator +=(const T t)
-	{
-		strptr->operator+=(t);
-		return *this;
-	}
-	template <class T> string operator +(const string<T> t)
-	{
-		string a(this);
-		a.strptr->operator+=(*t.strptr);
-		return a;
-	}
-	template <class T> string operator +(const T t)
-	{
-		string a(this);
-		a.strptr->operator+=(t);
-		return a;
-	}
-	template <class T> string& operator <<(const string<T> t)
-	{
-		strptr->operator<<(*t.strptr);
-	}
-	template <class T> string& operator <<(const T t)
-	{
-		strptr->operator<<(t);
-		return *this;
-	}
-};
-
-
-//typedef string< TPtrCount< stringbuffer< allocator_w_st<char> > > >     sstring;
-typedef string< TPtrAutoCount< stringbuffer< allocator_w_dy<char> > > > gstring;
-typedef string< TPtrAutoRef< stringbuffer< allocator_w_dy<char> > > >   dstring;
-
-
-
-
-extern inline void stringbuffer_test()
-{
-
-	{
-		stringbuffer<allocator_w_dy<char> > sa, sb, sc;
-		gstring ga, gb, gc;
-		dstring da, db, dc;
-
-
-		da = "hallo";
-		db = "test";
-		dc = da;
-
-		ga = da;
-
-		ga += "1111";
-		da += "2222";
-
-		sa = ga;
-
-		gb = sa;
-	}
-
-
-
-
-
-
-
-	size_t i, sz;
-	char buffer1[1024];
-
-	char buffer2[1024];
-	stringbuffer< allocator_w_st<char> > sa(buffer2, sizeof(buffer2));
-	stringbuffer< allocator_w_dy<char> > sb;
-	MiniString a;
-
-
-
-
-	sa = "hallo";
-	sb = "hallo";
-	sa << "test" << 19999;
-
-	sb = sa + 111111;
-
-	ulong tick = gettick();
-	for(i=0; i<100000; i++)
-		sz = snprintf(buffer1, sizeof(buffer1), "hallo %i ballo %i no %lf", i, i*2/3+i, ((double)i)*1.3);
-	printf("%i\n", gettick()-tick);
-
-	tick = gettick();
-	for(i=0; i<100000; i++)
-		a = MiniString("hallo ") + (int)i + " ballo " + (int)(i*2/3+i) + " no " +(((double)i)*1.3);
-	printf("%i\n", gettick()-tick);
-
-
-	tick = gettick();
-	for(i=0; i<100000; i++)
-	{
-		sa.clear();
-		sa << "hallo " << (int)i << " ballo " << (int)(i*2/3+i) << " no " << (((double)i)*1.3);
-	}
-	printf("%i\n", gettick()-tick);
-	
-	tick = gettick();
-	for(i=0; i<100000; i++)
-	{
-		sb.clear();
-		sb << "hallo " << (int)i << " ballo " << (int)(i*2/3+i) << " no " << (((double)i)*1.3);
-	}
-	printf("%i\n", gettick()-tick);
-	printf("");
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
