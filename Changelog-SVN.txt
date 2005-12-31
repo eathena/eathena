@@ -1,6 +1,7 @@
 Date	Added
 
 2005/12/31
+	* Kaite now works on player-casted spells regardless of level... [Skotlex]
 	* Fixed Kahii healing 0 rather than 200*skilllv... [Skotlex]
 	* Mobs will now go after the loot as soon as they spot it rather than on
 	  their next random-walk time. [Skotlex]

@@ -1658,7 +1658,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 
 	sc_data = status_get_sc_data(bl);
 	if (attack_type&BF_MAGIC && sc_data && sc_data[SC_KAITE].timer != -1 && src == dsrc
-		&& !(status_get_mode(src)&MD_BOSS) && status_get_lv(src) <= 80
+		&& !(status_get_mode(src)&MD_BOSS) && (sd || status_get_lv(dsrc) <= 80) //Works on players or mobs with level under 80.
 	) { //Bounce back the skill.
 		if (--sc_data[SC_KAITE].val2 <= 0)
 			status_change_end(bl, SC_KAITE, -1);
@@ -3345,7 +3345,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			}
 
 			if (sc_data && sc_data[SC_KAITE].timer != -1 
-				&& !(status_get_mode(src)&MD_BOSS) && status_get_lv(src) <= 80
+				&& !(status_get_mode(src)&MD_BOSS)
 			) { //Bounce back heal
 				if (--sc_data[SC_KAITE].val2 <= 0)
 					status_change_end(bl, SC_KAITE, -1);
