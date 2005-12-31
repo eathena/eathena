@@ -1366,6 +1366,7 @@ static int mob_ai_sub_hard_lootsearch(struct block_list *bl,va_list ap)
 		md->target_id=bl->id;
 		md->state.targettype = NONE_ATTACKABLE;
 		md->min_chase=md->db->range3;
+		md->next_walktime = gettick() + 500; //So that the mob may go after the item inmediately.
 	}
 	return 0;
 }

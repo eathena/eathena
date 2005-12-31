@@ -1,6 +1,8 @@
 Date	Added
 
 2005/12/31
+	* Mobs will now go after the loot as soon as they spot it rather than on
+	  their next random-walk time. [Skotlex]
 	* Set the 56th byte in packets 7b and 1da. It deals with acceleration in directions.
 	  It's just like the final byte in packet 0x87.  Server-side update of this still needs to be figured out. [Valaris]
 	* Fixed Kaziel not starting Kyrie Elison upon resurrection. [Skotlex]

@@ -584,7 +584,7 @@ int pc_isequip(struct map_session_data *sd,int n)
 
 	if (sd->sc_data[SC_SPIRIT].timer != -1 && sd->sc_data[SC_SPIRIT].val2 == SL_SUPERNOVICE) {
 		//Spirit of Super Novice equip bonuses. [Skotlex]
-		if (sd->status.base_level > 90 && item->equip & 0x100)
+		if (sd->status.base_level > 90 && item->equip & 0x301)
 			return 1; //Can equip all helms
 		if (sd->status.base_level > 96 && item->equip & 0x022 && item->type == 4)
 			switch(item->look) { //In weapons, the look determines type of weapon.

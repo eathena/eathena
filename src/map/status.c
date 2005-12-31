@@ -4693,7 +4693,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			opt_flag = 1;
 			break;
 		case SC_DPOISON:	// 暫定で毒のエフェクトを使用
-			*opt2 |= OPT2_POISON;
+			*opt2 |= OPT2_DPOISON;
 			opt_flag = 1;
 			break;
 		case SC_SIGNUMCRUCIS:
@@ -5167,22 +5167,15 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			opt_flag = 1;
 			break;
 
+		case SC_POISON:
 		case SC_CURSE:
 		case SC_SILENCE:
 		case SC_BLIND:
 			*opt2 &= ~(1<<(type-SC_POISON));
 			opt_flag = 1;
 			break;
-		case SC_POISON:
-			if (sc_data[SC_DPOISON].timer != -1)	//
-				break;						// DPOISON用のオプション
-			*opt2 &= ~OPT2_POISON;					// が?用に用意された場合には
-			opt_flag = 1;					// ここは削除する
-			break;							//
 		case SC_DPOISON:
-			if (sc_data[SC_POISON].timer != -1)	// DPOISON用のオプションが
-				break;							// 用意されたら削除
-			*opt2 &= ~OPT2_POISON;	// 毒?態解除
+			*opt2 &= ~OPT2_DPOISON;	// 毒?態解除
 			opt_flag = 1;
 			break;
 		case SC_SIGNUMCRUCIS:

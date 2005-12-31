@@ -7978,7 +7978,7 @@ int skill_check_condition(struct map_session_data *sd,int type)
 		{
 			int kaina_lv = pc_checkskill(sd,SL_KAINA);
 
-			if(kaina_lv==0)
+			if(kaina_lv==0 || sd->status.base_level<70)
 				break;
 			if(sd->status.base_level>=90)
 				sp -= sp*7*kaina_lv/100;
@@ -8101,7 +8101,14 @@ int skill_check_condition(struct map_session_data *sd,int type)
 			//It should consume whatever is left as long as it's at least 1.
 		}
 		break;
-	
+
+	case TK_MISSION: //Does not works on Non-Taekwon
+		if ((sd->class_&MAPID_UPPERMASK) != MAPID_TAEKWON) {
+			clif_skill_fail(sd,skill,0,0);
+			return 0;
+		}
+		break;
+		
 	case TK_READYCOUNTER:
 	case TK_READYDOWN:
 	case TK_READYSTORM:

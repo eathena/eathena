@@ -395,8 +395,13 @@ enum {
 #define OPT2_POISON 0x001
 #define OPT2_CURSE 0x002
 #define OPT2_SILENCE 0x004
-#define OPT2_BLIND 0x008
-#define OPT2_SIGNUMCRUCIS 0x040
+//0x008 Odd howl sound, Signum crucis?
+#define OPT2_SIGNUMCRUCIS 0x008
+#define OPT2_BLIND 0x010
+//0x020 - nothing
+//0x040 - nothing
+#define OPT2_DPOISON 0x080
+//0x100 
 
 //Opt3: Skill state changes, stackable.
 #define OPT3_SPEEDUP 0x001 //Quicken skills
