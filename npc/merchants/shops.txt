@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= eAthena Dev Team
 //===== Current Version: ===================================== 
-//= 1.16
+//= 1.17
 //===== Compatible With: ===================================== 
 //= eAthena 7.15 +
 //===== Description: ========================================= 
@@ -26,6 +26,8 @@
 //= 1.15 Added Venom Knives into every Weapon Shop (that sells Knife[3]) [Lupus]
 //= 1.15a Fixed a small typo in alberta's weapon shop, thanks to reddozen for the fix [MasterOfMuppets]
 //= 1.16 Added a temp shop in Yuno to sell Blank scrolls, thanks to reddozen [MasterOfMuppets]
+//= 1.17 Added wand of hypnotist to the Lighthalzen weapon shop [MasterOfMuppets]
+//=   -  Guys, I suggest we crop these comments and put them at the bottom soon
 //============================================================ 
 
 
@@ -147,7 +149,7 @@ lighthalzen.gat,125,125,4	shop	Food Seller	750,7456:-1,-1,7453:-1,7454:-1
 lhz_in02.gat,286,95,4	shop	Armor Dealer	62,5112:-1,2416:-1,2113:-1,2512:-1
 lhz_in02.gat,271,99,4	shop	Armor Dealer	851,2101:-1,2103:-1,2403:-1,2405:-1,2503:-1,2321:-1,2314:-1,2309:-1,2335:-1,2628:-1
 lhz_in02.gat,276,99,4	shop	Weapon Dealer	851,1201:-1,1207:-1,1216:-1,1107:-1,1122:-1,1116:-1,1154:-1,1407:-1,1457:-1,1354:-1,1519:-1,13003:-1,1771:-1
-lhz_in02.gat,273,35,4	shop	Weapon Dealer	854,1601:-1,1604:-1,1607:-1,1617:-1,1619:-1
+lhz_in02.gat,273,35,4	shop	Weapon Dealer	854,1601:-1,1604:-1,1607:-1,1617:-1,1619:-1,1621:-1
 lhz_in02.gat,17,220,4	shop	Vegetable Merchant	91,515:-1,516:-1,535:-1
 lhz_in02.gat,21,220,5	shop	Fruit Merchant	102,512:-1,513:-1
 lhz_in02.gat,32,218,6	shop	Butcher	54,517:-1

@@ -26,6 +26,8 @@
 		* * * From where this info is? ... Mine: On your death you'll loose this ring and get 50% HP [Komurka]
 =========================
 
+12/31
+	* Updated some mobskills for the einbroch monsters [MasterOfMuppets]
 12/30
 	* Removed some maps from mapflag that were not in either maps_athena nor map_index. [Vicious]
 	* Updated the active guild skill cast times to 5 secs. Now their time2 is

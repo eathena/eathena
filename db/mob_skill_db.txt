@@ -2464,19 +2464,19 @@
 // by MasterOfMuppets
 1613,Metaling@MC_MAMMONITE,attack,42,5,500,800,5000,no,target,always,0,,,,,,
 1613,Metaling@CR_REFLECTSHIELD,attack,252,2,500,0,300000,no,self,always,0,,,,,,
-1613,Metaling@NPC_EMOTION,loot,197,1,150,0,10000,yes,self,always,0,2,,,,,
+1613,Metaling@NPC_EMOTION,attack,197,1,200,0,5000,yes,self,always,0,18,,,,,
 1613,Metaling@RG_STRIPWEAPON,attack,215,3,500,0,30000,yes,target,always,0,,,,,,
 1613,Metaling@CR_AUTOGUARD,attack,249,3,500,0,300000,yes,self,always,0,,,,,,
 
 1614,Mineral@CR_REFLECTSHIELD,attack,252,2,500,0,300000,no,self,always,0,,,,,,
 1614,Mineral@NPC_RANDOMATTACK,attack,183,3,500,500,5000,no,target,always,0,,,,,,
 1614,Mineral@NPC_BARRIER,attack,204,1,2000,3000,5000,no,self,myhpltmaxrate,30,,,,,,
-1614,Mineral@TF_HIDING,attack,51,1,2000,500,5000,no,self,myhpltmaxrate,30,,,,,,
+1614,Mineral@TF_HIDING,idle,51,3,2000,500,5000,no,self,always,0,,,,,,
 1614,Mineral@NPC_SPLASHATTACK,attack,174,1,2000,0,5000,yes,target,attackpcgt,2,,,,,,
 
-1615,Obsidian@CR_SHIELDCHARGE,attack,250,1,500,0,5000,no,target,always,,,,,,
+1615,Obsidian@CR_SHIELDCHARGE,idle,250,1,250,0,300000,no,target,mystatuson,hiding,,,,,,
 1615,Obsidian@NPC_BARRIER,attack,204,1,2000,3000,5000,no,self,myhpltmaxrate,30,,,,,,
-1615,Obsidian@TF_HIDING,attack,51,1,2000,500,5000,no,self,myhpltmaxrate,30,,,,,,
+1615,Obsidian@TF_HIDING,idle,51,3,2000,500,5000,no,self,always,0,,,,,,
 1615,Obsidian@SM_MAGNUM,attack,7,5,500,500,5000,no,target,always,0,,,,,,
 1615,Obsidian@NPC_GROUNDATTACK,attack,185,3,500,500,5000,no,target,always,0,,,,,,
 

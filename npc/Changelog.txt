@@ -25,6 +25,8 @@ Nexon
 
 Date		Added
 ======
+12/31
+	* Added wand of hypnotist to the Lighthalzen weapon shop [MasterOfMuppets]
 12/30
 	* Fixed missing //, found by map_index. [Vicious]
 	* Added a missing label (M_0) that was causing people to freeze when viewing the city list from "Miss Yoon" [Zephiris]
