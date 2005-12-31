@@ -27,6 +27,7 @@
 =========================
 
 12/31
+	* Updated Absorb spirit spheres to be interruptible. [Skotlex]
 	* Updated some mobskills for the einbroch monsters [MasterOfMuppets]
 12/30
 	* Removed some maps from mapflag that were not in either maps_athena nor map_index. [Vicious]

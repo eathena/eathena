@@ -278,7 +278,7 @@
 259,0,0,0,0,0,10,0,no,0,0,0,weapon,0	//MO_IRONHAND#Iron Fists#
 260,0,0,0,0,0,5,0,no,0,0,0,weapon,0	//MO_SPIRITSRECOVERY#Spiritual Cadence#
 261,0,6,4,0,1,5,1,no,0,0,0,none,0	//MO_CALLSPIRITS#Summon Spirit Sphere#
-262,9,6,16,0,1,1,1,no,0,0,0,weapon,0	//MO_ABSORBSPIRITS#Absorb Spirit Sphere#
+262,9,6,16,0,1,1,1,yes,0,0,0,weapon,0	//MO_ABSORBSPIRITS#Absorb Spirit Sphere#
 263,-1,8,0,-1,0,10,3,no,0,0,0,weapon,0	//MO_TRIPLEATTACK#Raging Triple Blow#
 264,18,6,2,0,1,1,1,no,0,0,0,none,0	//MO_BODYRELOCATION#Snap#
 265,0,0,0,0,0,10,0,no,0,0,0,weapon,0	//MO_DODGE#Dodge#

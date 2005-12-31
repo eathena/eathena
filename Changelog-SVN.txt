@@ -1,6 +1,7 @@
 Date	Added
 
 2005/12/31
+	* Fixed Kahii healing 0 rather than 200*skilllv... [Skotlex]
 	* Mobs will now go after the loot as soon as they spot it rather than on
 	  their next random-walk time. [Skotlex]
 	* Set the 56th byte in packets 7b and 1da. It deals with acceleration in directions.

@@ -879,9 +879,9 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 				  status_change_start(src,SC_COMBO, TK_COUNTER,bl->id,0,0,2000,0);
 			}
 			if (sc_data && sc_data[SC_KAAHI].timer != -1) {
-				battle_heal(bl, bl, 200*sc_data[SC_KAAHI].val2, -5*sc_data[SC_KAAHI].val2, 1);
+				battle_heal(bl, bl, 200*sc_data[SC_KAAHI].val1, -5*sc_data[SC_KAAHI].val1, 1);
 				if(dstsd && dstsd->fd)
-					clif_heal(dstsd->fd,SP_HP,200*sc_data[SC_KAAHI].val2);
+					clif_heal(dstsd->fd,SP_HP,200*sc_data[SC_KAAHI].val1);
 			}
 		}
 		break;
