@@ -3977,16 +3977,19 @@ int atcommand_waterlevel(
 {
 	int newlevel;
 	if (!message || !*message || sscanf(message, "%d", &newlevel) < 1) {
-		sprintf(atcmd_output, "%s's current water level: %d\n", map[sd->bl.m].name, map_waterheight(map[sd->bl.m].name));
+		sprintf(atcmd_output, "%s's current water level: %d", map[sd->bl.m].name, map_waterheight(map[sd->bl.m].name));
 		clif_displaymessage(fd, atcmd_output);
 		return 0;
 	}
 
 	if (map_setwaterheight(sd->bl.m, map[sd->bl.m].name, newlevel)) {
-		sprintf(atcmd_output, "%s's water level changed to: %d\n", map[sd->bl.m].name, newlevel);
+		if (newlevel > 0)
+			sprintf(atcmd_output, "%s's water level changed to: %d", map[sd->bl.m].name, newlevel);
+		else
+			sprintf(atcmd_output, "Removed %s's water level information.", map[sd->bl.m].name);
 		clif_displaymessage(fd, atcmd_output);
 	} else {
-		sprintf(atcmd_output, "Failed to change %s's water level.\n", map[sd->bl.m].name);
+		sprintf(atcmd_output, "Failed to change %s's water level.", map[sd->bl.m].name);
 		clif_displaymessage(fd, atcmd_output);
 	}
 	return 0;

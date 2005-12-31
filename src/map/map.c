@@ -2226,12 +2226,24 @@ static struct waterlist_ {
 #define NO_WATER 1000000
 
 static int map_setwaterheight_sub(int m, int wh) {
-	int y, x;
+	char fn[256];
+	char *gat;
+	int x,y;
 	struct gat_1cell {float high[4]; int type;} *p = NULL;
-	if (m == -1)
+	
+	if (m < 0)
 		return 0;
+	
+	sprintf(fn,"data\\%s",mapindex_id2name(map[m].index));
+
+	// read & convert fn
+	// again, might not need to be unsigned char
+	gat = (char *) grfio_read (fn);
+	if (gat == NULL)
+		return 0;
+
 	for (y = 0; y < map[m].ys; y++) {
-		p = (struct gat_1cell*)(map[m].gat+y*map[m].xs*20+14);
+		p = (struct gat_1cell*)(gat+y*map[m].xs*20+14);
 		for (x = 0; x < map[m].xs; x++) {
 			if (wh != NO_WATER && p->type == 0) //Set water cell
 				map[m].gat[x+y*map[m].xs] = (p->high[0]>wh || p->high[1]>wh || p->high[2]>wh || p->high[3]>wh) ? 3 : 0;
@@ -2240,6 +2252,7 @@ static int map_setwaterheight_sub(int m, int wh) {
 			p++;
 		}
 	}
+	aFree(gat);
 	return 1;
 }
 int map_setwaterheight(int m, char *mapname, int height) {

@@ -1,5 +1,9 @@
 Date	Added
 
+2005/12/31
+	* Fixed and tested @waterlevel. It requires the grfs to be present as the
+	  map layout height information is stored there but not in the map data kept
+	  in memory. [Skotlex]
 2005/12/30
 	* Disabled certain packets from taking effect during trades to prevent
 	  possible exploits (such as picking and dropping items, buying selling from
