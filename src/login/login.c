@@ -1275,14 +1275,15 @@ int mmo_auth(struct mmo_account* account, int fd) {
 		if (online_check) {
 			struct online_login_data* data = numdb_search(online_db,auth_dat[i].account_id);
 			unsigned char buf[8];
-			if (data) {
+			if (data && data->char_server > -1) {
 				//Request char servers to kick this account out. [Skotlex]
 				ShowWarning("User [%d] is already online - Rejected.\n",auth_dat[i].account_id);
-				data->waiting_disconnect = 1;
 				WBUFW(buf,0) = 0x2734;
 				WBUFL(buf,2) = auth_dat[i].account_id;
 				charif_sendallwos(-1, buf, 6);
-				add_timer(gettick()+30000, waiting_disconnect_timer,auth_dat[i].account_id, 0);
+				if (!data->waiting_disconnect)
+					add_timer(gettick()+30000, waiting_disconnect_timer,auth_dat[i].account_id, 0);
+				data->waiting_disconnect = 1;
 				return 3; // Rejected
 			}
 		}
@@ -1353,6 +1354,17 @@ int mmo_auth(struct mmo_account* account, int fd) {
 	return -1; // account OK
 }
 
+static int online_db_setoffline(void* key, void* data, va_list ap) {
+	struct online_login_data *p = (struct online_login_data *)data;
+	int server = va_arg(ap, int);
+	if (server == -1) {
+		p->char_server = -1;
+		p->waiting_disconnect = 0;
+	} else if (p->char_server == server)
+		p->char_server = -2; //Char server disconnected.
+	return 0;
+}
+
 //--------------------------------
 // Packet parsing for char-servers
 //--------------------------------
@@ -1378,6 +1390,7 @@ int parse_fromchar(int fd) {
 			          server[id].name, ip);
 			server_fd[id] = -1;
 			memset(&server[id], 0, sizeof(struct mmo_char_server));
+			numdb_foreach(online_db,online_db_setoffline,id); //Set all chars from this char server to offline.
 		}
 		do_close(fd);
 		return 0;
@@ -1465,7 +1478,7 @@ int parse_fromchar(int fd) {
 			//printf("parse_fromchar: Receiving of the users number of the server '%s': %d\n", server[id].name, RFIFOL(fd,2));
 			server[id].users = RFIFOL(fd,2);
 			// send some answer
-                        WFIFOHEAD(fd, 2);
+			WFIFOHEAD(fd, 2);
 			WFIFOW(fd,0) = 0x2718;
 			WFIFOSET(fd,2);
 
@@ -1855,6 +1868,34 @@ int parse_fromchar(int fd) {
 			RFIFOSKIP(fd,6);
 			break;
 
+		case 0x272d:	// Receive list of all online accounts. [Skotlex]
+			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < RFIFOW(fd,2))
+				return 0;
+			if (!online_check) {
+				RFIFOSKIP(fd,RFIFOW(fd,2));
+				break;	
+			}
+			{
+				struct online_login_data *p;
+				int aid, i, users;
+				numdb_foreach(online_db,online_db_setoffline,id); //Set all chars from this char-server offline first
+				users = RFIFOW(fd,4);
+				for (i = 0; i < users; i++) {
+					aid = RFIFOL(fd,6+i*4);
+					p = numdb_search(online_db, aid);
+					if (p == NULL) {
+						p = aCalloc(1, sizeof(struct online_login_data));
+						p->account_id = aid;
+						p->char_server = id;
+						numdb_insert(online_db, aid, p);
+					} else {
+						p->char_server = aid;
+						p->waiting_disconnect = 0;
+					}
+				}
+				RFIFOSKIP(fd,RFIFOW(fd,2));
+				break;
+			}
 		case 0x3000: //change sex for chrif_changesex()
 			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < RFIFOW(fd,2))
 				return 0;
@@ -3346,7 +3387,24 @@ int parse_console(char *buf) {
 	return 0;
 }
 
+static int online_data_cleanup_sub(void *key, void *data, va_list ap)
+{
+	struct online_login_data *character= (struct online_login_data*)data;
+	if (character->char_server == -2) //Unknown server.. set them offline
+		remove_online_user(character->account_id);
+	if (character->char_server < 0)
+	{  //Free data from players that have not been online for a while.
+		numdb_erase(online_db, character->account_id);
+		aFree(data);
+	}
+	return 0;
+}
 
+static int online_data_cleanup(int tid, unsigned int tick, int id, int data)
+{
+	db_foreach(online_db, online_data_cleanup_sub);
+	return 0;
+} 
 //-------------------------------------------------
 // Return numerical value of a switch configuration
 // on/off, english, français, deutsch, español
@@ -4048,7 +4106,7 @@ int do_init(int argc, char **argv) {
 		login_fd = make_listen_bind(INADDR_ANY,login_port);
 
 	add_timer_func_list(check_auth_sync, "check_auth_sync");
-	i = add_timer_interval(gettick() + 60000, check_auth_sync, 0, 0, 60000); // every 60 sec we check if we must save accounts file (only if necessary to save)
+	add_timer_interval(gettick() + 60000, check_auth_sync, 0, 0, 60000); // every 60 sec we check if we must save accounts file (only if necessary to save)
 
 	// add timer to check GM accounts file modification
 	j = gm_account_filename_check_timer;
@@ -4056,8 +4114,11 @@ int do_init(int argc, char **argv) {
 		j = 60;
 
 	add_timer_func_list(check_GM_file, "check_GM_file");
-	i = add_timer_interval(gettick() + j * 1000, check_GM_file, 0, 0, j * 1000); // every x sec we check if gm file has been changed
+	add_timer_interval(gettick() + j * 1000, check_GM_file, 0, 0, j * 1000); // every x sec we check if gm file has been changed
 
+	
+	add_timer_func_list(online_data_cleanup, "online_data_cleanup");
+	add_timer_interval(gettick() + 600*1000, online_data_cleanup, 0, 0, 600*1000); // every 10 minutes cleanup online account db.
 	if(console) {
 		set_defaultconsoleparse(parse_console);
 	   	start_console();

@@ -3138,7 +3138,7 @@ int parse_char(int fd) {
 					WFIFOSET(login_fd,19);
 				} else { // if no login-server, we must refuse connection
 					WFIFOW(fd,0) = 0x6c;
-					WFIFOW(fd,2) = 0;
+					WFIFOB(fd,2) = 0;
 					WFIFOSET(fd,3);
 				}
 			}
@@ -3629,6 +3629,37 @@ int send_users_tologin(int tid, unsigned int tick, int id, int data) {
 	WBUFL(buf,2) = users;
 	mapif_sendall(buf, 6);
 
+	return 0;
+}
+
+static int send_accounts_tologin_sub(void* key, void* data, va_list ap) {
+	struct online_char_data* character = (struct online_char_data*)data;
+	int *i = va_arg(ap, int*);
+	int count = va_arg(ap, int);
+	if ((*i) >= count)
+		return 0; //This is an error that shouldn't happen....
+	if(character->server > -1) {
+		WFIFOHEAD(login_fd, 8+count*4);
+		WFIFOL(login_fd, 8+(*i)*4) =character->account_id;
+		(*i)++;
+		return 1;
+	}
+	return 0;
+}
+
+int send_accounts_tologin(int tid, unsigned int tick, int id, int data) {
+	int users = count_users(), i=0;
+
+	if (login_fd > 0 && session[login_fd]) {
+		// send account list to login server
+		WFIFOHEAD(login_fd, 8+users*4);
+		WFIFOW(login_fd,0) = 0x272d;
+		WFIFOL(login_fd,4) = users;
+		numdb_foreach(online_char_db, send_accounts_tologin_sub, &i, users);
+		WFIFOW(login_fd,2) = 8+ i*4;
+		if (i > 0)
+			WFIFOSET(login_fd,WFIFOW(login_fd,2));
+	}
 	return 0;
 }
 
@@ -4176,6 +4207,7 @@ int do_init(int argc, char **argv){
 
 	add_timer_func_list(check_connect_login_server, "check_connect_login_server");
 	add_timer_func_list(send_users_tologin, "send_users_tologin");
+	add_timer_func_list(send_accounts_tologin, "send_accounts_tologin");
 	add_timer_func_list(chardb_waiting_disconnect, "chardb_waiting_disconnect");
 
 	add_timer_func_list(online_data_cleanup, "online_data_cleanup");
@@ -4185,7 +4217,8 @@ int do_init(int argc, char **argv){
 	add_timer_interval(gettick() + 10, check_connect_login_server, 0, 0, 10 * 1000);
 	// send USER COUNT PING to login server.
 	add_timer_interval(gettick() + 10, send_users_tologin, 0, 0, 5 * 1000);
-
+	add_timer_interval(gettick() + 3600*1000, send_accounts_tologin, 0, 0, 3600 * 1000); //Sync online accounts every hour.
+	
 	if ( console ) {
 	    set_defaultconsoleparse(parse_console);
 	   	start_console();

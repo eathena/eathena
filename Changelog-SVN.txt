@@ -1,6 +1,10 @@
 Date	Added
 
 2006/01/01
+	* Some improvements to the login server (txt/sql) to prevent memory 'leaks'
+	  from accounts that logged in but where never properly set as logged out.
+	  [Skotlex]
+	* Fixed mapindex not working for last map loaded in map_index.txt [Skotlex]
 	* Added support for packet 0x1e9, party_main_info. Packet is still
 	  incomplete and the client is ignoring it currently... [Skotlex]
 	* Changing party options now does not alters item party options. [Skotlex]
