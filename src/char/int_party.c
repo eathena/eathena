@@ -512,9 +512,10 @@ int mapif_parse_PartyAddMember(int fd, int party_id, int account_id, int char_id
 }
 
 // パ?ティ?設定?更要求
-int mapif_parse_PartyChangeOption(int fd, int party_id, int account_id, int exp, int item) {
+int mapif_parse_PartyChangeOption(int fd, int party_id, int account_id, int exp, int flag) {
 	struct party *p;
-	int flag = 0;
+	//NOTE: No clue what that flag is about, in all observations so far it always comes as 0. [Skotlex]
+	flag = 0;
 
 	p = (struct party *) numdb_search(party_db, party_id);
 	if (p == NULL)
@@ -525,8 +526,6 @@ int mapif_parse_PartyChangeOption(int fd, int party_id, int account_id, int exp,
 		flag |= 0x01;
 		p->exp = 0;
 	}
-
-	p->item = item;
 
 	mapif_party_optionchanged(fd, p, account_id, flag);
 	return 0;

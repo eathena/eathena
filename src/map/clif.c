@@ -6254,6 +6254,27 @@ int clif_vendingreport(struct map_session_data *sd,int index,int amount)
 	return 0;
 }
 
+int clif_party_main_info(struct party *p, struct map_session_data *sd)
+{
+	int fd;
+	fd=sd->fd;
+	WFIFOHEAD(fd,packet_len_table[0x1e9]);
+	WFIFOW(fd,0)=0x1e9;
+	//TODO: Contents 2->9 are completely unknown as of yet! The following values are totally made up....
+	WFIFOL(fd,2)= p->party_id;
+	WFIFOL(fd,6)= 0;
+	WFIFOW(fd,10)=sd->bl.x;
+	WFIFOW(fd,12)=sd->bl.y;
+	//This byte is also unconfirmed...
+	WFIFOB(fd,14)= p->exp?1:0;
+	memcpy(WFIFOP(fd,15), p->name, NAME_LENGTH);
+	memcpy(WFIFOP(fd,39), sd->status.name, NAME_LENGTH);
+	memcpy(WFIFOP(fd,63), mapindex_id2name(sd->mapindex), MAP_NAME_LENGTH);
+	WFIFOB(fd,79) = (p->item&1)?1:0;
+	WFIFOB(fd,80) = (p->item&2)?1:0;
+	WFIFOSET(fd,packet_len_table[0x1e9]);
+	return 0;
+}
 /*==========================================
  * パーティ作成完了
  *------------------------------------------
@@ -6379,7 +6400,7 @@ int clif_party_option(struct party *p,struct map_session_data *sd,int flag)
 		return 0;
 	WBUFW(buf,0)=0x101;
 	WBUFW(buf,2)=((flag&0x01)?2:p->exp);
-	WBUFW(buf,4)=((flag&0x10)?2:p->item);
+	WBUFW(buf,4)=0; //NOTE: We don't know yet what this is for, it is NOT for item share rules, though. [Skotlex]
 	if(flag==0)
 		clif_send(buf,packet_len_table[0x101],&sd->bl,PARTY);
 	else {
@@ -8902,7 +8923,7 @@ void clif_parse_GlobalMessage(int fd, struct map_session_data *sd) { // S 008c <
 
 	// Celest
 	if ((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE) { //Super Novice.
-		int next = pc_nextbaseexp(sd) > 0 ? pc_nextbaseexp(sd) : sd->status.base_exp;
+		int next = pc_nextbaseexp(sd);
 		char *rfifo = (char*)RFIFOP(fd,4);
 		if (next > 0 && (sd->status.base_exp * 100 / next) % 10 == 0) {
 			if (sd->state.snovice_flag == 0 && strstr(rfifo, msg_txt(504)))

@@ -1,5 +1,10 @@
 Date	Added
 
+2006/01/01
+	* Added support for packet 0x1e9, party_main_info. Packet is still
+	  incomplete and the client is ignoring it currently... [Skotlex]
+	* Changing party options now does not alters item party options. [Skotlex]
+	* Corrected Kahai healing even when there's not enough SP to do so. [Skotlex]
 2005/12/31
 	* Fixed the additional effects on normal attacks of Enchant Poison, Enchant
 	  Deadly Poison and Kahai not taking effect except when the attacker was a

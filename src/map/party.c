@@ -110,7 +110,9 @@ int party_created(int account_id,int char_id,int fail,int party_id,char *name)
 		memcpy(p->name, name, NAME_LENGTH);
 		numdb_insert(party_db,party_id,p);
 		
-		clif_party_created(sd,0);
+		clif_party_main_info(p,sd); //Send info about new party such as leader, and item sharing types.
+		clif_party_option(p,sd,0x2); //This flag doesn't alters exp settings and sends it only to the sd.
+		clif_party_created(sd,0); //Success message
 		clif_charnameupdate(sd); //Update other people's display. [Skotlex]
 	}else{
 		clif_party_created(sd,1);
@@ -408,13 +410,13 @@ int party_broken(int party_id)
 	return 0;
 }
 // パーティの設定変更要求
-int party_changeoption(struct map_session_data *sd,int exp,int item)
+int party_changeoption(struct map_session_data *sd,int exp,int flag)
 {
 	nullpo_retr(0, sd);
 
 	if( sd->status.party_id==0)
 		return 0;
-	intif_party_changeoption(sd->status.party_id,sd->status.account_id,exp,item);
+	intif_party_changeoption(sd->status.party_id,sd->status.account_id,exp,flag);
 	return 0;
 }
 // パーティの設定変更通知

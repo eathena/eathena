@@ -886,7 +886,8 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 			status_change_start(bl,SC_DPOISON,sc_data[SC_EDP].val1,0,0,0,skill_get_time2(ASC_EDP,sc_data[SC_EDP].val1),0);
 
 		if (tsc_data && tsc_data[SC_KAAHI].timer != -1) {
-			battle_heal(bl, bl, 200*tsc_data[SC_KAAHI].val1, -5*tsc_data[SC_KAAHI].val1, 1);
+			if (!dstsd || dstsd->status.sp >= 5*tsc_data[SC_KAAHI].val1)
+				battle_heal(bl, bl, 200*tsc_data[SC_KAAHI].val1, -5*tsc_data[SC_KAAHI].val1, 1);
 			if(dstsd && dstsd->fd)
 				clif_heal(dstsd->fd,SP_HP,200*tsc_data[SC_KAAHI].val1);
 		}
@@ -1738,6 +1739,8 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 	if(sd) {
 		//Sorry for removing the Japanese comments, but they were actually distracting 
 		//from the actual code and I couldn't understand a thing anyway >.< [Skotlex]
+		if (skillid && sd->sc_data[SC_COMBO].timer != -1)
+			status_change_end(src,SC_COMBO,-1); //Interrupt previous combo if you used a skill already. [Skotlex]
 		switch(skillid)
 		{
 			case MO_TRIPLEATTACK:
@@ -2691,6 +2694,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 	case AS_VENOMKNIFE:
 	case HT_PHANTASMIC:
 	case HT_POWER:
+	case TK_DOWNKICK:
+	case TK_COUNTER:
 		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
 		break;
 
@@ -2710,15 +2715,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 		map_foreachinarea(skill_attack_area, src->m,
 			src->x-2, src->y-2, src->x+2, src->y+2, 0,
 			BF_WEAPON, src, src, skillid, skilllv, tick, flag, BCT_ENEMY);	
-		if (sc_data && sc_data[SC_COMBO].timer != -1)
-			status_change_end(src, SC_COMBO, -1);
 		break;
-	case TK_DOWNKICK:
-	case TK_COUNTER:
-		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
-		if (sc_data && sc_data[SC_COMBO].timer != -1)
-			status_change_end(src, SC_COMBO, -1);
-      		break;
 	case TK_JUMPKICK:
 		if(sd) {
 			if (!pc_can_move(sd))
@@ -2726,8 +2723,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 			skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
 			pc_movepos(sd,bl->x,bl->y,0); 
 			clif_slide(src,bl->x,bl->y);
-			if (sc_data && sc_data[SC_COMBO].timer != -1)
-				status_change_end(src, SC_COMBO, -1);
 		}
 		break;
 	case ASC_BREAKER:				/* ソウルブレ?カ? */	// [DracoRPG]
@@ -2745,21 +2740,10 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 					BF_WEAPON,src,src,skillid,skilllv,tick,flag,BCT_ENEMY);	// varargs		
 		break;
 
-	case NPC_DARKBREATH:
-		clif_emotion(src,7);
-		skill_attack(BF_MISC,src,src,bl,skillid,skilllv,tick,flag);
-		break;
-
 	case MO_INVESTIGATE:	/* ?勁 */
 		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
 		if (sc_data && sc_data[SC_BLADESTOP].timer != -1)
 			status_change_end(src,SC_BLADESTOP,-1);
-		break;
-
-	case SN_FALCONASSAULT:			/* ファルコンアサルト */
-	case PA_PRESSURE:	/* プレッシャ? */
-	case CR_ACIDDEMONSTRATION:  // Acid Demonstration
-		skill_attack(BF_MISC,src,src,bl,skillid,skilllv,tick,flag);
 		break;
 
 	case RG_BACKSTAP:		/* バックスタブ */
@@ -2861,7 +2845,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 					status_change_end(src, SC_EXPLOSIONSPIRITS, -1);
 				if (sc_data[SC_BLADESTOP].timer != -1)
 					status_change_end(src,SC_BLADESTOP,-1);
-				if (sc_data[SC_COMBO].timer != -1) 
+				if (sc_data[SC_COMBO].timer != -1) //This is one is here to make combo end even if skill failed. 
 					status_change_end(src,SC_COMBO,-1);
 			}
 		}
@@ -2995,8 +2979,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 		break;
 
 	case TK_TURNKICK:
-		if (sc_data && sc_data[SC_COMBO].timer != -1)
-			status_change_end(src, SC_COMBO, -1);
 	case MO_BALKYOUNG: //Active part of the attack. Skill-attack [Skotlex]
 	{
 		skill_area_temp[1] = bl->id; //NOTE: This is used in skill_castend_nodamage_id to avoid affecting the target.
@@ -3176,9 +3158,17 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 			mob_changestate((struct mob_data *)src,MS_DELAY,900);
 		break;
 
+	case NPC_DARKBREATH:
+		clif_emotion(src,7);
+		skill_attack(BF_MISC,src,src,bl,skillid,skilllv,tick,flag);
+		break;
+
+	case SN_FALCONASSAULT:			/* ファルコンアサルト */
+	case PA_PRESSURE:	/* プレッシャ? */
+	case CR_ACIDDEMONSTRATION:  // Acid Demonstration
 	case TF_THROWSTONE:			/* ?ﾎ投げ */
 	case NPC_SMOKING:			/* スモ?キング */
-		skill_attack(BF_MISC,src,src,bl,skillid,skilllv,tick,0 );
+		skill_attack(BF_MISC,src,src,bl,skillid,skilllv,tick,flag);
 		break;
 
 	// Celest

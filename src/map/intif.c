@@ -360,7 +360,7 @@ int intif_party_addmember(int party_id,struct map_session_data *sd)
 	return 1;
 }
 // パーティ設定変更
-int intif_party_changeoption(int party_id,int account_id,int exp,int item)
+int intif_party_changeoption(int party_id,int account_id,int exp,int flag)
 {
 	if (CheckForCharServer())
 		return 0;
@@ -369,7 +369,7 @@ int intif_party_changeoption(int party_id,int account_id,int exp,int item)
 	WFIFOL(inter_fd,2)=party_id;
 	WFIFOL(inter_fd,6)=account_id;
 	WFIFOW(inter_fd,10)=exp;
-	WFIFOW(inter_fd,12)=item;
+	WFIFOW(inter_fd,12)=flag;
 	WFIFOSET(inter_fd,14);
 	return 0;
 }
