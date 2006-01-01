@@ -17,6 +17,7 @@
 //= 0.9 fix small bug. Added Bio-lab entrance Quest. Added Getting security-card Quest.
 //= 1.0 Patched "mobsters spawn & Alert" like Real-RO.
 //= 1.0a fixed rand(1,10) + comparision. There just can't be 'X < 1' [Lupus]
+//= 1.1 Changed the mobster spawn to g_mobster to prevent exploits [MasterOfMuppets]
 //============================================================ 
 //= aoa's comment
 //= In future, Need for new monsters. No-Drop, No-Exp, Weak "Mobster","VENOMOUS","NOXIOUS"
@@ -69,7 +70,7 @@ MakeMob:
 	mapannounce "lighthalzen.gat","Maintenance Organization of the Public Order: Currently the security of the city has been compromized, We ask the citizens to be more careful. I repeat. We ask the citizens to be more careful.", 1;
 	
 	for( set $@i, 0; $@i < $@mob; set $@i, $@i + 1 ) {
-		monster "lighthalzen.gat",0,0,"Mobster",1313,1,"Mobs::MobKilled";
+		monster "lighthalzen.gat",0,0,"Mobster",1592,1,"Mobs::MobKilled";
 	}
 
 	set $@lhz_alert, 1;	
