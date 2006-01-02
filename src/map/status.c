@@ -2398,6 +2398,8 @@ int status_calc_speed(struct block_list *bl, int speed)
 				speed += speed * 25/100;
 			if(sc_data[SC_STEELBODY].timer!=-1)
 				speed += speed * 25/100;
+			if(sc_data[SC_SKA].timer!=-1)
+				speed += speed * 25/100;
 			if(sc_data[SC_QUAGMIRE].timer!=-1)
 				speed += speed * 50/100;
 			if(sc_data[SC_DONTFORGETME].timer!=-1)
@@ -2452,6 +2454,8 @@ int status_calc_aspd_rate(struct block_list *bl, int aspd_rate)
 			if(sc_data[SC_DONTFORGETME].timer!=-1)
 				aspd_rate += sc_data[SC_DONTFORGETME].val2;
 			if(sc_data[SC_STEELBODY].timer!=-1)
+				aspd_rate += 25;
+			if(sc_data[SC_SKA].timer!=-1)
 				aspd_rate += 25;
 			if(sc_data[SC_DEFENDER].timer != -1)
 				aspd_rate += 25 -sc_data[SC_DEFENDER].val1*5;

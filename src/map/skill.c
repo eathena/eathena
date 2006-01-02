@@ -863,7 +863,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 				status_change_start(src,SC_COMBO, TK_TURNKICK,0,0,0,2000,0);
 			else if(sd->sc_data[SC_READYCOUNTER].timer != -1 && sd->sc_data[SC_COMBO].timer == -1) //additional chance from SG_FRIEND [Komurka]
 			{	
-				int rate = 20;
+				rate = 20;
 				if (sd->sc_data[SC_SKILLRATE_UP].timer != -1 && sd->sc_data[SC_SKILLRATE_UP].val1 == TK_COUNTER) {
 					rate += rate*sd->sc_data[SC_SKILLRATE_UP].val2/100;
 					status_change_end(src,SC_SKILLRATE_UP,-1);
@@ -886,10 +886,13 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 			status_change_start(bl,SC_DPOISON,sc_data[SC_EDP].val1,0,0,0,skill_get_time2(ASC_EDP,sc_data[SC_EDP].val1),0);
 
 		if (tsc_data && tsc_data[SC_KAAHI].timer != -1) {
-			if (!dstsd || dstsd->status.sp >= 5*tsc_data[SC_KAAHI].val1)
-				battle_heal(bl, bl, 200*tsc_data[SC_KAAHI].val1, -5*tsc_data[SC_KAAHI].val1, 1);
-			if(dstsd && dstsd->fd)
-				clif_heal(dstsd->fd,SP_HP,200*tsc_data[SC_KAAHI].val1);
+			if (dstsd && dstsd->status.sp < 5*tsc_data[SC_KAAHI].val1)
+				; //Not enough SP to cast
+			else {
+				rate = battle_heal(bl, bl, 200*tsc_data[SC_KAAHI].val1, -5*tsc_data[SC_KAAHI].val1, 1);
+				if(dstsd && dstsd->fd)
+					clif_heal(dstsd->fd,SP_HP,rate);
+			}
 		}
 	}
 	break;
@@ -8698,7 +8701,9 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 	case HT_POWER:
 		if (sc_data[SC_COMBO].timer != -1 && sc_data[SC_COMBO].val1 == skill_num)
 			target_id = sc_data[SC_COMBO].val2;
-		else if (skill_num != TK_JUMPKICK)
+		else if (skill_num == TK_COUNTER) //This one is for Ranking TKers
+			target_id = sd->attacktarget;
+		else if (skill_num == HT_POWER)
 			return 0;
 		break;
 // -- moonsoul	(altered to allow proper usage of extremity from new champion combos)

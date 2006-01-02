@@ -1198,6 +1198,7 @@ static struct Damage battle_calc_weapon_attack(
 			case KN_SPEARSTAB:
 			case KN_BOWLINGBASH:
 			case MO_BALKYOUNG:
+			case TK_TURNKICK:
 				wd.blewcount=0;
 				break;
 
@@ -1810,6 +1811,8 @@ static struct Damage battle_calc_weapon_attack(
 					break;
 				case TK_JUMPKICK:
 					skillratio += -70 + 10*skill_lv;
+					if (sc_data && sc_data[SC_COMBO].timer != -1 && sc_data[SC_COMBO].val1 == skill_num)
+						skillratio += 300;
 					break;
 				case KN_CHARGEATK:
 					skillratio += wflag*15; //FIXME: How much is the actual bonus? [Skotlex]

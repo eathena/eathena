@@ -1,6 +1,14 @@
 Date	Added
 
 2006/01/02
+	* Fixed Turn Kick not knocking back nearby enemies. [Skotlex]
+	* Added the damage bonus to Flying Side Kick when used from a combo.
+	  However I am waiting for the actual equation (currently just does +300%
+	  dmg) [Skotlex] 
+	* Fixed Counter Kick for ranking Taekwons. [Skotlex] 
+	* Added walk slowdown and aspd penalty to Eska. [Skotlex] 
+	* Fixed status_get_size which seemed severly broken. [Skotlex] 
+	* Fixed Kahai to only display actual amount of HP healed. [Skotlex] 
 	* Now when a script's map is not found (or not loaded on the map server)
 	  the script engine will skip the whole script instead of just the first
 	  line. [Skotlex]
