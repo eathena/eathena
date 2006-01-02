@@ -25,6 +25,8 @@ Nexon
 
 Date		Added
 ======
+01/02
+	* Removed a duplicate warp in warp/cities/payon.txt [MasterOfMuppets]
 12/31
 	* Added wand of hypnotist to the Lighthalzen weapon shop [MasterOfMuppets]
 12/30
