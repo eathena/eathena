@@ -1812,7 +1812,7 @@ static struct Damage battle_calc_weapon_attack(
 				case TK_JUMPKICK:
 					skillratio += -70 + 10*skill_lv;
 					if (sc_data && sc_data[SC_COMBO].timer != -1 && sc_data[SC_COMBO].val1 == skill_num)
-						skillratio += 300;
+						skillratio += 10*status_get_lv(src)/3;
 					break;
 				case KN_CHARGEATK:
 					skillratio += wflag*15; //FIXME: How much is the actual bonus? [Skotlex]
@@ -1836,8 +1836,19 @@ static struct Damage battle_calc_weapon_attack(
 			ATK_RATE(skillratio);
 
 			//Constant/misc additions from skills
-			if (skill_num == MO_EXTREMITYFIST)
-				ATK_ADD(250 + 150*skill_lv);
+			switch (skill_num) {
+				case MO_EXTREMITYFIST:
+					ATK_ADD(250 + 150*skill_lv);
+					break;
+				case TK_DOWNKICK:
+				case TK_STORMKICK:
+				case TK_TURNKICK:
+				case TK_COUNTER:
+				case TK_JUMPKICK:
+					if (sc_data && sc_data[SC_SPURT].timer != -1)
+						ATK_ADD(10*sc_data[SC_SPURT].val1);
+					break;
+			}
 		}
 
 		if(sd)

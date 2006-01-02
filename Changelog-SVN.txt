@@ -1,6 +1,16 @@
 Date	Added
 
 2006/01/02
+	* Added Kaina's Enjoyable Rest bonus and Max SP bonus. [Skotlex]
+	* Fixed Stone Curse consuming gems while Soul Linked. [Skotlex]
+	* Fixed party-change-map packet incorrectly checking if the even share rule
+	  was broken (party share should now correctly break on map-change, or when a
+	  player has it's level reset) [Skotlex]
+	* Corrected the Jump Kick base-level damage bonus when combo-used. [Skotlex]
+	* Added the running damage bonus to the TK kicks. [Skotlex]
+	* Made the TK kicks end the Soul Linked status on targets. [Skotlex]
+	* Corrected Spirit of Wizard to nullify any bounced back spells. [Skotlex]
+	* Cleaned up the natural/skill HP/SP regen routines. [Skotlex]
 	* Fixed Turn Kick not knocking back nearby enemies. [Skotlex]
 	* Added the damage bonus to Flying Side Kick when used from a combo.
 	  However I am waiting for the actual equation (currently just does +300%

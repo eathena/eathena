@@ -645,27 +645,6 @@ int party_send_xy_clear(struct party *p)
 	return 0;
 }
 
-//Does a manual check for even share on this map server, and if the range is not satisfied,
-//a request to change it sent to the char server. [Skotlex]
-void party_exp_share_check(struct map_session_data *sd, struct party *p) 
-{
-	struct map_session_data *p_sd;
-	int i,lv;
-	int maxlv=0,minlv=0x7fffffff;
-
-	if (p == NULL || p->exp == 0)
-		return;
-	for(i=0;i<MAX_PARTY;i++){
-		if ((p_sd = p->member[i].sd) == NULL)
-			continue;
-		lv=p_sd->status.base_level;
-		if( lv < minlv ) minlv=lv;
-		else if( maxlv < lv ) maxlv=lv;
-	}
-	if (maxlv - minlv > party_share_level)
-		party_changeoption(sd,0,p->item); //Manual resetting of exp share. [Skotlex]
-}
-
 // exp share and added zeny share [Valaris]
 int party_exp_share(struct party *p,int map,int base_exp,int job_exp,int zeny)
 {

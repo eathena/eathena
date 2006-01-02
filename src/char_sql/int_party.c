@@ -689,7 +689,7 @@ int mapif_parse_PartyLeave(int fd, int party_id, int account_id, int char_id)
 int mapif_parse_PartyChangeMap(int fd, int party_id, int account_id, int char_id, unsigned short map, int online, int lv)
 {
 	struct party *p;
-	int i, flag = 0;
+	int i;
 
 	p = inter_party_fromsql(party_id);
 	if (p == NULL)
@@ -700,14 +700,14 @@ int mapif_parse_PartyChangeMap(int fd, int party_id, int account_id, int char_id
 		{
 			p->member[i].map = map;
 			p->member[i].online = online;
-			if (p->member[i].lv != lv && p->exp && !party_check_exp_share(p)) {
-				p->exp = 0;
-				flag = 1;
+			if (p->member[i].lv != lv) {
+				p->member[i].lv = lv;
+			  	if (p->exp && !party_check_exp_share(p)) {
+					p->exp = 0;
+					mapif_party_optionchanged(fd, p, 0, 0);
+				}
 			}
-			p->member[i].lv = lv;
 			mapif_party_membermoved(p, i);
-			if (flag)
-				mapif_party_optionchanged(fd, p, 0, 0);
 			break;
 		}
 	}

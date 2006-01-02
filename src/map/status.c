@@ -1682,11 +1682,11 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	// Skill-related HP recovery
 	if((skill=pc_checkskill(sd,SM_RECOVERY)) > 0)
 		sd->nshealhp = skill*5 + (sd->status.max_hp*skill/500);
-	if((skill=pc_checkskill(sd,TK_HPTIME)) > 0 && sd->state.rest == 1)
-		sd->nshealhp = skill*30;
 	// Skill-related HP recovery (only when sit)
 	if((skill=pc_checkskill(sd,MO_SPIRITSRECOVERY)) > 0)
 		sd->nsshealhp = skill*4 + (sd->status.max_hp*skill/500);
+	if((skill=pc_checkskill(sd,TK_HPTIME)) > 0 && sd->state.rest == 1)
+		sd->nsshealhp = skill*30 + (sd->status.max_hp*skill/500);
 
 	if(sd->nshealhp > 0x7fff) sd->nshealhp = 0x7fff;
 	if(sd->nsshealhp > 0x7fff) sd->nsshealhp = 0x7fff;
@@ -1706,6 +1706,8 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	sd->status.max_sp += index;
 
 	// Absolute modifiers from passive skills
+	if((skill=pc_checkskill(sd,SL_KAINA))>0)
+		sd->status.max_sp += 30*skill;
 	if((skill=pc_checkskill(sd,HP_MEDITATIO))>0)
 		sd->status.max_sp += sd->status.max_sp * skill/100;
 	if((skill=pc_checkskill(sd,HW_SOULDRAIN))>0)
@@ -1744,12 +1746,14 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		// Skill-related SP recovery
 		if((skill=pc_checkskill(sd,MG_SRECOVERY)) > 0)
 			sd->nshealsp = skill*3 + (sd->status.max_sp*skill/500);
-		if((skill=pc_checkskill(sd,TK_SPTIME)) > 0 && sd->state.rest == 1)
-			sd->nshealsp = skill*3;
 		// Skill-related SP recovery (only when sit)
 		if((skill = pc_checkskill(sd,MO_SPIRITSRECOVERY)) > 0)
 			sd->nsshealsp = skill*2 + (sd->status.max_sp*skill/500);
-
+		if((skill=pc_checkskill(sd,TK_SPTIME)) > 0 && sd->state.rest == 1) {
+			sd->nsshealsp = skill*3 + (sd->status.max_sp*skill/500);
+			if ((skill=pc_checkskill(sd,SL_KAINA)) > 0) //Power up Enjoyable Rest
+				sd->nsshealsp += (30+10*skill)*sd->nsshealsp/100;
+		}
 		if(sd->nshealsp > 0x7fff) sd->nshealsp = 0x7fff;
 		if(sd->nsshealsp > 0x7fff) sd->nsshealsp = 0x7fff;
 	}
@@ -1941,7 +1945,7 @@ int status_calc_str(struct block_list *bl, int str)
   		if(sc_data[SC_TRUESIGHT].timer!=-1)
 			str += 5;
 		if(sc_data[SC_SPURT].timer!=-1)
-			str += sc_data[SC_SPURT].val1;
+			str += 10; //Bonus is +!0 regardless of skill level
 		if(sc_data[SC_BLESSING].timer != -1){
 			int race = status_get_race(bl);
 			if(battle_check_undead(race,status_get_elem_type(bl)) || race == 6)

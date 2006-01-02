@@ -4498,9 +4498,6 @@ int pc_checkbaselevelup(struct map_session_data *sd)
 		}
 
 		clif_misceffect(&sd->bl,0);
-		//Apply a check to see if even share was broken.
-		if (sd->status.party_id)
-			party_exp_share_check(sd, party_search(sd->status.party_id));
 		//LORDALFA - LVLUPEVENT
 		if (script_config.event_script_type == 0) {
 			struct npc_data *npc;
@@ -5053,8 +5050,8 @@ int pc_resetlvl(struct map_session_data* sd,int type)
 	}
 
 	if ((type == 1 || type == 2 || type == 3) && sd->status.party_id) {
-		//Check for breaking even share. [Skotlex]
-		party_exp_share_check(sd, party_search(sd->status.party_id));
+		//Send map-change packet to do a level range check and break party settings. [Skotlex]
+		party_send_movemap(sd);
 	}
 	clif_skillinfoblock(sd);
 	status_calc_pc(sd,0);
@@ -7610,9 +7607,6 @@ static int pc_natural_heal_hp(struct map_session_data *sd)
 
 	nullpo_retr(0, sd);
 
-	if (sd->sc_count && sd->sc_data[SC_TRICKDEAD].timer != -1)		// Modified by RoVeRT
-		return 0;
-
 	if (sd->no_regen & 1)
 		return 0;
 
@@ -7665,10 +7659,7 @@ static int pc_natural_heal_hp(struct map_session_data *sd)
 
 	if(sd->nshealhp > 0) {
 		if(sd->inchealhptick >= battle_config.natural_heal_skill_interval && sd->status.hp < sd->status.max_hp) {
-			if(sd->doridori_counter && pc_checkskill(sd,TK_HPTIME)) //TK_HPTIME doridori provided bonus [Dralnu]
-				bonus = sd->nshealhp+30; //Doridori counter will be cleared out in the sp regen routine.
-			else
-				bonus = sd->nshealhp;
+			bonus = sd->nshealhp;
 			while(sd->inchealhptick >= battle_config.natural_heal_skill_interval) {
 				sd->inchealhptick -= battle_config.natural_heal_skill_interval;
 				if(sd->status.hp + bonus <= sd->status.max_hp)
@@ -7693,11 +7684,6 @@ static int pc_natural_heal_sp(struct map_session_data *sd)
 	int inc_num,bonus;
 
 	nullpo_retr(0, sd);
-
-	if (sd->sc_count && (sd->sc_data[SC_TRICKDEAD].timer != -1 ||	// Modified by RoVeRT
-		sd->sc_data[SC_BERSERK].timer != -1 ||
-		sd->sc_data[SC_BLEEDING].timer != -1))
-		return 0;
 
 	if (sd->no_regen & 2)
 		return 0;
@@ -7734,13 +7720,11 @@ static int pc_natural_heal_sp(struct map_session_data *sd)
 
 	if(sd->nshealsp > 0) {
 		if(sd->inchealsptick >= battle_config.natural_heal_skill_interval && sd->status.sp < sd->status.max_sp) {
-			if(sd->doridori_counter && (sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE)
+			if(sd->doridori_counter && (sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE) {
 				bonus = sd->nshealsp*2;
-			if(sd->doridori_counter && pc_checkskill(sd,TK_SPTIME)) //TK_SPTIME doridori provided bonus [Dralnu]
-				bonus = sd->nshealsp+3;
-			else
+				sd->doridori_counter = 0;
+			} else
 				bonus = sd->nshealsp;
-			sd->doridori_counter = 0;
 			while(sd->inchealsptick >= battle_config.natural_heal_skill_interval) {
 				sd->inchealsptick -= battle_config.natural_heal_skill_interval;
 				if(sd->status.sp + bonus <= sd->status.max_sp)
@@ -7777,6 +7761,12 @@ static int pc_spirit_heal_hp(struct map_session_data *sd)
 
 	if(sd->inchealspirithptick >= interval) {
 		bonus_hp = sd->nsshealhp;
+		if(sd->doridori_counter && pc_checkskill(sd,TK_HPTIME) > 0) {
+		  	//TK_HPTIME doridori provided bonus [Dralnu]
+			bonus_hp += 30;
+			if (!sd->nsshealsp) //If there's sp regen, this gets clear in the next function. [Skotlex]
+				sd->doridori_counter = 0;
+		}
 		while(sd->inchealspirithptick >= interval) {
 			if(pc_issit(sd)) {
 				sd->inchealspirithptick -= interval;
@@ -7817,6 +7807,11 @@ static int pc_spirit_heal_sp(struct map_session_data *sd)
 
 	if(sd->inchealspiritsptick >= interval) {
 		bonus_sp = sd->nsshealsp;
+		if(sd->doridori_counter && pc_checkskill(sd,TK_SPTIME) > 0) {
+			//TK_SPTIME doridori provided bonus [Dralnu]
+			bonus_sp += 3;
+			sd->doridori_counter = 0;
+		}
 		while(sd->inchealspiritsptick >= interval) {
 			if(pc_issit(sd)) {
 				sd->inchealspiritsptick -= interval;
@@ -7879,39 +7874,46 @@ static int pc_bleeding (struct map_session_data *sd)
  */
 
 static int pc_natural_heal_sub(struct map_session_data *sd,va_list ap) {
-	int skill;
 	int tick;
 
 	nullpo_retr(0, sd);
 	tick = va_arg(ap,int);
 
 // -- moonsoul (if conditions below altered to disallow natural healing if under berserk status)
-	if ((battle_config.natural_heal_weight_rate > 100 || sd->weight*100/sd->max_weight < battle_config.natural_heal_weight_rate) &&
-		!pc_isdead(sd) &&
-		!pc_ishiding(sd) &&
+	if (pc_isdead(sd) || pc_ishiding(sd) ||
 	//-- cannot regen for 5 minutes after using Berserk --- [Celest]
-		DIFF_TICK (tick, sd->canregen_tick)>=0 &&
-		(sd->sc_data && !(sd->sc_data[SC_POISON].timer != -1 && sd->sc_data[SC_SLOWPOISON].timer == -1) &&
-		sd->sc_data[SC_BERSERK].timer == -1 ))
-	{
-		pc_natural_heal_hp(sd);
-		if( sd->sc_data && sd->sc_data[SC_EXTREMITYFIST].timer == -1 &&	//阿修羅?態ではSPが回復しない
-			sd->sc_data[SC_DANCING].timer == -1 && //ダンス?態ではSPが回復しない
-			sd->sc_data[SC_BERSERK].timer == -1 )   //バ?サ?ク?態ではSPが回復しない
-			pc_natural_heal_sp(sd);
-		sd->canregen_tick = tick;
+		(sd->sc_count && (
+			(sd->sc_data[SC_POISON].timer != -1 && sd->sc_data[SC_SLOWPOISON].timer == -1) ||
+			(sd->sc_data[SC_DPOISON].timer != -1 && sd->sc_data[SC_SLOWPOISON].timer == -1) ||
+			sd->sc_data[SC_BERSERK].timer != -1 ||
+			sd->sc_data[SC_TRICKDEAD].timer != -1
+		))
+	) { //Cannot heal neither natural or special.
+		sd->hp_sub = sd->inchealhptick = sd->inchealspirithptick = 0;
+		sd->sp_sub = sd->inchealsptick = sd->inchealspiritsptick = 0;
 	} else {
-		sd->hp_sub = sd->inchealhptick = 0;
-		sd->sp_sub = sd->inchealsptick = 0;
-	}
-	if((skill = pc_checkskill(sd,MO_SPIRITSRECOVERY)) > 0 && !pc_ishiding(sd) &&
-		sd->sc_data[SC_POISON].timer == -1 && sd->sc_data[SC_BERSERK].timer == -1){
-		pc_spirit_heal_hp(sd);
-		pc_spirit_heal_sp(sd);
-	}
-	else {
-		sd->inchealspirithptick = 0;
-		sd->inchealspiritsptick = 0;
+		if (DIFF_TICK (tick, sd->canregen_tick)<0 ||
+			sd->weight*100/sd->max_weight <= battle_config.natural_heal_weight_rate
+		) { //Cannot heal natural HP/SP
+			sd->hp_sub = sd->inchealhptick = 0;
+			sd->sp_sub = sd->inchealsptick = 0;
+		} else { //natural heal
+			pc_natural_heal_hp(sd);
+			if(sd->sc_count && (
+				sd->sc_data[SC_EXTREMITYFIST].timer != -1 ||
+				sd->sc_data[SC_DANCING].timer != -1 ||
+				sd->sc_data[SC_BLEEDING].timer != -1
+			))	//No SP natural heal.
+				sd->sp_sub = sd->inchealsptick = 0;
+			else
+				pc_natural_heal_sp(sd);
+			sd->canregen_tick = tick;
+		}
+		//Sitting Healing
+		if (sd->nsshealhp)
+			pc_spirit_heal_hp(sd);
+		if (sd->nsshealsp)
+			pc_spirit_heal_sp(sd);
 	}
 	if (sd->hp_loss_value > 0 || sd->sp_loss_value > 0)
 		pc_bleeding(sd);

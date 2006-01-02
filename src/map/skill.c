@@ -1224,8 +1224,16 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 	case TK_DOWNKICK:
 		if(rand()%100 < 100*sc_def_vit/100 )
 			status_change_start(bl,SC_STAN,skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
-        break;
-
+	case TK_STORMKICK:
+	case TK_TURNKICK:
+	case TK_COUNTER:
+	case TK_JUMPKICK:
+		{	//TK kicks cancel out Soul Linker status of the target. [Skotlex]
+			struct status_change *sc_data = status_get_sc_data(bl);
+			if (sc_data && sc_data[SC_SPIRIT].timer != -1)
+				status_change_end(bl, SC_SPIRIT, -1);
+		}		
+		break;
 	case MO_BALKYOUNG: //Note: attack_type is passed as BF_WEAPON for the actual target, BF_MISC for the splash-affected mobs.
 		if(attack_type == BF_MISC &&  rand()%100 < 70*sc_def_vit/100 ) //70% base stun chance...
 			status_change_start(bl,SC_STAN,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
@@ -1676,6 +1684,8 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		bl = src; //Just make the skill attack yourself @.@
 		sc_data = status_get_sc_data(bl);
 		tsd = (bl->type == BL_PC)?(struct map_session_data *)bl:NULL;
+		if (sc_data && sc_data[SC_SPIRIT].timer != -1 && sc_data[SC_SPIRIT].val1 == SL_WIZARD)
+			return 0; //Spirit of Wizard blocks bounced back spells.
 	}
 	
 	type=-1;
@@ -4224,15 +4234,17 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case TK_RUN:
 		{
 			struct status_change *sc_data = status_get_sc_data(bl);
+			int type = SkillStatusChangeTable[skillid];
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
+			
 			if(!sc_data)
 				break;
-			if (sc_data[SC_RUN].timer!=-1)
-				status_change_end(bl,SC_RUN,-1);
+			if (sc_data[type].timer!=-1)
+				status_change_end(bl,type,-1);
 			else{
-				status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,status_get_dir(bl),0,0,0,0 );
+				status_change_start(bl,type,skilllv,status_get_dir(bl),0,0,0,0);
 				if(skilllv>=7 && (!dstsd || (dstsd->weapontype1 == 0 && dstsd->weapontype2 == 0)))
-					status_change_start(bl,SC_SPURT,10,0,0,0,150000,0);
+					status_change_start(bl,SC_SPURT,sc_data[type].val1,0,0,0,skill_get_time2(skillid, skilllv),0);
 			}
 		}
 		break;
@@ -4422,9 +4434,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				mob_target(dstmd,src,skill_get_range2(src,skillid,skilllv));
 			if (sd && gem_flag) {
 				if ((i=pc_search_inventory(sd, skill_db[skillid].itemid[0])) < 0 ) {
-					if (!fail_flag) clif_skill_fail(sd,skillid,0,0);
+				//	if (!fail_flag) clif_skill_fail(sd,skillid,0,0); This is actually a bug! Altough the gem is checked in skill_check_condition...
 					break;
 				}
+				if (sd->sc_data[SC_SPIRIT].timer != -1 && sd->sc_data[SC_SPIRIT].val1 == SL_WIZARD)
+					break; //Do not delete the gemstone.
 				pc_delitem(sd, i, skill_db[skillid].amount[0], 0);
 			}
 		}
