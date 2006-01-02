@@ -1,6 +1,10 @@
 Date	Added
 
 2006/01/02
+	* Corrected TK_JUMPKICK to remove Soul Linker spirit buffs and related
+	  effects (except Berserk-Pitched effect) [Skotlex]
+	* Corrected TK_RUN to give +10 dmg bonus to kick skills when not wearing a
+	  weapon. [Skotlex]
 	* Added Kaina's Enjoyable Rest bonus and Max SP bonus. [Skotlex]
 	* Fixed Stone Curse consuming gems while Soul Linked. [Skotlex]
 	* Fixed party-change-map packet incorrectly checking if the even share rule

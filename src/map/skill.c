@@ -1224,14 +1224,19 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 	case TK_DOWNKICK:
 		if(rand()%100 < 100*sc_def_vit/100 )
 			status_change_start(bl,SC_STAN,skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
-	case TK_STORMKICK:
-	case TK_TURNKICK:
-	case TK_COUNTER:
+			break;
+			
 	case TK_JUMPKICK:
-		{	//TK kicks cancel out Soul Linker status of the target. [Skotlex]
+		{	//Cancel out Soul Linker status of the target. [Skotlex]
 			struct status_change *sc_data = status_get_sc_data(bl);
-			if (sc_data && sc_data[SC_SPIRIT].timer != -1)
-				status_change_end(bl, SC_SPIRIT, -1);
+			if (sc_data) {
+				if (sc_data[SC_SPIRIT].timer != -1)
+					status_change_end(bl, SC_SPIRIT, -1);
+				if (sc_data[SC_ONEHAND].timer != -1)
+					status_change_end(bl, SC_ONEHAND, -1);
+				if (sc_data[SC_ADRENALINE2].timer != -1)
+					status_change_end(bl, SC_ADRENALINE2, -1);
+			}
 		}		
 		break;
 	case MO_BALKYOUNG: //Note: attack_type is passed as BF_WEAPON for the actual target, BF_MISC for the splash-affected mobs.

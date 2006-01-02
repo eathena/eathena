@@ -1845,8 +1845,9 @@ static struct Damage battle_calc_weapon_attack(
 				case TK_TURNKICK:
 				case TK_COUNTER:
 				case TK_JUMPKICK:
-					if (sc_data && sc_data[SC_SPURT].timer != -1)
-						ATK_ADD(10*sc_data[SC_SPURT].val1);
+					//TK_RUN kick damage bonus.
+					if(sd && sd->weapontype1 == 0 && sd->weapontype2 == 0)
+						ATK_ADD(10*pc_checkskill(sd, TK_RUN));
 					break;
 			}
 		}
