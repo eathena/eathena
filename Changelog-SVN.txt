@@ -1,6 +1,7 @@
 Date	Added
 
 2006/01/02
+	* Fixed regen only working when overweight. [Valaris]
 	* Added body size to clones. [Valaris]
 	* Corrected TK_JUMPKICK to remove Soul Linker spirit buffs and related
 	  effects (except Berserk-Pitched effect) [Skotlex]

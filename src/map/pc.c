@@ -7893,8 +7893,7 @@ static int pc_natural_heal_sub(struct map_session_data *sd,va_list ap) {
 		sd->sp_sub = sd->inchealsptick = sd->inchealspiritsptick = 0;
 	} else {
 		if (DIFF_TICK (tick, sd->canregen_tick)<0 ||
-			sd->weight*100/sd->max_weight <= battle_config.natural_heal_weight_rate
-		) { //Cannot heal natural HP/SP
+			sd->weight*100/sd->max_weight >= battle_config.natural_heal_weight_rate) { //Cannot heal natural HP/SP
 			sd->hp_sub = sd->inchealhptick = 0;
 			sd->sp_sub = sd->inchealsptick = 0;
 		} else { //natural heal
