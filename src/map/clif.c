@@ -1074,7 +1074,7 @@ static int clif_mob0078(struct mob_data *md, unsigned char *buf)
 		WBUFW(buf,0)=0x78;
 		WBUFL(buf,2)=md->bl.id;
 		WBUFW(buf,6)=status_get_speed(&md->bl);
-		WBUFW(buf,8)=0x05;
+		WBUFW(buf,8)=md->opt1;
 		WBUFW(buf,10)=md->opt2;
 		WBUFW(buf,12)=md->option;
 		WBUFW(buf,14)=mob_get_viewclass(md->class_);
@@ -1109,7 +1109,7 @@ static int clif_mob0078(struct mob_data *md, unsigned char *buf)
 		WBUFW(buf,0)=0x1d8;
 		WBUFL(buf,2)=md->bl.id;
 		WBUFW(buf,6)=status_get_speed(&md->bl);
-		WBUFW(buf,8)=0x05;
+		WBUFW(buf,8)=md->opt1;
 		WBUFW(buf,10)=md->opt2;
 		WBUFW(buf,12)=md->option;
 		WBUFW(buf,14)=mob_get_viewclass(md->class_);
@@ -1180,7 +1180,7 @@ static int clif_mob007b(struct mob_data *md, unsigned char *buf) {
 		WBUFW(buf,0)=0x7b;
 		WBUFL(buf,2)=md->bl.id;
 		WBUFW(buf,6)=status_get_speed(&md->bl);
-		WBUFW(buf,8)=0x05;
+		WBUFW(buf,8)=md->opt1;
 		WBUFW(buf,10)=md->opt2;
 		WBUFW(buf,12)=md->option;
 		WBUFW(buf,14)=mob_get_viewclass(md->class_);
@@ -1202,9 +1202,9 @@ static int clif_mob007b(struct mob_data *md, unsigned char *buf) {
 		WBUFB(buf,48)=0; // karma
 		WBUFB(buf,49)=mob_get_sex(md->class_);
 		WBUFPOS2(buf,50,md->bl.x,md->bl.y,md->to_x,md->to_y);
-		WBUFB(buf,55)=0xFF; // Deals with acceleration in directions. [Valaris]
-		WBUFB(buf,56)=0;
-		WBUFB(buf,57)=0;
+		WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
+		WBUFB(buf,56)=5;
+		WBUFB(buf,57)=5;
 		WBUFW(buf,58)=clif_setlevel(level);
 
 		return packet_len_table[0x7b];
@@ -1215,7 +1215,7 @@ static int clif_mob007b(struct mob_data *md, unsigned char *buf) {
 		WBUFW(buf,0)=0x1da;
 		WBUFL(buf,2)=md->bl.id;
 		WBUFW(buf,6)=status_get_speed(&md->bl);
-		WBUFW(buf,8)=0x05;
+		WBUFW(buf,8)=md->opt1;
 		WBUFW(buf,10)=md->opt2;
 		WBUFW(buf,12)=md->option;
 		WBUFW(buf,14)=mob_get_viewclass(md->class_);
@@ -1252,7 +1252,7 @@ static int clif_mob007b(struct mob_data *md, unsigned char *buf) {
 		WBUFW(buf,0)=0x7b;
 		WBUFL(buf,2)=md->bl.id;
 		WBUFW(buf,6)=status_get_speed(&md->bl);
-		WBUFW(buf,8)=0x05;
+		WBUFW(buf,8)=md->opt1;
 		WBUFW(buf,10)=md->opt2;
 		WBUFW(buf,12)=md->option;
 		WBUFW(buf,14)=mob_get_viewclass(md->class_);
@@ -1262,9 +1262,9 @@ static int clif_mob007b(struct mob_data *md, unsigned char *buf) {
 			WBUFL(buf,42)=md->guardian_data->emblem_id;
 		}	// End addition
 		WBUFPOS2(buf,50,md->bl.x,md->bl.y,md->to_x,md->to_y);
-		WBUFB(buf,55)=0xFF; // Deals with acceleration in directions. [Valaris]
-		WBUFB(buf,56)=0;
-		WBUFB(buf,57)=0;
+		WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
+		WBUFB(buf,56)=5;
+		WBUFB(buf,57)=5;
 		level = status_get_lv(&md->bl);
 		WBUFW(buf,58)=clif_setlevel(level);
 
