@@ -3924,6 +3924,7 @@ int mob_clone_spawn(struct map_session_data *sd, char *map, int x, int y, const 
 	mob_db_data[class_]->luk=status_get_luk(&sd->bl);
 	mob_db_data[class_]->range2=AREA_SIZE*2/3; //Chase area of 2/3rds of a screen.
 	mob_db_data[class_]->range3=AREA_SIZE; //Let them have the same view-range as players.
+	mob_db_data[class_]->size=status_get_size(&sd->bl);
 	mob_db_data[class_]->race=status_get_race(&sd->bl);
 	mob_db_data[class_]->element=status_get_element(&sd->bl);
 	mob_db_data[class_]->mode=mode?mode:(MD_AGGRESSIVE|MD_ASSIST|MD_CANATTACK|MD_CANMOVE);
