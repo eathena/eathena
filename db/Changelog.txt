@@ -26,6 +26,9 @@
 		* * * From where this info is? ... Mine: On your death you'll loose this ring and get 50% HP [Komurka]
 =========================
 
+01/01
+	* Corrected char name filter? [Vicious]
+
 12/31
 	* Updated Absorb spirit spheres to be interruptible. [Skotlex]
 	* Updated some mobskills for the einbroch monsters [MasterOfMuppets]
