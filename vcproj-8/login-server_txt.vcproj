@@ -55,7 +55,7 @@
 				ForceConformanceInForLoopScope="true"
 				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
-				WarningLevel="3"
+				WarningLevel="4"
 				WarnAsError="false"
 				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="4"
@@ -140,9 +140,9 @@
 				RuntimeLibrary="0"
 				DefaultCharIsUnsigned="true"
 				UsePrecompiledHeader="0"
-				WarningLevel="1"
+				WarningLevel="3"
 				Detect64BitPortabilityProblems="false"
-				DebugInformationFormat="3"
+				DebugInformationFormat="0"
 				CompileAs="1"
 			/>
 			<Tool

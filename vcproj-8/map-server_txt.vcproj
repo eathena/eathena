@@ -51,7 +51,7 @@
 				DefaultCharIsUnsigned="true"
 				ForceConformanceInForLoopScope="true"
 				UsePrecompiledHeader="0"
-				WarningLevel="3"
+				WarningLevel="4"
 				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="3"
 				CompileAs="1"
@@ -136,9 +136,9 @@
 				RuntimeLibrary="0"
 				DefaultCharIsUnsigned="true"
 				UsePrecompiledHeader="0"
-				WarningLevel="1"
+				WarningLevel="3"
 				Detect64BitPortabilityProblems="false"
-				DebugInformationFormat="3"
+				DebugInformationFormat="0"
 				CompileAs="1"
 			/>
 			<Tool
@@ -282,6 +282,10 @@
 			</File>
 			<File
 				RelativePath="..\src\map\map.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\mapindex.c"
 				>
 			</File>
 			<File

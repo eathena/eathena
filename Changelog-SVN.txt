@@ -1,5 +1,8 @@
 Date	Added
 
+
+2006/01/02
+	* Updated Joshuaali's VC-8 project files. [Skotlex]
 2006/01/01
 	* Some improvements to the login server (txt/sql) to prevent memory 'leaks'
 	  from accounts that logged in but where never properly set as logged out.
