@@ -1755,6 +1755,47 @@ static void npc_parse_script_line(unsigned char *p,int *curly_count,int line) {
 	}
 }
 
+// Like npc_parse_script, except it's sole use is to skip the contents of a script. [Skotlex]
+static int npc_skip_script (char *w1,char *w2,char *w3,char *w4,char *first_line,FILE *fp,int *lines)
+{
+	unsigned char *srcbuf = NULL;
+	int srcsize = 65536;
+	int startline = 0;
+	unsigned char line[1024];
+	int curly_count = 0;
+	
+	srcbuf = (unsigned char *)aCallocA(srcsize, sizeof(char));
+	if (strchr(first_line, '{')) {
+		strcpy((char *)srcbuf, strchr(first_line, '{'));
+		startline = *lines;
+	} else
+		srcbuf[0] = 0;
+	npc_parse_script_line(srcbuf,&curly_count,*lines);
+	while (curly_count > 0) {
+		fgets ((char *)line, 1020, fp);
+		(*lines)++;
+		npc_parse_script_line(line,&curly_count,*lines);
+		if (feof(fp))
+			break;
+		if (strlen((char *)srcbuf) + strlen((char *)line) + 1 >= (size_t)srcsize) {
+			srcsize += 65536;
+			srcbuf = (unsigned char *)aRealloc(srcbuf, srcsize);
+			memset(srcbuf + srcsize - 65536, '\0', 65536);
+		}
+		if (srcbuf[0] != '{') {
+			if (strchr((char *) line,'{')) {
+				strcpy((char *) srcbuf, strchr((const char *) line, '{'));
+				startline = *lines;
+			}
+		} else
+			strcat((char *) srcbuf, (const char *) line);
+	}
+	if(curly_count > 0)
+		ShowError("Missing right curly at file %s, line %d\n",current_file, *lines);
+	aFree(srcbuf);
+	return 0;
+}
+
 static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_line,FILE *fp,int *lines)
 {
 	int x, y, dir = 0, m, xs = 0, ys = 0, class_ = 0;	// [Valaris] thanks to fov
@@ -2295,7 +2336,7 @@ static int npc_parse_mapflag (char *w1, char *w2, char *w3, char *w4)
 			map[m].save.x = savex;
 			map[m].save.y = savey;
 			if (!map[m].save.map) {
-				ShowError("Specified save point map '%s' for mapflag 'nosave' not found (file %s).\n",savemap,current_file);
+				ShowWarning("Specified save point map '%s' for mapflag 'nosave' not found (file %s), using 'SavePoint'.\n",savemap,current_file);
 				map[m].save.x = -1;
 				map[m].save.y = -1;
 			}
@@ -2527,11 +2568,17 @@ void npc_parsesrcfile (char *name)
 			sscanf(w1,"%[^,]",mapname);
 			if (!mapindex_name2id(mapname)) { //Incorrect map
 				ShowError("Invalid map '%s' in line %d, file %s\n", mapname, lines, current_file);
+				if (strcmpi(w2,"script") == 0 && count > 3)	//we must skip the script info...
+					npc_skip_script(w1,w2,w3,w4,line+w4pos,fp,&lines);
 				continue;
 			}
-			if ((m = map_mapname2mapid(mapname)) < 0)
+			if ((m = map_mapname2mapid(mapname)) < 0) {
 			// "mapname" is not assigned to this server
+			// we must skip the script info...
+				if (strcmpi(w2,"script") == 0 && count > 3)
+					npc_skip_script(w1,w2,w3,w4,line+w4pos,fp,&lines);
 				continue;
+			}
 		}
 		if (strcmpi(w2,"warp") == 0 && count > 3) {
 			npc_parse_warp(w1,w2,w3,w4);

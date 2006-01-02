@@ -982,7 +982,7 @@ int pc_calc_skilltree(struct map_session_data *sd)
 				sd->status.skill[i].lv=sd->status.skill[i-8].lv; // Set the level to the same as the linking skill
 				sd->status.skill[i].flag=1; // Tag it as a non-savable, non-uppable, bonus skill
 			} else { //Link bard skills to dancer.
-				sd->status.skill[i-8].id=i;
+				sd->status.skill[i-8].id=i-8;
 				sd->status.skill[i-8].lv=sd->status.skill[i].lv; // Set the level to the same as the linking skill
 				sd->status.skill[i-8].flag=1; // Tag it as a non-savable, non-uppable, bonus skill
 			}
