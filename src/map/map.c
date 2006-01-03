@@ -3546,7 +3546,8 @@ int cleanup_sub(struct block_list *bl, va_list ap) {
 			mob_unload((struct mob_data *)bl);
 			break;
 		case BL_PET:
-			pet_remove_map((struct map_session_data *)bl);
+			//There is no need for this, the pet is removed together with the player. [Skotlex]
+//			pet_remove_map(((struct pet_data *)bl)->msd);
 			break;
 		case BL_ITEM:
 			map_clearflooritem(bl->id);

@@ -6253,28 +6253,6 @@ int clif_vendingreport(struct map_session_data *sd,int index,int amount)
 
 	return 0;
 }
-
-int clif_party_main_info(struct party *p, struct map_session_data *sd)
-{
-	int fd;
-	fd=sd->fd;
-	WFIFOHEAD(fd,packet_len_table[0x1e9]);
-	WFIFOW(fd,0)=0x1e9;
-	//TODO: Contents 2->9 are completely unknown as of yet! The following values are totally made up....
-	WFIFOL(fd,2)= p->party_id;
-	WFIFOL(fd,6)= 0;
-	WFIFOW(fd,10)=sd->bl.x;
-	WFIFOW(fd,12)=sd->bl.y;
-	//This byte is also unconfirmed...
-	WFIFOB(fd,14)= p->exp?1:0;
-	memcpy(WFIFOP(fd,15), p->name, NAME_LENGTH);
-	memcpy(WFIFOP(fd,39), sd->status.name, NAME_LENGTH);
-	memcpy(WFIFOP(fd,63), mapindex_id2name(sd->mapindex), MAP_NAME_LENGTH);
-	WFIFOB(fd,79) = (p->item&1)?1:0;
-	WFIFOB(fd,80) = (p->item&2)?1:0;
-	WFIFOSET(fd,packet_len_table[0x1e9]);
-	return 0;
-}
 /*==========================================
  * パーティ作成完了
  *------------------------------------------
@@ -6294,6 +6272,42 @@ int clif_party_created(struct map_session_data *sd,int flag)
 	WFIFOSET(fd,packet_len_table[0xfa]);
 	return 0;
 }
+
+int clif_party_main_info(struct party *p, int fd)
+{
+	struct map_session_data *sd;
+	int i;
+	unsigned char buf[96];
+	
+	for (i=0; i<MAX_PARTY && !p->member[i].leader; i++);
+	if (i >= MAX_PARTY) return 0; //Should never happen...
+	sd = p->member[i].sd;
+	WBUFW(buf,0)=0x1e9;
+	WBUFL(buf,2)= p->member[i].account_id;
+	WBUFL(buf,6)= 0; //We don't know yet what this long is about.
+	WBUFW(buf,10)=sd?sd->bl.x:0;
+	WBUFW(buf,12)=sd?sd->bl.y:0;
+	WBUFB(buf,14)=(p->member[i].online)?0:1;	//This byte is also unconfirmed...
+	memcpy(WBUFP(buf,15), p->name, NAME_LENGTH);
+	memcpy(WBUFP(buf,39), p->member[i].name, NAME_LENGTH);
+	memcpy(WBUFP(buf,63), mapindex_id2name(p->member[i].map), MAP_NAME_LENGTH);
+	WBUFB(buf,79) = (p->item&1)?1:0;
+	WBUFB(buf,80) = (p->item&2)?1:0;
+	if(fd>=0){
+		WFIFOHEAD(fd,packet_len_table[0x1e9]);
+		memcpy(WFIFOP(fd,0),buf,packet_len_table[0x1e9]);
+		WFIFOSET(fd,packet_len_table[0x1e9]);
+		return 1;
+	}
+	if (!sd) {
+		for (i=0; i<MAX_PARTY && !p->member[i].sd; i++)
+		if (i >= MAX_PARTY) return 0; //Should never happen...
+		sd=p->member[i].sd;
+	}
+	clif_send(buf,packet_len_table[0x1e9],&sd->bl,PARTY);
+	return 1;
+}
+
 /*==========================================
  * パーティ情報送信
  *------------------------------------------

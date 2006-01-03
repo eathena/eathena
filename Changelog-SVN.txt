@@ -1,6 +1,8 @@
 Date	Added
 
 2006/01/02
+	* Completed (almost) packet 0x1e9 which gives the party info. Now you can
+	  see the party's item options when opening the alt+p menu. [Skotlex]
 	* Fixed regen only working when overweight. [Valaris]
 	* Added body size to clones. [Valaris]
 	* Corrected TK_JUMPKICK to remove Soul Linker spirit buffs and related

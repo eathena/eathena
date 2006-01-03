@@ -109,9 +109,6 @@ int party_created(int account_id,int char_id,int fail,int party_id,char *name)
 		p->party_id=party_id;
 		memcpy(p->name, name, NAME_LENGTH);
 		numdb_insert(party_db,party_id,p);
-		
-		clif_party_main_info(p,sd); //Send info about new party such as leader, and item sharing types.
-		clif_party_option(p,sd,0x2); //This flag doesn't alters exp settings and sends it only to the sd.
 		clif_party_created(sd,0); //Success message
 		clif_charnameupdate(sd); //Update other people's display. [Skotlex]
 	}else{
@@ -201,7 +198,6 @@ int party_recv_info(struct party *sp)
 		p->member[i].sd = (sd!=NULL && sd->status.party_id==p->party_id && sd->status.char_id == p->member[i].char_id && !sd->state.waitingdisconnect)?sd:NULL;
 	}
 
-	clif_party_info(p,-1);
 
 	for(i=0;i<MAX_PARTY;i++){	// Ý’èî•ñ‚Ì‘—M
 		sd = p->member[i].sd;
@@ -211,7 +207,9 @@ int party_recv_info(struct party *sp)
 		clif_party_hp(sd);
 		clif_party_xy(sd);
 		if(sd->state.party_sent==0){
+			clif_party_main_info(p,-1);
 			clif_party_option(p,sd,0x100);
+			clif_party_info(p,-1);
 			sd->state.party_sent=1;
 		}
 	}
@@ -495,8 +493,9 @@ int party_send_movemap(struct map_session_data *sd)
 	if( (p=party_search(sd->status.party_id))!=NULL ){
 		party_check_member(p);	// Š‘®‚ðŠm”F‚·‚é
 		if(sd->status.party_id==p->party_id){
-			clif_party_info(p,sd->fd);
+			clif_party_main_info(p,sd->fd);
 			clif_party_option(p,sd,0x100);
+			clif_party_info(p,sd->fd);
 			sd->state.party_sent=1;
 		}
 	}

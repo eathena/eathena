@@ -7617,6 +7617,7 @@ atcommand_changeleader(
 
 	intif_party_leaderchange(p->party_id,p->member[pl_mi].account_id,p->member[pl_mi].char_id);
 	//Update info.
+	clif_party_main_info(p,-1);
 	clif_party_info(p,-1);
 	
 	return 0;  
