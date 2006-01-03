@@ -1301,8 +1301,8 @@ int mapif_parse_GuildAddMember(int fd,int guild_id,struct guild_member *m)
 
 			memcpy(&g->member[i],m,sizeof(struct guild_member));
 			mapif_guild_memberadded(fd,guild_id,m->account_id,m->char_id,0);
-			guild_calcinfo(g);
-			//mapif_guild_info(fd,g); Invoked by guild_calcinfo
+			if (!guild_calcinfo(g)) //Send members if it was not invoked.
+				mapif_guild_info(fd,g);
 			g->save_flag |= (GS_BASIC|GS_MEMBER);
 			if (g->save_flag&GS_REMOVE)
 				g->save_flag&=~GS_REMOVE;
@@ -1351,8 +1351,8 @@ int mapif_parse_GuildLeave(int fd,int guild_id,int account_id,int char_id,int fl
 			}
 		}
 		//Update member info.
-		guild_calcinfo(g);
-		//mapif_guild_info(fd,g); Invoked by guild_calcinfo
+		if (!guild_calcinfo(g))
+			mapif_guild_info(fd,g);
 		g->save_flag |= (GS_BASIC|GS_MEMBER|GS_EXPULSION);
 	}else{
 		sprintf(tmp_sql, "UPDATE `%s` SET `guild_id`='0' WHERE `account_id`='%d' AND `char_id`='%d'",char_db, account_id,char_id);
@@ -1645,8 +1645,8 @@ int mapif_parse_GuildSkillUp(int fd,int guild_id,int skill_num,int account_id)
 		g->skill[idx].lv<10 ){
 		g->skill[idx].lv++;
 		g->skill_point--;
-		guild_calcinfo(g);
-		//mapif_guild_info(-1,g); Invoked by guild_calcinfo
+		if (!guild_calcinfo(g))
+			mapif_guild_info(-1,g);
 		mapif_guild_skillupack(guild_id,skill_num,account_id);
 		ShowDebug("int_guild: skill %d up\n",skill_num);
 		g->save_flag |= (GS_BASIC|GS_SKILL); // Change guild & guild_skill

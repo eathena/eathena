@@ -1,6 +1,8 @@
 Date	Added
 
 2006/01/03
+	* Hopefully fixed the guild information not being sent in some situations
+	  when people are added/removed from a guild. [Skotlex]
 	* Some cleaning up and bug fixes to the guild module of the char-sql
 	  server. Let's see if it fixes anything up... [Skotlex]
 	* Added battle option show_party_share_picker. When enabled tells the
