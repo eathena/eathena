@@ -1229,7 +1229,20 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 	case TK_JUMPKICK:
 		{	//Cancel out Soul Linker status of the target. [Skotlex]
 			struct status_change *sc_data = status_get_sc_data(bl);
+			if (dstsd && (dstsd->class_&MAPID_BASEMASK) == MAPID_TAEKWON)
+				break; //Taekwons are inmune to this as well.
 			if (sc_data) {
+				if (sc_data[SC_PRESERVE].timer != -1) //preserve blocks the cleaning
+					break;	
+				//Remove pitched potions effect.
+				if (sc_data[SC_ASPDPOTION0].timer != -1 && sc_data[SC_ASPDPOTION0].val4)
+					status_change_end(bl, SC_ASPDPOTION0, -1);
+				if (sc_data[SC_ASPDPOTION1].timer != -1 && sc_data[SC_ASPDPOTION1].val4)
+					status_change_end(bl, SC_ASPDPOTION1, -1);
+				if (sc_data[SC_ASPDPOTION2].timer != -1 && sc_data[SC_ASPDPOTION2].val4)
+					status_change_end(bl, SC_ASPDPOTION2, -1);
+				if (sc_data[SC_ASPDPOTION3].timer != -1 && sc_data[SC_ASPDPOTION3].val4)
+					status_change_end(bl, SC_ASPDPOTION3, -1);
 				if (sc_data[SC_SPIRIT].timer != -1)
 					status_change_end(bl, SC_SPIRIT, -1);
 				if (sc_data[SC_ONEHAND].timer != -1)

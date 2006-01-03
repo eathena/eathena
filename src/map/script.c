@@ -5991,7 +5991,7 @@ int buildin_hideonnpc(struct script_state *st)
 int buildin_sc_start(struct script_state *st)
 {
 	struct block_list *bl;
-	int type,tick,val1;
+	int type,tick,val1,val4=0;
 	type=conv_num(st,& (st->stack->stack_data[st->start+2]));
 	tick=conv_num(st,& (st->stack->stack_data[st->start+3]));
 	val1=conv_num(st,& (st->stack->stack_data[st->start+4]));
@@ -6003,9 +6003,10 @@ int buildin_sc_start(struct script_state *st)
 	if (potion_flag==1 && potion_target) {
 		bl = map_id2bl(potion_target);
 		tick/=2; //Thrown potions only last half.
+		val4 = 1; //Mark that this was a thrown sc_effect
 	}
 	if (bl)
-		status_change_start(bl,type,val1,0,0,0,tick,0);
+		status_change_start(bl,type,val1,0,0,val4,tick,0);
 	return 0;
 }
 
@@ -6016,7 +6017,7 @@ int buildin_sc_start(struct script_state *st)
 int buildin_sc_start2(struct script_state *st)
 {
 	struct block_list *bl;
-	int type,tick,val1,per;
+	int type,tick,val1,val4=0,per;
 	type=conv_num(st,& (st->stack->stack_data[st->start+2]));
 	tick=conv_num(st,& (st->stack->stack_data[st->start+3]));
 	val1=conv_num(st,& (st->stack->stack_data[st->start+4]));
@@ -6026,11 +6027,14 @@ int buildin_sc_start2(struct script_state *st)
 	else
 		bl = map_id2bl(st->rid);
 
-	if (potion_flag==1 && potion_target)
+	if (potion_flag==1 && potion_target) {
 		bl = map_id2bl(potion_target);
+		tick/=2;
+		val4 = 1;
+	}
 
 	if(bl && rand()%10000 < per)
-		status_change_start(bl,type,val1,0,0,0,tick,0);
+		status_change_start(bl,type,val1,0,0,val4,tick,0);
 	return 0;
 }
 
@@ -6055,9 +6059,10 @@ int buildin_sc_start4(struct script_state *st)
 	else
 		bl = map_id2bl(st->rid);
 
-	if (potion_flag==1 && potion_target)
+	if (potion_flag==1 && potion_target) {
 		bl = map_id2bl(potion_target);
-
+		tick/=2;
+	}
 	if (bl)
 		status_change_start(bl,type,val1,val2,val3,val4,tick,0);
 	return 0;

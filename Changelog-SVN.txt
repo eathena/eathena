@@ -1,6 +1,9 @@
 Date	Added
 
 2006/01/03
+	* Updated Jump Side Kick to also clear Berserk Pitcher.  [Skotlex]
+	* Preserve now protects against the stripping effects of Side Kick. Taekwon
+	  Classes (TK/SL/SG) are also inmune to it.  [Skotlex]
 	* Hopefully fixed the guild information not being sent in some situations
 	  when people are added/removed from a guild. [Skotlex]
 	* Some cleaning up and bug fixes to the guild module of the char-sql
