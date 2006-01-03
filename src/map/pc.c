@@ -2602,6 +2602,11 @@ int pc_takeitem(struct map_session_data *sd,struct flooritem_data *fitem)
 			flag = 0; //Since it was picked, guarantee that the next check will fail.
 			if(log_config.pick) //Logs items, taken by (P)layers [Lupus]
 				log_pick(psd, "P", 0, fitem->item_data.nameid, fitem->item_data.amount, (struct item*)&fitem->item_data);
+			if(battle_config.party_show_share_picker && psd != sd){
+				char output[80];
+				sprintf(output, "%s acquired the item.",psd->status.name);
+				clif_disp_onlyself(sd,output,strlen(output));
+			}
 			break;
 		} while (i != p->itemc);
 		if (i==p->itemc && flag) {

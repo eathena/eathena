@@ -1,6 +1,9 @@
 Date	Added
 
 2006/01/03
+	* Added battle option show_party_share_picker. When enabled tells the
+	  picker of the item who received the item when in a party with 'Party Share'
+	  loot style. [Skotlex]
 	* Added the nullpo_retv line required for win32 compiles... [Skotlex]
 	* Added some cleanup code to properly remove all warp related information
 	  on npc_unload (untested as of yet!) [Skotlex]
