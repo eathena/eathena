@@ -27,6 +27,8 @@
 =========================
 
 01/03
+	* Added SL_SWOO, SL_SKE, SL_SKA skill times information to skill_cast_db.
+	  [Skotlex]
 	* Set nk to 2 (splash damage) to Meteor Assault and Raging Thrust [Skotlex]
 01/02
 	* Added active guild skills to skill_castnodex_db [Skotlex]
