@@ -26,6 +26,8 @@
 		* * * From where this info is? ... Mine: On your death you'll loose this ring and get 50% HP [Komurka]
 =========================
 
+01/03
+	* Set nk to 2 (splash damage) to Meteor Assault and Raging Thrust [Skotlex]
 01/02
 	* Added active guild skills to skill_castnodex_db [Skotlex]
 01/01

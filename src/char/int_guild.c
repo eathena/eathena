@@ -697,7 +697,7 @@ int mapif_guild_noinfo(int fd, int guild_id) {
 
 // ƒMƒ‹ƒhî•ñ‚Ü‚Æ‚ß‘—‚è
 int mapif_guild_info(int fd, struct guild *g) {
-	unsigned char buf[16384];
+	unsigned char buf[8+sizeof(struct guild)];
 
 	WBUFW(buf,0) = 0x3831;
 	memcpy(buf + 4, g, sizeof(struct guild));

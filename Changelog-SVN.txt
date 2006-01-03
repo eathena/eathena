@@ -1,6 +1,8 @@
 Date	Added
 
 2006/01/03
+	* Some cleaning up and bug fixes to the guild module of the char-sql
+	  server. Let's see if it fixes anything up... [Skotlex]
 	* Added battle option show_party_share_picker. When enabled tells the
 	  picker of the item who received the item when in a party with 'Party Share'
 	  loot style. [Skotlex]
