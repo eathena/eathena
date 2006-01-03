@@ -1,5 +1,9 @@
 Date	Added
 
+2006/01/03
+	* Added the nullpo_retv line required for win32 compiles... [Skotlex]
+	* Added some cleanup code to properly remove all warp related information
+	  on npc_unload (untested as of yet!) [Skotlex]
 2006/01/02
 	* Completed (almost) packet 0x1e9 which gives the party info. Now you can
 	  see the party's item options when opening the alt+p menu. [Skotlex]

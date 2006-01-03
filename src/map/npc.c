@@ -1370,19 +1370,41 @@ int npc_stop_walking(struct npc_data *nd,int type)
 
 int npc_remove_map (struct npc_data *nd)
 {
+	int m,i;
 	nullpo_retr(1, nd);
 
-	if(nd->bl.prev == NULL)
-		return 1;
-
+	if(nd->bl.prev == NULL || nd->bl.m < 0)
+		return 1; //Not assigned to a map.
+  	m = nd->bl.m;
 #ifdef PCRE_SUPPORT
 	npc_chat_finalize(nd);
 #endif
 	clif_clearchar_area(&nd->bl,2);
 	strdb_erase(npcname_db, (nd->bl.subtype < SCRIPT) ? nd->name : nd->exname);
+	//Remove corresponding NPC CELLs
+	if (nd->bl.subtype == WARP) {
+		int j, xs, ys, x, y;
+		x = nd->bl.x;
+		y = nd->bl.y;
+		xs = nd->u.warp.xs;
+		ys = nd->u.warp.ys;
+
+		for (i = 0; i < ys; i++) {
+			for (j = 0; j < xs; j++) {
+				if (map_getcell(m, x-xs/2+j, y-ys/2+i, CELL_CHKNPC))
+					map_setcell(m, x-xs/2+j, y-ys/2+i, CELL_CLRNPC);
+			}
+		}
+	}
 	map_delblock(&nd->bl);
 	map_deliddb(&nd->bl);
 
+	//Remove npc from map[].npc list. [Skotlex]
+	for(i=0;i<map[m].npc_num && map[m].npc[i] != nd;i++);
+	if (i >= map[m].npc_num) return 2; //failed to find it?
+
+	memmove(map[m].npc[i], map[m].npc[i+1], map[m].npc_num-i-1);
+	map[m].npc_num--;
 	return 0;
 }
 

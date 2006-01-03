@@ -1108,6 +1108,7 @@ typedef enum {
 // map_setcell()で使用されるフラグ
 enum {
 	CELL_SETNPC=0x10,	// タッチタイプのNPCをセット
+	CELL_CLRNPC,
 	CELL_SETBASILICA,	// バジリカをセット
 	CELL_CLRBASILICA,	// バジリカをクリア
 	CELL_SETREGEN,		// set regen cell

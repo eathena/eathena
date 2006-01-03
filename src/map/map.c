@@ -2066,6 +2066,9 @@ void map_setcell(int m,int x,int y,int cell)
 		case CELL_SETNPC:
 			map[m].cell[j] |= CELL_NPC;
 			break;
+		case CELL_CLRNPC:
+			map[m].cell[j] &= ~CELL_NPC;
+			break;
 		case CELL_SETBASILICA:
 			map[m].cell[j] |= CELL_BASILICA;
 			break;

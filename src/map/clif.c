@@ -10056,6 +10056,11 @@ void clif_parse_NpcSelectMenu(int fd,struct map_session_data *sd)
 void clif_parse_NpcNextClicked(int fd,struct map_session_data *sd)
 {
 	RFIFOHEAD(fd);
+#ifdef __WIN32
+	//For some extraordinarily eerie reason that noone has figured out yet, 
+	//windows native compiles NEED this nullpo_retv or the function is not found!
+	nullpo_retv(sd);
+#endif
 	npc_scriptcont(sd,RFIFOL(fd,2));
 }
 
