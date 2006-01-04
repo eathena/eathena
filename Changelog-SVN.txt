@@ -1,5 +1,8 @@
 Date	Added
 
+2006/01/04
+	* Fixed Meteor Assault. [Skotlex]
+	* Fixed (I hope) the double free'd pointer issue in the login servers. [Skotlex]
 2006/01/03
 	* Fixed the warp unloading code. [Skotlex]
 	* Updated Jump Side Kick to also clear Berserk Pitcher.  [Skotlex]

@@ -1793,10 +1793,13 @@ static int online_data_cleanup_sub(void *key, void *data, va_list ap)
 	struct online_login_data *character= (struct online_login_data*)data;
 	if (character->char_server == -2) //Unknown server.. set them offline
 		remove_online_user(character->account_id);
-	if (character->char_server < 0)
+	else if (character->char_server < 0)
 	{  //Free data from players that have not been online for a while.
-		numdb_erase(online_db, character->account_id);
-		aFree(data);
+		character = numdb_erase(online_db, character->account_id);
+		if (character)
+			aFree(character);
+		else
+			ShowError("online_data_cleanup_sub: Unable to remove an account's online information from the online_db!\n");
 	}
 	return 0;
 }
