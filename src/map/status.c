@@ -3230,27 +3230,32 @@ int status_get_speed(struct block_list *bl)
  */
 int status_get_adelay(struct block_list *bl)
 {
+	int adelay,aspd_rate;
 	nullpo_retr(4000, bl);
-	if(bl->type==BL_PC)
-		return (((struct map_session_data *)bl)->aspd<<1);
-	else {
-		int adelay=4000,aspd_rate = 100;
-		if(bl->type==BL_MOB) {
+	switch (bl->type) {
+		case BL_PC:
+			return (((struct map_session_data *)bl)->aspd<<1);
+		case BL_MOB:
 			adelay = ((struct mob_data *)bl)->db->adelay;
 
 			if(((struct mob_data *)bl)->guardian_data)
-				aspd_rate -= aspd_rate * 10*((struct mob_data *)bl)->guardian_data->guardup_lv/100; // Strengthen Guardians - custom value +10% ASPD / lv
-		} else if(bl->type==BL_PET)
+				aspd_rate = 100 - 10*((struct mob_data *)bl)->guardian_data->guardup_lv; // Strengthen Guardians - custom value +10% ASPD / lv
+			break;
+		case BL_PET:
 			adelay = ((struct pet_data *)bl)->db->adelay;
-
-		aspd_rate = status_calc_aspd_rate(bl,aspd_rate);
-
-		if(aspd_rate != 100)
-			adelay = adelay*aspd_rate/100;
-		if(adelay < battle_config.monster_max_aspd<<1) adelay = battle_config.monster_max_aspd<<1;
-		return adelay;
+			aspd_rate = 100;
+			break;
+		default:
+			adelay=4000;
+			aspd_rate = 100;
+			break;
 	}
-	return 4000;
+	aspd_rate = status_calc_aspd_rate(bl,aspd_rate);
+
+	if(aspd_rate != 100)
+		adelay = adelay*aspd_rate/100;
+	if(adelay < battle_config.monster_max_aspd<<1) adelay = battle_config.monster_max_aspd<<1;
+		return adelay;
 }
 int status_get_amotion(struct block_list *bl)
 {

@@ -1,6 +1,9 @@
 Date	Added
 
 2006/01/04
+	* Changed skill_delayfix to use the amotion value as default delay for
+	  weapon skills with no delay instead of attack delay (adelay is actually
+	  twice your aspd, amotion is the same as aspd) [Skotlex]
 	* Added upgrade_svn4783.sql, which corrects the structure of the mapreg
 	  table to use varchars as it should. [Skotlex]
 	* Fixed Meteor Assault. [Skotlex]
