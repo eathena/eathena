@@ -1,6 +1,7 @@
 Date	Added
 
 2006/01/03
+	* Fixed the warp unloading code. [Skotlex]
 	* Updated Jump Side Kick to also clear Berserk Pitcher.  [Skotlex]
 	* Preserve now protects against the stripping effects of Side Kick. Taekwon
 	  Classes (TK/SL/SG) are also inmune to it.  [Skotlex]

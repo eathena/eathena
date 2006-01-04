@@ -1398,13 +1398,13 @@ int npc_remove_map (struct npc_data *nd)
 	}
 	map_delblock(&nd->bl);
 	map_deliddb(&nd->bl);
-
 	//Remove npc from map[].npc list. [Skotlex]
 	for(i=0;i<map[m].npc_num && map[m].npc[i] != nd;i++);
 	if (i >= map[m].npc_num) return 2; //failed to find it?
 
-	memmove(map[m].npc[i], map[m].npc[i+1], map[m].npc_num-i-1);
 	map[m].npc_num--;
+	for(; i<map[m].npc_num; i++)
+		map[m].npc[i]=map[m].npc[i+1];
 	return 0;
 }
 

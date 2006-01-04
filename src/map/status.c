@@ -4099,10 +4099,10 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			*opt3 |= 8;
 			break;
 		case SC_STEELBODY:			// ã‡çÑ
+		case SC_SKA:
 			calc_flag = 1;
 			*opt3 |= 16;
 			break;
-
 		case SC_AUTOCOUNTER:
 			val3 = val4 = 0;
 			break;
@@ -4551,8 +4551,10 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			}
 			break;
 		case SC_SWOO: // [marquis007]
-			if (flag&4 && status_get_mode(bl)&MD_BOSS)
+			if (!(flag&4) && status_get_mode(bl)&MD_BOSS)
 				tick /= 4; //Reduce skill's duration. But for how long?
+//			*opt3 |= 8192; //We haven't figured out this value yet...
+			opt_flag = 1;
 			calc_flag = 1;
 			break;
 		case SC_CONCENTRATE:		/* èWíÜóÕå¸è„ */
@@ -4604,7 +4606,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_STAR_COMFORT:
 		case SC_FUSION:
 		case SC_SKE:
-		case SC_SKA: // [marquis007]
 			calc_flag = 1;
 			break;
 
@@ -5245,6 +5246,7 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			*opt3 &= ~8;
 			break;
 		case SC_STEELBODY:			// ã‡çÑ
+		case SC_SKA:
 			*opt3 &= ~16;
 			break;
 		case SC_BLADESTOP:		/* îíênéÊÇË */
