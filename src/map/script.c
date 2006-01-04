@@ -5366,7 +5366,10 @@ int buildin_monster(struct script_state *st)
 	if( st->end>st->start+8 )
 		event=conv_str(st,& (st->stack->stack_data[st->start+8]));
 
-	mob_once_spawn(map_id2sd(st->rid),map,x,y,str,class_,amount,event);
+	if (!mobdb_checkid(class_))
+		ShowWarning("buildin_monster: Attempted to spawn non-existing monster class %d\n", class_);
+	else
+		mob_once_spawn(map_id2sd(st->rid),map,x,y,str,class_,amount,event);
 	return 0;
 }
 /*==========================================

@@ -1,6 +1,9 @@
 Date	Added
 
 2006/01/04
+	* Script command 'monster' will now fail when trying to spawn a mob-class
+	  that is not in the mob_db (warning will be printed on the console) [Skotlex]
+	* Fixed a crash when spawning a mob who's class is not in the mob_db. [Skotlex]
 	* Some cleanups and improvements to the character saving algorithm meant to
 	  make it harder to have dupe exploits during char-map connection lag
 	  moments. [Skotlex]

@@ -1124,20 +1124,20 @@ int mob_spawn (int id)
 	md->sc_count = 0;
 	md->opt1 = md->opt2 = md->opt3 = md->option = 0;
 
-	if(mob_db_data[md->class_]->option){ // Added for carts, falcons and pecos for cloned monsters. [Valaris]
-		if(mob_db_data[md->class_]->option & 0x0008)
+	if(md->db->option){ // Added for carts, falcons and pecos for cloned monsters. [Valaris]
+		if(md->db->option & 0x0008)
 			md->option |= 0x0008;
-		if(mob_db_data[md->class_]->option & 0x0080)
+		if(md->db->option & 0x0080)
 			md->option |= 0x0080;
-		if(mob_db_data[md->class_]->option & 0x0100)
+		if(md->db->option & 0x0100)
 			md->option |= 0x0100;
-		if(mob_db_data[md->class_]->option & 0x0200)
+		if(md->db->option & 0x0200)
 			md->option |= 0x0200;
-		if(mob_db_data[md->class_]->option & 0x0400)
+		if(md->db->option & 0x0400)
 			md->option |= 0x0400;
-		if(mob_db_data[md->class_]->option & OPTION_FALCON)
+		if(md->db->option & OPTION_FALCON)
 			md->option |= OPTION_FALCON;
-		if(mob_db_data[md->class_]->option & OPTION_RIDING)
+		if(md->db->option & OPTION_RIDING)
 			md->option |= OPTION_RIDING;
 	}
 
