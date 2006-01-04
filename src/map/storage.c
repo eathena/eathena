@@ -147,6 +147,9 @@ int storage_storageopen(struct map_session_data *sd)
 //#endif
 	nullpo_retr(0, sd);
 
+	if(sd->state.finalsave) //Refuse to open storage when you had your last save done.
+		return 1;
+	
 	if( pc_can_give_items(pc_isGM(sd)) ) { //check is this GM level is allowed to put items to storage
 		clif_displaymessage(sd->fd, msg_txt(246));
 		return 1;
@@ -358,7 +361,7 @@ int storage_storageclose(struct map_session_data *sd)
 	nullpo_retr(0, stor=account2storage2(sd->status.account_id));
 
 	clif_storageclose(sd);
-	chrif_save(sd); //This will invoke the storage save function as well. [Skotlex]
+	chrif_save(sd, 0); //This will invoke the storage save function as well. [Skotlex]
 	
 	stor->storage_status=0;
 	sd->state.storage_flag = 0;
@@ -369,7 +372,7 @@ int storage_storageclose(struct map_session_data *sd)
  * ログアウト時開いているカプラ倉庫の保存
  *------------------------------------------
  */
-int storage_storage_quit(struct map_session_data *sd)
+int storage_storage_quit(struct map_session_data *sd, int flag)
 {
 	struct storage *stor;
 
@@ -377,7 +380,7 @@ int storage_storage_quit(struct map_session_data *sd)
 
 	stor = account2storage2(sd->status.account_id);
 	if(stor)  {
-		chrif_save(sd); //Invokes the storage saving as well.
+		chrif_save(sd, flag); //Invokes the storage saving as well.
 		stor->storage_status = 0;
 		sd->state.storage_flag = 0;
 	}
@@ -468,6 +471,9 @@ int storage_guild_storageopen(struct map_session_data *sd)
 	if(sd->status.guild_id <= 0)
 		return 2;
 
+	if(sd->state.finalsave) //Refuse to open storage when you had your last save done.
+		return 1;
+	
 	if( pc_can_give_items(pc_isGM(sd)) ) { //check is this GM level can open guild storage and store items [Lupus]
 		clif_displaymessage(sd->fd, msg_txt(246));
 		return 1;
@@ -686,7 +692,7 @@ int storage_guild_storageclose(struct map_session_data *sd)
 	nullpo_retr(0, stor=guild2storage2(sd->status.guild_id));
 
 	clif_storageclose(sd);
-	chrif_save(sd); //This one also saves the storage. [Skotlex]
+	chrif_save(sd, 0); //This one also saves the storage. [Skotlex]
 
 	stor->storage_status=0;
 	sd->state.storage_flag = 0;
@@ -704,7 +710,7 @@ int storage_guild_storage_quit(struct map_session_data *sd,int flag)
 	sd->state.storage_flag = 0;
 	stor->storage_status = 0;
 
-	chrif_save(sd);
+	chrif_save(sd,flag);
 	if(!flag) //Only during a guild break flag is 1.
 		storage_guild_storagesave(sd->status.account_id,sd->status.guild_id);
 	else	//When the guild was broken, close the storage of he who has it open.

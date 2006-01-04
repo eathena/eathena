@@ -919,7 +919,7 @@ int pet_return_egg(struct map_session_data *sd)
 		}
 
 		intif_save_petdata(sd->status.account_id,&sd->pet);
-		chrif_save(sd);
+		chrif_save(sd,0); //FIXME: Do we really need to save the char when returning to pet? Seems like a waste, and unexploitable as the pet data is just moved to an item in the inventory. [Skotlex]
 
 		sd->pet.rename_flag = 0; //Prevents future captured pets from starting as "beloved" [Skotlex]
 		sd->petDB = NULL;
@@ -1021,7 +1021,7 @@ int pet_birth_process(struct map_session_data *sd)
 	}
 
 	intif_save_petdata(sd->status.account_id,&sd->pet);
-	chrif_save(sd);
+	chrif_save(sd,0); //FIXME: As before, is it REALLY Needed to save the char for hatching a pet? [Skotlex]
 
 	map_addblock(&sd->pd->bl);
 	clif_spawnpet(sd->pd);

@@ -4769,7 +4769,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		status_calc_pc(sd,0);	/* ステ?タス再計算 */
 
 	if(bl->type==BL_PC && save_flag)
-		chrif_save(sd); // save the player status
+		chrif_save(sd,0); // save the player status
 
 	if(bl->type==BL_PC && updateflag)
 		clif_updatestatus(sd,updateflag);	/* ステ?タスをクライアントに送る */

@@ -415,6 +415,7 @@ struct map_session_data {
 		unsigned monster_ignore :1; // for monsters to ignore a character [Valaris] [zzo]
 		unsigned size :2; // for tiny/large types
 		unsigned night :1; //Holds whether or not the player currently has the SI_NIGHT effect on. [Skotlex]
+		unsigned finalsave :1; //Signals whether the final save for the char was done or not yet. Meant to prevent exploits and the like. [Skotlex]
 	} state;
 	struct {
 		unsigned killer : 1;

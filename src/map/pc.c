@@ -261,7 +261,8 @@ void pc_addfame(struct map_session_data *sd,int count) {
             clif_fame_taekwon(sd,count);
             break;	
 	}
-	chrif_save(sd); // Save to allow up-to-date fame list refresh
+	//FIXME: Is this needed? It places unnecessary stress on the char server.... >.< [Skotlex]
+	chrif_save(sd,0); // Save to allow up-to-date fame list refresh
 	chrif_reqfamelist(); // Refresh the fame list
 }
 
@@ -399,6 +400,9 @@ int pc_makesavestatus(struct map_session_data *sd)
 {
 	nullpo_retr(0, sd);
 
+	if (sd->state.finalsave)
+		return 0; //Nothing to change.
+	
 	// 秒ﾌ色は色?弊害が多いので保存?象にはしない
 	if(!battle_config.save_clothcolor)
 		sd->status.clothes_color=0;
@@ -923,7 +927,7 @@ int pc_authfail(struct map_session_data *sd) {
 
 	if (!sd->fd)
 		ShowDebug("pc_authfail: Received auth fail for a player with no connection (account id %d)!\n", sd->bl.id);
-	
+
 	clif_authfail_fd(sd->fd, 0);
 	return 0;
 }
@@ -3076,7 +3080,7 @@ int pc_setpos(struct map_session_data *sd,unsigned short mapindex,int x,int y,in
 	if(sd->trade_partner)	// 取引を中?する
 		trade_tradecancel(sd);
 	if(sd->state.storage_flag == 1)
-		storage_storage_quit(sd);	// 倉庫を開いてるなら保存する
+		storage_storage_quit(sd,0);	// 倉庫を開いてるなら保存する
 	else if (sd->state.storage_flag == 2)
 		storage_guild_storage_quit(sd,0);
 
@@ -3181,14 +3185,11 @@ int pc_setpos(struct map_session_data *sd,unsigned short mapindex,int x,int y,in
 					intif_save_petdata(sd->status.account_id,&sd->pet);
 				//The storage close routines save the char data. [Skotlex]
 				if (!sd->state.storage_flag)
-					chrif_save(sd);
-				else if (sd->state.storage_flag == 1)
-				{
-					storage_storageclose(sd);
-					storage_delete(sd->status.account_id);
-				}
-				else if (sd->state.storage_flag == 2)
-					storage_guild_storageclose(sd);
+					chrif_save(sd,1);
+				else if (sd->state.storage_flag == 1) {
+					storage_storage_quit(sd,1);
+				} else if (sd->state.storage_flag == 2)
+					storage_guild_storage_quit(sd,1);
 					
 				chrif_changemapserver(sd, mapindex, x, y, ip, (short)port);
 				return 0;
@@ -3228,10 +3229,7 @@ int pc_setpos(struct map_session_data *sd,unsigned short mapindex,int x,int y,in
 					status_calc_pc(sd,2);
 				pc_clean_skilltree(sd);
 
-				//The storage functions will save the char. [Skotlex]
-				if (!sd->state.storage_flag)
-					chrif_save(sd);
-				else if (sd->state.storage_flag == 1)
+				if (sd->state.storage_flag == 1)
 					storage_storageclose(sd);
 				else if (sd->state.storage_flag == 2)
 					storage_guild_storageclose(sd);
@@ -6084,7 +6082,7 @@ int pc_jobchange(struct map_session_data *sd,int job, int upper)
 	pc_checkallowskill(sd);
 	pc_equiplookall(sd);
 	clif_equiplist(sd);
-	chrif_save(sd);
+	chrif_save(sd,0); //Why are we saving it?
 	chrif_reqfamelist();
 
 	return 0;
@@ -7973,7 +7971,7 @@ static int pc_autosave_sub(struct map_session_data *sd,va_list ap)
 		if(sd->status.pet_id > 0 && sd->pd)
 			intif_save_petdata(sd->status.account_id,&sd->pet);
 
-		chrif_save(sd);
+		chrif_save(sd,0);
 		save_flag=1;
 		last_save_fd = sd->fd;
 	}

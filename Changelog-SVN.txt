@@ -1,6 +1,10 @@
 Date	Added
 
 2006/01/04
+	* Some cleanups and improvements to the character saving algorithm meant to
+	  make it harder to have dupe exploits during char-map connection lag
+	  moments. [Skotlex]
+	* Doubled the inter-server link buffer size. [Skotlex]
 	* Fixed status_get_adelay messing up the mob's aspd :X [Skotlex]
 	* Changed skill_delayfix to use the amotion value as default delay for
 	  weapon skills with no delay instead of attack delay (adelay is actually

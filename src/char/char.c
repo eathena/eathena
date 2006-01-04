@@ -2513,7 +2513,10 @@ int parse_frommap(int fd) {
 					break;
 			}
 			if (i != char_num)
-				memcpy(&char_dat[i], RFIFOP(fd,12), sizeof(struct mmo_charstatus));
+				memcpy(&char_dat[i], RFIFOP(fd,13), sizeof(struct mmo_charstatus));
+			if (RFIFOB(fd,12)) { //Flag, set character offline. [Skotlex]
+				set_char_offline(RFIFOL(fd,8),RFIFOL(fd,4));
+			}
 			RFIFOSKIP(fd,RFIFOW(fd,2));
 			break;
 
@@ -3083,7 +3086,8 @@ int parse_char(int fd) {
 							if(character->server > -1)
 							{	//Kick it from the map server it is on.
 								mapif_disconnectplayer(server_fd[character->server], character->account_id, character->char_id, 2);
-								add_timer(gettick()+15000, chardb_waiting_disconnect, character->account_id, 0);
+								if (!character->waiting_disconnect)
+									add_timer(gettick()+20000, chardb_waiting_disconnect, character->account_id, 0);
 								character->waiting_disconnect = 1;
 						/* Not a good idea because this would trigger when you do a char-change from the map server! [Skotlex]
 							} else { //Manual kick from char server.

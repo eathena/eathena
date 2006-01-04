@@ -2062,7 +2062,7 @@ int clif_changemapserver(struct map_session_data *sd, char *mapname, int x, int 
 	nullpo_retr(0, sd);
 
 	fd = sd->fd;
-        WFIFOHEAD(fd, packet_len_table[0x92]);
+	WFIFOHEAD(fd, packet_len_table[0x92]);
 	WFIFOW(fd,0) = 0x92;
 	//Better not trust the null-terminator is there. [Skotlex]
 	memcpy(WFIFOP(fd,2), mapname, MAP_NAME_LENGTH);
@@ -2072,8 +2072,6 @@ int clif_changemapserver(struct map_session_data *sd, char *mapname, int x, int 
 	WFIFOL(fd,22) = ip;
 	WFIFOW(fd,26) = port;
 	WFIFOSET(fd, packet_len_table[0x92]);
-	//If they are going to another map server, we must mark them as ready to leave.
-	sd->state.waitingdisconnect = 1;
 	
 	return 0;
 }

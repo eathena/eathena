@@ -158,28 +158,14 @@ int chrif_isconnect(void)
  *
  *------------------------------------------
  */
-int chrif_save(struct map_session_data *sd)
+int chrif_save(struct map_session_data *sd, int flag)
 {
 	nullpo_retr(-1, sd);
-
 	chrif_check(-1);
 	pc_makesavestatus(sd);
 
-#ifndef TXT_ONLY
-	if(charsave_method){ //New 'Local' save
-		charsave_savechar(sd->char_id, &sd->status);
-	}else{
-#endif
-                WFIFOHEAD(char_fd, sizeof(sd->status) + 12);
-		WFIFOW(char_fd,0) = 0x2b01;
-		WFIFOW(char_fd,2) = sizeof(sd->status) + 12;
-		WFIFOL(char_fd,4) = sd->bl.id;
-		WFIFOL(char_fd,8) = sd->char_id;
-		memcpy(WFIFOP(char_fd,12), &sd->status, sizeof(sd->status));
-		WFIFOSET(char_fd, WFIFOW(char_fd,2));
-#ifndef TXT_ONLY
-	}
-#endif
+	if (sd->state.finalsave)
+		return -1; //Refuse to save a char already tagged for final saving. [Skotlex]
 	//For data sync
 	if (sd->state.storage_flag == 1)
 		storage_storage_save(sd->status.account_id);
@@ -187,8 +173,28 @@ int chrif_save(struct map_session_data *sd)
 		storage_guild_storagesave(sd->status.account_id, sd->status.guild_id);
 	
 	if (sd->state.accreg_dirty) //Global accounts have not been saved yet, let's retry.
-		intif_saveaccountreg(sd);
-		
+		intif_saveaccountreg(sd);		
+
+#ifndef TXT_ONLY
+	if(charsave_method){ //New 'Local' save
+		charsave_savechar(sd->char_id, &sd->status);
+	}else{
+#endif
+		WFIFOHEAD(char_fd, sizeof(sd->status) + 13);
+		WFIFOW(char_fd,0) = 0x2b01;
+		WFIFOW(char_fd,2) = sizeof(sd->status) + 13;
+		WFIFOL(char_fd,4) = sd->bl.id;
+		WFIFOL(char_fd,8) = sd->char_id;
+		WFIFOB(char_fd,12) = flag?1:0; //Flag to tell char-server this character is quitting.
+		memcpy(WFIFOP(char_fd,13), &sd->status, sizeof(sd->status));
+		WFIFOSET(char_fd, WFIFOW(char_fd,2));
+#ifndef TXT_ONLY
+	}
+#endif
+	if (flag) {//Remove the storage from memory.
+		storage_delete(sd->status.account_id);
+		sd->state.finalsave = 1; //Mark the last save as done.
+	}
 	return 0;
 }
 
@@ -287,7 +293,7 @@ int chrif_removemap(int fd){
  */
 int chrif_changemapserver(struct map_session_data *sd, short map, int x, int y, int ip, short port)
 {
-	int i, s_ip;
+	int i, s_ip=0;
 
 	nullpo_retr(-1, sd);
 
@@ -862,7 +868,7 @@ int chrif_changedsex(int fd)
 				//sd->class_ needs not be updated as both Dancer/Bard are the same.
 			}
 			// save character
-			chrif_save(sd);
+			//chrif_save(sd,1); Character will be saved on session closed -> map_quit
 			sd->login_id1++; // change identify, because if player come back in char within the 5 seconds, he can change its characters
 			                 // do same modify in login-server for the account, but no in char-server (it ask again login_id1 to login, and don't remember it)
 			clif_displaymessage(sd->fd, "Your sex has been changed (need disconnection by the server)...");

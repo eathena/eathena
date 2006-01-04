@@ -1414,11 +1414,6 @@ int map_quit(struct map_session_data *sd) {
 		 
 		pc_cleareventtimer(sd);	// イベントタイマを破棄する
 
-		if(sd->state.storage_flag == 1)
-			storage_storage_quit(sd);	// 倉庫を開いてるなら保存する
-		else if(sd->state.storage_flag == 2)
-			storage_guild_storage_quit(sd,0);
-
 		// check if we've been authenticated [celest]
 		if (sd->state.auth)
 			skill_castcancel(&sd->bl,0);	// 詠唱を中?する
@@ -1482,11 +1477,11 @@ int map_quit(struct map_session_data *sd) {
 
 		//The storage closing routines will save the char if needed. [Skotlex]
 		if (!sd->state.storage_flag)
-			chrif_save(sd);
+			chrif_save(sd,1);
 		else if (sd->state.storage_flag == 1)
-			storage_storageclose(sd);
+			storage_storage_quit(sd,1);
 		else if (sd->state.storage_flag == 2)
-			storage_guild_storageclose(sd);
+			storage_guild_storage_quit(sd,1);
 
 		map_delblock(&sd->bl);
 	} else { //Try to free some data, without saving anything (this could be invoked on map server change. [Skotlex]
@@ -1505,7 +1500,7 @@ int map_quit(struct map_session_data *sd) {
 		sd->stack= NULL;
 	}
 	
-	chrif_char_offline(sd);
+//	chrif_char_offline(sd); //chrif_save handles this now.
 
 	{
 		void *p = numdb_search(charid_db,sd->status.char_id);

@@ -551,8 +551,8 @@ void trade_tradecommit(struct map_session_data *sd) {
 					clif_tradecompleted(sd, 0);
 					clif_tradecompleted(target_sd, 0);
 					// save both player to avoid crash: they always have no advantage/disadvantage between the 2 players
-					chrif_save(sd); // do pc_makesavestatus and save storage too
-					chrif_save(target_sd); // do pc_makesavestatus and save storage too
+					chrif_save(sd,0); // do pc_makesavestatus and save storage too
+					chrif_save(target_sd,0); // do pc_makesavestatus and save storage too
 				// zeny value was modified!!!! hacker with packet modified
 				} else {
 					trade_tradecancel(sd);

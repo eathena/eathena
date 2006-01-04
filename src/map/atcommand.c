@@ -1996,7 +1996,7 @@ int atcommand_save(
 	if (sd->status.pet_id > 0 && sd->pd)
 		intif_save_petdata(sd->status.account_id, &sd->pet);
 
-	chrif_save(sd);
+	chrif_save(sd,0);
 	
 	clif_displaymessage(fd, msg_table[6]); // Character data respawn point saved.
 
