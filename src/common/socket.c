@@ -725,17 +725,17 @@ int WFIFOSET(int fd,int len)
 		return 0;
 
 	// we have written len bytes to the buffer already before calling WFIFOSET
-	s->wdata_size += len;
-
-	if(s->wdata_size > s->max_wdata)
+	if(s->wdata_size+len > s->max_wdata)
 	{	// actually there was a buffer overflow already
 		unsigned char *sin_addr = (unsigned char *)&s->client_addr.sin_addr;
 		ShowFatalError("socket: Buffer Overflow. Connection %d (%d.%d.%d.%d) has written %d byteson a %d/%d bytes buffer.\n", fd,
 			sin_addr[0], sin_addr[1], sin_addr[2], sin_addr[3], len, s->wdata_size, s->max_wdata);
+		ShowDebug("Likely command that caused it: 0x%x\n", WFIFOW(fd,0));
 		// no other chance, make a better fifo model
 		exit(1);
 	}
 
+	s->wdata_size += len;
 	// always keep a wfifo_size reserve in the buffer
 	newreserve = s->wdata_size + wfifo_size;
 
