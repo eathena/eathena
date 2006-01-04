@@ -3237,9 +3237,10 @@ int status_get_adelay(struct block_list *bl)
 			return (((struct map_session_data *)bl)->aspd<<1);
 		case BL_MOB:
 			adelay = ((struct mob_data *)bl)->db->adelay;
-
 			if(((struct mob_data *)bl)->guardian_data)
 				aspd_rate = 100 - 10*((struct mob_data *)bl)->guardian_data->guardup_lv; // Strengthen Guardians - custom value +10% ASPD / lv
+			else
+				aspd_rate = 100;
 			break;
 		case BL_PET:
 			adelay = ((struct pet_data *)bl)->db->adelay;

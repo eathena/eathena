@@ -1,6 +1,7 @@
 Date	Added
 
 2006/01/04
+	* Fixed status_get_adelay messing up the mob's aspd :X [Skotlex]
 	* Changed skill_delayfix to use the amotion value as default delay for
 	  weapon skills with no delay instead of attack delay (adelay is actually
 	  twice your aspd, amotion is the same as aspd) [Skotlex]
