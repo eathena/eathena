@@ -1235,7 +1235,7 @@ int mapif_parse_CreateGuild(int fd,int account_id,char *name,struct guild_member
 	g = (struct guild *)aMalloc(sizeof(struct guild));
 	memset(g,0,sizeof(struct guild));
 	g->guild_id=guild_newid++;
-	if (inter_guild_fromsql(guild_id) != NULL) {
+	if (inter_guild_fromsql(g->guild_id) != NULL) {
 		ShowWarning("mapif_parse_CreateGuild: New Guild ID [%d] already exists!\n", g->guild_id);
 		mapif_guild_created(fd,account_id,NULL);
 		return 0;
