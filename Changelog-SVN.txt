@@ -1,6 +1,7 @@
 Date	Added
 
 2006/01/04
+	* Reverted inter-server socket buffer size to 131072 bytes. [Valaris]
 	* Removed reduction of socket buffer sizes after WFIFOSET if the max size 
 	  is >= FIFOSIZE_SERVERLINK.  This should reduce inter-server buffer overflows. [Valaris]
 	* Script command 'monster' will now fail when trying to spawn a mob-class
