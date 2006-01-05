@@ -25,6 +25,8 @@ Nexon
 
 Date		Added
 ======
+01/05
+	* Multiple tiny fixes that were going ignored on the forums... [Skotlex]
 01/02
 	* Removed a duplicate warp in warp/cities/payon.txt [MasterOfMuppets]
 12/31

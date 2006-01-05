@@ -118,7 +118,7 @@ function	script	F_Kafra	{
 // Storage Function =======================================================
 function	script	F_KafStor	{
 	if(getarg(0) == 1) goto L_Guild;
-	if((BaseJob ==Job_Novice) && (JobLevel<6)) goto sL_JbLvl;
+	if(basicskillcheck(0) > 0 && getskilllv(1) < 6) goto sL_JbLvl;
 	if(BaseJob == Job_Novice) set @fee, 30;
 	if(BaseJob != Job_Novice) set @fee, 60;
 	if(@kafPass==1 || getarg(0) == 2) set @fee, 0;

@@ -69,7 +69,7 @@ L_AddLoopEnd:
 	mes "[Woe Setter]";
 	mes "What day do you want the WoE to start ^FF0000start^000000 in?";
 	next;
-	menu "Sunday",-,"Monday",-,"Tuesday",-,"Wednesday",-,"Tuesday",-,"Friday",-,"Satuarday",-;
+	menu "Sunday",-,"Monday",-,"Tuesday",-,"Wednesday",-,"Thursday",-,"Friday",-,"Saturday",-;
 	if(@menu==1) set $sday[@num],0;
 	if(@menu==2) set $sday[@num],1;
 	if(@menu==3) set $sday[@num],2;
@@ -90,7 +90,7 @@ L_AddLoopEnd:
 	mes "[Woe Setter]";
 	mes "What day do you want the WoE to start ^FF0000finish^000000 in?";
 	next;
-	menu "Same as start",-,"Sunday",-,"Monday",-,"Tuesday",-,"Wednesday",-,"Tuesday",-,"Friday",-,"Satuarday",-;
+	menu "Same as start",-,"Sunday",-,"Monday",-,"Tuesday",-,"Wednesday",-,"Thursday",-,"Friday",-,"Saturday",-;
 	if(@menu==1) set $eday[@num],$sday[@num];
 	if(@menu==2) set $eday[@num],0;
 	if(@menu==3) set $eday[@num],1;

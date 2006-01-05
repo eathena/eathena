@@ -321,7 +321,7 @@ L_CarryOn:
 	mes "Sorry you didnt win any of the lots, please try again next time";
 	close;
 L_Winner:
-	if($paid[@num]>0) set L_CarryOn;
+	if($paid[@num]>0) goto L_CarryOn;
 	mes "Well it does seem you have won an item";
 	mes "You won "+$AAmount[@num]+" x "+getitemname($AItems[@num]);
 	mes "And you bid "+$bid[@num]+"z for this lot";
@@ -332,7 +332,7 @@ L_Winner:
 // see the next one they might have won, or give up that lot
 
 	menu "Buy this lot",-,"See Next Lot you won",L_CarryOn,"Relinquish this lot",L_Back;
-	if(zeny<$bid[@num]) got L_2lowzeny;
+	if(zeny<$bid[@num]) goto L_2lowzeny;
 	set zeny,zeny-$bid[@num];
 	getitem $AItems[@num],$AAmount[@num];
 	set $paid[@num],1;
@@ -490,8 +490,8 @@ OnTimer25000:
 	if($AAmount[9]==1) announce "A fine "+getitemname($AItems[9])+" left by "+$ANames$[9],0;
 	if($AAmount[9]>1) announce $AAmount[9]+" fine "+getitemname($AItems[9])+" left by "+$ANames$[9],0;
 OnTimer27000:
-	if($AItems[0]!=0) announce "That is all the items we have this time round, so get bidding";
-	if($AItems[0]==0) announce "Seems there are no items this time round";
+	if($AItems[0]!=0) announce "That is all the items we have this time round, so get bidding",0;
+	if($AItems[0]==0) announce "Seems there are no items this time round",0;
 	if($AItems[0]==0) set $Auction,0;
 	stopnpctimer;
 	setnpctimer 0;

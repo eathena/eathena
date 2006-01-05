@@ -247,12 +247,12 @@ gl_prison1.gat,138,141,4	script	Zealotus	1200,{
 	next;
 	menu "Yes, I do!",-,"No, thanks",L_EXIT;
 
-	if(countitem(7315) < 369//Items: Black_Piece_of_Cloth,
+	if(countitem(7315) < 369//Items: Black Quartz Piece
 		|| countitem(660) < 1//Items: Forbidden_Red_Candle,
 		|| countitem(7263) < 1//Items: Cat's_Eye,
 		|| countitem(7099) < 30) goto L_NOITEM;//Items: Worn-out_Magic_Scroll,
 
-	delitem 7315,369;//Items: Black_Piece_of_Cloth,
+	delitem 7315,369;//Items: Black Quartz Piece,
 	delitem 660,1;//Items: Forbidden_Red_Candle,
 	delitem 7263,1;//Items: Cat's_Eye,
 	delitem 7099,30;//Items: Worn-out_Magic_Scroll,

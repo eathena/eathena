@@ -16,7 +16,7 @@
 //============================================================ 
 
 
-yuno_in03.gat,32,15,3	script	Guide of Monster Museum	67,{
+yuno_in03.gat,33,17,3	script	Guide of Monster Museum	67,{
 	mes "[Shenya]";
 	mes "Welcome.";
 	mes "You are in the Monster Museum.";

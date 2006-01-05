@@ -58,7 +58,7 @@ iz_dun03.gat,204,51,0,0	monster	Hydra	1068,1,309000,150000,0
 iz_dun03.gat,204,48,0,0	monster	Hydra	1068,1,313000,150000,0
 iz_dun03.gat,191,144,0,0	monster	Hydra	1068,1,321000,150000,0
 iz_dun03.gat,194,144,0,0	monster	Hydra	1068,1,316000,150000,0
-iz_dun03.gat,197,144,0,0	monster	Hydra	1068,1,2960000,150000,0
+iz_dun03.gat,197,144,0,0	monster	Hydra	1068,1,296000,150000,0
 iz_dun03.gat,200,144,0,0	monster	Hydra	1068,1,282000,150000,0
 iz_dun03.gat,203,144,0,0	monster	Hydra	1068,1,310000,150000,0
 iz_dun03.gat,206,144,0,0	monster	Hydra	1068,1,305000,150000,0
