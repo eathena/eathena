@@ -26,6 +26,9 @@
 		* * * From where this info is? ... Mine: On your death you'll loose this ring and get 50% HP [Komurka]
 =========================
 
+01/05
+	* Item updates by Landarma. Need updates. [Vicious]
+
 01/03
 	* SL_KAUPE skill times info to skill_cast_db. [Skotlex]
 	* Added SL_SWOO, SL_SKE, SL_SKA skill times information to skill_cast_db.
