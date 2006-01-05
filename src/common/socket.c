@@ -703,8 +703,15 @@ int realloc_writefifo(int fd, size_t addition)
 		newsize = wfifo_size;
 		while( session[fd]->wdata_size + addition > newsize ) newsize += newsize;
 	}
-	else if( session[fd]->max_wdata>(int)wfifo_size && (session[fd]->wdata_size+(int)addition)*4 < session[fd]->max_wdata )
-	{	// shrink rule, shrink by 2 when ony a quater of the fifo is used, don't shrink below 4*addition
+	else if( session[fd]->max_wdata>=FIFOSIZE_SERVERLINK) {
+		//Inter-server adjust. [Skotlex]
+		if ((session[fd]->wdata_size+(int)addition)*4 < session[fd]->max_wdata)
+			newsize = session[fd]->max_wdata/2;
+		else
+			return 0; //No change
+	} else if( session[fd]->max_wdata>(int)wfifo_size &&
+	  	(session[fd]->wdata_size+(int)addition)*4 < session[fd]->max_wdata )
+	{	// shrink rule, shrink by 2 when only a quater of the fifo is used, don't shrink below 4*addition
 		newsize = session[fd]->max_wdata/2;
 	}
 	else // no change
@@ -737,16 +744,16 @@ int WFIFOSET(int fd,int len)
 
 	s->wdata_size += len;
 	// always keep a wfifo_size reserve in the buffer
-	newreserve = s->wdata_size + wfifo_size;
+	// For inter-server connections, let the reserve be 1/8th of the link size.
+	newreserve = s->wdata_size + (s->max_wdata>=FIFOSIZE_SERVERLINK?FIFOSIZE_SERVERLINK<<3:wfifo_size);
 
 	if (s->wdata_size > (TCP_FRAME_LEN))
 		send_from_fifo(fd);
 
 	// realloc after sending
 	// readfifo does not need to be realloced at all
-	// do not call if the buffer size is that of the inter-server buffers. [Valaris]
-	if (s->max_wdata < (FIFOSIZE_SERVERLINK))
-		realloc_writefifo(fd, newreserve);
+	// Even the inter-server buffer may need reallocating! [Skotlex]
+	realloc_writefifo(fd, newreserve);
 
 	return 0;
 }

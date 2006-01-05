@@ -3563,11 +3563,8 @@ int mapif_sendall(unsigned char *buf, unsigned int len) {
 				memset(&server[i], 0, sizeof(struct mmo_map_server));
 				continue;
 			}
-			if (WFIFOSPACE(fd) < len)
-			{	//Avoid overflow crash! [Skotlex]
-				ShowError("mapif_sendall: Cannot send to session %d, not enough space in buffer (data length: %d, remaining buffer: %d)\n", fd, len, WFIFOSPACE(fd));
-				continue;
-			}
+			if (WFIFOSPACE(fd) < len) //Increase buffer size.
+				realloc_writefifo(fd, len);
 			memcpy(WFIFOP(fd,0), buf, len);
 			WFIFOSET(fd,len);
 			c++;
@@ -3584,11 +3581,8 @@ int mapif_sendallwos(int sfd, unsigned char *buf, unsigned int len) {
 	c = 0;
 	for(i=0, c=0;i<MAX_MAP_SERVERS;i++){
 		if ((fd = server_fd[i]) > 0 && fd != sfd) {
-			if (WFIFOSPACE(fd) < len)
-			{	//Avoid overflow crash! [Skotlex]
-				ShowError("mapif_sendallwos: Cannot send to session %d, not enough space in buffer (data length: %d, remaining buffer: %d)\n", fd, len, WFIFOSPACE(fd));
-				continue;
-			}
+			if (WFIFOSPACE(fd) < len) //Increase buffer size.
+				realloc_writefifo(fd, len);
 			memcpy(WFIFOP(fd,0), buf, len);
 			WFIFOSET(fd, len);
 			c++;
@@ -3604,11 +3598,8 @@ int mapif_send(int fd, unsigned char *buf, unsigned int len) {
 	if (fd >= 0) {
 		for(i = 0; i < MAX_MAP_SERVERS; i++) {
 			if (fd == server_fd[i]) {
-				if (WFIFOSPACE(fd) < len)
-				{	//Avoid overflow crash! [Skotlex]
-					ShowError("mapif_send: Cannot send to session %d, not enough space in buffer (data length: %d, remaining buffer: %d)\n", fd, len, WFIFOSPACE(fd));
-					continue;
-				}
+				if (WFIFOSPACE(fd) < len) //Increase buffer size.
+					realloc_writefifo(fd, len);
 				memcpy(WFIFOP(fd,0), buf, len);
 				WFIFOSET(fd,len);
 				return 1;

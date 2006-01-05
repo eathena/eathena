@@ -540,6 +540,8 @@ int charif_sendallwos(int sfd, unsigned char *buf, unsigned int len) {
 	c = 0;
 	for(i = 0; i < MAX_SERVERS; i++) {
 		if ((fd = server_fd[i]) > 0 && fd != sfd) {
+			if (WFIFOSPACE(fd) < len) //Increase buffer size.
+				realloc_writefifo(fd, len);
 			memcpy(WFIFOP(fd,0), buf, len);
 			WFIFOSET(fd,len);
 			c++;

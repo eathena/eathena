@@ -1,6 +1,11 @@
 Date	Added
 
 2006/01/05
+	* Corrected the fifo-buffer readjusting code to set a reserve-buffer size
+	  of 1/8th of the inter-server link (32K) for said links. [Skotlex]
+	* The mapif_send* and charif_send* functions (char/login servers) will now
+	  adjust the buffer size when there isn't enough space to write data to them
+	  rather than abort sending the data. [Skotlex]
 	* Increased inter-server socket buffer size to 256*1024. Should fix problems
 	  with 0x3004. [Kayla]
 	* Increased inter-server socket buffer size to 192*1024. Should fix problems
