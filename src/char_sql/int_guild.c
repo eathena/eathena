@@ -60,8 +60,13 @@ static int guild_save(void *key, void *data, va_list ap) {
 		ShowError("Guild_Save_timer: guild not in memory!\n");
 		return 0;
 	}
-	if (g->guild_id != (int)key)
+	if (g->guild_id != (int)key) {
 		ShowWarning("Guild %s's id %d does not matches id %d in db!\n", g->name, g->guild_id, (int)key);
+		//What do we do? Remove it from memory and abort save? Or just correct the id?
+		g = numdb_erase(guild_db_, (int)key);
+		if(g) aFree(g);
+		return 0;
+	}
 	if ((*state) == 0 && g->guild_id == (*last_id))
 		(*state)++; //Save next guild in the list.
 	else if (g->save_flag&GS_MASK && (*state) == 1) {
@@ -329,11 +334,19 @@ struct guild * inter_guild_fromsql(int guild_id)
 	char *pstr;
 	struct guild *g;
 
-	if (guild_id<=0) return 0;
+	if (guild_id<=0) return NULL;
 
 	g = (struct guild*)numdb_search(guild_db_,guild_id);
-	if (g != NULL)
+	if (g != NULL) {
+		if (g->guild_id != guild_id) {
+			//db error? Delete that broken guild....
+			ShowError("inter_guild_fromsql: Guild found in db (%s - %d) does not matches required guild id [%d]!\n", g->name, g->guild_id, guild_id);
+			g = numdb_erase(guild_db_, guild_id);
+			if (g) aFree(g);
+			return NULL;
+		}
 		return g;
+	}
 
 	g = (struct guild*)aCalloc(sizeof(struct guild), 1);
 
@@ -365,10 +378,10 @@ struct guild * inter_guild_fromsql(int guild_id)
 		strncpy(g->master,sql_row[1],NAME_LENGTH-1);
 		g->guild_lv=atoi(sql_row[2]);
 		g->connect_member=atoi(sql_row[3]);
-                if (atoi(sql_row[4]) > MAX_GUILD) // Fix reduction of MAX_GUILD [PoW]
-                        g->max_member = MAX_GUILD;
-                else
-                        g->max_member = atoi(sql_row[4]);
+		if (atoi(sql_row[4]) > MAX_GUILD) // Fix reduction of MAX_GUILD [PoW]
+			g->max_member = MAX_GUILD;
+		else
+			g->max_member = atoi(sql_row[4]);
 		g->average_lv=atoi(sql_row[5]);
 		g->exp=atoi(sql_row[6]);
 		g->next_exp=atoi(sql_row[7]);
@@ -792,6 +805,11 @@ int inter_guild_sql_init()
 static int guild_db_final(void *key,void *data,va_list ap)
 {
 	struct guild *g = (struct guild*)data;
+	if (g->guild_id != (int)key) {
+		ShowWarning("Guild %s's id %d does not matches id %d in db!\n", g->name, g->guild_id, (int)key);
+		aFree(g);
+		return 0;
+	}
 	if (g->save_flag&GS_MASK)
 	   inter_guild_tosql(g, g->save_flag&GS_MASK);
 	aFree(g);
@@ -956,7 +974,6 @@ int mapif_guild_noinfo(int fd,int guild_id)
 int mapif_guild_info(int fd,struct guild *g)
 {
 	unsigned char buf[8+sizeof(struct guild)];
-	flush_fifo(fd); //Clear up the fifo as this packet is really BIG. [Skotlex]
 	WBUFW(buf,0)=0x3831;
 	memcpy(buf+4,g,sizeof(struct guild));
 	WBUFW(buf,2)=4+sizeof(struct guild);
@@ -1238,6 +1255,7 @@ int mapif_parse_CreateGuild(int fd,int account_id,char *name,struct guild_member
 	if (inter_guild_fromsql(g->guild_id) != NULL) {
 		ShowWarning("mapif_parse_CreateGuild: New Guild ID [%d] already exists!\n", g->guild_id);
 		mapif_guild_created(fd,account_id,NULL);
+		aFree(g);
 		return 0;
 	}
 	memcpy(g->name,name,NAME_LENGTH);
@@ -1260,11 +1278,6 @@ int mapif_parse_CreateGuild(int fd,int account_id,char *name,struct guild_member
 	numdb_insert(guild_db_, g->guild_id, g);
 	inter_guild_tosql(g,GS_MASK); //Better save the whole guild right now.
 
-	if (i<0) {
-		mapif_guild_created(fd,account_id,NULL);
-		return 0;
-	}
-
 	// Report to client
 	mapif_guild_created(fd,account_id,g);
 	mapif_guild_info(fd,g);
@@ -1272,7 +1285,6 @@ int mapif_parse_CreateGuild(int fd,int account_id,char *name,struct guild_member
 	if(log_inter)
 		inter_log("guild %s (id=%d) created by master %s (id=%d)" RETCODE,
 			name, g->guild_id, master->name, master->account_id );
-
 
 	return 0;
 }

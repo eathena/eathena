@@ -1,6 +1,9 @@
 Date	Added
 
 2006/01/05
+	* Some changes to the guild SQL code to report whenever a guild's id is not
+	  matching the one it was stored with in the db, which in turn free's the
+	  guild and doesn't saves it to perhaps prevent data corruption. [Skotlex]
 	* Corrected the fifo-buffer readjusting code to set a reserve-buffer size
 	  of 1/8th of the inter-server link (32K) for said links. [Skotlex]
 	* The mapif_send* and charif_send* functions (char/login servers) will now
