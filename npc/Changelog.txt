@@ -26,6 +26,7 @@ Nexon
 Date		Added
 ======
 01/05
+	* Disabled X-Mas event [Vicious]
 	* Corrected the coordinates for the NPC "Neris" in yuno_in03 [Zephiris]
 	* Multiple tiny fixes that were going ignored on the forums... [Skotlex]
 01/02
