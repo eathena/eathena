@@ -724,6 +724,10 @@ int WFIFOSET(int fd,int len)
 	if( !session_isValid(fd) || s->wdata == NULL )
 		return 0;
 
+	if(WFIFOW(fd,0)==0x2b01){
+		ShowDebug("0x2b01 size: %d\n",s->max_wdata);
+	}
+
 	// we have written len bytes to the buffer already before calling WFIFOSET
 	if(s->wdata_size+len > s->max_wdata)
 	{	// actually there was a buffer overflow already
@@ -744,7 +748,9 @@ int WFIFOSET(int fd,int len)
 
 	// realloc after sending
 	// readfifo does not need to be realloced at all
-	realloc_writefifo(fd, newreserve);
+	// do not call if the buffer size is that of the inter-server buffers. [Valaris]
+	if (s->max_wdata < (FIFOSIZE_SERVERLINK))
+		realloc_writefifo(fd, newreserve);
 
 	return 0;
 }

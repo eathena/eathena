@@ -1,6 +1,8 @@
 Date	Added
 
 2006/01/04
+	* Removed reduction of socket buffer sizes after WFIFOSET if the max size 
+	  is >= FIFOSIZE_SERVERLINK.  This should reduce inter-server buffer overflows. [Valaris]
 	* Script command 'monster' will now fail when trying to spawn a mob-class
 	  that is not in the mob_db (warning will be printed on the console) [Skotlex]
 	* Fixed a crash when spawning a mob who's class is not in the mob_db. [Skotlex]
