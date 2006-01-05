@@ -1,6 +1,8 @@
 Date	Added
 
 2006/01/05
+	* Increased inter-server socket buffer size to 256*1024. Should fix problems
+	  with 0x3004. [Kayla]
 	* Increased inter-server socket buffer size to 192*1024. Should fix problems
 	  with 0x2b01. [Kayla]
 2006/01/04
