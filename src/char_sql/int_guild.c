@@ -60,7 +60,8 @@ static int guild_save(void *key, void *data, va_list ap) {
 		ShowError("Guild_Save_timer: guild not in memory!\n");
 		return 0;
 	}
-
+	if (g->guild_id != (int)key)
+		ShowWarning("Guild %s's id %d does not matches id %d in db!\n", g->name, g->guild_id, (int)key);
 	if ((*state) == 0 && g->guild_id == (*last_id))
 		(*state)++; //Save next guild in the list.
 	else if (g->save_flag&GS_MASK && (*state) == 1) {
@@ -1234,10 +1235,13 @@ int mapif_parse_CreateGuild(int fd,int account_id,char *name,struct guild_member
 	g = (struct guild *)aMalloc(sizeof(struct guild));
 	memset(g,0,sizeof(struct guild));
 	g->guild_id=guild_newid++;
-	if (numdb_search(guild_db_, g->guild_id) != NULL)
+	if (inter_guild_fromsql(guild_id) != NULL) {
 		ShowWarning("mapif_parse_CreateGuild: New Guild ID [%d] already exists!\n", g->guild_id);
-	memcpy(g->name,name,NAME_LENGTH-1);
-	memcpy(g->master,master->name,NAME_LENGTH-1);
+		mapif_guild_created(fd,account_id,NULL);
+		return 0;
+	}
+	memcpy(g->name,name,NAME_LENGTH);
+	memcpy(g->master,master->name,NAME_LENGTH);
 	memcpy(&g->member[0],master,sizeof(struct guild_member));
 
 	g->position[0].mode=0x11;
