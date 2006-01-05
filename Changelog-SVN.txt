@@ -1,5 +1,8 @@
 Date	Added
 
+2006/01/05
+	* Increased inter-server socket buffer size to 192*1024. Should fix problems
+	  with 0x2b01. [Kayla]
 2006/01/04
 	* Fixed buildin_monster not working for random classes (dead branch, etc). [Skotlex]
 	* Reverted inter-server socket buffer size to 131072 bytes. [Valaris]
