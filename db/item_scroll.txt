@@ -31,11 +31,10 @@
 2295,Blinker                    ,20000
 5002,Jewel_Crown                ,10000
 5007,Grand_Circlet              ,10000
-5014,Fin_Helm                   ,10000
 5016,Boy's_Cap                  ,10000
 5053,Sphinx_Hat                 ,10000
-5066,Horns_Of_Succubus          ,10000
-5072,Horns_Of_Incubus		,10000
+5066,Horns_Of_Succubus          ,20000
+5072,Horns_Of_Incubus		,20000
 5069,Fox_Mask                   ,10000
 5075,Cowboy_Hat                 ,10000
 5078,Sea_Otter_Hat              ,10000
@@ -55,7 +54,6 @@
 1469,Longinus's_Spear		,10000
 1470,Brionac			,10000
 1814,Berserk			,10000
-2219,Flu_Mask_			,10000
 2202,Sunglasses_		,10000
 2204,Glasses_			,10000
 2412,Greaves_			,10000

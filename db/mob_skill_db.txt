@@ -2452,9 +2452,11 @@
 1637,MAGALETA@PR_LEXDIVINA,chase,76,10,500,1000,5000,yes,target,always,0,,,,,,2
 1637,MAGALETA@PR_LEXDIVINA,attack,76,10,500,1000,5000,yes,target,always,0,,,,,,2
 1637,MAGALETA@AL_INCAGI,chase,29,5,500,700,5000,no,self,always,0,,,,,,
+1637,MAGALETA@AL_INCAGI,any,29,5,500,700,5000,no,friend,always,0,,,,,,
 1637,MAGALETA@AL_DECAGI,chase,30,10,2000,0,60000,no,target,always,0,,,,,,29
 1637,MAGALETA@NPC_HOLYATTACK,attack,189,1,500,800,5000,yes,target,always,0,,,,,,
 1637,MAGALETA@MG_SAFETYWALL,attack,12,5,1000,1000,5000,no,self,always,0,,,,,,18
+1637,MAGALETA@MG_SAFETYWALL,any,12,5,1000,1000,5000,no,friend,always,0,,,,,,18
 1637,MAGALETA@AL_HEAL,chase,28,9,10000,500,5000,no,self,myhpltmaxrate,30,,,,,,18
 1637,MAGALETA@AL_HEAL,attack,28,10,10000,500,5000,no,self,myhpltmaxrate,30,,,,,,18
 1637,MAGALETA@AL_HEAL,any,28,10,10000,500,5000,no,friend,friendhpltmaxrate,60,,,,,,18
@@ -2463,6 +2465,9 @@
 //1637,MAGALETA@PR_SANCTUARY,chase,70,10,10000,500,30000,no,self,always,0,,,,,,18
 1637,MAGALETA@AL_PNEUMA,attack,25,1,2000,0,5000,yes,self,longrangeattacked,,,,,,,18
 1637,MAGALETA@AL_PNEUMA,chase,25,1,2000,0,5000,yes,self,longrangeattacked,,,,,,,18
+1637,MAGALETA@AL_PNEUMA,any,25,1,2000,0,5000,yes,friend,always,0,,,,,,
+1637,Magaleta@Ruwach,chase,24,1,200,0,500,yes,self,always,0,,,,,,
+1637,Magaleta@Ruwach,idle,24,1,200,0,500,yes,self,always,0,,,,,,
 
 1638,SHECIL@NPC_POWERUP,attack,349,5,500,0,30000,no,self,always,0,,,,,,
 1638,SHECIL@NPC_AGIUP,chase,350,5,3000,0,5000,no,self,always,0,,,,,,
@@ -2472,18 +2477,19 @@
 1638,SHECIL@HT_FREEZINGTRAP,idle,121,5,50,0,300000,yes,self,always,0,,,,,,
 1638,SHECIL@HT_FLASHER,idle,120,5,50,0,300000,yes,self,always,0,,,,,,
 1638,SHECIL@AC_CHARGEARROW,attack,148,1,500,0,5000,yes,target,always,0,,,,,,
+1638,SEHCIL@HT_DETECTING,130,1,200,0,500,yes,target,always,0,,,,,,
 
 //1639,KATRINN@HW_GRAVITATION,attack,484,10,500,1000,5000,yes,target,always,0,,,,,,
-1639,KATRINN@MG_FROSTDIVER,attack,15,10,5000,1000,5000,yes,target,always,0,,,,,,
-1639,KATRINN@MG_FROSTDIVER,chase,15,10,2500,1000,5000,yes,target,always,0,,,,,,
-1639,KATRINN@WZ_JUPITEL,attack,84,20,10000,1500,5000,yes,target,afterskill,15,,,,,,6
-1639,KATRINN@WZ_JUPITEL,chase,84,20,10000,1500,5000,yes,target,afterskill,15,,,,,,6
-1639,KATRINN@WZ_THUNDERSTORM,attack,21,15,10000,1500,5000,yes,target,afterskill,84,,,,,,
-1639,KATRINN@WZ_THUNDERSTORM,chase,21,15,10000,1500,5000,yes,target,afterskill,84,,,,,,
-1639,KATRINN@MG_COLDBOLT,attack,14,3,500,1500,5000,yes,target,always,0,,,,,,
-1639,KATRINN@MG_COLDBOLT,chase,14,3,500,1500,5000,yes,target,always,0,,,,,,
+1639,KATRINN@MG_FROSTDIVER,attack,15,10,5000,100,5000,yes,target,always,0,,,,,,
+1639,KATRINN@MG_FROSTDIVER,chase,15,10,2500,100,5000,yes,target,always,0,,,,,,
+1639,KATRINN@WZ_JUPITEL,attack,84,10,10000,500,5000,yes,target,afterskill,15,,,,,,6
+1639,KATRINN@WZ_JUPITEL,chase,84,10,10000,500,5000,yes,target,afterskill,15,,,,,,6
+1639,KATRINN@WZ_THUNDERSTORM,attack,21,10,1000,1500,5000,yes,target,always,,,,,,,
+1639,KATRINN@WZ_THUNDERSTORM,chase,21,10,1000,1500,5000,yes,target,always,,,,,,,
+1639,KATRINN@MG_COLDBOLT,attack,14,10,500,500,5000,yes,target,always,0,,,,,,
+1639,KATRINN@MG_COLDBOLT,chase,14,10,500,500,5000,yes,target,always,0,,,,,,
 1639,KATRINN@MG_SIGHT,chase,10,1,2000,0,5000,yes,self,always,0,,,,,,
-1639,KATRINN@MG_SAFETYWALL,attack,12,5,1000,1000,5000,no,self,always,0,,,,,,18
+//1639,KATRINN@MG_SAFETYWALL,attack,12,5,1000,1000,5000,no,self,always,0,,,,,,18
 1639,KATRINN@WZ_QUAGMIRE,chase,92,5,2000,0,30000,no,target,always,0,,,,,,
 1639,KATRINN@WZ_SIGHTRASHER,attack,81,7,700,1000,5000,no,target,always,0,,,,,,´
 
@@ -2547,6 +2553,8 @@
 1644,G_SHECIL@HT_FREEZINGTRAP,idle,121,5,50,0,300000,yes,self,always,0,,,,,,
 1644,G_SHECIL@HT_FLASHER,idle,120,5,50,0,300000,yes,self,always,0,,,,,,
 1644,G_SHECIL@AC_CHARGEARROW,attack,148,1,500,0,5000,yes,target,always,0,,,,,,
+
+
 
 1645,G_KATRINN@WZ_STORMGUST,chase,89,10,2000,0,5000,yes,target,always,0,,,,,,29
 1645,G_KATRINN@WZ_STORMGUST,attack,89,10,2000,0,5000,yes,target,always,0,,,,,,29
@@ -2691,6 +2699,8 @@
 1655,Erend@AL_HEAL,attack,28,5,1000,0,5000,yes,self,myhpltmaxrate,30,,,,,,2
 1655,Erend@AL_HEAL,chase,28,5,1000,0,5000,yes,friend,friendhpltmaxrate,60,,,,,,2
 1655,Erend@AL_HEAL,chase,28,5,1000,0,5000,yes,self,myhpltmaxrate,30,,,,,,2
+1655,Erend@Ruwach,chase,24,1,200,0,500,yes,self,always,0,,,,,,
+1655,Erend@Ruwach,idle,24,1,200,0,500,yes,self,always,0,,,,,,
 
 1656,Kavac@ac_double,attack,46,5,200,0,5000,yes,target,always,0,,,,,,
 1656,Kavac@npc_windattack,attack,187,1,500,0,5000,yes,target,always,0,,,,,,
@@ -2701,6 +2711,7 @@
 1657,Rawrel@lightning_bolt,chase,20,5,50,500,3000,no,target,always,0,,,,,,5
 1657,Rawrel@frost_diver,attack,15,7,50,100,3000,no,target,always,0,,,,,,5
 1657,Rawrel@frost_diver,chase,15,7,50,100,3000,no,target,always,0,,,,,,5
+1657,rawrel@MG_SIGHT,chase,10,1,200,0,5000,yes,self,always,0,,,,,,
 
 1658,DOPPELGANGER@AL_DECAGI,attack,30,10,50,0,20000,no,target,always,0,,,,,,5
 1658,DOPPELGANGER@AL_DECAGI,chase,30,10,50,0,20000,no,target,always,0,,,,,,5

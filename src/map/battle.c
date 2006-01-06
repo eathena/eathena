@@ -370,7 +370,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 		}
 		if(sc_data[SC_PNEUMA].timer!=-1 && damage>0 &&
 			((flag&BF_WEAPON && flag&BF_LONG && skill_num != NPC_GUIDEDATTACK) ||
-			(flag&BF_MISC && (skill_num ==  HT_BLITZBEAT || skill_num == SN_FALCONASSAULT)) ||
+			(flag&BF_MISC && flag&BF_LONG) ||
 			(flag&BF_MAGIC && skill_num == ASC_BREAKER))){ // [DracoRPG]
 			// ニューマ
 			damage=0;
@@ -554,7 +554,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 					damage = (damage * 6)/10;
 				if (flag&BF_MAGIC)
 					damage = damage/2;
-				if (flag&BF_MISC && skill_num != CR_ACIDDEMONSTRATION)
+				if (flag&BF_MISC)
 					damage = (damage * 6)/10;
 			} else { //Normal attacks get reductions based on range.
 //				if (flag & BF_SHORT)
@@ -1076,7 +1076,7 @@ static struct Damage battle_calc_pet_weapon_attack(
 				damage = damage*(200+100*skill_lv)/100;
 				break;
 			case AS_SPLASHER:		/* ベナムスプラッシャー */
-				damage = damage*(200+20*skill_lv)/100;
+				damage = damage*(500+50*skill_lv)/100;
 				hitrate = 1000000;
 				break;
 			case PA_SHIELDCHAIN:	// Shield Chain
@@ -1612,7 +1612,7 @@ static struct Damage battle_calc_mob_weapon_attack(
 				damage = damage*(200+100*skill_lv)/100;
 				break;
 			case AS_SPLASHER:		/* ベナムスプラッシャー */
-				damage = damage*(200+20*skill_lv)/100;
+				damage = damage*(500+50*skill_lv)/100;
 				hitrate = 1000000;
 				break;
 			case PA_SHIELDCHAIN:	// Shield Chain
@@ -2381,7 +2381,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 				flag=(flag&~BF_RANGEMASK)|BF_LONG;
 				break;
 			case AS_SPLASHER:		/* ベナムスプラッシャー */
-				damage_rate += 100+20*skill_lv+20*pc_checkskill(sd,AS_POISONREACT);
+				damage_rate += 400+50*skill_lv;
 				no_cardfix = 1;
 				hitrate = 1000000;
 				break;
@@ -2445,21 +2445,21 @@ static struct Damage battle_calc_pc_weapon_attack(
 			}
 			if(is_boss(target)) {
 				if(!idef_flag && sd->right_weapon.def_ratio_atk_race & (1<<10)) {
-					damage = damage/2 + (damage * (def1 + def2))/100;
+					damage = (damage * (def1 + def2))/100;
 					idef_flag = 1;
 				}
 				if(!idef_flag_ && sd->left_weapon.def_ratio_atk_race & (1<<10)) {
-					damage2 = damage2/2 + (damage2 * (def1 + def2))/100;
+					damage2 = (damage2 * (def1 + def2))/100;
 					idef_flag_ = 1;
 				}
 			}
 			else {
 				if(!idef_flag && sd->right_weapon.def_ratio_atk_race & (1<<11)) {
-					damage = damage/2 + (damage * (def1 + def2))/100;
+					damage = (damage * (def1 + def2))/100;
 					idef_flag = 1;
 				}
 				if(!idef_flag_ && sd->left_weapon.def_ratio_atk_race & (1<<11)) {
-					damage2 = damage2/2 + (damage2 * (def1 + def2))/100;
+					damage2 = (damage2 * (def1 + def2))/100;
 					idef_flag_ = 1;
 				}
 			}
@@ -2537,6 +2537,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 				}
 			}
 		}
+
 	}
 
 	// 状態異常中のダメージ追加でクリティカルにも有効なスキル
@@ -3704,9 +3705,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 					skillratio+= 100+100*skill_lv;
 					break;
 				case AS_SPLASHER:
-					skillratio+= 100+20*skill_lv;
-					if (sd)
-						skillratio+= 20*pc_checkskill(sd,AS_POISONREACT);
+					skillratio+= 400+50*skill_lv;
 					flag.cardfix = 0;
 					break;
 				case ASC_BREAKER:
@@ -4227,6 +4226,7 @@ struct Damage battle_calc_magic_attack(
 	int matk_flag = 1;
 	int no_cardfix = 0;
 	int no_elefix = 0;
+	int imdef_flag=0;
 
 	//return前の処理があるので情報出力部のみ変更
 	if( bl == NULL || target == NULL ){
@@ -4404,9 +4404,9 @@ struct Damage battle_calc_magic_attack(
 			}
 			break;
 		case ASC_BREAKER:
-			ele = status_get_attack_element(bl);
 			damage = rand()%500 + 500 + skill_lv * status_get_int(bl) * 5;
-			matk_flag = 0; // don't consider matk and matk2
+			imdef_flag = 1;
+			no_elefix = 1;
 			break;
 		case HW_GRAVITATION:
 			// Now gives more hits per second with high skill level (Aru)
@@ -4419,7 +4419,6 @@ struct Damage battle_calc_magic_attack(
 	}
 
 	if(normalmagic_flag){	// 一般魔法ダメージ計算
-		int imdef_flag=0;
 		if (matk_flag) {
 			if(matk1>matk2)
 				damage= matk2+rand()%(matk1-matk2+1);
@@ -5019,8 +5018,6 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 				status_change_start(src, SC_BLADESTOP, skilllv, 1, (int)src, (int)target, skill_get_time2(MO_BLADESTOP,skilllv), 0);
 				status_change_start(target, SC_BLADESTOP, skilllv, 2, (int)target, (int)src, skill_get_time2(MO_BLADESTOP,skilllv), 0);
 			}
-			if (tsc_data[SC_SPLASHER].timer != -1)	//殴ったので対象のベナムスプラッシャー状態を解除
-				status_change_end(target, SC_SPLASHER, -1);
 		}
 
 		map_freeblock_unlock();

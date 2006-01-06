@@ -1198,7 +1198,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 				sd->left_weapon.watk = sd->left_weapon.watk*(100+2*sd->sc_data[SC_PROVOKE].val1)/100;
 		}
 		if(sd->sc_data[SC_ENDURE].timer!=-1)
-			sd->mdef2 += sd->sc_data[SC_ENDURE].val1;
+			sd->mdef += sd->sc_data[SC_ENDURE].val1;
 		if(sd->sc_data[SC_MINDBREAKER].timer!=-1){	// ƒvƒƒ{ƒbƒN
 			sd->mdef2 = sd->mdef2*(100-6*sd->sc_data[SC_MINDBREAKER].val1)/100;
 			sd->matk1 = sd->matk1*(100+2*sd->sc_data[SC_MINDBREAKER].val1)/100;
@@ -1497,8 +1497,10 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		sd->speed_rate = 1;
 	if(sd->speed_rate != 100)
 		sd->speed = sd->speed*sd->speed_rate/100;
-	if(sd->speed < DEFAULT_WALK_SPEED/4)
-		sd->speed = DEFAULT_WALK_SPEED/4;
+	if(sd->speed < MIN_WALK_SPEED)
+		sd->speed = MIN_WALK_SPEED;
+	if(sd->speed > MAX_WALK_SPEED)
+		sd->speed = MAX_WALK_SPEED;
 	if(aspd_rate != 100)
 		sd->aspd = sd->aspd*aspd_rate/100;
 	if(pc_isriding(sd))							// ‹R•ºC—û
@@ -1683,8 +1685,10 @@ int status_calc_speed (struct map_session_data *sd)
 	if(sd->speed_rate != 100)
 		sd->speed = sd->speed*sd->speed_rate/100;
 
-	if(sd->speed < DEFAULT_WALK_SPEED/4)
-		sd->speed = DEFAULT_WALK_SPEED/4;
+	if(sd->speed < MIN_WALK_SPEED)
+		sd->speed = MIN_WALK_SPEED;
+	if(sd->speed > MAX_WALK_SPEED)
+		sd->speed = MAX_WALK_SPEED;
 
 	if(sd->skilltimer != -1 && (skill = pc_checkskill(sd,SA_FREECAST)) > 0) {
 		sd->prev_speed = sd->speed;

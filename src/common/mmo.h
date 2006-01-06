@@ -50,7 +50,7 @@
 #define ACCOUNT_REG_NUM 64
 #define ACCOUNT_REG2_NUM 64
 #define DEFAULT_WALK_SPEED 150
-#define MIN_WALK_SPEED 0
+#define MIN_WALK_SPEED 50
 #define MAX_WALK_SPEED 1000
 #define MAX_STORAGE 300
 #define MAX_GUILD_STORAGE 1000
@@ -96,7 +96,7 @@ struct item {
 	char refine;
 	char attribute;
 	short card[4];
-	short gm_made;
+	unsigned long gm_made;
 };
 
 struct point{

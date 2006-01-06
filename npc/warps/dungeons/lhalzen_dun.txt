@@ -25,8 +25,8 @@ lighthalzen.gat,73,52,0	warp	lhz007a	1,1,lhz_dun01.gat,150,288
 
 
 lhz_dun02.gat,150,149,1	script	Portal	723,{
-	if (class > 4000 && BaseLevel > 90) goto Enter;
-	if (BaseLevel > 95) goto Enter;
+	if (class > 4000 && BaseLevel >= 90) goto Enter;
+	if (BaseLevel >= 95) goto Enter;
 
 	mes "--A sense of cold dread overcomes you and you find yourself unable to enter--";
 	close;

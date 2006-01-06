@@ -4406,6 +4406,8 @@ static int mob_readskilldb(void)
 				if( strcmp(sp[9],target[j].str)==0)
 					ms->target=target[j].id;
 			}
+			if(ms->skill_id == SM_MAGNUM)
+				ms->target = MST_SELF;
 			ms->cond1=-1;
 			for(j=0;j<sizeof(cond1)/sizeof(cond1[0]);j++){
 				if( strcmp(sp[10],cond1[j].str)==0)

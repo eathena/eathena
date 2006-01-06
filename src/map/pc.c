@@ -405,6 +405,7 @@ int pc_setnewpc(struct map_session_data *sd, int account_id, int char_id, int lo
 	sd->client_tick  = client_tick;
 	sd->sex          = sex;
 	sd->state.auth   = 0;
+
 	sd->bl.type      = BL_PC;
 	sd->canact_tick  = sd->canmove_tick = gettick();
 	sd->endure_tick  = gettick();
@@ -590,8 +591,13 @@ int pc_isequip(struct map_session_data *sd,int n)
 
 	if(item == NULL)
 		return 0;
-	if(item->sex != 2 && sd->status.sex != item->sex)
-		return 0;
+	if(!battle_config.ignore_items_gender || 
+		item->nameid == WEDDING_RING_M || item->nameid == WEDDING_RING_F ||
+		item->nameid == 2338 || item->nameid == 7170)
+	{
+		if(item->sex != 2 && sd->status.sex != item->sex)
+			return 0;
+	}
 	if(item->elv > 0 && sd->status.base_level < item->elv)
 		return 0;
 
@@ -654,7 +660,7 @@ int pc_break_equip(struct map_session_data *sd, unsigned short where)
 			(where == EQP_SHIELD && i == 9 && sd->inventory_data[j]->type == 5)))
 		{
 			sd->status.inventory[j].attribute = 1;
-			sprintf(tmp_output, "%s has broken.", sd->inventory_data[j]->name);
+			sprintf(tmp_output, "%s has broken.", sd->inventory_data[j]->jname);
 			pc_unequipitem(sd, j, 3);
 			clif_emotion(&sd->bl, 23);
 			clif_displaymessage(sd->fd, tmp_output);
@@ -2514,7 +2520,7 @@ int pc_addgmitem(struct map_session_data *sd,struct item *item_data,int amount)
 					return 5;
 				sd->status.inventory[i].amount += amount;
 				// One gm-made item will flag the whole pile as Gm-made
-				sd->status.inventory[i].gm_made = 1;
+				sd->status.inventory[i].gm_made = sd->status.account_id;
 				clif_additem(sd,i,amount,0);
 				break;
 			}
@@ -3832,6 +3838,9 @@ int pc_checkallowskill(struct map_session_data *sd)
 {
 	nullpo_retr(0, sd);
 	nullpo_retr(0, sd->sc_data);
+
+	if(sd->sc_data[SC_DANCING].timer != -1 && sd->status.weapon!=13 && sd->status.weapon!=14)
+		skill_stop_dancing(&sd->bl,0);
 
 	if(!(skill_get_weapontype(KN_TWOHANDQUICKEN)&(1<<sd->status.weapon)) && sd->sc_data[SC_TWOHANDQUICKEN].timer!=-1) {	// 2HQ
 		status_change_end(&sd->bl,SC_TWOHANDQUICKEN,-1);	// 2HQ‚ğ‰ğœ

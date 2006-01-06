@@ -32,7 +32,7 @@ nif_fild01.gat,0,0,0,0	monster	Bloody Murderer	1507,2,0,0,0
 nif_fild01.gat,0,0,0,0	monster	Quve	1508,10,0,0,0
 nif_fild01.gat,0,0,0,0	monster	Lude	1509,20,0,0,0
 nif_fild01.gat,0,0,0,0	monster	Hylozoist	1510,8,0,0,0
-nif_fild01.gat,0,0,0,0	monster	Lord Of Death	1373,1,3600000,1800000,1
+nif_fild01.gat,0,0,0,0	monster	Lord Of Death	1373,1,4800000,3600000,1
 
 //if_fild02
 nif_fild02.gat,0,0,0,0	monster	Gibbet	1503,10,0,0,0

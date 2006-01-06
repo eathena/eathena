@@ -325,6 +325,7 @@ jawaii.gat,196,218,3	script	Doorman	109,{
 //= to chill and hang out. All is welcome. Also it's my
 // wife gift from me to her.
 //=========================================================
+gon_test.gat,48,16,0,0	monster	Emperium	1288,1,0,0,0
  
 gon_in.gat,72,84,4	script	Plant Specialist	865,{
 	if (getcharid(2) == 30182) goto G_W;
@@ -354,5 +355,3 @@ gon_in.gat,72,84,4	script	Plant Specialist	865,{
 	No:
 	close;
 }
-
-gon_test.gat,48,2,0	warp	gunt001	2,2,gun_in.gat,72,86

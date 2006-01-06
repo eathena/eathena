@@ -926,7 +926,6 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		break;
 
 	case TF_POISON:			/* インベナム */
-	case AS_SPLASHER:		/* ベナムスプラッシャ? */
 		if(rand()%100< (2*skilllv+10)*sc_def_vit/100 )
 			status_change_start(bl,SC_POISON,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
 		else{
@@ -2066,7 +2065,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		if(!status_isdead(bl)) {
 			if(damage > 0)
 				skill_additional_effect(src,bl,skillid,skilllv,attack_type,tick);
-			if(attack_type&BF_WEAPON && skillid!=AM_DEMONSTRATION)
+			if(attack_type&BF_WEAPON && skillid!=AM_DEMONSTRATION && skillid != ASC_BREAKER)
 				skill_card_effect(src,bl,tick);
 			if(bl->type==BL_MOB && src!=bl)	/* スキル使用?件のMOBスキル */
 			{
@@ -5095,7 +5094,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 
 	case AS_SPLASHER:		/* ベナムスプラッシャ? */
-		if((double)status_get_max_hp(bl)*2/3 < status_get_hp(bl)) { //HPが2/3以上?っていたら失敗
+		if(status_get_hp(bl) > status_get_max_hp(bl)/4)
+		{
 			map_freeblock_unlock();
 			return 1;
 		}
@@ -5281,7 +5281,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 						int where[] = { EQP_ARMOR, EQP_SHIELD, EQP_HELM };
 						battle_damage(src, bl, 1000, 0);
 						clif_damage(src,bl,tick,0,0,1000,0,0,0);
-						if (dstsd) pc_break_equip(dstsd, where[rand() % 3]);
+						if (dstsd) 
+						{
+							pc_break_equip(dstsd, where[rand() % 3]);
+							skill_check_plag(dstsd,CG_TAROTCARD, skilllv);
+						}
 					}
 					break;
 				case 4:	// atk halved
@@ -5316,10 +5320,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					status_change_start(bl,SC_INCATK2,-50,0,0,0,30000,0);
 					status_change_start(bl,SC_INCMATK2,-50,0,0,0,30000,0);
 					status_change_start(bl,SC_CURSE,skilllv,0,0,0,30000,0);
+					skill_check_plag(dstsd,CG_TAROTCARD, skilllv);
 					break;
 				case 11:	// 4444 damage
 					battle_damage(src, bl, 4444, 0);
 					clif_damage(src,bl,tick,0,0,4444,0,0,0);
+					skill_check_plag(dstsd,CG_TAROTCARD, skilllv);
 					break;
 				case 12:	// stun
 					status_change_start(bl,SC_STAN,skilllv,0,0,0,5000,0);
@@ -6655,6 +6661,8 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 				sec = sec/5;
 			if (sec < 3000)	// minimum time of 3 seconds [celest]
 				sec = 3000;
+			if (sec > 20000) // something's wrong
+				sec = 20000;
 			battle_stopwalking(bl,1);
 			status_change_start(bl,SC_ANKLE,sg->skill_lv,0,0,0,sec,0);
 
@@ -7334,6 +7342,12 @@ int skill_check_condition(struct map_session_data *sd,int type)
 	case MO_BODYRELOCATION:
 		if (sd->sc_count && sd->sc_data[SC_EXPLOSIONSPIRITS].timer!=-1)
 			spiritball = 0;
+	case TF_BACKSLIDING:
+		if (sd->sc_count && sd->sc_data[SC_ANKLE].timer!=-1)
+		{
+			clif_skill_fail(sd,skill,0,0);
+			return 0;
+		}
 		break;
 	case WS_CARTTERMINATION:
 		if (!sd->sc_count || sd->sc_data[SC_CARTBOOST].timer==-1)
