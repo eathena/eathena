@@ -1,8 +1,11 @@
 Date	Added
 
-2006/01/05
+2006/01/06
+	* Fog of Wall effects now work in both directions (outside -> inside,
+	  inside->outside) [Skotlex]
 	* Fixed the sql guild loading always returning a blank guild when the
 	  guild_id does not exists! [Skotlex]
+2006/01/05
 	* Some changes to the guild SQL code to report whenever a guild's id is not
 	  matching the one it was stored with in the db, which in turn free's the
 	  guild and doesn't saves it to perhaps prevent data corruption. [Skotlex]

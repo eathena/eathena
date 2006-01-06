@@ -677,7 +677,8 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 				status_change_end(bl, SC_SPIDERWEB, -1);
 			}
 
-		if(sc_data[SC_FOGWALL].timer != -1 && flag&BF_MAGIC)
+		//Only targetted magic skills are nullified.
+		if(sc_data[SC_FOGWALL].timer != -1 && flag&BF_MAGIC && !(skill_get_inf(skill_num)&INF_GROUND_SKILL))
 			if(rand()%100 < 75)
 				damage = 0;
 
@@ -689,7 +690,16 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 					status_change_start(bl, SC_COMBO, TK_JUMPKICK, src->id, 0, 0, 2000, 0);
 			}
 	}
-
+	
+	//SC effects from caster side.
+	sc_data = status_get_sc_data(src);
+	sc_count = status_get_sc_count(src);
+	if (sc_count && *sc_count > 0) {
+		if(sc_data[SC_FOGWALL].timer != -1 && flag&BF_MAGIC && !(skill_get_inf(skill_num)&INF_GROUND_SKILL))
+			if(rand()%100 < 75)
+				damage = 0;
+	}
+	
 	if(md && md->guardian_data) {
 		if(class_ == MOBID_EMPERIUM && (flag&BF_SKILL && //Only a few skills can hit the Emperium.
 			skill_num != PA_PRESSURE && skill_num != MO_TRIPLEATTACK && skill_num != HW_GRAVITATION)) 
@@ -2132,7 +2142,14 @@ static struct Damage battle_calc_weapon_attack(
 			ATK_RATE(cardfix/10);
 	}
 
+	
 	//SC_data fixes
+	if (sc_data)
+  	{
+		if (sc_data[SC_FOGWALL].timer != -1	&& wd.flag&BF_LONG)
+			ATK_RATE(50);
+	}
+	
 	if (t_sc_data)
 	{
 		short scfix=1000;
