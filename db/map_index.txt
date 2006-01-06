@@ -89,7 +89,7 @@ iz_dun01.gat
 iz_dun02.gat
 iz_dun03.gat
 iz_dun04.gat
-iz_dun05.gat
+job_sword1.gat
 izlu2dun.gat
 izlude.gat
 izlude_in.gat
@@ -203,7 +203,7 @@ priest_3-1.gat
 prontera.gat
 prt_are_in.gat
 prt_are01.gat
-prt_arena01.gat
+pvp_room.gat
 prt_castle.gat
 prt_church.gat
 prt_fild00.gat
@@ -570,6 +570,34 @@ kh_mansion.gat
 kh_rossi.gat
 kh_school.gat
 kh_vila.gat
+force_map1.gat
+force_map2.gat
+force_map3.gat
+job_hunter.gat
+job_knight.gat
+job_priest.gat
+job_wizard.gat
+himinn.gat
+quiz_test.gat
+turbo_n_1.gat
+turbo_n_4.gat
+turbo_n_8.gat
+turbo_n_16.gat
+turbo_e_4.gat
+turbo_e_8.gat
+turbo_e_16.gat
+que_sign02.gat
+g_room1-1.gat
+g_room1-2.gat
+g_room1-3.gat
+g_room2.gat
+guild_vs1-1.gat
+guild_vs1-2.gat
+guild_vs1-3.gat
+guild_vs1-4.gat
+guild_vs2-1.gat
+guild_vs2-2.gat
+que_job03.gat
 //Extra maps
 rwc01.gat	1000
 rwc02.gat

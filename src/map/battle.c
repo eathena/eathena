@@ -1962,7 +1962,10 @@ static struct Damage battle_calc_weapon_attack(
 
 		//Refine bonus
 		if (sd && flag.weapon && skill_num != MO_INVESTIGATE && skill_num != MO_EXTREMITYFIST) {
+			if (skill_num == MO_FINGEROFFENSIVE) //Counts refine bonus multiple times
 				ATK_ADD2(wd.div_*status_get_atk2(src), wd.div_*status_get_atk_2(src));
+			else
+				ATK_ADD2(status_get_atk2(src), status_get_atk_2(src));
 		}
 
 		//Set to min of 1

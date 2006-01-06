@@ -1,6 +1,10 @@
 Date	Added
 
 2006/01/06
+	* Cleaned up some maps in maps_athena.txt and added a bunch of cloned maps
+	  to map_index.txt [Skotlex]
+	* Refine bonus is no longer increased by the number of hits from the skill
+	  except for TSS [Skotlex]
 	* Dispelled Berserk won't drop HP back to 100 now. [Skotlex]
 	* Mobs that use NPC_SUICIDE won't give neither exp or loot now. [Skotlex]
 	* Summoned mobs that cannot move will be removed from the map when the
