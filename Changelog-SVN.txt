@@ -1,6 +1,7 @@
 Date	Added
 
 2006/01/06
+	* Corrected main.sql having incorrect syntax [Foruken]
 	* Cleaned up some maps in maps_athena.txt and added a bunch of cloned maps
 	  to map_index.txt [Skotlex]
 	* Refine bonus is no longer increased by the number of hits from the skill
