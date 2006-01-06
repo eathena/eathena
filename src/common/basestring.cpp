@@ -2,8 +2,7 @@
 #include "basestring.h"
 
 #include <wchar.h>
-
-
+#include <wctype.h>
 
 
 
@@ -64,7 +63,7 @@ inline bool _isspace(wchar_t c) { return 0!=::iswspace( to_unsigned(c) ); }
 //#define CONSTSTRING(x) L##x		// unicode string marker
 
 
-uchar hex4(char c) 
+uchar hex4(char c)
 {
     if( c>='a' && c<='f')
         return uchar(c - 'a' + 10);
@@ -80,21 +79,21 @@ char hexchar(uchar c)
 	c &= 0x0f;
     if( c < 10 )
         return char(c + '0');
-    else 
+    else
         return char(c - 10 + 'a');
 }
 
 
 static const char* _itobase(sint64 value, char* buf, size_t base, size_t& len, bool _signed)
 {
-    // internal conversion routine: converts the value to a string 
+    // internal conversion routine: converts the value to a string
     // at the end of the buffer and returns a pointer to the first
-    // character. this is to get rid of copying the string to the 
-    // beginning of the buffer, since finally the string is supposed 
-    // to be copied to a dynamic string in itostring(). the buffer 
+    // character. this is to get rid of copying the string to the
+    // beginning of the buffer, since finally the string is supposed
+    // to be copied to a dynamic string in itostring(). the buffer
     // must be at least 65 bytes long.
 
-    static const char digits[65] = 
+    static const char digits[65] =
         "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
     const char* pdigits = (base>36) ? digits : digits+2;
@@ -303,7 +302,7 @@ public:
 
 protected:
 	virtual void move(T* target, const T* source, size_t cnt)
-	{	
+	{
 		if(target>source)
 		{	// last to first run
 			T* epp=target;
@@ -319,12 +318,12 @@ protected:
 		//else identical; no move necessary
 	}
 	virtual void copy(T* target, const T* source, size_t cnt)
-	{	
+	{
 		T* epp=target+cnt;
 		while( target<epp ) *target++ =*source++;
 	}
 	virtual int cmp(const T* a, const T* b, size_t cnt) const
-	{	
+	{
 		T* epp=a+cnt;
 		while( a<epp )
 		{
@@ -457,7 +456,7 @@ protected:
 	virtual bool checkwrite(size_t addsize)
 	{
 		if( this->cWpp+addsize >= this->cEnd && this->cBuf < this->cRpp )
-		{	// move the current buffer data when necessary and possible 
+		{	// move the current buffer data when necessary and possible
 			memmove(this->cBuf, this->cRpp, this->cWpp-this->cRpp);
 			this->cWpp = this->cBuf+(this->cWpp-this->cRpp);
 			this->cRpp = this->cBuf;
@@ -614,7 +613,7 @@ public:
 			this->cPtr = this->cBuf;
 			*this->cPtr = 0;
 		}
-		else if( this->cBuf+ix+sz <= this->cPtr )  
+		else if( this->cBuf+ix+sz <= this->cPtr )
 		{	// move and truncate
 			this->move(this->cBuf, this->cBuf+ix, sz);
 			this->cPtr = this->cBuf+sz;
@@ -645,11 +644,11 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// base class functions
 	///////////////////////////////////////////////////////////////////////////
-	virtual const T* c_str() const		
+	virtual const T* c_str() const
 	{
 		if(!this->cBuf && const_cast<TString<T,A,E>*>(this)->checkwrite(1))
-			*this->cPtr=0; 
-		return this->cBuf; 
+			*this->cPtr=0;
+		return this->cBuf;
 	}
 	virtual operator const T*() const	{ return this->c_str(); }
 	virtual size_t length()	const		{ return this->A::length(); }
@@ -721,7 +720,7 @@ public:
 	{
 		this->cPtr = this->cBuf;
 		if(ch)
-		{	
+		{
 			if( this->checkwrite(slen) )
 			{
 				const T* epp=this->cPtr+slen;
@@ -936,7 +935,7 @@ public:
 				while(*ep) ep++;
 				if( slen > (size_t)(ep-c) )
 					slen = ep-c;
-				
+
 				if( slen<=tlen || this->checkwrite( slen-tlen ) )
 				{
 					this->move(this->cBuf+pos+slen, this->cBuf+pos+tlen, this->cPtr-this->cBuf-pos-tlen);
@@ -959,7 +958,7 @@ public:
 			{
 				if( pos+tlen > this->length() )
 					tlen = this->length()-pos;
-				
+
 				if( slen<=tlen || this->checkwrite( slen-tlen ) )
 				{
 					T* ipp = this->cBuf+pos;
@@ -1018,8 +1017,8 @@ public:
 	{
 		return ( string<T>(*this)<< t );
 	}
-	// add operators 
-	// for left hand side operators, only implement these, 
+	// add operators
+	// for left hand side operators, only implement these,
 	// the others would confuse standard operators
 	friend string<T> operator +(const T* t, const TString<T,A,E>& str)
 	{
@@ -1221,9 +1220,9 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// compare functions
 	///////////////////////////////////////////////////////////////////////////
-	template<class X> int compareTo(const TString<T,X> &s) const 
-	{	
-		if(s.length()>0 && this->length()>0) 
+	template<class X> int compareTo(const TString<T,X> &s) const
+	{
+		if(s.length()>0 && this->length()>0)
 			return this->cmp(this->cBuf, s.cBuf, 1+this->length());
 		else if(s.length()==0 && this->length()==0)
 			return 0;
@@ -1232,24 +1231,24 @@ public:
 		else
 			return -1;
 	}
-	int compareTo(const T c) const 
-	{	
+	int compareTo(const T c) const
+	{
 		if(this->length()==1)
 			return *this->cBuf - c;
 		else if(this->cBuf)
 			return 1;
-		else 
+		else
 			return -1;
 	}
-	int compareTo(const T *c) const 
-	{	
+	int compareTo(const T *c) const
+	{
 		if(c && this->length()>0)
 			return this->cmp(this->cBuf, c, 1+this->length());
 		else if((!c || *c==0) && this->length()==0)
 			return 0;
 		else if((!c || *c==0))
 			return 1;
-		else 
+		else
 			return -1;
 	}
 	/////////////////////////////////////////////////////////////////
@@ -1333,7 +1332,7 @@ public:
 		{
 			char* ipp = this->cPtr-1;
 			char* kpp = this->cPtr-1;
-				
+
 			while( ipp>this->cBuf && _isspace(*ipp) )
 				ipp--;
 			if( ipp != kpp )
@@ -1354,9 +1353,9 @@ public:
 	/////////////////////////////////////////////////////////////////
 	bool find(const stringinterface<T>& pattern, size_t &startpos, bool ignorecase=false) const
 	{	// modified boyer-moore search
-		
+
 		// table size is bound to 8bit values
-		size_t	SkipTable[256]; 
+		size_t	SkipTable[256];
 
 		size_t i,k,sp;
 		size_t len = pattern.length();
@@ -1368,17 +1367,17 @@ public:
 			SkipTable[i] = len+1;
 		}
 		for (i=0; i<len; i++)
-		{	// otherwise skip as only that many 
+		{	// otherwise skip as only that many
 			// so the next char in the string fits with the one frome the pattern
 			SkipTable[ (unsigned char) (pattern[i]) ] = len-i;
 		}
 
 		// run first to last / case sensitive
 		sp=i=startpos;
-		k=0; 
+		k=0;
 		while( i<this->length() && k<len )
 		{
-			if( ignorecase ? 
+			if( ignorecase ?
 				(tolower((unsigned char)((*this)[i])) != tolower((unsigned char)(pattern[k]))) :
 				((*this)[i] != pattern[k]) )
 			{	// no match at that position, find the next starting pos
@@ -1397,7 +1396,7 @@ public:
 		startpos = sp;
 		return true;
 	}
-	
+
 };
 
 
@@ -1450,8 +1449,8 @@ public:
 	{
 		return ( (basestring<T>(*this)) << t );
 	}
-	// add operators 
-	// for left hand side operators, only implement these, 
+	// add operators
+	// for left hand side operators, only implement these,
 	// the others would confuse standard operators
 	friend basestring<T> operator +(const char* t, const basestring<T>& str)
 	{
@@ -1482,11 +1481,11 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// array access
 	///////////////////////////////////////////////////////////////////////////
-	virtual const T* c_str() const		
+	virtual const T* c_str() const
 	{
 		if(!this->cBuf && const_cast<staticstring<T>*>(this)->checkwrite(1))
-			*this->cPtr=0; 
-		return this->cBuf; 
+			*this->cPtr=0;
+		return this->cBuf;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -1497,8 +1496,8 @@ public:
 	{
 		return ((basestring<T>(*this))<< t);
 	}
-	// add operators 
-	// for left hand side operators, only implement these, 
+	// add operators
+	// for left hand side operators, only implement these,
 	// the others would confuse standard operators
 	friend basestring<T> operator +(const char* t, const staticstring<T>& str)
 	{
@@ -1620,8 +1619,8 @@ protected:
 	// virtual access functions to the smart pointer
 	/////////////////////////////////////////////////////////////////
 	// !!copy-on-write
-	virtual const basestring<T>& readaccess() const	
-	{ 
+	virtual const basestring<T>& readaccess() const
+	{
 		this->checkpointer();
 		return *this->itsCounter;
 	}
@@ -1674,7 +1673,7 @@ public:
 	/////////////////////////////////////////////////////////////////
 	const size_t getRefCount() const
 	{
-		return (this->itsCounter) ? this->itsCounter->cRefCnt : 1; 
+		return (this->itsCounter) ? this->itsCounter->cRefCnt : 1;
 	}
 	bool is_sameRef(const string<T>& str) const
 	{
@@ -1686,7 +1685,7 @@ public:
 	}
 	T* unique()
 	{
-		// force calling string::writeaccess, 
+		// force calling string::writeaccess,
 		// which creates a unique object
 		return const_cast<T*>(this->string::writeaccess().c_str());
 	}
@@ -1803,7 +1802,7 @@ public:
 		return *this;
 	}
 	/////////////////////////////////////////////////////////////////
-	// add operators 
+	// add operators
 	// for right side operations
 	/////////////////////////////////////////////////////////////////
 	string<T> operator +(const stringinterface<T>& t)
@@ -1848,8 +1847,8 @@ public:
 		a.writeaccess() += t;
 		return a;
 	}
-	// add operators 
-	// for left hand side operators, only implement these, 
+	// add operators
+	// for left hand side operators, only implement these,
 	// the others would confuse standard operators
 	friend string<T> operator +(const stringinterface<T>& t, const string<T>& str)
 	{
@@ -2095,7 +2094,7 @@ public:
 	void removeindex(size_t inx, size_t len){ this->writeaccess().removeindex(inx, len); }
 
 	bool is_empty() const
-	{	
+	{
 		return ( NULL==this->itsCounter || 0==this->readaccess().length() );
 	}
 	/////////////////////////////////////////////////////////////////
@@ -2104,13 +2103,13 @@ public:
 	substring<T>operator[](size_t inx)
 	{
 		if( inx < this->length() )
-			return substring<T>(this, inx, 1); 
+			return substring<T>(this, inx, 1);
 		return substring<T>(this, 0, 0);
 	}
 	substring<T>operator[](int inx)
 	{
 		if( inx>0 && (size_t)inx < this->length() )
-			return substring<T>(this, inx, 1); 
+			return substring<T>(this, inx, 1);
 		return substring<T>(this, 0, 0);
 	}
 	const char& operator[](size_t inx) const	{ return this->readaccess()[inx]; }
@@ -2127,7 +2126,7 @@ public:
 	substring<T> operator()(size_t inx, size_t len=1) const
 	{
 		if( inx < this->length() )
-		{	
+		{
 			if( inx+len > this->length() )
 				len = this->length()-inx;
 			return substring<T>(this, inx, len);
@@ -2150,7 +2149,7 @@ public:
 	void to_lower()
 	{	// this function does practically nothing if the string
 		// contains no uppercase characters. once an uppercase character
-		// is encountered, the string is copied to another buffer and the 
+		// is encountered, the string is copied to another buffer and the
 		// rest is done as usual.
 
 		// a trick to get a non-const pointer without making
@@ -2245,13 +2244,13 @@ public:
 	{
 		return this->readaccess().compareTo( ch );
 	}
-	int compareTo(const string &s) const 
+	int compareTo(const string &s) const
 	{	// first check if the pointers are identical
 		if( itsCounter != s.itsCounter )
 			return this->readaccess().compareTo( s.readaccess() );
 		return 0;
 	}
-	int compareTo(const char *c) const 
+	int compareTo(const char *c) const
 	{
 		return this->readaccess().compareTo( c );
 	}
@@ -2270,7 +2269,7 @@ public:
 	bool operator >=(const char c) 	const { return (compareTo( c ) >= 0); }
 	bool operator < (const char c) 	const { return (compareTo( c ) <  0); }
 	bool operator > (const char c) 	const { return (compareTo( c ) >  0); }
-	
+
 	bool operator ==(const char *c) const { return (compareTo( c ) == 0); }
 	bool operator !=(const char *c) const { return (compareTo( c ) != 0); }
 	bool operator <=(const char *c) const { return (compareTo( c ) <= 0); }
@@ -2290,9 +2289,9 @@ public:
 	/////////////////////////////////////////////////////////////////
 	size_t find(const string<T>& pattern, size_t &startpos, bool ignorecase=false) const
 	{	// modified boyer-moore search
-		
+
 		// table size is bound to 8bit values
-		size_t	SkipTable[256]; 
+		size_t	SkipTable[256];
 
 		size_t i,k,sp;
 		size_t len = pattern.length();
@@ -2304,17 +2303,17 @@ public:
 			SkipTable[i] = len+1;
 		}
 		for (i=0; i<len; i++)
-		{	// otherwise skip as only that many 
+		{	// otherwise skip as only that many
 			// so the next char in the string fits with the one frome the pattern
 			SkipTable[ (unsigned char) (pattern[i]) ] = len-i;
 		}
 
 		// run first to last / case sensitive
 		sp=i=startpos;
-		k=0; 
+		k=0;
 		while( i<this->length() && k<len )
 		{
-			if( ignorecase ? 
+			if( ignorecase ?
 				(tolower((unsigned char)((*this)[i])) != tolower((unsigned char)(pattern[k]))) :
 				((*this)[i] != pattern[k]) )
 			{	// no match at that position, find the next starting pos
@@ -2339,7 +2338,7 @@ public:
 		TArrayDST<size_t> poslist;
 
 		// table size is bound to 8bit values
-		size_t	SkipTable[256]; 
+		size_t	SkipTable[256];
 
 		size_t i,k,sp;
 		size_t len = pattern.length();
@@ -2350,17 +2349,17 @@ public:
 			SkipTable[i] = len+1;
 		}
 		for (i=0; i<len; i++)
-		{	// otherwise skip as only that many 
+		{	// otherwise skip as only that many
 			// so the char in the string fits with the one frome the pattern
 			SkipTable[((unsigned char)(pattern[i]))] = len-i;
 		}
 
 		// run first to last / case sensitive
 		sp=i=0;
-		k=0; 
+		k=0;
 		while( i<this->length() )
 		{
-			if( ignorecase ? 
+			if( ignorecase ?
 				(tolower((unsigned char)((*this)[i])) != tolower((unsigned char)(pattern[k]))) :
 				((*this)[i] != pattern[k]) )
 			{	// no match at that position, fine the next starting pos
@@ -2394,7 +2393,7 @@ protected:
 	// !!autocount
 	virtual const basestring<T>& readaccess() const
 	{
-		this->checkpointer();	
+		this->checkpointer();
 		// no need to aquire, is done on reference creation
 		return *this->itsCounter;
 	}
@@ -2413,12 +2412,12 @@ public:
 	const globalstring<T>& operator=(const globalstring<T>& r)
 	{
 		this->string<T>::operator=(r);
-		return *this; 
+		return *this;
 	}
 	const globalstring<T>& operator=(const string<T>& r)
 	{
 		this->string<T>::operator=(r);
-		return *this; 
+		return *this;
 	}
 	virtual ~globalstring<T>()									{  }
 
@@ -2543,7 +2542,7 @@ public:
 	// Different Assignments to a substring
 	/////////////////////////////////////////////////////////////////
 	const substring<T>& operator=(const string<T>& str)
-	{	
+	{
 		if(cString)
 		{
 			if( this->cString->is_sameRef(str) )
@@ -2658,7 +2657,7 @@ public:
 			SkipTable[i] = len+1;
 		}
 		for (i=0; i<len; i++)
-		{	// otherwise skip as only that many 
+		{	// otherwise skip as only that many
 			// so the next char in the string fits with the one frome the pattern
 			size_t inx = to_unsigned( pattern[i] );
 			if( inx < (sizeof(SkipTable)/sizeof(SkipTable[0])) )
@@ -2674,10 +2673,10 @@ public:
 		size_t sp, i, k, len=this->length();
 		// run first to last / case sensitive
 		sp=i=startpos;
-		k=0; 
+		k=0;
 		while( i<searchstring.length() && k<len )
 		{
-			if( ignorecase ? 
+			if( ignorecase ?
 				(tolower((unsigned char)(searchstring[sp+len])) != tolower((unsigned char)((*this)[k]))) :
 				(searchstring[i] != (*this)[k]) )
 			{	// no match at that position, find the next starting pos
@@ -2704,10 +2703,10 @@ public:
 		size_t sp, i, k, len=this->length();
 		// run first to last / case sensitive
 		sp=i=0;
-		k=0; 
+		k=0;
 		while( i<searchstring.length() )
 		{
-			if( ignorecase ? 
+			if( ignorecase ?
 				(tolower((unsigned char)(searchstring[sp+len])) != tolower((unsigned char)((*this)[k]))) :
 				(searchstring[i] != (*this)[k]) )
 			{	// no match at that position, find the next starting pos
@@ -2780,7 +2779,7 @@ template<class T> inline void clear(string<T>& s)								{ s.clear(); }
 template<class T> inline bool isempty(const string<T>& s)						{ return s.length() == 0; }
 template<class T> inline int  pos(const string<T>& s1, const string<T>& s)		{ return pos(s1.c_str(), s); }
 
-template<class T> string<T> lowercase(const T* p) 
+template<class T> string<T> lowercase(const T* p)
 {
     // we rely on the function locase() which converts one single
     // character to lower case. all locale specific things can be
@@ -2792,7 +2791,7 @@ template<class T> string<T> lowercase(const string<T>& s)
 {
 	// this function does practically nothing if the string s
 	// contains no uppercase characters. once an uppercase character
-	// is encountered, the string is copied to another buffer and the 
+	// is encountered, the string is copied to another buffer and the
 	// rest is done as usual.
 	string<T> r = s;
 
@@ -2862,7 +2861,7 @@ static void _itobase2(string<>& result, sint64 value, size_t base, bool _signed,
 		result.append(padchar, width);	// padding
 		result.append(p, reslen);	// buffer
     }
-    else 
+    else
         result.assign(p, reslen);
 }
 
@@ -2965,12 +2964,12 @@ bool contains(const string<>& s1, const string<>& s, size_t at)
 template<class T> string<T> copy(const string<T>& s, size_t from, size_t cnt)
 {
     string<T> t;
-    if( hstrlen(s) > 0 && from >= 0 && from < hstrlen(s)) 
+    if( hstrlen(s) > 0 && from >= 0 && from < hstrlen(s))
     {
         size_t l = min(cnt, hstrlen(s) - from);
         if (from == 0 && l == hstrlen(s))
             t = s;
-        else if (l > 0) 
+        else if (l > 0)
             t = t(from, cnt);
     }
     return t;
@@ -3092,7 +3091,7 @@ public:
 
 class xxxtest : public yyytest
 {
-	
+
 public:
 	xxxtest()	{}
 	~xxxtest()	{}
@@ -3123,7 +3122,7 @@ int stringbuffer_test()
 		string<> a;
 		const char *c;
 		uint b, i;
-	
+
 		for(i=0; i<66; i++)
 		{
 			a = itostring(1234567890, i);
@@ -3141,7 +3140,7 @@ int stringbuffer_test()
 		basestring<> a("halloballo");
 		basestring<> b(a);
 		basestring<> c("11111");
-	
+
 		patternstring<> pat("ll");
 
 		size_t pos=0;
@@ -3246,7 +3245,7 @@ size_t sz=0;
 		sa << "hallo " << (int)i << " ballo " << (int)(i*2/3+i) << " no " << (((double)i)*1.3);
 	}
 	printf("staticstring %i\n", gettick()-tick);
-	
+
 	tick = gettick();
 	for(i=0; i<100000; i++)
 	{
@@ -3278,11 +3277,11 @@ size_t sz=0;
 
 // checkRefCntVal: pass by value, where reference count gets incremented
 // by one on entry and decremented by one on exit.
- 
+
 void checkRefCntVal(string s, size_t shouldBe, const char *prefix )
 {
   if (s.getRefCount() != shouldBe)
-    printf("%s refCnt = %d (should be %d)\n", 
+    printf("%s refCnt = %d (should be %d)\n",
            prefix, s.getRefCount(), shouldBe );
 } // checkRefCntVal
 
@@ -3294,7 +3293,7 @@ void checkRefCntVal(string s, size_t shouldBe, const char *prefix )
 void checkRefCnt(string &s, size_t shouldBe, const char *prefix )
 {
   if (s.getRefCount() != shouldBe)
-    printf("%s refCnt = %d (should be %d)\n", 
+    printf("%s refCnt = %d (should be %d)\n",
            prefix, s.getRefCount(), shouldBe );
 } // checkRefCnt
 
@@ -3373,7 +3372,7 @@ void test_char_cast()
 // test_assign
 //
 // The privious version of the string class created a new copy when
-// ever the index operator ([]) was used.  I was surprised to 
+// ever the index operator ([]) was used.  I was surprised to
 // discover that this was the case even with the index operator
 // was on the right hand size.  This function includes a test
 // which checks that copy on read does not take place in this
@@ -3955,7 +3954,7 @@ void test_arrayop()
   a(9) = 'e';
   a(10) = 'r';
 
-  // The string has been changed, so a "copy on write" should 
+  // The string has been changed, so a "copy on write" should
   // have taken place.  Now there is a single copy, with the
   // change.
   if (a.getRefCount() != 1)
@@ -3963,7 +3962,7 @@ void test_arrayop()
 
   if (jabbarString.getRefCount() != 2)
     printf("4. jabbarString reference count is wrong\n");
-  
+
   const char *tmp = a;
   if (strcmp(tmp, newJabbar1) != 0) {
     printf("5. strings don't match: a = %s, should be %s\n",
@@ -4000,7 +3999,7 @@ void test_arrayop()
 // function to insert a string into another string.  This is very much
 // like assigning to a SubString.  In the case of an insert the
 // length of the section being replaced is 0.
-   
+
 // This code attempts to not only make sure that insert works, but
 // also that insert works for various corner cases (e.g., insert of an
 // empty string or a null C string).
@@ -4048,7 +4047,7 @@ void test_insert()
   if (d != rslt1) {
     printf("6. insert failed. d = [%s], should be [%s]\n",
            (const char *)d, rslt1 );
-  }  
+  }
 
   string c_prime = c;  // reference count is 2
 
@@ -4100,7 +4099,7 @@ void test_insert()
 void test_substr_func_valarg( const substring &sub, size_t errorNum )
 {
   if (sub.getRefCount() != 1) {
-    printf("%d. sub.getRefCount() = %d, should be 1\n", 
+    printf("%d. sub.getRefCount() = %d, should be 1\n",
            errorNum, sub.getRefCount() );
   }
 
@@ -4203,7 +4202,7 @@ void test_substring()
   // In the case of the string container, the expression
   //
   //     e = d(4, 8) + d(0, 4);
-  // 
+  //
   // creates a string object temporary, which is assigned to "e"
   //
   //   <allocate string temporary object CompilerTemp>
@@ -4236,7 +4235,7 @@ void test_substring()
   string f("chopsock");
 
   f(4, 4) = f(0, 4);
-  
+
   if (f != "chopchop") {
     printf("13. f = %s, should be \"chopchop\"\n", (const char *)f );
   }

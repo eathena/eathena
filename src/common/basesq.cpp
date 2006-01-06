@@ -1,4 +1,5 @@
 #include "basesq.h"
+#include <wctype.h>
 
 #ifndef TXT_ONLY
 
@@ -15,10 +16,78 @@ CMySQL::CMySQL() {
 	safestrcpy(mysqldb_db, "ragnarok", sizeof(mysqldb_db));
 }
 
+
+CMySQL::CMySQL(MYSQL new_handle)
+{
+	original_mysql_handle = mysqldb_handle;
+	mysqldb_handle = new_handle;  // wonder if this works.. will ask shino later.
+
+	safestrcpy(mysqldb_ip, "127.0.0.1", sizeof(mysqldb_ip));
+	mysqldb_port=3306;
+	safestrcpy(mysqldb_id, "ragnarok", sizeof(mysqldb_id));
+	safestrcpy(mysqldb_pw, "ragnarok", sizeof(mysqldb_pw));
+	safestrcpy(mysqldb_db, "ragnarok", sizeof(mysqldb_db));
+
+}
+
 // CMySQL Class Destructor
 // Code is executed a CMySQL var is destroyed
 inline CMySQL::~CMySQL() {
+	this->Free();
+
+	// if it's different, change it back =O
+	mysqldb_handle = original_mysql_handle;
 }
+
+
+bool CMySQL::Query(const MiniString q) {
+
+	#ifdef DEBUG_SQL
+		ShowSQL("%s\n", q);
+	#endif
+
+	if( 0==mysql_real_query(&mysqldb_handle, q, q.length()) ) {
+
+		this->Free();
+		result = mysql_store_result(&mysqldb_handle);
+
+		if(result)
+			return true;
+		else if(mysql_field_count(&mysqldb_handle) == 0)
+            // query does not return data
+            // (it was not a SELECT)
+            return true;
+		else
+			ShowError("DB result error\nQuery:    %s\n", (const char *)q);
+	}
+	else
+		ShowError("Database Error %s\nQuery:    %s\n", mysql_error(&mysqldb_handle), (const char *)q);
+
+	return false;
+}
+
+bool CMySQL::Fetch()
+{
+	if (!result) // was there even a result?
+		if ((row = mysql_fetch_row(result))) // is there a row to pull out?
+			return true;
+	return false;
+}
+
+long int CMySQL::CountRes()
+{
+	return mysql_num_rows(result);
+}
+
+void CMySQL::Free()
+{
+	if (result)
+	{
+		mysql_free_result(result);
+	}
+}
+
+
 
 // Send a MySQL query to get data
 bool CMySQL::mysql_SendQuery(MYSQL_RES*& sql_res, const char* q, size_t sz) {
@@ -137,15 +206,14 @@ bool CAccountDB_sql::existAccount(const char* userid)
 	if(userid)
 	{
 		char uid[64];
-		char query[1024];
-		MYSQL_RES* sql_res=NULL;
+		MiniString query;
 
 		escape_string(uid, userid, strlen(userid));
-		size_t sz=snprintf(query, sizeof(query), "SELECT `userid` FROM `%s` WHERE %s `userid` = '%s'", login_auth_db, case_sensitive ? "BINARY" : "", uid);
-		if( this->mysql_SendQuery(sql_res, query, sz) )
+		query << "SELECT `userid` FROM `" << login_auth_db << "` WHERE " << (case_sensitive?"BINARY":"") << "`userid` = '" <<  uid  <<"'";
+		this->Query(query);
+		if( this->Fetch())
 		{
-			ret = (mysql_num_rows(sql_res) == 1);
-			mysql_free_result(sql_res);
+			ret = this->CountRes();
 		}
 	}
 	return ret;
@@ -156,49 +224,46 @@ bool CAccountDB_sql::searchAccount(const char* userid, CLoginAccount& account)
 	bool ret = false;
 	if(userid)
 	{
-		size_t sz;
-		char query[4096];
+		MiniString query;
 		char uid[64];
-		MYSQL_RES *sql_res1=NULL, *sql_res2=NULL;
 
 		escape_string(uid, userid, strlen(userid));
-		sz=snprintf(query,sizeof(query),  "SELECT"
-			"`account_id`,"		//  0
-			"`userid`,"			//  1
-			"`user_pass`,"		//  2
-			"`sex`,"			//  3
-			"`gm_level`,"		//  4
-			"`online`,"			//  5
-			"`email`,"			//  6
-			"`login_id1`,"		//  7
-			"`login_id2`,"		//  8
-			"`client_ip`,"		//  9
-			"`last_login`,"		// 10
-			"`login_count`,"	// 11
-			"`ban_until`"		// 12
-			"`valid_until`"		// 13
-			" FROM `%s` WHERE %s `userid`='%s'", login_auth_db, case_sensitive ? "BINARY" : "", uid);
+		query << "SELECT"
+			<<"`account_id`,"		//  0
+			<<"`userid`,"			//  1
+			<<"`user_pass`,"		//  2
+			<<"`sex`,"			//  3
+			<<"`gm_level`,"		//  4
+			<<"`online`,"			//  5
+			<<"`email`,"			//  6
+			<<"`login_id1`,"		//  7
+			<<"`login_id2`,"		//  8
+			<<"`client_ip`,"		//  9
+			<<"`last_login`,"		// 10
+			<<"`login_count`,"	// 11
+			<<"`ban_until`"		// 12
+			<<"`valid_until`"		// 13
+			<<" FROM `" << login_auth_db << "` WHERE " << (case_sensitive ? "BINARY" : "") << " `userid`='" << uid << "'";
 
-		if( this->mysql_SendQuery(sql_res1, query, sz) )
+		if( this->Query(query) )
 		{
-			MYSQL_ROW sql_row = mysql_fetch_row(sql_res1);	//row fetching
-			if(sql_row)
+			//row fetching
+			if(this->Fetch())
 			{
-
-				account.account_id	= sql_row[0]?atol(sql_row[0]):0;
-				safestrcpy(account.userid, sql_row[1]?sql_row[1]:"", sizeof(account.userid));
-				safestrcpy(account.passwd, sql_row[2]?sql_row[2]:"", sizeof(account.passwd));
-				account.sex			= sql_row[3][0] == 'S' ? 2 : sql_row[3][0]=='M';
-				account.gm_level	= sql_row[4]?atol(sql_row[4]):0;
-				account.online		= sql_row[5]?atol(sql_row[5]):0;
-				safestrcpy(account.email, sql_row[6]?sql_row[6]:"" , sizeof(account.email));
-				account.login_id1	= sql_row[7]?atol(sql_row[7]):0;
-				account.login_id2	= sql_row[8]?atol(sql_row[8]):0;
-				account.client_ip	= ipaddress(sql_row[9]);
-				safestrcpy(account.last_login, sql_row[10]?sql_row[10]:"" , sizeof(account.last_login));
-				account.login_count	= sql_row[11]?atol(sql_row[11]):0;
-				account.valid_until	= (time_t)(sql_row[12]?atol(sql_row[12]):0);
-				account.ban_until	= (time_t)(sql_row[13]?atol(sql_row[13]):0);
+				account.account_id	= this->row[0]?atol(this->row[0]):0;
+				safestrcpy(account.userid, this->row[1]?this->row[1]:"", sizeof(account.userid));
+				safestrcpy(account.passwd, this->row[2]?this->row[2]:"", sizeof(account.passwd));
+				account.sex			= this->row[3][0] == 'S' ? 2 : this->row[3][0]=='M';
+				account.gm_level	= this->row[4]?atol(this->row[4]):0;
+				account.online		= this->row[5]?atol(this->row[5]):0;
+				safestrcpy(account.email, this->row[6]?this->row[6]:"" , sizeof(account.email));
+				account.login_id1	= this->row[7]?atol(this->row[7]):0;
+				account.login_id2	= this->row[8]?atol(this->row[8]):0;
+				account.client_ip	= ipaddress(this->row[9]);
+				safestrcpy(account.last_login, this->row[10]?this->row[10]:"" , sizeof(account.last_login));
+				account.login_count	= this->row[11]?atol(this->row[11]):0;
+				account.valid_until	= (time_t)(this->row[12]?atol(this->row[12]):0);
+				account.ban_until	= (time_t)(this->row[13]?atol(this->row[13]):0);
 
 				// clear unused fields until they got removed from all implementations
 				account.state = 0;
@@ -206,23 +271,25 @@ bool CAccountDB_sql::searchAccount(const char* userid, CLoginAccount& account)
 				account.memo[0]=0;
 				account.last_ip[0]=0;
 
-				sz = snprintf(query,sizeof(query), "SELECT `str`,`value` FROM `%s` WHERE `account_id`='%ld'", login_reg_db, (unsigned long)account.account_id);
-				if( this->mysql_SendQuery(sql_res2, query, sz) )
+				this->Free();
+
+				query.clear();
+				query << "SELECT `str`,`value` FROM `" << login_reg_db << "` WHERE `account_id`='" << (unsigned long)account.account_id << "'";
+				if( this->Query(query) )
 				{
 					size_t i=0;
-					while( i<ACCOUNT_REG2_NUM && (sql_row = mysql_fetch_row(sql_res2)) )
+					while( i<ACCOUNT_REG2_NUM && this->Fetch() )
 					{
-						safestrcpy(account.account_reg2[i].str, sql_row[0], sizeof(account.account_reg2[0].str));
-						account.account_reg2[i].value = (sql_row[1]) ? atoi(sql_row[1]):0;
+						safestrcpy(account.account_reg2[i].str, this->row[0], sizeof(account.account_reg2[0].str));
+						account.account_reg2[i].value = (this->row[1]) ? atoi(this->row[1]):0;
 						i++;
 					}
 					account.account_reg2_num = i;
 
-					mysql_free_result(sql_res2);
+					this->Free();
 				}
 				ret = true;
 			}
-			mysql_free_result(sql_res1);
 		}
 	}
 	return ret;
@@ -1039,7 +1106,7 @@ class CCharDB_sql : public CMySQL, private CConfig, public CCharDBInterface
 	char skill_db[256];
 	char guild_skill_db[256];
 	char char_reg_db[256];
-	
+
 
 
 	bool name_ignoring_case;
@@ -1060,26 +1127,27 @@ class CCharDB_sql : public CMySQL, private CConfig, public CCharDBInterface
 public:
 	CCharDB_sql(const char *dbcfgfile)
 	{
-		safestrcpy(char_db, "char", sizeof(char_db));
-		safestrcpy(mail_db, "mail", sizeof(mail_db));
-		safestrcpy(friend_db, "friends", sizeof(friend_db));
-		safestrcpy(memo_db, "memo", sizeof(memo_db));
-		safestrcpy(cart_db, "cart_inventory", sizeof(cart_db));
-		safestrcpy(inventory_db, "inventory", sizeof(inventory_db));
-		safestrcpy(skill_db, "skill", sizeof(skill_db));
-		safestrcpy(guild_skill_db, "guild_skill", sizeof(guild_skill_db));
-		safestrcpy(char_reg_db, "char_reg", sizeof(char_reg_db));
-		
+		safestrcpy(char_db,			"char",				sizeof(char_db));
+		safestrcpy(mail_db,			"mail",				sizeof(mail_db));
+		safestrcpy(friend_db,		"friends",			sizeof(friend_db));
+		safestrcpy(memo_db,			"Memo",				sizeof(memo_db));
+		safestrcpy(cart_db,			"cart_inventory",	sizeof(cart_db));
+		safestrcpy(inventory_db,	"inventory",		sizeof(inventory_db));
+		safestrcpy(skill_db,		"skill",			sizeof(skill_db));
+		safestrcpy(guild_skill_db,	"guild_skill",		sizeof(guild_skill_db));
+		safestrcpy(char_reg_db,		"char_reg",			sizeof(char_reg_db));
+
 
 		char_name_option=0;
 		memset(char_name_letters,0,sizeof(char_name_letters));
 
 		name_ignoring_case=0;
 
-		start_zeny = 500;
-		start_weapon = 1201;
-		start_armor = 2301;
-		safestrcpy(start_point.mapname, "new_1-1.gat", sizeof(start_point.mapname));
+		start_zeny		= 500;
+		start_weapon	= 1201;
+		start_armor		= 2301;
+
+		safestrcpy(start_point.mapname,		"new_1-1.gat",		sizeof(start_point.mapname));
 		start_point.x=53;
 		start_point.y=111;
 
@@ -1110,11 +1178,13 @@ private:
 
 	bool char_to_sql(const CCharCharacter& p)
 	{
-		char query[65536];
+		MiniString query;
+
 		bool diff,l,status, loaded=false;
+
 		size_t sz,i;
-		
-		
+
+
 		CCharCharacter cp;
 /*
 		size_t pos;
@@ -1130,58 +1200,75 @@ private:
 		}
 */
 
+// Build the update for the character
+		query.clear();
+		query <<
+			"UPDATE `" << char_db << "` SET " <<
 
-		sz = snprintf(query, sizeof(query), 
-			"UPDATE `%s` "
-			"SET " // Sorted things out so it was easy to read and compare
-			"`class`='%d', `base_level`='%d', `job_level`='%d',"
-			"`base_exp`='%d', `job_exp`='%d', `zeny`='%d',"
+				"`class` = '"		<< p.class_ 		<< "'," <<
+				"`base_level`='"	<< p.base_level		<< "'," <<
+				"`job_level`='"		<< p.job_level		<< "'," <<
+				"`base_exp`='"		<< p.base_exp		<< "'," <<
+				"`job_exp`='"		<< p.job_exp		<< "'," <<
+				"`zeny`='"			<< p.zeny			<< "'," <<
 
-			"`hp`='%d',`max_hp`='%d',"
-			"`sp`='%d',`max_sp`='%d',"
-			"`str`='%d',`agi`='%d',`vit`='%d',`int`='%d',`dex`='%d',`luk`='%d',"
-			"`status_point`='%d',`skill_point`='%d',"
+				"`hp`='"			<< p.hp				<< "'," <<
+				"`max_hp`='"		<< p.max_hp			<< "'," <<
 
-			"`option`='%d',`karma`='%d',`manner`='%d',"
-			"`party_id`='%d',`guild_id`='%d',"
-			"`pet_id`='%d',"
+				"`sp`='"			<< p.sp				<< "'," <<
+				"`max_sp`='"		<< p.max_sp			<< "'," <<
 
-			"`hair`='%d',`hair_color`='%d',`clothes_color`='%d',"
-			"`weapon`='%d',`shield`='%d',`head_top`='%d',`head_mid`='%d',`head_bottom`='%d',"
+				"`str`='"			<< p.str			<< "'," <<
+				"`agi`='"			<< p.agi			<< "'," <<
+				"`vit`='"			<< p.vit			<< "'," <<
+				"`int`='"			<< p.int_			<< "'," <<
+				"`dex`='"			<< p.dex			<< "'," <<
+				"`luk`='"			<< p.luk			<< "'," <<
 
-			"`last_map`='%s',`last_x`='%d',`last_y`='%d',"
-			"`save_map`='%s',`save_x`='%d',`save_y`='%d',"
-			"`partner_id`='%d', `father`='%d', `mother`='%d', `child`='%d', "
+				"`status_point`='"	<< p.status_point	<< "'," <<
+				"`skill_point`='"	<< p.skill_point	<< "'," <<
 
-			"`fame`='%d'"
+				"`option`='"		<< p.option			<< "'," <<
+				"`karma`='"			<< p.karma			<< "'," <<
+				"`manner`='"		<< p.manner			<< "'," <<
+				"`party_id`='"		<< p.party_id		<< "'," <<
+				"`guild_id`='"		<< p.guild_id		<< "'," <<
+				"`pet_id`='"		<< p.pet_id			<< "'," <<
 
-			"WHERE  `account_id`='%ld' AND `char_id` = '%ld' And `slot` = '%d'",
+				"`hair`='"			<< p.hair			<< "'," <<
+				"`hair_color`='"	<< p.hair_color		<< "'," <<
+				"`clothes_color`='"	<< p.clothes_color	<< "'," <<
+				"`weapon`='"		<< p.weapon			<< "'," <<
+				"`shield`='"		<< p.shield			<< "'," <<
+				"`head_top`='"		<< p.head_top		<< "'," <<
+				"`head_mid`='"		<< p.head_mid		<< "'," <<
+				"`head_bottom`='"	<< p.head_bottom	<< "'," <<
 
-			p.class_, p.base_level, p.job_level,
-			p.base_exp,p.job_exp,p.zeny,
+				"`last_map`='"		<< p.last_point.mapname		<< "'," <<
+				"`last_x`='"		<< p.last_point.x			<< "'," <<
+				"`last_y`='"		<< p.last_point.y			<< "'," <<
+				"`save_map`='"		<< p.save_point.mapname		<< "'," <<
+				"`save_x`='"		<< p.save_point.x			<< "'," <<
+				"`save_y`='"		<< p.save_point.y			<< "'," <<
 
-			p.hp,p.max_hp,
-			p.sp,p.max_sp,
-			p.str,p.agi,p.vit,p.int_,p.dex,p.luk,
-			p.status_point,p.skill_point,
+				"`partner_id`='"	<< p.partner_id		<< "'," <<
+				"`father`='"		<< p.father_id		<< "'," <<
+				"`mother`='"		<< p.mother_id		<< "'," <<
+				"`child`='"			<< p.child_id		<< "'," <<
 
-			p.option,p.karma,p.chaos,p.manner,
-			p.party_id,p.guild_id,
-			p.pet_id,
+				"`fame`='"			<< p.fame_points	<< "'" << // dont forget to remove commas at ends
 
-			p.hair,p.hair_color,p.clothes_color,
-			p.weapon,p.shield,p.head_top,p.head_mid,p.head_bottom,
+			"WHERE  " <<
+				"`account_id`='" << (unsigned long)p.account_id << "' " <<
 
-			p.last_point.mapname,p.last_point.x,p.last_point.y,
-			p.save_point.mapname,p.save_point.x,p.save_point.y,
-			p.partner_id,p.father_id,p.mother_id,p.child_id,
+			"AND " <<
+				"`char_id` = '" << (unsigned long)p.char_id <<"' " <<
 
-			p.fame_points,
+			"AND " <<
+				"`slot` = '" << p.slot << "'";  // dont forget to finish the line
 
-			(unsigned long)p.account_id, (unsigned long)p.char_id, p.slot
-		);
-		
-		this->mysql_SendQuery(query, sz);
+
+		this->Query(query);
 
 		// This is set for overall.. if anything changed.... it will copy over old data... =o
 		status = false;
@@ -1204,26 +1291,35 @@ private:
 		}
 
 		if (diff)
-		{
-			sz = snprintf(query, sizeof(query),"DELETE FROM `%s` WHERE `char_id`='%d'", memo_db, p.char_id);
-			this->mysql_SendQuery(query, sz);
+		{	query.clear();
+			query << (const char*)
+				"DELETE FROM `" << (const char*)memo_db << "` WHERE `char_id`='" << p.char_id << "'";
+
+			this->Query(query);
 
 
 			//insert here.
-			sz = snprintf(query, sizeof(query),"INSERT INTO `%s`(`char_id`,`memo_id`,`map`,`x`,`y`) VALUES ", memo_db);
+			query.clear();
+			query << (const char*)
+				"INSERT INTO `" << (const char*)memo_db << "`(`char_id`,`memo_id`,`map`,`x`,`y`) VALUES ";
 			l=false;
 			for(i=0;i<MAX_MEMO;i++)
 			{
 				if(p.memo_point[i].mapname[0])
 				{
-					sz +=snprintf(query+sz, sizeof(query)-sz,"%s('%ld', '%d', '%s', '%d', '%d')",
-						l?",":"",
-						(unsigned long)p.char_id, i, p.memo_point[i].mapname, p.memo_point[i].x, p.memo_point[i].y);
+					query << (l?",":"") << "(" <<
+
+					"'" << 	(unsigned long)p.char_id 	<< "'," <<
+					"'" <<	i							<< "'," <<
+					"'" <<	p.memo_point[i].mapname		<< "'," <<
+					"'" <<	p.memo_point[i].x			<< "'," <<
+					"'" <<	p.memo_point[i].y			<< "," <<  // Dont forget to end commas
+					")";
 					l= true;
 				}
 			}
 			// if at least one entry spotted.
-			if(l)this->mysql_SendQuery(query, sz);
+			if(l)this->Query(query);
 		}
 
 
@@ -1245,35 +1341,38 @@ private:
 
 		if (diff)
 		{
-			sz = snprintf(query, sizeof(query),"DELETE FROM `%s` WHERE `char_id`='%d'",cart_db, p.char_id);
-			this->mysql_SendQuery(query, sz);
+			query.clear();
+			query <<
+				"DELETE FROM `" << cart_db << "` WHERE `char_id`='" << (unsigned long)p.char_id << "'";
+			this->Query(query);
 
 			//insert here.
-			sz = snprintf(query, sizeof(query),"INSERT INTO `%s`(`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`) VALUES ", inventory_db);
+			query.clear();
+			query <<
+				"INSERT INTO `" << inventory_db << "`(`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`) VALUES ";
 			l=false;
 			for(i=0;i<MAX_INVENTORY;i++)
 			{
 				if(p.inventory[i].nameid>0)
 				{
-					sz +=snprintf(query+sz, sizeof(query)-sz,
-						"%s('%ld', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
-						l?",":"",
-						(unsigned long)p.char_id,
-						p.inventory[i].nameid,
-						p.inventory[i].amount,
-						p.inventory[i].equip,
-						p.inventory[i].identify,
-						p.inventory[i].refine,
-						p.inventory[i].attribute,
-						p.inventory[i].card[0],
-						p.inventory[i].card[1],
-						p.inventory[i].card[2],
-						p.inventory[i].card[3]);
+					query << (l?",":"") << "(" <<
+					"'" <<	(unsigned long)p.char_id	<< "'," <<
+					"'" <<	p.inventory[i].nameid		<< "'," <<
+					"'" <<	p.inventory[i].amount		<< "'," <<
+					"'" <<	p.inventory[i].equip		<< "'," <<
+					"'" <<	p.inventory[i].identify		<< "'," <<
+					"'" <<	p.inventory[i].refine		<< "'," <<
+					"'" <<	p.inventory[i].attribute	<< "'," <<
+					"'" <<	p.inventory[i].card[0]		<< "'," <<
+					"'" <<	p.inventory[i].card[1]		<< "'," <<
+					"'" <<	p.inventory[i].card[2]		<< "'," <<
+					"'" <<	p.inventory[i].card[3]		<< "'" <<
+					")";
 					l = true;
 				}
 			}
 			// if at least one entry spotted.
-			if(l)this->mysql_SendQuery(query, sz);
+			if(l)this->Query(query);
 		}
 
 
@@ -1295,35 +1394,37 @@ private:
 
 		if (diff)
 		{
-			sz = snprintf(query, sizeof(query),"DELETE FROM `%s` WHERE `char_id`='%d'",cart_db, p.char_id);
-			this->mysql_SendQuery(query, sz);
+			query.clear();
+			query << "DELETE FROM `" << cart_db << "` WHERE `char_id`='" << (unsigned long) p.char_id << "'";
+			this->Query(query);
 
 			//insert here.
-			sz = snprintf(query, sizeof(query),"INSERT INTO `%s`(`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`) VALUES ", inventory_db);
+			query.clear();
+			query << "INSERT INTO `" << cart_db << "`(`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`) VALUES ";
 			l=false;
 			for(i=0;i<MAX_CART;i++)
 			{
 				if(p.cart[i].nameid>0)
 				{
-					sz +=snprintf(query+sz, sizeof(query)-sz,
-						"%s('%ld', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
-						l?",":"",
-						(unsigned long)p.char_id,
-						p.cart[i].nameid,
-						p.cart[i].amount,
-						p.cart[i].equip,
-						p.cart[i].identify,
-						p.cart[i].refine,
-						p.cart[i].attribute,
-						p.cart[i].card[0],
-						p.cart[i].card[1],
-						p.cart[i].card[2],
-						p.cart[i].card[3] );
+					query << (l?",":"") << "(" <<
+					"'" <<	(unsigned long)p.char_id	<< "'," <<
+					"'" <<	p.cart[i].nameid		<< "'," <<
+					"'" <<	p.cart[i].amount		<< "'," <<
+					"'" <<	p.cart[i].equip		<< "'," <<
+					"'" <<	p.cart[i].identify		<< "'," <<
+					"'" <<	p.cart[i].refine		<< "'," <<
+					"'" <<	p.cart[i].attribute	<< "'," <<
+					"'" <<	p.cart[i].card[0]		<< "'," <<
+					"'" <<	p.cart[i].card[1]		<< "'," <<
+					"'" <<	p.cart[i].card[2]		<< "'," <<
+					"'" <<	p.cart[i].card[3]		<< "'" <<
+					")";
+
 					l = true;
 				}
 			}
 			// if at least one entry spotted.
-			if(l)this->mysql_SendQuery(query, sz);
+			if(l)this->Query(query);
 		}
 
 		///////////////////////////////////////////////////////////////////////
@@ -1331,47 +1432,32 @@ private:
 
 		diff = false;
 		l = false;
-/*
-// really need to edit the char?
-		for(i=0;i<MAX_SKILL;i++)
-		{
-			if(
-				(p.skill[i].lv != 0) &&
-				(p.skill[i].id == 0)
-				)p.skill[i].id = i; // Fix skill tree
-
-			if(
-				(p.skill[i].id == cp.skill[i].id) ||
-				(p.skill[i].lv == cp.skill[i].lv) ||
-				(p.skill[i].flag == cp.skill[i].flag)
-				) continue;
-
-			diff = true;
-			status = true;
-			break;
-		}
-*/
 
 		if (diff)
 		{
-			sz = snprintf(query, sizeof(query),"DELETE FROM `%s` WHERE `char_id`='%ld'",skill_db, (unsigned long)p.char_id);
-			this->mysql_SendQuery(query, sz);
+			query.clear();
+			query << "DELETE FROM `" << skill_db << "` WHERE `char_id`='" << (unsigned long) p.char_id << "'";
+			this->Query(query);
 
 			//insert here.
-			sz = snprintf(query, sizeof(query),"INSERT INTO `%s`(`char_id`,`id`,`lvl`) VALUES ", skill_db);
+			query.clear();
+			query << "INSERT INTO `" << skill_db << "`(`char_id`,`id`,`lvl`) VALUES ";
 			l=false;
 			for(i=0;i<MAX_MEMO;i++)
 			{
 				if(p.skill[i].id>0 && p.skill[i].flag != 1)
 				{
-					sz +=snprintf(query+sz, sizeof(query)-sz,"%s('%ld', '%d', '%d')",
-						l?",":"",
-						(unsigned long)p.char_id, i, p.skill[i].id, p.skill[i].lv);
+					query << (l?",":"") << "(" <<
+
+					"'" << (unsigned long)p.char_id << "'," <<
+					"'" << p.skill[i].id 			<< "'," <<
+					"'" << p.skill[i].lv 			<< "'" <<
+					")";
 					l = true;
 				}
 			}
 			// if at least one entry spotted.
-			if(l)this->mysql_SendQuery(query, sz);
+			if(l)this->Query(query);
 		}
 
 		///////////////////////////////////////////////////////////////////////
@@ -1395,23 +1481,30 @@ private:
 
 		if (diff)
 		{
-			sz = snprintf(query, sizeof(query),"DELETE FROM `%s` WHERE `char_id`='%ld'",char_reg_db, (unsigned long)p.char_id);
-			this->mysql_SendQuery(query, sz);
+			query.clear();
+			query << "DELETE FROM `" << char_reg_db << "` WHERE `char_id`='" << (unsigned long) p.char_id << "'";
+			this->Query(query);
 
 			//insert here.
-			sz = snprintf(query, sizeof(query),"INSERT INTO `%s`(`char_id`,`str`,`value`) VALUES ", char_reg_db);
+			query.clear();
+			query << "INSERT INTO `" << char_reg_db << "`(`char_id`,`str`,`value`) VALUES ";
 			for(i=0;i<p.global_reg_num;i++)
 			{
 				if(p.global_reg[i].str && p.global_reg[i].value !=0)
 				{
-					sz +=snprintf(query+sz, sizeof(query)-sz,"%s('%ld', '%d', '%d')",
-						l?",":"",
-						(unsigned long)p.char_id, i, p.global_reg[i].str, p.global_reg[i].value);
+					query <<
+					(l?",":"") << "(" <<
+
+					"'" << (unsigned long)p.char_id << "'," <<
+					"'" << p.global_reg[i].str		<< "'," <<
+					"'" << p.global_reg[i].value	<< "'" <<   // end commas at the end
+					")";
+
 					l = true;
 				}
 			}
 			// if at least one entry spotted.
-			if(l)this->mysql_SendQuery(query, sz);
+			if(l)this->Query(query);
 		}
 
 
@@ -1433,29 +1526,35 @@ private:
 
 		if(diff)
 		{
-			sz = snprintf(query, sizeof(query),"DELETE FROM `%s` WHERE `char_id` = '%ld'", friend_db, (unsigned long)p.char_id);
-			this->mysql_SendQuery(query, sz);
+			query.clear();
+			query << "DELETE FROM `" << friend_db << "` WHERE `char_id` = '" << (unsigned long) p.char_id << "'";
+			this->Query(query);
 
 			//insert here.
-			sz = snprintf(query, sizeof(query),"INSERT INTO `%s` (`char_id`, `friend_id`) VALUES ", friend_db);
+			query.clear();
+			query << "INSERT INTO `" << friend_db << "`(`char_id`, `friend_id`) VALUES ";
+
 			for(i=0;i<MAX_FRIENDLIST;i++)
 			{
 				if(p.friendlist[i].friend_id!=0)
 				{
-					sz +=snprintf(query+sz, sizeof(query)-sz,"%s('%ld', '%ld')",
-						l?",":"",
-						(unsigned long)p.char_id, (unsigned long)p.friendlist[i].friend_id);
+					query <<
+					(l?",":"") << "(" <<
+					"'" << (unsigned long) p.char_id << "'," <<
+					"'" << (unsigned long) p.friendlist[i].friend_id << "'" <<
+					")";
+
 					l = true;
 				}
 			}
 			// if at least one entry spotted.
-			if(l)this->mysql_SendQuery(query, sz);
+			if(l)this->Query(query);
 		}
 
 		if (status) // If anything has changed in this process, set to true in any of the differences check.
 		{
 			if(loaded)
-				printf("dummy, rethink this here");
+				printf("need to think on how to load the character");
 //				cCharList.removeindex(pos, 0); // remove old char_id where ever the cp index is pointing to
 //			cCharList.insert(p); // now lets add our CharID to the index list.
 		}
@@ -1463,33 +1562,54 @@ private:
 		return true;
 	}
 
-/*	bool char_from_sql(const char *str)
+	bool char_from_sql(const char* name, CCharCharacter &p)
+	{
+		MiniString query;
+		uint32 charid = 0;
+
+		query.clear();
+		query << "SELECT `char_id` FROM `" << char_db << " WHERE `name`='" << name << "'";
+
+		if (this->Query(query))
+		{
+			this->Fetch();
+			charid = atoi(this->row[0]);
+			this->Free();
+
+			return this->char_from_sql(charid,p);
+		}
+		return false;
+	}
+
+	bool char_from_sql(uint32 char_id, CCharCharacter &p, bool online = false)
 	{
 
 		int tmp_int[256];
 		int next, len;
 		size_t i,n;
-		CCharCharacter p;
+
+		//CCharCharacter p;
+		//CCharCharacter cp;
+
+		MiniString query;
 
 		// initilialise character
 		memset(&p, 0, sizeof(CCharCharacter));
+		//memset(&cp, 0, sizeof(CCharCharacter));
 		memset(tmp_int, 0, sizeof(tmp_int));
 
+		// if the data exists in the char_server database already,
+		// wipe before loading new sql data before proceding..
+		//cp = (struct mmo_charstatus*)numdb_search(char_db_,char_id);
+		//if (cp != NULL)
+		//  aFree(cp);
 
+		#ifdef CHAR_DEBUG_INFO
+			printf("Loaded: ");
+		#endif
 
-		int i, n;
-		struct mmo_charstatus *cp;
+		p.char_id = char_id;
 
-		cp = (struct mmo_charstatus*)numdb_search(char_db_,char_id);
-		if (cp != NULL)
-		  aFree(cp);
-
-		memset(p, 0, sizeof(struct mmo_charstatus));
-
-		p->char_id = char_id;
-	#ifdef CHAR_DEBUG_INFO
-		printf("Loaded: ");
-	#endif
 		//`char`( `char_id`,`account_id`,`char_num`,`name`,`class`,`base_level`,`job_level`,`base_exp`,`job_exp`,`zeny`, //9
 		//`str`,`agi`,`vit`,`int`,`dex`,`luk`, //15
 		//`max_hp`,`hp`,`max_sp`,`sp`,`status_point`,`skill_point`, //21
@@ -1498,249 +1618,262 @@ private:
 		//`last_map`,`last_x`,`last_y`,`save_map`,`save_x`,`save_y`)
 		//splite 2 parts. cause veeeery long SQL syntax
 
-		sprintf(tmp_sql, "SELECT `char_id`,`account_id`,`char_num`,`name`,`class`,`base_level`,`job_level`,`base_exp`,`job_exp`,`zeny`,"
-			"`str`,`agi`,`vit`,`int`,`dex`,`luk`, `max_hp`,`hp`,`max_sp`,`sp`,`status_point`,`skill_point` FROM `%s` WHERE `char_id` = '%d'",char_db, char_id); // TBR
+		query.clear();
+		query <<
+			"SELECT " <<
+				"`char_id`,`account_id`,`char_num`,`name`,`class`,`base_level`,`job_level`,`base_exp`,`job_exp`,`zeny`," <<
+				"`str`,`agi`,`vit`,`int`,`dex`,`luk`, `max_hp`,`hp`,`max_sp`,`sp`,`status_point`,`skill_point` FROM `" << (const char*)char_db << "` " <<
+			"WHERE `char_id` = '" << (unsigned long)char_id << "'";
 
-		if (mysql_query(&mysql_handle, tmp_sql)) {
-			printf("DB server Error (select `char`)- %s\n", mysql_error(&mysql_handle));
-		}
+		if (this-Query(query))
+		{
+			this->Fetch();
 
-		sql_res = mysql_store_result(&mysql_handle);
+			p.char_id = char_id;
+			p.account_id = atoi(this->row[1]);
+			p.slot = atoi(this->row[2]);
+			strcpy(p.name, this->row[3]);
+			p.class_ = atoi(this->row[4]);
+			p.base_level = atoi(this->row[5]);
+			p.job_level = atoi(this->row[6]);
+			p.base_exp = atoi(this->row[7]);
+			p.job_exp = atoi(this->row[8]);
+			p.zeny = atoi(this->row[9]);
+			p.str = atoi(this->row[10]);
+			p.agi = atoi(this->row[11]);
+			p.vit = atoi(this->row[12]);
+			p.int_ = atoi(this->row[13]);
+			p.dex = atoi(this->row[14]);
+			p.luk = atoi(this->row[15]);
+			p.max_hp = atoi(this->row[16]);
+			p.hp = atoi(this->row[17]);
+			p.max_sp = atoi(this->row[18]);
+			p.sp = atoi(this->row[19]);
+			p.status_point = atoi(this->row[20]);
+			p.skill_point = atoi(this->row[21]);
 
-		if (sql_res) {
-			sql_row = mysql_fetch_row(sql_res);
-
-			p->char_id = char_id;
-			p->account_id = atoi(sql_row[1]);
-			p->char_num = atoi(sql_row[2]);
-			strcpy(p->name, sql_row[3]);
-			p->class_ = atoi(sql_row[4]);
-			p->base_level = atoi(sql_row[5]);
-			p->job_level = atoi(sql_row[6]);
-			p->base_exp = atoi(sql_row[7]);
-			p->job_exp = atoi(sql_row[8]);
-			p->zeny = atoi(sql_row[9]);
-			p->str = atoi(sql_row[10]);
-			p->agi = atoi(sql_row[11]);
-			p->vit = atoi(sql_row[12]);
-			p->int_ = atoi(sql_row[13]);
-			p->dex = atoi(sql_row[14]);
-			p->luk = atoi(sql_row[15]);
-			p->max_hp = atoi(sql_row[16]);
-			p->hp = atoi(sql_row[17]);
-			p->max_sp = atoi(sql_row[18]);
-			p->sp = atoi(sql_row[19]);
-			p->status_point = atoi(sql_row[20]);
-			p->skill_point = atoi(sql_row[21]);
 			//free mysql result.
-			mysql_free_result(sql_res);
+			this->Free();
 		} else
 			printf("char1 - failed\n");	//Error?! ERRRRRR WHAT THAT SAY!?
-	#ifdef CHAR_DEBUG_INFO
-		printf("(\033[1;32m%d\033[0m)\033[1;32m%s\033[0m\t[",p->char_id,p->name);
-		printf("char1 ");
-	#endif
 
-		sprintf(tmp_sql, "SELECT `option`,`karma`,`manner`,`party_id`,`guild_id`,`pet_id`,`hair`,`hair_color`,"
-			"`clothes_color`,`weapon`,`shield`,`head_top`,`head_mid`,`head_bottom`,"
-			"`last_map`,`last_x`,`last_y`,`save_map`,`save_x`,`save_y`, `partner_id`, `father`, `mother`, `child`, `fame`"
-			"FROM `%s` WHERE `char_id` = '%d'",char_db, char_id); // TBR
-		if (mysql_query(&mysql_handle, tmp_sql)) {
-			printf("DB server Error (select `char2`)- %s\n", mysql_error(&mysql_handle));
-		}
+		#ifdef CHAR_DEBUG_INFO
+			printf("(\033[1;32m%d\033[0m)\033[1;32m%s\033[0m\t[",p.char_id,p.name);
+			printf("char1 ");
+		#endif
 
-		sql_res = mysql_store_result(&mysql_handle);
-		if (sql_res) {
-			sql_row = mysql_fetch_row(sql_res);
+		query.clear();
+		query <<
+			"SELECT "<<
+			"`option`,`karma`,`manner`,`party_id`,`guild_id`,`pet_id`,`hair`,`hair_color`," <<
+			"`clothes_color`,`weapon`,`shield`,`head_top`,`head_mid`,`head_bottom`," <<
+			"`last_map`,`last_x`,`last_y`,`save_map`,`save_x`,`save_y`, `partner_id`, `father`, `mother`, `child`, `fame`" <<
+			"FROM `" << char_db << "` WHERE `char_id` = '" << (unsigned int)char_id << "'";
 
+		if (this->Query(query))
+		{
+			this->Fetch();
 
-			p->option = atoi(sql_row[0]);	p->karma = atoi(sql_row[1]);	p->manner = atoi(sql_row[2]);
-				p->party_id = atoi(sql_row[3]);	p->guild_id = atoi(sql_row[4]);	p->pet_id = atoi(sql_row[5]);
+			p.option = atoi(this->row[0]);
+			p.karma = atoi(this->row[1]);
+			p.manner = atoi(this->row[2]);
+			p.party_id = atoi(this->row[3]);
+			p.guild_id = atoi(this->row[4]);
+			p.pet_id = atoi(this->row[5]);
 
-			p->hair = atoi(sql_row[6]);	p->hair_color = atoi(sql_row[7]);	p->clothes_color = atoi(sql_row[8]);
-			p->weapon = atoi(sql_row[9]);	p->shield = atoi(sql_row[10]);
-			p->head_top = atoi(sql_row[11]);	p->head_mid = atoi(sql_row[12]);	p->head_bottom = atoi(sql_row[13]);
-			strcpy(p->last_point.map,sql_row[14]); p->last_point.x = atoi(sql_row[15]);	p->last_point.y = atoi(sql_row[16]);
-			strcpy(p->save_point.map,sql_row[17]); p->save_point.x = atoi(sql_row[18]);	p->save_point.y = atoi(sql_row[19]);
-			p->partner_id = atoi(sql_row[20]); p->father = atoi(sql_row[21]); p->mother = atoi(sql_row[22]); p->child = atoi(sql_row[23]);
-			p->fame = atoi(sql_row[24]);
+			p.hair = atoi(this->row[6]);
+			p.hair_color = atoi(this->row[7]);
+			p.clothes_color = atoi(this->row[8]);
+			p.weapon = atoi(this->row[9]);
+			p.shield = atoi(this->row[10]);
+			p.head_top = atoi(this->row[11]);
+			p.head_mid = atoi(this->row[12]);
+			p.head_bottom = atoi(this->row[13]);
+			strcpy(p.last_point.mapname,this->row[14]);
+			p.last_point.x = atoi(this->row[15]);
+			p.last_point.y = atoi(this->row[16]);
+			strcpy(p.save_point.mapname,this->row[17]);
+			p.save_point.x = atoi(this->row[18]);
+			p.save_point.y = atoi(this->row[19]);
+			p.partner_id = atoi(this->row[20]);
+			p.father_id = atoi(this->row[21]);
+			p.mother_id = atoi(this->row[22]);
+			p.child_id = atoi(this->row[23]);
+			p.fame_points = atoi(this->row[24]);
 
 			//free mysql result.
-			mysql_free_result(sql_res);
+			this->Free();
 		} else
 			printf("char2 - failed\n");	//Error?! ERRRRRR WHAT THAT SAY!?
 
-		if (p->last_point.x == 0 || p->last_point.y == 0 || p->last_point.map[0] == '\0')
+
+
+
+		if (p.last_point.x == 0 || p.last_point.y == 0 || p.last_point.mapname[0] == '\0')
 		{
 			char errbuf[64];
-			sprintf(errbuf,"%s has no last point?\n",p->name);
-			memcpy(&p->last_point, &start_point, sizeof(start_point));
+			sprintf(errbuf,"%s has no last point?\n",p.name);
+			memcpy(&p.last_point, &start_point, sizeof(start_point));
 		}
 
-		if (p->save_point.x == 0 || p->save_point.y == 0 || p->save_point.map[0] == '\0')
+		if (p.save_point.x == 0 || p.save_point.y == 0 || p.save_point.mapname[0] == '\0')
 		{
 			char errbuf[64];
-			sprintf(errbuf,"%s has no save point?\n",p->name);
-			memcpy(&p->save_point, &start_point, sizeof(start_point));
+			sprintf(errbuf,"%s has no save point?\n",p.name);
+			memcpy(&p.save_point, &start_point, sizeof(start_point));
 		}
-	#ifdef CHAR_DEBUG_INFO
-		printf("char2 ");
-	#endif
+		#ifdef CHAR_DEBUG_INFO
+			printf("char2 ");
+		#endif
+
 		//read memo data
 		//`memo` (`memo_id`,`char_id`,`map`,`x`,`y`)
-		sprintf(tmp_sql, "SELECT `map`,`x`,`y` FROM `%s` WHERE `char_id`='%d'",memo_db, char_id); // TBR
-		if (mysql_query(&mysql_handle, tmp_sql)) {
-			printf("DB server Error (select `memo`)- %s\n", mysql_error(&mysql_handle));
-		}
-		sql_res = mysql_store_result(&mysql_handle);
+		query.clear();
+		query << "SELECT `map`,`x`,`y` FROM `" << memo_db << "` WHERE `char_id`='" << (unsigned int)char_id << "'";
 
-		if (sql_res) {
-			for(i=0;(sql_row = mysql_fetch_row(sql_res)) && i < 3;i++){
-				strcpy (p->memo_point[i].map,sql_row[0]);
-				p->memo_point[i].x=atoi(sql_row[1]);
-				p->memo_point[i].y=atoi(sql_row[2]);
-				//i ++;
+		if (this->Query(query))
+		{
+			for(i=0; this->Fetch() && i < 3;i++)
+			{
+				strcpy (p.memo_point[i].mapname,this->row[0]);
+				p.memo_point[i].x=atoi(this->row[1]);
+				p.memo_point[i].y=atoi(this->row[2]);
 			}
-			mysql_free_result(sql_res);
+			this->Free();
 		}
-	#ifdef CHAR_DEBUG_INFO
-		printf("memo ");
-	#endif
+		#ifdef CHAR_DEBUG_INFO
+			printf("memo ");
+		#endif
 
 		//read inventory
 		//`inventory` (`id`,`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`, `gm_made`)
-		sprintf(tmp_sql, "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`, `gm_made`"
-			"FROM `%s` WHERE `char_id`='%d'",inventory_db, char_id); // TBR
-		if (mysql_query(&mysql_handle, tmp_sql)) {
-			printf("DB server Error (select `inventory`)- %s\n", mysql_error(&mysql_handle));
-		}
-		sql_res = mysql_store_result(&mysql_handle);
-		if (sql_res) {
-			for(i=0;(sql_row = mysql_fetch_row(sql_res));i++){
-				p->inventory[i].id = atoi(sql_row[0]);
-				p->inventory[i].nameid = atoi(sql_row[1]);
-				p->inventory[i].amount = atoi(sql_row[2]);
-				p->inventory[i].equip = atoi(sql_row[3]);
-				p->inventory[i].identify = atoi(sql_row[4]);
-				p->inventory[i].refine = atoi(sql_row[5]);
-				p->inventory[i].attribute = atoi(sql_row[6]);
-				p->inventory[i].card[0] = atoi(sql_row[7]);
-				p->inventory[i].card[1] = atoi(sql_row[8]);
-				p->inventory[i].card[2] = atoi(sql_row[9]);
-				p->inventory[i].card[3] = atoi(sql_row[10]);
-				p->inventory[i].gm_made = atoi(sql_row[11]);
+		query.clear();
+		query << "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`" <<
+			"FROM `"<< inventory_db << "` WHERE `char_id`='" << (unsigned long) char_id << "'";
+
+		if (this->Query(query))
+		{
+			for(i=0;this->Fetch();i++)
+			{
+				p.inventory[i].id = atoi(this->row[0]);
+				p.inventory[i].nameid = atoi(this->row[1]);
+				p.inventory[i].amount = atoi(this->row[2]);
+				p.inventory[i].equip = atoi(this->row[3]);
+				p.inventory[i].identify = atoi(this->row[4]);
+				p.inventory[i].refine = atoi(this->row[5]);
+				p.inventory[i].attribute = atoi(this->row[6]);
+				p.inventory[i].card[0] = atoi(this->row[7]);
+				p.inventory[i].card[1] = atoi(this->row[8]);
+				p.inventory[i].card[2] = atoi(this->row[9]);
+				p.inventory[i].card[3] = atoi(this->row[10]);
 			}
-			mysql_free_result(sql_res);
+			this->Free();
 		}
-	#ifdef CHAR_DEBUG_INFO
-		printf("inventory ");
-	#endif
+		#ifdef CHAR_DEBUG_INFO
+			printf("inventory ");
+		#endif
 
 		//read cart.
 		//`cart_inventory` (`id`,`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`)
-		sprintf(tmp_sql, "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`, `gm_made`"
-			"FROM `%s` WHERE `char_id`='%d'",cart_db, char_id); // TBR
-		if (mysql_query(&mysql_handle, tmp_sql)) {
-			printf("DB server Error (select `cart_inventory`)- %s\n", mysql_error(&mysql_handle));
-		}
-		sql_res = mysql_store_result(&mysql_handle);
-		if (sql_res) {
-			for(i=0;(sql_row = mysql_fetch_row(sql_res));i++){
-				p->cart[i].id = atoi(sql_row[0]);
-				p->cart[i].nameid = atoi(sql_row[1]);
-				p->cart[i].amount = atoi(sql_row[2]);
-				p->cart[i].equip = atoi(sql_row[3]);
-				p->cart[i].identify = atoi(sql_row[4]);
-				p->cart[i].refine = atoi(sql_row[5]);
-				p->cart[i].attribute = atoi(sql_row[6]);
-				p->cart[i].card[0] = atoi(sql_row[7]);
-				p->cart[i].card[1] = atoi(sql_row[8]);
-				p->cart[i].card[2] = atoi(sql_row[9]);
-				p->cart[i].card[3] = atoi(sql_row[10]);
-				p->cart[i].gm_made = atoi(sql_row[11]);
+		query.clear();
+		query << "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`" <<
+			"FROM `" << cart_db << "` WHERE `char_id`='" << char_id = "'";
+
+		if (this->Query(query))
+		{
+			for(i=0;this->Fetch();i++)
+			{
+				p.cart[i].id = atoi(this->row[0]);
+				p.cart[i].nameid = atoi(this->row[1]);
+				p.cart[i].amount = atoi(this->row[2]);
+				p.cart[i].equip = atoi(this->row[3]);
+				p.cart[i].identify = atoi(this->row[4]);
+				p.cart[i].refine = atoi(this->row[5]);
+				p.cart[i].attribute = atoi(this->row[6]);
+				p.cart[i].card[0] = atoi(this->row[7]);
+				p.cart[i].card[1] = atoi(this->row[8]);
+				p.cart[i].card[2] = atoi(this->row[9]);
+				p.cart[i].card[3] = atoi(this->row[10]);
 			}
-			mysql_free_result(sql_res);
+			this->Free();
 		}
-	#ifdef CHAR_DEBUG_INFO
-		printf("cart ");
-	#endif
+		#ifdef CHAR_DEBUG_INFO
+			printf("cart ");
+		#endif
 		//read skill
 		//`skill` (`char_id`, `id`, `lv`)
-		sprintf(tmp_sql, "SELECT `id`, `lv` FROM `%s` WHERE `char_id`='%d'",skill_db, char_id); // TBR
-		if (mysql_query(&mysql_handle, tmp_sql)) {
-			printf("DB server Error (select `skill`)- %s\n", mysql_error(&mysql_handle));
-		}
-		sql_res = mysql_store_result(&mysql_handle);
-		if (sql_res) {
-			for(i=0;(sql_row = mysql_fetch_row(sql_res));i++){
-				n = atoi(sql_row[0]);
-				p->skill[n].id = n; //memory!? shit!.
-				p->skill[n].lv = atoi(sql_row[1]);
+		query.clear();
+		query << "SELECT `id`, `lv` FROM `" << skill_db << "` WHERE `char_id`='" << (unsigned long) char_id << "'";
+
+		if (this->Query(query))
+		{
+			for(i=0;this->Fetch();i++)
+			{
+				n = atoi(this->row[0]);
+				p.skill[n].id = n; //memory!? shit!.
+				p.skill[n].lv = atoi(this->row[1]);
 			}
-			mysql_free_result(sql_res);
+			this->Free();
 		}
-	#ifdef CHAR_DEBUG_INFO
-		printf("skill ");
-	#endif
+		#ifdef CHAR_DEBUG_INFO
+			printf("skill ");
+		#endif
 
 		//global_reg
 		//`global_reg_value` (`char_id`, `str`, `value`)
-		sprintf(tmp_sql, "SELECT `str`, `value` FROM `%s` WHERE `char_id`='%d'",char_reg_db, char_id); // TBR
-		if (mysql_query(&mysql_handle, tmp_sql)) {
-			printf("DB server Error (select `global_reg_value`)- %s\n", mysql_error(&mysql_handle));
-		}
-		i = 0;
-		sql_res = mysql_store_result(&mysql_handle);
-		if (sql_res) {
-			for(i=0;(sql_row = mysql_fetch_row(sql_res));i++){
-				strcpy (p->global_reg[i].str, sql_row[0]);
-				p->global_reg[i].value = atoi (sql_row[1]);
+		query.clear();
+		query << "SELECT `str`, `value` FROM ` " << (const char*)char_reg_db << "` WHERE `char_id`='" << (unsigned long) char_id << "'";
+
+		if (this->Query(query))
+		{
+			for(i=0;this->Fetch();i++)
+			{
+				strcpy (p.global_reg[i].str, this->row[0]);
+				p.global_reg[i].value = atoi (this->row[1]);
 			}
-			mysql_free_result(sql_res);
+			this->Free();
 		}
-		p->global_reg_num=i;
+		p.global_reg_num=i;
 
 		//Friends List Load
 
-		for(i=0;i<20;i++) {
-			p->friend_id[i] = 0;
-			p->friend_name[i][0] = '\0';
+		for(i=0;i<20;i++)
+		{
+			p.friendlist[i].friend_id = 0;
+			p.friendlist[i].friend_name[0] = '\0';
 		}
 
-		sprintf(tmp_sql,"SELECT f.`friend_id`, c.`name` FROM `%s` f JOIN `%s` c ON f.`friend_id`=c.`char_id` WHERE f.`char_id` = '%d'",friend_db, char_db,char_id);
+		query.clear();
+		query << "SELECT f.`friend_id`, c.`name` FROM `" << friend_db << "` f JOIN `" << (const char*)char_db << "` c ON f.`friend_id`=c.`char_id` WHERE f.`char_id` = '" << (unsigned long) char_id << "'";
 
-		if (mysql_query(&mysql_handle, tmp_sql))
+
+
+		if (this->Query(query))
 		{
-			printf("DB server Error (select `friends list`)- %s\n", mysql_error(&mysql_handle));
-		}
-
-		sql_res = mysql_store_result(&mysql_handle);
-
-		if (sql_res)
-		{
-			for(i=0;(sql_row = mysql_fetch_row(sql_res));i++)
+			for(i=0;this->Fetch();i++)
 			{
-				p->friend_id[i] = atoi(sql_row[0]);
-				sprintf(p->friend_name[i], "%s", sql_row[1]);
+				p.friendlist[i].friend_id = atoi(this->row[0]);
+				sprintf(p.friendlist[i].friend_name, "%s", this->row[1]);
 			}
-			mysql_free_result(sql_res);
+			this->Free();
 		}
 
-	#ifdef CHAR_DEBUG_INFO
-		printf("friends ");
-	#endif
+		#ifdef CHAR_DEBUG_INFO
+			printf("friends ");
+		#endif
 		//-- end friends list load --
 
-		if (online) {
-			set_char_online(char_id,p->account_id);
+		if (online)
+		{
+			//set_char_online(char_id,p.account_id); // not setup yet... just leave as is
 		}
 		return 1;
 	}
-	}
-*/
+
 	///////////////////////////////////////////////////////////////////////////
 	// Function to create a new character
-	bool make_new_char(CCharCharAccount& account,
+
+	bool make_new_char(CCharAccount& account,
 						const char *n, // Name
 						unsigned char str,
 						unsigned char agi,
@@ -1750,7 +1883,8 @@ private:
 						unsigned char luk,
 						unsigned char slot,
 						unsigned char hair_style,
-						unsigned char hair_color)
+						unsigned char hair_color,
+						CCharCharacter& p)
 	{
 		CCharCharacter tempchar(n);
 		MYSQL_RES *sql_res=NULL;
@@ -1883,7 +2017,7 @@ private:
 		sz = snprintf(query, sizeof(query),
 					"UPDATE `%s` "
 					"SET `last_map` = '%s', `last_x` = '%d', `last_y` = '%d', "
-					"    `save_map` = '%s', `save_x` = '%d', `save_y` = '%d'  "
+					    "`save_map` = '%s', `save_x` = '%d', `save_y` = '%d'  "
 					"WHERE `char_id` = '%ld'",
 					char_db,
 					start_point.mapname, start_point.x, start_point.y,
@@ -1941,8 +2075,10 @@ private:
 		tempchar.save_point = start_point;
 
 
-		account.charlist[slot] = tempchar.char_id;
+		// unknown thingy i found =O
+//		account.charlist[slot] = tempchar.char_id;
 
+		p = tempchar;
 //		cCharList.insert(tempchar);
 
 		return true;
@@ -1950,54 +2086,8 @@ private:
 
 	bool read_friends()
 	{
-/*		MYSQL_RES *sql_res=NULL, *sql_res2=NULL;
-		MYSQL_ROW sql_row, sql_row2;
-		char query[1024];
-		unsigned long cid=0;
-		unsigned long fid=0;
-		struct friends friendlist[20];
-		size_t pos, i, sz;
-
-		// SELECT f.`char_id`,f.`friend_id`,c.`name` FROM `lege_friend` f JOIN `lege_char` c ON f.`friend_id`=c.`char_id` ORDER BY f.char_id DESC, f.friend_id DESC
-		sz = snprintf(query, sizeof(query),"SELECT `char_id` FROM `%s` GROUP BY `char_id` ORDER BY `char_id` ASC", friend_db);
-
-		if( this->mysql_SendQuery(sql_res, query, sz) )
-		{
-			while( (sql_row = mysql_fetch_row(sql_res)) )
-			{
-
-might be unnecessary to loop around all chars 
-since characters are loaded from sql one by one on demand
-there is no read cache planned right now
-
-				if( cCharList.find( CCharCharacter(atol(sql_row[0])), pos, 0) )
-				{
-					CCharCharacter temp;// = cCharList(pos,0);
-
-
-					sz = snprintf(query, sizeof(query),"SELECT f.`friend_id`, c.`name` FROM `%s` f JOIN `%s` c ON f.`friend_id` = c.`char_id` WHERE f.`char_id` = '%ld'",friend_db, char_db,atol(sql_row[0]) );
-
-					if( this->mysql_SendQuery(sql_res2, query, sz) )
-					{
-						i=0;
-						while( i<MAX_FRIENDLIST && (sql_row2 = mysql_fetch_row(sql_res2)))
-						{
-							temp.friendlist[i].friend_id   = atol(sql_row2[0]);
-							safestrcpy(temp.friendlist[i].friend_name,sql_row2[1],sizeof(temp.friendlist[0].friend_name) );
-							i++;
-						}
-						mysql_free_result(sql_res2);
-					}
-				}
-			}
-
-			mysql_free_result(sql_res);
-		}
-*/
 		return true;
-
-		// This is the query when searching to load friends list via char_id... which is what this will be replaced with.
-		// sz = sprintf(tmp_sql,"SELECT f.`char_id`,f.`friend_id`,c.`name` FROM `%s` f JOIN `%s` c ON f.`friend_id`=c.`char_id`", friend_db, char_db);
+		// SELECT f.`char_id`,f.`friend_id`,c.`name` FROM `friends_db` f JOIN `char_db` c ON f.`friend_id` = c.`char_id`
 	}
 
 
@@ -2047,7 +2137,7 @@ public:
 		size_t count = 0;
 		size_t sz = snprintf(query, sizeof(query),
 			"SELECT count(*) "
-			"FROM `%s` WHERE `to_account_id` = \"%ld\" AND `read_flag` = \"0\"", 
+			"FROM `%s` WHERE `to_account_id` = \"%ld\" AND `read_flag` = \"0\"",
 			mail_db, (unsigned long)cid);
 		if( this->mysql_SendQuery(sql_res, query, sz) )
 		{
@@ -2065,13 +2155,13 @@ public:
 		char query[1024];
 		size_t sz = snprintf(query, sizeof(query),
 			"SELECT `message_id`,`read_flag`,`from_char_name` "
-			"FROM `%s` WHERE `to_account_id` = \"%ld\" ", 
+			"FROM `%s` WHERE `to_account_id` = \"%ld\" ",
 			mail_db, (unsigned long)cid);
 		if( this->mysql_SendQuery(sql_res, query, sz) )
 		{
 			size_t count=0;
 			unsigned char *buf = buffer;
-			while( (sql_row = mysql_fetch_row(sql_res)) ) 
+			while( (sql_row = mysql_fetch_row(sql_res)) )
 			{
 				CMailHead mailhead( atol(sql_row[0]), atol(sql_row[1]), sql_row[2], "" );
 				mailhead._tobuffer(buf); // automatic buffer increment
@@ -2090,7 +2180,7 @@ public:
 		bool ret = false;
 		size_t sz = snprintf(query, sizeof(query),
 			"SELECT `read_flag`,`from_char_name`,`message` "
-			"FROM `%s` WHERE `to_account_id` = \"%ld\" AND `message_id` = \"%ld\" ", 
+			"FROM `%s` WHERE `to_account_id` = \"%ld\" AND `message_id` = \"%ld\" ",
 			mail_db, (unsigned long)cid, (unsigned long)mid);
 
 		// default clearing
@@ -2101,7 +2191,7 @@ public:
 
 		if( this->mysql_SendQuery(sql_res, query, sz) )
 		{
-			if( (sql_row = mysql_fetch_row(sql_res)) ) 
+			if( (sql_row = mysql_fetch_row(sql_res)) )
 			{
 				ret = true;
 				mail = CMail(mid, atol(sql_row[0]), sql_row[1], "", sql_row[2] );
@@ -2122,7 +2212,7 @@ public:
 		char query[1024];
 		size_t sz = snprintf(query, sizeof(query),
 			"DELETE "
-			"FROM `%s` WHERE `to_account_id` = \"%ld\" AND `message_id` = \"%ld\" ", 
+			"FROM `%s` WHERE `to_account_id` = \"%ld\" AND `message_id` = \"%ld\" ",
 			mail_db, (unsigned long)cid, (unsigned long)mid);
 		return this->mysql_SendQuery(query, sz);
 	}
@@ -2144,20 +2234,20 @@ public:
 		{
 			sz = snprintf(query, sizeof(query),
 				"SELECT DISTINCT `char_id`,`name` "
-				"FROM `%s` WHERE `char_id` <> '%ld' ORDER BY `char_id`", 
+				"FROM `%s` WHERE `char_id` <> '%ld' ORDER BY `char_id`",
 				char_db, (unsigned long)senderid);
 		}
 		else
 		{
 			sz = snprintf(query, sizeof(query),
 				"SELECT `char_id`,`name` "
-				"FROM `%s` WHERE `name` = \"%s\"", 
+				"FROM `%s` WHERE `name` = \"%s\"",
 				char_db, _targetname);
 		}
 		if( this->mysql_SendQuery(sql_res, query, sz) )
 		{
 			ret = true;
-			while( (sql_row = mysql_fetch_row(sql_res)) ) 
+			while( (sql_row = mysql_fetch_row(sql_res)) )
 			{
 				sz = snprintf(query, sizeof(query),
 					"INSERT DELAYED INTO `%s` "
@@ -2165,7 +2255,7 @@ public:
 					"`from_account_id`,`from_char_name`,"
 					"`message`,`read_flag`)"
 					" VALUES ('%ld', '%s', '%ld', '%s', '%s', '%d')",
-					mail_db, 
+					mail_db,
 					atol(sql_row[0]), sql_row[1],
 					(unsigned long)senderid, sendername,
 					_body, 0);
@@ -2208,7 +2298,7 @@ bool CCharDB_sql::ProcessConfig(const char*w1, const char*w2)
 		char mapname[32];
 		int x, y;
 		if(sscanf(w2, "%[^,],%d,%d", mapname, &x, &y) == 3 )
-		{	
+		{
 			char *ip=strchr(mapname, '.');
 			if( ip != NULL ) *ip=0;
 			safestrcpy(start_point.mapname, mapname, sizeof(start_point.mapname));
@@ -2251,50 +2341,31 @@ bool CCharDB_sql::existChar(const char* name)
 }
 bool CCharDB_sql::searchChar(const char* name, CCharCharacter&data)
 {
-	// select char_data where name = *name
-/*	size_t pos;
-	if( cCharList.find( CCharCharacter(name), pos, 1) )
-	{
-		//if found char_id
-		//select char_data where char_id =.....  why not just put that in the first query, if not found, return false
-		data = cCharList[pos];
+	if (char_from_sql(name,data) )
 		return true;
-	}
-*/	return false;
+	return false;
 }
 bool CCharDB_sql::searchChar(uint32 charid, CCharCharacter&data)
 {
-	// select char_data where char_id = *char_id
-/*	size_t pos;
-	if( cCharList.find( CCharCharacter(charid), pos, 0) )
-	{
-		//if found char_id do like i said for search char
-		data = cCharList[pos];
+	if (char_from_sql(charid,data) )
 		return true;
-	}
-*/	return false;
+	return false;
 }
+
 bool CCharDB_sql::insertChar(CCharAccount &account, const char *name, unsigned char str, unsigned char agi, unsigned char vit, unsigned char int_, unsigned char dex, unsigned char luk, unsigned char slot, unsigned char hair_style, unsigned char hair_color, CCharCharacter&data)
 {
-
-	// insert into database all the data needed to finish creating a character, return false, if unfinished. return character data when complete
-/*	size_t pos;
-	if( cAccountList.find(account,0,pos) )
-	{
-		make_new_char(cAccountList[pos], name, str, agi, vit, int_, dex, luk, slot, hair_style, hair_color)
-		account = cAccountList[pos];
-		return searchChar(name, data);
-	}
-*/	return false;
+	if ( make_new_char(account,name,str,agi,vit,int_,dex,luk,slot,hair_style,hair_color,data) )
+		return true;
+	return false;
 }
 bool CCharDB_sql::removeChar(uint32 charid)
 {
-	char query[1024];
-	size_t sz=sprintf(query, "DELETE FROM `%s` WHERE `char_id`='%d'", char_db, charid);
-	this->mysql_SendQuery(query, sz);
-
+	MiniString query;
+	query << "DELETE FROM `" << (const char*)char_db << "` WHERE `char_id`='" << (unsigned char)charid << "'";
+	this-Query(query);
 	return true;
 }
+
 bool CCharDB_sql::saveChar(const CCharCharacter& data)
 {
 	// INSERT all character data into this function =o
@@ -2316,7 +2387,7 @@ bool CCharDB_sql::saveAccount(CCharAccount& account)
 	// Unknown function, can't find relative info for cAccountList.insert()
 
 	// this is function is used in txt server to synchronise login and char server
-	// to given account data, 
+	// to given account data,
 	// function could be empty if login and char are using the same database
 	// otherwise char needs to store the values to allow account authentification
 	// will change when uniting login and char data interface
@@ -2336,16 +2407,12 @@ bool CCharDB_sql::saveAccount(CCharAccount& account)
 }
 bool CCharDB_sql::removeAccount(uint32 accid)
 {
-	char query[1024];
-	size_t sz = snprintf(query, sizeof(query), "DELETE FROM `%s` WHERE `account_id` = '%ld'", (unsigned long) accid);
-	this->mysql_SendQuery(query, sz);
+	MiniString query;
 
-/*	size_t pos;
-	if( cAccountList.find(CCharAccount(accid),0,pos) )
-	{	// exist -> update list entry
-		cAccountList.removeindex(pos);
-	}
-*/	return true;
+	query << "DELETE FROM `" << char_db << "` WHERE `account_id` = '" << (unsigned long) accid << "'";
+
+	this->Query(query);
+	return true;
 }
 
 
@@ -3123,3 +3190,4 @@ private:
 
 
 #endif// SQL
+

@@ -76,8 +76,8 @@ txt : src/common/GNUmakefile src/login/GNUmakefile src/char/GNUmakefile src/map/
 ifdef SQLFLAG
 sql: src/common/GNUmakefile src/login_sql/GNUmakefile src/char_sql/GNUmakefile src/map/GNUmakefile src/ladmin/GNUmakefile conf
 	cd src ; cd common ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
-	cd src ; cd login_sql ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
-	cd src ; cd char_sql ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
+	cd src ; cd login ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
+	cd src ; cd char ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
 	cd src ; cd map ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
 	cd src ; cd ladmin ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
 else

@@ -143,7 +143,7 @@
 
 
 //////////////////////////////////////////////////////////////////////////
-// c++ header 
+// c++ header
 //////////////////////////////////////////////////////////////////////////
 #include <typeinfo>		//!! this is poisoning the global namespace
 
@@ -210,7 +210,7 @@ typedef unsigned char	uint08;
 typedef   signed short	sint16;
 typedef unsigned short	uint16;
 //////////////////////////////////////////////////////////////////////////
-// IMPORTANT: 
+// IMPORTANT:
 // ints beeing regular machine dependend type is over starting with 64bit arch
 // 64bit gnu will define ints as 32bit but long as 64bit,
 // while 64bit windows will define both int and long as 4 byte long, introducing __int64 as 64bit integer type
@@ -253,7 +253,7 @@ typedef unsigned int	uint32;
 #ifdef __cplusplus
 //////////////////////////////
 
-// starting over in another project and transfering 
+// starting over in another project and transfering
 // after coding and testing is finished
 
 
@@ -266,7 +266,7 @@ template <class T> inline T &min(const T &i1, const T &i2)
 #ifdef max // windef has macros for that, kill'em
 #undef max
 #endif
-template <class T> inline T &max(const T &i1, const T &i2)	
+template <class T> inline T &max(const T &i1, const T &i2)
 {	if(i1 > i2) return (T&)i1; else return (T&)i2;
 }
 
@@ -290,7 +290,7 @@ typedef int bool;
 #undef swap
 #endif
 // hmm only ints?
-//#define swap(a,b) { int temp=a; a=b; b=temp;} 
+//#define swap(a,b) { int temp=a; a=b; b=temp;}
 // if using macros then something that is type independent
 #define swap(a,b) ((a == b) || ((a ^= b), (b ^= a), (a ^= b)))
 
@@ -317,7 +317,7 @@ typedef int bool;
 #else// normal unix with undefined socklen_t
   typedef unsigned int socklen_t;
 #endif
-  
+
 #endif//__socklen_t_defined
 
 
@@ -361,13 +361,13 @@ typedef int bool;
 #define strncasecmp			strnicmp
 
 
-static inline int read(SOCKET fd, char*buf, int sz)		
+static inline int read(SOCKET fd, char*buf, int sz)
 {
-	return recv(fd,buf,sz,0); 
+	return recv(fd,buf,sz,0);
 }
-static inline int write(SOCKET fd, char*buf, int sz)	
+static inline int write(SOCKET fd, char*buf, int sz)
 {
-	return send(fd,buf,sz,0); 
+	return send(fd,buf,sz,0);
 }
 
 
@@ -378,20 +378,20 @@ static inline int gettimeofday(struct timeval *timenow, void *tz)
     {
 		FILETIME	ft;
 		GetSystemTimeAsFileTime(&ft);
-		
+
 #if !(defined __64BIT__)	// not a naive 64bit platform
-		/////////////////////////////////////////////////////////////////////////////	
+		/////////////////////////////////////////////////////////////////////////////
 		// Apparently Win32 has units of 1e-7 sec (100-nanosecond intervals)
 		// 4294967296 is 2^32, to shift high word over
 		// 11644473600 is the number of seconds between
 		// the Win32 epoch 1601-Jan-01 and the Unix epoch 1970-Jan-01
 		// Tests found floating point to be 10x faster than 64bit int math.
 		double timed = ((ft.dwHighDateTime * 4294967296e-7) - 11644473600.0) + (ft.dwLowDateTime  * 1e-7);
-		
+
 		timenow->tv_sec  = (long) timed;
 		timenow->tv_usec = (long) ((timed - timenow->tv_sec) * 1e6);
 #else
-		/////////////////////////////////////////////////////////////////////////////	
+		/////////////////////////////////////////////////////////////////////////////
 		// and the same with 64bit math
 		// which might be faster on a real 64bit platform
 		LARGE_INTEGER   li;
@@ -458,13 +458,13 @@ typedef int		SOCKET;
 
 // abnormal function definitions
 
-static inline int closesocket(SOCKET fd)		
+static inline int closesocket(SOCKET fd)
 {
-	return close(fd); 
+	return close(fd);
 }
-static inline int ioctlsocket(SOCKET fd, long cmd, unsigned long *arg)		
+static inline int ioctlsocket(SOCKET fd, long cmd, unsigned long *arg)
 {
-	return ioctl(fd,cmd,arg); 
+	return ioctl(fd,cmd,arg);
 }
 
 
@@ -480,7 +480,7 @@ static inline unsigned long GetTickCount()
 }
 
 static inline unsigned long GetCurrentProcessId()
-{	
+{
 	return getpid();
 }
 
@@ -521,7 +521,7 @@ extern inline uint sleep(uint milliseconds)
 namespace eapp
 {
 //////////////////////////////////////////////////////////////////////////
-// wrappers for Character Classification Routines  
+// wrappers for Character Classification Routines
 //////////////////////////////////////////////////////////////////////////
 #ifdef isalpha	// get the function form, not the macro
 #undef isalpha
@@ -608,7 +608,7 @@ static inline unsigned short GetWord(uint32 val, size_t num)
 		return (unsigned short)((val & 0xFFFF0000)>>0x10);
 	default:
 		return 0;	//better throw something here
-	}	
+	}
 }
 static inline unsigned short MakeWord(unsigned char byte0, unsigned char byte1)
 {
@@ -681,23 +681,23 @@ static inline uint32 SwapFourBytes(uint32 w)
 // in this case for 32bit input it would be 11 operations
 static inline unsigned long log2(unsigned long  v)
 {
-//	static const uint32 b[] = 
+//	static const uint32 b[] =
 //		{0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000};
-//	static const uint32 S[] = 
+//	static const uint32 S[] =
 //		{1, 2, 4, 8, 16};
 	// result of log2(v) will go here
-	register unsigned long c = 0; 
+	register unsigned long c = 0;
 //	int i;
-//	for (i = 4; i >= 0; i--) 
+//	for (i = 4; i >= 0; i--)
 //	{
 //	  if (v & b[i])
 //	  {
 //		v >>= S[i];
 //		c |= S[i];
-//	  } 
+//	  }
 //	}
 	// unroll for speed...
-//	if (v & b[4]) { v >>= S[4]; c |= S[4]; } 
+//	if (v & b[4]) { v >>= S[4]; c |= S[4]; }
 //	if (v & b[3]) { v >>= S[3]; c |= S[3]; }
 //	if (v & b[2]) { v >>= S[2]; c |= S[2]; }
 //	if (v & b[1]) { v >>= S[1]; c |= S[1]; }
@@ -705,9 +705,9 @@ static inline unsigned long log2(unsigned long  v)
 	// put values in for more speed...
 // 64bit unix defines long as 64bit
 #if (defined __64BIT__)
-	if (v & LLCONST(0xFFFFFFFF00000000)) { v >>= 0x20; c |= 0x20; } 
+	if (v & LLCONST(0xFFFFFFFF00000000)) { v >>= 0x20; c |= 0x20; }
 #endif
-	if (v & 0xFFFF0000) { v >>= 0x10; c |= 0x10; } 
+	if (v & 0xFFFF0000) { v >>= 0x10; c |= 0x10; }
 	if (v & 0x0000FF00) { v >>= 0x08; c |= 0x08; }
 	if (v & 0x000000F0) { v >>= 0x04; c |= 0x04; }
 	if (v & 0x0000000C) { v >>= 0x02; c |= 0x02; }
@@ -728,12 +728,12 @@ static inline unsigned long pow2(unsigned long v)
 // starting condition calculated with two approximations
 // sqrt(n) = n^1/2 = n / n^1/2 = n / 2^log2(n^1/2) = n / 2^(log2(n)/2)
 // and calculating a/2^b with left shift as a>>b
-// which results in a larger value than necessary 
+// which results in a larger value than necessary
 // because the integer log2 returns the floored logarism and is smaller than the real log2
 // second approximation is
 // sqrt(n) = n^1/2 = 2^(log2(n)/2) which is calculated as 1<<(log2(n)/2)
-// resulting in a value smaller than necessary because of the integer log2 
-// calculation the mean of those two approximations gets closer to the real value, 
+// resulting in a value smaller than necessary because of the integer log2
+// calculation the mean of those two approximations gets closer to the real value,
 #ifdef isqrt
 #undef isqrt
 #endif
@@ -762,9 +762,9 @@ class noncopyable
 {
 // my gnu ver. 3.4 don't like private constructors
 // looks like some gcc really insists on having this members readable
-// even if not used and not disturbing in any way, 
-// stupid move, but ok, go on, read it 
-// but the protected declaration will then generate errors in linker instead of compiler 
+// even if not used and not disturbing in any way,
+// stupid move, but ok, go on, read it
+// but the protected declaration will then generate errors in linker instead of compiler
 // and the source is then harder to find
 #ifdef __GNUC__
 protected:
@@ -787,7 +787,7 @@ public:
 //!!todo!! replace with full headers when switching to multithread
 
 //////////////////////////////////////////////////////////////////////////
-// empty sync classes for single thread 
+// empty sync classes for single thread
 //////////////////////////////////////////////////////////////////////////
 class Mutex: public noncopyable
 {
@@ -815,7 +815,7 @@ public:
 
 
 //////////////////////////////////////////////////////////////////////////
-// the basic exception class. 
+// the basic exception class.
 //////////////////////////////////////////////////////////////////////////
 class CException : public global
 {
@@ -868,8 +868,8 @@ public:
 
 
 //////////////////////////////////////////////////////////////////////////
-// variant exception class; 
-// may be thrown when a variant is being typecasted to 32-bit int 
+// variant exception class;
+// may be thrown when a variant is being typecasted to 32-bit int
 // and the value is out of range
 //////////////////////////////////////////////////////////////////////////
 class exception_variant: public CException
@@ -979,7 +979,7 @@ public:
 
 	const TArrayDPT& operator=(const TArrayDPT& tp)
 	{
-		this->resize(0); 
+		this->resize(0);
 		this->copy(tp);
 		return *this;
 	}
@@ -1017,7 +1017,7 @@ public:
 	void clear()
 	{
 		if(cField)
-		{	
+		{
 			size_t i;
 			for(i=0; i<cSZ; i++)
 				if(cField[i]) delete cField[i];
@@ -1037,7 +1037,7 @@ public:
 			if(temp)
 			{
 				memset(temp,0,sz*sizeof(pT));
-				if(cField) 
+				if(cField)
 				{
 					memcpy(temp,cField,cSZ*sizeof(pT));
 					delete[] cField;
@@ -1059,7 +1059,7 @@ public:
 			if(temp)
 			{
 				memset(temp,0,sz*sizeof(pT));
-				if(cField) 
+				if(cField)
 				{
 					memcpy(temp,cField,cSZ*sizeof(pT));
 					delete[] cField;
@@ -1073,7 +1073,7 @@ public:
 	virtual bool realloc()
 	{
 		if(cCnt != cSZ)
-		{	
+		{
 			if(cCnt)
 			{
 				// need to resize
@@ -1081,7 +1081,7 @@ public:
 				pT* newfield = new T[cSZ];
 				if(newfield)
 				{
-					if(cField) 
+					if(cField)
 					{
 						memcpy(newfield,cField,cSZ*sizeof(pT));
 						delete[] cField;
@@ -1112,7 +1112,7 @@ public:
 	{
 		// automatic resize on out-of-bound
 		if( inx>=cCnt )
-		{	
+		{
 			resize(inx+1);
 		}
 
@@ -1135,7 +1135,7 @@ public:
 		return this->operator[](0);
 	}
 	T& last()
-	{	
+	{
 		return this->operator[]((cCnt>0)?(cCnt-1):0);
 	}
 	size_t size() const			{ return cCnt; }
@@ -1170,7 +1170,7 @@ public:
 		if(cCnt>=cnt)
 		{
 			if(clear)
-			{	
+			{
 				while(cnt>0)
 				{
 					cCnt--;
@@ -1306,22 +1306,22 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// access to element[inx]
 	virtual const T& operator[](size_t inx) const 	=0;
-	virtual T& operator[](size_t inx)		=0;	
+	virtual T& operator[](size_t inx)		=0;
 
 	T& first()	{ return this->operator[](0); }
 	T& last()	{ return this->operator[]((this->size()>0)?(this->size()-1):0); }
 
 
 	///////////////////////////////////////////////////////////////////////////
-	// (re)allocates a list of cnt elements [0...cnt-1], 
+	// (re)allocates a list of cnt elements [0...cnt-1],
 	// leave new elements uninitialized/default constructed
-	virtual bool resize(size_t cnt)			=0;	
+	virtual bool resize(size_t cnt)			=0;
 
 
 	///////////////////////////////////////////////////////////////////////////
 	// returns number of elements
-	virtual size_t size() const				=0;	
-	virtual size_t freesize() const			=0;	
+	virtual size_t size() const				=0;
+	virtual size_t freesize() const			=0;
 
 
 	///////////////////////////////////////////////////////////////////////////
@@ -1331,53 +1331,53 @@ public:
 	virtual bool push(const T* elem, size_t cnt){ return append(elem,cnt); }
 	///////////////////////////////////////////////////////////////////////////
 	// return the first element and remove it from list
-	virtual T& pop()						=0;	
+	virtual T& pop()						=0;
 	///////////////////////////////////////////////////////////////////////////
 	// as above but with check if element exist
-	virtual bool pop(T& elem)				=0;	
+	virtual bool pop(T& elem)				=0;
 	///////////////////////////////////////////////////////////////////////////
 	// return the first element and do not remove it from list
-	virtual T& top() const					=0;	
+	virtual T& top() const					=0;
 	///////////////////////////////////////////////////////////////////////////
 	// as above but with check if element exist
-	virtual bool top(T& elem) const			=0;	
+	virtual bool top(T& elem) const			=0;
 
 
 	///////////////////////////////////////////////////////////////////////////
 	// add an element at the end
-	virtual bool append(const T& elem, size_t cnt=1) =0;	
+	virtual bool append(const T& elem, size_t cnt=1) =0;
 	///////////////////////////////////////////////////////////////////////////
 	// add an element at position pos (at the end by default)
-	virtual bool append(const TArray<T>& list) 		=0;	
+	virtual bool append(const TArray<T>& list) 		=0;
 	///////////////////////////////////////////////////////////////////////////
 	// add an element at position pos (at the end by default)
-	virtual bool append(const T* elem, size_t cnt) =0;	
+	virtual bool append(const T* elem, size_t cnt) =0;
 
 	///////////////////////////////////////////////////////////////////////////
 	// remove elements from end of list
-	virtual bool strip(size_t cnt=1) 		=0;	
+	virtual bool strip(size_t cnt=1) 		=0;
 	///////////////////////////////////////////////////////////////////////////
 	// remove element [inx]
-	virtual bool removeindex(size_t inx)	=0;	
+	virtual bool removeindex(size_t inx)	=0;
 	///////////////////////////////////////////////////////////////////////////
 	// remove cnt elements starting from inx
-	virtual bool removeindex(size_t inx, size_t cnt)	=0;	
+	virtual bool removeindex(size_t inx, size_t cnt)	=0;
 	///////////////////////////////////////////////////////////////////////////
 	// remove all elements
-	virtual bool clear()					=0;	
+	virtual bool clear()					=0;
 
 	///////////////////////////////////////////////////////////////////////////
 	// move an element inside the buffer
 	virtual bool move(size_t tarpos, size_t srcpos) = 0;
 	///////////////////////////////////////////////////////////////////////////
 	// add an element at position pos (at the end by default)
-	virtual bool insert(const T& elem, size_t cnt=1, size_t pos=~0) 		=0;	
+	virtual bool insert(const T& elem, size_t cnt=1, size_t pos=~0) 		=0;
 	///////////////////////////////////////////////////////////////////////////
 	// add cnt elements at position pos (at the end by default)
-	virtual bool insert(const T* elem, size_t cnt, size_t pos=~0) 		=0;	
+	virtual bool insert(const T* elem, size_t cnt, size_t pos=~0) 		=0;
 	///////////////////////////////////////////////////////////////////////////
 	// add an list of elements at position pos (at the end by default)
-	virtual bool insert(const TArray<T>& list, size_t pos=~0)	=0;	
+	virtual bool insert(const TArray<T>& list, size_t pos=~0)	=0;
 
 	///////////////////////////////////////////////////////////////////////////
 	// copy the given list
@@ -1388,10 +1388,10 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// replace poscnt elements at pos with list
-	virtual bool replace(const TArray<T>& list, size_t pos, size_t poscnt)	=0;	
+	virtual bool replace(const TArray<T>& list, size_t pos, size_t poscnt)	=0;
 	///////////////////////////////////////////////////////////////////////////
 	// replace poscnt elements at pos with cnt elements
-	virtual bool replace(const T* elem, size_t cnt, size_t pos, size_t poscnt) 	=0;	
+	virtual bool replace(const T* elem, size_t cnt, size_t pos, size_t poscnt) 	=0;
 
 
 	///////////////////////////////////////////////////////////////////////////
@@ -1557,9 +1557,9 @@ public:
 		return cField[inx];
 	}
 	///////////////////////////////////////////////////////////////////////////
-	// (re)allocates a list of cnt elements [0...cnt-1], 
+	// (re)allocates a list of cnt elements [0...cnt-1],
 	// leave new elements uninitialized/default constructed
-	virtual bool resize(size_t cnt)			
+	virtual bool resize(size_t cnt)
 	{
 		ScopeLock scopelock(*this);
 		if( cnt < SZ )
@@ -1572,7 +1572,7 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// returns number of used elements
-	virtual size_t size() const				{ ScopeLock scopelock(*this); return cCnt; }	
+	virtual size_t size() const				{ ScopeLock scopelock(*this); return cCnt; }
 	virtual size_t freesize() const			{ ScopeLock scopelock(*this); return SZ-cCnt; }
 
 
@@ -1643,16 +1643,16 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// move inside the array
 	virtual bool move(size_t tarpos, size_t srcpos)
-	{	
+	{
 		ScopeLock scopelock(*this);
-		if(srcpos>cCnt) srcpos=cCnt; 
+		if(srcpos>cCnt) srcpos=cCnt;
 		if( ( tarpos > srcpos && cCnt+tarpos < SZ+srcpos ) || // enlarge only up to limit
 			( tarpos < srcpos                            ) )
 		{
 			move(cField+tarpos,cField+srcpos,cCnt-srcpos);
 			cCnt += tarpos-srcpos;
 			return true;
-		}	
+		}
 		return false;
 	}
 
@@ -1671,7 +1671,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// add an element at position pos (at the end by default)
 	virtual bool append(const TArray<T>& list)
-	{	
+	{
 		ScopeLock scopelock(*this);
 		size_t cnt;
 		const T* elem = list.getreadbuffer(cnt);
@@ -1746,7 +1746,7 @@ public:
 		ScopeLock scopelock(*this);
 		if( cCnt+cnt < SZ )
 		{
-			if(pos >= cCnt) 
+			if(pos >= cCnt)
 				pos = cCnt;
 			else
 				move(cField+pos+cnt, cField+pos, cCnt-pos);
@@ -1763,7 +1763,7 @@ public:
 		ScopeLock scopelock(*this);
 		if( elem && cCnt+cnt < SZ )
 		{
-			if(pos >= cCnt) 
+			if(pos >= cCnt)
 				pos=cCnt;
 			else
 				move(cField+pos+cnt, cField+pos, cCnt-pos);
@@ -1776,7 +1776,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// add an list of elements at position pos (at the end by default)
 	virtual bool insert(const TArray<T>& list, size_t pos=~0)
-	{	
+	{
 		ScopeLock scopelock(*this);
 		size_t cnt;
 		const T* elem = list.getreadbuffer(cnt);
@@ -1788,7 +1788,7 @@ public:
 	{
 		ScopeLock scopelock(*this);
 		if( elem )
-		{	
+		{
 			if(pos > cCnt) pos = cCnt;
 
 			if( pos+cnt < SZ )
@@ -1801,7 +1801,7 @@ public:
 		return false;
 	}
 	virtual bool copy(const TArray<T>& list, size_t pos=0)
-	{	
+	{
 		if(this!=&list)
 		{
 			ScopeLock scopelock(*this);
@@ -1821,7 +1821,7 @@ public:
 			pos = cCnt;
 			poscnt = 0;
 		}
-		if(pos+poscnt > cCnt) 
+		if(pos+poscnt > cCnt)
 		{
 			poscnt=cCnt-pos;
 		}
@@ -1837,7 +1837,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// replace poscnt elements at pos with list
 	virtual bool replace(const TArray<T>& list, size_t pos, size_t poscnt)
-	{	
+	{
 		ScopeLock scopelock(*this);
 		size_t cnt;
 		const T* elem = list.getreadbuffer(cnt);
@@ -1863,7 +1863,7 @@ public:
 		for(size_t i=startpos; i<cCnt; i++)
 		{
 			if( elem== cField[i] )
-			{	
+			{
 				return i;
 			}
 		}
@@ -2039,7 +2039,7 @@ public:
 	{
 		ScopeLock scopelock(*this);
 		for(size_t i=0; i<cnt && this->cCnt<SZ; i++)
-		{	
+		{
 			this->insert( elem[i] );
 		}
 		return true;
@@ -2100,7 +2100,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// find an element in the list
 	virtual bool find(const T& elem, size_t startpos, size_t& pos) const
-	{	
+	{
 		ScopeLock scopelock(*this);
 		// do a binary search
 		// make some initial stuff
@@ -2112,7 +2112,7 @@ public:
 
 		if( NULL==this->cField || this->cCnt < 1)
 			ret = false;
-		else if( elem == this->cField[a] ) 
+		else if( elem == this->cField[a] )
 		{	pos=a;
 			ret = true;
 		}
@@ -2198,7 +2198,7 @@ public:
 		{	pos = b+1;
 			ret = false; //larger than upper
 		}
-		else if( elem == this->cField[a] ) 
+		else if( elem == this->cField[a] )
 		{	pos=a;
 			ret = true;
 		}
@@ -2267,7 +2267,7 @@ protected:
 	{
 		memmove(tar,src,cnt*sizeof(T));
 	}
-	virtual int  compare(const T& a, const T& b) const	
+	virtual int  compare(const T& a, const T& b) const
 	{	// dont have a working compare here
 		// overload at slist
 		return 0;
@@ -2275,7 +2275,7 @@ protected:
 
 public:
 	virtual bool realloc(size_t newsize)
-	{	
+	{
 		ScopeLock scopelock(*this);
 
 		if(  cSZ < newsize )
@@ -2315,7 +2315,7 @@ public:
 			T* newfield = new T[cSZ];
 			if(newfield)
 			{
-				if(cField) 
+				if(cField)
 				{
 					copy(newfield,cField,cCnt);
 					delete[] cField;
@@ -2328,14 +2328,14 @@ public:
 	virtual bool realloc()
 	{
 		if(cCnt != cSZ)
-		{	
+		{
 			if(cCnt)
 			{	// need to resize
 				cSZ = cCnt;
 				T* newfield = new T[cSZ];
 				if(newfield)
 				{
-					if(cField) 
+					if(cField)
 					{
 						copy(newfield,cField,cCnt);
 						delete[] cField;
@@ -2540,9 +2540,9 @@ public:
 		return cField[inx];
 	}
 	///////////////////////////////////////////////////////////////////////////
-	// (re)allocates a list of cnt elements [0...cnt-1], 
+	// (re)allocates a list of cnt elements [0...cnt-1],
 	// leave new elements uninitialized/default constructed
-	virtual bool resize(size_t cnt)			
+	virtual bool resize(size_t cnt)
 	{
 		ScopeLock scopelock(*this);
 		if(cnt > cSZ)
@@ -2553,8 +2553,8 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// returns number of used elements
-	virtual size_t size() const				{ ScopeLock scopelock(*this); return cCnt; }	
-	virtual size_t freesize() const			{ ScopeLock scopelock(*this); return cSZ-cCnt; }	
+	virtual size_t size() const				{ ScopeLock scopelock(*this); return cCnt; }
+	virtual size_t freesize() const			{ ScopeLock scopelock(*this); return cSZ-cCnt; }
 
 
 	///////////////////////////////////////////////////////////////////////////
@@ -2570,7 +2570,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// add an element at position pos (at the end by default)
 	virtual bool append(const TArray<T>& list)
-	{	
+	{
 		ScopeLock scopelock(*this);
 		size_t cnt;
 		const T* elem = list.getreadbuffer(cnt);
@@ -2648,7 +2648,7 @@ public:
 		if( cCnt+cnt > cSZ )
 			realloc(cSZ+cnt);
 
-		if(pos >= cCnt) 
+		if(pos >= cCnt)
 			pos = cCnt;
 		else
 			move(cField+pos+cnt, cField+pos, cCnt-pos);
@@ -2665,7 +2665,7 @@ public:
 		if( cCnt+cnt > cSZ )
 			realloc(cSZ+cnt);
 
-		if(pos >= cCnt) 
+		if(pos >= cCnt)
 			pos = cCnt;
 		else
 			move(cField+pos+cnt, cField+pos, cCnt-pos);
@@ -2681,11 +2681,11 @@ public:
 	{
 		ScopeLock scopelock(*this);
 		if( elem )
-		{	
+		{
 			if( cCnt+cnt > cSZ )
 				realloc(cCnt+cnt);
 
-			if(pos >= cCnt) 
+			if(pos >= cCnt)
 				pos=cCnt;
 			else
 				move(cField+pos+cnt, cField+pos, cCnt-pos);
@@ -2698,7 +2698,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// add an list of elements at position pos (at the end by default)
 	virtual bool insert(const TArray<T>& list, size_t pos=~0)
-	{	
+	{
 		ScopeLock scopelock(*this);
 		size_t cnt;
 		const T* elem = list.getreadbuffer(cnt);
@@ -2710,7 +2710,7 @@ public:
 	{
 		ScopeLock scopelock(*this);
 		if( elem )
-		{	
+		{
 			if(pos > cCnt) pos = cCnt;
 
 			if( pos+cnt > cSZ )
@@ -2722,7 +2722,7 @@ public:
 		return false;
 	}
 	virtual bool copy(const TArray<T>& list, size_t pos=0)
-	{	
+	{
 		if(this!=&list)
 		{
 			ScopeLock scopelock(*this);
@@ -2737,9 +2737,9 @@ public:
 	// always take the elements from 'from' up to 'cElements'
 
 	virtual bool move(size_t tarpos, size_t srcpos)
-	{	
+	{
 		ScopeLock scopelock(*this);
-		if(srcpos>cCnt) srcpos=cCnt; 
+		if(srcpos>cCnt) srcpos=cCnt;
 		if( cCnt+tarpos > cSZ+srcpos )
 			realloc(cCnt+tarpos-srcpos);
 		move(cField+tarpos,cField+srcpos,cCnt-srcpos);
@@ -2757,7 +2757,7 @@ public:
 			pos = cCnt;
 			poscnt = 0;
 		}
-		if(pos+poscnt > cCnt) 
+		if(pos+poscnt > cCnt)
 		{
 			poscnt=cCnt-pos;
 		}
@@ -2776,7 +2776,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// replace poscnt elements at pos with list
 	virtual bool replace(const TArray<T>& list, size_t pos, size_t poscnt)
-	{	
+	{
 		ScopeLock scopelock(*this);
 		size_t cnt;
 		const T* elem = list.getreadbuffer(cnt);
@@ -2799,7 +2799,7 @@ public:
 		ScopeLock scopelock(*this);
 		for(size_t i=startpos; i<cCnt; i++)
 			if( elem == cField[i] )
-			{	
+			{
 				return i;
 			}
 		return -1;
@@ -2975,7 +2975,7 @@ public:
 			realloc(this->cCnt+cnt);
 
 		for(size_t i=0; i<cnt; i++)
-		{	
+		{
 			this->insert( elem[i] );
 		}
 		return true;
@@ -3039,7 +3039,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// find an element in the list
 	virtual bool find(const T& elem, size_t startpos, size_t& pos) const
-	{	
+	{
 		ScopeLock scopelock(*this);
 		// do a binary search
 		// make some initial stuff
@@ -3051,7 +3051,7 @@ public:
 
 		if( NULL==this->cField || this->cCnt < 1)
 			ret = false;
-		else if( elem == this->cField[a] ) 
+		else if( elem == this->cField[a] )
 		{	pos=a;
 			ret = true;
 		}
@@ -3137,7 +3137,7 @@ public:
 		{	pos = b+1;
 			ret = false; //larger than upper
 		}
-		else if( elem == this->cField[a] ) 
+		else if( elem == this->cField[a] )
 		{	pos=a;
 			ret = true;
 		}
@@ -3455,7 +3455,7 @@ private:
 	// binsearch
 	// with member function parameter might be not necesary in this case
 	bool binsearch(const T& elem, size_t startpos, size_t inx, size_t& pos, bool asc, int (T::*cmp)(const T&, size_t) const) const
-	{	
+	{
 		if (inx>=CNT) inx=0;
 		// do a binary search
 		// make some initial stuff
@@ -3467,7 +3467,7 @@ private:
 
 		if( cIndex[inx].size() < 1)
 			ret = false;
-		else if( 0 == (elem.*cmp)(cList[ cIndex[inx][a] ], inx) ) 
+		else if( 0 == (elem.*cmp)(cList[ cIndex[inx][a] ], inx) )
 		{	pos=a;
 			ret = true;
 		}
@@ -3537,8 +3537,8 @@ private:
 };
 ///////////////////////////////////////////////////////////////////////////////
 // Multi-Indexed List Template
-// using Pointers to stored objects for internal lists, 
-// subsequent insert/delete does new/delete the objects, 
+// using Pointers to stored objects for internal lists,
+// subsequent insert/delete does new/delete the objects,
 // for performance use a managed memory derived classes
 // usable classes need a "int compare(const T& elem, size_t inx) const" member
 ///////////////////////////////////////////////////////////////////////////////
@@ -3663,7 +3663,7 @@ private:
 	// binsearch
 	// with member function parameter might be not necesary in this case
 	bool binsearch(const T& elem, size_t startpos, size_t inx, size_t& pos, bool asc, int (T::*cmp)(const T&, size_t) const) const
-	{	
+	{
 		if (inx>=CNT) inx=0;
 		// do a binary search
 		// make some initial stuff
@@ -3675,7 +3675,7 @@ private:
 
 		if( cIndex[inx].size() < 1)
 			ret = false;
-		else if( 0 == (elem.*cmp)( *cIndex[inx][a], inx) ) 
+		else if( 0 == (elem.*cmp)( *cIndex[inx][a], inx) )
 		{	pos=a;
 			ret = true;
 		}
@@ -3785,7 +3785,7 @@ inline unsigned int atomicincrement(unsigned int* target)	{return (unsigned int)
 inline unsigned int atomicdecrement(unsigned int* target)	{return (unsigned int)atomicdecrement((int*)target);}
 
 template <class T> inline T* atomicexchange(T** target, T* value)
-{	return (T*)_atomicexchange((void**)target, (void*)value); 
+{	return (T*)_atomicexchange((void**)target, (void*)value);
 }
 
 
@@ -3931,7 +3931,7 @@ public:
 	{
 		this->acquire(r);
 	}
-	virtual ~TPtrCount()	
+	virtual ~TPtrCount()
 	{
 		this->release();
 	}
@@ -3943,7 +3943,7 @@ public:
 	TPtrCount& operator=(X* p)
 	{	// take ownership of the given pointer
 		if( this->itsCounter )
-		{	
+		{
 			make_unique();
 			*this->itsCounter = p;
 		}
@@ -4003,7 +4003,7 @@ template <class X> class TPtrAutoCount : public TPtrCount<X>
 	{	// check if we have an object to access, create one if not
 		if(!this->itsCounter)		this->itsCounter		= new (typename TPtrCount<X>::CCounter)(NULL);
 		// usable objects need a default constructor
-		if(!this->itsCounter->ptr)	this->itsCounter->ptr	= new X; 
+		if(!this->itsCounter->ptr)	this->itsCounter->ptr	= new X;
 	}
 
 public:
@@ -4036,7 +4036,7 @@ template <class X> class TPtrAutoRef : public TPtrCount<X>
 	{	// check if we have an object to access, create one if not
 		if(!this->itsCounter)		this->itsCounter		= new (typename TPtrCount<X>::CCounter)(NULL);
 		// usable objects need a default constructor
-		if(!this->itsCounter->ptr)	this->itsCounter->ptr	= new X; 
+		if(!this->itsCounter->ptr)	this->itsCounter->ptr	= new X;
 	}
 public:
 	explicit TPtrAutoRef(X* p = NULL) : TPtrCount<X>(p)		{}
@@ -4046,9 +4046,9 @@ public:
 	TPtrAutoRef(const TPtrAutoRef<X>& r) : TPtrCount<X>(r)	{}
 	const TPtrAutoRef& operator=(const TPtrAutoRef<X>& r)	{ this->acquire(r); return *this; }
 
-	virtual const X& readaccess() const	
-	{ 
-		const_cast< TPtrAutoRef* >(this)->create();	
+	virtual const X& readaccess() const
+	{
+		const_cast< TPtrAutoRef* >(this)->create();
 		// no need to aquire, is done on reference creation
 		return *this->itsCounter->ptr;
 	}
@@ -4080,7 +4080,7 @@ class MiniString : public global
 	TPtrAutoRef< TArrayDST<char> > cStrPtr;
 
 	void copy(const char *c, size_t len=~0)
-	{	
+	{
 		size_t sz = (len&&c)?min(len,strlen(c)):(0);
 		if( sz<1 )
 		{
@@ -4094,12 +4094,12 @@ class MiniString : public global
 		cStrPtr->append(0);
 	}
 protected:
-	int compareTo(const MiniString &s) const 
+	int compareTo(const MiniString &s) const
 	{	// compare with memcmp including the End-of-String
 		// which is faster than doing a strcmp
 		if( cStrPtr != s.cStrPtr )
 		{
-			if(s.cStrPtr->size()>1 && cStrPtr->size()>1) 
+			if(s.cStrPtr->size()>1 && cStrPtr->size()>1)
 				return memcmp(s, cStrPtr->array(), cStrPtr->size());
 
 			if(s.cStrPtr->size()==0 && cStrPtr->size()==0) return 0;
@@ -4108,7 +4108,7 @@ protected:
 		}
 		return 0;
 	}
-	int compareTo(const char *c) const 
+	int compareTo(const char *c) const
 	{	// compare with memcmp including the end-of-string
 		// which is faster than doing a strcmp
 		if(c && cStrPtr.exists()) return memcmp(c, cStrPtr->array(), cStrPtr->size());
@@ -4125,7 +4125,7 @@ public:
 	const MiniString &operator=(const MiniString &str)
 	{
 		cStrPtr = str.cStrPtr;
-		return *this; 
+		return *this;
 	}
 	/////////////////////////////////////////////////////////////////
 	// a special constructor for creating an addition objects
@@ -4164,7 +4164,7 @@ public:
 	virtual ~MiniString()				{  }
 
 	//////////////////////////////////////////////////////
-	// 
+	//
 	const char* get() const						{ return cStrPtr->array(); }
 	const char* c_str() const					{ return cStrPtr->array(); }
 	operator const char*() const				{ return cStrPtr->array(); }
@@ -4201,7 +4201,7 @@ public:
 	//////////////////////////////////////////////////////
 	// string operations
 	MiniString& assign(const MiniString& str)
-	{	
+	{
 		cStrPtr = str.cStrPtr;
 		return *this;
 	}
@@ -4211,7 +4211,7 @@ public:
 		return *this;
 	}
 	MiniString& assign(const char* c)
-	{	
+	{
 		copy(c);
 		return *this;
 	}
@@ -4300,6 +4300,12 @@ public:
 		size_t sz = snprintf(buf,sizeof(buf), "%u", v);
 		return append(buf, sz);
 	}
+	MiniString& append(unsigned long int v)
+	{
+		char buf[128];
+		size_t sz = snprintf(buf,sizeof(buf),"%lu",v);
+		return append(buf,sz);
+	}
 	MiniString& append(double v)
 	{
 		char buf[128];
@@ -4313,12 +4319,12 @@ public:
 
 	//////////////////////////////////////////////////////
 	template<class X> const MiniString& operator+=(const X& x)
-	{	
+	{
 		return this->append(x);
 	}
 	//////////////////////////////////////////////////////
 	template<class X> MiniString& operator<<(const X& x)
-	{	
+	{
 		return this->append(x);
 	}
 	//////////////////////////////////////////////////////
@@ -4408,8 +4414,8 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////
 // Multi-Indexed List Template
-// using SavePointers to stored objects for internal lists, 
-// subsequent insert/delete does new/delete the objects, 
+// using SavePointers to stored objects for internal lists,
+// subsequent insert/delete does new/delete the objects,
 // for performance use a managed memory derived classes
 // usable classes need a "int compare(const T& elem, size_t inx) const" member
 //
@@ -4535,7 +4541,7 @@ private:
 	// binsearch
 	// with member function parameter might be not necesary in this case
 	bool binsearch(const T& elem, size_t startpos, size_t inx, size_t& pos, bool asc, int (T::*cmp)(const T&, size_t) const) const
-	{	
+	{
 		if (inx>=CNT) inx=0;
 		// do a binary search
 		// make some initial stuff
@@ -4547,7 +4553,7 @@ private:
 
 		if( cIndex[inx].size() < 1)
 			ret = false;
-		else if( 0 == (elem.*cmp)( *cIndex[inx][a], inx) ) 
+		else if( 0 == (elem.*cmp)( *cIndex[inx][a], inx) )
 		{	pos=a;
 			ret = true;
 		}

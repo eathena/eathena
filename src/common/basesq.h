@@ -12,15 +12,68 @@ class CMySQL : public global, public noncopyable
 {
 public:
 	CMySQL();
+	// Set the new sqldb_handle to replace the current standard
+	CMySQL(MYSQL sqldb_handle); // Change the handler in case someone wants to use a diff one
+
+	// Set back the default mysql_handle, and free any unfreed results
 	virtual ~CMySQL();
 
+
+	//Some public var?
+	MYSQL_ROW row;
+
+	// MiniString versions -> my versions =D
+	bool mysql_SendQuery(const MiniString q); // Queries with no returns
+	bool mysql_SendQuery(MYSQL_RES*& sql_res, const MiniString q); // queries with returns
+
+	// New style functions
+	// Will be easy to use for SQL type functions SQLite, ODBC, etc... all support the same
+	// results.
+
+	bool Query(const MiniString q);		// Do query
+	bool Fetch();						// Fetch the rows
+	long CountRes();					// Show how many results came in
+	void Free();						// Free results
+
+
+
+	// Old versions to removed at some point
 	bool mysql_SendQuery(MYSQL_RES*& sql_res, const char* q, size_t sz=0);	// Queries that are obtaining data
 	bool mysql_SendQuery(const char* q, size_t sz=0);						// Queries that are sending data
+
+	// Please be aware that I was drunk when i wrote what i need here, so if spelling errors are
+	// present, please yell at me and beat me with a stick == CLOWNISIUS
+
+	//Queries that wil be here will be for MiniString or variants =D
+
+	// When creating a new instance of `query` must specify what connection
+	// ex:  query_sql query(MYSQL); where MYSQL is the connection created...
+	//
+	// This will create a string type that is the current MySQL conneciton
+	// this will be useful posibly in the multi threading of MySQL connection:
+	// ex: query_sql query(thread_id);
+
+	// this will limit a thread ID per mysql connection which can be created via:
+	// ex: CMySQL::connection(thread thread_id, const char * hostname, const char * user, const char * pass, int port);
+
+	// operators should be for + and << to append more data
+
+	// send();  sends the query, returns a MYSQL_RES for manipulation..
+	// count(); returns the number of rows returned
+	//
+	// fetch_row(); returns an array like below each time this is run, it goes to the next row, returns true if rows exist, false if empty
+	// result[n]; // array that send[] creates... returns a reference to it like MYSQL_RES does. similar to a vector
+	// size();  for length/size of query/string
+	// length(); for length/size of query/string
+	// clear(); does a mysql_free_result for send() when the query returns a result...
 
 	const char *escape_string(char *target, const char* source, size_t len);// Add excape strings to make it safer
 
 protected:
+	MYSQL original_mysql_handle;
 	MYSQL mysqldb_handle;			// Connection ID
+
+	MYSQL_RES *result;
 
 	char mysqldb_ip[32];			// Server IP
 	unsigned short mysqldb_port;	// Server Port
@@ -148,7 +201,7 @@ public:
 			cTempAccount.state = 0;
 			cTempAccount.error_message[0]=0;
 			cTempAccount.memo[0]=0;
-			cTempAccount.last_ip[0]=0;		
+			cTempAccount.last_ip[0]=0;
 		}
 		return (cSqlRow!=NULL);
 	}
