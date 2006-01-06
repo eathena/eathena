@@ -4814,6 +4814,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					|| i==SC_CARTBOOST || i==SC_MELTDOWN || i==SC_MOONLIT
 					)
 					continue;
+				if(i==SC_BERSERK) tsc_data[i].val4=1; //Mark a dispelled berserk to avoid setting hp to 100.
 				status_change_end(bl,i,-1);
 			}
 		}
@@ -5082,7 +5083,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 	case NPC_SUICIDE:			/* Ž©Œˆ */
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
-		battle_damage(NULL,src,status_get_hp(bl),0);
+		battle_damage(NULL,src,status_get_hp(bl),3); //Suicidal Mobs should give neither exp (flag&1) not items (flag&2) [Skotlex]
 		break;
 
 	case NPC_SUMMONSLAVE:		/* Žè‰º?¢Š« */

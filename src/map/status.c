@@ -5132,8 +5132,8 @@ int status_change_end( struct block_list* bl , int type,int tid )
 				}
 				break;
 
-			case SC_BERSERK:
-				if (sd && sd->status.hp > 100) {
+			case SC_BERSERK: //val4 indicates if the skill was dispelled. [Skotlex]
+				if (sd && sd->status.hp > 100 && !sc_data[type].val4) {
 					sd->status.hp = 100;
 					clif_updatestatus(sd,SP_HP);
 				}

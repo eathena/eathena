@@ -1435,6 +1435,13 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 				md->next_walktime=tick+1000;
 			}
 		}
+	} else if (bl->m != md->bl.m && map_flag_gvg(md->bl.m)) {
+		//Delete the summoned mob if it's in a gvg ground and the master is elsewhere. [Skotlex]
+		if(md->special_state.ai>0)
+			mob_timer_delete(0, 0, md->bl.id, 0);
+		else
+			mob_damage(NULL,md,md->hp,0);
+		return 0;
 	}
 	
 	//Avoid attempting to lock the master's target too often to avoid unnecessary overload. [Skotlex]

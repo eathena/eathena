@@ -1,6 +1,10 @@
 Date	Added
 
 2006/01/06
+	* Dispelled Berserk won't drop HP back to 100 now. [Skotlex]
+	* Mobs that use NPC_SUICIDE won't give neither exp or loot now. [Skotlex]
+	* Summoned mobs that cannot move will be removed from the map when the
+	  master is gone to another map AND the mob's map is a gvg ground. [Skotlex]
 	* Fog of Wall effects now work in both directions (outside -> inside,
 	  inside->outside) [Skotlex]
 	* Fixed the sql guild loading always returning a blank guild when the
