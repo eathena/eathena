@@ -27,6 +27,7 @@
 =========================
 
 01/05
+	* Fixed item updates by jsk225. [Vicious]
 	* Item updates by Landarma. Need updates. [Vicious]
 
 01/03
