@@ -365,43 +365,48 @@ struct guild * inter_guild_fromsql(int guild_id)
 	}
 
 	sql_res = mysql_store_result(&mysql_handle) ;
-	if (sql_res!=NULL && mysql_num_rows(sql_res)>0) {
-		sql_row = mysql_fetch_row(sql_res);
-		if (sql_row==NULL) {
-			mysql_free_result(sql_res);
-			aFree(g);
-			return NULL;
-		}
+	if (sql_res==NULL || mysql_num_rows(sql_res)<1) {
+		//Guild does not exists.
+		if (sql_res) mysql_free_result(sql_res);
+		aFree(g);
+		return NULL;
+	}
+	
+	sql_row = mysql_fetch_row(sql_res);
+	if (sql_row==NULL) {
+		mysql_free_result(sql_res);
+		aFree(g);
+		return NULL;
+	}
 
-		g->guild_id=guild_id;
-		strncpy(g->name,sql_row[0],NAME_LENGTH-1);
-		strncpy(g->master,sql_row[1],NAME_LENGTH-1);
-		g->guild_lv=atoi(sql_row[2]);
-		g->connect_member=atoi(sql_row[3]);
-		if (atoi(sql_row[4]) > MAX_GUILD) // Fix reduction of MAX_GUILD [PoW]
-			g->max_member = MAX_GUILD;
-		else
-			g->max_member = atoi(sql_row[4]);
-		g->average_lv=atoi(sql_row[5]);
-		g->exp=atoi(sql_row[6]);
-		g->next_exp=atoi(sql_row[7]);
-		g->skill_point=atoi(sql_row[8]);
-		//There shouldn't be a need to copy the very last char, as it's the \0 [Skotlex]
-		strncpy(g->mes1,sql_row[9],59);
-		strncpy(g->mes2,sql_row[10],119);
-		g->emblem_len=atoi(sql_row[11]);
-		g->emblem_id=atoi(sql_row[12]);
-		strncpy(emblem_data,sql_row[13],4096);
-		for(i=0,pstr=emblem_data;i<g->emblem_len;i++,pstr+=2){
-			int c1=pstr[0],c2=pstr[1],x1=0,x2=0;
-			if(c1>='0' && c1<='9')x1=c1-'0';
-			if(c1>='a' && c1<='f')x1=c1-'a'+10;
-			if(c1>='A' && c1<='F')x1=c1-'A'+10;
-			if(c2>='0' && c2<='9')x2=c2-'0';
-			if(c2>='a' && c2<='f')x2=c2-'a'+10;
-			if(c2>='A' && c2<='F')x2=c2-'A'+10;
-			g->emblem_data[i]=(x1<<4)|x2;
-		}
+	g->guild_id=guild_id;
+	strncpy(g->name,sql_row[0],NAME_LENGTH-1);
+	strncpy(g->master,sql_row[1],NAME_LENGTH-1);
+	g->guild_lv=atoi(sql_row[2]);
+	g->connect_member=atoi(sql_row[3]);
+	if (atoi(sql_row[4]) > MAX_GUILD) // Fix reduction of MAX_GUILD [PoW]
+		g->max_member = MAX_GUILD;
+	else
+		g->max_member = atoi(sql_row[4]);
+	g->average_lv=atoi(sql_row[5]);
+	g->exp=atoi(sql_row[6]);
+	g->next_exp=atoi(sql_row[7]);
+	g->skill_point=atoi(sql_row[8]);
+	//There shouldn't be a need to copy the very last char, as it's the \0 [Skotlex]
+	strncpy(g->mes1,sql_row[9],59);
+	strncpy(g->mes2,sql_row[10],119);
+	g->emblem_len=atoi(sql_row[11]);
+	g->emblem_id=atoi(sql_row[12]);
+	strncpy(emblem_data,sql_row[13],4096);
+	for(i=0,pstr=emblem_data;i<g->emblem_len;i++,pstr+=2){
+		int c1=pstr[0],c2=pstr[1],x1=0,x2=0;
+		if(c1>='0' && c1<='9')x1=c1-'0';
+		if(c1>='a' && c1<='f')x1=c1-'a'+10;
+		if(c1>='A' && c1<='F')x1=c1-'A'+10;
+		if(c2>='0' && c2<='9')x2=c2-'0';
+		if(c2>='a' && c2<='f')x2=c2-'a'+10;
+		if(c2>='A' && c2<='F')x2=c2-'A'+10;
+		g->emblem_data[i]=(x1<<4)|x2;
 	}
 	mysql_free_result(sql_res);
 

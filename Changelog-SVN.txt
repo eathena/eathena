@@ -1,6 +1,8 @@
 Date	Added
 
 2006/01/05
+	* Fixed the sql guild loading always returning a blank guild when the
+	  guild_id does not exists! [Skotlex]
 	* Some changes to the guild SQL code to report whenever a guild's id is not
 	  matching the one it was stored with in the db, which in turn free's the
 	  guild and doesn't saves it to perhaps prevent data corruption. [Skotlex]
