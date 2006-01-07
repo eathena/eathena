@@ -1,5 +1,6 @@
 Date	Added
 2006/01/07
+	* Corrected VC7.1 prject files to include mapindex.c and mapindex.h [Lance]
 	* Corrected Wrath of the Star formula (added missing STR in equation) [Komurka]
 	  - Added movement speed bonus to SG_FUSION (same as PecoPeco gives)
 	  - You can now 'turn off' SG_FUSION

@@ -180,6 +180,9 @@
 				RelativePath="..\src\common\malloc.c">
 			</File>
 			<File
+				RelativePath="..\src\common\mapindex.c">
+			</File>
+			<File
 				RelativePath="..\src\common\nullpo.c">
 			</File>
 			<File
@@ -245,6 +248,9 @@
 			</File>
 			<File
 				RelativePath="..\src\common\malloc.h">
+			</File>
+			<File
+				RelativePath="..\src\common\mapindex.h">
 			</File>
 			<File
 				RelativePath="..\src\common\mmo.h">

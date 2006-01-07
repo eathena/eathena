@@ -198,6 +198,9 @@
 				RelativePath="..\src\map\map.c">
 			</File>
 			<File
+				RelativePath="..\src\common\mapindex.c">
+			</File>
+			<File
 				RelativePath="..\src\map\mob.c">
 			</File>
 			<File
@@ -323,6 +326,9 @@
 			</File>
 			<File
 				RelativePath="..\src\map\map.h">
+			</File>
+			<File
+				RelativePath="..\src\common\mapindex.h">
 			</File>
 			<File
 				RelativePath="..\src\map\mercenary.h">
