@@ -7938,6 +7938,8 @@ int buildin_misceffect(struct script_state *st)
  */
 int buildin_soundeffect(struct script_state *st)
 {
+
+	// Redundn
 	struct map_session_data *sd=script_rid2sd(st);
 	char *name;
 	int type=0;
@@ -7957,19 +7959,21 @@ int buildin_soundeffect(struct script_state *st)
 
 int buildin_soundeffectall(struct script_state *st)
 {
-	struct map_session_data *sd=script_rid2sd(st);
+	// [Lance] - Improved.
+	struct map_session_data *sd=NULL;
 	char *name;
 	int type=0;
 
 	name=conv_str(st,& (st->stack->stack_data[st->start+2]));
 	type=conv_num(st,& (st->stack->stack_data[st->start+3]));
-	if(sd)
-	{
+	//if(sd)
+	//{
 		if(st->oid)
 			clif_soundeffectall(map_id2bl(st->oid),name,type);
 		else
-			clif_soundeffectall(&sd->bl,name,type);
-	}
+			if(sd)
+				clif_soundeffectall(&sd->bl,name,type);
+	//}
 	return 0;
 }
 /*==========================================
