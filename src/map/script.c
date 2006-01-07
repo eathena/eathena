@@ -7971,7 +7971,7 @@ int buildin_soundeffectall(struct script_state *st)
 		if(st->oid)
 			clif_soundeffectall(map_id2bl(st->oid),name,type);
 		else
-			if(sd)
+			if((sd=script_rid2sd(st)))
 				clif_soundeffectall(&sd->bl,name,type);
 	//}
 	return 0;
