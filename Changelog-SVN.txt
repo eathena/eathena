@@ -1,5 +1,13 @@
 Date	Added
 2006/01/07
+	* Applied Playtester's custom mob spawns to the eamobs/ set. [Skotlex]
+	- These custom mob spawns are an experiment to balance out mob spawns and
+	  put some sense into them (no crap like too strong AND too weak mobs on the
+	  same floor, increasing mob difficulty the deeper into the dungeon you go,
+	  etc), without moving mobs too far from where players are used to see them neither.
+	- To enable them, modify scripts_main to use scripts_eamonsters rather than scripts_monsters.
+	- Currently, the modified dungeons are: Glast Heim, Geffen Tower, Clock
+	  Tower, Sphinx, Pyramids, Byalan. 
 	* Added check to make sure guildspy and partyspy variables have value. [Valaris]
 	* Separated the permanent variables from the character status structure. [Skotlex]
 	* permanent variables are now loaded on their own packets as needed to

@@ -26,31 +26,31 @@ um_fild02.gat,0,0,0,0	monster	Beetle King	1494,30,0,0,0
 um_fild02.gat,0,0,0,0	monster	Dustiness	1114,20,0,0,0
 um_fild02.gat,0,0,0,0	monster	Wootan Fighter	1499,26,0,0,0
 um_fild02.gat,0,0,0,0	monster	Stone Shooter	1495,13,0,0,0
-um_fild02.gat,169,215,10,10	monster	Stone Shooter	1495,1,120000,60000,0
-um_fild02.gat,169,215,10,10	monster	Wootan Fighter	1499,2,120000,60000,0
-um_fild02.gat,159,285,10,10	monster	Stone Shooter	1495,1,120000,60000,0
-um_fild02.gat,159,285,10,10	monster	Wootan Fighter	1499,2,120000,60000,0
-um_fild02.gat,99,303,10,10	monster	Stone Shooter	1495,1,120000,60000,0
-um_fild02.gat,99,303,10,10	monster	Wootan Fighter	1499,2,120000,60000,0
-um_fild02.gat,122,242,10,10	monster	Stone Shooter	1495,1,120000,60000,0
-um_fild02.gat,122,242,10,10	monster	Wootan Fighter	1499,2,120000,60000,0
-um_fild02.gat,124,198,10,10	monster	Stone Shooter	1495,1,120000,60000,0
-um_fild02.gat,124,198,10,10	monster	Wootan Fighter	1499,2,120000,60000,0
-um_fild02.gat,126,133,10,10	monster	Stone Shooter	1495,1,120000,60000,0
-um_fild02.gat,126,133,10,10	monster	Wootan Fighter	1499,2,120000,60000,0
-um_fild02.gat,159,171,10,10	monster	Stone Shooter	1495,1,120000,60000,0
-um_fild02.gat,159,171,10,10	monster	Wootan Fighter	1499,2,120000,60000,0
-um_fild02.gat,284,247,10,10	monster	Stone Shooter	1495,1,120000,60000,0
-um_fild02.gat,284,247,10,10	monster	Wootan Fighter	1499,2,120000,60000,0
-um_fild02.gat,330,262,10,10	monster	Stone Shooter	1495,1,120000,60000,0
-um_fild02.gat,330,262,10,10	monster	Wootan Fighter	1499,2,120000,60000,0
-um_fild02.gat,296,187,10,10	monster	Stone Shooter	1495,1,120000,60000,0
-um_fild02.gat,296,187,10,10	monster	Wootan Fighter	1499,2,120000,60000,0
-um_fild02.gat,285,105,10,10	monster	Stone Shooter	1495,1,120000,60000,0
-um_fild02.gat,285,105,10,10	monster	Wootan Fighter	1499,2,120000,60000,0
-um_fild02.gat,257,137,10,10	monster	Stone Shooter	1495,1,120000,60000,0
-um_fild02.gat,257,137,10,10	monster	Wootan Fighter	1499,2,120000,60000,0
-um_fild02.gat,360,320,20,30	monster	Flora	1118,3,180000,120000,0
+um_fild02.gat,169,215,10,10	monster	Stone Shooter	1495,1,600000,300000,0
+um_fild02.gat,169,215,10,10	monster	Wootan Fighter	1499,2,600000,300000,0
+um_fild02.gat,159,285,10,10	monster	Stone Shooter	1495,1,600000,300000,0
+um_fild02.gat,159,285,10,10	monster	Wootan Fighter	1499,2,600000,300000,0
+um_fild02.gat,99,303,10,10	monster	Stone Shooter	1495,1,600000,300000,0
+um_fild02.gat,99,303,10,10	monster	Wootan Fighter	1499,2,600000,300000,0
+um_fild02.gat,122,242,10,10	monster	Stone Shooter	1495,1,600000,300000,0
+um_fild02.gat,122,242,10,10	monster	Wootan Fighter	1499,2,600000,300000,0
+um_fild02.gat,124,198,10,10	monster	Stone Shooter	1495,1,600000,300000,0
+um_fild02.gat,124,198,10,10	monster	Wootan Fighter	1499,2,600000,300000,0
+um_fild02.gat,126,133,10,10	monster	Stone Shooter	1495,1,600000,300000,0
+um_fild02.gat,126,133,10,10	monster	Wootan Fighter	1499,2,600000,300000,0
+um_fild02.gat,159,171,10,10	monster	Stone Shooter	1495,1,600000,300000,0
+um_fild02.gat,159,171,10,10	monster	Wootan Fighter	1499,2,600000,300000,0
+um_fild02.gat,284,247,10,10	monster	Stone Shooter	1495,1,600000,300000,0
+um_fild02.gat,284,247,10,10	monster	Wootan Fighter	1499,2,600000,300000,0
+um_fild02.gat,330,262,10,10	monster	Stone Shooter	1495,1,600000,300000,0
+um_fild02.gat,330,262,10,10	monster	Wootan Fighter	1499,2,600000,300000,0
+um_fild02.gat,296,187,10,10	monster	Stone Shooter	1495,1,600000,300000,0
+um_fild02.gat,296,187,10,10	monster	Wootan Fighter	1499,2,600000,300000,0
+um_fild02.gat,285,105,10,10	monster	Stone Shooter	1495,1,600000,300000,0
+um_fild02.gat,285,105,10,10	monster	Wootan Fighter	1499,2,600000,300000,0
+um_fild02.gat,257,137,10,10	monster	Stone Shooter	1495,1,600000,300000,0
+um_fild02.gat,257,137,10,10	monster	Wootan Fighter	1499,2,600000,300000,0
+um_fild02.gat,360,320,20,30	monster	Flora	1118,3,900000,600000,0
 um_fild02.gat,0,0,0,0	monster	Coco	1104,10,0,0,0
 um_fild02.gat,0,0,0,0	monster	Choco	1214,3,0,0,0
 
