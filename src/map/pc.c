@@ -766,7 +766,7 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 	// ˆÊ’u‚ÌÝ’è
 	if (pc_setpos(sd,sd->status.last_point.map, sd->status.last_point.x, sd->status.last_point.y, 0) != 0) {
 		if(battle_config.error_log)
-			ShowError ("Last_point_map %s not found\n", sd->status.last_point.map);
+			ShowError ("Last_point_map %d not found\n", sd->status.last_point.map);
 
 		// try warping to a default map instead (church graveyard)
 		if (pc_setpos(sd, mapindex_name2id(MAP_PRONTERA), 273, 354, 0) != 0) {
