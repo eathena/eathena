@@ -9443,7 +9443,7 @@ int buildin_getd (struct script_state *st)
 	if(sscanf(buffer, "%[^[][%d]", varname, &elem) < 2)
 		elem = 0;
 
-	dat.type=C_NAME;
+	/*dat.type=C_NAME;
 	dat.u.num=add_str((unsigned char *) varname)+(elem<<24);
 	get_val(st,&dat);
 
@@ -9454,7 +9454,11 @@ int buildin_getd (struct script_state *st)
 		// dat.u.str holds the actual pointer to the data, must be duplicated.
 		// It will be freed later. Tested.
 		push_str(st->stack, C_STR, buffer);
-	}
+	}*/
+
+	// Push the 'pointer' so it's more flexible and faster [Lance]
+	push_val(st->stack,C_NAME,
+				(elem<<24) | add_str((unsigned char *) varname));
 
 	return 0;
 }
