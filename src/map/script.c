@@ -3323,7 +3323,7 @@ int buildin_copyarray(struct script_state *st)
  */
 static int getarraysize(struct script_state *st,int num,int postfix)
 {
-	int i=(num>>24),c=i;
+	int i=(num>>24),c=-1; // Moded to -1 because even if the first element is 0, it will still report as 1 [Lance]
 	for(;i<128;i++){
 		// num must be the first elements of array [Eoe / jA 1127]
 		void *v=get_val2(st,(num & 0x00FFFFFF)+(i<<24));
