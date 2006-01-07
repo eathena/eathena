@@ -42,7 +42,7 @@ static const int packet_len_table[0x3d] = {
 	60, 3,-1,27,10,-1, 6,-1,	// 2af8-2aff: U->2af8, U->2af9, U->2afa, U->2afb, U->2afc, U->2afd, U->2afe, U->2aff
 	 6,-1,18, 7,-1,49,30,10,	// 2b00-2b07: U->2b00, U->2b01, U->2b02, U->2b03, U->2b04, U->2b05, U->2b06, U->2b07
 	 6,30,-1,10,86, 7,44,34,	// 2b08-2b0f: U->2b08, U->2b09, U->2b0a, U->2b0b, U->2b0c, U->2b0d, U->2b0e, U->2b0f
-	-1,-1,10, 6,11,-1, 0, 0,	// 2b10-2b17: U->2b10, U->2b11, U->2b12, U->2b13, U->2b14, U->2b15, U->2b16, U->2b17
+	 0,-1,10, 6,11,-1, 0, 0,	// 2b10-2b17: U->2b10, U->2b11, U->2b12, U->2b13, U->2b14, U->2b15, U->2b16, U->2b17
 	-1,-1,-1,-1,-1,-1,-1, 7,	// 2b18-2b1f: U->2b18, U->2b19, U->2b1a, U->2b1b, U->2b1c, U->2b1d, F->2b1e, U->2b1f
 	-1,-1,-1,-1,-1,-1,-1,-1,	// 2b20-2b27: U->2b20, F->2b21, F->2b22, F->2b23, F->2b24, F->2b25, F->2b26, F->2b27
 };
@@ -72,7 +72,7 @@ static const int packet_len_table[0x3d] = {
 //2b0d: Incomming, chrif_changedsex -> 'Change sex of acc XY'
 //2b0e: Outgoing, chrif_char_ask_name -> 'Do some operations (change sex, ban / unban etc)'
 //2b0f: Incomming, chrif_char_ask_name_answer -> 'answer of the 2b0e'
-//2b10: Outgoing, chrif_saveaccountreg2 -> dunno? (register an account??)
+//2b10: FREE
 //2b11: Outgoing, chrif_changesex -> 'change sex of acc X'
 //2b12: Incomming, chrif_divorce -> 'divorce a wedding of charid X and partner id X'
 //2b13: Incomming, chrif_accountdeletion -> 'Delete acc XX, if the player is on, kick ....'
@@ -171,9 +171,14 @@ int chrif_save(struct map_session_data *sd, int flag)
 		storage_storage_save(sd->status.account_id);
 	else if (sd->state.storage_flag == 2)
 		storage_guild_storagesave(sd->status.account_id, sd->status.guild_id);
-	
-	if (sd->state.accreg_dirty) //Global accounts have not been saved yet, let's retry.
-		intif_saveaccountreg(sd);		
+
+	//Saving of registry values. 
+	if (sd->state.reg_dirty&4)
+		intif_saveregistry(sd, 3); //Save char regs
+	if (sd->state.reg_dirty&2)
+		intif_saveregistry(sd, 2); //Save account regs
+	if (sd->state.reg_dirty&1)
+		intif_saveregistry(sd, 1); //Save account2 regs
 
 #ifndef TXT_ONLY
 	if(charsave_method){ //New 'Local' save
@@ -884,59 +889,6 @@ int chrif_changedsex(int fd)
 }
 
 /*==========================================
- * アカウント変数保存要求
- *------------------------------------------
- */
-int chrif_saveaccountreg2(struct map_session_data *sd)
-{
-	int p, j;
-	nullpo_retr(-1, sd);
-
-	chrif_check(-1);
-
-	p = 8;
-
-        WFIFOHEAD(char_fd, 288 * sd->status.account_reg2_num);
-	for(j = 0; j < sd->status.account_reg2_num; j++) {
-		struct global_reg *reg = &sd->status.account_reg2[j];
-		if (reg->str[0] && reg->value != 0) {
-			memcpy(WFIFOP(char_fd,p), reg->str, 32);
-			memcpy(WFIFOP(char_fd,p+32), reg->value, 256);
-			p += 288;
-		}
-	}
-	WFIFOW(char_fd,0) = 0x2b10;
-	WFIFOW(char_fd,2) = p;
-	WFIFOL(char_fd,4) = sd->bl.id;
-	WFIFOSET(char_fd,p);
-
-	return 0;
-}
-
-/*==========================================
- * アカウント変数通知
- *------------------------------------------
- */
-int chrif_accountreg2(int fd)
-{
-	int j, p;
-	struct map_session_data *sd;
-	RFIFOHEAD(fd);
-
-	if ((sd = map_id2sd(RFIFOL(fd,4))) == NULL)
-		return 1;
-
-	for(p = 8, j = 0; p < RFIFOW(fd,2) && j < ACCOUNT_REG2_NUM; p += 288, j++) {
-		memcpy(sd->status.account_reg2[j].str, RFIFOP(fd,p), 32);
-		memcpy(sd->status.account_reg2[j].value, RFIFOP(fd,p + 32), 256);
-	}
-	sd->status.account_reg2_num = j;
-//	printf("chrif: accountreg2\n");
-
-	return 0;
-}
-
-/*==========================================
  * 離婚情報同期要求
  *------------------------------------------
  */
@@ -1466,7 +1418,6 @@ int chrif_parse(int fd)
 		case 0x2b0b: chrif_changedgm(fd); break;
 		case 0x2b0d: chrif_changedsex(fd); break;
 		case 0x2b0f: chrif_char_ask_name_answer(fd); break;
-		case 0x2b11: chrif_accountreg2(fd); break;
 		case 0x2b12: chrif_divorce(RFIFOL(fd,2), RFIFOL(fd,6)); break;
 		case 0x2b13: chrif_accountdeletion(fd); break;
 		case 0x2b14: chrif_accountban(fd); break;

@@ -216,7 +216,7 @@ struct mmo_charstatus *charsave_loadchar(int charid){
                  }
                  mysql_free_result(charsql_res);
          }
-
+/* Reg values are handled by the char server.
          //Global REG
          sprintf(tmp_sql, "SELECT `char_id`, `str`, `value` FROM `global_reg_value` WHERE `type` = '3' AND `char_id` = '%d'", charid);
          if(mysql_query(&charsql_handle, tmp_sql)){
@@ -235,7 +235,7 @@ struct mmo_charstatus *charsave_loadchar(int charid){
                  mysql_free_result(charsql_res);
 				c->global_reg_num = i;
          }
-
+*/
 	//Shamelessly stolen from its_sparky (ie: thanks) and then assimilated by [Skotlex]
 	//Friend list 
 	sprintf(tmp_sql, "SELECT f.friend_account, f.friend_id, c.name FROM friends f LEFT JOIN `char` c ON f.friend_account=c.account_id AND f.friend_id=c.char_id WHERE f.char_id='%d'", charid);
@@ -269,8 +269,8 @@ struct mmo_charstatus *charsave_loadchar(int charid){
 int charsave_savechar(int charid, struct mmo_charstatus *c){
 	int i,j;
 	char *str_p;
-	char tmp_str[64];
-	char tmp_str2[512];
+//	char tmp_str[64];
+//	char tmp_str2[512];
          //First save the 'char'
 	sprintf(tmp_sql ,"UPDATE `char` SET `class`='%d', `base_level`='%d', `job_level`='%d',"
 		"`base_exp`='%d', `job_exp`='%d', `zeny`='%d',"
@@ -391,6 +391,7 @@ int charsave_savechar(int charid, struct mmo_charstatus *c){
          }
 
 
+/* Reg values are handled by the char server.
          //global_reg_value saving
          sprintf(tmp_sql, "DELETE FROM `global_reg_value` WHERE `type`=3 AND `char_id` = '%d'", charid);
          if(mysql_query(&charsql_handle, tmp_sql)){
@@ -409,7 +410,7 @@ int charsave_savechar(int charid, struct mmo_charstatus *c){
                  }
            }
          }
-
+*/
 
          //friendlist saving
          sprintf(tmp_sql, "DELETE FROM `friends` WHERE `char_id` = '%d'", charid);

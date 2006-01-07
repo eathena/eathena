@@ -403,7 +403,7 @@ struct map_session_data {
 		unsigned autoloot : 1; //by Upa-Kun <- Ya know, I originally wrote this code... [Skotlex]
 		unsigned autotrade : 1;	//By Fantik
 		unsigned perfect_hiding : 1; // [Valaris]
-		unsigned accreg_dirty : 1; //By Skotlex (marks whether Account variables have been saved or not yet)
+		unsigned reg_dirty : 3; //By Skotlex (marks whether registry variables have been saved or not yet)
 		unsigned showdelay :1;
 		unsigned showexp :1;
 		unsigned showzeny :1;
@@ -435,6 +435,8 @@ struct map_session_data {
 
 	int packet_ver;  // 5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 ... 18
 	struct mmo_charstatus status;
+	struct registry save_reg;
+	
 	struct item_data *inventory_data[MAX_INVENTORY];
 	short equip_index[11];
 	unsigned int weight,max_weight;

@@ -673,7 +673,6 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 	struct guild *g;
 	int i;
 	unsigned long tick = gettick();
-	char feel_var[3][24] = {"PC_FEEL_SUN","PC_FEEL_MOON","PC_FEEL_STAR"};
 
 	if (sd->state.auth) //Temporary debug. [Skotlex]
 	{
@@ -730,7 +729,7 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 		sd->state.showdelay = 1;
 		
 	// アカウント??の送信要求
-	intif_request_accountreg(sd);
+	intif_request_registry(sd);
 
 	// アイテムチェック
 	pc_setinventorydata(sd);
@@ -806,50 +805,11 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 	// Notify everyone that this char logged in [Skotlex].
 	clif_foreachclient(clif_friendslist_toggle_sub, sd->status.account_id, sd->status.char_id, 1);
 	
-	//スパノビ用死にカウンタ?のスクリプト??からの?み出しとsdへのセット
-	sd->die_counter = pc_readglobalreg(sd,"PC_DIE_COUNTER");
-	
-	if (pc_checkskill(sd, TK_MISSION)) {
-		sd->mission_mobid = pc_readglobalreg(sd,"TK_MISSION_ID");
-		sd->mission_count = pc_readglobalreg(sd,"TK_MISSION_COUNT");
-	}
-	
-	//SG map and mob read [Komurka]
-	for(i=0;i<3;i++) //for now - someone need to make reading from txt/sql
-	{
-		if (pc_readglobalreg_str(sd,feel_var[i])!=NULL) strcpy(sd->feel_map[i].name,pc_readglobalreg_str(sd,feel_var[i]));
-		sd->feel_map[i].m = map_mapname2mapid(sd->feel_map[i].name);
-	}
-	
 	sd->feel_level=-1;
-
-	sd->hate_mob[0] = pc_readglobalreg(sd,"PC_HATE_MOB_SUN")  - 1;
-	sd->hate_mob[1] = pc_readglobalreg(sd,"PC_HATE_MOB_MOON") - 1;
-	sd->hate_mob[2] = pc_readglobalreg(sd,"PC_HATE_MOB_STAR") - 1;
-
-	if ((i = pc_checkskill(sd,RG_PLAGIARISM)) > 0) {
-		sd->cloneskill_id = pc_readglobalreg(sd,"CLONE_SKILL");
-		if (sd->cloneskill_id > 0) {
-			sd->status.skill[sd->cloneskill_id].id = sd->cloneskill_id;
-			sd->status.skill[sd->cloneskill_id].lv = pc_readglobalreg(sd,"CLONE_SKILL_LV");
-			if (i < sd->status.skill[sd->cloneskill_id].lv)
-				sd->status.skill[sd->cloneskill_id].lv = i;
-			sd->status.skill[sd->cloneskill_id].flag = 13;	//cloneskill flag			
-			clif_skillinfoblock(sd);
-		}
-	}
-
-	// Automated script events
-	if (script_config.event_requires_trigger) {
-		sd->state.event_death = pc_readglobalreg(sd, script_config.die_event_name);
-		sd->state.event_kill = pc_readglobalreg(sd, script_config.kill_event_name);
-		sd->state.event_disconnect = pc_readglobalreg(sd, script_config.logout_event_name);
-	// if script triggers are not required
-	} else {
-		sd->state.event_death = 1;
-		sd->state.event_kill = 1;
-		sd->state.event_disconnect = 1;
-	}
+	//Until the reg values arrive, set them to not require trigger...
+	sd->state.event_death = 1;
+	sd->state.event_kill = 1;
+	sd->state.event_disconnect = 1;
 
 	if (night_flag) {
 		char tmpstr[1024];
@@ -870,17 +830,6 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 			ShowInfo("Character '"CL_WHITE"%s"CL_RESET"' logged in. (Account ID: '"CL_WHITE"%d"CL_RESET"', Connection: '"CL_WHITE"%d"CL_RESET"', Packet Ver: '"CL_WHITE"%d"CL_RESET"', IP: '"CL_WHITE"%d.%d.%d.%d"CL_RESET"').\n", sd->status.name, sd->status.account_id, sd->fd, sd->packet_ver, ip[0],ip[1],ip[2],ip[3]);
 	}
 	
-	if (script_config.event_script_type == 0) {
-		struct npc_data *npc;
-		if ((npc = npc_name2id(script_config.login_event_name))) {
-			run_script(npc->u.scr.script,0,sd->bl.id,npc->bl.id); // PCLoginNPC
-			ShowStatus("Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.login_event_name);
-		}
-	} else {
-		ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
-			npc_event_doall_id(script_config.login_event_name, sd->bl.id), script_config.login_event_name);
-	}
-
 	// Send friends list
 	clif_friendslist_send(sd);
 
@@ -932,6 +881,70 @@ int pc_authfail(struct map_session_data *sd) {
 	return 0;
 }
 
+/*==========================================
+ * Invoked once after the char/account/account2 registry variables are received. [Skotlex]
+ *------------------------------------------
+ */
+int pc_reg_received(struct map_session_data *sd)
+{
+	int i;
+	char feel_var[3][24] = {"PC_FEEL_SUN","PC_FEEL_MOON","PC_FEEL_STAR"};
+	char hate_var[3][24] = {"PC_HATE_MOB_SUN","PC_HATE_MOB_MOON","PC_HATE_MOB_STAR"};
+	
+	sd->die_counter = pc_readglobalreg(sd,"PC_DIE_COUNTER");
+	
+	if (pc_checkskill(sd, TK_MISSION)) {
+		sd->mission_mobid = pc_readglobalreg(sd,"TK_MISSION_ID");
+		sd->mission_count = pc_readglobalreg(sd,"TK_MISSION_COUNT");
+	}
+	
+	//SG map and mob read [Komurka]
+	for(i=0;i<3;i++) //for now - someone need to make reading from txt/sql
+	{
+		if (pc_readglobalreg_str(sd,feel_var[i])!=NULL) strcpy(sd->feel_map[i].name,pc_readglobalreg_str(sd,feel_var[i]));
+		sd->feel_map[i].m = map_mapname2mapid(sd->feel_map[i].name);
+		sd->hate_mob[i] = pc_readglobalreg(sd,hate_var[i])  - 1;
+		
+	}
+
+	if ((i = pc_checkskill(sd,RG_PLAGIARISM)) > 0) {
+		sd->cloneskill_id = pc_readglobalreg(sd,"CLONE_SKILL");
+		if (sd->cloneskill_id > 0) {
+			sd->status.skill[sd->cloneskill_id].id = sd->cloneskill_id;
+			sd->status.skill[sd->cloneskill_id].lv = pc_readglobalreg(sd,"CLONE_SKILL_LV");
+			if (i < sd->status.skill[sd->cloneskill_id].lv)
+				sd->status.skill[sd->cloneskill_id].lv = i;
+			sd->status.skill[sd->cloneskill_id].flag = 13;	//cloneskill flag			
+			clif_skillinfoblock(sd);
+		}
+	}
+
+	// Automated script events
+	if (script_config.event_requires_trigger) {
+		sd->state.event_death = pc_readglobalreg(sd, script_config.die_event_name);
+		sd->state.event_kill = pc_readglobalreg(sd, script_config.kill_event_name);
+		sd->state.event_disconnect = pc_readglobalreg(sd, script_config.logout_event_name);
+	// if script triggers are not required
+	} else {
+		sd->state.event_death = 1;
+		sd->state.event_kill = 1;
+		sd->state.event_disconnect = 1;
+	}
+
+	if (script_config.event_script_type == 0) {
+		struct npc_data *npc;
+		if ((npc = npc_name2id(script_config.login_event_name))) {
+			run_script(npc->u.scr.script,0,sd->bl.id,npc->bl.id); // PCLoginNPC
+			ShowStatus("Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.login_event_name);
+		}
+	} else {
+		ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
+			npc_event_doall_id(script_config.login_event_name, sd->bl.id), script_config.login_event_name);
+	}
+
+	return 0;
+}
+
 static int pc_calc_skillpoint(struct map_session_data* sd)
 {
 	int  i,skill,inf2,skill_point=0;
@@ -955,6 +968,7 @@ static int pc_calc_skillpoint(struct map_session_data* sd)
 
 	return skill_point;
 }
+
 
 /*==========================================
  * ?えられるスキルの計算
@@ -6425,419 +6439,227 @@ int pc_setregstr(struct map_session_data *sd,int reg,char *str)
 	return 0;
 }
 
-/*==========================================
- * script用グロ?バル??の値を?む
- *------------------------------------------
- */
-int pc_readglobalreg(struct map_session_data *sd,char *reg)
-{
-	int i;
-
+int pc_readregistry(struct map_session_data *sd,char *reg,int type) {
+	struct global_reg *sd_reg;
+	int i,max;
+	
 	nullpo_retr(0, sd);
-
-	for(i=0;i<sd->status.global_reg_num;i++){
-		if(strcmp(sd->status.global_reg[i].str,reg)==0)
-			return atoi(sd->status.global_reg[i].value);
+	switch (type) {
+	case 3: //Char reg
+		sd_reg = sd->save_reg.global;
+		max = sd->save_reg.global_num;
+	break;
+	case 2: //Account reg
+		sd_reg = sd->save_reg.account;
+		max = sd->save_reg.account_num;
+	break;
+	case 1: //Account2 reg
+		sd_reg = sd->save_reg.account2;
+		max = sd->save_reg.account2_num;
+	break;
+	default:
+		return 0;
 	}
-
+	if (max == -1) {
+		if (battle_config.error_log)
+			ShowError("pc_readregistry: Trying to read reg value %s (type %d) before it's been loaded!\n", reg, type);
+		return 0;
+	}
+	for(i=0;i<max;i++){
+		if(strcmp(sd_reg[i].str,reg)==0)
+			return atoi(sd_reg[i].value);
+	}
 	return 0;
 }
 
-/*==========================================
- * script用グロ?バル??の値を設定
- *------------------------------------------
- */
-int pc_setglobalreg(struct map_session_data *sd,char *reg,int val)
-{
-	int i;
-
+char* pc_readregistry_str(struct map_session_data *sd,char *reg,int type) {
+	struct global_reg *sd_reg;
+	int i,max;
+	
 	nullpo_retr(0, sd);
-
-	//PC_DIE_COUNTERがスクリプトなどで?更された暫ﾌ?理
-	if(strcmp(reg,"PC_DIE_COUNTER") == 0 && sd->die_counter != val){
-		sd->die_counter = val;
-		status_calc_pc(sd,0);
-	} else if(strcmp(reg,script_config.die_event_name) == 0){
-		sd->state.event_death = val;
-	} else if(strcmp(reg,script_config.kill_event_name) == 0){
-		sd->state.event_kill = val;
-	} else if(strcmp(reg,script_config.logout_event_name) == 0){
-		sd->state.event_disconnect = val;
+	switch (type) {
+	case 3: //Char reg
+		sd_reg = sd->save_reg.global;
+		max = sd->save_reg.global_num;
+	break;
+	case 2: //Account reg
+		sd_reg = sd->save_reg.account;
+		max = sd->save_reg.account_num;
+	break;
+	case 1: //Account2 reg
+		sd_reg = sd->save_reg.account2;
+		max = sd->save_reg.account2_num;
+	break;
+	default:
+		return NULL;
 	}
-
-	// delete reg
-	if (val == 0) {
-		for(i = 0; i < sd->status.global_reg_num; i++) {
-			if (strcmp(sd->status.global_reg[i].str, reg) == 0) {
-				if (i != sd->status.global_reg_num - 1)
-					memcpy(&sd->status.global_reg[i], &sd->status.global_reg[sd->status.global_reg_num - 1], sizeof(struct global_reg));
-				memset(&sd->status.global_reg[sd->status.global_reg_num - 1], 0, sizeof(struct global_reg));
-				sd->status.global_reg_num--;
-				break;
-			}
-		}
-		return 0;
+	if (max == -1) {
+		if (battle_config.error_log)
+			ShowError("pc_readregistry: Trying to read reg value %s (type %d) before it's been loaded!\n", reg, type);
+		return NULL;
 	}
-
-	// change value if found
-	for(i = 0; i < sd->status.global_reg_num; i++) {
-		if (strcmp(sd->status.global_reg[i].str, reg) == 0) {
-			sprintf(sd->status.global_reg[i].value, "%d", val); //komurka
-			return 0;
-		}
+	for(i=0;i<max;i++){
+		if(strcmp(sd_reg[i].str,reg)==0)
+			return sd_reg[i].value;
 	}
-	// add value if not found
-	if (sd->status.global_reg_num < GLOBAL_REG_NUM) {
-		memset(&sd->status.global_reg[i], 0, sizeof(struct global_reg));
-		strncpy(sd->status.global_reg[i].str, reg, 32);
-		sprintf(sd->status.global_reg[i].value, "%d", val); //komurka
-		sd->status.global_reg_num++;
-		return 0;
-	}
-
-	if(battle_config.error_log)
-		ShowError("pc_setglobalreg : couldn't set %s, limit of account registries reached (GLOBAL_REG_NUM = %d)\n", reg, GLOBAL_REG_NUM);
-
-	return 1;
-}
-
-/*==========================================
- * reads global_reg variable (string) [Komurka]
- *------------------------------------------
- */
-char *pc_readglobalreg_str(struct map_session_data *sd,char *reg)
-{
-	int i;
-
-	nullpo_retr(0, sd);
-
-	for(i=0;i<sd->status.global_reg_num;i++){
-		if(strcmp(sd->status.global_reg[i].str,reg)==0)
-			return sd->status.global_reg[i].value;
-	}
-
 	return NULL;
 }
 
-/*==========================================
- * saves global_reg variable (string) [Komurka]
- *------------------------------------------
- */
-int pc_setglobalreg_str(struct map_session_data *sd,char *reg,char *val)
-{
-	int i;
+int pc_setregistry(struct map_session_data *sd,char *reg,int val,int type) {
+	struct global_reg *sd_reg;
+	int i,*max, regmax;
 
 	nullpo_retr(0, sd);
-
-
-	// delete reg
-	if (strcmp(val,"")==0) {
-		for(i = 0; i < sd->status.global_reg_num; i++) {
-			if (strcmp(sd->status.global_reg[i].str, reg) == 0) {
-				if (i != sd->status.global_reg_num - 1)
-					memcpy(&sd->status.global_reg[i], &sd->status.global_reg[sd->status.global_reg_num - 1], sizeof(struct global_reg));
-				memset(&sd->status.global_reg[sd->status.global_reg_num - 1], 0, sizeof(struct global_reg));
-				sd->status.global_reg_num--;
-				break;
-			}
-		}
-		return 0;
-	}
-
-	// change value if found
-	for(i = 0; i < sd->status.global_reg_num; i++) {
-		if (strcmp(sd->status.global_reg[i].str, reg) == 0) {
-			strcpy(sd->status.global_reg[i].value, val);
-			return 0;
+	if (type == 3) { //Some special character reg values...
+		if(strcmp(reg,"PC_DIE_COUNTER") == 0 && sd->die_counter != val){
+			sd->die_counter = val;
+	//		status_calc_pc(sd,0); //I doubt this is needed....
+		} else if(strcmp(reg,script_config.die_event_name) == 0){
+			sd->state.event_death = val;
+		} else if(strcmp(reg,script_config.kill_event_name) == 0){
+			sd->state.event_kill = val;
+		} else if(strcmp(reg,script_config.logout_event_name) == 0){
+			sd->state.event_disconnect = val;
 		}
 	}
-	// add value if not found
-	if (sd->status.global_reg_num < GLOBAL_REG_NUM) {
-		memset(&sd->status.global_reg[i], 0, sizeof(struct global_reg));
-		strncpy(sd->status.global_reg[i].str, reg, 32);
-		strcpy(sd->status.global_reg[i].value, val);
-		sd->status.global_reg_num++;
+	switch (type) {
+	case 3: //Char reg
+		sd_reg = sd->save_reg.global;
+		max = &sd->save_reg.global_num;
+		regmax = GLOBAL_REG_NUM;
+	break;
+	case 2: //Account reg
+		sd_reg = sd->save_reg.account;
+		max = &sd->save_reg.account_num;
+		regmax = ACCOUNT_REG_NUM;
+	break;
+	case 1: //Account2 reg
+		sd_reg = sd->save_reg.account2;
+		max = &sd->save_reg.account2_num;
+		regmax = ACCOUNT_REG2_NUM;
+	break;
+	default:
 		return 0;
 	}
-
-	if(battle_config.error_log)
-		ShowError("pc_setglobalreg : couldn't set %s, limit of account registries reached (GLOBAL_REG_NUM = %d)\n", reg, GLOBAL_REG_NUM);
-
-	return 1;
-}
-
-/*==========================================
- * script用アカウント??の値を?む
- *------------------------------------------
- */
-int pc_readaccountreg(struct map_session_data *sd,char *reg)
-{
-	int i;
-
-	nullpo_retr(0, sd);
-
-	for(i=0;i<sd->status.account_reg_num;i++){
-		if(strcmp(sd->status.account_reg[i].str,reg)==0)
-			return atoi(sd->status.account_reg[i].value);
-	}
-
-	return 0;
-}
-
-char *pc_readaccountregstr(struct map_session_data *sd,char *reg) // [zBuffer]
-{
-	int i;
-
-	nullpo_retr(0, sd);
-
-	for(i=0;i<sd->status.account_reg_num;i++){
-		if(strcmp(sd->status.account_reg[i].str,reg)==0)
-			return sd->status.account_reg[i].value;
-	}
-
-	return NULL;
-}
-
-/*==========================================
- * script用アカウント??の値を設定
- *------------------------------------------
- */
-int pc_setaccountreg(struct map_session_data *sd,char *reg,int val)
-{
-	int i;
-
-	nullpo_retr(0, sd);
-
-	if (sd->status.account_reg_num == -1) {
+	if (*max == -1) {
 		if(battle_config.error_log)
-			ShowError("pc_setaccountreg : refusing to set until vars are received\n");
+			ShowError("pc_setregistry : refusing to set %s (type %d) until vars are received.\n", reg, type);
 		return 1;
 	}
 	
-	sd->state.accreg_dirty = 1; //Mark the registry dirty until saved. [Skotlex]
-
 	// delete reg
 	if (val == 0) {
-		for(i = 0; i < sd->status.account_reg_num; i++) {
-			if (strcmp(sd->status.account_reg[i].str, reg) == 0) {
-				if (i != sd->status.account_reg_num - 1)
-					memcpy(&sd->status.account_reg[i], &sd->status.account_reg[sd->status.account_reg_num - 1], sizeof(struct global_reg));
-				memset(&sd->status.account_reg[sd->status.account_reg_num - 1], 0, sizeof(struct global_reg));
-				sd->status.account_reg_num--;
-				intif_saveaccountreg(sd);
+		for(i = 0; i < *max; i++) {
+			if (strcmp(sd_reg[i].str, reg) == 0) {
+				if (i != *max - 1)
+					memcpy(&sd_reg[i], &sd_reg[*max - 1], sizeof(struct global_reg));
+				memset(&sd_reg[*max - 1], 0, sizeof(struct global_reg));
+				(*max)--;
+				sd->state.reg_dirty |= 1<<(type-1); //Mark this registry as "need to be saved"
 				break;
 			}
 		}
 		return 0;
 	}
-
 	// change value if found
-	for(i = 0; i < sd->status.account_reg_num; i++) {
-		if (strcmp(sd->status.account_reg[i].str, reg) == 0) {
-			sprintf(sd->status.account_reg[i].value, "%d", val); //komurka
-			intif_saveaccountreg(sd);
+	for(i = 0; i < *max; i++) {
+		if (strcmp(sd_reg[i].str, reg) == 0) {
+			sprintf(sd_reg[i].value, "%d", val); //komurka
+			sd->state.reg_dirty |= 1<<(type-1);
 			return 0;
 		}
 	}
+
 	// add value if not found
-	if (sd->status.account_reg_num < ACCOUNT_REG_NUM) {
-		memset(&sd->status.account_reg[i], 0, sizeof(struct global_reg));
-		strncpy(sd->status.account_reg[i].str, reg, 32);
-		sprintf(sd->status.account_reg[i].value, "%d", val); //komurka
-		sd->status.account_reg_num++;
-		intif_saveaccountreg(sd);
+	if (i < regmax) {
+		memset(&sd_reg[i], 0, sizeof(struct global_reg));
+		strncpy(sd_reg[i].str, reg, 32);
+		sprintf(sd_reg[i].value, "%d", val); //komurka
+		(*max)++;
+		sd->state.reg_dirty |= 1<<(type-1);
 		return 0;
 	}
 
 	if(battle_config.error_log)
-		ShowError("pc_setaccountreg : couldn't set %s, limit of account registries reached (ACCOUNT_REG_NUM = %d)\n", reg, ACCOUNT_REG_NUM);
+		ShowError("pc_setregistry : couldn't set %s, limit of registries reached (%d)\n", reg, regmax);
 
 	return 1;
 }
 
-int pc_setaccountregstr(struct map_session_data *sd,char *reg,char *val) // [zBuffer]
-{
-	int i;
+int pc_setregistry_str(struct map_session_data *sd,char *reg,char *val,int type) {
+	struct global_reg *sd_reg;
+	int i,*max, regmax;
 
 	nullpo_retr(0, sd);
-
-	if (sd->status.account_reg_num == -1) {
-		if(battle_config.error_log)
-			ShowError("pc_setaccountregstr : refusing to set until vars are received\n");
-		return 1;
-	}
-
 	if (reg[strlen(reg)-1] != '$') {
 		if(battle_config.error_log)
-			ShowError("pc_setaccountregstr : must be string to use this!\n");
+			ShowError("pc_setregistry_str : reg %s must be string (end in '$') to use this!\n", reg);
+		return 1;
+	}
+
+	switch (type) {
+	case 3: //Char reg
+		sd_reg = sd->save_reg.global;
+		max = &sd->save_reg.global_num;
+		regmax = GLOBAL_REG_NUM;
+	break;
+	case 2: //Account reg
+		sd_reg = sd->save_reg.account;
+		max = &sd->save_reg.account_num;
+		regmax = ACCOUNT_REG_NUM;
+	break;
+	case 1: //Account2 reg
+		sd_reg = sd->save_reg.account2;
+		max = &sd->save_reg.account2_num;
+		regmax = ACCOUNT_REG2_NUM;
+	break;
+	default:
+		return 0;
+	}
+	if (*max == -1) {
+		if(battle_config.error_log)
+			ShowError("pc_setregistry_str : refusing to set %s (type %d) until vars are received.\n", reg, type);
 		return 1;
 	}
 	
-	sd->state.accreg_dirty = 1; //Mark the registry dirty until saved. [Skotlex]
-
 	// delete reg
-	if (strlen(val) == 0) {
-		for(i = 0; i < sd->status.account_reg_num; i++) {
-			if (strcmp(sd->status.account_reg[i].str, reg) == 0) {
-				if (i != sd->status.account_reg_num - 1)
-					memcpy(&sd->status.account_reg[i], &sd->status.account_reg[sd->status.account_reg_num - 1], sizeof(struct global_reg));
-				memset(&sd->status.account_reg[sd->status.account_reg_num - 1], 0, sizeof(struct global_reg));
-				sd->status.account_reg_num--;
-				intif_saveaccountreg(sd);
+	if (strcmp(val,"")==0) {
+		for(i = 0; i < *max; i++) {
+			if (strcmp(sd_reg[i].str, reg) == 0) {
+				if (i != *max - 1)
+					memcpy(&sd_reg[i], &sd_reg[*max - 1], sizeof(struct global_reg));
+				memset(&sd_reg[*max - 1], 0, sizeof(struct global_reg));
+				(*max)--;
+				sd->state.reg_dirty |= 1<<(type-1); //Mark this registry as "need to be saved"
+				if (type!=3) intif_saveregistry(sd,type);
 				break;
 			}
 		}
 		return 0;
 	}
-
 	// change value if found
-	for(i = 0; i < sd->status.account_reg_num; i++) {
-		if (strcmp(sd->status.account_reg[i].str, reg) == 0) {
-			strcpy(sd->status.account_reg[i].value,val);
-			intif_saveaccountreg(sd);
+	for(i = 0; i < *max; i++) {
+		if (strcmp(sd_reg[i].str, reg) == 0) {
+			strncpy(sd_reg[i].value, val, 256);
+			sd->state.reg_dirty |= 1<<(type-1); //Mark this registry as "need to be saved"
+			if (type!=3) intif_saveregistry(sd,type);
 			return 0;
 		}
 	}
+
 	// add value if not found
-	if (sd->status.account_reg_num < ACCOUNT_REG_NUM) {
-		memset(&sd->status.account_reg[i], 0, sizeof(struct global_reg));
-		strncpy(sd->status.account_reg[i].str, reg, 32);
-		strcpy(sd->status.account_reg[i].value,val);
-		sd->status.account_reg_num++;
-		intif_saveaccountreg(sd);
+	if (i < regmax) {
+		memset(&sd_reg[i], 0, sizeof(struct global_reg));
+		strncpy(sd_reg[i].str, reg, 32);
+		strncpy(sd_reg[i].value, val, 256);
+		(*max)++;
+		sd->state.reg_dirty |= 1<<(type-1); //Mark this registry as "need to be saved"
+		if (type!=3) intif_saveregistry(sd,type);
 		return 0;
 	}
 
 	if(battle_config.error_log)
-		ShowError("pc_setaccountregstr : couldn't set %s (ACCOUNT_REG_NUM = %d)\n", reg, ACCOUNT_REG_NUM);
-
-	return 1;
-}
-
-/*==========================================
- * script用アカウント??2の値を?む
- *------------------------------------------
- */
-int pc_readaccountreg2(struct map_session_data *sd,char *reg)
-{
-	int i;
-
-	nullpo_retr(0, sd);
-
-	for(i=0;i<sd->status.account_reg2_num;i++){
-		if(strcmp(sd->status.account_reg2[i].str,reg)==0)
-			return atoi(sd->status.account_reg2[i].value);
-	}
-
-	return 0;
-}
-
-char *pc_readaccountreg2str(struct map_session_data *sd,char *reg) // [zBuffer]
-{
-	int i;
-
-	nullpo_retr(0, sd);
-
-	for(i=0;i<sd->status.account_reg2_num;i++){
-		if(strcmp(sd->status.account_reg2[i].str,reg)==0)
-			return sd->status.account_reg2[i].value;
-	}
-
-	return NULL;
-}
-
-/*==========================================
- * script用アカウント??2の値を設定
- *------------------------------------------
- */
-int pc_setaccountreg2(struct map_session_data *sd,char *reg,int val)
-{
-	int i;
-
-	nullpo_retr(1, sd);
-
-	// delete reg
-	if (val == 0) {
-		for(i = 0; i < sd->status.account_reg2_num; i++) {
-			if (strcmp(sd->status.account_reg2[i].str, reg) == 0) {
-				if (i != sd->status.account_reg2_num - 1)
-					memcpy(&sd->status.account_reg2[i], &sd->status.account_reg2[sd->status.account_reg2_num - 1], sizeof(struct global_reg));
-				memset(&sd->status.account_reg2[sd->status.account_reg2_num - 1], 0, sizeof(struct global_reg));
-				sd->status.account_reg2_num--;
-				chrif_saveaccountreg2(sd);
-				break;
-			}
-		}
-		return 0;
-	}
-
-	// change value if found
-	for(i = 0; i < sd->status.account_reg2_num; i++) {
-		if (strcmp(sd->status.account_reg2[i].str, reg) == 0) {
-			sprintf(sd->status.account_reg2[i].value, "%d", val); //komurka
-			chrif_saveaccountreg2(sd);
-			return 0;
-		}
-	}
-	// add value if not found
-	if (sd->status.account_reg2_num < ACCOUNT_REG2_NUM) {
-		memset(&sd->status.account_reg2[i], 0, sizeof(struct global_reg));
-		strncpy(sd->status.account_reg2[i].str, reg, 32);
-		sprintf(sd->status.account_reg2[i].value, "%d", val); //komurka
-		sd->status.account_reg2_num++;
-		chrif_saveaccountreg2(sd);
-		return 0;
-	}
-
-	if (battle_config.error_log)
-		ShowError("pc_setaccountreg2 : couldn't set %s, limit of account registries reached (ACCOUNT_REG2_NUM = %d)\n", reg, ACCOUNT_REG2_NUM);
-
-	return 1;
-}
-
-int pc_setaccountreg2str(struct map_session_data *sd,char *reg,char *val) // [zBuffer]
-{
-	int i;
-
-	nullpo_retr(1, sd);
-
-	if(reg[strlen(reg)-1] == '$'){
-		// delete reg
-		if (strlen(val) == 0) {
-			for(i = 0; i < sd->status.account_reg2_num; i++) {
-				if (strcmp(sd->status.account_reg2[i].str, reg) == 0) {
-					if (i != sd->status.account_reg2_num - 1)
-						memcpy(&sd->status.account_reg2[i], &sd->status.account_reg2[sd->status.account_reg2_num - 1], sizeof(struct global_reg));
-					memset(&sd->status.account_reg2[sd->status.account_reg2_num - 1], 0, sizeof(struct global_reg));
-					sd->status.account_reg2_num--;
-					chrif_saveaccountreg2(sd);
-					break;
-				}
-			}
-			return 0;
-		}	
-
-		// change value if found
-		for(i = 0; i < sd->status.account_reg2_num; i++) {
-			if (strcmp(sd->status.account_reg2[i].str, reg) == 0) {
-				strcpy(sd->status.account_reg2[i].value,val);
-				chrif_saveaccountreg2(sd);
-				return 0;
-			}
-		}
-		// add value if not found
-		if (sd->status.account_reg2_num < ACCOUNT_REG2_NUM) {
-			memset(&sd->status.account_reg2[i], 0, sizeof(struct global_reg));
-			strncpy(sd->status.account_reg2[i].str, reg, 32);
-			strcpy(sd->status.account_reg2[i].value,val);
-			sd->status.account_reg2_num++;
-			chrif_saveaccountreg2(sd);
-			return 0;
-		}
-	}
-
-	if (battle_config.error_log)
-		ShowError("pc_setaccountreg2str : couldn't set %s (ACCOUNT_REG2_NUM = %d)\n", reg, ACCOUNT_REG2_NUM);
+		ShowError("pc_setregistry : couldn't set %s, limit of registries reached (%d)\n", reg, regmax);
 
 	return 1;
 }

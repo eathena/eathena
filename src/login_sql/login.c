@@ -921,8 +921,7 @@ int parse_fromchar(int fd){
 				}
 			}
 
-			if (i != AUTH_FIFO_SIZE) { // send account_reg2
-				int p;
+			if (i != AUTH_FIFO_SIZE && account_id > 0) { // send ack 
 				time_t connect_until_time = 0;
 				char email[40] = "";
 				account_id=RFIFOL(fd,2);
@@ -936,34 +935,14 @@ int parse_fromchar(int fd){
 					sql_row = mysql_fetch_row(sql_res);
 					connect_until_time = atol(sql_row[1]);
 					strcpy(email, sql_row[0]);
-				}
-				mysql_free_result(sql_res);
-				if (account_id > 0) {
-					sprintf(tmpsql, "SELECT `str`,`value` FROM `%s` WHERE `type`='1' AND `account_id`='%d'",reg_db, account_id);
-					if (mysql_query(&mysql_handle, tmpsql)) {
-						ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
-						ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-					}
-					sql_res = mysql_store_result(&mysql_handle) ;
-					if (sql_res) {
-						WFIFOW(fd,0) = 0x2729;
-						WFIFOL(fd,4) = account_id;
-						for(p = 8; (sql_row = mysql_fetch_row(sql_res));p+=288){
-							memcpy(WFIFOP(fd,p), sql_row[0], 32);
-							memcpy(WFIFOP(fd,p+32),sql_row[1],256);
-						}
-						WFIFOW(fd,2) = p;
-						WFIFOSET(fd,p);
-						//printf("account_reg2 send : login->char (auth fifo)\n");
-						WFIFOW(fd,0) = 0x2713;
-						WFIFOL(fd,2) = account_id;
-						WFIFOB(fd,6) = 0;
-						memcpy(WFIFOP(fd, 7), email, 40);
-						WFIFOL(fd,47) = (unsigned long) connect_until_time;
-						WFIFOSET(fd,51);
-					}
 					mysql_free_result(sql_res);
 				}
+				WFIFOW(fd,0) = 0x2713;
+				WFIFOL(fd,2) = account_id;
+				WFIFOB(fd,6) = 0;
+				memcpy(WFIFOP(fd, 7), email, 40);
+				WFIFOL(fd,47) = (unsigned long) connect_until_time;
+				WFIFOSET(fd,51);
 			} else {
 				WFIFOW(fd,0) = 0x2713;
 				WFIFOL(fd,2) = account_id;
@@ -1225,28 +1204,33 @@ int parse_fromchar(int fd){
 			  }
 			  return 0;
 
-			case 0x2728:	// save account_reg
+			case 0x2728:	// save account_reg2
 				if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < RFIFOW(fd,2))
 					return 0;
-			  {
-				int acc,p,j;
-				char str[32];
-				char temp_str[64]; //Needs twice as much space as the original string.
-				char temp_str2[512];
-				char value[256];
-				acc=RFIFOL(fd,4);
-
-				if (acc>0){
+				if (RFIFOL(fd,4) > 0) {
+					int acc,p,j,len;
+					char str[32];
+					char temp_str[64]; //Needs twice as much space as the original string.
+					char temp_str2[512];
+					char value[256];
 					unsigned char *buf;
+					acc=RFIFOL(fd,4);
 					buf = (unsigned char*)aCalloc(RFIFOW(fd,2)+1, sizeof(unsigned char));
-					for(p=8,j=0;p<RFIFOW(fd,2) && j<ACCOUNT_REG2_NUM;p+=288,j++){
-						memcpy(str,RFIFOP(fd,p),32);
-						memcpy(value,RFIFOP(fd,p+32),256);
-						sprintf(tmpsql,"DELETE FROM `%s` WHERE `type`='1' AND `account_id`='%d' AND `str`='%s';",reg_db,acc,jstrescapecpy(temp_str,str));
-						if(mysql_query(&mysql_handle, tmpsql)) {
-							ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
-							ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-						}
+					//Delete all global account variables....
+					sprintf(tmpsql,"DELETE FROM `%s` WHERE `type`='1' AND `account_id`='%d';",reg_db,acc);
+					if(mysql_query(&mysql_handle, tmpsql)) {
+						ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+						ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+					}
+					//Proceed to insert them....
+					for(j=0,p=13;j<ACCOUNT_REG2_NUM && p<RFIFOW(fd,2);j++){
+						sscanf(RFIFOP(fd,p), "%31c%n",str,&len);
+						str[len]='\0';
+						p +=len+1; //+1 to skip the '\0' between strings.
+						sscanf(RFIFOP(fd,p), "%255c%n",value,&len);
+						value[len]='\0';
+						p +=len+1;
+						
 						sprintf(tmpsql,"INSERT INTO `%s` (`type`, `account_id`, `str`, `value`) VALUES ( 1 , '%d' , '%s' , '%s');",  reg_db, acc, jstrescapecpy(temp_str,str), jstrescapecpy(temp_str2,value));
 						if(mysql_query(&mysql_handle, tmpsql)) {
 							ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
@@ -1260,7 +1244,6 @@ int parse_fromchar(int fd){
 					charif_sendallwos(fd,buf,WBUFW(buf,2));
 					if (buf) aFree(buf);
 				}
-			  }
 				RFIFOSKIP(fd,RFIFOW(fd,2));
 				//printf("login: save account_reg (from char)\n");
 			    break;
@@ -1334,6 +1317,39 @@ int parse_fromchar(int fd){
 				RFIFOSKIP(fd,RFIFOW(fd,2));
 				break;
 			}
+		case 0x272e: //Request account_reg2 for a character.
+			if (RFIFOREST(fd) < 10)
+				return 0;
+			{
+				int account_id = RFIFOL(fd, 2);
+				int char_id = RFIFOL(fd, 6);
+				int p;
+				RFIFOSKIP(fd,10);
+				sprintf(tmpsql, "SELECT `str`,`value` FROM `%s` WHERE `type`='1' AND `account_id`='%d'",reg_db, account_id);
+				if (mysql_query(&mysql_handle, tmpsql)) {
+					ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+					ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+					break;
+				}
+				sql_res = mysql_store_result(&mysql_handle) ;
+				if (!sql_res) {
+					break;
+				}
+				WFIFOW(fd,0) = 0x2729;
+				WFIFOL(fd,4) = account_id;
+				WFIFOL(fd,8) = char_id;
+				WFIFOB(fd,12) = 1; //Type 1 for Account2 registry
+				for(p = 13; (sql_row = mysql_fetch_row(sql_res));){
+					if (sql_row[0][0]) {
+						p+= sprintf(WFIFOP(fd,p), "%s", sql_row[0])+1; //We add 1 to consider the '\0' in place.
+						p+= sprintf(WFIFOP(fd,p), "%s", sql_row[1])+1;
+					}
+				}
+				WFIFOW(fd,2) = p;
+				WFIFOSET(fd,WFIFOW(fd,2));
+				mysql_free_result(sql_res);
+			}
+			break;
 	default:
 		ShowError("login: unknown packet %x! (from char).\n", RFIFOW(fd,0));
 		session[fd]->eof = 1;

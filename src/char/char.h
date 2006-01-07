@@ -35,6 +35,10 @@ int char_child(int parent_id, int child_id);
 
 int char_log(char *fmt, ...);
 
+int request_accreg2(int account_id, int char_id);
+int char_parse_Registry(int account_id, int char_id, unsigned char *buf, int len);
+int save_accreg2(unsigned char *buf, int len);
+int char_account_reg_reply(int fd,int account_id,int char_id);
 extern int autosave_interval;
 extern char db_path[];
 

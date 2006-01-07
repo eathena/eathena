@@ -10145,6 +10145,11 @@ int run_script(unsigned char *script,int pos,int rid,int oid)
 			sd->npc_scriptroot  = bck_scriptroot;
 			sd->npc_scriptstate = bck_scriptstate;
 			sd->stack = bck_stack;
+			//Since the script is done, save any changed account variables [Skotlex]
+			if (sd->state.reg_dirty&2)
+				intif_saveregistry(sd,2);
+			if (sd->state.reg_dirty&1)
+				intif_saveregistry(sd,1);
 		}
 	}
 

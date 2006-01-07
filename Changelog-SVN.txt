@@ -1,5 +1,12 @@
 Date	Added
 2006/01/07
+	* Separated the permanent variables from the character status structure. [Skotlex]
+	* permanent variables are now loaded on their own packets as needed to
+	  reduce the bandwidth wasted between servers. [Skotlex]
+	* Permanent account variables are now saved when the script is finished
+	  instead of each time they were modified.  [Skotlex]
+	* OnInit scripts and related code now executes after all perm variables are
+	  received (so now account variables are accessible during it) [Skotlex]
 	* Fixed typo in pc.c causing crashes in Line 769. [Lance]
 	* Corrected VC7.1 prject files to include mapindex.c and mapindex.h [Lance]
 	* Corrected Wrath of the Star formula (added missing STR in equation) [Komurka]

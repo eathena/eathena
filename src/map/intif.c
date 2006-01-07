@@ -219,41 +219,84 @@ int intif_wis_message_to_gm(char *Wisp_name, int min_gm_level, char *mes) {
 	return 0;
 }
 
-// アカウント変数送信
-int intif_saveaccountreg(struct map_session_data *sd) {
-	int j,p;
-	if (CheckForCharServer())
-		return 0;
-
-	nullpo_retr(0, sd);
-
-	if (sd->status.account_reg_num == -1)
-		return 0;
-
-	WFIFOHEAD(inter_fd, 4+sd->status.account_reg_num * 288);
-	WFIFOW(inter_fd,0) = 0x3004;
-	WFIFOL(inter_fd,4) = sd->bl.id;
-	for(j=0,p=8;j<sd->status.account_reg_num;j++,p+=288){
-		memcpy(WFIFOP(inter_fd,p),sd->status.account_reg[j].str,32);
-		memcpy(WFIFOP(inter_fd,p+32),sd->status.account_reg[j].value,256);
+int intif_regtostr(char* str, struct global_reg *reg, int qty) {
+	int len =0, i;
+	
+	for (i = 0; i < qty; i++) {
+		len+= sprintf(str+len, "%s", reg[i].str)+1; //We add 1 to consider the '\0' in place.
+		len+= sprintf(str+len, "%s", reg[i].value)+1;
 	}
-	WFIFOW(inter_fd,2)=p;
-	WFIFOSET(inter_fd,p);
+	return len;
+}
+
+//Request for saving registry values.
+int intif_saveregistry(struct map_session_data *sd, int type)
+{
+	struct global_reg *reg;
+	int *count;
+
+	if (CheckForCharServer())
+		return -1;
+	
+	switch (type) {
+	case 3: //Character reg
+		reg = sd->save_reg.global;
+		count = &sd->save_reg.global_num;
+		sd->state.reg_dirty &= ~0x4;
+	break;
+	case 2: //Account reg
+		reg = sd->save_reg.account;
+		count = &sd->save_reg.account_num;
+		sd->state.reg_dirty &= ~0x2;
+	break;
+	case 1: //Account2 reg
+		reg = sd->save_reg.account2;
+		count = &sd->save_reg.account2_num;
+		sd->state.reg_dirty &= ~0x1;
+	break;
+	default: //Broken code?
+		if (battle_config.error_log)
+			ShowError("intif_saveregistry: Invalid type %d\n", type);
+		return -1;
+	}
+	WFIFOHEAD(inter_fd, 288 * MAX_REG_NUM);
+	WFIFOW(inter_fd,0)=0x3004;
+	WFIFOL(inter_fd,4)=sd->status.account_id;
+	WFIFOL(inter_fd,8)=sd->status.char_id;
+	WFIFOB(inter_fd,12)=type;
+	if((*count) ==0){
+		WFIFOW(inter_fd,2)=13;
+	}else{
+		int i,p;
+		for (p=13,i = 0; i < (*count); i++) {
+			if (reg[i].str[0] && reg[i].value != 0) {
+				p+= sprintf(WFIFOP(inter_fd,p), "%s", reg[i].str)+1; //We add 1 to consider the '\0' in place.
+				p+= sprintf(WFIFOP(inter_fd,p), "%s", reg[i].value)+1;
+			}
+		}
+		WFIFOW(inter_fd,2)=p;
+	}
+	WFIFOSET(inter_fd,WFIFOW(inter_fd,2));
 	return 0;
 }
-// アカウント変数要求
-int intif_request_accountreg(struct map_session_data *sd)
+
+//Request the registries for this player.
+int intif_request_registry(struct map_session_data *sd)
 {
 	nullpo_retr(0, sd);
+
+	sd->save_reg.account2_num = -1;
+	sd->save_reg.account_num = -1;
+	sd->save_reg.global_num = -1;
+
 	if (CheckForCharServer())
 		return 0;
 
 	WFIFOHEAD(inter_fd,6);
 	WFIFOW(inter_fd,0) = 0x3005;
-	WFIFOL(inter_fd,2) = sd->bl.id;
-	WFIFOSET(inter_fd,6);
-
-	sd->status.account_reg_num = -1;
+	WFIFOL(inter_fd,2) = sd->status.account_id;
+	WFIFOL(inter_fd,6) = sd->status.char_id;
+	WFIFOSET(inter_fd,10);
 
 	return 0;
 }
@@ -800,22 +843,55 @@ int mapif_parse_WisToGM(int fd) { // 0x3003/0x3803 <packet_len>.w <wispname>.24B
 }
 
 // アカウント変数通知
-int intif_parse_AccountReg(int fd) {
-	int j,p;
+int intif_parse_Registers(int fd) {
+	int j,p,len,max, flag;
 	struct map_session_data *sd;
+	struct global_reg *reg;
+	int *qty;
 	RFIFOHEAD(fd);
 
-	if( (sd=map_id2sd(RFIFOL(fd,4)))==NULL )
+	if( (sd=map_id2sd(RFIFOL(fd,4)))==NULL)
 		return 1;
-	for(p=8,j=0;p<RFIFOW(fd,2) && j<ACCOUNT_REG_NUM;p+=288,j++){
-		memcpy(sd->status.account_reg[j].str,RFIFOP(fd,p),32);
-		memcpy(sd->status.account_reg[j].value,RFIFOP(fd,p+32),256);
-	}
-	sd->status.account_reg_num = j;
-	sd->state.accreg_dirty = 0; //Accounts are sync'd.
-//	printf("intif: accountreg\n");
 
-	return 0;
+	if (RFIFOB(fd,12) == 3 && sd->status.char_id != RFIFOL(fd,8))
+		return 1; //Character registry from another character.
+	
+	flag = (sd->save_reg.global_num == -1 || sd->save_reg.account_num == -1 || sd->save_reg.account2_num == -1);
+	
+	switch (RFIFOB(fd,12)) {
+		case 3: //Character Registry
+			reg = sd->save_reg.global;
+			qty = &sd->save_reg.global_num;
+			max = GLOBAL_REG_NUM;
+		break;
+		case 2: //Account Registry
+			reg = sd->save_reg.account;
+			qty = &sd->save_reg.account_num;
+			max = ACCOUNT_REG_NUM;
+		break;
+		case 1: //Account2 Registry
+			reg = sd->save_reg.account2;
+			qty = &sd->save_reg.account2_num;
+			max = ACCOUNT_REG2_NUM;
+		break;
+		default:
+			if (battle_config.error_log)
+				ShowError("intif_parse_Registers: Unrecognized type %d\n",RFIFOB(fd,12));
+			return 0;
+	}
+	for(j=0,p=13;j<max && p<RFIFOW(fd,2);j++){
+		sscanf(RFIFOP(fd,p), "%31c%n", reg[j].str,&len);
+		reg[j].str[len]='\0';
+		p += len+1; //+1 to skip the '\0' between strings.
+		sscanf(RFIFOP(fd,p), "%255c%n", reg[j].value,&len);
+		reg[j].value[len]='\0';
+		p += len+1;
+	}
+	*qty = j;
+
+	if (flag && sd->save_reg.global_num > -1 && sd->save_reg.account_num > -1 && sd->save_reg.account2_num > -1)
+		pc_reg_received(sd); //Received all registry values, execute init scripts and what-not. [Skotlex]
+	return 1;
 }
 
 // 倉庫データ受信
@@ -1276,7 +1352,7 @@ int intif_parse(int fd)
 	case 0x3801:	intif_parse_WisMessage(fd); break;
 	case 0x3802:	intif_parse_WisEnd(fd); break;
 	case 0x3803:	mapif_parse_WisToGM(fd); break;
-	case 0x3804:	intif_parse_AccountReg(fd); break;
+	case 0x3804:	intif_parse_Registers(fd); break;
 	case 0x3810:	intif_parse_LoadStorage(fd); break;
 	case 0x3811:	intif_parse_SaveStorage(fd); break;
 	case 0x3818:	intif_parse_LoadGuildStorage(fd); break;

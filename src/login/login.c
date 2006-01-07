@@ -1428,32 +1428,25 @@ int parse_fromchar(int fd) {
 				    (!check_ip_flag || auth_fifo[i].ip == RFIFOL(fd,15)) &&
 				    !auth_fifo[i].delflag) {
 					unsigned int k;
-					int p;
+					time_t connect_until_time = 0;
+					char email[40] = "";
 					auth_fifo[i].delflag = 1;
 					login_log("Char-server '%s': authentification of the account %d accepted (ip: %s)." RETCODE,
 					          server[id].name, acc, ip);
 //					printf("%d\n", i);
 					for(k = 0; k < auth_num; k++) {
 						if (auth_dat[k].account_id == acc) {
-                                                        WFIFOHEAD(fd, 288 * auth_dat[k].account_reg2_num);
-							WFIFOW(fd,0) = 0x2729;	// Sending of the account_reg2
-							WFIFOL(fd,4) = acc;
-							for(p = 8, j = 0; j < auth_dat[k].account_reg2_num; p += 288, j++) {
-								memcpy(WFIFOP(fd,p), auth_dat[k].account_reg2[j].str, 32);
-								memcpy(WFIFOP(fd,p+32), auth_dat[k].account_reg2[j].value, 256);
-							}
-							WFIFOW(fd,2) = p;
-							WFIFOSET(fd,p);
-//							printf("parse_fromchar: Sending of account_reg2: login->char (auth fifo)\n");
-							WFIFOW(fd,0) = 0x2713;
-							WFIFOL(fd,2) = acc;
-							WFIFOB(fd,6) = 0;
-							memcpy(WFIFOP(fd, 7), auth_dat[k].email, 40);
-							WFIFOL(fd,47) = (unsigned long)auth_dat[k].connect_until_time;
-							WFIFOSET(fd,51);
+							strcpy(email, auth_dat[k].email);
+							connect_until_time = auth_dat[k].connect_until_time;
 							break;
 						}
 					}
+					WFIFOW(fd,0) = 0x2713;
+					WFIFOL(fd,2) = acc;
+					WFIFOB(fd,6) = 0;
+					memcpy(WFIFOP(fd, 7), email, 40);
+					WFIFOL(fd,47) = (unsigned long)connect_until_time;
+					WFIFOSET(fd,51);
 					break;
 				}
 			}
@@ -1788,7 +1781,7 @@ int parse_fromchar(int fd) {
 			}
 			return 0;
 
-		case 0x2728:	// We receive account_reg2 from a char-server, and we send them to other char-servers.
+		case 0x2728:	// We receive account_reg2 from a char-server, and we send them to other map-servers.
 			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < RFIFOW(fd,2))
 				return 0;
 			{
@@ -1796,16 +1789,19 @@ int parse_fromchar(int fd) {
 				acc = RFIFOL(fd,4);
 				for(i = 0; i < auth_num; i++) {
 					if (auth_dat[i].account_id == acc) {
-						//unsigned char buf[RFIFOW(fd,2)+1];
+						//unsigned char buf[rfifow(fd,2)+1];
 						unsigned char *buf;
+						int len;
 						buf = (unsigned char*)aCalloc(RFIFOW(fd,2)+1, sizeof(unsigned char));
-						login_log("Char-server '%s': receiving (from the char-server) of account_reg2 (account: %d, ip: %s)." RETCODE,
+						login_log("char-server '%s': receiving (from the char-server) of account_reg2 (account: %d, ip: %s)." RETCODE,
 						          server[id].name, acc, ip);
-						for(p = 8, j = 0; p < RFIFOW(fd,2) && j < ACCOUNT_REG2_NUM; p += 288, j++) {
-							memcpy(auth_dat[i].account_reg2[j].str, RFIFOP(fd,p), 32);
-							memcpy(auth_dat[i].account_reg2[j].value, RFIFOP(fd,p+32), 256);
-							auth_dat[i].account_reg2[j].str[31] = '\0';
-							auth_dat[i].account_reg2[j].value[255] = '\0';
+						for(j=0,p=13;j<ACCOUNT_REG2_NUM && p<RFIFOW(fd,2);j++){
+							sscanf(RFIFOP(fd,p), "%31c%n",auth_dat[i].account_reg2[j].str,&len);
+							auth_dat[i].account_reg2[j].str[len]='\0';
+							p +=len+1; //+1 to skip the '\0' between strings.
+							sscanf(RFIFOP(fd,p), "%255c%n",auth_dat[i].account_reg2[j].value,&len);
+							auth_dat[i].account_reg2[j].value[len]='\0';
+							p +=len+1;
 							remove_control_chars((unsigned char *)auth_dat[i].account_reg2[j].str);
 							remove_control_chars((unsigned char *)auth_dat[i].account_reg2[j].value);
 						}
@@ -1897,6 +1893,36 @@ int parse_fromchar(int fd) {
 				RFIFOSKIP(fd,RFIFOW(fd,2));
 				break;
 			}
+		case 0x272e: //Request account_reg2 for a character.
+			if (RFIFOREST(fd) < 10)
+				return 0;
+			{
+				int account_id = RFIFOL(fd, 2);
+				int char_id = RFIFOL(fd, 6);
+				int p;
+				RFIFOSKIP(fd,10);
+				WFIFOW(fd,0) = 0x2729;
+				WFIFOL(fd,4) = account_id;
+				WFIFOL(fd,8) = char_id;
+				WFIFOB(fd,12) = 1; //Type 1 for Account2 registry
+				for(i = 0; i < auth_num && auth_dat[i].account_id != account_id; i++);
+				if (i == auth_num) {
+					//Account not found? Send at least empty data, map servers need a reply!
+					WFIFOW(fd,2) = 13;
+					WFIFOSET(fd,WFIFOW(fd,2));
+					break;
+				}
+				for(p = 13,j=0;j<auth_dat[i].account_reg2_num;j++){
+					if (auth_dat[i].account_reg2[j].str[0]) {
+						p+= sprintf(WFIFOP(fd,p), "%s", auth_dat[i].account_reg2[j].str)+1; //We add 1 to consider the '\0' in place.
+						p+= sprintf(WFIFOP(fd,p), "%s", auth_dat[i].account_reg2[j].value)+1;
+					}
+				}
+				WFIFOW(fd,2) = p;
+				WFIFOSET(fd,WFIFOW(fd,2));
+			}
+			break;
+
 		case 0x3000: //change sex for chrif_changesex()
 			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < RFIFOW(fd,2))
 				return 0;

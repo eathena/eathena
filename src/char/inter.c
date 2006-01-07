@@ -30,7 +30,8 @@ char accreg_txt[1024] = "save/accreg.txt";
 static struct dbt *accreg_db = NULL;
 
 struct accreg {
-	int account_id, reg_num;
+	int account_id, char_id;
+	int reg_num;
 	struct global_reg reg[ACCOUNT_REG_NUM];
 };
 
@@ -51,7 +52,7 @@ int inter_send_packet_length[] = {
 };
 // recv. packet list
 int inter_recv_packet_length[] = {
-	-1,-1, 7,-1, -1, 6, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3000-0x300f
+	-1,-1, 7,-1, -1,10, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3000-0x300f
 	 6,-1, 0, 0,  0, 0, 0, 0, 10,-1, 0, 0,  0, 0,  0, 0, //0x3010-0x301f
 	64, 6,42,14, 14,19, 6,-1, 14,14, 0, 0,  0, 0,  0, 0, //0x3020-0x302f
 	-1, 6,-1,-1, 55,19, 6,-1, 14,-1,-1,-1, 14,19,186,-1, //0x3030-0x303f
@@ -371,24 +372,25 @@ int mapif_account_reg(int fd, unsigned char *src) {
 }
 
 // アカウント変数要求返信
-int mapif_account_reg_reply(int fd,int account_id) {
+int mapif_account_reg_reply(int fd,int account_id, int char_id) {
 	struct accreg *reg = (struct accreg*)numdb_search(accreg_db,account_id);
 
-        WFIFOHEAD(fd, (reg->reg_num * 288) + 8);
+	WFIFOHEAD(fd, ACCOUNT_REG_NUM * 288+ 13);
 	WFIFOW(fd,0) = 0x3804;
 	WFIFOL(fd,4) = account_id;
+	WFIFOL(fd,8) = char_id;
+	WFIFOB(fd,12) = 2; //Acc Reg
 	if (reg == NULL) {
-		WFIFOW(fd,2) = 8;
+		WFIFOW(fd,2) = 13;
 	} else {
-		int j, p;
-		for(j = 0, p = 8; j < reg->reg_num; j++, p += 288) {
-			memcpy(WFIFOP(fd,p), reg->reg[j].str, 32);
-			memcpy(WFIFOP(fd,p+32), reg->reg[j].value, 256);
+		int i, p;
+		for (p=13,i = 0; i < reg->reg_num; i++) {
+			p+= sprintf(WFIFOP(fd,p), "%s", reg->reg[i].str)+1; //We add 1 to consider the '\0' in place.
+			p+= sprintf(WFIFOP(fd,p), "%s", reg->reg[i].value)+1;
 		}
-		WFIFOW(fd,2) = p;
+		WFIFOW(fd,2)=p;
 	}
 	WFIFOSET(fd,WFIFOW(fd,2));
-
 	return 0;
 }
 
@@ -548,10 +550,21 @@ int mapif_parse_WisToGM(int fd) {
 }
 
 // アカウント変数保存要求
-int mapif_parse_AccReg(int fd) {
-	int j, p;
+int mapif_parse_Registry(int fd) {
+	int j, p, len;
 	struct accreg *reg;
 	RFIFOHEAD(fd);
+
+	switch (RFIFOB(fd,12)) {
+		case 3: //Character registry
+			return char_parse_Registry(RFIFOL(fd,4), RFIFOL(fd,8), RFIFOP(fd,13), RFIFOW(fd,2)-13);
+		case 2: //Acc Reg
+			break;
+		case 1: //Acc Reg2, forward to login
+			return save_accreg2(RFIFOP(fd,4), RFIFOW(fd,2)-4);
+		default: //Error?
+			return 1; 
+	}
 	reg = (struct accreg*)numdb_search(accreg_db, RFIFOL(fd,4));
 
 	if (reg == NULL) {
@@ -563,22 +576,30 @@ int mapif_parse_AccReg(int fd) {
 		numdb_insert(accreg_db, RFIFOL(fd,4), reg);
 	}
 
-	for(j = 0, p = 8; j < ACCOUNT_REG_NUM && p < RFIFOW(fd,2); j++, p += 288) {
-		memcpy(reg->reg[j].str, RFIFOP(fd,p), 32);
-		memcpy(reg->reg[j].value, RFIFOP(fd,p + 32), 256);
+	for(j=0,p=13;j<ACCOUNT_REG_NUM && p<RFIFOW(fd,2);j++){
+		sscanf(RFIFOP(fd,p), "%31c%n",reg->reg[j].str,&len);
+		reg->reg[j].str[len]='\0';
+		p +=len+1; //+1 to skip the '\0' between strings.
+		sscanf(RFIFOP(fd,p), "%255c%n",reg->reg[j].value,&len);
+		reg->reg[j].value[len]='\0';
+		p +=len+1;
 	}
-	reg->reg_num = j;
-
+	reg->reg_num=j;
 	mapif_account_reg(fd, RFIFOP(fd,0));	// 他のMAPサーバーに送信
 
 	return 0;
 }
 
-// アカウント変数送信要求
-int mapif_parse_AccRegRequest(int fd) {
-//	printf("mapif: accreg request\n");
-	RFIFOHEAD(fd);
-	return mapif_account_reg_reply(fd, RFIFOL(fd,2));
+// Request the value of all registries.
+int mapif_parse_RegistryRequest(int fd)
+{
+	//Load Char Registry
+	char_account_reg_reply(fd,RFIFOL(fd,2),RFIFOL(fd,6));
+	//Load Account Registry
+	mapif_account_reg_reply(fd,RFIFOL(fd,2),RFIFOL(fd,6));
+	//Ask Login Server for Account2 values.
+	request_accreg2(RFIFOL(fd,2),RFIFOL(fd,6)-2);
+	return 1;
 }
 
 //--------------------------------------------------------
@@ -608,8 +629,8 @@ int inter_parse_frommap(int fd) {
 	case 0x3001: mapif_parse_WisRequest(fd); break;
 	case 0x3002: mapif_parse_WisReply(fd); break;
 	case 0x3003: mapif_parse_WisToGM(fd); break;
-	case 0x3004: mapif_parse_AccReg(fd); break;
-	case 0x3005: mapif_parse_AccRegRequest(fd); break;
+	case 0x3004: mapif_parse_Registry(fd); break;
+	case 0x3005: mapif_parse_RegistryRequest(fd); break;
 	default:
 		if (inter_party_parse_frommap(fd))
 			break;

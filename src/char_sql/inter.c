@@ -21,7 +21,8 @@
 
 
 struct accreg {
-	int account_id,reg_num;
+	int account_id, char_id;
+	int reg_num;
 	struct global_reg reg[ACCOUNT_REG_NUM];
 };
 
@@ -68,7 +69,7 @@ int inter_send_packet_length[]={
 };
 // recv. packet list
 int inter_recv_packet_length[]={
-	-1,-1, 7,-1, -1, 6, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3000-0x300f
+	-1,-1, 7,-1, -1,10, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3000-0x300f
 	 6,-1, 0, 0,  0, 0, 0, 0, 10,-1, 0, 0,  0, 0,  0, 0, //0x3010-0x301f
 	64, 6,42,14, 14,19, 6,-1, 14,14, 0, 0,  0, 0,  0, 0, //0x3020-0x302f
 	-1, 6,-1,-1, 55,19, 6,-1, 14,-1,-1,-1, 14,19,186,-1, //0x3030-0x303f
@@ -90,17 +91,33 @@ static int wis_dellist[WISDELLIST_MAX], wis_delnum;
 int inter_sql_test (void);
 
 //--------------------------------------------------------
-// Save account_reg to sql (type=2)
-int inter_accreg_tosql(int account_id,struct accreg *reg){
+// Save registry to sql
+int inter_accreg_tosql(int account_id, int char_id, struct accreg *reg, int type){
 
 	int j;
 	char temp_str[64]; //Needs be twice the source to ensure it fits [Skotlex]
 	char temp_str2[512];
 	if (account_id<=0) return 0;
 	reg->account_id=account_id;
+	reg->char_id = char_id;
 
-	//`global_reg_value` (`type`, `account_id`, `char_id`, `str`, `value`)
-	sprintf(tmp_sql,"DELETE FROM `%s` WHERE `type`=2 AND `account_id`='%d'",reg_db, account_id);
+	switch (type) {
+		case 3: //Char Reg
+		//`global_reg_value` (`type`, `account_id`, `char_id`, `str`, `value`)
+			sprintf(tmp_sql,"DELETE FROM `%s` WHERE `type`=3 AND `char_id`='%d'",reg_db, char_id);
+			break;
+		case 2: //Account Reg
+		//`global_reg_value` (`type`, `account_id`, `char_id`, `str`, `value`)
+			sprintf(tmp_sql,"DELETE FROM `%s` WHERE `type`=2 AND `account_id`='%d'",reg_db, account_id);
+			break;
+		case 1: //Account2 Reg
+			ShowError("inter_accreg_tosql: Char server shouldn't handle type 1 registry values (##). That is the login server's work!\n");
+			return 0;
+		default:
+			ShowError("inter_accreg_tosql: Invalid type %d\n", type);
+			return 0;
+			
+	}	
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
 		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
@@ -110,27 +127,39 @@ int inter_accreg_tosql(int account_id,struct accreg *reg){
 
 	for(j=0;j<reg->reg_num;j++){
 		if(reg->reg[j].str != NULL){
-			sprintf(tmp_sql,"INSERT INTO `%s` (`type`, `account_id`, `str`, `value`) VALUES (2,'%d', '%s','%s')",
-				reg_db, reg->account_id, jstrescapecpy(temp_str,reg->reg[j].str), jstrescapecpy(temp_str2,reg->reg[j].value));
+			sprintf(tmp_sql,"INSERT INTO `%s` (`type`, `account_id`, `char_id`, `str`, `value`) VALUES ('%d','%d','%d','%s','%s')",
+				reg_db, type, type!=3?reg->account_id:0, type==3?reg->char_id:0,
+				jstrescapecpy(temp_str,reg->reg[j].str), jstrescapecpy(temp_str2,reg->reg[j].value));
 			if(mysql_query(&mysql_handle, tmp_sql) ) {
 				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 			}
 		}
 	}
-	return 0;
+	return 1;
 }
 
 // Load account_reg from sql (type=2)
-int inter_accreg_fromsql(int account_id,struct accreg *reg)
+int inter_accreg_fromsql(int account_id,int char_id, struct accreg *reg, int type)
 {
 	int j=0;
 	if (reg==NULL) return 0;
 	memset(reg, 0, sizeof(struct accreg));
 	reg->account_id=account_id;
+	reg->char_id=char_id;
 
 	//`global_reg_value` (`type`, `account_id`, `char_id`, `str`, `value`)
-	sprintf (tmp_sql, "SELECT `str`, `value` FROM `%s` WHERE `type`=2 AND `account_id`='%d'",reg_db, reg->account_id);
+	switch (type) {
+	case 3: //char reg
+		sprintf (tmp_sql, "SELECT `str`, `value` FROM `%s` WHERE `type`=3 AND `char_id`='%d'",reg_db, reg->char_id);
+	break;
+	case 2: //account reg
+		sprintf (tmp_sql, "SELECT `str`, `value` FROM `%s` WHERE `type`=2 AND `account_id`='%d'",reg_db, reg->account_id);
+	break;
+	case 1: //account2 reg
+		ShowError("inter_accreg_fromsql: Char server shouldn't handle type 1 registry values (##). That is the login server's work!\n");
+		return 0;
+	}
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
 		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
@@ -145,7 +174,7 @@ int inter_accreg_fromsql(int account_id,struct accreg *reg)
 		mysql_free_result(sql_res);
 	}
 	reg->reg_num=j;
-	return 0;
+	return 1;
 }
 
 // Initialize
@@ -442,20 +471,22 @@ int mapif_account_reg(int fd,unsigned char *src)
 }
 
 // Send the requested account_reg
-int mapif_account_reg_reply(int fd,int account_id)
+int mapif_account_reg_reply(int fd,int account_id,int char_id, int type)
 {
 	struct accreg *reg=accreg_pt;
-	inter_accreg_fromsql(account_id,reg);
+	inter_accreg_fromsql(account_id,char_id,reg,type);
 
 	WFIFOW(fd,0)=0x3804;
 	WFIFOL(fd,4)=account_id;
+	WFIFOL(fd,8)=char_id;
+	WFIFOB(fd,12)=type;
 	if(reg->reg_num==0){
-		WFIFOW(fd,2)=8;
+		WFIFOW(fd,2)=13;
 	}else{
-		int j,p;
-		for(j=0,p=8;j<reg->reg_num;j++,p+=288){
-			memcpy(WFIFOP(fd,p),reg->reg[j].str,32);
-			memcpy(WFIFOP(fd,p+32),reg->reg[j].value,256);
+		int i,p;
+		for (p=13,i = 0; i < reg->reg_num; i++) {
+			p+= sprintf(WFIFOP(fd,p), "%s", reg->reg[i].str)+1; //We add 1 to consider the '\0' in place.
+			p+= sprintf(WFIFOP(fd,p), "%s", reg->reg[i].value)+1;
 		}
 		WFIFOW(fd,2)=p;
 	}
@@ -654,30 +685,49 @@ int mapif_parse_WisToGM(int fd) {
 }
 
 // Save account_reg into sql (type=2)
-int mapif_parse_AccReg(int fd)
+int mapif_parse_Registry(int fd)
 {
-	int j,p;
+	int j,p,len, max;
 	struct accreg *reg=accreg_pt;
-	int account_id = RFIFOL(fd,4);
+	
 	memset(accreg_pt,0,sizeof(struct accreg));
-
-	for(j=0,p=8;j<ACCOUNT_REG_NUM && p<RFIFOW(fd,2);j++,p+=288){
-		memcpy(reg->reg[j].str,RFIFOP(fd,p),32);
-		memcpy(reg->reg[j].value,RFIFOP(fd,p+32),256);
+	switch (RFIFOB(fd, 12)) {
+	case 3: //Character registry
+		max = GLOBAL_REG_NUM;
+	break;
+	case 2: //Account Registry
+		max = ACCOUNT_REG_NUM;
+	break;
+	case 1: //Account2 registry, must be sent over to login server.
+		return save_accreg2(RFIFOP(fd,4), RFIFOW(fd,2)-4);
+	default:
+		return 1;
+	}
+	for(j=0,p=13;j<max && p<RFIFOW(fd,2);j++){
+		sscanf(RFIFOP(fd,p), "%31c%n",reg->reg[j].str,&len);
+		reg->reg[j].str[len]='\0';
+		p +=len+1; //+1 to skip the '\0' between strings.
+		sscanf(RFIFOP(fd,p), "%255c%n",reg->reg[j].value,&len);
+		reg->reg[j].value[len]='\0';
+		p +=len+1;
 	}
 	reg->reg_num=j;
 
-	inter_accreg_tosql(account_id,reg);
-
-	mapif_account_reg(fd,RFIFOP(fd,0));	// Send confirm message to map
+	inter_accreg_tosql(RFIFOL(fd,4),RFIFOL(fd,8),reg, RFIFOB(fd,12));
+	mapif_account_reg(fd,RFIFOP(fd,0));	// Send updated accounts to other map servers.
 	return 0;
 }
 
-// Request the value of account_reg
-int mapif_parse_AccRegRequest(int fd)
+// Request the value of all registries.
+int mapif_parse_RegistryRequest(int fd)
 {
-//	printf("mapif: accreg request\n");
-	return mapif_account_reg_reply(fd,RFIFOL(fd,2));
+	//Load Char Registry
+	mapif_account_reg_reply(fd,RFIFOL(fd,2),RFIFOL(fd,6),3);
+	//Load Account Registry
+	mapif_account_reg_reply(fd,RFIFOL(fd,2),RFIFOL(fd,6),2);
+	//Ask Login Server for Account2 values.
+	request_accreg2(RFIFOL(fd,2),RFIFOL(fd,6)-2);
+	return 1;
 }
 
 //--------------------------------------------------------
@@ -703,8 +753,8 @@ int inter_parse_frommap(int fd)
 	case 0x3001: mapif_parse_WisRequest(fd); break;
 	case 0x3002: mapif_parse_WisReply(fd); break;
 	case 0x3003: mapif_parse_WisToGM(fd); break;
-	case 0x3004: mapif_parse_AccReg(fd); break;
-	case 0x3005: mapif_parse_AccRegRequest(fd); break;
+	case 0x3004: mapif_parse_Registry(fd); break;
+	case 0x3005: mapif_parse_RegistryRequest(fd); break;
 	default:
 		if(inter_party_parse_frommap(fd))
 			break;

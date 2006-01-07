@@ -344,8 +344,6 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 	int i=0,j,party_exist,guild_exist;
 	int count = 0;
 	int diff = 0;
-	char temp_str[64]; //2x the value of the string before jstrescapecpy [Skotlex]
-	char temp_str2[512];
 	char *tmp_ptr; //Building a single query should be more efficient than running
 		//multiple queries for each thing about to be saved, right? [Skotlex]
 	char save_status[128]; //For displaying save information. [Skotlex]
@@ -611,7 +609,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 		} else //Skills removed (reset?)
 			strcat(save_status, " skills");
 	}
-
+/* Saving of global registry values is now handled by the inter-server. [Skotlex]
 	diff = 0;
 	for(i=0;i<p->global_reg_num;i++) {
 		if ((p->global_reg[i].str == NULL) && (cp->global_reg[i].str == NULL))
@@ -675,7 +673,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 		} else //Values cleared.
 			strcat(save_status, " global_reg");
 	}
-
+*/
 	diff = 0;
 	for(i = 0; i < MAX_FRIENDS; i++){
 		if(p->friends[i].char_id != cp->friends[i].char_id ||
@@ -1068,7 +1066,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p){
 		mysql_free_result(sql_res);
 		strcat (t_msg, " skills");
 	}
-
+/* Global-reg loading is now handled by the inter-server.
 	//global_reg
 	//`global_reg_value` (`char_id`, `str`, `value`)
 	sprintf(tmp_sql, "SELECT `str`, `value` FROM `%s` WHERE `type`=3 AND `char_id`='%d'",reg_db, char_id); // TBR
@@ -1087,7 +1085,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p){
 		strcat (t_msg, " reg_values");
 	}
 	p->global_reg_num=i;
-
+*/
 	//Shamelessly stolen from its_sparky (ie: thanks) and then assimilated by [Skotlex]
 	//Friend list 
 	sprintf(tmp_sql, "SELECT f.friend_account, f.friend_id, c.name FROM `%s` f LEFT JOIN `%s` c ON f.friend_account=c.account_id AND f.friend_id=c.char_id WHERE f.char_id='%d'", friend_db, char_db, char_id);
@@ -2103,22 +2101,13 @@ int parse_tologin(int fd) {
 		case 0x2729:
 			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < RFIFOW(fd,2))
 				return 0;
-		  {
-			struct global_reg reg[ACCOUNT_REG2_NUM];
-			unsigned char buf[4096];
-			int j, p, acc;
-			acc = RFIFOL(fd,4);
-			for(p = 8, j = 0; p < RFIFOW(fd,2) && j < ACCOUNT_REG2_NUM; p += 288, j++) {
-				memcpy(reg[j].str, RFIFOP(fd,p), 32);
-				memcpy(reg[j].value, RFIFOP(fd,p+32), 256);
-			}
-			// set_account_reg2(acc,j,reg);
-			// 同垢ログインを禁止していれば送る必要は無い
+		  {	//Receive account_reg2 registry, forward to map servers.
+			unsigned char buf[ACCOUNT_REG2_NUM*(256+32+2)+16];
 			memcpy(buf,RFIFOP(fd,0), RFIFOW(fd,2));
-			WBUFW(buf,0) = 0x2b11;
+//			WBUFW(buf,0) = 0x2b11;
+			WBUFW(buf,0) = 0x3804; //Map server can now receive all kinds of reg values with the same packet. [Skotlex]
 			mapif_sendall(buf, WBUFW(buf,2));
 			RFIFOSKIP(fd, RFIFOW(fd,2));
-//			printf("char: save_account_reg_reply\n");
 		  }
 			break;
 
@@ -2262,6 +2251,28 @@ int parse_tologin(int fd) {
 	return 0;
 }
 
+int request_accreg2(int account_id, int char_id) {
+	if (login_fd > 0) {
+		WFIFOW(login_fd, 0) = 0x272e;
+		WFIFOL(login_fd, 2) = account_id;
+		WFIFOL(login_fd, 6) = char_id;
+		WFIFOSET(login_fd, 10);
+		return 1;
+	}
+	return 0;
+}
+//Send packet forward to login-server for account saving
+int save_accreg2(unsigned char* buf, int len) {
+	if (login_fd > 0) {
+		WFIFOHEAD(login_fd, len+4);
+		memcpy(WFIFOP(login_fd,4), buf, len);
+		WFIFOW(login_fd,0) = 0x2728;
+		WFIFOW(login_fd,2) = len+4;
+		WFIFOSET(login_fd,len+4);
+		return 1;
+	}
+	return 0;
+}
 int search_mapserver(unsigned short map, long ip, short port);
 
 int parse_frommap(int fd) {
@@ -2639,23 +2650,8 @@ int parse_frommap(int fd) {
 			break;
 		*/
 
-		// account_reg2 saving, forward to login server
-		case 0x2b10:
-			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < RFIFOW(fd,2))
-				return 0;
-		  {
-			if (login_fd > 0) { // don't send request if no login-server
-				memcpy(WFIFOP(login_fd,0), RFIFOP(fd,0), RFIFOW(fd,2));
-				WFIFOW(login_fd, 0) = 0x2728;
-				WFIFOSET(login_fd, WFIFOW(login_fd,2));
-			}
-			// ワールドへの同垢ログインがなければmapサーバーに送る必要はない
-			//memcpy(buf,RFIFOP(fd,0),RFIFOW(fd,2));
-			//WBUFW(buf,0)=0x2b11;
-			//mapif_sendall(buf,WBUFW(buf,2));
-			RFIFOSKIP(fd,RFIFOW(fd,2));
-		  }
-			break;
+		//Packet 0x2b10 deprecated in favor of packet 0x3004 for registry saving. [Skotlex]
+		//case 0x2b10:
 
 		// Map server send information to change an email of an account -> login-server
 		case 0x2b0c:

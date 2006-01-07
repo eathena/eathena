@@ -42,6 +42,7 @@ int pc_makesavestatus(struct map_session_data *);
 int pc_setnewpc(struct map_session_data*,int,int,int,unsigned int,int,int);
 int pc_authok(struct map_session_data*, int, time_t, struct mmo_charstatus *);
 int pc_authfail(struct map_session_data *);
+int pc_reg_received(struct map_session_data *sd);
 
 int pc_isequip(struct map_session_data *sd,int n);
 int pc_equippoint(struct map_session_data *sd,int n);
@@ -154,18 +155,23 @@ int pc_readreg(struct map_session_data*,int);
 int pc_setreg(struct map_session_data*,int,int);
 char *pc_readregstr(struct map_session_data *sd,int reg);
 int pc_setregstr(struct map_session_data *sd,int reg,char *str);
-int pc_readglobalreg(struct map_session_data*,char*);
-int pc_setglobalreg(struct map_session_data*,char*,int);
-char *pc_readglobalreg_str(struct map_session_data*,char*);
-int pc_setglobalreg_str(struct map_session_data*,char*,char*);
-int pc_readaccountreg(struct map_session_data*,char*);
-int pc_setaccountreg(struct map_session_data*,char*,int);
-int pc_readaccountreg2(struct map_session_data*,char*);
-int pc_setaccountreg2(struct map_session_data*,char*,int);
-char *pc_readaccountregstr(struct map_session_data*,char*); // [zBuffer]
-int pc_setaccountregstr(struct map_session_data*,char*,char*); // [zBuffer]
-char *pc_readaccountreg2str(struct map_session_data*,char*); // [zBuffer]
-int pc_setaccountreg2str(struct map_session_data*,char*,char*); // [zBuffer]
+
+#define pc_readglobalreg(sd,reg) pc_readregistry(sd,reg,3)
+#define pc_setglobalreg(sd,reg,val) pc_setregistry(sd,reg,val,3)
+#define pc_readglobalreg_str(sd,reg) pc_readregistry_str(sd,reg,3)
+#define pc_setglobalreg_str(sd,reg,val) pc_setregistry_str(sd,reg,val,3)
+#define pc_readaccountreg(sd,reg) pc_readregistry(sd,reg,2)
+#define pc_setaccountreg(sd,reg,val) pc_setregistry(sd,reg,val,2)
+#define pc_readaccountregstr(sd,reg) pc_readregistry_str(sd,reg,2)
+#define pc_setaccountregstr(sd,reg,val) pc_setregistry_str(sd,reg,val,2)
+#define pc_readaccountreg2(sd,reg) pc_readregistry(sd,reg,1)
+#define pc_setaccountreg2(sd,reg,val) pc_setregistry(sd,reg,val,1)
+#define pc_readaccountreg2str(sd,reg) pc_readregistry_str(sd,reg,1)
+#define pc_setaccountreg2str(sd,reg,val) pc_setregistry_str(sd,reg,val,1)
+int pc_readregistry(struct map_session_data*,char*,int);
+int pc_setregistry(struct map_session_data*,char*,int,int);
+char *pc_readregistry_str(struct map_session_data*,char*,int);
+int pc_setregistry_str(struct map_session_data*,char*,char*,int);
 
 int pc_addeventtimer(struct map_session_data *sd,int tick,const char *name);
 int pc_deleventtimer(struct map_session_data *sd,const char *name);

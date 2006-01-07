@@ -56,6 +56,8 @@
 #define GLOBAL_REG_NUM 96
 #define ACCOUNT_REG_NUM 32
 #define ACCOUNT_REG2_NUM 16
+//Should hold the max of GLOBAL/ACCOUNT/ACCOUNT2 (needed for some arrays that hold all three)
+#define MAX_REG_NUM 96
 #define DEFAULT_WALK_SPEED 150
 #define MIN_WALK_SPEED 0
 #define MAX_WALK_SPEED 1000
@@ -198,14 +200,17 @@ struct mmo_charstatus {
 	struct point last_point,save_point,memo_point[MAX_MEMOPOINTS];
 	struct item inventory[MAX_INVENTORY],cart[MAX_CART];
 	struct skill skill[MAX_SKILL];
-	int global_reg_num;
-	struct global_reg global_reg[GLOBAL_REG_NUM];
-	int account_reg_num;
-	struct global_reg account_reg[ACCOUNT_REG_NUM];
-	int account_reg2_num;
-	struct global_reg account_reg2[ACCOUNT_REG2_NUM];
 
 	struct friend friends[MAX_FRIENDS]; //New friend system [Skotlex]
+};
+
+struct registry {
+	int global_num;
+	struct global_reg global[GLOBAL_REG_NUM];
+	int account_num;
+	struct global_reg account[ACCOUNT_REG_NUM];
+	int account2_num;
+	struct global_reg account2[ACCOUNT_REG2_NUM];
 };
 
 struct storage {
