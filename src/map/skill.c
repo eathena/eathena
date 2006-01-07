@@ -1833,7 +1833,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		struct Damage dmg2;
 		dmg2=battle_calc_attack(BF_MAGIC,src,bl,skillid,skilllv,flag&0xff);
 		dmg.damage+=dmg2.damage;
-		dmg.damage2+=dmg2.damage2;
+		dmg.damage2=0;
 	}
 
 	if(skillid==PA_SACRIFICE)
@@ -5099,6 +5099,14 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			map_freeblock_unlock();
 			return 1;
 		}
+		if (sd) {
+			int i = pc_search_inventory (sd, skill_db[skillid].itemid[0]);
+			if(i < 0 || sd->status.inventory[i].amount < skill_db[skillid].amount[0]) {
+				clif_skill_fail(sd,skillid,0,0);
+				break;
+			}
+			pc_delitem(sd, i, skill_db[skillid].amount[0], 0);
+		}
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,skillid,src->id,skill_get_time(skillid,skilllv),1000,0 );
 		break;
@@ -6842,7 +6850,6 @@ int skill_unit_onout(struct skill_unit *src,struct block_list *bl,unsigned int t
 	case 0xad:	// Don't Forget Me
 	case 0xa9:	/* ブラギの詩 */
 	case 0xaa:	/* イドゥンの林檎 */
-	case 0xab:	/* 自分勝手なダンス */
 	case 0xac:	/* ハミング */
 	case 0xae:	/* 幸運のキス */
 	case 0xaf:	/* サ?ビスフォ?ユ? */
@@ -6857,6 +6864,7 @@ int skill_unit_onout(struct skill_unit *src,struct block_list *bl,unsigned int t
 
 	case 0xb4:	// Basilica
 	case 0xb8:	// Gravitation
+	case 0xab:	// Ugly Dance
 		if (sc_data[type].timer!=-1 && sc_data[type].val4==(int)sg) {
 			status_change_end(bl,type,-1);
 		}
@@ -7519,6 +7527,7 @@ int skill_check_condition(struct map_session_data *sd,int type)
 	case SA_FROSTWEAPON:
 	case SA_LIGHTNINGLOADER:
 	case SA_SEISMICWEAPON:
+	case AS_SPLASHER:
 		delitem_flag = 0;
 		break;
 	case CG_HERMODE:

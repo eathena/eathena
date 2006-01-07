@@ -4797,6 +4797,8 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 			if(sd->status.sp<0)
 				sd->status.sp=0;
 			clif_updatestatus(sd,SP_SP);
+			sc_data[type].timer=add_timer(
+				3000+tick, status_change_timer,	bl->id, data);
 		}
 		break;
 

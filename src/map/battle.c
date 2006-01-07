@@ -4405,7 +4405,7 @@ struct Damage battle_calc_magic_attack(
 			break;
 		case ASC_BREAKER:
 			damage = rand()%500 + 500 + skill_lv * status_get_int(bl) * 5;
-			imdef_flag = 1;
+			normalmagic_flag = 0;
 			no_elefix = 1;
 			break;
 		case HW_GRAVITATION:
