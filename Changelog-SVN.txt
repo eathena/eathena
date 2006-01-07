@@ -1,5 +1,6 @@
 Date	Added
 2006/01/07
+	* Added check to make sure guildspy and partyspy variables have value. [Valaris]
 	* Separated the permanent variables from the character status structure. [Skotlex]
 	* permanent variables are now loaded on their own packets as needed to
 	  reduce the bandwidth wasted between servers. [Skotlex]

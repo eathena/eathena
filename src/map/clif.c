@@ -467,7 +467,7 @@ int clif_send (unsigned char *buf, int len, struct block_list *bl, int type) {
 			if (!enable_spy) //Skip unnecessary parsing. [Skotlex]
 				break;
 			for (i = 1; i < fd_max; i++){ // partyspy [Syrus22]
-				if (session[i] && (sd = (struct map_session_data*)session[i]->session_data) != NULL && sd->state.auth && sd->fd) {
+				if (session[i] && (sd = (struct map_session_data*)session[i]->session_data) != NULL && sd->state.auth && sd->fd && sd->partyspy) {
 					if (sd->partyspy == p->party_id) {
 						if (sd->fd && packet_db[sd->packet_ver][RBUFW(buf,0)].len) { // packet must exist for the client version
                                                         WFIFOHEAD(sd->fd,len);
@@ -528,7 +528,7 @@ int clif_send (unsigned char *buf, int len, struct block_list *bl, int type) {
 			if (!enable_spy) //Skip unnecessary parsing. [Skotlex]
 				break;
 			for (i = 1; i < fd_max; i++){ // guildspy [Syrus22]
-				if (session[i] && (sd = (struct map_session_data*)session[i]->session_data) != NULL && sd->state.auth && sd->fd) {
+				if (session[i] && (sd = (struct map_session_data*)session[i]->session_data) != NULL && sd->state.auth && sd->fd && sd->guildspy) {
 					if (sd->guildspy == g->guild_id) {
 						if (packet_db[sd->packet_ver][RBUFW(buf,0)].len) { // packet must exist for the client version
                                                         WFIFOHEAD(sd->fd,len);
