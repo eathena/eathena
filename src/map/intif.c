@@ -259,7 +259,7 @@ int intif_saveregistry(struct map_session_data *sd, int type)
 			ShowError("intif_saveregistry: Invalid type %d\n", type);
 		return -1;
 	}
-	WFIFOHEAD(inter_fd, 288 * MAX_REG_NUM);
+	WFIFOHEAD(inter_fd, 288 * MAX_REG_NUM+13);
 	WFIFOW(inter_fd,0)=0x3004;
 	WFIFOL(inter_fd,4)=sd->status.account_id;
 	WFIFOL(inter_fd,8)=sd->status.char_id;

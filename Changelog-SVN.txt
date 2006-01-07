@@ -1,5 +1,7 @@
 Date	Added
 2006/01/07
+	* Fixed a typo that was making the party item-pickup style shared not
+	  taking effect for the item_first_get_time regardless of setting. [Skotlex]
 	* Applied Playtester's custom mob spawns to the eamobs/ set. [Skotlex]
 	- These custom mob spawns are an experiment to balance out mob spawns and
 	  put some sense into them (no crap like too strong AND too weak mobs on the

@@ -2568,7 +2568,7 @@ int pc_takeitem(struct map_session_data *sd,struct flooritem_data *fitem)
 		first_sd = map_id2sd(fitem->first_get_id);
 		if(DIFF_TICK(tick,fitem->first_get_tick) < 0) {
 			if (!(p && !(p->item&2) &&
-				first_sd && first_sd->status.party_id != sd->status.party_id
+				first_sd && first_sd->status.party_id == sd->status.party_id
 			)) {
 				clif_additem(sd,0,0,6);
 				return 0;
