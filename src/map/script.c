@@ -9456,7 +9456,7 @@ int buildin_getd (struct script_state *st)
 		push_str(st->stack, C_STR, buffer);
 	}*/
 
-	// Push the 'pointer' so it's more flexible and faster [Lance]
+	// Push the 'pointer' so it's more flexible [Lance]
 	push_val(st->stack,C_NAME,
 				(elem<<24) | add_str((unsigned char *) varname));
 
