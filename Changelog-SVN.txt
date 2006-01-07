@@ -1,5 +1,6 @@
 Date	Added
 2006/01/07
+	* updated NoIcewall maplags, thanks to Sir Loon [Lupus]
 	* soundeffectall modified to rely on dependancies depending on situation. [Lance]
 	* Modified getd to return 'pointer' (will be 'dereferenced' automatically) instead of value, 
 	  making it very flexible when paired with getelementofarray() [Lance]
@@ -197,7 +198,7 @@ Date	Added
 	* Implemented SC_INTRAVISION [DracoRPG]
 	* Reorganized a bit DEF/MDEF calculation code [DracoRPG]
 	* Added a small licence notice at the top of every Athena source/header file, I've tried
-	  to put it only where it should have been but I'm not a pro ^^" [DracoRPG]
+	  to put it only where it should have been but I'm not a pro ^^ [DracoRPG]
 2005/12/27
 	* The 50% Weight Icon will now show up at whatever % was specified in
 	  natural_heal_weight_rate [Skotlex]
