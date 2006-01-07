@@ -1,5 +1,8 @@
 Date	Added
 2006/01/07
+	* Corrected Wrath of the Star formula (added missing STR in equation) [Komurka]
+	  - Added movement speed bonus to SG_FUSION (same as PecoPeco gives)
+	  - You can now 'turn off' SG_FUSION
 	* updated NoIcewall maplags, thanks to Sir Loon [Lupus]
 	* soundeffectall modified to rely on dependancies depending on situation. [Lance]
 	* Modified getd to return 'pointer' (will be 'dereferenced' automatically) instead of value, 

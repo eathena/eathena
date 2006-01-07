@@ -5895,9 +5895,13 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case SG_SUN_COMFORT:
 	case SG_MOON_COMFORT:
 	case SG_STAR_COMFORT:
-	case SG_FUSION:
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
+	case SG_FUSION:
+		clif_skill_nodamage(src,bl,skillid,skilllv,1);
+		if (sd->sc_data && sd->sc_data[skillid].timer != -1)
+			status_change_end(&sd->bl,skillid,-1);
+			else status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
 		break;
 
 	default:
@@ -8390,7 +8394,7 @@ int skill_check_condition(struct map_session_data *sd,int type)
 		clif_skill_fail(sd,skill,0,0);
 		return 0;
 	case SG_FUSION:
-		if(sd->sc_data[SC_SPIRIT].timer != -1 && sd->sc_data[SC_SPIRIT].val2 == SL_STAR)
+		if ((sd->sc_data[SC_SPIRIT].timer != -1 && sd->sc_data[SC_SPIRIT].val2 == SL_STAR) || sd->sc_data[SC_FUSION].timer != -1)
 			break;
 		return 0;
 	}

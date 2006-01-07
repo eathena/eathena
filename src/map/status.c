@@ -1593,6 +1593,8 @@ int status_calc_pc(struct map_session_data* sd,int first)
 				s_rate -= 20 * sd->sc_data[SC_LONGING].val1;
 			sd->speed += sd->speed * s_rate/100;
 	}
+	if(sd->sc_data[SC_FUSION].timer != -1) //Additional movement speed from SG_FUSION [Komurka]
+		sd->speed -= sd->speed * 25/100;
 
 	// Apply relative modifiers from equipment
 	if(sd->speed_rate != 100)
