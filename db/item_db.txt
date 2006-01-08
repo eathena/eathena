@@ -2222,8 +2222,8 @@
 12014,Immaterial_Arrow_Quiver,Immaterial Arrow Quiver,2,1500,,250,,,,,127918079,7,2,,,,,,{ getitem 1757,500; }
 12015,Rusty_Arrow_Quiver,Rusty Arrow Quiver,2,1500,,250,,,,,127918079,7,2,,,,,,{ getitem 1762,500; }
 // Speed Potions
-12016,Speed_Increasing_Potion,Speed Potion,2,1000,,100,,,,,127918079,7,2,,,,,,{}
-12017,Speed_Decreasing_Potion,Speed Potion,2,1000,,100,,,,,127918079,7,2,,,,,,{}
+12016,Speed_Increasing_Potion,Speed Potion,0,1000,,100,,,,,127918079,7,2,,,,,,{}
+12017,Speed_Decreasing_Potion,Speed Potion,0,1000,,100,,,,,127918079,7,2,,,,,,{}
 12018,Fire_Cracker,Fire Cracker,2,250,,20,,,,,127918079,7,2,,,,,,{ misceffect(256); }
 12019,Sacred_Egg,Sacred Egg,2,,10,150,,,,,127918079,7,2,,,,,,{}
 12020,Cursed_Water,Cursed_Water,0,,1,30,,,,,127918079,7,2,,,,,,{ sc_start SC_Dark, 1200000, 1; }
@@ -2345,7 +2345,7 @@
 12129,Legendary_Cooking_Set,Legendary Cooking Set,2,,10,70,,,,,127918079,7,2,,,,,,{ produce 11; }
 12130,Cookie_Bag,Cookie Bag,3,,10,70,,,,,127918079,7,2,,,,,,{}
 12131,Lucky_Potion,Lucky Potion,0,,10,100,,,,,127918079,7,2,,,,,,{}
-12132,Santa's_Bag,Red Package,0,,10,200,,,,,127918079,7,2,,,,,,{ sc_start SC_Xmas,600000,0;}
+12132,Santa's_Bag,Red Package,2,,10,200,,,,,127918079,7,2,,,,,,{ sc_start SC_Xmas,600000,0;}
 
 // More Weapons
 //===================================================================

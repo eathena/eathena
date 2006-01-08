@@ -27,6 +27,7 @@
 =========================
 
 01/07
+	* Santa's Bag type 0->2, some potions type 2->0 [Lupus]
 	* Item DB correction. [Vicious]
 
 01/05
