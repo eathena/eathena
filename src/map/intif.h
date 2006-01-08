@@ -13,7 +13,7 @@ int intif_wis_message(struct map_session_data *sd,char *nick,char *mes,int mes_l
 int intif_wis_message_to_gm(char *Wisp_name, int min_gm_level, char *mes);
 
 int intif_saveregistry(struct map_session_data *sd, int type);
-int intif_request_registry(struct map_session_data *sd);
+int intif_request_registry(struct map_session_data *sd, int flag);
 
 int intif_request_storage(int account_id);
 int intif_send_storage(struct storage *stor);

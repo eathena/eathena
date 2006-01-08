@@ -52,7 +52,7 @@ int inter_send_packet_length[] = {
 };
 // recv. packet list
 int inter_recv_packet_length[] = {
-	-1,-1, 7,-1, -1,10, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3000-0x300f
+	-1,-1, 7,-1, -1,13, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3000-0x300f
 	 6,-1, 0, 0,  0, 0, 0, 0, 10,-1, 0, 0,  0, 0,  0, 0, //0x3010-0x301f
 	64, 6,42,14, 14,19, 6,-1, 14,14, 0, 0,  0, 0,  0, 0, //0x3020-0x302f
 	-1, 6,-1,-1, 55,19, 6,-1, 14,-1,-1,-1, 14,19,186,-1, //0x3030-0x303f
@@ -594,11 +594,14 @@ int mapif_parse_Registry(int fd) {
 int mapif_parse_RegistryRequest(int fd)
 {
 	//Load Char Registry
-	char_account_reg_reply(fd,RFIFOL(fd,2),RFIFOL(fd,6));
+	if (RFIFOB(fd,12))
+		char_account_reg_reply(fd,RFIFOL(fd,2),RFIFOL(fd,6));
 	//Load Account Registry
-	mapif_account_reg_reply(fd,RFIFOL(fd,2),RFIFOL(fd,6));
+	if (RFIFOB(fd,11))
+		mapif_account_reg_reply(fd,RFIFOL(fd,2),RFIFOL(fd,6));
 	//Ask Login Server for Account2 values.
-	request_accreg2(RFIFOL(fd,2),RFIFOL(fd,6)-2);
+	if (RFIFOB(fd,10))
+		request_accreg2(RFIFOL(fd,2),RFIFOL(fd,6)-2);
 	return 1;
 }
 

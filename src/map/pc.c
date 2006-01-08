@@ -728,8 +728,8 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 	if (battle_config.display_delay_skill_fail)
 		sd->state.showdelay = 1;
 		
-	// アカウント??の送信要求
-	intif_request_registry(sd);
+	// Request all registries.
+	intif_request_registry(sd,7);
 
 	// アイテムチェック
 	pc_setinventorydata(sd);
@@ -6470,6 +6470,8 @@ int pc_readregistry(struct map_session_data *sd,char *reg,int type) {
 	if (max == -1) {
 		if (battle_config.error_log)
 			ShowError("pc_readregistry: Trying to read reg value %s (type %d) before it's been loaded!\n", reg, type);
+		//This really shouldn't happen, so it's possible the data was lost somewhere, we should request it again.
+		intif_request_registry(sd,type==3?4:type);
 		return 0;
 	}
 	for(i=0;i<max;i++){
@@ -6503,6 +6505,8 @@ char* pc_readregistry_str(struct map_session_data *sd,char *reg,int type) {
 	if (max == -1) {
 		if (battle_config.error_log)
 			ShowError("pc_readregistry: Trying to read reg value %s (type %d) before it's been loaded!\n", reg, type);
+		//This really shouldn't happen, so it's possible the data was lost somewhere, we should request it again.
+		intif_request_registry(sd,type==3?4:type);
 		return NULL;
 	}
 	for(i=0;i<max;i++){

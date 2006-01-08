@@ -281,7 +281,7 @@ int intif_saveregistry(struct map_session_data *sd, int type)
 }
 
 //Request the registries for this player.
-int intif_request_registry(struct map_session_data *sd)
+int intif_request_registry(struct map_session_data *sd, int flag)
 {
 	nullpo_retr(0, sd);
 
@@ -296,7 +296,10 @@ int intif_request_registry(struct map_session_data *sd)
 	WFIFOW(inter_fd,0) = 0x3005;
 	WFIFOL(inter_fd,2) = sd->status.account_id;
 	WFIFOL(inter_fd,6) = sd->status.char_id;
-	WFIFOSET(inter_fd,10);
+	WFIFOB(inter_fd,10) = (flag&1?1:0); //Request Acc Reg 2 
+	WFIFOB(inter_fd,11) = (flag&2?1:0); //Request Acc Reg
+	WFIFOB(inter_fd,12) = (flag&4?1:0); //Request Char Reg
+	WFIFOSET(inter_fd,13);
 
 	return 0;
 }
