@@ -93,7 +93,7 @@ int inter_accreg_fromstr(const char *str, struct accreg *reg) {
 	const char *p = str;
 	int accid;
 
-	if (sscanf(p, "%ld\t%n", &accid, &n ) != 1 || accid <= 0)
+	if (sscanf(p, "%d\t%n", &accid, &n ) != 1 || accid <= 0)
 		return 1;
 
 	reg->account_id = accid;

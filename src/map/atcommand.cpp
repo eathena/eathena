@@ -1841,12 +1841,10 @@ bool atcommand_hide(int fd, struct map_session_data &sd, const char* command, co
  */
 bool atcommand_jobchange(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-	size_t job = 0, upper = 0;
-
-
-	if (!message || !*message || sscanf(message, "%d %d", &job, &upper) < 1) {
-
-		int i, found = 0;
+	int job = 0, upper = 0;
+	if (!message || !*message || sscanf(message, "%d %d", &job, &upper) < 1)
+	{
+		size_t i, found = 0;
 		const struct { char name[16]; int id; } jobs[] = {
 			{ "novice",		0 },
 			{ "swordsman",	1 },
@@ -1921,16 +1919,18 @@ bool atcommand_jobchange(int fd, struct map_session_data &sd, const char* comman
 			{ "soul linker",	4049 },
 		};
 
-		for (i=0; i < (sizeof(jobs) / sizeof(jobs[0])); i++) {
-			if(strncasecmp(message, jobs[i].name, 16) == 0) {
+		for (i=0; i < (sizeof(jobs) / sizeof(jobs[0])); i++)
+		{
+			if( 0==strncasecmp(message, jobs[i].name, 16) )
+			{
 				job = jobs[i].id;
 				upper = 0;
 				found = 1;
 				break;
 			}
 		}
-
-		if (!found) {
+		if (!found)
+		{
 			clif_displaymessage(fd, "Please, enter job ID (usage: @job/@jobchange <job ID>).");
 			return false;
 		}
@@ -1939,9 +1939,9 @@ bool atcommand_jobchange(int fd, struct map_session_data &sd, const char* comman
 	if (job == 37 ||job == 45)
 		return true;
 
-	if ((job >= 0 && job < MAX_PC_CLASS)) {
+	if ((job >= 0 && job < MAX_PC_CLASS))
+	{
 		int j;
-
 		// fix pecopeco display
 		if ((job != 13 && job != 21 && job != 4014 && job != 4022 && job != 4030 && job != 4036 && job != 4037 && job != 4044 )) {
 			if (pc_isriding(sd)) {
@@ -5200,7 +5200,7 @@ bool atcommand_recallall(int fd, struct map_session_data &sd, const char* comman
 
 	clif_displaymessage(fd, msg_table[92]); // All characters recalled!
 	if (count) {
-		sprintf(output, "Because you are not authorised to warp from some maps, %d player(s) have not been recalled.", count);
+		sprintf(output, "Because you are not authorised to warp from some maps, %ld player(s) have not been recalled.", (unsigned long)(count));
 		clif_displaymessage(fd, output);
 	}
 
@@ -5247,7 +5247,7 @@ bool atcommand_guildrecall(int fd, struct map_session_data &sd, const char* comm
 		sprintf(output, msg_table[93], g->name); // All online characters of the %s guild are near you.
 		clif_displaymessage(fd, output);
 		if (count) {
-			sprintf(output, "Because you are not authorised to warp from some maps, %d player(s) have not been recalled.", count);
+			sprintf(output, "Because you are not authorised to warp from some maps, %ld player(s) have not been recalled.", (unsigned long)(count));
 			clif_displaymessage(fd, output);
 		}
 	} else {
@@ -5298,7 +5298,7 @@ bool atcommand_partyrecall(int fd, struct map_session_data &sd, const char* comm
 		sprintf(output, msg_table[95], p->name); // All online characters of the %s party are near you.
 		clif_displaymessage(fd, output);
 		if (count) {
-			sprintf(output, "Because you are not authorised to warp from some maps, %d player(s) have not been recalled.", count);
+			sprintf(output, "Because you are not authorised to warp from some maps, %ld player(s) have not been recalled.", (unsigned long)(count));
 			clif_displaymessage(fd, output);
 		}
 	} else {
@@ -5481,7 +5481,7 @@ bool atcommand_mapinfo(int fd, struct map_session_data &sd, const char* command,
 			chat_num++;
 		}
 	}
-	sprintf(output, "Map Name: %s | Players In Map: %d | NPCs In Map: %d | Chats In Map: %d", mapname, map[m_id].users, map[m_id].npc_num, chat_num);
+	sprintf(output, "Map Name: %s | Players In Map: %ld | NPCs In Map: %ld | Chats In Map: %d", mapname, (unsigned long)(map[m_id].users), (unsigned long)(map[m_id].npc_num), chat_num);
 	clif_displaymessage(fd, output);
 	clif_displaymessage(fd, "------ Map Flags ------");
 	strcpy(output,"PvP Flags: ");
@@ -5587,8 +5587,8 @@ bool atcommand_mapinfo(int fd, struct map_session_data &sd, const char* command,
 		clif_displaymessage(fd, "----- Players in Map -----");
 		for (i = 0; i < fd_max; i++) {
 			if(session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth && strcmp(pl_sd->mapname, mapname) == 0) {
-				sprintf(output, "Player '%s' (session #%d) | Location: %d,%d",
-				        pl_sd->status.name, i, pl_sd->bl.x, pl_sd->bl.y);
+				sprintf(output, "Player '%s' (session #%ld) | Location: %d,%d",
+				        pl_sd->status.name, (unsigned long)(i), pl_sd->bl.x, pl_sd->bl.y);
 				clif_displaymessage(fd, output);
 			}
 		}
@@ -5609,8 +5609,8 @@ bool atcommand_mapinfo(int fd, struct map_session_data &sd, const char* command,
 			case 9:  strcpy(direction, "North"); break;
 			default: strcpy(direction, "Unknown"); break;
 			}
-			sprintf(output, "NPC %d: %s | Direction: %s | Sprite: %d | Location: %d %d",
-			        ++i, nd->name, direction, nd->class_, nd->bl.x, nd->bl.y);
+			sprintf(output, "NPC %ld: %s | Direction: %s | Sprite: %d | Location: %d %d",
+			        (unsigned long)(++i), nd->name, direction, nd->class_, nd->bl.x, nd->bl.y);
 			clif_displaymessage(fd, output);
 		}
 		break;
@@ -5621,8 +5621,8 @@ bool atcommand_mapinfo(int fd, struct map_session_data &sd, const char* command,
 			    (cd = (struct chat_data*)map_id2bl(pl_sd->chatID)) &&
 			    strcmp(pl_sd->mapname, mapname) == 0 &&
 			    cd->usersd[0] == pl_sd) {
-				sprintf(output, "Chat %d: %s | Player: %s | Location: %d %d",
-				        i, cd->title, pl_sd->status.name, cd->bl.x, cd->bl.y);
+				sprintf(output, "Chat %ld: %s | Player: %s | Location: %d %d",
+				        (unsigned long)(i), cd->title, pl_sd->status.name, cd->bl.x, cd->bl.y);
 				clif_displaymessage(fd, output);
 				sprintf(output, "   Users: %d/%d | Password: %s | Public: %s",
 				        cd->users, cd->limit, cd->pass, (cd->pub) ? "Yes" : "No");
@@ -6633,9 +6633,9 @@ bool atcommand_character_storage_list(int fd, struct map_session_data &sd, const
 							if(stor->storage[i].card[j]) {
 								if((item_temp = itemdb_exists(stor->storage[i].card[j])) != NULL) {
 									if( output[0] == '\0')
-										sprintf(outputtmp, " -> (card(s): #%d %s (%s), ", ++counter2, item_temp->name, item_temp->jname);
+										sprintf(outputtmp, " -> (card(s): #%ld %s (%s), ", (unsigned long)(++counter2), item_temp->name, item_temp->jname);
 									else
-										sprintf(outputtmp, "#%d %s (%s), ", ++counter2, item_temp->name, item_temp->jname);
+										sprintf(outputtmp, "#%ld %s (%s), ", (unsigned long)(++counter2), item_temp->name, item_temp->jname);
 									strcat(output, outputtmp);
 								}
 							}
@@ -6650,7 +6650,7 @@ bool atcommand_character_storage_list(int fd, struct map_session_data &sd, const
 				if(count == 0)
 					clif_displaymessage(fd, "No item found in the storage of this player.");
 				else {
-					sprintf(output, "%d item(s) found in %d kind(s) of items.", counter, count);
+					sprintf(output, "%ld item(s) found in %ld kind(s) of items.", (unsigned long)(counter), (unsigned long)(count));
 					clif_displaymessage(fd, output);
 				}
 			} else {
@@ -6713,9 +6713,9 @@ bool atcommand_character_cart_list(int fd, struct map_session_data &sd, const ch
 						if (pl_sd->status.cart[i].card[j]) {
 							if ( (item_temp = itemdb_exists(pl_sd->status.cart[i].card[j])) != NULL) {
 								if(output[0] == '\0')
-									sprintf(outputtmp, " -> (card(s): #%d %s (%s), ", ++counter2, item_temp->name, item_temp->jname);
+									sprintf(outputtmp, " -> (card(s): #%ld %s (%s), ", (unsigned long)(++counter2), item_temp->name, item_temp->jname);
 								else
-									sprintf(outputtmp, "#%d %s (%s), ", ++counter2, item_temp->name, item_temp->jname);
+									sprintf(outputtmp, "#%ld %s (%s), ", (unsigned long)(++counter2), item_temp->name, item_temp->jname);
 								strcat(output, outputtmp);
 							}
 						}
@@ -6730,7 +6730,7 @@ bool atcommand_character_cart_list(int fd, struct map_session_data &sd, const ch
 			if (count == 0)
 				clif_displaymessage(fd, "No item found in the cart of this player.");
 			else {
-				sprintf(output, "%d item(s) found in %d kind(s) of items.", counter, count);
+				sprintf(output, "%ld item(s) found in %ld kind(s) of items.", (unsigned long)(counter), (unsigned long)(count));
 				clif_displaymessage(fd, output);
 			}
 		} else {
@@ -7063,7 +7063,7 @@ bool atcommand_skillid(int fd, struct map_session_data &sd, const char* command,
 			(skill_db[idx].desc && strncasecmp(skill_db[idx].desc, message, skillen) == 0))
 		{
 			char output[256];
-			snprintf(output, sizeof(output),"skill %d: %s", idx, skill_db[idx].desc);
+			snprintf(output, sizeof(output),"skill %ld: %s", (unsigned long)(idx), skill_db[idx].desc);
 			clif_displaymessage(fd, output);
 		}
 
@@ -7818,7 +7818,7 @@ public:
 	virtual bool process(void *key, void *data) const
 	{
 		char buf[256];
-		snprintf(buf, sizeof(buf), "%s : %d (%d%%)",(char *)key,(ssize_t)data,(ssize_t)data * 100 / users_all);
+		snprintf(buf, sizeof(buf), "%s : %ld (%ld%%)",(char *)key,(unsigned long)((ssize_t)data),(unsigned long)((ssize_t)data * 100 / users_all));
 		clif_displaymessage(sd.fd, buf);
 		return true;
 	}
@@ -7828,7 +7828,7 @@ int atcommand_users_sub2(iterator iter, struct map_session_data& sd)
 	char buf[256];
 	while(iter)
 	{
-		sprintf(buf,"%s : %d (%d%%)",(char *)iter.key(),(ssize_t)iter.data(),(ssize_t)iter.data()* 100 / users_all);
+		sprintf(buf,"%s : %ld (%ld%%)",(char *)iter.key(),(unsigned long)((ssize_t)iter.data()),(unsigned long)((ssize_t)iter.data()* 100 / users_all));
 		clif_displaymessage(sd.fd,buf);
 		iter++;
 	}
@@ -7864,7 +7864,7 @@ bool atcommand_summon(int fd, struct map_session_data &sd, const char* command, 
 	int x = 0;
 	int y = 0;
 	uint32 id = 0;
-	size_t duration = 0;
+	int duration = 0;
 	struct mob_data *md;
 	unsigned long tick=gettick();
 
@@ -9198,7 +9198,7 @@ bool atcommand_me(int fd, struct map_session_data &sd, const char* command, cons
  */
 bool atcommand_size(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-	size_t size=0;
+	int size=0;
 
 	if (!message || !*message)
 		return false;
@@ -9206,12 +9206,11 @@ bool atcommand_size(int fd, struct map_session_data &sd, const char* command, co
 	if (sscanf(message,"%d", &size) < 1)
 		return false;
 
-	if(sd.state.viewsize) {
+	if(size==0 || sd.state.viewsize) {
 		sd.state.viewsize=0;
 		pc_setpos(sd, sd.mapname, sd.bl.x, sd.bl.y, 3);
 	}
-
-	if(size==1) {
+	else if(size==1) {
 		sd.state.viewsize=1;
 		clif_specialeffect(sd.bl,420,0);
 	} else if(size==2) {

@@ -99,10 +99,10 @@ void db_free_unlock(struct dbt *table);
 
 class iterator
 {
-	struct dbn *curr;
 	struct dbt* table;
+	struct dbn *curr;
 public:
-	iterator(struct dbt* t) : table(t)
+	iterator(struct dbt* t) : table(t), curr(NULL)
 	{
 		if(table)
 		{
@@ -123,6 +123,7 @@ public:
 		curr  = iter.curr;
 		if(table)
 			db_free_lock(table);
+		return *this;
 	}
 	~iterator()
 	{
@@ -797,6 +798,7 @@ public:
 		t.freelock();
 		table = &t;
 		curr  = t.head;
+		return *this;
 	}
 	~CIterator()
 	{
@@ -847,7 +849,8 @@ public:
 	bool erase()
 	{
 		if( table && curr && curr!=curr->left)
-			table->erase(curr->key);
+			return table->erase(curr->key);
+		return false;
 	}
 
 };

@@ -183,7 +183,7 @@ public:
 		if (bl.id == target.id)
 			return 0;
 
-		if (c >= sizeof(bl_list)/sizeof(bl_list[0]))
+		if ((size_t)c >= sizeof(bl_list)/sizeof(bl_list[0]))
 			return 0;
 
 		if (bl.type == BL_PC)
@@ -588,11 +588,21 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 				status_change_end(bl, SC_SPIDERWEB, -1);
 			}
 
-		if(sc_data[SC_FOGWALL].timer != -1 && flag&BF_MAGIC)
-			if(rand()%100 < 75)
+		//Only targetted magic skills are nullified.
+		if( sc_data[SC_FOGWALL].timer != -1 && 
+			flag&BF_MAGIC && 
+			!(skill_get_inf(skill_num)&INF_GROUND_SKILL) &&
+			rand()%100 < 75 )
 				damage = 0;
 	}
 
+	//SC effects from caster side.
+	sc_data = status_get_sc_data(src);
+	if( sc_data && sc_data[SC_FOGWALL].timer != -1 && 
+		flag&BF_MAGIC && !(skill_get_inf(skill_num)&INF_GROUND_SKILL) &&
+		rand()%100 < 75 )
+		damage = 0;
+	
 	if(class_ == MOBID_EMPERIUM || class_ == 1287 || class_ == 1286 || class_ == 1285) {
 		if(class_ == MOBID_EMPERIUM && (flag&BF_SKILL || skill_num == ASC_BREAKER || skill_num == PA_SACRIFICE))
 			damage=0;
@@ -4118,6 +4128,12 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 	}
 	
 	//SC_data fixes
+	if (sc_data)
+	{
+		if( sc_data[SC_FOGWALL].timer != -1 && wd.flag&BF_LONG )
+			ATK_RATE(50);
+	}
+	
 	if (t_sc_data)
 	{
 		short scfix=1000;

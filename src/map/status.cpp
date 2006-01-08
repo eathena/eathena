@@ -4757,7 +4757,7 @@ int status_change_timer(int tid, unsigned long tick, int id, intptr data)
 	struct block_list *bl=map_id2bl(id);
 
 #ifdef nullpo_retr_f
-	nullpo_retr_f(0, bl, "id=%d data=%d",id,data.num);
+	nullpo_retr_f(0, bl, "id=%d data=%ld",id,(unsigned long)data.num);
 #else
 	nullpo_retr(0, bl);
 #endif

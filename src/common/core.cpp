@@ -3,8 +3,8 @@
 
 #define LOG_UPTIME 0
 
-#include "basestring.h"
-
+#include "base.h"
+#include "baseparam.h"
 #include "mmo.h"
 #include "malloc.h"
 #include "core.h"
@@ -253,10 +253,22 @@ void display_title(void)
 
 int main (int argc, char **argv)
 {
+///////////////////////////////////////////////////////////////////////////
+// test case entrance point
+
 //	stringtest();
 //	stringbuffer_test();
+//	test_algo(1);
 //	return 0;
+
+///////////////////////////////////////////////////////////////////////////
+
 	int next;
+
+	///////////////////////////////////////////////////////////////////////////
+	// read in parameters from commandline
+	parseCommandline(argc, argv);
+
 	///////////////////////////////////////////////////////////////////////////
 	// startup
 	init_signal();

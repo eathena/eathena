@@ -1,0 +1,124 @@
+#ifndef __BASECHARSET_H__
+#define __BASECHARSET_H__
+
+#include "basetypes.h"
+
+
+///////////////////////////////////////////////////////////////////////////////
+// test case
+void test_charset();
+
+
+///////////////////////////////////////////////////////////////////////////////
+// 4bit number <-> hex character
+///////////////////////////////////////////////////////////////////////////////
+template <class T> uchar char2hex(T c);
+template <class T> uchar str2hex(const T*& p) ;
+template <class T> T hex2char(uchar c);
+
+
+
+//////////////////////////////////////////////////////////////////////////
+// ansi character set
+// contains sets of characters with various math/compare operations
+// sets can be defined by strings containing the characters itself
+// or escaped ansi hex codes of the chars, ranges can be given with '-'
+//
+// ie: "abcdefg" == "a-g" =="~61-~67"
+//
+// locase/upcase has to be handled manually
+//////////////////////////////////////////////////////////////////////////
+const int _csetbits = 256;
+const int _csetbytes = _csetbits / 8;
+const int _csetwords = _csetbytes / sizeof(ulong);
+const char _csetesc = '~';	// escape character in charset strings
+
+// predeclaration
+template <class T> class string;
+
+class charset 
+{
+protected:
+	union
+	{
+		uchar	bytedata[_csetbytes];
+		ulong	worddata[_csetwords];
+	};
+public:
+	charset()									{ clear(); }
+	charset(const charset& s)					{ assign(s); }
+	charset(const char* setinit)				{ assign(setinit); }
+
+	void assign(const charset& s)				{ memcpy(bytedata, s.bytedata, _csetbytes); }
+	void assign(const char* setinit);
+	void clear()								{ memset(bytedata, 0, _csetbytes); }
+	void fill()									{ memset(bytedata, -1, _csetbytes); }
+	void include(char b)						{ bytedata[uchar(b) / 8] |= uchar(1 << (uchar(b) % 8)); }
+	void include(const char *c)					{ if(c) while(*c) this->include(*c++); }
+	void include(char min, char max);
+	void exclude(char b)						{ bytedata[uchar(b) / 8] &= uchar(~(1 << (uchar(b) % 8))); }
+	void exclude(char min, char max);
+	void exclude(const char *c)					{ if(c) while(*c) this->exclude(*c++); }
+	void unite(const charset& s);
+	void subtract(const charset& s);
+	void intersect(const charset& s);
+	void invert();
+	bool contains(char b) const					{ return (bytedata[uchar(b) / 8] & (1 << (uchar(b) % 8))) != 0; }
+	bool contains(const char* c) const			{ if(c) while(*c) if(this->contains(*c++)) return true; return false; }
+	bool containsall(const char* c) const		{ if(c) while(*c) if(!this->contains(*c++)) return false; return true; }
+	bool eq(const charset& s) const				{ return memcmp(bytedata, s.bytedata, _csetbytes) == 0; }
+	bool le(const charset& s) const;
+
+	charset& operator= (const charset& s)		{ assign(s); return *this; }
+	charset& operator= (const char* c)			{ assign(c); return *this; }
+	charset& operator+= (const charset& s)		{ unite(s); return *this; }
+	charset& operator+= (char b)				{ include(b); return *this; }
+	charset& operator+= (const char* c)			{ include(c); return *this; }
+	charset operator+ (const charset& s) const	{ charset t = *this; return t += s; }
+	charset operator+ (char b) const			{ charset t = *this; return t += b; }
+	charset operator+ (const char* c) const		{ charset t = *this; return t += c; }
+	charset& operator-= (const charset& s)		{ subtract(s); return *this; }
+	charset& operator-= (char b)				{ exclude(b); return *this; }
+	charset& operator-= (const char* c)			{ exclude(c); return *this; }
+	charset operator- (const charset& s) const	{ charset t = *this; return t -= s; }
+	charset operator- (char b) const			{ charset t = *this; return t -= b; }
+	charset operator- (const char* c) const		{ charset t = *this; return t -= c; }
+	charset& operator*= (const charset& s)		{ intersect(s); return *this; }
+	charset operator* (const charset& s) const	{ charset t = *this; return t*=s; }
+	charset operator! () const					{ charset t = *this; t.invert(); return t; }
+	bool operator== (const charset& s) const	{ return eq(s); }
+	bool operator!= (const charset& s) const	{ return !eq(s); }
+	bool operator<= (const charset& s) const	{ return le(s); }
+	bool operator<  (const charset& s) const	{ return !s.le(*this); }
+	bool operator>= (const charset& s) const	{ return s.le(*this); }
+	bool operator>  (const charset& s) const	{ return !le(s); }
+
+	friend charset operator+ (char b, const charset& s)			{ return s + b; }
+	friend charset operator+ (const char* c, const charset& s)	{ return s + c; }
+	friend charset operator- (char b, const charset& s)			{ return s - b; }
+	friend charset operator- (const char* c, const charset& s)	{ return s - c; }
+	friend bool operator& (char b, const charset& s)			{ return s.contains(b); }
+	friend bool operator& (const char* c, const charset& s)		{ return s.contains(c); }
+	friend void assign(charset& s, const char* setinit)			{ s.assign(setinit); }
+	friend void clear(charset& s)								{ s.clear(); }
+	friend void fill(charset& s)								{ s.fill(); }
+	friend void include(charset& s, char b)						{ s.include(b); }
+	friend void include(charset& s, char min, char max)			{ s.include(min, max); }
+	friend void include(charset& s, const char* c)				{ s.include(c); }
+	friend void exclude(charset& s, char b)						{ s.exclude(b); }
+	friend void exclude(charset& s, char min, char max)			{ s.exclude(min, max); }
+	friend void exclude(charset& s, const char* c)				{ s.exclude(c); }
+
+	friend string<char> tostring(const charset& s);
+	template<class T> friend string<T>& tostring(string<T>& str, const charset& s);
+};
+
+
+
+
+
+
+
+
+#endif//__BASECHARSET_H__
+

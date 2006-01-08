@@ -51,8 +51,8 @@ class CFDSET
 {
 	///////////////////////////////////////////////////////////////////////////
 	// class data
-	unsigned long	cSZ;		// alloced size
 	unsigned long*	cArray;		// array pointer
+	unsigned long	cSZ;		// alloced size
 
 	///////////////////////////////////////////////////////////////////////////
 	// resize the array; only grow, no shrink
@@ -697,8 +697,8 @@ class DDoS
 	};
 
 	struct _access_control {
-		unsigned long ip;
-		unsigned long mask;
+		uint32 ip;
+		uint32 mask;
 	};
 	struct _connect_history {
 		struct _connect_history *next;
@@ -788,8 +788,8 @@ public:
 		for(i = 0;i < access_allownum; i++) {
 			if((ip & access_allow[i].mask) == (access_allow[i].ip & access_allow[i].mask)) {
 				if(access_debug) {
-					ShowMessage("connect_check: match allow list from:%08x ip:%08x mask:%08x\n",
-						ip,access_allow[i].ip,access_allow[i].mask);
+					printf("connect_check: match allow list from:%08lx ip:%08lx mask:%08lx\n",
+						(unsigned long)ip,(unsigned long)access_allow[i].ip,(unsigned long)access_allow[i].mask);
 				}
 				is_allowip = 1;
 				break;
@@ -799,7 +799,7 @@ public:
 			if((ip & access_deny[i].mask) == (access_deny[i].ip & access_deny[i].mask)) {
 				if(access_debug) {
 					printf("connect_check: match deny list  from:%08lx ip:%08lx mask:%08lx\n",
-						ip,access_deny[i].ip,access_deny[i].mask);
+						(unsigned long)ip,(unsigned long)access_deny[i].ip,(unsigned long)access_deny[i].mask);
 				}
 				is_denyip = 1;
 				break;

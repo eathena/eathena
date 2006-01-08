@@ -25,7 +25,7 @@ class Variant
 			int64		cInteger;
 			// double
 			double		cFloat;
-			// string (actually a pointer to a MiniString object since a class cannot be a union member)
+			// string (actually a pointer to a string<> object since a class cannot be a union member)
 			void*		cString;
 			// array
 			Variant*	cArray;
@@ -49,9 +49,9 @@ class Variant
 		{}
 		_value(const double val) :cType(VAR_FLOAT), cFloat(val), cSize(1)
 		{}
-		_value(const char* val) :cType(VAR_STRING), cString(new MiniString(val)), cSize(1)
+		_value(const char* val) :cType(VAR_STRING), cString(new string<>(val)), cSize(1)
 		{}
-		_value(const MiniString& val) :cType(VAR_STRING), cString(new MiniString(val)), cSize(1)
+		_value(const string<>& val) :cType(VAR_STRING), cString(new string<>(val)), cSize(1)
 		{}
 
 		///////////////////////////////////////////////////////////////////////
@@ -76,7 +76,7 @@ class Variant
 			assign(val);
 			return *this; 
 		}
-		const _value& operator=(const MiniString& val)
+		const _value& operator=(const string<>& val)
 		{
 			assign(val);
 			return *this; 
@@ -88,7 +88,6 @@ class Variant
 			clear();
 			switch(v.cType)
 			{
-			//case VAR_NONE: // already initialized for this
 			case VAR_INTEGER:
 				cType = VAR_INTEGER;
 				cSize=1;
@@ -102,7 +101,7 @@ class Variant
 			case VAR_STRING:
 				cType = VAR_STRING;
 				cSize=1;
-				cString = (void*)(new MiniString( *((MiniString*)v.cString)) );
+				cString = (void*)(new string<>( *((string<>*)v.cString)) );
 				break;
 			case VAR_ARRAY:
 			{
@@ -114,6 +113,9 @@ class Variant
 					cArray[i] = v.cArray[i];
 				break;
 			}
+			case VAR_NONE: // already initialized for this
+			default:
+				break;
 			}
 		}
 		void assign(const int val)
@@ -135,14 +137,14 @@ class Variant
 			clear();
 			cType = VAR_STRING;
 			cSize=1;
-			cString = (void*)(new MiniString(val));
+			cString = (void*)(new string<>(val));
 		}
-		void assign(const MiniString& val)
+		void assign(const string<>& val)
 		{
 			clear();
 			cType = VAR_STRING;
 			cSize=1;
-			cString = (void*)(new MiniString(val));
+			cString = (void*)(new string<>(val));
 		}
 
 		///////////////////////////////////////////////////////////////////////
@@ -155,11 +157,12 @@ class Variant
 				if(cArray) delete [] cArray;
 				break;
 			case VAR_STRING:
-				if(cString) delete ((MiniString*)cString);
+				if(cString) delete ((string<>*)cString);
 				break;
-			//case VAR_INTEGER:
-			//case VAR_FLOAT:
-			//case VAR_VARIABLE:
+			case VAR_INTEGER:
+			case VAR_FLOAT:
+			default:
+				break;
 			}
 			cType = VAR_NONE;
 			cInteger = 0;
@@ -181,7 +184,6 @@ class Variant
 			temp[0].cValue->cSize = this->cSize;
 			switch(this->cType)
 			{
-			//case VAR_NONE: // already initialized for this
 			case VAR_INTEGER:
 				temp[0].cValue->cInteger = this->cInteger; 
 				break;
@@ -193,6 +195,9 @@ class Variant
 				break;
 			case VAR_ARRAY:
 				temp[0].cValue->cArray = this->cArray;
+				break;
+			case VAR_NONE: // already initialized for this
+			default:
 				break;
 			}
 			// make this an array
@@ -339,13 +344,13 @@ public:
 				assign("");
 				break;
 			case _value::VAR_INTEGER:
-				assign( MiniString((int)(cValue->cInteger)) );
+				assign( string<>((int)(cValue->cInteger)) );
 				break;
 			case _value::VAR_FLOAT:
-				assign( MiniString(cValue->cFloat) );
+				assign( string<>(cValue->cFloat) );
 				break;
-			//case VAR_STRING:
-			//	break;
+			case _value::VAR_STRING:
+				break;
 			case _value::VAR_ARRAY:
 				assign( cValue->cArray[0].getString() );
 				break;
@@ -390,22 +395,22 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	// access conversion 
-	MiniString getString() const
+	string<> getString() const
 	{
 		switch(cValue->cType)
 		{
 		case _value::VAR_NONE:
 			break;
 		case _value::VAR_INTEGER:
-			return MiniString((int)(cValue->cInteger));
+			return string<>((int)(cValue->cInteger));
 		case _value::VAR_FLOAT:
-			return MiniString(cValue->cFloat);
+			return string<>(cValue->cFloat);
 		case _value::VAR_STRING:
-			return *((MiniString*)(cValue->cString));
+			return *((string<>*)(cValue->cString));
 		case _value::VAR_ARRAY:
 			return cValue->cArray[0].getString();
 		}	
-		return MiniString("");
+		return string<>("");
 	}
 	double getFloat() const
 	{
@@ -418,7 +423,7 @@ public:
 		case _value::VAR_FLOAT:
 			return cValue->cFloat;
 		case _value::VAR_STRING:
-			return atof(*((MiniString*)(cValue->cString)));
+			return atof(*((string<>*)(cValue->cString)));
 		case _value::VAR_ARRAY:
 			return cValue->cArray[0].getFloat();
 		}	
@@ -435,7 +440,7 @@ public:
 		case _value::VAR_FLOAT:
 			return (int)( floor(0.5+cValue->cFloat) );
 		case _value::VAR_STRING:
-			return atoi(*((MiniString*)(cValue->cString)));
+			return atoi(*((string<>*)(cValue->cString)));
 		case _value::VAR_ARRAY:
 			return cValue->cArray[0].getInt();
 		}	
@@ -550,7 +555,7 @@ public:
 		else if( isString() || v.isString() )
 		{	// add as strings
 			convert2string();
-			MiniString* pstr = (MiniString*)(cValue->cString);
+			string<>* pstr = (string<>*)(cValue->cString);
 			*pstr += v.getString();
 		}
 		else if( isFloat() || v.isFloat() )
@@ -879,7 +884,7 @@ public:
 		else if( isString() || v.isString() )
 		{	// make it append two strings
 			convert2string();
-			MiniString* pstr = (MiniString*)(cValue->cString);
+			string<>* pstr = (string<>*)(cValue->cString);
 			*pstr += v.getString();
 		}
 		else
@@ -1194,7 +1199,7 @@ class Variable
 	const Variable& operator=(const Variable&);	// no assign
 
 public:
-	MiniString	cName;
+	string<>	cName;
 	Variant		cValue;
 	///////////////////////////////////////////////////////////////////////////
 	// Construct/Destruct
@@ -1206,7 +1211,7 @@ public:
 	bool setsize(size_t cnt)
 	{
 	//	cValue.setarray(cnt);
-
+		return true;
 	}
 	///////////////////////////////////////////////////////////////////////////
 	// Set Values
@@ -1692,6 +1697,7 @@ class UserStack : private noncopyable
 			}
 			}// end switch
 		}// end while
+		return true;
 	}
 
 public:
@@ -1708,6 +1714,7 @@ public:
 	{		
 
 	
+		return true;
 	}
 	///////////////////////////////////////////////////////////////////////////
 	// comming back from a callback
@@ -4458,9 +4465,9 @@ const unsigned char* getEngine(ulong &sz)
 /*
 	static unsigned char buffer2[128*1024];
 	FILE *fp = fopen("eascript.cgt", "rb");
-	sz=fread(buffer, 1, sizeof(buffer), fp);
-
 	ulong i, sz2;
+
+	sz=fread(buffer, 1, sizeof(buffer), fp);
 	zlib_encode(buffer2, sz2, buffer, sz);
 
 	for(i=0; i<sz2; i++)
@@ -4473,7 +4480,7 @@ const unsigned char* getEngine(ulong &sz)
 	sz = sizeof(buffer);
 	if( 0==zlib_decode(buffer, sz, engine, sizeof(engine)) )
 	{
-		printf("loading engine...(%i)\n", sz);
+		printf("loading engine...(%li)\n", sz);
 		return buffer;
 	}
 	return NULL;

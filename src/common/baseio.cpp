@@ -853,7 +853,7 @@ private:
 				else
 				{
 					ShowStatus("%d accounts read in %s,\n", cList.size(), account_filename);
-					snprintf(line, sizeof(line), "%d accounts read in %s,", cList.size(), account_filename);
+					snprintf(line, sizeof(line), "%ld accounts read in %s,", (unsigned long)cList.size(), account_filename);
 				}
 				if (GM_count == 0)
 				{
@@ -2512,7 +2512,7 @@ public:
 			{	// update readflag of own unread mails				
 				size_t sz = snprintf(buffer, sizeof(buffer),
 					"%lu\t%c\t%lu\t%.24s\t%lu\t%.24s\t%.32s\t%.80s\t\n",
-					mmid, '1', 
+					(unsigned long)mmid, '1', 
 					(unsigned long)sid, sname,
 					(unsigned long)tid, mail.name,
 					mail.head, mail.body);
@@ -2563,7 +2563,7 @@ public:
 
 				size_t sz = snprintf(buffer, sizeof(buffer),
 					"%lu\t%c\t%lu\t%.24s\t%lu\t%.24s\t%.32s\t%.80s\t\n",
-					mid, '0', 
+					(unsigned long)mid, '0', 
 					(unsigned long)senderid, sname,
 					(unsigned long)targetid, tname,
 					h, b);
@@ -3057,7 +3057,7 @@ class CGuildDB_txt : public CTimerBase, private CConfig, public CGuildDBInterfac
 			if(g.alliance[i].guild_id > 0)
 				c++;
 
-		len += snprintf(str + len, maxlen-len, "%d\t", c);
+		len += snprintf(str + len, maxlen-len, "%ld\t", (unsigned long)c);
 
 		for(i = 0; i < MAX_GUILDALLIANCE; i++)
 		{
@@ -3070,7 +3070,7 @@ class CGuildDB_txt : public CTimerBase, private CConfig, public CGuildDBInterfac
 			if (g.explusion[i].account_id > 0)
 				c++;
 
-		len += snprintf(str + len, maxlen-len, "%d\t", c);
+		len += snprintf(str + len, maxlen-len, "%ld\t", (unsigned long)c);
 		for(i = 0; i < MAX_GUILDEXPLUSION; i++)
 		{
 			const struct guild_explusion &e = g.explusion[i];
@@ -3437,7 +3437,7 @@ public:
 			safestrcpy(tmp.position[0].name,"GuildMaster", sizeof(tmp.position[0].name));
 			safestrcpy(tmp.position[MAX_GUILDPOSITION-1].name,"Newbie", sizeof(tmp.position[0].name));
 			for(i=1; i<MAX_GUILDPOSITION-1; i++)
-				snprintf(tmp.position[i].name,sizeof(tmp.position[0].name),"Position %d",i+1);
+				snprintf(tmp.position[i].name,sizeof(tmp.position[0].name),"Position %ld",(unsigned long)(i+1));
 
 			tmp.max_member=16;
 			tmp.average_lv=tmp.member[0].lv;
@@ -4480,8 +4480,10 @@ class CPetDB_txt : public CTimerBase, private CConfig, public CPetDBInterface
 			pet.intimate = 1000;
 
 		len=snprintf(str, sz, "%ld,%d,%s\t%ld,%ld,%d,%d,%d,%d,%d,%d,%d",
-			(unsigned long)pet.pet_id,pet.class_,pet.name,pet.account_id,pet.char_id,pet.level,pet.egg_id,
-			pet.equip_id,pet.intimate,pet.hungry,pet.rename_flag,pet.incuvate);
+			(unsigned long)pet.pet_id,pet.class_,pet.name,
+			(unsigned long)pet.account_id,(unsigned long)pet.char_id,
+			pet.level,pet.egg_id, pet.equip_id,pet.intimate,pet.hungry,
+			pet.rename_flag,pet.incuvate);
 
 		return len;
 	}

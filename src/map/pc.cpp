@@ -3029,73 +3029,58 @@ public:
 //** pc.c: Small Steal Item fix by fritz
 int pc_steal_item(struct map_session_data &sd,struct block_list *bl)
 {
+	int flag=0;
 	if(bl != NULL && bl->type == BL_MOB)
 	{
 		unsigned short itemid;
-		int flag, skill;
-		size_t i, count;
+		int skill;
+		size_t i;
 		struct mob_data *md=(struct mob_data *)bl;
 
-		if( !md->state.steal_flag && 
+		if( !map[md->bl.m].flag.nomobloot &&			// check noloot map flag [Lorky]
+			bl && bl->type == BL_MOB &&
+			!md->state.steal_flag && 
 			mob_db[md->class_].mexp <= 0 && 
 			!(mob_db[md->class_].mode&0x20) &&
+			!md->state.steal_flag &&
+			!(md->sc_data && (md->sc_data[SC_STONE].timer != -1 || md->sc_data[SC_FREEZE].timer != -1)) &&
 			md->cache &&								// prevent stealing from summoned creatures. [Skotlex]
-			!(md->class_>=1324 && md->class_<1364) &&	// prevent stealing from treasure boxes [Valaris]
-			!map[md->bl.m].flag.nomobloot )				// check noloot map flag [Lorky]
-
+			!(md->class_>=1324 && md->class_<1364) )	// prevent stealing from treasure boxes [Valaris]
 		{
-			if (md->sc_data && (md->sc_data[SC_STONE].timer != -1 || md->sc_data[SC_FREEZE].timer != -1))
-				return 0;
 			skill = battle_config.skill_steal_type == 1
 				? (sd.paramc[4] - mob_db[md->class_].dex)/2 + pc_checkskill(sd,TF_STEAL)*6 + 10
 				: sd.paramc[4] - mob_db[md->class_].dex + pc_checkskill(sd,TF_STEAL)*3 + 10;
 
 			if(0 < skill)
 			{
-				for(count = 10; count <= 10 && count != 0; count--) //8 -> 10 Lupus
+				// count the items
+				i=0; 
+				while( mob_db[md->class_].dropitem[i].nameid && i<sizeof(mob_db[md->class_].dropitem)/sizeof(mob_db[md->class_].dropitem[0]))
+					i++;
+				// choose a random item
+				if( i > 0 &&
+					(itemid = mob_db[md->class_].dropitem[rand()%i].nameid) > 0 &&
+					(itemdb_type(itemid) != 6 || pc_checkskill(sd,TF_STEAL) > 5) &&
+					rand()%10000 < ((mob_db[md->class_].dropitem[i].p * skill)/100 + sd.add_steal_rate) )//fixed rate. From Freya [Lupus]
 				{
-					i=0; 
-					// count the items
-					while( mob_db[md->class_].dropitem[i].nameid && i<10) //8 -> 10 Lupus
-						i++;
-					// choose a random item
-					itemid = mob_db[md->class_].dropitem[rand()%i].nameid;
-
-					if(itemid > 0 && (itemdb_type(itemid) != 6 || pc_checkskill(sd,TF_STEAL) > 5))
+					struct item tmp_item;
+					memset(&tmp_item,0,sizeof(tmp_item));
+					tmp_item.nameid = itemid;
+					tmp_item.amount = 1;
+					tmp_item.identify = !itemdb_isEquipment(itemid);
+					flag = pc_additem(sd,tmp_item,1);
+					if(battle_config.show_steal_in_same_party)
+						CMap::foreachpartymemberonmap( CPcShowSteal(sd,tmp_item.nameid,0), sd, flag);
+					if(flag)
 					{
-						//fixed rate. From Freya [Lupus]
-						if (rand() % 10000 < ((mob_db[md->class_].dropitem[i].p * skill) / 100 + sd.add_steal_rate))
-						{
-							struct item tmp_item;
-							memset(&tmp_item,0,sizeof(tmp_item));
-							tmp_item.nameid = itemid;
-							tmp_item.amount = 1;
-							tmp_item.identify = !itemdb_isEquipment(itemid);
-							flag = pc_additem(sd,tmp_item,1);
-							if(battle_config.show_steal_in_same_party)
-							{
-								CMap::foreachpartymemberonmap( CPcShowSteal(sd,tmp_item.nameid,0), sd,1);
-//								party_foreachsamemap(pc_show_steal,sd,1,&sd,tmp_item.nameid,0);
-							}
-							if(flag)
-							{
-								if(battle_config.show_steal_in_same_party)
-								{
-									CMap::foreachpartymemberonmap( CPcShowSteal(sd,tmp_item.nameid,1), sd,1);
-//									party_foreachsamemap(pc_show_steal,sd,1,&sd,tmp_item.nameid,1);
-								}
-
-								clif_additem(sd,0,0,flag);
-							}
-							md->state.steal_flag = 1;
-							return 1;
-						}
+						clif_additem(sd,0,0,flag);
 					}
+					md->state.steal_flag = 1;
 				}
 			}
 		}
 	}
-	return 0;
+	return flag;
 }
 
 /*==========================================
@@ -4123,9 +4108,7 @@ int pc_attack_timer(int tid, unsigned long tick, int id, intptr data)
 		sd->attackabletime = tick + (battle_config.max_aspd_interval<<1);
 
 	if(sd->state.attack_continue)
-	{
 		sd->attacktimer=add_timer(sd->attackabletime,pc_attack_timer,sd->bl.id,0);
-	}
 
 	return 0;
 }

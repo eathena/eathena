@@ -162,7 +162,7 @@ void dump_timer_heap(void)
 		} else {
 			printf(" ");
 		}
-		printf("%4d : %4d %ld\n", j, timer_heap[j], (unsigned long)timer_data[timer_heap[j]].tick);
+		printf("%4ld : %4ld %ld\n", (unsigned long)j, (unsigned long)timer_heap[j], (unsigned long)timer_data[timer_heap[j]].tick);
 	}
 }
 

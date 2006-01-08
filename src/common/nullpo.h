@@ -7,15 +7,6 @@
 		// 全体のスイッチを宣言しているヘッダがあれば
 		// そこに移動していただけると
 
-#ifndef __NETBSD__
-#if __STDC_VERSION__ < 199901L
-# if __GNUC__ >= 2
-#  define __func__ __FUNCTION__
-# else
-#  define __func__ ""
-# endif
-#endif
-#endif
 
 #ifdef WIN32
 #define __attribute__(x)	/* nothing */

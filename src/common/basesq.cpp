@@ -1,5 +1,5 @@
 #include "basesq.h"
-#include <wctype.h>
+
 
 #ifndef TXT_ONLY
 

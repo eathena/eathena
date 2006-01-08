@@ -2970,6 +2970,23 @@ int npc_remove_map (struct npc_data *nd)
     if(!nd || nd->bl.prev == NULL)
 		return 1;
 
+	//Remove corresponding NPC CELLs
+	if (nd->bl.subtype == WARP) {
+		int i,j, xs, ys, x, y;
+		ushort m=nd->bl.m;
+		x = nd->bl.x;
+		y = nd->bl.y;
+		xs = nd->u.warp.xs;
+		ys = nd->u.warp.ys;
+
+		for (i = 0; i < ys; i++)
+		for (j = 0; j < xs; j++)
+		{
+			if (map_getcell(m, x-xs/2+j, y-ys/2+i, CELL_CHKNPC))
+				map_setcell(m, x-xs/2+j, y-ys/2+i, CELL_CLRNPC);
+		}
+	}
+
     clif_clearchar_area(nd->bl,2);
     map_delblock(nd->bl);
 	map_deliddb(nd->bl);
@@ -3048,8 +3065,17 @@ int npc_unload(struct npc_data *nd, bool erase_strdb)//erase_strdb is default tr
 	// unlink from map, if exist there
 	if( nd->bl.m<map_num && nd->n >=0 && nd->n< MAX_NPC_PER_MAP &&
 		map[nd->bl.m].npc[nd->n]==nd )
-		map[nd->bl.m].npc[nd->n]=NULL;
-
+	{
+		map[nd->bl.m].npc_num--;
+		if(map[nd->bl.m].npc_num>0)
+		{
+			map[nd->bl.m].npc[nd->n] = map[nd->bl.m].npc[map[nd->bl.m].npc_num];
+			if( map[nd->bl.m].npc[nd->n] )
+				map[nd->bl.m].npc[nd->n]->n = nd->n;
+		}
+		else
+			map[nd->bl.m].npc[nd->n]=NULL;
+	}
 	map_freeblock(nd); 
 	return 0;
 }

@@ -162,7 +162,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// standard constructor/destructor
     ipaddress():cAddr(INADDR_ANY)	{}
-	~ipaddress()					{}
+	virtual ~ipaddress()			{}
 	///////////////////////////////////////////////////////////////////////////
 	// copy/assign (actually not really necessary)
     ipaddress(const ipaddress& a) : cAddr(a.cAddr)	{}
@@ -370,7 +370,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// standard constructor/destructor
     netaddress():ipaddress((uint32)INADDR_ANY),cPort(0)	{}
-	~netaddress()	{}
+	virtual ~netaddress()	{}
 	///////////////////////////////////////////////////////////////////////////
 	// copy/assign (actually not really necessary)
     netaddress(const netaddress& a):ipaddress(a.cAddr),cPort(a.cPort){}
@@ -438,7 +438,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// standard constructor/destructor
     subnetaddress():cMask((uint32)INADDR_ANY)	{}
-	~subnetaddress()	{}
+	virtual ~subnetaddress()	{}
 	///////////////////////////////////////////////////////////////////////////
 	// copy/assign (actually not really necessary)
     subnetaddress(const subnetaddress& a):netaddress(a),cMask(a.cMask) {}
@@ -535,7 +535,7 @@ public:
 		: subnetaddress(ipaddress::GetSystemIP(0),(uint32)INADDR_ANY,pt),wanaddr((uint32)INADDR_ANY,pt)
 	{}
 
-	~ipset()	{}
+	virtual ~ipset()	{}
 	// can use default copy/assign here
 
 	///////////////////////////////////////////////////////////////////////////

@@ -1,13 +1,18 @@
 #ifndef __PARAM_H__
 #define __PARAM_H__
 
-
 #include "base.h"
 #include "showmsg.h"	// ShowMessage
 #include "utils.h"		// safefopen
 #include "socket.h"		// buffer iterator
 #include "timer.h"		// timed config reload
 #include "strlib.h"		// checktrim
+
+
+//////////////////////////////////////////////////////////////////////////
+// test function
+void test_parameter();
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -48,7 +53,7 @@ protected:
 	{
 		if(cTimer>0)
 		{
-			delete_timer(cTimer, timercallback);
+//			delete_timer(cTimer, timercallback);
 			cTimer = -1;
 		}
 	}
@@ -67,6 +72,12 @@ protected:
 // reads in config files and holds the variables
 // needs activated RTTI
 ///////////////////////////////////////////////////////////////////////////////
+
+
+///////////////////////////////////////////////////////////////////////////////
+// command line parser
+void parseCommandline(int argc, char **argv);
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // predefined conversion functions for common data types
@@ -247,6 +258,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// static access functions
 	static CParamStorage& getParam(const char* name);
+	static bool existParam(const char* name);
     static Mutex& getMutex()	{ return getSingletonData(); }
 	// clean unreferenced parameters
 	static void clean();
@@ -345,7 +357,7 @@ public:
 			if(tmp)
 			{
 				tmp->assign(cStor, a);
-				stor.cTime = gettick();
+				stor.cTime = GetTickCount();
 			}
 		}
 		return a; 
@@ -459,27 +471,39 @@ private:
 			if( tmp->cData != value )
 			{
 				stor.cParam->assign(name, value);
-				stor.cTime = gettick();
+				stor.cTime = GetTickCount();
 			}
 		}
 		else
 		{	// otherwise assign the new value
 			if( stor.cParam->assign(name, value) )
-				stor.cTime = gettick();
+				stor.cTime = GetTickCount();
 		}
 	}
-	friend void createParam(const char* name, const char* value);
+	//////////////////////////////////////////////////////////////////////////
+	// check if a variable exists
+	static bool exist(const char* name)
+	{
+		ScopeLock sl(CParamStorage::getMutex());
+		// get a reference to the parameter
+		return CParamStorage::existParam(name);
+	}
 	friend void CParamStorage::create(const char* name, const char* value);
-
+	friend bool existParam(const char* name);
+	friend void createParam(const char* name, const char* value);
 };
 
+inline bool existParam(const char* name)
+{
+	return CParam< MiniString >::exist(name);
+}
 inline void createParam(const char* name, const char* value)
 {
-	CParam<MiniString>::create(name, value);
+	CParam< MiniString >::create(name, value);
 }
 inline void CParamStorage::create(const char* name, const char* value)
 {
-	CParam<MiniString>::create(name, value);
+	CParam< MiniString >::create(name, value);
 }
 
 

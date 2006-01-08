@@ -1453,6 +1453,7 @@ public:
 					md.target_id=bl.id;
 					md.state.targettype = NONE_ATTACKABLE;
 					md.min_chase=13;
+					md.next_walktime = gettick() + 500;
 				}
 			}
 		}

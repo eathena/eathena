@@ -1,4 +1,14 @@
 Date	Added
+01/08	
+	* added merged part of my general programming environment,
+	  though, some important parts are still not ready to be copied
+	- basically contains the full versions the formally trimmed-down base.h
+	- unix makefiles are provided, for windows create a new static library 
+	  with the folder content and add the path to additional includes [Shinomori]
+	- finished work basic string classes, currently done as templates
+	  for normal use it is safe to take default paramerters with "string<>"
+	  look at the testfunctions in basestring.cpp for examples
+	- the script checker should be also compilable now
 12/26
 	* adding elements for replacing existing structures
 	  such as dynamic buffers as replacement for session fifos,

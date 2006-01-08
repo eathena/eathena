@@ -198,7 +198,7 @@ int save_packet(int fd, const char* str, const char* ip_str)
 			fprintf(logfp, "Detail (in hex):" RETCODE);
 			fprintf(logfp, "---- 00-01-02-03-04-05-06-07  08-09-0A-0B-0C-0D-0E-0F" RETCODE);
 			memset(tmpstr, '\0', sizeof(tmpstr));
-			for(i = 0; i < RFIFOREST(fd); i++)
+			for(i = 0; i < (size_t)RFIFOREST(fd); i++)
 			{
 				if ((i & 15) == 0)
 					fprintf(logfp, "%04X ",i);
@@ -527,7 +527,7 @@ int parse_fromchar(int fd)
 			CLoginAccount account;
 			CCharAccount  characcount;
 
-			if (RFIFOREST(fd) < 2+account.CCharAccount::size() )
+			if( (size_t)RFIFOREST(fd) < 2+account.CCharAccount::size() )
 				return 0;
 			// read data from buffer
 			characcount.CCharAccount::frombuffer( RFIFOP(fd,2) );

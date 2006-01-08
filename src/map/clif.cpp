@@ -689,8 +689,7 @@ int clif_send (unsigned char *buf, size_t len, struct block_list *bl, int type)
 	{
 		if(!bl)
 		{
-			printf("clif_send nullpo, head: %02X%02X%02X%02X type %i, len%i\n", buf[0], buf[1], buf[2], buf[3], type, len);
-		
+			printf("clif_send nullpo, head: %02X%02X%02X%02X type %i, len %li\n", buf[0], buf[1], buf[2], buf[3], type, (unsigned long)len);
 			return 0;
 		}
 
@@ -1274,19 +1273,7 @@ int clif_set007b(struct map_session_data &sd,unsigned char *buf)
 	WBUFB(buf,48)=sd.status.karma;
 	WBUFB(buf,49)=sd.sex;
 	WBUFPOS2(buf,50,sd.bl.x,sd.bl.y,sd.to_x,sd.to_y);
-	WBUFW(buf,26)=sd.status.shield;
-	WBUFW(buf,28)=sd.status.head_top;
-	WBUFW(buf,30)=sd.status.head_mid;
-	WBUFW(buf,32)=sd.status.hair_color;
-	WBUFW(buf,34)=sd.status.clothes_color;
-	WBUFW(buf,36)=sd.head_dir;
-	WBUFL(buf,38)=sd.status.guild_id;
-	WBUFL(buf,42)=sd.guild_emblem_id;
-	WBUFW(buf,46)=sd.status.manner;
-	WBUFB(buf,48)=sd.status.karma;
-	WBUFB(buf,49)=sd.status.sex;
-	WBUFPOS2(buf,50,sd.bl.x,sd.bl.y,sd.to_x,sd.to_y);
-	WBUFB(buf,55)=0;
+	WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
 	WBUFB(buf,56)=5;
 	WBUFB(buf,57)=5;
 	WBUFW(buf,58)=(sd.status.base_level>battle_config.max_lv)?battle_config.max_lv:sd.status.base_level;
@@ -1336,7 +1323,7 @@ int clif_set007b(struct map_session_data &sd,unsigned char *buf)
 	WBUFB(buf,48)=sd.status.karma;
 	WBUFB(buf,49)=sd.status.sex;
 	WBUFPOS2(buf,50,sd.bl.x,sd.bl.y,sd.to_x,sd.to_y);
-	WBUFB(buf,55)=0;
+	WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
 	WBUFB(buf,56)=5;
 	WBUFB(buf,57)=5;
 	WBUFW(buf,58)=(sd.status.base_level>battle_config.max_base_level)?battle_config.max_base_level:sd.status.base_level;
@@ -1349,7 +1336,6 @@ int clif_set007b(struct map_session_data &sd,unsigned char *buf)
 int clif_dis007b(struct map_session_data &sd,unsigned char *buf)
 {
 	memset(buf,0,packet_len_table[0x7b]);
-
 	WBUFW(buf,0)=0x7b;
 	WBUFL(buf,2)=sd.bl.id|FLAG_DISGUISE;
 	WBUFW(buf,6)=status_get_speed(&sd.bl);
@@ -1361,7 +1347,7 @@ int clif_dis007b(struct map_session_data &sd,unsigned char *buf)
 	//WBUFL(buf,38)=sd.status.guild_id;
 	//WBUFL(buf,42)=sd.guild_emblem_id;
 	WBUFPOS2(buf,50,sd.bl.x,sd.bl.y,sd.to_x,sd.to_y);
-	WBUFB(buf,55)=0;
+	WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
 	WBUFB(buf,56)=5;
 	WBUFB(buf,57)=5;
 	WBUFW(buf,58)=0;
@@ -1441,8 +1427,6 @@ int clif_mob0078(struct mob_data &md, unsigned char *buf)
 		WBUFW(buf,10)=md.opt2;
 		WBUFW(buf,12)=md.option;
 		WBUFW(buf,14)=mob_get_viewclass(md.class_);
-
-
 		WBUFW(buf,16)=mob_get_hair(md.class_);
 		WBUFW(buf,18)=mob_get_weapon(md.class_);
 		WBUFW(buf,20)=mob_get_shield(md.class_);
@@ -1522,8 +1506,6 @@ int clif_mob007b(struct mob_data &md, unsigned char *buf)
 		WBUFW(buf,10)=md.opt2;
 		WBUFW(buf,12)=md.option;
 		WBUFW(buf,14)=mob_get_viewclass(md.class_);
-
-
 		WBUFW(buf,16)=mob_get_hair(md.class_);
 		WBUFW(buf,18)=mob_get_weapon(md.class_);
 		WBUFW(buf,20)=mob_get_shield(md.class_);
@@ -1541,7 +1523,7 @@ int clif_mob007b(struct mob_data &md, unsigned char *buf)
 		WBUFB(buf,48)=0; // karma
 		WBUFB(buf,49)=mob_get_sex(md.class_);
 		WBUFPOS2(buf,50,md.bl.x,md.bl.y,md.to_x,md.to_y);
-		WBUFB(buf,55)=0;
+		WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
 		WBUFB(buf,56)=5;
 		WBUFB(buf,57)=5;
 		WBUFW(buf,58)=(level>battle_config.max_base_level)? battle_config.max_base_level:level;
@@ -1577,6 +1559,7 @@ int clif_mob007b(struct mob_data &md, unsigned char *buf)
 		} // End addition
 
 		WBUFPOS2(buf,50,md.bl.x,md.bl.y,md.to_x,md.to_y);
+		WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
 		WBUFB(buf,56)=5;
 		WBUFB(buf,57)=5;
 		level = status_get_lv(&md.bl);
@@ -1629,6 +1612,7 @@ int clif_npc007b(struct npc_data &nd, unsigned char *buf)
 
 	WBUFL(buf,22)=gettick();
 	WBUFPOS2(buf,50,nd.bl.x,nd.bl.y,nd.to_x,nd.to_y);
+	WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
 	WBUFB(buf,56)=5;
 	WBUFB(buf,57)=5;
 
@@ -1744,7 +1728,7 @@ int clif_pet007b(struct pet_data &pd, unsigned char *buf)
 		WBUFB(buf,48)=0; // karma
 		WBUFB(buf,49)=mob_get_sex(pd.class_);
 		WBUFPOS2(buf,50,pd.bl.x,pd.bl.y,pd.to_x,pd.to_y);
-		WBUFB(buf,55)=0;
+		WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
 		WBUFB(buf,56)=0;
 		WBUFB(buf,57)=0;
 		WBUFW(buf,58)=(level>battle_config.max_base_level)? battle_config.max_base_level:level;
@@ -1767,6 +1751,7 @@ int clif_pet007b(struct pet_data &pd, unsigned char *buf)
 		WBUFL(buf,22)=gettick();
 
 		WBUFPOS2(buf,50,pd.bl.x,pd.bl.y,pd.to_x,pd.to_y);
+		WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
 		WBUFB(buf,56)=0;
 		WBUFB(buf,57)=0;
 
@@ -2174,7 +2159,7 @@ int clif_walkok(struct map_session_data &sd)
 	WFIFOW(fd,0)=0x87;
 	WFIFOL(fd,2)=gettick();
 	WFIFOPOS2(fd,6,sd.bl.x,sd.bl.y,sd.to_x,sd.to_y);
-	WFIFOB(fd,11)=0;
+	WFIFOB(fd,11)=0x88;
 	WFIFOSET(fd,packet_len_table[0x87]);
 
 	return 0;
@@ -8161,7 +8146,7 @@ int clif_charnameack(int fd, struct block_list &bl, bool clear)
 			{	// not necessary to send message if GM can do nothing
 				// we can not ban automaticly, because if there is lag, hidden player could be not hidden when other player ask for name.
 				char message_to_gm[1024];
-				sprintf(message_to_gm, "Possible use of BOT (99% of chance) or modified client by '%s' (account:%d, char_id:%d). This player ask your name when you are hidden.", sd.status.name, sd.status.account_id, sd.status.char_id);
+				snprintf(message_to_gm, sizeof(message_to_gm), "Possible use of BOT (99%% of chance) or modified client by '%s' (account: %ld, char_id: %ld). This player ask your name when you are hidden.", sd.status.name, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id);
 				intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, message_to_gm);
 			}
 		}
@@ -8581,17 +8566,13 @@ int clif_parse_WalkToXY(int fd, struct map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	if (pc_isdead(sd)) {
+	if( pc_isdead(sd) )
 		return clif_clearchar_area(sd.bl, 1);
-	}
 
-	if( sd.ScriptEngine.isRunning() || sd.vender_id != 0)
+	if( sd.ScriptEngine.isRunning() || sd.vender_id != 0 || sd.chatID || pc_issit(sd) )
 		return 0;
 
 	if (sd.skilltimer != -1 && pc_checkskill(sd, SA_FREECAST) <= 0) // フリーキャスト
-		return 0;
-
-	if (sd.chatID)
 		return 0;
 
 	if (sd.canmove_tick > gettick())
@@ -8705,7 +8686,7 @@ int clif_parse_GlobalMessage(int fd, struct map_session_data &sd)
 		return 0;
 
 	size = RFIFOW(fd,2);
-	if( size>RFIFOREST(fd) )
+	if( size > (size_t)RFIFOREST(fd) )
 	{	// some serious error
 		ShowError("clif_parse_GlobalMessage: size marker outside buffer %i > %i, (connection %i=%i,%p=%p)", 
 			size, RFIFOREST(fd), fd,sd.fd, session[fd]->session_data, &sd);
@@ -9110,7 +9091,7 @@ int clif_parse_Wis(int fd, struct map_session_data &sd)
 			}
 			else
 				kp = "";
-			snprintf(tempmes, sizeof(tempmes),"@whispervar%d$", i);
+			snprintf(tempmes, sizeof(tempmes),"@whispervar%ld$", (unsigned long)i);
 			set_var(sd,tempmes,kp);
 		}//Sets Variables to use in the NPC
 		

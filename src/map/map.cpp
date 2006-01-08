@@ -1568,11 +1568,10 @@ int map_foreachincell(int (*func)(struct block_list&,va_list &),unsigned short m
 * For checking a path between two points (x0, y0) and (x1, y1)
 *------------------------------------------------------------
  */
- /*
+/*
 int map_foreachinpath(int (*func)(struct block_list&,va_list &),unsigned short m,int x0,int y0,int x1,int y1,int range,int type,...)
 {
 	int returnCount =0;  //total sum of returned values of func() [Skotlex]
-/*
 //////////////////////////////////////////////////////////////
 //
 // sharp shooting 1
@@ -2963,9 +2962,6 @@ int map_calc_dir( struct block_list &src,int x,int y)
  */
 int map_random_dir(struct block_list &bl, unsigned short &x, unsigned short &y)
 {
-	static const signed char dirx[8]={0,-1,-1,-1,0,1,1,1};
-	static const signed char diry[8]={1,1,0,-1,-1,-1,0,1};
-
 	unsigned short xi, yi;
 	unsigned short dist = distance( bl.x, bl.y, x, y);
 	int i=0;
@@ -3778,8 +3774,8 @@ bool map_readgrf(struct map_data& cmap, char *fn=NULL)
 {
 	// read from grf
 	int x,y;
-	struct gat_1cell {float high[4]; int type;};
-	unsigned char *gat, *p;
+	struct gat_1cell {float high[4]; uint32 type;};
+	unsigned char *gat;
 	char buf[512];
 	
 	if(!fn)
@@ -3803,30 +3799,48 @@ bool map_readgrf(struct map_data& cmap, char *fn=NULL)
 	gat = (unsigned char *)grfio_read(buf);
 	if( gat )
 	{
+		const unsigned char *p = gat+14;
+		struct gat_1cell pp;	// make a real structure in memory
+
 		cmap.xs= RBUFL(gat, 6);
 		cmap.ys= RBUFL(gat,10);
-
 		cmap.gat = (struct mapgat *)aCalloc( (cmap.xs*cmap.ys), sizeof(struct mapgat));
-
-		p = gat+14;
+		
 		for(y=0;y<cmap.ys;y++)
 		for(x=0;x<cmap.xs;x++)
 		{
-			struct gat_1cell pp;	// make a real structure in memory
-			memcpy(&pp, p, sizeof(struct gat_1cell));	// copy all stuff
+			// faster and typesafe
+			_F_frombuffer(pp.high[0], p);
+			_F_frombuffer(pp.high[1], p);
+			_F_frombuffer(pp.high[2], p);
+			_F_frombuffer(pp.high[3], p);
+			_L_frombuffer(pp.type, p);
+			// buffer increment is done automatically 
+/*
+			struct gat_1cell px;
+			memcpy(&px, p, sizeof(struct gat_1cell));	// copy all stuff
 			p += sizeof(struct gat_1cell);				// set pointer to next section
 
 			if(MSB_FIRST==CheckByteOrder()) // little/big endian
 			{	// need to correct the whole struct since we have no suitable buffer assigns
 				// gat_1cell contains 4 floats and one int (4byte each) so swapping these is enough
 				// the structure is memory alligned so it is safe to use just the pointers
-				SwapFourBytes(((char*)(&pp)) + sizeof(float)*0);
-				SwapFourBytes(((char*)(&pp)) + sizeof(float)*1);
-				SwapFourBytes(((char*)(&pp)) + sizeof(float)*2);
-				SwapFourBytes(((char*)(&pp)) + sizeof(float)*3);
-				SwapFourBytes(((char*)(&pp)) + sizeof(int)*4);
+				SwapFourBytes(((char*)(&px)) + sizeof(float)*0);
+				SwapFourBytes(((char*)(&px)) + sizeof(float)*1);
+				SwapFourBytes(((char*)(&px)) + sizeof(float)*2);
+				SwapFourBytes(((char*)(&px)) + sizeof(float)*3);
+				SwapFourBytes(((char*)(&px)) + sizeof(int)*4);
 			}
-
+		// debugcompare
+			if( px.high[0]!=pp.high[0] || 
+				px.high[1]!=pp.high[1] || 
+				px.high[2]!=pp.high[2] || 
+				px.high[3]!=pp.high[3] || 
+				px.type   !=pp.type )
+			{
+				printf("\nMaploaderror\n");
+			}
+*/
 			if(cmap.wh!=NO_WATER && pp.type==0)
 				map_setcell(cmap.m,x,y,(pp.high[0]>cmap.wh || pp.high[1]>cmap.wh || pp.high[2]>cmap.wh || pp.high[3]>cmap.wh) ? 3 : 0);
 			else

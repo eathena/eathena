@@ -348,7 +348,7 @@ int decode_file (FILE *source, FILE *dest)
 			strm.avail_out = CHUNK;
 			strm.next_out = out;
 			err = inflate(&strm, Z_NO_FLUSH);
-			Assert(err != Z_STREAM_ERROR);  /* state not clobbered */
+			assert(err != Z_STREAM_ERROR);  /* state not clobbered */
 			switch (err) {
 			case Z_NEED_DICT:
 				err = Z_DATA_ERROR;     /* and fall through */
@@ -365,7 +365,7 @@ int decode_file (FILE *source, FILE *dest)
 				return 0;
 			}
 		} while (strm.avail_out == 0);
-		Assert(strm.avail_in == 0);     /* all input will be used */
+		assert(strm.avail_in == 0);     /* all input will be used */
 
 		/* done when inflate() says it's done */
 	} while (err != Z_STREAM_END);

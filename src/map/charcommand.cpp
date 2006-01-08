@@ -880,9 +880,9 @@ bool charcommand_itemlist(int fd, struct map_session_data &sd,const char *comman
 						if (pl_sd->status.inventory[i].card[j]) {
 							if ((item_temp = itemdb_exists(pl_sd->status.inventory[i].card[j])) != NULL) {
 								if (output[0] == '\0')
-									sprintf(outputtmp, " -> (card(s): #%d %s (%s), ", ++counter2, item_temp->name, item_temp->jname);
+									sprintf(outputtmp, " -> (card(s): #%ld %s (%s), ", (unsigned long)(++counter2), item_temp->name, item_temp->jname);
 								else
-									sprintf(outputtmp, "#%d %s (%s), ", ++counter2, item_temp->name, item_temp->jname);
+									sprintf(outputtmp, "#%ld %s (%s), ", (unsigned long)(++counter2), item_temp->name, item_temp->jname);
 								strcat(output, outputtmp);
 							}
 						}
@@ -897,7 +897,7 @@ bool charcommand_itemlist(int fd, struct map_session_data &sd,const char *comman
 			if (count == 0)
 				clif_displaymessage(fd, "No item found on this player.");
 			else {
-				sprintf(output, "%d item(s) found in %d kind(s) of items.", counter, count);
+				sprintf(output, "%ld item(s) found in %ld kind(s) of items.", (unsigned long)(counter), (unsigned long)(count));
 				clif_displaymessage(fd, output);
 			}
 		} else {
@@ -983,9 +983,9 @@ bool charcommand_storagelist(int fd, struct map_session_data &sd,const char *com
 							if (stor->storage[i].card[j]) {
 								if ((item_temp = itemdb_exists(stor->storage[i].card[j])) != NULL) {
 									if (output[0] == '\0')
-										sprintf(outputtmp, " -> (card(s): #%d %s (%s), ", ++counter2, item_temp->name, item_temp->jname);
+										sprintf(outputtmp, " -> (card(s): #%ld %s (%s), ", (unsigned long)(++counter2), item_temp->name, item_temp->jname);
 									else
-										sprintf(outputtmp, "#%d %s (%s), ", ++counter2, item_temp->name, item_temp->jname);
+										sprintf(outputtmp, "#%ld %s (%s), ", (unsigned long)(++counter2), item_temp->name, item_temp->jname);
 									strcat(output, outputtmp);
 								}
 							}
@@ -1000,7 +1000,7 @@ bool charcommand_storagelist(int fd, struct map_session_data &sd,const char *com
 				if (count == 0)
 					clif_displaymessage(fd, "No item found in the storage of this player.");
 				else {
-					sprintf(output, "%d item(s) found in %d kind(s) of items.", counter, count);
+					sprintf(output, "%ld item(s) found in %ld kind(s) of items.", (unsigned long)(counter), (unsigned long)(count));
 					clif_displaymessage(fd, output);
 				}
 			} else {
@@ -1054,7 +1054,8 @@ bool charcommand_item(int fd, struct map_session_data &sd,const char *command, c
 	struct item_data *item_data;
 	int flag;
 	uint32 item_id, pet_id;
-	size_t i, get_count, number = 0;
+	size_t i, get_count;
+	int number = 0;
 
 	memset(item_name, '\0', sizeof(item_name));
 

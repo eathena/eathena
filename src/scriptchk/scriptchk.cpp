@@ -575,7 +575,7 @@ void print_comments(CParser_CommentStore& parser, int &scope, bool &newline, boo
 			}
 
 			printoutput( (parser.cCommentList[0].multi)?"/*":"// ", scope, newline, limiter);
-			printoutput( parser.cCommentList[0].string, scope, newline, limiter);
+			printoutput( parser.cCommentList[0].content, scope, newline, limiter);
 			printoutput( (parser.cCommentList[0].multi)?"*/\n":"\n", scope, newline, limiter);
 			newline=true;
 			parser.cCommentList.removeindex(0);
@@ -910,7 +910,7 @@ public:
 					}
 					if( (option&OPT_PRINTTREE)==OPT_PRINTTREE )
 					{
-						printf("(%i)----------------------------------------\n", parser->rt.size());
+						printf("(%li)----------------------------------------\n", (unsigned long)parser->rt.size());
 						parser->print_rt_tree(0,0, false);
 					}
 
@@ -1082,7 +1082,7 @@ int main(int argc, char *argv[])
 	if (parser)  delete parser;
 	if (parser_config) delete parser_config;
 
-	printf("elapsed time: %i\n", GetTickCount()-tick);
+	printf("elapsed time: %li\n", (unsigned long)(GetTickCount()-tick));
 
 	return EXIT_SUCCESS;
 }

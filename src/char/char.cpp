@@ -173,7 +173,7 @@ int mmo_char_sync_timer(int tid, unsigned long tick, int id, intptr data)
 
 ///////////////////////////////////////////////////////////////////////////////
 // This function return the name of the job (by [Yor])
-const char* job_name(int inx)
+const char* job_name(size_t inx)
 {
 	static const char* names[] ={
 		"Novice",
@@ -1318,7 +1318,7 @@ int parse_tologin(int fd)
 		{
 			CCharAccount account;
 			
-			if( RFIFOREST(fd) < 2+account.CCharAccount::size() )
+			if( (size_t)RFIFOREST(fd) < 2+account.CCharAccount::size() )
 				return 0;
 			
 			account.CCharAccount::frombuffer( RFIFOP(fd,2) );
@@ -1796,7 +1796,7 @@ int parse_frommap(int fd)
 				if( !char_db.searchAccount(character.account_id, targetaccount ) )
 					targetaccount.gm_level=0;
 			
-				if( accid != ~0 && askingaccount.gm_level < targetaccount.gm_level )
+				if( accid != 0xFFFFFFFF && askingaccount.gm_level < targetaccount.gm_level )
 				{
 					WFIFOW(fd,32) = 2; // answer: 0-login-server resquest done, 1-player not found, 2-gm level too low, 3-login-server offline
 				}
@@ -1852,7 +1852,7 @@ int parse_frommap(int fd)
 				}
 			}
 			// send answer if a player ask, not if the server ask
-			if(accid != ~0)
+			if(accid != 0xFFFFFFFF)
 			{
 				WFIFOSET(fd, 34);
 			}
@@ -2112,7 +2112,7 @@ int parse_frommap(int fd)
 		// for testing purpose
 		case 0x2b22:
 		{	size_t sz;
-			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < (sz=RFIFOW(fd,2)))
+			if (RFIFOREST(fd) < 4 || (size_t)RFIFOREST(fd) < (sz=RFIFOW(fd,2)))
 				return 0;
 
 			RFIFOSKIP(fd,sz);
@@ -2123,7 +2123,7 @@ int parse_frommap(int fd)
 		// check
 		case 0x2b23:
 		{	size_t sz;
-			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < (sz=RFIFOW(fd,2)))
+			if (RFIFOREST(fd) < 4 || (size_t)RFIFOREST(fd) < (sz=RFIFOW(fd,2)))
 				return 0;
 			uint32 charid = RFIFOL(fd,4);
 			uchar showall = RFIFOB(fd,8);
@@ -2144,7 +2144,7 @@ int parse_frommap(int fd)
 		// fetch
 		case 0x2b24:
 		{	size_t sz;
-			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < (sz=RFIFOW(fd,2)))
+			if (RFIFOREST(fd) < 4 || (size_t)RFIFOREST(fd) < (sz=RFIFOW(fd,2)))
 				return 0;
 
 			CMailHead dummy;
@@ -2163,7 +2163,7 @@ int parse_frommap(int fd)
 		// read
 		case 0x2b25:
 		{	size_t sz;
-			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < (sz=RFIFOW(fd,2)))
+			if (RFIFOREST(fd) < 4 || (size_t)RFIFOREST(fd) < (sz=RFIFOW(fd,2)))
 				return 0;
 			uint32 charid = RFIFOL(fd,4);
 			uint32 msgid  = RFIFOL(fd,8);
@@ -2181,7 +2181,7 @@ int parse_frommap(int fd)
 		// delete
 		case 0x2b26:
 		{	size_t sz;
-			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < (sz=RFIFOW(fd,2)))
+			if (RFIFOREST(fd) < 4 || (size_t)RFIFOREST(fd) < (sz=RFIFOW(fd,2)))
 				return 0;
 			uint32 charid = RFIFOL(fd,4);
 			uint32 msgid  = RFIFOL(fd,8);
@@ -2200,7 +2200,7 @@ int parse_frommap(int fd)
 		// send
 		case 0x2b27:
 		{	size_t sz;
-			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < (sz=RFIFOW(fd,2)))
+			if (RFIFOREST(fd) < 4 || (size_t)RFIFOREST(fd) < (sz=RFIFOW(fd,2)))
 				return 0;
 			bool ok = false;
 			uint32 tid, msgid=0;

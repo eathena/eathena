@@ -43,7 +43,8 @@ bool CConfig::LoadConfig(const char* cfgName)
 		{
 			CleanControlChars(w1);
 			CleanControlChars(w2);
-			checktrim(w1); checktrim(w2);
+			itrim(w1);
+			itrim(w2);
 			if( strcasecmp(w1, "import") == 0 )
 			{	// call recursive, prevent infinity loop (first order only)
 				if( strcasecmp(cfgName,w2) !=0 )
@@ -124,6 +125,7 @@ bool CTimerBase::init(unsigned long interval)
 	if(interval<1000)
 		interval = 1000;
 	cTimer = add_timer_interval(gettick()+interval, interval, timercallback, 0, intptr(this), false);
+	cTimer = -1;
 	return (cTimer>=0);
 }
 
@@ -146,8 +148,41 @@ int CTimerBase::timercallback(int timer, unsigned long tick, int id, intptr data
 }
 
 
-
-
+///////////////////////////////////////////////////////////////////////////////
+// parse the commandline for parameters
+// format
+///////////////////////////////////////////////////////////////////////////////
+void parseCommandline(int argc, char **argv)
+{
+	char buffer[1024];
+	staticstring<char> str(buffer, sizeof(buffer));
+	char w1[1024], w2[1024];
+	int i;
+	for(i=1; i<argc; i++)
+	{
+		str << argv[i] << ' ';
+		memset(w1, 0, sizeof(w1));
+		memset(w2, 0, sizeof(w2));
+		// if not matching in the first place 
+		// just try with the concatinated commandline
+		// until something matches or the line runs out
+		//!! check effort with regex
+		if( sscanf(argv[i], "%[^=]= %[^\r\n]", w1, w2) == 2 ||
+			sscanf(argv[i], "%[^:]: %[^\r\n]", w1, w2) == 2 ||
+			sscanf(str,     "%[^=]= %[^\r\n]", w1, w2) == 2 ||
+			sscanf(str,     "%[^:]: %[^\r\n]", w1, w2) == 2 )
+		{
+			CConfig::CleanControlChars(w1);
+			CConfig::CleanControlChars(w2);
+			itrim(w1);
+			itrim(w2);
+			// create the parameter
+			createParam(w1, w2);
+			// clear the string, start new search
+			str.empty();
+		}
+	}
+}
 
 
 
@@ -177,12 +212,21 @@ CParamStorage& CParamStorage::getParam(const char* name)
 	CParamStorage tmp(name);
 	if( !sd.cParams.find(tmp, 0, pos) )
 	{
-		tmp.cTime = gettick();
+		tmp.cTime = GetTickCount();
 		sd.cParams.insert(tmp);
 		if( !sd.cParams.find(tmp, 0, pos) )
 			throw CException("Params: insert failed");		
 	}
 	return sd.cParams[pos];
+}
+// check existence of a parameter
+bool CParamStorage::existParam(const char* name)
+{
+	CSingletonData &sd = getSingletonData();
+	ScopeLock sl(sd);
+	size_t pos;
+	CParamStorage tmp(name);
+	return sd.cParams.find(tmp, 0, pos);
 }
 // clean unreferenced parameters
 void CParamStorage::clean()
@@ -202,10 +246,10 @@ void CParamStorage::listall()
 	CSingletonData &sd = getSingletonData();
 	ScopeLock sl(sd);
 	size_t i;
-	printf("\nList of Parameters (existing %i):", sd.cParams.size());
+	printf("\nList of Parameters (existing %li):", (unsigned long)sd.cParams.size());
 	for(i=0; i<sd.cParams.size(); i++)
 		sd.cParams[i].print();
-	printf("\n---------------\n", sd.cParams.size());
+	printf("\n---------------\n");
 
 }
 void CParamStorage::loadFile(const char* name)
@@ -220,6 +264,16 @@ void CParamStorage::loadFile(const char* name)
 
 
 
+
+
+
+
+
+
+
+
+
+
 bool doublecallback(const char*name, const double&newval, double&oldval)
 {
 	printf( "%s is changing from %lf to %lf\n", name, oldval, newval);
@@ -227,7 +281,7 @@ bool doublecallback(const char*name, const double&newval, double&oldval)
 }
 
 
-void parameertest()
+void test_parameter()
 {
 
 	try {
@@ -240,7 +294,7 @@ void parameertest()
 
 		try
 		{
-			CParam<MiniString> parameter2("double param", "0.0");
+			CParam< MiniString > parameter2("double param", "0.0");
 		}
 		catch(...)
 		{

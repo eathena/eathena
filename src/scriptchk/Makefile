@@ -7,15 +7,27 @@ all eascript: eascriptchk
 	$(CCC) $(CPPFLAGS) $(OUTPUT_OPTION) -c $<
 ##########################################################
 
+##########################################################
+RETURN_PATH ?= .
+BASE_PATH   ?= ../basics
+##########################################################
+BP = $(RETURN_PATH)/$(BASE_PATH)
+##########################################################
+BASE_OBJ = $(BP)/basealgo.o $(BP)/basearray.o $(BP)/basecharset.o $(BP)/basefile.o $(BP)/baseheaps.o $(BP)/basememory.o $(BP)/baseobjects.o $(BP)/baseparser.o $(BP)/basestring.o $(BP)/basesync.o $(BP)/basetime.o $(BP)/basetypes.o
+#not in this package
+#$(BP)/basecomponent.o $(BP)/baseinet.o $(BP)/baselib.o $(BP)/baseparam.o $(BP)/baseregex.o $(BP)/basestreams.o $(BP)/basethreads.o
+##########################################################
+BASE_H = $(BP)/basealgo.h $(BP)/basearray.h $(BP)/basecharset.h $(BP)/baseexceptions.h $(BP)/basefile.h $(BP)/baseheaps.h $(BP)/basememory.h $(BP)/baseministring.h $(BP)/baseobjects.h $(BP)/baseparser.h $(BP)/basepool.h $(BP)/basesafeptr.h $(BP)/basestring.h $(BP)/basesync.h $(BP)/basetime.h $(BP)/basetypes.h 
+#not in this package
+# $(BP)/basecomponent.h $(BP)/baseinet.h $(BP)/baselib.h $(BP)/baseparam.h $(BP)/baseregex.h $(BP)/basestreams.h $(BP)/basethreads.h
+##########################################################
 
-COMMON_OBJ = ../basics/basefile.o ../basics/baseinet.o ../basics/baselib.o ../basics/baseobjects.o ../basics/baseregex.o ../basics/basestreams.o ../basics/basestrings.o ../basics/basesync.o ../basics/basethreads.o ../basics/basetime.o ../basics/basetypes.o ../basics/baseparser.o
-COMMON_H = ../basics/baseexceptions.h ../basics/basefile.h ../basics/baseinet.h ../basics/baselib.h ../basics/baseobjects2.h ../basics/baseobjects.h ../basics/baseregex.h ../basics/basesafeptr.h ../basics/basestreams.h ../basics/basestrings.h ../basics/basesync.h ../basics/basethreads.h ../basics/basetime.h ../basics/basetypes.h ../basics/baseparser.h
 
-eascriptchk: eacompiler.o scriptchk.o $(COMMON_OBJ)
-	$(CCC) $> -lz $(LIBS) -o ../$@
+eascriptchk: eacompiler.o scriptchk.o $(BASE_OBJ)
+	$(CCC) $> -lz $(LIBS) -o $(RETURN_PATH)/$@
 
-eacompiler.o: eacompiler.cpp $(COMMON_H)
-scriptchk.o: scriptchk.cpp $(COMMON_H)
+eacompiler.o: eacompiler.cpp $(BASE_H)
+scriptchk.o: scriptchk.cpp $(BASE_H)
 
 clean:
-	rm -rf *.o ../eascriptchk
+	rm -rf *.o $(RETURN_PATH)/eascriptchk

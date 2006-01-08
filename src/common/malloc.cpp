@@ -672,9 +672,9 @@ void memmer_exit(void)
 				if(head->parent != NULL)
 				{
 				#ifdef LOG_MEMMGR
-					sprintf (buf,
-						"%04d : %s line %d size %d\n", ++count,
-						head->file, head->line, head->size);
+					snprintf (buf, sizeof(buf),
+						"%04d : %s line %d size %ld\n", ++count,
+						head->file, head->line, (unsigned long)head->size);
 					memmgr_log (buf);
 				#endif
 					// get block pointer and free it
@@ -700,9 +700,9 @@ void memmer_exit(void)
 	while(large)
 	{
 	#ifdef LOG_MEMMGR
-		sprintf (buf,
-			"%04d : %s line %d size %d\n", ++count,
-			large->unithead.file, large->unithead.line, large->unithead.size);
+		snprintf (buf, sizeof(buf),
+			"%04d : %s line %d size %ld\n", ++count,
+			large->unithead.file, large->unithead.line, (unsigned long)large->unithead.size);
 		memmgr_log (buf);
 	#endif
 		

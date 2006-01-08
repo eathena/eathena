@@ -16,14 +16,14 @@ void dump(unsigned char *buffer, size_t num);
 
 char* checkpath(char *path, const char* src);
 void findfile(const char *p, const char *pat, void (func)(const char*) );
-
-static inline FILE* safefopen(const char*name, const char*option)
+/*
+inline FILE* safefopen(const char*name, const char*option)
 {	// windows MAXPATH is 260, unix is longer
 	char	 namebuf[2048];
 	checkpath(namebuf,name);
 	return fopen( namebuf, option);
 }
-
+*/
 
 static inline const char *tolower(char *str)
 {

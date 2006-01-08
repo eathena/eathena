@@ -287,6 +287,30 @@ extern inline void X_frombuffer(uchar *valin, const uchar *buf, const size_t sz)
 }
 
 
+extern inline void _F_tobuffer(const float &valin, uchar *&buf)
+{	
+	// do it the dirty way
+	union
+	{
+		uint32 i;
+		float f;
+	} cc;
+	cc.f = valin;
+	_L_tobuffer(cc.i, buf);
+}
+extern inline void _F_frombuffer(float &valin, const uchar *&buf)
+{	
+	// do it the dirty way
+	union
+	{
+		uint32 i;
+		float f;
+	} cc;
+	_L_frombuffer(cc.i, buf);
+	valin = cc.f;
+}
+
+
 
 /////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////

@@ -239,18 +239,6 @@ int argtest(void)
 
 
 
-template <class T> class TScopeChange
-{
-	T& val;
-	T  tar;
-public:
-	TScopeChange(T& v, const T&t) : val(v), tar(t)	{}
-	~TScopeChange()			{ val=tar; }
-	void disable()			{ tar = val; }
-	void set(const T& t)	{ tar = t; }
-};
-
-
 
 
 

@@ -340,13 +340,12 @@ int chrif_parse_ReadSC(int fd)
 	if(sd && sd->bl.id==RFIFOL(fd,4))
 	{
 		size_t i, p, count = RFIFOW(fd,12); //sc_count
-		struct sc_data data;
+		struct sc_data data = {0,0,0,0,0,0};
 		for (i=0, p=14; i<count; i++, p+=14+sizeof(struct sc_data))
 		{
 			scdata_frombuffer(data, RFIFOP(fd,p));
 			status_change_start(&sd->bl, data.type, data.val1, data.val2, data.val3, data.val4, data.tick, 3);
 			//Flag 3 is 1&2, 1: Force status start, 2: Do not modify the tick value sent.
-
 		}
 	}
 	return 0;

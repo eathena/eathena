@@ -3131,7 +3131,7 @@ int CScriptEngine::run_main()
 						{
 							printf("no npc script, ");
 						}
-						printf("prog pos (%d)\n", pos);
+						printf("prog pos (%ld)\n", (unsigned long)pos);
 						debug_script(script,((pos>32)?pos-32:0),((pos>32)?32:pos));
 					}
 					stack_ptr=defsp;

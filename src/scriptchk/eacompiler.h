@@ -316,10 +316,10 @@ typedef enum
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
-static inline uint32 axtoi(const char *hexStg)
+extern inline uint32 axtoi(const char *hexStg)
 {
-	int ret = 0;
-	int cnt = 0;
+	uint32 ret = 0;
+	size_t cnt = 0;
 	if( hexStg && hexStg[0]=='0' && hexStg[1]=='x' )
 	{	
 		hexStg+=2;
@@ -434,13 +434,13 @@ class parsenode : public global, public CLogger
 	size_t					cCount;
 	unsigned short			cType;
 	unsigned short			cSymbol;
-	MiniString				cSymbolName;
-	MiniString				cLexeme;
+	string<>				cSymbolName;
+	string<>				cLexeme;
 	unsigned short			cLine;
 	unsigned short			cColumn;
 
 
-	void insertnode(unsigned short t, unsigned short s, const MiniString& n, const MiniString& l, unsigned short line, unsigned short col)
+	void insertnode(unsigned short t, unsigned short s, const string<>& n, const string<>& l, unsigned short line, unsigned short col)
 	{
 		// add element to List
 		parsenodep* temp = new parsenodep[cCount+1];
@@ -458,7 +458,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// construct/destruct
 	parsenode(): cList(NULL),cCount(0),cType(0),cSymbol(0)	{}
-	parsenode(unsigned short t, unsigned short s, const MiniString& n, const MiniString& l, unsigned short line, unsigned short col)
+	parsenode(unsigned short t, unsigned short s, const string<>& n, const string<>& l, unsigned short line, unsigned short col)
 		:  cList(NULL),cCount(0),cType(t),cSymbol(s),cSymbolName(n),cLexeme(l),cLine(line),cColumn(col)
 	{}
 
@@ -494,7 +494,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// element access
 	const char* Lexeme()	const	{ return cLexeme; }
-	const MiniString& LexemeObj() const { return cLexeme; }
+	const string<>& LexemeObj() const { return cLexeme; }
 	const char*SymbolName()	const	{ return cSymbolName; }
 	unsigned short Symbol()	const	{ return cSymbol; }
 	unsigned short Type()	const	{ return cType; }
@@ -583,13 +583,13 @@ protected:
 		int				cParam2;
 		const char*		cString;
 	} CCommand;
-	class CLabel : public MiniString
+	class CLabel : public string<>
 	{	
 	public:
 		int		pos;
 		size_t	use;
 
-		CLabel(const char* n=NULL, int p=-1) : MiniString(n), pos(p),use(0)	{}
+		CLabel(const char* n=NULL, int p=-1) : string<>(n), pos(p),use(0)	{}
 		virtual ~CLabel()	{}
 
 	};
@@ -1471,7 +1471,7 @@ public:
 
 class CBuildin
 {
-	MiniString	cID;
+	string<>	cID;
 	size_t		cParaCnt;
 public:
 	///////////////////////////////////////////////////////////////////////////
@@ -1503,6 +1503,7 @@ public:
 
 		// return to script interpreter
 
+		return 0;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -1520,7 +1521,7 @@ class CFunction : public CProgramm
 {
 	// <Func Decl>  ::= <Scalar> Id '(' <Params>  ')' <Block>	// fixed parameter count
     //                | 'function' 'script' <Name Id> <Block>	// unknown parameter
-	MiniString	cID;
+	string<>	cID;
 	size_t		cParaCnt;
 public:
 	///////////////////////////////////////////////////////////////////////////
@@ -1549,9 +1550,9 @@ class CScript : public CProgramm
 {
 	//	<Script Decl> ::= '-' 'script' <Name Id> <Sprite Id> ',' <Block>
     //                  | <File Id> ',' DecLiteral ',' DecLiteral ',' DecLiteral 'script' <Name Id> <Sprite Id> ',' <TouchUp> <Block>
-	MiniString cID;
-	MiniString cName;
-	MiniString cMap;
+	string<> cID;
+	string<> cName;
+	string<> cMap;
 	unsigned short cX;
 	unsigned short cY;
 	unsigned short cXs;
@@ -1580,21 +1581,21 @@ public:
 
 class CScriptEnvironment
 {
-	class CConstant : public MiniString
+	class CConstant : public string<>
 	{	
 	public:
 		int		cValue;	// should be a variant
 
-		CConstant(const char* n=NULL, int v=0) : MiniString(n), cValue(v)	{}
+		CConstant(const char* n=NULL, int v=0) : string<>(n), cValue(v)	{}
 		virtual ~CConstant()	{}
 	};
 
-	class CParameter : public MiniString
+	class CParameter : public string<>
 	{	
 	public:
 		size_t		cID;
 
-		CParameter(const char* n=NULL, size_t i=0) : MiniString(n), cID(i)	{}
+		CParameter(const char* n=NULL, size_t i=0) : string<>(n), cID(i)	{}
 		virtual ~CParameter()	{}
 	};
 
@@ -1608,7 +1609,7 @@ class CScriptEnvironment
 	TslistDCT<CParameter>	cParamTable;		// table of parameter keywords
 	
 	// actually of no real use
-	TslistDCT<MiniString>	cStringTable;		// table of strings
+	TslistDCT< string<> >	cStringTable;		// table of strings
 
 public:
 	CScriptEnvironment()	{}
@@ -1735,7 +1736,7 @@ class CScriptCompiler : public CLogger
 
 	///////////////////////////////////////////////////////
 	// variable name storage
-	class CVariable : public MiniString
+	class CVariable : public string<>
 	{	
 	public:
 		size_t		id;
@@ -1743,7 +1744,7 @@ class CScriptCompiler : public CLogger
 		size_t		use;
 
 		CVariable(const char* n=NULL, size_t id=0xFFFFFFFF, vartype t=VAR_TEMP)
-			: MiniString(n), id(id), type(t), use(0)
+			: string<>(n), id(id), type(t), use(0)
 		{}
 		virtual ~CVariable()	{}
 	};
@@ -1793,7 +1794,7 @@ class CScriptCompiler : public CLogger
 	///////////////////////////////////////////////////////////////////////////
 	// construct/destruct
 public:
-	CScriptCompiler(CScriptEnvironment &e, bool log=true):cEnv(e), CLogger(log)	{}
+	CScriptCompiler(CScriptEnvironment &e, bool log=true): CLogger(log), cEnv(e) {}
 	~CScriptCompiler()	{}
 
 private:
@@ -1929,7 +1930,7 @@ private:
 				{
 					// get the string without leading quotation mark
 					const char *ip=NULL;
-					if(node.LexemeObj().Length()>=2)
+					if(node.LexemeObj().length()>=2)
 					{
 						char *str=(char*)(node.Lexeme()+1);
 						size_t endpos = strlen(str)-1;
@@ -2704,7 +2705,7 @@ private:
 
 					char varname[128];
 					size_t inx;
-					snprintf(varname, 128,"_#casetmp%04i", prog.getCurrentPosition());
+					snprintf(varname, 128,"_#casetmp%04li", (unsigned long)prog.getCurrentPosition());
 					insertVariable( varname, VAR_TEMP);
 					accept = isVariable(varname,inx);
 					if( accept )

@@ -111,7 +111,7 @@ public:
 class CAccountReg
 {
 public:
-	uint16 account_reg2_num;
+	ushort account_reg2_num;
 	struct global_reg account_reg2[ACCOUNT_REG2_NUM];
 
 	CAccountReg()	{ account_reg2_num=0; memset(account_reg2,0,sizeof(account_reg2)); }
