@@ -26,6 +26,8 @@
 		* * * From where this info is? ... Mine: On your death you'll loose this ring and get 50% HP [Komurka]
 =========================
 
+01/08
+	* Now Mammonite is usable by all weapons. [Skotlex]
 01/07
 	* Santa's Bag type 0->2, some potions type 2->0 [Lupus]
 	* Item DB correction. [Vicious]

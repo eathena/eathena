@@ -278,7 +278,7 @@ int charsave_savechar(int charid, struct mmo_charstatus *c){
 		"`str`='%d',`agi`='%d',`vit`='%d',`int`='%d',`dex`='%d',`luk`='%d',"
 		"`option`='%d',`karma`='%d',`manner`='%d',`party_id`='%d',`guild_id`='%d',`pet_id`='%d',"
 		"`hair`='%d',`hair_color`='%d',`clothes_color`='%d',`weapon`='%d',`shield`='%d',`head_top`='%d',`head_mid`='%d',`head_bottom`='%d',"
-		"`last_map`='%16s',`last_x`='%d',`last_y`='%d',`save_map`='%16s',`save_x`='%d',`save_y`='%d',"
+		"`last_map`='%s',`last_x`='%d',`last_y`='%d',`save_map`='%s',`save_x`='%d',`save_y`='%d',"
 		"`partner_id`='%d', `father`='%d', `mother`='%d', `child`='%d', `fame`='%d'"
 		"WHERE  `account_id`='%d' AND `char_id` = '%d'",
 		c->class_, c->base_level, c->job_level,

@@ -227,7 +227,7 @@ static int send_from_fifo(int fd)
 	{
 		if (errno == ECONNABORTED)
 		{
-			ShowFatalError("send_from_fifo: Network broken (Software caused connection abort on session #%d)\n", fd);
+			ShowWarning("send_from_fifo: Network broken (Software caused connection abort on session #%d)\n", fd);
 			session[fd]->wdata_size = 0; //Clear the send queue as we can't send anymore. [Skotlex]
 			set_eof(fd);
 		}

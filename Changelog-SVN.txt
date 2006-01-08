@@ -1,5 +1,9 @@
 Date	Added
 2006/01/08
+	* Fixed char-save method 1 saving map names with padding spaces to the
+	  left. [Skotlex]
+	* Now sense elemental values are capped to 0 as lower bound (so for an
+	  enemy with -25% resist, it'll show 0% instead of 230%) [Skotlex]
 	* Updated sql-files/ mob_db.sql and item_db.sql to current TXT data.[Skotlex]
 2006/01/07
 	* If player is dead, and is spawned (such as @refresh), death packet is sent. [Valaris]
