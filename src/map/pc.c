@@ -709,7 +709,6 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 	sd->canmove_tick = tick;
 	sd->canregen_tick = tick;
 	sd->attackabletime = tick;
-	sd->change_level = pc_readglobalreg(sd,"jobchange_level");
 
 	for(i = 0; i < MAX_SKILL_LEVEL; i++)
 		sd->spirit_timer[i] = -1;
@@ -891,6 +890,7 @@ int pc_reg_received(struct map_session_data *sd)
 	char feel_var[3][24] = {"PC_FEEL_SUN","PC_FEEL_MOON","PC_FEEL_STAR"};
 	char hate_var[3][24] = {"PC_HATE_MOB_SUN","PC_HATE_MOB_MOON","PC_HATE_MOB_STAR"};
 	
+	sd->change_level = pc_readglobalreg(sd,"jobchange_level");
 	sd->die_counter = pc_readglobalreg(sd,"PC_DIE_COUNTER");
 	
 	if (pc_checkskill(sd, TK_MISSION)) {
