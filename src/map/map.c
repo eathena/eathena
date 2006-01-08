@@ -270,7 +270,10 @@ unsigned int distance(int dx, int dy) {
 
 	if ( dx < 0 ) dx = -dx;
 	if ( dy < 0 ) dy = -dy;
-
+	//There appears to be something wrong with the aproximation below when either dx/dy is 0! [Skotlex]
+	if ( dx == 0 ) return dy;
+	if ( dy == 0 ) return dx;
+	
 	if ( dx < dy )
 	{
 		min = dx;

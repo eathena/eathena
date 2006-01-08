@@ -1,5 +1,8 @@
 Date	Added
 2006/01/08
+	* Fixed an aproximation error when calculating distances which causes stuff
+	  like mobs thinking they are within attack range when they actually aren't
+	  [Skotlex]
 	* Char-server will now be notified after a character logs out when using
 	  charsave_method:1 [Skotlex]
 	* Added check to update pet's position on pc_movepos (stuff like High Jump)
