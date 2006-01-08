@@ -27,6 +27,8 @@
 =========================
 
 01/08
+	* Changed the name of Zherlthsh to Zealotus as in iRO, [MasterOfMuppets]
+	  you should thank me for that ;D
 	* Now Mammonite is usable by all weapons. [Skotlex]
 01/07
 	* Santa's Bag type 0->2, some potions type 2->0 [Lupus]

@@ -25,9 +25,11 @@ Nexon
 
 Date		Added
 ======
-01/07
+01/08
+	* Changed some Zherlthsh to Zealotus as it is in iRO [MasterOfMuppets]
 	* Added exp bonus to the factory quest in Einbroch, thanks to a [MasterOfMuppets]
 	  Korean fansite
+01/07
 	* Updated warps, work done by SSUNNY@YOUNG in Korean eA site [Vicious]
 	* Disabled X-Mas Ring quest [Vicious]
 01/05
