@@ -1,4 +1,6 @@
 Date	Added
+2006/01/08
+	* Updated sql-files/ mob_db.sql and item_db.sql to current TXT data.[Skotlex]
 2006/01/07
 	* If player is dead, and is spawned (such as @refresh), death packet is sent. [Valaris]
 	* Cleaned pc_attack_timer so that the attack timer will auto-readjust when
