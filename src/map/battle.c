@@ -2182,7 +2182,8 @@ static struct Damage battle_calc_weapon_attack(
 			wd.damage = 1;
 		if (flag.lh && (flag.hit || wd.damage2>0))
 			wd.damage2 = 1;
-		return wd;
+		if (!(battle_config.skill_min_damage&1)) //Do not return if you are supposed to deal greater damage to plants than 1. [Skotlex]
+			return wd;
 	}
 	
 	if(sd && !skill_num && !flag.cri)
