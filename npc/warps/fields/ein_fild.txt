@@ -1,9 +1,9 @@
 //===== Athena Script ========================================
 //= Einbroch Field Warp Script
 //===== By: ==================================================
-//= Sara-chan (1.0)
+//= Sara-chan (1.0), SSUNNY@YOUNG(1.2)
 //===== Current Version: =====================================
-//= 1.1
+//= 1.2
 //===== Compatible With: =====================================
 //= Any Athena Version; RO Episode 8+
 //===== Description: =========================================
@@ -11,6 +11,7 @@
 //===== Additional Comments: =================================
 // Field update - Einbroch and Lhztargen by Sara - Version 1.0
 // 1.1 moved field warps from town warps [Lupus]
+// 1.2 Updated Warps, work done by SSUNNY@YOUNG in Korean eA site [Vicious]
 //============================================================
 
 
@@ -35,8 +36,13 @@ ein_fild09.gat,34,132,0	warp	ein008	1,1,ein_fild08.gat,361,128
 ein_fild08.gat,363,128,0	warp	ein008a	1,1,ein_fild09.gat,36,132
 
 //Einbroch -> Einbroch Field <-> Lighthalzen Field
-einbroch.gat,158,331,0	warp	ein045	1,1,ein_fild04.gat,184,28
-ein_fild04.gat,184,26,0	warp	ein045a	1,1,einbroch.gat,158,329
+einbroch.gat,157,331,0	warp	ein_fd01	1,1,ein_fild04.gat,184,31
+ein_fild04.gat,184,26,0	warp	ein_fd01a	1,1,einbroch.gat,157,327
+einbroch.gat,150,25,0	warp	ein_fd02	1,1,ein_fild08.gat,164,377
+ein_fild08.gat,164,380,0	warp	ein_fd02a	1,1,einbroch.gat,150,28
+einbech.gat,62,29,0	warp	ein_fd03	1,1,ein_fild09.gat,74,350
+ein_fild09.gat,71,352,0	warp	ein_fd03a	1,1,einbech.gat,62,32
+
 ein_fild04.gat,20,251,0	warp	ein046	1,1,ein_fild03.gat,361,257
 ein_fild03.gat,363,257,0	warp	ein046a	1,1,ein_fild04.gat,22,251
 ein_fild04.gat,14,215,0	warp	ein047	1,1,ein_fild03.gat,359,219

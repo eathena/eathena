@@ -25,6 +25,9 @@ Nexon
 
 Date		Added
 ======
+01/07
+	* Updated warps, work done by SSUNNY@YOUNG in Korean eA site [Vicious]
+	* Disabled X-Mas Ring quest [Vicious]
 01/05
 	* Disabled X-Mas event [Vicious]
 	* Corrected the coordinates for the NPC "Neris" in yuno_in03 [Zephiris]
