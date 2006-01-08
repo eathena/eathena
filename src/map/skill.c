@@ -672,7 +672,7 @@ int skill_get_range2(struct block_list *bl, int id, int lv) {
 	return range;
 }
 
-// Making plagirize check its own function [Aru]
+// Making plagiarize check its own function [Aru]
 int can_copy(struct map_session_data *sd, int skillid)
 {
 	// Never copy NPC/Wedding Skills
@@ -680,7 +680,7 @@ int can_copy(struct map_session_data *sd, int skillid)
 		return 0;
 
 	// High-class skills
-	if(skillid >= LK_AURABLADE)
+	if(skillid >= LK_AURABLADE && skillid <= ASC_CDP)
 	{
 		if(battle_config.copyskill_restrict == 2)
 			return 0;

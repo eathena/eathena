@@ -47,7 +47,16 @@ char db_server_logindb[32] = "ragnarok";
 char t_name[256];
 
 int char_id_count=100000;
-struct mmo_charstatus *char_dat;
+
+struct accreg {
+	int reg_num;
+	struct global_reg reg[ACCOUNT_REG_NUM];
+};
+
+struct character_data {
+	struct mmo_charstatus status;
+	struct accreg global;
+} *char_dat;
 int char_num, char_max;
 
 //Required for sql saving, taken from src/char_sql/char.h
@@ -73,7 +82,7 @@ enum {
 #define INTER_CONF_NAME "conf/inter_athena.conf"
 //==========================================================================================================
 //NOTE: Update this function from the one in src/char/char.c as needed. [Skotlex]
-int mmo_char_fromstr(char *str, struct mmo_charstatus *p) {
+int mmo_char_fromstr(char *str, struct mmo_charstatus *p, struct accreg *reg) {
 	char tmp_str[3][128]; //To avoid deleting chars with too long names.
 	int tmp_int[256];
 	int set, next, len, i;
@@ -247,12 +256,12 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p) {
 
 	// Some checks
 	for(i = 0; i < char_num; i++) {
-		if (char_dat[i].char_id == p->char_id) {
+		if (char_dat[i].status.char_id == p->char_id) {
 			ShowError("\033[1;31mmmo_auth_init: a character has an identical id to another.\n");
 			ShowError("               character id #%d -> new character not readed.\n", p->char_id);
 			ShowError("               Character saved in log file.\033[0m\n");
 			return -1;
-		} else if (strcmp(char_dat[i].name, p->name) == 0) {
+		} else if (strcmp(char_dat[i].status.name, p->name) == 0) {
 			ShowError("\033[1;31mmmo_auth_init: a character name already exists.\n");
 			ShowError("               character name '%s' -> new character not read.\n", p->name);
 			ShowError("               Character saved in log file.\033[0m\n");
@@ -351,11 +360,11 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p) {
 	next++;
 
 	for(i = 0; str[next] && str[next] != '\t' && str[next] != '\n' && str[next] != '\r'; i++) { // global_regÀÈOÌathena.txtÝ·Ì½ßê'\n'`FbN
-		if (sscanf(str + next, "%[^,],%s%n", p->global_reg[i].str, p->global_reg[i].value, &len) != 2) {
+		if (sscanf(str + next, "%[^,],%s%n", reg->reg[i].str, reg->reg[i].value, &len) != 2) {
 			// because some scripts are not correct, the str can be "". So, we must check that.
 			// If it's, we must not refuse the character, but just this REG value.
 			// Character line will have something like: nov_2nd_cos,9 ,9 nov_1_2_cos_c,1 (here, ,9 is not good)
-			if (str[next] == ',' && sscanf(str + next, ",%s%n", p->global_reg[i].value, &len) == 1)
+			if (str[next] == ',' && sscanf(str + next, ",%s%n", reg->reg[i].value, &len) == 1)
 				i--;
 			else
 				return -7;
@@ -364,7 +373,7 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p) {
 		if (str[next] == ' ')
 			next++;
 	}
-	p->global_reg_num = i;
+	reg->reg_num = i;
 
 	return 1;
 }
@@ -533,7 +542,6 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 	int i=0 ,party_exist=0;//,guild_exist;
 	int count = 0;
 	int diff = 1;
-	char temp_str[64]; //2x the value of the string before jstrescapecpy [Skotlex]
 	char *tmp_ptr; //Building a single query should be more efficient than running
 		//multiple queries for each thing about to be saved, right? [Skotlex]
 	char save_status[100]; //For displaying save information. [Skotlex]
@@ -794,6 +802,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 		}
 	}
 */
+/*
 	if (diff)
 	{	//Save global registry.
 		//`global_reg_value` (`char_id`, `str`, `value`)
@@ -837,6 +846,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 		} else //Values cleared.
 			strcat(save_status, " global_reg");
 	}
+*/
 /*	
 	diff = 0;
 	for(i = 0; i < MAX_FRIENDS; i++){
@@ -880,6 +890,52 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 	return 0;
 }
 
+//--------------------------------------------------------
+// Save registry to sql
+int inter_accreg_tosql(int account_id, int char_id, struct accreg *reg, int type){
+
+	int j;
+	char temp_str[64]; //Needs be twice the source to ensure it fits [Skotlex]
+	char temp_str2[512];
+	if (account_id<=0) return 0;
+
+	switch (type) {
+		case 3: //Char Reg
+		//`global_reg_value` (`type`, `account_id`, `char_id`, `str`, `value`)
+			sprintf(tmp_sql,"DELETE FROM `%s` WHERE `type`=3 AND `char_id`='%d'",reg_db, char_id);
+			break;
+		case 2: //Account Reg
+		//`global_reg_value` (`type`, `account_id`, `char_id`, `str`, `value`)
+			sprintf(tmp_sql,"DELETE FROM `%s` WHERE `type`=2 AND `account_id`='%d'",reg_db, account_id);
+			break;
+		case 1: //Account2 Reg
+			ShowError("inter_accreg_tosql: Char server shouldn't handle type 1 registry values (##). That is the login server's work!\n");
+			return 0;
+		default:
+			ShowError("inter_accreg_tosql: Invalid type %d\n", type);
+			return 0;
+			
+	}	
+	if(mysql_query(&mysql_handle, tmp_sql) ) {
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+	}
+
+	if (reg->reg_num<=0) return 0;
+
+	for(j=0;j<reg->reg_num;j++){
+		if(reg->reg[j].str != NULL){
+			sprintf(tmp_sql,"INSERT INTO `%s` (`type`, `account_id`, `char_id`, `str`, `value`) VALUES ('%d','%d','%d','%s','%s')",
+				reg_db, type, type!=3?account_id:0, type==3?char_id:0,
+				jstrescapecpy(temp_str,reg->reg[j].str), jstrescapecpy(temp_str2,reg->reg[j].value));
+			if(mysql_query(&mysql_handle, tmp_sql) ) {
+				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+			}
+		}
+	}
+	return 1;
+}
 //Note: Keep this function updated with the one in src/char/int_storage.c [Skotlex]
 int storage_fromstr(char *str,struct storage *p)
 {
@@ -1081,21 +1137,22 @@ int mmo_char_init(void){
 	if(input == 'y' || input == 'Y'){
 		ShowStatus("Converting Character Database...\n");
 		fp=fopen("save/athena.txt","r");
-		char_dat = (struct mmo_charstatus*)malloc(sizeof(char_dat[0])*256);
+		char_dat = (struct character_data*)malloc(sizeof(struct character_data)*256);
 		char_max=256;
 		if(fp==NULL)
 			return 0;
 		while(fgets(line, 65535, fp)){
 			if(char_num>=char_max){
 				char_max+=256;
-				char_dat = (struct mmo_charstatus*)realloc(char_dat, sizeof(char_dat[0]) *char_max);
+				char_dat = (struct character_data*)realloc(char_dat, sizeof(char_dat[0]) *char_max);
 			}
 			memset(&char_dat[char_num], 0, sizeof(char_dat[0]));
-			ret=mmo_char_fromstr(line, &char_dat[char_num]);
+			ret=mmo_char_fromstr(line, &char_dat[char_num].status, &char_dat[char_num].global);
 			if(ret){
-				mmo_char_tosql(char_dat[char_num].char_id , &char_dat[char_num]);
-				if(char_dat[char_num].char_id>=char_id_count)
-					char_id_count=char_dat[char_num].char_id+1;
+				mmo_char_tosql(char_dat[char_num].status.char_id , &char_dat[char_num].status);
+				inter_accreg_tosql(char_dat[char_num].status.account_id, char_dat[char_num].status.char_id, &char_dat[char_num].global, 3); //Type 3: Character regs
+				if(char_dat[char_num].status.char_id>=char_id_count)
+					char_id_count=char_dat[char_num].status.char_id+1;
 				char_num++;
 			}
 		}
