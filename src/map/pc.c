@@ -4305,9 +4305,17 @@ int pc_attack_timer(int tid,unsigned int tick,int id,int data)
 	if(sd->skilltimer != -1 && pc_checkskill(sd,SA_FREECAST) <= 0)
 		return 0;
 
-	if(!battle_config.sdelay_attack_enable && sd->canact_tick > tick && pc_checkskill(sd,SA_FREECAST) <= 0)
+	if(!battle_config.sdelay_attack_enable && DIFF_TICK(sd->canact_tick,tick) > 0 && pc_checkskill(sd,SA_FREECAST) <= 0)
 	{
-		clif_skill_fail(sd,1,4,0);
+		if (tid == -1) { //player requested attack.
+			clif_skill_fail(sd,1,4,0);
+			return 0;
+		}
+		//Otherwise, we are in a combo-attack, delay this until your canact time is over. [Skotlex]
+		if(sd->state.attack_continue) {
+			sd->attackabletime = sd->canact_tick;
+			sd->attacktimer=add_timer(sd->attackabletime,pc_attack_timer,sd->bl.id,0);
+		}
 		return 0;
 	}
 
@@ -4326,33 +4334,32 @@ int pc_attack_timer(int tid,unsigned int tick,int id,int data)
 		return 0;
 	}
 
-		if(battle_config.pc_attack_direction_change)
-			sd->dir=sd->head_dir=map_calc_dir(&sd->bl, bl->x,bl->y );	// 向き設定
+	if(battle_config.pc_attack_direction_change)
+		sd->dir=sd->head_dir=map_calc_dir(&sd->bl, bl->x,bl->y );	// 向き設定
 
-		if(sd->walktimer != -1)
-			pc_stop_walking(sd,1);
+	if(sd->walktimer != -1)
+		pc_stop_walking(sd,1);
 
-		if(sd->attackabletime <= tick) {
-			map_freeblock_lock();
-			sd->attacktarget_lv = battle_weapon_attack(&sd->bl,bl,tick,0);
-			
-			if(!(battle_config.pc_cloak_check_type&2) && sd->sc_data[SC_CLOAKING].timer != -1)
-				status_change_end(&sd->bl,SC_CLOAKING,-1);
-			
-			if(sd->status.pet_id > 0 && sd->pd && sd->petDB && battle_config.pet_attack_support)
-				pet_target_check(sd,bl,0);
+	if(DIFF_TICK(sd->attackabletime,tick) <= 0) {
+		map_freeblock_lock();
+		sd->attacktarget_lv = battle_weapon_attack(&sd->bl,bl,tick,0);
+		
+		if(!(battle_config.pc_cloak_check_type&2) && sd->sc_data[SC_CLOAKING].timer != -1)
+			status_change_end(&sd->bl,SC_CLOAKING,-1);
+		
+		if(sd->status.pet_id > 0 && sd->pd && sd->petDB && battle_config.pet_attack_support)
+			pet_target_check(sd,bl,0);
 
-			map_freeblock_unlock();
-			
-			if(sd->skilltimer != -1 && (skill = pc_checkskill(sd,SA_FREECAST)) > 0 ) // フリ?キャスト
-				sd->attackabletime = tick + ((sd->aspd<<1)*(150 - skill*5)/100);
-			else
-				sd->attackabletime = tick + (sd->aspd<<1);
-		}
-
-	if(sd->state.attack_continue) {
-		sd->attacktimer=add_timer(sd->attackabletime,pc_attack_timer,sd->bl.id,0);
+		map_freeblock_unlock();
+		
+		if(sd->skilltimer != -1 && (skill = pc_checkskill(sd,SA_FREECAST)) > 0 ) // フリ?キャスト
+			sd->attackabletime = tick + ((sd->aspd<<1)*(150 - skill*5)/100);
+		else
+			sd->attackabletime = tick + (sd->aspd<<1);
 	}
+
+	if(sd->state.attack_continue)
+		sd->attacktimer=add_timer(sd->attackabletime,pc_attack_timer,sd->bl.id,0);
 
 	return 0;
 }

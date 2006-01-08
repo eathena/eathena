@@ -1,5 +1,8 @@
 Date	Added
 2006/01/07
+	* Cleaned pc_attack_timer so that the attack timer will auto-readjust when
+	  it triggers during the can't act tick instead of cancelling the attack
+	  sequence. [Skotlex]
 	* Fixed compilation of the TXT-converter. [Skotlex]
 	* walkto x,y request packets are now ignored if you are sitting. [Skotlex]
 	* Fixed a typo that was making the party item-pickup style shared not
