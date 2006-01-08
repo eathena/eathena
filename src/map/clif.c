@@ -8698,6 +8698,9 @@ void clif_parse_WalkToXY(int fd, struct map_session_data *sd) {
 		return;
 	}
 
+	if (pc_issit(sd)) //No walking when you are sit!
+		return;
+	
 	if (sd->npc_id != 0 || sd->vender_id != 0 || sd->state.storage_flag)
 		return;
 

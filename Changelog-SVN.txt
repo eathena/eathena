@@ -1,5 +1,6 @@
 Date	Added
 2006/01/07
+	* walkto x,y request packets are now ignored if you are sitting. [Skotlex]
 	* Fixed a typo that was making the party item-pickup style shared not
 	  taking effect for the item_first_get_time regardless of setting. [Skotlex]
 	* Applied Playtester's custom mob spawns to the eamobs/ set. [Skotlex]
