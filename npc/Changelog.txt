@@ -26,6 +26,7 @@ Nexon
 Date		Added
 ======
 01/08
+	* Changed the name of Chung E to Green Maiden in the spawn files [MasterOfMuppets]
 	* Changed some Zherlthsh to Zealotus as it is in iRO [MasterOfMuppets]
 	* Added exp bonus to the factory quest in Einbroch, thanks to a [MasterOfMuppets]
 	  Korean fansite
