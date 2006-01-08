@@ -2049,6 +2049,9 @@ int clif_changemap(struct map_session_data *sd, short map, int x, int y) {
 	WFIFOW(fd,20) = y;
 	WFIFOSET(fd, packet_len_table[0x91]);
 
+	if(pc_isdead(sd)) // If player is dead, and is spawned (such as @refresh) send death packet. [Valaris]
+		clif_clearchar_area(&sd->bl,1);
+
 	return 0;
 }
 

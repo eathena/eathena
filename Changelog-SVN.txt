@@ -1,5 +1,6 @@
 Date	Added
 2006/01/07
+	* If player is dead, and is spawned (such as @refresh), death packet is sent. [Valaris]
 	* Cleaned pc_attack_timer so that the attack timer will auto-readjust when
 	  it triggers during the can't act tick instead of cancelling the attack
 	  sequence. [Skotlex]
