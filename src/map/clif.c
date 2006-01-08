@@ -8379,8 +8379,7 @@ void clif_mission_mob(struct map_session_data *sd, unsigned short mob_id, unsign
 	WFIFOW(fd,0)=0x20e;
 	strncpy(WFIFOP(fd,2),mob_db(mob_id)->jname, NAME_LENGTH);
 	WFIFOW(fd,26)=mob_id;
-	WFIFOW(fd,28)=progress;
-	WFIFOW(fd,30)=0x1400; //Message to display
+	WFIFOW(fd,30)=0x1400+progress; //Message to display
 	WFIFOSET(fd, packet_len_table[0x20e]);
 }
 
