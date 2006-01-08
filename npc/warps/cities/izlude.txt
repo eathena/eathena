@@ -3,13 +3,14 @@
 //===== By: ==================================================
 //= Athena (1.0), Nana (1.1)
 //===== Current Version: =====================================
-//= 1.3
+//= 1.4
 //===== Compatible With: =====================================
 //= Any Athena Version
 //===== Description: =========================================
 //= Warp Points for Izlude
 //===== Additional Comments: =================================
 //= 1.3 Added warps to Izlude Airship [Justin84]
+//= 1.4 Minor correction on airport warps
 //============================================================
 
 //= Izlude City ==============================================
@@ -31,5 +32,5 @@ izlude_in.gat,43,169,0	warp	w219	2,3,izlude_in.gat,63,169
 izlude_in.gat,65,84,0	warp	iz01-1	5,2,izlude.gat,113,147
 izlude_in.gat,74,158,0	warp	iz04-1	3,2,izlude.gat,52,136
 izlude_in.gat,87,169,0	warp	iz05-1	2,3,izlude_in.gat,111,169
-izlude.gat,151,40,0	warp	izair1	2,2,izlude.gat,178,55
-izlude.gat,175,55,0	warp	izair2	2,2,izlude.gat,148,40
+izlude.gat,149,39,0	warp	izair1	1,1,izlude.gat,180,56
+izlude.gat,176,56,0	warp	lizair2	1,1,izlude.gat,145,39
