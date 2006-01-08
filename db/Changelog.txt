@@ -26,6 +26,9 @@
 		* * * From where this info is? ... Mine: On your death you'll loose this ring and get 50% HP [Komurka]
 =========================
 
+01/07
+	* Item DB correction. [Vicious]
+
 01/05
 	* Fixed item updates by jsk225. [Vicious]
 	* Item updates by Landarma. Need updates. [Vicious]
