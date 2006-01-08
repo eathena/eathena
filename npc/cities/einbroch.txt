@@ -12,6 +12,7 @@
 //= 0.2 Added some NPCs [MasterOfMuppets]
 //= 0.3 Added a few npcs by reddozen [MasterOfMuppets]
 //= 0.4 Added a crappy quest, have fun guys... [MasterOfMuppets]
+//= 0.4a Added exp bonus for the factory quest, borrowed from a Korean fansite.
 //============================================================
 
 
@@ -1315,6 +1316,9 @@ s_Switches:
 		delitem 7317,10;
 		delitem 7319,10;
 		set EinFactory,16;
+		if (BaseLevel < 80) set BaseExp,BaseExp+35000;
+		if ((BaseLevel >= 80) && (BaseLevel < 90)) set BaseExp,BaseExp+88000;
+		if (BaseLevel >= 90) set BaseExp,BaseExp+367000;
 		mes "[Zelmeto]";
 		mes "I don't know how";
 		mes "I can possible pay you";

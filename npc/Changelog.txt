@@ -26,6 +26,8 @@ Nexon
 Date		Added
 ======
 01/07
+	* Added exp bonus to the factory quest in Einbroch, thanks to a [MasterOfMuppets]
+	  Korean fansite
 	* Updated warps, work done by SSUNNY@YOUNG in Korean eA site [Vicious]
 	* Disabled X-Mas Ring quest [Vicious]
 01/05
