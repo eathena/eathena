@@ -3714,6 +3714,29 @@ int pc_movepos(struct map_session_data *sd,int dst_x,int dst_y,int checkpath)
 	if (pc_iscloaking(sd)) // ƒNƒ?ƒLƒ“ƒO‚ÌÁ–Å?¸
 		skill_check_cloaking(&sd->bl);
 
+	if(sd->status.pet_id > 0 && sd->pd && sd->pet.intimate > 0) {
+		struct pet_data *pd = sd->pd;
+		int flag = 0;
+		
+		//Check if pet needs to be teleported. [Skotlex]
+		if (!checkpath && path_search(&wpd,pd->bl.m,pd->bl.x,pd->bl.y,dst_x,dst_y,0))
+			flag = 1;
+		else if (!check_distance_bl(&sd->bl, &pd->bl, AREA_SIZE)) //Too far, teleport.
+			flag = 2;
+		if (flag) {
+			moveblock = ( pd->bl.x/BLOCK_SIZE != dst_x/BLOCK_SIZE || pd->bl.y/BLOCK_SIZE != dst_y/BLOCK_SIZE);
+			pet_stopattack(pd);
+			pet_changestate(pd,MS_IDLE,0);
+			if (flag == 2) clif_clearchar_area(&pd->bl,3);
+			if(moveblock) map_delblock(&pd->bl);
+			pd->bl.x = pd->to_x = dst_x;
+			pd->bl.y = pd->to_y = dst_y;
+			pd->dir = sd->dir;
+			if(moveblock) map_addblock(&pd->bl);
+			if (flag == 2) clif_fixpos(&pd->bl);
+			else clif_slide(&pd->bl,pd->bl.x,pd->bl.y);
+		}
+	}
 	if(map_getcell(sd->bl.m,sd->bl.x,sd->bl.y,CELL_CHKNPC))
 		npc_touch_areanpc(sd,sd->bl.m,sd->bl.x,sd->bl.y);
 	else

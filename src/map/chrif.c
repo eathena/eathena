@@ -183,6 +183,7 @@ int chrif_save(struct map_session_data *sd, int flag)
 #ifndef TXT_ONLY
 	if(charsave_method){ //New 'Local' save
 		charsave_savechar(sd->char_id, &sd->status);
+		if (flag) chrif_char_offline(sd); //Tell char server that character went offline.
 	}else{
 #endif
 		WFIFOHEAD(char_fd, sizeof(sd->status) + 13);

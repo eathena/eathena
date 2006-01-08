@@ -1,5 +1,10 @@
 Date	Added
 2006/01/08
+	* Char-server will now be notified after a character logs out when using
+	  charsave_method:1 [Skotlex]
+	* Added check to update pet's position on pc_movepos (stuff like High Jump)
+	  when the master moves too far away or to a position the pet can't reach.
+	  [Skotlex]
 	* Fixed char-save method 1 saving map names with padding spaces to the
 	  left. [Skotlex]
 	* Now sense elemental values are capped to 0 as lower bound (so for an
