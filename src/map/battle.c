@@ -1546,22 +1546,15 @@ static struct Damage battle_calc_weapon_attack(
 			}	//End default case
 		} //End switch(skill_num)
 
-		//Skill damage modifiers
+		//Skill damage modifiers that stack linearly
 		if(sc_data && skill_num != PA_SACRIFICE)
 		{
 			if(sc_data[SC_OVERTHRUST].timer != -1)
 				skillratio += 5*sc_data[SC_OVERTHRUST].val1;
 			if(sc_data[SC_MAXOVERTHRUST].timer != -1)
 				skillratio += 20*sc_data[SC_MAXOVERTHRUST].val1;
-			if(sc_data[SC_TRUESIGHT].timer != -1)
-				skillratio += 2*sc_data[SC_TRUESIGHT].val1;
 			if(sc_data[SC_BERSERK].timer != -1)
 				skillratio += 100;
-			// EDP : Since records say it does works with Sonic Blows, instead of pre-multiplying the damage,
-			// we take the number of hits in consideration. [Skotlex]
-			// It is still not quite decided whether it works on bosses or not...
-			if(sc_data[SC_EDP].timer != -1 /*&& !(t_mode&MD_BOSS)*/ && skill_num != ASC_BREAKER && skill_num != ASC_METEORASSAULT)
-				skillratio += (50 + sc_data[SC_EDP].val1 * 50)*wd.div_;
 		}
 		if (!skill_num)
 		{
@@ -1861,7 +1854,17 @@ static struct Damage battle_calc_weapon_attack(
 					break;
 			}
 		}
-
+		//Skill damage modifiers that affect linearly stacked damage.
+		if (sc_data && skill_num != PA_SACRIFICE) {
+			skillratio = 100;
+			if(sc_data[SC_TRUESIGHT].timer != -1)
+				skillratio += 2*sc_data[SC_TRUESIGHT].val1;
+			// It is still not quite decided whether it works on bosses or not...
+			if(sc_data[SC_EDP].timer != -1 /*&& !(t_mode&MD_BOSS)*/ && skill_num != ASC_BREAKER && skill_num != ASC_METEORASSAULT)
+				skillratio += 50 +50*sc_data[SC_EDP].val1;
+			if (skillratio != 100)
+				ATK_RATE(skillratio);
+		}
 		if(sd)
 		{
 			if (skill_num != PA_SACRIFICE && skill_num != MO_INVESTIGATE && !flag.cri)

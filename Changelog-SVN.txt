@@ -1,5 +1,7 @@
 Date	Added
 2006/01/09
+	* Enchant Deadly Poison and True Sight damage bonuses are now applied after
+	  skill modifiers rather than added with them (damage % stack type). [Skotlex]
 	* Modified Ice-Wall to work using cell types defines instead of directly
 	  modifying the gat terrain information. Main reason for this is to enable
 	  pc_setpos to place players on top of an ice-wall, because otherwise it
