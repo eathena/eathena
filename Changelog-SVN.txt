@@ -1,5 +1,7 @@
 Date	Added
 2006/01/09
+	* Fixed Char-SQL server saving new character's maps with spaces on the left. [Skotlex]
+	* Fixed Charsave method 1 saving memo maps with spaces on the left. [Skotlex]
 	* Changed the order of packets sent for Assumptio (may fix the visual not
 	  showing up?) [Skotlex]
 2006/01/08

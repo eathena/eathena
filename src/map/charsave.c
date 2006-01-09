@@ -365,7 +365,7 @@ int charsave_savechar(int charid, struct mmo_charstatus *c){
          }
          for(i = 0; i < MAX_MEMOPOINTS; i++){
          	if(c->memo_point[i].map && c->memo_point[i].x > 0 && c->memo_point[i].y > 0){
-                 	sprintf(tmp_sql, "INSERT INTO `memo` ( `char_id`, `map`, `x`, `y` ) VALUES ('%d', '%16s', '%d', '%d')", charid, mapindex_id2name(c->memo_point[i].map), c->memo_point[i].x, c->memo_point[i].y);
+                 	sprintf(tmp_sql, "INSERT INTO `memo` ( `char_id`, `map`, `x`, `y` ) VALUES ('%d', '%s', '%d', '%d')", charid, mapindex_id2name(c->memo_point[i].map), c->memo_point[i].x, c->memo_point[i].y);
 	                if(mysql_query(&charsql_handle, tmp_sql)){
 							ShowSQL("DB error - %s\n",mysql_error(&charsql_handle));
 							ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
