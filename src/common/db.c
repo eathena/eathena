@@ -1,6 +1,48 @@
-// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
-// For more information, see LICENCE in the main folder
-
+/*****************************************************************************\
+ *  Copyright (c) Athena Dev Teams - Licensed under GNU GPL                  *
+ *  For more information, see LICENCE in the main folder                     *
+ *                                                                           *
+ *  This file is separated in six sections:                                  *
+ *  (1) private typedefs, enums, structures and defines                      *
+ *  (2) private variables                                                    *
+ *  (3) private functions                                                    *
+ *  (4) protected functions used internally                                  *
+ *  (5) protected functions used in the interface of the database            *
+ *  (6) public functions                                                     *
+ *                                                                           *
+ *  The databases are structured as a hashtable of RED-BLACK trees.          *
+ *                                                                           *
+ *  <B>Properties of the RED-BLACK trees being used:</B>                     *
+ *  1. The value of any node is greater than the value of its left child and *
+ *     less than the value of its right child.                               *
+ *  2. Every node is colored either RED or BLACK.                            *
+ *  3. Every red node that is not a leaf has only black children.            *
+ *  4. Every path from the root to a leaf contains the same number of black  *
+ *     nodes.                                                                *
+ *  5. The root node is black.                                               *
+ *  An <code>n</code> node in a RED-BLACK tree has the property that its     *
+ *  height is <code>O(lg(n))</code>.                                         *
+ *  Another important property is that after adding a node to a RED-BLACK    *
+ *  tree, the tree can be readjusted in <code>O(lg(n))</code> time.          *
+ *  Similarly, after deleting a node from a RED-BLACK tree, the tree can be  *
+ *  readjusted in <code>O(lg(n))</code> time.                                *
+ *  {@link http://www.cs.mcgill.ca/~cs251/OldCourses/1997/topic18/}          *
+ *                                                                           *
+ *  WARNING: the new release system is still untested!!!                     *
+ *                                                                           *
+ *  TODO:                                                                    *
+ *  - finish this header describing the database system                      *
+ *  - traverse the database trees in-order                                   *
+ *  - create custom database allocator                                       *
+ *  - make the system thread friendly                                        *
+ *  - change the structure of the database to T-Trees                        *
+ *  - possibly include another new unordered database structure              *
+ *                                                                           *
+ * @version 2.0 build #???# - transition version                             *
+ * @author (build #???#) Flavio @ Amazon Project                             *
+ * @author (up to Athena build 4706) Athena Dev Teams                        *
+ * @encoding US-ASCII                                                        *
+\*****************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,333 +53,598 @@
 #include "../common/malloc.h"
 #include "../common/showmsg.h"
 
-#define MALLOC_DBN
+/*****************************************************************************\
+ *  (1) Private typedefs, enums, structures and defines of database system.  *
+ *  DB_ENABLE_STATS - Define to enable database statistics.                  *
+ *  HASH_SIZE       - Define with the size of the hashtable.                 *
+ *  DBNColor        - Enumeration of colors of the nodes.                    *
+ *  DBNode          - Structure of a node in RED-BLACK trees.                *
+ *  struct db_free  - Structure that holds a deleted node to be freed.       *
+ *  Database        - Struture of the database.                              *
+ *  DBStats         - Structure of the database statistics variable.         *
+\*****************************************************************************/
 
-// Backup cleaning routine in case the core doesn't do so properly,
-// only enabled if malloc_dbn is not defined.
-// As a temporary solution the root of the problem should still be found and fixed
-struct dbn *head;
-struct dbn *tail;
+/**
+ * If defined statistics about database nodes, database creating/destruction 
+ * and function usage are keept and displayed when finalizing the database
+ * system.
+ * WARNING: This adds overhead to every database operation (not shure how much).
+ * @private
+ * @see #DBStats
+ * @see #stats
+ * @dee #db_final(void)
+ */
+//#define DB_ENABLE_STATS
 
-#ifdef MALLOC_DBN
+/**
+ * Size of the hashtable in the database.
+ * @private
+ * @see Database#ht
+ */
+#define HASH_SIZE (256+27)
+
+#ifndef DB_USE_OLD_RELEASE
+/**
+ * A node in a RED-BLACK tree of the database.
+ * @param parent Parent node
+ * @param left Left child node
+ * @param right Right child node
+ * @param key Key of this database entry
+ * @param data Data of this database entry
+ * @param deleted If the node is deleted
+ * @param color Color of the node
+ * @private
+ * @see Database#ht
+ */
+typedef struct dbn {
+	// Tree structure
+	struct dbn *parent;
+	struct dbn *left;
+	struct dbn *right;
+	// Node data
+	DBKey key;
+	void *data;
+	// Other
+	enum {RED, BLACK} color;
+	unsigned deleted : 1;
+} *DBNode;
+#endif /* not DB_USE_OLD_RELEASE */
+
+/**
+ * Structure that holds a deleted node.
+ * @param node Deleted node
+ * @param root Address to the root of the tree
+ * @private
+ * @see Database#free_list
+ */
+struct db_free {
+	DBNode node;
+	DBNode *root;
+};
+
+/**
+ * Complete database structure.
+ * @param dbi Interface of the database
+ * @param alloc_file File where the database was allocated
+ * @param alloc_line Line in the file where the database was allocated
+ * @param free_list Array of deleted nodes to be freed
+ * @param free_count Number of deleted nodes in free_list
+ * @param free_max Current maximum capacity of free_list
+ * @param free_lock Lock for freeing the nodes
+ * @param cmp Comparator of the database
+ * @param hash Hasher of the database
+ * @param release Releaser of the database
+ * @param ht Hashtable of RED-BLACK trees
+ * @param type Type of the database
+ * @param options Options of the database
+ * @param item_count Number of items in the database
+ * @param maxlen Maximum length of strings in DB_STRING and DB_ISTRING databases
+ * @param global_lock Global lock of the database
+ * @private
+ * @see common\db.h#DBInterface
+ * @see #HASH_SIZE
+ * @see #DBNode
+ * @see #struct db_free
+ * @see common\db.h#DBComparator(void *,void *)
+ * @see common\db.h#DBHasher(void *)
+ * @see common\db.h#DBReleaser(void *,void *,DBRelease)
+ * @see common\db.h#DBOptions
+ * @see common\db.h#DBType
+ * @see #db_alloc(const char *,int,DBOptions,DBType,...)
+ */
+typedef struct db {
+	// Database interface
+	struct dbt dbi;
+	// File and line of allocation
+	const char *alloc_file;
+	int alloc_line;
+	// Lock system
+	struct db_free *free_list;
+	unsigned int free_count;
+	unsigned int free_max;
+	unsigned int free_lock;
+	// Other
+	DBComparator cmp;
+	DBHasher hash;
+	DBReleaser release;
+	DBNode ht[HASH_SIZE];
+	DBType type;
+	DBOptions options;
+	unsigned int item_count;
+	unsigned short maxlen;
+	unsigned global_lock : 1;
+} *Database;
+
+#ifdef DB_ENABLE_STATS
+/**
+ * Structure with what is counted when the database estatistics are enabled.
+ * @private
+ * @see #DB_ENABLE_STATS
+ * @see #stats
+ */
+typedef struct db_stats {
+	// Counters about database nodes
+	unsigned int dbn_alloc;
+	unsigned int dbn_use;
+	unsigned int dbn_reuse;
+	// Database creating/destruction counters
+	unsigned int db_int_alloc;
+	unsigned int db_uint_alloc;
+	unsigned int db_string_alloc;
+	unsigned int db_istring_alloc;
+	unsigned int db_int_destroy;
+	unsigned int db_uint_destroy;
+	unsigned int db_string_destroy;
+	unsigned int db_istring_destroy;
+	// Function usage counters
+	unsigned int db_malloc_dbn;
+	unsigned int db_free_dbn;
+	unsigned int db_rotate_left;
+	unsigned int db_rotate_right;
+	unsigned int db_rebalance;
+	unsigned int db_rebalance_erase;
+	unsigned int db_is_key_null;
+	unsigned int db_dup_key;
+	unsigned int db_dup_key_free;
+	unsigned int db_free_add;
+	unsigned int db_free_remove;
+	unsigned int db_free_lock;
+	unsigned int db_free_unlock;
+	unsigned int db_int_cmp;
+	unsigned int db_uint_cmp;
+	unsigned int db_string_cmp;
+	unsigned int db_istring_cmp;
+	unsigned int db_int_hash;
+	unsigned int db_uint_hash;
+	unsigned int db_string_hash;
+	unsigned int db_istring_hash;
+	unsigned int db_release_nothing;
+	unsigned int db_release_key;
+	unsigned int db_release_data;
+	unsigned int db_release_both;
+	unsigned int db_get;
+	unsigned int db_getall;
+	unsigned int db_vgetall;
+	unsigned int db_put;
+	unsigned int db_remove;
+	unsigned int db_foreach;
+	unsigned int db_vforeach;
+	unsigned int db_destroy;
+	unsigned int db_vdestroy;
+	unsigned int db_size;
+	unsigned int db_type;
+	unsigned int db_options;
+	unsigned int db_fix_options;
+	unsigned int db_default_cmp;
+	unsigned int db_default_hash;
+	unsigned int db_default_release;
+	unsigned int db_custom_release;
+	unsigned int db_alloc;
+	unsigned int db_init;
+	unsigned int db_final;
+} *DBStats;
+#endif /* DB_ENABLE_STATS */
+
+/**
+ * Number of nodes in each block.
+ * @private
+ * @see #dbn_root
+ * @see #db_malloc_dbn(void)
+ */
 #define ROOT_SIZE 4096
-static struct dbn *dbn_root[512], *dbn_free;
-static int dbn_root_rest = 0, dbn_root_num = 0;
 
-static struct dbn* malloc_dbn (void)
+/*****************************************************************************\
+ *  (2) Section with private variables used by the database system.          *
+ *  stats         - Statistics about the database system.                    *
+ *  dbn_free      - Linked list of free nodes.                               *
+ *  dbn_root      - Array with blocks of nodes.                              *
+ *  dbn_root_rest - Number of new nodes remaining in the last block.         *
+ *  dbn_root_num  - Number of blocks in the dbn_root array.                  *
+ *  dbn_root_max  - Current capacity of the dbn_root array.                  *
+\*****************************************************************************/
+
+#ifdef DB_ENABLE_STATS
+/**
+ * Counters that the database uses if DB_ENABLE_STATS is defined.
+ * @private
+ * @static
+ * @see #DBStats
+ * @see #DB_ENABLE_STATS
+ */
+static struct db_stats stats;
+#endif /* DB_ENABLE_STATS */
+
+/**
+ * Linked list of free nodes.
+ * The nodes are linked throw the {@link DBNode#parent} field.
+ * @private
+ * @static
+ * @see DBNode#parent
+ * @see #db_malloc_dbn(void)
+ * @see #db_free_dbn(DBNode)
+ */
+static DBNode dbn_free = NULL;
+
+/**
+ * Root array of blocks of database nodes.
+ * @private
+ * @static
+ * @see #ROOT_SIZE
+ * @see #dbn_root_rest
+ * @see #dbn_root_num
+ * @see #dbn_root_max
+ * @see #db_malloc_dbn(void)
+ */
+static DBNode *dbn_root = NULL;
+
+/**
+ * Number of unused nodes in the last allocated block.
+ * @private
+ * @static
+ * @see #dbn_root
+ * @see #db_malloc_dbn(void)
+ */
+static unsigned int dbn_root_rest = 0;
+
+/**
+ * Number of blocks in dbn_root.
+ * @private
+ * @static
+ * @see #dbn_root
+ * @see #db_malloc_dbn(void)
+ */
+static unsigned int dbn_root_num = 0;
+
+/**
+ * Current maximum capacity of dbn_root.
+ * @private
+ * @static
+ * @see #dbn_root
+ * @see #db_malloc_dbn(void)
+ */
+static unsigned int dbn_root_max = 0;
+
+/*****************************************************************************\
+ *  (3) Section of private functions used by the database system.            *
+ *  db_malloc_dbn      - Allocate a node.                                    *
+ *  db_free_dbn        - Free a node.                                        *
+ *  db_rotate_left     - Rotate a tree node to the left.                     *
+ *  db_rotate_right    - Rotate a tree node to the right.                    *
+ *  db_rebalance       - Rebalance the tree.                                 *
+ *  db_rebalance_erase - Rebalance the tree after a BLACK node was erased.   *
+ *  db_is_key_null     - Returns not 0 if the key is considered NULL.        *
+ *  db_dup_key         - Duplicate a key for internal use.                   *
+ *  db_dup_key_free    - Free the duplicated key.                            *
+ *  db_free_add        - Add a node to the free_list of a database.          *
+ *  db_free_remove     - Remove a node from the free_list of a database.     *
+ *  db_free_lock       - Increment the free_lock of a database.              *
+ *  db_free_unlock     - Decrement the free_lock of a database.              *
+ *         If it was the last lock, frees the nodes in free_list.            *
+ *         NOTE: Keeps the database trees balanced.                          *
+\*****************************************************************************/
+
+/**
+ * Returns a free node or new unused node for a database.
+ * Exits if it can't allocate.
+ * @return The new node
+ * @private
+ * @see #ROOT_SIZE
+ * @see #dbn_free
+ * @see #dbn_root
+ * @see #dbn_root_rest
+ * @see #dbn_root_num
+ * @see #dbn_root_max
+ * @see #db_free_dbn(DBNode)
+ */
+static DBNode db_malloc_dbn(void)
 {
-	struct dbn* ret;
+	DBNode node;
 
-	if (dbn_free == NULL) {
-		if (dbn_root_rest <= 0) {
-			CREATE(dbn_root[dbn_root_num], struct dbn, ROOT_SIZE);
-
-			dbn_root_rest = ROOT_SIZE;
-			dbn_root_num++;
-		}
-		return &(dbn_root[dbn_root_num-1][--dbn_root_rest]);
+#ifdef DB_ENABLE_STATS
+	if (stats.db_malloc_dbn != ~0) stats.db_malloc_dbn++;
+#endif /* DB_ENABLE_STATS */
+	if (dbn_free) { // Reuse a free node
+		node = dbn_free;
+		dbn_free = dbn_free->parent;
+#ifdef DB_ENABLE_STATS
+		stats.dbn_reuse++;
+#endif /* DB_ENABLE_STATS */
+		return node;
 	}
-	ret = dbn_free;
-	dbn_free = dbn_free->parent;
-	return ret;
-}
 
-static void free_dbn (struct dbn *add_dbn)
-{
-	add_dbn->parent = dbn_free;
-	dbn_free = add_dbn;
-}
-
-void exit_dbn (void)
-{
-	int i;
-
-	for (i = 0; i < dbn_root_num; i++)
-		if (dbn_root[i])
-			aFree(dbn_root[i]);
-
-	dbn_root_rest = dbn_root_num = 0;
-	return;
-}
-#else
-void exit_dbn(void)
-{
-	struct dbn *p = head, *p2;
-	while (p) {
-		p2 = p->next;
-		aFree(p);
-		p = p2;
-	}
-	return;
-}
-#endif
-
-// maybe change the void* to const char* ???
-static int strdb_cmp (struct dbt* table, void* a, void* b)
-{
-	if (table->maxlen)
-		return strncmp ((const char*)a, (const char*)b, table->maxlen);
-	return strcmp ((const char*)a, (const char*)b);
-}
-
-// maybe change the void* to unsigned char* ???
-static unsigned int strdb_hash (struct dbt* table, void* a)
-{
-	unsigned int h = 0;
-	unsigned char *p = (unsigned char*)a;
-	int i = table->maxlen;
-
-	if (i == 0) i = 0x7fffffff;
-	while (*p && --i >= 0)
-		h = (h*33 + *p++) ^ (h>>24);
-
-	return h;
-}
-
-struct dbt* strdb_init_ (int maxlen, const char *file, int line)
-{
-	int i;
-	struct dbt* table;
-
-	CREATE(table, struct dbt, 1);
-
-	table->cmp = strdb_cmp;
-	table->hash = strdb_hash;
-	table->maxlen = maxlen;
-	for (i = 0; i < HASH_SIZE; i++)
-		table->ht[i] = NULL;
-	table->alloc_file = file;
-	table->alloc_line = line;
-	table->item_count = 0;
-
-	return table;
-}
-
-static int numdb_cmp (struct dbt *table, void *a, void *b)
-{
-	int ia, ib;
-
-	ia = (int)a;
-	ib = (int)b;
-
-	if ((ia^ib) & 0x80000000)
-		return ia < 0 ? -1 : 1;
-
-	return ia - ib;
-}
-
-static unsigned int numdb_hash (struct dbt *table, void *a)
-{
-	return (unsigned int)a;
-}
-
-struct dbt* numdb_init_(const char *file,int line)
-{
-	int i;
-	struct dbt* table;
-
-	CREATE(table, struct dbt, 1);
-
-	table->cmp=numdb_cmp;
-	table->hash=numdb_hash;
-	table->maxlen=sizeof(int);
-	for(i=0;i<HASH_SIZE;i++)
-		table->ht[i]=NULL;
-	table->alloc_file = file;
-	table->alloc_line = line;
-	table->item_count = 0;
-	return table;
-}
-
-void* db_search (struct dbt *table, void  *key)
-{
-	struct dbn *p = table->ht[table->hash(table,key) % HASH_SIZE];
-
-	while (p) {
-		int c = table->cmp(table, key, p->key);
-		if (c == 0)
-			return p->data;
-		if (c < 0)
-			p = p->left;
-		else
-			p = p->right;
-	}
-	return NULL;
-}
-
-void* db_search2 (struct dbt *table, const char *key)
-{
-	int i, sp;
-	struct dbn *p, *pn, *stack[64];
-	int slen = strlen(key);
-
-	for (i = 0; i < HASH_SIZE; i++) {
-		if ((p = table->ht[i]) == NULL)
-			continue;
-		sp = 0;
-		while (1) {
-			if (strnicmp(key, (const char*)p->key, slen) == 0)
-				return p->data;
-			if((pn = p->left) != NULL) {
-				if (p->right)
-					stack[sp++] = p->right;
-				p = pn;
-			} else {
-				if (p->right)
-					p = p->right;
-				else {
-					if (sp == 0)
-						break;
-					p = stack[--sp];
+	if (dbn_root_rest == 0) { // No more new unused nodes in the last block, allocate a new block
+		if (dbn_root_num == dbn_root_max) { // No more space, expand dbn_root
+			dbn_root_max = (dbn_root_max<<2) +3; // = dbn_root_max*4 +3
+			if (dbn_root_max <= dbn_root_num) {
+				if (dbn_root_num == ~0) {
+					ShowFatalError("db_malloc_dbn: dbn_root overflow, increase ROOT_SIZE\n");
+					exit(EXIT_FAILURE);
 				}
+				dbn_root_max = ~0;
 			}
+			RECREATE(dbn_root, DBNode, dbn_root_max);
 		}
+		CREATE(dbn_root[dbn_root_num], struct dbn, ROOT_SIZE);
+#ifdef DB_ENABLE_STATS
+		stats.dbn_alloc += ROOT_SIZE;
+#endif /* DB_ENABLE_STATS */
+		dbn_root_rest = ROOT_SIZE;
+		dbn_root_num++;
 	}
-	return 0;
+#ifdef DB_ENABLE_STATS
+	stats.dbn_use++;
+#endif /* DB_ENABLE_STATS */
+	return &(dbn_root[dbn_root_num -1][--dbn_root_rest]);
 }
 
-static void db_rotate_left (struct dbn *p, struct dbn **root)
+/**
+ * Add a node to the linked list of free nodes.
+ * Uses the {@link DBNode#parent} field to link the nodes.
+ * @param node Free node
+ * @private
+ * @see DBNode#parent
+ * @see #dbn_free
+ * @see #db_malloc_dbn(void)
+ */
+static void db_free_dbn(DBNode node)
 {
-	struct dbn * y = p->right;
-	p->right = y->left;
-	if (y->left !=0)
-		y->left->parent = p;
-	y->parent = p->parent;
-
-	if (p == *root)
-		*root = y;
-	else if (p == p->parent->left)
-		p->parent->left = y;
-	else
-		p->parent->right = y;
-	y->left = p;
-	p->parent = y;
+#ifdef DB_ENABLE_STATS
+	if (stats.db_free_dbn != ~0) stats.db_free_dbn++;
+#endif /* DB_ENABLE_STATS */
+	node->parent = dbn_free;
+	dbn_free = node;
 }
 
-static void db_rotate_right(struct dbn *p,struct dbn **root)
+/**
+ * Rotate a node to the left.
+ * @param node Node to be rotated
+ * @param root Pointer to the root of the tree
+ * @private
+ * @see #db_rebalance(DBNode,DBNode *)
+ * @see #db_rebalance_erase(DBNode,DBNode *)
+ */
+static void db_rotate_left(DBNode node, DBNode *root)
 {
-	struct dbn * y = p->left;
-	p->left = y->right;
+	DBNode y = node->right;
+
+#ifdef DB_ENABLE_STATS
+	if (stats.db_rotate_left != ~0) stats.db_rotate_left++;
+#endif /* DB_ENABLE_STATS */
+	// put the left of y at the right of node
+	node->right = y->left;
+	if (y->left)
+		y->left->parent = node;
+	y->parent = node->parent;
+	// link y and node's parent
+	if (node == *root) {
+		*root = y; // node was root
+	} else if (node == node->parent->left) {
+		node->parent->left = y; // node was at the left
+	} else {
+		node->parent->right = y; // node was at the right
+	}
+	// put node at the left of y
+	y->left = node;
+	node->parent = y;
+}
+
+/**
+ * Rotate a node to the right
+ * @param node Node to be rotated
+ * @param root Pointer to the root of the tree
+ * @private
+ * @see #db_rebalance(DBNode,DBNode *)
+ * @see #db_rebalance_erase(DBNode,DBNode *)
+ */
+static void db_rotate_right(DBNode node, DBNode *root)
+{
+	DBNode y = node->left;
+
+#ifdef DB_ENABLE_STATS
+	if (stats.db_rotate_right != ~0) stats.db_rotate_right++;
+#endif /* DB_ENABLE_STATS */
+	// put the right of y at the left of node
+	node->left = y->right;
 	if (y->right != 0)
-		y->right->parent = p;
-	y->parent = p->parent;
-
-	if (p == *root)
-		*root = y;
-	else if (p == p->parent->right)
-		p->parent->right = y;
-	else
-		p->parent->left = y;
-	y->right = p;
-	p->parent = y;
+		y->right->parent = node;
+	y->parent = node->parent;
+	// link y and node's parent
+	if (node == *root) {
+		*root = y; // node was root
+	} else if (node == node->parent->right) {
+		node->parent->right = y; // node was at the right
+	} else {
+		node->parent->left = y; // node was at the left
+	}
+	// put node at the right of y
+	y->right = node;
+	node->parent = y;
 }
 
-static void db_rebalance(struct dbn *p,struct dbn **root)
+/**
+ * Rebalance the RED-BLACK tree.
+ * Called when the node and it's parent are both RED.
+ * @param node Node to be rebalanced
+ * @param root Pointer to the root of the tree
+ * @private
+ * @see #db_rotate_left(DBNode,DBNode *)
+ * @see #db_rotate_right(DBNode,DBNode *)
+ * @see #db_put(DBInterface,DBKey,void *)
+ */
+static void db_rebalance(DBNode node, DBNode *root)
 {
-	p->color = RED;
-	while(p!=*root && p->parent->color==RED){ // rootは必ず黒で親は赤いので親の親は必ず存在する
-		if (p->parent == p->parent->parent->left) {
-			struct dbn *y = p->parent->parent->right;
-			if (y && y->color == RED) {
-				p->parent->color = BLACK;
+	DBNode y;
+
+#ifdef DB_ENABLE_STATS
+	if (stats.db_rebalance != ~0) stats.db_rebalance++;
+#endif /* DB_ENABLE_STATS */
+	// Restore the RED-BLACK properties
+	node->color = RED;
+	while (node != *root && node->parent->color == RED) {
+		if (node->parent == node->parent->parent->left) {
+			// If node's parent is a left, y is node's right 'uncle'
+			y = node->parent->parent->right;
+			if (y && y->color == RED) { // case 1
+				// change the colors and move up the tree
+				node->parent->color = BLACK;
 				y->color = BLACK;
-				p->parent->parent->color = RED;
-				p = p->parent->parent;
+				node->parent->parent->color = RED;
+				node = node->parent->parent;
 			} else {
-				if (p == p->parent->right) {
-					p = p->parent;
-					db_rotate_left(p, root);
+				if (node == node->parent->right) { // case 2
+					// move up and rotate
+					node = node->parent;
+					db_rotate_left(node, root);
 				}
-				p->parent->color = BLACK;
-				p->parent->parent->color = RED;
-				db_rotate_right(p->parent->parent, root);
+				// case 3
+				node->parent->color = BLACK;
+				node->parent->parent->color = RED;
+				db_rotate_right(node->parent->parent, root);
 			}
 		} else {
-			struct dbn* y = p->parent->parent->left;
-			if (y && y->color == RED) {
-				p->parent->color = BLACK;
+			// If node's parent is a right, y is node's left 'uncle'
+			y = node->parent->parent->left;
+			if (y && y->color == RED) { // case 1
+				// change the colors and move up the tree
+				node->parent->color = BLACK;
 				y->color = BLACK;
-				p->parent->parent->color = RED;
-				p = p->parent->parent;
+				node->parent->parent->color = RED;
+				node = node->parent->parent;
 			} else {
-				if (p == p->parent->left) {
-					p = p->parent;
-					db_rotate_right(p, root);
+				if (node == node->parent->left) { // case 2
+					// move up and rotate
+					node = node->parent;
+					db_rotate_right(node, root);
 				}
-				p->parent->color = BLACK;
-				p->parent->parent->color = RED;
-				db_rotate_left(p->parent->parent, root);
+				// case 3
+				node->parent->color = BLACK;
+				node->parent->parent->color = RED;
+				db_rotate_left(node->parent->parent, root);
 			}
 		}
 	}
-	(*root)->color=BLACK;
+	(*root)->color = BLACK; // the root can and should always be black
 }
 
-static void db_rebalance_erase(struct dbn *z,struct dbn **root)
+/**
+ * Erase a node from the RED-BLACK tree, keeping the tree balanced.
+ * @param node Node to be erased from the tree
+ * @param root Root of the tree
+ * @private
+ * @see #db_rotate_left(DBNode,DBNode *)
+ * @see #db_rotate_right(DBNode,DBNode *)
+ * @see #db_free_unlock(Database)
+ */
+static void db_rebalance_erase(DBNode node, DBNode *root)
 {
-	struct dbn *y = z, *x = NULL, *x_parent = NULL;
+	DBNode y = node;
+	DBNode x = NULL;
+	DBNode x_parent = NULL;
+	DBNode w;
 
-	if (y->left == NULL)
+#ifdef DB_ENABLE_STATS
+	if (stats.db_rebalance_erase != ~0) stats.db_rebalance_erase++;
+#endif /* DB_ENABLE_STATS */
+	// Select where to change the tree
+	if (y->left == NULL) { // no left
 		x = y->right;
-	else if (y->right == NULL)
+	} else if (y->right == NULL) { // no right
 		x = y->left;
-	else {
+	} else { // both exist, go to the leftmost node of the right sub-tree
 		y = y->right;
 		while (y->left != NULL)
 			y = y->left;
 		x = y->right;
 	}
-	if (y != z) { // 左右が両方埋まっていた時 yをzの位置に持ってきてzを浮かせる
-		z->left->parent = y;
-		y->left = z->left;
-		if (y != z->right) {
+
+	// Remove the node from the tree
+	if (y != node) { // both childs existed
+		// put the left of 'node' in the left of 'y'
+		node->left->parent = y;
+		y->left = node->left;
+
+		// 'y' is not the direct child of 'node'
+		if (y != node->right) {
+			// put 'x' in the old position of 'y'
 			x_parent = y->parent;
 			if (x) x->parent = y->parent;
 			y->parent->left = x;
-			y->right = z->right;
-			z->right->parent = y;
-		} else
+			// put the right of 'node' in 'y' 
+			y->right = node->right;
+			node->right->parent = y;
+		// 'y' is a direct child of 'node'
+		} else {
 			x_parent = y;
-		if (*root == z)
-			*root = y;
-		else if (z->parent->left == z)
-			z->parent->left = y;
-		else
-			z->parent->right = y;
-		y->parent = z->parent;
-		{ int tmp=y->color; y->color=z->color; z->color=tmp; }
-		y = z;
-	} else { // どちらか空いていた場合 xをzの位置に持ってきてzを浮かせる
+		}
+
+		// link 'y' and the parent of 'node'
+		if (*root == node) {
+			*root = y; // 'node' was the root
+		} else if (node->parent->left == node) {
+			node->parent->left = y; // 'node' was at the left
+		} else {
+			node->parent->right = y; // 'node' was at the right
+		}
+		y->parent = node->parent;
+		// switch colors
+		{
+			int tmp = y->color;
+			y->color = node->color;
+			node->color = tmp;
+		}
+		y = node;
+	} else { // one child did not exist
+		// put x in node's position
 		x_parent = y->parent;
 		if (x) x->parent = y->parent;
-		if (*root == z)
-			*root = x;
-		else if (z->parent->left == z)
-			z->parent->left = x;
-		else
-			z->parent->right = x;
+		// link x and node's parent
+		if (*root == node) {
+			*root = x; // node was the root
+		} else if (node->parent->left == node) {
+			node->parent->left = x; // node was at the left
+		} else {
+			node->parent->right = x;  // node was at the right
+		}
 	}
-	// ここまで色の移動の除いて通常の2分木と同じ
-	if (y->color != RED) { // 赤が消える分には影響無し
-		while (x != *root && (x == NULL || x->color == BLACK))
+
+	// Restore the RED-BLACK properties
+	if (y->color != RED) {
+		while (x != *root && (x == NULL || x->color == BLACK)) {
 			if (x == x_parent->left) {
-				struct dbn* w = x_parent->right;
+				w = x_parent->right;
 				if (w->color == RED) {
 					w->color = BLACK;
 					x_parent->color = RED;
 					db_rotate_left(x_parent, root);
 					w = x_parent->right;
 				}
-				if ((w->left == NULL ||
-					 w->left->color == BLACK) &&
-					(w->right == NULL ||
-					 w->right->color == BLACK)) {
+				if ((w->left == NULL || w->left->color == BLACK) &&
+					(w->right == NULL || w->right->color == BLACK)) {
 					w->color = RED;
 					x = x_parent;
 					x_parent = x_parent->parent;
 				} else {
-					if (w->right == NULL ||
-						w->right->color == BLACK) {
+					if (w->right == NULL ||	w->right->color == BLACK) {
 						if (w->left) w->left->color = BLACK;
 						w->color = RED;
 						db_rotate_right(w, root);
@@ -349,24 +656,21 @@ static void db_rebalance_erase(struct dbn *z,struct dbn **root)
 					db_rotate_left(x_parent, root);
 					break;
 				}
-			} else {                  // same as above, with right <-> left.
-				struct dbn* w = x_parent->left;
+			} else {
+				w = x_parent->left;
 				if (w->color == RED) {
 					w->color = BLACK;
 					x_parent->color = RED;
 					db_rotate_right(x_parent, root);
 					w = x_parent->left;
 				}
-				if ((w->right == NULL ||
-					 w->right->color == BLACK) &&
-					(w->left == NULL ||
-					 w->left->color == BLACK)) {
+				if ((w->right == NULL || w->right->color == BLACK) &&
+					(w->left == NULL || w->left->color == BLACK)) {
 					w->color = RED;
 					x = x_parent;
 					x_parent = x_parent->parent;
 				} else {
-					if (w->left == NULL ||
-						w->left->color == BLACK) {
+					if (w->left == NULL || w->left->color == BLACK) {
 						if (w->right) w->right->color = BLACK;
 						w->color = RED;
 						db_rotate_left(w, root);
@@ -379,305 +683,1519 @@ static void db_rebalance_erase(struct dbn *z,struct dbn **root)
 					break;
 				}
 			}
+		}
 		if (x) x->color = BLACK;
 	}
 }
 
-void db_free_lock(struct dbt *table) {
-	table->free_lock++;
-}
-
-void db_free_unlock(struct dbt *table) {
-	if(--table->free_lock == 0) {
-		int i;
-		for(i = 0; i < table->free_count ; i++) {
-			db_rebalance_erase(table->free_list[i].z,table->free_list[i].root);
-			if(table->cmp == strdb_cmp) {
-				aFree(table->free_list[i].z->key);
-			}
-#ifdef MALLOC_DBN
-			free_dbn(table->free_list[i].z);
-#else
-			aFree(table->free_list[i].z);
-#endif
-			table->item_count--;
-		}
-		table->free_count = 0;
-	}
-}
-
-struct dbn* db_insert(struct dbt *table,void* key,void* data)
+/**
+ * Returns not 0 if the key is considerd to be NULL.
+ * @param type Type of database
+ * @param key Key being tested
+ * @return not 0 if considered NULL, 0 otherwise
+ * @private
+ * @see common\db.h#DBType
+ * @see common\db.h#DBKey
+ * @see #db_get(DBInterface,DBKey)
+ * @see #db_put(DBInterface,DBKey,void *)
+ * @see #db_remove(DBInterface,DBKey)
+ */
+static int db_is_key_null(DBType type, DBKey key)
 {
-	struct dbn *p,*priv;
-	int c,hash;
+#ifdef DB_ENABLE_STATS
+	if (stats.db_is_key_null != ~0) stats.db_is_key_null++;
+#endif /* DB_ENABLE_STATS */
+	switch (type) {
+		case DB_STRING:
+		case DB_ISTRING:
+			return (key.str == NULL);
 
-	hash = table->hash(table,key) % HASH_SIZE;
-	for(c=0,priv=NULL ,p = table->ht[hash];p;){
-		c=table->cmp(table,key,p->key);
-		if(c==0){ // replace
-			if (table->release)
-				table->release(p, 3);
-			if(p->deleted) {
-				// 削除されたデータなので、free_list 上の削除予定を消す
-				int i;
-				for(i = 0; i < table->free_count ; i++) {
-					if(table->free_list[i].z == p) {
-						memmove(
-							&table->free_list[i],
-							&table->free_list[i+1],
-							sizeof(struct db_free)*(table->free_count - i - 1)
-						);
-						break;
-					}
-				}
-				if(i == table->free_count || table->free_count <= 0) {
-					ShowError("db_insert: cannnot find deleted db node.\n");
-				} else {
-					table->free_count--;
-					if(table->cmp == strdb_cmp) {
-						aFree(p->key);
-					}
-				}
-			}
-			p->data=data;
-			p->key=key;
-			p->deleted = 0;
-			return p;
-		}
-		priv=p;
-		if(c<0){
-			p=p->left;
-		} else {
-			p=p->right;
-		}
+		default: // Not a pointer
+			return 0;
 	}
-#ifdef MALLOC_DBN
-	p=(struct dbn *)malloc_dbn();
-#else
-	CREATE(p, struct dbn, 1);
-#endif
-	if(p==NULL){
-		ShowFatalError("out of memory : db_insert\n");
-		return NULL;
-	}
-	p->parent= NULL;
-	p->left  = NULL;
-	p->right = NULL;
-	p->key   = key;
-	p->data  = data;
-	p->color = RED;
-	p->deleted = 0;
-	p->prev = NULL;
-	p->next = NULL;
-	if (head == NULL)
-		head = tail = p;
-	else {
-		p->prev = tail;
-		tail->next = p;
-		tail = p;
-	}
-
-	if(c==0){ // hash entry is empty
-		table->ht[hash] = p;
-		p->color = BLACK;
-	} else {
-		if(c<0){ // left node
-			priv->left = p;
-			p->parent=priv;
-		} else { // right node
-			priv->right = p;
-			p->parent=priv;
-		}
-		if(priv->color==RED){ // must rebalance
-			db_rebalance(p,&table->ht[hash]);
-		}
-	}
-	table->item_count++;
-	
-	return p;
 }
 
-void* db_erase(struct dbt *table,void* key)
+/**
+ * Duplicate the key used in the database.
+ * @param db Database the key is being used in
+ * @param key Key to be duplicated
+ * @param Duplicated key
+ * @private
+ * @see #db_free_add(Database,DBNode,DBNode *)
+ * @see #db_free_remove(Database,DBNode)
+ * @see #db_put(DBInterface,DBKey,void *)
+ * @see #db_dup_key_free(Database,DBKey)
+ */
+static DBKey db_dup_key(Database db, DBKey key)
 {
-	void *data;
-	struct dbn *p;
-	int c,hash;
+	unsigned char *str;
 
-	hash = table->hash(table,key) % HASH_SIZE;
-	for(c=0,p = table->ht[hash];p;){
-		c=table->cmp(table,key,p->key);
-		if(c==0)
-			break;
-		if(c<0)
-			p=p->left;
-		else
-			p=p->right;
-	}
-	if(!p || p->deleted)
-		return NULL;
-	data=p->data;
-	if(table->free_lock) {
-		if(table->free_count == table->free_max) {
-			table->free_max += 32;
-			table->free_list = (struct db_free*)aRealloc(table->free_list,sizeof(struct db_free) * table->free_max);
-		}
-		table->free_list[table->free_count].z    = p;
-		table->free_list[table->free_count].root = &table->ht[hash];
-		table->free_count++;
-		p->deleted = 1;
-		p->data    = NULL;
-		if(table->cmp == strdb_cmp) {
-			if(table->maxlen) {
-				char *key = (char*)aMalloc(table->maxlen);
-				memcpy(key,p->key,table->maxlen);
-				p->key = key;
+#ifdef DB_ENABLE_STATS
+	if (stats.db_dup_key != ~0) stats.db_dup_key++;
+#endif /* DB_ENABLE_STATS */
+	switch (db->type) {
+		case DB_STRING:
+		case DB_ISTRING:
+			if (db->maxlen) {
+				CREATE(str, unsigned char, db->maxlen +1);
+				memcpy(str, key.str, db->maxlen);
+				str[db->maxlen] = '\0';
+				key.str = str;
 			} else {
-				p->key = aStrdup((const char*)p->key);
+				key.str = (unsigned char *)aStrdup((const char *)key.str);
 			}
-		}
-	} else {
-		db_rebalance_erase(p,&table->ht[hash]);
-		if (p->prev)
-			p->prev->next = p->next;
-		else
-			head = p->next;
-		if (p->next)
-			p->next->prev = p->prev;
-		else
-			tail = p->prev;
+			return key;
 
-	#ifdef MALLOC_DBN
-		free_dbn(p);
-	#else
-		aFree(p);
-	#endif
-		table->item_count--;
+		default:
+			return key;
 	}
+}
+
+/**
+ * Free a key duplicated by db_dup_key.
+ * @param db Database the key is being used in
+ * @param key Key to be freed
+ * @private
+ * @see #db_dup_key(Database,DBKey)
+ */
+static void db_dup_key_free(Database db, DBKey key)
+{
+#ifdef DB_ENABLE_STATS
+	if (stats.db_dup_key_free != ~0) stats.db_dup_key_free++;
+#endif /* DB_ENABLE_STATS */
+	switch (db->type) {
+		case DB_STRING:
+		case DB_ISTRING:
+			aFree(key.str);
+			return;
+
+		default:
+			return;
+	}
+}
+
+/**
+ * Add a node to the free_list of the database.
+ * Marks the node as deleted.
+ * If the key isn't duplicated, the key is duplicated and released.
+ * @param db Target database
+ * @param root Root of the tree from the node
+ * @param node Target node
+ * @private
+ * @see #struct db_free
+ * @see Database#free_list
+ * @see Database#free_count
+ * @see Database#free_max
+ * @see #db_remove(DBInterface,DBKey)
+ * @see #db_free_remove(Database,DBNode)
+ */
+static void db_free_add(Database db, DBNode node, DBNode *root)
+{
+	DBKey old_key;
+
+#ifdef DB_ENABLE_STATS
+	if (stats.db_free_add != ~0) stats.db_free_add++;
+#endif /* DB_ENABLE_STATS */
+	if (db->free_lock == ~0) {
+		ShowFatalError("db_free_add: free_lock overflow\n"
+				"Database allocated at %s:%d\n",
+				db->alloc_file, db->alloc_line);
+		exit(EXIT_FAILURE);
+	}
+	if (!(db->options&DB_OPT_DUP_KEY)) { // Make shure we have a key until the node is freed
+#ifdef DB_USE_OLD_RELEASE
+		old_key.p = node->key;
+		node->key = db_dup_key(db, node->key).p;
+#else /* not DB_USE_OLD_RELEASE */
+		old_key = node->key;
+		node->key = db_dup_key(db, node->key);
+#endif /* DB_USE_OLD_RELEASE / not DB_USE_OLD_RELEASE */
+		db->release(old_key, node->data, DB_RELEASE_KEY);
+	}
+	if (db->free_count == db->free_max) { // No more space, expand free_list
+		db->free_max = (db->free_max<<2) +3; // = db->free_max*4 +3
+		if (db->free_max <= db->free_count) {
+			if (db->free_count == ~0) {
+				ShowFatalError("db_free_add: free_count overflow\n"
+						"Database allocated at %s:%d\n",
+						db->alloc_file, db->alloc_line);
+				exit(EXIT_FAILURE);
+			}
+			db->free_max = ~0;
+		}
+		RECREATE(db->free_list, struct db_free, db->free_max);
+	}
+	node->deleted = 1;
+	db->free_list[db->free_count].node = node;
+	db->free_list[db->free_count].root = root;
+	db->free_count++;
+	db->item_count--;
+}
+
+/**
+ * Remove a node from the free_list of the database.
+ * Marks the node as not deleted.
+ * NOTE: Frees the duplicated key of the node.
+ * @param db Target database
+ * @param node Node being removed from free_list
+ * @private
+ * @see #struct db_free
+ * @see Database#free_list
+ * @see Database#free_count
+ * @see #db_put(DBInterface,DBKey,void *)
+ * @see #db_free_add(Database,DBNode *,DBNode)
+ */
+static void db_free_remove(Database db, DBNode node)
+{
+	unsigned int i;
+
+#ifdef DB_ENABLE_STATS
+	if (stats.db_free_remove != ~0) stats.db_free_remove++;
+#endif /* DB_ENABLE_STATS */
+	for (i = 0; i < db->free_count; i++) {
+		if (db->free_list[i].node == node) {
+			if (i < db->free_count -1) // copy the last item to where the removed one was
+				memcpy(&db->free_list[i], &db->free_list[db->free_count -1], sizeof(struct db_free));
+			db_dup_key_free(db, node->key);
+			break;
+		}
+	}
+	node->deleted = 0;
+	if (i == db->free_count) {
+		ShowWarning("db_free_remove: node was not found - database allocated at %s:%d\n", db->alloc_file, db->alloc_line);
+	} else {
+		db->free_count--;
+	}
+	db->item_count++;
+}
+
+/**
+ * Increment the free_lock of the database.
+ * @param db Target database
+ * @private
+ * @see Database#free_lock
+ * @see #db_unlock(Database)
+ */
+static void db_free_lock(Database db)
+{
+#ifdef DB_ENABLE_STATS
+	if (stats.db_free_lock != ~0) stats.db_free_lock++;
+#endif /* DB_ENABLE_STATS */
+	if (db->free_lock == ~0) {
+		ShowFatalError("db_free_lock: free_lock overflow\n"
+				"Database allocated at %s:%d\n",
+				db->alloc_file, db->alloc_line);
+		exit(EXIT_FAILURE);
+	}
+	db->free_lock++;
+}
+
+/**
+ * Decrement the free_lock of the database.
+ * If it was the last lock, frees the nodes of the database.
+ * Keeps the tree balanced.
+ * NOTE: Frees the duplicated keys of the nodes
+ * @param db Target database
+ * @private
+ * @see Database#free_lock
+ * @see #db_free_dbn(DBNode)
+ * @see #db_lock(Database)
+ */
+static void db_free_unlock(Database db)
+{
+	unsigned int i;
+
+#ifdef DB_ENABLE_STATS
+	if (stats.db_free_unlock != ~0) stats.db_free_unlock++;
+#endif /* DB_ENABLE_STATS */
+	if (db->free_lock == 0) {
+		ShowWarning("db_free_unlock: free_lock was already 0\n"
+				"Database allocated at %s:%d\n",
+				db->alloc_file, db->alloc_line);
+	} else {
+		db->free_lock--;
+	}
+	if (db->free_lock)
+		return; // Not last lock
+
+	for (i = 0; i < db->free_count ; i++) {
+		db_rebalance_erase(db->free_list[i].node, db->free_list[i].root);
+		db_dup_key_free(db, db->free_list[i].node->key);
+		db_free_dbn(db->free_list[i].node);
+	}
+	db->free_count = 0;
+}
+
+/*****************************************************************************\
+ *  (4) Section of protected functions used internally.                      *
+ *  NOTE: the protected functions used in the database interface are in the  *
+ *           next section.                                                   *
+ *  db_int_cmp         - Default comparator for DB_INT databases.            *
+ *  db_uint_cmp        - Default comparator for DB_UINT databases.           *
+ *  db_string_cmp      - Default comparator for DB_STRING databases.         *
+ *  db_istring_cmp     - Default comparator for DB_ISTRING databases.        *
+ *  db_int_hash        - Default hasher for DB_INT databases.                *
+ *  db_uint_hash       - Default hasher for DB_UINT databases.               *
+ *  db_string_hash     - Default hasher for DB_STRING databases.             *
+ *  db_istring_hash    - Default hasher for DB_ISTRING databases.            *
+ *  db_release_nothing - Releaser that releases nothing.                     *
+ *  db_release_key     - Releaser that only releases the key.                *
+ *  db_release_data    - Releaser that only releases the data.               *
+ *  db_release_both    - Releaser that releases key and data.                *
+\*****************************************************************************/
+
+/**
+ * Default comparator for DB_INT databases.
+ * Compares key1 to key2.
+ * Return 0 if equal, negative if lower and positive if higher.
+ * <code>maxlen</code> is ignored.
+ * @param key1 Key to be compared
+ * @param key2 Key being compared to
+ * @param maxlen Maximum length of the key to hash
+ * @return 0 if equal, negative if lower and positive if higher
+ * @see common\db.h#DBKey
+ * @see common\db.h\DBType#DB_INT
+ * @see common\db.h#DBComparator
+ * @see #db_default_cmp(DBType)
+ */
+static int db_int_cmp(DBKey key1, DBKey key2, unsigned short maxlen)
+{
+#ifdef DB_ENABLE_STATS
+	if (stats.db_int_cmp != ~0) stats.db_int_cmp++;
+#endif /* DB_ENABLE_STATS */
+	if (key1.i < key2.i) return -1;
+	if (key1.i > key2.i) return 1;
+	return 0;
+}
+
+/**
+ * Default comparator for DB_UINT databases.
+ * Compares key1 to key2.
+ * Return 0 if equal, negative if lower and positive if higher.
+ * <code>maxlen</code> is ignored.
+ * @param key1 Key to be compared
+ * @param key2 Key being compared to
+ * @param maxlen Maximum length of the key to hash
+ * @return 0 if equal, negative if lower and positive if higher
+ * @see common\db.h#DBKey
+ * @see common\db.h\DBType#DB_UINT
+ * @see common\db.h#DBComparator
+ * @see #db_default_cmp(DBType)
+ */
+static int db_uint_cmp(DBKey key1, DBKey key2, unsigned short maxlen)
+{
+#ifdef DB_ENABLE_STATS
+	if (stats.db_uint_cmp != ~0) stats.db_uint_cmp++;
+#endif /* DB_ENABLE_STATS */
+	if (key1.ui < key2.ui) return -1;
+	if (key1.ui > key2.ui) return 1;
+	return 0;
+}
+
+/**
+ * Default comparator for DB_STRING databases.
+ * Compares key1 to key2.
+ * Return 0 if equal, negative if lower and positive if higher.
+ * @param key1 Key to be compared
+ * @param key2 Key being compared to
+ * @param maxlen Maximum length of the key to hash
+ * @return 0 if equal, negative if lower and positive if higher
+ * @see common\db.h#DBKey
+ * @see common\db.h\DBType#DB_STRING
+ * @see common\db.h#DBComparator
+ * @see #db_default_cmp(DBType)
+ */
+static int db_string_cmp(DBKey key1, DBKey key2, unsigned short maxlen)
+{
+#ifdef DB_ENABLE_STATS
+	if (stats.db_string_cmp != ~0) stats.db_string_cmp++;
+#endif /* DB_ENABLE_STATS */
+	if (maxlen == 0) maxlen = ~0;
+	return strncmp((const char*)key1.str, (const char*)key2.str, maxlen);
+}
+
+/**
+ * Default comparator for DB_ISTRING databases.
+ * Compares key1 to key2 case insensitively.
+ * Return 0 if equal, negative if lower and positive if higher.
+ * @param key1 Key to be compared
+ * @param key2 Key being compared to
+ * @param maxlen Maximum length of the key to hash
+ * @return 0 if equal, negative if lower and positive if higher
+ * @see common\db.h#DBKey
+ * @see common\db.h\DBType#DB_ISTRING
+ * @see common\db.h#DBComparator
+ * @see #db_default_cmp(DBType)
+ */
+static int db_istring_cmp(DBKey key1, DBKey key2, unsigned short maxlen)
+{
+#ifdef DB_ENABLE_STATS
+	if (stats.db_istring_cmp != ~0) stats.db_istring_cmp++;
+#endif /* DB_ENABLE_STATS */
+	if (maxlen == 0) maxlen = ~0;
+	return strncasecmp((const char*)key1.str, (const char*)key2.str, maxlen);
+}
+
+/**
+ * Default hasher for DB_INT databases.
+ * Returns the value of the key as an unsigned int.
+ * <code>maxlen</code> is ignored.
+ * @param key Key to be hashed
+ * @param maxlen Maximum length of the key to hash
+ * @return hash of the key
+ * @see common\db.h#DBKey
+ * @see common\db.h\DBType#DB_INT
+ * @see common\db.h#DBHasher
+ * @see #db_default_hash(DBType)
+ */
+static unsigned int db_int_hash(DBKey key, unsigned short maxlen)
+{
+#ifdef DB_ENABLE_STATS
+	if (stats.db_int_hash != ~0) stats.db_int_hash++;
+#endif /* DB_ENABLE_STATS */
+	return (unsigned int)key.i;
+}
+
+/**
+ * Default hasher for DB_UINT databases.
+ * Just returns the value of the key.
+ * <code>maxlen</code> is ignored.
+ * @param key Key to be hashed
+ * @param maxlen Maximum length of the key to hash
+ * @return hash of the key
+ * @see common\db.h#DBKey
+ * @see common\db.h\DBType#DB_UINT
+ * @see #db_default_hash(DBType)
+ */
+static unsigned int db_uint_hash(DBKey key, unsigned short maxlen)
+{
+#ifdef DB_ENABLE_STATS
+	if (stats.db_uint_hash != ~0) stats.db_uint_hash++;
+#endif /* DB_ENABLE_STATS */
+	return key.ui;
+}
+
+/**
+ * Default hasher for DB_STRING databases.
+ * If maxlen if 0, the maximum number of maxlen is used instead.
+ * @param key Key to be hashed
+ * @param maxlen Maximum length of the key to hash
+ * @return hash of the key
+ * @see common\db.h#DBKey
+ * @see common\db.h\DBType#DB_STRING
+ * @see #db_default_hash(DBType)
+ */
+static unsigned int db_string_hash(DBKey key, unsigned short maxlen)
+{
+	unsigned char *k = key.str;
+	unsigned int hash = 0;
+	unsigned short i;
+
+#ifdef DB_ENABLE_STATS
+	if (stats.db_string_hash != ~0) stats.db_string_hash++;
+#endif /* DB_ENABLE_STATS */
+	if (maxlen == 0)
+		maxlen = ~0; // Maximum
+
+	for (i = 0; *k; i++) {
+		hash = (hash*33 + *k++)^(hash>>24);
+		if (i == maxlen)
+			break;
+	}
+
+	return hash;
+}
+
+/**
+ * Default hasher for DB_ISTRING databases.
+ * If maxlen if 0, the maximum number of maxlen is used instead.
+ * @param key Key to be hashed
+ * @param maxlen Maximum length of the key to hash
+ * @return hash of the key
+ * @see common\db.h#DBKey
+ * @see common\db.h\DBType#DB_ISTRING
+ * @see #db_default_hash(DBType)
+ */
+static unsigned int db_istring_hash(DBKey key, unsigned short maxlen)
+{
+	unsigned char *k = key.str;
+	unsigned int hash = 0;
+	unsigned short i;
+
+#ifdef DB_ENABLE_STATS
+	if (stats.db_istring_hash != ~0) stats.db_istring_hash++;
+#endif /* DB_ENABLE_STATS */
+	if (maxlen == 0)
+		maxlen = ~0; // Maximum
+
+	for (i = 0; *k; i++) {
+		hash = (hash*33 + LOWER(*k))^(hash>>24);
+		k++;
+		if (i == maxlen)
+			break;
+	}
+
+	return hash;
+}
+
+/**
+ * Releaser that releases nothing.
+ * @param key Key of the database entry
+ * @param data Data of the database entry
+ * @param which What is being requested to be released
+ * @protected
+ * @see common\db.h#DBKey
+ * @see common\db.h#DBRelease
+ * @see common\db.h#DBReleaser
+ * @see #db_default_releaser(DBType,DBOptions)
+ */
+static void db_release_nothing(DBKey key, void *data, DBRelease which)
+{
+#ifdef DB_ENABLE_STATS
+	if (stats.db_release_nothing != ~0) stats.db_release_nothing++;
+#endif /* DB_ENABLE_STATS */
+}
+
+/**
+ * Releaser that only releases the key.
+ * @param key Key of the database entry
+ * @param data Data of the database entry
+ * @param which What is being requested to be released
+ * @protected
+ * @see common\db.h#DBKey
+ * @see common\db.h#DBRelease
+ * @see common\db.h#DBReleaser
+ * @see #db_default_release(DBType,DBOptions)
+ */
+static void db_release_key(DBKey key, void *data, DBRelease which)
+{
+#ifdef DB_ENABLE_STATS
+	if (stats.db_release_key != ~0) stats.db_release_key++;
+#endif /* DB_ENABLE_STATS */
+	if (which&DB_RELEASE_KEY) aFree(key.str); // needs to be a pointer
+}
+
+/**
+ * Releaser that only releases the data.
+ * @param key Key of the database entry
+ * @param data Data of the database entry
+ * @param which What is being requested to be released
+ * @protected
+ * @see common\db.h#DBKey
+ * @see common\db.h#DBRelease
+ * @see common\db.h#DBReleaser
+ * @see #db_default_release(DBType,DBOptions)
+ */
+static void db_release_data(DBKey key, void *data, DBRelease which)
+{
+#ifdef DB_ENABLE_STATS
+	if (stats.db_release_data != ~0) stats.db_release_data++;
+#endif /* DB_ENABLE_STATS */
+	if (which&DB_RELEASE_DATA) aFree(data);
+}
+
+/**
+ * Releaser that releases both key and data.
+ * @param key Key of the database entry
+ * @param data Data of the database entry
+ * @param which What is being requested to be released
+ * @protected
+ * @see common\db.h#DBKey
+ * @see common\db.h#DBRelease
+ * @see common\db.h#DBReleaser
+ * @see #db_default_release(DBType,DBOptions)
+ */
+static void db_release_both(DBKey key, void *data, DBRelease which)
+{
+#ifdef DB_ENABLE_STATS
+	if (stats.db_release_both != ~0) stats.db_release_both++;
+#endif /* DB_ENABLE_STATS */
+	if (which&DB_RELEASE_KEY) aFree(key.str); // needs to be a pointer
+	if (which&DB_RELEASE_DATA) aFree(data);
+}
+
+/*****************************************************************************\
+ *  (5) Section with protected functions used in the interface of the        *
+ *  database.                                                                *
+ *  db_get      - Get the data identified by the key.                        *
+ *  db_vgetall  - Get the data of the matched entries.                       *
+ *  db_getall   - Get the data of the matched entries.                       *
+ *  db_put      - Put data identified by the key in the database.            *
+ *  db_remove   - Remove an entry from the database.                         *
+ *  db_vforeach - Apply a function to every entry in the database.           *
+ *  db_foreach  - Apply a function to every entry in the database.           *
+ *  db_vdestroy - Destroy the database, freeing all the used memory.         *
+ *  db_destroy  - Destroy the database, freeing all the used memory.         *
+ *  db_size     - Return the size of the database.                           *
+ *  db_type     - Return the type of the database.                           *
+ *  db_options  - Return the options of the database.                        *
+\*****************************************************************************/
+
+/**
+ * Get the data of the entry identifid by the key.
+ * @param dbi Interface of the database
+ * @param key Key that identifies the entry
+ * @return Data of the entry or NULL if not found
+ * @protected
+ * @see common\db.h#DBKey
+ * @see common\db.h#DBInterface
+ * @see common\db.h\DBInterface#get(DBInterface,DBKey)
+ */
+static void *db_get(DBInterface dbi, DBKey key)
+{
+	Database db = (Database)dbi;
+	DBNode node;
+	int c;
+	void *data = NULL;
+
+#ifdef DB_ENABLE_STATS
+	if (stats.db_get != ~0) stats.db_get++;
+#endif /* DB_ENABLE_STATS */
+	if (db == NULL) return NULL; // nullpo candidate
+	if (!(db->options&DB_OPT_ALLOW_NULL_KEY) && db_is_key_null(db->type, key)) return NULL; // nullpo candidate
+
+	db_free_lock(db);
+	node = db->ht[db->hash(key, db->maxlen)%HASH_SIZE];
+	while (node) {
+		c = db->cmp(key, node->key, db->maxlen);
+		if (c == 0) {
+			data = node->data;
+			break;
+		}
+		if (c < 0)
+			node = node->left;
+		else
+			node = node->right;
+	}
+	db_free_unlock(db);
 	return data;
 }
 
-void db_foreach(struct dbt *table,int (*func)(void*,void*,va_list),...)
+/**
+ * Get the data of the entries matched by <code>match</code>.
+ * It puts a maximum of <code>max</code> entries into <code>buf</code>.
+ * If <code>buf</code> is NULL, it only counts the matches.
+ * Returns the number of entries that matched.
+ * NOTE: if the value returned is greater than <code>max</code>, only the 
+ * first <code>max</code> entries found are put into the buffer.
+ * @param dbi Interface of the database
+ * @param buf Buffer to put the data of the matched entries
+ * @param max Maximum number of data entries to be put into buf
+ * @param match Function that matches the database entries
+ * @param ... Extra arguments for match
+ * @return The number of entries that matched
+ * @protected
+ * @see common\db.h#DBInterface
+ * @see common\db.h#DBMatcher(DBKey key, void *data, va_list args)
+ * @see common\db.h\DBInterface#vgetall(DBInterface,void **,unsigned int,DBMatch,va_list)
+ */
+static unsigned int db_vgetall(DBInterface dbi, void **buf, unsigned int max, DBMatcher match, va_list args)
 {
-	int i,sp;
-	int count = table->item_count;
-	// red-black treeなので64個stackがあれば2^32個ノードまで大丈夫
-	struct dbn *p,*pn,*stack[64];
-	va_list ap;
+	Database db = (Database)dbi;
+	unsigned int i;
+	DBNode node;
+	DBNode parent;
+	unsigned int ret = 0;
 
-	va_start(ap,func);
-	db_free_lock(table);
-	for(i=0;i<HASH_SIZE;i++){
-		if((p=table->ht[i])==NULL)
-			continue;
-		sp=0;
-		while(1){
-			//reverted it back. sorry that brought thios bug from Freya [Lupus]
-			//if (!p->data) {
-			//	ShowWarning("no data for key %d in db_foreach (db.c) !\n",(int)p->key);
-			//} else {
-			if(!p->deleted)
-				func(p->key, p->data, ap);
-			count--;
-			//}
-			if((pn=p->left)!=NULL){
-				if(p->right){
-					stack[sp++]=p->right;
+#ifdef DB_ENABLE_STATS
+	if (stats.db_vgetall != ~0) stats.db_vgetall++;
+#endif /* DB_ENABLE_STATS */
+	if (db == NULL) return 0; // nullpo candidate
+	if (match == NULL) return 0; // nullpo candidate
+
+	db_free_lock(db);
+	for (i = 0; i < HASH_SIZE; i++) {
+		// Match in the order: current node, left tree, right tree
+		node = db->ht[i];
+		while (node) {
+			parent = node->parent;
+			if (!(node->deleted) && match(node->key, node->data, args) == 0) {
+				if (buf && ret < max)
+					buf[ret] = node->data;
+				ret++;
+			}
+			if (node->left) {
+				node = node->left;
+				continue;
+			}
+			if (node->right) {
+				node = node->right;
+				continue;
+			}
+			while (node) {
+				parent = node->parent;
+				if (parent && parent->right && parent->left == node) {
+					node = parent->right;
+					break;
 				}
-				p=pn;
-			} else {
-				if(p->right){
-					p=p->right;
-				} else {
-					if(sp==0)
-						break;
-					p=stack[--sp];
-				}
+				node = parent;
 			}
 		}
 	}
-	db_free_unlock(table);
-	if(count) {
-		ShowError(
-			"db_foreach : data lost %d item(s) allocated from %s line %d\n",
-			count,table->alloc_file,table->alloc_line
-		);
-	}
-	va_end(ap);
+	db_free_unlock(db);
+	return ret;
 }
 
-void db_final(struct dbt *table,int (*func)(void*,void*,va_list),...)
+/**
+ * Just calls {@link common\db.h\DBInterface#vgetall(DBInterface,void **,unsigned int,DBMatch,va_list)}.
+ * Get the data of the entries matched by <code>match</code>.
+ * It puts a maximum of <code>max</code> entries into <code>buf</code>.
+ * If <code>buf</code> is NULL, it only counts the matches.
+ * Returns the number of entries that matched.
+ * NOTE: if the value returned is greater than <code>max</code>, only the 
+ * first <code>max</code> entries found are put into the buffer.
+ * @param dbi Interface of the database
+ * @param buf Buffer to put the data of the matched entries
+ * @param max Maximum number of data entries to be put into buf
+ * @param match Function that matches the database entries
+ * @param ... Extra arguments for match
+ * @return The number of entries that matched
+ * @protected
+ * @see common\db.h#DBMatcher(DBKey key, void *data, va_list args)
+ * @see common\db.h#DBInterface
+ * @see common\db.h\DBInterface#vgetall(DBInterface,void **,unsigned int,DBMatch,va_list)
+ * @see common\db.h\DBInterface#getall(DBInterface,void **,unsigned int,DBMatch,...)
+ */
+static unsigned int db_getall(DBInterface dbi, void **buf, unsigned int max, DBMatcher match, ...)
 {
-	int i;
-	struct dbn *p;
-	va_list ap;
-		
-	va_start(ap,func);
-	//The following is End of Exam's implementation, which avoids using the lock mechanism. [Skotlex]
-	for(i=0;i<HASH_SIZE;i++){
-		while( ( p = table->ht[i] ) ) {
-			while( p->left || p->right ) {
-				p = (p->right ? p->right : p->left);
-			}
-			if( !p->parent ) {
-				table->ht[i] = NULL;
-			} else if( p->parent->left == p ) {
-				p->parent->left  = NULL;
-			} else {
-				p->parent->right = NULL;
-			}
-			if( func ) 
-				func( p->key, p->data, ap );
-#ifdef MALLOC_DBN
-			free_dbn(p);
-#else
-			aFree(p);
-#endif
-		}
-	}
-	/*
-	int i,sp;
-	struct dbn *p,*pn,*stack[64];
-	va_list ap;
+	va_list args;
+	unsigned int ret;
 
-	va_start(ap,func);
-	db_free_lock(table);
-	for(i=0;i<HASH_SIZE;i++){
-		if((p=table->ht[i])==NULL)
-			continue;
-		sp=0;
-		while(1){
-			if(func && !p->deleted)
-				func(p->key,p->data,ap);
-			if((pn=p->left)!=NULL){
-				if(p->right){
-					stack[sp++]=p->right;
-				}
-			} else {
-				if(p->right){
-					pn=p->right;
-				} else {
-					if(sp==0)
-						break;
-					pn=stack[--sp];
-				}
-			}
-			if (p->prev)
-				p->prev->next = p->next;
-			else
-				head = p->next;
-			if (p->next)
-				p->next->prev = p->prev;
-			else
-				tail = p->prev;
-			if( ! p->deleted ) // deleted db node will be freed in db_free_unlock()
-				 db_erase(table, p->key);
+#ifdef DB_ENABLE_STATS
+	if (stats.db_getall != ~0) stats.db_getall++;
+#endif /* DB_ENABLE_STATS */
+	if (dbi == NULL) return 0; // nullpo candidate
 
-			p=pn;
-		}
-	}
-	db_free_unlock(table);
-	*/
-	aFree(table->free_list);
-	aFree(table);
-	va_end(ap);
+	va_start(args, match);
+	ret = dbi->vgetall(dbi, buf, max, match, args);
+	va_end(args);
+	return ret;
 }
+
+/**
+ * Put the data identified by the key in the database.
+ * Returns the previous data if the entry exists or NULL.
+ * NOTE: Uses the new key, the old one is released.
+ * @param dbi Interface of the database
+ * @param key Key that identifies the data
+ * @param data Data to be put in the database
+ * @return The previous data if the entry exists or NULL
+ * @protected
+ * @see common\db.h#DBKey
+ * @see common\db.h#DBInterface
+ * @see #db_malloc_dbn(void)
+ * @see common\db.h\DBInterface#put(DBInterface,DBKey,void *)
+ */
+static void *db_put(DBInterface dbi, DBKey key, void *data)
+{
+	Database db = (Database)dbi;
+	DBNode node;
+	DBNode parent = NULL;
+	int c = 0;
+	unsigned int hash;
+	void *old_data = NULL;
+
+#ifdef DB_ENABLE_STATS
+	if (stats.db_put != ~0) stats.db_put++;
+#endif /* DB_ENABLE_STATS */
+	if (db == NULL) return NULL; // nullpo candidate
+	if (db->global_lock) {
+		ShowError("db_put: Database is being destroyed, aborting entry insertion.\n"
+				"Database allocated at %s:%d\n",
+				db->alloc_file, db->alloc_line);
+		return NULL; // nullpo candidate
+	}
+	if (!(db->options&DB_OPT_ALLOW_NULL_KEY) && db_is_key_null(db->type, key)) return NULL; // nullpo candidate
+	if (!(data || db->options&DB_OPT_ALLOW_NULL_DATA)) return NULL; // nullpo candidate
+
+	if (db->item_count == ~0) {
+		ShowError("db_put: item_count overflow, aborting item insertion.\n"
+				"Database allocated at %s:%d",
+				db->alloc_file, db->alloc_line);
+		return NULL;
+	}
+	// search for an equal node
+	db_free_lock(db);
+	hash = db->hash(key, db->maxlen)%HASH_SIZE;
+	for (node = db->ht[hash]; node; ) {
+		c = db->cmp(key, node->key, db->maxlen);
+		if (c == 0) { // equal entry, replace
+#ifdef DB_USE_OLD_RELEASE
+			if (db->dbi.release)
+				db->dbi.release(node, 3);
+#endif /* DB_USE_OLD_RELEASE */
+			if (node->deleted) {
+				db_free_remove(db, node);
+			} else {
+				db->release(node->key, node->data, DB_RELEASE_KEY);
+			}
+			old_data = node->data;
+			break;
+		}
+		parent = node;
+		if (c < 0) {
+			node = node->left;
+		} else {
+			node = node->right;
+		}
+	}
+	// allocate a new node if necessary
+	if (node == NULL) {
+		node = db_malloc_dbn();
+		node->left = NULL;
+		node->right = NULL;
+		node->deleted = 0;
+		db->item_count++;
+		if (c == 0) { // hash entry is empty
+			node->color = BLACK;
+			node->parent = NULL;
+			db->ht[hash] = node;
+		} else {
+			node->color = RED;
+			if (c < 0) { // put at the left
+				parent->left = node;
+				node->parent = parent;
+			} else { // put at the right
+				parent->right = node;
+				node->parent = parent;
+			}
+			if (parent->color == RED) // two consecutive RED nodes, must rebalance
+				db_rebalance(node, &db->ht[hash]);
+		}
+	}
+	// put key and data in the node
+	if (db->options&DB_OPT_DUP_KEY) {
+#ifdef DB_USE_OLD_RELEASE
+		node->key = db_dup_key(db, key).p;
+#else /* not DB_USE_OLD_RELEASE */
+		node->key = db_dup_key(db, key);
+#endif /* DB_USE_OLD_RELEASE / not DB_USE_OLD_RELEASE */
+		if (db->options&DB_OPT_RELEASE_KEY)
+			db->release(key, data, db->maxlen);
+	} else {
+#ifdef DB_USE_OLD_RELEASE
+		node->key = key.p;
+#else /* not DB_USE_OLD_RELEASE */
+		node->key = key;
+#endif /* DB_USE_OLD_RELEASE / not DB_USE_OLD_RELEASE */
+	}
+	node->data = data;
+	db_free_unlock(db);
+	return old_data;
+}
+
+/**
+ * Remove an entry from the database.
+ * Returns the data of the entry.
+ * NOTE: The key (of the database) is released in {@link #db_free_add(Database,DBNode,DBNode *)}.
+ * @param dbi Interface of the database
+ * @param key Key that identifies the entry
+ * @return The data of the entry or NULL if not found
+ * @protected
+ * @see common\db.h#DBKey
+ * @see common\db.h#DBInterface
+ * @see #db_free_add(Database,DBNode,DBNode *)
+ * @see common\db.h\DBInterface#remove(DBInterface,DBKey)
+ */
+static void *db_remove(DBInterface dbi, DBKey key)
+{
+	Database db = (Database)dbi;
+	void *data = NULL;
+	DBNode node;
+	unsigned int hash;
+	int c = 0;
+
+#ifdef DB_ENABLE_STATS
+	if (stats.db_remove != ~0) stats.db_remove++;
+#endif /* DB_ENABLE_STATS */
+	if (db == NULL) return NULL; // nullpo candidate
+	if (db->global_lock) {
+		ShowError("db_remove: Database is being destroyed. Aborting entry deletion.\n"
+				"Database allocated at %s:%d\n",
+				db->alloc_file, db->alloc_line);
+		return NULL; // nullpo candidate
+	}
+	if (!(db->options&DB_OPT_ALLOW_NULL_KEY) && db_is_key_null(db->type, key))	return NULL; // nullpo candidate
+
+	db_free_lock(db);
+	hash = db->hash(key, db->maxlen)%HASH_SIZE;
+	for(node = db->ht[hash]; node; ){
+		c = db->cmp(key, node->key, db->maxlen);
+		if (c == 0) {
+			if (!(node->deleted)) {
+				data = node->data;
+				db_free_add(db, node, &db->ht[hash]);
+			}
+			break;
+		}
+		if (c < 0)
+			node = node->left;
+		else
+			node = node->right;
+	}
+	db_free_unlock(db);
+	return data;
+}
+
+/**
+ * Apply <code>func</code> to every entry in the database.
+ * Returns the sum of values returned by func.
+ * @param dbi Interface of the database
+ * @param func Function to be applyed
+ * @param args Extra arguments for func
+ * @return Sum of the values returned by func
+ * @protected
+ * @see common\db.h#DBInterface
+ * @see common\db.h#DBApply(DBKey,void *,va_list)
+ * @see common\db.h\DBInterface#vforeach(DBInterface,DBApply,va_list)
+ */
+static int db_vforeach(DBInterface dbi, DBApply func, va_list args)
+{
+	Database db = (Database)dbi;
+	unsigned int i;
+	int sum = 0;
+	DBNode node;
+	DBNode parent;
+
+#ifdef DB_ENABLE_STATS
+	if (stats.db_vforeach != ~0) stats.db_vforeach++;
+#endif /* DB_ENABLE_STATS */
+	if (db == NULL) return 0; // nullpo candidate
+	if (func == NULL) return 0; // nullpo candidate
+
+	db_free_lock(db);
+	for (i = 0; i < HASH_SIZE; i++) {
+		// Apply func in the order: current node, left node, right node
+		node = db->ht[i];
+		while (node) {
+			parent = node->parent;
+			if (!(node->deleted))
+				sum += func(node->key, node->data, args);
+			if (node->left) {
+				node = node->left;
+				continue;
+			}
+			if (node->right) {
+				node = node->right;
+				continue;
+			}
+			while (node) {
+				parent = node->parent;
+				if (parent && parent->right && parent->left == node) {
+					node = parent->right;
+					break;
+				}
+				node = parent;
+			}
+		}
+	}
+	db_free_unlock(db);
+	return sum;
+}
+
+/**
+ * Just calls {@link common\db.h\DBInterface#vforeach(DBInterface,DBApply,va_list)}.
+ * Apply <code>func</code> to every entry in the database.
+ * Returns the sum of values returned by func.
+ * @param dbi Interface of the database
+ * @param func Function to be applyed
+ * @param ... Extra arguments for func
+ * @return Sum of the values returned by func
+ * @protected
+ * @see common\db.h#DBInterface
+ * @see common\db.h#DBApply(DBKey,void *,va_list)
+ * @see common\db.h\DBInterface#vforeach(DBInterface,DBApply,va_list)
+ * @see common\db.h\DBInterface#foreach(DBInterface,DBApply,...)
+ */
+#ifdef DB_DELAY_FINAL_CHANGES
+int db_foreach(DBInterface dbi, DBApply func, ...)
+#else /* not DB_DELAY_FINAL_CHANGES */
+static int db_foreach(DBInterface dbi, DBApply func, ...)
+#endif /* DB_DELAY_FINAL_CHANGES / not DB_DELAY_FINAL_CHANGES */
+{
+	va_list args;
+	int ret;
+
+#ifdef DB_ENABLE_STATS
+	if (stats.db_foreach != ~0) stats.db_foreach++;
+#endif /* DB_ENABLE_STATS */
+	if (dbi == NULL) return 0; // nullpo candidate
+
+	va_start(args, func);
+	ret = dbi->vforeach(dbi, func, args);
+	va_end(args);
+	return ret;
+}
+
+/**
+ * Finalize the database, feeing all the memory it uses.
+ * Before deleting an entry, func is applyed to it.
+ * Returns the sum of values returned by func, if it exists.
+ * NOTE: This locks the database globally. Any attempt to insert or remove 
+ * a database entry will give an error and be aborted.
+ * @param dbi Interface of the database
+ * @param func Function to be applyed to every entry before deleting
+ * @param args Extra arguments for func
+ * @return Sum of values returned by func
+ * @protected
+ * @see common\db.h#DBApply(DBKey,void *,va_list)
+ * @see common\db.h#DBInterface
+ * @see common\db.h\DBInterface#vdestroy(DBInterface,DBApply,va_list)
+ */
+static int db_vdestroy(DBInterface dbi, DBApply func, va_list args)
+{
+	Database db = (Database)dbi;
+	int sum = 0;
+	unsigned int i;
+	DBNode node;
+	DBNode parent;
+
+#ifdef DB_ENABLE_STATS
+	if (stats.db_vdestroy != ~0) stats.db_vdestroy++;
+#endif /* DB_ENABLE_STATS */
+	if (db == NULL) return 0; // nullpo candidate
+	if (db->global_lock) {
+		ShowError("db_destroy: Database is already locked for destruction. Aborting second database destruction.\n"
+				"Database allocated at %s:%d\n",
+				db->alloc_file, db->alloc_line);
+		return 0;
+	}
+	if (db->free_lock)
+		ShowWarning("db_destroy: Database is still in use, %u lock(s) left. Continuing database destruction.\n"
+				"Database allocated at %s:%d\n",
+				db->alloc_file, db->alloc_line, db->free_lock);
+
+#ifdef DB_ENABLE_STATS
+	switch (db->type) {
+		case DB_INT:
+			stats.db_int_destroy++;
+			break;
+		case DB_UINT:
+			stats.db_uint_destroy++;
+			break;
+		case DB_STRING:
+			stats.db_string_destroy++;
+			break;
+		case DB_ISTRING:
+			stats.db_istring_destroy++;
+			break;
+	}
+#endif /* DB_ENABLE_STATS */
+	db_free_lock(db);
+	db->global_lock = 1;
+	for (i = 0; i < HASH_SIZE; i++) {
+		// Apply the func and delete in the order: left tree, right tree, current node
+		node = db->ht[i];
+		while (node) {
+			parent = node->parent;
+			if (node->left) {
+				node = node->left;
+				continue;
+			}
+			if (node->right) {
+				node = node->right;
+				continue;
+			}
+			if (node->deleted) {
+				db_dup_key_free(db, node->key);
+			} else {
+				if (func)
+					sum += func(node->key, node->data, args);
+				db->release(node->key, node->data, DB_RELEASE_BOTH);
+				node->deleted = 1;
+			}
+			db_free_dbn(node);
+			if (parent) {
+				if (parent->left == node)
+					parent->left = NULL;
+				else
+					parent->right = NULL;
+			}
+			node = parent;
+		}
+		db->ht[i] = NULL;
+	}
+	aFree(db->free_list);
+	db->free_count = 0;
+	db_free_unlock(db);
+	aFree(db);
+	return sum;
+}
+
+/**
+ * Just calls {@link common\db.h\DBInterface#db_vdestroy(DBInterface,DBApply,va_list)}.
+ * Finalize the database, feeing all the memory it uses.
+ * Before deleting an entry, func is applyed to it.
+ * Releases the key and the data.
+ * Returns the sum of values returned by func, if it exists.
+ * NOTE: This locks the database globally. Any attempt to insert or remove 
+ * a database entry will give an error and be aborted.
+ * @param dbi Interface of the database
+ * @param func Function to be applyed to every entry before deleting
+ * @param ... Extra arguments for func
+ * @return Sum of values returned by func
+ * @protected
+ * @see common\db.h#DBApply(DBKey,void *,va_list)
+ * @see common\db.h#DBInterface
+ * @see common\db.h\DBInterface#vdestroy(DBInterface,DBApply,va_list)
+ * @see common\db.h\DBInterface#destroy(DBInterface,DBApply,...)
+ */
+#ifdef DB_DELAY_FINAL_CHANGES
+int db_destroy(DBInterface dbi, DBApply func, ...)
+#else /* not DB_DELAY_FINAL_CHANGES */
+static int db_destroy(DBInterface dbi, DBApply func, ...)
+#endif /*DB_DELAY_FINAL_CHANGES / not DB_DELAY_FINAL_CHANGES */
+{
+	va_list args;
+	int ret;
+
+#ifdef DB_ENABLE_STATS
+	if (stats.db_destroy != ~0) stats.db_destroy++;
+#endif /* DB_ENABLE_STATS */
+	if (dbi == NULL) return 0; // nullpo candidate
+
+	va_start(args, func);
+	ret = dbi->vdestroy(dbi, func, args);
+	va_end(args);
+	return ret;
+}
+
+/**
+ * Return the size of the database (number of items in the database).
+ * @param dbi Interface of the database
+ * @return Size of the database
+ * @protected
+ * @see common\db.h#DBInterface
+ * @see Database#item_count
+ * @see common\db.h\DBInterface#size(DBInterface)
+ */
+static unsigned int db_size(DBInterface dbi)
+{
+	Database db = (Database)dbi;
+	unsigned int item_count;
+
+#ifdef DB_ENABLE_STATS
+	if (stats.db_size != ~0) stats.db_size++;
+#endif /* DB_ENABLE_STATS */
+	if (db == NULL) return 0; // nullpo candidate
+
+	db_free_lock(db);
+	item_count = db->item_count;
+	db_free_unlock(db);
+
+	return item_count;
+}
+
+/**
+ * Return the type of database.
+ * @param dbi Interface of the database
+ * @return Type of the database
+ * @protected
+ * @see common\db.h#DBType
+ * @see common\db.h#DBInterface
+ * @see Database#type
+ * @see common\db.h\DBInterface#type(DBInterface)
+ */
+static DBType db_type(DBInterface dbi)
+{
+	Database db = (Database)dbi;
+	DBType type;
+
+#ifdef DB_ENABLE_STATS
+	if (stats.db_type != ~0) stats.db_type++;
+#endif /* DB_ENABLE_STATS */
+	if (db == NULL) return -1; // nullpo candidate - TODO what should this return?
+
+	db_free_lock(db);
+	type = db->type;
+	db_free_unlock(db);
+
+	return type;
+}
+
+/**
+ * Return the options of the database.
+ * @param dbi Interface of the database
+ * @return Options of the database
+ * @protected
+ * @see common\db.h#DBOptions
+ * @see common\db.h#DBInterface
+ * @see Database#options
+ * @see common\db.h\DBInterface#options(DBInterface)
+ */
+static DBOptions db_options(DBInterface dbi)
+{
+	Database db = (Database)dbi;
+	DBOptions options;
+
+#ifdef DB_ENABLE_STATS
+	if (stats.db_options != ~0) stats.db_options++;
+#endif /* DB_ENABLE_STATS */
+	if (db == NULL) return DB_OPT_BASE; // nullpo candidate - TODO what should this return?
+
+	db_free_lock(db);
+	options = db->options;
+	db_free_unlock(db);
+
+	return options;
+}
+
+/*****************************************************************************\
+ *  (6) Section with public functions.                                       *
+ *  db_fix_options     - Apply database type restrictions to the options.    *
+ *  db_default_cmp     - Get the default comparator for a type of database.  *
+ *  db_default_hash    - Get the default hasher for a type of database.      *
+ *  db_default_release - Get the default releaser for a type of database     *
+ *           with the specified options.                                     *
+ *  db_custom_release  - Get a releaser that behaves a certains way.         *
+ *  db_alloc           - Allocate a new database.                            *
+ *  db_init            - Initialize the database system.                     *
+ *  db_final           - Finalize the database system.                       *
+\*****************************************************************************/
+
+/**
+ * Returns the fixed options according to the database type.
+ * Sets required options and unsets unsupported options.
+ * For numeric databases DB_OPT_DUP_KEY and DB_OPT_RELEASE_KEY are unset.
+ * @param type Type of the database
+ * @param options Original options of the database
+ * @return Fixed options of the database
+ * @private
+ * @see common\db.h#DBType
+ * @see common\db.h#DBOptions
+ * @see #db_default_release(DBType,DBOptions)
+ * @see #db_alloc(const char *,int,DBType,DBOptions,unsigned short)
+ * @see common\db.h#db_fix_options(DBType,DBOptions)
+ */
+DBOptions db_fix_options(DBType type, DBOptions options)
+{
+#ifdef DB_ENABLE_STATS
+	if (stats.db_fix_options != ~0) stats.db_fix_options++;
+#endif /* DB_ENABLE_STATS */
+	switch (type) {
+		case DB_INT:
+		case DB_UINT: // Numeric database, do nothing with the keys
+			return options&~(DB_OPT_DUP_KEY|DB_OPT_RELEASE_KEY);
+
+		default:
+			ShowError("db_fix_options: Unknown database type %u with options %x\n", type, options);
+		case DB_STRING:
+		case DB_ISTRING: // String databases, no fix required
+			return options;
+	}
+}
+
+/**
+ * Returns the default comparator for the specified type of database.
+ * @param type Type of database
+ * @return Comparator for the type of database or NULL if unknown database
+ * @public
+ * @see common\db.h#DBType
+ * @see #db_int_cmp(DBKey,DBKey,unsigned short)
+ * @see #db_uint_cmp(DBKey,DBKey,unsigned short)
+ * @see #db_string_cmp(DBKey,DBKey,unsigned short)
+ * @see #db_istring_cmp(DBKey,DBKey,unsigned short)
+ * @see common\db.h#db_default_cmp(DBType)
+ */
+DBComparator db_default_cmp(DBType type)
+{
+#ifdef DB_ENABLE_STATS
+	if (stats.db_default_cmp != ~0) stats.db_default_cmp++;
+#endif /* DB_ENABLE_STATS */
+	switch (type) {
+		case DB_INT:     return db_int_cmp;
+		case DB_UINT:    return db_uint_cmp;
+		case DB_STRING:  return db_string_cmp;
+		case DB_ISTRING: return db_istring_cmp;
+		default:
+			ShowError("db_default_cmp: Unknown database type %u\n", type);
+			return NULL;
+	}
+}
+
+/**
+ * Returns the default hasher for the specified type of database.
+ * @param type Type of database
+ * @return Hasher of the type of database or NULL if unknown database
+ * @public
+ * @see common\db.h#DBType
+ * @see #db_int_hash(DBKey,unsigned short)
+ * @see #db_uint_hash(DBKey,unsigned short)
+ * @see #db_string_hash(DBKey,unsigned short)
+ * @see #db_istring_hash(DBKey,unsigned short)
+ * @see common\db.h#db_default_hash(DBType)
+ */
+DBHasher db_default_hash(DBType type)
+{
+#ifdef DB_ENABLE_STATS
+	if (stats.db_default_hash != ~0) stats.db_default_hash++;
+#endif /* DB_ENABLE_STATS */
+	switch (type) {
+		case DB_INT:     return db_int_hash;
+		case DB_UINT:    return db_uint_hash;
+		case DB_STRING:  return db_string_hash;
+		case DB_ISTRING: return db_istring_hash;
+		default:
+			ShowError("db_default_hash: Unknown database type %u\n", type);
+			return NULL;
+	}
+}
+
+/**
+ * Returns the default releaser for the specified type of database with the 
+ * specified options.
+ * NOTE: the options are fixed with {@link #db_fix_options(DBType,DBOptions)}
+ * before choosing the releaser.
+ * @param type Type of database
+ * @param options Options of the database
+ * @return Default releaser for the type of database with the specified options
+ * @public
+ * @see common\db.h#DBType
+ * @see common\db.h#DBOptions
+ * @see common\db.h#DBReleaser
+ * @see #db_release_nothing(DBKey,void *,DBRelease)
+ * @see #db_release_key(DBKey,void *,DBRelease)
+ * @see #db_release_data(DBKey,void *,DBRelease)
+ * @see #db_release_both(DBKey,void *,DBRelease)
+ * @see #db_custom_release(DBRelease)
+ * @see common\db.h#db_default_release(DBType,DBOptions)
+ */
+DBReleaser db_default_release(DBType type, DBOptions options)
+{
+#ifdef DB_ENABLE_STATS
+	if (stats.db_default_release != ~0) stats.db_default_release++;
+#endif /* DB_ENABLE_STATS */
+	options = db_fix_options(type, options);
+	if (options&DB_OPT_RELEASE_DATA) { // Release data, what about the key?
+		if (options&(DB_OPT_DUP_KEY|DB_OPT_RELEASE_KEY))
+			return db_release_both; // Release both key and data
+		return db_release_data; // Only release data
+	}
+	if (options&(DB_OPT_DUP_KEY|DB_OPT_RELEASE_KEY))
+		return db_release_key; // Only release key
+	return db_release_nothing; // Release nothing
+}
+
+/**
+ * Returns the releaser that releases the specified release options.
+ * @param which Options that specified what the releaser releases
+ * @return Releaser for the specified release options
+ * @public
+ * @see common\db.h#DBRelease
+ * @see common\db.h#DBReleaser
+ * @see #db_release_nothing(DBKey,void *,DBRelease)
+ * @see #db_release_key(DBKey,void *,DBRelease)
+ * @see #db_release_data(DBKey,void *,DBRelease)
+ * @see #db_release_both(DBKey,void *,DBRelease)
+ * @see #db_default_release(DBType,DBOptions)
+ * @see common\db.h#db_custom_release(DBRelease)
+ */
+DBReleaser db_custom_release(DBRelease which)
+{
+#ifdef DB_ENABLE_STATS
+	if (stats.db_custom_release != ~0) stats.db_custom_release++;
+#endif /* DB_ENABLE_STATS */
+	switch (which) {
+		case DB_RELEASE_NOTHING: return db_release_nothing;
+		case DB_RELEASE_KEY:     return db_release_key;
+		case DB_RELEASE_DATA:    return db_release_data;
+		case DB_RELEASE_BOTH:    return db_release_both;
+		default:
+			ShowError("db_custom_release: Unknown release options %u\n", which);
+			return NULL;
+	}
+}
+
+/**
+ * Allocate a new database of the specified type.
+ * NOTE: the options are fixed by {@link #db_fix_options(DBType,DBOptions)}
+ * before creating the database.
+ * @param file File where the database is being allocated
+ * @param line Line of the file where the database is being allocated
+ * @param type Type of database
+ * @param options Options of the database
+ * @param maxlen Maximum length of the string to be used as key in string 
+ *          databases
+ * @return The interface of the database
+ * @public
+ * @see common\db.h#DBType
+ * @see common\db.h#DBInterface
+ * @see #Database
+ * @see #db_fix_options(DBType,DBOptions)
+ * @see common\db.h#db_alloc(const char *,int,DBType,unsigned short)
+ */
+DBInterface db_alloc(const char *file, int line, DBType type, DBOptions options, unsigned short maxlen)
+{
+	Database db;
+	unsigned int i;
+
+#ifdef DB_ENABLE_STATS
+	if (stats.db_alloc != ~0) stats.db_alloc++;
+	switch (type) {
+		case DB_INT:
+			stats.db_int_alloc++;
+			break;
+		case DB_UINT:
+			stats.db_uint_alloc++;
+			break;
+		case DB_STRING:
+			stats.db_string_alloc++;
+			break;
+		case DB_ISTRING:
+			stats.db_istring_alloc++;
+			break;
+	}
+#endif /* DB_ENABLE_STATS */
+	CREATE(db, struct db, 1);
+
+#ifdef DB_USE_OLD_RELEASE
+	if (options&(DB_OPT_DUP_KEY|DB_OPT_RELEASE_KEY|DB_OPT_RELEASE_DATA))
+		ShowWarning("db_alloc: the old release is still being used, using the new release options might result in unwanted/unexpected behaviours - database allocated at %s:%d\n", file, line);
+#endif /* DB_USE_OLD_RELEASE */
+	options = db_fix_options(type, options);
+	/* Interface of the database */
+	db->dbi.get      = db_get;
+	db->dbi.getall   = db_getall;
+	db->dbi.vgetall  = db_vgetall;
+	db->dbi.put      = db_put;
+	db->dbi.remove   = db_remove;
+	db->dbi.foreach  = db_foreach;
+	db->dbi.vforeach = db_vforeach;
+	db->dbi.destroy  = db_destroy;
+	db->dbi.vdestroy = db_vdestroy;
+	db->dbi.size     = db_size;
+	db->dbi.type     = db_type;
+	db->dbi.options  = db_options;
+	/* File and line of allocation */
+	db->alloc_file = file;
+	db->alloc_line = line;
+	/* Lock system */
+	db->free_list = NULL;
+	db->free_count = 0;
+	db->free_max = 0;
+	db->free_lock = 0;
+	/* Other */
+	db->cmp = db_default_cmp(type);
+	db->hash = db_default_hash(type);
+#ifdef DB_USE_OLD_RELEASE
+	db->dbi.release = NULL;
+#endif /* DB_USE_OLD_RELEASE */
+	db->release = db_default_release(type, options);
+	for (i = 0; i < HASH_SIZE; i++)
+		db->ht[i] = NULL;
+	db->type = type;
+	db->options = options;
+	db->item_count = 0;
+	db->maxlen = maxlen;
+	db->global_lock = 0;
+
+	return &db->dbi;
+}
+
+/**
+ * Initialize the database system.
+ * @public
+ * @see #db_final(void)
+ * @see common\db.h#db_init(void)
+ */
+void db_init(void)
+{
+#ifdef DB_ENABLE_STATS
+	memset(&stats, '\0', sizeof(struct db_stats));
+	if (stats.db_init != ~0) stats.db_init++;
+#endif /* DB_ENABLE_STATS */
+}
+
+/**
+ * Finalize the database system.
+ * Frees the memory used by the block reusage system.
+ * @public
+ * @see common\db.h#DB_FINAL_NODE_CHECK
+ * @see #db_init(void)
+ * @see common\db.h#db_final(void)
+ */
+void db_final(void)
+{
+	unsigned int i;
+	unsigned int j;
+	unsigned int count = 0;
+
+#ifdef DB_ENABLE_STATS
+	if (stats.db_final != ~0) stats.db_final++;
+#endif /* DB_ENABLE_STATS */
+	for (i = 0; i < dbn_root_num; i++) {
+		for (j = (i == dbn_root_num -1? dbn_root_rest: 0); j < ROOT_SIZE; j++)
+			if (!(dbn_root[i][j].deleted))
+				count++;
+		aFree(dbn_root[i]);
+	}
+	if (count)
+		ShowWarning("db_final: %d nodes where not properly deleted\n", count);
+#ifdef DB_ENABLE_STATS
+	ShowInfo(CL_WHITE"Database nodes"CL_RESET":\n"
+			"allocated %u, used %u, reuse counter %u\n",
+			stats.dbn_alloc, stats.dbn_use, stats.dbn_reuse);
+	ShowInfo(CL_WHITE"Database types"CL_RESET":\n"
+			"DB_INT     : allocated %10u, destroyed %10u\n"
+			"DB_UINT    : allocated %10u, destroyed %10u\n"
+			"DB_STRING  : allocated %10u, destroyed %10u\n"
+			"DB_ISTRING : allocated %10u, destroyed %10u\n",
+			stats.db_int_alloc,     stats.db_int_destroy,
+			stats.db_uint_alloc,    stats.db_uint_destroy,
+			stats.db_string_alloc,  stats.db_string_destroy,
+			stats.db_istring_alloc, stats.db_istring_destroy);
+	ShowInfo(CL_WHITE"Database function counters"CL_RESET":\n"
+			"db_malloc_dbn      %10u, db_free_dbn        %10u,\n"
+			"db_rotate_left     %10u, db_rotate_right    %10u,\n"
+			"db_rebalance       %10u, db_rebalance_erase %10u,\n"
+			"db_is_key_null     %10u,\n"
+			"db_dup_key         %10u, db_dup_key_free    %10u,\n"
+			"db_free_add        %10u, db_free_remove     %10u,\n"
+			"db_free_lock       %10u, db_free_unlock     %10u,\n"
+			"db_int_cmp         %10u, db_uint_cmp        %10u,\n"
+			"db_string_cmp      %10u, db_istring_cmp     %10u,\n"
+			"db_int_hash        %10u, db_uint_hash       %10u,\n"
+			"db_string_hash     %10u, db_istring_hash    %10u,\n"
+			"db_release_nothing %10u, db_release_key     %10u,\n"
+			"db_release_data    %10u, db_release_both    %10u,\n"
+			"db_get             %10u,\n"
+			"db_getall          %10u, db_vgetall         %10u,\n"
+			"db_put             %10u, db_remove          %10u,\n"
+			"db_foreach         %10u, db_vforeach        %10u,\n"
+			"db_destroy         %10u, db_vdestroy        %10u,\n"
+			"db_size            %10u, db_type            %10u,\n"
+			"db_options         %10u, db_fix_options     %10u,\n"
+			"db_default_cmp     %10u, db_default_hash    %10u,\n"
+			"db_default_release %10u, db_custom_release  %10u,\n"
+			"db_alloc           %10u,\n"
+			"db_init            %10u, db_final           %10u\n",
+			stats.db_malloc_dbn,      stats.db_free_dbn,
+			stats.db_rotate_left,     stats.db_rotate_right,
+			stats.db_rebalance,       stats.db_rebalance_erase,
+			stats.db_is_key_null,
+			stats.db_dup_key,         stats.db_dup_key_free,
+			stats.db_free_add,        stats.db_free_remove,
+			stats.db_free_lock,       stats.db_free_unlock,
+			stats.db_int_cmp,         stats.db_uint_cmp,
+			stats.db_string_cmp,      stats.db_istring_cmp,
+			stats.db_int_hash,        stats.db_uint_hash,
+			stats.db_string_hash,     stats.db_istring_hash,
+			stats.db_release_nothing, stats.db_release_key,
+			stats.db_release_data,    stats.db_release_both,
+			stats.db_get,
+			stats.db_getall,          stats.db_vgetall,
+			stats.db_put,             stats.db_remove,
+			stats.db_foreach,         stats.db_vforeach,
+			stats.db_destroy,         stats.db_vdestroy,
+			stats.db_size,            stats.db_type,
+			stats.db_options,         stats.db_fix_options,
+			stats.db_default_cmp,     stats.db_default_hash,
+			stats.db_default_release, stats.db_custom_release,
+			stats.db_alloc,
+			stats.db_init,            stats.db_final);
+#endif /* DB_ENABLE_STATS */
+	aFree(dbn_root);
+	dbn_root_rest = dbn_root_num = dbn_root_max = 0;
+	return;
+}
+

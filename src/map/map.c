@@ -1652,7 +1652,8 @@ static int map_foreachpc_sub(void * key,void * data,va_list ap)
  */
 struct map_session_data** map_getallusers(int *users) {
 	static struct map_session_data **all_sd=NULL;
-	static int all_count = 0;
+	static unsigned int all_count = 0;
+	unsigned int count;
 	
 	if (users == NULL)
 	{	//Free up data
@@ -1661,17 +1662,18 @@ struct map_session_data** map_getallusers(int *users) {
 		return NULL;
 	}
 
+	count = pc_db->size(pc_db); //This is the real number of chars in the db, better use this than the actual "online" count.
 	if (all_sd == NULL)
 	{	//Init data
-		all_count = pc_db->item_count; //This is the real number of chars in the db, better use this than the actual "online" count.
+		all_count = pc_db->size(pc_db); //This is the real number of chars in the db, better use this than the actual "online" count.
 		if (all_count < 1)
 			all_count = 10; //Allow room for at least 10 chars.
 		all_sd = aCalloc(all_count, sizeof(struct map_session_data*)); //it's actually just the size of a pointer.
 	}
 
-	if (all_count < pc_db->item_count)
+	if (all_count < count)
 	{
-		all_count = pc_db->item_count;
+		all_count = count;
 		all_sd = aRealloc(all_sd, all_count*sizeof(struct map_session_data*));
 	}
 	*users = 0;

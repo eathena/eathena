@@ -81,7 +81,7 @@ static int guild_save(void *key, void *data, va_list ap) {
    if(g->save_flag&GS_REMOVE && !(g->save_flag&~GS_REMOVE)) { //Nothing to save, guild is ready for removal.
 		int guild_id = g->guild_id;
 		if (save_log)
-			ShowInfo("Guild Unloaded (%d - %s) [%d - guilds in memory]\n", g->guild_id, g->name, guild_db_->item_count);
+			ShowInfo("Guild Unloaded (%d - %s) [%d - guilds in memory]\n", g->guild_id, g->name, guild_db_->size(guild_db_));
 		g = numdb_erase(guild_db_, g->guild_id);
 		if(g) aFree(g);
 		else
@@ -99,7 +99,7 @@ static int guild_save_timer(int tid, unsigned int tick, int id, int data) {
 	if (state != 2) //Reached the end of the guild db without saving.
 		last_id = 0; //Reset guild saved, return to beginning.
 
-	state = guild_db_->item_count;
+	state = guild_db_->size(guild_db_);
 	if (state < 1) state = 1; //Calculate the time slot for the next save.
 	add_timer(tick  + autosave_interval/state, guild_save_timer, 0, 0);
 	return 0;
@@ -542,7 +542,7 @@ struct guild * inter_guild_fromsql(int guild_id)
 	g->save_flag |= GS_REMOVE; //But set it to be removed, in case it is not needed for long.
 	
 	if (save_log)
-		ShowInfo("Guild loaded (%d - %s) [%d guilds in memory]\n", guild_id, g->name, guild_db_->item_count);
+		ShowInfo("Guild loaded (%d - %s) [%d guilds in memory]\n", guild_id, g->name, guild_db_->size(guild_db_));
 
 	return g;
 }

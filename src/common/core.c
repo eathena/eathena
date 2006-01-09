@@ -210,6 +210,8 @@ int main (int argc, char **argv)
 	set_server_type();
 	display_title();
       usercheck();
+
+	db_init();
 	malloc_init(); /* ˆê”ÔÅ‰‚ÉÀs‚·‚é•K—v‚ª‚ ‚é */
 	signals_init();
 
@@ -233,10 +235,10 @@ int main (int argc, char **argv)
 	graph_final();
 	do_final();
 
-	exit_dbn();
 	timer_final();
 	plugins_final();
 	socket_final();
+	db_final();
 	malloc_final();
 
 	return 0;

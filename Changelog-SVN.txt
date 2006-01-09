@@ -1,5 +1,7 @@
 Date	Added
 2006/01/09
+	* Replaced the db subsystem for FlavioJS's implementation and initial work
+	  on updating the eA code to use it as intended. [Skotlex]
 	* Fixed Char-TXT server saving last/save maps with spaces on the left. [Skotlex]
 	* Fixed Char-SQL server saving new character's maps with spaces on the left. [Skotlex]
 	* Fixed Charsave method 1 saving memo maps with spaces on the left. [Skotlex]
