@@ -1,5 +1,7 @@
 Date	Added
 2006/01/08
+	* Fixed TXT char server parsing only the first character permanent variable
+	  received from the map server and ignoring the rest. [Skotlex]
 	* Fixed @users crashing the server. [Skotlex]
 	* Added Arrow Repel to the list of skills whose range is increased by Vulture Eye. [Skotlex]
 	* Fixed the item pick-up rule for party options being working backwards. [Skotlex]
