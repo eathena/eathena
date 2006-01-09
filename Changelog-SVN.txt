@@ -1,5 +1,7 @@
 Date	Added
 2006/01/09
+	* Moved Sonic Acceleration and Soul Linked SB damage bonus to the second
+	  layer of skill modifiers. [Skotlex]
 	* Enchant Deadly Poison and True Sight damage bonuses are now applied after
 	  skill modifiers rather than added with them (damage % stack type). [Skotlex]
 	* Modified Ice-Wall to work using cell types defines instead of directly

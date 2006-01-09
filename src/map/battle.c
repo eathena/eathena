@@ -1631,17 +1631,6 @@ static struct Damage battle_calc_weapon_attack(
 					break;
 				case AS_SONICBLOW:
 					skillratio += 200+50*skill_lv;
-					if (sc_data && sc_data[SC_SPIRIT].timer != -1 && sc_data[SC_SPIRIT].val2 == SL_ASSASIN)
-				  	{ //This is incorrect because it also multiplies damage bonuses from other sources!!!
-					  //Are you SURE this is what you want? Whatever happened to "skill modifiers 
-					  //stack linearly"? T.T [Skotlex]
-						if (map_flag_gvg(src->m))
-							skillratio += skillratio/4; //+25% dmg on woe, 
-						else
-							skillratio += skillratio; //+100% dmg on nonwoe
-					}					
-					if(sd && pc_checkskill(sd,AS_SONICACCEL)>0)
-						skillratio += 10;
 					break;
 				case TF_SPRINKLESAND:
 					skillratio += 30;
@@ -1854,17 +1843,26 @@ static struct Damage battle_calc_weapon_attack(
 					break;
 			}
 		}
+		//Here comes a second pass for skills that stack to the previously defined % damage. [Skotlex]
+		skillratio = 100;
 		//Skill damage modifiers that affect linearly stacked damage.
 		if (sc_data && skill_num != PA_SACRIFICE) {
-			skillratio = 100;
 			if(sc_data[SC_TRUESIGHT].timer != -1)
 				skillratio += 2*sc_data[SC_TRUESIGHT].val1;
 			// It is still not quite decided whether it works on bosses or not...
 			if(sc_data[SC_EDP].timer != -1 /*&& !(t_mode&MD_BOSS)*/ && skill_num != ASC_BREAKER && skill_num != ASC_METEORASSAULT)
 				skillratio += 50 +50*sc_data[SC_EDP].val1;
-			if (skillratio != 100)
-				ATK_RATE(skillratio);
 		}
+		switch (skill_num) {
+			case AS_SONICBLOW:
+				if (sc_data && sc_data[SC_SPIRIT].timer != -1 && sc_data[SC_SPIRIT].val2 == SL_ASSASIN)
+					skillratio += (map_flag_gvg(src->m))?25:100; //+25% dmg on woe/+100% dmg on nonwoe
+				if(sd && pc_checkskill(sd,AS_SONICACCEL)>0)
+					skillratio += 10;
+			break;
+		}
+		if (skillratio != 100)
+			ATK_RATE(skillratio);
 		if(sd)
 		{
 			if (skill_num != PA_SACRIFICE && skill_num != MO_INVESTIGATE && !flag.cri)
