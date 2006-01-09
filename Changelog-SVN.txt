@@ -1,5 +1,8 @@
 Date	Added
 2006/01/09
+	* Moved the Kaupe code to battle_calc_weapon_attack where it will dogde all
+	  weapon-based attacks that can be dodged (giving the illusion of infinite
+	  flee for skill's duration). [Skotlex]
 	* Moved Sonic Acceleration and Soul Linked SB damage bonus to the second
 	  layer of skill modifiers. [Skotlex]
 	* Enchant Deadly Poison and True Sight damage bonuses are now applied after

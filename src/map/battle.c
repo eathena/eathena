@@ -618,6 +618,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 		if(sc_data[SC_LANDPROTECTOR].timer!=-1 && damage>0 && flag&BF_MAGIC){
 			damage=0;
 		}
+		/* Moved to battle_calc_weapon_attack for now.
 		if(sc_data[SC_KAUPE].timer != -1 && damage > 0 && !skill_num) {
 			if(rand()%100 < sc_data[SC_KAUPE].val2) {
 				clif_skill_nodamage(bl,bl,SL_KAUPE,sc_data[SC_KAUPE].val1,1);
@@ -626,6 +627,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 				damage = 0;
 			}
 		}
+		*/
 		if(sc_data[SC_AUTOGUARD].timer != -1 && damage > 0 && flag&BF_WEAPON) {
 			if(rand()%100 < sc_data[SC_AUTOGUARD].val2) {
 				int delay;
@@ -1387,6 +1389,7 @@ static struct Damage battle_calc_weapon_attack(
 		short
 			flee = status_get_flee(target),
 			hitrate=80; //Default hitrate
+
 		if(battle_config.agi_penalty_type)
 		{	
 			unsigned char target_count; //256 max targets should be a sane max
@@ -1440,7 +1443,11 @@ static struct Damage battle_calc_weapon_attack(
 
 		if(rand()%100 >= hitrate)
 			wd.dmg_lv = ATK_FLEE;
-		else
+		else if (t_sc_data && t_sc_data[SC_KAUPE].timer != -1 && rand()%100 < t_sc_data[SC_KAUPE].val2) {
+			if (--t_sc_data[SC_KAUPE].val3 <= 0) //We make it work like Safety Wall, even though it only blocks 1 time.
+				status_change_end(target, SC_KAUPE, -1);
+			wd.dmg_lv = ATK_FLEE;
+		} else
 			flag.hit =1;
 	}	//End hit/miss calculation
 
