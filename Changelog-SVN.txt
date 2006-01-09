@@ -1,5 +1,7 @@
 Date	Added
 2006/01/08
+	* Fixed the guild SQL cache removing guilds from memory when said guilds
+	  had no data to save (but were not yet marked for removal) [Skotlex]
 	* Added a cap to limit Star Gladiator's job level to that of the normal
 	  classes (instead of 2nd classes) [Skotlex]
 	* Fixed TXT char server parsing only the first character permanent variable

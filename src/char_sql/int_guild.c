@@ -78,7 +78,7 @@ static int guild_save(void *key, void *data, va_list ap) {
 		(*state)++;
 	}
 	
-   if((g->save_flag&GS_REMOVE) == g->save_flag) { //Nothing to save, guild is ready for removal.
+   if(g->save_flag&GS_REMOVE && !(g->save_flag&~GS_REMOVE)) { //Nothing to save, guild is ready for removal.
 		int guild_id = g->guild_id;
 		if (save_log)
 			ShowInfo("Guild Unloaded (%d - %s) [%d - guilds in memory]\n", g->guild_id, g->name, guild_db_->item_count);
