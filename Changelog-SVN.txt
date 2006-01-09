@@ -1,5 +1,6 @@
 Date	Added
 2006/01/09
+	* Fixed SG_FUSION (SG_FUSION <-> SC_FUSION #_#) [Komurka]
 	* Now sense elemental values are again uncapped (so enemy with -25% resist
 	  will show 230% instead of 0%), as requested :P [Skotlex]
 	* Replaced the db subsystem for FlavioJS's implementation and initial work
