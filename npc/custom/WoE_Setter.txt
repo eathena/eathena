@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= Fredzilla
 //===== Current Version: ===================================== 
-//= 1.5
+//= 1.5a
 //===== Compatible With: ===================================== 
 //= eAthena 1.0 Final TXT
 //===== Description: ========================================= 
@@ -22,6 +22,7 @@
 //= IE, Sat 23 till Sun 01, is now possible
 //= Not even the normal WoE script can do this (by dafault)
 //= Removed the need for disabling the normal agit_event
+//= 1.5a Applied Playtester's fix. [Vicious]
 //============================================================ 
 prontera.gat,162,194,5	script	WoE Setter	806,{
 	mes "[Woe Setter]";
@@ -156,7 +157,7 @@ OnAgitInit:
 	set $@num,0;
 L_StartLoop:
 	if($sday[$@num] == 0 && $eday[$@num] == 0 && $woetime[$@num] == 0 && $woetime2[$@num] == 0) goto L_StartLoopEnd;
-	if((gettime(4)==$sday[$@num] && gettime(3)>=$woetime[$@num]) || (gettime(4)==$eday[$@num] && gettime(3)<$woetime2[$@num])) goto L_Start;
+	if(gettime(4)==$sday[$@num] && gettime(3)>=$woetime[$@num] && (gettime(3)<$woetime2[$@num] || $sday[$@num]!=$eday[$@num])) goto L_Start;
 	set $@num,$@num+1;
 	goto L_StartLoop;
 

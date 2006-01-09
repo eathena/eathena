@@ -3,9 +3,9 @@
 //===== By: ==================================================
 //= acky - god@acky.com
 //===== Current Version: =====================================
-//= 1.1.1
+//= 1.1.2
 //===== Compatible With: =====================================
-//= eAthena SVN 02/05/2005 +
+//= eAthena SVN
 //===== Description: =========================================
 //= Players train monsters and battle other players.
 //= Experience can be earned and monsters upgraded.
@@ -16,6 +16,7 @@
 //= Added Duel Room
 //= ---------------------------------------------------------
 //= Script is messy! Be careful!
+//= 1.1.2 Changed all gmcommand to atcommand as Poki#3 suggested. [Vicious]
 //============================================================ 
 
 // Entrance //
@@ -220,34 +221,34 @@ L_High:
 savepoint "gon_test.gat",56,99;
 set @battle,1;
 warp "gon_test.gat",72,87;
-gmcommand strcharinfo(0) + "@option 64 0 64";
+atcommand strcharinfo(0) + "@option 64 0 64";
 close;
 
 L_4to6:
 savepoint "gon_test.gat",56,99;
 set @battle,1;
 warp "gon_test.gat",57,86;
-gmcommand strcharinfo(0) + "@option 64 0 64";
+atcommand strcharinfo(0) + "@option 64 0 64";
 close;
 
 L_1to3:
 savepoint "gon_test.gat",56,99;
 set @battle,1;
 warp "gon_test.gat",43,87;
-gmcommand strcharinfo(0) + "@option 64 0 64";
+atcommand strcharinfo(0) + "@option 64 0 64";
 close;
 
 
 L_Exit:
 savepoint "prontera.gat",149,186;
 set @battle,0;
-gmcommand strcharinfo(0) + "@option 0 0 0";
+atcommand strcharinfo(0) + "@option 0 0 0";
 warp "prontera.gat",149,186;
 end;
 close;
 
 L_Spec:
-gmcommand strcharinfo(0) + "@option 0 0 0";
+atcommand strcharinfo(0) + "@option 0 0 0";
 savepoint "gon_test.gat",56,99;
 set @battle,0;
 warp "gon_test.gat",57,99;
@@ -760,7 +761,7 @@ gon_test.gat,72,87,5	duplicate(SummonPad)	Summon Pad 3	111,2,2
 
 // Skill Disabler //
 gon_test.gat,57,99,5	script	Skill Disable	111,3,3,{
-gmcommand strcharinfo(0) + "@skilloff";
+atcommand strcharinfo(0) + "@skilloff";
 disablenpc "Skill Disable";
 end;
 }
@@ -796,7 +797,7 @@ if (#monster > 99 && #monster < 110) set $@monster1,10;
 set $@duelist1$,strcharinfo(0);
 set @battle,1;
 announce strcharinfo(0) + " [Monster Level: " + $@monster1 + "] is waiting for a duel",1;
-gmcommand strcharinfo(0) + "@option 64 0 64";
+atcommand strcharinfo(0) + "@option 64 0 64";
 warp "gon_test.gat",49,5;
 close;
 
@@ -824,7 +825,7 @@ if (#monster > 99 && #monster < 110) set $@monster2,10;
 set $@duelist2$,strcharinfo(0);
 set @battle,1;
 announce strcharinfo(0) + " [Monster Level: " + $@monster2 + "] has joined the duel",1;
-gmcommand strcharinfo(0) + "@option 64 0 64";
+atcommand strcharinfo(0) + "@option 64 0 64";
 warp "gon_test.gat",49,5;
 close;
 
@@ -837,7 +838,7 @@ close;
 	
 	L_Spec:
 	set @battle,0;
-	gmcommand strcharinfo(0) + "@option 64 0 64";
+	atcommand strcharinfo(0) + "@option 64 0 64";
 	warp "gon_test.gat",49,5;
 	close;
 	
@@ -870,7 +871,7 @@ close;
 	if ($@duelist2$ == strcharinfo(0)) goto L_Leave2;
 	
 		L_Leave3:
-		gmcommand strcharinfo(0) + "@option 0 0 0";
+		atcommand strcharinfo(0) + "@option 0 0 0";
 		set @battle,0;
 		warp "gon_test.gat",57,99;
 		close;

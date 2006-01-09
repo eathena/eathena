@@ -25,6 +25,8 @@ Nexon
 
 Date		Added
 ======
+01/09
+	* Fixed scripts that were reported in the forum. [Vicious]
 01/08
 	* Changed the name of Chung E to Green Maiden in the spawn files [MasterOfMuppets]
 	* Changed some Zherlthsh to Zealotus as it is in iRO [MasterOfMuppets]
