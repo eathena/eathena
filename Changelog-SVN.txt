@@ -1,4 +1,7 @@
 Date	Added
+2006/01/09
+	* Changed the order of packets sent for Assumptio (may fix the visual not
+	  showing up?) [Skotlex]
 2006/01/08
 	* Fixed the guild SQL cache removing guilds from memory when said guilds
 	  had no data to save (but were not yet marked for removal) [Skotlex]
