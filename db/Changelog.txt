@@ -27,6 +27,7 @@
 =========================
 
 01/08
+	* Changed Grand Cross's script to drain 1 sp per hit rather than 1% [Skotlex]
 	* Added the Kiel dungeon monsters, they have no stats yet though [MasterOfMuppets]
 	* Changed the name of Chung E to Green Maiden [MasterOfMuppets]
 	* Changed the name of Zherlthsh to Zealotus as in iRO, [MasterOfMuppets]
