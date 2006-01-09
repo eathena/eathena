@@ -179,6 +179,32 @@ struct block_list
 	unsigned short y;
 	unsigned char type;
 	unsigned char subtype;
+	// New member functions by Aru to cleanup code and 
+	// automate sanity checking when converting block_list
+	// to map_session_data, mob_data or pet_data
+	struct map_session_data* get_sd()
+	{
+		if(type != BL_PC)
+			return NULL;
+		else
+			return (struct map_session_data*)this;
+	}
+	struct pet_data* get_pd()
+	{
+		if(type != BL_PET)
+			return NULL;
+		else
+			return (struct pet_data*)this;
+	}
+	struct mob_data* get_pd()
+	{
+		if(type != BL_MOB)
+			return NULL;
+		else
+			return (struct mob_data*)this;
+	}
+
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////
