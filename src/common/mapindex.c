@@ -1,6 +1,7 @@
 #include "mmo.h"
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <showmsg.h>
 
 #define MAX_MAPINDEX 2000
