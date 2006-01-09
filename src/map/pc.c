@@ -3214,7 +3214,10 @@ int pc_setpos(struct map_session_data *sd,unsigned short mapindex,int x,int y,in
 
 	if(x <0 || x >= map[m].xs || y <0 || y >= map[m].ys)
 		x=y=0;
-	if((x==0 && y==0) || map_getcell(m,x,y,CELL_CHKNOPASS)){
+	if((x==0 && y==0) ||
+		(map_getcell(m,x,y,CELL_CHKNOPASS) && !map_getcell(m, x, y, CELL_CHKICEWALL))
+	){ //We allow placing players on top of an ICEWALL tile to prevent force-warping players when an ice wall is placed 
+		//at spawn points from warps and the like. [Skotlex]
 		if(x||y) {
 			if(battle_config.error_log)
 				ShowError("pc_setpos: attempt to place player on non-walkable tile (%s-%d,%d)\n",mapindex_id2name(mapindex),x,y);

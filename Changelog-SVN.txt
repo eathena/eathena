@@ -1,5 +1,10 @@
 Date	Added
 2006/01/09
+	* Modified Ice-Wall to work using cell types defines instead of directly
+	  modifying the gat terrain information. Main reason for this is to enable
+	  pc_setpos to place players on top of an ice-wall, because otherwise it
+	  was forcing players to warp-around even in maps with noteleport set which
+	  is prone to exploits. [Skotlex]
 	* Fixed SG_FUSION (SG_FUSION <-> SC_FUSION #_#) [Komurka]
 	* Now sense elemental values are again uncapped (so enemy with -25% resist
 	  will show 230% instead of 0%), as requested :P [Skotlex]

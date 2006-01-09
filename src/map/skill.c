@@ -6879,10 +6879,8 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 				val2=map_getcell(src->m,ux,uy,CELL_GETTYPE);
 				if(val2==5 || val2==1)
 					alive=0;
-				else {
-					map_setcell(src->m,ux,uy,5);
+				else
 					clif_changemapcell(src->m,ux,uy,5,0);
-				}
 			}
 		}
 
@@ -7642,7 +7640,6 @@ int skill_unit_onlimit(struct skill_unit *src,unsigned int tick)
 		break;
 
 	case UNT_ICEWALL:	/* アイスウォ?ル */
-		map_setcell(src->bl.m,src->bl.x,src->bl.y,src->val2);
 		clif_changemapcell(src->bl.m,src->bl.x,src->bl.y,src->val2,1);
 		break;
 	case UNT_CALLPARTNER:	/* あなたに?いたい */
@@ -10165,6 +10162,9 @@ struct skill_unit *skill_initunit(struct skill_unit_group *group,int idx,int x,i
 	case HP_BASILICA:
 		skill_unitsetmapcell(unit,HP_BASILICA,CELL_SETBASILICA);
 		break;
+	case WZ_ICEWALL:
+		skill_unitsetmapcell(unit,HP_BASILICA,CELL_SETICEWALL);
+		break;
 	}
 	return unit;
 }
@@ -10203,6 +10203,9 @@ int skill_delunit(struct skill_unit *unit)
 		break;
 	case HP_BASILICA:
 		skill_unitsetmapcell(unit,HP_BASILICA,CELL_CLRBASILICA);
+		break;
+	case WZ_ICEWALL:
+		skill_unitsetmapcell(unit,HP_BASILICA,CELL_CLRICEWALL);
 		break;
 	}
 

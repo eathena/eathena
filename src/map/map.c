@@ -2019,15 +2019,15 @@ int map_getcellp(struct map_data* m,int x,int y,cell_t cellchk)
 	switch(cellchk)
 	{
 		case CELL_CHKPASS:
-			return (type!=1 && type!=5 && !(type2&CELL_MOONLIT));
+			return (type!=1 && type!=5 && !(type2&(CELL_MOONLIT|CELL_ICEWALL)));
 		case CELL_CHKNOPASS:
-			return (type==1 || type==5 || type2&CELL_MOONLIT);
+			return (type==1 || type==5 || type2&(CELL_MOONLIT|CELL_ICEWALL));
 		case CELL_CHKWALL:
-			return (type==1);
+			return (type==1 || type2&CELL_ICEWALL);
 		case CELL_CHKWATER:
 			return (type==3);
 		case CELL_CHKGROUND:
-			return (type==5);
+			return (type==5 || type2&CELL_ICEWALL);
 		case CELL_GETTYPE:
 			return type;
 		case CELL_GETCELLTYPE:
@@ -2046,6 +2046,8 @@ int map_getcellp(struct map_data* m,int x,int y,cell_t cellchk)
 			return (type2&CELL_MOONLIT);
 		case CELL_CHKREGEN:
 			return (type2&CELL_REGEN);
+		case CELL_CHKICEWALL:
+			return (type2&CELL_ICEWALL);
 		default:
 			return 0;
 	}
@@ -2068,6 +2070,12 @@ void map_setcell(int m,int x,int y,int cell)
 			break;
 		case CELL_CLRNPC:
 			map[m].cell[j] &= ~CELL_NPC;
+			break;
+		case CELL_SETICEWALL:
+			map[m].cell[j] |= CELL_ICEWALL;
+			break;
+		case CELL_CLRICEWALL:
+			map[m].cell[j] &= ~CELL_ICEWALL;
 			break;
 		case CELL_SETBASILICA:
 			map[m].cell[j] |= CELL_BASILICA;

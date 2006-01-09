@@ -1089,6 +1089,7 @@ enum {
 #define CELL_LANDPROTECTOR	0x10
 #define CELL_BASILICA	0x20
 #define CELL_MOONLIT	0x40
+#define CELL_ICEWALL	0x80
 /*
  * map_getcell()で使用されるフラグ
  */
@@ -1107,6 +1108,7 @@ typedef enum {
 	CELL_CHKBASILICA,	// バジリカ(セルタイプ0x40フラグ)
 	CELL_CHKLANDPROTECTOR,
 	CELL_CHKMOONLIT,
+	CELL_CHKICEWALL,
 } cell_t;
 // map_setcell()で使用されるフラグ
 enum {
@@ -1123,6 +1125,8 @@ enum {
 	CELL_CLRSAFETYWALL,
 	CELL_SETMOONLIT,
 	CELL_CLRMOONLIT,
+	CELL_SETICEWALL,
+	CELL_CLRICEWALL,
 };
 
 struct chat_data {
