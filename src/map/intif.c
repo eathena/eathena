@@ -233,7 +233,7 @@ int intif_regtostr(char* str, struct global_reg *reg, int qty) {
 int intif_saveregistry(struct map_session_data *sd, int type)
 {
 	struct global_reg *reg;
-	int *count;
+	int count;
 
 	if (CheckForCharServer())
 		return -1;
@@ -241,17 +241,17 @@ int intif_saveregistry(struct map_session_data *sd, int type)
 	switch (type) {
 	case 3: //Character reg
 		reg = sd->save_reg.global;
-		count = &sd->save_reg.global_num;
+		count = sd->save_reg.global_num;
 		sd->state.reg_dirty &= ~0x4;
 	break;
 	case 2: //Account reg
 		reg = sd->save_reg.account;
-		count = &sd->save_reg.account_num;
+		count = sd->save_reg.account_num;
 		sd->state.reg_dirty &= ~0x2;
 	break;
 	case 1: //Account2 reg
 		reg = sd->save_reg.account2;
-		count = &sd->save_reg.account2_num;
+		count = sd->save_reg.account2_num;
 		sd->state.reg_dirty &= ~0x1;
 	break;
 	default: //Broken code?
@@ -264,11 +264,11 @@ int intif_saveregistry(struct map_session_data *sd, int type)
 	WFIFOL(inter_fd,4)=sd->status.account_id;
 	WFIFOL(inter_fd,8)=sd->status.char_id;
 	WFIFOB(inter_fd,12)=type;
-	if((*count) ==0){
+	if(count ==0){
 		WFIFOW(inter_fd,2)=13;
 	}else{
 		int i,p;
-		for (p=13,i = 0; i < (*count); i++) {
+		for (p=13,i = 0; i < count; i++) {
 			if (reg[i].str[0] && reg[i].value != 0) {
 				p+= sprintf(WFIFOP(inter_fd,p), "%s", reg[i].str)+1; //We add 1 to consider the '\0' in place.
 				p+= sprintf(WFIFOP(inter_fd,p), "%s", reg[i].value)+1;
@@ -1091,7 +1091,7 @@ int intif_parse_GuildInfo(int fd)
 //		printf("intif: guild info %d\n",RFIFOL(fd,4));
 	if( RFIFOW(fd,2)!=sizeof(struct guild)+4 ){
 		if(battle_config.error_log)
-			ShowError("intif: guild info : data size error Gid: %d recv size: %d Expected size: %d",RFIFOL(fd,4),RFIFOW(fd,2),sizeof(struct guild)+4);
+			ShowError("intif: guild info : data size error Gid: %d recv size: %d Expected size: %d\n",RFIFOL(fd,4),RFIFOW(fd,2),sizeof(struct guild)+4);
 	}
 	guild_recv_info((struct guild *)RFIFOP(fd,4));
 	return 0;

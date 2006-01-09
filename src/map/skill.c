@@ -666,7 +666,7 @@ int skill_get_range2(struct block_list *bl, int id, int lv) {
 		range *=-1;
 	}
 	if (bl->type == BL_PC && //TODO: Find a way better than hardcoding the list of skills affected by AC_VULTURE.
-		(id == AC_SHOWER || id == AC_DOUBLE || id == HT_BLITZBEAT
+		(id == AC_SHOWER || id == AC_DOUBLE || id == HT_BLITZBEAT || id == AC_CHARGEARROW
 		|| id == SN_FALCONASSAULT || id == SN_SHARPSHOOTING || id == HT_POWER))
 		range += pc_checkskill((struct map_session_data *)bl, AC_VULTURE);
 	return range;
