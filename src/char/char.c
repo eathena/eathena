@@ -359,7 +359,7 @@ int mmo_char_tostr(char *str, struct mmo_charstatus *p, struct global_reg *reg, 
 
 	str_p += sprintf(str_p, "%d\t%d,%d\t%s\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
 		"\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
-		"\t%16s,%d,%d\t%16s,%d,%d,%d,%d,%d,%d,%d\t",
+		"\t%s,%d,%d\t%s,%d,%d,%d,%d,%d,%d,%d\t",
 		p->char_id, p->account_id, p->char_num, p->name, //
 		p->class_, p->base_level, p->job_level,
 		p->base_exp, p->job_exp, p->zeny,
@@ -3207,7 +3207,7 @@ int parse_char(int fd) {
 			// if map is not found, we check major cities
 			if (i < 0) {
 				unsigned short j;
-				ShowWarning("Unable to find map-server for %s, resorting to sending to a major city.\n", mapindex_id2name(cd->last_point.map));
+				ShowWarning("Unable to find map-server for '%s', resorting to sending to a major city.\n", mapindex_id2name(cd->last_point.map));
 				if ((i = search_mapserver((j=mapindex_name2id(MAP_PRONTERA)),-1,-1)) >= 0) {
 					cd->last_point.map = j;
 					cd->last_point.x = 273; // savepoint coordinates
