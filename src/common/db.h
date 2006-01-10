@@ -33,7 +33,6 @@
 /*****************************************************************************\
  *  (1) Section with public typedefs, enums, unions, structures and defines. *
  *  DB_DELAY_FINAL_CHANGES - TEMP undefine to make all the final chanes.     *
- *  DB_USE_OLD_RELEASE     - TEMP undefine to disable the old release.       *
  *  DBRelease    - Enumeration of release options.                           *
  *  DBType       - Enumeration of database types.                            *
  *  DBOptions    - Bitfield enumeration of database options.                 *
@@ -49,42 +48,9 @@
 /**
  * Temporary.
  * Delay the final changes not fully compatible with the previous code.
- * When this is not defined DB_USE_OLD_RELEASE is
- * undefined.
  * @public
- * @see #DB_USE_OLD_RELEASE
  */
 #define DB_DELAY_FINAL_CHANGES
-
-/**
- * Temporary.
- * Maintain compatibility with the old release format and direct usage.
- * @public
- * @see map\npc.c#ev_release(DBNode,int)
- * @see map\npc.c#npc_reload(void)
- * @see map\npc.c#do_init_npc(void)
- */
-#define DB_USE_OLD_RELEASE
-
-#ifndef DB_DELAY_FINAL_CHANGES
-#	undef DB_USE_OLD_RELEASE
-#endif /* not DB_DELAY_FINAL_CHANGES */
-
-#ifdef DB_USE_OLD_RELEASE
-// To be protected
-typedef struct dbn {
-	// Tree structure
-	struct dbn *parent;
-	struct dbn *left;
-	struct dbn *right;
-	// Node data
-	void *key;
-	void *data;
-	// Other
-	enum {RED, BLACK} color;
-	unsigned deleted : 1;
-} *DBNode;
-#endif /* DB_USE_OLD_RELEASE */
 
 /**
  * Bitfield with what should be released by the releaser function (if the
@@ -149,7 +115,8 @@ typedef enum {
 	DB_OPT_RELEASE_DATA    = 4,
 	DB_OPT_RELEASE_BOTH    = 6,
 	DB_OPT_ALLOW_NULL_KEY  = 8,
-	DB_OPT_ALLOW_NULL_DATA = 16
+	DB_OPT_ALLOW_NULL_DATA = 16,
+	DB_OPT_RELEASE_DATA_ON_REPLACE = 32
 } DBOptions;
 
 /**
@@ -463,10 +430,6 @@ typedef struct dbt {
 	 */
 	DBOptions (*options)(struct dbt *dbi);
 
-#ifdef DB_USE_OLD_RELEASE
-	// To be removed - see DBOptions.DB_OPT_RELEASE_*
-	void (*release)(DBNode node, int which); // which 1 - key,   2 - data,  3 - both
-#endif /* DB_USE_OLD_RELEASE */
 } *DBInterface;
 
 #define strdb_search(db,k)   (db)->get((db),(unsigned char *)(k))

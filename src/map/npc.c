@@ -130,14 +130,6 @@ struct npc_data* npc_name2id(const char *name)
 	return (struct npc_data *) strdb_search(npcname_db,name);
 }
 
-void ev_release(struct dbn *db, int which)
-{
-    if (which & 0x1)
-        aFree(db->key);
-    if (which & 0x2)
-        aFree(db->data);
-}
-
 /*==========================================
  * イベントキューのイベント処理
  *------------------------------------------
@@ -280,12 +272,11 @@ int npc_event_export(void *key,void *data,va_list ap)
 
 	if ((lname[0]=='O' || lname[0]=='o')&&(lname[1]=='N' || lname[1]=='n')) {
 		struct event_data *ev;
-		char *buf;
+		char buf[51];
 		char *p=strchr(lname,':');
 		// エクスポートされる
 		ev=(struct event_data *) aCalloc(sizeof(struct event_data), 1);
-		buf=(char *) aCallocA(50, 1);
-		if (ev==NULL || buf==NULL) {
+		if (ev==NULL) {
 			ShowFatalError("npc_event_export: out of memory !\n");
 			exit(1);
 		}else if (p==NULL || (p-lname)>NAME_LENGTH) {
@@ -1414,9 +1405,11 @@ static int npc_unload_ev(void *key,void *data,va_list ap) {
 
 	if(strcmp(ev->nd->exname,npcname)==0){
 		strdb_erase(ev_db, key);
+	/* let the db handle this.
 		aFree(ev);
 		if (strstr((const char *)key,"::") != NULL)
 			aFree(key);
+	*/
 		return 1;
 	}
 	return 0;
@@ -1987,8 +1980,6 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 			struct event_data *ev = (struct event_data *)aCalloc(1, sizeof(struct event_data));
 			ev->nd = nd;
 			ev->pos = 0;
-			if (strdb_search(ev_db, nd->exname) != NULL)
-				ShowInfo("duplicate event name! %s\n", nd->exname);
 			strdb_insert(ev_db, nd->exname, ev);
 		} else
 			clif_spawnnpc(nd);
@@ -2029,20 +2020,15 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 				exit(1);
 			} else {
 				struct event_data *ev;
-				char *buf;
+				char buf[51];
 				// 51 comes from: 24 for npc name + 24 for label + 2 for a "::" and 1 for EOS
-				//buf=(char *)aMalloc(51,sizeof(char));
-				// but to save some memory we alloc only the really necessary space
-				buf=(char *)aMalloc( (3+strlen(nd->exname)+strlen(lname))*sizeof(char));
 				sprintf(buf,"%s::%s",nd->exname,lname);
 
 				// search the label in ev_db;
 				// remember the label is max 50 chars + eos; see the strdb_init below
-				ev = (struct event_data *)strdb_search(ev_db,buf);
-				if(ev != NULL) {
+				if(strdb_search(ev_db,buf) != NULL) {
 					ShowError("npc_parse_script : duplicate event %s (%s)\n",buf, current_file);
 					// just skip the label insertion and free the alloced buffer
-					aFree(buf);
 				} else {	// generate the data and insert it
 					ev=(struct event_data *)aCalloc(1,sizeof(struct event_data));
 					ev->nd=nd;
@@ -2660,9 +2646,11 @@ static int npc_read_indoors (void)
 
 static int ev_db_final (void *key,void *data,va_list ap)
 {
+	/* Free'ing is handled by the db now.
 	aFree(data);
 	if (strstr((const char *)key,"::") != NULL)
 		aFree(key);
+	*/
 	return 0;
 }
 
@@ -2718,9 +2706,8 @@ int npc_reload (void)
 
 	// anything else we should cleanup?
 	// Reloading npc's now
-	ev_db = strdb_init(51);
+	ev_db = db_alloc(__FILE__,__LINE__,DB_STRING,DB_OPT_DUP_KEY|DB_OPT_RELEASE_DATA|DB_OPT_RELEASE_DATA_ON_REPLACE,51);
 	npcname_db = strdb_init(NAME_LENGTH);
-	ev_db->release = ev_release;
 	npc_warp = npc_shop = npc_script = 0;
 	npc_mob = npc_cache_mob = npc_delay_mob = 0;
 
@@ -2814,9 +2801,8 @@ int do_init_npc(void)
 
 	// comparing only the first 24 chars of labels that are 50 chars long isn't that nice
 	// will cause "duplicated" labels where actually no dup is...
-	ev_db = strdb_init(51);
+	ev_db = db_alloc(__FILE__,__LINE__,DB_STRING,DB_OPT_DUP_KEY|DB_OPT_RELEASE_DATA|DB_OPT_RELEASE_DATA_ON_REPLACE,51);
 	npcname_db = strdb_init(NAME_LENGTH);
-	ev_db->release = ev_release;
 
 	memset(&ev_tm_b, -1, sizeof(ev_tm_b));
 

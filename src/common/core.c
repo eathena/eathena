@@ -211,8 +211,8 @@ int main (int argc, char **argv)
 	display_title();
       usercheck();
 
-	db_init();
 	malloc_init(); /* ˆê”ÔÅ‰‚ÉÀs‚·‚é•K—v‚ª‚ ‚é */
+	db_init();
 	signals_init();
 
 	timer_init();

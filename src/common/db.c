@@ -83,7 +83,6 @@
  */
 #define HASH_SIZE (256+27)
 
-#ifndef DB_USE_OLD_RELEASE
 /**
  * A node in a RED-BLACK tree of the database.
  * @param parent Parent node
@@ -108,7 +107,6 @@ typedef struct dbn {
 	enum {RED, BLACK} color;
 	unsigned deleted : 1;
 } *DBNode;
-#endif /* not DB_USE_OLD_RELEASE */
 
 /**
  * Structure that holds a deleted node.
@@ -803,13 +801,8 @@ static void db_free_add(Database db, DBNode node, DBNode *root)
 		exit(EXIT_FAILURE);
 	}
 	if (!(db->options&DB_OPT_DUP_KEY)) { // Make shure we have a key until the node is freed
-#ifdef DB_USE_OLD_RELEASE
-		old_key.p = node->key;
-		node->key = db_dup_key(db, node->key).p;
-#else /* not DB_USE_OLD_RELEASE */
 		old_key = node->key;
 		node->key = db_dup_key(db, node->key);
-#endif /* DB_USE_OLD_RELEASE / not DB_USE_OLD_RELEASE */
 		db->release(old_key, node->data, DB_RELEASE_KEY);
 	}
 	if (db->free_count == db->free_max) { // No more space, expand free_list
@@ -1420,12 +1413,10 @@ static void *db_put(DBInterface dbi, DBKey key, void *data)
 	for (node = db->ht[hash]; node; ) {
 		c = db->cmp(key, node->key, db->maxlen);
 		if (c == 0) { // equal entry, replace
-#ifdef DB_USE_OLD_RELEASE
-			if (db->dbi.release)
-				db->dbi.release(node, 3);
-#endif /* DB_USE_OLD_RELEASE */
 			if (node->deleted) {
 				db_free_remove(db, node);
+			} else if (db->options&DB_OPT_RELEASE_DATA_ON_REPLACE) {
+				db->release(node->key, node->data, DB_RELEASE_BOTH);
 			} else {
 				db->release(node->key, node->data, DB_RELEASE_KEY);
 			}
@@ -1465,19 +1456,11 @@ static void *db_put(DBInterface dbi, DBKey key, void *data)
 	}
 	// put key and data in the node
 	if (db->options&DB_OPT_DUP_KEY) {
-#ifdef DB_USE_OLD_RELEASE
-		node->key = db_dup_key(db, key).p;
-#else /* not DB_USE_OLD_RELEASE */
 		node->key = db_dup_key(db, key);
-#endif /* DB_USE_OLD_RELEASE / not DB_USE_OLD_RELEASE */
 		if (db->options&DB_OPT_RELEASE_KEY)
 			db->release(key, data, db->maxlen);
 	} else {
-#ifdef DB_USE_OLD_RELEASE
-		node->key = key.p;
-#else /* not DB_USE_OLD_RELEASE */
 		node->key = key;
-#endif /* DB_USE_OLD_RELEASE / not DB_USE_OLD_RELEASE */
 	}
 	node->data = data;
 	db_free_unlock(db);
@@ -2048,10 +2031,6 @@ DBInterface db_alloc(const char *file, int line, DBType type, DBOptions options,
 #endif /* DB_ENABLE_STATS */
 	CREATE(db, struct db, 1);
 
-#ifdef DB_USE_OLD_RELEASE
-	if (options&(DB_OPT_DUP_KEY|DB_OPT_RELEASE_KEY|DB_OPT_RELEASE_DATA))
-		ShowWarning("db_alloc: the old release is still being used, using the new release options might result in unwanted/unexpected behaviours - database allocated at %s:%d\n", file, line);
-#endif /* DB_USE_OLD_RELEASE */
 	options = db_fix_options(type, options);
 	/* Interface of the database */
 	db->dbi.get      = db_get;
@@ -2077,9 +2056,6 @@ DBInterface db_alloc(const char *file, int line, DBType type, DBOptions options,
 	/* Other */
 	db->cmp = db_default_cmp(type);
 	db->hash = db_default_hash(type);
-#ifdef DB_USE_OLD_RELEASE
-	db->dbi.release = NULL;
-#endif /* DB_USE_OLD_RELEASE */
 	db->release = db_default_release(type, options);
 	for (i = 0; i < HASH_SIZE; i++)
 		db->ht[i] = NULL;

@@ -1,5 +1,9 @@
 Date	Added
 2006/01/09
+	* Some more updates regarding the new db system. [Skotlex]
+	- Note that there's currently a leak regarding npc_events (ev_db), but this one is
+	  not a serious problem (unless you use a lot of npc_reloads) and will be
+	  fixed as the db gets improved.
 	* Moved the Kaupe code to battle_calc_weapon_attack where it will dogde all
 	  weapon-based attacks that can be dodged (giving the illusion of infinite
 	  flee for skill's duration). [Skotlex]
