@@ -26,6 +26,8 @@
 		* * * From where this info is? ... Mine: On your death you'll loose this ring and get 50% HP [Komurka]
 =========================
 
+01/10
+	* Fixed Mighty Staff to drain 2SP per attack rather than 2% [Skotlex]
 01/09
 	* Refixed GrandCross's script (bonus2->bonus) [Skotlex
 01/08

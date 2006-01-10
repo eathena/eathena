@@ -721,7 +721,7 @@
 1610,Arc_Wand,Arc Wand,4,45000,,400,60,,1,1,67207956,7,2,2,3,24,1,10,{ bonus bInt,3; bonus bMatkRate,15; }
 1611,Arc_Wand_,Arc Wand,4,45000,,400,60,,1,2,67207956,7,2,2,3,24,1,10,{ bonus bInt,3; bonus bMatkRate,15; }
 1612,Arc_Wand__,Arc Wand,4,45000,,400,60,,1,0,67207956,7,2,2,3,24,1,10,{ bonus bInt,3; bonus bMatkRate,15; }
-1613,Mighty_Staff,Mighty Staff,4,,10,700,130,,1,0,67207956,7,2,2,3,24,1,10,{ bonus bStr,10; bonus bMatkRate,15; bonus2 bSpDrainRate,1000,-2; }
+1613,Mighty_Staff,Mighty Staff,4,,10,700,130,,1,0,67207956,7,2,2,3,24,1,10,{ bonus bStr,10; bonus bMatkRate,15; bonus bSPDrainValue,-2; }
 1614,Blessed_Wand,Wand of Occult,4,,10,700,75,,1,0,67207956,7,2,2,3,24,1,10,{ bonus bInt,3; bonus bMatkRate,15; }
 1615,Evil_Bone_Wand,Evil Bone Wand,4,,10,700,40,,1,0,67207956,7,2,2,3,24,1,10,{ bonus bInt,4; bonus bAtkEle,Ele_Undead; bonus bMatkRate,15; }
 1616,Winged_Staff,Winged Staff,4,86000,,500,60,,1,0,67174916,7,2,2,4,40,1,10,{ bonus bMatkRate,15; bonus bCastrate,-5; }
