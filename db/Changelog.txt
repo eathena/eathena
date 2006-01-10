@@ -26,6 +26,8 @@
 		* * * From where this info is? ... Mine: On your death you'll loose this ring and get 50% HP [Komurka]
 =========================
 
+01/09
+	* Refixed GrandCross's script (bonus2->bonus) [Skotlex
 01/08
 	* Changed Grand Cross's script to drain 1 sp per hit rather than 1% [Skotlex]
 	* Added the Kiel dungeon monsters, they have no stats yet though [MasterOfMuppets]
