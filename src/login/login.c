@@ -215,49 +215,39 @@ int login_log(char *fmt, ...) {
 // Online User Database [Wizputer]
 //-----------------------------------------------------
 
-static int online_db_final(int key,void *data,va_list ap)
-{
-	int *p = (int *) data;
-	if (p) aFree(p);
-	return 0;
-}
 void add_online_user (int char_server, int account_id) {
 	struct online_login_data *p;
 	if (!online_check)
 		return;
-	p = numdb_search(online_db, account_id);
+	p = online_db->get(online_db, account_id);
 	if (p == NULL) {
 		p = aCalloc(1, sizeof(struct online_login_data));
 		p->account_id = account_id;
 		p->char_server = char_server;
-		numdb_insert(online_db, account_id, p);
+		online_db->put(online_db, account_id, p);
 	} else {
 		p->char_server = char_server;
 		p->waiting_disconnect = 0;
 	}
 }
 int is_user_online (int account_id) {
-	struct online_login_data *p;
-	p = numdb_search(online_db, account_id);
-	return (p != NULL);
+	return (online_db->get(online_db, account_id) != NULL);
 }
 void remove_online_user (int account_id) {
-	struct online_login_data *p;
 	if(!online_check)
 		return;
 	if (account_id == 99) {	// reset all to offline
-		numdb_final(online_db, online_db_final);	// purge db
-		online_db = numdb_init();	// reinitialise
+		online_db->destroy(online_db, NULL);	// purge db
+		online_db = db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA,sizeof(int));	// reinitialise
 		return;
 	}
-	p = numdb_erase(online_db,account_id);
-	if (p) aFree(p);
+	online_db->remove(online_db,account_id);
 }
 
 int waiting_disconnect_timer(int tid, unsigned int tick, int id, int data)
 {
 	struct online_login_data *p;
-	if ((p= numdb_search(online_db, id)) != NULL && p->waiting_disconnect)
+	if ((p= online_db->get(online_db, id)) != NULL && p->waiting_disconnect)
 		remove_online_user(p->account_id);
 	return 0;
 }
@@ -1274,8 +1264,8 @@ int mmo_auth(struct mmo_account* account, int fd) {
 		}
 
 		if (online_check) {
-			struct online_login_data* data = numdb_search(online_db,auth_dat[i].account_id);
 			unsigned char buf[8];
+			struct online_login_data* data = online_db->get(online_db,auth_dat[i].account_id);
 			if (data && data->char_server > -1) {
 				//Request char servers to kick this account out. [Skotlex]
 				ShowWarning("User [%d] is already online - Rejected.\n",auth_dat[i].account_id);
@@ -1355,7 +1345,7 @@ int mmo_auth(struct mmo_account* account, int fd) {
 	return -1; // account OK
 }
 
-static int online_db_setoffline(int key, void* data, va_list ap) {
+static int online_db_setoffline(DBKey key, void* data, va_list ap) {
 	struct online_login_data *p = (struct online_login_data *)data;
 	int server = va_arg(ap, int);
 	if (server == -1) {
@@ -1391,7 +1381,7 @@ int parse_fromchar(int fd) {
 			          server[id].name, ip);
 			server_fd[id] = -1;
 			memset(&server[id], 0, sizeof(struct mmo_char_server));
-			numdb_foreach(online_db,online_db_setoffline,id); //Set all chars from this char server to offline.
+			online_db->foreach(online_db,online_db_setoffline,id); //Set all chars from this char server to offline.
 		}
 		do_close(fd);
 		return 0;
@@ -1875,16 +1865,16 @@ int parse_fromchar(int fd) {
 			{
 				struct online_login_data *p;
 				int aid, i, users;
-				numdb_foreach(online_db,online_db_setoffline,id); //Set all chars from this char-server offline first
+				online_db->foreach(online_db,online_db_setoffline,id); //Set all chars from this char-server offline first
 				users = RFIFOW(fd,4);
 				for (i = 0; i < users; i++) {
 					aid = RFIFOL(fd,6+i*4);
-					p = numdb_search(online_db, aid);
+					p = online_db->get(online_db, aid);
 					if (p == NULL) {
 						p = aCalloc(1, sizeof(struct online_login_data));
 						p->account_id = aid;
 						p->char_server = id;
-						numdb_insert(online_db, aid, p);
+						online_db->put(online_db, aid, p);
 					} else {
 						p->char_server = aid;
 						p->waiting_disconnect = 0;
@@ -3414,25 +3404,20 @@ int parse_console(char *buf) {
 	return 0;
 }
 
-static int online_data_cleanup_sub(int key, void *data, va_list ap)
+static int online_data_cleanup_sub(DBKey key, void *data, va_list ap)
 {
 	struct online_login_data *character= (struct online_login_data*)data;
 	if (character->char_server == -2) //Unknown server.. set them offline
 		remove_online_user(character->account_id);
 	else if (character->char_server < 0)
-	{  //Free data from players that have not been online for a while.
-		character = numdb_erase(online_db, character->account_id);
-		if (character)
-			aFree(character);
-		else
-			ShowError("online_data_cleanup_sub: Unable to remove an account's online information from the online_db!\n");
-	}
+		//Free data from players that have not been online for a while.
+		online_db->remove(online_db, key);
 	return 0;
 }
 
 static int online_data_cleanup(int tid, unsigned int tick, int id, int data)
 {
-	db_foreach(online_db, online_data_cleanup_sub);
+	online_db->foreach(online_db, online_data_cleanup_sub);
 	return 0;
 } 
 //-------------------------------------------------
@@ -4073,7 +4058,7 @@ void do_final(void) {
 	ShowInfo("Terminating...\n");
 	fflush(stdout);
 	mmo_auth_sync();
-	numdb_final(online_db, online_db_final);
+	online_db->destroy(online_db, NULL);
 
 	if(auth_dat) aFree(auth_dat);
 	if(gm_account_db) aFree(gm_account_db);
@@ -4119,7 +4104,6 @@ int do_init(int argc, char **argv) {
 	for(i = 0; i < MAX_SERVERS; i++)
 		server_fd[i] = -1;
 
-	//gm_account_db = numdb_init();
 	gm_account_db = NULL;
 	GM_num = 0;
 	GM_max = 0;
@@ -4127,7 +4111,7 @@ int do_init(int argc, char **argv) {
 	read_gm_account();
 	set_defaultparse(parse_login);
 	// Online user database init
-	online_db = numdb_init();
+	online_db = db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA,sizeof(int));	// reinitialise
 	add_timer_func_list(waiting_disconnect_timer, "waiting_disconnect_timer");
 
 	if (bind_ip_set_)
