@@ -275,7 +275,7 @@ void inter_storage_final() {
 	return;
 }
 
-int inter_storage_save_sub(void *key,void *data,va_list ap)
+int inter_storage_save_sub(int key,void *data,va_list ap)
 {
 	char line[65536];
 	FILE *fp;
@@ -301,7 +301,7 @@ int inter_storage_save()
 	return 0;
 }
 
-int inter_guild_storage_save_sub(void *key,void *data,va_list ap)
+int inter_guild_storage_save_sub(int key,void *data,va_list ap)
 {
 	char line[65536];
 	FILE *fp;

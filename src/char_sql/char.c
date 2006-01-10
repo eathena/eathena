@@ -264,7 +264,7 @@ void set_char_offline(int char_id, int account_id) {
    WFIFOSET(login_fd,6);
 }
 
-static int char_db_setoffline(void* key, void* data, va_list ap) {
+static int char_db_setoffline(int key, void* data, va_list ap) {
 	struct online_char_data* character = (struct online_char_data*)data;
 	int server = va_arg(ap, int);
 	if (server == -1) {
@@ -3623,7 +3623,7 @@ int send_users_tologin(int tid, unsigned int tick, int id, int data) {
 	return 0;
 }
 
-static int send_accounts_tologin_sub(void* key, void* data, va_list ap) {
+static int send_accounts_tologin_sub(int key, void* data, va_list ap) {
 	struct online_char_data* character = (struct online_char_data*)data;
 	int *i = va_arg(ap, int*);
 	int count = va_arg(ap, int);
@@ -3829,7 +3829,7 @@ int char_lan_config_read(const char *lancfgName){
 	return 0;
 }
 
-static int char_db_final(void *key,void *data,va_list ap)
+static int char_db_final(int key,void *data,va_list ap)
 {
 	if (data) aFree(data);
 	return 0;
@@ -4113,7 +4113,7 @@ void set_server_type(void)
 	SERVER_TYPE = ATHENA_SERVER_CHAR;
 }
 
-static int online_data_cleanup_sub(void *key, void *data, va_list ap)
+static int online_data_cleanup_sub(int key, void *data, va_list ap)
 {
 	struct online_char_data *character= (struct online_char_data*)data;
 	if (character->server == -2) //Unknown server.. set them offline

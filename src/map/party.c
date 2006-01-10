@@ -32,7 +32,7 @@ int party_send_xy_timer(int tid,unsigned int tick,int id,int data);
  * I—¹
  *------------------------------------------
  */
-static int party_db_final(void *key,void *data,va_list ap)
+static int party_db_final(int key,void *data,va_list ap)
 {
 	aFree(data);
 	return 0;
@@ -59,7 +59,7 @@ struct party *party_search(int party_id)
 	party_cache = (struct party *) numdb_search(party_db,party_id);
 	return party_cache;
 }
-int party_searchname_sub(void *key,void *data,va_list ap)
+int party_searchname_sub(int key,void *data,va_list ap)
 {
 	struct party *p=(struct party *)data,**dst;
 	char *str;
@@ -600,7 +600,7 @@ int party_skill_check(struct map_session_data *sd, int party_id, int skillid, in
 }
 
 // ˆÊ’u‚â‚g‚o’Ê’m—p
-int party_send_xy_timer_sub(void *key,void *data,va_list ap)
+int party_send_xy_timer_sub(int key,void *data,va_list ap)
 {
 	struct party *p=(struct party *)data;
 	int i;

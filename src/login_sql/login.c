@@ -154,7 +154,7 @@ static char md5key[20], md5keylen = 16;
 
 struct dbt *online_db;
 
-static int online_db_final(void *key,void *data,va_list ap)
+static int online_db_final(int key,void *data,va_list ap)
 {
 	int *p = (int *) data;
 	if (p) aFree(p);
@@ -1806,7 +1806,7 @@ int parse_console(char *buf) {
     return 0;
 }
 
-static int online_data_cleanup_sub(void *key, void *data, va_list ap)
+static int online_data_cleanup_sub(int key, void *data, va_list ap)
 {
 	struct online_login_data *character= (struct online_login_data*)data;
 	if (character->char_server == -2) //Unknown server.. set them offline

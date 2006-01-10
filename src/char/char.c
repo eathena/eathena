@@ -298,7 +298,7 @@ void set_char_offline(int char_id, int account_id) {
 
 }
 
-static int char_db_setoffline(void* key, void* data, va_list ap) {
+static int char_db_setoffline(int key, void* data, va_list ap) {
 	struct online_char_data* character = (struct online_char_data*)data;
 	int server = va_arg(ap, int);
 	if (server == -1) {
@@ -1238,7 +1238,7 @@ char * job_name(int class_) {
 	return "Unknown Job";
 }
 
-static int create_online_files_sub(void* key, void* data, va_list va)
+static int create_online_files_sub(int key, void* data, va_list va)
 {
 	struct online_char_data *character;
 	int* players;
@@ -3659,7 +3659,7 @@ int send_users_tologin(int tid, unsigned int tick, int id, int data) {
 	return 0;
 }
 
-static int send_accounts_tologin_sub(void* key, void* data, va_list ap) {
+static int send_accounts_tologin_sub(int key, void* data, va_list ap) {
 	struct online_char_data* character = (struct online_char_data*)data;
 	int *i = va_arg(ap, int*);
 	int count = va_arg(ap, int);
@@ -4013,7 +4013,7 @@ int char_config_read(const char *cfgName) {
 	return 0;
 }
 
-int  online_char_final(void* key, void* data, va_list va)
+int  online_char_final(int key, void* data, va_list va)
 {
 	struct online_char_data* character = (struct online_char_data*)data;
 	numdb_erase(online_char_db, character->account_id);
@@ -4021,7 +4021,7 @@ int  online_char_final(void* key, void* data, va_list va)
 	return 0;
 }
 
-int chardb_final(void* key, void* data, va_list va)
+int chardb_final(int key, void* data, va_list va)
 {
 	aFree(data);
 	return 0;
@@ -4057,7 +4057,7 @@ void set_server_type(void)
 	SERVER_TYPE = ATHENA_SERVER_CHAR;
 }
 
-static int online_data_cleanup_sub(void *key, void *data, va_list ap)
+static int online_data_cleanup_sub(int key, void *data, va_list ap)
 {
 	struct online_char_data *character= (struct online_char_data*)data;
 	if (character->server == -2) //Unknown server.. set them offline

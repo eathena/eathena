@@ -8020,10 +8020,10 @@ static int atcommand_users_sub1(struct map_session_data* sd,va_list va) {
 	return 0;
 }
 
-static int atcommand_users_sub2(void* key,void* val,va_list va) {
+static int atcommand_users_sub2(int key,void* val,va_list va) {
 	char buf[256];
 	struct map_session_data* sd = va_arg(va,struct map_session_data*);
-	sprintf(buf,"%s : %d (%d%%)",mapindex_id2name((int)key),(int)val,(int)val * 100 / users_all);
+	sprintf(buf,"%s : %d (%d%%)",mapindex_id2name(key),(int)val,(int)val * 100 / users_all);
 	clif_displaymessage(sd->fd,buf);
 	return 0;
 }

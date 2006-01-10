@@ -138,7 +138,7 @@ int inter_accreg_init() {
 }
 
 // アカウント変数のセーブ用
-int inter_accreg_save_sub(void *key, void *data, va_list ap) {
+int inter_accreg_save_sub(int key, void *data, va_list ap) {
 	char line[8192];
 	FILE *fp;
 	struct accreg *reg = (struct accreg *)data;
@@ -412,7 +412,7 @@ int mapif_disconnectplayer(int fd, int account_id, int char_id, int reason)
 //--------------------------------------------------------
 
 // Existence check of WISP data
-int check_ttl_wisdata_sub(void *key, void *data, va_list ap) {
+int check_ttl_wisdata_sub(int key, void *data, va_list ap) {
 	unsigned long tick;
 	struct WisData *wd = (struct WisData *)data;
 	tick = va_arg(ap, unsigned long);

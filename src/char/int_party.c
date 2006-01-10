@@ -133,7 +133,7 @@ void inter_party_final()
 }
 
 // パ?ティ?デ?タのセ?ブ用
-int inter_party_save_sub(void *key, void *data, va_list ap) {
+int inter_party_save_sub(int key, void *data, va_list ap) {
 	char line[8192];
 	FILE *fp;
 
@@ -159,7 +159,7 @@ int inter_party_save() {
 }
 
 // パ?ティ名?索用
-int search_partyname_sub(void *key,void *data,va_list ap) {
+int search_partyname_sub(int key,void *data,va_list ap) {
 	struct party *p = (struct party *)data,**dst;
 	char *str;
 
@@ -230,7 +230,7 @@ int party_check_empty(struct party *p) {
 }
 
 // キャラの競合がないかチェック用
-int party_check_conflict_sub(void *key, void *data, va_list ap) {
+int party_check_conflict_sub(int key, void *data, va_list ap) {
 	struct party *p = (struct party *)data;
 	int party_id, account_id, char_id, i;
 

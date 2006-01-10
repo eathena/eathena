@@ -541,7 +541,7 @@ int mapif_disconnectplayer(int fd, int account_id, int char_id, int reason)
 //--------------------------------------------------------
 
 // Existence check of WISP data
-int check_ttl_wisdata_sub(void *key, void *data, va_list ap) {
+int check_ttl_wisdata_sub(int key, void *data, va_list ap) {
 	unsigned long tick;
 	struct WisData *wd = (struct WisData *)data;
 	tick = va_arg(ap, unsigned long);

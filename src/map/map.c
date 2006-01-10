@@ -1631,7 +1631,7 @@ struct block_list * map_id2bl(int id)
 	return bl;
 }
 
-static int map_foreachpc_sub(void * key,void * data,va_list ap)
+static int map_foreachpc_sub(int key,void * data,va_list ap)
 {
 	struct map_session_data *sd = (struct map_session_data*) data;
 	struct map_session_data ***total_sd = va_arg(ap, struct map_session_data***);
@@ -2178,7 +2178,7 @@ int map_setipport(unsigned short mapindex,unsigned long ip,int port) {
  * 他鯖管理のマップを全て削除
  *------------------------------------------
  */
-int map_eraseallipport_sub(void *key,void *data,va_list va) {
+int map_eraseallipport_sub(int key,void *data,va_list va) {
 	struct map_data_other_server *mdos = (struct map_data_other_server*)data;
 	if(mdos->gat == NULL && mdos->map == NULL) {
 		numdb_erase(map_db,key);

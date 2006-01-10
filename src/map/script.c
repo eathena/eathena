@@ -10329,11 +10329,11 @@ static int script_load_mapreg()
  * 永続的マップ変数の書き込み
  *------------------------------------------
  */
-static int script_save_mapreg_intsub(void *key,void *data,va_list ap)
+static int script_save_mapreg_intsub(int key,void *data,va_list ap)
 {
 #if defined(TXT_ONLY) || !defined(MAPREGSQL)
 	FILE *fp=va_arg(ap,FILE*);
-	int num=((int)key)&0x00ffffff, i=((int)key)>>24;
+	int num=key&0x00ffffff, i=key>>24;
 	char *name=str_buf+str_data[num].str;
 	if( name[1]!='@' ){
 		if(i==0)
@@ -10343,7 +10343,7 @@ static int script_save_mapreg_intsub(void *key,void *data,va_list ap)
 	}
 	return 0;
 #else
-	int num=((int)key)&0x00ffffff, i=((int)key)>>24; // [zBuffer]
+	int num=key&0x00ffffff, i=key>>24; // [zBuffer]
 	char *name=str_buf+str_data[num].str;
 	if ( name[1] != '@') {
 		sprintf(tmp_sql,"UPDATE `%s` SET `%s`='%d' WHERE `%s`='%s' AND `%s`='%d'",mapregsql_db,mapregsql_db_value,(int)data,mapregsql_db_varname,name,mapregsql_db_index,i);
@@ -10355,11 +10355,11 @@ static int script_save_mapreg_intsub(void *key,void *data,va_list ap)
 	return 0;
 #endif
 }
-static int script_save_mapreg_strsub(void *key,void *data,va_list ap)
+static int script_save_mapreg_strsub(int key,void *data,va_list ap)
 {
 #if defined(TXT_ONLY) || !defined(MAPREGSQL)
 	FILE *fp=va_arg(ap,FILE*);
-	int num=((int)key)&0x00ffffff, i=((int)key)>>24;
+	int num=key&0x00ffffff, i=key>>24;
 	char *name=str_buf+str_data[num].str;
 	if( name[1]!='@' ){
 		if(i==0)
@@ -10370,7 +10370,7 @@ static int script_save_mapreg_strsub(void *key,void *data,va_list ap)
 	return 0;
 #else
 	char tmp_str2[512];
-	int num=((int)key)&0x00ffffff, i=((int)key)>>24;
+	int num=key&0x00ffffff, i=key>>24;
 	char *name=str_buf+str_data[num].str;
 	if ( name[1] != '@') {
 		sprintf(tmp_sql,"UPDATE `%s` SET `%s`='%s' WHERE `%s`='%s' AND `%s`='%d'",mapregsql_db,mapregsql_db_value,jstrescapecpy(tmp_str2,(char *)data),mapregsql_db_varname,name,mapregsql_db_index,i);
@@ -10548,20 +10548,20 @@ int script_config_read(char *cfgName)
  * 終了
  *------------------------------------------
  */
-static int mapreg_db_final(void *key,void *data,va_list ap)
+static int mapreg_db_final(int key,void *data,va_list ap)
 {
 	return 0;
 }
-static int mapregstr_db_final(void *key,void *data,va_list ap)
+static int mapregstr_db_final(int key,void *data,va_list ap)
 {
 	aFree(data);
 	return 0;
 }
-static int scriptlabel_db_final(void *key,void *data,va_list ap)
+static int scriptlabel_db_final(unsigned char *key,void *data,va_list ap)
 {
 	return 0;
 }
-static int userfunc_db_final(void *key,void *data,va_list ap)
+static int userfunc_db_final(unsigned char *key,void *data,va_list ap)
 {
 	aFree(key);
 	aFree(data);

@@ -63,13 +63,13 @@ int do_init_storage(void) // map.c::do_init()‚©‚çŒÄ‚Î‚ê‚é
 	guild_storage_db=numdb_init();
 	return 1;
 }
-static int guild_storage_db_final(void *key,void *data,va_list ap)
+static int guild_storage_db_final(int key,void *data,va_list ap)
 {
 	struct guild_storage *gstor=(struct guild_storage *) data;
 	aFree(gstor);
 	return 0;
 }
-static int storage_db_final(void *key,void *data,va_list ap)
+static int storage_db_final(int key,void *data,va_list ap)
 {
 	struct storage *stor=(struct storage *) data;
 	aFree(stor);
@@ -84,7 +84,7 @@ void do_final_storage(void) // by [MC Cameri]
 }
 
 
-static int storage_reconnect_sub(void *key,void *data,va_list ap)
+static int storage_reconnect_sub(int key,void *data,va_list ap)
 { //Parses storage and saves 'dirty' ones upon reconnect. [Skotlex]
 	int type = va_arg(ap, int);
 	if (type)

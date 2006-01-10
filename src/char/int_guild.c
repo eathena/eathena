@@ -31,7 +31,7 @@ int guild_check_empty(struct guild *g);
 int guild_calcinfo(struct guild *g);
 int mapif_guild_basicinfochanged(int guild_id, int type, const void *data, int len);
 int mapif_guild_info(int fd, struct guild *g);
-int guild_break_sub(void *key, void *data, va_list ap);
+int guild_break_sub(int key, void *data, va_list ap);
 
 // ギルドデータの文字列への変換
 int inter_guild_tostr(char *str, struct guild *g) {
@@ -471,7 +471,7 @@ struct guild *inter_guild_search(int guild_id) {
 }
 
 // ギルドデータのセーブ用
-int inter_guild_save_sub(void *key,void *data,va_list ap) {
+int inter_guild_save_sub(int key,void *data,va_list ap) {
 	char line[16384];
 	FILE *fp;
 
@@ -483,7 +483,7 @@ int inter_guild_save_sub(void *key,void *data,va_list ap) {
 }
 
 // ギルド城データのセーブ用
-int inter_castle_save_sub(void *key, void *data, va_list ap) {
+int inter_castle_save_sub(int key, void *data, va_list ap) {
 	char line[16384];
 	FILE *fp;
 
@@ -519,7 +519,7 @@ int inter_guild_save() {
 }
 
 // ギルド名検索用
-int search_guildname_sub(void *key, void *data, va_list ap) {
+int search_guildname_sub(int key, void *data, va_list ap) {
 	struct guild *g = (struct guild *)data, **dst;
 	char *str;
 
@@ -557,7 +557,7 @@ int guild_check_empty(struct guild *g) {
 }
 
 // キャラの競合がないかチェック用
-int guild_check_conflict_sub(void *key, void *data, va_list ap) {
+int guild_check_conflict_sub(int key, void *data, va_list ap) {
 	struct guild *g = (struct guild *)data;
 	int guild_id, account_id, char_id, i;
 
@@ -922,7 +922,7 @@ int mapif_guild_castle_datasave(int castle_id, int index, int value) {
 	return 0;
 }
 
-int mapif_guild_castle_alldataload_sub(void *key, void *data, va_list ap) {
+int mapif_guild_castle_alldataload_sub(int key, void *data, va_list ap) {
 	int fd = va_arg(ap, int);
 	int *p = va_arg(ap, int*);
 
@@ -1121,7 +1121,7 @@ int mapif_parse_GuildChangeMemberInfoShort(int fd, int guild_id, int account_id,
 }
 
 // ギルド解散処理用（同盟/敵対を解除）
-int guild_break_sub(void *key, void *data, va_list ap) {
+int guild_break_sub(int key, void *data, va_list ap) {
 	struct guild *g = (struct guild *)data;
 	int guild_id = va_arg(ap, int);
 	int i;

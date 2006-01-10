@@ -510,7 +510,7 @@ void chrif_authok(int fd) {
 	numdb_insert(auth_db, RFIFOL(fd, 4), auth_data);
 }
 
-int auth_db_cleanup_sub(void *key,void *data,va_list ap)
+int auth_db_cleanup_sub(int key,void *data,va_list ap)
 {
 	struct auth_node *node=(struct auth_node*)data;
 

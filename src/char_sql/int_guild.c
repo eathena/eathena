@@ -43,13 +43,13 @@ int guild_check_empty(struct guild *g);
 int guild_calcinfo(struct guild *g);
 int mapif_guild_basicinfochanged(int guild_id,int type,const void *data,int len);
 int mapif_guild_info(int fd,struct guild *g);
-int guild_break_sub(void *key,void *data,va_list ap);
+int guild_break_sub(int key,void *data,va_list ap);
 int inter_guild_tosql(struct guild *g,int flag);
 
 
 #define mysql_query(_x, _y)  debug_mysql_query(__FILE__, __LINE__, _x, _y)
 
-static int guild_save(void *key, void *data, va_list ap) {
+static int guild_save(int key, void *data, va_list ap) {
 	struct guild *g;
 	int *last_id = va_arg(ap, int *);
 	int *state = va_arg(ap, int *);
@@ -60,10 +60,10 @@ static int guild_save(void *key, void *data, va_list ap) {
 		ShowError("Guild_Save_timer: guild not in memory!\n");
 		return 0;
 	}
-	if (g->guild_id != (int)key) {
-		ShowWarning("Guild %s's id %d does not matches id %d in db!\n", g->name, g->guild_id, (int)key);
+	if (g->guild_id != key) {
+		ShowWarning("Guild %s's id %d does not matches id %d in db!\n", g->name, g->guild_id, key);
 		//What do we do? Remove it from memory and abort save? Or just correct the id?
-		g = numdb_erase(guild_db_, (int)key);
+		g = numdb_erase(guild_db_, key);
 		if(g) aFree(g);
 		return 0;
 	}
@@ -807,11 +807,11 @@ int inter_guild_sql_init()
 	return 0;
 }
 
-static int guild_db_final(void *key,void *data,va_list ap)
+static int guild_db_final(int key,void *data,va_list ap)
 {
 	struct guild *g = (struct guild*)data;
-	if (g->guild_id != (int)key) {
-		ShowWarning("Guild %s's id %d does not matches id %d in db!\n", g->name, g->guild_id, (int)key);
+	if (g->guild_id != key) {
+		ShowWarning("Guild %s's id %d does not matches id %d in db!\n", g->name, g->guild_id, key);
 		aFree(g);
 		return 0;
 	}

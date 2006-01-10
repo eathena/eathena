@@ -240,7 +240,7 @@ struct guild *guild_search(int guild_id)
 	guild_cache = (struct guild *) numdb_search(guild_db,guild_id);
 	return guild_cache;
 }
-int guild_searchname_sub(void *key,void *data,va_list ap)
+int guild_searchname_sub(int key,void *data,va_list ap)
 {
 	struct guild *g=(struct guild *)data,**dst;
 	char *str;
@@ -361,9 +361,9 @@ int guild_check_conflict(struct map_session_data *sd)
 }
 
 // ギルドのEXPキャッシュをinter鯖にフラッシュする
-int guild_payexp_timer_sub(void *key, void *data, va_list ap)
+int guild_payexp_timer_sub(int dataid, void *data, va_list ap)
 {
-	int i, *dellist, *delp, dataid = (int)key;
+	int i, *dellist, *delp;
 	struct guild_expcache *c;
 	struct guild *g;
 	double exp2;
@@ -408,7 +408,7 @@ int guild_payexp_timer(int tid, unsigned int tick, int id, int data)
 }
 
 //Taken from party_send_xy_timer_sub. [Skotlex]
-int guild_send_xy_timer_sub(void *key,void *data,va_list ap)
+int guild_send_xy_timer_sub(int key,void *data,va_list ap)
 {
 	struct guild *g=(struct guild *)data;
 	int i;
@@ -1495,7 +1495,7 @@ int guild_allianceack(int guild_id1,int guild_id2,int account_id1,int account_id
 	return 0;
 }
 // ギルド解散通知用
-int guild_broken_sub(void *key,void *data,va_list ap)
+int guild_broken_sub(int key,void *data,va_list ap)
 {
 	struct guild *g=(struct guild *)data;
 	int guild_id=va_arg(ap,int);
@@ -1517,7 +1517,7 @@ int guild_broken_sub(void *key,void *data,va_list ap)
 }
 
 //Invoked on Castles when a guild is broken. [Skotlex]
-int castle_guild_broken_sub(void *key,void *data,va_list ap)
+int castle_guild_broken_sub(int key,void *data,va_list ap)
 {
 	struct guild_castle *gc=(struct guild_castle *)data;
 	int guild_id=va_arg(ap,int);
@@ -1981,7 +1981,7 @@ int guild_idisallied(int guild_id, int guild_id2)
 	return 0;
 }
 
-static int guild_db_final(void *key,void *data,va_list ap)
+static int guild_db_final(int key,void *data,va_list ap)
 {
 	struct guild *g=(struct guild *) data;
 
@@ -1989,7 +1989,7 @@ static int guild_db_final(void *key,void *data,va_list ap)
 
 	return 0;
 }
-static int castle_db_final(void *key,void *data,va_list ap)
+static int castle_db_final(int key,void *data,va_list ap)
 {
 	struct guild_castle *gc=(struct guild_castle *) data;
 
@@ -1997,7 +1997,7 @@ static int castle_db_final(void *key,void *data,va_list ap)
 
 	return 0;
 }
-static int guild_expcache_db_final(void *key,void *data,va_list ap)
+static int guild_expcache_db_final(int key,void *data,va_list ap)
 {
 	struct guild_expcache *c=(struct guild_expcache *) data;
 
@@ -2005,7 +2005,7 @@ static int guild_expcache_db_final(void *key,void *data,va_list ap)
 
 	return 0;
 }
-static int guild_infoevent_db_final(void *key,void *data,va_list ap)
+static int guild_infoevent_db_final(int key,void *data,va_list ap)
 {
 	struct eventlist *ev=(struct eventlist *) data;
 

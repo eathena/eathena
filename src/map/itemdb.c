@@ -35,7 +35,7 @@ static struct item_group itemgroup_db[MAX_ITEMGROUP];
  *------------------------------------------
  */
 // name = item alias, so we should find items aliases first. if not found then look for "jname" (full name)
-int itemdb_searchname_sub(void *key,void *data,va_list ap)
+int itemdb_searchname_sub(int key,void *data,va_list ap)
 {
 	struct item_data *item=(struct item_data *)data,**dst;
 	char *str;
@@ -50,7 +50,7 @@ int itemdb_searchname_sub(void *key,void *data,va_list ap)
  * –¼‘O‚ÅŒŸõ—p
  *------------------------------------------
  */
-int itemdb_searchjname_sub(void *key,void *data,va_list ap)
+int itemdb_searchjname_sub(int key,void *data,va_list ap)
 {
 	struct item_data *item=(struct item_data *)data,**dst;
 	char *str;
@@ -1066,7 +1066,7 @@ static void itemdb_read(void)
  * Initialize / Finalize
  *------------------------------------------
  */
-static int itemdb_final_sub (void *key,void *data,va_list ap)
+static int itemdb_final_sub (int key,void *data,va_list ap)
 {
 	int flag;
 	struct item_data *id = (struct item_data *)data;

@@ -264,9 +264,8 @@ int npc_timer(int tid,unsigned int tick,int id,int data)	// Added by RoVeRT
  * npc_parse_script->strdb_foreachから呼ばれる
  *------------------------------------------
  */
-int npc_event_export(void *key,void *data,va_list ap)
+int npc_event_export(char *lname,void *data,va_list ap)
 {
-	char *lname=(char *)key;
 	int pos=(int)data;
 	struct npc_data *nd=va_arg(ap,struct npc_data *);
 
@@ -298,9 +297,8 @@ int npc_event_export(void *key,void *data,va_list ap)
  * 全てのNPCのOn*イベント実行
  *------------------------------------------
  */
-int npc_event_doall_sub(void *key,void *data,va_list ap)
+int npc_event_doall_sub(unsigned char *p,void *data,va_list ap)
 {
-	char *p=(char *)key;
 	struct event_data *ev;
 	int *c;
 	int rid;
@@ -338,9 +336,8 @@ int npc_event_doall_id(const char *name, int rid)
 	return c;
 }
 
-int npc_event_do_sub(void *key,void *data,va_list ap)
+int npc_event_do_sub(unsigned char *p,void *data,va_list ap)
 {
-	char *p=(char *)key;
 	struct event_data *ev;
 	int *c;
 	const char *name;
@@ -479,9 +476,8 @@ int npc_cleareventtimer(struct npc_data *nd)
 	return 0;
 }
 
-int npc_do_ontimer_sub(void *key,void *data,va_list ap)
+int npc_do_ontimer_sub(unsigned char *p,void *data,va_list ap)
 {
-	char *p = (char *)key;
 	struct event_data *ev = (struct event_data *)data;
 	int *c = va_arg(ap,int *);
 //	struct map_session_data *sd=va_arg(ap,struct map_session_data *);
@@ -515,9 +511,8 @@ int npc_do_ontimer(int npc_id, int option)
  * npc_parse_script->strdb_foreachから呼ばれる
  *------------------------------------------
  */
-int npc_timerevent_import(void *key,void *data,va_list ap)
+int npc_timerevent_import(char *lname,void *data,va_list ap)
 {
-	char *lname=(char *)key;
 	int pos=(int)data;
 	struct npc_data *nd=va_arg(ap,struct npc_data *);
 	int t=0,i=0;
@@ -728,9 +723,8 @@ int npc_event (struct map_session_data *sd, const char *eventname, int mob_kill)
 }
 
 
-int npc_command_sub(void *key,void *data,va_list ap)
+int npc_command_sub(unsigned char *p,void *data,va_list ap)
 {
-	char *p=(char *)key;
 	struct event_data *ev=(struct event_data *)data;
 	char *npcname=va_arg(ap,char *);
 	char *command=va_arg(ap,char *);
@@ -1399,7 +1393,7 @@ int npc_remove_map (struct npc_data *nd)
 	return 0;
 }
 
-static int npc_unload_ev(void *key,void *data,va_list ap) {
+static int npc_unload_ev(unsigned char *key,void *data,va_list ap) {
 	struct event_data *ev=(struct event_data *)data;
 	char *npcname=va_arg(ap,char *);
 
@@ -1677,9 +1671,8 @@ static int npc_parse_shop (char *w1, char *w2, char *w3, char *w4)
  * NPCのラベルデータコンバート
  *------------------------------------------
  */
-int npc_convertlabel_db (void *key, void *data, va_list ap)
+int npc_convertlabel_db (unsigned char *lname, void *data, va_list ap)
 {
-	char *lname = (char *)key;
 	int pos = (int)data;
 	struct npc_data *nd;
 	struct npc_label_list *lst;
@@ -2644,7 +2637,7 @@ static int npc_read_indoors (void)
 	return 0;
 }
 
-static int ev_db_final (void *key,void *data,va_list ap)
+static int ev_db_final (unsigned char *key,void *data,va_list ap)
 {
 	/* Free'ing is handled by the db now.
 	aFree(data);
@@ -2654,7 +2647,7 @@ static int ev_db_final (void *key,void *data,va_list ap)
 	return 0;
 }
 
-static int npcname_db_final (void *key,void *data,va_list ap)
+static int npcname_db_final (unsigned char *key,void *data,va_list ap)
 {
 // At this point there shouldn't be any npc's left! If there are leave them to
 // the memory allocators to report as memory leaks so it can be fixed
