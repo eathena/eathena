@@ -1824,14 +1824,6 @@ static struct Damage battle_calc_weapon_attack(
 					break;
         	}
 
-			if (sd && sd->skillatk[0].id != 0)
-			{
-				for (i = 0; i < MAX_PC_BONUS && sd->skillatk[i].id != 0 && sd->skillatk[i].id != skill_num; i++);
-				if (i < MAX_PC_BONUS && sd->skillatk[i].id == skill_num)
-					//If we apply skillatk[] as ATK_RATE, it will also affect other skills,
-					//unfortunately this way ignores a skill's constant modifiers...
-					skillratio += sd->skillatk[i].val;
-			}
 			ATK_RATE(skillratio);
 
 			//Constant/misc additions from skills
@@ -1867,6 +1859,14 @@ static struct Damage battle_calc_weapon_attack(
 				if(sd && pc_checkskill(sd,AS_SONICACCEL)>0)
 					skillratio += 10;
 			break;
+		}
+		if (sd && sd->skillatk[0].id != 0)
+		{
+			for (i = 0; i < MAX_PC_BONUS && sd->skillatk[i].id != 0 && sd->skillatk[i].id != skill_num; i++);
+			if (i < MAX_PC_BONUS && sd->skillatk[i].id == skill_num)
+				//May seem wrong as it also applies on top of other modifiers, but adding, say, 10%
+				//to 800% dmg -> 810% would make the bonus a little lame. [Skotlex]
+				skillratio += sd->skillatk[i].val;
 		}
 		if (skillratio != 100)
 			ATK_RATE(skillratio);

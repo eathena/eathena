@@ -1,5 +1,8 @@
 Date	Added
 2006/01/10
+	* Moved skill damage bonuses from cards to the 'second layer' which means
+	  they are applied on top of previous damage bonuses rather than just adding
+	  to them. [Skotlex]
 	* Some more updates to the db code as specified by FlavioJS [Skotlex]
 	* Fixed the memory leak of npc_unload_ev. [Skotlex]
 2006/01/09
