@@ -537,9 +537,9 @@ CREATE TABLE `storage` (
   KEY `account_id` (`account_id`)
 ) TYPE=MyISAM;
 
----
---- Table structure for table `mapreg`
----
+--
+-- Table structure for table `mapreg`
+--
 
 DROP TABLE IF EXISTS `mapreg`;
 CREATE TABLE `mapreg` (
