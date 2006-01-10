@@ -432,16 +432,16 @@ typedef struct dbt {
 
 } *DBInterface;
 
-#define strdb_search(db,k)   (db)->get((db),(unsigned char *)(k))
-#define strdb_insert(db,k,d) (db)->put((db),(unsigned char *)(k),(unsigned char*)(d))
-#define strdb_erase(db,k)    (db)->remove((db),(unsigned char *)(k))
+#define strdb_search(db,k)   (db)->get((db),(DBKey)(unsigned char *)(k))
+#define strdb_insert(db,k,d) (db)->put((db),(DBKey)(unsigned char *)(k),(unsigned char*)(d))
+#define strdb_erase(db,k)    (db)->remove((db),(DBKey)(unsigned char *)(k))
 #define strdb_foreach        db_foreach
 #define strdb_final          db_destroy
 #define strdb_init(a)        db_alloc(__FILE__,__LINE__,DB_STRING,(DB_OPT_ALLOW_NULL_KEY|DB_OPT_ALLOW_NULL_DATA),a)
 
-#define numdb_search(db,k)   (db)->get((db),(int)(k))
-#define numdb_insert(db,k,d) (db)->put((db),(int)(k),(void *)(d))
-#define numdb_erase(db,k)    (db)->remove((db),(int)(k))
+#define numdb_search(db,k)   (db)->get((db),(DBKey)(int)(k))
+#define numdb_insert(db,k,d) (db)->put((db),(DBKey)(int)(k),(void *)(d))
+#define numdb_erase(db,k)    (db)->remove((db),(DBKey)(int)(k))
 #define numdb_foreach        db_foreach
 #define numdb_final          db_destroy
 #define numdb_init()         db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_ALLOW_NULL_DATA,sizeof(int))

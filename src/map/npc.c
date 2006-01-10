@@ -1405,8 +1405,8 @@ static int npc_unload_ev(void *key,void *data,va_list ap) {
 
 	if(strcmp(ev->nd->exname,npcname)==0){
 		strdb_erase(ev_db, key);
-	/* let the db handle this.
 		aFree(ev);
+	/* db handles key free'ing.
 		if (strstr((const char *)key,"::") != NULL)
 			aFree(key);
 	*/
