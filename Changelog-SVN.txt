@@ -1,5 +1,6 @@
 Date	Added
 2006/01/10
+	* Some more updates to the db code as specified by FlavioJS [Skotlex]
 	* Fixed the memory leak of npc_unload_ev. [Skotlex]
 2006/01/09
 	* Some more updates regarding the new db system. [Skotlex]

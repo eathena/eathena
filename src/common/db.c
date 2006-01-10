@@ -1415,10 +1415,8 @@ static void *db_put(DBInterface dbi, DBKey key, void *data)
 		if (c == 0) { // equal entry, replace
 			if (node->deleted) {
 				db_free_remove(db, node);
-			} else if (db->options&DB_OPT_RELEASE_DATA_ON_REPLACE) {
-				db->release(node->key, node->data, DB_RELEASE_BOTH);
 			} else {
-				db->release(node->key, node->data, DB_RELEASE_KEY);
+				db->release(node->key, node->data, DB_RELEASE_BOTH);
 			}
 			old_data = node->data;
 			break;
@@ -1458,7 +1456,7 @@ static void *db_put(DBInterface dbi, DBKey key, void *data)
 	if (db->options&DB_OPT_DUP_KEY) {
 		node->key = db_dup_key(db, key);
 		if (db->options&DB_OPT_RELEASE_KEY)
-			db->release(key, data, db->maxlen);
+			db->release(key, data, DB_RELEASE_KEY);
 	} else {
 		node->key = key;
 	}
@@ -1507,6 +1505,7 @@ static void *db_remove(DBInterface dbi, DBKey key)
 		if (c == 0) {
 			if (!(node->deleted)) {
 				data = node->data;
+				db->release(node->key, node->data, DB_RELEASE_DATA);
 				db_free_add(db, node, &db->ht[hash]);
 			}
 			break;

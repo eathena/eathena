@@ -1405,8 +1405,8 @@ static int npc_unload_ev(void *key,void *data,va_list ap) {
 
 	if(strcmp(ev->nd->exname,npcname)==0){
 		strdb_erase(ev_db, key);
-		aFree(ev);
 	/* db handles key free'ing.
+		aFree(ev);
 		if (strstr((const char *)key,"::") != NULL)
 			aFree(key);
 	*/
@@ -2706,7 +2706,7 @@ int npc_reload (void)
 
 	// anything else we should cleanup?
 	// Reloading npc's now
-	ev_db = db_alloc(__FILE__,__LINE__,DB_STRING,DB_OPT_DUP_KEY|DB_OPT_RELEASE_DATA|DB_OPT_RELEASE_DATA_ON_REPLACE,51);
+	ev_db = db_alloc(__FILE__,__LINE__,DB_STRING,DB_OPT_DUP_KEY|DB_OPT_RELEASE_DATA,51);
 	npcname_db = strdb_init(NAME_LENGTH);
 	npc_warp = npc_shop = npc_script = 0;
 	npc_mob = npc_cache_mob = npc_delay_mob = 0;
@@ -2801,7 +2801,7 @@ int do_init_npc(void)
 
 	// comparing only the first 24 chars of labels that are 50 chars long isn't that nice
 	// will cause "duplicated" labels where actually no dup is...
-	ev_db = db_alloc(__FILE__,__LINE__,DB_STRING,DB_OPT_DUP_KEY|DB_OPT_RELEASE_DATA|DB_OPT_RELEASE_DATA_ON_REPLACE,51);
+	ev_db = db_alloc(__FILE__,__LINE__,DB_STRING,DB_OPT_DUP_KEY|DB_OPT_RELEASE_DATA,51);
 	npcname_db = strdb_init(NAME_LENGTH);
 
 	memset(&ev_tm_b, -1, sizeof(ev_tm_b));
