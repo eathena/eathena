@@ -30,13 +30,12 @@ struct item_data* itemdb_search(int nameid)
 {
 	struct item_data *id;
 
-	id = (struct item_data*)numdb_search(item_db,nameid);
+	id = item_db->get(item_db,nameid);
 	if(id) return id;
 
 	CREATE(id, struct item_data, 1);
 
-	numdb_insert(item_db,nameid,id);
-
+	item_db->put(item_db,nameid,id);
 
 	if(nameid>500 && nameid<600)
 		id->type=0;   //heal item
@@ -198,17 +197,13 @@ static int itemdb_read_sqldb(void) // sql item_db read, shortened version of map
 	return 0;
 }
 
-static int itemdb_final(void *key,void *data,va_list ap)
+static int itemdb_final(DBKey key,void *data,va_list ap)
 {
-	struct item_data *id;
-
-	id = (struct item_data*)data;
+	struct item_data *id = (struct item_data*)data;
 	if(id->use_script)
 		aFree(id->use_script);
 	if(id->equip_script)
 		aFree(id->equip_script);
-	aFree(id);
-
 	return 0;
 }
 
@@ -220,17 +215,17 @@ static int itemdb_final(void *key,void *data,va_list ap)
 void do_final_itemdb(void)
 {
 	if(item_db){
-		numdb_final(item_db,itemdb_final);
+		item_db->destroy(item_db,itemdb_final);
 		item_db=NULL;
 	}
 }
 int do_init_itemdb(void)
 {
-	item_db = numdb_init();
+	item_db = db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA,sizeof(int));
 
 	if (db_use_sqldbs) // it db_use_sqldbs in inter config are yes, will read from item_db for char server display [Valaris]
 		itemdb_read_sqldb();
 	else
-	itemdb_readdb();
+		itemdb_readdb();
 	return 0;
 }

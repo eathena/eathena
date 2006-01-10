@@ -340,7 +340,7 @@ int inter_init(const char *file)
 			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		}
 	}
-	wis_db = numdb_init();
+	wis_db = db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA,sizeof(int));
 	inter_guild_sql_init();
 	inter_storage_sql_init();
 	inter_party_sql_init();
@@ -391,13 +391,8 @@ int inter_sql_test (void)
 }
 
 // finalize
-int wis_db_final (void *k, void *data, va_list ap) {
-	struct WisData *p = (struct WisData *) data;
-	if (p) aFree(p);
-	return 0;
-}
 void inter_final() {
-	numdb_final(wis_db, wis_db_final);
+	wis_db->destroy(wis_db, NULL);
 
 	inter_guild_sql_final();
 	inter_storage_sql_final();
@@ -541,7 +536,7 @@ int mapif_disconnectplayer(int fd, int account_id, int char_id, int reason)
 //--------------------------------------------------------
 
 // Existence check of WISP data
-int check_ttl_wisdata_sub(int key, void *data, va_list ap) {
+int check_ttl_wisdata_sub(DBKey key, void *data, va_list ap) {
 	unsigned long tick;
 	struct WisData *wd = (struct WisData *)data;
 	tick = va_arg(ap, unsigned long);
@@ -558,14 +553,13 @@ int check_ttl_wisdata() {
 
 	do {
 		wis_delnum = 0;
-		numdb_foreach(wis_db, check_ttl_wisdata_sub, tick);
+		wis_db->foreach(wis_db, check_ttl_wisdata_sub, tick);
 		for(i = 0; i < wis_delnum; i++) {
-			struct WisData *wd = (struct WisData*)numdb_search(wis_db, wis_dellist[i]);
+			struct WisData *wd = wis_db->get(wis_db, wis_dellist[i]);
 			ShowWarning("inter: wis data id=%d time out : from %s to %s\n", wd->id, wd->src, wd->dst);
 			// removed. not send information after a timeout. Just no answer for the player
 			//mapif_wis_end(wd, 1); // flag: 0: success to send wisper, 1: target character is not loged in?, 2: ignored by target
-			numdb_erase(wis_db, wd->id);
-			aFree(wd);
+			wis_db->remove(wis_db, wd->id);
 		}
 	} while(wis_delnum >= WISDELLIST_MAX);
 
@@ -641,7 +635,7 @@ int mapif_parse_WisRequest(int fd) {
 			memcpy(wd->dst, RFIFOP(fd,28), NAME_LENGTH);
 			memcpy(wd->msg, RFIFOP(fd,52), wd->len);
 			wd->tick = gettick();
-			numdb_insert(wis_db, wd->id, wd);
+			wis_db->put(wis_db, wd->id, wd);
 			mapif_wis_message(wd);
 		}
 	}
@@ -658,15 +652,14 @@ int mapif_parse_WisRequest(int fd) {
 // Wisp/page transmission result
 int mapif_parse_WisReply(int fd) {
 	int id = RFIFOL(fd,2), flag = RFIFOB(fd,6);
-	struct WisData *wd = (struct WisData*)numdb_search(wis_db, id);
+	struct WisData *wd = wis_db->get(wis_db, id);
 
 	if (wd == NULL)
 		return 0;	// This wisp was probably suppress before, because it was timeout of because of target was found on another map-server
 
 	if ((--wd->count) <= 0 || flag != 1) {
 		mapif_wis_end(wd, flag); // flag: 0: success to send wisper, 1: target character is not loged in?, 2: ignored by target
-		numdb_erase(wis_db, id);
-		aFree(wd);
+		wis_db->remove(wis_db, id);
 	}
 
 	return 0;

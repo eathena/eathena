@@ -49,24 +49,11 @@ int inter_guild_tosql(struct guild *g,int flag);
 
 #define mysql_query(_x, _y)  debug_mysql_query(__FILE__, __LINE__, _x, _y)
 
-static int guild_save(int key, void *data, va_list ap) {
-	struct guild *g;
+static int guild_save(DBKey key, void *data, va_list ap) {
+	struct guild *g = (struct guild*) data;
 	int *last_id = va_arg(ap, int *);
 	int *state = va_arg(ap, int *);
 	
-	g = (struct guild*)data;
-	if(!g)
-	{
-		ShowError("Guild_Save_timer: guild not in memory!\n");
-		return 0;
-	}
-	if (g->guild_id != key) {
-		ShowWarning("Guild %s's id %d does not matches id %d in db!\n", g->name, g->guild_id, key);
-		//What do we do? Remove it from memory and abort save? Or just correct the id?
-		g = numdb_erase(guild_db_, key);
-		if(g) aFree(g);
-		return 0;
-	}
 	if ((*state) == 0 && g->guild_id == (*last_id))
 		(*state)++; //Save next guild in the list.
 	else if (g->save_flag&GS_MASK && (*state) == 1) {
@@ -79,13 +66,9 @@ static int guild_save(int key, void *data, va_list ap) {
 	}
 	
    if(g->save_flag&GS_REMOVE && !(g->save_flag&~GS_REMOVE)) { //Nothing to save, guild is ready for removal.
-		int guild_id = g->guild_id;
 		if (save_log)
-			ShowInfo("Guild Unloaded (%d - %s) [%d - guilds in memory]\n", g->guild_id, g->name, guild_db_->size(guild_db_));
-		g = numdb_erase(guild_db_, g->guild_id);
-		if(g) aFree(g);
-		else
-			ShowError("Failed to Unload guild: Guild %d not in cache?\n", guild_id);
+			ShowInfo("Guild Unloaded (%d - %s)\n", g->guild_id, g->name);
+		guild_db_->remove(guild_db_, key);
    }
 	return 0;
 }
@@ -95,7 +78,7 @@ static int guild_save_timer(int tid, unsigned int tick, int id, int data) {
 	int state = 0; //0: Have not reached last guild. 1: Reached last guild, ready for save. 2: Some guild saved, don't do further saving.
 	if (!last_id) //Save the first guild in the list.
 		state = 1;
-	numdb_foreach(guild_db_, guild_save, &last_id, &state);
+	guild_db_->foreach(guild_db_, guild_save, &last_id, &state);
 	if (state != 2) //Reached the end of the guild db without saving.
 		last_id = 0; //Reset guild saved, return to beginning.
 
@@ -336,17 +319,8 @@ struct guild * inter_guild_fromsql(int guild_id)
 
 	if (guild_id<=0) return NULL;
 
-	g = (struct guild*)numdb_search(guild_db_,guild_id);
-	if (g != NULL) {
-		if (g->guild_id != guild_id) {
-			//db error? Delete that broken guild....
-			ShowError("inter_guild_fromsql: Guild found in db (%s - %d) does not matches required guild id [%d]!\n", g->name, g->guild_id, guild_id);
-			g = numdb_erase(guild_db_, guild_id);
-			if (g) aFree(g);
-			return NULL;
-		}
-		return g;
-	}
+	g = guild_db_->get(guild_db_,guild_id);
+	if (g) return g;
 
 	g = (struct guild*)aCalloc(sizeof(struct guild), 1);
 
@@ -538,11 +512,11 @@ struct guild * inter_guild_fromsql(int guild_id)
 	}
 	mysql_free_result(sql_res);
 
-	numdb_insert(guild_db_, guild_id, g); //Add to cache
+	guild_db_->put(guild_db_, guild_id, g); //Add to cache
 	g->save_flag |= GS_REMOVE; //But set it to be removed, in case it is not needed for long.
 	
 	if (save_log)
-		ShowInfo("Guild loaded (%d - %s) [%d guilds in memory]\n", guild_id, g->name, guild_db_->size(guild_db_));
+		ShowInfo("Guild loaded (%d - %s)\n", guild_id, g->name);
 
 	return g;
 }
@@ -778,7 +752,7 @@ int inter_guild_sql_init()
 	int i;
 
 	//Initialize the guild cache
-   guild_db_=numdb_init();
+   guild_db_= db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA,sizeof(int));
 
    //Read exp file
 	inter_guild_ReadEXP();
@@ -810,20 +784,16 @@ int inter_guild_sql_init()
 static int guild_db_final(int key,void *data,va_list ap)
 {
 	struct guild *g = (struct guild*)data;
-	if (g->guild_id != key) {
-		ShowWarning("Guild %s's id %d does not matches id %d in db!\n", g->name, g->guild_id, key);
-		aFree(g);
-		return 0;
-	}
-	if (g->save_flag&GS_MASK)
+	if (g->save_flag&GS_MASK) {
 	   inter_guild_tosql(g, g->save_flag&GS_MASK);
-	aFree(g);
+		return 1;
+	}
 	return 0;
 }
 
 void inter_guild_sql_final()
 {
-	numdb_final(guild_db_, guild_db_final);
+	guild_db_->destroy(guild_db_, guild_db_final);
 	return;
 }
 
@@ -1280,7 +1250,7 @@ int mapif_parse_CreateGuild(int fd,int account_id,char *name,struct guild_member
 		g->skill[i].id=i + GD_SKILLBASE;
 	//Add to cache
 	ShowInfo("Created Guild %d - %s (Guild Master: %s)\n", g->guild_id, g->name, g->master);
-	numdb_insert(guild_db_, g->guild_id, g);
+	guild_db_->put(guild_db_, g->guild_id, g);
 	inter_guild_tosql(g,GS_MASK); //Better save the whole guild right now.
 
 	// Report to client
@@ -1506,10 +1476,7 @@ int mapif_parse_BreakGuild(int fd,int guild_id)
 		inter_log("guild %s (id=%d) broken" RETCODE,g->name,guild_id);
 	
 	//Remove the guild from memory. [Skotlex]
-	g = numdb_erase(guild_db_, guild_id);
-	if (g) aFree(g);
-	else
-		ShowError("Failed to Delete guild from memory: Guild %d not in cache?\n", guild_id);
+	g = guild_db_->remove(guild_db_, guild_id);
 	return 0;
 }
 
@@ -1817,7 +1784,7 @@ int mapif_parse_GuildCastleDataSave(int fd,int castle_id,int index,int value)   
 	case 1:
 		if( gc.guild_id!=value ){
 			int gid=(value)?value:gc.guild_id;
-			struct guild *g=numdb_search(guild_db_, gid);
+			struct guild *g=guild_db_->get(guild_db_, gid);
 			if(log_inter)
 				inter_log("guild %s (id=%d) %s castle id=%d" RETCODE,
 					(g)?g->name:"??" ,gid, (value)?"occupy":"abandon", castle_id);

@@ -74,8 +74,7 @@ int inter_party_tosql(int party_id,struct party *p, int flag, int index)
 			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		}
 		//Remove from memory
-		numdb_erase(party_db_, party_id);
-		aFree(p);
+		party_db_->remove(party_db_, party_id);
 		return 1;
 	}
 
@@ -107,7 +106,7 @@ int inter_party_tosql(int party_id,struct party *p, int flag, int index)
 			return 0;
 		}
 		//Add party to db
-		numdb_insert(party_db_, party_id, p);
+		party_db_->put(party_db_, party_id, p);
 	}
 
 	if (flag&PS_BASIC) {
@@ -167,7 +166,7 @@ struct party *inter_party_fromsql(int party_id)
 		return NULL;
 	
 	//Load from memory
-	if ((p = numdb_search(party_db_, party_id)) != NULL)
+	if ((p = party_db_->get(party_db_, party_id)) != NULL)
 		return p;
 	
 	p = party_pt;
@@ -225,7 +224,7 @@ struct party *inter_party_fromsql(int party_id)
 	//Add party to memory.
 	p = aCalloc(1, sizeof(struct party));
 	memcpy(p, party_pt, sizeof(struct party));
-	numdb_insert(party_db_, party_id, p);
+	party_db_->put(party_db_, party_id, p);
 	return p;
 }
 
@@ -233,7 +232,7 @@ int inter_party_sql_init(){
 	int i;
 
 	//memory alloc
-	party_db_ = numdb_init();
+	party_db_ = db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA,sizeof(int));
 	party_pt = (struct party*)aCalloc(sizeof(struct party), 1);
 	if (!party_pt) {
 		ShowFatalError("inter_party_sql_init: Out of Memory!\n");
@@ -280,15 +279,9 @@ int inter_party_sql_init(){
 	return 0;
 }
 
-int party_db_final (void *k, void *data, va_list ap) {
-	struct party *p = (struct party *) data;
-	if (p) aFree(p);
-	return 0;
-}
-
 void inter_party_sql_final()
 {
-	numdb_final(party_db_, party_db_final);
+	party_db_->destroy(party_db_, NULL);
 	aFree(party_pt);
 	return;
 }
@@ -866,10 +859,8 @@ int inter_party_CharOffline(int char_id, int party_id) {
 			online_count++;
 	}
 
-	if(online_count == 0) {
+	if(online_count == 0)
 		//Parties don't have any data that needs be saved at this point... so just remove it from memory.
-		numdb_erase(party_db_, party_id);
-		aFree(p);
-	}
+		party_db_->remove(party_db_, party_id);
 	return 1;
 }
