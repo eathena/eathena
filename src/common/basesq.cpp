@@ -54,11 +54,12 @@ bool CMySQL::Query(const MiniString q) {
 		if(result)
 			return true;
 		else if(mysql_field_count(&mysqldb_handle) == 0)
-            // query does not return data
-            // (it was not a SELECT)
-            return true;
+            return true; // query does not return data (it was not a SELECT)
 		else
+		{
 			ShowError("DB result error\nQuery:    %s\n", (const char *)q);
+			abort();
+		}
 	}
 	else
 		ShowError("Database Error %s\nQuery:    %s\n", mysql_error(&mysqldb_handle), (const char *)q);
@@ -209,7 +210,7 @@ bool CAccountDB_sql::existAccount(const char* userid)
 		MiniString query;
 
 		escape_string(uid, userid, strlen(userid));
-		query << "SELECT `userid` FROM `" << login_auth_db << "` WHERE " << (case_sensitive?"BINARY":"") << "`userid` = '" <<  uid  <<"'";
+		query << "SELECT `user_id` FROM `" << login_auth_db << "` WHERE " << (case_sensitive?"BINARY":"") << "`user_id` = '" <<  uid  <<"'";
 		this->Query(query);
 		if( this->Fetch())
 		{
@@ -230,7 +231,7 @@ bool CAccountDB_sql::searchAccount(const char* userid, CLoginAccount& account)
 		escape_string(uid, userid, strlen(userid));
 		query << "SELECT"
 			<<"`account_id`,"		//  0
-			<<"`userid`,"			//  1
+			<<"`user_id`,"			//  1
 			<<"`user_pass`,"		//  2
 			<<"`sex`,"			//  3
 			<<"`gm_level`,"		//  4
@@ -243,7 +244,7 @@ bool CAccountDB_sql::searchAccount(const char* userid, CLoginAccount& account)
 			<<"`login_count`,"	// 11
 			<<"`ban_until`"		// 12
 			<<"`valid_until`"		// 13
-			<<" FROM `" << login_auth_db << "` WHERE " << (case_sensitive ? "BINARY" : "") << " `userid`='" << uid << "'";
+			<<" FROM `" << login_auth_db << "` WHERE " << (case_sensitive ? "BINARY" : "") << " `user_id`='" << uid << "'";
 
 		if( this->Query(query) )
 		{
@@ -304,7 +305,7 @@ bool CAccountDB_sql::searchAccount(uint32 accid, CLoginAccount& account)
 
 	sz=snprintf(query,sizeof(query), "SELECT "
 			"`account_id`,"		//  0
-			"`userid`,"			//  1
+			"`user_id`,"			//  1
 			"`user_pass`,"		//  2
 			"`sex`,"			//  3
 			"`gm_level`,"		//  4
@@ -373,7 +374,7 @@ bool CAccountDB_sql::insertAccount(const char* userid, const char* passwd, unsig
 
 	escape_string(uid, userid, strlen(userid));
 	escape_string(pwd, passwd, strlen(passwd));
-	sz = snprintf(query,sizeof(query), "INSERT INTO `%s` (`userid`, `user_pass`, `sex`, `email`) VALUES ('%s', '%s', '%c', '%s')", login_auth_db, uid, pwd, sex, email);
+	sz = snprintf(query,sizeof(query), "INSERT INTO `%s` (`user_id`, `user_pass`, `sex`, `email`) VALUES ('%s', '%s', '%c', '%s')", login_auth_db, uid, pwd, sex, email);
 	if( this->mysql_SendQuery(query, sz) )
 	{
 		// read the complete account back from db

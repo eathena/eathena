@@ -86,8 +86,8 @@ ifdef SQLFLAG
 sql: src/basics/GNUmakefile src/common/GNUmakefile src/login_sql/GNUmakefile src/char_sql/GNUmakefile src/map/GNUmakefile src/ladmin/GNUmakefile src/scriptchk/GNUmakefile conf
 	cd src ; cd basics ; $(MAKE) $(MKDEF) all ; cd .. ; cd ..
 	cd src ; cd common ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
-	cd src ; cd login_sql ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
-	cd src ; cd char_sql ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
+	cd src ; cd login ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
+	cd src ; cd char ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
 	cd src ; cd map ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
 	cd src ; cd ladmin ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
 	cd src ; cd scriptchk ; $(MAKE) $(MKDEF) all ; cd .. ; cd ..
@@ -100,9 +100,7 @@ clean: src/basics/GNUmakefile src/common/GNUmakefile src/login_sql/GNUmakefile s
 	cd src ; cd basics ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
 	cd src ; cd common ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
 	cd src ; cd login ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
-	cd src ; cd login_sql ; $(MAKE) $(MKLIB) $@ ; cd .. ; cd ..
 	cd src ; cd char ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
-	cd src ; cd char_sql ; $(MAKE) $(MKLIB) $@ ; cd .. ; cd ..
 	cd src ; cd map ; $(MAKE) $(MKLIB) $@ ; cd .. ; cd ..
 	cd src ; cd ladmin ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
 	cd src ; cd scriptchk ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
@@ -113,12 +111,8 @@ src/common/GNUmakefile: src/common/Makefile
 	sed -e 's/$$>/$$^/' src/common/Makefile > src/common/GNUmakefile
 src/login/GNUmakefile: src/login/Makefile
 	sed -e 's/$$>/$$^/' src/login/Makefile > src/login/GNUmakefile
-src/login_sql/GNUmakefile: src/login_sql/Makefile
-	sed -e 's/$$>/$$^/' src/login_sql/Makefile > src/login_sql/GNUmakefile
 src/char/GNUmakefile: src/char/Makefile
 	sed -e 's/$$>/$$^/' src/char/Makefile > src/char/GNUmakefile
-src/char_sql/GNUmakefile: src/char_sql/Makefile
-	sed -e 's/$$>/$$^/' src/char_sql/Makefile > src/char_sql/GNUmakefile
 src/map/GNUmakefile: src/map/Makefile
 	sed -e 's/$$>/$$^/' src/map/Makefile > src/map/GNUmakefile
 src/ladmin/GNUmakefile: src/ladmin/Makefile
