@@ -253,12 +253,12 @@ void set_char_online(int map_id, int char_id, int account_id) {
 			max_char_id = char_id;
 		mapif_send_maxid(max_account_id, max_char_id);
 	}
-	character = numdb_search(online_char_db, account_id);
+	character = online_char_db->get(online_char_db, account_id);
 	if (character == NULL)
 	{
 		character = aCalloc(1, sizeof(struct online_char_data));
 		character->account_id = account_id;
-		numdb_insert(online_char_db, account_id, character);
+		online_char_db->put(online_char_db, account_id, character);
 	} else {
 		if (online_check && character->char_id != -1 && character->server > -1 && character->server != map_id)
 		{
@@ -283,7 +283,7 @@ void set_char_online(int map_id, int char_id, int account_id) {
 void set_char_offline(int char_id, int account_id) {
 	struct online_char_data* character;
 
-	if ((character = numdb_search(online_char_db, account_id)) != NULL)
+	if ((character = online_char_db->get(online_char_db, account_id)) != NULL)
 	{	//We don't free yet to avoid aCalloc/aFree spamming during char change. [Skotlex]
 		character->char_id = -1;
 		character->server = -1;
@@ -298,7 +298,7 @@ void set_char_offline(int char_id, int account_id) {
 
 }
 
-static int char_db_setoffline(int key, void* data, va_list ap) {
+static int char_db_setoffline(DBKey key, void* data, va_list ap) {
 	struct online_char_data* character = (struct online_char_data*)data;
 	int server = va_arg(ap, int);
 	if (server == -1) {
@@ -311,7 +311,7 @@ static int char_db_setoffline(int key, void* data, va_list ap) {
 }
 
 void set_all_offline(void) {
-	numdb_foreach(online_char_db,char_db_setoffline,-1);
+	online_char_db->foreach(online_char_db,char_db_setoffline,-1);
 	if (login_fd <= 0 || session[login_fd]->eof)
 		return;
 	WFIFOHEAD(login_fd, 6);
@@ -1238,7 +1238,7 @@ char * job_name(int class_) {
 	return "Unknown Job";
 }
 
-static int create_online_files_sub(int key, void* data, va_list va)
+static int create_online_files_sub(DBKey key, void* data, va_list va)
 {
 	struct online_char_data *character;
 	int* players;
@@ -1369,7 +1369,7 @@ void create_online_files(void) {
 
 	// Get number of online players, id of each online players, and verify if a server is offline
 	players = 0;
-	db_foreach(online_char_db, create_online_files_sub, &players, &id);
+	online_char_db->foreach(online_char_db, create_online_files_sub, &players, &id);
 
 	// write files
 	fp = fopen(online_txt_filename, "w");
@@ -2240,12 +2240,13 @@ int parse_tologin(int fd) {
 			{
 				struct online_char_data* character;
 				int aid = RFIFOL(fd,2);
-				if ((character = numdb_search(online_char_db, aid)) != NULL)
+				if ((character = online_char_db->get(online_char_db, aid)) != NULL)
 				{	//Kick out this player.
 					if (character->server > -1)
 					{	//Kick it from the map server it is on.
 						mapif_disconnectplayer(server_fd[character->server], character->account_id, character->char_id, 2);
-						add_timer(gettick()+15000, chardb_waiting_disconnect, character->account_id, 0);
+						if (!character->waiting_disconnect)
+							add_timer(gettick()+15000, chardb_waiting_disconnect, character->account_id, 0);
 						character->waiting_disconnect = 1;
 					} else { //Manual kick from char server.
 						struct char_session_data *tsd;
@@ -2253,7 +2254,7 @@ int parse_tologin(int fd) {
 						for(i = 0; i < fd_max; i++) {
 							if (session[i] && (tsd = (struct char_session_data*)session[i]->session_data) && tsd->account_id == aid)
 							{
-                                                                WFIFOHEAD(fd, 3);
+								WFIFOHEAD(fd, 3);
 								WFIFOW(i,0) = 0x81;
 								WFIFOB(i,2) = 2;
 								WFIFOSET(i,3);
@@ -2373,7 +2374,7 @@ int parse_frommap(int fd) {
 				mapif_sendallwos(fd, buf, WBUFW(buf,2));
 			}
 			server_fd[id] = -1;
-			numdb_foreach(online_char_db,char_db_setoffline,i); //Tag relevant chars as 'in disconnected' server.
+			online_char_db->foreach(online_char_db,char_db_setoffline,i); //Tag relevant chars as 'in disconnected' server.
 		}
 		do_close(fd);
 		create_online_files();
@@ -2515,20 +2516,20 @@ int parse_frommap(int fd) {
 			server[id].users = RFIFOW(fd,4);
 			// add online players in the list by [Yor], adapted to use dbs by [Skotlex]
 			j = 0;
-			numdb_foreach(online_char_db,char_db_setoffline,id); //Set all chars from this server as 'unknown'
+			online_char_db->foreach(online_char_db,char_db_setoffline,id); //Set all chars from this server as 'unknown'
 			for(i = 0; i < server[id].users; i++) {
 				int aid, cid;
 				struct online_char_data* character;
 				aid = RFIFOL(fd,6+i*8);
 				cid = RFIFOL(fd,6+i*8+4);
-				character = numdb_search(online_char_db, aid);
+				character = online_char_db->get(online_char_db, aid);
 				if (character == NULL)
 				{
 					character = aCalloc(1, sizeof(struct online_char_data));
 					character->account_id = aid;
 					character->char_id = cid;
 					character->server = id;
-					numdb_insert(online_char_db, aid, character);
+					online_char_db->put(online_char_db, aid, character);
 				} else {
 					if (online_check && character->server > -1 && character->server != id)
 					{
@@ -2625,7 +2626,7 @@ int parse_frommap(int fd) {
 					WFIFOL(map_fd,12) = (unsigned long)0; //TODO: connect_until_time, how do I figure it out right now?
 					memcpy(WFIFOP(map_fd,20), char_data, sizeof(struct mmo_charstatus));
 					WFIFOSET(map_fd, WFIFOW(map_fd,2));
-					data = numdb_search(online_char_db, RFIFOL(fd, 2));
+					data = online_char_db->get(online_char_db, RFIFOL(fd, 2));
 					if (data) //This check should really never fail...
 						data->server = map_id; //Update server where char is.
 
@@ -3029,7 +3030,7 @@ int parse_char(int fd) {
 			login_fd = -1;
 		if (sd != NULL)
 		{
-			struct online_char_data* data = numdb_search(online_char_db, sd->account_id);
+			struct online_char_data* data = online_char_db->get(online_char_db, sd->account_id);
 			if (!data || data->server== -1) //If it is not in any server, send it offline. [Skotlex]
 				set_char_offline(99,sd->account_id);
 		}
@@ -3101,7 +3102,7 @@ int parse_char(int fd) {
 					if (online_check)
 					{	// check if character is not online already. [Skotlex]
 						struct online_char_data* character;
-						character = numdb_search(online_char_db, sd->account_id);
+						character = online_char_db->get(online_char_db, sd->account_id);
 
 						if (character)
 						{
@@ -3659,7 +3660,7 @@ int send_users_tologin(int tid, unsigned int tick, int id, int data) {
 	return 0;
 }
 
-static int send_accounts_tologin_sub(int key, void* data, va_list ap) {
+static int send_accounts_tologin_sub(DBKey key, void* data, va_list ap) {
 	struct online_char_data* character = (struct online_char_data*)data;
 	int *i = va_arg(ap, int*);
 	int count = va_arg(ap, int);
@@ -3682,7 +3683,7 @@ int send_accounts_tologin(int tid, unsigned int tick, int id, int data) {
 		WFIFOHEAD(login_fd, 8+users*4);
 		WFIFOW(login_fd,0) = 0x272d;
 		WFIFOL(login_fd,4) = users;
-		numdb_foreach(online_char_db, send_accounts_tologin_sub, &i);
+		online_char_db->foreach(online_char_db, send_accounts_tologin_sub, &i);
 		WFIFOW(login_fd,2) = 8+ i*4;
 		if (i > 0)
 			WFIFOSET(login_fd,WFIFOW(login_fd,2));
@@ -3729,7 +3730,7 @@ int check_connect_login_server(int tid, unsigned int tick, int id, int data) {
 static int chardb_waiting_disconnect(int tid, unsigned int tick, int id, int data)
 {
 	struct online_char_data* character;
-	if ((character = numdb_search(online_char_db, id)) != NULL && character->waiting_disconnect)
+	if ((character = online_char_db->get(online_char_db, id)) != NULL && character->waiting_disconnect)
 	{	//Mark it offline due to timeout.
 		set_char_offline(character->char_id, character->account_id);
 	}
@@ -4015,9 +4016,7 @@ int char_config_read(const char *cfgName) {
 
 int  online_char_final(int key, void* data, va_list va)
 {
-	struct online_char_data* character = (struct online_char_data*)data;
-	numdb_erase(online_char_db, character->account_id);
-	aFree(character);
+	online_char_db->remove(online_char_db, key);
 	return 0;
 }
 
@@ -4029,9 +4028,9 @@ int chardb_final(int key, void* data, va_list va)
 void do_final(void) {
 	ShowStatus("Terminating server.\n");
 	// write online players files with no player
-	numdb_foreach(online_char_db, online_char_final); //clean the db...
+	online_char_db->foreach(online_char_db, online_char_final); //clean the db...
 	create_online_files();
-	numdb_final(online_char_db, chardb_final); //dispose the db...
+	online_char_db->destroy(online_char_db, NULL); //dispose the db...
 
 	mmo_char_sync();
 	inter_save();
@@ -4057,22 +4056,20 @@ void set_server_type(void)
 	SERVER_TYPE = ATHENA_SERVER_CHAR;
 }
 
-static int online_data_cleanup_sub(int key, void *data, va_list ap)
+static int online_data_cleanup_sub(DBKey key, void *data, va_list ap)
 {
 	struct online_char_data *character= (struct online_char_data*)data;
 	if (character->server == -2) //Unknown server.. set them offline
 		set_char_offline(character->char_id, character->account_id);
 	if (character->server < 0)
-	{	//Free data from players that have not been online for a while.
-		numdb_erase(online_char_db, character->account_id);
-		aFree(data);
-	}
+		//Free data from players that have not been online for a while.
+		online_char_db->remove(online_char_db, key);
 	return 0;
 }
 
 static int online_data_cleanup(int tid, unsigned int tick, int id, int data)
 {
-	db_foreach(online_char_db, online_data_cleanup_sub);
+	online_char_db->foreach(online_char_db, online_data_cleanup_sub);
 	return 0;
 }
 
@@ -4117,7 +4114,7 @@ int do_init(int argc, char **argv) {
 		server_fd[i] = -1;
 	}
 
-	online_char_db = numdb_init();
+	online_char_db = db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA,sizeof(int));
 
 	mmo_char_init();
 #ifdef ENABLE_SC_SAVING

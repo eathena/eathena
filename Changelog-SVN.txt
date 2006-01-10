@@ -1,5 +1,6 @@
 Date	Added
 2006/01/10
+	* Updated the char-TXT server to be blah blah blah new db blah blah. [Skotlex]
 	* Updated both login servers to be fully compliant with the new db
 	  interface. [Skotlex]
 	* Moved skill damage bonuses from cards to the 'second layer' which means

@@ -20,13 +20,13 @@ char scdata_txt[1024]="save/scdata.txt"; //By [Skotlex]
 struct scdata* status_search_scdata(int aid, int cid)
 {
 	struct scdata *data;
-	data = numdb_search(scdata_db, cid);
+	data = scdata_db->get(scdata_db, cid);
 	if (data == NULL)
 	{
 		data = aCalloc(1, sizeof(struct scdata));
 		data->account_id = aid;
 		data->char_id = cid;
-		numdb_insert(scdata_db, cid, data);
+		scdata_db->put(scdata_db, cid, data);
 	}
 	return data;
 }
@@ -38,13 +38,12 @@ struct scdata* status_search_scdata(int aid, int cid)
  */
 void status_delete_scdata(int aid, int cid)
 {
-	struct scdata *scdata = numdb_search(scdata_db, cid);
+	struct scdata *scdata = scdata_db->get(scdata_db, cid);
 	if (scdata)
 	{
 		if (scdata->data)
 			aFree(scdata->data);
-		numdb_erase(scdata_db, cid);
-		aFree(scdata);
+		scdata_db->remove(scdata_db, cid);
 	}
 }
 
@@ -104,7 +103,7 @@ void status_load_scdata(const char* filename)
 	while(fgets(line, sizeof(line) - 1, fp)) {
 		sc = (struct scdata*)aCalloc(1, sizeof(struct scdata));
 		if (inter_scdata_fromstr(line, sc)) {
-			numdb_insert(scdata_db, sc->char_id, sc);
+			scdata_db->put(scdata_db, sc->char_id, sc);
 			sd_count++;
 			sc_count+= sc->count;
 		} else {
@@ -116,7 +115,7 @@ void status_load_scdata(const char* filename)
 	ShowStatus("Loaded %d saved status changes for %d characters.\n", sc_count, sd_count);
 }
 
-static int inter_status_save_sub(int key, void *data, va_list ap) {
+static int inter_status_save_sub(DBKey key, void *data, va_list ap) {
 	char line[8192];
 	struct scdata * sc_data;
 	FILE *fp;
@@ -144,7 +143,7 @@ void inter_status_save()
 		ShowError("int_status: cant write [%s] !!! data is lost !!!\n", scdata_txt);
 		return;
 	}
-	numdb_foreach(scdata_db, inter_status_save_sub, fp);
+	scdata_db->foreach(scdata_db, inter_status_save_sub, fp);
 	lock_fclose(fp,scdata_txt, &lock);
 }
 
@@ -154,7 +153,7 @@ void inter_status_save()
  */
 void status_init()
 {
-	scdata_db = numdb_init();
+	scdata_db = db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA,sizeof(int));
 	status_load_scdata(scdata_txt);
 }
 
@@ -162,12 +161,11 @@ void status_init()
  * Frees up memory.
  *------------------------------------------
  */
-static int scdata_db_final(void *k,void *d,va_list ap)
+static int scdata_db_final(DBKey k,void *d,va_list ap)
 {
 	struct scdata *data = (struct scdata*)d;
 	if (data->data)
 		aFree(data->data);
-	aFree(data);
 	return 0;
 }
 
@@ -177,6 +175,6 @@ static int scdata_db_final(void *k,void *d,va_list ap)
  */
 void status_final(void)
 {
-	numdb_final(scdata_db, scdata_db_final);
+	scdata_db->destroy(scdata_db, scdata_db_final);
 }
 #endif

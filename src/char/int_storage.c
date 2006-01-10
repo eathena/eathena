@@ -158,16 +158,15 @@ int guild_storage_fromstr(char *str,struct guild_storage *p)
 struct storage *account2storage(int account_id)
 {
 	struct storage *s;
-	s= (struct storage *) numdb_search(storage_db,account_id);
+	s= storage_db->get(storage_db,account_id);
 	if(s == NULL) {
 		s = (struct storage *) aCalloc(sizeof(struct storage), 1);
 		if(s==NULL){
 			ShowFatalError("int_storage: out of memory!\n");
 			exit(0);
 		}
-		memset(s,0,sizeof(struct storage));
 		s->account_id=account_id;
-		numdb_insert(storage_db,s->account_id,s);
+		storage_db->put(storage_db,s->account_id,s);
 	}
 	return s;
 }
@@ -176,7 +175,7 @@ struct guild_storage *guild2storage(int guild_id)
 {
 	struct guild_storage *gs = NULL;
 	if(inter_guild_search(guild_id) != NULL) {
-		gs= (struct guild_storage *) numdb_search(guild_storage_db,guild_id);
+		gs= guild_storage_db->get(guild_storage_db,guild_id);
 		if(gs == NULL) {
 			gs = (struct guild_storage *) aCalloc(sizeof(struct guild_storage), 1);
 			if(gs==NULL){
@@ -185,7 +184,7 @@ struct guild_storage *guild2storage(int guild_id)
 			}
 //			memset(gs,0,sizeof(struct guild_storage)); aCalloc does this! [Skotlex]
 			gs->guild_id=guild_id;
-			numdb_insert(guild_storage_db,gs->guild_id,gs);
+			guild_storage_db->put(guild_storage_db,gs->guild_id,gs);
 		}
 	}
 	return gs;
@@ -201,7 +200,7 @@ int inter_storage_init()
 	struct guild_storage *gs;
 	FILE *fp;
 
-	storage_db = numdb_init();
+	storage_db = db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA,sizeof(int));
 
 	fp=fopen(storage_txt,"r");
 	if(fp==NULL){
@@ -218,7 +217,7 @@ int inter_storage_init()
 //		memset(s,0,sizeof(struct storage)); aCalloc does this...
 		s->account_id=tmp_int;
 		if(s->account_id > 0 && storage_fromstr(line,s) == 0) {
-			numdb_insert(storage_db,s->account_id,s);
+			storage_db->put(storage_db,s->account_id,s);
 		}
 		else{
 			ShowError("int_storage: broken data [%s] line %d\n",storage_txt,c);
@@ -229,7 +228,7 @@ int inter_storage_init()
 	fclose(fp);
 
 	c = 0;
-	guild_storage_db = numdb_init();
+	guild_storage_db = db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA,sizeof(int));
 
 	fp=fopen(guild_storage_txt,"r");
 	if(fp==NULL){
@@ -246,7 +245,7 @@ int inter_storage_init()
 //		memset(gs,0,sizeof(struct guild_storage)); aCalloc...
 		gs->guild_id=tmp_int;
 		if(gs->guild_id > 0 && guild_storage_fromstr(line,gs) == 0) {
-			numdb_insert(guild_storage_db,gs->guild_id,gs);
+			guild_storage_db->put(guild_storage_db,gs->guild_id,gs);
 		}
 		else{
 			ShowError("int_storage: broken data [%s] line %d\n",guild_storage_txt,c);
@@ -259,23 +258,13 @@ int inter_storage_init()
 	return 0;
 }
 
-int storage_db_final (void *k, void *data, va_list ap) {
-	struct storage *p = (struct storage *) data;
-	if (p) aFree(p);
-	return 0;
-}
-int guild_storage_db_final (void *k, void *data, va_list ap) {
-	struct guild_storage *p = (struct guild_storage *) data;
-	if (p) aFree(p);
-	return 0;
-}
 void inter_storage_final() {
-	numdb_final(storage_db, storage_db_final);
-	numdb_final(guild_storage_db, guild_storage_db_final);
+	storage_db->destroy(storage_db, NULL);
+	guild_storage_db->destroy(guild_storage_db, NULL);
 	return;
 }
 
-int inter_storage_save_sub(int key,void *data,va_list ap)
+int inter_storage_save_sub(DBKey key,void *data,va_list ap)
 {
 	char line[65536];
 	FILE *fp;
@@ -295,13 +284,13 @@ int inter_storage_save()
 		ShowError("int_storage: cant write [%s] !!! data is lost !!!\n",storage_txt);
 		return 1;
 	}
-	numdb_foreach(storage_db,inter_storage_save_sub,fp);
+	storage_db->foreach(storage_db,inter_storage_save_sub,fp);
 	lock_fclose(fp,storage_txt,&lock);
 //	printf("int_storage: %s saved.\n",storage_txt);
 	return 0;
 }
 
-int inter_guild_storage_save_sub(int key,void *data,va_list ap)
+int inter_guild_storage_save_sub(DBKey key,void *data,va_list ap)
 {
 	char line[65536];
 	FILE *fp;
@@ -323,7 +312,7 @@ int inter_guild_storage_save()
 		ShowError("int_storage: cant write [%s] !!! data is lost !!!\n",guild_storage_txt);
 		return 1;
 	}
-	numdb_foreach(guild_storage_db,inter_guild_storage_save_sub,fp);
+	guild_storage_db->foreach(guild_storage_db,inter_guild_storage_save_sub,fp);
 	lock_fclose(fp,guild_storage_txt,&lock);
 //	printf("int_storage: %s saved.\n",guild_storage_txt);
 	return 0;
@@ -332,15 +321,14 @@ int inter_guild_storage_save()
 // 倉庫データ削除
 int inter_storage_delete(int account_id)
 {
-	struct storage *s = (struct storage *) numdb_search(storage_db,account_id);
+	struct storage *s = storage_db->get(storage_db,account_id);
 	if(s) {
 		int i;
 		for(i=0;i<s->storage_amount;i++){
 			if(s->storage_[i].card[0] == (short)0xff00)
 				inter_pet_delete( MakeDWord(s->storage_[i].card[1],s->storage_[i].card[2]) );
 		}
-		numdb_erase(storage_db,account_id);
-		aFree(s);
+		storage_db->remove(storage_db,account_id);
 	}
 	return 0;
 }
@@ -348,15 +336,14 @@ int inter_storage_delete(int account_id)
 // ギルド倉庫データ削除
 int inter_guild_storage_delete(int guild_id)
 {
-	struct guild_storage *gs = (struct guild_storage *) numdb_search(guild_storage_db,guild_id);
+	struct guild_storage *gs = guild_storage_db->get(guild_storage_db,guild_id);
 	if(gs) {
 		int i;
 		for(i=0;i<gs->storage_amount;i++){
 			if(gs->storage_[i].card[0] == (short)0xff00)
 				inter_pet_delete( MakeDWord(gs->storage_[i].card[1],gs->storage_[i].card[2]) );
 		}
-		numdb_erase(guild_storage_db,guild_id);
-		aFree(gs);
+		guild_storage_db->remove(guild_storage_db,guild_id);
 	}
 	return 0;
 }

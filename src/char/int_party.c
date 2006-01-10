@@ -87,7 +87,7 @@ int inter_party_init() {
 	int c = 0;
 	int i, j;
 
-	party_db = numdb_init();
+	party_db = db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA,sizeof(int));
 
 	if ((fp = fopen(party_txt, "r")) == NULL)
 		return 1;
@@ -108,7 +108,7 @@ int inter_party_init() {
 		if (inter_party_fromstr(line, p) == 0 && p->party_id > 0) {
 			if (p->party_id >= party_newid)
 				party_newid = p->party_id + 1;
-			numdb_insert(party_db, p->party_id, p);
+			party_db->put(party_db, p->party_id, p);
 			party_check_empty(p);
 		} else {
 			ShowError("int_party: broken data [%s] line %d\n", party_txt, c + 1);
@@ -121,19 +121,14 @@ int inter_party_init() {
 	return 0;
 }
 
-int party_db_final (void *k, void *data, va_list ap) {
-	struct party *p = (struct party *) data;
-	if (p) aFree(p);
-	return 0;
-}
 void inter_party_final()
 {
-	numdb_final(party_db, party_db_final);
+	party_db->destroy(party_db, NULL);
 	return;
 }
 
 // パ?ティ?デ?タのセ?ブ用
-int inter_party_save_sub(int key, void *data, va_list ap) {
+int inter_party_save_sub(DBKey key, void *data, va_list ap) {
 	char line[8192];
 	FILE *fp;
 
@@ -153,13 +148,13 @@ int inter_party_save() {
 		ShowError("int_party: cant write [%s] !!! data is lost !!!\n", party_txt);
 		return 1;
 	}
-	numdb_foreach(party_db, inter_party_save_sub, fp);
+	party_db->foreach(party_db, inter_party_save_sub, fp);
 	lock_fclose(fp,party_txt, &lock);
 	return 0;
 }
 
 // パ?ティ名?索用
-int search_partyname_sub(int key,void *data,va_list ap) {
+int search_partyname_sub(DBKey key,void *data,va_list ap) {
 	struct party *p = (struct party *)data,**dst;
 	char *str;
 
@@ -174,8 +169,7 @@ int search_partyname_sub(int key,void *data,va_list ap) {
 // パ?ティ名?索
 struct party* search_partyname(char *str) {
 	struct party *p = NULL;
-	numdb_foreach(party_db, search_partyname_sub, str, &p);
-
+	party_db->foreach(party_db, search_partyname_sub, str, &p);
 	return p;
 }
 
@@ -223,14 +217,13 @@ int party_check_empty(struct party *p) {
 		}
 	}
 	mapif_party_broken(p->party_id, 0);
-	numdb_erase(party_db, p->party_id);
-	aFree(p);
+	party_db->remove(party_db, p->party_id);
 
 	return 1;
 }
 
 // キャラの競合がないかチェック用
-int party_check_conflict_sub(int key, void *data, va_list ap) {
+int party_check_conflict_sub(DBKey key, void *data, va_list ap) {
 	struct party *p = (struct party *)data;
 	int party_id, account_id, char_id, i;
 
@@ -253,7 +246,7 @@ int party_check_conflict_sub(int key, void *data, va_list ap) {
 
 // キャラの競合がないかチェック
 int party_check_conflict(int party_id, int account_id, int char_id) {
-	numdb_foreach(party_db, party_check_conflict_sub, party_id, account_id, char_id);
+	party_db->foreach(party_db, party_check_conflict_sub, party_id, account_id, char_id);
 	return 0;
 }
 
@@ -343,7 +336,7 @@ int inter_party_logged(int party_id, int account_id, int char_id)
 	if (!party_id)
 		return 0;
 
-	p = (struct party *) numdb_search(party_db, party_id);
+	p = party_db->get(party_db, party_id);
 	if(p==NULL){
 		return 0;
 	}
@@ -451,7 +444,7 @@ int mapif_parse_CreateParty(int fd, int account_id, int char_id, char *name, cha
 	p->member[0].online = 1;
 	p->member[0].lv = lv;
 
-	numdb_insert(party_db, p->party_id, p);
+	party_db->put(party_db, p->party_id, p);
 
 	mapif_party_created(fd, account_id, char_id, p);
 	mapif_party_info(fd, p);
@@ -463,7 +456,7 @@ int mapif_parse_CreateParty(int fd, int account_id, int char_id, char *name, cha
 int mapif_parse_PartyInfo(int fd, int party_id) {
 	struct party *p;
 
-	p = (struct party *) numdb_search(party_db, party_id);
+	p = party_db->get(party_db, party_id);
 	if (p != NULL)
 		mapif_party_info(fd, p);
 	else
@@ -477,7 +470,7 @@ int mapif_parse_PartyAddMember(int fd, int party_id, int account_id, int char_id
 	struct party *p;
 	int i;
 
-	p = (struct party *) numdb_search(party_db, party_id);
+	p = party_db->get(party_db, party_id);
 	if (p == NULL) {
 		mapif_party_memberadded(fd, party_id, account_id, char_id, 1);
 		return 0;
@@ -517,7 +510,7 @@ int mapif_parse_PartyChangeOption(int fd, int party_id, int account_id, int exp,
 	//NOTE: No clue what that flag is about, in all observations so far it always comes as 0. [Skotlex]
 	flag = 0;
 
-	p = (struct party *) numdb_search(party_db, party_id);
+	p = party_db->get(party_db, party_id);
 	if (p == NULL)
 		return 0;
 
@@ -536,7 +529,7 @@ int mapif_parse_PartyLeave(int fd, int party_id, int account_id, int char_id) {
 	struct party *p;
 	int i;
 
-	p = (struct party *) numdb_search(party_db, party_id);
+	p = party_db->get(party_db, party_id);
 	if (p != NULL) {
 		for(i = 0; i < MAX_PARTY; i++) {
 			if (p->member[i].account_id == account_id && p->member[i].char_id == char_id)
@@ -558,7 +551,7 @@ int mapif_parse_PartyChangeMap(int fd, int party_id, int account_id, int char_id
 	struct party *p;
 	int i;
 
-	p = (struct party *) numdb_search(party_db, party_id);
+	p = party_db->get(party_db, party_id);
 	if (p == NULL)
 		return 0;
 
@@ -586,11 +579,11 @@ int mapif_parse_PartyChangeMap(int fd, int party_id, int account_id, int char_id
 int mapif_parse_BreakParty(int fd, int party_id) {
 	struct party *p;
 
-	p = (struct party *) numdb_search(party_db, party_id);
+	p = party_db->get(party_db, party_id);
 	if (p == NULL)
 		return 0;
 
-	numdb_erase(party_db, party_id);
+	party_db->remove(party_db, party_id);
 	mapif_party_broken(fd, party_id);
 
 	return 0;
@@ -610,7 +603,7 @@ int mapif_parse_PartyLeaderChange(int fd,int party_id,int account_id,int char_id
 	struct party *p;
 	int i;
 
-	p = (struct party *) numdb_search(party_db, party_id);
+	p = party_db->get(party_db, party_id);
 	if (p == NULL)
 		return 0;
 

@@ -31,7 +31,7 @@ int guild_check_empty(struct guild *g);
 int guild_calcinfo(struct guild *g);
 int mapif_guild_basicinfochanged(int guild_id, int type, const void *data, int len);
 int mapif_guild_info(int fd, struct guild *g);
-int guild_break_sub(int key, void *data, va_list ap);
+int guild_break_sub(DBKey key, void *data, va_list ap);
 
 // ギルドデータの文字列への変換
 int inter_guild_tostr(char *str, struct guild *g) {
@@ -368,8 +368,8 @@ int inter_guild_init() {
 
 	inter_guild_readdb();
 
-	guild_db = numdb_init();
-	castle_db = numdb_init();
+	guild_db = db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA,sizeof(int));
+	castle_db = db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA,sizeof(int));
 
 	if ((fp = fopen(guild_txt,"r")) == NULL)
 		return 1;
@@ -389,7 +389,7 @@ int inter_guild_init() {
 		if (inter_guild_fromstr(line, g) == 0 && g->guild_id > 0) {
 			if (g->guild_id >= guild_newid)
 				guild_newid = g->guild_id + 1;
-			numdb_insert(guild_db, g->guild_id, g);
+			guild_db->put(guild_db, g->guild_id, g);
 			guild_check_empty(g);
 			guild_calcinfo(g);
 		} else {
@@ -415,7 +415,7 @@ int inter_guild_init() {
 		}
 //		memset(gc, 0, sizeof(struct guild_castle)); No need...
 		if (inter_guildcastle_fromstr(line, gc) == 0) {
-			numdb_insert(castle_db, gc->castle_id, gc);
+			castle_db->put(castle_db, gc->castle_id, gc);
 		} else {
 			ShowError("int_guild: broken data [%s] line %d\n", castle_txt, c);
 			aFree(gc);
@@ -433,7 +433,7 @@ int inter_guild_init() {
 				exit(0);
 			}
 			gc->castle_id = i;
-			numdb_insert(castle_db, gc->castle_id, gc);
+			castle_db->put(castle_db, gc->castle_id, gc);
 		}
 		ShowStatus(" %s - making done\n",castle_txt);
 		return 0;
@@ -444,34 +444,18 @@ int inter_guild_init() {
 	return 0;
 }
 
-int castle_db_final (void *k, void *data, va_list ap)
-{
-	struct guild_castle *gc = (struct guild_castle *) data;
-	if (gc) aFree(gc);
-	return 0;
-}
-int guild_db_final (void *k, void *data, va_list ap)
-{
-	struct guild *g = (struct guild *) data;
-	if (g) aFree(g);
-	return 0;
-}
 void inter_guild_final() {
-	numdb_final(castle_db, castle_db_final);
-	numdb_final(guild_db, guild_db_final);
+	castle_db->destroy(castle_db, NULL);
+	guild_db->destroy(guild_db, NULL);
 	return;
 }
 
 struct guild *inter_guild_search(int guild_id) {
-	struct guild *g;
-
-	g = (struct guild *) numdb_search(guild_db, guild_id);
-
-	return g;
+	return guild_db->get(guild_db, guild_id);
 }
 
 // ギルドデータのセーブ用
-int inter_guild_save_sub(int key,void *data,va_list ap) {
+int inter_guild_save_sub(DBKey key,void *data,va_list ap) {
 	char line[16384];
 	FILE *fp;
 
@@ -483,7 +467,7 @@ int inter_guild_save_sub(int key,void *data,va_list ap) {
 }
 
 // ギルド城データのセーブ用
-int inter_castle_save_sub(int key, void *data, va_list ap) {
+int inter_castle_save_sub(DBKey key, void *data, va_list ap) {
 	char line[16384];
 	FILE *fp;
 
@@ -503,7 +487,7 @@ int inter_guild_save() {
 		ShowError("int_guild: cant write [%s] !!! data is lost !!!\n", guild_txt);
 		return 1;
 	}
-	numdb_foreach(guild_db, inter_guild_save_sub, fp);
+	guild_db->foreach(guild_db, inter_guild_save_sub, fp);
 //	fprintf(fp, "%d\t%%newid%%\n", guild_newid);
 	lock_fclose(fp, guild_txt, &lock);
 //	printf("int_guild: %s saved.\n", guild_txt);
@@ -512,14 +496,14 @@ int inter_guild_save() {
 		ShowError("int_guild: cant write [%s] !!! data is lost !!!\n", castle_txt);
 		return 1;
 	}
-	numdb_foreach(castle_db, inter_castle_save_sub, fp);
+	castle_db->foreach(castle_db, inter_castle_save_sub, fp);
 	lock_fclose(fp, castle_txt, &lock);
 
 	return 0;
 }
 
 // ギルド名検索用
-int search_guildname_sub(int key, void *data, va_list ap) {
+int search_guildname_sub(DBKey key, void *data, va_list ap) {
 	struct guild *g = (struct guild *)data, **dst;
 	char *str;
 
@@ -533,7 +517,7 @@ int search_guildname_sub(int key, void *data, va_list ap) {
 // ギルド名検索
 struct guild* search_guildname(char *str) {
 	struct guild *g = NULL;
-	numdb_foreach(guild_db, search_guildname_sub, str, &g);
+	guild_db->foreach(guild_db, search_guildname_sub, str, &g);
 	return g;
 }
 
@@ -547,17 +531,15 @@ int guild_check_empty(struct guild *g) {
 		}
 	}
 		// 誰もいないので解散
-	numdb_foreach(guild_db, guild_break_sub, g->guild_id);
-	numdb_erase(guild_db, g->guild_id);
+	guild_db->foreach(guild_db, guild_break_sub, g->guild_id);
 	inter_guild_storage_delete(g->guild_id);
 	mapif_guild_broken(g->guild_id, 0);
-	aFree(g);
-
+	guild_db->remove(guild_db, g->guild_id);
 	return 1;
 }
 
 // キャラの競合がないかチェック用
-int guild_check_conflict_sub(int key, void *data, va_list ap) {
+int guild_check_conflict_sub(DBKey key, void *data, va_list ap) {
 	struct guild *g = (struct guild *)data;
 	int guild_id, account_id, char_id, i;
 
@@ -580,7 +562,7 @@ int guild_check_conflict_sub(int key, void *data, va_list ap) {
 }
 // キャラの競合がないかチェック
 int guild_check_conflict(int guild_id, int account_id, int char_id) {
-	numdb_foreach(guild_db, guild_check_conflict_sub, guild_id, account_id, char_id);
+	guild_db->foreach(guild_db, guild_check_conflict_sub, guild_id, account_id, char_id);
 
 	return 0;
 }
@@ -922,11 +904,11 @@ int mapif_guild_castle_datasave(int castle_id, int index, int value) {
 	return 0;
 }
 
-int mapif_guild_castle_alldataload_sub(int key, void *data, va_list ap) {
+int mapif_guild_castle_alldataload_sub(DBKey key, void *data, va_list ap) {
 	int fd = va_arg(ap, int);
 	int *p = va_arg(ap, int*);
 
-        WFIFOHEAD(fd, sizeof(struct guild_castle));
+	WFIFOHEAD(fd, sizeof(struct guild_castle));
 	memcpy(WFIFOP(fd,*p), (struct guild_castle*)data, sizeof(struct guild_castle));
 	(*p) += sizeof(struct guild_castle);
 
@@ -938,7 +920,7 @@ int mapif_guild_castle_alldataload(int fd) {
 
         WFIFOHEAD(fd, 0);
 	WFIFOW(fd,0) = 0x3842;
-	numdb_foreach(castle_db, mapif_guild_castle_alldataload_sub, fd, &len);
+	castle_db->foreach(castle_db, mapif_guild_castle_alldataload_sub, fd, &len);
 	WFIFOW(fd,2) = len;
 	WFIFOSET(fd, len);
 
@@ -990,7 +972,7 @@ int mapif_parse_CreateGuild(int fd, int account_id, char *name, struct guild_mem
 	for(i = 0; i < MAX_GUILDSKILL; i++)
 		g->skill[i].id=i + GD_SKILLBASE;
 
-	numdb_insert(guild_db, g->guild_id, g);
+	guild_db->put(guild_db, g->guild_id, g);
 
 	mapif_guild_created(fd, account_id, g);
 	mapif_guild_info(fd, g);
@@ -1006,7 +988,7 @@ int mapif_parse_CreateGuild(int fd, int account_id, char *name, struct guild_mem
 int mapif_parse_GuildInfo(int fd, int guild_id) {
 	struct guild *g;
 
-	g = (struct guild *) numdb_search(guild_db, guild_id);
+	g = guild_db->get(guild_db, guild_id);
 	if (g != NULL){
 		guild_calcinfo(g);
 		mapif_guild_info(fd, g);
@@ -1021,7 +1003,7 @@ int mapif_parse_GuildAddMember(int fd, int guild_id, struct guild_member *m) {
 	struct guild *g;
 	int i;
 
-	g = (struct guild *) numdb_search(guild_db, guild_id);
+	g = guild_db->get(guild_db, guild_id);
 	if (g == NULL) {
 		mapif_guild_memberadded(fd, guild_id, m->account_id, m->char_id, 1);
 		return 0;
@@ -1047,7 +1029,7 @@ int mapif_parse_GuildLeave(int fd, int guild_id, int account_id, int char_id, in
 	struct guild *g = NULL;
 	int i, j;
 
-	g = (struct guild *)numdb_search(guild_db, guild_id);
+	g = guild_db->get(guild_db, guild_id);
 	if (g != NULL) {
 		for(i = 0; i < MAX_GUILD; i++) {
 			if (g->member[i].account_id == account_id && g->member[i].char_id == char_id) {
@@ -1090,7 +1072,7 @@ int mapif_parse_GuildChangeMemberInfoShort(int fd, int guild_id, int account_id,
 	struct guild *g;
 	int i, alv, c;
 
-	g = (struct guild *) numdb_search(guild_db, guild_id);
+	g = guild_db->get(guild_db, guild_id);
 	if (g == NULL)
 		return 0;
 
@@ -1121,7 +1103,7 @@ int mapif_parse_GuildChangeMemberInfoShort(int fd, int guild_id, int account_id,
 }
 
 // ギルド解散処理用（同盟/敵対を解除）
-int guild_break_sub(int key, void *data, va_list ap) {
+int guild_break_sub(DBKey key, void *data, va_list ap) {
 	struct guild *g = (struct guild *)data;
 	int guild_id = va_arg(ap, int);
 	int i;
@@ -1137,19 +1119,18 @@ int guild_break_sub(int key, void *data, va_list ap) {
 int mapif_parse_BreakGuild(int fd, int guild_id) {
 	struct guild *g;
 
-	g = (struct guild *) numdb_search(guild_db, guild_id);
+	g = guild_db->get(guild_db, guild_id);
 	if(g == NULL)
 		return 0;
 
-	numdb_foreach(guild_db, guild_break_sub, guild_id);
-	numdb_erase(guild_db, guild_id);
+	guild_db->foreach(guild_db, guild_break_sub, guild_id);
 	inter_guild_storage_delete(guild_id);
 	mapif_guild_broken(guild_id, 0);
 
 	if(log_inter)
 		inter_log("guild %s (id=%d) broken" RETCODE, g->name, guild_id);
-	aFree(g);
 
+	guild_db->remove(guild_db, guild_id);
 	return 0;
 }
 
@@ -1163,7 +1144,7 @@ int mapif_parse_GuildBasicInfoChange(int fd, int guild_id, int type, const char 
 	struct guild *g;
 	short dw = *((short *)data);
 
-	g = (struct guild *) numdb_search(guild_db, guild_id);
+	g = guild_db->get(guild_db, guild_id);
 	if (g == NULL)
 		return 0;
 
@@ -1190,7 +1171,7 @@ int mapif_parse_GuildMemberInfoChange(int fd, int guild_id, int account_id, int 
 	int i;
 	struct guild *g;
 
-	g = (struct guild *) numdb_search(guild_db, guild_id);
+	g = guild_db->get(guild_db, guild_id);
 	if(g == NULL)
 		return 0;
 
@@ -1261,7 +1242,7 @@ int inter_guild_sex_changed(int guild_id,int account_id,int char_id, int gender)
 
 // ギルド役職名変更要求
 int mapif_parse_GuildPosition(int fd, int guild_id, int idx, struct guild_position *p) {
-	struct guild *g = (struct guild *) numdb_search(guild_db, guild_id);
+	struct guild *g = guild_db->get(guild_db, guild_id);
 
 	if (g == NULL || idx < 0 || idx >= MAX_GUILDPOSITION) {
 		return 0;
@@ -1275,7 +1256,7 @@ int mapif_parse_GuildPosition(int fd, int guild_id, int idx, struct guild_positi
 
 // ギルドスキルアップ要求
 int mapif_parse_GuildSkillUp(int fd, int guild_id, int skill_num, int account_id) {
-	struct guild *g = (struct guild *) numdb_search(guild_db, guild_id);
+	struct guild *g = guild_db->get(guild_db, guild_id);
 	int idx = skill_num - GD_SKILLBASE;
 
 	if (g == NULL || idx < 0 || idx >= MAX_GUILDSKILL)
@@ -1316,8 +1297,8 @@ int mapif_parse_GuildAlliance(int fd, int guild_id1, int guild_id2, int account_
 	struct guild *g[2];
 	int j, i;
 
-	g[0] = (struct guild *) numdb_search(guild_db, guild_id1);
-	g[1] = (struct guild *) numdb_search(guild_db, guild_id2);
+	g[0] = guild_db->get(guild_db, guild_id1);
+	g[1] = guild_db->get(guild_db, guild_id2);
 
 	if(g[0] && g[1]==NULL && (flag&0x8)) //Requested to remove an alliance with a not found guild.
 		return mapif_parse_GuildDeleteAlliance(g[0], guild_id2,
@@ -1354,7 +1335,7 @@ int mapif_parse_GuildAlliance(int fd, int guild_id1, int guild_id2, int account_
 int mapif_parse_GuildNotice(int fd, int guild_id, const char *mes1, const char *mes2) {
 	struct guild *g;
 
-	g = (struct guild *) numdb_search(guild_db, guild_id);
+	g = guild_db->get(guild_db, guild_id);
 	if (g == NULL)
 		return 0;
 	memcpy(g->mes1, mes1, 60);
@@ -1367,7 +1348,7 @@ int mapif_parse_GuildNotice(int fd, int guild_id, const char *mes1, const char *
 int mapif_parse_GuildEmblem(int fd, int len, int guild_id, int dummy, const char *data) {
 	struct guild *g;
 
-	g = (struct guild *) numdb_search(guild_db, guild_id);
+	g = guild_db->get(guild_db, guild_id);
 	if (g == NULL)
 		return 0;
 	memcpy(g->emblem_data, data, len);
@@ -1378,7 +1359,7 @@ int mapif_parse_GuildEmblem(int fd, int len, int guild_id, int dummy, const char
 }
 
 int mapif_parse_GuildCastleDataLoad(int fd, int castle_id, int index) {
-	struct guild_castle *gc = (struct guild_castle *) numdb_search(castle_db, castle_id);
+	struct guild_castle *gc = castle_db->get(castle_db, castle_id);
 
 	if (gc == NULL) {
 		return mapif_guild_castle_dataload(castle_id, 0, 0);
@@ -1421,7 +1402,7 @@ int mapif_parse_GuildCastleDataLoad(int fd, int castle_id, int index) {
 }
 
 int mapif_parse_GuildCastleDataSave(int fd, int castle_id, int index, int value) {
-	struct guild_castle *gc= (struct guild_castle *) numdb_search(castle_db, castle_id);
+	struct guild_castle *gc= castle_db->get(castle_db, castle_id);
 
 	if (gc == NULL) {
 		return mapif_guild_castle_datasave(castle_id, index, value);
@@ -1430,7 +1411,7 @@ int mapif_parse_GuildCastleDataSave(int fd, int castle_id, int index, int value)
 	case 1:
 		if (gc->guild_id != value) {
 			int gid = (value) ? value : gc->guild_id;
-			struct guild *g = (struct guild *) numdb_search(guild_db, gid);
+			struct guild *g = guild_db->get(guild_db, gid);
 			if(log_inter)
 				inter_log("guild %s (id=%d) %s castle id=%d" RETCODE,
 					(g) ? g->name : "??", gid, (value) ? "occupy" : "abandon", castle_id);
@@ -1478,7 +1459,7 @@ int mapif_parse_GuildCheck(int fd, int guild_id, int account_id, int char_id) {
 
 int mapif_parse_GuildMasterChange(int fd, int guild_id, const char* name, int len)
 {
-	struct guild *g= (struct guild *) numdb_search(guild_db, guild_id);
+	struct guild *g = guild_db->get(guild_db, guild_id);
 	struct guild_member gm;
 	int pos;
 
