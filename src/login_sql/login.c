@@ -179,7 +179,6 @@ int is_user_online(int account_id) {
 }
 
 void remove_online_user(int account_id) {
-	struct online_login_data *p;
 	if(!online_check)
 		return;
 	if (account_id == 99) {	// reset all to offline
@@ -783,7 +782,7 @@ int mmo_auth( struct mmo_account* account , int fd){
 	}
 
 	if (online_check) {
-		struct online_login_data* data = online_db->get(online_db,atol(sql_row[0]));
+		struct online_login_data* data = online_db->get(online_db,atoi(sql_row[0]));
 		unsigned char buf[8];
 		if (data && data->char_server > -1) {
 			//Request char servers to kick this account out. [Skotlex]
