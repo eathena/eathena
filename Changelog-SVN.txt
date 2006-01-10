@@ -1,5 +1,6 @@
 Date	Added
 2006/01/10
+	* Cleaned up the description of size_fix.txt [Skotlex]
 	* Updated the char-TXT server to be blah blah blah new db blah blah. [Skotlex]
 	* Updated both login servers to be fully compliant with the new db
 	  interface. [Skotlex]
