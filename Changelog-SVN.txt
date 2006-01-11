@@ -1,6 +1,9 @@
 Date	Added
 
 2006/01/11
+	* Newly created SQL guilds won't save the member-list right away (this
+	  seems to be the reason why sometimes when creating new guilds, the
+	  guild-master keeps guild_id == 0 in the tables) [Skotlex]
 	* Fixed char/int_storage.c reporting lines with too many items when in
 	  reality said items had the exact max amount allowed. [Skotlex]
 	* Moved the status_change_clear code below the exp penalty so that the
