@@ -1,6 +1,8 @@
 Date	Added
 
 2006/01/11
+	* Tuxedo and Wedding Dress no longer get a 'forced' gender check regardless
+	  of config ignore_items_gender setting. [Skotlex]
 	* Added support for 'invisible' shops. These are shops that are loaded but
 	  not placed on any map, so you can't click on them. [Skotlex]
 	- Example: -<t>shop<t>Invisible Dealer<t>-,1750:-1,1751:-1,1752:-1,etc...

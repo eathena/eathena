@@ -758,9 +758,9 @@ static int itemdb_read_itemtrade(void)
  */
 static int itemdb_gendercheck(struct item_data *id)
 {
-	if (id->nameid == WEDDING_RING_M || id->nameid == 7170) //Grom Ring/Tuxedo
+	if (id->nameid == WEDDING_RING_M) //Grom Ring
 		return 1;
-	if (id->nameid == WEDDING_RING_F || id->nameid == 2338) //Bride Ring/Wedding Dress
+	if (id->nameid == WEDDING_RING_F) //Bride Ring
 		return 0;
 	if (id->look == 13 && id->type == 4) //Musical instruments are always male-only
 		return 1;
