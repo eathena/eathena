@@ -3664,6 +3664,7 @@ static const struct battle_data_short {
 	{ "dead_branch_active",                &battle_config.dead_branch_active			},
 	{ "show_steal_in_same_party",          &battle_config.show_steal_in_same_party		},
 	{ "show_party_share_picker",           &battle_config.party_show_share_picker },
+	{ "party_item_share_type",             &battle_config.party_share_type },
 	{ "pet_attack_attr_none",              &battle_config.pet_attack_attr_none		},
 	{ "mob_attack_attr_none",              &battle_config.mob_attack_attr_none		},
 	{ "mob_ghostring_fix",                 &battle_config.mob_ghostring_fix		},
@@ -4039,6 +4040,7 @@ void battle_set_defaults() {
 	battle_config.dead_branch_active = 0;
 	battle_config.vending_max_value = 10000000;
 	battle_config.show_steal_in_same_party = 0;
+	battle_config.party_share_type = 0;
 	battle_config.party_show_share_picker = 0;
 	battle_config.pet_attack_attr_none = 0;
 	battle_config.pc_attack_attr_none = 0;

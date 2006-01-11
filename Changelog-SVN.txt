@@ -1,6 +1,8 @@
 Date	Added
 
 2006/01/11
+	* Added battle option party_item_share_type, now you can choose between
+	  round-robin (previous implementation) and random (default) [Skotlex]
 	* Fixed compilation of the plugins (due to the db change) [Skotlex]
 	* Fixed a few issues with the map server (notably npc_command_sub was
 	  broken) [Skotlex]

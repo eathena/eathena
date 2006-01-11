@@ -268,6 +268,7 @@ extern struct Battle_Config {
 	unsigned short dead_branch_active;
 	unsigned int vending_max_value;
 	unsigned short show_steal_in_same_party;
+	unsigned short party_share_type;
 	unsigned short party_show_share_picker;
 	unsigned short pet_attack_attr_none;
 	unsigned short mob_attack_attr_none;

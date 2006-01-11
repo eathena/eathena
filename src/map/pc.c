@@ -2565,7 +2565,7 @@ int pc_takeitem(struct map_session_data *sd,struct flooritem_data *fitem)
 	if(fitem->first_get_id > 0 && fitem->first_get_id != sd->bl.id) {
 		first_sd = map_id2sd(fitem->first_get_id);
 		if(DIFF_TICK(tick,fitem->first_get_tick) < 0) {
-			if (!(p && p->item&2 &&
+			if (!(p && p->item&1 &&
 				first_sd && first_sd->status.party_id == sd->status.party_id
 			)) {
 				clif_additem(sd,0,0,6);
@@ -2575,7 +2575,7 @@ int pc_takeitem(struct map_session_data *sd,struct flooritem_data *fitem)
 		else if(fitem->second_get_id > 0 && fitem->second_get_id != sd->bl.id) {
 			second_sd = map_id2sd(fitem->second_get_id);
 			if(DIFF_TICK(tick, fitem->second_get_tick) < 0) {
-				if(!(p && p->item&2 &&
+				if(!(p && p->item&1 &&
 					((first_sd && first_sd->status.party_id == sd->status.party_id) ||
 					(second_sd && second_sd->status.party_id == sd->status.party_id))
 				)) {
@@ -2586,7 +2586,7 @@ int pc_takeitem(struct map_session_data *sd,struct flooritem_data *fitem)
 			else if(fitem->third_get_id > 0 && fitem->third_get_id != sd->bl.id) {
 				third_sd = map_id2sd(fitem->third_get_id);
 				if(DIFF_TICK(tick,fitem->third_get_tick) < 0) {
-					if(!(p && p->item&2 &&
+					if(!(p && p->item&1 &&
 						((first_sd && first_sd->status.party_id == sd->status.party_id) ||
 						(second_sd && second_sd->status.party_id == sd->status.party_id) ||
 						(third_sd && third_sd->status.party_id == sd->status.party_id))
@@ -2598,47 +2598,65 @@ int pc_takeitem(struct map_session_data *sd,struct flooritem_data *fitem)
 			}
 		}
 	}
-	if (p && p->item&1) { //Random item distribution to party members.
-		struct map_session_data *psd = NULL;
-		int i, flag2;
-		i = p->itemc;
-		do {
-			i++;
-			if (i >= MAX_PARTY)
-				i = 0;	// reset counter to 1st person in party so it'll stop when it reaches "itemc"
-			if ((psd=p->member[i].sd)==NULL || sd->bl.m != psd->bl.m)
-				continue;
-			
-			flag2 = pc_additem(psd,&fitem->item_data,fitem->item_data.amount);
-			if (flag2) {
-				if (psd == sd) //Store error flag in case picked char can't pick it up.
-					flag = flag2;
-				continue; //Chosen char can't pick up loot.
+	first_sd = NULL; //First_sd will store who picked up the item.
+	if (p && p->item&2) { //item distribution to party members.
+		first_sd = NULL; 
+		if (battle_config.party_share_type) { //Round Robin
+			int i;
+			i = p->itemc;
+			do {
+				i++;
+				if (i >= MAX_PARTY)
+					i = 0;	// reset counter to 1st person in party so it'll stop when it reaches "itemc"
+				if ((second_sd=p->member[i].sd)==NULL || sd->bl.m != second_sd->bl.m)
+					continue;
+				
+				if (pc_additem(second_sd,&fitem->item_data,fitem->item_data.amount))
+					continue; //Chosen char can't pick up loot.
+				//Successful pick.
+				first_sd = second_sd;
+				break;
+			} while (i != p->itemc);
+			// Skip to the current receiver of an item, so the next pick should not go to him again.
+			p->itemc = i;
+		} else { //Random pick
+			struct map_session_data*psd[MAX_PARTY];
+			int i, count=0;
+			//Collect pick candidates
+			for (i = 0; i < MAX_PARTY; i++) {
+				if ((psd[count]=p->member[i].sd) && psd[count]->bl.m == sd->bl.m)
+					count++;
 			}
-			flag = 0; //Since it was picked, guarantee that the next check will fail.
-			if(log_config.pick) //Logs items, taken by (P)layers [Lupus]
-				log_pick(psd, "P", 0, fitem->item_data.nameid, fitem->item_data.amount, (struct item*)&fitem->item_data);
-			if(battle_config.party_show_share_picker && psd != sd){
-				char output[80];
-				sprintf(output, "%s acquired the item.",psd->status.name);
-				clif_disp_onlyself(sd,output,strlen(output));
+			if (count > 0) { //Pick a random member.
+				do {
+					i = rand()%count;
+					if (pc_additem(psd[i],&fitem->item_data,fitem->item_data.amount))
+					{	//Discard this receiver.
+						psd[i] = psd[count-1];
+						count--;
+					} else { //Successful pick.
+						first_sd = psd[i];
+						break;
+					}
+				} while (count > 0);
 			}
-			break;
-		} while (i != p->itemc);
-		if (i==p->itemc && flag) {
-			clif_additem(sd,0,0,flag); //Display error only to the char that tried to pick it up.
+		}
+	}
+  	if (!first_sd) { //Noone has picked it up yet...
+		if ((flag = pc_additem(sd,&fitem->item_data,fitem->item_data.amount))) {
+			clif_additem(sd,0,0,flag);
 			return 1;
 		}
-		// if an appropiate party member was found, iterate to next one.
-		// Skip to the current receiver of an item, so the next pick should not go to him again.
-		p->itemc = i;
-	} else if((flag = pc_additem(sd,&fitem->item_data,fitem->item_data.amount)))
-  	{	// d—Êover‚ÅŽæ“¾Ž¸”s
-		clif_additem(sd,0,0,flag);
-		return 1;
-	} else if(log_config.pick) //Logs items, taken by (P)layers [Lupus]
-		log_pick(sd, "P", 0, fitem->item_data.nameid, fitem->item_data.amount, (struct item*)&fitem->item_data);
+		first_sd = sd;
+	}
+	if(log_config.pick) //Logs items, taken by (P)layers [Lupus]
+		log_pick(first_sd, "P", 0, fitem->item_data.nameid, fitem->item_data.amount, (struct item*)&fitem->item_data);
 	//Logs
+	if(battle_config.party_show_share_picker && first_sd != sd){
+		char output[80];
+		sprintf(output, "%s acquired the item.",first_sd->status.name);
+		clif_disp_onlyself(sd,output,strlen(output));
+	}
 
 	//Display pickup animation.
 	if(sd->attacktimer != -1)
