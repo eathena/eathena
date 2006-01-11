@@ -118,7 +118,7 @@ M_EXIT:
 }
 
 // -== The Heart of Ymir ==-
-yuno_in05.gat,40,44,0	script	Heart of Ymir	111,{
+yuno_in05.gat,50,44,0	script	Heart of Ymir	111,{
 	mes "[Heart of Ymir]";
 	if(valkyrie_Q == 1) goto L_LISTEN;
 	if(valkyrie_Q == 2) goto L_DONE;
