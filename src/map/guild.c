@@ -367,10 +367,9 @@ int guild_payexp_timer_sub(DBKey dataid, void *data, va_list ap)
 	struct guild *g;
 	double exp2;
 
-	nullpo_retr(0, ap);
-	nullpo_retr(0, c = (struct guild_expcache *)data);
-	nullpo_retr(0, dellist = va_arg(ap,int *));
-	nullpo_retr(0, delp = va_arg(ap,int *));
+	c = (struct guild_expcache *)data;
+	dellist = va_arg(ap,int *);
+	delp = va_arg(ap,int *);
 
 	if (*delp >= GUILD_PAYEXP_LIST ||
 		(g = guild_search(c->guild_id)) == NULL ||
@@ -391,7 +390,6 @@ int guild_payexp_timer_sub(DBKey dataid, void *data, va_list ap)
 	c->exp=0;
 
 	dellist[(*delp)++]=dataid.i;
-	aFree(c);
 	return 0;
 }
 

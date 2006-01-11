@@ -1,6 +1,10 @@
 Date	Added
 
 2006/01/11
+	* Fixed the map_index never finding the last map specified in the
+	  map_index file. [Skotlex]
+	* Fixed an overflowed pointer in char/inter.c, and an already free'd pointer
+	  error in map/guild.c [Skotlex]
 	* Added battle option party_item_share_type, now you can choose between
 	  round-robin (previous implementation) and random (default) [Skotlex]
 	* Fixed compilation of the plugins (due to the db change) [Skotlex]

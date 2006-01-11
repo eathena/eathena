@@ -23,7 +23,7 @@
 struct accreg {
 	int account_id, char_id;
 	int reg_num;
-	struct global_reg reg[ACCOUNT_REG_NUM];
+	struct global_reg reg[MAX_REG_NUM];
 };
 
 static struct accreg *accreg_pt;

@@ -115,7 +115,7 @@ void mapindex_init() {
 				
 				strncpy(indexes[index].name, map_name, MAP_NAME_LENGTH);
 				indexes[index].length = length;
-				if (max_index < index)
+				if (max_index <= index)
 					max_index = index+1;
 				break;
 			default:
