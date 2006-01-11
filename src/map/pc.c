@@ -5468,12 +5468,6 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 	skill_unit_move(&sd->bl,gettick(),4);
 	
 	pc_setglobalreg(sd,"PC_DIE_COUNTER",++sd->die_counter); //死にカウンタ?書き?み
-	resurrect_flag = (sd->sc_data[SC_KAIZEL].timer != -1)?sd->sc_data[SC_KAIZEL].val1:0; //Auto-resurrect later in the code.
-	status_change_clear(&sd->bl,0);	// ステ?タス異常を解除する
-	clif_updatestatus(sd,SP_HP);
-	status_calc_pc(sd,0);
-	sd->canregen_tick = gettick();
-	
 	 // changed penalty options, added death by player if pk_mode [Valaris]
 	if(battle_config.death_penalty_type && sd->state.snovice_flag != 4
 		&& (sd->class_&MAPID_UPPERMASK) != MAPID_NOVICE	// only novices will receive no penalty
@@ -5524,6 +5518,13 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 				clif_charnameack (0, &md->bl);
 		}
 	}
+	//Clear these data here so that SC_BABY check may work. [Skotlex]
+	resurrect_flag = (sd->sc_data[SC_KAIZEL].timer != -1)?sd->sc_data[SC_KAIZEL].val1:0; //Auto-resurrect later in the code.
+	status_change_clear(&sd->bl,0);	// ステ?タス異常を解除する
+	clif_updatestatus(sd,SP_HP);
+	status_calc_pc(sd,0);
+	sd->canregen_tick = gettick();
+	
 
 	//ナイトメアモ?ドアイテムドロップ
 	if(map[sd->bl.m].flag.pvp_nightmaredrop){ // Moved this outside so it works when PVP isnt enabled and during pk mode [Ancyker]

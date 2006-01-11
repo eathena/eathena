@@ -1,6 +1,10 @@
 Date	Added
 
 2006/01/11
+	* Fixed char/int_storage.c reporting lines with too many items when in
+	  reality said items had the exact max amount allowed. [Skotlex]
+	* Moved the status_change_clear code below the exp penalty so that the
+	  SC_BABY effect will work. [Skotlex]
 	* Fixed the map_index never finding the last map specified in the
 	  map_index file. [Skotlex]
 	* Fixed an overflowed pointer in char/inter.c, and an already free'd pointer
