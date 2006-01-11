@@ -398,6 +398,7 @@ int buildin_getd(struct script_state *st);
 int buildin_setd(struct script_state *st);
 // <--- [zBuffer] List of dynamic var commands
 int buildin_petstat(struct script_state *st); // [Lance] Pet Stat Rq: Dubby
+int buildin_callshop(struct script_state *st); // [Skotlex]
 void push_val(struct script_stack *stack,int type,int val);
 int run_func(struct script_state *st);
 
@@ -696,6 +697,7 @@ struct {
 	{buildin_setd,"setd","*"},
 	// <--- [zBuffer] List of dynamic var commands
 	{buildin_petstat,"petstat","i"},
+	{buildin_callshop,"callshop","si"}, // [Skotlex]
 	{buildin_setitemscript,"setitemscript","is"}, //Set NEW item bonus script. Lupus
 
 	{NULL,NULL,NULL},
@@ -9499,6 +9501,41 @@ int buildin_petstat(struct script_state *st){
 	return 0;
 }
 
+int buildin_callshop(struct script_state *st)
+{
+	struct map_session_data *sd = NULL;
+	struct npc_data *nd;
+	char *shopname;
+	int flag = 0;
+	sd = script_rid2sd(st);
+	if (!sd) {
+		push_val(st->stack,C_INT,0);
+		return 1;
+	}
+	shopname = conv_str(st, & (st->stack->stack_data[st->start+2]));
+	if( st->end>st->start+3 )
+		flag = conv_num(st, & (st->stack->stack_data[st->start+3]));
+	nd = npc_name2id(shopname);
+	if (!nd || nd->bl.type!=BL_NPC || nd->bl.subtype!=SHOP) {
+		push_val(st->stack,C_INT,0);
+		return 1;
+	}
+	
+	switch (flag) {
+		case 1: //Buy window
+			npc_buysellsel(sd,nd->bl.id,0);
+		break;
+		case 2: //Sell window
+			npc_buysellsel(sd,nd->bl.id,1);
+		break;
+		default: //Show menu
+			clif_npcbuysell(sd,nd->bl.id);
+		break;
+	}
+	sd->npc_shopid = nd->bl.id;
+	push_val(st->stack,C_INT,1);
+	return 0;
+}
 /*==========================================
  * Returns some values of an item [Lupus]
  * Price, Weight, etc...

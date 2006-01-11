@@ -2118,7 +2118,7 @@ int clif_npcbuysell(struct map_session_data* sd, int id) {
 	nullpo_retr(0, sd);
 
 	fd=sd->fd;
-        WFIFOHEAD(fd, packet_len_table[0xc4]);
+	WFIFOHEAD(fd, packet_len_table[0xc4]);
 	WFIFOW(fd,0)=0xc4;
 	WFIFOL(fd,2)=id;
 	WFIFOSET(fd,packet_len_table[0xc4]);
@@ -2242,7 +2242,7 @@ int clif_scriptclose(struct map_session_data *sd, int npcid) {
 	nullpo_retr(0, sd);
 
 	fd=sd->fd;
-        WFIFOHEAD(fd, packet_len_table[0xb6]);
+	WFIFOHEAD(fd, packet_len_table[0xb6]);
 	WFIFOW(fd,0)=0xb6;
 	WFIFOL(fd,2)=npcid;
 	WFIFOSET(fd,packet_len_table[0xb6]);

@@ -1597,13 +1597,17 @@ static int npc_parse_shop (char *w1, char *w2, char *w3, char *w4)
 	char mapname[MAP_NAME_LENGTH];
 	struct npc_data *nd;
 
-	// 引数の個数チェック
-	if (sscanf(w1, "%15[^,],%d,%d,%d", mapname, &x, &y, &dir) != 4 ||
-	    strchr(w4, ',') == NULL) {
-		ShowError("bad shop line : %s\n", w3);
-		return 1;
+	if (strcmp(w1, "-") == 0) {
+		x = 0; y = 0; dir = 0; m = -1;
+	} else {
+		// 引数の個数チェック
+		if (sscanf(w1, "%15[^,],%d,%d,%d", mapname, &x, &y, &dir) != 4 ||
+	   	 strchr(w4, ',') == NULL) {
+			ShowError("bad shop line : %s\n", w3);
+			return 1;
+		}
+		m = map_mapname2mapid(mapname);
 	}
-	m = map_mapname2mapid(mapname);
 
 	nd = (struct npc_data *) aCalloc (1, sizeof(struct npc_data) +
 		sizeof(nd->u.shop_item[0]) * (MAX_SHOPITEM + 1));
@@ -1648,7 +1652,7 @@ static int npc_parse_shop (char *w1, char *w2, char *w3, char *w4)
 	nd->flag = 0;
 	memcpy(nd->name, w3, NAME_LENGTH-1);
 	nd->name[NAME_LENGTH-1] = '\0';
-	nd->class_ = atoi(w4);
+	nd->class_ = m==-1?0:atoi(w4);
 	nd->speed = 200;
 	
 	nd = (struct npc_data *)aRealloc(nd,
@@ -1657,9 +1661,13 @@ static int npc_parse_shop (char *w1, char *w2, char *w3, char *w4)
 	npc_shop++;
 	nd->bl.type = BL_NPC;
 	nd->bl.subtype = SHOP;
-	nd->n = map_addnpc(m,nd);
-	map_addblock(&nd->bl);
-	clif_spawnnpc(nd);
+	if (m >= 0) {
+		nd->n = map_addnpc(m,nd);
+		map_addblock(&nd->bl);
+		clif_spawnnpc(nd);
+	} else
+		// we skip map_addnpc, but still add it to the list of ID's
+		map_addiddb(&nd->bl);
 	npcname_db->put(npcname_db, nd->name,nd);
 
 	return 0;

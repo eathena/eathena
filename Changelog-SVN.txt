@@ -1,6 +1,19 @@
 Date	Added
 
 2006/01/11
+	* Added support for 'invisible' shops. These are shops that are loaded but
+	  not placed on any map, so you can't click on them. [Skotlex]
+	- Example: -<t>shop<t>Invisible Dealer<t>-,1750:-1,1751:-1,1752:-1,etc...
+	- Make sure they have a unique name if you want to reference to it with...
+	* Added script command 'callshop' for invoking shops from within a script.	[Skotlex]
+	- Usage: callshop "Shop Name", flag;
+	- Distance to shop is still checked, so it's best to use 'invisible' shops.
+	- flag determines shop selection: 1: Show buy list, 2: show sell list.
+	  Anything else: show the buy/sell/cancel menu.
+	- Function returns 1 if successful, 0 otherwise, but it is recommended that
+	  the script should be closed right away to prevent problems.
+	- Documentation to the scripts_command.txt reference file not yet added
+	  because this command is as of yet untested and may need further refining.
 	* Newly created SQL guilds won't save the member-list right away (this
 	  seems to be the reason why sometimes when creating new guilds, the
 	  guild-master keeps guild_id == 0 in the tables) [Skotlex]
