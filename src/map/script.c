@@ -21,7 +21,6 @@
 #include "../common/timer.h"
 #include "../common/malloc.h"
 #include "../common/lock.h"
-#include "../common/db.h"
 #include "../common/nullpo.h"
 
 #include "map.h"
@@ -83,9 +82,8 @@ static struct dbt *scriptlabel_db=NULL;
 static struct dbt *userfunc_db=NULL;
 
 struct dbt* script_get_label_db(){ return scriptlabel_db; }
-struct dbt* script_get_userfunc_db(){ if(!userfunc_db) userfunc_db=strdb_init(50); return userfunc_db; }
+struct dbt* script_get_userfunc_db(){ return userfunc_db; }
 
-int scriptlabel_final(void *k,void *d,va_list ap){ return 0; }
 static char pos[11][100] = {"頭","体","左手","右手","ローブ","靴","アクセサリー1","アクセサリー2","頭2","頭3","装着していない"};
 
 struct Script_Config script_config;
@@ -1731,7 +1729,7 @@ unsigned char* parse_syntax(unsigned char *p) {
 					exit(1);
 				}
 				set_label(l,script_pos);
-				strdb_insert(scriptlabel_db,func_name,script_pos);	// 外部用label db登録
+				scriptlabel_db->put(scriptlabel_db,func_name,(void*)script_pos);	// 外部用label db登録
 				*p = c;
 				return skip_space(p);
 			}
@@ -2112,10 +2110,9 @@ unsigned char* parse_script(unsigned char *src,int line)
 		}
 	}
 
-	// 外部用label dbの初期化
-	if (scriptlabel_db)
-		strdb_final (scriptlabel_db, scriptlabel_final);
-	scriptlabel_db = strdb_init(50);
+	//Labels must be reparsed for the script....
+	scriptlabel_db->destroy(scriptlabel_db, NULL);
+	scriptlabel_db=db_alloc(__FILE__,__LINE__,DB_STRING,DB_OPT_BASE,50);
 
 	// for error message
 	startptr = src;
@@ -2136,7 +2133,7 @@ unsigned char* parse_script(unsigned char *src,int line)
 				exit(1);
 			}
 			set_label(l, script_pos);
-			strdb_insert(scriptlabel_db, p, script_pos);	// 外部用label db登録
+			scriptlabel_db->put(scriptlabel_db, p, (void*)script_pos);	// 外部用label db登録
 			*skip_word(p) = c;
 			p = tmpp + 1;
 			continue;
@@ -2229,7 +2226,7 @@ int get_val(struct script_state*st,struct script_data* data)
 				if(sd)
 				data->u.str = pc_readregstr(sd,data->u.num);
 			}else if(prefix=='$'){
-				data->u.str = (char *)numdb_search(mapregstr_db,data->u.num);
+				data->u.str = (char *)mapregstr_db->get(mapregstr_db,data->u.num);
 			}else if(prefix=='#'){
 				if( name[1]=='#'){
 					if(sd)
@@ -2261,7 +2258,7 @@ int get_val(struct script_state*st,struct script_data* data)
 				if(sd)
 				data->u.num = pc_readreg(sd,data->u.num);
 			}else if(prefix=='$'){
-				data->u.num = (int)numdb_search(mapreg_db,data->u.num);
+				data->u.num = (int)mapreg_db->get(mapreg_db,data->u.num);
 			}else if(prefix=='#'){
 				if( name[1]=='#'){
 					if(sd)
@@ -2568,7 +2565,7 @@ int buildin_callfunc(struct script_state *st)
 	char *scr;
 	char *str=conv_str(st,& (st->stack->stack_data[st->start+2]));
 
-	if( (scr=(char *) strdb_search(script_get_userfunc_db(),str)) ){
+	if( (scr=(char *) userfunc_db->get(userfunc_db,(unsigned char*)str)) ){
 		int i,j;
 		for(i=st->start+3,j=0;i<st->end;i++,j++)
 			push_copy(st->stack,i);
@@ -10172,22 +10169,27 @@ int mapreg_setreg(int num,int val)
 	if(val!=0) {
 
 #if !defined(TXT_ONLY) && defined(MAPREGSQL)
-		if(name[1] != '@' && numdb_search(mapreg_db,num) == NULL) {
+		if(name[1] != '@' && mapreg_db->get(mapreg_db,num) == NULL) {
 			sprintf(tmp_sql,"INSERT INTO `%s`(`%s`,`%s`,`%s`) VALUES ('%s','%d','%d')",mapregsql_db,mapregsql_db_varname,mapregsql_db_index,mapregsql_db_value,jstrescapecpy(tmp_str,name),i,val);
-			mysql_query(&mapregsql_handle, tmp_sql);
+			if(mysql_query(&mmysql_handle,tmp_sql)){
+				ShowSQL("DB error - %s\n",mysql_error(&mmysql_handle));
+				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+			}
 		}
 #endif
-
-		numdb_insert(mapreg_db,num,val);
+		mapreg_db->put(mapreg_db,num,(void*)val);
 	// else
 	} else { // [zBuffer]
 #if !defined(TXT_ONLY) && defined(MAPREGSQL)
 		if(name[1] != '@') { // Remove from database because it is unused.
 			sprintf(tmp_sql,"DELETE FROM `%s` WHERE `%s`=`%s` AND `%s`='%d'",mapregsql_db,mapregsql_db_varname,name,mapregsql_db_index,i);
-			mysql_query(&mapregsql_handle, tmp_sql);
+			if(mysql_query(&mmysql_handle,tmp_sql)){
+				ShowSQL("DB error - %s\n",mysql_error(&mmysql_handle));
+				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+			}
 		}
 #endif
-		numdb_erase(mapreg_db,num);
+		mapreg_db->remove(mapreg_db,num);
 	}
 
 	mapreg_dirty=1;
@@ -10205,37 +10207,36 @@ int mapreg_setregstr(int num,const char *str)
 	char tmp_str2[512];
 	int i=num>>24; // [zBuffer]
 	char *name=str_buf+str_data[num&0x00ffffff].str;
-	bool insert = false;
 #endif
-
-
-	if( (p=(char *) numdb_search(mapregstr_db,num))!=NULL ){
-		aFree(p);
-#if !defined(TXT_ONLY) && defined(MAPREGSQL)
-	} else {
-		insert = true;
-	#endif
-	}
 
 	if( str==NULL || *str==0 ){
 #if !defined(TXT_ONLY) && defined(MAPREGSQL)
 		if(name[1] != '@') {
 			sprintf(tmp_sql,"DELETE FROM `%s` WHERE `%s`=`%s` AND `%s`='%d'",mapregsql_db,mapregsql_db_varname,name,mapregsql_db_index,i);
-			mysql_query(&mapregsql_handle, tmp_sql);
+			if(mysql_query(&mmysql_handle,tmp_sql)){
+				ShowSQL("DB error - %s\n",mysql_error(&mmysql_handle));
+				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+			}
 		}
 #endif
-		numdb_erase(mapregstr_db,num);
+		mapregstr_db->remove(mapregstr_db,num);
 		mapreg_dirty=1;
 		return 0;
 	}
 	p=(char *)aCallocA(strlen(str)+1, sizeof(char));
 	strcpy(p,str);
+	
+	if (mapregstr_db->put(mapregstr_db,num,p))
+		;
 #if !defined(TXT_ONLY) && defined(MAPREGSQL)
-	if(insert){
+	else //put returned null, so we must insert.
 		sprintf(tmp_sql,"INSERT INTO `%s`(`%s`,`%s`,`%s`) VALUES ('%s','%d','%s')",mapregsql_db,mapregsql_db_varname,mapregsql_db_index,mapregsql_db_value,jstrescapecpy(tmp_str,name),i,jstrescapecpy(tmp_str2,p));
+		if(mysql_query(&mmysql_handle,tmp_sql)){
+			ShowSQL("DB error - %s\n",mysql_error(&mmysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+		}
 	}
 #endif
-	numdb_insert(mapregstr_db,num,p);
 	mapreg_dirty=1;
 	return 0;
 }
@@ -10267,14 +10268,14 @@ static int script_load_mapreg()
 			p=(char *)aCallocA(strlen(buf2) + 1,sizeof(char));
 			strcpy(p,buf2);
 			s= add_str((unsigned char *) buf1);
-			numdb_insert(mapregstr_db,(i<<24)|s,p);
+			mapregstr_db->put(mapregstr_db,(i<<24)|s,p);
 		}else{
 			if( sscanf(line+n,"%d",&v)!=1 ){
 				ShowError("%s: %s broken data !\n",mapreg_txt,buf1);
 				continue;
 			}
 			s= add_str((unsigned char *) buf1);
-			numdb_insert(mapreg_db,(i<<24)|s,v);
+			mapreg_db->put(mapreg_db,(i<<24)|s,(void*)v);
 		}
 	}
 	fclose(fp);
@@ -10308,12 +10309,12 @@ static int script_load_mapreg()
 				p=(char *)aCallocA(strlen(mapregsql_row[2]) + 1,sizeof(char));
 				strcpy(p,mapregsql_row[2]);
 				s= add_str((unsigned char *) buf1);
-				numdb_insert(mapregstr_db,(i<<24)|s,p);
+				mapregstr_db->put(mapregstr_db,(i<<24)|s,p);
 			}else{
 				s= add_str((unsigned char *) buf1);
 				v= atoi(mapregsql_row[2]);
 				i = atoi(mapregsql_row[1]);
-				numdb_insert(mapreg_db,(i<<24)|s,v);
+				mapreg_db->put(mapreg_db,(i<<24)|s,v);
 			}
 	    }        
 	}
@@ -10329,11 +10330,11 @@ static int script_load_mapreg()
  * 永続的マップ変数の書き込み
  *------------------------------------------
  */
-static int script_save_mapreg_intsub(int key,void *data,va_list ap)
+static int script_save_mapreg_intsub(DBKey key,void *data,va_list ap)
 {
 #if defined(TXT_ONLY) || !defined(MAPREGSQL)
 	FILE *fp=va_arg(ap,FILE*);
-	int num=key&0x00ffffff, i=key>>24;
+	int num=key.i&0x00ffffff, i=key.i>>24;
 	char *name=str_buf+str_data[num].str;
 	if( name[1]!='@' ){
 		if(i==0)
@@ -10343,7 +10344,7 @@ static int script_save_mapreg_intsub(int key,void *data,va_list ap)
 	}
 	return 0;
 #else
-	int num=key&0x00ffffff, i=key>>24; // [zBuffer]
+	int num=key.i&0x00ffffff, i=key.i>>24; // [zBuffer]
 	char *name=str_buf+str_data[num].str;
 	if ( name[1] != '@') {
 		sprintf(tmp_sql,"UPDATE `%s` SET `%s`='%d' WHERE `%s`='%s' AND `%s`='%d'",mapregsql_db,mapregsql_db_value,(int)data,mapregsql_db_varname,name,mapregsql_db_index,i);
@@ -10355,11 +10356,11 @@ static int script_save_mapreg_intsub(int key,void *data,va_list ap)
 	return 0;
 #endif
 }
-static int script_save_mapreg_strsub(int key,void *data,va_list ap)
+static int script_save_mapreg_strsub(DBKey key,void *data,va_list ap)
 {
 #if defined(TXT_ONLY) || !defined(MAPREGSQL)
 	FILE *fp=va_arg(ap,FILE*);
-	int num=key&0x00ffffff, i=key>>24;
+	int num=key.i&0x00ffffff, i=key.i>>24;
 	char *name=str_buf+str_data[num].str;
 	if( name[1]!='@' ){
 		if(i==0)
@@ -10370,7 +10371,7 @@ static int script_save_mapreg_strsub(int key,void *data,va_list ap)
 	return 0;
 #else
 	char tmp_str2[512];
-	int num=key&0x00ffffff, i=key>>24;
+	int num=key.i&0x00ffffff, i=key.i>>24;
 	char *name=str_buf+str_data[num].str;
 	if ( name[1] != '@') {
 		sprintf(tmp_sql,"UPDATE `%s` SET `%s`='%s' WHERE `%s`='%s' AND `%s`='%d'",mapregsql_db,mapregsql_db_value,jstrescapecpy(tmp_str2,(char *)data),mapregsql_db_varname,name,mapregsql_db_index,i);
@@ -10390,13 +10391,13 @@ static int script_save_mapreg()
 
 	if( (fp=lock_fopen(mapreg_txt,&lock))==NULL )
 		return -1;
-	numdb_foreach(mapreg_db,script_save_mapreg_intsub,fp);
-	numdb_foreach(mapregstr_db,script_save_mapreg_strsub,fp);
+	mapreg_db->foreach(mapreg_db,script_save_mapreg_intsub,fp);
+	mapregstr_db->foreach(mapregstr_db,script_save_mapreg_strsub,fp);
 	lock_fclose(fp,mapreg_txt,&lock);
 #else
 	int perfomance = gettick_nocache();
-	numdb_foreach(mapreg_db,script_save_mapreg_intsub);  // [zBuffer]
-	numdb_foreach(mapregstr_db,script_save_mapreg_strsub);
+	mapreg_db->foreach(mapreg_db,script_save_mapreg_intsub);  // [zBuffer]
+	mapregstr_db->foreach(mapregstr_db,script_save_mapreg_strsub);
 	perfomance = (gettick_nocache() - perfomance) / 1000;
 	ShowInfo("Mapreg saved in %d seconds.\n", perfomance);
 #endif
@@ -10548,38 +10549,15 @@ int script_config_read(char *cfgName)
  * 終了
  *------------------------------------------
  */
-static int mapreg_db_final(int key,void *data,va_list ap)
-{
-	return 0;
-}
-static int mapregstr_db_final(int key,void *data,va_list ap)
-{
-	aFree(data);
-	return 0;
-}
-static int scriptlabel_db_final(unsigned char *key,void *data,va_list ap)
-{
-	return 0;
-}
-static int userfunc_db_final(unsigned char *key,void *data,va_list ap)
-{
-	aFree(key);
-	aFree(data);
-	return 0;
-}
 int do_final_script()
 {
 	if(mapreg_dirty>=0)
 		script_save_mapreg();
 
-	if(mapreg_db)
-		numdb_final(mapreg_db,mapreg_db_final);
-	if(mapregstr_db)
-		strdb_final(mapregstr_db,mapregstr_db_final);
-	if(scriptlabel_db)
-		strdb_final(scriptlabel_db,scriptlabel_db_final);
-	if(userfunc_db)
-		strdb_final(userfunc_db,userfunc_db_final);
+	mapreg_db->destroy(mapreg_db,NULL);
+	mapregstr_db->destroy(mapregstr_db,NULL);
+	scriptlabel_db->destroy(scriptlabel_db,NULL);
+	userfunc_db->destroy(userfunc_db,NULL);
 
 	if (str_data)
 		aFree(str_data);
@@ -10594,15 +10572,16 @@ int do_final_script()
  */
 int do_init_script()
 {
-	mapreg_db=numdb_init();
-	mapregstr_db=numdb_init();
+	mapreg_db= db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_BASE,sizeof(int));
+	mapregstr_db=db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA,sizeof(int));
+	userfunc_db=db_alloc(__FILE__,__LINE__,DB_STRING,DB_OPT_RELEASE_BOTH,50);
+	scriptlabel_db=db_alloc(__FILE__,__LINE__,DB_STRING,DB_OPT_BASE,50);
+	
 	script_load_mapreg();
 
 	add_timer_func_list(script_autosave_mapreg,"script_autosave_mapreg");
 	add_timer_interval(gettick()+MAPREG_AUTOSAVE_INTERVAL,
 		script_autosave_mapreg,0,0,MAPREG_AUTOSAVE_INTERVAL);
 
-	if (scriptlabel_db == NULL)
-	  scriptlabel_db=strdb_init(50);
 	return 0;
 }

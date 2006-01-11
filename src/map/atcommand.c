@@ -11,7 +11,6 @@
 #include "../common/timer.h"
 #include "../common/nullpo.h"
 #include "../common/mmo.h"
-#include "../common/db.h"
 #include "../common/core.h"
 #include "../common/showmsg.h"
 
@@ -8010,20 +8009,20 @@ atcommand_pettalk(
  *------------------------------------------
  */
 
-static struct dbt *users_db;
+static struct dbt *users_db = NULL;
 static int users_all;
 
 static int atcommand_users_sub1(struct map_session_data* sd,va_list va) {
-	int users = (int)((int*)numdb_search(users_db,(int)sd->mapindex)) + 1;
+	int users = (int)(users_db->get(users_db,(unsigned int)sd->mapindex)) + 1;
 	users_all++;
-	numdb_insert(users_db,(int)sd->mapindex,(void *)users);
+	users_db->put(users_db,(unsigned int)sd->mapindex,(void *)users);
 	return 0;
 }
 
-static int atcommand_users_sub2(int key,void* val,va_list va) {
+static int atcommand_users_sub2(DBKey key,void* val,va_list va) {
 	char buf[256];
 	struct map_session_data* sd = va_arg(va,struct map_session_data*);
-	sprintf(buf,"%s : %d (%d%%)",mapindex_id2name(key),(int)val,(int)val * 100 / users_all);
+	sprintf(buf,"%s : %d (%d%%)",mapindex_id2name(key.i),(int)val,(int)val * 100 / users_all);
 	clif_displaymessage(sd->fd,buf);
 	return 0;
 }
@@ -8035,12 +8034,13 @@ atcommand_users(
 {
 	char buf[256];
 	users_all = 0;
-	users_db = numdb_init();
+
+	users_db = db_alloc(__FILE__,__LINE__,DB_UINT,DB_OPT_BASE,sizeof(int));
 	clif_foreachclient(atcommand_users_sub1);
-	numdb_foreach(users_db,atcommand_users_sub2,sd);
+	users_db->foreach(users_db,atcommand_users_sub2,sd);
 	sprintf(buf,"all : %d",users_all);
 	clif_displaymessage(fd,buf);
-	numdb_final(users_db,NULL);
+	users_db->destroy(users_db,NULL);
 	return 0;
 }
 

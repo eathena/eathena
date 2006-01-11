@@ -1589,11 +1589,7 @@ static int db_vforeach(DBInterface dbi, DBApply func, va_list args)
  * @see common\db.h\DBInterface#vforeach(DBInterface,DBApply,va_list)
  * @see common\db.h\DBInterface#foreach(DBInterface,DBApply,...)
  */
-#ifdef DB_DELAY_FINAL_CHANGES
-int db_foreach(DBInterface dbi, DBApply func, ...)
-#else /* not DB_DELAY_FINAL_CHANGES */
 static int db_foreach(DBInterface dbi, DBApply func, ...)
-#endif /* DB_DELAY_FINAL_CHANGES / not DB_DELAY_FINAL_CHANGES */
 {
 	va_list args;
 	int ret;
@@ -1722,11 +1718,7 @@ static int db_vdestroy(DBInterface dbi, DBApply func, va_list args)
  * @see common\db.h\DBInterface#vdestroy(DBInterface,DBApply,va_list)
  * @see common\db.h\DBInterface#destroy(DBInterface,DBApply,...)
  */
-#ifdef DB_DELAY_FINAL_CHANGES
-int db_destroy(DBInterface dbi, DBApply func, ...)
-#else /* not DB_DELAY_FINAL_CHANGES */
 static int db_destroy(DBInterface dbi, DBApply func, ...)
-#endif /*DB_DELAY_FINAL_CHANGES / not DB_DELAY_FINAL_CHANGES */
 {
 	va_list args;
 	int ret;

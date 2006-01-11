@@ -10011,6 +10011,11 @@ void clif_parse_ProduceMix(int fd,struct map_session_data *sd)
 	if (!sd->state.produce_flag)
 		return;
 	sd->state.produce_flag = 0;
+	if (sd->npc_id) {
+		//Make it fail to avoid shop exploits where you sell something different than you see.
+		clif_skill_fail(sd,sd->skillid,0,0);
+		return;
+	}
 	skill_produce_mix(sd,0,RFIFOW(fd,2),RFIFOW(fd,4),RFIFOW(fd,6),RFIFOW(fd,8), 1);
 }
 /*==========================================
@@ -10024,6 +10029,11 @@ void clif_parse_RepairItem(int fd, struct map_session_data *sd)
 	if (!sd->state.produce_flag)
 		return;
 	sd->state.produce_flag = 0;
+	if (sd->npc_id) {
+		//Make it fail to avoid shop exploits where you sell something different than you see.
+		clif_skill_fail(sd,sd->skillid,0,0);
+		return;
+	}
 	skill_repairweapon(sd,RFIFOW(fd,2));
 }
 
@@ -10038,6 +10048,11 @@ void clif_parse_WeaponRefine(int fd, struct map_session_data *sd) {
 	if (!sd->state.produce_flag) //Packet exploit?
 		return;
 	sd->state.produce_flag = 0;
+	if (sd->npc_id) {
+		//Make it fail to avoid shop exploits where you sell something different than you see.
+		clif_skill_fail(sd,sd->skillid,0,0);
+		return;
+	}
 	idx = RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]);
 	skill_weaponrefine(sd, idx-2);
 }
@@ -10130,6 +10145,10 @@ void clif_parse_SelectArrow(int fd,struct map_session_data *sd)
 	if (!sd->state.produce_flag)
 		return;
 	sd->state.produce_flag = 0;
+	if (sd->npc_id) { //Make it fail to avoid shop exploits where you sell something different than you see.
+		clif_skill_fail(sd,sd->skillid,0,0);
+		return;
+	}
 	skill_arrow_create(sd,RFIFOW(fd,2));
 }
 /*==========================================

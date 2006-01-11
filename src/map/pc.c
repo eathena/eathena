@@ -9,7 +9,6 @@
 
 #include "socket.h" // [Valaris]
 #include "timer.h"
-#include "db.h"
 
 #include "malloc.h"
 #include "map.h"
@@ -797,7 +796,6 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 
 	clif_authok(sd);
 	map_addiddb(&sd->bl);
-	map_addnickdb(sd);
 	if (map_charid2nick(sd->status.char_id) == NULL)
 		map_addchariddb(sd->status.char_id, sd->status.name);
 

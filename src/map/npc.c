@@ -8,7 +8,6 @@
 #include <math.h>
 #include <time.h>
 
-#include "db.h"
 #include "timer.h"
 #include "nullpo.h"
 #include "malloc.h"
@@ -96,7 +95,7 @@ int npc_enable_sub( struct block_list *bl, va_list ap )
 }
 int npc_enable(const char *name,int flag)
 {
-	struct npc_data *nd= (struct npc_data *) strdb_search(npcname_db,name);
+	struct npc_data *nd= npcname_db->get(npcname_db,(unsigned char*)name);
 	if (nd==NULL)
 		return 0;
 
@@ -127,7 +126,7 @@ int npc_enable(const char *name,int flag)
  */
 struct npc_data* npc_name2id(const char *name)
 {
-	return (struct npc_data *) strdb_search(npcname_db,name);
+	return (struct npc_data *) npcname_db->get(npcname_db,(unsigned char*)name);
 }
 
 /*==========================================
@@ -172,8 +171,8 @@ int npc_event_dequeue(struct map_session_data *sd)
  */
 int npc_event_timer(int tid,unsigned int tick,int id,int data)
 {
-	char *eventname = (char *)data;
-	struct event_data *ev = (struct event_data *)strdb_search(ev_db,eventname);
+	unsigned char *eventname = (unsigned char *)data;
+	struct event_data *ev = ev_db->get(ev_db,eventname);
 	struct npc_data *nd;
 	struct map_session_data *sd=map_id2sd(id);
 	size_t i;
@@ -200,9 +199,9 @@ int npc_event_timer(int tid,unsigned int tick,int id,int data)
 	return 0;
 }
 
-int npc_timer_event(const char *eventname)	// Added by RoVeRT
+int npc_timer_event(const unsigned char *eventname)	// Added by RoVeRT
 {
-	struct event_data *ev=(struct event_data *) strdb_search(ev_db,eventname);
+	struct event_data *ev=ev_db->get(ev_db,(unsigned char*)eventname);
 	struct npc_data *nd;
 //	int xs,ys;
 
@@ -216,7 +215,7 @@ int npc_timer_event(const char *eventname)	// Added by RoVeRT
 	return 0;
 }
 /*
-int npc_timer_sub_sub(void *key,void *data,va_list ap)	// Added by RoVeRT
+int npc_timer_sub_sub(DBKey key,void *data,va_list ap)	// Added by RoVeRT
 {
 	char *p=(char *)key;
 	struct event_data *ev=(struct event_data *)data;
@@ -240,21 +239,21 @@ int npc_timer_sub_sub(void *key,void *data,va_list ap)	// Added by RoVeRT
 	return 0;
 }
 
-int npc_timer_sub(void *key,void *data,va_list ap)	// Added by RoVeRT
+int npc_timer_sub(DBKey key,void *data,va_list ap)	// Added by RoVeRT
 {
 	struct npc_data *nd=(struct npc_data*)data;
 
 	if(nd->timer == -1)
 		return 0;
 
-	strdb_foreach(ev_db,npc_timer_sub_sub,&nd->bl.id);
+	sv_db->foreach(ev_db,npc_timer_sub_sub,&nd->bl.id);
 
 	return 0;
 }
 
 int npc_timer(int tid,unsigned int tick,int id,int data)	// Added by RoVeRT
 {
-	strdb_foreach(npcname_db,npc_timer_sub);
+	npcname_db->foreach(npcname_db,npc_timer_sub);
 
 	aFree((void*)data);
 	return 0;
@@ -271,7 +270,7 @@ int npc_event_export(char *lname,void *data,va_list ap)
 
 	if ((lname[0]=='O' || lname[0]=='o')&&(lname[1]=='N' || lname[1]=='n')) {
 		struct event_data *ev;
-		char buf[51];
+		unsigned char buf[51];
 		char *p=strchr(lname,':');
 		// エクスポートされる
 		ev=(struct event_data *) aCalloc(sizeof(struct event_data), 1);
@@ -287,7 +286,7 @@ int npc_event_export(char *lname,void *data,va_list ap)
 			*p='\0';
 			sprintf(buf,"%s::%s",nd->exname,lname);
 			*p=':';
-			strdb_insert(ev_db,buf,ev);
+			ev_db->put(ev_db,buf,ev);
 		}
 	}
 	return 0;
@@ -297,8 +296,9 @@ int npc_event_export(char *lname,void *data,va_list ap)
  * 全てのNPCのOn*イベント実行
  *------------------------------------------
  */
-int npc_event_doall_sub(unsigned char *p,void *data,va_list ap)
+int npc_event_doall_sub(DBKey key,void *data,va_list ap)
 {
+	unsigned char*p = key.str;
 	struct event_data *ev;
 	int *c;
 	int rid;
@@ -323,7 +323,7 @@ int npc_event_doall(const char *name)
 	char buf[64]="::";
 
 	strncpy(buf+2,name,62);
-	strdb_foreach(ev_db,npc_event_doall_sub,&c,buf,0);
+	ev_db->foreach(ev_db,npc_event_doall_sub,&c,buf,0);
 	return c;
 }
 int npc_event_doall_id(const char *name, int rid)
@@ -332,12 +332,13 @@ int npc_event_doall_id(const char *name, int rid)
 	char buf[64]="::";
 
 	strncpy(buf+2,name,62);
-	strdb_foreach(ev_db,npc_event_doall_sub,&c,buf,rid);
+	ev_db->foreach(ev_db,npc_event_doall_sub,&c,buf,rid);
 	return c;
 }
 
-int npc_event_do_sub(unsigned char *p,void *data,va_list ap)
+int npc_event_do_sub(DBKey key,void *data,va_list ap)
 {
+	unsigned char *p = key.str;
 	struct event_data *ev;
 	int *c;
 	const char *name;
@@ -363,7 +364,7 @@ int npc_event_do(const char *name)
 		return npc_event_doall(name+2);
 	}
 
-	strdb_foreach(ev_db,npc_event_do_sub,&c,name);
+	ev_db->foreach(ev_db,npc_event_do_sub,&c,name);
 	return c;
 }
 
@@ -437,7 +438,7 @@ int npc_addeventtimer(struct npc_data *nd,int tick,const char *name)
 		if( nd->eventtimer[i]==-1 )
 			break;
 	if(i<MAX_EVENTTIMER){
-		char *evname=(char *) aCallocA(NAME_LENGTH, sizeof(char));
+		unsigned char *evname=(unsigned char *) aCallocA(NAME_LENGTH, sizeof(char));
 		if(evname==NULL){
 			ShowFatalError("npc_addeventtimer: out of memory !\n");exit(1);
 		}
@@ -455,7 +456,7 @@ int npc_deleventtimer(struct npc_data *nd,const char *name)
 	int i;
 	for(i=0;i<MAX_EVENTTIMER;i++)
 		if( nd->eventtimer[i]!=-1 && strcmp(
-			(char *)(get_timer(nd->eventtimer[i])->data), name)==0 ){
+			(unsigned char *)(get_timer(nd->eventtimer[i])->data), name)==0 ){
 				delete_timer(nd->eventtimer[i],npc_event_timer);
 				nd->eventtimer[i]=-1;
 				break;
@@ -476,8 +477,9 @@ int npc_cleareventtimer(struct npc_data *nd)
 	return 0;
 }
 
-int npc_do_ontimer_sub(unsigned char *p,void *data,va_list ap)
+int npc_do_ontimer_sub(DBKey key,void *data,va_list ap)
 {
+	unsigned char *p = key.str;
 	struct event_data *ev = (struct event_data *)data;
 	int *c = va_arg(ap,int *);
 //	struct map_session_data *sd=va_arg(ap,struct map_session_data *);
@@ -503,7 +505,7 @@ int npc_do_ontimer_sub(unsigned char *p,void *data,va_list ap)
 }
 int npc_do_ontimer(int npc_id, int option)
 {
-	strdb_foreach(ev_db, npc_do_ontimer_sub, &npc_id, option);
+	ev_db->foreach(ev_db, npc_do_ontimer_sub, &npc_id, option);
 	return 0;
 }
 /*==========================================
@@ -654,12 +656,12 @@ int npc_settimerevent_tick(struct npc_data *nd,int newtimer)
  * イベント型のNPC処理
  *------------------------------------------
  */
-int npc_event (struct map_session_data *sd, const char *eventname, int mob_kill)
+int npc_event (struct map_session_data *sd, const unsigned char *eventname, int mob_kill)
 {
-	struct event_data *ev=(struct event_data *) strdb_search(ev_db,eventname);
+	struct event_data *ev=ev_db->get(ev_db,(unsigned char*)eventname);
 	struct npc_data *nd;
 	int xs,ys;
-	char mobevent[100];
+	unsigned char mobevent[100];
 
 	if (sd == NULL)
 		nullpo_info(NLP_MARK);
@@ -671,7 +673,7 @@ int npc_event (struct map_session_data *sd, const char *eventname, int mob_kill)
 		if (mob_kill) {
 			strcpy( mobevent, eventname);
 			strcat( mobevent, "::OnMyMobDead");
-			ev = (struct event_data *) strdb_search(ev_db, mobevent);
+			ev = ev_db->get(ev_db, mobevent);
 			if (ev == NULL || (nd = ev->nd) == NULL) {
 				if (strnicmp(eventname, "GM_MONSTER",10) != 0)
 					ShowError("npc_event: event not found [%s]\n", mobevent);
@@ -723,8 +725,9 @@ int npc_event (struct map_session_data *sd, const char *eventname, int mob_kill)
 }
 
 
-int npc_command_sub(unsigned char *p,void *data,va_list ap)
+int npc_command_sub(DBKey key,void *data,va_list ap)
 {
+	unsigned char *p;
 	struct event_data *ev=(struct event_data *)data;
 	char *npcname=va_arg(ap,char *);
 	char *command=va_arg(ap,char *);
@@ -742,7 +745,7 @@ int npc_command_sub(unsigned char *p,void *data,va_list ap)
 
 int npc_command(struct map_session_data *sd,char *npcname,char *command)
 {
-	strdb_foreach(ev_db,npc_command_sub,npcname,command);
+	ev_db->foreach(ev_db,npc_command_sub,npcname,command);
 
 	return 0;
 }
@@ -853,7 +856,7 @@ int npc_checknear(struct map_session_data *sd,int id)
  */
 int npc_globalmessage(const char *name,char *mes)
 {
-	struct npc_data *nd=(struct npc_data *) strdb_search(npcname_db,name);
+	struct npc_data *nd=(struct npc_data *) npcname_db->get(npcname_db,(unsigned char*)name);
 	char temp[100];
 
 	if (!nd)
@@ -1365,7 +1368,7 @@ int npc_remove_map (struct npc_data *nd)
 	npc_chat_finalize(nd);
 #endif
 	clif_clearchar_area(&nd->bl,2);
-	strdb_erase(npcname_db, (nd->bl.subtype < SCRIPT) ? nd->name : nd->exname);
+	npcname_db->remove(npcname_db, (nd->bl.subtype < SCRIPT) ? nd->name : nd->exname);
 	//Remove corresponding NPC CELLs
 	if (nd->bl.subtype == WARP) {
 		int j, xs, ys, x, y;
@@ -1393,17 +1396,12 @@ int npc_remove_map (struct npc_data *nd)
 	return 0;
 }
 
-static int npc_unload_ev(unsigned char *key,void *data,va_list ap) {
+static int npc_unload_ev(DBKey key,void *data,va_list ap) {
 	struct event_data *ev=(struct event_data *)data;
 	char *npcname=va_arg(ap,char *);
 
 	if(strcmp(ev->nd->exname,npcname)==0){
-		strdb_erase(ev_db, key);
-	/* db handles key free'ing.
-		aFree(ev);
-		if (strstr((const char *)key,"::") != NULL)
-			aFree(key);
-	*/
+		ev_db->remove(ev_db, key);
 		return 1;
 	}
 	return 0;
@@ -1419,7 +1417,7 @@ int npc_unload (struct npc_data *nd)
 		cd = NULL;
 	}
 	if (nd->bl.subtype == SCRIPT) {
-		strdb_foreach(ev_db,npc_unload_ev,nd->exname); //Clean up all events related.
+		ev_db->foreach(ev_db,npc_unload_ev,nd->exname); //Clean up all events related.
 		if (nd->u.scr.timerid != -1)
 			delete_timer(nd->u.scr.timerid, npc_timerevent);
 		npc_cleareventtimer (nd);
@@ -1582,7 +1580,7 @@ int npc_parse_warp (char *w1,char *w2,char *w3,char *w4)
 	nd->bl.subtype = WARP;
 	map_addblock(&nd->bl);
 	clif_spawnnpc(nd);
-	strdb_insert(npcname_db, nd->name, nd);
+	npcname_db->put(npcname_db, nd->name, nd);
 
 	return 0;
 }
@@ -1662,7 +1660,7 @@ static int npc_parse_shop (char *w1, char *w2, char *w3, char *w4)
 	nd->n = map_addnpc(m,nd);
 	map_addblock(&nd->bl);
 	clif_spawnnpc(nd);
-	strdb_insert(npcname_db, nd->name,nd);
+	npcname_db->put(npcname_db, nd->name,nd);
 
 	return 0;
 }
@@ -1973,14 +1971,14 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 			struct event_data *ev = (struct event_data *)aCalloc(1, sizeof(struct event_data));
 			ev->nd = nd;
 			ev->pos = 0;
-			strdb_insert(ev_db, nd->exname, ev);
+			ev_db->put(ev_db, nd->exname, ev);
 		} else
 			clif_spawnnpc(nd);
 	} else {
 		// we skip map_addnpc, but still add it to the list of ID's
 		map_addiddb(&nd->bl);
 	}
-	strdb_insert(npcname_db, nd->exname, nd);
+	npcname_db->put(npcname_db, nd->exname, nd);
 
 	//-----------------------------------------
 	// ラベルデータの準備
@@ -1988,7 +1986,7 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 		// script本体がある場合の処理
 		// ラベルデータのコンバート
 		label_db = script_get_label_db();
-		strdb_foreach(label_db, npc_convertlabel_db, nd);
+		label_db->foreach(label_db, npc_convertlabel_db, nd);
 
 		// もう使わないのでバッファ解放
 		aFree(srcbuf);
@@ -2013,21 +2011,17 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 				exit(1);
 			} else {
 				struct event_data *ev;
-				char buf[51];
+				unsigned char buf[51];
 				// 51 comes from: 24 for npc name + 24 for label + 2 for a "::" and 1 for EOS
 				sprintf(buf,"%s::%s",nd->exname,lname);
 
-				// search the label in ev_db;
 				// remember the label is max 50 chars + eos; see the strdb_init below
-				if(strdb_search(ev_db,buf) != NULL) {
-					ShowError("npc_parse_script : duplicate event %s (%s)\n",buf, current_file);
-					// just skip the label insertion and free the alloced buffer
-				} else {	// generate the data and insert it
-					ev=(struct event_data *)aCalloc(1,sizeof(struct event_data));
-					ev->nd=nd;
-					ev->pos=pos;
-					strdb_insert(ev_db,buf,ev);
-				}
+				// generate the data and insert it
+				ev=(struct event_data *)aCalloc(1,sizeof(struct event_data));
+				ev->nd=nd;
+				ev->pos=pos;
+				if (ev_db->put(ev_db,buf,ev) != NULL) //There was already another event of the same name?
+					ShowWarning("npc_parse_script : duplicate event %s (%s)\n",buf, current_file);
 			}
 		}
 	}
@@ -2121,14 +2115,7 @@ static int npc_parse_function (char *w1, char *w2, char *w3, char *w4, char *fir
 	strncpy(p, w3, 50);
 
 	user_db = script_get_userfunc_db();
-	if (strdb_search(user_db, p))
-	{	//The script engine already checks for duplicate functions, this seems to only happen 
-		//on @reloadscript, where it is not even safe to clear the user function db! [Skotlex]
-		aFree(p);
-		aFree(script);
-	}
-	else
-		strdb_insert(user_db, p, script);
+	user_db->put(user_db, p, script);
 
 	// もう使わないのでバッファ解放
 	aFree(srcbuf);
@@ -2637,26 +2624,6 @@ static int npc_read_indoors (void)
 	return 0;
 }
 
-static int ev_db_final (unsigned char *key,void *data,va_list ap)
-{
-	/* Free'ing is handled by the db now.
-	aFree(data);
-	if (strstr((const char *)key,"::") != NULL)
-		aFree(key);
-	*/
-	return 0;
-}
-
-static int npcname_db_final (unsigned char *key,void *data,va_list ap)
-{
-// At this point there shouldn't be any npc's left! If there are leave them to
-// the memory allocators to report as memory leaks so it can be fixed
-	/*struct npc_data *nd = (struct npc_data *) data;
-	if (nd && nd->bl.prev != NULL)
-		npc_data_final(nd);*/
-
-	return 0;
-}
 /*==========================================
  *
  *------------------------------------------
@@ -2692,15 +2659,13 @@ int npc_reload (void)
 		}
 		map[m].npc_num = 0;
 	}
-	if(ev_db)
-		strdb_final(ev_db,ev_db_final);
-	if(npcname_db)
-		strdb_final(npcname_db,npcname_db_final);
+	ev_db->destroy(ev_db,NULL);
+	npcname_db->destroy(npcname_db,NULL);
 
 	// anything else we should cleanup?
 	// Reloading npc's now
 	ev_db = db_alloc(__FILE__,__LINE__,DB_STRING,DB_OPT_DUP_KEY|DB_OPT_RELEASE_DATA,51);
-	npcname_db = strdb_init(NAME_LENGTH);
+	npcname_db = db_alloc(__FILE__,__LINE__,DB_STRING,DB_OPT_BASE,NAME_LENGTH);
 	npc_warp = npc_shop = npc_script = 0;
 	npc_mob = npc_cache_mob = npc_delay_mob = 0;
 
@@ -2767,10 +2732,10 @@ int do_final_npc(void)
 		}
 	}
 
-	if(ev_db)
-		strdb_final(ev_db, ev_db_final);
-	if(npcname_db)
-		strdb_final(npcname_db, npcname_db_final);
+	ev_db->destroy(ev_db, NULL);
+	//There is no free function for npcname_db because at this point there shouldn't be any npcs left!
+	//So if there is anything remaining, let the memory manager catch it and report it.
+	npcname_db->destroy(npcname_db, NULL);
 
 	npc_clearsrcfile();
 
@@ -2795,7 +2760,7 @@ int do_init_npc(void)
 	// comparing only the first 24 chars of labels that are 50 chars long isn't that nice
 	// will cause "duplicated" labels where actually no dup is...
 	ev_db = db_alloc(__FILE__,__LINE__,DB_STRING,DB_OPT_DUP_KEY|DB_OPT_RELEASE_DATA,51);
-	npcname_db = strdb_init(NAME_LENGTH);
+	npcname_db = db_alloc(__FILE__,__LINE__,DB_STRING,DB_OPT_BASE,NAME_LENGTH);
 
 	memset(&ev_tm_b, -1, sizeof(ev_tm_b));
 
@@ -2839,12 +2804,13 @@ int do_init_npc(void)
 }
 // [Lance]
 	int npc_changename(const char *name, const char *newname, short look){
-	struct npc_data *nd= (struct npc_data *) strdb_search(npcname_db,name);
+	struct npc_data *nd= (struct npc_data *) npcname_db->remove(npcname_db,(unsigned char*)name);
 	if (nd==NULL)
 		return 0;
+	npc_enable(name,0);
 	strcpy(nd->name,newname);
 	nd->class_ = look;
-	npc_enable(name,0);
-	npc_enable(name,1);
+	npcname_db->put(npcname_db,nd->name,nd);
+	npc_enable(newname,1);
 	return 0;
 }

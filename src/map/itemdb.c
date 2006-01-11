@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../common/db.h"
 #include "../common/nullpo.h"
 #include "../common/malloc.h"
 #include "../common/showmsg.h"
@@ -35,7 +34,7 @@ static struct item_group itemgroup_db[MAX_ITEMGROUP];
  *------------------------------------------
  */
 // name = item alias, so we should find items aliases first. if not found then look for "jname" (full name)
-int itemdb_searchname_sub(int key,void *data,va_list ap)
+int itemdb_searchname_sub(DBKey key,void *data,va_list ap)
 {
 	struct item_data *item=(struct item_data *)data,**dst;
 	char *str;
@@ -67,7 +66,7 @@ int itemdb_searchjname_sub(int key,void *data,va_list ap)
 struct item_data* itemdb_searchname(const char *str)
 {
 	struct item_data *item=NULL;
-	numdb_foreach(item_db,itemdb_searchname_sub,str,&item);
+	item_db->foreach(item_db,itemdb_searchname_sub,str,&item);
 	return item;
 }
 
@@ -142,7 +141,7 @@ int itemdb_searchrandomgroup (int groupid)
  */
 struct item_data* itemdb_exists(int nameid)
 {
-	return (struct item_data *) numdb_search(item_db,nameid);
+	return item_db->get(item_db,nameid);
 }
 
 /*==========================================
@@ -206,11 +205,11 @@ struct item_data* itemdb_search(int nameid)
 {
 	struct item_data *id;
 
-	id=(struct item_data *) numdb_search(item_db,nameid);
+	id = item_db->get(item_db,nameid);
 	if(id) return id;
 
 	id=(struct item_data *)aCalloc(1,sizeof(struct item_data));
-	numdb_insert(item_db,nameid,id);
+	item_db->put(item_db,nameid,id);
 
 	id->nameid=nameid;
 	id->value_buy=10;
@@ -1071,8 +1070,6 @@ static int itemdb_final_sub (int key,void *data,va_list ap)
 	int flag;
 	struct item_data *id = (struct item_data *)data;
 
-	if (id == NULL)
-		return 0;
 	flag = va_arg(ap, int);
 	if (id->script)
 	{
@@ -1089,19 +1086,18 @@ static int itemdb_final_sub (int key,void *data,va_list ap)
 void itemdb_reload(void)
 {
 	// free up all item scripts first
-	numdb_foreach(item_db, itemdb_final_sub, 0);
+	item_db->foreach(item_db, itemdb_final_sub, 0);
 	itemdb_read();
 }
 
 void do_final_itemdb(void)
 {
-	if (item_db)
-		numdb_final(item_db, itemdb_final_sub, 1);
+	item_db->destroy(item_db, itemdb_final_sub, 1);
 }
 
 int do_init_itemdb(void)
 {
-	item_db = numdb_init();
+	item_db = db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_BASE,sizeof(int)); 
 	itemdb_read();
 
 	return 0;

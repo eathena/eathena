@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../common/db.h"
 #include "../common/nullpo.h"
 #include "../common/malloc.h"
 #include "../common/showmsg.h"
@@ -59,32 +58,18 @@ void sortage_gsortitem (struct guild_storage* gstor)
  */
 int do_init_storage(void) // map.c::do_init()‚©‚çŒÄ‚Î‚ê‚é
 {
-	storage_db=numdb_init();
-	guild_storage_db=numdb_init();
+	storage_db=db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA,sizeof(int));
+	guild_storage_db=db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA,sizeof(int));
 	return 1;
-}
-static int guild_storage_db_final(int key,void *data,va_list ap)
-{
-	struct guild_storage *gstor=(struct guild_storage *) data;
-	aFree(gstor);
-	return 0;
-}
-static int storage_db_final(int key,void *data,va_list ap)
-{
-	struct storage *stor=(struct storage *) data;
-	aFree(stor);
-	return 0;
 }
 void do_final_storage(void) // by [MC Cameri]
 {
-	if (storage_db)
-		numdb_final(storage_db,storage_db_final);
-	if (guild_storage_db)
-		numdb_final(guild_storage_db,guild_storage_db_final);
+	storage_db->destroy(storage_db,NULL);
+	guild_storage_db->destroy(guild_storage_db,NULL);
 }
 
 
-static int storage_reconnect_sub(int key,void *data,va_list ap)
+static int storage_reconnect_sub(DBKey key,void *data,va_list ap)
 { //Parses storage and saves 'dirty' ones upon reconnect. [Skotlex]
 	int type = va_arg(ap, int);
 	if (type)
@@ -105,17 +90,17 @@ static int storage_reconnect_sub(int key,void *data,va_list ap)
 //Function to be invoked upon server reconnection to char. To save all 'dirty' storages [Skotlex
 void do_reconnect_storage(void)
 {
-	numdb_foreach(storage_db, storage_reconnect_sub, 0);
-	numdb_foreach(guild_storage_db, storage_reconnect_sub, 1);
+	storage_db->foreach(storage_db, storage_reconnect_sub, 0);
+	guild_storage_db->foreach(guild_storage_db, storage_reconnect_sub, 1);
 }
 
 struct storage *account2storage(int account_id)
 {
-	struct storage *stor = (struct storage *) numdb_search (storage_db,account_id);
+	struct storage *stor = storage_db->get(storage_db,account_id);
 	if(stor == NULL) {
 		stor = (struct storage *) aCallocA (sizeof(struct storage), 1);
 		stor->account_id = account_id;
-		numdb_insert(storage_db, stor->account_id, stor);
+		storage_db->put(storage_db, stor->account_id, stor);
 	}
 	return stor;
 }
@@ -123,16 +108,12 @@ struct storage *account2storage(int account_id)
 // Just to ask storage, without creation
 struct storage *account2storage2(int account_id)
 {
-	return (struct storage *) numdb_search(storage_db, account_id);
+	return storage_db->get(storage_db, account_id);
 }
 
 int storage_delete(int account_id)
 {
-	struct storage *stor = (struct storage *) numdb_search(storage_db,account_id);
-	if(stor) {
-		numdb_erase(storage_db,account_id);
-		aFree(stor);
-	}
+	storage_db->remove(storage_db,account_id);
 	return 0;
 }
 
@@ -156,7 +137,7 @@ int storage_storageopen(struct map_session_data *sd)
 	}
 //Storage loading always from sql idea from Komurka [Skotlex] - removed as it opens exploits when server lags.
 //#ifdef TXT_ONLY
-	if((stor = (struct storage *) numdb_search(storage_db,sd->status.account_id)) != NULL) {
+	if((stor = storage_db->get(storage_db,sd->status.account_id)) != NULL) {
 		if (stor->storage_status == 0 && sd->state.storage_flag == 0) {
 			stor->storage_status = 1;
 			sd->state.storage_flag = 1;
@@ -433,7 +414,7 @@ struct guild_storage *guild2storage(int guild_id)
 {
 	struct guild_storage *gs = NULL;
 	if(guild_search(guild_id) != NULL) {
-		gs=(struct guild_storage *) numdb_search(guild_storage_db,guild_id);
+		gs=(struct guild_storage *) guild_storage_db->get(guild_storage_db,guild_id);
 		if(gs == NULL) {
 			gs = (struct guild_storage *) aCallocA(sizeof(struct guild_storage), 1);
 			if(gs==NULL){
@@ -441,7 +422,7 @@ struct guild_storage *guild2storage(int guild_id)
 				exit(0);
 			}
 			gs->guild_id=guild_id;
-			numdb_insert(guild_storage_db,gs->guild_id,gs);
+			guild_storage_db->put(guild_storage_db,gs->guild_id,gs);
 		}
 	}
 	return gs;
@@ -449,16 +430,12 @@ struct guild_storage *guild2storage(int guild_id)
 
 struct guild_storage *guild2storage2(int guild_id)
 {	//For just locating a storage without creating one. [Skotlex]
-	return (struct guild_storage *) numdb_search(guild_storage_db,guild_id);
+	return guild_storage_db->get(guild_storage_db,guild_id);
 }
 
 int guild_storage_delete(int guild_id)	
 {
-	struct guild_storage *gstor = (struct guild_storage *) numdb_search(guild_storage_db,guild_id);
-	if(gstor) {
-		numdb_erase(guild_storage_db,guild_id);
-		aFree(gstor);
-	}
+	guild_storage_db->remove(guild_storage_db,guild_id);
 	return 0;
 }
 

@@ -28,7 +28,6 @@
 #include "status.h"
 #include "nullpo.h"
 #include "showmsg.h"
-#include "db.h"
 #ifndef TXT_ONLY
 #include "charsave.h"
 #endif
@@ -430,7 +429,7 @@ int chrif_scdata_request(int account_id, int char_id)
 void chrif_authreq(struct map_session_data *sd)
 {
 	struct auth_node *auth_data;
-	auth_data=(struct auth_node *)numdb_search(auth_db, sd->bl.id);
+	auth_data=auth_db->get(auth_db, sd->bl.id);
 
 	if(auth_data) {
 		if(auth_data->char_dat &&
@@ -443,10 +442,9 @@ void chrif_authreq(struct map_session_data *sd)
 			pc_authfail(sd);
 			chrif_char_offline(sd); //Set him offline, the char server likely has it set as online already.
 		}
-		numdb_erase(auth_db, auth_data->account_id);
 		if (auth_data->char_dat)
 			aFree(auth_data->char_dat);
-		aFree(auth_data);
+		auth_db->remove(auth_db, sd->bl.id);
 	} else { //data from char server has not arrived yet.
 		auth_data = aCalloc(1, sizeof(struct auth_node));
 		auth_data->sd = sd;
@@ -454,7 +452,7 @@ void chrif_authreq(struct map_session_data *sd)
 		auth_data->account_id = sd->bl.id;
 		auth_data->login_id1 = sd->login_id1;
 		auth_data->node_created = gettick();
-		numdb_insert(auth_db, sd->bl.id, auth_data);
+		auth_db->put(auth_db, sd->bl.id, auth_data);
 	}
 	return;
 }
@@ -468,7 +466,7 @@ void chrif_authok(int fd) {
 	//Someone with this account is already in! Do not store the info to prevent possible sync exploits. [Skotlex]
 		return;
 	
-	if ((auth_data =numdb_search(auth_db, RFIFOL(fd, 4))) != NULL)
+	if ((auth_data =auth_db->get(auth_db, RFIFOL(fd, 4))) != NULL)
 	{	//Is the character already awaiting authorization?
 		if (auth_data->sd)
 		{
@@ -485,19 +483,15 @@ void chrif_authok(int fd) {
 					pc_authfail(auth_data->sd);
 					chrif_char_offline(auth_data->sd); //Set him offline, the char server likely has it set as online already.
 				}
-			} else {
-			 //Character no longer exists, just go through.
-			}
+			} //else: Character no longer exists, just go through.
 		}
 		//Delete the data of this node...
 		if (auth_data->char_dat)
 			aFree (auth_data->char_dat);
-		aFree(auth_data);
-		numdb_erase(auth_db, RFIFOL(fd, 4));
+		auth_db->remove(auth_db, RFIFOL(fd, 4));
 		return;
 	}
 	// Awaiting for client to connect.
-
 	auth_data = (struct auth_node *)aCalloc(1, sizeof(struct auth_node));
 	auth_data->char_dat = (struct mmo_charstatus *) aCalloc(1, sizeof(struct mmo_charstatus));
 
@@ -507,28 +501,25 @@ void chrif_authok(int fd) {
 	auth_data->login_id2=RFIFOL(fd, 16);
 	memcpy(auth_data->char_dat,RFIFOP(fd, 20),sizeof(struct mmo_charstatus));
 	auth_data->node_created=gettick();
-	numdb_insert(auth_db, RFIFOL(fd, 4), auth_data);
+	auth_db->put(auth_db, RFIFOL(fd, 4), auth_data);
 }
 
-int auth_db_cleanup_sub(int key,void *data,va_list ap)
+int auth_db_cleanup_sub(DBKey key,void *data,va_list ap)
 {
 	struct auth_node *node=(struct auth_node*)data;
 
-	if(gettick()>node->node_created+30000) {
+	if(DIFF_TICK(gettick(),node->node_created)>30000) {
 		ShowNotice("Character (aid: %d) not authed within 30 seconds of character select!\n", node->account_id);
-		numdb_erase(auth_db, node->account_id);
 		if (node->char_dat)
 			aFree(node->char_dat);
-		aFree(node);
+		auth_db->remove(auth_db, node->account_id);
+		return 1;
 	}
-
 	return 0;
 }
 
 int auth_db_cleanup(int tid, unsigned int tick, int id, int data) {
-
-	numdb_foreach(auth_db, auth_db_cleanup_sub);
-
+	auth_db->foreach(auth_db, auth_db_cleanup_sub);
 	return 0;
 }
 
@@ -1537,11 +1528,10 @@ int check_connect_char_server(int tid, unsigned int tick, int id, int data) {
 	return 0;
 }
 
-int auth_db_final(void *k,void *d,va_list ap) {
+int auth_db_final(DBKey k,void *d,va_list ap) {
 	struct auth_node *node=(struct auth_node*)d;
 	if (node->char_dat)
 		aFree(node->char_dat);
-	aFree (node);
 	return 0;
 }
 
@@ -1552,7 +1542,7 @@ int auth_db_final(void *k,void *d,va_list ap) {
 int do_final_chrif(void)
 {
 	delete_session(char_fd);
-	numdb_final(auth_db, auth_db_final);
+	auth_db->destroy(auth_db, auth_db_final);
 	return 0;
 }
 
@@ -1576,7 +1566,7 @@ int do_init_chrif(void)
 #endif
 	add_timer_interval(gettick() + 1000, auth_db_cleanup, 0, 0, 30 * 1000);
 
-	auth_db = numdb_init();
+	auth_db = db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA,sizeof(int));
 
 	return 0;
 }

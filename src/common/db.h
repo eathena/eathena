@@ -32,7 +32,6 @@
 
 /*****************************************************************************\
  *  (1) Section with public typedefs, enums, unions, structures and defines. *
- *  DB_DELAY_FINAL_CHANGES - TEMP undefine to make all the final chanes.     *
  *  DBRelease    - Enumeration of release options.                           *
  *  DBType       - Enumeration of database types.                            *
  *  DBOptions    - Bitfield enumeration of database options.                 *
@@ -44,13 +43,6 @@
  *  DBReleaser   - Format of the releasers used by the databases.            *
  *  DBInterface  - Structure of the interface of the database.               *
 \*****************************************************************************/
-
-/**
- * Temporary.
- * Delay the final changes not fully compatible with the previous code.
- * @public
- */
-#define DB_DELAY_FINAL_CHANGES
 
 /**
  * Bitfield with what should be released by the releaser function (if the
@@ -138,13 +130,6 @@ typedef union {
 	int i;
 	unsigned int ui;
 	unsigned char *str;
-#ifdef DB_DELAY_FINAL_CHANGES
-    // This generic pointer is only included to maintain full compatibility 
-	// with the rest of the code that uses the old database system.
-	// Without this, all the functions applyed to the database (see DBApply)
-	// would throw a compile warning.
-	void *p;
-#endif /* DB_DELAY_FINAL_CHANGES */
 } DBKey __attribute__ ((__transparent_union__));
 
 /**
@@ -445,10 +430,6 @@ typedef struct dbt {
 #define numdb_final          db_destroy
 #define numdb_init()         db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_ALLOW_NULL_DATA,sizeof(int))
 
-#ifdef DB_DELAY_FINAL_CHANGES
-#	define exit_dbn db_final
-#endif /* DB_DELAY_FINAL_CHANGES */
-
 /*****************************************************************************\
  *  (2) Section with public functions.                                       *
  *  db_fix_options     - Fix the options for a type of database.             *
@@ -461,12 +442,6 @@ typedef struct dbt {
  *  db_init            - Initialise the database system.                     *
  *  db_final           - Finalise the database system.                       *
 \*****************************************************************************/
-
-#ifdef DB_DELAY_FINAL_CHANGES
-// To be removed
-int db_foreach(DBInterface dbi, DBApply func, ...); // use DBInterface->foreach(DBInterface,DBApply func,...) or DBInterface->vforeach(DBInterface,DBApply func,va_list)
-int db_destroy(DBInterface dbi, DBApply func, ...); // old db_final - use DBInterface->destroy(DBInterface,DBApply func,...) or DBInterface->vdestroy(DBInterface,DBApply func,va_list)
-#endif /* DB_DELAY_FINAL_CHANGES */
 
 /**
  * Returns the fixed options according to the database type.

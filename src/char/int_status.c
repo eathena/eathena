@@ -38,12 +38,12 @@ struct scdata* status_search_scdata(int aid, int cid)
  */
 void status_delete_scdata(int aid, int cid)
 {
-	struct scdata *scdata = scdata_db->get(scdata_db, cid);
+	struct scdata *scdata = scdata_db->remove(scdata_db, cid);
 	if (scdata)
 	{
 		if (scdata->data)
 			aFree(scdata->data);
-		scdata_db->remove(scdata_db, cid);
+		aFree(scdata);
 	}
 }
 
@@ -103,9 +103,14 @@ void status_load_scdata(const char* filename)
 	while(fgets(line, sizeof(line) - 1, fp)) {
 		sc = (struct scdata*)aCalloc(1, sizeof(struct scdata));
 		if (inter_scdata_fromstr(line, sc)) {
-			scdata_db->put(scdata_db, sc->char_id, sc);
 			sd_count++;
 			sc_count+= sc->count;
+			sc = scdata_db->put(scdata_db, sc->char_id, sc);
+			if (sc) {
+				ShowError("Duplicate entry in %s for character %d\n", filename, sc->char_id);
+				if (sc->data) aFree(sc->data);
+				aFree(sc);
+			}
 		} else {
 			ShowError("status_load_scdata: Broken line data: %s\n", line);
 			aFree(sc);
@@ -153,7 +158,7 @@ void inter_status_save()
  */
 void status_init()
 {
-	scdata_db = db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA,sizeof(int));
+	scdata_db = db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_BASE,sizeof(int));
 	status_load_scdata(scdata_txt);
 }
 
@@ -166,6 +171,7 @@ static int scdata_db_final(DBKey k,void *d,va_list ap)
 	struct scdata *data = (struct scdata*)d;
 	if (data->data)
 		aFree(data->data);
+	aFree(data);
 	return 0;
 }
 

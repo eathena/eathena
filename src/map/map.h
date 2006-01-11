@@ -7,6 +7,7 @@
 #include <stdarg.h>
 #include "../common/mmo.h"
 #include "../common/mapindex.h"
+#include "../common/db.h"
 
 #define MAX_PC_CLASS 4050
 #define PC_CLASS_BASE 0
@@ -725,8 +726,8 @@ struct npc_data {
 	short n;
 	short class_,dir;
 	short speed;
-	char name[NAME_LENGTH];
-	char exname[NAME_LENGTH];
+	unsigned char name[NAME_LENGTH];
+	unsigned char exname[NAME_LENGTH];
 	int chat_id;
 	short opt1,opt2,opt3,option;
 	short flag;
@@ -1006,12 +1007,11 @@ struct map_data {
 };
 
 struct map_data_other_server {
-	char name[NAME_LENGTH];
+	char name[MAP_NAME_LENGTH];
 	unsigned short index; //Index is the map index used by the mapindex* functions.
 	unsigned char *gat;	// NULLŒÅ’è‚É‚µ‚Ä”»’f
 	unsigned long ip;
 	unsigned int port;
-	struct map_data* map;
 };
 
 struct flooritem_data {
@@ -1220,14 +1220,14 @@ struct map_session_data * map_id2sd(int);
 struct block_list * map_id2bl(int);
 int map_mapindex2mapid(unsigned short mapindex);
 int map_mapname2mapid(char*);
-int map_mapname2ipport(short,int*,int*);
+int map_mapname2ipport(unsigned short,int*,int*);
 int map_setipport(unsigned short map,unsigned long ip,int port);
 int map_eraseipport(unsigned short map,unsigned long ip,int port);
 int map_eraseallipport(void);
 void map_addiddb(struct block_list *);
 void map_deliddb(struct block_list *bl);
 struct map_session_data** map_getallusers(int *users);
-int map_foreachiddb(int (*)(void*,void*,va_list),...);
+int map_foreachiddb(int (*)(DBKey,void*,va_list),...);
 void map_addnickdb(struct map_session_data *);
 struct map_session_data * map_nick2sd(char*);
 int compare_item(struct item *a, struct item *b);

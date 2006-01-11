@@ -1,5 +1,11 @@
 Date	Added
 2006/01/10
+	* Updated the map-server to conform to the new db interface. Removed
+	  DB_DELAY_FINAL_CHANGES and related code from db.* as now eA fully complies
+	  to the new interface. [Skotlex]
+	* Crafting Arrows, Weapon, Forging/Upgrading now all fail if you have an
+	  npc going on to prevent your inventory from being modified while selling.
+	  [Skotlex]
 	* Updated the char-SQL server to etc etc etc new db etc etc etc. [Skotlex]
 	* Cleaned up the description of size_fix.txt [Skotlex]
 	* Updated the char-TXT server to be blah blah blah new db blah blah. [Skotlex]

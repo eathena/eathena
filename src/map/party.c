@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../common/db.h"
 #include "../common/timer.h"
 #include "../common/socket.h"
 #include "../common/nullpo.h"
@@ -32,20 +31,14 @@ int party_send_xy_timer(int tid,unsigned int tick,int id,int data);
  * 終了
  *------------------------------------------
  */
-static int party_db_final(int key,void *data,va_list ap)
-{
-	aFree(data);
-	return 0;
-}
 void do_final_party(void)
 {
-	if(party_db)
-		numdb_final(party_db,party_db_final);
+	party_db->destroy(party_db,NULL);
 }
 // 初期化
 void do_init_party(void)
 {
-	party_db=numdb_init();
+	party_db=db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA,sizeof(int));
 	add_timer_func_list(party_send_xy_timer,"party_send_xy_timer");
 	add_timer_interval(gettick()+PARTY_SEND_XY_INVERVAL,party_send_xy_timer,0,0,PARTY_SEND_XY_INVERVAL);
 }
@@ -56,10 +49,10 @@ struct party *party_search(int party_id)
 	if (party_cache && party_cache->party_id == party_id)
 		return party_cache;
 
-	party_cache = (struct party *) numdb_search(party_db,party_id);
+	party_cache = party_db->get(party_db,party_id);
 	return party_cache;
 }
-int party_searchname_sub(int key,void *data,va_list ap)
+int party_searchname_sub(DBKey key,void *data,va_list ap)
 {
 	struct party *p=(struct party *)data,**dst;
 	char *str;
@@ -73,7 +66,7 @@ int party_searchname_sub(int key,void *data,va_list ap)
 struct party* party_searchname(char *str)
 {
 	struct party *p=NULL;
-	numdb_foreach(party_db,party_searchname_sub,str,&p);
+	party_db->foreach(party_db,party_searchname_sub,str,&p);
 	return p;
 }
 // 作成要求
@@ -101,14 +94,14 @@ int party_created(int account_id,int char_id,int fail,int party_id,char *name)
 	if(fail==0){
 		struct party *p;
 		sd->status.party_id=party_id;
-		if((p=(struct party *) numdb_search(party_db,party_id))!=NULL){
+		if(party_db->get(party_db,party_id)!=NULL){
 			ShowFatalError("party: id already exists!\n");
 			exit(1);
 		}
 		p=(struct party *)aCalloc(1,sizeof(struct party));
 		p->party_id=party_id;
 		memcpy(p->name, name, NAME_LENGTH);
-		numdb_insert(party_db,party_id,p);
+		party_db->put(party_db,party_id,p);
 		clif_party_created(sd,0); //Success message
 		clif_charnameupdate(sd); //Update other people's display. [Skotlex]
 	}else{
@@ -180,11 +173,9 @@ int party_recv_info(struct party *sp)
 	
 	nullpo_retr(0, sp);
 
-	if((p=(struct party *) numdb_search(party_db,sp->party_id))==NULL){
+	if((p=party_db->get(party_db,sp->party_id))==NULL){
 		p=(struct party *)aCalloc(1,sizeof(struct party));
-		numdb_insert(party_db,sp->party_id,p);
-		
-		// 最初のロードなのでユーザーのチェックを行う
+		party_db->put(party_db,sp->party_id,p);
 		party_check_member(sp);
 	}
 	memcpy(p,sp,sizeof(struct party));
@@ -401,10 +392,9 @@ int party_broken(int party_id)
 			p->member[i].sd->state.party_sent=0;
 		}
 	}
-	numdb_erase(party_db,party_id);
-	aFree(p);
 	if (party_cache && party_cache->party_id == party_id)
 		party_cache = NULL;
+	party_db->remove(party_db,party_id);
 	return 0;
 }
 // パーティの設定変更要求
@@ -600,7 +590,7 @@ int party_skill_check(struct map_session_data *sd, int party_id, int skillid, in
 }
 
 // 位置やＨＰ通知用
-int party_send_xy_timer_sub(int key,void *data,va_list ap)
+int party_send_xy_timer_sub(DBKey key,void *data,va_list ap)
 {
 	struct party *p=(struct party *)data;
 	int i;
@@ -623,7 +613,7 @@ int party_send_xy_timer_sub(int key,void *data,va_list ap)
 // 位置やＨＰ通知
 int party_send_xy_timer(int tid,unsigned int tick,int id,int data)
 {
-	numdb_foreach(party_db,party_send_xy_timer_sub,tick);
+	party_db->foreach(party_db,party_send_xy_timer_sub,tick);
 	return 0;
 }
 

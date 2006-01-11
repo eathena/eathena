@@ -15,7 +15,6 @@
 
 #include "../common/core.h"
 #include "../common/timer.h"
-#include "../common/db.h"
 #include "../common/grfio.h"
 #include "../common/malloc.h"
 #include "../common/socket.h"
@@ -182,7 +181,6 @@ char *GRF_PATH_FILENAME;
 static struct dbt * id_db=NULL;
 static struct dbt * pc_db=NULL;
 static struct dbt * map_db=NULL;
-static struct dbt * nick_db=NULL;
 static struct dbt * charid_db=NULL;
 
 static int map_users=0;
@@ -1041,7 +1039,7 @@ int map_addobject(struct block_list *bl) {
 	if(last_object_id<i)
 		last_object_id=i;
 	objects[i]=bl;
-	numdb_insert(id_db,i,bl);
+	id_db->put(id_db,i,bl);
 	return i;
 }
 
@@ -1055,7 +1053,7 @@ int map_delobjectnofree(int id) {
 		return 0;
 
 	map_delblock(objects[id]);
-	numdb_erase(id_db,id);
+	id_db->remove(id_db,id);
 	objects[id]=NULL;
 
 	if(first_free_object_id>id)
@@ -1288,22 +1286,20 @@ void map_addchariddb(int charid, char *name) {
 	struct charid2nick *p;
 	int req = 0;
 
-	p = (struct charid2nick*)numdb_search(charid_db,charid);
+	p = charid_db->get(charid_db,charid);
 	if (p == NULL){	// デ?タベ?スにない
-		p = (struct charid2nick *)aCallocA(1, sizeof(struct charid2nick));
+		p = (struct charid2nick *)aCallocA(1, sizeof (struct charid2nick));
+		charid_db->put(charid_db, charid, p);
 	} else {
-		numdb_erase(charid_db, charid);
 		req = p->req_id;
+		p->req_id = 0;
 	}
+	//We overwrite the nick anyway in case a different one arrived.
+	memcpy(p->nick, name, NAME_LENGTH);
 
-	p->req_id = 0;
-	memcpy(p->nick, name, NAME_LENGTH-1);
-	numdb_insert(charid_db, charid, p);
-
-	if (req) {	// 返信待ちがあれば返信
+	if (req) {
 		struct map_session_data *sd = map_id2sd(req);
-		if (sd != NULL)
-			clif_solved_charname(sd,charid);
+		if (sd) clif_solved_charname(sd,charid);
 	}
 }
 
@@ -1317,11 +1313,10 @@ int map_reqchariddb(struct map_session_data * sd,int charid) {
 	nullpo_retr(0, sd);
 
 	p = (struct charid2nick*)numdb_search(charid_db,charid);
-	if(p!=NULL)	// デ?タベ?スにすでにある
-		return 0;
+	if(p) return 0; //Nothing to request, we already have the name!
 	p = (struct charid2nick *)aCalloc(1,sizeof(struct charid2nick));
 	p->req_id=sd->bl.id;
-	numdb_insert(charid_db,charid,p);
+	charid_db->put(charid_db,charid,p);
 	return 0;
 }
 
@@ -1333,8 +1328,8 @@ void map_addiddb(struct block_list *bl) {
 	nullpo_retv(bl);
 
 	if (bl->type == BL_PC)
-		numdb_insert(pc_db,bl->id,bl);
-	numdb_insert(id_db,bl->id,bl);
+		pc_db->put(pc_db,bl->id,bl);
+	id_db->put(id_db,bl->id,bl);
 }
 
 /*==========================================
@@ -1344,19 +1339,9 @@ void map_addiddb(struct block_list *bl) {
 void map_deliddb(struct block_list *bl) {
 	nullpo_retv(bl);
 
-	numdb_erase(id_db,bl->id);
 	if (bl->type == BL_PC)
-		numdb_erase(pc_db,bl->id);
-}
-
-/*==========================================
- * nick_dbへsdを追加
- *------------------------------------------
- */
-void map_addnickdb(struct map_session_data *sd) {
-	nullpo_retv(sd);
-
-	strdb_insert(nick_db,sd->status.name,sd);
+		pc_db->remove(pc_db,bl->id);
+	id_db->remove(id_db,bl->id);
 }
 
 /*==========================================
@@ -1505,17 +1490,10 @@ int map_quit(struct map_session_data *sd) {
 	
 //	chrif_char_offline(sd); //chrif_save handles this now.
 
-	{
-		void *p = numdb_search(charid_db,sd->status.char_id);
-		if(p) {
-			numdb_erase(charid_db,sd->status.char_id);
-			aFree(p);
-		}
-	}
-	strdb_erase(nick_db,sd->status.name);
-	numdb_erase(charid_db,sd->status.char_id);
-	numdb_erase(id_db,sd->bl.id);
-	numdb_erase(pc_db,sd->bl.id);
+	//Do we really need to remove the name?
+	charid_db->remove(charid_db,sd->status.char_id);
+	id_db->remove(id_db,sd->bl.id);
+	pc_db->remove(pc_db,sd->bl.id);
 
 	// Notify friends that this char logged out. [Skotlex]
 	clif_foreachclient(clif_friendslist_toggle_sub, sd->status.account_id, sd->status.char_id, 0);
@@ -1546,7 +1524,7 @@ int map_quit(struct map_session_data *sd) {
 struct map_session_data * map_id2sd(int id) {
 // Now using pc_db to handle all players, should be quicker than both previous methods at a small expense of more memory. [Skotlex]
 	if (id <= 0) return NULL;
-	return (struct map_session_data*)numdb_search(pc_db,id);
+	return (struct map_session_data*)pc_db->get(pc_db,id);
 }
 
 /*==========================================
@@ -1557,8 +1535,6 @@ char * map_charid2nick(int id) {
 	struct charid2nick *p = (struct charid2nick*)numdb_search(charid_db,id);
 
 	if(p==NULL)
-		return NULL;
-	if(p->req_id!=0)
 		return NULL;
 	return p->nick;
 }
@@ -1626,12 +1602,12 @@ struct block_list * map_id2bl(int id)
 	if(id >= 0 && id < sizeof(objects)/sizeof(objects[0]))
 		bl = objects[id];
 	else
-		bl = (struct block_list*)numdb_search(id_db,id);
+		bl = id_db->get(id_db,id);
 
 	return bl;
 }
 
-static int map_foreachpc_sub(int key,void * data,va_list ap)
+static int map_foreachpc_sub(DBKey key,void * data,va_list ap)
 {
 	struct map_session_data *sd = (struct map_session_data*) data;
 	struct map_session_data ***total_sd = va_arg(ap, struct map_session_data***);
@@ -1677,7 +1653,7 @@ struct map_session_data** map_getallusers(int *users) {
 		all_sd = aRealloc(all_sd, all_count*sizeof(struct map_session_data*));
 	}
 	*users = 0;
-	numdb_foreach(pc_db,map_foreachpc_sub,&all_sd, users);
+	pc_db->foreach(pc_db,map_foreachpc_sub,&all_sd, users);
 	return all_sd;
 }
 
@@ -1685,11 +1661,11 @@ struct map_session_data** map_getallusers(int *users) {
  * id_db?の全てにfuncを?行
  *------------------------------------------
  */
-int map_foreachiddb(int (*func)(void*,void*,va_list),...) {
+int map_foreachiddb(int (*func)(DBKey,void*,va_list),...) {
 	va_list ap;
 
 	va_start(ap,func);
-	numdb_foreach(id_db,func,ap);
+	id_db->foreach(id_db,func,ap);
 	va_end(ap);
 	return 0;
 }
@@ -1718,7 +1694,7 @@ int map_addnpc(int m,struct npc_data *nd) {
 
 	map[m].npc[i]=nd;
 	nd->n = i;
-	numdb_insert(id_db,nd->bl.id,nd);
+	id_db->put(id_db,nd->bl.id,nd);
 
 	return i;
 }
@@ -1731,7 +1707,7 @@ void map_removenpc(void) {
 			if(map[m].npc[i]!=NULL) {
 				clif_clearchar_area(&map[m].npc[i]->bl,2);
 				map_delblock(&map[m].npc[i]->bl);
-				numdb_erase(id_db,map[m].npc[i]->bl.id);
+				id_db->remove(id_db,map[m].npc[i]->bl.id);
 				if(map[m].npc[i]->bl.subtype==SCRIPT) {
 					aFree(map[m].npc[i]->u.scr.script);
 					aFree(map[m].npc[i]->u.scr.label_list);
@@ -1864,7 +1840,7 @@ int map_mapindex2mapid(unsigned short mapindex) {
 	if (!mapindex)
 		return -1;
 	
-	md = (struct map_data*)numdb_search(map_db,(int)mapindex);
+	md = (struct map_data*)map_db->get(map_db,(unsigned int)mapindex);
 	if(md==NULL || md->gat==NULL)
 		return -1;
 	return md->m;
@@ -1874,11 +1850,11 @@ int map_mapindex2mapid(unsigned short mapindex) {
  * 他鯖map名からip,port?換
  *------------------------------------------
  */
-int map_mapname2ipport(short name,int *ip,int *port) {
+int map_mapname2ipport(unsigned short name,int *ip,int *port) {
 	struct map_data_other_server *mdos=NULL;
 
-	mdos = (struct map_data_other_server*)numdb_search(map_db,(int)name);
-	if(mdos==NULL || mdos->gat)
+	mdos = (struct map_data_other_server*)map_db->get(map_db,(unsigned int)name);
+	if(mdos==NULL || mdos->gat) //If gat isn't null, this is a local map.
 		return -1;
 	*ip=mdos->ip;
 	*port=mdos->port;
@@ -2121,11 +2097,11 @@ void map_setcell(int m,int x,int y,int cell)
  *------------------------------------------
  */
 int map_setipport(unsigned short mapindex,unsigned long ip,int port) {
-	struct map_data *md=NULL;
 	struct map_data_other_server *mdos=NULL;
 
-	md = (struct map_data*)numdb_search(map_db,(int)mapindex);
-	if(md==NULL){ // not exist -> add new data
+	mdos=(struct map_data_other_server *)map_db->get(map_db,(unsigned int)mapindex);
+	
+	if(mdos==NULL){ // not exist -> add new data
 		mdos=(struct map_data_other_server *)aCalloc(1,sizeof(struct map_data_other_server));
 		memcpy(mdos->name, mapindex_id2name(mapindex), NAME_LENGTH);
 		mdos->index = mapindex;
@@ -2133,62 +2109,37 @@ int map_setipport(unsigned short mapindex,unsigned long ip,int port) {
 		mdos->ip   = ip;
 		mdos->port = port;
 //		mdos->map  = NULL;
-		numdb_insert(map_db,(int)mapindex,mdos);
-	} else if(md->gat){
-		//We are SO NOT DOING this, this would cause a conflict in the map_db, 
-		//and since we already have a local map, don't risk overwriting it! [Skotlex]
-		/*
-		if(ip!=clif_getip() || port!=clif_getport()){
-			mdos=(struct map_data_other_server *)aCalloc(1,sizeof(struct map_data_other_server));
-			memcpy(mdos->name, name, NAME_LENGTH-1);
-//			mdos->gat  = NULL;
-			mdos->ip   = ip;
-			mdos->port = port;
-			mdos->map  = md;
-			numdb_insert(map_db,(int)mapindex,mdos);
-			// printf("from char server : %s -> %08lx:%d\n",name,ip,port);
-		} else {
-			// 読み甲ﾅいて、担当になったマップ（何もしない）
-			;
-		}*/
-	} else {
-		mdos=(struct map_data_other_server *)md;
-		if(ip == clif_getip() && port == clif_getport()) {
-			// 自分の担当になったマップ
-			if(mdos->map == NULL) {
-				// 読み甲ﾅいないので終了する
-				ShowFatalError("map_setipport : %s is not loaded.\n",mapindex_id2name(mapindex));
-				exit(1);
-			} else {
-				// 読み甲ﾅいるので置き換える
-				md = mdos->map;
-				aFree(mdos);
-				numdb_insert(map_db,(int)mapindex,md);
-			}
-		} else {
-			// 他の鯖の担当マップなので置き換えるだけ
-			mdos->ip   = ip;
-			mdos->port = port;
-		}
+		map_db->put(map_db,(unsigned int)mapindex,mdos);
+		return 1;
 	}
-	return 0;
+	if(mdos->gat) //Local map,Do nothing. Give priority to our own local maps over ones from another server. [Skotlex]
+		return 0;
+	//We already have data for this map from another server
+	if(ip == clif_getip() && port == clif_getport()) {
+		//That's odd, we received info that we are the ones with this map, but... we don't have it.
+		ShowFatalError("map_setipport : received info that this map-server SHOULD have map '%s', but it is not loaded.\n",mapindex_id2name(mapindex));
+		exit(1);
+	}
+	mdos->ip   = ip;
+	mdos->port = port;
+	return 1;
 }
 
 /*==========================================
  * 他鯖管理のマップを全て削除
  *------------------------------------------
  */
-int map_eraseallipport_sub(int key,void *data,va_list va) {
+int map_eraseallipport_sub(DBKey key,void *data,va_list va) {
 	struct map_data_other_server *mdos = (struct map_data_other_server*)data;
-	if(mdos->gat == NULL && mdos->map == NULL) {
-		numdb_erase(map_db,key);
+	if(mdos->gat == NULL) {
+		map_db->remove(map_db,key);
 		aFree(mdos);
 	}
 	return 0;
 }
 
 int map_eraseallipport(void) {
-	numdb_foreach(map_db,map_eraseallipport_sub);
+	map_db->foreach(map_db,map_eraseallipport_sub);
 	return 1;
 }
 
@@ -2198,28 +2149,17 @@ int map_eraseallipport(void) {
  */
 int map_eraseipport(unsigned short mapindex,unsigned long ip,int port)
 {
-	struct map_data *md;
 	struct map_data_other_server *mdos;
 //	unsigned char *p=(unsigned char *)&ip;
 
-	md=(struct map_data *) numdb_search(map_db,(int)mapindex);
-	if(md){
-		if(md->gat) // local -> check data
-			return 0;
-		else {
-			mdos=(struct map_data_other_server *)md;
-			if(mdos->ip==ip && mdos->port == port) {
-				if(mdos->map) {
-					// このマップ鯖でも読み甲ﾅいるので移動できる
-					return 1; // 呼び出し元で chrif_sendmap() をする
-				} else {
-					numdb_erase(map_db,(int)mapindex);
-					aFree(mdos);
-				}
-//				if(battle_config.etc_log)
-//					printf("erase map %s %d.%d.%d.%d:%d\n",name,p[0],p[1],p[2],p[3],port);
-			}
-		}
+	mdos = map_db->get(map_db,(unsigned int)mapindex);
+	if(!mdos || mdos->gat) //Map either does not exists or is a local map.
+		return 0;
+
+	if(mdos->ip==ip && mdos->port == port) {
+		map_db->remove(map_db,(unsigned int)mapindex);
+		aFree(mdos);
+		return 1;
 	}
 	return 0;
 }
@@ -2985,7 +2925,7 @@ int map_readallmaps (void)
 					}
 					break;
 				}
-				if (numdb_search(map_db, (int)map[i].index) != NULL) {
+				if (map_db->get(map_db,(unsigned int)map[i].index) != NULL) {
 					ShowWarning("Map %s already loaded!\n", map[i].name);
 					success = 0; //Can't load a map already in the db
 					if (map[i].gat) {
@@ -3011,7 +2951,7 @@ int map_readallmaps (void)
 				map[i].block_mob_count = (int*)aCallocA(size, 1);
 				memset(map[i].block_mob_count, 0, size);
 
-				numdb_insert(map_db, (int)map[i].index, &map[i]);
+				map_db->put(map_db, (unsigned int)map[i].index, &map[i]);
 
 				// cache our map if necessary
 				if (j != MAP_CACHE && mapsource_read[MAP_CACHE] != NULL) {	// map data is not cached yet
@@ -3521,24 +3461,16 @@ int log_sql_init(void){
 }
 #endif /* not TXT_ONLY */
 
-int id_db_final(void *k,void *d,va_list ap) { return 0; }
-int pc_db_final(void *k,void *d,va_list ap) { return 0; }
-int map_db_final(void *k,void *d,va_list ap)
+int map_db_final(DBKey k,void *d,va_list ap)
 {
 	struct map_data_other_server *mdos = (struct map_data_other_server*)d;
-	if(mdos->gat == NULL && mdos->map == NULL)
+	if(mdos->gat == NULL)
 		aFree(mdos);
 	return 0;
 }
 int nick_db_final(void *k,void *d,va_list ap)
 {
 	char *p = (char *) d;
-	if (p) aFree(p);
-	return 0;
-}
-int charid_db_final(void *k,void *d,va_list ap)
-{
-	struct charid2nick *p = (struct charid2nick *) d;
 	if (p) aFree(p);
 	return 0;
 }
@@ -3613,6 +3545,8 @@ void do_final(void) {
 
 	map_getallusers(NULL); //Clear the memory allocated for this array.
 	
+	map_db->destroy(map_db, map_db_final);
+	
 	for (i=0; i<map_num; i++) {
 		if(map[i].gat) aFree(map[i].gat);
 		if(map[i].cell) aFree(map[i].cell);
@@ -3628,11 +3562,9 @@ void do_final(void) {
 
 	mapindex_final();
 	
-	numdb_final(id_db, id_db_final);
-	numdb_final(pc_db, pc_db_final);
-	numdb_final(map_db, map_db_final);
-	strdb_final(nick_db, nick_db_final);
-	numdb_final(charid_db, charid_db_final);
+	id_db->destroy(id_db, NULL);
+	pc_db->destroy(pc_db, NULL);
+	charid_db->destroy(charid_db, NULL);
 
 //#endif
 
@@ -3783,11 +3715,10 @@ int do_init(int argc, char *argv[]) {
 	inter_config_read(INTER_CONF_NAME);
 	log_config_read(LOG_CONF_NAME);
 
-	id_db = numdb_init();
-	pc_db = numdb_init();	//Added for reliable map_id2sd() use. [Skotlex]
-	map_db = numdb_init();
-	nick_db = strdb_init(NAME_LENGTH);
-	charid_db = numdb_init();
+	id_db = db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_BASE,sizeof(int));
+	pc_db = db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_BASE,sizeof(int));	//Added for reliable map_id2sd() use. [Skotlex]
+	map_db = db_alloc(__FILE__,__LINE__,DB_UINT,DB_OPT_BASE,sizeof(int));
+	charid_db = db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA,sizeof(int));
 #ifndef TXT_ONLY
 	map_sql_init();
 	if(charsave_method)
@@ -3806,9 +3737,9 @@ int do_init(int argc, char *argv[]) {
 
 	do_init_chrif();
 	do_init_clif();
+	do_init_script();
 	do_init_itemdb();
 	do_init_mob();	// npcの初期化・でmob_spawnして、mob_dbを?照するのでinit_npcより先
-	do_init_script();
 	do_init_pc();
 	do_init_status();
 	do_init_party();
