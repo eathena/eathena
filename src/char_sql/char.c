@@ -2771,15 +2771,21 @@ int parse_frommap(int fd) {
 		case 0x2b16:
 			if (RFIFOREST(fd) < 6 || RFIFOREST(fd) < RFIFOW(fd,8))
 				return 0;
+		{
+			char motd[256], t_name[512]; //Required for jstrescapecpy [Skotlex]
+			strncpy(motd, RFIFOP(fd,10), 255); //First copy it to make sure the motd fits.
+			motd[255]='\0';
+			jstrescapecpy(t_name,motd);
+
 			sprintf(tmp_sql, "INSERT INTO `ragsrvinfo` SET `index`='%d',`name`='%s',`exp`='%d',`jexp`='%d',`drop`='%d',`motd`='%s'",
-			        fd, server_name, RFIFOW(fd,2), RFIFOW(fd,4), RFIFOW(fd,6), RFIFOP(fd,10));
+				fd, server_name, RFIFOW(fd,2), RFIFOW(fd,4), RFIFOW(fd,6), t_name);
 			if (mysql_query(&mysql_handle, tmp_sql)) {
 				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 			}
 			RFIFOSKIP(fd,RFIFOW(fd,8));
 			break;
-
+		}
 
 		// Character disconnected set online 0 [Wizputer]
 		case 0x2b17:

@@ -1,4 +1,8 @@
 Date	Added
+
+2006/01/11
+	* Added proper escaping of the motd string before inserting it on the rag
+	  server info SQL table. [Skotlex]
 2006/01/10
 	* Updated the map-server to conform to the new db interface. Removed
 	  DB_DELAY_FINAL_CHANGES and related code from db.* as now eA fully complies
