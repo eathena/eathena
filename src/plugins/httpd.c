@@ -10,6 +10,8 @@
 #include <string.h>
 
 #include "../common/db.h"
+//mmo required for definition of stricmp
+#include "../common/mmo.h"
 #include "../common/utils.h"
 #include "../common/malloc.h"
 #include "../common/socket.h"
@@ -114,10 +116,10 @@ int httpd_strcasencmp(const char *s1, const char *s2,int len)
 
 void httpd_pages (const char* url, void (*httpd_func)(struct httpd_session_data*, const char*))
 {
-	if (strdb_search(httpd_files,url+1) == NULL) {
-		strdb_insert(httpd_files, aStrdup(url+1), httpd_func);
+	if (httpd_files->get(httpd_files,(unsigned char*)(url+1)) == NULL) {
+		httpd_files->put(httpd_files, (unsigned char*)aStrdup(url+1), httpd_func);
 	} else {
-		strdb_insert(httpd_files, url+1, httpd_func);
+		httpd_files->put(httpd_files, (unsigned char*)(url+1), httpd_func);
 	}
 }
 
@@ -432,7 +434,7 @@ void httpd_parse_request_ok (struct httpd_session_data *sd)
 
 	// ファイル名が求まったので、ページが無いか検索する
 	// printf("httpd_parse: [% 3d] request /%s\n", fd, req);
-	httpd_parse_func = strdb_search(httpd_files,sd->url);
+	httpd_parse_func = httpd_files->get(httpd_files,(unsigned char*)sd->url);
 	if(httpd_parse_func == NULL) {
 		httpd_parse_func = httpd_default;
 	}
@@ -661,13 +663,6 @@ static void httpd_graph_parse (struct httpd_session_data *sd,const char* url)
 
 //////////////// Initialise / Finalise /////////////////////////////
 
-static int httpd_db_final (void *key, void *data, va_list ap)
-{
-	char *url = key;
-	aFree(url);
-	return 0;
-}
-
 void do_final (void)
 {
 	int fd;
@@ -685,9 +680,9 @@ void do_final (void)
 		if (sessiond[fd] && sessiond[fd]->type == SESSION_HTTP)
 			delete_sessiond(fd);
 
-	db_final(httpd_files,httpd_db_final);
+	httpd_files->destroy(httpd_files,NULL);
 	// clear up the database
-	exit_dbn();
+	db_final();
 	// clear up allocated memory
 	// note: the memory manager, if enabled, would be
 	// separate from the parent program, which is also
@@ -731,6 +726,7 @@ void do_init (void)
 		return;
 
 	malloc_init();
+	db_init();
 	IMPORT_SYMBOL(server_type, 0);
 	IMPORT_SYMBOL(gettick, 5);
 	IMPORT_SYMBOL(add_timer_interval, 8);
@@ -745,7 +741,7 @@ void do_init (void)
 	parse_table[SESSION_HTTP].check = httpd_check;
 	parse_table[SESSION_HTTP].func = httpd_parse;
 
-	httpd_files = strdb_init(0);
+	httpd_files = db_alloc(__FILE__,__LINE__,DB_STRING,DB_OPT_RELEASE_KEY,50);
 	httpd_default = httpd_send_file;
 
 	httpd_pages ("/graph", httpd_graph_parse);

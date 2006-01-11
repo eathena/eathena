@@ -1895,7 +1895,7 @@ static int mob_ai_hard(int tid,unsigned int tick,int id,int data)
  * Negligent mode MOB AI (PC is not in near)
  *------------------------------------------
  */
-static int mob_ai_sub_lazy(void * key,void * data,va_list app)
+static int mob_ai_sub_lazy(DBKey key,void * data,va_list app)
 {
 	struct mob_data *md = (struct mob_data *)data;
 	va_list ap;

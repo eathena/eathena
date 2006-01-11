@@ -1,6 +1,9 @@
 Date	Added
 
 2006/01/11
+	* Fixed compilation of the plugins (due to the db change) [Skotlex]
+	* Fixed a few issues with the map server (notably npc_command_sub was
+	  broken) [Skotlex]
 	* Added proper escaping of the motd string before inserting it on the rag
 	  server info SQL table. [Skotlex]
 2006/01/10

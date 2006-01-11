@@ -727,7 +727,7 @@ int npc_event (struct map_session_data *sd, const unsigned char *eventname, int 
 
 int npc_command_sub(DBKey key,void *data,va_list ap)
 {
-	unsigned char *p;
+	unsigned char *p = key.str;
 	struct event_data *ev=(struct event_data *)data;
 	char *npcname=va_arg(ap,char *);
 	char *command=va_arg(ap,char *);
