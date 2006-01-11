@@ -4,7 +4,7 @@
 //= Nana, fixes by Poki
 //= finished, optimized and tested by Lupus
 //===== Current Version: ===================================== 
-//= 2.0
+//= 2.0a
 //===== Compatible With: ===================================== 
 //= eAthena 1.0 +
 //===== Description: ========================================= 
@@ -24,6 +24,7 @@
 //= 1.8 Added Taekwondo classes check [Lupus]
 //= 1.9 Added support for Job NPC Fase pics, sorrected one dialogue stuff [Lupus]
 //= 2.0 Removed callfunc Is_####_Class in favor of baseClass [Silentdragon]
+//= 2.0a Optimized. TODO: add new Quest Skills [Lupus]
 //============================================================ 
 
 
@@ -34,7 +35,7 @@ valkyrie.gat,48,66,0	warp	valk01	1,1,valkyrie.gat,48,75,0
 // -== Book of Ymir (Heavens Door) ==-
 yuno_in02.gat,93,207,0	script	Book of Ymir	111,{
 	mes "[Book of Ymir]";
-	if( Upper==2 || baseClass == Job_Taekwon ) goto L_BABY; //don't allow Taekwondo classes, Baby Classes
+	if(Upper==2 || baseClass == Job_Taekwon) goto L_BABY; //don't allow Taekwondo classes, Baby Classes
 	if(valkyrie_Q == 1) goto L_FADED;
 	if(valkyrie_Q == 2) goto L_START;
 L_BABY:
@@ -160,36 +161,35 @@ yuno_in02.gat,90,77,4	script	Researcher	744,{
 
 // -== Valhallana ==-
 valkyrie.gat,48,86,6	script	Valkyrie	811,{
+	mes "[Valhallana]";
 	if(BaseJob == 23) goto L_SN;
-	if( baseClass == Job_Taekwon ) goto L_Y; //sent back any Taekwondo classes
+	if(baseClass == Job_Taekwon ) goto L_TAEKWON; //sent back any Taekwondo classes
 	if(Upper == 2 ) goto L_BABY;
 	if(Upper > 0 ) goto L_ALREADY;
 	if(BaseLevel >= 99 && JobLevel >= 50 && BaseJob >= 7) goto L_CHANGE;
 	if(BaseJob < 7) goto L_NOTHING;
 
-	mes "[Valhallana]";
 	mes "You need 99 Base Level and 50 Job Level.";
 	mes "Also you must get rid of all of your money and items.";
 	next;
 	goto L_NOTHING;
 
 L_BABY:
-	mes "[Valhallana]";
 	mes "A Baby?! How did you get here?";
 	mes "I'm passing you back to your parents.";
 	emotion 1;
 	next;
-	goto L_Y;
+L_Y:
+	warp "yuno_in02.gat",93,204;
+	close;
 
 L_TAEKWON:
-	mes "[Valhallana]";
 	mes "How did you get here?";
 	emotion 1;
 	next;
 	goto L_Y;
 
 L_SN:
-	mes "[Valhallana]";
 	mes "Welcome to Valkyrie, "+strcharinfo(0)+".";
 	mes "I see you have followed a hard way of the Super Novice.";
 	next;
@@ -200,15 +200,12 @@ L_SN:
 	goto L_NOTHING;
 
 L_ALREADY:
-	mes "[Valhallana]";
 	mes "I can't help you anymore.";
 	if(Class == 4001) mes "You have been reborn already.";
 	if(Class > 4001 && Class < 4008 ) mes "Go and ask these people in the hall.";
 	next;
-//	goto L_NOTHING;
 
 L_NOTHING:
-	mes "[Valhallana]";
 	mes "Do you wish to go back to your world?";
 	next;
 	menu "Yes",L_Y,"No",-;
@@ -217,24 +214,16 @@ L_NOTHING:
 	mes "As you wish...";
 	close;
 
-L_Y:
-	mes "[Valhallana]";
-	mes "As you wish...";
-	next;
-	warp "yuno_in02.gat",93,204;
-	close;
-
 L_CHANGE:
-	mes "[Valhallana]";
 	mes "Welcome to Valkyrie, "+strcharinfo(0)+". From this point on, there is no returning back.";
 	next;
+	mes "[Valhallana]";
 	if(Zeny || Weight) goto L_ZENYITEMS;
 	if(checkcart(0)) goto L_CART;
 	if(checkfalcon(0)) goto L_FALCON;
 	if(checkriding(0)) goto L_PECO;
 	if(skillpoint > 0) goto L_SKILLPNTS;
 
-	mes "[Valhallana]";
 	mes "Let's start your reincarnation ceremony...";
 	next;
 
@@ -272,32 +261,10 @@ L_CHANGE:
 	if(ADVJOB == Job_Knight + 4001 || ADVJOB == Job_Crusader + 4001 ) goto L_Izl;
 	if(ADVJOB == Job_Priest + 4001 || ADVJOB == Job_Monk + 4001 ) goto L_Pro;
 	if(ADVJOB == Job_Wizard + 4001 || ADVJOB == Job_Sage + 4001 ) goto L_Gef;
-	goto L_Pro;
 
-L_ZENYITEMS:
-	mes "[Valhallana]";
-	mes "Your money and items do rope you to your routine life.";
-	mes "You should get rid of them.";
-	close;
-
-L_CART:
-	mes "[Valhallana]";
-	mes "Please, drop your cart and we'll continue.";
-	close;
-
-L_FALCON:
-	mes "[Valhallana]";
-	mes "Please, free your Falcon and we'll continue.";
-	close;
-
-L_PECO:
-	mes "[Valhallana]";
-	mes "Please, free your Pecopeco and we'll continue.";
-	close;
-
-L_SKILLPNTS:
-	mes "[Valhallana]";
-	mes "You will need to use up all of your skill points if you want me to continue.";
+L_Pro:
+	savepoint "prontera.gat",273,354;
+	warp "prontera.gat",273,354;
 	close;
 
 L_Mor:
@@ -320,14 +287,30 @@ L_Izl:
 	warp "izlude.gat",94,103;
 	close;
 
-L_Pro:
-	savepoint "prontera.gat",273,354;
-	warp "prontera.gat",273,354;
-	close;
-
 L_Gef:
 	savepoint "geffen.gat",120,100;
 	warp "geffen.gat",120,100;
+	close;
+
+L_ZENYITEMS:
+	mes "Your money and items do rope you to your routine life.";
+	mes "You should get rid of them.";
+	close;
+
+L_CART:
+	mes "Please, drop your cart and we'll continue.";
+	close;
+
+L_FALCON:
+	mes "Please, free your Falcon and we'll continue.";
+	close;
+
+L_PECO:
+	mes "Please, free your PecoPeco and we'll continue.";
+	close;
+
+L_SKILLPNTS:
+	mes "You will need to use up all of your skill points if you want me to continue.";
 	close;
 }
 
@@ -376,18 +359,18 @@ L_GETHIGH:
 	mes "You have become a "+getarg(1)+".";
 	jobchange getarg(0); //High Class
 	next;
-	if (!(QSK1 || QSK2 || QSK3 || QSK4)) goto L_NO_QSKILL;
+	if(!(QSK1 || QSK2 || QSK3 || QSK4)) goto L_NO_QSKILL;
 	mes "["+getarg(8)+"]";
 	mes "Let me just add in the missing Quest Skills you lost under the Reborn process, "+strcharinfo(0)+".";
 	next;
 //return learnt quest skills
-	if (getarg(4)) skill getarg(4),QSK1,0;
+	if(getarg(4)) skill getarg(4),QSK1,0;
 	set SQK1,0;
-	if (getarg(5)) skill getarg(5),QSK2,0;
+	if(getarg(5)) skill getarg(5),QSK2,0;
 	set SQK2,0;
-	if (getarg(6)) skill getarg(6),QSK3,0;
+	if(getarg(6)) skill getarg(6),QSK3,0;
 	set SQK3,0;
-	if (getarg(7)) skill getarg(7),QSK4,0;
+	if(getarg(7)) skill getarg(7),QSK4,0;
 	set SQK4,0;
 
 L_NO_QSKILL:
@@ -499,7 +482,6 @@ L_BABY:
 	mes "How did you get here? Go to aunt Valhallana and ask her to take your home.";
 	emotion 41;
 	close;
-
 }
 
 // function GUIDE player to Valhalla for getting 3rd JOB
@@ -545,5 +527,4 @@ L_ALREADY3RD:
 	mes "You don't belong to our guild. Begone!";
 	emotion 23;
 	close;
-
 }

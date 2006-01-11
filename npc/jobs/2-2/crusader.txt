@@ -5,7 +5,7 @@
 //= Converted by: Shin
 //=
 //===== Current Version: ===================================== 
-//= 1.6
+//= 1.7a
 //===== Compatible With: ===================================== 
 //= eAthena  0.5.2 +
 //===== Description: ========================================= 
@@ -447,7 +447,7 @@ prt_church.gat,94,116,0	script	Gabriel Valentine	745,{
 	close;
 NEXT_o:
 	if (BaseJob != 1) goto NEXT0;
-	mes "Hello," + strcharinfo(0);
+	mes "Hello, " + strcharinfo(0);
 	next;
 	if (CRUS_Q != 9) goto EXIT;
 	BEGIN:
@@ -750,7 +750,7 @@ NEXT_o:
 	close;
 NEXT0:
 	if (BaseJob != 2) goto NEXT1;
-	mes "Hello, welcome to the ^008000Prontera ChivalryY^000000.";
+	mes "Hello, welcome to the ^008000Prontera Chivalry^000000.";
 	mes "Hope you have a good day!";
 	close;
 NEXT1:
@@ -797,7 +797,7 @@ NEXT10:
 	close;
 NEXT11:
 	if (BaseJob != 14) goto NEXT12;
-	mes "Good day" + strcharinfo(0);
+	mes "Good day, " + strcharinfo(0);
 	close;
 NEXT12:
 	if (BaseJob != 15) goto NEXT13;
