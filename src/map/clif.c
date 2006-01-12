@@ -9386,18 +9386,18 @@ void clif_parse_TakeItem(int fd, struct map_session_data *sd) {
 		return;
 	}
 
+	if (fitem == NULL || fitem->bl.type != BL_ITEM || fitem->bl.m != sd->bl.m)
+		return;
+	
 	if( sd->npc_id!=0 || sd->vender_id != 0 || sd->opt1 > 0 || sd->trade_partner!=0 ||
 		pc_iscloaking(sd) || pc_ischasewalk(sd) || //Disable cloaking/chasewalking characters from looting [Skotlex]
 		sd->sc_data[SC_TRICKDEAD].timer != -1 || //€‚ñ‚¾‚Ó‚è
 		sd->sc_data[SC_BLADESTOP].timer != -1 || //”’næ‚è
 		sd->sc_data[SC_NOCHAT].timer!=-1 )	//‰ï˜b‹Ö~
-		{
-			clif_additem(sd,0,0,6); // send fail packet! [Valaris]
-			return;
-		}
-
-	if (fitem == NULL || fitem->bl.m != sd->bl.m)
+	{
+		clif_additem(sd,0,0,6); // send fail packet! [Valaris]
 		return;
+	}
 
 	pc_takeitem(sd, fitem);
 }
