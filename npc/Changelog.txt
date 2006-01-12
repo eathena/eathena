@@ -25,6 +25,9 @@ Nexon
 
 Date		Added
 ======
+
+01/12
+	* Small fix in SL and SG quest [Komurka]
 01/11
 	* Fixed typos of Crusader JQ, added TK/SG/SL to custom/jobmaster thanks to Haplo [Lupus]
 	* Updated Valhalla a bit. Soon adding more elegant way of saving Quest Skills (including the new quest skills) [Lupus]

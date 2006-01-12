@@ -3,17 +3,18 @@
 //===== By: ================================================== 
 //= Lupus
 //===== Current Version: ===================================== 
-//= 0.1
+//= 0.1a
 //===== Compatible With: ===================================== 
 //= eAthena 1.0 +
 //===== Description: ========================================= 
 //= 
 //===== Additional Comments: ================================= 
 //= 0.1 Now it's just a temp job quest NPC [Lupus]
+//= 0.1a Small fix in warp [Komurka]
 //============================================================ 
 
 
-job_star.gat,99,13,0	warp	startopay	1,1,payon.gat,151,85
+job_star.gat,166,15,0	warp	startopay	1,1,payon.gat,151,85
 
 job_star.gat,166,37,2	script	Star Gladiator	764,{
 	mes "[Star Gladiator]";
