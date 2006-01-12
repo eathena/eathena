@@ -1,5 +1,10 @@
 Date	Added
 
+2006/01/12
+	* Fixed Venom Knife consuming two daggers. [Skotlex]
+	* Inverted the packet order in many skills which cause status effects. The
+	  client expects the status-change packet to arrive before the skill packet
+	  in order for opt3-related changes to make effect on the character. [Skotlex]
 2006/01/11
 	* Added @main command into atcommand_athena.conf. [LuzZza]
 	* Tuxedo and Wedding Dress no longer get a 'forced' gender check regardless
