@@ -1011,21 +1011,24 @@ int mmo_char_sync_timer(int tid, unsigned int tick, int id, int data) {
 int make_new_char(int fd, unsigned char *dat) {
 	int i;
 	struct char_session_data *sd;
-
+	char name[NAME_LENGTH];
+	
 	sd = (struct char_session_data*)session[fd]->session_data;
 
 	// remove control characters from the name
-	dat[NAME_LENGTH-1] = '\0'; //Trunc name to max possible value (23)
-	dat = trim(dat,TRIM_CHARS); //Trim character name. [Skotlex]
+	strncpy(name, dat, NAME_LENGTH);
+	name[NAME_LENGTH-1] = '\0'; //Trunc name to max possible value (23)
 	
-	if (remove_control_chars((unsigned char *)(char*)dat)) {
+	trim(name,TRIM_CHARS); //Trim character name. [Skotlex]
+	
+	if (remove_control_chars((unsigned char *)name)) {
 		char_log("Make new char error (control char received in the name): (connection #%d, account: %d)." RETCODE,
 		         fd, sd->account_id);
 		return -1;
 	}
 
 	// check lenght of character name
-	if (strlen((const char*)dat) < 4) {
+	if (strlen(name) < 4) {
 		char_log("Make new char error (character name too small): (connection #%d, account: %d, name: '%s')." RETCODE,
 		         fd, sd->account_id, dat);
 		return -1;
@@ -1033,15 +1036,15 @@ int make_new_char(int fd, unsigned char *dat) {
 
 	// Check Authorised letters/symbols in the name of the character
 	if (char_name_option == 1) { // only letters/symbols in char_name_letters are authorised
-		for (i = 0; dat[i]; i++)
-			if (strchr(char_name_letters, dat[i]) == NULL) {
+		for (i = 0;  i < NAME_LENGTH && name[i]; i++)
+			if (strchr(char_name_letters, name[i]) == NULL) {
 				char_log("Make new char error (invalid letter in the name): (connection #%d, account: %d), name: %s, invalid letter: %c." RETCODE,
-				         fd, sd->account_id, dat, dat[i]);
+				         fd, sd->account_id, name, name[i]);
 				return -1;
 			}
 	} else if (char_name_option == 2) { // letters/symbols in char_name_letters are forbidden
-		for (i = 0; dat[i]; i++)
-			if (strchr(char_name_letters, dat[i]) != NULL) {
+		for (i = 0;  i < NAME_LENGTH && name[i]; i++)
+			if (strchr(char_name_letters, name[i]) != NULL) {
 				char_log("Make new char error (invalid letter in the name): (connection #%d, account: %d), name: %s, invalid letter: %c." RETCODE,
 				         fd, sd->account_id, dat, dat[i]);
 				return -1;
@@ -1075,8 +1078,8 @@ int make_new_char(int fd, unsigned char *dat) {
 	} // now when we have passed all stat checks
 
 	for(i = 0; i < char_num; i++) {
-		if ((name_ignoring_case != 0 && strcmp(char_dat[i].status.name, (const char*)dat) == 0) ||
-			(name_ignoring_case == 0 && strcmpi(char_dat[i].status.name, (const char*)dat) == 0)) {
+		if ((name_ignoring_case != 0 && strncmp(char_dat[i].status.name, name, NAME_LENGTH) == 0) ||
+			(name_ignoring_case == 0 && strncmpi(char_dat[i].status.name, name, NAME_LENGTH) == 0)) {
 			char_log("Make new char error (name already exists): (connection #%d, account: %d) slot %d, name: %s (actual name of other char: %d), stats: %d+%d+%d+%d+%d+%d=%d, hair: %d, hair color: %d." RETCODE,
 			         fd, sd->account_id, dat[30], dat, char_dat[i].status.name, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], dat[24] + dat[25] + dat[26] + dat[27] + dat[28] + dat[29], dat[33], dat[31]);
 			return -1;
@@ -1088,9 +1091,9 @@ int make_new_char(int fd, unsigned char *dat) {
 		}
 	}
 
-	if (strcmp(wisp_server_name, (const char*)dat) == 0) {
+	if (strcmp(wisp_server_name, name) == 0) {
 		char_log("Make new char error (name used is wisp name for server): (connection #%d, account: %d) slot %d, name: %s (actual name of other char: %d), stats: %d+%d+%d+%d+%d+%d=%d, hair: %d, hair color: %d." RETCODE,
-		         fd, sd->account_id, dat[30], dat, char_dat[i].status.name, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], dat[24] + dat[25] + dat[26] + dat[27] + dat[28] + dat[29], dat[33], dat[31]);
+		         fd, sd->account_id, dat[30], name, char_dat[i].status.name, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], dat[24] + dat[25] + dat[26] + dat[27] + dat[28] + dat[29], dat[33], dat[31]);
 		return -1;
 	}
 
@@ -1105,14 +1108,14 @@ int make_new_char(int fd, unsigned char *dat) {
 	}
 
 	char_log("Creation of New Character: (connection #%d, account: %d) slot %d, character Name: %s, stats: %d+%d+%d+%d+%d+%d=%d, hair: %d, hair color: %d." RETCODE,
-	         fd, sd->account_id, dat[30], dat, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], dat[24] + dat[25] + dat[26] + dat[27] + dat[28] + dat[29], dat[33], dat[31]);
+	         fd, sd->account_id, dat[30], name, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], dat[24] + dat[25] + dat[26] + dat[27] + dat[28] + dat[29], dat[33], dat[31]);
 
 	memset(&char_dat[i], 0, sizeof(struct character_data));
 
 	char_dat[i].status.char_id = char_id_count++;
 	char_dat[i].status.account_id = sd->account_id;
 	char_dat[i].status.char_num = dat[30];
-	strcpy(char_dat[i].status.name, (const char*)dat); //Length was previously checked, so no danger of overflow. [Skotlex]
+	strcpy(char_dat[i].status.name,name);
 	char_dat[i].status.class_ = 0;
 	char_dat[i].status.base_level = 1;
 	char_dat[i].status.job_level = 1;

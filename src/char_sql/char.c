@@ -1277,16 +1277,15 @@ int mmo_char_sql_init(void) {
 
 int make_new_char_sql(int fd, unsigned char *dat) {
 	struct char_session_data *sd;
+	char name[NAME_LENGTH];
 	char t_name[NAME_LENGTH*2];
 	unsigned int i; // Used in for loop and comparing with strlen, safe to be unsigned. [Lance]
 	int char_id, temp;
 
-	//Check for char name length overflows [Skotlex]
-	if (strlen((char *)dat) > NAME_LENGTH-1)
-		dat[NAME_LENGTH-1] = '\0';
-
-	dat = (unsigned char*)trim((char *)dat,TRIM_CHARS); //Trim character name. [Skotlex]
-	jstrescapecpy(t_name, (char*)dat);
+	strncpy(name, dat, NAME_LENGTH);
+	name[NAME_LENGTH-1] = '\0'; //Always terminate string.
+	trim(name,TRIM_CHARS); //Trim character name. [Skotlex]
+	jstrescapecpy(t_name, name);
 
 	// disabled until fixed >.>
 	// Note: escape characters should be added to jstrescape()!
@@ -1301,7 +1300,8 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 	if(char_per_account != 0){
 		sprintf(tmp_sql, "SELECT `account_id` FROM `%s` WHERE `account_id` = '%d'", char_db, sd->account_id);
 		if(mysql_query(&mysql_handle, tmp_sql)){
-			ShowError("fail, SQL Error: %s !!FAIL!!\n", tmp_sql);
+			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		}
 		sql_res = mysql_store_result(&mysql_handle);
 		if(sql_res){
@@ -1319,12 +1319,12 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 
 	// Check Authorised letters/symbols in the name of the character
 	if (char_name_option == 1) { // only letters/symbols in char_name_letters are authorised
-		for (i = 0; i < strlen((const char*)dat); i++)
-			if (strchr(char_name_letters, dat[i]) == NULL)
+		for (i = 0; i < NAME_LENGTH && name[i]; i++)
+			if (strchr(char_name_letters, name[i]) == NULL)
 				return -2;
 	} else if (char_name_option == 2) { // letters/symbols in char_name_letters are forbidden
-		for (i = 0; i < strlen((const char*)dat); i++)
-			if (strchr(char_name_letters, dat[i]) != NULL)
+		for (i = 0; i < NAME_LENGTH && name[i]; i++)
+			if (strchr(char_name_letters, name[i]) != NULL)
 				return -2;
 	} // else, all letters/symbols are authorised (except control char removed before)
 
@@ -1337,9 +1337,12 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 			// char.log to charlog
 			sprintf(tmp_sql,"INSERT INTO `%s` (`time`, `char_msg`,`account_id`,`char_num`,`name`,`str`,`agi`,`vit`,`int`,`dex`,`luk`,`hair`,`hair_color`)"
 				"VALUES (NOW(), '%s', '%d', '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
-				charlog_db,"make new char error", sd->account_id, dat[30], dat, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], dat[33], dat[31]);
+				charlog_db,"make new char error", sd->account_id, dat[30], t_name, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], dat[33], dat[31]);
 			//query
-			mysql_query(&mysql_handle, tmp_sql);
+			if(mysql_query(&mysql_handle, tmp_sql)){
+				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+			}
 		}
 		ShowWarning("Create char failed (%d): stats error (bot cheat?!)\n", sd->account_id);
 		return -2;
@@ -1352,9 +1355,12 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 				// char.log to charlog
 				sprintf(tmp_sql,"INSERT INTO `%s` (`time`, `char_msg`,`account_id`,`char_num`,`name`,`str`,`agi`,`vit`,`int`,`dex`,`luk`,`hair`,`hair_color`)"
 					"VALUES (NOW(), '%s', '%d', '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
-					charlog_db,"make new char error", sd->account_id, dat[30], dat, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], dat[33], dat[31]);
+					charlog_db,"make new char error", sd->account_id, dat[30], t_name, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], dat[33], dat[31]);
 				//query
-				mysql_query(&mysql_handle, tmp_sql);
+				if(mysql_query(&mysql_handle, tmp_sql)){
+					ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+					ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+				}
 			}
 			ShowWarning("Create char failed (%d): stats error (bot cheat?!)\n", sd->account_id);
 				return -2;
@@ -1366,9 +1372,12 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 			// char.log to charlog
 			sprintf(tmp_sql,"INSERT INTO `%s` (`time`, `char_msg`,`account_id`,`char_num`,`name`,`str`,`agi`,`vit`,`int`,`dex`,`luk`,`hair`,`hair_color`)"
 					"VALUES (NOW(), '%s', '%d', '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
-					charlog_db,"make new char error", sd->account_id, dat[30], dat, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], dat[33], dat[31]);
+					charlog_db,"make new char error", sd->account_id, dat[30], t_name, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], dat[33], dat[31]);
 			//query
-			mysql_query(&mysql_handle, tmp_sql);
+			if(mysql_query(&mysql_handle, tmp_sql)){
+				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+			}
 		}
 		ShowWarning("Create char failed (%d): stats error (bot cheat?!)\n", sd->account_id);
 		return -2;
@@ -1378,7 +1387,7 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 		// char.log to charlog
 		sprintf(tmp_sql,"INSERT INTO `%s`(`time`, `char_msg`,`account_id`,`char_num`,`name`,`str`,`agi`,`vit`,`int`,`dex`,`luk`,`hair`,`hair_color`)"
 			"VALUES (NOW(), '%s', '%d', '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
-			charlog_db,"make new char", sd->account_id, dat[30], dat, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], dat[33], dat[31]);
+			charlog_db,"make new char", sd->account_id, dat[30], t_name, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], dat[33], dat[31]);
 		//query
 		if (mysql_query(&mysql_handle, tmp_sql)) {
 			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
@@ -1398,13 +1407,11 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 	sql_res = mysql_store_result(&mysql_handle);
 	if(sql_res){
 		temp = (int)mysql_num_rows(sql_res);
-
+		mysql_free_result(sql_res);
 		if (temp > 0) {
-			mysql_free_result(sql_res);
 			ShowInfo("Create char failed: charname already in use\n");
 			return -1;
 		}
-		mysql_free_result(sql_res);
 	}
 
 	// check char slot.
@@ -1417,13 +1424,11 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 
 	if(sql_res){
 		temp = (int)mysql_num_rows(sql_res);
-
+		mysql_free_result(sql_res);
 		if (temp > 0) {
-			mysql_free_result(sql_res);
 			ShowWarning("Create char failed (%d, slot: %d), slot already in use\n", sd->account_id, dat[30]);
 			return -2;
 		}
-		mysql_free_result(sql_res);
 	}
 
 	//New Querys [Sirius]
@@ -1458,7 +1463,10 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		//delete the char ..(no trash in DB!)
 		sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
-		mysql_query(&mysql_handle, tmp_sql);
+		if(mysql_query(&mysql_handle, tmp_sql)){
+			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+		}
 		return -2; //XD end of the (World? :P) .. charcreate (denied)
 	} else {
 		//query ok -> get the data!
@@ -1470,7 +1478,10 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 			if(char_id <= 0){
 				ShowError("failed (get char id..) CHARID (%d) wrong!\n", char_id);
 				sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
-				mysql_query(&mysql_handle, tmp_sql);
+				if(mysql_query(&mysql_handle, tmp_sql)){
+					ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+					ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+				}
 				return -2; //charcreate denied ..
 			}
 		}else{
@@ -1478,7 +1489,10 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
-			mysql_query(&mysql_handle, tmp_sql);
+			if(mysql_query(&mysql_handle, tmp_sql)){
+				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+			}
 			return -2; //end ...... -> charcreate failed :)
 		}
 	}
@@ -1491,7 +1505,10 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
-			mysql_query(&mysql_handle, tmp_sql);
+			if(mysql_query(&mysql_handle, tmp_sql)){
+				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+			}
 			return -2;//end XD
 		}
 	}
@@ -1501,26 +1518,20 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
-			mysql_query(&mysql_handle, tmp_sql);
+			if(mysql_query(&mysql_handle, tmp_sql)){
+				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+			}
 			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `char_id` = '%d'", inventory_db, char_id);
-			mysql_query(&mysql_handle, tmp_sql);
+			if(mysql_query(&mysql_handle, tmp_sql)){
+				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+			}
 			return -2; //end....
 		}
 	}
 
-         //DEPRECATED until the new friend table
-         /*
-         if(!insert_friends(char_id)){
-		printf("fail (friendlist entrys..)\n");
-			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `char_id` = '%d'", char_db, char_id);
-			mysql_query(&mysql_handle, tmp_sql);
-			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `char_id` = '%d'", inventory_db, char_id);
-			mysql_query(&mysql_handle, tmp_sql);
-			return -2; //end.. charcreate failed
-	}
-         */
-	//printf("making new char success - id:(\033[1;32m%d\033[0m\tname:\033[1;32%s\033[0m\n", char_id, t_name);
-	ShowInfo("Created char: account: %d, char: %d, slot: %d, name: %s\n", sd->account_id, char_id, dat[30], t_name);
+	ShowInfo("Created char: account: %d, char: %d, slot: %d, name: %s\n", sd->account_id, char_id, dat[30], name);
 	return char_id;
 }
 

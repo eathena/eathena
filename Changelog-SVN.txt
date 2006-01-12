@@ -1,6 +1,9 @@
 Date	Added
 
 2006/01/12
+	* Some cleaning of the char_name_letters implementation. Characters don't
+	  need a space between them, in fact, placing a space in that config makes
+	  the space count towards allowed/disallowed characters. [Skotlex]
 	* Some modifications to the db code to make the code portable. It may
 	  compile on windows now. (note I can't test SQL compiles yet so report any
 	  problems ASAP) [Skotlex]
