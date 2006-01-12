@@ -680,7 +680,7 @@ int can_copy(struct map_session_data *sd, int skillid)
 		return 0;
 
 	// High-class skills
-	if(skillid >= LK_AURABLADE && skillid <= ASC_CDP)
+	if((skillid >= LK_AURABLADE && skillid <= ASC_CDP) || (skillid >= ST_PRESERVE && skillid <= CR_CULTIVATION))
 	{
 		if(battle_config.copyskill_restrict == 2)
 			return 0;
