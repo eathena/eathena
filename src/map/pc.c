@@ -1045,6 +1045,18 @@ int pc_calc_skilltree(struct map_session_data *sd)
 			}
 		}
 	} while(flag);
+	if ((sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON && sd->status.base_level >= 90 && pc_istop10fame(sd->char_id, MAPID_TAEKWON)) {
+		//Grant all Taekwon Tree, but only as bonus skills in case they drop from ranking. [Skotlex]
+		for(i=0;i < MAX_SKILL_TREE && (id=skill_tree[c][i].id)>0;i++){
+			if(sd->status.skill[id].id==0 ){
+				sd->status.skill[id].id=id;
+				sd->status.skill[id].flag=1; //So it is not saved, and tagged as a "bonus" skill.
+			} else
+				sd->status.skill[id].flag=sd->status.skill[id].lv+2; 
+			sd->status.skill[id].lv= skill_tree_get_max(id, sd->status.class_);
+		}
+	}
+
 	return 0;
 }
 

@@ -1,6 +1,9 @@
 Date	Added
 
 2006/01/12
+	* Now Top 10 ranking Taekwons with base level 90+ get their whole
+	  skill-tree maxed out (but only as bonus-skills, they aren't saved on the
+	  dbs) [Skotlex]
 	* Some cleaning of the char_name_letters implementation. Characters don't
 	  need a space between them, in fact, placing a space in that config makes
 	  the space count towards allowed/disallowed characters. [Skotlex]

@@ -876,7 +876,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	b_base_atk = sd->base_atk;
 
 	pc_calc_skilltree(sd);	// スキルツリ?の計算
-
+	
 	sd->max_weight = max_weight_base[sd->status.class_]+sd->status.str*300;
 
 	if(first&1) {
