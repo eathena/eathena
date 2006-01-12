@@ -302,12 +302,11 @@ int npc_event_doall_sub(DBKey key,void *data,va_list ap)
 	struct event_data *ev;
 	int *c;
 	int rid;
-	const char *name;
+	unsigned char *name;
 
-	nullpo_retr(0, ev=(struct event_data *)data);
-	nullpo_retr(0, ap);
-	nullpo_retr(0, c=va_arg(ap,int *));
-	name=va_arg(ap,const char *);
+	ev=(struct event_data *)data;
+	c=va_arg(ap,int *);
+	name=va_arg(ap,unsigned char *);
 	rid=va_arg(ap, int);
 
 	if( (p=strchr(p,':')) && p && strcmpi(name,p)==0 ){
@@ -317,19 +316,19 @@ int npc_event_doall_sub(DBKey key,void *data,va_list ap)
 
 	return 0;
 }
-int npc_event_doall(const char *name)
+int npc_event_doall(const unsigned char *name)
 {
 	int c=0;
-	char buf[64]="::";
+	unsigned char buf[64]="::";
 
 	strncpy(buf+2,name,62);
 	ev_db->foreach(ev_db,npc_event_doall_sub,&c,buf,0);
 	return c;
 }
-int npc_event_doall_id(const char *name, int rid)
+int npc_event_doall_id(const unsigned char *name, int rid)
 {
 	int c=0;
-	char buf[64]="::";
+	unsigned char buf[64]="::";
 
 	strncpy(buf+2,name,62);
 	ev_db->foreach(ev_db,npc_event_doall_sub,&c,buf,rid);
@@ -341,13 +340,13 @@ int npc_event_do_sub(DBKey key,void *data,va_list ap)
 	unsigned char *p = key.str;
 	struct event_data *ev;
 	int *c;
-	const char *name;
+	const unsigned char *name;
 
 	nullpo_retr(0, ev=(struct event_data *)data);
 	nullpo_retr(0, ap);
 	nullpo_retr(0, c=va_arg(ap,int *));
 
-	name=va_arg(ap,const char *);
+	name=va_arg(ap,const unsigned char *);
 
 	if (p && strcmpi(name,p)==0 ) {
 		run_script(ev->nd->u.scr.script,ev->pos,0,ev->nd->bl.id);
@@ -356,7 +355,7 @@ int npc_event_do_sub(DBKey key,void *data,va_list ap)
 
 	return 0;
 }
-int npc_event_do(const char *name)
+int npc_event_do(const unsigned char *name)
 {
 	int c=0;
 
@@ -451,7 +450,7 @@ int npc_addeventtimer(struct npc_data *nd,int tick,const char *name)
 	return 0;
 }
 
-int npc_deleventtimer(struct npc_data *nd,const char *name)
+int npc_deleventtimer(struct npc_data *nd,const unsigned char *name)
 {
 	int i;
 	for(i=0;i<MAX_EVENTTIMER;i++)
@@ -729,9 +728,9 @@ int npc_command_sub(DBKey key,void *data,va_list ap)
 {
 	unsigned char *p = key.str;
 	struct event_data *ev=(struct event_data *)data;
-	char *npcname=va_arg(ap,char *);
+	unsigned char *npcname=va_arg(ap,char *);
 	char *command=va_arg(ap,char *);
-	char temp[100];
+	unsigned char temp[100];
 
 	if(strcmp(ev->nd->name,npcname)==0 && (p=strchr(p,':')) && p && strnicmp("::OnCommand",p,10)==0 ){
 		sscanf(&p[11],"%s",temp);
@@ -743,7 +742,7 @@ int npc_command_sub(DBKey key,void *data,va_list ap)
 	return 0;
 }
 
-int npc_command(struct map_session_data *sd,char *npcname,char *command)
+int npc_command(struct map_session_data *sd,const unsigned char *npcname,char *command)
 {
 	ev_db->foreach(ev_db,npc_command_sub,npcname,command);
 
@@ -1398,7 +1397,7 @@ int npc_remove_map (struct npc_data *nd)
 
 static int npc_unload_ev(DBKey key,void *data,va_list ap) {
 	struct event_data *ev=(struct event_data *)data;
-	char *npcname=va_arg(ap,char *);
+	unsigned char *npcname=va_arg(ap,unsigned char *);
 
 	if(strcmp(ev->nd->exname,npcname)==0){
 		db_remove(ev_db, key);
