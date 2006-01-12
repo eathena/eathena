@@ -1,6 +1,7 @@
 Date	Added
 
 2006/01/11
+	* Added @main command into atcommand_athena.conf. [LuzZza]
 	* Tuxedo and Wedding Dress no longer get a 'forced' gender check regardless
 	  of config ignore_items_gender setting. [Skotlex]
 	* Added support for 'invisible' shops. These are shops that are loaded but
