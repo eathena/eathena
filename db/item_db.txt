@@ -1369,7 +1369,7 @@
 4230,Shinobi_Card,Shinobi Card,6,,10,10,,,,,,,,136,,,,,{ bonus bAgi,1; bonus4 bAutoSpellWhenHit,135,5,10,0; }
 4231,Increase_Soil_Card,Increase Soil Card,6,,10,10,,,,,,,,32,,,,,{ bonus2 bAddDamageByClass,1285,-50; bonus2 bAddDamageByClass,1286,-50; bonus2 bAddDamageByClass,1287,-50; }
 4232,Hermit_Plant_Card,Hermit Plant Card,6,,10,10,,,,,,,,136,,,,,{ bonus2 bAddItemHealRate,2,50; bonus3 bAddMonsterDropItemGroup,2,3,4000;  }
-4233,Baby_Leopard_Card,Baby Leopard Card,6,,10,10,,,,,,,,16,,,,,{ bonus bLuk,3; if(BaseClass != Job_Merchant) end; bonus bUnbreakableArmor,0; bonus bUnstripableArmor,0; }
+4233,Baby_Leopard_Card,Baby Leopard Card,6,,10,10,,,,,,,,16,,,,,{ bonus bLuk,3; if(BaseClass != Job_Merchant) bonus bUnbreakableArmor,0; }
 4234,Anolian_Card,Anolian Card,6,,10,10,,,,,,,,16,,,,,{ bonus4 bAutoSpellWhenHit,45,1+9*(getskilllv(45)==10),10,0; }
 4235,Cookie_Xmas_Card,Cookie Xmas Card,6,,10,10,,,,,,,,64,,,,,{ bonus2 bSubRace,RC_Angel,-20; bonus2 bExpAddRace,RC_Angel,10; }
 4236,Amon_Ra_Card,Amon Ra Card,6,,10,10,,,,,,,,64,,,,,{ bonus bAllStats,1; bonus4 bAutoSpellWhenHit,73,10,(10+10*(readparam(bInt)>=99)),0; }
@@ -1417,7 +1417,7 @@
 4278,Gibbet_Card,Gibbet Card,6,,10,10,,,,,,,,769,,,,,{ if(getrefine()<6) bonus bMdef,5; }
 4279,Earth_Deleter_Card,Earth Deleter Card,6,,10,10,,,,,,,,16,,,,,{ bonus bSPrecovRate,-100; bonus bSPGainValue,10; bonus bLoseSPWhenUnequip,100; }
 4280,Geographer_Card,Geographer Card,6,,10,10,,,,,,,,16,,,,,{ bonus4 bAutoSpellWhenHit,34,2+8*(getskilllv(34)==10),10,0; }
-4281,Zipper_Bear_Card,Zipper Bear Card,6,,10,10,,,,,,,,2,,,,,{ bonus bBaseAtk,30; bonus2 bSPDrainValue,-1,0; if(BaseClass != Job_Merchant) end; bonus bUnbreakableWeapon,0; bonus bUnstripableWeapon,0; }
+4281,Zipper_Bear_Card,Zipper Bear Card,6,,10,10,,,,,,,,2,,,,,{ bonus bBaseAtk,30; bonus2 bSPDrainValue,-1,0; if(BaseClass == Job_Merchant) bonus bUnbreakableWeapon,0; }
 4282,Tengu_Card,Tengu Card,6,,10,10,,,,,,,,136,,,,,{ bonus2 bAddMonsterDropItemGroup,13,500; }
 4283,Greatest_General_Card,Greatest General Card,6,,10,10,,,,,,,,136,,,,,{ bonus4 bAutoSpell,261,1+(getskilllv(261)>1)*(getskilllv(261)-1),10+10*(BaseClass == Job_Acolyte),0; }
 4284,Chepet_Card,Chepet Card,6,,10,10,,,,,,,,2,,,,,{ bonus3 bAutoSpell,28,5,50; }

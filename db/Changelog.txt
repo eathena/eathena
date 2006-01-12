@@ -26,6 +26,9 @@
 		* * * From where this info is? ... Mine: On your death you'll loose this ring and get 50% HP [Komurka]
 =========================
 
+01/12
+	* Zipper Bear Card and Baby Leopard Card do not protect against stripping.
+	  Done by DracoRPG [Vicious]
 01/10
 	* Fixed Mighty Staff to drain 2SP per attack rather than 2% [Skotlex]
 01/09
@@ -40,11 +43,9 @@
 01/07
 	* Santa's Bag type 0->2, some potions type 2->0 [Lupus]
 	* Item DB correction. [Vicious]
-
 01/05
 	* Fixed item updates by jsk225. [Vicious]
 	* Item updates by Landarma. Need updates. [Vicious]
-
 01/03
 	* SL_KAUPE skill times info to skill_cast_db. [Skotlex]
 	* Added SL_SWOO, SL_SKE, SL_SKA skill times information to skill_cast_db.
@@ -54,7 +55,6 @@
 	* Added active guild skills to skill_castnodex_db [Skotlex]
 01/01
 	* Corrected char name filter? [Vicious]
-
 12/31
 	* Updated Absorb spirit spheres to be interruptible. [Skotlex]
 	* Updated some mobskills for the einbroch monsters [MasterOfMuppets]
