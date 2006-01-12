@@ -1039,7 +1039,7 @@ int map_addobject(struct block_list *bl) {
 	if(last_object_id<i)
 		last_object_id=i;
 	objects[i]=bl;
-	id_db->put(id_db,i,bl);
+	db_put(id_db,i,bl);
 	return i;
 }
 
@@ -1053,7 +1053,7 @@ int map_delobjectnofree(int id) {
 		return 0;
 
 	map_delblock(objects[id]);
-	id_db->remove(id_db,id);
+	db_remove(id_db,id);
 	objects[id]=NULL;
 
 	if(first_free_object_id>id)
@@ -1286,10 +1286,10 @@ void map_addchariddb(int charid, char *name) {
 	struct charid2nick *p;
 	int req = 0;
 
-	p = charid_db->get(charid_db,charid);
+	p = db_get(charid_db,charid);
 	if (p == NULL){	// デ?タベ?スにない
 		p = (struct charid2nick *)aCallocA(1, sizeof (struct charid2nick));
-		charid_db->put(charid_db, charid, p);
+		db_put(charid_db, charid, p);
 	} else {
 		req = p->req_id;
 		p->req_id = 0;
@@ -1312,11 +1312,11 @@ int map_reqchariddb(struct map_session_data * sd,int charid) {
 
 	nullpo_retr(0, sd);
 
-	p = (struct charid2nick*)numdb_search(charid_db,charid);
+	p = (struct charid2nick*)db_get(charid_db,charid);
 	if(p) return 0; //Nothing to request, we already have the name!
 	p = (struct charid2nick *)aCalloc(1,sizeof(struct charid2nick));
 	p->req_id=sd->bl.id;
-	charid_db->put(charid_db,charid,p);
+	db_put(charid_db,charid,p);
 	return 0;
 }
 
@@ -1328,8 +1328,8 @@ void map_addiddb(struct block_list *bl) {
 	nullpo_retv(bl);
 
 	if (bl->type == BL_PC)
-		pc_db->put(pc_db,bl->id,bl);
-	id_db->put(id_db,bl->id,bl);
+		db_put(pc_db,bl->id,bl);
+	db_put(id_db,bl->id,bl);
 }
 
 /*==========================================
@@ -1340,8 +1340,8 @@ void map_deliddb(struct block_list *bl) {
 	nullpo_retv(bl);
 
 	if (bl->type == BL_PC)
-		pc_db->remove(pc_db,bl->id);
-	id_db->remove(id_db,bl->id);
+		db_remove(pc_db,bl->id);
+	db_remove(id_db,bl->id);
 }
 
 /*==========================================
@@ -1491,9 +1491,9 @@ int map_quit(struct map_session_data *sd) {
 //	chrif_char_offline(sd); //chrif_save handles this now.
 
 	//Do we really need to remove the name?
-	charid_db->remove(charid_db,sd->status.char_id);
-	id_db->remove(id_db,sd->bl.id);
-	pc_db->remove(pc_db,sd->bl.id);
+	db_remove(charid_db,sd->status.char_id);
+	db_remove(id_db,sd->bl.id);
+	db_remove(pc_db,sd->bl.id);
 
 	// Notify friends that this char logged out. [Skotlex]
 	clif_foreachclient(clif_friendslist_toggle_sub, sd->status.account_id, sd->status.char_id, 0);
@@ -1524,7 +1524,7 @@ int map_quit(struct map_session_data *sd) {
 struct map_session_data * map_id2sd(int id) {
 // Now using pc_db to handle all players, should be quicker than both previous methods at a small expense of more memory. [Skotlex]
 	if (id <= 0) return NULL;
-	return (struct map_session_data*)pc_db->get(pc_db,id);
+	return (struct map_session_data*)db_get(pc_db,id);
 }
 
 /*==========================================
@@ -1532,7 +1532,7 @@ struct map_session_data * map_id2sd(int id) {
  *------------------------------------------
  */
 char * map_charid2nick(int id) {
-	struct charid2nick *p = (struct charid2nick*)numdb_search(charid_db,id);
+	struct charid2nick *p = (struct charid2nick*)db_get(charid_db,id);
 
 	if(p==NULL)
 		return NULL;
@@ -1602,7 +1602,7 @@ struct block_list * map_id2bl(int id)
 	if(id >= 0 && id < sizeof(objects)/sizeof(objects[0]))
 		bl = objects[id];
 	else
-		bl = id_db->get(id_db,id);
+		bl = db_get(id_db,id);
 
 	return bl;
 }
@@ -1694,7 +1694,7 @@ int map_addnpc(int m,struct npc_data *nd) {
 
 	map[m].npc[i]=nd;
 	nd->n = i;
-	id_db->put(id_db,nd->bl.id,nd);
+	db_put(id_db,nd->bl.id,nd);
 
 	return i;
 }
@@ -1707,7 +1707,7 @@ void map_removenpc(void) {
 			if(map[m].npc[i]!=NULL) {
 				clif_clearchar_area(&map[m].npc[i]->bl,2);
 				map_delblock(&map[m].npc[i]->bl);
-				id_db->remove(id_db,map[m].npc[i]->bl.id);
+				db_remove(id_db,map[m].npc[i]->bl.id);
 				if(map[m].npc[i]->bl.subtype==SCRIPT) {
 					aFree(map[m].npc[i]->u.scr.script);
 					aFree(map[m].npc[i]->u.scr.label_list);
@@ -1840,7 +1840,7 @@ int map_mapindex2mapid(unsigned short mapindex) {
 	if (!mapindex)
 		return -1;
 	
-	md = (struct map_data*)map_db->get(map_db,(unsigned int)mapindex);
+	md = (struct map_data*)db_get(map_db,(unsigned int)mapindex);
 	if(md==NULL || md->gat==NULL)
 		return -1;
 	return md->m;
@@ -1853,7 +1853,7 @@ int map_mapindex2mapid(unsigned short mapindex) {
 int map_mapname2ipport(unsigned short name,int *ip,int *port) {
 	struct map_data_other_server *mdos=NULL;
 
-	mdos = (struct map_data_other_server*)map_db->get(map_db,(unsigned int)name);
+	mdos = (struct map_data_other_server*)db_get(map_db,(unsigned int)name);
 	if(mdos==NULL || mdos->gat) //If gat isn't null, this is a local map.
 		return -1;
 	*ip=mdos->ip;
@@ -2099,7 +2099,7 @@ void map_setcell(int m,int x,int y,int cell)
 int map_setipport(unsigned short mapindex,unsigned long ip,int port) {
 	struct map_data_other_server *mdos=NULL;
 
-	mdos=(struct map_data_other_server *)map_db->get(map_db,(unsigned int)mapindex);
+	mdos=(struct map_data_other_server *)db_get(map_db,(unsigned int)mapindex);
 	
 	if(mdos==NULL){ // not exist -> add new data
 		mdos=(struct map_data_other_server *)aCalloc(1,sizeof(struct map_data_other_server));
@@ -2109,7 +2109,7 @@ int map_setipport(unsigned short mapindex,unsigned long ip,int port) {
 		mdos->ip   = ip;
 		mdos->port = port;
 //		mdos->map  = NULL;
-		map_db->put(map_db,(unsigned int)mapindex,mdos);
+		db_put(map_db,(unsigned int)mapindex,mdos);
 		return 1;
 	}
 	if(mdos->gat) //Local map,Do nothing. Give priority to our own local maps over ones from another server. [Skotlex]
@@ -2132,7 +2132,7 @@ int map_setipport(unsigned short mapindex,unsigned long ip,int port) {
 int map_eraseallipport_sub(DBKey key,void *data,va_list va) {
 	struct map_data_other_server *mdos = (struct map_data_other_server*)data;
 	if(mdos->gat == NULL) {
-		map_db->remove(map_db,key);
+		db_remove(map_db,key);
 		aFree(mdos);
 	}
 	return 0;
@@ -2152,12 +2152,12 @@ int map_eraseipport(unsigned short mapindex,unsigned long ip,int port)
 	struct map_data_other_server *mdos;
 //	unsigned char *p=(unsigned char *)&ip;
 
-	mdos = map_db->get(map_db,(unsigned int)mapindex);
+	mdos = db_get(map_db,(unsigned int)mapindex);
 	if(!mdos || mdos->gat) //Map either does not exists or is a local map.
 		return 0;
 
 	if(mdos->ip==ip && mdos->port == port) {
-		map_db->remove(map_db,(unsigned int)mapindex);
+		db_remove(map_db,(unsigned int)mapindex);
 		aFree(mdos);
 		return 1;
 	}
@@ -2925,7 +2925,7 @@ int map_readallmaps (void)
 					}
 					break;
 				}
-				if (map_db->get(map_db,(unsigned int)map[i].index) != NULL) {
+				if (db_get(map_db,(unsigned int)map[i].index) != NULL) {
 					ShowWarning("Map %s already loaded!\n", map[i].name);
 					success = 0; //Can't load a map already in the db
 					if (map[i].gat) {
@@ -2951,7 +2951,7 @@ int map_readallmaps (void)
 				map[i].block_mob_count = (int*)aCallocA(size, 1);
 				memset(map[i].block_mob_count, 0, size);
 
-				map_db->put(map_db, (unsigned int)map[i].index, &map[i]);
+				db_put(map_db, (unsigned int)map[i].index, &map[i]);
 
 				// cache our map if necessary
 				if (j != MAP_CACHE && mapsource_read[MAP_CACHE] != NULL) {	// map data is not cached yet

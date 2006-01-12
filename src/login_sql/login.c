@@ -162,12 +162,12 @@ void add_online_user(int char_server, int account_id) {
 	struct online_login_data *p;
 	if (!online_check)
 		return;
-	p = online_db->get(online_db, account_id);
+	p = db_get(online_db, account_id);
 	if (p == NULL) {
 		p = aCalloc(1, sizeof(struct online_login_data));
 		p->account_id = account_id;
 		p->char_server = char_server;
-		online_db->put(online_db, account_id, p);
+		db_put(online_db, account_id, p);
 	} else {
 		p->char_server = char_server;
 		p->waiting_disconnect = 0;
@@ -175,7 +175,7 @@ void add_online_user(int char_server, int account_id) {
 }
 
 int is_user_online(int account_id) {
-	return (online_db->get(online_db, account_id) != NULL);
+	return (db_get(online_db, account_id) != NULL);
 }
 
 void remove_online_user(int account_id) {
@@ -186,13 +186,13 @@ void remove_online_user(int account_id) {
 		online_db = db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA,sizeof(int));	// reinitialise
 		return;
 	}
-	online_db->remove(online_db,account_id);
+	db_remove(online_db,account_id);
 }
 
 int waiting_disconnect_timer(int tid, unsigned int tick, int id, int data)
 {
 	struct online_login_data *p;
-	if ((p= online_db->get(online_db, id)) != NULL && p->waiting_disconnect)
+	if ((p= db_get(online_db, id)) != NULL && p->waiting_disconnect)
 		remove_online_user(id);
 	return 0;
 }
@@ -782,7 +782,7 @@ int mmo_auth( struct mmo_account* account , int fd){
 	}
 
 	if (online_check) {
-		struct online_login_data* data = online_db->get(online_db,atoi(sql_row[0]));
+		struct online_login_data* data = db_get(online_db,atoi(sql_row[0]));
 		unsigned char buf[8];
 		if (data && data->char_server > -1) {
 			//Request char servers to kick this account out. [Skotlex]
@@ -1290,12 +1290,12 @@ int parse_fromchar(int fd){
 				users = RFIFOW(fd,4);
 				for (i = 0; i < users; i++) {
 					aid = RFIFOL(fd,6+i*4);
-					p = online_db->get(online_db, aid);
+					p = db_get(online_db, aid);
 					if (p == NULL) {
 						p = aCalloc(1, sizeof(struct online_login_data));
 						p->account_id = aid;
 						p->char_server = id;
-						online_db->put(online_db, aid, p);
+						db_put(online_db, aid, p);
 					} else {
 						p->char_server = aid;
 						p->waiting_disconnect = 0;
@@ -1800,7 +1800,7 @@ static int online_data_cleanup_sub(DBKey key, void *data, va_list ap)
 		remove_online_user(character->account_id);
 	else if (character->char_server < 0)
 		//Free data from players that have not been online for a while.
-		online_db->remove(online_db, key);
+		db_remove(online_db, key);
 	return 0;
 }
 

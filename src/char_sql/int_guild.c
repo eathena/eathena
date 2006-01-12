@@ -65,10 +65,10 @@ static int guild_save(DBKey key, void *data, va_list ap) {
 		(*state)++;
 	}
 	
-   if(g->save_flag&GS_REMOVE && !(g->save_flag&~GS_REMOVE)) { //Nothing to save, guild is ready for removal.
+   if(g->save_flag == GS_REMOVE) { //Nothing to save, guild is ready for removal.
 		if (save_log)
 			ShowInfo("Guild Unloaded (%d - %s)\n", g->guild_id, g->name);
-		guild_db_->remove(guild_db_, key);
+		db_remove(guild_db_, key);
    }
 	return 0;
 }
@@ -319,7 +319,7 @@ struct guild * inter_guild_fromsql(int guild_id)
 
 	if (guild_id<=0) return NULL;
 
-	g = guild_db_->get(guild_db_,guild_id);
+	g = db_get(guild_db_,guild_id);
 	if (g) return g;
 
 	g = (struct guild*)aCalloc(sizeof(struct guild), 1);
@@ -512,7 +512,7 @@ struct guild * inter_guild_fromsql(int guild_id)
 	}
 	mysql_free_result(sql_res);
 
-	guild_db_->put(guild_db_, guild_id, g); //Add to cache
+	db_put(guild_db_, guild_id, g); //Add to cache
 	g->save_flag |= GS_REMOVE; //But set it to be removed, in case it is not needed for long.
 	
 	if (save_log)
@@ -1250,7 +1250,7 @@ int mapif_parse_CreateGuild(int fd,int account_id,char *name,struct guild_member
 		g->skill[i].id=i + GD_SKILLBASE;
 	//Add to cache
 	ShowInfo("Created Guild %d - %s (Guild Master: %s)\n", g->guild_id, g->name, g->master);
-	guild_db_->put(guild_db_, g->guild_id, g);
+	db_put(guild_db_, g->guild_id, g);
 	inter_guild_tosql(g,GS_BASIC|GS_POSITION|GS_SKILL); //Better save the whole guild right now.
 
 	// Report to client
@@ -1476,7 +1476,7 @@ int mapif_parse_BreakGuild(int fd,int guild_id)
 		inter_log("guild %s (id=%d) broken" RETCODE,g->name,guild_id);
 	
 	//Remove the guild from memory. [Skotlex]
-	g = guild_db_->remove(guild_db_, guild_id);
+	g = db_remove(guild_db_, guild_id);
 	return 0;
 }
 
@@ -1784,7 +1784,7 @@ int mapif_parse_GuildCastleDataSave(int fd,int castle_id,int index,int value)   
 	case 1:
 		if( gc.guild_id!=value ){
 			int gid=(value)?value:gc.guild_id;
-			struct guild *g=guild_db_->get(guild_db_, gid);
+			struct guild *g=db_get(guild_db_, gid);
 			if(log_inter)
 				inter_log("guild %s (id=%d) %s castle id=%d" RETCODE,
 					(g)?g->name:"??" ,gid, (value)?"occupy":"abandon", castle_id);

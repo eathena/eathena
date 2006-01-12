@@ -1,6 +1,9 @@
 Date	Added
 
 2006/01/12
+	* Some modifications to the db code to make the code portable. It may
+	  compile on windows now. (note I can't test SQL compiles yet so report any
+	  problems ASAP) [Skotlex]
 	* Fixed Venom Knife consuming two daggers. [Skotlex]
 	* Inverted the packet order in many skills which cause status effects. The
 	  client expects the status-change packet to arrive before the skill packet

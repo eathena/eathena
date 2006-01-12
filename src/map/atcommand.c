@@ -8013,9 +8013,9 @@ static struct dbt *users_db = NULL;
 static int users_all;
 
 static int atcommand_users_sub1(struct map_session_data* sd,va_list va) {
-	int users = (int)(users_db->get(users_db,(unsigned int)sd->mapindex)) + 1;
+	int users = (int)(db_get(users_db,(unsigned int)sd->mapindex)) + 1;
 	users_all++;
-	users_db->put(users_db,(unsigned int)sd->mapindex,(void *)users);
+	db_put(users_db,(unsigned int)sd->mapindex,(void *)users);
 	return 0;
 }
 

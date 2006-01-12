@@ -173,6 +173,17 @@ typedef struct db {
 	unsigned global_lock : 1;
 } *Database;
 
+//Remove these defines since they override the local functions of this file.
+#ifdef db_get 
+	#undef db_get
+#endif
+#ifdef db_put
+	#undef db_put
+#endif
+#ifdef db_remove
+	#undef db_remove
+#endif
+
 #ifdef DB_ENABLE_STATS
 /**
  * Structure with what is counted when the database estatistics are enabled.

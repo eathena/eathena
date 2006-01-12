@@ -124,7 +124,7 @@ int inter_accreg_init() {
 			exit(0);
 		}
 		if (inter_accreg_fromstr(line, reg) == 0 && reg->account_id > 0) {
-			accreg_db->put(accreg_db, reg->account_id, reg);
+			db_put(accreg_db, reg->account_id, reg);
 		} else {
 			ShowError("inter: accreg: broken data [%s] line %d\n", accreg_txt, c);
 			aFree(reg);
@@ -363,7 +363,7 @@ int mapif_account_reg(int fd, unsigned char *src) {
 
 // アカウント変数要求返信
 int mapif_account_reg_reply(int fd,int account_id, int char_id) {
-	struct accreg *reg = accreg_db->get(accreg_db,account_id);
+	struct accreg *reg = db_get(accreg_db,account_id);
 
 	WFIFOHEAD(fd, ACCOUNT_REG_NUM * 288+ 13);
 	WFIFOW(fd,0) = 0x3804;
@@ -421,11 +421,11 @@ int check_ttl_wisdata() {
 		wis_delnum = 0;
 		wis_db->foreach(wis_db, check_ttl_wisdata_sub, tick);
 		for(i = 0; i < wis_delnum; i++) {
-			struct WisData *wd = wis_db->get(wis_db, wis_dellist[i]);
+			struct WisData *wd = db_get(wis_db, wis_dellist[i]);
 			ShowWarning("inter: wis data id=%d time out : from %s to %s\n", wd->id, wd->src, wd->dst);
 			// removed. not send information after a timeout. Just no answer for the player
 			//mapif_wis_end(wd, 1); // flag: 0: success to send wisper, 1: target character is not loged in?, 2: ignored by target
-			wis_db->remove(wis_db, wd->id);
+			db_remove(wis_db, wd->id);
 		}
 	} while(wis_delnum >= WISDELLIST_MAX);
 
@@ -498,7 +498,7 @@ int mapif_parse_WisRequest(int fd) {
 			memcpy(wd->dst, RFIFOP(fd,28), NAME_LENGTH);
 			memcpy(wd->msg, RFIFOP(fd,52), wd->len);
 			wd->tick = gettick();
-			wis_db->put(wis_db, wd->id, wd);
+			db_put(wis_db, wd->id, wd);
 			mapif_wis_message(wd);
 		}
 	}
@@ -513,14 +513,14 @@ int mapif_parse_WisReply(int fd) {
 	RFIFOHEAD(fd);
 	id = RFIFOL(fd,2);
 	flag = RFIFOB(fd,6);
-	wd = wis_db->get(wis_db, id);
+	wd = db_get(wis_db, id);
 
 	if (wd == NULL)
 		return 0;	// This wisp was probably suppress before, because it was timeout of because of target was found on another map-server
 
 	if ((--wd->count) <= 0 || flag != 1) {
 		mapif_wis_end(wd, flag); // flag: 0: success to send wisper, 1: target character is not loged in?, 2: ignored by target
-		wis_db->remove(wis_db, id);
+		db_remove(wis_db, id);
 	}
 
 	return 0;
@@ -553,7 +553,7 @@ int mapif_parse_Registry(int fd) {
 		default: //Error?
 			return 1; 
 	}
-	reg = accreg_db->get(accreg_db, RFIFOL(fd,4));
+	reg = db_get(accreg_db, RFIFOL(fd,4));
 
 	if (reg == NULL) {
 		if ((reg = (struct accreg*)aCalloc(sizeof(struct accreg), 1)) == NULL) {
@@ -561,7 +561,7 @@ int mapif_parse_Registry(int fd) {
 			exit(0);
 		}
 		reg->account_id = RFIFOL(fd,4);
-		accreg_db->put(accreg_db, RFIFOL(fd,4), reg);
+		db_put(accreg_db, RFIFOL(fd,4), reg);
 	}
 
 	for(j=0,p=13;j<ACCOUNT_REG_NUM && p<RFIFOW(fd,2);j++){

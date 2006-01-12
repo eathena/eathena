@@ -1731,7 +1731,7 @@ unsigned char* parse_syntax(unsigned char *p) {
 					exit(1);
 				}
 				set_label(l,script_pos);
-				scriptlabel_db->put(scriptlabel_db,func_name,(void*)script_pos);	// ŠO•”—plabel db“o˜^
+				db_put(scriptlabel_db,func_name,(void*)script_pos);	// ŠO•”—plabel db“o˜^
 				*p = c;
 				return skip_space(p);
 			}
@@ -2135,7 +2135,7 @@ unsigned char* parse_script(unsigned char *src,int line)
 				exit(1);
 			}
 			set_label(l, script_pos);
-			scriptlabel_db->put(scriptlabel_db, p, (void*)script_pos);	// ŠO•”—plabel db“o˜^
+			db_put(scriptlabel_db, p, (void*)script_pos);	// ŠO•”—plabel db“o˜^
 			*skip_word(p) = c;
 			p = tmpp + 1;
 			continue;
@@ -2228,7 +2228,7 @@ int get_val(struct script_state*st,struct script_data* data)
 				if(sd)
 				data->u.str = pc_readregstr(sd,data->u.num);
 			}else if(prefix=='$'){
-				data->u.str = (char *)mapregstr_db->get(mapregstr_db,data->u.num);
+				data->u.str = (char *)db_get(mapregstr_db,data->u.num);
 			}else if(prefix=='#'){
 				if( name[1]=='#'){
 					if(sd)
@@ -2260,7 +2260,7 @@ int get_val(struct script_state*st,struct script_data* data)
 				if(sd)
 				data->u.num = pc_readreg(sd,data->u.num);
 			}else if(prefix=='$'){
-				data->u.num = (int)mapreg_db->get(mapreg_db,data->u.num);
+				data->u.num = (int)db_get(mapreg_db,data->u.num);
 			}else if(prefix=='#'){
 				if( name[1]=='#'){
 					if(sd)
@@ -2567,7 +2567,7 @@ int buildin_callfunc(struct script_state *st)
 	char *scr;
 	char *str=conv_str(st,& (st->stack->stack_data[st->start+2]));
 
-	if( (scr=(char *) userfunc_db->get(userfunc_db,(unsigned char*)str)) ){
+	if( (scr=(char *) db_get(userfunc_db,(unsigned char*)str)) ){
 		int i,j;
 		for(i=st->start+3,j=0;i<st->end;i++,j++)
 			push_copy(st->stack,i);
@@ -10206,7 +10206,7 @@ int mapreg_setreg(int num,int val)
 	if(val!=0) {
 
 #if !defined(TXT_ONLY) && defined(MAPREGSQL)
-		if(name[1] != '@' && mapreg_db->get(mapreg_db,num) == NULL) {
+		if(name[1] != '@' && db_get(mapreg_db,num) == NULL) {
 			sprintf(tmp_sql,"INSERT INTO `%s`(`%s`,`%s`,`%s`) VALUES ('%s','%d','%d')",mapregsql_db,mapregsql_db_varname,mapregsql_db_index,mapregsql_db_value,jstrescapecpy(tmp_str,name),i,val);
 			if(mysql_query(&mmysql_handle,tmp_sql)){
 				ShowSQL("DB error - %s\n",mysql_error(&mmysql_handle));
@@ -10214,7 +10214,7 @@ int mapreg_setreg(int num,int val)
 			}
 		}
 #endif
-		mapreg_db->put(mapreg_db,num,(void*)val);
+		db_put(mapreg_db,num,(void*)val);
 	// else
 	} else { // [zBuffer]
 #if !defined(TXT_ONLY) && defined(MAPREGSQL)
@@ -10226,7 +10226,7 @@ int mapreg_setreg(int num,int val)
 			}
 		}
 #endif
-		mapreg_db->remove(mapreg_db,num);
+		db_remove(mapreg_db,num);
 	}
 
 	mapreg_dirty=1;
@@ -10256,14 +10256,14 @@ int mapreg_setregstr(int num,const char *str)
 			}
 		}
 #endif
-		mapregstr_db->remove(mapregstr_db,num);
+		db_remove(mapregstr_db,num);
 		mapreg_dirty=1;
 		return 0;
 	}
 	p=(char *)aCallocA(strlen(str)+1, sizeof(char));
 	strcpy(p,str);
 	
-	if (mapregstr_db->put(mapregstr_db,num,p))
+	if (db_put(mapregstr_db,num,p))
 		;
 #if !defined(TXT_ONLY) && defined(MAPREGSQL)
 	else //put returned null, so we must insert.
@@ -10305,14 +10305,14 @@ static int script_load_mapreg()
 			p=(char *)aCallocA(strlen(buf2) + 1,sizeof(char));
 			strcpy(p,buf2);
 			s= add_str((unsigned char *) buf1);
-			mapregstr_db->put(mapregstr_db,(i<<24)|s,p);
+			db_put(mapregstr_db,(i<<24)|s,p);
 		}else{
 			if( sscanf(line+n,"%d",&v)!=1 ){
 				ShowError("%s: %s broken data !\n",mapreg_txt,buf1);
 				continue;
 			}
 			s= add_str((unsigned char *) buf1);
-			mapreg_db->put(mapreg_db,(i<<24)|s,(void*)v);
+			db_put(mapreg_db,(i<<24)|s,(void*)v);
 		}
 	}
 	fclose(fp);
@@ -10346,12 +10346,12 @@ static int script_load_mapreg()
 				p=(char *)aCallocA(strlen(mapregsql_row[2]) + 1,sizeof(char));
 				strcpy(p,mapregsql_row[2]);
 				s= add_str((unsigned char *) buf1);
-				mapregstr_db->put(mapregstr_db,(i<<24)|s,p);
+				db_put(mapregstr_db,(i<<24)|s,p);
 			}else{
 				s= add_str((unsigned char *) buf1);
 				v= atoi(mapregsql_row[2]);
 				i = atoi(mapregsql_row[1]);
-				mapreg_db->put(mapreg_db,(i<<24)|s,v);
+				db_put(mapreg_db,(i<<24)|s,v);
 			}
 	    }        
 	}

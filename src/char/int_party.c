@@ -108,7 +108,7 @@ int inter_party_init() {
 		if (inter_party_fromstr(line, p) == 0 && p->party_id > 0) {
 			if (p->party_id >= party_newid)
 				party_newid = p->party_id + 1;
-			party_db->put(party_db, p->party_id, p);
+			db_put(party_db, p->party_id, p);
 			party_check_empty(p);
 		} else {
 			ShowError("int_party: broken data [%s] line %d\n", party_txt, c + 1);
@@ -217,7 +217,7 @@ int party_check_empty(struct party *p) {
 		}
 	}
 	mapif_party_broken(p->party_id, 0);
-	party_db->remove(party_db, p->party_id);
+	db_remove(party_db, p->party_id);
 
 	return 1;
 }
@@ -336,7 +336,7 @@ int inter_party_logged(int party_id, int account_id, int char_id)
 	if (!party_id)
 		return 0;
 
-	p = party_db->get(party_db, party_id);
+	p = db_get(party_db, party_id);
 	if(p==NULL){
 		return 0;
 	}
@@ -444,7 +444,7 @@ int mapif_parse_CreateParty(int fd, int account_id, int char_id, char *name, cha
 	p->member[0].online = 1;
 	p->member[0].lv = lv;
 
-	party_db->put(party_db, p->party_id, p);
+	db_put(party_db, p->party_id, p);
 
 	mapif_party_created(fd, account_id, char_id, p);
 	mapif_party_info(fd, p);
@@ -456,7 +456,7 @@ int mapif_parse_CreateParty(int fd, int account_id, int char_id, char *name, cha
 int mapif_parse_PartyInfo(int fd, int party_id) {
 	struct party *p;
 
-	p = party_db->get(party_db, party_id);
+	p = db_get(party_db, party_id);
 	if (p != NULL)
 		mapif_party_info(fd, p);
 	else
@@ -470,7 +470,7 @@ int mapif_parse_PartyAddMember(int fd, int party_id, int account_id, int char_id
 	struct party *p;
 	int i;
 
-	p = party_db->get(party_db, party_id);
+	p = db_get(party_db, party_id);
 	if (p == NULL) {
 		mapif_party_memberadded(fd, party_id, account_id, char_id, 1);
 		return 0;
@@ -510,7 +510,7 @@ int mapif_parse_PartyChangeOption(int fd, int party_id, int account_id, int exp,
 	//NOTE: No clue what that flag is about, in all observations so far it always comes as 0. [Skotlex]
 	flag = 0;
 
-	p = party_db->get(party_db, party_id);
+	p = db_get(party_db, party_id);
 	if (p == NULL)
 		return 0;
 
@@ -529,7 +529,7 @@ int mapif_parse_PartyLeave(int fd, int party_id, int account_id, int char_id) {
 	struct party *p;
 	int i;
 
-	p = party_db->get(party_db, party_id);
+	p = db_get(party_db, party_id);
 	if (p != NULL) {
 		for(i = 0; i < MAX_PARTY; i++) {
 			if (p->member[i].account_id == account_id && p->member[i].char_id == char_id)
@@ -551,7 +551,7 @@ int mapif_parse_PartyChangeMap(int fd, int party_id, int account_id, int char_id
 	struct party *p;
 	int i;
 
-	p = party_db->get(party_db, party_id);
+	p = db_get(party_db, party_id);
 	if (p == NULL)
 		return 0;
 
@@ -579,11 +579,11 @@ int mapif_parse_PartyChangeMap(int fd, int party_id, int account_id, int char_id
 int mapif_parse_BreakParty(int fd, int party_id) {
 	struct party *p;
 
-	p = party_db->get(party_db, party_id);
+	p = db_get(party_db, party_id);
 	if (p == NULL)
 		return 0;
 
-	party_db->remove(party_db, party_id);
+	db_remove(party_db, party_id);
 	mapif_party_broken(fd, party_id);
 
 	return 0;
@@ -603,7 +603,7 @@ int mapif_parse_PartyLeaderChange(int fd,int party_id,int account_id,int char_id
 	struct party *p;
 	int i;
 
-	p = party_db->get(party_db, party_id);
+	p = db_get(party_db, party_id);
 	if (p == NULL)
 		return 0;
 

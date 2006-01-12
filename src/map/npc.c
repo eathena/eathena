@@ -95,7 +95,7 @@ int npc_enable_sub( struct block_list *bl, va_list ap )
 }
 int npc_enable(const char *name,int flag)
 {
-	struct npc_data *nd= npcname_db->get(npcname_db,(unsigned char*)name);
+	struct npc_data *nd= db_get(npcname_db,(unsigned char*)name);
 	if (nd==NULL)
 		return 0;
 
@@ -126,7 +126,7 @@ int npc_enable(const char *name,int flag)
  */
 struct npc_data* npc_name2id(const char *name)
 {
-	return (struct npc_data *) npcname_db->get(npcname_db,(unsigned char*)name);
+	return (struct npc_data *) db_get(npcname_db,(unsigned char*)name);
 }
 
 /*==========================================
@@ -172,7 +172,7 @@ int npc_event_dequeue(struct map_session_data *sd)
 int npc_event_timer(int tid,unsigned int tick,int id,int data)
 {
 	unsigned char *eventname = (unsigned char *)data;
-	struct event_data *ev = ev_db->get(ev_db,eventname);
+	struct event_data *ev = db_get(ev_db,eventname);
 	struct npc_data *nd;
 	struct map_session_data *sd=map_id2sd(id);
 	size_t i;
@@ -201,7 +201,7 @@ int npc_event_timer(int tid,unsigned int tick,int id,int data)
 
 int npc_timer_event(const unsigned char *eventname)	// Added by RoVeRT
 {
-	struct event_data *ev=ev_db->get(ev_db,(unsigned char*)eventname);
+	struct event_data *ev=db_get(ev_db,(unsigned char*)eventname);
 	struct npc_data *nd;
 //	int xs,ys;
 
@@ -286,7 +286,7 @@ int npc_event_export(char *lname,void *data,va_list ap)
 			*p='\0';
 			sprintf(buf,"%s::%s",nd->exname,lname);
 			*p=':';
-			ev_db->put(ev_db,buf,ev);
+			db_put(ev_db,buf,ev);
 		}
 	}
 	return 0;
@@ -658,7 +658,7 @@ int npc_settimerevent_tick(struct npc_data *nd,int newtimer)
  */
 int npc_event (struct map_session_data *sd, const unsigned char *eventname, int mob_kill)
 {
-	struct event_data *ev=ev_db->get(ev_db,(unsigned char*)eventname);
+	struct event_data *ev=db_get(ev_db,(unsigned char*)eventname);
 	struct npc_data *nd;
 	int xs,ys;
 	unsigned char mobevent[100];
@@ -673,7 +673,7 @@ int npc_event (struct map_session_data *sd, const unsigned char *eventname, int 
 		if (mob_kill) {
 			strcpy( mobevent, eventname);
 			strcat( mobevent, "::OnMyMobDead");
-			ev = ev_db->get(ev_db, mobevent);
+			ev = db_get(ev_db, mobevent);
 			if (ev == NULL || (nd = ev->nd) == NULL) {
 				if (strnicmp(eventname, "GM_MONSTER",10) != 0)
 					ShowError("npc_event: event not found [%s]\n", mobevent);
@@ -856,7 +856,7 @@ int npc_checknear(struct map_session_data *sd,int id)
  */
 int npc_globalmessage(const char *name,char *mes)
 {
-	struct npc_data *nd=(struct npc_data *) npcname_db->get(npcname_db,(unsigned char*)name);
+	struct npc_data *nd=(struct npc_data *) db_get(npcname_db,(unsigned char*)name);
 	char temp[100];
 
 	if (!nd)
@@ -1368,7 +1368,7 @@ int npc_remove_map (struct npc_data *nd)
 	npc_chat_finalize(nd);
 #endif
 	clif_clearchar_area(&nd->bl,2);
-	npcname_db->remove(npcname_db, (nd->bl.subtype < SCRIPT) ? nd->name : nd->exname);
+	db_remove(npcname_db, (nd->bl.subtype < SCRIPT) ? nd->name : nd->exname);
 	//Remove corresponding NPC CELLs
 	if (nd->bl.subtype == WARP) {
 		int j, xs, ys, x, y;
@@ -1401,7 +1401,7 @@ static int npc_unload_ev(DBKey key,void *data,va_list ap) {
 	char *npcname=va_arg(ap,char *);
 
 	if(strcmp(ev->nd->exname,npcname)==0){
-		ev_db->remove(ev_db, key);
+		db_remove(ev_db, key);
 		return 1;
 	}
 	return 0;
@@ -1580,7 +1580,7 @@ int npc_parse_warp (char *w1,char *w2,char *w3,char *w4)
 	nd->bl.subtype = WARP;
 	map_addblock(&nd->bl);
 	clif_spawnnpc(nd);
-	npcname_db->put(npcname_db, nd->name, nd);
+	db_put(npcname_db, nd->name, nd);
 
 	return 0;
 }
@@ -1668,7 +1668,7 @@ static int npc_parse_shop (char *w1, char *w2, char *w3, char *w4)
 	} else
 		// we skip map_addnpc, but still add it to the list of ID's
 		map_addiddb(&nd->bl);
-	npcname_db->put(npcname_db, nd->name,nd);
+	db_put(npcname_db, nd->name,nd);
 
 	return 0;
 }
@@ -1677,8 +1677,9 @@ static int npc_parse_shop (char *w1, char *w2, char *w3, char *w4)
  * NPCのラベルデータコンバート
  *------------------------------------------
  */
-int npc_convertlabel_db (unsigned char *lname, void *data, va_list ap)
+int npc_convertlabel_db (DBKey key, void *data, va_list ap)
 {
+	unsigned char *lname = key.str;
 	int pos = (int)data;
 	struct npc_data *nd;
 	struct npc_label_list *lst;
@@ -1979,14 +1980,14 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 			struct event_data *ev = (struct event_data *)aCalloc(1, sizeof(struct event_data));
 			ev->nd = nd;
 			ev->pos = 0;
-			ev_db->put(ev_db, nd->exname, ev);
+			db_put(ev_db, nd->exname, ev);
 		} else
 			clif_spawnnpc(nd);
 	} else {
 		// we skip map_addnpc, but still add it to the list of ID's
 		map_addiddb(&nd->bl);
 	}
-	npcname_db->put(npcname_db, nd->exname, nd);
+	db_put(npcname_db, nd->exname, nd);
 
 	//-----------------------------------------
 	// ラベルデータの準備
@@ -2028,7 +2029,7 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 				ev=(struct event_data *)aCalloc(1,sizeof(struct event_data));
 				ev->nd=nd;
 				ev->pos=pos;
-				if (ev_db->put(ev_db,buf,ev) != NULL) //There was already another event of the same name?
+				if (db_put(ev_db,buf,ev) != NULL) //There was already another event of the same name?
 					ShowWarning("npc_parse_script : duplicate event %s (%s)\n",buf, current_file);
 			}
 		}
@@ -2123,7 +2124,7 @@ static int npc_parse_function (char *w1, char *w2, char *w3, char *w4, char *fir
 	strncpy(p, w3, 50);
 
 	user_db = script_get_userfunc_db();
-	user_db->put(user_db, p, script);
+	db_put(user_db, p, script);
 
 	// もう使わないのでバッファ解放
 	aFree(srcbuf);
@@ -2812,13 +2813,13 @@ int do_init_npc(void)
 }
 // [Lance]
 	int npc_changename(const char *name, const char *newname, short look){
-	struct npc_data *nd= (struct npc_data *) npcname_db->remove(npcname_db,(unsigned char*)name);
+	struct npc_data *nd= (struct npc_data *) db_remove(npcname_db,(unsigned char*)name);
 	if (nd==NULL)
 		return 0;
 	npc_enable(name,0);
 	strcpy(nd->name,newname);
 	nd->class_ = look;
-	npcname_db->put(npcname_db,nd->name,nd);
+	db_put(npcname_db,nd->name,nd);
 	npc_enable(newname,1);
 	return 0;
 }
