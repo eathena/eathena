@@ -8182,6 +8182,7 @@ int skill_check_condition(struct map_session_data *sd,int type)
 	case TK_READYDOWN:
 	case TK_READYSTORM:
 	case TK_READYTURN:
+	case TK_JUMPKICK:
 		if ((sd->class_&MAPID_UPPERMASK) == MAPID_SOUL_LINKER) {
 			//They do not work on Soul Linkers.
 			clif_skill_fail(sd,skill,0,0);
