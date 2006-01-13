@@ -977,17 +977,9 @@ optimize big scripts.
 
 Both these examples will perform the same task.
 
-If you give an empty string as a menu item, the item will not display. However, 
-this will do nothing to the list of labels corresponding to the menu items, 
-(which should probably be considered a server bug) so
-
-    menu "",L_Start,"End",L_End;
-    
-will jump to the L_Start label, even though the user has picked "End" and can 
-only pick "End". You can get around this problem by making sure that all the 
-empty menu options are at the end of the menu command argument list, so there's 
-no labels it could screw up. But what if you want to make a menu, but don't know 
-beforehand if some of the options in it make sense?
+If you give an empty string as a menu item, the item will not display. This
+can effectively be used to script dynamic menus by using empty string for
+entries that should be unavailable at that time.
 
 You can do it by using arrays, but watch carefully - this trick isn't high 
 wizardry, but minor magic at least. You can't expect to easily duplicate it 

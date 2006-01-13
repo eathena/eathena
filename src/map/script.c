@@ -2711,19 +2711,26 @@ int buildin_menu(struct script_state *st)
 		sd->state.menu_or_input=0;
 		st->state=END;
 	} else {	// goto“®ì
-		// ragemuŒİŠ·‚Ì‚½‚ß
-//		pc_setreg(sd,add_str((unsigned char *) "l15"),sd->npc_menu);
-		pc_setreg(sd,add_str((unsigned char *) "@menu"),sd->npc_menu);
 		sd->state.menu_or_input=0;
-		if(sd->npc_menu>0 && sd->npc_menu<(st->end-st->start)/2){
-			int pos;
+		if(sd->npc_menu>0){
+			//Skip empty menu entries which weren't displayed on the client (blackhole89)
+			for(i=st->start+2;i<=(st->start+sd->npc_menu*2) && sd->npc_menu<(st->end-st->start)/2;i+=2)
+			{
+				if((int)strlen(st->stack->stack_data[i].u.str) < 1)
+					sd->npc_menu++; //Empty selection which wasn't displayed on the client.
+			}
+			if(sd->npc_menu >= (st->end-st->start)/2) {
+				//Invalid selection.
+				st->state=END;
+				return 0;
+			}
 			if( st->stack->stack_data[st->start+sd->npc_menu*2+1].type!=C_POS ){
 				ShowError("script: menu: not label !\n");
 				st->state=END;
 				return 0;
 			}
-			pos=conv_num(st,& (st->stack->stack_data[st->start+sd->npc_menu*2+1]));
-			st->pos=pos;
+			pc_setreg(sd,add_str((unsigned char *) "@menu"),sd->npc_menu);
+			st->pos= conv_num(st,& (st->stack->stack_data[st->start+sd->npc_menu*2+1]));
 			st->state=GOTO;
 		}
 	}

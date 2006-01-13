@@ -1,6 +1,8 @@
 Date	Added
 
 2006/01/13
+	* Applied blackhole89's patch to enable dynamic menus. [Skotlex]
+	- Script reference doc updated accordingly.
 	* Ranking Taekwons with lv 90+ no longer get Quest/Wedding skills for free.[Skotlex]
 	* Readjusted Scream And Frost Joke so now the effect goes off no matter
 	  where the caster went, but the effect will happen only around the area
