@@ -781,7 +781,7 @@ int inter_guild_sql_init()
 	return 0;
 }
 
-static int guild_db_final(int key,void *data,va_list ap)
+static int guild_db_final(DBKey key, void *data, va_list ap)
 {
 	struct guild *g = (struct guild*)data;
 	if (g->save_flag&GS_MASK) {

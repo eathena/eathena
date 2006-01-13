@@ -1,6 +1,8 @@
 Date	Added
 
 2006/01/12
+	* Corrected the guild_db_final function in int_guild.c of SQL char-server to
+	  compile and function with the new db code. [Valaris]
 	* Fixed some advanced skills being able to be copied even when restricted [Vicious]
 	* Fixed a possible crash-source related to item-picking packets. [Skotlex]
 	* Now Top 10 ranking Taekwons with base level 90+ get their whole
