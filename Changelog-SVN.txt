@@ -1,6 +1,8 @@
 Date	Added
 
 2006/01/13
+	* Scream and Frost Joke now take effect 2secs after casting, and caster
+	  must remain in same map for it to take effect. [Skotlex]
 	* Flying Side Kick can't be used by Soul Linkers now. [Skotlex]
 	* npc_reload should now correctly remove mobs and npcs that aren't placed
 	  in any map (such as mobs that were killed and are waiting for respawn) [Skotlex]
