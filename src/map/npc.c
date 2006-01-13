@@ -2636,7 +2636,8 @@ static int npc_read_indoors (void)
  *
  *------------------------------------------
  */
-int npc_cleanup_sub (struct block_list *bl, va_list ap) {
+
+static int npc_cleanup_sub (struct block_list *bl, va_list ap) {
 	nullpo_retr(0, bl);
 
 	switch(bl->type) {
@@ -2650,6 +2651,11 @@ int npc_cleanup_sub (struct block_list *bl, va_list ap) {
 
 	return 0;
 }
+
+static int npc_cleanup_dbsub(DBKey key,void * data,va_list app) {
+	return npc_cleanup_sub((struct block_list*)data, 0);
+}
+
 int npc_reload (void)
 {
 	struct npc_src_list *nsl;
@@ -2667,6 +2673,8 @@ int npc_reload (void)
 		}
 		map[m].npc_num = 0;
 	}
+	//Remove any npcs/mobs that weren't caught by the previous loop. [Skotlex]
+	map_foreachiddb(npc_cleanup_dbsub);
 	ev_db->destroy(ev_db,NULL);
 	npcname_db->destroy(npcname_db,NULL);
 

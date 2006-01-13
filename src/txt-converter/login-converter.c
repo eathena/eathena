@@ -43,7 +43,7 @@ char db_server_logindb[32] = "ragnarok";
 int isGM(int account_id)
 {
 	struct gm_account *p;
-	p = (struct gm_account*)numdb_search(gm_account_db,account_id);
+	p = (struct gm_account*)db_get(gm_account_db,account_id);
 	if( p == NULL)
 		return 0;
 	return p->level;
@@ -56,7 +56,7 @@ int read_gm_account()
 	FILE *fp;
 	int c=0;
 
-	gm_account_db = numdb_init();
+	gm_account_db = id_db = db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_BASE,sizeof(int));
 
 	printf("Starting reading gm_account\n");
 
@@ -79,7 +79,7 @@ int read_gm_account()
 		else {
 			if(p->level > 99)
 				p->level = 99;
-			numdb_insert(gm_account_db,p->account_id,p);
+			db_put(gm_account_db,p->account_id,p);
 			c++;
 			printf("GM ID: %d Level: %d\n",p->account_id,p->level);
 		}

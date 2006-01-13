@@ -1,5 +1,8 @@
 Date	Added
 
+2006/01/13
+	* npc_reload should now correctly remove mobs and npcs that aren't placed
+	  in any map (such as mobs that were killed and are waiting for respawn) [Skotlex]
 2006/01/12
 	* Fixed Ice-Wall range problem. [LuzZza]
 	* Corrected the guild_db_final function in int_guild.c of SQL char-server to
