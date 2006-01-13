@@ -1,6 +1,10 @@
 Date	Added
 
 2006/01/13
+	* Readjusted Scream And Frost Joke so now the effect goes off no matter
+	  where the caster went, but the effect will happen only around the area
+	  where the skill was done regardless of where the caster is (which is how it
+	  should work from a logical stand point) [Skotlex]
 	* Scream and Frost Joke now take effect 2secs after casting, and caster
 	  must remain in same map for it to take effect. [Skotlex]
 	* Flying Side Kick can't be used by Soul Linkers now. [Skotlex]

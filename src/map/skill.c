@@ -2402,10 +2402,8 @@ static int skill_timerskill(int tid, unsigned int tick, int id,int data )
 			case BA_FROSTJOKE:			/* Š¦‚¢ƒWƒ‡?ƒN */
 			case DC_SCREAM:				/* ƒXƒNƒŠ?ƒ€ */
 				range=battle_config.area_size;		//Ž‹ŠE‘S?
-				if(skl->map == src->m) {
-					map_foreachinarea(skill_frostjoke_scream,src->m,src->x-range,src->y-range,
-						src->x+range,src->y+range,0,src,skl->skill_id,skl->skill_lv,tick);
-				}
+				map_foreachinarea(skill_frostjoke_scream,skl->map,skl->x-range,skl->y-range,
+					skl->x+range,skl->y+range,0,src,skl->skill_id,skl->skill_lv,tick);
 				break;
 
 			case WZ_WATERBALL:
@@ -4370,7 +4368,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case BA_FROSTJOKE:			/* Š¦‚¢ƒWƒ‡?ƒN */
 	case DC_SCREAM:				/* ƒXƒNƒŠ?ƒ€ */
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
-		skill_addtimerskill(src,tick+2000,bl->id,0,0,skillid,skilllv,0,flag);
+		skill_addtimerskill(src,tick+2000,bl->id,src->x,src->y,skillid,skilllv,0,flag);
 		if (md) {	// Mob‚Í’?‚ê‚È‚¢‚©‚ç?AƒXƒLƒ‹–¼‚ð‹©‚Î‚¹‚Ä‚Ý‚é
 			char temp[128];
 			if (strlen(md->name) + strlen(skill_db[skillid].desc) > 120)
