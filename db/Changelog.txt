@@ -27,6 +27,7 @@
 =========================
 
 01/12
+	* Fixed Baby Leopard by.. ppl. [Vicious]
 	* Temp Odin monsters, by Azazel [Vicious]
 	* Zipper Bear Card and Baby Leopard Card do not protect against stripping.
 	  Done by DracoRPG [Vicious]
