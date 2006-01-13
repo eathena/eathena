@@ -1,6 +1,7 @@
 Date	Added
 
 2006/01/13
+	* Ranking Taekwons with lv 90+ no longer get Quest/Wedding skills for free.[Skotlex]
 	* Readjusted Scream And Frost Joke so now the effect goes off no matter
 	  where the caster went, but the effect will happen only around the area
 	  where the skill was done regardless of where the caster is (which is how it
