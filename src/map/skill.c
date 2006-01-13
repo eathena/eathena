@@ -10192,7 +10192,7 @@ struct skill_unit *skill_initunit(struct skill_unit_group *group,int idx,int x,i
 		skill_unitsetmapcell(unit,HP_BASILICA,CELL_SETBASILICA);
 		break;
 	case WZ_ICEWALL:
-		skill_unitsetmapcell(unit,HP_BASILICA,CELL_SETICEWALL);
+		skill_unitsetmapcell(unit,WZ_ICEWALL,CELL_SETICEWALL);
 		break;
 	}
 	return unit;
