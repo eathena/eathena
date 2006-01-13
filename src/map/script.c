@@ -2114,7 +2114,7 @@ unsigned char* parse_script(unsigned char *src,int line)
 
 	//Labels must be reparsed for the script....
 	scriptlabel_db->destroy(scriptlabel_db, NULL);
-	scriptlabel_db=db_alloc(__FILE__,__LINE__,DB_STRING,DB_OPT_BASE,50);
+	scriptlabel_db=db_alloc(__FILE__,__LINE__,DB_STRING,DB_OPT_ALLOW_NULL_DATA,50);
 
 	// for error message
 	startptr = src;
@@ -10619,7 +10619,7 @@ int do_init_script()
 	mapreg_db= db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_BASE,sizeof(int));
 	mapregstr_db=db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA,sizeof(int));
 	userfunc_db=db_alloc(__FILE__,__LINE__,DB_STRING,DB_OPT_RELEASE_BOTH,50);
-	scriptlabel_db=db_alloc(__FILE__,__LINE__,DB_STRING,DB_OPT_BASE,50);
+	scriptlabel_db=db_alloc(__FILE__,__LINE__,DB_STRING,DB_OPT_ALLOW_NULL_DATA,50);
 	
 	script_load_mapreg();
 

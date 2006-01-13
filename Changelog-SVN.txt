@@ -1,6 +1,8 @@
 Date	Added
 
 2006/01/13
+	* Fixed labels located at the beginning of a script not being counted at
+	  all. [Skotlex]
 	* Applied blackhole89's patch to enable dynamic menus. [Skotlex]
 	- Script reference doc updated accordingly.
 	* Ranking Taekwons with lv 90+ no longer get Quest/Wedding skills for free.[Skotlex]
