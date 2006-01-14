@@ -1,6 +1,7 @@
 Date	Added
 
 2006/01/14
+	* Fixed compilation of plugins. [Skotlex]
 	* Added error reporting to the db when a null key/data is attempted to be
 	  inserted and the db is configured to not allow them. [Skotlex]
 2006/01/13

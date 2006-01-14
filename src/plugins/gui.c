@@ -3,6 +3,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include "../common/plugin.h"
+//Needed for strcmpi
+#include "../common/mmo.h"
 
 // "I'm Alive" and "Flush stdout" Originally by Mugendai
 // Ported to plugin by Celest
