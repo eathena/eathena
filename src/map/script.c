@@ -10273,7 +10273,7 @@ int mapreg_setregstr(int num,const char *str)
 	if (db_put(mapregstr_db,num,p))
 		;
 #if !defined(TXT_ONLY) && defined(MAPREGSQL)
-	else //put returned null, so we must insert.
+	else { //put returned null, so we must insert.
 		sprintf(tmp_sql,"INSERT INTO `%s`(`%s`,`%s`,`%s`) VALUES ('%s','%d','%s')",mapregsql_db,mapregsql_db_varname,mapregsql_db_index,mapregsql_db_value,jstrescapecpy(tmp_str,name),i,jstrescapecpy(tmp_str2,p));
 		if(mysql_query(&mmysql_handle,tmp_sql)){
 			ShowSQL("DB error - %s\n",mysql_error(&mmysql_handle));
