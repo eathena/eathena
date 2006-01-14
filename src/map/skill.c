@@ -11007,16 +11007,24 @@ int skill_produce_mix( struct map_session_data *sd, int skill_id,
 				make_per = sd->status.job_level*20 + sd->paramc[3]*10 + sd->paramc[4]*10;
 				switch(nameid){
 					case 12114:
-						make_per += pc_checkskill(sd,SA_FLAMELAUNCHER)*1000-500;
+						flag = pc_checkskill(sd,SA_FLAMELAUNCHER);
+						if (flag > 0)
+							make_per += 1000*flag-500;
 						break;
 					case 12115:
-						make_per += pc_checkskill(sd,SA_FROSTWEAPON)*1000-500;
+						flag = pc_checkskill(sd,SA_FROSTWEAPON);
+						if (flag > 0)
+							make_per += 1000*flag-500;
 						break;
 					case 12116:
-						make_per += pc_checkskill(sd,SA_SEISMICWEAPON)*1000-500;
+						flag = pc_checkskill(sd,SA_SEISMICWEAPON);
+						if (flag > 0)
+							make_per += 1000*flag-500;
 						break;
 					case 12117:
-						make_per += pc_checkskill(sd,SA_LIGHTNINGLOADER)*1000-500;
+						flag = pc_checkskill(sd,SA_LIGHTNINGLOADER);
+						if (flag > 0)
+							make_per += 1000*flag-500;
 						break;
 				}
 				break;

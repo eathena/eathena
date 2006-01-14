@@ -1,6 +1,8 @@
 Date	Added
 
 2006/01/14
+	* Removed the 5% success penalty for trying to make a convertor for which
+	  you don't have the relevant enchant skills. [Skotlex]
 	* Fixed compilation of Login Converter. [Valaris]
 	* Fixed bSPGainRace and bExpAddRace with RC_NonBoss and RC_Boss. [Valaris]
 	* Lex Divina now shows the animation even when used on someone you can't
