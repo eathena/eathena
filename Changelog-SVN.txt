@@ -1,6 +1,7 @@
 Date	Added
 
 2006/01/14
+	* Fixed bSPGainRace and bExpAddRace with RC_NonBoss and RC_Boss. [Valaris]
 	* Lex Divina now shows the animation even when used on someone you can't
 	  (non-muted, non-enemy player) [Skotlex]
 	* Quick hack to make Shield Reflect trigger auto-spells (only this kind of

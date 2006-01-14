@@ -2350,6 +2350,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 		}
 		sp += sd->sp_gain_value;
 		sp += sd->sp_gain_race[race];
+		sp += sd->sp_gain_race[mode&MD_BOSS?10:11];
 		hp += sd->hp_gain_value;
 		if (sp > 0) {
 			if(sd->status.sp + sp > sd->status.max_sp)
@@ -2429,6 +2430,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 		if(sd) {
 			if (sd->expaddrace[race])
 				per += per*sd->expaddrace[race]/100.;	
+				per += per*sd->expaddrace[mode&MD_BOSS?10:11]/100.;
 		}
 		if (battle_config.pk_mode && (md->db->lv - tmpsd[i]->status.base_level >= 20))
 			per *= 1.15;	// pk_mode additional exp if monster >20 levels [Valaris]	
