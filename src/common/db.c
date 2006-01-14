@@ -1409,8 +1409,14 @@ static void *db_put(DBInterface dbi, DBKey key, void *data)
 				db->alloc_file, db->alloc_line);
 		return NULL; // nullpo candidate
 	}
-	if (!(db->options&DB_OPT_ALLOW_NULL_KEY) && db_is_key_null(db->type, key)) return NULL; // nullpo candidate
-	if (!(data || db->options&DB_OPT_ALLOW_NULL_DATA)) return NULL; // nullpo candidate
+	if (!(db->options&DB_OPT_ALLOW_NULL_KEY) && db_is_key_null(db->type, key)) {
+		ShowError("Received Unallowed Null Key for db allocated at %s:%d\n", db->alloc_file, db->alloc_line);
+		return NULL; // nullpo candidate
+	}
+	if (!(data || db->options&DB_OPT_ALLOW_NULL_DATA)) {
+		ShowError("Received Unallowed Null Data for db allocated at %s:%d\n", db->alloc_file, db->alloc_line);
+		return NULL; // nullpo candidate
+	}
 
 	if (db->item_count == ~0) {
 		ShowError("db_put: item_count overflow, aborting item insertion.\n"
