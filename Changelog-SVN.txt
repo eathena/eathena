@@ -1,6 +1,10 @@
 Date	Added
 
 2006/01/14
+	* Fixed grf loading to attempt to load from all grf files specified in
+	  grf-files.txt (looking for them in the same order specified in the file,
+	  returns the first match found) instead of only looking up on the last
+	  specified grf... [Skotlex]
 	* Fixed compilation of plugins. [Skotlex]
 	* Added error reporting to the db when a null key/data is attempted to be
 	  inserted and the db is configured to not allow them. [Skotlex]
