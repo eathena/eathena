@@ -682,29 +682,35 @@ packet_ver: 17
 
 //2005-06-28aSakexe by Sara
 packet_ver: 18
-0x009b,32,wanttoconnection,9:15:23:27:31
-0x0089,13,ticksend,9
-0x00a7,11,walktoxy,8
-0x0190,24,actionrequest,11:23
-0x00f3,-1,globalmessage,2:4
-0x008c,8,getcharnamerequest,4
-0x0085,17,changedir,8:16
-0x0094,31,movetokafra,16:27
-0x0193,2,closekafra,0
-0x00f7,18,movefromkafra,11:14
-0x009f,19,useitem,9:15
-0x0116,12,dropitem,3:10
-0x00f5,13,takeitem,9
-0x0113,33,useskilltopos,12:15:18:31
 0x0072,34,useskilltoid,6:17:30
 0x007e,113,useskilltoposinfo,12:15:18:31:33
+0x0085,17,changedir,8:16
+0x0089,13,ticksend,9
+0x008c,8,getcharnamerequest,4
+0x0094,31,movetokafra,16:27
+0x009b,32,wanttoconnection,9:15:23:27:31
+0x009f,19,useitem,9:15
 0x00a2,9,solvecharname,5
+0x00a7,11,walktoxy,8
+0x00f3,-1,globalmessage,2:4
+0x00f5,13,takeitem,9
+0x00f7,18,movefromkafra,11:14
+0x0113,33,useskilltopos,12:15:18:31
+0x0116,12,dropitem,3:10
 0x0143,10,npcamountinput,2:6
+0x0190,24,actionrequest,11:23
+0x0193,2,closekafra,0
 0x20e,10
+//Homon Status
 0x22e,71
+//Start Homunculus?
+0x230,12
+//Homon Skill list
+0x235,115
 0x237,2,rankingpk,0
 0x23d,-1
 0x23e,4
+//Start mail system?
 0x23f,2
 0x240,-1
 0x241,-1
@@ -712,9 +718,13 @@ packet_ver: 18
 0x243,-1
 0x244,-1
 0x245,3
+//Start writing a mail?
 0x246,4
+//Send Item/Zeny
 0x247,8
-0x248,-1
+//Message
+0x248,116
+//Delivered?
 0x249,3
 0x24a,70
 0x24b,4
