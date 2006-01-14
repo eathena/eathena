@@ -1263,7 +1263,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		sd = map_id2sd(md->master_id);
 	}
 
-	if(sd && skillid != MC_CARTREVOLUTION && skillid != AM_DEMONSTRATION && attack_type&BF_WEAPON){	/* カ?ドによる追加?果 */
+	if(sd && skillid != MC_CARTREVOLUTION && skillid != AM_DEMONSTRATION && skillid != CR_REFLECTSHIELD && attack_type&BF_WEAPON){	/* カ?ドによる追加?果 */
 		int i, type;
 		int sc_def_card=100;
 
@@ -1304,7 +1304,8 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 
 	//Reports say that autospell effects get triggered on skills and pretty much everything including splash attacks. [Skotlex]
 	//Here we use the nk value to trigger spells only on damage causing skills (otherwise stuff like AL_HEAL will trigger them)
-	if(sd && !status_isdead(bl) && src != bl &&(!skillid || skillid == KN_AUTOCOUNTER || skill_get_nk(skillid)!=NK_NO_DAMAGE)) 
+	if(sd && !status_isdead(bl) && src != bl &&
+		(!skillid || skillid == KN_AUTOCOUNTER || skillid == CR_REFLECTSHIELD || skill_get_nk(skillid)!=NK_NO_DAMAGE)) 
 	{
 		struct block_list *tbl;
 		int i, auto_skillid, auto_skilllv, rate;
@@ -2032,6 +2033,8 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		else
 			battle_damage(bl,src,rdamage,0);
 		clif_damage(src,src,tick, dmg.amotion,0,rdamage,1,4,0);
+		if(sc_data && sc_data[SC_REFLECTSHIELD].timer != -1)
+			skill_additional_effect(bl,src,CR_REFLECTSHIELD, sc_data[SC_REFLECTSHIELD].val1,BF_WEAPON,tick);
 	}
 
 	if (!(flag & 1) &&
@@ -6000,6 +6003,7 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 		if (battle_check_target(&sd->bl,bl, BCT_ENEMY)<=0 &&
 			(!sc_data || sc_data[SC_SILENCE].timer == -1)) //If it's not an enemy, and not silenced, you can't use the skill on them. [Skotlex]
 		{
+			clif_skill_nodamage (&sd->bl, bl, sd->skillid, sd->skilllv, 0);
 			skill_failed(sd);
 			return 0;
 		}

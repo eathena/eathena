@@ -2636,19 +2636,21 @@ int parse_frommap(int fd) {
 			RFIFOSKIP(fd,6);
 			break;
 
-/*		// I want become GM - fuck!
+		// I want become GM - fuck!
 		case 0x2b0a:
 			if(RFIFOREST(fd)<4)
 				return 0;
 			if(RFIFOREST(fd)<RFIFOW(fd,2))
 				return 0;
+			/*
 			memcpy(WFIFOP(login_fd,2),RFIFOP(fd,2),RFIFOW(fd,2)-2);
 			WFIFOW(login_fd,0)=0x2720;
 			WFIFOSET(login_fd,RFIFOW(fd,2));
 //			printf("char : change gm -> login %d %s %d\n", RFIFOL(fd, 4), RFIFOP(fd, 8), RFIFOW(fd, 2));
+			*/
+			ShowWarning("packet 0x2ba (become GM) is not supported by the Char-Server.\n");
 			RFIFOSKIP(fd, RFIFOW(fd, 2));
 			break;
-		*/
 
 		//Packet 0x2b10 deprecated in favor of packet 0x3004 for registry saving. [Skotlex]
 		//case 0x2b10:

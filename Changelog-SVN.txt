@@ -1,6 +1,11 @@
 Date	Added
 
 2006/01/14
+	* Lex Divina now shows the animation even when used on someone you can't
+	  (non-muted, non-enemy player) [Skotlex]
+	* Quick hack to make Shield Reflect trigger auto-spells (only this kind of
+	  return damage does it? Because other reflect cards like Orc Lord behave
+	  exactly the same way...) [Skotlex]
 	* Fixed grf loading to attempt to load from all grf files specified in
 	  grf-files.txt (looking for them in the same order specified in the file,
 	  returns the first match found) instead of only looking up on the last
