@@ -712,6 +712,21 @@ enum {
 	C_XOR,C_OR,C_AND,C_ADD,C_SUB,C_MUL,C_DIV,C_MOD,C_NEG,C_LNOT,C_NOT,C_R_SHIFT,C_L_SHIFT
 };
 
+//Reports on the console the src of an script error.
+static void report_src(int oid) {
+	struct block_list *bl;
+	if (!oid) return;
+	bl = map_id2bl(oid);
+	if (!bl) return;
+	switch (bl->type) {
+		case BL_NPC:
+			ShowDebug("Source (NPC): %s at %s (%d,%d)\n", ((struct npc_data *)bl)->name, mapindex_id2name(bl->m), bl->x, bl->y);
+		break;
+		default:
+			ShowDebug("Source (Non-NPC): %s (%d,%d)\n", mapindex_id2name(bl->m), bl->x, bl->y);
+		break;
+	}
+}
 /*==========================================
  * 文字列のハッシュを計算
  *------------------------------------------
@@ -3203,6 +3218,7 @@ int buildin_set(struct script_state *st)
 
 	if( st->stack->stack_data[st->start+2].type!=C_NAME ){
 		ShowError("script: buildin_set: not name\n");
+		report_src(st->oid);
 		return 0;
 	}
 
@@ -3399,6 +3415,7 @@ int buildin_getelementofarray(struct script_state *st)
 		if(i>127 || i<0){
 			ShowWarning("script: getelementofarray (operator[]): param2 illegal number %d\n",i);
 			push_val(st->stack,C_INT,0);
+			report_src(st->oid);
 		}else{
 			push_val(st->stack,C_NAME,
 				(i<<24) | st->stack->stack_data[st->start+2].u.num );

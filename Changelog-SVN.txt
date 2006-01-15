@@ -1,6 +1,9 @@
 Date	Added
 
 2006/01/15
+	* Added script source error reporting to set and getarrayelement, should
+	  print NPC name and location (map, coordinates) on the console when there's
+	  an error with these two commands. [Skotlex]
 	* Removed treasure chests spawning upon agitbreak, leading to exploits. [Lance]
 
 2006/01/14
