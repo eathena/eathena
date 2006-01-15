@@ -906,18 +906,6 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		}
 		break;
 
-	case DC_UGLYDANCE:
-		if (dstsd) {
-			int skill, sp = 5+5*skilllv;
-			if(sd && (skill=pc_checkskill(sd,DC_DANCINGLESSON)))
-			    sp += 5+skill;
-			dstsd->status.sp -= sp;
-			if(dstsd->status.sp<0)
-				dstsd->status.sp=0;
-			clif_updatestatus(dstsd,SP_SP);
-		}
-  		break;
-
 	case SM_BASH:			/* バッシュ（急所攻?） */
 		if( sd && (skill=pc_checkskill(sd,SM_FATALBLOW))>0 ){
 			if( rand()%100 < 6*(skilllv-5)*sc_def_vit/100 )
@@ -6839,6 +6827,7 @@ int skill_unit_onout(struct skill_unit *src,struct block_list *bl,unsigned int t
 	case 0xa4:	/* 深淵の中に */
 	case 0xa5:	/* 不死身のジークフリード */
 	case 0xb9:	// Wand of Hermod
+	case 0xab:	// Ugly Dance
 		if (sc_data[type].timer!=-1 && sc_data[type].val4==(int)src) {
 			status_change_end(bl,type,-1);
 		}
@@ -6864,7 +6853,6 @@ int skill_unit_onout(struct skill_unit *src,struct block_list *bl,unsigned int t
 
 	case 0xb4:	// Basilica
 	case 0xb8:	// Gravitation
-	case 0xab:	// Ugly Dance
 		if (sc_data[type].timer!=-1 && sc_data[type].val4==(int)sg) {
 			status_change_end(bl,type,-1);
 		}

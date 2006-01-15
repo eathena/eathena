@@ -142,9 +142,9 @@
 
 4149,Gargoyle Card,10000
 4150,Goat Card,10000
-4151,Gajomart Card,10000
+//4151,OLD_MIMIC,10000
 4152,Galapago Card,10000
-4153,Crab Card,10000
+//4153,OLD_ALARM,10000
 4154,Dumpling Child Card,10000
 4155,Goblin Leader Card,10000
 4156,Goblin Steamrider Card,10000
