@@ -20,7 +20,6 @@
  * 2003/10/21 ... The data of alpha client was read.
  *	2003/11/10 ... Ready new grf format.
  *	2003/11/11 ... version check fix & bug fix
- *	2005/01/14 ... Fixed grf loading to look up in all grf's in order instead of just the last one.
  */
 
 #include <stdio.h>
@@ -755,15 +754,10 @@ void* grfio_reads(char *fname, int *size)
 		}
 	}
 	if (entry != NULL && entry->gentry > 0) {	// Archive[GRF] File Read
-		int i;
-		char *gfname;
-		unsigned char *buf;
-		for (i = 0; i < entry->gentry; i++) {
-			gfname = gentry_table[i];
-			in = fopen(gfname, "rb");
-			if(in == NULL)
-				continue;
-			buf = (unsigned char *)aCallocA(entry->srclen_aligned + 1024, 1);
+		char *gfname = gentry_table[entry->gentry - 1];
+		in = fopen(gfname, "rb");
+		if(in != NULL) {
+			unsigned char *buf = (unsigned char *)aCallocA(entry->srclen_aligned + 1024, 1);
 			fseek(in, entry->srcpos, 0);
 			fread(buf, 1, entry->srclen_aligned, in);
 			fclose(in);
@@ -778,15 +772,13 @@ void* grfio_reads(char *fname, int *size)
 					ShowError("decode_zip size miss match err: %d != %d\n", (int)len, entry->declen);
 					aFree(buf);
 					aFree(buf2);
-					continue;
+					return NULL;
 				}
 			} else {
 				memcpy(buf2, buf, entry->declen);
 			}
 			aFree(buf);
-			break;
-		} 
-		if (i == entry->gentry) {
+		} else {
 			ShowError("%s not found (grfio_reads - grf file)\n", fname);
 			return NULL;
 		}
