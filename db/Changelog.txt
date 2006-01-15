@@ -27,6 +27,7 @@
 =========================
 
 01/14
+	* Mode change on some monsters [Vicious]
 	* Updated Packet DB a bit [Vicious]
 	* Updated the race, size, HP and modes of the Kiel monsters [MasterOfMuppets]
 01/12
