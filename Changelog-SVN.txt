@@ -1,6 +1,7 @@
 Date	Added
 
 2006/01/15
+	* Fixed previous change for stable. Whoops my 5am work again. [Kayla]
 	* Fixed the trade exploit allowing for a user to send packets while in a trade.
 	  For instance the bank NPC becoming a zeny dupe. Kudos to clown. [Kayla]
 	* Added script source error reporting to set and getarrayelement, should
