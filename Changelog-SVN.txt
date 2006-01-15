@@ -1,5 +1,8 @@
 Date	Added
 
+2006/01/15
+	* Removed treasure chests spawning upon agitbreak, leading to exploits. [Lance]
+
 2006/01/14
 	* Removed the 5% success penalty for trying to make a convertor for which
 	  you don't have the relevant enchant skills. [Skotlex]

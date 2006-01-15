@@ -22,7 +22,7 @@ gefg_cas01.gat,1,1,1	script	Treasure_G01	-1,{
 OnRecvCastleG01:
 	if($boxNumG01 == 0) end;
 	set $@bxG01, $boxNumG01;
-	callfunc "F_GldTreas","gefg_cas01","G01",$boxNumG01,$@bxG01,$@boxIdG01,1334,150,108,158,114,1;
+//	callfunc "F_GldTreas","gefg_cas01","G01",$boxNumG01,$@bxG01,$@boxIdG01,1334,150,108,158,114,1;
 	end;
 
 OnDied:
@@ -47,7 +47,7 @@ gefg_cas02.gat,1,1,1	script	Treasure_G02	-1,{
 OnRecvCastleG02:
 	if($boxNumG02 == 0) end;
 	set $@bxG02, $boxNumG02;
-	callfunc "F_GldTreas","gefg_cas02","G02",$boxNumG02,$@bxG02,$@boxIdG02,1336,136,112,145,118,1;
+//	callfunc "F_GldTreas","gefg_cas02","G02",$boxNumG02,$@bxG02,$@boxIdG02,1336,136,112,145,118,1;
 	end;
 
 OnDied:
@@ -71,7 +71,7 @@ gefg_cas03.gat,1,1,1	script	Treasure_G03	-1,{
 OnRecvCastleG03:
 	if($boxNumG03 == 0) end;
 	set $@bxG03, $boxNumG03;
-	callfunc "F_GldTreas","gefg_cas03","G03",$boxNumG03,$@bxG03,$@boxIdG03,1338,266,286,275,293,1;
+//	callfunc "F_GldTreas","gefg_cas03","G03",$boxNumG03,$@bxG03,$@boxIdG03,1338,266,286,275,293,1;
 	end;
 
 OnDied:
@@ -96,7 +96,7 @@ gefg_cas04.gat,1,1,1	script	Treasure_G04	-1,{
 OnRecvCastleG04:
 	if($boxNumG04 == 0) end;
 	set $@bxG04, $boxNumG04;
-	callfunc "F_GldTreas","gefg_cas04","G04",$boxNumG04,$@bxG04,$@boxIdG04,1340,112,114,119,123,1;
+//	callfunc "F_GldTreas","gefg_cas04","G04",$boxNumG04,$@bxG04,$@boxIdG04,1340,112,114,119,123,1;
 	end;
 
 OnDied:
@@ -121,7 +121,7 @@ gefg_cas05.gat,1,1,1	script	Treasure_G05	-1,{
 OnRecvCastleG05:
 	if($boxNumG05 == 0) end;
 	set $@bxG05, $boxNumG05;
-	callfunc "F_GldTreas","gefg_cas05","G05",$boxNumG05,$@bxG05,$@boxIdG05,1342,140,106,147,113,1;
+//	callfunc "F_GldTreas","gefg_cas05","G05",$boxNumG05,$@bxG05,$@boxIdG05,1342,140,106,147,113,1;
 	end;
 
 OnDied:
