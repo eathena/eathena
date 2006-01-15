@@ -1,6 +1,8 @@
 Date	Added
 
 2006/01/15
+	* Fixed the trade exploit allowing for a user to send packets while in a trade.
+	  For instance the bank NPC becoming a zeny dupe. Kudos to clown. [Kayla]
 	* Added script source error reporting to set and getarrayelement, should
 	  print NPC name and location (map, coordinates) on the console when there's
 	  an error with these two commands. [Skotlex]

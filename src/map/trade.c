@@ -109,6 +109,12 @@ int impossible_trade_check(struct map_session_data *sd) {
 	int i, index;
 
 	nullpo_retr(1, sd);
+	
+    if(sd->deal_zeny > sd->status.zeny)
+	{
+		pc_setglobalreg(sd,"ZENY_HACKER",1);
+		return -1;
+	}
 
 	// get inventory of player
 	memcpy(&inventory, &sd->status.inventory, sizeof(struct item) * MAX_INVENTORY);
