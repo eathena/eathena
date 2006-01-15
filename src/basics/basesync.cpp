@@ -1,8 +1,11 @@
 #include "basetypes.h"
 #include "baseobjects.h"
-#include "baseexceptions.h"
+#include "basememory.h"
+#include "basealgo.h"
+#include "basetime.h"
+#include "basestring.h"
 #include "basesync.h"
-
+#include "baseexceptions.h"
 
 
 #ifndef SINGLETHREAD

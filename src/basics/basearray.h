@@ -3,8 +3,13 @@
 
 #include "basetypes.h"
 #include "baseobjects.h"
-#include "baseexceptions.h"
 #include "basesafeptr.h"
+#include "basememory.h"
+#include "basealgo.h"
+#include "basetime.h"
+#include "basestring.h"
+#include "baseexceptions.h"
+
 
 //////////////////////////////////////////////////////////////////////////
 // basic lists/arrays
@@ -270,7 +275,6 @@ public:
 		// check for access to outside memory
 		if( inx >= SZ )
 		{
-			Mutex::unlock();
 #ifdef CHECK_EXCEPTIONS
 			throw exception_bound("TArrayF out of bound");
 #else
@@ -1148,7 +1152,6 @@ public:
 		if( cCnt >0 )
 		{
 			maxcnt = cCnt;
-			// keep the mutex locked
 			return const_cast<T*>(cField);
 		}
 		maxcnt = 0;
@@ -2684,7 +2687,6 @@ private:
 template <class T, int CNT> class TMultiListSP
 {
 	TArrayDCT< TPtrAutoCount<T> >	cIndex[CNT];
-	Mutex							cMx;
 
 public:
 	TMultiListSP()	{}

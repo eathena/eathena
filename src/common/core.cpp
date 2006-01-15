@@ -193,7 +193,7 @@ void init_signal()
 // revision
 // would make it inline but dll wants it on a fixed position
 // to get it's function pointer
-const char* get_svn_revision()	{ return "Shinomori's Modified Version (2005-12-26)"; }
+const char* get_svn_revision()	{ return "Shinomori's Modified Version (2005-01-15)"; }
 /*
 {
 	static char version[10]="";
@@ -255,12 +255,10 @@ int main (int argc, char **argv)
 {
 ///////////////////////////////////////////////////////////////////////////
 // test case entrance point
-
 //	stringtest();
 //	stringbuffer_test();
 //	test_algo(1);
 //	return 0;
-
 ///////////////////////////////////////////////////////////////////////////
 
 	int next;

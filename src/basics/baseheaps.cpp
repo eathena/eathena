@@ -1,3 +1,12 @@
+#include "basetypes.h"
+#include "baseobjects.h"
+#include "basesafeptr.h"
+#include "basememory.h"
+#include "basealgo.h"
+#include "basetime.h"
+#include "basestring.h"
+#include "baseexceptions.h"
+#include "basearray.h"
 #include "baseheaps.h"
 
 #define CFIELDS
@@ -12,9 +21,9 @@ void test_heaps(int scale)
 	scale*=10;
 #endif
 
-	size_t k;
-	const size_t CFIELDSIZE = 5000000/scale;
-	size_t elems=0;
+	uint k;
+	const uint CFIELDSIZE = 5000000/scale;
+	uint elems=0;
 
 	ulong tick;
 #if defined(CFIELDS)

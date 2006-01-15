@@ -2934,8 +2934,9 @@ int status_get_speed(struct block_list *bl)
 			}
 		}
 	}
-/*
+
 	// map tile dependend reducing of speed
+/*
 	{
 		int i,k;
 		for(i=-1;i<=1;i++)

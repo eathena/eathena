@@ -263,10 +263,10 @@ protected:
 //!! bloat
 	virtual bool checkwrite(size_t addsize)
 	{
-		size_t sz = memquantize( this->cPtr-this->cBuf + addsize );
+		size_t sz = memquantize( this->cWpp-this->cRpp + addsize );
 
-		if( this->cPtr+addsize > this->cEnd  ||
-			(this->cBuf+8092 < this->cEnd && this->cBuf+4*sz <= this->cEnd))
+		if( this->cBuf+sz > this->cEnd  ||
+			(this->cBuf+8192 < this->cEnd && this->cBuf+4*sz <= this->cEnd))
 		{	// allocate new
 			// enlarge when not fit
 			// shrink when using less than a quarter of the buffer for >8k buffers
@@ -320,6 +320,137 @@ protected:
 	virtual bool checkread(size_t addsize) const
 	{
 		return ( this->cRpp && this->cRpp + addsize <=this->cWpp );
+	}
+};
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+// allocators for read buffers with additional scanning
+// ie. for the parser
+///////////////////////////////////////////////////////////////////////////////
+template <class T=unsigned char> class allocator_r : public allocator<T>
+{
+protected:
+	T* cBuf;
+	T* cEnd;
+	T* cRpp;
+	T* cScn;
+	T* cWpp;
+
+	// std construct/destruct
+	allocator_r()	: cBuf(NULL), cEnd(NULL), cRpp(NULL), cScn(NULL), cWpp(NULL)				{}
+	allocator_r(T* buf, size_t sz) : cBuf(buf), cEnd(buf+sz), cRpp(buf), cScn(buf), cWpp(buf+z)	{}
+	virtual ~allocator_r()	{ cBuf=cEnd=cRpp=cScn=cWpp=NULL; }
+
+	// default read function, reads max sz elements to buf and returns the actual count of read elements
+	virtual size_t readdata(T*buf, size_t sz) =0;
+	virtual bool checkwrite(size_t addsize)	=0;
+	virtual bool checkread(size_t addsize) =0;
+public:
+	virtual operator const T*() const	{ return this->cRpp; }
+	virtual size_t length()	const		{ return (this->cWpp-this->cRpp); }
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// dynamic read-buffer allocator
+///////////////////////////////////////////////////////////////////////////////
+template < class T=unsigned char, class E=elaborator_st<T> > class allocator_r_dy : public allocator_r<T>, public E
+{
+protected:
+	allocator_r_dy() : allocator_r<T>()				{  }
+	allocator_r_dy(size_t sz) : allocator_r<T>()	{ this->checkwrite(sz); }
+	virtual ~allocator_r_dy()						{ if(this->cBuf) delete[] this->cBuf; }
+//!! bloat
+	virtual bool checkwrite(size_t addsize)
+	{
+		size_t sz = memquantize( this->cWpp-this->cRpp + addsize );
+
+		if( this->cBuf+sz > this->cEnd  ||
+			(this->cBuf+8192 < this->cEnd && this->cBuf+4*sz <= this->cEnd))
+		{	// allocate new
+			// enlarge when not fit
+			// shrink when using less than a quarter of the buffer for >8k buffers
+			T *tmp = new T[sz];
+			if(this->cBuf)
+			{
+				this->copy(tmp, this->cRpp, this->cWpp-this->cRpp);
+				delete[] this->cBuf;
+			}
+			this->cEnd = tmp+sz;
+			this->cWpp = tmp+(this->cWpp-this->cRpp);
+			this->cScn = tmp+(this->cScn-this->cRpp);
+			this->cRpp = tmp;
+			this->cBuf = tmp;
+		}
+		else if( this->cWpp+addsize > this->cEnd )
+		{	// moving the current buffer data is sufficient
+			this->move(this->cBuf, this->cRpp, this->cWpp-this->cRpp);
+			this->cWpp = this->cBuf+(this->cWpp-this->cRpp);
+			this->cScn = this->cBuf+(this->cScn-this->cRpp);
+			this->cRpp = this->cBuf;
+		}
+		return (this->cEnd > this->cBuf);
+	}
+	virtual bool checkread(size_t addsize)
+	{
+		T* ptr=(this->cRpp>this->cScn) ? this->cRpp : this->cScn;
+		if( !ptr || ptr + addsize >this->cWpp )
+		{	
+			if( checkwrite( addsize-(this->cWpp-ptr) ) )
+			{
+				this->cWpp+=readdata(this->cWpp, this->cEnd-this->cWpp);
+				return ( ((this->cRpp>this->cScn) ? this->cRpp : this->cScn) + addsize <=this->cWpp );
+			}
+			return false;
+		}
+		return true;
+	}
+};
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+// dynamic file read-buffer
+///////////////////////////////////////////////////////////////////////////////
+template <class T=unsigned char> class allocator_file : public allocator_r_dy< T, elaborator_st<T> >
+{
+	FILE *cFile;
+public:
+	allocator_file() : allocator_r_dy< T, elaborator_st<T> >(1024), cFile(NULL)
+	{  }
+	allocator_file(const char* name) : allocator_r_dy< T, elaborator_st<T> >(1024), cFile(NULL)
+	{
+		open(name);
+	}
+	~allocator_file()
+	{
+		close();
+	}
+	bool open(const char* name)
+	{
+		close();
+		if(name)
+		{
+			cFile = fopen(name, "rb");
+			checkread(1);
+		}
+		return (NULL!=cFile);
+	}
+	void close()
+	{
+		if(cFile)
+		{
+			fclose(cFile);
+			cFile=NULL;
+			this->cWpp=this->cRpp=this->cScn=this->cBuf;
+		}
+	}
+protected:
+	virtual size_t readdata(T*buf, size_t sz)
+	{
+		return (cFile)?fread(buf, 1, sz,cFile):0;
 	}
 };
 

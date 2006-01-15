@@ -1,3 +1,5 @@
+#include "basetypes.h"
+#include "baseobjects.h"
 #include "basefile.h"
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -41,6 +43,18 @@ ssize_t CFile::getline(char *buf, size_t maxlen)
 		return ip-buf;
 	}
 	*buf=0;
+	return -1;
+}
+ssize_t CFile::writeline(const char *buf, size_t maxlen)
+{
+	if(buf && cFile)
+	{
+		if(maxlen==0) maxlen= strlen(buf);
+		ssize_t sz=fwrite(buf,1,maxlen,cFile);
+		if( buf[maxlen-1] != '\n')
+			sz+=fwrite("\n",1,1,cFile);
+		return sz;
+	}
 	return -1;
 }
 

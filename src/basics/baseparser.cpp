@@ -1,11 +1,12 @@
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <memory.h>
-#include <string.h>
-#include <ctype.h>
-#include <sys/types.h>
-#include <sys/stat.h>
+#include "basetypes.h"
+#include "baseobjects.h"
+#include "basesafeptr.h"
+#include "basememory.h"
+#include "basealgo.h"
+#include "basetime.h"
+#include "basestring.h"
+#include "baseexceptions.h"
+#include "basearray.h"
 #include "baseparser.h"
 
 
@@ -61,7 +62,7 @@ void CParser::print_rt_tree(int rtpos, int indent, bool trim)
 void CParser::print_rt()
 {
 	size_t i, k;
-printf ("print rt\n");
+	printf ("print rt\n");
 	for(i=0; i<this->rt.size(); i++)
 	{
 		printf("%03li - (%i) %s, childs:", (unsigned long)i, this->rt[i].symbol.idx, (const char*)this->rt[i].symbol.Name);
@@ -247,43 +248,103 @@ bool CParser_CommentStore::MatchFunction(short type, const string<>& name, short
 
 
 
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Get the next character from the input stream
-///////////////////////////////////////////////////////////////////////////////
-bool CParseInput::get_eof(bool reserve)
+short CParseInput::scan(CParser& parser, CToken& target)
 {
-	if(this->nofs >= this->ncount+this->nbufofs)
-		this->cbgetinput(reserve);
-	return (this->nofs >= this->ncount+this->nbufofs);
-}
+	int c=0;
+	int idx;
+	const CDFAState* dfa = &parser.pconfig->dfa_state[parser.pconfig->init_dfa];
+	int last_accepted=-1;
+	int last_accepted_size=0;
+	int last_accepted_line=this->line;
+	int last_accepted_col=this->column;
 
-///////////////////////////////////////////////////////////////////////////////
-// Get the next character from the input stream
-///////////////////////////////////////////////////////////////////////////////
-short CParseInput::get_char(bool reserve)
-{
-	return this->get_eof(reserve)?EEOF:this->buf[this->nofs - this->nbufofs];
-}
-///////////////////////////////////////////////////////////////////////////////
-// Get the next character from the input stream
-///////////////////////////////////////////////////////////////////////////////
-void CParseInput::next_char()
-{
-	if( this->nofs < this->ncount+this->nbufofs)
-		this->nofs++;
+	target.clear();
+	target.line   = this->line;
+	target.column = this->column;
 
-	char c = this->buf[this->nofs-this->nbufofs];
-	if( c==10 )
+	// check for eof
+	if( this->get_eof(false) )
+		return 0;
+
+	while(1)
 	{
-		this->line++;
-		this->column=0;
-	}
-	else if( c!=13 )
-		this->column++;
-}
+		int i=0;
+		int nedge=0;
+		// get char from input stream
+		c = this->get_char( (last_accepted == -1 || !dfa->Accept) );
 
+		// convert to lower case
+		if(!parser.pconfig->case_sensitive && c != EEOF)
+			c = tolower(c);
+
+		// look for a matching edge
+		if (c != EEOF)
+		{
+			nedge = dfa->cEdge.size();
+			for (i=0; i<nedge; i++)
+			{
+				idx = dfa->cEdge[i].CharSetIndex;
+				if (strchr(parser.pconfig->charset[idx], c))
+				{
+					dfa = &parser.pconfig->dfa_state[dfa->cEdge[i].TargetIndex];
+					if (dfa->Accept)
+					{
+						last_accepted = dfa->AcceptIndex;
+						last_accepted_size = (this->cScn-this->cRpp) + 1;
+						last_accepted_line=this->line;
+						last_accepted_col=this->column;
+					}
+					break;
+				}
+			}
+		}
+		if( (c == EEOF) || (i == nedge) )
+		{
+			// accept, ignore or invalid token
+			if (last_accepted != -1)
+			{
+				// reset buffer counters to start right after the matched token
+				this->line = last_accepted_line;
+				this->column=last_accepted_col;
+
+				target.cLexeme.assign( this->cRpp, last_accepted_size );
+				this->cRpp+=last_accepted_size;
+				this->cScn=this->cRpp;
+			
+				if( !parser.MatchFunction(parser.pconfig->sym[last_accepted].Type, parser.pconfig->sym[last_accepted].Name, (short)last_accepted) )
+				{	// ignore, reset state
+					target.clear();
+					target.line   = this->line;
+					target.column = this->column;
+
+					if (c == EEOF || (last_accepted == -1))
+						return 0;
+
+					dfa = &parser.pconfig->dfa_state[parser.pconfig->init_dfa];
+					last_accepted = -1;
+
+					this->cRpp=this->cScn;
+					continue;
+				}
+				this->cRpp=this->cScn;
+			}
+			break;
+		}
+		// move to next character
+		this->next_char();
+	}
+	if (last_accepted == -1)
+	{	// invalid
+		target.clear();
+		if(c != EEOF) target.id = -1;
+	}
+	else
+	{	// accept
+		target.id=last_accepted;
+	}
+	return target.id;
+}
+/*
 ///////////////////////////////////////////////////////////////////////////////
 // Scan input for next token
 ///////////////////////////////////////////////////////////////////////////////
@@ -385,7 +446,7 @@ short CParseInput::scan(CParser& parser, CToken& target)
 	}
 	return target.id;
 }
-
+*/
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////

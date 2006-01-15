@@ -294,6 +294,7 @@ int buildin_warpparty(CScriptEngine &st);
 int buildin_warpguild(CScriptEngine &st);
 int buildin_pc_emotion(CScriptEngine &st);
 int buildin_getiteminfo(CScriptEngine &st);
+int buildin_callshop(CScriptEngine &st);
 
 
 struct {
@@ -552,7 +553,7 @@ struct {
 	{buildin_warpguild,"warpguild","siii"},
 	{buildin_pc_emotion,"pc_emotion","i"},
 	{buildin_getiteminfo,"getiteminfo","i"},
-
+	{buildin_callshop,"callshop","si"}, // [Skotlex]
 	// array terminator
 	{NULL,NULL,NULL},
 };
@@ -3483,14 +3484,18 @@ int buildin_menu(CScriptEngine &st)
 	{
 		if( st.Rerun() )
 		{
-			size_t len,i;
+			size_t len,i,c;
 			char *buf;
 			for(i=st.start+2,len=16;i<st.end;i+=2)
-				len+=1+strlen( st.GetString(st.stack_data[i]) );
+			{
+				c=strlen( st.GetString(st.stack_data[i]) );
+				len+=1+(c?c:1);
+			}
 			buf=(char *)aMalloc((len+1)*sizeof(char));
 			buf[0]=0;
-			for(i=st.start+2,len=0;i<st.end;i+=2){
-				strcat(buf,st.stack_data[i].str);
+			for(i=st.start+2,len=0;i<st.end;i+=2)
+			{
+				strcat(buf, *st.stack_data[i].str?st.stack_data[i].str:" ");
 				strcat(buf,":");
 			}
 			clif_scriptmenu(*st.sd, st.send_defaultnpc(), buf);
@@ -3538,14 +3543,17 @@ int buildin_select(CScriptEngine &st)
 		if( st.Rerun() )
 		{
 			char *buf;
-			size_t len,i;
+			size_t len,i,c;
 			for(i=st.start+2,len=16;i<st.end;i++)
-				len+=1+strlen( st.GetString(st.stack_data[i]) );
-
+			{	
+				c = strlen( st.GetString(st.stack_data[i]) );
+				len+=1+(c?c:1);
+			}
 			buf=(char *)aMalloc((len+1)*sizeof(char));
 			buf[0]=0;
-			for(i=st.start+2,len=0;i<st.end;i++){
-				strcat(buf,st.stack_data[i].str);
+			for(i=st.start+2,len=0;i<st.end;i++)
+			{
+				strcat(buf,*st.stack_data[i].str?st.stack_data[i].str:" ");
 				strcat(buf,":");
 			}
 			clif_scriptmenu(*st.sd, st.send_defaultnpc(), buf);
@@ -9731,7 +9739,42 @@ int buildin_getiteminfo(CScriptEngine &st)
 	return 0;
 }
 
-
+/*==========================================
+ *	
+ *------------------------------------------
+ */
+int buildin_callshop(CScriptEngine &st)
+{
+	int ret = 0;
+	if(st.sd)
+	{
+		struct npc_data *nd;
+		const char *shopname = st.GetString(st[2]);
+		int flag = 0;
+		if( st.Arguments() > (3) )
+			flag = st.GetInt(st[3]);
+		nd = npc_name2id(shopname);
+		if( nd && nd->bl.type==BL_NPC && nd->bl.subtype==SHOP)
+		{
+			switch (flag)
+			{
+			case 1: //Buy window
+				npc_buysellsel(*st.sd,nd->bl.id,0);
+				break;
+			case 2: //Sell window
+				npc_buysellsel(*st.sd,nd->bl.id,1);
+				break;
+			default: //Show menu
+				clif_npcbuysell(*st.sd,nd->bl.id);
+				break;
+			}
+			st.sd->npc_shopid = nd->bl.id;
+			ret = 1;
+		}
+	}
+	st.push_val(CScriptEngine::C_INT,ret);
+	return 0;
+}
 
 /*==========================================
  * マップ変数の変更

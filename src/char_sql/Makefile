@@ -14,6 +14,8 @@ sql: char-server_sql
 RETURN_PATH ?= .
 BASE_PATH   ?= ../basics
 COMMON_PATH ?= ../common
+CCC         ?= g++ -pipe
+CPPFLAGS    ?= -g -O3 -ffast-math -D_REENTRANT
 ##########################################################
 BP = $(RETURN_PATH)/$(BASE_PATH)
 ##########################################################
@@ -47,4 +49,4 @@ int_pet.o: int_pet.cpp int_pet.h inter.h char.h $(COMMON_H) $(BASE_H)
 itemdb.o: itemdb.cpp itemdb.h $(COMMON_H) $(BASE_H)
 
 clean:
-	rm -rf *.o $(RETURN_PATH)/char-server_sql
+	rm -rf *.o $(RETURN_PATH)/char-server_sql GNUmakefile

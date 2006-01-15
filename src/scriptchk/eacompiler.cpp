@@ -1193,17 +1193,17 @@ public:
 
 
 
-class Variable
+class Variable : public string<>
 {
 	Variable(const Variable&);					// no copy
 	const Variable& operator=(const Variable&);	// no assign
 
 public:
-	string<>	cName;
 	Variant		cValue;
 	///////////////////////////////////////////////////////////////////////////
 	// Construct/Destruct
-	Variable(const char* name) : cName(name)	{  }
+	Variable(const char* n) : string<>(n)		{  }
+	Variable(const string<>& n) : string<>(n)	{  }
 	~Variable()	{  }
 
 	///////////////////////////////////////////////////////////////////////////
@@ -1221,7 +1221,7 @@ public:
 	void set(const Variant & val)	{ cValue = val; }
 
 	///////////////////////////////////////////////////////////////////////////
-	// Set Value
+	// read/set Value
 	operator Variant()				{ return cValue; }
 };
 

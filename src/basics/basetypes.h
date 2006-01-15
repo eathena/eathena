@@ -97,6 +97,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <memory.h>
 #include <string.h>
 #include <errno.h>
 #include <ctype.h>
@@ -107,6 +108,7 @@
 #include <limits.h>
 #include <signal.h>
 #include <assert.h>
+
 
 //////////////////////////////
 #if defined(linux)
@@ -205,6 +207,21 @@ extern long altzone;
 #include <typeinfo>		//!! this is poisoning the global namespace
 
 
+//////////////////////////////////////////////////////////////////////////
+// after including the c++ header, class name "exception" has been
+// placed unfortunately in global namespace and in libc's 
+// at least for the VisualC on windows platforms
+// to get it working with the our own exception class we do some workaround
+// by just swapping the name with a hard define, 
+// drawback is, that std::exception is in this case also not usable
+// another possibility would be to retreat to our own namespace
+//////////////////////////////////////////////////////////////////////////
+#if _MSC_VER
+#define exception CException
+#endif
+//////////////////////////////////////////////////////////////////////////
+
+
 
 //////////////////////////////////////////////////////////////////////////
 // no comment
@@ -252,6 +269,12 @@ extern long altzone;
 #  endif
 # endif
 #endif
+
+// disable attributed stuff on non-GNU
+#ifndef __GNUC__
+#  define  __attribute__(x)
+#endif
+
 
 //////////////////////////////////////////////////////////////////////////
 // useful typedefs
@@ -457,7 +480,7 @@ typedef int bool;
 // wrappers for Character Classification Routines
 // this also gets rid of the macro definitions
 //!! TODO: choose a better name for the namespace 
-namespace stringchk
+namespace stringcheck
 {
 #ifdef isalpha	// get the function form, not the macro
 #undef isalpha
@@ -544,51 +567,51 @@ template <class T> inline T* atomicexchange(T** target, T* value)
 // byte/word/dword access, 32bit limited
 //////////////////////////////////////////////////////////////////////////
 
-extern inline unsigned char GetByte(unsigned long val, size_t num)
+extern inline uchar GetByte(uint32 val, size_t num)
 {
 	switch(num)
 	{
 	case 0:
-		return (unsigned char)(val      );
+		return (uchar)(val      );
 	case 1:
-		return (unsigned char)(val>>0x08);
+		return (uchar)(val>>0x08);
 	case 2:
-		return (unsigned char)(val>>0x10);
+		return (uchar)(val>>0x10);
 	case 3:
-		return (unsigned char)(val>>0x18);
+		return (uchar)(val>>0x18);
 	default:
 		return 0;	//better throw something here
 	}
 }
-extern inline unsigned short GetWord(unsigned long val, size_t num)
+extern inline ushort GetWord(uint32 val, size_t num)
 {
 	switch(num)
 	{
 	case 0:
-		return (unsigned short)(val      );
+		return (ushort)(val      );
 	case 1:
-		return (unsigned short)(val>>0x10);
+		return (ushort)(val>>0x10);
 	default:
 		return 0;	//better throw something here
 	}	
 }
-extern inline unsigned short MakeWord(unsigned char byte0, unsigned char byte1)
+extern inline ushort MakeWord(uchar byte0, uchar byte1)
 {
-	return	  (((unsigned short)byte0)      )
-			| (((unsigned short)byte1)<<0x08);
+	return	  (((ushort)byte0)      )
+			| (((ushort)byte1)<<0x08);
 }
-extern inline unsigned long MakeDWord(unsigned short word0, unsigned short word1)
+extern inline uint32 MakeDWord(ushort word0, ushort word1)
 {
-	return 	  (((unsigned long)word0)      )
-			| (((unsigned long)word1)<<0x10);
+	return 	  (((uint32)word0)      )
+			| (((uint32)word1)<<0x10);
 }
 
-extern inline unsigned long MakeDWord(unsigned char byte0, unsigned char byte1, unsigned char byte2, unsigned char byte3)
+extern inline uint32 MakeDWord(uchar byte0, uchar byte1, uchar byte2, uchar byte3)
 {
-	return 	  (((unsigned long)byte0)      )
-			| (((unsigned long)byte1)<<0x08)
-			| (((unsigned long)byte2)<<0x10)
-			| (((unsigned long)byte3)<<0x18);
+	return 	  (((uint32)byte0)      )
+			| (((uint32)byte1)<<0x08)
+			| (((uint32)byte2)<<0x10)
+			| (((uint32)byte3)<<0x18);
 }
 
 
@@ -601,7 +624,7 @@ extern inline void SwapTwoBytes(char *p)
 	}
 }
 // Swap the bytes within a 16-bit WORD.
-extern inline unsigned short SwapTwoBytes(unsigned short w)
+extern inline ushort SwapTwoBytes(ushort w)
 {
     return	  ((w & 0x00FF) << 0x08)
 			| ((w & 0xFF00) >> 0x08);
@@ -621,7 +644,7 @@ extern inline void SwapFourBytes(char *p)
 	}
 }
 // Swap the 4 bytes within a 32-bit DWORD.
-extern inline unsigned long SwapFourBytes(unsigned long w)
+extern inline uint32 SwapFourBytes(uint32 w)
 {
     return	  ((w & 0x000000FF) << 0x18)
 			| ((w & 0x0000FF00) << 0x08)
@@ -654,12 +677,12 @@ extern inline int CheckByteOrder(void)
 #ifdef log2 //glibc defines this as macro
 #undef log2
 #endif
-inline ulong log2(ulong v)
+inline uint32 log2(uint32 v)
 {
 //	static const unsigned long b[] = {0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000};
 //	static const unsigned long S[] = {1, 2, 4, 8, 16};
 	// result of log2(v) will go here
-	register ulong c = 0; 
+	register uint32 c = 0; 
 //	int i;
 //	for (i = 4; i >= 0; i--) 
 //	{
@@ -687,7 +710,7 @@ inline ulong log2(ulong v)
 //////////////////////////////////////////////////////////////////////////
 // OR (IF YOU KNOW v IS A POWER OF 2):
 //////////////////////////////////////////////////////////////////////////
-inline ulong log2_(ulong v)
+inline uint32 log2_(uint32 v)
 {
 //	const unsigned long b[] = {0xAAAAAAAA, 0xCCCCCCCC, 0xF0F0F0F0, 0xFF00FF00, 0xFFFF0000};
 //	register ulong c = ((v & b[0]) != 0);
@@ -719,7 +742,7 @@ inline ulong log2_(ulong v)
 // to find the log of a 32-bit value. 
 // If extended for 64-bit quantities, it would take roughly 9 operations.
 //////////////////////////////////////////////////////////////////////////
-extern inline ulong log2t(ulong v)
+extern inline uint32 log2t(uint32 v)
 {
 	static const unsigned char LogTable256[] = 
 	{
@@ -740,9 +763,9 @@ extern inline ulong log2t(ulong v)
 	  7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
 	  7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7
 	};
-	register ulong c = 0; // c will be lg(v)
-	register ulong t;
-	register ulong tt = (v >> 16);
+	register uint32 c = 0; // c will be lg(v)
+	register uint32 t;
+	register uint32 tt = (v >> 16);
 	if(tt)
 	{
 		t = v >> 24;
@@ -759,12 +782,12 @@ extern inline ulong log2t(ulong v)
 //////////////////////////////////////////////////////////////////////////
 // Counting bits set, in parallel
 //////////////////////////////////////////////////////////////////////////
-inline ulong bit_count(ulong v)
+inline uint32 bit_count(uint32 v)
 {
 //	static const ulong S[] = {1, 2, 4, 8, 16}; // Magic Binary Numbers
 //	static const ulong B[] = {0x55555555, 0x33333333, 0x0F0F0F0F, 0x00FF00FF, 0x0000FFFF};
 	// store the total here
-	ulong c = v; 
+	uint32 c = v; 
 //	c = ((c >> S[0]) & B[0]) + (c & B[0]);
 //	c = ((c >> S[1]) & B[1]) + (c & B[1]);
 //	c = ((c >> S[2]) & B[2]) + (c & B[2]);
@@ -796,7 +819,7 @@ inline uchar bit_reverse(uchar b)
 // for more information. 
 // Anyway I would not count on that, so I put values explicitely.
 //////////////////////////////////////////////////////////////////////////
-inline ulong bit_reverse(ulong v)
+inline uint32 bit_reverse(uint32 v)
 {
 //	static const ulong S[] = {1, 2, 4, 8, 16}; // Magic Binary Numbers
 //	static const ulong B[] = {0x55555555, 0x33333333, 0x0F0F0F0F, 0x00FF00FF, 0x0000FFFF};
@@ -827,7 +850,7 @@ extern inline bool isPowerOf2(ulong i)
 //////////////////////////////////////////////////////////////////////////
 // round up to the next power of 2
 //////////////////////////////////////////////////////////////////////////
-extern inline ulong RoundPowerOf2(ulong v)
+extern inline uint32 RoundPowerOf2(uint32 v)
 {
 	v--;
 	v |= v >> 1;
@@ -847,7 +870,7 @@ extern inline ulong RoundPowerOf2(ulong v)
 #endif
 extern inline unsigned long pow2(unsigned long v)
 {
-	if(v < NBBY*sizeof(unsigned long) )
+	if( v < NBBY*sizeof(unsigned long) )
 		return 1<<v;
 	return 0;
 }

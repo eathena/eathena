@@ -1,8 +1,16 @@
 #ifndef __BASEMINISTRING_H__
 #define __BASEMINISTRING_H__
 
-#include "basearray.h"
+#include "basetypes.h"
+#include "baseobjects.h"
 #include "basesafeptr.h"
+#include "basememory.h"
+#include "basealgo.h"
+#include "basetime.h"
+#include "basestring.h"
+#include "baseexceptions.h"
+#include "basearray.h"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //

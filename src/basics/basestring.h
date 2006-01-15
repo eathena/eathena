@@ -4,9 +4,11 @@
 //!! bloat marker included
 //!! move back included
 
-
+#include "basetypes.h"
+#include "baseobjects.h"
 #include "basememory.h"
 #include "basealgo.h"
+#include "basetime.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 // additional includes for wchar support
@@ -2597,6 +2599,11 @@ inline string<> itostring(uint64 v)	{ return itostring(uint64(v), 10, 0, ' '); }
 inline string<> itostring(int v)	{ return itostring(sint64(v), 10, 0, ' '); }
 inline string<> itostring(uint v)	{ return itostring(uint64(v), 10, 0, ' '); }
 
+///////////////////////////////////////////////////////////////////////////////
+// timestamp string
+///////////////////////////////////////////////////////////////////////////////
+template<class T> string<T> nowstring(const T* fmt, bool utc=true);
+template<class T> string<T> dttostring(datetime, const T* fmt);
 
 
 

@@ -1861,11 +1861,11 @@ CREATE TABLE IF NOT EXISTS `char_skill` (
 		if(ret)
 		{	// start with the next char after the delimiter
 			unsigned long val;
-			char str[32];
+			char valstr[32];
 			next++;
 			for(i = 0; str[next] && str[next] != '\t' && str[next] != '\n' && str[next] != '\r'; i++)
 			{	// global_reg実装以前のathena.txt互換のため一応'\n'チェック
-				if(sscanf(str + next, "%32[^,],%ld%n", str, &val, &len) != 2)
+				if(sscanf(str + next, "%32[^,],%ld%n", valstr, &val, &len) != 2)
 				{	// because some scripts are not correct, the str can be "". So, we must check that.
 					// If it's, we must not refuse the character, but just this REG value.
 					// Character line will have something like: nov_2nd_cos,9 ,9 nov_1_2_cos_c,1 (here, ,9 is not good)
@@ -1882,14 +1882,14 @@ CREATE TABLE IF NOT EXISTS `char_skill` (
 				}
 				if( i<GLOBAL_REG_NUM )
 				{
-					safestrcpy(p.global_reg[i].str, str, sizeof(p.global_reg[i].str));
+					safestrcpy(p.global_reg[i].str, valstr, sizeof(p.global_reg[i].str));
 					p.global_reg[i].value = val;
 				}
 				next += len;
 				if (str[next] == ' ')
 					next++;
 			}
-			p.global_reg_num = i;
+			p.global_reg_num = min(i, (size_t)GLOBAL_REG_NUM);
 		}
 
 		// insert the character to the list

@@ -1,6 +1,14 @@
 #ifndef __BASEHEAPS_H__
 #define __BASEHEAPS_H__
 
+#include "basetypes.h"
+#include "baseobjects.h"
+#include "basesafeptr.h"
+#include "basememory.h"
+#include "basealgo.h"
+#include "basetime.h"
+#include "basestring.h"
+#include "baseexceptions.h"
 #include "basearray.h"
 
 

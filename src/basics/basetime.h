@@ -6,7 +6,6 @@
 // introduces datatime object and access functions
 ///////////////////////////////////////////////////////////////////////////////
 #include "basetypes.h"
-#include "basestring.h"
 
 
 
@@ -18,50 +17,45 @@ typedef int64 datetime;
 
 #define invdatetime LLCONST(-1)
 
-#define _msecsmax 86400000                    // number of milliseconds of one day
-#define _daysmax  3652059                     // number of days between 01/01/0001 and 12/31/9999
-#define _datetimemax LLCONST(315537897600000) // max. allowed number for datetime type
-#define _unixepoch LLCONST(62135596800000)    // difference between time_t and datetime in milliseconds
+#define _msecsmax 86400000						// number of milliseconds of one day
+#define _daysmax  3652059						// number of days between 01/01/0001 and 12/31/9999
+#define _datetimemax LLCONST(315537897600000)	// max. allowed number for datetime type
+#define _unixepoch LLCONST(62135596800000)		// difference between time_t and datetime in milliseconds
 
 
 
 ///////////////////////////////////////////////////////////////////////////////
 // datetime general utilities
 ///////////////////////////////////////////////////////////////////////////////
-inline int days(datetime d)            { return int(d / _msecsmax); }
-inline int msecs(datetime d)           { return int(d % _msecsmax); }
+inline int days(datetime d)			{ return int(d / _msecsmax); }
+inline int msecs(datetime d)		{ return int(d % _msecsmax); }
 
 datetime makedt(int days, int msecs);
-bool     isvalid(datetime);
+bool isvalid(datetime);
 datetime now(bool utc = true);
-void     tzupdate();
-int      tzoffset();
-///////////////////////////////////////////////////////////////////////////////
-// timestamp string
-///////////////////////////////////////////////////////////////////////////////
-template<class T> string<T> nowstring(const T* fmt, bool utc=true);
-template<class T> string<T> dttostring(datetime, const T* fmt);
+void tzupdate();
+int	tzoffset();
 datetime utodatetime(time_t u);
 struct tm* dttotm(datetime dt, struct tm& t);
 
 ///////////////////////////////////////////////////////////////////////////////
 // date/calendar manipulation
 ///////////////////////////////////////////////////////////////////////////////
-bool     isleapyear(int year);
-int      daysinmonth(int year, int month);
-int      daysinyear(int year, int month);
-int      dayofweek(datetime);
-bool     isdatevalid(int year, int month, int day);
+bool isleapyear(int year);
+int	daysinmonth(int year, int month);
+int	daysinyear(int year, int month);
+int	dayofweek(datetime);
+bool isdatevalid(int year, int month, int day);
 datetime encodedate(int year, int month, int day);
-bool     decodedate(datetime, int& year, int& month, int& day);
+bool decodedate(datetime, int& year, int& month, int& day);
 
 ///////////////////////////////////////////////////////////////////////////////
 // time manipulation
 ///////////////////////////////////////////////////////////////////////////////
-bool     istimevalid(int hour, int min, int sec, int msec = 0);
+bool istimevalid(int hour, int min, int sec, int msec = 0);
 datetime encodetime(int hour, int min, int sec, int msec = 0);
-bool     decodetime(datetime, int& hour, int& min, int& sec, int& msec);
-bool     decodetime(datetime, int& hour, int& min, int& sec);
+bool decodetime(datetime, int& hour, int& min, int& sec, int& msec);
+bool decodetime(datetime, int& hour, int& min, int& sec);
 
 
 
@@ -72,8 +66,8 @@ bool     decodetime(datetime, int& hour, int& min, int& sec);
 // missing gettimeofday on windows
 extern inline int gettimeofday(struct timeval *timenow, void *tz)
 {
-    if (timenow)
-    {
+	if (timenow)
+	{
 		FILETIME	ft;
 		GetSystemTimeAsFileTime(&ft);
 		// while the return value of GetSystemTimeAsFileTime is precise to 100ns
@@ -96,42 +90,42 @@ extern inline int gettimeofday(struct timeval *timenow, void *tz)
 		// and the same with 64bit math
 		// which might be faster on a real 64bit platform
 		LARGE_INTEGER   li;
-		__int64         t;
+		__int64		t;
 		static const __i64 EPOCHFILETIME = (116444736000000000i64)
-        li.LowPart  = ft.dwLowDateTime;
-        li.HighPart = ft.dwHighDateTime;
-        t  = li.QuadPart;       // time in 100-nanosecond intervals
-        t -= EPOCHFILETIME;     // offset to the epoch time
-        t /= 10;                // time in microseconds
+		li.LowPart  = ft.dwLowDateTime;
+		li.HighPart = ft.dwHighDateTime;
+		t  = li.QuadPart;	// time in 100-nanosecond intervals
+		t -= EPOCHFILETIME;	// offset to the epoch time
+		t /= 10;				// time in microseconds
 
-        timenow->tv_sec  = (long)(t / 1000000);
-        timenow->tv_usec = (long)(t % 1000000);
+		timenow->tv_sec  = (long)(t / 1000000);
+		timenow->tv_usec = (long)(t % 1000000);
 #endif
-    }
+	}
 	///////////////////////////////////////////////////////////////////////////
 	/*
 	void*tz should be struct timezone *tz
 		with
 	struct timezone {
-		int     tz_minuteswest; // minutes W of Greenwich
-		int     tz_dsttime;     // type of dst correction
+		int	tz_minuteswest; // minutes W of Greenwich
+		int	tz_dsttime;	// type of dst correction
 	};
 	but has never been used, because the daylight saving could not be defined by an algorithm
 
 	the code to actually use this structures would be:
-    if (tz)
-    {
-		static int      tzflag=0;
-        if (!tzflag)
-        {	// run tzset once in application livetime
+	if (tz)
+	{
+		static int	tzflag=0;
+		if (!tzflag)
+		{	// run tzset once in application livetime
 			// to set _timezone and _daylight according to system specification
-            _tzset();
-            tzflag++;
-        }
+			_tzset();
+			tzflag++;
+		}
 		// copy the global values out
-        tz->tz_minuteswest = _timezone / 60;
-        tz->tz_dsttime = _daylight;
-    }
+		tz->tz_minuteswest = _timezone / 60;
+		tz->tz_dsttime = _daylight;
+	}
 	*/
 	///////////////////////////////////////////////////////////////////////////
 
@@ -159,27 +153,26 @@ extern inline unsigned long GetTickCount()
 // unfortunately the later is unlikely to get in necessary precision
 inline uint64 rdtsc(void)
 {
-
 ///////////////////////////////////////////////////////////////////////////////
 #if defined(_MSC_VER)			// Visual C++
-  unsigned long upper, lower;
-  __asm
-  {
-    rdtsc
-    mov [lower],eax
-    mov [upper],edx
-  }
-  return (((uint64)upper)<<32) | lower;
+	unsigned long upper, lower;
+	__asm
+	{
+		rdtsc
+		mov [lower],eax
+		mov [upper],edx
+	}
+	return (((uint64)upper)<<32) | lower;
 ///////////////////////////////////////////////////////////////////////////////
 #elif defined(__BORLANDC__)		// Borland
-  unsigned long upper, lower;
-  asm
-  {
-    db 0x0F,0x31 // instruction RDTSC
-    mov [lower],eax
-    mov [upper],edx
-  }
-  return (((uint64)upper)<<32) | lower;
+	unsigned long upper, lower;
+	asm
+	{
+		db 0x0F,0x31 // instruction RDTSC
+		mov [lower],eax
+		mov [upper],edx
+	}
+	return (((uint64)upper)<<32) | lower;
 ///////////////////////////////////////////////////////////////////////////////
 #elif defined(__alpha__)
 	uint64 ret;
@@ -192,12 +185,12 @@ inline uint64 rdtsc(void)
 #elif defined(__powerpc__)
 	unsigned long upper, lower, tmp;
 	__asm__ volatile(
-		"loop:                  \n"
-		"\tmftbu   %0           \n"
-		"\tmftb    %1           \n"
-		"\tmftbu   %2           \n"
-		"\tcmpw    %2,%0        \n"
-		"\tbne     loop         \n"
+		"loop:				\n"
+		"\tmftbu   %0		\n"
+		"\tmftb	%1		\n"
+		"\tmftbu   %2		\n"
+		"\tcmpw	%2,%0		\n"
+		"\tbne	loop		\n"
 		: "=r"(upper),"=r"(lower),"=r"(tmp)
 		);
 	return (((uint64)upper)<<32) | lower;

@@ -1,7 +1,8 @@
 #ifndef __BASESAFEPTR_H__
 #define __BASESAFEPTR_H__
 
-#include "basesync.h"
+#include "basetypes.h"
+#include "baseobjects.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // basic pointer interface
@@ -22,9 +23,10 @@ public:
 	virtual bool operator ==(void *p) const = 0;
 	virtual bool operator !=(void *p) const = 0;
 };
+
 /////////////////////////////////////////////////////////////////////////////////////////
 // Simple Auto/Copy-Pointer
-// it creates a default object on first access if not initializes
+// it creates a default object on first access if not initialized
 // automatic free on object delete
 // does not use a counting object
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -45,22 +47,22 @@ private:
 			this->itsPtr = new X(*pp);
 	}
 public:
-	explicit TPtrAuto(X* p = NULL) throw() : itsPtr(p)	{}
-	virtual ~TPtrAuto()				{if(this->itsPtr) delete this->itsPtr;}
+	explicit TPtrAuto(X* p = NULL) throw() : itsPtr(p)		{ }
+	virtual ~TPtrAuto()										{ if(this->itsPtr) delete this->itsPtr; }
 
 	TPtrAuto(const TPtr<X>& p) throw() : itsPtr(NULL)		{ this->copy(p); }
 	const TPtr<X>& operator=(const TPtr<X>& p)				{ this->copy(p); return *this; }
 	TPtrAuto(const TPtrAuto<X>& p) throw() : itsPtr(NULL)	{ this->copy(p); }
 	const TPtr<X>& operator=(const TPtrAuto<X>& p)			{ this->copy(p); return *this; }
 
-	virtual const X& readaccess() const			{const_cast<TPtrAuto<X>*>(this)->create(); return *this->itsPtr;}
-	virtual X& writeaccess()					{const_cast<TPtrAuto<X>*>(this)->create(); return *this->itsPtr;}
-	virtual const X* get() const				{const_cast<TPtrAuto<X>*>(this)->create(); return this->itsPtr;}
-	virtual const X& operator*() const throw()	{const_cast<TPtrAuto<X>*>(this)->create(); return *this->itsPtr;}
-	virtual const X* operator->() const throw() {const_cast<TPtrAuto<X>*>(this)->create(); return this->itsPtr;}
-	X& operator*()	throw()						{const_cast<TPtrAuto<X>*>(this)->create(); return *this->itsPtr;}
-	X* operator->()	throw()						{const_cast<TPtrAuto<X>*>(this)->create(); return this->itsPtr;}
-	operator const X&() const throw()			{const_cast<TPtrAuto<X>*>(this)->create(); return *this->itsPtr;}
+	virtual const X& readaccess() const			{ const_cast<TPtrAuto<X>*>(this)->create(); return *this->itsPtr; }
+	virtual X& writeaccess()					{ const_cast<TPtrAuto<X>*>(this)->create(); return *this->itsPtr; }
+	virtual const X* get() const				{ const_cast<TPtrAuto<X>*>(this)->create(); return  this->itsPtr; }
+	virtual const X& operator*() const throw()	{ const_cast<TPtrAuto<X>*>(this)->create(); return *this->itsPtr; }
+	virtual const X* operator->() const throw() { const_cast<TPtrAuto<X>*>(this)->create(); return  this->itsPtr; }
+	X& operator*()	throw()						{ const_cast<TPtrAuto<X>*>(this)->create(); return *this->itsPtr; }
+	X* operator->()	throw()						{ const_cast<TPtrAuto<X>*>(this)->create(); return  this->itsPtr; }
+	operator const X&() const throw()			{ const_cast<TPtrAuto<X>*>(this)->create(); return *this->itsPtr; }
 
 
 	virtual bool operator ==(void *p) const { return this->itsPtr==p; }
@@ -105,6 +107,34 @@ protected:
 			return NULL;
 		}
 	};
+/*
+	template <class T> class CCounter
+	{
+	public:
+		T				ptr;
+		unsigned int	count;
+
+		CCounter(const T& p, unsigned int c = 1) : ptr(p), count(c) {}
+		~CCounter()	{ }
+
+
+		operator T()	{  return ptr; }
+
+		CCounter<T>* aquire()
+		{
+			atomicincrement( &count );
+			return this;
+		}
+		CCounter<T>* release()
+		{
+			if( atomicdecrement( &count ) == 0 )
+			{
+				delete this;
+			}
+			return NULL;
+		}
+	};
+*/
 	CCounter<X>* itsCounter;
 
 	void acquire(const TPtrCount<X>& r) throw()
@@ -493,6 +523,7 @@ public:
 	virtual X* operator->()	throw()					{ writeaccess(); return this->itsCounter ? this->itsCounter->ptr : NULL; }
 	virtual operator const X&() const throw()		{ return readaccess(); }
 };
+
 
 
 

@@ -3,7 +3,14 @@
 #define __BASEPARSER_H__
 
 
+#include "basetypes.h"
+#include "baseobjects.h"
+#include "basesafeptr.h"
+#include "basememory.h"
+#include "basealgo.h"
+#include "basetime.h"
 #include "basestring.h"
+#include "baseexceptions.h"
 #include "basearray.h"
 
 
@@ -197,10 +204,56 @@ public:
 
 };
 
+class CParseInput : public allocator_file<char>
+{
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// position marker
+	unsigned short	line;
+	unsigned short	column;
+
+	CParseInput() : line(1),column(0)	{}
+	virtual ~CParseInput()				{}
+
+	short scan(CParser& parser, CToken& target); 
+
+	void next_char()
+	{
+		if( checkread(1) )
+		{
+			this->cScn++;
+			if( 10==*this->cScn )
+			{
+				this->line++;
+				this->column=0;
+			}
+			else if( 13 != *this->cScn )
+				this->column++;
+		}
+	}
+	void rewind()
+	{
+		this->cScn=this->cRpp;
+	}
+	void accept()
+	{
+		this->cRpp=this->cScn;
+	}
+	// get the next character from the input stream
+	short get_char(bool reserve=true)
+	{
+		return checkread(1) ? (*((unsigned char*)this->cScn)) : EEOF;
+	}
+	bool get_eof(bool reserve=true)
+	{
+		return EEOF==get_char(reserve);
+	}
+};
+
+/*
 
 class CParseInput
 {
-
 	///////////////////////////////////////////////////////////////////////////
 	// input buffer
 	char*	buf;		// buffer
@@ -270,7 +323,7 @@ public:
 		buf = new char[2048];
 		nbufsize = 2048;
 	}
-	virtual ~CParseInput()	{}
+	virtual ~CParseInput()	{ close(); }
 
 	///////////////////////////////////////////////////////////////////////////
 	// file functions
@@ -302,14 +355,40 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	// access functions
-	void next_char();					// increment to next character in input stream
-	short get_char(bool reserve=true);	// get the next character from the input stream
-	bool get_eof(bool reserve=true);	// check for eof on the input stream
-
 	// get the next token
 	short scan(CParser& parser, CToken& target); 
+
+
+	// increment to next character in input stream
+	void next_char()
+	{
+		if( this->nofs < this->ncount+this->nbufofs)
+			this->nofs++;
+
+		char c = this->buf[this->nofs-this->nbufofs];
+		if( c==10 )
+		{
+			this->line++;
+			this->column=0;
+		}
+		else if( c!=13 )
+			this->column++;
+	}
+	// get the next character from the input stream
+	short get_char(bool reserve=true)
+	{
+		return this->get_eof(reserve)?EEOF:this->buf[this->nofs - this->nbufofs];
+	}
+	// check for eof on the input stream
+	bool get_eof(bool reserve=true)
+	{
+		if(this->nofs >= this->ncount+this->nbufofs)
+			this->cbgetinput(reserve);
+		return (this->nofs >= this->ncount+this->nbufofs);
+	}
 };
 
+*/
 
 
 // parser configuration
@@ -324,11 +403,11 @@ public:
 	short			start_symbol;
 	bool			case_sensitive;
 	///////////////////////////////////////////////////////////////////////////
-	TArrayDST< string<> >	charset;
-	TArrayDST<CDFAState>	dfa_state;
-	TArrayDST<CSymbol>		sym;
-	TArrayDST<CRule>		rule;
-	TArrayDST<CLALRState>	lalr_state;
+	TArrayDCT< string<> >	charset;
+	TArrayDCT<CDFAState>	dfa_state;
+	TArrayDCT<CSymbol>		sym;
+	TArrayDCT<CRule>		rule;
+	TArrayDCT<CLALRState>	lalr_state;
 
 public:
 	///////////////////////////////////////////////////////////////////////////

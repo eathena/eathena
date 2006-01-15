@@ -10,6 +10,8 @@ all eascript: eascriptchk
 ##########################################################
 RETURN_PATH ?= .
 BASE_PATH   ?= ../basics
+CCC         ?= g++ -pipe
+CPPFLAGS    ?= -g -O3 -ffast-math -D_REENTRANT
 ##########################################################
 BP = $(RETURN_PATH)/$(BASE_PATH)
 ##########################################################
@@ -30,4 +32,4 @@ eacompiler.o: eacompiler.cpp $(BASE_H)
 scriptchk.o: scriptchk.cpp $(BASE_H)
 
 clean:
-	rm -rf *.o $(RETURN_PATH)/eascriptchk
+	rm -rf *.o $(RETURN_PATH)/eascriptchk GNUmakefile

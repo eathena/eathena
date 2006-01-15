@@ -25,8 +25,9 @@ private:
 #endif
 	noncopyable(const noncopyable&);
 	const noncopyable& operator= (const noncopyable&);
-public:
+protected:
 	noncopyable() {}
+public:
 	~noncopyable() {}
 };
 
@@ -50,14 +51,17 @@ private:
 #endif
 #endif
 
-public:
 #ifdef COUNT_GLOBALS
+protected:
 	global()				{ atomicincrement(&sGlobalCount); }
+public:
 	virtual ~global()		{ atomicdecrement(&sGlobalCount); }
 	static int getcount()	{ return sGlobalCount; }
 	static int correct()	{ atomicdecrement(&sGlobalCount); return sGlobalCount; }
 #else
+protected:
 	global()				{ }
+public:
 	virtual ~global()		{ }
 	static int getcount()	{ return 0; }
 	static int correct()	{ return 0; }

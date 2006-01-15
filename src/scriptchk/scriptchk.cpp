@@ -1,11 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <memory.h>
-#include <string.h>
-#include <ctype.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-
 
 #include "basesafeptr.h"
 #include "basetime.h"
@@ -977,12 +969,22 @@ int get_option(const char* p)
 	return option;
 }
 
-extern int testmain(int argc, char *argv[]);
 
 // Accepts 3 arguments [engine file] [option(s)] <input file>
 int main(int argc, char *argv[])
 {
-//	return testmain(argc, argv);
+
+	allocator_file<> af(argv[1]);
+
+	
+
+
+
+
+
+
+
+
 	ulong tick = GetTickCount();
 	CParser_CommentStore* parser = 0;
 	CParseConfig* parser_config = 0;
@@ -1059,7 +1061,7 @@ int main(int argc, char *argv[])
 	}
 
 	CScriptEnvironment env;
-	CScriptCompiler compiler(env, (option&OPT_COMPILEDEBUG)==OPT_COMPILEDEBUG);
+	CScriptCompiler compiler(env, ((option&OPT_COMPILEDEBUG)==OPT_COMPILEDEBUG)?2:1);
 
 	struct _buildin_func *pt = buildin_func;
 	while(pt->name)

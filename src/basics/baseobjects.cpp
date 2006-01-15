@@ -1,4 +1,4 @@
-
+#include "basetypes.h"
 #include "baseobjects.h"
 
 
@@ -19,7 +19,7 @@ global::_globalcount::~_globalcount()
 	if( global::getcount() > 0 )
 	{
 		printf("global object count: %i\n", global::getcount());
-		printf("still not dealloced everything, may be leaky or just static objects.\n");
+		printf("still not dealloced everything, may be leaky or just static/global objects.\n");
 	}
 	else
 	{

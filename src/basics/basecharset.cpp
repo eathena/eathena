@@ -1,5 +1,10 @@
 
+#include "basetypes.h"
+#include "baseobjects.h"
 #include "basecharset.h"
+#include "basealgo.h"
+#include "basetime.h"
+#include "basememory.h"
 #include "basestring.h"
 
 

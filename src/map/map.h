@@ -179,6 +179,7 @@ struct block_list
 	unsigned short y;
 	unsigned char type;
 	unsigned char subtype;
+
 	// New member functions by Aru to cleanup code and 
 	// automate sanity checking when converting block_list
 	// to map_session_data, mob_data or pet_data
@@ -189,6 +190,8 @@ struct block_list
 		else
 			return (struct map_session_data*)this;
 	}
+	operator struct map_session_data*()	{ return get_sd(); }
+
 	struct pet_data* get_pd()
 	{
 		if(type != BL_PET)
@@ -196,14 +199,16 @@ struct block_list
 		else
 			return (struct pet_data*)this;
 	}
-	struct mob_data* get_pd()
+	operator struct pet_data*()	{ return get_pd(); }
+
+	struct mob_data* get_md()
 	{
 		if(type != BL_MOB)
 			return NULL;
 		else
 			return (struct mob_data*)this;
 	}
-
+	operator struct mob_data*()	{ return get_md(); }
 
 };
 
@@ -1441,17 +1446,21 @@ void char_offline(struct map_session_data *sd);
 static inline int distance(int x0,int y0,int x1,int y1)
 {
 	int dx,dy;
-
-	dx=abs(x0-x1);
-	dy=abs(y0-y1);
+	//dx=abs(x0-x1);
+	//dy=abs(y0-y1);
 	//return dx>dy ? dx : dy;
 
 	// euclidean distance approximation with piecewise linear octagon
-
+	// but calculated explicitely correct the the borders 
+	dx = (x0>x1)?x0-x1:x1-x0;
+	dy = (y0>y1)?y0-y1:y1-y0;
+	if(dx==0) return dy;
+	if(dy==0) return dx;
+	if(dy>=dx) if(dy>dx) swap(dx,dy); else return (dx*362)/256;
 	//http://www.flipcode.com/articles/article_fastdistance.shtml
-	if(dy > dx) swap(dx,dy);
 	return ( (( dx << 8 ) + ( dx << 3 ) - ( dx << 4 ) - ( dx << 1 ) +
 			  ( dy << 7 ) - ( dy << 5 ) + ( dy << 3 ) - ( dy << 1 )) >> 8 );
+
 }
 
 

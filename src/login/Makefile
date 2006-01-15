@@ -12,6 +12,8 @@ all txt sql: login-server
 RETURN_PATH ?= .
 BASE_PATH   ?= ../basics
 COMMON_PATH ?= ../common
+CCC         ?= g++ -pipe
+CPPFLAGS    ?= -g -O3 -ffast-math -D_REENTRANT
 ##########################################################
 BP = $(RETURN_PATH)/$(BASE_PATH)
 ##########################################################
@@ -37,4 +39,4 @@ login-server: login.o $(COMMON_OBJ) $(BASE_OBJ)
 login.o: login.cpp login.h $(COMMON_H) $(BASE_H)
 
 clean:
-	rm -rf *.o $(RETURN_PATH)/login-server
+	rm -rf *.o $(RETURN_PATH)/login-server GNUmakefile

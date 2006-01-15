@@ -119,6 +119,7 @@ public:
 	operator FILE*()	{ return cFile; }
 
 	ssize_t getline(char *buf, size_t maxlen);
+	ssize_t writeline(const char *buf, size_t maxlen=0);
 	
 	long getpos()			
 	{

@@ -1,5 +1,13 @@
+#include "basetypes.h"
+#include "baseobjects.h"
+#include "basesafeptr.h"
+#include "basememory.h"
+#include "basealgo.h"
+#include "basetime.h"
 #include "basestring.h"
+#include "baseexceptions.h"
 #include "basearray.h"
+
 #include "baseministring.h"
 
 
@@ -413,6 +421,70 @@ string<> itostring(uint value, size_t base, size_t width, char padchar)
     _itobase2(result, uint64(value), base, false, width, padchar);
     return result;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// time to pod strings
+///////////////////////////////////////////////////////////////////////////////
+inline size_t string_from_time(char* strDest, size_t maxsize, const char* format, const struct tm *timeptr)
+{
+	return strftime(strDest, maxsize, format, timeptr);
+}
+inline size_t string_from_time(wchar_t* strDest, size_t maxsize, const wchar_t* format, const struct tm *timeptr)
+{
+	return wcsftime(strDest, maxsize, format, timeptr);
+}
+///////////////////////////////////////////////////////////////////////////////
+// timestamp string
+///////////////////////////////////////////////////////////////////////////////
+template<class T> string<T> nowstring(const T* fmt, bool utc)
+{
+    T buf[128];
+    time_t longtime;
+    time(&longtime);
+#if defined(SINGLETHREAD) || defined(WIN32)
+    tm* t;
+    if (utc)
+        t = gmtime(&longtime);
+    else
+        t = localtime(&longtime);
+    size_t r = string_from_time(buf, sizeof(buf)/sizeof(*buf), fmt, t);
+#else
+    tm t;
+    if (utc)
+        gmtime_r(&longtime, &t);
+    else
+        localtime_r(&longtime, &t);
+    size_t r = string_from_time(buf, sizeof(buf)/sizeof(*buf), fmt, &t);
+#endif
+    buf[r] = 0;
+    return string<T>(buf,r);
+}
+// explicit instanciation
+template string<char>    nowstring<char>   (const char*    fmt, bool utc);
+template string<wchar_t> nowstring<wchar_t>(const wchar_t* fmt, bool utc);
+
+///////////////////////////////////////////////////////////////////////////////
+// timestamp string
+///////////////////////////////////////////////////////////////////////////////
+template<class T> string<T> dttostring(datetime dt, const T* fmt)
+{
+    T buf[128];
+    tm t;
+    int r = string_from_time(buf, sizeof(buf)/sizeof(*buf), fmt, dttotm(dt, t));
+    buf[r] = 0;
+    return string<T>(buf, r);
+}
+// explicit instanciation
+template string<char>    dttostring<char>   (datetime dt, const char*    fmt);
+template string<wchar_t> dttostring<wchar_t>(datetime dt, const wchar_t* fmt);
+
+
+
+
+
+
+
+
 
 
 
@@ -857,7 +929,7 @@ size_t sz=0;
 
 
 
-	size_t i, sz;
+	uint i, sz;
 	char buffer1[1024];
 
 	char buffer2[1024];
@@ -877,12 +949,12 @@ size_t sz=0;
 	ulong tick = clock();
 	for(i=0; i<100000; i++)
 		sz = snprintf(buffer1, sizeof(buffer1), "hallo %i ballo %i no %lf", i, i*2/3+i, ((double)i)*1.3);
-	printf("sprintf %i\n", clock()-tick);
+	printf("sprintf %li\n", clock()-tick);
 
 	tick = clock();
 	for(i=0; i<100000; i++)
 		a = MiniString("hallo ") + (int)i + " ballo " + (int)(i*2/3+i) + " no " +(((double)i)*1.3);
-	printf("Ministring %i\n", clock()-tick);
+	printf("Ministring %li\n", clock()-tick);
 
 	tick = clock();
 	for(i=0; i<100000; i++)
@@ -890,7 +962,7 @@ size_t sz=0;
 		sa.clear();
 		sa << "hallo " << (int)i << " ballo " << (int)(i*2/3+i) << " no " << (((double)i)*1.3);
 	}
-	printf("staticstring %i\n", clock()-tick);
+	printf("staticstring %li\n", clock()-tick);
 	
 	tick = clock();
 	for(i=0; i<100000; i++)
@@ -898,7 +970,7 @@ size_t sz=0;
 		sb.clear();
 		sb << "hallo " << (int)i << " ballo " << (int)(i*2/3+i) << " no " << (((double)i)*1.3);
 	}
-	printf("basestring %i\n", clock()-tick);
+	printf("basestring %li\n", clock()-tick);
 
 	string<> ds;
 	tick = clock();
@@ -908,7 +980,7 @@ size_t sz=0;
 		ds << "a";
 		ds << "hallo " << (int)i << " ballo " << (int)(i*2/3+i) << " no " << (((double)i)*1.3);
 	}
-	printf("string %i\n", clock()-tick);
+	printf("string %li\n", clock()-tick);
 
 	return 0;
 }
@@ -944,7 +1016,7 @@ void checkRefCntVal(string s, size_t shouldBe, const char *prefix )
 {
   if (s.getRefCount() != shouldBe)
     printf("%s refCnt = %d (should be %d)\n", 
-           prefix, s.getRefCount(), shouldBe );
+           prefix, (uint)s.getRefCount(), (uint)shouldBe );
 } // checkRefCntVal
 
 
@@ -956,7 +1028,7 @@ void checkRefCnt(string &s, size_t shouldBe, const char *prefix )
 {
   if (s.getRefCount() != shouldBe)
     printf("%s refCnt = %d (should be %d)\n", 
-           prefix, s.getRefCount(), shouldBe );
+           prefix, (uint)s.getRefCount(), (uint)shouldBe );
 } // checkRefCnt
 
 
@@ -971,22 +1043,22 @@ void test_constructors()
 
   if (b.getRefCount() != 2)
     printf("1. Reference count is wrong: refCnt = %d (should be 2)\n",
-           b.getRefCount() );
+           (uint)b.getRefCount() );
 
   string c = a;
   if (b.getRefCount() != 3)
     printf("2. Reference count is wrong: refCnt = %d (should be 3)\n",
-           b.getRefCount() );
+           (uint)b.getRefCount() );
 
   if (a.getRefCount() != 3)
     printf("3. Reference count is wrong: refCnt = %d (should be 3)\n",
-           b.getRefCount() );
+           (uint)b.getRefCount() );
 
   checkRefCntVal( a, 4, "4. ");
 
   if (a.getRefCount() != 3)
     printf("4. Reference count is wrong: refCnt = %d (should be 3)\n",
-           b.getRefCount() );
+           (uint)b.getRefCount() );
 
   checkRefCnt( a, 3, "5. ");
 
@@ -1100,7 +1172,7 @@ void test_assign()
 
   if (e.getRefCount() != 1)
     printf("11. refCnt is wrong: refCnt = %d, should be 1\n",
-           e.getRefCount() );
+           (uint)e.getRefCount() );
 
   const char *constCStr = "1234567890";
   const size_t len = sizeof(constCStr) / sizeof(char);
@@ -1108,7 +1180,7 @@ void test_assign()
   string bar = foo;
   if (foo.getRefCount() != 2) {
     printf("12. refcnt is wrong: refCnt = %d, should be 2\n",
-	   foo.getRefCount() );
+	   (uint)foo.getRefCount() );
   }
 
   // This makes sure that the [] operator is implemented properly
@@ -1126,7 +1198,7 @@ void test_assign()
   // make sure refCnt is still OK
   if (bar.getRefCount() != 2) {
     printf("14. refcnt is wrong: refCnt = %d, should be 2\n",
-	   bar.getRefCount() );
+	   (uint)bar.getRefCount() );
   }
 
   const char *testStr2 = "null is a lonely number";
@@ -1252,7 +1324,7 @@ void test_plus_equal()
   empty += full;
 
   if (empty.getRefCount() != 1) {
-    printf("7. empty.getRefCount() = %d, should be 1\n", empty.getRefCount() );
+    printf("7. empty.getRefCount() = %d, should be 1\n", (uint)empty.getRefCount() );
   }
 
   if (empty != testStr1) {
@@ -1265,7 +1337,7 @@ void test_plus_equal()
 
   empty2 += str;
   if (empty2.getRefCount() != 1) {
-    printf("9. empty2.getRefCount() = %d, should be 1\n", empty2.getRefCount() );
+    printf("9. empty2.getRefCount() = %d, should be 1\n", (uint)empty2.getRefCount() );
   }
 
   if (empty2 != testStr2) {
@@ -1310,7 +1382,7 @@ void test_plus()
   string a = t1 + t2;
   if (a.getRefCount() != 1) {
     printf("1. refCnt is wrong: refCnt = %d, should be 1\n",
-           a.getRefCount() );
+           (uint)a.getRefCount() );
   }
 
   if (strcmp((const char *)a, concatStr) != 0)
@@ -1324,7 +1396,7 @@ void test_plus()
 
   if (b.getRefCount() != 1) {
     printf("3. refCnt is wrong: refCnt = %d, should be 1\n",
-           b.getRefCount() );
+           (uint)b.getRefCount() );
   }
 
   const char *tmp = b;
@@ -1403,17 +1475,17 @@ void test_plus()
 
   // The reference counts for w and x should both be 1
   if (w.getRefCount() != 1) {
-     printf("14. w.getRefCount() = %d, it should be 1\n", w.getRefCount() );
+     printf("14. w.getRefCount() = %d, it should be 1\n", (uint)w.getRefCount() );
   }
   if (x.getRefCount() != 1) {
-     printf("15. x.getRefCount() = %d, it should be 1\n", x.getRefCount() );
+     printf("15. x.getRefCount() = %d, it should be 1\n", (uint)x.getRefCount() );
   }
 
   if (y.getRefCount() != 2) {
-     printf("16. y.getRefCount() = %d, it should be 2\n", y.getRefCount() );
+     printf("16. y.getRefCount() = %d, it should be 2\n", (uint)y.getRefCount() );
   }
   if (z.getRefCount() != 2) {
-     printf("17. z.getRefCount() = %d, it should be 2\n", z.getRefCount() );
+     printf("17. z.getRefCount() = %d, it should be 2\n", (uint)z.getRefCount() );
   }
 } // test_plus
 
@@ -1612,7 +1684,7 @@ void test_arrayop()
   // references are jabbarString, jabbarRefStr and now, "a"
   string a = jabbarString;
   if (a.getRefCount() != 3)
-    printf("2. reference count is wrong\n");
+    printf("2. reference count is wrong (%d=!3)\n", (uint)a.getRefCount());
 
   a(9) = 'e';
   a(10) = 'r';
@@ -1624,7 +1696,7 @@ void test_arrayop()
     printf("3. 'a' reference count is wrong\n");
 
   if (jabbarString.getRefCount() != 2)
-    printf("4. jabbarString reference count is wrong\n");
+    printf("4. jabbarString reference count is wrong (%d=!2)\n", (uint)jabbarString.getRefCount());
   
   const char *tmp = a;
   if (strcmp(tmp, newJabbar1) != 0) {
@@ -1727,10 +1799,10 @@ void test_insert()
   c_prime(4, 0) = (const char *)0;
   // make sure that reference count is still 2
   if (c.getRefCount() != 2)
-    printf("8. c.getRefCount() = %d, should be 2\n", c.getRefCount());
+    printf("8. c.getRefCount() = %d, should be 2\n", (uint)c.getRefCount());
 
   if (c_prime.getRefCount() != 2)
-    printf("9. c_prime.getRefCount() = %d, should be 2\n", c_prime.getRefCount());
+    printf("9. c_prime.getRefCount() = %d, should be 2\n", (uint)c_prime.getRefCount());
 
   if (c_prime != origA) {
     printf("10. insert failed. c_prime = [%s], should be [%s]\n",
@@ -1763,12 +1835,12 @@ void test_substr_func_valarg( const substring &sub, size_t errorNum )
 {
   if (sub.getRefCount() != 1) {
     printf("%d. sub.getRefCount() = %d, should be 1\n", 
-           errorNum, sub.getRefCount() );
+           (uint)errorNum, (uint)sub.getRefCount() );
   }
 
   if (sub != "de") {
     printf("%d. sub.string = %s, should be \"de\"\n",
-           errorNum + 1, (const char *)((const string)sub) );
+           (uint)errorNum + 1, (const char *)((const string)sub) );
   }
 } // test_substr_func_valarg
 
@@ -1808,7 +1880,7 @@ void test_substring()
 
   if (a.getRefCount() != 1 || b.getRefCount() != 1) {
     printf("5. a.getRefCount() = %d, b.getRefCount() = %d (both should be 1)\n",
-           a.getRefCount(), b.getRefCount() );
+           (uint)a.getRefCount(), (uint)b.getRefCount() );
   }
 
   string c;
@@ -1818,7 +1890,7 @@ void test_substring()
   }
 
   if (c.length() != 4) {
-    printf("7. c.length() = %d, should be 4\n", c.length());
+    printf("7. c.length() = %d, should be 4\n", (uint)c.length());
   }
 
   string d("1234abcdefgh");
@@ -1834,7 +1906,7 @@ void test_substring()
   }
 
   if (d.getRefCount() != 1) {
-    printf("10. d.getRefCount() = %d, it should be 1\n", d.getRefCount());
+    printf("10. d.getRefCount() = %d, it should be 1\n", (uint)d.getRefCount());
   }
 
   //
@@ -1882,7 +1954,7 @@ void test_substring()
   // language, nothing will.
   //
   if (e.getRefCount() != 1) {
-    printf("11. e.getRefCount() = %d, it should be 1\n", e.getRefCount());
+    printf("11. e.getRefCount() = %d, it should be 1\n", (uint)e.getRefCount());
   }
 
   //
@@ -1892,7 +1964,7 @@ void test_substring()
   string z = "lost Z-man";
   string y = z; // refCnt is now 2
   if (z(5, 5).getRefCount() != 1) {
-    printf("12. z(8, 4).getRefCount() = %d, should be 1, !!changed behaviour here!!\n", z(8, 4).getRefCount() );
+    printf("12. z(8, 4).getRefCount() = %d, should be 1, !!changed behaviour here!!\n", (uint)z(8, 4).getRefCount() );
   }
 
   string f("chopsock");
@@ -1922,7 +1994,7 @@ void test_resize()
 
   b.truncate(10);  // set size of string b to 10
   if (b.length() != 10)
-    printf("1. b.length() = %d, should be 10\n", b.length() );
+    printf("1. b.length() = %d, should be 10\n", (uint)b.length() );
 
   if (b != "0123456789") {
     tmp = b;
@@ -1933,7 +2005,7 @@ void test_resize()
     printf("3. a was improperly modified by resizing b\n");
 
   if (a.length() != 20)
-    printf("4. a.length() = %d, should be 20\n", a.length() );
+    printf("4. a.length() = %d, should be 20\n", (uint)a.length() );
 
   b.truncate(20);
   if (b != "0123456789          ") {
@@ -1941,7 +2013,7 @@ void test_resize()
     printf("5. b = %s, should be \"0123456789          \"\n", tmp );
   }
   if (b.length() != 20)
-    printf("6. b.length() = %d, should be 20\n", b.length() );
+    printf("6. b.length() = %d, should be 20\n", (uint)b.length() );
 
   if (a != init_a)
     printf("8. resizing b modified a\n");
@@ -1957,7 +2029,7 @@ void test_resize()
     printf("10. resizing b modified a\n");
 
   if (b.length() != 0)
-    printf("11. b.length() = %d, should be 0\n", b.length() );
+    printf("11. b.length() = %d, should be 0\n", (uint)b.length() );
 
   if (b != "") {
     printf("12. b should be the same as the empty string\n");

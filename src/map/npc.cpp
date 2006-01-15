@@ -1759,16 +1759,21 @@ int npc_parse_shop(const char *w1,const char *w2,const char *w3,const char *w4)
 	char mapname[32], *ip;
 	struct npc_data *nd;
 
-	// 引数の個数チェック
-	if (sscanf(w1, "%[^,],%d,%d,%d", mapname, &x, &y, &dir) != 4 ||
-	    strchr(w4, ',') == NULL) {
-		ShowError("bad shop line : %s\n", w3);
-		return 1;
+	if (strcmp(w1, "-") == 0)
+	{
+		x = 0; y = 0; dir = 0; m = -1;
 	}
-	ip = strchr(mapname, '.');
-	if(ip) *ip=0;
-
-	m = map_mapname2mapid(mapname);
+	else
+	{	// 引数の個数チェック
+		if (sscanf(w1, "%[^,],%d,%d,%d", mapname, &x, &y, &dir) != 4 ||
+			strchr(w4, ',') == NULL) {
+			ShowError("bad shop line : %s\n", w3);
+			return 1;
+		}
+		ip = strchr(mapname, '.');
+		if(ip) *ip=0;
+		m = map_mapname2mapid(mapname);
+	}
 
 	nd = (struct npc_data *) aCalloc (1, sizeof(struct npc_data) +
 		sizeof(nd->u.shop_item[0]) * (MAX_SHOPITEM + 1));
@@ -1807,7 +1812,7 @@ int npc_parse_shop(const char *w1,const char *w2,const char *w3,const char *w4)
 	nd->dir = dir;
 	nd->flag = 0;
 	memcpy(nd->name, w3, 24);
-	nd->class_ = atoi(w4);
+	nd->class_ = (m==-1)?0:atoi(w4);
 	nd->speed = 200;
 	nd->chat_id = 0;
 	nd->option = 0;
@@ -1823,8 +1828,13 @@ int npc_parse_shop(const char *w1,const char *w2,const char *w3,const char *w4)
 	nd->bl.type = BL_NPC;
 	nd->bl.subtype = SHOP;
 	nd->n = map_addnpc(m,nd);
-	map_addblock(nd->bl);
-	clif_spawnnpc(*nd);
+	if (m >= 0)
+	{
+		map_addblock(nd->bl);
+		clif_spawnnpc(*nd);
+	}
+	else
+		map_addiddb(nd->bl);
 	strdb_insert(npcname_db, nd->name,nd);
 
 	return 0;

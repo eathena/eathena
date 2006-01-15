@@ -1,3 +1,5 @@
+
+#include "basetypes.h"
 #include "basealgo.h"
 
 
@@ -32,10 +34,10 @@ void test_algo(int scale)
 	scale*=10;
 #endif
 
-	size_t k;
-	const size_t CFIELDSIZE = 5000000/scale;
-	const size_t CBUBBLESIZE = 10000/scale;
-	size_t elems=0;
+	uint k;
+	const uint CFIELDSIZE = 5000000/scale;
+	const uint CBUBBLESIZE = 10000/scale;
+	uint elems=0;
 
 	ulong tick;
 #if defined(CFIELDS)
@@ -421,7 +423,6 @@ void test_algo(int scale)
 	delete[] array[1];
 	delete[] array[2];
 #endif
-	printf("");
 }
 
 

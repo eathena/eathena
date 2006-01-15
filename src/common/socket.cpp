@@ -1075,14 +1075,17 @@ void socket_nonblocking(SOCKET sock, unsigned long yes)
 
 void socket_setopts(SOCKET sock)
 {
+#ifndef WIN32
 	int yes = 1; // reuse fix
-
+    // set SO_REAUSEADDR to true, unix only. on windows this option causes
+    // the previous owner of the socket to give up, which is not desirable
+    // in most cases, neither compatible with unix.
 	setsockopt(sock,SOL_SOCKET,SO_REUSEADDR,(char *)&yes,sizeof(yes));
 #ifdef SO_REUSEPORT
 	setsockopt(sock,SOL_SOCKET,SO_REUSEPORT,(char *)&yes,sizeof(yes));
 #endif
-	setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (char *)&yes, sizeof(yes)); // reuse fix
-
+#endif
+//	setsockopt(sock,IPPROTO_TCP,TCP_NODELAY,(char *)&yes,sizeof(yes));
 //	setsockopt(sock, SOL_SOCKET, SO_SNDBUF, (char *) &wfifo_size , sizeof(rfifo_size ));
 //	setsockopt(sock, SOL_SOCKET, SO_RCVBUF, (char *) &rfifo_size , sizeof(rfifo_size ));
 }

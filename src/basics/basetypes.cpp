@@ -1,5 +1,6 @@
 
 #include "basetypes.h"
+#include "baseobjects.h"
 #include "basesync.h"		// for mutex
 
 
@@ -16,26 +17,26 @@
 //////////////////////////////////////////////////////////////////////////
 int FASTCALL atomicexchange(int* target, int value)
 {
-    int r = *target;
-    *target = value;
-    return r;
+	int r = *target;
+	*target = value;
+	return r;
 }
 
 void* FASTCALL _atomicexchange(void** target, void* value)
 {
-    void* r = *target;
-    *target = value;
-    return r;
+	void* r = *target;
+	*target = value;
+	return r;
 }
 
 int FASTCALL atomicincrement(int* target)
 {
-    return ++(*target);
+	return ++(*target);
 }
 
 int FASTCALL atomicdecrement(int* target)
 {
-    return --(*target);
+	return --(*target);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -81,56 +82,56 @@ int FASTCALL atomicdecrement(int* target)
 
 int FASTCALL atomicincrement(int*)
 {
-    __asm
-    {
+	__asm
+	{
 #ifdef BCC_i386
-        mov         ecx,eax
+		mov          ecx,eax
 #endif
-        mov         eax,1;
-        lock xadd   [ecx],eax;
-        inc         eax
-    }
+		mov          eax,1;
+		lock xadd   [ecx],eax;
+		inc          eax
+	}
 }
 
 int FASTCALL atomicdecrement(int*)
 {
-    __asm
-    {
+	__asm
+	{
 #ifdef BCC_i386
-        mov         ecx,eax
+		mov          ecx,eax
 #endif
-        mov         eax,-1;
-        lock xadd   [ecx],eax;
-        dec         eax
-    }
+		mov          eax,-1;
+		lock xadd   [ecx],eax;
+		dec          eax
+	}
 }
 
 int FASTCALL atomicexchange(int*, int)
 {
-    __asm
-    {
+	__asm
+	{
 #ifdef BCC_i386
-        xchg        eax,edx;
-        lock xchg   eax,[edx];
+		xchg        eax,edx;
+		lock xchg   eax,[edx];
 #else
-        mov         eax,edx;
-        lock xchg   eax,[ecx];
+		mov         eax,edx;
+		lock xchg   eax,[ecx];
 #endif
-    }
+	}
 }
 
 void* FASTCALL _atomicexchange(void**, void*)
 {
-    __asm
-    {
+	__asm
+	{
 #ifdef BCC_i386
-        xchg        eax,edx;
-        lock xchg   eax,[edx];
+		xchg        eax,edx;
+		lock xchg   eax,[edx];
 #else
-        mov         eax,edx;
-        lock xchg   eax,[ecx];
+		mov         eax,edx;
+		lock xchg   eax,[ecx];
 #endif
-    }
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -141,28 +142,28 @@ void* FASTCALL _atomicexchange(void**, void*)
 
 int FASTCALL atomicexchange(int* target, int value)
 {
-    __asm__ __volatile ("lock ; xchgl (%1),%0" : "+r" (value) : "r" (target));
-    return value;
+	__asm__ __volatile ("lock ; xchgl (%1),%0" : "+r" (value) : "r" (target));
+	return value;
 }
 
 void* FASTCALL _atomicexchange(void** target, void* value)
 {
-    __asm__ __volatile ("lock ; xchgl (%1),%0" : "+r" (value) : "r" (target));
-    return value;
+	__asm__ __volatile ("lock ; xchgl (%1),%0" : "+r" (value) : "r" (target));
+	return value;
 }
 
 int FASTCALL atomicincrement(int* target)
 {
-    int temp = 1;
-    __asm__ __volatile ("lock ; xaddl %0,(%1)" : "+r" (temp) : "r" (target));
-    return temp + 1;
+	int temp = 1;
+	__asm__ __volatile ("lock ; xaddl %0,(%1)" : "+r" (temp) : "r" (target));
+	return temp + 1;
 }
 
 int FASTCALL atomicdecrement(int* target)
 {
-    int temp = -1;
-    __asm__ __volatile ("lock ; xaddl %0,(%1)" : "+r" (temp) : "r" (target));
-    return temp - 1;
+	int temp = -1;
+	__asm__ __volatile ("lock ; xaddl %0,(%1)" : "+r" (temp) : "r" (target));
+	return temp - 1;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -173,67 +174,71 @@ int FASTCALL atomicdecrement(int* target)
 
 int FASTCALL atomicexchange(int* target, int value)
 {
-    int temp;
-    __asm__ __volatile (
-"1: lwarx  %0,0,%1\n\
-	stwcx. %2,0,%1\n\
-	bne-   1b\n\
-	isync"
-	: "=&r" (temp)
-	: "r" (target), "r" (value)
-	: "cc", "memory"
-	);
-    return temp;
+	int temp;
+	__asm__ __volatile
+	(
+		"1: lwarx  %0,0,%1\n\
+		stwcx. %2,0,%1\n\
+		bne-   1b\n\
+		isync"
+		: "=&r" (temp)
+		: "r" (target), "r" (value)
+		: "cc", "memory"
+	)
+	return temp;
 }
 
 
 void* FASTCALL _atomicexchange(void** target, void* value)
 {
-    void* temp;
-    __asm__ __volatile (
-"1: lwarx  %0,0,%1\n\
-	stwcx. %2,0,%1\n\
-	bne-   1b\n\
-	isync"
-	: "=&r" (temp)
-	: "r" (target), "r" (value)
-	: "cc", "memory"
-	);
-    return temp;
+	void* temp;
+	__asm__ __volatile
+	(
+		"1: lwarx  %0,0,%1\n\
+		stwcx. %2,0,%1\n\
+		bne-   1b\n\
+		isync"
+		: "=&r" (temp)
+		: "r" (target), "r" (value)
+		: "cc", "memory"
+	)
+	return temp;
 }
 
 
 int FASTCALL atomicincrement(int* target)
 {
-    int temp;
-    __asm__ __volatile (
-"1: lwarx  %0,0,%1\n\
-	addic  %0,%0,1\n\
-	stwcx. %0,0,%1\n\
-	bne-   1b\n\
-	isync"
-	: "=&r" (temp)
-	: "r" (target)
-	: "cc", "memory"
-	);
-    return temp;
+	int temp;
+	__asm__ __volatile
+	(
+		"1: lwarx  %0,0,%1\n\
+		addic  %0,%0,1\n\
+		stwcx. %0,0,%1\n\
+		bne-   1b\n\
+		isync"
+		: "=&r" (temp)
+		: "r" (target)
+		: "cc", "memory"
+	)
+	return temp;
 }
 
 
 int FASTCALL atomicdecrement(int* target)
 {
-    int temp;
-    __asm__ __volatile (
-"1: lwarx  %0,0,%1\n\
-	addic  %0,%0,-1\n\
-	stwcx. %0,0,%1\n\
-	bne-   1b\n\
-	isync"
-	: "=&r" (temp)
-	: "r" (target)
-	: "cc", "memory"
-	);
-    return temp;
+	int temp;
+	__asm__ __volatile
+	(
+		"1: lwarx  %0,0,%1\n\
+		addic  %0,%0,-1\n\
+		stwcx. %0,0,%1\n\
+		bne-   1b\n\
+		isync"
+		: "=&r" (temp)
+		: "r" (target)
+		: "cc", "memory"
+	)
+	return temp;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -245,36 +250,36 @@ int FASTCALL atomicdecrement(int* target)
 
 int FASTCALL atomicexchange(int* target, int value)
 {
-    static Mutex m;
-    ScopeLock sl(m);
-    int r = *target;
-    *target = value;
-    return r;
+	static Mutex m;
+	ScopeLock sl(m);
+	int r = *target;
+	*target = value;
+	return r;
 }
 
 void* FASTCALL _atomicexchange(void** target, void* value)
 {
-    static Mutex m;
-    ScopeLock sl(m);
-    void* r = *target;
-    *target = value;
-    return r;
+	static Mutex m;
+	ScopeLock sl(m);
+	void* r = *target;
+	*target = value;
+	return r;
 }
 
 int FASTCALL atomicincrement(int* target)
 {
-    static Mutex m;
-    ScopeLock sl(m);
-    int r = ++(*target);
-    return r;
+	static Mutex m;
+	ScopeLock sl(m);
+	int r = ++(*target);
+	return r;
 }
 
 int FASTCALL atomicdecrement(int* target)
 {
-    static Mutex m;
-    ScopeLock sl(m);
-    int r = --(*target);
-    return r;
+	static Mutex m;
+	ScopeLock sl(m);
+	int r = --(*target);
+	return r;
 }
 
 #endif // plattform

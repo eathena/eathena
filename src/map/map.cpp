@@ -3805,6 +3805,8 @@ bool map_readgrf(struct map_data& cmap, char *fn=NULL)
 		cmap.xs= RBUFL(gat, 6);
 		cmap.ys= RBUFL(gat,10);
 		cmap.gat = (struct mapgat *)aCalloc( (cmap.xs*cmap.ys), sizeof(struct mapgat));
+
+//float min=3.40282e+38, max=-3.40282e+38;
 		
 		for(y=0;y<cmap.ys;y++)
 		for(x=0;x<cmap.xs;x++)
@@ -3841,11 +3843,21 @@ bool map_readgrf(struct map_data& cmap, char *fn=NULL)
 				printf("\nMaploaderror\n");
 			}
 */
+/*
+if(pp.type!=1 && pp.type!=5)
+{
+	if(pp.high[0]<min) min = pp.high[0]; else if(pp.high[0]>max) max = pp.high[0];
+	if(pp.high[1]<min) min = pp.high[1]; else if(pp.high[1]>max) max = pp.high[1];
+	if(pp.high[2]<min) min = pp.high[2]; else if(pp.high[2]>max) max = pp.high[2];
+	if(pp.high[3]<min) min = pp.high[3]; else if(pp.high[3]>max) max = pp.high[3];
+}
+*/
 			if(cmap.wh!=NO_WATER && pp.type==0)
 				map_setcell(cmap.m,x,y,(pp.high[0]>cmap.wh || pp.high[1]>cmap.wh || pp.high[2]>cmap.wh || pp.high[3]>cmap.wh) ? 3 : 0);
 			else
 				map_setcell(cmap.m,x,y,pp.type);
 		}
+//printf("\n%f, %f\n", min, max);
 		aFree(gat);
 		return true;
 	}

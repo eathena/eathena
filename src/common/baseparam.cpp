@@ -215,7 +215,7 @@ CParamStorage& CParamStorage::getParam(const char* name)
 		tmp.cTime = GetTickCount();
 		sd.cParams.insert(tmp);
 		if( !sd.cParams.find(tmp, 0, pos) )
-			throw CException("Params: insert failed");		
+			throw exception("Params: insert failed");		
 	}
 	return sd.cParams[pos];
 }
@@ -340,9 +340,9 @@ void test_parameter()
 		CParamStorage::clean();
 		
 	}
-	catch ( CException e )
+	catch ( exception e )
 	{
-		printf( "exception %s", (const char*)e );
+		printf( "exception %s", e.what() );
 	}
 
 	CParamStorage::listall();

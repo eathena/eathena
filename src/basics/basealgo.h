@@ -712,7 +712,7 @@ template <class T> void QuickSort(T a[], ssize_t l, ssize_t r)
 {
 	if(r>l)
 	{
-		T *stack[QUICK_STACKDEPTH], **sp=stack, **se=stack+sizeof(stack)/sizeof(stack[0]);
+		T *stack[2*QUICK_STACKDEPTH], **sp=stack, **se=stack+sizeof(stack)/sizeof(stack[0]);
 		T *lp=a+l, *rp=a+r;
 		T *ip, *jp;
 #if defined(QUICK_MEDIAN_OF_THREE) || defined(QUICK_ONESIDE)
@@ -799,7 +799,7 @@ template <class T> void QuickSort(T a[], size_t count)
 {
 	if(count>1)
 	{
-		T *stack[QUICK_STACKDEPTH], **sp=stack, **se=stack+sizeof(stack)/sizeof(stack[0]);
+		T *stack[2*QUICK_STACKDEPTH], **sp=stack, **se=stack+sizeof(stack)/sizeof(stack[0]);
 		T *lp=a, *rp=a+count-1;
 		T *ip, *jp;
 #if defined(QUICK_MEDIAN_OF_THREE) || defined(QUICK_ONESIDE)
@@ -877,7 +877,6 @@ template <class T> void QuickSort(T a[], size_t count)
 				else
 					break;
 			}
-
 		}
 	}
 }
@@ -1584,7 +1583,7 @@ template <class T> void QuickSort(TArray<T>& a, ssize_t l, ssize_t r)
 #if defined(QUICK_MEDIAN_OF_THREE) 
 		ssize_t c;
 #endif
-		ssize_t stack[QUICK_STACKDEPTH], *sp=stack, *ep=stack+sizeof(stack)/sizeof(stack[0]);
+		ssize_t stack[2*QUICK_STACKDEPTH], *sp=stack, *ep=stack+sizeof(stack)/sizeof(stack[0]);
 
 		for(;;)
 		{
@@ -1677,7 +1676,7 @@ template <class T> inline void QuickSort(TArray<T>& a, size_t count)
 // if returning false, the findpos contains the position 
 // where to insert the new element in the fields
 // uses binary operators of the elements
-// wors on objects and fields likewise since no pointer arithmetic used
+// works on objects and fields likewise since no pointer arithmetic used
 ///////////////////////////////////////////////////////////////////////////////
 template<class X, class L> bool BinarySearch(const X& elem, const L& list, size_t sz, size_t startpos, size_t& findpos, bool asc=true)
 {	// do a binary search

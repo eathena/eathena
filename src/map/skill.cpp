@@ -1411,8 +1411,8 @@ public:
 				)
 			{
 				ssd.sc_data[SC_DANCING].val4=bl.id;
-				clif_skill_nodamage(bl,ssd.bl,skillid,skilllv,1);
 				status_change_start(&bl,SC_DANCING,skillid,ssd.sc_data[SC_DANCING].val2,0,ssd.bl.id,skill_get_time(skillid,skilllv)+1000,0);
+				clif_skill_nodamage(bl,ssd.bl,skillid,skilllv,1);
 				sd.skillid_dance=sd.skillid=skillid;
 				sd.skilllv_dance=sd.skilllv=skilllv;
 				c++;

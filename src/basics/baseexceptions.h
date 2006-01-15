@@ -5,60 +5,63 @@
 // exceptions
 //////////////////////////////////////////////////////////////////////////
 
+#include "basetypes.h"
 #include "baseobjects.h"
+#include "basememory.h"
+#include "basealgo.h"
+#include "basetime.h"
 #include "basestring.h"
 
 
-//////////////////////////////////////////////////////////////////////////
-// the basic exception class. 
-// unfortunately the name "exception" is already in use
-//////////////////////////////////////////////////////////////////////////
-class CException : public global
+
+
+
+class exception : public global
 {
 protected:
     string<> message;
 public:
-    CException(const char* e) : message(e)
+    exception(const char* e) : message(e)
 	{ }
-    CException(const string<>& e) : message(e)
+    exception(const string<>& e) : message(e)
 	{ }
 
-    virtual ~CException()				{ }
+    virtual ~exception()				{ }
     virtual string<>& get_message()		{ return message; }
 	operator const char *()				{ return message; }
+	const char *what()					{ return message; }
 };
-
 
 //////////////////////////////////////////////////////////////////////////
 // exception for 'out of bound array access'
 //////////////////////////////////////////////////////////////////////////
-class exception_bound : public CException
+class exception_bound : public exception
 {
 public:
-	exception_bound(const char*   e) : CException(e) {}
-	exception_bound(const string<>& e) : CException(e) {}
+	exception_bound(const char*   e) : exception(e) {}
+	exception_bound(const string<>& e) : exception(e) {}
 	virtual ~exception_bound()						{}
 };
 
 //////////////////////////////////////////////////////////////////////////
 // exception for 'memory allocation failed'
 //////////////////////////////////////////////////////////////////////////
-class exception_memory : public CException
+class exception_memory : public exception
 {
 public:
-	exception_memory(const char*   e) : CException(e)	{}
-	exception_memory(const string<>& e) : CException(e)	{}
+	exception_memory(const char*   e) : exception(e)	{}
+	exception_memory(const string<>& e) : exception(e)	{}
 	virtual ~exception_memory()							{}
 };
 
 //////////////////////////////////////////////////////////////////////////
 // exception for 'failed conversion'
 //////////////////////////////////////////////////////////////////////////
-class exception_convert: public CException
+class exception_convert: public exception
 {
 public:
-	exception_convert(const char*   e) : CException(e)	{}
-	exception_convert(const string<>& e) : CException(e)	{}
+	exception_convert(const char*   e) : exception(e)	{}
+	exception_convert(const string<>& e) : exception(e)	{}
     virtual ~exception_convert()						{}
 };
 
@@ -69,22 +72,22 @@ public:
 // may be thrown when a variant is being typecasted to 32-bit int 
 // and the value is out of range
 //////////////////////////////////////////////////////////////////////////
-class exception_variant: public CException
+class exception_variant: public exception
 {
 public:
-	exception_variant(const char*   e) : CException(e)	{}
-	exception_variant(const string<>& e) : CException(e)	{}
+	exception_variant(const char*   e) : exception(e)	{}
+	exception_variant(const string<>& e) : exception(e)	{}
     virtual ~exception_variant()						{}
 };
 
 //////////////////////////////////////////////////////////////////////////
 // exception for 'socket failed'
 //////////////////////////////////////////////////////////////////////////
-class exception_socket : public CException
+class exception_socket : public exception
 {
 public:
-	exception_socket(const char*   e) : CException(e)	{}
-	exception_socket(const string<>& e) : CException(e)	{}
+	exception_socket(const char*   e) : exception(e)	{}
+	exception_socket(const string<>& e) : exception(e)	{}
 	virtual ~exception_socket()							{}
 };
 

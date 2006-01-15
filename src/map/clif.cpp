@@ -9192,8 +9192,8 @@ int clif_parse_TakeItem(int fd, struct map_session_data &sd)
 		clif_additem(sd,0,0,6); // send fail packet! [Valaris]
 		return 0;
 	}
-	
-	if (fitem == NULL || fitem->bl.m != sd.bl.m)
+		
+	if (fitem == NULL || fitem->bl.type != BL_ITEM || fitem->bl.m != sd.bl.m)
 		return 0;
 
 	pc_takeitem(sd, *fitem);

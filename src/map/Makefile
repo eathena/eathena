@@ -21,6 +21,8 @@ LIBS = -lz -lm
 RETURN_PATH ?= .
 BASE_PATH   ?= ../basics
 COMMON_PATH ?= ../common
+CCC         ?= g++ -pipe
+CPPFLAGS    ?= -g -O3 -ffast-math -D_REENTRANT
 ##########################################################
 BP = $(RETURN_PATH)/$(BASE_PATH)
 ##########################################################
@@ -107,4 +109,4 @@ sqlobj/npc_chat.o: npc_chat.cpp map.h npc.h clif.h pc.h script.h mob.h itemdb.h 
 sqlobj/mercenary.o: mercenary.cpp mercenary.h $(COMMON_H) $(BASE_H)
 
 clean:
-	rm -rf *.o $(RETURN_PATH)/map-server $(RETURN_PATH)/map-server_sql sqlobj txtobj
+	rm -rf *.o $(RETURN_PATH)/map-server $(RETURN_PATH)/map-server_sql sqlobj txtobj GNUmakefile

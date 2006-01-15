@@ -1,4 +1,12 @@
 Date	Added
+01/15	
+	* cleaned warnings from base test functions on 64bit compilations
+	- revised base includes and makefiles
+	* replaced the old parse input scanner [Hinoko]
+	* smaller modifications on the script compiler
+	- checks now for variable usage before declaration
+	- counts the usages of labels and variables (aka detects unused)
+	- modified label jump generation, still testing [Shinomori]
 01/08	
 	* added merged part of my general programming environment,
 	  though, some important parts are still not ready to be copied

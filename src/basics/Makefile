@@ -12,6 +12,8 @@ all: basealgo.o basearray.o basecharset.o basefile.o baseheaps.o basememory.o ba
 ##########################################################
 RETURN_PATH ?= .
 BASE_PATH   ?= ../basics
+CCC         ?= g++ -pipe
+CPPFLAGS    ?= -g -O3 -ffast-math -D_REENTRANT
 ##########################################################
 BP = $(RETURN_PATH)/$(BASE_PATH)
 ##########################################################
@@ -24,26 +26,28 @@ BASE_H = $(BP)/basealgo.h $(BP)/basearray.h $(BP)/basecharset.h $(BP)/baseexcept
 # $(BP)/basecomponent.h $(BP)/baseinet.h $(BP)/baselib.h $(BP)/baseparam.h $(BP)/baseregex.h $(BP)/basestreams.h $(BP)/basethreads.h
 ##########################################################
 
-basealgo.o: basealgo.cpp $(BASE_H)
-basearray.o: basearray.cpp $(BASE_H)
-basecharset.o: basecharset.cpp $(BASE_H)
+
+
+basealgo.o: basealgo.cpp basealgo.h basetypes.h
+basearray.o: basearray.cpp basearray.h baseexceptions.h basestring.h basememory.h basetime.h basealgo.h basesafeptr.h baseobjects.h basetypes.h
+basecharset.o: basecharset.cpp basecharset.h basetypes.h baseobjects.h basealgo.h basetime.h basememory.h basestring.h
 basecomponent.o: basecomponent.cpp $(BASE_H)
-basefile.o: basefile.cpp $(BASE_H)
-baseheaps.o: baseheaps.cpp $(BASE_H)
+basefile.o: basefile.cpp basefile.h basetypes.h baseobjects.h
+baseheaps.o: baseheaps.cpp baseheaps.h basetypes.h baseobjects.h basesafeptr.h basememory.h basealgo.h basetime.h basestring.h baseexceptions.h basearray.h
 baseinet.o: baseinet.cpp $(BASE_H)
 baselib.o: baselib.cpp $(BASE_H)
-basememory.o: basememory.cpp $(BASE_H)
-baseobjects.o: baseobjects.cpp $(BASE_H)
+basememory.o: basememory.cpp basememory.h basetypes.h baseobjects.h basealgo.h basetime.h basestring.h baseexceptions.h 
+baseobjects.o: baseobjects.cpp baseobjects.h basetypes.h
 baseparam.o: baseparam.cpp $(BASE_H)
-baseparser.o: baseparser.cpp $(BASE_H)
+baseparser.o: baseparser.cpp baseparser.h basetypes.h baseobjects.h basesafeptr.h basememory.h basealgo.h basetime.h basestring.h baseexceptions.h basearray.h
 baseregex.o: baseregex.cpp $(BASE_H)
 basestreams.o: basestreams.cpp $(BASE_H)
-basestring.o: basestring.cpp $(BASE_H)
-basesync.o: basesync.cpp $(BASE_H)
+basestring.o: basestring.cpp basestring.h basetypes.h baseobjects.h basesafeptr.h basememory.h basealgo.h basetime.h baseexceptions.h basearray.h baseministring.h
+basesync.o: basesync.cpp basesync.h basetypes.h baseobjects.h basememory.h basealgo.h basetime.h basestring.h baseexceptions.h
 basethreads.o: basethreads.cpp $(BASE_H)
-basetime.o: basetime.cpp $(BASE_H)
-basetypes.o: basetypes.cpp $(BASE_H)
+basetime.o: basetime.cpp basetime.h basetypes.h
+basetypes.o: basetypes.cpp basetypes.h baseobjects.h basesync.h
 
 
 clean:
-	rm -rf *.o
+	rm -rf *.o GNUmakefile

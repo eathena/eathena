@@ -406,12 +406,12 @@ private:
 			// dynamic cast does not work here even if actually should, just hard cast it then
 			CParamData<MiniString> *old = (CParamData<MiniString>*)stor.cParam.get();
 			if( !old )
-				throw CException("Params: data conversion wrong type");
+				throw exception("Params: data conversion wrong type");
 			stor.cParam = tmp = new CParamData<T>(old->cData);
 			// this creation will change the pointer in the database
 			// and disconnect all existing references to this node
 		}
-		if(!tmp) throw CException("Params: data conversion failed");
+		if(!tmp) throw exception("Params: data conversion failed");
 		// return a reference to the data and copy the storage
 		tmp->cCallback = (callback) ? callback : NULL;
 		basestor = stor;
@@ -440,12 +440,12 @@ private:
 			//CParamData<MiniString> *old = dynamic_cast< CParamData<MiniString>* >( stor.cParam.operator->() );
 			CParamData<MiniString> *old = (CParamData<MiniString>*)stor.cParam.get();
 			if( !old )
-				throw CException("Params: data conversion wrong type");
+				throw exception("Params: data conversion wrong type");
 			stor.cParam = tmp = new CParamData<T>(old->cData);
 			// this creation will change the pointer in the database
 			// and disconnect all existing references to this node
 		}
-		if(!tmp) throw CException("Params: data conversion failed");
+		if(!tmp) throw exception("Params: data conversion failed");
 		tmp->cCallback = (callback) ? callback : NULL;
 		// return a reference to the data and copy the storage
 		basestor = stor;

@@ -2,6 +2,7 @@
 #ifndef _EACOMPILER_
 #define _EACOMPILER_
 
+#include "basesync.h"
 #include "baseparser.h"
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -253,7 +254,7 @@ typedef enum
 	<Arg1>
 	label1
 	<Arg2>
-	_opif!_ label2
+	_opif!_ label3
 	<Normal Stm>
 	label2
 	<Arg3>
@@ -346,56 +347,87 @@ extern inline uint32 axtoi(const char *hexStg)
 ///////////////////////////////////////////////////////////////////////////////
 class CLogger
 {
-	bool enable;
+	int enable;
+	int do_print(const char *fmt, va_list& argptr)
+	{
+		int ret=0;
+		static char		tempbuf[4096]; // initially using a static fixed buffer size 
+		static Mutex	mtx;
+		ScopeLock		sl(mtx);
+		size_t sz  = 4096; // initial buffer size
+		char *ibuf = tempbuf;
 
+
+		if(fmt)
+		{
+			if(argptr)
+			{
+				do
+				{	// print
+					if( vsnprintf(ibuf, sz, fmt, argptr) >=0 ) // returns -1 in case of error
+						break; // print ok, can break
+					// otherwise
+					// free the memory if it was dynamically alloced
+					if(ibuf!=tempbuf) delete[] ibuf;
+					// double the size of the buffer
+					sz *= 2;
+					ibuf = new char[sz];
+					// and loop in again
+				}while(1); 
+				// ibuf contains the printed string
+				ret = output(ibuf);
+			}
+			else
+			{	// thust the format string, no parameter
+				ret = output(fmt);
+			}
+		}
+		if(ibuf!=tempbuf) delete[] ibuf;
+		return ret;
+	}
 public:
-	CLogger(bool e=true) : enable(e)	{}
+	CLogger(int e=2) : enable(e)		{}
 	virtual ~CLogger()					{}
 
 	int logging(const char *fmt, ...)
 	{
 		int ret = 0;
-		if(enable)
+		if(enable>=2)
 		{
-			static char		tempbuf[4096]; // initially using a static fixed buffer size 
-			static Mutex	mtx;
-			ScopeLock		sl(mtx);
-			size_t sz  = 4096; // initial buffer size
-			char *ibuf = tempbuf;
-
 			va_list argptr;
 			va_start(argptr, fmt);
-
-			if(fmt)
-			{
-				if(argptr)
-				{
-					do{
-						// print
-						if( vsnprintf(ibuf, sz, fmt, argptr) >=0 ) // returns -1 in case of error
-							break; // print ok, can break
-						// otherwise
-						// aFree the memory if it was dynamically alloced
-						if(ibuf!=tempbuf) delete[] ibuf;
-						// double the size of the buffer
-						sz *= 2;
-						ibuf = new char[sz];
-						// and loop in again
-					}while(1); 
-					// ibuf contains the printed string
-					ret = output(ibuf);
-				}
-				else
-				{	// thust the format string, no parameter
-					ret = output(fmt);
-				}
-			}
+			ret = do_print(fmt, argptr);
 			va_end(argptr);
-			if(ibuf!=tempbuf) delete[] ibuf;
+
 		}
 		return ret;
 	}
+	int warning(const char *fmt, ...)
+	{
+		int ret = 0;
+		if(enable>=1)
+		{
+			va_list argptr;
+			va_start(argptr, fmt);
+			ret = do_print(fmt, argptr);
+			va_end(argptr);
 
+		}
+		return ret;
+	}
+	int error(const char *fmt, ...)
+	{
+		int ret = 0;
+		if(enable>=0)
+		{
+			va_list argptr;
+			va_start(argptr, fmt);
+			ret = do_print(fmt, argptr);
+			va_end(argptr);
+
+		}
+		return ret;
+	}
 	virtual int output(const char* str)
 	{
 		int ret = printf(str);
@@ -499,6 +531,8 @@ public:
 	unsigned short Symbol()	const	{ return cSymbol; }
 	unsigned short Type()	const	{ return cType; }
 	size_t count()	const			{ return cCount; }
+	unsigned short Line() const		{ return cLine; }
+	unsigned short Column() const	{ return cColumn; }
 
 	const parsenode& operator[](size_t inx) const	{ return (inx<cCount)?(*(cList[inx])):(*this); }
 
@@ -586,12 +620,13 @@ protected:
 	class CLabel : public string<>
 	{	
 	public:
-		int		pos;
-		size_t	use;
+		uint isset : 1;		// correct address is set
+		uint _dummy : 7;	// unused bits to fill the 32bit gap
+		uint pos :24;		// 24bit address inside the script
+		uint use;			// usage counter of the label
 
-		CLabel(const char* n=NULL, int p=-1) : string<>(n), pos(p),use(0)	{}
+		CLabel(const char* n=NULL, int p=-1) : string<>(n), isset(0), pos(p),use(0)	{}
 		virtual ~CLabel()	{}
-
 	};
 
 	TslistDCT<CLabel>			cLabelList;	// label list
@@ -831,17 +866,68 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	// label functions
-	int insertLabel(const char* name, int pos=-1)
+	bool createLabel(const char* name)
+	{	// add a label in labellist, update the target position in programm if given
+		return cLabelList.insert(name);
+	}
+	bool appendLabel(const char* name)
+	{	// appends the address of a label
+		size_t inx;
+		if( cLabelList.find(name,0, inx) )
+		{	
+			// check if label has been set
+			if( cLabelList[inx].isset )
+			{	// can just push the address
+				appendAddr( cLabelList[inx].pos );
+			}
+			else
+			{	// otherwise build a linked list of unset jump address fields
+				size_t newstart = cProgramm.size();
+				appendAddr( cLabelList[inx].pos );
+				cLabelList[inx].pos = newstart;
+			}
+			cLabelList[inx].use++;
+			return true;
+		}
+		return false;
+	}
+	bool correctLabel(const char* name)
+	{	// we now have the correct position of the labels
+		size_t inx;
+		if( cLabelList.find(name,0, inx) && !cLabelList[inx].isset )
+		{
+			size_t pos = cProgramm.size();
+			size_t tmp1,tmp2, addr=cLabelList[inx].pos;
+			while( addr<pos )
+			{
+				tmp1 = addr;			// save the address since it is moving
+				tmp2 = getAddr(tmp1);	// read the next address in the chain
+				replaceAddr(pos, addr);	// update the address
+				addr = tmp2;
+			}
+			cLabelList[inx].isset=1;
+			cLabelList[inx].pos=pos;
+			return true;
+		}
+		return false;
+	}
+
+
+	int useLabel(const char* name, int pos=-1)
 	{	// add a label in labellist, update the target position in programm if given
 		size_t inx;
-		cLabelList.insert(name);
 		if( cLabelList.find(name,0, inx) )
-		{
-			if(pos>=0 && cLabelList[inx].pos>=0)	// try to reposition a label with given position
+		{	// tryed to reposition a label with already given position
+			// should actually not happen since detected on label pre-run
+			if(pos>=0 && cLabelList[inx].isset)	
 				return -1;
-			else if(pos>=0)							// have a position now
-				cLabelList[inx].pos = pos;			// set it
-			cLabelList[inx].use++;
+			else if(pos>=0)					// have a position now
+			{
+				cLabelList[inx].pos = pos;
+				cLabelList[inx].isset=1;
+			}
+			else							// otherwise just a usage of the label	
+				cLabelList[inx].use++;
 			return inx;
 		}
 		return -1;
@@ -1709,6 +1795,8 @@ class CScriptCompiler : public CLogger
 		VAR_TEMP,		// temp variable
 		VAR_GACCOUNT,	// global account variable
 		VAR_GCHAR,		// global character variable
+		VAR_GGUILD,		// global guild variable
+		VAR_GPARTY,		// global party variable
 		VAR_GSERVER		// global server variable
 	} vartype;
 	///////////////////////////////////////////////////////
@@ -1766,9 +1854,7 @@ class CScriptCompiler : public CLogger
 		size_t id = cTempVar.size();
 		cTempVar.insert( CVariable(name,id,t) );
 		if( cTempVar.find(name, 0, inx) )
-		{
 			return inx;
-		}
 		return -1;
 	}
 	bool isVariable(const char* name, size_t &inx)
@@ -1781,9 +1867,7 @@ class CScriptCompiler : public CLogger
 		size_t id = cTempVar.size();
 		cParaVar.insert( CVariable(name,id,t) );
 		if( cParaVar.find(name, 0, inx) )
-		{
 			return inx;
-		}
 		return -1;
 	}
 	bool isParameter(const char* name, size_t &inx)
@@ -1794,7 +1878,7 @@ class CScriptCompiler : public CLogger
 	///////////////////////////////////////////////////////////////////////////
 	// construct/destruct
 public:
-	CScriptCompiler(CScriptEnvironment &e, bool log=true): CLogger(log), cEnv(e) {}
+	CScriptCompiler(CScriptEnvironment &e, int log=2): CLogger(log), cEnv(e) {}
 	~CScriptCompiler()	{}
 
 private:
@@ -1816,7 +1900,7 @@ private:
 		const char *lp = (node.Type()==1)?node.Lexeme():node.SymbolName();
 		this->logging("%s", (lp)?lp:"");
 	}
-	void PrintChildTerminals(const parsenode &node)
+	void PrintChildTerminals(const parsenode &node, bool line_number=false)
 	{
 		const char *lp;
 		size_t i;
@@ -1825,6 +1909,8 @@ private:
 			lp = (node[i].Type()==1)?node[i].Lexeme():node[i].SymbolName();
 			this->logging("%s ", (lp)?lp:"");
 		}
+		if(line_number)
+			this->logging("(line %i, column %i)", node.Line(), node.Column());
 	}
 	//////////////////////////////////////////////////////////////////////////
 	// main compile loop, is called recursively with all parse tree nodes
@@ -1977,11 +2063,20 @@ private:
 				if( node.Lexeme() )
 				{
 					size_t inx;
+					////////////////////////////
+					// check for labels (determined in pre-run)
+					////////////////////////////
 					if( prog.isLabel(node.Lexeme(), inx) )
 					{	// a label
-						prog.appendCommand(VX_LABEL);
-						prog.appendAddr( inx );
+
+//						prog.appendCommand(VX_LABEL);
+//						prog.appendAddr( inx );
+//						accept = true;
+
+						prog.appendCommand(OP_PUSH_ADDR);
+						prog.appendLabel(node[1].Lexeme());
 						accept = true;
+
 
 						this->logging("Label accepted: %s - %s (%i)\n", node.SymbolName(), node.Lexeme(), inx);
 					}
@@ -1990,8 +2085,11 @@ private:
 					////////////////////////////
 					// else check for global parameter keyword
 					////////////////////////////
+					////////////////////////////
+					// it is a variable
+					////////////////////////////
 					else 
-					{	// a variable name
+					{	// a variable name can be 
 						// function parameter, temp variable or global storage
 						size_t inx;
 						accept = isParameter(node.Lexeme(), inx);
@@ -2028,6 +2126,7 @@ private:
 
 							if(accept)
 							{
+								cTempVar[inx].use++;
 								if( cTempVar[inx].type == VAR_TEMP )
 								{	// a local temp variable 
 									if( first || 0 != (flags&CFLAG_LVALUE) )
@@ -2035,7 +2134,6 @@ private:
 										prog.appendVarCommand( OP_PUSH_TEMPVAR1, cTempVar[inx].id );
 
 										this->logging("Local Variable Name accepted: %s - %s (%i)\n", node.SymbolName(), node.Lexeme(), cTempVar[inx].id);
-
 										if(first)
 										{
 											prog.appendCommand(OP_CLEAR);
@@ -2045,7 +2143,6 @@ private:
 									else
 									{
 										prog.appendVarCommand( OP_PUSH_TEMPVALUE1, cTempVar[inx].id );
-
 										this->logging("Local Variable Value accepted: %s - %s (%i)\n", node.SymbolName(), node.Lexeme(), cTempVar[inx].id);
 									}
 								}
@@ -2055,14 +2152,12 @@ private:
 									{
 										prog.appendCommand(OP_PUSH_VAR);
 										prog.appendString( node.Lexeme() );
-
 										this->logging("Global Variable Name accepted: %s - %s\n", node.SymbolName(), node.Lexeme());
 									}
 									else
 									{
 										prog.appendCommand(OP_PUSH_VALUE);
 										prog.appendString( node.Lexeme() );
-
 										this->logging("Global Variable Value accepted: %s - %s\n", node.SymbolName(), node.Lexeme());
 									}
 								}
@@ -2102,10 +2197,29 @@ private:
 			{
 			///////////////////////////////////////////////////////////////////
 			// a variable declaration
+			///////////////////////////////////////////////////////////////////
 			case PT_VARDECL:
-			{	// <Var Decl> ::= <Type> <Var List>  ';'
-				// ignore <Type> here as it was done in the pre-run
-				// just compile the variable list
+			{
+				// <Var Decl> ::= <Type> <Var List>  ';'
+				// <Type>     ::= <Mod> <Scalar>
+				//              | <Mod> 
+				//              |       <Scalar>
+				// <Mod>      ::= global
+				//              | temp
+				// <Scalar>   ::= string
+				//              | double
+				//              | int
+				//              | auto
+
+				// compile the type
+				vartype type = VAR_TEMP;
+				int num=0;	// variable storage type, ignored for now
+				// find all subterminals in first subtree and compile the variable list
+				if( !CompileVarType(node[0], type, num) ||
+					!CompileVarList(node[1], level+1, flags, prog, userval, type) )
+					break;
+				
+				// new compile the variable list
 				int varcount; // not necessary though but maybe nice to have
 				if( node[1].Symbol() == PT_VARLIST || node[1].Symbol() == PT_VAR )
 					accept = CompileMain(node[1], level+1, flags, prog, varcount);
@@ -2257,9 +2371,10 @@ private:
 			{	// expecting 2 terminals in here, the first is the labelname, the second a ":"
 				this->logging("PT_LABELSTM - ");
 
-				size_t pos = prog.getCurrentPosition();
-				int inx = prog.insertLabel( node[0].Lexeme(), pos );
-				if(inx>=0)
+//				size_t pos = prog.getCurrentPosition();
+//				int inx = prog.useLabel( node[0].Lexeme(), pos );
+//				if(inx>=0)
+				if( prog.correctLabel( node[0].Lexeme() ) )
 				{
 					accept = true;
 					this->logging("accepting label: ");
@@ -2279,13 +2394,17 @@ private:
 			case PT_GOTOSTMS:
 			{	// <Goto Stms>  ::= goto Id ';'
 
-				prog.appendCommand(VX_GOTO);
-				int inx = prog.insertLabel( node[1].Lexeme() );
-				if(inx>=0)
-				{
-					prog.appendAddr( inx );
-					accept = true;
-				}
+//				prog.appendCommand(VX_GOTO);
+//				int inx = prog.useLabel( node[1].Lexeme() );
+//				if(inx>=0)
+//				{
+//					prog.appendAddr( inx );
+//					accept = true;
+//				}
+
+				prog.appendCommand(OP_GOTO);
+				prog.appendLabel(node[1].Lexeme());
+				accept = true;
 				break;
 			}
 			///////////////////////////////////////////////////////////////////
@@ -2639,7 +2758,6 @@ private:
 					// convert continue -> goto Label1
 					prog.replaceJumps(rstart,rend,VX_BREAK,tarpos2);
 					prog.replaceJumps(rstart,rend,VX_CONT,tarpos3);
-
 				}
 				else if( node.count() ==5 && CheckTerminal(node[0], PT_WHILE) )
 				{	// while '(' <Expr> ')' <Normal Stm>
@@ -2826,14 +2944,12 @@ private:
 				{
 					prog.appendCommand(VX_CONT);
 					prog.appendAddr( 0 );
-					
 					accept = true;
 				}
 				else if( (node.count()>0 && node[0].Symbol() == PT_BREAK) && (0!=(flags & CFLAG_USE_BREAK)) )
 				{
 					prog.appendCommand(VX_BREAK);
 					prog.appendAddr( 0 );
-
 					accept = true;
 				}
 				else if( (node.count()>0 && node[0].Symbol() == PT_BREAK) )
@@ -2973,13 +3089,13 @@ private:
 				accept  = CompileMain(node[3], level+1,flags & ~CFLAG_LVALUE, prog, userval);
 
 				if( PT_AUTO != node[1].Symbol() )
-				{
+				{	// don't need to cast to auto type
 					if( PT_INT    == node[1].Symbol() ||
 						PT_STRING == node[1].Symbol() ||
 						PT_DOUBLE == node[1].Symbol() )
 					{						
 						prog.appendCommand(OP_CAST);
-						prog.appendChar( PT_INT );
+						prog.appendChar( node[1].Symbol() );
 						this->logging("PT_OPCAST\n");
 					}
 					else
@@ -3102,7 +3218,6 @@ private:
 					// put the operands on stack
 					accept  = CompileMain(node[0], level+1,flags | CFLAG_LVALUE, prog, userval);	// variable
 					accept &= CompileMain(node[2], level+1,flags & ~CFLAG_LVALUE, prog, userval);	// index
-
 					prog.appendCommand(OP_ARRAY);
 					this->logging("PT_ARRAYACCESS %s %s\n", (flags)?"variable":"value", (accept)?"successful":"failed");
 					break;
@@ -3135,9 +3250,9 @@ private:
 				// '--'   <Op Unary>
 
 				// put the operands on stack
-				accept  = CompileMain(node[0], level+1,flags | CFLAG_LVALUE, prog, userval); // put the variable itself on stack
+				accept  = CompileMain(node[1], level+1,flags | CFLAG_LVALUE, prog, userval); // put the variable itself on stack
 
-				switch( node[1].Symbol() )
+				switch( node[0].Symbol() )
 				{
 				case PT_PLUSPLUS:
 					this->logging("PT_OPPRE_PLUSPLUS, \n");
@@ -3289,8 +3404,9 @@ private:
 		}
 		else
 		{	// nonterminal
+			accept=true;
 			for(i=0; i<node.count() && accept; i++)
-				accept =CompileVarType(node[i], type, num);
+				accept &= CompileVarType(node[i], type, num);
 		}
 		return accept;
 	}
@@ -3335,14 +3451,19 @@ private:
 			else
 			{
 				insertVariable( node.Lexeme(), type);
-				accept = true;
-				this->logging( "accepting variable '%s' of type %i\n", node.Lexeme(), type);
+				accept = isVariable(node.Lexeme(), id);
+				if( accept )
+					this->logging( "accepting variable '%s' of type %i\n", node.Lexeme(), type);
+				else
+					this->logging( "error when accepting variable '%s' of type %i\n", node.Lexeme(), type);
 			}
 		}
 		return accept;
 	}
 	///////////////////////////////////////////////////////////////////////////
-	// initial pre-run through the tree to find necesary elements
+	// initial pre-run through the tree to find necessary elements
+	// currently only labels are done here, 
+	//!! check if merging with main compile loop would be suitable
 	bool CompileLabels(const parsenode &node, size_t level, unsigned long flags, CProgramm& prog, int& userval)
 	{
 		size_t i;
@@ -3365,45 +3486,30 @@ private:
 			switch(node.Symbol())
 			{
 			///////////////////////////////////////////////////////////////////
-			// a variable declaration
-			case PT_VARDECL:
-			{	// <Var Decl> ::= <Type> <Var List>  ';'
-				// <Type>     ::= <Mod> <Scalar>
-				//              | <Mod> 
-				//              |       <Scalar>
-				// <Mod>      ::= global
-				//              | temp
-				// <Scalar>   ::= string
-				//              | double
-				//              | int
-				//              | auto
-
-				vartype type = VAR_TEMP;
-				int num=0;	// variable storage type, ignored for now
-				// find all subterminals in first subtree
-				if( CompileVarType(node[0], type, num) )
-				{
-					// compile the variable list
-					accept = CompileVarList(node[1], level+1, flags, prog, userval, type);				
-				}
-				break;
-			}
-			///////////////////////////////////////////////////////////////////
 			// a label
 			case PT_LABELSTM:
 			{	// expecting 2 terminals in here, the first is the labelname, the second a ":"
-				int inx = prog.insertLabel( node[0].Lexeme());
-				if(inx>=0)
+				size_t inx;
+				if( !prog.isLabel(node[0].Lexeme(), inx) )
 				{
-					accept = true;
-					this->logging("accepting label: ");
-					PrintChildTerminals(node);
-					this->logging("\n");
+					if( prog.createLabel( node[0].Lexeme() ) )
+					{
+						accept = true;
+						this->logging("accepting label: ");
+						PrintChildTerminals(node);
+						this->logging("\n");
+					}
+					else
+					{
+						this->logging("error processing in label statement: ");
+						PrintChildTerminals(node);
+						this->logging("\n");
+					}
 				}
 				else
 				{
-					this->logging("error in label statement: ");
-					PrintChildTerminals(node);
+					this->logging("error: label already defined: ");
+					PrintChildTerminals(node, true);
 					this->logging("\n");
 				}
 				break;
@@ -3414,11 +3520,8 @@ private:
 			{
 				// accept non-terminal but go through their childs
 				accept = true;
-				for(i=0; i<node.count(); i++)
-				{
+				for(i=0; i<node.count() && accept; i++)
 					accept = CompileLabels(node[i], level+1,flags, prog, userval);
-					if( !accept ) break;
-				}
 				break;
 			}
 			}// switch
@@ -3653,27 +3756,29 @@ public:
 				prog.ConvertLabels();
 
 				this->logging("\n");
-				prog.dump();
-				this->logging("variables:\n");
-				for(size_t i=0;i<cTempVar.size(); i++)
-				{
-					this->logging("(%i) '%s' type=%i, id=%i, use=%i\n",
-						i,(const char*)cTempVar[i],
-						cTempVar[i].type,cTempVar[i].id,cTempVar[i].use);
-				}
-				this->logging("\n");
-
 				if( accept )
 				{
 					this->logging("accept block: ");
 					PrintChildTerminals(node);
 					this->logging("\n");
+
+					prog.dump();
+					this->logging("variables:\n");
+					for(size_t i=0;i<cTempVar.size(); i++)
+					{
+						this->logging("(%i) '%s' type=%i, id=%i, use=%i\n",
+							i,(const char*)cTempVar[i],
+							cTempVar[i].type,cTempVar[i].id,cTempVar[i].use);
+					}
+					this->logging("\n");
 				}
 				else
 				{
+					this->error("failed\n");
 					this->logging("failed block: ");
 					PrintChildTerminals(node);
-					this->logging("\n");
+					this->logging("\nuse detailed outputs for debugging\n");
+
 				}
 				break;
 
@@ -3739,6 +3844,7 @@ public:
 				}
 				else
 				{
+					this->error("failed\n");
 					this->logging("failed function: ");
 					PrintChildTerminals(node);
 					this->logging("\n");
@@ -3879,6 +3985,7 @@ public:
 				}
 				else
 				{
+					this->error("failed\n");
 					this->logging("failed script: ");
 					PrintChildTerminals(node);
 					this->logging("\n");

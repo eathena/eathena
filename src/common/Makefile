@@ -13,6 +13,8 @@ all sql txt: baseio.o basesq.o baseparam.o core.o db.o plugins.o grfio.o lock.o 
 RETURN_PATH ?= .
 COMMON_PATH ?= ../common
 BASE_PATH   ?= ../basics
+CCC         ?= g++ -pipe
+CPPFLAGS    ?= -g -O3 -ffast-math -D_REENTRANT
 ##########################################################
 BP = $(RETURN_PATH)/$(BASE_PATH)
 ##########################################################
@@ -53,5 +55,5 @@ baseio.o: baseio.cpp baseio.h base.h $(BASE_H)
 basesq.o: basesq.cpp basesq.h baseio.h base.h $(BASE_H)
 baseparam.o: baseparam.cpp baseparam.h base.h $(BASE_H)
 clean:
-	rm -rf *.o obj
+	rm -rf *.o obj GNUmakefile
 

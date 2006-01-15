@@ -278,6 +278,7 @@ void trade_tradeok(struct map_session_data &sd)
 	// check zeny
 	if(sd.deal_zeny < 0 || sd.deal_zeny > MAX_ZENY || sd.deal_zeny > (uint32)sd.status.zeny)
 	{	// check amount
+		pc_setglobalreg(sd,"ZENY_HACKER",1);
 		trade_tradecancel(sd);
 		return;
 	}
