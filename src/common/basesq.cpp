@@ -42,34 +42,31 @@ inline CMySQL::~CMySQL() {
 
 bool CMySQL::Query(const MiniString q) {
 
-	#ifdef DEBUG_SQL
-		ShowSQL("%s\n", q);
-	#endif
+//	ShowError("Query = %s\n",q.c_str());
 
-	if( 0==mysql_real_query(&mysqldb_handle, q, q.length()) ) {
-
-		this->Free();
+	if( 0==mysql_real_query(&mysqldb_handle, q.c_str(), q.length()) ) {
 		result = mysql_store_result(&mysqldb_handle);
-
 		if(result)
 			return true;
 		else if(mysql_field_count(&mysqldb_handle) == 0)
-            return true; // query does not return data (it was not a SELECT)
+            // query does not return data
+            // (it was not a SELECT)
+            return true;
 		else
-		{
-			ShowError("DB result error\nQuery:    %s\n", (const char *)q);
-			abort();
-		}
+			ShowError("DB result error\nQuery:    %s\n", q.c_str() );
 	}
 	else
-		ShowError("Database Error %s\nQuery:    %s\n", mysql_error(&mysqldb_handle), (const char *)q);
+	{
+		ShowError("Database Error %s\nQuery:    %s\n", mysql_error(&mysqldb_handle), q.c_str());
+		abort();
+	}
 
 	return false;
 }
 
 bool CMySQL::Fetch()
 {
-	if (!result) // was there even a result?
+	if (result) // was there even a result?
 		if ((row = mysql_fetch_row(result))) // is there a row to pull out?
 			return true;
 	return false;
@@ -206,6 +203,7 @@ bool CAccountDB_sql::existAccount(const char* userid)
 	bool ret = false;
 	if(userid)
 	{
+		ShowError("%s: doing\n",__PRETTY_FUNCTION__);
 		char uid[64];
 		MiniString query;
 
@@ -214,17 +212,21 @@ bool CAccountDB_sql::existAccount(const char* userid)
 		this->Query(query);
 		if( this->Fetch())
 		{
+
 			ret = this->CountRes();
 		}
 	}
+	ShowError("%s: done\n",__PRETTY_FUNCTION__);
 	return ret;
 }
 
 bool CAccountDB_sql::searchAccount(const char* userid, CLoginAccount& account)
 {	// get account by user/pass
 	bool ret = false;
+
 	if(userid)
 	{
+
 		MiniString query;
 		char uid[64];
 
@@ -242,9 +244,9 @@ bool CAccountDB_sql::searchAccount(const char* userid, CLoginAccount& account)
 			<<"`client_ip`,"		//  9
 			<<"`last_login`,"		// 10
 			<<"`login_count`,"	// 11
-			<<"`ban_until`"		// 12
+			<<"`ban_until`,"		// 12
 			<<"`valid_until`"		// 13
-			<<" FROM `" << login_auth_db << "` WHERE " << (case_sensitive ? "BINARY" : "") << " `user_id`='" << uid << "'";
+			<<" FROM `" << login_auth_db << "` WHERE `user_id`='" << uid << "'";
 
 		if( this->Query(query) )
 		{
@@ -274,25 +276,30 @@ bool CAccountDB_sql::searchAccount(const char* userid, CLoginAccount& account)
 
 				this->Free();
 
-				query.clear();
-				query << "SELECT `str`,`value` FROM `" << login_reg_db << "` WHERE `account_id`='" << (unsigned long)account.account_id << "'";
-				if( this->Query(query) )
-				{
-					size_t i=0;
-					while( i<ACCOUNT_REG2_NUM && this->Fetch() )
-					{
-						safestrcpy(account.account_reg2[i].str, this->row[0], sizeof(account.account_reg2[0].str));
-						account.account_reg2[i].value = (this->row[1]) ? atoi(this->row[1]):0;
-						i++;
-					}
-					account.account_reg2_num = i;
-
-					this->Free();
-				}
 				ret = true;
 			}
 		}
+
+		if(ret)
+		{
+			query.clear();
+			query << "SELECT `str`,`value` FROM `" << login_reg_db << "` WHERE `account_id`='" << (unsigned long)account.account_id << "'";
+			if( this->Query(query) )
+			{
+				size_t i=0;
+				while( i<ACCOUNT_REG2_NUM && this->Fetch() )
+				{
+					safestrcpy(account.account_reg2[i].str, this->row[0], sizeof(account.account_reg2[0].str));
+					account.account_reg2[i].value = (this->row[1]) ? atoi(this->row[1]):0;
+					i++;
+				}
+				account.account_reg2_num = i;
+
+				this->Free();
+			}
+		}
 	}
+
 	return ret;
 }
 
@@ -303,6 +310,7 @@ bool CAccountDB_sql::searchAccount(uint32 accid, CLoginAccount& account)
 	char query[4096];
 	MYSQL_RES *sql_res1=NULL, *sql_res2=NULL;
 
+	ShowError("%s: doing\n",__PRETTY_FUNCTION__);
 	sz=snprintf(query,sizeof(query), "SELECT "
 			"`account_id`,"		//  0
 			"`user_id`,"			//  1
@@ -363,6 +371,7 @@ bool CAccountDB_sql::searchAccount(uint32 accid, CLoginAccount& account)
 		}
 		mysql_free_result(sql_res1);
 	}
+	ShowError("%s: done\n",__PRETTY_FUNCTION__);
 	return ret;
 }
 
