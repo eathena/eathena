@@ -26,6 +26,8 @@
 		* * * From where this info is? ... Mine: On your death you'll loose this ring and get 50% HP [Komurka]
 =========================
 
+01/16
+	* Corrected Roundkick's knockback? [Vicious]
 01/14
 	* Mode change on some monsters [Vicious]
 	* Updated Packet DB a bit [Vicious]
