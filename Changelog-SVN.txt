@@ -1,6 +1,7 @@
 Date	Added
 
 2006/01/16
+	* Refix of the mapreg SQL saving fix of a while ago... [Skotlex]
 	* Playtester custom eamobs spawn updates: coal Mines, umbala fields, and
 	  minor changes to Sphinx and Geffen Dungeon. [Skotlex]
 	* Incremented a bit clone skill usage rate, their rate/delays are now affected

@@ -10229,7 +10229,7 @@ int mapreg_setreg(int num,int val)
 
 #if !defined(TXT_ONLY) && defined(MAPREGSQL)
 		if(name[1] != '@' && idb_get(mapreg_db,num) == NULL) {
-			sprintf(tmp_sql,"INSERT INTO `%s`('%s','%s',`%s') VALUES ('%s','%d','%d')",mapregsql_db,mapregsql_db_varname,mapregsql_db_index,mapregsql_db_value,jstrescapecpy(tmp_str,name),i,val);
+			sprintf(tmp_sql,"INSERT INTO `%s`(`%s`,`%s`,`%s`) VALUES ('%s','%d','%d')",mapregsql_db,mapregsql_db_varname,mapregsql_db_index,mapregsql_db_value,jstrescapecpy(tmp_str,name),i,val);
 			if(mysql_query(&mmysql_handle,tmp_sql)){
 				ShowSQL("DB error - %s\n",mysql_error(&mmysql_handle));
 				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
