@@ -429,7 +429,7 @@ int chrif_scdata_request(int account_id, int char_id)
 void chrif_authreq(struct map_session_data *sd)
 {
 	struct auth_node *auth_data;
-	auth_data=db_get(auth_db, sd->bl.id);
+	auth_data=idb_get(auth_db, sd->bl.id);
 
 	if(auth_data) {
 		if(auth_data->char_dat &&
@@ -444,7 +444,7 @@ void chrif_authreq(struct map_session_data *sd)
 		}
 		if (auth_data->char_dat)
 			aFree(auth_data->char_dat);
-		db_remove(auth_db, sd->bl.id);
+		idb_remove(auth_db, sd->bl.id);
 	} else { //data from char server has not arrived yet.
 		auth_data = aCalloc(1, sizeof(struct auth_node));
 		auth_data->sd = sd;
@@ -452,7 +452,7 @@ void chrif_authreq(struct map_session_data *sd)
 		auth_data->account_id = sd->bl.id;
 		auth_data->login_id1 = sd->login_id1;
 		auth_data->node_created = gettick();
-		db_put(auth_db, sd->bl.id, auth_data);
+		idb_put(auth_db, sd->bl.id, auth_data);
 	}
 	return;
 }
@@ -466,7 +466,7 @@ void chrif_authok(int fd) {
 	//Someone with this account is already in! Do not store the info to prevent possible sync exploits. [Skotlex]
 		return;
 	
-	if ((auth_data =db_get(auth_db, RFIFOL(fd, 4))) != NULL)
+	if ((auth_data =uidb_get(auth_db, RFIFOL(fd, 4))) != NULL)
 	{	//Is the character already awaiting authorization?
 		if (auth_data->sd)
 		{
@@ -488,7 +488,7 @@ void chrif_authok(int fd) {
 		//Delete the data of this node...
 		if (auth_data->char_dat)
 			aFree (auth_data->char_dat);
-		db_remove(auth_db, RFIFOL(fd, 4));
+		uidb_remove(auth_db, RFIFOL(fd, 4));
 		return;
 	}
 	// Awaiting for client to connect.
@@ -501,7 +501,7 @@ void chrif_authok(int fd) {
 	auth_data->login_id2=RFIFOL(fd, 16);
 	memcpy(auth_data->char_dat,RFIFOP(fd, 20),sizeof(struct mmo_charstatus));
 	auth_data->node_created=gettick();
-	db_put(auth_db, RFIFOL(fd, 4), auth_data);
+	uidb_put(auth_db, RFIFOL(fd, 4), auth_data);
 }
 
 int auth_db_cleanup_sub(DBKey key,void *data,va_list ap)

@@ -20,13 +20,13 @@ char scdata_txt[1024]="save/scdata.txt"; //By [Skotlex]
 struct scdata* status_search_scdata(int aid, int cid)
 {
 	struct scdata *data;
-	data = db_get(scdata_db, cid);
+	data = idb_get(scdata_db, cid);
 	if (data == NULL)
 	{
 		data = aCalloc(1, sizeof(struct scdata));
 		data->account_id = aid;
 		data->char_id = cid;
-		db_put(scdata_db, cid, data);
+		idb_put(scdata_db, cid, data);
 	}
 	return data;
 }
@@ -38,7 +38,7 @@ struct scdata* status_search_scdata(int aid, int cid)
  */
 void status_delete_scdata(int aid, int cid)
 {
-	struct scdata *scdata = db_remove(scdata_db, cid);
+	struct scdata *scdata = idb_remove(scdata_db, cid);
 	if (scdata)
 	{
 		if (scdata->data)
@@ -105,7 +105,7 @@ void status_load_scdata(const char* filename)
 		if (inter_scdata_fromstr(line, sc)) {
 			sd_count++;
 			sc_count+= sc->count;
-			sc = db_put(scdata_db, sc->char_id, sc);
+			sc = idb_put(scdata_db, sc->char_id, sc);
 			if (sc) {
 				ShowError("Duplicate entry in %s for character %d\n", filename, sc->char_id);
 				if (sc->data) aFree(sc->data);

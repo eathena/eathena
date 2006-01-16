@@ -141,7 +141,7 @@ int itemdb_searchrandomgroup (int groupid)
  */
 struct item_data* itemdb_exists(int nameid)
 {
-	return db_get(item_db,nameid);
+	return idb_get(item_db,nameid);
 }
 
 /*==========================================
@@ -205,11 +205,11 @@ struct item_data* itemdb_search(int nameid)
 {
 	struct item_data *id;
 
-	id = db_get(item_db,nameid);
+	id = idb_get(item_db,nameid);
 	if(id) return id;
 
 	id=(struct item_data *)aCalloc(1,sizeof(struct item_data));
-	db_put(item_db,nameid,id);
+	idb_put(item_db,nameid,id);
 
 	id->nameid=nameid;
 	id->value_buy=10;

@@ -74,7 +74,7 @@ int inter_party_tosql(int party_id,struct party *p, int flag, int index)
 			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		}
 		//Remove from memory
-		db_remove(party_db_, party_id);
+		idb_remove(party_db_, party_id);
 		return 1;
 	}
 
@@ -106,7 +106,7 @@ int inter_party_tosql(int party_id,struct party *p, int flag, int index)
 			return 0;
 		}
 		//Add party to db
-		db_put(party_db_, party_id, p);
+		idb_put(party_db_, party_id, p);
 	}
 
 	if (flag&PS_BASIC) {
@@ -166,7 +166,7 @@ struct party *inter_party_fromsql(int party_id)
 		return NULL;
 	
 	//Load from memory
-	if ((p = db_get(party_db_, party_id)) != NULL)
+	if ((p = idb_get(party_db_, party_id)) != NULL)
 		return p;
 	
 	p = party_pt;
@@ -224,7 +224,7 @@ struct party *inter_party_fromsql(int party_id)
 	//Add party to memory.
 	p = aCalloc(1, sizeof(struct party));
 	memcpy(p, party_pt, sizeof(struct party));
-	db_put(party_db_, party_id, p);
+	idb_put(party_db_, party_id, p);
 	return p;
 }
 
@@ -861,6 +861,6 @@ int inter_party_CharOffline(int char_id, int party_id) {
 
 	if(online_count == 0)
 		//Parties don't have any data that needs be saved at this point... so just remove it from memory.
-		db_remove(party_db_, party_id);
+		idb_remove(party_db_, party_id);
 	return 1;
 }

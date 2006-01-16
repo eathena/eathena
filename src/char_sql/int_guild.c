@@ -319,7 +319,7 @@ struct guild * inter_guild_fromsql(int guild_id)
 
 	if (guild_id<=0) return NULL;
 
-	g = db_get(guild_db_,guild_id);
+	g = idb_get(guild_db_,guild_id);
 	if (g) return g;
 
 	g = (struct guild*)aCalloc(sizeof(struct guild), 1);
@@ -512,7 +512,7 @@ struct guild * inter_guild_fromsql(int guild_id)
 	}
 	mysql_free_result(sql_res);
 
-	db_put(guild_db_, guild_id, g); //Add to cache
+	idb_put(guild_db_, guild_id, g); //Add to cache
 	g->save_flag |= GS_REMOVE; //But set it to be removed, in case it is not needed for long.
 	
 	if (save_log)
@@ -842,7 +842,7 @@ int guild_nextexp(int level)
 	return 0;
 }
 
-// ƒMƒ‹ƒhƒXƒLƒ‹‚ª‚ ‚é‚©Šm”F
+// ƒMƒ‹ƒhƒXƒLƒ‹‚ªE‚é‚©Šm”F
 int guild_checkskill(struct guild *g,int id) {
 
 	int idx = id - GD_SKILLBASE;
@@ -903,7 +903,7 @@ int guild_calcinfo(struct guild *g)
 	}
 	if(c) g->average_lv/=c;
 
-	// ‘Sƒf[ƒ^‚ğ‘—‚é•K—v‚ª‚ ‚è‚»‚¤
+	// ‘Sƒf[ƒ^‚ğ‘—‚é•K—v‚ªE‚è‚»‚¤
 	if(g->max_member!=before.max_member	||
 		g->guild_lv!=before.guild_lv		||
 		g->skill_point!=before.skill_point	){
@@ -1250,7 +1250,7 @@ int mapif_parse_CreateGuild(int fd,int account_id,char *name,struct guild_member
 		g->skill[i].id=i + GD_SKILLBASE;
 	//Add to cache
 	ShowInfo("Created Guild %d - %s (Guild Master: %s)\n", g->guild_id, g->name, g->master);
-	db_put(guild_db_, g->guild_id, g);
+	idb_put(guild_db_, g->guild_id, g);
 	inter_guild_tosql(g,GS_BASIC|GS_POSITION|GS_SKILL); //Better save the whole guild right now.
 
 	// Report to client
@@ -1476,7 +1476,7 @@ int mapif_parse_BreakGuild(int fd,int guild_id)
 		inter_log("guild %s (id=%d) broken" RETCODE,g->name,guild_id);
 	
 	//Remove the guild from memory. [Skotlex]
-	g = db_remove(guild_db_, guild_id);
+	g = idb_remove(guild_db_, guild_id);
 	return 0;
 }
 
@@ -1784,7 +1784,7 @@ int mapif_parse_GuildCastleDataSave(int fd,int castle_id,int index,int value)   
 	case 1:
 		if( gc.guild_id!=value ){
 			int gid=(value)?value:gc.guild_id;
-			struct guild *g=db_get(guild_db_, gid);
+			struct guild *g=idb_get(guild_db_, gid);
 			if(log_inter)
 				inter_log("guild %s (id=%d) %s castle id=%d" RETCODE,
 					(g)?g->name:"??" ,gid, (value)?"occupy":"abandon", castle_id);

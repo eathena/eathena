@@ -162,12 +162,12 @@ void add_online_user(int char_server, int account_id) {
 	struct online_login_data *p;
 	if (!online_check)
 		return;
-	p = db_get(online_db, account_id);
+	p = idb_get(online_db, account_id);
 	if (p == NULL) {
 		p = aCalloc(1, sizeof(struct online_login_data));
 		p->account_id = account_id;
 		p->char_server = char_server;
-		db_put(online_db, account_id, p);
+		idb_put(online_db, account_id, p);
 	} else {
 		p->char_server = char_server;
 		p->waiting_disconnect = 0;
@@ -175,7 +175,7 @@ void add_online_user(int char_server, int account_id) {
 }
 
 int is_user_online(int account_id) {
-	return (db_get(online_db, account_id) != NULL);
+	return (idb_get(online_db, account_id) != NULL);
 }
 
 void remove_online_user(int account_id) {
@@ -186,13 +186,13 @@ void remove_online_user(int account_id) {
 		online_db = db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA,sizeof(int));	// reinitialise
 		return;
 	}
-	db_remove(online_db,account_id);
+	idb_remove(online_db,account_id);
 }
 
 int waiting_disconnect_timer(int tid, unsigned int tick, int id, int data)
 {
 	struct online_login_data *p;
-	if ((p= db_get(online_db, id)) != NULL && p->waiting_disconnect)
+	if ((p= idb_get(online_db, id)) != NULL && p->waiting_disconnect)
 		remove_online_user(id);
 	return 0;
 }
@@ -782,7 +782,7 @@ int mmo_auth( struct mmo_account* account , int fd){
 	}
 
 	if (online_check) {
-		struct online_login_data* data = db_get(online_db,atoi(sql_row[0]));
+		struct online_login_data* data = idb_get(online_db,atoi(sql_row[0]));
 		unsigned char buf[8];
 		if (data && data->char_server > -1) {
 			//Request char servers to kick this account out. [Skotlex]
@@ -1290,12 +1290,12 @@ int parse_fromchar(int fd){
 				users = RFIFOW(fd,4);
 				for (i = 0; i < users; i++) {
 					aid = RFIFOL(fd,6+i*4);
-					p = db_get(online_db, aid);
+					p = idb_get(online_db, aid);
 					if (p == NULL) {
 						p = aCalloc(1, sizeof(struct online_login_data));
 						p->account_id = aid;
 						p->char_server = id;
-						db_put(online_db, aid, p);
+						idb_put(online_db, aid, p);
 					} else {
 						p->char_server = aid;
 						p->waiting_disconnect = 0;

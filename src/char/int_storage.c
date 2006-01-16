@@ -158,7 +158,7 @@ int guild_storage_fromstr(char *str,struct guild_storage *p)
 struct storage *account2storage(int account_id)
 {
 	struct storage *s;
-	s= db_get(storage_db,account_id);
+	s= idb_get(storage_db,account_id);
 	if(s == NULL) {
 		s = (struct storage *) aCalloc(sizeof(struct storage), 1);
 		if(s==NULL){
@@ -166,7 +166,7 @@ struct storage *account2storage(int account_id)
 			exit(0);
 		}
 		s->account_id=account_id;
-		db_put(storage_db,s->account_id,s);
+		idb_put(storage_db,s->account_id,s);
 	}
 	return s;
 }
@@ -175,7 +175,7 @@ struct guild_storage *guild2storage(int guild_id)
 {
 	struct guild_storage *gs = NULL;
 	if(inter_guild_search(guild_id) != NULL) {
-		gs= db_get(guild_storage_db,guild_id);
+		gs= idb_get(guild_storage_db,guild_id);
 		if(gs == NULL) {
 			gs = (struct guild_storage *) aCalloc(sizeof(struct guild_storage), 1);
 			if(gs==NULL){
@@ -184,7 +184,7 @@ struct guild_storage *guild2storage(int guild_id)
 			}
 //			memset(gs,0,sizeof(struct guild_storage)); aCalloc does this! [Skotlex]
 			gs->guild_id=guild_id;
-			db_put(guild_storage_db,gs->guild_id,gs);
+			idb_put(guild_storage_db,gs->guild_id,gs);
 		}
 	}
 	return gs;
@@ -217,7 +217,7 @@ int inter_storage_init()
 //		memset(s,0,sizeof(struct storage)); aCalloc does this...
 		s->account_id=tmp_int;
 		if(s->account_id > 0 && storage_fromstr(line,s) == 0) {
-			db_put(storage_db,s->account_id,s);
+			idb_put(storage_db,s->account_id,s);
 		}
 		else{
 			ShowError("int_storage: broken data [%s] line %d\n",storage_txt,c);
@@ -245,7 +245,7 @@ int inter_storage_init()
 //		memset(gs,0,sizeof(struct guild_storage)); aCalloc...
 		gs->guild_id=tmp_int;
 		if(gs->guild_id > 0 && guild_storage_fromstr(line,gs) == 0) {
-			db_put(guild_storage_db,gs->guild_id,gs);
+			idb_put(guild_storage_db,gs->guild_id,gs);
 		}
 		else{
 			ShowError("int_storage: broken data [%s] line %d\n",guild_storage_txt,c);
@@ -321,14 +321,14 @@ int inter_guild_storage_save()
 // 倉庫データ削除
 int inter_storage_delete(int account_id)
 {
-	struct storage *s = db_get(storage_db,account_id);
+	struct storage *s = idb_get(storage_db,account_id);
 	if(s) {
 		int i;
 		for(i=0;i<s->storage_amount;i++){
 			if(s->storage_[i].card[0] == (short)0xff00)
 				inter_pet_delete( MakeDWord(s->storage_[i].card[1],s->storage_[i].card[2]) );
 		}
-		db_remove(storage_db,account_id);
+		idb_remove(storage_db,account_id);
 	}
 	return 0;
 }
@@ -336,14 +336,14 @@ int inter_storage_delete(int account_id)
 // ギルド倉庫データ削除
 int inter_guild_storage_delete(int guild_id)
 {
-	struct guild_storage *gs = db_get(guild_storage_db,guild_id);
+	struct guild_storage *gs = idb_get(guild_storage_db,guild_id);
 	if(gs) {
 		int i;
 		for(i=0;i<gs->storage_amount;i++){
 			if(gs->storage_[i].card[0] == (short)0xff00)
 				inter_pet_delete( MakeDWord(gs->storage_[i].card[1],gs->storage_[i].card[2]) );
 		}
-		db_remove(guild_storage_db,guild_id);
+		idb_remove(guild_storage_db,guild_id);
 	}
 	return 0;
 }

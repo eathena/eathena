@@ -1,5 +1,8 @@
 Date	Added
 
+2006/01/16
+	* Applied flaviojs's new db interface and fixed compatibility problems with Visual Studio. [Lance]
+
 2006/01/15
 	* Fixed poison damaging player even when under 25% hp. [Skotlex]
 	* Fixed permanent character variables in Char-TXT [Skotlex]

@@ -195,12 +195,12 @@ void set_char_online(int map_id, int char_id, int account_id) {
 		}
 	}
 
-	character = db_get(online_char_db, account_id);
+	character = idb_get(online_char_db, account_id);
 	if (character == NULL)
 	{
 		character = aCalloc(1, sizeof(struct online_char_data));
 		character->account_id = account_id;
-		db_put(online_char_db, account_id, character);
+		idb_put(online_char_db, account_id, character);
 	} else {
 		if (online_check && character->char_id != -1 && character->server > -1 && character->server != map_id)
 		{
@@ -215,7 +215,7 @@ void set_char_online(int map_id, int char_id, int account_id) {
 	if (char_id != 99)
 	{	//Set char online in guild cache. If char is in memory, use the guild id on it, otherwise seek it.
 		struct mmo_charstatus *cp;
-		cp = db_get(char_db_,char_id);
+		cp = idb_get(char_db_,char_id);
  		inter_guild_CharOnline(char_id, cp?cp->guild_id:-1);
 	}
 	if (login_fd <= 0 || session[login_fd]->eof)
@@ -233,10 +233,10 @@ void set_char_offline(int char_id, int account_id) {
 	if ( char_id == 99 )
 		sprintf(tmp_sql,"UPDATE `%s` SET `online`='0' WHERE `account_id`='%d'", char_db, account_id);
 	else {
-		cp = db_get(char_db_,char_id);
+		cp = idb_get(char_db_,char_id);
 		inter_guild_CharOffline(char_id, cp?cp->guild_id:-1);
 		if (cp)
-			db_remove(char_db_,char_id);
+			idb_remove(char_db_,char_id);
 
 		sprintf(tmp_sql,"UPDATE `%s` SET `online`='0' WHERE `char_id`='%d'", char_db, char_id);
 
@@ -247,7 +247,7 @@ void set_char_offline(int char_id, int account_id) {
 		}
 	}
 
-	if ((character = db_get(online_char_db, account_id)) != NULL)
+	if ((character = idb_get(online_char_db, account_id)) != NULL)
 	{	//We don't free yet to avoid aCalloc/aFree spamming during char change. [Skotlex]
 		character->char_id = -1;
 		character->server = -1;
@@ -350,11 +350,11 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 
 	if (char_id!=p->char_id) return 0;
 
-	cp = db_get(char_db_,char_id);
+	cp = idb_get(char_db_,char_id);
 
 	if (cp == NULL) {
 		cp = (struct mmo_charstatus *) aCalloc(1,sizeof(struct mmo_charstatus));
-		db_put(char_db_, char_id,cp);
+		idb_put(char_db_, char_id,cp);
 	}
 
 //	ShowInfo("Saving char "CL_WHITE"%d"CL_RESET" (%s)...\n",char_id,char_dat[0].name);
@@ -864,7 +864,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p){
 	struct mmo_charstatus *cp;
         friends = 0;
 
-	cp = db_get(char_db_,char_id);
+	cp = idb_get(char_db_,char_id);
 
 	memset(p, 0, sizeof(struct mmo_charstatus));
 	t_msg[0]= '\0';
@@ -895,7 +895,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p){
 		if (!sql_row)
 		{	//Just how does this happens? [Skotlex]
 			ShowError("Requested non-existant character id: %d!\n", char_id);
-			if (cp) db_remove(char_db_, char_id);
+			if (cp) idb_remove(char_db_, char_id);
 			return 0;	
 		}
 
@@ -1113,7 +1113,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p){
 	if (cp == NULL) { //If not in memory, create it. Otherwise just update data.
 		cp = (struct mmo_charstatus *) aMalloc(sizeof(struct mmo_charstatus));
     	memcpy(cp, p, sizeof(struct mmo_charstatus));
-		db_put(char_db_, char_id,cp);
+		idb_put(char_db_, char_id,cp);
 	} else
     	memcpy(cp, p, sizeof(struct mmo_charstatus));
 
@@ -2211,7 +2211,7 @@ int parse_tologin(int fd) {
 			{
 				struct online_char_data* character;
 				int aid = RFIFOL(fd,2);
-				if ((character = db_get(online_char_db, aid)) != NULL)
+				if ((character = idb_get(online_char_db, aid)) != NULL)
 				{	//Kick out this player.
 					if (character->server > -1)
 					{	//Kick it from the map server it is on.
@@ -2475,14 +2475,14 @@ int parse_frommap(int fd) {
 			for(i = 0; i < server[id].users; i++) {
 				aid = RFIFOL(fd,6+i*8);
 				cid = RFIFOL(fd,6+i*8+4);
-				character = db_get(online_char_db, aid);
+				character = idb_get(online_char_db, aid);
 				if (character == NULL)
 				{
 					character = aCalloc(1, sizeof(struct online_char_data));
 					character->account_id = aid;
 					character->char_id = cid;
 					character->server = id;
-					db_put(online_char_db, aid, character);
+					idb_put(online_char_db, aid, character);
 				} else {
 					if (character->server > -1 && character->server != id)
 					{
@@ -2568,7 +2568,7 @@ int parse_frommap(int fd) {
 				if (map_id >= 0)
 					map_fd = server_fd[map_id];
 				//Char should just had been saved before this packet, so this should be safe. [Skotlex]
-				char_data = db_get(char_db_,RFIFOL(fd,14));
+				char_data = uidb_get(char_db_,RFIFOL(fd,14));
 				if (char_data == NULL) 
 				{	//Really shouldn't happen.
 					mmo_char_fromsql(RFIFOL(fd,14), char_dat);
@@ -2590,7 +2590,7 @@ int parse_frommap(int fd) {
 					WFIFOL(map_fd,12) = (unsigned long)0; //TODO: connect_until_time, how do I figure it out right now?
 					memcpy(WFIFOP(map_fd,20), char_data, sizeof(struct mmo_charstatus));
 					WFIFOSET(map_fd, WFIFOW(map_fd,2));
-					data = db_get(online_char_db, RFIFOL(fd, 2));
+					data = uidb_get(online_char_db, RFIFOL(fd, 2));
 					if (data) //This check should really never fail...
 						data->server = map_id; //Update server where char is.
 					
@@ -3018,7 +3018,7 @@ int parse_char(int fd) {
 			login_fd = -1;
 		if (sd != NULL)
 		{
-			struct online_char_data* data = db_get(online_char_db, sd->account_id);
+			struct online_char_data* data = idb_get(online_char_db, sd->account_id);
 			if (!data || data->server== -1) //If it is not in any server, send it offline. [Skotlex]
 				set_char_offline(99,sd->account_id);
 		}
@@ -3082,7 +3082,7 @@ int parse_char(int fd) {
 				if (online_check)
 				{	// check if character is not online already. [Skotlex]
 					struct online_char_data* character;
-					character = db_get(online_char_db, sd->account_id);
+					character = idb_get(online_char_db, sd->account_id);
 
 					if (character) 
 					{
@@ -3771,7 +3771,7 @@ int check_connect_login_server(int tid, unsigned int tick, int id, int data) {
 static int chardb_waiting_disconnect(int tid, unsigned int tick, int id, int data)
 {
 	struct online_char_data* character;
-	if ((character = db_get(online_char_db, id)) != NULL && character->waiting_disconnect)
+	if ((character = idb_get(online_char_db, id)) != NULL && character->waiting_disconnect)
 	{	//Mark it offline due to timeout.
 		set_char_offline(character->char_id, character->account_id);
 	}

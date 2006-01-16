@@ -253,12 +253,12 @@ void set_char_online(int map_id, int char_id, int account_id) {
 			max_char_id = char_id;
 		mapif_send_maxid(max_account_id, max_char_id);
 	}
-	character = db_get(online_char_db, account_id);
+	character = idb_get(online_char_db, account_id);
 	if (character == NULL)
 	{
 		character = aCalloc(1, sizeof(struct online_char_data));
 		character->account_id = account_id;
-		db_put(online_char_db, account_id, character);
+		idb_put(online_char_db, account_id, character);
 	} else {
 		if (online_check && character->char_id != -1 && character->server > -1 && character->server != map_id)
 		{
@@ -283,7 +283,7 @@ void set_char_online(int map_id, int char_id, int account_id) {
 void set_char_offline(int char_id, int account_id) {
 	struct online_char_data* character;
 
-	if ((character = db_get(online_char_db, account_id)) != NULL)
+	if ((character = idb_get(online_char_db, account_id)) != NULL)
 	{	//We don't free yet to avoid aCalloc/aFree spamming during char change. [Skotlex]
 		character->char_id = -1;
 		character->server = -1;
@@ -2243,7 +2243,7 @@ int parse_tologin(int fd) {
 			{
 				struct online_char_data* character;
 				int aid = RFIFOL(fd,2);
-				if ((character = db_get(online_char_db, aid)) != NULL)
+				if ((character = idb_get(online_char_db, aid)) != NULL)
 				{	//Kick out this player.
 					if (character->server > -1)
 					{	//Kick it from the map server it is on.
@@ -2531,14 +2531,14 @@ int parse_frommap(int fd) {
 				struct online_char_data* character;
 				aid = RFIFOL(fd,6+i*8);
 				cid = RFIFOL(fd,6+i*8+4);
-				character = db_get(online_char_db, aid);
+				character = idb_get(online_char_db, aid);
 				if (character == NULL)
 				{
 					character = aCalloc(1, sizeof(struct online_char_data));
 					character->account_id = aid;
 					character->char_id = cid;
 					character->server = id;
-					db_put(online_char_db, aid, character);
+					idb_put(online_char_db, aid, character);
 				} else {
 					if (online_check && character->server > -1 && character->server != id)
 					{
@@ -2635,7 +2635,7 @@ int parse_frommap(int fd) {
 					WFIFOL(map_fd,12) = (unsigned long)0; //TODO: connect_until_time, how do I figure it out right now?
 					memcpy(WFIFOP(map_fd,20), char_data, sizeof(struct mmo_charstatus));
 					WFIFOSET(map_fd, WFIFOW(map_fd,2));
-					data = db_get(online_char_db, RFIFOL(fd, 2));
+					data = uidb_get(online_char_db, RFIFOL(fd, 2));
 					if (data) //This check should really never fail...
 						data->server = map_id; //Update server where char is.
 
@@ -3039,7 +3039,7 @@ int parse_char(int fd) {
 			login_fd = -1;
 		if (sd != NULL)
 		{
-			struct online_char_data* data = db_get(online_char_db, sd->account_id);
+			struct online_char_data* data = idb_get(online_char_db, sd->account_id);
 			if (!data || data->server== -1) //If it is not in any server, send it offline. [Skotlex]
 				set_char_offline(99,sd->account_id);
 		}
@@ -3111,7 +3111,7 @@ int parse_char(int fd) {
 					if (online_check)
 					{	// check if character is not online already. [Skotlex]
 						struct online_char_data* character;
-						character = db_get(online_char_db, sd->account_id);
+						character = idb_get(online_char_db, sd->account_id);
 
 						if (character)
 						{
@@ -3739,7 +3739,7 @@ int check_connect_login_server(int tid, unsigned int tick, int id, int data) {
 static int chardb_waiting_disconnect(int tid, unsigned int tick, int id, int data)
 {
 	struct online_char_data* character;
-	if ((character = db_get(online_char_db, id)) != NULL && character->waiting_disconnect)
+	if ((character = idb_get(online_char_db, id)) != NULL && character->waiting_disconnect)
 	{	//Mark it offline due to timeout.
 		set_char_offline(character->char_id, character->account_id);
 	}

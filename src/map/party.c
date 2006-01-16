@@ -49,7 +49,7 @@ struct party *party_search(int party_id)
 	if (party_cache && party_cache->party_id == party_id)
 		return party_cache;
 
-	party_cache = db_get(party_db,party_id);
+	party_cache = idb_get(party_db,party_id);
 	return party_cache;
 }
 int party_searchname_sub(DBKey key,void *data,va_list ap)
@@ -94,14 +94,14 @@ int party_created(int account_id,int char_id,int fail,int party_id,char *name)
 	if(fail==0){
 		struct party *p;
 		sd->status.party_id=party_id;
-		if(db_get(party_db,party_id)!=NULL){
+		if(idb_get(party_db,party_id)!=NULL){
 			ShowFatalError("party: id already exists!\n");
 			exit(1);
 		}
 		p=(struct party *)aCalloc(1,sizeof(struct party));
 		p->party_id=party_id;
 		memcpy(p->name, name, NAME_LENGTH);
-		db_put(party_db,party_id,p);
+		idb_put(party_db,party_id,p);
 		clif_party_created(sd,0); //Success message
 		clif_charnameupdate(sd); //Update other people's display. [Skotlex]
 	}else{
@@ -173,9 +173,9 @@ int party_recv_info(struct party *sp)
 	
 	nullpo_retr(0, sp);
 
-	if((p=db_get(party_db,sp->party_id))==NULL){
+	if((p=idb_get(party_db,sp->party_id))==NULL){
 		p=(struct party *)aCalloc(1,sizeof(struct party));
-		db_put(party_db,sp->party_id,p);
+		idb_put(party_db,sp->party_id,p);
 		party_check_member(sp);
 	}
 	memcpy(p,sp,sizeof(struct party));
@@ -394,7 +394,7 @@ int party_broken(int party_id)
 	}
 	if (party_cache && party_cache->party_id == party_id)
 		party_cache = NULL;
-	db_remove(party_db,party_id);
+	idb_remove(party_db,party_id);
 	return 0;
 }
 // パーティの設定変更要求

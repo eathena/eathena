@@ -100,7 +100,7 @@ int inter_pet_init()
 		if(inter_pet_fromstr(line,p)==0 && p->pet_id>0){
 			if( p->pet_id >= pet_newid)
 				pet_newid=p->pet_id+1;
-			db_put(pet_db,p->pet_id,p);
+			idb_put(pet_db,p->pet_id,p);
 		}else{
 			ShowError("int_pet: broken data [%s] line %d\n",pet_txt,c);
 			aFree(p);
@@ -145,11 +145,11 @@ int inter_pet_save()
 int inter_pet_delete(int pet_id)
 {
 	struct s_pet *p;
-	p = db_get(pet_db,pet_id);
+	p = idb_get(pet_db,pet_id);
 	if( p == NULL)
 		return 1;
 	else {
-		db_remove(pet_db,pet_id);
+		idb_remove(pet_db,pet_id);
 		ShowInfo("Deleted pet (pet_id: %d)\n",pet_id);
 	}
 	return 0;
@@ -257,7 +257,7 @@ int mapif_create_pet(int fd,int account_id,int char_id,short pet_class,short pet
 	else if(p->intimate > 1000)
 		p->intimate = 1000;
 
-	db_put(pet_db,p->pet_id,p);
+	idb_put(pet_db,p->pet_id,p);
 
 	mapif_pet_created(fd,account_id,p);
 
@@ -267,7 +267,7 @@ int mapif_create_pet(int fd,int account_id,int char_id,short pet_class,short pet
 int mapif_load_pet(int fd,int account_id,int char_id,int pet_id)
 {
 	struct s_pet *p;
-	p= db_get(pet_db,pet_id);
+	p= idb_get(pet_db,pet_id);
 	if(p!=NULL) {
 		if(p->incuvate == 1) {
 			p->account_id = p->char_id = 0;
@@ -296,7 +296,7 @@ int mapif_save_pet(int fd,int account_id,struct s_pet *data)
 	}
 	else{
 		pet_id = data->pet_id;
-		p=db_get(pet_db,pet_id);
+		p=idb_get(pet_db,pet_id);
 		if(p == NULL) {
 			p=(struct s_pet *)aCalloc(sizeof(struct s_pet),1);
 			if(p==NULL){
@@ -307,7 +307,7 @@ int mapif_save_pet(int fd,int account_id,struct s_pet *data)
 			p->pet_id = data->pet_id;
 			if(p->pet_id == 0)
 				data->pet_id = p->pet_id = pet_newid++;
-			db_put(pet_db,p->pet_id,p);
+			idb_put(pet_db,p->pet_id,p);
 		}
 		if(data->hungry < 0)
 			data->hungry = 0;

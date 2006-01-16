@@ -96,11 +96,11 @@ void do_reconnect_storage(void)
 
 struct storage *account2storage(int account_id)
 {
-	struct storage *stor = db_get(storage_db,account_id);
+	struct storage *stor = idb_get(storage_db,account_id);
 	if(stor == NULL) {
 		stor = (struct storage *) aCallocA (sizeof(struct storage), 1);
 		stor->account_id = account_id;
-		db_put(storage_db, stor->account_id, stor);
+		idb_put(storage_db, stor->account_id, stor);
 	}
 	return stor;
 }
@@ -108,12 +108,12 @@ struct storage *account2storage(int account_id)
 // Just to ask storage, without creation
 struct storage *account2storage2(int account_id)
 {
-	return db_get(storage_db, account_id);
+	return idb_get(storage_db, account_id);
 }
 
 int storage_delete(int account_id)
 {
-	db_remove(storage_db,account_id);
+	idb_remove(storage_db,account_id);
 	return 0;
 }
 
@@ -137,7 +137,7 @@ int storage_storageopen(struct map_session_data *sd)
 	}
 //Storage loading always from sql idea from Komurka [Skotlex] - removed as it opens exploits when server lags.
 //#ifdef TXT_ONLY
-	if((stor = db_get(storage_db,sd->status.account_id)) != NULL) {
+	if((stor = idb_get(storage_db,sd->status.account_id)) != NULL) {
 		if (stor->storage_status == 0 && sd->state.storage_flag == 0) {
 			stor->storage_status = 1;
 			sd->state.storage_flag = 1;
@@ -414,7 +414,7 @@ struct guild_storage *guild2storage(int guild_id)
 {
 	struct guild_storage *gs = NULL;
 	if(guild_search(guild_id) != NULL) {
-		gs=(struct guild_storage *) db_get(guild_storage_db,guild_id);
+		gs=(struct guild_storage *) idb_get(guild_storage_db,guild_id);
 		if(gs == NULL) {
 			gs = (struct guild_storage *) aCallocA(sizeof(struct guild_storage), 1);
 			if(gs==NULL){
@@ -422,7 +422,7 @@ struct guild_storage *guild2storage(int guild_id)
 				exit(0);
 			}
 			gs->guild_id=guild_id;
-			db_put(guild_storage_db,gs->guild_id,gs);
+			idb_put(guild_storage_db,gs->guild_id,gs);
 		}
 	}
 	return gs;
@@ -430,12 +430,12 @@ struct guild_storage *guild2storage(int guild_id)
 
 struct guild_storage *guild2storage2(int guild_id)
 {	//For just locating a storage without creating one. [Skotlex]
-	return db_get(guild_storage_db,guild_id);
+	return idb_get(guild_storage_db,guild_id);
 }
 
 int guild_storage_delete(int guild_id)	
 {
-	db_remove(guild_storage_db,guild_id);
+	idb_remove(guild_storage_db,guild_id);
 	return 0;
 }
 

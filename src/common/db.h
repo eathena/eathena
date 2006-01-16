@@ -7,23 +7,35 @@
  *  (2) public functions                                                     *
  *                                                                           *
  *  <B>Notes on the release system:</B>                                      *
- *  When destroying the database both the key and the data are released.     *
- *  When adding an entry to the database, if the entry already exists the    *
- *  key is released.                                                         *
- *  When removing an entry from the database the key is released.            *
- *  NOTE: What is actually released is defined by the release function, the  *
+ *  Whenever an entry is removed from the database both the key and the      *
+ *  data are requested to be released.                                       *
+ *  At least one entry is removed when replacing an entry, removing an       *
+ *  entry, clearing the database or destroying the database.                 *
+ *  What is actually released is defined by the release function, the        *
  *  functions of the database only ask for the key and/or data to be         *
  *  released.                                                                *
  *                                                                           *
  *  TODO:                                                                    *
- *  - create custom database allocator                                       *
+ *  - create an enum for the data (with int, unsigned int and void *)        *
+ *  - create a custom database allocator                                     *
  *  - see what functions need or should be added to the database interface   *
- *  - make the system thread friendly                                        *
  *                                                                           *
- * @version 2.0 build #???# - transition version                             *
- * @author (build #???#) Flavio @ Amazon Project                             *
+ *  HISTORY:                                                                 *
+ *    2.1 (Athena build #???#) - Portability fix                             *
+ *      - Fixed the portability of casting to union and added the functions  *
+ *        {@link DBInterface#ensure(DBInterface,DBKey,DBCreateData,...)} and *
+ *        {@link DBInterface#clear(DBInterface,DBApply,...)}.                *
+ *    2.0 (Athena build 4859) - Transition version                           *
+ *      - Almost everything recoded with a strategy similar to objects,      *
+ *        database structure is maintained.                                  *
+ *    1.0 (up to Athena build 4706)                                          *
+ *      - Previous database system.                                          *
+ *                                                                           *
+ * @version 2.1 (Athena build #???#) - Portability fix                       *
+ * @author (Athena build 4859) Flavio @ Amazon Project                       *
  * @author (up to Athena build 4706) Athena Dev Teams                        *
  * @encoding US-ASCII                                                        *
+ * @see common#db.c                                                          *
 \*****************************************************************************/
 #ifndef _DB_H_
 #define _DB_H_
@@ -32,6 +44,8 @@
 
 /*****************************************************************************\
  *  (1) Section with public typedefs, enums, unions, structures and defines. *
+ *  DB_MANUAL_CAST_TO_UNION - Define when the compiler doesn't allow casting *
+ *           to unions.                                                      *
  *  DBRelease    - Enumeration of release options.                           *
  *  DBType       - Enumeration of database types.                            *
  *  DBOptions    - Bitfield enumeration of database options.                 *
@@ -43,6 +57,19 @@
  *  DBReleaser   - Format of the releasers used by the databases.            *
  *  DBInterface  - Structure of the interface of the database.               *
 \*****************************************************************************/
+
+/**
+ * Define this to enable the functions that cast to unions.
+ * Required when the compiler doesn't support casting to unions.
+ * NOTE: It is recommened that the conditional tests to determine if this 
+ * should be defined be located in a makefile or a header file specific for 
+ * of compatibility and portability issues.
+ * @public
+ * @see #db_i2key(int)
+ * @see #db_ui2key(unsigned int)
+ * @see #db_str2key(unsigned char *)
+ */
+//#define DB_MANUAL_CAST_TO_UNION
 
 /**
  * Bitfield with what should be released by the releaser function (if the
@@ -91,7 +118,10 @@ typedef enum {
  * @param DB_OPT_DUP_KEY Duplicates the keys internally. If DB_OPT_RELEASE_KEY 
  *          is defined, the real key is freed as soon as the entry is added.
  * @param DB_OPT_RELEASE_KEY Releases the key.
- * @param DB_OPT_RELEASE_DATA Releases the data.
+ * @param DB_OPT_RELEASE_DATA Releases the data whenever an entry is removed 
+ *          from the database.
+ *          WARNING: for funtions that return the data (like DBInterface->remove),
+ *          a dangling pointer will be returned.
  * @param DB_OPT_RELEASE_BOTH Releases both key and data.
  * @param DB_OPT_ALLOW_NULL_KEY Allow NULL keys in the database.
  * @param DB_OPT_ALLOW_NULL_DATA Allow NULL data in the database.
@@ -133,6 +163,19 @@ typedef union {
 } DBKey;
 
 /**
+ * Format of funtions that create the data for the key when the entry doesn't 
+ * exist in the database yet.
+ * @param key Key of the database entry
+ * @param args Extra arguments of the funtion
+ * @return Data identified by the key to be put in the database
+ * @public
+ * @see #DBKey
+ * @see DBInterface#vensure(DBInterface,DBKey,DBCreateData,va_list)
+ * @see DBInterface#ensure(DBInterface,DBKey,DBCreateData,...)
+ */
+typedef void *(*DBCreateData)(DBKey key, va_list args);
+
+/**
  * Format of functions to be applyed to an unspecified quantity of entries of 
  * a database.
  * Any function that applyes this function to the database will return the sum 
@@ -143,7 +186,9 @@ typedef union {
  * @return Value to be added up by the funtion that is applying this
  * @public
  * @see #DBKey
+ * @see DBInterface#vforeach(DBInterface,DBApply,va_list)
  * @see DBInterface#foreach(DBInterface,DBApply,...)
+ * @see DBInterface#vdestroy(DBInterface,DBApply,va_list)
  * @see DBInterface#destroy(DBInterface,DBApply,...)
  */
 typedef int (*DBApply)(DBKey key, void *data, va_list args);
@@ -285,6 +330,43 @@ typedef struct dbt {
 	unsigned int (*vgetall)(struct dbt *dbi, void **buf, unsigned int max, DBMatcher match, va_list args);
 
 	/**
+	 * Just calls {@link common\db.h\DBInterface#vensure(DBInterface,DBKey,DBCreateData,va_list)}.
+	 * Get the data of the entry identified by the key.
+	 * If the entry does not exist, an entry is added with the data returned by 
+	 * <code>create</code>.
+	 * @param dbi Interface of the database
+	 * @param key Key that identifies the entry
+	 * @param create Function used to create the data if the entry doesn't exist
+	 * @param ... Extra arguments for create
+	 * @return Data of the entry
+	 * @protected
+	 * @see #DBKey
+	 * @see #DBCreateData
+	 * @see #DBInterface
+	 * @see DBInterface#vensure(DBInterface,DBKey,DBCreateData,va_list)
+	 * @see common\db.c#db_ensure(DBInterface,DBKey,DBCreateData,...)
+	 */
+	void *(*ensure)(struct dbt *dbi, DBKey key, DBCreateData create, ...);
+
+	/**
+	 * Get the data of the entry identified by the key.
+	 * If the entry does not exist, an entry is added with the data returned by 
+	 * <code>create</code>.
+	 * @param dbi Interface of the database
+	 * @param key Key that identifies the entry
+	 * @param create Function used to create the data if the entry doesn't exist
+	 * @param args Extra arguments for create
+	 * @return Data of the entry
+	 * @protected
+	 * @see #DBKey
+	 * @see #DBCreateData
+	 * @see #DBInterface
+	 * @see DBInterface#ensure(DBInterface,DBKey,DBCreateData,...)
+	 * @see common\db.c#db_vensure(DBInterface,DBKey,DBCreateData,va_list)
+	 */
+	void *(*vensure)(struct dbt *dbi, DBKey key, DBCreateData create, va_list args);
+
+	/**
 	 * Put the data identified by the key in the database.
 	 * Returns the previous data if the entry exists or NULL.
 	 * NOTE: Uses the new key, the old one is released.
@@ -345,13 +427,48 @@ typedef struct dbt {
 	int (*vforeach)(struct dbt *dbi, DBApply func, va_list args);
 
 	/**
+	 * Just calls {@link DBInterface#vclear(DBInterface,DBApply,va_list)}.
+	 * Removes all entries from the database.
+	 * Before deleting an entry, func is applyed to it.
+	 * Releases the key and the data.
+	 * Returns the sum of values returned by func, if it exists.
+	 * @param dbi Interface of the database
+	 * @param func Function to be applyed to every entry before deleting
+	 * @param ... Extra arguments for func
+	 * @return Sum of values returned by func
+	 * @protected
+	 * @see #DBApply(DBKey,void *,va_list)
+	 * @see #DBInterface
+	 * @see DBInterface#vclear(DBInterface,DBApply,va_list)
+	 * @see common\db.c#db_clear(DBInterface,DBApply,...)
+	 */
+	int (*clear)(struct dbt *dbi, DBApply func, ...);
+
+	/**
+	 * Removes all entries from the database.
+	 * Before deleting an entry, func is applyed to it.
+	 * Releases the key and the data.
+	 * Returns the sum of values returned by func, if it exists.
+	 * @param dbi Interface of the database
+	 * @param func Function to be applyed to every entry before deleting
+	 * @param args Extra arguments for func
+	 * @return Sum of values returned by func
+	 * @protected
+	 * @see #DBApply(DBKey,void *,va_list)
+	 * @see #DBInterface
+	 * @see DBInterface#clear(DBInterface,DBApply,...)
+	 * @see common\db.c#vclear(DBInterface,DBApply,va_list)
+	 */
+	int (*vclear)(struct dbt *dbi, DBApply func, va_list args);
+
+	/**
 	 * Just calls {@link DBInterface#vdestroy(DBInterface,DBApply,va_list)}.
 	 * Finalize the database, feeing all the memory it uses.
 	 * Before deleting an entry, func is applyed to it.
 	 * Releases the key and the data.
 	 * Returns the sum of values returned by func, if it exists.
 	 * NOTE: This locks the database globally. Any attempt to insert or remove 
-	 * a database entry will give an error and be aborted.
+	 * a database entry will give an error and be aborted (except for clearing).
 	 * @param dbi Interface of the database
 	 * @param func Function to be applyed to every entry before deleting
 	 * @param ... Extra arguments for func
@@ -369,7 +486,7 @@ typedef struct dbt {
 	 * Before deleting an entry, func is applyed to it.
 	 * Returns the sum of values returned by func, if it exists.
 	 * NOTE: This locks the database globally. Any attempt to insert or remove 
-	 * a database entry will give an error and be aborted.
+	 * a database entry will give an error and be aborted (except for clearing).
 	 * @param dbi Interface of the database
 	 * @param func Function to be applyed to every entry before deleting
 	 * @param args Extra arguments for func
@@ -417,9 +534,30 @@ typedef struct dbt {
 } *DBInterface;
 
 //For easy access to the common functions.
-#define db_get(db,k)   (db)->get((db),(const DBKey)(k))
-#define db_put(db,k,d) (db)->put((db),(const DBKey)(k),(d))
-#define db_remove(db,k)    (db)->remove((db),(const DBKey)(k))
+#ifdef DB_MANUAL_CAST_TO_UNION
+#	define i2key   db_i2key
+#	define ui2key  db_ui2key
+#	define str2key db_str2key
+#else /* not DB_MANUAL_CAST_TO_UNION */
+#	define i2key(k)   ((DBKey)(int)(k))
+#	define ui2key(k)  ((DBKey)(unsigned int)(k))
+#	define str2key(k) ((DBKey)(unsigned char *)(k))
+#endif /* DB_MANUAL_CAST_TO_UNION / not DB_MANUAL_CAST_TO_UNION */
+
+#define db_get(db,k)    (db)->get((db),(k))
+#define idb_get(db,k)   (db)->get((db),i2key(k))
+#define uidb_get(db,k)  (db)->get((db),ui2key(k))
+#define strdb_get(db,k) (db)->get((db),str2key(k))
+
+#define db_put(db,k,d)    (db)->put((db),(k),(d))
+#define idb_put(db,k,d)   (db)->put((db),i2key(k),(d))
+#define uidb_put(db,k,d)  (db)->put((db),ui2key(k),(d))
+#define strdb_put(db,k,d) (db)->put((db),str2key(k),(d))
+
+#define db_remove(db,k)    (db)->remove((db),(k))
+#define idb_remove(db,k)   (db)->remove((db),i2key(k))
+#define uidb_remove(db,k)  (db)->remove((db),ui2key(k))
+#define strdb_remove(db,k) (db)->remove((db),str2key(k))
 
 /*****************************************************************************\
  *  (2) Section with public functions.                                       *
@@ -430,6 +568,9 @@ typedef struct dbt {
  *           with the fixed options.                                         *
  *  db_custom_release  - Get the releaser that behaves as specified.         *
  *  db_alloc           - Allocate a new database.                            *
+ *  db_i2key           - Manual cast from 'int' to 'DBKey'.                  *
+ *  db_ui2key          - Manual cast from 'unsigned int' to 'DBKey'.         *
+ *  db_str2key         - Manual cast from 'unsigned char *' to 'DBKey'.      *
  *  db_init            - Initialise the database system.                     *
  *  db_final           - Finalise the database system.                       *
 \*****************************************************************************/
@@ -475,7 +616,8 @@ DBHasher db_default_hash(DBType type);
  * Returns the default releaser for the specified type of database with the 
  * specified options.
  * NOTE: the options are fixed by {@link #db_fix_options(DBType,DBOptions)}
- * before choosing the releaser * @param type Type of database
+ * before choosing the releaser
+ * @param type Type of database
  * @param options Options of the database
  * @return Default releaser for the type of database with the fixed options
  * @public
@@ -523,6 +665,47 @@ DBReleaser db_custom_release(DBRelease which);
  * @see common\db.c#db_alloc(const char *,int,DBType,DBOptions,unsigned short)
  */
 DBInterface db_alloc(const char *file, int line, DBType type, DBOptions options, unsigned short maxlen);
+
+#ifdef DB_MANUAL_CAST_TO_UNION
+/**
+ * Manual cast from 'int' to the union DBKey.
+ * Created for compilers that don't support casting to unions.
+ * @param key Key to be casted
+ * @return The key as a DBKey union
+ * @public
+ * @see #DB_MANUAL_CAST_TO_UNION
+ * @see #db_ui2key(unsigned int)
+ * @see #db_str2key(unsigned char *)
+ * @see common\db.c#db_i2key(int)
+ */
+DBKey db_i2key(int key);
+
+/**
+ * Manual cast from 'unsigned int' to the union DBKey.
+ * Created for compilers that don't support casting to unions.
+ * @param key Key to be casted
+ * @return The key as a DBKey union
+ * @public
+ * @see #DB_MANUAL_CAST_TO_UNION
+ * @see #db_i2key(int)
+ * @see #db_str2key(unsigned char *)
+ * @see common\db.c#db_ui2key(unsigned int)
+ */
+DBKey db_ui2key(unsigned int key);
+
+/**
+ * Manual cast from 'unsigned char *' to the union DBKey.
+ * Created for compilers that don't support casting to unions.
+ * @param key Key to be casted
+ * @return The key as a DBKey union
+ * @public
+ * @see #DB_MANUAL_CAST_TO_UNION
+ * @see #db_i2key(int)
+ * @see #db_ui2key(unsigned int)
+ * @see common\db.c#db_str2key(unsigned char *)
+ */
+DBKey db_str2key(unsigned char *key);
+#endif /* DB_MANUAL_CAST_TO_UNION */
 
 /**
  * Initialize the database system.

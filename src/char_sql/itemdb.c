@@ -30,12 +30,12 @@ struct item_data* itemdb_search(int nameid)
 {
 	struct item_data *id;
 
-	id = db_get(item_db,nameid);
+	id = idb_get(item_db,nameid);
 	if(id) return id;
 
 	CREATE(id, struct item_data, 1);
 
-	db_put(item_db,nameid,id);
+	idb_put(item_db,nameid,id);
 
 	if(nameid>500 && nameid<600)
 		id->type=0;   //heal item
