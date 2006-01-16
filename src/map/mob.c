@@ -3977,7 +3977,7 @@ int mob_clone_spawn(struct map_session_data *sd, char *map, int x, int y, const 
 		ms[i].skill_id = skill_id;
 		ms[i].skill_lv = sd->status.skill[skill_id].lv;
 		ms[i].state = -1;
-		ms[i].permillage = 100; //Default chance for moving/idle skills.
+		ms[i].permillage = 500; //Default chance for moving/idle skills.
 		ms[i].emotion = -1;
 		ms[i].cancel = 0;
 		ms[i].delay = 5000+skill_delayfix(&sd->bl,skill_id, ms[i].skill_lv, 0);
@@ -3991,10 +3991,10 @@ int mob_clone_spawn(struct map_session_data *sd, char *map, int x, int y, const 
 				ms[i].state = MSS_RUSH;
 			} else {
 				ms[i].state = MSS_BERSERK;
-				ms[i].permillage = 1000;
+				ms[i].permillage = 2500;
 			}
 		} else if(inf&INF_GROUND_SKILL) {
-			ms[i].permillage = 500;
+			ms[i].permillage = 1000;
 			if (skill_get_inf2(skill_id)&INF2_TRAP) { //Traps!
 				ms[i].state = MSS_IDLE;
 				ms[i].target = MST_AROUND2;
@@ -4015,7 +4015,7 @@ int mob_clone_spawn(struct map_session_data *sd, char *map, int x, int y, const 
 				ms[i].target = MST_SELF;
 			ms[i].cond1 = MSC_MYHPLTMAXRATE;
 			ms[i].cond2 = 90;
-			ms[i].permillage = 1000;
+			ms[i].permillage = 2000;
 			//Delay: Remove the stock 5 secs and add half of the support time.
 			ms[i].delay += -5000 +(skill_get_time(skill_id, ms[i].skill_lv) + skill_get_time2(skill_id, ms[i].skill_lv))/2;
 			if (ms[i].delay < 5000)
@@ -4025,7 +4025,7 @@ int mob_clone_spawn(struct map_session_data *sd, char *map, int x, int y, const 
 			ms[i].cond1 = MSC_FRIENDHPLTMAXRATE;
 			ms[i].cond2 = 90;
 			if (skill_id == AL_HEAL)
-				ms[i].permillage = 2000; //Higher skill rate usage for heal.
+				ms[i].permillage = 5000; //Higher skill rate usage for heal.
 			else if (skill_id == ALL_RESURRECTION)
 				ms[i].cond2 = 1;
 			//Delay: Remove the stock 5 secs and add half of the support time.
@@ -4053,6 +4053,11 @@ int mob_clone_spawn(struct map_session_data *sd, char *map, int x, int y, const 
 					continue;
 			}
 		}
+		if (battle_config.mob_skill_rate!= 100)
+			ms[i].permillage = ms[i].permillage*battle_config.mob_skill_rate/100;
+		if (battle_config.mob_skill_delay != 100)
+			ms[i].delay = ms[i].delay*battle_config.mob_skill_delay/100;
+		
 		mob_db_data[class_]->maxskill = ++i;
 	}
 	//Finally, spawn it.
