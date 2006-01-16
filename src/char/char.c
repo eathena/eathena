@@ -2309,7 +2309,10 @@ int save_accreg2(unsigned char* buf, int len) {
 //Receive Registry information for a character.
 int char_parse_Registry(int account_id, int char_id, unsigned char *buf, int buf_len) {
 	int i,j,p,len;
-	for (i = 0; i < char_num && char_dat[i].status.account_id != account_id && char_dat[i].status.char_id != char_id; i++);
+	for (i = 0; i < char_num; i++) {
+		if (char_dat[i].status.account_id == account_id && char_dat[i].status.char_id == char_id)
+			break;
+	}
 	if(i >= char_num) //Character not found?
 		return 1;
 	for(j=0,p=0;j<GLOBAL_REG_NUM && p<buf_len;j++){
@@ -2332,7 +2335,10 @@ int char_account_reg_reply(int fd,int account_id,int char_id) {
 	WFIFOL(fd,4)=account_id;
 	WFIFOL(fd,8)=char_id;
 	WFIFOB(fd,12)=3; //Type 3: char acc reg.
-	for (i = 0; i < char_num && char_dat[i].status.account_id != account_id && char_dat[i].status.char_id != char_id; i++);
+	for (i = 0;i < char_num; i++) {
+		if (char_dat[i].status.account_id == account_id && char_dat[i].status.char_id	== char_id)
+			break;
+	}
 	if(i >= char_num){ //Character not found? Sent empty packet.
 		WFIFOW(fd,2)=13;
 	}else{

@@ -5465,6 +5465,8 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 		break;
 
 	case SC_POISON:
+		if (status_get_hp(bl) <= status_get_max_hp(bl)>>2) //Stop damaging after 25% HP left.
+			break;
 	case SC_DPOISON:
 		if ((--sc_data[type].val3) > 0 && sc_data[SC_SLOWPOISON].timer == -1) {
 			if(sd) {

@@ -5931,8 +5931,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 	case SG_FUSION:
 		if (sd && sd->sc_data && sd->sc_data[SC_FUSION].timer != -1)
-			status_change_end(&sd->bl,SC_FUSION,-1);
-		else status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
+			status_change_end(&sd->bl,SkillStatusChangeTable[skillid],-1);
+		else
+			status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		break;
 
