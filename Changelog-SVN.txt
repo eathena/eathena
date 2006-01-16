@@ -1,6 +1,8 @@
 Date	Added
 
 2006/01/16
+	* Playtester custom eamobs spawn updates: coal Mines, umbala fields, and
+	  minor changes to Sphinx and Geffen Dungeon. [Skotlex]
 	* Incremented a bit clone skill usage rate, their rate/delays are now affected
 	  by the battle_config options mob_skill_rate and mob_skill_delay [Skotlex]
 	* Optimized use of BL_* constants by making them stackable (meant for

@@ -35,8 +35,8 @@ gef_dun01.gat,0,0,0,0	monster	Drainliar	1111,30,0,0,0
 gef_dun01.gat,0,0,0,0	monster	Whisper	1179,10,0,0,0
 gef_dun01.gat,0,0,0,0	monster	Ghoul	1036,35,0,0,0
 gef_dun01.gat,0,0,0,0	monster	Myst	1151,10,0,0,0
-gef_dun01.gat,0,0,0,0	monster	Jakk	1130,35,600000,300000,0
-gef_dun01.gat,0,0,0,0	monster	Nightmare	1061,10,0,0,0
+gef_dun01.gat,0,0,0,0	monster	Jakk	1130,30,300000,150000,0
+gef_dun01.gat,0,0,0,0	monster	Nightmare	1061,15,0,0,0
 gef_dun01.gat,0,0,0,0	monster	Tyrfing	1204,1,1800000,1200000,0
 gef_dun01.gat,0,0,0,0	monster	Dracula	1389,1,3600000,1800000,1
 gef_dun01.gat,234,121,0,0	monster	Blue Plant	1079,1,600000,300000,0
@@ -53,7 +53,7 @@ gef_dun02.gat,0,0,0,0	monster	Ghoul	1036,20,0,0,0
 gef_dun02.gat,0,0,0,0	monster	Marionette	1143,20,0,0,0
 gef_dun02.gat,0,0,0,0	monster	Bathory	1102,10,0,0,0
 gef_dun02.gat,0,0,0,0	monster	Hunter Fly	1035,10,0,0,0
-gef_dun02.gat,0,0,0,0	monster	Nightmare	1061,30,600000,300000,0
+gef_dun02.gat,0,0,0,0	monster	Nightmare	1061,30,300000,150000,0
 gef_dun02.gat,0,0,0,0	monster	Deviruchi	1109,25,0,0,0
 gef_dun02.gat,0,0,0,0	monster	Doppelganger	1046,1,7200000,3600000,1
 gef_dun02.gat,214,212,10,10	monster	White Plant	1082,3,600000,300000,1

@@ -69,20 +69,20 @@ um_fild04.gat,0,0,0,0	monster	Beetle King	1494,30,0,0,0
 um_fild04.gat,0,0,0,0	monster	Horn	1128,15,0,0,0
 um_fild04.gat,0,0,0,0	monster	Choco	1214,2,0,0,0
 um_fild04.gat,0,0,0,0	monster	Wootan Shooter	1498,7,0,0,0
-um_fild04.gat,264,293,10,10	monster	Horn	1128,2,1200000,60000,0
-um_fild04.gat,264,293,10,10	monster	Beetle King	1494,4,120000,60000,0
-um_fild04.gat,121,239,10,10	monster	Beetle King	1494,2,120000,60000,0
-um_fild04.gat,91,79,10,10	monster	Beetle King	1494,2,120000,60000,0
-um_fild04.gat,244,339,10,10	monster	Beetle King	1494,2,120000,60000,0
-um_fild04.gat,295,93,10,10	monster	Beetle King	1494,2,120000,60000,0
-um_fild04.gat,118,237,10,10	monster	Beetle King	1494,2,120000,60000,0
-um_fild04.gat,118,237,10,10	monster	Horn	1128,1,120000,60000,0
-um_fild04.gat,311,285,10,10	monster	Beetle King	1494,2,120000,60000,0
-um_fild04.gat,311,285,10,10	monster	Horn	1128,1,120000,60000,0
-um_fild04.gat,206,188,10,10	monster	Beetle King	1494,2,120000,60000,0
-um_fild04.gat,206,188,10,10	monster	Horn	1128,1,120000,60000,0
-um_fild04.gat,239,245,10,10	monster	Beetle King	1494,2,120000,60000,0
-um_fild04.gat,239,245,10,10	monster	Horn	1128,1,120000,60000,0
-um_fild04.gat,239,245,10,10	monster	Wootan Shooter	1498,1,300000,60000,0
-um_fild04.gat,91,79,10,10	monster	Wootan Shooter	1498,1,300000,60000,0
-um_fild04.gat,295,93,10,10	monster	Wootan Shooter	1498,1,300000,60000,0
+um_fild04.gat,264,293,10,10	monster	Horn	1128,2,600000,300000,0
+um_fild04.gat,264,293,10,10	monster	Beetle King	1494,4,600000,300000,0
+um_fild04.gat,121,239,10,10	monster	Beetle King	1494,2,600000,300000,0
+um_fild04.gat,91,79,10,10	monster	Beetle King	1494,2,600000,300000,0
+um_fild04.gat,244,339,10,10	monster	Beetle King	1494,2,600000,300000,0
+um_fild04.gat,295,93,10,10	monster	Beetle King	1494,2,600000,300000,0
+um_fild04.gat,118,237,10,10	monster	Beetle King	1494,2,600000,300000,0
+um_fild04.gat,118,237,10,10	monster	Horn	1128,1,600000,300000,0
+um_fild04.gat,311,285,10,10	monster	Beetle King	1494,2,600000,300000,0
+um_fild04.gat,311,285,10,10	monster	Horn	1128,1,600000,300000,0
+um_fild04.gat,206,188,10,10	monster	Beetle King	1494,2,600000,300000,0
+um_fild04.gat,206,188,10,10	monster	Horn	1128,1,600000,300000,0
+um_fild04.gat,239,245,10,10	monster	Beetle King	1494,2,600000,300000,0
+um_fild04.gat,239,245,10,10	monster	Horn	1128,1,600000,300000,0
+um_fild04.gat,239,245,10,10	monster	Wootan Shooter	1498,1,900000,300000,0
+um_fild04.gat,91,79,10,10	monster	Wootan Shooter	1498,1,900000,300000,0
+um_fild04.gat,295,93,10,10	monster	Wootan Shooter	1498,1,900000,300000,0
