@@ -1,6 +1,8 @@
 Date	Added
 
 2006/01/16
+	* Reverted Ice Wall Behaviour (you can snipe/cast through it again) [Skotlex]
+	* Fixed possible crash in skill_check_condition on consume-delayed items [Skotlex]
 	* Skills whose range is increased by Vulture Eyes now get the range
 	  increased by 10 for non players (assumes VE level 10). [Skotlex]
 	* Added cardfixes of near_attack_def_rate and long_attack_def_rate to misc

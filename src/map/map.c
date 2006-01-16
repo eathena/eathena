@@ -1999,7 +1999,7 @@ int map_getcellp(struct map_data* m,int x,int y,cell_t cellchk)
 		case CELL_CHKNOPASS:
 			return (type==1 || type==5 || type2&(CELL_MOONLIT|CELL_ICEWALL));
 		case CELL_CHKWALL:
-			return (type==1 || type2&CELL_ICEWALL);
+			return (type==1/* || type2&CELL_ICEWALL*/); //Uncomment to prevent sniping/casting through the icewall. [Skotlex]
 		case CELL_CHKWATER:
 			return (type==3);
 		case CELL_CHKGROUND:

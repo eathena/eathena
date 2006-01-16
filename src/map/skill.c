@@ -7979,6 +7979,7 @@ int skill_check_condition(struct map_session_data *sd,int type)
 		{	//Consume items that were skipped in pc_use_item [Skotlex]
 			 if((i = sd->itemindex) == -1 ||
 				sd->status.inventory[i].nameid != sd->itemid ||
+				sd->inventory_data[i] == NULL ||
 				!sd->inventory_data[i]->flag.delay_consume ||
 				sd->status.inventory[i].amount < 1
 				)
