@@ -25,7 +25,9 @@ Nexon
 
 Date		Added
 ======
-
+01/16
+	* Updated Ayothaya Quest close to the official. Thanks to birkiczd
+	- Also optimized it again, remove unused global variable [Lupus]
 01/12
 	* Small fix in SL and SG quest [Komurka]
 01/11
