@@ -1,6 +1,10 @@
 Date	Added
 
 2006/01/16
+	* Advanced Book now gives 1%*skill level success chance to create element
+	  convert potion [Skotlex]
+	* Changed the FEEL skill implementation to store/use map indexes instead of
+	  map names.[Skotlex]
 	* Fixed compilation of plugins. [Skotlex]
 	* Applied flaviojs's new db interface and fixed compatibility problems with Visual Studio. [Lance]
 

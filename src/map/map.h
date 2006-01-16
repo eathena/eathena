@@ -674,7 +674,7 @@ struct map_session_data {
 
 	struct{
 		int  m; //-1 - none, other: map index corresponding to map name.
-		char name[MAP_NAME_LENGTH]; //map name
+		short index; //map index
 	}feel_map[3];// 0 - Sun; 1 - Moon; 2 - Stars
 	int feel_level;
 	short hate_mob[3];

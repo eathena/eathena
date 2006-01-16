@@ -884,7 +884,7 @@ int pc_authfail(struct map_session_data *sd) {
  */
 int pc_reg_received(struct map_session_data *sd)
 {
-	int i;
+	int i,j;
 	char feel_var[3][24] = {"PC_FEEL_SUN","PC_FEEL_MOON","PC_FEEL_STAR"};
 	char hate_var[3][24] = {"PC_HATE_MOB_SUN","PC_HATE_MOB_MOON","PC_HATE_MOB_STAR"};
 	
@@ -899,8 +899,10 @@ int pc_reg_received(struct map_session_data *sd)
 	//SG map and mob read [Komurka]
 	for(i=0;i<3;i++) //for now - someone need to make reading from txt/sql
 	{
-		if (pc_readglobalreg_str(sd,feel_var[i])!=NULL) strcpy(sd->feel_map[i].name,pc_readglobalreg_str(sd,feel_var[i]));
-		sd->feel_map[i].m = map_mapname2mapid(sd->feel_map[i].name);
+		if ((j = pc_readglobalreg(sd,feel_var[i]))!=0) {
+			sd->feel_map[i].index = j;
+			sd->feel_map[i].m = map_mapindex2mapid(j);
+		}
 		sd->hate_mob[i] = pc_readglobalreg(sd,hate_var[i])  - 1;
 		
 	}
@@ -5251,8 +5253,8 @@ int pc_resetfeel(struct map_session_data* sd)
 	for (i=0; i<3; i++)
 	{
 		sd->feel_map[i].m = -1;
-		strcpy(sd->feel_map[i].name,"");
-		pc_setglobalreg_str(sd,feel_var[i],"");
+		sd->feel_map[i].index = 0;
+		pc_setglobalreg(sd,feel_var[i],0);
 	}
 
 	return 0;

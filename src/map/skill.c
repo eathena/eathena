@@ -11005,7 +11005,8 @@ int skill_produce_mix( struct map_session_data *sd, int skill_id,
 					make_per = make_per * battle_config.pp_rate / 100;
 				break;
 			case SA_CREATECON: // Elemental Converter Creation - skill bonuses are from kRO [DracoRPG]
-				make_per = sd->status.job_level*20 + sd->paramc[3]*10 + sd->paramc[4]*10;
+				make_per = pc_checkskill(sd, SA_ADVANCEDBOOK)*100 + //TODO: Advanced Book bonus is custom! [Skotlex]
+					sd->status.job_level*20 + sd->paramc[3]*10 + sd->paramc[4]*10;
 				switch(nameid){
 					case 12114:
 						flag = pc_checkskill(sd,SA_FLAMELAUNCHER);

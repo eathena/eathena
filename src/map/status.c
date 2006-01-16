@@ -3470,7 +3470,7 @@ int status_get_size(struct block_list *bl)
 }
 int status_get_mode(struct block_list *bl)
 {
-	nullpo_retr(0x01, bl);
+	nullpo_retr(MD_CANMOVE, bl);
 	if(bl->type==BL_MOB)
 	{
 		if (((struct mob_data *)bl)->mode)
@@ -3479,7 +3479,7 @@ int status_get_mode(struct block_list *bl)
 	}
 	if(bl->type==BL_PC)
 		return (MD_CANMOVE|MD_LOOTER|MD_CANATTACK);
-	if(bl->type==BL_PET && (struct pet_data *)bl)
+	if(bl->type==BL_PET)
 		return ((struct pet_data *)bl)->db->mode;
 	if (bl->type==BL_SKILL)
 		return (MD_CANATTACK|MD_CANMOVE);	//Default mode for skills: Can attack, can move (think dances).
