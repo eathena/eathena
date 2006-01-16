@@ -26,6 +26,7 @@ Nexon
 Date		Added
 ======
 01/16
+	* Corrected the warp to board the airship in Einbroch [Zephiris]
 	* Updated Ayothaya Quest close to the official. Thanks to birkiczd
 	- Also optimized it again, remove unused global variable [Lupus]
 01/12

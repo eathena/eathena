@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= Sara-chan (1.0), SSUNNY@YOUNG(1.6)
 //===== Current Version: =====================================
-//= 1.6
+//= 1.61
 //===== Compatible With: =====================================
 //= Any Athena Version; RO Episode 8+
 //===== Description: =========================================
@@ -18,12 +18,13 @@
 //= temporarily since the NPC isn't quite there yet)
 //= 1.5 Uncomented the airplane warps and remove two unnecessary ones [MasterOfMuppets]
 //= 1.6 Updated Warps, work done by SSUNNY@YOUNG in Korean eA site [Vicious]
+//= 1.61 Corrected the first einbroch warp [Zephiris]
 //============================================================
 
 //==========================================================================
 //Einbroch - Airport
 //==========================================================================
-einbroch.gat,95,278,0	warp	ein_ap01	1,1,airplane.gat,224,64
+einbroch.gat,92,280,0	warp	ein_ap01	1,1,airplane.gat,224,64
 einbroch.gat,64,234,0	warp	ein_ap02	1,1,airport.gat,138,51
 airport.gat,142,61,0	warp	ein_ap02a	1,1,einbroch.gat,62,246
 airport.gat,124,13,0	warp	ein_ap03	1,1,airport.gat,19,21
