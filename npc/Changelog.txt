@@ -26,7 +26,7 @@ Nexon
 Date		Added
 ======
 01/16
-	* Corrected the warp to board the airship in Einbroch [Zephiris]
+	* Corrected the warp to board the airship in Einbroch, and the warp inside the northwest building in Lighthalzen. [Zephiris]
 	* Updated Ayothaya Quest close to the official. Thanks to birkiczd
 	- Also optimized it again, remove unused global variable [Lupus]
 01/12

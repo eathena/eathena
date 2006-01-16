@@ -90,7 +90,7 @@ lhz_in02.gat,79,223,0	warp	lhz034	1,1,lhz_in02.gat,17,155
 lhz_in02.gat,13,155,0	warp	lhz034a	1,1,lhz_in02.gat,84,223
 
 lighthalzen.gat,101,248,0	warp	lhz035	1,1,lhz_in01.gat,111,126
-lhz_in01.gat,111,129,0	warp	lhz035a	1,1,lighthalzen.gat,101,243
+lhz_in01.gat,111,121,0	warp	lhz035a	1,1,lighthalzen.gat,101,243
 
 lighthalzen.gat,106,248,0	warp	lhz036	1,1,lhz_in01.gat,116,126
 lhz_in01.gat,116,121,0	warp	lhz036a	1,1,lighthalzen.gat,106,243
