@@ -1,6 +1,7 @@
 Date	Added
 
 2006/01/16
+	* Fixed compilation of plugins. [Skotlex]
 	* Applied flaviojs's new db interface and fixed compatibility problems with Visual Studio. [Lance]
 
 2006/01/15

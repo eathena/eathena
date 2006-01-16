@@ -116,10 +116,10 @@ int httpd_strcasencmp(const char *s1, const char *s2,int len)
 
 void httpd_pages (const char* url, void (*httpd_func)(struct httpd_session_data*, const char*))
 {
-	if (db_get(httpd_files,(unsigned char*)(url+1)) == NULL) {
-		db_put(httpd_files, (unsigned char*)aStrdup(url+1), httpd_func);
+	if (strdb_get(httpd_files,(unsigned char*)(url+1)) == NULL) {
+		strdb_put(httpd_files, (unsigned char*)aStrdup(url+1), httpd_func);
 	} else {
-		db_put(httpd_files, (unsigned char*)(url+1), httpd_func);
+		strdb_put(httpd_files, (unsigned char*)(url+1), httpd_func);
 	}
 }
 
@@ -434,7 +434,7 @@ void httpd_parse_request_ok (struct httpd_session_data *sd)
 
 	// ファイル名が求まったので、ページが無いか検索する
 	// printf("httpd_parse: [% 3d] request /%s\n", fd, req);
-	httpd_parse_func = db_get(httpd_files,(unsigned char*)sd->url);
+	httpd_parse_func = strdb_get(httpd_files,(unsigned char*)sd->url);
 	if(httpd_parse_func == NULL) {
 		httpd_parse_func = httpd_default;
 	}
@@ -680,7 +680,7 @@ void do_final (void)
 		if (sessiond[fd] && sessiond[fd]->type == SESSION_HTTP)
 			delete_sessiond(fd);
 
-	db_destroy(httpd_files,NULL);
+	httpd_files->destroy(httpd_files,NULL);
 	// clear up the database
 	db_final();
 	// clear up allocated memory
