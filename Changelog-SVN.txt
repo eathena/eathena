@@ -1,6 +1,8 @@
 Date	Added
 
 2006/01/16
+	* Imported Freya's autoloot system which enables one to specify the maximum
+	  drop-rate to loot. [Skotlex]
 	* Refix of the mapreg SQL saving fix of a while ago... [Skotlex]
 	* Playtester custom eamobs spawn updates: coal Mines, umbala fields, and
 	  minor changes to Sphinx and Geffen Dungeon. [Skotlex]

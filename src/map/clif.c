@@ -8944,7 +8944,7 @@ void clif_parse_GlobalMessage(int fd, struct map_session_data *sd) { // S 008c <
 	if ((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE) { //Super Novice.
 		int next = pc_nextbaseexp(sd);
 		char *rfifo = (char*)RFIFOP(fd,4);
-		if (next > 0 && (sd->status.base_exp * 100 / next) % 10 == 0) {
+		if (next > 0 && (sd->status.base_exp * 1000 / next)% 100 == 0) {
 			if (sd->state.snovice_flag == 0 && strstr(rfifo, msg_txt(504)))
 				sd->state.snovice_flag = 1;
 			else if (sd->state.snovice_flag == 1) {

@@ -212,7 +212,7 @@ ACMD_FUNC(cleanmap);
 ACMD_FUNC(npctalk);
 ACMD_FUNC(pettalk);
 ACMD_FUNC(users);
-ACMD_FUNC(autoloot);  // by Upa-Kun
+ACMD_FUNC(autoloot);  // Improved version imported from Freya.
 
 #ifndef TXT_ONLY
 ACMD_FUNC(checkmail); // [Valaris]
@@ -7632,17 +7632,30 @@ atcommand_autoloot(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
+	int rate;
+	double drate;
 	nullpo_retr(-1, sd);
-	if (sd->state.autoloot) 
-	{
-		sd->state.autoloot = 0;
+	if (!message || !*message) {
+		if (sd->state.autoloot) {
+			sd->state.autoloot = 0;
+			clif_displaymessage(fd, "Autoloot is now off.");
+			return 0;
+		} else {
+			clif_displaymessage(fd, "Usage: autoloot <max drop-rate to loot>.");
+			return -1;
+		}
+	}
+	drate = atof(message);
+	rate = (int)(drate*100);
+	if (rate > 10000) rate = 10000;
+	else if (rate < 0) rate = 0;
+	
+	sd->state.autoloot = rate;
+	if (sd->state.autoloot) { 
+		snprintf(atcmd_output, sizeof atcmd_output, "Autolooting items with drop rates of %0.02f%% and below.",((double)sd->state.autoloot)/100.);
+		clif_displaymessage(fd, atcmd_output);
+	}else 
 		clif_displaymessage(fd, "Autoloot is now off.");
-	}
-	else 
-	{
-		sd->state.autoloot = 1;
-		clif_displaymessage(fd, "Autoloot is now on.");
-	}
 	return 0;  
 }   
 

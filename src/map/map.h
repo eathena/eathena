@@ -412,14 +412,12 @@ struct map_session_data {
 		unsigned produce_flag : 1;
 		unsigned storage_flag : 2; //0: closed, 1: Normal Storage open, 2: guild storage open [Skotlex]
 		unsigned snovice_flag : 4;
-		struct guild *gmaster_flag;
 		// originally by Qamera, adapted by celest
 		unsigned event_death : 1;
 		unsigned event_kill : 1;
 		unsigned event_disconnect : 1;
 		// Abracadabra bugfix by Aru
 		unsigned abra_flag : 1;
-		unsigned autoloot : 1; //by Upa-Kun <- Ya know, I originally wrote this code... [Skotlex]
 		unsigned autotrade : 1;	//By Fantik
 		unsigned perfect_hiding : 1; // [Valaris]
 		unsigned reg_dirty : 3; //By Skotlex (marks whether registry variables have been saved or not yet)
@@ -435,6 +433,8 @@ struct map_session_data {
 		unsigned size :2; // for tiny/large types
 		unsigned night :1; //Holds whether or not the player currently has the SI_NIGHT effect on. [Skotlex]
 		unsigned finalsave :1; //Signals whether the final save for the char was done or not yet. Meant to prevent exploits and the like. [Skotlex]
+		unsigned short autoloot;
+		struct guild *gmaster_flag;
 	} state;
 	struct {
 		unsigned killer : 1;

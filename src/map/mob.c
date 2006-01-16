@@ -2038,10 +2038,11 @@ static int mob_delay_item_drop(int tid,unsigned int tick,int id,int data)
 /*==========================================
  * Sets a timer to drop an item on the ground
  * Also performs logging and autoloot if enabled.
+ * rate is the drop-rate of the item, required for autoloot.
  *------------------------------------------
  * by [Skotlex]
  */
-static void mob_item_drop(struct mob_data *md, unsigned int tick, struct delay_item_drop * ditem, int loot)
+static void mob_item_drop(struct mob_data *md, unsigned int tick, struct delay_item_drop * ditem, int loot, int drop_rate)
 {
 	if(log_config.pick > 0)
 	{	//Logs items, dropped by mobs [Lupus]
@@ -2051,7 +2052,7 @@ static void mob_item_drop(struct mob_data *md, unsigned int tick, struct delay_i
 			log_pick((struct map_session_data*)md, "M", md->class_, ditem->item_data.nameid, -ditem->item_data.amount, NULL);
 	}
 
-	if (ditem->first_sd && ditem->first_sd->state.autoloot
+	if (ditem->first_sd && ditem->first_sd->state.autoloot && drop_rate <= ditem->first_sd->state.autoloot
 		&& pc_additem(ditem->first_sd,&ditem->item_data,ditem->item_data.amount) == 0)
 	{	//Autolooted.
 		if(log_config.pick > 0)
@@ -2580,17 +2581,17 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 			}
 
 			// Announce first, or else ditem will be freed. [Lance]
-			mob_item_drop(md, tick+base_drop_delay+i, ditem, 0);
+			mob_item_drop(md, tick+base_drop_delay+i, ditem, 0, drop_rate);
 		}
 
 		// Ore Discovery [Celest]
-		if (sd == mvp_sd && map[md->bl.m].flag.nomobloot==0 && pc_checkskill(sd,BS_FINDINGORE)>0 && battle_config.finding_ore_rate/100 >= rand()%1000) {
+		if (sd == mvp_sd && map[md->bl.m].flag.nomobloot==0 && pc_checkskill(sd,BS_FINDINGORE)>0 && battle_config.finding_ore_rate/10 >= rand()%10000) {
 			struct delay_item_drop *ditem;
 			ditem = mob_setdropitem(itemdb_searchrandomid(6), 1, md->bl.m, md->bl.x, md->bl.y, mvp_sd, second_sd, third_sd);
 			if (drop_ore<0) drop_ore=8; //we have only 10 slots in LOG, there's a check to not overflow (9th item usually a card, so we use 8th slot)
 			log_item[drop_ore] = ditem->item_data.nameid; //it's for logging only
 			drop_items++; //we count if there were any drops
-			mob_item_drop(md, tick+base_drop_delay+drop_ore, ditem, 0);
+			mob_item_drop(md, tick+base_drop_delay+drop_ore, ditem, 0, battle_config.finding_ore_rate/10);
 		}
 
 		//this drop log contains ALL dropped items + ORE (if there was ORE Recovery) [Lupus]
@@ -2607,21 +2608,20 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 					sd->add_drop[i].race & 1<<(mode&MD_BOSS?10:11))
 				{
 					//check if the bonus item drop rate should be multiplied with mob level/10 [Lupus]
-					if(sd->add_drop[i].rate<0) {
+					if(sd->add_drop[i].rate<0)
 						//it's negative, then it should be multiplied. e.g. for Mimic,Myst Case Cards, etc
 						// rate = base_rate * (mob_level/10) + 1
-						if( -sd->add_drop[i].rate*(md->level/10)+1 <= rand()%10000+1 )
-							continue;
-					} else {
+						drop_rate = -sd->add_drop[i].rate*(md->level/10)+1;
+					else
 						//it's positive, then it goes as it is
-						if (sd->add_drop[i].rate <= rand()%10000+1)
-							continue;
-					}
+						drop_rate = sd->add_drop[i].rate;
+					if (drop_rate < rand()%10000 +1)
+						continue;
 					itemid = (sd->add_drop[i].id > 0) ? sd->add_drop[i].id :
 						itemdb_searchrandomgroup(sd->add_drop[i].group);
 
 					ditem = mob_setdropitem(itemid, 1, md->bl.m, md->bl.x, md->bl.y, mvp_sd, second_sd, third_sd);
-					mob_item_drop(md, tick+base_drop_delay+20+i, ditem, 0);
+					mob_item_drop(md, tick+base_drop_delay+20+i, ditem, 0, drop_rate);
 				}
 			}
 			if(sd->get_zeny_num && rand()%100 < sd->get_zeny_rate) //Gets get_zeny_num per level +/-10% [Skotlex]
@@ -2632,7 +2632,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 				struct delay_item_drop *ditem;
 
 				ditem = mob_setlootitem(&md->lootitem[i], md->bl.m, md->bl.x, md->bl.y, mvp_sd, second_sd, third_sd);
-				mob_item_drop(md, tick+base_drop_delay+40+i, ditem, 1);
+				mob_item_drop(md, tick+base_drop_delay+40+i, ditem, 1, 10000);
 			}
 		}
 	}
