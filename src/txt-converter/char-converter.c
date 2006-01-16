@@ -1,4 +1,4 @@
-// (c) eAthena Dev Team - Licensed under GNU GPL
+﻿// (c) eAthena Dev Team - Licensed under GNU GPL
 // For more information, see LICENCE in the main folder
 
 #include <stdio.h>
@@ -551,12 +551,12 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 	if (char_id!=p->char_id) return 0;
 
 /*
-	cp = (struct mmo_charstatus*)db_get(char_db_,char_id);
+	cp = (struct mmo_charstatus*)idb_get(char_db_,char_id);
 
 	if (cp == NULL) {
 		cp = (struct mmo_charstatus *) aMalloc(sizeof(struct mmo_charstatus));
     		memset(cp, 0, sizeof(struct mmo_charstatus));
-		db_put(char_db_, char_id,cp);
+		idb_put(char_db_, char_id,cp);
 	}
 */
 	ShowInfo("Saving char "CL_WHITE"%d"CL_RESET" (%s)...\n",char_id,p->name);

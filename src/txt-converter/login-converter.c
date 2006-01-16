@@ -43,7 +43,7 @@ char db_server_logindb[32] = "ragnarok";
 int isGM(int account_id)
 {
 	struct gm_account *p;
-	p = db_get(gm_account_db,account_id);
+	p = idb_get(gm_account_db,account_id);
 	if( p == NULL)
 		return 0;
 	return p->level;
@@ -79,7 +79,7 @@ int read_gm_account()
 		else {
 			if(p->level > 99)
 				p->level = 99;
-			db_put(gm_account_db,p->account_id,p);
+			idb_put(gm_account_db,p->account_id,p);
 			c++;
 			printf("GM ID: %d Level: %d\n",p->account_id,p->level);
 		}
