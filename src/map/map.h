@@ -255,7 +255,24 @@ enum {
 //Specifies maps that have special GvG/WoE restrictions
 #define map_flag_gvg(m) (map[m].flag.gvg || (agit_flag && map[m].flag.gvg_castle))
 
-enum { BL_NUL, BL_PC, BL_NPC, BL_MOB, BL_ITEM, BL_CHAT, BL_SKILL , BL_PET };
+//This stackable implementation does not means a BL can be more than one type at a time, but it's 
+//meant to make it easier to check for multiple types at a time on invocations such as
+// map_foreach* calls [Skotlex]
+enum { 
+	BL_NUL = 0x000,
+	BL_PC = 0x001,
+  	BL_MOB = 0x002,
+  	BL_PET = 0x004,
+  	BL_ITEM = 0x008,
+  	BL_SKILL = 0x010,
+	BL_NPC = 0x020,
+  	BL_CHAT = 0x040
+};
+
+//For common mapforeach calls. Since pets cannot be affected, they aren't included here yet.
+#define BL_CHAR (BL_PC|BL_MOB)
+#define BL_ALL 0xfff
+
 enum { WARP, SHOP, SCRIPT, MONS };
 
 struct block_list {
@@ -340,7 +357,8 @@ struct skill_unit_group {
 	int party_id;
 	int guild_id;
 	int map;
-	int target_flag;
+	int target_flag; //Holds BCT_* flag for battle_check_target
+	int bl_flag;	//Holds BL_* flag for map_foreachin* functions
 	unsigned int tick;
 	int limit,interval;
 
@@ -1188,6 +1206,7 @@ int map_foreachinarea(int (*)(struct block_list*,va_list),int,int,int,int,int,in
 int map_foreachincell(int (*)(struct block_list*,va_list),int,int,int,int,...);
 int map_foreachinmovearea(int (*)(struct block_list*,va_list),int,int,int,int,int,int,int,int,...);
 int map_foreachinpath(int (*func)(struct block_list*,va_list),int m,int x0,int y0,int x1,int y1,int range,int type,...); // Celest
+int map_foreachinmap(int (*)(struct block_list*,va_list),int,int,...);
 int map_countnearpc(int,int,int);
 //blockŠÖ˜A‚É’Ç‰Á
 int map_count_oncell(int m,int x,int y,int type);

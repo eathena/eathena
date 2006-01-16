@@ -5449,8 +5449,7 @@ int buildin_killmonster(struct script_state *st)
 
 	if( (m=map_mapname2mapid(mapname))<0 )
 		return 0;
-	map_foreachinarea(buildin_killmonster_sub,
-		m,0,0,map[m].xs,map[m].ys,BL_MOB, event ,allflag);
+	map_foreachinmap(buildin_killmonster_sub, m, BL_MOB, event ,allflag);
 	return 0;
 }
 
@@ -5467,8 +5466,8 @@ int buildin_killmonsterall(struct script_state *st)
 
 	if( (m=map_mapname2mapid(mapname))<0 )
 		return 0;
-	map_foreachinarea(buildin_killmonsterall_sub,
-		m,0,0,map[m].xs,map[m].ys,BL_MOB);
+	map_foreachinmap(buildin_killmonsterall_sub,
+		m,BL_MOB);
 	return 0;
 }
 
@@ -5778,8 +5777,8 @@ int buildin_mapannounce(struct script_state *st)
 	if( (m=map_mapname2mapid(mapname))<0 )
 		return 0;
 
-	map_foreachinarea(buildin_mapannounce_sub,
-		m,0,0,map[m].xs,map[m].ys,BL_PC, str,strlen(str)+1,flag&0x10, color);
+	map_foreachinmap(buildin_mapannounce_sub,
+		m, BL_PC, str,strlen(str)+1,flag&0x10, color);
 	return 0;
 }
 /*==========================================
@@ -6940,7 +6939,7 @@ int buildin_maprespawnguildid(struct script_state *st)
 
 	int m=map_mapname2mapid(mapname);
 
-	if(m) map_foreachinarea(buildin_maprespawnguildid_sub,m,0,0,map[m].xs-1,map[m].ys-1,BL_NUL,g_id,flag);
+	if(m) map_foreachinmap(buildin_maprespawnguildid_sub,m,BL_CHAR,g_id,flag);
 	return 0;
 }
 
@@ -7416,8 +7415,7 @@ int buildin_mobcount(struct script_state *st)	// Added by RoVeRT
 		push_val(st->stack,C_INT,-1);
 		return 0;
 	}
-	map_foreachinarea(buildin_mobcount_sub,
-		m,0,0,map[m].xs,map[m].ys,BL_MOB, event,&c );
+	map_foreachinmap(buildin_mobcount_sub, m, BL_MOB, event,&c );
 
 	push_val(st->stack,C_INT, (c));
 
@@ -10231,7 +10229,7 @@ int mapreg_setreg(int num,int val)
 
 #if !defined(TXT_ONLY) && defined(MAPREGSQL)
 		if(name[1] != '@' && idb_get(mapreg_db,num) == NULL) {
-			sprintf(tmp_sql,"INSERT INTO `%s`(`%s`,`%s`,`%s`) VALUES ('%s','%d','%d')",mapregsql_db,mapregsql_db_varname,mapregsql_db_index,mapregsql_db_value,jstrescapecpy(tmp_str,name),i,val);
+			sprintf(tmp_sql,"INSERT INTO `%s`('%s','%s',`%s') VALUES ('%s','%d','%d')",mapregsql_db,mapregsql_db_varname,mapregsql_db_index,mapregsql_db_value,jstrescapecpy(tmp_str,name),i,val);
 			if(mysql_query(&mmysql_handle,tmp_sql)){
 				ShowSQL("DB error - %s\n",mysql_error(&mmysql_handle));
 				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
@@ -10243,7 +10241,7 @@ int mapreg_setreg(int num,int val)
 	} else { // [zBuffer]
 #if !defined(TXT_ONLY) && defined(MAPREGSQL)
 		if(name[1] != '@') { // Remove from database because it is unused.
-			sprintf(tmp_sql,"DELETE FROM `%s` WHERE `%s`=`%s` AND `%s`='%d'",mapregsql_db,mapregsql_db_varname,name,mapregsql_db_index,i);
+			sprintf(tmp_sql,"DELETE FROM `%s` WHERE `%s`='%s' AND `%s`='%d'",mapregsql_db,mapregsql_db_varname,name,mapregsql_db_index,i);
 			if(mysql_query(&mmysql_handle,tmp_sql)){
 				ShowSQL("DB error - %s\n",mysql_error(&mmysql_handle));
 				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);

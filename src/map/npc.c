@@ -2665,7 +2665,7 @@ int npc_reload (void)
 	char c = '-';
 
 	for (m = 0; m < map_num; m++) {
-		map_foreachinarea(npc_cleanup_sub, m, 0, 0, map[m].xs, map[m].ys, 0);
+		map_foreachinmap(npc_cleanup_sub, m, 0);
 		if(battle_config.dynamic_mobs) {	//dynamic check by [random]
 			for (i = 0; i < MAX_MOB_LIST_PER_MAP; i++)
 				if (map[m].moblist[i]) aFree(map[m].moblist[i]);

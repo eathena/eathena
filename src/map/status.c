@@ -577,7 +577,6 @@ void initStatusIconChangeTable() {
 	StatusIconChangeTable[SC_READYTURN] = SI_READYTURN;
 	StatusIconChangeTable[SC_READYCOUNTER] = SI_READYCOUNTER;
 	StatusIconChangeTable[SC_DODGE] = SI_DODGE;
-	StatusIconChangeTable[SC_RUN] = SI_RUN;
 	StatusIconChangeTable[SC_SHADOWWEAPON] = SI_SHADOWWEAPON;
 	StatusIconChangeTable[SC_WARM] = SI_WARM;
 	StatusIconChangeTable[SC_SUN_COMFORT] = SI_SUN_COMFORT;
@@ -5102,7 +5101,7 @@ int status_change_end( struct block_list* bl , int type,int tid )
 				if (sc_data[type].val1 > 0) { //Caster has been unlocked... nearby chars need to be unlocked.
 					int range = 2*skill_get_range2(bl, RG_CLOSECONFINE, 1);
 					map_foreachinarea(status_change_timer_sub, 
-						bl->m, bl->x-range, bl->y-range, bl->x+range,bl->y+range,0,bl,type,gettick());
+						bl->m, bl->x-range, bl->y-range, bl->x+range,bl->y+range,BL_CHAR,bl,type,gettick());
 				}
 				break;
 		/* option1 */
@@ -5380,7 +5379,7 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 		{
 			int range = skill_get_range2(bl, type==SC_SIGHT?MG_SIGHT:(type==SC_RUWACH?AL_RUWACH:WZ_SIGHTBLASTER), sc_data[type].val1);
 			map_foreachinarea( status_change_timer_sub,
-				bl->m, bl->x-range, bl->y-range, bl->x+range,bl->y+range,0,
+				bl->m, bl->x-range, bl->y-range, bl->x+range,bl->y+range,BL_CHAR,
 				bl,type,tick);
 
 			if( (--sc_data[type].val2)>0 ){
@@ -5405,7 +5404,7 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 	case SC_WARM: //SG skills [Komurka]
 		if( (--sc_data[type].val2)>0){
 			map_foreachinarea( status_change_timer_sub,
-				bl->m, bl->x-sc_data[type].val4, bl->y-sc_data[type].val4, bl->x+sc_data[type].val4,bl->y+sc_data[type].val4,0,
+				bl->m, bl->x-sc_data[type].val4, bl->y-sc_data[type].val4, bl->x+sc_data[type].val4,bl->y+sc_data[type].val4,BL_CHAR,
 				bl,type,tick);
 			sc_data[type].timer=add_timer(tick+1000, status_change_timer,bl->id, data);
 			return 0;

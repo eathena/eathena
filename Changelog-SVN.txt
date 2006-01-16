@@ -1,6 +1,13 @@
 Date	Added
 
 2006/01/16
+	* Optimized use of BL_* constants by making them stackable (meant for
+	  map_foreach* calls). Should improve performance by avoiding
+	  battle_check_target calls on a bunch of invalid targets such as
+	  items/skills/npcs on skills and other misc places. [Skotlex] 
+	* Fixed mob skills that should trigger on status on "any bad". [Skotlex]
+	* TK classes no longer are inmune to the strip-effects of Jump Kick [Skotlex]
+	* Fixed SQL mapreg saving. [Skotlex]
 	* Reverted Ice Wall Behaviour (you can snipe/cast through it again) [Skotlex]
 	* Fixed possible crash in skill_check_condition on consume-delayed items [Skotlex]
 	* Skills whose range is increased by Vulture Eyes now get the range

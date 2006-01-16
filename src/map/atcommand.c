@@ -3653,7 +3653,7 @@ void atcommand_killmonster_sub(
 			map_id = sd->bl.m;
 	}
 
-	map_foreachinarea(atkillmonster_sub, map_id, 0, 0, map[map_id].xs, map[map_id].ys, BL_MOB, drop);
+	map_foreachinmap(atkillmonster_sub, map_id, BL_MOB, drop);
 
 	clif_displaymessage(fd, msg_table[165]); // All monsters killed!
 
@@ -7921,8 +7921,7 @@ int atcommand_mobsearch(
 		mob_name, mapindex_id2name(sd->mapindex));
 	clif_displaymessage(fd, atcmd_output);
 
-	map_foreachinarea(atmobsearch_sub, map_id, 0, 0,
-		map[map_id].xs, map[map_id].ys, BL_MOB, mob_id, fd);
+	map_foreachinmap(atmobsearch_sub, map_id, BL_MOB, mob_id, fd);
 
 	atmobsearch_sub(&sd->bl,0);		// ”Ô†ƒŠƒZƒbƒg
 
@@ -9437,7 +9436,7 @@ int atcommand_mutearea(
 	if (time <= 0)
 		time = 15; // 15 minutes default
 	map_foreachinarea(atcommand_mutearea_sub,sd->bl.m, 
-		sd->bl.x-AREA_SIZE,sd->bl.y-AREA_SIZE, 
+		sd->bl.x-AREA_SIZE, sd->bl.y-AREA_SIZE, 
 		sd->bl.x+AREA_SIZE, sd->bl.y+AREA_SIZE, BL_PC, sd->bl.id, time);
 
 	return 0;
@@ -9470,8 +9469,7 @@ int atcommand_shuffle(
       sd->bl.x-AREA_SIZE,sd->bl.y-AREA_SIZE, 
       sd->bl.x+AREA_SIZE, sd->bl.y+AREA_SIZE, BL_PC);  
   } else if (strcmp(message, "map")== 0) {
-    map_foreachinarea(atcommand_shuffle_sub,sd->bl.m, 
-      0, 399, 0, 399, BL_PC);
+    map_foreachinmap(atcommand_shuffle_sub,sd->bl.m, BL_PC);
   } else if (strcmp(message, "world") == 0) {
     struct map_session_data **pl_allsd;
     int i, users;

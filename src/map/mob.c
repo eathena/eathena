@@ -1680,14 +1680,14 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 		map_foreachinarea (mob_ai_sub_hard_activesearch, md->bl.m,
 					md->bl.x-search_size,md->bl.y-search_size,
 					md->bl.x+search_size,md->bl.y+search_size,
-					md->special_state.ai?0:BL_PC,
+					md->special_state.ai?BL_CHAR:BL_PC,
 					md, &tbl);
 	} else if (mode&MD_CHANGECHASE && (md->state.skillstate == MSS_RUSH || md->state.skillstate == MSS_FOLLOW)) {
 		search_size = (blind_flag && md->db->range>3) ? 3 : md->db->range;
 		map_foreachinarea (mob_ai_sub_hard_changechase, md->bl.m,
 					md->bl.x-search_size,md->bl.y-search_size,
 					md->bl.x+search_size,md->bl.y+search_size,
-					md->special_state.ai?0:BL_PC,
+					md->special_state.ai?BL_CHAR:BL_PC,
 					md, &tbl);
 	}
 
@@ -2143,9 +2143,7 @@ int mob_deleteslave(struct mob_data *md)
 {
 	nullpo_retr(0, md);
 
-	map_foreachinarea(mob_deleteslave_sub, md->bl.m,
-		0,0,map[md->bl.m].xs,map[md->bl.m].ys,
-		BL_MOB,md->bl.id);
+	map_foreachinmap(mob_deleteslave_sub, md->bl.m, BL_MOB,md->bl.id);
 	return 0;
 }
 
@@ -2961,7 +2959,7 @@ int mob_warpslave(struct block_list *bl, int range)
 	if (range < 1)
 		range = 1; //Min range needed to avoid crashes and stuff. [Skotlex]
 	
-	return map_foreachinarea(mob_warpslave_sub, bl->m, 0, 0, map[bl->m].xs,map[bl->m].ys, BL_MOB, bl, range);
+	return map_foreachinmap(mob_warpslave_sub, bl->m, BL_MOB, bl, range);
 }
 
 /*==========================================
@@ -3084,9 +3082,7 @@ int mob_countslave(struct mob_data *md)
 
 	nullpo_retr(0, md);
 
-	map_foreachinarea(mob_countslave_sub, md->bl.m,
-		0,0,map[md->bl.m].xs-1,map[md->bl.m].ys-1,
-		BL_MOB,md->bl.id,&c);
+	map_foreachinmap(mob_countslave_sub, md->bl.m, BL_MOB,md->bl.id,&c);
 	return c;
 }
 /*==========================================
@@ -3633,7 +3629,8 @@ int mob_getfriendstatus_sub(struct block_list *bl,va_list ap)
 	if( cond2==-1 ){
 		int j;
 		for(j=SC_COMMON_MIN;j<=SC_COMMON_MAX && !flag;j++){
-			flag=(md->sc_data[j].timer!=-1 );
+			if ((flag=(md->sc_data[j].timer!=-1))) //Once an effect was found, break out. [Skotlex]
+				break;
 		}
 	}else
 		flag=( md->sc_data[cond2].timer!=-1 );

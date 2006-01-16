@@ -1736,7 +1736,7 @@ int guild_castledatasave(int castle_id,int index,int value)
 		int m = -1;
 		if (gc) m = map_mapname2mapid(gc->map_name);
 		if (m != -1)
-			map_foreachinarea(mob_guardian_guildchange, m, 0,0,map[m].xs,map[m].ys, BL_MOB);
+			map_foreachinmap(mob_guardian_guildchange, m, BL_MOB);
 	}
 	return intif_guild_castle_datasave(castle_id,index,value);
 }

@@ -3563,7 +3563,7 @@ static int pc_walk(int tid,unsigned int tick,int id,int data)
 		sd->walktimer = 1;	// temporarily set (so that in clif_set007x the player will still appear as walking)
 		map_foreachinmovearea(clif_pcoutsight, sd->bl.m,
 			x-AREA_SIZE, y-AREA_SIZE, x+AREA_SIZE, y+AREA_SIZE,
-			dx, dy, 0, sd);
+			dx, dy, BL_ALL, sd);
 		x += dx;
 		y += dy;
 
@@ -3578,7 +3578,7 @@ static int pc_walk(int tid,unsigned int tick,int id,int data)
 		sd->walktimer = 1;	// temporarily set (so that in clif_set007x the player will still appear as walking)
 		map_foreachinmovearea (clif_pcinsight, sd->bl.m,
 			x-AREA_SIZE, y-AREA_SIZE, x+AREA_SIZE, y+AREA_SIZE,
-			-dx, -dy, 0, sd);
+			-dx, -dy, BL_ALL, sd);
 		sd->walktimer = -1;	// set back so not to disturb future pc_stop_walking calls
 
 		if (pc_iscloaking(sd))	// クロ?キングの消滅?査
@@ -3735,7 +3735,7 @@ int pc_movepos(struct map_session_data *sd,int dst_x,int dst_y,int checkpath)
 
 	moveblock = ( sd->bl.x/BLOCK_SIZE != dst_x/BLOCK_SIZE || sd->bl.y/BLOCK_SIZE != dst_y/BLOCK_SIZE);
 
-	map_foreachinmovearea(clif_pcoutsight,sd->bl.m,sd->bl.x-AREA_SIZE,sd->bl.y-AREA_SIZE,sd->bl.x+AREA_SIZE,sd->bl.y+AREA_SIZE,dx,dy,0,sd);
+	map_foreachinmovearea(clif_pcoutsight,sd->bl.m,sd->bl.x-AREA_SIZE,sd->bl.y-AREA_SIZE,sd->bl.x+AREA_SIZE,sd->bl.y+AREA_SIZE,dx,dy,BL_ALL,sd);
 
 	skill_unit_move(&sd->bl,tick,2);
 	if(moveblock) map_delblock(&sd->bl);
@@ -3744,7 +3744,7 @@ int pc_movepos(struct map_session_data *sd,int dst_x,int dst_y,int checkpath)
 	if(moveblock) map_addblock(&sd->bl);
 	skill_unit_move(&sd->bl,tick,3);
 
-	map_foreachinmovearea(clif_pcinsight,sd->bl.m,sd->bl.x-AREA_SIZE,sd->bl.y-AREA_SIZE,sd->bl.x+AREA_SIZE,sd->bl.y+AREA_SIZE,-dx,-dy,0,sd);
+	map_foreachinmovearea(clif_pcinsight,sd->bl.m,sd->bl.x-AREA_SIZE,sd->bl.y-AREA_SIZE,sd->bl.x+AREA_SIZE,sd->bl.y+AREA_SIZE,-dx,-dy,BL_ALL,sd);
 
 	if (pc_iscloaking(sd)) // クロ?キングの消滅?査
 		skill_check_cloaking(&sd->bl);
@@ -7253,7 +7253,7 @@ int pc_calc_pvprank(struct map_session_data *sd)
 	if( !(m->flag.pvp) )
 		return 0;
 	sd->pvp_rank=1;
-	map_foreachinarea(pc_calc_pvprank_sub,sd->bl.m,0,0,m->xs,m->ys,BL_PC,sd);
+	map_foreachinmap(pc_calc_pvprank_sub,sd->bl.m,BL_PC,sd);
 	if(old!=sd->pvp_rank || sd->pvp_lastusers!=m->users)
 		clif_pvpset(sd,sd->pvp_rank,sd->pvp_lastusers=m->users,0);
 	return sd->pvp_rank;

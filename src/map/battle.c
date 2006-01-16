@@ -79,7 +79,7 @@ int battle_counttargeted(struct block_list *bl,struct block_list *src,int target
 
 	map_foreachinarea(battle_counttargeted_sub, bl->m,
 		bl->x-AREA_SIZE, bl->y-AREA_SIZE,
-		bl->x+AREA_SIZE, bl->y+AREA_SIZE, 0,
+		bl->x+AREA_SIZE, bl->y+AREA_SIZE, BL_CHAR,
 		bl->id, &c, src, target_lv);
 
 	return c;
@@ -171,7 +171,7 @@ struct block_list* battle_gettargeted(struct block_list *target)
 	memset(bl_list, 0, sizeof(bl_list));
 	map_foreachinarea(battle_gettargeted_sub, target->m,
 		target->x-AREA_SIZE, target->y-AREA_SIZE,
-		target->x+AREA_SIZE, target->y+AREA_SIZE, 0,
+		target->x+AREA_SIZE, target->y+AREA_SIZE, BL_CHAR,
 		bl_list, &c, target);
 	if (c == 0 || c > 24)
 		return NULL;

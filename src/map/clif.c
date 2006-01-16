@@ -8086,7 +8086,7 @@ int clif_specialeffect(struct block_list *bl, int type, int flag)
 int clif_refresh(struct map_session_data *sd) {
 	nullpo_retr(-1, sd);
 	clif_changemap(sd,sd->mapindex,sd->bl.x,sd->bl.y);
-	map_foreachinarea(clif_getareachar,sd->bl.m,sd->bl.x-AREA_SIZE,sd->bl.y-AREA_SIZE,sd->bl.x+AREA_SIZE,sd->bl.y+AREA_SIZE,0,sd);
+	map_foreachinarea(clif_getareachar,sd->bl.m,sd->bl.x-AREA_SIZE,sd->bl.y-AREA_SIZE,sd->bl.x+AREA_SIZE,sd->bl.y+AREA_SIZE,BL_ALL,sd);
 	return 0;
 }
 
@@ -8673,7 +8673,7 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 	if (pc_checkskill(sd, SG_DEVIL) && sd->status.job_level >= battle_config.max_job_level)
 		clif_status_load(&sd->bl, SI_DEVIL, 1);  //blindness [Komurka]
 	
-	map_foreachinarea(clif_getareachar,sd->bl.m,sd->bl.x-AREA_SIZE,sd->bl.y-AREA_SIZE,sd->bl.x+AREA_SIZE,sd->bl.y+AREA_SIZE,0,sd);
+	map_foreachinarea(clif_getareachar,sd->bl.m,sd->bl.x-AREA_SIZE,sd->bl.y-AREA_SIZE,sd->bl.x+AREA_SIZE,sd->bl.y+AREA_SIZE,BL_ALL,sd);
 }
 
 /*==========================================
