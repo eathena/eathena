@@ -1,6 +1,11 @@
 Date	Added
 
 2006/01/16
+	* Skills whose range is increased by Vulture Eyes now get the range
+	  increased by 10 for non players (assumes VE level 10). [Skotlex]
+	* Added cardfixes of near_attack_def_rate and long_attack_def_rate to misc
+	  attack calculations. [Skotlex]
+	* Fixed Spirit of Wizard not working in a couple of instances. [Skotlex]
 	* Advanced Book now gives 1%*skill level success chance to create element
 	  convert potion [Skotlex]
 	* Changed the FEEL skill implementation to store/use map indexes instead of

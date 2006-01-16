@@ -2869,6 +2869,11 @@ struct Damage  battle_calc_misc_attack(
 			cardfix=cardfix*(100-tsd->subrace[race])/100;
 			cardfix=cardfix*(100-tsd->subrace[is_boss(bl)?10:11])/100;
 			cardfix=cardfix*(100-tsd->misc_def_rate)/100;
+			if(aflag&BF_SHORT)
+				cardfix=cardfix*(100-tsd->near_attack_def_rate)/100;
+			else	// BF_LONG (there's no other choice)
+				cardfix=cardfix*(100-tsd->long_attack_def_rate)/100;
+
 			damage=damage*cardfix/100;
 		}
 		if (sd && skill_num > 0 && sd->skillatk[0].id != 0)

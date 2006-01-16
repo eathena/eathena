@@ -665,10 +665,14 @@ int skill_get_range2(struct block_list *bl, int id, int lv) {
 			return status_get_range(bl);
 		range *=-1;
 	}
-	if (bl->type == BL_PC && //TODO: Find a way better than hardcoding the list of skills affected by AC_VULTURE.
-		(id == AC_SHOWER || id == AC_DOUBLE || id == HT_BLITZBEAT || id == AC_CHARGEARROW
-		|| id == SN_FALCONASSAULT || id == SN_SHARPSHOOTING || id == HT_POWER))
-		range += pc_checkskill((struct map_session_data *)bl, AC_VULTURE);
+	//TODO: Find a way better than hardcoding the list of skills affected by AC_VULTURE.
+	if (id == AC_SHOWER || id == AC_DOUBLE || id == HT_BLITZBEAT || id == AC_CHARGEARROW
+		|| id == SN_FALCONASSAULT || id == SN_SHARPSHOOTING || id == HT_POWER) {
+		if (bl->type == BL_PC)
+			range += pc_checkskill((struct map_session_data *)bl, AC_VULTURE);
+		else
+			range += 10; //Assume level 10?
+	}
 	return range;
 }
 
@@ -1704,7 +1708,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		bl = src; //Just make the skill attack yourself @.@
 		sc_data = status_get_sc_data(bl);
 		tsd = (bl->type == BL_PC)?(struct map_session_data *)bl:NULL;
-		if (sc_data && sc_data[SC_SPIRIT].timer != -1 && sc_data[SC_SPIRIT].val1 == SL_WIZARD)
+		if (sc_data && sc_data[SC_SPIRIT].timer != -1 && sc_data[SC_SPIRIT].val2 == SL_WIZARD)
 			return 0; //Spirit of Wizard blocks bounced back spells.
 	}
 	
@@ -4478,7 +4482,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				//	if (!fail_flag) clif_skill_fail(sd,skillid,0,0); This is actually a bug! Altough the gem is checked in skill_check_condition...
 					break;
 				}
-				if (sd->sc_data[SC_SPIRIT].timer != -1 && sd->sc_data[SC_SPIRIT].val1 == SL_WIZARD)
+				if (sd->sc_data[SC_SPIRIT].timer != -1 && sd->sc_data[SC_SPIRIT].val2 == SL_WIZARD)
 					break; //Do not delete the gemstone.
 				pc_delitem(sd, i, skill_db[skillid].amount[0], 0);
 			}
