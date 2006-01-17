@@ -956,12 +956,6 @@ int atcommand_config_read(const char *cfgName) {
  * Duel organizing functions [LuzZza]
  *------------------------------------------
  */
-void do_init_duel() {
-	duel_count = 0;
-	memset(&duel_list[0], 0, sizeof(duel_list));
-	return;
-}
-
 void duel_msg_foreach_sameduel_wos(
 	const unsigned int did, struct map_session_data* sd, char *output)
 {
@@ -8065,12 +8059,11 @@ atcommand_users(
 	char buf[256];
 	users_all = 0;
 
-	users_db = db_alloc(__FILE__,__LINE__,DB_UINT,DB_OPT_BASE,sizeof(int));
+	users_db->clear(users_db, NULL);
 	clif_foreachclient(atcommand_users_sub1);
 	users_db->foreach(users_db,atcommand_users_sub2,sd);
 	sprintf(buf,"all : %d",users_all);
 	clif_displaymessage(fd,buf);
-	users_db->destroy(users_db,NULL);
 	return 0;
 }
 
@@ -10013,4 +10006,15 @@ int atcommand_main(
 			clif_displaymessage(fd, msg_txt(385));
 	}
 	return 0;
+}
+
+void do_init_atcommand() {
+	users_db = db_alloc(__FILE__,__LINE__,DB_UINT,DB_OPT_BASE,sizeof(int));
+	duel_count = 0;
+	memset(&duel_list[0], 0, sizeof(duel_list));
+	return;
+}
+
+void do_final_atcommand() {
+	users_db->destroy(users_db,NULL);
 }

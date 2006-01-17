@@ -341,6 +341,7 @@ int compare_item(struct item *a, struct item *b) {
 }
 
 static void* create_charstatus(DBKey key, va_list args) {
+	struct mmo_charstatus *cp;
 	cp = (struct mmo_charstatus *) aCalloc(1,sizeof(struct mmo_charstatus));
 	cp->char_id = key.i;
 	return cp;

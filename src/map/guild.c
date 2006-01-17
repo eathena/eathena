@@ -1114,12 +1114,22 @@ int guild_emblem_changed(int len,int guild_id,int emblem_id,const char *data)
 	return 0;
 }
 
+static void* create_expcache(DBKey key, va_list args) {
+	struct guild_expcache *c;
+	struct map_session_data *sd = va_arg(args, struct map_session_data*);
+	c = (struct guild_expcache *)aCallocA(1, sizeof(struct guild_expcache));
+	c->guild_id = sd->status.guild_id;
+	c->account_id = sd->status.account_id;
+	c->char_id = sd->status.char_id;
+	return c;
+}
 // ƒMƒ‹ƒh‚ÌEXPã”[
 int guild_payexp(struct map_session_data *sd,int exp)
 {
 	struct guild *g;
 	struct guild_expcache *c;
 	int per, exp2;
+	double tmp;
 	
 	nullpo_retr(0, sd);
 
@@ -1133,23 +1143,13 @@ int guild_payexp(struct map_session_data *sd,int exp)
 	if ((exp2 = exp * per / 100) <= 0)
 		return 0;
 
-	if ((c = idb_get(guild_expcache_db, sd->status.char_id)) == NULL) {
-		c = (struct guild_expcache *)aCallocA(1, sizeof(struct guild_expcache));
-		c->guild_id = sd->status.guild_id;
-		c->account_id = sd->status.account_id;
-		c->char_id = sd->status.char_id;
-		c->exp = exp2;
-		if (battle_config.guild_exp_rate != 100)
-			c->exp = c->exp*battle_config.guild_exp_rate/100;
-		idb_put(guild_expcache_db, c->char_id, c);
-	} else {
-		double tmp = c->exp;
-		if (battle_config.guild_exp_rate != 100)
-			tmp += battle_config.guild_exp_rate*exp2/100;
-		else
-			tmp += exp2;
-		c->exp = (tmp > 0x7fffffff) ? 0x7fffffff : (int)tmp;
-	}
+	c = guild_expcache_db->ensure(guild_expcache_db, i2key(sd->status.char_id), create_expcache, sd);
+	tmp = c->exp;
+	if (battle_config.guild_exp_rate != 100)
+		tmp += battle_config.guild_exp_rate*exp2/100;
+	else
+		tmp += exp2;
+	c->exp = (tmp > 0x7fffffff) ? 0x7fffffff : (int)tmp;
 	return exp2;
 }
 
@@ -1158,23 +1158,15 @@ int guild_getexp(struct map_session_data *sd,int exp)
 {
 	struct guild *g;
 	struct guild_expcache *c;
-	
+	double tmp;
 	nullpo_retr(0, sd);
 
 	if (sd->status.guild_id == 0 || (g = guild_search(sd->status.guild_id)) == NULL)
 		return 0;
 
-	if ((c = idb_get(guild_expcache_db,sd->status.char_id)) == NULL) {
-		c = (struct guild_expcache *)aCallocA(1,sizeof(struct guild_expcache));
-		c->guild_id = sd->status.guild_id;
-		c->account_id = sd->status.account_id;
-		c->char_id = sd->status.char_id;
-		c->exp = exp;
-		idb_put(guild_expcache_db,c->char_id,c);
-	} else {
-		double tmp = c->exp + exp;
-		c->exp = (tmp > 0x7fffffff) ? 0x7fffffff : (int)tmp;
-	}
+	c = guild_expcache_db->ensure(guild_expcache_db, i2key(sd->status.char_id), create_expcache, sd);
+	tmp = c->exp + exp;
+	c->exp = (tmp > 0x7fffffff) ? 0x7fffffff : (int)tmp;
 	return exp;
 }
 
