@@ -1565,7 +1565,7 @@ static int clif_set0192(int fd, int m, int x, int y, int type) {
 }
 
 // new and improved weather display [Valaris]
-int clif_weather1(int fd, int type) {
+int clif_weather_sub(int fd, int type) {
         WFIFOHEAD(fd, packet_len_table[0x1f3]);
 	WFIFOW(fd,0) = 0x1f3;
 	WFIFOL(fd,2) = -10;
@@ -1575,25 +1575,7 @@ int clif_weather1(int fd, int type) {
 	return 0;
 }
 
-int clif_weather2(int m, int type) {
-	int i;	
-
-	struct map_session_data *sd=NULL;
-
-	for(i = 0; i < fd_max; i++) {
-		if (session[i] && (sd = session[i]->session_data) != NULL && sd->state.auth && sd->bl.m == m) {
-                        WFIFOHEAD(sd->fd, packet_len_table[0x1f3]);
-			WFIFOW(sd->fd,0) = 0x1f3;
-			WFIFOL(sd->fd,2) = -10;
-			WFIFOL(sd->fd,6) = type;
-			WFIFOSET(sd->fd,packet_len_table[0x1f3]);
-		}
-	}
-
-	return 0;
-}
-
-int clif_clearweather(int m) {
+int clif_weather(int m) {
 	int i;
 
 	struct map_session_data *sd=NULL;
@@ -1620,22 +1602,22 @@ int clif_clearweather(int m) {
 				WFIFOSET(sd->fd,packet_len_table[0x7c]);
 
 				if (map[sd->bl.m].flag.snow)
-					clif_weather1(sd->fd, 162);
+					clif_weather_sub(sd->fd, 162);
 				if (map[sd->bl.m].flag.clouds)
-					clif_weather1(sd->fd, 233);
+					clif_weather_sub(sd->fd, 233);
 				if (map[sd->bl.m].flag.fog)
-					clif_weather1(sd->fd, 515);
+					clif_weather_sub(sd->fd, 515);
 				if (map[sd->bl.m].flag.fireworks) {
-					clif_weather1(sd->fd, 297);
-					clif_weather1(sd->fd, 299);
-					clif_weather1(sd->fd, 301);
+					clif_weather_sub(sd->fd, 297);
+					clif_weather_sub(sd->fd, 299);
+					clif_weather_sub(sd->fd, 301);
 				}
 				if (map[sd->bl.m].flag.sakura)
-					clif_weather1(sd->fd, 163);
+					clif_weather_sub(sd->fd, 163);
 				if (map[sd->bl.m].flag.leaves)
-					clif_weather1(sd->fd, 333);
+					clif_weather_sub(sd->fd, 333);
 				if (map[sd->bl.m].flag.rain)
-					clif_weather1(sd->fd, 161);
+					clif_weather_sub(sd->fd, 161);
 			}
 		}
 	}
@@ -1703,22 +1685,22 @@ int clif_spawnpc(struct map_session_data *sd) {
 		WFIFOSET(sd->fd,packet_len_table[0x7c]);
 
 		if (map[sd->bl.m].flag.snow)
-			clif_weather1(sd->fd, 162);
+			clif_weather_sub(sd->fd, 162);
 		if (map[sd->bl.m].flag.clouds)
-			clif_weather1(sd->fd, 233);
+			clif_weather_sub(sd->fd, 233);
 		if (map[sd->bl.m].flag.fog)
-			clif_weather1(sd->fd, 515);
+			clif_weather_sub(sd->fd, 515);
 		if (map[sd->bl.m].flag.fireworks) {
-			clif_weather1(sd->fd, 297);
-			clif_weather1(sd->fd, 299);
-			clif_weather1(sd->fd, 301);
+			clif_weather_sub(sd->fd, 297);
+			clif_weather_sub(sd->fd, 299);
+			clif_weather_sub(sd->fd, 301);
 		}
 		if (map[sd->bl.m].flag.sakura)
-			clif_weather1(sd->fd, 163);
+			clif_weather_sub(sd->fd, 163);
 		if (map[sd->bl.m].flag.leaves)
-			clif_weather1(sd->fd, 333);
+			clif_weather_sub(sd->fd, 333);
 		if (map[sd->bl.m].flag.rain)
-			clif_weather1(sd->fd, 161);
+			clif_weather_sub(sd->fd, 161);
 	}
 
 	//New 'night' effect by dynamix [Skotlex]

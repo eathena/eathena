@@ -1,6 +1,7 @@
 Date	Added
 
 2006/01/17
+	* Fixed some weather effects not working or not functioning correctly. [Valaris]
 	* Cleanups and organization to maps_athena.txt and map_index.txt, thanks to
 	  Poki for the cleanup work. [Skotlex]
 	* Some cleanup of the SG_FEEL code [Skotlex]
