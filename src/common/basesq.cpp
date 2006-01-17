@@ -253,6 +253,7 @@ bool CAccountDB_sql::searchAccount(const char* userid, CLoginAccount& account)
 bool CAccountDB_sql::searchAccount(uint32 accid, CLoginAccount& account)
 {	// get account by account_id
 
+	bool ret = false;
 
 	if(accid)
 	{
@@ -308,10 +309,10 @@ bool CAccountDB_sql::searchAccount(uint32 accid, CLoginAccount& account)
 				ret = true;
 			}
 		}
+		query.clear();
 
 		if(ret)
 		{
-			query.clear();
 			query << "SELECT `str`,`value` FROM `" << login_reg_db << "` WHERE `account_id`='" << account.account_id << "'";
 			if( this->Query(query) )
 			{
@@ -326,6 +327,7 @@ bool CAccountDB_sql::searchAccount(uint32 accid, CLoginAccount& account)
 
 				this->Free();
 			}
+			query.clear();
 		}
 	}
 
@@ -353,12 +355,11 @@ bool CAccountDB_sql::insertAccount(const char* userid, const char* passwd, unsig
 bool CAccountDB_sql::removeAccount(uint32 accid)
 {
 	bool ret;
-	size_t sz;
 	MiniString query;
 
 	query << "DELETE FROM `" << login_auth_db << "` WHERE `account_id`='" << accid << "'";
 	ret = this->Query(query);
-	query.clear()
+	query.clear();
 
 	query << "DELETE FROM `" << login_reg_db << "` WHERE `account_id`='" << accid << "'"; // must update with the variable login_reg_db
 	ret &=this->Query(query);
@@ -405,24 +406,25 @@ bool CAccountDB_sql::init(const char* configfile)
 	}
 
 
-	query	<<
-			<< "CREATE TABLE IF NOT EXISTS `" << login_auth_db << "` ("
-			<< "`account_id` INTEGER UNSIGNED AUTO_INCREMENT,"
-			<< "`user_id` VARCHAR(24) NOT NULL,"
-			<< "`user_pass` VARCHAR(34) NOT NULL,"
-			<< "`sex` ENUM('M','F','S') default 'M',"
-			<< "`gm_level` INT(3) UNSIGNED NOT NULL,"
-			<< "`online` BOOL default 'false',"
-			<< "`email` VARCHAR(40) NOT NULL,"
-			<< "`login_id1` INTEGER UNSIGNED NOT NULL,"
-			<< "`login_id2` INTEGER UNSIGNED NOT NULL,"
-			<< "`client_ip` VARCHAR(16) NOT NULL,"
-			<< "`last_login` INTEGER UNSIGNED NOT NULL,"
-			<< "`login_count` INTEGER UNSIGNED NOT NULL,"
-			<< "`ban_until` INTEGER UNSIGNED NOT NULL,"
-			<< "`valid_until` INTEGER UNSIGNED NOT NULL,"
-			<< "PRIMARY KEY(`account_id`)"
-			<< ")";
+	query
+		<< "CREATE TABLE IF NOT EXISTS `" << login_auth_db << "` ("
+		<< "`account_id` INTEGER UNSIGNED AUTO_INCREMENT,"
+		<< "`user_id` VARCHAR(24) NOT NULL,"
+		<< "`user_pass` VARCHAR(34) NOT NULL,"
+		<< "`sex` ENUM('M','F','S') default 'M',"
+		<< "`gm_level` INT(3) UNSIGNED NOT NULL,"
+		<< "`online` BOOL default 'false',"
+		<< "`email` VARCHAR(40) NOT NULL,"
+		<< "`login_id1` INTEGER UNSIGNED NOT NULL,"
+		<< "`login_id2` INTEGER UNSIGNED NOT NULL,"
+		<< "`client_ip` VARCHAR(16) NOT NULL,"
+		<< "`last_login` INTEGER UNSIGNED NOT NULL,"
+		<< "`login_count` INTEGER UNSIGNED NOT NULL,"
+		<< "`ban_until` INTEGER UNSIGNED NOT NULL,"
+		<< "`valid_until` INTEGER UNSIGNED NOT NULL,"
+		<< "PRIMARY KEY(`account_id`)"
+		<< ")";
+
 	this->Query(query);
 	query.clear();
 
@@ -433,8 +435,8 @@ bool CAccountDB_sql::init(const char* configfile)
 		query.clear();
 	}
 
-	query	<<
-		<< "CREATE TABLE IF NOT EXISTS `" login_reg_db << "` ("
+	query
+		<< "CREATE TABLE IF NOT EXISTS `" << login_reg_db << "` ("
 		<< "`account_id` INTEGER UNSIGNED AUTO_INCREMENT,"
 		<< "`str` VARCHAR(34) NOT NULL,"  // Not sure on the length needed. (struct global_reg::str[32]) but better read the size from the struct later
 		<< "`value` INTEGER UNSIGNED NOT NULL,"
@@ -452,7 +454,7 @@ bool CAccountDB_sql::init(const char* configfile)
 		query.clear();
 	}
 
-	query <<
+	query
 		<< "CREATE TABLE IF NOT EXISTS `" << login_log_db << "` ("
 		<< "`time` INTEGER UNSIGNED,"
 		<< "`ip` VARCHAR(16) NOT NULL,"
@@ -471,7 +473,7 @@ bool CAccountDB_sql::init(const char* configfile)
 		query.clear();
 	}
 
-	query <<
+	query
 		<< "CREATE TABLE IF NOT EXISTS `" << login_status_db << "` ("
 		<< "`index` INTEGER UNSIGNED NOT NULL,"
 		<< "`name` VARCHAR(24) NOT NULL,"
@@ -497,8 +499,8 @@ bool CAccountDB_sql::close()
 	}
 
 	//delete all server status
-	query << "DELETE FROM `" login_status_db << "`";
-	this->Query(query)
+	query << "DELETE FROM `" << login_status_db << "`";
+	this->Query(query);
 	query.clear();
 
 	mysql_close(&(this->mysqldb_handle));
@@ -510,15 +512,17 @@ bool CAccountDB_sql::saveAccount(const CLoginAccount& account)
 {
 	bool ret = false;
 	size_t sz, i;
-	char query[2048], tempstr[64];
+	MiniString query;
+	char tempstr[64];
 
 	//-----------
 	// Update the login_auth_db with new info
-	query <<"UPDATE `" << login_auth_db << "` SET "
+	query
+		<<"UPDATE `" << login_auth_db << "` SET "
 
 		<< "`user_id` = '" << 		account.userid << "', "
 		<< "`user_pass` = '" <<		account.passwd << "', "
-		<< "`sex` = '" <<			(account.sex==1)?'M','F' << "', "
+		<< "`sex` = '" <<			((account.sex==1)?"M":"F") << "', "
 		<< "`gm_level` = '" <<		account.gm_level << "', "
 		<< "`online` = '" << 		account.online << "', "
 		<< "`email` = '" << 		account.email << "', "
@@ -551,9 +555,9 @@ bool CAccountDB_sql::saveAccount(const CLoginAccount& account)
 	{
 		this->escape_string(tempstr, account.account_reg2[i].str, strlen(account.account_reg2[i].str));
 
-		query << (i?",") << "( '" << account.account_id << "','" << tempstr << "','" << account.account_reg2[i].value << "')";
+		query << (i?",":"") << "( '" << account.account_id << "','" << tempstr << "','" << account.account_reg2[i].value << "')";
 	}
-	ret &= this->Query(query)
+	ret &= this->Query(query);
 
 	return ret;
 }
@@ -565,6 +569,36 @@ bool CAccountDB_sql::saveAccount(const CLoginAccount& account)
 
 
 /* data for sql tables:
+
+DROP TABLE IF EXISTS `account_storage`
+
+CREATE TABLE IF NOT EXISTS `account_storage` (
+  `id`				BIGINT UNSIGNED NOT NULL auto_increment,
+  `account_id`		INTEGER UNSIGNED NOT NULL default '0',
+  `nameid`			MEDIUMINT UNSIGNED NOT NULL default '0',
+  `amount`			INTEGER UNSIGNED NOT NULL default '0',
+  `equip`			MEDIUMINT UNSIGNED NOT NULL default '0',
+  `identify`		BOOL default 'TRUE',
+  `refine`			TINYINT(2) UNSIGNED NOT NULL default '0',
+  `attribute`		TINYINT UNSIGNED NOT NULL default '0',
+  `card0` 			INTEGER NOT NULL default '0',
+  `card1` 			INTEGER UNSIGNED NOT NULL default '0',
+  `card2`			INTEGER UNSIGNED NOT NULL default '0',
+  `card3`			INTEGER UNSIGNED NOT NULL default '0',
+  `broken` 			BOOL default 'FALSE',
+  PRIMARY KEY  (`id`),
+  KEY `account_id` (`account_id`)
+)
+
+DROP TABLE IF EXISTS `account_reg`
+
+CREATE TABLE IF NOT EXISTS `account_reg` (
+  `account_id`		INTEGER UNSIGNED NOT NULL default '0',
+  `str`				VARCHAR(255) NOT NULL default '',
+  `value`			VARCHAR(255) NOT NULL default '0',
+  PRIMARY KEY  (`account_id`,`str`),
+  KEY `account_id` (`account_id`)
+)
 
 DROP TABLE IF EXISTS `char_characters`
 
@@ -633,16 +667,6 @@ CREATE TABLE IF NOT EXISTS `char_character_reg` (
   KEY `char_id` (`char_id`)
 )
 
-DROP TABLE IF EXISTS `account_reg`
-
-CREATE TABLE IF NOT EXISTS `account_reg` (
-  `account_id`		INTEGER UNSIGNED NOT NULL default '0',
-  `str`				VARCHAR(255) NOT NULL default '',
-  `value`			VARCHAR(255) NOT NULL default '0',
-  PRIMARY KEY  (`account_id`,`str`),
-  KEY `account_id` (`account_id`)
-)
-
 DROP TABLE IF EXISTS `char_friends`
 
 CREATE TABLE IF NOT EXISTS `char_friends` (
@@ -692,27 +716,6 @@ CREATE TABLE IF NOT EXISTS `char_cart` (
   PRIMARY KEY  (`id`),
   KEY `char_id` (`char_id`)
 )
-
-DROP TABLE IF EXISTS `account_storage`
-
-CREATE TABLE IF NOT EXISTS `account_storage` (
-  `id`				BIGINT UNSIGNED NOT NULL auto_increment,
-  `account_id`		INTEGER UNSIGNED NOT NULL default '0',
-  `nameid`			MEDIUMINT UNSIGNED NOT NULL default '0',
-  `amount`			INTEGER UNSIGNED NOT NULL default '0',
-  `equip`			MEDIUMINT UNSIGNED NOT NULL default '0',
-  `identify`		BOOL default 'TRUE',
-  `refine`			TINYINT(2) UNSIGNED NOT NULL default '0',
-  `attribute`		TINYINT UNSIGNED NOT NULL default '0',
-  `card0` 			INTEGER NOT NULL default '0',
-  `card1` 			INTEGER UNSIGNED NOT NULL default '0',
-  `card2`			INTEGER UNSIGNED NOT NULL default '0',
-  `card3`			INTEGER UNSIGNED NOT NULL default '0',
-  `broken` 			BOOL default 'FALSE',
-  PRIMARY KEY  (`id`),
-  KEY `account_id` (`account_id`)
-)
-
 
 DROP TABLE IF EXISTS `char_memo`
 
