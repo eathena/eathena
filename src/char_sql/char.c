@@ -859,17 +859,9 @@ int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tab
 	return 0;
 }
 
-static void * create_charstatus(DBKey key, va_arg args) {
-	struct mmo_charstatus *p;
-	cp = (struct mmo_charstatus *) aMalloc(sizeof(struct mmo_charstatus));
-	cp->char_id = key.i;
-	return cp;
-}
-
 //=====================================================================================================
 int mmo_char_fromsql(int char_id, struct mmo_charstatus *p){
 	int i,j, n;
-	int friends =0;
 	char t_msg[128];
 	char *str_p = tmp_sql;
 	struct mmo_charstatus *cp;
