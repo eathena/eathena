@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= Dino9021, Edited / Translated by Celest
 //===== Current Version: ===================================== 
-//= 1.8
+//= 1.9
 //===== Compatible With: ===================================== 
 //= eAthena 1.0 +
 //===== Description: ========================================= 
@@ -18,6 +18,7 @@
 //= 2nd Job Quests again. It also guides adv classes where
 //= to go. [Lupus] 1.7 Fixed warps19/20 [Yor]
 //= 1.8 Fixed bugs. Fixed Green Potion exploit. Getting rid of Jfunc mess [Lupus]
+//= 1.9 Added a missing check in Fuhai and fixed a LOT of Engrish. [Zephiris]
 //============================================================ 
 
 
@@ -35,13 +36,14 @@ prt_monk.gat,59,247,4	script	Master	120,{
 
 	if(MONK_Q == 1 ) goto Part1;
 	if(MONK_Q == 2 ) goto Part2;
+	if(MONK_Q > 2 ) goto Part3;
 	if(BaseJob == Job_Monk) goto IsMonk;
 	goto L_START;
 
 IsMonk:
 	mes "[Tohobu]";
-	mes "Your presence is not really welcomed at the ^00FF00St. Capitolina Abbey^000000.";
-	mes "However, welcome traveler, please do not disturb the Monks in training,";
+	mes "Your presence is not really desired at the ^00FF00St. Capitolina Abbey^000000.";
+	mes "However, since you are here, please do not disturb the Monks in training,";
 	mes "Even if you are a Monk!";
 	close;
 
@@ -84,10 +86,10 @@ L_MENU_1:
 		if(JobLevel >= 40 ) goto SkillPointChk;
 			mes "[Tohobu]";
 			mes "Your Job Level is not high enough to be a Monk.";
-			mes "Come back when your Job Level higher then 40.";
+			mes "Come back when your Job Level is at least 40.";
 			next;
 			mes "[Tohobu]";
-			mes "No need to be hasty, there is so much to learn on this world,";
+			mes "No need to be hasty, there is so much to learn in this world,";
 			mes "Come back when you have met the requirements... Haha!";
 			close;
 
@@ -95,8 +97,8 @@ L_MENU_1:
 			if(SkillPoint == 0) goto L_GO;
 			mes "[Tohobu]";
 			mes "Well... It seems that you have the ability to be a Monk,";
-			mes "But I believe there are skill needed you have yet to learn.";
-			mes "Come back when you have learnt all the skills.";
+			mes "But I believe there are still skills you have yet to learn.";
+			mes "Come back when you have learned all your skills.";
 			close;
 
 		IsNot4:
@@ -120,10 +122,8 @@ L_MENU_1:
 		mes "Go ahead and rest at the Abbey before leaving!";
 		next;
 		mes "[Tohobu]";
-		mes "Persevering in order to gain more strength";
-		mes "Is the way of life of the Monks.";
-		mes "I hope that seeing our practises will";
-		mes "At least bring you some inner peace.";
+		mes "Persevering in order to gain more strength is the way of life of the Monks.";
+		mes "I hope that seeing our practises will at least bring you some inner peace.";
 		close;
 Part1:
 	mes "[Tohobu]";
@@ -133,15 +133,23 @@ Part1:
 
 Part2:
 	mes "[Tohobu]";
-	mes "Hello there! You should go to Wuhai the Elder, He will guide you.";
+	mes "Hello there! You should go to Wuhai the Elder. He will guide you.";
 	mes "He is in the Monastery Hall, South East from here";
+	close;
+
+Part3:
+	mes "[Tohobu]";
+	mes "Ah, Hello there! How is your training? Surely you're not going to give up?";
 	close;
 }
 
 monk_in.gat,99,58,4	script	Elder Wuhai	60,{
-	if(MONK_Q == 2 ) goto L_START;
-	if(MONK_Q == 3 ) goto Part1;
-	if(MONK_Q == 4 ) goto Part2;
+	//Not sure if this is needed, but hopefully it will prevent bugs [Zephiris]
+	if(MONK_Q > 11) set MONK_Q,11;
+
+	if(MONK_Q == 2) goto L_START;
+	if(MONK_Q == 3) goto Part1;
+	if(MONK_Q == 4) goto Part2;
 	if(MONK_Q >= 5 && MONK_Q < 10) goto Part3;
 	if(MONK_Q >= 10 && countitem(506) > 0) goto Part4;//Items: Green_Potion,
 	if(MONK_Q == 11 && countitem(506) == 0) goto Part5;//Items: Green_Potion,
@@ -160,12 +168,12 @@ L_START:
 	menu "Yes.",L_MENU_1,"No.",-;
 		mes "[Elder Wuhai]";
 		mes "Hmmm...? Aren't you?";
-		mes "Maybe I'm getting older, I would've guessed if so.";
-		mes "Very well then... You may go, young man.";
+		mes "Maybe I'm getting older, I would've guessed you were.";
+		mes "Very well then... You may go, young one.";
 		close;
 L_MENU_1:
 	mes "[Elder Wuhai]";
-	mes "Oh! So young men these days still remember us Monks...";
+	mes "Oh! So young ones these days still remember us Monks...";
 	mes "Welcome, my child!";
 	next;
 	mes "[Elder Wuhai]";
@@ -179,23 +187,23 @@ L_MENU_1:
 	mes "The strength is for giving aid to the weak in need, and to protect them from harm.";
 	next;
 	mes "[Elder Wuhai]";
-	mes "Last but not least, control our emotions,";
+	mes "Last but not least, we control our emotions,";
 	mes "More importantly, never be too proud of yourself,";
-	mes "And be blinded by success,";
+	mes "or be blinded by success,";
 	next;
 	mes "[Elder Wuhai]";
-	mes "It coukd be tough, even painful,";
-	mes "While undergoing this process.";
-	mes "Let's see if you're enduring enough,";
-	mes "You cannot become a Monk if you can't even bear this.";
+	mes "It might be tough, even painful,";
+	mes "while undergoing this process.";
+	mes "We will test the limits of what you can endure.";
+	mes "You can not become a Monk if you can't even bear this.";
 	next;
 	mes "[Elder Wuhai]";
 	mes "OKay, let's start the test to see if you really have the ability to become a Monk.";
 	next;
+	if(JBLVL == 50) goto IsJOB50;
 	mes "[Elder Wuhai]";
 	mes "Firstly, here's a small exam to test your will to become one of us.";
 	next;
-	if(JBLVL == 50) goto IsJOB50;
 
 	set MONK_Q, 3;
 	set JOB_MONK_C,rand(1,6);
@@ -272,7 +280,7 @@ L_CollectS:
 
 IsJOB50:
 	mes "[Elder Wuhai]";
-	mes "However, I see that your Job Level is " +JobLevel +" .";
+	mes "Oh, I see that your Job Level is " +JobLevel +" .";
 	mes "That could prove your ability.";
 	next;
 	mes "[Elder Wuhai]";
@@ -280,8 +288,8 @@ IsJOB50:
 	mes "I think God will agree with me.";
 	next;
 	mes "[Elder Wuhai]";
-	mes "The next step, there is a Monk named Wutao want to see you.";
-	mes "He is in the Monk Grave North from here.";
+	mes "Well then.. There is a Monk named Wutao who wants to see you.";
+	mes "He is in the Ancestral Graveyard North of here.";
 	set MONK_Q, 4;
 	close;
 
@@ -336,44 +344,42 @@ Part1:
 		mes "[Elder Wuhai]";
 		mes "Oh! You've brought all of them!";
 		mes "Well done!";
-		mes "Your will in becoming in Monk is witnessable!";
+		mes "Your will to become a Monk is formidable!";
 		next;
 		mes "[Elder Wuhai]";
-		mes "Let's see... there is a Monk named";
-		mes "Ah... Wutao who wants to see you.";
-		mes "He will be in the Ancestral Graveyard North from here.";
+		mes "Let's see... there is a Monk named.. Ah... Wutao who wants to see you.";
+		mes "He will be in the Ancestral Graveyard North of here.";
 		set MONK_Q, 4;
 		set JOB_MONK_C, 0;
 		close;
 
 Part2:
 	mes "[Elder Wuhai]";
-	mes "Next... should be questions regarding your job changing?";
-	mes "Go find master Wutao,";
-	mes "He will be in the Ancestral Graveyard North from here.";
+	mes "Next should be... Questions regarding your job changing?";
+	mes "Go find master Wutao.";
+	mes "He will be in the Ancestral Graveyard North of here.";
 	close;
 Part3:
 	mes "[Elder Wuhai]";
 	mes "Hmm? You're still taking the test...?";
-	mes "Try to do your best in it then!";
+	mes "Try to do your best then!";
 	close;
 Part4:
 	mes "[Elder Wuhai]";
-	mes "What? You haven't drunk that Magic Potion?";
+	mes "What? You didn't drink the Magic Potion yet?";
 	mes "Then... Hurry up and finish the Green-ish potion!";
-	mes "Otherwise, you will never be able to achieve";
-	mes "The spiritual energy level of Monks!";
+	mes "Otherwise, you will never be able to achieve the spiritual energy level of Monks!";
 	set MONK_Q, 11;
 	close;
 Part5:
 	mes "[Elder Wuhai]";
-	mes "We have done all steps... Your blood, your mind, your soul,";
-	mes "Is enough for you to become a Monk.";
+	mes "We have done all the steps... Your blood, your mind, your soul...";
+	mes "All are prepared for you to become a Monk.";
 	mes "Even your spiritual energy has increased after drinking the Magic Potion.";
 	next;
 	mes "[Elder Wuhai]";
-	mes "Good... you will now be sworn in by oath";
-	mes "In which afterwards the job changing will be complete.";
+	mes "Good... you must now be sworn in by an oath.";
+	mes "Afterwards, the job changing will be complete.";
 	next;
 	mes "[Elder Wuhai]";
 	mes "Are you willing to dedicate the rest of your life to serving God?";
@@ -384,12 +390,11 @@ Part5:
 		mes "......What?......";
 		mes "Aren't you ready to become a Monk?";
 		mes "Perhaps you want to run around a bit more,";
-		mes "And shed some more sweat";
-		mes "To become more prepared?";
+		mes "and shed some more sweat to become more prepared?";
 		next;
 		mes "[Elder Wuhai]";
-		mes "Consider carefully before coming back!";
-		mes "I do not want to make a bad Monk.";
+		mes "Consider this carefully before coming back!";
+		mes "I do not want to make you a bad Monk.";
 		close;
 L_MONK_Q_2:
 	mes "[Elder Wuhai]";
@@ -398,13 +403,12 @@ L_MONK_Q_2:
 	menu "Yes.",-,"No.",L_MONK_Q_3;
 
 		mes "[Elder Wuhai]";
-		mes "...NO NO NO NO NO !! Our training is not for any self benefits!";
-		mes "How could one who protects world peace abuse this advantage";
-		mes "For their own selfish means?!";
+		mes "...NO NO NO NO NO!! Our training is not for any self benefits!";
+		mes "How could one who protects world peace abuse this advantage for their own selfish means?!";
 		next;
 		mes "[Elder Wuhai]";
 		mes "Go and think over the true purpose of a Monk.";
-		mes "Thoughts like that will only make you greedier for power";
+		mes "Thoughts like that will only make you greedier for power!";
 		mes "The corruption of your soul will only lead to loss of your ability.";
 		close;
 
@@ -423,7 +427,7 @@ L_MONK_Q_3:
 		next;
 		mes "[Elder Wuhai]";
 		mes "Perhaps you should go to people who deny morals in this world,";
-		mes "Come back again when you've learnt how to hate.";
+		mes "Come back again when you have a sense of justice.";
 		mes "Then you will know what to do.";
 		close;
 
@@ -437,11 +441,11 @@ L_MONK_Q_4:
 		mes "[Elder Wuhai]";
 		mes "Oh...nonononono....";
 		mes "If sacrificing oneself would be beneficial to your peers,";
-		mes "And that more enemies can be rid of,";
-		mes "That would be a great and worthy thing to do!";
+		mes "and more enemies can be vanquished,";
+		mes "then that would be a great and worthy thing to do!";
 		next;
 		mes "[Elder Wuhai]";
-		mes "What does Sacrifice means? Come back when you've figured it out.";
+		mes "What does Sacrifice mean? Come back when you've figured it out.";
 		mes "Ah.. Sacrifice can be so simple, yet so difficult!";
 		close;
 
@@ -452,20 +456,19 @@ L_MONK_Q_5:
 	menu "Yes",-,"No",L_MONK_Q_6;
 
 		mes "[Elder Wuhai]";
-		mes "That is not right! Training mobs around";
-		mes "Doesn't only apply to all others";
-		mes "...";
-		// he's not making any sense =P
-		mes "Instead it is an act that violates the rights of other Monks";
+		// he's not making any sense =P [Unknown]
+		// I've reworded this to what I think it probably correct. [Zephiris]
+		mes "That is not right! Training mobs around does not serve the benefit of everyone!";
+		mes "Instead it is a selfish act that violates the rights of others!";
 		next;
 		mes "[Elder Wuhai]";
-		mes "Even when you've learnt the skill 'Steel Body'";
+		mes "Even when you've learned the skill 'Steel Body'";
 		mes "It is only meant to be used in emergency, or when you meet a strong adversary.";
 		mes "But not in such a situation!";
 		next;
 		mes "[Elder Wuhai]";
-		mes "It might feel that you're helping them,";
-		mes "But you are only commiting acts of unjust!";
+		mes "It might feel like you're helping them,";
+		mes "but you are only commiting acts of unjust!";
 		mes "What is the true way of a Monk?";
 		mes "Come back when you have thought it over.";
 		close;
@@ -474,18 +477,20 @@ L_MONK_Q_6:
 	mes "[Elder Wuhai]";
 	// mes "Will you spam?";
 	// "will you spam" is just so... un-monkly. ^^;
-	mes "In villages or wilderness, will you say the same words towards others repeatedly?";
+	mes "In villages or wilderness, will you say the same lines repeatedly?";
 	next;
 	menu "Yes",-,"No",L_MONK_Q_7;
 
 		mes "[Elder Wuhai]";
-		mes "No! If you do so, not just Monks, even the common people,";
-		mes "No matter how loudly you've yelled no one will bother about you!";
+		mes "No! If you do so, then not just Monks, but even the common people";
+		mes "will be disturbed and pay no attention to you!";
 		next;
 		mes "[Elder Wuhai]";
 		mes "It is the same even if you only wanted to spread the words of God.";
 		mes "Think of your behavior. What's right and wrong?";
-		mes "Although I would rather test you again, but I'll let you go this time.";
+		next;
+		mes "I would rather test you again, but I'll let you go this time.";
+		mes "Think carefully about this before returning!";
 		close;
 L_MONK_Q_7:
 	mes "[Elder Wuhai]";
@@ -495,19 +500,18 @@ L_MONK_Q_7:
 
 		mes "[Elder Wuhai]";
 		mes "You cannot be a Monk with this kind of will!";
-		mes "As its said, Death is only temporary, Ever if we have to give our lives";
+		mes "As it's said, Death is only temporary. If we have to give our lives";
 		mes "to protect world peace, it would at least be a meaningful action!";
 		next;
 		mes "[Elder Wuhai]";
-		mes "Those who oppose God will be condemned,";
-		mes "While those who listen to God will live.";
+		mes "Those who oppose God will be condemned while those who listen to God will live.";
 		mes "What is life and death to you?";
 		mes "Ponder that well.";
 		close;
 
 L_MONK_Q_8:
 	mes "[Elder Wuhai]";
-	mes "Lastly, make an oath to swear you will keep to what you have answered.";
+	mes "Lastly, make an oath to swear you will keep to what you have already sworn.";
 	next;
 	menu "I swear.",L_MONK_Q_9,"I refuse.",-;
 
@@ -528,18 +532,18 @@ L_MONK_Q_8:
 
 L_MONK_Q_9:
 	mes "[Elder Wuhai]";
-	mes "Well then, we have completed the oaths";
-	mes "Gather closer now, you are already my brother!";
-//---- Progress bar ----//
+	mes "Well then, we have completed the oaths.";
+	if (sex == 0) mes "Gather closer now, you are already my sister!";
+	if (sex == 1) mes "Gather closer now, you are already my brother!";
 	next;
 	mes "[Elder Wuhai]";
-	mes "Your promise has transmited to all Monks throught ypur heart and my heart.";
+	mes "Your promise has been transmited to all Monks through our hearts.";
 	next;
 	mes "[Elder Wuhai]";
-	mes "Now, let's begin the ceremony!";
+	mes "Now, let us begin the ceremony!";
 	next;
 	mes "[Elder Wuhai]";
-	mes "I'll acupuncture your 365 acupuncture points and open up your 1129 arteries and veins";
+	mes "I will acupuncture your 365 acupuncture points and open your 1129 arteries and veins";
 	next;
 	mes "[Elder Wuhai]";
 	mes "Ahhhhhhhhh......";
@@ -547,11 +551,9 @@ L_MONK_Q_9:
 	mes "[Elder Wuhai]";
 	mes "Wuuu... Huuuuuu";
 	next;
-	mes "[" + strcharinfo(0) + "]";
-	mes "- He take a deeply breath -";
+	mes "- He takes a deeply breath -";
 	next;
-	mes "[" + strcharinfo(0) + "]";
-	mes "- And begining to acupuncture -";
+	mes "- The acupuncture begins... -";
 	next;
 	mes "[Elder Wuhai]";
 	mes "Ahhhh--- Dadadadadada!!!";
@@ -569,7 +571,7 @@ L_MONK_Q_9:
 	mes "Wuuu... Huuuuuu";
 	next;
 	mes "[Elder Wuhai]";
-	mes "WowHoooo... Okay, you are now a Monk!";
+	mes "WowHoooo... It is done! You are now a Monk!";
 
 	setoption 0;
 	callfunc "Job_Change",Job_Monk;
@@ -578,15 +580,15 @@ L_MONK_Q_9:
 	mes "(Cough!) (Cough!)";
 	next;
 	mes "[Elder Wuhai]";
-	mes "Am I old...? I feel so tired... (-sigh-)";
-	mes "I could clamb mountains after this before.";
+	mes "Am I that old...? I feel so tired... (-sigh-)";
+	mes "I could have scaled mountains after this before.";
 	next;
 	mes "[Elder Wuhai]";
 	mes "Very well... You are now a Monk...";
-	mes "Welcome to be one of us.";
+	mes "Welcome to the brotherhood.";
 	next;
 	mes "[Elder Wuhai]";
-	mes "Bou never forget your promise.";
+	mes "But never forget your promise.";
 	next;
 	mes "[Elder Wuhai]";
 	mes "Keep it in your mind, and train yourself.";
@@ -601,30 +603,30 @@ L_MONK_Q_9:
 Part6:
 	mes "[Elder Wuhai]";
 	mes "May you find God in Mother Nature!";
-	mes "Welcome dear! What can I do for you?";
+	mes "Welcome young one! What can I do for you?";
 	next;
 	mes "[Elder Wuhai]";
 	mes "Is everything alright?";
-	mes "How the training?";
+	mes "How is your training?";
 	next;
 	mes "[Elder Wuhai]";
-	mes "If you don't have a strong body, you may not be able to help people when they needs you.";
-	mes "If you are weak, the Evil will come to you and leads you go into the dark side.";
+	mes "If you don't have a strong body, you may not be able to help people when they need you.";
+	mes "If your will is weak, the Evil in this world will lead you down a dark path.";
 	next;
 	mes "[Elder Wuhai]";
-	mes "Never forget it! You are the one protect weakers and world peace!";
-	mes "You should always mind the Evil. Don't let them leads you go into the dark side.";
+	mes "Never forget it! You are one who protects the weak as well as world peace!";
+	mes "You should always be aware of Evil around you. Don't let it lead you away from the Light!";
 	close;
 
 Part7:
 	mes "[Elder Wuhai]";
 	mes "May you find God in Mother Nature!";
-	mes "Welcome dear! What can I do for you?";
+	mes "Welcome youung one! What can I do for you?";
 	next;
 	mes "[Elder Wuhai]";
 	mes "Oh! You are an Acolyte....";
-	mes "If you want to pray, go to Prontera Sanctuary!";
-	mes "This is the Monk training area, not for you to pray.";
+	mes "If you want to pray, go to the Prontera Sanctuary!";
+	mes "This is the Monk training area, not a place for you to pray.";
 	mes "Go and find other places to stay if you are not willing to be a Monk.";
 	close;
 }
@@ -638,23 +640,23 @@ prt_monk.gat,251,255,4	script	Wutao	79,{
 	mes "[Wutao]";
 	mes "We are Monks!";
 	mes "We have unlimited power!";
-	mes "We have unlimited wise!";
-	mes "We use our power and wise to protect the world peace!";
+	mes "We have unlimited wisdom!";
+	mes "We use our power and wisdom to protect world peace!";
 	next;
 	mes "[Wutao]";
 	mes "So...";
 	mes "Are you my enemy?";
-	mes "You block my way!!!!";
+	mes "You block my path!!!!";
 	next;
 	mes "[Wutao]";
-	mes "If someone block me!! I'll fight!!";
+	mes "If someone blocks me, I'll fight!!";
 	mes "TaAhhhhhh!!!";
 	next;
 	mes "[Wutao]";
 	mes "HuHaaaaaaaa!!!";
 	next;
 	mes "[Wutao]";
-	mes "Don't be afraid, go yourway!";
+	mes "If you are not my enemy, then be on your way.";
 	close;
 
 L_START:
@@ -663,29 +665,29 @@ L_START:
 	mes "Do you want to talk about God?";
 	next;
 	mes "[Wutao]";
-	mes "Oh! you are proceeding the Monk Quest!";
-	mes "The spirits you have is like a Monk.";
+	mes "Oh! you are proceeding with the Monk Training!";
+	mes "The spirit you have is like that of a Monk.";
 	next;
 	mes "[Wutao]";
-	mes "Seems your arteries and veins has been open.";
+	mes "It seems your arteries and veins have begun to strengthen.";
 	mes "You must be the one coming from Elder Wuhai, right?";
 	mes "Very well...";
 	next;
 	mes "[Wutao]";
-	mes "Let me introduce you something about the spirits of Monks and some simple rules that Monks should obey.";
-	mes "Then I'll help modifing your mental status, make your body ready for the next test.";
+	mes "Let me inform you about the spirits of Monks and some simple rules that Monks should obey.";
+	mes "After, I'll help you strengthen your mental state to make your body ready for the next test.";
 	next;
 	mes "[Wutao]";
-	mes "Now, remember what I say and repeat again.";
+	mes "Now, remember exactly what I say and repeat it back to me.";
 	mes "Clear your mind... Are you ready?";
 	next;
 	menu "Yes",L_MENU_1,"No",-;
 		mes "[Wutao]";
-		mes "Come back when you ready!";
+		mes "Then come back when you are ready!";
 		close;
 L_MENU_1:
 	mes "[Wutao]";
-	mes "All right, let's begin.";
+	mes "Alright, let's begin.";
 	next;
 	set @JOB_MONK_C2, rand(1,3);
 L_Again:
@@ -758,7 +760,7 @@ L_MES:
 L_MES_1:
 	next;
 	mes "[Wutao]";
-	mes "Now, " + strcharinfo(0) + ", it's your turn.";
+	mes "Now " + strcharinfo(0) + ", it's your turn.";
 	next;
 	set @mnk_score, 0;
 	if(@JOB_MONK_C2 == 2) goto L_MONK_Q2_1;
@@ -1086,7 +1088,7 @@ L_C2_DONE:
 	mes "...Well Done!! It's perfect!";
 	next;
 	mes "[Wutao]";
-	mes "However, don't be happy too early. There is much long way to go before you become a Monk.";
+	mes "However, don't be happy just yet. There is still much to do before you can become a Monk.";
 	next;
 	mes "[Wutao]";
 	mes "DaAhaaaa...";
@@ -1101,35 +1103,35 @@ L_C2_DONE:
 	mes "PaYennnn....";
 	next;
 	mes "[Wutao]";
-	mes "As I promised, your mental status is now running like a Monk do.";
+	mes "As I promised, your mental state is now that of a Monk.";
 	next;
 	mes "[Wutao]";
-	mes "Now go, seek ^000080Fuhai^000000 for further guidance.";
+	mes "Now go! Seek ^000080Fuhai^000000 for further guidance.";
 	set MONK_Q, 6;
 	close;
 
 L_C2_FAIL:
 	mes "[" + strcharinfo(0) + "]";
-	mes "Well...? How was that? ";
+	mes "Well...";
 	next;
 	mes "[Wutao]";
 	mes "Hmmm... ";
 	next;
 	mes "[Wutao]";
-	mes "HeNmmm...";	
+	mes "Hummm...";	
 	next;
 	mes "[Wutao]";
-	mes "How was that? It's bad! You didn't memorize it all!";
+	mes "That not correct! You didn't memorize it all!";
 	next;
 	mes "[Wutao]";
-	mes "You should doult yourself. Are you really have the ability to be a Monk?";
-	mes "...It's really....";
+	mes "Do you doubt yourself? Do you really have the ability to be a Monk?";
+	mes "...That was really....";
 	next;
 	mes "[Wutao]";
 	mes "Well...That's fine, do you want to try it again?";
 	next;
 	mes "[Wutao]";	
-	mes "Of course! Since you did not pass this test, you can't take the next test.";
+	mes "Of course you do! Since you did not pass this test, you can't take the next test.";
 	set MONK_Q, 5;
 	close;
 
@@ -1163,7 +1165,8 @@ prt_monk.gat,57,179,4	script	Fuhai	110,{
 
 	if(@Choice_mission == 1 ) goto Part1;
 	if(@Choice_mission == 2 ) goto Part2;
-	if(MONK_Q == 6 ) goto L_START;
+	if(MONK_Q == 6) goto L_START;
+	if(MONK_Q == 7) goto L_MENU_1_1_2;
 
 	mes "[Fuhai]";
 	mes "HaAhhhhh....!!!";
@@ -1193,33 +1196,33 @@ L_START:
 		next;
 		mes "[Fuhai]";
 		mes "......";
-		mes "I can't tell...if you can see the son tomorrow...";
+		mes "I can't promise you will see the sun tomorrow...";
 		next;
 		mes "[Fuhai]";
 		mes "Why are you here?";
 		mes "Explain!";
 		next;
-		menu "Some one named [Wutao] send me here.",L_MENU_1,"Well...Nothing...",-;
+		menu "Some one named [Wutao] sent me here.",L_MENU_1,"Well...Nothing...",-;
 			
 			mes "[Fuhai]";
 			mes "......";
-			mes "...How about dig a grave for yourself?";
+			mes "...How about digging a grave for yourself?";
 			close;
 	L_MENU_1:
 		mes "[Fuhai]";
-		mes "Hmmm...It's that so?";
+		mes "Hmmm...Is that so?";
 		mes "That's...";
 		next;
 		mes "[Fuhai]";
-		mes "Oh...Your mental status...";
+		mes "Oh...Your mental state...";
 		mes "Ha! Very well...";
 		next;
 		mes "[Fuhai]";
-		mes "However, what did you learn from [Wutao] ?";
+		mes "However, what did you learn from [Wutao]?";
 		next;
 		menu "Hmmm...Well...It's...",-,
-			"I repeat what he said, and he send me here.",L_MENU_1_1,
-			"He test my mental status and send me here.",-;
+			"I repeated what he said, and he sent me here.",L_MENU_1_1,
+			"He tested my mental status and sent me here.",-;
 
 			mes "[Fuhai]";
 			mes "Foolish!";
@@ -1231,9 +1234,9 @@ L_START:
 		mes "Did he do anything for you?";
 		next;
 		menu "Ah...It's...I can't tell...",-,
-			"Check my body",L_MENU_1_1_1,
-			"Tell me some rules to obey",L_MENU_1_1_1,
-			"modify my mental status",L_MENU_1_1_2;
+			"Checked my body",L_MENU_1_1_1,
+			"Told me some rules to obey",L_MENU_1_1_1,
+			"Strengthened my mental state",L_MENU_1_1_2;
 
 			mes "[Fuhai]";
 			mes "Foolish!";
@@ -1248,59 +1251,59 @@ L_START:
 	L_MENU_1_1_2:
 		set MONK_Q, 7;
 		mes "[Fuhai]";
-		mes "Very well, at least you know what had been change in your body";
-		mes "Now, let's begin the next test.";
+		mes "Very well. At least you know what has been changed in your body.";
+		mes "Now, let us begin the next test.";
 		next;
 		mes "[Fuhai]";
 		mes "I'll give you a chance to choose what kind of test you want to take.";
-		mes "Now, make your own choise.";
+		mes "Now, make your own choice.";
 		next;
-		menu "Mushroom Collecting",-,"Marathon",L_ROOT_2;
+		menu "Mushroom Collecting",-,"A Marathon",L_ROOT_2;
 
 		mes "[Fuhai]";
 		mes "Mushroom Collecting? Good choice!";
-		mes "That would make you appreciate the extremity of patient, realize the meaning God give you the great willpower.";
-		mes "Now go, do some prepares. Come back when you ready.";
+		mes "That would make you appreciate the value of patience and realize the meaning of the great willpower that following the path of God will give you.";
+		mes "Now go prepare yourself! Come back when you are ready.";
 		set @Choice_mission, 1;
 		close;
 	L_ROOT_2:
 		mes "[Fuhai]";
-		mes "Marathon? Good choice!";
-		mes "That would make you appreciate the extremity of willpower, realize the meaning God give you the great patient.";
-		mes "Now go, do some prepares. Come back when you ready.";
+		mes "A Marathon? Good choice!";
+		mes "That would make you appreciate the value of willpower and realize the meaning of the great patient that following the path of God will give you.";
+		mes "Now go prepare yourself! Come back when you are ready.";
 		set @Choice_mission, 2;
 		close;
 Part1:
 	mes "[Fuhai]";
 	mes "Are you ready?";
-	mes "Acturily, you don't need to prepare anything if you believe in yourself";
+	mes "Actually, you don't need to prepare anything if you believe in yourself.";
 	next;
 	mes "[Fuhai]";
 	mes "Mushroom Collecting is your choice.";
-	mes "It's a test for yourself.";
+	mes "It is a test of your patience.";
 	next;
 	mes "[Fuhai]";
-	mes "Now, go to the building located in the center of this training area.";
+	mes "Now, go into the building located in the center of this training area.";
 	next;
 	mes "[Fuhai]";
-	mes "You will pass the test when you collect enough mushrooms we think.";
-	mes "Now, what are waitting for? Go ahead!";
+	mes "You will pass the test when you collect enough mushrooms.";
+	mes "Now, what are waiting for? Go!";
 	close;
 Part2:
 	mes "[Fuhai]";
 	mes "Are you ready?";
-	mes "Acturily, you don't need to prepare anything if you believe in yourself";
+	mes "Actually, you don't need to prepare anything if you believe in yourself.";
 	next;
 	mes "[Fuhai]";
-	mes "Marathon is your choice.";
-	mes "It's a test for yourself.";
+	mes "A Marathon is your choice.";
+	mes "It's a test of your willpower.";
 	next;
 	mes "[Fuhai]";
-	mes "Now, go to the building located in the center of this training area.";
+	mes "Now, go into the building located in the center of this training area.";
 	next;
 	mes "[Fuhai]";
-	mes "You will pass the test when you run enough circles we think.";
-	mes "Now, what are waitting for? Go ahead!";
+	mes "You will pass the test when you can run enough laps.";
+	mes "Now, what are waiting for? Go!";
 	close;
 
 }
@@ -1323,11 +1326,11 @@ L_START:
 	mes "Monk Training Area";
 	next;
 	mes "[Guard ChaoLi]";
-	mes strcharinfo(0) + " ... Right?!";
+	mes strcharinfo(0) + "... Right?!";
 	next;
 	mes "[Guard ChaoLi]";
 	mes "Go ahead! Quickly!";
-	mes "There is another test waitting for you!";
+	mes "There is another test waiting for you!";
 	close;
 
 Part1:
@@ -1342,22 +1345,20 @@ monk_test.gat,329,61,4	script	Bashu	753,{
 	mes "[Bashu]";
 	mes "Welcome to ^00FF00St. Capitolina Abbey^000000, the Monk Training Area.";
 	mes "May the light shine on your path.";
-	mes "You can find Monk Daowen who judge the grades of Monk training when you go inside";
+	mes "You can find Monk Daowen, the judge of a Monk's training progress, when you go inside";
 	next;
 	mes "[Bashu]";
 	mes "Never the less, don't touch anything inside and be quiet in front of Monk Daowen.";
-	next;
-	mes "[Bashu]";
-	mes "Then, may you have a happy conversation time with God.";
 	close;
 L_START:
-	mes "[Bashu]";
-	mes "Please select a test.";
-	next;
-	if(@Choice_mission == 0) goto L_MISSC;
+	if(@Choice_mission == 0) goto L_MISSB;
 	if(@Choice_mission == 2) goto L_MISS2;
 	mes "[Bashu]";
-	mes "As I know, you choose the Mushroom Collecting as your test.";
+	mes "As I know, you choose to collect mushrooms as your test.";
+	goto L_MISSC;
+L_MISSB:
+	mes "[Bashu]";
+	mes "Please select a test.";
 	goto L_MISSC;
 L_MISS2:
 	mes "[Bashu]";
@@ -1365,11 +1366,11 @@ L_MISS2:
 L_MISSC:
 	mes "However, if you cannot complete it, you may switch to the other whenever you feel like it.";
 	next;
-	menu "Monk's patient - Mushroom Collecting",-,
-		"Monk's willpower - Marathon",L_MENU_1;
+	menu "A Monk's patience - Mushroom Collecting",-,
+		"A Monk's willpower - The Marathon",L_MENU_1;
 
 	mes "[Bashu]";
-	mes "The test you choose is Monk's patient - Mushroom Collecting";
+	mes "The test you choose is Monk's patience - Mushroom Collecting";
 	next;
 	warp "job_monk.gat",225,179;
 	end;
@@ -1385,11 +1386,11 @@ L_MENU_1:
 monk_test.gat,387,347,4	script	Musha	110,{
 	mes "[Musha]";
 	mes "Wel...Welcome...!";
-	mes "This...This is the area testing the pa...patient of whom want to be a Monk.";
+	mes "This...This is the area for testing the wi...willpower of those who want to be a Monk.";
 	next;
 	mes "[Musha]";
 	mes "You should just...just run!";
-	mes "Before we told you to stop.";
+	mes "Until we tell you to stop.";
 	mes "Run...Run! " + strcharinfo(0) + "! Run!";
 	next;
 	mes "[Musha]";
@@ -1400,23 +1401,23 @@ monk_test.gat,387,347,4	script	Musha	110,{
 	mes "I.....will......Become...a......MONK!!!";
 	next;
 	mes "[Musha]";
-	mes "Do...Do you...want to give......giveup? or...con...continue?";
-	mes "Giveup?";
+	mes "Do...Do you...want to give......give up? or...con...continue?";
+	mes "Give up?";
 	next;
 	menu "I want to giveup!",-,"I want to run!!",L_MENU_1;
 
-		mapannounce "monk_test.gat","Musha: " + strcharinfo(0) + " has give...giveup the test...! Giveup the Marathon test... No...No patient.....HaHaHaHa!!!...",8;
+		mapannounce "monk_test.gat","Musha: " + strcharinfo(0) + " has give...given up on the test...! Gave up on the Marathon test... No...No willpower.....HaHaHaHa!!!...",8;
 		mes "[Musha]";
-		mes strcharinfo(0) + "...give...giveup the test...";
-		mes "Giveup the Marathon test...";
-		mes "No...No patient.....HaHaHaHa!!!...";
+		mes strcharinfo(0) + "...give...give up the test...";
+		mes "Give up the Marathon test...";
+		mes "No...No willpower.....HaHaHaHa!!!...";
 		next;
 		warp "prt_monk.gat",196,168;
 		end;
 L_MENU_1:
 	next;
 	mes "[Musha]";
-	mes "Before we give you an order to stop....";
+	mes "Until we give you an order to stop....";
 	mes "Run...Run! " + strcharinfo(0) + "! Run!";
 	//if(@runtimes == 0) 
 	set @runtimes, rand(8,10);
@@ -1426,19 +1427,19 @@ L_MENU_1:
 
 monk_test.gat,390,387,0	script	monk_warp	45,1,1,{
 	set @run, @run + 1;
-	if(@run == (@runtimes-1)) mapannounce "monk_test.gat","Musha: cheer up! The next circle is the last!",8;
+	if(@run == (@runtimes-1)) mapannounce "monk_test.gat","Musha: Cheer up! The next lap is the last!",8;
 	if(@run == @runtimes) goto L_DONE;
 	warp "monk_test.gat",388,348;
 	end;
 L_DONE:
-	mapannounce "monk_test.gat","Musha: Con....Congratulations!!" + strcharinfo(0)+ " Pass!! Please go to [Daowen], he is in the deep of the building.",8;
+	mapannounce "monk_test.gat","Musha: Con....Congratulations!!" + strcharinfo(0)+ " Passes!! Please go to [Daowen], he is deep inside the building.",8;
 	set MONK_Q, 8;
 	warp "prt_monk.gat",196,168;
 	end;
 }
 
 function	script	MnkTraps	{
-	mapannounce "monk_test.gat","trap: " + strcharinfo(0)+ " , you fall into a trap! Now we warp you to the start place.",8;
+	mapannounce "monk_test.gat","trap: " + strcharinfo(0)+ " , you fell into a trap! We will warp you to the starting line.",8;
 	warp "monk_test.gat",388,348;
 }
 //---------------------
@@ -1522,24 +1523,24 @@ monk_test.gat,83,385,0	script	monk8-4	139,0,0,{callfunc "MnkTraps";}
 
 prt_monk.gat,225,179,4	script	XuanWu 	89,{
 	mes "[XuanWu]";
-	mes "To see the growing of crop, I deeply appreciate from the grace of God.";
+	mes "To see the growing of crops, I deeply appreciate the grace of God.";
 	next;
 	mes "[XuanWu]";
-	mes "Never the less, see those crop grown by the strong Monks.";
+	mes "Never the less, to see those crops grown by the strong Monks.";
 	mes "I think it's the most beautiful picture!";
 	next;
 	mes "[XuanWu]";
-	mes "Frankly speeking, grower is the greatest people in the world.";
-	mes "The Blue Potion you drink must be made of God's will and by the grower.";
+	mes "Frankly speeking, farmers are the greatest people in the world.";
+	mes "The Blue Potion you drink must be made of God's will and by the farmer.";
 	next;
 	mes "[XuanWu]";
-	mes "We chould always be grateful.";
+	mes "We should always be grateful.";
 	next;
 	mes "[XuanWu]";
-	mes "God give you everything, even the grower.";
+	mes "God gives you everything, even the farmer.";
 	next;
 	mes "[XuanWu]";
-	mes "The grower is the root of world. That's quite true.";
+	mes "The farmer is the root of world. That is quite true.";
 	close;
 }
 job_monk.gat,225,179,4	script	XuanWu	89,{
@@ -1556,40 +1557,42 @@ job_monk.gat,225,179,4	script	XuanWu	89,{
 	mes "Understand?";
 	next;
 	mes "[XuanWu]";
-	mes "For Monks lives, we should always offer our efforts as a tribute";
-	mes "Grow crop is also a kind of training.";
+	mes "For Monk's lives, we should always offer our efforts as a tribute.";
+	mes "Growing crops is also a kind of training.";
 	next;
 	mes "[XuanWu]";
 	mes "We think it is the best way to realize the will of God.";
-	mes "Therefore, we had started growing some kind of mushrooms that smell foul";
+	mes "Therefore, we have started growing some kind of mushrooms that smell foul";
 	next;
 	mes "[XuanWu]";
-	mes "All you have to do is destory those mushrooms and bring some thing to prove.";
-	mes "What's the thing I mean? The ^ff0000Orange GooeyMushroom and Orange Net Mushroom^000000";
+	mes "All you have to do is destroy those mushrooms and bring something to prove that you did.";
+	mes "What is that something? The ^ff0000Orange Gooey Mushrooms and Orange Net Mushrooms^000000";
 	next;
 	mes "[XuanWu]";
-	mes "If you want to increase your internal organs and become a Monk, go and destory it.";
+	mes "If you want to increase your strength and become a Monk, go and destroy them.";
 	mes "Bring as many as you can, I won't tell you the amount I need.";
 	mes "Now go!";
 	next;
 	mes "[XuanWu]";
-	mes "Or...You want to giveup?";
+	mes "Or...Do you want to give up?";
 	next;
-	menu "Start Mushroom Collecting",L_MENU_1,"I'll giveup",L_MENU_2;
+	menu "Start Mushroom Collecting",L_MENU_1,"I'll give up",L_MENU_2;
 
 L_MENU_2:
-		mapannounce "monk_test.gat","XuanWu: ......Another one without willpower...",8;
+		mapannounce "monk_test.gat","XuanWu: ......Another one without patience...",8;
 		mes "[XuanWu]";
-		mes "Another one without willpower...";
+		mes "Another one without patience...";
 		set @mission_start, 0;
 		getitem 1069, 1;//Items: Orange_Net_Mushroom,
-		delitem 1069, 1;//Items: Orange_Net_Mushroom,
+		delitem 1069, countitem(1069);//Items: Orange_Net_Mushroom,
+		getitem 1070, 1;//Items: Orange_Gooey_Mushroom,
+		delitem 1070, countitem(1070);//Items: Orange_Gooey_Mushroom_,
 		next;
 		warp "prt_monk.gat",196,168;
 		end;		
 L_MENU_1:
 	mes "[XuanWu]";
-	mes "Then what are you waitting for? Go Go Go !!";
+	mes "Then what are you waiting for? Go Go Go!!";
 	set @mission_start, 1;
 	close;
 
@@ -1600,26 +1603,26 @@ Part1:
 	mes "Hmmm... Is that all you can do? I don't think it's enough.";
 	next;
 	mes "[XuanWu]";
-	mes "Or...You want to giveup?";
+	mes "Or...Do you want to give up?";
 	next;
-	menu "Continue Mushroom Collecting",-,"I'll giveup",L_MENU_2;
+	menu "Continue Mushroom Collecting",-,"I'll give up",L_MENU_2;
 	close;
 L_DONE:
 	set MONK_Q, 8;
 	mes "[XuanWu]";
-	mes "Well... I think you can do it better...";
-	mes "However, I should say you pass the test.";
+	mes "Well... I think you can do better...";
+	mes "However, I would say you pass the test.";
 	set @mission_start, 0;
 	delitem 1069, countitem(1069);//Items: Orange_Net_Mushroom,
 	delitem 1070, countitem(1070);//Items: Orange_Gooey_Mushroom_,
 	next;
 	mes "[XuanWu]";
-	mes "Now go to [Daowen], he is in the deep of the building.";
+	mes "Now go to [Daowen], he is deep inside the building.";
 	close;
 Part2:
 	mes "[XuanWu]";
-	mes "Are you testing my patient??";
-	mes "Now go to [Daowen], he is in the deep of the building.";
+	mes "Are you testing my patience??";
+	mes "Go to [Daowen], he is in deep inside the building.";
 	close;
 }
 job_monk.gat,191,172,4	script	job_monk_warp	45,1,1,{
@@ -1629,7 +1632,7 @@ job_monk.gat,191,172,4	script	job_monk_warp	45,1,1,{
 
 job_monk.gat,199,169,4	script	Guard ChaoLi 	746,{
 	mes "[Guard ChaoLi]";
-	mes "Silence! In test area!";
+	mes "Silence in test area!";
 	close;
 }
 
@@ -1639,7 +1642,7 @@ monk_test.gat,319,139,4	script	Daowen	52,{
 	if(MONK_Q == 10) goto Part2;
 
 	mes "[Daowen]";
-	mes "Go throught it quietly...";
+	mes "Go through it quietly...";
 	mes "HuWuWuuuu......";
 	next;
 	mes "[Daowen]";
@@ -1651,26 +1654,26 @@ monk_test.gat,319,139,4	script	Daowen	52,{
 L_START:
 	mes "[Daowen]";
 	mes "Oh! Finally!";
-	mes "This is the last test, and I am I'm in charge here";
+	mes "This is the last test, and I am in charge here";
 	mes "My name is 'Daowen'";
 	next;
 	mes "[Daowen]";
 	mes "Well... What should I say?";
-	mes "Who block the way? Fight him/her!";
+	mes "Those who block your way? Fight them!";
 	next;
 	mes "[Daowen]";
-	mes "Fight! Slash! When you lost and some enemy block your way!";
+	mes "Fight! Slash! When you're lost and an enemy blocks your way!";
 	mes "Tell them the will of God!";
 	next;
 	mes "[Daowen]";
-	mes "Don't compare with the weak priest!";
-	mes "We are always strong Monks";
+	mes "Don't compare yourself with the weak priest!";
+	mes "We are always strong Monks.";
 	next;
 	mes "[Daowen]";
-	mes "We are different from the weak priest that always run away!";
+	mes "We are different from the weak priests that always run away!";
 	next;
 	mes "[Daowen]";
-	mes "Now! Grasp your fist! Go and fight!";
+	mes "Now! Clench your fist! Go and fight!";
 	next;
 	mes "[Daowen]";
 	mes "Do your best!";
@@ -1682,39 +1685,39 @@ L_START:
 Part1:
 	mes "[Daowen]";
 	mes "Well done!! HaHaHaHa....!!";
-	mes "I knew you can do it!";
-	mes "I'll give you a special potion that can increase your power.";
+	mes "I knew you could do it!";
+	mes "I'll give you a special potion that will increase your power.";
 	next;
 	set MONK_Q, 10;
 	if(countitem(506) == 0){//Items: Green_Potion,
 		getitem 506, 1;//Items: Green_Potion,
 		mes "[Daowen]";
-		mes "Drink it, and your internal organs will increase enough to be a Monk.";
+		mes "Drink it, and your internal organs will become strong enough to be a Monk.";
 		next;
 	}else{
 		emotion e_what;
 		mes "[Daowen]";
 		mes "What....!! You already have this special green potion!";
-		mes "Drink all of them, and your internal organs will increase enough to be a Monk.";
+		mes "Drink all of them, and your internal organs will become strong enough to be a Monk.";
 		next;
 	}
 Part2:
 	mes "[Daowen]";
-	mes "Go to Wuhai - the first one you meet here.";
+	mes "Go to Wuhai - the first one you met here.";
 	close;
 }
 
 monk_test.gat,88,91,4	script	Test Assistant	52,{
 	mes "[Test Assistant]";
-	mes "Are you ready for training of evil disperse?";
+	mes "Are you ready for training in the dispersement of evil?";
 	next;
 	mes "[Test Assistant]";
-	mes "The test area is a maze with walls invisable.";
-	mes "The exiting point is on the opposite side of the starting point.";
+	mes "The test area is a maze with invisible walls.";
+	mes "The exit point is on the opposite side of the starting point.";
 	next;
 	mes "[Test Assistant]";
-	mes "Of course, there will be some monster spawn in the maze. You'll have to fight with them.";
-	mes "Good lucy! May God be with you.";
+	mes "Of course, there will be some monsters spawned in the maze. You'll have to fight with them.";
+	mes "Good luck! May God be with you.";
 	next;
 	if(getareausers("monk_test.gat",126,161,165,199) > 0) goto L_WAIT;
 	killmonster "monk_test.gat","monk_mob1";
@@ -1726,7 +1729,7 @@ monk_test.gat,88,91,4	script	Test Assistant	52,{
 	end;
 L_WAIT:
 	mes "[Test Assistant]";
-	mes "There is someone taking the test. Please wait a minute.";
+	mes "Oh... There is someone else taking the test. Please wait a minute then try again.";
 	close;
 }
 monk_test.gat,129,180,4	script	monk_mob1_1	139,0,19,{
@@ -1754,7 +1757,7 @@ monk_test.gat,155,180,4	script	monk_mob1_4	139,0,19,{
 }
 monk_test.gat,165,179,4	script	monk_mob3_warp	45,1,1,{
 	set MONK_Q, 9;
-	mapannounce "monk_test.gat","Congratulations!!" + strcharinfo(0)+ " Pass!! Please go to [Daowen], he is in the deep of the building.",8;
+	mapannounce "monk_test.gat","Congratulations!!" + strcharinfo(0)+ " Passes!! Please go to [Daowen], he is deep inside the building.",8;
 	killmonster "monk_test.gat","monk_mob1";
 	warp "monk_test.gat",317,142;
 	end;
@@ -1766,15 +1769,15 @@ monk_test.gat,1,1,1	script	monk_mob1	-1,{
 
 monk_test.gat,95,85,4	script	Test Assistant	79,{
 	mes "[Test Assistant]";
-	mes "Are you ready for training of evil disperse?";
+	mes "Are you ready for training in the dispersement of evil?";
 	next;
 	mes "[Test Assistant]";
-	mes "The test area is a maze with walls invisable.";
-	mes "The exiting point is on the opposite side of the starting point.";
+	mes "The test area is a maze with invisible walls.";
+	mes "The exit point is on the opposite side of the starting point.";
 	next;
 	mes "[Test Assistant]";
-	mes "Of course, there will be some monster spawn in the maze. You'll have to fight with them.";
-	mes "Good lucy! May God be with you.";
+	mes "Of course, there will be some monsters spawned in the maze. You'll have to fight with them.";
+	mes "Good luck! May God be with you.";
 	next;
 	if(getareausers("monk_test.gat",126,262,165,300) > 0) goto L_WAIT;
 	killmonster "monk_test.gat","monk_mob2";
@@ -1787,7 +1790,7 @@ monk_test.gat,95,85,4	script	Test Assistant	79,{
 
 L_WAIT:
 	mes "[Test Assistant]";
-	mes "There is someone taking the test. Please wait a minute.";
+	mes "Oh... There is someone else taking the test. Please wait a minute then try again.";
 	close;
 
 }
@@ -1816,7 +1819,7 @@ monk_test.gat,153,281,4	script	monk_mob2_4	139,0,19,{
 }
 monk_test.gat,165,278,4	script	monk_mob2_warp	45,1,1,{
 	set MONK_Q, 9;
-	mapannounce "monk_test.gat","Congratulations!!" + strcharinfo(0)+ " Pass!! Please go to [Daowen], he is in the deep of the building.",8;
+	mapannounce "monk_test.gat","Congratulations!!" + strcharinfo(0)+ " Passes!! Please go to [Daowen], he is deep inside the building.",8;
 	killmonster "monk_test.gat","monk_mob2";
 	warp "monk_test.gat",317,142;
 	end;
@@ -1828,15 +1831,15 @@ monk_test.gat,1,1,1	script	monk_mob2	-1,{
 
 monk_test.gat,82,85,4	script	Test Assistant	95,{
 	mes "[Test Assistant]";
-	mes "Are you ready for training of evil disperse?";
+	mes "Are you ready for training in the dispersement of evil?";
 	next;
 	mes "[Test Assistant]";
-	mes "The test area is a maze with walls invisable.";
-	mes "The exiting point is on the opposite side of the starting point.";
+	mes "The test area is a maze with invisible walls.";
+	mes "The exit point is on the opposite side of the starting point.";
 	next;
 	mes "[Test Assistant]";
-	mes "Of course, there will be some monster spawn in the maze. You'll have to fight with them.";
-	mes "Good lucy! May God be with you.";
+	mes "Of course, there will be some monsters spawned in the maze. You'll have to fight with them.";
+	mes "Good luck! May God be with you.";
 	next;
 	if(getareausers("monk_test.gat",233,262,269,300) > 0) goto L_WAIT;
 	killmonster "monk_test.gat","monk_mob3";
@@ -1849,7 +1852,7 @@ monk_test.gat,82,85,4	script	Test Assistant	95,{
 
 L_WAIT:
 	mes "[Test Assistant]";
-	mes "There is someone taking the test. Please wait a minute.";
+	mes "Oh... There is someone else taking the test. Please wait a minute then try again.";
 	close;
 }
 
@@ -1878,7 +1881,7 @@ monk_test.gat,260,281,4	script	monk_mob3_4	139,0,19,{
 }
 monk_test.gat,269,279,4	script	monk_mob3_warp	45,1,1,{
 	set MONK_Q, 9;
-	mapannounce "monk_test.gat","Congratulations!!" + strcharinfo(0)+ " Pass!! Please go to [Daowen], he is in the deep of the building.",8;
+	mapannounce "monk_test.gat","Congratulations!!" + strcharinfo(0)+ " Passes!! Please go to [Daowen], he is deep inside the building.",8;
 	killmonster "monk_test.gat","monk_mob3";
 	warp "monk_test.gat",317,142;
 	end;

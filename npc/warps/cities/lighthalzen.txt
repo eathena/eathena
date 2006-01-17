@@ -12,6 +12,7 @@
 //= 1.3 Removed fields and dungeons warps from here [DracoRPG]
 //= 1.3a A small fix for a warp [MasterOfMuppets]
 //= 1.4 Lighthalzen warp, taken from korean eA site [Vicious]
+//= 1.4a Corrected warp for 'lhz013a' [Zephiris]
 //============================================================
 
 lighthalzen.gat,196,46,0	warp	lhz010	1,1,lhz_in02.gat,282,83
@@ -24,7 +25,7 @@ lhz_in02.gat,265,14,0	warp	lhz012	1,1,lhz_in02.gat,269,82
 lhz_in02.gat,274,82,0	warp	lhz012a	1,1,lhz_in02.gat,269,14
 
 lhz_in02.gat,108,26,0	warp	lhz013	1,1,lighthalzen.gat,98,110
-lighthalzen.gat,93,119,0	warp	lhz013a	1,1,lhz_in02.gat,104,26
+lighthalzen.gat,92,110,0	warp	lhz013a	1,1,lhz_in02.gat,104,26
 
 lighthalzen.gat,50,87,0	warp	lhz014	1,1,lhz_in03.gat,45,31
 lhz_in03.gat,50,31,0	warp	lhz014a	1,1,lighthalzen.gat,54,87

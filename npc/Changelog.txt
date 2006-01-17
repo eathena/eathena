@@ -26,6 +26,7 @@ Nexon
 Date		Added
 ======
 01/16
+	* Corrected warp 'lhz013a' in Lighthalzen.  Added a missing check and fixed a LOT of Engrish in the Monk Job Quest. [Zephiris]
 	* Corrected the warp to board the airship in Einbroch, and the warp inside the northwest building in Lighthalzen. [Zephiris]
 	* Updated Ayothaya Quest close to the official. Thanks to birkiczd
 	- Also optimized it again, remove unused global variable [Lupus]
