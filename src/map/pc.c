@@ -761,9 +761,9 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 	sd->pvp_timer = -1;
 
 	// 位置の設定
-	if (pc_setpos(sd,sd->status.last_point.map, sd->status.last_point.x, sd->status.last_point.y, 0) != 0) {
+	if ((i=pc_setpos(sd,sd->status.last_point.map, sd->status.last_point.x, sd->status.last_point.y, 0)) != 0) {
 		if(battle_config.error_log)
-			ShowError ("Last_point_map %s - id %d not found\n", mapindex_id2name(sd->status.last_point.map), sd->status.last_point.map);
+			ShowError ("Last_point_map %s - id %d not found (error code %d)\n", mapindex_id2name(sd->status.last_point.map), sd->status.last_point.map, i);
 
 		// try warping to a default map instead (church graveyard)
 		if (pc_setpos(sd, mapindex_name2id(MAP_PRONTERA), 273, 354, 0) != 0) {
@@ -3101,7 +3101,12 @@ int pc_steal_coin(struct map_session_data *sd,struct block_list *bl)
 //
 //
 /*==========================================
- * PCの位置設定
+ * Set's a player position.
+ * Return values:
+ * 0 - Success.
+ * 1 - Invalid map index.
+ * 2 - Map not in this map-server, and failed to locate alternate map-server.
+ * 3 - Failed to warp player because it was in transition between maps.
  *------------------------------------------
  */
 int pc_setpos(struct map_session_data *sd,unsigned short mapindex,int x,int y,int clrtype)
@@ -3119,7 +3124,7 @@ int pc_setpos(struct map_session_data *sd,unsigned short mapindex,int x,int y,in
 		//state.auth helps identifies if this is the initial setpos rather than a normal map-change set pos.
 		if (battle_config.etc_log)
 			ShowInfo("pc_setpos failed: Attempted to relocate player %s (%d:%d) while it is still between maps.\n", sd->status.name, sd->status.account_id, sd->status.char_id);
-		return 1;
+		return 3;
 	}
 	if(sd->chatID)	// チャットから出る
 		chat_leavechat(sd);
@@ -3241,7 +3246,7 @@ int pc_setpos(struct map_session_data *sd,unsigned short mapindex,int x,int y,in
 				return 0;
 			}
 		}
-		return 1;
+		return 2;
 	}
 
 	if(x <0 || x >= map[m].xs || y <0 || y >= map[m].ys)
