@@ -537,6 +537,13 @@ int mapif_parse_WisToGM(int fd) {
 	return 0;
 }
 
+static void* create_accreg(DBKey key, va_list args) {
+	struct accreg *reg;
+	reg = (struct accreg*)aCalloc(sizeof(struct accreg), 1);
+	reg->account_id = key.i;
+	return reg;
+}
+
 // アカウント変数保存要求
 int mapif_parse_Registry(int fd) {
 	int j, p, len;
@@ -553,16 +560,7 @@ int mapif_parse_Registry(int fd) {
 		default: //Error?
 			return 1; 
 	}
-	reg = uidb_get(accreg_db, RFIFOL(fd,4));
-
-	if (reg == NULL) {
-		if ((reg = (struct accreg*)aCalloc(sizeof(struct accreg), 1)) == NULL) {
-			ShowFatalError("inter: accreg: out of memory !\n");
-			exit(0);
-		}
-		reg->account_id = RFIFOL(fd,4);
-		uidb_put(accreg_db, RFIFOL(fd,4), reg);
-	}
+	reg = idb_ensure(accreg_db, RFIFOL(fd,4), create_accreg);
 
 	for(j=0,p=13;j<ACCOUNT_REG_NUM && p<RFIFOW(fd,2);j++){
 		sscanf(RFIFOP(fd,p), "%31c%n",reg->reg[j].str,&len);

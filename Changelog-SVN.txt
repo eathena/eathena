@@ -1,6 +1,8 @@
 Date	Added
 
 2006/01/17
+	* Some code updates to implement the new db interface. [Skotlex]
+	- SQL compilation not tested, so if it breaks someone report to fix it :X
 	* Added @clouds2 and clouds2 mapflag using effect 516. [Valaris]
 	* Fixed some weather effects not working or not functioning correctly. [Valaris]
 	* Cleanups and organization to maps_athena.txt and map_index.txt, thanks to

@@ -284,6 +284,12 @@ int mapif_load_pet(int fd,int account_id,int char_id,int pet_id)
 	return 0;
 }
 
+static void* create_pet(DBKey key, va_list args) {
+	struct s_pet *p;
+	p=(struct s_pet *)aCalloc(sizeof(struct s_pet),1);
+	p->pet_id = key.i;
+	return p;
+}
 int mapif_save_pet(int fd,int account_id,struct s_pet *data)
 {
 	struct s_pet *p;
@@ -296,19 +302,9 @@ int mapif_save_pet(int fd,int account_id,struct s_pet *data)
 	}
 	else{
 		pet_id = data->pet_id;
-		p=idb_get(pet_db,pet_id);
-		if(p == NULL) {
-			p=(struct s_pet *)aCalloc(sizeof(struct s_pet),1);
-			if(p==NULL){
-				ShowFatalError("int_pet: out of memory !\n");
-				mapif_save_pet_ack(fd,account_id,1);
-				return 0;
-			}
-			p->pet_id = data->pet_id;
-			if(p->pet_id == 0)
-				data->pet_id = p->pet_id = pet_newid++;
-			idb_put(pet_db,p->pet_id,p);
-		}
+		if (pet_id == 0)
+			pet_id = data->pet_id = pet_newid++;
+		p= idb_ensure(pet_db,pet_id,create_pet);
 		if(data->hungry < 0)
 			data->hungry = 0;
 		else if(data->hungry > 100)

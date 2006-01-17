@@ -205,6 +205,9 @@ typedef struct db {
 #ifdef db_remove
 #	undef db_remove
 #endif
+#ifdef db_ensure
+#	undef db_ensure
+#endif
 
 #ifdef DB_ENABLE_STATS
 /**

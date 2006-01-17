@@ -211,6 +211,13 @@ int login_log(char *fmt, ...) {
 	return 0;
 }
 
+static void* create_online_user(DBKey key, va_list args) {
+	struct online_login_data *p;
+	p = aCalloc(1, sizeof(struct online_login_data));
+	p->account_id = key.i;
+	p->char_server = -1;
+	return p;	
+}
 //-----------------------------------------------------
 // Online User Database [Wizputer]
 //-----------------------------------------------------
@@ -219,16 +226,9 @@ void add_online_user (int char_server, int account_id) {
 	struct online_login_data *p;
 	if (!online_check)
 		return;
-	p = idb_get(online_db, account_id);
-	if (p == NULL) {
-		p = aCalloc(1, sizeof(struct online_login_data));
-		p->account_id = account_id;
-		p->char_server = char_server;
-		idb_put(online_db, account_id, p);
-	} else {
-		p->char_server = char_server;
-		p->waiting_disconnect = 0;
-	}
+	p = idb_ensure(online_db, account_id, create_online_user);
+	p->char_server = char_server;
+	p->waiting_disconnect = 0;
 }
 int is_user_online (int account_id) {
 	return (idb_get(online_db, account_id) != NULL);
@@ -1868,16 +1868,9 @@ int parse_fromchar(int fd) {
 				users = RFIFOW(fd,4);
 				for (i = 0; i < users; i++) {
 					aid = RFIFOL(fd,6+i*4);
-					p = idb_get(online_db, aid);
-					if (p == NULL) {
-						p = aCalloc(1, sizeof(struct online_login_data));
-						p->account_id = aid;
-						p->char_server = id;
-						idb_put(online_db, aid, p);
-					} else {
-						p->char_server = aid;
-						p->waiting_disconnect = 0;
-					}
+					p = idb_ensure(online_db, aid, create_online_user);
+					p->char_server = id;
+					p->waiting_disconnect = 0;
 				}
 				RFIFOSKIP(fd,RFIFOW(fd,2));
 				break;

@@ -13,6 +13,14 @@ static struct dbt * scdata_db = NULL;	//Contains all the status change data in-m
 char scdata_txt[1024]="save/scdata.txt"; //By [Skotlex]
 
 #ifdef ENABLE_SC_SAVING
+static void* create_scdata(DBKey key, va_list args) {
+	struct scdata *data;
+	data = aCalloc(1, sizeof(struct scdata));
+	data->account_id = va_arg(args, int);
+	data->char_id = key.i;
+	return data;
+}
+
 /*==========================================
  * Loads status change data of the player given. [Skotlex]
  *------------------------------------------
@@ -20,14 +28,7 @@ char scdata_txt[1024]="save/scdata.txt"; //By [Skotlex]
 struct scdata* status_search_scdata(int aid, int cid)
 {
 	struct scdata *data;
-	data = idb_get(scdata_db, cid);
-	if (data == NULL)
-	{
-		data = aCalloc(1, sizeof(struct scdata));
-		data->account_id = aid;
-		data->char_id = cid;
-		idb_put(scdata_db, cid, data);
-	}
+	data = scdata_db->ensure(scdata_db, i2key(cid), create_scdata, aid);
 	return data;
 }
 

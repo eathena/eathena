@@ -559,6 +559,13 @@ typedef struct dbt {
 #define uidb_remove(db,k)  (db)->remove((db),ui2key(k))
 #define strdb_remove(db,k) (db)->remove((db),str2key(k))
 
+//These are discarding the possible vargs you could send to the function, so those
+//that require vargs must not use these defines.
+#define db_ensure(db,k,f)    (db)->ensure((db),(k),f)
+#define idb_ensure(db,k,f)   (db)->ensure((db),i2key(k),f)
+#define uidb_ensure(db,k,f)  (db)->ensure((db),ui2key(k),f)
+#define strdb_ensure(db,k,f) (db)->ensure((db),str2key(k),f)
+
 /*****************************************************************************\
  *  (2) Section with public functions.                                       *
  *  db_fix_options     - Fix the options for a type of database.             *

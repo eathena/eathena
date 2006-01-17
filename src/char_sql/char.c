@@ -172,6 +172,15 @@ struct dbt *online_char_db; //Holds all online characters.
 
 static int chardb_waiting_disconnect(int tid, unsigned int tick, int id, int data);
 
+static void * create_online_char_data(DBKey key, va_list args) {
+	struct online_char_data* character;
+	character = aCalloc(1, sizeof(struct online_char_data));
+	character->account_id = key.i;
+	character->char_id = -1;
+  	character->server = -1;
+	return character;
+}
+
 //-------------------------------------------------
 // Set Character online/offline [Wizputer]
 //-------------------------------------------------
@@ -195,23 +204,16 @@ void set_char_online(int map_id, int char_id, int account_id) {
 		}
 	}
 
-	character = idb_get(online_char_db, account_id);
-	if (character == NULL)
+	character = idb_ensure(online_char_db, account_id, create_online_char_data);
+	if (online_check && character->char_id != -1 && character->server > -1 && character->server != map_id)
 	{
-		character = aCalloc(1, sizeof(struct online_char_data));
-		character->account_id = account_id;
-		idb_put(online_char_db, account_id, character);
-	} else {
-		if (online_check && character->char_id != -1 && character->server > -1 && character->server != map_id)
-		{
-			ShowNotice("set_char_online: Character %d:%d marked in map server %d, but map server %d claims to have (%d:%d) online!\n",
-				character->account_id, character->char_id, character->server, map_id, account_id, char_id);
-			mapif_disconnectplayer(server_fd[character->server], character->account_id, character->char_id, 2);
-		}
-		character->waiting_disconnect = 0;
+		ShowNotice("set_char_online: Character %d:%d marked in map server %d, but map server %d claims to have (%d:%d) online!\n",
+			character->account_id, character->char_id, character->server, map_id, account_id, char_id);
+		mapif_disconnectplayer(server_fd[character->server], character->account_id, character->char_id, 2);
 	}
 	character->char_id = (char_id==99)?-1:char_id;
 	character->server = (char_id==99)?-1:map_id;
+	character->waiting_disconnect = 0;
 	if (char_id != 99)
 	{	//Set char online in guild cache. If char is in memory, use the guild id on it, otherwise seek it.
 		struct mmo_charstatus *cp;
@@ -338,6 +340,12 @@ int compare_item(struct item *a, struct item *b) {
 	return 0;
 }
 
+static void* create_charstatus(DBKey key, va_list args) {
+	cp = (struct mmo_charstatus *) aCalloc(1,sizeof(struct mmo_charstatus));
+	cp->char_id = key.i;
+	return cp;
+}
+
 int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 	int i=0,j,party_exist,guild_exist;
 	int count = 0;
@@ -350,12 +358,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 
 	if (char_id!=p->char_id) return 0;
 
-	cp = idb_get(char_db_,char_id);
-
-	if (cp == NULL) {
-		cp = (struct mmo_charstatus *) aCalloc(1,sizeof(struct mmo_charstatus));
-		idb_put(char_db_, char_id,cp);
-	}
+	cp = idb_ensure(char_db_, char_id, create_charstatus);
 
 //	ShowInfo("Saving char "CL_WHITE"%d"CL_RESET" (%s)...\n",char_id,char_dat[0].name);
 	memset(save_status, 0, sizeof(save_status));
@@ -855,16 +858,20 @@ int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tab
 	return 0;
 }
 
+static void * create_charstatus(DBKey key, va_arg args) {
+	struct mmo_charstatus *p;
+	cp = (struct mmo_charstatus *) aMalloc(sizeof(struct mmo_charstatus));
+	cp->char_id = key.i;
+	return cp;
+}
+
 //=====================================================================================================
 int mmo_char_fromsql(int char_id, struct mmo_charstatus *p){
 	int i,j, n;
-	int friends;
+	int friends =0;
 	char t_msg[128];
 	char *str_p = tmp_sql;
 	struct mmo_charstatus *cp;
-        friends = 0;
-
-	cp = idb_get(char_db_,char_id);
 
 	memset(p, 0, sizeof(struct mmo_charstatus));
 	t_msg[0]= '\0';
@@ -895,7 +902,6 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p){
 		if (!sql_row)
 		{	//Just how does this happens? [Skotlex]
 			ShowError("Requested non-existant character id: %d!\n", char_id);
-			if (cp) idb_remove(char_db_, char_id);
 			return 0;	
 		}
 
@@ -1110,13 +1116,8 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p){
 	if (save_log)
 		ShowInfo("Loaded char (%d - %s): %s\n", char_id, p->name, t_msg);	//ok. all data load successfuly!
 
-	if (cp == NULL) { //If not in memory, create it. Otherwise just update data.
-		cp = (struct mmo_charstatus *) aMalloc(sizeof(struct mmo_charstatus));
-    	memcpy(cp, p, sizeof(struct mmo_charstatus));
-		idb_put(char_db_, char_id,cp);
-	} else
-    	memcpy(cp, p, sizeof(struct mmo_charstatus));
-
+	cp = idb_ensure(char_db_, char_id, create_charstatus);
+  	memcpy(cp, p, sizeof(struct mmo_charstatus));
 	return 1;
 }
 
@@ -2475,25 +2476,15 @@ int parse_frommap(int fd) {
 			for(i = 0; i < server[id].users; i++) {
 				aid = RFIFOL(fd,6+i*8);
 				cid = RFIFOL(fd,6+i*8+4);
-				character = idb_get(online_char_db, aid);
-				if (character == NULL)
+				character = idb_ensure(online_char_db, aid, create_online_char_data);
+				if (character->server > -1 && character->server != id)
 				{
-					character = aCalloc(1, sizeof(struct online_char_data));
-					character->account_id = aid;
-					character->char_id = cid;
-					character->server = id;
-					idb_put(online_char_db, aid, character);
-				} else {
-					if (character->server > -1 && character->server != id)
-					{
-						ShowNotice("Set map user: Character (%d:%d) marked on map server %d, but map server %d claims to have (%d:%d) online!\n",
-							character->account_id, character->char_id, character->server, id, aid, cid);
-						mapif_disconnectplayer(server_fd[character->server], character->account_id, character->char_id, 2);
-					}
-					character->server = id;
-					character->char_id = cid;
+					ShowNotice("Set map user: Character (%d:%d) marked on map server %d, but map server %d claims to have (%d:%d) online!\n",
+						character->account_id, character->char_id, character->server, id, aid, cid);
+					mapif_disconnectplayer(server_fd[character->server], character->account_id, character->char_id, 2);
 				}
-
+				character->server = id;
+				character->char_id = cid;
 			}
 			//If any chars remain in -2, they will be cleaned in the cleanup timer.
 			RFIFOSKIP(fd,RFIFOW(fd,2));
@@ -2590,9 +2581,9 @@ int parse_frommap(int fd) {
 					WFIFOL(map_fd,12) = (unsigned long)0; //TODO: connect_until_time, how do I figure it out right now?
 					memcpy(WFIFOP(map_fd,20), char_data, sizeof(struct mmo_charstatus));
 					WFIFOSET(map_fd, WFIFOW(map_fd,2));
-					data = uidb_get(online_char_db, RFIFOL(fd, 2));
-					if (data) //This check should really never fail...
-						data->server = map_id; //Update server where char is.
+					data = idb_ensure(online_char_db, RFIFOL(fd, 2), create_online_char_data);
+					data->char_id = char_data->char_id;
+					data->server = map_id; //Update server where char is.
 					
 					//Reply with an ack.
 					WFIFOW(fd, 0) = 0x2b06;

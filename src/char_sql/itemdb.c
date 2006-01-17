@@ -22,21 +22,12 @@ char item_db_db[256]="item_db"; // added to specify item_db sql table [Valaris]
 
 static struct dbt* item_db;
 
-/*==========================================
- * DB‚ÌŒŸõ
- *------------------------------------------
- */
-struct item_data* itemdb_search(int nameid)
-{
+static void* create_item(DBKey key, va_list args) {
 	struct item_data *id;
-
-	id = idb_get(item_db,nameid);
-	if(id) return id;
+	int nameid = key.i;
 
 	CREATE(id, struct item_data, 1);
-
-	idb_put(item_db,nameid,id);
-
+		id->nameid = nameid;
 	if(nameid>500 && nameid<600)
 		id->type=0;   //heal item
 	else if(nameid>600 && nameid<700)
@@ -57,8 +48,15 @@ struct item_data* itemdb_search(int nameid)
 		id->type=7;   //egg
 	else if(nameid>10000)
 		id->type=8;   //petequip
-
 	return id;
+}
+/*==========================================
+ * DB‚ÌŒŸõ
+ *------------------------------------------
+ */
+struct item_data* itemdb_search(int nameid)
+{
+	return idb_ensure(item_db,nameid,create_item);
 }
 
 /*==========================================

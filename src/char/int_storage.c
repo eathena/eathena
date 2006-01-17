@@ -154,39 +154,33 @@ int guild_storage_fromstr(char *str,struct guild_storage *p)
 	return 0;
 }
 
+static void* create_storage(DBKey key, va_list args) {
+	struct storage *s;
+	s = (struct storage *) aCalloc(sizeof(struct storage), 1);
+	s->account_id=key.i;
+	return s;
+}
+
 // アカウントから倉庫データインデックスを得る（新規倉庫追加可能）
 struct storage *account2storage(int account_id)
 {
 	struct storage *s;
-	s= idb_get(storage_db,account_id);
-	if(s == NULL) {
-		s = (struct storage *) aCalloc(sizeof(struct storage), 1);
-		if(s==NULL){
-			ShowFatalError("int_storage: out of memory!\n");
-			exit(0);
-		}
-		s->account_id=account_id;
-		idb_put(storage_db,s->account_id,s);
-	}
+	s= idb_ensure(storage_db, account_id, create_storage);
 	return s;
+}
+
+static void* create_guildstorage(DBKey key, va_list args) {
+	struct guild_storage *gs = NULL;
+	gs = (struct guild_storage *) aCalloc(sizeof(struct guild_storage), 1);
+	gs->guild_id=key.i;
+	return gs;
 }
 
 struct guild_storage *guild2storage(int guild_id)
 {
 	struct guild_storage *gs = NULL;
-	if(inter_guild_search(guild_id) != NULL) {
-		gs= idb_get(guild_storage_db,guild_id);
-		if(gs == NULL) {
-			gs = (struct guild_storage *) aCalloc(sizeof(struct guild_storage), 1);
-			if(gs==NULL){
-				ShowFatalError("int_storage: out of memory!\n");
-				exit(0);
-			}
-//			memset(gs,0,sizeof(struct guild_storage)); aCalloc does this! [Skotlex]
-			gs->guild_id=guild_id;
-			idb_put(guild_storage_db,gs->guild_id,gs);
-		}
-	}
+	if(inter_guild_search(guild_id) != NULL)
+		gs= idb_ensure(guild_storage_db, guild_id, create_guildstorage);
 	return gs;
 }
 
