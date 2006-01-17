@@ -1,6 +1,8 @@
 Date	Added
 
 2006/01/17
+	* Cleanups and organization to maps_athena.txt and map_index.txt, thanks to
+	  Poki for the cleanup work. [Skotlex]
 	* Some cleanup of the SG_FEEL code [Skotlex]
 	* Fixed debug mode compiling in VC7.1. Added optimizations to VC7.1 release mode.
 	  Defaulted VC7.1 SLN to debug mode. [Lance]

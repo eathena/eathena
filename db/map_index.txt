@@ -341,6 +341,10 @@ cmd_in02.gat
 comodo.gat
 quiz_00.gat
 quiz_01.gat
+g_room1-1.gat
+g_room1-2.gat
+g_room1-3.gat
+g_room2.gat
 tur_dun01.gat
 tur_dun02.gat
 tur_dun03.gat
@@ -368,6 +372,12 @@ guild_vs2.gat
 guild_vs3.gat
 guild_vs4.gat
 guild_vs5.gat
+guild_vs1-1.gat
+guild_vs1-2.gat
+guild_vs1-3.gat
+guild_vs1-4.gat
+guild_vs2-1.gat
+guild_vs2-2.gat
 job_hunte.gat
 job_knt.gat
 job_prist.gat
@@ -393,6 +403,7 @@ job_sage.gat
 mag_dun01.gat
 mag_dun02.gat
 monk_test.gat
+quiz_test.gat
 yuno.gat
 yuno_fild01.gat
 yuno_fild02.gat
@@ -435,6 +446,7 @@ nif_fild02.gat
 nif_in.gat
 yggdrasil01.gat
 valkyrie.gat
+himinn.gat
 lou_in01.gat
 lou_in02.gat
 lou_dun03.gat
@@ -475,6 +487,13 @@ yuno_fild09.gat
 yuno_fild11.gat
 yuno_fild12.gat
 alde_tt02.gat
+turbo_n_1.gat
+turbo_n_4.gat
+turbo_n_8.gat
+turbo_n_16.gat
+turbo_e_4.gat
+turbo_e_8.gat
+turbo_e_16.gat
 turbo_room.gat
 airplane.gat
 airport.gat
@@ -489,6 +508,7 @@ ein_fild09.gat
 ein_fild10.gat
 ein_in01.gat
 que_sign01.gat
+que_sign02.gat
 ein_fild03.gat
 ein_fild04.gat
 lhz_fild02.gat
@@ -526,6 +546,7 @@ job_soul.gat
 job_star.gat
 que_job01.gat
 que_job02.gat
+que_job03.gat
 abyss_01.gat
 abyss_02.gat
 abyss_03.gat
@@ -577,27 +598,7 @@ job_hunter.gat
 job_knight.gat
 job_priest.gat
 job_wizard.gat
-himinn.gat
-quiz_test.gat
-turbo_n_1.gat
-turbo_n_4.gat
-turbo_n_8.gat
-turbo_n_16.gat
-turbo_e_4.gat
-turbo_e_8.gat
-turbo_e_16.gat
-que_sign02.gat
-g_room1-1.gat
-g_room1-2.gat
-g_room1-3.gat
 g_room2.gat
-guild_vs1-1.gat
-guild_vs1-2.gat
-guild_vs1-3.gat
-guild_vs1-4.gat
-guild_vs2-1.gat
-guild_vs2-2.gat
-que_job03.gat
 //Extra maps
 rwc01.gat	1000
 rwc02.gat
