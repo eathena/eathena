@@ -56,14 +56,13 @@
 1814,Berserk			,10000
 2202,Sunglasses_		,10000
 2204,Glasses_			,10000
-2412,Greaves_			,10000
 2638,Exorcize_Sachet		,20000
 2639,Purification_Sachet	,20000
 1364,Great_Axe			,10000
 1369,Guillotine			,10000
 1415,Skewer			,10000
 1233,Excorssize			,10000
-1228,Combat_Knife		,10000
+1228,Combat_Knife		,20000
 2640,Kafra Ring			,20000
 5104,Black blindfold		,10000
 5099,Neko Mimi			,10000

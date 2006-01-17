@@ -19,7 +19,7 @@ ayo_dun01.gat,0,0,0,0	monster	Kraben	1587,20,0,0,0
 //(ayothana dungeon 02)?
 ayo_dun02.gat,0,0,0,0	monster	Kraben	1587,30,0,0,0
 ayo_dun02.gat,0,0,0,0	monster	Tamruan	1584,20,0,0,0
-ayo_dun02.gat,0,0,0,0	monster	Tao Gunka	1583,1,3600000,1800000,1
+ayo_dun02.gat,0,0,0,0	monster	Lady Tanee	1688,1,3600000,1800000,1
 
 ayo_fild01.gat,0,0,0,0	monster	Smokie	1056,20,0,0,0
 ayo_fild01.gat,0,0,0,0	monster	Yoyo	1057,20,0,0,0

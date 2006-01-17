@@ -1,10 +1,27 @@
 // Fixed [Lupus] (removed extra row which made all albums empty)
 // 古いカード帖から得られるアイテムを設定。			
 // ItemID		 ItemName(Dummy)	 Rate
-// アイテムID、アイテムの名前(ダミー)、確率(*10000)をした物です。500000なら50%で1000000なら100%です。)			
-// アイテムIDが0の場合確率をアイテムの選択に失敗した時に得られるデフォルトアイテムのIDとして認識します。(複数である場合最後の物だけ有効です。),,,
-//
-
+// New Cards
+// the released ones are uncommented for now
+//============================================
+//4047,Ghostring Card,10000
+//4054,Angeling Card,10000
+//4140,Knight Of Abyss Card,10000
+//4151,OLD_MIMIC,10000
+//4153,OLD_ALARM,10000
+//4157,Goblin Archer Card,10000
+//4158,OLD_DARK_PRIEST,10000
+//4159,OLD_PUNK,10000
+//4165,OLD_STING,10000
+//4169,OLD_BRILIGHT,10000
+//4170,OLD_IRON_FIST,10000
+//4181,Disguise Card,10000
+//4189,Wraith Dead Card,10000
+//4196,Bloody Knight,10000
+//4224,Stem Worm Card,10000
+//4241,Archangeling Card,10000
+//4253,Alice Card,10000
+//4290,Cat'o'Nine Tail Card,10000
 0,Poring Card,4001
 4001,Poring Card,70000
 4002,Fabre Card,70000
@@ -135,31 +152,19 @@
 4138,Anubis Card,10000
 4139,Joker Card,10000
 4141,Evil Druid Card,10000
-
-// New Cards
-//============================================
-// the released ones are uncommented for now
-
 4149,Gargoyle Card,10000
 4150,Goat Card,10000
-//4151,OLD_MIMIC,10000
 4152,Galapago Card,10000
-//4153,OLD_ALARM,10000
 4154,Dumpling Child Card,10000
 4155,Goblin Leader Card,10000
 4156,Goblin Steamrider Card,10000
-//4157,Goblin Archer Card,10000
-4158,Sky Deleter Card,10000
-4159,Nine Tail Card,10000
 4160,Firelock Soldier Card,20000
 4161,Grand Peco Card,10000
 4162,Grizzly Card,10000
 4163,Gryphon Card,10000
 4164,Gullinbursti Card,10000
-4165,Gig Card,10000
+4166,Wanderman Card,10000
 4167,Neraid Card,10000
-4169,Dark Illusion Card,10000
-4170,Dark Frame Card,10000
 4171,Dark Priest Card,10000
 4172,The Paper Card,10000
 4173,Demon Pungus Card,10000
@@ -170,7 +175,6 @@
 4178,Dragon Tail Card,10000
 4179,Dragon Fly Card,5000
 4180,Driller Card,10000
-//4181,Disguise Card,10000
 4182,Diabolic Card,10000
 4183,Vagabond Wolf Card,5000
 4184,Lava Golem Card,10000
@@ -178,14 +182,12 @@
 4186,Raggler Card,10000
 4187,Raydric Archer Card,10000
 4188,Leib Olmai,10000
-//4189,Wraith Dead Card,10000
 4190,Wraith Card,10000
 4191,Loli Ruri Card,10000
 4192,Rotar Zairo Card,10000
 4193,Lude Card,10000
 4194,Rybio Card,10000
 4195,Leaf Cat Card,10000
-
 4197,Mastering Card,10000
 4198,Maya Purple Card,10000
 4199,Merman Card,10000
@@ -208,11 +210,9 @@
 4217,Enchanted Peach Tree Card,10000
 4218,Succubus Card,10000
 4219,Sage Worm Card,10000
-
 4221,Skeleton General Card,10000
 4222,Skel Prisoner Card,10000
 4223,Clocktower Manager Card,10000
-//4224,Stem Worm Card,10000
 4225,Stone Shooter Card,10000
 4226,Sting Card,10000
 4227,Spring Rabbit Card,10000
@@ -228,7 +228,6 @@
 4238,Owl Baron Card,10000
 4239,Iron Fist Card,10000
 4240,Arclouze Card,10000
-//4241,Archangeling Card,10000
 4242,Apocalipse Card,10000
 4243,Antonio Card,10000
 4244,Alarm Card,10000
@@ -273,7 +272,6 @@
 4287,Kapha Card,20000
 4288,Carat Card,10000
 4289,Caterpillar Card,10000
-//4290,Cat'o'Nine Tail Card,10000
 4291,Kobold Leader Card,10000
 4292,Kobold Archer Card,10000
 4293,Cookie Card,10000
@@ -311,9 +309,3 @@
 4329,Phendark Card,10000
 4331,Heater Card,10000
 4332,Killre Mantis Card,10000
-4166,Wanderman Card,10000
-//4140,Knight Of Abyss Card,10000
-//4047,Ghostring Card,10000
-//4054,Angeling Card,10000
-//4196,Bloody Knight,10000
-//4253,Alice Card,10000

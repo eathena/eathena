@@ -88,3 +88,31 @@ lhz_dun03.gat,0,0,0,0	monster	--ja--	1636,10,0,0,0
 lhz_dun03.gat,0,0,0,0	monster	--ja--	1637,10,0,0,0
 lhz_dun03.gat,0,0,0,0	monster	--ja--	1638,10,0,0,0
 lhz_dun03.gat,0,0,0,0	monster	--ja--	1639,10,0,0,0
+
+lhz_dun03.gat,1,1,0	script	Lhzdun03monster	-1,{
+
+//===========
+// Please fix aru, something about this is crashing the server, seems that while isnt a command we can use? i dont know
+//===========
+
+//OnInit:
+
+//while(1)
+//{	
+//		set $@metaspawn,rand(1,6);
+//		if($@metaspawn == 1)areamonster "lhz_dun03.gat",1,1,300,300,--ja--,1646,1,"Lhzdun03monster::OnMonsterDead";
+//		if($@metaspawn == 2)areamonster "lhz_dun03.gat",1,1,300,300,--ja--,1647,1,"Lhzdun03monster::OnMonsterDead";
+//		if($@metaspawn == 3)areamonster "lhz_dun03.gat",1,1,300,300,--ja--,1648,1,"Lhzdun03monster::OnMonsterDead";
+//		if($@metaspawn == 4)areamonster "lhz_dun03.gat",1,1,300,300,--ja--,1649,1,"Lhzdun03monster::OnMonsterDead";
+//		if($@metaspawn == 5)areamonster "lhz_dun03.gat",1,1,300,300,--ja--,1650,1,"Lhzdun03monster::OnMonsterDead";
+//		if($@metaspawn == 6)areamonster "lhz_dun03.gat",1,1,300,300,--ja--,1651,1,"Lhzdun03monster::OnMonsterDead";
+//		end;
+//OnMonsterDead:
+//	initnpctimer;
+//	setnpctimer 0;
+//	end;
+//OnTimer7200000:
+//	stopnpctimer;
+//}
+
+}

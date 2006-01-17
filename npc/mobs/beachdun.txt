@@ -19,6 +19,7 @@ beach_dun.gat,0,0,0,0	monster	Penomena	1216,5,0,0,0
 beach_dun.gat,0,0,0,0	monster	Merman	1264,3,0,20,0
 beach_dun.gat,0,0,0,0	monster	Neraid	1255,15,0,0,0
 beach_dun.gat,0,0,0,0	monster	Pest	1256,15,0,0,0
+beach_dun.gat,0,0,0,0	monster	Tao Gunka	1583,1,3600000,1800000,1
 
 //beach_dun2 (Ruande the northern cave)
 beach_dun2.gat,0,0,0,0	monster	Stalactic Golem	1278,40,0,0,0
