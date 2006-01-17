@@ -1,6 +1,7 @@
 Date	Added
 
 2006/01/16
+	* Fixed clif_disp_onlyself packet length, thanks to Orn. [Skotlex]
 	* Imported Freya's autoloot system which enables one to specify the maximum
 	  drop-rate to loot. [Skotlex]
 	* Refix of the mapreg SQL saving fix of a while ago... [Skotlex]
