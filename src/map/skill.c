@@ -10591,15 +10591,13 @@ int skill_unit_move_sub( struct block_list *bl, va_list ap )
 	unsigned int tick,flag,result;
 	int skill_id;
 	
-	nullpo_retr(0, bl);
-	nullpo_retr(0, ap);
-	nullpo_retr(0, target=va_arg(ap,struct block_list*));
+	target=va_arg(ap,struct block_list*);
 	tick = va_arg(ap,unsigned int);
 	flag = va_arg(ap,int);
 	
 	nullpo_retr(0, unit->group);
 	
-	if (!(unit->group->bl_flag&bl->type))
+	if (!(unit->group->bl_flag&target->type))
 		return 0; //we don't target this type of bl
 	
 	skill_id = unit->group->skill_id; //Necessary in case the group is deleted after calling on_place/on_out [Skotlex]
@@ -12081,6 +12079,18 @@ int skill_read_sqldb(void)
 		else skill_db[i].unit_target = strtol(split[6],NULL,16);
 
 		skill_db[i].unit_flag = strtol(split[7],NULL,16);
+		if (skill_db[i].unit_flag&UF_DEFNOTENEMY && battle_config.defnotenemy)
+			skill_db[i].unit_target=BCT_NOENEMY;
+
+		//By default, target just characters.
+		skill_db[i].unit_target |= BL_CHAR;
+		if (skill_db[i].unit_flag&UF_NOPC)
+			skill_db[i].unit_target &= ~BL_PC;
+		if (skill_db[i].unit_flag&UF_NOMOB)
+			skill_db[i].unit_target &= ~BL_MOB;
+		if (skill_db[i].unit_flag&UF_SKILL)
+			skill_db[i].unit_target |= BL_SKILL;
+
 		k++;
 	}
 	fclose(fp);
