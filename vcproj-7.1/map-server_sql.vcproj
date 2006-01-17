@@ -21,27 +21,31 @@
 				Optimization="0"
 				AdditionalIncludeDirectories="..\src\common;..\src\zlib;..\src\mysql"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_WIN32;PACKETVER=6;NEW_006b;__WIN32;LOCALZLIB;PCRE_SUPPORT;DFD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION"
-				GeneratePreprocessedFile="1"
+				GeneratePreprocessedFile="0"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
+				BufferSecurityCheck="TRUE"
+				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
-				ForceConformanceInForLoopScope="TRUE"
+				ForceConformanceInForLoopScope="FALSE"
 				UsePrecompiledHeader="0"
-				WarningLevel="4"
+				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="4"/>
+				DebugInformationFormat="4"
+				CompileAs="1"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="WSOCK32.lib mysqlclient.lib pcre.lib"
+				AdditionalDependencies="WSOCK32.lib mysqlclient.lib pcre.lib zdll.lib"
 				OutputFile="..\map-server_sql.exe"
-				LinkIncremental="2"
+				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\lib"
+				IgnoreAllDefaultLibraries="FALSE"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile="..\map-server_sql.pdb"
+				ProgramDatabaseFile="$(OutDir)/$(ProjectName).pdb"
 				SubSystem="1"
 				TargetMachine="1"/>
 			<Tool
@@ -70,14 +74,19 @@
 			OutputDirectory="Release-sqlmap"
 			IntermediateDirectory="Release-sqlmap"
 			ConfigurationType="1"
-			CharacterSet="2">
+			CharacterSet="2"
+			WholeProgramOptimization="TRUE">
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="3"
 				GlobalOptimizations="TRUE"
+				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="TRUE"
 				ImproveFloatingPointConsistency="TRUE"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="TRUE"
+				EnableFiberSafeOptimizations="TRUE"
+				OptimizeForProcessor="3"
 				OptimizeForWindowsApplication="TRUE"
 				AdditionalIncludeDirectories="..\src\common;..\src\zlib;..\src\mysql"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_WIN32;PACKETVER=6;NEW_006b;__WIN32;LOCALZLIB;PCRE_SUPPORT;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION;MAPREGSQL"
@@ -92,7 +101,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="WSOCK32.lib mysqlclient.lib pcre.lib"
+				AdditionalDependencies="WSOCK32.lib mysqlclient.lib pcre.lib zdll.lib"
 				OutputFile="..\map-server_sql.exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\lib"
