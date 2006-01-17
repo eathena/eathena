@@ -164,6 +164,12 @@ int party_recv_noinfo(int party_id)
 	}
 	return 0;
 }
+
+static void* create_party(DBKey key, va_list args) {
+	struct party *p;
+	p=(struct party *)aCalloc(1,sizeof(struct party));
+	return p;
+}
 // î•ñŠ“¾
 int party_recv_info(struct party *sp)
 {
@@ -173,11 +179,9 @@ int party_recv_info(struct party *sp)
 	
 	nullpo_retr(0, sp);
 
-	if((p=idb_get(party_db,sp->party_id))==NULL){
-		p=(struct party *)aCalloc(1,sizeof(struct party));
-		idb_put(party_db,sp->party_id,p);
+	p= idb_ensure(party_db, sp->party_id, create_party);
+	if (!p->party_id) //party just received.
 		party_check_member(sp);
-	}
 	memcpy(p,sp,sizeof(struct party));
 	
 	for(i=0;i<MAX_PARTY;i++){	// sd‚ÌÝ’è

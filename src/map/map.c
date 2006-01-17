@@ -1327,6 +1327,11 @@ int map_addflooritem(struct item *item_data,int amount,int m,int x,int y,struct 
 	return fitem->bl.id;
 }
 
+static void* create_charid2nick(DBKey key, va_list args) {
+	struct charid2nick *p;
+	p = (struct charid2nick *)aCallocA(1, sizeof (struct charid2nick));
+	return p;
+}
 /*==========================================
  * charid_dbへ追加(返信待ちがあれば返信)
  *------------------------------------------
@@ -1335,14 +1340,9 @@ void map_addchariddb(int charid, char *name) {
 	struct charid2nick *p;
 	int req = 0;
 
-	p = idb_get(charid_db,charid);
-	if (p == NULL){	// デ?タベ?スにない
-		p = (struct charid2nick *)aCallocA(1, sizeof (struct charid2nick));
-		idb_put(charid_db, charid, p);
-	} else {
-		req = p->req_id;
-		p->req_id = 0;
-	}
+	p = idb_ensure(charid_db,charid,create_charid2nick);
+	req = p->req_id;
+	p->req_id = 0;
 	//We overwrite the nick anyway in case a different one arrived.
 	memcpy(p->nick, name, NAME_LENGTH);
 
@@ -2141,6 +2141,14 @@ void map_setcell(int m,int x,int y,int cell)
 	}
 }
 
+static void* create_map_data_other_server(DBKey key, va_list args) {
+	struct map_data_other_server *mdos;
+	unsigned short mapindex = (unsigned short)key.ui;
+	mdos=(struct map_data_other_server *)aCalloc(1,sizeof(struct map_data_other_server));
+	mdos->index = mapindex;
+	memcpy(mdos->name, mapindex_id2name(mapindex), MAP_NAME_LENGTH);
+	return mdos;
+}
 /*==========================================
  * 他鯖管理のマップをdbに追加
  *------------------------------------------
@@ -2148,22 +2156,10 @@ void map_setcell(int m,int x,int y,int cell)
 int map_setipport(unsigned short mapindex,unsigned long ip,int port) {
 	struct map_data_other_server *mdos=NULL;
 
-	mdos=(struct map_data_other_server *)uidb_get(map_db,(unsigned int)mapindex);
+	mdos=(struct map_data_other_server *)uidb_ensure(map_db,(unsigned int)mapindex, create_map_data_other_server);
 	
-	if(mdos==NULL){ // not exist -> add new data
-		mdos=(struct map_data_other_server *)aCalloc(1,sizeof(struct map_data_other_server));
-		memcpy(mdos->name, mapindex_id2name(mapindex), NAME_LENGTH);
-		mdos->index = mapindex;
-//		mdos->gat  = NULL;
-		mdos->ip   = ip;
-		mdos->port = port;
-//		mdos->map  = NULL;
-		uidb_put(map_db,(unsigned int)mapindex,mdos);
-		return 1;
-	}
 	if(mdos->gat) //Local map,Do nothing. Give priority to our own local maps over ones from another server. [Skotlex]
 		return 0;
-	//We already have data for this map from another server
 	if(ip == clif_getip() && port == clif_getport()) {
 		//That's odd, we received info that we are the ones with this map, but... we don't have it.
 		ShowFatalError("map_setipport : received info that this map-server SHOULD have map '%s', but it is not loaded.\n",mapindex_id2name(mapindex));

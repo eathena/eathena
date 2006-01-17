@@ -197,20 +197,12 @@ static void itemdb_jobid2mapid(unsigned short *bclass, int jobmask)
 	if (jobmask & 1<<26) //Soul Linker
 		bclass[2] |= 1<<MAPID_TAEKWON;
 }
-/*==========================================
- * DB‚ÌŒŸõ
- *------------------------------------------
- */
-struct item_data* itemdb_search(int nameid)
-{
-	struct item_data *id;
 
-	id = idb_get(item_db,nameid);
-	if(id) return id;
+static void* create_item_data(DBKey key, va_list args) {
+	struct item_data *id;
+	int nameid = key.i;
 
 	id=(struct item_data *)aCalloc(1,sizeof(struct item_data));
-	idb_put(item_db,nameid,id);
-
 	id->nameid=nameid;
 	id->value_buy=10;
 	id->value_sell=id->value_buy/2;
@@ -241,8 +233,15 @@ struct item_data* itemdb_search(int nameid)
 		id->type=7;   //egg
 	else if(nameid>10000)
 		id->type=8;   //petequip
-
 	return id;
+}
+/*==========================================
+ * DB‚ÌŒŸõ
+ *------------------------------------------
+ */
+struct item_data* itemdb_search(int nameid)
+{
+	return idb_ensure(item_db,nameid,create_item_data);
 }
 
 /*==========================================

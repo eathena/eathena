@@ -94,15 +94,15 @@ void do_reconnect_storage(void)
 	guild_storage_db->foreach(guild_storage_db, storage_reconnect_sub, 1);
 }
 
+static void* create_storage(DBKey key, va_list args) {
+	struct storage *stor;
+	stor = (struct storage *) aCallocA (sizeof(struct storage), 1);
+	stor->account_id = key.i;
+	return stor;
+}
 struct storage *account2storage(int account_id)
 {
-	struct storage *stor = idb_get(storage_db,account_id);
-	if(stor == NULL) {
-		stor = (struct storage *) aCallocA (sizeof(struct storage), 1);
-		stor->account_id = account_id;
-		idb_put(storage_db, stor->account_id, stor);
-	}
-	return stor;
+	return idb_ensure(storage_db,account_id,create_storage);
 }
 
 // Just to ask storage, without creation
@@ -410,21 +410,17 @@ int storage_storage_saved(int account_id)
 	return 0;
 }
 
+static void* create_guildstorage(DBKey key, va_list args) {
+	struct guild_storage *gs = NULL;
+	gs = (struct guild_storage *) aCallocA(sizeof(struct guild_storage), 1);
+	gs->guild_id=key.i;
+	return gs;
+}
 struct guild_storage *guild2storage(int guild_id)
 {
 	struct guild_storage *gs = NULL;
-	if(guild_search(guild_id) != NULL) {
-		gs=(struct guild_storage *) idb_get(guild_storage_db,guild_id);
-		if(gs == NULL) {
-			gs = (struct guild_storage *) aCallocA(sizeof(struct guild_storage), 1);
-			if(gs==NULL){
-				ShowFatalError("storage: out of memory!\n");
-				exit(0);
-			}
-			gs->guild_id=guild_id;
-			idb_put(guild_storage_db,gs->guild_id,gs);
-		}
-	}
+	if(guild_search(guild_id) != NULL)
+		gs=(struct guild_storage *) idb_ensure(guild_storage_db,guild_id,create_guildstorage);
 	return gs;
 }
 
