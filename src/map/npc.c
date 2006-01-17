@@ -2438,6 +2438,9 @@ static int npc_parse_mapflag (char *w1, char *w2, char *w3, char *w4)
 	else if (strcmpi(w3,"clouds")==0) {
 		map[m].flag.clouds=1;
 	}
+	else if (strcmpi(w3,"clouds2")==0) { // clouds2 [Valaris]
+		map[m].flag.clouds2=1;
+	}
 	else if (strcmpi(w3,"fog")==0) { // fog [Valaris]
 		map[m].flag.fog=1;
 	}

@@ -1,6 +1,7 @@
 Date	Added
 
 2006/01/17
+	* Added @clouds2 and clouds 2 mapflag using effect 516. [Valaris]
 	* Fixed some weather effects not working or not functioning correctly. [Valaris]
 	* Cleanups and organization to maps_athena.txt and map_index.txt, thanks to
 	  Poki for the cleanup work. [Skotlex]

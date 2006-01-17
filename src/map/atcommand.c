@@ -189,6 +189,7 @@ ACMD_FUNC(rain);
 ACMD_FUNC(snow);
 ACMD_FUNC(sakura);
 ACMD_FUNC(clouds);
+ACMD_FUNC(clouds2); // [Valaris]
 ACMD_FUNC(fog);
 ACMD_FUNC(fireworks);
 ACMD_FUNC(leaves);
@@ -488,6 +489,7 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_Snow,				"@snow",			99, atcommand_snow },
 	{ AtCommand_Sakura,			"@sakura",			99, atcommand_sakura },
 	{ AtCommand_Clouds,			"@clouds",			99, atcommand_clouds },
+	{ AtCommand_Clouds2,			"@clouds2",			99, atcommand_clouds2 },
 	{ AtCommand_Fog,				"@fog",			99, atcommand_fog },
 	{ AtCommand_Fireworks,			"@fireworks",		99, atcommand_fireworks },
 	{ AtCommand_Leaves,			"@leaves",			99, atcommand_leaves },
@@ -5658,6 +5660,8 @@ int atcommand_mapinfo(
 		strcat(atcmd_output, "Sakura | ");
 	if (map[m_id].flag.clouds)
 		strcat(atcmd_output, "Clouds | ");
+	if (map[m_id].flag.clouds2)
+		strcat(atcmd_output, "Clouds2 | ");
 	if (map[m_id].flag.fireworks)
 		strcat(atcmd_output, "Fireworks | ");
 	if (map[m_id].flag.leaves)
@@ -7739,11 +7743,34 @@ atcommand_clouds(
 	if (map[sd->bl.m].flag.clouds) {
 		map[sd->bl.m].flag.clouds=0;
 		clif_weather(sd->bl.m);
-		clif_displaymessage(fd, "The clouds has gone.");
+		clif_displaymessage(fd, "The clouds has disappear.");
 	} else {
 		map[sd->bl.m].flag.clouds=1;
 		clif_weather(sd->bl.m);
 		clif_displaymessage(fd, "Clouds appear.");
+	}
+
+	return 0;
+}
+
+/*==========================================
+ * Different type of clouds using effect 516
+ *------------------------------------------
+ */
+int
+atcommand_clouds2(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+	nullpo_retr(-1, sd);
+	if (map[sd->bl.m].flag.clouds2) {
+		map[sd->bl.m].flag.clouds2=0;
+		clif_weather(sd->bl.m);
+		clif_displaymessage(fd, "The alternative clouds disappear.");
+	} else {
+		map[sd->bl.m].flag.clouds2=1;
+		clif_weather(sd->bl.m);
+		clif_displaymessage(fd, "Alternative clouds appear.");
 	}
 
 	return 0;
@@ -7795,7 +7822,7 @@ atcommand_leaves(
 }
 
 /*==========================================
- * Clouds appear.
+ * Fireworks appear.
  *------------------------------------------
  */
 int
@@ -7831,6 +7858,7 @@ atcommand_clearweather(
 	map[sd->bl.m].flag.snow=0;
 	map[sd->bl.m].flag.sakura=0;
 	map[sd->bl.m].flag.clouds=0;
+	map[sd->bl.m].flag.clouds2=0;
 	map[sd->bl.m].flag.fog=0;
 	map[sd->bl.m].flag.fireworks=0;
 	map[sd->bl.m].flag.leaves=0;

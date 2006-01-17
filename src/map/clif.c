@@ -1589,7 +1589,7 @@ int clif_weather(int m) {
 			WFIFOSET(sd->fd,packet_len_table[0x80]);
 
 			if (map[sd->bl.m].flag.snow || map[sd->bl.m].flag.clouds || map[sd->bl.m].flag.fog || map[sd->bl.m].flag.fireworks ||
-			    map[sd->bl.m].flag.sakura || map[sd->bl.m].flag.leaves || map[sd->bl.m].flag.rain) {
+			    map[sd->bl.m].flag.sakura || map[sd->bl.m].flag.leaves || map[sd->bl.m].flag.rain || map[sd->bl.m].flag.clouds2) {
                                 WFIFOHEAD(sd->fd, packet_len_table[0x7c]);
 				WFIFOW(sd->fd,0)=0x7c;
 				WFIFOL(sd->fd,2)=-10;
@@ -1605,6 +1605,8 @@ int clif_weather(int m) {
 					clif_weather_sub(sd->fd, 162);
 				if (map[sd->bl.m].flag.clouds)
 					clif_weather_sub(sd->fd, 233);
+				if (map[sd->bl.m].flag.clouds2)
+					clif_weather_sub(sd->fd, 516);
 				if (map[sd->bl.m].flag.fog)
 					clif_weather_sub(sd->fd, 515);
 				if (map[sd->bl.m].flag.fireworks) {
@@ -1672,7 +1674,7 @@ int clif_spawnpc(struct map_session_data *sd) {
 	}	// end addition [Valaris]
 
 	if (map[sd->bl.m].flag.snow || map[sd->bl.m].flag.clouds || map[sd->bl.m].flag.fog || map[sd->bl.m].flag.fireworks ||
-	    map[sd->bl.m].flag.sakura || map[sd->bl.m].flag.leaves || map[sd->bl.m].flag.rain) {
+	    map[sd->bl.m].flag.sakura || map[sd->bl.m].flag.leaves || map[sd->bl.m].flag.rain || map[sd->bl.m].flag.clouds2) {
 		WFIFOHEAD(sd->fd, packet_len_table[0x7c]);
 		WFIFOW(sd->fd,0)=0x7c;
 		WFIFOL(sd->fd,2)=-10;
@@ -1688,6 +1690,8 @@ int clif_spawnpc(struct map_session_data *sd) {
 			clif_weather_sub(sd->fd, 162);
 		if (map[sd->bl.m].flag.clouds)
 			clif_weather_sub(sd->fd, 233);
+		if (map[sd->bl.m].flag.clouds2)
+			clif_weather_sub(sd->fd, 516);
 		if (map[sd->bl.m].flag.fog)
 			clif_weather_sub(sd->fd, 515);
 		if (map[sd->bl.m].flag.fireworks) {
@@ -1917,7 +1921,7 @@ int clif_movechar(struct map_session_data *sd) {
 	clif_send(buf, len, &sd->bl, AREA_WOS);
 
 	if (map[sd->bl.m].flag.snow || map[sd->bl.m].flag.clouds || map[sd->bl.m].flag.fog || map[sd->bl.m].flag.fireworks ||
-	    map[sd->bl.m].flag.sakura || map[sd->bl.m].flag.leaves || map[sd->bl.m].flag.rain) {
+	    map[sd->bl.m].flag.sakura || map[sd->bl.m].flag.leaves || map[sd->bl.m].flag.rain || map[sd->bl.m].flag.clouds2) {
 		memset(buf,0,packet_len_table[0x7b]);
 		WBUFW(buf,0)=0x7b;
 		WBUFL(buf,2)=-10;

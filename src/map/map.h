@@ -1000,6 +1000,7 @@ struct map_data {
 		unsigned noicewall : 1; // [Valaris]
 		unsigned snow : 1; // [Valaris]
 		unsigned clouds : 1;
+		unsigned clouds2 : 1; // [Valaris]
 		unsigned fog : 1; // [Valaris]
 		unsigned fireworks : 1;
 		unsigned sakura : 1; // [Valaris]
