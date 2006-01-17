@@ -885,8 +885,8 @@ int pc_authfail(struct map_session_data *sd) {
 int pc_reg_received(struct map_session_data *sd)
 {
 	int i,j;
-	char feel_var[3][24] = {"PC_FEEL_SUN","PC_FEEL_MOON","PC_FEEL_STAR"};
-	char hate_var[3][24] = {"PC_HATE_MOB_SUN","PC_HATE_MOB_MOON","PC_HATE_MOB_STAR"};
+	char feel_var[3][NAME_LENGTH] = {"PC_FEEL_SUN","PC_FEEL_MOON","PC_FEEL_STAR"};
+	char hate_var[3][NAME_LENGTH] = {"PC_HATE_MOB_SUN","PC_HATE_MOB_MOON","PC_HATE_MOB_STAR"};
 	
 	sd->change_level = pc_readglobalreg(sd,"jobchange_level");
 	sd->die_counter = pc_readglobalreg(sd,"PC_DIE_COUNTER");
@@ -902,6 +902,9 @@ int pc_reg_received(struct map_session_data *sd)
 		if ((j = pc_readglobalreg(sd,feel_var[i]))!=0) {
 			sd->feel_map[i].index = j;
 			sd->feel_map[i].m = map_mapindex2mapid(j);
+		} else {
+			sd->feel_map[i].index = 0;
+			sd->feel_map[i].m = -1;
 		}
 		sd->hate_mob[i] = pc_readglobalreg(sd,hate_var[i])  - 1;
 		
@@ -5252,7 +5255,7 @@ int pc_resetskill(struct map_session_data* sd)
 int pc_resetfeel(struct map_session_data* sd)
 {
 	int i;
-	char feel_var[3][24] = {"PC_FEEL_SUN","PC_FEEL_MOON","PC_FEEL_STAR"};
+	char feel_var[3][NAME_LENGTH] = {"PC_FEEL_SUN","PC_FEEL_MOON","PC_FEEL_STAR"};
 	nullpo_retr(0, sd);
 
 	for (i=0; i<3; i++)

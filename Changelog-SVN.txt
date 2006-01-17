@@ -1,6 +1,7 @@
 Date	Added
 
 2006/01/17
+	* Some cleanup of the SG_FEEL code [Skotlex]
 	* Fixed debug mode compiling in VC7.1. Added optimizations to VC7.1 release mode.
 	  Defaulted VC7.1 SLN to debug mode. [Lance]
 	* Temperory solved the freeing freed pointer error upon map-server shutdown. [Lance]

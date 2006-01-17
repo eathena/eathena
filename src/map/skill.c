@@ -5858,13 +5858,13 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 	case SG_FEEL:
 		if (sd) {
-			sd->feel_level=skilllv-1;
-			if(sd->feel_map[skilllv-1].m==-1) {
+			if(!sd->feel_map[skilllv-1].index) {
+				sd->feel_level=skilllv-1;
 				clif_skill_nodamage(src,bl,skillid,skilllv,1);
 				clif_parse_ReqFell(sd->fd,sd);
 			}
 			else
-				clif_fell_info(sd);
+				clif_fell_info(sd, skilllv-1);
 		}
 		break;	
 

@@ -8339,14 +8339,14 @@ int clif_party_xy_remove(struct map_session_data *sd)
  * Info about Star Glaldiator save map [Komurka]
  *------------------------------------------
  */
-void clif_fell_info(struct map_session_data *sd)
+void clif_fell_info(struct map_session_data *sd, int feel_level)
 {
 	int fd=sd->fd;
 	WFIFOHEAD(fd,packet_len_table[0x20e]);
 	WFIFOW(fd,0)=0x20e;
-	memcpy(WFIFOP(fd,2),mapindex_id2name(sd->feel_map[sd->feel_level].index), MAP_NAME_LENGTH);
+	memcpy(WFIFOP(fd,2),mapindex_id2name(sd->feel_map[feel_level].index), MAP_NAME_LENGTH);
 	WFIFOL(fd,26)=sd->bl.id;
-	WFIFOW(fd,30)=0x100+sd->feel_level;
+	WFIFOW(fd,30)=0x100+feel_level;
 	WFIFOSET(fd, packet_len_table[0x20e]);
 }
 
@@ -11424,17 +11424,18 @@ void clif_parse_FeelSaveOk(int fd,struct map_session_data *sd)
 	if (sd->feel_level!=-1)
 	{
 		char feel_var[3][NAME_LENGTH] = {"PC_FEEL_SUN","PC_FEEL_MOON","PC_FEEL_STAR"};
+		sd->feel_map[sd->feel_level].index = map[sd->bl.m].index;
+		sd->feel_map[sd->feel_level].m = sd->bl.m;
+		pc_setglobalreg(sd,feel_var[sd->feel_level],map[sd->bl.m].index);
+
 		WFIFOHEAD(fd,packet_len_table[0x20e]);
 		WFIFOW(fd,0)=0x20e;
 		memcpy(WFIFOP(fd,2),map[sd->bl.m].name, MAP_NAME_LENGTH);
 		WFIFOL(fd,26)=sd->bl.id;
 		WFIFOW(fd,30)=sd->feel_level;
-		sd->feel_map[sd->feel_level].index = map[sd->bl.m].index;
-		sd->feel_map[sd->feel_level].m = sd->bl.m;
-		pc_setglobalreg(sd,feel_var[sd->feel_level],map[sd->bl.m].index);
 		WFIFOSET(fd, packet_len_table[0x20e]);
+		sd->feel_level = -1;
 		if (pc_checkskill(sd,SG_KNOWLEDGE)) status_calc_pc(sd,0);
-
 	}
 }
 
