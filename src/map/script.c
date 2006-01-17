@@ -2128,8 +2128,7 @@ unsigned char* parse_script(unsigned char *src,int line)
 	}
 
 	//Labels must be reparsed for the script....
-	scriptlabel_db->destroy(scriptlabel_db, NULL);
-	scriptlabel_db=db_alloc(__FILE__,__LINE__,DB_STRING,DB_OPT_ALLOW_NULL_DATA,50);
+	scriptlabel_db->clear(scriptlabel_db, NULL);
 
 	// for error message
 	startptr = src;

@@ -182,8 +182,7 @@ void remove_online_user(int account_id) {
 	if(!online_check)
 		return;
 	if (account_id == 99) {	// reset all to offline
-		online_db->destroy(online_db, NULL);	// purge db
-		online_db = db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA,sizeof(int));	// reinitialise
+		online_db->clear(online_db, NULL);
 		return;
 	}
 	idb_remove(online_db,account_id);

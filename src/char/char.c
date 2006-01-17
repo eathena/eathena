@@ -4023,12 +4023,6 @@ int char_config_read(const char *cfgName) {
 	return 0;
 }
 
-int  online_char_final(DBKey key, void* data, va_list va)
-{
-	db_remove(online_char_db, key);
-	return 0;
-}
-
 int chardb_final(int key, void* data, va_list va)
 {
 	aFree(data);
@@ -4037,7 +4031,7 @@ int chardb_final(int key, void* data, va_list va)
 void do_final(void) {
 	ShowStatus("Terminating server.\n");
 	// write online players files with no player
-	online_char_db->foreach(online_char_db, online_char_final); //clean the db...
+	online_char_db->clear(online_char_db, NULL); //clean the db...
 	create_online_files();
 	online_char_db->destroy(online_char_db, NULL); //dispose the db...
 

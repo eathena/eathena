@@ -2678,13 +2678,11 @@ int npc_reload (void)
 	}
 	//Remove any npcs/mobs that weren't caught by the previous loop. [Skotlex]
 	map_foreachiddb(npc_cleanup_dbsub);
-	ev_db->destroy(ev_db,NULL);
-	npcname_db->destroy(npcname_db,NULL);
 
 	// anything else we should cleanup?
 	// Reloading npc's now
-	ev_db = db_alloc(__FILE__,__LINE__,DB_STRING,DB_OPT_DUP_KEY|DB_OPT_RELEASE_DATA,51);
-	npcname_db = db_alloc(__FILE__,__LINE__,DB_STRING,DB_OPT_BASE,NAME_LENGTH);
+	ev_db->clear(ev_db,NULL);
+	npcname_db->clear(npcname_db,NULL);
 	npc_warp = npc_shop = npc_script = 0;
 	npc_mob = npc_cache_mob = npc_delay_mob = 0;
 
