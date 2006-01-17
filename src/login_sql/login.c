@@ -158,7 +158,7 @@ static void* create_online_user(DBKey key, va_list args) {
 	struct online_login_data *p;
 	p = aCalloc(1, sizeof(struct online_login_data));
 	p->account_id = key.i;
-	p->char_id = -1;
+	p->char_server = -1;
 	return p;	
 }
 
