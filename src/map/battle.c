@@ -3518,7 +3518,7 @@ static const struct battle_data_short {
 	{ "skillrange_from_weapon",            &battle_config.use_weapon_skill_range  },
 	{ "player_damage_delay_rate",          &battle_config.pc_damage_delay_rate		},
 	{ "defunit_not_enemy",                 &battle_config.defnotenemy				},
-	{ "gvg_traps_target_all",	            &battle_config.gvg_traps_bctall			},
+	{ "gvg_traps_target_all",	            &battle_config.vs_traps_bctall			},
 	{ "random_monster_checklv",            &battle_config.random_monster_checklv	},
 	{ "attribute_recover",                 &battle_config.attr_recover				},
 	{ "flooritem_lifetime",                &battle_config.flooritem_lifetime		},
@@ -3878,7 +3878,7 @@ void battle_set_defaults() {
 	battle_config.use_weapon_skill_range=0;
 	battle_config.pc_damage_delay_rate=100;
 	battle_config.defnotenemy=0;
-	battle_config.gvg_traps_bctall=1;
+	battle_config.vs_traps_bctall=1;
 	battle_config.random_monster_checklv=1;
 	battle_config.attr_recover=1;
 	battle_config.flooritem_lifetime=LIFETIME_FLOORITEM*1000;

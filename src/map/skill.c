@@ -2035,8 +2035,8 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		else
 			battle_damage(bl,src,rdamage,0);
 		clif_damage(src,src,tick, dmg.amotion,0,rdamage,1,4,0);
-		if(sc_data && sc_data[SC_REFLECTSHIELD].timer != -1)
-			skill_additional_effect(bl,src,CR_REFLECTSHIELD, sc_data[SC_REFLECTSHIELD].val1,BF_WEAPON,tick);
+		//Use Reflect Shield to signal this kind of skill trigger. [Skotlex]
+		skill_additional_effect(bl,src,CR_REFLECTSHIELD, 1,BF_WEAPON,tick);
 	}
 
 	if (!(flag & 1) &&
@@ -3511,12 +3511,14 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				clif_skill_nodamage(src,bl,skillid,skilllv,0);
 				break;
 			}
-			if (sc_data && sc_data[SC_SILENCE].timer != -1)
+			if (sc_data && sc_data[SC_SILENCE].timer != -1) {
 				status_change_end(bl,SC_SILENCE, -1);
-			else if (rand() % 100 < sc_def_vit) {
+				clif_skill_nodamage (src, bl, skillid, skilllv, 1);
+			} else if (rand() % 100 < sc_def_vit) {
 				status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
-			clif_skill_nodamage (src, bl, skillid, skilllv, 1);
-			}
+				clif_skill_nodamage (src, bl, skillid, skilllv, 1);
+			} else
+				clif_skill_nodamage (src, bl, skillid, skilllv, 0);
 		}
 		break;
 
@@ -6705,7 +6707,7 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 		break;
 	case WZ_QUAGMIRE:	//The target changes to "all" if used in a gvg map. [Skotlex]
 	case AM_DEMONSTRATION:
-		if (map_flag_gvg(src->m) && battle_config.gvg_traps_bctall)
+		if (map_flag_vs(src->m) && battle_config.vs_traps_bctall)
 			target = BCT_ALL;
 		break;
 	case HT_SHOCKWAVE:			/* ƒVƒ‡ƒbƒNƒEƒF?ƒuƒgƒ‰ƒbƒv */
@@ -6721,11 +6723,9 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 		if (sc_data && sc_data[SC_INTOABYSS].timer != -1)
 			val3 = BD_INTOABYSS;	//Store into abyss state, to know it shouldn't give traps back. [Skotlex]
 		if (map_flag_gvg(src->m))
-		{
 			limit *= 4; // longer trap times in WOE [celest]
-			if (battle_config.gvg_traps_bctall)
-				target = BCT_ALL; //Change target to all [Skotlex]
-		}
+		if (battle_config.vs_traps_bctall && map_flag_vs(src->m))
+			target = BCT_ALL; //Change target to all [Skotlex]
 		break;
 
 	case SA_LANDPROTECTOR:	/* ƒOƒ‰ƒ“ƒhƒNƒ?ƒX */
