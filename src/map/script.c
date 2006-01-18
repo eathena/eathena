@@ -10276,7 +10276,7 @@ int mapreg_setregstr(int num,const char *str)
 	if( str==NULL || *str==0 ){
 #if !defined(TXT_ONLY) && defined(MAPREGSQL)
 		if(name[1] != '@') {
-			sprintf(tmp_sql,"DELETE FROM `%s` WHERE `%s`=`%s` AND `%s`='%d'",mapregsql_db,mapregsql_db_varname,name,mapregsql_db_index,i);
+			sprintf(tmp_sql,"DELETE FROM `%s` WHERE `%s`='%s' AND `%s`='%d'",mapregsql_db,mapregsql_db_varname,name,mapregsql_db_index,i);
 			if(mysql_query(&mmysql_handle,tmp_sql)){
 				ShowSQL("DB error - %s\n",mysql_error(&mmysql_handle));
 				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
