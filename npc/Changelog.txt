@@ -25,6 +25,9 @@ Nexon
 
 Date		Added
 ======
+01/18
+	* Added a temp warper to Odin's Temple by birkiczd [Lupus]
+	- fixed Payon <- Payon Field 08 warp coords
 01/16
 	* Corrected warp 'lhz013a' in Lighthalzen.  Added a missing check and fixed a LOT of Engrish in the Monk Job Quest. [Zephiris]
 	* Corrected the warp to board the airship in Einbroch, and the warp inside the northwest building in Lighthalzen. [Zephiris]

@@ -1,0 +1,62 @@
+//===== Athena Script ========================================
+//= Odin Temple Warp Script
+//===== By: ==================================================
+//= birkiczd  (1.0)
+//===== Current Version: =====================================
+//= 1.0
+//===== Compatible With: =====================================
+//= Any Athena Version
+//===== Description: =========================================
+//= Warp Points for Odin Temple
+//===== Additional Comments: =================================
+// 
+//============================================================
+
+odin_tem01.gat,378,181,0	warp	odin01	1,1,odin_tem02.gat,22,181
+odin_tem02.gat,20,181,0	warp	odin02	1,1,odin_tem01.gat,376,181
+odin_tem01.gat,384,334,0	warp	odin03	1,1,odin_tem02.gat,23,334
+odin_tem02.gat,20,334,0	warp	odin04	1,1,odin_tem01.gat,381,334
+
+odin_tem02.gat,152,350,0	warp	odin05	1,1,odin_tem03.gat,121,51
+odin_tem03.gat,122,48,0	warp	odin06	1,1,odin_tem02.gat,153,347
+odin_tem02.gat,259,374,0	warp	odin07	1,1,odin_tem03.gat,249,35
+odin_tem03.gat,249,33,0	warp	odin08	1,1,odin_tem02.gat,262,371
+
+//Temporary NPC that warps to Odin Temple
+
+hugel.gat,210,109,4	script	Harik	901,{
+	mes "[Harik]";
+	mes "Hi stranger.You look like someone seeking for an adventure.I discovered a new island with powerful monsters recently.";
+	mes "There is a rumor that Odins Temple is located on it.";
+	next;
+	mes "[Harik]";
+	mes "Would you like to explore it with me?";
+	next;
+	menu "Yeah,why not!",-,"No,it sounds scary.",L_No1;
+
+	mes "[Harik]";
+	mes "Ok let me just get some stuff.";
+	mes "....................";
+	mes "Let's go!";
+	next;
+	warp "odin_tem01.gat",95,146;
+	end;
+L_No1:
+	mes "[Harik]";
+	mes "Maybe some other time then.";
+	close;
+}
+
+odin_tem01.gat,91,147,4	script	Harik	901,{
+	mes "[Harik]";
+	mes "I think we explored everything. Ready to go back to Hugel?";
+	next;
+	menu "Yes",-,"No",L_No2;
+
+	warp "hugel.gat",208,108;
+	end;
+L_No2:
+	mes "[Harik]";
+	mes "Ok take your time.";
+	close;
+}

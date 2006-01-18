@@ -59,7 +59,7 @@ M_MENU:
 		set @part,1;
 		if (getequipisequiped(1)) goto L_CHECK1;
 		mes "[Perchik]";
-		mes "A bald head under a cheap wig... There's nothing worth to sign.";
+		mes "A bald head under a cheap wig... There's nothing worthy to sign.";
 		emotion 6;
 		goto M_MENU;
 	M_PART9:
@@ -138,7 +138,7 @@ L_CHECK1:
 	if(getequipisidentify(@part)) goto L_CHECK2;
 	mes "[Perchik]";
 	mes "How could you equip such unknown item?";
-	npctalk "What a sneaky checter!";
+	npctalk "What a sneaky cheater!";
 	emotion e_wah;
 	close;
 
