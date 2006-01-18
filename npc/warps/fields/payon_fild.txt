@@ -3,13 +3,13 @@
 //===== By: ================================================== 
 //= Nana (1.0)
 //===== Current Version: ===================================== 
-//= 1.0
+//= 1.1
 //===== Compatible With: ===================================== 
 //= Any eAthena Mod
 //===== Description: ========================================= 
 //= Payon Field Warps
 //===== Additional Comments: ================================= 
-//= No Comment!
+//= 1.1 Refixed payon field08 -> payon warp
 //============================================================ 
 
 //= Payon Field's ============================================
@@ -35,14 +35,14 @@ pay_fild06.gat,305,375,0	warp	payf09-1	6,2,pay_fild03.gat,313,19
 pay_fild07.gat,16,200,0	warp	payf03-1	3,3,pay_fild01.gat,371,205	
 pay_fild07.gat,163,17,0	warp	payf08-1	5,2,pay_fild03.gat,177,275	
 pay_fild07.gat,280,382,0	warp	payf11	4,2,pay_fild08.gat,160,19	
-pay_fild07.gat,382,290,0	warp	payf12	2,5,pay_fild10.gat,19,290	
-pay_fild08.gat,160,16,0	warp	payf11-1	4,2,pay_fild07.gat,280,379	
-pay_fild08.gat,17,75,0	warp	payf006	2,4,payon.gat,186,69	
-pay_fild08.gat,262,91,0	warp	payf13	2,4,pay_fild09.gat,19,91	
-pay_fild09.gat,112,16,0	warp	pay14	4,2,pay_fild10.gat,112,379	
-pay_fild09.gat,16,91,0	warp	payf13-1	2,4,pay_fild08.gat,259,91	
-pay_fild10.gat,112,382,0	warp	pay14-1	3,2,pay_fild09.gat,112,19	
-pay_fild10.gat,16,290,0	warp	payf12-1	2,5,pay_fild07.gat,379,290	
-pay_fild10.gat,99,13,0	warp	w1034	1,1,pay_fild10.gat,148,252	
-pay_fild11.gat,297,135,0	warp	payf06-1	2,4,pay_fild02.gat,19,175	
-pay_fild11.gat,38,330,0	warp	payf004	4,2,moc_fild03.gat,179,19	
+pay_fild07.gat,382,290,0	warp	payf12	2,5,pay_fild10.gat,19,290
+pay_fild08.gat,160,16,0	warp	payf11-1	4,2,pay_fild07.gat,280,379
+pay_fild08.gat,17,75,0	warp	payf006	2,4,payon.gat,265,92
+pay_fild08.gat,262,91,0	warp	payf13	2,4,pay_fild09.gat,19,91
+pay_fild09.gat,112,16,0	warp	pay14	4,2,pay_fild10.gat,112,379
+pay_fild09.gat,16,91,0	warp	payf13-1	2,4,pay_fild08.gat,259,91
+pay_fild10.gat,112,382,0	warp	pay14-1	3,2,pay_fild09.gat,112,19
+pay_fild10.gat,16,290,0	warp	payf12-1	2,5,pay_fild07.gat,379,290
+pay_fild10.gat,99,13,0	warp	w1034	1,1,pay_fild10.gat,148,252
+pay_fild11.gat,297,135,0	warp	payf06-1	2,4,pay_fild02.gat,19,175
+pay_fild11.gat,38,330,0	warp	payf004	4,2,moc_fild03.gat,179,19
