@@ -26,6 +26,7 @@ Nexon
 Date		Added
 ======
 01/18
+	* Part 1 of Hugel monster replacement, done by Poki#3 [Vicious]
 	* Added a temp warper to Odin's Temple by birkiczd [Lupus]
 	- fixed Payon <- Payon Field 08 warp coords
 01/16
