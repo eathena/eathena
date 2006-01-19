@@ -5344,7 +5344,6 @@ int clif_displaymessage(const int fd, char* mes)
 	
 	//Console [Wizputer] //Scrapped, as these are shared by disconnected players =X [Skotlex]
 	if (fd == 0)
-//		printf("\033[0;36mConsole: \033[0m\033[1m%s\033[0m\n", mes);
 		return 0;
 	else {
 		int len_mes = strlen(mes);

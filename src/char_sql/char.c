@@ -1780,7 +1780,7 @@ int mmo_char_send006b(int fd, struct char_session_data *sd) {
 	WFIFOW(fd, 2) = offset + found_num * 106;
 
 	if (save_log)
-		ShowInfo("Request Char Data (\033[1;13m%d\033[0m):\n",sd->account_id);
+		ShowInfo("Request Char Data ("CL_BOLD"%d"CL_RESET"):\n",sd->account_id);
 
 	for(i = 0; i < found_num; i++) {
 		mmo_char_fromsql_short(sd->found_char[i], char_dat);
@@ -2981,7 +2981,6 @@ int lan_ip_check(unsigned char *p){
 			break;
 		}
 	}
-//	printf("LAN test (result): %s source\033[0m.\n", (lancheck) ? "\033[1;36mLAN" : "\033[1;32mWAN");
 	return lancheck;
 }
 
@@ -3363,7 +3362,7 @@ int parse_char(int fd) {
 			break;
 		case 0x68: /* delete char */
 			FIFOSD_CHECK(46);
-			ShowInfo("\033[1;31m Request Char Deletion:\033[0m \033[1;32m%d\033[0m(\033[1;32m%d\033[0m)\n", sd->account_id, RFIFOL(fd, 2));
+			ShowInfo(CL_RED" Request Char Deletion:"CL_GREEN"%d (%d)"CL_RESET"\n", sd->account_id, RFIFOL(fd, 2));
 			memcpy(email, RFIFOP(fd,6), 40);
 			
 			/* Check if e-mail is correct */
@@ -4226,7 +4225,7 @@ int do_init(int argc, char **argv){
 			}
 
 	ShowInfo("End of char server initilization function.\n");
-	ShowStatus("The char-server is \033[1;32mready\033[0m (Server is listening on the port %d).\n\n", char_port);
+	ShowStatus("The char-server is "CL_GREEN"ready"CL_RESET" (Server is listening on the port %d).\n\n", char_port);
 	return 0;
 }
 

@@ -116,7 +116,7 @@ int inter_guild_tosql(struct guild *g,int flag)
 	if (g->guild_id<=0) return -1;
 	
 #ifdef NOISY
-	ShowInfo("Save guild request (\033[1;35m%d\033[0m - flag 0x%x).",g->guild_id, flag);
+	ShowInfo("Save guild request ("CL_BOLD"%d"CL_RESET" - flag 0x%x).",g->guild_id, flag);
 #endif
 
 	jstrescapecpy(t_name, g->name);

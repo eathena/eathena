@@ -422,7 +422,6 @@ int mapif_GMmessage(unsigned char *mes, int len, unsigned long color, int sfd) {
 	WBUFL(buf, 4) = color;
 	memcpy(WBUFP(buf, 8), mes, len-8);
 	mapif_sendallwos(sfd, buf, len);
-//	ShowNotice("\033[1;34m inter server: GM[len:%d] - '%s' \033[0m\n", len, mes);
 	return 0;
 }
 

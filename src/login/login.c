@@ -593,7 +593,7 @@ int mmo_auth_init(void) {
 
 	if ((fp = fopen(account_filename, "r")) == NULL) {
 		// no account file -> no account -> no login, including char-server (ERROR)
-		ShowError("\033[1;31mmmo_auth_init: Accounts file [%s] not found.\033[0m\n", account_filename);
+		ShowError(CL_RED"mmmo_auth_init: Accounts file [%s] not found."CL_RESET"\n", account_filename);
 		return 0;
 	}
 
@@ -627,8 +627,8 @@ int mmo_auth_init(void) {
 
 			// Some checks
 			if (account_id > END_ACCOUNT_NUM) {
-				ShowError("\033[1;31mmmo_auth_init: an account has an id higher than %d\n", END_ACCOUNT_NUM);
-				ShowError("               account id #%d -> account not read (saved in log file).\033[0m\n", account_id);
+				ShowError(CL_RED"mmmo_auth_init: an account has an id higher than %d\n", END_ACCOUNT_NUM);
+				ShowError("               account id #%d -> account not read (saved in log file)."CL_RESET"\n", account_id);
 				login_log("mmmo_auth_init: ******Error: an account has an id higher than %d." RETCODE, END_ACCOUNT_NUM);
 				login_log("               account id #%d -> account not read (saved in next line):" RETCODE, account_id);
 				login_log("%s", line);
@@ -638,15 +638,15 @@ int mmo_auth_init(void) {
 			remove_control_chars((unsigned char *)userid);
 			for(j = 0; j < auth_num; j++) {
 				if (auth_dat[j].account_id == account_id) {
-					ShowError("\033[1;31mmmo_auth_init: an account has an identical id to another.\n");
-					ShowError("               account id #%d -> new account not read (saved in log file).\033[0m\n", account_id);
+					ShowError(CL_RED"mmmo_auth_init: an account has an identical id to another.\n");
+					ShowError("               account id #%d -> new account not read (saved in log file)."CL_RED"\n", account_id);
 					login_log("mmmo_auth_init: ******Error: an account has an identical id to another." RETCODE);
 					login_log("               account id #%d -> new account not read (saved in next line):" RETCODE, account_id);
 					login_log("%s", line);
 					break;
 				} else if (strcmp(auth_dat[j].userid, userid) == 0) {
-					ShowError("\033[1;31mmmo_auth_init: account name already exists.\n");
-					ShowError("               account name '%s' -> new account not read (saved in log file).\n", userid); // 2 lines, account name can be long.
+					ShowError(CL_RED"mmmo_auth_init: account name already exists.\n");
+					ShowError("               account name '%s' -> new account not read (saved in log file)."CL_RESET"\n", userid); // 2 lines, account name can be long.
 					login_log("mmmo_auth_init: ******Error: an account has an identical name to another." RETCODE);
 					login_log("               account name '%s' -> new account not read (saved in next line):" RETCODE, userid);
 					login_log("%s", line);
@@ -751,8 +751,8 @@ int mmo_auth_init(void) {
 		} else if ((i = sscanf(line, "%d\t%[^\t]\t%[^\t]\t%[^\t]\t%c\t%d\t%d\t%n",
 		           &account_id, userid, pass, lastlogin, &sex, &logincount, &state, &n)) >= 5) {
 			if (account_id > END_ACCOUNT_NUM) {
-				ShowError("\033[1;31mmmo_auth_init: an account has an id higher than %d\n", END_ACCOUNT_NUM);
-				ShowError("               account id #%d -> account not read (saved in log file).\033[0m\n", account_id);
+				ShowError(CL_RED"mmmo_auth_init: an account has an id higher than %d\n", END_ACCOUNT_NUM);
+				ShowError("               account id #%d -> account not read (saved in log file)."CL_RESET"\n", account_id);
 				login_log("mmmo_auth_init: ******Error: an account has an id higher than %d." RETCODE, END_ACCOUNT_NUM);
 				login_log("               account id #%d -> account not read (saved in next line):" RETCODE, account_id);
 				login_log("%s", line);
@@ -762,15 +762,15 @@ int mmo_auth_init(void) {
 			remove_control_chars((unsigned char *)userid);
 			for(j = 0; j < auth_num; j++) {
 				if (auth_dat[j].account_id == account_id) {
-					ShowError("\033[1;31mmmo_auth_init: an account has an identical id to another.\n");
-					ShowError("               account id #%d -> new account not read (saved in log file).\033[0m\n", account_id);
+					ShowError(CL_RED"mmo_auth_init: an account has an identical id to another.\n");
+					ShowError("               account id #%d -> new account not read (saved in log file)."CL_RESET"\n", account_id);
 					login_log("mmmo_auth_init: ******Error: an account has an identical id to another." RETCODE);
 					login_log("               account id #%d -> new account not read (saved in next line):" RETCODE, account_id);
 					login_log("%s", line);
 					break;
 				} else if (strcmp(auth_dat[j].userid, userid) == 0) {
-					ShowError("\033[1;31mmmo_auth_init: account name already exists.\n");
-					ShowError("               account name '%s' -> new account not read (saved in log file).\n", userid);
+					ShowError(CL_RED"mmo_auth_init: account name already exists.\n");
+					ShowError("               account name '%s' -> new account not read (saved in log file)."CL_RESET"\n", userid);
 					login_log("mmmo_auth_init: ******Error: an account has an identical id to another." RETCODE);
 					login_log("               account id #%d -> new account not read (saved in next line):" RETCODE, account_id);
 					login_log("%s", line);
@@ -3384,9 +3384,9 @@ int parse_console(char *buf) {
 		runflag = 0;
 	else if(strcmpi("alive", command) == 0 ||
 		strcmpi("status", command) == 0)
-		ShowInfo("\033[0;36mConsole: \033[0m\033[1mI'm Alive.\033[0m\n");
+		ShowInfo(CL_CYAN"Console: "CL_BOLD"I'm Alive."CL_RESET"\n");
 	else if(strcmpi("help", command) == 0) {
-		printf("\033[32mHelp of commands:\033[0m\n");
+		printf(CL_BOLD"Help of commands:"CL_RESET"\n");
 		printf("  To shutdown the server:\n");
 		printf("  'shutdown|exit|qui|end'\n");
 		printf("  To know if server is alive:\n");
@@ -3513,7 +3513,7 @@ int login_lan_config_read(const char *lancfgName) {
 		p[0] = a0; p[1] = a1; p[2] = a2; p[3] = a3;
 		ShowInfo("LAN test of LAN IP of the char-server: ");
 		if (lan_ip_check(p) == 0) {
-			ShowError("\033[1;31m LAN IP of the char-server doesn't belong to the specified Sub-network\033[0m\n");
+			ShowError(CL_RED" LAN IP of the char-server doesn't belong to the specified Sub-network"CL_RESET"\n");
 			login_log("***ERROR: LAN IP of the char-server doesn't belong to the specified Sub-network." RETCODE);
 		}
 	}

@@ -51,15 +51,14 @@ int inter_party_tosql(int party_id,struct party *p, int flag, int index)
 	// 'party' ('party_id','name','exp','item','leader_id','leader_char')
 	char t_name[NAME_LENGTH*2]; //Required for jstrescapecpy [Skotlex]
 	int party_exist = 0;
-#ifdef NOISY
-	ShowInfo("Save party request (\033[1;64m%d\033[0m).\n", party_id);
-#endif
-	jstrescapecpy(t_name, p->name);
-
 	if (p == NULL || party_id == 0 || p->party_id == 0 || party_id != p->party_id) {
-		ShowError("Party pointer or party_id error\n");
+		ShowError("Party pointer or party_id error (id: %d)\n", party_id);
 		return 0;
 	}
+#ifdef NOISY
+	ShowInfo("Save party request ("CL_BOLD"%d"CL_RESET" - %s).\n", party_id, p->name);
+#endif
+	jstrescapecpy(t_name, p->name);
 
 	if (flag&PS_BREAK) { //Break the party
 		// we'll skip name-checking and just reset everyone with the same party id [celest]
@@ -160,7 +159,7 @@ struct party *inter_party_fromsql(int party_id)
 	int leader_id = 0, leader_char = 0;
 	struct party *p;
 #ifdef NOISY
-	ShowInfo("Load party request (\033[1;64m%d\033[0m)\n", party_id);
+	ShowInfo("Load party request ("CL_BOLD"%d"CL_RESET")\n", party_id);
 #endif
 	if (party_id <=0)
 		return NULL;

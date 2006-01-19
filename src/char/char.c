@@ -596,14 +596,14 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p, struct global_reg *reg
 	// Some checks
 	for(i = 0; i < char_num; i++) {
 		if (char_dat[i].status.char_id == p->char_id) {
-			ShowError("\033[1;31mmmo_auth_init: a character has an identical id to another.\n");
+			ShowError(CL_RED"mmmo_auth_init: a character has an identical id to another.\n");
 			ShowError("               character id #%d -> new character not readed.\n", p->char_id);
-			ShowError("               Character saved in log file.\033[0m\n");
+			ShowError("               Character saved in log file."CL_RESET"\n");
 			return -1;
 		} else if (strcmp(char_dat[i].status.name, p->name) == 0) {
-			ShowError("\033[1;31mmmo_auth_init: a character name already exists.\n");
+			ShowError(CL_RED"mmmo_auth_init: a character name already exists.\n");
 			ShowError("               character name '%s' -> new character not read.\n", p->name);
-			ShowError("               Character saved in log file.\033[0m\n");
+			ShowError("               Character saved in log file."CL_RESET"\n");
 			return -2;
 		}
 	}
@@ -3010,7 +3010,7 @@ int lan_ip_check(unsigned char *p){
 			break;
 		}
 	}
-	ShowInfo("LAN test (result): %s source\033[0m.\n", (lancheck) ? "\033[1;36mLAN" : "\033[1;32mWAN");
+	ShowInfo("LAN test (result): %s source"CL_RESET".\n", (lancheck) ? CL_CYAN"LAN" : CL_GREEN"WAN");
 	return lancheck;
 }
 
@@ -3832,7 +3832,7 @@ int lan_config_read(const char *lancfgName) {
 		p[0] = a0; p[1] = a1; p[2] = a2; p[3] = a3;
 		ShowInfo("LAN test of LAN IP of the map-server...\n");
 		if (lan_ip_check(p) == 0) {
-			ShowError("\033[1;31m LAN IP of the map-server doesn't belong to the specified Sub-network.\033[0m\n");
+			ShowError(CL_RED" LAN IP of the map-server doesn't belong to the specified Sub-network."CL_RESET"\n");
 		}
 	}
 
@@ -4148,7 +4148,7 @@ int do_init(int argc, char **argv) {
 
 	char_log("The char-server is ready (Server is listening on the port %d)." RETCODE, char_port);
 
-	ShowStatus("The char-server is \033[1;32mready\033[0m (Server is listening on the port %d).\n\n", char_port);
+	ShowStatus("The char-server is "CL_GREEN"ready"CL_RESET" (Server is listening on the port %d).\n\n", char_port);
 
 	return 0;
 }

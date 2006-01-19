@@ -1861,7 +1861,7 @@ int login_lan_config_read(const char *lancfgName){
 		p[0] = a0; p[1] = a1; p[2] = a2; p[3] = a3;
 		ShowInfo("LAN test of LAN IP of the char-server:\n");
 		if (lan_ip_check(p) == 0) {
-			ShowError("\033[1;31m LAN IP of the char-server doesn't belong to the specified Sub-network\033[0m\n");
+			ShowError(CL_RED" LAN IP of the char-server doesn't belong to the specified Sub-network"CL_RESET"\n");
 		}
 	}
 
