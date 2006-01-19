@@ -7862,10 +7862,10 @@ int clif_disp_onlyself(struct map_session_data *sd, char *mes, int len)
 
 	nullpo_retr(0, sd);
 
-	buf = (unsigned char*)aCallocA(len + 4, sizeof(unsigned char));
+	buf = (unsigned char*)aCallocA(len + 5, sizeof(unsigned char));
 
 	WBUFW(buf, 0) = 0x17f;
-	WBUFW(buf, 2) = len + 4;
+	WBUFW(buf, 2) = len + 5;
 	memcpy(WBUFP(buf,4), mes, len);
 
 	clif_send(buf, WBUFW(buf,2), &sd->bl, SELF);

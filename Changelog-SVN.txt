@@ -1,6 +1,9 @@
 Date	Added
 
 2006/01/19
+	* Increased the size of the clif_disp_onlyself packet by one to see if it
+	  fixes the mysterious cropping of the last character in the message.
+	  [Skotlex]
 	* Now when use_statpoint_table is set to yes, it will be used to determine
 	  the stat points you earn on level up. [Skotlex]
 	* Small fixes as pointed out by FlavioJs in the login TXT server to prevent
