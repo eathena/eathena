@@ -4571,7 +4571,14 @@ int pc_checkbaselevelup(struct map_session_data *sd)
 		sd->status.base_level ++;
 		if (battle_config.pet_lv_rate && sd->pd)	//<Skotlex> update pet's level
 			status_calc_pet(sd,0);
-		sd->status.status_point += (sd->status.base_level+14) / 5 ;
+		if (battle_config.use_statpoint_table)
+		{	// Taken from pc_resetstate. [Skotlex]
+			int lv = sd->status.base_level;
+		  	if (lv >= MAX_LEVEL) lv = MAX_LEVEL - 1;
+			else if (lv < 1) lv = 1;
+			sd->status.status_point += statp[lv] - statp[lv-1];
+		} else //Estimated way.
+			sd->status.status_point += (sd->status.base_level+14) / 5 ;
 		clif_updatestatus(sd,SP_STATUSPOINT);
 		clif_updatestatus(sd,SP_BASELEVEL);
 		clif_updatestatus(sd,SP_NEXTBASEEXP);
