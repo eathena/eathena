@@ -1,6 +1,8 @@
 Date	Added
 
 2006/01/19
+	* Fixed players being able to send custom crafted mute requests that would
+	  go through regardless of their gm level and mute others. [Skotlex]
 	* Updated mapflags [Lupus]
 	* Modified the client_connect function in socket.c to allow different parse_functions to be called
 	  based on the listening socket.  After a make_listen_bind returns a listen fd, set that fd's

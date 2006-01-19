@@ -10811,7 +10811,9 @@ void clif_parse_GMReqNoChat(int fd,struct map_session_data *sd)
 		limit = 0 - limit;
 
 	//Temporarily disable chars from muting themselves due to the mysterious "DON'T USE BOT!" message. [Skotlex]
-	if (type == 2 && sd->bl.id == dstsd->bl.id)
+	//Also, if type is 2 and the ids don't match, this is a crafted hacked packet!
+	//So for now, type 2is just totally disabled.
+	if (type == 2/*&& sd->bl.id != dstsd->bl.id*/)
 		return;
 	
 	if (
