@@ -1,6 +1,8 @@
 Date	Added
 
 2006/01/19
+	* Small fixes as pointed out by FlavioJs in the login TXT server to prevent
+	  crashes in Win32 compiles. [Skotlex]
 	* Merged Marquis's implementation of Enjoyable Rest's earth scroll bonus.
 	  [Skotlex]
 	* Fixed players being able to send custom crafted mute requests that would

@@ -564,7 +564,7 @@ int mmo_auth_tostr(char *str, struct auth_dat *p) {
 	                 (p->sex == 2) ? 'S' : (p->sex ? 'M' : 'F'),
 	                 p->logincount, p->state,
 	                 p->email, p->error_message,
-	                 p->connect_until_time, p->last_ip, p->memo, p->ban_until_time);
+	                 (long)p->connect_until_time, p->last_ip, p->memo, (long)p->ban_until_time);
 
 	for(i = 0; i < p->account_reg2_num; i++)
 		if (p->account_reg2[i].str[0])
@@ -581,8 +581,8 @@ int mmo_auth_init(void) {
 	int account_id, logincount, state, n, i;
 	unsigned int j;
 	char line[2048], *p, userid[2048], pass[2048], lastlogin[2048], sex, email[2048], error_message[2048], last_ip[2048], memo[2048];
-	time_t ban_until_time;
-	time_t connect_until_time;
+	long ban_until_time;
+	long connect_until_time;
 	char str[2048];
 	char v[2048];
 	int GM_count = 0;
@@ -706,11 +706,11 @@ int mmo_auth_init(void) {
 			}
 
 			if (i == 13)
-				auth_dat[auth_num].ban_until_time = ban_until_time;
+				auth_dat[auth_num].ban_until_time = (time_t)ban_until_time;
 			else
 				auth_dat[auth_num].ban_until_time = 0;
 
-			auth_dat[auth_num].connect_until_time = connect_until_time;
+			auth_dat[auth_num].connect_until_time = (time_t)connect_until_time;
 
 			last_ip[15] = '\0';
 			remove_control_chars((unsigned char *)last_ip);
