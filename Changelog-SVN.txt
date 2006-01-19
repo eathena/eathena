@@ -1,6 +1,7 @@
 Date	Added
 
 2006/01/19
+	* Updated mapflags [Lupus]
 	* Modified the client_connect function in socket.c to allow different parse_functions to be called
 	  based on the listening socket.  After a make_listen_bind returns a listen fd, set that fd's
 	  func_parse member to whatever parse function to be used.  If this value is not manually set

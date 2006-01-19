@@ -2,7 +2,7 @@
 //= Map flags that disable warp portal memory
 //===== By: ==================================================
 //= eAthena Dev Team
-//= 1.5 added Yuno. [Lupus]
+//= 1.6 added up to Hugel maps. [Lupus]
 //===== Current Version: =====================================
 
 
@@ -76,6 +76,11 @@ lhz_cube.gat	mapflag	nomemo
 lhz_in01.gat	mapflag	nomemo
 lhz_in02.gat	mapflag	nomemo
 lhz_in03.gat	mapflag	nomemo
+hu_in01.gat	mapflag	nomemo
+auction_01.gat	mapflag	nomemo
+auction_02.gat	mapflag	nomemo
+p_track01.gat	mapflag	nomemo
+p_track02.gat	mapflag	nomemo
 
 // Job Quests ================
 // First Job Class
@@ -104,6 +109,8 @@ job_soul.gat	mapflag	nomemo
 // Special Quests Places =====
 que_god01.gat	mapflag	nomemo
 que_god02.gat	mapflag	nomemo
+que_bingo.gat	mapflag	nomemo
+que_hugel.gat	mapflag	nomemo
 
 // Dungeons =================
 alde_dun01.gat	mapflag	nomemo
@@ -269,6 +276,18 @@ thana_step.gat	mapflag	nomemo
 abyss_01.gat	mapflag	nomemo
 abyss_02.gat	mapflag	nomemo
 abyss_03.gat	mapflag	nomemo
+//Odin's Temple & Khiehl
+odin_tem01.gat	mapflag	nomemo
+odin_tem02.gat	mapflag	nomemo
+odin_tem03.gat	mapflag	nomemo
+kh_kiehl02.gat	mapflag	nomemo
+kh_kiehl01.gat	mapflag	nomemo
+kh_dun02.gat	mapflag	nomemo
+kh_dun01.gat	mapflag	nomemo
+kh_mansion.gat	mapflag	nomemo
+kh_rossi.gat	mapflag	nomemo
+kh_school.gat	mapflag	nomemo
+kh_vila.gat	mapflag	nomemo
 
 // Guild Castles =============
 //alde_gld.gat	mapflag	nomemo
@@ -299,11 +318,12 @@ gefg_cas02.gat	mapflag	nomemo
 gefg_cas03.gat	mapflag	nomemo
 gefg_cas04.gat	mapflag	nomemo
 gefg_cas05.gat	mapflag	nomemo
-//n_castle.gat	mapflag	nomemo
 nguild_alde.gat	mapflag	nomemo
 nguild_gef.gat	mapflag	nomemo
 nguild_pay.gat	mapflag	nomemo
 nguild_prt.gat	mapflag	nomemo
+//To Protect Novices Guilds from level abusers
+n_castle.gat	mapflag	nomemo
 
 // GvG Arenas ================
 guild_vs1.gat	mapflag	nomemo
