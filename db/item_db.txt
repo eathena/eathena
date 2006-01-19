@@ -2226,7 +2226,7 @@
 12017,Speed_Decreasing_Potion,Speed Potion,0,1000,,100,,,,,127918079,7,2,,,,,,{}
 12018,Fire_Cracker,Fire Cracker,2,250,,20,,,,,127918079,7,2,,,,,,{ misceffect(256); }
 12019,Sacred_Egg,Sacred Egg,2,,10,150,,,,,127918079,7,2,,,,,,{}
-12020,Cursed_Water,Cursed_Water,0,,1,30,,,,,127918079,7,2,,,,,,{ sc_start SC_ShadowWeapon, 1200000, 1; }
+12020,Cursed_Water,Cursed_Water,0,,1,30,,,,,127918079,7,2,,,,,,{ sc_start SC_SHADOWWEAPON, 1200000, 1; }
 12021,Fatback,Fatback,0,,10,10,,,,,127918079,7,2,,,,,,{ itemheal rand(70,99),0; }
 12022,Ribs,Ribs,0,,10,10,,,,,127918079,7,2,,,,,,{ itemheal rand(70,99),0; }
 12023,2nd_Anniversary_Giftbox,2nd Annual Commemoration Giftbox,2,,10,200,,,,,127918079,7,2,,,,,,{ getitem -4,1; }
@@ -2328,7 +2328,7 @@
 12114,Element_Converter_Fire,Fire Elemental Converter,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start SC_FIREWEAPON,180000,1; }
 12115,Element_Converter_Water,Water Elemental Converter,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start SC_WATERWEAPON,180000,1; }
 12116,Element_Converter_Earth,Earth Elemental Converter,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start SC_EARTHWEAPON,180000,1; }
-12117,Element_Converter_Wind,Wind Elemental Converter,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start SC_WINDWEAPONG,180000,1; }
+12117,Element_Converter_Wind,Wind Elemental Converter,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start SC_WINDWEAPON,180000,1; }
 // Elemental Resistance Potions
 12118,Resist_Fire_Potion,Resist Fire Potion,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start4 SC_ARMOR_ELEMENT,1200000,Ele_Fire,20,Ele_Water,-15; }
 12119,Resist_Water_Potion,Resist Water Potion,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start4 SC_ARMOR_ELEMENT,1200000,Ele_Water,20,Ele_Wind,-15; }
