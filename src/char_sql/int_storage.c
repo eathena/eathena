@@ -247,7 +247,8 @@ int mapif_load_guild_storage(int fd,int account_id,int guild_id)
 	//printf("- Check if guild %d exists\n",g->guild_id);
 	sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `guild_id`='%d'",guild_db, guild_id);
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
-		printf("DB server Error (delete `guild`)- %s\n", mysql_error(&mysql_handle) );
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 	}
 	sql_res = mysql_store_result(&mysql_handle) ;
 	if (sql_res!=NULL && mysql_num_rows(sql_res)>0) {
@@ -326,7 +327,8 @@ int mapif_parse_SaveGuildStorage(int fd)
 		//printf("- Check if guild %d exists\n",g->guild_id);
 		sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `guild_id`='%d'",guild_db, guild_id);
 		if(mysql_query(&mysql_handle, tmp_sql) ) {
-			printf("DB server Error (delete `guild`)- %s\n", mysql_error(&mysql_handle) );
+			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		}
 		sql_res = mysql_store_result(&mysql_handle) ;
 		if (sql_res!=NULL && mysql_num_rows(sql_res)>0) {

@@ -1223,7 +1223,8 @@ int mmo_char_sql_init(void) {
 	//Check for max id (in case new chars would get their IDs set below 150K) [Skotlex]
 	sprintf(tmp_sql , "SELECT max(`char_id`) FROM `%s`", char_db);
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		printf("DB server Error (Select max char_id) - %s\n", mysql_error(&mysql_handle));
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 	} else {
 		sql_res = mysql_store_result(&mysql_handle);
 		if (sql_res)
@@ -4201,36 +4202,28 @@ int do_init(int argc, char **argv){
 
 	//Cleaning the tables for NULL entrys @ startup [Sirius]
          //Chardb clean
-        	ShowInfo("Cleaning the '%s' table...", char_db);
+        	ShowInfo("Cleaning the '%s' table...\n", char_db);
          sprintf(tmp_sql,"DELETE FROM `%s` WHERE `account_id` = '0'", char_db);
          if(mysql_query(&mysql_handle, tmp_sql)){
-           //error on clean
-            printf(" fail.\n");
-         }else{
-            printf(" done.\n");
+				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
          }
 
          //guilddb clean
-         ShowInfo("Cleaning the '%s' table...", guild_db);
+         ShowInfo("Cleaning the '%s' table...\n", guild_db);
          sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_lv` = '0' AND `max_member` = '0' AND `exp` = '0' AND `next_exp` = '0' AND `average_lv` = '0'", guild_db);
          if(mysql_query(&mysql_handle, tmp_sql)){
-          //error on clean
-            printf(" fail.\n");
-         }else{
-            printf(" done.\n");
+				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
          }
 
          //guildmemberdb clean
-         ShowInfo("Cleaning the '%s' table...", guild_member_db);
+         ShowInfo("Cleaning the '%s' table...\n", guild_member_db);
          sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '0' AND `account_id` = '0' AND `char_id` = '0'", guild_member_db);
          if(mysql_query(&mysql_handle, tmp_sql)){
-          //error on clean
-            printf(" fail.\n");
-         }else{
-            printf(" done.\n");
-         }
-
-
+				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+			}
 
 	ShowInfo("End of char server initilization function.\n");
 	ShowStatus("The char-server is \033[1;32mready\033[0m (Server is listening on the port %d).\n\n", char_port);
