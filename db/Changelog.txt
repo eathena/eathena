@@ -26,6 +26,12 @@
 		* * * From where this info is? ... Mine: On your death you'll loose this ring and get 50% HP [Komurka]
 =========================
 
+01/19
+	* Updated db/const.txt to contain all SC_ effects as defined in status.h.
+	  Thanks to Ancyker. [Skotlex]
+	- Updated item_db.txt as a few SC_ have had their names changed.
+	- It may be necessary to remove a few entries which make no sense to add,
+	  but that can be done later.
 01/16
 	* Corrected Roundkick's knockback? [Vicious]
 01/14

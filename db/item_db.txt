@@ -139,9 +139,9 @@
 643,Pet_Incubator,Pet Incubator,2,3000,,30,,,,,127918079,7,2,,,,,,{ bpet; }
 644,Gift_Box,Gift Box,2,2,,200,,,,,127918079,7,2,,,,,,{ getitem -4,1; }
 // ASPD Potions
-645,Concentration_Potion,Concentration Potion,2,800,,100,,,,,127918079,7,2,,,,,,{ sc_start SC_SpeedPot0,1800000,0; }
-656,Awakening_Potion,Awakening Potion,2,1500,,150,,,,,126344943,7,2,,,40,,,{ sc_end SC_Sleep; sc_start SC_SpeedPot1,1800000,0; }
-657,Berserk_Potion,Berserk Potion,2,3000,,200,,,,,117851814,7,2,,,85,,,{ sc_start SC_SpeedPot2,1800000,0; }
+645,Concentration_Potion,Concentration Potion,2,800,,100,,,,,127918079,7,2,,,,,,{ sc_start SC_ASPDPOTION0,1800000,0; }
+656,Awakening_Potion,Awakening Potion,2,1500,,150,,,,,126344943,7,2,,,40,,,{ sc_end SC_Sleep; sc_start SC_ASPDPOTION1,1800000,0; }
+657,Berserk_Potion,Berserk Potion,2,3000,,200,,,,,117851814,7,2,,,85,,,{ sc_start SC_ASPDPOTION2,1800000,0; }
 658,Tribal_Solidarity,Tribal Solidarity,2,1000,,500,,,,,127918079,7,2,,,,,,{ guildgetexp rand(600000,1200000); }
 // New Pet Tames
 659,Her_Heart,Her Heart,11,500,,50,,,,,127918079,7,2,,,,,,{ pet 1188; }
@@ -165,7 +165,7 @@
 675,Silver_Coin,Silver Coin,2,,10,40,,,,,127918079,7,3,,,,,,{}
 676,Bag_of_Silver_Coins,Bag of Silver Coins,2,,10,400,,,,,127918079,7,3,,,,,,{}
 677,Platinum_Coin,Platinum Coin,2,,10,40,,,,,127918079,7,3,,,,,,{}
-678,Poison_Bottle,Poison Bottle,0,5000,,100,,,,,127918079,7,2,,,,,,{ if(Class!=4013) goto Not_ASC; sc_start SC_Poison,600000,0; sc_start SC_SpeedPot3,30000,0; end; Not_ASC: percentheal -100,0; }
+678,Poison_Bottle,Poison Bottle,0,5000,,100,,,,,127918079,7,2,,,,,,{ if(Class!=4013) goto Not_ASC; sc_start SC_Poison,600000,0; sc_start SC_ASPDPOTION3,30000,0; end; Not_ASC: percentheal -100,0; }
 679,Pilule,Pilule,0,5000,,300,,,,,127918079,7,3,,,,,,{ itemheal 50,50; }
 680,Magic_Carnation,Magic Carnation,2,,10,1000,,,,,127918079,7,3,,,,,,{ itemheal 25,0; }
 681,Sweet_Memory_of_Marriage,Sweet Memory of Marriage,2,50000,,10,,,,,127918079,7,3,,,,,,{}
@@ -2226,7 +2226,7 @@
 12017,Speed_Decreasing_Potion,Speed Potion,0,1000,,100,,,,,127918079,7,2,,,,,,{}
 12018,Fire_Cracker,Fire Cracker,2,250,,20,,,,,127918079,7,2,,,,,,{ misceffect(256); }
 12019,Sacred_Egg,Sacred Egg,2,,10,150,,,,,127918079,7,2,,,,,,{}
-12020,Cursed_Water,Cursed_Water,0,,1,30,,,,,127918079,7,2,,,,,,{ sc_start SC_Dark, 1200000, 1; }
+12020,Cursed_Water,Cursed_Water,0,,1,30,,,,,127918079,7,2,,,,,,{ sc_start SC_ShadowWeapon, 1200000, 1; }
 12021,Fatback,Fatback,0,,10,10,,,,,127918079,7,2,,,,,,{ itemheal rand(70,99),0; }
 12022,Ribs,Ribs,0,,10,10,,,,,127918079,7,2,,,,,,{ itemheal rand(70,99),0; }
 12023,2nd_Anniversary_Giftbox,2nd Annual Commemoration Giftbox,2,,10,200,,,,,127918079,7,2,,,,,,{ getitem -4,1; }
@@ -2237,8 +2237,8 @@
 12027,Giggling_Box,Giggling Box,2,,500,200,,,,,127918079,7,2,,,,,,{ percentheal 9,0; if(rand(100)<30) sc_start SC_Curse,30000,0; }
 12028,Lightning_Box,Lightning Box,2,,500,200,,,,,127918079,7,2,,,,,,{ sc_start SC_SpeedUp1,20000,0; }
 12029,Gloomy_Box,Gloomy Box,11,,500,200,,,,,127918079,7,2,,,,,,{ itemskill 45,1,"Improve Concentration"; }
-12030,Grudge_Box,Box of Grudge,2,,500,200,,,,,127918079,7,2,,,,,,{ sc_start SC_ATKPot,60000,20; }
-12031,Sleepy_Box,Sleepy Box,2,,500,200,,,,,127918079,7,2,,,,,,{ sc_start SC_MATKPot,60000,20; }
+12030,Grudge_Box,Box of Grudge,2,,500,200,,,,,127918079,7,2,,,,,,{ sc_start SC_ATKPOTION,60000,20; }
+12031,Sleepy_Box,Sleepy Box,2,,500,200,,,,,127918079,7,2,,,,,,{ sc_start SC_MATKPOTION,60000,20; }
 12032,Downpour_Box,Box of Heavy Rain,2,,500,200,,,,,127918079,7,2,,,,,,{ sc_start SC_Frost,180000,0; }
 12033,Sunshine_Box,Box of Sunshine,2,,500,200,,,,,127918079,7,2,,,,,,{ sc_start SC_Intravision,20000,0;}
 12034,Gasping_Box,Gasping Box,2,,500,200,,,,,127918079,7,2,,,,,,{ percentheal 0,9; if(rand(100)<30) sc_start SC_Silence,30000,0; }
@@ -2325,15 +2325,15 @@
 12112,Tropical_Sograt,Tropical Sograt,0,,500,100,,,,,127918079,7,2,,,,,,{ sc_start SC_Curse,10000,1; }
 12113,Vermilion_the_Beach,Vermilion the Beach,0,,500,100,,,,,127918079,7,2,,,,,,{ sc_start SC_Stan,10000,1; }
 // Elemental Converters
-12114,Element_Converter_Fire,Fire Elemental Converter,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start SC_Flame,180000,1; }
-12115,Element_Converter_Water,Water Elemental Converter,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start SC_Frost,180000,1; }
-12116,Element_Converter_Earth,Earth Elemental Converter,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start SC_Seismic,180000,1; }
-12117,Element_Converter_Wind,Wind Elemental Converter,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start SC_Lightning,180000,1; }
+12114,Element_Converter_Fire,Fire Elemental Converter,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start SC_FIREWEAPON,180000,1; }
+12115,Element_Converter_Water,Water Elemental Converter,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start SC_WATERWEAPON,180000,1; }
+12116,Element_Converter_Earth,Earth Elemental Converter,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start SC_EARTHWEAPON,180000,1; }
+12117,Element_Converter_Wind,Wind Elemental Converter,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start SC_WINDWEAPONG,180000,1; }
 // Elemental Resistance Potions
-12118,Resist_Fire_Potion,Resist Fire Potion,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start4 SC_EleDef,1200000,Ele_Fire,20,Ele_Water,-15; }
-12119,Resist_Water_Potion,Resist Water Potion,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start4 SC_EleDef,1200000,Ele_Water,20,Ele_Wind,-15; }
-12120,Resist_Earth_Potion,Resist Earth Potion,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start4 SC_EleDef,1200000,Ele_Earth,20,Ele_Fire,-15; }
-12121,Resist_Wind_Potion,Resist Wind Potion,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start4 SC_EleDef,1200000,Ele_Wind,20,Ele_Earth,-15; }
+12118,Resist_Fire_Potion,Resist Fire Potion,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start4 SC_ARMOR_ELEMENT,1200000,Ele_Fire,20,Ele_Water,-15; }
+12119,Resist_Water_Potion,Resist Water Potion,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start4 SC_ARMOR_ELEMENT,1200000,Ele_Water,20,Ele_Wind,-15; }
+12120,Resist_Earth_Potion,Resist Earth Potion,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start4 SC_ARMOR_ELEMENT,1200000,Ele_Earth,20,Ele_Fire,-15; }
+12121,Resist_Wind_Potion,Resist Wind Potion,2,,10,10,,,,,127918079,7,2,,,,,,{ sc_start4 SC_ARMOR_ELEMENT,1200000,Ele_Wind,20,Ele_Earth,-15; }
 12122,Dasik,Dasik,0,,1,70,,,,,127918079,7,2,,,,,,{ sc_start SC_HitFood,1200000,30; }
 12123,Oil_and_Honey_Pastry,Oil and Honey Pastry,0,,10,70,,,,,127918079,7,2,,,,,,{ sc_start SC_FleeFood,1200000,30; }
 12124,Various_colored_Rice_Cake,Rainbow colord Rice Cake,0,,10,70,,,,,127918079,7,2,,,,,,{ sc_start SC_BATKFood,1200000,10; sc_start SC_MATKFood,120000,10; }
