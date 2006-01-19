@@ -276,7 +276,9 @@ int SkillStatusChangeTable[]={
 	-1,
 /* 420- */
 	SC_DODGE,
-	-1,-1,-1,-1,-1,-1,-1,
+	-1,-1,
+	SC_TKDORI,
+	-1,-1,-1,-1,
 	SC_WARM,
 	SC_WARM,
 /* 430- */
@@ -4563,6 +4565,9 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 //			*opt3 |= 8192; //We haven't figured out this value yet...
 			opt_flag = 1;
 			calc_flag = 1;
+			break;
+		case SC_TKDORI:
+			val2 = 11-val1; //Chance to consume: 11-skilllv%
 			break;
 		case SC_CONCENTRATE:		/* 集中力向上 */
 		case SC_BLESSING:			/* ブレッシング */

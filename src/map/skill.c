@@ -7950,7 +7950,11 @@ int skill_check_condition(struct map_session_data *sd,int type)
 			}
 			//Consume
 			sd->itemid = sd->itemindex = -1;
-			pc_delitem(sd,i,1,0);
+			if(sd->skillid == WZ_EARTHSPIKE 
+				&& sd->sc_data[SC_TKDORI].timer != -1 && rand()%100 > sd->sc_data[SC_TKDORI].val2) // [marquis007]
+				; //Do not consume item.
+			else
+				pc_delitem(sd,i,1,0);
 		}
 		if (type&1) //Casting finished
 			sd->skillitem = sd->skillitemlv = -1;

@@ -1,6 +1,8 @@
 Date	Added
 
 2006/01/19
+	* Merged Marquis's implementation of Enjoyable Rest's earth scroll bonus.
+	  [Skotlex]
 	* Fixed players being able to send custom crafted mute requests that would
 	  go through regardless of their gm level and mute others. [Skotlex]
 	* Updated mapflags [Lupus]

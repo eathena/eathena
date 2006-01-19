@@ -11017,9 +11017,11 @@ void clif_parse_PMIgnoreList(int fd,struct map_session_data *sd)
  *------------------------------------------
  */
 void clif_parse_NoviceDoriDori(int fd, struct map_session_data *sd) {
-	if (sd)
-		sd->doridori_counter = 1;
-	ShowDebug("clif_parse_NoviceDoriDori : sd->doridori_counter = %d\n",sd->doridori_counter);
+	int level;
+	sd->doridori_counter = 1;
+	if ((sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON
+		&& sd->state.rest && (level = pc_checkskill(sd,TK_SPTIME)))
+		status_change_start(&sd->bl,SkillStatusChangeTable[TK_SPTIME],level,0,0,0,skill_get_time(TK_SPTIME, level),0);
 	return;
 }
 /*==========================================
