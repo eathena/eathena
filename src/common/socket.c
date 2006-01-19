@@ -338,7 +338,10 @@ static int connect_client(int listen_fd)
 	session[fd]->max_wdata   = (int)wfifo_size;
 	session[fd]->func_recv   = recv_to_fifo;
 	session[fd]->func_send   = send_from_fifo;
-	session[fd]->func_parse  = default_func_parse;
+	if(!session[listen_fd]->func_parse)
+		session[fd]->func_parse = default_func_parse;
+	else
+		session[fd]->func_parse = session[listen_fd]->func_parse;
 	session[fd]->client_addr = client_address;
 	session[fd]->rdata_tick  = last_tick;
 	session[fd]->type        = SESSION_UNKNOWN;	// undefined type

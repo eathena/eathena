@@ -1,6 +1,11 @@
 Date	Added
 
 2006/01/19
+	* Modified the client_connect function in socket.c to allow different parse_functions to be called
+	  based on the listening socket.  After a make_listen_bind returns a listen fd, set that fd's
+	  func_parse member to whatever parse function to be used.  If this value is not manually set
+	  it will just use the default_func_parse function.  This only affects server listening sockets
+	  in which the func_parse member isn't even used. [Valaris]
 	* gvg_traps_target_all now also affects traps in pvp maps. [Skotlex]
 	* All reflected damage has now a chance to auto-cast spells. [Skotlex]
 	* Fixed Casting ground spells from within basilica. [Skotlex]
