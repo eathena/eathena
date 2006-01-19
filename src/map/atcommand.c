@@ -9927,6 +9927,23 @@ int atcommand_clone(
 		return 0;
 	}
 
+	if(pc_isGM(pl_sd) > pc_isGM(sd)) {
+		clif_displaymessage(fd, "Cannot clone a player of higher GM level than yourself.");
+		return 0;
+	}
+		
+	if (strcmpi(command, "@clone") == 0) 
+		flag = 1;
+	else if (strcmpi(command, "@slaveclone") == 0) {
+	  	flag = 2;
+		master = sd->bl.id;
+		if (battle_config.atc_slave_clone_limit
+			&& mob_countslave(&sd->bl) >= battle_config.atc_slave_clone_limit) {
+			clif_displaymessage(fd, "You've reached your slave clones limit.");
+			return 0;
+		}
+	}
+	
 	do {
 		x = sd->bl.x + (rand() % 10 - 5);
 		y = sd->bl.y + (rand() % 10 - 5);
@@ -9937,13 +9954,7 @@ int atcommand_clone(
 		y = sd->bl.y;
 	}
 
-	if (strcmpi(command, "@clone") == 0) 
-		flag = 1;
-	else if (strcmpi(command, "@slaveclone") == 0) {
-	  	flag = 2;
-		master = sd->bl.id;
-	}
-			
+		
 	if((x = mob_clone_spawn(pl_sd, (char*)mapindex_id2name(sd->mapindex), x, y, "", master, 0, flag?1:0, 0)) > 0) {
 		clif_displaymessage(fd, msg_txt(126+flag*2));
 		return 0;

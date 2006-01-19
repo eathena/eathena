@@ -3537,6 +3537,7 @@ static const struct battle_data_short {
 	{ "monster_max_aspd",                  &battle_config.monster_max_aspd			},
 	{ "atcommand_gm_only",                 &battle_config.atc_gmonly				},
 	{ "atcommand_spawn_quantity_limit",    &battle_config.atc_spawn_quantity_limit	},
+	{ "atcommand_slave_clone_limit",       &battle_config.atc_slave_clone_limit},
 	{ "gm_all_skill",                      &battle_config.gm_allskill				},
 	{ "gm_all_skill_add_abra",	            &battle_config.gm_allskill_addabra		},
 	{ "gm_all_equipment",                  &battle_config.gm_allequip				},
@@ -3906,6 +3907,8 @@ void battle_set_defaults() {
 	battle_config.monster_hp_rate=100;
 	battle_config.monster_max_aspd=199;
 	battle_config.atc_gmonly=0;
+	battle_config.atc_spawn_quantity_limit=0;
+	battle_config.atc_slave_clone_limit=0;
 	battle_config.gm_allskill=0;
 	battle_config.gm_allequip=0;
 	battle_config.gm_skilluncond=0;

@@ -3076,13 +3076,10 @@ int mob_countslave_sub(struct block_list *bl,va_list ap)
  * ‰æ–Ê“à‚ÌŽæ‚èŠª‚«‚Ì”ŒvŽZ
  *------------------------------------------
  */
-int mob_countslave(struct mob_data *md)
+int mob_countslave(struct block_list *bl)
 {
 	int c=0;
-
-	nullpo_retr(0, md);
-
-	map_foreachinmap(mob_countslave_sub, md->bl.m, BL_MOB,md->bl.id,&c);
+	map_foreachinmap(mob_countslave_sub, bl->m, BL_MOB,bl->id,&c);
 	return c;
 }
 /*==========================================
@@ -3716,11 +3713,11 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 				case MSC_FRIENDSTATUSOFF:	// friend status[num] off
 					flag = ((fmd = mob_getfriendstatus(md, ms[i].cond1, ms[i].cond2)) != NULL); break;					
 				case MSC_SLAVELT:		// slave < num
-					flag = (mob_countslave(md) < c2 ); break;
+					flag = (mob_countslave(&md->bl) < c2 ); break;
 				case MSC_ATTACKPCGT:	// attack pc > num
 					flag = (battle_counttargeted(&md->bl, NULL, 0) > c2); break;
 				case MSC_SLAVELE:		// slave <= num
-					flag = (mob_countslave(md) <= c2 ); break;
+					flag = (mob_countslave(&md->bl) <= c2 ); break;
 				case MSC_ATTACKPCGE:	// attack pc >= num
 					flag = (battle_counttargeted(&md->bl, NULL, 0) >= c2); break;
 				case MSC_AFTERSKILL:

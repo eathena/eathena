@@ -1,6 +1,10 @@
 Date	Added
 
 2006/01/19
+	* Added config option atc_slave_clone_limit to limit the amount of
+	  @slaveclone's a player can have. [Skotlex]
+	* The clone commands now fail when used on someone of higher GM level than
+	  the caster. [Skotlex]
 	* Increased the size of the clif_disp_onlyself packet by one to see if it
 	  fixes the mysterious cropping of the last character in the message.
 	  [Skotlex]
