@@ -25,6 +25,8 @@ Nexon
 
 Date		Added
 ======
+01/20
+	* Fixed minor typo in alde guide. [Kayla]
 01/18
 	* Episode X.4 replacement, done by Poki#3 [Vicious]
 	* Part 1 of Hugel monster replacement, done by Poki#3 [Vicious]

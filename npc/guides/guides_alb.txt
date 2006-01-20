@@ -48,7 +48,7 @@ L_CONT:
 L_MENU_2:
 	menu "^FF0000Merchant Guild^000000",L_MERCHANT,"Weapon Shop",L_WEAPON,"Tool Shop",L_TOOL,"Inn",L_INN,"Forge",L_FORGE,"Cancel",-;
 	mes "[Alberta Guide]";
- 	mes "Pleas ask me to Remove";
+ 	mes "Please ask me to Remove";
  	mes "Marks from Mini-Map if you";
  	mes "no longer wish to have the";
  	mes "location marks displayed";
