@@ -1292,7 +1292,10 @@ static void *db_get(DBInterface dbi, DBKey key)
 	if (stats.db_get != (unsigned int)~0) stats.db_get++;
 #endif /* DB_ENABLE_STATS */
 	if (db == NULL) return NULL; // nullpo candidate
-	if (!(db->options&DB_OPT_ALLOW_NULL_KEY) && db_is_key_null(db->type, key)) return NULL; // nullpo candidate
+	if (!(db->options&DB_OPT_ALLOW_NULL_KEY) && db_is_key_null(db->type, key)) {
+		ShowError("db_get: Attempted to retrieve non-allowed NULL key for db allocated at %s:%d\n",db->alloc_file, db->alloc_line);
+		return NULL; // nullpo candidate
+	}
 
 	db_free_lock(db);
 	node = db->ht[db->hash(key, db->maxlen)%HASH_SIZE];
@@ -1440,8 +1443,14 @@ static void *db_vensure(DBInterface dbi, DBKey key, DBCreateData create, va_list
 	if (stats.db_vensure != (unsigned int)~0) stats.db_vensure++;
 #endif /* DB_ENABLE_STATS */
 	if (db == NULL) return NULL; // nullpo candidate
-	if (create == NULL) return NULL; // nullpo candidate
-	if (!(db->options&DB_OPT_ALLOW_NULL_KEY) && db_is_key_null(db->type, key)) return NULL; // nullpo candidate
+	if (create == NULL) {
+		ShowError("db_ensure: Create function is NULL for db allocated at %s:%d\n",db->alloc_file, db->alloc_line);
+		return NULL; // nullpo candidate
+	}
+	if (!(db->options&DB_OPT_ALLOW_NULL_KEY) && db_is_key_null(db->type, key)) {
+		ShowError("db_ensure: Attempted to use non-allowed NULL key for db allocated at %s:%d\n",db->alloc_file, db->alloc_line);
+		return NULL; // nullpo candidate
+	}
 
 	db_free_lock(db);
 	hash = db->hash(key, db->maxlen)%HASH_SIZE;
@@ -1567,8 +1576,14 @@ static void *db_put(DBInterface dbi, DBKey key, void *data)
 				db->alloc_file, db->alloc_line);
 		return NULL; // nullpo candidate
 	}
-	if (!(db->options&DB_OPT_ALLOW_NULL_KEY) && db_is_key_null(db->type, key)) return NULL; // nullpo candidate
-	if (!(data || db->options&DB_OPT_ALLOW_NULL_DATA)) return NULL; // nullpo candidate
+	if (!(db->options&DB_OPT_ALLOW_NULL_KEY) && db_is_key_null(db->type, key)) {
+		ShowError("db_put: Attempted to use non-allowed NULL key for db allocated at %s:%d\n",db->alloc_file, db->alloc_line);
+	  	return NULL; // nullpo candidate
+	}
+	if (!(data || db->options&DB_OPT_ALLOW_NULL_DATA)) {
+		ShowError("db_put: Attempted to use non-allowed NULL data for db allocated at %s:%d\n",db->alloc_file, db->alloc_line);
+		return NULL; // nullpo candidate
+	}
 
 	if (db->item_count == (unsigned int)~0) {
 		ShowError("db_put: item_count overflow, aborting item insertion.\n"
@@ -1665,7 +1680,10 @@ static void *db_remove(DBInterface dbi, DBKey key)
 				db->alloc_file, db->alloc_line);
 		return NULL; // nullpo candidate
 	}
-	if (!(db->options&DB_OPT_ALLOW_NULL_KEY) && db_is_key_null(db->type, key))	return NULL; // nullpo candidate
+	if (!(db->options&DB_OPT_ALLOW_NULL_KEY) && db_is_key_null(db->type, key))	{
+		ShowError("db_remove: Attempted to use non-allowed NULL key for db allocated at %s:%d\n",db->alloc_file, db->alloc_line);
+		return NULL; // nullpo candidate
+	}
 
 	db_free_lock(db);
 	hash = db->hash(key, db->maxlen)%HASH_SIZE;
@@ -1712,7 +1730,10 @@ static int db_vforeach(DBInterface dbi, DBApply func, va_list args)
 	if (stats.db_vforeach != (unsigned int)~0) stats.db_vforeach++;
 #endif /* DB_ENABLE_STATS */
 	if (db == NULL) return 0; // nullpo candidate
-	if (func == NULL) return 0; // nullpo candidate
+	if (func == NULL) {
+		ShowError("db_foreach: Passed function is NULL for db allocated at %s:%d\n",db->alloc_file, db->alloc_line);
+		return 0; // nullpo candidate
+	}
 
 	db_free_lock(db);
 	for (i = 0; i < HASH_SIZE; i++) {
