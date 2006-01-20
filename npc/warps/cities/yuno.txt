@@ -4,7 +4,7 @@
 //= Nana (1.0)
 //= Sara-chan (1.1)
 //===== Current Version: =====================================
-//= 1.2
+//= 1.3
 //===== Compatible With: =====================================
 //= Any Athena Version; RO Episode 5+
 //===== Description: =========================================
@@ -12,6 +12,7 @@
 //===== Additional Comments: =================================
 //= 1.1 - Added Yuno Airport warps
 //= 1.2 Moved all airports to Airplane Warps [Lupus]
+//= 1.3 Dr.Evil's yuno_05 warps update [Lupus]
 //============================================================
 
 //= Yuno City ================================================
@@ -74,21 +75,122 @@ yuno_in03.gat,223,167,0	warp	yun55	1,1,yuno_in03.gat,96,54
 yuno_in03.gat,96,58,0	warp	yun56	1,1,yuno_in03.gat,223,170
 yuno.gat,87,321,0	warp	yun57	1,1,yuno_in02.gat,168,61
 yuno_in02.gat,172,61,0	warp	yun58	1,1,yuno.gat,90,321
-yuno_in02.gat,82,14,0	warp	yun59	1,1,yuno_in05.gat,192,194
-yuno_in05.gat,196,194,0	warp	yun60	1,1,yuno_in02.gat,85,14
-yuno_in05.gat,153,142,0	warp	yun61	1,1,yuno_in05.gat,145,83
-yuno_in05.gat,148,83,0	warp	yun62	1,1,yuno_in05.gat,156,142
-yuno_in05.gat,137,71,0	warp	yun63	1,1,yuno_in05.gat,15,185
-yuno_in05.gat,16,188,0	warp	yun64	1,1,yuno_in05.gat,137,74
-yuno_in05.gat,181,91,0	warp	yun65	1,1,yuno_in05.gat,177,49
-yuno_in05.gat,177,52,0	warp	yun66	1,1,yuno_in05.gat,181,94
-yuno_in05.gat,177,9,0	warp	yun67	1,1,yuno_in05.gat,177,49
-yuno_in05.gat,165,103,0	warp	yun68	1,1,yuno_in05.gat,145,83
-yuno_in05.gat,125,83,0	warp	yun69	1,1,yuno_in05.gat,193,102
-yuno_in05.gat,181,116,0	warp	yun70	1,1,yuno_in05.gat,177,12
-yuno_in05.gat,47,185,0	warp	yun71	1,1,yuno_in05.gat,181,94
-yuno_in05.gat,31,167,0	warp	yun72	1,1,yuno_in05.gat,50,85
-yuno_in05.gat,50,87,0	warp	yun73	1,1,yuno_in02.gat,85,14
-yuno_in01.gat,88,36,0	warp	yun74	1,1,yuno_in01.gat,173,34
-yuno_in01.gat,176,34,0	warp	yun75	1,1,yuno_in01.gat,91,36
-yuno_in05.gat,197,102,0	warp	yun76	1,1,yuno_in05.gat,168,103
+yuno_in01.gat,88,36,0	warp	yun59	1,1,yuno_in01.gat,173,34
+yuno_in01.gat,176,34,0	warp	yun60	1,1,yuno_in01.gat,91,36
+yuno_in02.gat,82,14,0	warp	yun61	1,1,yuno_in05.gat,192,194
+yuno_in05.gat,196,194,0	warp	yun62	1,1,yuno_in02.gat,85,14
+// Yuno In05 (Entering Random Warps) -------------------------------------------
+yuno_in05.gat,153,141,0	script	#yun63	45,1,1,{
+	set @warp0,rand(2);
+	if(@warp0==0) goto w1;
+	if(@warp0==1) goto w2;
+w1:	warp "yuno_in05",192,102; end;
+w2:	warp "yuno_in05",145,82;  end;
+}
+// Yuno In05 (Random Warps - Cross Shaped) -------------------------------------
+yuno_in05.gat,196,102,0	script	#yun64	45,1,1,{
+	set @warp0,rand(3);
+	if(@warp0==0) goto w1;
+	if(@warp0==1) goto w2;
+	if(@warp0==2) goto w3;
+w1:	warp "yuno_in05",169,102; end;
+w2:	warp "yuno_in05",128,82;  end;
+w3:	warp "yuno_in05",156,141; end;
+}
+yuno_in05.gat,181,116,0	script	#yun65	45,1,1,{
+	set @warp0,rand(3);
+	if(@warp0==0) goto w1;
+	if(@warp0==1) goto w2;
+	if(@warp0==2) goto w3;
+w1:	warp "yuno_in05",181,94; end;
+w2:	warp "yuno_in05",176,13; end;
+w3:	warp "yuno_in05",136,75; end;
+}
+yuno_in05.gat,165,102,0	script	#yun66	45,1,1,{
+	set @warp0,rand(2);
+	if(@warp0==0) goto w1;
+	if(@warp0==1) goto w2;
+w1:	warp "yuno_in05",192,102; end;
+w2:	warp "yuno_in05",145,82;  end;
+}
+yuno_in05.gat,181,91,0	script	#yun67	45,1,1,{
+	set @warp0,rand(2);
+	if(@warp0==0) goto w1;
+	if(@warp0==1) goto w2;
+w1:	warp "yuno_in05",181,112; end;
+w2:	warp "yuno_in05",176,48;  end;
+}
+// Yuno In05 (Random Warps - T-Shaped) -----------------------------------------
+yuno_in05.gat,148,82,0	script	#yun68	45,1,1,{
+	set @warp0,rand(3);
+	if(@warp0==0) goto w1;
+	if(@warp0==1) goto w2;
+	if(@warp0==2) goto w3;
+w1:	warp "yuno_in05",169,102; end;
+w2:	warp "yuno_in05",128,82;  end;
+w3:	warp "yuno_in05",156,141; end;
+}
+yuno_in05.gat,125,82,0	script	#yun69	45,1,1,{
+	set @warp0,rand(2);
+	if(@warp0==0) goto w1;
+	if(@warp0==1) goto w2;
+w1:	warp "yuno_in05",192,102; end;
+w2:	warp "yuno_in05",145,82;  end;
+}
+yuno_in05.gat,136,71,0	script	#yun70	45,1,1,{
+	set @warp0,rand(3);
+	if(@warp0==0) goto w1;
+	if(@warp0==1) goto w2;
+	if(@warp0==2) goto w3;
+w1:	warp "yuno_in05",181,112; end;
+w2:	warp "yuno_in05",16,185;  end;
+w3:	warp "yuno_in05",176,48;  end;
+}
+// Yuno In05 (Random Warps - Other) --------------------------------------------
+yuno_in05.gat,16,188,0	script	#yun71	45,1,1,{
+	set @warp0,rand(3);
+	if(@warp0==0) goto w1;
+	if(@warp0==1) goto w2;
+	if(@warp0==2) goto w3;
+w1:	warp "yuno_in05",181,94; end;
+w2:	warp "yuno_in05",176,13; end;
+w3:	warp "yuno_in05",136,75; end;
+}
+yuno_in05.gat,176,9,0	script	#yun72	45,1,1,{
+	set @warp0,rand(2);
+	if(@warp0==0) goto w1;
+	if(@warp0==1) goto w2;
+w1:	warp "yuno_in05",181,112; end;
+w2:	warp "yuno_in05",176,48;  end;
+}
+yuno_in05.gat,176,52,0	script	#yun73	45,1,1,{
+	set @warp0,rand(3);
+	if(@warp0==0) goto w1;
+	if(@warp0==1) goto w2;
+	if(@warp0==2) goto w3;
+w1:	warp "yuno_in05",181,94; end;
+w2:	warp "yuno_in05",176,13; end;
+w3:	warp "yuno_in05",136,75; end;
+}
+// Yuno In05 (Destination - Room) ----------------------------------------------
+yuno_in05.gat,40,178,0	script	#yun74	45,1,1,{
+	set @warp0,rand(3);
+	if(@warp0==0) goto w1;
+	if(@warp0==1) goto w2;
+	if(@warp0==2) goto w3;
+w1:	warp "yuno_in05",181,94; end;
+w2:	warp "yuno_in05",176,13; end;
+w3:	warp "yuno_in05",136,75; end;
+}
+yuno_in05.gat,47,186,0	script	#yun75	45,1,1,{
+	set @warp0,rand(3);
+	if(@warp0==0) goto w1;
+	if(@warp0==1) goto w2;
+	if(@warp0==2) goto w3;
+w1:	warp "yuno_in05",181,94; end;
+w2:	warp "yuno_in05",176,13; end;
+w3:	warp "yuno_in05",136,75; end;
+}
+// Yuno In05 (Destination - Escaped Random Warps) ------------------------------
+yuno_in05.gat,31,167,0	warp	yun76	1,1,yuno_in05.gat,50,85
+yuno_in05.gat,50,88,0	warp	yun77	1,1,yuno_in02.gat,85,14
