@@ -3301,7 +3301,7 @@ int parse_char(int fd) {
 			WFIFOSET(map_fd, WFIFOW(map_fd,2));
 
 			set_char_online(i, cd->char_id, cd->account_id);
-			//Checks to see if the even share setting of the party must be broken.
+			//Sets char online in the party and breaks even share if needed.
 			inter_party_logged(cd->party_id, cd->account_id, cd->char_id);
 
 			auth_fifo_pos++;

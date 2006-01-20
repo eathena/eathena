@@ -1,5 +1,8 @@
 Date	Added
 
+2006/01/20
+	* Likely fixed Even-Share parties not breaking up when a character with
+	  too high/low level rejoins in char-TXT servers. [Skotlex]
 2006/01/19
 	* Added config option atc_slave_clone_limit to limit the amount of
 	  @slaveclone's a player can have. [Skotlex]

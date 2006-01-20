@@ -333,15 +333,20 @@ int mapif_party_optionchanged(int fd,struct party *p, int account_id, int flag) 
 int inter_party_logged(int party_id, int account_id, int char_id)
 {
 	struct party *p;
+	int i;
 	if (!party_id)
 		return 0;
 
 	p = idb_get(party_db, party_id);
-	if(p==NULL){
+	if(p==NULL)
 		return 0;
-	}
-
-	if(p->party_id && p->exp == 1 && !party_check_exp_share(p))
+	for (i = 0; i < MAX_PARTY; i++) 
+		if (p->member[i].account_id == account_id && p->member[i].char_id == char_id)
+	  	{
+			p->member[i].online = 1;
+			break;
+		}
+	if(p->exp && !party_check_exp_share(p))
 	{
 		p->exp=0;
 		mapif_party_optionchanged(0,p,0,0);

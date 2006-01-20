@@ -464,7 +464,7 @@ int inter_party_logged(int party_id, int account_id, int char_id)
 			break;
 		}
 	
-	if(p->exp == 1 && !party_check_exp_share(p))
+	if(p->exp && !party_check_exp_share(p))
 	{
 		p->exp=0;
 		mapif_party_optionchanged(0,p,0,0);
