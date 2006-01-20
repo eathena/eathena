@@ -1994,8 +1994,10 @@ static struct Damage battle_calc_weapon_attack(
 				short t_class = status_get_class(target);
 				for (i = 0; i < 2; i++)
 				{
-					if (t_class == sd->hate_mob[i] && pc_checkskill(sd,type[i])>0) {
-						ATK_ADDRATE((sd->status.base_level + i==2?status_get_str(src):0 + status_get_dex(src)+ status_get_luk(src))/(12-3*pc_checkskill(sd,type[i])));
+					if (t_class == sd->hate_mob[i] && (skill = pc_checkskill(sd,type[i])))
+					{
+						skillratio = (sd->status.base_level + (i==2?status_get_str(src):0) + status_get_dex(src)+ status_get_luk(src))/(skill<4?12-3*skill:1);
+						ATK_ADDRATE(skillratio);
 						break;
 					}
 				}

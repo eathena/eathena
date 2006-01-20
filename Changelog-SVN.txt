@@ -1,6 +1,8 @@
 Date	Added
 
 2006/01/20
+	* Cleaned up code of SG_HATE, may fix the skill seemingly not working.
+	  [Skotlex]
 	* Likely fixed Even-Share parties not breaking up when a character with
 	  too high/low level rejoins in char-TXT servers. [Skotlex]
 2006/01/19
