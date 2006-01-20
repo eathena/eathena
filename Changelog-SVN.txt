@@ -1,6 +1,10 @@
 Date	Added
 
 2006/01/20
+	* Fixed clone script command's duration being in ms rather than seconds.
+	  [Skotlex]
+	* Taekwon Ready Stances combo time is now 2000 - 4*agi -2*dex ms instead of
+	  a flat 2 secs (same reduction that Monk combos get) [Skotlex]
 	* Cleaned up code of SG_HATE, may fix the skill seemingly not working.
 	  [Skotlex]
 	* Likely fixed Even-Share parties not breaking up when a character with

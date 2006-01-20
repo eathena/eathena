@@ -859,21 +859,26 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 					clif_skill_fail(sd,skillid,0,0);
 			}
 			// Chance to trigger Taekwon kicks [Dralnu]
-			if(sd->sc_data[SC_READYSTORM].timer != -1 && sd->sc_data[SC_COMBO].timer == -1 && rand()%100 < 15) 
-				status_change_start(src,SC_COMBO, TK_STORMKICK,0,0,0,2000,0);
-			else if(sd->sc_data[SC_READYDOWN].timer != -1 && sd->sc_data[SC_COMBO].timer == -1 && rand()%100 < 15)
-				status_change_start(src,SC_COMBO, TK_DOWNKICK,0,0,0,2000,0);
-			else if(sd->sc_data[SC_READYTURN].timer != -1 && sd->sc_data[SC_COMBO].timer == -1 && rand()%100 < 15)
-				status_change_start(src,SC_COMBO, TK_TURNKICK,0,0,0,2000,0);
-			else if(sd->sc_data[SC_READYCOUNTER].timer != -1 && sd->sc_data[SC_COMBO].timer == -1) //additional chance from SG_FRIEND [Komurka]
+			if(sd->sc_data[SC_READYSTORM].timer != -1 && sd->sc_data[SC_COMBO].timer == -1 && rand()%100 < 15) {
+				rate = 2000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src);
+				status_change_start(src,SC_COMBO, TK_STORMKICK,0,0,0,rate,0);
+			} else if(sd->sc_data[SC_READYDOWN].timer != -1 && sd->sc_data[SC_COMBO].timer == -1 && rand()%100 < 15) {
+				rate = 2000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src);
+				status_change_start(src,SC_COMBO, TK_DOWNKICK,0,0,0,rate,0);
+			} else if(sd->sc_data[SC_READYTURN].timer != -1 && sd->sc_data[SC_COMBO].timer == -1 && rand()%100 < 15) {
+				rate = 2000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src);
+				status_change_start(src,SC_COMBO, TK_TURNKICK,0,0,0,rate,0);
+			} else if(sd->sc_data[SC_READYCOUNTER].timer != -1 && sd->sc_data[SC_COMBO].timer == -1) //additional chance from SG_FRIEND [Komurka]
 			{	
 				rate = 20;
 				if (sd->sc_data[SC_SKILLRATE_UP].timer != -1 && sd->sc_data[SC_SKILLRATE_UP].val1 == TK_COUNTER) {
 					rate += rate*sd->sc_data[SC_SKILLRATE_UP].val2/100;
 					status_change_end(src,SC_SKILLRATE_UP,-1);
 				} 
-				if (rand()%100 < rate)
-				  status_change_start(src,SC_COMBO, TK_COUNTER,bl->id,0,0,2000,0);
+				if (rand()%100 < rate) {
+					rate = 2000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src);
+					status_change_start(src,SC_COMBO, TK_COUNTER,bl->id,0,0,rate,0);
+				}
 			}
 		}
 		

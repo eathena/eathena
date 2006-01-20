@@ -5508,7 +5508,7 @@ int buildin_clone(struct script_state *st) {
 			master_id = 0;
 	}
 	if (sd) //Return ID of newly crafted clone.
-		push_val(st->stack,C_INT,mob_clone_spawn(sd, map, x, y, event, master_id, mode, flag, duration));
+		push_val(st->stack,C_INT,mob_clone_spawn(sd, map, x, y, event, master_id, mode, flag, 1000*duration));
 	else //Failed to create clone.
 		push_val(st->stack,C_INT,0);
 
