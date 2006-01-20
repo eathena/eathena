@@ -26,6 +26,9 @@
 		* * * From where this info is? ... Mine: On your death you'll loose this ring and get 50% HP [Komurka]
 =========================
 
+01/20
+	* Changed Double Strafe, Arrow Shower and Beast Strafing's delay to be
+	  100ms on top of the normal attack delay. [Skotlex]
 01/19
 	* Updated db/const.txt to contain all SC_ effects as defined in status.h.
 	  Thanks to Ancyker. [Skotlex]

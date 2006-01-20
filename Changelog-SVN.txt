@@ -1,6 +1,7 @@
 Date	Added
 
 2006/01/20
+	* Fixed the login-TXT login Log. [Skotlex]
 	* Small update to sql-files/item_db.sql to fix speed potions (a complete
 	  update will be done when possible...) [Skotlex]
 	* Fixed clone script command's duration being in ms rather than seconds.

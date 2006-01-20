@@ -200,7 +200,8 @@ int login_log(char *fmt, ...) {
 				// Platform/Compiler dependant clock() for time check is removed. [Lance]
 				// clock() is originally used to track processing ticks on program execution.
 				time(&raw_time);
-				strftime(tmpstr, 24, "%Y-%m-%d %H:%M:%S",localtime(&raw_time));
+				strftime(tmpstr, 24, date_format, localtime(&raw_time));
+				sprintf(tmpstr + strlen(tmpstr), ": %s", fmt);
 				vfprintf(log_fp, tmpstr, ap);
 				va_end(ap);
 			}
