@@ -165,9 +165,9 @@ REPLACE INTO `item_db` VALUES (642,'Book_of_Devil','Book of Devil','11','1800',N
 REPLACE INTO `item_db` VALUES (643,'Pet_Incubator','Pet Incubator','2','3000',NULL,'30',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'bpet;');
 REPLACE INTO `item_db` VALUES (644,'Gift_Box','Gift Box','2','2',NULL,'200',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'getitem -4,1;');
 -- // ASPD Potions
-REPLACE INTO `item_db` VALUES (645,'Concentration_Potion','Concentration Potion','2','800',NULL,'100',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_SpeedPot0,1800000,0;');
-REPLACE INTO `item_db` VALUES (656,'Awakening_Potion','Awakening Potion','2','1500',NULL,'150',NULL,NULL,NULL,NULL,'126344943','7','2',NULL,NULL,'40',NULL,NULL,'sc_end SC_Sleep; sc_start SC_SpeedPot1,1800000,0;');
-REPLACE INTO `item_db` VALUES (657,'Berserk_Potion','Berserk Potion','2','3000',NULL,'200',NULL,NULL,NULL,NULL,'117851814','7','2',NULL,NULL,'85',NULL,NULL,'sc_start SC_SpeedPot2,1800000,0;');
+REPLACE INTO `item_db` VALUES (645,'Concentration_Potion','Concentration Potion','2','800',NULL,'100',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'sc_start SC_ASPDPOTION0,1800000,0;');
+REPLACE INTO `item_db` VALUES (656,'Awakening_Potion','Awakening Potion','2','1500',NULL,'150',NULL,NULL,NULL,NULL,'126344943','7','2',NULL,NULL,'40',NULL,NULL,'sc_end SC_Sleep; sc_start SC_ASPDPOTION1,1800000,0;');
+REPLACE INTO `item_db` VALUES (657,'Berserk_Potion','Berserk Potion','2','3000',NULL,'200',NULL,NULL,NULL,NULL,'117851814','7','2',NULL,NULL,'85',NULL,NULL,'sc_start SC_ASPDPOTION2,1800000,0;');
 REPLACE INTO `item_db` VALUES (658,'Tribal_Solidarity','Tribal Solidarity','2','1000',NULL,'500',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'guildgetexp rand(600000,1200000);');
 -- // New Pet Tames
 REPLACE INTO `item_db` VALUES (659,'Her_Heart','Her Heart','11','500',NULL,'50',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'pet 1188;');
@@ -191,7 +191,7 @@ REPLACE INTO `item_db` VALUES (674,'Mithril_Coin','Mithril Coin','2',NULL,'10','
 REPLACE INTO `item_db` VALUES (675,'Silver_Coin','Silver Coin','2',NULL,'10','40',NULL,NULL,NULL,NULL,'127918079','7','3',NULL,NULL,NULL,NULL,NULL,NULL);
 REPLACE INTO `item_db` VALUES (676,'Bag_of_Silver_Coins','Bag of Silver Coins','2',NULL,'10','400',NULL,NULL,NULL,NULL,'127918079','7','3',NULL,NULL,NULL,NULL,NULL,NULL);
 REPLACE INTO `item_db` VALUES (677,'Platinum_Coin','Platinum Coin','2',NULL,'10','40',NULL,NULL,NULL,NULL,'127918079','7','3',NULL,NULL,NULL,NULL,NULL,NULL);
-REPLACE INTO `item_db` VALUES (678,'Poison_Bottle','Poison Bottle','0','5000',NULL,'100',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'if(Class!=4013) goto Not_ASC; sc_start SC_Poison,600000,0; sc_start SC_SpeedPot3,30000,0; end; Not_ASC: percentheal -100,0;');
+REPLACE INTO `item_db` VALUES (678,'Poison_Bottle','Poison Bottle','0','5000',NULL,'100',NULL,NULL,NULL,NULL,'127918079','7','2',NULL,NULL,NULL,NULL,NULL,'if(Class!=4013) goto Not_ASC; sc_start SC_Poison,600000,0; sc_start SC_ASPDPOTION3,30000,0; end; Not_ASC: percentheal -100,0;');
 REPLACE INTO `item_db` VALUES (679,'Pilule','Pilule','0','5000',NULL,'300',NULL,NULL,NULL,NULL,'127918079','7','3',NULL,NULL,NULL,NULL,NULL,'itemheal 50,50;');
 REPLACE INTO `item_db` VALUES (680,'Magic_Carnation','Magic Carnation','2',NULL,'10','1000',NULL,NULL,NULL,NULL,'127918079','7','3',NULL,NULL,NULL,NULL,NULL,'itemheal 25,0;');
 REPLACE INTO `item_db` VALUES (681,'Sweet_Memory_of_Marriage','Sweet Memory of Marriage','2','50000',NULL,'10',NULL,NULL,NULL,NULL,'127918079','7','3',NULL,NULL,NULL,NULL,NULL,NULL);

@@ -1,6 +1,8 @@
 Date	Added
 
 2006/01/20
+	* Small update to sql-files/item_db.sql to fix speed potions (a complete
+	  update will be done when possible...) [Skotlex]
 	* Fixed clone script command's duration being in ms rather than seconds.
 	  [Skotlex]
 	* Taekwon Ready Stances combo time is now 2000 - 4*agi -2*dex ms instead of
