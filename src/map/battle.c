@@ -3689,7 +3689,8 @@ static const struct battle_data_short {
 	{ "castle_defense_rate",               &battle_config.castle_defense_rate		},
 	{ "hp_rate",                           &battle_config.hp_rate					},
 	{ "sp_rate",                           &battle_config.sp_rate					},
-	{ "gm_can_drop_lv",                    &battle_config.gm_can_drop_lv			},
+	{ "gm_cant_drop_min_lv",                    &battle_config.gm_cant_drop_min_lv			},
+	{ "gm_cant_drop_max_lv",                    &battle_config.gm_cant_drop_max_lv			},
 	{ "disp_hpmeter",                      &battle_config.disp_hpmeter				},
 	{ "bone_drop",		                   &battle_config.bone_drop				},
 	{ "buyer_name",                        &battle_config.buyer_name		},
@@ -4068,7 +4069,8 @@ void battle_set_defaults() {
 	battle_config.castle_defense_rate = 100;
 	battle_config.hp_rate = 100;
 	battle_config.sp_rate = 100;
-	battle_config.gm_can_drop_lv = 0;
+	battle_config.gm_cant_drop_min_lv = 1;
+	battle_config.gm_cant_drop_max_lv = 0;
 	battle_config.disp_hpmeter = 60;
 	battle_config.skill_wall_check = 0;
 	battle_config.bone_drop = 0;

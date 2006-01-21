@@ -381,8 +381,8 @@ int pc_can_move(struct map_session_data *sd)
  *------------------------------------------
  */
 int pc_can_give_items(int level) {
-	return (	level >= lowest_gm_level
-			&&	level < battle_config.gm_can_drop_lv);
+	return (	level >= battle_config.gm_cant_drop_min_lv
+			&&	level <= battle_config.gm_cant_drop_max_lv);
 }
 
 /*==========================================
