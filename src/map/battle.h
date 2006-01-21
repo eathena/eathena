@@ -321,7 +321,7 @@ extern struct Battle_Config {
 	unsigned short backstab_bow_penalty;
 	unsigned short hp_rate;
 	unsigned short sp_rate;
-	unsigned short gm_cant_drop_min_lv:;
+	unsigned short gm_cant_drop_min_lv;
 	unsigned short gm_cant_drop_max_lv;
 	unsigned short disp_hpmeter;
 	unsigned short bone_drop;
