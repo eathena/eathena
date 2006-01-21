@@ -27,6 +27,7 @@
 =========================
 
 01/21
+	* Fixed Chase Walk SP usage (40->10) thanks to poorboy [Komurka]
 	* Fixed Crab Card's Combo Bonus: Wind Element -> Water, thanks to Irmin [Lupus]
 	* Fixed 'Box of Heavy Rain' [Komurka]
 
