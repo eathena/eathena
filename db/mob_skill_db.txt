@@ -1,4 +1,4 @@
-﻿// Aegis zone 8.5 -> eAthena conversion by Komurka
+// Aegis zone 8.5 -> eAthena conversion by Komurka
 // + Mob Skills for Einbroch+ by Lupus
 //MOB_ID, a unused dummy character sequence (for information only), STATE, SKILL_ID, SKILL_LV,
 // rate (10000 = 100%), casttime, delay, cancelable, a target, a condition type, a condition value,
