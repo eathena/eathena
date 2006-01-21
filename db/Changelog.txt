@@ -26,6 +26,9 @@
 		* * * From where this info is? ... Mine: On your death you'll loose this ring and get 50% HP [Komurka]
 =========================
 
+01/21
+	* Fixed 'Box of Heavy Rain' [Komurka]
+
 01/20
 	* Changed Double Strafe, Arrow Shower and Beast Strafing's delay to be
 	  100ms on top of the normal attack delay. [Skotlex]

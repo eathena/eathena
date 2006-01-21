@@ -2239,7 +2239,7 @@
 12029,Gloomy_Box,Gloomy Box,11,,500,200,,,,,127918079,7,2,,,,,,{ itemskill 45,1,"Improve Concentration"; }
 12030,Grudge_Box,Box of Grudge,2,,500,200,,,,,127918079,7,2,,,,,,{ sc_start SC_ATKPOTION,60000,20; }
 12031,Sleepy_Box,Sleepy Box,2,,500,200,,,,,127918079,7,2,,,,,,{ sc_start SC_MATKPOTION,60000,20; }
-12032,Downpour_Box,Box of Heavy Rain,2,,500,200,,,,,127918079,7,2,,,,,,{ sc_start SC_Frost,180000,0; }
+12032,Downpour_Box,Box of Heavy Rain,2,,500,200,,,,,127918079,7,2,,,,,,{ sc_start SC_WATERWEAPON,180000,0; }
 12033,Sunshine_Box,Box of Sunshine,2,,500,200,,,,,127918079,7,2,,,,,,{ sc_start SC_Intravision,20000,0;}
 12034,Gasping_Box,Gasping Box,2,,500,200,,,,,127918079,7,2,,,,,,{ percentheal 0,9; if(rand(100)<30) sc_start SC_Silence,30000,0; }
 12035,Ball_Box,Ball Box,2,,10,20,,,,,127918079,7,2,,,,,,{ getitem rand(7361,7368),1; }
