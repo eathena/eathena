@@ -1,5 +1,10 @@
 Date	Added
 
+2006/01/21
+	* SL_SWOO (Esu) will only lasts 1/5 of normal time when used on a Boss-type monster [Komurka]
+	 -SL_SKE (Esk) won't work on a Boss-type monster anymore (if you KNOW that it should work on them
+	  write about it on forum; either way don't bother guessing ... SL can solo ANY boss with this skill ~.~)
+
 2006/01/20
 	* Fixed the login-TXT login Log. [Skotlex]
 	* Small update to sql-files/item_db.sql to fix speed potions (a complete

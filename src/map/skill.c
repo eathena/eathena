@@ -5729,15 +5729,29 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 
 	case SL_SKA: // [marquis007]
+		if (sd && bl->type != BL_MOB) {
+			status_change_start(src,SC_STAN,skilllv,0,0,0,3000,0);
+			clif_skill_fail(sd,skillid,0,0);
+			break;
+		}
+		if (sd && status_get_mode(bl)&MD_BOSS)
+			clif_skill_fail(sd,skillid,0,0);
+		else
+		{
+			status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
+			clif_skill_nodamage(src,bl,skillid,skilllv,1);
+		}
+		break;
 	case SL_SWOO:
 		if (sd && bl->type != BL_MOB) {
 			status_change_start(src,SC_STAN,skilllv,0,0,0,3000,0);
 			clif_skill_fail(sd,skillid,0,0);
 			break;
 		}
-		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
+		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,status_get_mode(bl)&MD_BOSS?skill_get_time(skillid,skilllv)/5:skill_get_time(skillid,skilllv),0);
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		break;
+
 	case SL_SKE:
 		if (sd && bl->type != BL_MOB) {
 			status_change_start(src,SC_STAN,skilllv,0,0,0,3000,0);
