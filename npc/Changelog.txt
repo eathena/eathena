@@ -27,6 +27,7 @@ Date		Added
 ======
 
 01/21
+	* Added missing close to Einbroch script [Komurka]
 	* More of episode X.4 replacement, done by Poki#3 [Komurka]
 	* Added a missing warp from Jawaii Tawern to Jawaii thanks to Misao [Komurka]
 

@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= Nexon
 //===== Current Version: ===================================== 
-//= 0.4
+//= 0.4b
 //===== Compatible With: ===================================== 
 //= eAthena Revision 3000+
 //===== Description: ========================================= 
@@ -13,6 +13,7 @@
 //= 0.3 Added a few npcs by reddozen [MasterOfMuppets]
 //= 0.4 Added a crappy quest, have fun guys... [MasterOfMuppets]
 //= 0.4a Added exp bonus for the factory quest, borrowed from a Korean fansite.
+//= 0.4b Added missing close [Komurka]
 //============================================================
 
 
@@ -899,6 +900,7 @@ s_Switches:
 		mes "2nd control panel that";
 		mes "seems to have been";
 		mes "broken for a while...";
+		close;
 	break;
 
 	case 2:
