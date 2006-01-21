@@ -27,6 +27,7 @@
 =========================
 
 01/21
+	* Fixed Crab Card's Combo Bonus: Wind Element -> Water, thanks to Irmin [Lupus]
 	* Fixed 'Box of Heavy Rain' [Komurka]
 
 01/20
