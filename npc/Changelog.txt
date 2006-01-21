@@ -25,6 +25,10 @@ Nexon
 
 Date		Added
 ======
+
+01/21
+	* Added a missing warp from Jawaii Tawern to Jawaii thanks to Misao [Komurka]
+
 01/20
 	* Dr Evil's Yuno -> Yuno Field 05 warps update [Lupus]
 	* Fixed minor typo in alde guide. [Kayla]
