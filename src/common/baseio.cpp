@@ -128,7 +128,7 @@ public:
 		// with some extra space for file extension
 		cName = new char[5+strlen(name)];
 		// copy and correct the path seperators
-		checkpath(cName, name);
+		checkPath(cName, name);
 
 		ip = strrchr(cName, '.');		// find a point in the name
 		if(!ip || strchr(ip, PATHSEP) )	// if name had no point
@@ -4712,3 +4712,303 @@ CPetDBInterface* CPetDB::getDB(const char *dbcfgfile)
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+/*
+proposing a new structure which would partially solve the problem of 
+data back injection on sql in case of unsynchronized writers
+
+the current structure would still allow the usage of database control panels
+for writing directly to the database bypassing the servers 
+which I would like to ban generally
+
+so the easiest way is to use the same database structures for txt and sql 
+and just load the complete data into memory. 
+in this case here it would just cost about 1k per char, 
+so 1000 characters would be plain 1M byte which is quite negligible.
+
+advantages are a speadup on the data load and store, since done as in-memory,
+no direct data back-injection, or at least server would not be influenced,
+the last writer still has his data in the tables
+it might further simplify the access since only the load and store 
+function have to be written for the different database implementations
+and would already represent the database converter
+
+
+when rewriting mmo.h maybe also split up the data to a more managable amount
+maybe using:
+
+accouts
+  char (up to 9 per account)
+	inventory (arbitrary but limited)
+	cart (arbitrary but limited)
+    storage (arbitrary but limited)
+	variables (arbitrary but limited)
+	friends (arbitrary but limited)
+
+guild
+  guildstorage (arbitrary but limited)
+  variables (arbitrary but limited)
+
+party
+  variables (arbitrary but limited)
+
+
+new/changing structures
+
+variables
+  type (string,integer,float)
+  scope (server,accout,char,guild,party)
+  owner (charid, accountid, guildid, partyid)
+  name (string, possibly a dbstring since many names will be equal)
+  value (stored/stransfered as string always, is converted in script engine)
+*/
+///////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+class dbobject
+{
+	int value;
+public:
+	dbobject(int v=0):value(v)	{}
+
+	operator int()	{ return value; }
+
+	bool operator==(const dbobject& a) const	{ return a.value == this->value; }
+	bool operator> (const dbobject& a) const	{ return a.value >  this->value; }
+	bool operator< (const dbobject& a) const	{ return a.value <  this->value; }
+};
+
+
+
+
+// provides loading/storing ability of elements and arrays of elements
+class CLoader
+{
+public:
+	CLoader()			{ }
+	virtual ~CLoader()	{ }
+
+	// list of loading functions
+	virtual bool load(TArray<dbobject>& array) = 0;
+};
+class CSaver
+{
+public:
+	CSaver()			{ }
+	virtual ~CSaver()	{ }
+
+	// list of store functions implemented as singel element store and list store
+	// specific implementation can fill one or both of this
+	// both are called regulary from maintainance
+	virtual bool store(const TArray<dbobject>& array)=0;
+	virtual bool store(const dbobject& element) = 0;
+};
+
+
+
+
+
+
+// provides loading/storing ability of elements and arrays of elements
+class CLoader_txt : public CLoader
+{
+public:
+	CLoader_txt()			{}
+	virtual ~CLoader_txt()	{}
+
+	// list of loading functions
+	virtual bool load(TArray<dbobject>& array)
+	{
+		CParam<MiniString> filename("testdbloader.txt");
+
+		array.clear();
+		FILE* file= fopen(filename.value(),"rb");
+		if(file)
+		{
+			dbobject tmp(1);
+			// while lines in file
+			// read from file
+			// generate tmp object
+			// check for existence
+			// insert/update if exist
+			array.insert( dbobject(1) ); 
+
+			fclose(file);
+		}
+		return false;
+	}
+};
+class CSaver_txt : public CSaver
+{
+public:
+	CSaver_txt()			{}
+	virtual ~CSaver_txt()	{}
+
+	// list of store functions combined as element store and list store
+	// specific implementation can fill one or both of this
+	// regulary both are called from maintainance
+	virtual bool store(const TArray<dbobject>& array)
+	{
+		// move file to backup
+		// open file (wb)
+		size_t i;
+		for(i=0; i<array.size(); i++)
+		{
+			// write element to file
+		}
+		// close file
+		return false;
+	}
+	virtual bool store(const dbobject& element)
+	{
+		// open file (ab)
+		// write element to file (append it)
+		// close file
+		return false;
+	}
+};
+
+
+// provides loading/storing ability of elements and arrays of elements
+class CLoader_sql : public CLoader
+{
+public:
+	CLoader_sql()			{}
+	virtual ~CLoader_sql()	{}
+
+	// list of loading functions
+	virtual bool load(TArray<dbobject>& array)
+	{
+		dbobject tmp(1);
+		// open db connection
+		// while read row
+		// generate tmp object
+		// check for existence
+		// insert/update if exist
+		array.insert( dbobject(1) );
+		return false;
+	}
+};
+class CSaver_sql : public CSaver
+{
+public:
+	CSaver_sql()			{}
+	virtual ~CSaver_sql()	{}
+
+	// list of store functions combined as element store and list store
+	// specific implementation can fill one or both of this
+	// regulary both are called from maintainance
+	virtual bool store(const TArray<dbobject>& array)
+	{
+		// can skip this since all have been saved regulary on single writes
+		return false;
+	}
+	virtual bool store(const dbobject& element)
+	{
+		// update/insert element to sql
+		return false;
+	}
+};
+
+
+
+
+
+
+
+
+class dbtemplate
+{
+	// list of savers, the loader is only needed at startup to fill the database
+	TArrayDST<CSaver*>	cSaver;
+	
+	TslistDCT<dbobject> cList;
+public:
+	dbtemplate()
+	{
+		CLoader *loader;// = new whatever loader was specified
+		loader->load(cList);
+		//cSaver.insert( new whatever savers have been specified );
+
+
+
+	}
+	~dbtemplate()
+	{
+		size_t i;
+		for(i=0; i<cSaver.size(); i++)
+			delete cSaver[i];
+		cSaver.clear();
+	}
+
+
+	// element count
+	size_t size();
+	// enumerates
+	dbobject& operator[](size_t i);
+
+	// tests for existence
+	bool exist(int key)
+	{
+		size_t pos;
+		return cList.find(key,0,pos);
+	}
+
+	// get a direct reference to the element inside the db, exception on error
+	dbobject& find(int key)
+	{
+		size_t pos=0;
+		if( !cList.find(key,0,pos) )
+			throw exception("not found");
+		return cList[pos];
+	}
+
+	// copies object out
+	bool find(int key, dbobject& obj)
+	{
+		size_t pos=0;
+		if( cList.find(key,0,pos) )
+		{
+			obj = cList[pos];
+			return true;
+		}
+		return false;
+	}
+	// stores an element
+	bool save(const dbobject& obj)
+	{
+		size_t pos=0;
+		if( cList.find(obj,0,pos) )
+		{	// update
+			cList[pos] = obj;
+		}
+		else
+		{	// insert
+			cList.insert(obj);
+		}
+
+		// call the single element savers
+		for(pos=0; pos<cSaver.size(); pos++)
+			cSaver[pos]->store(obj);
+
+		return true;
+	}
+};

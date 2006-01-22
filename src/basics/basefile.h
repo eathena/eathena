@@ -39,18 +39,32 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////
 // basic checkings
+char* checkPath(char *path, size_t sz, const char*srcpath);
 char* checkPath(char *path, const char*srcpath);
-bool findFiles(const char *p, const char *pat, CFileProcessor& fp);
+char* checkPath(char *path);
+bool findFiles(const char *p, const char *pat, const CFileProcessor& fp);
+bool findFiles(const char *p, const char *pat, void (func)(const char*) );
 bool isDirectory(const char*name);
 bool isFile(const char*name);
 
+unsigned long filesize(const char*filename)
+{
+#ifdef _WIN32
+	struct _stat st;
+	if( !filename || _stat(filename, &st) == -1 ) return 0;
+#else
+	struct  stat st;
+	if( !filename ||  stat(filename, &st) == -1 ) return 0;
+#endif
+	return st.st_size;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // fopen replacement, 
-//!! buffer overflow checking
 inline FILE* safefopen(const char*name, const char*option)
 {	// windows MAXPATH is 260, unix is longer
 	char	 namebuf[2048];
-	checkPath(namebuf,name);
+	checkPath(namebuf, sizeof(namebuf), name);
 	return fopen( namebuf, option);
 }
 
@@ -60,6 +74,7 @@ inline FILE* safefopen(const char*name, const char*option)
 // behaves like FILE with OO extension
 // supports only signed 32bit addressing, so filesize is 2GB max 
 // though it can use 64bit on 64 unix
+//!! check merging with file streams
 //////////////////////////////////////////////////////////////////////////
 class CFile : public global, public noncopyable
 {

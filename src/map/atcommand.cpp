@@ -181,6 +181,7 @@ ACMD_FUNC(rain);
 ACMD_FUNC(snow);
 ACMD_FUNC(sakura);
 ACMD_FUNC(clouds);
+ACMD_FUNC(clouds2);
 ACMD_FUNC(fog);
 ACMD_FUNC(fireworks);
 ACMD_FUNC(leaves);
@@ -464,6 +465,7 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_Snow,				"@snow",			99, atcommand_snow },
 	{ AtCommand_Sakura,				"@sakura",			99, atcommand_sakura },
 	{ AtCommand_Clouds,				"@clouds",			99,	atcommand_clouds },
+	{ AtCommand_Clouds2,			"@clouds2",			99,	atcommand_clouds2 },
 	{ AtCommand_Fog,				"@fog",				99,	atcommand_fog },
 	{ AtCommand_Fireworks,			"@fireworks",		99,	atcommand_fireworks },
 	{ AtCommand_Leaves,				"@leaves",			99, atcommand_leaves },
@@ -7488,6 +7490,22 @@ bool atcommand_clouds(int fd, struct map_session_data &sd, const char* command, 
 	}
 	return true;
 }
+bool atcommand_clouds2(int fd, struct map_session_data &sd, const char* command, const char* message)
+{
+	if (map[sd.bl.m].flag.clouds2)
+	{
+		map[sd.bl.m].flag.clouds2=0;
+		clif_clearweather(sd.bl.m);
+		clif_displaymessage(fd, "The clouds has gone.");
+	}
+	else
+	{
+		map[sd.bl.m].flag.clouds2=1;
+		clif_weather2(sd.bl.m,EFFECT_CLOUDS2);
+		clif_displaymessage(fd, "Clouds appear.");
+	}
+	return true;
+}
 
 /*==========================================
  * Fog hangs over.
@@ -7563,6 +7581,7 @@ bool atcommand_clearweather(int fd, struct map_session_data &sd, const char* com
 	map[sd.bl.m].flag.snow=0;
 	map[sd.bl.m].flag.sakura=0;
 	map[sd.bl.m].flag.clouds=0;
+	map[sd.bl.m].flag.clouds2=0;
 	map[sd.bl.m].flag.fog=0;
 	map[sd.bl.m].flag.fireworks=0;
 	map[sd.bl.m].flag.leaves=0;

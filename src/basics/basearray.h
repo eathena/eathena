@@ -2537,7 +2537,7 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	// add an element at position pos (at the end by default)
+	// add an element at position pos
 	virtual bool insert(const T* elem, size_t cnt)
 	{
 		bool ret = false;
@@ -2679,7 +2679,7 @@ private:
 // Multi-Indexed List Template
 // using SavePointers to stored objects for internal lists, 
 // subsequent insert/delete does new/delete the objects, 
-// for performance use a managed memory derived classes
+// for performance use managed memory derived classes
 // usable classes need a "int compare(const T& elem, size_t inx) const" member
 //
 // needs evaluation

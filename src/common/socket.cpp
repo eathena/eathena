@@ -128,8 +128,8 @@ public:
 	{
 		if(fd>0)
 		{
-			size_t pos = fd/32;
-			size_t bit = fd%32;
+			size_t pos = fd/(NBBY*sizeof(cArray[0]));
+			size_t bit = fd%(NBBY*sizeof(cArray[0]));
 
 			checksize(pos);
 			cArray[pos] |= (1<<bit);
@@ -141,8 +141,8 @@ public:
 	{
 		if(fd>0)
 		{
-			size_t pos = fd/32;
-			size_t bit = fd%32;
+			size_t pos = fd/(NBBY*sizeof(cArray[0]));
+			size_t bit = fd%(NBBY*sizeof(cArray[0]));
 
 			checksize(pos);
 			cArray[pos] &= ~(1<<bit);
@@ -154,8 +154,8 @@ public:
 	{
 		if(fd>0)
 		{
-			size_t pos = fd/32;
-			size_t bit = fd%32;
+			size_t pos = fd/(NBBY*sizeof(cArray[0]));
+			size_t bit = fd%(NBBY*sizeof(cArray[0]));
 			return (pos<cSZ) && (0!=(cArray[pos] & (1<<bit)));
 		}
 	}

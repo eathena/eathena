@@ -1842,6 +1842,7 @@ int clif_clearweather(unsigned short m)
 			
 			if( map[sd->bl.m].flag.snow || 
 				map[sd->bl.m].flag.clouds || 
+				map[sd->bl.m].flag.clouds2 || 
 				map[sd->bl.m].flag.fog || 
 				map[sd->bl.m].flag.fireworks ||
 				map[sd->bl.m].flag.sakura || 
@@ -1862,6 +1863,8 @@ int clif_clearweather(unsigned short m)
 					clif_weather1(sd->fd, EFFECT_SNOW);
 				if (map[sd->bl.m].flag.clouds)
 					clif_weather1(sd->fd, EFFECT_CLOUDS);
+				if (map[sd->bl.m].flag.clouds2)
+					clif_weather1(sd->fd, EFFECT_CLOUDS2);
 				if (map[sd->bl.m].flag.fog)
 					clif_weather1(sd->fd, EFFECT_FOG);
 				if (map[sd->bl.m].flag.fireworks) {
@@ -1939,6 +1942,7 @@ int clif_spawnpc(struct map_session_data &sd)
 
 	if( map[sd.bl.m].flag.snow || 
 		map[sd.bl.m].flag.clouds || 
+		map[sd.bl.m].flag.clouds2 || 
 		map[sd.bl.m].flag.fog || 
 		map[sd.bl.m].flag.fireworks ||
 		map[sd.bl.m].flag.sakura || 
@@ -1959,6 +1963,8 @@ int clif_spawnpc(struct map_session_data &sd)
 			clif_weather1(fd, EFFECT_SNOW);
 		if (map[sd.bl.m].flag.clouds)
 			clif_weather1(fd, EFFECT_CLOUDS);
+		if (map[sd.bl.m].flag.clouds2)
+			clif_weather1(fd, EFFECT_CLOUDS2);
 		if (map[sd.bl.m].flag.fog)
 			clif_weather1(fd, EFFECT_FOG);
 		if (map[sd.bl.m].flag.fireworks) {
@@ -2181,6 +2187,7 @@ int clif_movechar(struct map_session_data &sd)
 
 	if( map[sd.bl.m].flag.snow || 
 		map[sd.bl.m].flag.clouds || 
+		map[sd.bl.m].flag.clouds2 || 
 		map[sd.bl.m].flag.fog || 
 		map[sd.bl.m].flag.fireworks ||
 		map[sd.bl.m].flag.sakura || 

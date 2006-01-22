@@ -2586,6 +2586,9 @@ int npc_parse_mapflag(const char *w1,const char *w2,const char *w3,const char *w
 	else if (strcasecmp(w3,"clouds")==0) {
 		map[m].flag.clouds=1;
 	}
+	else if (strcasecmp(w3,"clouds2")==0) {
+		map[m].flag.clouds2=1;
+	}
 	else if (strcasecmp(w3,"fog")==0) { // fog [Valaris]
 		map[m].flag.fog=1;
 	}

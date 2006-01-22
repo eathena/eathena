@@ -13,8 +13,17 @@
 #include "basestring.h"
 
 
-
-
+//////////////////////////////////////////////////////////////////////////
+// basic exceptions class
+//
+// on windows there is already an exeption class in global namespace
+// when including any c++ header, 
+//
+// we use a Macro to rename the class completely in this case
+// better might be to retreat to an own namespace, this would
+// also solve problems with other packages (glibc for instance)
+// but adding the extra burden of having a namepspace around everything 
+//////////////////////////////////////////////////////////////////////////
 
 class exception : public global
 {

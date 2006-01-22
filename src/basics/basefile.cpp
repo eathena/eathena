@@ -70,19 +70,45 @@ ssize_t CFile::writeline(const char *buf, size_t maxlen)
 ///////////////////////////////////////////////////////////////////////////////
 // copies from scpath to path and exchange the path seperator
 // no check for buffer overflows
+char* checkPath(char *path, size_t sz, const char *srcpath)
+{	// just make sure the char*path is not const
+	if( path )
+	{
+		char *p=path, *ep=path+sz-1;
+		if( srcpath )
+		{
+			while(*srcpath && p<ep)
+			{
+				if (*srcpath=='/') {
+					*p++ = '\\';
+					srcpath++;
+				}
+				else
+					*p++ = *srcpath++;
+			}
+		}
+		*p = 0; //EOS
+	}
+	return path;
+}
 char* checkPath(char *path, const char *srcpath)
 {	// just make sure the char*path is not const
-	char *p=path;
-	if(NULL!=path && NULL!=srcpath)
-	while(*srcpath) {
-		if (*srcpath=='/') {
-			*p++ = '\\';
-			srcpath++;
+	if( path )
+	{
+		char *p=path;
+		if( srcpath )
+		{
+			while(*srcpath) {
+				if (*srcpath=='/') {
+					*p++ = '\\';
+					srcpath++;
+				}
+				else
+					*p++ = *srcpath++;
+			}		
 		}
-		else
-			*p++ = *srcpath++;
+		*p = *srcpath; //EOS
 	}
-	*p = *srcpath; //EOS
 	return path;
 }
 // just exchange the path seperator
@@ -120,7 +146,7 @@ bool isFile(const char*name)
 ///////////////////////////////////////////////////////////////////////////////
 // runs recursively through the directories starting at the given path
 // calling the FileProcessor with each encountered file name containing the given pattern
-bool findFiles(const char *p, const char *pat, CFileProcessor& fp)
+bool findFiles(const char *p, const char *pat, const CFileProcessor& fp)
 {	
 	WIN32_FIND_DATA FindFileData;
 	HANDLE hFind;
@@ -175,19 +201,45 @@ bool findFiles(const char *p, const char *pat, CFileProcessor& fp)
 
 ///////////////////////////////////////////////////////////////////////////////
 // copies from scpath to path and exchange the path seperator
-char* checkPath(char *path, const char*srcpath)
+char* checkPath(char *path, size_t sz, const char *srcpath)
 {	// just make sure the char*path is not const
-	char *p=path;
-	if(NULL!=path && NULL!=srcpath)
-	while(*srcpath) {
-		if (*srcpath=='\\') {
-			*p++ = '/';
-			srcpath++;
+	if( path )
+	{
+		char *p=path, *ep=path+sz-1;
+		if( srcpath )
+		{
+			while(*srcpath && p<ep)
+			{
+				if (*srcpath=='\\') {
+					*p++ = '/';
+					srcpath++;
+				}
+				else
+					*p++ = *srcpath++;
+			}
 		}
-		else
-			*p++ = *srcpath++;
+		*p = 0; //EOS
 	}
-	*p = *srcpath; //EOS
+	return path;
+}
+char* checkPath(char *path, const char *srcpath)
+{	// just make sure the char*path is not const
+	if( path )
+	{
+		char *p=path;
+		if( srcpath )
+		{
+			while(*srcpath) {
+				if (*srcpath=='\\') {
+					*p++ = '/';
+					srcpath++;
+				}
+				else
+					*p++ = *srcpath++;
+			}		
+		}
+		*p = *srcpath; //EOS
+	}
 	return path;
 }
 // just exchange the path seperator
@@ -225,7 +277,7 @@ bool isFile(const char*name)
 ///////////////////////////////////////////////////////////////////////////////
 // runs recursively through the directories starting at the given path
 // calling the FileProcessor with each encountered file name containing the given pattern
-bool findFiles(const char *p, const char *pat, CFileProcessor& fp)
+bool findFiles(const char *p, const char *pat, const CFileProcessor& fp)
 {	
 	bool ok=true;
 	DIR* dir;					// pointer to the scanned directory.
@@ -283,3 +335,124 @@ bool findFiles(const char *p, const char *pat, CFileProcessor& fp)
 ///////////////////////////////////////////////////////////////////////////////
 #endif
 
+
+
+///////////////////////////////////////////////////////////////////////////////
+// using the processing class parameter
+// with the FileProcessor object
+///////////////////////////////////////////////////////////////////////////////
+
+class CSimpleFileProcessor  : public CFileProcessor
+{
+	void (*func)(const char*);
+public:
+	CSimpleFileProcessor( void (*f)(const char*) ) : func(f)	{}
+	virtual ~CSimpleFileProcessor()	{}
+	virtual bool process(const char *name) const
+	{
+		func(name);
+		return true;
+	}
+};
+
+bool findFiles(const char *p, const char *pat, void (func)(const char*) )
+{
+	return findFiles(p,pat, CSimpleFileProcessor(func) );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// or have it directly
+///////////////////////////////////////////////////////////////////////////////
+/*
+
+#ifdef WIN32
+
+bool findFiles(const char *p, const char *pat, void (func)(const char*) )
+{	
+	WIN32_FIND_DATA FindFileData;
+	HANDLE hFind;
+	char tmppath[MAX_PATH+1];
+	
+	const char *path    = (p  ==NULL)? "." : p;
+	const char *pattern = (pat==NULL)? "" : pat;
+	
+	checkpath(tmppath,path);
+	if( PATHSEP != tmppath[strlen(tmppath)-1])
+		strcat(tmppath, "\\*");
+	else
+		strcat(tmppath, "*");
+	
+	hFind = FindFirstFile(tmppath, &FindFileData);
+	if (hFind != INVALID_HANDLE_VALUE)
+	{
+		do
+		{
+			if (strcmp(FindFileData.cFileName, ".") == 0)
+				continue;
+			if (strcmp(FindFileData.cFileName, "..") == 0)
+				continue;
+
+			sprintf(tmppath,"%s%c%s",path,PATHSEP,FindFileData.cFileName);
+
+			if (FindFileData.cFileName && strstr(FindFileData.cFileName, pattern)) {
+				func( tmppath );
+			}
+
+
+			if( FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
+			{
+				findfile(tmppath, pat, func);
+			}
+		}while (FindNextFile(hFind, &FindFileData) != 0);
+		FindClose(hFind);
+   }
+   return;
+}
+#else
+
+bool findFiles(const char *p, const char *pat, void (func)(const char*) )
+{	
+	DIR* dir;					// pointer to the scanned directory.
+	struct dirent* entry;		// pointer to one directory entry.
+	struct stat dir_stat;       // used by stat().
+	char tmppath[MAX_DIR_PATH+1];
+	char path[MAX_DIR_PATH+1]= ".";
+	const char *pattern = (pat==NULL)? "" : pat;
+	if(p!=NULL) strcpy(path,p);
+
+	// open the directory for reading
+	dir = opendir( checkPath(path) );
+	if (!dir) {
+		fprintf(stderr, "Cannot read directory '%s'\n", path);
+		return;
+	}
+
+	// scan the directory, traversing each sub-directory
+	// matching the pattern for each file name.
+	while ((entry = readdir(dir))) {
+		// skip the "." and ".." entries.
+		if (strcmp(entry->d_name, ".") == 0)
+			continue;
+		if (strcmp(entry->d_name, "..") == 0)
+			continue;
+
+		sprintf(tmppath,"%s%c%s",path, PATHSEP, entry->d_name);
+
+		// check if the pattern matchs.
+		if (entry->d_name && strstr(entry->d_name, pattern)) {
+			func( tmppath );
+		}
+		// check if it is a directory.
+		if (stat(tmppath, &dir_stat) == -1) {
+			fprintf(stderr, "stat error %s\n': ", tmppath);
+			continue;
+		}
+		// is this a directory?
+		if (S_ISDIR(dir_stat.st_mode)) {
+			// decent recursivly
+			findfile(tmppath, pat, func);
+		}
+	}//end while
+}
+#endif
+*/

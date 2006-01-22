@@ -45,7 +45,6 @@ void BubbleSort(T a[], ssize_t l, ssize_t r)
 		for(kp=a+l; kp<ip; ++kp)
 			if(kp[0] > kp[1]) swap(kp[0], kp[1]);
 	}
-
 }
 template <class T> void BubbleSort(T a[], size_t count)
 {

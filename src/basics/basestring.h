@@ -1177,10 +1177,10 @@ template<class T=char> class staticstring : public TString< T, allocator_w_st<T,
 	staticstring<T>(const staticstring<T>&);
 public:
 	staticstring<T>(T* buf, size_t sz)
-		: TString< T, allocator_w_st<T> >(buf, sz)
+		: TString< T, allocator_w_st<T, elaborator_st<T> > >(buf, sz)
 	{}
 	staticstring<T>(const T* cstr)
-		: TString< T, allocator_w_st<T> >(const_cast<T*>(cstr), 0)
+		: TString< T, allocator_w_st<T, elaborator_st<T> > >(const_cast<T*>(cstr), 0)
 	{	// set up a zero-length buffer, 
 		// where the length pointer is set at position
 		this->cPtr+=hstrlen(cstr);
@@ -1189,7 +1189,7 @@ public:
 
 	template<class X> const staticstring& operator=(const X& t)
 	{
-		this->TString< T, allocator_w_st<T> >::assign(t);
+		this->TString< T, allocator_w_st<T, elaborator_st<T> > >::assign(t);
 		return *this;
 	}
 	///////////////////////////////////////////////////////////////////////////

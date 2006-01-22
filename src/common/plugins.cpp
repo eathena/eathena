@@ -380,7 +380,7 @@ void plugin_init (void)
 
 
 	if (auto_search)
-		findfile("plugins", DLL_EXT, plugin_load);
+		findFiles("plugins", DLL_EXT, plugin_load);
 
 	plugin_event_trigger("Plugin_Init");
 

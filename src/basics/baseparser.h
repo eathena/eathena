@@ -73,8 +73,8 @@ public:
 		Type=0;
 		Name.clear();
 	}
-
 };
+
 class CRule
 {
 public:
@@ -203,6 +203,9 @@ public:
 	}
 
 };
+
+
+
 
 class CParseInput : public allocator_file<char>
 {
@@ -446,10 +449,8 @@ public:
 
 	CToken					cScanToken;
 	TArrayDPT<CStackElement>	cStack;
-//	TArrayDCT<CStackElement>	cStack;
 	size_t					nstackofs;
 	TArrayDPT<CToken>	tokens;
-//	TArrayDCT<CToken>	tokens;
 
 	CParseConfig*			pconfig;
 	CParseInput				input;
@@ -457,8 +458,6 @@ public:
 
 	// Reduction Tree
 	TArrayDPT<CStackElement>	rt;
-//	TArrayDCT<CStackElement>	rt;
-	// End Reduction Tree
 
 	///////////////////////////////////////////////////////////////////////////
 	CParser()
@@ -466,17 +465,19 @@ public:
 		nstackofs(0),pconfig(NULL)
 	{}
 
-	CParser(CParseConfig* pconfig)
+	CParser(CParseConfig* pcfg)
 		: reduction(false),reduce_rule(0),lalr_state(0),
 		nstackofs(0),pconfig(NULL)
-	{ create(pconfig); }
+	{
+		create(pcfg);
+	}
 
 
 	virtual ~CParser()	{}
 
 
 	///////////////////////////////////////////////////////////////////////////
-	bool create(CParseConfig* pconfig);
+	bool create(CParseConfig* pcfg);
 	void reset();
 	void reinit();
 

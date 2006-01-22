@@ -212,7 +212,7 @@ bool CAccountDB_sql::existAccount(const char* userid)
 		if( this->Fetch())
 		{
 
-			ret = this->CountRes();
+			ret = this->CountRes()>0;
 		}
 	}
 	return ret;
@@ -262,7 +262,7 @@ bool CAccountDB_sql::searchAccount(uint32 accid, CLoginAccount& account)
 	{
 
 		MiniString query;
-		char uid[64];
+//		char uid[64];
 
 		query
 			<< "SELECT"
@@ -340,7 +340,7 @@ bool CAccountDB_sql::searchAccount(uint32 accid, CLoginAccount& account)
 
 bool CAccountDB_sql::insertAccount(const char* userid, const char* passwd, unsigned char sex, const char* email, CLoginAccount& account)
 {	// insert a new account to db
-	size_t sz;
+//	size_t sz;
 	char uid[64], pwd[64];
 	MiniString query;
 
@@ -515,7 +515,8 @@ bool CAccountDB_sql::close()
 bool CAccountDB_sql::saveAccount(const CLoginAccount& account)
 {
 	bool ret = false;
-	size_t sz, i;
+//	size_t sz;
+	size_t i;
 	MiniString query;
 	char tempstr[64];
 
@@ -1168,7 +1169,8 @@ private:
 
 		bool diff,l,status, loaded=false;
 
-		size_t sz,i;
+//		size_t sz;
+		size_t i;
 
 
 		CCharCharacter cp;
@@ -1595,7 +1597,7 @@ private:
 	{
 		bool ret = false;
 		int tmp_int[256];
-		int next, len;
+//		int next, len;
 		size_t i,n;
 
 		//CCharCharacter p;
@@ -1664,7 +1666,7 @@ private:
 			<< "FROM `" << char_db << "` "
 			<< "WHERE `char_id` = '" << char_id << "'";
 
-		if (this-Query(query))
+		if( this->Query(query) )
 		{
 			this->Fetch();
 
@@ -1879,6 +1881,7 @@ private:
 
 			<< "FROM ` " << char_reg_db << "` WHERE `char_id`='" << char_id << "'";
 
+		i=0;
 		if (this->Query(query))
 		{
 			for(i=0;this->Fetch();i++)
@@ -1889,6 +1892,8 @@ private:
 			this->Free();
 		}
 		p.global_reg_num=i;
+
+		
 
 		//Friends List Load
 
@@ -1956,7 +1961,8 @@ private:
 
 		char t_name[128];
 
-		size_t i, sz;
+//		size_t sz;
+		size_t i;
 
 		this->escape_string(t_name, tempchar.name, strlen(tempchar.name));
 
@@ -2087,7 +2093,7 @@ private:
 				<< "('" << tempchar.char_id << "', '" << start_weapon << "', '1', '" << 0x02 << "', '1'),"
 				<< "('" << tempchar.char_id << "', '" << start_armor  << "', '1', '" << 0x10 << "', '1')";
 
-		this->mysql_SendQuery(query, sz);
+		this->mysql_SendQuery(query, query.length());
 
 
 		// Update the map they are starting on and where they respawn at.
@@ -2437,7 +2443,7 @@ bool CCharDB_sql::removeChar(uint32 charid)
 {
 	MiniString query;
 	query << "DELETE FROM `" << (const char*)char_db << "` WHERE `char_id`='" << (unsigned char)charid << "'";
-	this-Query(query);
+	this->Query(query);
 	return true;
 }
 

@@ -14,13 +14,12 @@ bool remove_control_chars(char *str);
 
 void dump(unsigned char *buffer, size_t num);
 
-char* checkpath(char *path, const char* src);
-void findfile(const char *p, const char *pat, void (func)(const char*) );
+//void findfile(const char *p, const char *pat, void (func)(const char*) );
 /*
 inline FILE* safefopen(const char*name, const char*option)
 {	// windows MAXPATH is 260, unix is longer
 	char	 namebuf[2048];
-	checkpath(namebuf,name);
+	checkPath(namebuf,sizeof(namebuf), name);
 	return fopen( namebuf, option);
 }
 */

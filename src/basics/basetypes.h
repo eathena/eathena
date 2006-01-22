@@ -86,6 +86,17 @@
 //////////////////////////////
 
 //////////////////////////////
+// force glibc stuff into namespaces (>=2.3 as far as I've seen)
+// still testing, 
+// might generally avoid fighting with glibc since forlorn
+// if completely hopeless, retreat to an own namespace
+// this would also solve the exception problem on windows
+//////////////////////////////
+//#define _GLIBCPP_USE_NAMESPACES
+//////////////////////////////
+
+
+//////////////////////////////
 #undef FD_SETSIZE
 #define FD_SETSIZE 4096
 //////////////////////////////
@@ -418,6 +429,17 @@ typedef unsigned long long	uint64;
 #endif
 
 
+
+
+//////////////////////////////////////////////////////////////////////////
+// glibc has become a major bitch
+//////////////////////////////////////////////////////////////////////////
+#if defined(__GLIBC__) && ( (__GLIBC__ >2) || (__GLIBC__ ==2 && __GLIBC_MINOR__>=3) )
+// unfold hidden libc proto's
+#endif
+
+
+
 //////////////////////////////////////////////////////////////////////////
 // min max and swap template
 //////////////////////////////////////////////////////////////////////////
@@ -677,7 +699,7 @@ extern inline int CheckByteOrder(void)
 #ifdef log2 //glibc defines this as macro
 #undef log2
 #endif
-inline uint32 log2(uint32 v)
+inline unsigned long log2(unsigned long v)
 {
 //	static const unsigned long b[] = {0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000};
 //	static const unsigned long S[] = {1, 2, 4, 8, 16};
@@ -699,6 +721,9 @@ inline uint32 log2(uint32 v)
 //	if (v & b[1]) { v >>= S[1]; c |= S[1]; }
 //	if (v & b[0]) { v >>= S[0]; c |= S[0]; }
 	// put values in for more speed...
+#if defined(_LP64) || defined(_ILP64) || defined(__LP64__) || defined(__ppc64__)
+	if (v & LLCONST(0xFFFFFFFF00000000)) { v >>= 0x18; c |= 0x18; } 
+#endif
 	if (v & 0xFFFF0000) { v >>= 0x10; c |= 0x10; } 
 	if (v & 0x0000FF00) { v >>= 0x08; c |= 0x08; }
 	if (v & 0x000000F0) { v >>= 0x04; c |= 0x04; }
@@ -707,10 +732,13 @@ inline uint32 log2(uint32 v)
 
 	return c;
 }
+
+
+
 //////////////////////////////////////////////////////////////////////////
 // OR (IF YOU KNOW v IS A POWER OF 2):
 //////////////////////////////////////////////////////////////////////////
-inline uint32 log2_(uint32 v)
+inline unsigned long log2_(unsigned long v)
 {
 //	const unsigned long b[] = {0xAAAAAAAA, 0xCCCCCCCC, 0xF0F0F0F0, 0xFF00FF00, 0xFFFF0000};
 //	register ulong c = ((v & b[0]) != 0);
@@ -727,13 +755,22 @@ inline uint32 log2_(uint32 v)
 //	c |= ((v & b[0]) != 0) << 0;
 	// unroll for speed...
 	// put values in for more speed...
+#if defined(_LP64) || defined(_ILP64) || defined(__LP64__) || defined(__ppc64__)
+	register ulong c = ((v & LLCONST(0xAAAAAAAAAAAAAAAA)) != 0);
+	c |= ((v & LLCONST(0xFFFFFFFF00000000)) != 0) << 5;
+	c |= ((v & LLCONST(0xFFFF0000FFFF0000)) != 0) << 4;
+	c |= ((v & LLCONST(0xFF00FF00FF00FF00)) != 0) << 3;
+	c |= ((v & LLCONST(0xF0F0F0F0F0F0F0F0)) != 0) << 2;
+	c |= ((v & LLCONST(0xCCCCCCCCCCCCCCCC)) != 0) << 1;
+	c |= ((v & LLCONST(0xAAAAAAAAAAAAAAAA)) != 0) << 0;
+#else
 	register ulong c = ((v & 0xAAAAAAAA) != 0);
 	c |= ((v & 0xFFFF0000) != 0) << 4;
 	c |= ((v & 0xFF00FF00) != 0) << 3;
 	c |= ((v & 0xF0F0F0F0) != 0) << 2;
 	c |= ((v & 0xCCCCCCCC) != 0) << 1;
 	c |= ((v & 0xAAAAAAAA) != 0) << 0;
-
+#endif
 	return c;
 }
 //////////////////////////////////////////////////////////////////////////
@@ -742,7 +779,7 @@ inline uint32 log2_(uint32 v)
 // to find the log of a 32-bit value. 
 // If extended for 64-bit quantities, it would take roughly 9 operations.
 //////////////////////////////////////////////////////////////////////////
-extern inline uint32 log2t(uint32 v)
+extern inline unsigned long log2t(unsigned long v)
 {
 	static const unsigned char LogTable256[] = 
 	{
@@ -763,26 +800,48 @@ extern inline uint32 log2t(uint32 v)
 	  7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
 	  7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7
 	};
-	register uint32 c = 0; // c will be lg(v)
-	register uint32 t;
-	register uint32 tt = (v >> 16);
-	if(tt)
+	register unsigned long c; // c will be lg(v)
+	register unsigned long t;
+	register unsigned long tt;
+#if defined(_LP64) || defined(_ILP64) || defined(__LP64__) || defined(__ppc64__)
+	register unsigned long ttt = (v >> 32);
+	if(ttt)
 	{
-		t = v >> 24;
-		c = (t) ? 24 + LogTable256[t] : 16 + LogTable256[tt & 0xFF];
+		tt = (ttt >> 16);
+		if(tt)
+		{
+			t = v >> 24;
+			c = (t) ? 32+24 + LogTable256[t] : 32+16 + LogTable256[tt & 0xFF];
+		}
+		else 
+		{
+			t = v & 0xFF00;
+			c = (t) ? 32+8 + LogTable256[t >> 8] : 32+LogTable256[v & 0xFF];
+		}
 	}
 	else 
+#endif
 	{
-		t = v & 0xFF00;
-		c = (t) ? 8 + LogTable256[t >> 8] : LogTable256[v & 0xFF];
+		tt = (v >> 16);
+		if(tt)
+		{
+			t = v >> 24;
+			c = (t) ? 24 + LogTable256[t] : 16 + LogTable256[tt & 0xFF];
+		}
+		else 
+		{
+			t = v & 0xFF00;
+			c = (t) ? 8 + LogTable256[t >> 8] : LogTable256[v & 0xFF];
+		}
 	}
+
 	return c;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Counting bits set, in parallel
 //////////////////////////////////////////////////////////////////////////
-inline uint32 bit_count(uint32 v)
+inline unsigned long bit_count(unsigned long v)
 {
 //	static const ulong S[] = {1, 2, 4, 8, 16}; // Magic Binary Numbers
 //	static const ulong B[] = {0x55555555, 0x33333333, 0x0F0F0F0F, 0x00FF00FF, 0x0000FFFF};
@@ -794,12 +853,20 @@ inline uint32 bit_count(uint32 v)
 //	c = ((c >> S[3]) & B[3]) + (c & B[3]);
 //	c = ((c >> S[4]) & B[4]) + (c & B[4]);
 	// put values in
+#if defined(_LP64) || defined(_ILP64) || defined(__LP64__) || defined(__ppc64__)
+	c = ((c >> 0x01) & LLCONST(0x5555555555555555)) + (c & LLCONST(0x5555555555555555));
+	c = ((c >> 0x02) & LLCONST(0x3333333333333333)) + (c & LLCONST(0x3333333333333333));
+	c = ((c >> 0x04) & LLCONST(0x0F0F0F0F0F0F0F0F)) + (c & LLCONST(0x0F0F0F0F0F0F0F0F));
+	c = ((c >> 0x08) & LLCONST(0x00FF00FF00FF00FF)) + (c & LLCONST(0x00FF00FF00FF00FF));
+	c = ((c >> 0x10) & LLCONST(0x0000FFFF0000FFFF)) + (c & LLCONST(0x0000FFFF0000FFFF));
+	c = ((c >> 0x10) & LLCONST(0x00000000FFFFFFFF)) + (c & LLCONST(0x00000000FFFFFFFF));
+#else
 	c = ((c >> 0x01) & 0x55555555) + (c & 0x55555555);
 	c = ((c >> 0x02) & 0x33333333) + (c & 0x33333333);
 	c = ((c >> 0x04) & 0x0F0F0F0F) + (c & 0x0F0F0F0F);
 	c = ((c >> 0x08) & 0x00FF00FF) + (c & 0x00FF00FF);
 	c = ((c >> 0x10) & 0x0000FFFF) + (c & 0x0000FFFF);
-
+#endif
 	return c;
 }
 //////////////////////////////////////////////////////////////////////////
@@ -819,7 +886,7 @@ inline uchar bit_reverse(uchar b)
 // for more information. 
 // Anyway I would not count on that, so I put values explicitely.
 //////////////////////////////////////////////////////////////////////////
-inline uint32 bit_reverse(uint32 v)
+inline unsigned long bit_reverse(unsigned long v)
 {
 //	static const ulong S[] = {1, 2, 4, 8, 16}; // Magic Binary Numbers
 //	static const ulong B[] = {0x55555555, 0x33333333, 0x0F0F0F0F, 0x00FF00FF, 0x0000FFFF};
@@ -829,12 +896,20 @@ inline uint32 bit_reverse(uint32 v)
 //	v = ((v >> S[3]) & B[3]) | ((v << S[3]) & ~B[3]);
 //	v = ((v >> S[4]) & B[4]) | ((v << S[4]) & ~B[4]);
 	// better set it by hand
+#if defined(_LP64) || defined(_ILP64) || defined(__LP64__) || defined(__ppc64__)
+	v = ((v >> 0x01) & LLCONST(0x5555555555555555)) | ((v << 0x01) & ~LLCONST(0x5555555555555555));
+	v = ((v >> 0x02) & LLCONST(0x3333333333333333)) | ((v << 0x02) & ~LLCONST(0x3333333333333333));
+	v = ((v >> 0x04) & LLCONST(0x0F0F0F0F0F0F0F0F)) | ((v << 0x04) & ~LLCONST(0x0F0F0F0F0F0F0F0F));
+	v = ((v >> 0x08) & LLCONST(0x00FF00FF00FF00FF)) | ((v << 0x08) & ~LLCONST(0x00FF00FF00FF00FF));
+	v = ((v >> 0x10) & LLCONST(0x0000FFFF0000FFFF)) | ((v << 0x10) & ~LLCONST(0x0000FFFF0000FFFF));
+	v = ((v >> 0x10) & LLCONST(0x00000000FFFFFFFF)) | ((v << 0x10) & ~LLCONST(0x00000000FFFFFFFF));
+#else
 	v = ((v >> 0x01) & 0x55555555) | ((v << 0x01) & ~0x55555555);
 	v = ((v >> 0x02) & 0x33333333) | ((v << 0x02) & ~0x33333333);
 	v = ((v >> 0x04) & 0x0F0F0F0F) | ((v << 0x04) & ~0x0F0F0F0F);
 	v = ((v >> 0x08) & 0x00FF00FF) | ((v << 0x08) & ~0x00FF00FF);
 	v = ((v >> 0x10) & 0x0000FFFF) | ((v << 0x10) & ~0x0000FFFF);
-
+#endif
 	return v;
 }
 
@@ -842,7 +917,7 @@ inline uint32 bit_reverse(uint32 v)
 // check if a number is power of 2
 // roughly; if one (and only one) bit is set
 //////////////////////////////////////////////////////////////////////////
-extern inline bool isPowerOf2(ulong i)
+extern inline bool isPowerOf2(unsigned long i)
 {
 	return (i > 0) && (0==(i & (i - 1)));
 }
@@ -850,7 +925,7 @@ extern inline bool isPowerOf2(ulong i)
 //////////////////////////////////////////////////////////////////////////
 // round up to the next power of 2
 //////////////////////////////////////////////////////////////////////////
-extern inline uint32 RoundPowerOf2(uint32 v)
+extern inline unsigned long RoundPowerOf2(unsigned long v)
 {
 	v--;
 	v |= v >> 1;
@@ -858,6 +933,9 @@ extern inline uint32 RoundPowerOf2(uint32 v)
 	v |= v >> 4;
 	v |= v >> 8;
 	v |= v >> 16;
+#if defined(_LP64) || defined(_ILP64) || defined(__LP64__) || defined(__ppc64__)
+	v |= v >> 32;
+#endif
 	v++;
 	return v;
 }

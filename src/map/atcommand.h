@@ -172,6 +172,7 @@ enum AtCommandType {
 	AtCommand_Snow,
 	AtCommand_Sakura,
 	AtCommand_Clouds,
+	AtCommand_Clouds2,
 	AtCommand_Fog,
 	AtCommand_Fireworks,
 	AtCommand_Leaves,

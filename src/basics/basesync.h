@@ -10,6 +10,8 @@
 
 
 //////////////////////////////////////////////////////////////////////////
+//  derived from PTypes (C++ Portable Types Library)
+//
 //  Summary of implementation:
 //
 //  atomic increment/decrement/exchange

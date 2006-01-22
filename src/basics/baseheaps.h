@@ -49,7 +49,6 @@ public:
 	}
 	// Insert item x into the priority queue, maintaining heap order.
 	// Duplicates are allowed.
-	// Throw Overflow if container is full.
 	virtual void insert( const T& x )
 	{
 		// Percolate up
@@ -257,7 +256,7 @@ public:
 		return tmp;
 	}
 	// Remove the smallest item from the priority queue
-	// and place it in minItem. Throw Underflow if empty.
+	// and place it in minItem.
 	bool deleteMin( T & minItem )
 	{
 		if(this->cCnt<=0)

@@ -2,8 +2,10 @@
 #include "basetime.h"
 
 
-
-
+//////////////////////////////////////////////////////////////////////////
+// datetime type: 
+// 64-bit int defined as number of milliseconds since midnight 01/01/0001
+// derived from PTypes (C++ Portable Types Library)
 //////////////////////////////////////////////////////////////////////////
 datetime makedt(int days, int msecs)
 {

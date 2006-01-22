@@ -470,9 +470,9 @@ bool CParser::get_symbol(size_t syminx, CSymbol& symbol)
 ///////////////////////////////////////////////////////////////////////////////
 // Create a new parser
 ///////////////////////////////////////////////////////////////////////////////
-bool CParser::create(CParseConfig* pconfig)
+bool CParser::create(CParseConfig* pcfg)
 {	
-	this->pconfig = pconfig;
+	this->pconfig = pcfg;
 	this->cStack.realloc(STACK_SIZE);
 
 	this->lalr_state = pconfig->init_lalr;
@@ -841,7 +841,7 @@ bool CParseConfig::create(const unsigned char* b, size_t len)
 			this->sym[idx].idx = idx;
 			break;
 		}
-		case 'C': // Character set Entry
+		case 'C': // Character Set Entry
 		{
 			b = getvsh(b, &idx);
 			b = getvws(b, str);

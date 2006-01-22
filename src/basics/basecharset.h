@@ -20,6 +20,7 @@ template <class T> T hex2char(uchar c);
 
 //////////////////////////////////////////////////////////////////////////
 // ansi character set
+// derived from PTypes (C++ Portable Types Library)
 // contains sets of characters with various math/compare operations
 // sets can be defined by strings containing the characters itself
 // or escaped ansi hex codes of the chars, ranges can be given with '-'

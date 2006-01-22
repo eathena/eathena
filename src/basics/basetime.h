@@ -12,6 +12,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // datetime type: 
 // 64-bit int defined as number of milliseconds since midnight 01/01/0001
+// derived from PTypes (C++ Portable Types Library)
 ///////////////////////////////////////////////////////////////////////////////
 typedef int64 datetime;
 
@@ -110,7 +111,8 @@ extern inline int gettimeofday(struct timeval *timenow, void *tz)
 		int	tz_minuteswest; // minutes W of Greenwich
 		int	tz_dsttime;	// type of dst correction
 	};
-	but has never been used, because the daylight saving could not be defined by an algorithm
+	but has never been used, because the daylight saving 
+	could not be defined by an algorithm
 
 	the code to actually use this structures would be:
 	if (tz)
@@ -151,6 +153,7 @@ extern inline unsigned long GetTickCount()
 // directly read the processor clock register (using RDTSC command)
 // combined with known processor clock it would allow timers in nanosecond scale
 // unfortunately the later is unlikely to get in necessary precision
+// and might even vary at runtime (dynamic clock scaling)
 inline uint64 rdtsc(void)
 {
 ///////////////////////////////////////////////////////////////////////////////

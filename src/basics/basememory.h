@@ -173,7 +173,7 @@ public:
 // size is calculated with one element in advance
 // so it can be used for cstring allocation
 ///////////////////////////////////////////////////////////////////////////////
-template < class T=char, class E=elaborator_st<T> > class allocator_w_dy : public allocator_w<T>, public E
+template < class T=char, class E=elaborator_ct<T> > class allocator_w_dy : public allocator_w<T>, public E
 {
 protected:
 	allocator_w_dy() : allocator_w<T>()			{}
@@ -211,7 +211,7 @@ protected:
 // size is calculated with one element in advance
 // so it can be used for cstring allocation
 ///////////////////////////////////////////////////////////////////////////////
-template < class T=char, class E=elaborator_st<T> > class allocator_w_st : public allocator_w<T>, public E
+template < class T=char, class E=elaborator_ct<T> > class allocator_w_st : public allocator_w<T>, public E
 {
 protected:
 	allocator_w_st()			{}			// no implementation here
@@ -253,7 +253,7 @@ public:
 // dynamic read/write-buffer allocator
 // creates/reallocates storage on its own
 ///////////////////////////////////////////////////////////////////////////////
-template < class T=unsigned char, class E=elaborator_st<T> > class allocator_rw_dy : public allocator_rw<T>, public E
+template < class T=unsigned char, class E=elaborator_ct<T> > class allocator_rw_dy : public allocator_rw<T>, public E
 {
 protected:
 	allocator_rw_dy() : allocator_rw<T>()			{}
@@ -298,7 +298,7 @@ protected:
 ///////////////////////////////////////////////////////////////////////////////
 // static read/write-buffer is using an external buffer for writing
 ///////////////////////////////////////////////////////////////////////////////
-template < class T=unsigned char, class E=elaborator_st<T> > class allocator_rw_st : public allocator_rw<T>, public E
+template < class T=unsigned char, class E=elaborator_ct<T> > class allocator_rw_st : public allocator_rw<T>, public E
 {
 protected:
 	allocator_rw_st()			{}
@@ -341,7 +341,7 @@ protected:
 
 	// std construct/destruct
 	allocator_r()	: cBuf(NULL), cEnd(NULL), cRpp(NULL), cScn(NULL), cWpp(NULL)				{}
-	allocator_r(T* buf, size_t sz) : cBuf(buf), cEnd(buf+sz), cRpp(buf), cScn(buf), cWpp(buf+z)	{}
+	allocator_r(T* buf, size_t sz, size_t fill=0) : cBuf(buf), cEnd(buf+sz), cRpp(buf), cScn(buf), cWpp(buf+min(sz,fill))	{}
 	virtual ~allocator_r()	{ cBuf=cEnd=cRpp=cScn=cWpp=NULL; }
 
 	// default read function, reads max sz elements to buf and returns the actual count of read elements
@@ -356,7 +356,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 // dynamic read-buffer allocator
 ///////////////////////////////////////////////////////////////////////////////
-template < class T=unsigned char, class E=elaborator_st<T> > class allocator_r_dy : public allocator_r<T>, public E
+template < class T=unsigned char, class E=elaborator_ct<T> > class allocator_r_dy : public allocator_r<T>, public E
 {
 protected:
 	allocator_r_dy() : allocator_r<T>()				{  }
@@ -434,7 +434,7 @@ public:
 		if(name)
 		{
 			cFile = fopen(name, "rb");
-			checkread(1);
+			this->checkread(1);
 		}
 		return (NULL!=cFile);
 	}

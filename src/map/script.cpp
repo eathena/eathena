@@ -7067,8 +7067,9 @@ enum
 	MF_INDOORS,			//21
 	MF_NOGO,			//22
 	MF_CLOUDS,			//23
-	MF_FIREWORKS, 		//24
-	MF_GVG_DUNGEON		//25
+	MF_CLOUDS2,			//24
+	MF_FIREWORKS, 		//25
+	MF_GVG_DUNGEON		//26
 };
 
 
@@ -7161,6 +7162,9 @@ int buildin_setmapflag(CScriptEngine &st)
 			case MF_CLOUDS:
 				map[m].flag.clouds=1;
 				break;
+			case MF_CLOUDS2:
+				map[m].flag.clouds2=1;
+				break;
 			case MF_FOG: // [Valaris]
 				map[m].flag.fog=1;
 				break;
@@ -7251,6 +7255,9 @@ int buildin_removemapflag(CScriptEngine &st)
 				break;
 			case MF_CLOUDS:
 				map[m].flag.clouds=0;
+				break;
+			case MF_CLOUDS2:
+				map[m].flag.clouds2=0;
 				break;
 			case MF_FOG: // [Valaris]
 				map[m].flag.fog=0;

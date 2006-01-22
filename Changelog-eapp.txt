@@ -1,4 +1,8 @@
 Date	Added
+01/22	* cleaning common/removing functions that now are in basics 
+	* adding dynamic library load interface
+	  still need to split the zlib example from that file 
+	  and add the minizip code
 01/15	
 	* cleaned warnings from base test functions on 64bit compilations
 	- revised base includes and makefiles

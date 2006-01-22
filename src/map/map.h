@@ -129,6 +129,7 @@
 #define EFFECT_SNOW		162
 #define EFFECT_LEAVES	333
 #define EFFECT_CLOUDS	233
+#define EFFECT_CLOUDS2	516
 #define EFFECT_SAKURA	163
 #define EFFECT_RAIN		161
 #define EFFECT_FIRE1	297
@@ -1146,19 +1147,20 @@ struct map_data
 		unsigned nopvp : 1;						// 20
 		unsigned noicewall : 1;					// 21
 		unsigned snow : 1;						// 22
-		unsigned rain : 1;						// 28
-		unsigned sakura : 1;					// 26
-		unsigned leaves : 1;					// 27
-		unsigned clouds : 1;					// 23 (byte 3)
-		unsigned fog : 1;						// 24
-		unsigned fireworks : 1;					// 25
-		unsigned indoors : 1;					// 29
-		unsigned nogo : 1;						// 30
-		unsigned nobaseexp	: 1;				// 31 (byte 4) // [Lorky] added by Lupus
-		unsigned nojobexp	: 1;				// 32 // [Lorky]
-		unsigned nomobloot	: 1;				// 33 // [Lorky]				
-		unsigned nomvploot	: 1;				// 34 // [Lorky]		
-		unsigned _unused : 5;					// 35-39 (byte 5)
+		unsigned rain : 1;						// 23
+		unsigned sakura : 1;					// 24
+		unsigned leaves : 1;					// 25
+		unsigned clouds : 1;					// 26 (byte 3)
+		unsigned clouds2 : 1;					// 27
+		unsigned fog : 1;						// 28
+		unsigned fireworks : 1;					// 29
+		unsigned indoors : 1;					// 30
+		unsigned nogo : 1;						// 31
+		unsigned nobaseexp	: 1;				// 32 (byte 4) // [Lorky] added by Lupus
+		unsigned nojobexp	: 1;				// 33 // [Lorky]
+		unsigned nomobloot	: 1;				// 34 // [Lorky]				
+		unsigned nomvploot	: 1;				// 35 // [Lorky]		
+		unsigned _unused : 4;					// 36-39 (byte 5)
 	} flag;
 	struct point save;
 	struct npc_data *npc[MAX_NPC_PER_MAP];

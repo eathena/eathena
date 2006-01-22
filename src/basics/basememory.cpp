@@ -12,10 +12,6 @@
 //////////////////////////////////////////////////////////////////////////
 // dynamic reallocation policy for c-style allocation
 //////////////////////////////////////////////////////////////////////////
-void memerror()
-{
-	throw exception_memory("Not enough memory");
-}
 void* memalloc(uint a) 
 {
 	if (a == 0)
@@ -24,7 +20,7 @@ void* memalloc(uint a)
 	{
 		void* p = malloc(a);
 		if (p == NULL)
-			memerror();
+			throw exception_memory("Not enough memory");
 		return p;
 	}
 }
@@ -41,7 +37,7 @@ void* memrealloc(void* p, uint a)
 	{
 		p = realloc(p, a);
 		if (p == NULL)
-			memerror();
+			throw exception_memory("Not enough memory");
 		return p;
 	}
 }
