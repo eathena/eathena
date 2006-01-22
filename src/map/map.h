@@ -1394,5 +1394,6 @@ extern char mail_db[32];
 #endif /* not TXT_ONLY */
 
 extern int lowest_gm_level;
+extern char main_chat_nick[16];
 
 #endif

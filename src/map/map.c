@@ -167,6 +167,10 @@ MYSQL_ROW mapregsql_row;
 
 int lowest_gm_level = 1;
 
+// This param using for sending mainchat
+// messages like whispers to this nick. [LuzZza]
+char main_chat_nick[16] = "Main";
+
 char *INTER_CONF_NAME;
 char *LOG_CONF_NAME;
 char *MAP_CONF_NAME;
@@ -3265,6 +3269,11 @@ int inter_config_read(char *cfgName)
 			party_share_level = battle_config_switch(w2);
 		} else if(strcmpi(w1,"lowest_gm_level")==0){
 			lowest_gm_level = atoi(w2);
+		
+		/* Main chat nick [LuzZza] */
+		} else if(strcmpi(w1, "main_chat_nick")==0){
+			strcpy(main_chat_nick, w2);
+			
 	#ifndef TXT_ONLY
 		} else if(strcmpi(w1,"charsave_method")==0){
 			charsave_method = atoi(w2); //New char saving method.

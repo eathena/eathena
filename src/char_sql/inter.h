@@ -53,4 +53,6 @@ extern char login_db_server_db[32];
 
 extern int log_inter;
 
+extern char main_chat_nick[16];
+
 #endif

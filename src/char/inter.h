@@ -23,4 +23,6 @@ extern int kick_on_disconnect;
 extern char inter_log_filename[1024];
 extern int log_inter;
 
+extern char main_chat_nick[16];
+
 #endif

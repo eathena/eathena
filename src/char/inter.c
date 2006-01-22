@@ -25,6 +25,7 @@
 #define WISDELLIST_MAX 256   	// Number of elements of Wisp/page data deletion list
 
 char inter_log_filename[1024] = "log/inter.log";
+char main_chat_nick[16] = "Main";
 
 char accreg_txt[1024] = "save/accreg.txt";
 static struct dbt *accreg_db = NULL;
@@ -215,6 +216,8 @@ int inter_config_read(const char *cfgName) {
 			strncpy(inter_log_filename, w2, sizeof(inter_log_filename));
 		} else if(strcmpi(w1,"log_inter")==0) {
 			log_inter = atoi(w2);
+		} else if(strcmpi(w1, "main_chat_nick")==0){	// Main chat nick [LuzZza]
+			strcpy(main_chat_nick, w2);					// 
 		} else if (strcmpi(w1, "import") == 0) {
 			inter_config_read(w2);
 		}

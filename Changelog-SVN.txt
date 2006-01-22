@@ -1,11 +1,13 @@
 Date	Added
 
+2006/01/22
+	* Some changes of @main. Now you can send main-chat messages by sending whisper
+	  to nick "Main" (or any other, it can be set in inter_athena.conf). [LuzZza]
 2006/01/21
 	* Changed gm_can_drop_lv battle conf switch to gm_cant_drop_min_lv and gm_cant_drop_max_lv [Komurka]
 	* SL_SWOO (Esu) will only lasts 1/5 of normal time when used on a Boss-type monster [Komurka]
 	 -SL_SKE (Esk) won't work on a Boss-type monster anymore (if you KNOW that it should work on them
 	  write about it on forum; either way don't bother guessing ... SL can solo ANY boss with this skill ~.~)
-
 2006/01/20
 	* Fixed the login-TXT login Log. [Skotlex]
 	* Small update to sql-files/item_db.sql to fix speed potions (a complete

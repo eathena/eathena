@@ -1291,6 +1291,12 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 
 	ShowInfo("New character request (%d)\n", sd->account_id);
 
+	//check name != main chat nick [LuzZza]
+	if(strcmpi(name, main_chat_nick) == 0) {
+		ShowInfo("Create char failed (%d): this nick (%s) reserved for mainchat messages.\n", sd->account_id, name);
+		return -2;
+	}
+
 	//check for charcount (maxchars) :)
 	if(char_per_account != 0){
 		sprintf(tmp_sql, "SELECT `account_id` FROM `%s` WHERE `account_id` = '%d'", char_db, sd->account_id);

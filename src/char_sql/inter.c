@@ -54,6 +54,8 @@ char login_server_id[32] = "ragnarok";
 char login_server_pw[32] = "ragnarok";
 char login_server_db[32] = "ragnarok";
 
+char main_chat_nick[16] = "Main";
+
 // sending packet list
 // NOTE: This variable ain't used at all! And it's confusing.. where do I add that the length of packet 0x2b07 is 10? x.x [Skotlex]
 int inter_send_packet_length[]={
@@ -267,7 +269,11 @@ int inter_config_read(const char *cfgName) {
 		else if(strcmpi(w1,"login_server_db")==0){
 			strcpy(login_server_db, w2);
 			ShowStatus ("set login_server_db : %s\n",w2);
-		} else if(strcmpi(w1,"import")==0){
+		}
+		else if(strcmpi(w1, "main_chat_nick")==0){	// Main chat nick [LuzZza]
+			strcpy(main_chat_nick, w2);				// 			
+		}
+		else if(strcmpi(w1,"import")==0){
 			inter_config_read(w2);
 		}
 	}

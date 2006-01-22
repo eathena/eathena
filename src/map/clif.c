@@ -9283,7 +9283,21 @@ if ((strncasecmp((const char*)RFIFOP(fd,4),"NPC:",4) == 0) && (strlen((const cha
 		whisper_tmp = NULL;
 	} //should have just removed the one below that was a my bad =P
 }		
-			
+	
+	// Main chat [LuzZza]
+	if(strcmpi((const char*)RFIFOP(fd,4), main_chat_nick) == 0) {
+		if(!sd->state.mainchat) {
+			sd->state.mainchat = 1;
+			clif_displaymessage(fd, msg_txt(380)); // Main chat has been activated.
+		}
+		if (sd->sc_data[SC_NOCHAT].timer != -1) {
+			clif_displaymessage(fd, msg_txt(387));
+			return;
+		}
+		sprintf(output, msg_txt(386), sd->status.name, (char *)RFIFOP(fd,28));
+		intif_announce(output, strlen(output) + 1, 0xFE000000, 0);
+		return;
+	}
 
 	// searching destination character
 	dstsd = map_nick2sd((char*)RFIFOP(fd,4));

@@ -1023,6 +1023,13 @@ int make_new_char(int fd, unsigned char *dat) {
 	
 	trim(name,TRIM_CHARS); //Trim character name. [Skotlex]
 	
+	//check name != main chat nick [LuzZza]
+	if(strcmpi(name, main_chat_nick) == 0) {
+		char_log("Create char failed (%d): this nick (%s) reserved for mainchat messages." RETCODE,
+			sd->account_id, name);
+		return -1;
+	}	
+	
 	if (remove_control_chars((unsigned char *)name)) {
 		char_log("Make new char error (control char received in the name): (connection #%d, account: %d)." RETCODE,
 		         fd, sd->account_id);
