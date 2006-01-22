@@ -1,4 +1,4 @@
-// Aegis zone 8.5 -> eAthena conversion by Komurka
+﻿// Aegis zone 8.5 -> eAthena conversion by Komurka
 // + Mob Skills for Einbroch+ by Lupus
 //MOB_ID, a unused dummy character sequence (for information only), STATE, SKILL_ID, SKILL_LV,
 // rate (10000 = 100%), casttime, delay, cancelable, a target, a condition type, a condition value,
@@ -42,7 +42,6 @@
 //	afterskill		after the mob used certain skill.
 //	casttargeted		when a target is in cast range.
 //	rudeattacked		when a target is rude attacked
-//	hiding			*not implemented yet* when a target is hidden
 //
 // The character's state which can be specified to be a condition value by the statuson/statusoff system
 //	anybad		any type of state change
@@ -57,6 +56,7 @@
 //	blind		condition of being in blind state
 //	hiding		condition of being in hidden state
 //	sight		condition of being in unhidden state
+
 1001,Scorpion@NPC_FIREATTACK,attack,186,1,2000,0,5000,yes,target,always,0,,,,,,
 1001,Scorpion@NPC_POISON,attack,176,3,500,800,5000,no,target,always,0,,,,,,
 1002,Poring@NPC_EMOTION,loot,197,1,2000,0,5000,yes,self,always,0,2,,,,,
@@ -2514,7 +2514,7 @@
 1622,Teddy Bear@SA_DISPELL,chase,289,5,500,0,30000,yes,target,always,0,,,,,,
 1622,Teddy Bear@NPC_CRITICALSLASH,attack,170,1,500,500,5000,no,target,always,0,,,,,,
 1622,Teddy Bear@NPC_CURSEATTACK,attack,181,3,500,800,5000,no,target,always,0,,,,,,
-1622,Teddy Bear@NPC_EMOTION,attack,197,1,200,0,5000,yes,self,always,0,1,,,,,,
+1622,Teddy Bear@NPC_EMOTION,attack,197,1,200,0,5000,yes,self,always,0,1,,,,,
 
 1623,RSX 0806@NPC_SUMMONSLAVE,attack,196,2,5000,3000,36000,no,self,myhpltmaxrate,5,1624,,,,,
 1623,RSX 0806@NPC_SUMMONSLAVE,chase,196,2,10000,3000,36000,no,self,slavele,0,1624,,,,,
@@ -2597,7 +2597,7 @@
 
 1636,HARWORD@BS_HAMMERFALL,chase,110,5,2000,0,5000,no,target,always,0,,,,,,0
 1636,HARWORD@BS_HAMMERFALL,attack,110,5,2000,0,5000,no,target,always,0,,,,,,0
-1636,HARWORD@NPC_SHIELDBRAKE,attack,346,5,500,0,5000,yes,target,always,0,,,,,,,
+1636,HARWORD@NPC_SHIELDBRAKE,attack,346,5,500,0,5000,yes,target,always,0,,,,,,
 1636,HARWORD@NPC_FIREATTACK,attack,186,3,500,500,5000,no,target,always,0,,,,,,
 1636,HARWORD@NPC_GROUNDATTACK,attack,185,2,500,500,5000,no,target,always,0,,,,,,
 1636,HARWORD@MC_MAMMONITE,angry,42,5,500,800,5000,no,target,always,0,,,,,,
@@ -2673,7 +2673,7 @@
 1642,G_HARWARD@BS_ADRENALINE,chase,111,1,500,1500,5000,no,self,always,0,,,,,,
 1642,G_HARWARD@BS_ADRENALINE,attack,111,1,500,1500,5000,no,self,always,0,,,,,,
 1642,G_HARWARD@NPC_CRITICALSLASH,attack,170,1,1000,0,30000,no,target,always,0,,,,,,
-1642,G_HARWORD@NPC_SHIELDBRAKE,attack,346,5,500,0,5000,yes,target,always,0,,,,,,,
+1642,G_HARWORD@NPC_SHIELDBRAKE,attack,346,5,500,0,5000,yes,target,always,0,,,,,,
 1642,G_HARWARD@NPC_FIREATTACK,attack,186,3,500,500,5000,no,target,always,0,,,,,,
 1642,G_HARWARD@NPC_GROUNDATTACK,attack,185,2,500,500,5000,no,target,always,0,,,,,,
 1642,G_HARWORD@NPC_POWERUP,attack,349,5,500,0,30000,yes,self,myhpltmaxrate,30,,,,,,
@@ -2711,7 +2711,7 @@
 
 1645,G_KATRINN@WZ_STORMGUST,chase,89,10,2000,0,5000,yes,target,always,0,,,,,,29
 1645,G_KATRINN@WZ_STORMGUST,attack,89,10,2000,0,5000,yes,target,always,0,,,,,,29
-1645,G_KATRINN@MG_FIREBALL,chase,17,10,500,0,5000,yes,target,always,0,,,,,
+1645,G_KATRINN@MG_FIREBALL,chase,17,10,500,0,5000,yes,target,always,0,,,,,,
 1645,G_KATRINN@WZ_VERMILION,attack,85,10,2000,500,2000,no,target,always,0,,,,,,29
 1645,G_KATRINN@WZ_VERMILION,chase,85,10,5000,500,2000,no,target,skillused,18,,,,,,29
 1645,G_KATRINN@WZ_VERMILION,chase,85,10,2000,500,2000,no,target,always,0,,,,,,29
@@ -2753,7 +2753,7 @@
 1648,L_HARWORD@BS_ADRENALINE,chase,111,1,500,1500,5000,no,self,always,0,,,,,,
 1648,L_HARWORD@BS_ADRENALINE,attack,111,1,500,1500,5000,no,self,always,0,,,,,,
 1648,L_HARWORD@NPC_CRITICALSLASH,attack,170,1,1000,0,30000,no,target,always,0,,,,,,
-1648,L_HARWORD@NPC_SHIELDBRAKE,attack,346,5,500,0,5000,yes,target,always,0,,,,,,,
+1648,L_HARWORD@NPC_SHIELDBRAKE,attack,346,5,500,0,5000,yes,target,always,0,,,,,,
 1648,L_HARWORD@NPC_FIREATTACK,attack,186,3,500,500,5000,no,target,always,0,,,,,,
 1648,L_HARWORD@NPC_GROUNDATTACK,attack,185,2,500,500,5000,no,target,always,0,,,,,,
 1648,L_HARWORD@NPC_POWERUP,attack,349,5,500,0,30000,yes,self,myhpltmaxrate,30,,,,,,
@@ -2807,7 +2807,7 @@
 
 1651,L_KATRINN@WZ_STORMGUST,chase,89,10,2000,0,5000,yes,target,always,0,,,,,,29
 1651,L_KATRINN@WZ_STORMGUST,attack,89,10,2000,0,5000,yes,target,always,0,,,,,,29
-1651,L_KATRINN@MG_FIREBALL,chase,17,10,500,0,5000,yes,target,always,0,,,,,
+1651,L_KATRINN@MG_FIREBALL,chase,17,10,500,0,5000,yes,target,always,0,,,,,,
 1651,L_KATRINN@WZ_VERMILION,attack,85,10,2000,500,2000,no,target,always,0,,,,,,29
 1651,L_KATRINN@WZ_VERMILION,chase,85,10,5000,500,2000,no,target,skillused,18,,,,,,29
 1651,L_KATRINN@WZ_VERMILION,chase,85,10,2000,500,2000,no,target,always,0,,,,,,29
@@ -2872,7 +2872,7 @@
 1658,G_YGNIZEM@NPC_CHANGEWIND,attack,165,1,10000,2000,600000,no,self,myhpltmaxrate,5,,,,,,
 1658,G_YGNIZEM@NPC_CHANGEWATER,attack,162,1,10000,2000,600000,no,self,myhpltmaxrate,20,,,,,,
 1658,G_YGNIZEM@KN_TWOHANDQUICKEN,attack,60,10,10000,0,120000,yes,self,myhpltmaxrate,30,,,,,,
-1658,G_YGNIZEM@NPC_SHIELDBRAKE,attack,346,5,500,0,5000,yes,target,always,0,,,,,,,
+1658,G_YGNIZEM@NPC_SHIELDBRAKE,attack,346,5,500,0,5000,yes,target,always,0,,,,,,
 
 //not sure if these summon like the advanced classes(commented out for now)
 //1653,Whikebain@NPC_SUMMONSLAVE,attack,196,5,10000,2000,10000,no,self,slavele,0,1658,1661,1663,1660,1662,0
@@ -3074,4 +3074,4 @@
 1720,Hydro@AL_HEAL,attack,28,11,10000,0,5000,yes,self,myhpltmaxrate,99,,,,,,2
 1720,Hydro@NPC_SUMMONSLAVE,idle,196,4,10000,2000,240000,no,self,slavele,1,1713,1714,1716,1717,,
 1720,Hydro@NPC_CALLSLAVE,attack,352,1,2000,0,10000,yes,target,always,0,,,,,,
-1720,Hydro@NPC_CALLSLAVE,idle,352,1,2000,0,10000,yes,self,always,0,,,,,
+1720,Hydro@NPC_CALLSLAVE,idle,352,1,2000,0,10000,yes,self,always,0,,,,,,
