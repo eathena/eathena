@@ -337,11 +337,7 @@ static int petskill_castend2(struct pet_data *pd, struct block_list *target, sho
 		switch( skill_get_nk(skill_id) )
 		{
 			case NK_NO_DAMAGE:
-				if(
-				(skill_id==AL_HEAL || skill_id==ALL_RESURRECTION) && battle_check_undead(status_get_race(target),status_get_elem_type(target)) )
-					skill_castend_damage_id(&pd->bl, target, skill_id, skill_lv, tick, 0);
-				else
-					skill_castend_nodamage_id(&pd->bl,target, skill_id, skill_lv,tick, 0);
+				skill_castend_nodamage_id(&pd->bl,target, skill_id, skill_lv,tick, 0);
 				break;
 			case NK_SPLASH_DAMAGE:
 			default:

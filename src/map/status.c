@@ -640,13 +640,17 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 	if (!skill_num && !(mode&MD_CANATTACK))
 		return 0; //This mode is only needed for melee attacking.
 	
-	//Check for Basilica when the target is null (the basilica check normally is done in battle_check_target,
-	//and it's correct there, however, it allows mages to stand inside basilica and cast AoE spells to the outside!)
-	if (target == NULL && src && map_getcell(src->m,src->x,src->y,CELL_CHKBASILICA)
-		&& skill_get_inf(skill_num)&INF_GROUND_SKILL && skill_get_unit_target(skill_num)&BCT_ENEMY
+	if (((src && map_getcell(src->m,src->x,src->y,CELL_CHKBASILICA)) ||
+		(target && target != src && map_getcell(target->m,target->x,target->y,CELL_CHKBASILICA)))
 		&& !(mode&MD_BOSS))
-		return 0;
-			
+	{	//Basilica Check
+		if (!skill_num) return 0;
+		race = skill_get_inf(skill_num);
+		if (race&INF_ATTACK_SKILL)
+			return 0;
+		if (race&INF_GROUND_SKILL && skill_get_unit_target(skill_num)&BCT_ENEMY)
+			return 0;
+	}	
 	if (src) {
 		option = status_get_option(src);
 		opt1 = status_get_opt1(src);
@@ -659,8 +663,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 	if(sc_data)
 	{
 		if (
-			(sc_data[SC_BASILICA].timer != -1 && (sc_data[SC_BASILICA].val3 != BCT_SELF || skill_num != HP_BASILICA))
-			|| (sc_data[SC_TRICKDEAD].timer != -1 && skill_num != NV_TRICKDEAD)
+			(sc_data[SC_TRICKDEAD].timer != -1 && skill_num != NV_TRICKDEAD)
 			|| (sc_data[SC_AUTOCOUNTER].timer != -1 && skill_num != KN_AUTOCOUNTER)
 			|| (sc_data[SC_GOSPEL].timer != -1 && sc_data[SC_GOSPEL].val4 == BCT_SELF && skill_num != PA_GOSPEL)
 			|| sc_data[SC_GRAVITATION].timer != -1
@@ -717,7 +720,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 	tsc_data = status_get_sc_data(target);
 	if(tsc_data)
 	{	
-		if (!(mode & MD_BOSS) && (tsc_data[SC_BASILICA].timer != -1 || tsc_data[SC_TRICKDEAD].timer != -1))
+		if (!(mode & MD_BOSS) && sc_data[SC_TRICKDEAD].timer != -1)
 			return 0;
 		if(skill_num == WZ_STORMGUST && tsc_data[SC_FREEZE].timer != -1)
 			return 0;
@@ -4637,7 +4640,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_ANKLE:	/* アンクル */
 		case SC_BLADESTOP_WAIT:		/* 白刃取り(待ち) */
 		case SC_HALLUCINATION:
-		case SC_BASILICA: // [celest]
 		case SC_SPLASHER:		/* ベナムスプラッシャ? */
 		case SC_FOGWALL:
 		case SC_PRESERVE:
@@ -5730,13 +5732,11 @@ int status_change_timer_sub(struct block_list *bl, va_list ap )
 	int type;
 	unsigned int tick;
 
-	nullpo_retr(0, bl);
-	nullpo_retr(0, ap);
-	nullpo_retr(0, src=va_arg(ap,struct block_list*));
+	src=va_arg(ap,struct block_list*);
 	type=va_arg(ap,int);
 	tick=va_arg(ap,unsigned int);
 
-	if (bl->type!=BL_PC && bl->type!=BL_MOB)
+	if (status_isdead(bl))
 		return 0;
 	if (src->type==BL_PC) sd= (struct map_session_data*)src;
 	if (bl->type==BL_PC) tsd= (struct map_session_data*)bl;

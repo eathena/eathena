@@ -1344,11 +1344,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 			else {
 				switch (skill_get_nk(auto_skillid)) {
 					case NK_NO_DAMAGE:
-						if ((auto_skillid == AL_HEAL || (auto_skillid == ALL_RESURRECTION && tbl->type != BL_PC)) &&
-							battle_check_undead(status_get_race(tbl),status_get_elem_type(tbl)))
-							skill_castend_damage_id(src, tbl, auto_skillid, auto_skilllv, tick, 0);
-						else
-							skill_castend_nodamage_id(src, tbl, auto_skillid, auto_skilllv, tick, 0);
+						skill_castend_nodamage_id(src, tbl, auto_skillid, auto_skilllv, tick, 0);
 						break;
 					case NK_SPLASH_DAMAGE:
 					default:
@@ -1509,11 +1505,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 			else {
 				switch (skill_get_nk(skillid)) {
 					case NK_NO_DAMAGE:
-						if ((skillid == AL_HEAL || (skillid == ALL_RESURRECTION && tbl->type != BL_PC)) &&
-							battle_check_undead(status_get_race(tbl), status_get_elem_type(tbl)))
-							skill_castend_damage_id(bl, tbl, skillid, skilllv, tick, 0);
-						else
-							skill_castend_nodamage_id(bl, tbl, skillid, skilllv, tick, 0);
+						skill_castend_nodamage_id(bl, tbl, skillid, skilllv, tick, 0);
 						break;
 					case NK_SPLASH_DAMAGE:
 					default:
@@ -2195,7 +2187,7 @@ static int skill_check_unit_range2_sub( struct block_list *bl,va_list ap )
 	
 	(*c)++;
 
-	return 0;
+	return 1;
 }
 
 int skill_check_unit_range2(struct block_list *bl, int m,int x,int y,int skillid, int skilllv)
@@ -3031,12 +3023,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 
 	case ALL_RESURRECTION:		/* ƒŠƒUƒŒƒNƒVƒ‡ƒ“ */
 	case PR_TURNUNDEAD:			/* ƒ^?ƒ“ƒAƒ“ƒfƒbƒh */
-		if (bl->type != BL_PC && battle_check_undead(status_get_race(bl),status_get_elem_type(bl)))
+		if (battle_check_undead(status_get_race(bl),status_get_elem_type(bl)))
 			skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag);
-		else {
-			map_freeblock_unlock();
-			return 1;
-		}
 		break;
 
 	/* –‚–@ŒnƒXƒLƒ‹ */
@@ -3352,6 +3340,27 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 //Shouldn't be needed, skillnotok's return value is highly unlikely to have changed after you started casting. [Skotlex]
 //	if (sd && skillnotok(skillid, sd)) // [MouseJstr]
 //		return 0;
+	
+	//Check for undead skills that convert a no-damage skill into a damage one. [Skotlex]
+	switch (skillid) {
+		case AL_HEAL:
+		case ALL_RESURRECTION:
+		case PR_ASPERSIO:
+			if (battle_check_undead(status_get_race(bl),status_get_elem_type(bl))) {
+				if (battle_check_target(src, bl, BCT_ENEMY) < 1) {
+				  	//Offensive heal does not works on non-enemies. [Skotlex]
+					if (sd) clif_skill_fail(sd,skillid,0,0);
+					return 0;
+				}
+				if(!sd) {
+					//Prevent non-players from casting offensive heal. [Skotlex]
+					clif_emotion(src, 4); 
+					return 0;
+				}
+				return skill_castend_damage_id (src, bl, skillid, skilllv, tick, flag);
+			}	
+		break;
+	}
 
 	map_freeblock_lock();
 	switch(skillid)
@@ -3941,7 +3950,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			struct status_change *sc_data = status_get_sc_data(bl);
 
 			/* MVPmob‚Æ•sŽ€‚É‚Í?‚©‚È‚¢ */
-			if((dstmd && status_get_mode(bl)&MD_BOSS) || battle_check_undead(status_get_race(bl),status_get_elem_type(bl))) { //•sŽ€‚É‚Í?‚©‚È‚¢
+			if((status_get_mode(bl)&MD_BOSS) || battle_check_undead(status_get_race(bl),status_get_elem_type(bl))) { //•sŽ€‚É‚Í?‚©‚È‚¢
 				map_freeblock_unlock();
 				return 1;
 			}
@@ -5469,7 +5478,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			struct status_change *sc_data = status_get_sc_data(bl);
 
 			/* MVPmob‚Æ•sŽ€‚É‚Í?‚©‚È‚¢ */
-			if((dstmd && status_get_mode(bl)&MD_BOSS) || battle_check_undead(status_get_race(bl),status_get_elem_type(bl))) //•sŽ€‚É‚Í?‚©‚È‚¢
+			if(status_get_mode(bl)&MD_BOSS || battle_check_undead(status_get_race(bl),status_get_elem_type(bl))) //•sŽ€‚É‚Í?‚©‚È‚¢
 			{
 				map_freeblock_unlock();
 				return 1;
@@ -6091,15 +6100,7 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 	switch( skill_get_nk(sd->skillid) )
 	{
 	case NK_NO_DAMAGE:
-		if( (sd->skillid==AL_HEAL || (sd->skillid==ALL_RESURRECTION && bl->type != BL_PC) || sd->skillid==PR_ASPERSIO) && battle_check_undead(status_get_race(bl),status_get_elem_type(bl)))
-		{
-			if (sd->skillid == AL_HEAL && battle_check_target(&sd->bl, bl, BCT_ENEMY) < 1)
-				clif_skill_fail(sd,sd->skillid,0,0); //Offensive heal does not works on non-enemies. [Skotlex]
-			else
-				skill_castend_damage_id(&sd->bl,bl,sd->skillid,sd->skilllv,tick,0);
-		}	
-		else
-			skill_castend_nodamage_id(&sd->bl,bl,sd->skillid,sd->skilllv,tick,0);
+		skill_castend_nodamage_id(&sd->bl,bl,sd->skillid,sd->skilllv,tick,0);
 		break;
 	case NK_SPLASH_DAMAGE:
 	default:
@@ -8818,7 +8819,7 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 	
 	if(skillnotok(skill_num, sd)) // [MouseJstr]
 		return 0;
-	if (tsd && skill_num == ALL_RESURRECTION && !pc_isdead(tsd))
+	if (tsd && (skill_num == ALL_RESURRECTION || skill_num == PR_REDEMPTIO) && !pc_isdead(tsd))
 		return 0;
 
 	if(skill_get_inf2(skill_num)&INF2_NO_TARGET_SELF && sd->bl.id == target_id)
@@ -8908,7 +8909,7 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 
 	switch (skill_num) {	/* ‰½‚©“ÁŽê‚È?—?‚ª•K—v */
 	case ALL_RESURRECTION:	/* ƒŠƒUƒŒƒNƒVƒ‡ƒ“ */
-		if (!tsd && battle_check_undead(status_get_race(bl),status_get_elem_type(bl))) {	/* “G‚ªƒAƒ“ƒfƒbƒh‚È‚ç */
+		if (battle_check_undead(status_get_race(bl),status_get_elem_type(bl))) {	/* “G‚ªƒAƒ“ƒfƒbƒh‚È‚ç */
 			forcecast = 1;	/* ƒ^?ƒ“ƒAƒ“ƒfƒbƒg‚Æ“¯‚¶‰r?¥ŽžŠÔ */
 			casttime = skill_castfix(&sd->bl, PR_TURNUNDEAD, skill_lv, 0);
 		}
@@ -10229,7 +10230,7 @@ int skill_delunit(struct skill_unit *unit)
 		skill_unitsetmapcell(unit,HP_BASILICA,CELL_CLRBASILICA);
 		break;
 	case WZ_ICEWALL:
-		skill_unitsetmapcell(unit,HP_BASILICA,CELL_CLRICEWALL);
+		skill_unitsetmapcell(unit,WZ_ICEWALL,CELL_CLRICEWALL);
 		break;
 	}
 

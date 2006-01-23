@@ -3610,7 +3610,10 @@ static int pc_walk(int tid,unsigned int tick,int id,int data)
 	}
 	else if(sd->sc_data[SC_RUN].timer!=-1) //Keep trying to run.
 		pc_run(sd, sd->sc_data[SC_RUN].val1, sd->sc_data[SC_RUN].val2);
-
+	else { //Stopped walking. Update to_x and to_y to current location [Skotlex]
+		sd->to_x = sd->bl.x;
+		sd->to_y = sd->bl.y;
+	}
 	return 0;
 }
 

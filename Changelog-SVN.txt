@@ -1,6 +1,13 @@
 Date	Added
 
 2006/01/22
+	* Fixed SightBlaster 'hitting' dead characters. [Skotlex]
+	* Basilica check in status_checkskilluse expanded to help mobs release
+	  their target as soon as they walk into a basilica. [Skotlex]
+	* When a player stops walking their to_x and to_y is updated to their
+	  present position. This MAY fix warp portal not warping players that were
+	  already there waiting to be warped. [Skotlex]
+2006/01/22
 	* typo fixes (fell -> feel) [Komurka]
 	- mob_db_mode_list.txt updated
 	- removed some unneeded comments (//komurka)

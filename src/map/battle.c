@@ -611,10 +611,6 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 			if((--sc->val3)<=0 || (sc->val2<=0) || skill_num == AL_HOLYLIGHT)
 				status_change_end(bl, SC_KYRIE, -1);
 		}
-
-		if(sc_data[SC_BASILICA].timer!=-1 && damage > 0){
-			damage=0;
-		}
 		if(sc_data[SC_LANDPROTECTOR].timer!=-1 && damage>0 && flag&BF_MAGIC){
 			damage=0;
 		}
