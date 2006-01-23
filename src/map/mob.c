@@ -4,7 +4,7 @@
 #include <stdarg.h>
 #include <string.h>
 
-#define DEBUG_MVP
+// #define DEBUG_MVP
 
 #include "timer.h"
 #include "socket.h"
@@ -3050,6 +3050,15 @@ int mob_warp(struct mob_data *md,int m,int x,int y,int type)
 		}else{			// Š®‘Sƒ‰ƒ“ƒ_ƒ€’Tõ
 			x=rand()%(map[m].xs-2)+1;
 			y=rand()%(map[m].ys-2)+1;
+		}
+	}
+	if(md->master_id)
+	{
+		struct block_list *bl = map_id2bl(md->master_id);
+		if(bl!=NULL)
+		{
+			x = bl->x;
+			y = bl->y;
 		}
 	}
 	md->dir=0;

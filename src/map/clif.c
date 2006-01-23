@@ -10527,9 +10527,9 @@ void clif_parse_GMReqNoChat(int fd,struct map_session_data *sd)
 	if (dstsd && (((level = pc_isGM(sd)) > pc_isGM(dstsd)) || (type == 2 && !level))) {
 		clif_GM_silence(sd, dstsd, ((type == 2) ? 1 : type));
 		dstsd->status.manner -= limit;
-		if(dstsd->status.manner < 30000)
+		if(dstsd->status.manner < -15)
 		{
-			clif_setwaitclose(dstsd->fd);
+			dstsd->status.manner=-15;
 		}
 		else if(dstsd->status.manner < 0)
 			status_change_start(bl,SC_NOCHAT,0,0,0,0,0,0);

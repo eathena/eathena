@@ -205,6 +205,7 @@ enum {	// struct map_session_data ‚Ì status_change‚Ì”Ô?ƒe?ƒuƒ‹
 	SC_SELFDESTRUCTION		= 201,
 	SC_MAGNUM			= 202
 };
+
 extern int SkillStatusChangeTable[];
 
 extern int current_equip_item_index;

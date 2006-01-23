@@ -3642,12 +3642,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				clif_skill_nodamage(src,bl,skillid,skilllv,0);
 				break;
 			}
-			if(dstsd->status.weapon == 0 || (sd && !is_ally(sd, dstsd)) ||
-				dstsd->sc_data[SC_FLAMELAUNCHER].timer != -1 ||
-				dstsd->sc_data[SC_FROSTWEAPON].timer != -1 ||
-				dstsd->sc_data[SC_LIGHTNINGLOADER].timer != -1 ||
-				dstsd->sc_data[SC_SEISMICWEAPON].timer != -1 ||
-				dstsd->sc_data[SC_ENCPOISON].timer != -1) {
+			if(dstsd->status.weapon == 0 || (sd && !is_ally(sd, dstsd)) {
 				if (sd) clif_skill_fail(sd,skillid,0,0);
 				clif_skill_nodamage(src,bl,skillid,skilllv,0);
 				break;

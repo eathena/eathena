@@ -133,6 +133,7 @@ npc: npc/warps/dungeons/prt_dun.txt
 npc: npc/warps/dungeons/umbala_dun.txt
 npc: npc/warps/dungeons/yuno_dun.txt
 npc: npc/warps/dungeons/juperos.txt
+npc: npc/warps/dungeons/lhalzen_dun.txt
 //= Fields =============================================
 npc: npc/warps/fields/ein_fild.txt
 npc: npc/warps/fields/amatsu_fild.txt
@@ -148,6 +149,7 @@ npc: npc/warps/fields/payon_fild.txt
 npc: npc/warps/fields/prontera_fild.txt
 npc: npc/warps/fields/umbala_fild.txt
 npc: npc/warps/fields/yuno_fild.txt
+npc: npc/warps/fields/hu_fild.txt
 //= Guilds =============================================
 npc: npc/warps/guild/guildcastles.txt
 //= Other ==============================================

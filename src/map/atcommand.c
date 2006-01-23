@@ -5254,6 +5254,8 @@ int atcommand_mapexit(
 	int i;
 	nullpo_retr(-1, sd);
 
+	printf ("Shutdown initiated by %s\n",sd->status.name);
+
 	for (i = 0; i < fd_max; i++) {
 		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth) {
 			if (sd->status.account_id != pl_sd->status.account_id)

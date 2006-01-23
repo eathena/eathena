@@ -451,7 +451,8 @@ int npc_addeventtimer(struct npc_data *nd,int tick,const char *name)
 	if(i<MAX_EVENTTIMER){
 		char *evname=(char *) aMallocA(24);
 		if(evname==NULL){
-			printf("npc_addeventtimer: out of memory !\n");exit(1);
+			printf("npc_addeventtimer: out of memory !\n");
+			exit(1);
 		}
 		memcpy(evname,name,24);
 		nd->eventtimer[i]=add_timer(gettick()+tick,

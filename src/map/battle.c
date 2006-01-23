@@ -4844,7 +4844,6 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 
 		if (sc_data && sc_data[SC_SACRIFICE].timer != -1)
 		{
-			if(sd==NULL || (sd->status.weapon != 0 && sd->status.weapon != 11))
 			skill_castend_damage_id(src, target, PA_SACRIFICE, sc_data[SC_SACRIFICE].val1, tick, flag);
 			sc_data[SC_SACRIFICE].val2--;			
 			if(sc_data[SC_SACRIFICE].val2 < 1)

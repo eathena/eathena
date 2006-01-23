@@ -4282,6 +4282,12 @@ int status_change_end( struct block_list* bl , int type,int tid )
 		(*sc_count)--;
 
 		switch(type){	/* 異常の種類ごとの?理 */
+			case SC_BLEEDING:
+				status_change_end(bl,SC_BLEEDING2,tid);
+				break;
+			case SC_BLEEDING2:
+				status_change_end(bl,SC_BLEEDING,tid);
+				break;
 			case SC_PROVOKE:			/* プロボック */
 			case SC_ENDURE: // celest
 			case SC_CONCENTRATE:		/* 集中力向上 */

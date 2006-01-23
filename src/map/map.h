@@ -5,6 +5,7 @@
 #include <stdarg.h>
 #include "mmo.h"
 
+#define MAX_STATUSCHANGE 202
 #define MAX_PC_CLASS (1+6+6+1+6+1+1+1+1+4023)
 #define PC_CLASS_BASE 0
 #define PC_CLASS_BASE2 (PC_CLASS_BASE + 4001)
@@ -17,7 +18,6 @@
 #define DAMAGELOG_SIZE 30
 #define LOOTITEM_SIZE 10
 #define MAX_SKILL_LEVEL 100
-#define MAX_STATUSCHANGE 200
 #define MAX_SKILLUNITGROUP 32
 #define MAX_MOBSKILLUNITGROUP 8
 #define MAX_SKILLUNITGROUPTICKSET 32

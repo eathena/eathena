@@ -1160,9 +1160,9 @@ int chrif_disconnect(int fd) {
 	if(fd == char_fd) {
 		char_fd = 0;
 		sprintf(tmp_output,"Map Server disconnected from Char Server.\n\n");
-		if(clif_countusers() > 0)
-			exit(1);
 		ShowWarning(tmp_output);
+		if(clif_countusers() > 0)
+			exit(2);
 //		clif_foreachclient(chrif_disconnect_sub);
 //		chrif_connected = 0;
 		// ‘¼‚Ìmap I‚Ìƒf[ƒ^‚ğÁ‚·

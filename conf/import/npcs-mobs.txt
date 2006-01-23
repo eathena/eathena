@@ -28,3 +28,4 @@ npc: npc/mobs/pyramid.txt
 npc: npc/mobs/gefenia.txt
 npc: npc/mobs/lighthalzen.txt
 npc: npc/mobs/hugel.txt
+npc: npc/mobs/juperos.txt
