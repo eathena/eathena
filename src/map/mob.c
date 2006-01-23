@@ -1014,6 +1014,11 @@ int mob_setdelayspawn(int id)
 	return 0;
 }
 
+static int mob_count_sub(struct block_list *bl,va_list ap)
+{
+	return 1;
+}
+
 /*==========================================
  * Mob spawning. Initialization is also variously here.
  *------------------------------------------
@@ -1050,6 +1055,13 @@ int mob_spawn (int id)
 			y = md->y0+rand()%(md->ys+1)-md->ys/2;
 		}
 		i++;
+		if (battle_config.no_spawn_on_player && i <= battle_config.no_spawn_on_player)
+		{	//Avoid spawning on the view-range of players. [Skotlex]
+			if (map_foreachinarea(mob_count_sub, md->bl.m,
+				x-AREA_SIZE, y-AREA_SIZE, x+AREA_SIZE, y+AREA_SIZE,
+				BL_PC) > 0)
+				continue;
+		}
 	} while(map_getcell(md->bl.m,x,y,CELL_CHKNOPASS) && i < 50);
 
 	if (i >= 50) {
@@ -3060,18 +3072,18 @@ int mob_countslave_sub(struct block_list *bl,va_list ap)
 {
 	int id,*c;
 	struct mob_data *md;
-
 	id=va_arg(ap,int);
 
-	nullpo_retr(0, bl);
-	nullpo_retr(0, ap);
-	nullpo_retr(0, c=va_arg(ap,int *));
-	nullpo_retr(0, md = (struct mob_data *)bl);
+	c=va_arg(ap,int *);
+	md = (struct mob_data *)bl;
 
-	if( md->master_id==id )
+	if( md->master_id==id ) {
 		(*c)++;
+		return 1;
+	}
 	return 0;
 }
+
 /*==========================================
  * ‰æ–Ê“à‚Ìæ‚èŠª‚«‚Ì”ŒvZ
  *------------------------------------------

@@ -3549,6 +3549,7 @@ static const struct battle_data_short {
 	{ "mob_skill_delay",                   &battle_config.mob_skill_delay			},
 	{ "mob_count_rate",                    &battle_config.mob_count_rate			},
 	{ "mob_spawn_delay",                   &battle_config.mob_spawn_delay			},
+	{ "no_spawn_on_player",                &battle_config.no_spawn_on_player	},
 	{ "plant_spawn_delay",                 &battle_config.plant_spawn_delay			},
 	{ "boss_spawn_delay",                  &battle_config.boss_spawn_delay			},
 	{ "slaves_inherit_speed",              &battle_config.slaves_inherit_speed		},
@@ -3921,6 +3922,7 @@ void battle_set_defaults() {
 	battle_config.mob_skill_delay=100;
 	battle_config.mob_count_rate=100;
 	battle_config.mob_spawn_delay=100;
+	battle_config.no_spawn_on_player=0;
 	battle_config.plant_spawn_delay=100;
 	battle_config.boss_spawn_delay=100;
 	battle_config.slaves_inherit_speed=1;
@@ -4342,6 +4344,8 @@ void battle_validate_conf() {
 	if (battle_config.plant_spawn_delay < 0)
 		battle_config.plant_spawn_delay = 0;
 */	
+	if (battle_config.no_spawn_on_player > 50)
+		battle_config.no_spawn_on_player = 50;
 	if (battle_config.mob_remove_delay < 15000)	//Min 15 sec
 		battle_config.mob_remove_delay = 15000;
 	if (battle_config.dynamic_mobs > 1)
