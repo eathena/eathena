@@ -26,6 +26,9 @@ Nexon
 Date		Added
 ======
 
+01/23
+	* Minor Valkirie fixes, thanks to Xeronage [Lupus]
+	- Updated Novices Guild Castles Warper NPC
 01/21
 	* Added missing close to Einbroch script [Komurka]
 	* More of episode X.4 replacement, done by Poki#3 [Komurka]
