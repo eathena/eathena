@@ -720,7 +720,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 	tsc_data = status_get_sc_data(target);
 	if(tsc_data)
 	{	
-		if (!(mode & MD_BOSS) && sc_data[SC_TRICKDEAD].timer != -1)
+		if (!(mode & MD_BOSS) && tsc_data[SC_TRICKDEAD].timer != -1)
 			return 0;
 		if(skill_num == WZ_STORMGUST && tsc_data[SC_FREEZE].timer != -1)
 			return 0;
