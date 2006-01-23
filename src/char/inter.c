@@ -97,7 +97,7 @@ int inter_accreg_fromstr(const char *str, struct accreg *reg) {
 		return 1;
 
 	for(j = 0, p += n; j < ACCOUNT_REG_NUM; j++, p += n) {
-		if (sscanf(p, "%[^,],%[^ ] %n", reg->reg[j].str, reg->reg[j].value, &n) != 2) //komurka
+		if (sscanf(p, "%[^,],%[^ ] %n", reg->reg[j].str, reg->reg[j].value, &n) != 2) 
 			break;
 	}
 	reg->reg_num = j;

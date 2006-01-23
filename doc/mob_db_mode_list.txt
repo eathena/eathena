@@ -9,9 +9,9 @@ MD_BOSS         | 0x020 |   32
 MD_PLANT        | 0x040 |   64
 MD_CANATTACK    | 0x080 |  128
 MD_DETECTOR     | 0x100 |  256
-MD_CHANGETARGET | 0x200 |  512
+MD_CHANGETARGET | 0x200 |  512 //removed, not needed
 MD_CHANGECHASE  | 0x400 | 1024
-MD_BERSERK      | 0x800 | 2048
+MD_ANGRY        | 0x800 | 2048
 
 ----------
 1: Can Move.
@@ -23,10 +23,13 @@ MD_BERSERK      | 0x800 | 2048
 64: Plant. Always receives 1 damage from stuff.
 128: Can Attack. Everyone with a few exceptions has this. Only prevents normal attacks, not skills.
 256: Detector: can see hidden players. Insects, Demons, and Bosses automatically receive this.
-512: Change Target: Can change targets while this mob is MELEE attacking. Only aggressive mobs can change targets while chasing/following.
 1024: ChangeChase: When the mob is chasing a player and it passes nearby another player, it will switch targets and hit this other player. Note this only applies if the new player is withing attack range, it won't change it's chase-path to another player!
-2048: Berserk: These mobs are "hyper-active". They will change to the closest player while they are following up, They also have skill states "follow" and "angry" (instead of "chase"/"attack") when they pick a new target by their own (ie: not when they change targets due to being attacked)
+2048: Angry: These mobs are "hyper-active". They will change to the closest player while they are following up, They also have skill states "follow" and "angry" (instead of "chase"/"attack") when they pick a new target by their own (ie: not when they change targets due to being attacked). If attacked even once, they loose their Angry mode.
 
+Change Target: (coded)
+Only Assist, Angry or Aggressive+CastSensor mobs can change target while attacking. Target must be no more than 3 cells away.
+Mob in Hyper-active mode can change target unconditionally.
+Mob that chases player can change target only, when he's Aggresive and get attacked.
 
 Old -> New
 ----------
@@ -35,13 +38,13 @@ Old -> New
 129 -> 129: Normal enemies
 131 -> 131: looters (porings) 
 132 -> 132: Immobile attackers (hydra)
-133 -> 645: Aggressive
-137 -> 649: Assists others (wolves)
-139 -> 651: Assists & loots (thief bugs)
-141 -> 653: Aggressive & Assists (no idea how these would differ from plain aggressive, but there's a lot of enemies defined this way)
+133 -> 133: Aggressive
+137 -> 137: Assists others (wolves)
+139 -> 139: Assists & loots (thief bugs)
+141 -> 141: Aggressive & Assists (no idea how these would differ from plain aggressive, but there's a lot of enemies defined this way)
 145 -> 145: Detectors (Giearth) 
-149 -> 661: Aggressive & Detector (Hunter Fly)
-159 -> 671: Cast sensor, Assist, Agressive, Looter
-171 -> 683: Boss, summons, assists & loots (Golden Thief Bug) 
-181 -> 1973: Boss, summons, detector & aggressive (pretty much every MVP and miniboss) 
-none -> 2693 : Hyper-active (Familiar)
+149 -> 149: Aggressive & Detector (Hunter Fly)
+159 -> 159: Cast sensor, Assist, Agressive, Looter
+171 -> 171: Boss, summons, assists & loots (Golden Thief Bug) 
+181 -> 1461: Boss, summons, detector & aggressive (pretty much every MVP and miniboss) 
+none -> 2181 : Hyper-active (Familiar)

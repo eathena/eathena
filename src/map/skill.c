@@ -5882,10 +5882,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			if(!sd->feel_map[skilllv-1].index) {
 				sd->feel_level=skilllv-1;
 				clif_skill_nodamage(src,bl,skillid,skilllv,1);
-				clif_parse_ReqFell(sd->fd,sd);
+				clif_parse_ReqFeel(sd->fd,sd);
 			}
 			else
-				clif_fell_info(sd, skilllv-1);
+				clif_feel_info(sd, skilllv-1);
 		}
 		break;	
 

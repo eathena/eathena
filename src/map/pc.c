@@ -6653,7 +6653,7 @@ int pc_setregistry(struct map_session_data *sd,char *reg,int val,int type) {
 	// change value if found
 	for(i = 0; i < *max; i++) {
 		if (strcmp(sd_reg[i].str, reg) == 0) {
-			sprintf(sd_reg[i].value, "%d", val); //komurka
+			sprintf(sd_reg[i].value, "%d", val); 
 			sd->state.reg_dirty |= 1<<(type-1);
 			return 0;
 		}
@@ -6663,7 +6663,7 @@ int pc_setregistry(struct map_session_data *sd,char *reg,int val,int type) {
 	if (i < regmax) {
 		memset(&sd_reg[i], 0, sizeof(struct global_reg));
 		strncpy(sd_reg[i].str, reg, 32);
-		sprintf(sd_reg[i].value, "%d", val); //komurka
+		sprintf(sd_reg[i].value, "%d", val); 
 		(*max)++;
 		sd->state.reg_dirty |= 1<<(type-1);
 		return 0;

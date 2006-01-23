@@ -723,10 +723,10 @@ int mmo_auth_init(void) {
 
 			for(j = 0; j < ACCOUNT_REG2_NUM; j++) {
 				p += n;
-				if (sscanf(p, "%[^\t,],%[^\t ] %n", str, v, &n) != 2) { //komurka
+				if (sscanf(p, "%[^\t,],%[^\t ] %n", str, v, &n) != 2) { 
 					// We must check if a str is void. If it's, we can continue to read other REG2.
 					// Account line will have something like: str2,9 ,9 str3,1 (here, ,9 is not good)
-					if (p[0] == ',' && sscanf(p, ",%[^\t ] %n", v, &n) == 1) { //komurka
+					if (p[0] == ',' && sscanf(p, ",%[^\t ] %n", v, &n) == 1) { 
 						j--;
 						continue;
 					} else
@@ -830,10 +830,10 @@ int mmo_auth_init(void) {
 
 			for(j = 0; j < ACCOUNT_REG2_NUM; j++) {
 				p += n;
-				if (sscanf(p, "%[^\t,],%[^\t ] %n", str, v, &n) != 2) { //komurka
+				if (sscanf(p, "%[^\t,],%[^\t ] %n", str, v, &n) != 2) { 
 					// We must check if a str is void. If it's, we can continue to read other REG2.
 					// Account line will have something like: str2,9 ,9 str3,1 (here, ,9 is not good)
-					if (p[0] == ',' && sscanf(p, ",%[^\t ] %n", v, &n) == 1) { //komurka
+					if (p[0] == ',' && sscanf(p, ",%[^\t ] %n", v, &n) == 1) { 
 						j--;
 						continue;
 					} else

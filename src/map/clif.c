@@ -8324,7 +8324,7 @@ int clif_party_xy_remove(struct map_session_data *sd)
  * Info about Star Glaldiator save map [Komurka]
  *------------------------------------------
  */
-void clif_fell_info(struct map_session_data *sd, int feel_level)
+void clif_feel_info(struct map_session_data *sd, int feel_level)
 {
 	int fd=sd->fd;
 	WFIFOHEAD(fd,packet_len_table[0x20e]);
@@ -11446,7 +11446,7 @@ void clif_parse_FeelSaveOk(int fd,struct map_session_data *sd)
  * Question about Star Glaldiator save map [Komurka]
  *------------------------------------------
  */
-void clif_parse_ReqFell(int fd, struct map_session_data *sd) {
+void clif_parse_ReqFeel(int fd, struct map_session_data *sd) {
 	WFIFOHEAD(fd,packet_len_table[0x253]);
 	WFIFOW(fd,0)=0x253;
 	WFIFOSET(fd, packet_len_table[0x253]);

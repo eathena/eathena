@@ -1,6 +1,9 @@
 Date	Added
 
 2006/01/22
+	* typo fixes (fell -> feel) [Komurka]
+	- mob_db_mode_list.txt updated
+	- removed some unneeded comments (//komurka)
 	* Some changes of @main. Now you can send main-chat messages by sending whisper
 	  to nick "Main" (or any other, it can be set in inter_athena.conf). [LuzZza]
 2006/01/21
