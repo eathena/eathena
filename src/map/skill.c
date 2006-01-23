@@ -7009,7 +7009,7 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 
 	case UNT_QUAGMIRE:
 		if(status_isimmune(bl))
-			return 0;
+			break;
 		if(sc_data && sc_data[type].timer==-1)
 			status_change_start(bl,type,sg->skill_lv,sg->group_id,0,0,sg->limit,0);
 		break;
@@ -7529,7 +7529,7 @@ static int skill_unit_onleft(int skill_id, struct block_list *bl,unsigned int ti
 	{
 		case WZ_QUAGMIRE:
 			if (bl->type==BL_MOB)
-				return 0;
+				break;
 			if (sc_data && sc_data[type].timer != -1)
 				status_change_end(bl, type, -1);
 			break;
@@ -8447,7 +8447,7 @@ int skill_check_condition(struct map_session_data *sd,int type)
 
 	switch(state) {
 	case ST_HIDING:
-		if(!(sd->status.option&2)) {
+		if(!(sd->status.option&OPTION_HIDE)) {
 			clif_skill_fail(sd,skill,0,0);
 			return 0;
 		}

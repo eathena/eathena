@@ -1,6 +1,9 @@
 Date	Added
 
 2006/01/22
+	* Fixed bows doing less damage on criticals when having high dex. [Skotlex]
+	* Moved the enemy_critical adjustment to status_get_critical. [Skotlex]
+	* Fixed @chardisguise to use the same id checks as @disguise. [Skotlex]
 	* Fixed SightBlaster 'hitting' dead characters. [Skotlex]
 	* Basilica check in status_checkskilluse expanded to help mobs release
 	  their target as soon as they walk into a basilica. [Skotlex]

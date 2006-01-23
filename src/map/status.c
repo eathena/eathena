@@ -2948,7 +2948,10 @@ int status_get_critical(struct block_list *bl)
 	if (bl->type == BL_PC)
 		return ((struct map_session_data *)bl)->critical;
 
-	critical = status_calc_critical(bl,status_get_luk(bl)*3+10);
+	critical = status_get_luk(bl)*3+10;
+	if(battle_config.enemy_critical_rate != 100)
+		critical = critical*battle_config.enemy_critical_rate/100;
+	critical = status_calc_critical(bl,critical);
 	if (critical < 1) critical = 1;
 	return critical;
 }

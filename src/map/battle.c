@@ -976,7 +976,7 @@ static void battle_calc_base_damage(struct block_list *src, struct block_list *t
 		if (damage2)
 			atkmax_ = status_get_atk(src);
 
-		if (!(flag&1))
+		if (!(flag&1) || (flag&2))
 		{	//Normal attacks
 			atkmin = atkmin_ = status_get_dex(src);
 			
@@ -995,7 +995,7 @@ static void battle_calc_base_damage(struct block_list *src, struct block_list *t
 					atkmin_ = atkmax_;
 			}
 			
-			if(sd->status.weapon == 11)
+			if(flag&2)
 			{	//Bows
 				atkmin = atkmin*atkmax/100;
 				if (atkmin > atkmax)
@@ -1307,11 +1307,6 @@ static struct Damage battle_calc_weapon_attack(
 		//The official equation is *2, but that only applies when sd's do critical.
 		//Therefore, we use the old value 3 on cases when an sd gets attacked by a mob
 		cri -= status_get_luk(target) * (md&&tsd?3:2);
-		if(!sd && battle_config.enemy_critical_rate != 100)
-		{ //Mob/Pets
-			cri = cri*battle_config.enemy_critical_rate/100;
-			if (cri<1) cri = 1;
-		}
 		
 		if(t_sc_data)
 		{

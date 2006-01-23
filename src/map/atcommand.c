@@ -6583,26 +6583,34 @@ int atcommand_chardisguise(
 		return -1;
 	}
 
-	if ((mob_id = mobdb_searchname(mob_name)) == 0) // check name first (to avoid possible name begining by a number)
-		mob_id = atoi(mob_name);
+	if ((mob_id = atoi(mob_name)) > 0)
+	{	//Acquired an ID
+		if (!mobdb_checkid(mob_id) && !npcdb_checkid(mob_id))
+			mob_id = 0; //Invalid id for either mobs or npcs.
+	}	else	{ //Acquired a Name
+		if ((mob_id = mobdb_searchname(mob_name)) == 0)
+		{
+			struct npc_data* nd = npc_name2id(mob_name);
+			if (nd != NULL)
+				mob_id = nd->n;
+		}
+	}
+
+	if (mob_id == 0)
+	{
+		clif_displaymessage(fd, msg_table[123]); // Monster/NPC name/id hasn't been found.
+		return -1;
+	}
 
 	if ((pl_sd = map_nick2sd(atcmd_player_name)) != NULL) {
 		if (pc_isGM(sd) >= pc_isGM(pl_sd)) { // you can disguise only lower or same level
-			if ((mob_id >=  46 && mob_id <= 125) || (mob_id >= 700 && mob_id <= 718) || // NPC
-			    (mob_id >= 721 && mob_id <= 755) || (mob_id >= 757 && mob_id <= 811) || // NPC
-			    (mob_id >= 813 && mob_id <= 834) || // NPC
-			    (mob_id > 1000 && mob_id < 1521)) { // monsters
-				pc_stop_walking(pl_sd,0);
-				clif_clearchar(&pl_sd->bl, 0);
-				pl_sd->disguise = mob_id;
-				pl_sd->state.disguised = 1; // set to override items with disguise script [Valaris]
-				clif_changeoption(&pl_sd->bl);
-				clif_spawnpc(pl_sd);
-				clif_displaymessage(fd, msg_table[140]); // Character's disguise applied.
-			} else {
-				clif_displaymessage(fd, msg_table[123]); // Monster/NPC name/id hasn't been found.
-				return -1;
-			}
+			pc_stop_walking(pl_sd,0);
+			clif_clearchar(&pl_sd->bl, 0);
+			pl_sd->disguise = mob_id;
+			pl_sd->state.disguised = 1; // set to override items with disguise script [Valaris]
+			clif_changeoption(&pl_sd->bl);
+			clif_spawnpc(pl_sd);
+			clif_displaymessage(fd, msg_table[140]); // Character's disguise applied.
 		} else {
 			clif_displaymessage(fd, msg_table[81]); // Your GM level don't authorise you to do this action on this player.
 			return -1;
