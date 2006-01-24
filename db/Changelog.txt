@@ -27,6 +27,7 @@
 =========================
 
 01/24
+	* removed unneeded comma in produce_db.txt (someday I'm gonna write parser for eA scripts ~~) [Komurka]
 	* card fix (>77 changed to >=77) thanks to Poki#3 [Komurka]
 
 01/21
