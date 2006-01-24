@@ -26,6 +26,9 @@
 		* * * From where this info is? ... Mine: On your death you'll loose this ring and get 50% HP [Komurka]
 =========================
 
+01/24
+	* card fix (>77 changed to >=77) thanks to Poki#3 [Komurka]
+
 01/21
 	* Added/removed some commas in mob_skill_db.txt [Komurka]
 	- Added mob_skill_db2.txt

@@ -1317,7 +1317,7 @@
 4178,Dragon_Tail_Card,Dragon Tail Card,6,,10,10,,,,,,,,4,,,,,{ bonus bAgi,1; bonus bFlee,10; bonus2 bSkillAtk,46,5; bonus2 bSkillAtk,47,5; }
 4179,Dragon_Fly_Card,Dragon Fly Card,6,,10,10,,,,,,,,4,,,,,{ bonus bAgi,1; if(isequipped(4009)) bonus bFlee,18; }
 4180,Driller_Card,Driller Card,6,,10,10,,,,,,,,2,,,,,{ bonus2 bSPGainRace,RC_Dragon,5; bonus bLoseSPWhenUnequip,5; }
-4181,Disguise_Card,Disguise Card,6,,10,10,,,,,,,,16,,,,,{ bonus2 bAddEffWhenHit,Eff_Silence,1000+2000*(readparam(bVit)>77); }
+4181,Disguise_Card,Disguise Card,6,,10,10,,,,,,,,16,,,,,{ bonus2 bAddEffWhenHit,Eff_Silence,1000+2000*(readparam(bVit)>=77); }
 4182,Diabolic_Card,Diabolic Card,6,,10,10,,,,,,,,2,,,,,{ bonus2 bSPGainRace,RC_Demon,5; bonus bLoseSPWhenUnequip,5; }
 4183,Vagabond_Wolf_Card,Vagabond Wolf Card,6,,10,10,,,,,,,,4,,,,,{ bonus bStr,1; if(isequipped(4029)) bonus bFlee,18; }
 4184,Lava_Golem_Card,Lava Golem Card,6,,10,10,,,,,,,,2,,,,,{ bonus2 bAddRace2,4,30; }
@@ -1330,7 +1330,7 @@
 4191,Loli_Ruri_Card,Loli Ruri Card,6,,10,10,,,,,,,,16,,,,,{ bonus4 bAutoSpellWhenHit,28,3,50,0; }
 4192,Rotar_Zairo_Card,Rotar Zairo Card,6,,10,10,,,,,,,,2,,,,,{ bonus bCritAtkRate,10; bonus2 bCriticalAddRace,RC_Fish,7; }
 4193,Lude_Card,Lude Card,6,,10,10,,,,,,,,136,,,,,{ if(BaseJob==Job_Novice||BaseJob==Job_SuperNovice) bonus4 bAutoSpellWhenHit,8,1,20,0; }
-4194,Rybio_Card,Rybio Card,6,,10,10,,,,,,,,16,,,,,{ bonus2 bAddEffWhenHit,Eff_Stan,1000+2000*(readparam(bDex)>77); }
+4194,Rybio_Card,Rybio Card,6,,10,10,,,,,,,,16,,,,,{ bonus2 bAddEffWhenHit,Eff_Stan,1000+2000*(readparam(bDex)>=77); }
 4195,Leaf_Cat_Card,Leaf Cat Card,6,,10,10,,,,,,,,769,,,,,{ bonus2 bSubEle,Ele_Water,10; bonus3 bAddMonsterDropItem,991,5,500; }
 4196,Marin_Card,Marin Card,6,,10,10,,,,,,,,136,,,,,{ bonus2 bAddMonsterDropItemGroup,10,500; }
 4197,Mastering_Card,Mastering Card,6,,10,10,,,,,,,,4,,,,,{ bonus bLuk,1; if(isequipped(4001)) bonus bFlee,18; }
@@ -1422,7 +1422,7 @@
 4283,Greatest_General_Card,Greatest General Card,6,,10,10,,,,,,,,136,,,,,{ bonus4 bAutoSpell,261,1+(getskilllv(261)>1)*(getskilllv(261)-1),10+10*(BaseClass == Job_Acolyte),0; }
 4284,Chepet_Card,Chepet Card,6,,10,10,,,,,,,,2,,,,,{ bonus3 bAutoSpell,28,5,50; }
 4285,Choco_Card,Choco Card,6,,10,10,,,,,,,,4,,,,,{ bonus bFlee2,5; bonus bFlee,10; }
-4286,Karakasa_Card,Karakasa Card,6,,10,10,,,,,,,,16,,,,,{ bonus2 bAddEffWhenHit,Eff_Confusion,1000+2000*(readparam(bStr)>77); }
+4286,Karakasa_Card,Karakasa Card,6,,10,10,,,,,,,,16,,,,,{ bonus2 bAddEffWhenHit,Eff_Confusion,1000+2000*(readparam(bStr)>=77); }
 4287,Kapha_Card,Kapha Card,6,,10,10,,,,,,,,4,,,,,{ if(getrefine()<6) bonus bMdef,8; }
 4288,Carat_Card,Carat Card,6,,10,10,,,,,,,,769,,,,,{ bonus bInt,2; if(getrefine()>8) bonus bMaxSP,150; }
 4289,Caterpillar_Card,Caterpillar Card,6,,10,10,,,,,,,,2,,,,,{ bonus2 bSPGainRace,RC_Plant,5; bonus bLoseSPWhenUnequip,5; }
