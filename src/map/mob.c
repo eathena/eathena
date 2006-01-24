@@ -4000,6 +4000,11 @@ int mob_clone_spawn(struct map_session_data *sd, char *map, int x, int y, const 
 				ms[i].permillage = 2500;
 			}
 		} else if(inf&INF_GROUND_SKILL) {
+			//Normal aggressive mob, disable skills that cannot help them fight
+			//against players (those with flags UF_NOMOB and UF_NOPC are specific 
+			//to always aid players!) [Skotlex]
+			if (!(flag&1) && skill_get_unit_flag(skill_id)&(UF_NOMOB|UF_NOPC))
+				continue;
 			ms[i].permillage = 1000;
 			if (skill_get_inf2(skill_id)&INF2_TRAP) { //Traps!
 				ms[i].state = MSS_IDLE;

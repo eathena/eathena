@@ -1080,9 +1080,7 @@ int map_addobject(struct block_list *bl) {
 	}
 	if(first_free_object_id<2 || first_free_object_id>=MAX_FLOORITEM)
 		first_free_object_id=2;
-	for(i=first_free_object_id;i<MAX_FLOORITEM;i++)
-		if(objects[i]==NULL)
-			break;
+	for(i=first_free_object_id;i<MAX_FLOORITEM && objects[i];i++);
 	if(i>=MAX_FLOORITEM){
 		if(battle_config.error_log)
 			ShowWarning("no free object id\n");
