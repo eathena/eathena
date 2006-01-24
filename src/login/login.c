@@ -1984,6 +1984,7 @@ int parse_fromchar(int fd) {
 			return 0;
 		}
 	}
+	RFIFOSKIP(fd,RFIFOREST(fd));
 	return 0;
 }
 
@@ -2953,6 +2954,7 @@ int parse_admin(int fd) {
 		//WFIFOW(fd,0) = 0x791f;
 		//WFIFOSET(fd,2);
 	}
+	RFIFOSKIP(fd,RFIFOREST(fd));
 	return 0;
 }
 
@@ -3363,6 +3365,7 @@ int parse_login(int fd) {
 			return 0;
 		}
 	}
+	RFIFOSKIP(fd,RFIFOREST(fd));
 	return 0;
 }
 

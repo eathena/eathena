@@ -1336,6 +1336,7 @@ int parse_fromchar(int fd){
 	}
 	}
 
+	RFIFOSKIP(fd,RFIFOREST(fd));
 	return 0;
 }
 
@@ -1758,6 +1759,7 @@ int parse_login(int fd) {
 		}
 	}
 
+	RFIFOSKIP(fd,RFIFOREST(fd));
 	return 0;
 }
 
