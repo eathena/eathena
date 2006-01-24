@@ -5505,7 +5505,7 @@ int atcommand_reloadscript(
 	flush_fifos();
 
 	//do_init_npc();
-	do_init_script();
+	script_reload();
 	npc_reload();
 	npc_event_do_oninit();
 

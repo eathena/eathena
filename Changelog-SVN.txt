@@ -1,6 +1,8 @@
 Date	Added
 
 2006/01/24
+	* Incremented SL_MONK combo SP cost reduction to 25% [Skotlex]
+	* Updated Full Adrenaline Rush to work on all weapons except bows. [Skotlex]
 	* Updated the script engine to report the src of an error when there's a
 	  problem with one of the script functions. For example, if there's a "player
 	  not attached error", it will also print which NPC caused it. [Skotlex]

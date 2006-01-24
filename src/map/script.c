@@ -10667,3 +10667,17 @@ int do_init_script()
 
 	return 0;
 }
+
+int script_reload()
+{
+	if(mapreg_dirty>=0)
+		script_save_mapreg();
+	
+	mapreg_db->clear(mapreg_db, NULL);
+	mapregstr_db->clear(mapreg_db, NULL);
+	userfunc_db->clear(mapreg_db, NULL);
+	scriptlabel_db->clear(mapreg_db, NULL);
+	
+	script_load_mapreg();
+	return 0;
+}

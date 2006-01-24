@@ -8052,7 +8052,7 @@ int skill_check_condition(struct map_session_data *sd,int type)
 		case CH_TIGERFIST:
 		case CH_CHAINCRUSH:
 			if(sd->sc_data[SC_SPIRIT].timer!=-1 && sd->sc_data[SC_SPIRIT].val2 == SL_MONK)
-				sp -= sp*5/100; //5% LESS sp? that's nothing, what's the real value? There's no SP reduction unless the skill costs 20 or more...
+				sp -= sp*25/100; //FIXME: Need real data. this is a custom value.
 			break;
 	}
 
