@@ -1157,9 +1157,9 @@ void map_foreachobject(int (*func)(struct block_list*,va_list),int type,...) {
 			if(bl_list_count>=BL_LIST_MAX) {
 				if(battle_config.error_log)
 					ShowWarning("map_foreachobject: too many blocks !\n");
+				break;
 			}
-			else
-				bl_list[bl_list_count++]=objects[i];
+			bl_list[bl_list_count++]=objects[i];
 		}
 	}
 

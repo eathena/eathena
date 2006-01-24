@@ -713,10 +713,10 @@ enum {
 };
 
 //Reports on the console the src of an script error.
-static void report_src(int oid) {
+static void report_src(struct script_state *st) {
 	struct block_list *bl;
-	if (!oid) return;
-	bl = map_id2bl(oid);
+	if (!st->oid) return; //Can't report source.
+	bl = map_id2bl(st->oid);
 	if (!bl) return;
 	switch (bl->type) {
 		case BL_NPC:
@@ -2214,6 +2214,7 @@ struct map_session_data *script_rid2sd(struct script_state *st)
 	struct map_session_data *sd=map_id2sd(st->rid);
 	if(!sd){
 		ShowError("script_rid2sd: fatal error ! player not attached!\n");
+		report_src(st);
 	}
 	return sd;
 }
@@ -2563,7 +2564,7 @@ int buildin_goto(struct script_state *st)
 		int func = st->stack->stack_data[st->start+2].u.num;
 		ShowMessage("script: goto '"CL_WHITE"%s"CL_RESET"': not label!\n", str_buf + str_data[func].str);
 		st->state = END;
-		return 0;
+		return 1;
 	}
 
 	pos = conv_num(st,& (st->stack->stack_data[st->start+2]));
@@ -2598,6 +2599,7 @@ int buildin_callfunc(struct script_state *st)
 	}else{
 		ShowWarning("script:callfunc: function not found! [%s]\n",str);
 		st->state=END;
+		return 1;
 	}
 	return 0;
 }
@@ -2612,7 +2614,7 @@ int buildin_callsub(struct script_state *st)
 	if(st->stack->stack_data[st->start+2].type != C_POS && st->stack->stack_data[st->start+2].type != C_USERFUNC_POS) {
 		ShowError("script: callsub: not label !\n");
 		st->state=END;
-		return 0;
+		return 1;
 	} else {
 		for(i=st->start+3,j=0;i<st->end;i++,j++)
 			push_copy(st->stack,i);
@@ -2640,14 +2642,14 @@ int buildin_getarg(struct script_state *st)
 	if( st->stack->defsp<4 || st->stack->stack_data[st->stack->defsp-1].type!=C_RETINFO ){
 		ShowWarning("script:getarg without callfunc or callsub!\n");
 		st->state=END;
-		return 0;
+		return 1;
 	}
 	max=conv_num(st,& (st->stack->stack_data[st->stack->defsp-4]));
 	stsp=st->stack->defsp - max -4;
 	if( num >= max ){
 		ShowWarning("script:getarg arg1(%d) out of range(%d) !\n",num,max);
 		st->state=END;
-		return 0;
+		return 1;
 	}
 	push_copy(st->stack,stsp+num);
 	return 0;
@@ -2741,7 +2743,7 @@ int buildin_menu(struct script_state *st)
 			if( st->stack->stack_data[st->start+sd->npc_menu*2+1].type!=C_POS ){
 				ShowError("script: menu: not label !\n");
 				st->state=END;
-				return 0;
+				return 1;
 			}
 			pc_setreg(sd,add_str((unsigned char *) "@menu"),sd->npc_menu);
 			st->pos= conv_num(st,& (st->stack->stack_data[st->start+sd->npc_menu*2+1]));
@@ -3173,33 +3175,36 @@ int buildin_input(struct script_state *st)
 				set_reg(sd,num,name,(void*)sd->npc_str);
 			}else{
 				ShowError("buildin_input: string discarded !!\n");
+				return 1;
 			}
-		}else{
-
-			// commented by Lupus (check Value Number Input fix in clif.c)
-			// readded by Yor: set ammount to 0 instead of cancel trade.
-			// ** Fix by fritz :X keeps people from abusing old input bugs
-			if (sd->npc_amount < 0) { //** If input amount is less then 0
+			return 0;
+		}
+		// commented by Lupus (check Value Number Input fix in clif.c)
+		// readded by Yor: set ammount to 0 instead of cancel trade.
+		// ** Fix by fritz :X keeps people from abusing old input bugs
+		if (sd->npc_amount < 0) { //** If input amount is less then 0
 //				clif_tradecancelled(sd); // added "Deal has been cancelled" message by Valaris
 //				buildin_close(st); // ** close
-				sd->npc_amount = 0;
-			} else if ((unsigned int)sd->npc_amount > battle_config.vending_max_value) // new fix by Yor
-				sd->npc_amount = battle_config.vending_max_value;
+			sd->npc_amount = 0;
+		} else if ((unsigned int)sd->npc_amount > battle_config.vending_max_value) // new fix by Yor
+			sd->npc_amount = battle_config.vending_max_value;
 
-			// 数値
-			if(st->end>st->start+2){ // 引数1個
-				set_reg(sd,num,name,(void*)sd->npc_amount);
-			} else {
-				// ragemu互換のため
-				pc_setreg(sd,add_str((unsigned char *) "l14"),sd->npc_amount);
-			}
+		// 数値
+		if(st->end>st->start+2){ // 引数1個
+			set_reg(sd,num,name,(void*)sd->npc_amount);
+		} else {
+			// ragemu互換のため
+			pc_setreg(sd,add_str((unsigned char *) "l14"),sd->npc_amount);
 		}
-	} else {
-		st->state=RERUNLINE;
-		if(postfix=='$')clif_scriptinputstr(sd,st->oid);
-		else			clif_scriptinput(sd,st->oid);
-		sd->state.menu_or_input=1;
+		return 0;
 	}
+	//state.menu_or_input = 0
+	st->state=RERUNLINE;
+	if(postfix=='$')
+		clif_scriptinputstr(sd,st->oid);
+	else	
+		clif_scriptinput(sd,st->oid);
+	sd->state.menu_or_input=1;
 	return 0;
 }
 
@@ -3217,8 +3222,7 @@ int buildin_set(struct script_state *st)
 
 	if( st->stack->stack_data[st->start+2].type!=C_NAME ){
 		ShowError("script: buildin_set: not name\n");
-		report_src(st->oid);
-		return 0;
+		return 1;
 	}
 
 	if( prefix!='$' )
@@ -3252,7 +3256,7 @@ int buildin_setarray(struct script_state *st)
 
 	if( prefix!='$' && prefix!='@' ){
 		ShowWarning("buildin_setarray: illegal scope !\n");
-		return 0;
+		return 1;
 	}
 	if( prefix!='$' )
 		sd=script_rid2sd(st);
@@ -3284,7 +3288,7 @@ int buildin_cleararray(struct script_state *st)
 
 	if( prefix!='$' && prefix!='@' ){
 		ShowWarning("buildin_cleararray: illegal scope !\n");
-		return 0;
+		return 1;
 	}
 	if( prefix!='$' )
 		sd=script_rid2sd(st);
@@ -3318,11 +3322,11 @@ int buildin_copyarray(struct script_state *st)
 
 	if( prefix!='$' && prefix!='@' && prefix2!='$' && prefix2!='@' ){
 		ShowWarning("buildin_copyarray: illegal scope !\n");
-		return 0;
+		return 1;
 	}
 	if( (postfix=='$' || postfix2=='$') && postfix!=postfix2 ){
 		ShowError("buildin_copyarray: type mismatch !\n");
-		return 0;
+		return 1;
 	}
 	if( prefix!='$' || prefix2!='$' )
 		sd=script_rid2sd(st);
@@ -3362,7 +3366,7 @@ int buildin_getarraysize(struct script_state *st)
 
 	if( prefix!='$' && prefix!='@' ){
 		ShowWarning("buildin_copyarray: illegal scope !\n");
-		return 0;
+		return 1;
 	}
 
 	push_val(st->stack,C_INT,getarraysize(st,num,postfix) );
@@ -3388,7 +3392,7 @@ int buildin_deletearray(struct script_state *st)
 
 	if( prefix!='$' && prefix!='@' ){
 		ShowWarning("buildin_deletearray: illegal scope !\n");
-		return 0;
+		return 1;
 	}
 	if( prefix!='$' )
 		sd=script_rid2sd(st);
@@ -3414,7 +3418,7 @@ int buildin_getelementofarray(struct script_state *st)
 		if(i>127 || i<0){
 			ShowWarning("script: getelementofarray (operator[]): param2 illegal number %d\n",i);
 			push_val(st->stack,C_INT,0);
-			report_src(st->oid);
+			return 1;
 		}else{
 			push_val(st->stack,C_NAME,
 				(i<<24) | st->stack->stack_data[st->start+2].u.num );
@@ -3524,9 +3528,10 @@ int buildin_countitem(struct script_state *st)
 	else{
 		if(battle_config.error_log)
 			ShowError("wrong item ID : countitem(%i)\n",nameid);
+		push_val(st->stack,C_INT,0);
+		return 1;
 	}
 	push_val(st->stack,C_INT,count);
-
 	return 0;
 }
 
@@ -3578,6 +3583,8 @@ int buildin_countitem2(struct script_state *st)
 	else{
 		if(battle_config.error_log)
 			ShowError("wrong item ID : countitem2(%i)\n",nameid);
+		push_val(st->stack,C_INT,0);
+		return 1;
 	}
 	push_val(st->stack,C_INT,count);
 
@@ -3610,7 +3617,8 @@ int buildin_checkweight(struct script_state *st)
 	amount=conv_num(st,& (st->stack->stack_data[st->start+3]));
 	if ( amount<=0 || nameid<500 ) { //if get wrong item ID or amount<=0, don't count weight of non existing items
 		push_val(st->stack,C_INT,0);
-		return 0;
+		ShowError("buildin_checkweight: Wrong item ID or amount.\n");
+		return 1;
 	}
 
 	weight = itemdb_weight(nameid)*amount;
@@ -4263,7 +4271,7 @@ char *buildin_getguildname_sub(int guild_id)
 		memcpy(buf, g->name, NAME_LENGTH-1);
 		return buf;
 	}
-	return 0;
+	return NULL;
 }
 int buildin_getguildname(struct script_state *st)
 {
@@ -5388,10 +5396,11 @@ int buildin_monster(struct script_state *st)
 	if( st->end>st->start+8 )
 		event=conv_str(st,& (st->stack->stack_data[st->start+8]));
 
-	if (class_ >= 0 && !mobdb_checkid(class_))
+	if (class_ >= 0 && !mobdb_checkid(class_)) {
 		ShowWarning("buildin_monster: Attempted to spawn non-existing monster class %d\n", class_);
-	else
-		mob_once_spawn(map_id2sd(st->rid),map,x,y,str,class_,amount,event);
+		return 1;
+	}
+	mob_once_spawn(map_id2sd(st->rid),map,x,y,str,class_,amount,event);
 	return 0;
 }
 /*==========================================
@@ -6950,7 +6959,7 @@ int buildin_maprespawnguildid(struct script_state *st)
 
 int buildin_agitstart(struct script_state *st)
 {
-	if(agit_flag==1) return 1;      // Agit already Start.
+	if(agit_flag==1) return 0;      // Agit already Start.
 	agit_flag=1;
 	guild_agit_start();
 	return 0;
@@ -6958,7 +6967,7 @@ int buildin_agitstart(struct script_state *st)
 
 int buildin_agitend(struct script_state *st)
 {
-	if(agit_flag==0) return 1;      // Agit already End.
+	if(agit_flag==0) return 0;      // Agit already End.
 	agit_flag=0;
 	guild_agit_end();
 	return 0;
@@ -6994,7 +7003,7 @@ int buildin_flagemblem(struct script_state *st)
 
 //	printf("Script.c: [FlagEmblem] GuildID=%d, Emblem=%d.\n", g->guild_id, g->emblem_id);
 	((struct npc_data *)map_id2bl(st->oid))->u.scr.guild_id = g_id;
-	return 1;
+	return 0;
 }
 
 int buildin_getcastlename(struct script_state *st)
@@ -8544,7 +8553,7 @@ int buildin_message(struct script_state *st)
 	msg = conv_str(st,& (st->stack->stack_data[st->start+3]));
 
 	if((pl_sd=map_nick2sd((char *) player)) == NULL)
-             return 1;
+		return 0;
 	clif_displaymessage(pl_sd->fd, msg);
 
 	return 0;
@@ -9246,7 +9255,7 @@ int buildin_adopt(struct script_state *st)
 	if (!p1_sd || !p2_sd || !c_sd ||
 		p1_sd->status.base_level < 70 ||
 		p2_sd->status.base_level < 70)
-		return -1;
+		return 0;
 
 	ret = pc_adoption(p1_sd, p2_sd, c_sd);
 	push_val(st->stack, C_INT, ret);
@@ -9318,15 +9327,18 @@ int buildin_charisalpha(struct script_state *st) {
 // [Lance]
 int buildin_fakenpcname(struct script_state *st)
 {
-char *name;
-char *newname;
-int look;
-name = conv_str(st,& (st->stack->stack_data[st->start+2]));
-newname = conv_str(st,& (st->stack->stack_data[st->start+3]));
-look = conv_num(st,& (st->stack->stack_data[st->start+4]));
-if(look > 32767 || look < -32768) return 0; // Safety measure to prevent runtime errors
-npc_changename(name,newname,(short)look);
-return 0;
+	char *name;
+	char *newname;
+	int look;
+	name = conv_str(st,& (st->stack->stack_data[st->start+2]));
+	newname = conv_str(st,& (st->stack->stack_data[st->start+3]));
+	look = conv_num(st,& (st->stack->stack_data[st->start+4]));
+	if(look > 32767 || look < -32768) {
+		ShowError("buildin_fakenpcname: Invalid look value %d\n",look);
+		return 1; // Safety measure to prevent runtime errors
+	}
+	npc_changename(name,newname,(short)look);
+	return 0;
 }
 
 int buildin_atoi(struct script_state *st) {
@@ -9428,7 +9440,7 @@ int buildin_query_sql(struct script_state *st) {
 	if(mysql_query(&mmysql_handle,tmp_sql)){
 		ShowSQL("DB error - %s\n",mysql_error(&mmysql_handle));
 		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-		return 0;
+		return 1;
 	}
 
 	if(st->end > st->start+3) {
@@ -9537,13 +9549,14 @@ int buildin_callshop(struct script_state *st)
 	sd = script_rid2sd(st);
 	if (!sd) {
 		push_val(st->stack,C_INT,0);
-		return 1;
+		return 0;
 	}
 	shopname = conv_str(st, & (st->stack->stack_data[st->start+2]));
 	if( st->end>st->start+3 )
 		flag = conv_num(st, & (st->stack->stack_data[st->start+3]));
 	nd = npc_name2id(shopname);
 	if (!nd || nd->bl.type!=BL_NPC || nd->bl.subtype!=SHOP) {
+		ShowError("buildin_callshop: Shop %s not found (or NPC is not shop type)", shopname);
 		push_val(st->stack,C_INT,0);
 		return 1;
 	}
@@ -9917,7 +9930,8 @@ int run_func(struct script_state *st)
 			ShowError("function not found\n");
 //		st->stack->sp=0;
 		st->state=END;
-		return 0;
+		report_src(st);
+		return 1;
 	}
 	start_sp=i-1;
 	st->start=i-1;
@@ -9929,7 +9943,8 @@ int run_func(struct script_state *st)
 				str_buf + str_data[func].str, str_data[func].type);
 //		st->stack->sp=0;
 		st->state=END;
-		return 0;
+		report_src(st);
+		return 1;
 	}
 #ifdef DEBUG_RUN
 	if(battle_config.etc_log) {
@@ -9963,11 +9978,13 @@ int run_func(struct script_state *st)
 	}
 #endif
 	if(str_data[func].func){
-		str_data[func].func(st);
+		if (str_data[func].func(st)) //Report error
+			report_src(st);
 	} else {
 		if(battle_config.error_log)
 			ShowError("run_func : %s? (%d(%d))\n",str_buf+str_data[func].str,func,str_data[func].type);
 		push_val(st->stack,C_INT,0);
+		report_src(st);
 	}
 
 	// Stack's datum are used when re-run functions [Eoe]
@@ -9984,7 +10001,8 @@ int run_func(struct script_state *st)
 		if(st->stack->defsp<4 || st->stack->stack_data[st->stack->defsp-1].type!=C_RETINFO){
 			ShowWarning("script:run_func(return) return without callfunc or callsub!\n");
 			st->state=END;
-			return 0;
+			report_src(st);
+			return 1;
 		}
 		i = conv_num(st,& (st->stack->stack_data[st->stack->defsp-4]));					// 引数の数所得
 		st->pos=conv_num(st,& (st->stack->stack_data[st->stack->defsp-1]));				// スクリプト位置の復元
