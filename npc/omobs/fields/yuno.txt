@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= Athena (1.0)
 //===== Current Version: =====================================
-//= 1.5b
+//= 1.6
 //===== Compatible With: =====================================
 //= Any Athena Version
 //===== Additional Comments: =================================
@@ -16,6 +16,7 @@
 //=	Mob quantity is custom.
 //= 1.5b Changed the spawn numbers a bit. [Poki#3]
 //=	Thanks to Playtester and Emperium.org
+//= 1.6 Fixed Yuno Field 10. Mob amount sugested by Playtester [Poki#3]
 //============================================================
 
 //========================================================================================
@@ -150,7 +151,11 @@ yuno_fild09.gat,0,0,0,0	monster	Yellow Plant	1081,10,180000,90000,1
 // - Yuno Field 10
 //========================================================================================
 
-yuno_fild10.gat,0,0,0,0	monster	Geographer	1368,40,0,0,0
+yuno_fild10.gat,0,0,0,0	monster	Dustiness	1114,20,0,0,0
+yuno_fild10.gat,0,0,0,0	monster	Stainer	1174,20,0,0,0
+yuno_fild10.gat,0,0,0,0	monster	Geographer	1368,20,0,0,0
+yuno_fild10.gat,0,0,0,0	monster	Beetle King	1494,20,0,0,0
+yuno_fild10.gat,0,0,0,0	monster	Hunter Fly	1035,10,0,0,0
 
 //========================================================================================
 // - Yuno Field 11

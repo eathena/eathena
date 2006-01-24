@@ -12,6 +12,7 @@
 //= Fully working.  Added a guide at every exit.
 //= v1.1 Now using duplicate command.
 //= 1.2 Optimized, updated common guide names [Lupus]
+//= 1.2a Small note that the BS guild moved to Einbroch [Poki#3]
 //============================================================
 
 
@@ -52,8 +53,8 @@ M_Menu:
 			goto sL_Wipe;
 		M_1_2:
 			mes "[Geffen Soldier]";
-			mes "The 'Blacksmith Workshop' is SouthEast of Geffen Tower.  It is where Merchants train to become Blacksmiths.";
-			mes "You can also get your weapons and armor upgraded there.";
+			mes "The 'Blacksmith Workshop' is SouthEast of Geffen Tower.";
+			mes "Please note that the Blacksmith training has bean moved to Einbroch.";
 			viewpoint 1,182,59,2,0x44FF44;
 			goto sL_Wipe;
 		M_1_3:

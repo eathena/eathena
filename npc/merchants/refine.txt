@@ -5,7 +5,7 @@
 //= dafide18 (1.4)
 //= Skotlex (1.5)
 //===== Current Version: =====================================
-//= 1.6
+//= 1.7
 //===== Compatible With: =====================================
 //= Any Freya Version
 //===== Description: =========================================
@@ -32,13 +32,14 @@
 //=       exploit ruining the safe refine loop. [Skotlex]
 //= 1.5b - Fixed Spelling mistakes. [Nexon] 
 //= 1.6	- Replaced all breaks for ends as per the new script engine [Skotlex]
+//= 1.7 - Added Einbroch Refiners (Custom names ^^; ) and a duplicated BS Shop. [Poki#3]
 //============================================================
 
 
 //=========================================================
 // Christopher: Geffen Blacksmith
 //=========================================================
-geffen_in.gat,110,172,2	script	Christopher	63,{
+geffen_in.gat,110,172,2	script	Christopher#1::Chris	63,{
 	mes "[Christopher Guillenrow]";
 	mes "Welcome to Christopher's Workshop. Ye can find all yer forging equipment here. So what can I help ye with?";
 	M_Menu:
@@ -155,7 +156,7 @@ geffen_in.gat,110,172,2	script	Christopher	63,{
 		close;
 }
 
-
+ein_in01,38,29,6	duplicate(Chris)	Christopher#2	63
 
 //=====================================================================================
 // Weapon/Armor Refiners
@@ -182,6 +183,11 @@ alberta_in.gat,28,58,4	script	Fredrik	85,{
 }
 yuno_in01.gat,164,26,6	script	Disturb	88,{
 	set @name$,"Disturb";
+	callfunc "refinemain";
+	end;
+}
+ein_in01.gat,24,87,6	script	Katamo	826,{
+	set @name$,"Katamo";
 	callfunc "refinemain";
 	end;
 }
@@ -560,6 +566,11 @@ yuno_in01.gat,171,26,6	script	Dillemat	88,{
 	callfunc "phramain";
 	end;
 }
+ein_in01.gat,15,87,7	script	Gorly	86,{
+	set @name$,"Gorly";
+	callfunc "phramain";
+	end;
+}
 
 //============================================================
 //= Material Salesmen Functions
@@ -641,7 +652,12 @@ alberta_in.gat,21,63,5	script	Xenophon	84,{
 yuno_in01.gat,171,22,6	script	Delayt	88,{
 	set @name$,"Delayt";
 	callfunc "orimain";
-end;
+	end;
+}
+ein_in01.gat,18,82,6	script	Dati	84,{
+	set @name$,"Dati";
+	callfunc "orimain";
+	end;
 }
 
 //============================================================
@@ -714,7 +730,7 @@ prt_in.gat,62,54,2	script	Grendal	84,{
 	end;
 }
 
-//Temp Spot, Not Shure Where To place
+//Temp Spot, Not Sure Where To place
 payon.gat,149,182,2	script	Repairman	88,{
 	set @name$,"Repairman";
 	callfunc "repairmain";

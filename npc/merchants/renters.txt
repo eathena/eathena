@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88, mod by Lupus
 //===== Current Version: ===================================== 
-//= 1.5a
+//= 1.6
 //===== Compatible With: ===================================== 
 //= eAthena 7.15 +
 //===== Description: ========================================= 
@@ -17,6 +17,7 @@
 //= but you could set them to the same [Lupus]
 //= 1.5: Fixed spelling mistakes [Nexon]
 //= 1.5a: Small fix (Falcon Taming -> Falcon Mastery) [Komurka]
+//= 1.6: Moved the Falcon Master to Hugel [Poki#3]
 //============================================================ 
 
 // PecoPeco Breeder (for Knights)-------------------------------------------
@@ -126,7 +127,7 @@ L_Start:
 }
 
 // Falcon Master--------------------------------------------------------------
-in_hunter.gat,146,100,2	script	Falcon Master	59,{
+hu_in01.gat,375,318,5	script	Falcon Master	59,{
 	if(Upper==0) set @price,800; //Normal Falcon - default price
 	if(Upper==1) set @price,1000; //Scarf Falcon
 	if(Upper==2) set @price,600; //Baby Falcon
@@ -179,7 +180,3 @@ in_hunter.gat,146,100,2	script	Falcon Master	59,{
 		mes "Have a nice day.";
 		close;
 }
-
-//Not Supposed To Be One In Payon!
-//Coordinate IS Correct For New Payon Map Though IF You Enable It
-//payon_in01.gat,206,175,4	duplicate(Falcon Master)	Falcon Master	59

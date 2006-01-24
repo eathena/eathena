@@ -7,7 +7,7 @@
 //= Optimized and further edited by kobra_k88.
 //= Further bugfixed and tested by Lupus
 //===== Current Version: =====================================
-//= 1.7
+//= 1.8
 //===== Compatible With: =====================================
 //= eAthena  1.0+
 //===== Description: =========================================
@@ -23,18 +23,19 @@
 //= 2nd Job Quests again. It also guides adv classes where
 //= to go. [Lupus]
 //= 1.7 item quantity/ids typos fix
+//= 1.8 Moved the Quest to Einbroch [Poki#3]
 ==============================================================
 
 
 
 //<==================================================== Blacksmith Altiregen (Job changer)==================================================>\\
-geffen_in.gat,110,169,4	script	Guildsman	731,{
+ein_in01.gat,18,28,4	script	Guildsman Altiregen	731,{
 	callfunc "F_BlockHigh",29,"Merchant High",34,"White Smith","Blacksmith Altiregen";
 
 	if (BaseJob == 5) goto L_Merc;
 	mes "[Blacksmith Altiregen]";
 	mes "Welcome! We're the masters of the metal, blacksmiths!";
-	mes "Our skills in creating weapons, in a way, is almost a art form!.";
+	mes "Our skills in creating weapons, in a way, is almost an art form!.";
 	next;
 	mes "[Blacksmith Altiregen]";
 	mes "Those weapons, heh, can be sold for quite a profit as well.";
@@ -69,7 +70,7 @@ L_Merc:
 		mes "Rustle Rustle";
 		next;
 		mes "[Blacksmith Altiregen]";
-		mes "Hmmm, the guildsman ^5533FFGeshupenschte in Alberta^000000, says he's a bit short of hands.";
+		mes "Hmmm, the guildsman ^5533FFGeshupenschte in Einbech^000000, is a bit short of hands.";
 		mes "Go help him, that's the first test.";
 		next;
 		mes "[Blacksmith Altiregen]";
@@ -89,7 +90,7 @@ L_Merc:
 			emotion 1;
 			next;
 			mes "[Blacksmith Altiregen]";
-			mes "Well, first things first..... The guildsman ^5533FFGeshupenschte in Alberta^000000, says he's a bit short on help.";
+			mes "Well, first things first..... The guildsman ^5533FFGeshupenschte in Einbech^000000, is a bit short on help.";
 			mes "Go help him, that's the first test.";
 			next;
 			mes "[Blacksmith Altiregen]";
@@ -112,7 +113,7 @@ L_Merc:
 
 
 L_Test1:
-	mes "You didn't leave yet? I told you to go see Geshupenschte in Alberta.  See you then.";
+	mes "You didn't leave yet? I told you to go see Geshupenschte in Einbech. See you then.";
 	emotion 1;
 	close;
 
@@ -125,18 +126,17 @@ L_Test4:
 	next;
 	mes "[Blacksmith Altiregen]";
 	mes "Hmm? Heh, there is one last test you know.";
-	mes "The guildsman for the last test is in Morroc, go there now.";
+	mes "The guildsman for the last test is Mitmayer, go talk to her now.";
 	next;
 	menu "Cruel, but I'll go.",-,"......I don't wanna travel T_T",M_dontgo;
 
 		set BSMITH_Q2, 1;
 		mes "[Blacksmith Altiregen]";
-		mes "I know its far away, but it's not in my power.  Besides, you know the region well, right?";
 		mes "I hope you do, because the blacksmith's guild doesn't like shaming it's status by hiring idiots!";
 		next;
 		mes "[Blacksmith Altiregen]";
 		mes "If such a thing happened, I can see the guild crumbling down, sob T_T";
-		mes "Well..... Get to Morroc and find her!";
+		mes "Well..... Go find her!";
 		close;
 	M_dontgo:
 		mes "[Blacksmith Altiregen]";
@@ -154,15 +154,15 @@ L_Test4:
 		close;
 
 	L_NotDone:	
-		mes "Hmmm? Didn't you say you're going to Morroc?";
-		mes "Sorry, but you gotta pass the test there.";	
+		mes "Hmmm? Didn't you say you're going?";
+		mes "Sorry, but you gotta pass the test.";	
 		close;
 
 L_Change:
 	if(countitem(1005) < 1) goto L_NoHam;
 	if(SkillPoint > 0) mes "You need to use up all of your skill points before I can make you a Blacksmith.";
 	if(SkillPoint > 0) close;
-	mes "Lo, I can see the fire in your eyes! You've passed!!";
+	mes "Whoah, I can see the fire in your eyes! You've passed!!";
 	mes "I'll grant you the power to work metals!";
 	next;
 	delitem 1005,1;
@@ -204,7 +204,7 @@ L_Change:
 
 
 //<=============================================== Geshupenschte: 1st, 2nd, 3rd Test ===================================================>\\
-alberta_in.gat,174,22,4	script	Geshupenschte	63,{
+ein_in01.gat,201,27,4	script	Geshupenschte	63,{
 
 	if(BaseJob==5) goto L_merchant;
 	mes "[Geshupenschte]";
@@ -1198,7 +1198,7 @@ L_Start:
 
 
 //<===================================================== Mitehmaeeuh: Last Test ===================================================>\\
-morocc.gat,95,133,4	script	BS Guildsman	726,{
+ein_in01.gat,24,41,4	script	Mitmayer	726,{
 	if (BSMITH_Q == 4) goto L_Start;
 	if (BSMITH_Q == 5) goto L_Done;
 	mes "[Mitmayer]";
@@ -1410,4 +1410,69 @@ L_Result:
 		mes "[Mitmayer]";
 		mes "Well, good luck!!!!";
 		close;
+}
+
+//=========================== NPC that tells you, that the Guild moved
+//=========================== She's there on kRO, but the current text is custom ^^
+geffen_in.gat,110,169,4	script	Guildsman	726,{
+	mes "[Blacksmith Guildsman]";
+	mes "Welcome! We're the masters of the metal, blacksmiths!";
+	mes "Our skills in creating weapons, in a way, is almost an art form!.";
+	next;
+	mes "[Blacksmith Guildsman]";
+	mes "Our Guild was recently moved to a biger building in the steel city of Einbroch.";
+	mes "If you are here to take part in your training, please go there";
+	next;
+	menu "What? Where? How?",-,"OK, thank you!",M_ok;
+
+	mes "[Blacksmith Guildsman]";
+	mes "Ah. I'm sorry. You must be unfamiliar with the new and wonderful Airship Transportation System!";
+	menu "Air...what?",-,"Oh, that!",M_know;
+
+	mes "[Blacksmith Guildsman]";
+	mes "The Airship Transportation System!";
+	mes "It's realy a wonderful thing. No more relying on stupid Magic Teleports.";
+	mes "The Airship is a big flying machine that will get you to your destination in no time";
+	next;
+	mes "[Blacksmith Guildsman]";
+	mes "Just think about it. The blue sky and white clouds. The wind in your hair.";
+	mes "How I adore that feeling!";
+	menu "Um.. about that guild...",-,"She's nuts! RUN!",M_run;
+
+	mes "[Blacksmith Guildsman]";
+	mes "Huh? Oh right. I get carried away sometimes...";
+	next;
+	mes "[Blacksmith Guildsman]";
+	mes "There are two Airships. One is flying from Izlude to Yuno, and the other one flys throughout the whole Shwarzwald Republic.";
+	mes "Thats Yuno, Hugel, Lighthalzen and Einbroch.";
+	next;
+	mes "[Blacksmith Guildsman]";
+	mes "If you wish to go to Einbroch, simply board the Airship in Izlude, get of in Yuno and take the second ship until it reaches Einbroch.";
+	mes "When you reach your destination just ask one of the Guides for the Blacksmith Guild";
+	next;
+	mes "[Blacksmith Guildsman]";
+	mes "Now I know that this may be a bit confusing. That's why our guild in association with the Kafra Corporation is serving free warps to Izlude!";
+	mes "Would you like to use our services?";
+	menu "Yes, please.",-,"No, thank you.",M_no;
+
+	mes "[Blacksmith Guildsman]";
+	mes "Have a nice trip!!";
+	close2;
+	warp "izlude.gat",145,39;
+	end;
+
+M_ok:
+	mes "[Blacksmith Guildsman]";
+	mes "Always at your service!";
+	close;
+
+M_run:
+	mes "[Blacksmith Guildsman]";
+	mes "Huh? Hey! Where are you going?!";
+	close;
+
+M_no:
+	mes "[Blacksmith Guildsman]";
+	mes "No? Don't tell me you're afraid of flying...";
+	close;
 }

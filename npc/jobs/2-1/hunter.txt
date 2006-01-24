@@ -5,7 +5,7 @@
 //= Converted by kobra_k88
 //= Further bugfixed and tested by Lupus
 //===== Current Version: ===================================== 
-//= 1.6a
+//= 1.7
 //===== Compatible With: ===================================== 
 //= eAthena 1.0
 //===== Description: ========================================= 
@@ -25,23 +25,11 @@
 //= to go. [Lupus]
 //= 1.6a Infinite Arrows exploit fix (thanx to Lorky, that
 //= reported the bug) [Lupus]
+//= 1.7 Moved the Job QUest to Hugel [Poki#3]
 //============================================================ 
 
-
-
-// Please add this warp to your warp/s script/s if it is not already there, or you can enable it here
-//in_hunter.gat,100,13,0	warp	hnt_to_payfild10	1,2,pay_fild10,145,250
-
-
-//<================================ Guildsman: Warps you to guild =======================================>\\
-pay_fild10.gat,148,251,4	script	Hunter Guildsman	98,{
-	warp "in_hunter.gat",100,18;
-	end;
-}
-
-
 //<====================================== Job Changer ========================================>\\
-in_hunter.gat,99,99,4	script	Hunter Sharon	727,{
+hu_in01.gat,386,374,4	script	Hunter Sharon	727,{
 	callfunc "F_BlockHigh",27,"High Archer",35,"Sniper","Hunter Sharon";
 
 	if(BaseJob==Job_Archer) goto L_Start;
@@ -262,7 +250,7 @@ L_Start:
 			close;
 
 L_Test2:
-	mes "What you have to do next is go see ^5533FFMr. Demon Hunter^000000 over there to my left.  He'll tell you about the second test.";
+	mes "What you have to do next is go see ^5533FFMr. Demon Hunter^000000 behind me.  He'll tell you about the second test.";
 	next;
 	mes "[Hunter Sharon]";
 	mes "Good luck!";
@@ -335,7 +323,7 @@ L_Change:
 
 
 //<=========================== Demon Hunter: Second Test ===============================>\\
-in_hunter.gat,55,99,7	script	Demon Hunter	732,{
+hu_in01.gat,382,382,5	script	Demon Hunter	732,{
 	if(BaseJob == Job_Archer) goto L_Arc;
 	if(BaseJob == Job_Hunter) goto L_Hnt;
 
@@ -436,7 +424,7 @@ L_Start:
 			mes "[Demon Hunter]";
 			mes "DON'T you mess around with me! If you're gonna fool around then LEAVE!";
 			emotion 32;
-			warp "pay_fild10.gat", 133, 235;
+			warp "hugel.gat", 207, 222;
 			end;
 
 L_Check:
@@ -481,13 +469,13 @@ L_Check:
 	L_End:
 		mes "[Demon Hunter]";
 		mes "Good job.  You brought all the necesarry items.  Now go find the ^5533FFGuild Master^000000.";
-		mes "I think he's somewhere in the ^5533FFArcher Guild^000000.  He'll give you your final test.  Good luck.";
+		mes "I think he's somewhere in the ^5533FFArcher Guild^000000.  He'll give you your final test. Good luck.";
 		set HNTR_Q, 2;
 		set HNTR_Q2, 0;
 		close;
 
 L_Test3:
-	mes "Huh? Can't you find the guild master? He should be in the ^5533FFArcher Guild in Archer village^000000.  Go find him.";
+	mes "Huh? Can't you find the guild master? He should be in the ^5533FFArcher Guild in Archer village^000000. Go find him.";
 	emotion 20;
 	close;
 

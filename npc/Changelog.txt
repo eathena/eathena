@@ -26,6 +26,11 @@ Nexon
 Date		Added
 ======
 
+01/24
+	* Fixed Yuno Field 10. Mob amount sugested by Playtester, made by Poki#3 [Komurka]
+	- Moved some NPCs to Einbroch and Hugel - more info can be found here http://eathena.ws/board/index.php?showtopic=67631,
+	  made by Poki#3
+
 01/23
 	* Minor Valkirie fixes, thanks to Xeronage [Lupus]
 	- Updated Novices Guild Castles Warper NPC
