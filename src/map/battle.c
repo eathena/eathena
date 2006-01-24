@@ -542,50 +542,126 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 
 	nullpo_retr(0, bl);
 
+	if (damage <= 0)
+		return 0;
+	
 	class_ = status_get_class(bl);
 
 	if (bl->type == BL_MOB) {
-		nullpo_retr (0, md=(struct mob_data *)bl);
+		md=(struct mob_data *)bl;
 	} else if (bl->type == BL_PC) {
-		nullpo_retr (0, sd=(struct map_session_data *)bl);
+		sd=(struct map_session_data *)bl;
 	}
 
 	sc_data = status_get_sc_data(bl);
 	sc_count = status_get_sc_count(bl);
 
-	if(map_getcell(bl->m, bl->x, bl->y, CELL_CHKPNEUMA) && damage>0 && flag&BF_LONG && 
+	if(flag&BF_LONG && map_getcell(bl->m, bl->x, bl->y, CELL_CHKPNEUMA) &&
 		((flag&BF_WEAPON && skill_num != NPC_GUIDEDATTACK) ||
 		(flag&BF_MISC && skill_num !=  PA_PRESSURE) ||
 		(flag&BF_MAGIC && skill_num == ASC_BREAKER))){ // It should block only physical part of Breaker! [Lupus], on the contrary, players all over the boards say it completely blocks Breaker x.x' [Skotlex]
-		damage=0;
-	} else
+		return 0;
+	}
+	
 	if (sc_count && *sc_count > 0) {
-		if (sc_data[SC_SAFETYWALL].timer!=-1 && damage>0 && flag&BF_SHORT && (skill_num != NPC_GUIDEDATTACK && skill_num != AM_DEMONSTRATION)
+		//First, sc_*'s that reduce damage to 0.
+		if (sc_data[SC_SAFETYWALL].timer!=-1 && flag&BF_SHORT && (skill_num != NPC_GUIDEDATTACK && skill_num != AM_DEMONSTRATION)
 		) {
 			// セ?[フティウォ?[ル
 			struct skill_unit_group *group = (struct skill_unit_group *)sc_data[SC_SAFETYWALL].val3;
 			if (group) {
 				if (--group->val2<=0)
 					skill_delunitgroup(group);
-				damage=0;
+				return 0;
 			} else {
 				status_change_end(bl,SC_SAFETYWALL,-1);
 			}
 		}
-
-		/* No no no, ROKISWEIL only prevents people from using skills, it does not blocks any skill that was casted on it! [Skotlex]
-		if(sc_data[SC_ROKISWEIL].timer!=-1 && damage>0 && flag&BF_MAGIC ){
-			damage=0;
+	
+		if(sc_data[SC_LANDPROTECTOR].timer!=-1 && flag&BF_MAGIC)
+			return 0;
+		
+		/* Moved to battle_calc_weapon_attack for now.
+		if(sc_data[SC_KAUPE].timer != -1 && damage > 0 && !skill_num) {
+			if(rand()%100 < sc_data[SC_KAUPE].val2) {
+				clif_skill_nodamage(bl,bl,SL_KAUPE,sc_data[SC_KAUPE].val1,1);
+				if (--sc_data[SC_KAUPE].val3 <= 0) //We make it work like Safety Wall, even though it only blocks 1 time.
+					status_change_end(bl, SC_KAUPE, -1);
+				return 0;
+			}
 		}
 		*/
 		
-		if(sc_data[SC_AETERNA].timer!=-1 && damage>0 && skill_num != PA_PRESSURE){
+		if(sc_data[SC_AUTOGUARD].timer != -1 && flag&BF_WEAPON &&
+			rand()%100 < sc_data[SC_AUTOGUARD].val2) {
+			int delay;
+			clif_skill_nodamage(bl,bl,CR_AUTOGUARD,sc_data[SC_AUTOGUARD].val1,1);
+			// different delay depending on skill level [celest]
+			if (sc_data[SC_AUTOGUARD].val1 <= 5)
+				delay = 300;
+			else if (sc_data[SC_AUTOGUARD].val1 > 5 && sc_data[SC_AUTOGUARD].val1 <= 9)
+				delay = 200;
+			else
+				delay = 100;
+			if(sd)
+				sd->canmove_tick = gettick() + delay;
+			else if(md)
+				md->canmove_tick = gettick() + delay;
+
+			if(sc_data[SC_SHRINK].timer != -1 && rand()%100<5*sc_data[SC_AUTOGUARD].val1)
+				skill_blown(bl,src,skill_get_blewcount(CR_SHRINK,1));
+			return 0;
+		}
+
+// -- moonsoul (chance to block attacks with new Lord Knight skill parrying)
+//
+		if(sc_data[SC_PARRYING].timer != -1 && flag&BF_WEAPON &&
+			rand()%100 < sc_data[SC_PARRYING].val2) {
+			clif_skill_nodamage(bl,bl,LK_PARRYING,sc_data[SC_PARRYING].val1,1);
+			return 0;
+		}
+		
+		if(sc_data[SC_DODGE].timer != -1 && (flag&BF_LONG || (sc_data[SC_SPURT].timer != -1 && flag&BF_WEAPON))
+			&& rand()%100 < 20) {
+			clif_skill_nodamage(bl,bl,TK_DODGE,1,1);
+			if (sc_data[SC_COMBO].timer == -1)
+				status_change_start(bl, SC_COMBO, TK_JUMPKICK, src->id, 0, 0, 2000, 0);
+			return 0;
+		}
+
+		if(sc_data[SC_FOGWALL].timer != -1 && flag&BF_MAGIC
+			&& rand()%100 < 75 && !(skill_get_inf(skill_num)&INF_GROUND_SKILL))
+			return 0;
+
+		//Now damage increasing effects
+		if(sc_data[SC_AETERNA].timer!=-1 && skill_num != PA_PRESSURE){
 			damage<<=1;
 			if (skill_num != ASC_BREAKER || flag & BF_MAGIC) //Only end it on the second attack of breaker. [Skotlex]
 				status_change_end( bl,SC_AETERNA,-1 );
 		}
 
-		if(sc_data[SC_ENERGYCOAT].timer!=-1 && damage>0  && flag&BF_WEAPON){
+		if(sc_data[SC_SPIDERWEB].timer!=-1)	// [Celest]
+			if ((flag&BF_SKILL && skill_get_pl(skill_num)==3) ||
+				(!flag&BF_SKILL && status_get_attack_element(src)==3)) {
+				damage<<=1;
+				status_change_end(bl, SC_SPIDERWEB, -1);
+			}
+
+		//Finally damage reductions....
+		if(sc_data[SC_ASSUMPTIO].timer != -1){
+			if(map_flag_vs(bl->m))
+				damage=damage*2/3; //Receive 66% damage
+			else
+				damage>>=1; //Receive 50% damage
+		}
+
+		if(sc_data[SC_DEFENDER].timer != -1 && flag&BF_LONG && flag&BF_WEAPON)
+			damage=damage*(100-sc_data[SC_DEFENDER].val2)/100;
+
+		if(sc_data[SC_FOGWALL].timer != -1 && flag&BF_LONG && flag&BF_WEAPON)
+			damage >>=1;
+
+		if(sc_data[SC_ENERGYCOAT].timer!=-1 && flag&BF_WEAPON){
 			if(sd){
 				if(sd->status.sp>0){
 					int per = sd->status.sp * 5 / (sd->status.max_sp + 1);
@@ -601,60 +677,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 				damage -= damage * (sc_data[SC_ENERGYCOAT].val1 * 6) / 100;
 		}
 
-		if(sc_data[SC_KYRIE].timer!=-1 && damage > 0){
-			sc=&sc_data[SC_KYRIE];
-			sc->val2-=damage;
-			if(flag&BF_WEAPON || skill_num == TF_THROWSTONE){
-				if(sc->val2>=0)	damage=0;
-				else damage=-sc->val2;
-			}
-			if((--sc->val3)<=0 || (sc->val2<=0) || skill_num == AL_HOLYLIGHT)
-				status_change_end(bl, SC_KYRIE, -1);
-		}
-		if(sc_data[SC_LANDPROTECTOR].timer!=-1 && damage>0 && flag&BF_MAGIC){
-			damage=0;
-		}
-		/* Moved to battle_calc_weapon_attack for now.
-		if(sc_data[SC_KAUPE].timer != -1 && damage > 0 && !skill_num) {
-			if(rand()%100 < sc_data[SC_KAUPE].val2) {
-				clif_skill_nodamage(bl,bl,SL_KAUPE,sc_data[SC_KAUPE].val1,1);
-				if (--sc_data[SC_KAUPE].val3 <= 0) //We make it work like Safety Wall, even though it only blocks 1 time.
-					status_change_end(bl, SC_KAUPE, -1);
-				damage = 0;
-			}
-		}
-		*/
-		if(sc_data[SC_AUTOGUARD].timer != -1 && damage > 0 && flag&BF_WEAPON) {
-			if(rand()%100 < sc_data[SC_AUTOGUARD].val2) {
-				int delay;
-
-				damage = 0;
-				clif_skill_nodamage(bl,bl,CR_AUTOGUARD,sc_data[SC_AUTOGUARD].val1,1);
-				// different delay depending on skill level [celest]
-				if (sc_data[SC_AUTOGUARD].val1 <= 5)
-					delay = 300;
-				else if (sc_data[SC_AUTOGUARD].val1 > 5 && sc_data[SC_AUTOGUARD].val1 <= 9)
-					delay = 200;
-				else
-					delay = 100;
-				if(sd)
-					sd->canmove_tick = gettick() + delay;
-				else if(md)
-					md->canmove_tick = gettick() + delay;
-
-				if(sc_data[SC_SHRINK].timer != -1 && rand()%100<5*sc_data[SC_AUTOGUARD].val1)
-					skill_blown(bl,src,skill_get_blewcount(CR_SHRINK,1));
-			}
-		}
-// -- moonsoul (chance to block attacks with new Lord Knight skill parrying)
-//
-		if(sc_data[SC_PARRYING].timer != -1 && damage > 0 && flag&BF_WEAPON) {
-			if(rand()%100 < sc_data[SC_PARRYING].val2) {
-				damage = 0;
-				clif_skill_nodamage(bl,bl,LK_PARRYING,sc_data[SC_PARRYING].val1,1);
-			}
-		}
-		if(sc_data[SC_REJECTSWORD].timer!=-1 && damage > 0 && flag&BF_WEAPON &&
+		if(sc_data[SC_REJECTSWORD].timer!=-1 && flag&BF_WEAPON &&
 			// Fixed the condition check [Aalye]
 			(src->type==BL_MOB || (src->type==BL_PC && (((struct map_session_data *)src)->status.weapon == 1 ||
 			((struct map_session_data *)src)->status.weapon == 2 ||
@@ -668,51 +691,50 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 					status_change_end(bl, SC_REJECTSWORD, -1);
 			}
 		}
-		if(sc_data[SC_SPIDERWEB].timer!=-1 && damage > 0)	// [Celest]
-			if ((flag&BF_SKILL && skill_get_pl(skill_num)==3) ||
-				(!flag&BF_SKILL && status_get_attack_element(src)==3)) {
-				damage<<=1;
-				status_change_end(bl, SC_SPIDERWEB, -1);
-			}
 
-		//Only targetted magic skills are nullified.
-		if(sc_data[SC_FOGWALL].timer != -1 && flag&BF_MAGIC && !(skill_get_inf(skill_num)&INF_GROUND_SKILL))
-			if(rand()%100 < 75)
-				damage = 0;
-
-		if(sc_data[SC_DODGE].timer != -1 && (flag&BF_LONG || (sc_data[SC_SPURT].timer != -1 && flag&BF_WEAPON)))
-			if(rand()%100 < 20) {
-				damage = 0;
-				clif_skill_nodamage(bl,bl,TK_DODGE,1,1);
-				if (sc_data[SC_COMBO].timer == -1)
-					status_change_start(bl, SC_COMBO, TK_JUMPKICK, src->id, 0, 0, 2000, 0);
+		//Finally Kyrie because it may, or not, reduce damage to 0.
+		if(sc_data[SC_KYRIE].timer!=-1){
+			sc=&sc_data[SC_KYRIE];
+			sc->val2-=damage;
+			if(flag&BF_WEAPON || skill_num == TF_THROWSTONE){
+				if(sc->val2>=0)
+					damage=0;
+				else
+				  	damage=-sc->val2;
 			}
+			if((--sc->val3)<=0 || (sc->val2<=0) || skill_num == AL_HOLYLIGHT)
+				status_change_end(bl, SC_KYRIE, -1);
+		}
+		if (damage <= 0) return 0;
 	}
 	
 	//SC effects from caster side.
 	sc_data = status_get_sc_data(src);
 	sc_count = status_get_sc_count(src);
 	if (sc_count && *sc_count > 0) {
-		if(sc_data[SC_FOGWALL].timer != -1 && flag&BF_MAGIC && !(skill_get_inf(skill_num)&INF_GROUND_SKILL))
-			if(rand()%100 < 75)
-				damage = 0;
+		if(sc_data[SC_FOGWALL].timer != -1 && flag&(BF_LONG|BF_MAGIC)) {
+			if (flag&BF_MAGIC) {
+				if(!(skill_get_inf(skill_num)&INF_GROUND_SKILL) && rand()%100 < 75)
+					return 0;
+			} else 
+				damage /=2;
+		}
 	}
 	
 	if(md && md->guardian_data) {
 		if(class_ == MOBID_EMPERIUM && (flag&BF_SKILL && //Only a few skills can hit the Emperium.
 			skill_num != PA_PRESSURE && skill_num != MO_TRIPLEATTACK && skill_num != HW_GRAVITATION)) 
-			damage=0;
-		else
+			return 0;
 		if(src->type == BL_PC) {
 			struct guild *g=guild_search(((struct map_session_data *)src)->status.guild_id);
-			if(g && class_ == MOBID_EMPERIUM && guild_checkskill(g,GD_APPROVAL) <= 0)
-				damage=0;
-			else if (g && battle_config.guild_max_castles != 0 && guild_checkcastles(g)>=battle_config.guild_max_castles)
-				damage = 0; // [MouseJstr]
+			if (g && class_ == MOBID_EMPERIUM && guild_checkskill(g,GD_APPROVAL) <= 0)
+				return 0;
+			if (g && battle_config.guild_max_castles && guild_checkcastles(g)>=battle_config.guild_max_castles)
+				return 0; // [MouseJstr]
 		}
 	}
 
-	if (damage > 0 && skill_num != PA_PRESSURE) { // Gloria Domini ignores WoE damage reductions
+	if (skill_num != PA_PRESSURE) { // Gloria Domini ignores WoE damage reductions
 		if (map_flag_gvg(bl->m)) { //GvG
 			if (md && md->guardian_data)
 				damage -= damage * (md->guardian_data->castle->defense/100) * (battle_config.castle_defense_rate/100);
@@ -2147,35 +2169,6 @@ static struct Damage battle_calc_weapon_attack(
 		if (cardfix != 1000)
 			ATK_RATE(cardfix/10);
 	}
-
-	
-	//SC_data fixes
-	if (sc_data)
-  	{
-		if (sc_data[SC_FOGWALL].timer != -1	&& wd.flag&BF_LONG)
-			ATK_RATE(50);
-	}
-	
-	if (t_sc_data)
-	{
-		short scfix=1000;
-
-		if(t_sc_data[SC_DEFENDER].timer != -1 && wd.flag&BF_LONG)
-			scfix=scfix*(100-t_sc_data[SC_DEFENDER].val2)/100;
-		
-		if(t_sc_data[SC_FOGWALL].timer != -1 && wd.flag&BF_LONG)
-			scfix=scfix*50/100;
-		
-		if(t_sc_data[SC_ASSUMPTIO].timer != -1){
-			if(map_flag_vs(target->m))
-				scfix=scfix*2/3; //Receive 66% damage
-			else
-				scfix=scfix/2; //Receive 50% damage
-		}
-	
-		if(scfix != 1000)
-			ATK_RATE(scfix/10);
-   }
 
 	if(flag.infdef)
 	{ //Plants receive 1 damage when hit

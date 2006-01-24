@@ -1,6 +1,8 @@
 Date	Added
 
 2006/01/24
+	* Some cleaning up of battle_calc_damage, Assumptio should now also reduce
+	  damage of all types of attack, not just weapon-based ones. [Skotlex]
 	* Incremented SL_MONK combo SP cost reduction to 25% [Skotlex]
 	* Updated Full Adrenaline Rush to work on all weapons except bows. [Skotlex]
 	* Updated the script engine to report the src of an error when there's a
