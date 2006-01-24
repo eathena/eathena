@@ -1,6 +1,7 @@
 Date	Added
 
 2006/01/24
+	* Fixed noteleport mapflag affecting Warp Portal. [Skotlex]
 	* Fixed map server crashing when parsing an incomplete mob-skill line. [Skotlex]
 	* @autoloot 100 will now pickup items that have drop rates ABOVE 100. [Skotlex]
 2006/01/23

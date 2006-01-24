@@ -6380,12 +6380,6 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 
 	case AL_WARP:				/* ƒ??ƒvƒ|?ƒ^ƒ‹ */
 		if(sd) {
-			if(map[sd->bl.m].flag.nowarp)	/* ƒeƒŒƒ|‹ÖŽ~ */
-				break;
-			if(!battle_config.duel_allow_teleport && sd->duel_group) { // duel restriction [LuzZza]
-				clif_displaymessage(sd->fd, "Duel: Can't use warp in duel.");
-				break;
-			}				
 			clif_skill_warppoint(sd,skillid,mapindex_id2name(sd->status.save_point.map),
 				(sd->skilllv>1)?mapindex_id2name(sd->status.memo_point[0].map):"",
 				(sd->skilllv>2)?mapindex_id2name(sd->status.memo_point[1].map):"",
@@ -8101,6 +8095,11 @@ int skill_check_condition(struct map_session_data *sd,int type)
 			clif_skill_teleportmessage(sd,0);
 			return 0;
 		}
+		if(!battle_config.duel_allow_teleport && sd->duel_group) { // duel restriction [LuzZza]
+			clif_displaymessage(sd->fd, "Duel: Can't use warp in duel.");
+			return 0;
+		}				
+		break;
 	case AL_TELEPORT:
 		if(map[sd->bl.m].flag.noteleport) {
 			clif_skill_teleportmessage(sd,0);
