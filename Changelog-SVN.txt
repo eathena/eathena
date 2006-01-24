@@ -1,6 +1,8 @@
 Date	Added
 
-2006/01/22
+2006/01/24
+	* @autoloot 100 will now pickup items that have drop rates ABOVE 100. [Skotlex]
+2006/01/23
 	* Added battle config "no_spawn_on_player", see battle_athena.conf for
 	  details. [Skotlex]
 	* Fixed bows doing less damage on criticals when having high dex. [Skotlex]

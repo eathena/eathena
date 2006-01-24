@@ -2064,7 +2064,9 @@ static void mob_item_drop(struct mob_data *md, unsigned int tick, struct delay_i
 			log_pick((struct map_session_data*)md, "M", md->class_, ditem->item_data.nameid, -ditem->item_data.amount, NULL);
 	}
 
-	if (ditem->first_sd && ditem->first_sd->state.autoloot && drop_rate <= ditem->first_sd->state.autoloot
+	if (ditem->first_sd && ditem->first_sd->state.autoloot &&
+		(drop_rate <= ditem->first_sd->state.autoloot ||
+		(drop_rate >= 10000 && ditem->first_sd->state.autoloot >= 10000)) //Fetch 100% drops
 		&& pc_additem(ditem->first_sd,&ditem->item_data,ditem->item_data.amount) == 0)
 	{	//Autolooted.
 		if(log_config.pick > 0)
