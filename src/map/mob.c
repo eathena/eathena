@@ -4586,9 +4586,12 @@ static int mob_readskilldb(void)
 				if((p=strchr(p,','))!=NULL)
 					*p++=0;
 			}
-			if( (mob_id=atoi(sp[0]))== 0 || (mob_id > 0 && mob_db(mob_id) == mob_dummy))
+			if(i == 0 || (mob_id=atoi(sp[0]))== 0 || (mob_id > 0 && mob_db(mob_id) == mob_dummy))
 				continue;
-
+			if(i < 18) {
+				ShowError("Incorrect Mob Skill Line: %s\n", line);
+				continue;
+			}
 			if( strcmp(sp[1],"clear")==0 ){
 				if (mob_id < 0)
 					continue;
