@@ -29,7 +29,7 @@ prontera.gat,146,163,6	script	Novice Castles	729,{
 		|| Class==Job_Taekwon || Class==Job_SuperNovice || Class==Job_Super_Baby
 		|| (Class>=Job_Baby && Class<=Job_Baby_Thief)
 		|| (Class>=Job_Novice_High && Class<=Job_Thief_High)
-	menu "Warp me to Novice Castles",M_WARP,"Cancel",-;
+	) menu "Warp me to Novice Castles",M_WARP,"Cancel",-;
 
 	mes "[Cita]";
 	mes "All the 2nd classes aren't allowed to enter the sacred Novice Castles place.";
