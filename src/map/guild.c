@@ -573,7 +573,7 @@ int guild_recv_info(struct guild *sg)
 		//and as such, his guild skills should be blocked to avoid login/logout abuse [Skotlex]
 		if ((sd = map_nick2sd(sg->master)) != NULL)
 		{
-			guild_block_skill(sd, 30000);
+			guild_block_skill(sd, 300000);
 			//Also set the guild master flag.
 			sd->state.gmaster_flag = g;
 			clif_charnameupdate(sd); // [LuzZza]			

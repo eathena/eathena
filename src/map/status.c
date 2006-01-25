@@ -4227,15 +4227,14 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			int mhp;
 
 			calc_flag = 1;
+			if (flag&4)
+				break;
 			if(!(flag&2)) {
 				int sc_def = 100 - (status_get_vit(bl) + status_get_luk(bl)/5);
 				tick = tick * sc_def / 100;
 			}
-			if(!(flag&4))
-				val3 = tick/1000;
+			val3 = tick/1000;
 			if(val3 < 1) val3 = 1;
-			if (flag&4)
-				break;
 			tick = 1000;
 			mhp = status_get_max_hp(bl);
 			if (bl->type == BL_PC)

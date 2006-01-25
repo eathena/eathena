@@ -1,6 +1,9 @@
 Date	Added
 
 2006/01/25
+	* Splitted up battle_athena.conf into multiple configuration files.
+	  battle_athena.conf only contains import lines now, and all the
+	  configuration options are located in conf/battle/* [Skotlex]
 	* Updated the db version with the new one by FlavioJS [Skotlex]
 	* Improved the error reporting when failing to load a mob skill due to
 	  insufficient fields. [Skotlex]

@@ -4381,9 +4381,10 @@ int battle_config_read(const char *cfgName)
 			continue;
 		if (sscanf(line, "%[^:]:%s", w1, w2) != 2)
 			continue;
-		battle_set_value(w1, w2);
 		if (strcmpi(w1, "import") == 0)
 			battle_config_read(w2);
+		else
+			battle_set_value(w1, w2);
 	}
 	fclose(fp);
 
