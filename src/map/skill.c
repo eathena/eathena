@@ -1854,8 +1854,13 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 				int level;
 				if(sd->status.party_id>0 && (level = pc_checkskill(sd,SG_FRIEND)))
 					party_skill_check(sd, sd->status.party_id, TK_COUNTER,level);
-				break;
 			}
+			case TK_STORMKICK:
+			case TK_DOWNKICK:
+			case TK_TURNKICK:
+			// Delay normal attack table until skill's delay has passed. Let's make it skip one attack motion. [Skotlex]
+				sd->attackabletime = sd->canmove_tick = tick + status_get_amotion(&sd->bl);
+				break;
 			case SL_STIN:
 			case SL_STUN:
 				if (skilllv >= 7 && sd->sc_data[SC_COMBO].timer == -1)

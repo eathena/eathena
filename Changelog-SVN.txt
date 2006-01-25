@@ -1,6 +1,11 @@
 Date	Added
 
 2006/01/25
+	* Added an attack delay to TK kicks to prevent the top10 rankers from
+	  attacking normally during the skill animation. [Skotlex]
+	* Updated script.c to display the file not found error using braces as
+	  delimiters to help when npc filenames include spaces and the respective file
+	  is not found due to them) [Skotlex]
 	* Changed TK_RUN to a misc attack type which should enable you to halt the
 	  skill quickly after starting it. Updated SC_SPURT to be triggered when you
 	  stop running if you stopped running one sec or less after you started.

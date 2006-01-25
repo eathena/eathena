@@ -9556,7 +9556,7 @@ int buildin_callshop(struct script_state *st)
 		flag = conv_num(st, & (st->stack->stack_data[st->start+3]));
 	nd = npc_name2id(shopname);
 	if (!nd || nd->bl.type!=BL_NPC || nd->bl.subtype!=SHOP) {
-		ShowError("buildin_callshop: Shop %s not found (or NPC is not shop type)", shopname);
+		ShowError("buildin_callshop: Shop [%s] not found (or NPC is not shop type)", shopname);
 		push_val(st->stack,C_INT,0);
 		return 1;
 	}
@@ -10526,7 +10526,7 @@ int script_config_read_sub(char *cfgName)
 
 	fp = fopen(cfgName, "r");
 	if (fp == NULL) {
-		ShowError("file not found: %s\n", cfgName);
+		ShowError("file not found: [%s]\n", cfgName);
 		return 1;
 	}
 	while (fgets(line, sizeof(line) - 1, fp)) {
