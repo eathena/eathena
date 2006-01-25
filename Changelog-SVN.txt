@@ -1,6 +1,10 @@
 Date	Added
 
 2006/01/25
+	* Improved the error reporting when failing to load a mob skill due to
+	  insufficient fields. [Skotlex]
+	* Changed map_getallusers to use the db interface getall (hope it doesn't
+	  breaks horribly) [Skotlex]
 	* Added an attack delay to TK kicks to prevent the top10 rankers from
 	  attacking normally during the skill animation. [Skotlex]
 	* Updated script.c to display the file not found error using braces as

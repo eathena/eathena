@@ -1658,16 +1658,12 @@ struct block_list * map_id2bl(int id)
 	return bl;
 }
 
-static int map_foreachpc_sub(DBKey key,void * data,va_list ap)
+static int map_getallpc_sub(DBKey key,void * data,va_list ap)
 {
 	struct map_session_data *sd = (struct map_session_data*) data;
-	struct map_session_data ***total_sd = va_arg(ap, struct map_session_data***);
-	int *count = va_arg(ap, int*);
-	
-	if (!sd->state.auth || sd->state.waitingdisconnect)
-		return 0; //Do not count in not-yet authenticated characters or ready to disconnect ones.
+	if (!sd->state.auth || sd->state.waitingdisconnect || sd->state.finalsave)
+		return 1; //Do not count in not-yet authenticated characters or ready to disconnect ones.
 
-	(*total_sd)[(*count)++] = sd;
 	return 0;
 }
 
@@ -1680,7 +1676,6 @@ static int map_foreachpc_sub(DBKey key,void * data,va_list ap)
 struct map_session_data** map_getallusers(int *users) {
 	static struct map_session_data **all_sd=NULL;
 	static unsigned int all_count = 0;
-	unsigned int count;
 	
 	if (users == NULL)
 	{	//Free up data
@@ -1689,7 +1684,6 @@ struct map_session_data** map_getallusers(int *users) {
 		return NULL;
 	}
 
-	count = pc_db->size(pc_db); //This is the real number of chars in the db, better use this than the actual "online" count.
 	if (all_sd == NULL)
 	{	//Init data
 		all_count = pc_db->size(pc_db); //This is the real number of chars in the db, better use this than the actual "online" count.
@@ -1698,13 +1692,14 @@ struct map_session_data** map_getallusers(int *users) {
 		all_sd = aCalloc(all_count, sizeof(struct map_session_data*)); //it's actually just the size of a pointer.
 	}
 
-	if (all_count < count)
+	if (all_count < pc_db->size(pc_db))
 	{
-		all_count = count;
+		all_count = pc_db->size(pc_db)+10; //Give some room to prevent doing reallocs often.
 		all_sd = aRealloc(all_sd, all_count*sizeof(struct map_session_data*));
 	}
-	*users = 0;
-	pc_db->foreach(pc_db,map_foreachpc_sub,&all_sd, users);
+	*users = pc_db->getall(pc_db,(void**)all_sd,all_count,map_getallpc_sub);
+	if (*users > all_count) //Which should be impossible...
+		*users = all_count;
 	return all_sd;
 }
 

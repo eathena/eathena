@@ -10471,8 +10471,10 @@ static int script_save_mapreg()
 	FILE *fp;
 	int lock;
 
-	if( (fp=lock_fopen(mapreg_txt,&lock))==NULL )
+	if( (fp=lock_fopen(mapreg_txt,&lock))==NULL ) {
+		ShowError("script_save_mapreg: Unable to lock-open file [%s]\n",mapreg_txt);
 		return -1;
+	}
 	mapreg_db->foreach(mapreg_db,script_save_mapreg_intsub,fp);
 	mapregstr_db->foreach(mapregstr_db,script_save_mapreg_strsub,fp);
 	lock_fclose(fp,mapreg_txt,&lock);

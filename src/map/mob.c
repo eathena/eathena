@@ -4594,7 +4594,7 @@ static int mob_readskilldb(void)
 			if(i == 0 || (mob_id=atoi(sp[0]))== 0 || (mob_id > 0 && mob_db(mob_id) == mob_dummy))
 				continue;
 			if(i < 18) {
-				ShowError("Incorrect Mob Skill Line: %s\n", line);
+				ShowError("Insufficient number of fields for Mob Skill (Mob ID[%s], Name[%s], Skill:[%s/Lv%s])\n", sp[0], i>1?sp[1]:"?", i>3?sp[3]:"?", i>4?sp[4]:"?");
 				continue;
 			}
 			if( strcmp(sp[1],"clear")==0 ){
