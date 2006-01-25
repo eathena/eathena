@@ -3414,9 +3414,12 @@ int pc_run(struct map_session_data *sd, int skilllv, int dir)
 
 	nullpo_retr(0, sd);
 
-	if (!pc_can_move(sd))
+	if (!pc_can_move(sd)) {
+		if(sd->sc_data[SC_RUN].timer!=-1)
+			status_change_end(&sd->bl,SC_RUN,-1);
 		return 0;
-
+	}
+	
 	to_x = sd->bl.x;
 	to_y = sd->bl.y;
 	dir_x = dirx[dir];
@@ -3435,8 +3438,6 @@ int pc_run(struct map_session_data *sd, int skilllv, int dir)
 	if(to_x == sd->bl.x && to_y == sd->bl.y){
 		if(sd->sc_data[SC_RUN].timer!=-1)
 			status_change_end(&sd->bl,SC_RUN,-1);
-		if(sd->sc_data[SC_SPURT].timer!=-1)
-			status_change_end(&sd->bl,SC_SPURT,-1);
 	} else
 		pc_walktoxy(sd, to_x, to_y);
 

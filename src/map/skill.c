@@ -4289,8 +4289,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				status_change_end(bl,type,-1);
 			else{
 				status_change_start(bl,type,skilllv,status_get_dir(bl),0,0,0,0);
-				if(skilllv>=7 && (!dstsd || (dstsd->weapontype1 == 0 && dstsd->weapontype2 == 0)))
-					status_change_start(bl,SC_SPURT,sc_data[type].val1,0,0,0,skill_get_time2(skillid, skilllv),0);
 			}
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		}

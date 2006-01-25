@@ -566,6 +566,7 @@ void initStatusIconChangeTable() {
 	StatusIconChangeTable[SC_WINDWALK] = SI_WINDWALK;
 	StatusIconChangeTable[SC_MELTDOWN] = SI_MELTDOWN;
 	StatusIconChangeTable[SC_CARTBOOST] = SI_CARTBOOST;
+	StatusIconChangeTable[SC_CHASEWALK] = SI_CHASEWALK;
 	StatusIconChangeTable[SC_REJECTSWORD] = SI_REJECTSWORD;
 	StatusIconChangeTable[SC_MARIONETTE] = SI_MARIONETTE;
 	StatusIconChangeTable[SC_MARIONETTE2] = SI_MARIONETTE2;
@@ -4575,6 +4576,12 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_TKDORI:
 			val2 = 11-val1; //Chance to consume: 11-skilllv%
 			break;
+		case SC_RUN:
+			if (!(flag&4))
+				val4 = gettick(); //Store time at which you started running.
+			calc_flag = 1;
+			break;
+
 		case SC_CONCENTRATE:		/* 集中力向上 */
 		case SC_BLESSING:			/* ブレッシング */
 		case SC_ANGELUS:			/* アンゼルス */
@@ -4616,7 +4623,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_BATKFOOD:
 		case SC_WATKFOOD:
 		case SC_MATKFOOD:
-		case SC_RUN://駆け足
 		case SC_SPURT:
 		case SC_SPIRIT:
 		case SC_SUN_COMFORT:
@@ -4999,13 +5005,15 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			}
 			break;
 			case SC_RUN://駆け足
-			if (sd) {
-  				if (sd->walktimer != -1)
-					pc_stop_walking(sd,1);
+				if (sd && sd->walktimer != -1)
+						pc_stop_walking(sd,1);
+				if (sc_data[type].val1 >= 7 &&
+					DIFF_TICK(gettick(), sc_data[type].val4) <= 1000 &&
+					(!sd || (sd->weapontype1 == 0 && sd->weapontype2 == 0))
+				)
+					status_change_start(bl,SC_SPURT,sc_data[type].val1,0,0,0,skill_get_time2(TK_RUN, sc_data[type].val1),0);
 				calc_flag = 1;
-				break;
-			}
-
+			break;
 			case SC_AUTOBERSERK:
 				if (sc_data[SC_PROVOKE].timer != -1 && sc_data[SC_PROVOKE].val2 == 1)
 					status_change_end(bl,SC_PROVOKE,-1);

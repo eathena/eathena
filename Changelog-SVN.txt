@@ -1,6 +1,11 @@
 Date	Added
 
 2006/01/25
+	* Changed TK_RUN to a misc attack type which should enable you to halt the
+	  skill quickly after starting it. Updated SC_SPURT to be triggered when you
+	  stop running if you stopped running one sec or less after you started.
+	  Corrected the icon of SPURT to be that yellow Running Man. The previous
+	  footsteps effect was assigned to CHASEWALK. [Skotlex]
 	* fixed battle config item_auto_get setting autoloot to just 0.01% drops
 	  rather than 100%. [Skotlex]
 	* Added Sharp Shooting check to skill_attack to prevent hitting hidden

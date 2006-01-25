@@ -27,6 +27,9 @@
 =========================
 
 01/25
+	* TK_RUN's cast time is now 1 sec (it was previously 5:4:3:2:1 ms, the
+	  heck? someone refix it if it was supposed to be 5000:4000:3000:2000:1000)
+	  [Skotlex]
 	* Fixed a few item scripts (SC_ATKPOT -> SC_ATKPOTION) [Skotlex]
 	* checked mob_skill_db.txt and mob_skill_db2.txt under DOS, removed strange ASCII chars
 	 - hope it's fixed now [Komurka]
