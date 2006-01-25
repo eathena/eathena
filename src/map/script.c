@@ -10327,7 +10327,7 @@ int mapreg_setregstr(int num,const char *str)
  * 永続的マップ変数の読み込み
  *------------------------------------------
  */
-static int script_load_mapreg()
+static int script_load_mapreg(void)
 {
 #if defined(TXT_ONLY) || !defined(MAPREGSQL)
 	FILE *fp;
@@ -10465,7 +10465,7 @@ static int script_save_mapreg_strsub(DBKey key,void *data,va_list ap)
 	return 0;
 #endif
 }
-static int script_save_mapreg()
+static int script_save_mapreg(void)
 {
 #if defined(TXT_ONLY) || !defined(MAPREGSQL)
 	FILE *fp;

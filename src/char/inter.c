@@ -106,7 +106,7 @@ int inter_accreg_fromstr(const char *str, struct accreg *reg) {
 }
 
 // アカウント変数の読み込み
-int inter_accreg_init() {
+int inter_accreg_init(void) {
 	char line[8192];
 	FILE *fp;
 	int c = 0;
@@ -154,7 +154,7 @@ int inter_accreg_save_sub(DBKey key, void *data, va_list ap) {
 }
 
 // アカウント変数のセーブ
-int inter_accreg_save() {
+int inter_accreg_save(void) {
 	FILE *fp;
 	int lock;
 
@@ -244,7 +244,7 @@ int inter_log(char *fmt,...) {
 }
 
 // セーブ
-int inter_save() {
+int inter_save(void) {
 #ifdef ENABLE_SC_SAVING
 	inter_status_save();
 #endif
@@ -274,7 +274,7 @@ int inter_init(const char *file) {
 }
 
 // finalize
-void inter_final() {
+void inter_final(void) {
 	accreg_db->destroy(accreg_db, NULL);
 	wis_db->destroy(wis_db, NULL);
 
@@ -416,7 +416,7 @@ int check_ttl_wisdata_sub(DBKey key, void *data, va_list ap) {
 	return 0;
 }
 
-int check_ttl_wisdata() {
+int check_ttl_wisdata(void) {
 	unsigned long tick = gettick();
 	int i;
 

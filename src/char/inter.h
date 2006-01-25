@@ -5,8 +5,8 @@
 #define _INTER_H_
 
 int inter_init(const char *file);
-void inter_final();
-int inter_save();
+void inter_final(void);
+int inter_save(void);
 int inter_parse_frommap(int fd);
 int inter_mapif_init(int fd);
 void mapif_send_maxid(int, int);

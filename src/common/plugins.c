@@ -22,7 +22,7 @@
 //////////////////////////////////////////////
 
 typedef struct _Plugin_Event {
-	void (*func)();
+	void (*func)(void);
 	struct _Plugin_Event *next;
 } Plugin_Event;
 
@@ -70,7 +70,7 @@ Plugin_Event_List *search_plugin_func (char *name)
 	return NULL;
 }
 
-int register_plugin_event (void (*func)(), char* name)
+int register_plugin_event (void (*func)(void), char* name)
 {
 	Plugin_Event_List *evl = search_plugin_func(name);
 	if (!evl) {

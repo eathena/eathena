@@ -46,7 +46,7 @@ typedef struct _Plugin {
 /////////////////////////////////////////////
 
 int register_plugin_func (char *);
-int register_plugin_event (void (*)(), char *);
+int register_plugin_event (void (*)(void), char *);
 int plugin_event_trigger (char *);
 
 int export_symbol (void *, int);

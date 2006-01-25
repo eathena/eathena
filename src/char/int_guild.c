@@ -334,7 +334,7 @@ int inter_guildcastle_fromstr(char *str, struct guild_castle *gc) {
 }
 
 // ギルド関連データベース読み込み
-int inter_guild_readdb() {
+int inter_guild_readdb(void) {
 	int i;
 	FILE *fp;
 	char line[1024];

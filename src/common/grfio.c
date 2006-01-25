@@ -627,7 +627,7 @@ static void grfio_resnametable(char *src, char *dest)
  * Grfio : Local Resnametable Initialize
  *------------------------------------------
  */
-static void grfio_resnameinit ()
+static void grfio_resnameinit (void)
 {
 	FILE *fp;
 	char *p;
@@ -1002,7 +1002,7 @@ static int grfio_entryread(char *gfname,int gentry)
  * Grfio : Resource file check
  *------------------------------------------
  */
-static void grfio_resourcecheck()
+static void grfio_resourcecheck(void)
 {
 	int size;
 	char *buf, *ptr;

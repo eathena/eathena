@@ -1280,7 +1280,7 @@ unsigned int distance(int dx, int dy);
 
 int cleanup_sub(struct block_list *bl, va_list ap);
 
-void map_helpscreen(); // [Valaris]
+void map_helpscreen(int flag); // [Valaris]
 int map_delmap(char *mapname);
 
 struct mob_list* map_addmobtolist(unsigned short m);	// [Wizputer]

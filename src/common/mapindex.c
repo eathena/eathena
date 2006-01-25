@@ -62,7 +62,7 @@ char* mapindex_id2name(unsigned short id) {
 	return indexes[id].name;
 }
 
-void mapindex_init() {
+void mapindex_init(void) {
 	FILE *fp;
 	char line[1024];
 	char *ext;
@@ -125,6 +125,6 @@ void mapindex_init() {
 	}
 }
 
-void mapindex_final() {
+void mapindex_final(void) {
 }
 

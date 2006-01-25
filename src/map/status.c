@@ -487,7 +487,7 @@ int current_equip_item_index; //Contains inventory index of an equipped item. To
 
 //Initializes the StatusIconChangeTable variable. May seem somewhat slower than directly defining the array,
 //but it is much less prone to errors. [Skotlex]
-void initStatusIconChangeTable() {
+void initStatusIconChangeTable(void) {
 	int i;
 	for (i = 0; i < SC_MAX; i++)
 		StatusIconChangeTable[i] = SI_BLANK;

@@ -30,7 +30,7 @@ struct StringBuf {
 	unsigned int max_;
 };
 
-struct StringBuf * StringBuf_Malloc();
+struct StringBuf * StringBuf_Malloc(void);
 void StringBuf_Init(struct StringBuf *);
 int StringBuf_Printf(struct StringBuf *,const char *,...);
 int StringBuf_Append(struct StringBuf *,const struct StringBuf *);

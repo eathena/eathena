@@ -58,14 +58,14 @@ int set_var(struct map_session_data *sd, char *name, void *val);
 int conv_num(struct script_state *st,struct script_data *data);
 char* conv_str(struct script_state *st,struct script_data *data);
 
-struct dbt* script_get_label_db();
-struct dbt* script_get_userfunc_db();
+struct dbt* script_get_label_db(void);
+struct dbt* script_get_userfunc_db(void);
 
 int script_config_read(char *cfgName);
 void script_free_stack(struct script_stack*); 
-int do_init_script();
-int do_final_script();
-int script_reload();
+int do_init_script(void);
+int do_final_script(void);
+int script_reload(void);
 
 extern char mapreg_txt[];
 

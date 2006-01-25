@@ -1446,7 +1446,7 @@ int npc_unload (struct npc_data *nd)
  * 読み込むnpcファイルのクリア
  *------------------------------------------
  */
-void npc_clearsrcfile ()
+void npc_clearsrcfile (void)
 {
 	struct npc_src_list *p = npc_src_first, *p2;
 

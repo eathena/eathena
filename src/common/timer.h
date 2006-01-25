@@ -54,7 +54,7 @@ char* search_timer_func_list(int (*)(int,unsigned int,int,int));
 
 unsigned long get_uptime(void);
 
-void timer_init();
-void timer_final();
+void timer_init(void);
+void timer_final(void);
 
 #endif	// _TIMER_H_

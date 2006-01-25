@@ -333,7 +333,7 @@ int itemdb_isequip3(int nameid)
  * ランダムアイテム出現データの読み込み
  *------------------------------------------
  */
-static int itemdb_read_randomitem()
+static int itemdb_read_randomitem(void)
 {
 	FILE *fp;
 	char line[1024];

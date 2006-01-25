@@ -2,13 +2,12 @@
  *  Copyright (c) Athena Dev Teams - Licensed under GNU GPL                  *
  *  For more information, see LICENCE in the main folder                     *
  *                                                                           *
- *  This file is separated in six sections:                                  *
- *  (1) private typedefs, enums, structures and defines                      *
- *  (2) private variables                                                    *
- *  (3) private functions                                                    *
- *  (4) protected functions used internally                                  *
- *  (5) protected functions used in the interface of the database            *
- *  (6) public functions                                                     *
+ *  This file is separated in five sections:                                 *
+ *  (1) Private typedefs, enums, structures, defines and gblobal variables   *
+ *  (2) Private functions                                                    *
+ *  (3) Protected functions used internally                                  *
+ *  (4) Protected functions used in the interface of the database            *
+ *  (5) Public functions                                                     *
  *                                                                           *
  *  The databases are structured as a hashtable of RED-BLACK trees.          *
  *                                                                           *
@@ -74,16 +73,18 @@
 #include "../common/utils.h"
 #include "../common/malloc.h"
 #include "../common/showmsg.h"
+#include "../common/ers.h"
 
 /*****************************************************************************\
- *  (1) Private typedefs, enums, structures and defines of database system.  *
+ *  (1) Private typedefs, enums, structures, defines and global variables of *
+ *  the database system.                                                     *
  *  DB_ENABLE_STATS - Define to enable database statistics.                  *
  *  HASH_SIZE       - Define with the size of the hashtable.                 *
  *  DBNColor        - Enumeration of colors of the nodes.                    *
  *  DBNode          - Structure of a node in RED-BLACK trees.                *
  *  struct db_free  - Structure that holds a deleted node to be freed.       *
  *  Database        - Struture of the database.                              *
- *  DBStats         - Structure of the database statistics variable.         *
+ *  stats           - Statistics about the database system.                  *
 \*****************************************************************************/
 
 /**
@@ -151,6 +152,7 @@ struct db_free {
  * @param free_count Number of deleted nodes in free_list
  * @param free_max Current maximum capacity of free_list
  * @param free_lock Lock for freeing the nodes
+ * @param nodes Manager of reusable tree nodes
  * @param cmp Comparator of the database
  * @param hash Hasher of the database
  * @param release Releaser of the database
@@ -184,6 +186,7 @@ typedef struct db {
 	unsigned int free_max;
 	unsigned int free_lock;
 	// Other
+	ERInterface nodes;
 	DBComparator cmp;
 	DBHasher hash;
 	DBReleaser release;
@@ -195,20 +198,6 @@ typedef struct db {
 	unsigned global_lock : 1;
 } *Database;
 
-//Remove these defines since they override the local functions of this file.
-#ifdef db_get 
-#	undef db_get
-#endif
-#ifdef db_put
-#	undef db_put
-#endif
-#ifdef db_remove
-#	undef db_remove
-#endif
-#ifdef db_ensure
-#	undef db_ensure
-#endif
-
 #ifdef DB_ENABLE_STATS
 /**
  * Structure with what is counted when the database estatistics are enabled.
@@ -216,11 +205,10 @@ typedef struct db {
  * @see #DB_ENABLE_STATS
  * @see #stats
  */
-typedef struct db_stats {
-	// Counters about database nodes
-	unsigned int dbn_alloc;
-	unsigned int dbn_use;
-	unsigned int dbn_reuse;
+static struct {
+	// Node alloc/free
+	unsigned int db_node_alloc;
+	unsigned int db_node_free;
 	// Database creating/destruction counters
 	unsigned int db_int_alloc;
 	unsigned int db_uint_alloc;
@@ -231,8 +219,6 @@ typedef struct db_stats {
 	unsigned int db_string_destroy;
 	unsigned int db_istring_destroy;
 	// Function usage counters
-	unsigned int db_malloc_dbn;
-	unsigned int db_free_dbn;
 	unsigned int db_rotate_left;
 	unsigned int db_rotate_right;
 	unsigned int db_rebalance;
@@ -283,92 +269,18 @@ typedef struct db_stats {
 	unsigned int db_str2key;
 	unsigned int db_init;
 	unsigned int db_final;
-} *DBStats;
+} stats = {
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0
+};
 #endif /* DB_ENABLE_STATS */
 
-/**
- * Number of nodes in each block.
- * @private
- * @see #dbn_root
- * @see #db_malloc_dbn(void)
- */
-#define ROOT_SIZE 4096
-
 /*****************************************************************************\
- *  (2) Section with private variables used by the database system.          *
- *  stats         - Statistics about the database system.                    *
- *  dbn_free      - Linked list of free nodes.                               *
- *  dbn_root      - Array with blocks of nodes.                              *
- *  dbn_root_rest - Number of new nodes remaining in the last block.         *
- *  dbn_root_num  - Number of blocks in the dbn_root array.                  *
- *  dbn_root_max  - Current capacity of the dbn_root array.                  *
-\*****************************************************************************/
-
-#ifdef DB_ENABLE_STATS
-/**
- * Counters that the database uses if DB_ENABLE_STATS is defined.
- * @private
- * @static
- * @see #DBStats
- * @see #DB_ENABLE_STATS
- */
-static struct db_stats stats;
-#endif /* DB_ENABLE_STATS */
-
-/**
- * Linked list of free nodes.
- * The nodes are linked throw the {@link DBNode#parent} field.
- * @private
- * @static
- * @see DBNode#parent
- * @see #db_malloc_dbn(void)
- * @see #db_free_dbn(DBNode)
- */
-static DBNode dbn_free = NULL;
-
-/**
- * Root array of blocks of database nodes.
- * @private
- * @static
- * @see #ROOT_SIZE
- * @see #dbn_root_rest
- * @see #dbn_root_num
- * @see #dbn_root_max
- * @see #db_malloc_dbn(void)
- */
-static DBNode *dbn_root = NULL;
-
-/**
- * Number of unused nodes in the last allocated block.
- * @private
- * @static
- * @see #dbn_root
- * @see #db_malloc_dbn(void)
- */
-static unsigned int dbn_root_rest = 0;
-
-/**
- * Number of blocks in dbn_root.
- * @private
- * @static
- * @see #dbn_root
- * @see #db_malloc_dbn(void)
- */
-static unsigned int dbn_root_num = 0;
-
-/**
- * Current maximum capacity of dbn_root.
- * @private
- * @static
- * @see #dbn_root
- * @see #db_malloc_dbn(void)
- */
-static unsigned int dbn_root_max = 0;
-
-/*****************************************************************************\
- *  (3) Section of private functions used by the database system.            *
- *  db_malloc_dbn      - Allocate a node.                                    *
- *  db_free_dbn        - Free a node.                                        *
+ *  (2) Section of private functions used by the database system.            *
  *  db_rotate_left     - Rotate a tree node to the left.                     *
  *  db_rotate_right    - Rotate a tree node to the right.                    *
  *  db_rebalance       - Rebalance the tree.                                 *
@@ -383,78 +295,6 @@ static unsigned int dbn_root_max = 0;
  *         If it was the last lock, frees the nodes in free_list.            *
  *         NOTE: Keeps the database trees balanced.                          *
 \*****************************************************************************/
-
-/**
- * Returns a free node or new unused node for a database.
- * Exits if it can't allocate.
- * @return The new node
- * @private
- * @see #ROOT_SIZE
- * @see #dbn_free
- * @see #dbn_root
- * @see #dbn_root_rest
- * @see #dbn_root_num
- * @see #dbn_root_max
- * @see #db_free_dbn(DBNode)
- */
-static DBNode db_malloc_dbn(void)
-{
-	DBNode node;
-
-#ifdef DB_ENABLE_STATS
-	if (stats.db_malloc_dbn != (unsigned int)~0) stats.db_malloc_dbn++;
-#endif /* DB_ENABLE_STATS */
-	if (dbn_free) { // Reuse a free node
-		node = dbn_free;
-		dbn_free = dbn_free->parent;
-#ifdef DB_ENABLE_STATS
-		stats.dbn_reuse++;
-#endif /* DB_ENABLE_STATS */
-		return node;
-	}
-
-	if (dbn_root_rest == 0) { // No more new unused nodes in the last block, allocate a new block
-		if (dbn_root_num == dbn_root_max) { // No more space, expand dbn_root
-			dbn_root_max = (dbn_root_max<<2) +3; // = dbn_root_max*4 +3
-			if (dbn_root_max <= dbn_root_num) {
-				if (dbn_root_num == (unsigned int)~0) {
-					ShowFatalError("db_malloc_dbn: dbn_root overflow, increase ROOT_SIZE\n");
-					exit(EXIT_FAILURE);
-				}
-				dbn_root_max = (unsigned int)~0;
-			}
-			RECREATE(dbn_root, DBNode, dbn_root_max);
-		}
-		CREATE(dbn_root[dbn_root_num], struct dbn, ROOT_SIZE);
-#ifdef DB_ENABLE_STATS
-		stats.dbn_alloc += ROOT_SIZE;
-#endif /* DB_ENABLE_STATS */
-		dbn_root_rest = ROOT_SIZE;
-		dbn_root_num++;
-	}
-#ifdef DB_ENABLE_STATS
-	stats.dbn_use++;
-#endif /* DB_ENABLE_STATS */
-	return &(dbn_root[dbn_root_num -1][--dbn_root_rest]);
-}
-
-/**
- * Add a node to the linked list of free nodes.
- * Uses the {@link DBNode#parent} field to link the nodes.
- * @param node Free node
- * @private
- * @see DBNode#parent
- * @see #dbn_free
- * @see #db_malloc_dbn(void)
- */
-static void db_free_dbn(DBNode node)
-{
-#ifdef DB_ENABLE_STATS
-	if (stats.db_free_dbn != (unsigned int)~0) stats.db_free_dbn++;
-#endif /* DB_ENABLE_STATS */
-	node->parent = dbn_free;
-	dbn_free = node;
-}
 
 /**
  * Rotate a node to the left.
@@ -957,13 +797,16 @@ static void db_free_unlock(Database db)
 	for (i = 0; i < db->free_count ; i++) {
 		db_rebalance_erase(db->free_list[i].node, db->free_list[i].root);
 		db_dup_key_free(db, db->free_list[i].node->key);
-		db_free_dbn(db->free_list[i].node);
+#ifdef DB_ENABLE_STATS
+		if (stats.db_node_free != (unsigned int)~0) stats.db_node_free++;
+#endif /* DB_ENABLE_STATS */
+		ers_free(db->nodes, db->free_list[i].node);
 	}
 	db->free_count = 0;
 }
 
 /*****************************************************************************\
- *  (4) Section of protected functions used internally.                      *
+ *  (3) Section of protected functions used internally.                      *
  *  NOTE: the protected functions used in the database interface are in the  *
  *           next section.                                                   *
  *  db_int_cmp         - Default comparator for DB_INT databases.            *
@@ -1251,29 +1094,31 @@ static void db_release_both(DBKey key, void *data, DBRelease which)
 }
 
 /*****************************************************************************\
- *  (5) Section with protected functions used in the interface of the        *
+ *  (4) Section with protected functions used in the interface of the        *
  *  database.                                                                *
- *  db_get      - Get the data identified by the key.                        *
- *  db_vgetall  - Get the data of the matched entries.                       *
- *  db_getall   - Get the data of the matched entries.                       *
- *  db_vensure  - Get the data identified by the key, creating if necessary. *
- *  db_ensure   - Get the data identified by the key, creating if necessary. *
- *  db_put      - Put data identified by the key in the database.            *
- *  db_remove   - Remove an entry from the database.                         *
- *  db_vforeach - Apply a function to every entry in the database.           *
- *  db_foreach  - Apply a function to every entry in the database.           *
- *  db_vclear   - Remove all entries from the database.                      *
- *  db_clear    - Remove all entries from the database.                      *
- *  db_vdestroy - Destroy the database, freeing all the used memory.         *
- *  db_destroy  - Destroy the database, freeing all the used memory.         *
- *  db_size     - Return the size of the database.                           *
- *  db_type     - Return the type of the database.                           *
- *  db_options  - Return the options of the database.                        *
+ *  db_obj_get      - Get the data identified by the key.                    *
+ *  db_obj_vgetall  - Get the data of the matched entries.                   *
+ *  db_obj_getall   - Get the data of the matched entries.                   *
+ *  db_obj_vensure  - Get the data identified by the key, creating if it     *
+ *           doesn't exist yet.                                              *
+ *  db_obj_ensure   - Get the data identified by the key, creating if it     *
+ *           doesn't exist yet.                                              *
+ *  db_obj_put      - Put data identified by the key in the database.        *
+ *  db_obj_remove   - Remove an entry from the database.                     *
+ *  db_obj_vforeach - Apply a function to every entry in the database.       *
+ *  db_obj_foreach  - Apply a function to every entry in the database.       *
+ *  db_obj_vclear   - Remove all entries from the database.                  *
+ *  db_obj_clear    - Remove all entries from the database.                  *
+ *  db_obj_vdestroy - Destroy the database, freeing all the used memory.     *
+ *  db_obj_destroy  - Destroy the database, freeing all the used memory.     *
+ *  db_obj_size     - Return the size of the database.                       *
+ *  db_obj_type     - Return the type of the database.                       *
+ *  db_obj_options  - Return the options of the database.                    *
 \*****************************************************************************/
 
 /**
  * Get the data of the entry identifid by the key.
- * @param dbi Interface of the database
+ * @param self Interface of the database
  * @param key Key that identifies the entry
  * @return Data of the entry or NULL if not found
  * @protected
@@ -1281,9 +1126,9 @@ static void db_release_both(DBKey key, void *data, DBRelease which)
  * @see common\db.h#DBInterface
  * @see common\db.h\DBInterface#get(DBInterface,DBKey)
  */
-static void *db_get(DBInterface dbi, DBKey key)
+static void *db_obj_get(DBInterface self, DBKey key)
 {
-	Database db = (Database)dbi;
+	Database db = (Database)self;
 	DBNode node;
 	int c;
 	void *data = NULL;
@@ -1321,7 +1166,7 @@ static void *db_get(DBInterface dbi, DBKey key)
  * Returns the number of entries that matched.
  * NOTE: if the value returned is greater than <code>max</code>, only the 
  * first <code>max</code> entries found are put into the buffer.
- * @param dbi Interface of the database
+ * @param self Interface of the database
  * @param buf Buffer to put the data of the matched entries
  * @param max Maximum number of data entries to be put into buf
  * @param match Function that matches the database entries
@@ -1332,9 +1177,9 @@ static void *db_get(DBInterface dbi, DBKey key)
  * @see common\db.h#DBMatcher(DBKey key, void *data, va_list args)
  * @see common\db.h\DBInterface#vgetall(DBInterface,void **,unsigned int,DBMatch,va_list)
  */
-static unsigned int db_vgetall(DBInterface dbi, void **buf, unsigned int max, DBMatcher match, va_list args)
+static unsigned int db_obj_vgetall(DBInterface self, void **buf, unsigned int max, DBMatcher match, va_list args)
 {
-	Database db = (Database)dbi;
+	Database db = (Database)self;
 	unsigned int i;
 	DBNode node;
 	DBNode parent;
@@ -1387,7 +1232,7 @@ static unsigned int db_vgetall(DBInterface dbi, void **buf, unsigned int max, DB
  * Returns the number of entries that matched.
  * NOTE: if the value returned is greater than <code>max</code>, only the 
  * first <code>max</code> entries found are put into the buffer.
- * @param dbi Interface of the database
+ * @param self Interface of the database
  * @param buf Buffer to put the data of the matched entries
  * @param max Maximum number of data entries to be put into buf
  * @param match Function that matches the database entries
@@ -1399,7 +1244,7 @@ static unsigned int db_vgetall(DBInterface dbi, void **buf, unsigned int max, DB
  * @see common\db.h\DBInterface#vgetall(DBInterface,void **,unsigned int,DBMatch,va_list)
  * @see common\db.h\DBInterface#getall(DBInterface,void **,unsigned int,DBMatch,...)
  */
-static unsigned int db_getall(DBInterface dbi, void **buf, unsigned int max, DBMatcher match, ...)
+static unsigned int db_obj_getall(DBInterface self, void **buf, unsigned int max, DBMatcher match, ...)
 {
 	va_list args;
 	unsigned int ret;
@@ -1407,10 +1252,10 @@ static unsigned int db_getall(DBInterface dbi, void **buf, unsigned int max, DBM
 #ifdef DB_ENABLE_STATS
 	if (stats.db_getall != (unsigned int)~0) stats.db_getall++;
 #endif /* DB_ENABLE_STATS */
-	if (dbi == NULL) return 0; // nullpo candidate
+	if (self == NULL) return 0; // nullpo candidate
 
 	va_start(args, match);
-	ret = dbi->vgetall(dbi, buf, max, match, args);
+	ret = self->vgetall(self, buf, max, match, args);
 	va_end(args);
 	return ret;
 }
@@ -1419,7 +1264,7 @@ static unsigned int db_getall(DBInterface dbi, void **buf, unsigned int max, DBM
  * Get the data of the entry identified by the key.
  * If the entry does not exist, an entry is added with the data returned by 
  * <code>create</code>.
- * @param dbi Interface of the database
+ * @param self Interface of the database
  * @param key Key that identifies the entry
  * @param create Function used to create the data if the entry doesn't exist
  * @param args Extra arguments for create
@@ -1430,9 +1275,9 @@ static unsigned int db_getall(DBInterface dbi, void **buf, unsigned int max, DBM
  * @see common\db.h#DBInterface
  * @see common\db.h\DBInterface#vensure(DBInterface,DBKey,DBCreateData,va_list)
  */
-static void *db_vensure(DBInterface dbi, DBKey key, DBCreateData create, va_list args)
+static void *db_obj_vensure(DBInterface self, DBKey key, DBCreateData create, va_list args)
 {
-	Database db = (Database)dbi;
+	Database db = (Database)self;
 	DBNode node;
 	DBNode parent = NULL;
 	unsigned int hash;
@@ -1474,7 +1319,10 @@ static void *db_vensure(DBInterface dbi, DBKey key, DBCreateData create, va_list
 					db->alloc_file, db->alloc_line);
 				return NULL;
 		}
-		node = db_malloc_dbn();
+#ifdef DB_ENABLE_STATS
+		if (stats.db_node_alloc != (unsigned int)~0) stats.db_node_alloc++;
+#endif /* DB_ENABLE_STATS */
+		node = ers_alloc(db->nodes, struct dbn);
 		node->left = NULL;
 		node->right = NULL;
 		node->deleted = 0;
@@ -1515,7 +1363,7 @@ static void *db_vensure(DBInterface dbi, DBKey key, DBCreateData create, va_list
  * Get the data of the entry identified by the key.
  * If the entry does not exist, an entry is added with the data returned by 
  * <code>create</code>.
- * @param dbi Interface of the database
+ * @param self Interface of the database
  * @param key Key that identifies the entry
  * @param create Function used to create the data if the entry doesn't exist
  * @param ... Extra arguments for create
@@ -1527,7 +1375,7 @@ static void *db_vensure(DBInterface dbi, DBKey key, DBCreateData create, va_list
  * @see common\db.h\DBInterface#vensure(DBInterface,DBKey,DBCreateData,va_list)
  * @see common\db.h\DBInterface#ensure(DBInterface,DBKey,DBCreateData,...)
  */
-static void *db_ensure(DBInterface dbi, DBKey key, DBCreateData create, ...)
+static void *db_obj_ensure(DBInterface self, DBKey key, DBCreateData create, ...)
 {
 	va_list args;
 	void *ret;
@@ -1535,10 +1383,10 @@ static void *db_ensure(DBInterface dbi, DBKey key, DBCreateData create, ...)
 #ifdef DB_ENABLE_STATS
 	if (stats.db_ensure != (unsigned int)~0) stats.db_ensure++;
 #endif /* DB_ENABLE_STATS */
-	if (dbi == NULL) return 0; // nullpo candidate
+	if (self == NULL) return 0; // nullpo candidate
 
 	va_start(args, create);
-	ret = dbi->vensure(dbi, key, create, args);
+	ret = self->vensure(self, key, create, args);
 	va_end(args);
 	return ret;
 }
@@ -1547,7 +1395,7 @@ static void *db_ensure(DBInterface dbi, DBKey key, DBCreateData create, ...)
  * Put the data identified by the key in the database.
  * Returns the previous data if the entry exists or NULL.
  * NOTE: Uses the new key, the old one is released.
- * @param dbi Interface of the database
+ * @param self Interface of the database
  * @param key Key that identifies the data
  * @param data Data to be put in the database
  * @return The previous data if the entry exists or NULL
@@ -1557,9 +1405,9 @@ static void *db_ensure(DBInterface dbi, DBKey key, DBCreateData create, ...)
  * @see #db_malloc_dbn(void)
  * @see common\db.h\DBInterface#put(DBInterface,DBKey,void *)
  */
-static void *db_put(DBInterface dbi, DBKey key, void *data)
+static void *db_obj_put(DBInterface self, DBKey key, void *data)
 {
-	Database db = (Database)dbi;
+	Database db = (Database)self;
 	DBNode node;
 	DBNode parent = NULL;
 	int c = 0;
@@ -1614,7 +1462,10 @@ static void *db_put(DBInterface dbi, DBKey key, void *data)
 	}
 	// allocate a new node if necessary
 	if (node == NULL) {
-		node = db_malloc_dbn();
+#ifdef DB_ENABLE_STATS
+		if (stats.db_node_alloc != (unsigned int)~0) stats.db_node_alloc++;
+#endif /* DB_ENABLE_STATS */
+		node = ers_alloc(db->nodes, struct dbn);
 		node->left = NULL;
 		node->right = NULL;
 		node->deleted = 0;
@@ -1653,7 +1504,7 @@ static void *db_put(DBInterface dbi, DBKey key, void *data)
  * Remove an entry from the database.
  * Returns the data of the entry.
  * NOTE: The key (of the database) is released in {@link #db_free_add(Database,DBNode,DBNode *)}.
- * @param dbi Interface of the database
+ * @param self Interface of the database
  * @param key Key that identifies the entry
  * @return The data of the entry or NULL if not found
  * @protected
@@ -1662,9 +1513,9 @@ static void *db_put(DBInterface dbi, DBKey key, void *data)
  * @see #db_free_add(Database,DBNode,DBNode *)
  * @see common\db.h\DBInterface#remove(DBInterface,DBKey)
  */
-static void *db_remove(DBInterface dbi, DBKey key)
+static void *db_obj_remove(DBInterface self, DBKey key)
 {
-	Database db = (Database)dbi;
+	Database db = (Database)self;
 	void *data = NULL;
 	DBNode node;
 	unsigned int hash;
@@ -1709,7 +1560,7 @@ static void *db_remove(DBInterface dbi, DBKey key)
 /**
  * Apply <code>func</code> to every entry in the database.
  * Returns the sum of values returned by func.
- * @param dbi Interface of the database
+ * @param self Interface of the database
  * @param func Function to be applyed
  * @param args Extra arguments for func
  * @return Sum of the values returned by func
@@ -1718,9 +1569,9 @@ static void *db_remove(DBInterface dbi, DBKey key)
  * @see common\db.h#DBApply(DBKey,void *,va_list)
  * @see common\db.h\DBInterface#vforeach(DBInterface,DBApply,va_list)
  */
-static int db_vforeach(DBInterface dbi, DBApply func, va_list args)
+static int db_obj_vforeach(DBInterface self, DBApply func, va_list args)
 {
-	Database db = (Database)dbi;
+	Database db = (Database)self;
 	unsigned int i;
 	int sum = 0;
 	DBNode node;
@@ -1769,7 +1620,7 @@ static int db_vforeach(DBInterface dbi, DBApply func, va_list args)
  * Just calls {@link common\db.h\DBInterface#vforeach(DBInterface,DBApply,va_list)}.
  * Apply <code>func</code> to every entry in the database.
  * Returns the sum of values returned by func.
- * @param dbi Interface of the database
+ * @param self Interface of the database
  * @param func Function to be applyed
  * @param ... Extra arguments for func
  * @return Sum of the values returned by func
@@ -1779,7 +1630,7 @@ static int db_vforeach(DBInterface dbi, DBApply func, va_list args)
  * @see common\db.h\DBInterface#vforeach(DBInterface,DBApply,va_list)
  * @see common\db.h\DBInterface#foreach(DBInterface,DBApply,...)
  */
-static int db_foreach(DBInterface dbi, DBApply func, ...)
+static int db_obj_foreach(DBInterface self, DBApply func, ...)
 {
 	va_list args;
 	int ret;
@@ -1787,10 +1638,10 @@ static int db_foreach(DBInterface dbi, DBApply func, ...)
 #ifdef DB_ENABLE_STATS
 	if (stats.db_foreach != (unsigned int)~0) stats.db_foreach++;
 #endif /* DB_ENABLE_STATS */
-	if (dbi == NULL) return 0; // nullpo candidate
+	if (self == NULL) return 0; // nullpo candidate
 
 	va_start(args, func);
-	ret = dbi->vforeach(dbi, func, args);
+	ret = self->vforeach(self, func, args);
 	va_end(args);
 	return ret;
 }
@@ -1800,7 +1651,7 @@ static int db_foreach(DBInterface dbi, DBApply func, ...)
  * Before deleting an entry, func is applyed to it.
  * Releases the key and the data.
  * Returns the sum of values returned by func, if it exists.
- * @param dbi Interface of the database
+ * @param self Interface of the database
  * @param func Function to be applyed to every entry before deleting
  * @param args Extra arguments for func
  * @return Sum of values returned by func
@@ -1809,9 +1660,9 @@ static int db_foreach(DBInterface dbi, DBApply func, ...)
  * @see common\db.h#DBInterface
  * @see common\db.h\DBInterface#vclear(DBInterface,DBApply,va_list)
  */
-static int db_vclear(DBInterface dbi, DBApply func, va_list args)
+static int db_obj_vclear(DBInterface self, DBApply func, va_list args)
 {
-	Database db = (Database)dbi;
+	Database db = (Database)self;
 	int sum = 0;
 	unsigned int i;
 	DBNode node;
@@ -1845,7 +1696,10 @@ static int db_vclear(DBInterface dbi, DBApply func, va_list args)
 				db->release(node->key, node->data, DB_RELEASE_BOTH);
 				node->deleted = 1;
 			}
-			db_free_dbn(node);
+#ifdef DB_ENABLE_STATS
+			if (stats.db_node_free != (unsigned int)~0) stats.db_node_free++;
+#endif /* DB_ENABLE_STATS */
+			ers_free(db->nodes, node);
 			if (parent) {
 				if (parent->left == node)
 					parent->left = NULL;
@@ -1870,7 +1724,7 @@ static int db_vclear(DBInterface dbi, DBApply func, va_list args)
  * Returns the sum of values returned by func, if it exists.
  * NOTE: This locks the database globally. Any attempt to insert or remove 
  * a database entry will give an error and be aborted (except for clearing).
- * @param dbi Interface of the database
+ * @param self Interface of the database
  * @param func Function to be applyed to every entry before deleting
  * @param ... Extra arguments for func
  * @return Sum of values returned by func
@@ -1880,7 +1734,7 @@ static int db_vclear(DBInterface dbi, DBApply func, va_list args)
  * @see common\db.h\DBInterface#vclear(DBInterface,DBApply,va_list)
  * @see common\db.h\DBInterface#clear(DBInterface,DBApply,...)
  */
-static int db_clear(DBInterface dbi, DBApply func, ...)
+static int db_obj_clear(DBInterface self, DBApply func, ...)
 {
 	va_list args;
 	int ret;
@@ -1888,10 +1742,10 @@ static int db_clear(DBInterface dbi, DBApply func, ...)
 #ifdef DB_ENABLE_STATS
 	if (stats.db_clear != (unsigned int)~0) stats.db_clear++;
 #endif /* DB_ENABLE_STATS */
-	if (dbi == NULL) return 0; // nullpo candidate
+	if (self == NULL) return 0; // nullpo candidate
 
 	va_start(args, func);
-	ret = dbi->vclear(dbi, func, args);
+	ret = self->vclear(self, func, args);
 	va_end(args);
 	return ret;
 }
@@ -1902,7 +1756,7 @@ static int db_clear(DBInterface dbi, DBApply func, ...)
  * Returns the sum of values returned by func, if it exists.
  * NOTE: This locks the database globally. Any attempt to insert or remove 
  * a database entry will give an error and be aborted (except for clearing).
- * @param dbi Interface of the database
+ * @param self Interface of the database
  * @param func Function to be applyed to every entry before deleting
  * @param args Extra arguments for func
  * @return Sum of values returned by func
@@ -1911,9 +1765,9 @@ static int db_clear(DBInterface dbi, DBApply func, ...)
  * @see common\db.h#DBInterface
  * @see common\db.h\DBInterface#vdestroy(DBInterface,DBApply,va_list)
  */
-static int db_vdestroy(DBInterface dbi, DBApply func, va_list args)
+static int db_obj_vdestroy(DBInterface self, DBApply func, va_list args)
 {
-	Database db = (Database)dbi;
+	Database db = (Database)self;
 	int sum;
 
 #ifdef DB_ENABLE_STATS
@@ -1949,10 +1803,11 @@ static int db_vdestroy(DBInterface dbi, DBApply func, va_list args)
 #endif /* DB_ENABLE_STATS */
 	db_free_lock(db);
 	db->global_lock = 1;
-	sum = db->dbi.vclear(&db->dbi, func, args);
+	sum = self->vclear(self, func, args);
 	aFree(db->free_list);
 	db->free_list = NULL;
 	db->free_max = 0;
+	ers_destroy(db->nodes);
 	db_free_unlock(db);
 	aFree(db);
 	return sum;
@@ -1966,7 +1821,7 @@ static int db_vdestroy(DBInterface dbi, DBApply func, va_list args)
  * Returns the sum of values returned by func, if it exists.
  * NOTE: This locks the database globally. Any attempt to insert or remove 
  * a database entry will give an error and be aborted.
- * @param dbi Interface of the database
+ * @param self Interface of the database
  * @param func Function to be applyed to every entry before deleting
  * @param ... Extra arguments for func
  * @return Sum of values returned by func
@@ -1976,7 +1831,7 @@ static int db_vdestroy(DBInterface dbi, DBApply func, va_list args)
  * @see common\db.h\DBInterface#vdestroy(DBInterface,DBApply,va_list)
  * @see common\db.h\DBInterface#destroy(DBInterface,DBApply,...)
  */
-static int db_destroy(DBInterface dbi, DBApply func, ...)
+static int db_obj_destroy(DBInterface self, DBApply func, ...)
 {
 	va_list args;
 	int ret;
@@ -1984,26 +1839,26 @@ static int db_destroy(DBInterface dbi, DBApply func, ...)
 #ifdef DB_ENABLE_STATS
 	if (stats.db_destroy != (unsigned int)~0) stats.db_destroy++;
 #endif /* DB_ENABLE_STATS */
-	if (dbi == NULL) return 0; // nullpo candidate
+	if (self == NULL) return 0; // nullpo candidate
 
 	va_start(args, func);
-	ret = dbi->vdestroy(dbi, func, args);
+	ret = self->vdestroy(self, func, args);
 	va_end(args);
 	return ret;
 }
 
 /**
  * Return the size of the database (number of items in the database).
- * @param dbi Interface of the database
+ * @param self Interface of the database
  * @return Size of the database
  * @protected
  * @see common\db.h#DBInterface
  * @see Database#item_count
  * @see common\db.h\DBInterface#size(DBInterface)
  */
-static unsigned int db_size(DBInterface dbi)
+static unsigned int db_obj_size(DBInterface self)
 {
-	Database db = (Database)dbi;
+	Database db = (Database)self;
 	unsigned int item_count;
 
 #ifdef DB_ENABLE_STATS
@@ -2020,7 +1875,7 @@ static unsigned int db_size(DBInterface dbi)
 
 /**
  * Return the type of database.
- * @param dbi Interface of the database
+ * @param self Interface of the database
  * @return Type of the database
  * @protected
  * @see common\db.h#DBType
@@ -2028,9 +1883,9 @@ static unsigned int db_size(DBInterface dbi)
  * @see Database#type
  * @see common\db.h\DBInterface#type(DBInterface)
  */
-static DBType db_type(DBInterface dbi)
+static DBType db_obj_type(DBInterface self)
 {
-	Database db = (Database)dbi;
+	Database db = (Database)self;
 	DBType type;
 
 #ifdef DB_ENABLE_STATS
@@ -2047,7 +1902,7 @@ static DBType db_type(DBInterface dbi)
 
 /**
  * Return the options of the database.
- * @param dbi Interface of the database
+ * @param self Interface of the database
  * @return Options of the database
  * @protected
  * @see common\db.h#DBOptions
@@ -2055,9 +1910,9 @@ static DBType db_type(DBInterface dbi)
  * @see Database#options
  * @see common\db.h\DBInterface#options(DBInterface)
  */
-static DBOptions db_options(DBInterface dbi)
+static DBOptions db_obj_options(DBInterface self)
 {
-	Database db = (Database)dbi;
+	Database db = (Database)self;
 	DBOptions options;
 
 #ifdef DB_ENABLE_STATS
@@ -2073,7 +1928,7 @@ static DBOptions db_options(DBInterface dbi)
 }
 
 /*****************************************************************************\
- *  (6) Section with public functions.                                       *
+ *  (5) Section with public functions.                                       *
  *  db_fix_options     - Apply database type restrictions to the options.    *
  *  db_default_cmp     - Get the default comparator for a type of database.  *
  *  db_default_hash    - Get the default hasher for a type of database.      *
@@ -2285,22 +2140,22 @@ DBInterface db_alloc(const char *file, int line, DBType type, DBOptions options,
 
 	options = db_fix_options(type, options);
 	/* Interface of the database */
-	db->dbi.get      = db_get;
-	db->dbi.getall   = db_getall;
-	db->dbi.vgetall  = db_vgetall;
-	db->dbi.ensure   = db_ensure;
-	db->dbi.vensure  = db_vensure;
-	db->dbi.put      = db_put;
-	db->dbi.remove   = db_remove;
-	db->dbi.foreach  = db_foreach;
-	db->dbi.vforeach = db_vforeach;
-	db->dbi.clear    = db_clear;
-	db->dbi.vclear   = db_vclear;
-	db->dbi.destroy  = db_destroy;
-	db->dbi.vdestroy = db_vdestroy;
-	db->dbi.size     = db_size;
-	db->dbi.type     = db_type;
-	db->dbi.options  = db_options;
+	db->dbi.get      = db_obj_get;
+	db->dbi.getall   = db_obj_getall;
+	db->dbi.vgetall  = db_obj_vgetall;
+	db->dbi.ensure   = db_obj_ensure;
+	db->dbi.vensure  = db_obj_vensure;
+	db->dbi.put      = db_obj_put;
+	db->dbi.remove   = db_obj_remove;
+	db->dbi.foreach  = db_obj_foreach;
+	db->dbi.vforeach = db_obj_vforeach;
+	db->dbi.clear    = db_obj_clear;
+	db->dbi.vclear   = db_obj_vclear;
+	db->dbi.destroy  = db_obj_destroy;
+	db->dbi.vdestroy = db_obj_vdestroy;
+	db->dbi.size     = db_obj_size;
+	db->dbi.type     = db_obj_type;
+	db->dbi.options  = db_obj_options;
 	/* File and line of allocation */
 	db->alloc_file = file;
 	db->alloc_line = line;
@@ -2310,6 +2165,7 @@ DBInterface db_alloc(const char *file, int line, DBType type, DBOptions options,
 	db->free_max = 0;
 	db->free_lock = 0;
 	/* Other */
+	db->nodes = ers_new((uint32)sizeof(struct dbn));
 	db->cmp = db_default_cmp(type);
 	db->hash = db_default_hash(type);
 	db->release = db_default_release(type, options);
@@ -2401,7 +2257,6 @@ DBKey db_str2key(unsigned char *key)
 void db_init(void)
 {
 #ifdef DB_ENABLE_STATS
-	memset(&stats, '\0', sizeof(struct db_stats));
 	if (stats.db_init != (unsigned int)~0) stats.db_init++;
 #endif /* DB_ENABLE_STATS */
 }
@@ -2416,25 +2271,12 @@ void db_init(void)
  */
 void db_final(void)
 {
-	unsigned int i;
-	unsigned int j;
-	unsigned int count = 0;
-
 #ifdef DB_ENABLE_STATS
-	if (stats.db_final != (unsigned int)~0) stats.db_final++;
-#endif /* DB_ENABLE_STATS */
-	for (i = 0; i < dbn_root_num; i++) {
-		for (j = (i == dbn_root_num -1? dbn_root_rest: 0); j < ROOT_SIZE; j++)
-			if (!(dbn_root[i][j].deleted))
-				count++;
-		aFree(dbn_root[i]);
-	}
-	if (count)
-		ShowWarning("db_final: %d nodes where not properly deleted\n", count);
-#ifdef DB_ENABLE_STATS
+	if (stats.db_final != (unsigned int)~0)
+		stats.db_final++;
 	ShowInfo(CL_WHITE"Database nodes"CL_RESET":\n"
-			"allocated %u, used %u, reuse counter %u\n",
-			stats.dbn_alloc, stats.dbn_use, stats.dbn_reuse);
+			"allocated %u, freed %u\n",
+			stats.db_node_alloc, stats.db_node_free);
 	ShowInfo(CL_WHITE"Database types"CL_RESET":\n"
 			"DB_INT     : allocated %10u, destroyed %10u\n"
 			"DB_UINT    : allocated %10u, destroyed %10u\n"
@@ -2445,7 +2287,6 @@ void db_final(void)
 			stats.db_string_alloc,  stats.db_string_destroy,
 			stats.db_istring_alloc, stats.db_istring_destroy);
 	ShowInfo(CL_WHITE"Database function counters"CL_RESET":\n"
-			"db_malloc_dbn      %10u, db_free_dbn        %10u,\n"
 			"db_rotate_left     %10u, db_rotate_right    %10u,\n"
 			"db_rebalance       %10u, db_rebalance_erase %10u,\n"
 			"db_is_key_null     %10u,\n"
@@ -2472,7 +2313,6 @@ void db_final(void)
 			"db_alloc           %10u, db_i2key           %10u,\n"
 			"db_ui2key          %10u, db_str2key         %10u,\n"
 			"db_init            %10u, db_final           %10u\n",
-			stats.db_malloc_dbn,      stats.db_free_dbn,
 			stats.db_rotate_left,     stats.db_rotate_right,
 			stats.db_rebalance,       stats.db_rebalance_erase,
 			stats.db_is_key_null,
@@ -2500,8 +2340,5 @@ void db_final(void)
 			stats.db_ui2key,          stats.db_str2key,
 			stats.db_init,            stats.db_final);
 #endif /* DB_ENABLE_STATS */
-	aFree(dbn_root);
-	dbn_root_rest = dbn_root_num = dbn_root_max = 0;
-	return;
 }
 

@@ -123,12 +123,12 @@ void signals_init (void)
 #ifdef SVNVERSION
 	#define xstringify(x) stringify(x)
 	#define stringify(x) #x
-	const char *get_svn_revision()
+	const char *get_svn_revision(void)
 	{
 		return xstringify(SVNVERSION);
 	}
 #else
-const char* get_svn_revision()
+const char* get_svn_revision(void)
 {
 	static char version[10];
 	FILE *fp;

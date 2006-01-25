@@ -292,8 +292,8 @@ int get_atcommand_level(const AtCommandType type);
 char * msg_txt(int msg_number); // [Yor]
 char * player_title_txt(int level); // [Lupus]
 
-void do_init_atcommand();
-void do_final_atcommand();
+void do_init_atcommand(void);
+void do_final_atcommand(void);
 
 int atcommand_item(const int fd, struct map_session_data* sd,const char* command, const char* message); // [Valaris]
 int atcommand_rura(const int fd, struct map_session_data* sd,const char* command, const char* message); // [Yor]
@@ -306,7 +306,7 @@ int duel_reject(const unsigned int did, struct map_session_data* sd); // [LuzZza
 
 int atcommand_config_read(const char *cfgName);
 int msg_config_read(const char *cfgName);
-void do_final_msg();
+void do_final_msg(void);
 
 char *estr_lower(char *str);
 

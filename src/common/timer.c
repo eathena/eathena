@@ -406,12 +406,12 @@ unsigned long get_uptime (void)
 	return (unsigned long) difftime (time(NULL), start_time);
 }
 
-void timer_init()
+void timer_init(void)
 {
 	time(&start_time);
 }
 
-void timer_final()
+void timer_final(void)
 {
 	struct timer_func_list* tfl = tfl_root, *tfl2;
 

@@ -419,8 +419,8 @@ extern struct Battle_Config {
 } battle_config;
 
 extern int battle_config_read(const char *cfgName);
-extern void battle_validate_conf();
-extern void battle_set_defaults();
+extern void battle_validate_conf(void);
+extern void battle_set_defaults(void);
 extern int battle_set_value(char *, char *);
 
 #endif

@@ -888,7 +888,7 @@ int msg_config_read(const char *cfgName) {
  * Cleanup Message Data
  *------------------------------------------
  */
-void do_final_msg () {
+void do_final_msg (void) {
 	int i;
 	for (i = 0; i < MAX_MSG; i++)
 		aFree(msg_table[i]);

@@ -31,7 +31,7 @@ extern char mapindex_cfgfile[80];
 #define MAP_JAIL "sec_pri.gat"
 unsigned short mapindex_name2id(char*);
 const char* mapindex_id2name(unsigned short);
-void mapindex_init();
-void mapindex_final();
+void mapindex_init(void);
+void mapindex_final(void);
 
 #endif

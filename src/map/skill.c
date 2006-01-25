@@ -11299,7 +11299,7 @@ int skill_split_atoi(char *str,int *val)
 /*
  * ƒXƒLƒ‹ƒ†ƒjƒbƒg‚Ì”z’u?î•ñ?ì?¬
  */
-void skill_init_unit_layout()
+void skill_init_unit_layout(void)
 {
 	int i,j,size,pos = 0;
 

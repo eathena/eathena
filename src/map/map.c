@@ -2808,10 +2808,10 @@ int map_readgat (struct map_data *m)
 
 //////////////////////////////////////////////////////
 
-static int map_cache_init ();
-static int map_readafm_init ();
-static int map_readaf2_init ();
-static int map_readgat_init ();
+static int map_cache_init (void);
+static int map_readafm_init (void);
+static int map_readaf2_init (void);
+static int map_readgat_init (void);
 
 // Todo: Properly implement this system as plugins/safer code [Celest]
 enum {
@@ -2822,7 +2822,7 @@ enum {
 	MAP_MAXSOURCE
 };
 // in descending order
-int (*mapsource_init[MAP_MAXSOURCE])() = {
+int (*mapsource_init[MAP_MAXSOURCE])(void) = {
 	map_cache_init,
 	map_readafm_init,
 	map_readaf2_init,
@@ -2834,14 +2834,14 @@ int (*mapsource_read[MAP_MAXSOURCE])(struct map_data *) = {
 	map_readaf2,
 	map_readgat
 };
-void (*mapsource_final[MAP_MAXSOURCE])() = {
+void (*mapsource_final[MAP_MAXSOURCE])(void) = {
 	map_cache_close,
 	NULL,
 	NULL,
 	NULL
 };
 
-static int map_cache_init ()
+static int map_cache_init (void)
 {
 	if (map_read_flag >= READ_FROM_BITMAP && map_cache_open(map_cache_file)) {
 		ShowMessage("[cache] ");
@@ -2850,12 +2850,12 @@ static int map_cache_init ()
 
 	return 0;
 }
-static int map_readafm_init ()
+static int map_readafm_init (void)
 {
 	ShowMessage("[afm] ");
 	return 1;
 }
-static int map_readaf2_init ()
+static int map_readaf2_init (void)
 {
 	// check if AFM loading is available,
 	// otherwise disable AF2 loading
@@ -2866,7 +2866,7 @@ static int map_readaf2_init ()
 
 	return 0;
 }
-static int map_readgat_init ()
+static int map_readgat_init (void)
 {
 	ShowMessage("[gat] ");
 	return 1;

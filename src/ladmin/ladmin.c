@@ -1911,7 +1911,7 @@ int changeemail(char* param) {
 //-----------------------------------------------------
 // Sub-function: Asking of the number of online players
 //-----------------------------------------------------
-int getlogincount() {
+int getlogincount(void) {
 	if (defaultlanguage == 'F') {
 		ladmin_log("Envoi d'un requête au serveur de logins pour obtenir le nombre de joueurs en jeu." RETCODE);
 	} else {
@@ -2334,7 +2334,7 @@ int changepasswd(char* param) {
 // Sub-function: Request to login-server to reload GM configuration file
 // this function have no answer
 //----------------------------------------------------------------------
-int reloadGM() {
+int reloadGM(void) {
 	WFIFOW(login_fd,0) = 0x7955;
 	WFIFOSET(login_fd,2);
 	bytes_to_read = 0;
@@ -3006,7 +3006,7 @@ int whoaccount(char* param) {
 //--------------------------------------------------------
 // Sub-function: Asking of the version of the login-server
 //--------------------------------------------------------
-int checkloginversion() {
+int checkloginversion(void) {
 	if (defaultlanguage == 'F')
 		ladmin_log("Envoi d'un requête au serveur de logins pour obtenir sa version." RETCODE);
 	else
@@ -3024,7 +3024,7 @@ int checkloginversion() {
 // this function wait until user type a command
 // and analyse the command.
 //---------------------------------------------
-int prompt() {
+int prompt(void) {
 	int i, j;
 	char buf[1024];
 	char *p;
@@ -4170,7 +4170,7 @@ int parse_fromlogin(int fd) {
 //------------------------------------
 // Function to connect to login-server
 //------------------------------------
-int Connect_login_server() {
+int Connect_login_server(void) {
 	if (defaultlanguage == 'F') {
 		printf("Essai de connection au server de logins...\n");
 		ladmin_log("Essai de connection au server de logins..." RETCODE);

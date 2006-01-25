@@ -55,7 +55,7 @@ extern int char_fd;		// inter server‚Ìfd‚Íchar_fd‚ğg‚¤
 //-----------------------------------------------------------------
 // inter server‚Ö‚Ì‘—M
 
-int CheckForCharServer() {
+int CheckForCharServer(void) {
 	return ((char_fd <= 0) || session[char_fd] == NULL || session[char_fd]->wdata == NULL);
 }
 

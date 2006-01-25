@@ -307,7 +307,7 @@ void addGM(int account_id, int level) {
 //-------------------------------------------------------
 // Reading function of GM accounts file (and their level)
 //-------------------------------------------------------
-int read_gm_account() {
+int read_gm_account(void) {
 	char line[512];
 	FILE *fp;
 	int account_id, level;
@@ -1014,7 +1014,7 @@ int charif_sendallwos(int sfd, unsigned char *buf, unsigned int len) {
 //-----------------------------------------------------
 // Send GM accounts to all char-server
 //-----------------------------------------------------
-void send_GM_accounts() {
+void send_GM_accounts(void) {
 	unsigned int i;
 	unsigned char buf[32767];
 	int len;

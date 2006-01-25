@@ -1,6 +1,7 @@
 Date	Added
 
 2006/01/25
+	* Updated the db version with the new one by FlavioJS [Skotlex]
 	* Improved the error reporting when failing to load a mob skill due to
 	  insufficient fields. [Skotlex]
 	* Changed map_getallusers to use the db interface getall (hope it doesn't

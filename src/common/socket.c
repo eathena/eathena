@@ -262,7 +262,7 @@ void flush_fifo(int fd)
 	}
 }
 
-void flush_fifos()
+void flush_fifos(void)
 {
 	int i;
 	for(i=1;i<fd_max;i++)
