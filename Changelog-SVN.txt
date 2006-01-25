@@ -1,6 +1,10 @@
 Date	Added
 
 2006/01/25
+	* Fixed BSS Sacramenti not hitting demon type enemies. [Skotlex]
+	* Now poisoned monsters will show HP updates as their health goes down
+	  (let's see if this finally convinces people that poison works u.u)
+	  [Skotlex]
 	* Splitted up battle_athena.conf into multiple configuration files.
 	  battle_athena.conf only contains import lines now, and all the
 	  configuration options are located in conf/battle/* [Skotlex]

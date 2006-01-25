@@ -3064,9 +3064,12 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 		break;
 
 	case PR_BENEDICTIO:			/* ?ｹ??~福 */
-		if (battle_check_undead(status_get_race(bl), status_get_elem_type(bl)))
+	{	//Should attack undead and demons. [Skotlex]
+		int race = status_get_race(bl);
+		if (battle_check_undead(race, status_get_elem_type(bl)) || race == 6)
 			skill_attack(BF_MAGIC, src, src, bl, skillid, skilllv, tick, flag);
-		break;
+	}
+	break;
 
 	/* 魔法系範??U?スキル */
 	case MG_NAPALMBEAT:			/* ナパ?ムビ?ト */

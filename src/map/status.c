@@ -5489,6 +5489,8 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 				pc_heal(sd, -sc_data[type].val4, 0);
 			} else if (bl->type == BL_MOB) {
 				((struct mob_data*)bl)->hp -= sc_data[type].val4;
+				if (battle_config.show_mob_hp)
+					clif_charnameack (0, bl);
 			} else 
 				battle_heal(NULL, bl, -sc_data[type].val4, 0, 1);
 		}
