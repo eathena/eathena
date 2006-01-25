@@ -8080,13 +8080,10 @@ int pc_readdb(void)
 		exp_table[12][i]=j5;
 		exp_table[13][i]=j6;
 		i++;
-//We can't assume max_base_level is the max between all columns. [Skotlex]
-//		if(i >= battle_config.max_base_level)
-//			break;
 	}
 	if (i > battle_config.max_base_level)
 	{	//Empty Base level columns
-		for (j = battle_config.max_base_level; j < i && exp_table[0][j]>0; j++)
+		for (j = battle_config.max_base_level-1; j < i && exp_table[0][j]>0; j++)
 		{
 			exp_table[0][j]=0;
 			exp_table[1][j]=0;
@@ -8099,17 +8096,17 @@ int pc_readdb(void)
 	}
 	if (i > battle_config.max_sn_level)
 	{	//Empty SN job exp columns
-		for (j = battle_config.max_sn_level; j < i && exp_table[10][j]>0; j++)
+		for (j = battle_config.max_sn_level-1; j < i && exp_table[10][j]>0; j++)
 			exp_table[10][j]=0;
 	}
 	if (i > battle_config.max_adv_level)
 	{	//Empty Adv Jobs columns
-		for (j = battle_config.max_adv_level; j < i && exp_table[13][j]>0; j++)
+		for (j = battle_config.max_adv_level-1; j < i && exp_table[13][j]>0; j++)
 			exp_table[13][j]=0;
 	}
 	if (i > battle_config.max_job_level)
 	{	//Empty normal Job columns
-		for (j = battle_config.max_job_level; j < i &&
+		for (j = battle_config.max_job_level-1; j < i &&
 			(exp_table[8][j]>0 || exp_table[9][j]>0 || exp_table[12][j]>0); j++)
 		{
 			exp_table[8][j]=0; //1st Job

@@ -1,6 +1,8 @@
 Date	Added
 
 2006/01/25
+	* Probably fixed the max base/job battle config options actually enabling
+	  characters to reach one more level than the max specified. [Skotlex]
 	* Fixed BSS Sacramenti not hitting demon type enemies. [Skotlex]
 	* Now poisoned monsters will show HP updates as their health goes down
 	  (let's see if this finally convinces people that poison works u.u)
