@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= Sara-chan (1.0)
 //===== Current Version: =====================================
-//= 1.6
+//= 1.6a
 //===== Compatible With: =====================================
 //= Any Athena Version; RO Episode 8+
 //===== Description: =========================================
@@ -19,6 +19,7 @@
 //= 1.5a thx2 Justin84, some additions and fixes [Lupus]
 //= 1.5b re-enabled main entrance warp [Lupus] <-reverted 1.5c
 //= 1.6 Updated entrances, added Cube room warps, thanx 2 Justin84
+//= 1.6a Disabled the "Entrance" to lhz_dun01 [Poki#3]
 //============================================================
 
 lhz_dun03.gat,140,139,0	warp	lhz003	1,1,lhz_dun02.gat,150,147
@@ -31,7 +32,8 @@ lhz_dun01.gat,148,10,0	warp	lhz006a	1,1,lhz_dun02.gat,150,18
 
 //current entrance
 lhz_dun01.gat,150,290,0	warp	lhz007	1,1,lighthalzen.gat,73,54
-lighthalzen.gat,73,52,0	warp	lhz007a	1,1,lhz_dun01.gat,150,288
+//lighthalzen.gat,73,52,0	warp	lhz007a	1,1,lhz_dun01.gat,150,288
+//This should be only an Exit. This warp doesn't exist on kRO.
 
 //--------------------------Sewage Tube--------------------------
 

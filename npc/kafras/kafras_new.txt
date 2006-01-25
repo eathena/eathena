@@ -24,6 +24,7 @@
 //= 2.5 Added 2 Einbroch Kafras. [Lupus]
 //= 2.6 Added the Einbech Kafra [MasterOfMuppets]
 //= 2.7 Added the Lighthalzen Kafras [MasterOfMuppets]
+//= 2.7b Chanced the Sprite of the Einbech Kafra. [Poki#3]
 //==========================================================================
 
 // Amatsu ------------------------------------------------------------------
@@ -48,8 +49,8 @@ ayothaya.gat,212,169,5	script	Kafra	116,{
 
 // Einbech -----------------------------------------------------------------
 
-einbech.gat,181,131,5	script	Kafra	115,{
-	cutin "kafra_03",2;
+einbech.gat,181,131,5	script	Kafra	860,{
+	cutin "kafra_08",2;
 	callfunc "F_Kafra",0,4,1;
 
 	M_Save:

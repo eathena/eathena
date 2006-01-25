@@ -140,13 +140,13 @@ OnTimer130000:
 	donpcevent "#AirshipWarp-2::OnHide";
 	disablenpc "#AirshipWarp-1";
 	disablenpc "#AirshipWarp-2";
-	mapannounce "airplane.gat","The Airship is now taking off. Our next destination is Juno.",1,0x70DBDB;
+	mapannounce "airplane.gat","The Airship is now taking off. Our next destination is Yuno.",1,0x70DBDB;
 	end;
 OnTimer145000:
-	mapannounce "airplane.gat","We are heading to Juno.",1,0x70DBDB;
+	mapannounce "airplane.gat","We are heading to Yuno.",1,0x70DBDB;
 	end;
 OnTimer160000:
-	mapannounce "airplane.gat","We will arrive in Juno shortly.",1,0x70DBDB;
+	mapannounce "airplane.gat","We will arrive in Yuno shortly.",1,0x70DBDB;
 	end;
 OnTimer175000:
 	set $airplanelocation,2;
@@ -154,10 +154,10 @@ OnTimer175000:
 	enablenpc "#AirshipWarp-2";
 	donpcevent "#AirshipWarp-1::OnUnhide";
 	donpcevent "#AirshipWarp-2::OnUnhide";
-	mapannounce "airplane.gat","Welcome to Juno. Have a safe trip.",1,0x70DBDB;
+	mapannounce "airplane.gat","Welcome to Yuno. Have a safe trip.",1,0x70DBDB;
 	end;
 OnTimer185000:
-	mapannounce "airplane.gat","Currently we are in Juno. The Airship will leave shortly.",1,0x70DBDB;
+	mapannounce "airplane.gat","Currently we are in Yuno. The Airship will leave shortly.",1,0x70DBDB;
 	end;
 OnTimer195000:
 	stoptimer;

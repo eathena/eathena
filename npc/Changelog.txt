@@ -26,6 +26,18 @@ Nexon
 Date		Added
 ======
 
+01/26
+	* Fixed Juno > Yuno in Airship. [Poki#3]
+	* Fixed Shwaltzvalt > Schwarzwald in Kafras. [Poki#3]
+	* Changed sprite of the Einbech Kafra. [Poki#3]
+	* Disabled the "Entrance" to lhz_dun01. This should be only an Exit. This warp doesn't exist on kRO. [Poki#3]
+	* Added Lighthalzen Refiners (Custom names again ^^;) Official location and sprite. [Poki#3]
+	* Fixed some shops based on kRO shots. Lighthalzen NPC's, Prontera Food Seller, Payon shops. [Poki#3]
+	* Added some Hugel NPC's. Cords and Sprites are 100% Correct, but the names are not. [Poki#3]
+	  Plus no one knows what the NPCs are talking right now :/
+	* Added Hugel Shops. [Poki#3]
+	* Removed the Custom Warper to Odin. Hugel has a more official one. [Poki#3]
+
 01/24
 	* Fixed Yuno Field 10. Mob amount sugested by Playtester, made by Poki#3 [Komurka]
 	- Moved some NPCs to Einbroch and Hugel - more info can be found here http://eathena.ws/board/index.php?showtopic=67631,

@@ -32,7 +32,8 @@
 //=       exploit ruining the safe refine loop. [Skotlex]
 //= 1.5b - Fixed Spelling mistakes. [Nexon] 
 //= 1.6	- Replaced all breaks for ends as per the new script engine [Skotlex]
-//= 1.7 - Added Einbroch Refiners (Custom names ^^; ) and a duplicated BS Shop. [Poki#3]
+//= 1.7 - Added Einbroch Refiners (Custom names ^^;) and a duplicated BS Shop. [Poki#3]
+//= 1.8 - Added Lighthalzen Refiners (Custom names again ^^;) [Poki#3]
 //============================================================
 
 
@@ -188,6 +189,11 @@ yuno_in01.gat,164,26,6	script	Disturb	88,{
 }
 ein_in01.gat,24,87,6	script	Katamo	826,{
 	set @name$,"Katamo";
+	callfunc "refinemain";
+	end;
+}
+lhz_in02.gat,282,20,7	script	Marc	869,{
+	set @name$,"Marc";
 	callfunc "refinemain";
 	end;
 }
@@ -571,6 +577,11 @@ ein_in01.gat,15,87,7	script	Gorly	86,{
 	callfunc "phramain";
 	end;
 }
+lhz_in02.gat,278,24,3	script	Kato	86,{
+	set @name$,"Kato";
+	callfunc "phramain";
+	end;
+}
 
 //============================================================
 //= Material Salesmen Functions
@@ -659,6 +670,11 @@ ein_in01.gat,18,82,6	script	Dati	84,{
 	callfunc "orimain";
 	end;
 }
+lhz_in02.gat,281,24,5	script	Gadamari	84,{
+	set @name$,"Gadamari";
+	callfunc "orimain";
+	end;
+}
 
 //============================================================
 //= Ori/Elu Functions
@@ -729,15 +745,18 @@ prt_in.gat,62,54,2	script	Grendal	84,{
 	callfunc "repairmain";
 	end;
 }
-
 //Temp Spot, Not Sure Where To place
 payon.gat,149,182,2	script	Repairman	88,{
 	set @name$,"Repairman";
 	callfunc "repairmain";
 	end;
 }
-
 morocc_in.gat,71,40,2	script	Repairman	99,{
+	set @name$,"Repairman";
+	callfunc "repairmain";
+	end;
+}
+lhz_in02.gat,284,14,3	script	Repairman	86,{
 	set @name$,"Repairman";
 	callfunc "repairmain";
 	end;

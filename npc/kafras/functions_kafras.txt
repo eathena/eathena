@@ -103,7 +103,7 @@ function	script	F_Kafra	{
 		end;
 	M_NoTeleport:
 		mes "[Kafra]";
-		mes "Because of the ^FF0000Limited Transport Agreement^000000, the Kafra Corporation cannot provide Teleport Services in the Shwaltzvalt Republic.";
+		mes "Because of the ^FF0000Limited Transport Agreement^000000, the Kafra Corporation cannot provide Teleport Services in the Schwarzwald Republic.";
 		next;
 		mes "[Kafra]";
 		mes "We ask that you please";
