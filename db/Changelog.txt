@@ -26,6 +26,10 @@
 		* * * From where this info is? ... Mine: On your death you'll loose this ring and get 50% HP [Komurka]
 =========================
 
+01/25
+	* checked mob_skill_db.txt and mob_skill_db2.txt under DOS, removed strange ASCII chars
+	 - hope it's fixed now [Komurka]
+
 01/24
 	* removed unneeded comma in produce_db.txt (someday I'm gonna write parser for eA scripts ~~) [Komurka]
 	* card fix (>77 changed to >=77) thanks to Poki#3 [Komurka]
