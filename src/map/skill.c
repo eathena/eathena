@@ -1664,7 +1664,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		return 0;
 	
 	//Note that splash attacks often only check versus the targetted mob, those around the splash area normally don't get checked for being hidden/cloaked/etc. [Skotlex]
-	if ((skill_get_nk(skillid) == NK_SPLASH_DAMAGE || skillid == ASC_METEORASSAULT)
+	if ((skill_get_nk(skillid) == NK_SPLASH_DAMAGE || skillid == ASC_METEORASSAULT || skillid == SN_SHARPSHOOTING)
 		&& !status_check_skilluse(dsrc, bl, skillid, 1))
 		return 0;
 

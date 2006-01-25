@@ -716,7 +716,7 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 
 
 	if (battle_config.item_auto_get)
-		sd->state.autoloot = 1;
+		sd->state.autoloot = 10000;
 
 	if (battle_config.disp_experience)
 		sd->state.showexp = 1;

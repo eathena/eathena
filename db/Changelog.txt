@@ -27,6 +27,7 @@
 =========================
 
 01/25
+	* Fixed a few item scripts (SC_ATKPOT -> SC_ATKPOTION) [Skotlex]
 	* checked mob_skill_db.txt and mob_skill_db2.txt under DOS, removed strange ASCII chars
 	 - hope it's fixed now [Komurka]
 

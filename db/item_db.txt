@@ -170,9 +170,9 @@
 680,Magic_Carnation,Magic Carnation,2,,10,1000,,,,,127918079,7,3,,,,,,{ itemheal 25,0; }
 681,Sweet_Memory_of_Marriage,Sweet Memory of Marriage,2,50000,,10,,,,,127918079,7,3,,,,,,{}
 // ATK/MATK Potions
-682,Realgar_Wine,Distilled Fighting Spirit,0,,10,100,,,,,127918079,7,2,,,,,,{ sc_start SC_ATKPOT,60000,30; }
-683,Herb_of_Incantation,Herb of Incantation,0,,10,50,,,,,127918079,7,2,,,,,,{ sc_start SC_MATKPOT,60000,30; }
-684,Durian,Durian,0,,10,300,,,,,127918079,7,2,,,,,,{ sc_start SC_ATKPOT,60000,10; sc_start SC_MATKPOT,60000,10; }
+682,Realgar_Wine,Distilled Fighting Spirit,0,,10,100,,,,,127918079,7,2,,,,,,{ sc_start SC_ATKPOTION,60000,30; }
+683,Herb_of_Incantation,Herb of Incantation,0,,10,50,,,,,127918079,7,2,,,,,,{ sc_start SC_MATKPOTION,60000,30; }
+684,Durian,Durian,0,,10,300,,,,,127918079,7,2,,,,,,{ sc_start SC_ATKPOTION,60000,10; sc_start SC_MATKPOTION,60000,10; }
 685,Ramadan,Ramadan,0,20,,300,,,,,127918079,7,2,,,,,,{}
 // Scrolls
 686,Earth_Spike_3,Earth Spike Level 3,11,650,,10,,,,,127918079,7,2,,,,,,{ itemskill 90,3,"Earth Spike Level 3"; }

@@ -1,5 +1,10 @@
 Date	Added
 
+2006/01/25
+	* fixed battle config item_auto_get setting autoloot to just 0.01% drops
+	  rather than 100%. [Skotlex]
+	* Added Sharp Shooting check to skill_attack to prevent hitting hidden
+	  characters. [Skotlex]
 2006/01/24
 	* Some cleaning up of battle_calc_damage, Assumptio should now also reduce
 	  damage of all types of attack, not just weapon-based ones. [Skotlex]
