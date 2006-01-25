@@ -5412,7 +5412,7 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 			if (battle_config.pk_mode && ssd->status.manner >= 0 && battle_config.manner_system) {
 				ssd->status.manner -= 5;
 				if(ssd->status.manner < 0)
-					status_change_start(src,SC_NOCHAT,0,0,0,0,0,0);
+					status_change_start(src,SC_NOCHAT,0,0,0,0,1,0);
 
 			// PK/Karma system code (not enabled yet) [celest]
 			// originally from Kade Online, so i don't know if any of these is correct ^^;
