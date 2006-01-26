@@ -7663,7 +7663,7 @@ static int pc_spirit_heal_hp(struct map_session_data *sd)
 		bonus_hp = sd->nsshealhp;
 		if(sd->doridori_counter && pc_checkskill(sd,TK_HPTIME) > 0) {
 		  	//TK_HPTIME doridori provided bonus [Dralnu]
-			bonus_hp += 30;
+			bonus_hp += sd->nsshealhp;
 			if (!sd->nsshealsp) //If there's sp regen, this gets clear in the next function. [Skotlex]
 				sd->doridori_counter = 0;
 		}
@@ -7709,7 +7709,7 @@ static int pc_spirit_heal_sp(struct map_session_data *sd)
 		bonus_sp = sd->nsshealsp;
 		if(sd->doridori_counter && pc_checkskill(sd,TK_SPTIME) > 0) {
 			//TK_SPTIME doridori provided bonus [Dralnu]
-			bonus_sp += 3;
+			bonus_sp += sd->nsshealsp;
 			sd->doridori_counter = 0;
 		}
 		while(sd->inchealspiritsptick >= interval) {

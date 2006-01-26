@@ -1,6 +1,11 @@
 Date	Added
 
 2006/01/26
+	* Rare drop announces will now be done based on the mvp_sd (character who
+	  did most damage) instead of sd (character that delivered final blow)
+	  [Skotlex]
+	* Fixed TK Doridori bonuses to double your regen instead of giving 30Hp/3Sp
+	  [Skotlex]
 	* Fixed Sense displaying def2/mdef2 when it should display def+def2 / mdef
 	  + mdef2. [Skotlex]
 	* Fixed Super Novices losing their skill tree (showing up just basic skill)

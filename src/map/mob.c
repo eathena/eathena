@@ -2585,11 +2585,10 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 				struct item_data *i_data;
 				char message[128];
 				i_data = itemdb_exists(ditem->item_data.nameid);
-				sprintf (message, msg_txt(541), (sd!=NULL && md!=NULL && sd->status.name != NULL)?sd->status.name :"GM", md->db->jname, i_data->jname, (float)drop_rate/100);
+				sprintf (message, msg_txt(541), (mvp_sd?mvp_sd->status.name:"???"), md->db->jname, i_data->jname, (float)drop_rate/100);
 				//MSG: "'%s' won %s's %s (chance: %%%0.02f)"
 				intif_GMmessage(message,strlen(message)+1,0);
 			}
-
 			// Announce first, or else ditem will be freed. [Lance]
 			mob_item_drop(md, tick+base_drop_delay+i, ditem, 0, drop_rate);
 		}
@@ -2694,7 +2693,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 				struct item_data *i_data;
 				char message[128];
 				i_data = itemdb_exists(item.nameid);
-				sprintf (message, msg_txt(541), (mvp_sd!=NULL && md!=NULL && mvp_sd->status.name != NULL)?mvp_sd->status.name :"GM", md->db->jname, i_data->jname, (float)drop_rate/100);
+				sprintf (message, msg_txt(541), mvp_sd?mvp_sd->status.name :"???", md->db->jname, i_data->jname, (float)drop_rate/100);
 				//MSG: "'%s' won %s's %s (chance: %%%0.02f)"
 				intif_GMmessage(message,strlen(message)+1,0);
 			}
