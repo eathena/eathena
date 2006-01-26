@@ -2863,25 +2863,18 @@
 1657,Rawrel@MG_SAFETYWALL,attack,12,5,1000,1000,5000,no,self,myhpltmaxrate,30,,,,,,
 1657,Rawrel@AL_TELEPORT,idle,26,1,10000,0,0,yes,self,rudeattacked,,,,,,,
 
-1658,G_YGNIZEM@NPC_FIREATTACK,attack,186,3,500,500,5000,no,target,always,0,,,,,,
-1658,G_YGNIZEM@NPC_STUNATTACK,attack,179,5,50,1500,5000,no,target,always,0,,,,,,6
-1658,G_YGNIZEM@NPC_CALLSLAVE,attack,352,1,2000,0,10000,yes,target,always,0,,,,,,
-1658,G_YGNIZEM@NPC_CALLSLAVE,idle,352,1,2000,0,10000,yes,self,always,0,,,,,,
-1658,G_YGNIZEM@NPC_SUMMONSLAVE,idle,196,5,10000,2000,120000,no,self,slavele,1,1653,1654,1655,1656,1657,0
-1658,G_YGNIZEM@AL_TELEPORT,idle,26,1,10000,0,0,yes,self,rudeattacked,,,,,,,
-1658,G_YGNIZEM@NPC_CHANGEWIND,attack,165,1,10000,2000,600000,no,self,myhpltmaxrate,5,,,,,,
-1658,G_YGNIZEM@NPC_CHANGEWATER,attack,162,1,10000,2000,600000,no,self,myhpltmaxrate,20,,,,,,
-1658,G_YGNIZEM@KN_TWOHANDQUICKEN,attack,60,10,10000,0,120000,yes,self,myhpltmaxrate,30,,,,,,
-1658,G_YGNIZEM@NPC_SHIELDBRAKE,attack,346,5,500,0,5000,yes,target,always,0,,,,,,
+1658,G_Ygnizem@NPC_FIREATTACK,attack,186,3,500,500,5000,no,target,always,0,,,,,,
+1658,G_Ygnizem@NPC_STUNATTACK,attack,179,5,50,1500,5000,no,target,always,0,,,,,,6
+1658,G_Ygnizem@NPC_CALLSLAVE,attack,352,1,2000,0,10000,yes,target,always,0,,,,,,
+1658,G_Ygnizem@NPC_CALLSLAVE,idle,352,1,2000,0,10000,yes,self,always,0,,,,,,
+1658,G_Ygnizem@NPC_SUMMONSLAVE,idle,196,5,10000,2000,120000,no,self,slavele,1,1659,1660,1661,1662,1663,0
+1658,G_Ygnizem@AL_TELEPORT,idle,26,1,10000,0,0,yes,self,rudeattacked,,,,,,,
+1658,G_Ygnizem@NPC_CHANGEWIND,attack,165,1,10000,2000,600000,no,self,myhpltmaxrate,5,,,,,,
+1658,G_Ygnizem@NPC_CHANGEWATER,attack,162,1,10000,2000,600000,no,self,myhpltmaxrate,20,,,,,,
+1658,G_Ygnizem@KN_TWOHANDQUICKEN,attack,60,10,10000,0,120000,yes,self,myhpltmaxrate,30,,,,,,
+1658,G_Ygnizem@NPC_SHIELDBRAKE,attack,346,5,500,0,5000,yes,target,always,0,,,,,,
 
-//not sure if these summon like the advanced classes(commented out for now)
-//1653,Whikebain@NPC_SUMMONSLAVE,attack,196,5,10000,2000,10000,no,self,slavele,0,1658,1661,1663,1660,1662,0
-//1652,Ygnizem@NPC_SUMMONSLAVE,attack,196,5,10000,2000,10000,no,self,slavele,0,1659,1661,1663,1660,1662,0
-//1655,Erend@NPC_SUMMONSLAVE,attack,196,5,10000,2000,10000,no,self,slavele,0,1659,1658,1663,1660,1662,0
-//1657,Rawrel@NPC_SUMMONSLAVE,attack,196,5,10000,2000,10000,no,self,slavele,0,1659,1658,1661,1660,1662,0
-//1654,Armaia@NPC_SUMMONSLAVE,attack,196,5,10000,2000,10000,no,self,slavele,0,1659,1658,1661,1663,1662,0
-//1656,Kavac@NPC_SUMMONSLAVE,attack,196,5,10000,2000,10000,no,self,slavele,0,1659,1658,1661,1663,1660,0
-//first class slaves?
+// 1'st Class Slaves
 1659,Whikebain@TF_DOUBLE,attack,48,10,500,0,10000,no,target,always,0,,,,,,
 1659,Whikebain@TF_POISON,attack,52,10,500,0,10000,no,target,always,0,,,,,,
 

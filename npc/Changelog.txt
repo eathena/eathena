@@ -27,6 +27,7 @@ Date		Added
 ======
 
 01/26
+	* Fixed Bio Lab Spawns a bit and made them more moby. [Poki#3]
 	* 1.2 fixed hugel10 warp [Lupus]
 	* A small fix to the louyang shouting quest [MasterOfMuppets]
 	* Some Hugel warps fixes by Dr.Evil [Poki#3]
