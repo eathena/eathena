@@ -13,7 +13,9 @@
 //= Plus no one knows what the NPCs are talking right now :/ [Poki#3]
 //============================================================
 
-hugel.gat,91,152,4	script	BB	776,{end;}
+//Should be moved later on to Bulletin Boards.txt
+hugel.gat,91,152,4	script	Bulletin Board	837,{end;}
+
 hugel.gat,102,161,3	script	Young Sailor	100,{end;}
 hugel.gat,90,151,3	script	Yoko	893,{end;}
 hu_in01.gat,111,386,4	script	Jino	86,{end;}

@@ -27,6 +27,8 @@ Date		Added
 ======
 
 01/26
+	* Applyed Blackthunder's fixes to rpsroulette.txt [Poki#3]
+	* Rewrote the Warpa. Still have to do the Level select thingy. [Poki#3]
 	* Fixed Juno > Yuno in Airship. [Poki#3]
 	* Fixed Shwaltzvalt > Schwarzwald in Kafras. [Poki#3]
 	* Changed sprite of the Einbech Kafra. [Poki#3]
