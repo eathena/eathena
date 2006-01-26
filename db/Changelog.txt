@@ -27,6 +27,8 @@
 =========================
 
 01/26
+	* Cleared up some Custom Mobs and their skills. [Poki#3]
+	* Changed Fire Poring's ID to 1239 and moved him to mob_db2. [Poki#3]
 	* Changed some Mob Names, based on kRO. [Poki#3]
 	* Ygnizem (Boss) now summons the G_ mobs. This should be done to all MvP's [Poki#3]
 	* Changed Kavac's Range to 9 and Katrinn and Magaleta's Range to 1. [Poki#3]
