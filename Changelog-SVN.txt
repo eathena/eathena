@@ -1,5 +1,10 @@
 Date	Added
 
+2006/01/26
+	* Hopefully fixed Benedicto checking on the west/east tiles instead of the
+	  left/right tiles of the caster. [Skotlex]
+	* Fixed mobs being unable to move on tick loopback (which happens every ~51
+	  days) [Skotlex]
 2006/01/25
 	* Reverted last change, when you log again it still shows the fake
 	  icon. [Foruken]

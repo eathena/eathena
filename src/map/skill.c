@@ -7782,6 +7782,7 @@ static int skill_check_condition_char_sub (struct block_list *bl, va_list ap)
 		case PR_BENEDICTIO:				/* ?¹??~•Ÿ */
 		{
 			int dir = map_calc_dir(&sd->bl,tsd->bl.x,tsd->bl.y);
+			dir = (status_get_dir(&sd->bl) + dir)%8; //This adjusts dir to account for the direction the sd is facing.
 			if ((tsd->class_&MAPID_BASEMASK) == MAPID_ACOLYTE && (dir == 2 || dir == 6) //Must be standing to the left/right of Priest.
 				&& sd->status.sp >= 10)
 				p_sd[(*c)++]=tsd->bl.id;

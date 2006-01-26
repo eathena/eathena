@@ -1908,7 +1908,7 @@ int map_mapname2ipport(unsigned short name,int *ip,int *port) {
 }
 
 /*==========================================
- *
+ * Checks if both dirs point in the same direction.
  *------------------------------------------
  */
 int map_check_dir(int s_dir,int t_dir) {
@@ -1952,7 +1952,8 @@ int map_check_dir(int s_dir,int t_dir) {
 }
 
 /*==========================================
- * ”Þ‰ä‚Ì•ûŒü‚ðŒvŽZ
+ * Returns the direction of the given cell in absolute relation to the char
+ * (regardless of where the char is facing)
  *------------------------------------------
  */
 int map_calc_dir( struct block_list *src,int x,int y) {

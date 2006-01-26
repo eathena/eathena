@@ -463,7 +463,7 @@ int mob_can_move(struct mob_data *md)
 {
 	nullpo_retr(0, md);
 
-	if(md->canmove_tick > gettick() || md->skilltimer != -1 || (md->opt1 > 0 && md->opt1 != OPT1_STONEWAIT) || md->option&OPTION_HIDE)
+	if(DIFF_TICK(md->canmove_tick, gettick()) > 0 || md->skilltimer != -1 || (md->opt1 > 0 && md->opt1 != OPT1_STONEWAIT) || md->option&OPTION_HIDE)
 		return 0;
 	// アンクル中で動けないとか
 	if( md->sc_data[SC_ANKLE].timer != -1 || //アンクルスネア
@@ -2066,7 +2066,7 @@ static void mob_item_drop(struct mob_data *md, unsigned int tick, struct delay_i
 
 	if (ditem->first_sd && ditem->first_sd->state.autoloot &&
 		(drop_rate <= ditem->first_sd->state.autoloot ||
-		(drop_rate >= 10000 && ditem->first_sd->state.autoloot >= 10000)) //Fetch 100% drops
+		ditem->first_sd->state.autoloot >= 10000) //Fetch 100% drops
 		&& pc_additem(ditem->first_sd,&ditem->item_data,ditem->item_data.amount) == 0)
 	{	//Autolooted.
 		if(log_config.pick > 0)

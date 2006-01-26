@@ -1092,8 +1092,7 @@ int pc_calc_skilltree_normalize_job(struct map_session_data *sd) {
 	skill_point = pc_calc_skillpoint(sd);
 	if(skill_point < 9)
 		c = MAPID_NOVICE;
-	else if ((sd->class_&JOBL_2) //Second class.
-		&& sd->status.skill_point >= (int)sd->status.job_level
+	else if (sd->status.skill_point >= (int)sd->status.job_level
 		&& ((sd->change_level > 0 && skill_point < sd->change_level+8) || skill_point < 58)) {
 		//Send it to first class.
 		c &= MAPID_BASEMASK;
