@@ -1,6 +1,8 @@
 Date	Added
 
 2006/01/26
+	* Fixed Sense displaying def2/mdef2 when it should display def+def2 / mdef
+	  + mdef2. [Skotlex]
 	* Fixed Super Novices losing their skill tree (showing up just basic skill)
 	  under certain circumstances. [Skotlex]
 	* Cleanup and optimization of the movement routines. [Skotlex]
