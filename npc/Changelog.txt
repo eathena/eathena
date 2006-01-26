@@ -27,6 +27,8 @@ Date		Added
 ======
 
 01/26
+	* Some Hugel warps fixes by Dr.Evil [Poki#3]
+	* Fixed cord of the Sailor in Hugel, thanks to Er_Maqui for pointing it out. [Poki#3]
 	* Applyed Blackthunder's fixes to rpsroulette.txt [Poki#3]
 	* Rewrote the Warpa. Still have to do the Level select thingy. [Poki#3]
 	* Fixed Juno > Yuno in Airship. [Poki#3]

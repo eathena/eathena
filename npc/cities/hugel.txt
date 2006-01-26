@@ -39,7 +39,7 @@ hugel.gat,169,112,5	script	Sani	892,{end;}
 hu_in01.gat,381,304,5	script	Soldier	105,{end;}
 
 
-hugel.gat,29,109,1	script	Sailor Hako	709,{
+hugel.gat,209,109,1	script	Sailor Hako	709,{
 	mes "[Sailor Hako]";
 	mes "Hello stranger. I'm the only person that offers a unique trip to the cursed Odin Islands.";
 	mes "One of the strongest monsters known to man live there, so no wonder. Ha, ha, ha~!";
