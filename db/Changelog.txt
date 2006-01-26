@@ -26,6 +26,9 @@
 		* * * From where this info is? ... Mine: On your death you'll loose this ring and get 50% HP [Komurka]
 =========================
 
+01/26
+	* Changed ASC_BREAKER range from 9 to 5 cells, according to skill
+	  description available in translation project [Foruken]
 01/25
 	* TK_RUN's cast time is now 1 sec (it was previously 5:4:3:2:1 ms, the
 	  heck? someone refix it if it was supposed to be 5000:4000:3000:2000:1000)
