@@ -1147,7 +1147,6 @@ static int calc_next_walk_step(struct npc_data *nd)
  */
 static int npc_walk(struct npc_data *nd,unsigned int tick,int data)
 {
-	int moveblock;
 	int i;
 	static int dirx[8]={0,-1,-1,-1,0,1,1,1};
 	static int diry[8]={1,1,0,-1,-1,-1,0,1};
@@ -1186,18 +1185,12 @@ static int npc_walk(struct npc_data *nd,unsigned int tick,int data)
 			return 0;
 		}
 
-		moveblock = ( x/BLOCK_SIZE != (x+dx)/BLOCK_SIZE || y/BLOCK_SIZE != (y+dy)/BLOCK_SIZE);
-
 		nd->state.state=MS_WALK;
 		map_foreachinmovearea(clif_npcoutsight,nd->bl.m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,dx,dy,BL_PC,nd);
 
 		x += dx;
 		y += dy;
-
-		if(moveblock) map_delblock(&nd->bl);
-		nd->bl.x = x;
-		nd->bl.y = y;
-		if(moveblock) map_addblock(&nd->bl);
+		map_moveblock(&nd->bl, x, y, tick);
 
 		map_foreachinmovearea(clif_npcinsight,nd->bl.m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,-dx,-dy,BL_PC,nd);
 		nd->state.state=MS_IDLE;

@@ -3680,7 +3680,7 @@ static const struct battle_data_short {
 	{ "bone_drop",		                   &battle_config.bone_drop				},
 	{ "buyer_name",                        &battle_config.buyer_name		},
 	{ "skill_wall_check",                  &battle_config.skill_wall_check     },
-
+	{ "cell_stack_limit",                  &battle_config.cell_stack_limit     },
 // eAthena additions
 	{ "item_logarithmic_drops",            &battle_config.logarithmic_drops	},
 	{ "item_drop_common_min",              &battle_config.item_drop_common_min	},	// Added by TyrNemesis^
@@ -4059,6 +4059,7 @@ void battle_set_defaults() {
 	battle_config.gm_cant_drop_max_lv = 0;
 	battle_config.disp_hpmeter = 60;
 	battle_config.skill_wall_check = 0;
+	battle_config.cell_stack_limit = 1;
 	battle_config.bone_drop = 0;
 	battle_config.buyer_name = 1;
 
@@ -4356,6 +4357,17 @@ void battle_validate_conf() {
 
 	if (battle_config.mobs_level_up_exp_rate < 1) // [Valaris]
 		battle_config.mobs_level_up_exp_rate = 1;
+
+#ifdef CELL_NOSTACK
+	if (battle_config.cell_stack_limit < 1)
+	  	battle_config.cell_stack_limit = 1;
+	else 
+	if (battle_config.cell_stack_limit > 255)
+	  	battle_config.cell_stack_limit = 255;
+#else 
+	if (battle_config.cell_stack_limit != 1)
+		ShowWarning("Battle setting 'cell_stack_limit' takes no effect as this server was compiled without Cell Stack Limit support.\n");
+#endif
 }
 
 /*==========================================

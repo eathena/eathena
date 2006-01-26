@@ -9,6 +9,11 @@
 #include "../common/mapindex.h"
 #include "../common/db.h"
 
+//Uncomment to enable the Cell Stack Limit mod. (EXPERIMENTAL)
+//It's only config is the battle_config cell_stack_limit.
+//Only chars affected are those defined in BL_CHAR (mobs and players currently)
+//#define CELL_NOSTACK
+
 #define MAX_PC_CLASS 4050
 #define PC_CLASS_BASE 0
 #define PC_CLASS_BASE2 (PC_CLASS_BASE + 4001)
@@ -16,7 +21,6 @@
 #define MAX_NPC_PER_MAP 512
 #define BLOCK_SIZE 8
 #define AREA_SIZE battle_config.area_size
-#define LOCAL_REG_NUM 16
 #define LIFETIME_FLOORITEM 60
 #define DAMAGELOG_SIZE 30
 #define LOOTITEM_SIZE 10
@@ -964,6 +968,9 @@ struct map_data {
 	unsigned short index; //Index is the map index used by the mapindex* functions.
 	unsigned char *gat;	// NULL‚È‚ç‰º‚Ìmap_data_other_server‚Æ‚µ‚Äˆµ‚¤
 	unsigned char *cell; //Contains temporary cell data that is set/unset on tiles.
+#ifdef CELL_NOSTACK
+	unsigned char *cell_bl; //Holds amount of bls in any given cell.
+#endif
 	char *alias; // [MouseJstr]
 	struct block_list **block;
 	struct block_list **block_mob;
@@ -1200,8 +1207,11 @@ int map_freeblock(struct block_list *bl);
 int map_freeblock_lock(void);
 int map_freeblock_unlock(void);
 // blockŠÖ˜A
-int map_addblock(struct block_list *);
-int map_delblock(struct block_list *);
+int map_addblock_sub(struct block_list *, int);
+int map_delblock_sub(struct block_list *, int);
+#define map_addblock(bl) map_addblock_sub(bl,1)
+#define map_delblock(bl) map_delblock_sub(bl,1)
+int map_moveblock(struct block_list *, int, int, unsigned int);
 int map_foreachinarea(int (*)(struct block_list*,va_list),int,int,int,int,int,int,...);
 // -- moonsoul (added map_foreachincell)
 int map_foreachincell(int (*)(struct block_list*,va_list),int,int,int,int,...);

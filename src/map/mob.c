@@ -530,10 +530,12 @@ static int mob_walk(struct mob_data *md,unsigned int tick,int data)
 
 		x = md->bl.x;
 		y = md->bl.y;
+#ifndef CELL_NOSTACK
 		if(map_getcell(md->bl.m,x,y,CELL_CHKNOPASS)) {
 			mob_stop_walking(md,1);
 			return 0;
 		}
+#endif
 		md->dir=md->walkpath.path[md->walkpath.path_pos];
 		dx = dirx[md->dir];
 		dy = diry[md->dir];
@@ -553,18 +555,12 @@ static int mob_walk(struct mob_data *md,unsigned int tick,int data)
 		md->state.state=MS_WALK;
 		map_foreachinmovearea(clif_moboutsight,md->bl.m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,dx,dy,BL_PC,md);
 
-		x += dx;
-		y += dy;
-	
 		if ( md->min_chase > md->db->range2)
 			md->min_chase--;
-		
-		skill_unit_move(&md->bl,tick,2);
-		if(moveblock) map_delblock(&md->bl);
-		md->bl.x = x;
-		md->bl.y = y;
-		if(moveblock) map_addblock(&md->bl);
-		skill_unit_move(&md->bl,tick,3);
+	
+		x += dx;
+		y += dy;
+		map_moveblock(&md->bl, x, y, tick);	
 
 		map_foreachinmovearea(clif_mobinsight,md->bl.m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,-dx,-dy,BL_PC,md);
 		md->state.state=MS_IDLE;

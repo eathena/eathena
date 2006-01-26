@@ -373,14 +373,37 @@ int map_freeblock_timer (int tid, unsigned int tick, int id, int data)
  */
 static struct block_list bl_head;
 
+#ifdef CELL_NOSTACK
 /*==========================================
- * map[]のblock_listに追加
- * mobは?が多いので別リスト
- *
- * ?にlink?みかの確認が無い。危?かも
+ * These pair of functions update the counter of how many objects
+ * lie on a tile.
  *------------------------------------------
  */
-int map_addblock (struct block_list *bl)
+void map_addblcell(struct block_list *bl)
+{
+	if(bl->m<0 || bl->x<0 || bl->x>=map[bl->m].xs
+		|| bl->y<0 || bl->y>=map[bl->m].ys || !(bl->type&BL_CHAR))
+		return;
+	map[bl->m].cell_bl[bl->x+bl->y*map[bl->m].xs]++;
+	return;
+}
+
+void map_delblcell(struct block_list *bl)
+{
+	if(bl->m <0 || bl->x<0 || bl->x>=map[bl->m].xs
+		|| bl->y<0 || bl->y>=map[bl->m].ys || !(bl->type&BL_CHAR))
+		return;
+	map[bl->m].cell_bl[bl->x+bl->y*map[bl->m].xs]--;
+}
+#endif
+
+/*==========================================
+ * Adds a block to the map.
+ * If flag is 1, then the block was just added
+ * otherwise it is part of a transition.
+ *------------------------------------------
+ */
+int map_addblock_sub (struct block_list *bl, int flag)
 {
 	int m, x, y, pos;
 
@@ -399,7 +422,11 @@ int map_addblock (struct block_list *bl)
 		x < 0 || x >= map[m].xs ||
 		y < 0 || y >= map[m].ys)
 		return 1;
-
+	
+#ifdef CELL_NOSTACK
+	map_addblcell(bl);
+#endif
+	
 	pos = x/BLOCK_SIZE+(y/BLOCK_SIZE)*map[m].bxs;
 	if (bl->type == BL_MOB) {
 		bl->next = map[m].block_mob[pos];
@@ -413,7 +440,7 @@ int map_addblock (struct block_list *bl)
 		if (bl->next) bl->next->prev = bl;
 		map[m].block[pos] = bl;
 		map[m].block_count[pos]++;
-		if (bl->type == BL_PC)
+		if (bl->type == BL_PC && flag)
 		{
 			struct map_session_data* sd;
 			if (map[m].users++ == 0 && battle_config.dynamic_mobs)	//Skotlex
@@ -431,11 +458,12 @@ int map_addblock (struct block_list *bl)
 }
 
 /*==========================================
- * map[]のblock_listから外す
- * prevがNULLの場合listに?がってない
+ * Removes a block from the map.
+ * If flag is 1, then the block is removed for good
+ * otherwise it is part of a transition.
  *------------------------------------------
  */
-int map_delblock (struct block_list *bl)
+int map_delblock_sub (struct block_list *bl, int flag)
 {
 	int b;
 	nullpo_retr(0, bl);
@@ -450,9 +478,13 @@ int map_delblock (struct block_list *bl)
 		return 0;
 	}
 
+#ifdef CELL_NOSTACK
+	map_delblcell(bl);
+#endif
+	
 	b = bl->x/BLOCK_SIZE+(bl->y/BLOCK_SIZE)*map[bl->m].bxs;
 
-	if (bl->type == BL_PC)
+	if (bl->type == BL_PC && flag)
 		if (--map[bl->m].users == 0 && battle_config.dynamic_mobs)	//[Skotlex]
 			map_removemobs(bl->m);
 
@@ -478,6 +510,41 @@ int map_delblock (struct block_list *bl)
 	return 0;
 }
 
+/*==========================================
+ * Moves a block a x/y target position. [Skotlex]
+ * Pass flag as 1 to prevent doing skill_unit_move checks
+ * (which are executed by default on BL_CHAR types)
+ *------------------------------------------
+ */
+int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick) {
+	int x0 = bl->x, y0 = bl->y;
+	int moveblock = ( x0/BLOCK_SIZE != x1/BLOCK_SIZE || y0/BLOCK_SIZE != y1/BLOCK_SIZE);
+
+	if (!bl->prev) {
+		//Block not in map, just update coordinates, but do naught else.
+		bl->x = x1;
+		bl->y = y1;
+		return 0;	
+	}
+	//TODO: Perhaps some outs of bounds checking should be placed here?
+	if (bl->type&BL_CHAR)
+		skill_unit_move(bl,tick,2);
+
+	if (moveblock) map_delblock_sub(bl,0);
+#ifdef CELL_NOSTACK
+	else map_delblcell(bl);
+#endif
+	bl->x = x1;
+	bl->y = y1;
+	if (moveblock) map_addblock_sub(bl,0);
+#ifdef CELL_NOSTACK
+	else map_addblcell(bl);
+#endif
+	if (bl->type&BL_CHAR)
+		skill_unit_move(bl,tick,3);
+	return 0;
+}
+	
 /*==========================================
  * 周?のPC人?を?える (unused)
  *------------------------------------------
@@ -2029,6 +2096,10 @@ int map_getcell(int m,int x,int y,cell_t cellchk)
 int map_getcellp(struct map_data* m,int x,int y,cell_t cellchk)
 {
 	int type, type2;
+#ifdef CELL_NOSTACK
+	int type3;
+#endif
+
 	nullpo_ret(m);
 
 	if(x<0 || x>=m->xs-1 || y<0 || y>=m->ys-1)
@@ -2038,12 +2109,21 @@ int map_getcellp(struct map_data* m,int x,int y,cell_t cellchk)
 	}
 	type = m->gat[x+y*m->xs];
 	type2 = m->cell[x+y*m->xs];
+#ifdef CELL_NOSTACK
+	type3 = m->cell_bl[x+y*m->xs];
+#endif
 
 	switch(cellchk)
 	{
 		case CELL_CHKPASS:
+#ifdef CELL_NOSTACK
+			if (type3 >= battle_config.cell_stack_limit) return 0;
+#endif
 			return (type!=1 && type!=5 && !(type2&(CELL_MOONLIT|CELL_ICEWALL)));
 		case CELL_CHKNOPASS:
+#ifdef CELL_NOSTACK
+			if (type3 >= battle_config.cell_stack_limit) return 1;
+#endif
 			return (type==1 || type==5 || type2&(CELL_MOONLIT|CELL_ICEWALL));
 		case CELL_CHKWALL:
 			return (type==1/* || type2&CELL_ICEWALL*/); //Uncomment to prevent sniping/casting through the icewall. [Skotlex]
@@ -2138,7 +2218,6 @@ void map_setcell(int m,int x,int y,int cell)
 			break;
 	}
 }
-
 static void* create_map_data_other_server(DBKey key, va_list args) {
 	struct map_data_other_server *mdos;
 	unsigned short mapindex = (unsigned short)key.ui;
@@ -2979,6 +3058,9 @@ int map_readallmaps (void)
 				}
 
 				map[i].cell = (unsigned char *)aCalloc(map[i].xs * map[i].ys, sizeof(unsigned char));
+#ifdef CELL_NOSTACK
+				map[i].cell_bl = (unsigned char *)aCalloc(map[i].xs * map[i].ys, sizeof(unsigned char));
+#endif
 
 				map[i].bxs = (map[i].xs + BLOCK_SIZE - 1) / BLOCK_SIZE;
 				map[i].bys = (map[i].ys + BLOCK_SIZE - 1) / BLOCK_SIZE;
@@ -3599,6 +3681,9 @@ void do_final(void) {
 	for (i=0; i<map_num; i++) {
 		if(map[i].gat) aFree(map[i].gat);
 		if(map[i].cell) aFree(map[i].cell);
+#ifdef CELL_NOSTACK
+		if(map[i].cell_bl) aFree(map[i].cell_bl);
+#endif
 		if(map[i].block) aFree(map[i].block);
 		if(map[i].block_mob) aFree(map[i].block_mob);
 		if(map[i].block_count) aFree(map[i].block_count);

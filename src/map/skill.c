@@ -1529,7 +1529,6 @@ int skill_blown( struct block_list *src, struct block_list *target,int count)
 	int dx=0,dy=0,nx,ny;
 	int x=target->x,y=target->y;
 	int dir,ret;
-	int moveblock;
 	struct map_session_data *sd=NULL;
 	struct mob_data *md=NULL;
 	struct pet_data *pd=NULL;
@@ -1575,9 +1574,6 @@ int skill_blown( struct block_list *src, struct block_list *target,int count)
 	ret=path_blownpos(target->m,x,y,dx,dy,count&0xffff);
 	nx=ret>>16;
 	ny=ret&0xffff;
-	//Avoid "moving" a target that is not registered in the map (otherwise a dangling pointer is caused) [Skotlex]
-	//This happens when a skill knocks back an enemy and the same hit kills it, so we are pushing around a corpse.
-	moveblock= (target->prev!=NULL) && ( x/BLOCK_SIZE != nx/BLOCK_SIZE || y/BLOCK_SIZE != ny/BLOCK_SIZE);
 	
 	battle_stopwalking(target,0); 
 
@@ -1607,13 +1603,7 @@ int skill_blown( struct block_list *src, struct block_list *target,int count)
 	if(su){
 		skill_unit_move_unit_group(su->group,target->m,dx,dy);
 	}else{
-		int tick = gettick();
-		skill_unit_move(target,tick,2);
-		if(moveblock) map_delblock(target);
-		target->x=nx;
-		target->y=ny;
-		if(moveblock) map_addblock(target);
-		skill_unit_move(target,tick,3);
+		map_moveblock(target, nx, ny, gettick());
 	}
 
 	if(sd)	/* ?–Ê?‚É“ü‚Á‚Ä‚«‚½‚Ì‚Å•\Ž¦ */
@@ -7216,7 +7206,6 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 
 	case UNT_ANKLESNARE:
 		if(sg->val2==0 && sc_data && sc_data[SC_ANKLE].timer==-1){
-			int moveblock = ( bl->x/BLOCK_SIZE != src->bl.x/BLOCK_SIZE || bl->y/BLOCK_SIZE != src->bl.y/BLOCK_SIZE);
 			int sec = skill_get_time2(sg->skill_id,sg->skill_lv) - status_get_agi(bl)*100;
 			if(status_get_mode(bl)&MD_BOSS) // Lasts 5 times less on bosses
 				sec = sec/5;
@@ -7224,13 +7213,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 				sec = 3000+30*sg->skill_lv;
 			battle_stopwalking(bl,1);
 			status_change_start(bl,SC_ANKLE,sg->skill_lv,0,0,0,sec,0);
-
-			skill_unit_move(bl,tick,2);
-			if(moveblock) map_delblock(bl);
-				bl->x = src->bl.x;
-				bl->y = src->bl.y;
-			if(moveblock) map_addblock(bl);
-			skill_unit_move(bl,tick,3);
+			map_moveblock(bl, src->bl.x, src->bl.y, tick);
 			clif_fixpos(bl);
 			//clif_01ac(&src->bl); //Removed? Check the openkore description of this packet: [Skotlex]
 			// 01AC: long ID
@@ -7412,14 +7395,8 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 
 	case UNT_SPIDERWEB:
 		if(sg->val2==0 && (!sc_data || sc_data[type].timer==-1 )){
-			int moveblock = ( bl->x/BLOCK_SIZE != src->bl.x/BLOCK_SIZE || bl->y/BLOCK_SIZE != src->bl.y/BLOCK_SIZE);
 			skill_additional_effect(ss,bl,sg->skill_id,sg->skill_lv,BF_MISC,tick);
-			skill_unit_move(bl,tick,2);
-			if(moveblock) map_delblock(bl);
-				bl->x = src->bl.x;
-				bl->y = src->bl.y;
-			if(moveblock) map_addblock(bl);
-			skill_unit_move(bl,tick,3);
+			map_moveblock(bl, src->bl.x, src->bl.y, tick);
  			clif_fixpos(bl);
 			sg->limit = DIFF_TICK(tick,sg->tick)+skill_get_time2(sg->skill_id,sg->skill_lv);
 			sg->val2=bl->id;
@@ -10704,7 +10681,7 @@ int skill_unit_move(struct block_list *bl,unsigned int tick,int flag)
 int skill_unit_move_unit_group( struct skill_unit_group *group, int m,int dx,int dy)
 {
 	int i,j;
-	int tick = gettick();
+	unsigned int tick = gettick();
 	int *m_flag;
 	struct skill_unit *unit1;
 	struct skill_unit *unit2;
@@ -10759,11 +10736,7 @@ int skill_unit_move_unit_group( struct skill_unit_group *group, int m,int dx,int
 		{
 			case 0:
 			//Cell moves independently, safely move it.
-				map_delblock(&unit1->bl);
-				unit1->bl.m = m;
-				unit1->bl.x += dx;
-				unit1->bl.y += dy;
-				map_addblock(&unit1->bl);
+				map_moveblock(&unit1->bl, unit1->bl.x+dx, unit1->bl.y+dy, tick);
 				clif_skill_setunit(unit1);
 				break;
 			case 1:
@@ -10775,11 +10748,7 @@ int skill_unit_move_unit_group( struct skill_unit_group *group, int m,int dx,int
 						continue;
 					//Move to where this cell would had moved.
 					unit2 = &group->unit[j];
-					map_delblock(&unit1->bl);
-					unit1->bl.m = m;
-					unit1->bl.x = unit2->bl.x + dx;
-					unit1->bl.y = unit2->bl.y + dy;
-					map_addblock(&unit1->bl);
+					map_moveblock(&unit1->bl, unit2->bl.x+dx, unit2->bl.y+dy, tick);
 					clif_skill_setunit(unit1);
 					j++; //Skip this cell as we have used it.
 					break;

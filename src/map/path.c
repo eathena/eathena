@@ -189,8 +189,11 @@ static int can_move(struct map_data *m,int x0,int y0,int x1,int y1,int flag)
 		return 0;
 	if(flag&0x20000) //Flag to ignore everything, for use with Taekwon's Jump skill currently. [Skotlex] 
 		return 1;
+#ifndef CELL_NOSTACK
+	//In no-stack mode, do not check current cell.
 	if(!can_place(m,x0,y0,flag))
 		return 0;
+#endif
 	if(!can_place(m,x1,y1,flag))
 		return 0;
 	if(x0==x1 || y0==y1)

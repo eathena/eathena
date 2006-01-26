@@ -1,6 +1,13 @@
 Date	Added
 
 2006/01/26
+	* Fixed Super Novices losing their skill tree (showing up just basic skill)
+	  under certain circumstances. [Skotlex]
+	* Cleanup and optimization of the movement routines. [Skotlex]
+	* Added experimental feature "Cell Stack Limit". When enabled (see
+	  src/map/map.h) it should limit the amount of characters that can be placed
+	  on the same cell. That's assuming it works (experimental and untested as of
+	  yet) [Skotlex]
 	* Hopefully fixed Benedicto checking on the west/east tiles instead of the
 	  left/right tiles of the caster. [Skotlex]
 	* Fixed mobs being unable to move on tick loopback (which happens every ~51

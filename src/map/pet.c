@@ -368,7 +368,6 @@ static int petskill_castend2(struct pet_data *pd, struct block_list *target, sho
  */
 static int pet_walk(struct pet_data *pd,unsigned int tick,int data)
 {
-	int moveblock;
 	int i;
 	int x,y,dx,dy;
 
@@ -392,11 +391,7 @@ static int pet_walk(struct pet_data *pd,unsigned int tick,int data)
 
 		x = pd->bl.x;
 		y = pd->bl.y;
-/*		ctype = map_getcell(pd->bl.m,x,y);
-		if(ctype == 1 || ctype == 5) {
-			pet_stop_walking(pd,1);
-			return 0;
-		}*/
+
 		pd->dir=pd->walkpath.path[pd->walkpath.path_pos];
 		dx = dirx[pd->dir];
 		dy = diry[pd->dir];
@@ -406,18 +401,12 @@ static int pet_walk(struct pet_data *pd,unsigned int tick,int data)
 			return 0;
 		}
 
-		moveblock = ( x/BLOCK_SIZE != (x+dx)/BLOCK_SIZE || y/BLOCK_SIZE != (y+dy)/BLOCK_SIZE);
-
 		pd->state.state=MS_WALK;
 		map_foreachinmovearea(clif_petoutsight,pd->bl.m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,dx,dy,BL_PC,pd);
 
 		x += dx;
 		y += dy;
-
-		if(moveblock) map_delblock(&pd->bl);
-		pd->bl.x = x;
-		pd->bl.y = y;
-		if(moveblock) map_addblock(&pd->bl);
+		map_moveblock(&pd->bl, x, y, tick);
 
 		map_foreachinmovearea(clif_petinsight,pd->bl.m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,-dx,-dy,BL_PC,pd);
 		pd->state.state=MS_IDLE;

@@ -1086,8 +1086,8 @@ int pc_calc_skilltree_normalize_job(struct map_session_data *sd) {
 	int skill_point;
 	int c = sd->class_;
 	
-	if (!battle_config.skillup_limit || !(sd->class_&JOBL_2))
-		return c; //Only Normalize non-first classes.
+	if (!battle_config.skillup_limit || !(sd->class_&JOBL_2) || (sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE)
+		return c; //Only Normalize non-first classes (and non-super novice)
 	
 	skill_point = pc_calc_skillpoint(sd);
 	if(skill_point < 9)
@@ -3522,7 +3522,6 @@ static int pc_walk(int tid,unsigned int tick,int id,int data)
 {
 	struct map_session_data *sd;
 	int i, x, y, dx, dy;
-	int moveblock;
 
 	if ((sd = map_id2sd(id)) == NULL)
 		return 0;
@@ -3555,10 +3554,12 @@ static int pc_walk(int tid,unsigned int tick,int id,int data)
 			return 1;
 		x = sd->bl.x;
 		y = sd->bl.y;
+#ifndef CELL_NOSTACK
 		if (map_getcell(sd->bl.m,x,y,CELL_CHKNOPASS)) {
 			pc_stop_walking(sd,1);
 			return 0;
 		}
+#endif
 		sd->dir = sd->head_dir = sd->walkpath.path[sd->walkpath.path_pos];
 		dx = dirx[(int)sd->dir];
 		dy = diry[(int)sd->dir];
@@ -3566,24 +3567,17 @@ static int pc_walk(int tid,unsigned int tick,int id,int data)
 			pc_walktoxy_sub(sd);
 			return 0;
 		}
-		moveblock = ( x/BLOCK_SIZE != (x+dx)/BLOCK_SIZE || y/BLOCK_SIZE != (y+dy)/BLOCK_SIZE);
-
 		sd->walktimer = 1;	// temporarily set (so that in clif_set007x the player will still appear as walking)
 		map_foreachinmovearea(clif_pcoutsight, sd->bl.m,
 			x-AREA_SIZE, y-AREA_SIZE, x+AREA_SIZE, y+AREA_SIZE,
 			dx, dy, BL_ALL, sd);
-		x += dx;
-		y += dy;
 
 		sd->walktimer = -1;	// set back so not to disturb future pc_stop_walking calls
-		skill_unit_move(&sd->bl,tick,2);
-		if (moveblock) map_delblock(&sd->bl);
-		sd->bl.x = x;
-		sd->bl.y = y;
-		if (moveblock) map_addblock(&sd->bl);
-		skill_unit_move(&sd->bl,tick,3);
-
+		x += dx;
+		y += dy;
+		map_moveblock(&sd->bl, x, y, tick);
 		sd->walktimer = 1;	// temporarily set (so that in clif_set007x the player will still appear as walking)
+
 		map_foreachinmovearea (clif_pcinsight, sd->bl.m,
 			x-AREA_SIZE, y-AREA_SIZE, x+AREA_SIZE, y+AREA_SIZE,
 			-dx, -dy, BL_ALL, sd);
@@ -3728,9 +3722,7 @@ int pc_stop_walking (struct map_session_data *sd, int type)
  */
 int pc_movepos(struct map_session_data *sd,int dst_x,int dst_y,int checkpath)
 {
-	int moveblock;
 	int dx,dy;
-	int tick = gettick();
 
 	struct walkpath_data wpd;
 
@@ -3744,16 +3736,9 @@ int pc_movepos(struct map_session_data *sd,int dst_x,int dst_y,int checkpath)
 	dx = dst_x - sd->bl.x;
 	dy = dst_y - sd->bl.y;
 
-	moveblock = ( sd->bl.x/BLOCK_SIZE != dst_x/BLOCK_SIZE || sd->bl.y/BLOCK_SIZE != dst_y/BLOCK_SIZE);
-
 	map_foreachinmovearea(clif_pcoutsight,sd->bl.m,sd->bl.x-AREA_SIZE,sd->bl.y-AREA_SIZE,sd->bl.x+AREA_SIZE,sd->bl.y+AREA_SIZE,dx,dy,BL_ALL,sd);
 
-	skill_unit_move(&sd->bl,tick,2);
-	if(moveblock) map_delblock(&sd->bl);
-	sd->bl.x = dst_x;
-	sd->bl.y = dst_y;
-	if(moveblock) map_addblock(&sd->bl);
-	skill_unit_move(&sd->bl,tick,3);
+	map_moveblock(&sd->bl, dst_x, dst_y, gettick());
 
 	map_foreachinmovearea(clif_pcinsight,sd->bl.m,sd->bl.x-AREA_SIZE,sd->bl.y-AREA_SIZE,sd->bl.x+AREA_SIZE,sd->bl.y+AREA_SIZE,-dx,-dy,BL_ALL,sd);
 
@@ -3770,15 +3755,13 @@ int pc_movepos(struct map_session_data *sd,int dst_x,int dst_y,int checkpath)
 		else if (!check_distance_bl(&sd->bl, &pd->bl, AREA_SIZE)) //Too far, teleport.
 			flag = 2;
 		if (flag) {
-			moveblock = ( pd->bl.x/BLOCK_SIZE != dst_x/BLOCK_SIZE || pd->bl.y/BLOCK_SIZE != dst_y/BLOCK_SIZE);
 			pet_stopattack(pd);
 			pet_changestate(pd,MS_IDLE,0);
 			if (flag == 2) clif_clearchar_area(&pd->bl,3);
-			if(moveblock) map_delblock(&pd->bl);
-			pd->bl.x = pd->to_x = dst_x;
-			pd->bl.y = pd->to_y = dst_y;
+			map_moveblock(&pd->bl, dst_x, dst_y, gettick());
 			pd->dir = sd->dir;
-			if(moveblock) map_addblock(&pd->bl);
+			pd->to_x = dst_x;
+			pd->to_y = dst_y;
 			if (flag == 2) clif_fixpos(&pd->bl);
 			else clif_slide(&pd->bl,pd->bl.x,pd->bl.y);
 		}
