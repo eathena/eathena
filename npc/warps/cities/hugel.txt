@@ -11,6 +11,7 @@
 //===== Additional Comments: =================================
 //= Initial Release
 //= 12/21/05 : Fixed 2 church warps and hunter house warps. [Muad_Dib]
+//= 1.2 fixed hugel10 [Lupus]
 //============================================================
 
 //= Hugel City ================================================
@@ -23,7 +24,7 @@ hugel.gat,104,78,0    warp    hugel06    1,1,hu_in01.gat,233,108
 hu_in01.gat,111,369,0    warp    hugel07    1,1,hugel.gat,72,158
 hugel.gat,70,158,0    warp    hugel08    1,1,hu_in01.gat,111,371
 hu_in01.gat,266,124,0    warp    hugel09    1,1,hu_in01.gat,264,39
-hu_in01.gat,262,39,0    warp    hugel10    1,1,hu_in01.gat,264,12
+hu_in01.gat,262,39,0    warp    hugel10    1,1,hu_in01.gat,263,124
 hu_in01.gat,163,227,0    warp    hugel11    1,1,hu_in01.gat,197,220
 hu_in01.gat,194,220,0    warp    hugel12    1,1,hu_in01.gat,160,227
 hu_in01.gat,163,169,0    warp    hugel13    1,1,hu_in01.gat,197,192
