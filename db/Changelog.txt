@@ -27,6 +27,8 @@
 =========================
 
 01/26
+	* Changed Sunflower Pin's DEF from 0 do 1 (27/01 kRO Patch) [Poki#3]
+	* Rearanged the new items in item_db. they should be chacked and placed in the right spot [Poki#3]
 	* Cleared up some Custom Mobs and their skills. [Poki#3]
 	* Changed Fire Poring's ID to 1239 and moved him to mob_db2. [Poki#3]
 	* Changed some Mob Names, based on kRO. [Poki#3]

@@ -1572,7 +1572,7 @@
 5100,Sale_Sign,Sale Sign,5,,10,800,,1,,0,127918079,7,2,256,,75,1,183,{ bonus bStr,1; bonus bAgi,1; bonus bLuk,1; }
 5101,Takius_Blindfold,Takius' Blindfold,5,,10,100,,0,,0,127918079,7,2,512,,0,0,184,{}
 5102,Round_Eyes,Round Eyes,5,,10,100,,0,,0,127918079,7,2,512,,0,0,185,{ bonus bInt,1; bonus bDex,1; }
-5103,Sunflower_Pin,Sunflower Hairpin,5,,10,600,,0,,0,119529470,7,2,256,,30,1,186,{ bonus bAgi,2; bonus bCriticalRate,5; }
+5103,Sunflower_Pin,Sunflower Hairpin,5,,10,600,,1,,0,119529470,7,2,256,,30,1,186,{ bonus bAgi,2; bonus bCriticalRate,5; }
 5104,Black_Blindfold,Black Blindfold,5,,10,100,,0,,0,119529470,7,2,512,,0,0,184,{ bonus2 bResEff,Eff_Blind,10000; bonus2 bResEff,Eff_Stan,200; }
 5105,2nd_Anniversary_Cake_Hat,Chinese Service 2nd Annual Commemoration Cake Hat,5,,10,1000,,1,,0,127918079,7,2,256,,24,1,109,{ bonus bDex,1; bonus bMaxSP,80; }
 5106,2nd_Anniversary_Hat,2nd Anniversary Hat,5,,10,300,,3,,0,127918079,7,2,256,,24,1,144,{ bonus bLuk,1; }
@@ -2014,15 +2014,15 @@
 7403,Indonesia,Indonesia,3,,10,10,,,,,,,,,,,,,{}
 7404,Ke-60,KE-60,3,,10,10,,,,,,,,,,,,,{}
 7405,Crushed_Can,Crushed Can,3,,1,10,,,,,,,,,,,,,{}
-7406,Yuebing,Lettered Moon Cake,3,,10,10,,,,,,,,,,,,,{}
-7407,Yuebing_,Lettered Moon Cake,3,,10,10,,,,,,,,,,,,,{}
-7408,Yuebing__,Lettered Moon Cake,3,,10,10,,,,,,,,,,,,,{}
-7409,Yuebing___,Lettered Moon Cake,3,,10,10,,,,,,,,,,,,,{}
-7410,Yuebing____,Lettered Moon Cake,3,,10,10,,,,,,,,,,,,,{}
-7411,Yuebing_____,Lettered Moon Cake,3,,10,10,,,,,,,,,,,,,{}
-7412,Yuebing______,Lettered Moon Cake,3,,10,10,,,,,,,,,,,,,{}
-7413,Yuebing_______,Lettered Moon Cake,3,,10,10,,,,,,,,,,,,,{}
-7414,Yuebing________,Lettered Moon Cake,3,,10,10,,,,,,,,,,,,,{}
+7406,Yuebing,Yuebing,3,,10,10,,,,,,,,,,,,,{}
+7407,Yuebing_,Yuebing,3,,10,10,,,,,,,,,,,,,{}
+7408,Yuebing__,Yuebing,3,,10,10,,,,,,,,,,,,,{}
+7409,Yuebing___,Yuebing,3,,10,10,,,,,,,,,,,,,{}
+7410,Yuebing____,Yuebing,3,,10,10,,,,,,,,,,,,,{}
+7411,Yuebing_____,Yuebing,3,,10,10,,,,,,,,,,,,,{}
+7412,Yuebing______,Yuebing,3,,10,10,,,,,,,,,,,,,{}
+7413,Yuebing_______,Yuebing,3,,10,10,,,,,,,,,,,,,{}
+7414,Yuebing________,Yuebing,3,,10,10,,,,,,,,,,,,,{}
 7415,Summoning_Stone,Summoning Stone,3,,10,10,,,,,,,,,,,,,{}
 7416,Letter_of_Recommentation,Letter of Recommentation,3,,10,10,,,,,,,,,,,,,{}
 7417,Written_Request_A,Written Request A,3,,10,10,,,,,,,,,,,,,{}
@@ -2120,8 +2120,8 @@
 7509,Gorgeous_Keycard,Gorgeous Keycard,3,,10,0,,,,,,0,2,,,,,,{}
 7510,Valhalla's_Flower,Valhalla's Flower,3,,10,10,,,,,,0,2,,,,,,{}
 7511,Darkness_Rune,Darkness Rune,3,,10,10,,,,,,0,2,,,,,,{}
-7512,Burnt_Pieces_of_something,Burnt Pieces of something,3,,10,10,,,,,,0,2,,,,,,{}
-7513,Clock_something,Clock something,3,,10,10,,,,,,0,2,,,,,,{}
+7512,Burnt_Pieces,Burnt Pieces,3,,10,10,,,,,,0,2,,,,,,{}
+7513,Pocket_Watch,Pocket Watch,3,,10,10,,,,,,0,2,,,,,,{}
 7514,Monster_Ticket,Monster Ticket,3,,10,0,,,,,,0,2,,,,,,{}
 7515,Interesting_Medal,Interesting Medal,3,,10,0,,,,,,0,2,,,,,,{}
 
@@ -2358,32 +2358,30 @@
 13005,Angel_Wing_Dagger,Angel Wing Dagger,4,,10,10,0,,1,1,,0,2,,0,0,0,0,{}
 
 
-// Temp Plugs
-13100,Rifle,Rifle,4,10000,,50,100,,1,3,134217728,7,2,2,1,0,1,1,{}
-13200,Bullet,Bullet,10,1,,2,10,,,,134217728,7,2,32768,,1,,,{}
-13250,Shuriken,Shuriken,10,1,,1,10,,,,268435456,7,2,32768,,1,,,{}
-584,Skewer_Soup,Skewer Soup,0,50,,60,,,,,127918079,7,2,,,,,,{ itemheal rand(45,64),0; }
-12133,McDonald's_Ice_Cone,McDonald's Ice Cone,0,50,,80,,,,,127918079,7,2,,,,,,{ itemheal rand(45,64),0; }
+// Temp Plugs.
 
+12134,Red_Envelope,Red Envelope,2,,10,10,,,,,127918079,7,2,,,,,,{}
+7516,Green_Keycard,Green Keycard,3,,10,0,,,,,,0,2,,,,,,{}
 2357,Valkyrie's_Armor,Valkyrie's Armor,5,,10,2800,,6,,1,119529470,2,2,16,,0,1,0,{ bonus bAllStats,1; bonus bUnbreakableArmor,0; if(BaseClass==Job_Mage||BaseClass==Job_Archer||BaseClass==Acolyte) bonus2 bResEff,Eff_Silence,5000; else if(BaseClass==Job_Swordman||BaseClass==Job_Merchant||BaseClass==Job_Thief) bonus2 bResEff,Eff_Stan,5000; }
 2421,Valkyrie's_Shoes,Valkyrie's Shoes,5,,10,500,,4,,1,119529470,2,2,64,,0,1,0,{ bonus bUnbreakableArmor,0; if(BaseClass==Job_Mage||BaseClass==Job_Archer||BaseClass==Acolyte) bonus bMaxHP,(BaseLevel*5); else if(BaseClass==Job_Swordman||BaseClass==Job_Merchant||BaseClass==Job_Thief) bonus bMaxSP,(JobLevel*2); }
 2524,Valkyrie's_Manteau,Valkyrie's Manteau,5,,10,500,,3,,1,119529470,2,2,4,,0,1,0,{ bonus bUnbreakableArmor,0; if(BaseClass==Job_Mage||BaseClass==Job_Archer||BaseClass==Acolyte) bonus bFlee2,5+(getequiprefinerycnt(5)*2); else if(BaseClass==Job_Swordman||BaseClass==Job_Merchant||BaseClass==Job_Thief) bonus bShortWeaponDamageReturn,5+(getequiprefinerycnt(5)*2);}
-
-2668,Glory_of_Women,Glory of Women,5,,10,1500,,1,,0,127918079,7,2,136,,94,,,{ bonus bAllStats,3; bonus bSPrecovRate,20; }
-
+584,Skewer_Soup,Skewer Soup,0,50,,60,,,,,127918079,7,2,,,,,,{ itemheal rand(45,64),0; }
+12133,McDonald's_Ice_Cone,McDonald's Ice Cone,0,50,,80,,,,,127918079,7,2,,,,,,{ itemheal rand(45,64),0; }		// Restores one half of maximum HP and SP and lets you forget about the heat.
 5137,Alice_Doll,Alice Doll,5,,10,500,,0,,0,119529470,7,2,256,,30,0,208,{ bonus bStr,1; bonus2 bAddRace,RC_DemiHuman,10; bonus2 bAddEff2,Eff_Freeze,10; }
 5138,Magic_Eyes,Magic Eyes,5,,10,300,,0,,0,67174916,7,2,256,,30,1,209,{ bonus bCastrate,-10; bonus bUseSPrate,20; }
-5139,Confederate_Rose,Confederate Rose,5,,10,200,,0,,0,127918079,7,2,256,,10,0,210,{ bonus bDex,1; bonus bInt,1; bonus bMdef,5; }
-5140,Pretty_Ribbon,Pretty Ribbon,5,,10,400,,0,,0,127918079,7,2,256,,10,1,211,{ bonus2 bSubRace,RC_Undead,5; bonus2 bSubRace,RC_Demon,5; }
-5141,Marionette,Marionette,5,,10,400,,0,,0,119529470,7,2,256,,30,1,212,{ bonus bStr,1; }
-5142,Samurai_Helmet,Helmet of Crecent Moon,5,,10,3000,,8,,0,279714,7,2,768,,50,1,213,{ bonus bVit,1; bonus2 bSubRace,RC_DemiHuman,5; }
+5139,Lotus,Lotus,5,,10,200,,0,,0,127918079,7,2,256,,10,0,210,{ bonus bDex,1; bonus bInt,1; bonus bMdef,5; }
+5140,Kawaii_Ribbon,Kawaii Ribbon,5,,10,400,,0,,0,127918079,7,2,256,,10,1,211,{ bonus2 bSubRace,RC_Undead,5; bonus2 bSubRace,RC_Demon,5; }
+5141,Marionette_Doll,Marionette Doll,5,,10,400,,0,,0,119529470,7,2,256,,30,1,212,{ bonus bStr,1; }
+5142,Crescent_Helm,Crescent Helm,5,,10,3000,,8,,0,279714,7,2,768,,50,1,213,{ bonus bVit,1; bonus2 bSubRace,RC_DemiHuman,5; }
 5143,Kabuki_Mask,Kabuki Mask,5,,10,1000,,5,,0,119529470,7,2,769,,10,1,214,{ bonus2 bResEff,EFf_Silence,3000; }
-5144,Gambler_Hat,Gambler Hat,5,,10,200,,2,,0,127918079,7,2,256,,0,1,16,{ bonus bLuk,5; }
-
-7516,Green_Keycard,Green Keycard,3,,10,0,,,,,,0,2,,,,,,{}
-7517,Golden_Coin,Golden Coin,3,,10,100,,,,,,0,2,,,,,,{}
-7518,Order_of_Women,The Order of Women,3,,10,10,,,,,,0,2,,,,,,{} //(Order or Medal, whatever)
-
-12134,Red_Envelope,Red Envelope,2,,10,10,,,,,127918079,7,2,,,,,,{}
+5144,Gamble_Hat,Gambler Hat,5,,10,200,,2,,0,127918079,7,2,256,,0,1,16,{ bonus bLuk,5; }
+2668,Woman_Glory,Woman Glory,5,,10,1500,,1,,0,127918079,7,2,136,,94,,,{ bonus bAllStats,3; bonus bSPrecovRate,20; }
+12136,Women's_Bundle,Women's Bundle,2,,10,100,,,,,127918079,7,2,,,,,,{}							//you can get item ID 558,529,2668,7518
+7518,Women's_Medal,Women's Medal,3,,10,10,,,,,,0,2,,,,,,{}
+//7519,...,
+//7520,...,
 12135,Green_Ale,Green Ale,2,,10,30,,,,,127918079,7,2,,,,,,{}
-12136,Women's_Bundle,Women's Bundle,2,,10,100,,,,,127918079,7,2,,,,,,{} //you can get item ID 558,529,2668,7518
+7517,Gold_Coin,Golden Coin,3,,10,100,,,,,,0,2,,,,,,{}
+7516,Summer_Festival_Ticket,Summer Festival Ticket,3,,10,10,,,,,,0,2,,,,,,{}
+7526,Application,Application,3,,10,0,,,,,,0,2,,,,,,{}
+585,Brusti,Brusti,0,15,,20,,,,,127918079,7,2,,,,,,{ itemheal rand(17,20),0; }						//TODO: Cast Level 3 Magnificat.
