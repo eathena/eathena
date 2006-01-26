@@ -27,6 +27,7 @@
 =========================
 
 01/26
+	* Added the missing Bazerald drop to Pharaoh at 0.8% [MasterOfMuppets]
 	* Changed ASC_BREAKER range from 9 to 5 cells, according to skill
 	  description available in translation project [Foruken]
 01/25

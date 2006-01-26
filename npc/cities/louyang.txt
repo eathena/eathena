@@ -26,6 +26,7 @@
 //=	 to broadcast green text.
 //= 2.2b A small fix to the shout quest npc in louyang field not warping you
 //=	 back up to the tower if you died or teleported out of there. [MasterOfMuppets]
+//= 2.3 A small fix, the code is so messy I can't believe I scripted it >.< [MasterOfMuppets]
 //============================================================
 
 alberta.gat,245,45,4	script	Girl	815,{
@@ -320,11 +321,11 @@ M_CANCEL:
 }
 
 lou_fild01.gat,195,177,4	script	Jiu Lian Bu	819,{
-	if(QL_SOUPQUEST == 1)goto L_WHERE;
-	if(QL_SOUP2 == 1) goto L_DONE;
-	if(QL_GOTFAKESOUP == 1) goto L_FAKE;
-	if(QL_GOTDRAGONSOUP == 1) goto L_SOUP;
-	if(QL_ACCEPTSOUP == 1) goto L_GORESTA;
+	if(QL_SOUP2) goto L_DONE;
+	if(QL_SOUPQUEST)goto L_WHERE;
+	if(QL_GOTFAKESOUP) goto L_FAKE;
+	if(QL_GOTDRAGONSOUP) goto L_SOUP;
+	if(QL_ACCEPTSOUP) goto L_GORESTA;
 	mes "[Jiu Lian Bu]";
 	mes "Hey~";
 	mes "What's up?";
