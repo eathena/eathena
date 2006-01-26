@@ -1,6 +1,7 @@
 Date	Added
 
 2006/01/26
+	* Updated VC project files, thanks to D-Kalck. [Skotlex]
 	* Rare drop announces will now be done based on the mvp_sd (character who
 	  did most damage) instead of sd (character that delivered final blow)
 	  [Skotlex]

@@ -206,6 +206,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\common\ers.c"
+				>
+			</File>
+			<File
 				RelativePath="..\src\common\graph.c"
 				>
 			</File>
