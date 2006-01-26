@@ -27,6 +27,7 @@ Date		Added
 ======
 
 01/26
+	* Uploaded Er_Maqui's fixes to Hugel Warps. [Poki#3]
 	* Updated the airship to take the route Hugel->Einbroch->Lighthalzen->Yuno [MasterOfMuppets]
 	  I also fixed the colors in the broadcasts a bit.
 	* Fixed Bio Lab Spawns a bit and made them more moby. [Poki#3]
