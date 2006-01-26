@@ -7,7 +7,7 @@
 //= Optimized and further edited by kobra_k88.
 //= Further bugfixed and tested by Lupus
 //===== Current Version: =====================================
-//= 1.8
+//= 1.8a
 //===== Compatible With: =====================================
 //= eAthena  1.0+
 //===== Description: =========================================
@@ -1427,6 +1427,7 @@ geffen_in.gat,110,169,4	script	Guildsman	726,{
 
 	mes "[Blacksmith Guildsman]";
 	mes "Ah. I'm sorry. You must be unfamiliar with the new and wonderful Airship Transportation System!";
+	next;
 	menu "Air...what?",-,"Oh, that!",M_know;
 
 	mes "[Blacksmith Guildsman]";
@@ -1437,6 +1438,7 @@ geffen_in.gat,110,169,4	script	Guildsman	726,{
 	mes "[Blacksmith Guildsman]";
 	mes "Just think about it. The blue sky and white clouds. The wind in your hair.";
 	mes "How I adore that feeling!";
+	next;
 	menu "Um.. about that guild...",-,"She's nuts! RUN!",M_run;
 
 	mes "[Blacksmith Guildsman]";
@@ -1446,6 +1448,7 @@ geffen_in.gat,110,169,4	script	Guildsman	726,{
 	mes "There are two Airships. One is flying from Izlude to Yuno, and the other one flys throughout the whole Shwarzwald Republic.";
 	mes "Thats Yuno, Hugel, Lighthalzen and Einbroch.";
 	next;
+M_know:
 	mes "[Blacksmith Guildsman]";
 	mes "If you wish to go to Einbroch, simply board the Airship in Izlude, get of in Yuno and take the second ship until it reaches Einbroch.";
 	mes "When you reach your destination just ask one of the Guides for the Blacksmith Guild";
@@ -1453,6 +1456,7 @@ geffen_in.gat,110,169,4	script	Guildsman	726,{
 	mes "[Blacksmith Guildsman]";
 	mes "Now I know that this may be a bit confusing. That's why our guild in association with the Kafra Corporation is serving free warps to Izlude!";
 	mes "Would you like to use our services?";
+	next;
 	menu "Yes, please.",-,"No, thank you.",M_no;
 
 	mes "[Blacksmith Guildsman]";

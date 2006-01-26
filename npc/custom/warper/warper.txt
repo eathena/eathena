@@ -43,7 +43,7 @@ L_dungeon:
 	mes "[Warp Agent]";
 	mes "Please select your destination.";
 	next;
-	menu "Abbys Lake",dabbys,"Amatsu Dungeon",damatsu,"Anthell",dant,"Ayothaya Dungeon",dayothaya,"Bibilan Dungeon",dbibilan,"Coal Mine (Dead Pit)",dcoal,"Culvert",dculvert,"Einbech Dungeon",dein,"Glast Heim",dglast,"Gonryun Dungeon",dgonryun,"Juperos",djuperos,"Lighthalzen Bio Lab",dlighthalzen,"Magma Dungeon",dmagma,"Niflheim",dniflheim,"Odin Temple",dodin,"Orc Dungeon",dorc,"Payon Dungeon",dpayon,"Pyramids",dpyramids,"Sphinx",dsphinx,"Sunken Ship",dsunken,"Thanatos Tower",dthanatos,"Turtle Dungeon",dturtle;
+	menu "Abyss Lake",dabbys,"Amatsu Dungeon",damatsu,"Anthell",dant,"Ayothaya Dungeon",dayothaya,"Bibilan Dungeon",dbibilan,"Coal Mine (Dead Pit)",dcoal,"Culvert",dculvert,"Einbech Dungeon",dein,"Glast Heim",dglast,"Gonryun Dungeon",dgonryun,"Juperos",djuperos,"Lighthalzen Bio Lab",dlighthalzen,"Magma Dungeon",dmagma,"Niflheim",dniflheim,"Odin Temple",dodin,"Orc Dungeon",dorc,"Payon Dungeon",dpayon,"Pyramids",dpyramids,"Sphinx",dsphinx,"Sunken Ship",dsunken,"Thanatos Tower",dthanatos,"Turtle Dungeon",dturtle;
 
 
 //----------------Towns----------------\\
