@@ -27,6 +27,8 @@ Date		Added
 ======
 
 01/26
+	* Updated the airship to take the route Hugel->Einbroch->Lighthalzen->Yuno [MasterOfMuppets]
+	  I also fixed the colors in the broadcasts a bit.
 	* Fixed Bio Lab Spawns a bit and made them more moby. [Poki#3]
 	* 1.2 fixed hugel10 warp [Lupus]
 	* A small fix to the louyang shouting quest [MasterOfMuppets]
