@@ -1061,13 +1061,13 @@ int clif_mob_equip(struct mob_data *md, int nameid) {
  */
 static int clif_mob0078(struct mob_data *md, unsigned char *buf)
 {
-	int level, i;
+	int level, view_class;
 
 	nullpo_retr(0, md);
 
 	level=status_get_lv(&md->bl);
-	i = mob_get_viewclass(md->class_);
-	if(pcdb_checkid(i)) { 
+	view_class = mob_get_viewclass(md->class_);
+	if(pcdb_checkid(view_class)) { 
 #if PACKETVER < 4
 		memset(buf,0,packet_len_table[0x78]);
 
@@ -1077,7 +1077,7 @@ static int clif_mob0078(struct mob_data *md, unsigned char *buf)
 		WBUFW(buf,8)=md->opt1;
 		WBUFW(buf,10)=md->opt2;
 		WBUFW(buf,12)=md->option;
-		WBUFW(buf,14)=mob_get_viewclass(md->class_);
+		WBUFW(buf,14)=view_class;
 		WBUFW(buf,16)=mob_get_hair(md->class_);
 		WBUFW(buf,18)=mob_get_weapon(md->class_);
 		WBUFW(buf,20)=mob_get_head_buttom(md->class_);
@@ -1112,7 +1112,7 @@ static int clif_mob0078(struct mob_data *md, unsigned char *buf)
 		WBUFW(buf,8)=md->opt1;
 		WBUFW(buf,10)=md->opt2;
 		WBUFW(buf,12)=md->option;
-		WBUFW(buf,14)=mob_get_viewclass(md->class_);
+		WBUFW(buf,14)=view_class;
 		WBUFW(buf,16)=mob_get_hair(md->class_);
 		WBUFW(buf,18)=mob_get_weapon(md->class_);
 		WBUFW(buf,20)=mob_get_shield(md->class_);
@@ -1147,7 +1147,7 @@ static int clif_mob0078(struct mob_data *md, unsigned char *buf)
 		WBUFW(buf,8)=md->opt1;
 		WBUFW(buf,10)=md->opt2;
 		WBUFW(buf,12)=md->option;
-		WBUFW(buf,14)=mob_get_viewclass(md->class_);
+		WBUFW(buf,14)=view_class;
 		if (md->guardian_data && md->guardian_data->guild_id) { // Added guardian emblems [Valaris]
 			WBUFL(buf,34)=md->guardian_data->guild_id;
 			WBUFL(buf,38)=md->guardian_data->emblem_id;
@@ -1167,13 +1167,13 @@ static int clif_mob0078(struct mob_data *md, unsigned char *buf)
  *------------------------------------------
  */
 static int clif_mob007b(struct mob_data *md, unsigned char *buf) {
-	int level, i;
+	int level, view_class;
 
 	nullpo_retr(0, md);
 
 	level=status_get_lv(&md->bl);
-	i = mob_get_viewclass(md->class_);
-	if(pcdb_checkid(i)) {
+	view_class = mob_get_viewclass(md->class_);
+	if(pcdb_checkid(view_class)) {
 #if PACKETVER < 4
 		memset(buf,0,packet_len_table[0x7b]);
 	
@@ -1183,7 +1183,7 @@ static int clif_mob007b(struct mob_data *md, unsigned char *buf) {
 		WBUFW(buf,8)=md->opt1;
 		WBUFW(buf,10)=md->opt2;
 		WBUFW(buf,12)=md->option;
-		WBUFW(buf,14)=mob_get_viewclass(md->class_);
+		WBUFW(buf,14)=view_class;
 		WBUFW(buf,16)=mob_get_hair(md->class_);
 		WBUFW(buf,18)=mob_get_weapon(md->class_);
 		WBUFW(buf,20)=mob_get_head_buttom(md->class_);
@@ -1218,7 +1218,7 @@ static int clif_mob007b(struct mob_data *md, unsigned char *buf) {
 		WBUFW(buf,8)=md->opt1;
 		WBUFW(buf,10)=md->opt2;
 		WBUFW(buf,12)=md->option;
-		WBUFW(buf,14)=mob_get_viewclass(md->class_);
+		WBUFW(buf,14)=view_class;
 		WBUFW(buf,16)=mob_get_hair(md->class_);
 		WBUFW(buf,18)=mob_get_weapon(md->class_);
 		WBUFW(buf,20)=mob_get_shield(md->class_);
@@ -1255,7 +1255,7 @@ static int clif_mob007b(struct mob_data *md, unsigned char *buf) {
 		WBUFW(buf,8)=md->opt1;
 		WBUFW(buf,10)=md->opt2;
 		WBUFW(buf,12)=md->option;
-		WBUFW(buf,14)=mob_get_viewclass(md->class_);
+		WBUFW(buf,14)=view_class;
 		WBUFL(buf,22)=gettick();
 		if (md->guardian_data && md->guardian_data->guild_id) { // Added guardian emblems [Valaris]
 			WBUFL(buf,38)=md->guardian_data->guild_id;
@@ -1335,13 +1335,13 @@ static int clif_npc007b(struct npc_data *nd, unsigned char *buf) {
  *------------------------------------------
  */
 static int clif_pet0078(struct pet_data *pd, unsigned char *buf) {
-	int view,level,i;
+	int view_class,level;
 
 	nullpo_retr(0, pd);
 
 	level = status_get_lv(&pd->bl);
-	i = mob_get_viewclass(pd->class_);
-	if(pcdb_checkid(i)) {
+	view_class = mob_get_viewclass(pd->class_);
+	if(pcdb_checkid(view_class)) {
 #if PACKETVER < 4
 		memset(buf,0,packet_len_table[0x78]);
 
@@ -1351,7 +1351,7 @@ static int clif_pet0078(struct pet_data *pd, unsigned char *buf) {
 		WBUFW(buf,8)= 0; //opt1
 		WBUFW(buf,10)= 0; //opt2
 		WBUFW(buf,12)=pd->db->option;
-		WBUFW(buf,14)=mob_get_viewclass(pd->class_);
+		WBUFW(buf,14)=view_class;
 		WBUFW(buf,16)=mob_get_hair(pd->class_);
 		WBUFW(buf,18)=mob_get_weapon(pd->class_);
 		WBUFW(buf,20)=mob_get_head_buttom(pd->class_);
@@ -1384,7 +1384,7 @@ static int clif_pet0078(struct pet_data *pd, unsigned char *buf) {
 		WBUFW(buf,8)=0; // opt1
 		WBUFW(buf,10)=0; // opt2
 		WBUFW(buf,12)=pd->db->option;
-		WBUFW(buf,14)=mob_get_viewclass(pd->class_);
+		WBUFW(buf,14)=view_class;
 		WBUFW(buf,16)=mob_get_hair(pd->class_);
 		WBUFW(buf,18)=mob_get_weapon(pd->class_);
 		WBUFW(buf,20)=mob_get_shield(pd->class_);
@@ -1415,10 +1415,10 @@ static int clif_pet0078(struct pet_data *pd, unsigned char *buf) {
 		WBUFW(buf,0)=0x78;
 		WBUFL(buf,2)=pd->bl.id;
 		WBUFW(buf,6)=pd->speed;
-		WBUFW(buf,14)=mob_get_viewclass(pd->class_);
+		WBUFW(buf,14)=view_class;
 		WBUFW(buf,16)=battle_config.pet_hair_style;
-		if((view = itemdb_viewid(pd->equip)) > 0)
-			WBUFW(buf,20)=view;
+		if((view_class = itemdb_viewid(pd->equip)) > 0)
+			WBUFW(buf,20)=view_class;
 		else
 			WBUFW(buf,20)=pd->equip;
 		WBUFPOS(buf,46,pd->bl.x,pd->bl.y);
@@ -1436,13 +1436,13 @@ static int clif_pet0078(struct pet_data *pd, unsigned char *buf) {
  *------------------------------------------
  */
 static int clif_pet007b(struct pet_data *pd, unsigned char *buf) {
-	int view,level,i;
+	int view_class,level;
 
 	nullpo_retr(0, pd);
 
 	level = status_get_lv(&pd->bl);
-	i = mob_get_viewclass(pd->class_);
-	if(pcdb_checkid(i)) {
+	view_class = mob_get_viewclass(pd->class_);
+	if(pcdb_checkid(view_class)) {
 #if PACKETVER < 4
 		memset(buf,0,packet_len_table[0x7b]);
 	
@@ -1452,7 +1452,7 @@ static int clif_pet007b(struct pet_data *pd, unsigned char *buf) {
 		WBUFW(buf,8)= 0; //opt1;
 		WBUFW(buf,10)= 0; //opt2;
 		WBUFW(buf,12)=pd->db->option;
-		WBUFW(buf,14)=mob_get_viewclass(pd->class_);
+		WBUFW(buf,14)=view_class;
 		WBUFW(buf,16)=mob_get_hair(pd->class_);
 		WBUFW(buf,18)=mob_get_weapon(pd->class_);
 		WBUFW(buf,20)=mob_get_head_buttom(pd->class_);
@@ -1485,7 +1485,7 @@ static int clif_pet007b(struct pet_data *pd, unsigned char *buf) {
 		WBUFW(buf,8)=0; // opt1
 		WBUFW(buf,10)=0; // opt2
 		WBUFW(buf,12)=pd->db->option;
-		WBUFW(buf,14)=mob_get_viewclass(pd->class_);
+		WBUFW(buf,14)=view_class;
 		WBUFW(buf,16)=mob_get_hair(pd->class_);
 		WBUFW(buf,18)=mob_get_weapon(pd->class_);
 		WBUFW(buf,20)=mob_get_shield(pd->class_);
@@ -1517,10 +1517,10 @@ static int clif_pet007b(struct pet_data *pd, unsigned char *buf) {
 		WBUFW(buf,0)=0x7b;
 		WBUFL(buf,2)=pd->bl.id;
 		WBUFW(buf,6)=pd->speed;
-		WBUFW(buf,14)=mob_get_viewclass(pd->class_);
+		WBUFW(buf,14)=view_class;
 		WBUFW(buf,16)=battle_config.pet_hair_style;
-		if ((view = itemdb_viewid(pd->equip)) > 0)
-			WBUFW(buf,20)=view;
+		if ((view_class = itemdb_viewid(pd->equip)) > 0)
+			WBUFW(buf,20)=view_class;
 		else
 			WBUFW(buf,20)=pd->equip;
 		WBUFL(buf,22)=gettick();
@@ -1768,8 +1768,6 @@ int clif_spawnmob(struct mob_data *md)
 	int len;
 	int viewclass = mob_get_viewclass(md->class_);
 
-	nullpo_retr(0, md);
-
 	if (!pcdb_checkid(viewclass)) {
 		memset(buf,0,packet_len_table[0x7c]);
 
@@ -1811,16 +1809,15 @@ int clif_spawnpet(struct pet_data *pd)
 {
 	unsigned char buf[64];
 	int len;
+	int viewclass = mob_get_viewclass(pd->class_);
 
-	nullpo_retr(0, pd);
-
-	if (mob_get_viewclass(pd->class_) >= MAX_PC_CLASS) {
+	if (!pcdb_checkid(viewclass)) {
 		memset(buf,0,packet_len_table[0x7c]);
 
 		WBUFW(buf,0)=0x7c;
 		WBUFL(buf,2)=pd->bl.id;
 		WBUFW(buf,6)=pd->speed;
-		WBUFW(buf,20)=mob_get_viewclass(pd->class_);
+		WBUFW(buf,20)=viewclass;
 		WBUFPOS(buf,36,pd->bl.x,pd->bl.y);
 
 		clif_send(buf,packet_len_table[0x7c],&pd->bl,AREA);

@@ -34,7 +34,7 @@ extern time_t stall_time;
 // use function instead of macro.
 #define RFIFOB(fd,pos) (*(unsigned char*)RFIFOP(fd,pos))
 #define RFIFOW(fd,pos) (*(unsigned short*)RFIFOP(fd,pos))
-#define RFIFOL(fd,pos) (*(unsigned int*)RFIFOP(fd,pos))
+#define RFIFOL(fd,pos) (*(unsigned long*)RFIFOP(fd,pos))
 #define RFIFOREST(fd)  (session[fd]->rdata_size-session[fd]->rdata_pos)
 #define RFIFOFLUSH(fd) (memmove(session[fd]->rdata,RFIFOP(fd,0),RFIFOREST(fd)),session[fd]->rdata_size=RFIFOREST(fd),session[fd]->rdata_pos=0)
 //#define RFIFOSKIP(fd,len) ((session[fd]->rdata_size-session[fd]->rdata_pos-(len)<0) ? (fprintf(stderr,"too many skip\n"),exit(1)) : (session[fd]->rdata_pos+=(len)))
@@ -42,7 +42,7 @@ extern time_t stall_time;
 #define RBUFP(p,pos) (((unsigned char*)(p))+(pos))
 #define RBUFB(p,pos) (*(unsigned char*)RBUFP((p),(pos)))
 #define RBUFW(p,pos) (*(unsigned short*)RBUFP((p),(pos)))
-#define RBUFL(p,pos) (*(unsigned int*)RBUFP((p),(pos)))
+#define RBUFL(p,pos) (*(unsigned long*)RBUFP((p),(pos)))
 
 #define WFIFOSPACE(fd) (session[fd]->max_wdata-session[fd]->wdata_size)
 #ifdef TURBO
@@ -54,13 +54,13 @@ extern time_t stall_time;
 #endif
 #define WFIFOB(fd,pos) (*(unsigned char*)WFIFOP(fd,pos))
 #define WFIFOW(fd,pos) (*(unsigned short*)WFIFOP(fd,pos))
-#define WFIFOL(fd,pos) (*(unsigned int*)WFIFOP(fd,pos))
+#define WFIFOL(fd,pos) (*(unsigned long*)WFIFOP(fd,pos))
 // use function instead of macro.
 //#define WFIFOSET(fd,len) (session[fd]->wdata_size = (session[fd]->wdata_size + (len) + 2048 < session[fd]->max_wdata) ? session[fd]->wdata_size + len : session[fd]->wdata_size)
 #define WBUFP(p,pos) (((unsigned char*)(p)) + (pos))
 #define WBUFB(p,pos) (*(unsigned char*)((p) + (pos)))
 #define WBUFW(p,pos) (*(unsigned short*)((p) + (pos)))
-#define WBUFL(p,pos) (*(unsigned int*)((p) + (pos)))
+#define WBUFL(p,pos) (*(unsigned long*)((p) + (pos)))
 
 //FD_SETSIZE must be modified on the project files/Makefile, since a change here won't affect
 // dependant windows libraries.

@@ -3234,7 +3234,7 @@ int prompt(void) {
 //-------------------------------------------------------------
 int parse_fromlogin(int fd) {
 	struct char_session_data *sd;
-
+	int id;
 	if (session[fd]->eof) {
 		if (defaultlanguage == 'F') {
 			printf("Impossible de se connecter au serveur de login [%s:%d] !\n", loginserverip, loginserverport);
@@ -3390,7 +3390,7 @@ int parse_fromlogin(int fd) {
 					    (list_type == 2 && strstr(lower_userid, parameters) != NULL) ||
 					    (list_type == 3 && RFIFOL(fd,i+34) != 0) ||
 					    (list_type == 4 && RFIFOL(fd,i+34) == 0)) {
-						printf("%10d ", RFIFOL(fd,i));
+						printf("%10d ", (int)RFIFOL(fd,i));
 						if (RFIFOB(fd,i+4) == 0)
 							printf("   ");
 						else
@@ -3411,7 +3411,7 @@ int parse_fromlogin(int fd) {
 							else
 								printf("%-5s ", "Servr");
 						}
-						printf("%6d ", RFIFOL(fd,i+30));
+						printf("%6d ", (int)RFIFOL(fd,i+30));
 						switch(RFIFOL(fd,i+34)) {
 						case 0:
 							if (defaultlanguage == 'F')
@@ -3471,7 +3471,8 @@ int parse_fromlogin(int fd) {
 		case 0x7931:	// Answer of login-server about an account creation
 			if (RFIFOREST(fd) < 30)
 				return 0;
-			if (RFIFOL(fd,2) == -1) {
+			id=RFIFOL(fd,2);
+			if (id == -1) {
 				if (defaultlanguage == 'F') {
 					printf("Echec à la création du compte [%s]. Un compte identique existe déjà.\n", RFIFOP(fd,6));
 					ladmin_log("Echec à la création du compte [%s]. Un compte identique existe déjà." RETCODE, RFIFOP(fd,6));
@@ -3481,11 +3482,11 @@ int parse_fromlogin(int fd) {
 				}
 			} else {
 				if (defaultlanguage == 'F') {
-					printf("Compte [%s] créé avec succès [id: %d].\n", RFIFOP(fd,6), RFIFOL(fd,2));
-					ladmin_log("Compte [%s] créé avec succès [id: %d]." RETCODE, RFIFOP(fd,6), RFIFOL(fd,2));
+					printf("Compte [%s] créé avec succès [id: %d].\n", RFIFOP(fd,6), id);
+					ladmin_log("Compte [%s] créé avec succès [id: %d]." RETCODE, RFIFOP(fd,6), id);
 				} else {
-					printf("Account [%s] is successfully created [id: %d].\n", RFIFOP(fd,6), RFIFOL(fd,2));
-					ladmin_log("Account [%s] is successfully created [id: %d]." RETCODE, RFIFOP(fd,6), RFIFOL(fd,2));
+					printf("Account [%s] is successfully created [id: %d].\n", RFIFOP(fd,6), id);
+					ladmin_log("Account [%s] is successfully created [id: %d]." RETCODE, RFIFOP(fd,6), id);
 				}
 			}
 			bytes_to_read = 0;
@@ -3505,10 +3506,10 @@ int parse_fromlogin(int fd) {
 				}
 			} else {
 				if (defaultlanguage == 'F') {
-					printf("Compte [%s][id: %d] SUPPRIME avec succès.\n", RFIFOP(fd,6), RFIFOL(fd,2));
+					printf("Compte [%s][id: %d] SUPPRIME avec succès.\n", RFIFOP(fd,6), (int)RFIFOL(fd,2));
 					ladmin_log("Compte [%s][id: %d] SUPPRIME avec succès." RETCODE, RFIFOP(fd,6), RFIFOL(fd,2));
 				} else {
-					printf("Account [%s][id: %d] is successfully DELETED.\n", RFIFOP(fd,6), RFIFOL(fd,2));
+					printf("Account [%s][id: %d] is successfully DELETED.\n", RFIFOP(fd,6), (int)RFIFOL(fd,2));
 					ladmin_log("Account [%s][id: %d] is successfully DELETED." RETCODE, RFIFOP(fd,6), RFIFOL(fd,2));
 				}
 			}
@@ -3531,11 +3532,11 @@ int parse_fromlogin(int fd) {
 				}
 			} else {
 				if (defaultlanguage == 'F') {
-					printf("Modification du mot de passe du compte [%s][id: %d] réussie.\n", RFIFOP(fd,6), RFIFOL(fd,2));
-					ladmin_log("Modification du mot de passe du compte [%s][id: %d] réussie." RETCODE, RFIFOP(fd,6), RFIFOL(fd,2));
+					printf("Modification du mot de passe du compte [%s][id: %d] réussie.\n", RFIFOP(fd,6), (int)RFIFOL(fd,2));
+					ladmin_log("Modification du mot de passe du compte [%s][id: %d] réussie." RETCODE, RFIFOP(fd,6), (int)RFIFOL(fd,2));
 				} else {
-					printf("Account [%s][id: %d] password successfully changed.\n", RFIFOP(fd,6), RFIFOL(fd,2));
-					ladmin_log("Account [%s][id: %d] password successfully changed." RETCODE, RFIFOP(fd,6), RFIFOL(fd,2));
+					printf("Account [%s][id: %d] password successfully changed.\n", RFIFOP(fd,6), (int)RFIFOL(fd,2));
+					ladmin_log("Account [%s][id: %d] password successfully changed." RETCODE, RFIFOP(fd,6), (int)RFIFOL(fd,2));
 				}
 			}
 			bytes_to_read = 0;
@@ -3646,7 +3647,8 @@ int parse_fromlogin(int fd) {
 		case 0x793b:	// answer of the check of a password
 			if (RFIFOREST(fd) < 30)
 				return 0;
-			if (RFIFOL(fd,2) == -1) {
+			id = RFIFOL(fd,2);
+			if (id == -1) {
 				if (defaultlanguage == 'F') {
 					printf("Le compte [%s] n'existe pas ou le mot de passe est incorrect.\n", RFIFOP(fd,6));
 					ladmin_log("Le compte [%s] n'existe pas ou le mot de passe est incorrect." RETCODE, RFIFOP(fd,6));
@@ -3656,11 +3658,11 @@ int parse_fromlogin(int fd) {
 				}
 			} else {
 				if (defaultlanguage == 'F') {
-					printf("Le mot de passe donné correspond bien au compte [%s][id: %d].\n", RFIFOP(fd,6), RFIFOL(fd,2));
-					ladmin_log("Le mot de passe donné correspond bien au compte [%s][id: %d]." RETCODE, RFIFOP(fd,6), RFIFOL(fd,2));
+					printf("Le mot de passe donné correspond bien au compte [%s][id: %d].\n", RFIFOP(fd,6), id);
+					ladmin_log("Le mot de passe donné correspond bien au compte [%s][id: %d]." RETCODE, RFIFOP(fd,6), id);
 				} else {
-					printf("The proposed password is correct for the account [%s][id: %d].\n", RFIFOP(fd,6), RFIFOL(fd,2));
-					ladmin_log("The proposed password is correct for the account [%s][id: %d]." RETCODE, RFIFOP(fd,6), RFIFOL(fd,2));
+					printf("The proposed password is correct for the account [%s][id: %d].\n", RFIFOP(fd,6), id);
+					ladmin_log("The proposed password is correct for the account [%s][id: %d]." RETCODE, RFIFOP(fd,6), id);
 				}
 			}
 			bytes_to_read = 0;
@@ -3670,7 +3672,8 @@ int parse_fromlogin(int fd) {
 		case 0x793d:	// answer of the change of an account sex
 			if (RFIFOREST(fd) < 30)
 				return 0;
-			if (RFIFOL(fd,2) == -1) {
+			id = RFIFOL(fd,2);
+			if (id == -1) {
 				if (defaultlanguage == 'F') {
 					printf("Echec de la modification du sexe du compte [%s].\n", RFIFOP(fd,6));
 					printf("Le compte [%s] n'existe pas ou le sexe est déjà celui demandé.\n", RFIFOP(fd,6));
@@ -3682,11 +3685,11 @@ int parse_fromlogin(int fd) {
 				}
 			} else {
 				if (defaultlanguage == 'F') {
-					printf("Sexe du compte [%s][id: %d] changé avec succès.\n", RFIFOP(fd,6), RFIFOL(fd,2));
-					ladmin_log("Sexe du compte [%s][id: %d] changé avec succès." RETCODE, RFIFOP(fd,6), RFIFOL(fd,2));
+					printf("Sexe du compte [%s][id: %d] changé avec succès.\n", RFIFOP(fd,6), id);
+					ladmin_log("Sexe du compte [%s][id: %d] changé avec succès." RETCODE, RFIFOP(fd,6), id);
 				} else {
-					printf("Account [%s][id: %d] sex successfully changed.\n", RFIFOP(fd,6), RFIFOL(fd,2));
-					ladmin_log("Account [%s][id: %d] sex successfully changed." RETCODE, RFIFOP(fd,6), RFIFOL(fd,2));
+					printf("Account [%s][id: %d] sex successfully changed.\n", RFIFOP(fd,6), id);
+					ladmin_log("Account [%s][id: %d] sex successfully changed." RETCODE, RFIFOP(fd,6), id);
 				}
 			}
 			bytes_to_read = 0;
@@ -3696,7 +3699,8 @@ int parse_fromlogin(int fd) {
 		case 0x793f:	// answer of the change of an account GM level
 			if (RFIFOREST(fd) < 30)
 				return 0;
-			if (RFIFOL(fd,2) == -1) {
+			id = RFIFOL(fd,2);
+			if (id == -1) {
 				if (defaultlanguage == 'F') {
 					printf("Echec de la modification du niveau de GM du compte [%s].\n", RFIFOP(fd,6));
 					printf("Le compte [%s] n'existe pas, le niveau de GM est déjà celui demandé\n", RFIFOP(fd,6));
@@ -3710,11 +3714,11 @@ int parse_fromlogin(int fd) {
 				}
 			} else {
 				if (defaultlanguage == 'F') {
-					printf("Niveau de GM du compte [%s][id: %d] changé avec succès.\n", RFIFOP(fd,6), RFIFOL(fd,2));
-					ladmin_log("Niveau de GM du compte [%s][id: %d] changé avec succès." RETCODE, RFIFOP(fd,6), RFIFOL(fd,2));
+					printf("Niveau de GM du compte [%s][id: %d] changé avec succès.\n", RFIFOP(fd,6), id);
+					ladmin_log("Niveau de GM du compte [%s][id: %d] changé avec succès." RETCODE, RFIFOP(fd,6), id);
 				} else {
-					printf("Account [%s][id: %d] GM level successfully changed.\n", RFIFOP(fd,6), RFIFOL(fd,2));
-					ladmin_log("Account [%s][id: %d] GM level successfully changed." RETCODE, RFIFOP(fd,6), RFIFOL(fd,2));
+					printf("Account [%s][id: %d] GM level successfully changed.\n", RFIFOP(fd,6), id);
+					ladmin_log("Account [%s][id: %d] GM level successfully changed." RETCODE, RFIFOP(fd,6), id);
 				}
 			}
 			bytes_to_read = 0;
@@ -3724,7 +3728,8 @@ int parse_fromlogin(int fd) {
 		case 0x7941:	// answer of the change of an account email
 			if (RFIFOREST(fd) < 30)
 				return 0;
-			if (RFIFOL(fd,2) == -1) {
+			id = RFIFOL(fd,2);
+			if (id == -1) {
 				if (defaultlanguage == 'F') {
 					printf("Echec de la modification de l'e-mail du compte [%s].\n", RFIFOP(fd,6));
 					printf("Le compte [%s] n'existe pas.\n", RFIFOP(fd,6));
@@ -3736,11 +3741,11 @@ int parse_fromlogin(int fd) {
 				}
 			} else {
 				if (defaultlanguage == 'F') {
-					printf("Modification de l'e-mail du compte [%s][id: %d] réussie.\n", RFIFOP(fd,6), RFIFOL(fd,2));
-					ladmin_log("Modification de l'e-mail du compte [%s][id: %d] réussie." RETCODE, RFIFOP(fd,6), RFIFOL(fd,2));
+					printf("Modification de l'e-mail du compte [%s][id: %d] réussie.\n", RFIFOP(fd,6), id);
+					ladmin_log("Modification de l'e-mail du compte [%s][id: %d] réussie." RETCODE, RFIFOP(fd,6), id);
 				} else {
-					printf("Account [%s][id: %d] e-mail successfully changed.\n", RFIFOP(fd,6), RFIFOL(fd,2));
-					ladmin_log("Account [%s][id: %d] e-mail successfully changed." RETCODE, RFIFOP(fd,6), RFIFOL(fd,2));
+					printf("Account [%s][id: %d] e-mail successfully changed.\n", RFIFOP(fd,6), id);
+					ladmin_log("Account [%s][id: %d] e-mail successfully changed." RETCODE, RFIFOP(fd,6), id);
 				}
 			}
 			bytes_to_read = 0;
@@ -3750,7 +3755,8 @@ int parse_fromlogin(int fd) {
 		case 0x7943:	// answer of the change of an account memo
 			if (RFIFOREST(fd) < 30)
 				return 0;
-			if (RFIFOL(fd,2) == -1) {
+			id = RFIFOL(fd,2);
+			if (id == -1) {
 				if (defaultlanguage == 'F') {
 					printf("Echec du changement du mémo du compte [%s]. Le compte n'existe pas.\n", RFIFOP(fd,6));
 					ladmin_log("Echec du changement du mémo du compte [%s]. Le compte n'existe pas." RETCODE, RFIFOP(fd,6));
@@ -3760,11 +3766,11 @@ int parse_fromlogin(int fd) {
 				}
 			} else {
 				if (defaultlanguage == 'F') {
-					printf("Mémo du compte [%s][id: %d] changé avec succès.\n", RFIFOP(fd,6), RFIFOL(fd,2));
-					ladmin_log("Mémo du compte [%s][id: %d] changé avec succès." RETCODE, RFIFOP(fd,6), RFIFOL(fd,2));
+					printf("Mémo du compte [%s][id: %d] changé avec succès.\n", RFIFOP(fd,6), id);
+					ladmin_log("Mémo du compte [%s][id: %d] changé avec succès." RETCODE, RFIFOP(fd,6), id);
 				} else {
-					printf("Account [%s][id: %d] memo successfully changed.\n", RFIFOP(fd,6), RFIFOL(fd,2));
-					ladmin_log("Account [%s][id: %d] memo successfully changed." RETCODE, RFIFOP(fd,6), RFIFOL(fd,2));
+					printf("Account [%s][id: %d] memo successfully changed.\n", RFIFOP(fd,6), id);
+					ladmin_log("Account [%s][id: %d] memo successfully changed." RETCODE, RFIFOP(fd,6), id);
 				}
 			}
 			bytes_to_read = 0;
@@ -3774,7 +3780,8 @@ int parse_fromlogin(int fd) {
 		case 0x7945:	// answer of an account id search
 			if (RFIFOREST(fd) < 30)
 				return 0;
-			if (RFIFOL(fd,2) == -1) {
+			id = RFIFOL(fd,2);
+			if (id == -1) {
 				if (defaultlanguage == 'F') {
 					printf("Impossible de trouver l'id du compte [%s]. Le compte n'existe pas.\n", RFIFOP(fd,6));
 					ladmin_log("Impossible de trouver l'id du compte [%s]. Le compte n'existe pas." RETCODE, RFIFOP(fd,6));
@@ -3784,11 +3791,11 @@ int parse_fromlogin(int fd) {
 				}
 			} else {
 				if (defaultlanguage == 'F') {
-					printf("Le compte [%s] a pour id: %d.\n", RFIFOP(fd,6), RFIFOL(fd,2));
-					ladmin_log("Le compte [%s] a pour id: %d." RETCODE, RFIFOP(fd,6), RFIFOL(fd,2));
+					printf("Le compte [%s] a pour id: %d.\n", RFIFOP(fd,6), id);
+					ladmin_log("Le compte [%s] a pour id: %d." RETCODE, RFIFOP(fd,6), id);
 				} else {
-					printf("The account [%s] have the id: %d.\n", RFIFOP(fd,6), RFIFOL(fd,2));
-					ladmin_log("The account [%s] have the id: %d." RETCODE, RFIFOP(fd,6), RFIFOL(fd,2));
+					printf("The account [%s] have the id: %d.\n", RFIFOP(fd,6), id);
+					ladmin_log("The account [%s] have the id: %d." RETCODE, RFIFOP(fd,6), id);
 				}
 			}
 			bytes_to_read = 0;
@@ -3798,21 +3805,22 @@ int parse_fromlogin(int fd) {
 		case 0x7947:	// answer of an account name search
 			if (RFIFOREST(fd) < 30)
 				return 0;
+			id = RFIFOL(fd,2);
 			if (strcmp((const char*)RFIFOP(fd,6), "") == 0) {
 				if (defaultlanguage == 'F') {
-					printf("Impossible de trouver le nom du compte [%d]. Le compte n'existe pas.\n", RFIFOL(fd,2));
-					ladmin_log("Impossible de trouver le nom du compte [%d]. Le compte n'existe pas." RETCODE, RFIFOL(fd,2));
+					printf("Impossible de trouver le nom du compte [%d]. Le compte n'existe pas.\n", id);
+					ladmin_log("Impossible de trouver le nom du compte [%d]. Le compte n'existe pas." RETCODE, id);
 				} else {
-					printf("Unable to find the account [%d] name. Account doesn't exist.\n", RFIFOL(fd,2));
-					ladmin_log("Unable to find the account [%d] name. Account doesn't exist." RETCODE, RFIFOL(fd,2));
+					printf("Unable to find the account [%d] name. Account doesn't exist.\n", id);
+					ladmin_log("Unable to find the account [%d] name. Account doesn't exist." RETCODE, id);
 				}
 			} else {
 				if (defaultlanguage == 'F') {
-					printf("Le compte [id: %d] a pour nom: %s.\n", RFIFOL(fd,2), RFIFOP(fd,6));
-					ladmin_log("Le compte [id: %d] a pour nom: %s." RETCODE, RFIFOL(fd,2), RFIFOP(fd,6));
+					printf("Le compte [id: %d] a pour nom: %s.\n", id, RFIFOP(fd,6));
+					ladmin_log("Le compte [id: %d] a pour nom: %s." RETCODE, id, RFIFOP(fd,6));
 				} else {
-					printf("The account [id: %d] have the name: %s.\n", RFIFOL(fd,2), RFIFOP(fd,6));
-					ladmin_log("The account [id: %d] have the name: %s." RETCODE, RFIFOL(fd,2), RFIFOP(fd,6));
+					printf("The account [id: %d] have the name: %s.\n", id, RFIFOP(fd,6));
+					ladmin_log("The account [id: %d] have the name: %s." RETCODE, id, RFIFOP(fd,6));
 				}
 			}
 			bytes_to_read = 0;
@@ -3822,7 +3830,8 @@ int parse_fromlogin(int fd) {
 		case 0x7949:	// answer of an account validity limit set
 			if (RFIFOREST(fd) < 34)
 				return 0;
-			if (RFIFOL(fd,2) == -1) {
+			id = RFIFOL(fd,2);
+			if (id == -1) {
 				if (defaultlanguage == 'F') {
 					printf("Echec du changement de la validité du compte [%s]. Le compte n'existe pas.\n", RFIFOP(fd,6));
 					ladmin_log("Echec du changement de la validité du compte [%s]. Le compte n'existe pas." RETCODE, RFIFOP(fd,6));
@@ -3834,21 +3843,21 @@ int parse_fromlogin(int fd) {
 				time_t timestamp = RFIFOL(fd,30);
 				if (timestamp == 0) {
 					if (defaultlanguage == 'F') {
-						printf("Limite de validité du compte [%s][id: %d] changée avec succès en [illimité].\n", RFIFOP(fd,6), RFIFOL(fd,2));
-						ladmin_log("Limite de validité du compte [%s][id: %d] changée avec succès en [illimité]." RETCODE, RFIFOP(fd,6), RFIFOL(fd,2));
+						printf("Limite de validité du compte [%s][id: %d] changée avec succès en [illimité].\n", RFIFOP(fd,6), id);
+						ladmin_log("Limite de validité du compte [%s][id: %d] changée avec succès en [illimité]." RETCODE, RFIFOP(fd,6), id);
 					} else {
-						printf("Validity Limit of the account [%s][id: %d] successfully changed to [unlimited].\n", RFIFOP(fd,6), RFIFOL(fd,2));
-						ladmin_log("Validity Limit of the account [%s][id: %d] successfully changed to [unlimited]." RETCODE, RFIFOP(fd,6), RFIFOL(fd,2));
+						printf("Validity Limit of the account [%s][id: %d] successfully changed to [unlimited].\n", RFIFOP(fd,6), id);
+						ladmin_log("Validity Limit of the account [%s][id: %d] successfully changed to [unlimited]." RETCODE, RFIFOP(fd,6), id);
 					}
 				} else {
 					char tmpstr[128];
 					strftime(tmpstr, 24, date_format, localtime(&timestamp));
 					if (defaultlanguage == 'F') {
-						printf("Limite de validité du compte [%s][id: %d] changée avec succès pour être jusqu'au %s.\n", RFIFOP(fd,6), RFIFOL(fd,2), tmpstr);
-						ladmin_log("Limite de validité du compte [%s][id: %d] changée avec succès pour être jusqu'au %s." RETCODE, RFIFOP(fd,6), RFIFOL(fd,2), tmpstr);
+						printf("Limite de validité du compte [%s][id: %d] changée avec succès pour être jusqu'au %s.\n", RFIFOP(fd,6), id, tmpstr);
+						ladmin_log("Limite de validité du compte [%s][id: %d] changée avec succès pour être jusqu'au %s." RETCODE, RFIFOP(fd,6), id, tmpstr);
 					} else {
-						printf("Validity Limit of the account [%s][id: %d] successfully changed to be until %s.\n", RFIFOP(fd,6), RFIFOL(fd,2), tmpstr);
-						ladmin_log("Validity Limit of the account [%s][id: %d] successfully changed to be until %s." RETCODE, RFIFOP(fd,6), RFIFOL(fd,2), tmpstr);
+						printf("Validity Limit of the account [%s][id: %d] successfully changed to be until %s.\n", RFIFOP(fd,6), id, tmpstr);
+						ladmin_log("Validity Limit of the account [%s][id: %d] successfully changed to be until %s." RETCODE, RFIFOP(fd,6), id, tmpstr);
 					}
 				}
 			}
@@ -3859,7 +3868,8 @@ int parse_fromlogin(int fd) {
 		case 0x794b:	// answer of an account ban set
 			if (RFIFOREST(fd) < 34)
 				return 0;
-			if (RFIFOL(fd,2) == -1) {
+			id = RFIFOL(fd,2);
+			if (id == -1) {
 				if (defaultlanguage == 'F') {
 					printf("Echec du changement de la date finale de banissement du compte [%s]. Le compte n'existe pas.\n", RFIFOP(fd,6));
 					ladmin_log("Echec du changement de la date finale de banissement du compte [%s]. Le compte n'existe pas." RETCODE, RFIFOP(fd,6));
@@ -3871,21 +3881,21 @@ int parse_fromlogin(int fd) {
 				time_t timestamp = RFIFOL(fd,30);
 				if (timestamp == 0) {
 					if (defaultlanguage == 'F') {
-						printf("Date finale de banissement du compte [%s][id: %d] changée avec succès en [dé-bannie].\n", RFIFOP(fd,6), RFIFOL(fd,2));
-						ladmin_log("Date finale de banissement du compte [%s][id: %d] changée avec succès en [dé-bannie]." RETCODE, RFIFOP(fd,6), RFIFOL(fd,2));
+						printf("Date finale de banissement du compte [%s][id: %d] changée avec succès en [dé-bannie].\n", RFIFOP(fd,6), id);
+						ladmin_log("Date finale de banissement du compte [%s][id: %d] changée avec succès en [dé-bannie]." RETCODE, RFIFOP(fd,6), id);
 					} else {
-						printf("Final date of banishment of the account [%s][id: %d] successfully changed to [unbanished].\n", RFIFOP(fd,6), RFIFOL(fd,2));
-						ladmin_log("Final date of banishment of the account [%s][id: %d] successfully changed to [unbanished]." RETCODE, RFIFOP(fd,6), RFIFOL(fd,2));
+						printf("Final date of banishment of the account [%s][id: %d] successfully changed to [unbanished].\n", RFIFOP(fd,6), id);
+						ladmin_log("Final date of banishment of the account [%s][id: %d] successfully changed to [unbanished]." RETCODE, RFIFOP(fd,6), id);
 					}
 				} else {
 					char tmpstr[128];
 					strftime(tmpstr, 24, date_format, localtime(&timestamp));
 					if (defaultlanguage == 'F') {
-						printf("Date finale de banissement du compte [%s][id: %d] changée avec succès pour être jusqu'au %s.\n", RFIFOP(fd,6), RFIFOL(fd,2), tmpstr);
-						ladmin_log("Date finale de banissement du compte [%s][id: %d] changée avec succès pour être jusqu'au %s." RETCODE, RFIFOP(fd,6), RFIFOL(fd,2), tmpstr);
+						printf("Date finale de banissement du compte [%s][id: %d] changée avec succès pour être jusqu'au %s.\n", RFIFOP(fd,6), id, tmpstr);
+						ladmin_log("Date finale de banissement du compte [%s][id: %d] changée avec succès pour être jusqu'au %s." RETCODE, RFIFOP(fd,6), id, tmpstr);
 					} else {
-						printf("Final date of banishment of the account [%s][id: %d] successfully changed to be until %s.\n", RFIFOP(fd,6), RFIFOL(fd,2), tmpstr);
-						ladmin_log("Final date of banishment of the account [%s][id: %d] successfully changed to be until %s." RETCODE, RFIFOP(fd,6), RFIFOL(fd,2), tmpstr);
+						printf("Final date of banishment of the account [%s][id: %d] successfully changed to be until %s.\n", RFIFOP(fd,6), id, tmpstr);
+						ladmin_log("Final date of banishment of the account [%s][id: %d] successfully changed to be until %s." RETCODE, RFIFOP(fd,6), id, tmpstr);
 					}
 				}
 			}
@@ -3896,7 +3906,8 @@ int parse_fromlogin(int fd) {
 		case 0x794d:	// answer of an account ban date/time changing
 			if (RFIFOREST(fd) < 34)
 				return 0;
-			if (RFIFOL(fd,2) == -1) {
+			id = RFIFOL(fd,2);
+			if (id == -1) {
 				if (defaultlanguage == 'F') {
 					printf("Echec du changement de la date finale de banissement du compte [%s]. Le compte n'existe pas.\n", RFIFOP(fd,6));
 					ladmin_log("Echec du changement de la date finale de banissement du compte [%s]. Le compte n'existe pas." RETCODE, RFIFOP(fd,6));
@@ -3908,21 +3919,21 @@ int parse_fromlogin(int fd) {
 				time_t timestamp = RFIFOL(fd,30);
 				if (timestamp == 0) {
 					if (defaultlanguage == 'F') {
-						printf("Date finale de banissement du compte [%s][id: %d] changée avec succès en [dé-bannie].\n", RFIFOP(fd,6), RFIFOL(fd,2));
-						ladmin_log("Date finale de banissement du compte [%s][id: %d] changée avec succès en [dé-bannie]." RETCODE, RFIFOP(fd,6), RFIFOL(fd,2));
+						printf("Date finale de banissement du compte [%s][id: %d] changée avec succès en [dé-bannie].\n", RFIFOP(fd,6), id);
+						ladmin_log("Date finale de banissement du compte [%s][id: %d] changée avec succès en [dé-bannie]." RETCODE, RFIFOP(fd,6), id);
 					} else {
-						printf("Final date of banishment of the account [%s][id: %d] successfully changed to [unbanished].\n", RFIFOP(fd,6), RFIFOL(fd,2));
-						ladmin_log("Final date of banishment of the account [%s][id: %d] successfully changed to [unbanished]." RETCODE, RFIFOP(fd,6), RFIFOL(fd,2));
+						printf("Final date of banishment of the account [%s][id: %d] successfully changed to [unbanished].\n", RFIFOP(fd,6), id);
+						ladmin_log("Final date of banishment of the account [%s][id: %d] successfully changed to [unbanished]." RETCODE, RFIFOP(fd,6), id);
 					}
 				} else {
 					char tmpstr[128];
 					strftime(tmpstr, 24, date_format, localtime(&timestamp));
 					if (defaultlanguage == 'F') {
-						printf("Date finale de banissement du compte [%s][id: %d] changée avec succès pour être jusqu'au %s.\n", RFIFOP(fd,6), RFIFOL(fd,2), tmpstr);
-						ladmin_log("Date finale de banissement du compte [%s][id: %d] changée avec succès pour être jusqu'au %s." RETCODE, RFIFOP(fd,6), RFIFOL(fd,2), tmpstr);
+						printf("Date finale de banissement du compte [%s][id: %d] changée avec succès pour être jusqu'au %s.\n", RFIFOP(fd,6), id, tmpstr);
+						ladmin_log("Date finale de banissement du compte [%s][id: %d] changée avec succès pour être jusqu'au %s." RETCODE, RFIFOP(fd,6), id, tmpstr);
 					} else {
-						printf("Final date of banishment of the account [%s][id: %d] successfully changed to be until %s.\n", RFIFOP(fd,6), RFIFOL(fd,2), tmpstr);
-						ladmin_log("Final date of banishment of the account [%s][id: %d] successfully changed to be until %s." RETCODE, RFIFOP(fd,6), RFIFOL(fd,2), tmpstr);
+						printf("Final date of banishment of the account [%s][id: %d] successfully changed to be until %s.\n", RFIFOP(fd,6), id, tmpstr);
+						ladmin_log("Final date of banishment of the account [%s][id: %d] successfully changed to be until %s." RETCODE, RFIFOP(fd,6), id, tmpstr);
 					}
 				}
 			}
@@ -3957,7 +3968,8 @@ int parse_fromlogin(int fd) {
 		case 0x7951:	// answer of an account validity limit changing
 			if (RFIFOREST(fd) < 34)
 				return 0;
-			if (RFIFOL(fd,2) == -1) {
+			id = RFIFOL(fd,2);
+			if (id == -1) {
 				if (defaultlanguage == 'F') {
 					printf("Echec du changement de la validité du compte [%s]. Le compte n'existe pas.\n", RFIFOP(fd,6));
 					ladmin_log("Echec du changement de la validité du compte [%s]. Le compte n'existe pas." RETCODE, RFIFOP(fd,6));
@@ -3969,25 +3981,25 @@ int parse_fromlogin(int fd) {
 				time_t timestamp = RFIFOL(fd,30);
 				if (timestamp == 0) {
 					if (defaultlanguage == 'F') {
-						printf("Limite de validité du compte [%s][id: %d] inchangée.\n", RFIFOP(fd,6), RFIFOL(fd,2));
+						printf("Limite de validité du compte [%s][id: %d] inchangée.\n", RFIFOP(fd,6), id);
 						printf("Le compte a une validité illimitée ou\n");
 						printf("la modification est impossible avec les ajustements demandés.\n");
-						ladmin_log("Limite de validité du compte [%s][id: %d] inchangée. Le compte a une validité illimitée ou la modification est impossible avec les ajustements demandés." RETCODE, RFIFOP(fd,6), RFIFOL(fd,2));
+						ladmin_log("Limite de validité du compte [%s][id: %d] inchangée. Le compte a une validité illimitée ou la modification est impossible avec les ajustements demandés." RETCODE, RFIFOP(fd,6), id);
 					} else {
-						printf("Validity limit of the account [%s][id: %d] unchanged.\n", RFIFOP(fd,6), RFIFOL(fd,2));
+						printf("Validity limit of the account [%s][id: %d] unchanged.\n", RFIFOP(fd,6), id);
 						printf("The account have an unlimited validity limit or\n");
 						printf("the changing is impossible with the proposed adjustments.\n");
-						ladmin_log("Validity limit of the account [%s][id: %d] unchanged. The account have an unlimited validity limit or the changing is impossible with the proposed adjustments." RETCODE, RFIFOP(fd,6), RFIFOL(fd,2));
+						ladmin_log("Validity limit of the account [%s][id: %d] unchanged. The account have an unlimited validity limit or the changing is impossible with the proposed adjustments." RETCODE, RFIFOP(fd,6), id);
 					}
 				} else {
 					char tmpstr[128];
 					strftime(tmpstr, 24, date_format, localtime(&timestamp));
 					if (defaultlanguage == 'F') {
-						printf("Limite de validité du compte [%s][id: %d] changée avec succès pour être jusqu'au %s.\n", RFIFOP(fd,6), RFIFOL(fd,2), tmpstr);
-						ladmin_log("Limite de validité du compte [%s][id: %d] changée avec succès pour être jusqu'au %s." RETCODE, RFIFOP(fd,6), RFIFOL(fd,2), tmpstr);
+						printf("Limite de validité du compte [%s][id: %d] changée avec succès pour être jusqu'au %s.\n", RFIFOP(fd,6), id, tmpstr);
+						ladmin_log("Limite de validité du compte [%s][id: %d] changée avec succès pour être jusqu'au %s." RETCODE, RFIFOP(fd,6), id, tmpstr);
 					} else {
-						printf("Validity limit of the account [%s][id: %d] successfully changed to be until %s.\n", RFIFOP(fd,6), RFIFOL(fd,2), tmpstr);
-						ladmin_log("Validity limit of the account [%s][id: %d] successfully changed to be until %s." RETCODE, RFIFOP(fd,6), RFIFOL(fd,2), tmpstr);
+						printf("Validity limit of the account [%s][id: %d] successfully changed to be until %s.\n", RFIFOP(fd,6), id, tmpstr);
+						ladmin_log("Validity limit of the account [%s][id: %d] successfully changed to be until %s." RETCODE, RFIFOP(fd,6), id, tmpstr);
 					}
 				}
 			}
@@ -4016,7 +4028,8 @@ int parse_fromlogin(int fd) {
 			ban_until_time = (time_t)RFIFOL(fd,144);
 			memset(memo, '\0', sizeof(memo));
 			strncpy(memo, (const char*)RFIFOP(fd,150), RFIFOW(fd,148));
-			if (RFIFOL(fd,2) == -1) {
+			id = RFIFOL(fd,2);
+			if (id == -1) {
 				if (defaultlanguage == 'F') {
 					printf("Impossible de trouver le compte [%s]. Le compte n'existe pas.\n", parameters);
 					ladmin_log("Impossible de trouver le compte [%s]. Le compte n'existe pas." RETCODE, parameters);
@@ -4041,12 +4054,12 @@ int parse_fromlogin(int fd) {
 					printf("The account is set with:\n");
 				}
 				if (RFIFOB(fd,6) == 0) {
-					printf(" Id:     %d (non-GM)\n", RFIFOL(fd,2));
+					printf(" Id:     %d (non-GM)\n", id);
 				} else {
 					if (defaultlanguage == 'F') {
-						printf(" Id:     %d (GM niveau %d)\n", RFIFOL(fd,2), (int)RFIFOB(fd,6));
+						printf(" Id:     %d (GM niveau %d)\n", id, (int)RFIFOB(fd,6));
 					} else {
-						printf(" Id:     %d (GM level %d)\n", RFIFOL(fd,2), (int)RFIFOB(fd,6));
+						printf(" Id:     %d (GM level %d)\n", id, (int)RFIFOB(fd,6));
 					}
 				}
 				if (defaultlanguage == 'F') {
@@ -4102,7 +4115,7 @@ int parse_fromlogin(int fd) {
 					printf(" Statut: 9 [No MSG]\n");
 					break;
 				default: // 100
-					printf(" Statut: %d [This ID is totally erased]\n", RFIFOL(fd,36));
+					printf(" Statut: %d [This ID is totally erased]\n", (int)RFIFOL(fd,36));
 					break;
 				}
 				if (defaultlanguage == 'F') {
@@ -4114,9 +4127,9 @@ int parse_fromlogin(int fd) {
 						printf(" Banissement: jusqu'au %s.\n", tmpstr);
 					}
 					if (RFIFOL(fd,32) > 1)
-						printf(" Compteur: %d connexions.\n", RFIFOL(fd,32));
+						printf(" Compteur: %d connexions.\n", (int)RFIFOL(fd,32));
 					else
-						printf(" Compteur: %d connexion.\n", RFIFOL(fd,32));
+						printf(" Compteur: %d connexion.\n", (int)RFIFOL(fd,32));
 					printf(" Dernière connexion le: %s (ip: %s)\n", lastlogin, last_ip);
 					if (connect_until_time == 0) {
 						printf(" Limite de validité: illimité.\n");
@@ -4134,9 +4147,9 @@ int parse_fromlogin(int fd) {
 						printf(" Banishment: until %s.\n", tmpstr);
 					}
 					if (RFIFOL(fd,32) > 1)
-						printf(" Count:  %d connections.\n", RFIFOL(fd,32));
+						printf(" Count:  %d connections.\n", (int)RFIFOL(fd,32));
 					else
-						printf(" Count:  %d connection.\n", RFIFOL(fd,32));
+						printf(" Count:  %d connection.\n", (int)RFIFOL(fd,32));
 					printf(" Last connection at: %s (ip: %s)\n", lastlogin, last_ip);
 					if (connect_until_time == 0) {
 						printf(" Validity limit: unlimited.\n");
