@@ -2492,11 +2492,13 @@ int parse_frommap(int fd) {
 		}
 		// char saving
 		case 0x2b01:
-			i = 0;
 			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < RFIFOW(fd,2))
 				return 0;
+		{
+			int aid = RFIFOL(fd,4), cid = RFIFOL(fd,8);
+			i = 0;
 			//check account
-			sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `account_id` = '%d' AND `char_id`='%d'",char_db, RFIFOL(fd,4),RFIFOL(fd,8)); // TBR
+			sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `account_id` = '%d' AND `char_id`='%d'",char_db, aid, cid); // TBR
 			if (mysql_query(&mysql_handle, tmp_sql)) {
 				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
@@ -2508,15 +2510,16 @@ int parse_frommap(int fd) {
 
 			if (i == 1) {
 				memcpy(&char_dat[0], RFIFOP(fd,13), sizeof(struct mmo_charstatus));
-				mmo_char_tosql(RFIFOL(fd,8), char_dat);
+				mmo_char_tosql(cid, char_dat);
 				//save to DB
-			}
+			} else 
+				ShowError("parse_from_map (save-char): Received data for non-existant character (%d:%d)!\n", aid, cid);
 			if (RFIFOB(fd,12)) { //Flag? Set character offline after saving [Skotlex]
-				set_char_offline(RFIFOL(fd,8),RFIFOL(fd,4));
+				set_char_offline(cid, aid);
 			}
 			RFIFOSKIP(fd,RFIFOW(fd,2));
 			break;
-
+		}
 		// req char selection
 		case 0x2b02:
 			if (RFIFOREST(fd) < 18)
@@ -2604,7 +2607,7 @@ int parse_frommap(int fd) {
 			if (RFIFOREST(fd) < 6)
 				return 0;
 		
-			sprintf(tmp_sql, "SELECT `name` FROM `%s` WHERE `char_id`='%d'", char_db, RFIFOL(fd,2));
+			sprintf(tmp_sql, "SELECT `name` FROM `%s` WHERE `char_id`='%d'", char_db, (int)RFIFOL(fd,2));
 			if (mysql_query(&mysql_handle, tmp_sql)) {
 				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
@@ -2620,7 +2623,7 @@ int parse_frommap(int fd) {
 				memcpy(WFIFOP(fd,6), sql_row[0], NAME_LENGTH);
 			else
 				memcpy(WFIFOP(fd,6), unknown_char_name, NAME_LENGTH);
-			mysql_free_result(sql_res);
+			if (sql_res) mysql_free_result(sql_res);
 
 			WFIFOSET(fd,30);
 
@@ -3368,7 +3371,9 @@ int parse_char(int fd) {
 			break;
 		case 0x68: /* delete char */
 			FIFOSD_CHECK(46);
-			ShowInfo(CL_RED" Request Char Deletion:"CL_GREEN"%d (%d)"CL_RESET"\n", sd->account_id, RFIFOL(fd, 2));
+		{
+			int cid = RFIFOL(fd,2);
+			ShowInfo(CL_RED" Request Char Deletion:"CL_GREEN"%d (%d)"CL_RESET"\n", sd->account_id, cid);
 			memcpy(email, RFIFOP(fd,6), 40);
 			
 			/* Check if e-mail is correct */
@@ -3398,7 +3403,7 @@ int parse_char(int fd) {
 				/* Debug:
 				printf("Checking if char to be deleted: %d - %d (%d)\n", sd->found_char[i], RFIFOL(fd, 2), sd->account_id);
 				*/				
-				if (sd->found_char[i] == RFIFOL(fd, 2)) {
+				if (sd->found_char[i] == cid) {
 					for(ch = i; ch < 9-1; ch++)
 						sd->found_char[ch] = sd->found_char[ch+1];
 					sd->found_char[8] = -1;
@@ -3415,7 +3420,7 @@ int parse_char(int fd) {
 			}
 			
 			/* Grab the partner id */ 
-			sprintf(tmp_sql, "SELECT `partner_id` FROM `%s` WHERE `char_id`='%d'",char_db, RFIFOL(fd,2));
+			sprintf(tmp_sql, "SELECT `partner_id` FROM `%s` WHERE `char_id`='%d'",char_db, cid);
 	
 			if (mysql_query(&mysql_handle, tmp_sql)) {
 				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
@@ -3433,7 +3438,7 @@ int parse_char(int fd) {
 				mysql_free_result(sql_res);
 			
 				/* Delete character and partner (if any) */
-				delete_char_sql(RFIFOL(fd,2), char_pid);
+				delete_char_sql(cid, char_pid);
 				if (char_pid != 0)
 				{	/* If there is partner, tell map server to do divorce */
 					WBUFW(buf,0) = 0x2b12;
@@ -3448,7 +3453,7 @@ int parse_char(int fd) {
 				
 			RFIFOSKIP(fd, 46);
 			break;
-
+		}
 		case 0x2af8: // login as map-server
 			if (RFIFOREST(fd) < 60)
 				return 0;

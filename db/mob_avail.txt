@@ -1,7 +1,6 @@
 // for mobs
 // mob_id,sprite_id,equip #
 // Use another mob's sprite for a monster.  0 for sprite will disable mob.
-// 1001-2000 must be used for now as any other ID is invalid.
 // Mob must have an equipment it's pet counterpart can use or it will cause problems.  If no equip use 0.
 // The following if a player sprite is used
 // MobID,SpriteID,Sex,Hair,Hair_Color,Weapon,Shield,Head_Top,Head_Middle,Head_Bottom,Option,Dye_Color
