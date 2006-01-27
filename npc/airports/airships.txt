@@ -24,7 +24,7 @@ OnTouch:
 	if($airplanelocation == 1)warp "einbroch.gat",90,275;
 	if($airplanelocation == 2)warp "yuno.gat",85,265;
 	if($airplanelocation == 3)warp "lighthalzen.gat",302,75;
-	if($airplanelocation == 4)warp "hugel.gat",178,146;
+	if($airplanelocation == 4)warp "hugel.gat",182,150;
 	end;
 
 OnHide:
@@ -40,7 +40,7 @@ OnTouch:
 	if($airplanelocation == 1)warp "einbroch.gat",90,275;
 	if($airplanelocation == 2)warp "yuno.gat",85,265;
 	if($airplanelocation == 3)warp "lighthalzen.gat",302,75;
-	if($airplanelocation == 4)warp "hugel.gat",178,146;
+	if($airplanelocation == 4)warp "hugel.gat",182,150;
 	end;
 
 OnHide:
@@ -345,7 +345,7 @@ izlude.gat,201,54,3	script	Airship Staff#izl	91,{
 //= The Hugel Airship Staff
 //============================================================
 
-hugel.gat,179,143,1	script	Airship Staff#hu	91,{
+hugel.gat,182,150,3	script	Airship Staff#hu	91,{
 
 	mes "[Airship Staff]";
 	mes "Welcome to the Schwartzwald Republic's Airship.";
