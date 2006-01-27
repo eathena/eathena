@@ -1,6 +1,9 @@
 Date	Added
 
 2006/01/27
+	* Modified traps so that once they trigger they set themselves as "Into the
+	  Abyss" casted traps, so that if you remove them, you won't earn the item.
+	  [Skotlex]
 	* Fixed Basilica (small bug introduced yesterday) [Skotlex]
 	* Hopefully cleaned out the warnings when compiling the char-SQL server.
 	  [Skotlex]

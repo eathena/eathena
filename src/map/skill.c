@@ -7201,6 +7201,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 			sg->unit_id = UNT_USED_TRAPS;
 			clif_changelook(&src->bl,LOOK_BASE,sg->unit_id);
 			sg->limit=DIFF_TICK(tick,sg->tick)+1500;
+			sg->val3 = BD_INTOABYSS; //Prevent Remove Trap from giving you the trap back. [Skotlex]
 		}
 		break;
 
@@ -7236,6 +7237,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 		sg->unit_id = UNT_USED_TRAPS;
 		clif_changelook(&src->bl,LOOK_BASE,UNT_FIREPILLAR_ACTIVE);
 		sg->limit=DIFF_TICK(tick,sg->tick)+1500;
+		sg->val3 = BD_INTOABYSS; //Prevent Remove Trap from giving you the trap back. [Skotlex]
 		break;
 
 	case UNT_BLASTMINE:
@@ -7255,6 +7257,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 		sg->unit_id = UNT_USED_TRAPS;
 		clif_changelook(&src->bl,LOOK_BASE,sg->unit_id);
 		sg->limit=DIFF_TICK(tick,sg->tick)+1500;
+		sg->val3 = BD_INTOABYSS; //Prevent Remove Trap from giving you the trap back. [Skotlex]
 		break;
 		
 	case UNT_TALKIEBOX:
@@ -7266,6 +7269,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 			clif_changelook(&src->bl, LOOK_BASE, sg->unit_id);
 			sg->limit = DIFF_TICK(tick, sg->tick) + 5000;
 			sg->val2 = -1; //“¥‚ñ‚¾
+			sg->val3 = BD_INTOABYSS; //Prevent Remove Trap from giving you the trap back. [Skotlex]
 		}
 		break;
 
@@ -7465,6 +7469,7 @@ int skill_unit_onout(struct skill_unit *src,struct block_list *bl,unsigned int t
 		if(target && target == bl){
 			status_change_end(bl,SC_ANKLE,-1);
 			sg->limit=DIFF_TICK(tick,sg->tick)+1000;
+			sg->val3 = BD_INTOABYSS; //Prevent Remove Trap from giving you the trap back. [Skotlex]
 		}
 		else
 			return 0;
