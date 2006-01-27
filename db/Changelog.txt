@@ -26,6 +26,7 @@
 		* * * From where this info is? ... Mine: On your death you'll loose this ring and get 50% HP [Komurka]
 =========================
 01/27
+	* Added monster skills to the kiel dungeon monsters [MasterOfMuppets]
 	* Changed SKEGGIOLD monster #1755 to SKEGGIOLD_ so you can separate them [MasterOfMuppets]
 01/26
 	* Changed Sunflower Pin's DEF from 0 do 1 (27/01 kRO Patch) [Poki#3]
