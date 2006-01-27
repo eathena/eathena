@@ -3632,6 +3632,7 @@ static const struct battle_data_short {
 	{ "monster_skill_nofootset",           &battle_config.monster_skill_nofootset	},
 	{ "player_cloak_check_type",           &battle_config.pc_cloak_check_type		},
 	{ "monster_cloak_check_type",          &battle_config.monster_cloak_check_type	},
+	{ "sense_type",                        &battle_config.estimation_type },
 	{ "gvg_short_attack_damage_rate",      &battle_config.gvg_short_damage_rate	},
 	{ "gvg_long_attack_damage_rate",       &battle_config.gvg_long_damage_rate		},
 	{ "gvg_weapon_attack_damage_rate",     &battle_config.gvg_weapon_damage_rate	},
@@ -4011,6 +4012,7 @@ void battle_set_defaults() {
 	battle_config.monster_skill_nofootset = 0;
 	battle_config.pc_cloak_check_type = 1;
 	battle_config.monster_cloak_check_type = 0;
+	battle_config.estimation_type = 3;
 	battle_config.gvg_short_damage_rate = 100;
 	battle_config.gvg_long_damage_rate = 75;
 	battle_config.gvg_weapon_damage_rate = 60;

@@ -5238,9 +5238,11 @@ int clif_skill_estimation(struct map_session_data *sd,struct block_list *dst)
 	WBUFW(buf, 4)=md->level;
 	WBUFW(buf, 6)=md->db->size;
 	WBUFL(buf, 8)=md->hp;
-	WBUFW(buf,12)=status_get_def(&md->bl)+status_get_def2(&md->bl);
+	WBUFW(buf,12)= (battle_config.estimation_type&1?status_get_def(&md->bl):0)
+		+(battle_config.estimation_type&2?status_get_def2(&md->bl):0);
 	WBUFW(buf,14)=md->db->race;
-	WBUFW(buf,16)=status_get_mdef(&md->bl) + status_get_mdef2(&md->bl) - (md->db->vit>>1);
+	WBUFW(buf,16)= (battle_config.estimation_type&1?status_get_mdef(&md->bl):0)
+  		+(battle_config.estimation_type&2?status_get_mdef2(&md->bl) - (md->db->vit>>1):0);
 	WBUFW(buf,18)=status_get_elem_type(&md->bl);
 	for(i=0;i<9;i++)
 		WBUFB(buf,20+i)= (unsigned char)battle_attr_fix(NULL,dst,100,i+1,md->def_ele);

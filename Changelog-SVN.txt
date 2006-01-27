@@ -1,6 +1,8 @@
 Date	Added
 
 2006/01/27
+	* Added "sense_type" config to conf/battle/skill.conf to select which defense
+	  is displayed on the sense screen. Defaults to displaying def+def2. [Skotlex]
 	* Modified traps so that once they trigger they set themselves as "Into the
 	  Abyss" casted traps, so that if you remove them, you won't earn the item.
 	  [Skotlex]
