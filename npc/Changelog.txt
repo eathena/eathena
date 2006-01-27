@@ -27,6 +27,7 @@ Date		Added
 ======
 
 01/27
+	* Added monster spawns for Kiel dungeon, they're commented out for now though. [MasterOfMuppets]
 	* Added a new global function "F_ItemName" to print expanded item name [Lupus]
 		such as '+9 VVS Wind Knife'
 	- You can use "F_RandMes" to pick a random number form list:
