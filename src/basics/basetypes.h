@@ -102,6 +102,9 @@
 //////////////////////////////
 
 
+
+
+
 //////////////////////////////////////////////////////////////////////////
 // standard headers
 //////////////////////////////////////////////////////////////////////////
@@ -119,6 +122,11 @@
 #include <limits.h>
 #include <signal.h>
 #include <assert.h>
+
+//////////////////////////////////////////////////////////////////////////
+// additional includes for wchar support
+#include <wchar.h>
+#include <wctype.h>
 
 
 //////////////////////////////
@@ -498,6 +506,71 @@ typedef int bool;
 #endif
 
 
+
+
+///////////////////////////////////////////////////////////////////////////////
+// conversion overloads to change signed types to the appropriate unsigned
+///////////////////////////////////////////////////////////////////////////////
+inline size_t to_unsigned(char t)
+{
+	return (unsigned char)(t);
+}
+inline size_t to_unsigned(unsigned char t)
+{
+	return (unsigned char)(t);
+}
+// UCT2
+inline size_t to_unsigned(short t)
+{
+	return (unsigned short)(t);
+}
+inline size_t to_unsigned(unsigned short t)
+{
+	return (unsigned short)(t);
+}
+// UCT4
+inline size_t to_unsigned(sint32 t)
+{
+	return (uint32)(t);
+}
+inline size_t to_unsigned(uint32 t)
+{
+	return (uint32)(t);
+}
+// others, just to be complete
+inline size_t to_unsigned(long t)
+{
+	return (unsigned long)(t);
+}
+inline size_t to_unsigned(unsigned long t)
+{
+	return (unsigned long)(t);
+}
+inline uint64 to_unsigned(int64 t)
+{
+	return (uint64)(t);
+}
+inline uint64 to_unsigned(uint64 t)
+{
+	return (uint64)(t);
+}
+#ifdef WIN32
+// int on non-win32 in handled by int32
+inline size_t to_unsigned(int t)
+{
+	return (unsigned int)(t);
+}
+inline size_t to_unsigned(unsigned int t)
+{
+	return (unsigned int)(t);
+}
+#endif
+
+///////////////////////////////////////////////////////////////////////////////
+
+
+
+
 ///////////////////////////////////////////////////////////////////////////////
 // wrappers for Character Classification Routines
 // this also gets rid of the macro definitions
@@ -507,55 +580,107 @@ namespace stringcheck
 #ifdef isalpha	// get the function form, not the macro
 #undef isalpha
 #endif
-extern inline char isalpha(char val)	{ return isalpha((int)((unsigned char)val)); }
+template <class T> extern inline bool isalpha(T c) { return 0!=::isalpha( to_unsigned(c) ); }
+// implementation for char (and wchar)
+extern inline bool isalpha(char c)		{ return 0!=::isalpha ( to_unsigned(c) ); }
+extern inline bool isalpha(wchar_t c)	{ return 0!=::iswalpha( to_unsigned(c) ); }
+
 #ifdef isupper	// get the function form, not the macro
 #undef isupper
 #endif
-extern inline char isupper(char val)	{ return isupper((int)((unsigned char)val)); }
+template <class T> extern inline bool isupper(T c) { return ::isupper( to_unsigned(c) ); }
+// implementation for char (and wchar)
+extern inline bool isupper(char c)		{ return 0!=::isupper ( to_unsigned(c) ); }
+extern inline bool isupper(wchar_t c)	{ return 0!=::iswupper( to_unsigned(c) ); }
+
 #ifdef islower	// get the function form, not the macro
 #undef islower
 #endif
-extern inline char islower(char val)	{ return islower((int)((unsigned char)val)); }
+template <class T> extern inline bool islower(T c) { return 0!=::islower( to_unsigned(c) ); }
+// implementation for char (and wchar)
+extern inline bool islower(char c)		{ return 0!=::islower ( to_unsigned(c) ); }
+extern inline bool islower(wchar_t c)	{ return 0!=::iswlower( to_unsigned(c) ); }
+
 #ifdef isdigit	// get the function form, not the macro
 #undef isdigit
 #endif
-extern inline char isdigit(char val)	{ return isdigit((int)((unsigned char)val)); }
+template <class T> extern inline bool isdigit(T c) { return 0!=::isdigit( to_unsigned(c) ); }
+// implementation for char (and wchar)
+extern inline bool isdigit(char c)		{ return 0!=::isdigit ( to_unsigned(c) ); }
+extern inline bool isdigit(wchar_t c)	{ return 0!=::iswdigit( to_unsigned(c) ); }
+
 #ifdef isxdigit	// get the function form, not the macro
 #undef isxdigit
 #endif
-extern inline char isxdigit(char val)	{ return isxdigit((int)((unsigned char)val)); }
+template <class T> extern inline bool isxdigit(T c) { return 0!=::isxdigit( to_unsigned(c) ); }
+// implementation for char (and wchar)
+extern inline bool isxdigit(char c)		{ return 0!=::isxdigit ( to_unsigned(c) ); }
+extern inline bool isxdigit(wchar_t c)	{ return 0!=::iswxdigit( to_unsigned(c) ); }
+
 #ifdef isspace	// get the function form, not the macro
 #undef isspace
 #endif
-extern inline char isspace(char val)	{ return isspace((int)((unsigned char)val)); }
+template <class T> extern inline bool isspace(T c) { return 0!=::isspace( to_unsigned(c) ); }
+// implementation for char (and wchar)
+extern inline bool isspace(char c)		{ return 0!=::isspace ( to_unsigned(c) ); }
+extern inline bool isspace(wchar_t c)	{ return 0!=::iswspace( to_unsigned(c) ); }
+
 #ifdef ispunct	// get the function form, not the macro
 #undef ispunct
 #endif
-extern inline char ispunct(char val)	{ return ispunct((int)((unsigned char)val)); }
+template <class T> extern inline bool ispunct(T c) { return 0!=::ispunct( to_unsigned(c) ); }
+// implementation for char (and wchar)
+extern inline bool ispunct(char c)		{ return 0!=::ispunct ( to_unsigned(c) ); }
+extern inline bool ispunct(wchar_t c)	{ return 0!=::iswpunct( to_unsigned(c) ); }
+
 #ifdef isalnum	// get the function form, not the macro
 #undef isalnum
 #endif
-extern inline char isalnum(char val)	{ return isalnum((int)((unsigned char)val)); }
+template <class T> extern inline bool isalnum(T c) { return 0!=::isalnum( to_unsigned(c) ); }
+// implementation for char (and wchar)
+extern inline bool isalnum(char c)		{ return 0!=::isalnum ( to_unsigned(c) ); }
+extern inline bool isalnum(wchar_t c)	{ return 0!=::iswalnum( to_unsigned(c) ); }
+
 #ifdef isprint	// get the function form, not the macro
 #undef isprint
 #endif
-extern inline char isprint(char val)	{ return isprint((int)((unsigned char)val)); }
+template <class T> extern inline bool isprint(T c) { return 0!=::isprint( to_unsigned(c) ); }
+// implementation for char (and wchar)
+extern inline bool isprint(char c)		{ return 0!=::isprint ( to_unsigned(c) ); }
+extern inline bool isprint(wchar_t c)	{ return 0!=::iswprint( to_unsigned(c) ); }
+
 #ifdef isgraph	// get the function form, not the macro
 #undef isgraph
 #endif
-extern inline char isgraph(char val)	{ return isgraph((int)((unsigned char)val)); }
+template <class T> extern inline bool isgraph(T c) { return 0!=::isgraph( to_unsigned(c) ); }
+// implementation for char (and wchar)
+extern inline bool isgraph(char c)		{ return 0!=::isgraph ( to_unsigned(c) ); }
+extern inline bool isgraph(wchar_t c)	{ return 0!=::iswgraph( to_unsigned(c) ); }
+
 #ifdef iscntrl	// get the function form, not the macro
 #undef iscntrl
 #endif
-extern inline char iscntrl(char val)	{ return iscntrl((int)((unsigned char)val)); }
+template <class T> extern inline bool iscntrl(T c) { return 0!=::iscntrl( to_unsigned(c) ); }
+// implementation for char (and wchar)
+extern inline bool iscntrl(char c)		{ return 0!=::iscntrl ( to_unsigned(c) ); }
+extern inline bool iscntrl(wchar_t c)	{ return 0!=::iswcntrl( to_unsigned(c) ); }
+
 #ifdef toupper	// get the function form, not the macro
 #undef toupper
 #endif
-extern inline char toupper(char val)	{ return toupper((int)((unsigned char)val)); }
+template <class T> extern inline T toupper(T c) { return ::toupper( to_unsigned(c) ); }
+// implementation for char (and wchar)
+extern inline char toupper(char c)		{ return ::toupper ( to_unsigned(c) ); }
+extern inline wchar_t toupper(wchar_t c){ return ::towupper( to_unsigned(c) ); }
+
 #ifdef tolower	// get the function form, not the macro
 #undef tolower
 #endif
-extern inline char tolower(char val)	{ return tolower((int)((unsigned char)val)); }
+template <class T> extern inline T tolower(T c) { return ::tolower( to_unsigned(c) ); }
+// implementation for char (and wchar)
+extern inline char tolower(char c)		{ return ::tolower ( to_unsigned(c) ); }
+extern inline wchar_t tolower(wchar_t c){ return ::towlower( to_unsigned(c) ); }
+
 };
 ///////////////////////////////////////////////////////////////////////////////
 

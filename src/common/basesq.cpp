@@ -1,6 +1,10 @@
 #include "basesq.h"
 
 
+// SELECT element FROM table ORDER BY name LIMIT OFFSET,NUMBER
+
+
+
 #ifndef TXT_ONLY
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -533,7 +537,7 @@ bool CAccountDB_sql::saveAccount(const CLoginAccount& account)
 		<< "`email` = '" << 		account.email << "', "
 		<< "`login_id1` = '" << 	account.login_id1 << "', "
 		<< "`login_id2` = '" << 	account.login_id2 << "', "
-		<< "`client_ip` = '" <<		((ipaddress)account.client_ip).getstring(tempstr)  << "', "
+		<< "`client_ip` = '" <<		((ipaddress)account.client_ip).tostring()  << "', "
 		<< "`last_login` = '" <<	account.last_login << "', "
 		<< "`login_count` = '" <<	account.login_count << "', "
 		<< "`valid_until` = '" <<	account.valid_until << "', "

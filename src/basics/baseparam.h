@@ -1,13 +1,9 @@
 #ifndef __PARAM_H__
 #define __PARAM_H__
 
-#include "base.h"
-#include "showmsg.h"	// ShowMessage
-#include "utils.h"		// safefopen
-#include "socket.h"		// buffer iterator
-#include "timer.h"		// timed config reload
-#include "strlib.h"		// checktrim
-
+#include "basetypes.h"
+#include "baseobjects.h"
+#include "baseministring.h"
 
 //////////////////////////////////////////////////////////////////////////
 // test function
@@ -61,7 +57,7 @@ protected:
 	// user function
 	virtual bool timeruserfunc(unsigned long tick) = 0;
 	// external calling from external timer implementation
-	static int timercallback(int timer, unsigned long tick, int id, intptr data);
+	static int timercallback(int timer, unsigned long tick, int id, size_t data);
 };
 
 
@@ -239,8 +235,8 @@ class CParamStorage : public MiniString
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// class Data
-	TPtrCount<CParamBase>		cParam;	// pointer to the parameter data
-	ulong						cTime;	// time of last access
+	TPtrCount<CParamBase>	cParam;	// pointer to the parameter data
+	ulong					cTime;	// time of last access
 
 	///////////////////////////////////////////////////////////////////////////
 	// construction/destruction

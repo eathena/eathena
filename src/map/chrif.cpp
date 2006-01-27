@@ -418,7 +418,7 @@ int chrif_recvmap(int fd)
 		map_setipport((char*)RFIFOP(fd,i), mapset);
 	}
 	if (battle_config.etc_log)
-		ShowStatus("recv maps from %s (%d maps)\n", mapset.getstring(), j);
+		ShowStatus("recv maps from %s (%d maps)\n", mapset.tostring(NULL), j);
 
 	return 0;
 }
@@ -440,7 +440,7 @@ int chrif_removemap(int fd)
 		map_eraseipport((char*)RFIFOP(fd, i), mapset);
 	}
 	if(battle_config.etc_log)
-		ShowStatus("remove maps of server %s (%d maps)\n", mapset.getstring(), j);
+		ShowStatus("remove maps of server %s (%d maps)\n", mapset.tostring(NULL), j);
 
 	return 0;	
 }

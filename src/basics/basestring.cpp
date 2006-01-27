@@ -7,7 +7,7 @@
 #include "basestring.h"
 #include "baseexceptions.h"
 #include "basearray.h"
-
+#include "basestrsearch.h"
 #include "baseministring.h"
 
 
@@ -64,7 +64,7 @@ template<class T> const T* toupper(T* str)
 	}
 	return str;
 }
-// explicit instanciation
+// explicit instantiation
 template const char* toupper<char>(char* str);
 template const wchar_t* toupper<wchar_t>(wchar_t* str);
 
@@ -79,7 +79,7 @@ template<class T> const T* tolower(T* str)
 	}
 	return str;
 }
-// explicit instanciation
+// explicit instantiation
 template const char* tolower<char>(char* str);
 template const wchar_t* tolower<wchar_t>(wchar_t* str);
 
@@ -89,11 +89,11 @@ template<class T> const T* ltrim(T* str)
 	if(str)
 	{
 		T *src=str, *tar=str, *mk=NULL;
-		while(*src && _isspace(*src) )
+		while(*src && stringcheck::isspace(*src) )
 			src++;
 		while(*src)
 		{
-			mk = ( _isspace(*src) )?mk?mk:tar:NULL;
+			mk = ( stringcheck::isspace(*src) )?mk?mk:tar:NULL;
 			*tar++ = *src++;
 		}
 		if(mk) 
@@ -103,7 +103,7 @@ template<class T> const T* ltrim(T* str)
 	}
 	return str;
 }
-// explicit instanciation
+// explicit instantiation
 template const char* ltrim<char>(char* str);
 template const wchar_t* ltrim<wchar_t>(wchar_t* str);
 
@@ -113,11 +113,11 @@ template<class T> const T* rtrim(T* str)
 	if(str)
 	{
 		T *src=str, *tar=str, *mk=NULL;
-		while(*src && _isspace(*src) )
+		while(*src && stringcheck::isspace(*src) )
 			src++;
 		while(*src)
 		{
-			mk = ( _isspace(*src) )?mk?mk:tar:NULL;
+			mk = ( stringcheck::isspace(*src) )?mk?mk:tar:NULL;
 			*tar++ = *src++;
 		}
 		if(mk) 
@@ -127,7 +127,7 @@ template<class T> const T* rtrim(T* str)
 	}
 	return str;
 }
-// explicit instanciation
+// explicit instantiation
 template const char* rtrim<char>(char* str);
 template const wchar_t* rtrim<wchar_t>(wchar_t* str);
 
@@ -137,11 +137,11 @@ template<class T> const T* trim(T* str)
 	if(str)
 	{
 		T *src=str, *tar=str, *mk=NULL;
-		while(*src && _isspace(*src) )
+		while(*src && stringcheck::isspace(*src) )
 			src++;
 		while(*src)
 		{
-			mk = ( _isspace(*src) )?mk?mk:tar:NULL;
+			mk = ( stringcheck::isspace(*src) )?mk?mk:tar:NULL;
 			*tar++ = *src++;
 		}
 		if(mk) 
@@ -151,7 +151,7 @@ template<class T> const T* trim(T* str)
 	}
 	return str;
 }
-// explicit instanciation
+// explicit instantiation
 template const char* trim<char>(char* str);
 template const wchar_t* trim<wchar_t>(wchar_t* str);
 
@@ -161,11 +161,11 @@ template<class T> const T* itrim(T* str, bool removeall)
 	if(str)
 	{
 		T *src=str, *tar=str, mk=0;
-		while(*src && _isspace(*src) )
+		while(*src && stringcheck::isspace(*src) )
 			src++;
 		while(*src)
 		{
-			if( _isspace(*src) )
+			if( stringcheck::isspace(*src) )
 				mk=' ', src++;
 			else
 			{
@@ -178,7 +178,7 @@ template<class T> const T* itrim(T* str, bool removeall)
 	}
 	return str;
 }
-// explicit instanciation
+// explicit instantiation
 template const char* itrim<char>(char* str, bool removeall);
 template const wchar_t* itrim<wchar_t>(wchar_t* str, bool removeall);
 
@@ -190,48 +190,47 @@ template const wchar_t* itrim<wchar_t>(wchar_t* str, bool removeall);
 ///////////////////////////////////////////////////////////////////////////////
 template <class T> const T* _itobase(sint64 value, T* buf, size_t base, size_t& len, bool _signed)
 {
-    // internal conversion routine: converts the value to a string 
-    // at the end of the buffer and returns a pointer to the first
-    // character. this is to get rid of copying the string to the 
-    // beginning of the buffer, since finally the string is supposed 
-    // to be copied to a dynamic string in itostring(). the buffer 
-    // must be at least 65 bytes long.
-
-    static const T* digits = StringConstant(1,(T)0);
-//  []=      "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-		
-
-    const T* pdigits = (base>36) ? digits : digits+2;
-    size_t i = 64;
-    buf[i] = 0;
-    bool neg = false;
-    uint64 v = value;
-    if (_signed && base==10 && value < 0)
-    {
-        v = -value;
-        // since we can't handle the lowest signed 64-bit value, we just
-        // return a built-in string.
-        if(sint64(v) < 0)   // the LLONG_MIN negated results in the same value
-        {
-            len = 20;
-            return StringConstant(2,(T)0);
-//				"-9223372036854775808";
-        }
-        neg = true;
-    }
-    do
-    {
-        buf[--i] = pdigits[uint(v % base)];
-        v /= base;
-    } while (v > 0);
-
-    if (neg)
-        buf[--i] = '-';
-
-    len = 64 - i;
-    return buf+i;
+	// internal conversion routine: converts the value to a string
+	// at the end of the buffer and returns a pointer to the first
+	// character. this is to get rid of copying the string to the
+	// beginning of the buffer, since finally the string is supposed
+	// to be copied to a dynamic string in itostring(). the buffer
+	// must be at least 65 bytes long.
+	
+	static const T* digits = StringConstant(1,(T)0);
+//	[] = "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+	
+	const T* pdigits = (base>36) ? digits : digits+2;
+	size_t i = 64;
+	buf[i] = 0;
+	bool neg = false;
+	uint64 v = value;
+	if (_signed && base==10 && value < 0)
+	{
+		v = -value;
+		// since we can't handle the lowest signed 64-bit value, we just
+		// return a built-in string.
+		if(sint64(v) < 0)   // the LLONG_MIN negated results in the same value
+		{
+			len = 20;
+			return StringConstant(2,(T)0);
+//			"-9223372036854775808";
+		}
+		neg = true;
+	}
+	do
+	{
+		buf[--i] = pdigits[uint(v % base)];
+		v /= base;
+	} while (v > 0);
+	
+	if (neg)
+		buf[--i] = '-';
+	
+	len = 64 - i;
+	return buf+i;
 }
-// explicit instanciation
+// explicit instantiation
 template const char*    _itobase(sint64 value, char*    buf, size_t base, size_t& len, bool _signed);
 template const wchar_t* _itobase(sint64 value, wchar_t* buf, size_t base, size_t& len, bool _signed);
 
@@ -241,25 +240,25 @@ template const wchar_t* _itobase(sint64 value, wchar_t* buf, size_t base, size_t
 ///////////////////////////////////////////////////////////////////////////////
 template <class T> void _itobase2(string<T>& result, sint64 value, size_t base, bool _signed, size_t width=0, T padchar=0)
 {
-    if(base < 2 || base > 64)
-    {
-        clear(result);
-        return;
-    }
-    T buf[128];   // the longest possible string is 64 elems+eos when base=2
-    size_t reslen;
-    const T* p = _itobase<T>(value, buf, base, reslen, _signed);
-    if (width > reslen)
-    {
-        if (padchar == 0)
-        {	// default pad char
-            if (base == 10)
-                padchar = ' ';
-            else if (base > 36)
-                padchar = '.';
-            else
-                padchar = '0';
-        }
+	if(base < 2 || base > 64)
+	{
+		clear(result);
+		return;
+	}
+	T buf[128];   // the longest possible string is 64 elems+eos when base=2
+	size_t reslen;
+	const T* p = _itobase<T>(value, buf, base, reslen, _signed);
+	if (width > reslen)
+	{
+		if (padchar == 0)
+		{	// default pad char
+			if (base == 10)
+				padchar = ' ';
+			else if (base > 36)
+				padchar = '.';
+			else
+				padchar = '0';
+		}
 		bool neg = *p == '-';
 		result.clear();
 		width -= reslen;
@@ -271,11 +270,11 @@ template <class T> void _itobase2(string<T>& result, sint64 value, size_t base, 
 		}
 		result.append(padchar, width);	// padding
 		result.append(p, reslen);	// buffer
-    }
-    else 
-        result.assign(p, reslen);
+	}
+	else
+		result.assign(p, reslen);
 }
-// explicit instanciation
+// explicit instantiation
 template void _itobase2<char   >(string<char   >& result, sint64 value, size_t base, bool _signed, size_t width, char    padchar);
 template void _itobase2<wchar_t>(string<wchar_t>& result, sint64 value, size_t base, bool _signed, size_t width, wchar_t padchar);
 
@@ -288,10 +287,10 @@ template <class T> uint64 stringtoue(const T* str, size_t base)
 {
 	uint64 result = 0;
 
-    if( str != 0 && *str != 0 && base >= 2 && base <= 64)
+	if( str != 0 && *str != 0 && base >= 2 && base <= 64)
 	{
 		uint64 t;
-	    const T* p = str;
+		const T* p = str;
 		do
 		{
 			int c = *p++;
@@ -327,7 +326,7 @@ template <class T> uint64 stringtoue(const T* str, size_t base)
 	}
     return result;
 }
-// explicit instanciation
+// explicit instantiation
 template uint64 stringtoue<char>(const char*  str, size_t base);
 template uint64 stringtoue<wchar_t>(const wchar_t*  str, size_t base);
 
@@ -338,18 +337,18 @@ template uint64 stringtoue<wchar_t>(const wchar_t*  str, size_t base);
 ///////////////////////////////////////////////////////////////////////////////
 template <class T> sint64 stringtoie(const T* str)
 {
-    if(str==0 || *str==0)
-        return 0;
-    bool neg = *str == '-';
-    uint64 result = stringtoue(str + int(neg), 10);
-    if (result > (uint64(INT64_MAX) + uint(neg)))
-        return (neg)?INT64_MIN:INT64_MAX;
-    if (neg)
-        return -sint64(result);
-    else
-        return  sint64(result);
+	if(str==0 || *str==0)
+		return 0;
+	bool neg = *str == '-';
+	uint64 result = stringtoue(str + int(neg), 10);
+	if (result > (uint64(INT64_MAX) + uint(neg)))
+		return (neg)?INT64_MIN:INT64_MAX;
+	if (neg)
+		return -sint64(result);
+	else
+		return  sint64(result);
 }
-// explicit instanciation
+// explicit instantiation
 template sint64 stringtoie<char>(const char* str);
 template sint64 stringtoie<wchar_t>(const wchar_t* str);
 
@@ -365,11 +364,11 @@ template <class T> sint64 stringtoi(const T* p)
 	if( p != 0 &&  *p != 0)
 	{
 		sint64 t;
-		while( _isspace(*p) ) p++;
+		while( stringcheck::isspace(*p) ) p++;
 		sign = (*p=='-');
 		if(sign || *p=='+') p++;
 		// allow whitespace between sign and number
-		while( _isspace(*p) ) p++;
+		while( stringcheck::isspace(*p) ) p++;
 		do
 		{
 			char c = *p++;
@@ -384,9 +383,9 @@ template <class T> sint64 stringtoi(const T* p)
 			r = t;
 		} while (*p != 0);
 	}
-    return (sign)?(-r):(r);
+	return (sign)?(-r):(r);
 }
-// explicit instanciation
+// explicit instantiation
 template sint64 stringtoi<char>(const char* p);
 template sint64 stringtoi<wchar_t>(const wchar_t* p);
 
@@ -399,27 +398,27 @@ template sint64 stringtoi<wchar_t>(const wchar_t* p);
 ///////////////////////////////////////////////////////////////////////////////
 string<> itostring(sint64 value, size_t base, size_t width, char padchar)
 {
-    string<> result;
-    _itobase2(result, value, base, true, width, padchar);
-    return result;
+	string<> result;
+	_itobase2(result, value, base, true, width, padchar);
+	return result;
 }
 string<> itostring(uint64 value, size_t base, size_t width, char padchar)
 {
-    string<> result;
-    _itobase2(result, value, base, false, width, padchar);
-    return result;
+	string<> result;
+	_itobase2(result, value, base, false, width, padchar);
+	return result;
 }
 string<> itostring(int value, size_t base, size_t width, char padchar)
 {
-    string<> result;
-    _itobase2(result, sint64(value), base, true, width, padchar);
-    return result;
+	string<> result;
+	_itobase2(result, sint64(value), base, true, width, padchar);
+	return result;
 }
 string<> itostring(uint value, size_t base, size_t width, char padchar)
 {
-    string<> result;
-    _itobase2(result, uint64(value), base, false, width, padchar);
-    return result;
+	string<> result;
+	_itobase2(result, uint64(value), base, false, width, padchar);
+	return result;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -438,28 +437,28 @@ inline size_t string_from_time(wchar_t* strDest, size_t maxsize, const wchar_t* 
 ///////////////////////////////////////////////////////////////////////////////
 template<class T> string<T> nowstring(const T* fmt, bool utc)
 {
-    T buf[128];
-    time_t longtime;
-    time(&longtime);
+	T buf[128];
+	time_t longtime;
+	time(&longtime);
 #if defined(SINGLETHREAD) || defined(WIN32)
-    tm* t;
-    if (utc)
-        t = gmtime(&longtime);
-    else
-        t = localtime(&longtime);
-    size_t r = string_from_time(buf, sizeof(buf)/sizeof(*buf), fmt, t);
+	tm* t;
+	if (utc)
+		t = gmtime(&longtime);
+	else
+		t = localtime(&longtime);
+	size_t r = string_from_time(buf, sizeof(buf)/sizeof(*buf), fmt, t);
 #else
-    tm t;
-    if (utc)
-        gmtime_r(&longtime, &t);
-    else
-        localtime_r(&longtime, &t);
-    size_t r = string_from_time(buf, sizeof(buf)/sizeof(*buf), fmt, &t);
+	tm t;
+	if (utc)
+		gmtime_r(&longtime, &t);
+	else
+		localtime_r(&longtime, &t);
+	size_t r = string_from_time(buf, sizeof(buf)/sizeof(*buf), fmt, &t);
 #endif
-    buf[r] = 0;
-    return string<T>(buf,r);
+	buf[r] = 0;
+	return string<T>(buf,r);
 }
-// explicit instanciation
+// explicit instantiation
 template string<char>    nowstring<char>   (const char*    fmt, bool utc);
 template string<wchar_t> nowstring<wchar_t>(const wchar_t* fmt, bool utc);
 
@@ -468,13 +467,13 @@ template string<wchar_t> nowstring<wchar_t>(const wchar_t* fmt, bool utc);
 ///////////////////////////////////////////////////////////////////////////////
 template<class T> string<T> dttostring(datetime dt, const T* fmt)
 {
-    T buf[128];
-    tm t;
-    int r = string_from_time(buf, sizeof(buf)/sizeof(*buf), fmt, dttotm(dt, t));
-    buf[r] = 0;
-    return string<T>(buf, r);
+	T buf[128];
+	tm t;
+	int r = string_from_time(buf, sizeof(buf)/sizeof(*buf), fmt, dttotm(dt, t));
+	buf[r] = 0;
+	return string<T>(buf, r);
 }
-// explicit instanciation
+// explicit instantiation
 template string<char>    dttostring<char>   (datetime dt, const char*    fmt);
 template string<wchar_t> dttostring<wchar_t>(datetime dt, const wchar_t* fmt);
 
@@ -501,20 +500,20 @@ template <class T> inline const T* stringinterface<T>::getStringConstant(size_t 
 {
 	return StringConstant(i, (T)0 );
 }
-// explicit instanciation
-template const char*    stringinterface<char   >::getStringConstant(size_t i) const;
-template const wchar_t* stringinterface<wchar_t>::getStringConstant(size_t i) const;
+// explicit instantiation
+//template const char*    stringinterface<char   >::getStringConstant(size_t i) const;
+//template const wchar_t* stringinterface<wchar_t>::getStringConstant(size_t i) const;
 
 ///////////////////////////////////////////////////////////////////////////
 // provide an exception interface without including it in the h file (circle reference)
 ///////////////////////////////////////////////////////////////////////////
-template <class T> void stringinterface<T>::throw_bound() const
+template <class T> void stringinterface<T>::throw_bound(void) const
 {	// just use a fixed ansi string here
 	throw exception_bound("String out of bound");
 }
-// explicit instanciation
-//template const void stringinterface<char   >::throw_bound() const;
-//template const void stringinterface<wchar_t>::throw_bound() const;
+// explicit instantiation
+//template void stringinterface<char   >::throw_bound(void) const;
+//template void stringinterface<wchar_t>::throw_bound(void) const;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -569,9 +568,9 @@ template <class T> bool stringinterface<T>::findnext(const stringinterface<T>& p
 	startpos = sp;
 	return true;
 }
-// explicit instanciation
-template bool stringinterface<char   >::findnext(const stringinterface<char   >& pattern, size_t &startpos, bool ignorecase) const;
-template bool stringinterface<wchar_t>::findnext(const stringinterface<wchar_t>& pattern, size_t &startpos, bool ignorecase) const;
+// explicit instantiation
+//template bool stringinterface<char   >::findnext(const stringinterface<char   >& pattern, size_t &startpos, bool ignorecase) const;
+//template bool stringinterface<wchar_t>::findnext(const stringinterface<wchar_t>& pattern, size_t &startpos, bool ignorecase) const;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Search function
@@ -631,116 +630,34 @@ template <class T> TArrayDST<size_t> stringinterface<T>::findall(const stringint
 	}
 	return poslist;
 }
-// explicit instanciation
-template TArrayDST<size_t> stringinterface<char   >::findall(const stringinterface<char   >& pattern, bool ignorecase) const;
-template TArrayDST<size_t> stringinterface<wchar_t>::findall(const stringinterface<wchar_t>& pattern, bool ignorecase) const;
-
-
+// explicit instantiation
+//template TArrayDST<size_t> stringinterface<char   >::findall(const stringinterface<char   >& pattern, bool ignorecase) const;
+//template TArrayDST<size_t> stringinterface<wchar_t>::findall(const stringinterface<wchar_t>& pattern, bool ignorecase) const;
 
 
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// patternstring constructor
+// stupid microsoft does weird things on explicit member function instantiation
+// some functions are istantiated others not, and which are not istantiated 
+// changes from small modifications on the code, even if not related to the 
+// questioned section
+//
+// so can only instanciate the whole template (which they appearently support)
+// but unfortunately this support does not go that far that they can seperate 
+// inlined funtions, which are instantiated on using them (->C4660)
+// or pure virtual functions which of course do not have a definition (->C4661)
+//
+#ifdef _MSC_VER
+#pragma warning (disable: 4660)	// "template already instanciated"
+#pragma warning (disable: 4661)	// "no definition available"
+#endif
 ///////////////////////////////////////////////////////////////////////////////
-template<class T> patternstring<T>::patternstring(const string<T>& pattern) : string<T>(pattern)
-{
-	size_t len = pattern.length();
-	size_t i;
-	// initialisation
-	for (i=0; i<256; i++)
-	{	// skip len+1 string chars if search char was not found
-		// not exactly boyer-moore but fastens up the thing
-		SkipTable[i] = len+1;
-	}
-	for (i=0; i<len; i++)
-	{	// otherwise skip as only that many 
-		// so the next char in the string fits with the one frome the pattern
-		size_t inx = to_unsigned( pattern[i] );
-		if( inx < (sizeof(SkipTable)/sizeof(SkipTable[0])) )
-			SkipTable[ inx  ] = len-i;
-	}
-}
+// explicit instantiation of the whole class
+template class stringinterface<char>;
+template class stringinterface<wchar_t>;
 
-///////////////////////////////////////////////////////////////////////////////
-// Search function
-///////////////////////////////////////////////////////////////////////////////
-template<class T> bool patternstring<T>::findnext(const stringinterface<T>& searchstring, size_t &startpos, bool ignorecase) const
-{	// modified boyer-moore search
-	
-	size_t i,k,sp;
-	size_t len = this->length();
 
-	sp=i=startpos;
-	k=0; 
-	while( i<searchstring.length() && k<len )
-	{
-		if( ignorecase ? 
-			( locase(searchstring[i]) != locase((*this)[k]) ) :
-			( searchstring[i] != (*this)[k] ) )
-		{	// no match at that position, find the next starting pos
-			size_t inx = to_unsigned( searchstring[sp+len] );
-			sp += (inx<(sizeof(SkipTable)/sizeof(SkipTable[0]))) ? SkipTable[inx] : 1;
-			i=sp;
-			k=0;
-		}
-		else
-		{	// check the next char
-			i++;
-			k++;
-		}
-	}
-	if( k<len ) // not found
-		return false;
-	startpos = sp;
-	return true;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// Search function
-///////////////////////////////////////////////////////////////////////////////
-template<class T> TArrayDST<size_t> patternstring<T>::findall(const stringinterface<T>& searchstring, bool ignorecase) const
-{	// modified boyer-moore search
-
-	// store results in this list
-	TArrayDST<size_t> poslist;
-
-	size_t i,k,sp;
-	size_t len = this->length();
-
-	sp=i=0;
-	k=0; 
-	while( i<searchstring.length() )
-	{
-		if( ignorecase ? 
-			( locase(searchstring[i]) != locase((*this)[k]) ) :
-			( searchstring[i] != (*this)[k] ) )
-		{	// no match at that position, find the next starting pos
-			size_t inx = to_unsigned( searchstring[sp+len] );
-			sp += (inx<(sizeof(SkipTable)/sizeof(SkipTable[0]))) ? SkipTable[inx] : 1;
-			i=sp;
-			k=0;
-		}
-		else
-		{	// check the next char
-			i++;
-			k++;
-		}
-
-		if(k>=len)
-		{	// found
-			poslist.push(sp);
-			sp++;
-		}
-	}
-	return poslist;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// explicit instanciation of the whole class
-template class patternstring<char>;
-template class patternstring<wchar_t>;
-///////////////////////////////////////////////////////////////////////////////
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -748,6 +665,12 @@ template class patternstring<wchar_t>;
 // using default type
 ///////////////////////////////////////////////////////////////////////////////
 string<> nullstring("");
+
+
+
+
+
+
 
 
 

@@ -29,7 +29,6 @@
 #include "showmsg.h"
 #include "utils.h"
 #include "malloc.h"
-#include "mail.h"
 
 #define STATE_BLIND 0x10
 

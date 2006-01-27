@@ -47,7 +47,7 @@ bool findFiles(const char *p, const char *pat, void (func)(const char*) );
 bool isDirectory(const char*name);
 bool isFile(const char*name);
 
-unsigned long filesize(const char*filename)
+extern inline unsigned long filesize(const char*filename)
 {
 #ifdef _WIN32
 	struct _stat st;

@@ -31,7 +31,6 @@
 #include "log.h"
 #include "showmsg.h"
 #include "core.h"
-#include "mail.h"
 
 
 #define PVP_CALCRANK_INTERVAL 1000	// PVP‡ˆÊŒvZ‚ÌŠÔŠu

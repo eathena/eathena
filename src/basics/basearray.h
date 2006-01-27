@@ -12,8 +12,13 @@
 
 
 //////////////////////////////////////////////////////////////////////////
-// basic lists/arrays
+// test function
+void test_array(void);
+
+
 //////////////////////////////////////////////////////////////////////////
+// basic lists/arrays
+//!! TODO: rewrite with the new memory allocation
 
 
 
@@ -1238,10 +1243,23 @@ public:
 	// leave new elements uninitialized/default constructed
 	virtual bool resize(size_t cnt)			
 	{
-		if(cnt > cSZ)
-			realloc(cnt);
-		cCnt = cnt;
-		return NULL!=cField;
+		if(cnt ==0)
+		{
+			if(cField)
+			{
+				delete[] cField;
+				cField=NULL;
+			}
+			cSZ = cCnt = 0;
+			return true;
+		}
+		else
+		{
+			if(cnt > cSZ)
+				realloc(cnt);
+			cCnt = cnt;
+			return NULL!=cField;
+		}
 	}
 
 	///////////////////////////////////////////////////////////////////////////

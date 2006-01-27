@@ -33,7 +33,6 @@
 #include "atcommand.h"
 #include "charcommand.h"
 #include "log.h"
-#include "mail.h"
 
 
 #ifndef TXT_ONLY
@@ -1241,6 +1240,7 @@ int CMap::foreachobject(const CMapProcessor& elem,int type)
 			{
 				if(battle_config.error_log)
 					ShowMessage("map_foreachobject: too many block !\n");
+				break;
 			}
 			else
 				bl_list[bl_list_count++]=objects[i];
@@ -4105,14 +4105,14 @@ int map_config_read(const char *cfgName)
 			}
 			else if (strcasecmp(w1, "char_ip") == 0) {
 				getcharaddress() = w2;
-				ShowInfo("Char Server IP Address : '"CL_WHITE"%s"CL_RESET"' -> '"CL_WHITE"%s"CL_RESET"'.\n", w2, getcharaddress().getstring());
+				ShowInfo("Char Server IP Address : '"CL_WHITE"%s"CL_RESET"' -> '"CL_WHITE"%s"CL_RESET"'.\n", w2, getcharaddress().tostring(NULL));
 			} 
 else if (strcasecmp(w1, "char_port") == 0) {
 	getcharaddress().port() = atoi(w2);
 }
 			else if (strcasecmp(w1, "map_ip") == 0) {
 				getmapaddress() = w2;
-				ShowInfo("Map Server IP Address : '"CL_WHITE"%s"CL_RESET"' -> '"CL_WHITE"%s"CL_RESET"'.\n", w2, getmapaddress().getstring());
+				ShowInfo("Map Server IP Address : '"CL_WHITE"%s"CL_RESET"' -> '"CL_WHITE"%s"CL_RESET"'.\n", w2, getmapaddress().tostring(NULL));
 			}
 else if (strcasecmp(w1, "map_port") == 0) {
 	getmapaddress().LANPort() = atoi(w2);
@@ -4719,7 +4719,7 @@ int do_init(int argc, char *argv[])
 	if (battle_config.pk_mode == 1)
 		ShowNotice("Server is running on '"CL_WHITE"PK Mode"CL_RESET"'.\n");
 
-	ShowStatus("Server is '"CL_BT_GREEN"ready"CL_RESET"' and listening on '"CL_WHITE"%s:%d"CL_RESET"'.\n\n", getmapaddress().LANIP().getstring(), getmapaddress().LANPort());
+	ShowStatus("Server is '"CL_BT_GREEN"ready"CL_RESET"' and listening on '"CL_WHITE"%s:%d"CL_RESET"'.\n\n", getmapaddress().LANIP().tostring(NULL), getmapaddress().LANPort());
 
 	return 0;
 }

@@ -33,7 +33,7 @@ void uptime::getvalues(unsigned long& days,unsigned long& hours,unsigned long& m
 	minutes = seconds/(60);
 	seconds-= minutes*(60);
 }
-const char *uptime::getstring(char *buffer)
+const char *uptime::tostring(char *buffer)
 {	// usage of the static buffer is not threadsafe
 	static char tmp[128];
 	char *buf = (buffer) ? buffer : tmp;
@@ -104,7 +104,7 @@ void log_uptime(void)
 	{
 		time(&curtime);
 		strftime(curtime2, 24, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
-		fprintf(fp, "%s: %s uptime - %s.\n", curtime2, argv0, uptime.getstring());
+		fprintf(fp, "%s: %s uptime - %s.\n", curtime2, argv0, uptime.tostring(NULL));
 		fclose(fp);
 	}
 	return;
@@ -193,7 +193,7 @@ void init_signal()
 // revision
 // would make it inline but dll wants it on a fixed position
 // to get it's function pointer
-const char* get_svn_revision()	{ return "Shinomori's Modified Version (2005-01-22)"; }
+const char* get_svn_revision()	{ return "Shinomori's Modified Version (2005-01-15)"; }
 /*
 {
 	static char version[10]="";

@@ -59,6 +59,7 @@ protected:
 	// friends
 	friend class CScript;
 	friend class CParser;
+	friend class TPtrCount<_CScript>;
 	friend class TPtrAutoCount<_CScript>;
 	friend class CScriptEngine;
 

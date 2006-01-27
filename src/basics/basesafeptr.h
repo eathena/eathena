@@ -69,6 +69,7 @@ public:
 	virtual bool operator !=(void *p) const { return this->itsPtr!=p; }
 };
 
+
 /////////////////////////////////////////////////////////////////////////////////////////
 // Count-Pointer
 // pointer copies are counted
@@ -84,7 +85,8 @@ protected:
 		T*				ptr;
 		unsigned int	count;
 
-		CCounter(T* p, unsigned int c = 1) : ptr(p), count(c) {}
+		CCounter(T* p) : ptr(p), count(1) {}
+		CCounter(const T& p) : ptr(new T(p)), count(1) {}
 		~CCounter()	{ if(ptr) delete ptr; }
 
 		const CCounter& operator=(T* p)
@@ -114,6 +116,7 @@ protected:
 		T				ptr;
 		unsigned int	count;
 
+		CCounter() : count(1) {}
 		CCounter(const T& p, unsigned int c = 1) : ptr(p), count(c) {}
 		~CCounter()	{ }
 
@@ -162,16 +165,19 @@ protected:
 	{	// decrement the count, clear the handle
 		if(this->itsCounter) itsCounter = itsCounter->release();
 	}
+	void checkobject()
+	{	// check if we have an object to access, create one if not
+		if(!this->itsCounter)		this->itsCounter		= new (typename TPtrCount<X>::template CCounter<X>)(NULL);
+		// usable objects need a default constructor
+		if(!this->itsCounter->ptr)	this->itsCounter->ptr	= new X; 
+	}
 
 
 public:
 	TPtrCount<X>() : itsCounter(NULL)
-	{}
-	explicit TPtrCount<X>(X* p) : itsCounter(NULL)
-	{	// allocate a new counter
-		if(p)
-			this->itsCounter = new CCounter<X>(p);
-	}
+	{ }
+	explicit TPtrCount<X>(X* p) : itsCounter(p?new CCounter<X>(p):NULL)
+	{ }
 	TPtrCount<X>(const TPtrCount<X>& r) : itsCounter(NULL)
 	{
 		this->acquire(r);
@@ -198,6 +204,7 @@ public:
 		}
 		return *this;
 	}
+
 //	MSVC cannot seperate this from own copy constructor
 //	template <class P1>
 //	TPtrCount<X>(P1& p1) : itsCounter(NULL)
@@ -245,7 +252,7 @@ public:
 		{
 			CCounter<X> *cnt = new CCounter<X>(NULL);
 			// copy the object if exist
-			if(this->itsCounter->ptr)
+			if(this->itsCounter && this->itsCounter->ptr)
 			{
 				cnt->ptr = new X(*(this->itsCounter->ptr));
 			}
@@ -259,71 +266,70 @@ public:
 	virtual bool operator ==(void *p) const { return (this->itsCounter) ? (this->itsCounter->ptr==p) : (this->itsCounter==p); }
 	virtual bool operator !=(void *p) const { return (this->itsCounter) ? (this->itsCounter->ptr!=p) : (this->itsCounter!=p); }
 
-//	operator bool() const	{ return  itsCounter ?  NULL!=itsCounter->ptr : false; }
 
 	virtual const X& readaccess() const			{ return *this->itsCounter->ptr; }
 	virtual X& writeaccess()					{ return *this->itsCounter->ptr; }
 
-	virtual const X* get() const				{ return  this->itsCounter ?  this->itsCounter->ptr : 0; }
+	virtual const X* get() const				{ return this->itsCounter ?  this->itsCounter->ptr : 0; }
 	virtual const X& operator*() const throw()	{ return *this->itsCounter->ptr; }
-	virtual const X* operator->() const throw()	{ return  this->itsCounter ?  this->itsCounter->ptr : 0; }
+	virtual const X* operator->() const throw()	{ return this->itsCounter ?  this->itsCounter->ptr : 0; }
 	virtual X& operator*() throw()				{ return *this->itsCounter->ptr; }
-	virtual X* operator->() throw()				{ return  this->itsCounter ?  this->itsCounter->ptr : 0; }
+	virtual X* operator->() throw()				{ return this->itsCounter ?  this->itsCounter->ptr : 0; }
 	virtual operator const X&() const throw()	{ return *this->itsCounter->ptr; }
 
 	const TPtrCount<X>& create ()
 	{
 		clear();
-		this->itsCounter = new CCounter<X>( new X );
+		this->itsCounter = new CCounter<X>( );
 		return *this;
 	}
 	template <class P1>
 	const TPtrCount<X>& create (P1& p1)
 	{
 		clear();
-		this->itsCounter = new CCounter<X>( new X(p1) );
+		this->itsCounter = new CCounter<X>( X(p1) );
 		return *this;
 	}
 	template <class P1, class P2>
 	const TPtrCount<X>& create (P1& p1, P2& p2)
 	{
 		clear();
-		this->itsCounter = new CCounter<X>( new X(p1,p2) );
+		this->itsCounter = new CCounter<X>( X(p1,p2) );
 		return *this;
 	}
 	template <class P1, class P2, class P3>
 	const TPtrCount<X>& create (P1& p1, P2& p2, P3& p3)
 	{
 		clear();
-		this->itsCounter = new CCounter<X>( new X(p1,p2,p3) );
+		this->itsCounter = new CCounter<X>( X(p1,p2,p3) );
 		return *this;
 	}
 	template <class P1, class P2, class P3, class P4>
 	const TPtrCount<X>& create (P1& p1, P2& p2, P3& p3, P4& p4)
 	{
 		clear();
-		this->itsCounter = new CCounter<X>( new X(p1,p2,p3,p4) );
+		this->itsCounter = new CCounter<X>( X(p1,p2,p3,p4) );
 		return *this;
 	}
 	template <class P1, class P2, class P3, class P4, class P5>
 	const TPtrCount<X>& create (P1& p1, P2& p2, P3& p3, P4& p4, P5& p5)
 	{
 		clear();
-		this->itsCounter = new CCounter<X>( new X(p1,p2,p3,p4,p5) );
+		this->itsCounter = new CCounter<X>( X(p1,p2,p3,p4,p5) );
 		return *this;
 	}
 	template <class P1, class P2, class P3, class P4, class P5, class P6>
 	const TPtrCount<X>& create (P1& p1, P2& p2, P3& p3, P4& p4, P5& p5, P6& p6)
 	{
 		clear();
-		this->itsCounter = new CCounter<X>( new X(p1,p2,p3,p4,p5,p6) );
+		this->itsCounter = new CCounter<X>( X(p1,p2,p3,p4,p5,p6) );
 		return *this;
 	}
 	template <class P1, class P2, class P3, class P4, class P5, class P6, class P7>
 	const TPtrCount<X>& create (P1& p1, P2& p2, P3& p3, P4& p4, P5& p5, P6& p6, P7& p7)
 	{
 		clear();
-		this->itsCounter = new CCounter<X>( new X(p1,p2,p3,p4,p5,p6,p7) );
+		this->itsCounter = new CCounter<X>( X(p1,p2,p3,p4,p5,p6,p7) );
 		return *this;
 	}
 };
@@ -336,16 +342,10 @@ public:
 /////////////////////////////////////////////////////////////////////////////////////////
 template <class X> class TPtrAutoCount : public TPtrCount<X>
 {
-	void create()
-	{	// check if we have an object to access, create one if not
-		if(!this->itsCounter)		this->itsCounter		= new (typename TPtrCount<X>::template CCounter<X>)(NULL);
-		// usable objects need a default constructor
-		if(!this->itsCounter->ptr)	this->itsCounter->ptr	= new X; 
-	}
-
 public:
-	explicit TPtrAutoCount<X>(X* p = NULL) : TPtrCount<X>(p)		{}
-	virtual ~TPtrAutoCount<X>()									{}
+	explicit TPtrAutoCount<X>(X* p) : TPtrCount<X>(p)	{}
+	TPtrAutoCount<X>()									{}
+	virtual ~TPtrAutoCount<X>()							{}
 	TPtrAutoCount<X>(const TPtrCount<X>& r) : TPtrCount<X>(r)		{}
 	const TPtrAutoCount<X>& operator=(const TPtrCount<X>& r)	{ this->acquire(r); return *this; }
 	TPtrAutoCount<X>(const TPtrAutoCount<X>& r) : TPtrCount<X>(r)	{}
@@ -373,14 +373,14 @@ public:
 	TPtrAutoCount<X>(P1& p1, P2& p2, P3& p3, P4& p4, P5& p5, P6& p6, P7& p7) : TPtrCount<X>(p1,p2,p3,p4,p5,p6,p7)
 	{ }
 
-	virtual const X& readaccess() const			{ const_cast<TPtrAutoCount<X>*>(this)->create(); return *this->itsCounter->ptr; }
-	virtual X& writeaccess()					{ const_cast<TPtrAutoCount<X>*>(this)->create(); return *this->itsCounter->ptr; }
-	virtual const X* get() const				{ const_cast<TPtrAutoCount<X>*>(this)->create(); return this->itsCounter ? this->itsCounter->ptr : NULL; }
-	virtual const X& operator*() const throw()	{ const_cast<TPtrAutoCount<X>*>(this)->create(); return *this->itsCounter->ptr; }
-	virtual const X* operator->() const throw()	{ const_cast<TPtrAutoCount<X>*>(this)->create(); return this->itsCounter ? this->itsCounter->ptr : NULL; }
-	virtual X& operator*() throw()				{ const_cast<TPtrAutoCount<X>*>(this)->create(); return *this->itsCounter->ptr; }
-	virtual X* operator->() throw()				{ const_cast<TPtrAutoCount<X>*>(this)->create(); return this->itsCounter ? this->itsCounter->ptr : NULL; }
-	virtual operator const X&() const throw()	{ const_cast<TPtrAutoCount<X>*>(this)->create(); return *this->itsCounter->ptr; }
+	virtual const X& readaccess() const			{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return *this->itsCounter->ptr; }
+	virtual X& writeaccess()					{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return *this->itsCounter->ptr; }
+	virtual const X* get() const				{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return this->itsCounter ? this->itsCounter->ptr : NULL; }
+	virtual const X& operator*() const throw()	{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return *this->itsCounter->ptr; }
+	virtual const X* operator->() const throw()	{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return this->itsCounter ? this->itsCounter->ptr : NULL; }
+	virtual X& operator*() throw()				{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return *this->itsCounter->ptr; }
+	virtual X* operator->() throw()				{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return this->itsCounter ? this->itsCounter->ptr : NULL; }
+	virtual operator const X&() const throw()	{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return *this->itsCounter->ptr; }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -391,15 +391,10 @@ public:
 /////////////////////////////////////////////////////////////////////////////////////////
 template <class X> class TPtrAutoRef : public TPtrCount<X>
 {
-	void create()
-	{	// check if we have an object to access, create one if not
-		if(!this->itsCounter)		this->itsCounter		= new (typename TPtrCount<X>::template CCounter<X>)(NULL);
-		// usable objects need a default constructor
-		if(!this->itsCounter->ptr)	this->itsCounter->ptr	= new X; 
-	}
 public:
-	explicit TPtrAutoRef(X* p = NULL) : TPtrCount<X>(p)		{}
-	virtual ~TPtrAutoRef()									{}
+	explicit TPtrAutoRef(X* p) : TPtrCount<X>(p)	{}
+	TPtrAutoRef()									{}
+	virtual ~TPtrAutoRef()							{}
 	TPtrAutoRef(const TPtrCount<X>& r) : TPtrCount<X>(r)	{}
 	const TPtrAutoRef& operator=(const TPtrCount<X>& r)		{ this->acquire(r); return *this; }
 	TPtrAutoRef(const TPtrAutoRef<X>& r) : TPtrCount<X>(r)	{}
@@ -429,13 +424,13 @@ public:
 
 	virtual const X& readaccess() const	
 	{ 
-		const_cast< TPtrAutoRef* >(this)->create();	
+		const_cast< TPtrAutoRef* >(this)->checkobject();	
 		// no need to aquire, is done on reference creation
 		return *this->itsCounter->ptr;
 	}
 	virtual X& writeaccess()
 	{
-		(this)->create();
+		this->checkobject();
 		this->make_unique();
 		// no need to aquire, is done on reference creation
 		return *this->itsCounter->ptr;
@@ -460,16 +455,11 @@ enum POINTER_TYPE
 template <class X> class TPtrCommon : public TPtrCount<X>
 {
 	mutable bool cAutoRef : 1;
-	void create()
-	{	// check if we have an object to access, create one if not
-		if(!this->itsCounter)		this->itsCounter		= new (typename TPtrCount<X>::template CCounter<X>)(NULL);
-		// usable objects need a default constructor
-		if(!this->itsCounter->ptr)	this->itsCounter->ptr	= new X; 
-	}
 public:
 
-	explicit TPtrCommon<X>(X* p = NULL) : TPtrCount<X>(p), cAutoRef(true)	{}
-	virtual ~TPtrCommon<X>()												{}
+	explicit TPtrCommon<X>(X* p) : TPtrCount<X>(p), cAutoRef(true)	{}
+	TPtrCommon<X>() : cAutoRef(true)								{}
+	virtual ~TPtrCommon<X>()										{}
 	TPtrCommon<X>(const TPtrCount<X>& r) : TPtrCount<X>(r), cAutoRef(true)	{}
 	const TPtrCommon<X>& operator=(const TPtrCount<X>& r)					{ this->acquire(r); return *this; }
 	TPtrCommon<X>(const TPtrCommon<X>& r) : TPtrCount<X>(r), cAutoRef(true)	{}
@@ -505,13 +495,13 @@ public:
 
 	virtual const X& readaccess() const
 	{ 
-		const_cast< TPtrCommon<X>* >(this)->create();	
+		const_cast< TPtrCommon<X>* >(this)->checkobject();	
 		// no need to aquire, is done on reference creation
 		return *this->itsCounter->ptr;
 	}
 	virtual X& writeaccess()
 	{
-		(this)->create();
+		this->checkobject();
 		if(cAutoRef) this->make_unique();
 		// no need to aquire, is done on reference creation
 		return *this->itsCounter->ptr;

@@ -7,6 +7,7 @@
 
 #include "basetypes.h"
 #include "baseobjects.h"
+#include "baseexceptions.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -139,6 +140,14 @@ class Gate : public event
 public:
 	Gate(bool state=false)			{}
 	void open()						{}
+	void close()					{}
+};
+
+class Switch
+{
+public:
+	Switch()						{}
+	bool isopen()					{ return true; }
 	void close()					{}
 };
 

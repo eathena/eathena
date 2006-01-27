@@ -23,7 +23,7 @@ template <class T> uchar char2hex(T c)
 	else
 		return 0;
 }
-// explicit instanciation
+// explicit instantiation
 template uchar char2hex<char>(char c);
 template uchar char2hex<wchar_t>(wchar_t c);
 
@@ -44,7 +44,7 @@ template <class T> uchar str2hex(const T*& p)
 	}
 	return ret;
 }
-// explicit instanciation
+// explicit instantiation
 template uchar str2hex<char>(const char*& p);
 template uchar str2hex<wchar_t>(const wchar_t*& p);
 
@@ -57,7 +57,7 @@ template <class T> T hex2char(uchar c)
     else 
         return char(c - 10 + 'a');
 }
-// explicit instanciation
+// explicit instantiation
 template char hex2char<char>(uchar c);
 template wchar_t hex2char<wchar_t>(uchar c);
 
@@ -239,7 +239,7 @@ template<class T> string<T>& tostring(string<T>& str, const charset& s)
     }
     return str;
 }
-// explicit instanciation
+// explicit instantiation
 template string<char   >& tostring(string<char   >& str, const charset& s);
 template string<wchar_t>& tostring(string<wchar_t>& str, const charset& s);
 

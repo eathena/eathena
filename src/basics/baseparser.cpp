@@ -275,7 +275,7 @@ short CParseInput::scan(CParser& parser, CToken& target)
 
 		// convert to lower case
 		if(!parser.pconfig->case_sensitive && c != EEOF)
-			c = tolower(c);
+			c = stringcheck::tolower( (char)c );
 
 		// look for a matching edge
 		if (c != EEOF)
@@ -382,7 +382,7 @@ short CParseInput::scan(CParser& parser, CToken& target)
 
 		// convert to lower case
 		if (!parser.pconfig->case_sensitive && c != EEOF)
-			c = tolower(c);
+			c = stringcheck::tolower(c);
 
 		// look for a matching edge
 		if (c != EEOF) {

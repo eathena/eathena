@@ -298,7 +298,7 @@ int mmo_auth( struct mmo_account* account , int fd)
 	char md5str[64], md5bin[32];
 
 	char ip_str[16];
-	if(session[fd]) session[fd]->client_ip.getstring(ip_str, sizeof(ip_str));
+	if(session[fd]) session[fd]->client_ip.tostring(ip_str, sizeof(ip_str));
 
 
 	ShowMessage ("auth start...\n");
@@ -601,7 +601,7 @@ int parse_fromchar(int fd){
 	MYSQL_ROW  sql_row = NULL;
 
 	char ip_str[16];
-	if(session[fd]) session[fd]->client_ip.getstring(ip_str, sizeof(ip_str));
+	if(session[fd]) session[fd]->client_ip.tostring(ip_str, sizeof(ip_str));
 
 	for(id = 0; id < MAX_SERVERS; id++)
 		if( server[id].fd == fd )
@@ -1052,7 +1052,7 @@ int parse_login(int fd)
 
 	int result, i;
 	char ip_str[16];
-	if(session[fd]) session[fd]->client_ip.getstring(ip_str, sizeof(ip_str));
+	if(session[fd]) session[fd]->client_ip.tostring(ip_str, sizeof(ip_str));
 	unsigned char p[] = {(unsigned char)(session[fd]->client_ip>>24)&0xFF,(unsigned char)(session[fd]->client_ip>>16)&0xFF,(unsigned char)(session[fd]->client_ip>>8)&0xFF,(unsigned char)(session[fd]->client_ip)&0xFF};
 
 	if (ipban > 0)
@@ -1157,13 +1157,13 @@ int parse_login(int fd)
 						{	
 							if( server[i].address.isLAN(session[fd]->client_ip) )
 							{
-								ShowMessage("Send IP of char-server: %s:%d (%s)\n", server[i].address.LANIP().getstring(), server[i].address.LANPort(), CL_BT_GREEN"LAN"CL_NORM);
+								ShowMessage("Send IP of char-server: %s:%d (%s)\n", server[i].address.LANIP().tostring(NULL), server[i].address.LANPort(), CL_BT_GREEN"LAN"CL_NORM);
 								WFIFOLIP(fd,47+server_num*32) = server[i].address.LANIP();
 								WFIFOW(fd,47+server_num*32+4) = server[i].address.LANPort();
 							}
 							else
 							{
-								ShowMessage("Send IP of char-server: %s:%d (%s)\n", server[i].address.WANIP().getstring(), server[i].address.WANPort(), CL_BT_CYAN"WAN"CL_NORM);
+								ShowMessage("Send IP of char-server: %s:%d (%s)\n", server[i].address.WANIP().tostring(NULL), server[i].address.WANPort(), CL_BT_CYAN"WAN"CL_NORM);
 								WFIFOLIP(fd,47+server_num*32) = server[i].address.WANIP();
 								WFIFOW(fd,47+server_num*32+4) = server[i].address.WANPort();
 							}
@@ -1485,7 +1485,7 @@ int login_config_read(const char *cfgName){
 
 		else if (strcasecmp(w1, "login_ip") == 0) {
 			loginaddress = w2;
-			ShowMessage("Login server IP address: %s -> %s\n", w2, loginaddress.getstring());
+			ShowMessage("Login server IP address: %s -> %s\n", w2, loginaddress.tostring(NULL));
 		}
 		else if(strcasecmp(w1,"login_port")==0){
 			loginaddress.port()=atoi(w2);

@@ -76,11 +76,11 @@ void test_heaps(int scale)
 	bh1.insert(4);
 	bh1.insert(8);
 
-	bh1.deleteMin(val);
-	bh1.deleteMin(val);
-	bh1.deleteMin(val);
-	bh1.deleteMin(val);
-	bh1.deleteMin(val);
+	bh1.pop(val);
+	bh1.pop(val);
+	bh1.pop(val);
+	bh1.pop(val);
+	bh1.pop(val);
 
 	bh2.insert(5);
 	bh2.insert(2);
@@ -88,11 +88,11 @@ void test_heaps(int scale)
 	bh2.insert(4);
 	bh2.insert(8);
 
-	bh2.deleteMin(val);
-	bh2.deleteMin(val);
-	bh2.deleteMin(val);
-	bh2.deleteMin(val);
-	bh2.deleteMin(val);
+	bh2.pop(val);
+	bh2.pop(val);
+	bh2.pop(val);
+	bh2.pop(val);
+	bh2.pop(val);
 
 	///////////////////////////////////////////////////////////////////////////
 	elems = CFIELDSIZE;
@@ -107,7 +107,7 @@ void test_heaps(int scale)
 	tick = clock();
 	for(i=0; i<CFIELDSIZE; i++)
 	{
-		bh2.deleteMin( val );
+		bh2.pop( val );
 		if( val<val2 )
 		{
 			printf("error1\n");
@@ -130,7 +130,7 @@ void test_heaps(int scale)
 	tick = clock();
 	for(i=0; i<CFIELDSIZE; i++)
 	{
-		bh1.deleteMin( val );
+		bh1.pop( val );
 		if( val<val2 )
 		{
 			printf("error3\n");

@@ -191,6 +191,7 @@ protected:
 			// enlarge when not fit
 			// shrink when using less than a quarter of the buffer for >1k elements
 			T *tmp = new T[sz];
+			if(!tmp) return false;
 			if(this->cBuf)
 			{
 				this->copy(tmp, this->cBuf, this->cPtr-this->cBuf);
@@ -271,6 +272,7 @@ protected:
 			// enlarge when not fit
 			// shrink when using less than a quarter of the buffer for >8k buffers
 			T *tmp = new T[sz];
+			if(!tmp) return false;
 			if(this->cBuf)
 			{
 				this->copy(tmp, this->cRpp, this->cWpp-this->cRpp);
@@ -373,6 +375,7 @@ protected:
 			// enlarge when not fit
 			// shrink when using less than a quarter of the buffer for >8k buffers
 			T *tmp = new T[sz];
+			if(!tmp) return false;
 			if(this->cBuf)
 			{
 				this->copy(tmp, this->cRpp, this->cWpp-this->cRpp);

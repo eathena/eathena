@@ -35,7 +35,7 @@ int login_fd;
 bool callback_loginaddress(const char* name, const netaddress& newval, netaddress& oldval)
 {
 	printf("loading new parameter '%s', new value = %s (was %s)\n",
-		name, (const char*)MiniString((const char*)newval), (const char*)MiniString((const char*)oldval));
+		name, (const char*)MiniString(newval.tostring(NULL)), (const char*)MiniString(oldval.tostring(NULL)));
 	return true;
 }
 
@@ -421,7 +421,7 @@ int parse_fromchar(int fd)
 {
 	size_t id;
 	char ip_str[16]="unknown";
-	if(session[fd]) session[fd]->client_ip.getstring(ip_str, sizeof(ip_str));
+	if(session[fd]) session[fd]->client_ip.tostring(ip_str, sizeof(ip_str));
 
 
 	for(id = 0; id < MAX_SERVERS; id++)
@@ -1051,7 +1051,7 @@ int parse_fromchar(int fd)
 int parse_admin(int fd)
 {
 	char ip_str[16]="";
-	if(session[fd]) session[fd]->client_ip.getstring(ip_str, sizeof(ip_str));
+	if(session[fd]) session[fd]->client_ip.tostring(ip_str, sizeof(ip_str));
 
 	if( !session_isActive(fd) )
 	{
@@ -2142,7 +2142,7 @@ int parse_admin(int fd)
 int parse_login(int fd)
 {
 	char ip_str[16];
-	if(session[fd]) session[fd]->client_ip.getstring(ip_str, sizeof(ip_str));
+	if(session[fd]) session[fd]->client_ip.tostring(ip_str, sizeof(ip_str));
 
 	if ( !session_isActive(fd) )
 	{
@@ -2291,13 +2291,13 @@ int parse_login(int fd)
 						{
 							if( server[i].address.isLAN(session[fd]->client_ip) )
 							{
-								ShowMessage("Send IP of char-server: %s:%d (%s)\n", server[i].address.LANIP().getstring(), server[i].address.LANPort(), CL_BT_GREEN"LAN"CL_NORM);
+								ShowMessage("Send IP of char-server: %s:%d (%s)\n", server[i].address.LANIP().tostring(NULL), server[i].address.LANPort(), CL_BT_GREEN"LAN"CL_NORM);
 								WFIFOLIP(fd,47+server_num*32) = server[i].address.LANIP();
 								WFIFOW(fd,47+server_num*32+4) = server[i].address.LANPort();
 							}
 							else
 							{
-								ShowMessage("Send IP of char-server: %s:%d (%s)\n", server[i].address.WANIP().getstring(), server[i].address.WANPort(), CL_BT_CYAN"WAN"CL_NORM);
+								ShowMessage("Send IP of char-server: %s:%d (%s)\n", server[i].address.WANIP().tostring(NULL), server[i].address.WANPort(), CL_BT_CYAN"WAN"CL_NORM);
 								WFIFOLIP(fd,47+server_num*32) = server[i].address.WANIP();
 								WFIFOW(fd,47+server_num*32+4) = server[i].address.WANPort();
 							}
@@ -2322,7 +2322,7 @@ int parse_login(int fd)
 						account.client_ip = session[fd]->client_ip;
 						// update account information
 						timestamp2string(account.last_login, sizeof(account.last_login));
-						session[fd]->client_ip.getstring(account.last_ip, sizeof(account.last_ip));
+						session[fd]->client_ip.tostring(account.last_ip, sizeof(account.last_ip));
 						account.login_count++;
 						account.state = 0;
 
@@ -2461,8 +2461,8 @@ int parse_login(int fd)
 					realloc_fifo(fd, FIFOSIZE_SERVERLINK, FIFOSIZE_SERVERLINK);
 
 					login_log("Connection of the char-server '%s' accepted (account: %s, pass: %s, ip: %s)" RETCODE,
-							  server[i].name, account.userid, account.passwd, server[i].address.getstring());
-					ShowStatus("Connection of the char-server '%s' (%s) accepted.\n", server[i].name, server[i].address.getstring());
+							  server[i].name, account.userid, account.passwd, server[i].address.tostring(NULL));
+					ShowStatus("Connection of the char-server '%s' (%s) accepted.\n", server[i].name, server[i].address.tostring(NULL));
 
 					
 					WFIFOW(fd,0) = 0x2711;
@@ -2659,7 +2659,7 @@ int login_config_read(const char *cfgName)
 
 			else if (strcasecmp(w1, "login_ip") == 0) {
 				loginaddress = w2;
-				ShowMessage("Login server IP address : %s -> %s\n", w2, loginaddress.getstring());
+				ShowMessage("Login server IP address : %s -> %s\n", w2, loginaddress.tostring(NULL));
 			}
 			else if (strcasecmp(w1, "login_port") == 0) {
 				loginaddress.port() = atoi(w2);

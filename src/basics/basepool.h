@@ -11,6 +11,8 @@
 #include "baseexceptions.h"
 #include "basearray.h"
 
+
+///////////////////////////////////////////////////////////////////////////////
 template <class T> class TPool : public global, public noncopyable
 {
 	TslistDST<T*> cListAll;

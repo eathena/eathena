@@ -10,11 +10,6 @@
 #include "basealgo.h"
 #include "basetime.h"
 
-///////////////////////////////////////////////////////////////////////////////
-// additional includes for wchar support
-#include <wchar.h>
-#include <wctype.h>
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // we need this predeclaration here
@@ -30,36 +25,7 @@ int stringtest();
 int stringbuffer_test();
 
 
-///////////////////////////////////////////////////////////////////////////////
-// conversion overloads to change signed types to the appropriate unsigned
-///////////////////////////////////////////////////////////////////////////////
-inline size_t to_unsigned(char t)
-{
-	return (unsigned char)(t);
-}
-inline size_t to_unsigned(unsigned char t)
-{
-	return (unsigned char)(t);
-}
-// UCT2
-inline size_t to_unsigned(short t)
-{
-	return (unsigned short)(t);
-}
-inline size_t to_unsigned(unsigned short t)
-{
-	return (unsigned short)(t);
-}
-// UCT4
-inline size_t to_unsigned(sint32 t)
-{
-	return (uint32)(t);
-}
-inline size_t to_unsigned(uint32 t)
-{
-	return (uint32)(t);
-}
-///////////////////////////////////////////////////////////////////////////////
+
 
 
 
@@ -76,10 +42,6 @@ template <class T> inline T upcase(T c) { return ::toupper( to_unsigned(c) ); }
 inline char upcase(char c) { if (c >= 'a' && c <= 'z') return char(c - 32); return c; }
 inline wchar_t upcase(wchar_t c) { return ::towupper( to_unsigned(c) ); }
 
-template <class T> inline bool _isspace(T c) { return ::isspace( to_unsigned(c) ); }
-// implementation for char (and wchar)
-inline bool _isspace(char c) { return (c==0x20) || (c>=0x09 && c<=0x0D) || (c==(char)0xA0); }
-inline bool _isspace(wchar_t c) { return 0!=::iswspace( to_unsigned(c) ); }
 
 
 
@@ -124,7 +86,6 @@ template <class T> class staticstring;		// external static buffer
 template <class T> class string;			// dynamic buffer with smart pointer, copy-on-write
 template <class T> class globalstring;		// dynamic buffer with smart pointer, copy-on-write
 template <class T> class substring;			// contains pointer to string, implements allocator interface
-template <class T> class patternstring;		// string derived, implements booyer-moore search
 
 
 
@@ -140,7 +101,7 @@ protected:
 
 	///////////////////////////////////////////////////////////////////////////
 	// provide an exception interface without including 
-	void throw_bound() const;
+	void throw_bound(void) const;
 public:
 	stringinterface<T>()			{}
 	virtual ~stringinterface<T>()	{}
@@ -1029,7 +990,7 @@ public:
 		if( this->cPtr<this->cEnd )
 		{
 			T* ipp = this->cBuf;
-			while( ipp < this->cPtr && _isspace(*ipp) )
+			while( ipp < this->cPtr && stringcheck::isspace(*ipp) )
 				ipp++;
 			if(ipp!=this->cBuf)
 			{
@@ -1046,7 +1007,7 @@ public:
 			T* ipp = this->cPtr-1;
 			T* kpp = this->cPtr-1;
 				
-			while( ipp>this->cBuf && _isspace(*ipp) )
+			while( ipp>this->cBuf && stringcheck::isspace(*ipp) )
 				ipp--;
 			if( ipp != kpp )
 			{
@@ -1061,11 +1022,11 @@ public:
 		if( this->cPtr<this->cEnd )
 		{
 			T *src=this->cBuf, *tar=this->cBuf, *mk=NULL;
-			while(*src && _isspace(*src) )
+			while(*src && stringcheck::isspace(*src) )
 				src++;
 			while(*src)
 			{
-				mk = ( _isspace(*src) )?mk?mk:tar:NULL;
+				mk = ( stringcheck::isspace(*src) )?mk?mk:tar:NULL;
 				*tar++ = *src++;
 			}
 			this->cPtr = (mk) ? mk : tar;
@@ -1078,11 +1039,11 @@ public:
 		if( this->cPtr<this->cEnd )
 		{
 			T *src=this->cBuf, *tar=this->cBuf, mk=0;
-			while(*src && _isspace(*src) )
+			while(*src && stringcheck::isspace(*src) )
 				src++;
 			while(*src)
 			{
-				if( _isspace(*src) )
+				if( stringcheck::isspace(*src) )
 					mk=*src, src++;
 				else
 				{
@@ -2010,7 +1971,7 @@ public:
 		const T* p=this->c_str(), *q = p;
 		if(p)
 		{
-			while( *p && _isspace(*p) )
+			while( *p && stringcheck::isspace(*p) )
 				p++;
 			if(p!=q)
 				writeaccess().clear(0, p-q);
@@ -2023,7 +1984,7 @@ public:
 		const T* e=this->c_str(), *p = e+this->length()-1, *q=p;
 		if(e && p>=e)
 		{
-			while( p>=e && _isspace(*p) )
+			while( p>=e && stringcheck::isspace(*p) )
 				p--;
 			if(p!=q)
 				writeaccess().truncate(1+p-e);
@@ -2362,26 +2323,6 @@ public:
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-// patternstring
-// derived from string
-// additionally generates the pattern skip table to be used in booyer-moore search
-// fastens up continious searches of the same pattern in different strings
-///////////////////////////////////////////////////////////////////////////////
-template <class T=char> class patternstring : public string<T>
-{
-	friend class string<T>;
-	// table size is bound to 8bit values
-	size_t	SkipTable[256];
-public:
-	patternstring(const string<T>& pattern);
-	///////////////////////////////////////////////////////////////////////////////
-	// Search function
-	///////////////////////////////////////////////////////////////////////////////
-	bool findnext(const stringinterface<T>& searchstring, size_t &startpos, bool ignorecase=false) const;
-	TArrayDST<size_t> findall(const stringinterface<T>& searchstring, bool ignorecase=false) const;
-
-};
 
 ///////////////////////////////////////////////////////////////////////////////
 // dbstring
@@ -2608,6 +2549,21 @@ template<class T> string<T> dttostring(datetime, const T* fmt);
 
 
 extern string<> nullstring;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 #endif//__BASESTRING_H__

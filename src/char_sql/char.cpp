@@ -2021,7 +2021,7 @@ int parse_frommap(int fd)
 			server[id].maps = j;
 
 			ShowStatus("Map-Server %d connected from %s:%d (%d maps).\n",
-			       id, server[id].address.LANIP().getstring(), server[id].address.LANPort(), j);
+			       id, server[id].address.LANIP().tostring(NULL), server[id].address.LANPort(), j);
 
 			WFIFOW(fd,0) = 0x2afb;
 			WFIFOB(fd,2) = 0;
@@ -2814,13 +2814,13 @@ int parse_char(int fd)
 			mapname2buffer(WFIFOP(fd, 6), char_dat[0].last_point.mapname, 24);
 			if( server[j].address.isLAN(client_ip) )
 			{
-				ShowMessage("Send IP of map-server: %s:%d (%s)\n", server[j].address.LANIP().getstring(), server[j].address.LANPort(), CL_BT_GREEN"LAN"CL_NORM);
+				ShowMessage("Send IP of map-server: %s:%d (%s)\n", server[j].address.LANIP().tostring(NULL), server[j].address.LANPort(), CL_BT_GREEN"LAN"CL_NORM);
 				WFIFOLIP(fd, 22) = server[j].address.LANIP();
 				WFIFOW(fd, 26)   = server[j].address.LANPort();
 			}
 			else
 			{
-				ShowMessage("Send IP of map-server: %s:%d (%s)\n", server[j].address.WANIP().getstring(), server[j].address.WANPort(), CL_BT_CYAN"WAN"CL_NORM);
+				ShowMessage("Send IP of map-server: %s:%d (%s)\n", server[j].address.WANIP().tostring(NULL), server[j].address.WANPort(), CL_BT_CYAN"WAN"CL_NORM);
 				WFIFOLIP(fd, 22) = server[j].address.WANIP();
 				WFIFOW(fd, 26)   = server[j].address.WANPort();
 			}
@@ -3605,14 +3605,14 @@ int char_config_read(const char *cfgName) {
 
 		else if (strcasecmp(w1, "login_ip") == 0) {
 			loginaddress = w2;
-			ShowInfo("Expecting login server at %s\n", loginaddress.getstring());
+			ShowInfo("Expecting login server at %s\n", loginaddress.tostring(NULL));
 		}
 else if(strcasecmp(w1, "login_port") == 0) {
 	loginaddress.port() = atoi(w2);
 }
 		else if(strcasecmp(w1, "char_ip") == 0) {
 			charaddress = w2;
-			ShowInfo("Using char server with %s\n", loginaddress.getstring());
+			ShowInfo("Using char server with %s\n", loginaddress.tostring(NULL));
 		}
 else if(strcasecmp(w1, "char_port") == 0) {
 	charaddress.LANPort() = atoi(w2);
@@ -3771,7 +3771,7 @@ int do_init(int argc, char **argv){
 	else
 		ShowMessage(" done.\n");
 
-	ShowStatus("The char-server is "CL_BT_GREEN"ready"CL_NORM" (listening on %s:%d).\n\n", charaddress.LANIP().getstring(),charaddress.LANPort());
+	ShowStatus("The char-server is "CL_BT_GREEN"ready"CL_NORM" (listening on %s:%d).\n\n", charaddress.LANIP().tostring(NULL),charaddress.LANPort());
 	return 0;
 }
 

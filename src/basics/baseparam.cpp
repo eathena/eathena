@@ -1,6 +1,10 @@
+#include "basetypes.h"
+#include "baseobjects.h"
+#include "baseministring.h"
+#include "basesync.h"
+#include "basefile.h"
+
 #include "baseparam.h"
-
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -18,11 +22,11 @@ bool CConfig::LoadConfig(const char* cfgName)
 	FILE *fp;
 
 	if ((fp = safefopen(cfgName, "r")) == NULL) {
-		ShowError("Configuration file (%s) not found.\n", cfgName);
+		printf("Configuration file (%s) not found.\n", cfgName);
 		return false;
 	}
 
-	ShowInfo("Reading configuration file '%s'\n", cfgName);
+	printf("Reading configuration file '%s'\n", cfgName);
 	while(fgets(line, sizeof(line), fp))
 	{
 		// terminate buffer
@@ -30,7 +34,7 @@ bool CConfig::LoadConfig(const char* cfgName)
 
 		// skip leading spaces
 		ip = line;
-		while( isspace((int)((unsigned char)*ip) ) ) ip++;
+		while( stringcheck::isspace(*ip) ) ip++;
 
 		// skipping comment lines
 		if( !ip[0] || (ip[0] == '/' && ip[1] == '/'))
@@ -57,7 +61,7 @@ bool CConfig::LoadConfig(const char* cfgName)
 		}
 	}
 	fclose(fp);
-	ShowInfo("Reading configuration file '%s' finished\n", cfgName);
+	printf("Reading configuration file '%s' finished\n", cfgName);
 	return true;
 }
 
@@ -124,22 +128,22 @@ bool CTimerBase::init(unsigned long interval)
 {
 	if(interval<1000)
 		interval = 1000;
-	cTimer = add_timer_interval(gettick()+interval, interval, timercallback, 0, intptr(this), false);
+//	cTimer = add_timer_interval(gettick()+interval, interval, timercallback, 0, intptr(this), false);
 	cTimer = -1;
 	return (cTimer>=0);
 }
 
 // external calling from external timer implementation
-int CTimerBase::timercallback(int timer, unsigned long tick, int id, intptr data)
+int CTimerBase::timercallback(int timer, unsigned long tick, int id, size_t data)
 {
-	if(data.ptr)
+	if(data)
 	{
-		CTimerBase* base = (CTimerBase*)data.ptr;
+		CTimerBase* base = (CTimerBase*)data;
 		if(timer==base->cTimer)
 		{
 			if( !base->timeruserfunc(tick) )
 			{
-				delete_timer(base->cTimer, timercallback);
+//				delete_timer(base->cTimer, timercallback);
 				base->cTimer = -1;
 			}
 		}
@@ -215,7 +219,7 @@ CParamStorage& CParamStorage::getParam(const char* name)
 		tmp.cTime = GetTickCount();
 		sd.cParams.insert(tmp);
 		if( !sd.cParams.find(tmp, 0, pos) )
-			throw exception("Params: insert failed");		
+			throw exception("Params: insert failed");
 	}
 	return sd.cParams[pos];
 }

@@ -9,7 +9,7 @@
 #include "baseexceptions.h"
 #include "basearray.h"
 
-void test_array()
+void test_array(void)
 {
 	//!! TODO copy testcases from caldon
 

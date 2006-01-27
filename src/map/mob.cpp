@@ -5217,7 +5217,7 @@ int mob_readskilldb(void)
 					*p++=0;
 			}
 			mob_id=atoi(sp[0]);
-			if( mob_id<=0  || mob_id>=MAX_MOB_DB)
+			if( i <= 0 || i < 18 || mob_id<=0  || mob_id>=MAX_MOB_DB)
 				continue;
 
 			if( strcmp(sp[1],"clear")==0 ){
