@@ -25,12 +25,15 @@
 		* * * On your death it breaks (BS can fix it), you drop all Equipment (equipped, even the ring). And revive with 1 HP / 1 SP at the place of your death.
 		* * * From where this info is? ... Mine: On your death you'll loose this ring and get 50% HP [Komurka]
 =========================
+
 01/27
+	* Updated Branches [Poki#3]
 	* Fixed mob skill entries of AL_PNEUMA for Kiel. [Skotlex]
 	* Updated EXP,JEXP and ATK of the Kiel dungeon monsters. [MasterOfMuppets]
 	* Removed emperium from Pharaoh's drop list. [Kayla]
 	* Added monster skills to the kiel dungeon monsters [MasterOfMuppets]
 	* Changed SKEGGIOLD monster #1755 to SKEGGIOLD_ so you can separate them [MasterOfMuppets]
+
 01/26
 	* Changed Sunflower Pin's DEF from 0 do 1 (27/01 kRO Patch) [Poki#3]
 	* Rearanged the new items in item_db. they should be chacked and placed in the right spot [Poki#3]

@@ -4,7 +4,7 @@
 // MobID,DummyName,Rate
 
 0,Baphomet,1039
-1022,Werewolf,1000000
+//1022,Werewolf,1000000
 1038,Osiris,1000000
 1039,Baphomet,1000000
 1046,Doppelganger,1000000
@@ -30,4 +30,17 @@
 1518,Bacsojin,1000000
 1583,Tao Gunka,1000000
 1623,RSX 0806,1000000
+1688,Lady Tany,1000000
+1719,Detale,1000000
+
+//== Not "Normal" MvP's.
+//1646,Lord Knight Seyren,1000000
+//1647,Assassin Cross Eremes,1000000
+//1648,Whitesmith Harword,1000000
+//1649,High Priest Magaleta,1000000
+//1650,Sniper Shecil,1000000
+//1651,High Wizard Katrinn,1000000
 //1708,Thanatos,1000000
+//1733,Kiel,1000000
+//1734,Kiel D-01,1000000
+//1751,Valkierie Randgris,1000000
