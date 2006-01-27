@@ -16,13 +16,15 @@
 //= 1.4 Added Is_Taekwon_Class: Taekwondo, Star Knight(Gladiator),Soul Linker [Lupus]
 //= 1.5 Added clear of Bard Quest variables. 1.5a updated [Lupus]
 //= 1.6 Added F_RandMes, F_SexMes, F_Hi, F_Bye functions [Lupus]
-//= Moved here usefule function 'getJobName'
+//= Moved here useful function 'getJobName'
+//= 1.7 Added "F_ItemName" function, added a great sample for "F_ItemName"
 //============================================================ 
 
 
-//=========================================
+//////////////////////////////////////////////////////////////////////////////////
 // Function that clears job quest variables
-//=========================================
+//////////////////////////////////////////////////////////////////////////////////
+
 function	script	F_ClearJobVar	{
 	// Misc ---------------------------------
 	set JBLVL,0;
@@ -53,10 +55,12 @@ function	script	F_ClearJobVar	{
 	return;
 }
 
-//=====================================================
+//////////////////////////////////////////////////////////////////////////////////
+// Used in REBIRTH scripts
 // Class = Internal Class ID
 // BaseJob = Base Job (0..23)
 // Upper : 0 - Default, 1 - Advanced, 2 - Baby
+//////////////////////////////////////////////////////////////////////////////////
 
 function	script	Job_Change	{
 	if (Upper==0) jobchange getarg(0); //Change Job For Common
@@ -64,85 +68,165 @@ function	script	Job_Change	{
 	return;
 }
 
-//=====================================================
-// Functions used to check a players job class
-//----------------------------------------------------
+
+//////////////////////////////////////////////////////////////////////////////////
+// FOT BACKWISE COMPATIBILITY: Functions used to check a players job class
 // HOW TO USE:
 // i.e. We need all holy classes but monks
 // if ( callfunc("Is_Holy_Class") && callfunc("Is_Monk")==0 ) goto L_Start;
-//=======================================================
+//////////////////////////////////////////////////////////////////////////////////
 
-//------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////////////
 // returns 1 if the player is either Aco,Monk,Priest,Aco High,High Priest,
 // Champion, 0 otherwise
+//////////////////////////////////////////////////////////////////////////////////
+
 function	script	Is_Holy_Class	{
 	return ( BaseJob==Job_Acolyte || BaseJob==Job_Priest || BaseJob==Job_Monk );
 }
-//------------------------------------------------------
+
+
+//////////////////////////////////////////////////////////////////////////////////
 // returns 1 if the player is either Archer,Hunter,Bard,Dancer,Archer High,Sniper,
 // Clown,Gypsy, 0 otherwise
+//////////////////////////////////////////////////////////////////////////////////
+
 function	script	Is_Bow_Class	{
 	return ( BaseJob==Job_Archer || BaseJob==Job_Hunter || BaseJob==Job_Bard || BaseJob==Job_Dancer );
 }
-//------------------------------------------------------
+
+
+//////////////////////////////////////////////////////////////////////////////////
 // returns 1 if the player is either Mage,Wizard,Sage,Mage High,High Wizard,
 // Professor, 0 otherwise
+//////////////////////////////////////////////////////////////////////////////////
+
 function	script	Is_Magic_Class	{
 	return ( BaseJob==Job_Mage || BaseJob==Job_Wizard || BaseJob==Job_Sage );
 }
-//----------------------------------------------------
+
+
+//////////////////////////////////////////////////////////////////////////////////
 // returns 1 if the player is either Merc,Blacksmith,Alchemist,Merc High,
 // Whitesmith,Creator, 0 otherwise
+//////////////////////////////////////////////////////////////////////////////////
+
 function	script	Is_Merc_Class	{
 	return ( BaseJob==Job_Merchant || BaseJob==Job_Blacksmith || BaseJob==Job_Alchem );
 }
-//------------------------------------------------------
+
+
+//////////////////////////////////////////////////////////////////////////////////
 // returns 1 if the player is either Thief,Assassin,Rogue,Thief High, Assassin Cross
 // Stalker, 0 otherwise
+//////////////////////////////////////////////////////////////////////////////////
+
 function	script	Is_Thief_Class	{
 	return ( BaseJob==Job_Thief || BaseJob==Job_Assassin || BaseJob==Job_Rogue );
 }
-//-----------------------------------------------------
+
+
+//////////////////////////////////////////////////////////////////////////////////
 // returns 1 if the player is either Swordy,Knight,Crusader,Swordy High,
 // Lord Knight,Paladin, 0 otherwise
+//////////////////////////////////////////////////////////////////////////////////
+
 function	script	Is_Sword_Class	{
 	return ( BaseJob==Job_Swordman || BaseJob==Job_Knight || BaseJob==Job_Knight2 || BaseJob==Job_Crusader || BaseJob==Job_Crusader2 );
 }
-//-----------------------------------------------------
+
+
+//////////////////////////////////////////////////////////////////////////////////
 // returns 1 if the player is either Taekwon, Star Gladiator,Soul Linker, 0 otherwise
 // these classes can't be adopted nor reborn ()
+//////////////////////////////////////////////////////////////////////////////////
+
 function	script	Is_Taekwon_Class	{
 	return ( Class==Job_Taekwon || Class==Job_Star_Gladiator || Class==Job_Star_Gladiator2 || Class==Job_Soul_Linker );
 }
 
-//=====================================================
+
+//////////////////////////////////////////////////////////////////////////////////
 // Functions used to spiff up dialoges [Lupus]
-//----------------------------------------------------
+//////////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////////
+// *** Function "F_RandMes"
+//////////////////////////////////////////////////////////////////////////////////
 //returns random string
-//sample: check F_Bye or F_Hi functions
+// Example: check F_Bye or F_Hi functions
+// READ AND THINK: You can use it to pick a random number form list:
+// set @itemIDfromList, callfunc("F_RandMes",8,1129,1222,1163,1357,1360,1522,1811,1410);
+
 function	script	F_RandMes	{
 	return getarg(rand(1,getarg(0)));
 }
 
+
+//////////////////////////////////////////////////////////////////////////////////
+// *** Function "F_Sex"
+//////////////////////////////////////////////////////////////////////////////////
 //returns 1st string if female, 2nd string otherwise
-//sample: mes callfunc("F_Sex","What a beautiful lady!","What a handsom man!");
+// Example: mes callfunc("F_Sex","What a beautiful lady!","What a handsom man!");
+
 function	script	F_SexMes	{
 	return getarg(Sex);
 }
 
+
+//////////////////////////////////////////////////////////////////////////////////
+// *** Function "F_Hi"
+//////////////////////////////////////////////////////////////////////////////////
 //returns random HELLO message
+
 function	script	F_Hi	{
 	return callfunc("F_RandMes",5,"Hi!","Hello!","Good day!","How are you?","Hello there.");
 }
 
+
+//////////////////////////////////////////////////////////////////////////////////
+// *** Function "F_Bye"
+//////////////////////////////////////////////////////////////////////////////////
 //returns random BYE message
+
 function	script	F_Bye	{
 	return callfunc("F_RandMes",6,"Bye. See you again.","Later.","Goodbye.","Good luck!","Have a nice day!","Byebye!!!");
 }
 
+
 //////////////////////////////////////////////////////////////////////////////////
+// *** Function "F_ItemName"
+//////////////////////////////////////////////////////////////////////////////////
+// Returns expanded item name string
+//Argumentss
+// 0 - Item ID
+// 1 - Element N (0=none,1=Wind,2=Fire,3=Earth,4=Water)
+// 2 - VVS meter 0..3
+// 3 - Refine
+// Example: mes "Show me your "+callfunc("F_ItemName",1201,1,2,5)+"...";
+//  is equal to: mes "Show me your ^000090 +5 VVS Fire Knife ^000000..."
+
+function	script	F_ItemName	{
+	set @t$,"^000090";
+	if(getarg(3)) set @t$,@t$+"+"+getarg(3)+" ";
+	if(getarg(2)==1) set @t$,@t$+"VS ";
+	if(getarg(2)==2) set @t$,@t$+"VVS ";
+	if(getarg(2)==3) set @t$,@t$+"VVVS ";
+	if(getarg(2)>3) set @t$,@t$+getarg(2)+"xVS ";
+	if(getarg(1)==1) set @t$,@t$+"Wind ";
+	if(getarg(1)==2) set @t$,@t$+"Fire ";
+	if(getarg(1)==3) set @t$,@t$+"Earth ";
+	if(getarg(1)==4) set @t$,@t$+"Water ";
+	if(getarg(1)>4) set @t$,@t$+"Strange ";
+	return @t$+getitemname(getarg(0))+"^000000";
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////
+// *** Function "getJobName"							//
 // [Usage] : callfunc("getJobName",Class);                                      //
 //////////////////////////////////////////////////////////////////////////////////
+
 function	script	getJobName	{
 	switch(getarg(0)){
 		case Job_Novice:

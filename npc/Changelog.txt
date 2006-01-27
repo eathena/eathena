@@ -26,6 +26,11 @@ Nexon
 Date		Added
 ======
 
+01/27
+	* Added a new global function "F_ItemName" to print expanded item name [Lupus]
+		such as '+9 VVS Wind Knife'
+	- You can use "F_RandMes" to pick a random number form list:
+		set @RandomItemIDfromList, callfunc("F_RandMes",4,1129,1222,1163,1357);
 01/26
 	* Uploaded Er_Maqui's fixes to Hugel Warps. [Poki#3]
 	* Updated the airship to take the route Hugel->Einbroch->Lighthalzen->Yuno [MasterOfMuppets]
