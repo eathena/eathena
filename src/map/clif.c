@@ -1277,17 +1277,94 @@ static int clif_mob007b(struct mob_data *md, unsigned char *buf) {
  *------------------------------------------
  */
 static int clif_npc0078(struct npc_data *nd, unsigned char *buf) {
-	struct guild *g;
+	struct guild *g=NULL;
+	int view_class;
 
 	nullpo_retr(0, nd);
 
 	memset(buf,0,packet_len_table[0x78]);
 
+	if (nd->class_ == 722 && nd->u.scr.guild_id > 0)
+		g=guild_search(nd->u.scr.guild_id);
+	
+	if(mobdb_checkid(nd->class_) &&
+		pcdb_checkid((view_class = mob_get_viewclass(nd->class_)))) {
+		//Disguised player sprite
+#if PACKETVER < 4
+		memset(buf,0,packet_len_table[0x78]);
+
+		WBUFW(buf,0)=0x78;
+		WBUFL(buf,2)=nd->bl.id;
+		WBUFW(buf,6)=nd->speed;
+		WBUFW(buf,8)=nd->opt1;
+		WBUFW(buf,10)=nd->opt2;
+		WBUFW(buf,12)=nd->option;
+		WBUFW(buf,14)=view_class;
+		WBUFW(buf,16)=mob_get_hair(nd->class_);
+		WBUFW(buf,18)=mob_get_weapon(nd->class_);
+		WBUFW(buf,20)=mob_get_head_buttom(nd->class_);
+		WBUFW(buf,22)=mob_get_shield(nd->class_);
+		WBUFW(buf,24)=mob_get_head_top(nd->class_);
+		WBUFW(buf,26)=mob_get_head_mid(nd->class_);
+		WBUFW(buf,28)=mob_get_hair_color(nd->class_);
+		WBUFW(buf,30)=mob_get_clothes_color(nd->class_);
+		WBUFW(buf,32)|=nd->dir&0x0f; // head direction
+		if (g) {
+			WBUFL(buf,34)=g->guild_id;
+			WBUFL(buf,38)=g->emblem_id;
+		}
+		WBUFW(buf,42)=nd->opt3;
+		WBUFB(buf,44)=0; // karma
+		WBUFB(buf,45)=mob_get_sex(nd->class_);
+		WBUFPOS(buf,46,nd->bl.x,nd->bl.y);
+		WBUFB(buf,48)|=nd->dir&0x0f;
+		WBUFB(buf,49)=5;
+		WBUFB(buf,50)=5;
+		WBUFB(buf,51)=0; // dead or sit state
+		WBUFW(buf,52)=50; // No level info.
+		
+		return packet_len_table[0x78];
+#else
+		// Use 0x1d8 packet for monsters with player sprites [Valaris]
+		memset(buf,0,packet_len_table[0x1d8]);
+
+		WBUFW(buf,0)=0x1d8;
+		WBUFL(buf,2)=nd->bl.id;
+		WBUFW(buf,6)=nd->speed;
+		WBUFW(buf,8)=nd->opt1;
+		WBUFW(buf,10)=nd->opt2;
+		WBUFW(buf,12)=nd->option;
+		WBUFW(buf,14)=view_class;
+		WBUFW(buf,16)=mob_get_hair(nd->class_);
+		WBUFW(buf,18)=mob_get_weapon(nd->class_);
+		WBUFW(buf,20)=mob_get_shield(nd->class_);
+		WBUFW(buf,22)=mob_get_head_buttom(nd->class_);
+		WBUFW(buf,24)=mob_get_head_top(nd->class_);
+		WBUFW(buf,26)=mob_get_head_mid(nd->class_);
+		WBUFW(buf,28)=mob_get_hair_color(nd->class_);
+		WBUFW(buf,30)=mob_get_clothes_color(nd->class_);
+		WBUFW(buf,32)|=nd->dir&0x0f; // head direction
+		WBUFL(buf,34)=0; // guild id
+		WBUFW(buf,38)=0; // emblem id
+		WBUFW(buf,40)=0; // manner
+		WBUFW(buf,42)=nd->opt3;
+		WBUFB(buf,44)=0; // karma
+		WBUFB(buf,45)=mob_get_sex(nd->class_);
+		WBUFPOS(buf,46,nd->bl.x,nd->bl.y);
+		WBUFB(buf,48)|=nd->dir&0x0f;
+		WBUFB(buf,49)=5;
+		WBUFB(buf,50)=5;
+		WBUFB(buf,51)=0; // dead or sit state
+		WBUFW(buf,52)=50; //No level data.
+		
+		return packet_len_table[0x1d8];
+#endif 
+	}
 	WBUFW(buf,0)=0x78;
 	WBUFL(buf,2)=nd->bl.id;
 	WBUFW(buf,6)=nd->speed;
 	WBUFW(buf,14)=nd->class_;
-	if ((nd->class_ == 722) && (nd->u.scr.guild_id > 0) && ((g=guild_search(nd->u.scr.guild_id)) != NULL)) {
+	if (g) {
 		WBUFL(buf,22)=g->emblem_id;
 		WBUFL(buf,26)=g->guild_id;
 	//	pc packet says the actual location of these are, but they are not. Why the discordance? [Skotlex]
@@ -1304,17 +1381,97 @@ static int clif_npc0078(struct npc_data *nd, unsigned char *buf) {
 
 // NPC Walking [Valaris]
 static int clif_npc007b(struct npc_data *nd, unsigned char *buf) {
-	struct guild *g;
+	struct guild *g=NULL;
+	int view_class;
 
 	nullpo_retr(0, nd);
 
 	memset(buf,0,packet_len_table[0x7b]);
 
+	if (nd->class_ == 722 && nd->u.scr.guild_id > 0)
+		g=guild_search(nd->u.scr.guild_id);
+	
+	if(mobdb_checkid(nd->class_) &&
+		pcdb_checkid((view_class = mob_get_viewclass(nd->class_)))) {
+		//Disguised player sprite
+#if PACKETVER < 4
+		memset(buf,0,packet_len_table[0x7b]);
+	
+		WBUFW(buf,0)=0x7b;
+		WBUFL(buf,2)=nd->bl.id;
+		WBUFW(buf,6)=nd->speed;
+		WBUFW(buf,8)=nd->opt1;
+		WBUFW(buf,10)=nd->opt2;
+		WBUFW(buf,12)=nd->option;
+		WBUFW(buf,14)=view_class;
+		WBUFW(buf,16)=mob_get_hair(nd->class_);
+		WBUFW(buf,18)=mob_get_weapon(nd->class_);
+		WBUFW(buf,20)=mob_get_head_buttom(nd->class_);
+		WBUFL(buf,22)=gettick();
+		WBUFW(buf,26)=mob_get_shield(nd->class_);
+		WBUFW(buf,28)=mob_get_head_top(nd->class_);
+		WBUFW(buf,30)=mob_get_head_mid(nd->class_);
+		WBUFW(buf,32)=mob_get_hair_color(nd->class_);
+		WBUFW(buf,34)=mob_get_clothes_color(nd->class_);
+		WBUFW(buf,36)=nd->dir&0x0f; // head direction
+		if (g) {
+			WBUFL(buf,38)=g->guild_id;
+			WBUFL(buf,42)=g->emblem_id;
+		}
+		WBUFW(buf,46)=nd->opt3;
+		WBUFB(buf,48)=0; // karma
+		WBUFB(buf,49)=mob_get_sex(nd->class_);
+		WBUFPOS2(buf,50,nd->bl.x,nd->bl.y,nd->to_x,nd->to_y);
+		WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
+		WBUFB(buf,56)=5;
+		WBUFB(buf,57)=5;
+		WBUFW(buf,58)=50; //Ehm.. no level data.
+		
+		return packet_len_table[0x7b];
+#else
+		// Use 0x1da packet for monsters with player sprites [Valaris]
+		memset(buf,0,packet_len_table[0x1da]);
+
+		WBUFW(buf,0)=0x1da;
+		WBUFL(buf,2)=nd->bl.id;
+		WBUFW(buf,6)=nd->speed;
+		WBUFW(buf,8)=nd->opt1;
+		WBUFW(buf,10)=nd->opt2;
+		WBUFW(buf,12)=nd->option;
+		WBUFW(buf,14)=view_class;
+		WBUFW(buf,16)=mob_get_hair(nd->class_);
+		WBUFW(buf,18)=mob_get_weapon(nd->class_);
+		WBUFW(buf,20)=mob_get_shield(nd->class_);
+		WBUFW(buf,22)=mob_get_head_buttom(nd->class_);
+		WBUFL(buf,24)=gettick();
+		WBUFW(buf,28)=mob_get_head_top(nd->class_);
+		WBUFW(buf,30)=mob_get_head_mid(nd->class_);
+		WBUFW(buf,32)=mob_get_hair_color(nd->class_);
+		WBUFW(buf,34)=mob_get_clothes_color(nd->class_);
+		WBUFW(buf,36)=nd->dir&0x0f; // head direction
+		if (g) {
+			WBUFL(buf,38)=g->guild_id;
+			WBUFW(buf,42)=g->emblem_id;
+		}
+		WBUFW(buf,44)=0; // manner
+		WBUFW(buf,46)=nd->opt3;
+		WBUFB(buf,48)=0; // karma
+		WBUFB(buf,49)=mob_get_sex(nd->class_);
+		WBUFPOS2(buf,50,nd->bl.x,nd->bl.y,nd->to_x,nd->to_y);
+		WBUFB(buf,55)=0x88; // Deals with acceleration in directions. [Valaris]
+		WBUFB(buf,56)=5;
+		WBUFB(buf,57)=5;
+		WBUFW(buf,58)=50; //No level data.
+
+		return packet_len_table[0x1da];
+#endif
+	}
+
 	WBUFW(buf,0)=0x7b;
 	WBUFL(buf,2)=nd->bl.id;
 	WBUFW(buf,6)=nd->speed;
 	WBUFW(buf,14)=nd->class_;
-	if ((nd->class_ == 722) && (nd->u.scr.guild_id > 0) && ((g=guild_search(nd->u.scr.guild_id)) != NULL)) {
+	if (g) {
 		WBUFL(buf,22)=g->emblem_id;
 		WBUFL(buf,26)=g->guild_id;
 	//	pc packet says the actual location of these are, but they are not. Why the discordance? [Skotlex]
@@ -1742,16 +1899,19 @@ int clif_spawnnpc(struct npc_data *nd)
 	if(nd->class_ < 0 || nd->flag&1 || nd->class_ == INVISIBLE_CLASS)
 		return 0;
 
-	memset(buf,0,packet_len_table[0x7c]);
+	if(!mobdb_checkid(nd->class_) ||
+		!pcdb_checkid(mob_get_viewclass(nd->class_))) {
+		//Normal npcs.
+		memset(buf,0,packet_len_table[0x7c]);
+		
+		WBUFW(buf,0)=0x7c;
+		WBUFL(buf,2)=nd->bl.id;
+		WBUFW(buf,6)=nd->speed;
+		WBUFW(buf,20)=nd->class_;
+		WBUFPOS(buf,36,nd->bl.x,nd->bl.y);
 
-	WBUFW(buf,0)=0x7c;
-	WBUFL(buf,2)=nd->bl.id;
-	WBUFW(buf,6)=nd->speed;
-	WBUFW(buf,20)=nd->class_;
-	WBUFPOS(buf,36,nd->bl.x,nd->bl.y);
-
-	clif_send(buf,packet_len_table[0x7c],&nd->bl,AREA);
-
+		clif_send(buf,packet_len_table[0x7c],&nd->bl,AREA);
+	}
 	len = clif_npc0078(nd,buf);
 	clif_send(buf,len,&nd->bl,AREA);
 

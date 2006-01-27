@@ -1,6 +1,7 @@
 Date	Added
 
 2006/01/27
+	* Added support for mob_avail.txt replacement for NPC classes. [Skotlex]
 	* Added "sense_type" config to conf/battle/skill.conf to select which defense
 	  is displayed on the sense screen. Defaults to displaying def+def2. [Skotlex]
 	* Modified traps so that once they trigger they set themselves as "Into the
