@@ -3079,7 +3079,7 @@
 1733,Kiel@KN_BRANDISHSPEAR,attack,57,5,1000,1000,5000,no,target,always,0,,,,,,
 1733,Kiel@MG_SAFETYWALL,attack,12,5,2000,1000,20000,yes,self,always,0,,,,,,
 1733,Kiel@SM_ENDURE,chase,8,1,500,0,10000,yes,self,longrangeattacked,,,,,,,
-1733,Kiel@AL_PNEUMA,attack,25,1,500,0,20000,yes,self,longrangeattacked,,,,,,
+1733,Kiel@AL_PNEUMA,attack,25,1,500,0,20000,yes,self,longrangeattacked,,,,,,,
 1733,Kiel@AL_TELEPORT,idle,26,1,10000,0,0,yes,self,rudeattacked,,,,,,,
 
 1734,Kiel D-01@PR_LEXDIVINA,attack,76,5,500,1000,5000,yes,target,always,0,,,,,,
@@ -3091,7 +3091,7 @@
 1734,Kiel D-01@KN_BRANDISHSPEAR,attack,57,5,1000,1000,5000,no,target,always,0,,,,,,
 1734,Kiel D-01@MG_SAFETYWALL,attack,12,5,2000,1000,20000,yes,self,always,0,,,,,,
 1734,Kiel D-01@SM_ENDURE,chase,8,1,500,0,10000,yes,self,longrangeattacked,,,,,,,
-1734,Kiel D-01@AL_PNEUMA,attack,25,1,500,0,20000,yes,self,longrangeattacked,,,,,,
+1734,Kiel D-01@AL_PNEUMA,attack,25,1,500,0,20000,yes,self,longrangeattacked,,,,,,,
 1734,Kiel D-01@NPC_SUMMONSLAVE,attack,196,5,10000,700,60000,no,self,slavele,3,1739,1740,,,,
 1734,Kiel D-01@NPC_SUMMONSLAVE,idle,196,5,10000,700,60000,no,self,slavele,3,1739,1740,,,,
 1734,Kiel D-01@NPC_CALLSLAVE,attack,352,1,10000,0,30000,yes,target,always,0,,,,,,

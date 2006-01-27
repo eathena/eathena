@@ -26,6 +26,7 @@
 		* * * From where this info is? ... Mine: On your death you'll loose this ring and get 50% HP [Komurka]
 =========================
 01/27
+	* Fixed mob skill entries of AL_PNEUMA for Kiel. [Skotlex]
 	* Updated EXP,JEXP and ATK of the Kiel dungeon monsters. [MasterOfMuppets]
 	* Removed emperium from Pharaoh's drop list. [Kayla]
 	* Added monster skills to the kiel dungeon monsters [MasterOfMuppets]

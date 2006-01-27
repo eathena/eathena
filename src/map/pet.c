@@ -1966,6 +1966,7 @@ int do_final_pet(void) {
 	for(i = 0;i < MAX_PET_DB; i++) {
 		if(pet_db[i].script) {
 			aFree(pet_db[i].script);
+			pet_db[i].script = NULL;
 		}
 	}
 	return 0;
