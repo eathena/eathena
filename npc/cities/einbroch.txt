@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= Nexon
 //===== Current Version: ===================================== 
-//= 0.4b
+//= 0.4c
 //===== Compatible With: ===================================== 
 //= eAthena Revision 3000+
 //===== Description: ========================================= 
@@ -598,9 +598,17 @@ ein_in01.gat,68,209,4	script	Khashurantze	852,{
 	mes "special authority in order";
 	mes "to enter this place. I'll have";
 	mes "to ask you to leave right now.";
+	if(EinFactory > 0)goto L_work;
 	close2;
 	warp "einbroch.gat",179,63;
 	end;
+
+L_work:
+	next;
+	mes "[Khashurantze]";
+	mes "Oh? Mr. Zelmeto asked you to help out?";
+	mes "In that case excuse me.";
+	close;
 }
 
 ein_in01.gat,113,211,3	script	Treinz	851,{
@@ -640,7 +648,7 @@ ein_in01.gat,84,218,3	script	Tsuen	851,{
 	mes "products I oversee and all...";
 	next;
 	mes "[Tsuen]";
-	mes "Mauybe my life was meant";
+	mes "Maybe my life was meant";
 	mes "to be this way, even if it's";
 	mes "not how I planned it. But the";
 	mes "time will come when I up and";
@@ -841,7 +849,7 @@ s_Underst:
 	next;
 	mes "[Zelmeto]";
 	mes "It's a time consuming";
-	mes "task I'de rather do on my";
+	mes "task I'd rather do on my";
 	mes "own. However, between that";
 	mes "and managing the workforce,";
 	mes "I don't have enough time...";
@@ -1380,7 +1388,7 @@ s_Switches:
 
 }
 
-ein_in01.gat,49,232,4	script	2nd Control Panel	111,{
+ein_in01.gat,50,232,4	script	2nd Control Panel	111,{
 
 if(EinFactory == 1)
 {
@@ -1397,7 +1405,7 @@ end;
 }
 
 
-ein_in01.gat,107,217,4	script	3rd Pressure Governor	111,{
+ein_in01.gat,108,217,4	script	3rd Pressure Governor	111,{
 
 if(EinFactory == 3)
 {
@@ -1414,7 +1422,7 @@ if(EinFactory == 3)
 end;
 }
 
-ein_in01.gat,62,259,4	script	Main Control Panel	111,{
+ein_in01.gat,61,259,4	script	Main Control Panel	111,{
 
 if(EinFactory == 5)
 {

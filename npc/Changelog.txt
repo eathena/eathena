@@ -27,6 +27,10 @@ Date		Added
 ======
 
 01/27
+	* Added birkiczd's Odin temple warps. Move the Saylor from hugel.txt there. [Poki#3]
+	* Rewrote Comodo Guides to use functions. Thanks to Daegaladh for pointing it out [Poki#3]
+	* Fixed Einbroch a bit... I think the Factory Quest should be moved from [Poki#3]
+	  Einbroch.txt to quests_einbroch.txt...
 	* Added monster spawns for Kiel dungeon, they're commented out for now though. [MasterOfMuppets]
 	* Added a new global function "F_ItemName" to print expanded item name [Lupus]
 		such as '+9 VVS Wind Knife'
