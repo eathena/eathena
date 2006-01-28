@@ -406,6 +406,8 @@ int mapreg_setreg(int num,int val);
 int mapreg_setregstr(int num,const char *str);
 
 int buildin_setitemscript(struct script_state *st);
+int buildin_disguise(struct script_state *st);
+int buildin_undisguise(struct script_state *st);
 
 #ifdef PCRE_SUPPORT
 int buildin_defpattern(struct script_state *st); // MouseJstr
@@ -699,7 +701,8 @@ struct {
 	{buildin_petstat,"petstat","i"},
 	{buildin_callshop,"callshop","si"}, // [Skotlex]
 	{buildin_setitemscript,"setitemscript","is"}, //Set NEW item bonus script. Lupus
-
+	{buildin_disguise,"disguise","i"}, //disguise player. Lupus
+	{buildin_undisguise,"undisguise","i"}, //undisguise player. Lupus
 	{NULL,NULL,NULL},
 };
 
@@ -7926,6 +7929,54 @@ int buildin_clearitem(struct script_state *st)
 
 			pc_delitem(sd, i, sd->status.inventory[i].amount, 0);
 		}
+	}
+	return 0;
+}
+
+/*==========================================
+	Disguise Player (returns Mob/NPC ID if success, 0 on fail) [Lupus]
+ *------------------------------------------
+ */
+int buildin_disguise(struct script_state *st)
+{
+	struct map_session_data *sd=script_rid2sd(st);
+	int id;
+
+	id	= conv_num(st,& (st->stack->stack_data[st->start+2]));
+
+	if (!mobdb_checkid(id) && !npcdb_checkid(id)) {
+		push_val(st->stack,C_INT,0);
+		return 0;
+	}
+
+	pc_stop_walking(sd,0);
+	clif_clearchar(&sd->bl, 0);
+	sd->disguise = id;
+	sd->state.disguised = 1; // set to override items with disguise script [Valaris]
+	clif_changeoption(&sd->bl);
+	clif_spawnpc(sd);
+
+	push_val(st->stack,C_INT,id);
+	return 0;
+}
+
+/*==========================================
+	Undisguise Player (returns 1 if success, 0 on fail) [Lupus]
+ *------------------------------------------
+ */
+int buildin_undisguise(struct script_state *st)
+{
+	struct map_session_data *sd=script_rid2sd(st);
+
+	if (sd->disguise) {
+		pc_stop_walking(sd,0);
+		clif_clearchar(&sd->bl, 0);
+		sd->disguise = 0;
+		clif_changeoption(&sd->bl);
+		clif_spawnpc(sd);
+		push_val(st->stack,C_INT,0);
+	} else {
+		push_val(st->stack,C_INT,1);
 	}
 	return 0;
 }

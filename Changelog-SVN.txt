@@ -1,5 +1,8 @@
 Date	Added
 
+2006/01/28
+	* Added DISGUISE MobID; UNDISGUISE; script commands [Lupus]
+	- Made them for Eastern Year of the Fire Dog Event.(to be uploaded today)
 2006/01/27
 	* Added support for mob_avail.txt replacement for NPC classes. [Skotlex]
 	* Added "sense_type" config to conf/battle/skill.conf to select which defense
