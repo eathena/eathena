@@ -25,10 +25,13 @@
 		* * * On your death it breaks (BS can fix it), you drop all Equipment (equipped, even the ring). And revive with 1 HP / 1 SP at the place of your death.
 		* * * From where this info is? ... Mine: On your death you'll loose this ring and get 50% HP [Komurka]
 =========================
-
-01/27
+01/28
+	* Added two missing zeros to Pharaoh's database line, thanks to Persian69 [MasterOfMuppets]
+	* Removed the looting modes of all the Lighthalzen monsters, why were [MasterOfMuppets]
+	  they there anyway o_0
 	* Changed Apocalips_H's jname to Vesper [MasterOfMuppets]
 	- Switched two dimik drops with eachother
+01/27
 	* Updated Branches [Poki#3]
 	* Fixed mob skill entries of AL_PNEUMA for Kiel. [Skotlex]
 	* Updated EXP,JEXP and ATK of the Kiel dungeon monsters. [MasterOfMuppets]
