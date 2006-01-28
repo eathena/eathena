@@ -33,7 +33,7 @@
 	mes "I can teleport you to any Town or Dungeon!";
 	mes "Were do you want to go?";
 	next;
-	menu "To a Town",-,"To a Dungeons",dungeon;
+	menu "To a Town",-,"To a Dungeon",L_dungeon;
 	next;
 	mes "[Warp Agent]";
 	mes "Please select your destination.";

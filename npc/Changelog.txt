@@ -29,6 +29,7 @@ Date		Added
 ======
 
 01/28
+	* Fixed the Warper [Poki#3]
 	* Fixed Hugel warps (htere weren't any TABs) [Lupus]
 	* Added Event: Eastern New Year 2006 The Year Of The Fire Dog (28-29 January 2006) [Lupus]
 

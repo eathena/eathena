@@ -1,6 +1,7 @@
 Date	Added
 
 2006/01/28
+	* Added the night mapflag to the new maps. Removed some indor maps. [Poki#3]
 	* Added DISGUISE MobID; UNDISGUISE; script commands [Lupus]
 	- Made them for Eastern Year of the Fire Dog Event.(to be uploaded today)
 2006/01/27

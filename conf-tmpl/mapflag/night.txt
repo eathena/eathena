@@ -10,7 +10,6 @@
 //= 'nightenabled' specifies which maps can display "night".
 //============================================================
 
-alb_ship.gat	mapflag	nightenabled
 alb2trea.gat	mapflag	nightenabled
 alberta.gat	mapflag	nightenabled
 aldebaran.gat	mapflag	nightenabled
@@ -88,9 +87,6 @@ prt_fild08.gat	mapflag	nightenabled
 prt_fild09.gat	mapflag	nightenabled
 prt_fild10.gat	mapflag	nightenabled
 prt_fild11.gat	mapflag	nightenabled
-prt_maze01.gat	mapflag	nightenabled
-prt_maze02.gat	mapflag	nightenabled
-prt_maze03.gat	mapflag	nightenabled
 prt_monk.gat	mapflag	nightenabled
 pvp_y_1-1.gat	mapflag	nightenabled
 pvp_y_1-2.gat	mapflag	nightenabled
@@ -166,7 +162,6 @@ um_fild03.gat	mapflag	nightenabled
 um_fild04.gat	mapflag	nightenabled
 lou_fild01.gat	mapflag	nightenabled
 louyang.gat	mapflag	nightenabled
-n_castle.gat	mapflag	nightenabled
 jawaii.gat	mapflag	nightenabled
 gefenia01.gat	mapflag	nightenabled
 gefenia02.gat	mapflag	nightenabled
@@ -182,8 +177,6 @@ yuno_fild08.gat	mapflag	nightenabled
 yuno_fild09.gat	mapflag	nightenabled
 yuno_fild11.gat	mapflag	nightenabled
 yuno_fild12.gat	mapflag	nightenabled
-airplane.gat	mapflag	nightenabled
-airport.gat	mapflag	nightenabled
 einbech.gat	mapflag	nightenabled
 einbroch.gat	mapflag	nightenabled
 ein_fild06.gat	mapflag	nightenabled
@@ -200,10 +193,22 @@ lighthalzen.gat	mapflag	nightenabled
 lhz_in01.gat	mapflag	nightenabled
 lhz_in02.gat	mapflag	nightenabled
 lhz_in03.gat	mapflag	nightenabled
-y_airport.gat	mapflag	nightenabled
-lhz_airport.gat	mapflag	nightenabled
 hu_fild07.gat	mapflag	nightenabled
 hu_fild05.gat	mapflag	nightenabled
 hu_fild04.gat	mapflag	nightenabled
 hu_fild01.gat	mapflag	nightenabled
 yuno_fild06.gat	mapflag	nightenabled
+tha_scene01.gat mapflag nightenabled
+hugel.gat	mapflag	nightenabled
+p_track01.gat	mapflag	nightenabled
+p_track01.gat	mapflag	nightenabled
+odin_tem01.gat	mapflag	nightenabled
+odin_tem02.gat	mapflag	nightenabled
+odin_tem03.gat	mapflag	nightenabled
+hu_fild02.gat	mapflag	nightenabled
+hu_fild03.gat	mapflag	nightenabled
+hu_fild06.gat	mapflag	nightenabled
+ein_fild01.gat	mapflag	nightenabled
+ein_fild02.gat	mapflag	nightenabled
+ein_fild05.gat	mapflag	nightenabled
+yuno_fild10.gat	mapflag	nightenabled
