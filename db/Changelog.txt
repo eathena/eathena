@@ -27,6 +27,8 @@
 =========================
 
 01/27
+	* Changed Apocalips_H's jname to Vesper [MasterOfMuppets]
+	- Switched two dimik drops with eachother
 	* Updated Branches [Poki#3]
 	* Fixed mob skill entries of AL_PNEUMA for Kiel. [Skotlex]
 	* Updated EXP,JEXP and ATK of the Kiel dungeon monsters. [MasterOfMuppets]
