@@ -29,6 +29,9 @@ Date		Added
 ======
 
 01/28
+	* Fixed Warp to Abbys Lake. [Poki#3]
+	* Removed dup warps around Einbroch. [Poki#3]
+	* Fixed ein_fild04 -> ein_fild05 warp. THanks to Playtester [Poki#3]
 	* Re-wrote the Dye NCP (original, not the custom one) [Poki#3]
 	- I hope there aren't any bugs in it. The Jobs are sorted based on the file names
 	  that the client reads.

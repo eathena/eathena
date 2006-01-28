@@ -13,8 +13,8 @@
 //============================================================
 
 //= Hugel Field ================================================
-ein_fild04.gat,335,285,0	warp	hugel001	1,1,ein_fild05.gat,77,294
-ein_fild05.gat,75,294,0	warp	hugel001a	1,1,ein_fild04.gat,335,283
+ein_fild04.gat,344,294,0	warp	hugel001	1,1,ein_fild05.gat,77,294
+ein_fild05.gat,75,294,0	warp	hugel001a	1,1,ein_fild04.gat,339,294
 ein_fild05.gat,377,183,0	warp	hugel002	1,1,ein_fild06.gat,42,169
 ein_fild06.gat,40,169,0	warp	hugel002a	1,1,ein_fild05.gat,375,183
 ein_fild02.gat,358,250,0	warp	hugel003	1,1,yuno_fild04.gat,34,281
