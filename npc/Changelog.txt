@@ -3,6 +3,8 @@ Person	Working On
 Lupus
 	* Looking for exploits, optimization, bugs hunt
 	* Adding new cards, checking/adding mobs/items
+	* EXP quests for Blacksmith, Merchant, Alchemist
+	* Vassakh Ghoul global quest (custom) ^_-
 Mass Zero
 	* Fixing grammatical errors.
 	* Fixing small bugs.
@@ -26,6 +28,8 @@ Nexon
 Date		Added
 ======
 
+01/28
+	* Fixed Hugel warps (htere weren't any TABs) [Lupus]
 01/27
 	* Added birkiczd's Odin temple warps. Move the Saylor from hugel.txt there. [Poki#3]
 	* Rewrote Comodo Guides to use functions. Thanks to Daegaladh for pointing it out [Poki#3]
