@@ -30,6 +30,8 @@ Date		Added
 
 01/28
 	* Fixed Hugel warps (htere weren't any TABs) [Lupus]
+	* Added Event: Eastern New Year 2006 The Year Of The Fire Dog (28-29 January 2006) [Lupus]
+
 01/27
 	* Added birkiczd's Odin temple warps. Move the Saylor from hugel.txt there. [Poki#3]
 	* Rewrote Comodo Guides to use functions. Thanks to Daegaladh for pointing it out [Poki#3]
