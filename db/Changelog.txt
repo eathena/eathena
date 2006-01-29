@@ -25,6 +25,8 @@
 		* * * On your death it breaks (BS can fix it), you drop all Equipment (equipped, even the ring). And revive with 1 HP / 1 SP at the place of your death.
 		* * * From where this info is? ... Mine: On your death you'll loose this ring and get 50% HP [Komurka]
 =========================
+01/29
+	* Updated Vesper a bit and changed some drops for the venatus [MasterOfMuppets]
 01/28
 	* Added two missing zeros to Pharaoh's database line, thanks to Persian69 [MasterOfMuppets]
 	* Removed the looting modes of all the Lighthalzen monsters, why were [MasterOfMuppets]
