@@ -26,6 +26,9 @@
 		* * * From where this info is? ... Mine: On your death you'll loose this ring and get 50% HP [Komurka]
 =========================
 01/29
+	* Updated the stats, exp, jexp, hp, def, mdef, atk of all the Thanatos tower [MasterOfMuppets]
+	  & Abyss lake monsters and Banana Lady Tanee using information from the official
+	  kRO guide book. Thanks to saycyber21 for the scans. However FERUS and FERUS_ was missing =(
 	* Updated Vesper a bit and changed some drops for the venatus [MasterOfMuppets]
 01/28
 	* Added two missing zeros to Pharaoh's database line, thanks to Persian69 [MasterOfMuppets]
