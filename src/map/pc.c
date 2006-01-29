@@ -40,7 +40,7 @@
 #endif
 
 #define PVP_CALCRANK_INTERVAL 1000	// PVPèáà åvéZÇÃä‘äu
-#define IDLE_TIMEOUT 1
+// #define IDLE_TIMEOUT 1
 
 // #define HALLOWEEN 1
 

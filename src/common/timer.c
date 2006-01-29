@@ -1,24 +1,27 @@
-// $Id: timer.c,v 1.1.1.1 2004/09/10 17:44:49 Yor Exp $
-// original : core.c 2003/02/26 18:03:12 Rev 1.7
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
 
-// #define TIMER_DEBUG 1
-//#include <config.h>
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <sys/types.h>
 
 #ifdef __WIN32
 #define __USE_W32_SOCKETS
+// Well, this won't last another 30++ years (where conversion will truncate).
+//#define _USE_32BIT_TIME_T	// use 32 bit time variables on 64bit windows
 #include <windows.h>
 #else
 #include <sys/socket.h>
 #include <sys/time.h>
 #endif
 
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
 #include "timer.h"
-#include "../common/malloc.h"
+#include "malloc.h"
+#include "showmsg.h"
 
 // タイマー間隔の最小値。モンスターの大量召還時、多数のクライアント接続時に
 // サーバーが反応しなくなる場合は、TIMER_MIN_INTERVAL を増やしてください。
@@ -26,7 +29,7 @@
 // If the server shows no reaction when processing thousands of monsters
 // or connected by many clients, please increase TIMER_MIN_INTERVAL.
 
-#define TIMER_MIN_INTERVAL 10
+#define TIMER_MIN_INTERVAL 50
 
 static struct TimerData* timer_data	= NULL;
 static int timer_data_max	= 0;
@@ -40,6 +43,8 @@ static int timer_heap_num = 0;
 static int timer_heap_max = 0;
 static int* timer_heap = NULL;
 
+static int fix_heap_flag =0; //Flag for fixing the stack only once per tick loop. May not be the best way, but it's all I can think of currently :X [Skotlex]
+
 // for debug
 struct timer_func_list {
 	int (*func)(int,unsigned int,int,int);
@@ -47,6 +52,8 @@ struct timer_func_list {
 	char* name;
 };
 static struct timer_func_list* tfl_root;
+
+time_t start_time;
 
 #ifdef __WIN32
 /* Modified struct timezone to void - we pass NULL anyway */
@@ -126,11 +133,9 @@ static void push_timer_heap(int index)
 	if (timer_heap_num >= timer_heap_max) {
 		if (timer_heap_max == 0) {
 			timer_heap_max = 256;
-			//CALLOC(timer_heap, int, 256);
 			timer_heap = (int *) aCalloc( sizeof(int) , 256);
 		} else {
 			timer_heap_max += 256;
-			//REALLOC(timer_heap, int, timer_heap_max);
 			timer_heap = (int *) aRealloc( timer_heap, sizeof(int) * timer_heap_max);
 			memset(timer_heap + (timer_heap_max - 256), 0, sizeof(int) * 256);
 		}
@@ -141,7 +146,8 @@ static void push_timer_heap(int index)
 	// with less than 4 values, it's speeder to use simple loop
 	if (timer_heap_num < 4) {
 		for(i = timer_heap_num; i > 0; i--)
-			if (j < timer_data[timer_heap[i - 1]].tick)
+//			if (j < timer_data[timer_heap[i - 1]].tick) //Plain comparisons break on bound looping timers. [Skotlex]
+			if (DIFF_TICK(j, timer_data[timer_heap[i - 1]].tick) < 0)
 				break;
 			else
 				timer_heap[i] = timer_heap[i - 1];
@@ -149,7 +155,8 @@ static void push_timer_heap(int index)
 	// searching by dichotomie
 	} else {
 		// if lower actual item is higher than new
-		if (j < timer_data[timer_heap[timer_heap_num - 1]].tick)
+//		if (j < timer_data[timer_heap[timer_heap_num - 1]].tick) //Plain comparisons break on bound looping timers. [Skotlex]
+		if (DIFF_TICK(j, timer_data[timer_heap[timer_heap_num - 1]].tick) < 0)
 			timer_heap[timer_heap_num] = index;
 		else {
 			// searching position
@@ -157,7 +164,8 @@ static void push_timer_heap(int index)
 			max = timer_heap_num - 1;
 			while (min < max) {
 				pivot = (min + max) / 2;
-				if (j < timer_data[timer_heap[pivot]].tick)
+//				if (j < timer_data[timer_heap[pivot]].tick) //Plain comparisons break on bound looping timers. [Skotlex]
+				if (DIFF_TICK(j, timer_data[timer_heap[pivot]].tick) < 0)
 					min = pivot + 1;
 				else
 					max = pivot;
@@ -198,11 +206,9 @@ int acquire_timer (void)
 	if (i >= timer_data_num && i >= timer_data_max) {
 		if (timer_data_max == 0) {
 			timer_data_max = 256;
-			//CALLOC(timer_data, struct TimerData, timer_data_max);
 			timer_data = (struct TimerData*) aCalloc( sizeof(struct TimerData) , timer_data_max);
 		} else {
 			timer_data_max += 256;
-			//REALLOC(timer_data, struct TimerData, timer_data_max);
 			timer_data = (struct TimerData *) aRealloc( timer_data, sizeof(struct TimerData) * timer_data_max);
 			memset(timer_data + (timer_data_max - 256), 0, sizeof(struct TimerData) * 256);
 		}
@@ -222,9 +228,6 @@ int add_timer(unsigned int tick,int (*func)(int,unsigned int,int,int), int id, i
 	timer_data[tid].type	= TIMER_ONCE_AUTODEL;
 	timer_data[tid].interval = 1000;
 	push_timer_heap(tid);
-#ifdef TIMER_DEBUG
-	printf("Added timer %d, tick %d\n",tid,timer_data[tid].tick);
-#endif
 
 	if (tid >= timer_data_num)
 		timer_data_num = tid + 1;
@@ -243,9 +246,6 @@ int add_timer_interval(unsigned int tick, int (*func)(int,unsigned int,int,int),
 	timer_data[tid].type	= TIMER_INTERVAL;
 	timer_data[tid].interval = interval;
 	push_timer_heap(tid);
-#ifdef TIMER_DEBUG
-	printf("Added interval timer %d, tick %ud\n",tid,timer_data[tid].tick);
-#endif
 
 	if (tid >= timer_data_num)
 		timer_data_num = tid + 1;
@@ -256,11 +256,11 @@ int add_timer_interval(unsigned int tick, int (*func)(int,unsigned int,int,int),
 int delete_timer(int id, int (*func)(int,unsigned int,int,int))
 {
 	if (id <= 0 || id >= timer_data_num) {
-		printf("delete_timer error : no such timer %d\n", id);
+		ShowError("delete_timer error : no such timer %d\n", id);
 		return -1;
 	}
 	if (timer_data[id].func != func) {
-		printf("delete_timer error : function mismatch %08x(%s) != %08x(%s)\n",
+		ShowError("delete_timer error : function mismatch %08x(%s) != %08x(%s)\n",
 			 (int)timer_data[id].func, search_timer_func_list(timer_data[id].func),
 			 (int)func, search_timer_func_list(func));
 		return -2;
@@ -277,14 +277,79 @@ int addtick_timer(int tid, unsigned int tick)
 	return timer_data[tid].tick += tick;
 }
 
+//Sets the tick at which the timer triggers directly (meant as a replacement of delete_timer + add_timer) [Skotlex]
+//FIXME: DON'T use this function yet, it is not correctly reorganizing the timer stack causing unexpected problems later on!
+int settick_timer(int tid, unsigned int tick)
+{
+	int i,j;
+	if (timer_data[tid].tick == tick)
+		return tick;
+
+	//FIXME: This search is not all that effective... there doesn't seems to be a better way to locate an element in the heap.
+	for(i = timer_heap_num-1; i >= 0 && timer_heap[i] != tid; i--);
+
+	if (i < 0)
+		return -1; //Sort of impossible, isn't it?
+	if (DIFF_TICK(timer_data[tid].tick, tick) > 0)
+	{	//Timer is accelerated, shift timer near the end of the heap.
+		if (i == timer_heap_num-1) //Nothing to shift.
+			j = timer_heap_num-1;
+		else {
+			for (j = i+1; j < timer_heap_num && DIFF_TICK(timer_data[j].tick, tick) > 0; j++);
+			j--;
+			memmove(&timer_heap[i], &timer_heap[i+1], (j-i)*sizeof(int));
+		}
+	} else {	//Timer is delayed, shift timer near the beginning of the heap.
+		if (i == 0) //Nothing to shift.
+			j = 0;
+		else {
+			for (j = i-1; j >= 0 && DIFF_TICK(timer_data[j].tick, tick) < 0; j--);
+			j++;
+			memmove(&timer_heap[j+1], &timer_heap[j], (i-j)*sizeof(int));
+		}
+	}
+	timer_heap[j] = tid;
+	timer_data[tid].tick = tick;
+	return tick;
+}
+
 struct TimerData* get_timer(int tid)
 {
 	return &timer_data[tid];
 }
 
+//Correcting the heap when the tick overflows is an idea taken from jA to
+//prevent timer problems. Thanks to [End of Exam] for providing the required data. [Skotlex]
+//This funtion will rearrange the heap and assign new tick values.
+static void fix_timer_heap(unsigned int tick)
+{
+	if (timer_heap_num >= 0 && tick < 0x00010000 && timer_data[timer_heap[0]].tick > 0xf0000000)
+	{	//The last timer is way too far into the future, and the current tick is too close to 0, overflow was very likely
+		//(not perfect, but will work as long as the timer is not expected to happen 50 or so days into the future)
+		int i;
+		int *tmp_heap;
+		for (i=0; i < timer_heap_num && timer_data[timer_heap[i]].tick > 0xf0000000; i++)
+		{	//All functions with high tick value should had been executed already...
+			timer_data[timer_heap[i]].tick = 0;
+		}
+		//Move elements to readjust the heap.
+		tmp_heap = aCalloc(sizeof(int), i);
+		memmove(&tmp_heap[0], &timer_heap[0], i*sizeof(int));
+		memmove(&timer_heap[0], &timer_heap[i], (timer_heap_num-i)*sizeof(int));
+		memmove(&timer_heap[timer_heap_num-i], &tmp_heap[0], i*sizeof(int));
+		aFree(tmp_heap);
+	}
+}
+
 int do_timer(unsigned int tick)
 {
 	int i, nextmin = 1000;
+
+	if (tick < 0x010000 && fix_heap_flag)
+	{
+		fix_timer_heap(tick);
+		fix_heap_flag = 0;
+	}
 
 	while(timer_heap_num) {
 		i = timer_heap[timer_heap_num - 1]; // next shorter element
@@ -310,7 +375,6 @@ int do_timer(unsigned int tick)
 				timer_data[i].type = 0;
 				if (free_timer_list_pos >= free_timer_list_max) {
 					free_timer_list_max += 256;
-					//REALLOC(free_timer_list, int, free_timer_list_max);
 					free_timer_list = (int *) aRealloc(free_timer_list, sizeof(int) * free_timer_list_max);
 					memset(free_timer_list + (free_timer_list_max - 256), 0, 256 * sizeof(int));
 				}
@@ -332,10 +396,23 @@ int do_timer(unsigned int tick)
 	if (nextmin < TIMER_MIN_INTERVAL)
 		nextmin = TIMER_MIN_INTERVAL;
 
+	if ((unsigned int)(tick + nextmin) < tick) //Tick will loop, rearrange the heap on the next iteration.
+		fix_heap_flag = 1;
 	return nextmin;
 }
 
-void timer_final() {
+unsigned long get_uptime (void)
+{
+	return (unsigned long) difftime (time(NULL), start_time);
+}
+
+void timer_init()
+{
+	time(&start_time);
+}
+
+void timer_final()
+{
 	struct timer_func_list* tfl = tfl_root, *tfl2;
 
 	while (tfl) {
