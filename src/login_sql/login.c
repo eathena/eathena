@@ -758,16 +758,28 @@ int mmo_auth( struct mmo_account* account , int fd){
 
 	if (atoi(sql_row[9])) {
 		switch(atoi(sql_row[9])) { // packet 0x006a value + 1
-		case 1:   // 0 = Unregistered ID
-		case 2:   // 1 = Incorrect Password
-		case 3:   // 2 = This ID is expired
-		case 4:   // 3 = Rejected from Server
-		case 5:   // 4 = You have been blocked by the GM Team
-		case 6:   // 5 = Your Game's EXE file is not the latest version
-		case 7:   // 6 = Your are Prohibited to log in until %s
-		case 8:   // 7 = Server is jammed due to over populated
-		case 9:   // 8 = No MSG (actually, all states after 9 except 99 are No MSG, use only this)
+		case 1: // 0 = Unregistered ID
+		case 2: // 1 = Incorrect Password
+		case 3: // 2 = This ID is expired
+		case 4: // 3 = Rejected from Server
+		case 5: // 4 = You have been blocked by the GM Team
+		case 6: // 5 = Your Game's EXE file is not the latest version
+		case 7: // 6 = Your are Prohibited to log in until %s
+		case 8: // 7 = Server is jammed due to over populated
+		case 9: // 8 = No more accounts may be connected from this company
+		case 10: // 9 = MSI_REFUSE_BAN_BY_DBA
+		case 11: // 10 = MSI_REFUSE_EMAIL_NOT_CONFIRMED
+		case 12: // 11 = MSI_REFUSE_BAN_BY_GM
+		case 13: // 12 = MSI_REFUSE_TEMP_BAN_FOR_DBWORK
+		case 14: // 13 = MSI_REFUSE_SELF_LOCK
+		case 15: // 14 = MSI_REFUSE_NOT_PERMITTED_GROUP
+		case 16: // 15 = MSI_REFUSE_NOT_PERMITTED_GROUP
 		case 100: // 99 = This ID has been totally erased
+		case 101: // 100 = Login information remains at %s.
+		case 102: // 101 = Account has been locked for a hacking investigation. Please contact the GM Team for more information
+		case 103: // 102 = This account has been temporarily prohibited from login due to a bug-related investigation
+		case 104: // 103 = This character is being deleted. Login is temporarily unavailable for the time being
+		case 105: // 104 = Your spouse character is being deleted. Login is temporarily unavailable for the time being
 			ShowNotice("Auth Error #%d\n", atoi(sql_row[9]));
 			return atoi(sql_row[9]) - 1;
 			break;
@@ -1535,53 +1547,101 @@ int parse_login(int fd) {
 		{
 			sprintf(tmp_sql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%d.%d.%d.%d', '%s', '%d','login failed : %%s')", loginlog_db, p[0], p[1], p[2], p[3], t_uid, result);
 			switch((result + 1)) {
-			case -2:  //-3 = Account Banned
+			case -2:	//-3 = Account Banned
 				sprintf(tmpsql,tmp_sql,"Account banned.");
 				sprintf(error,"Account banned.");
 			break;
-			case -1:  //-2 = Dynamic Ban
+			case -1:	//-2 = Dynamic Ban
 				sprintf(tmpsql,tmp_sql,"dynamic ban (ip and account).");
 				sprintf(error,"dynamic ban (ip and account).");
 			break;
-			case 1:   // 0 = Unregistered ID
+			case 1:	// 0 = Unregistered ID
 				sprintf(tmpsql,tmp_sql,"Unregisterd ID.");
 				sprintf(error,"Unregisterd ID.");
 			break;
-			case 2:   // 1 = Incorrect Password
+			case 2:	// 1 = Incorrect Password
 				sprintf(tmpsql,tmp_sql,"Incorrect Password.");
 				sprintf(error,"Incorrect Password.");
 			break;
-			case 3:   // 2 = This ID is expired
+			case 3:	// 2 = This ID is expired
 				sprintf(tmpsql,tmp_sql,"Account Expired.");
 				sprintf(error,"Account Expired.");
 			break;
-			case 4:   // 3 = Rejected from Server
+			case 4:	// 3 = Rejected from Server
 				sprintf(tmpsql,tmp_sql,"Rejected from server.");
 				sprintf(error,"Rejected from server.");
 			break;
-			case 5:   // 4 = You have been blocked by the GM Team
+			case 5:	// 4 = You have been blocked by the GM Team
 				sprintf(tmpsql,tmp_sql,"Blocked by GM.");
 				sprintf(error,"Blocked by GM.");
 			break;
-			case 6:   // 5 = Your Game's EXE file is not the latest version
+			case 6:	// 5 = Your Game's EXE file is not the latest version
 				sprintf(tmpsql,tmp_sql,"Not latest game EXE.");
 				sprintf(error,"Not latest game EXE.");
 			break;
-			case 7:   // 6 = Your are Prohibited to log in until %s
+			case 7:	// 6 = Your are Prohibited to log in until %s
 				sprintf(tmpsql,tmp_sql,"Banned.");
 				sprintf(error,"Banned.");
 			break;
-			case 8:   // 7 = Server is jammed due to over populated
+			case 8:	// 7 = Server is jammed due to over populated
 				sprintf(tmpsql,tmp_sql,"Server Over-population.");
 				sprintf(error,"Server Over-population.");
 			break;
-			case 9:   // 8 = No MSG (actually, all states after 9 except 99 are No MSG, use only this)
-				sprintf(tmpsql,tmp_sql," ");
-				sprintf(error," ");
+			case 9:	// 8 = No more accounts may be connected from this company
+				sprintf(tmpsql,tmp_sql,"Account limit from company");
+ 				sprintf(error,"Account limit from company");
+			break;
+			case 10:  // 9 = MSI_REFUSE_BAN_BY_DBA
+				sprintf(tmpsql,tmp_sql,"Ban by DBA");
+				sprintf(error,"Ban by DBA");
+			break;
+			case 11:  // 10 = MSI_REFUSE_EMAIL_NOT_CONFIRMED
+				sprintf(tmpsql,tmp_sql,"Email not confirmed");
+				sprintf(error,"Email not confirmed");
+			break;
+			case 12:  // 11 = MSI_REFUSE_BAN_BY_GM
+				sprintf(tmpsql,tmp_sql,"Ban by GM");
+				sprintf(error,"Ban by GM");
+			break;
+			case 13:  // 12 = MSI_REFUSE_TEMP_BAN_FOR_DBWORK
+				sprintf(tmpsql,tmp_sql,"Working in DB");
+				sprintf(error,"Working in DB");
+			break;
+			case 14:  // 13 = MSI_REFUSE_SELF_LOCK
+				sprintf(tmpsql,tmp_sql,"Self Lock");
+				sprintf(error,"Self Lock");
+			break;
+			case 15:  // 14 = MSI_REFUSE_NOT_PERMITTED_GROUP
+				sprintf(tmpsql,tmp_sql,"Not Permitted Group");
+				sprintf(error,"Not Permitted Group");
+			break;
+			case 16:  // 15 = MSI_REFUSE_NOT_PERMITTED_GROUP
+				sprintf(tmpsql,tmp_sql,"Not Permitted Group");
+				sprintf(error,"Not Permitted Group");
 			break;
 			case 100: // 99 = This ID has been totally erased
 				sprintf(tmpsql,tmp_sql,"Account gone.");
 				sprintf(error,"Account gone.");
+			break;
+			case 101: // 100 = Login information remains at %s
+				sprintf(tmpsql,tmp_sql,"Login info remains.");
+				sprintf(error,"Login info remains.");
+			break;
+			case 102: // 101 = Account has been locked for a hacking investigation. Please contact the GM Team for more information
+				sprintf(tmpsql,tmp_sql,"Hacking investigation.");
+				sprintf(error,"Hacking investigation.");
+			break;
+			case 103: // 102 = This account has been temporarily prohibited from login due to a bug-related investigation
+				sprintf(tmpsql,tmp_sql,"Bug investigation.");
+				sprintf(error,"Bug investigation.");
+			break;
+			case 104: // 103 = This character is being deleted. Login is temporarily unavailable for the time being
+				sprintf(tmpsql,tmp_sql,"Deleting char.");
+				sprintf(error,"Deleting char.");
+			break;
+			case 105: // 104 = This character is being deleted. Login is temporarily unavailable for the time being
+				sprintf(tmpsql,tmp_sql,"Deleting spouse char.");
+				sprintf(error,"Deleting spouse char.");
 			break;
 			default:
 				sprintf(tmpsql,tmp_sql,"Uknown Error.");

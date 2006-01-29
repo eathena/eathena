@@ -1247,16 +1247,28 @@ int mmo_auth(struct mmo_account* account, int fd) {
 			login_log("Connection refused (account: %s, pass: %s, state: %d, ip: %s)" RETCODE,
 			          account->userid, account->passwd, auth_dat[i].state, ip);
 			switch(auth_dat[i].state) { // packet 0x006a value + 1
-			case 1:   // 0 = Unregistered ID
-			case 2:   // 1 = Incorrect Password
-			case 3:   // 2 = This ID is expired
-			case 4:   // 3 = Rejected from Server
-			case 5:   // 4 = You have been blocked by the GM Team
-			case 6:   // 5 = Your Game's EXE file is not the latest version
-			case 7:   // 6 = Your are Prohibited to log in until %s
-			case 8:   // 7 = Server is jammed due to over populated
-			case 9:   // 8 = No MSG (actually, all states after 9 except 99 are No MSG, use only this)
+			case 1: // 0 = Unregistered ID
+			case 2: // 1 = Incorrect Password
+			case 3: // 2 = This ID is expired
+			case 4: // 3 = Rejected from Server
+			case 5: // 4 = You have been blocked by the GM Team
+			case 6: // 5 = Your Game's EXE file is not the latest version
+			case 7: // 6 = Your are Prohibited to log in until %s
+			case 8: // 7 = Server is jammed due to over populated
+			case 9: // 8 = No more accounts may be connected from this company
+			case 10: // 9 = MSI_REFUSE_BAN_BY_DBA
+			case 11: // 10 = MSI_REFUSE_EMAIL_NOT_CONFIRMED
+			case 12: // 11 = MSI_REFUSE_BAN_BY_GM
+			case 13: // 12 = MSI_REFUSE_TEMP_BAN_FOR_DBWORK
+			case 14: // 13 = MSI_REFUSE_SELF_LOCK
+			case 15: // 14 = MSI_REFUSE_NOT_PERMITTED_GROUP
+			case 16: // 15 = MSI_REFUSE_NOT_PERMITTED_GROUP
 			case 100: // 99 = This ID has been totally erased
+			case 101: // 100 = Login information remains at %s.
+			case 102: // 101 = Account has been locked for a hacking investigation. Please contact the GM Team for more information
+			case 103: // 102 = This account has been temporarily prohibited from login due to a bug-related investigation
+			case 104: // 103 = This character is being deleted. Login is temporarily unavailable for the time being
+			case 105: // 104 = Your spouse character is being deleted. Login is temporarily unavailable for the time being
 				return auth_dat[i].state - 1;
 			default:
 				return 99; // 99 = ID has been totally erased
