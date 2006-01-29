@@ -24,8 +24,13 @@
 	2653,Sacrifice_Ring: seems eAthena doesn't have bonus option yet <- explain how this works so I can code it in. [Skotlex]
 		* * * On your death it breaks (BS can fix it), you drop all Equipment (equipped, even the ring). And revive with 1 HP / 1 SP at the place of your death.
 		* * * From where this info is? ... Mine: On your death you'll loose this ring and get 50% HP [Komurka]
+
 =========================
 01/29
+	* Updated some cards according to tests: Icreased a bit chance of Gift Box / OBB /OVB drops [Lupus]
+		Raggler Card Combo(2x), Mimic Card(2x), Mystcase Card(8x)
+	* Updated Mystcase Card: When Raggler Card Cmbo is set, it stops dropping Gift Boxes [Lupus]
+		Because it starts dropping OVBs
 	* Updated the stats, exp, jexp, hp, def, mdef, atk of all the Thanatos tower [MasterOfMuppets]
 	  & Abyss lake monsters and Banana Lady Tanee using information from the official
 	  kRO guide book. Thanks to saycyber21 for the scans. However FERUS and FERUS_ was missing =(
