@@ -4,6 +4,18 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES GO 
 IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EVERYTHING ELSE
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY VALARIS AND WIZPUTER. -- VALARIS
 
+2006/01/30
+	* Autoloot now uses the item's base drop chance rather than final drop rate
+	  to determine if it should autoloot the item or not. [Skotlex]
+	* Fixed super novices getting +10 to all stats temporarily whentheir death
+	  count isn't zero. [Skotlex]
+	* Fixed Kahai displaying HP-SP as the total healed instead of HP [Skotlex]
+	* Parsing the Storage/Guild Storage from the char server will now fail if
+	  the storage has been modified and not saved yet. [Skotlex]
+	* Being hit now cancels confuse. [Skotlex]
+	* Added back the bleeding icon. [Skotlex]
+	* Fixed Combo Finish Soul Linked Effect being a 11x11 splash area instead of
+	  5x5 [Skotlex]
 2006/01/29
 	* Added support for more account states like "Unavailable due to hacking/bug
 	  investigation" etc, thanks to NeoSaro [DracoRPG]

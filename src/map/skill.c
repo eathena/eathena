@@ -898,9 +898,9 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 			if (dstsd && dstsd->status.sp < 5*tsc_data[SC_KAAHI].val1)
 				; //Not enough SP to cast
 			else {
-				rate = battle_heal(bl, bl, 200*tsc_data[SC_KAAHI].val1, -5*tsc_data[SC_KAAHI].val1, 1);
+				battle_heal(bl, bl, 200*tsc_data[SC_KAAHI].val1, -5*tsc_data[SC_KAAHI].val1, 1);
 				if(dstsd && dstsd->fd)
-					clif_heal(dstsd->fd,SP_HP,rate);
+					clif_heal(dstsd->fd,SP_HP,200*tsc_data[SC_KAAHI].val1);
 			}
 		}
 	}
@@ -2728,7 +2728,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 		if (!(flag&1) && sc_data && sc_data[SC_SPIRIT].timer != -1 && sc_data[SC_SPIRIT].val2 == SL_MONK)
 		{	//Becomes a splash attack when Soul Linked.
 			map_foreachinarea(skill_area_sub,
-				bl->m,bl->x-5,bl->y-5,bl->x+5,bl->y+5,BL_CHAR,
+				bl->m,bl->x-2,bl->y-2,bl->x+2,bl->y+2,BL_CHAR,
 				src,skillid,skilllv,tick, flag|BCT_ENEMY|1,
 				skill_castend_damage_id);
 		} else
