@@ -155,14 +155,16 @@ public:
 	virtual bool first()
 	{
 		ScopeLock sl(cMx);
-		char query[2048];
-		size_t sz=snprintf(query, sizeof(query), "SELECT `*` FROM `%s`", login_auth_db);
+		MiniString query;
+
+		query << "SELECT `*` FROM `" << login_auth_db << "`";
+
 		if(cSqlRes)
 		{
 			mysql_free_result(cSqlRes);
 			cSqlRes=NULL;
 		}
-		if( this->mysql_SendQuery(cSqlRes, query, sz) )
+		if( this->mysql_SendQuery(cSqlRes, query.c_str(), query.size() ) )
 		{
 			if( mysql_num_rows(cSqlRes) > 0 )
 			{
@@ -245,6 +247,116 @@ private:
 	bool close();
 
 };
+
+class CCharDB_sql : public CMySQL, private CConfig, public CCharDBInterface
+{
+	///////////////////////////////////////////////////////////////////////////
+	// config stuff
+	// uint32 next_char_id;
+
+	char char_db[256];
+	char mail_db[256];
+	char friend_db[256];
+	char memo_db[256];
+	char cart_db[256];
+	char inventory_db[256];
+	char skill_db[256];
+	char guild_skill_db[256];
+	char char_reg_db[256];
+
+
+
+	bool name_ignoring_case;
+	int char_name_option;
+	char char_name_letters[256];
+	uint32 start_zeny;
+	unsigned short start_weapon;
+	unsigned short start_armor;
+	struct point start_point;
+
+	size_t savecount;
+
+	///////////////////////////////////////////////////////////////////////////
+	// data
+//	TMultiListP<CCharCharacter, 2>	cCharList;
+//	TslistDCT<CCharCharAccount>		cAccountList;
+
+public:
+	CCharDB_sql(const char *dbcfgfile);
+	~CCharDB_sql();
+
+private:
+
+	bool compare_item(const struct item &a, const struct item &b);
+	bool read_friends(){return true;}
+
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// access interface
+	virtual size_t size()	{ return 0;/*cCharList.size();*/ }
+	virtual CCharCharacter& operator[](size_t i)	{ static CCharCharacter tmp; return tmp; /*cCharList[i];*/ }
+
+	virtual bool existChar(const char* name);
+	virtual bool searchChar(const char* name, CCharCharacter&data);
+	virtual bool searchChar(uint32 charid, CCharCharacter&data);
+	virtual bool insertChar(CCharAccount &account, const char *name, unsigned char str, unsigned char agi, unsigned char vit, unsigned char int_, unsigned char dex, unsigned char luk, unsigned char slot, unsigned char hair_style, unsigned char hair_color, CCharCharacter&data);
+	virtual bool removeChar(uint32 charid);
+	virtual bool saveChar(const CCharCharacter& data);
+
+	virtual bool searchAccount(uint32 accid, CCharCharAccount& account);
+	virtual bool saveAccount(CCharAccount& account);
+	virtual bool removeAccount(uint32 accid);
+
+
+	///////////////////////////////////////////////////////////////////////////
+	// Mail should be in its own class at some point, shouldnt be mixed in
+	// saving and loading of character info... no relation
+/*
+	//!! need rework
+	current fields in table 'mail'
+	------------------------------
+	message_id			// used as is
+	to_account_id		// used for target charid
+	to_char_name		// used as is, not necessary though
+	from_account_id		// used for sender charid
+	from_char_name		// used as is, not necessary though
+	message				// used as is
+	read_flag			// used as is
+	priority			// not used
+	check_flag			// not used
+
+	head				// missing
+*/
+
+	virtual size_t getUnreadCount(uint32 cid);
+	virtual size_t listMail(uint32 cid, unsigned char box, unsigned char *buffer);
+	virtual bool readMail(uint32 cid, uint32 mid, CMail& mail);
+	virtual bool deleteMail(uint32 cid, uint32 mid);
+	virtual bool sendMail(uint32 senderid, const char* sendername, const char* targetname, const char *head, const char *body, uint32& msgid, uint32& tid);
+
+private:
+	///////////////////////////////////////////////////////////////////////////
+	// Config processor
+	virtual bool ProcessConfig(const char*w1, const char*w2);
+
+	///////////////////////////////////////////////////////////////////////////
+	// normal function
+	bool init(const char* configfile)
+	{	// init db
+		if(configfile)
+			CConfig::LoadConfig(configfile);
+		//return read_chars() && read_friends();
+		return true;
+	}
+	bool close()
+	{
+		//return save_chars() && save_friends();
+		return true;
+	}
+};
+
+
 
 #endif//!TXT_ONLY
 #endif //_SQL_H_

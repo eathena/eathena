@@ -747,829 +747,7 @@ CREATE TABLE IF NOT EXISTS `char_skill` (
   PRIMARY KEY  (`char_id`,`id`),
   KEY `char_id` (`char_id`)
 )
-
-	will continue when i have more rest.
-
-
-
-
-		p.char_id = tmp_int[0];
-		p.account_id = tmp_int[1];
-		p.slot = tmp_int[2];
-		p.class_ = tmp_int[3];
-		p.base_level = tmp_int[4];
-		p.job_level = tmp_int[5];
-		p.base_exp = tmp_int[6];
-		p.job_exp = tmp_int[7];
-		p.zeny = tmp_int[8];
-		p.hp = tmp_int[9];
-		p.max_hp = tmp_int[10];
-		p.sp = tmp_int[11];
-		p.max_sp = tmp_int[12];
-		p.str = tmp_int[13];
-		p.agi = tmp_int[14];
-		p.vit = tmp_int[15];
-		p.int_ = tmp_int[16];
-		p.dex = tmp_int[17];
-		p.luk = tmp_int[18];
-		p.status_point = tmp_int[19];
-		p.skill_point = tmp_int[20];
-		p.option = tmp_int[21];
-		p.karma = GetByte(tmp_int[22],0);
-		p.chaos = GetByte(tmp_int[22],1);
-		p.manner = tmp_int[23];
-		p.party_id = tmp_int[24];
-		p.guild_id = tmp_int[25];
-		p.pet_id = tmp_int[26];
-		p.hair = tmp_int[27];
-		p.hair_color = tmp_int[28];
-		p.clothes_color = tmp_int[29];
-		p.weapon = tmp_int[30];
-		p.shield = tmp_int[31];
-		p.head_top = tmp_int[32];
-		p.head_mid = tmp_int[33];
-		p.head_bottom = tmp_int[34];
-		p.last_point.x = tmp_int[35];
-		p.last_point.y = tmp_int[36];
-		p.save_point.x = tmp_int[37];
-		p.save_point.y = tmp_int[38];
-		p.partner_id = tmp_int[39];
-		p.father_id = tmp_int[40];
-		p.mother_id = tmp_int[41];
-		p.child_id = tmp_int[42];
-		p.fame_points = tmp_int[43];
-
-		size_t pos;
-
-		if( cCharList.find(p, pos, 0) )
-		{
-			ShowError(CL_BT_RED"Character has an identical id to another.\n"CL_NORM);
-			ShowMessage("           Character id #%ld -> new character not read.\n", (unsigned long)p.char_id);
-			ShowMessage("           Character saved in log file.\n");
-			return false;
-		}
-		else if( cCharList.find(p, pos, 1) )
-		{
-			ShowError(CL_BT_RED"Character name already exists.\n"CL_NORM);
-			ShowMessage("           Character name '%s' -> new character not read.\n", p.name);
-			ShowMessage("           Character saved in log file.\n");
-			return false;
-		}
-
-
-		if( cAccountList.find( CCharCharAccount(p.account_id),0,pos) )
-		{
-			if( cAccountList[pos].charlist[p.slot] != 0 )
-			{
-				ShowError(CL_BT_RED"Character Slot already exists.\n"CL_NORM);
-				ShowMessage("           Character name '%s' -> new character not read.\n", p.name);
-				ShowMessage("           Character saved in log file.\n");
-				return false;
-			}
-			else
-			{
-				cAccountList[pos].charlist[p.slot]=p.char_id;
-			}
-		}
-		else
-		{
-			CCharCharAccount account(p.account_id);
-			memset(account.charlist,0,sizeof(account.charlist));
-			account.charlist[p.slot]=p.char_id;
-			cAccountList.insert(account);
-		}
-
-
-
-		// 新規データ
-		if (str[next] == '\n' || str[next] == '\r')
-			return true;
-
-
-		///////////////////////////////////////////////////////////////////////
-		// more chaotic from here; code might look a bit weired
-		bool ret = true;
-
-		if(ret)
-		{	// start with the next char after the delimiter
-			next++;
-			for(i = 0; str[next] && str[next] != '\t'&&i<MAX_MEMO; i++)
-			{
-				if (sscanf(str+next, "%[^,],%d,%d%n", p.memo_point[i].map, &tmp_int[0], &tmp_int[1], &len) != 3)
-				{
-					ShowError(CL_BT_RED"Character Memo points invalid (id #%ld, name '%s').\n"CL_NORM, (unsigned long)p.char_id, p.name);
-					ShowMessage("           Rest skipped, line saved to log file.\n", p.name);
-					ret = false;
-					break;
-				}
-				p.memo_point[i].x = tmp_int[0];
-				p.memo_point[i].y = tmp_int[1];
-				next += len;
-				if (str[next] == ' ')
-					next++;
-			}
-		}
-		if(ret)
-		{	// start with the next char after the delimiter
-			next++;
-			for(i = 0; str[next] && str[next] != '\t'; i++)
-			{
-				if(sscanf(str + next, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d%n",
-					&tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3],
-					&tmp_int[4], &tmp_int[5], &tmp_int[6],
-					&tmp_int[7], &tmp_int[8], &tmp_int[9], &tmp_int[10], &tmp_int[10], &len) == 12)
-				{
-					// do nothing, it's ok
-				}
-				else if (sscanf(str + next, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d%n",
-						  &tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3],
-						  &tmp_int[4], &tmp_int[5], &tmp_int[6],
-						  &tmp_int[7], &tmp_int[8], &tmp_int[9], &tmp_int[10], &len) == 11)
-				{
-				}
-				else // invalid structure
-				{
-					ShowError(CL_BT_RED"Character Inventory invalid (id #%ld, name '%s').\n"CL_NORM, (unsigned long)p.char_id, p.name);
-					ShowMessage("           Rest skipped, line saved to log file.\n", p.name);
-					ret = false;
-					break;
-				}
-
-				p.inventory[i].id = tmp_int[0];
-				p.inventory[i].nameid = tmp_int[1];
-				p.inventory[i].amount = tmp_int[2];
-				p.inventory[i].equip = tmp_int[3];
-				p.inventory[i].identify = tmp_int[4];
-				p.inventory[i].refine = tmp_int[5];
-				p.inventory[i].attribute = tmp_int[6];
-				p.inventory[i].card[0] = tmp_int[7];
-				p.inventory[i].card[1] = tmp_int[8];
-				p.inventory[i].card[2] = tmp_int[9];
-				p.inventory[i].card[3] = tmp_int[10];
-				next += len;
-				if (str[next] == ' ')
-					next++;
-			}
-		}
-
-		if(ret)
-		{	// start with the next char after the delimiter
-			next++;
-			for(i = 0; str[next] && str[next] != '\t'; i++)
-			{
-				if (sscanf(str + next, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d%n",
-					&tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3],
-					&tmp_int[4], &tmp_int[5], &tmp_int[6],
-					&tmp_int[7], &tmp_int[8], &tmp_int[9], &tmp_int[10], &tmp_int[10], &len) == 12)
-				{
-					// do nothing, it's ok
-				}
-				else if (sscanf(str + next, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d%n",
-						   &tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3],
-						   &tmp_int[4], &tmp_int[5], &tmp_int[6],
-						   &tmp_int[7], &tmp_int[8], &tmp_int[9], &tmp_int[10], &len) == 11)
-				{
-				}
-				else // invalid structure
-				{
-					ShowError(CL_BT_RED"Character Cart Items invalid (id #%ld, name '%s').\n"CL_NORM, (unsigned long)p.char_id, p.name);
-					ShowMessage("           Rest skipped, line saved to log file.\n", p.name);
-					ret = false;
-					break;
-				}
-
-				p.cart[i].id = tmp_int[0];
-				p.cart[i].nameid = tmp_int[1];
-				p.cart[i].amount = tmp_int[2];
-				p.cart[i].equip = tmp_int[3];
-				p.cart[i].identify = tmp_int[4];
-				p.cart[i].refine = tmp_int[5];
-				p.cart[i].attribute = tmp_int[6];
-				p.cart[i].card[0] = tmp_int[7];
-				p.cart[i].card[1] = tmp_int[8];
-				p.cart[i].card[2] = tmp_int[9];
-				p.cart[i].card[3] = tmp_int[10];
-				next += len;
-				if (str[next] == ' ')
-					next++;
-			}
-		}
-
-		if(ret)
-		{	// start with the next char after the delimiter
-			next++;
-			for(i = 0; str[next] && str[next] != '\t'; i++) {
-				if (sscanf(str + next, "%d,%d%n", &tmp_int[0], &tmp_int[1], &len) != 2)
-				{
-					ShowError(CL_BT_RED"Character skills invalid (id #%ld, name '%s').\n"CL_NORM, (unsigned long)p.char_id, p.name);
-					ShowMessage("           Rest skipped, line saved to log file.\n", p.name);
-					ret = false;
-					break;
-				}
-				p.skill[tmp_int[0]].id = tmp_int[0];
-				p.skill[tmp_int[0]].lv = tmp_int[1];
-				next += len;
-				if (str[next] == ' ')
-					next++;
-			}
-		}
-
-		if(ret)
-		{	// start with the next char after the delimiter
-			unsigned long val;
-			next++;
-			for(i = 0; str[next] && str[next] != '\t' && str[next] != '\n' && str[next] != '\r'; i++)
-			{	// global_reg実装以前のathena.txt互換のため一応'\n'チェック
-				if(sscanf(str + next, "%[^,],%ld%n", p.global_reg[i].str, &val, &len) != 2)
-				{	// because some scripts are not correct, the str can be "". So, we must check that.
-					// If it's, we must not refuse the character, but just this REG value.
-					// Character line will have something like: nov_2nd_cos,9 ,9 nov_1_2_cos_c,1 (here, ,9 is not good)
-					if(str[next] == ',' && sscanf(str + next, ",%ld%n", &val, &len) == 1)
-						i--;
-					else
-					{
-						ShowError(CL_BT_RED"Character Char Variable invalid (id #%ld, name '%s').\n"CL_NORM, (unsigned long)p.char_id, p.name);
-						ShowMessage("           Rest skipped, line saved to log file.\n", p.name);
-						ret = false;
-						break;
-					}
-
-				}
-				p.global_reg[i].value = val;
-				next += len;
-				if (str[next] == ' ')
-					next++;
-			}
-			p.global_reg_num = i;
-		}
-
-		// insert the character to the list
-		cCharList.insert(p);
-
-		// check the next_char_id
-		if(p.char_id >= next_char_id)
-			next_char_id = p.char_id + 1;
-
-		return ret;
-	}
-
-	///////////////////////////////////////////////////////////////////////////
-	// Function to read characters file
-	bool read_chars(void)
-	{
-		char line[65536];
-		int line_count;
-		FILE *fp;
-
-
-		fp = safefopen(char_txt, "r");
-		if (fp == NULL)
-		{
-			ShowError("Characters file not found: %s.\n", char_txt);
-	//		char_log("Characters file not found: %s." RETCODE, char_txt);
-	//		char_log("Id for the next created character: %d." RETCODE, char_id_count);
-			return false;
-		}
-
-		line_count = 0;
-		while(fgets(line, sizeof(line), fp))
-		{
-			unsigned long i;
-			int j;
-			line_count++;
-
-			if( !get_prepared_line(line) )
-				continue;
-			line[sizeof(line)-1] = '\0';
-
-			j = 0;
-			if(sscanf(line, "%ld\t%%newid%%%n", &i, &j) == 1 && j > 0)
-			{
-				if(next_char_id < i)
-					next_char_id = i;
-				continue;
-			}
-
-			if( !char_from_str(line) )
-			{
-				// some error, message printed within
-				//!! log line
-				//char_log("%s", line);
-			}
-
-		}
-		fclose(fp);
-
-		if( cCharList.size() == 0 )
-		{
-			ShowError("No character found in %s.\n", char_txt);
-			//char_log("No character found in %s." RETCODE, char_txt);
-		}
-		else if( cCharList.size() == 1 )
-		{
-			ShowStatus("1 character read in %s.\n", char_txt);
-			//char_log("1 character read in %s." RETCODE, char_txt);
-		}
-		else
-		{
-			ShowStatus("mmo_char_init: %d characters read in %s.\n", cCharList.size(), char_txt);
-			//char_log("mmo_char_init: %d characters read in %s." RETCODE, cList.size(), char_txt);
-		}
-		//char_log("Id for the next created character: %d." RETCODE, char_id_count);
-		return true;
-	}
 */
-
-
-class CCharDB_sql : public CMySQL, private CConfig, public CCharDBInterface
-{
-	///////////////////////////////////////////////////////////////////////////
-	// config stuff
-	// uint32 next_char_id;
-
-	char char_db[256];
-	char mail_db[256];
-	char friend_db[256];
-	char memo_db[256];
-	char cart_db[256];
-	char inventory_db[256];
-	char skill_db[256];
-	char guild_skill_db[256];
-	char char_reg_db[256];
-
-
-
-	bool name_ignoring_case;
-	int char_name_option;
-	char char_name_letters[256];
-	uint32 start_zeny;
-	unsigned short start_weapon;
-	unsigned short start_armor;
-	struct point start_point;
-
-	size_t savecount;
-
-	///////////////////////////////////////////////////////////////////////////
-	// data
-//	TMultiListP<CCharCharacter, 2>	cCharList;
-//	TslistDCT<CCharCharAccount>		cAccountList;
-
-public:
-	CCharDB_sql(const char *dbcfgfile)
-	{
-		safestrcpy(char_db,			"char",				sizeof(char_db));
-		safestrcpy(mail_db,			"mail",				sizeof(mail_db));
-		safestrcpy(friend_db,		"friends",			sizeof(friend_db));
-		safestrcpy(memo_db,			"Memo",				sizeof(memo_db));
-		safestrcpy(cart_db,			"cart_inventory",	sizeof(cart_db));
-		safestrcpy(inventory_db,	"inventory",		sizeof(inventory_db));
-		safestrcpy(skill_db,		"skill",			sizeof(skill_db));
-		safestrcpy(guild_skill_db,	"guild_skill",		sizeof(guild_skill_db));
-		safestrcpy(char_reg_db,		"char_reg",			sizeof(char_reg_db));
-
-
-		char_name_option=0;
-		memset(char_name_letters,0,sizeof(char_name_letters));
-
-		name_ignoring_case=0;
-
-		start_zeny		= 500;
-		start_weapon	= 1201;
-		start_armor		= 2301;
-
-		safestrcpy(start_point.mapname,		"new_1-1.gat",		sizeof(start_point.mapname));
-		start_point.x=53;
-		start_point.y=111;
-
-		init(dbcfgfile);
-	}
-	~CCharDB_sql()	{}
-
-
-private:
-
-	bool compare_item(const struct item &a, const struct item &b)
-	{
-		return ( (a.id == b.id) &&
-				 (a.nameid == b.nameid) &&
-				 (a.amount == b.amount) &&
-				 (a.equip == b.equip) &&
-				 (a.identify == b.identify) &&
-				 (a.refine == b.refine) &&
-				 (a.attribute == b.attribute) &&
-				 (a.card[0] == b.card[0]) &&
-				 (a.card[1] == b.card[1]) &&
-				 (a.card[2] == b.card[2]) &&
-				 (a.card[3] == b.card[3]) );
-	}
-
-
-
-
-	bool char_to_sql(const CCharCharacter& p)
-	{
-		MiniString query;
-
-		bool diff, l , status, loaded=false;
-
-		size_t i;
-
-
-		CCharCharacter cp;
-/*
-		size_t pos;
-		if( cCharList.find( CCharCharacter(p.char_id), pos, 0) )
-		{
-			CCharCharacter &cp = cCharList(pos,0);
-			loaded = true;
-		}
-		else // in case there is nothing loaded. we set one up with defaults 0. and compare against this new set.
-		{
-			memset(&cp, 0, sizeof(CCharCharacter));
-			loaded = false;
-		}
-*/
-
-// Build the update for the character
-		query.clear();
-		query <<
-			"UPDATE `" << char_db << "` SET " <<
-
-				"`class` = '"		<< p.class_ 		<< "'," <<
-				"`base_level`='"	<< p.base_level		<< "'," <<
-				"`job_level`='"		<< p.job_level		<< "'," <<
-				"`base_exp`='"		<< p.base_exp		<< "'," <<
-				"`job_exp`='"		<< p.job_exp		<< "'," <<
-				"`zeny`='"			<< p.zeny			<< "'," <<
-
-				"`hp`='"			<< p.hp				<< "'," <<
-				"`max_hp`='"		<< p.max_hp			<< "'," <<
-
-				"`sp`='"			<< p.sp				<< "'," <<
-				"`max_sp`='"		<< p.max_sp			<< "'," <<
-
-				"`str`='"			<< p.str			<< "'," <<
-				"`agi`='"			<< p.agi			<< "'," <<
-				"`vit`='"			<< p.vit			<< "'," <<
-				"`int`='"			<< p.int_			<< "'," <<
-				"`dex`='"			<< p.dex			<< "'," <<
-				"`luk`='"			<< p.luk			<< "'," <<
-
-				"`status_point`='"	<< p.status_point	<< "'," <<
-				"`skill_point`='"	<< p.skill_point	<< "'," <<
-
-				"`option`='"		<< p.option			<< "'," <<
-				"`karma`='"			<< p.karma			<< "'," <<
-				"`manner`='"		<< p.manner			<< "'," <<
-				"`party_id`='"		<< p.party_id		<< "'," <<
-				"`guild_id`='"		<< p.guild_id		<< "'," <<
-				"`pet_id`='"		<< p.pet_id			<< "'," <<
-
-				"`hair`='"			<< p.hair			<< "'," <<
-				"`hair_color`='"	<< p.hair_color		<< "'," <<
-				"`clothes_color`='"	<< p.clothes_color	<< "'," <<
-				"`weapon`='"		<< p.weapon			<< "'," <<
-				"`shield`='"		<< p.shield			<< "'," <<
-				"`head_top`='"		<< p.head_top		<< "'," <<
-				"`head_mid`='"		<< p.head_mid		<< "'," <<
-				"`head_bottom`='"	<< p.head_bottom	<< "'," <<
-
-				"`last_map`='"		<< p.last_point.mapname		<< "'," <<
-				"`last_x`='"		<< p.last_point.x			<< "'," <<
-				"`last_y`='"		<< p.last_point.y			<< "'," <<
-				"`save_map`='"		<< p.save_point.mapname		<< "'," <<
-				"`save_x`='"		<< p.save_point.x			<< "'," <<
-				"`save_y`='"		<< p.save_point.y			<< "'," <<
-
-				"`partner_id`='"	<< p.partner_id		<< "'," <<
-				"`father`='"		<< p.father_id		<< "'," <<
-				"`mother`='"		<< p.mother_id		<< "'," <<
-				"`child`='"			<< p.child_id		<< "'," <<
-
-				"`fame`='"			<< p.fame_points	<< "'" << // dont forget to remove commas at ends
-
-			"WHERE  " <<
-				"`account_id`='" 	<< p.account_id		<< "' " <<
-
-			"AND " <<
-				"`char_id` = '"		<< p.char_id		<<"' " <<
-
-			"AND " <<
-				"`slot` = '" 		<< p.slot			<< "'";  // dont forget to finish the line
-
-
-		this->Query(query);
-		query.clear();
-
-
-		// This is set for overall.. if anything changed.... it will copy over old data... =o
-		status = false;
-		///////////////////////////////////////////////////////////////////////
-		// Memo Insert
-
-		diff = false;
-		l = false;
-
-		for(i=0;i<MAX_MEMO;i++)
-		{
-			if(
-				(strcmp(p.memo_point[i].mapname, cp.memo_point[i].mapname) == 0) &&
-				(p.memo_point[i].x == cp.memo_point[i].x) &&
-				(p.memo_point[i].y == cp.memo_point[i].y)
-				)continue;
-			diff = true;
-			status = true;
-			break;
-		}
-
-		if (diff)
-		{
-			query << "DELETE FROM `" << memo_db << "` WHERE `char_id`='" << p.char_id << "'";
-			this->Query(query);
-			query.clear();
-
-
-			//insert here.
-			query << "INSERT INTO `" << memo_db << "`(`char_id`,`memo_id`,`map`,`x`,`y`) VALUES ";
-			l=false;
-			for(i=0;i<MAX_MEMO;i++)
-			{
-				if(p.memo_point[i].mapname[0])
-				{
-					query << (l?",":"") << "(" <<
-
-					"'" << 	p.char_id 					<< "'," <<
-					"'" <<	i							<< "'," <<
-					"'" <<	p.memo_point[i].mapname		<< "'," <<
-					"'" <<	p.memo_point[i].x			<< "'," <<
-					"'" <<	p.memo_point[i].y			<< "," <<  // Dont forget to end commas
-					")";
-					l= true;
-				}
-			}
-			// if at least one entry spotted.
-			if(l)this->Query(query);
-			query.clear();
-		}
-
-
-		///////////////////////////////////////////////////////////////////////
-		// Inventory Insert
-
-		diff = false;
-		l = false;
-
-		for(i = 0; i<MAX_INVENTORY; i++)
-		{
-			if (!compare_item(p.inventory[i], cp.inventory[i]))
-			{
-				diff = true;
-				status = true;
-				break;
-			}
-		}
-
-		if (diff)
-		{
-			query <<
-				"DELETE FROM `" << cart_db << "` WHERE `char_id`='" << p.char_id << "'";
-			this->Query(query);
-			query.clear();
-
-			//insert here.
-			query <<
-				"INSERT INTO `" << inventory_db << "`(`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`) VALUES ";
-			l=false;
-			for(i=0;i<MAX_INVENTORY;i++)
-			{
-				if(p.inventory[i].nameid>0)
-				{
-					query << (l?",":"") << "(" <<
-					"'" <<	p.char_id	<< "'," <<
-					"'" <<	p.inventory[i].nameid		<< "'," <<
-					"'" <<	p.inventory[i].amount		<< "'," <<
-					"'" <<	p.inventory[i].equip		<< "'," <<
-					"'" <<	p.inventory[i].identify		<< "'," <<
-					"'" <<	p.inventory[i].refine		<< "'," <<
-					"'" <<	p.inventory[i].attribute	<< "'," <<
-					"'" <<	p.inventory[i].card[0]		<< "'," <<
-					"'" <<	p.inventory[i].card[1]		<< "'," <<
-					"'" <<	p.inventory[i].card[2]		<< "'," <<
-					"'" <<	p.inventory[i].card[3]		<< "'" <<
-					")";
-					l = true;
-				}
-			}
-			// if at least one entry spotted.
-			if(l)this->Query(query);
-			query.clear();
-		}
-
-
-		///////////////////////////////////////////////////////////////////////
-		// Cart Insert
-
-		diff = false;
-		l = false;
-
-		for(i = 0; i<MAX_CART; i++)
-		{
-			if (!compare_item(p.cart[i], cp.cart[i]))
-			{
-				diff = true;
-				status = true;
-				break;
-			}
-		}
-
-		if (diff)
-		{
-			query << "DELETE FROM `" << cart_db << "` WHERE `char_id`='" << p.char_id << "'";
-			this->Query(query);
-			query.clear();
-
-			//insert here.
-			query << "INSERT INTO `" << cart_db << "`(`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`) VALUES ";
-			l=false;
-			for(i=0;i<MAX_CART;i++)
-			{
-				if(p.cart[i].nameid>0)
-				{
-					query << (l?",":"") << "(" <<
-					"'" <<	p.char_id	<< "'," <<
-					"'" <<	p.cart[i].nameid		<< "'," <<
-					"'" <<	p.cart[i].amount		<< "'," <<
-					"'" <<	p.cart[i].equip			<< "'," <<
-					"'" <<	p.cart[i].identify		<< "'," <<
-					"'" <<	p.cart[i].refine		<< "'," <<
-					"'" <<	p.cart[i].attribute		<< "'," <<
-					"'" <<	p.cart[i].card[0]		<< "'," <<
-					"'" <<	p.cart[i].card[1]		<< "'," <<
-					"'" <<	p.cart[i].card[2]		<< "'," <<
-					"'" <<	p.cart[i].card[3]		<< "'" <<
-					")";
-
-					l = true;
-				}
-			}
-			// if at least one entry spotted.
-			if(l)this->Query(query);
-			query.clear();
-		}
-
-		///////////////////////////////////////////////////////////////////////
-		// Skill Insert
-
-		diff = false;
-		l = false;
-
-		if (diff)
-		{
-			query << "DELETE FROM `" << skill_db << "` WHERE `char_id`='" << p.char_id << "'";
-			this->Query(query);
-			query.clear();
-
-			//insert here.
-			query << "INSERT INTO `" << skill_db << "`(`char_id`,`id`,`lvl`) VALUES ";
-			l=false;
-			for(i=0;i<MAX_MEMO;i++)
-			{
-				if(p.skill[i].id>0 && p.skill[i].flag != 1)
-				{
-					query << (l?",":"") << "(" <<
-
-					"'" << p.char_id 				<< "'," <<
-					"'" << p.skill[i].id 			<< "'," <<
-					"'" << p.skill[i].lv 			<< "'" <<
-					")";
-					l = true;
-				}
-			}
-			// if at least one entry spotted.
-			if(l)this->Query(query);
-			query.clear();
-		}
-
-		///////////////////////////////////////////////////////////////////////
-		// Character Reg Insert
-
-		diff = false;
-		l = false;
-
-		for(i=0;i<p.global_reg_num;i++)
-		{
-			if(
-				((p.global_reg[i].str == NULL) == (cp.global_reg[i].str == NULL)) ||
-				(p.global_reg[i].value == cp.global_reg[i].value) ||
-				strcmp(p.global_reg[i].str, cp.global_reg[i].str) == 0
-				)continue;
-			diff = true;
-			status = true;
-			break;
-		}
-
-
-		if (diff)
-		{
-			query << "DELETE FROM `" << char_reg_db << "` WHERE `char_id`='" << p.char_id << "'";
-			this->Query(query);
-			query.clear();
-
-			//insert here.
-			query << "INSERT INTO `" << char_reg_db << "`(`char_id`,`str`,`value`) VALUES ";
-			for(i=0;i<p.global_reg_num;i++)
-			{
-				if(p.global_reg[i].str && p.global_reg[i].value !=0)
-				{
-					query <<
-					(l?",":"") << "(" <<
-
-					"'" << p.char_id << "'," <<
-					"'" << p.global_reg[i].str		<< "'," <<
-					"'" << p.global_reg[i].value	<< "'" <<   // end commas at the end
-					")";
-
-					l = true;
-				}
-			}
-			// if at least one entry spotted.
-			if(l)this->Query(query);
-			query.clear();
-		}
-
-
-		///////////////////////////////////////////////////////////////////////
-		// Friends Insert
-
-		diff = false;
-		l = false;
-
-		for (i=0; i<MAX_FRIENDLIST; i++)
-		{
-			if( p.friendlist[i].friend_id != cp.friendlist[i].friend_id )
-			{
-				diff = true;
-				status = true;
-				break;
-			}
-		}
-
-		if(diff)
-		{
-			query << "DELETE FROM `" << friend_db << "` WHERE `char_id` = '" << p.char_id << "'";
-			this->Query(query);
-			query.clear();
-
-			//insert here.
-			query << "INSERT INTO `" << friend_db << "`(`char_id`, `friend_id`) VALUES ";
-
-			for(i=0;i<MAX_FRIENDLIST;i++)
-			{
-				if(p.friendlist[i].friend_id!=0)
-				{
-					query <<
-					(l?",":"") << "(" <<
-					"'" << p.char_id << "'," <<
-					"'" << p.friendlist[i].friend_id << "'" <<
-					")";
-
-					l = true;
-				}
-			}
-			// if at least one entry spotted.
-			if(l)this->Query(query);
-			query.clear();
-		}
-
-		if (status) // If anything has changed in this process, set to true in any of the differences check.
-		{
-			if(loaded)
-				printf("need to think on how to load the character");
-//				cCharList.removeindex(pos, 0); // remove old char_id where ever the cp index is pointing to
-//			cCharList.insert(p); // now lets add our CharID to the index list.
-		}
-
-		return true;
-	}
-
-	bool char_from_sql(const char* name, CCharCharacter &p)
-	{
-		bool ret = false;
-		MiniString query;
-		uint32 charid = 0;
-
-
-		query << "SELECT `char_id` FROM `" << char_db << " WHERE `name`='" << name << "'";
-		if (this->Query(query))
-		{
-			this->Fetch();
-			charid = atoi(this->row[0]);
-			ret = this->char_from_sql(charid,p);
-			this->Free();
-		}
-
-		return ret;
-	}
 
 	/**************** NOTES FOR CHAR_FROM_SQL ********************
 
@@ -1595,8 +773,139 @@ private:
 
 	*************************************************************/
 
-	bool char_from_sql(uint32 char_id, CCharCharacter &p, bool online = false)
+CCharDB_sql::CCharDB_sql(const char *dbcfgfile)
+{
+	safestrcpy(char_db,			"char",				sizeof(char_db));
+	safestrcpy(mail_db,			"mail",				sizeof(mail_db));
+	safestrcpy(friend_db,		"friends",			sizeof(friend_db));
+	safestrcpy(memo_db,			"Memo",				sizeof(memo_db));
+	safestrcpy(cart_db,			"cart_inventory",	sizeof(cart_db));
+	safestrcpy(inventory_db,	"inventory",		sizeof(inventory_db));
+	safestrcpy(skill_db,		"skill",			sizeof(skill_db));
+	safestrcpy(guild_skill_db,	"guild_skill",		sizeof(guild_skill_db));
+	safestrcpy(char_reg_db,		"char_reg",			sizeof(char_reg_db));
+
+
+	char_name_option=0;
+	memset(char_name_letters,0,sizeof(char_name_letters));
+
+	name_ignoring_case=0;
+
+	start_zeny		= 500;
+	start_weapon	= 1201;
+	start_armor		= 2301;
+
+	safestrcpy(start_point.mapname,		"new_1-1.gat",		sizeof(start_point.mapname));
+	start_point.x=53;
+	start_point.y=111;
+
+	init(dbcfgfile);
+}
+CCharDB_sql::~CCharDB_sql(void){}
+
+bool CCharDB_sql::ProcessConfig(const char*w1, const char*w2)
+{
+
+	if(strcasecmp(w1, "start_point") == 0)
 	{
+		char mapname[32];
+		int x, y;
+		if(sscanf(w2, "%[^,],%d,%d", mapname, &x, &y) == 3 )
+		{
+			char *ip=strchr(mapname, '.');
+			if( ip != NULL ) *ip=0;
+			safestrcpy(start_point.mapname, mapname, sizeof(start_point.mapname));
+			start_point.x = x;
+			start_point.y = y;
+		}
+	}
+	else if(strcasecmp(w1, "start_zeny") == 0)
+	{
+		start_zeny = SwitchValue(w2,0);
+	}
+	else if(strcasecmp(w1, "start_weapon") == 0)
+	{
+		start_weapon = SwitchValue(w2,0);
+	}
+	else if(strcasecmp(w1, "start_armor") == 0)
+	{
+		start_armor = SwitchValue(w2,0);
+	}
+	else if(strcasecmp(w1, "name_ignoring_case") == 0)
+	{
+		name_ignoring_case = Switch(w2);
+	}
+	else if(strcasecmp(w1, "char_name_option") == 0)
+	{
+		char_name_option = atoi(w2);
+	}
+	else if(strcasecmp(w1, "char_name_letters") == 0)
+	{
+		safestrcpy(char_name_letters, w2, sizeof(char_name_letters));
+	}
+	return true;
+}
+
+bool CCharDB_sql::compare_item(const struct item &a, const struct item &b);
+{
+	return ( (a.id == b.id) &&
+			 (a.nameid == b.nameid) &&
+			 (a.amount == b.amount) &&
+			 (a.equip == b.equip) &&
+			 (a.identify == b.identify) &&
+			 (a.refine == b.refine) &&
+			 (a.attribute == b.attribute) &&
+			 (a.card[0] == b.card[0]) &&
+			 (a.card[1] == b.card[1]) &&
+			 (a.card[2] == b.card[2]) &&
+			 (a.card[3] == b.card[3]) );
+}
+
+
+bool CCharDB_sql::existChar(const char* name)
+{
+	MiniString query;
+	char _name[32];
+	bool ret = false;
+
+	escape_string(_name, name, strlen(name));
+
+	query
+		<< "SELECT count(*) FROM `" << char_db << "` WHERE name = '" << _name << "'";
+
+	if ( this->Query(query) )
+	{
+		if ( this->Fetch() )
+		{
+			if ( atol(this->row[0]) ) ret = true;
+		}
+		this->Free();
+	}
+
+	return ret;
+}
+
+bool CCharDB_sql::searchChar(const char* name, CCharCharacter&data)
+{
+	bool ret = false;
+	MiniString query;
+	uint32 charid = 0;
+
+
+	query << "SELECT `char_id` FROM `" << char_db << " WHERE `name`='" << name << "'";
+	if (this->Query(query))
+	{
+		this->Fetch();
+		charid = atoi(this->row[0]);
+		ret = this->searchChar(charid,p);
+		this->Free();
+	}
+
+	return ret;
+}
+
+bool CCharDB_sql::searchChar(uint32 charid, CCharCharacter&data)
+{
 		bool ret = false;
 		int tmp_int[256];
 		size_t i,n;
@@ -1936,526 +1245,229 @@ private:
 			//set_char_online(char_id,p.account_id); // not setup yet... just leave as is
 		}
 		return true;
-	}
-
-
-
-	///////////////////////////////////////////////////////////////////////////
-	// Function to create a new character
-	bool make_new_char(CCharAccount& account,
-						const char *n, // Name
-						unsigned char str,
-						unsigned char agi,
-						unsigned char vit,
-						unsigned char int_,
-						unsigned char dex,
-						unsigned char luk,
-						unsigned char slot,
-						unsigned char hair_style,
-						unsigned char hair_color,
-						CCharCharacter& p)
-	{
-		CCharCharacter tempchar(n);
-
-		MiniString query;
-
-		char t_name[128];
-
-		size_t i;
-
-		this->escape_string(t_name, tempchar.name, strlen(tempchar.name));
-
-		//check stat error
-		if (
-			(str + agi + vit + int_ + dex + luk !=6*5 ) || // stats
-
-			// Check slots
-			(slot >= 9) || // slots must not be over 9
-
-			// Check hair
-			(hair_style <= 0) || (hair_style >= 24) || // hair style
-			(hair_color >= 9) ||					   // Hair color?
-
-			// Check stats pairs and make sure they are balanced
-
-			((str + int_) > 10) || // str + int pairs check
-			((agi + luk ) > 10) || // agi + luk pairs check
-			((vit + dex ) > 10) || // vit + dex pairs check
-
-			// Check individual stats
-			(str < 1 || str > 9) ||
-			(agi < 1 || agi > 9) ||
-			(vit < 1 || vit > 9) ||
-			(int_< 1 || int_> 9) ||
-			(dex < 1 || dex > 9) ||
-			(luk < 1 || luk > 9) ||
-
-			// Check size of the name, too short?
-			(strlen(tempchar.name) < 4)
-
-			)
-		{
-			ShowError("fail (aid: %d), stats error(bot cheat?!)\n", account.account_id);
-			return false;
-		} // now when we have passed all stat checks
-
-		if( remove_control_chars(tempchar.name) )
-			return false;
-
-		// Check Authorised letters/symbols in the name of the character
-		if (char_name_option == 1)// only letters/symbols in char_name_letters are authorised
-			for (i = 0; tempchar.name[i]; i++)
-				if( strchr(char_name_letters, tempchar.name[i]) == NULL )
-					return false;
-
-		else if (char_name_option == 2) // letters/symbols in char_name_letters are forbidden
-			for (i = 0; tempchar.name[i]; i++)
-				if (strchr(char_name_letters, tempchar.name[i]) != NULL)
-					return false;
-		// else, all letters/symbols are authorised (except control char removed before)
-
-
-
-		//Check Name (already in use?)
-		query << "SELECT count(*) FROM `" << char_db << "` WHERE `name` = '" << t_name << "'";
-		if ( this->Query(query) )
-		{
-			this->Fetch();
-			if (atol(this->row[0]))
-			{
-				printf("fail, charname '%s' already in use\n", t_name);
-				return false;
-			}
-			this->Free();
-		}
-		query.clear();
-
-
-		// check char slot.
-		query << "SELECT count(*) FROM `" << char_db << "` WHERE `account_id` = '" << account.account_id << "' AND `char_num` = '" << slot << "'";
-		if ( this->Query(query) )
-		{
-			this->Fetch();
-
-			if(atol(this->row[0]))
-			{
-				printf("fail (aid: %d, slot: %d), slot already in use\n", account.account_id, slot);
-				return false;
-			}
-			this->Free();
-		}
-		query.clear();
-
-		// It has passed both the name and slot check, let's insert the info since it doesnt conflict =D
-		// make new char.
-		query
-			<< "INSERT INTO `" << char_db << "` "
-				<< "(`account_id`,`char_num`,`name`,`str`,`agi`,`vit`,`int`,`dex`,`luk`,`hair`,`hair_color`) "
-				<< "VALUES "
-				<< "('" << account.account_id << "',"
-				<< "'" << slot << "',"
-				<< "'" << t_name << "',"
-				<< "'" << str << "','" << agi << "','" << vit << "','" << int_ << "','" << dex << "','" << luk << "',"
-				<< "'" << hair_style << "',"
-				<< "'" << hair_color << "')";
-
-		this->Query(query);
-		query.clear();
-
-
-		//Now we need the charid from sql!
-		query
-			<< "SELECT "
-				<< "`char_id` "
-			<< "FROM `" << char_db << "`"
-
-			<< "WHERE `account_id` = '" << account.account_id << "' AND `char_num` = '" << slot << "' AND `name` = '" << t_name << "'";
-
-		if( this->Query(query) )
-		{
-			this->Fetch();
-			if (this->row)
-				tempchar.char_id = atol(this->row[0]); //char id :)
-			this->Free();
-		} else
-			return false;
-		query.clear();
-
-		//Give the char the default items
-		//knife & cotton shirts, add on as needed ifmore items are to be included.
-		query
-			<<"INSERT INTO `" << inventory_db << "` "
-				<< "(`char_id`,`nameid`, `amount`, `equip`, `identify`) "
-			<< "VALUES "
-				<< "('" << tempchar.char_id << "', '" << start_weapon << "', '1', '" << 0x02 << "', '1'),"
-				<< "('" << tempchar.char_id << "', '" << start_armor  << "', '1', '" << 0x10 << "', '1')";
-
-		this->mysql_SendQuery(query, query.length());
-
-
-		// Update the map they are starting on and where they respawn at.
-		query
-			<< "UPDATE `" << char_db << "` "
-			<< "SET "
-
-				<< "`last_map` = `save_map` = '" << start_point.mapname << "',"
-				<< "`last_x`   = save_x     = '" << start_point.x << "',"
-				<< "`last_y`   = save_y     = '" << start_point.y << "'"
-
-			<< "WHERE `char_id` = '" << tempchar.char_id << "'";
-		// All good, init the character data to return i think
-		query.clear();
-
-
-		tempchar.account_id = account.account_id;
-		tempchar.slot = slot;
-		tempchar.class_ = 0;
-		tempchar.base_level = 1;
-		tempchar.job_level = 1;
-		tempchar.base_exp = 0;
-		tempchar.job_exp = 0;
-		tempchar.zeny = start_zeny;
-		tempchar.str = str;
-		tempchar.agi = agi;
-		tempchar.vit = vit;
-		tempchar.int_ = int_;
-		tempchar.dex = dex;
-		tempchar.luk = luk;
-		tempchar.max_hp = 40 * (100 + vit) / 100;
-		tempchar.max_sp = 11 * (100 + int_) / 100;
-		tempchar.hp = tempchar.max_hp;
-		tempchar.sp = tempchar.max_sp;
-		tempchar.status_point = 0;
-		tempchar.skill_point = 0;
-		tempchar.option = 0;
-		tempchar.karma = 0;
-		tempchar.manner = 0;
-		tempchar.party_id = 0;
-		tempchar.guild_id = 0;
-		tempchar.hair = hair_style;
-		tempchar.hair_color = hair_color;
-		tempchar.clothes_color = 0;
-		tempchar.inventory[0].nameid = start_weapon; // Knife
-		tempchar.inventory[0].amount = 1;
-		tempchar.inventory[0].equip = 0x02;
-		tempchar.inventory[0].identify = 1;
-		tempchar.inventory[1].nameid = start_armor; // Cotton Shirt
-		tempchar.inventory[1].amount = 1;
-		tempchar.inventory[1].equip = 0x10;
-		tempchar.inventory[1].identify = 1;
-		tempchar.weapon = 1;
-		tempchar.shield = 0;
-		tempchar.head_top = 0;
-		tempchar.head_mid = 0;
-		tempchar.head_bottom = 0;
-		tempchar.last_point = start_point;
-		tempchar.save_point = start_point;
-
-
-		// unknown thingy i found =O
-//		account.charlist[slot] = tempchar.char_id;
-
-		p = tempchar;
-//		cCharList.insert(tempchar);
-
-		return true;
-	}
-
-	bool read_friends()
-	{
-		return true;
-		// Friends is done somewhere else? no?
-		// SELECT f.`char_id`,f.`friend_id`,c.`name` FROM `friends_db` f JOIN `char_db` c ON f.`friend_id` = c.`char_id`
-	}
-
-
-public:
-	///////////////////////////////////////////////////////////////////////////
-	// access interface
-	virtual size_t size()	{ return 0;/*cCharList.size();*/ }
-	virtual CCharCharacter& operator[](size_t i)	{ static CCharCharacter tmp; return tmp; /*cCharList[i];*/ }
-
-	virtual bool existChar(const char* name);
-	virtual bool searchChar(const char* name, CCharCharacter&data);
-	virtual bool searchChar(uint32 charid, CCharCharacter&data);
-	virtual bool insertChar(CCharAccount &account, const char *name, unsigned char str, unsigned char agi, unsigned char vit, unsigned char int_, unsigned char dex, unsigned char luk, unsigned char slot, unsigned char hair_style, unsigned char hair_color, CCharCharacter&data);
-	virtual bool removeChar(uint32 charid);
-	virtual bool saveChar(const CCharCharacter& data);
-
-	virtual bool searchAccount(uint32 accid, CCharCharAccount& account);
-	virtual bool saveAccount(CCharAccount& account);
-	virtual bool removeAccount(uint32 accid);
-
-
-
-	///////////////////////////////////////////////////////////////////////////
-	// mail access interface
-
-/*
-	//!! need rework
-	current fields in table 'mail'
-	------------------------------
-	message_id			// used as is
-	to_account_id		// used for target charid
-	to_char_name		// used as is, not necessary though
-	from_account_id		// used for sender charid
-	from_char_name		// used as is, not necessary though
-	message				// used as is
-	read_flag			// used as is
-	priority			// not used
-	check_flag			// not used
-
-	head				// missing
-*/
-	virtual size_t getUnreadCount(uint32 cid)
-	{
-		MiniString query;
-		size_t count = 0;
-
-		query
-			<< "SELECT count(*) "
-			<< "FROM `" << mail_db << "` WHERE `to_account_id` = '" << cid << "' AND `read_flag` = '0'";
-
-		if( this->Query(query) )
-		{
-			this->Fetch();
-			count = atol(this->row[0]);
-
-			this->Free();
-		}
-		return count;
-	}
-
-	virtual size_t listMail(uint32 cid, unsigned char box, unsigned char *buffer)
-	{
-		MiniString query;
-		query
-			<< "SELECT `message_id`,`read_flag`,`from_char_name` "
-			<< "FROM `" << mail_db << "` WHERE `to_account_id` = '"<< cid << "'";
-
-		if( this->Query(query) )
-		{
-			size_t count=0;
-			unsigned char *buf = buffer;
-			while( this->Fetch() )
-			{
-				CMailHead mailhead( atol(this->row[0]), atol(this->row[1]), this->row[2], "" );
-				mailhead._tobuffer(buf); // automatic buffer increment
-				count++;
-			}
-
-			this->Free();
-			return count;
-		}
-		return 0;
-	}
-
-	virtual bool readMail(uint32 cid, uint32 mid, CMail& mail)
-	{
-		MiniString query;
-		bool ret = false;
-
-		query
-			"SELECT `read_flag`,`from_char_name`,`message` "
-			"FROM `" << mail_db << "` WHERE `to_account_id` = '" << cid << "' AND `message_id` = '" << mid << "'";
-
-		// default clearing
-		mail.read    = 0;
-		mail.name[0] = 0;
-		mail.head[0] = 0;
-		mail.body[0] = 0;
-
-		if( this->Query(query) )
-		{
-			if( (sql_row = mysql_fetch_row(sql_res)) )
-			{
-				ret = true;
-				mail = CMail(mid, atol(this->row[0]), this->row[1], "", this->row[2] );
-				if( 0==mail.read )
-				{
-					query.clear();
-					query <<
-						"UPDATE `" << mail_db << "` SET `read_flag`='1' WHERE `message_id`= '" << mid << "'";
-					this->Query(query);
-				}
-			}
-			this->Free();
-		}
-		return ret;
-	}
-
-	virtual bool deleteMail(uint32 cid, uint32 mid)
-	{
-		MiniString query;
-
-		query
-			"DELETE "
-			"FROM `" << maild_db << "` WHERE `to_account_id` = '" << cid << "' AND `message_id` = '" << mid << "'";
-		return this->Query(query);
-	}
-
-	virtual bool sendMail(uint32 senderid, const char* sendername, const char* targetname, const char *head, const char *body, uint32& msgid, uint32& tid)
-	{
-		bool ret = false;
-		bool l = false; // if query is built
-		MiniString query;
-
-		char _head[128];
-		char _body[128];
-		char _targetname[32];
-
-		escape_string(_targetname, targetname, strlen(targetname));
-		escape_string(_head, head, strlen(head));
-		escape_string(_body, body, strlen(body));
-
-		if( 0==strcmp(targetname,"*") )
-		{
-			query.clear();
-			query
-				<< "SELECT DISTINCT `char_id`,`name` "
-				<< "FROM `" << char_db << "` WHERE `char_id` <> '" << senderid << "' ORDER BY `char_id`";
-		}
-		else
-		{
-			query.clear();
-			query
-				<< "SELECT `char_id`,`name` "
-				<< "FROM `" << char_db << "` WHERE `name` = '" << _targetname << "'";
-		}
-
-		if( this->Query(query) )
-		{
-			query.clear();
-			query
-				<< "INSERT DELAYED INTO `" << mail_db << "` "
-				<< "(`to_account_id`,`to_char_name`,`from_account_id`,`from_char_name`,`message`,`read_flag`)"
-				<< " VALUES "
-
-			while( this->Fetch() )
-			{
-
-				query
-					<< (l?",":"") << "('" << atol(this->row[0]) << "', '" << this->row[1] << "', '" << senderid << "', '" << sendername << "', '" << _body << "', 0)";
-
-				l = true;
-			}
-			mysql_free_result(sql_res);
-		}
-
-		if(l) ret &= this->Query(query);
-
-		return ret;
-	}
-
-
-private:
-	///////////////////////////////////////////////////////////////////////////
-	// Config processor
-	virtual bool ProcessConfig(const char*w1, const char*w2);
-
-	///////////////////////////////////////////////////////////////////////////
-	// normal function
-	bool init(const char* configfile)
-	{	// init db
-		if(configfile)
-			CConfig::LoadConfig(configfile);
-		//return read_chars() && read_friends();
-		return true;
-	}
-	bool close()
-	{
-		//return save_chars() && save_friends();
-		return true;
-	}
-};
-
-
-bool CCharDB_sql::ProcessConfig(const char*w1, const char*w2)
-{
-
-	if(strcasecmp(w1, "start_point") == 0)
-	{
-		char mapname[32];
-		int x, y;
-		if(sscanf(w2, "%[^,],%d,%d", mapname, &x, &y) == 3 )
-		{
-			char *ip=strchr(mapname, '.');
-			if( ip != NULL ) *ip=0;
-			safestrcpy(start_point.mapname, mapname, sizeof(start_point.mapname));
-			start_point.x = x;
-			start_point.y = y;
-		}
-	}
-	else if(strcasecmp(w1, "start_zeny") == 0)
-	{
-		start_zeny = SwitchValue(w2,0);
-	}
-	else if(strcasecmp(w1, "start_weapon") == 0)
-	{
-		start_weapon = SwitchValue(w2,0);
-	}
-	else if(strcasecmp(w1, "start_armor") == 0)
-	{
-		start_armor = SwitchValue(w2,0);
-	}
-	else if(strcasecmp(w1, "name_ignoring_case") == 0)
-	{
-		name_ignoring_case = Switch(w2);
-	}
-	else if(strcasecmp(w1, "char_name_option") == 0)
-	{
-		char_name_option = atoi(w2);
-	}
-	else if(strcasecmp(w1, "char_name_letters") == 0)
-	{
-		safestrcpy(char_name_letters, w2, sizeof(char_name_letters));
-	}
-	return true;
 }
 
-bool CCharDB_sql::existChar(const char* name)
+bool CCharDB_sql::insertChar(CCharAccount &account,
+					const char *n,
+					unsigned char str,
+					unsigned char agi,
+					unsigned char vit,
+					unsigned char int_,
+					unsigned char dex,
+					unsigned char luk,
+					unsigned char slot,
+					unsigned char hair_style,
+					unsigned char hair_color,
+					CCharCharacter &p)
 {
+
+	CCharCharacter tempchar(n);
+
 	MiniString query;
-	char _name[32];
-	bool ret = false;
-	size_t exist = 0;
 
-	escape_string(_name, name, strlen(name));
+	char t_name[128];
 
-	query
-		<< "SELECT count(*) FROM `" << char_db << "` WHERE name = '" << _name << "'";
+	size_t i;
 
+	this->escape_string(t_name, tempchar.name, strlen(tempchar.name));
+
+	//check stat error
+	if (
+		(str + agi + vit + int_ + dex + luk !=6*5 ) || // stats
+
+		// Check slots
+		(slot >= 9) || // slots must not be over 9
+
+		// Check hair
+		(hair_style <= 0) || (hair_style >= 24) || // hair style
+		(hair_color >= 9) ||					   // Hair color?
+
+		// Check stats pairs and make sure they are balanced
+
+		((str + int_) > 10) || // str + int pairs check
+		((agi + luk ) > 10) || // agi + luk pairs check
+		((vit + dex ) > 10) || // vit + dex pairs check
+
+		// Check individual stats
+		(str < 1 || str > 9) ||
+		(agi < 1 || agi > 9) ||
+		(vit < 1 || vit > 9) ||
+		(int_< 1 || int_> 9) ||
+		(dex < 1 || dex > 9) ||
+		(luk < 1 || luk > 9) ||
+
+		// Check size of the name, too short?
+		(strlen(tempchar.name) < 4)
+
+		)
+	{
+		ShowError("fail (aid: %d), stats error(bot cheat?!)\n", account.account_id);
+		return false;
+	} // now when we have passed all stat checks
+
+	if( remove_control_chars(tempchar.name) )
+		return false;
+
+	// Check Authorised letters/symbols in the name of the character
+	if (char_name_option == 1)// only letters/symbols in char_name_letters are authorised
+		for (i = 0; tempchar.name[i]; i++)
+			if( strchr(char_name_letters, tempchar.name[i]) == NULL )
+				return false;
+
+	else if (char_name_option == 2) // letters/symbols in char_name_letters are forbidden
+		for (i = 0; tempchar.name[i]; i++)
+			if (strchr(char_name_letters, tempchar.name[i]) != NULL)
+				return false;
+	// else, all letters/symbols are authorised (except control char removed before)
+
+
+
+	//Check Name (already in use?)
+	query << "SELECT count(*) FROM `" << char_db << "` WHERE `name` = '" << t_name << "'";
 	if ( this->Query(query) )
 	{
-		if ( this->Fetch() )
+		this->Fetch();
+		if (atol(this->row[0]))
 		{
-			exist = atol(this->row[0]);
-			if (exist) ret = true;
+			printf("fail, charname '%s' already in use\n", t_name);
+			return false;
 		}
 		this->Free();
 	}
+	query.clear();
 
-	return ret;
-}
-bool CCharDB_sql::searchChar(const char* name, CCharCharacter&data)
-{
-	if (char_from_sql(name,data) )
-		return true;
-	return false;
-}
-bool CCharDB_sql::searchChar(uint32 charid, CCharCharacter&data)
-{
-	if (char_from_sql(charid,data) )
-		return true;
-	return false;
+
+	// check char slot.
+	query << "SELECT count(*) FROM `" << char_db << "` WHERE `account_id` = '" << account.account_id << "' AND `char_num` = '" << slot << "'";
+	if ( this->Query(query) )
+	{
+		this->Fetch();
+
+		if(atol(this->row[0]))
+		{
+			printf("fail (aid: %d, slot: %d), slot already in use\n", account.account_id, slot);
+			return false;
+		}
+		this->Free();
+	}
+	query.clear();
+
+	// It has passed both the name and slot check, let's insert the info since it doesnt conflict =D
+	// make new char.
+	query
+		<< "INSERT INTO `" << char_db << "` "
+			<< "(`account_id`,`char_num`,`name`,`str`,`agi`,`vit`,`int`,`dex`,`luk`,`hair`,`hair_color`) "
+			<< "VALUES "
+			<< "('" << account.account_id << "',"
+			<< "'" << slot << "',"
+			<< "'" << t_name << "',"
+			<< "'" << str << "','" << agi << "','" << vit << "','" << int_ << "','" << dex << "','" << luk << "',"
+			<< "'" << hair_style << "',"
+			<< "'" << hair_color << "')";
+
+	this->Query(query);
+	query.clear();
+
+
+	//Now we need the charid from sql!
+	query
+		<< "SELECT "
+			<< "`char_id` "
+		<< "FROM `" << char_db << "`"
+
+		<< "WHERE `account_id` = '" << account.account_id << "' AND `char_num` = '" << slot << "' AND `name` = '" << t_name << "'";
+
+	if( this->Query(query) )
+	{
+		this->Fetch();
+		if (this->row)
+			tempchar.char_id = atol(this->row[0]); //char id :)
+		this->Free();
+	} else
+		return false;
+	query.clear();
+
+	//Give the char the default items
+	//knife & cotton shirts, add on as needed ifmore items are to be included.
+	query
+		<<"INSERT INTO `" << inventory_db << "` "
+			<< "(`char_id`,`nameid`, `amount`, `equip`, `identify`) "
+		<< "VALUES "
+			<< "('" << tempchar.char_id << "', '" << start_weapon << "', '1', '" << 0x02 << "', '1'),"
+			<< "('" << tempchar.char_id << "', '" << start_armor  << "', '1', '" << 0x10 << "', '1')";
+
+	this->mysql_SendQuery(query, query.length());
+
+
+	// Update the map they are starting on and where they respawn at.
+	query
+		<< "UPDATE `" << char_db << "` "
+		<< "SET "
+
+			<< "`last_map` = `save_map` = '" << start_point.mapname << "',"
+			<< "`last_x`   = save_x     = '" << start_point.x << "',"
+			<< "`last_y`   = save_y     = '" << start_point.y << "'"
+
+		<< "WHERE `char_id` = '" << tempchar.char_id << "'";
+	// All good, init the character data to return i think
+	query.clear();
+
+
+	tempchar.account_id = account.account_id;
+	tempchar.slot = slot;
+	tempchar.class_ = 0;
+	tempchar.base_level = 1;
+	tempchar.job_level = 1;
+	tempchar.base_exp = 0;
+	tempchar.job_exp = 0;
+	tempchar.zeny = start_zeny;
+	tempchar.str = str;
+	tempchar.agi = agi;
+	tempchar.vit = vit;
+	tempchar.int_ = int_;
+	tempchar.dex = dex;
+	tempchar.luk = luk;
+	tempchar.max_hp = 40 * (100 + vit) / 100;
+	tempchar.max_sp = 11 * (100 + int_) / 100;
+	tempchar.hp = tempchar.max_hp;
+	tempchar.sp = tempchar.max_sp;
+	tempchar.status_point = 0;
+	tempchar.skill_point = 0;
+	tempchar.option = 0;
+	tempchar.karma = 0;
+	tempchar.manner = 0;
+	tempchar.party_id = 0;
+	tempchar.guild_id = 0;
+	tempchar.hair = hair_style;
+	tempchar.hair_color = hair_color;
+	tempchar.clothes_color = 0;
+	tempchar.inventory[0].nameid = start_weapon; // Knife
+	tempchar.inventory[0].amount = 1;
+	tempchar.inventory[0].equip = 0x02;
+	tempchar.inventory[0].identify = 1;
+	tempchar.inventory[1].nameid = start_armor; // Cotton Shirt
+	tempchar.inventory[1].amount = 1;
+	tempchar.inventory[1].equip = 0x10;
+	tempchar.inventory[1].identify = 1;
+	tempchar.weapon = 1;
+	tempchar.shield = 0;
+	tempchar.head_top = 0;
+	tempchar.head_mid = 0;
+	tempchar.head_bottom = 0;
+	tempchar.last_point = start_point;
+	tempchar.save_point = start_point;
+
+
+	// unknown thingy i found =O
+//		account.charlist[slot] = tempchar.char_id;
+
+	p = tempchar;
+//		cCharList.insert(tempchar);
+
+	return true;
 }
 
-bool CCharDB_sql::insertChar(CCharAccount &account, const char *name, unsigned char str, unsigned char agi, unsigned char vit, unsigned char int_, unsigned char dex, unsigned char luk, unsigned char slot, unsigned char hair_style, unsigned char hair_color, CCharCharacter&data)
-{
-	if ( make_new_char(account,name,str,agi,vit,int_,dex,luk,slot,hair_style,hair_color,data) )
-		return true;
-	return false;
-}
+
 bool CCharDB_sql::removeChar(uint32 charid)
 {
 	MiniString query;
@@ -2464,10 +1476,392 @@ bool CCharDB_sql::removeChar(uint32 charid)
 	return true;
 }
 
-bool CCharDB_sql::saveChar(const CCharCharacter& data)
+bool CCharDB_sql::saveChar(const CCharCharacter& p)
 {
-	// INSERT all character data into this function =o
-	return char_to_sql(data);
+	MiniString query;
+
+	bool diff, l , status, loaded=false;
+
+	size_t i;
+
+
+	CCharCharacter cp;
+/*
+	size_t pos;
+	if( cCharList.find( CCharCharacter(p.char_id), pos, 0) )
+	{
+		CCharCharacter &cp = cCharList(pos,0);
+		loaded = true;
+	}
+	else // in case there is nothing loaded. we set one up with defaults 0. and compare against this new set.
+	{
+		memset(&cp, 0, sizeof(CCharCharacter));
+		loaded = false;
+	}
+*/
+
+// Build the update for the character
+	query.clear();
+	query <<
+		"UPDATE `" << char_db << "` SET " <<
+
+			"`class` = '"		<< p.class_ 		<< "'," <<
+			"`base_level`='"	<< p.base_level		<< "'," <<
+			"`job_level`='"		<< p.job_level		<< "'," <<
+			"`base_exp`='"		<< p.base_exp		<< "'," <<
+			"`job_exp`='"		<< p.job_exp		<< "'," <<
+			"`zeny`='"			<< p.zeny			<< "'," <<
+
+			"`hp`='"			<< p.hp				<< "'," <<
+			"`max_hp`='"		<< p.max_hp			<< "'," <<
+
+			"`sp`='"			<< p.sp				<< "'," <<
+			"`max_sp`='"		<< p.max_sp			<< "'," <<
+
+			"`str`='"			<< p.str			<< "'," <<
+			"`agi`='"			<< p.agi			<< "'," <<
+			"`vit`='"			<< p.vit			<< "'," <<
+			"`int`='"			<< p.int_			<< "'," <<
+			"`dex`='"			<< p.dex			<< "'," <<
+			"`luk`='"			<< p.luk			<< "'," <<
+
+			"`status_point`='"	<< p.status_point	<< "'," <<
+			"`skill_point`='"	<< p.skill_point	<< "'," <<
+
+			"`option`='"		<< p.option			<< "'," <<
+			"`karma`='"			<< p.karma			<< "'," <<
+			"`manner`='"		<< p.manner			<< "'," <<
+			"`party_id`='"		<< p.party_id		<< "'," <<
+			"`guild_id`='"		<< p.guild_id		<< "'," <<
+			"`pet_id`='"		<< p.pet_id			<< "'," <<
+
+			"`hair`='"			<< p.hair			<< "'," <<
+			"`hair_color`='"	<< p.hair_color		<< "'," <<
+			"`clothes_color`='"	<< p.clothes_color	<< "'," <<
+			"`weapon`='"		<< p.weapon			<< "'," <<
+			"`shield`='"		<< p.shield			<< "'," <<
+			"`head_top`='"		<< p.head_top		<< "'," <<
+			"`head_mid`='"		<< p.head_mid		<< "'," <<
+			"`head_bottom`='"	<< p.head_bottom	<< "'," <<
+
+			"`last_map`='"		<< p.last_point.mapname		<< "'," <<
+			"`last_x`='"		<< p.last_point.x			<< "'," <<
+			"`last_y`='"		<< p.last_point.y			<< "'," <<
+			"`save_map`='"		<< p.save_point.mapname		<< "'," <<
+			"`save_x`='"		<< p.save_point.x			<< "'," <<
+			"`save_y`='"		<< p.save_point.y			<< "'," <<
+
+			"`partner_id`='"	<< p.partner_id		<< "'," <<
+			"`father`='"		<< p.father_id		<< "'," <<
+			"`mother`='"		<< p.mother_id		<< "'," <<
+			"`child`='"			<< p.child_id		<< "'," <<
+
+			"`fame`='"			<< p.fame_points	<< "'" << // dont forget to remove commas at ends
+
+		"WHERE  " <<
+			"`account_id`='" 	<< p.account_id		<< "' " <<
+
+		"AND " <<
+			"`char_id` = '"		<< p.char_id		<<"' " <<
+
+		"AND " <<
+			"`slot` = '" 		<< p.slot			<< "'";  // dont forget to finish the line
+
+
+	this->Query(query);
+	query.clear();
+
+
+	// This is set for overall.. if anything changed.... it will copy over old data... =o
+	status = false;
+	///////////////////////////////////////////////////////////////////////
+	// Memo Insert
+
+	diff = false;
+	l = false;
+
+	for(i=0;i<MAX_MEMO;i++)
+	{
+		if(
+			(strcmp(p.memo_point[i].mapname, cp.memo_point[i].mapname) == 0) &&
+			(p.memo_point[i].x == cp.memo_point[i].x) &&
+			(p.memo_point[i].y == cp.memo_point[i].y)
+			)continue;
+		diff = true;
+		status = true;
+		break;
+	}
+
+	if (diff)
+	{
+		query << "DELETE FROM `" << memo_db << "` WHERE `char_id`='" << p.char_id << "'";
+		this->Query(query);
+		query.clear();
+
+
+		//insert here.
+		query << "INSERT INTO `" << memo_db << "`(`char_id`,`memo_id`,`map`,`x`,`y`) VALUES ";
+		l=false;
+		for(i=0;i<MAX_MEMO;i++)
+		{
+			if(p.memo_point[i].mapname[0])
+			{
+				query << (l?",":"") << "(" <<
+
+				"'" << 	p.char_id 					<< "'," <<
+				"'" <<	i							<< "'," <<
+				"'" <<	p.memo_point[i].mapname		<< "'," <<
+				"'" <<	p.memo_point[i].x			<< "'," <<
+				"'" <<	p.memo_point[i].y			<< "," <<  // Dont forget to end commas
+				")";
+				l= true;
+			}
+		}
+		// if at least one entry spotted.
+		if(l)this->Query(query);
+		query.clear();
+	}
+
+
+	///////////////////////////////////////////////////////////////////////
+	// Inventory Insert
+
+	diff = false;
+	l = false;
+
+	for(i = 0; i<MAX_INVENTORY; i++)
+	{
+		if (!compare_item(p.inventory[i], cp.inventory[i]))
+		{
+			diff = true;
+			status = true;
+			break;
+		}
+	}
+
+	if (diff)
+	{
+		query <<
+			"DELETE FROM `" << cart_db << "` WHERE `char_id`='" << p.char_id << "'";
+		this->Query(query);
+		query.clear();
+
+		//insert here.
+		query <<
+			"INSERT INTO `" << inventory_db << "`(`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`) VALUES ";
+		l=false;
+		for(i=0;i<MAX_INVENTORY;i++)
+		{
+			if(p.inventory[i].nameid>0)
+			{
+				query << (l?",":"") << "(" <<
+				"'" <<	p.char_id	<< "'," <<
+				"'" <<	p.inventory[i].nameid		<< "'," <<
+				"'" <<	p.inventory[i].amount		<< "'," <<
+				"'" <<	p.inventory[i].equip		<< "'," <<
+				"'" <<	p.inventory[i].identify		<< "'," <<
+				"'" <<	p.inventory[i].refine		<< "'," <<
+				"'" <<	p.inventory[i].attribute	<< "'," <<
+				"'" <<	p.inventory[i].card[0]		<< "'," <<
+				"'" <<	p.inventory[i].card[1]		<< "'," <<
+				"'" <<	p.inventory[i].card[2]		<< "'," <<
+				"'" <<	p.inventory[i].card[3]		<< "'" <<
+				")";
+				l = true;
+			}
+		}
+		// if at least one entry spotted.
+		if(l)this->Query(query);
+		query.clear();
+	}
+
+
+	///////////////////////////////////////////////////////////////////////
+	// Cart Insert
+
+	diff = false;
+	l = false;
+
+	for(i = 0; i<MAX_CART; i++)
+	{
+		if (!compare_item(p.cart[i], cp.cart[i]))
+		{
+			diff = true;
+			status = true;
+			break;
+		}
+	}
+
+	if (diff)
+	{
+		query << "DELETE FROM `" << cart_db << "` WHERE `char_id`='" << p.char_id << "'";
+		this->Query(query);
+		query.clear();
+
+		//insert here.
+		query << "INSERT INTO `" << cart_db << "`(`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`) VALUES ";
+		l=false;
+		for(i=0;i<MAX_CART;i++)
+		{
+			if(p.cart[i].nameid>0)
+			{
+				query << (l?",":"") << "(" <<
+				"'" <<	p.char_id	<< "'," <<
+				"'" <<	p.cart[i].nameid		<< "'," <<
+				"'" <<	p.cart[i].amount		<< "'," <<
+				"'" <<	p.cart[i].equip			<< "'," <<
+				"'" <<	p.cart[i].identify		<< "'," <<
+				"'" <<	p.cart[i].refine		<< "'," <<
+				"'" <<	p.cart[i].attribute		<< "'," <<
+				"'" <<	p.cart[i].card[0]		<< "'," <<
+				"'" <<	p.cart[i].card[1]		<< "'," <<
+				"'" <<	p.cart[i].card[2]		<< "'," <<
+				"'" <<	p.cart[i].card[3]		<< "'" <<
+				")";
+
+				l = true;
+			}
+		}
+		// if at least one entry spotted.
+		if(l)this->Query(query);
+		query.clear();
+	}
+
+	///////////////////////////////////////////////////////////////////////
+	// Skill Insert
+
+	diff = false;
+	l = false;
+
+	if (diff)
+	{
+		query << "DELETE FROM `" << skill_db << "` WHERE `char_id`='" << p.char_id << "'";
+		this->Query(query);
+		query.clear();
+
+		//insert here.
+		query << "INSERT INTO `" << skill_db << "`(`char_id`,`id`,`lvl`) VALUES ";
+		l=false;
+		for(i=0;i<MAX_MEMO;i++)
+		{
+			if(p.skill[i].id>0 && p.skill[i].flag != 1)
+			{
+				query << (l?",":"") << "(" <<
+
+				"'" << p.char_id 				<< "'," <<
+				"'" << p.skill[i].id 			<< "'," <<
+				"'" << p.skill[i].lv 			<< "'" <<
+				")";
+				l = true;
+			}
+		}
+		// if at least one entry spotted.
+		if(l)this->Query(query);
+		query.clear();
+	}
+
+	///////////////////////////////////////////////////////////////////////
+	// Character Reg Insert
+
+	diff = false;
+	l = false;
+
+	for(i=0;i<p.global_reg_num;i++)
+	{
+		if(
+			((p.global_reg[i].str == NULL) == (cp.global_reg[i].str == NULL)) ||
+			(p.global_reg[i].value == cp.global_reg[i].value) ||
+			strcmp(p.global_reg[i].str, cp.global_reg[i].str) == 0
+			)continue;
+		diff = true;
+		status = true;
+		break;
+	}
+
+
+	if (diff)
+	{
+		query << "DELETE FROM `" << char_reg_db << "` WHERE `char_id`='" << p.char_id << "'";
+		this->Query(query);
+		query.clear();
+
+		//insert here.
+		query << "INSERT INTO `" << char_reg_db << "`(`char_id`,`str`,`value`) VALUES ";
+		for(i=0;i<p.global_reg_num;i++)
+		{
+			if(p.global_reg[i].str && p.global_reg[i].value !=0)
+			{
+				query <<
+				(l?",":"") << "(" <<
+
+				"'" << p.char_id << "'," <<
+				"'" << p.global_reg[i].str		<< "'," <<
+				"'" << p.global_reg[i].value	<< "'" <<   // end commas at the end
+				")";
+
+				l = true;
+			}
+		}
+		// if at least one entry spotted.
+		if(l)this->Query(query);
+		query.clear();
+	}
+
+
+	///////////////////////////////////////////////////////////////////////
+	// Friends Insert
+
+	diff = false;
+	l = false;
+
+	for (i=0; i<MAX_FRIENDLIST; i++)
+	{
+		if( p.friendlist[i].friend_id != cp.friendlist[i].friend_id )
+		{
+			diff = true;
+			status = true;
+			break;
+		}
+	}
+
+	if(diff)
+	{
+		query << "DELETE FROM `" << friend_db << "` WHERE `char_id` = '" << p.char_id << "'";
+		this->Query(query);
+		query.clear();
+
+		//insert here.
+		query << "INSERT INTO `" << friend_db << "`(`char_id`, `friend_id`) VALUES ";
+
+		for(i=0;i<MAX_FRIENDLIST;i++)
+		{
+			if(p.friendlist[i].friend_id!=0)
+			{
+				query <<
+				(l?",":"") << "(" <<
+				"'" << p.char_id << "'," <<
+				"'" << p.friendlist[i].friend_id << "'" <<
+				")";
+
+				l = true;
+			}
+		}
+		// if at least one entry spotted.
+		if(l)this->Query(query);
+		query.clear();
+	}
+
+	if (status) // If anything has changed in this process, set to true in any of the differences check.
+	{
+		if(loaded)
+			printf("need to think on how to load the character");
+//				cCharList.removeindex(pos, 0); // remove old char_id where ever the cp index is pointing to
+//			cCharList.insert(p); // now lets add our CharID to the index list.
+	}
+
+	return true;
+
+
 }
 bool CCharDB_sql::searchAccount(uint32 accid, CCharCharAccount& account)
 {
@@ -2480,6 +1874,9 @@ bool CCharDB_sql::searchAccount(uint32 accid, CCharCharAccount& account)
 	}
 */	return false;
 }
+
+
+
 bool CCharDB_sql::saveAccount(CCharAccount& account)
 {
 	// Unknown function, can't find relative info for cAccountList.insert()
@@ -2514,10 +1911,161 @@ bool CCharDB_sql::removeAccount(uint32 accid)
 	return true;
 }
 
+/*************************************************/
+/************************MAIL STUFF***************/
+/*************************************************/
+size_t CCharDB_sql::getUnreadCount(uint32 cid)
+{
+	MiniString query;
+	size_t count = 0;
 
+	query
+		<< "SELECT count(*) "
+		<< "FROM `" << mail_db << "` WHERE `to_account_id` = '" << cid << "' AND `read_flag` = '0'";
 
+	if( this->Query(query) )
+	{
+		this->Fetch();
+		count = atol(this->row[0]);
 
+		this->Free();
+	}
+	return count;
+}
 
+size_t CCharDB_sql::listMail(uint32 cid, unsigned char box, unsigned char *buffer)
+{
+	MiniString query;
+	query
+		<< "SELECT `message_id`,`read_flag`,`from_char_name` "
+		<< "FROM `" << mail_db << "` WHERE `to_account_id` = '"<< cid << "'";
+
+	if( this->Query(query) )
+	{
+		size_t count=0;
+		unsigned char *buf = buffer;
+		while( this->Fetch() )
+		{
+			CMailHead mailhead( atol(this->row[0]), atol(this->row[1]), this->row[2], "" );
+			mailhead._tobuffer(buf); // automatic buffer increment
+			count++;
+		}
+
+		this->Free();
+		return count;
+	}
+	return 0;
+}
+
+bool CCharDB_sql::readMail(uint32 cid, uint32 mid, CMail& mail)
+{
+	MiniString query;
+	bool ret = false;
+
+	query
+		"SELECT `read_flag`,`from_char_name`,`message` "
+		"FROM `" << mail_db << "` WHERE `to_account_id` = '" << cid << "' AND `message_id` = '" << mid << "'";
+
+	// default clearing
+	mail.read    = 0;
+	mail.name[0] = 0;
+	mail.head[0] = 0;
+	mail.body[0] = 0;
+
+	if( this->Query(query) )
+	{
+		if( (sql_row = mysql_fetch_row(sql_res)) )
+		{
+			ret = true;
+			mail = CMail(mid, atol(this->row[0]), this->row[1], "", this->row[2] );
+			if( 0==mail.read )
+			{
+				query.clear();
+				query <<
+					"UPDATE `" << mail_db << "` SET `read_flag`='1' WHERE `message_id`= '" << mid << "'";
+				this->Query(query);
+			}
+		}
+		this->Free();
+	}
+	return ret;
+}
+
+bool CCharDB_sql::deleteMail(uint32 cid, uint32 mid)
+{
+	MiniString query;
+
+	query
+		"DELETE "
+		"FROM `" << maild_db << "` WHERE `to_account_id` = '" << cid << "' AND `message_id` = '" << mid << "'";
+	return this->Query(query);
+}
+
+bool CCharDB_sql::sendMail(uint32 senderid, const char* sendername, const char* targetname, const char *head, const char *body, uint32& msgid, uint32& tid)
+{
+	bool ret = false;
+	bool l = false; // if query is built
+	MiniString query;
+
+	char _head[128];
+	char _body[128];
+	char _targetname[32];
+
+	escape_string(_targetname, targetname, strlen(targetname));
+	escape_string(_head, head, strlen(head));
+	escape_string(_body, body, strlen(body));
+
+	if( 0==strcmp(targetname,"*") )
+	{
+		query.clear();
+		query
+			<< "SELECT DISTINCT `char_id`,`name` "
+			<< "FROM `" << char_db << "` WHERE `char_id` <> '" << senderid << "' ORDER BY `char_id`";
+	}
+	else
+	{
+		query.clear();
+		query
+			<< "SELECT `char_id`,`name` "
+			<< "FROM `" << char_db << "` WHERE `name` = '" << _targetname << "'";
+	}
+
+	if( this->Query(query) )
+	{
+		query.clear();
+		query
+			<< "INSERT DELAYED INTO `" << mail_db << "` "
+			<< "(`to_account_id`,`to_char_name`,`from_account_id`,`from_char_name`,`message`,`read_flag`)"
+			<< " VALUES "
+
+		while( this->Fetch() )
+		{
+
+			query
+				<< (l?",":"") << "('" << atol(this->row[0]) << "', '" << this->row[1] << "', '" << senderid << "', '" << sendername << "', '" << _body << "', 0)";
+
+			l = true;
+		}
+		mysql_free_result(sql_res);
+	}
+
+	if(l) ret &= this->Query(query);
+
+	return ret;
+}
+
+/******************************************************************************
+******************************************************************************
+*******     *****  ******  ***  ***  ***********       *********     *********
+****   ****  ****  ******  ***  ***  ***********  ***      **   ****  ********
+****  ***********  ******  ***  ***  ***********  *******  **   **************
+****  ***********  ******  ***  ***  ***********  *******  **   **************
+****  ****   ****  ******  ***  ***  ***********  *******  ***        ********
+****  *****  ****  ******  ***  ***  ***********  *******  **********  *******
+*****  ****  *****  ****  ****  ***  ***********  *******  **********  *******
+******      ******  ****  ****  ***          ***  ***      ***  *****  *******
+*******************      *****  ***          ***       *******        ********
+****************************************************************    **********/
 class CGuildDB_sql : public CMySQL, private CConfig, public CGuildDBInterface
 {
 
@@ -2554,6 +2102,7 @@ private:
 	}
 	bool close()
 	{
+		//saveAll();
 		return false;
 	}
 
@@ -2569,10 +2118,22 @@ public:
 
 	virtual bool searchGuild(const char* name, CGuild& guild)
 	{
-		//select guild_data where name = name
-		// return true and guild data
-		return false;
+		uint32 guild_id = 0;
+		MiniString query;
+
+		query
+			<< "SELECT `guild_id` FROM `" << guild_db << "` WHERE `name` = '" << name <<"'";
+
+		if ( this->Query(query) )
+		{
+			this->Fetch();
+			guild_id = atol(this->row[0]);
+			this->Free();
+		}
+
+		return this->searchGuild(guild_id,guild);
 	}
+
 	virtual bool searchGuild(uint32 guildid, CGuild& guild)
 	{
 		// select guild_data where guild_id = guildid
@@ -2581,6 +2142,8 @@ public:
 	}
 	virtual bool insertGuild(const struct guild_member &member, const char *name, CGuild &guild)
 	{
+
+
 		// Insert into guild (columns) VALUES (*guild)
 		// return true if succesfull
 
@@ -2607,14 +2170,14 @@ public:
 		*/
 		return false;
 	}
-	virtual bool removeGuild(uint32 guildid)
+	virtual bool removeGuild(uint32 guild_id)
 	{
-		// Delete from guild where guild_id = *guildid
-		// clear alliances
-		// clear castles
-		// else
-		return false;
+		MiniString query;
+		query
+			<< "DELETE FROM `" << guild_db << "` WHERE guild_id = '" << guild_id << "'";
+		return ( ( this->Query(query) ) || ( removeFromMemory(guild_id) ) );
 	}
+
 	virtual bool saveGuild(const CGuild& guild)
 	{
 		// update guild set new_data where guild_id = *guild.id
@@ -2622,7 +2185,11 @@ public:
 		return false;
 	}
 
-	virtual bool searchCastle(ushort cid, CCastle& castle)
+
+
+
+
+	virtual bool searchCastle(ushort castle_id, CCastle& castle)
 	{
 		// select data from castle_db where castle_id = cid
 		//else
@@ -2634,11 +2201,15 @@ public:
 		// else
 		return false;
 	}
-	virtual bool removeCastle(ushort cid)
+	virtual bool removeCastle(ushort castle_id)
 	{
 		// Delete from castle_db where castle_id = *cid
 		// else
-		return false;
+		MiniString query;
+		query
+			<< "DELETE FROM `" << castle_db << "` WHERE castle_id = '" << castle_id << "'";
+		return ( ( this->Query(query) ) || ( removeFromMemory(castle_id) ) );
+
 	}
 };
 
