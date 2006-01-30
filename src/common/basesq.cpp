@@ -1,11 +1,10 @@
-#include "basesq.h"
-
-
 // SELECT element FROM table ORDER BY name LIMIT OFFSET,NUMBER
 
 
 
 #ifndef TXT_ONLY
+
+#include "basesq.h"
 
 //////////////////////////////////////////////////////////////////////////////////////
 // CMySQL Class
@@ -1171,9 +1170,8 @@ private:
 	{
 		MiniString query;
 
-		bool diff,l,status, loaded=false;
+		bool diff, l , status, loaded=false;
 
-//		size_t sz;
 		size_t i;
 
 
@@ -1263,6 +1261,7 @@ private:
 		this->Query(query);
 		query.clear();
 
+
 		// This is set for overall.. if anything changed.... it will copy over old data... =o
 		status = false;
 		///////////////////////////////////////////////////////////////////////
@@ -1286,7 +1285,6 @@ private:
 		if (diff)
 		{
 			query << "DELETE FROM `" << memo_db << "` WHERE `char_id`='" << p.char_id << "'";
-
 			this->Query(query);
 			query.clear();
 
@@ -1601,13 +1599,13 @@ private:
 	{
 		bool ret = false;
 		int tmp_int[256];
-//		int next, len;
 		size_t i,n;
+		MiniString query;
+
 
 		//CCharCharacter p;
 		//CCharCharacter cp;
 
-		MiniString query;
 
 		// initilialise character
 		memset(&p, 0, sizeof(CCharCharacter));
@@ -1620,6 +1618,7 @@ private:
 
 		p.char_id = char_id;
 
+	/**************** Load all base stats ********************/
 		query.clear();
 		query
 			<<"SELECT "
@@ -1733,7 +1732,7 @@ private:
 		#endif
 
 
-
+		/**************** Check start/save locations ********************/
 		if (p.last_point.x == 0 || p.last_point.y == 0 || p.last_point.mapname[0] == '\0')
 		{
 			char errbuf[64];
@@ -1751,8 +1750,7 @@ private:
 			printf("char2 ");
 		#endif
 
-		//read memo data
-		//`memo` (`memo_id`,`char_id`,`map`,`x`,`y`)
+		/**************** Load Memo ********************/
 		query.clear();
 		query << "SELECT `map`,`x`,`y` FROM `" << memo_db << "` WHERE `char_id`='" << char_id << "'";
 
@@ -1770,8 +1768,7 @@ private:
 			printf("memo ");
 		#endif
 
-		//read inventory
-		//`inventory` (`id`,`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`, `gm_made`)
+		/**************** Load Inventory ********************/
 		query.clear();
 		query
 			<< "SELECT "
@@ -1811,8 +1808,7 @@ private:
 			printf("inventory ");
 		#endif
 
-		//read cart.
-		//`cart_inventory` (`id`,`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`)
+		/**************** Load Cart ********************/
 		query.clear();
 		query
 			<< "SELECT "
@@ -1851,8 +1847,8 @@ private:
 		#ifdef CHAR_DEBUG_INFO
 			printf("cart ");
 		#endif
-		//read skill
-		//`skill` (`char_id`, `id`, `lv`)
+
+		/**************** Load skill ********************/
 		query.clear();
 		query
 			<< "SELECT"
@@ -1875,8 +1871,7 @@ private:
 			printf("skill ");
 		#endif
 
-		//global_reg
-		//`global_reg_value` (`char_id`, `str`, `value`)
+		/**************** Load registry ********************/
 		query.clear();
 		query
 			<< "SELECT"
@@ -1897,11 +1892,11 @@ private:
 		}
 		p.global_reg_num=i;
 
-		
 
-		//Friends List Load
 
-		for(i=0;i<20;i++)
+		/**************** Load Friends ********************/
+
+		for(i=0;i<20;i++) // init friends struct
 		{
 			p.friendlist[i].friend_id = 0;
 			p.friendlist[i].friend_name[0] = '\0';
@@ -1934,8 +1929,8 @@ private:
 		#ifdef CHAR_DEBUG_INFO
 			printf("friends ");
 		#endif
-		//-- end friends list load --
 
+		/**************** Finish setup ********************/
 		if (online)
 		{
 			//set_char_online(char_id,p.account_id); // not setup yet... just leave as is
@@ -1943,9 +1938,10 @@ private:
 		return true;
 	}
 
+
+
 	///////////////////////////////////////////////////////////////////////////
 	// Function to create a new character
-
 	bool make_new_char(CCharAccount& account,
 						const char *n, // Name
 						unsigned char str,
@@ -1965,7 +1961,6 @@ private:
 
 		char t_name[128];
 
-//		size_t sz;
 		size_t i;
 
 		this->escape_string(t_name, tempchar.name, strlen(tempchar.name));
@@ -2008,7 +2003,6 @@ private:
 			return false;
 
 		// Check Authorised letters/symbols in the name of the character
-
 		if (char_name_option == 1)// only letters/symbols in char_name_letters are authorised
 			for (i = 0; tempchar.name[i]; i++)
 				if( strchr(char_name_letters, tempchar.name[i]) == NULL )
@@ -2018,7 +2012,6 @@ private:
 			for (i = 0; tempchar.name[i]; i++)
 				if (strchr(char_name_letters, tempchar.name[i]) != NULL)
 					return false;
-
 		// else, all letters/symbols are authorised (except control char removed before)
 
 
@@ -2216,57 +2209,55 @@ public:
 */
 	virtual size_t getUnreadCount(uint32 cid)
 	{
-		MYSQL_RES *sql_res=NULL;
-		MYSQL_ROW sql_row;
-		char query[1024];
+		MiniString query;
 		size_t count = 0;
-		size_t sz = snprintf(query, sizeof(query),
-			"SELECT count(*) "
-			"FROM `%s` WHERE `to_account_id` = \"%ld\" AND `read_flag` = \"0\"",
-			mail_db, (unsigned long)cid);
-		if( this->mysql_SendQuery(sql_res, query, sz) )
-		{
-			sql_row = mysql_fetch_row(sql_res);
-			count = atol(sql_row[0]);
 
-			mysql_free_result(sql_res);
+		query
+			<< "SELECT count(*) "
+			<< "FROM `" << mail_db << "` WHERE `to_account_id` = '" << cid << "' AND `read_flag` = '0'";
+
+		if( this->Query(query) )
+		{
+			this->Fetch();
+			count = atol(this->row[0]);
+
+			this->Free();
 		}
 		return count;
 	}
+
 	virtual size_t listMail(uint32 cid, unsigned char box, unsigned char *buffer)
 	{
-		MYSQL_RES *sql_res=NULL;
-		MYSQL_ROW sql_row;
-		char query[1024];
-		size_t sz = snprintf(query, sizeof(query),
-			"SELECT `message_id`,`read_flag`,`from_char_name` "
-			"FROM `%s` WHERE `to_account_id` = \"%ld\" ",
-			mail_db, (unsigned long)cid);
-		if( this->mysql_SendQuery(sql_res, query, sz) )
+		MiniString query;
+		query
+			<< "SELECT `message_id`,`read_flag`,`from_char_name` "
+			<< "FROM `" << mail_db << "` WHERE `to_account_id` = '"<< cid << "'";
+
+		if( this->Query(query) )
 		{
 			size_t count=0;
 			unsigned char *buf = buffer;
-			while( (sql_row = mysql_fetch_row(sql_res)) )
+			while( this->Fetch() )
 			{
-				CMailHead mailhead( atol(sql_row[0]), atol(sql_row[1]), sql_row[2], "" );
+				CMailHead mailhead( atol(this->row[0]), atol(this->row[1]), this->row[2], "" );
 				mailhead._tobuffer(buf); // automatic buffer increment
 				count++;
 			}
-			mysql_free_result(sql_res);
+
+			this->Free();
 			return count;
 		}
 		return 0;
 	}
+
 	virtual bool readMail(uint32 cid, uint32 mid, CMail& mail)
 	{
-		MYSQL_RES *sql_res=NULL;
-		MYSQL_ROW sql_row;
-		char query[1024];
+		MiniString query;
 		bool ret = false;
-		size_t sz = snprintf(query, sizeof(query),
+
+		query
 			"SELECT `read_flag`,`from_char_name`,`message` "
-			"FROM `%s` WHERE `to_account_id` = \"%ld\" AND `message_id` = \"%ld\" ",
-			mail_db, (unsigned long)cid, (unsigned long)mid);
+			"FROM `" << mail_db << "` WHERE `to_account_id` = '" << cid << "' AND `message_id` = '" << mid << "'";
 
 		// default clearing
 		mail.read    = 0;
@@ -2274,81 +2265,85 @@ public:
 		mail.head[0] = 0;
 		mail.body[0] = 0;
 
-		if( this->mysql_SendQuery(sql_res, query, sz) )
+		if( this->Query(query) )
 		{
 			if( (sql_row = mysql_fetch_row(sql_res)) )
 			{
 				ret = true;
-				mail = CMail(mid, atol(sql_row[0]), sql_row[1], "", sql_row[2] );
+				mail = CMail(mid, atol(this->row[0]), this->row[1], "", this->row[2] );
 				if( 0==mail.read )
 				{
-					sz = snprintf(query, sizeof(query),
-						"UPDATE `%s` SET `read_flag`='1' WHERE `message_id`= \"%ld\"",
-						mail_db, (unsigned long)mid);
-					this->mysql_SendQuery(query, sz);
+					query.clear();
+					query <<
+						"UPDATE `" << mail_db << "` SET `read_flag`='1' WHERE `message_id`= '" << mid << "'";
+					this->Query(query);
 				}
 			}
-			mysql_free_result(sql_res);
+			this->Free();
 		}
 		return ret;
 	}
+
 	virtual bool deleteMail(uint32 cid, uint32 mid)
 	{
-		char query[1024];
-		size_t sz = snprintf(query, sizeof(query),
+		MiniString query;
+
+		query
 			"DELETE "
-			"FROM `%s` WHERE `to_account_id` = \"%ld\" AND `message_id` = \"%ld\" ",
-			mail_db, (unsigned long)cid, (unsigned long)mid);
-		return this->mysql_SendQuery(query, sz);
+			"FROM `" << maild_db << "` WHERE `to_account_id` = '" << cid << "' AND `message_id` = '" << mid << "'";
+		return this->Query(query);
 	}
+
 	virtual bool sendMail(uint32 senderid, const char* sendername, const char* targetname, const char *head, const char *body, uint32& msgid, uint32& tid)
 	{
-		MYSQL_RES *sql_res=NULL;
-		MYSQL_ROW sql_row;
 		bool ret = false;
-		size_t sz;
-		char query[1024];
+		bool l = false; // if query is built
+		MiniString query;
+
 		char _head[128];
 		char _body[128];
 		char _targetname[32];
+
 		escape_string(_targetname, targetname, strlen(targetname));
 		escape_string(_head, head, strlen(head));
 		escape_string(_body, body, strlen(body));
 
 		if( 0==strcmp(targetname,"*") )
 		{
-			sz = snprintf(query, sizeof(query),
-				"SELECT DISTINCT `char_id`,`name` "
-				"FROM `%s` WHERE `char_id` <> '%ld' ORDER BY `char_id`",
-				char_db, (unsigned long)senderid);
+			query.clear();
+			query
+				<< "SELECT DISTINCT `char_id`,`name` "
+				<< "FROM `" << char_db << "` WHERE `char_id` <> '" << senderid << "' ORDER BY `char_id`";
 		}
 		else
 		{
-			sz = snprintf(query, sizeof(query),
-				"SELECT `char_id`,`name` "
-				"FROM `%s` WHERE `name` = \"%s\"",
-				char_db, _targetname);
+			query.clear();
+			query
+				<< "SELECT `char_id`,`name` "
+				<< "FROM `" << char_db << "` WHERE `name` = '" << _targetname << "'";
 		}
-		if( this->mysql_SendQuery(sql_res, query, sz) )
-		{
-			ret = true;
-			while( (sql_row = mysql_fetch_row(sql_res)) )
-			{
-				sz = snprintf(query, sizeof(query),
-					"INSERT DELAYED INTO `%s` "
-					"(`to_account_id`,`to_char_name`,"
-					"`from_account_id`,`from_char_name`,"
-					"`message`,`read_flag`)"
-					" VALUES ('%ld', '%s', '%ld', '%s', '%s', '%d')",
-					mail_db,
-					atol(sql_row[0]), sql_row[1],
-					(unsigned long)senderid, sendername,
-					_body, 0);
 
-				ret &= this->mysql_SendQuery(query, sz);
+		if( this->Query(query) )
+		{
+			query.clear();
+			query
+				<< "INSERT DELAYED INTO `" << mail_db << "` "
+				<< "(`to_account_id`,`to_char_name`,`from_account_id`,`from_char_name`,`message`,`read_flag`)"
+				<< " VALUES "
+
+			while( this->Fetch() )
+			{
+
+				query
+					<< (l?",":"") << "('" << atol(this->row[0]) << "', '" << this->row[1] << "', '" << senderid << "', '" << sendername << "', '" << _body << "', 0)";
+
+				l = true;
 			}
 			mysql_free_result(sql_res);
 		}
+
+		if(l) ret &= this->Query(query);
+
 		return ret;
 	}
 
@@ -2420,9 +2415,27 @@ bool CCharDB_sql::ProcessConfig(const char*w1, const char*w2)
 
 bool CCharDB_sql::existChar(const char* name)
 {
-	// select char id where name = *name
-//	size_t pos;
-	return false;//cCharList.find( CCharCharacter(name), pos, 1);
+	MiniString query;
+	char _name[32];
+	bool ret = false;
+	size_t exist = 0;
+
+	escape_string(_name, name, strlen(name));
+
+	query
+		<< "SELECT count(*) FROM `" << char_db << "` WHERE name = '" << _name << "'";
+
+	if ( this->Query(query) )
+	{
+		if ( this->Fetch() )
+		{
+			exist = atol(this->row[0]);
+			if (exist) ret = true;
+		}
+		this->Free();
+	}
+
+	return ret;
 }
 bool CCharDB_sql::searchChar(const char* name, CCharCharacter&data)
 {
@@ -2446,7 +2459,7 @@ bool CCharDB_sql::insertChar(CCharAccount &account, const char *name, unsigned c
 bool CCharDB_sql::removeChar(uint32 charid)
 {
 	MiniString query;
-	query << "DELETE FROM `" << (const char*)char_db << "` WHERE `char_id`='" << (unsigned char)charid << "'";
+	query << "DELETE FROM `" << char_db << "` WHERE `char_id`='" << charid << "'";
 	this->Query(query);
 	return true;
 }
@@ -2490,11 +2503,12 @@ bool CCharDB_sql::saveAccount(CCharAccount& account)
 */
 	return false;
 }
+
 bool CCharDB_sql::removeAccount(uint32 accid)
 {
 	MiniString query;
 
-	query << "DELETE FROM `" << char_db << "` WHERE `account_id` = '" << (unsigned long) accid << "'";
+	query << "DELETE FROM `" << char_db << "` WHERE `account_id` = '" << accid << "'";
 
 	this->Query(query);
 	return true;
