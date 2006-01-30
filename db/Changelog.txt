@@ -27,7 +27,7 @@
 
 =========================
 01/29
-	* Updated drops of Vesper
+	* Updated drops of Vesper [MasterOfMuppets]
 	* Changed the range of NPC_PETRIFYATTACK from 1 to 7 [MasterOfMuppets]
 	* Updated Vesper's and orc baby's monster skills [MasterOfMuppets]
 	* Vesper will now spawn Apocalypses as slaves [MasterOfMuppets]
