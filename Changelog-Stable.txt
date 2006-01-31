@@ -5,6 +5,7 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY VALARIS AND WIZPUTER. -- VALARIS
 
 2006/01/31
+	* Hopefully fixed being unable to open the guild storage. [Skotlex]
 	* PF_SOULBURN no longer ignores mdef. [Skotlex]
 	* HW_GRAVITATION should now invoke auto spells. [Skotlex]
 	* Added autospell triggering to returned damage from normal attacks.
