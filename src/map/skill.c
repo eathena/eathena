@@ -7410,7 +7410,8 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 		break;
 
 	case UNT_GRAVITATION:
-		skill_attack(BF_MAGIC,ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,0);		
+		if (skill_attack(BF_MAGIC,ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,0))
+			skill_additional_effect(ss,bl,sg->skill_id,sg->skill_lv,BF_MAGIC,tick);
 		break;
 	}
 	if (sg->val3 == HW_MAGICPOWER && ssc_data && ssc_data[SC_MAGICPOWER].timer < 0 && ssc_data[SC_MAGICPOWER].val1 > 0)

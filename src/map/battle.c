@@ -2441,10 +2441,10 @@ struct Damage battle_calc_magic_attack(
 			flag.imdef = 1;
 			break;
 		case PR_ASPERSIO:
-		case PF_SOULBURN:
 		case HW_GRAVITATION:
 		case ASC_BREAKER:
 			flag.imdef = 1;
+		case PF_SOULBURN: //Should not ignore mdef.
 			flag.elefix = 0;
 			flag.cardfix = 0;
 			break;
@@ -3135,8 +3135,12 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 				pc_heal(tsd, 0, -sp);
 		}
 	}
-	if (rdamage > 0) //By sending attack type "none" skill_additional_effect won't be invoked. [Skotlex]
+	if (rdamage > 0)
+	{	//By sending attack type "none" skill_additional_effect won't be invoked. [Skotlex]
 		battle_delay_damage(tick+wd.amotion, target, src, 0, 0, 0, rdamage, ATK_DEF, 0);
+		//Use Reflect Shield to signal this kind of skill trigger. [Skotlex]
+		skill_additional_effect(target,src,CR_REFLECTSHIELD, 1,BF_WEAPON,tick);
+	}
 
 	if (tsc_data) {
 		if (tsc_data[SC_POISONREACT].timer != -1 && 
