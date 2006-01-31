@@ -4,6 +4,12 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES GO 
 IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EVERYTHING ELSE
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY VALARIS AND WIZPUTER. -- VALARIS
 
+2006/01/31
+	* Fixed being able to Encore skills you no longer have in your tree.
+	  [Skotlex]
+	* Added no HP regen while Bleeding, -25% ATK and ASPD penalties as well.
+	  [Skotlex]
+	* Added "onspawn" mob skill condition. [Skotlex]
 2006/01/30
 	* Autoloot now uses the item's base drop chance rather than final drop rate
 	  to determine if it should autoloot the item or not. [Skotlex]

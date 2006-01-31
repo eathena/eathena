@@ -2114,6 +2114,8 @@ int status_calc_batk(struct block_list *bl, int batk)
   			batk -= batk * 25/100;
 		if(sc_data[SC_CURSE].timer!=-1)
   			batk -= batk * 25/100;
+		if(sc_data[SC_BLEEDING].timer != -1)
+			batk -= batk * 25/100;
 	}
 
 	return batk;
@@ -2475,6 +2477,8 @@ int status_calc_aspd_rate(struct block_list *bl, int aspd_rate)
 				aspd_rate += 25;
 			if(sc_data[SC_GRAVITATION].timer!=-1)
 				aspd_rate += sc_data[SC_GRAVITATION].val2;
+			if(sc_data[SC_BLEEDING].timer != -1)
+				aspd_rate += 25;
 			if(sc_data[SC_JOINTBEAT].timer!=-1) {
 				if (sc_data[SC_JOINTBEAT].val2 == 1)
 					aspd_rate += 25;
