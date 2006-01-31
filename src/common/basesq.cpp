@@ -2140,7 +2140,12 @@ public:
 		// return true and guild data
 		return false;
 	}
-	virtual bool insertGuild(const struct guild_member &member, const char *name, CGuild &guild)
+
+	// CGuildDB_sql
+
+	virtual bool insertGuild(const struct guild_member &member, const char *name, CGuild &guild);
+
+	bool CGuildDB_sql::insertGuild(const struct guild_member &member, const char *name, CGuild &guild)
 	{
 
 
@@ -2212,6 +2217,340 @@ public:
 
 	}
 };
+
+
+
+
+bool CGuildDB_sql::insertGuild(const struct guild_member &member, const char *name, CGuild &guild)
+{
+
+
+	// Insert into guild (columns) VALUES (*guild)
+	// return true if succesfull
+
+/*			//tmp.name[24];
+		tmp.guild_id = next_guild_id++;
+
+		tmp.member[0] = member;
+		safestrcpy(tmp.master, member.name, sizeof(tmp.master));
+		tmp.position[0].mode=0x11;
+		safestrcpy(tmp.position[0].name,"GuildMaster", sizeof(tmp.position[0].name));
+		safestrcpy(tmp.position[MAX_GUILDPOSITION-1].name,"Newbie", sizeof(tmp.position[0].name));
+		for(i=1; i<MAX_GUILDPOSITION-1; i++)
+			snprintf(tmp.position[i].name,sizeof(tmp.position[0].name),"Position %d",i+1);
+
+		tmp.max_member=16;
+		tmp.average_lv=tmp.member[0].lv;
+		tmp.castle_id=0xFFFF;
+		for(i=0;i<MAX_GUILDSKILL;i++)
+			tmp.skill[i].id = i+GD_SKILLBASE;
+
+		guild = tmp;
+		return cGuilds.insert(tmp);
+	}
+	*/
+	return false;
+}
+bool CGuildDB_sql::removeGuild(uint32 guild_id)
+{
+	MiniString query;
+	query
+		<< "DELETE FROM `" << guild_db << "` WHERE guild_id = '" << guild_id << "'";
+	return ( ( this->Query(query) ) || ( removeFromMemory(guild_id) ) );
+}
+
+bool CGuildDB_sql::saveGuild(const CGuild& guild)
+{
+
+	// 1 `guild` (`guild_id`, `name`,`master`,`guild_lv`,`connect_member`,`max_member`,`average_lv`,`exp`,`next_exp`,`skill_point`,`castle_id`,`mes1`,`mes2`,`emblem_len`,`emblem_id`,`emblem_data`)
+	// 2 `guild_member` (`guild_id`,`account_id`,`char_id`,`hair`,`hair_color`,`gender`,`class`,`lv`,`exp`,`exp_payper`,`online`,`position`,`rsv1`,`rsv2`,`name`)
+	// 4 `guild_position` (`guild_id`,`position`,`name`,`mode`,`exp_mode`)
+	// 8 `guild_alliance` (`guild_id`,`opposition`,`alliance_id`,`name`)
+	// 16 `guild_expulsion` (`guild_id`,`name`,`mes`,`acc`,`account_id`,`rsv1`,`rsv2`,`rsv3`)
+	// 32 `guild_skill` (`guild_id`,`id`,`lv`)
+
+	char t_name[100],t_master[24],t_mes1[60],t_mes2[240],t_member[24],t_position[24],t_alliance[24];  // temporay storage for str convertion;
+	char t_ename[24],t_emes[40];
+	char emblem_data[4096];
+	int i=0,l=0;
+	int guild_member=0,guild_online_member=0;
+
+	if (g->guild_id<=0) return false;
+
+	showWarning("(\033[1;35m%d\033[0m)  Request save guild -(flag 0x%x) ",g->guild_id, flag);
+
+	jstrescapecpy(t_name, g.name);
+	guild_online_member = 0;
+
+	i=0;
+
+	while (i<g.max_member) {
+		if (g.member[i].account_id>0) guild_online_member++;
+		i++;
+	}
+
+	//Insert new guild to sqlserver
+	if (flag==512){
+		MiniString query;
+
+		int len=0;
+		flag = 255;
+		printf("- Insert guild %d to guild\n",g->guild_id);
+		for(i=0;i<g->emblem_len;i++){
+			len+=sprintf(emblem_data+len,"%02x",(unsigned char)(g->emblem_data[i]));
+			//printf("%02x",(unsigned char)(g->emblem_data[i]));
+		}
+        emblem_data[len] = '\0';
+		//printf("- emblem_len = %d \n",g->emblem_len);
+
+
+		query
+			<< "INSERT INTO `" << guild_db << "` "
+			"(`guild_id`, `name`,`master`,`guild_lv`,`connect_member`,`max_member`,`average_lv`,`exp`,`next_exp`,`skill_point`,`castle_id`,`mes1`,`mes2`,`emblem_len`,`emblem_id`,`emblem_data`,`char_id`) "
+			"VALUES "
+			<< "("
+				<< "'" << g.guild_id			<< "',"
+				<< "'" << t_name				<< "',"
+				<< "'" << t_master				<< "',"
+				<< "'" << g.guild_lv			<< "',"
+				<< "'" << g.connect_member		<< "',"
+				<< "'" << g.max_member			<< "',"
+				<< "'" << g.average_lv			<< "',"
+				<< "'" << g.exp					<< "',"
+				<< "'" << g.next_exp			<< "',"
+				<< "'" << g.skill_point			<< "',"
+				<< "'" << g.castle_id			<< "',"
+				<< "'" << t_mes1				<< "',"
+				<< "'" << t_mes2				<< "',"
+				<< "'" << g.emblem_len			<< "',"
+				<< "'" << g.emblem_id			<< "',"
+				<< "'" << g.emblem_data			<< "',"
+				<< "'" << g.member[0].char_id	<< "'"
+			<< ")";
+		this->Query(query);
+		query.clear();
+	}
+	else	// Update existing guild in SQL
+	{
+
+		int len=0;
+		//printf("- Insert guild %d to guild\n",g->guild_id);
+		for(i=0;i<g->emblem_len;i++){
+			len+=sprintf(emblem_data+len,"%02x",(unsigned char)(g->emblem_data[i]));
+			//printf("%02x",(unsigned char)(g->emblem_data[i]));
+		}
+		emblem_data[len] = '\0';
+		MiniString query;
+
+		query
+			<< "UPDATE `" << guild_db << "` SET"
+				<< "`guild_lv`='" <<		g.guild_lv			<< "',"
+				<< "`connect_member`='" <<	g.connect_member	<< "',"
+				<< "`max_member`='" <<		g.max_member		<< "',"
+				<< "`average_lv`='" <<		g.average_lv		<< "',"
+				<< "`exp`='" <<				g.exp 				<< "',"
+				<< "`next_exp`='" <<		g.next_exp			<< "',"
+				<< "`skill_point`='" <<		g.skill_point		<< "',"
+				<< "`castle_id`='" <<		g.castle_id			<< "',"
+				<< "`mes1`='" <<			t_mes1				<< "',"
+				<< "`mes2`='" <<			t_mes2				<< "',"
+				<< "`emblem_len`='" <<		g.emblem_len		<< "',"
+				<< "`emblem_id`='" <<		g.emblem_id			<< "',"
+				<< "`emblem_data`='" <<		g.emblem_data		<< "'"
+
+			<< "WHERE `guild_id`='" <<		g.guild_id 			<< "'";
+
+		this->Query(query);
+	}
+
+	if (flag&2){
+		MiniString query2;
+		MiniString query;
+
+
+		struct guild_member *m;
+		// Re-writing from scratch (Aru)
+		query
+			<< "DELETE from `" << guild_member_db << "` where `guild_id` = '" << g.guild_id << "'";
+		this->Query(query);
+		query.clear();
+
+		// Remove guild IDs' from the character information sheets
+		query
+			<< "UPDATE `" << char_db << "` SET `guild_id` = '0' WHERE `guild_id` = '" << g.guild_id << "'";
+		this->Query(query);
+		query.clear();
+
+
+		// Now reinsert all the data
+		// Begin building long insert
+		query << "INSERT INTO `" << guild_member_db << "` (`guild_id`,`account_id`,`char_id`,`hair`,`hair_color`,`gender`,`class`,`lv`,`exp`,`exp_payper`,`online`,`position`,`name`) VALUES "
+		query2 << "UPDATE `" << char_db << "` SET `guild_id` = '" << g.guild_id << "' WHERE `char_id` IN "
+
+		l=0;
+		for(i=0;i<g->max_member;i++)
+		{
+			m = &g.member[i];
+			if(m->account_id)
+			{
+				MiniString query2;
+
+				query
+					<< (l?",":"")
+					<< "("
+						<< "'" << g.guild_id << "',"
+						<< "'" << m.account_id << "',"
+						<< "'" << m.char_id << "',"
+						<< "'" << m.hair << "',"
+						<< "'" << m.hair_color << "',"
+						<< "'" << m.gender << "',"
+						<< "'" << m.class_ << "',"
+						<< "'" << m.lv << "',"
+						<< "'" << m.exp << "',"
+						<< "'" << m.exp_payper << "',"
+						<< "'" << m.online << "'"
+						<< "'" << m.position << "'"
+						<< "'" << t_member << "'"
+					<< ")";
+
+
+				query2
+					<< (l?",":"")
+					<< "'" << m.char_id << "'";
+
+				l++;
+
+			}
+		}
+
+		if(l) // if there was a complete query
+		{
+			this->Query(query);
+			this->Query(query2);
+		}
+	}
+
+	if (flag&4)
+	{
+		//printf("- Insert guild %d to guild_position\n",g->guild_id);
+		query
+			<< "REPLACE INTO `" << guild_position_db << "` (`guild_id`,`position`,`name`,`mode`,`exp_mode`) VALUES "
+
+		l=0;
+
+		for(i=0;i<MAX_GUILDPOSITION;i++)
+		{
+			struct guild_position *p = &g->position[i];
+			jstrescapecpy(t_position,p->name);
+
+			query
+				<< (l?",":"")
+				<< "("
+					<< "'" << g.guild_id	<< "',"
+					<< "'" << i				<< "',"
+					<< "'" << t_position	<< "',"
+					<< "'" << p.mode		<< "',"
+					<< "'" << p.exp_mode	<< "'"
+
+				<< ")";
+		}
+
+		if(l) // if there was a complete query
+		{
+			this->Query(query);
+	}
+
+	if (flag&8){
+//		printf("- Delete guild %d from guild_alliance\n",g->guild_id);
+		sprintf(tmp_sql, "DELETE FROM `%s` WHERE `guild_id`='%d' OR `alliance_id`='%d'",guild_alliance_db, g->guild_id,g->guild_id);
+		if(mysql_query(&mysql_handle, tmp_sql) ) {
+			printf("DB server Error (delete `guild_alliance`)- %s\n", mysql_error(&mysql_handle) );
+		}
+		else
+		{
+
+		//printf("- Insert guild %d to guild_alliance\n",g->guild_id);
+		for(i=0;i<MAX_GUILDALLIANCE;i++){
+			struct guild_alliance *a=&g->alliance[i];
+			if(a->guild_id>0){
+				sprintf(tmp_sql,"REPLACE INTO `%s` (`guild_id`,`opposition`,`alliance_id`,`name`) "
+					"VALUES ('%d','%d','%d','%s')",
+					guild_alliance_db, g->guild_id,a->opposition,a->guild_id,jstrescapecpy(t_alliance,a->name));
+				//printf(" %s\n",tmp_sql);
+				if(mysql_query(&mysql_handle, tmp_sql) ) {
+					printf("DB server Error (insert `guild_alliance`)- %s\n", mysql_error(&mysql_handle) );
+				}
+				sprintf(tmp_sql,"REPLACE INTO `%s` (`guild_id`,`opposition`,`alliance_id`,`name`) "
+					"VALUES ('%d','%d','%d','%s')",
+					guild_alliance_db, a->guild_id,a->opposition,g->guild_id,t_name);
+				//printf(" %s\n",tmp_sql);
+				if(mysql_query(&mysql_handle, tmp_sql) ) {
+					printf("DB server Error (insert `guild_alliance`)- %s\n", mysql_error(&mysql_handle) );
+				}
+			}
+		}
+		}
+	}
+
+	if (flag&16){
+		//printf("- Insert guild %d to guild_expulsion\n",g->guild_id);
+		for(i=0;i<MAX_GUILDEXPLUSION;i++){
+			struct guild_explusion *e=&g->explusion[i];
+			if(e->account_id>0){
+				sprintf(tmp_sql,"REPLACE INTO `%s` (`guild_id`,`name`,`mes`,`acc`,`account_id`,`rsv1`,`rsv2`,`rsv3`) "
+					"VALUES ('%d','%s','%s','%s','%d','%d','%d','%d')",
+					guild_expulsion_db, g->guild_id,
+					jstrescapecpy(t_ename,e->name),jstrescapecpy(t_emes,e->mes),e->acc,e->account_id,e->rsv1,e->rsv2,e->rsv3 );
+				//printf(" %s\n",tmp_sql);
+				if(mysql_query(&mysql_handle, tmp_sql) ) {
+					printf("DB server Error (insert `guild_expulsion`)- %s\n", mysql_error(&mysql_handle) );
+				}
+			}
+		}
+	}
+
+	if (flag&32){
+		//printf("- Insert guild %d to guild_skill\n",g->guild_id);
+		for(i=0;i<MAX_GUILDSKILL;i++){
+			if (g->skill[i].id>0){
+				sprintf(tmp_sql,"REPLACE INTO `%s` (`guild_id`,`id`,`lv`) VALUES ('%d','%d','%d')",
+					guild_skill_db, g->guild_id,g->skill[i].id,g->skill[i].lv);
+				//printf("%s\n",tmp_sql);
+				if(mysql_query(&mysql_handle, tmp_sql) ) {
+					printf("DB server Error (insert `guild_skill`)- %s\n", mysql_error(&mysql_handle) );
+				}
+			}
+		}
+	}
+
+	printf("Save guild %d (%s) done\n",g->guild_id,g->name);
+	return true;
+}
+
+bool CGuildDB_sql::searchCastle(ushort castle_id, CCastle& castle)
+{
+	// select data from castle_db where castle_id = cid
+	//else
+	return false;
+}
+bool CGuildDB_sql::saveCastle(CCastle& castle)
+{
+	// update castle_db set new_data where castle_id = *castle.id
+	// else
+	return false;
+}
+bool CGuildDB_sql::removeCastle(ushort castle_id)
+{
+	// Delete from castle_db where castle_id = *cid
+	// else
+	MiniString query;
+	query
+		<< "DELETE FROM `" << castle_db << "` WHERE castle_id = '" << castle_id << "'";
+	return ( ( this->Query(query) ) || ( removeFromMemory(castle_id) ) );
+
+}
+
+
 
 
 
