@@ -26,6 +26,8 @@
 		* * * From where this info is? ... Mine: On your death you'll loose this ring and get 50% HP [Komurka]
 
 =========================
+01/31
+	* Updated Vesper's mode to boss. [MasterOfMuppets]
 01/29
 	* Updated drops of Vesper [MasterOfMuppets]
 	* Changed the range of NPC_PETRIFYATTACK from 1 to 7 [MasterOfMuppets]
