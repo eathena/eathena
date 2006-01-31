@@ -27,6 +27,8 @@
 
 =========================
 01/31
+	* Added drops to the monsters in Thanatos Tower and Abyss lake [MasterOfMuppets]
+	- Revised most of the monster skills for the Thanatos Tower and Abyss lake monsters
 	* Updated Vesper's mode to boss. [MasterOfMuppets]
 01/29
 	* Updated drops of Vesper [MasterOfMuppets]
