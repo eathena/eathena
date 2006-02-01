@@ -35,7 +35,8 @@ CMySQL::CMySQL(MYSQL new_handle)
 
 // CMySQL Class Destructor
 // Code is executed a CMySQL var is destroyed
-inline CMySQL::~CMySQL() {
+inline CMySQL::~CMySQL()
+{
 	this->Free();
 
 	// if it's different, change it back =O
@@ -47,7 +48,8 @@ bool CMySQL::Query(const string<> q) {
 
 //	ShowError("Query = %s\n",q.c_str());
 
-	if( 0==mysql_real_query(&mysqldb_handle, q.c_str(), q.length()) ) {
+	if( 0==mysql_real_query(&mysqldb_handle, q.c_str(), q.length()) )
+	{
 		result = mysql_store_result(&mysqldb_handle);
 		if(result)
 			return true;
@@ -91,7 +93,8 @@ void CMySQL::Free()
 
 
 // Send a MySQL query to get data
-bool CMySQL::mysql_SendQuery(MYSQL_RES*& sql_res, const char* q, size_t sz) {
+bool CMySQL::mysql_SendQuery(MYSQL_RES*& sql_res, const char* q, size_t sz)
+{
 
 	#ifdef DEBUG_SQL
 		ShowSQL("%s\n", q);
@@ -130,7 +133,8 @@ bool CMySQL::mysql_SendQuery(const char* q, size_t sz)
 }
 
 // Make string MySQL safe
-inline const char* CMySQL::escape_string(char *target, const char* source, size_t len) {
+inline const char* CMySQL::escape_string(char *target, const char* source, size_t len)
+{
 
 	mysql_real_escape_string(&mysqldb_handle, target, source, len);
 
@@ -143,10 +147,10 @@ inline const char* CMySQL::escape_string(char *target, const char* source, size_
 CAccountDB_sql::CAccountDB_sql(const char* configfile)
 	: cSqlRes(NULL)
 {
-	safestrcpy(login_auth_db,"login_auth",sizeof(login_auth_db));
-	safestrcpy(login_reg_db,"login_reg",sizeof(login_reg_db));
-	safestrcpy(login_status_db,"login_status",sizeof(login_status_db));
-	safestrcpy(login_log_db,"login_log",sizeof(login_log_db));
+	login_auth_db	= "login_auth";
+	login_reg_db	= "login_reg";
+	login_status_db	= "login_status";
+	login_log_db	= "login_log";
 
 	case_sensitive=true;
 	log_login=false;
@@ -159,16 +163,16 @@ bool CAccountDB_sql::ProcessConfig(const char*w1, const char*w2)
 	{
 		// All Tables in Database
 		if (strcasecmp(w1, "login_auth_db") == 0) {
-			safestrcpy(login_auth_db, w2,sizeof(login_auth_db));
+			login_auth_db = w2;
 		}
 		else if (strcasecmp(w1, "login_reg_db") == 0) {
-			safestrcpy(login_reg_db, w2,sizeof(login_reg_db));
+			login_reg_db = w2;
 		}
 		else if (strcasecmp(w1, "login_log_db") == 0) {
-			safestrcpy(login_log_db, w2,sizeof(login_log_db));
+			login_log_db = w2;
 		}
 		else if (strcasecmp(w1, "login_status_db") == 0) {
-			safestrcpy(login_status_db, w2,sizeof(login_status_db));
+			login_status_db = w2;
 		}
 
 		// Database Connection Settings
@@ -528,21 +532,21 @@ bool CAccountDB_sql::saveAccount(const CLoginAccount& account)
 	query
 		<<"UPDATE `" << login_auth_db << "` SET "
 
-		<< "`user_id` = '" << 		account.userid << "', "
-		<< "`user_pass` = '" <<		account.passwd << "', "
-		<< "`sex` = '" <<			((account.sex==1)?"M":"F") << "', "
-		<< "`gm_level` = '" <<		account.gm_level << "', "
-		<< "`online` = '" << 		account.online << "', "
-		<< "`email` = '" << 		account.email << "', "
-		<< "`login_id1` = '" << 	account.login_id1 << "', "
-		<< "`login_id2` = '" << 	account.login_id2 << "', "
-		<< "`client_ip` = '" <<		((ipaddress)account.client_ip).tostring()  << "', "
-		<< "`last_login` = '" <<	account.last_login << "', "
-		<< "`login_count` = '" <<	account.login_count << "', "
-		<< "`valid_until` = '" <<	account.valid_until << "', "
-		<< "`ban_until` = '" <<		account.ban_until << "', "
+		<< "`user_id` = '" << 		account.userid 								<< "',"
+		<< "`user_pass` = '" <<		account.passwd								<< "',"
+		<< "`sex` = '" <<			((account.sex==1)?"M":"F")					<< "',"
+		<< "`gm_level` = '" <<		account.gm_level							<< "',"
+		<< "`online` = '" << 		account.online								<< "',"
+		<< "`email` = '" << 		account.email								<< "',"
+		<< "`login_id1` = '" << 	account.login_id1							<< "',"
+		<< "`login_id2` = '" << 	account.login_id2							<< "',"
+		<< "`client_ip` = '" <<		((ipaddress)account.client_ip).tostring()	<< "',"
+		<< "`last_login` = '" <<	account.last_login							<< "',"
+		<< "`login_count` = '" <<	account.login_count							<< "',"
+		<< "`valid_until` = '" <<	account.valid_until							<< "',"
+		<< "`ban_until` = '" <<		account.ban_until							<< "'"
 
-		<< "WHERE `account_id` = '" << account.account_id << "'";
+		<< "WHERE `account_id` = '" << account.account_id						<< "'";
 
 
 	ret = this->Query(query);
@@ -775,17 +779,6 @@ CREATE TABLE IF NOT EXISTS `char_skill` (
 
 CCharDB_sql::CCharDB_sql(const char *dbcfgfile)
 {
-	safestrcpy(char_db,			"char",				sizeof(char_db));
-	safestrcpy(mail_db,			"mail",				sizeof(mail_db));
-	safestrcpy(friend_db,		"friends",			sizeof(friend_db));
-	safestrcpy(memo_db,			"Memo",				sizeof(memo_db));
-	safestrcpy(cart_db,			"cart_inventory",	sizeof(cart_db));
-	safestrcpy(inventory_db,	"inventory",		sizeof(inventory_db));
-	safestrcpy(skill_db,		"skill",			sizeof(skill_db));
-	safestrcpy(guild_skill_db,	"guild_skill",		sizeof(guild_skill_db));
-	safestrcpy(char_reg_db,		"char_reg",			sizeof(char_reg_db));
-
-
 	char_name_option=0;
 	memset(char_name_letters,0,sizeof(char_name_letters));
 
@@ -846,7 +839,7 @@ bool CCharDB_sql::ProcessConfig(const char*w1, const char*w2)
 	return true;
 }
 
-bool CCharDB_sql::compare_item(const struct item &a, const struct item &b);
+bool CCharDB_sql::compare_item(const struct item &a, const struct item &b)
 {
 	return ( (a.id == b.id) &&
 			 (a.nameid == b.nameid) &&
@@ -1963,8 +1956,8 @@ bool CCharDB_sql::readMail(uint32 cid, uint32 mid, CMail& mail)
 	bool ret = false;
 
 	query
-		"SELECT `read_flag`,`from_char_name`,`message` "
-		"FROM `" << mail_db << "` WHERE `to_account_id` = '" << cid << "' AND `message_id` = '" << mid << "'";
+		<< "SELECT `read_flag`,`from_char_name`,`message` "
+		<< "FROM `" << mail_db << "` WHERE `to_account_id` = '" << cid << "' AND `message_id` = '" << mid << "'";
 
 	// default clearing
 	mail.read    = 0;
@@ -1974,7 +1967,7 @@ bool CCharDB_sql::readMail(uint32 cid, uint32 mid, CMail& mail)
 
 	if( this->Query(query) )
 	{
-		if( (sql_row = mysql_fetch_row(sql_res)) )
+		if( this->Fetch() )
 		{
 			ret = true;
 			mail = CMail(mid, atol(this->row[0]), this->row[1], "", this->row[2] );
@@ -1996,8 +1989,8 @@ bool CCharDB_sql::deleteMail(uint32 cid, uint32 mid)
 	string<> query;
 
 	query
-		"DELETE "
-		"FROM `" << maild_db << "` WHERE `to_account_id` = '" << cid << "' AND `message_id` = '" << mid << "'";
+		<< "DELETE "
+		<< "FROM `" << mail_db << "` WHERE `to_account_id` = '" << cid << "' AND `message_id` = '" << mid << "'";
 	return this->Query(query);
 }
 
@@ -2036,7 +2029,7 @@ bool CCharDB_sql::sendMail(uint32 senderid, const char* sendername, const char* 
 		query
 			<< "INSERT DELAYED INTO `" << mail_db << "` "
 			<< "(`to_account_id`,`to_char_name`,`from_account_id`,`from_char_name`,`message`,`read_flag`)"
-			<< " VALUES "
+			<< " VALUES ";
 
 		while( this->Fetch() )
 		{
@@ -2046,7 +2039,7 @@ bool CCharDB_sql::sendMail(uint32 senderid, const char* sendername, const char* 
 
 			l = true;
 		}
-		mysql_free_result(sql_res);
+		this->Free();
 	}
 
 	if(l) ret &= this->Query(query);
@@ -2066,189 +2059,75 @@ bool CCharDB_sql::sendMail(uint32 senderid, const char* sendername, const char* 
 ******      ******  ****  ****  ***          ***  ***      ***  *****  *******
 *******************      *****  ***          ***       *******        ********
 ****************************************************************    **********/
-class CGuildDB_sql : public CMySQL, private CConfig, public CGuildDBInterface
+
+bool CGuildDB_sql::searchGuild(const char* name, CGuild& g)
 {
+	uint32 guild_id = 0;
+	string<> query;
 
-public:
-	///////////////////////////////////////////////////////////////////////////
-	// construct/destruct
-	CGuildDB_sql(const char *configfile)
+	query
+		<< "SELECT `guild_id` FROM `" << guild_db << "` WHERE `name` = '" << name <<"'";
+
+	if ( this->Query(query) )
 	{
-		init(configfile);
-	}
-	virtual ~CGuildDB_sql()
-	{
-		close();
-	}
-private:
-	///////////////////////////////////////////////////////////////////////////
-	// data
-
-
-	///////////////////////////////////////////////////////////////////////////
-	// Config processor
-	virtual bool ProcessConfig(const char*w1, const char*w2)
-	{
-
-		return true;
-	}
-	///////////////////////////////////////////////////////////////////////////
-	// normal function
-	bool init(const char* configfile)
-	{	// init db
-		if(configfile)
-			CConfig::LoadConfig(configfile);
-		return false;
-	}
-	bool close()
-	{
-		//saveAll();
-		return false;
-	}
-
-public:
-	///////////////////////////////////////////////////////////////////////////
-	// access interface
-	virtual size_t size()					{ return 0;/*cGuilds.size();*/ }
-	virtual CGuild& operator[](size_t i)	{ static CGuild tmp; return tmp; /*return cGuilds[i];*/ }
-
-	virtual size_t castlesize()				{ return 0;/*cGuilds.size();*/ }
-	virtual CCastle &castle(size_t i)		{ static CCastle tmp; return tmp; }
-
-
-	virtual bool searchGuild(const char* name, CGuild& guild)
-	{
-		uint32 guild_id = 0;
-		string<> query;
-
-		query
-			<< "SELECT `guild_id` FROM `" << guild_db << "` WHERE `name` = '" << name <<"'";
-
-		if ( this->Query(query) )
-		{
-			this->Fetch();
+		if( this->Fetch() )
 			guild_id = atol(this->row[0]);
-			this->Free();
-		}
-
-		return this->searchGuild(guild_id,guild);
+		this->Free();
 	}
 
-	virtual bool searchGuild(uint32 guildid, CGuild& guild)
-	{
-		// select guild_data where guild_id = guildid
-		// return true and guild data
+	if(guild_id)
 		return false;
-	}
 
-	// CGuildDB_sql
+	return this->searchGuild(guild_id,g);
+}
 
-	virtual bool insertGuild(const struct guild_member &member, const char *name, CGuild &guild);
-
-	bool CGuildDB_sql::insertGuild(const struct guild_member &member, const char *name, CGuild &guild)
-	{
-
-
-		// Insert into guild (columns) VALUES (*guild)
-		// return true if succesfull
-
-/*			//tmp.name[24];
-			tmp.guild_id = next_guild_id++;
-
-			tmp.member[0] = member;
-			safestrcpy(tmp.master, member.name, sizeof(tmp.master));
-			tmp.position[0].mode=0x11;
-			safestrcpy(tmp.position[0].name,"GuildMaster", sizeof(tmp.position[0].name));
-			safestrcpy(tmp.position[MAX_GUILDPOSITION-1].name,"Newbie", sizeof(tmp.position[0].name));
-			for(i=1; i<MAX_GUILDPOSITION-1; i++)
-				snprintf(tmp.position[i].name,sizeof(tmp.position[0].name),"Position %d",i+1);
-
-			tmp.max_member=16;
-			tmp.average_lv=tmp.member[0].lv;
-			tmp.castle_id=0xFFFF;
-			for(i=0;i<MAX_GUILDSKILL;i++)
-				tmp.skill[i].id = i+GD_SKILLBASE;
-
-			guild = tmp;
-			return cGuilds.insert(tmp);
-		}
-		*/
-		return false;
-	}
-	virtual bool removeGuild(uint32 guild_id)
-	{
-		string<> query;
-		query
-			<< "DELETE FROM `" << guild_db << "` WHERE guild_id = '" << guild_id << "'";
-		return ( ( this->Query(query) ) || ( removeFromMemory(guild_id) ) );
-	}
-
-	virtual bool saveGuild(const CGuild& guild)
-	{
-		// update guild set new_data where guild_id = *guild.id
-		// else
-		return false;
-	}
-
-
-
-
-
-	virtual bool searchCastle(ushort castle_id, CCastle& castle)
-	{
-		// select data from castle_db where castle_id = cid
-		//else
-		return false;
-	}
-	virtual bool saveCastle(CCastle& castle)
-	{
-		// update castle_db set new_data where castle_id = *castle.id
-		// else
-		return false;
-	}
-	virtual bool removeCastle(ushort castle_id)
-	{
-		// Delete from castle_db where castle_id = *cid
-		// else
-		string<> query;
-		query
-			<< "DELETE FROM `" << castle_db << "` WHERE castle_id = '" << castle_id << "'";
-		return ( ( this->Query(query) ) || ( removeFromMemory(castle_id) ) );
-
-	}
-};
-
-
-
-
-bool CGuildDB_sql::insertGuild(const struct guild_member &member, const char *name, CGuild &guild)
+bool CGuildDB_sql::searchGuild(uint32 guildid, CGuild& g)
 {
+	// select guild_data where guild_id = guildid
+	// return true and guild data
+	return false;
+}
 
 
-	// Insert into guild (columns) VALUES (*guild)
-	// return true if succesfull
 
-/*			//tmp.name[24];
-		tmp.guild_id = next_guild_id++;
+bool CGuildDB_sql::insertGuild(const struct guild_member &m, const char *name, CGuild &g)
+{
+	char t_name[100],t_master[24],t_mes1[60],t_mes2[240];
+	string<> query;
 
-		tmp.member[0] = member;
-		safestrcpy(tmp.master, member.name, sizeof(tmp.master));
-		tmp.position[0].mode=0x11;
-		safestrcpy(tmp.position[0].name,"GuildMaster", sizeof(tmp.position[0].name));
-		safestrcpy(tmp.position[MAX_GUILDPOSITION-1].name,"Newbie", sizeof(tmp.position[0].name));
-		for(i=1; i<MAX_GUILDPOSITION-1; i++)
-			snprintf(tmp.position[i].name,sizeof(tmp.position[0].name),"Position %d",i+1);
 
-		tmp.max_member=16;
-		tmp.average_lv=tmp.member[0].lv;
-		tmp.castle_id=0xFFFF;
-		for(i=0;i<MAX_GUILDSKILL;i++)
-			tmp.skill[i].id = i+GD_SKILLBASE;
+	this->escape_string(t_name, g.name, strlen(g.name));
+	this->escape_string(t_master, g.member[0].name, strlen(g.member[0].name));
+	this->escape_string(t_mes1, g.mes2, strlen(g.mes1));
+	this->escape_string(t_mes2, g.mes2, strlen(g.mes2));
 
-		guild = tmp;
-		return cGuilds.insert(tmp);
-	}
-	*/
+	query
+		<< "INSERT INTO `" << guild_db << "` "
+		"(`guild_id`, `name`,`master`,`guild_lv`,`connect_member`,`max_member`,`average_lv`,`exp`,`next_exp`,`skill_point`,`castle_id`,`mes1`,`mes2`,`emblem_len`,`emblem_id`,`emblem_data`,`char_id`) "
+		"VALUES "
+		<< "("
+			<< "'" << g.guild_id			<< "',"
+			<< "'" << t_name				<< "',"
+			<< "'" << t_master				<< "',"
+			<< "'" << g.guild_lv			<< "',"
+			<< "'" << g.connect_member		<< "',"
+			<< "'" << g.max_member			<< "',"
+			<< "'" << g.average_lv			<< "',"
+			<< "'" << g.exp					<< "',"
+			<< "'" << g.next_exp			<< "',"
+			<< "'" << g.skill_point			<< "',"
+			<< "'" << t_mes1				<< "',"
+			<< "'" << t_mes2				<< "',"
+			<< "'" << g.emblem_len			<< "',"
+			<< "'" << g.emblem_id			<< "',"
+			<< "'" << g.emblem_data			<< "',"
+			<< "'" << g.member[0].char_id	<< "'"
+		<< ")";
+	this->Query(query);
+	query.clear();
+
+	return this->saveGuild(g); // Save the rest of the guild now that we have the basics inserted
+
 	return false;
 }
 bool CGuildDB_sql::removeGuild(uint32 guild_id)
@@ -2256,10 +2135,15 @@ bool CGuildDB_sql::removeGuild(uint32 guild_id)
 	string<> query;
 	query
 		<< "DELETE FROM `" << guild_db << "` WHERE guild_id = '" << guild_id << "'";
-	return ( ( this->Query(query) ) || ( removeFromMemory(guild_id) ) );
+
+	this->Query(query);
+
+	//removeFromMemory(guild_id);
+
+	return true;
 }
 
-bool CGuildDB_sql::saveGuild(const CGuild& guild)
+bool CGuildDB_sql::saveGuild(const CGuild& g)
 {
 
 	// 1 `guild` (`guild_id`, `name`,`master`,`guild_lv`,`connect_member`,`max_member`,`average_lv`,`exp`,`next_exp`,`skill_point`,`castle_id`,`mes1`,`mes2`,`emblem_len`,`emblem_id`,`emblem_data`)
@@ -2277,9 +2161,9 @@ bool CGuildDB_sql::saveGuild(const CGuild& guild)
 
 	if (g.guild_id<=0) return false;
 
-	jstrescapecpy(t_name, g.name);
+	this->escape_string(t_name, g.name, strlen(g.name));
 
-	showWarning("(\033[1;35m%d\033[0m)  Request save guild -(flag 0x%x) ",g->guild_id, flag);
+	printf("(\033[1;35m%d\033[0m)  Request save guild -(flag 0x%x) ",g.guild_id);
 
 	while (i<g.max_member) {
 		if (g.member[i].account_id>0) guild_online_member++;
@@ -2288,7 +2172,7 @@ bool CGuildDB_sql::saveGuild(const CGuild& guild)
 
 
 	//printf("- Insert guild %d to guild\n",g->guild_id);
-	for(i=0;i<g->emblem_len;i++){
+	for(i=0;i<g.emblem_len;i++){
 		len+=sprintf(emblem_data+len,"%02x",(unsigned char)(g.emblem_data[i]));
 		//printf("%02x",(unsigned char)(g->emblem_data[i]));
 	}
@@ -2296,39 +2180,6 @@ bool CGuildDB_sql::saveGuild(const CGuild& guild)
 	//printf("- emblem_len = %d \n",g->emblem_len);
 
 
-	//Insert new guild to sqlserver
-	if (flag==512){
-		string<> query;
-
-		flag = 255;
-
-		query
-			<< "INSERT INTO `" << guild_db << "` "
-			"(`guild_id`, `name`,`master`,`guild_lv`,`connect_member`,`max_member`,`average_lv`,`exp`,`next_exp`,`skill_point`,`castle_id`,`mes1`,`mes2`,`emblem_len`,`emblem_id`,`emblem_data`,`char_id`) "
-			"VALUES "
-			<< "("
-				<< "'" << g.guild_id			<< "',"
-				<< "'" << t_name				<< "',"
-				<< "'" << t_master				<< "',"
-				<< "'" << g.guild_lv			<< "',"
-				<< "'" << g.connect_member		<< "',"
-				<< "'" << g.max_member			<< "',"
-				<< "'" << g.average_lv			<< "',"
-				<< "'" << g.exp					<< "',"
-				<< "'" << g.next_exp			<< "',"
-				<< "'" << g.skill_point			<< "',"
-				<< "'" << g.castle_id			<< "',"
-				<< "'" << t_mes1				<< "',"
-				<< "'" << t_mes2				<< "',"
-				<< "'" << g.emblem_len			<< "',"
-				<< "'" << g.emblem_id			<< "',"
-				<< "'" << g.emblem_data			<< "',"
-				<< "'" << g.member[0].char_id	<< "'"
-			<< ")";
-		this->Query(query);
-		query.clear();
-	}
-	else	// Update existing guild in SQL
 	{
 		string<> query;
 		query
@@ -2340,7 +2191,6 @@ bool CGuildDB_sql::saveGuild(const CGuild& guild)
 				<< "`exp`='" <<				g.exp 				<< "',"
 				<< "`next_exp`='" <<		g.next_exp			<< "',"
 				<< "`skill_point`='" <<		g.skill_point		<< "',"
-				<< "`castle_id`='" <<		g.castle_id			<< "',"
 				<< "`mes1`='" <<			t_mes1				<< "',"
 				<< "`mes2`='" <<			t_mes2				<< "',"
 				<< "`emblem_len`='" <<		g.emblem_len		<< "',"
@@ -2352,7 +2202,18 @@ bool CGuildDB_sql::saveGuild(const CGuild& guild)
 		this->Query(query);
 	}
 
-	if (flag&2){
+	{
+
+		basesq.cpp:2023: error: no match for 'operator<<' in '(+(&query)->string<T>::operator<< [with T = char](((const char*)"SELECT `char_id`,`name` ")))->string<T>::operator<< [with T = char](((const char*)"FROM `")) << ((CCharDB_sql*)this)->CCharDB_sql::char_db'
+		../../src/basics/basestring.h:1544: note: candidates are: string<T>& string<T>::operator<<(const stringinterface<T>&) [with T = char]
+		../../src/basics/basestring.h:1549: note:                 string<T>& string<T>::operator<<(const string<T>&) [with T = char]
+		../../src/basics/basestring.h:1554: note:                 string<T>& string<T>::operator<<(const char*) [with T = char]
+		../../src/basics/basestring.h:1559: note:                 string<T>& string<T>::operator<<(char) [with T = char]
+		../../src/basics/basestring.h:1564: note:                 string<T>& string<T>::operator<<(int) [with T = char]
+		../../src/basics/basestring.h:1569: note:                 string<T>& string<T>::operator<<(unsigned int) [with T = char]
+		../../src/basics/basestring.h:1574: note:                 string<T>& string<T>::operator<<(double) [with T = char]
+
+
 		string<> query2;
 		string<> query;
 		int l = 0;
@@ -2373,38 +2234,38 @@ bool CGuildDB_sql::saveGuild(const CGuild& guild)
 
 		// Now reinsert all the data
 		// Begin building long insert
-		query << "INSERT INTO `" << guild_member_db << "` (`guild_id`,`account_id`,`char_id`,`hair`,`hair_color`,`gender`,`class`,`lv`,`exp`,`exp_payper`,`online`,`position`,`name`) VALUES "
-		query2 << "UPDATE `" << char_db << "` SET `guild_id` = '" << g.guild_id << "' WHERE `char_id` IN "
+		query << "INSERT INTO `" << guild_member_db << "` (`guild_id`,`account_id`,`char_id`,`hair`,`hair_color`,`gender`,`class`,`lv`,`exp`,`exp_payper`,`online`,`position`,`name`) VALUES ";
+		query2 << "UPDATE `" << char_db << "` SET `guild_id` = '" << g.guild_id << "' WHERE `char_id` IN ";
 
-		for(i=0;i<g->max_member;i++)
+		for(i=0;i<g.max_member;i++)
 		{
-			m = &g.member[i];
-			if(m->account_id > 0)
+
+			if(g.member[i].account_id > 0)
 			{
-				string<> query2;
+				this->escape_string(t_member, g.member[i].name, strlen(g.member[i].name));
 
 				query
 					<< (l?",":"")
 					<< "("
-						<< "'" << g.guild_id 		<< "',"
-						<< "'" << m.account_id		<< "',"
-						<< "'" << m.char_id			<< "',"
-						<< "'" << m.hair			<< "',"
-						<< "'" << m.hair_color		<< "',"
-						<< "'" << m.gender			<< "',"
-						<< "'" << m.class_			<< "',"
-						<< "'" << m.lv				<< "',"
-						<< "'" << m.exp				<< "',"
-						<< "'" << m.exp_payper		<< "',"
-						<< "'" << m.online			<< "',"
-						<< "'" << m.position		<< "',"
-						<< "'" << t_member			<< "'"
+						<< "'" << g.guild_id 					<< "',"
+						<< "'" << g.member[i].account_id		<< "',"
+						<< "'" << g.member[i].char_id			<< "',"
+						<< "'" << g.member[i].hair				<< "',"
+						<< "'" << g.member[i].hair_color		<< "',"
+						<< "'" << g.member[i].gender			<< "',"
+						<< "'" << g.member[i].class_			<< "',"
+						<< "'" << g.member[i].lv				<< "',"
+						<< "'" << g.member[i].exp				<< "',"
+						<< "'" << g.member[i].exp_payper		<< "',"
+						<< "'" << g.member[i].online			<< "',"
+						<< "'" << g.member[i].position			<< "',"
+						<< "'" << t_member						<< "'"
 					<< ")";
 
 
 				query2
 					<< (l?",":"")
-					<< "'" << m.char_id << "'";
+					<< "'" << g.member[i].char_id << "'";
 
 				l++;
 
@@ -2418,20 +2279,18 @@ bool CGuildDB_sql::saveGuild(const CGuild& guild)
 		}
 	}
 
-	if (flag&4)
 	{
 		//printf("- Insert guild %d to guild_position\n",g->guild_id);
 		string<> query;
 
 		query
-			<< "REPLACE INTO `" << guild_position_db << "` (`guild_id`,`position`,`name`,`mode`,`exp_mode`) VALUES "
+			<< "REPLACE INTO `" << guild_position_db << "` (`guild_id`,`position`,`name`,`mode`,`exp_mode`) VALUES ";
 
 		int l = 0;
 
 		for(i=0;i<MAX_GUILDPOSITION;i++)
 		{
-			struct guild_position *p = &g->position[i];
-			jstrescapecpy(t_position,p->name);
+			this->escape_string(t_position, g.position[i].name, strlen(g.position[i].name));
 
 			query
 				<< (l?",":"")
@@ -2439,8 +2298,8 @@ bool CGuildDB_sql::saveGuild(const CGuild& guild)
 					<< "'" << g.guild_id	<< "',"
 					<< "'" << i				<< "',"
 					<< "'" << t_position	<< "',"
-					<< "'" << p.mode		<< "',"
-					<< "'" << p.exp_mode	<< "'"
+					<< "'" << g.position[i].mode		<< "',"
+					<< "'" << g.position[i].exp_mode	<< "'"
 
 				<< ")";
 			l++;
@@ -2452,7 +2311,6 @@ bool CGuildDB_sql::saveGuild(const CGuild& guild)
 		}
 	}
 
-	if (flag&8)
 	{
 		string<> query;
 		int l = 0;
@@ -2464,26 +2322,23 @@ bool CGuildDB_sql::saveGuild(const CGuild& guild)
 
 
 //		printf("- Insert guild %d to guild_alliance\n",g->guild_id);
-		query << "REPLACE INTO `" << guild_alliance_db << "` (`guild_id`,`opposition`,`alliance_id`,`name`) VALUES "
+		query << "REPLACE INTO `" << guild_alliance_db << "` (`guild_id`,`opposition`,`alliance_id`,`name`) VALUES ";
 		for(i=0;i<MAX_GUILDALLIANCE;i++)
 		{
-			struct guild_alliance *a=&g->alliance[i];
-			if(a->guild_id>0)
+			if(g.alliance[i].guild_id>0)
 			{
-
-				jstrescapecpy(t_alliance,a->name);
-
+				this->escape_string(t_alliance, g.alliance[i].name, strlen(g.alliance[i].name));
 				query
 					<< (l?",":"")
 					<< "(" // Guild alliance for the current guild
 						<< "'" << g.guild_id	<< "',"
-						<< "'" << a.opposition	<< "',"
-						<< "'" << a.guild_id	<< "',"
+						<< "'" << g.alliance[i].opposition	<< "',"
+						<< "'" << g.alliance[i].guild_id	<< "',"
 						<< "'" << t_alliance	<< "'"
 					<< "),"
 					<< "(" // Guild alliance for the other guild
-						<< "'" << a.guild_id	<< "',"
-						<< "'" << a.opposition	<< "',"
+						<< "'" << g.alliance[i].guild_id	<< "',"
+						<< "'" << g.alliance[i].opposition	<< "',"
 						<< "'" << g.guild_id	<< "',"
 						<< "'" << t_name		<< "'"
 					<< ")";
@@ -2495,35 +2350,35 @@ bool CGuildDB_sql::saveGuild(const CGuild& guild)
 
 	}
 
-	if (flag&16){
+	{
 		string<> query;
 		int l = 0;
 
 //		printf("- Insert guild %d to guild_expulsion\n",g->guild_id);
 
-		query << "REPLACE INTO `" << guild_expulsion_db << "` (`guild_id`,`name`,`mes`,`acc`,`account_id`,`rsv1`,`rsv2`,`rsv3`) VALUES"
+		query << "REPLACE INTO `" << guild_expulsion_db << "` (`guild_id`,`name`,`mes`,`acc`,`account_id`,`rsv1`,`rsv2`,`rsv3`) VALUES";
 
 		for(i=0;i<MAX_GUILDEXPLUSION;i++)
 		{
-			struct guild_explusion *e=&g->explusion[i];
-			if(e->account_id>0)
-			{
-					jstrescapecpy(t_ename,e->name);
-					jstrescapecpy(t_emes,e->mes)
 
-					query
-						<< (l?",":"")
-						<< "("
-							<< "'" << g.guild_id		<< "',"
-							<< "'" << t_ename			<< "',"
-							<< "'" << t_emes			<< "',"
-							<< "'" << e.acc				<< "',"
-							<< "'" << e.account_id		<< "',"
-							<< "'" << e.rsv1			<< "',"
-							<< "'" << e.rsv2			<< "',"
-							<< "'" << e.rsv3			<< "'"
-						<< ")"
-					l++;
+			if(g.explusion[i].account_id>0)
+			{
+				this->escape_string(t_ename, g.explusion[i].name, strlen(g.explusion[i].name));
+				this->escape_string(t_emes, g.explusion[i].mes, strlen(g.explusion[i].mes));
+
+				query
+					<< (l?",":"")
+					<< "("
+						<< "'" << g.guild_id					<< "',"
+						<< "'" << t_ename						<< "',"
+						<< "'" << t_emes						<< "',"
+						<< "'" << g.explusion[i].acc			<< "',"
+						<< "'" << g.explusion[i].account_id		<< "',"
+						<< "'" << g.explusion[i].rsv1			<< "',"
+						<< "'" << g.explusion[i].rsv2			<< "',"
+						<< "'" << g.explusion[i].rsv3			<< "'"
+					<< ")";
+				l++;
 			}
 		}
 
@@ -2534,7 +2389,6 @@ bool CGuildDB_sql::saveGuild(const CGuild& guild)
 
 	}
 
-	if (flag&32)
 	{
 		string<> query;
 		int l = 0;
@@ -2545,7 +2399,7 @@ bool CGuildDB_sql::saveGuild(const CGuild& guild)
 
 		for(i=0;i<MAX_GUILDSKILL;i++)
 		{
-			if (g->skill[i].id>0)
+			if (g.skill[i].id>0)
 			{
 				query
 					<< (l?",":"")
@@ -2553,13 +2407,13 @@ bool CGuildDB_sql::saveGuild(const CGuild& guild)
 						<< "'" << g.guild_id		<< "',"
 						<< "'" << g.skill[i].id		<< "',"
 						<< "'" << g.skill[i].lv		<< "'"
-					<< ")"
+					<< ")";
 				l++;
 			}
 		}
 	}
 
-	printf("Save guild %d (%s) done\n",g->guild_id,g->name);
+	printf("Save guild %d (%s) done\n",g.guild_id,g.name);
 	return true;
 }
 
@@ -2582,7 +2436,10 @@ bool CGuildDB_sql::removeCastle(ushort castle_id)
 	string<> query;
 	query
 		<< "DELETE FROM `" << castle_db << "` WHERE castle_id = '" << castle_id << "'";
-	return ( ( this->Query(query) ) || ( removeFromMemory(castle_id) ) );
+
+	//removeFromMemory(castle_id);
+	this->Query(query);
+	return true;
 
 }
 
@@ -2712,12 +2569,14 @@ class CPartyDB_sql : public CMySQL, private CConfig, public CPartyDBInterface
 	}
 */
 
+	string<> party_db;
 
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// construct/destruct
 	CPartyDB_sql(const char *configfile)
 	{
+		party_db = "party";
 		init(configfile);
 	}
 	virtual ~CPartyDB_sql()

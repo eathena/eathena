@@ -90,10 +90,10 @@ protected:
 	// data
 
 	// table names
-	char login_auth_db[128];
-	char login_reg_db[128];
-	char login_log_db[128];
-	char login_status_db[128];
+	string<> login_auth_db;
+	string<> login_reg_db;
+	string<> login_log_db;
+	string<> login_status_db;
 
 	// options
 	bool case_sensitive;
@@ -254,17 +254,15 @@ class CCharDB_sql : public CMySQL, private CConfig, public CCharDBInterface
 	// config stuff
 	// uint32 next_char_id;
 
-	char char_db[256];
-	char mail_db[256];
-	char friend_db[256];
-	char memo_db[256];
-	char cart_db[256];
-	char inventory_db[256];
-	char skill_db[256];
-	char guild_skill_db[256];
-	char char_reg_db[256];
+	string<> char_db("char");
+	string<> friend_db("friends");
+	string<> memo_db("memo");
+	string<> cart_db("cart");
+	string<> inventory_db("inventory");
+	string<> skill_db("skill");
+	string<> char_reg_db("char_reg");
 
-
+	string<> mail_db("mail");
 
 	bool name_ignoring_case;
 	int char_name_option;
@@ -356,6 +354,78 @@ private:
 	}
 };
 
+
+
+
+class CGuildDB_sql : public CMySQL, private CConfig, public CGuildDBInterface
+{
+
+
+	char guild_db[256];
+	char guild_member_db[256];
+	char guild_skill_db[256];
+	char guild_position_db[256];
+	char guild_alliance_db[256];
+	char guild_expulsion_db[256];
+	char guild_db[256];
+	char char_db[256];
+
+	char castle_db[256];
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// construct/destruct
+	CGuildDB_sql(const char *configfile)
+	{
+		init(configfile);
+	}
+	virtual ~CGuildDB_sql()
+	{
+		close();
+	}
+
+private:
+	///////////////////////////////////////////////////////////////////////////
+	// Config processor
+	virtual bool ProcessConfig(const char*w1, const char*w2)
+	{
+
+		return true;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// normal function
+	bool init(const char* configfile)
+	{	// init db
+		if(configfile)
+			CConfig::LoadConfig(configfile);
+		return false;
+	}
+	bool close()
+	{
+		//saveAllInMemory();
+		return false;
+	}
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// access interface
+	virtual size_t size()					{ return 0;/*cGuilds.size();*/ }
+	virtual CGuild& operator[](size_t i)	{ static CGuild tmp; return tmp; /*return cGuilds[i];*/ }
+
+	virtual size_t castlesize()				{ return 0;/*cGuilds.size();*/ }
+	virtual CCastle &castle(size_t i)		{ static CCastle tmp; return tmp; }
+
+
+	virtual bool searchGuild(const char* name, CGuild& guild);
+	virtual bool searchGuild(uint32 guildid, CGuild& guild);
+	virtual bool insertGuild(const struct guild_member &member, const char *name, CGuild &g);
+	virtual bool removeGuild(uint32 guild_id);
+	virtual bool saveGuild(const CGuild& g);
+
+	virtual bool searchCastle(ushort castle_id, CCastle& castle);
+	virtual bool saveCastle(CCastle& castle);
+	virtual bool removeCastle(ushort castle_id);
+};
 
 
 #endif//!TXT_ONLY
