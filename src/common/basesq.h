@@ -22,15 +22,15 @@ public:
 	//Some public var?
 	MYSQL_ROW row;
 
-	// MiniString versions -> my versions =D
-	bool mysql_SendQuery(const MiniString q); // Queries with no returns
-	bool mysql_SendQuery(MYSQL_RES*& sql_res, const MiniString q); // queries with returns
+	// string<> versions -> my versions =D
+	bool mysql_SendQuery(const string<> q); // Queries with no returns
+	bool mysql_SendQuery(MYSQL_RES*& sql_res, const string<> q); // queries with returns
 
 	// New style functions
 	// Will be easy to use for SQL type functions SQLite, ODBC, etc... all support the same
 	// results.
 
-	bool Query(const MiniString q);		// Do query
+	bool Query(const string<> q);		// Do query
 	bool Fetch();						// Fetch the rows
 	long CountRes();					// Show how many results came in
 	void Free();						// Free results
@@ -44,7 +44,7 @@ public:
 	// Please be aware that I was drunk when i wrote what i need here, so if spelling errors are
 	// present, please yell at me and beat me with a stick == CLOWNISIUS
 
-	//Queries that wil be here will be for MiniString or variants =D
+	//Queries that wil be here will be for string<> or variants =D
 
 	// When creating a new instance of `query` must specify what connection
 	// ex:  query_sql query(MYSQL); where MYSQL is the connection created...
@@ -155,7 +155,7 @@ public:
 	virtual bool first()
 	{
 		ScopeLock sl(cMx);
-		MiniString query;
+		string<> query;
 
 		query << "SELECT `*` FROM `" << login_auth_db << "`";
 
@@ -164,7 +164,7 @@ public:
 			mysql_free_result(cSqlRes);
 			cSqlRes=NULL;
 		}
-		if( this->mysql_SendQuery(cSqlRes, query.c_str(), query.size() ) )
+		if( this->mysql_SendQuery(cSqlRes, query.c_str(), query.length() ) )
 		{
 			if( mysql_num_rows(cSqlRes) > 0 )
 			{

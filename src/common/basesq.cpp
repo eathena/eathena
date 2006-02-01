@@ -43,7 +43,7 @@ inline CMySQL::~CMySQL() {
 }
 
 
-bool CMySQL::Query(const MiniString q) {
+bool CMySQL::Query(const string<> q) {
 
 //	ShowError("Query = %s\n",q.c_str());
 
@@ -207,7 +207,7 @@ bool CAccountDB_sql::existAccount(const char* userid)
 	if(userid)
 	{
 		char uid[64];
-		MiniString query;
+		string<> query;
 
 		escape_string(uid, userid, strlen(userid));
 		query << "SELECT `user_id` FROM `" << login_auth_db << "` WHERE " << (case_sensitive?"BINARY":"") << "`user_id` = '" <<  uid  <<"'";
@@ -228,7 +228,7 @@ bool CAccountDB_sql::searchAccount(const char* userid, CLoginAccount& account)
 	if(userid)
 	{
 
-		MiniString query;
+		string<> query;
 		char uid[64];
 		uint32 accid = 0;
 
@@ -264,7 +264,7 @@ bool CAccountDB_sql::searchAccount(uint32 accid, CLoginAccount& account)
 	if(accid)
 	{
 
-		MiniString query;
+		string<> query;
 //		char uid[64];
 
 		query
@@ -345,7 +345,7 @@ bool CAccountDB_sql::insertAccount(const char* userid, const char* passwd, unsig
 {	// insert a new account to db
 //	size_t sz;
 	char uid[64], pwd[64];
-	MiniString query;
+	string<> query;
 
 	escape_string(uid, userid, strlen(userid));
 	escape_string(pwd, passwd, strlen(passwd));
@@ -362,7 +362,7 @@ bool CAccountDB_sql::insertAccount(const char* userid, const char* passwd, unsig
 bool CAccountDB_sql::removeAccount(uint32 accid)
 {
 	bool ret;
-	MiniString query;
+	string<> query;
 
 	query << "DELETE FROM `" << login_auth_db << "` WHERE `account_id`='" << accid << "'";
 	ret = this->Query(query);
@@ -378,7 +378,7 @@ bool CAccountDB_sql::removeAccount(uint32 accid)
 bool CAccountDB_sql::init(const char* configfile)
 {	// init db
 	bool wipe=false; // i dont know how a bool is set..
-	MiniString query; // used for the queries themselves
+	string<> query; // used for the queries themselves
 
 	CConfig::LoadConfig(configfile);
 
@@ -496,7 +496,7 @@ bool CAccountDB_sql::init(const char* configfile)
 
 bool CAccountDB_sql::close()
 {
-	MiniString query;
+	string<> query;
 	//set log.
 	if (log_login)
 	{
@@ -520,7 +520,7 @@ bool CAccountDB_sql::saveAccount(const CLoginAccount& account)
 	bool ret = false;
 //	size_t sz;
 	size_t i;
-	MiniString query;
+	string<> query;
 	char tempstr[64];
 
 	//-----------
@@ -864,7 +864,7 @@ bool CCharDB_sql::compare_item(const struct item &a, const struct item &b);
 
 bool CCharDB_sql::existChar(const char* name)
 {
-	MiniString query;
+	string<> query;
 	char _name[32];
 	bool ret = false;
 
@@ -888,7 +888,7 @@ bool CCharDB_sql::existChar(const char* name)
 bool CCharDB_sql::searchChar(const char* name, CCharCharacter&data)
 {
 	bool ret = false;
-	MiniString query;
+	string<> query;
 	uint32 charid = 0;
 
 
@@ -909,7 +909,7 @@ bool CCharDB_sql::searchChar(uint32 charid, CCharCharacter&data)
 		bool ret = false;
 		int tmp_int[256];
 		size_t i,n;
-		MiniString query;
+		string<> query;
 
 
 		//CCharCharacter p;
@@ -1263,7 +1263,7 @@ bool CCharDB_sql::insertChar(CCharAccount &account,
 
 	CCharCharacter tempchar(n);
 
-	MiniString query;
+	string<> query;
 
 	char t_name[128];
 
@@ -1470,7 +1470,7 @@ bool CCharDB_sql::insertChar(CCharAccount &account,
 
 bool CCharDB_sql::removeChar(uint32 charid)
 {
-	MiniString query;
+	string<> query;
 	query << "DELETE FROM `" << char_db << "` WHERE `char_id`='" << charid << "'";
 	this->Query(query);
 	return true;
@@ -1478,7 +1478,7 @@ bool CCharDB_sql::removeChar(uint32 charid)
 
 bool CCharDB_sql::saveChar(const CCharCharacter& p)
 {
-	MiniString query;
+	string<> query;
 
 	bool diff, l , status, loaded=false;
 
@@ -1903,7 +1903,7 @@ bool CCharDB_sql::saveAccount(CCharAccount& account)
 
 bool CCharDB_sql::removeAccount(uint32 accid)
 {
-	MiniString query;
+	string<> query;
 
 	query << "DELETE FROM `" << char_db << "` WHERE `account_id` = '" << accid << "'";
 
@@ -1916,7 +1916,7 @@ bool CCharDB_sql::removeAccount(uint32 accid)
 /*************************************************/
 size_t CCharDB_sql::getUnreadCount(uint32 cid)
 {
-	MiniString query;
+	string<> query;
 	size_t count = 0;
 
 	query
@@ -1935,7 +1935,7 @@ size_t CCharDB_sql::getUnreadCount(uint32 cid)
 
 size_t CCharDB_sql::listMail(uint32 cid, unsigned char box, unsigned char *buffer)
 {
-	MiniString query;
+	string<> query;
 	query
 		<< "SELECT `message_id`,`read_flag`,`from_char_name` "
 		<< "FROM `" << mail_db << "` WHERE `to_account_id` = '"<< cid << "'";
@@ -1959,7 +1959,7 @@ size_t CCharDB_sql::listMail(uint32 cid, unsigned char box, unsigned char *buffe
 
 bool CCharDB_sql::readMail(uint32 cid, uint32 mid, CMail& mail)
 {
-	MiniString query;
+	string<> query;
 	bool ret = false;
 
 	query
@@ -1993,7 +1993,7 @@ bool CCharDB_sql::readMail(uint32 cid, uint32 mid, CMail& mail)
 
 bool CCharDB_sql::deleteMail(uint32 cid, uint32 mid)
 {
-	MiniString query;
+	string<> query;
 
 	query
 		"DELETE "
@@ -2005,7 +2005,7 @@ bool CCharDB_sql::sendMail(uint32 senderid, const char* sendername, const char* 
 {
 	bool ret = false;
 	bool l = false; // if query is built
-	MiniString query;
+	string<> query;
 
 	char _head[128];
 	char _body[128];
@@ -2119,7 +2119,7 @@ public:
 	virtual bool searchGuild(const char* name, CGuild& guild)
 	{
 		uint32 guild_id = 0;
-		MiniString query;
+		string<> query;
 
 		query
 			<< "SELECT `guild_id` FROM `" << guild_db << "` WHERE `name` = '" << name <<"'";
@@ -2177,7 +2177,7 @@ public:
 	}
 	virtual bool removeGuild(uint32 guild_id)
 	{
-		MiniString query;
+		string<> query;
 		query
 			<< "DELETE FROM `" << guild_db << "` WHERE guild_id = '" << guild_id << "'";
 		return ( ( this->Query(query) ) || ( removeFromMemory(guild_id) ) );
@@ -2210,7 +2210,7 @@ public:
 	{
 		// Delete from castle_db where castle_id = *cid
 		// else
-		MiniString query;
+		string<> query;
 		query
 			<< "DELETE FROM `" << castle_db << "` WHERE castle_id = '" << castle_id << "'";
 		return ( ( this->Query(query) ) || ( removeFromMemory(castle_id) ) );
@@ -2253,7 +2253,7 @@ bool CGuildDB_sql::insertGuild(const struct guild_member &member, const char *na
 }
 bool CGuildDB_sql::removeGuild(uint32 guild_id)
 {
-	MiniString query;
+	string<> query;
 	query
 		<< "DELETE FROM `" << guild_db << "` WHERE guild_id = '" << guild_id << "'";
 	return ( ( this->Query(query) ) || ( removeFromMemory(guild_id) ) );
@@ -2298,7 +2298,7 @@ bool CGuildDB_sql::saveGuild(const CGuild& guild)
 
 	//Insert new guild to sqlserver
 	if (flag==512){
-		MiniString query;
+		string<> query;
 
 		flag = 255;
 
@@ -2330,7 +2330,7 @@ bool CGuildDB_sql::saveGuild(const CGuild& guild)
 	}
 	else	// Update existing guild in SQL
 	{
-		MiniString query;
+		string<> query;
 		query
 			<< "UPDATE `" << guild_db << "` SET"
 				<< "`guild_lv`='" <<		g.guild_lv			<< "',"
@@ -2353,8 +2353,8 @@ bool CGuildDB_sql::saveGuild(const CGuild& guild)
 	}
 
 	if (flag&2){
-		MiniString query2;
-		MiniString query;
+		string<> query2;
+		string<> query;
 		int l = 0;
 
 		struct guild_member *m;
@@ -2381,7 +2381,7 @@ bool CGuildDB_sql::saveGuild(const CGuild& guild)
 			m = &g.member[i];
 			if(m->account_id > 0)
 			{
-				MiniString query2;
+				string<> query2;
 
 				query
 					<< (l?",":"")
@@ -2421,7 +2421,7 @@ bool CGuildDB_sql::saveGuild(const CGuild& guild)
 	if (flag&4)
 	{
 		//printf("- Insert guild %d to guild_position\n",g->guild_id);
-		MiniString query;
+		string<> query;
 
 		query
 			<< "REPLACE INTO `" << guild_position_db << "` (`guild_id`,`position`,`name`,`mode`,`exp_mode`) VALUES "
@@ -2454,7 +2454,7 @@ bool CGuildDB_sql::saveGuild(const CGuild& guild)
 
 	if (flag&8)
 	{
-		MiniString query;
+		string<> query;
 		int l = 0;
 
 //		printf("- Delete guild %d from guild_alliance\n",g->guild_id);
@@ -2496,7 +2496,7 @@ bool CGuildDB_sql::saveGuild(const CGuild& guild)
 	}
 
 	if (flag&16){
-		MiniString query;
+		string<> query;
 		int l = 0;
 
 //		printf("- Insert guild %d to guild_expulsion\n",g->guild_id);
@@ -2536,7 +2536,7 @@ bool CGuildDB_sql::saveGuild(const CGuild& guild)
 
 	if (flag&32)
 	{
-		MiniString query;
+		string<> query;
 		int l = 0;
 
 //		printf("- Insert guild %d to guild_skill\n",g->guild_id);
@@ -2579,7 +2579,7 @@ bool CGuildDB_sql::removeCastle(ushort castle_id)
 {
 	// Delete from castle_db where castle_id = *cid
 	// else
-	MiniString query;
+	string<> query;
 	query
 		<< "DELETE FROM `" << castle_db << "` WHERE castle_id = '" << castle_id << "'";
 	return ( ( this->Query(query) ) || ( removeFromMemory(castle_id) ) );
@@ -2799,13 +2799,13 @@ private:
 	}
 	virtual bool removeParty(uint32 pid)
 	{
-		MiniString query;
+		string<> query;
 		query << "DELETE FROM `" << party_db << "` WHERE `party_id` = '" << pid << "'";
 		return this->Query(query);
 	}
 	virtual bool saveParty(const CParty& party)
 	{/*
-		MiniString query;
+		string<> query;
 		query "REPLACE INTO `" << party_db << "` (`contents`) VALUES ";
 
 		// update party set values=*party
