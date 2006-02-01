@@ -5,6 +5,13 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY VALARIS AND WIZPUTER. -- VALARIS
 
 2006/02/01
+	* The map and char servers will now complain if using the default
+	  user/password. [Skotlex]
+	* Trick Dead makes you stop walking now. [Skotlex]
+	* Soul Burn is not affected by Lex Aeterna, and neither by target's cards. [Skotlex]
+	* Freeze and Stone take preference over Benedictio. [Skotlex]
+	* Fixed areamonster when the passed class is negative. [Skotlex]
+	* Removed the clear screen when launching the server. [Skotlex]
 	* Fixed a pair of small bugs in Comfort of the Stars and Poison React.
 	  [Skotlex]
 2006/01/31
