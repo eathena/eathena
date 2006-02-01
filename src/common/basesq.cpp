@@ -542,9 +542,9 @@ bool CAccountDB_sql::saveAccount(const CLoginAccount& account)
 		<< "`login_id2` = '" << 	account.login_id2							<< "',"
 		<< "`client_ip` = '" <<		((ipaddress)account.client_ip).tostring()	<< "',"
 		<< "`last_login` = '" <<	account.last_login							<< "',"
-		<< "`login_count` = '" <<	((long unsigned int)(account.CLoginAccount::login_count))			<< "',"
-		<< "`valid_until` = '" <<	((unsigned long int)(account.CLoginAccount::valid_until))			<< "',"
-		<< "`ban_until` = '" <<		((unsigned long int)(account.CLoginAccount::ban_until))			<< "'"
+		<< "`login_count` = '" <<	(ulong)account.login_count			<< "',"
+		<< "`valid_until` = '" <<	(ulong)account.valid_until			<< "',"
+		<< "`ban_until` = '" <<		(ulong)account.ban_until			<< "'"
 
 		<< "WHERE `account_id` = '" << account.account_id						<< "'";
 
@@ -2035,7 +2035,7 @@ bool CCharDB_sql::sendMail(uint32 senderid, const char* sendername, const char* 
 		{
 
 			query
-				<< (l?",":"") << "('" << (ulong)( atol(this->row[0]) ) << "', '" << this->row[1] << "', '" << senderid << "', '" << sendername << "', '" << _body << "', 0)";
+				<< (l?",":"") << "('" << atol(this->row[0]) << "', '" << this->row[1] << "', '" << senderid << "', '" << sendername << "', '" << _body << "', 0)";
 
 			l = true;
 		}

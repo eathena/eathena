@@ -1426,6 +1426,16 @@ public:
 		this->writeaccess(false).assign(t);
 		return *this;
 	}
+	const string<T>& operator =(long t)
+	{
+		this->writeaccess(false).assign(t);
+		return *this;
+	}
+	const string<T>& operator =(unsigned long t)
+	{
+		this->writeaccess(false).assign(t);
+		return *this;
+	}
 	const string<T>& operator =(double t)
 	{
 		this->writeaccess(false).assign(t);
@@ -1460,6 +1470,26 @@ public:
 		return *this;
 	}
 	const string<T>& operator +=(unsigned int t)
+	{
+		this->writeaccess() += t;
+		return *this;
+	}
+	const string<T>& operator +=(short t)
+	{
+		this->writeaccess() += t;
+		return *this;
+	}
+	const string<T>& operator +=(unsigned short t)
+	{
+		this->writeaccess() += t;
+		return *this;
+	}
+	const string<T>& operator +=(long t)
+	{
+		this->writeaccess() += t;
+		return *this;
+	}
+	const string<T>& operator +=(unsigned long t)
 	{
 		this->writeaccess() += t;
 		return *this;
@@ -1504,6 +1534,30 @@ public:
 		return a;
 	}
 	string<T> operator +(unsigned int t)
+	{
+		string<T> a(*this);
+		a.writeaccess() += t;
+		return a;
+	}
+	string<T> operator +(short t)
+	{
+		string<T> a(*this);
+		a.writeaccess() += t;
+		return a;
+	}
+	string<T> operator +(unsigned short t)
+	{
+		string<T> a(*this);
+		a.writeaccess() += t;
+		return a;
+	}
+	string<T> operator +(long t)
+	{
+		string<T> a(*this);
+		a.writeaccess() += t;
+		return a;
+	}
+	string<T> operator +(unsigned long t)
 	{
 		string<T> a(*this);
 		a.writeaccess() += t;
@@ -1566,6 +1620,26 @@ public:
 		return *this;
 	}
 	string<T>& operator <<(unsigned int t)
+	{
+		this->writeaccess() << t;
+		return *this;
+	}
+	string<T>& operator <<(short t)
+	{
+		this->writeaccess() << t;
+		return *this;
+	}
+	string<T>& operator <<(unsigned short t)
+	{
+		this->writeaccess() << t;
+		return *this;
+	}
+	string<T>& operator <<(long t)
+	{
+		this->writeaccess() << t;
+		return *this;
+	}
+	string<T>& operator <<(unsigned long t)
 	{
 		this->writeaccess() << t;
 		return *this;
