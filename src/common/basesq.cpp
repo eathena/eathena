@@ -542,9 +542,9 @@ bool CAccountDB_sql::saveAccount(const CLoginAccount& account)
 		<< "`login_id2` = '" << 	account.login_id2							<< "',"
 		<< "`client_ip` = '" <<		((ipaddress)account.client_ip).tostring()	<< "',"
 		<< "`last_login` = '" <<	account.last_login							<< "',"
-		<< "`login_count` = '" <<	account.login_count							<< "',"
-		<< "`valid_until` = '" <<	account.valid_until							<< "',"
-		<< "`ban_until` = '" <<		account.ban_until							<< "'"
+		<< "`login_count` = '" <<	((long unsigned int)(account.CLoginAccount::login_count))			<< "',"
+		<< "`valid_until` = '" <<	((unsigned long int)(account.CLoginAccount::valid_until))			<< "',"
+		<< "`ban_until` = '" <<		((unsigned long int)(account.CLoginAccount::ban_until))			<< "'"
 
 		<< "WHERE `account_id` = '" << account.account_id						<< "'";
 
@@ -878,7 +878,7 @@ bool CCharDB_sql::existChar(const char* name)
 	return ret;
 }
 
-bool CCharDB_sql::searchChar(const char* name, CCharCharacter&data)
+bool CCharDB_sql::searchChar(const char* name, CCharCharacter &p)
 {
 	bool ret = false;
 	string<> query;
@@ -897,7 +897,7 @@ bool CCharDB_sql::searchChar(const char* name, CCharCharacter&data)
 	return ret;
 }
 
-bool CCharDB_sql::searchChar(uint32 charid, CCharCharacter&data)
+bool CCharDB_sql::searchChar(uint32 char_id, CCharCharacter &p)
 {
 		bool ret = false;
 		int tmp_int[256];
@@ -1233,10 +1233,10 @@ bool CCharDB_sql::searchChar(uint32 charid, CCharCharacter&data)
 		#endif
 
 		/**************** Finish setup ********************/
-		if (online)
-		{
+//		if (online)
+//		{
 			//set_char_online(char_id,p.account_id); // not setup yet... just leave as is
-		}
+//		}
 		return true;
 }
 
@@ -1602,7 +1602,7 @@ bool CCharDB_sql::saveChar(const CCharCharacter& p)
 				query << (l?",":"") << "(" <<
 
 				"'" << 	p.char_id 					<< "'," <<
-				"'" <<	i							<< "'," <<
+				"'" <<	(ulong)i							<< "'," <<
 				"'" <<	p.memo_point[i].mapname		<< "'," <<
 				"'" <<	p.memo_point[i].x			<< "'," <<
 				"'" <<	p.memo_point[i].y			<< "," <<  // Dont forget to end commas
@@ -2035,7 +2035,7 @@ bool CCharDB_sql::sendMail(uint32 senderid, const char* sendername, const char* 
 		{
 
 			query
-				<< (l?",":"") << "('" << atol(this->row[0]) << "', '" << this->row[1] << "', '" << senderid << "', '" << sendername << "', '" << _body << "', 0)";
+				<< (l?",":"") << "('" << (ulong)( atol(this->row[0]) ) << "', '" << this->row[1] << "', '" << senderid << "', '" << sendername << "', '" << _body << "', 0)";
 
 			l = true;
 		}
@@ -2103,24 +2103,12 @@ bool CGuildDB_sql::insertGuild(const struct guild_member &m, const char *name, C
 
 	query
 		<< "INSERT INTO `" << guild_db << "` "
-		"(`guild_id`, `name`,`master`,`guild_lv`,`connect_member`,`max_member`,`average_lv`,`exp`,`next_exp`,`skill_point`,`castle_id`,`mes1`,`mes2`,`emblem_len`,`emblem_id`,`emblem_data`,`char_id`) "
+		"(`guild_id`,`name`,`master`,`char_id`) "
 		"VALUES "
 		<< "("
 			<< "'" << g.guild_id			<< "',"
 			<< "'" << t_name				<< "',"
 			<< "'" << t_master				<< "',"
-			<< "'" << g.guild_lv			<< "',"
-			<< "'" << g.connect_member		<< "',"
-			<< "'" << g.max_member			<< "',"
-			<< "'" << g.average_lv			<< "',"
-			<< "'" << g.exp					<< "',"
-			<< "'" << g.next_exp			<< "',"
-			<< "'" << g.skill_point			<< "',"
-			<< "'" << t_mes1				<< "',"
-			<< "'" << t_mes2				<< "',"
-			<< "'" << g.emblem_len			<< "',"
-			<< "'" << g.emblem_id			<< "',"
-			<< "'" << g.emblem_data			<< "',"
 			<< "'" << g.member[0].char_id	<< "'"
 		<< ")";
 	this->Query(query);
@@ -2193,9 +2181,9 @@ bool CGuildDB_sql::saveGuild(const CGuild& g)
 				<< "`skill_point`='" <<		g.skill_point		<< "',"
 				<< "`mes1`='" <<			t_mes1				<< "',"
 				<< "`mes2`='" <<			t_mes2				<< "',"
-				<< "`emblem_len`='" <<		g.emblem_len		<< "',"
+				<< "`emblem_len`='" <<		len					<< "',"
 				<< "`emblem_id`='" <<		g.emblem_id			<< "',"
-				<< "`emblem_data`='" <<		g.emblem_data		<< "'"
+				<< "`emblem_data`='" <<		emblem_data			<< "'"
 
 			<< "WHERE `guild_id`='" <<		g.guild_id 			<< "'";
 
@@ -2203,17 +2191,6 @@ bool CGuildDB_sql::saveGuild(const CGuild& g)
 	}
 
 	{
-
-		basesq.cpp:2023: error: no match for 'operator<<' in '(+(&query)->string<T>::operator<< [with T = char](((const char*)"SELECT `char_id`,`name` ")))->string<T>::operator<< [with T = char](((const char*)"FROM `")) << ((CCharDB_sql*)this)->CCharDB_sql::char_db'
-		../../src/basics/basestring.h:1544: note: candidates are: string<T>& string<T>::operator<<(const stringinterface<T>&) [with T = char]
-		../../src/basics/basestring.h:1549: note:                 string<T>& string<T>::operator<<(const string<T>&) [with T = char]
-		../../src/basics/basestring.h:1554: note:                 string<T>& string<T>::operator<<(const char*) [with T = char]
-		../../src/basics/basestring.h:1559: note:                 string<T>& string<T>::operator<<(char) [with T = char]
-		../../src/basics/basestring.h:1564: note:                 string<T>& string<T>::operator<<(int) [with T = char]
-		../../src/basics/basestring.h:1569: note:                 string<T>& string<T>::operator<<(unsigned int) [with T = char]
-		../../src/basics/basestring.h:1574: note:                 string<T>& string<T>::operator<<(double) [with T = char]
-
-
 		string<> query2;
 		string<> query;
 		int l = 0;

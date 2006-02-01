@@ -254,15 +254,15 @@ class CCharDB_sql : public CMySQL, private CConfig, public CCharDBInterface
 	// config stuff
 	// uint32 next_char_id;
 
-	string<> char_db("char");
-	string<> friend_db("friends");
-	string<> memo_db("memo");
-	string<> cart_db("cart");
-	string<> inventory_db("inventory");
-	string<> skill_db("skill");
-	string<> char_reg_db("char_reg");
+	string<> char_db;
+	string<> friend_db;
+	string<> memo_db;
+	string<> cart_db;
+	string<> inventory_db;
+	string<> skill_db;
+	string<> char_reg_db;
 
-	string<> mail_db("mail");
+	string<> mail_db;
 
 	bool name_ignoring_case;
 	int char_name_option;
@@ -342,6 +342,16 @@ private:
 	// normal function
 	bool init(const char* configfile)
 	{	// init db
+		char_db = "char";
+		friend_db = "friends";
+		memo_db = "memo";
+		cart_db = "cart";
+		inventory_db = "inventory";
+		skill_db = "skill";
+		char_reg_db = "char_reg";
+
+		mail_db = "mail";
+
 		if(configfile)
 			CConfig::LoadConfig(configfile);
 		//return read_chars() && read_friends();
@@ -361,14 +371,14 @@ class CGuildDB_sql : public CMySQL, private CConfig, public CGuildDBInterface
 {
 
 
-	char guild_db[256];
-	char guild_member_db[256];
-	char guild_skill_db[256];
-	char guild_position_db[256];
-	char guild_alliance_db[256];
-	char guild_expulsion_db[256];
-	char guild_db[256];
-	char char_db[256];
+	string<> guild_db;
+	string<> guild_member_db;
+	string<> guild_skill_db;
+	string<> guild_position_db;
+	string<> guild_alliance_db;
+	string<> guild_expulsion_db;
+
+	string<> char_db;
 
 	char castle_db[256];
 
@@ -377,6 +387,14 @@ public:
 	// construct/destruct
 	CGuildDB_sql(const char *configfile)
 	{
+		guild_db = "guild";
+		guild_member_db = "guild_member";
+		guild_skill_db = "guild_skill_db";
+		guild_position_db = "guild_position";
+		guild_alliance_db = "guild_alliance";
+		guild_expulsion_db = "guild_expulsion";
+		char_db = "char_db";
+
 		init(configfile);
 	}
 	virtual ~CGuildDB_sql()
