@@ -2484,10 +2484,9 @@ int status_calc_aspd_rate(struct block_list *bl, int aspd_rate)
 					aspd_rate += 25;
 				else if (sc_data[SC_JOINTBEAT].val2 == 2)
 					aspd_rate += 10;
-
-		if(sc_data[SC_STAR_COMFORT].timer!=-1 && bl->m == ((struct map_session_data *)bl)->feel_map[2].m) //SG skill [Komurka]
-			aspd_rate -= (status_get_lv(bl) + status_get_dex(bl) + status_get_luk(bl))/10;
 			}
+			if(sc_data[SC_STAR_COMFORT].timer!=-1)
+				aspd_rate -= (status_get_lv(bl) + status_get_dex(bl) + status_get_luk(bl))/10;
 		}
 
 	return aspd_rate;

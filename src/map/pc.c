@@ -351,7 +351,9 @@ int pc_setrestartvalue(struct map_session_data *sd,int type) {
  */
 int pc_can_move(struct map_session_data *sd)
 {
-	if (sd->canmove_tick > gettick() || (sd->opt1 > 0 && sd->opt1 != OPT1_STONEWAIT) ||
+	if (DIFF_TICK(sd->canmove_tick, gettick()) > 0 || (sd->opt1 > 0 && sd->opt1 != OPT1_STONEWAIT))
+		return 0;
+	if (sd->sc_count && (
 		sd->sc_data[SC_ANKLE].timer != -1 ||
    	sd->sc_data[SC_AUTOCOUNTER].timer !=-1 ||
 		sd->sc_data[SC_TRICKDEAD].timer !=-1 ||
@@ -363,10 +365,10 @@ int pc_can_move(struct map_session_data *sd)
 		sd->sc_data[SC_STOP].timer != -1 ||
 		sd->sc_data[SC_CLOSECONFINE].timer != -1 ||
 		sd->sc_data[SC_CLOSECONFINE2].timer != -1
-		)
+	))
 		return 0;
 
-	if ((sd->status.option & 2) && pc_checkskill(sd, RG_TUNNELDRIVE) <= 0)
+	if ((sd->status.option & OPTION_HIDE) && pc_checkskill(sd, RG_TUNNELDRIVE) <= 0)
 		return 0;
 	
 	return 1;

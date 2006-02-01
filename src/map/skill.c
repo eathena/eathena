@@ -3847,7 +3847,17 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case ASC_EDP:			// [Celest]
 	case NPC_STOP:
 	case WZ_SIGHTBLASTER:
+	case SG_SUN_COMFORT:
+	case SG_MOON_COMFORT:
+	case SG_STAR_COMFORT:
 		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
+		clif_skill_nodamage(src,bl,skillid,skilllv,1);
+		break;
+
+	case SG_SUN_WARM:
+	case SG_MOON_WARM:
+	case SG_STAR_WARM:
+		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,skillid,skill_get_range(skillid,skilllv),skill_get_time(skillid,skilllv),0);
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		break;
 
@@ -4225,6 +4235,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case TK_READYCOUNTER:
 	case TK_DODGE:
 	case CR_SHRINK:
+	case ST_PRESERVE:
+	case SG_FUSION:
 		{
 			struct status_change *tsc_data = status_get_sc_data(bl);
 			int sc = SkillStatusChangeTable[skillid];
@@ -5581,19 +5593,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		break;
 
-	case ST_PRESERVE:
-		if (sd){
-			if (sd->sc_count && sd->sc_data[SC_PRESERVE].timer != -1)
-				status_change_end(src, SC_PRESERVE, -1 );
-			else
-				status_change_start(src,SC_PRESERVE,skilllv,0,0,0,skill_get_time(skillid, skilllv),0 );
-			clif_skill_nodamage(src,src,skillid,skilllv,1);
-		}
-		break;
-
 	case PF_DOUBLECASTING:
 		if (rand() % 100 > 30 + skilllv * 10) {
-			clif_skill_fail(sd,skillid,0,0);
+			if (sd) clif_skill_fail(sd,skillid,0,0);
 			map_freeblock_unlock();
 			return 0;
 		}
@@ -5937,25 +5939,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				}
 			}
 		}
-		break;
-	case SG_SUN_WARM:
-	case SG_MOON_WARM:
-	case SG_STAR_WARM:
-		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,skillid,skill_get_range(skillid,skilllv),skill_get_time(skillid,skilllv),0);
-		clif_skill_nodamage(src,bl,skillid,skilllv,1);
-		break;
-	case SG_SUN_COMFORT:
-	case SG_MOON_COMFORT:
-	case SG_STAR_COMFORT:
-		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
-		clif_skill_nodamage(src,bl,skillid,skilllv,1);
-		break;
-	case SG_FUSION:
-		if (sd && sd->sc_data && sd->sc_data[SC_FUSION].timer != -1)
-			status_change_end(&sd->bl,SkillStatusChangeTable[skillid],-1);
-		else
-			status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
-		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		break;
 
 	default:

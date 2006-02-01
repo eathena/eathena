@@ -3149,7 +3149,7 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 		) {	//Poison React
 			if (status_get_elem_type(src) == 5) {
 				tsc_data[SC_POISONREACT].val2 = 0;
-				skill_attack(BF_WEAPON,target,target,src,AS_POISONREACT,sc_data[SC_POISONREACT].val1,tick,0);
+				skill_attack(BF_WEAPON,target,target,src,AS_POISONREACT,tsc_data[SC_POISONREACT].val1,tick,0);
 			} else {
 				skill_attack(BF_WEAPON,target,target,src,TF_POISON, 5, tick, flag);
 				--tsc_data[SC_POISONREACT].val2;
