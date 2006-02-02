@@ -281,7 +281,7 @@ class CCharDB_sql : public CMySQL, private CConfig, public CCharDBInterface
 
 public:
 	CCharDB_sql(const char *dbcfgfile);
-	~CCharDB_sql();
+	virtual ~CCharDB_sql();
 
 private:
 
@@ -296,8 +296,9 @@ public:
 	virtual CCharCharacter& operator[](size_t i)	{ static CCharCharacter tmp; return tmp; /*cCharList[i];*/ }
 
 	virtual bool existChar(const char* name);
+	virtual bool existChar(uint32 char_id);
 	virtual bool searchChar(const char* name, CCharCharacter&data);
-	virtual bool searchChar(uint32 charid, CCharCharacter&data);
+	virtual bool searchChar(uint32 char_id, CCharCharacter&data);
 	virtual bool insertChar(CCharAccount &account, const char *name, unsigned char str, unsigned char agi, unsigned char vit, unsigned char int_, unsigned char dex, unsigned char luk, unsigned char slot, unsigned char hair_style, unsigned char hair_color, CCharCharacter&data);
 	virtual bool removeChar(uint32 charid);
 	virtual bool saveChar(const CCharCharacter& data);
@@ -332,6 +333,55 @@ public:
 	virtual bool readMail(uint32 cid, uint32 mid, CMail& mail);
 	virtual bool deleteMail(uint32 cid, uint32 mid);
 	virtual bool sendMail(uint32 senderid, const char* sendername, const char* targetname, const char *head, const char *body, uint32& msgid, uint32& tid);
+
+
+
+
+	virtual size_t getMailCount(uint32, uint32&, uint32&){return 0;}
+	///////////////////////////////////////////////////////////////////////////
+	// alternative interface
+	virtual bool aquire()
+	{
+		return this->first();
+	}
+	virtual bool release()
+	{
+		return true;
+	}
+	virtual bool first()
+	{
+		return this->operator bool();
+	}
+	virtual operator bool()
+	{
+		return true;
+	}
+	virtual bool operator++(int)
+	{
+		return this->operator bool();
+	}
+	virtual bool save()
+	{
+		return true;
+	}
+
+	virtual bool find(const char* name)
+	{
+		// search in index 1
+		return existChar(name);
+
+	}
+	virtual bool find(uint32 char_id)
+	{
+		return existChar(char_id);
+	}
+	virtual CCharCharacter& operator()()
+	{
+		static CCharCharacter dummy;
+		return dummy;
+	}
+
+
 
 private:
 	///////////////////////////////////////////////////////////////////////////

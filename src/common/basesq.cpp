@@ -794,7 +794,6 @@ CCharDB_sql::CCharDB_sql(const char *dbcfgfile)
 
 	init(dbcfgfile);
 }
-CCharDB_sql::~CCharDB_sql(void){}
 
 bool CCharDB_sql::ProcessConfig(const char*w1, const char*w2)
 {
@@ -854,6 +853,25 @@ bool CCharDB_sql::compare_item(const struct item &a, const struct item &b)
 			 (a.card[3] == b.card[3]) );
 }
 
+bool CCharDB_sql::existChar(uint32 char_id)
+{
+	string<> query;
+	bool ret = false;
+
+	query
+		<< "SELECT count(*) FROM `" << char_db << "` WHERE char_id = '" << char_id << "'";
+
+	if ( this->Query(query) )
+	{
+		if ( this->Fetch() )
+		{
+			if ( atol(this->row[0]) ) ret = true;
+		}
+		this->Free();
+	}
+
+	return ret;
+}
 
 bool CCharDB_sql::existChar(const char* name)
 {
