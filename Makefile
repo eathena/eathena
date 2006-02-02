@@ -83,7 +83,7 @@ txt : src/basics/GNUmakefile src/common/GNUmakefile src/login/GNUmakefile src/ch
 	cd src ; cd scriptchk ; $(MAKE) $(MKDEF) all ; cd .. ; cd ..
 
 ifdef SQLFLAG
-sql: src/basics/GNUmakefile src/common/GNUmakefile src/login_sql/GNUmakefile src/char_sql/GNUmakefile src/map/GNUmakefile src/ladmin/GNUmakefile src/scriptchk/GNUmakefile conf
+sql: src/basics/GNUmakefile src/common/GNUmakefile src/login/GNUmakefile src/char/GNUmakefile src/map/GNUmakefile src/ladmin/GNUmakefile src/scriptchk/GNUmakefile conf
 	cd src ; cd basics ; $(MAKE) $(MKDEF) all ; cd .. ; cd ..
 	cd src ; cd common ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
 	cd src ; cd login ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
@@ -96,7 +96,7 @@ sql:
 	$(MAKE) CCC="$(CCC)" OPT="$(OPT)" SQLFLAG=1 $@
 endif
 
-clean: src/basics/GNUmakefile src/common/GNUmakefile src/login_sql/GNUmakefile src/char_sql/GNUmakefile src/map/GNUmakefile src/ladmin/GNUmakefile src/scriptchk/GNUmakefile
+clean: src/basics/GNUmakefile src/common/GNUmakefile src/login/GNUmakefile src/char/GNUmakefile src/map/GNUmakefile src/ladmin/GNUmakefile src/scriptchk/GNUmakefile conf
 	cd src ; cd basics ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
 	cd src ; cd common ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
 	cd src ; cd login ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
