@@ -4,6 +4,9 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES GO 
 IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EVERYTHING ELSE
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY VALARIS AND WIZPUTER. -- VALARIS
 
+2006/02/02
+	* Fixed the map server complaining about the default user/password when the
+	  password change was done in the import file. [Skotlex]
 2006/02/01
 	* The map and char servers will now complain if using the default
 	  user/password. [Skotlex]
