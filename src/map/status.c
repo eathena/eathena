@@ -686,7 +686,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 		if (skill_num)
 		{	//Skills blocked through status changes...
 			if ((sc_data[SC_VOLCANO].timer != -1 && skill_num == WZ_ICEWALL) ||
-				(sc_data[SC_ROKISWEIL].timer != -1 && skill_num != BD_ADAPTATION) ||
+				(sc_data[SC_ROKISWEIL].timer != -1 && skill_num != BD_ADAPTATION && !(mode&MD_BOSS)) ||
 				(sc_data[SC_MARIONETTE].timer != -1 && skill_num != CG_MARIONETTE) ||
 				(sc_data[SC_MARIONETTE2].timer != -1 && skill_num == CG_MARIONETTE) ||
 				(sc_data[SC_HERMODE].timer != -1 && skill_get_inf(skill_num) & INF_SUPPORT_SKILL) ||
