@@ -240,7 +240,7 @@ bool CAccountDB_sql::searchAccount(const char* userid, CLoginAccount& account)
 		// Find the account_id and pass that on to the proper function that gets them via account_id
 		escape_string(uid, userid, strlen(userid));
 		query
-			<< "SELECT `account_id`,"		//  0
+			<< "SELECT `account_id`"		//  0
 			<<" FROM `" << login_auth_db << "` WHERE `user_id`='" << uid << "'";
 
 		if( this->Query(query) )

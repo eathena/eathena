@@ -281,7 +281,7 @@ class CCharDB_sql : public CMySQL, private CConfig, public CCharDBInterface
 
 public:
 	CCharDB_sql(const char *dbcfgfile);
-	virtual ~CCharDB_sql();
+	virtual ~CCharDB_sql(){}
 
 private:
 
