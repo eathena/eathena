@@ -2538,14 +2538,6 @@
 1625,Porcellio@AL_PNEUMA,attack,25,1,10000,0,10000,yes,self,longrangeattacked,,,,,,,
 1625,Porcellio@NPC_GROUNDATTACK,attack,185,2,500,500,5000,no,target,always,0,,,,,,
 
-//New Ayothaya MVP temp skills
-1688,BANANA_LADY_TANEE@AL_HEAL,idle,28,11,200,0,5000,yes,self,always,0,,,,,,
-1688,BANANA_LADY_TANEE@NPC_SPLASHATTACK,attack,174,51,2000,0,5000,yes,target,attackpcgt,2,,,,,,9
-1688,BANANA_LADY_TANEE@NPC_STUNATTACK,attack,179,10,500,1500,5000,no,target,always,0,,,,,,
-1688,BANANA_LADY_TANEE@NPC_SUMMONSLAVE,attack,196,2,5000,3000,36000,no,self,myhpltmaxrate,5,1587,,,,,
-1688,BANANA_LADY_TANEE@NPC_SUMMONSLAVE,chase,196,2,10000,3000,36000,no,self,slavele,0,1587,,,,,
-1688,BANANA_LADY_TANEE@NPC_SUMMONSLAVE,idle,26,1,1000,0,0,yes,self,rudeattacked,0,,,,,,
-
 //Lighthalzen/Juperos temp skills
 // by MasterOfMuppets
 1626,Dark Priest@MO_BODYRELOCATION,chase,264,1,2000,500,5000,no,target,always,0,,,,,,
@@ -2570,8 +2562,8 @@
 1632,Gremlin@RG_STRIPARMOR,attack,217,5,500,0,30000,yes,target,always,0,,,,,,
 1632,Gremlin@NPC_CRITICALSLASH,attack,170,1,500,500,5000,no,target,always,0,,,,,,
 
-1633,Beholder@MG_NAPALMBEAT,attack,11,10,500,1500,5000,yes,target,always,0,,,,,,
-1633,Beholder@MG_NAPALMBEAT,chase,11,10,500,1500,5000,yes,target,always,0,,,,,,
+1633,Beholder@MG_NAPALMBEAT,attack,11,10,500,1500,1500,yes,target,always,0,,,,,,
+1633,Beholder@MG_NAPALMBEAT,chase,11,10,500,1500,1500,yes,target,always,0,,,,,,
 1633,Beholder@MG_STONECURSE,attack,16,10,500,1500,5000,no,target,always,0,,,,,,
 1633,Beholder@SA_DISPELL,attack,289,5,500,0,30000,yes,target,always,0,,,,,,
 1633,Beholder@NPC_MENTALBREAKER,attack,159,3,500,800,5000,no,target,always,0,,,,,,
@@ -2991,8 +2983,6 @@
 
 1686,Orc Baby@SM_BASH,angry,5,5,500,0,5000,yes,target,always,0,,,,,,
 1686,Orc Baby@SM_BASH,attack,5,5,500,0,5000,yes,target,always,0,,,,,,
-//I don't know what slaves they have.
-//1686,Orc Baby@NPC_SUMMONSLAVE,chase,196,?,10000,700,60000,no,self,slavele,?,?,,,,,
 
 1688,Lady Tany@NPC_GUIDEDATTACK,attack,172,3,500,1000,20000,no,target,always,0,,,,,,
 1688,Lady Tany@NPC_DEFENDER,attack,205,1,500,0,5000,yes,target,longrangeattacked,,,,,,,
@@ -3011,6 +3001,53 @@
 1688,Lady Tany@NPC_CALLSLAVE,idle,352,1,10000,0,30000,yes,self,always,0,,,,,,
 1688,Lady Tany@NPC_CALLSLAVE,attack,352,1,10000,0,30000,yes,self,always,0,,,,,,
 1688,Lady Tany@AL_TELEPORT,idle,26,1,1000,0,0,yes,self,rudeattacked,0,,,,,,
+
+1692,Breeze@NPC_WINDATTACK,attack,187,3,500,500,5000,no,target,always,0,,,,,,
+1692,Breeze@NPC_COMBOATTACK,attack,171,1,1000,700,5000,no,target,always,0,,,,,,
+1692,Breeze@NPC_CRITICALSLASH,attack,170,1,500,500,5000,no,target,always,0,,,,,,
+1692,Breeze@NPC_DEFENDER,angry,205,1,50,0,5000,yes,target,always,0,,,,,,
+1692,Breeze@NPC_DEFENDER,attack,205,1,500,0,5000,yes,target,longrangeattacked,,,,,,,
+//1692,Breeze@NPC_CHANGE(I don't know which element)
+
+1693,Plasma(Yellow)@NPC_STUNATTACK,attack,179,3,500,1500,5000,no,target,always,0,,,,,,
+1693,Plasma(Yellow)@NPC_STUNATTACK,angry,179,3,500,1500,5000,no,target,always,0,,,,,,
+1693,Plasma(Yellow)@NPC_TELEKINESISATTACK,attack,191,5,500,0,5000,yes,target,always,0,,,,,,
+1693,Plasma(Yellow)@MG_SOULSTRIKE,chase,13,9,50,500,5000,yes,target,always,0,,,,,,
+1693,Plasma(Yellow)@MG_SOULSTRIKE,follow,13,9,50,500,5000,yes,target,always,0,,,,,,
+1693,Plasma(Yellow)@MG_NAPALMBEAT,attack,11,10,500,1500,1500,yes,target,always,0,,,,,,
+1693,Plasma(Yellow)@MG_NAPALMBEAT,angry,11,10,500,1500,1500,yes,target,always,0,,,,,,
+
+1694,Plasma(Red)@NPC_SLEEPATTACK,attack,182,3,500,0,5000,yes,target,always,0,,,,,,
+1694,Plasma(Red)@NPC_SLEEPATTACK,angry,182,3,500,0,5000,yes,target,always,0,,,,,,
+1694,Plasma(Red)@NPC_FIREATTACK,attack,186,5,500,500,5000,no,target,always,0,,,,,,
+1694,Plasma(Red)@MG_FIREBALL,chase,17,5,50,800,5000,yes,target,always,0,,,,,,
+1694,Plasma(Red)@MG_FIREBALL,follow,17,5,50,800,5000,yes,target,always,0,,,,,,
+1694,Plasma(Red)@MG_FIREBOLT,attack,19,3,500,1500,5000,yes,target,always,0,,,,,,
+1694,Plasma(Red)@MG_FIREBOLT,angry,19,3,500,1500,5000,yes,target,always,0,,,,,,
+
+1695,Plasma(Green)@MG_STONECURSE,attack,16,10,500,1500,5000,no,target,always,0,,,,,,
+1695,Plasma(Green)@MG_STONECURSE,angry,16,10,500,1500,5000,no,target,always,0,,,,,,
+1695,Plasma(Green)@NPC_GROUNDATTACK,attack,185,5,500,500,5000,no,target,always,0,,,,,,
+1695,Plasma(Green)@WZ_QUAGMIRE,chase,92,5,50,700,5000,no,target,always,0,,,,,,
+1695,Plasma(Green)@WZ_QUAGMIRE,follow,92,5,50,700,5000,no,target,always,0,,,,,,
+1695,Plasma(Green)@WZ_EARTHSPIKE,attack,90,3,500,0,5000,no,target,always,0,,,,,,
+1695,Plasma(Green)@WZ_EARTHSPIKE,angry,90,3,500,0,5000,no,target,always,0,,,,,,
+
+1696,Plasma(Purple)@NPC_CURSEATTACK,attack,181,3,500,800,5000,no,target,always,0,,,,,,
+1696,Plasma(Purple)@NPC_CURSEATTACK,angry,181,3,500,800,5000,no,target,always,0,,,,,,
+1696,Plasma(Purple)@NPC_DARKNESSATTACK,attack,190,5,500,500,5000,no,target,always,0,,,,,,
+1696,Plasma(Purple)@NPC_DARKSTRIKE,chase,340,5,50,700,5000,yes,target,always,0,,,,,,
+1696,Plasma(Purple)@NPC_DARKSTRIKE,follow,340,5,50,700,5000,yes,target,always,0,,,,,,
+1696,Plasma(Purple)@NPC_SPLASHATTACK,attack,174,1,2000,0,5000,yes,target,attackpcgt,2,,,,,,
+1696,Plasma(Purple)@NPC_SPLASHATTACK,angry,174,1,2000,0,5000,yes,target,attackpcgt,2,,,,,,
+
+1697,Plasma(Blue)@MG_FROSTDIVER,attack,15,9,500,1000,5000,yes,target,always,0,,,,,,
+1697,Plasma(Blue)@MG_FROSTDIVER,angry,15,9,500,1000,5000,yes,target,always,0,,,,,,
+1697,Plasma(Blue)@NPC_WATERATTACK,attack,184,5,500,500,5000,no,target,always,0,,,,,,
+1697,Plasma(Blue)@WZ_WATERBALL,chase,86,1,50,500,5000,yes,target,always,0,,,,,,
+1697,Plasma(Blue)@WZ_WATERBALL,follow,86,1,50,500,5000,yes,target,always,0,,,,,,
+1697,Plasma(Blue)@MG_COLDBOLT,attack,14,3,500,1500,5000,yes,target,always,0,,,,,,
+1697,Plasma(Blue)@MG_COLDBOLT,angry,14,3,500,1500,5000,yes,target,always,0,,,,,,
 
 // Thanatos Tower Mobs
 1698,Deathword@NPC_SPLASHATTACK,angry,174,1,2000,0,5000,yes,target,attackpcgt,2,,,,,,
@@ -3198,6 +3235,8 @@
 1720,Hydro@NPC_CALLSLAVE,attack,352,1,2000,0,10000,yes,target,always,0,,,,,,
 1720,Hydro@NPC_CALLSLAVE,idle,352,1,2000,0,10000,yes,self,always,0,,,,,,
 
+1721,Dragon Egg@NPC_METAMORPHOSIS,idle,193,1,1,2000,5000,no,self,always,0,1715,1718,,,,
+
 // Kiel dungeon
 1733,Kiel@PR_LEXDIVINA,attack,76,5,500,1000,5000,yes,target,always,0,,,,,,
 1733,Kiel@PR_LEXAETERNA,attack,78,1,1000,1000,5000,yes,target,always,0,,,,,,
@@ -3274,3 +3313,66 @@
 //1741,Aliza@?
 
 1742,Constant@NPC_SELFDESTRUCTION,attack,173,1,500,2000,5000,no,self,myhpltmaxrate,50,,,,,,
+
+1751,Randgris@CR_GRANDCROSS,attack,254,1,2000,0,0,yes,target,always,0,,,,,,
+1751,Randgris@SA_DISPELL,attack,289,5,500,0,30000,yes,target,always,0,,,,,,
+1751,Randgris@WZ_VERMILION,attack,85,10,2000,0,5000,yes,target,always,0,,,,,,
+1751,Randgris@WZ_VERMILION,chase,85,10,2000,0,5000,yes,target,always,0,,,,,,
+1751,Randgris@KN_BRANDISHSPEAR,attack,57,5,1000,1000,5000,no,target,always,0,,,,,,
+1751,Randgris@MG_THUNDERSTORM,attack,21,10,2000,1000,5000,no,target,always,0,,,,,,
+1751,Randgris@MG_THUNDERSTORM,chase,21,10,5000,1000,5000,no,target,always,0,,,,,,
+1751,Randgris@NPC_HOLYATTACK,attack,189,5,500,500,5000,no,target,always,0,,,,,,
+1751,Randgris@AS_SONICBLOW,attack,136,10,2000,0,5000,no,target,always,0,,,,,,
+1751,Randgris@NPC_SUMMONSLAVE,attack,196,5,10000,700,60000,no,self,slavele,3,1754,1755,,,,
+1751,Randgris@NPC_SUMMONSLAVE,chase,196,5,10000,700,60000,no,self,slavele,3,1754,1755,,,,
+1751,Randgris@NPC_CALLSLAVE,attack,352,1,10000,0,30000,yes,target,always,0,,,,,,
+1751,Randgris@NPC_CALLSLAVE,chase,352,1,10000,0,30000,yes,target,always,0,,,,,,
+1751,Randgris@AL_INCAGI,chase,29,10,250,700,300000,no,self,always,0,,,,,,
+1751,Randgris@NPC_POWERUP,attack,349,5,10000,0,120000,yes,self,myhpltmaxrate,30,,,,,,
+1751,Randgris@AL_TELEPORT,idle,26,1,10000,0,0,yes,self,rudeattacked,,,,,,,
+
+1752,Skogul@AS_GRIMTOOTH,chase,137,5,250,0,5000,yes,target,always,0,,,,,,
+1752,Skogul@MG_SOULSTRIKE,chase,13,9,500,500,5000,yes,target,always,0,,,,,,
+1752,Skogul@NPC_DARKNESSATTACK,attack,190,5,500,500,5000,no,target,always,0,,,,,,
+1752,Skogul@NPC_CURSEATTACK,attack,181,5,500,800,5000,no,target,always,0,,,,,,
+1752,Skogul@TF_HIDING,idle,51,3,2000,500,5000,no,self,always,0,,,,,,
+
+1753,Frus@NPC_POISONATTACK,attack,188,5,500,500,5000,no,target,always,0,,,,,,
+1753,Frus@RG_STRIPARMOR,attack,217,5,500,0,30000,yes,target,always,0,,,,,,
+1753,Frus@NPC_DARKNESSATTACK,attack,190,5,500,500,5000,no,target,always,0,,,,,,
+1753,Frus@NPC_CHANGEUNDEAD,attack,348,1,10000,2000,600000,no,self,myhpltmaxrate,30,,,,,,
+1753,Frus@MG_FIREWALL,chase,18,5,100,500,5000,yes,target,always,0,,,,,,
+1753,Frus@MG_FIREWALL,follow,18,5,100,500,5000,yes,target,always,0,,,,,,
+
+1754,Skeggiold(Brown)@SA_REVERSEORCISH,attack,294,1,5,0,30000,yes,target,always,0,,,,,,
+1754,Skeggiold(Brown)@SA_REVERSEORCISH,chase,294,1,5,0,30000,yes,target,always,0,,,,,,
+1754,Skeggiold(Brown)@AL_DECAGI,attack,30,10,100,1000,5000,no,target,always,0,,,,,,
+1754,Skeggiold(Brown)@AL_DECAGI,chase,30,10,100,1000,5000,no,target,always,0,,,,,,
+1754,Skeggiold(Brown)@NPC_PETRIFYATTACK,chase,180,5,100,500,5000,no,target,always,0,,,,,,
+1754,Skeggiold(Brown)@MG_THUNDERSTORM,attack,21,10,1000,2500,5000,no,target,always,0,,,,,,
+1754,Skeggiold(Brown)@MG_THUNDERSTORM,chase,21,10,1000,2500,5000,no,target,always,0,,,,,,
+1754,Skeggiold(Brown)@NPC_HOLYATTACK,attack,189,3,500,500,5000,no,target,always,0,,,,,,
+1754,Skeggiold(Brown)@MG_SAFETYWALL,attack,12,5,1000,1000,5000,no,self,always,0,,,,,,
+1754,Skeggiold(Brown)@AM_ACIDTERROR,chase,230,5,50,0,5000,yes,target,always,0,,,,,,
+1754,Skeggiold(Brown)@AL_HEAL,attack,28,3,10000,500,5000,yes,friend,friendhpltmaxrate,60,,,,,,
+1754,Skeggiold(Brown)@AL_HEAL,chase,28,3,10000,500,5000,yes,friend,friendhpltmaxrate,60,,,,,,
+1754,Skeggiold(Brown)@AL_HEAL,idle,28,3,10000,500,5000,yes,friend,friendhpltmaxrate,60,,,,,,
+//Someone confirm this:
+//1754,Skeggiold(Brown)@NPC_SUMMONSLAVE,attack,196,3,10000,700,60000,no,self,slavele,0,1755,,,,,
+//1754,Skeggiold(Brown)@NPC_SUMMONSLAVE,chase,196,3,10000,700,60000,no,self,slavele,0,1755,,,,,
+//1754,Skeggiold(Brown)@NPC_CALLSLAVE,attack,352,1,10000,0,30000,yes,target,always,0,,,,,,
+//1754,Skeggiold(Brown)@NPC_CALLSLAVE,chase,352,1,10000,0,30000,yes,target,always,0,,,,,,
+1754,Skeggiold(Brown)@AL_TELEPORT,idle,26,1,10000,0,0,yes,self,rudeattacked,,,,,,,
+
+1755,Skeggiold(Blue)@SA_REVERSEORCISH,attack,294,1,5,0,30000,yes,target,always,0,,,,,,
+1755,Skeggiold(Blue)@SA_REVERSEORCISH,chase,294,1,5,0,30000,yes,target,always,0,,,,,,
+1755,Skeggiold(Blue)@MG_SAFETYWALL,attack,12,5,1000,1000,5000,no,self,always,0,,,,,,
+1755,Skeggiold(Blue)@NPC_HOLYATTACK,attack,189,3,500,500,5000,no,target,always,0,,,,,,
+1755,Skeggiold(Blue)@MG_SOULSTRIKE,chase,13,9,1000,500,5000,yes,target,always,0,,,,,,
+1755,Skeggiold(Blue)@CR_HOLYCROSS,attack,253,5,1000,500,5000,no,target,always,0,,,,,,
+//Someone confirm this:
+//1755,Skeggiold(Blue)@NPC_SUMMONSLAVE,attack,196,3,10000,700,60000,no,self,slavele,0,1754,,,,,
+//1755,Skeggiold(Blue)@NPC_SUMMONSLAVE,chase,196,3,10000,700,60000,no,self,slavele,0,1754,,,,,
+//1755,Skeggiold(Blue)@NPC_CALLSLAVE,attack,352,1,10000,0,30000,yes,target,always,0,,,,,,
+//1755,Skeggiold(Blue)@NPC_CALLSLAVE,chase,352,1,10000,0,30000,yes,target,always,0,,,,,,
+1755,Skeggiold(Blue)@AL_TELEPORT,idle,26,1,10000,0,0,yes,self,rudeattacked,,,,,,,

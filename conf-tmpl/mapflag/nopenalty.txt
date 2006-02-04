@@ -43,7 +43,6 @@ new_1-1.gat	mapflag	nopenalty
 new_1-2.gat	mapflag	nopenalty
 new_1-3.gat	mapflag	nopenalty
 new_1-4.gat	mapflag	nopenalty
-niflheim.gat	mapflag	nopenalty
 nif_in.gat	mapflag	nopenalty
 payon.gat	mapflag	nopenalty
 payon_in01.gat	mapflag	nopenalty
@@ -61,6 +60,7 @@ xmas.gat	mapflag	nopenalty
 xmas_in.gat	mapflag	nopenalty
 yuno.gat	mapflag	nopenalty
 yuno_in01.gat	mapflag	nopenalty
+yuno_in02.gat	mapflag	nopenalty
 yuno_in03.gat	mapflag	nopenalty
 yuno_in04.gat	mapflag	nopenalty
 yuno_in05.gat	mapflag	nopenalty
