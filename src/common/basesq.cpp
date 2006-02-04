@@ -582,7 +582,7 @@ bool CAccountDB_sql::saveAccount(const CLoginAccount& account)
 
 /* data for sql tables:
 
-DROP TABLE IF EXISTS `account_storage`
+DROP TABLE IF EXISTS `account_storage`;
 
 CREATE TABLE IF NOT EXISTS `account_storage` (
   `id`				BIGINT UNSIGNED NOT NULL auto_increment,
@@ -600,9 +600,9 @@ CREATE TABLE IF NOT EXISTS `account_storage` (
   `broken` 			BOOL default 'FALSE',
   PRIMARY KEY  (`id`),
   KEY `account_id` (`account_id`)
-)
+);
 
-DROP TABLE IF EXISTS `account_reg`
+DROP TABLE IF EXISTS `account_reg`;
 
 CREATE TABLE IF NOT EXISTS `account_reg` (
   `account_id`		INTEGER UNSIGNED NOT NULL default '0',
@@ -610,9 +610,9 @@ CREATE TABLE IF NOT EXISTS `account_reg` (
   `value`			VARCHAR(255) NOT NULL default '0',
   PRIMARY KEY  (`account_id`,`str`),
   KEY `account_id` (`account_id`)
-)
+);
 
-DROP TABLE IF EXISTS `char_characters`
+DROP TABLE IF EXISTS `char_characters`;
 
 CREATE TABLE IF NOT EXISTS `char_characters` (
   `char_id` 		INTEGER UNSIGNED NOT NULL auto_increment,
@@ -624,14 +624,14 @@ CREATE TABLE IF NOT EXISTS `char_characters` (
   `job_level`		TINYINT UNSIGNED NOT NULL default '1',
   `base_exp`		BIGINT UNSIGNED NOT NULL default '0',
   `job_exp`			BIGINT UNSIGNED NOT NULL default '0',
-  `zeny` 			BIGINT UNSIGNED NOT NULL default '500',  // set the default zeny later on...
+  `zeny` 			BIGINT UNSIGNED NOT NULL default '500',
   `str` 			TINYINT UNSIGNED NOT NULL default '0',
   `agi` 			TINYINT UNSIGNED NOT NULL default '0',
   `vit` 			TINYINT UNSIGNED NOT NULL default '0',
   `int`				TINYINT UNSIGNED NOT NULL default '0',
   `dex` 			TINYINT UNSIGNED NOT NULL default '0',
   `luk`				TINYINT UNSIGNED NOT NULL default '0',
-  `max_hp` 			MEDIUMINT UNSIGNED NOT NULL default '0',  // possible to set a CREATE VIEW() to do the math of vit...
+  `max_hp` 			MEDIUMINT UNSIGNED NOT NULL default '0',
   `hp`				MEDIUMINT UNSIGNED NOT NULL default '0',
   `max_sp`			MEDIUMINT UNSIGNED NOT NULL default '0',
   `sp` 				MEDIUMINT UNSIGNED NOT NULL default '0',
@@ -667,9 +667,9 @@ CREATE TABLE IF NOT EXISTS `char_characters` (
   KEY `account_id` (`account_id`),
   KEY `party_id` (`party_id`),
   KEY `guild_id` (`guild_id`)
-)
+);
 
-DROP TABLE IF EXISTS `char_character_reg`
+DROP TABLE IF EXISTS `char_character_reg`;
 
 CREATE TABLE IF NOT EXISTS `char_character_reg` (
   `char_id`			INTEGER UNSIGNED NOT NULL default '0',
@@ -677,19 +677,19 @@ CREATE TABLE IF NOT EXISTS `char_character_reg` (
   `value`			VARCHAR(255) NOT NULL default '0',
   PRIMARY KEY  (`char_id`,`str`),
   KEY `char_id` (`char_id`)
-)
+);
 
-DROP TABLE IF EXISTS `char_friends`
+DROP TABLE IF EXISTS `char_friends`;
 
 CREATE TABLE IF NOT EXISTS `char_friends` (
   `char_id` 		INTEGER UNSIGNED NOT NULL default '0',
   `friend_id`		INTEGER UNSIGNED NOT NULL default '0',
   PRIMARY KEY  (`char_id`,`friend_id`),
   KEY `char_id` (`char_id`)
-)
+);
 
 
-DROP TABLE IF EXISTS `char_inventory`
+DROP TABLE IF EXISTS `char_inventory`;
 
 CREATE TABLE IF NOT EXISTS `char_inventory` (
   `id`				BIGINT UNSIGNED NOT NULL auto_increment,
@@ -707,9 +707,9 @@ CREATE TABLE IF NOT EXISTS `char_inventory` (
   `broken` 			BOOL default 'FALSE',
   PRIMARY KEY  (`id`),
   KEY `char_id` (`char_id`)
-)
+);
 
-DROP TABLE IF EXISTS `char_cart`
+DROP TABLE IF EXISTS `char_cart`;
 
 CREATE TABLE IF NOT EXISTS `char_cart` (
   `id`				BIGINT UNSIGNED NOT NULL auto_increment,
@@ -727,9 +727,9 @@ CREATE TABLE IF NOT EXISTS `char_cart` (
   `broken` 			BOOL default 'FALSE',
   PRIMARY KEY  (`id`),
   KEY `char_id` (`char_id`)
-)
+);
 
-DROP TABLE IF EXISTS `char_memo`
+DROP TABLE IF EXISTS `char_memo`;
 
 CREATE TABLE IF NOT EXISTS `char_memo` (
   `memo_id`			TINYINT UNSIGNED NOT NULL default '0',
@@ -739,10 +739,10 @@ CREATE TABLE IF NOT EXISTS `char_memo` (
   `y`				MEDIUMINT(3) UNSIGNED NOT NULL default '0',
   PRIMARY KEY  (`char_id`,`memo_id`),
   KEY `char_id` (`char_id`)
-)
+);
 
 
-DROP TABLE IF EXISTS `char_skill`
+DROP TABLE IF EXISTS `char_skill`;
 
 CREATE TABLE IF NOT EXISTS `char_skill` (
   `char_id` 		INTEGER UNSIGNED NOT NULL default '0',
@@ -750,7 +750,8 @@ CREATE TABLE IF NOT EXISTS `char_skill` (
   `lv` 				TINYINT UNSIGNED NOT NULL default '0',
   PRIMARY KEY  (`char_id`,`id`),
   KEY `char_id` (`char_id`)
-)
+);
+
 */
 
 	/**************** NOTES FOR CHAR_FROM_SQL ********************
