@@ -7,6 +7,7 @@
 #include "basetypes.h"
 #include "basememory.h"
 #include "basecharset.h"
+#include "basebuffer.h"
 #include "basestring.h"
 #include "basearray.h"
 #include "basesync.h"

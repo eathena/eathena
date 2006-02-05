@@ -624,7 +624,7 @@ bool pc_break_equip(struct map_session_data &sd, unsigned short where)
 		{
 			char buf[64];
 			sd.status.inventory[j].attribute = 1;
-			sprintf(buf, "%s has broken.", sd.inventory_data[j]->name);
+			snprintf(buf,sizeof(buf),"%s has broken.", sd.inventory_data[j]->name);
 			clif_emotion(sd.bl, 23);
 			clif_displaymessage(sd.fd, buf);
 			pc_unequipitem(sd, j, 3);
@@ -871,7 +871,7 @@ int pc_authok(uint32 id, uint32 login_id2, time_t connect_until_time, unsigned c
 	clif_friendslist_send(*sd);
 	if (battle_config.display_version == 1){
 		char buf[256];
-		sprintf(buf, "eAthena SVN version: %s", get_svn_revision());
+		snprintf(buf, sizeof(buf),"eAthena SVN version: %s", get_svn_revision());
 		clif_displaymessage(sd->fd, buf);
 	}
 
@@ -4374,7 +4374,7 @@ int pc_gainexp(struct map_session_data &sd,uint32 base_exp,uint32 job_exp)
 		if(nextj > 0)
 			nextjp = 100. * job_exp / nextj;
 
-		sprintf(output, "Experienced Gained Base:%ld (%.2f%%) Job:%ld (%.2f%%)",(unsigned long)base_exp,nextbp,(unsigned long)job_exp,nextjp);
+		snprintf(output,sizeof(output),"Experienced Gained Base:%ld (%.2f%%) Job:%ld (%.2f%%)",(unsigned long)base_exp,nextbp,(unsigned long)job_exp,nextjp);
 		clif_disp_onlyself(sd,output);
 	}
 
@@ -7500,7 +7500,7 @@ int pc_read_gm_account(int fd)
 		GM_num++;
 	}
 #else
-	sprintf (tmp_lsql, "SELECT `%s`,`%s` FROM `%s` WHERE `%s`>='%d'",gm_db_account_id,gm_db_level,gm_db,gm_db_level,lowest_gm_level);
+	snprintf (tmp_lsql,sizeof(tmp_lsql),"SELECT `%s`,`%s` FROM `%s` WHERE `%s`>='%d'",gm_db_account_id,gm_db_level,gm_db,gm_db_level,lowest_gm_level);
 	if(mysql_SendQuery(&lmysql_handle, tmp_lsql) ) {
 		ShowMessage("DB server Error (select %s to Memory)- %s\n",login_db,mysql_error(&lmysql_handle) );
 	}

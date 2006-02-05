@@ -221,7 +221,7 @@ void MD5_String2binary(const char * str, char * output)
 }
 
 /** output is the coded character sequence in the character sequence which wants to code string. */
-void MD5_String(const char * str, char * output)
+void MD5_String(const char* str, char* output)
 {
 	unsigned char digest[16];
 	MD5_String2binary(str, (char*)digest);

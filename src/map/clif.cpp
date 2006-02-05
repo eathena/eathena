@@ -290,7 +290,7 @@ void check_fake_id(int fd, struct map_session_data &sd, uint32 target_id)
 	if (target_id == server_char_id)
 	{
 		char message_to_gm[1024];
-		sprintf(message_to_gm, "Character '%s' (account: %d) try to use a bot", sd.status.name, sd.status.account_id);
+		snprintf(message_to_gm, sizeof(message_to_gm), "Character '%s' (account: %d) try to use a bot", sd.status.name, sd.status.account_id);
 		intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, message_to_gm);
 		
 		// if we block people
@@ -337,7 +337,7 @@ void check_fake_id(int fd, struct map_session_data &sd, uint32 target_id)
 	if (target_id == server_fake_mob_id)
 	{
 		char message_to_gm[1024];
-		sprintf(message_to_gm, "Character '%s' (account: %d) try to use a bot", sd.status.name, sd.status.account_id);
+		snprintf(message_to_gm, sizeof(message_to_gm), "Character '%s' (account: %d) try to use a bot", sd.status.name, sd.status.account_id);
 		intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, message_to_gm);
 		// if we block people
 		if (battle_config.ban_bot < 0)
@@ -6640,15 +6640,15 @@ int clif_hpmeter(struct map_session_data &sd)
  */
 int clif_update_mobhp(struct mob_data &md)
 {
-	unsigned char buf[102];
-	char mobhp[50];
+	unsigned char buf[128];
+	char mobhp[64];
 
 	memset(buf,0,102);
 	WBUFW(buf,0) = 0x95;
 	WBUFL(buf,2) = md.bl.id;
 
 	memcpy(WBUFP(buf,6), md.name, 24);
-	sprintf(mobhp, "hp: %ld/%ld", (unsigned long)md.hp, (unsigned long)mob_db[md.class_].max_hp);
+	snprintf(mobhp, sizeof(mobhp), "hp: %ld/%ld", (unsigned long)md.hp, (unsigned long)mob_db[md.class_].max_hp);
 
 	WBUFW(buf, 0) = 0x195;
 	memcpy(WBUFP(buf,30), mobhp, 24);
@@ -8124,7 +8124,7 @@ int clif_disp_overhead(struct map_session_data &sd, const char* mes)
 // updates the object's (bl) name on client
 int clif_charnameack(int fd, struct block_list &bl, bool clear)
 {
-	unsigned char buf[103];
+	unsigned char buf[128];
 	unsigned short cmd;
 	
 	if(clear)
@@ -8220,7 +8220,7 @@ int clif_charnameack(int fd, struct block_list &bl, bool clear)
 		memcpy(WBUFP(buf,6), pd.namep, 24);
 		if(pd.msd)
 		{
-			char nameextra[24];
+			char nameextra[32];
 			memcpy(nameextra, pd.msd->status.name, 24);
 			nameextra[21]=0; // need 2 extra chars for the attachment
 			strcat(nameextra, "'s");
@@ -8256,9 +8256,9 @@ int clif_charnameack(int fd, struct block_list &bl, bool clear)
 		}
 		else if(battle_config.show_mob_hp)
 		{
-			char mobhp[50];
+			char mobhp[64];
 			cmd = 0x195;
-			sprintf(mobhp, "hp: %ld/%ld", (unsigned long)md.hp, (unsigned long)md.max_hp);
+			snprintf(mobhp, sizeof(mobhp), "hp: %ld/%ld", (unsigned long)md.hp, (unsigned long)md.max_hp);
 			memcpy(WBUFP(buf,30), mobhp, 24);
 			WBUFB(buf,54) = 0;
 			WBUFB(buf,78) = 0;
@@ -8764,7 +8764,7 @@ int clif_parse_GlobalMessage(int fd, struct map_session_data &sd)
 			if (sd.state.snovice_flag == 0 && strstr(rfifo, msg_txt(504)))
 				sd.state.snovice_flag = 1;
 			else if (sd.state.snovice_flag == 1) {
-				sprintf(message, msg_txt(505), sd.status.name);
+				snprintf(message, sizeof(message), msg_txt(505), sd.status.name);
 				if (strstr(rfifo, message))
 					sd.state.snovice_flag = 2;
 			}
@@ -8814,7 +8814,7 @@ int clif_parse_MapMove(int fd, struct map_session_data &sd)
 		safestrcpy(mapname, (const char*)RFIFOP(fd,2), sizeof(mapname));
 		ip = strchr(mapname, '.');
 		if(ip) *ip=0;
-		sprintf(output, "%s %d %d", mapname, (unsigned char)RFIFOW(fd,18), (unsigned char)RFIFOW(fd,20));
+		snprintf(output, sizeof(output), "%s %d %d", mapname, (unsigned char)RFIFOW(fd,18), (unsigned char)RFIFOW(fd,20));
 		atcommand_rura(fd, sd, "@rura", output);
 	}
 
@@ -9102,7 +9102,7 @@ int clif_parse_Wis(int fd, struct map_session_data &sd)
 			set_var(sd,tempmes,kp);
 		}//Sets Variables to use in the NPC
 		
-		sprintf(tempmes, "%s::OnWhisperGlobal", npc->name);
+		snprintf(tempmes, sizeof(tempmes), "%s::OnWhisperGlobal", npc->name);
 		if (npc_event(sd,tempmes,0))
 			return 0;	// Calls the NPC label
 	}
@@ -10905,7 +10905,7 @@ int clif_parse_PMIgnore(int fd, struct map_session_data &sd)
 					WFIFOSET(fd, packet_len_table[0x0d1]);
 					clif_wis_message(fd, wisp_server_name, "This player is already blocked.", strlen("This player is already blocked.") + 1);
 					if (strcmp(wisp_server_name, nick) == 0) { // to found possible bot users who automaticaly ignore people.
-						sprintf(output, "Character '%s' (account: %ld) has tried AGAIN to block wisps from '%s' (wisp name of the server). Bot user?", sd.status.name, (unsigned long)sd.status.account_id, wisp_server_name);
+						snprintf(output, sizeof(output), "Character '%s' (account: %ld) has tried AGAIN to block wisps from '%s' (wisp name of the server). Bot user?", sd.status.name, (unsigned long)sd.status.account_id, wisp_server_name);
 						intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, output);
 					}
 					return 0;
@@ -10918,7 +10918,7 @@ int clif_parse_PMIgnore(int fd, struct map_session_data &sd)
 				WFIFOB(fd,3) = 0; // success
 				WFIFOSET(fd, packet_len_table[0x0d1]);
 				if (strcmp(wisp_server_name, nick) == 0) { // to found possible bot users who automaticaly ignore people.
-					sprintf(output, "Character '%s' (account: %ld) has tried to block wisps from '%s' (wisp name of the server). Bot user?", sd.status.name, (unsigned long)sd.status.account_id, wisp_server_name);
+					snprintf(output, sizeof(output), "Character '%s' (account: %ld) has tried to block wisps from '%s' (wisp name of the server). Bot user?", sd.status.name, (unsigned long)sd.status.account_id, wisp_server_name);
 					intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, output);
 					// send something to be inform and force bot to ignore twice... ifGM receiving block + block again, it's a bot :)
 					clif_wis_message(fd, wisp_server_name, "Add me in your ignore list, doesn't block my wisps.", strlen("Add me in your ignore list, doesn't block my wisps.") + 1);
@@ -10928,7 +10928,7 @@ int clif_parse_PMIgnore(int fd, struct map_session_data &sd)
 				WFIFOSET(fd, packet_len_table[0x0d1]);
 				clif_wis_message(fd, wisp_server_name, "You can not block more people.", strlen("You can not block more people.") + 1);
 				if (strcmp(wisp_server_name, nick) == 0) { // to found possible bot users who automaticaly ignore people.
-					sprintf(output, "Character '%s' (account: %ld) has tried to block wisps from '%s' (wisp name of the server). Bot user?", sd.status.name, (unsigned long)sd.status.account_id, wisp_server_name);
+					snprintf(output, sizeof(output), "Character '%s' (account: %ld) has tried to block wisps from '%s' (wisp name of the server). Bot user?", sd.status.name, (unsigned long)sd.status.account_id, wisp_server_name);
 					intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, output);
 				}
 			}

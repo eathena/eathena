@@ -3,6 +3,7 @@
 
 #include "basetypes.h"
 #include "baseobjects.h"
+#include "basesync.h"
 #include "basesafeptr.h"
 #include "basememory.h"
 #include "basealgo.h"
@@ -13,7 +14,7 @@
 
 
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> class TPool : public global, public noncopyable
+template <class T> class TPool : public global, protected Mutex
 {
 	TslistDST<T*> cListAll;
 	TslistDST<T*> cListFree;
@@ -26,7 +27,7 @@ public:
 		cListAll.push(obj);
 		cListFree.push(obj);
 	}
-	template<class P1> TPool(const P1& p1)
+	template<class P1> TPool(P1& p1)
 	{	// one parametered objects
 		T* obj = new T(p1);
 		cListAll.push(obj);
@@ -76,12 +77,12 @@ public:
 	}
 	T& aquire()
 	{
+		ScopeLock sl(*this);
 		T* obj;
 		if( cListFree.size() == 0 )
 		{	// create a new object using copy operator
 			obj = new T(*cListAll[0]);
 			cListAll.push(obj);
-			
 		}
 		else
 		{	// take a free obj
@@ -92,9 +93,44 @@ public:
 	operator T&()	{ return aquire(); }
 	void release(T& elem)
 	{	// put the released object to the freelist
+		ScopeLock sl(*this);
 		cListFree.push(&elem);
 	}
+
+	void call( void (T::*func)(void))
+	{
+		ScopeLock sl(*this);
+		size_t i;
+		for(i=0; i<cListAll.size(); i++)
+		{	
+			(cListAll[i]->*func)();
+		}
+	}
+	template<class X> void call( void (T::*func)(X p1), X p1)
+	{
+		ScopeLock sl(*this);
+		size_t i;
+		for(i=0; i<cListAll.size(); i++)
+		{	
+			(cListAll[i]->*func)(p1);
+		}
+	}
 };
+
+// automates aquire/release of pool objects
+template<class T> class TPoolObj
+{
+	TPool<T>& cPool;
+	T& cObj;
+public:
+	TPoolObj<T>(TPool<T>& pool) : cPool(pool), cObj( pool.aquire() )	{}
+	~TPoolObj<T>()	{ cPool.release(cObj); }
+
+	operator T&()	{ return cObj; }
+	T& operator*()	{ return cObj; }
+	T* operator->()	{ return &cObj; }
+};
+
 
 
 #endif//__BASEPOOL_H__

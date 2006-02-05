@@ -8,16 +8,211 @@
 
 #include <mysql.h>
 
+
 class CMySQL : public global, public noncopyable
 {
 public:
+	///////////////////////////////////////////////////////////////////////////
+	// database connection object
+	// enables threadsafe/multithreaded connections to the sql database
+	class DBConnection
+	{
+		///////////////////////////////////////////////////////////////////////
+		// class data
+		bool			cInit;		// necessary to enable delayed initialisation/safe destruction
+		CMySQL&			cMySQL;		// reference to the base
+		MYSQL			cHandle;	// handle to the mysql database
+		MYSQL_RES*		cRes;		// result pointer
+		MYSQL_ROW		cRow;		// the result row
+
+		///////////////////////////////////////////////////////////////////////
+		// startup function is automatically called on the first query
+		bool startup(void)
+		{	
+			if(!this->cInit)
+			{	// init new database handle
+				mysql_init(&(this->cHandle));
+
+				// DB connection start
+				ShowMessage("Connect Database Server on %s%u....\n", cMySQL.mysqldb_ip, cMySQL.mysqldb_port);
+				if( mysql_real_connect(&(this->cHandle), cMySQL.mysqldb_ip, cMySQL.mysqldb_id, cMySQL.mysqldb_pw, cMySQL.mysqldb_db, cMySQL.mysqldb_port, (char *)NULL, 0) )
+				{
+					ShowMessage("connect success!\n");
+					this->cInit = true;
+				}
+				else
+				{	// pointer check
+					ShowError("%s\n", mysql_error(&(this->cHandle)));
+				}
+			}
+			return this->cInit;
+		}
+	public:
+		///////////////////////////////////////////////////////////////////////
+		// constructor/destructor
+		DBConnection(CMySQL& mysql)
+			: cInit(false), cMySQL(mysql), cRes(NULL), cRow(0)
+		{ }
+		~DBConnection()
+		{
+			this->close();
+		}
+		///////////////////////////////////////////////////////////////////////
+		// copy/assignment (assignment disabled)
+		DBConnection(const DBConnection& db)
+			: cInit(false), cMySQL(db.cMySQL), cRes(NULL), cRow(0)
+		{ }
+		const DBConnection& operator=(const DBConnection& DBConnection);
+		
+		///////////////////////////////////////////////////////////////////////
+		// Queries with no returns
+		bool PureQuery(const string<>& q)
+		{
+			if( this->startup() )
+			{
+				this->clear();
+				if( 0==mysql_real_query(&cHandle, (const char*)q, q.length()) )
+					return true;
+				else
+				{
+					ShowError("Database Error %s\nQuery:    %s\n", mysql_error(&this->cHandle), (const char*)q);
+				}
+			}
+			return false;
+		}
+		///////////////////////////////////////////////////////////////////////
+		// Queries with returns, automatically fetch first result
+		bool ResultQuery(const string<>& q)
+		{
+			if( this->startup() )
+			{
+				this->clear();
+				if( 0==mysql_real_query(&cHandle, (const char*)q, q.length()) )
+				{
+					cRes = mysql_store_result(&this->cHandle);
+					if(cRes)
+					{
+						this->cRow = mysql_fetch_row(this->cRes);
+						return true;
+					}
+					else
+						ShowError("DB result error\nQuery:    %s\n", (const char*)q);
+				}
+				else
+					ShowError("Database Error %s\nQuery:    %s\n", mysql_error(&this->cHandle), (const char*)q);
+			}
+			return false;
+		}
+		///////////////////////////////////////////////////////////////////////
+		// number of results
+		size_t size() const
+		{
+			return (this->cRes) ? mysql_num_rows(this->cRes) : 0;
+		}
+		///////////////////////////////////////////////////////////////////////
+		// next result
+		bool operator++(int)
+		{
+			return ( this->cRes && (cRow = mysql_fetch_row(this->cRes) ) );
+		}
+		///////////////////////////////////////////////////////////////////////
+		// access the row, also prevent returning NULL pointers
+		const char*operator[](int inx)
+		{
+			return (this->cRes && this->cRow[inx])?(this->cRow[inx]):("");
+		}
+		///////////////////////////////////////////////////////////////////////
+		// free result memory
+		void clear()
+		{
+			if (this->cRes)
+			{
+				mysql_free_result(this->cRes);
+				this->cRes=NULL;
+			}
+		}
+		///////////////////////////////////////////////////////////////////////
+		// close the database connection
+		void close()
+		{
+			this->clear();
+			if( this->cInit )
+			{
+				ShowMessage("Closing Database Server %s%u\n", cMySQL.mysqldb_ip, cMySQL.mysqldb_port);
+				mysql_close(&(this->cHandle));
+				this->cInit=false;
+			}
+		}
+	};
+	///////////////////////////////////////////////////////////////////////////
+protected:
+	// the pool of database handles
+	// will automatically create a many as necessary
+	TPool<DBConnection>	cDBPool;
+	// allow the database connection to read base internals
+	friend class DBConnection;
+
+	void example()
+	{	
+		// usage of the database pool:
+	
+		// get a database object out of the pool:
+		CMySQL::DBConnection& db = this->cDBPool.aquire();
+
+		//do a query:
+		if( !db.ResultQuery("select * from `somewhere`") )
+			printf("some error");
+
+		printf( "has found %lu results\n", (ulong)db.size());
+		
+		// the first result is automatically fetched on success
+		// so read it's cols
+		int      resi = atoi( db[0] );
+
+		// select the next row:
+		db++;
+
+		// put the database object back to the pool after queries beeing finished:
+		this->cDBPool.release(db);
+		
+		// !! dont work on released objects, when using manual aquire/release !!
+		// !! dont forget to to release an object when finished with it !!
+
+
+		// therefore:
+		// automatic aquire/release by using the TPoolObj:
+		// aquires on instantiation/releases on destruction
+		// TPoolObj behaves like a pointer to the database object
+		TPoolObj<CMySQL::DBConnection> dbobj(this->cDBPool);
+
+		//do a query:
+		if( !db.ResultQuery("select * from `somewhere`") )
+			printf("some error");
+
+		if( dbobj->PureQuery("DROP TABLE IF EXISTS `something`") )
+			printf("ok");
+
+		printf( "has found %lu results\n", (ulong)dbobj->size());
+
+		// the first result is automatically fetched on success
+		// so read it's cols
+		string<> ress = (*dbobj)[1];
+		
+		// select the next row:
+		(*dbobj)++;
+
+
+		// going out of scope
+		// dbobj is destroyed and puts back the DBConnection to the pool
+
+
+		resi++;	// just to have annoying C4189 disabled
+	}
+
+
+public:
 	CMySQL();
-	// Set the new sqldb_handle to replace the current standard
-	CMySQL(MYSQL sqldb_handle); // Change the handler in case someone wants to use a diff one
-
-	// Set back the default mysql_handle, and free any unfreed results
 	virtual ~CMySQL();
-
 
 	//Some public var?
 	MYSQL_ROW row;
@@ -30,10 +225,10 @@ public:
 	// Will be easy to use for SQL type functions SQLite, ODBC, etc... all support the same
 	// results.
 
-	bool Query(const string<> q);		// Do query
-	bool Fetch();						// Fetch the rows
-	long CountRes();					// Show how many results came in
-	void Free();						// Free results
+	bool SendQuery(const string<> q);	// Do query
+	bool FetchResults();				// Fetch the rows
+	long CountResults();				// Show how many results came in
+	void FreeResults();					// Free results
 
 
 
@@ -70,7 +265,6 @@ public:
 	const char *escape_string(char *target, const char* source, size_t len);// Add excape strings to make it safer
 
 protected:
-	MYSQL original_mysql_handle;
 	MYSQL mysqldb_handle;			// Connection ID
 
 	MYSQL_RES *result;
@@ -81,6 +275,7 @@ protected:
 	char mysqldb_pw[32];			// Password
 	char mysqldb_db[32];			// Database to use
 };
+
 
 
 class CAccountDB_sql : public CMySQL, private CConfig, public CAccountDBInterface
@@ -110,7 +305,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// construct/destruct
 	CAccountDB_sql(const char* configfile);
-	~CAccountDB_sql() {	close(); }
+	virtual ~CAccountDB_sql() {	close(); }
 
 	///////////////////////////////////////////////////////////////////////////
 	// functions for db interface
@@ -281,7 +476,7 @@ class CCharDB_sql : public CMySQL, private CConfig, public CCharDBInterface
 
 public:
 	CCharDB_sql(const char *dbcfgfile);
-	virtual ~CCharDB_sql(){}
+	virtual ~CCharDB_sql();
 
 private:
 

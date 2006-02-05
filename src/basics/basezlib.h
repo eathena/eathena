@@ -24,8 +24,10 @@
 
 
 //////////////////////////////////////////////////////////////////////////
-// tells the code to dynamically load an external library via name
+// tells the code to dynamically load an external library via library name
+// otherwise link zlib functions statically
 //#define BASE_ZLIB_DYNAMIC
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -121,6 +123,9 @@ public:
 	int decode(unsigned char *dest, unsigned long& destLen, const unsigned char* source, unsigned long sourceLen);
 	int encode(unsigned char *dest, unsigned long& destLen, const unsigned char* source, unsigned long sourceLen); 
 
+	// deflates from file to memory, 
+	// source is the zip-file, filename the file inside the zip archive
+	// calling with dest=NULL only returns the necessary size in destLen
 	bool deflate(unsigned char *dest, unsigned long& destLen, const char *source, const char *filename, const char *pass=NULL);
 
 };

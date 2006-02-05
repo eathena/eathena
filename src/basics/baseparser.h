@@ -224,32 +224,48 @@ public:
 	{
 		if( checkread(1) )
 		{
-			this->cScn++;
 			if( 10==*this->cScn )
 			{
 				this->line++;
 				this->column=0;
 			}
-			else if( 13 != *this->cScn )
+			else if( 13 != *this->cScn)
 				this->column++;
+
+			this->cScn++;
 		}
 	}
-	void rewind()
+	short get_char()
 	{
-		this->cScn=this->cRpp;
+		if( checkread(1) )
+		{
+			return (*((unsigned char*)this->cScn));
+		}
+		else
+			return  EEOF;
 	}
-	void accept()
+	// get the current character from the input stream
+	// to make sure that
+	short get_charstep()
 	{
-		this->cRpp=this->cScn;
-	}
-	// get the next character from the input stream
-	short get_char(bool reserve=true)
-	{
-		return checkread(1) ? (*((unsigned char*)this->cScn)) : EEOF;
+		if( checkread(1) )
+		{
+			if( 10==*this->cScn )
+			{
+				this->line++;
+				this->column=0;
+			}
+			else if( 13 != *this->cScn)
+				this->column++;
+
+			return (*((unsigned char*)this->cScn++));
+		}
+		else
+			return  EEOF;
 	}
 	bool get_eof(bool reserve=true)
 	{
-		return EEOF==get_char(reserve);
+		return !checkread(1);
 	}
 };
 

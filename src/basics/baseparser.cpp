@@ -143,40 +143,39 @@ bool CParser::MatchFunction(short type, const string<>& name, short symbol)
 	switch(type) {
 	case SymbolTypeCommentLine: // ;
 	{
-		c = this->input.get_char();
+		c = this->input.get_charstep();
 		while( c != EEOF )
 		{
 			if(c == 13 || c == 10)
-			{				
-				do
+			{	// skip all following returns
+				// note that nextchar/getchar are used here
+				c = this->input.get_char();
+				while (c == 13 || c == 10)
 				{
 					this->input.next_char();
 					c = this->input.get_char();
-				} while (c == 13 || c == 10);
+				}
 				break;
 			}
-
-			this->input.next_char();
-			c = this->input.get_char();
+			c = this->input.get_charstep();
 		}
 		return false;
 	}
 	case SymbolTypeCommentStart: // /* */
 	{
-		c = this->input.get_char();
+		c = this->input.get_charstep();
 		while( c != EEOF )
 		{
-			if (c == '*') {
-				this->input.next_char();
-				c = this->input.get_char();
-				if (c == EEOF || c == '/')
-				{
-					this->input.next_char();
+			if (c == '*')
+			{
+				c = this->input.get_charstep();
+				if(c == '/')
 					break;
-				}
 			}
-			this->input.next_char();
-			c = this->input.get_char();
+			else
+			{
+				c = this->input.get_charstep();
+			}
 		}
 		return false;
 	}
@@ -193,22 +192,24 @@ bool CParser_CommentStore::MatchFunction(short type, const string<>& name, short
 		size_t line = this->input.line;
 		string<> str;
 
-		c = this->input.get_char();
+		c = this->input.get_charstep();
 		while( c != EEOF )
 		{
 			if(c == 13 || c == 10)
-			{				
-				do
+			{
+				// skip all following returns
+				// note that nextchar/getchar are used here
+				c = this->input.get_char();
+				while (c == 13 || c == 10)
 				{
 					this->input.next_char();
 					c = this->input.get_char();
-				} while (c == 13 || c == 10);
+				}
 				break;
 			}
 			str.append( (char)c );
 
-			this->input.next_char();
-			c = this->input.get_char();
+			c = this->input.get_charstep();
 		}
 		str.trim();
 		cCommentList.append( CLineStorage(line, str) );
@@ -219,24 +220,22 @@ bool CParser_CommentStore::MatchFunction(short type, const string<>& name, short
 		size_t line = this->input.line;
 		string<> str;
 
-		c = this->input.get_char();
+		c = this->input.get_charstep();
 		while( c != EEOF )
 		{
 			if (c == '*')
 			{
-				this->input.next_char();
-				c = this->input.get_char();
-				if(c == EEOF || c == '/')
-				{
-					this->input.next_char();
+				c = this->input.get_charstep();
+				if(c == '/')
 					break;
-				}
-
-				str.append('*');
+				else
+					str.append('*');
 			}
-			str.append( (char)c );
-			this->input.next_char();
-			c = this->input.get_char();
+			else
+			{
+				str.append( (char)c );
+				c = this->input.get_charstep();
+			}
 		}
 		cCommentList.append( CLineStorage(line, str, true) );
 		return false;
@@ -265,13 +264,15 @@ short CParseInput::scan(CParser& parser, CToken& target)
 	// check for eof
 	if( this->get_eof(false) )
 		return 0;
+// for adding seperated chars to the lexeme
+	target.cLexeme.clear();
 
 	while(1)
 	{
 		int i=0;
 		int nedge=0;
 		// get char from input stream
-		c = this->get_char( (last_accepted == -1 || !dfa->Accept) );
+		c = this->get_charstep();
 
 		// convert to lower case
 		if(!parser.pconfig->case_sensitive && c != EEOF)
@@ -290,7 +291,10 @@ short CParseInput::scan(CParser& parser, CToken& target)
 					if (dfa->Accept)
 					{
 						last_accepted = dfa->AcceptIndex;
-						last_accepted_size = (this->cScn-this->cRpp) + 1;
+						last_accepted_size = (this->cScn-this->cRpp) ;// + 1;
+// adding seperated chars to the lexeme
+						target.cLexeme.append( (char)c );
+
 						last_accepted_line=this->line;
 						last_accepted_col=this->column;
 					}
@@ -306,8 +310,8 @@ short CParseInput::scan(CParser& parser, CToken& target)
 				// reset buffer counters to start right after the matched token
 				this->line = last_accepted_line;
 				this->column=last_accepted_col;
-
-				target.cLexeme.assign( this->cRpp, last_accepted_size );
+// not when adding seperated chars to the lexeme
+//				target.cLexeme.assign( this->cRpp, last_accepted_size );
 				this->cRpp+=last_accepted_size;
 				this->cScn=this->cRpp;
 			
@@ -330,8 +334,6 @@ short CParseInput::scan(CParser& parser, CToken& target)
 			}
 			break;
 		}
-		// move to next character
-		this->next_char();
 	}
 	if (last_accepted == -1)
 	{	// invalid

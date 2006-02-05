@@ -740,7 +740,7 @@ void memmer_exit(void)
 int memmgr_init(const char* file)
 {
 #if defined(USE_MEMMGR) && defined(LOG_MEMMGR)
-	sprintf(memmer_logfile, "log/%s.leaks", file);
+	snprintf(memmer_logfile, sizeof(memmer_logfile), "log/%s.leaks", file);
 	ShowStatus("Memory manager initialised: "CL_WHITE"%s"CL_RESET"\n", memmer_logfile);
 #endif
 	return 0;

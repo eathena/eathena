@@ -183,7 +183,7 @@ public:
 		if(bl.type == BL_PC )
 		{
 			struct map_session_data &sd=(struct map_session_data &)bl;
-			char name[50];
+			char name[64];
 
 			if (nd.flag&1)	// –³Œø‰»‚³‚ê‚Ä‚¢‚é
 				return 1;
@@ -191,7 +191,7 @@ public:
 				return 1;
 			sd.areanpc_id=nd.bl.id;
 
-			sprintf(name,"%s::OnTouch", nd.name);
+			snprintf(name,sizeof(name),"%s::OnTouch", nd.name);
 			npc_event(sd,name,0);
 		}
 		return 0;
@@ -553,19 +553,19 @@ int npc_event_do_clock(int tid, unsigned long tick, int id, intptr data)
 	}
 
 	if (t->tm_min != ev_tm_b.tm_min ) {
-		sprintf(buf,"OnMinute%02d",t->tm_min);
+		snprintf(buf,sizeof(buf),"OnMinute%02d",t->tm_min);
 		c+=npc_event_doall(buf);
-		sprintf(buf,"OnClock%02d%02d",t->tm_hour,t->tm_min);
+		snprintf(buf,sizeof(buf),"OnClock%02d%02d",t->tm_hour,t->tm_min);
 		c+=npc_event_doall(buf);
-		sprintf(buf,"On%s%02d%02d",day,t->tm_hour,t->tm_min);
+		snprintf(buf,sizeof(buf),"On%s%02d%02d",day,t->tm_hour,t->tm_min);
 		c+=npc_event_doall(buf);
 	}
 	if (t->tm_hour!= ev_tm_b.tm_hour) {
-		sprintf(buf,"OnHour%02d",t->tm_hour);
+		snprintf(buf,sizeof(buf),"OnHour%02d",t->tm_hour);
 		c+=npc_event_doall(buf);
 	}
 	if (t->tm_mday!= ev_tm_b.tm_mday) {
-		sprintf(buf,"OnDay%02d%02d",t->tm_mon+1,t->tm_mday);
+		snprintf(buf,sizeof(buf),"OnDay%02d%02d",t->tm_mon+1,t->tm_mday);
 		c+=npc_event_doall(buf);
 	}
 	memcpy(&ev_tm_b,t,sizeof(ev_tm_b));
@@ -992,13 +992,13 @@ int npc_touch_areanpc(struct map_session_data &sd, unsigned short m, int x,int y
 			break;
 		case SCRIPT:
 		{
-			char name[50]; // npc->name is 24 max + 9 for a possible ::OnTouch attachment
+			char name[64]; // npc->name is 24 max + 9 for a possible ::OnTouch attachment
 
 			if(sd.areanpc_id == map[m].npc[i]->bl.id)
 				return 1;
 			sd.areanpc_id = map[m].npc[i]->bl.id;
 
-			sprintf(name,"%s::OnTouch", map[m].npc[i]->name);
+			snprintf(name,sizeof(name),"%s::OnTouch", map[m].npc[i]->name);
 
 			if( npc_event(sd,name,0)>0 )
 				npc_click(sd,map[m].npc[i]->bl.id);

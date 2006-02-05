@@ -19,8 +19,9 @@
 /////////////////////////////////////////////////////////////////////////////
 class MiniString : public global
 {
-
 	TPtrAutoRef< TArrayDST<char> > cStrPtr;
+	//TPtrAutoRef< basevector<char> > cStrPtr;
+	//TObjPtr< basevector<char> > cStrPtr;
 
 	void copy(const char *c, size_t len=~0)
 	{	
@@ -281,15 +282,6 @@ public:
 	{
 		return append((b)?"true":"false", (b)?4:5);
 	}
-#ifdef WIN32
-	// on windows the uint32 uses the buildin __int32 type
-	MiniString& append(uint32 v)
-	{
-		char buf[128];
-		size_t sz = snprintf(buf,sizeof(buf), "%u", v);
-		return append(buf, sz);
-	}
-#endif
 	//////////////////////////////////////////////////////
 	template<class X> const MiniString& operator+=(const X& x)
 	{	

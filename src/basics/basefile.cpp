@@ -5,6 +5,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #ifdef WIN32
 // do not include this globally, it poisons the namespace
+#include <direct.h>
 #include <io.h>			// for access
 						// and also the modi are not defined in windows
 #define F_OK	0x0		// Existence only
@@ -392,7 +393,7 @@ bool findFiles(const char *p, const char *pat, void (func)(const char*) )
 			if (strcmp(FindFileData.cFileName, "..") == 0)
 				continue;
 
-			sprintf(tmppath,"%s%c%s",path,PATHSEP,FindFileData.cFileName);
+			snprintf(tmppath, sizeof(tmppath), "%s%c%s",path,PATHSEP,FindFileData.cFileName);
 
 			if (FindFileData.cFileName && strstr(FindFileData.cFileName, pattern)) {
 				func( tmppath );
@@ -436,7 +437,7 @@ bool findFiles(const char *p, const char *pat, void (func)(const char*) )
 		if (strcmp(entry->d_name, "..") == 0)
 			continue;
 
-		sprintf(tmppath,"%s%c%s",path, PATHSEP, entry->d_name);
+		snprintf(tmppath, sizeof(tmppath), "%s%c%s",path, PATHSEP, entry->d_name);
 
 		// check if the pattern matchs.
 		if (entry->d_name && strstr(entry->d_name, pattern)) {

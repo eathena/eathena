@@ -722,7 +722,7 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////
 
-int stringbuffer_test()
+int test_stringbuffer()
 {
 
 	{
@@ -738,6 +738,9 @@ int stringbuffer_test()
 
 		a = "  hallo  ";
 		b = a;
+
+
+
 
 		a.trim();
 		b.ltrim();
@@ -790,8 +793,8 @@ int stringbuffer_test()
 
 		char buffer[1024];
 
-		TString< char, allocator_w_dy<char, elaborator_st<char> > > aa;
-		TString< char, allocator_w_st<char, elaborator_st<char> > > bb(buffer,1024);
+		TString< char, allocator_ws_dy<char, elaborator_st<char> > > aa;
+		TString< char, allocator_ws_st<char, elaborator_st<char> > > bb(buffer,1024);
 
 		aa = bb;
 
@@ -860,7 +863,7 @@ size_t sz=0;
 	basestring<> sb;
 	MiniString a;
 
-
+	const size_t runs = 100000;
 
 
 	sa = "hallo";
@@ -868,27 +871,31 @@ size_t sz=0;
 	sa << "test" << 19999;
 
 	sb = sa + 111111;
+	ulong tick;
 
-	ulong tick = clock();
-	for(i=0; i<100000; i++)
+	tick = clock();
+	for(i=0; i<runs; i++)
 		sz = snprintf(buffer1, sizeof(buffer1), "hallo %i ballo %i no %lf", i, i*2/3+i, ((double)i)*1.3);
 	printf("sprintf %li\n", clock()-tick);
 
 	tick = clock();
-	for(i=0; i<100000; i++)
-		a = MiniString("hallo ") + (int)i + " ballo " + (int)(i*2/3+i) + " no " +(((double)i)*1.3);
+	for(i=0; i<runs; i++)
+	{
+		a.clear();
+		a << "hallo " << (int)i << " ballo " << (int)(i*2/3+i) << " no " <<(((double)i)*1.3);
+	}
 	printf("Ministring %li\n", clock()-tick);
 
 	tick = clock();
-	for(i=0; i<100000; i++)
+	for(i=0; i<runs; i++)
 	{
 		sa.clear();
 		sa << "hallo " << (int)i << " ballo " << (int)(i*2/3+i) << " no " << (((double)i)*1.3);
 	}
 	printf("staticstring %li\n", clock()-tick);
-	
+
 	tick = clock();
-	for(i=0; i<100000; i++)
+	for(i=0; i<runs; i++)
 	{
 		sb.clear();
 		sb << "hallo " << (int)i << " ballo " << (int)(i*2/3+i) << " no " << (((double)i)*1.3);
@@ -897,7 +904,7 @@ size_t sz=0;
 
 	string<> ds;
 	tick = clock();
-	for(i=0; i<100000; i++)
+	for(i=0; i<runs; i++)
 	{
 		ds.clear();
 		ds << "a";
@@ -1961,7 +1968,7 @@ void test_resize()
 } // test_resize
 
 
-int stringtest()
+int test_strings()
 {
 	test_constructors();
 	test_char_cast();

@@ -509,9 +509,9 @@ bool charcommand_petfriendly(int fd, struct map_session_data &sd,const char *com
  */
 bool charcommand_stats(int fd, struct map_session_data &sd,const char *command, const char *message)
 {
-	char character[100];
-	char job_jobname[100];
-	char output[200];
+	char character[128];
+	char job_jobname[128];
+	char output[256];
 	struct map_session_data *pl_sd;
 	int i;
 
@@ -544,11 +544,11 @@ bool charcommand_stats(int fd, struct map_session_data &sd,const char *command, 
 			{ "Zeny - %d",  pl_sd->status.zeny },
 			{ NULL, 0 }
 		};
-		sprintf(job_jobname, "Job - %s %s", job_name(pl_sd->status.class_), "(level %d)");
-		sprintf(output, msg_txt(53), pl_sd->status.name); // '%s' stats:
+		snprintf(job_jobname, sizeof(job_jobname), "Job - %s %s", job_name(pl_sd->status.class_), "(level %d)");
+		snprintf(output, sizeof(output), msg_txt(53), pl_sd->status.name); // '%s' stats:
 		clif_displaymessage(fd, output);
 		for (i = 0; output_table[i].format != NULL; i++) {
-			sprintf(output, output_table[i].format, output_table[i].value);
+			snprintf(output, sizeof(output), output_table[i].format, output_table[i].value);
 			clif_displaymessage(fd, output);
 		}
 	} else {
@@ -581,7 +581,7 @@ bool charcommand_reset(int fd, struct map_session_data &sd,const char *command, 
 		if (pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can reset a character only for lower or same GM level
 			pc_resetstate(*pl_sd);
 			pc_resetskill(*pl_sd);
-			sprintf(output, msg_txt(208), character); // '%s' skill and stats points reseted!
+			snprintf(output, sizeof(output), msg_txt(208), character); // '%s' skill and stats points reseted!
 			clif_displaymessage(fd, output);
 		} else {
 			clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
@@ -735,13 +735,13 @@ bool charcommand_stats_all(int fd, struct map_session_data &sd,const char *comma
 		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth) {
 
 			if (pc_isGM(*pl_sd) > 0)
-				sprintf(gmlevel, "| GM Lvl: %d", pc_isGM(*pl_sd));
+				snprintf(gmlevel, sizeof(gmlevel), "| GM Lvl: %d", pc_isGM(*pl_sd));
 			else
-				sprintf(gmlevel, " ");
+				snprintf(gmlevel, sizeof(gmlevel), " ");
 
-			sprintf(output, "Name: %s | BLvl: %d | Job: %s (Lvl: %d) | HP: %ld/%ld | SP: %ld/%ld", pl_sd->status.name, pl_sd->status.base_level, job_name(pl_sd->status.class_), pl_sd->status.job_level, (unsigned long)pl_sd->status.hp, (unsigned long)pl_sd->status.max_hp, (unsigned long)pl_sd->status.sp, (unsigned long)pl_sd->status.max_sp);
+			snprintf(output, sizeof(output), "Name: %s | BLvl: %d | Job: %s (Lvl: %d) | HP: %ld/%ld | SP: %ld/%ld", pl_sd->status.name, pl_sd->status.base_level, job_name(pl_sd->status.class_), pl_sd->status.job_level, (unsigned long)pl_sd->status.hp, (unsigned long)pl_sd->status.max_hp, (unsigned long)pl_sd->status.sp, (unsigned long)pl_sd->status.max_sp);
 			clif_displaymessage(fd, output);
-			sprintf(output, "STR: %d | AGI: %d | VIT: %d | INT: %d | DEX: %d | LUK: %d | Zeny: %ld %s", pl_sd->status.str, pl_sd->status.agi, pl_sd->status.vit, pl_sd->status.int_, pl_sd->status.dex, pl_sd->status.luk, (unsigned long)pl_sd->status.zeny, gmlevel);
+			snprintf(output, sizeof(output), "STR: %d | AGI: %d | VIT: %d | INT: %d | DEX: %d | LUK: %d | Zeny: %ld %s", pl_sd->status.str, pl_sd->status.agi, pl_sd->status.vit, pl_sd->status.int_, pl_sd->status.dex, pl_sd->status.luk, (unsigned long)pl_sd->status.zeny, gmlevel);
 			clif_displaymessage(fd, output);
 			clif_displaymessage(fd, "--------");
 			count++;
@@ -753,7 +753,7 @@ bool charcommand_stats_all(int fd, struct map_session_data &sd,const char *comma
 	else if (count == 1)
 		clif_displaymessage(fd, msg_txt(29)); // 1 player found.
 	else {
-		sprintf(output, msg_txt(30), count); // %d players found.
+		snprintf(output, sizeof(output), msg_txt(30), count); // %d players found.
 		clif_displaymessage(fd, output);
 	}
 
@@ -832,7 +832,7 @@ bool charcommand_itemlist(int fd, struct map_session_data &sd,const char *comman
 					counter = counter + pl_sd->status.inventory[i].amount;
 					count++;
 					if (count == 1) {
-						sprintf(output, "------ Items list of '%s' ------", pl_sd->status.name);
+						snprintf(output, sizeof(output), "------ Items list of '%s' ------", pl_sd->status.name);
 						clif_displaymessage(fd, output);
 					}
 					if ((equip = pl_sd->status.inventory[i].equip)) {
@@ -870,9 +870,9 @@ bool charcommand_itemlist(int fd, struct map_session_data &sd,const char *comman
 					} else
 						memset(equipstr, '\0', sizeof(equipstr));
 					if (sd.status.inventory[i].refine)
-						sprintf(output, "%d %s %+d (%s %+d, id: %d) %s", pl_sd->status.inventory[i].amount, item_data->name, pl_sd->status.inventory[i].refine, item_data->jname, pl_sd->status.inventory[i].refine, pl_sd->status.inventory[i].nameid, equipstr);
+						snprintf(output, sizeof(output), "%d %s %+d (%s %+d, id: %d) %s", pl_sd->status.inventory[i].amount, item_data->name, pl_sd->status.inventory[i].refine, item_data->jname, pl_sd->status.inventory[i].refine, pl_sd->status.inventory[i].nameid, equipstr);
 					else
-						sprintf(output, "%d %s (%s, id: %d) %s", pl_sd->status.inventory[i].amount, item_data->name, item_data->jname, pl_sd->status.inventory[i].nameid, equipstr);
+						snprintf(output, sizeof(output), "%d %s (%s, id: %d) %s", pl_sd->status.inventory[i].amount, item_data->name, item_data->jname, pl_sd->status.inventory[i].nameid, equipstr);
 					clif_displaymessage(fd, output);
 					memset(output, '\0', sizeof(output));
 					counter2 = 0;
@@ -880,9 +880,9 @@ bool charcommand_itemlist(int fd, struct map_session_data &sd,const char *comman
 						if (pl_sd->status.inventory[i].card[j]) {
 							if ((item_temp = itemdb_exists(pl_sd->status.inventory[i].card[j])) != NULL) {
 								if (output[0] == '\0')
-									sprintf(outputtmp, " -> (card(s): #%ld %s (%s), ", (unsigned long)(++counter2), item_temp->name, item_temp->jname);
+									snprintf(outputtmp, sizeof(outputtmp), " -> (card(s): #%ld %s (%s), ", (unsigned long)(++counter2), item_temp->name, item_temp->jname);
 								else
-									sprintf(outputtmp, "#%ld %s (%s), ", (unsigned long)(++counter2), item_temp->name, item_temp->jname);
+									snprintf(outputtmp, sizeof(outputtmp), "#%ld %s (%s), ", (unsigned long)(++counter2), item_temp->name, item_temp->jname);
 								strcat(output, outputtmp);
 							}
 						}
@@ -897,7 +897,7 @@ bool charcommand_itemlist(int fd, struct map_session_data &sd,const char *comman
 			if (count == 0)
 				clif_displaymessage(fd, "No item found on this player.");
 			else {
-				sprintf(output, "%ld item(s) found in %ld kind(s) of items.", (unsigned long)(counter), (unsigned long)(count));
+				snprintf(output, sizeof(output), "%ld item(s) found in %ld kind(s) of items.", (unsigned long)(counter), (unsigned long)(count));
 				clif_displaymessage(fd, output);
 			}
 		} else {
@@ -948,7 +948,7 @@ bool charcommand_storagelist(int fd, struct map_session_data &sd,const char *com
 	struct map_session_data *pl_sd;
 	struct item_data *item_data, *item_temp;
 	size_t i, j, count, counter, counter2;
-	char character[100], output[200], outputtmp[200];
+	char character[128], output[256], outputtmp[256];
 
 	memset(character, '\0', sizeof(character));
 	memset(output, '\0', sizeof(output));
@@ -969,13 +969,13 @@ bool charcommand_storagelist(int fd, struct map_session_data &sd,const char *com
 						counter = counter + stor->storage[i].amount;
 						count++;
 						if (count == 1) {
-							sprintf(output, "------ Storage items list of '%s' ------", pl_sd->status.name);
+							snprintf(output, sizeof(output), "------ Storage items list of '%s' ------", pl_sd->status.name);
 							clif_displaymessage(fd, output);
 						}
 						if (stor->storage[i].refine)
-							sprintf(output, "%d %s %+d (%s %+d, id: %d)", stor->storage[i].amount, item_data->name, stor->storage[i].refine, item_data->jname, stor->storage[i].refine, stor->storage[i].nameid);
+							snprintf(output, sizeof(output), "%d %s %+d (%s %+d, id: %d)", stor->storage[i].amount, item_data->name, stor->storage[i].refine, item_data->jname, stor->storage[i].refine, stor->storage[i].nameid);
 						else
-							sprintf(output, "%d %s (%s, id: %d)", stor->storage[i].amount, item_data->name, item_data->jname, stor->storage[i].nameid);
+							snprintf(output, sizeof(output), "%d %s (%s, id: %d)", stor->storage[i].amount, item_data->name, item_data->jname, stor->storage[i].nameid);
 						clif_displaymessage(fd, output);
 						memset(output, '\0', sizeof(output));
 						counter2 = 0;
@@ -983,9 +983,9 @@ bool charcommand_storagelist(int fd, struct map_session_data &sd,const char *com
 							if (stor->storage[i].card[j]) {
 								if ((item_temp = itemdb_exists(stor->storage[i].card[j])) != NULL) {
 									if (output[0] == '\0')
-										sprintf(outputtmp, " -> (card(s): #%ld %s (%s), ", (unsigned long)(++counter2), item_temp->name, item_temp->jname);
+										snprintf(outputtmp, sizeof(outputtmp), " -> (card(s): #%ld %s (%s), ", (unsigned long)(++counter2), item_temp->name, item_temp->jname);
 									else
-										sprintf(outputtmp, "#%ld %s (%s), ", (unsigned long)(++counter2), item_temp->name, item_temp->jname);
+										snprintf(outputtmp, sizeof(outputtmp), "#%ld %s (%s), ", (unsigned long)(++counter2), item_temp->name, item_temp->jname);
 									strcat(output, outputtmp);
 								}
 							}
@@ -1000,7 +1000,7 @@ bool charcommand_storagelist(int fd, struct map_session_data &sd,const char *com
 				if (count == 0)
 					clif_displaymessage(fd, "No item found in the storage of this player.");
 				else {
-					sprintf(output, "%ld item(s) found in %ld kind(s) of items.", (unsigned long)(counter), (unsigned long)(count));
+					snprintf(output, sizeof(output), "%ld item(s) found in %ld kind(s) of items.", (unsigned long)(counter), (unsigned long)(count));
 					clif_displaymessage(fd, output);
 				}
 			} else {
@@ -1588,7 +1588,7 @@ bool charcommand_skreset(int fd, struct map_session_data &sd,const char *command
 	if ((pl_sd = map_nick2sd(player)) != NULL) {
 		if (pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can reset skill points only lower or same gm level
 			pc_resetskill(*pl_sd);
-			sprintf(output, msg_txt(206), player); // '%s' skill points reseted!
+			snprintf(output, sizeof(output), msg_txt(206), player); // '%s' skill points reseted!
 			clif_displaymessage(fd, output);
 		} else {
 			clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
@@ -1620,7 +1620,7 @@ bool charcommand_streset(int fd, struct map_session_data &sd,const char *command
 	if ((pl_sd = map_nick2sd(player)) != NULL) {
 		if (pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can reset stats points only lower or same gm level
 			pc_resetstate(*pl_sd);
-			sprintf(output, msg_txt(207), player); // '%s' stats points reseted!
+			snprintf(output, sizeof(output), msg_txt(207), player); // '%s' stats points reseted!
 			clif_displaymessage(fd, output);
 		} else {
 			clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
@@ -1646,7 +1646,7 @@ bool charcommand_model(int fd, struct map_session_data &sd,const char *command, 
 	char output[128];
 
 	if (!message || !*message || sscanf(message, "%ld %ld %ld %23[^\n]", &hair_style, &hair_color, &cloth_color, player) < 4 || hair_style < 0 || hair_color < 0 || cloth_color < 0) {
-		sprintf(output, "Please, enter a valid model and a player name (usage: @charmodel <hair ID: %d-%d> <hair color: %d-%d> <clothes color: %d-%d> <name>).",
+		snprintf(output, sizeof(output), "Please, enter a valid model and a player name (usage: @charmodel <hair ID: %d-%d> <hair color: %d-%d> <clothes color: %d-%d> <name>).",
 				MIN_HAIR_STYLE, MAX_HAIR_STYLE, MIN_HAIR_COLOR, MAX_HAIR_COLOR, MIN_CLOTH_COLOR, MAX_CLOTH_COLOR);
 		clif_displaymessage(fd, output);
 		return false;

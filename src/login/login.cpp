@@ -314,13 +314,13 @@ bool check_ipmask(uint32 ip, const unsigned char *str)
 bool check_ip(uint32 ip)
 {
 	int i;
-	unsigned char *p = (unsigned char *)&ip;
 	char buf[16];
 	char * access_ip;
 	enum { ACF_DEF, ACF_ALLOW, ACF_DENY } flag = ACF_DEF;
-
+	
 	if (access_allownum == 0 && access_denynum == 0)
 		return 1; // When there is no restriction, all IP are authorised.
+
 
 //	+   012.345.: front match form, or
 //	    all: all IP are matched, or
@@ -331,7 +331,7 @@ bool check_ip(uint32 ip)
 //	    If we have an answer, there is no guarantee to have a 100% correct value.
 //	    And, the waiting time (to check) can be long (over 1 minute to a timeout). That can block the software.
 //	    So, DNS notation isn't authorised for ip checking.
-	sprintf(buf, "%d.%d.%d.%d.", p[0], p[1], p[2], p[3]);
+	((ipaddress)ip).tostring(buf,sizeof(buf));
 
 	for(i = 0; i < access_allownum; i++) {
 		access_ip = access_allow + i * ACO_STRSIZE;
@@ -364,7 +364,6 @@ bool check_ip(uint32 ip)
 bool check_ladminip(uint32 ip)
 {
 	int i;
-	unsigned char *p = (unsigned char *)&ip;
 	char buf[16];
 	char * access_ip;
 
@@ -380,7 +379,7 @@ bool check_ladminip(uint32 ip)
 //	    If we have an answer, there is no guarantee to have a 100% correct value.
 //	    And, the waiting time (to check) can be long (over 1 minute to a timeout). That can block the software.
 //	    So, DNS notation isn't authorised for ip checking.
-	sprintf(buf, "%d.%d.%d.%d.", p[0], p[1], p[2], p[3]);
+	((ipaddress)ip).tostring(buf,sizeof(buf));
 
 	for(i = 0; i < access_ladmin_allownum; i++)
 	{
@@ -2529,9 +2528,9 @@ int parse_login(int fd)
 					else {
 						char md5str[64] = "", md5bin[32];
 						if (RFIFOW(fd,2) == 1) {
-							sprintf(md5str, "%s%s", ld->md5key, admin_pass); // 20 24
+							snprintf(md5str, sizeof(md5str),"%s%s", ld->md5key, admin_pass); // 20 24
 						} else if (RFIFOW(fd,2) == 2) {
-							sprintf(md5str, "%s%s", admin_pass, ld->md5key); // 24 20
+							snprintf(md5str, sizeof(md5str),"%s%s", admin_pass, ld->md5key); // 24 20
 						}
 						MD5_String2binary(md5str, md5bin);
 						// If remote administration is enabled and password hash sent by client matches hash of password read from login server configuration file

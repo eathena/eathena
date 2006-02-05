@@ -3468,9 +3468,9 @@ int parse_fromlogin(int fd)
 			} else {
 				char tmpstr[256];
 				if (defaultlanguage == 'F') {
-					sprintf(tmpstr, "Statut du compte [%s] changé avec succès en [", RFIFOP(fd,6));
+					snprintf(tmpstr, sizeof(tmpstr), "Statut du compte [%s] changé avec succès en [", RFIFOP(fd,6));
 				} else {
-					sprintf(tmpstr, "Account [%s] state successfully changed in [", RFIFOP(fd,6));
+					snprintf(tmpstr, sizeof(tmpstr), "Account [%s] state successfully changed in [", RFIFOP(fd,6));
 				}
 				switch(RFIFOL(fd,30)) {
 				case 0:
@@ -4174,7 +4174,7 @@ int ladmin_config_read(const char *cfgName) {
 					} else {
 						ShowMessage("Login server IP address: %s -> %d.%d.%d.%d\n", w2, (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
 					}
-					sprintf(loginserverip, "%d.%d.%d.%d", (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
+					snprintf(loginserverip, sizeof(loginserverip), "%d.%d.%d.%d", (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
 				} else
 					memcpy(loginserverip, w2, 16);
 			} else if (strcasecmp(w1, "login_port") == 0) {

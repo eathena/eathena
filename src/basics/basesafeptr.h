@@ -138,24 +138,24 @@ protected:
 		}
 	};
 */
-	CCounter<X>* itsCounter;
+	CCounter<X>* cCntObj;
 
 	void acquire(const TPtrCount<X>& r) throw()
 	{	// check if not already pointing to the same object
-		if( this->itsCounter != r.itsCounter ||  NULL==this->itsCounter )
+		if( this->cCntObj != r.cCntObj ||  NULL==this->cCntObj )
 		{	// save the current pointer
-			CCounter<X> *old = this->itsCounter;
+			CCounter<X> *old = this->cCntObj;
 			// aquite and increment the given pointer
-			if( r.itsCounter )
+			if( r.cCntObj )
 			{
-				this->itsCounter = r.itsCounter;
-				this->itsCounter->aquire();
+				this->cCntObj = r.cCntObj;
+				this->cCntObj->aquire();
 			}
 			else
 			{	// new empty counter to link the pointers
-				this->itsCounter = new CCounter<X>(NULL);
-				const_cast<TPtrCount&>(r).itsCounter = this->itsCounter;
-				this->itsCounter->aquire();
+				this->cCntObj = new CCounter<X>(NULL);
+				const_cast<TPtrCount&>(r).cCntObj = this->cCntObj;
+				this->cCntObj->aquire();
 			}
 			// release the old thing
 			if(old) old->release();
@@ -163,22 +163,22 @@ protected:
 	}
 	void release()
 	{	// decrement the count, clear the handle
-		if(this->itsCounter) itsCounter = itsCounter->release();
+		if(this->cCntObj) cCntObj = cCntObj->release();
 	}
 	void checkobject()
 	{	// check if we have an object to access, create one if not
-		if(!this->itsCounter)		this->itsCounter		= new (typename TPtrCount<X>::template CCounter<X>)(NULL);
+		if(!this->cCntObj)		this->cCntObj		= new (typename TPtrCount<X>::template CCounter<X>)(NULL);
 		// usable objects need a default constructor
-		if(!this->itsCounter->ptr)	this->itsCounter->ptr	= new X; 
+		if(!this->cCntObj->ptr)	this->cCntObj->ptr	= new X; 
 	}
 
 
 public:
-	TPtrCount<X>() : itsCounter(NULL)
+	TPtrCount<X>() : cCntObj(NULL)
 	{ }
-	explicit TPtrCount<X>(X* p) : itsCounter(p?new CCounter<X>(p):NULL)
+	explicit TPtrCount<X>(X* p) : cCntObj(p?new CCounter<X>(p):NULL)
 	{ }
-	TPtrCount<X>(const TPtrCount<X>& r) : itsCounter(NULL)
+	TPtrCount<X>(const TPtrCount<X>& r) : cCntObj(NULL)
 	{
 		this->acquire(r);
 	}
@@ -193,143 +193,143 @@ public:
 	}
 	TPtrCount<X>& operator=(X* p)
 	{	// take ownership of the given pointer
-		if( this->itsCounter )
+		if( this->cCntObj )
 		{	
 			make_unique();
-			*this->itsCounter = p;
+			*this->cCntObj = p;
 		}
 		else
 		{
-			this->itsCounter = new CCounter<X>(p);
+			this->cCntObj = new CCounter<X>(p);
 		}
 		return *this;
 	}
 
 //	MSVC cannot seperate this from own copy constructor
 //	template <class P1>
-//	TPtrCount<X>(P1& p1) : itsCounter(NULL)
+//	TPtrCount<X>(P1& p1) : cCntObj(NULL)
 //	{
-//		this->itsCounter = new CCounter<X>( new X(p1) );
+//		this->cCntObj = new CCounter<X>( new X(p1) );
 //	}
 	template <class P1, class P2>
-	TPtrCount<X>(P1& p1, P2& p2) : itsCounter(NULL)
+	TPtrCount<X>(P1 p1, P2 p2) : cCntObj(NULL)
 	{
-		this->itsCounter = new CCounter<X>( new X(p1,p2) );
+		this->cCntObj = new CCounter<X>( new X(p1,p2) );
 	}
 	template <class P1, class P2, class P3>
-	TPtrCount<X>(P1& p1, P2& p2, P3& p3) : itsCounter(NULL)
+	TPtrCount<X>(P1 p1, P2 p2, P3 p3) : cCntObj(NULL)
 	{
-		this->itsCounter = new CCounter<X>( new X(p1,p2,p3) );
+		this->cCntObj = new CCounter<X>( new X(p1,p2,p3) );
 	}
 	template <class P1, class P2, class P3, class P4>
-	TPtrCount<X>(P1& p1, P2& p2, P3& p3, P4& p4) : itsCounter(NULL)
+	TPtrCount<X>(P1 p1, P2 p2, P3 p3, P4 p4) : cCntObj(NULL)
 	{
-		this->itsCounter = new CCounter<X>( new X(p1,p2,p3,p4) );
+		this->cCntObj = new CCounter<X>( new X(p1,p2,p3,p4) );
 	}
 	template <class P1, class P2, class P3, class P4, class P5>
-	TPtrCount<X>(P1& p1, P2& p2, P3& p3, P4& p4, P5& p5) : itsCounter(NULL)
+	TPtrCount<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5) : cCntObj(NULL)
 	{
-		this->itsCounter = new CCounter<X>( new X(p1,p2,p3,p4,p5) );
+		this->cCntObj = new CCounter<X>( new X(p1,p2,p3,p4,p5) );
 	}
 	template <class P1, class P2, class P3, class P4, class P5, class P6>
-	TPtrCount<X>(P1& p1, P2& p2, P3& p3, P4& p4, P5& p5, P6& p6) : itsCounter(NULL)
+	TPtrCount<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6) : cCntObj(NULL)
 	{
-		this->itsCounter = new CCounter<X>( new X(p1,p2,p3,p4,p5,p6) );
+		this->cCntObj = new CCounter<X>( new X(p1,p2,p3,p4,p5,p6) );
 	}
 	template <class P1, class P2, class P3, class P4, class P5, class P6, class P7>
-	TPtrCount<X>(P1& p1, P2& p2, P3& p3, P4& p4, P5& p5, P6& p6, P7& p7) : itsCounter(NULL)
+	TPtrCount<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7) : cCntObj(NULL)
 	{
-		this->itsCounter = new CCounter<X>( new X(p1,p2,p3,p4,p5,p6,p7) );
+		this->cCntObj = new CCounter<X>( new X(p1,p2,p3,p4,p5,p6,p7) );
 	}
 
-	const size_t getRefCount() const { return (this->itsCounter) ? this->itsCounter->count : 1;}
-	bool clear()					{ this->release(); return this->itsCounter==NULL; }
-	bool exists() const				{ return NULL!=this->itsCounter && NULL!=this->itsCounter->ptr; }
-	bool isunique()	const throw()	{ return (this->itsCounter ? (itsCounter->count == 1):true);}
+	const size_t getRefCount() const { return (this->cCntObj) ? this->cCntObj->count : 1;}
+	bool clear()					{ this->release(); return this->cCntObj==NULL; }
+	bool exists() const				{ return NULL!=this->cCntObj && NULL!=this->cCntObj->ptr; }
+	bool isunique()	const throw()	{ return (this->cCntObj ? (cCntObj->count == 1):true);}
 	bool make_unique()	  throw()
 	{
 		if( !isunique() )
 		{
 			CCounter<X> *cnt = new CCounter<X>(NULL);
 			// copy the object if exist
-			if(this->itsCounter && this->itsCounter->ptr)
+			if(this->cCntObj && this->cCntObj->ptr)
 			{
-				cnt->ptr = new X(*(this->itsCounter->ptr));
+				cnt->ptr = new X(*(this->cCntObj->ptr));
 			}
 			release();
-			itsCounter = cnt;
+			cCntObj = cnt;
 		}
 		return true;
 	}
-	virtual bool operator ==(const TPtrCount<X>& p) const { return this->itsCounter == p.itsCounter; }
-	virtual bool operator !=(const TPtrCount<X>& p) const { return this->itsCounter != p.itsCounter; }
-	virtual bool operator ==(void *p) const { return (this->itsCounter) ? (this->itsCounter->ptr==p) : (this->itsCounter==p); }
-	virtual bool operator !=(void *p) const { return (this->itsCounter) ? (this->itsCounter->ptr!=p) : (this->itsCounter!=p); }
+	virtual bool operator ==(const TPtrCount<X>& p) const { return this->cCntObj == p.cCntObj; }
+	virtual bool operator !=(const TPtrCount<X>& p) const { return this->cCntObj != p.cCntObj; }
+	virtual bool operator ==(void *p) const { return (this->cCntObj) ? (this->cCntObj->ptr==p) : (this->cCntObj==p); }
+	virtual bool operator !=(void *p) const { return (this->cCntObj) ? (this->cCntObj->ptr!=p) : (this->cCntObj!=p); }
 
 
-	virtual const X& readaccess() const			{ return *this->itsCounter->ptr; }
-	virtual X& writeaccess()					{ return *this->itsCounter->ptr; }
+	virtual const X& readaccess() const			{ return *this->cCntObj->ptr; }
+	virtual X& writeaccess()					{ return *this->cCntObj->ptr; }
 
-	virtual const X* get() const				{ return this->itsCounter ?  this->itsCounter->ptr : 0; }
-	virtual const X& operator*() const throw()	{ return *this->itsCounter->ptr; }
-	virtual const X* operator->() const throw()	{ return this->itsCounter ?  this->itsCounter->ptr : 0; }
-	virtual X& operator*() throw()				{ return *this->itsCounter->ptr; }
-	virtual X* operator->() throw()				{ return this->itsCounter ?  this->itsCounter->ptr : 0; }
-	virtual operator const X&() const throw()	{ return *this->itsCounter->ptr; }
+	virtual const X* get() const				{ return this->cCntObj ?  this->cCntObj->ptr : 0; }
+	virtual const X& operator*() const throw()	{ return *this->cCntObj->ptr; }
+	virtual const X* operator->() const throw()	{ return this->cCntObj ?  this->cCntObj->ptr : 0; }
+	virtual X& operator*() throw()				{ return *this->cCntObj->ptr; }
+	virtual X* operator->() throw()				{ return this->cCntObj ?  this->cCntObj->ptr : 0; }
+	virtual operator const X&() const throw()	{ return *this->cCntObj->ptr; }
 
 	const TPtrCount<X>& create ()
 	{
 		clear();
-		this->itsCounter = new CCounter<X>( );
+		this->cCntObj = new CCounter<X>( );
 		return *this;
 	}
 	template <class P1>
 	const TPtrCount<X>& create (P1& p1)
 	{
 		clear();
-		this->itsCounter = new CCounter<X>( X(p1) );
+		this->cCntObj = new CCounter<X>( X(p1) );
 		return *this;
 	}
 	template <class P1, class P2>
 	const TPtrCount<X>& create (P1& p1, P2& p2)
 	{
 		clear();
-		this->itsCounter = new CCounter<X>( X(p1,p2) );
+		this->cCntObj = new CCounter<X>( X(p1,p2) );
 		return *this;
 	}
 	template <class P1, class P2, class P3>
 	const TPtrCount<X>& create (P1& p1, P2& p2, P3& p3)
 	{
 		clear();
-		this->itsCounter = new CCounter<X>( X(p1,p2,p3) );
+		this->cCntObj = new CCounter<X>( X(p1,p2,p3) );
 		return *this;
 	}
 	template <class P1, class P2, class P3, class P4>
 	const TPtrCount<X>& create (P1& p1, P2& p2, P3& p3, P4& p4)
 	{
 		clear();
-		this->itsCounter = new CCounter<X>( X(p1,p2,p3,p4) );
+		this->cCntObj = new CCounter<X>( X(p1,p2,p3,p4) );
 		return *this;
 	}
 	template <class P1, class P2, class P3, class P4, class P5>
 	const TPtrCount<X>& create (P1& p1, P2& p2, P3& p3, P4& p4, P5& p5)
 	{
 		clear();
-		this->itsCounter = new CCounter<X>( X(p1,p2,p3,p4,p5) );
+		this->cCntObj = new CCounter<X>( X(p1,p2,p3,p4,p5) );
 		return *this;
 	}
 	template <class P1, class P2, class P3, class P4, class P5, class P6>
 	const TPtrCount<X>& create (P1& p1, P2& p2, P3& p3, P4& p4, P5& p5, P6& p6)
 	{
 		clear();
-		this->itsCounter = new CCounter<X>( X(p1,p2,p3,p4,p5,p6) );
+		this->cCntObj = new CCounter<X>( X(p1,p2,p3,p4,p5,p6) );
 		return *this;
 	}
 	template <class P1, class P2, class P3, class P4, class P5, class P6, class P7>
 	const TPtrCount<X>& create (P1& p1, P2& p2, P3& p3, P4& p4, P5& p5, P6& p6, P7& p7)
 	{
 		clear();
-		this->itsCounter = new CCounter<X>( X(p1,p2,p3,p4,p5,p6,p7) );
+		this->cCntObj = new CCounter<X>( X(p1,p2,p3,p4,p5,p6,p7) );
 		return *this;
 	}
 };
@@ -355,32 +355,32 @@ public:
 //	TPtrAutoCount<X>(P1& p1) : TPtrCount<X>(p1)
 //	{ }
 	template <class P1, class P2>
-	TPtrAutoCount<X>(P1& p1, P2& p2) : TPtrCount<X>(p1,p2)
+	TPtrAutoCount<X>(P1 p1, P2 p2) : TPtrCount<X>(p1,p2)
 	{ }
 	template <class P1, class P2, class P3>
-	TPtrAutoCount<X>(P1& p1, P2& p2, P3& p3) : TPtrCount<X>(p1,p2,p3)
+	TPtrAutoCount<X>(P1 p1, P2 p2, P3 p3) : TPtrCount<X>(p1,p2,p3)
 	{ }
 	template <class P1, class P2, class P3, class P4>
-	TPtrAutoCount<X>(P1& p1, P2& p2, P3& p3, P4& p4) : TPtrCount<X>(p1,p2,p3,p4)
+	TPtrAutoCount<X>(P1 p1, P2 p2, P3 p3, P4 p4) : TPtrCount<X>(p1,p2,p3,p4)
 	{ }
 	template <class P1, class P2, class P3, class P4, class P5>
-	TPtrAutoCount<X>(P1& p1, P2& p2, P3& p3, P4& p4, P5& p5) : TPtrCount<X>(p1,p2,p3,p4,p5)
+	TPtrAutoCount<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5) : TPtrCount<X>(p1,p2,p3,p4,p5)
 	{ }
 	template <class P1, class P2, class P3, class P4, class P5, class P6>
-	TPtrAutoCount<X>(P1& p1, P2& p2, P3& p3, P4& p4, P5& p5, P6& p6) : TPtrCount<X>(p1,p2,p3,p4,p5,p6)
+	TPtrAutoCount<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6) : TPtrCount<X>(p1,p2,p3,p4,p5,p6)
 	{ }
 	template <class P1, class P2, class P3, class P4, class P5, class P6, class P7>
-	TPtrAutoCount<X>(P1& p1, P2& p2, P3& p3, P4& p4, P5& p5, P6& p6, P7& p7) : TPtrCount<X>(p1,p2,p3,p4,p5,p6,p7)
+	TPtrAutoCount<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7) : TPtrCount<X>(p1,p2,p3,p4,p5,p6,p7)
 	{ }
 
-	virtual const X& readaccess() const			{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return *this->itsCounter->ptr; }
-	virtual X& writeaccess()					{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return *this->itsCounter->ptr; }
-	virtual const X* get() const				{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return this->itsCounter ? this->itsCounter->ptr : NULL; }
-	virtual const X& operator*() const throw()	{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return *this->itsCounter->ptr; }
-	virtual const X* operator->() const throw()	{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return this->itsCounter ? this->itsCounter->ptr : NULL; }
-	virtual X& operator*() throw()				{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return *this->itsCounter->ptr; }
-	virtual X* operator->() throw()				{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return this->itsCounter ? this->itsCounter->ptr : NULL; }
-	virtual operator const X&() const throw()	{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return *this->itsCounter->ptr; }
+	virtual const X& readaccess() const			{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return *this->cCntObj->ptr; }
+	virtual X& writeaccess()					{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return *this->cCntObj->ptr; }
+	virtual const X* get() const				{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return this->cCntObj ? this->cCntObj->ptr : NULL; }
+	virtual const X& operator*() const throw()	{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return *this->cCntObj->ptr; }
+	virtual const X* operator->() const throw()	{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return this->cCntObj ? this->cCntObj->ptr : NULL; }
+	virtual X& operator*() throw()				{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return *this->cCntObj->ptr; }
+	virtual X* operator->() throw()				{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return this->cCntObj ? this->cCntObj->ptr : NULL; }
+	virtual operator const X&() const throw()	{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return *this->cCntObj->ptr; }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -404,42 +404,42 @@ public:
 //	TPtrAutoRef<X>(P1 p1) : TPtrCount<X>(p1)
 //	{ }
 	template <class P1, class P2>
-	TPtrAutoRef<X>(P1& p1, P2& p2) : TPtrCount<X>(p1,p2)
+	TPtrAutoRef<X>(P1 p1, P2 p2) : TPtrCount<X>(p1,p2)
 	{ }
 	template <class P1, class P2, class P3>
-	TPtrAutoRef<X>(P1& p1, P2& p2, P3& p3) : TPtrCount<X>(p1,p2,p3)
+	TPtrAutoRef<X>(P1 p1, P2 p2, P3 p3) : TPtrCount<X>(p1,p2,p3)
 	{ }
 	template <class P1, class P2, class P3, class P4>
-	TPtrAutoRef<X>(P1& p1, P2& p2, P3& p3, P4& p4) : TPtrCount<X>(p1,p2,p3,p4)
+	TPtrAutoRef<X>(P1 p1, P2 p2, P3 p3, P4 p4) : TPtrCount<X>(p1,p2,p3,p4)
 	{ }
 	template <class P1, class P2, class P3, class P4, class P5>
-	TPtrAutoRef<X>(P1& p1, P2& p2, P3& p3, P4& p4, P5& p5) : TPtrCount<X>(p1,p2,p3,p4,p5)
+	TPtrAutoRef<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5) : TPtrCount<X>(p1,p2,p3,p4,p5)
 	{ }
 	template <class P1, class P2, class P3, class P4, class P5, class P6>
-	TPtrAutoRef<X>(P1& p1, P2& p2, P3& p3, P4& p4, P5& p5, P6& p6) : TPtrCount<X>(p1,p2,p3,p4,p5,p6)
+	TPtrAutoRef<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6) : TPtrCount<X>(p1,p2,p3,p4,p5,p6)
 	{ }
 	template <class P1, class P2, class P3, class P4, class P5, class P6, class P7>
-	TPtrAutoRef<X>(P1& p1, P2& p2, P3& p3, P4& p4, P5& p5, P6& p6, P7& p7) : TPtrCount<X>(p1,p2,p3,p4,p5,p6,p7)
+	TPtrAutoRef<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7) : TPtrCount<X>(p1,p2,p3,p4,p5,p6,p7)
 	{ }
 
 	virtual const X& readaccess() const	
 	{ 
 		const_cast< TPtrAutoRef* >(this)->checkobject();	
 		// no need to aquire, is done on reference creation
-		return *this->itsCounter->ptr;
+		return *this->cCntObj->ptr;
 	}
 	virtual X& writeaccess()
 	{
 		this->checkobject();
 		this->make_unique();
 		// no need to aquire, is done on reference creation
-		return *this->itsCounter->ptr;
+		return *this->cCntObj->ptr;
 	}
-	virtual const X* get() const					{ this->readaccess(); return this->itsCounter ? this->itsCounter->ptr : NULL; }
+	virtual const X* get() const					{ this->readaccess(); return this->cCntObj ? this->cCntObj->ptr : NULL; }
 	virtual const X& operator*()	const throw()	{ return this->readaccess(); }
-	virtual const X* operator->()	const throw()	{ this->readaccess(); return this->itsCounter ? this->itsCounter->ptr : NULL; }
+	virtual const X* operator->()	const throw()	{ this->readaccess(); return this->cCntObj ? this->cCntObj->ptr : NULL; }
 	virtual X& operator*()	throw()					{ return this->writeaccess();}
-	virtual X* operator->()	throw()					{ this->writeaccess(); return this->itsCounter ? this->itsCounter->ptr : NULL; }
+	virtual X* operator->()	throw()					{ this->writeaccess(); return this->cCntObj ? this->cCntObj->ptr : NULL; }
 	virtual operator const X&() const throw()		{ return this->readaccess(); }
 };
 
@@ -469,22 +469,22 @@ public:
 //	TPtrCommon<X>(P1 p1) : TPtrCount<X>(p1)
 //	{ }
 	template <class P1, class P2>
-	TPtrCommon<X>(P1& p1, P2& p2) : TPtrCount<X>(p1,p2)
+	TPtrCommon<X>(P1 p1, P2 p2) : TPtrCount<X>(p1,p2)
 	{ }
 	template <class P1, class P2, class P3>
-	TPtrCommon<X>(P1& p1, P2& p2, P3& p3) : TPtrCount<X>(p1,p2,p3)
+	TPtrCommon<X>(P1 p1, P2 p2, P3 p3) : TPtrCount<X>(p1,p2,p3)
 	{ }
 	template <class P1, class P2, class P3, class P4>
-	TPtrCommon<X>(P1& p1, P2& p2, P3& p3, P4& p4) : TPtrCount<X>(p1,p2,p3,p4)
+	TPtrCommon<X>(P1 p1, P2 p2, P3 p3, P4 p4) : TPtrCount<X>(p1,p2,p3,p4)
 	{ }
 	template <class P1, class P2, class P3, class P4, class P5>
-	TPtrCommon<X>(P1& p1, P2& p2, P3& p3, P4& p4, P5& p5) : TPtrCount<X>(p1,p2,p3,p4,p5)
+	TPtrCommon<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5) : TPtrCount<X>(p1,p2,p3,p4,p5)
 	{ }
 	template <class P1, class P2, class P3, class P4, class P5, class P6>
-	TPtrCommon<X>(P1& p1, P2& p2, P3& p3, P4& p4, P5& p5, P6& p6) : TPtrCount<X>(p1,p2,p3,p4,p5,p6)
+	TPtrCommon<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6) : TPtrCount<X>(p1,p2,p3,p4,p5,p6)
 	{ }
 	template <class P1, class P2, class P3, class P4, class P5, class P6, class P7>
-	TPtrCommon<X>(P1& p1, P2& p2, P3& p3, P4& p4, P5& p5, P6& p6, P7& p7) : TPtrCount<X>(p1,p2,p3,p4,p5,p6,p7)
+	TPtrCommon<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7) : TPtrCount<X>(p1,p2,p3,p4,p5,p6,p7)
 	{ }
 
 	void setaccess(POINTER_TYPE pt)	const
@@ -497,22 +497,287 @@ public:
 	{ 
 		const_cast< TPtrCommon<X>* >(this)->checkobject();	
 		// no need to aquire, is done on reference creation
-		return *this->itsCounter->ptr;
+		return *this->cCntObj->ptr;
 	}
 	virtual X& writeaccess()
 	{
 		this->checkobject();
 		if(cAutoRef) this->make_unique();
 		// no need to aquire, is done on reference creation
-		return *this->itsCounter->ptr;
+		return *this->cCntObj->ptr;
 	}
-	virtual const X* get() const					{ readaccess(); return this->itsCounter ? this->itsCounter->ptr : NULL; }
+	virtual const X* get() const					{ readaccess(); return this->cCntObj ? this->cCntObj->ptr : NULL; }
 	virtual const X& operator*()	const throw()	{ return readaccess(); }
-	virtual const X* operator->()	const throw()	{ readaccess(); return this->itsCounter ? this->itsCounter->ptr : NULL; }
+	virtual const X* operator->()	const throw()	{ readaccess(); return this->cCntObj ? this->cCntObj->ptr : NULL; }
 	virtual X& operator*()	throw()					{ return writeaccess();}
-	virtual X* operator->()	throw()					{ writeaccess(); return this->itsCounter ? this->itsCounter->ptr : NULL; }
+	virtual X* operator->()	throw()					{ writeaccess(); return this->cCntObj ? this->cCntObj->ptr : NULL; }
 	virtual operator const X&() const throw()		{ return readaccess(); }
 };
+
+
+
+template <class X> class TObjPtr : public TPtr<X>
+{
+protected:
+	template <class T> class CCounter
+	{
+	public:
+		T				ptr;
+		unsigned int	count;
+
+		CCounter() : count(1) { }
+		CCounter(const T& p) : ptr(p), count(1) { }
+		CCounter(const CCounter& c) : ptr(c.p), count(1) { }
+		const CCounter& operator=(const CCounter& c)
+		{
+			this->ptr = c.ptr;
+		}
+		~CCounter()	{ }
+
+		operator T()	{  return ptr; }
+
+		CCounter<T>* aquire()
+		{
+			atomicincrement( &count );
+			return this;
+		}
+		CCounter<T>* release()
+		{
+			if( atomicdecrement( &count ) == 0 )
+			{
+				delete this;
+			}
+			return NULL;
+		}
+
+		template <class P1, class P2>
+		CCounter<T>(P1& p1, P2& p2) : ptr(p1,p2), count(1)
+		{ }
+		template <class P1, class P2, class P3>
+		CCounter<T>(P1& p1, P2& p2, P3& p3) : ptr(p1,p2,p3), count(1)
+		{ }
+		template <class P1, class P2, class P3, class P4>
+		CCounter<T>(P1& p1, P2& p2, P3& p3, P4& p4) : ptr(p1,p2,p3,p4), count(1)
+		{ }
+		template <class P1, class P2, class P3, class P4, class P5>
+		CCounter<T>(P1& p1, P2& p2, P3& p3, P4& p4, P5& p5) : ptr(p1,p2,p3,p4,p5), count(1)
+		{ }
+		template <class P1, class P2, class P3, class P4, class P5, class P6>
+		CCounter<T>(P1& p1, P2& p2, P3& p3, P4& p4, P5& p5, P6& p6) : ptr(p1,p2,p3,p4,p5,p6), count(1)
+		{ }
+		template <class P1, class P2, class P3, class P4, class P5, class P6, class P7>
+		CCounter<T>(P1& p1, P2& p2, P3& p3, P4& p4, P5& p5, P6& p6, P7& p7) : ptr(p1,p2,p3,p4,p5,p6,p7), count(1)
+		{ }
+	};
+
+	CCounter<X>* cCntObj;
+	mutable X& (TObjPtr<X>::*fAccess)(void) const;
+
+	void acquire(const TObjPtr<X>& r) throw()
+	{	// check if not already pointing to the same object
+		if( this->cCntObj != r.cCntObj )
+		{	// save the current pointer
+			CCounter<X> *old = this->cCntObj;
+			// aquite and increment the given pointer
+			if( r.cCntObj )
+			{
+				this->cCntObj = r.cCntObj;
+				this->cCntObj->aquire();
+			}
+			else
+				this->cCntObj=NULL;
+			// release the old thing
+			if(old) old->release();
+		}
+	}
+	void release()
+	{	// decrement the count, clear the handle
+		if(this->cCntObj) cCntObj = cCntObj->release();
+	}
+	void checkobject()
+	{	// check if we have an object to access, create one if not
+		// usable objects here need a default constructor
+		if(!this->cCntObj)		this->cCntObj		= new (typename TObjPtr<X>::template CCounter<X>)();
+	}
+	virtual X& autocreate() const
+	{ 
+		(const_cast< TObjPtr<X>* >(this))->checkobject();	
+		// no need to aquire, is done on reference creation
+		return this->cCntObj->ptr;
+	}
+	virtual X& copyonwrite() const
+	{
+		(const_cast< TObjPtr<X>* >(this))->checkobject();
+		(const_cast< TObjPtr<X>* >(this))->make_unique();
+		// no need to aquire, is done on reference creation
+		return this->cCntObj->ptr;
+	}
+
+public:
+	TObjPtr<X>()
+		: cCntObj(NULL), fAccess(TObjPtr<X>::copyonwrite)
+	{ }
+	TObjPtr<X>(bool cpwr)
+		: cCntObj(NULL), fAccess(cpwr?&TObjPtr<X>::copyonwrite:&TObjPtr<X>::autocreate)
+	{ }
+	explicit TObjPtr<X>(const X& p,bool cpwr=false)
+		: cCntObj( new CCounter<X>(p) ), fAccess(cpwr?&TObjPtr<X>::copyonwrite:&TObjPtr<X>::autocreate)
+	{ }
+	TObjPtr<X>(const TObjPtr<X>& r)
+		: cCntObj(NULL), fAccess(r.fAccess)
+	{
+		this->acquire(r);
+	}
+	explicit TObjPtr<X>(const TObjPtr<X>& r, bool cpwr)
+		: cCntObj(NULL), fAccess(cpwr?&TObjPtr<X>::copyonwrite:&TObjPtr<X>::autocreate)
+	{
+		this->acquire(r);
+	}
+	virtual ~TObjPtr<X>()	
+	{
+		this->release();
+	}
+	const TObjPtr<X>& operator=(const TObjPtr<X>& r)
+	{
+		this->acquire(r);
+		return *this;
+	}
+	TObjPtr<X>& operator=(const X& p)
+	{	
+		if( this->cCntObj )
+			(this->*fAccess)() = p;
+		else
+			this->cCntObj = new CCounter<X>(p);
+		return *this;
+	}
+
+//	cannot seperate this from own copy constructor
+//	template <class P1>
+//	TPtrCount<X>(P1& p1) : cCntObj(new CCounter<X>(p1))
+//	{ }
+
+	// have copies here istead of references
+	// otherwise gcc mixes it up with the other two parameter constructors
+	template <class P1, class P2>
+	TObjPtr<X>(P1 p1, P2 p2)
+		: cCntObj(new CCounter<X>(p1,p2)), fAccess(&TObjPtr<X>::copyonwrite)
+	{ }
+	template <class P1, class P2, class P3>
+	TObjPtr<X>(P1 p1, P2 p2, P3 p3)
+		: cCntObj(new CCounter<X>(p1,p2,p3)), fAccess(&TObjPtr<X>::copyonwrite)
+	{ }
+	template <class P1, class P2, class P3, class P4>
+	TObjPtr<X>(P1 p1, P2 p2, P3 p3, P4 p4)
+		: cCntObj(new CCounter<X>(p1,p2,p3,p4)), fAccess(&TObjPtr<X>::copyonwrite)
+	{ }
+	template <class P1, class P2, class P3, class P4, class P5>
+	TObjPtr<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5)
+		: cCntObj(new CCounter<X>(p1,p2,p3,p4,p5)), fAccess(&TObjPtr<X>::copyonwrite)
+	{ }
+	template <class P1, class P2, class P3, class P4, class P5, class P6>
+	TObjPtr<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6)
+		: cCntObj(new CCounter<X>(p1,p2,p3,p4,p5,p6)), fAccess(&TObjPtr<X>::copyonwrite)
+	{ }
+	template <class P1, class P2, class P3, class P4, class P5, class P6, class P7>
+	TObjPtr<X>(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7)
+		: cCntObj(new CCounter<X>(p1,p2,p3,p4,p5,p6,p7)), fAccess(&TObjPtr<X>::copyonwrite)
+	{ }
+
+	const size_t getRefCount() const { return (this->cCntObj) ? this->cCntObj->count : 1;}
+	bool clear()					{ this->release(); return this->cCntObj==NULL; }
+	bool exists() const				{ return NULL!=this->cCntObj; }
+	bool isunique()	const throw()	{ return (this->cCntObj ? (cCntObj->count == 1):true);}
+	bool make_unique()	  throw()
+	{
+		if( !this->isunique() )
+		{	// there is an object and the refeence counter is >1
+			CCounter<X> *cnt = new CCounter<X>(this->cCntObj->ptr);
+			// copy the object if exist
+			this->release();
+			this->cCntObj = cnt;
+		}
+		return true;
+	}
+	bool isCopyonWrite() const	{ return (this->fAccess == &TObjPtr::copyonwrite); }
+	bool isAutoCreate() const	{ return (this->fAccess == &TObjPtr::autocreate); }
+	void setCopyonWrite() const	{ this->fAccess = &TObjPtr::copyonwrite; }
+	void setAutoCreate() const	{ this->fAccess = &TObjPtr::autocreate; }
+
+	virtual const X& readaccess() const		{ return this->autocreate(); }
+	virtual X& writeaccess()				{ return (this->*fAccess)(); }
+
+	virtual bool operator ==(const TObjPtr<X>& p) const { return this->cCntObj == p.cCntObj; }
+	virtual bool operator !=(const TObjPtr<X>& p) const { return this->cCntObj != p.cCntObj; }
+	virtual bool operator ==(void *p) const				{ return this->cCntObj==p; }
+	virtual bool operator !=(void *p) const				{ return this->cCntObj!=p; }
+
+
+	virtual const X* get() const					{ this->readaccess(); return this->cCntObj ? &this->cCntObj->ptr : NULL; }
+	virtual const X& operator*()	const throw()	{ return this->readaccess(); }
+	virtual const X* operator->()	const throw()	{ this->readaccess(); return this->cCntObj ? &this->cCntObj->ptr : NULL; }
+	virtual X& operator*()	throw()					{ return this->writeaccess();}
+	virtual X* operator->()	throw()					{ this->writeaccess(); return this->cCntObj ? &this->cCntObj->ptr : NULL; }
+	virtual operator const X&() const throw()		{ return this->readaccess(); }
+
+
+	const TObjPtr<X>& create ()
+	{
+		this->clear();
+		this->cCntObj = new CCounter<X>( );
+		return *this;
+	}
+	template <class P1>
+	const TObjPtr<X>& create (P1& p1)
+	{
+		this->clear();
+		this->cCntObj = new CCounter<X>( X(p1) );
+		return *this;
+	}
+	template <class P1, class P2>
+	const TObjPtr<X>& create (P1& p1, P2& p2)
+	{
+		this->clear();
+		this->cCntObj = new CCounter<X>( (p1,p2) );
+		return *this;
+	}
+	template <class P1, class P2, class P3>
+	const TObjPtr<X>& create (P1& p1, P2& p2, P3& p3)
+	{
+		this->clear();
+		this->cCntObj = new CCounter<X>( (p1,p2,p3) );
+		return *this;
+	}
+	template <class P1, class P2, class P3, class P4>
+	const TObjPtr<X>& create (P1& p1, P2& p2, P3& p3, P4& p4)
+	{
+		this->clear();
+		this->cCntObj = new CCounter<X>( (p1,p2,p3,p4) );
+		return *this;
+	}
+	template <class P1, class P2, class P3, class P4, class P5>
+	const TObjPtr<X>& create (P1& p1, P2& p2, P3& p3, P4& p4, P5& p5)
+	{
+		this->clear();
+		this->cCntObj = new CCounter<X>( (p1,p2,p3,p4,p5) );
+		return *this;
+	}
+	template <class P1, class P2, class P3, class P4, class P5, class P6>
+	const TObjPtr<X>& create (P1& p1, P2& p2, P3& p3, P4& p4, P5& p5, P6& p6)
+	{
+		this->clear();
+		this->cCntObj = new CCounter<X>( (p1,p2,p3,p4,p5,p6) );
+		return *this;
+	}
+	template <class P1, class P2, class P3, class P4, class P5, class P6, class P7>
+	const TObjPtr<X>& create (P1& p1, P2& p2, P3& p3, P4& p4, P5& p5, P6& p6, P7& p7)
+	{
+		this->clear();
+		this->cCntObj = new CCounter<X>( (p1,p2,p3,p4,p5,p6,p7) );
+		return *this;
+	}
+};
+
+
 
 
 

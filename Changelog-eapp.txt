@@ -1,4 +1,9 @@
 Date	Added
+02/05
+	* sql database connection pool with example
+	* added vector/stack/fifo/slist classes, testcases not yet complete
+	* some code optimisation/speedup in memory/strings/parser
+	* automatic safty replacements of sprintf to snprintf, not tested
 01/27
 	* still evacuating my stuff from common to basics
 	* adding inet functions/simple lists/regular expressions/threads

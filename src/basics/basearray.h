@@ -11,14 +11,1462 @@
 #include "baseexceptions.h"
 
 
-//////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 // test function
-void test_array(void);
+int test_array(void);
 
 
-//////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 // basic lists/arrays
 //!! TODO: rewrite with the new memory allocation
+//!! TODO: change names to "vector" and use "array" for two dimentionals
+//!! TODO: clean virtual functions and check if they could be better templated
+//!! TODO: combine vector&stack using allocator_w for both and have a seperated fifo using allocator_rw
+//!! TODO: complete testcases
+//!! TODO: check if merging base classess back to the allocators is feasible
+
+
+///////////////////////////////////////////////////////////////////////////////
+// internal storage class
+template<typename T, typename E, typename A> 
+class vectorbase : public A
+{
+protected:
+	///////////////////////////////////////////////////////////////////////////
+	// only derived can create
+	vectorbase<T,E,A>()				{}
+public:
+	virtual ~vectorbase<T,E,A>()	{}
+
+protected:
+	///////////////////////////////////////////////////////////////////////////
+	// for testing with ministring
+	friend class MiniString;
+	const T* array() const	{ return this->begin(); }
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// (re)allocates to newsize but leaves cnt as it is
+	// usefull prior to large insertions
+	bool realloc(size_t newsize=0)
+	{
+		return ( newsize <= this->size() || this->checkwrite(this->size()-newsize) );
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// (re)allocates a list of cnt elements [0...cnt-1], 
+	// leave new elements uninitialized/default constructed/cuts trailing
+	virtual bool resize(size_t cnt)=0;
+
+	///////////////////////////////////////////////////////////////////////////
+	// move elements inside the buffer
+	// using element assignments
+	virtual bool move(size_t tarpos, size_t srcpos, size_t cnt=1)=0;
+
+	///////////////////////////////////////////////////////////////////////////
+	// remove element [inx]
+	virtual bool removeindex(size_t inx)=0;
+
+	///////////////////////////////////////////////////////////////////////////
+	// remove cnt elements starting from inx
+	virtual bool removeindex(size_t inx, size_t cnt)=0;
+
+	///////////////////////////////////////////////////////////////////////////
+	// removes elements from the end
+	virtual bool strip(size_t cnt)=0;
+
+	///////////////////////////////////////////////////////////////////////////
+	// remove all elements
+	virtual bool clear()=0;
+
+	///////////////////////////////////////////////////////////////////////////
+	// assignment 
+	virtual bool assign(const T* e, size_t cnt)=0;
+	virtual bool assign(const T& e)=0;
+	virtual bool assign(const T& e, size_t cnt)=0;
+
+	///////////////////////////////////////////////////////////////////////////
+	// add an element at position pos (at the end by default)
+	virtual bool append(const T* elem, size_t cnt)=0;
+	virtual bool append(const T& elem)=0;
+	virtual bool append(const T& elem, size_t cnt)=0;
+	///////////////////////////////////////////////////////////////////////////
+	// add an list of elements at position pos (at the end by default)
+	virtual bool insert(const T* elem, size_t cnt, size_t pos=~0)=0;
+	virtual bool insert(const T& elem, size_t cnt=1, size_t pos=~0)=0;
+
+	///////////////////////////////////////////////////////////////////////////
+	// copy the given list to pos, 
+	// overwrites existing elements, 
+	// expands automatically but does not shrink when list is already larger
+	virtual bool copy(const T* elem, size_t cnt, size_t pos=0)=0;
+
+	///////////////////////////////////////////////////////////////////////////
+	// replace poscnt elements at pos with list
+	virtual bool replace(const T* elem, size_t cnt, size_t pos, size_t poscnt)=0;
+
+	///////////////////////////////////////////////////////////////////////////
+	// access to element[inx] 0 and length()-1
+	T& first()	{ return *this->begin(); }
+	T& last()	{ return *this->end(); }
+
+	///////////////////////////////////////////////////////////////////////////
+	// push/pop access
+	virtual bool push(const T& elem)=0;
+	virtual bool push(const T* elem, size_t cnt)=0;
+	///////////////////////////////////////////////////////////////////////////
+	// return the first element and remove it from list
+	virtual T pop()=0;
+	///////////////////////////////////////////////////////////////////////////
+	// as above but with check if element exist
+	virtual bool pop(T& elem)=0;
+	///////////////////////////////////////////////////////////////////////////
+	// return the first element and do not remove it from list
+	virtual T& top() const=0;
+	///////////////////////////////////////////////////////////////////////////
+	// as above but with check if element exist
+	virtual bool top(T& elem) const=0;
+
+
+	///////////////////////////////////////////////////////////////////////////
+	//
+	void debug_print();
+};
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+// vector
+// numerates elements 0 ... length()-1
+// but does stack hehaviour on push/pop (add last/remove last)
+///////////////////////////////////////////////////////////////////////////////
+template <typename T, typename E=elaborator_ct<T>, typename A=allocator_w_dy<T,E> >
+class vector : public vectorbase<T,E,A>
+{
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// standard constructor / destructor
+	vector<T,E,A>()				{}
+	virtual ~vector<T,E,A>()	{}
+
+	///////////////////////////////////////////////////////////////////////////
+	// copy/assignment
+	vector<T,E,A>(const vector<T,E,A>& v)
+	{
+		this->assign(v);
+	}
+	const vector<T,E,A>& operator=(const vector<T,E,A>& v)
+	{	
+		this->assign(v);
+		return *this;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// templated copy/assignment
+	// microsoft does not understand templated copy/assign together with default copy/assign
+	// but gnu needs them both seperated
+	// otherwise generates an own default copy/assignment which causes trouble then
+	// so could add all constructors and seperate the standard one with
+	// #if defined(__GNU__) or #if !defined(_MSC_VER) / #endif
+	// another workaround is to have a baseclass to derive the hierarchy from 
+	// and have templated copy/assignment refering the baseclass beside standard copy/assignment
+	template<class TT, class EE, class AA> vector<T,E,A>(const vectorbase<TT,EE,AA>& v)
+	{
+		this->assign(v);
+	}
+	template<class TT, class EE, class AA> const vector<T,E,A>& operator=(const vectorbase<TT,EE,AA>& v)
+	{
+		this->assign(v);
+		return *this;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// carray constructor
+	template<class TT> vector(const TT* elem, size_t sz)
+	{	// we are clean and empty here
+		this->convert_assign(elem, sz);
+	}
+	template<class TT> vector(const T& elem)
+	{	// we are clean and empty here
+		this->convert_assign(elem);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// just size constructor (leaving the elements default constructed)
+	vector(size_t sz)
+	{	// we are clean and empty here
+		this->resize( sz );
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// with variable argument list (use with care)
+	vector(size_t sz, const T& t0, ...)
+	{	// we are clean and empty here
+		if( this->checkwrite( sz ) )
+		{
+			va_list va;
+			va_start(va, t0);
+			T* ptr = this->cWpp;
+			T* eptr= this->cWpp = ptr+sz;
+			*ptr++ = t0;
+			while(ptr<eptr)
+				*ptr++ = va_arg(va, T);
+			va_end(va);
+		}
+	}
+
+protected:
+	///////////////////////////////////////////////////////////////////////////
+	// get start pointer to the array
+	virtual const T* raw() const
+	{
+		const_cast< vector<T,E,A>* >(this)->checkwrite(1);
+		return this->ptrRpp();
+	}
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// (re)allocates a list of cnt elements [0...cnt-1], 
+	// leave new elements uninitialized/default constructed
+	virtual bool resize(size_t cnt)
+	{
+		if( this->ptrRpp()+cnt <= this->cEnd || this->checkwrite(this->size()-cnt) )
+		{
+			this->cWpp = this->ptrRpp()+cnt;
+			return true;
+		}
+		else
+			return false;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// move elements inside the buffer
+	// using element assignments
+	virtual bool move(size_t tarpos, size_t srcpos, size_t cnt=1)
+	{
+		return elementmove(this->ptrRpp(), this->size(), tarpos, srcpos, cnt);
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// remove element [inx]
+	virtual bool removeindex(size_t inx)
+	{
+		if( inx < this->size() )
+		{	
+			if( this->ptrRpp()+inx+1<this->cWpp )
+				this->intern_move( this->ptrRpp()+inx, this->ptrRpp()+inx+1, this->cWpp-this->ptrRpp()-inx-1);
+			this->cWpp--;
+			return true;
+		}
+		else
+			return false;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// remove cnt elements starting from inx
+	virtual bool removeindex(size_t inx, size_t cnt)
+	{
+		if( cnt && inx < this->size() )
+		{	
+			if( this->ptrRpp()+inx+cnt<this->cWpp )
+				this->intern_move(this->ptrRpp()+inx, this->ptrRpp()+inx+cnt, this->cWpp-this->ptrRpp()-inx-cnt);
+			if( this->ptrRpp()+cnt >= this->cWpp )
+				this->clear();
+			else
+				this->cWpp-=cnt;
+			return true;
+		}
+		else
+			return false;
+
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// removes elements from the end
+	virtual bool strip(size_t cnt)
+	{
+		if( this->ptrRpp()+cnt >= this->cWpp )
+			this->clear();
+		else
+			this->cWpp-=cnt;
+		return true;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// remove all elements
+	virtual bool clear()
+	{
+		this->cWpp=ptrRpp()=this->cBuf;
+		this->checkwrite(0);
+		return false;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// assignment 
+	virtual bool assign(const T* e, size_t cnt)
+	{
+		this->cWpp=ptrRpp()=this->cBuf;
+		return this->convert_append(e, cnt);
+	}
+	virtual bool assign(const T& e)
+	{
+		this->cWpp=ptrRpp()=this->cBuf;
+		return this->convert_append(e);
+	}
+	virtual bool assign(const T& e, size_t cnt)
+	{
+		this->cWpp=ptrRpp()=this->cBuf;
+		return this->convert_append_multiple(e, cnt);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// templated assignment
+	template<class TT, class EE, class AA> bool assign(const vectorbase<TT,EE,AA>& list)
+	{
+		this->cWpp=ptrRpp()=this->cBuf;
+		return this->append(list);
+	}
+	template<typename TT> bool convert_assign(const TT* e, size_t cnt)
+	{
+		this->cWpp=ptrRpp()=this->cBuf;
+		return convert_append(e, cnt);
+	}
+	template<typename TT> bool convert_assign(const TT& e)
+	{
+		this->cWpp=ptrRpp()=this->cBuf;
+		return this->convert_append(e);
+	}
+	// some compilers cannot decide on overloaded template members
+	// so have seperated names instead
+	template<typename TT> bool convert_assign_multiple(const T& e, size_t cnt)
+	{
+		this->cWpp=ptrRpp()=this->cBuf;
+		return convert_append_multiple(e,cnt);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// add an element at position pos (at the end by default)
+	virtual bool append(const T* elem, size_t cnt)
+	{
+		return convert_append(elem,cnt);
+	}
+	virtual bool append(const T& elem)
+	{
+		return convert_append(elem);
+	}
+	virtual bool append(const T& elem, size_t cnt)
+	{
+		return convert_append_multiple(elem,cnt);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// templated append
+	template<typename TT, typename EE, typename AA> bool append(const vectorbase<TT,EE,AA>& list)
+	{
+		if( this->cWpp+list.size() <= this->cEnd || this->checkwrite( list.size() ) )
+		{	
+			typename AA::iterator iter(list);
+			for( ; iter; iter++)
+				*this->cWpp++ = *iter;
+			return true;
+		}
+		else
+			return false;
+	}
+	template<typename TT> bool convert_append(const TT* elem, size_t cnt)
+	{
+		if( this->cWpp+cnt <= this->cEnd || this->checkwrite( cnt ) )
+		{	
+			const TT* eptr = elem+cnt;
+			while(elem < eptr)
+				*this->cWpp++ = *elem++;
+			return true;
+		}
+		else
+			return false;
+	}
+	template<typename TT> bool convert_append(const TT& elem)
+	{
+		if( this->cWpp < this->cEnd || this->checkwrite(1) )
+		{
+			*this->cWpp++ = elem;
+			return true;
+		}
+		else
+			return false;
+	}
+	// some compilers cannot decide on overloaded template members
+	// so have seperated names instead
+	template<typename TT> bool convert_append_multiple(const TT& elem, size_t cnt)
+	{
+		if( this->cWpp+cnt <= this->cEnd || this->checkwrite(cnt) )
+		{
+			while(cnt--)
+				*this->cWpp++ = elem;
+			return true;
+		}
+		else
+			return false;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// add an list of elements at position pos
+	virtual bool insert(const T* elem, size_t cnt, size_t pos=~0)
+	{
+		return convert_insert(elem,cnt,pos);
+	}
+	virtual bool insert(const T& elem, size_t cnt=1, size_t pos=~0)
+	{
+		return convert_insert_multiple(elem,cnt,pos);
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// templated insert
+	template<typename TT, typename EE, typename AA> bool insert(const vectorbase<TT,EE,AA>& list, size_t pos)
+	{
+		if( !list.size() )
+			return true;
+		else if( pos>this->size() )
+			return this->append(list);
+		else if( this->cWpp+list.size() <= this->cEnd || checkwrite( list.size() ) )
+		{	// make the hole to insert
+			this->intern_move(this->ptrRpp()+pos+list.size(), this->ptrRpp()+pos, this->cWpp-this->ptrRpp()-pos);
+			// move the end pointer
+			this->cWpp+=list.size();
+			// fill the hole
+			T* ptr = this->ptrRpp()+pos;
+			typename AA::iterator iter(list);
+			for( ; iter; iter++)
+				*ptr++ = *iter;
+			return true;
+		}
+		else
+			return false;
+	}
+	template <class TT> bool convert_insert(const TT* elem, size_t cnt, size_t pos)
+	{
+		if( !cnt )
+			return true;
+		else if( pos>this->size() )
+			return this->append(elem,cnt);
+		else if( this->cWpp+cnt <= this->cEnd || this->checkwrite(cnt) )
+		{	// make the hole to insert
+			this->intern_move(this->ptrRpp()+pos+cnt, this->ptrRpp()+pos, this->cWpp-this->ptrRpp()-pos);
+			// move the end pointer
+			this->cWpp+=cnt;
+			// fill the hole
+			T* ptr = this->ptrRpp()+pos, *eptr=ptr+cnt;
+			while(ptr < eptr)
+				*ptr++ = *elem++;
+			return true;
+		}
+		else
+			return false;
+	}
+	// stupid compilers cannot decide between overloaded template versions
+	// so need to have seperated names 
+	template <class TT> bool convert_insert_multiple(const TT& elem, size_t cnt, size_t pos)
+	{
+		if( !cnt )
+			return true;
+		else if( pos>this->size() )
+			return this->append(elem,cnt);
+		else if( this->cWpp+cnt <= this->cEnd || this->checkwrite(cnt) )
+		{	// make the hole to insert
+			this->intern_move(this->ptrRpp()+pos+cnt, this->ptrRpp()+pos, this->cWpp-this->ptrRpp()-pos);
+			// move the end pointer
+			this->cWpp+=cnt;
+			// fill the hole
+			T* ptr = this->ptrRpp()+pos;
+			while(cnt--)
+				*ptr++ = elem;
+			return true;
+		}
+		else
+			return false;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// copy the given list to pos, 
+	// overwrites existing elements, 
+	// expands automatically but does not shrink when list is already larger
+	virtual bool copy(const T* elem, size_t cnt, size_t pos=0)
+	{
+		return convert_copy(elem, cnt, pos);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// copy the given list to pos, 
+	// overwrites existing elements, 
+	// expands automatically but does not shrink when list is already larger
+	template<typename TT, typename EE, typename AA> bool copy(const vectorbase<TT,EE,AA>& list, size_t pos=0)
+	{
+		if( pos >= this->size() )
+		{
+			return this->append(list);
+		}
+		else if( this->size()-pos > list.size() || this->checkwrite( list.size()-this->size()+pos) )
+		{	
+			T*ptr = this->ptrRpp()+pos;
+			typename AA::iterator iter(list);
+			for( ; iter; iter++)
+				*ptr++ = *iter;
+			// set new write pointer if expanded
+			if(ptr>this->cWpp)
+				this->cWpp=ptr;
+			return true;
+		}
+		else
+			return false;
+	}
+	template<class TT> bool convert_copy(const TT* elem, size_t cnt, size_t pos=0)
+	{
+		if( pos >= this->size() )
+		{
+			return this->append(elem, cnt);
+		}
+		else if( this->size()-pos > cnt || this->checkwrite( cnt-this->size()+pos) )
+		{	
+			T* ptr = this->ptrRpp()+pos, *eptr=ptr+cnt;
+			
+			while( ptr < eptr )
+				*ptr++ = *elem++;
+			// set new write pointer if expanded
+			if(ptr>this->cWpp)
+				this->cWpp=ptr;
+			return true;
+		}
+		else
+			return false;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// replace poscnt elements at pos with list
+	virtual bool replace(const T* elem, size_t cnt, size_t pos, size_t poscnt)
+	{
+		return convert_replace(elem, cnt, pos, poscnt);
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// replace poscnt elements at pos with list
+	template<class TT, class EE, class AA> bool replace(const vectorbase<TT,EE,AA>& list, size_t pos, size_t poscnt)
+	{
+		if( pos >= this->size() )
+		{	// replace position outside
+			// assume append
+			return this->append(list);
+		}
+		else if( pos+poscnt >= this->size() ) 
+		{	// replaceing the last elements of the list
+			// first resize
+			if( this->ptrRpp()+pos <= this->cEnd )
+				this->cWpp = this->ptrRpp()+pos;
+			// then append
+			return this->append(list);
+		}
+		else if( list.size()<poscnt || this->checkwrite( list.size()-poscnt ) )
+		{	// preplacing something in the middle
+			// move the trailing elements in place
+			this->intern_move(this->ptrRpp()+pos+list.size(), this->ptrRpp()+pos+poscnt, this->cWpp-this->ptrRpp()-pos-poscnt);
+			// set new write pointer
+			this->cWpp = this->cWpp+list.size()-poscnt;
+			// fill the hole with the list elements
+			typename AA::iterator iter(list);
+			T* ptr = this->ptrRpp()+pos;
+			for( ; iter; iter++)
+				*ptr++ = *iter;
+			return true;
+		}
+		else
+			return false;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// replace poscnt elements at pos with cnt elements
+	template<class TT> bool convert_replace(const TT* elem, size_t cnt, size_t pos, size_t poscnt)
+	{
+		if( pos >= this->size() )
+		{	// replace position outside
+			// assume append
+			return this->append(elem, cnt);
+		}
+		else if( pos+poscnt >= this->size() ) 
+		{	// replaceing the last elements of the list
+			// first resize
+			if( this->ptrRpp()+pos <= this->cEnd  )
+				this->cWpp = this->ptrRpp()+pos;
+			// then append
+			return this->append(elem, cnt);
+		}
+		else if( cnt<poscnt || this->checkwrite( cnt-poscnt ) )
+		{	// preplacing something in the middle
+			// move the trailing elements in place
+			this->intern_move(this->ptrRpp()+pos+cnt, this->ptrRpp()+pos+poscnt, this->cWpp-this->ptrRpp()-pos-poscnt);
+			// set new write pointer
+			this->cWpp = this->cWpp+cnt-poscnt;
+			// fill the hole with the list elements
+			T* ptr = this->ptrRpp()+pos, *eptr=ptr+cnt;
+			while( ptr<eptr )
+				*ptr++ = *elem++;
+			return true;
+		}
+		else
+			return false;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// access to element(inx)
+	const T& operator () (size_t inx) const
+	{
+#ifdef CHECK_BOUNDS
+		// check for access to outside memory
+		if( this->ptrRpp()+inx >= this->cWpp )
+		{
+#ifdef CHECK_EXCEPTIONS
+			throw exception_bound("vector out of bound");
+#else
+			static T dummy;
+			return dummy;
+#endif
+		}
+#endif
+		return this->ptrRpp()[inx];
+	}
+	T& operator () (size_t inx)
+	{
+#ifdef CHECK_BOUNDS
+		// check for access to outside memory
+		if( this->ptrRpp()+inx >= this->cWpp )
+		{
+#ifdef CHECK_EXCEPTIONS
+			throw exception_bound("vector out of bound");
+#else
+			static T dummy;
+			return dummy;
+#endif
+		}
+#endif
+		return this->ptrRpp()[inx];
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// access to element[inx] 0...length()-1
+	const T& operator[](size_t inx) const
+	{	
+		return this->operator()((size_t)inx);
+	}
+	T& operator[](size_t inx)
+	{	
+		return this->operator()((size_t)inx);
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// same with int overloads to let the compiler have his stupid int defaults
+	const T& operator[](int inx) const
+	{	
+		return this->operator()((size_t)inx);
+	}
+	T& operator[](int inx)
+	{	
+		return this->operator()((size_t)inx);
+	}
+
+
+	///////////////////////////////////////////////////////////////////////////
+	// push/pop access
+	// implement stack behaviour (push at the end and pop from the end)
+	virtual bool push(const T& elem)			{ return convert_push(elem); }
+	virtual bool push(const T* elem, size_t cnt){ return convert_push(elem,cnt); }
+
+	template<class TT, class EE, class AA> bool push(const vectorbase<TT,EE,AA>& list){ return append(list); }
+	template<class TT> bool convert_push(const TT& elem)			{ return append(elem); }
+	template<class TT> bool convert_push(const TT* elem, size_t cnt){ return append(elem,cnt); }
+	
+	///////////////////////////////////////////////////////////////////////////
+	// return the first element and remove it from list
+	virtual T pop()
+	{
+		if( this->ptrRpp()>=this->cWpp )
+		{
+#ifdef CHECK_EXCEPTIONS
+			throw exception_bound("vector underflow");
+#else
+			return (this->ptrRpp())?(*this->ptrRpp()):T();
+#endif
+		}
+		return (*(--this->cWpp));
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// as above but with check if element exist
+	virtual bool pop(T& elem)
+	{
+		// check for access to outside memory
+		if( this->ptrRpp()<this->cWpp )
+		{
+			elem = (*(--this->cWpp));
+			return true;
+		}
+		else
+			return false;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// return the first element and do not remove it from list
+	virtual T& top() const
+	{
+		if( this->ptrRpp()>=this->cWpp )
+		{
+#ifdef CHECK_EXCEPTIONS
+			throw exception_bound("vector underflow");
+#else
+			static T dummy;
+			return dummy;
+#endif
+		}
+		return (*(this->cWpp-1));
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// as above but with check if element exist
+	virtual bool top(T& elem) const
+	{
+		// check for access to outside memory
+		if( this->ptrRpp()<this->cWpp )
+		{
+			elem = (*(this->cWpp-1));
+			return true;
+		}
+		else
+			return false;
+	}
+};
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+// stack
+// covers stack push/pop behaviour
+///////////////////////////////////////////////////////////////////////////////
+template <class T> class stack : public vector<T>
+{
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// standard constructor / destructor
+	stack<T>()				{}
+	virtual ~stack<T>()		{}
+
+	///////////////////////////////////////////////////////////////////////////
+	// copy/assignment
+	stack<T>(const stack<T>& v)
+	{
+		this->assign(v);
+	}
+	const stack<T>& operator=(const stack<T>& v)
+	{	
+		this->assign(v);
+		return *this;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// templated copy/assignment
+	//#if defined(__GNU__)
+	//#if !defined(_MSC_VER)
+	// microsoft does not understand templated copy/assign together with default copy/assign
+	// but gnu needs them both seperated
+	// otherwise generates an own default copy/assignment which causes trouble then
+	//#endif
+	// another workaround is to have a baseclass to derive the hierarchy from 
+	// and have templated copy/assignment refering the baseclass beside standard copy/assignment
+	template<class TT, class EE, class AA> stack<T>(const vectorbase<TT,EE,AA>& v)
+	{
+		this->convert_assign(v);
+	}
+	template<class TT, class EE, class AA> const stack<T>& operator=(const vectorbase<TT,EE,AA>& v)
+	{
+		this->convert_assign(v);
+		return *this;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// carray constructor
+	template<class TT> stack(const TT* elem, size_t sz)
+	{	// we are clean and empty here
+		this->convert_assign(elem, sz);
+	}
+	template<class TT> stack(const T& elem)
+	{	// we are clean and empty here
+		this->convert_assign(elem);
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// just size constructor (leaving the elements default constructed)
+	stack(size_t sz)
+	{	// we are clean and empty here
+		this->resize( sz );
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// with variable argument list (use with care)
+	stack(size_t sz, const T& t0, ...)
+	{	// we are clean and empty here
+		if( this->checkwrite( sz ) )
+		{
+			va_list va;
+			va_start(va, t0);
+			T* ptr = this->cWpp;
+			T* eptr= this->cWpp = ptr+sz;
+			*ptr++ = t0;
+			while(ptr<eptr)
+				*ptr++ = va_arg(va, T);
+			va_end(va);
+		}
+	}
+
+
+	///////////////////////////////////////////////////////////////////////////
+	// remove element [inx]
+	// but have stack order indexing here
+	virtual bool removeindex(size_t inx)
+	{
+		if( inx < this->size() )
+		{	
+			if( inx>0 )
+				this->intern_move(this->cWpp-inx-1, this->cWpp-inx, inx);
+			this->cWpp--;
+			return true;
+		}
+		else
+			return false;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// remove cnt elements starting from inx
+	// but have stack order indexing here
+	virtual bool removeindex(size_t inx, size_t cnt)
+	{
+		if( cnt && inx < this->size() )
+		{	
+			if( this->ptrRpp()+inx+cnt > this->cWpp )
+				cnt = this->cWpp-this->ptrRpp()-inx;
+			if(inx)
+				this->intern_move(this->cWpp-inx-cnt, this->cWpp-inx, inx);
+			this->cWpp-=cnt;
+			return true;
+		}
+		else
+			return false;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// access to element[inx] with 0 beeing the element pushed latest on the stack
+	const T& operator () (size_t row) const
+	{
+#ifdef CHECK_BOUNDS
+		// check for access to outside memory
+		if( this->ptrRpp()+inx >= this->cWpp )
+		{
+#ifdef CHECK_EXCEPTIONS
+			throw exception_bound("vector out of bound");
+#else
+			static T dummy;
+			return dummy;
+#endif
+		}
+#endif
+		return *(this->cWpp-inx-1);
+	}
+	T& operator () (size_t inx)
+	{
+#ifdef CHECK_BOUNDS
+		// check for access to outside memory
+		if( this->ptrRpp()+inx >= this->cWpp )
+		{
+#ifdef CHECK_EXCEPTIONS
+			throw exception_bound("vector out of bound");
+#else
+			static T dummy;
+			return dummy;
+#endif
+		}
+#endif
+		return *(this->cWpp-inx-1);
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// access to element[inx] 0...length()-1
+	const T& operator[](size_t inx) const
+	{	
+		return this->operator()((size_t)inx);
+	}
+	T& operator[](size_t inx)
+	{	
+		return this->operator()((size_t)inx);
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// same with int overloads to let the compiler have his stupid int defaults
+	const T& operator[](int inx) const
+	{	
+		return this->operator()((size_t)inx);
+	}
+	T& operator[](int inx)
+	{	
+		return this->operator()((size_t)inx);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// inherit push/pop from vectorbase
+};
+///////////////////////////////////////////////////////////////////////////////
+
+
+///////////////////////////////////////////////////////////////////////////////
+// fifo
+// does fifo push/pop behaviour
+// and implements moving readpointer to minimize data movements
+///////////////////////////////////////////////////////////////////////////////
+template <class T> class fifo : public vector<T, elaborator_ct<T>, allocator_rw_dy<T,elaborator_ct<T> > >
+{
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// standard constructor / destructor
+	fifo()			{}
+	virtual ~fifo()	{}
+
+	///////////////////////////////////////////////////////////////////////////
+	// copy/assignment
+	///////////////////////////////////////////////////////////////////////////
+	fifo(const fifo<T>& v)
+	{
+		this->assign(v);
+	}
+	const fifo<T>& operator=(const fifo<T>& v)
+	{	
+		this->assign(v);
+		return *this;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// templated baseclasse copy/assignment
+	template<class TT, class EE, class AA> fifo<T>(const vectorbase<TT,EE,AA>& v)
+	{
+		this->assign(v);
+	}
+	template<class TT, class EE, class AA> const fifo<T>& operator=(const vectorbase<TT, EE, AA>& v)
+	{
+		this->assign(v);
+		return *this;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// carray constructor
+	template<class TT> fifo(const TT* elem, size_t sz)
+	{	
+		this->convert_assign(elem, sz);
+	}
+	template<class TT> fifo(const TT& elem)
+	{	
+		this->convert_assign(elem);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// just size constructor (leaving the elements default constructed)
+	fifo(size_t sz)
+	{	// we are clean and empty here
+		this->resize( sz );
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// with variable argument list (use with care)
+	fifo(size_t sz, const T& t0, ...)
+	{	// we are clean and empty here
+		if( this->checkwrite( sz ) )
+		{
+			va_list va;
+			va_start(va, t0);
+			T* ptr = this->cWpp;
+			T* eptr= this->cWpp = ptr+sz;
+			*ptr++ = t0;
+			while(ptr<eptr)
+				*ptr++ = va_arg(va, T);
+			va_end(va);
+		}
+	}
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// access to element[inx] with 0 beeing the first element in the fifo
+	const T& operator () (size_t inx) const
+	{
+#ifdef CHECK_BOUNDS
+		// check for access to outside memory
+		if( this->cRpp+inx >= this->cWpp )
+		{
+#ifdef CHECK_EXCEPTIONS
+			throw exception_bound("vector out of bound");
+#else
+			static T dummy;
+			return dummy;
+#endif
+		}
+#endif
+		return this->cRpp[inx];
+	}
+	T& operator () (size_t inx)
+	{
+#ifdef CHECK_BOUNDS
+		// check for access to outside memory
+		if( this->cRpp+inx >= this->cWpp )
+		{
+#ifdef CHECK_EXCEPTIONS
+			throw exception_bound("vector out of bound");
+#else
+			static T dummy;
+			return dummy;
+#endif
+		}
+#endif
+		return this->cRpp[inx];
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// access to element[inx] 0...length()-1
+	const T& operator[](size_t inx) const
+	{	
+		return this->operator()((size_t)inx);
+	}
+	T& operator[](size_t inx)
+	{	
+		return this->operator()((size_t)inx);
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// same with int overloads to let the compiler have his stupid int defaults
+	const T& operator[](int inx) const
+	{	
+		return this->operator()((size_t)inx);
+	}
+	T& operator[](int inx)
+	{	
+		return this->operator()((size_t)inx);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// implement fifo behaviour (push at the end and pop from the start)
+	// inherit push from vector
+
+	///////////////////////////////////////////////////////////////////////////
+	// return the first element and remove it from list
+	virtual T pop()
+	{
+		if( this->cRpp>=this->cWpp )
+		{
+#ifdef CHECK_EXCEPTIONS
+			throw exception_bound("vector underflow");
+#else
+			return (this->cRpp)?(*this->cRpp):T();
+#endif
+		}
+		return *(this->cRpp++);
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// as above but with check if element exist
+	virtual bool pop(T& elem)
+	{
+		// check for access to outside memory
+		if( this->cRpp<this->cWpp )
+		{
+			elem = *(this->cRpp++);
+			return true;
+		}
+		else
+			return false;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// return the first element and do not remove it from list
+	virtual T& top() const
+	{
+		if( this->cRpp>=this->cWpp )
+		{
+#ifdef CHECK_EXCEPTIONS
+			throw exception_bound("vector underflow");
+#else
+			static T dummy;
+			return dummy;
+#endif
+		}
+		return *(this->cRpp);
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// as above but with check if element exist
+	virtual bool top(T& elem) const
+	{
+		// check for access to outside memory
+		if( this->cRpp<this->cWpp )
+		{
+			elem = *(this->cRpp);
+			return true;
+		}
+		else
+			return false;
+	}
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+// sorted list
+template <typename T, typename E=elaborator_ct<T>, typename A=allocator_w_dy<T,E> >
+class slist : public vector<T,E,A>
+{
+public:
+	class assignee
+	{
+		friend class slist<T,E,A>;
+		slist& sl;
+		size_t inx;
+		assignee(slist& s, size_t i) : sl(s), inx(i)	{}
+
+		void assign(const T& val)
+		{
+			sl.removeindex(inx);
+			sl.append(val);
+		}
+	public:
+		assignee(const assignee& e);	// ignore
+		const assignee& operator=(const assignee& e)
+		{
+			this->assign( e.sl.ptrRpp()[inx] );
+			return *this;
+		}
+		operator const T&()				
+		{
+			return this->sl.ptrRpp()[inx]; 
+		}
+		const T& operator=(const T& t)
+		{
+			this->assign(t);
+			return *this;
+		}
+	};
+	friend class assignee;
+
+protected:
+    struct _config
+    {
+        unsigned ownobjects : 1;	// list is responsible for destroying
+        unsigned sorted     : 1;	// sorted list
+        unsigned ascending  : 1;	// sort order
+        unsigned duplicates : 1;	// sorted: allows duplicate keys
+        unsigned casesens   : 1;	// sorted: string comparison is case sensitive
+        unsigned _reserved  :27;
+
+		_config(bool a=true, bool d=false) : 
+			ownobjects(0),
+			sorted(1),
+			ascending(a),
+			duplicates(d),
+			casesens(0)
+		{}
+    } config;
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// standard constructor / destructor
+	slist<T,E,A>(bool a=true, bool d=false) : config(a,d)
+	{ }
+	virtual ~slist<T,E,A>() {}
+
+	///////////////////////////////////////////////////////////////////////////
+	// copy/assignment
+	slist<T,E,A>(const slist<T,E,A>& v) : config(v.config)
+	{
+		this->assign(v);
+	}
+	const slist<T,E,A>& operator=(const slist<T,E,A>& v)
+	{	
+		this->config = v.config;
+		this->assign(v);
+		return *this;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// templated copy/assignment
+	//#if defined(__GNU__)
+	//#if !defined(_MSC_VER)
+	// microsoft does not understand templated copy/assign together with default copy/assign
+	// but gnu needs them both seperated
+	// otherwise generates an own default copy/assignment which causes trouble then
+	//#endif
+	// another workaround is to have a baseclass to derive the hierarchy from 
+	// and have templated copy/assignment refering the baseclass beside standard copy/assignment
+	template<class TT, class EE, class AA> slist<T,E,A>(const vectorbase<TT,EE,AA>& v)
+		 : config(true,false)
+	{
+		this->assign(v);
+	}
+	template<class TT, class EE, class AA> const slist<T,E,A>& operator=(const vectorbase<TT,EE,AA>& v)
+		 : config(true,false)
+	{
+		this->assign(v);
+		return *this;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// carray constructor
+	template<class TT> slist(const TT* elem, size_t sz) : config(true,false)
+	{	// we are clean and empty here
+		this->convert_assign(elem, sz);
+	}
+	template<class TT> slist(const T& elem) : config(true,false)
+	{	// we are clean and empty here
+		this->convert_assign(elem);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// just size constructor (leaving the elements default constructed)
+	slist(size_t sz) : config(true,false)
+	{	// we are clean and empty here
+		this->resize( sz );
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// with variable argument list (use with care)
+	slist(size_t sz, const T& t0, ...) : config(true,false)
+	{	// we are clean and empty here
+		if( this->checkwrite( sz ) )
+		{
+			va_list va;
+			va_start(va, t0);
+			this->assign(t0);
+			while(sz--)
+				this->assign( va_arg(va, T) );
+			va_end(va);
+		}
+	}
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// move elements inside the buffer
+	virtual bool move(size_t tarpos, size_t srcpos, size_t cnt=1)
+	{	// not allowed
+		return false;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// add an element at position pos (at the end by default)
+	virtual bool append(const T* elem, size_t cnt)
+	{
+		return convert_append(elem,cnt);
+	}
+	virtual bool append(const T& elem)
+	{
+		return convert_append(elem);
+	}
+	virtual bool append(const T& elem, size_t cnt)
+	{
+		return convert_append_multiple(elem,cnt);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// templated append
+	template<typename TT, typename EE, typename AA> bool append(const vectorbase<TT,EE,AA>& list)
+	{
+		if( this->cWpp+list.size() <= this->cEnd || this->checkwrite( list.size() ) )
+		{	
+			typename AA::iterator iter(list);
+			size_t pos;
+			for( ; iter; ++iter )
+			{
+				if( !BinarySearch( *iter, this->begin(), this->size(), 0, pos, this->config.ascending) || this->config.duplicates )
+				{
+					T* xptr = this->ptrRpp()+pos, *xeptr=xptr+1;
+					this->intern_move(xeptr, xptr, this->cWpp-this->ptrRpp()-pos);
+					*xptr = *iter;
+					this->cWpp++;
+				}
+			}
+			return true;
+		}
+		else
+			return false;
+	}
+	template<typename TT> bool convert_append(const TT* elem, size_t cnt)
+	{
+		if( this->cWpp+cnt <= this->cEnd || this->checkwrite( cnt ) )
+		{	
+			size_t pos;
+			const TT* ptr = elem, *eptr = ptr+cnt;
+			while( ptr<eptr)
+			{
+				if( !BinarySearch( *ptr, this->begin(), this->size(), 0, pos, this->config.ascending) || this->config.duplicates )
+				{
+					T* xptr = this->ptrRpp()+pos, *xeptr=xptr+1;
+					this->intern_move(xeptr, xptr, this->cWpp-this->ptrRpp()-pos);
+					*xptr = *ptr;
+					this->cWpp++;
+				}
+				ptr++;
+			}
+			return true;
+		}
+		else
+			return false;
+	}
+	template<typename TT> bool convert_append(const TT& elem)
+	{
+		if( this->cWpp < this->cEnd || this->checkwrite(1) )
+		{	
+			size_t pos;
+			if( !BinarySearch( elem, this->begin(), this->size(), 0, pos, this->config.ascending) || this->config.duplicates )
+			{	
+				T* xptr = this->ptrRpp()+pos, *xeptr=xptr+1;
+				this->intern_move(xeptr, xptr, this->cWpp-this->ptrRpp()-pos);
+				*xptr = elem;
+				this->cWpp++;
+			}
+			return true;
+		}
+		else
+			return false;
+	}
+	// some compilers cannot decide on overloaded template members
+	// so have seperated names instead
+	template<typename TT> bool convert_append_multiple(const TT& elem, size_t cnt)
+	{
+		if( this->cWpp+cnt <= this->cEnd || this->checkwrite(cnt) )
+		{	
+			size_t pos;
+			if( !BinarySearch( elem, this->begin(), this->size(), 0, pos, this->config.ascending) || this->config.duplicates )
+			{
+				T* xptr = this->ptrRpp()+pos, *xeptr=xptr+cnt;
+				this->intern_move(xeptr, xptr, this->cWpp-this->ptrRpp()-pos);
+				while(xptr<xeptr)
+					*xptr++ = elem;
+				this->cWpp+=cnt;
+			}
+			return true;
+		}
+		else
+			return false;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// add an list of elements at position pos
+	virtual bool insert(const T* elem, size_t cnt, size_t pos=~0)
+	{
+		return convert_append(elem,cnt);
+	}
+	virtual bool insert(const T& elem, size_t cnt=1, size_t pos=~0)
+	{
+		return convert_append_multiple(elem,cnt);
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// templated insert
+	template<typename TT, typename EE, typename AA> bool insert(const vectorbase<TT,EE,AA>& list, size_t pos)
+	{
+		return convert_append(list);
+	}
+	template <class TT> bool convert_insert(const TT* elem, size_t cnt, size_t pos)
+	{
+		return convert_append(elem, cnt);
+	}
+	// stupid compilers cannot decide between overloaded template versions
+	// so need to have seperated names 
+	template <class TT> bool convert_insert_multiple(const TT& elem, size_t cnt, size_t pos)
+	{
+		return convert_append_multiple(elem, cnt);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// copy the given list to pos, 
+	// overwrites existing elements, 
+	// expands automatically but does not shrink when list is already larger
+	virtual bool copy(const T* elem, size_t cnt, size_t pos=0)
+	{
+		return convert_append(elem, cnt);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// copy the given list to pos, 
+	// overwrites existing elements, 
+	// expands automatically but does not shrink when list is already larger
+	template<typename TT, typename EE, typename AA> bool copy(const vectorbase<TT,EE,AA>& list, size_t pos=0)
+	{
+		return convert_append(list);
+	}
+	template<class TT> bool convert_copy(const TT* elem, size_t cnt, size_t pos=0)
+	{
+		return convert_append(elem, cnt);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// replace poscnt elements at pos with list
+	virtual bool replace(const T* elem, size_t cnt, size_t pos, size_t poscnt)
+	{
+		removeindex(pos,poscnt);
+		return convert_append(elem, cnt);
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// replace poscnt elements at pos with list
+	template<class TT, class EE, class AA> bool replace(const vectorbase<TT,EE,AA>& list, size_t pos, size_t poscnt)
+	{
+		removeindex(pos,poscnt);
+		return convert_append(list);
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// replace poscnt elements at pos with cnt elements
+	template<class TT> bool convert_replace(const TT* elem, size_t cnt, size_t pos, size_t poscnt)
+	{
+		removeindex(pos,poscnt);
+		return convert_append(elem, cnt);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// only read access to element(inx)
+	// return copies on non-const access
+	const T& operator () (size_t inx) const
+	{
+#ifdef CHECK_BOUNDS
+		// check for access to outside memory
+		if( this->ptrRpp()+inx >= this->cWpp )
+		{
+#ifdef CHECK_EXCEPTIONS
+			throw exception_bound("vector out of bound");
+#else
+			static T dummy;
+			return dummy;
+#endif
+		}
+#endif
+		return this->ptrRpp()[inx];
+	}
+	assignee operator()(size_t inx)
+	{
+#ifdef CHECK_BOUNDS
+		// check for access to outside memory
+		if( this->ptrRpp()+inx >= this->cWpp )
+		{
+#ifdef CHECK_EXCEPTIONS
+			throw exception_bound("vector out of bound");
+#else
+			static T dummy;
+			return dummy;
+#endif
+		}
+#endif
+		//return this->ptrRpp()[inx];
+		return assignee(*this, inx);
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// access to element[inx] 0...length()-1
+	const T& operator[](size_t inx) const
+	{	
+		return this->operator()((size_t)inx);
+	}
+	assignee operator[](size_t inx)
+	{	
+		return this->operator()((size_t)inx);
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// same with int overloads to let the compiler have his stupid int defaults
+	const T& operator[](int inx) const
+	{	
+		return this->operator()((size_t)inx);
+	}
+	assignee operator[](int inx)
+	{	
+		return this->operator()((size_t)inx);
+	}
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// push/pop access
+	// ignore orders, but insert sorted
+	virtual bool push(const T& elem)			{ return convert_append(elem); }
+	virtual bool push(const T* elem, size_t cnt){ return convert_append(elem,cnt); }
+
+	template<class TT, class EE, class AA> bool push(const vectorbase<TT,EE,AA>& list){ return append(list); }
+	template<class TT> bool convert_push(const TT& elem)			{ return convert_append(elem); }
+	template<class TT> bool convert_push(const TT* elem, size_t cnt){ return convert_append(elem,cnt); }
+
+};
+
+
+
+
 
 
 
@@ -1084,7 +2532,7 @@ public:
 	TArrayDST(const TArrayDST<T>& arr) : cField(NULL),cSZ(0),cCnt(0){ this->copy(arr); }
 	const TArrayDST& operator=(const TArrayDST<T>& arr)				{ this->resize(0); this->copy(arr); return *this; }
 
-	TArrayDST(const T* elem, size_t sz):cField(NULL),cSZ(0),cCnt(0)	{ this->copy(elem, sz); }
+	TArrayDST(const T* elem, size_t sz):cField(NULL),cSZ(0),cCnt(0)	{ printf("TArrayDST T* construct\n"); this->copy(elem, sz); }
 	///////////////////////////////////////////////////////////////////////////
 	// put a element to the list
 	virtual bool push(const T& elem)			{ return append(elem); }

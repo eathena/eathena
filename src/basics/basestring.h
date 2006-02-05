@@ -21,8 +21,8 @@ template <class T> class TArrayDCT;
 ///////////////////////////////////////////////////////////////////////////////
 // test functions
 ///////////////////////////////////////////////////////////////////////////////
-int stringtest();
-int stringbuffer_test();
+int test_strings();
+int test_stringbuffer();
 
 
 
@@ -165,7 +165,7 @@ template<class T> const T* itrim(T* str, bool removeall=false);
 // basic string template implementation
 // don't use this but the derived classes
 ///////////////////////////////////////////////////////////////////////////////
-template < class T=char, class A=allocator_w_dy<T,elaborator_st<T> > >
+template < class T=char, class A=allocator_ws_dy<T,elaborator_st<T> > >
 class TString : public A, public stringinterface<T>
 {
 protected:
@@ -177,7 +177,7 @@ protected:
 		size_t reslen, retval=0;
 		if(base >= 2 && base <= 64)
 		{
-			T buf[128];   // the longest possible string is 64 when base=2
+			T buf[128];   // the longest possible string is 64(+1) when base=2
 			const T* p = _itobase<T>(value, buf, base, reslen, _signed);
 			retval = reslen;
 			if (width > reslen)
@@ -244,72 +244,72 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// standard functions
 	///////////////////////////////////////////////////////////////////////////
-	void clear()				{ if(this->cPtr<this->cEnd) { this->cPtr=this->cBuf; *this->cPtr=0; } }
+	void clear()				{ if(this->cWpp<this->cEnd) { this->cWpp=this->cBuf; *this->cWpp=0; } }
 	void empty()				{ this->clear(); }
 	// remove everything from ix for sz length
 	void clear(size_t inx, size_t len)
 	{
-		if( this->cEnd < this->cPtr )	// const string
+		if( this->cEnd < this->cWpp )	// const string
 			;
-		else if( this->cBuf+inx < this->cPtr )
+		else if( this->cBuf+inx < this->cWpp )
 		{
-			if(this->cBuf+inx+len > this->cPtr)	len = this->cPtr-this->cBuf-inx;
-			this->move(this->cBuf+inx, this->cBuf+inx+len, this->cPtr-this->cBuf-inx-len);
-			this->cPtr -= len;
-			*this->cPtr = 0;
+			if(this->cBuf+inx+len > this->cWpp)	len = this->cWpp-this->cBuf-inx;
+			this->intern_move(this->cBuf+inx, this->cBuf+inx+len, this->cWpp-this->cBuf-inx-len);
+			this->cWpp -= len;
+			*this->cWpp = 0;
 		}
 	}
-	bool is_empty() const		{ return this->cPtr==this->cBuf; }
+	bool is_empty() const		{ return this->cWpp==this->cBuf; }
 	// remove everything exept from 0 for sz length
 	void truncate(size_t sz)
 	{
-		if( this->cEnd < this->cPtr )	// const string
+		if( this->cEnd < this->cWpp )	// const string
 			;
-		else if( this->cBuf+sz < this->cPtr )
+		else if( this->cBuf+sz < this->cWpp )
 		{	// truncate
-			this->cPtr = this->cBuf+sz;
-			*this->cPtr = 0;
+			this->cWpp = this->cBuf+sz;
+			*this->cWpp = 0;
 		}
 		else
 		{	// expand by padding spaces
-			if( this->checkwrite( sz-(this->cPtr-this->cBuf) ) )
+			if( this->checkwrite( sz-(this->cWpp-this->cBuf) ) )
 			{
-				while( this->cBuf+sz > this->cPtr )
-					*this->cPtr++ = (T)(' ');
-				*this->cPtr = 0;
+				while( this->cBuf+sz > this->cWpp )
+					*this->cWpp++ = (T)(' ');
+				*this->cWpp = 0;
 			}
 		}
 	}
 	// remove everything exept from ix for sz length
 	void truncate(size_t ix, size_t sz)
 	{
-		if( this->cEnd < this->cPtr )	// const string
+		if( this->cEnd < this->cWpp )	// const string
 			;
 		else if(ix==0)
 		{	// normal truncate
 			truncate(sz);
 		}
-		else if( this->cBuf+ix > this->cPtr )
+		else if( this->cBuf+ix > this->cWpp )
 		{	// cut all off
-			this->cPtr = this->cBuf;
-			*this->cPtr = 0;
+			this->cWpp = this->cBuf;
+			*this->cWpp = 0;
 		}
-		else if( this->cBuf+ix+sz <= this->cPtr )  
+		else if( this->cBuf+ix+sz <= this->cWpp )  
 		{	// move and truncate
-			this->move(this->cBuf, this->cBuf+ix, sz);
-			this->cPtr = this->cBuf+sz;
-			*this->cPtr = 0;
+			this->intern_move(this->cBuf, this->cBuf+ix, sz);
+			this->cWpp = this->cBuf+sz;
+			*this->cWpp = 0;
 		}
 		else
 		{	// move and expand
-			this->move(this->cBuf, this->cBuf+ix, this->cPtr-this->cBuf-ix);
-			this->cPtr -= ix;
-			if( this->checkwrite( sz-(this->cPtr-this->cBuf) ) )
+			this->intern_move(this->cBuf, this->cBuf+ix, this->cWpp-this->cBuf-ix);
+			this->cWpp -= ix;
+			if( this->checkwrite( sz-(this->cWpp-this->cBuf) ) )
 			{
-				while( this->cBuf+sz > this->cPtr )
-					*this->cPtr++ = (T)(' ');
+				while( this->cBuf+sz > this->cWpp )
+					*this->cWpp++ = (T)(' ');
 			}
-			*this->cPtr = 0;
+			*this->cWpp = 0;
 		}
 	}
 	bool checksize(size_t sz)	{ return (this->cBuf+sz>this->cEnd) ? checkwrite(sz-(this->cEnd-this->cBuf)) : true; }
@@ -319,19 +319,20 @@ public:
 	virtual const T* c_str() const		
 	{
 		if(!this->cBuf && const_cast<TString<T,A>*>(this)->checkwrite(1))
-			*this->cPtr=0; 
+			*const_cast<TString<T,A>*>(this)->cWpp=0; 
 		return this->cBuf; 
 	}
 	virtual operator const T*() const	{ return this->c_str(); }
 	virtual size_t length()	const		{ return this->A::length(); }
-
+	virtual T* begin() const			{ return this->A::begin(); }
+	virtual T* end() const				{ return this->A::end(); }
 	///////////////////////////////////////////////////////////////////////////
 	// array access
 	///////////////////////////////////////////////////////////////////////////
 	const T& operator[](size_t inx) const
 	{
 	#ifdef CHECK_BOUNDS
-		if( this->cBuf+inx > this->cPtr )
+		if( this->cBuf+inx > this->cWpp )
 		{
 	#ifdef CHECK_EXCEPTIONS
 			this->throw_bound();
@@ -347,13 +348,13 @@ public:
 	T& operator[](size_t inx)
 	{
 		// merge with exeption code
-		if( this->cEnd < this->cPtr )	// const string
+		if( this->cEnd < this->cWpp )	// const string
 		{
 			static T dummy;
 			return dummy=0;
 		}
 	#ifdef CHECK_BOUNDS
-		if( this->cBuf+inx > this->cPtr )
+		if( this->cBuf+inx > this->cWpp )
 		{
 	#ifdef CHECK_EXCEPTIONS
 			this->throw_bound();
@@ -373,37 +374,37 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	template<class X> TString<T,A>& assign(const X& t)
 	{
-		if( this->cPtr<this->cEnd ) // not a const string
-			this->cPtr = this->cBuf;
+		if( this->cWpp<this->cEnd ) // not a const string
+			this->cWpp = this->cBuf;
 		return this->operator<<(t);
 	}
 	TString<T,A>& assign(const T* c, size_t slen)
 	{
-		if( this->cPtr<this->cEnd ) // not a const string
-			this->cPtr = this->cBuf;
+		if( this->cWpp<this->cEnd ) // not a const string
+			this->cWpp = this->cBuf;
 		if( c && this->checkwrite(slen) )
 		{
 			const T* epp=c+slen;
 			while( *c && c<epp )
-				*this->cPtr++ = *c++;
+				*this->cWpp++ = *c++;
 		}
-		if( this->cPtr<this->cEnd ) *this->cPtr=0;
+		if( this->cWpp<this->cEnd ) *this->cWpp=0;
 		return *this;
 	}
 	TString<T,A>& assign(const T ch, size_t slen=1)
 	{
-		if( this->cPtr<this->cEnd ) // not a const string
-			this->cPtr = this->cBuf;
+		if( this->cWpp<this->cEnd ) // not a const string
+			this->cWpp = this->cBuf;
 		if(ch)
 		{	
 			if( this->checkwrite(slen) )
 			{
-				const T* epp=this->cPtr+slen;
-				while( this->cPtr < epp )
-					*this->cPtr++ = ch;
+				const T* epp=this->cWpp+slen;
+				while( this->cWpp < epp )
+					*this->cWpp++ = ch;
 			}
 		}
-		if(this->cPtr<this->cEnd) *this->cPtr=0;
+		if(this->cWpp<this->cEnd) *this->cWpp=0;
 		return *this;
 	}
 	TString<T,A>& assign(const T* c1, size_t len1, const T* c2, size_t len2)
@@ -414,44 +415,44 @@ public:
 			assign(c1, len1);
 		else if( this->checkwrite(len1 + len2) )
 		{
-			this->cPtr = this->cBuf;
+			this->cWpp = this->cBuf;
 
 			const T* epp=c1+len1;
 			while( *c1 && c1 < epp )
-				*this->cPtr++ = *c1++;
+				*this->cWpp++ = *c1++;
 
 			epp=c2+len2;
 			while( *c2 && c2 < epp )
-				*this->cPtr++ = *c2++;
+				*this->cWpp++ = *c2++;
 
-			*this->cPtr=0;
+			*this->cWpp=0;
 		}
 		return *this;
 	}
 	TString<T,A>& assign_tolower(const T* c, size_t slen=~0)
 	{
-		if( this->cPtr<this->cEnd ) // not a const string
-			this->cPtr = this->cBuf;
+		if( this->cWpp<this->cEnd ) // not a const string
+			this->cWpp = this->cBuf;
 		if(c)
 		{
 			const T* epp = (slen==~0) ? (const T*)(~((size_t)0)) : epp=c+slen;
 			while(*c && c<epp && this->checkwrite(1) )
-				*this->cPtr++ = locase(*c++);
+				*this->cWpp++ = locase(*c++);
 		}
-		if( this->cPtr<this->cEnd ) *this->cPtr=0;
+		if( this->cWpp<this->cEnd ) *this->cWpp=0;
 		return *this;
 	}
 	TString<T,A>& assign_toupper(const T* c, size_t slen=~0)
 	{
-		if( this->cPtr<this->cEnd ) // not a const string
-			this->cPtr = this->cBuf;
+		if( this->cWpp<this->cEnd ) // not a const string
+			this->cWpp = this->cBuf;
 		if(c)
 		{
 			const T* epp = (slen==~0) ? (const T*)(~((size_t)0)) : epp=c+slen;
 			while(*c && c<epp && this->checkwrite(1) )
-				*this->cPtr++ = upcase(*c++);
+				*this->cWpp++ = upcase(*c++);
 		}
-		if(this->cPtr<this->cEnd) *this->cPtr=0;
+		if(this->cWpp<this->cEnd) *this->cWpp=0;
 		return *this;
 	}
 	///////////////////////////////////////////////////////////////////////////
@@ -470,11 +471,11 @@ public:
 			slen = t.length();
 		if(slen)
 		{
-			if( this->checkwrite( slen ) )
+			if( this->cWpp+slen<this->cEnd || this->checkwrite( slen ) )
 			{
-				this->copy(this->cPtr, t, slen);
-				this->cPtr += slen;
-				*this->cPtr=0;
+				this->intern_copy(this->cWpp, t, slen);
+				this->cWpp += slen;
+				*this->cWpp=0;
 			}
 		}
 		return *this;
@@ -485,8 +486,8 @@ public:
 		{
 			const T* epp = c+slen;
 			while(*c && c<epp && this->checkwrite(1) )
-				*this->cPtr++ = *c++;
-			*this->cPtr=0;
+				*this->cWpp++ = *c++;
+			*this->cWpp=0;
 		}
 		return *this;
 	}
@@ -494,17 +495,28 @@ public:
 	{
 		if(ch) // dont append a eos
 		{
-			if( this->checkwrite( slen ) )
+			if( this->cWpp+slen<this->cEnd || this->checkwrite( slen ) )
 			{
-				T* epp = this->cPtr+slen;
-				while(this->cPtr<epp)
-					*this->cPtr++ = ch;
-				*this->cPtr = 0;
+				T* epp = this->cWpp+slen;
+				while(this->cWpp<epp)
+					*this->cWpp++ = ch;
+				*this->cWpp = 0;
 			}
 		}
 		return *this;
 	}
-
+	TString<T,A>& append(const T ch)
+	{
+		if(ch) // dont append a eos
+		{
+			if( this->cWpp+1<this->cEnd || this->checkwrite( 1 ) )
+			{
+				*this->cWpp++ = ch;
+				*this->cWpp = 0;
+			}
+		}
+		return *this;
+	}
 	/////////////////////////////////////////////////////////////////
 	// insert
 	/////////////////////////////////////////////////////////////////
@@ -516,13 +528,13 @@ public:
 		{
 			if( slen > t.length() )
 				slen = t.length();
-			if( this->checkwrite( slen ) )
+			if( this->cWpp+slen<this->cEnd || this->checkwrite( slen ) )
 			{
-				this->move(this->cBuf+pos+slen, this->cBuf+pos, this->cPtr-this->cBuf-pos);
-				this->copy(this->cBuf+pos, t, slen);
+				this->intern_move(this->cBuf+pos+slen, this->cBuf+pos, this->cWpp-this->cBuf-pos);
+				this->intern_copy(this->cBuf+pos, t, slen);
 
-				this->cPtr += slen;
-				*this->cPtr = 0;
+				this->cWpp += slen;
+				*this->cWpp = 0;
 			}
 		}
 		return *this;
@@ -533,19 +545,19 @@ public:
 		{
 			if( pos > this->length() )
 				return this->append(c, slen);
-			else if( this->cPtr<this->cEnd ) // not a const string
+			else if( this->cWpp<this->cEnd ) // not a const string
 			{
 				const T* ep =c;
 				while(*ep) ep++;
 				if( slen > (size_t)(ep-c) )
 					slen = ep-c;
-				if( this->checkwrite( slen ) )
+				if( this->cWpp+slen<this->cEnd || this->checkwrite( slen ) )
 				{
-					this->move(this->cBuf+pos+slen, this->cBuf+pos, this->cPtr-this->cBuf-pos);
-					this->copy(this->cBuf+pos, c, this->cPtr-this->cBuf-pos);
+					this->move(this->cBuf+pos+slen, this->cBuf+pos, this->cWpp-this->cBuf-pos);
+					this->copy(this->cBuf+pos, c, this->cWpp-this->cBuf-pos);
 
-					this->cPtr += slen;
-					*this->cPtr = 0;
+					this->cWpp += slen;
+					*this->cWpp = 0;
 				}
 			}
 		}
@@ -559,16 +571,16 @@ public:
 				return this->append(ch, slen);
 			else
 			{
-				if( this->checkwrite( slen ) )
+				if( this->cWpp+slen<this->cEnd || this->checkwrite( slen ) )
 				{
 					T* ipp = this->cBuf+pos;
 					T* epp = this->cBuf+pos+slen;
-					this->move(epp, ipp, this->cPtr-this->cBuf-pos);
+					this->move(epp, ipp, this->cWpp-this->cBuf-pos);
 					while(ipp<epp)
 						*ipp++ = ch;
 
-					this->cPtr += slen;
-					*this->cPtr = 0;
+					this->cWpp += slen;
+					*this->cWpp = 0;
 				}
 			}
 		}
@@ -581,7 +593,7 @@ public:
 	{
 		if( pos > this->length() )
 			return this->append(t, slen);
-		else if( this->cPtr<this->cEnd ) // not a const string
+		else if( this->cWpp<this->cEnd ) // not a const string
 		{
 			if( pos+tlen > this->length() )
 				tlen = this->length()-pos;
@@ -589,11 +601,11 @@ public:
 				slen = t.length();
 			if( slen<=tlen || this->checkwrite( slen-tlen ) )
 			{
-				this->move(this->cBuf+pos+slen, this->cBuf+pos+tlen, this->cPtr-this->cBuf-pos-tlen);
+				this->move(this->cBuf+pos+slen, this->cBuf+pos+tlen, this->cWpp-this->cBuf-pos-tlen);
 				this->copy(this->cBuf+pos, t, slen);
 
-				this->cPtr += slen-tlen;
-				*this->cPtr = 0;
+				this->cWpp += slen-tlen;
+				*this->cWpp = 0;
 			}
 		}
 		return *this;
@@ -604,7 +616,7 @@ public:
 		{
 			if( pos > this->length() )
 				return this->append(c, slen);
-			else if( this->cPtr<this->cEnd ) // not a const string
+			else if( this->cWpp<this->cEnd ) // not a const string
 			{
 				if( pos+tlen > this->length() )
 					tlen = this->length()-pos;
@@ -616,11 +628,11 @@ public:
 				
 				if( slen<=tlen || this->checkwrite( slen-tlen ) )
 				{
-					this->move(this->cBuf+pos+slen, this->cBuf+pos+tlen, this->cPtr-this->cBuf-pos-tlen);
-					this->copy(this->cBuf+pos, c, slen);
+					this->intern_move(this->cBuf+pos+slen, this->cBuf+pos+tlen, this->cWpp-this->cBuf-pos-tlen);
+					this->intern_copy(this->cBuf+pos, c, slen);
 
-					this->cPtr += slen-tlen;
-					*this->cPtr = 0;
+					this->cWpp += slen-tlen;
+					*this->cWpp = 0;
 				}
 			}
 		}
@@ -632,7 +644,7 @@ public:
 		{
 			if( pos > this->length() )
 				return this->append(ch, slen);
-			else if( this->cPtr<this->cEnd ) // not a const string
+			else if( this->cWpp<this->cEnd ) // not a const string
 			{
 				if( pos+tlen > this->length() )
 					tlen = this->length()-pos;
@@ -641,12 +653,12 @@ public:
 				{
 					T* ipp = this->cBuf+pos;
 					T* epp = this->cBuf+pos+slen;
-					this->move(epp, ipp+tlen, this->cPtr-this->cBuf-pos-tlen);
+					this->intern_move(epp, ipp+tlen, this->cWpp-this->cBuf-pos-tlen);
 					while(ipp<epp)
 						*ipp++ = ch;
 
-					this->cPtr += slen-tlen;
-					*this->cPtr = 0;
+					this->cWpp += slen-tlen;
+					*this->cWpp = 0;
 				}
 			}
 		}
@@ -662,21 +674,21 @@ public:
 // it "detects" ambiguities in this case
 //	template <class X> const TString<T,A>& operator =(const X& t)
 //	{
-//		this->cPtr = this->cBuf;
+//		this->cWpp = this->cBuf;
 //		return *this<<t;
 //	}
 
 	// only default copy assignment usable
-	const TString<T,A>& operator=(const TString<T,A>& t)	{ if( this->cPtr<this->cEnd ) this->cPtr = this->cBuf; return this->operator<<(t); }
+	const TString<T,A>& operator=(const TString<T,A>& t)	{ if( this->cWpp<this->cEnd ) this->cWpp = this->cBuf; return this->operator<<(t); }
 
-	const TString<T,A>& operator=(const stringinterface<T>& t){ if( this->cPtr<this->cEnd ) this->cPtr = this->cBuf; return this->operator<<(t); }
-	const TString<T,A>& operator=(const T* t)				{ if( this->cPtr<this->cEnd ) this->cPtr = this->cBuf; return this->operator<<(t); }
-	const TString<T,A>& operator=(const T t)				{ if( this->cPtr<this->cEnd ) this->cPtr = this->cBuf; return this->operator<<(t); }
-	const TString<T,A>& operator=(const int t)				{ if( this->cPtr<this->cEnd ) this->cPtr = this->cBuf; return this->operator<<(t); }
-	const TString<T,A>& operator=(const unsigned int t)		{ if( this->cPtr<this->cEnd ) this->cPtr = this->cBuf; return this->operator<<(t); }
-	const TString<T,A>& operator=(const long t)				{ if( this->cPtr<this->cEnd ) this->cPtr = this->cBuf; return this->operator<<(t); }
-	const TString<T,A>& operator=(const unsigned long t)	{ if( this->cPtr<this->cEnd ) this->cPtr = this->cBuf; return this->operator<<(t); }
-	const TString<T,A>& operator=(const double t)			{ if( this->cPtr<this->cEnd ) this->cPtr = this->cBuf; return this->operator<<(t); }
+	const TString<T,A>& operator=(const stringinterface<T>& t){ if( this->cWpp<this->cEnd ) this->cWpp = this->cBuf; return this->operator<<(t); }
+	const TString<T,A>& operator=(const T* t)				{ if( this->cWpp<this->cEnd ) this->cWpp = this->cBuf; return this->operator<<(t); }
+	const TString<T,A>& operator=(const T t)				{ if( this->cWpp<this->cEnd ) this->cWpp = this->cBuf; return this->operator<<(t); }
+	const TString<T,A>& operator=(const int t)				{ if( this->cWpp<this->cEnd ) this->cWpp = this->cBuf; return this->operator<<(t); }
+	const TString<T,A>& operator=(const unsigned int t)		{ if( this->cWpp<this->cEnd ) this->cWpp = this->cBuf; return this->operator<<(t); }
+	const TString<T,A>& operator=(const long t)				{ if( this->cWpp<this->cEnd ) this->cWpp = this->cBuf; return this->operator<<(t); }
+	const TString<T,A>& operator=(const unsigned long t)	{ if( this->cWpp<this->cEnd ) this->cWpp = this->cBuf; return this->operator<<(t); }
+	const TString<T,A>& operator=(const double t)			{ if( this->cWpp<this->cEnd ) this->cWpp = this->cBuf; return this->operator<<(t); }
 
 	///////////////////////////////////////////////////////////////////////////
 	// add-assignment operators
@@ -712,11 +724,11 @@ public:
 	{
 		if(sb.length())
 		{
-			if( this->checkwrite(sb.length()) )
+			if( this->cWpp+sb.length()<this->cEnd || this->checkwrite(sb.length()) )
 			{
-				this->copy(this->cPtr, sb, sb.length());
-				this->cPtr += sb.length();
-				*this->cPtr=0;
+				this->intern_copy(this->cWpp, sb, sb.length());
+				this->cWpp += sb.length();
+				*this->cWpp=0;
 			}
 		}
 		return *this;
@@ -725,11 +737,11 @@ public:
 	{
 		if( t.length() )
 		{
-			if( this->checkwrite( t.length() ) )
+			if( this->cWpp+t.length()<this->cEnd || this->checkwrite( t.length() ) )
 			{
-				this->copy(this->cPtr, t, t.length());
-				this->cPtr += t.length();
-				*this->cPtr=0;
+				this->intern_copy(this->cWpp, t, t.length());
+				this->cWpp += t.length();
+				*this->cWpp=0;
 			}
 		}
 		return *this;
@@ -739,8 +751,8 @@ public:
 		if(ip)
 		{
 			while( *ip && this->checkwrite(1) )
-				*this->cPtr++ = *ip++;
-			if(this->cPtr<this->cEnd) *this->cPtr=0;
+				*this->cWpp++ = *ip++;
+			if(this->cWpp<this->cEnd) *this->cWpp=0;
 		}
 		return *this;
 	}
@@ -748,8 +760,8 @@ public:
 	{
 		if( ch && this->checkwrite(1) )
 		{
-			*this->cPtr++ = ch;
-			*this->cPtr=0;
+			*this->cWpp++ = ch;
+			*this->cWpp=0;
 		}
 		return *this;
 	}
@@ -758,19 +770,19 @@ public:
 	/*	int sz;
 		while(1)
 		{
-			sz = snprintf(this->cPtr, this->cEnd-this->cPtr, "%i", v);
+			sz = snprintf(this->cWpp, this->cEnd-this->cWpp, "%i", v);
 			if(sz<0)
 			{	// buffer not sufficient
-				if( !this->checkwrite(1+2*(this->cEnd-this->cPtr)) )
+				if( !this->checkwrite(1+2*(this->cEnd-this->cWpp)) )
 				{	// give up
 					// should throw something here
-					*this->cPtr=0;
+					*this->cWpp=0;
 					break;
 				}
 			}
 			else
 			{
-				this->cPtr += sz;
+				this->cWpp += sz;
 				break;
 			}
 		}
@@ -782,19 +794,19 @@ public:
 	/*	int sz;
 		while(1)
 		{
-			sz = snprintf(this->cPtr, this->cEnd-this->cPtr, "%u", v);
+			sz = snprintf(this->cWpp, this->cEnd-this->cWpp, "%u", v);
 			if(sz<0)
 			{	// buffer not sufficient
-				if( !this->checkwrite(1+2*(this->cEnd-this->cPtr)) )
+				if( !this->checkwrite(1+2*(this->cEnd-this->cWpp)) )
 				{	// give up
 					// should throw something here
-					*this->cPtr=0;
+					*this->cWpp=0;
 					break;
 				}
 			}
 			else
 			{
-				this->cPtr += sz;
+				this->cWpp += sz;
 				break;
 			}
 		}
@@ -806,19 +818,19 @@ public:
 	/*	int sz;
 		while(1)
 		{
-			sz = snprintf(this->cPtr, this->cEnd-this->cPtr, "%li", v);
+			sz = snprintf(this->cWpp, this->cEnd-this->cWpp, "%li", v);
 			if(sz<0)
 			{	// buffer not sufficient
-				if( !this->checkwrite(1+2*(this->cEnd-this->cPtr)) )
+				if( !this->checkwrite(1+2*(this->cEnd-this->cWpp)) )
 				{	// give up
 					// should throw something here
-					*this->cPtr=0;
+					*this->cWpp=0;
 					break;
 				}
 			}
 			else
 			{
-				this->cPtr += sz;
+				this->cWpp += sz;
 				break;
 			}
 		}
@@ -830,19 +842,19 @@ public:
 	/*	int sz;
 		while(1)
 		{
-			sz = snprintf(this->cPtr, this->cEnd-this->cPtr, "%lu", v);
+			sz = snprintf(this->cWpp, this->cEnd-this->cWpp, "%lu", v);
 			if(sz<0)
 			{	// buffer not sufficient
-				if( !this->checkwrite(1+2*(this->cEnd-this->cPtr)) )
+				if( !this->checkwrite(1+2*(this->cEnd-this->cWpp)) )
 				{	// give up
 					// should throw something here
-					*this->cPtr=0;
+					*this->cWpp=0;
 					break;
 				}
 			}
 			else
 			{
-				this->cPtr += sz;
+				this->cWpp += sz;
 				break;
 			}
 		}
@@ -866,22 +878,22 @@ public:
 	TString<T,A>& operator <<(const double v)
 	{
 		ssize_t sz;
-		while(this->cEnd>this->cPtr)
+		while(this->cEnd>this->cWpp)
 		{
-			//sz = snprintf(this->cPtr, this->cEnd-this->cPtr, "%lf", v);
-			sz = printdouble(this->cPtr, this->cEnd-this->cPtr, v);
+			//sz = snprintf(this->cWpp, this->cEnd-this->cWpp, "%lf", v);
+			sz = printdouble(this->cWpp, this->cEnd-this->cWpp, v);
 			if(sz<0)
 			{	// buffer not sufficient
-				if( !this->checkwrite(1+2*(this->cEnd-this->cPtr)) )
+				if( !this->checkwrite(1+2*(this->cEnd-this->cWpp)) )
 				{	// give up
 					// should throw something here
-					*this->cPtr=0;
+					*this->cWpp=0;
 					break;
 				}
 			}
 			else
 			{
-				this->cPtr += sz;
+				this->cWpp += sz;
 				break;
 			}
 		}
@@ -895,7 +907,7 @@ public:
 	{	
 		if(s.length()>0 && this->length()>0) 
 			// compare including eos
-			return this->cmp(this->cBuf, s.c_str(), 1+this->length());
+			return this->intern_cmp(this->cBuf, s.c_str(), 1+this->length());
 		else if(s.length()==0 && this->length()==0)
 			return 0;
 		else if(s.length()==0)
@@ -915,7 +927,7 @@ public:
 	int compareTo(const T *c) const
 	{	
 		if(c && this->length()>0)
-			return this->cmp(this->cBuf, c, 1+this->length());
+			return this->intern_cmp(this->cBuf, c, 1+this->length());
 		else if((!c || *c==0) && this->length()==0)
 			return 0;
 		else if((!c || *c==0))
@@ -959,10 +971,10 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	virtual void tolower()
 	{
-		if( this->cPtr<this->cEnd )
+		if( this->cWpp<this->cEnd )
 		{
 			T* ipp = this->cBuf;
-			while( ipp < this->cPtr )
+			while( ipp < this->cWpp )
 			{
 				*ipp = locase(*ipp);
 				ipp++;
@@ -971,10 +983,10 @@ public:
 	}
 	virtual void toupper()
 	{
-		if( this->cPtr<this->cEnd )
+		if( this->cWpp<this->cEnd )
 		{
 			T* ipp = this->cBuf;
-			while( ipp < this->cPtr )
+			while( ipp < this->cWpp )
 			{
 				*ipp = upcase(*ipp);
 				ipp++;
@@ -987,39 +999,39 @@ public:
 	// remove whitespaces from left side
 	virtual void ltrim()
 	{
-		if( this->cPtr<this->cEnd )
+		if( this->cWpp<this->cEnd )
 		{
 			T* ipp = this->cBuf;
-			while( ipp < this->cPtr && stringcheck::isspace(*ipp) )
+			while( ipp < this->cWpp && stringcheck::isspace(*ipp) )
 				ipp++;
 			if(ipp!=this->cBuf)
 			{
-				this->move(this->cBuf, ipp, this->cPtr-ipp);
-				*this->cPtr=0;
+				this->intern_move(this->cBuf, ipp, this->cWpp-ipp);
+				*this->cWpp=0;
 			}
 		}
 	}
 	// remove whitespaces from right side
 	virtual void rtrim()
 	{
-		if( this->cPtr<this->cEnd )
+		if( this->cWpp<this->cEnd )
 		{
-			T* ipp = this->cPtr-1;
-			T* kpp = this->cPtr-1;
+			T* ipp = this->cWpp-1;
+			T* kpp = this->cWpp-1;
 				
 			while( ipp>this->cBuf && stringcheck::isspace(*ipp) )
 				ipp--;
 			if( ipp != kpp )
 			{
-				this->cPtr=ipp+1;
-				*this->cPtr=0;
+				this->cWpp=ipp+1;
+				*this->cWpp=0;
 			}
 		}
 	}
 	// remove whitespaces from both sides
 	virtual void trim()
 	{
-		if( this->cPtr<this->cEnd )
+		if( this->cWpp<this->cEnd )
 		{
 			T *src=this->cBuf, *tar=this->cBuf, *mk=NULL;
 			while(*src && stringcheck::isspace(*src) )
@@ -1029,14 +1041,14 @@ public:
 				mk = ( stringcheck::isspace(*src) )?mk?mk:tar:NULL;
 				*tar++ = *src++;
 			}
-			this->cPtr = (mk) ? mk : tar;
-			*this->cPtr=0;
+			this->cWpp = (mk) ? mk : tar;
+			*this->cWpp=0;
 		}
 	}
 	// remove whitespaces from both sides, combine or remove speces inside
 	virtual void itrim(bool removeall=false)
 	{
-		if( this->cPtr<this->cEnd )
+		if( this->cWpp<this->cEnd )
 		{
 			T *src=this->cBuf, *tar=this->cBuf, mk=0;
 			while(*src && stringcheck::isspace(*src) )
@@ -1053,8 +1065,21 @@ public:
 				}
 			}
 			*tar=0;
-			this->cPtr = tar;
+			this->cWpp = tar;
 		}
+	}
+	size_t hash() const
+	{	
+		unsigned long h = 0;
+		T*ptr = this->cBuf;
+		while(ptr<this->cWpp)
+		{
+			// hash from stl
+			h = 5*h + *ptr++;
+			// has used in ea
+			//h = (h*33 + *ptr++) ^ (h>>24);
+		}
+		return size_t(h);
 	}
 };
 
@@ -1064,45 +1089,45 @@ public:
 // implements a dynamic in-place buffer
 // type construction always copies the  data to a newly created buffer
 ///////////////////////////////////////////////////////////////////////////////
-template <class T=char> class basestring : public TString< T, allocator_w_dy<T, elaborator_st<T> > >
+template <class T=char> class basestring : public TString< T, allocator_ws_dy<T, elaborator_st<T> > >
 {
 public:
 	basestring()
 	{}
-	basestring<T>(const basestring<T>& t) : TString< T, allocator_w_dy<T, elaborator_st<T> > >()
+	basestring<T>(const basestring<T>& t) : TString< T, allocator_ws_dy<T, elaborator_st<T> > >()
 	{
-		this->TString< T, allocator_w_dy<T, elaborator_st<T> > >::assign(t);
+		this->TString< T, allocator_ws_dy<T, elaborator_st<T> > >::assign(t);
 	}
-	basestring<T>(const stringinterface<T>& t) : TString< T, allocator_w_dy<T,elaborator_st<T> > >()
+	basestring<T>(const stringinterface<T>& t) : TString< T, allocator_ws_dy<T,elaborator_st<T> > >()
 	{
-		this->TString< T, allocator_w_dy<T, elaborator_st<T> > >::assign(t);
+		this->TString< T, allocator_ws_dy<T, elaborator_st<T> > >::assign(t);
 	}
-	basestring<T>(const char* t) : TString< T, allocator_w_dy<T, elaborator_st<T> > >()
+	basestring<T>(const char* t) : TString< T, allocator_ws_dy<T, elaborator_st<T> > >()
 	{
-		this->TString< T, allocator_w_dy<T, elaborator_st<T> > >::assign(t);
+		this->TString< T, allocator_ws_dy<T, elaborator_st<T> > >::assign(t);
 	}
-	explicit basestring<T>(char t) : TString< T, allocator_w_dy<T, elaborator_st<T> > >()
+	explicit basestring<T>(char t) : TString< T, allocator_ws_dy<T, elaborator_st<T> > >()
 	{
-		this->TString< T, allocator_w_dy<T, elaborator_st<T> > >::assign(t);
+		this->TString< T, allocator_ws_dy<T, elaborator_st<T> > >::assign(t);
 	}
-	explicit basestring<T>(int t) : TString< T, allocator_w_dy<T, elaborator_st<T> > >()
+	explicit basestring<T>(int t) : TString< T, allocator_ws_dy<T, elaborator_st<T> > >()
 	{
-		this->TString< T, allocator_w_dy<T, elaborator_st<T> > >::assign(t);
+		this->TString< T, allocator_ws_dy<T, elaborator_st<T> > >::assign(t);
 	}
-	explicit basestring<T>(unsigned int t) : TString< T, allocator_w_dy<T, elaborator_st<T> > >()
+	explicit basestring<T>(unsigned int t) : TString< T, allocator_ws_dy<T, elaborator_st<T> > >()
 	{
-		this->TString< T, allocator_w_dy<T, elaborator_st<T> > >::assign(t);
+		this->TString< T, allocator_ws_dy<T, elaborator_st<T> > >::assign(t);
 	}
-	explicit basestring<T>(double t) : TString< T, allocator_w_dy<T, elaborator_st<T> > >()
+	explicit basestring<T>(double t) : TString< T, allocator_ws_dy<T, elaborator_st<T> > >()
 	{
-		this->TString< T, allocator_w_dy<T, elaborator_st<T> > >::assign(t);
+		this->TString< T, allocator_ws_dy<T, elaborator_st<T> > >::assign(t);
 	}
 
 	virtual ~basestring()	{}
 
 	template<class X> const basestring<T>& operator=(const X& t)
 	{
-		this->TString< T, allocator_w_dy<T, elaborator_st<T> > >::assign(t);
+		this->TString< T, allocator_ws_dy<T, elaborator_st<T> > >::assign(t);
 		return *this;
 	}
 	///////////////////////////////////////////////////////////////////////////
@@ -1132,25 +1157,25 @@ public:
 // type construction only possible with either a buffer which is used for writing
 // or with a const cstring which is then used as a constant without write possibility
 ///////////////////////////////////////////////////////////////////////////////
-template<class T=char> class staticstring : public TString< T, allocator_w_st<T, elaborator_st<T> > >
+template<class T=char> class staticstring : public TString< T, allocator_ws_st<T, elaborator_st<T> > >
 {
 	staticstring<T>();
 	staticstring<T>(const staticstring<T>&);
 public:
 	staticstring<T>(T* buf, size_t sz)
-		: TString< T, allocator_w_st<T, elaborator_st<T> > >(buf, sz)
+		: TString< T, allocator_ws_st<T, elaborator_st<T> > >(buf, sz)
 	{}
 	staticstring<T>(const T* cstr)
-		: TString< T, allocator_w_st<T, elaborator_st<T> > >(const_cast<T*>(cstr), 0)
+		: TString< T, allocator_ws_st<T, elaborator_st<T> > >(const_cast<T*>(cstr), 0)
 	{	// set up a zero-length buffer, 
 		// where the length pointer is set at position
-		this->cPtr+=hstrlen(cstr);
+		this->cWpp+=hstrlen(cstr);
 	}
 	virtual ~staticstring()	{}
 
 	template<class X> const staticstring& operator=(const X& t)
 	{
-		this->TString< T, allocator_w_st<T, elaborator_st<T> > >::assign(t);
+		this->TString< T, allocator_ws_st<T, elaborator_st<T> > >::assign(t);
 		return *this;
 	}
 	///////////////////////////////////////////////////////////////////////////
@@ -1159,7 +1184,7 @@ public:
 	virtual const T* c_str() const		
 	{
 		if(!this->cBuf && const_cast<staticstring<T>*>(this)->checkwrite(1))
-			*this->cPtr=0; 
+			*this->cWpp=0; 
 		return this->cBuf; 
 	}
 
@@ -1670,9 +1695,14 @@ public:
 		this->writeaccess().assign(c, len);
 		return *this;
 	}
-	string<T>& assign(const T ch, size_t slen=1)
+	string<T>& assign(const T ch, size_t slen)
 	{
 		this->writeaccess().assign(ch, slen);
+		return *this;
+	}
+	string<T>& assign(const T ch)
+	{
+		this->writeaccess().assign(ch);
 		return *this;
 	}
 	string<T>& assign(const string<T>& s1, size_t len1, const string<T>& s2, size_t len2)
@@ -1829,6 +1859,10 @@ public:
     virtual operator const T*() const	{ return this->readaccess().c_str(); }
 	virtual const T* c_str() const		{ return this->readaccess().c_str(); }
 	virtual size_t length()	const		{ return this->readaccess().length(); }
+	virtual T* begin() const			{ return this->readaccess().begin(); }
+	virtual T* end() const				{ return this->readaccess().end(); }
+
+
 	void clear()						{ this->writeaccess().clear(); }
 	void empty()						{ this->writeaccess().clear(); }
 	void clear(size_t inx, size_t len)	{ this->writeaccess().clear(inx, len); }
@@ -2075,6 +2109,10 @@ public:
 	{
 		this->writeaccess().itrim(removeall);
 	}
+	size_t hash() const
+	{
+		this->readaccess().hash();
+	}
 };
 
 
@@ -2246,6 +2284,8 @@ public:
 	virtual operator const T*() const	{ return (cString) ? this->cString->c_str()+cPos  : this->getStringConstant(0); }
 	virtual const T* c_str() const		{ return (cString) ? this->cString->c_str()+cPos  : this->getStringConstant(0); }
 	virtual size_t length() const		{ return cLen; }
+	virtual T* begin() const			{ return const_cast<T*>( this->c_str() ); }
+	virtual T* end() const				{ return const_cast<T*>( this->c_str()+cLen ); }
 
 	/////////////////////////////////////////////////////////////////
 	// Different Assignments to a substring

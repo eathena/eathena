@@ -338,7 +338,7 @@ int plugins_config_read(const char *cfgName)
 			auto_search = config_switch(w2);
 		} else if (strcasecmp(w1, "plugin") == 0) {
 			char filename[128];
-			sprintf (filename, "addons%c%s%s", PATHSEP, w2, DLL_EXT);
+			snprintf(filename, sizeof(filename), "addons%c%s%s", PATHSEP, w2, DLL_EXT);
 			plugin_open(filename, true);
 		} else if (strcasecmp(w1, "import") == 0)
 			plugins_config_read(w2);

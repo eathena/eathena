@@ -7,8 +7,108 @@
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// tet function
+// test function
 void test_lists();
+
+
+//////////////////////////////////////////////////////////////////////////
+// non intrusive single linked list class
+// stores objects / copy's of given objects
+//////////////////////////////////////////////////////////////////////////
+template<class T> class CSList
+{
+	struct CSLinkNode
+	{
+		T cInfo;
+		CSLinkNode *cNext;
+		CSLinkNode(const T& a, CSLinkNode *lnk):cInfo(a), cNext(lnk)
+		{ }
+	};
+	CSLinkNode *cRoot;
+public:
+	CSList() : cRoot(NULL)
+	{ }
+	~CSList()	
+	{
+		TLink<T> *x;
+		while(cRoot)
+		{
+			x = this->cRoot;
+			this->cRoot = x->cNext;
+			delete x;
+		}
+	}
+	
+	T* insert(const T& in);
+	T* find(const T& in);
+
+
+	class iterator
+	{
+		CSLinkNode* ptr;
+	public:
+		iterator(const CSList& list) : ptr(list.cRoot)
+		{ }
+		~iterator()
+		{ }
+		// can use default copy//assignment
+		const iterator& operator=(const CSList& list)
+		{
+			ptr = list.cRoot;
+		}
+		bool isvalid() const	{ return this->ptr!=NULL; }
+		operator bool() const	{ return this->isvalid(); }
+		T* operator()()			{ return (this->ptr)?&this->ptr->cInfo:NULL; }
+		T& operator*()			{ return this->ptr->cInfo; }
+		T* operator->()			{ return (this->ptr)?&this->ptr->cInfo:NULL; }
+
+		T* operator++()
+		{	// preincrement
+			if(this->ptr)
+				this->ptr = this->ptr->cNext;
+			return (this->ptr)?&this->ptr->cInfo:NULL;
+		}
+		T* operator++(int)
+		{	// postincrement
+			T* e = (this->ptr)?&this->ptr->cInfo:NULL;
+			if( this->ptr )
+				this->ptr = this->ptr->cNext;
+			return e; 
+		}
+		// not defined
+		//T* operator--()
+		//T* operator--(int)
+	};
+};
+
+template<class T> inline 
+T *CSList<T>::insert(const T& in)
+{
+	TLink<T> *x = new TLink<T>(in, cRoot); 
+	if(x)
+	{	cRoot=x;
+		return &(x->cInfo);
+	}
+	else
+		return NULL;
+}
+
+template<class T> inline 
+T* CSList<T>::find(const T& in)
+{
+	TLink<T> *x = cRoot;
+	while(NULL != x)
+	{
+		if( x->cInfo == in )
+			break;
+		x = x->cNext;
+	}
+	if(NULL!=x)
+		return &(x->cInfo);
+	else
+		return NULL;
+}
+
 
 
 ///////////////////////////////////////////////////////////////////////////////

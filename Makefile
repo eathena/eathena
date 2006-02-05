@@ -73,8 +73,11 @@ conf:
 	cp -r conf-tmpl conf
 	rm -rf conf/.svn conf/*/.svn
 
-txt : src/basics/GNUmakefile src/common/GNUmakefile src/login/GNUmakefile src/char/GNUmakefile src/map/GNUmakefile src/ladmin/GNUmakefile src/scriptchk/GNUmakefile conf 
+.PHONY : basics
+basics: basics/GNUmakefile
 	cd src ; cd basics ; $(MAKE) $(MKDEF) all ; cd .. ; cd ..
+
+txt : basics src/common/GNUmakefile src/login/GNUmakefile src/char/GNUmakefile src/map/GNUmakefile src/ladmin/GNUmakefile src/scriptchk/GNUmakefile conf 
 	cd src ; cd common ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
 	cd src ; cd login ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
 	cd src ; cd char ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
@@ -83,8 +86,7 @@ txt : src/basics/GNUmakefile src/common/GNUmakefile src/login/GNUmakefile src/ch
 	cd src ; cd scriptchk ; $(MAKE) $(MKDEF) all ; cd .. ; cd ..
 
 ifdef SQLFLAG
-sql: src/basics/GNUmakefile src/common/GNUmakefile src/login/GNUmakefile src/char/GNUmakefile src/map/GNUmakefile src/ladmin/GNUmakefile src/scriptchk/GNUmakefile conf
-	cd src ; cd basics ; $(MAKE) $(MKDEF) all ; cd .. ; cd ..
+sql: basics src/common/GNUmakefile src/login/GNUmakefile src/char/GNUmakefile src/map/GNUmakefile src/ladmin/GNUmakefile src/scriptchk/GNUmakefile conf
 	cd src ; cd common ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
 	cd src ; cd login ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
 	cd src ; cd char ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
@@ -96,7 +98,7 @@ sql:
 	$(MAKE) CCC="$(CCC)" OPT="$(OPT)" SQLFLAG=1 $@
 endif
 
-clean: src/basics/GNUmakefile src/common/GNUmakefile src/login/GNUmakefile src/char/GNUmakefile src/map/GNUmakefile src/ladmin/GNUmakefile src/scriptchk/GNUmakefile conf
+clean: src/basics/GNUmakefile src/common/GNUmakefile src/login/GNUmakefile src/char/GNUmakefile src/map/GNUmakefile src/ladmin/GNUmakefile src/scriptchk/GNUmakefile
 	cd src ; cd basics ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
 	cd src ; cd common ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
 	cd src ; cd login ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..

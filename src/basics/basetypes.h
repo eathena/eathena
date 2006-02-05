@@ -26,6 +26,23 @@
 #endif
 
 
+
+//////////////////////////////////////////////////////////////////////////
+// setting some defines for compile modes
+//////////////////////////////////////////////////////////////////////////
+
+// check global objects count and array boundaries in debug mode
+#if defined(DEBUG) && !defined(COUNT_GLOBALS)
+#define COUNT_GLOBALS
+#endif
+#if defined(DEBUG) && !defined(CHECK_BOUNDS)
+#define CHECK_BOUNDS
+#endif
+#if defined(DEBUG) && !defined(CHECK_LOCKS)
+#define CHECK_LOCKS
+#endif
+
+
 //////////////////////////////////////////////////////////////////////////
 // setting some defines on platforms
 //////////////////////////////////////////////////////////////////////////
@@ -52,20 +69,58 @@
 #define DEBUG
 #endif
 
+// not building multithread on msvc with setting this to multithread
+#if defined(_MSC_VER) && !defined(_MT) && !defined(SINGLETHREAD)
+#pragma message ( "INFO: not building multithreaded, defining SINGLETHREAD" )
+#define SINGLETHREAD
+#endif
+
 
 //////////////////////////////////////////////////////////////////////////
-// setting some defines for compile modes
-//////////////////////////////////////////////////////////////////////////
+// exception macros
+// disable exceptions on unsupported compilers
+#if defined(CHECK_EXCEPTIONS)
 
-// check global objects count and array boundaries in debug mode
-#if defined(DEBUG) && !defined(COUNT_GLOBALS)
-#define COUNT_GLOBALS
+#if defined(_MSC_VER) && _MSC_VER <= 1000	// MSVC4 is too old
+#undef CHECK_EXCEPTIONS
 #endif
-#if defined(DEBUG) && !defined(CHECK_BOUNDS)
-#define CHECK_BOUNDS
+
+#if defined(__BORLANDC__) && !defined(WIN32)
+#undef CHECK_EXCEPTIONS
 #endif
-#if defined(DEBUG) && !defined(CHECK_LOCKS)
-#define CHECK_LOCKS
+
+#if defined(_MSC_VER) && !defined(WIN32)
+#undef CHECK_EXCEPTIONS
+#endif
+
+#endif
+
+//////////////////////////////////////////////////////////////////////////
+// set some macros for throw declarations
+#if defined(CHECK_EXCEPTIONS)
+#define NOTHROW		throw()
+#define THROW(a)	throw(a)
+#define D_NOTHROW	throw()
+#define D_THROW(a)	throw(a)
+#else
+#define THROW
+#define THROW(a)
+#define D_NOTHROW
+#define D_THROW(a)
+#endif
+
+#if defined(_MSC_VER) && _MSC_VER <= 1020
+#  undef  D_NOTHROW	// MSVC++ 4.0/4.2 does not support 
+#  undef  D_THROW	// exception specification in definition
+#  define D_NOTHROW
+#  define D_THROW(a)
+#endif
+
+
+//////////////////////////////////////////////////////////////////////////
+// template behaviour on microsoft visual c++ is weird
+#if defined(_MSC_VER) && _MSC_VER <= 1200
+#define HAS_BAD_TEMPLATES
 #endif
 
 
@@ -263,9 +318,22 @@ extern long altzone;
 #pragma warning(disable : 4702) // disable "unreachable code" warning for throw (known compiler bug)
 #pragma warning(disable : 4706) // assignment within conditional
 #pragma warning(disable : 4710)	// is no inline function
+#pragma warning(disable : 4786)	// shortened identifier to 255 chars in browse information
 #pragma warning(disable : 4996)	// disable deprecated warnings
 #endif
 
+
+//////////////////////////////////////////////////////////////////////////
+// just to be complete, nobody should use that old thing
+#if defined(_MSC_VER) && _MSC_VER <= 1000
+typedef int bool;
+#if !defined(false)
+#define false  0
+#endif
+#if !defined(true)
+#define true   1
+#endif
+#endif
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -292,6 +360,17 @@ extern long altzone;
 // disable attributed stuff on non-GNU
 #ifndef __GNUC__
 #  define  __attribute__(x)
+#endif
+
+
+#if defined(__GNUG__) || defined(__MWERKS__) || (defined(__BORLANDC__) && (__BORLANDC__ >= 0x540))
+#define FRIEND_TEMPLATE <>
+#else
+#define FRIEND_TEMPLATE
+#endif
+
+#ifndef PI
+#define PI 3.1415926535897932384626433832795029L
 #endif
 
 
@@ -338,16 +417,23 @@ typedef int*			pint;
 #ifdef WIN32
 //////////////////////////////
 typedef          __int8		int8;
-typedef          __int16	int16;
-typedef          __int32	int32;
-
-typedef signed __int8		sint8;
-typedef signed __int16		sint16;
-typedef signed __int32		sint32;
-
+typedef signed   __int8		sint8;
 typedef unsigned __int8		uint8;
+
+
+typedef          __int16	int16;
+typedef signed   __int16	sint16;
 typedef unsigned __int16	uint16;
-typedef unsigned __int32	uint32;
+
+// seperated typedef makes problems with type indication
+//typedef          __int32	int32;	
+//typedef signed   __int32	sint32;
+//typedef unsigned __int32	uint32;
+typedef          int		int32;
+typedef signed   int		sint32;
+typedef unsigned int		uint32;
+
+
 //////////////////////////////
 #else // GNU
 //////////////////////////////
@@ -408,7 +494,7 @@ typedef __int64				int64;
 typedef signed __int64		sint64;
 typedef unsigned __int64	uint64;
 #define LLCONST(a)			(a##i64)
-#else
+#else //elif HAVE_LONG_LONG
 typedef long long			int64;
 typedef signed long long	sint64;
 typedef unsigned long long	uint64;
@@ -528,16 +614,15 @@ inline size_t to_unsigned(unsigned short t)
 {
 	return (unsigned short)(t);
 }
-// UCT4
-inline size_t to_unsigned(sint32 t)
-{
-	return (uint32)(t);
-}
-inline size_t to_unsigned(uint32 t)
-{
-	return (uint32)(t);
-}
 // others, just to be complete
+inline size_t to_unsigned(int t)
+{
+	return (unsigned int)(t);
+}
+inline size_t to_unsigned(unsigned int t)
+{
+	return (unsigned int)(t);
+}
 inline size_t to_unsigned(long t)
 {
 	return (unsigned long)(t);
@@ -554,17 +639,6 @@ inline uint64 to_unsigned(uint64 t)
 {
 	return (uint64)(t);
 }
-#ifdef WIN32
-// int on non-win32 in handled by int32
-inline size_t to_unsigned(int t)
-{
-	return (unsigned int)(t);
-}
-inline size_t to_unsigned(unsigned int t)
-{
-	return (unsigned int)(t);
-}
-#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 

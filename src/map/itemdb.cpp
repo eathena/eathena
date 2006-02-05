@@ -740,7 +740,7 @@ int itemdb_read_sqldb(void)
 
 	for (i = 0; i < 2; i++)
 	{
-		sprintf(tmp_sql, "SELECT * FROM `%s`", item_db_name[i]);
+		snprintf(tmp_sql, sizeof(tmp_sql), "SELECT * FROM `%s`", item_db_name[i]);
 
 		// Execute the query; if the query execution succeeded...
 		if (mysql_SendQuery(&mmysql_handle, tmp_sql) == 0)
@@ -823,7 +823,7 @@ int itemdb_read_sqldb(void)
 							id->use_script = parse_script((unsigned char *) sql_row[18], 0);
 						else
 						{
-							sprintf(script, "{%s}", sql_row[18]);
+							snprintf(script, sizeof(script), "{%s}", sql_row[18]);
 							id->use_script = parse_script((unsigned char *) script, 0);
 						}
 					}
@@ -835,7 +835,7 @@ int itemdb_read_sqldb(void)
 							id->equip_script = parse_script((unsigned char *) sql_row[19], 0);
 						else
 						{
-							sprintf(script, "{%s}", sql_row[19]);
+							snprintf(script, sizeof(script), "{%s}", sql_row[19]);
 							id->equip_script = parse_script((unsigned char *) script, 0);
 						}
 					}

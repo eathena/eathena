@@ -4,7 +4,6 @@
 #define LOG_UPTIME 0
 
 #include "base.h"
-#include "baseparam.h"
 #include "mmo.h"
 #include "malloc.h"
 #include "core.h"
@@ -15,6 +14,8 @@
 #include "version.h"
 #include "utils.h"
 #include "showmsg.h"
+
+#include "basesq.h"
 
 
 
@@ -41,7 +42,7 @@ const char *uptime::tostring(char *buffer)
 	unsigned long day, minute, hour, seconds;
 	getvalues(day, minute, hour, seconds);
 
-	sprintf(buf, "%ld days, %ld hours, %ld minutes, %ld seconds",
+	snprintf(buf, sizeof(buf), "%ld days, %ld hours, %ld minutes, %ld seconds",
 		(unsigned long)day, (unsigned long)minute, (unsigned long)hour, (unsigned long)seconds);
 	return buf;
 }
@@ -196,7 +197,7 @@ void init_signal()
 const char* get_svn_revision()	{ return "Shinomori's Modified Version (2005-01-15)"; }
 /*
 {
-	static char version[10]="";
+	static char version[16]="";
 	if( !*version )
 	{
 		FILE *fp;
@@ -209,11 +210,11 @@ const char* get_svn_revision()	{ return "Shinomori's Modified Version (2005-01-1
 			fclose(fp);
 			if (sscanf(line," %*[^\"]\"%d%*[^\n]", &rev) == 1)
 			{
-				sprintf(version, "%d", rev);
+				snprintf(version, sizeof(version), "%d", rev);
 				return version;
 			}
 		}
-		sprintf(version, "Unknown");
+		snprintf(version, sizeof(version), "Unknown");
 	}
 	return version;
 }
@@ -250,17 +251,9 @@ void display_title(void)
  *	CORE : MAINROUTINE
  *--------------------------------------
  */
-
 int main (int argc, char **argv)
 {
-///////////////////////////////////////////////////////////////////////////
-// test case entrance point
-//	stringtest();
-//	stringbuffer_test();
-//	test_algo(1);
-//	return 0;
-///////////////////////////////////////////////////////////////////////////
-
+	///////////////////////////////////////////////////////////////////////////
 	int next;
 
 	///////////////////////////////////////////////////////////////////////////

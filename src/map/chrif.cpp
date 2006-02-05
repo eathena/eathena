@@ -789,76 +789,76 @@ int chrif_char_ask_name_answer(int fd)
 	if (acc >= 0 && sd != NULL)
 	{
 		if (RFIFOW(fd, 32) == 1) // player not found
-			sprintf(output, "The player '%s' doesn't exist.", player_name);
+			snprintf(output, sizeof(output), "The player '%s' doesn't exist.", player_name);
 		else {
 			switch(RFIFOW(fd, 30)) {
 			case 1: // block
 				switch(RFIFOW(fd, 32)) {
 				case 0: // login-server resquest done
-					sprintf(output, "Login-server has been asked to block the player '%s'.", player_name);
+					snprintf(output, sizeof(output), "Login-server has been asked to block the player '%s'.", player_name);
 					break;
 				//case 1: // player not found
 				case 2: // gm level too low
-					sprintf(output, "Your GM level don't authorise you to block the player '%s'.", player_name);
+					snprintf(output, sizeof(output), "Your GM level don't authorise you to block the player '%s'.", player_name);
 					break;
 				case 3: // login-server offline
-					sprintf(output, "Login-server is offline. Impossible to block the the player '%s'.", player_name);
+					snprintf(output, sizeof(output), "Login-server is offline. Impossible to block the the player '%s'.", player_name);
 					break;
 				}
 				break;
 			case 2: // ban
 				switch(RFIFOW(fd, 32)) {
 				case 0: // login-server resquest done
-					sprintf(output, "Login-server has been asked to ban the player '%s'.", player_name);
+					snprintf(output, sizeof(output), "Login-server has been asked to ban the player '%s'.", player_name);
 					break;
 				//case 1: // player not found
 				case 2: // gm level too low
-					sprintf(output, "Your GM level don't authorise you to ban the player '%s'.", player_name);
+					snprintf(output, sizeof(output), "Your GM level don't authorise you to ban the player '%s'.", player_name);
 					break;
 				case 3: // login-server offline
-					sprintf(output, "Login-server is offline. Impossible to ban the the player '%s'.", player_name);
+					snprintf(output, sizeof(output), "Login-server is offline. Impossible to ban the the player '%s'.", player_name);
 					break;
 				}
 				break;
 			case 3: // unblock
 				switch(RFIFOW(fd, 32)) {
 				case 0: // login-server resquest done
-					sprintf(output, "Login-server has been asked to unblock the player '%s'.", player_name);
+					snprintf(output, sizeof(output), "Login-server has been asked to unblock the player '%s'.", player_name);
 					break;
 				//case 1: // player not found
 				case 2: // gm level too low
-					sprintf(output, "Your GM level don't authorise you to unblock the player '%s'.", player_name);
+					snprintf(output, sizeof(output), "Your GM level don't authorise you to unblock the player '%s'.", player_name);
 					break;
 				case 3: // login-server offline
-					sprintf(output, "Login-server is offline. Impossible to unblock the the player '%s'.", player_name);
+					snprintf(output, sizeof(output), "Login-server is offline. Impossible to unblock the the player '%s'.", player_name);
 					break;
 				}
 				break;
 			case 4: // unban
 				switch(RFIFOW(fd, 32)) {
 				case 0: // login-server resquest done
-					sprintf(output, "Login-server has been asked to unban the player '%s'.", player_name);
+					snprintf(output, sizeof(output), "Login-server has been asked to unban the player '%s'.", player_name);
 					break;
 				//case 1: // player not found
 				case 2: // gm level too low
-					sprintf(output, "Your GM level don't authorise you to unban the player '%s'.", player_name);
+					snprintf(output, sizeof(output), "Your GM level don't authorise you to unban the player '%s'.", player_name);
 					break;
 				case 3: // login-server offline
-					sprintf(output, "Login-server is offline. Impossible to unban the the player '%s'.", player_name);
+					snprintf(output, sizeof(output), "Login-server is offline. Impossible to unban the the player '%s'.", player_name);
 					break;
 				}
 				break;
 			case 5: // changesex
 				switch(RFIFOW(fd, 32)) {
 				case 0: // login-server resquest done
-					sprintf(output, "Login-server has been asked to change the sex of the player '%s'.", player_name);
+					snprintf(output, sizeof(output), "Login-server has been asked to change the sex of the player '%s'.", player_name);
 					break;
 				//case 1: // player not found
 				case 2: // gm level too low
-					sprintf(output, "Your GM level don't authorise you to change the sex of the player '%s'.", player_name);
+					snprintf(output, sizeof(output), "Your GM level don't authorise you to change the sex of the player '%s'.", player_name);
 					break;
 				case 3: // login-server offline
-					sprintf(output, "Login-server is offline. Impossible to change the sex of the the player '%s'.", player_name);
+					snprintf(output, sizeof(output), "Login-server is offline. Impossible to change the sex of the the player '%s'.", player_name);
 					break;
 				}
 				break;
@@ -1567,7 +1567,7 @@ int chrif_parse_mail_delete(int fd)
 		if(sd)
 		{
 			char message[512];
-			sprintf(message, "mail %i delet%s.", msgid, (ok?"ed":"ion failed"));
+			snprintf(message, sizeof(message), "mail %i delet%s.", msgid, (ok?"ed":"ion failed"));
 			clif_disp_onlyself(*sd, message);
 		}
 	}
@@ -1611,7 +1611,7 @@ int chrif_parse_mail_send(int fd)
 		if(sd)
 		{
 			char message[512];
-			sprintf(message, "mail (%i) send %s.", msgid, ok?"ok":"failed");
+			snprintf(message, sizeof(message), "mail (%i) send %s.", msgid, ok?"ok":"failed");
 			clif_disp_onlyself(*sd, message);
 		}
 	}

@@ -143,7 +143,7 @@ void vending_purchasereq(struct map_session_data &sd,unsigned short len,uint32 i
 		if(battle_config.buyer_name)
 		{
 			char temp[256];
-			sprintf(temp, msg_txt(265), sd.status.name);
+			snprintf(temp, sizeof(temp),msg_txt(265), sd.status.name);
 			clif_disp_onlyself(*vsd,temp);
 		}
 		//log added by Lupus

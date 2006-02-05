@@ -3425,9 +3425,9 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 				i_data = itemdb_exists(ditem->nameid);
 				size_t sz=1;
 				if (sd!=NULL && sd->status.name != NULL)
-					sz+=sprintf(buf, "'%s' won %s's %s (chance: %%%0.02f)", sd->status.name, mob_db[md.class_].jname, i_data->jname, (float)drop_rate/1000);
+					sz+=snprintf(buf, sizeof(buf), "'%s' won %s's %s (chance: %%%0.02f)", sd->status.name, mob_db[md.class_].jname, i_data->jname, (float)drop_rate/1000);
 				else
-					sz+=sprintf(buf, "GM won %s's %s (chance: %%%0.02f)", mob_db[md.class_].jname, i_data->jname, (float)drop_rate/1000);
+					sz+=snprintf(buf, sizeof(buf), "GM won %s's %s (chance: %%%0.02f)", mob_db[md.class_].jname, i_data->jname, (float)drop_rate/1000);
 				intif_GMmessage(buf,sz,0);
 			}
 		}
@@ -5358,7 +5358,7 @@ int mob_read_sqldb(void)
 
     for (i = 0; i < 2; i++)
 	{
-		sprintf (tmp_sql, "SELECT * FROM `%s`", mob_db_name[i]);
+		snprintf (tmp_sql, sizeof(tmp_sql), "SELECT * FROM `%s`", mob_db_name[i]);
 		if(mysql_SendQuery(&mmysql_handle, tmp_sql) )
 		{
 			ShowError("DB server Error (select %s to Memory)- %s\n", mob_db_name[i], mysql_error(&mmysql_handle));
@@ -5368,22 +5368,23 @@ int mob_read_sqldb(void)
 		{
 			while((sql_row = mysql_fetch_row(sql_res)))
 			{
-				sprintf(line,"%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,"
-							"%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,"
-							"%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-							sql_row[0],sql_row[1],sql_row[2],sql_row[3],sql_row[4],
-							sql_row[5],sql_row[6],sql_row[7],sql_row[8],sql_row[9],
-							sql_row[10],sql_row[11],sql_row[12],sql_row[13],sql_row[14],
-							sql_row[15],sql_row[16],sql_row[17],sql_row[18],sql_row[19],
-							sql_row[20],sql_row[21],sql_row[22],sql_row[23],sql_row[24],
-							sql_row[25],sql_row[26],sql_row[27],sql_row[28],sql_row[29],
-							sql_row[30],sql_row[31],sql_row[32],sql_row[33],sql_row[34],
-							sql_row[35],sql_row[36],sql_row[37],sql_row[38],sql_row[39],
-							sql_row[40],sql_row[41],sql_row[42],sql_row[43],sql_row[44],
-							sql_row[45],sql_row[46],sql_row[47],sql_row[48],sql_row[49],
-							sql_row[50],sql_row[51],sql_row[52],sql_row[53],sql_row[54],
-							sql_row[55],sql_row[56]);
-
+				snprintf(line,sizeof(line),
+					"%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,"
+					"%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,"
+					"%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+					sql_row[0],sql_row[1],sql_row[2],sql_row[3],sql_row[4],
+					sql_row[5],sql_row[6],sql_row[7],sql_row[8],sql_row[9],
+					sql_row[10],sql_row[11],sql_row[12],sql_row[13],sql_row[14],
+					sql_row[15],sql_row[16],sql_row[17],sql_row[18],sql_row[19],
+					sql_row[20],sql_row[21],sql_row[22],sql_row[23],sql_row[24],
+					sql_row[25],sql_row[26],sql_row[27],sql_row[28],sql_row[29],
+					sql_row[30],sql_row[31],sql_row[32],sql_row[33],sql_row[34],
+					sql_row[35],sql_row[36],sql_row[37],sql_row[38],sql_row[39],
+					sql_row[40],sql_row[41],sql_row[42],sql_row[43],sql_row[44],
+					sql_row[45],sql_row[46],sql_row[47],sql_row[48],sql_row[49],
+					sql_row[50],sql_row[51],sql_row[52],sql_row[53],sql_row[54],
+					sql_row[55],sql_row[56]);
+				
 				for (j = 0, p = line; j < 57; j++)
 				{
 					if((np=strchr(p,','))!=NULL)

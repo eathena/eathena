@@ -57,8 +57,8 @@ private:
 
 	size_t cOpCount;		// count of operations
 	TslistDST<_key>	cIndex;	// the index
-
-
+	
+	
 
 public:
 	class iterator
@@ -239,7 +239,7 @@ public:
 	// insert/udate
 	bool insert(const uint32 key1, const uint32 key2, char* data, size_t len)
 	{
-
+		
 		if(data)
 		{
 			ScopeLock sl(*this);
@@ -293,7 +293,7 @@ public:
 		ScopeLock sl(*this);
 		size_t i;
 		if( cIndex.find( _key(key1, key2), 0, i) )
-		{
+		{	
 			return read(i, data, maxlen);
 		}
 		return false;
@@ -318,7 +318,7 @@ public:
 	{	// only use keys 1..0xFFFFFFFE
 		uint32 key=cIndex.size();
 		if( key >= 0xFFFFFFFE )
-			key=0;	// return 0 if no free key,
+			key=0;	// return 0 if no free key, 
 		else if( !key )
 			key=1;	// start with 1
 		else if( key == cIndex[key-1].cKey1 )
@@ -806,7 +806,7 @@ private:
 						temp.client_ip  = INADDR_ANY;
 						temp.last_ip[0] = 0;
 					}
-
+					
 
 
 					p = line;
@@ -1059,13 +1059,13 @@ private:
 	virtual bool release()
 	{
 		cMx.unlock();
-		return true;
+		return true; 
 	}
 	virtual bool first()
 	{
 		ScopeLock sl(cMx);
 		cPos=0;
-		return cList.size()>0;
+		return cList.size()>0; 
 	}
 	virtual operator bool()		{ ScopeLock sl(cMx); return cPos<cList.size(); }
 	virtual bool operator++(int){ ScopeLock sl(cMx); cPos++; return (*this); }
@@ -1077,10 +1077,10 @@ private:
 		size_t pos;
 		// search in index 1
 		if( cList.find( CLoginAccount(userid), pos, 1) )
-		{	// set position based to index 0
+		{	// set position based to index 0 
 			return cList.find( cList(pos,1), cPos, 0);
 		}
-		return false;
+		return false; 
 	}
 	virtual bool find(uint32 accid)
 	{
@@ -2287,7 +2287,7 @@ public:
 
 		init(dbcfgfile);
 	}
-	~CCharDB_txt()	{ close(); }
+	virtual ~CCharDB_txt()	{ close(); }
 
 public:
 	///////////////////////////////////////////////////////////////////////////
@@ -2416,7 +2416,7 @@ public:
 		if(string)
 		{
 			const char* ip = string;
-			fromstring(ip, mid);
+			fromstring(ip, mid); 
 			while(*ip && *ip!='\t') ip++; ip++;
 			read = (*ip>='0' && *ip<='9') ? (*ip-'0') : ( (*ip>='A' && *ip<='F') ? (*ip-'A'+10) : ( (*ip>='a' && *ip<='f') ? (*ip-'a'+10) : 0 ) );
 			while(*ip && *ip!='\t') ip++; ip++;
@@ -2440,7 +2440,7 @@ public:
 	{
 		ScopeLock sl(cMx);
 		simple_database::iterator iter(cMailDB);
-
+		
 		unread=all=0;
 		while(iter)
 		{
@@ -2473,7 +2473,7 @@ public:
 				//!! replace the whole thing with regex
 				8==sscanf(buf,
 					"%lu\t%c\t%lu\t%24[^\t]\t%lu\t%24[^\t]\t%32[^\t]\t%80[^\t]\t\n",
-					&mmid, &read, &sid, sname, &tid, tname, head, body)
+					&mmid, &read, &sid, sname, &tid, tname, head, body) 
 				)
 			{
 				CMailHead mh(mmid, iter.Flag(), sname, head);
@@ -2504,15 +2504,15 @@ public:
 				mid==mmid && ( cid==tid || cid==sid) );
 
 		if(ret)
-		{
+		{	
 			safestrcpy(mail.name, (cid==tid)?sname:tname, sizeof(mail.name));
 			mail.msid = mmid;
 			mail.read = iter.Flag();
 			if( !mail.read && cid==tid )
-			{	// update readflag of own unread mails
+			{	// update readflag of own unread mails				
 				size_t sz = snprintf(buffer, sizeof(buffer),
 					"%lu\t%c\t%lu\t%.24s\t%lu\t%.24s\t%.32s\t%.80s\t\n",
-					(unsigned long)mmid, '1',
+					(unsigned long)mmid, '1', 
 					(unsigned long)sid, sname,
 					(unsigned long)tid, mail.name,
 					mail.head, mail.body);
@@ -2553,7 +2553,7 @@ public:
 				replacecpy(tname, targetname, 24);
 				replacecpy(h,     head,       32);
 				replacecpy(b,     body,       80);
-
+				
 				// sscanf cannot handle empty/whitespaced strings
 				// so just put in something harmless
 				if(sname[0]==0) strcpy(sname, ".");
@@ -2563,7 +2563,7 @@ public:
 
 				size_t sz = snprintf(buffer, sizeof(buffer),
 					"%lu\t%c\t%lu\t%.24s\t%lu\t%.24s\t%.32s\t%.80s\t\n",
-					(unsigned long)mid, '0',
+					(unsigned long)mid, '0', 
 					(unsigned long)senderid, sname,
 					(unsigned long)targetid, tname,
 					h, b);
@@ -2595,7 +2595,7 @@ public:
 		cPos=0;
 		return this->operator bool();
 	}
-	virtual operator bool()
+	virtual operator bool()					
 	{
 		ScopeLock sl(cMx);
 		return cCharList.size() > cPos;
@@ -2608,7 +2608,7 @@ public:
 	}
 	virtual bool save()
 	{
-		return true;
+		return true; 
 	}
 
 	virtual bool find(const char* name)
@@ -2617,10 +2617,10 @@ public:
 		size_t pos;
 		// search in index 1
 		if( cCharList.find( CCharCharacter(name), pos, 1) )
-		{	// set position based to index 0
+		{	// set position based to index 0 
 			return cCharList.find( cCharList(pos,1), cPos, 0);
 		}
-		return false;
+		return false; 
 
 	}
 	virtual bool find(uint32 charid)
@@ -2630,7 +2630,7 @@ public:
 	}
 	virtual CCharCharacter& operator()()
 	{
-		return cCharList[cPos];
+		return cCharList[cPos]; 
 	}
 
 private:
@@ -2700,7 +2700,7 @@ bool CCharDB_txt::ProcessConfig(const char*w1, const char*w2)
 		char mapname[32];
 		int x, y;
 		if(sscanf(w2, "%[^,],%d,%d", mapname, &x, &y) == 3 )
-		{
+		{	
 			char *ip=strchr(mapname, '.');
 			if( ip != NULL ) *ip=0;
 			safestrcpy(start_point.mapname, mapname, sizeof(start_point.mapname));
@@ -3051,7 +3051,7 @@ class CGuildDB_txt : public CTimerBase, private CConfig, public CGuildDBInterfac
 		}
 		len += snprintf(str + len, maxlen-len, "$\t");
 		// “¯–¿ƒŠƒXƒg
-
+		
 		for(i=0, c=0; i<MAX_GUILDALLIANCE; i++)
 			if(g.alliance[i].guild_id > 0)
 				c++;
@@ -3519,22 +3519,22 @@ public:
 	virtual bool aquireGuild()
 	{
 		cMxGuild.lock();
-		return this->firstGuild();
+		return this->firstGuild(); 
 	}
 	virtual bool aquireCastle()
 	{
 		cMxCastle.lock();
-		return this->firstCastle();
+		return this->firstCastle(); 
 	}
 	virtual bool releaseGuild()
 	{
 		cMxGuild.unlock();
-		return true;
+		return true; 
 	}
 	virtual bool releaseCastle()
 	{
 		cMxCastle.unlock();
-		return true;
+		return true; 
 	}
 	virtual bool firstGuild()
 	{
@@ -3548,11 +3548,11 @@ public:
 	}
 	virtual bool isGuildOk()
 	{
-		return (cGuilds.size() < cPosGuild);
+		return (cGuilds.size() < cPosGuild); 
 	}
 	virtual bool isCastleOk()
 	{
-		return (cCastles.size() < cPosCastle);
+		return (cCastles.size() < cPosCastle); 
 	}
 	virtual bool nextGuild()
 	{
@@ -4728,22 +4728,22 @@ CPetDBInterface* CPetDB::getDB(const char *dbcfgfile)
 
 ///////////////////////////////////////////////////////////////////////////////
 /*
-proposing a new structure which would partially solve the problem of
+proposing a new structure which would partially solve the problem of 
 data back injection on sql in case of unsynchronized writers
 
 the current structure would still allow the usage of database control panels
-for writing directly to the database bypassing the servers
+for writing directly to the database bypassing the servers 
 which I would like to ban generally
 
-so the easiest way is to use the same database structures for txt and sql
-and just load the complete data into memory.
-in this case here it would just cost about 1k per char,
+so the easiest way is to use the same database structures for txt and sql 
+and just load the complete data into memory. 
+in this case here it would just cost about 1k per char, 
 so 1000 characters would be plain 1M byte which is quite negligible.
 
 advantages are a speadup on the data load and store, since done as in-memory,
 no direct data back-injection, or at least server would not be influenced,
 the last writer still has his data in the tables
-it might further simplify the access since only the load and store
+it might further simplify the access since only the load and store 
 function have to be written for the different database implementations
 and would already represent the database converter
 
@@ -4848,7 +4848,7 @@ public:
 			// generate tmp object
 			// check for existence
 			// insert/update if exist
-			array.insert( dbobject(1) );
+			array.insert( dbobject(1) ); 
 
 			fclose(file);
 		}
@@ -4938,7 +4938,7 @@ class dbtemplate
 {
 	// list of savers, the loader is only needed at startup to fill the database
 	TArrayDST<CSaver*>	cSaver;
-
+	
 	TslistDCT<dbobject> cList;
 public:
 	dbtemplate()

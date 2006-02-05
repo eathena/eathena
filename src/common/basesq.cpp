@@ -11,40 +11,38 @@
 //////////////////////////////////////////////////////////////////////////////////////
 // CMySQL Class Constructor
 // Code is executed everytime a CMySQL var is initialized
-CMySQL::CMySQL() {
-	safestrcpy(mysqldb_ip, "127.0.0.1", sizeof(mysqldb_ip));
-	mysqldb_port=3306;
-	safestrcpy(mysqldb_id, "ragnarok", sizeof(mysqldb_id));
-	safestrcpy(mysqldb_pw, "ragnarok", sizeof(mysqldb_pw));
-	safestrcpy(mysqldb_db, "ragnarok", sizeof(mysqldb_db));
-}
-
-
-CMySQL::CMySQL(MYSQL new_handle)
+CMySQL::CMySQL()
+	: cDBPool(*this),	// initialize the first database object
+	  result(NULL)		// if insisting on class global data, then initialize it
 {
-	original_mysql_handle = mysqldb_handle;
-	mysqldb_handle = new_handle;  // wonder if this works.. will ask shino later.
-
 	safestrcpy(mysqldb_ip, "127.0.0.1", sizeof(mysqldb_ip));
 	mysqldb_port=3306;
 	safestrcpy(mysqldb_id, "ragnarok", sizeof(mysqldb_id));
 	safestrcpy(mysqldb_pw, "ragnarok", sizeof(mysqldb_pw));
 	safestrcpy(mysqldb_db, "ragnarok", sizeof(mysqldb_db));
-
 }
+
+
 
 // CMySQL Class Destructor
 // Code is executed a CMySQL var is destroyed
 inline CMySQL::~CMySQL()
 {
-	this->Free();
+	// close all existing database objects in the pool
+	this->cDBPool.call( &DBConnection::close );
+	
 
-	// if it's different, change it back =O
-	mysqldb_handle = original_mysql_handle;
+	this->FreeResults();
 }
 
 
-bool CMySQL::Query(const string<> q) {
+
+
+
+
+
+
+bool CMySQL::SendQuery(const string<> q) {
 
 //	ShowError("Query = %s\n",q.c_str());
 
@@ -69,7 +67,7 @@ bool CMySQL::Query(const string<> q) {
 	return false;
 }
 
-bool CMySQL::Fetch()
+bool CMySQL::FetchResults()
 {
 	if (result) // was there even a result?
 		if ((row = mysql_fetch_row(result))) // is there a row to pull out?
@@ -77,12 +75,12 @@ bool CMySQL::Fetch()
 	return false;
 }
 
-long int CMySQL::CountRes()
+long int CMySQL::CountResults()
 {
 	return mysql_num_rows(result);
 }
 
-void CMySQL::Free()
+void CMySQL::FreeResults()
 {
 	if (result)
 	{
@@ -215,11 +213,11 @@ bool CAccountDB_sql::existAccount(const char* userid)
 
 		escape_string(uid, userid, strlen(userid));
 		query << "SELECT `user_id` FROM `" << login_auth_db << "` WHERE " << (case_sensitive?"BINARY":"") << "`user_id` = '" <<  uid  <<"'";
-		this->Query(query);
-		if( this->Fetch())
+		this->SendQuery(query);
+		if( this->FetchResults())
 		{
 
-			ret = this->CountRes()>0;
+			ret = this->CountResults()>0;
 		}
 	}
 	return ret;
@@ -243,15 +241,15 @@ bool CAccountDB_sql::searchAccount(const char* userid, CLoginAccount& account)
 			<< "SELECT `account_id`"		//  0
 			<<" FROM `" << login_auth_db << "` WHERE `user_id`='" << uid << "'";
 
-		if( this->Query(query) )
+		if( this->SendQuery(query) )
 		{
 			//row fetching
-			if(this->Fetch())
+			if(this->FetchResults())
 			{
 				accid = this->row[0]?atol(this->row[0]):0;
 			}
 
-			this->Free();
+			this->FreeResults();
 		}
 
 		ret = this->searchAccount(accid,account);
@@ -289,10 +287,10 @@ bool CAccountDB_sql::searchAccount(uint32 accid, CLoginAccount& account)
 			<<"`valid_until`"		// 13
 			<<" FROM `" << login_auth_db << "` WHERE `account_id`='" << accid << "'";
 
-		if( this->Query(query) )
+		if( this->SendQuery(query) )
 		{
 			//row fetching
-			if(this->Fetch())
+			if(this->FetchResults())
 			{
 				account.account_id	= this->row[0]?atol(this->row[0]):0;
 				safestrcpy(account.userid, this->row[1]?this->row[1]:"", sizeof(account.userid));
@@ -315,7 +313,7 @@ bool CAccountDB_sql::searchAccount(uint32 accid, CLoginAccount& account)
 				account.memo[0]=0;
 				account.last_ip[0]=0;
 
-				this->Free();
+				this->FreeResults();
 
 				ret = true;
 			}
@@ -325,10 +323,10 @@ bool CAccountDB_sql::searchAccount(uint32 accid, CLoginAccount& account)
 		if(ret)
 		{
 			query << "SELECT `str`,`value` FROM `" << login_reg_db << "` WHERE `account_id`='" << account.account_id << "'";
-			if( this->Query(query) )
+			if( this->SendQuery(query) )
 			{
 				size_t i=0;
-				while( i<ACCOUNT_REG2_NUM && this->Fetch() )
+				while( i<ACCOUNT_REG2_NUM && this->FetchResults() )
 				{
 					safestrcpy(account.account_reg2[i].str, this->row[0], sizeof(account.account_reg2[0].str));
 					account.account_reg2[i].value = (this->row[1]) ? atoi(this->row[1]):0;
@@ -336,7 +334,7 @@ bool CAccountDB_sql::searchAccount(uint32 accid, CLoginAccount& account)
 				}
 				account.account_reg2_num = i;
 
-				this->Free();
+				this->FreeResults();
 			}
 			query.clear();
 		}
@@ -355,7 +353,7 @@ bool CAccountDB_sql::insertAccount(const char* userid, const char* passwd, unsig
 	escape_string(pwd, passwd, strlen(passwd));
 
 	query << "INSERT INTO `" << login_auth_db << "` (`user_id`, `user_pass`, `sex`, `email`) VALUES ('" << uid << "', '" << pwd << "', '" << sex << "', '" << email << "')";
-	if( this->Query(query) )
+	if( this->SendQuery(query) )
 	{
 		// read the complete account back from db
 		return searchAccount(userid, account);
@@ -369,11 +367,11 @@ bool CAccountDB_sql::removeAccount(uint32 accid)
 	string<> query;
 
 	query << "DELETE FROM `" << login_auth_db << "` WHERE `account_id`='" << accid << "'";
-	ret = this->Query(query);
+	ret = this->SendQuery(query);
 	query.clear();
 
 	query << "DELETE FROM `" << login_reg_db << "` WHERE `account_id`='" << accid << "'"; // must update with the variable login_reg_db
-	ret &=this->Query(query);
+	ret &=this->SendQuery(query);
 	query.clear();
 
 	return ret;
@@ -399,7 +397,7 @@ bool CAccountDB_sql::init(const char* configfile)
 		{
 			query << "INSERT DELAYED INTO `" << login_log_db << "`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '', 'Login', '100','login server started')";
 			//query
-			this->Query(query);
+			this->SendQuery(query);
 			query.clear();
 		}
 	}
@@ -412,7 +410,7 @@ bool CAccountDB_sql::init(const char* configfile)
 	if (wipe)
 	{
 		query << "DROP TABLE IF EXISTS `" << login_auth_db << "`";
-		this->Query(query);
+		this->SendQuery(query);
 		query.clear();
 	}
 
@@ -436,13 +434,13 @@ bool CAccountDB_sql::init(const char* configfile)
 		<< "PRIMARY KEY(`account_id`)"
 		<< ")";
 
-	this->Query(query);
+	this->SendQuery(query);
 	query.clear();
 
 	if (wipe)
 	{
 		query << "DROP TABLE IF EXISTS `" << login_reg_db << "`";
-		this->Query(query);
+		this->SendQuery(query);
 		query.clear();
 	}
 
@@ -454,14 +452,14 @@ bool CAccountDB_sql::init(const char* configfile)
 		<< "PRIMARY KEY(`account_id`,`str`)"
 		<< ")";
 
-	this->Query(query);
+	this->SendQuery(query);
 	query.clear();
 
 
 	if (wipe)
 	{
 		query << "DROP TABLE IF EXISTS `" << login_log_db << "`";
-		this->Query(query);
+		this->SendQuery(query);
 		query.clear();
 	}
 
@@ -474,13 +472,13 @@ bool CAccountDB_sql::init(const char* configfile)
 		<< "`log` VARCHAR(100) NOT NULL"
 		<< ")";
 
-	this->Query(query);
+	this->SendQuery(query);
 	query.clear();
 
 	if (wipe)
 	{
 		query << "DROP TABLE IF EXISTS `" << login_status_db << "`";
-		this->Query(query);
+		this->SendQuery(query);
 		query.clear();
 	}
 
@@ -492,7 +490,7 @@ bool CAccountDB_sql::init(const char* configfile)
 		<< "PRIMARY KEY(`index`)"
 		<< ")";
 
-	this->Query(query);
+	this->SendQuery(query);
 	query.clear();
 
 	return true;
@@ -505,13 +503,13 @@ bool CAccountDB_sql::close()
 	if (log_login)
 	{
 		query << "INSERT DELAYED INTO `" << login_log_db << "`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '', 'lserver','100', 'login server shutdown')";
-		this->Query(query);
+		this->SendQuery(query);
 		query.clear();
 	}
 
 	//delete all server status
 	query << "DELETE FROM `" << login_status_db << "`";
-	this->Query(query);
+	this->SendQuery(query);
 	query.clear();
 
 	mysql_close(&(this->mysqldb_handle));
@@ -549,14 +547,14 @@ bool CAccountDB_sql::saveAccount(const CLoginAccount& account)
 		<< "WHERE `account_id` = '" << account.account_id						<< "'";
 
 
-	ret = this->Query(query);
+	ret = this->SendQuery(query);
 	query.clear();
 
 	//----------
 	// Delete and reinsert data for the registry values
 
 	query << "DELETE FROM `" << login_reg_db << "` WHERE `account_id`='" << account.account_id << "'";
-	this->Query(query);
+	this->SendQuery(query);
 	query.clear();
 
 	//----------
@@ -569,7 +567,7 @@ bool CAccountDB_sql::saveAccount(const CLoginAccount& account)
 
 		query << (i?",":"") << "( '" << account.account_id << "','" << tempstr << "','" << account.account_reg2[i].value << "')";
 	}
-	ret &= this->Query(query);
+	ret &= this->SendQuery(query);
 
 	return ret;
 }
@@ -795,6 +793,10 @@ CCharDB_sql::CCharDB_sql(const char *dbcfgfile)
 
 	init(dbcfgfile);
 }
+CCharDB_sql::~CCharDB_sql()
+{
+	// Add cleaning code here
+}
 
 bool CCharDB_sql::ProcessConfig(const char*w1, const char*w2)
 {
@@ -862,13 +864,13 @@ bool CCharDB_sql::existChar(uint32 char_id)
 	query
 		<< "SELECT count(*) FROM `" << char_db << "` WHERE char_id = '" << char_id << "'";
 
-	if ( this->Query(query) )
+	if ( this->SendQuery(query) )
 	{
-		if ( this->Fetch() )
+		if ( this->FetchResults() )
 		{
 			if ( atol(this->row[0]) ) ret = true;
 		}
-		this->Free();
+		this->FreeResults();
 	}
 
 	return ret;
@@ -885,13 +887,13 @@ bool CCharDB_sql::existChar(const char* name)
 	query
 		<< "SELECT count(*) FROM `" << char_db << "` WHERE name = '" << _name << "'";
 
-	if ( this->Query(query) )
+	if ( this->SendQuery(query) )
 	{
-		if ( this->Fetch() )
+		if ( this->FetchResults() )
 		{
 			if ( atol(this->row[0]) ) ret = true;
 		}
-		this->Free();
+		this->FreeResults();
 	}
 
 	return ret;
@@ -905,12 +907,12 @@ bool CCharDB_sql::searchChar(const char* name, CCharCharacter &p)
 
 
 	query << "SELECT `char_id` FROM `" << char_db << " WHERE `name`='" << name << "'";
-	if (this->Query(query))
+	if (this->SendQuery(query))
 	{
-		this->Fetch();
+		this->FetchResults();
 		charid = atoi(this->row[0]);
 		ret = this->searchChar(charid,p);
-		this->Free();
+		this->FreeResults();
 	}
 
 	return ret;
@@ -990,9 +992,9 @@ bool CCharDB_sql::searchChar(uint32 char_id, CCharCharacter &p)
 			<< "FROM `" << char_db << "` "
 			<< "WHERE `char_id` = '" << char_id << "'";
 
-		if( this->Query(query) )
+		if( this->SendQuery(query) )
 		{
-			this->Fetch();
+			this->FetchResults();
 
 			p.char_id 			= char_id;
 			p.account_id 		= atoi(this->row[1]);
@@ -1044,7 +1046,7 @@ bool CCharDB_sql::searchChar(uint32 char_id, CCharCharacter &p)
 			p.fame_points		= atoi(this->row[46]);
 
 			//free mysql result.
-			this->Free();
+			this->FreeResults();
 		} else return ret;
 
 		#ifdef CHAR_DEBUG_INFO
@@ -1057,14 +1059,14 @@ bool CCharDB_sql::searchChar(uint32 char_id, CCharCharacter &p)
 		if (p.last_point.x == 0 || p.last_point.y == 0 || p.last_point.mapname[0] == '\0')
 		{
 			char errbuf[64];
-			sprintf(errbuf,"%s has no last point?\n",p.name);
+			snprintf(errbuf,sizeof(errbuf),"%s has no last point?\n",p.name);
 			memcpy(&p.last_point, &start_point, sizeof(start_point));
 		}
 
 		if (p.save_point.x == 0 || p.save_point.y == 0 || p.save_point.mapname[0] == '\0')
 		{
 			char errbuf[64];
-			sprintf(errbuf,"%s has no save point?\n",p.name);
+			snprintf(errbuf,sizeof(errbuf),"%s has no save point?\n",p.name);
 			memcpy(&p.save_point, &start_point, sizeof(start_point));
 		}
 		#ifdef CHAR_DEBUG_INFO
@@ -1075,15 +1077,15 @@ bool CCharDB_sql::searchChar(uint32 char_id, CCharCharacter &p)
 		query.clear();
 		query << "SELECT `map`,`x`,`y` FROM `" << memo_db << "` WHERE `char_id`='" << char_id << "'";
 
-		if (this->Query(query))
+		if (this->SendQuery(query))
 		{
-			for(i=0; this->Fetch() && i < 3;i++)
+			for(i=0; this->FetchResults() && i < 3;i++)
 			{
 				strcpy (p.memo_point[i].mapname,this->row[0]);
 				p.memo_point[i].x=atoi(this->row[1]);
 				p.memo_point[i].y=atoi(this->row[2]);
 			}
-			this->Free();
+			this->FreeResults();
 		}
 		#ifdef CHAR_DEBUG_INFO
 			printf("memo ");
@@ -1107,9 +1109,9 @@ bool CCharDB_sql::searchChar(uint32 char_id, CCharCharacter &p)
 
 			<< "FROM `"<< inventory_db << "` WHERE `char_id`='" << char_id << "'";
 
-		if (this->Query(query))
+		if (this->SendQuery(query))
 		{
-			for(i=0;this->Fetch();i++)
+			for(i=0;this->FetchResults();i++)
 			{
 				p.inventory[i].id			= atoi(this->row[0]);
 				p.inventory[i].nameid		= atoi(this->row[1]);
@@ -1123,7 +1125,7 @@ bool CCharDB_sql::searchChar(uint32 char_id, CCharCharacter &p)
 				p.inventory[i].card[2]		= atoi(this->row[9]);
 				p.inventory[i].card[3]		= atoi(this->row[10]);
 			}
-			this->Free();
+			this->FreeResults();
 		}
 		#ifdef CHAR_DEBUG_INFO
 			printf("inventory ");
@@ -1147,9 +1149,9 @@ bool CCharDB_sql::searchChar(uint32 char_id, CCharCharacter &p)
 
 			<< "FROM `"<< cart_db << "` WHERE `char_id`='" << char_id << "'";
 
-		if (this->Query(query))
+		if (this->SendQuery(query))
 		{
-			for(i=0;this->Fetch();i++)
+			for(i=0;this->FetchResults();i++)
 			{
 				p.cart[i].id				= atoi(this->row[0]);
 				p.cart[i].nameid			= atoi(this->row[1]);
@@ -1163,7 +1165,7 @@ bool CCharDB_sql::searchChar(uint32 char_id, CCharCharacter &p)
 				p.cart[i].card[2]			= atoi(this->row[9]);
 				p.cart[i].card[3]			= atoi(this->row[10]);
 			}
-			this->Free();
+			this->FreeResults();
 		}
 		#ifdef CHAR_DEBUG_INFO
 			printf("cart ");
@@ -1178,15 +1180,15 @@ bool CCharDB_sql::searchChar(uint32 char_id, CCharCharacter &p)
 
 			<< "FROM `" << skill_db << "` WHERE `char_id`='" << char_id << "'";
 
-		if (this->Query(query))
+		if (this->SendQuery(query))
 		{
-			for(i=0;this->Fetch();i++)
+			for(i=0;this->FetchResults();i++)
 			{
 				n = atoi(this->row[0]);
 				p.skill[n].id = n; //memory!? shit!.
 				p.skill[n].lv = atoi(this->row[1]);
 			}
-			this->Free();
+			this->FreeResults();
 		}
 		#ifdef CHAR_DEBUG_INFO
 			printf("skill ");
@@ -1202,14 +1204,14 @@ bool CCharDB_sql::searchChar(uint32 char_id, CCharCharacter &p)
 			<< "FROM ` " << char_reg_db << "` WHERE `char_id`='" << char_id << "'";
 
 		i=0;
-		if (this->Query(query))
+		if (this->SendQuery(query))
 		{
-			for(i=0;this->Fetch();i++)
+			for(i=0;this->FetchResults();i++)
 			{
 				strcpy (p.global_reg[i].str, this->row[0]);
 				p.global_reg[i].value = atoi (this->row[1]);
 			}
-			this->Free();
+			this->FreeResults();
 		}
 		p.global_reg_num=i;
 
@@ -1237,14 +1239,14 @@ bool CCharDB_sql::searchChar(uint32 char_id, CCharCharacter &p)
 
 
 
-		if (this->Query(query))
+		if (this->SendQuery(query))
 		{
-			for(i=0;this->Fetch();i++)
+			for(i=0;this->FetchResults();i++)
 			{
 				p.friendlist[i].friend_id = atoi(this->row[0]);
-				sprintf(p.friendlist[i].friend_name, "%s", this->row[1]);
+				snprintf(p.friendlist[i].friend_name, sizeof(p.friendlist[i].friend_name), "%s", this->row[1]);
 			}
-			this->Free();
+			this->FreeResults();
 		}
 
 		#ifdef CHAR_DEBUG_INFO
@@ -1336,31 +1338,31 @@ bool CCharDB_sql::insertChar(CCharAccount &account,
 
 	//Check Name (already in use?)
 	query << "SELECT count(*) FROM `" << char_db << "` WHERE `name` = '" << t_name << "'";
-	if ( this->Query(query) )
+	if ( this->SendQuery(query) )
 	{
-		this->Fetch();
+		this->FetchResults();
 		if (atol(this->row[0]))
 		{
 			printf("fail, charname '%s' already in use\n", t_name);
 			return false;
 		}
-		this->Free();
+		this->FreeResults();
 	}
 	query.clear();
 
 
 	// check char slot.
 	query << "SELECT count(*) FROM `" << char_db << "` WHERE `account_id` = '" << account.account_id << "' AND `char_num` = '" << slot << "'";
-	if ( this->Query(query) )
+	if ( this->SendQuery(query) )
 	{
-		this->Fetch();
+		this->FetchResults();
 
 		if(atol(this->row[0]))
 		{
 			printf("fail (aid: %d, slot: %d), slot already in use\n", account.account_id, slot);
 			return false;
 		}
-		this->Free();
+		this->FreeResults();
 	}
 	query.clear();
 
@@ -1377,7 +1379,7 @@ bool CCharDB_sql::insertChar(CCharAccount &account,
 			<< "'" << hair_style << "',"
 			<< "'" << hair_color << "')";
 
-	this->Query(query);
+	this->SendQuery(query);
 	query.clear();
 
 
@@ -1389,12 +1391,12 @@ bool CCharDB_sql::insertChar(CCharAccount &account,
 
 		<< "WHERE `account_id` = '" << account.account_id << "' AND `char_num` = '" << slot << "' AND `name` = '" << t_name << "'";
 
-	if( this->Query(query) )
+	if( this->SendQuery(query) )
 	{
-		this->Fetch();
+		this->FetchResults();
 		if (this->row)
 			tempchar.char_id = atol(this->row[0]); //char id :)
-		this->Free();
+		this->FreeResults();
 	} else
 		return false;
 	query.clear();
@@ -1484,7 +1486,7 @@ bool CCharDB_sql::removeChar(uint32 charid)
 {
 	string<> query;
 	query << "DELETE FROM `" << char_db << "` WHERE `char_id`='" << charid << "'";
-	this->Query(query);
+	this->SendQuery(query);
 	return true;
 }
 
@@ -1580,7 +1582,7 @@ bool CCharDB_sql::saveChar(const CCharCharacter& p)
 			"`slot` = '" 		<< p.slot			<< "'";  // dont forget to finish the line
 
 
-	this->Query(query);
+	this->SendQuery(query);
 	query.clear();
 
 
@@ -1607,7 +1609,7 @@ bool CCharDB_sql::saveChar(const CCharCharacter& p)
 	if (diff)
 	{
 		query << "DELETE FROM `" << memo_db << "` WHERE `char_id`='" << p.char_id << "'";
-		this->Query(query);
+		this->SendQuery(query);
 		query.clear();
 
 
@@ -1630,7 +1632,7 @@ bool CCharDB_sql::saveChar(const CCharCharacter& p)
 			}
 		}
 		// if at least one entry spotted.
-		if(l)this->Query(query);
+		if(l)this->SendQuery(query);
 		query.clear();
 	}
 
@@ -1655,7 +1657,7 @@ bool CCharDB_sql::saveChar(const CCharCharacter& p)
 	{
 		query <<
 			"DELETE FROM `" << cart_db << "` WHERE `char_id`='" << p.char_id << "'";
-		this->Query(query);
+		this->SendQuery(query);
 		query.clear();
 
 		//insert here.
@@ -1683,7 +1685,7 @@ bool CCharDB_sql::saveChar(const CCharCharacter& p)
 			}
 		}
 		// if at least one entry spotted.
-		if(l)this->Query(query);
+		if(l)this->SendQuery(query);
 		query.clear();
 	}
 
@@ -1707,7 +1709,7 @@ bool CCharDB_sql::saveChar(const CCharCharacter& p)
 	if (diff)
 	{
 		query << "DELETE FROM `" << cart_db << "` WHERE `char_id`='" << p.char_id << "'";
-		this->Query(query);
+		this->SendQuery(query);
 		query.clear();
 
 		//insert here.
@@ -1735,7 +1737,7 @@ bool CCharDB_sql::saveChar(const CCharCharacter& p)
 			}
 		}
 		// if at least one entry spotted.
-		if(l)this->Query(query);
+		if(l)this->SendQuery(query);
 		query.clear();
 	}
 
@@ -1748,7 +1750,7 @@ bool CCharDB_sql::saveChar(const CCharCharacter& p)
 	if (diff)
 	{
 		query << "DELETE FROM `" << skill_db << "` WHERE `char_id`='" << p.char_id << "'";
-		this->Query(query);
+		this->SendQuery(query);
 		query.clear();
 
 		//insert here.
@@ -1768,7 +1770,7 @@ bool CCharDB_sql::saveChar(const CCharCharacter& p)
 			}
 		}
 		// if at least one entry spotted.
-		if(l)this->Query(query);
+		if(l)this->SendQuery(query);
 		query.clear();
 	}
 
@@ -1794,7 +1796,7 @@ bool CCharDB_sql::saveChar(const CCharCharacter& p)
 	if (diff)
 	{
 		query << "DELETE FROM `" << char_reg_db << "` WHERE `char_id`='" << p.char_id << "'";
-		this->Query(query);
+		this->SendQuery(query);
 		query.clear();
 
 		//insert here.
@@ -1815,7 +1817,7 @@ bool CCharDB_sql::saveChar(const CCharCharacter& p)
 			}
 		}
 		// if at least one entry spotted.
-		if(l)this->Query(query);
+		if(l)this->SendQuery(query);
 		query.clear();
 	}
 
@@ -1839,7 +1841,7 @@ bool CCharDB_sql::saveChar(const CCharCharacter& p)
 	if(diff)
 	{
 		query << "DELETE FROM `" << friend_db << "` WHERE `char_id` = '" << p.char_id << "'";
-		this->Query(query);
+		this->SendQuery(query);
 		query.clear();
 
 		//insert here.
@@ -1859,7 +1861,7 @@ bool CCharDB_sql::saveChar(const CCharCharacter& p)
 			}
 		}
 		// if at least one entry spotted.
-		if(l)this->Query(query);
+		if(l)this->SendQuery(query);
 		query.clear();
 	}
 
@@ -1919,7 +1921,7 @@ bool CCharDB_sql::removeAccount(uint32 accid)
 
 	query << "DELETE FROM `" << char_db << "` WHERE `account_id` = '" << accid << "'";
 
-	this->Query(query);
+	this->SendQuery(query);
 	return true;
 }
 
@@ -1935,12 +1937,12 @@ size_t CCharDB_sql::getUnreadCount(uint32 cid)
 		<< "SELECT count(*) "
 		<< "FROM `" << mail_db << "` WHERE `to_account_id` = '" << cid << "' AND `read_flag` = '0'";
 
-	if( this->Query(query) )
+	if( this->SendQuery(query) )
 	{
-		this->Fetch();
+		this->FetchResults();
 		count = atol(this->row[0]);
 
-		this->Free();
+		this->FreeResults();
 	}
 	return count;
 }
@@ -1952,18 +1954,18 @@ size_t CCharDB_sql::listMail(uint32 cid, unsigned char box, unsigned char *buffe
 		<< "SELECT `message_id`,`read_flag`,`from_char_name` "
 		<< "FROM `" << mail_db << "` WHERE `to_account_id` = '"<< cid << "'";
 
-	if( this->Query(query) )
+	if( this->SendQuery(query) )
 	{
 		size_t count=0;
 		unsigned char *buf = buffer;
-		while( this->Fetch() )
+		while( this->FetchResults() )
 		{
 			CMailHead mailhead( atol(this->row[0]), atol(this->row[1]), this->row[2], "" );
 			mailhead._tobuffer(buf); // automatic buffer increment
 			count++;
 		}
 
-		this->Free();
+		this->FreeResults();
 		return count;
 	}
 	return 0;
@@ -1984,9 +1986,9 @@ bool CCharDB_sql::readMail(uint32 cid, uint32 mid, CMail& mail)
 	mail.head[0] = 0;
 	mail.body[0] = 0;
 
-	if( this->Query(query) )
+	if( this->SendQuery(query) )
 	{
-		if( this->Fetch() )
+		if( this->FetchResults() )
 		{
 			ret = true;
 			mail = CMail(mid, atol(this->row[0]), this->row[1], "", this->row[2] );
@@ -1995,10 +1997,10 @@ bool CCharDB_sql::readMail(uint32 cid, uint32 mid, CMail& mail)
 				query.clear();
 				query <<
 					"UPDATE `" << mail_db << "` SET `read_flag`='1' WHERE `message_id`= '" << mid << "'";
-				this->Query(query);
+				this->SendQuery(query);
 			}
 		}
-		this->Free();
+		this->FreeResults();
 	}
 	return ret;
 }
@@ -2010,7 +2012,7 @@ bool CCharDB_sql::deleteMail(uint32 cid, uint32 mid)
 	query
 		<< "DELETE "
 		<< "FROM `" << mail_db << "` WHERE `to_account_id` = '" << cid << "' AND `message_id` = '" << mid << "'";
-	return this->Query(query);
+	return this->SendQuery(query);
 }
 
 bool CCharDB_sql::sendMail(uint32 senderid, const char* sendername, const char* targetname, const char *head, const char *body, uint32& msgid, uint32& tid)
@@ -2042,7 +2044,7 @@ bool CCharDB_sql::sendMail(uint32 senderid, const char* sendername, const char* 
 			<< "FROM `" << char_db << "` WHERE `name` = '" << _targetname << "'";
 	}
 
-	if( this->Query(query) )
+	if( this->SendQuery(query) )
 	{
 		query.clear();
 		query
@@ -2050,7 +2052,7 @@ bool CCharDB_sql::sendMail(uint32 senderid, const char* sendername, const char* 
 			<< "(`to_account_id`,`to_char_name`,`from_account_id`,`from_char_name`,`message`,`read_flag`)"
 			<< " VALUES ";
 
-		while( this->Fetch() )
+		while( this->FetchResults() )
 		{
 
 			query
@@ -2058,10 +2060,10 @@ bool CCharDB_sql::sendMail(uint32 senderid, const char* sendername, const char* 
 
 			l = true;
 		}
-		this->Free();
+		this->FreeResults();
 	}
 
-	if(l) ret &= this->Query(query);
+	if(l) ret &= this->SendQuery(query);
 
 	return ret;
 }
@@ -2087,11 +2089,11 @@ bool CGuildDB_sql::searchGuild(const char* name, CGuild& g)
 	query
 		<< "SELECT `guild_id` FROM `" << guild_db << "` WHERE `name` = '" << name <<"'";
 
-	if ( this->Query(query) )
+	if ( this->SendQuery(query) )
 	{
-		if( this->Fetch() )
+		if( this->FetchResults() )
 			guild_id = atol(this->row[0]);
-		this->Free();
+		this->FreeResults();
 	}
 
 	if(guild_id)
@@ -2130,7 +2132,7 @@ bool CGuildDB_sql::insertGuild(const struct guild_member &m, const char *name, C
 			<< "'" << t_master				<< "',"
 			<< "'" << g.member[0].char_id	<< "'"
 		<< ")";
-	this->Query(query);
+	this->SendQuery(query);
 	query.clear();
 
 	return this->saveGuild(g); // Save the rest of the guild now that we have the basics inserted
@@ -2143,7 +2145,7 @@ bool CGuildDB_sql::removeGuild(uint32 guild_id)
 	query
 		<< "DELETE FROM `" << guild_db << "` WHERE guild_id = '" << guild_id << "'";
 
-	this->Query(query);
+	this->SendQuery(query);
 
 	//removeFromMemory(guild_id);
 
@@ -2180,7 +2182,7 @@ bool CGuildDB_sql::saveGuild(const CGuild& g)
 
 	//printf("- Insert guild %d to guild\n",g->guild_id);
 	for(i=0;i<g.emblem_len;i++){
-		len+=sprintf(emblem_data+len,"%02x",(unsigned char)(g.emblem_data[i]));
+		len+=snprintf(emblem_data+len,(sizeof(emblem_data)-len), "%02x",(unsigned char)(g.emblem_data[i]));
 		//printf("%02x",(unsigned char)(g->emblem_data[i]));
 	}
 	emblem_data[len] = '\0';
@@ -2206,7 +2208,7 @@ bool CGuildDB_sql::saveGuild(const CGuild& g)
 
 			<< "WHERE `guild_id`='" <<		g.guild_id 			<< "'";
 
-		this->Query(query);
+		this->SendQuery(query);
 	}
 
 	{
@@ -2218,13 +2220,13 @@ bool CGuildDB_sql::saveGuild(const CGuild& g)
 		// Re-writing from scratch (Aru)
 		query
 			<< "DELETE from `" << guild_member_db << "` where `guild_id` = '" << g.guild_id << "'";
-		this->Query(query);
+		this->SendQuery(query);
 		query.clear();
 
 		// Remove guild IDs' from the character information sheets
 		query
 			<< "UPDATE `" << char_db << "` SET `guild_id` = '0' WHERE `guild_id` = '" << g.guild_id << "'";
-		this->Query(query);
+		this->SendQuery(query);
 		query.clear();
 
 
@@ -2270,8 +2272,8 @@ bool CGuildDB_sql::saveGuild(const CGuild& g)
 
 		if(l) // if there was a complete query
 		{
-			this->Query(query);
-			this->Query(query2);
+			this->SendQuery(query);
+			this->SendQuery(query2);
 		}
 	}
 
@@ -2303,7 +2305,7 @@ bool CGuildDB_sql::saveGuild(const CGuild& g)
 
 		if(l) // if there was a complete query
 		{
-			this->Query(query);
+			this->SendQuery(query);
 		}
 	}
 
@@ -2313,7 +2315,7 @@ bool CGuildDB_sql::saveGuild(const CGuild& g)
 
 //		printf("- Delete guild %d from guild_alliance\n",g->guild_id);
 		query << "DELETE FROM `" << guild_alliance_db << "` WHERE '" << g.guild_id << "' IN (`alliance_id`,`guild_id`)";
-		this->Query(query);
+		this->SendQuery(query);
 		query.clear();
 
 
@@ -2342,7 +2344,7 @@ bool CGuildDB_sql::saveGuild(const CGuild& g)
 			}
 		}
 
-		this->Query(query);
+		this->SendQuery(query);
 
 	}
 
@@ -2380,7 +2382,7 @@ bool CGuildDB_sql::saveGuild(const CGuild& g)
 
 		if (l)
 		{
-			this->Query(query);
+			this->SendQuery(query);
 		}
 
 	}
@@ -2434,7 +2436,7 @@ bool CGuildDB_sql::removeCastle(ushort castle_id)
 		<< "DELETE FROM `" << castle_db << "` WHERE castle_id = '" << castle_id << "'";
 
 	//removeFromMemory(castle_id);
-	this->Query(query);
+	this->SendQuery(query);
 	return true;
 
 }
@@ -2656,7 +2658,7 @@ private:
 	{
 		string<> query;
 		query << "DELETE FROM `" << party_db << "` WHERE `party_id` = '" << pid << "'";
-		return this->Query(query);
+		return this->SendQuery(query);
 	}
 	virtual bool saveParty(const CParty& party)
 	{/*

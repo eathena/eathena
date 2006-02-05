@@ -918,7 +918,7 @@ void grfio_resourcecheck()
 	char w1[256],w2[256],src[256],dst[256];
 	FILELIST *entry;
 
-	sprintf(src,"%sdata\\resnametable.txt",data_dir);
+	snprintf(src,sizeof(src),"%sdata\\resnametable.txt",data_dir);
 	buf=(char*)grfio_reads(src,&size);
 
 	if(buf==NULL) return;
@@ -928,11 +928,11 @@ void grfio_resourcecheck()
 	for(ptr=buf;ptr-buf<size;) {
 		if(sscanf((char*)ptr,"%[^#]#%[^#]#",w1,w2)==2){
 			if(strstr(w2,"bmp")){
-				sprintf(src,"%sdata\\texture\\%s",data_dir,w1);
-				sprintf(dst,"%sdata\\texture\\%s",data_dir,w2);
+				snprintf(src,sizeof(src),"%sdata\\texture\\%s",data_dir,w1);
+				snprintf(dst,sizeof(dst),"%sdata\\texture\\%s",data_dir,w2);
 			} else {
-				sprintf(src,"%sdata\\%s",data_dir,w1);
-				sprintf(dst,"%sdata\\%s",data_dir,w2);
+				snprintf(src,sizeof(src),"%sdata\\%s",data_dir,w1);
+				snprintf(dst,sizeof(dst),"%sdata\\%s",data_dir,w2);
 			}
 			entry = filelist_find(dst);
 			if (entry!=NULL) {

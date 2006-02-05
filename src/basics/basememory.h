@@ -4,6 +4,13 @@
 #include "basetypes.h"
 #include "baseobjects.h"
 
+//#define BASEMEMORY_SEPERATEELABORATOR
+
+//////////////////////////////////////////////////////////////////////////
+// memory allocation
+int test_memory();
+
+
 //////////////////////////////////////////////////////////////////////////
 // memory allocation
 //////////////////////////////////////////////////////////////////////////
@@ -44,9 +51,76 @@ public:
 	virtual ~elaborator()	{}
 
 protected:
-	virtual void move(T* target, const T* source, size_t cnt) = 0;
-	virtual void copy(T* target, const T* source, size_t cnt) = 0;
-	virtual int cmp(const T* a, const T* b, size_t cnt) const = 0;
+#ifdef BASEMEMORY_SEPERATEELABORATOR
+	virtual T*  intern_move(T* target, const T* source, size_t cnt) = 0;
+	virtual T*  intern_copy(T* target, const T* source, size_t cnt) = 0;
+	virtual int intern_cmp(const T* a, const T* b, size_t cnt) const = 0;
+#else
+	virtual T*  intern_move(T* target, const T* source, size_t cnt)
+	{	
+		if( sizeof(T) < sizeof(T*) )
+		{	// simple type mover, no checks performed
+			memmove(target, source, cnt*sizeof(T));
+			return target+cnt;
+		}
+		else
+		{
+			if(target>source)
+			{	// last to first run
+				T* epp=target;
+				target+=cnt-1;
+				source+=cnt-1;
+				while( target>=epp ) *target-- = *source--;
+				return epp+cnt;
+			}
+			else if(target<source)
+			{	// first to last run
+				T* epp=target+cnt;
+				while( target< epp ) *target++ = *source++;
+				return epp;
+			}
+			else
+				// identical; no move necessary
+				return target+cnt;
+		}
+	}
+	virtual T*  intern_copy(T* target, const T* source, size_t cnt)
+	{	
+		if( sizeof(T) < sizeof(T*) )
+		{	// simple type mover, no checks performed
+			memcpy(target, source, cnt*sizeof(T));
+			return target+cnt;
+		}
+		else
+		{
+			T* epp=target+cnt;
+			while( target<epp ) *target++ = *source++;
+			return epp;
+		}
+	}
+//!! bloat
+	virtual int intern_cmp(const T* a, const T* b, size_t cnt) const
+	{	
+		if( sizeof(T) < sizeof(T*) )
+		{	// simple type mover, no checks performed
+			return memcmp(a,b,cnt*sizeof(T));
+		}
+		else
+		{
+			const T* epp=a+cnt;
+			for( ; a<epp ; ++a,++b)
+			{
+				if( a==b || *a==*b )
+					continue;
+				else if( *a < *b )
+					return -1;
+				else
+					return  1;
+			}
+			return 0;
+		}
+	}
+#endif
 };
 
 
@@ -60,18 +134,22 @@ public:
 	virtual ~elaborator_st()	{}
 
 protected:
-	virtual void move(T* target, const T* source, size_t cnt)
+#ifdef BASEMEMORY_SEPERATEELABORATOR
+	virtual T*  intern_move(T* target, const T* source, size_t cnt)
 	{	// simple type mover, no checks performed
 		memmove(target, source, cnt*sizeof(T));
+		return target+cnt;
 	}
-	virtual void copy(T* target, const T* source, size_t cnt)
+	virtual T*  intern_copy(T* target, const T* source, size_t cnt)
 	{	// simple type copy, no checks performed
 		memcpy(target, source, cnt*sizeof(T));
+		return target+cnt;
 	}
-	virtual int cmp(const T* a, const T* b, size_t cnt) const
+	virtual int intern_cmp(const T* a, const T* b, size_t cnt) const
 	{	// simple type compare, no checks performed
 		return memcmp(a,b,cnt*sizeof(T));
 	}
+#endif
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -84,32 +162,38 @@ public:
 	virtual ~elaborator_ct()	{}
 
 protected:
+#ifdef BASEMEMORY_SEPERATEELABORATOR
 //!! bloat
-	virtual void move(T* target, const T* source, size_t cnt)
+	virtual T* intern_move(T* target, const T* source, size_t cnt)
 	{	
 		if(target>source)
 		{	// last to first run
 			T* epp=target;
 			target+=cnt-1;
 			source+=cnt-1;
-			while( target>=epp ) *target-- = source--;
+			while( target>=epp ) *target-- = *source--;
+			return epp+cnt;
 		}
 		else if(target<source)
 		{	// first to last run
 			T* epp=target+cnt;
-			while( target< epp ) *target++ =*source++;
+			while( target< epp ) *target++ = *source++;
+			return epp;
 		}
-		//else identical; no move necessary
+		else
+			// identical; no move necessary
+			return target+cnt;
 	}
-	virtual void copy(T* target, const T* source, size_t cnt)
+	virtual void intern_copy(T* target, const T* source, size_t cnt)
 	{	
 		T* epp=target+cnt;
-		while( target<epp ) *target++ =*source++;
+		while( target<epp ) *target++ = *source++;
+		return epp;
 	}
 //!! bloat
-	virtual int cmp(const T* a, const T* b, size_t cnt) const
+	virtual int intern_cmp(const T* a, const T* b, size_t cnt) const
 	{	
-		T* epp=a+cnt;
+		const T* epp=a+cnt;
 		for( ; a<epp ; ++a,++b)
 		{
 			if( a==b || *a==*b )
@@ -121,6 +205,7 @@ protected:
 		}
 		return 0;
 	}
+#endif
 };
 
 
@@ -136,10 +221,79 @@ protected:
 template <class T=char> class allocator : public global, public noncopyable
 {
 public:
+	class iterator
+	{
+		const allocator& base;
+		T* ptr;
+	public:
+		iterator(const allocator& a) : base(a), ptr(a.begin())	{}
+		~iterator()	{}
+		// can use default copy//assignment
+		const iterator& operator=(T* p)
+		{
+			if( p && p>=base.begin() && p<=base.end() )
+				this->ptr=p;
+			else
+				this->ptr=NULL;
+		}
+		bool isvalid() const	{ return (this->ptr && this->ptr>=base.begin() && this->ptr<=base.end()); }
+		operator bool() const	{ return this->isvalid(); }
+		T* operator()()			{ return this->isvalid()?this->ptr:NULL; }
+		T& operator*()			{ return *this->ptr; }
+		T* operator->()			{ return this->isvalid()?this->ptr:NULL; }
+
+		T* operator++()			
+		{// preincrement
+			this->ptr++;
+			if( this->isvalid() )
+				return this->ptr;
+			else
+				return NULL; 
+		}
+		T* operator++(int)
+		{	// postincrement
+			if( this->isvalid() )
+				return this->ptr++;
+			else
+				return NULL; 
+		}
+		T* operator--()
+		{	// predecrement
+			this->ptr--;
+			if( this->isvalid() )
+				return this->ptr;
+			else
+				return NULL; 
+		}
+		T* operator--(int)
+		{	// postdecrement
+			if( this->isvalid() )
+				return this->ptr--;
+			else
+				return NULL; 
+		}
+		bool operator==(const T*p) const	{ return this->ptr==p; }
+		bool operator!=(const T*p) const	{ return this->ptr!=p; }
+		bool operator>=(const T*p) const	{ return this->ptr>=p; }
+		bool operator> (const T*p) const	{ return this->ptr> p; }
+		bool operator<=(const T*p) const	{ return this->ptr<=p; }
+		bool operator< (const T*p) const	{ return this->ptr< p; }
+
+		bool operator==(const iterator&i) const	{ return this->ptr==i.ptr; }
+		bool operator!=(const iterator&i) const	{ return this->ptr!=i.ptr; }
+		bool operator>=(const iterator&i) const	{ return this->ptr>=i.ptr; }
+		bool operator> (const iterator&i) const	{ return this->ptr> i.ptr; }
+		bool operator<=(const iterator&i) const	{ return this->ptr<=i.ptr; }
+		bool operator< (const iterator&i) const	{ return this->ptr< i.ptr; }
+	};
+
 	virtual ~allocator()	{}
-public:
+
 	virtual operator const T*() const =0;
 	virtual size_t length()	const =0;
+	virtual size_t size() const { return length(); }
+	virtual T* begin() const=0;
+	virtual T* end() const=0;
 };
 
 
@@ -149,43 +303,50 @@ public:
 template <class T=char> class allocator_w : public allocator<T>
 {
 protected:
-	T* cBuf;
+	mutable T* cBuf;
 	T* cEnd;
-	T* cPtr;
+	mutable T* cWpp;
+
+	const T*& ptrBuf() const	{ return cBuf; }
+	      T*& ptrRpp() const	{ return cBuf; }
+	      T*& ptrWpp() const	{ return cWpp; }
+	const T*& ptrEnd() const	{ return cEnd; }
 
 	// std construct/destruct
-	allocator_w()	: cBuf(NULL), cEnd(NULL), cPtr(NULL)				{}
-	allocator_w(T* buf, size_t sz) : cBuf(buf), cEnd(buf+sz), cPtr(buf)	{}
-	virtual ~allocator_w()	{ cBuf=cEnd=cPtr=NULL; }
+	allocator_w()	: cBuf(NULL), cEnd(NULL), cWpp(NULL)				{}
+	allocator_w(T* buf, size_t sz) : cBuf(buf), cEnd(buf+sz), cWpp(buf)	{}
+	virtual ~allocator_w()	{ cBuf=cEnd=cWpp=NULL; }
 
 	virtual bool checkwrite(size_t addsize)	=0;
 public:
 	virtual operator const T*() const	{ return this->cBuf; }
-	virtual size_t length()	const		{ return (this->cPtr-this->cBuf); }
+	virtual size_t length()	const		{ return (this->cWpp-this->cBuf); }
+	virtual T* begin() const			{ return this->cBuf; }
+	virtual T* end() const				{ return (this->cWpp>this->cBuf)?this->cWpp-1:this->cBuf; }
 };
 
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// dynamic write-buffer allocator
+// dynamic write-buffer allocator (string version)
 // creates/reallocates storage on its own
 //
 // size is calculated with one element in advance
 // so it can be used for cstring allocation
 ///////////////////////////////////////////////////////////////////////////////
-template < class T=char, class E=elaborator_ct<T> > class allocator_w_dy : public allocator_w<T>, public E
+template < class T=char, class E=elaborator_ct<T> > class allocator_ws_dy : public allocator_w<T>, public E
 {
 protected:
-	allocator_w_dy() : allocator_w<T>()			{}
-	allocator_w_dy(size_t sz) : allocator_w<T>(){ checkwrite(sz); }
-	allocator_w_dy(T* buf, size_t sz)			{}	// no implementation here
-	virtual ~allocator_w_dy()					{ if(this->cBuf) delete[] this->cBuf; }
+	allocator_ws_dy() : allocator_w<T>()			{ }
+	allocator_ws_dy(size_t sz) : allocator_w<T>()	{ checkwrite(sz); }
+	allocator_ws_dy(T* buf, size_t sz)				{ }	// no implementation here
+	virtual ~allocator_ws_dy()						{ if(this->cBuf) delete[] this->cBuf; }
 //!! bloat
 	virtual bool checkwrite(size_t addsize)
 	{
-		size_t sz = memquantize( this->cPtr-this->cBuf + addsize + 1 );
+		size_t sz = memquantize( (this->cWpp-this->cBuf + addsize + 1)*sizeof(T) )/sizeof(T);
 
-		if( this->cPtr+addsize >= this->cEnd ||
+		if( this->cWpp+addsize >= this->cEnd ||
 			(this->cBuf+1024 < this->cEnd && this->cBuf+4*sz <= this->cEnd))
 		{	// allocate new
 			// enlarge when not fit
@@ -194,11 +355,73 @@ protected:
 			if(!tmp) return false;
 			if(this->cBuf)
 			{
-				this->copy(tmp, this->cBuf, this->cPtr-this->cBuf);
+				this->intern_copy(tmp, this->cBuf, this->cWpp-this->cBuf);
 				delete[] this->cBuf;
 			}
 			this->cEnd = tmp+sz;
-			this->cPtr = tmp+(this->cPtr-this->cBuf);
+			this->cWpp = tmp+(this->cWpp-this->cBuf);
+			this->cBuf = tmp;
+		}
+		return (this->cEnd > this->cBuf);
+	}
+	// have the EOS be part of the iteration
+ 	virtual T* end() const			{ return this->cWpp; }
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+// static write-buffer (string version)
+// is using an external buffer for writing
+// does not resize but just returns false on checkwrite
+// size is calculated with one element in advance
+// so it can be used for cstring allocation
+///////////////////////////////////////////////////////////////////////////////
+template < class T=char, class E=elaborator_ct<T> > class allocator_ws_st : public allocator_w<T>, public E
+{
+protected:
+	allocator_ws_st()			{}			// no implementation here
+	allocator_ws_st(size_t sz)	{}			// no implementation here
+	allocator_ws_st(T* buf, size_t sz) : allocator_w<T>(buf, sz)	{}
+	virtual ~allocator_ws_st()				{}
+	virtual bool checkwrite(size_t addsize)
+	{
+		return ( this->cWpp && this->cWpp +addsize < this->cEnd );
+	}
+	// have the EOS be part of the iteration
+ 	virtual T* end() const			{ return this->cWpp; }
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// dynamic write-buffer allocator
+// creates/reallocates storage on its own
+// (there is no extra element here, Wpp points outside of the array when full)
+///////////////////////////////////////////////////////////////////////////////
+template < class T=char, class E=elaborator_ct<T> > class allocator_w_dy : public allocator_w<T>, public E
+{
+protected:
+	allocator_w_dy() : allocator_w<T>()			{}
+	allocator_w_dy(size_t sz) : allocator_w<T>()	{ checkwrite(sz); }
+	allocator_w_dy(T* buf, size_t sz)				{}	// no implementation here
+	virtual ~allocator_w_dy()						{ if(this->cBuf) delete[] this->cBuf; }
+//!! bloat
+	virtual bool checkwrite(size_t addsize)
+	{
+		size_t sz = memquantize( (this->cWpp-this->cBuf + addsize)*sizeof(T) )/sizeof(T);
+
+		if( this->cWpp+addsize > this->cEnd ||
+			(this->cBuf+1024 < this->cEnd && this->cBuf+4*sz <= this->cEnd))
+		{	// allocate new
+			// enlarge when not fit
+			// shrink when using less than a quarter of the buffer for >1k elements
+			T *tmp = new T[sz];
+			if(!tmp) return false;
+			if(this->cBuf)
+			{
+				this->intern_copy(tmp, this->cBuf, this->cWpp-this->cBuf);
+				delete[] this->cBuf;
+			}
+			this->cEnd = tmp+sz;
+			this->cWpp = tmp+(this->cWpp-this->cBuf);
 			this->cBuf = tmp;
 		}
 		return (this->cEnd > this->cBuf);
@@ -209,8 +432,7 @@ protected:
 ///////////////////////////////////////////////////////////////////////////////
 // static write-buffer is using an external buffer for writing
 // does not resize but just returns false on checkwrite
-// size is calculated with one element in advance
-// so it can be used for cstring allocation
+// (there is no extra element here, Wpp points outside of the array when full)
 ///////////////////////////////////////////////////////////////////////////////
 template < class T=char, class E=elaborator_ct<T> > class allocator_w_st : public allocator_w<T>, public E
 {
@@ -221,7 +443,7 @@ protected:
 	virtual ~allocator_w_st()				{}
 	virtual bool checkwrite(size_t addsize)
 	{
-		return ( this->cPtr && this->cPtr +addsize < this->cEnd );
+		return ( this->cWpp && this->cWpp +addsize <= this->cEnd );
 	}
 };
 
@@ -236,8 +458,13 @@ template <class T=unsigned char> class allocator_rw : public allocator<T>
 protected:
 	T* cBuf;
 	T* cEnd;
-	T* cRpp;
+	mutable T* cRpp; // read also from const objects
 	T* cWpp;
+
+	const T*& ptrBuf() const	{ return cBuf; }
+	      T*& ptrRpp() const	{ return cRpp; }
+	      T*& ptrWpp() const	{ return cWpp; }
+	const T*& ptrEnd() const	{ return cEnd; }
 
 	// std construct/destruct
 	allocator_rw()	: cBuf(NULL), cEnd(NULL), cRpp(NULL), cWpp(NULL)				{}
@@ -249,6 +476,8 @@ protected:
 public:
 	virtual operator const T*() const	{ return this->cRpp; }
 	virtual size_t length()	const		{ return (this->cWpp-this->cRpp); }
+	virtual T* begin() const			{ return this->cRpp; }
+	virtual T* end() const				{ return (this->cWpp>this->cRpp)?this->cWpp-1:this->cRpp; }
 };
 ///////////////////////////////////////////////////////////////////////////////
 // dynamic read/write-buffer allocator
@@ -264,7 +493,7 @@ protected:
 //!! bloat
 	virtual bool checkwrite(size_t addsize)
 	{
-		size_t sz = memquantize( this->cWpp-this->cRpp + addsize );
+		size_t sz = memquantize( (this->cWpp-this->cRpp + addsize)*sizeof(T) )/sizeof(T);
 
 		if( this->cBuf+sz > this->cEnd  ||
 			(this->cBuf+8192 < this->cEnd && this->cBuf+4*sz <= this->cEnd))
@@ -275,7 +504,7 @@ protected:
 			if(!tmp) return false;
 			if(this->cBuf)
 			{
-				this->copy(tmp, this->cRpp, this->cWpp-this->cRpp);
+				this->intern_copy(tmp, this->cRpp, this->cWpp-this->cRpp);
 				delete[] this->cBuf;
 			}
 			this->cEnd = tmp+sz;
@@ -283,9 +512,9 @@ protected:
 			this->cRpp = tmp;
 			this->cBuf = tmp;
 		}
-		else if( this->wpp+addsize > this->end )
+		else if( this->cWpp+addsize > this->cEnd )
 		{	// moving the current buffer data is sufficient
-			this->move(this->cBuf, this->cRpp, this->cWpp-this->cRpp);
+			this->intern_move(this->cBuf, this->cRpp, this->cWpp-this->cRpp);
 			this->cWpp = this->cBuf+(this->cWpp-this->cRpp);
 			this->cRpp = this->cBuf;
 		}
@@ -311,13 +540,13 @@ protected:
 //!! bloat
 	virtual bool checkwrite(size_t addsize)
 	{
-		if( this->cWpp+addsize >= this->cEnd && this->cBuf < this->cRpp )
+		if( this->cWpp+addsize > this->cEnd && this->cBuf < this->cRpp )
 		{	// move the current buffer data when necessary and possible 
-			this->move(this->cBuf, this->cRpp, this->cWpp-this->cRpp);
+			this->intern_move(this->cBuf, this->cRpp, this->cWpp-this->cRpp);
 			this->cWpp = this->cBuf+(this->cWpp-this->cRpp);
 			this->cRpp = this->cBuf;
 		}
-		return ( this->cWpp && this->cWpp + addsize < this->cEnd );
+		return ( this->cWpp && this->cWpp + addsize <= this->cEnd );
 	}
 	virtual bool checkread(size_t addsize) const
 	{
@@ -338,13 +567,19 @@ protected:
 	T* cBuf;
 	T* cEnd;
 	T* cRpp;
-	T* cScn;
 	T* cWpp;
+	T* cScn;
+
+	const T*& ptrBuf() const	{ return cBuf; }
+	      T*& ptrRpp() const	{ return cRpp; }
+	      T*& ptrWpp() const	{ return cWpp; }
+	const T*& ptrEnd() const	{ return cEnd; }
+
 
 	// std construct/destruct
-	allocator_r()	: cBuf(NULL), cEnd(NULL), cRpp(NULL), cScn(NULL), cWpp(NULL)				{}
-	allocator_r(T* buf, size_t sz, size_t fill=0) : cBuf(buf), cEnd(buf+sz), cRpp(buf), cScn(buf), cWpp(buf+min(sz,fill))	{}
-	virtual ~allocator_r()	{ cBuf=cEnd=cRpp=cScn=cWpp=NULL; }
+	allocator_r()	: cBuf(NULL), cEnd(NULL), cRpp(NULL), cWpp(NULL), cScn(NULL) {}
+	allocator_r(T* buf, size_t sz, size_t fill=0) : cBuf(buf), cEnd(buf+sz), cRpp(buf), cWpp(buf+min(sz,fill)), cScn(buf) {}
+	virtual ~allocator_r() { cBuf=cEnd=cRpp=cScn=cWpp=NULL; }
 
 	// default read function, reads max sz elements to buf and returns the actual count of read elements
 	virtual size_t readdata(T*buf, size_t sz) =0;
@@ -353,6 +588,10 @@ protected:
 public:
 	virtual operator const T*() const	{ return this->cRpp; }
 	virtual size_t length()	const		{ return (this->cWpp-this->cRpp); }
+
+	// not that usefull here
+	virtual T* begin() const			{ return this->cRpp; }
+	virtual T* end() const				{ return (this->cWpp>this->cRpp)?this->cWpp-1:this->cRpp; }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -367,7 +606,7 @@ protected:
 //!! bloat
 	virtual bool checkwrite(size_t addsize)
 	{
-		size_t sz = memquantize( this->cWpp-this->cRpp + addsize );
+		size_t sz = memquantize( (this->cWpp-this->cRpp + addsize)*sizeof(T) )/sizeof(T);
 
 		if( this->cBuf+sz > this->cEnd  ||
 			(this->cBuf+8192 < this->cEnd && this->cBuf+4*sz <= this->cEnd))
@@ -378,7 +617,7 @@ protected:
 			if(!tmp) return false;
 			if(this->cBuf)
 			{
-				this->copy(tmp, this->cRpp, this->cWpp-this->cRpp);
+				this->intern_copy(tmp, this->cRpp, this->cWpp-this->cRpp);
 				delete[] this->cBuf;
 			}
 			this->cEnd = tmp+sz;
@@ -389,7 +628,7 @@ protected:
 		}
 		else if( this->cWpp+addsize > this->cEnd )
 		{	// moving the current buffer data is sufficient
-			this->move(this->cBuf, this->cRpp, this->cWpp-this->cRpp);
+			this->intern_move(this->cBuf, this->cRpp, this->cWpp-this->cRpp);
 			this->cWpp = this->cBuf+(this->cWpp-this->cRpp);
 			this->cScn = this->cBuf+(this->cScn-this->cRpp);
 			this->cRpp = this->cBuf;

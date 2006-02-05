@@ -1,4 +1,10 @@
-all sql txt: baseio.o basesq.o core.o db.o plugins.o grfio.o lock.o malloc.o md5calc.o mmo.o nullpo.o showmsg.o socket.o strlib.o timer.o utils.o
+all sql txt: prep baseio.o basesq.o core.o db.o plugins.o grfio.o lock.o malloc.o md5calc.o mmo.o nullpo.o showmsg.o socket.o strlib.o timer.o utils.o
+
+##########################################################
+# always clean those for the moment
+.PHONY : prep
+prep: 
+	rm -rf baseio.o basesq.o
 
 ##########################################################
 # stupid make does not know .cpp suffix by default

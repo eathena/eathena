@@ -620,12 +620,12 @@ protected:
 	class CLabel : public string<>
 	{	
 	public:
-		uint isset : 1;		// correct address is set
+		uint valid : 1;		// correct address is set
 		uint _dummy : 7;	// unused bits to fill the 32bit gap
 		uint pos :24;		// 24bit address inside the script
 		uint use;			// usage counter of the label
 
-		CLabel(const char* n=NULL, int p=-1) : string<>(n), isset(0), pos(p),use(0)	{}
+		CLabel(const char* n=NULL, int p=-1) : string<>(n), valid(0), pos(p),use(0)	{}
 		virtual ~CLabel()	{}
 	};
 
@@ -876,7 +876,7 @@ public:
 		if( cLabelList.find(name,0, inx) )
 		{	
 			// check if label has been set
-			if( cLabelList[inx].isset )
+			if( cLabelList[inx].valid )
 			{	// can just push the address
 				appendAddr( cLabelList[inx].pos );
 			}
@@ -894,7 +894,7 @@ public:
 	bool correctLabel(const char* name)
 	{	// we now have the correct position of the labels
 		size_t inx;
-		if( cLabelList.find(name,0, inx) && !cLabelList[inx].isset )
+		if( cLabelList.find(name,0, inx) && !cLabelList[inx].valid )
 		{
 			size_t pos = cProgramm.size();
 			size_t tmp1,tmp2, addr=cLabelList[inx].pos;
@@ -905,7 +905,7 @@ public:
 				replaceAddr(pos, addr);	// update the address
 				addr = tmp2;
 			}
-			cLabelList[inx].isset=1;
+			cLabelList[inx].valid=1;
 			cLabelList[inx].pos=pos;
 			return true;
 		}
@@ -919,12 +919,12 @@ public:
 		if( cLabelList.find(name,0, inx) )
 		{	// tryed to reposition a label with already given position
 			// should actually not happen since detected on label pre-run
-			if(pos>=0 && cLabelList[inx].isset)	
+			if(pos>=0 && cLabelList[inx].valid)	
 				return -1;
 			else if(pos>=0)					// have a position now
 			{
 				cLabelList[inx].pos = pos;
-				cLabelList[inx].isset=1;
+				cLabelList[inx].valid=1;
 			}
 			else							// otherwise just a usage of the label	
 				cLabelList[inx].use++;

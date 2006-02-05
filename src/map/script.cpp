@@ -2713,7 +2713,7 @@ const char* CScriptEngine::GetString(CScriptEngine::CValue &data)
 	{
 		char *buf;
 		buf=(char *)aMalloc(24*sizeof(char));
-		sprintf(buf,"%d",data.num);
+		snprintf(buf,24,"%d",data.num);
 		data.type=CScriptEngine::C_STR;
 		data.str=buf;
 	}
