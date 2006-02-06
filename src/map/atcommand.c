@@ -7642,17 +7642,14 @@ atcommand_autoloot(
 	double drate;
 	nullpo_retr(-1, sd);
 	if (!message || !*message) {
-		if (sd->state.autoloot) {
-			sd->state.autoloot = 0;
-			clif_displaymessage(fd, "Autoloot is now off.");
-			return 0;
-		} else {
-			clif_displaymessage(fd, "Usage: autoloot <max drop-rate to loot>.");
-			return -1;
-		}
+		if (sd->state.autoloot)
+			rate = 0;
+		else
+			rate = 10000;
+	} else {
+		drate = atof(message);
+		rate = (int)(drate*100);
 	}
-	drate = atof(message);
-	rate = (int)(drate*100);
 	if (rate > 10000) rate = 10000;
 	else if (rate < 0) rate = 0;
 	

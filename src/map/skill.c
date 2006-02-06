@@ -3043,10 +3043,11 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 	case WZ_WATERBALL:			/* ウォ?タ?ボ?ル */
 		skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag);
 		if (skilllv>1) {
-			int range = skilllv > 5 ? 2 : skilllv/2;
+			int range = skilllv/2;
 			//Rain doesn't affect WATERBALL (Rain has been removed at kRO) [Lupus]
 			//int cnt = (!map[src->m].flag.rain) ? skill_count_water(src,range) - 1 : skill_get_num(skillid,skilllv) - 1;
-			int cnt = (src->type==BL_PC)?skill_count_water(src,range) - 1:(skilllv>3?24:8);
+			int cnt = (src->type==BL_PC)?skill_count_water(src,range):(range*range);
+			cnt--;
 			if (cnt > 0)
 				skill_addtimerskill(src,tick+150,bl->id,0,0,
 					skillid,skilllv,cnt,flag);
@@ -6272,7 +6273,7 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 
 	case HT_DETECTING:				/* ディテクティング */
 		map_foreachinarea( status_change_timer_sub,
-			src->m, x-1, y-1, x+1,y+1,BL_CHAR,
+			src->m, x-3, y-3, x+3,y+3,BL_CHAR,
 			src,SC_SIGHT,tick);
 		break;
 

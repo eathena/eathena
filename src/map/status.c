@@ -730,16 +730,14 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 			return 0;
 	}
 
-	if (src) {
-		race = status_get_race(src); 
-	} else { //Ground skill, only earth-elemental skills have detecting-hitting capabilities.
-		race = 0;
-		if(skill_get_pl(skill_num) == 2)
-			mode|= MD_DETECTOR;
-	}
 	option = status_get_option(target);
+	race = src?status_get_race(src):0; 
 	hide_flag = flag?OPTION_HIDE:(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK); //If targetting, cloak+hide protect you, otherwise only hiding does.
 		
+ 	//You cannot hide from ground skills.
+	if(skill_get_pl(skill_num) == 2)
+		hide_flag &= ~OPTION_HIDE;
+	
 	switch (target->type)
 	{
 	case BL_PC:
@@ -3773,7 +3771,9 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 	if((type==SC_FREEZE || type==SC_STONE) && undead_flag && !(flag&1))
 	//I've been informed that undead chars are inmune to stone curse too. [Skotlex]
 		return 0;
-
+	//Dark elementals are inmune to curse. [Skotlex]
+	if(type==SC_CURSE && elem == 7 && !(flag&1))
+		return 0;
 
 	if (type==SC_BLESSING && (bl->type==BL_PC || (!undead_flag && race!=6))) {
 		if (sc_data[SC_CURSE].timer!=-1)
@@ -4502,7 +4502,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 
 		case SC_COMA: //Coma. Sends a char to 1HP/SP
 			battle_damage(NULL, bl, status_get_hp(bl)-1, 0);
-			if (sd) pc_heal(sd,0,-sd->status.sp+1);
 			return 0;
 
 		case SC_CARTBOOST:		/* カ?トブ?スト */
