@@ -41,7 +41,8 @@
 #endif
 
 #define PVP_CALCRANK_INTERVAL 1000	// PVP順位計算の間隔
-static int exp_table[14][MAX_LEVEL];
+static unsigned int exp_table[MAX_PC_CLASS][2][MAX_LEVEL];
+static unsigned int max_level[MAX_PC_CLASS][2];
 static short statp[MAX_LEVEL];
 
 // h-files are for declarations, not for implementations... [Shinomori]
@@ -4622,7 +4623,7 @@ int pc_checkjoblevelup(struct map_session_data *sd)
 		status_calc_pc(sd,0);
 
 		clif_misceffect(&sd->bl,1);
-		if (pc_checkskill(sd, SG_DEVIL) && sd->status.job_level >= battle_config.max_job_level)
+		if (pc_checkskill(sd, SG_DEVIL) && !pc_nextjobafter(sd))
 			clif_status_change(&sd->bl,SI_DEVIL, 1); //Permanent blind effect from SG_DEVIL.
 
 		if (script_config.event_script_type == 0) {
@@ -4646,11 +4647,11 @@ int pc_checkjoblevelup(struct map_session_data *sd)
  * ??値取得
  *------------------------------------------
  */
-int pc_gainexp(struct map_session_data *sd,int base_exp,int job_exp)
+int pc_gainexp(struct map_session_data *sd,unsigned int base_exp,unsigned int job_exp)
 {
 	char output[256];
 	float nextbp=0, nextjp=0;
-	int nextb=0, nextj=0;
+	unsigned int nextb=0, nextj=0;
 	nullpo_retr(0, sd);
 
 	if(sd->bl.prev == NULL || pc_isdead(sd))
@@ -4661,14 +4662,10 @@ int pc_gainexp(struct map_session_data *sd,int base_exp,int job_exp)
 
 	if(sd->status.guild_id>0){	// ギルドに上納
 		base_exp-=guild_payexp(sd,base_exp);
-		if(base_exp < 0)
-			base_exp = 0;
 	}
 
 	if(!battle_config.multi_level_up && pc_nextbaseafter(sd) && sd->status.base_exp+base_exp >= pc_nextbaseafter(sd)) {
 		base_exp = pc_nextbaseafter(sd) - sd->status.base_exp;
-		if (base_exp < 0)
-			base_exp = 0;
 	}
 	nextb = pc_nextbaseexp(sd);
 	nextj = pc_nextjobexp(sd);
@@ -4678,21 +4675,15 @@ int pc_gainexp(struct map_session_data *sd,int base_exp,int job_exp)
 		nextjp = (float) job_exp / (float) nextj;
 
 	sd->status.base_exp += base_exp;
-	if(sd->status.base_exp < 0)
-		sd->status.base_exp = 0;
 
 	while(pc_checkbaselevelup(sd)) ;
 
 	clif_updatestatus(sd,SP_BASEEXP);
 	if(!battle_config.multi_level_up && pc_nextjobafter(sd) && sd->status.job_exp+job_exp >= pc_nextjobafter(sd)) {
 		job_exp = pc_nextjobafter(sd) - sd->status.job_exp;
-		if (job_exp < 0)
-			job_exp = 0;
 	}
 
 	sd->status.job_exp += job_exp;
-	if(sd->status.job_exp < 0)
-		sd->status.job_exp = 0;
 
 	while(pc_checkjoblevelup(sd)) ;
 
@@ -4700,119 +4691,79 @@ int pc_gainexp(struct map_session_data *sd,int base_exp,int job_exp)
 
 	if(sd->state.showexp){
 		sprintf(output,
-			"Experienced Gained Base:%d (%.2f%%) Job:%d (%.2f%%)",base_exp,nextbp*(float)100,job_exp,nextjp*(float)100);
+			"Experience Gained Base:%d (%.2f%%) Job:%d (%.2f%%)",base_exp,nextbp*(float)100,job_exp,nextjp*(float)100);
 		clif_disp_onlyself(sd,output,strlen(output));
 	}
 
-	return 0;
+	return 1;
 }
+
+/*==========================================
+ * Returns max level for this character.
+ *------------------------------------------
+ */
+
+unsigned int pc_maxbaselv(struct map_session_data *sd) {
+  	return max_level[sd->status.class_][0];
+};
+
+unsigned int pc_maxjoblv(struct map_session_data *sd) {
+  	return max_level[sd->status.class_][1];
+};
 
 /*==========================================
  * base level側必要??値計算
  *------------------------------------------
  */
-int pc_nextbaseexp(struct map_session_data *sd)
+unsigned int pc_nextbaseexp(struct map_session_data *sd)
 {
-	int i =0;
-
 	nullpo_retr(0, sd);
 
-	if(sd->status.base_level>=MAX_LEVEL || sd->status.base_level<=0)
+	if(sd->status.base_level>=pc_maxbaselv(sd) || sd->status.base_level<=0)
 		return 0;
 
-	i = (sd->class_&JOBL_UPPER)?4:0; //4 is the base for upper, 0 for normal/baby ones.
-
-	if ((sd->class_&MAPID_UPPERMASK) == MAPID_NOVICE)
-		; //Add 0, it's novice.
-	else if ((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE)
-		i = 3; //Super Novice/Super Baby
-	else 
-		i+= (sd->class_&JOBL_2)?2:1;	//Add 2 for second classes, add 1 for first classes.
-
-	return exp_table[i][sd->status.base_level-1];
+	return exp_table[sd->status.class_][0][sd->status.base_level-1];
 }
 
 /*==========================================
  * job level側必要??値計算
  *------------------------------------------
  */
-int pc_nextjobexp(struct map_session_data *sd)
+unsigned int pc_nextjobexp(struct map_session_data *sd)
 {
-	int i;
-
 	nullpo_retr(0, sd);
 
-	if(sd->status.job_level>=MAX_LEVEL || sd->status.job_level<=0)
+	if(sd->status.job_level>=pc_maxjoblv(sd) || sd->status.job_level<=0)
 		return 0;
-
-	i = (sd->class_&JOBL_UPPER)?11:7; //11 is the base for upper, 7 for normal/baby ones.
-
-	if ((sd->class_&MAPID_UPPERMASK) == MAPID_NOVICE)
-		; //Add 0, it's novice.
-	else if ((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE)
-		i = 10; //Super Novice/Super Baby
-	else if ((sd->class_&MAPID_UPPERMASK) == MAPID_STAR_GLADIATOR) {
-		i = 13; //Star Gladiator - slow JExp (as for 2nd class)
-		if (sd->status.job_level >= battle_config.max_job_level)
-			return 0; //Since SG aren't really an advanced class... [Skotlex]
-	} else 
-		i+= (sd->class_&JOBL_2)?2:1;	//Add 2 for second classes, add 1 for first classes.
-
-	return exp_table[i][sd->status.job_level-1];
+	return exp_table[sd->status.class_][1][sd->status.job_level-1];
 }
 
 /*==========================================
  * base level after next [Valaris]
  *------------------------------------------
  */
-int pc_nextbaseafter(struct map_session_data *sd)
+unsigned int pc_nextbaseafter(struct map_session_data *sd)
 {
-	int i;
-
 	nullpo_retr(0, sd);
 
-	if(sd->status.base_level>=MAX_LEVEL || sd->status.base_level<=0)
+	if(sd->status.base_level>=pc_maxbaselv(sd) || sd->status.base_level<=0)
 		return 0;
 
-	i = (sd->class_&JOBL_UPPER)?4:0; //4 is the base for upper, 0 for normal/baby ones.
-
-	if ((sd->class_&MAPID_UPPERMASK) == MAPID_NOVICE)
-		; //Add 0, it's novice.
-	else if ((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE)
-		i = 3; //Super Novice/Super Baby
-	else 
-		i+= (sd->class_&JOBL_2)?2:1;	//Add 2 for second classes, add 1 for first classes.
-
-	return exp_table[i][sd->status.base_level];
+	return exp_table[sd->status.class_][0][sd->status.base_level];
 }
 
 /*==========================================
  * job level after next [Valaris]
  *------------------------------------------
  */
-int pc_nextjobafter(struct map_session_data *sd)
+unsigned int pc_nextjobafter(struct map_session_data *sd)
 {
-	int i;
-
 	nullpo_retr(0, sd);
 
-	if(sd->status.job_level>=MAX_LEVEL || sd->status.job_level<=0)
+	if(sd->status.job_level>=pc_maxjoblv(sd) || sd->status.job_level<=0)
 		return 0;
 
-	i = (sd->class_&JOBL_UPPER)?11:7; //11 is the base for upper, 7 for normal/baby ones.
-
-	if ((sd->class_&MAPID_UPPERMASK) == MAPID_NOVICE)
-		; //Add 0, it's novice.
-	else if ((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE)
-		i = 10; //Super Novice/Super Baby
-	else if ((sd->class_&MAPID_UPPERMASK) == MAPID_STAR_GLADIATOR) {
-		i = 13; //Star Gladiator - slow JExp (as for 2nd class)
-		if (sd->status.job_level >= battle_config.max_job_level)
-			return 0; //Since SG aren't really an advanced class... [Skotlex]
-	} else 
-		i+= (sd->class_&JOBL_2)?2:1;	//Add 2 for second classes, add 1 for first classes.
-
-	return exp_table[i][sd->status.job_level];
+	return exp_table[sd->status.class_][1][sd->status.job_level];
 }
 /*==========================================
 
@@ -5216,7 +5167,7 @@ int pc_resetskill(struct map_session_data* sd)
 	int i, skill, inf2;
 	nullpo_retr(0, sd);
 
-	if (pc_checkskill(sd, SG_DEVIL) && sd->status.job_level >= battle_config.max_job_level)
+	if (pc_checkskill(sd, SG_DEVIL) &&  !pc_nextjobafter(sd))
 		clif_status_load(&sd->bl, SI_DEVIL, 0); //Remove perma blindness due to skill-reset. [Skotlex]
 	
 	for (i = 1; i < MAX_SKILL; i++) {
@@ -5533,7 +5484,8 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 			mob_changestate(md,MS_WALK,0);
 		}
 		if(battle_config.mobs_level_up && md && md->state.state!=MS_DEAD &&
-			md->level < battle_config.max_base_level && !md->guardian_data // Guardians should not level. [Skotlex]
+			md->level < pc_maxbaselv(sd) &&
+			!md->guardian_data // Guardians should not level. [Skotlex]
 		) { 	// monster level up [Valaris]
 			clif_misceffect(&md->bl,0);
 			md->level++;
@@ -5766,14 +5718,14 @@ int pc_readparam(struct map_session_data *sd,int type)
  */
 int pc_setparam(struct map_session_data *sd,int type,int val)
 {
-	int i = 0,up_level = battle_config.max_job_level;
+	int i = 0;
 
 	nullpo_retr(0, sd);
 
 	switch(type){
 	case SP_BASELEVEL:
-		if ((val+ sd->status.base_level) > battle_config.max_base_level) //Capping to max
-			val = battle_config.max_base_level - sd->status.base_level;
+		if ((val+ sd->status.base_level) > pc_maxbaselv(sd)) //Capping to max
+			val = pc_maxbaselv(sd) - sd->status.base_level;
 		if (val > (int)sd->status.base_level) {
 			for (i = 1; i <= (val - (int)sd->status.base_level); i++)
 				sd->status.status_point += (sd->status.base_level + i + 14) / 5 ;
@@ -5788,14 +5740,8 @@ int pc_setparam(struct map_session_data *sd,int type,int val)
 		pc_heal(sd, sd->status.max_hp, sd->status.max_sp);
 		break;
 	case SP_JOBLEVEL:
-		if ((sd->class_&MAPID_UPPERMASK) == MAPID_NOVICE)
-			up_level = 10;	//Novice & Baby Novice have 10 Job Levels only
-		else if ((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE) //Super Novice & Super Baby can go up to 99
-			up_level = battle_config.max_sn_level;
-		else if (sd->class_&JOBL_UPPER && sd->class_&JOBL_2) //3rd Job has 70 Job Levels
-			up_level = battle_config.max_adv_level;
 		if (val >= (int)sd->status.job_level) {
-			if (val > up_level) val = up_level;
+			if (val > pc_maxjoblv(sd)) val = pc_maxjoblv(sd);
 			sd->status.skill_point += (val-sd->status.job_level);
 			sd->status.job_level = val;
 			sd->status.job_exp = 0;
@@ -8019,6 +7965,51 @@ void pc_setstand(struct map_session_data *sd){
 	sd->state.dead_sit = 0;
 }
 
+int pc_split_str(char *str,char **val,int num)
+{
+	int i;
+
+	for (i=0; i<num && str; i++){
+		val[i] = str;
+		str = strchr(str,',');
+		if (str && i<num-1) //Do not remove a trailing comma.
+			*str++=0;
+	}
+	return i;
+}
+
+int pc_split_atoi(char *str,int *val, char sep, int max)
+{
+	int i,j;
+	for (i=0; i<max; i++) {
+		if (!str) break;
+		val[i] = atoi(str);
+		str = strchr(str,sep);
+		if (str)
+			*str++=0;
+	}
+	//Zero up the remaining.
+	for(j=i; j < max; j++)
+		val[j] = 0;
+	return i;
+}
+
+int pc_split_atoui(char *str,unsigned int *val, char sep, int max)
+{
+	int i,j;
+	for (i=0; i<max; i++) {
+		if (!str) break;
+		val[i] = (unsigned int)atof(str);
+		str = strchr(str,sep);
+		if (str)
+			*str++=0;
+	}
+	//Zero up the remaining.
+	for(j=i; j < max; j++)
+		val[j] = 0;
+	return i;
+}
+
 //
 // 初期化物
 //
@@ -8037,70 +8028,66 @@ int pc_readdb(void)
 {
 	int i,j,k;
 	FILE *fp;
-	char line[1024],*p;
+	char line[24000],*p;
 
 	// 必要??値?み?み
 	memset(exp_table,0,sizeof(exp_table));
+	memset(max_level,0,sizeof(max_level));
 	sprintf(line, "%s/exp.txt", db_path);
 	fp=fopen(line, "r");
 	if(fp==NULL){
 		ShowError("can't read %s\n", line);
 		return 1;
 	}
-	i=0;
 	while(fgets(line, sizeof(line)-1, fp)){
-		int bn,b1,b2,b3,b4,b5,b6,jn,j1,j2,j3,j4,j5,j6;
+		int jobs[MAX_PC_CLASS], job_count, job;
+		int type, max;
+		char *split[3];
 		if(line[0]=='/' && line[1]=='/')
 			continue;
-		if(sscanf(line,"%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",&bn,&b1,&b2,&b3,&b4,&b5,&b6,&jn,&j1,&j2,&j3,&j4,&j5,&j6)!=14)
+		if (pc_split_str(line,split,4) < 4)
 			continue;
-		exp_table[0][i]=bn;
-		exp_table[1][i]=b1;
-		exp_table[2][i]=b2;
-		exp_table[3][i]=b3;
-		exp_table[4][i]=b4;
-		exp_table[5][i]=b5;
-		exp_table[6][i]=b6;
-		exp_table[7][i]=jn;
-		exp_table[8][i]=j1;
-		exp_table[9][i]=j2;
-		exp_table[10][i]=j3;
-		exp_table[11][i]=j4;
-		exp_table[12][i]=j5;
-		exp_table[13][i]=j6;
-		i++;
-	}
-	if (i > battle_config.max_base_level)
-	{	//Empty Base level columns
-		for (j = battle_config.max_base_level-1; j < i && exp_table[0][j]>0; j++)
-		{
-			exp_table[0][j]=0;
-			exp_table[1][j]=0;
-			exp_table[2][j]=0;
-			exp_table[3][j]=0;
-			exp_table[4][j]=0;
-			exp_table[5][j]=0;
-			exp_table[6][j]=0;
+		
+		job_count = pc_split_atoi(split[1],jobs,':',MAX_PC_CLASS);
+		if (job_count < 1)
+			continue;
+		job = jobs[0];
+		if (!pcdb_checkid(job)) {
+			ShowError("pc_readdb: Invalid job ID %d.\n", job);
+			continue;
 		}
-	}
-	if (i > battle_config.max_sn_level)
-	{	//Empty SN job exp columns
-		for (j = battle_config.max_sn_level-1; j < i && exp_table[10][j]>0; j++)
-			exp_table[10][j]=0;
-	}
-	if (i > battle_config.max_adv_level)
-	{	//Empty Adv Jobs columns
-		for (j = battle_config.max_adv_level-1; j < i && exp_table[13][j]>0; j++)
-			exp_table[13][j]=0;
-	}
-	if (i > battle_config.max_job_level)
-	{	//Empty normal Job columns
-		for (j = battle_config.max_job_level-1; j < i &&
-			(exp_table[8][j]>0 || exp_table[9][j]>0 || exp_table[12][j]>0); j++)
-		{
-			exp_table[8][j]=0; //1st Job
-			exp_table[9][j]=0; //2nd Job
-			exp_table[12][j]=0; //Adv 1st Job
+		type = atoi(split[2]);
+		if (type < 0 || type > 1) {
+			ShowError("pc_readdb: Invalid type %d (must be 0 for base levels, 1 for job levels).\n", type);
+			continue;
+		}
+		max = atoi(split[0]);
+		if (max > MAX_LEVEL) {
+			ShowWarning("pc_readdb: Specified max level %d for job %d is beyond server's limit (%d).\n ", max, job, MAX_LEVEL);
+			max = MAX_LEVEL;
+		}
+		//We send one less and then one more because the last entry in the exp array should hold 0.
+		max_level[job][type] = pc_split_atoui(split[3], exp_table[job][type],',',max-1)+1;
+		//Reverse check in case the array has a bunch of trailing zeros... [Skotlex]
+		//The reasoning behind the -2 is this... if the max level is 5, then the array
+		//should look like this:
+	   //0: x, 1: x, 2: x: 3: x 4: 0 <- last valid value is at 3.
+		while ((i = max_level[job][type]-2) >= 0 && exp_table[job][type][i] <= 0)
+			max_level[job][type]--;
+	
+		if (max_level[job][type] < max) {
+			ShowError("pc_readdb: Specified max %d for job %d, but that job's exp table only goes up to level %d.\n", max, job, max_level[job][type]);
+		}
+//		ShowDebug("%s - Class %d: %d\n", type?"Job":"Base", job, max_level[job][type]);
+		for (i = 1; i < job_count; i++) {
+			job = jobs[i];
+			if (!pcdb_checkid(job)) {
+				ShowError("pc_readdb: Invalid job ID %d.\n", job);
+				continue;
+			}
+			memcpy(exp_table[job][type], exp_table[jobs[0]][type], sizeof(exp_table[0][0]));
+			max_level[job][type] = max_level[jobs[0]][type];
+//			ShowDebug("%s - Class %d: %d\n", type?"Job":"Base", job, max_level[job][type]);
 		}
 	}
 	fclose(fp);
