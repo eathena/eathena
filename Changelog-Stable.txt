@@ -5,6 +5,7 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY VALARIS AND WIZPUTER. -- VALARIS
 
 2006/02/07
+	* Fixed SG_STAR_ANGER not getting it's damage bonus at all. [Skotlex]
 	* Merged the new exp table format from trunk. [Skotlex]
 	- If you need a custom exp table, try replacing db/exp.txt with exp2.txt
 	- exp2.txt is a custom exp table that goes up to level 1000 with the
