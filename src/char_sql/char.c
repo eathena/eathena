@@ -956,12 +956,13 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p){
 	} else
 		ShowError("Char load failed (%d - table %s)\n", char_id, char_db);	//Error?! ERRRRRR WHAT THAT SAY!?
 
+/* We should not need this. [Skotlex]
 	if (p->last_point.x == 0 || p->last_point.y == 0 || p->last_point.map == 0)
 		memcpy(&p->last_point, &start_point, sizeof(start_point));
 
 	if (p->save_point.x == 0 || p->save_point.y == 0 || p->save_point.map == 0)
 		memcpy(&p->save_point, &start_point, sizeof(start_point));
-
+*/
 	//read memo data
 	//`memo` (`memo_id`,`char_id`,`map`,`x`,`y`)
 	sprintf(tmp_sql, "SELECT `map`,`x`,`y` FROM `%s` WHERE `char_id`='%d' ORDER by `memo_id`",memo_db, char_id); // TBR
