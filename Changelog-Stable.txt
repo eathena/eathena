@@ -5,6 +5,7 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY VALARIS AND WIZPUTER. -- VALARIS
 
 2006/02/08
+	* Updated battle delay damages to use the entry reusage system. [Skotlex]
 	* Fixes to exp2.txt on the novice job exp. Thanks to rollopop. [Skotlex]
 2006/02/07
 	* Modified battle_check_distance, mobs should no longer find a diagonal

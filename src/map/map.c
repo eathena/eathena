@@ -3734,6 +3734,7 @@ void do_final(void) {
 	chrif_flush_fifo();
 
 	do_final_atcommand();
+	do_final_battle();
 	do_final_chrif(); // ‚±‚Ì“à•”‚ÅƒLƒƒƒ‰‚ğ‘S‚ÄØ’f‚·‚é
 	do_final_npc();
 //	map_removenpc();
@@ -3943,6 +3944,7 @@ int do_init(int argc, char *argv[]) {
 	add_timer_interval(gettick()+1000, map_freeblock_timer, 0, 0, 60*1000);
 
 	do_init_atcommand();
+	do_init_battle();
 	do_init_chrif();
 	do_init_clif();
 	do_init_script();
