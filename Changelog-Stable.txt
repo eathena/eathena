@@ -5,6 +5,8 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY VALARIS AND WIZPUTER. -- VALARIS
 
 2006/02/07
+	* Removed the max level configs from battle/exp.txt since db/exp.txt
+	  handles them now. [Skotlex]
 	* Fixed the char server changing the last/save position in certain
 	  situations. [Skotlex]
 	* Fixed SG_STAR_ANGER not getting it's damage bonus at all. [Skotlex]
