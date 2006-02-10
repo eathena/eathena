@@ -6,6 +6,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <math.h>
+#include <limits.h>
 
 #include "timer.h"
 #include "socket.h"
@@ -37,6 +38,7 @@
 #define MOB_LAZYMOVEPERC 50	// Move probability in the negligent mode MOB (rate of 1000 minute)
 #define MOB_LAZYWARPPERC 20	// Warp probability in the negligent mode MOB (rate of 1000 minute)
 
+#define MOB_SLAVEDISTANCE 2	//Distance that slaves should keep from their master.
 //Dynamic mob database, allows saving of memory when there's big gaps in the mob_db [Skotlex]
 struct mob_db *mob_db_data[MAX_MOB_DB+1];
 struct mob_db *mob_dummy = NULL;	//Dummy mob to be returned when a non-existant one is requested.
@@ -619,8 +621,6 @@ int mob_can_reach(struct mob_data *md,struct block_list *bl,int range, int state
 	if( range>0 && !check_distance_bl(&md->bl, bl, range))
 		return 0;
 
-	dx=abs(bl->x - md->bl.x);
-	dy=abs(bl->y - md->bl.y);
 	// Obstacle judging
 	wpd.path_len=0;
 	wpd.path_pos=0;
@@ -628,10 +628,9 @@ int mob_can_reach(struct mob_data *md,struct block_list *bl,int range, int state
 	if(path_search(&wpd,md->bl.m,md->bl.x,md->bl.y,bl->x,bl->y,easy)!=-1)
 		return 1;
 
-	if(bl->type!=BL_PC && bl->type!=BL_MOB)
-		return 0;
-
 	// It judges whether it can adjoin or not.
+	dx=abs(bl->x - md->bl.x);
+	dy=abs(bl->y - md->bl.y);
 	dx=(dx>0)?1:((dx<0)?-1:0);
 	dy=(dy>0)?1:((dy<0)?-1:0);
 	if(path_search(&wpd,md->bl.m,md->bl.x,md->bl.y,bl->x-dx,bl->y-dy,easy)!=-1)
@@ -1424,18 +1423,23 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 		if((!md->target_id || md->state.targettype == NONE_ATTACKABLE) && mob_can_move(md) &&
 			md->master_dist<md->db->range3 && (md->walkpath.path_pos>=md->walkpath.path_len || md->walkpath.path_len==0)){
 			int i=0,dx,dy,ret;
-			if(md->master_dist>AREA_SIZE/2 && DIFF_TICK(md->next_walktime,tick)<3000) { //Allow it to cut down the walk time to chase back. [Skotlex]
+			if(md->master_dist>MOB_SLAVEDISTANCE || md->master_dist == 0)
+		  	{  //Chase back to Master's area also if standing on top of the master.
 				do {
 					if(i<=5){
 						dx=bl->x - md->bl.x;
 						dy=bl->y - md->bl.y;
-						if(dx<0) dx+=(rand()%-dx)/2; //On the minimum, half the distance between slave/master. [Skotlex]
-						else if(dx>0) dx-=(rand()%dx)/2;
-						if(dy<0) dy+=(rand()%-dy)/2;
-						else if(dy>0) dy-=(rand()%dy)/2;
+						
+						if(dx<0) dx+=rand()%MOB_SLAVEDISTANCE +1;
+						else if(dx>0) dx-=rand()%MOB_SLAVEDISTANCE +1;
+
+						if(dy<0) dy+=rand()%MOB_SLAVEDISTANCE +1;
+						else if(dy>0) dy-=rand()%MOB_SLAVEDISTANCE +1;
+						
 					}else{
-						dx=bl->x - md->bl.x + rand()%11- 5;
-						dy=bl->y - md->bl.y + rand()%11- 5;
+						ret = MOB_SLAVEDISTANCE*2+1;
+						dx=bl->x - md->bl.x + rand()%ret - MOB_SLAVEDISTANCE;
+						dy=bl->y - md->bl.y + rand()%ret - MOB_SLAVEDISTANCE;
 					}
 
 					ret=mob_walktoxy(md,md->bl.x+dx,md->bl.y+dy,0);
@@ -2158,6 +2162,32 @@ int mob_deleteslave(struct mob_data *md)
 	map_foreachinmap(mob_deleteslave_sub, md->bl.m, BL_MOB,md->bl.id);
 	return 0;
 }
+// Mob respawning through KAIZEL or NPC_REBIRTH [Skotlex]
+int mob_respawn(int tid, unsigned int tick, int id,int data )
+{
+	struct mob_data *md = (struct mob_data*)map_id2bl(id);
+	if (!md || md->bl.type != BL_MOB)
+		return 0;
+	//Mob must be dead and not in a map to respawn!
+	if (md->bl.prev != NULL || md->state.state != MS_DEAD)
+		return 0;
+
+	md->state.state = MS_IDLE;
+	md->state.skillstate = MSS_IDLE;
+	md->timer = -1;
+	md->last_thinktime = tick;
+	md->next_walktime = tick+rand()%50+5000;
+	md->attackabletime = tick;
+	md->canmove_tick = tick;
+	md->last_linktime = tick;
+
+	map_addblock(&md->bl);
+	mob_heal(md,data*status_get_max_hp(&md->bl)/100);
+	skill_unit_move(&md->bl,tick,1);
+	clif_spawnmob(md);
+	mobskill_use(md, tick, MSC_SPAWN);
+	return 1;
+}
 
 /*==========================================
  * It is the damage of sd to damage to md.
@@ -2169,7 +2199,8 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 	struct map_session_data *sd = NULL,*tmpsd[DAMAGELOG_SIZE];
 	struct {
 		struct party *p;
-		int id,base_exp,job_exp,zeny;
+		int id,zeny;
+		unsigned int base_exp,job_exp;
 	} pt[DAMAGELOG_SIZE];
 	int pnum=0;
 	int mvp_damage,max_hp;
@@ -2316,16 +2347,6 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 	if(md->hp > 0)
 		return damage;
 
-		//Not the most correct way ever, but this is totally custom anyway.... [Skotlex]
-	if (md->sc_data[SC_KAIZEL].timer != -1) {
-		max_hp = status_get_max_hp(&md->bl);
-		mob_heal(md, 10*md->sc_data[SC_KAIZEL].val1*max_hp/100);
-		clif_resurrection(&md->bl, 1);
-		status_change_start(&md->bl,SkillStatusChangeTable[SL_KAIZEL],10,0,0,0,skill_get_time2(SL_KAIZEL, md->sc_data[SC_KAIZEL].val1),0);
-		status_change_end(&md->bl,SC_KAIZEL,-1);
-		return damage;
-	}
-
 	// ----- ここから死亡処理 -----
 
 	mode = status_get_mode(&md->bl); //Mode will be used for various checks regarding exp/drops.
@@ -2333,10 +2354,22 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 	//changestate will clear all status effects, so we need to know if RICHMANKIM is in effect before then. [Skotlex]
 	//I just recycled ret because it isn't used until much later and I didn't want to add a new variable for it.
 	ret = (md->sc_data[SC_RICHMANKIM].timer != -1)?(25 + 11*md->sc_data[SC_RICHMANKIM].val1):0;
-	
+
+	md->state.skillstate = MSS_DEAD;	
+	mobskill_use(md,tick,-1);	//On Dead skill.
+
+	if (md->sc_data[SC_KAIZEL].timer != -1) {
+		//Revive in a bit.
+		max_hp = 10*md->sc_data[SC_KAIZEL].val1; //% of life to rebirth with
+		mob_changestate(md,MS_DEAD,0);
+		clif_clearchar_area(&md->bl,1);
+		map_delblock(&md->bl);
+		add_timer(gettick()+3000, mob_respawn, md->bl.id, max_hp);
+		return damage;
+	}
+
 	map_freeblock_lock();
 	mob_changestate(md,MS_DEAD,0);
-	mobskill_use(md,tick,-1);	// 死亡時スキル
 
 	memset(tmpsd,0,sizeof(tmpsd));
 	memset(pt,0,sizeof(pt));
@@ -2416,7 +2449,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 	// 経験値の分配
 	for(i=0;i<DAMAGELOG_SIZE;i++){
 		int pid,flag=1,zeny=0;
-		unsigned long base_exp,job_exp;
+		unsigned int base_exp,job_exp;
 		double per;
 		struct party *p;
 		if(tmpsd[i]==NULL || tmpsd[i]->bl.m != md->bl.m || pc_isdead(tmpsd[i]))
@@ -2430,8 +2463,8 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 		if (count>1)	
 			per *= (9.+(double)((count > 6)? 6:count))/10.; //attackers count bonus.
 
-		base_exp = (unsigned long)md->db->base_exp;
-		job_exp = (unsigned long)md->db->job_exp;
+		base_exp = md->db->base_exp;
+		job_exp = md->db->job_exp;
 
 		if (ret)
 			per += per*ret/100.; //SC_RICHMANKIM bonus. [Skotlex]
@@ -2471,21 +2504,24 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 				else if(md->special_state.size==2 && zeny >1)
 					zeny*=2;
 			}
-			if(battle_config.mobs_level_up && md->level > md->db->lv) { // [Valaris]
-				base_exp+=(unsigned long) (((md->level-md->db->lv)*((md->db->base_exp))*(battle_config.mobs_level_up_exp_rate/100)));
-				job_exp+=(unsigned long) (((md->level-md->db->lv)*((md->db->job_exp))*(battle_config.mobs_level_up_exp_rate/100)));
-			}
+			if(battle_config.mobs_level_up && md->level > md->db->lv) // [Valaris]
+				per+= per*(md->level-md->db->lv)*battle_config.mobs_level_up_exp_rate/100;
 		}
 
 		if (per > 4) per = 4; //Limit gained exp to quadro the mob's exp. [3->4 Komurka]
-		base_exp = (unsigned long)(base_exp*per);
-		job_exp = (unsigned long)(job_exp*per);
-	
-		if (base_exp > 0x7fffffff) base_exp = 0x7fffffff;
-		else if (base_exp < 1) base_exp = 1;
 		
-		if (job_exp > 0x7fffffff) job_exp = 0x7fffffff;
-		else if (job_exp < 1) job_exp = 1;
+		if (base_exp*per > UINT_MAX)
+			base_exp = UINT_MAX;
+		else
+			base_exp = (unsigned int)(base_exp*per);
+
+		if (job_exp*per > UINT_MAX)
+			job_exp = UINT_MAX;
+		else
+			job_exp = (unsigned int)(job_exp*per);
+	
+		if (base_exp < 1) base_exp = 1;
+		if (job_exp < 1) job_exp = 1;
 	
 		//mapflags: noexp check [Lorky]
 		if (map[md->bl.m].flag.nobaseexp == 1)	base_exp=0; 
@@ -2508,14 +2544,16 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 					flag=0;
 				}
 			}else{	// いるときは公平
-				if (pt[j].base_exp +base_exp < 0x7fffffff)
+				if (pt[j].base_exp > UINT_MAX - base_exp)
+					pt[j].base_exp=UINT_MAX;
+				else
 					pt[j].base_exp+=base_exp;
+				
+				if (pt[j].job_exp > UINT_MAX - job_exp)
+					pt[j].job_exp=UINT_MAX;
 				else
-					pt[j].base_exp = 0x7fffffff;
-				if (pt[j].job_exp +job_exp < 0x7fffffff)
 					pt[j].job_exp+=job_exp;
-				else
-					pt[j].job_exp = 0x7fffffff;
+				
 				if(battle_config.zeny_from_mobs)
 					pt[j].zeny+=zeny;  // zeny share [Valaris]
 				flag=0;
@@ -3068,17 +3106,13 @@ int mob_warp(struct mob_data *md,int m,int x,int y,int type)
  */
 int mob_countslave_sub(struct block_list *bl,va_list ap)
 {
-	int id,*c;
+	int id;
 	struct mob_data *md;
 	id=va_arg(ap,int);
-
-	c=va_arg(ap,int *);
+	
 	md = (struct mob_data *)bl;
-
-	if( md->master_id==id ) {
-		(*c)++;
+	if( md->master_id==id )
 		return 1;
-	}
 	return 0;
 }
 
@@ -3088,9 +3122,7 @@ int mob_countslave_sub(struct block_list *bl,va_list ap)
  */
 int mob_countslave(struct block_list *bl)
 {
-	int c=0;
-	map_foreachinmap(mob_countslave_sub, bl->m, BL_MOB,bl->id,&c);
-	return c;
+	return map_foreachinmap(mob_countslave_sub, bl->m, BL_MOB,bl->id);
 }
 /*==========================================
  * Summons amount slaves contained in the value[5] array using round-robin. [adapted by Skotlex]
@@ -4235,14 +4267,20 @@ static int mob_readdb(void)
 			mob_db_data[class_]->max_sp = atoi(str[5]);
 
 			exp = (double)atoi(str[6]) * (double)battle_config.base_exp_rate / 100.;
-			if (exp < 0) exp = 0;
-			else if (exp > 0x7fffffff) exp = 0x7fffffff;
-			mob_db_data[class_]->base_exp = (int)exp;
+			if (exp < 0)
+				mob_db_data[class_]->base_exp = 0;
+			if (exp > UINT_MAX)
+				mob_db_data[class_]->base_exp = UINT_MAX;
+			else
+				mob_db_data[class_]->base_exp = (unsigned int)exp;
 
 			exp = (double)atoi(str[7]) * (double)battle_config.job_exp_rate / 100.;
-			if (exp < 0) exp = 0;
-			else if (exp > 0x7fffffff) exp = 0x7fffffff;
-			mob_db_data[class_]->job_exp = (int)exp;
+			if (exp < 0)
+				mob_db_data[class_]->job_exp = 0;
+			else if (exp > UINT_MAX)
+				mob_db_data[class_]->job_exp = UINT_MAX;
+			else
+			mob_db_data[class_]->job_exp = (unsigned int)exp;
 			
 			mob_db_data[class_]->range=atoi(str[8]);
 			mob_db_data[class_]->atk1=atoi(str[9]);
@@ -4492,7 +4530,7 @@ static int mob_readskilldb(void)
 {
 	FILE *fp;
 	char line[1024];
-	int i;
+	int i,tmp;
 
 	const struct {
 		char str[32];
@@ -4639,13 +4677,19 @@ static int mob_readskilldb(void)
 			ms->skill_lv= j>battle_config.mob_max_skilllvl ? battle_config.mob_max_skilllvl : j; //we strip max skill level
 
 			//Apply battle_config modifiers to rate (permillage) and delay [Skotlex]
-			ms->permillage=atoi(sp[5]);
+			tmp = atoi(sp[5]);
 			if (battle_config.mob_skill_rate != 100)
-				ms->permillage = ms->permillage*battle_config.mob_skill_rate/100;
+				tmp = tmp*battle_config.mob_skill_rate/100;
+			if (tmp > 10000)
+				ms->permillage= 10000;
+			else
+				ms->permillage= tmp;
 			ms->casttime=atoi(sp[6]);
 			ms->delay=atoi(sp[7]);
 			if (battle_config.mob_skill_delay != 100)
 				ms->delay = ms->delay*battle_config.mob_skill_delay/100;
+			if (ms->delay < 0) //time overflow?
+				ms->delay = INT_MAX;
 			ms->cancel=atoi(sp[8]);
 			if( strcmp(sp[8],"yes")==0 ) ms->cancel=1;
 			ms->target=atoi(sp[9]);
@@ -4805,14 +4849,20 @@ static int mob_read_sqldb(void)
 				mob_db_data[class_]->max_sp = TO_INT(5);
 
 				exp = (double)TO_INT(6) * (double)battle_config.base_exp_rate / 100.;
-				if (exp < 0) exp = 0;
-				else if (exp > 0x7fffffff) exp = 0x7fffffff;
-				mob_db_data[class_]->base_exp = (int)exp;
+				if (exp < 0)
+					mob_db_data[class_]->base_exp = 0;
+				else if (exp > UINT_MAX)
+					mob_db_data[class_]->base_exp = UINT_MAX;
+				else
+					mob_db_data[class_]->base_exp = (unsigned int)exp;
 
 				exp = (double)TO_INT(7) * (double)battle_config.job_exp_rate / 100.;
-				if (exp < 0) exp = 0;
-				else if (exp > 0x7fffffff) exp = 0x7fffffff;
-				mob_db_data[class_]->job_exp = (int)exp;
+				if (exp < 0)
+					mob_db_data[class_]->job_exp = 0;
+				else if (exp > UINT_MAX)
+					mob_db_data[class_]->job_exp = UINT_MAX;
+				else
+					mob_db_data[class_]->job_exp = (unsigned int)exp;
 				
 				mob_db_data[class_]->range = TO_INT(8);
 				mob_db_data[class_]->atk1 = TO_INT(9);
@@ -4991,6 +5041,7 @@ int do_init_mob(void)
 	add_timer_func_list(mobskill_castend_pos,"mobskill_castend_pos");
 	add_timer_func_list(mob_timer_delete,"mob_timer_delete");
 	add_timer_func_list(mob_spawn_guardian_sub,"mob_spawn_guardian_sub");
+	add_timer_func_list(mob_respawn,"mob_respawn");
 	add_timer_interval(gettick()+MIN_MOBTHINKTIME,mob_ai_hard,0,0,MIN_MOBTHINKTIME);
 	add_timer_interval(gettick()+MIN_MOBTHINKTIME*10,mob_ai_lazy,0,0,MIN_MOBTHINKTIME*10);
 

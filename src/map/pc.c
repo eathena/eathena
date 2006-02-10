@@ -4558,16 +4558,18 @@ int pc_follow(struct map_session_data *sd,int target_id)
 
 int pc_checkbaselevelup(struct map_session_data *sd)
 {
-	int next = pc_nextbaseexp(sd);
+	unsigned int next = pc_nextbaseexp(sd);
 
 	nullpo_retr(0, sd);
 
 	if(sd->status.base_exp >= next && next > 0){
-
-		// base側レベルアップ?理
 		sd->status.base_exp -= next;
+		//Kyoki pointed out that the max overcarry exp is the exp needed for the previous level -1. [Skotlex]
+		if(!battle_config.multi_level_up && sd->status.base_exp > next-1)
+			sd->status.base_exp = next-1;
 
 		sd->status.base_level ++;
+		
 		if (battle_config.pet_lv_rate && sd->pd)	//<Skotlex> update pet's level
 			status_calc_pet(sd,0);
 		if (battle_config.use_statpoint_table)
@@ -4614,14 +4616,18 @@ int pc_checkbaselevelup(struct map_session_data *sd)
 
 int pc_checkjoblevelup(struct map_session_data *sd)
 {
-	int next = pc_nextjobexp(sd);
+	unsigned int next = pc_nextjobexp(sd);
 
 	nullpo_retr(0, sd);
 
 	if(sd->status.job_exp >= next && next > 0){
-		// job側レベルアップ?理
 		sd->status.job_exp -= next;
+		//Kyoki pointed out that the max overcarry exp is the exp needed for the previous level -1. [Skotlex]
+		if(!battle_config.multi_level_up && sd->status.job_exp > next-1)
+			sd->status.job_exp = next-1;
+
 		sd->status.job_level ++;
+		  
 		clif_updatestatus(sd,SP_JOBLEVEL);
 		clif_updatestatus(sd,SP_NEXTJOBEXP);
 		sd->status.skill_point ++;
@@ -4629,7 +4635,7 @@ int pc_checkjoblevelup(struct map_session_data *sd)
 		status_calc_pc(sd,0);
 
 		clif_misceffect(&sd->bl,1);
-		if (pc_checkskill(sd, SG_DEVIL) && !pc_nextjobafter(sd))
+		if (pc_checkskill(sd, SG_DEVIL) && !pc_nextjobexp(sd))
 			clif_status_change(&sd->bl,SI_DEVIL, 1); //Permanent blind effect from SG_DEVIL.
 
 		if (script_config.event_script_type == 0) {
@@ -4663,33 +4669,58 @@ int pc_gainexp(struct map_session_data *sd,unsigned int base_exp,unsigned int jo
 	if(sd->bl.prev == NULL || pc_isdead(sd))
 		return 0;
 
-	if((battle_config.pvp_exp == 0) && map[sd->bl.m].flag.pvp)  // [MouseJstr]
+	if(!battle_config.pvp_exp && map[sd->bl.m].flag.pvp)  // [MouseJstr]
 		return 0; // no exp on pvp maps
 
 	if(sd->status.guild_id>0){	// ギルドに上納
 		base_exp-=guild_payexp(sd,base_exp);
 	}
 
-	if(!battle_config.multi_level_up && pc_nextbaseafter(sd) && sd->status.base_exp+base_exp >= pc_nextbaseafter(sd)) {
-		base_exp = pc_nextbaseafter(sd) - sd->status.base_exp;
-	}
 	nextb = pc_nextbaseexp(sd);
 	nextj = pc_nextjobexp(sd);
-	if (nextb > 0)
-		nextbp = (float) base_exp / (float) nextb;
-	if (nextj > 0)
-		nextjp = (float) job_exp / (float) nextj;
+	
+		
+	if(sd->state.showexp || battle_config.max_exp_gain_rate){
+		if (nextb > 0)
+			nextbp = (float) base_exp / (float) nextb;
+		if (nextj > 0)
+			nextjp = (float) job_exp / (float) nextj;
 
-	sd->status.base_exp += base_exp;
-
+		if(battle_config.max_exp_gain_rate) {
+			if (nextbp > battle_config.max_exp_gain_rate/1000.) {
+				//Note that this value should never be greater than the original
+				//base_exp, therefore no overflow checks are needed. [Skotlex]
+				base_exp = (unsigned int)(battle_config.max_exp_gain_rate/1000.*nextb);
+				if (sd->state.showexp)
+					nextbp = (float) base_exp / (float) nextb;
+			}
+			if (nextjp > battle_config.max_exp_gain_rate/1000.) {
+				job_exp = (unsigned int)(battle_config.max_exp_gain_rate/1000.*nextj);
+				if (sd->state.showexp)
+					nextjp = (float) job_exp / (float) nextj;
+			}
+		}
+	}
+	
+	//Overflow checks... think we'll ever really need'em? [Skotlex]
+	if (base_exp > 0 && sd->status.base_exp > UINT_MAX - base_exp)
+		sd->status.base_exp = UINT_MAX;
+	else if (base_exp < 0 && sd->status.base_exp > base_exp)
+		sd->status.base_exp = 0;
+	else
+		sd->status.base_exp += base_exp;
+	
 	while(pc_checkbaselevelup(sd)) ;
 
 	clif_updatestatus(sd,SP_BASEEXP);
-	if(!battle_config.multi_level_up && pc_nextjobafter(sd) && sd->status.job_exp+job_exp >= pc_nextjobafter(sd)) {
-		job_exp = pc_nextjobafter(sd) - sd->status.job_exp;
-	}
-
-	sd->status.job_exp += job_exp;
+	
+	//Overflow checks... think we'll ever really need'em? [Skotlex]
+	if (job_exp > 0 && sd->status.job_exp > UINT_MAX - job_exp)
+		sd->status.job_exp = UINT_MAX;
+	else if (job_exp < 0 && sd->status.job_exp > job_exp)
+		sd->status.job_exp = 0;
+	else
+		sd->status.job_exp += job_exp;
 
 	while(pc_checkjoblevelup(sd)) ;
 
@@ -4697,7 +4728,7 @@ int pc_gainexp(struct map_session_data *sd,unsigned int base_exp,unsigned int jo
 
 	if(sd->state.showexp){
 		sprintf(output,
-			"Experience Gained Base:%d (%.2f%%) Job:%d (%.2f%%)",base_exp,nextbp*(float)100,job_exp,nextjp*(float)100);
+			"Experience Gained Base:%u (%.2f%%) Job:%u (%.2f%%)",base_exp,nextbp*(float)100,job_exp,nextjp*(float)100);
 		clif_disp_onlyself(sd,output,strlen(output));
 	}
 
@@ -4744,33 +4775,6 @@ unsigned int pc_nextjobexp(struct map_session_data *sd)
 	return exp_table[sd->status.class_][1][sd->status.job_level-1];
 }
 
-/*==========================================
- * base level after next [Valaris]
- *------------------------------------------
- */
-unsigned int pc_nextbaseafter(struct map_session_data *sd)
-{
-	nullpo_retr(0, sd);
-
-	if(sd->status.base_level>=pc_maxbaselv(sd) || sd->status.base_level<=0)
-		return 0;
-
-	return exp_table[sd->status.class_][0][sd->status.base_level];
-}
-
-/*==========================================
- * job level after next [Valaris]
- *------------------------------------------
- */
-unsigned int pc_nextjobafter(struct map_session_data *sd)
-{
-	nullpo_retr(0, sd);
-
-	if(sd->status.job_level>=pc_maxjoblv(sd) || sd->status.job_level<=0)
-		return 0;
-
-	return exp_table[sd->status.class_][1][sd->status.job_level];
-}
 /*==========================================
 
  * 必要ステ?タスポイント計算
@@ -5173,7 +5177,7 @@ int pc_resetskill(struct map_session_data* sd)
 	int i, skill, inf2;
 	nullpo_retr(0, sd);
 
-	if (pc_checkskill(sd, SG_DEVIL) &&  !pc_nextjobafter(sd))
+	if (pc_checkskill(sd, SG_DEVIL) &&  !pc_nextjobexp(sd))
 		clif_status_load(&sd->bl, SI_DEVIL, 0); //Remove perma blindness due to skill-reset. [Skotlex]
 	
 	for (i = 1; i < MAX_SKILL; i++) {
@@ -8016,10 +8020,22 @@ int pc_split_atoi(char *str,int *val, char sep, int max)
 
 int pc_split_atoui(char *str,unsigned int *val, char sep, int max)
 {
+	static int warning=0;
 	int i,j;
+	float f;
 	for (i=0; i<max; i++) {
 		if (!str) break;
-		val[i] = (unsigned int)atof(str);
+		f = atof(str);
+		if (f < 0)
+			val[i] = 0;
+		else if (f > UINT_MAX) {
+			val[i] = UINT_MAX;
+			if (!warning) {
+				warning = 1;
+				ShowWarning("pc_readdb (exp.txt): Required exp per level is capped to %d\n", UINT_MAX);
+			}
+		} else
+			val[i] = (unsigned int)f;
 		str = strchr(str,sep);
 		if (str)
 			*str++=0;

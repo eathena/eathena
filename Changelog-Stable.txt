@@ -5,6 +5,25 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY VALARIS AND WIZPUTER. -- VALARIS
 
 2006/02/09
+	* Merged the slave update to not let them random walk and keep them 2 tiles
+	  from the master. [Skotlex]
+	* Merged the mob_respawn routine for Kaizel and NPC_RESPAWN skills.
+	  [Skotlex]
+	* Merged the mob exp overflow check updates from trunk. [Skotlex]
+	* Merged the party even share overflow check updates from trunk. [Skotlex]
+	* Merged in the new behaviour of multi_level_up: no (in Aegis the remaining
+	  exp after leveling up is capped to the total exp of the previous level
+	  minus one) [Skotlex]
+	* Merged in battle athena config option max_exp_gain_rate to specify max
+	  earned exp per kill. See conf/battle/exp.txt [Skotlex]
+	* Merged the warning when the exp table has a value beyond UINT_MAX.
+	  [Skotlex]
+	* Added range checking to mob skill loading of permillage and delay.
+	  [Skotlex]
+	* Fixed pc_gainexp not working for next level exp requirements above
+	  INT_MAX. [Skotlex]
+	* Fixed the display of @showexp not working right for exp values above
+	  INT_MAX. [Skotlex]
 	* Implemented bonus2 bSPVanishRate for Dark Priest Card [Komurka]
 
 2006/02/08
