@@ -5,6 +5,8 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY VALARIS AND WIZPUTER. -- VALARIS
 
 2006/02/09
+	* Fixed "set baselevel, X" sending one to a different level than the one
+	  requested. [Skotlex]
 	* Merged the slave update to not let them random walk and keep them 2 tiles
 	  from the master. [Skotlex]
 	* Merged the mob_respawn routine for Kaizel and NPC_RESPAWN skills.

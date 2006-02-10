@@ -5748,8 +5748,8 @@ int pc_setparam(struct map_session_data *sd,int type,int val)
 
 	switch(type){
 	case SP_BASELEVEL:
-		if ((val+ sd->status.base_level) > pc_maxbaselv(sd)) //Capping to max
-			val = pc_maxbaselv(sd) - sd->status.base_level;
+		if (val > pc_maxbaselv(sd)) //Capping to max
+			val = pc_maxbaselv(sd);
 		if (val > (int)sd->status.base_level) {
 			for (i = 1; i <= (val - (int)sd->status.base_level); i++)
 				sd->status.status_point += (sd->status.base_level + i + 14) / 5 ;
