@@ -3725,6 +3725,7 @@ static const struct battle_data_short {
 	{ "manner_system",                     &battle_config.manner_system		},  	// [Komurka]
 	{ "pet_equip_required",                &battle_config.pet_equip_required	},	// [Valaris]
 	{ "multi_level_up",                    &battle_config.multi_level_up		}, // [Valaris]
+	{ "max_exp_gain_rate",                 &battle_config.max_exp_gain_rate	}, // [Skotlex]
 	{ "backstab_bow_penalty",              &battle_config.backstab_bow_penalty	},
 	{ "night_at_start",                    &battle_config.night_at_start	}, // added by [Yor]
 	{ "show_mob_hp",                       &battle_config.show_mob_hp	}, // [Valaris]
