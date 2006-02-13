@@ -26,6 +26,10 @@
 		* * * From where this info is? ... Mine: On your death you'll loose this ring and get 50% HP [Komurka]
 
 =========================
+
+02/13
+	* Fixed exp.txt for Baby Dancer, thanks to Gepard [Komurka]
+
 02/05
 	* Merged some of the item plugs into the main item_db. [Skotlex]
 02/04
