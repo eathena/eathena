@@ -894,6 +894,7 @@ int pc_reg_received(struct map_session_data *sd)
 	char feel_var[3][NAME_LENGTH] = {"PC_FEEL_SUN","PC_FEEL_MOON","PC_FEEL_STAR"};
 	char hate_var[3][NAME_LENGTH] = {"PC_HATE_MOB_SUN","PC_HATE_MOB_MOON","PC_HATE_MOB_STAR"};
 	
+	pc_clean_skilltree(sd); //Clean skill tree before loading reg-based skills
 	sd->change_level = pc_readglobalreg(sd,"jobchange_level");
 	sd->die_counter = pc_readglobalreg(sd,"PC_DIE_COUNTER");
 	if (!sd->die_counter && (sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE)
@@ -3297,12 +3298,6 @@ int pc_setpos(struct map_session_data *sd,unsigned short mapindex,int x,int y,in
 				sd->petDB = NULL;
 				if(battle_config.pet_status_support)
 					status_calc_pc(sd,2);
-				pc_clean_skilltree(sd);
-
-				if (sd->state.storage_flag == 1)
-					storage_storageclose(sd);
-				else if (sd->state.storage_flag == 2)
-					storage_guild_storageclose(sd);
 			}
 			else if(sd->pet.intimate > 0) {
 				pet_stopattack(sd->pd);
@@ -3311,6 +3306,11 @@ int pc_setpos(struct map_session_data *sd,unsigned short mapindex,int x,int y,in
 				map_delblock(&sd->pd->bl);
 			}
 		}
+		if (sd->state.storage_flag == 1)
+			storage_storageclose(sd);
+		else if (sd->state.storage_flag == 2)
+			storage_guild_storageclose(sd);
+
 		clif_changemap(sd,map[m].index,x,y); // [MouseJstr]
 	}
 		
@@ -5035,9 +5035,8 @@ int pc_resetlvl(struct map_session_data* sd,int type)
 
 	nullpo_retr(0, sd);
 
-	for(i=1;i<MAX_SKILL;i++){
-		sd->status.skill[i].lv = 0;
-	}
+	if (type != 3) //Also reset skills
+		pc_resetskill(sd, 0);
 
 	if(type == 1){
 	sd->status.skill_point=0;
@@ -5108,8 +5107,8 @@ int pc_resetlvl(struct map_session_data* sd,int type)
 		//Send map-change packet to do a level range check and break party settings. [Skotlex]
 		party_send_movemap(sd);
 	}
-	clif_skillinfoblock(sd);
 	status_calc_pc(sd,0);
+	clif_skillinfoblock(sd);
 
 	return 0;
 }
@@ -5171,9 +5170,10 @@ int pc_resetstate(struct map_session_data* sd)
 
 /*==========================================
  * /resetskill
+ * if flag is 1, perform block resync and status_calc call.
  *------------------------------------------
  */
-int pc_resetskill(struct map_session_data* sd)
+int pc_resetskill(struct map_session_data* sd, int flag)
 {
 	int i, skill, inf2;
 	nullpo_retr(0, sd);
@@ -5202,9 +5202,11 @@ int pc_resetskill(struct map_session_data* sd)
 			sd->status.skill[i].lv = 0;
 		}
 	}
-	clif_updatestatus(sd,SP_SKILLPOINT);
-	clif_skillinfoblock(sd);
-	status_calc_pc(sd,0);
+	if (flag) {
+		clif_updatestatus(sd,SP_SKILLPOINT);
+		clif_skillinfoblock(sd);
+		status_calc_pc(sd,0);
+	}
 
 	return 0;
 }
@@ -5749,13 +5751,13 @@ int pc_setparam(struct map_session_data *sd,int type,int val)
 
 	switch(type){
 	case SP_BASELEVEL:
-		if (val > pc_maxbaselv(sd)) //Capping to max
+		if ((unsigned int)val > pc_maxbaselv(sd)) //Capping to max
 			val = pc_maxbaselv(sd);
-		if (val > (int)sd->status.base_level) {
-			for (i = 1; i <= (val - (int)sd->status.base_level); i++)
+		if ((unsigned int)val > sd->status.base_level) {
+			for (i = 1; i <= (int)((unsigned int)val - sd->status.base_level); i++)
 				sd->status.status_point += (sd->status.base_level + i + 14) / 5 ;
 		}
-		sd->status.base_level = val;
+		sd->status.base_level = (unsigned int)val;
 		sd->status.base_exp = 0;
 		clif_updatestatus(sd, SP_BASELEVEL);
 		clif_updatestatus(sd, SP_NEXTBASEEXP);
@@ -5765,25 +5767,18 @@ int pc_setparam(struct map_session_data *sd,int type,int val)
 		pc_heal(sd, sd->status.max_hp, sd->status.max_sp);
 		break;
 	case SP_JOBLEVEL:
-		if (val >= (int)sd->status.job_level) {
-			if (val > pc_maxjoblv(sd)) val = pc_maxjoblv(sd);
-			sd->status.skill_point += (val-sd->status.job_level);
-			sd->status.job_level = val;
-			sd->status.job_exp = 0;
-			clif_updatestatus(sd, SP_JOBLEVEL);
-			clif_updatestatus(sd, SP_NEXTJOBEXP);
-			clif_updatestatus(sd, SP_JOBEXP);
+		if ((unsigned int)val >= sd->status.job_level) {
+			if ((unsigned int)val > pc_maxjoblv(sd)) val = pc_maxjoblv(sd);
+			sd->status.skill_point += ((unsigned int)val-sd->status.job_level);
 			clif_updatestatus(sd, SP_SKILLPOINT);
-			status_calc_pc(sd, 0);
 			clif_misceffect(&sd->bl, 1);
-		} else {
-			sd->status.job_level = val;
-			sd->status.job_exp = 0;
-			clif_updatestatus(sd, SP_JOBLEVEL);
-			clif_updatestatus(sd, SP_NEXTJOBEXP);
-			clif_updatestatus(sd, SP_JOBEXP);
-			status_calc_pc(sd, 0);
 		}
+		sd->status.job_level = (unsigned int)val;
+		sd->status.job_exp = 0;
+		clif_updatestatus(sd, SP_JOBLEVEL);
+		clif_updatestatus(sd, SP_NEXTJOBEXP);
+		clif_updatestatus(sd, SP_JOBEXP);
+		status_calc_pc(sd, 0);
 		clif_updatestatus(sd,type);
 		break;
 	case SP_SKILLPOINT:
@@ -8023,7 +8018,7 @@ int pc_split_atoui(char *str,unsigned int *val, char sep, int max)
 {
 	static int warning=0;
 	int i,j;
-	float f;
+	double f;
 	for (i=0; i<max; i++) {
 		if (!str) break;
 		f = atof(str);
@@ -8078,7 +8073,8 @@ int pc_readdb(void)
 	}
 	while(fgets(line, sizeof(line)-1, fp)){
 		int jobs[MAX_PC_CLASS], job_count, job;
-		int type, max;
+		int type;
+		unsigned int max;
 		char *split[3];
 		if(line[0]=='/' && line[1]=='/')
 			continue;
@@ -8111,9 +8107,10 @@ int pc_readdb(void)
 	   //0: x, 1: x, 2: x: 3: x 4: 0 <- last valid value is at 3.
 		while ((i = max_level[job][type]-2) >= 0 && exp_table[job][type][i] <= 0)
 			max_level[job][type]--;
-	
 		if (max_level[job][type] < max) {
-			ShowError("pc_readdb: Specified max %d for job %d, but that job's exp table only goes up to level %d.\n", max, job, max_level[job][type]);
+			ShowWarning("pc_readdb: Specified max %d for job %d, but that job's exp table only goes up to level %d.\n", max, job, max_level[job][type]);
+			ShowNotice("(You may still reach lv %d through scripts/gm-commands)\n");
+			max_level[job][type] = max;
 		}
 //		ShowDebug("%s - Class %d: %d\n", type?"Job":"Base", job, max_level[job][type]);
 		for (i = 1; i < job_count; i++) {
@@ -8123,11 +8120,20 @@ int pc_readdb(void)
 				continue;
 			}
 			memcpy(exp_table[job][type], exp_table[jobs[0]][type], sizeof(exp_table[0][0]));
-			max_level[job][type] = max_level[jobs[0]][type];
+			max_level[job][type] = max;
 //			ShowDebug("%s - Class %d: %d\n", type?"Job":"Base", job, max_level[job][type]);
 		}
 	}
 	fclose(fp);
+	for (i = 0; i < MAX_PC_CLASS; i++) {
+		if (!pcdb_checkid(i)) continue;
+		if (i == JOB_WEDDING || i == JOB_XMAS)
+			continue; //Classes that do not need exp tables.
+		if (!max_level[i][0])
+			ShowWarning("Class %s (%d) does not has a base exp table.\n", job_name(i), i);
+		if (!max_level[i][1])
+			ShowWarning("Class %s (%d) does not has a job exp table.\n", job_name(i), i);
+	}
 	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","exp.txt");
 
 	// ƒXƒLƒ‹ƒcƒŠ?

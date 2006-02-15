@@ -1419,34 +1419,30 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 			return 0;
 		}
 
-		// Although there is the master, since it is somewhat far, it approaches.
-		if((!md->target_id || md->state.targettype == NONE_ATTACKABLE) && mob_can_move(md) &&
-			md->master_dist<md->db->range3 && (md->walkpath.path_pos>=md->walkpath.path_len || md->walkpath.path_len==0)){
+		// Approach master if within view range, chase back to Master's area also if standing on top of the master.
+		if(md->master_dist<md->db->range3 && (md->master_dist>MOB_SLAVEDISTANCE || md->master_dist == 0) &&
+			mob_can_move(md) && md->state.state == MS_IDLE)
+		{
 			int i=0,dx,dy,ret;
-			if(md->master_dist>MOB_SLAVEDISTANCE || md->master_dist == 0)
-		  	{  //Chase back to Master's area also if standing on top of the master.
-				do {
-					if(i<=5){
-						dx=bl->x - md->bl.x;
-						dy=bl->y - md->bl.y;
+			do {
+				if(i<=5){
+					dx=bl->x - md->bl.x;
+					dy=bl->y - md->bl.y;
 						
-						if(dx<0) dx+=rand()%MOB_SLAVEDISTANCE +1;
-						else if(dx>0) dx-=rand()%MOB_SLAVEDISTANCE +1;
-
-						if(dy<0) dy+=rand()%MOB_SLAVEDISTANCE +1;
-						else if(dy>0) dy-=rand()%MOB_SLAVEDISTANCE +1;
+					if(dx<0) dx+=rand()%MOB_SLAVEDISTANCE +1;
+					else if(dx>0) dx-=rand()%MOB_SLAVEDISTANCE +1;
+					if(dy<0) dy+=rand()%MOB_SLAVEDISTANCE +1;
+					else if(dy>0) dy-=rand()%MOB_SLAVEDISTANCE +1;
 						
-					}else{
-						ret = MOB_SLAVEDISTANCE*2+1;
-						dx=bl->x - md->bl.x + rand()%ret - MOB_SLAVEDISTANCE;
-						dy=bl->y - md->bl.y + rand()%ret - MOB_SLAVEDISTANCE;
-					}
+				}else{
+					ret = MOB_SLAVEDISTANCE*2+1;
+					dx=bl->x - md->bl.x + rand()%ret - MOB_SLAVEDISTANCE;
+					dy=bl->y - md->bl.y + rand()%ret - MOB_SLAVEDISTANCE;
+				}
 
-					ret=mob_walktoxy(md,md->bl.x+dx,md->bl.y+dy,0);
-					i++;
-				} while(ret && i<10);
-				md->next_walktime=tick+1000;
-			}
+				ret=mob_walktoxy(md,md->bl.x+dx,md->bl.y+dy,0);
+				i++;
+			} while(ret && i<10);
 		}
 	} else if (bl->m != md->bl.m && map_flag_gvg(md->bl.m)) {
 		//Delete the summoned mob if it's in a gvg ground and the master is elsewhere. [Skotlex]
@@ -1858,7 +1854,8 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 		return 0;
 
 	// Nothing else to do... except random walking.
-	if (mode&MD_CANMOVE && mob_can_move(md))
+	// Slaves do not random walk! [Skotlex]
+	if (mode&MD_CANMOVE && mob_can_move(md) && !md->master_id)
 	{
 		if (DIFF_TICK(md->next_walktime, tick) > 7000 &&
 			(md->walkpath.path_len == 0 || md->walkpath.path_pos >= md->walkpath.path_len))
@@ -2206,7 +2203,6 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 	int mvp_damage,max_hp;
 	unsigned int tick = gettick();
 	struct map_session_data *mvp_sd = NULL, *second_sd = NULL,*third_sd = NULL;
-	struct block_list *master = NULL;
 	double temp;
 	struct item item;
 	int ret, mode;
@@ -2489,12 +2485,9 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 			per /=2.;
 		else if(md->special_state.size==2)
 			per *=2.;
-		if(md->master_id) {
-			if(((master = map_id2bl(md->master_id)) && status_get_mode(master)&MD_BOSS) ||	// check if its master is a boss (MVP's and minibosses)
-				md->special_state.ai) { // for summoned creatures [Valaris]
-				per = 0;
-			}
-		} else {
+		if(md->master_id && md->special_state.ai) //New rule: Only player-summoned mobs do not give exp. [Skotlex]
+			per = 0;
+		else {
 			if(battle_config.zeny_from_mobs) {
 				if(md->level > 0) zeny=(int) ((md->level+rand()%md->level)*per); // zeny calculation moblv + random moblv [Valaris]
 				if(md->db->mexp > 0)
@@ -2580,11 +2573,10 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 		for (i = 0; i < 10; i++) { // 8 -> 10 Lupus
 			struct delay_item_drop *ditem;
 
-			if ((master && status_get_mode(master) & MD_BOSS) ||	// check if its master is a boss (MVP's and minibosses)
-				(md->special_state.ai &&
-					(battle_config.alchemist_summon_reward == 0 || //Noone gives items
-					(md->class_ != 1142 && battle_config.alchemist_summon_reward == 1) //Non Marine spheres don't drop items
-				)))	// Added [Valaris]
+			if (md->master_id && md->special_state.ai && (
+				battle_config.alchemist_summon_reward == 0 || //Noone gives items
+				(md->class_ != 1142 && battle_config.alchemist_summon_reward == 1) //Non Marine spheres don't drop items
+			))
 				break;	// End
 			//mapflag: noloot check [Lorky]
 			if (map[md->bl.m].flag.nomobloot) break;; 
@@ -4308,6 +4300,11 @@ static int mob_readdb(void)
 				int rate = 0,rate_adjust,type,ratemin,ratemax;
 				struct item_data *id;
 				mob_db_data[class_]->dropitem[i].nameid=atoi(str[29+i*2]);
+				if (!mob_db_data[class_]->dropitem[i].nameid) {
+					//No drop.
+					mob_db_data[class_]->dropitem[i].p = 0;
+					continue;
+				}
 				type = itemdb_type(mob_db_data[class_]->dropitem[i].nameid);
 				rate = atoi(str[30+i*2]);
 				if (class_ >= 1324 && class_ <= 1363)
@@ -4376,9 +4373,13 @@ static int mob_readdb(void)
 			// MVP Drops: MVP1id,MVP1per,MVP2id,MVP2per,MVP3id,MVP3per
 			for(i=0;i<3;i++){
 				struct item_data *id;
-				int rate=atoi(str[52+i*2]);
 				mob_db_data[class_]->mvpitem[i].nameid=atoi(str[51+i*2]);
-				mob_db_data[class_]->mvpitem[i].p= mob_drop_adjust(rate, battle_config.item_rate_mvp,
+				if (!mob_db_data[class_]->mvpitem[i].nameid) {
+					//No item....
+					mob_db_data[class_]->mvpitem[i].p = 0;
+					continue;
+				}
+				mob_db_data[class_]->mvpitem[i].p= mob_drop_adjust(atoi(str[52+i*2]), battle_config.item_rate_mvp,
 					battle_config.item_drop_mvp_min, battle_config.item_drop_mvp_max);
 
 				//calculate and store Max available drop chance of the MVP item
@@ -4890,6 +4891,11 @@ static int mob_read_sqldb(void)
 					int rate = 0, rate_adjust, type, ratemin, ratemax;
 					struct item_data *id;
 					mob_db_data[class_]->dropitem[i].nameid=TO_INT(29+i*2);
+					if (!mob_db_data[class_]->dropitem[i].nameid) {
+						//No drop.
+						mob_db_data[class_]->dropitem[i].p = 0;
+						continue;
+					}
 					type = itemdb_type(mob_db_data[class_]->dropitem[i].nameid);
 					rate = TO_INT(30+i*2);
 					if (class_ >= 1324 && class_ <= 1363)
@@ -4959,6 +4965,11 @@ static int mob_read_sqldb(void)
 				for (i=0; i<3; i++) {
 					struct item_data *id;
 					mob_db_data[class_]->mvpitem[i].nameid = TO_INT(51+i*2);
+					if (!mob_db_data[class_]->mvpitem[i].nameid) {
+						//No item....
+						mob_db_data[class_]->mvpitem[i].p = 0;
+						continue;
+					}
 					mob_db_data[class_]->mvpitem[i].p = mob_drop_adjust(TO_INT(52+i*2),
 						battle_config.item_rate_mvp, battle_config.item_drop_mvp_min, battle_config.item_drop_mvp_max);
 

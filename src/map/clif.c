@@ -5948,7 +5948,7 @@ int clif_item_repair_list(struct map_session_data *sd,struct map_session_data *d
 		WFIFOW(fd,2)=c*13+4;
 		WFIFOSET(fd,WFIFOW(fd,2));
 		sd->state.produce_flag = 1;
-		sd->repair_target=dstsd;
+		sd->repair_target=dstsd->bl.id;
 	}else
 		clif_skill_fail(sd,sd->skillid,0,0);
 
@@ -9268,9 +9268,7 @@ void clif_parse_ActionRequest(int fd, struct map_session_data *sd) {
 	switch(action_type) {
 	case 0x00: // once attack
 	case 0x07: // continuous attack
-		if(sd->sc_data[SC_WEDDING].timer != -1 || sd->view_class==JOB_WEDDING)
-			return;
-		if(sd->sc_data[SC_XMAS].timer != -1 || sd->view_class==JOB_XMAS)
+		if(sd->view_class==JOB_WEDDING || sd->view_class==JOB_XMAS)
 			return;
 		if (sd->vender_id != 0)
 			return;
@@ -9288,6 +9286,7 @@ void clif_parse_ActionRequest(int fd, struct map_session_data *sd) {
 		if (battle_config.basic_skill_check == 0 || pc_checkskill(sd, NV_BASIC) >= 3) {
 			if (sd->skilltimer != -1) //No sitting while casting :P
 				break;
+
 			pc_stopattack(sd);
 			pc_stop_walking(sd, 1);
 			pc_setsit(sd);
@@ -9976,11 +9975,7 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd) {
 		return;
 	}
 
-	if ((sd->sc_data[SC_TRICKDEAD].timer != -1 && skillnum != NV_TRICKDEAD) ||
-	    sd->sc_data[SC_BERSERK].timer != -1 || sd->sc_data[SC_NOCHAT].timer != -1 ||
-	    sd->sc_data[SC_WEDDING].timer != -1 || sd->view_class == JOB_WEDDING ||
-	    sd->sc_data[SC_XMAS].timer != -1 || sd->view_class == JOB_XMAS)
-
+	if (sd->view_class == JOB_WEDDING || sd->view_class == JOB_XMAS)
 		return;
 	if (sd->invincible_timer != -1)
 		pc_delinvincibletimer(sd);
@@ -10067,10 +10062,7 @@ void clif_parse_UseSkillToPosSub(int fd, struct map_session_data *sd, int skilll
 		return;
 	}
 
-	if ((sd->sc_data[SC_TRICKDEAD].timer != -1 && skillnum != NV_TRICKDEAD) ||
-	    sd->sc_data[SC_BERSERK].timer != -1 || sd->sc_data[SC_NOCHAT].timer != -1 ||
-	    sd->sc_data[SC_WEDDING].timer != -1 || sd->view_class == JOB_WEDDING || 
-	    sd->sc_data[SC_XMAS].timer != -1 || sd->view_class == JOB_XMAS)
+	if (sd->view_class == JOB_WEDDING || sd->view_class == JOB_XMAS)
 		return;
 	if (sd->invincible_timer != -1)
 		pc_delinvincibletimer(sd);
@@ -10137,6 +10129,9 @@ void clif_parse_UseSkillMap(int fd,struct map_session_data *sd)
 		sd->view_class == JOB_XMAS)))
 		return;
 
+	if (sd->view_class==JOB_WEDDING || sd->view_class == JOB_XMAS)
+		return;
+	
 	if(sd->invincible_timer != -1)
 		pc_delinvincibletimer(sd);
 
@@ -10359,7 +10354,7 @@ void clif_parse_ResetChar(int fd, struct map_session_data *sd) {
 			pc_resetstate(sd);
 			break;
 		case 1:
-			pc_resetskill(sd);
+			pc_resetskill(sd,1);
 			break;
 		}
 	}

@@ -1890,7 +1890,9 @@ static struct Damage battle_calc_weapon_attack(
 			ATK_RATE(skillratio);
 		if(sd)
 		{
-			if (skill_num != PA_SACRIFICE && skill_num != MO_INVESTIGATE && !flag.cri)
+			if (skill_num != PA_SACRIFICE && skill_num != MO_INVESTIGATE
+				&& skill_num != CR_GRANDCROSS && skill_num != NPC_GRANDDARKNESS
+			  	&& !flag.cri)
 			{	//Elemental/Racial adjustments
 				char raceele_flag=0, raceele_flag_=0;
 				if(sd->right_weapon.def_ratio_atk_ele & (1<<t_ele) ||
@@ -1913,25 +1915,27 @@ static struct Damage battle_calc_weapon_attack(
 					ATK_RATE2(raceele_flag?(def1 + def2):100, raceele_flag_?(def1 + def2):100);
 			}
 
-			//Ignore Defense?
-			if (!flag.idef && (
-				(tmd && sd->right_weapon.ignore_def_mob & (is_boss(target)?2:1)) ||
-				sd->right_weapon.ignore_def_ele & (1<<t_ele) ||
-				sd->right_weapon.ignore_def_race & (1<<t_race) ||
-				sd->right_weapon.ignore_def_race & (is_boss(target)?1<<10:1<<11)
-			))
-				flag.idef = 1;
+			if (skill_num != CR_GRANDCROSS && skill_num != NPC_GRANDDARKNESS)
+		  	{	//Ignore Defense?
+				if (!flag.idef && (
+					(tmd && sd->right_weapon.ignore_def_mob & (is_boss(target)?2:1)) ||
+					sd->right_weapon.ignore_def_ele & (1<<t_ele) ||
+					sd->right_weapon.ignore_def_race & (1<<t_race) ||
+					sd->right_weapon.ignore_def_race & (is_boss(target)?1<<10:1<<11)
+				))
+					flag.idef = 1;
 
-			if (!flag.idef2 && (
-				(tmd && sd->left_weapon.ignore_def_mob & (is_boss(target)?2:1)) ||
-				sd->left_weapon.ignore_def_ele & (1<<t_ele) ||
-				sd->left_weapon.ignore_def_race & (1<<t_race) ||
-				sd->left_weapon.ignore_def_race & (is_boss(target)?1<<10:1<<11)
-			)) {
-					if(battle_config.left_cardfix_to_right && flag.rh) //Move effect to right hand. [Skotlex]
-						flag.idef = 1;
-					else
-						flag.idef2 = 1;
+				if (!flag.idef2 && (
+					(tmd && sd->left_weapon.ignore_def_mob & (is_boss(target)?2:1)) ||
+					sd->left_weapon.ignore_def_ele & (1<<t_ele) ||
+					sd->left_weapon.ignore_def_race & (1<<t_race) ||
+					sd->left_weapon.ignore_def_race & (is_boss(target)?1<<10:1<<11)
+				)) {
+						if(battle_config.left_cardfix_to_right && flag.rh) //Move effect to right hand. [Skotlex]
+							flag.idef = 1;
+						else
+							flag.idef2 = 1;
+				}
 			}
 		}
 
@@ -2449,7 +2453,7 @@ struct Damage battle_calc_magic_attack(
 		case HW_GRAVITATION:
 		case ASC_BREAKER:
 			flag.imdef = 1;
-		case PF_SOULBURN: //Should not ignore mdef.
+		case PF_SOULBURN: //Does not ignores mdef
 			flag.elefix = 0;
 			flag.cardfix = 0;
 			break;
@@ -2839,7 +2843,10 @@ struct Damage  battle_calc_misc_attack(
 		damagefix=0;
 		aflag = (aflag&~BF_RANGEMASK)|BF_LONG;
 		break;
-
+	case PA_GOSPEL:
+		damage = 1+rand()%9999;
+		aflag = (aflag&~BF_RANGEMASK)|BF_LONG;
+		break;
 	case CR_ACIDDEMONSTRATION:
 		//This equation is not official, but it's the closest to the official one 
 		//that Viccious Pucca and the other folks at the forums could come up with. [Skotlex]
@@ -3140,7 +3147,7 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 			if (tsd && sd->sp_drain_type)
 				pc_heal(tsd, 0, -sp);
 
-			if (target && target->type == BL_PC && rand()%1000 < sd->sp_vanish_rate)
+			if (tsd && rand()%1000 < sd->sp_vanish_rate)
 			{
 				sp = tsd->status.sp * sd->sp_vanish_per/100;
 				if (sp > 0)
@@ -3172,8 +3179,6 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 			if (tsc_data[SC_POISONREACT].val2 <= 0)
 				status_change_end(target, SC_POISONREACT, -1);
 		}
-		if (tsc_data[SC_SPLASHER].timer != -1)	//‰£‚Á‚½‚Ì‚Å‘Î?Û‚Ìƒxƒiƒ€ƒXƒvƒ‰ƒbƒVƒƒ?[?ó‘Ô‚ð‰ð?œ
-			status_change_end(target, SC_SPLASHER, -1);
 	}
 
 	//SG_FUSION hp penalty [Komurka]

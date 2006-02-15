@@ -1139,6 +1139,26 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 			pc_heal(dstsd,0,-sp);
 		}
 		break;
+	// Equipment breaking monster skills [Celest]
+	case NPC_BREAKWEAPON:
+		if(dstsd && rand()%10000 < 10*skilllv*battle_config.equip_skill_break_rate)
+			pc_breakweapon(dstsd);
+		break;
+
+	case NPC_BREAKARMOR:
+		if(dstsd && rand()%10000 < 10*skilllv*battle_config.equip_skill_break_rate)
+			pc_breakarmor(dstsd);
+		break;
+
+	case NPC_BREAKHELM:
+		if(dstsd && rand()%10000 < 10*skilllv*battle_config.equip_skill_break_rate)
+			pc_breakhelm(dstsd);
+		break;
+
+	case NPC_BREAKSHIELD:
+		if(dstsd && rand()%10000 < 10*skilllv*battle_config.equip_skill_break_rate)
+			pc_breakshield(dstsd);
+		break;
 
 	case CH_TIGERFIST:
 		if (rand()%100 < (10 + skilllv*10)*sc_def_vit/100) {
@@ -1892,8 +1912,14 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 //•ŠíƒXƒLƒ‹H‚±‚±‚Ü‚Å
 	switch(skillid){
 	case AS_SPLASHER:
+	case ASC_METEORASSAULT:
+	case SG_SUN_WARM:
+	case SG_MOON_WARM:
+	case SG_STAR_WARM:
 		clif_skill_damage(dsrc,bl,tick,dmg.amotion,dmg.dmotion, damage, dmg.div_, skillid, -1, 5);
 		break;
+
+
 	case ASC_BREAKER:	// [celest]
 		if (attack_type&BF_WEAPON) { // the 1st attack won't really deal any damage
 			tmpdmg = damage;	// store the temporary weapon damage
@@ -2443,75 +2469,43 @@ static int skill_timerskill(int tid, unsigned int tick, int id,int data )
  */
 int skill_addtimerskill(struct block_list *src,unsigned int tick,int target,int x,int y,int skill_id,int skill_lv,int type,int flag)
 {
-	int i;
-
+	int i, max;
+	unsigned short *count=NULL;
+	struct skill_timerskill *sts = NULL;
 	nullpo_retr(1, src);
-
-	if(src->type == BL_PC) {
-		struct map_session_data *sd = (struct map_session_data *)src;
-		nullpo_retr(1, sd);
-		for(i=0;i<MAX_SKILLTIMERSKILL;i++) {
-			if(sd->skilltimerskill[i].timer == -1) {
-				sd->skilltimerskill[i].timer = add_timer(tick, skill_timerskill, src->id, i);
-				sd->skilltimerskill[i].src_id = src->id;
-				sd->skilltimerskill[i].target_id = target;
-				sd->skilltimerskill[i].skill_id = skill_id;
-				sd->skilltimerskill[i].skill_lv = skill_lv;
-				sd->skilltimerskill[i].map = src->m;
-				sd->skilltimerskill[i].x = x;
-				sd->skilltimerskill[i].y = y;
-				sd->skilltimerskill[i].type = type;
-				sd->skilltimerskill[i].flag = flag;
-				sd->timerskill_count++;
-
-				return 0;
-			}
-		}
-		return 1;
+	switch (src->type) {
+		case BL_PC:
+			sts = ((struct map_session_data *)src)->skilltimerskill;
+			max = MAX_SKILLTIMERSKILL;
+			count = &((struct map_session_data *)src)->timerskill_count;
+		break;
+		case BL_MOB:
+			sts = ((struct mob_data *)src)->skilltimerskill;
+			max = MAX_MOBSKILLTIMERSKILL;
+		break;
+		case BL_PET:
+			sts = ((struct pet_data *)src)->skilltimerskill;
+			max =  MAX_MOBSKILLTIMERSKILL;
+		break;
+		default:
+			return 1;
 	}
-	else if(src->type == BL_MOB) {
-		struct mob_data *md = (struct mob_data *)src;
-		nullpo_retr(1, md);
-		for(i=0;i<MAX_MOBSKILLTIMERSKILL;i++) {
-			if(md->skilltimerskill[i].timer == -1) {
-				md->skilltimerskill[i].timer = add_timer(tick, skill_timerskill, src->id, i);
-				md->skilltimerskill[i].src_id = src->id;
-				md->skilltimerskill[i].target_id = target;
-				md->skilltimerskill[i].skill_id = skill_id;
-				md->skilltimerskill[i].skill_lv = skill_lv;
-				md->skilltimerskill[i].map = src->m;
-				md->skilltimerskill[i].x = x;
-				md->skilltimerskill[i].y = y;
-				md->skilltimerskill[i].type = type;
-				md->skilltimerskill[i].flag = flag;
+	for(i=0;i<max && sts[i].timer != -1;i++);
+	if (i>=max) return 1;
 
-				return 0;
-			}
-		}
-		return 1;
-	}
-	else if(src->type == BL_PET) { // [Valaris]
-		struct pet_data *pd = (struct pet_data *)src;
-		nullpo_retr(1, pd);
-		for(i=0;i<MAX_MOBSKILLTIMERSKILL;i++) {
-			if(pd->skilltimerskill[i].timer == -1) {
-				pd->skilltimerskill[i].timer = add_timer(tick, skill_timerskill, src->id, i);
-				pd->skilltimerskill[i].src_id = src->id;
-				pd->skilltimerskill[i].target_id = target;
-				pd->skilltimerskill[i].skill_id = skill_id;
-				pd->skilltimerskill[i].skill_lv = skill_lv;
-				pd->skilltimerskill[i].map = src->m;
-				pd->skilltimerskill[i].x = x;
-				pd->skilltimerskill[i].y = y;
-				pd->skilltimerskill[i].type = type;
-				pd->skilltimerskill[i].flag = flag;
-
-				return 0;
-			}
-		}
-		return 1;
-	}
-	return 1;
+	sts[i].timer = add_timer(tick, skill_timerskill, src->id, i);
+	sts[i].src_id = src->id;
+	sts[i].target_id = target;
+	sts[i].skill_id = skill_id;
+	sts[i].skill_lv = skill_lv;
+	sts[i].map = src->m;
+	sts[i].x = x;
+	sts[i].y = y;
+	sts[i].type = type;
+	sts[i].flag = flag;
+	if (count)
+		(*count)++;
+	return 0;
 }
 
 /*==========================================
@@ -2520,42 +2514,42 @@ int skill_addtimerskill(struct block_list *src,unsigned int tick,int target,int 
  */
 int skill_cleartimerskill(struct block_list *src)
 {
-	int i;
+	int i, max;
+	unsigned short *count=NULL;
+	struct skill_timerskill *sts = NULL;
 
 	nullpo_retr(0, src);
-
-	if(src->type == BL_PC) {
-		struct map_session_data *sd = (struct map_session_data *)src;
-		nullpo_retr(0, sd);
-
-		if (sd->timerskill_count <= 0)
+	switch (src->type) {
+		case  BL_PC:
+			sts = ((struct map_session_data *)src)->skilltimerskill;
+			max = MAX_SKILLTIMERSKILL;
+			count = &((struct map_session_data *)src)->timerskill_count;
+		break;
+		case BL_MOB:
+			sts = ((struct mob_data *)src)->skilltimerskill;
+			max = MAX_MOBSKILLTIMERSKILL;
+		break;
+		case BL_PET:
+			sts = ((struct pet_data *)src)->skilltimerskill;
+			max =  MAX_MOBSKILLTIMERSKILL;
+		break;
+		default:
 			return 0;
-
-		for(i=0;i<MAX_SKILLTIMERSKILL && sd->timerskill_count > 0;i++) {
-			if(sd->skilltimerskill[i].timer != -1) {
-				delete_timer(sd->skilltimerskill[i].timer, skill_timerskill);
-				sd->skilltimerskill[i].timer = -1;
-				sd->timerskill_count--;
+	}
+		
+	if (count) {
+		for(i=0;i<max && *count > 0;i++) {
+			if(sts[i].timer != -1) {
+				delete_timer(sts[i].timer, skill_timerskill);
+				sts[i].timer = -1;
+				(*count)--;
 			}
 		}
-	}
-	else if(src->type == BL_MOB) {
-		struct mob_data *md = (struct mob_data *)src;
-		nullpo_retr(0, md);
-		for(i=0;i<MAX_MOBSKILLTIMERSKILL;i++) {
-			if(md->skilltimerskill[i].timer != -1) {
-				delete_timer(md->skilltimerskill[i].timer, skill_timerskill);
-				md->skilltimerskill[i].timer = -1;
-			}
-		}
-	}
-	else if(src->type == BL_PET) { // Ya forgot this one, Valaris. [Skotlex]
-		struct pet_data *pd = (struct pet_data *)src;
-		nullpo_retr(1, pd);
-		for(i=0;i<MAX_MOBSKILLTIMERSKILL;i++) {
-			if(pd->skilltimerskill[i].timer != -1) {
-				delete_timer(pd->skilltimerskill[i].timer, skill_timerskill);
-				pd->skilltimerskill[i].timer = -1;
+	} else {
+		for(i=0;i<max;i++) {
+			if(sts[i].timer != -1) {
+				delete_timer(sts[i].timer, skill_timerskill);
+				sts[i].timer = -1;
 			}
 		}
 	}
@@ -2623,16 +2617,14 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 
 	if (src->m != bl->m)
 		return 1;
-	
-	if (src->type == BL_PC) {
-		nullpo_retr(1, sd = (struct map_session_data *)src);
-	}
 
 	if (bl->prev == NULL)
 		return 1;
-	if (bl->type == BL_PC) {
-		nullpo_retr(1, tsd = (struct map_session_data *)bl);
-	}
+	
+	if (src->type == BL_PC)
+		sd = (struct map_session_data *)src;
+	if (bl->type == BL_PC)
+		tsd = (struct map_session_data *)bl;
 
 	if ((skillid == CR_GRANDCROSS || skillid == NPC_GRANDDARKNESS) && src != bl)
 		bl = src;
@@ -3430,7 +3422,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				clif_updatestatus(sd,SP_BASEEXP);
 				clif_updatestatus(sd,SP_JOBEXP);
 			}
-			status_change_start(src,SkillStatusChangeTable[skillid],skilllv,0,0,0,0,0); //SC_COMA :P
+			pc_heal(sd, 1-sd->status.hp, 1-sd->status.sp);
 			break;
 		} else if (dstsd && pc_isdead(dstsd) && flag&1) { //Revive
 			skill_area_temp[0]++; //Count it in, then fall-through to the Resurrection code.
@@ -4116,6 +4108,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			clif_skill_nodamage(src,bl,skillid,skilllv,0);
 			break;
 		}
+		if(map_getcell(bl->m,bl->x,bl->y,CELL_CHKLANDPROTECTOR))
+			break; //Land Protector blocks Hammer Fall [Skotlex]
+		
 		if(rand() % 100 < (20 + 10 * skilllv) * sc_def_vit / 100 )
 			status_change_start(bl,SC_STAN,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
@@ -5240,31 +5235,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		break;
 
-	// Equipment breaking monster skills [Celest]
-	case NPC_BREAKWEAPON:
-		clif_skill_nodamage(src,bl,skillid,skilllv,1);
-		if(dstsd && battle_config.equip_skill_break_rate)
-			pc_breakweapon(dstsd);
-		break;
-
-	case NPC_BREAKARMOR:
-		clif_skill_nodamage(src,bl,skillid,skilllv,1);
-		if(dstsd && battle_config.equip_skill_break_rate)
-			pc_breakarmor(dstsd);
-		break;
-
-	case NPC_BREAKHELM:
-		clif_skill_nodamage(src,bl,skillid,skilllv,1);
-		if(dstsd && battle_config.equip_skill_break_rate)
-			pc_breakhelm(dstsd);
-		break;
-
-	case NPC_BREAKSHIELD:
-		clif_skill_nodamage(src,bl,skillid,skilllv,1);
-		if(dstsd && battle_config.equip_skill_break_rate)
-			pc_breakshield(dstsd);
-		break;
-
 	case NPC_POWERUP:	//NPC”š—ô”g“®
 		status_change_start(bl,SC_EXPLOSIONSPIRITS,skilllv,0,0,0,skilllv * 60000,0);
 		// another random guess xP
@@ -5964,8 +5934,7 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 	nullpo_retr(0, sd);
 
 //Code cleanup.
-#undef skill_failed
-#define skill_failed(sd) { sd->skillid = sd->skilllv = sd->skillitem = sd->skillitemlv = -1; sd->canact_tick = sd->canmove_tick = tick; }
+#define skill_failed(sd) { sd->skillid = sd->skilllv = sd->skillitem = sd->skillitemlv = -1; sd->canact_tick = sd->canmove_tick = tick; sd->skilltarget = 0; }
 
 	if(sd->skillid != SA_CASTCANCEL && sd->skilltimer != tid )
 	{	/* ƒ^ƒCƒ}ID‚ÌŠm”F */
@@ -6095,6 +6064,7 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 		sd->skilltarget = 0;
 	}
 	return 0;
+#undef skill_failed
 }
 
 /*---------------------------------------------------------------------------- */
@@ -6111,7 +6081,6 @@ int skill_castend_pos( int tid, unsigned int tick, int id,int data )
 	nullpo_retr(0, sd);
 
 //Code cleanup.
-#undef skill_failed
 #define skill_failed(sd) { sd->skillid = sd->skilllv = sd->skillitem = sd->skillitemlv = -1; sd->canact_tick = sd->canmove_tick = tick; }
 
 	if( sd->skilltimer != tid )
@@ -6196,6 +6165,7 @@ int skill_castend_pos( int tid, unsigned int tick, int id,int data )
 	if (sd->skillid != AL_WARP)
 		sd->skillid = sd->skilllv = -1; //Clean this up for future references to battle_getcurrentskill. [Skotlex]
 	return 0;
+#undef skill_failed
 }
 
 /*==========================================
@@ -6887,7 +6857,7 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 		if (alive && battle_config.skill_wall_check) {
 			//Check if there's a path between cell and center of casting.
 			struct walkpath_data wpd;
-			if (path_search(&wpd,src->m,ux,uy,x,y,1)==-1)
+			if (path_search(&wpd,src->m,ux,uy,x,y,0x30001)==-1)
 				alive = 0;
 		}
 					
@@ -7346,12 +7316,8 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 			switch (i)
 			{
 				case 0: // Deal 1~9999 damage
-				{
-					int dmg = rand() % 9999 +1;
-					clif_skill_damage(bl, bl, sg->tick,0,0,dmg,0,CR_HOLYCROSS,1,-1);
-					battle_damage(ss, bl, dmg,0);
+					skill_attack(BF_MISC,ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,0);
 					break;
-				}
 				case 1: // Curse
 					status_change_start(bl,SC_CURSE,1,0,0,0,skill_get_time2(sg->skill_id, sg->skill_lv),0);
 					break;
@@ -8048,18 +8014,10 @@ int skill_check_condition(struct map_session_data *sd,int type)
 	case ST_CHASEWALK:
 	case PA_GOSPEL:
 	case CR_SHRINK:
+	case TK_RUN:
 		if(sd->sc_data[SkillStatusChangeTable[skill]].timer!=-1)
 			return 1;			/* ‰ð?œ‚·‚é?ê?‡‚ÍSP?Á”ï‚µ‚È‚¢ */
 		break;
-
-	case TK_RUN:
-		if(sd->sc_data[SC_RUN].timer!=-1){
-			status_change_end(&sd->bl,SC_RUN,-1);
-			if(sd->sc_data[SC_SPURT].timer!=-1)
-				status_change_end(&sd->bl,SC_SPURT,-1);
-			return 0;
-		}
-	break;
 
 	case AL_WARP:
 		if(!(type&2)) //Delete the item when the portal has been selected (type&2). [Skotlex]
@@ -8487,7 +8445,11 @@ int skill_check_condition(struct map_session_data *sd,int type)
 	case ST_MOVE_ENABLE:
 		{
 			struct walkpath_data wpd;
-			if(path_search(&wpd,sd->bl.m,sd->bl.x,sd->bl.y,sd->skillx,sd->skilly,1)==-1) {
+			if(!pc_can_move(sd)) {
+				clif_skill_fail(sd,skill,0,0);
+				return 0;
+			}
+			if (skill_get_inf(skill)&INF_GROUND_SKILL && path_search(&wpd,sd->bl.m,sd->bl.x,sd->bl.y,sd->skillx,sd->skilly,1)==-1) {
 				clif_skill_fail(sd,skill,0,0);
 				return 0;
 			}
@@ -9344,39 +9306,41 @@ void skill_repairweapon(struct map_session_data *sd, int idx)
 	int material;
 	int materials[4] = { 1002, 998, 999, 756 };
 	struct item *item;
+	struct map_session_data *target_sd;
 
 	nullpo_retv(sd);
-	nullpo_retv(sd->repair_target);
-
+	target_sd = map_id2sd(sd->repair_target);
+	sd->repair_target = 0;
+	if (!target_sd) //Failed....
+		return;
 	if(idx==0xFFFF) // No item selected ('Cancel' clicked)
 		return;
+	if(idx < 0 || idx >= MAX_INVENTORY)
+		return; //Invalid index??
 
-    item = &sd->repair_target->status.inventory[idx];
+   item = &target_sd->status.inventory[idx];
+	if(item->nameid <= 0 || item->attribute == 0)
+		return; //Again invalid item....
 
-	if(sd!=sd->repair_target && !battle_check_range(&sd->bl,&sd->repair_target->bl,skill_get_range2(&sd->bl, sd->skillid,sd->skilllv))){
+	if(sd!=target_sd && !battle_check_range(&sd->bl,&target_sd->bl,skill_get_range2(&sd->bl, sd->skillid,sd->skilllv))){
 		clif_item_repaireffect(sd,item->nameid,1);
 		return;
 	}
 
-	if(idx >= 0 && idx < MAX_INVENTORY) {
-		if(item->nameid > 0 && item->attribute == 1 ) {
-			if (itemdb_type(item->nameid)==4)
-				material = materials [itemdb_wlv(item->nameid)-1]; // Lv1/2/3/4 weapons consume 1 Iron Ore/Iron/Steel/Rough Oridecon
-			else
-				material = materials [2]; // Armors consume 1 Steel
-			if (pc_search_inventory(sd,material) < 0 ) {
-				clif_skill_fail(sd,sd->skillid,0,0);
-				return;
-			}
-			item->attribute=0;
-			clif_equiplist(sd->repair_target);
-			pc_delitem(sd,pc_search_inventory(sd,material),1,0);
-            clif_item_repaireffect(sd,item->nameid,0);
-            if(sd!=sd->repair_target)
-            	clif_item_repaireffect(sd->repair_target,item->nameid,0);
-			sd->repair_target=NULL;
-		}
+	if (itemdb_type(item->nameid)==4)
+		material = materials [itemdb_wlv(item->nameid)-1]; // Lv1/2/3/4 weapons consume 1 Iron Ore/Iron/Steel/Rough Oridecon
+	else
+		material = materials [2]; // Armors consume 1 Steel
+	if (pc_search_inventory(sd,material) < 0 ) {
+		clif_skill_fail(sd,sd->skillid,0,0);
+		return;
 	}
+	item->attribute=0;
+	clif_equiplist(target_sd);
+	pc_delitem(sd,pc_search_inventory(sd,material),1,0);
+	clif_item_repaireffect(sd,item->nameid,0);
+	if(sd!=target_sd)
+		clif_item_repaireffect(target_sd,item->nameid,0);
 }
 
 /*==========================================
@@ -9773,31 +9737,27 @@ int skill_attack_area(struct block_list *bl,va_list ap)
  */
 int skill_clear_element_field(struct block_list *bl)
 {
-	struct mob_data *md=NULL;
-	struct map_session_data *sd=NULL;
+	struct skill_unit_group *ug=NULL;
 	int i,max,skillid;
 
 	nullpo_retr(0, bl);
 
 	if (bl->type==BL_MOB) {
 		max = MAX_MOBSKILLUNITGROUP;
-		md = (struct mob_data *)bl;
+		ug = ((struct mob_data *)bl)->skillunit;
 	} else if(bl->type==BL_PC) {
 		max = MAX_SKILLUNITGROUP;
-		sd = (struct map_session_data *)bl;
+		ug = ((struct map_session_data *)bl)->skillunit;
+	} else if(bl->type==BL_PET) {
+		max = MAX_MOBSKILLUNITGROUP;
+		ug = ((struct pet_data*)bl)->skillunit;
 	} else
 		return 0;
 
 	for (i=0;i<max;i++) {
-		if(sd){
-			skillid=sd->skillunit[i].skill_id;
-			if(skillid==SA_DELUGE||skillid==SA_VOLCANO||skillid==SA_VIOLENTGALE||skillid==SA_LANDPROTECTOR)
-				skill_delunitgroup(&sd->skillunit[i]);
-		}else if(md){
-			skillid=md->skillunit[i].skill_id;
-			if(skillid==SA_DELUGE||skillid==SA_VOLCANO||skillid==SA_VIOLENTGALE||skillid==SA_LANDPROTECTOR)
-				skill_delunitgroup(&md->skillunit[i]);
-		}
+		skillid=ug[i].skill_id;
+		if(skillid==SA_DELUGE||skillid==SA_VOLCANO||skillid==SA_VIOLENTGALE||skillid==SA_LANDPROTECTOR)
+			skill_delunitgroup(&ug[i]);
 	}
 	return 0;
 }
@@ -9881,31 +9841,36 @@ int skill_landprotector(struct block_list *bl, va_list ap )
 	struct skill_unit *unit;
 	struct block_list *src;
 
-	nullpo_retr(0, bl);
-	nullpo_retr(0, ap);
-
 	skillid = va_arg(ap,int);
 	alive = va_arg(ap,int *);
 	src = va_arg(ap,struct block_list *);
-	
-	if ((unit = (struct skill_unit *)bl) == NULL || unit->group == NULL)
+	unit = (struct skill_unit *)bl;
+	if (unit == NULL || unit->group == NULL)
 		return 0;
 
-	if (alive && skillid == SA_LANDPROTECTOR && unit->group->skill_id == SA_LANDPROTECTOR
+	if (skillid == SA_LANDPROTECTOR && unit->group->skill_id == SA_LANDPROTECTOR
 		&& battle_check_target(bl, src, BCT_ENEMY) > 0)
 	{	//Check for offensive Land Protector to delete both. [Skotlex]
 		(*alive) = 0;
 		skill_delunit(unit);
-		return 0;
+		return 1;
 	}	
-	if (skillid == SA_LANDPROTECTOR || 
-		skillid == HW_GANBANTEIN)
+
+	if (skill_get_inf2(unit->group->skill_id)&INF2_TRAP)
+		return 0; //Traps cannot be removed by Land Protector/Ganbantein
+	
+	if (skillid == SA_LANDPROTECTOR || skillid == HW_GANBANTEIN ) {
 		skill_delunit(unit);
-	else if (alive && unit->group->skill_id == SA_LANDPROTECTOR)
+	} else
+	if (unit->group->skill_id == SA_LANDPROTECTOR) {
 		(*alive) = 0;
-	else if  (alive && skillid == HP_BASILICA && unit->group->skill_id == HP_BASILICA)
-		(*alive) = 0; //Basilica can't be placed on top of itself to avoid map-cell stacking problems. [Skotlex]
-	return 0;
+	} else
+	if (skillid == HP_BASILICA && unit->group->skill_id == HP_BASILICA) {
+		//Basilica can't be placed on top of itself to avoid map-cell stacking problems. [Skotlex]
+		(*alive) = 0;
+	} else
+		return 0;
+	return 1;
 }
 
 /*==========================================
@@ -9921,11 +9886,14 @@ int skill_ganbatein(struct block_list *bl, va_list ap )
 	if ((unit = (struct skill_unit *)bl) == NULL || unit->group == NULL)
 		return 0;
 
+	if (skill_get_inf2(unit->group->skill_id)&INF2_TRAP)
+		return 0; //Do not remove traps.
+	
 	if (unit->group->skill_id == SA_LANDPROTECTOR)
 		skill_delunit(unit);
 	else skill_delunitgroup(unit->group);
 
-	return 0;
+	return 1;
 }
 
 /*==========================================
@@ -10041,9 +10009,8 @@ int skill_check_cloaking(struct block_list *bl)
 
 	nullpo_retr(1, bl);
 
-	if (bl->type == BL_PC) {
-		nullpo_retr(1, sd = (struct map_session_data *)bl);
-	}
+	if (bl->type == BL_PC)
+		sd = (struct map_session_data *)bl;
 	
 	if ((bl->type == BL_PC && battle_config.pc_cloak_check_type&1) ||
 		(bl->type != BL_PC && battle_config.monster_cloak_check_type&1))
@@ -10407,6 +10374,8 @@ struct skill_unit_group_tickset *skill_unitgrouptickset_search(
 		set = ((struct map_session_data *)bl)->skillunittick;
 	else if (bl->type == BL_MOB)
 		set = ((struct mob_data *)bl)->skillunittick;
+	else if (bl->type == BL_PET)
+		set = ((struct pet_data *)bl)->skillunittick;
 	else
 		return 0;
 

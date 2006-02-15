@@ -4,6 +4,35 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES GO 
 IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EVERYTHING ELSE
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY VALARIS AND WIZPUTER. -- VALARIS
 
+2006/02/14
+	* Merges from trunk: [Skotlex]
+	- Slaves no longer random move.
+	- Slaves now give exp/loot according to their mob_db entry.
+	- Mob db reading now skips items with no item ID (sets their % to 0)
+	- Fixed storage/guild storage not closing properly when being changed of
+	  map.
+	- Removed the pc_clean_skilltree call in pc_setpos which removes
+	  plagiarized skills unneededly.
+	- Added letting the max specified level be above what the exp tables
+	  provide to enable leveling to said levels through script/gm-commands/etc.
+	- Added the experience check for all jobs after reading the exp tables.
+	- Merged the implementation of the NPC_BREAK* skill as ranged attacks that
+	  break stuff as an additional effect.
+	- Merged the damage display for Warm skills, and Meteor Assault, to not
+	  have the character do an attack animation for every target.
+	- Merged the cleaned up implementation of the skill timer skill functions.
+	- Merged the implementation of repair weapon which uses ID rather than a
+	  direct pointer to target which could cause crashes.
+	- Added Grandcross to skills that aren't affected by weapon properties of 
+	  defense ignore/icepick.
+	- Land Protector blocks Hammerfall.
+	- Added the dummy item support to prevent creating items that do not exist
+	  in the DB.
+	- Updated High Jump/Jump Kick can-move requirement.
+	- Fixed Redemptio not setting SP to 1.
+	- Commented the declaration of types puchar/pchar in my_global.h to enable
+	  it to compile for WinNT systems.
+	- Merged the CELL_NOSTACK mod path seek updates.
 2006/02/13
 	* Merged the item non-stacking on the ground fix from trunk. [Skotlex]
 2006/02/12

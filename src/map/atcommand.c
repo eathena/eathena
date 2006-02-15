@@ -2680,7 +2680,7 @@ int atcommand_baselevelup(
 			clif_displaymessage(fd, msg_table[47]); /* Base level can't go any higher. */
 			return -1;
 		}	/* End Addition */
-		if (level > pc_maxbaselv(sd) || level > (pc_maxbaselv(sd) - (int)sd->status.base_level)) // fix positiv overflow
+		if ((unsigned int)level > pc_maxbaselv(sd) || (unsigned int)level > pc_maxbaselv(sd) - sd->status.base_level) // fix positiv overflow
 			level = pc_maxbaselv(sd) - sd->status.base_level;
 		for (i = 1; i <= level; i++)
 			sd->status.status_point += (sd->status.base_level + i + 14) / 5;
@@ -2697,10 +2697,11 @@ int atcommand_baselevelup(
 			clif_displaymessage(fd, msg_table[158]); /* Base level can't go any lower. */
 			return -1;
 		}
-		if (level < -(int)pc_maxbaselv(sd) || level < (1 - (int)sd->status.base_level)) /* fix negativ overflow */
-			level = 1 - sd->status.base_level;
+		level*=-1;
+		if ((unsigned int)level >= sd->status.base_level)
+			level = sd->status.base_level-1;
 		if (sd->status.status_point > 0) {
-			for (i = 0; i > level; i--)
+			for (i = 0; i > -level; i--)
 				sd->status.status_point -= (sd->status.base_level + i + 14) / 5;
 			if (sd->status.status_point < 0)
 				sd->status.status_point = 0;
@@ -2709,7 +2710,6 @@ int atcommand_baselevelup(
 		sd->status.base_level += level;
 		clif_updatestatus(sd, SP_BASELEVEL);
 		clif_updatestatus(sd, SP_NEXTBASEEXP);
-		pc_resetskill(sd);	/* Skills are reset */
 		status_calc_pc(sd, 0);
 		clif_displaymessage(fd, msg_table[22]); /* Base level lowered. */
 	}
@@ -2739,7 +2739,7 @@ int atcommand_joblevelup(
 			clif_displaymessage(fd, msg_table[23]); // Job level can't go any higher.
 			return -1;
 		}
-		if (level > pc_maxjoblv(sd) || level > (pc_maxjoblv(sd) - (int)sd->status.job_level)) // fix positiv overflow
+		if ((unsigned int)level > pc_maxjoblv(sd) || (unsigned int)level > pc_maxjoblv(sd) - sd->status.job_level) // fix positiv overflow
 			level = pc_maxjoblv(sd) - sd->status.job_level;
 		sd->status.job_level += level;
 		clif_updatestatus(sd, SP_JOBLEVEL);
@@ -2754,17 +2754,18 @@ int atcommand_joblevelup(
 			clif_displaymessage(fd, msg_table[159]); // Job level can't go any lower.
 			return -1;
 		}
-		if (level < -(int)pc_maxjoblv(sd) || level < (1 - (int)sd->status.job_level)) // fix negativ overflow
-			level = 1 - sd->status.job_level;
-		sd->status.job_level += level;
+		level *=-1;
+		if ((unsigned int)level >= sd->status.job_level) // fix negativ overflow
+			level = sd->status.job_level-1;
+		sd->status.job_level -= level;
 		clif_updatestatus(sd, SP_JOBLEVEL);
 		clif_updatestatus(sd, SP_NEXTJOBEXP);
-		if (sd->status.skill_point > 0) {
-			sd->status.skill_point += level;
-			if (sd->status.skill_point < 0)
-				sd->status.skill_point = 0;
-			clif_updatestatus(sd, SP_SKILLPOINT);
-		} // to add: remove status points from skills
+		if (sd->status.skill_point < level)
+			pc_resetskill(sd,0);	//Reset skills since we need to substract more points.
+		sd->status.skill_point -= level;
+		if (sd->status.skill_point < 0)
+			sd->status.skill_point = 0;
+		clif_updatestatus(sd, SP_SKILLPOINT);
 		status_calc_pc(sd, 0);
 		clif_displaymessage(fd, msg_table[25]); // Job level lowered.
 	}

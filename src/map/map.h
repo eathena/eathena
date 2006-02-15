@@ -515,7 +515,7 @@ struct map_session_data {
 	//unsigned int skillstatictimer[MAX_SKILL];
 	unsigned short timerskill_count; // [celest]
 	int cloneskill_id;
-	struct map_session_data *repair_target;
+	int repair_target;
 
 	int invincible_timer;
 	unsigned int canact_tick;
@@ -1129,6 +1129,7 @@ typedef enum {
 	CELL_CHKNOPASS,		// 通過不可(セルタイプ1,5)
 	CELL_GETTYPE,		// セルタイプを返す
 	CELL_GETCELLTYPE,
+	CELL_CHKSTACK,
 	CELL_CHKNPC=0x10,	// タッチタイプのNPC(セルタイプ0x80フラグ)
 	CELL_CHKREGEN,		// cells that improve regeneration
 	CELL_CHKPNEUMA,
