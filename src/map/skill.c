@@ -1918,7 +1918,9 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 	case SG_STAR_WARM:
 		clif_skill_damage(dsrc,bl,tick,dmg.amotion,dmg.dmotion, damage, dmg.div_, skillid, -1, 5);
 		break;
-
+	case PA_GOSPEL: //Should look like Holy Cross [Skotlex]
+		clif_skill_damage(dsrc,bl,tick,dmg.amotion,dmg.dmotion, damage, dmg.div_, CR_HOLYCROSS, -1, 5);
+		break;
 
 	case ASC_BREAKER:	// [celest]
 		if (attack_type&BF_WEAPON) { // the 1st attack won't really deal any damage

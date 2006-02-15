@@ -5,6 +5,7 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY VALARIS AND WIZPUTER. -- VALARIS
 
 2006/02/14
+	* Added the missing "Holy Cross" damage display to Gospel. [Skotlex]
 	* Merges from trunk: [Skotlex]
 	- Slaves no longer random move.
 	- Slaves now give exp/loot according to their mob_db entry.
