@@ -5,6 +5,7 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY VALARIS AND WIZPUTER. -- VALARIS
 
 2006/02/15
+	* Fixed crash in chrif_load_scdata warning message. [Skotlex]
 	* Fixed pets displaying "strangely" when they did not have their pet armor
 	  [Skotlex]
 	* Fixed @lvup commmand raising levels when you specify a negative value
