@@ -1,10 +1,18 @@
-all sql txt: prep baseio.o basesq.o core.o db.o plugins.o grfio.o lock.o malloc.o md5calc.o mmo.o nullpo.o showmsg.o socket.o strlib.o timer.o utils.o
+all: txt sql
+common txt: txtobj  txtobj/baseio.o txtobj/basesq.o obj
+common_sql sql: sqlobj sqlobj/baseio.o sqlobj/basesq.o obj
 
-##########################################################
-# always clean those for the moment
-.PHONY : prep
-prep: 
-	rm -rf baseio.o basesq.o
+obj: core.o db.o plugins.o grfio.o lock.o malloc.o md5calc.o mmo.o nullpo.o showmsg.o socket.o strlib.o timer.o utils.o
+
+txtobj:
+	mkdir txtobj
+sqlobj:
+	mkdir sqlobj
+
+txtobj/%.o: %.cpp
+	$(CCC) $(CPPFLAGS) $(OUTPUT_OPTION) -c $<
+sqlobj/%.o: %.cpp
+	$(CCC) $(CPPFLAGS) $(OUTPUT_OPTION) -c $<
 
 ##########################################################
 # stupid make does not know .cpp suffix by default
@@ -13,6 +21,9 @@ prep:
 .cpp.o:
 	$(CCC) $(CPPFLAGS) $(OUTPUT_OPTION) -c $<
 ##########################################################
+
+
+
 
 
 ##########################################################
@@ -32,7 +43,9 @@ BASE_H = $(BP)/basealgo.h $(BP)/basearray.h $(BP)/basecharset.h  $(BP)/baseexcep
 ##########################################################
 CP = $(RETURN_PATH)/$(COMMON_PATH)
 ##########################################################
-COMMON_OBJ = $(CP)/baseio.o $(CP)/basesq.o $(CP)/core.o $(CP)/db.o $(CP)/plugins.o $(CP)/lock.o $(CP)/malloc.o $(CP)/md5calc.o $(CP)/mmo.o $(CP)/nullpo.o $(CP)/showmsg.o $(CP)/socket.o $(CP)/strlib.o $(CP)/timer.o $(CP)/utils.o
+COMMON_OBJ = $(CP)/core.o $(CP)/db.o $(CP)/plugins.o $(CP)/lock.o $(CP)/malloc.o $(CP)/md5calc.o $(CP)/mmo.o $(CP)/nullpo.o $(CP)/showmsg.o $(CP)/socket.o $(CP)/strlib.o $(CP)/timer.o $(CP)/utils.o
+COMMON_TXT = $(CP)/txtobj/baseio.o $(CP)/txtobj/basesq.o 
+COMMON_SQL = $(CP)/sqlobj/baseio.o $(CP)/sqlobj/basesq.o 
 ##########################################################
 COMMON_H = $(CP)/base.h $(CP)/baseio.h $(CP)/basesq.h $(CP)/core.h $(CP)/db.h $(CP)/plugins.h $(CP)/lock.h $(CP)/malloc.h $(CP)/md5calc.h $(CP)/mmo.h $(CP)/nullpo.h $(CP)/showmsg.h $(CP)/socket.h $(CP)/strlib.h $(CP)/timer.h $(CP)/utils.h $(CP)/version.h
 ##########################################################
@@ -53,8 +66,11 @@ strlib.o: strlib.cpp base.h strlib.h utils.h
 timer.o: timer.cpp base.h timer.h showmsg.h
 utils.o: utils.cpp base.h utils.h showmsg.h malloc.h mmo.h
 plugins.o: plugins.cpp base.h plugins.h mmo.h core.h utils.h malloc.h version.h showmsg.h
-baseio.o: baseio.cpp baseio.h base.h $(BASE_H)
-basesq.o: basesq.cpp basesq.h baseio.h base.h $(BASE_H)
+sqlobj/baseio.o: baseio.cpp baseio.h base.h $(BASE_H)
+txtobj/baseio.o: baseio.cpp baseio.h base.h $(BASE_H)
+sqlobj/basesq.o: basesq.cpp basesq.h baseio.h base.h $(BASE_H)
+txtobj/basesq.o: basesq.cpp basesq.h baseio.h base.h $(BASE_H)
+
 clean:
-	rm -rf *.o obj GNUmakefile
+	rm -rf *.o obj txtobj sqlobj GNUmakefile
 

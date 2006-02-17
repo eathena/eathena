@@ -6,8 +6,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 // test function
-void test_strsearch();
-
+void test_strsearch(void);
 
 ///////////////////////////////////////////////////////////////////////////////
 // String search based on the Knuth-Morris-Pratt algorithm for
@@ -18,7 +17,7 @@ void test_strsearch();
 ///////////////////////////////////////////////////////////////////////////////
 template <class T=char> class patternstring_kmp : public string<T>
 {
-	TArrayDST<size_t>	cShifts;
+	vector<size_t>	cShifts;
 
 	void compute_shifts(const string<T> &pattern);
 public:
@@ -35,11 +34,11 @@ public:
 	}
 
 	int findnext(const string<T> &text) const;
-	TArrayDST<size_t> findall(const string<T> &text) const;
+	vector<size_t> findall(const string<T> &text) const;
 
 
 	int findnext(const string<T> &text, const string<T> &pattern);
-	TArrayDST<size_t> findall(const string<T> &text, const string<T> &pattern);
+	vector<size_t> findall(const string<T> &text, const string<T> &pattern);
 };
 
 
@@ -71,8 +70,21 @@ public:
 	// Search function
 	///////////////////////////////////////////////////////////////////////////////
 	bool findnext(const stringinterface<T>& searchstring, size_t &startpos, bool ignorecase=false) const;
-	TArrayDST<size_t> findall(const stringinterface<T>& searchstring, bool ignorecase=false) const;
+	vector<size_t> findall(const stringinterface<T>& searchstring, bool ignorecase=false) const;
 };
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+// simple pattern matching
+///////////////////////////////////////////////////////////////////////////////
+template <class T> bool match_wildcard(const T* wild, const T* match);
+
+
+
 
 
 #endif//__BASESTRSEARCH_H__

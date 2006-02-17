@@ -1562,7 +1562,7 @@ static int unzlocal_getShort(
     uLong *pX)
 {
     uLong x ;
-    int i;
+    int i=0;
     int err;
 
     err = unzlocal_getByte(pzlib_filefunc_def,filestream,&i);
@@ -1585,7 +1585,7 @@ static int unzlocal_getLong(
     uLong *pX)
 {
     uLong x ;
-    int i;
+    int i=0;
     int err;
 
     err = unzlocal_getByte(pzlib_filefunc_def,filestream,&i);
@@ -3293,7 +3293,7 @@ int makedir (const char *newdir)
 int do_list(unzFile uf)
 {
     uLong i;
-    unz_global_info gi;
+    unz_global_info gi={0,0};
     int err;
 
     err = unzGetGlobalInfo (uf,&gi);
@@ -3530,7 +3530,7 @@ int do_extract(unzFile uf,
 			   const char* password)
 {
     uLong i;
-    unz_global_info gi;
+    unz_global_info gi={0,0};
     int err;
 
     err = unzGetGlobalInfo (uf,&gi);
@@ -3783,7 +3783,7 @@ static int ziplocal_getShort (const zlib_filefunc_def* pzlib_filefunc_def,
 							 uLong *pX)
 {
     uLong x ;
-    int i;
+    int i=0;
     int err;
 
     err = ziplocal_getByte(pzlib_filefunc_def,filestream,&i);
@@ -3805,7 +3805,7 @@ static int ziplocal_getLong (const zlib_filefunc_def* pzlib_filefunc_def,
 							uLong *pX)
 {
     uLong x ;
-    int i;
+    int i=0;
     int err;
 
     err = ziplocal_getByte(pzlib_filefunc_def,filestream,&i);

@@ -8,7 +8,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // memory allocation
-int test_memory();
+void test_memory(void);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -36,7 +36,6 @@ extern inline size_t memquantize(size_t sz)
 	else
 		return (sz + quant2 - 1) & qmask2;
 }
-
 
 
 
@@ -121,6 +120,7 @@ protected:
 		}
 	}
 #endif
+
 };
 
 
@@ -209,34 +209,49 @@ protected:
 };
 
 
-
-
-
+class _allocatorbase : public global, public noncopyable
+{
+public:
+	typedef size_t size_type;
+	static const size_type npos;
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 // basic allocator interface
 // for allocating memory in different ways
 // defines basic functions of a storage element
 ///////////////////////////////////////////////////////////////////////////////
-template <class T=char> class allocator : public global, public noncopyable
+template <class T=char> class allocator : public _allocatorbase
 {
 public:
+	typedef T					value_type;
+	typedef const value_type*	const_iterator;
+//	typedef value_type*			iterator;
+
 	class iterator
 	{
-		const allocator& base;
+		const allocator* base;
 		T* ptr;
 	public:
-		iterator(const allocator& a) : base(a), ptr(a.begin())	{}
+		iterator(const allocator& a)
+			: base(&a), ptr(const_cast<T*>(a.begin()))
+		{}
+		iterator(const allocator& a, const T* p)
+			: base(&a), ptr((p && base && p>=base->begin() && p<=base->end())?const_cast<T*>(p):NULL)
+		{}
 		~iterator()	{}
 		// can use default copy//assignment
-		const iterator& operator=(T* p)
+		const iterator& operator=(const T* p)
 		{
-			if( p && p>=base.begin() && p<=base.end() )
-				this->ptr=p;
-			else
-				this->ptr=NULL;
+			this->ptr=(p && base && p>=base->begin() && p<=base->end())?const_cast<T*>(p):NULL;
 		}
-		bool isvalid() const	{ return (this->ptr && this->ptr>=base.begin() && this->ptr<=base.end()); }
+		const iterator& operator=(const allocator& a)
+		{
+			base = &a;
+			ptr = const_cast<T*>(a.begin());
+			return *this;
+		}
+		bool isvalid() const	{ return (this->ptr && this->base && this->ptr>=base->begin() && this->ptr<=base->end()); }
 		operator bool() const	{ return this->isvalid(); }
 		T* operator()()			{ return this->isvalid()?this->ptr:NULL; }
 		T& operator*()			{ return *this->ptr; }
@@ -287,14 +302,21 @@ public:
 		bool operator< (const iterator&i) const	{ return this->ptr< i.ptr; }
 	};
 
+
+	allocator()				{}
 	virtual ~allocator()	{}
 
-	virtual operator const T*() const =0;
+	//virtual operator const T*() const =0;
 	virtual size_t length()	const =0;
 	virtual size_t size() const { return length(); }
-	virtual T* begin() const=0;
-	virtual T* end() const=0;
+	virtual const T* begin() const=0;
+	virtual const T* end() const=0;
+	virtual const T* final() const=0;
 };
+
+
+
+
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -305,7 +327,7 @@ template <class T=char> class allocator_w : public allocator<T>
 protected:
 	mutable T* cBuf;
 	T* cEnd;
-	mutable T* cWpp;
+	T* cWpp;
 
 	const T*& ptrBuf() const	{ return cBuf; }
 	      T*& ptrRpp() const	{ return cBuf; }
@@ -319,10 +341,10 @@ protected:
 
 	virtual bool checkwrite(size_t addsize)	=0;
 public:
-	virtual operator const T*() const	{ return this->cBuf; }
 	virtual size_t length()	const		{ return (this->cWpp-this->cBuf); }
-	virtual T* begin() const			{ return this->cBuf; }
-	virtual T* end() const				{ return (this->cWpp>this->cBuf)?this->cWpp-1:this->cBuf; }
+	virtual const T* begin() const		{ return this->cBuf; }
+	virtual const T* end() const		{ return (this->cWpp>this->cBuf)?this->cWpp-1:this->cBuf; }
+	virtual const T* final() const		{ return this->cWpp; }
 };
 
 
@@ -365,7 +387,7 @@ protected:
 		return (this->cEnd > this->cBuf);
 	}
 	// have the EOS be part of the iteration
- 	virtual T* end() const			{ return this->cWpp; }
+ 	virtual const T* end() const			{ return this->cWpp; }
 };
 
 
@@ -388,7 +410,7 @@ protected:
 		return ( this->cWpp && this->cWpp +addsize < this->cEnd );
 	}
 	// have the EOS be part of the iteration
- 	virtual T* end() const			{ return this->cWpp; }
+ 	virtual const T* end() const			{ return this->cWpp; }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -474,10 +496,10 @@ protected:
 	virtual bool checkwrite(size_t addsize)	=0;
 	virtual bool checkread(size_t addsize) const =0;
 public:
-	virtual operator const T*() const	{ return this->cRpp; }
 	virtual size_t length()	const		{ return (this->cWpp-this->cRpp); }
-	virtual T* begin() const			{ return this->cRpp; }
-	virtual T* end() const				{ return (this->cWpp>this->cRpp)?this->cWpp-1:this->cRpp; }
+	virtual const T* begin() const		{ return this->cRpp; }
+	virtual const T* end() const		{ return (this->cWpp>this->cRpp)?this->cWpp-1:this->cRpp; }
+	virtual const T* final() const		{ return this->cWpp; }
 };
 ///////////////////////////////////////////////////////////////////////////////
 // dynamic read/write-buffer allocator
@@ -586,12 +608,12 @@ protected:
 	virtual bool checkwrite(size_t addsize)	=0;
 	virtual bool checkread(size_t addsize) =0;
 public:
-	virtual operator const T*() const	{ return this->cRpp; }
 	virtual size_t length()	const		{ return (this->cWpp-this->cRpp); }
 
 	// not that usefull here
-	virtual T* begin() const			{ return this->cRpp; }
-	virtual T* end() const				{ return (this->cWpp>this->cRpp)?this->cWpp-1:this->cRpp; }
+	virtual const T* begin() const		{ return this->cRpp; }
+	virtual const T* end() const		{ return (this->cWpp>this->cRpp)?this->cWpp-1:this->cRpp; }
+	virtual const T* final() const		{ return this->cWpp; }
 };
 
 ///////////////////////////////////////////////////////////////////////////////

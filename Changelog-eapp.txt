@@ -1,4 +1,19 @@
 Date	Added
+02/17
+	* adding some more base environment stuff
+	* wrapped test code into debug defines, but existing test cases
+	  still not cover all files/necessary circumstances
+	* updated to Hinoko's newer regex engine (not yet updated the tests,
+	  so there are some wrong error detects on lazy operators and char sets)
+	* some general code cleaning, renaming interfering variables
+	* adding automatic WAN setup (not yet configurable)
+	* combined map server's sql interface and seperated the files
+	  in make process to allow minimum difference of dependecies
+	* updated makefiles to allow individual makes targets 
+	  with proper dependecies, so ie. 'make all' now really makes all, 
+	  and 'make login' only makes the txt login server with its dependencies
+	* cleaned some unused account variables in login and started 
+	  to remove unused/unnecessary packets
 02/05
 	* sql database connection pool with example
 	* added vector/stack/fifo/slist classes, testcases not yet complete

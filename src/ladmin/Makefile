@@ -1,4 +1,4 @@
-txt sql all: ladmin
+all txt sql: ladmin
 
 ##########################################################
 # stupid make does not know .cpp suffix by default
@@ -27,7 +27,9 @@ BASE_H = $(BP)/basealgo.h $(BP)/basearray.h $(BP)/basecharset.h  $(BP)/baseexcep
 ##########################################################
 CP = $(RETURN_PATH)/$(COMMON_PATH)
 ##########################################################
-COMMON_OBJ = $(CP)/baseio.o $(CP)/basesq.o $(CP)/core.o $(CP)/db.o $(CP)/plugins.o $(CP)/lock.o $(CP)/malloc.o $(CP)/md5calc.o $(CP)/mmo.o $(CP)/nullpo.o $(CP)/showmsg.o $(CP)/socket.o $(CP)/strlib.o $(CP)/timer.o $(CP)/utils.o
+COMMON_OBJ = $(CP)/core.o $(CP)/db.o $(CP)/plugins.o $(CP)/lock.o $(CP)/malloc.o $(CP)/md5calc.o $(CP)/mmo.o $(CP)/nullpo.o $(CP)/showmsg.o $(CP)/socket.o $(CP)/strlib.o $(CP)/timer.o $(CP)/utils.o
+COMMON_TXT = $(CP)/txtobj/baseio.o $(CP)/txtobj/basesq.o 
+COMMON_SQL = $(CP)/sqlobj/baseio.o $(CP)/sqlobj/basesq.o 
 ##########################################################
 COMMON_H = $(CP)/base.h $(CP)/baseio.h $(CP)/basesq.h $(CP)/core.h $(CP)/db.h $(CP)/plugins.h $(CP)/lock.h $(CP)/malloc.h $(CP)/md5calc.h $(CP)/mmo.h $(CP)/nullpo.h $(CP)/showmsg.h $(CP)/socket.h $(CP)/strlib.h $(CP)/timer.h $(CP)/utils.h $(CP)/version.h
 ##########################################################

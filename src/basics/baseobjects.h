@@ -51,6 +51,33 @@ public:
 	~nonallocable() {}
 };
 
+///////////////////////////////////////////////////////////////////////////////
+// default compare operators using object pointers
+//////////////////////////////////////////////////////////////////////////
+class defaultcmp
+{
+protected:
+	defaultcmp()	{}
+public:
+	bool operator==(const defaultcmp& a) const	{ return this==&a; }
+	bool operator!=(const defaultcmp& a) const	{ return this!=&a; }
+	bool operator>=(const defaultcmp& a) const	{ return this>=&a; }
+	bool operator> (const defaultcmp& a) const	{ return this> &a; }
+	bool operator<=(const defaultcmp& a) const	{ return this<=&a; }
+	bool operator< (const defaultcmp& a) const	{ return this< &a; }
+};
+
+//////////////////////////////////////////////////////////////////////////
+// base class for clonable objects
+//////////////////////////////////////////////////////////////////////////
+class clonable
+{
+public:
+	virtual ~clonable()	{}
+	virtual clonable* clone(void) const = 0;
+};
+
+
 
 //////////////////////////////////////////////////////////////////////////
 // base class for objects that can be counted on global scope

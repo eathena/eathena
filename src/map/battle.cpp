@@ -334,7 +334,7 @@ int battle_damage(struct block_list *bl,struct block_list *target,int damage,int
 
 		if(tsd && tsd->skilltimer!=-1){	// 詠唱妨害
 			// フェンカードや妨害されないスキルかの検査
-			if( (!tsd->state.no_castcancel || map[bl->m].flag.gvg) && tsd->state.skillcastcancel &&
+			if( (!tsd->state.no_castcancel || maps[bl->m].flag.gvg) && tsd->state.skillcastcancel &&
 				!tsd->state.no_castcancel2)
 				skill_castcancel(target,0);
 		}
@@ -609,7 +609,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 		if(src->type == BL_PC)
 		{
 			struct guild *g=guild_search(((struct map_session_data *)src)->status.guild_id);
-			struct guild_castle *gc=guild_mapname2gc(map[bl->m].mapname);
+			struct guild_castle *gc=guild_mapname2gc(maps[bl->m].mapname);
 
 			if(!((struct map_session_data *)src)->status.guild_id)
 				damage=0;
@@ -630,9 +630,9 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 	}
 
 	if (damage > 0) { // damage reductions
-		if (map[bl->m].flag.gvg) { //GvG
+		if (maps[bl->m].flag.gvg) { //GvG
 			if (bl->type == BL_MOB){	//defenseがあればダメージが減るらしい？
-			struct guild_castle *gc=guild_mapname2gc(map[bl->m].mapname);
+			struct guild_castle *gc=guild_mapname2gc(maps[bl->m].mapname);
 				if (gc) damage -= damage * (gc->defense / 100) * (battle_config.castle_defense_rate/100);
 			}
 			if (flag & BF_WEAPON) {
@@ -1816,7 +1816,7 @@ struct Damage battle_calc_mob_weapon_attack(struct block_list *src,struct block_
 			damage=damage*cardfix/100;
 	}
 	if(t_sc_data && t_sc_data[SC_ASSUMPTIO].timer != -1){ //アシャンプティオ
-		if(!map[target->m].flag.pvp)
+		if(!maps[target->m].flag.pvp)
 			damage=damage/3;
 		else
 			damage=damage/2;
@@ -2619,7 +2619,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 			pc_damage(*sd, self_damage, &sd->bl);
 			clif_damage(sd->bl,sd->bl, gettick(), 0, 0, self_damage, 0 , 0, 0);
 			damage = self_damage * (90 + sc_data[SC_SACRIFICE].val1.num * 10) / 100;
-			if (map[sd->bl.m].flag.gvg)
+			if (maps[sd->bl.m].flag.gvg)
 				damage = 6*damage/10; //40% less effective on siege maps. [Skotlex]
 			damage2 = 0;
 			hitrate = 1000000;
@@ -2832,7 +2832,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 			damage2=damage2*cardfix/100; //ディフェンダー補正による左手ダメージ減少
 		}
 		if(t_sc_data[SC_ASSUMPTIO].timer != -1){ //アスムプティオ
-			if(!map[target->m].flag.pvp){
+			if(!maps[target->m].flag.pvp){
 				damage=damage/3;
 				damage2=damage2/3;
 			}else{
@@ -4143,7 +4143,7 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 			scfix=scfix/2;
 		if(t_sc_data[SC_ASSUMPTIO].timer != -1)
 		{
-			if(!map[target->m].flag.pvp)
+			if(!maps[target->m].flag.pvp)
 				scfix=scfix*2/3;
 			else
 				scfix=scfix/2;
@@ -4780,7 +4780,7 @@ struct Damage battle_calc_misc_attack(struct block_list *bl,struct block_list *t
 			self_damage = status_get_max_hp(bl)*9/100;
 		ele = status_get_attack_element(bl);
 		damage = self_damage + (self_damage/10)*(skill_lv-1);
-		if (map[bl->m].flag.gvg)
+		if (maps[bl->m].flag.gvg)
 			damage = 6*damage/10; //40% less effective on siege maps. [Skotlex]
 		break;
 	}
@@ -5299,7 +5299,7 @@ int battle_check_target(struct block_list *src, struct block_list *target,int fl
 	struct block_list *s_bl= src, *t_bl= target;
 	
 	m = target->m;
-	if (flag&BCT_ENEMY && !map[m].flag.gvg)	//Offensive stuff can't be casted on Basilica
+	if (flag&BCT_ENEMY && !maps[m].flag.gvg)	//Offensive stuff can't be casted on Basilica
 	{	// Celest
 		//No offensive stuff while in Basilica.
 		if (map_getcell(m,src->x,src->y,CELL_CHKBASILICA) ||
@@ -5433,20 +5433,20 @@ int battle_check_target(struct block_list *src, struct block_list *target,int fl
 		(s_bl->type == BL_PC && t_bl->type == BL_MOB))
 		state |= BCT_ENEMY;
 	
-	if(flag&BCT_PARTY || (map[m].flag.pvp && flag&BCT_ENEMY))
+	if(flag&BCT_PARTY || (maps[m].flag.pvp && flag&BCT_ENEMY))
 	{	//Identify party state
 		int s_party, t_party;
 		s_party = status_get_party_id(s_bl);
 		t_party = status_get_party_id(t_bl);
 
-		if (!map[m].flag.pvp)
+		if (!maps[m].flag.pvp)
 		{
 			if (s_party && s_party == t_party)
 				state |= BCT_PARTY;
 		}
 		else
 		{
-			if (!map[m].flag.pvp_noparty && s_party && s_party == t_party)
+			if (!maps[m].flag.pvp_noparty && s_party && s_party == t_party)
 				state |= BCT_PARTY;
 			else
 			{
@@ -5466,20 +5466,20 @@ int battle_check_target(struct block_list *src, struct block_list *target,int fl
 		}
 	}
 
-	if (flag&BCT_GUILD || (agit_flag && (map[m].flag.gvg || map[m].flag.gvg_dungeon) && flag&BCT_ENEMY))
+	if (flag&BCT_GUILD || (agit_flag && (maps[m].flag.gvg || maps[m].flag.gvg_dungeon) && flag&BCT_ENEMY))
 	{	//Identify guild state
 		int s_guild, t_guild;
 		s_guild = status_get_guild_id(s_bl);
 		t_guild = status_get_guild_id(t_bl);
 
-		if (!map[m].flag.gvg && !map[m].flag.gvg_dungeon && !map[m].flag.pvp)
+		if (!maps[m].flag.gvg && !maps[m].flag.gvg_dungeon && !maps[m].flag.pvp)
 		{
 			if (s_guild && t_guild && (s_guild == t_guild || guild_isallied(s_guild, t_guild)))
 				state |= BCT_GUILD;
 		}
 		else
 		{
-			if (!(map[m].flag.pvp && map[m].flag.pvp_noguild) && s_guild && t_guild && (s_guild == t_guild || guild_isallied(s_guild, t_guild)))
+			if (!(maps[m].flag.pvp && maps[m].flag.pvp_noguild) && s_guild && t_guild && (s_guild == t_guild || guild_isallied(s_guild, t_guild)))
 				state |= BCT_GUILD;
 			else
 				state |= BCT_ENEMY;
@@ -5579,8 +5579,8 @@ int battle_check_target(struct block_list *src, struct block_list *target,int fl
 			if (ss->prev == NULL)
 				return -1;
 			if (inf2&0x80 &&
-				(map[src->m].flag.pvp ||
-				(skillid >= 115 && skillid <= 125 && map[src->m].flag.gvg)) &&
+				(maps[src->m].flag.pvp ||
+				(skillid >= 115 && skillid <= 125 && maps[src->m].flag.gvg)) &&
 				!(target->type == BL_PC && pc_isinvisible(*tsd)))
 					return 0;
 			if (ss == target) {
@@ -5598,7 +5598,7 @@ int battle_check_target(struct block_list *src, struct block_list *target,int fl
 
 		if (tsd) {
 			if(md->class_ >= 1285 && md->class_ <= 1287){
-				struct guild_castle *gc = guild_mapname2gc (map[target->m].mapname);
+				struct guild_castle *gc = guild_mapname2gc (maps[target->m].mapname);
 				if(gc && agit_flag==0)	// Guardians will not attack during non-woe time [Valaris]
 					return 1;  // end addition [Valaris]
 				if(gc && tsd->status.guild_id > 0) {
@@ -5675,7 +5675,7 @@ int battle_check_target(struct block_list *src, struct block_list *target,int fl
 		struct skill_unit *su = NULL;
 		if (src->type == BL_SKILL)
 			su = (struct skill_unit *)src;
-		if (map[ss->m].flag.pvp || pc_iskiller(*ssd, *tsd)) { // [MouseJstr]
+		if (maps[ss->m].flag.pvp || pc_iskiller(*ssd, *tsd)) { // [MouseJstr]
 			if(su && su->group->target_flag == BCT_NOENEMY)
 				return 1;
 			else if (battle_config.pk_mode &&
@@ -5683,19 +5683,19 @@ int battle_check_target(struct block_list *src, struct block_list *target,int fl
 				ssd->status.base_level < battle_config.pk_min_level ||
 				tsd->status.base_level < battle_config.pk_min_level))
 				return 1; // prevent novice engagement in pk_mode [Valaris]
-			else if (map[ss->m].flag.pvp_noparty && s_p > 0 && t_p > 0 && s_p == t_p)
+			else if (maps[ss->m].flag.pvp_noparty && s_p > 0 && t_p > 0 && s_p == t_p)
 				return 1;
-			else if (map[ss->m].flag.pvp_noguild && s_g > 0 && t_g > 0 && s_g == t_g)
+			else if (maps[ss->m].flag.pvp_noguild && s_g > 0 && t_g > 0 && s_g == t_g)
 				return 1;
 			return 0;
 		}
-		if (map[src->m].flag.gvg || map[src->m].flag.gvg_dungeon) {
+		if (maps[src->m].flag.gvg || maps[src->m].flag.gvg_dungeon) {
 			struct guild *g;
 			if (su && su->group->target_flag == BCT_NOENEMY)
 				return 1;
 			if (s_g > 0 && s_g == t_g)
 				return 1;
-			if (map[src->m].flag.gvg_noparty && s_p > 0 && t_p > 0 && s_p == t_p)
+			if (maps[src->m].flag.gvg_noparty && s_p > 0 && t_p > 0 && s_p == t_p)
 				return 1;
 			if ((g = guild_search(s_g))) {
 				int i;

@@ -1611,7 +1611,7 @@ public:
 			this->cRpp+=4;
 			return  ip;
 		}
-		return INADDR_ANY;
+		return (uint32)INADDR_ANY;
 	}
 	///////////////////////////////////////////////////////////////////////////
 	sint64 operator = (const sint64 lx)

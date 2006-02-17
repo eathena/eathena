@@ -197,12 +197,12 @@ public:
 	unsigned char online;
 	uint32 login_count;
 	char last_login[24];
+	char last_ip[16];
 ////////////////////////////
 	// marked for deletion
-	unsigned char state;
-	char last_ip[16];
-	char error_message[24];
-	char memo[256];
+//	unsigned char state;
+//	char error_message[24];
+//	char memo[256];
 //////////////////////////
 
 	CLoginAccount()	{}

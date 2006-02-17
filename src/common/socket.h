@@ -12,7 +12,6 @@ extern time_t last_tick;
 
 
 
-
 // Class for assigning/reading words from a buffer
 class objW
 {
@@ -354,5 +353,8 @@ int start_console(void);
 
 void set_defaultparse(int (*defaultparse)(int));
 void set_defaultconsoleparse(int (*defaultparse)(char*));
+
+bool detect_WAN(ipaddress& wanip);
+
 
 #endif	// _SOCKET_H_

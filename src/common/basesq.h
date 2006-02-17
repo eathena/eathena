@@ -236,6 +236,7 @@ public:
 	bool mysql_SendQuery(MYSQL_RES*& sql_res, const char* q, size_t sz=0);	// Queries that are obtaining data
 	bool mysql_SendQuery(const char* q, size_t sz=0);						// Queries that are sending data
 
+
 	// Please be aware that I was drunk when i wrote what i need here, so if spelling errors are
 	// present, please yell at me and beat me with a stick == CLOWNISIUS
 
@@ -395,9 +396,6 @@ public:
 			cTempAccount.ban_until	= (time_t)(cSqlRow[13]?atol(cSqlRow[13]):0);
 
 			// clear unused fields until they got removed from all implementations
-			cTempAccount.state = 0;
-			cTempAccount.error_message[0]=0;
-			cTempAccount.memo[0]=0;
 			cTempAccount.last_ip[0]=0;
 		}
 		return (cSqlRow!=NULL);

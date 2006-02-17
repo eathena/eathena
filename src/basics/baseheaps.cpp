@@ -9,41 +9,29 @@
 #include "basearray.h"
 #include "baseheaps.h"
 
-#define CFIELDS
 
 void test_heaps(int scale)
 {
+#if defined(DEBUG)
 
 	if( scale<1 ) scale=1;
-#if defined(CFIELDS)
-
-#else
-	scale*=10;
-#endif
 
 	uint k;
 	const uint CFIELDSIZE = 5000000/scale;
 	uint elems=0;
 
 	ulong tick;
-#if defined(CFIELDS)
 	int *array[3];
 	array[0]= new int[CFIELDSIZE];
 	array[1]= new int[CFIELDSIZE];
 	array[2]= new int[CFIELDSIZE];
-	printf("testing cfields\n");
-#else
-	TArrayDST<int> array[3];
-	array[0].resize(CFIELDSIZE);
-	array[1].resize(CFIELDSIZE);
-	array[2].resize(CFIELDSIZE);
-	printf("testing arrays\n");
 
-#endif
-
+	
+	srand( time(NULL) );
 	for(k=0; k<CFIELDSIZE; k++)
 		array[0][k]=array[1][k]=
 		rand();						// random data
+	//	k;							// sorted
 	//	CFIELDSIZE-k;				// reverse sorted
 
 
@@ -51,17 +39,33 @@ void test_heaps(int scale)
 	// Binary Heap Test
 	///////////////////////////////////////////////////////////////////////////
 
-	BinaryHeap<int> bhtest;
+	BinaryHeapDH<int> bhtest1;
 
 	elems = CFIELDSIZE;
 
-	bhtest.clear();
+	bhtest1.clear();
 	for(k=0; k<elems; k++)
-		bhtest.append(array[0][k]);
+		bhtest1.append(array[0][k]);
 
 	tick = clock();
-	bhtest.restoreHeap();
+	bhtest1.restoreHeap();
+	printf("restoreHeapDH %lu (%i elems)\n", clock()-tick, elems);
+	if( !bhtest1.checkHeap() )
+		printf("restoreHeapDH failed\n");
+
+	BinaryHeap<int> bhtest2;
+
+	elems = CFIELDSIZE;
+
+	bhtest2.clear();
+	for(k=0; k<elems; k++)
+		bhtest2.append(array[0][k]);
+
+	tick = clock();
+	bhtest2.restoreHeap();
 	printf("restoreHeap %lu (%i elems)\n", clock()-tick, elems);
+	if( !bhtest2.checkHeap() )
+		printf("restoreHeap failed\n");
 
 
 	BinaryHeapDH<int> bh1;
@@ -70,31 +74,66 @@ void test_heaps(int scale)
 	int val, val2;
 
 	///////////////////////////////////////////////////////////////////////////
-	bh1.insert(5);
-	bh1.insert(2);
-	bh1.insert(1);
-	bh1.insert(4);
-	bh1.insert(8);
+	bh1.append(5);
+	bh1.append(4);
+	bh1.append(8);
+	bh1.append(3);
+	bh1.append(6);
+	bh1.append(2);
+	bh1.append(1);
+	bh1.restoreHeap();
 
-	bh1.pop(val);
-	bh1.pop(val);
-	bh1.pop(val);
-	bh1.pop(val);
-	bh1.pop(val);
 
-	bh2.insert(5);
-	bh2.insert(2);
-	bh2.insert(1);
-	bh2.insert(4);
-	bh2.insert(8);
+	bh1.pop(val); if( val!=1 ) printf("bheap 1 pop failed (%i!=1)\n", val);
+	bh1.pop(val); if( val!=2 ) printf("bheap 1 pop failed (%i!=2)\n", val);
+	bh1.pop(val); if( val!=3 ) printf("bheap 1 pop failed (%i!=3)\n", val);
+	bh1.pop(val); if( val!=4 ) printf("bheap 1 pop failed (%i!=4)\n", val);
+	bh1.pop(val); if( val!=5 ) printf("bheap 1 pop failed (%i!=5)\n", val);
 
-	bh2.pop(val);
-	bh2.pop(val);
-	bh2.pop(val);
-	bh2.pop(val);
-	bh2.pop(val);
+	bh2.append(5);
+	bh2.append(4);
+	bh2.append(8);
+	bh2.append(3);
+	bh2.append(6);
+	bh2.append(2);
+	bh2.append(1);
+	bh2.restoreHeap();
+
+	bh2.pop(val); if( val!=1 ) printf("bheap 2 pop failed (%i!=1)\n", val);
+	bh2.pop(val); if( val!=2 ) printf("bheap 2 pop failed (%i!=2)\n", val);
+	bh2.pop(val); if( val!=3 ) printf("bheap 2 pop failed (%i!=3)\n", val);
+	bh2.pop(val); if( val!=4 ) printf("bheap 2 pop failed (%i!=4)\n", val);
+	bh2.pop(val); if( val!=5 ) printf("bheap 2 pop failed (%i!=5)\n", val);
+
+
+	bh1.clear();
+	bh2.clear();
 
 	///////////////////////////////////////////////////////////////////////////
+
+	elems = CFIELDSIZE;
+	tick = clock();
+	for(i=0; i<elems; i++)
+	{
+		bh1.insert( array[0][i] );
+	}
+	printf("binary heap (downmove) insert %lu (%i elems)\n", clock()-tick, elems);
+
+	val2=-1;
+	tick = clock();
+	for(i=0; i<CFIELDSIZE; i++)
+	{
+		bh1.pop( val );
+		if( val<val2 )
+		{
+			printf("error3\n");
+			break;
+		}
+		val2=val;
+	}
+	printf("binary heap (downmove) delete (+1 compare&assign) %lu (%i elems)\n", clock()-tick, elems);
+	
+	
 	elems = CFIELDSIZE;
 	tick = clock();
 	for(i=0; i<elems; i++)
@@ -118,28 +157,7 @@ void test_heaps(int scale)
 	printf("binary heap (updown) delete (+1 compare&assign) %lu (%i elems)\n", clock()-tick, elems);
 
 
-	elems = CFIELDSIZE;
-	tick = clock();
-	for(i=0; i<elems; i++)
-	{
-		bh1.insert( array[0][i] );
-	}
-	printf("binary heap (downmove) insert %lu (%i elems)\n", clock()-tick, elems);
-
-	val2=-1;
-	tick = clock();
-	for(i=0; i<CFIELDSIZE; i++)
-	{
-		bh1.pop( val );
-		if( val<val2 )
-		{
-			printf("error3\n");
-			break;
-		}
-		val2=val;
-	}
-	printf("binary heap (downmove) delete (+1 compare&assign) %lu (%i elems)\n", clock()-tick, elems);
-
+#endif//DEBUG
 }
 
 

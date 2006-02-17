@@ -1464,7 +1464,7 @@ int clif_mob0078(struct mob_data &md, unsigned char *buf)
 
 		if (md.class_ >= 1285 && md.class_ <= 1287 && md.guild_id) {	// Added guardian emblems [Valaris]
 			struct guild *g;
-			struct guild_castle *gc=guild_mapname2gc(map[md.bl.m].mapname);
+			struct guild_castle *gc=guild_mapname2gc(maps[md.bl.m].mapname);
 			if (gc && gc->guild_id > 0) {
 				g=guild_search(gc->guild_id);
 				if (g) {
@@ -1546,7 +1546,7 @@ int clif_mob007b(struct mob_data &md, unsigned char *buf)
 		if(md.class_ >= 1285 && md.class_ <= 1287 && md.guild_id)
 		{	// Added guardian emblems [Valaris]
 			struct guild *g;
-			struct guild_castle *gc=guild_mapname2gc(map[md.bl.m].mapname);
+			struct guild_castle *gc=guild_mapname2gc(maps[md.bl.m].mapname);
 			if(gc && gc->guild_id > 0)
 			{
 				g=guild_search(gc->guild_id);
@@ -1786,7 +1786,7 @@ int clif_set0192(int fd, unsigned short m, unsigned short x, unsigned short y, u
 	WFIFOW(fd,2) = x;
 	WFIFOW(fd,4) = y;
 	WFIFOW(fd,6) = type;
-	mapname2buffer(WFIFOP(fd,8), map[m].mapname, 16);
+	mapname2buffer(WFIFOP(fd,8), maps[m].mapname, 16);
 	WFIFOSET(fd,packet_len_table[0x192]);
 
 	return 0;
@@ -1840,14 +1840,14 @@ int clif_clearweather(unsigned short m)
 			WFIFOSET(sd->fd,packet_len_table[0x80]);
 
 			
-			if( map[sd->bl.m].flag.snow || 
-				map[sd->bl.m].flag.clouds || 
-				map[sd->bl.m].flag.clouds2 || 
-				map[sd->bl.m].flag.fog || 
-				map[sd->bl.m].flag.fireworks ||
-				map[sd->bl.m].flag.sakura || 
-				map[sd->bl.m].flag.leaves || 
-				map[sd->bl.m].flag.rain )
+			if( maps[sd->bl.m].flag.snow || 
+				maps[sd->bl.m].flag.clouds || 
+				maps[sd->bl.m].flag.clouds2 || 
+				maps[sd->bl.m].flag.fog || 
+				maps[sd->bl.m].flag.fireworks ||
+				maps[sd->bl.m].flag.sakura || 
+				maps[sd->bl.m].flag.leaves || 
+				maps[sd->bl.m].flag.rain )
 			{
 				WFIFOW(sd->fd,0)=0x7c;
 				WFIFOL(sd->fd,2)=0xFFFFFFF6;//-10;
@@ -1859,24 +1859,24 @@ int clif_clearweather(unsigned short m)
 				WFIFOPOS(sd->fd,36,sd->bl.x,sd->bl.y, sd->dir);
 				WFIFOSET(sd->fd,packet_len_table[0x7c]);
 
-				if (map[sd->bl.m].flag.snow)
+				if (maps[sd->bl.m].flag.snow)
 					clif_weather1(sd->fd, EFFECT_SNOW);
-				if (map[sd->bl.m].flag.clouds)
+				if (maps[sd->bl.m].flag.clouds)
 					clif_weather1(sd->fd, EFFECT_CLOUDS);
-				if (map[sd->bl.m].flag.clouds2)
+				if (maps[sd->bl.m].flag.clouds2)
 					clif_weather1(sd->fd, EFFECT_CLOUDS2);
-				if (map[sd->bl.m].flag.fog)
+				if (maps[sd->bl.m].flag.fog)
 					clif_weather1(sd->fd, EFFECT_FOG);
-				if (map[sd->bl.m].flag.fireworks) {
+				if (maps[sd->bl.m].flag.fireworks) {
 					clif_weather1(sd->fd, EFFECT_FIRE1);
 					clif_weather1(sd->fd, EFFECT_FIRE2);
 					clif_weather1(sd->fd, EFFECT_FIRE3);
 				}
-				if (map[sd->bl.m].flag.sakura)
+				if (maps[sd->bl.m].flag.sakura)
 					clif_weather1(sd->fd, EFFECT_SAKURA);
-				if (map[sd->bl.m].flag.leaves)
+				if (maps[sd->bl.m].flag.leaves)
 					clif_weather1(sd->fd, EFFECT_LEAVES);
-				if (map[sd->bl.m].flag.rain)
+				if (maps[sd->bl.m].flag.rain)
 					clif_weather1(sd->fd, EFFECT_RAIN);
 			}
 		}
@@ -1940,14 +1940,14 @@ int clif_spawnpc(struct map_session_data &sd)
 		(sd.status.class_==7 || sd.status.class_==14 || sd.status.class_==4008 || sd.status.class_==4015 || sd.status.class_==4030 || sd.status.class_==4037))
 		pc_setriding(sd); // update peco riders for people upgrading athena [Valaris]
 
-	if( map[sd.bl.m].flag.snow || 
-		map[sd.bl.m].flag.clouds || 
-		map[sd.bl.m].flag.clouds2 || 
-		map[sd.bl.m].flag.fog || 
-		map[sd.bl.m].flag.fireworks ||
-		map[sd.bl.m].flag.sakura || 
-		map[sd.bl.m].flag.leaves || 
-		map[sd.bl.m].flag.rain )
+	if( maps[sd.bl.m].flag.snow || 
+		maps[sd.bl.m].flag.clouds || 
+		maps[sd.bl.m].flag.clouds2 || 
+		maps[sd.bl.m].flag.fog || 
+		maps[sd.bl.m].flag.fireworks ||
+		maps[sd.bl.m].flag.sakura || 
+		maps[sd.bl.m].flag.leaves || 
+		maps[sd.bl.m].flag.rain )
 	{
 		WFIFOW(fd,0)=0x7c;
 		WFIFOL(fd,2)=0xFFFFFFF6;//-10;
@@ -1959,24 +1959,24 @@ int clif_spawnpc(struct map_session_data &sd)
 		WFIFOPOS(fd,36,sd.bl.x,sd.bl.y,sd.dir);
 		WFIFOSET(fd,packet_len_table[0x7c]);
 
-		if (map[sd.bl.m].flag.snow)
+		if (maps[sd.bl.m].flag.snow)
 			clif_weather1(fd, EFFECT_SNOW);
-		if (map[sd.bl.m].flag.clouds)
+		if (maps[sd.bl.m].flag.clouds)
 			clif_weather1(fd, EFFECT_CLOUDS);
-		if (map[sd.bl.m].flag.clouds2)
+		if (maps[sd.bl.m].flag.clouds2)
 			clif_weather1(fd, EFFECT_CLOUDS2);
-		if (map[sd.bl.m].flag.fog)
+		if (maps[sd.bl.m].flag.fog)
 			clif_weather1(fd, EFFECT_FOG);
-		if (map[sd.bl.m].flag.fireworks) {
+		if (maps[sd.bl.m].flag.fireworks) {
 			clif_weather1(fd, EFFECT_FIRE1);
 			clif_weather1(fd, EFFECT_FIRE2);
 			clif_weather1(fd, EFFECT_FIRE3);
 		}
-		if (map[sd.bl.m].flag.sakura)
+		if (maps[sd.bl.m].flag.sakura)
 			clif_weather1(fd, EFFECT_SAKURA);
-		if (map[sd.bl.m].flag.leaves)
+		if (maps[sd.bl.m].flag.leaves)
 			clif_weather1(fd, EFFECT_LEAVES);
-		if (map[sd.bl.m].flag.rain)
+		if (maps[sd.bl.m].flag.rain)
 			clif_weather1(fd, EFFECT_RAIN);
 	}
 
@@ -2185,14 +2185,14 @@ int clif_movechar(struct map_session_data &sd)
 	len = clif_set007b(sd, buf);
 	clif_send(buf, len, &sd.bl, AREA_WOS);
 
-	if( map[sd.bl.m].flag.snow || 
-		map[sd.bl.m].flag.clouds || 
-		map[sd.bl.m].flag.clouds2 || 
-		map[sd.bl.m].flag.fog || 
-		map[sd.bl.m].flag.fireworks ||
-		map[sd.bl.m].flag.sakura || 
-		map[sd.bl.m].flag.leaves || 
-		map[sd.bl.m].flag.rain )
+	if( maps[sd.bl.m].flag.snow || 
+		maps[sd.bl.m].flag.clouds || 
+		maps[sd.bl.m].flag.clouds2 || 
+		maps[sd.bl.m].flag.fog || 
+		maps[sd.bl.m].flag.fireworks ||
+		maps[sd.bl.m].flag.sakura || 
+		maps[sd.bl.m].flag.leaves || 
+		maps[sd.bl.m].flag.rain )
 	{
 		memset(buf2,0,packet_len_table[0x7b]);
 		WBUFW(buf2,0)=0x7b;
@@ -4317,7 +4317,7 @@ int clif_damage(struct block_list &src,struct block_list &dst,unsigned long tick
 	if(sc_data)
 	{
 		if( type != 4 && sc_data[SC_ENDURE].timer != -1 && 
-			dst.type == BL_PC && !map[dst.m].flag.gvg )
+			dst.type == BL_PC && !maps[dst.m].flag.gvg )
 			type = 9;
 		if(sc_data[SC_HALLUCINATION].timer != -1)
 		{
@@ -5637,7 +5637,7 @@ int clif_pvpset(struct map_session_data &sd,uint32 pvprank,uint32 pvpnum,int typ
 	if( !session_isActive(sd.fd) )
 		return 0;
 
-	if(map[sd.bl.m].flag.nopvp)
+	if(maps[sd.bl.m].flag.nopvp)
 		return 0;
 
 	if(type == 2) {
@@ -6672,7 +6672,7 @@ int clif_party_move(struct party &p,struct map_session_data &sd,unsigned char on
 	WBUFB(buf,14) = !online;
 	memcpy(WBUFP(buf,15),p.name,24);
 	memcpy(WBUFP(buf,39),sd.status.name,24);
-	mapname2buffer(WBUFP(buf,63),map[sd.bl.m].mapname,16);
+	mapname2buffer(WBUFP(buf,63),maps[sd.bl.m].mapname,16);
 	return clif_send(buf,packet_len_table[0x104],&sd.bl,PARTY);
 }
 /*==========================================
@@ -6758,7 +6758,7 @@ int clif_sendegg(struct map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	if(agit_flag && battle_config.pet_no_gvg && map[sd.bl.m].flag.gvg)
+	if(agit_flag && battle_config.pet_no_gvg && maps[sd.bl.m].flag.gvg)
 	{	//Disable pet hatching in GvG grounds during Guild Wars [Skotlex]
 		clif_displaymessage(fd, "Pets are not allowed in Guild Wars.");
 		return 0;
@@ -7030,7 +7030,7 @@ int clif_changemapcell(unsigned short m,unsigned short x,unsigned short y,unsign
 	WBUFW(buf,2) = x;
 	WBUFW(buf,4) = y;
 	WBUFW(buf,6) = cell_type;
-	mapname2buffer(WBUFP(buf,8),map[m].mapname,16);
+	mapname2buffer(WBUFP(buf,8),maps[m].mapname,16);
 	return clif_send(buf,packet_len_table[0x192],&bl, (!type)?AREA:ALL_SAMEMAP);
 }
 
@@ -8245,7 +8245,7 @@ int clif_charnameack(int fd, struct block_list &bl, bool clear)
 		if (md.class_ >= 1285 && md.class_ <= 1288 && md.guild_id)
 		{
 			struct guild *g;
-			struct guild_castle *gc = guild_mapname2gc(map[md.bl.m].mapname);
+			struct guild_castle *gc = guild_mapname2gc(maps[md.bl.m].mapname);
 			if (gc && gc->guild_id > 0 && (g = guild_search(gc->guild_id)) != NULL)
 			{
 				cmd = 0x195;
@@ -8414,7 +8414,7 @@ int clif_parse_LoadEndAck(int fd, struct map_session_data &sd)
 	// 78
 
 	if(battle_config.pc_invincible_time > 0) {
-		if(map[sd.bl.m].flag.gvg)
+		if(maps[sd.bl.m].flag.gvg)
 			pc_setinvincibletimer(sd,battle_config.pc_invincible_time<<1);
 		else
 			pc_setinvincibletimer(sd,battle_config.pc_invincible_time);
@@ -8433,7 +8433,7 @@ int clif_parse_LoadEndAck(int fd, struct map_session_data &sd)
 		delete_timer(sd.pvp_timer,pc_calc_pvprank_timer);
 		sd.pvp_timer = -1;
 	}
-	if(map[sd.bl.m].flag.pvp){
+	if(maps[sd.bl.m].flag.pvp){
 		if(!battle_config.pk_mode) { // remove pvp stuff for pk_mode [Valaris]
 			sd.pvp_timer=add_timer(gettick()+200,pc_calc_pvprank_timer,sd.bl.id,0);
 			sd.pvp_rank=0;
@@ -8446,7 +8446,7 @@ int clif_parse_LoadEndAck(int fd, struct map_session_data &sd)
 	} else {
 		sd.pvp_timer=-1;
 	}
-	if(map[sd.bl.m].flag.gvg) {
+	if(maps[sd.bl.m].flag.gvg) {
 		clif_set0199(sd.fd,3);
 	}
 
@@ -8468,7 +8468,7 @@ int clif_parse_LoadEndAck(int fd, struct map_session_data &sd)
 			clif_pet_emotion(*sd.pd,(sd.pd->class_ - 100)*100 + 50 + pet_hungry_val(sd));
 
 		// Stop players from spawning inside castles [Valaris]
-		struct guild_castle *gc=guild_mapname2gc(map[sd.bl.m].mapname);
+		struct guild_castle *gc=guild_mapname2gc(maps[sd.bl.m].mapname);
 			if (gc)
 			pc_setpos(sd,sd.status.save_point.mapname,sd.status.save_point.x,sd.status.save_point.y,2);
 		// End Addition [Valaris]
@@ -8497,7 +8497,7 @@ int clif_parse_LoadEndAck(int fd, struct map_session_data &sd)
 	if(battle_config.muting_players && sd.status.manner < 0)
 		status_change_start(&sd.bl,SC_NOCHAT,0,0,0,0,0,0);
 
-	if (night_flag && !map[sd.bl.m].flag.indoors)
+	if (night_flag && !maps[sd.bl.m].flag.indoors)
 		clif_weather1(sd.fd, 474 + battle_config.night_darkness_level);
 
 	// option
@@ -12717,15 +12717,32 @@ int packetdb_readdb(void)
  */
 int do_init_clif(void)
 {
-	size_t i;
-
+	ipaddress wanip;
+	if( detect_WAN(wanip) && 
+		mapaddress.WANIP() != wanip &&
+		mapaddress.LANIP() != wanip )
+	{
+		ShowStatus("Setting WAN IP %s (overwriting config).\n", (const char*)tostring(wanip));
+		mapaddress.SetWANIP(wanip);
+		if( mapaddress.LANMask() == ipany )
+		{
+			mapaddress.LANMask() = ipaddress(0xFFFFFF00ul);
+			ShowStatus("Setting LAN Mask to %s (overwriting config).\n", (const char*)tostring(mapaddress.LANMask()));
+		}
+		if( mapaddress.WANPort() == 0 )
+		{
+			ShowStatus("Setting default WAN Port to %d.\n", 5121);
+			mapaddress.WANPort() = 5121;
+		}
+	}
+	
 	server_char_id    = npc_get_new_npc_id();
 	server_fake_mob_id= npc_get_new_npc_id();
 	
 	packetdb_readdb();
-
 	set_defaultparse(clif_parse);
 
+	size_t i;
 	for(i=0; i<10; i++)
 	{
 		map_fd = make_listen(mapaddress.LANIP(), mapaddress.LANPort());

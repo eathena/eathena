@@ -13,6 +13,8 @@
 #include "script.h"
 #include "pc.h"
 
+#include "datasq.h"
+
 
 #define MAX_RANDITEM	2000
 #define MAX_ITEMGROUP	20

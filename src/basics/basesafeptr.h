@@ -615,7 +615,7 @@ protected:
 
 public:
 	TObjPtr<X>()
-		: cCntObj(NULL), fAccess(TObjPtr<X>::copyonwrite)
+		: cCntObj(NULL), fAccess(&TObjPtr<X>::copyonwrite)
 	{ }
 	TObjPtr<X>(bool cpwr)
 		: cCntObj(NULL), fAccess(cpwr?&TObjPtr<X>::copyonwrite:&TObjPtr<X>::autocreate)

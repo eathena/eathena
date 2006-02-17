@@ -3126,7 +3126,7 @@ int CScriptEngine::run_main()
 						struct npc_data* nd = (struct npc_data*)map_id2bl(this->oid);
 						if(nd)
 						{
-							printf("npc script '%s'/'%s' , map %s, ", nd->name?nd->name:"", nd->exname?nd->exname:"", map[nd->bl.m].mapname);
+							printf("npc script '%s'/'%s' , map %s, ", nd->name?nd->name:"", nd->exname?nd->exname:"", maps[nd->bl.m].mapname);
 						}
 						else
 						{
@@ -4140,12 +4140,12 @@ int buildin_warp(CScriptEngine &st)
 	}
 	else if( 0==strcmp(str,"SavePoint") )
 	{
-		if( !map[st.sd->bl.m].flag.noreturn )	// ’±‹ÖŽ~
+		if( !maps[st.sd->bl.m].flag.noreturn )	// ’±‹ÖŽ~
 			pc_setpos(*st.sd,st.sd->status.save_point.mapname,st.sd->status.save_point.x,st.sd->status.save_point.y,3);
 	}
 	else if( 0==strcmp(str,"Save") )
 	{
-		if( !map[st.sd->bl.m].flag.noreturn )	// ’±‹ÖŽ~
+		if( !maps[st.sd->bl.m].flag.noreturn )	// ’±‹ÖŽ~
 			pc_setpos(*st.sd,st.sd->status.save_point.mapname,st.sd->status.save_point.x,st.sd->status.save_point.y,3);
 	}
 	else
@@ -6022,15 +6022,15 @@ int buildin_killmonster(CScriptEngine &st)
 	{	//!! broadcast command if not on this mapserver
 		if(strcmp(event,"All")==0)
 			CMap::foreachinarea( CBuildinKillSummonedmob(),
-				m,0,0,map[m].xs-1,map[m].ys-1,BL_MOB);
+				m,0,0,maps[m].xs-1,maps[m].ys-1,BL_MOB);
 		else
 			CMap::foreachinarea( CBuildinKillEventmob(event),
-				m,0,0,map[m].xs-1,map[m].ys-1,BL_MOB);
+				m,0,0,maps[m].xs-1,maps[m].ys-1,BL_MOB);
 
 //		if(strcmp(event,"All")==0)
 //			allflag = 1;
 //		map_foreachinarea(buildin_killmonster_sub,
-//			m,0,0,map[m].xs-1,map[m].ys-1,BL_MOB, event ,allflag);
+//			m,0,0,maps[m].xs-1,maps[m].ys-1,BL_MOB, event ,allflag);
 	}
 	return 0;
 }
@@ -6042,10 +6042,10 @@ int buildin_killmonsterall(CScriptEngine &st)
 	if( m < map_num )
 	{	//!! broadcast command if not on this mapserver
 		CMap::foreachinarea( CBuildinKillallmob(),
-			m,0,0,map[m].xs-1,map[m].ys-1,BL_MOB);
+			m,0,0,maps[m].xs-1,maps[m].ys-1,BL_MOB);
 
 //		map_foreachinarea(buildin_killmonsterall_sub,
-//			m,0,0,map[m].xs-1,map[m].ys-1,BL_MOB);
+//			m,0,0,maps[m].xs-1,maps[m].ys-1,BL_MOB);
 	}
 	return 0;
 }
@@ -6310,9 +6310,9 @@ int buildin_mapannounce(CScriptEngine &st)
 	if( m<map_num )
 	{	//!! broadcast command if not on this mapserver
 		CMap::foreachinarea( CBuildinMapannounce(str,1+strlen(str),flag),
-			m,0,0,map[m].xs-1,map[m].ys-1,BL_PC);
+			m,0,0,maps[m].xs-1,maps[m].ys-1,BL_PC);
 //		map_foreachinarea(buildin_mapannounce_sub,
-//			m,0,0,map[m].xs-1,map[m].ys-1,BL_PC,
+//			m,0,0,maps[m].xs-1,maps[m].ys-1,BL_PC,
 //			str,strlen(str)+1,flag&0x10);
 	}
 	return 0;
@@ -6352,7 +6352,7 @@ int buildin_getusers(CScriptEngine &st)
 	int val=0;
 	switch(flag&0x07)
 	{
-	case 0: val=map[bl->m].users; break;
+	case 0: val=maps[bl->m].users; break;
 	case 1: val=map_getusers(); break;
 	}
 	st.push_val(CScriptEngine::C_INT,val);
@@ -6393,7 +6393,7 @@ int buildin_getmapusers(CScriptEngine &st)
 	const char *mapname=st.GetString(st[2]);
 	ushort m=map_mapname2mapid(mapname);
 	//!! broadcast command if not on this mapserver
-	int val = (m<map_num) ? (int)map[m].users : -1;
+	int val = (m<map_num) ? (int)maps[m].users : -1;
 	st.push_val(CScriptEngine::C_INT, val);
 	return 0;
 }
@@ -7026,7 +7026,7 @@ int buildin_warpwaitingpc(CScriptEngine &st)
 		if(strcmp(str,"Random")==0)
 			pc_randomwarp(*sd,3);
 		else if(strcmp(str,"SavePoint")==0){
-			if(map[sd->bl.m].flag.noteleport)	// ƒeƒŒƒ|‹ÖŽ~
+			if(maps[sd->bl.m].flag.noteleport)	// ƒeƒŒƒ|‹ÖŽ~
 				return 0;
 
 			pc_setpos(*sd,sd->status.save_point.mapname,sd->status.save_point.x,sd->status.save_point.y,3);
@@ -7086,12 +7086,12 @@ int buildin_setmapflagnosave(CScriptEngine &st)
 	m = map_mapname2mapid(str);
 //!! broadcast command if not on this mapserver
 	if(m >= 0) {
-		map[m].flag.nosave=1;
-		safestrcpy(map[m].save.mapname,str2,16);
-		char*ip=strchr(map[m].save.mapname,'.');
+		maps[m].flag.nosave=1;
+		safestrcpy(maps[m].save.mapname,str2,16);
+		char*ip=strchr(maps[m].save.mapname,'.');
 		if(ip) *ip=0;
-		map[m].save.x=x;
-		map[m].save.y=y;
+		maps[m].save.x=x;
+		maps[m].save.y=y;
 	}
 
 	return 0;
@@ -7109,82 +7109,82 @@ int buildin_setmapflag(CScriptEngine &st)
 	if(m >= 0) {
 		switch(i) {
 			case MF_NOMEMO:
-				map[m].flag.nomemo=1;
+				maps[m].flag.nomemo=1;
 				break;
 			case MF_NOTELEPORT:
-				map[m].flag.noteleport=1;
+				maps[m].flag.noteleport=1;
 				break;
 			case MF_NOBRANCH:
-				map[m].flag.nobranch=1;
+				maps[m].flag.nobranch=1;
 				break;
 			case MF_NOPENALTY:
-				map[m].flag.nopenalty=1;
+				maps[m].flag.nopenalty=1;
 				break;
 			case MF_NOZENYPENALTY:
-				map[m].flag.nozenypenalty=1;
+				maps[m].flag.nozenypenalty=1;
 				break;
 			case MF_PVP:
-				map[m].flag.pvp=1;
+				maps[m].flag.pvp=1;
 				break;
 			case MF_PVP_NOPARTY:
-				map[m].flag.pvp_noparty=1;
+				maps[m].flag.pvp_noparty=1;
 				break;
 			case MF_PVP_NOGUILD:
-				map[m].flag.pvp_noguild=1;
+				maps[m].flag.pvp_noguild=1;
 				break;
 			case MF_GVG:
-				map[m].flag.gvg=1;
+				maps[m].flag.gvg=1;
 				break;
 			case MF_GVG_NOPARTY:
-				map[m].flag.gvg_noparty=1;
+				maps[m].flag.gvg_noparty=1;
 				break;
 			case MF_GVG_DUNGEON:
-				map[m].flag.gvg_dungeon=1;
+				maps[m].flag.gvg_dungeon=1;
 				break;
 			case MF_NOTRADE:
-				map[m].flag.notrade=1;
+				maps[m].flag.notrade=1;
 				break;
 			case MF_NOSKILL:
-				map[m].flag.noskill=1;
+				maps[m].flag.noskill=1;
 				break;
 			case MF_NOWARP:
-				map[m].flag.nowarp=1;
+				maps[m].flag.nowarp=1;
 				break;
 			case MF_NOPVP:
-				map[m].flag.nopvp=1;
+				maps[m].flag.nopvp=1;
 				break;
 			case MF_NOICEWALL: // [Valaris]
-				map[m].flag.noicewall=1;
+				maps[m].flag.noicewall=1;
 				break;
 			case MF_SNOW: // [Valaris]
-				map[m].flag.snow=1;
+				maps[m].flag.snow=1;
 				break;
 			case MF_CLOUDS:
-				map[m].flag.clouds=1;
+				maps[m].flag.clouds=1;
 				break;
 			case MF_CLOUDS2:
-				map[m].flag.clouds2=1;
+				maps[m].flag.clouds2=1;
 				break;
 			case MF_FOG: // [Valaris]
-				map[m].flag.fog=1;
+				maps[m].flag.fog=1;
 				break;
 			case MF_FIREWORKS:
-				map[m].flag.fireworks=1;
+				maps[m].flag.fireworks=1;
 				break;
 			case MF_SAKURA: // [Valaris]
-				map[m].flag.sakura=1;
+				maps[m].flag.sakura=1;
 				break;
 			case MF_LEAVES: // [Valaris]
-				map[m].flag.leaves=1;
+				maps[m].flag.leaves=1;
 				break;
 			case MF_RAIN: // [Valaris]
-				map[m].flag.rain=1;
+				maps[m].flag.rain=1;
 				break;
 			case MF_INDOORS: // celest
-				map[m].flag.indoors=1;
+				maps[m].flag.indoors=1;
 				break;
 			case MF_NOGO: // celest
-				map[m].flag.nogo=1;
+				maps[m].flag.nogo=1;
 				break;
 		}
 	}
@@ -7203,82 +7203,82 @@ int buildin_removemapflag(CScriptEngine &st)
 	if(m >= 0) {
 		switch(i) {
 			case MF_NOMEMO:
-				map[m].flag.nomemo=0;
+				maps[m].flag.nomemo=0;
 				break;
 			case MF_NOTELEPORT:
-				map[m].flag.noteleport=0;
+				maps[m].flag.noteleport=0;
 				break;
 			case MF_NOSAVE:
-				map[m].flag.nosave=0;
+				maps[m].flag.nosave=0;
 				break;
 			case MF_NOBRANCH:
-				map[m].flag.nobranch=0;
+				maps[m].flag.nobranch=0;
 				break;
 			case MF_NOPENALTY:
-				map[m].flag.nopenalty=0;
+				maps[m].flag.nopenalty=0;
 				break;
 			case MF_PVP:
-				map[m].flag.pvp=0;
+				maps[m].flag.pvp=0;
 				break;
 			case MF_PVP_NOPARTY:
-				map[m].flag.pvp_noparty=0;
+				maps[m].flag.pvp_noparty=0;
 				break;
 			case MF_PVP_NOGUILD:
-				map[m].flag.pvp_noguild=0;
+				maps[m].flag.pvp_noguild=0;
 				break;
 			case MF_GVG:
-				map[m].flag.gvg=0;
+				maps[m].flag.gvg=0;
 				break;
 			case MF_GVG_NOPARTY:
-				map[m].flag.gvg_noparty=0;
+				maps[m].flag.gvg_noparty=0;
 				break;
 			case MF_GVG_DUNGEON:
-				map[m].flag.gvg_dungeon=0;
+				maps[m].flag.gvg_dungeon=0;
 				break;
 			case MF_NOZENYPENALTY:
-				map[m].flag.nozenypenalty=0;
+				maps[m].flag.nozenypenalty=0;
 				break;
 			case MF_NOSKILL:
-				map[m].flag.noskill=0;
+				maps[m].flag.noskill=0;
 				break;
 			case MF_NOWARP:
-				map[m].flag.nowarp=0;
+				maps[m].flag.nowarp=0;
 				break;
 			case MF_NOPVP:
-				map[m].flag.nopvp=0;
+				maps[m].flag.nopvp=0;
 				break;
 			case MF_NOICEWALL: // [Valaris]
-				map[m].flag.noicewall=0;
+				maps[m].flag.noicewall=0;
 				break;
 			case MF_SNOW: // [Valaris]
-				map[m].flag.snow=0;
+				maps[m].flag.snow=0;
 				break;
 			case MF_CLOUDS:
-				map[m].flag.clouds=0;
+				maps[m].flag.clouds=0;
 				break;
 			case MF_CLOUDS2:
-				map[m].flag.clouds2=0;
+				maps[m].flag.clouds2=0;
 				break;
 			case MF_FOG: // [Valaris]
-				map[m].flag.fog=0;
+				maps[m].flag.fog=0;
 				break;
 			case MF_FIREWORKS:
-				map[m].flag.fireworks=0;
+				maps[m].flag.fireworks=0;
 				break;
 			case MF_SAKURA: // [Valaris]
-				map[m].flag.sakura=0;
+				maps[m].flag.sakura=0;
 				break;
 			case MF_LEAVES: // [Valaris]
-				map[m].flag.leaves=0;
+				maps[m].flag.leaves=0;
 				break;
 			case MF_RAIN: // [Valaris]
-				map[m].flag.rain=0;
+				maps[m].flag.rain=0;
 				break;
 			case MF_INDOORS: // celest
-				map[m].flag.indoors=0;
+				maps[m].flag.indoors=0;
 				break;
 			case MF_NOGO: // celest
-				map[m].flag.nogo=0;
+				maps[m].flag.nogo=0;
 				break;
 		}
 	}
@@ -7295,8 +7295,8 @@ int buildin_pvpon(CScriptEngine &st)
 	str=st.GetString(st[2]);
 	m = map_mapname2mapid(str);
 //!! broadcast command if not on this mapserver
-	if(m >= 0 && !map[m].flag.pvp && !map[m].flag.nopvp) {
-		map[m].flag.pvp = 1;
+	if(m >= 0 && !maps[m].flag.pvp && !maps[m].flag.nopvp) {
+		maps[m].flag.pvp = 1;
 		clif_send0199(m,1);
 
 		if(battle_config.pk_mode) // disable ranking functions if pk_mode is on [Valaris]
@@ -7328,8 +7328,8 @@ int buildin_pvpoff(CScriptEngine &st)
 	str=st.GetString(st[2]);
 	m = map_mapname2mapid(str);
 //!! broadcast command if not on this mapserver
-	if(m >= 0 && map[m].flag.pvp && map[m].flag.nopvp) {
-		map[m].flag.pvp = 0;
+	if(m >= 0 && maps[m].flag.pvp && maps[m].flag.nopvp) {
+		maps[m].flag.pvp = 0;
 		clif_send0199(m,0);
 
 		if(battle_config.pk_mode) // disable ranking options if pk_mode is on [Valaris]
@@ -7358,8 +7358,8 @@ int buildin_gvgon(CScriptEngine &st)
 	str=st.GetString(st[2]);
 	m = map_mapname2mapid(str);
 //!! broadcast command if not on this mapserver
-	if(m >= 0 && !map[m].flag.gvg) {
-		map[m].flag.gvg = 1;
+	if(m >= 0 && !maps[m].flag.gvg) {
+		maps[m].flag.gvg = 1;
 		clif_send0199(m,3);
 	}
 	return 0;
@@ -7373,8 +7373,8 @@ int buildin_gvgoff(CScriptEngine &st)
 	str=st.GetString(st[2]);
 	m = map_mapname2mapid(str);
 //!! broadcast command if not on this mapserver
-	if(m >= 0 && map[m].flag.gvg) {
-		map[m].flag.gvg = 0;
+	if(m >= 0 && maps[m].flag.gvg) {
+		maps[m].flag.gvg = 0;
 		clif_send0199(m,0);
 	}
 	return 0;
@@ -7473,9 +7473,9 @@ int buildin_maprespawnguildid(CScriptEngine &st)
 	if( m<map_num )
 	{
 		CMap::foreachinarea( CBuildinRespawnGuild(g_id,flag),
-			m,0,0,map[m].xs-1,map[m].ys-1,BL_NUL);
+			m,0,0,maps[m].xs-1,maps[m].ys-1,BL_NUL);
 //		map_foreachinarea(buildin_maprespawnguildid_sub,
-//			m,0,0,map[m].xs-1,map[m].ys-1,BL_NUL,g_id,flag);
+//			m,0,0,maps[m].xs-1,maps[m].ys-1,BL_NUL,g_id,flag);
 	}
 	return 0;
 }
@@ -7867,8 +7867,8 @@ int buildin_mapwarp(CScriptEngine &st)	// Added by RoVeRT
 	{	//!! broadcast command if not on this mapserver
 		int x0=0;
 		int y0=0;
-		int x1=map[m].xs;
-		int y1=map[m].ys;
+		int x1=maps[m].xs;
+		int y1=maps[m].ys;
 
 		if( 0==strcmp(targetmap,"Random") )
 			CMap::foreachinarea( CBuildinAreawarpRnd(),
@@ -7947,9 +7947,9 @@ int buildin_mobcount(CScriptEngine &st)
 	if( m<map_num )
 	{	//!! broadcast if not on this mapserver
 		amount = CMap::foreachinarea( CBuildinMapCount(BL_MOB,event),
-			m,0,0,map[m].xs-1,map[m].ys-1,BL_MOB);
+			m,0,0,maps[m].xs-1,maps[m].ys-1,BL_MOB);
 //		map_foreachinarea(buildin_mobcount_sub,
-//			m,0,0,map[m].xs-1,map[m].ys-1,BL_MOB, event,&c );
+//			m,0,0,maps[m].xs-1,maps[m].ys-1,BL_MOB, event,&c );
 		return 0;
 	}
 	st.push_val(CScriptEngine::C_INT, amount);
@@ -8107,7 +8107,7 @@ int buildin_guardianinfo(CScriptEngine &st)
 {
 	int index=st.GetInt(st[2]);
 	struct map_session_data *sd=st.sd;
-	struct guild_castle *gc=guild_mapname2gc(map[sd->bl.m].mapname);
+	struct guild_castle *gc=guild_mapname2gc(maps[sd->bl.m].mapname);
 	st.push_val(CScriptEngine::C_INT,
 		(index>=0 && index<MAX_GUARDIAN && gc && gc->guardian[index].visible) ?
 		(int)gc->guardian[index].guardian_hp : -1		
@@ -8776,7 +8776,7 @@ int buildin_getmapmobs(CScriptEngine &st)
 	if(m < map_num)
 	{
 		count = CMap::foreachinarea( CBuildinMapCount(BL_MOB,NULL),
-			m,0,0,map[m].xs-1,map[m].ys-1,BL_MOB);
+			m,0,0,maps[m].xs-1,maps[m].ys-1,BL_MOB);
 	}
 	st.push_val(CScriptEngine::C_INT,count);
 	return 0;
@@ -9065,7 +9065,7 @@ int buildin_getmapxy(CScriptEngine &st)
 			}
 			x=nd->bl.x;
 			y=nd->bl.y;
-			mapname=map[nd->bl.m].mapname;
+			mapname=maps[nd->bl.m].mapname;
 			ShowMessage(">>>>%s %d %d\n",mapname,x,y);
 			break;
 		case 2:	//Get Pet Position
@@ -9086,7 +9086,7 @@ int buildin_getmapxy(CScriptEngine &st)
 			}
 			x=pd->bl.x;
 			y=pd->bl.y;
-			mapname=map[pd->bl.m].mapname;
+			mapname=maps[pd->bl.m].mapname;
 			ShowMessage(">>>>%s %d %d\n",mapname,x,y);
 			break;
 		case 3:	//Get Mob Position
@@ -9546,7 +9546,7 @@ int buildin_warpparty(CScriptEngine &st)
 	uint32 p	=st.GetInt(st[5]);
 	struct map_session_data *sd=st.sd;
 
-	if(!sd || map[sd->bl.m].flag.noreturn || map[sd->bl.m].flag.nowarp || NULL==party_search(p))
+	if(!sd || maps[sd->bl.m].flag.noreturn || maps[sd->bl.m].flag.nowarp || NULL==party_search(p))
 		return 0;
 	
 	if(p!=0)
@@ -9561,7 +9561,7 @@ int buildin_warpparty(CScriptEngine &st)
 				if(session[i] && (pl_sd = (struct map_session_data *)session[i]->session_data) && pl_sd->state.auth &&
 					pl_sd->status.party_id == p)
 				{
-					if(!map[pl_sd->bl.m].flag.nowarp)
+					if(!maps[pl_sd->bl.m].flag.nowarp)
 						pc_randomwarp(*pl_sd,3);
 				}
 			}
@@ -9573,7 +9573,7 @@ int buildin_warpparty(CScriptEngine &st)
 				if(session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth &&
 					pl_sd->status.party_id == p)
 				{
-					if(!map[pl_sd->bl.m].flag.noreturn)
+					if(!maps[pl_sd->bl.m].flag.noreturn)
 						pc_setpos(*pl_sd,pl_sd->status.save_point.mapname,pl_sd->status.save_point.x,pl_sd->status.save_point.y,3);
 				}
 			}
@@ -9588,7 +9588,7 @@ int buildin_warpparty(CScriptEngine &st)
 				if(session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth &&
 					pl_sd->status.party_id == p)
 				{
-					if(!map[pl_sd->bl.m].flag.noreturn)
+					if(!maps[pl_sd->bl.m].flag.noreturn)
 						pc_setpos(*pl_sd,str,x,y,3);
 				}
 			}
@@ -9600,7 +9600,7 @@ int buildin_warpparty(CScriptEngine &st)
 				if(session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth &&
 					pl_sd->status.party_id == p)
 				{
-					if(!map[pl_sd->bl.m].flag.noreturn)
+					if(!maps[pl_sd->bl.m].flag.noreturn)
 						pc_setpos(*pl_sd,str,x,y,3);
 				}
 			}
@@ -9621,7 +9621,7 @@ int buildin_warpguild(CScriptEngine &st)
 	uint32 g	=st.GetInt(st[5]);
 	struct map_session_data *sd=st.sd;
 
-	if(!sd || map[sd->bl.m].flag.noreturn || map[sd->bl.m].flag.nowarp || NULL==guild_search(g) )
+	if(!sd || maps[sd->bl.m].flag.noreturn || maps[sd->bl.m].flag.nowarp || NULL==guild_search(g) )
 		return 0;
 	
 	if(g!=0)
@@ -9636,7 +9636,7 @@ int buildin_warpguild(CScriptEngine &st)
 				if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth &&
 					pl_sd->status.guild_id == g)
 				{
-					if(!map[pl_sd->bl.m].flag.nowarp)
+					if(!maps[pl_sd->bl.m].flag.nowarp)
 						pc_randomwarp(*pl_sd,3);
 				}
 			}
@@ -9648,7 +9648,7 @@ int buildin_warpguild(CScriptEngine &st)
 				if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth &&
 					pl_sd->status.guild_id == g)
 				{
-					if(!map[pl_sd->bl.m].flag.noreturn)
+					if(!maps[pl_sd->bl.m].flag.noreturn)
 						pc_setpos(*pl_sd,pl_sd->status.save_point.mapname,pl_sd->status.save_point.x,pl_sd->status.save_point.y,3);
 				}
 			}
@@ -9663,7 +9663,7 @@ int buildin_warpguild(CScriptEngine &st)
 				if(session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth &&
 					pl_sd->status.guild_id == g)
 				{
-					if(map[pl_sd->bl.m].flag.noreturn)
+					if(maps[pl_sd->bl.m].flag.noreturn)
 						pc_setpos(*pl_sd,str,x,y,3);
 				}
 			}
@@ -9675,7 +9675,7 @@ int buildin_warpguild(CScriptEngine &st)
 				if(session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth &&
 					pl_sd->status.guild_id == g)
 				{
-					if(map[pl_sd->bl.m].flag.noreturn)
+					if(maps[pl_sd->bl.m].flag.noreturn)
 						pc_setpos(*pl_sd,str,x,y,3);
 				}
 			}

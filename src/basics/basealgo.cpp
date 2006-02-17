@@ -12,7 +12,7 @@
 #include "basearray.h"
 
 
-
+#if defined(DEBUG)
 
 #define CFIELDS	// test on ordinary carrays
 
@@ -56,9 +56,12 @@ public:
 };
 
 
+#endif//DEBUG
+
+
 void test_algo(int scale)
 {
-
+#if defined(DEBUG)
 	{
 		char buf1[10] = {0,1,2,3,5,6,7,8};
 		aaaa buf2[10] = {0,1,2,3,5,6,7,8};
@@ -490,6 +493,8 @@ void test_algo(int scale)
 	delete[] array[1];
 	delete[] array[2];
 #endif
+
+#endif//DEBUG
 }
 
 

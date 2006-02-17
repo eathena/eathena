@@ -1012,7 +1012,7 @@ int status_calc_pc(struct map_session_data& sd, int first)
 		}
 		sd.hit += sd.paramc[4] + sd.status.base_level;
 		sd.flee += sd.paramc[1] + sd.status.base_level;
-		if( map[sd.bl.m].flag.gvg ) sd.flee = (sd.flee>20)?sd.flee-20:0; //20 flee penalty on GVG grounds [Skotlex]
+		if( maps[sd.bl.m].flag.gvg ) sd.flee = (sd.flee>20)?sd.flee-20:0; //20 flee penalty on GVG grounds [Skotlex]
 		sd.def2 += (unsigned short)sd.paramc[2];
 		sd.mdef2 += (unsigned short)sd.paramc[3];
 		sd.flee2 += sd.paramc[5]+10;
@@ -3122,7 +3122,7 @@ int status_get_dmotion(struct block_list *bl)
 	else
 		return 2000;
 
-	if( !map[bl->m].flag.gvg && sc_data && 
+	if( !maps[bl->m].flag.gvg && sc_data && 
 		(sc_data[SC_ENDURE].timer!=-1 || sc_data[SC_BERSERK].timer!=-1 || sc_data[SC_CONCENTRATION].timer!=-1 ||
 		(bl->type == BL_PC && ((struct map_session_data *)bl)->state.infinite_endure)) )
 		ret=0;
@@ -4797,7 +4797,7 @@ int status_change_timer(int tid, unsigned long tick, int id, intptr data)
 	case SC_CHASEWALK:
 		if(sd){
 			long sp = 10+sc_data[SC_CHASEWALK].val1.num*2;
-			if (map[sd->bl.m].flag.gvg) sp *= 5;
+			if (maps[sd->bl.m].flag.gvg) sp *= 5;
 			if (sd->status.sp > sp){
 				sd->status.sp -= sp; // update sp cost [Celest]
 				clif_updatestatus(*sd,SP_SP);

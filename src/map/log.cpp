@@ -7,6 +7,7 @@
 #include "showmsg.h"
 #include "utils.h"
 #include "log.h"
+#include "datasq.h"
 
 struct LogConfig log_config;
 
@@ -543,7 +544,7 @@ int log_npc(struct map_session_data &sd, const char *message)
 //log_chat: 6	= logs both Whisper & Party messages
 //log_chat: 8	= logs only Guild messages
 //log_chat: 18	= logs only Whisper, when WOE is off
-int log_chat(const char *type, int type_id, int src_charid, int src_accid, const char *map, int x, int y, const char *dst_charname, const char *message)
+int log_chat(const char *type, int type_id, int src_charid, int src_accid, const char *mapname, int x, int y, const char *dst_charname, const char *message)
 {
 #ifndef TXT_ONLY
 	char t_msg[100]; //The chat line, 100 should be high enough above overflow...
@@ -559,7 +560,7 @@ int log_chat(const char *type, int type_id, int src_charid, int src_accid, const
 #ifndef TXT_ONLY
 	if(log_config.sql_logs > 0){
 		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`time`, `type`, `type_id`, `src_charid`, `src_accountid`, `src_map`, `src_map_x`, `src_map_y`, `dst_charname`, `message`) VALUES (NOW(), '%s', '%d', '%d', '%d', '%s', '%d', '%d', '%s', '%s')", 
-		 	log_config.log_chat_db, type, type_id, src_charid, src_accid, map, x, y, dst_charname, jstrescapecpy(t_msg, message));
+		 	log_config.log_chat_db, type, type_id, src_charid, src_accid, mapname, x, y, dst_charname, jstrescapecpy(t_msg, message));
 	
 		if(mysql_SendQuery(&logmysql_handle, tmp_sql)){
 			ShowError("log_chat() -> SQL ERROR / FAIL: %s\n", mysql_error(&logmysql_handle));
@@ -578,7 +579,7 @@ int log_chat(const char *type, int type_id, int src_charid, int src_accid, const
 		strftime(timestring, 127, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
 		//DATE - type,type_id,src_charid,src_accountid,src_map,src_x,src_y,dst_charname,message
 		fprintf(logfp, "%s - %s,%d,%d,%d,%s,%d,%d,%s,%s%s", 
-			timestring, type, type_id, src_charid, src_accid, map, x, y, dst_charname, message, RETCODE);
+			timestring, type, type_id, src_charid, src_accid, mapname, x, y, dst_charname, message, RETCODE);
 		fclose(logfp);
 		return 0;
 	}

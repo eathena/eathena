@@ -47,6 +47,12 @@ void memfree(void* p)
 		free(p);
 }
 
+
+
+const _allocatorbase::size_type _allocatorbase::npos = (_allocatorbase::size_type)-1;
+
+
+
 //!! TODO copy back c++ memory handler
 
 
@@ -60,7 +66,7 @@ void memfree(void* p)
 
 
 
-
+#if defined(DEBUG)
 
 
 // msvc does not create seperate functions with empty parameter list
@@ -230,18 +236,23 @@ cpcnt++;
 	return 0;
 }
 
+#endif//DEBUG
 
-int test_memory()
+
+void test_memory(void)
 {
-	printf("char\n");
+#if defined(DEBUG)
+
+	printf("copy chars\n");
 	test_memcopy<char>(1);
-	printf("short\n");
+	printf("copy shorts\n");
 	test_memcopy<short>(1);
-	printf("long\n");
+	printf("copy longs\n");
 	test_memcopy<long>(1);
 
-
+	printf("test memswap\n");
 	test_memswap();
 
-	return 0;
+#endif//DEBUG
+
 }

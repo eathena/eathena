@@ -264,8 +264,6 @@ short CParseInput::scan(CParser& parser, CToken& target)
 	// check for eof
 	if( this->get_eof(false) )
 		return 0;
-// for adding seperated chars to the lexeme
-	target.cLexeme.clear();
 
 	while(1)
 	{
@@ -292,9 +290,6 @@ short CParseInput::scan(CParser& parser, CToken& target)
 					{
 						last_accepted = dfa->AcceptIndex;
 						last_accepted_size = (this->cScn-this->cRpp) ;// + 1;
-// adding seperated chars to the lexeme
-						target.cLexeme.append( (char)c );
-
 						last_accepted_line=this->line;
 						last_accepted_col=this->column;
 					}
@@ -310,8 +305,8 @@ short CParseInput::scan(CParser& parser, CToken& target)
 				// reset buffer counters to start right after the matched token
 				this->line = last_accepted_line;
 				this->column=last_accepted_col;
-// not when adding seperated chars to the lexeme
-//				target.cLexeme.assign( this->cRpp, last_accepted_size );
+
+				target.cLexeme.assign( this->cRpp, last_accepted_size );
 				this->cRpp+=last_accepted_size;
 				this->cScn=this->cRpp;
 			

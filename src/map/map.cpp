@@ -33,7 +33,7 @@
 #include "atcommand.h"
 #include "charcommand.h"
 #include "log.h"
-
+#include "datasq.h"
 
 #ifndef TXT_ONLY
 
@@ -127,7 +127,7 @@ static int bl_list_count = 0;
 
 static char afm_dir[1024] = ""; // [Valaris]
 
-struct map_data map[MAX_MAP_PER_SERVER];
+struct map_data maps[MAX_MAP_PER_SERVER];
 size_t map_num = 0;
 
 int autosave_interval = DEFAULT_AUTOSAVE_INTERVAL;
@@ -270,14 +270,14 @@ int map_freeblock_timer (int tid, unsigned long tick, int id, intptr data)
 // block化?理
 //
 /*==========================================
- * map[]のblock_listから?がっている場合に
+ * maps[]のblock_listから?がっている場合に
  * bl->prevにbl_headのアドレスを入れておく
  *------------------------------------------
  */
 static struct block_list bl_head;
 
 /*==========================================
- * map[]のblock_listに追加
+ * maps[]のblock_listに追加
  * mobは?が多いので別リスト
  *
  * ?にlink?みかの確認が無い。危?かも
@@ -296,36 +296,36 @@ int map_addblock(struct block_list &bl)
 	m=bl.m;
 	x=bl.x;
 	y=bl.y;
-	if( m>=map_num || x>=map[m].xs || y>=map[m].ys )
+	if( m>=map_num || x>=maps[m].xs || y>=maps[m].ys )
 		return 1;
 
-	pos = x/BLOCK_SIZE+(y/BLOCK_SIZE)*map[m].bxs;
+	pos = x/BLOCK_SIZE+(y/BLOCK_SIZE)*maps[m].bxs;
 	if (bl.type == BL_MOB)
 	{
-		bl.next = map[m].block_mob[pos];
+		bl.next = maps[m].block_mob[pos];
 		bl.prev = &bl_head;
 		if(bl.next) bl.next->prev = &bl;
-		map[m].block_mob[pos] = &bl;
-		map[m].block_mob_count[pos]++;
+		maps[m].block_mob[pos] = &bl;
+		maps[m].block_mob_count[pos]++;
 	}
 	else
 	{
-		bl.next = map[m].block[pos];
+		bl.next = maps[m].block[pos];
 		bl.prev = &bl_head;
 		if (bl.next) bl.next->prev = &bl;
-		map[m].block[pos] = &bl;
-		map[m].block_count[pos]++;
+		maps[m].block[pos] = &bl;
+		maps[m].block_count[pos]++;
 
 		if (bl.type == BL_PC)
 		{
 			struct map_session_data& sd = (struct map_session_data&)bl;
-			if (agit_flag && battle_config.pet_no_gvg && map[m].flag.gvg && sd.pd)
+			if (agit_flag && battle_config.pet_no_gvg && maps[m].flag.gvg && sd.pd)
 			{	//Return the pet to egg. [Skotlex]
 				clif_displaymessage(sd.fd, "Pets are not allowed in Guild Wars.");
 				pet_menu(sd, 3); //Option 3 is return to egg.
 			}
 
-			if(map[m].users++ == 0 && battle_config.dynamic_mobs)	//Skotlex
+			if(maps[m].users++ == 0 && battle_config.dynamic_mobs)	//Skotlex
 				map_spawnmobs(m);
 		}
 	}
@@ -333,7 +333,7 @@ int map_addblock(struct block_list &bl)
 }
 
 /*==========================================
- * map[]のblock_listから外す
+ * maps[]のblock_listから外す
  * prevがNULLの場合listに?がってない
  *------------------------------------------
  */
@@ -354,7 +354,7 @@ int map_delblock(struct block_list &bl)
 
 	if (bl.type == BL_PC)
 	{
-		if(map[bl.m].users>0 && --map[bl.m].users == 0 && battle_config.dynamic_mobs)	//[Skotlex]
+		if(maps[bl.m].users>0 && --maps[bl.m].users == 0 && battle_config.dynamic_mobs)	//[Skotlex]
 			map_removemobs(bl.m);
 	}
 
@@ -362,19 +362,19 @@ int map_delblock(struct block_list &bl)
 		bl.next->prev = bl.prev;
 	if (bl.prev == &bl_head)
 	{
-		int b = bl.x/BLOCK_SIZE+(bl.y/BLOCK_SIZE)*map[bl.m].bxs;
-		// リストの頭なので、map[]のblock_listを更新する
+		int b = bl.x/BLOCK_SIZE+(bl.y/BLOCK_SIZE)*maps[bl.m].bxs;
+		// リストの頭なので、maps[]のblock_listを更新する
 		if(bl.type==BL_MOB)
 		{
-			map[bl.m].block_mob[b] = bl.next;
-			if((map[bl.m].block_mob_count[b]--) < 0)
-				map[bl.m].block_mob_count[b] = 0;
+			maps[bl.m].block_mob[b] = bl.next;
+			if((maps[bl.m].block_mob_count[b]--) < 0)
+				maps[bl.m].block_mob_count[b] = 0;
 		}
 		else
 		{
-			map[bl.m].block[b] = bl.next;
-			if((map[bl.m].block_count[b]--) < 0)
-				map[bl.m].block_count[b] = 0;
+			maps[bl.m].block[b] = bl.next;
+			if((maps[bl.m].block_count[b]--) < 0)
+				maps[bl.m].block_count[b] = 0;
 		}
 	}
 	else
@@ -397,18 +397,18 @@ int map_countnearpc (unsigned short m, int x, int y)
 	int bx, by, c = 0;
 	struct block_list *bl=NULL;
 
-	if( m>MAX_MAP_PER_SERVER || map[m].users==0 )
+	if( m>MAX_MAP_PER_SERVER || maps[m].users==0 )
 		return 0;
 
 	for(by=y/BLOCK_SIZE-AREA_SIZE/BLOCK_SIZE-1;by<=y/BLOCK_SIZE+AREA_SIZE/BLOCK_SIZE+1;by++)
 	{
-		if (by < 0 || by >= map[m].bys)
+		if (by < 0 || by >= maps[m].bys)
 			continue;
 		for(bx=x/BLOCK_SIZE-AREA_SIZE/BLOCK_SIZE-1;bx<=x/BLOCK_SIZE+AREA_SIZE/BLOCK_SIZE+1;bx++)
 		{
-			if (bx < 0 || bx >= map[m].bxs)
+			if (bx < 0 || bx >= maps[m].bxs)
 				continue;
-			bl = map[m].block[bx+by*map[m].bxs];
+			bl = maps[m].block[bx+by*maps[m].bxs];
 			while(bl)
 			{
 				if (bl->type == BL_PC)
@@ -432,7 +432,7 @@ int map_count_oncell(unsigned short m, int x, int y, int type)
 	int i,c;
 	int count = 0;
 
-	if (x < 0 || y < 0 || (x >= map[m].xs) || (y >= map[m].ys))
+	if (x < 0 || y < 0 || (x >= maps[m].xs) || (y >= maps[m].ys))
 		return 0;
 
 	bx = x/BLOCK_SIZE;
@@ -440,16 +440,16 @@ int map_count_oncell(unsigned short m, int x, int y, int type)
 
 	if (type == 0 || type != BL_MOB)
 	{
-		bl = map[m].block[bx+by*map[m].bxs];
-		c = map[m].block_count[bx+by*map[m].bxs];
+		bl = maps[m].block[bx+by*maps[m].bxs];
+		c = maps[m].block_count[bx+by*maps[m].bxs];
 		for(i=0;i<c && bl;i++,bl=bl->next){
 			if(bl->x == x && bl->y == y && bl->type == BL_PC) count++;
 		}
 	}
 	if (type == 0 || type == BL_MOB)
 	{
-		bl = map[m].block_mob[bx+by*map[m].bxs];
-		c = map[m].block_mob_count[bx+by*map[m].bxs];
+		bl = maps[m].block_mob[bx+by*maps[m].bxs];
+		c = maps[m].block_mob_count[bx+by*maps[m].bxs];
 		for(i=0;i<c && bl;i++,bl=bl->next){
 			if(bl->x == x && bl->y == y) count++;
 		}
@@ -467,13 +467,13 @@ struct skill_unit *map_find_skill_unit_oncell(struct block_list &target,int x,in
 	struct skill_unit *unit;
 	m = target.m;
 
-	if (x < 0 || y < 0 || (x >= map[m].xs) || (y >= map[m].ys))
+	if (x < 0 || y < 0 || (x >= maps[m].xs) || (y >= maps[m].ys))
 		return NULL;
 	bx = x/BLOCK_SIZE;
 	by = y/BLOCK_SIZE;
 
-	bl = map[m].block[bx+by*map[m].bxs];
-	c = map[m].block_count[bx+by*map[m].bxs];
+	bl = maps[m].block[bx+by*maps[m].bxs];
+	c = maps[m].block_count[bx+by*maps[m].bxs];
 	for(i=0;i<c && bl;i++,bl=bl->next){
 		if (bl->x != x || bl->y != y || bl->type != BL_SKILL)
 			continue;
@@ -554,8 +554,8 @@ int CMap::foreachinpath(const CMapProcessor& elem, unsigned short m,int x0,int y
 	// xy out of range
 	if (x0 < 0) x0 = 0;
 	if (y0 < 0) y0 = 0;
-	if (x1 >= map[m].xs) x1 = map[m].xs-1;
-	if (y1 >= map[m].ys) y1 = map[m].ys-1;
+	if (x1 >= maps[m].xs) x1 = maps[m].xs-1;
+	if (y1 >= maps[m].ys) y1 = maps[m].ys-1;
 
 	///////////////////////////////
 	// stuff for a linear equation in xy coord to calculate 
@@ -602,16 +602,16 @@ int CMap::foreachinpath(const CMapProcessor& elem, unsigned short m,int x0,int y
 	i = (range/BLOCK_SIZE+1);//temp value
 	if(bx0>i)				bx0 -=i; else bx0=0;
 	if(by0>i)				by0 -=i; else by0=0;
-	if(bx1+i<map[m].bxs)	bx1 +=i; else bx1=map[m].bxs-1;
-	if(by1+i<map[m].bys)	by1 +=i; else by1=map[m].bys-1;
+	if(bx1+i<maps[m].bxs)	bx1 +=i; else bx1=maps[m].bxs-1;
+	if(by1+i<maps[m].bys)	by1 +=i; else by1=maps[m].bys-1;
 
 
 //ShowMessage("run for (%i,%i)(%i,%i)\n",bx0,by0,bx1,by1);
 	for(bx=bx0; bx<=bx1; bx++)
 	for(by=by0; by<=by1; by++)
 	{	// block xy
-		c1  = map[m].block_count[bx+by*map[m].bxs];		// number of elements in the block
-		c2  = map[m].block_mob_count[bx+by*map[m].bxs];	// number of mobs in the mob block
+		c1  = maps[m].block_count[bx+by*maps[m].bxs];		// number of elements in the block
+		c2  = maps[m].block_mob_count[bx+by*maps[m].bxs];	// number of mobs in the mob block
 		if( (c1==0) && (c2==0) ) continue;				// skip if nothing in the blocks
 
 //ShowMessage("block(%i,%i) %i %i\n",bx,by,c1,c2);fflush(stdout);
@@ -626,7 +626,7 @@ int CMap::foreachinpath(const CMapProcessor& elem, unsigned short m,int x0,int y
 		// it seems that the block is at least partially covered by the shooting range
 		// so we go into it
 		if(type==0 || type!=BL_MOB) {
-  			bl = map[m].block[bx+by*map[m].bxs];		// a block with the elements
+  			bl = maps[m].block[bx+by*maps[m].bxs];		// a block with the elements
 			for(i=0;i<c1 && bl;i++,bl=bl->next){		// go through all elements
 				if( bl && ( !type || bl->type==type ) && bl_list_count<BL_LIST_MAX )
 				{
@@ -647,7 +647,7 @@ int CMap::foreachinpath(const CMapProcessor& elem, unsigned short m,int x0,int y
 		}
 
 		if(type==0 || type==BL_MOB) {
-			bl = map[m].block_mob[bx+by*map[m].bxs];	// and the mob block
+			bl = maps[m].block_mob[bx+by*maps[m].bxs];	// and the mob block
 			for(i=0;i<c2 && bl;i++,bl=bl->next){
 				if(bl && bl_list_count<BL_LIST_MAX) {
 					// calculate the perpendicular from block xy to the straight line
@@ -732,8 +732,8 @@ int CMap::foreachinpath(const CMapProcessor& elem, unsigned short m,int x0,int y
 	// xy out of range
 	if (x0 < 0) x0 = 0;
 	if (y0 < 0) y0 = 0;
-	if (x1 >= map[m].xs) x1 = map[m].xs-1;
-	if (y1 >= map[m].ys) y1 = map[m].ys-1;
+	if (x1 >= maps[m].xs) x1 = maps[m].xs-1;
+	if (y1 >= maps[m].ys) y1 = maps[m].ys-1;
 
 	///////////////////////////////
 	// find maximum runindex
@@ -761,12 +761,12 @@ int CMap::foreachinpath(const CMapProcessor& elem, unsigned short m,int x0,int y
 			by = y/BLOCK_SIZE;
 
 			// and process the data
-			c1  = map[m].block_count[bx+by*map[m].bxs];		// number of elements in the block
-			c2  = map[m].block_mob_count[bx+by*map[m].bxs];	// number of mobs in the mob block
+			c1  = maps[m].block_count[bx+by*maps[m].bxs];		// number of elements in the block
+			c2  = maps[m].block_mob_count[bx+by*maps[m].bxs];	// number of mobs in the mob block
 			if( (c1==0) && (c2==0) ) continue;				// skip if nothing in the block
 
 			if(type==0 || type!=BL_MOB) {
-				bl = map[m].block[bx+by*map[m].bxs];		// a block with the elements
+				bl = maps[m].block[bx+by*maps[m].bxs];		// a block with the elements
 				for(i=0;i<c1 && bl;i++,bl=bl->next){		// go through all elements
 					if( bl && ( !type || bl->type==type ) && bl_list_count<BL_LIST_MAX )
 					{	
@@ -782,7 +782,7 @@ int CMap::foreachinpath(const CMapProcessor& elem, unsigned short m,int x0,int y
 			}
 
 			if(type==0 || type==BL_MOB) {
-				bl = map[m].block_mob[bx+by*map[m].bxs];	// and the mob block
+				bl = maps[m].block_mob[bx+by*maps[m].bxs];	// and the mob block
 				for(i=0;i<c2 && bl;i++,bl=bl->next){
 					if(bl && bl_list_count<BL_LIST_MAX) {
 						// check if mob xy is on the line
@@ -856,12 +856,12 @@ int CMap::foreachinpath(const CMapProcessor& elem, unsigned short m,int x0,int y
 	// xy out of range
 	if (x0 < 0) x0 = 0;
 	if (y0 < 0) y0 = 0;
-	if (x0 >= map[m].xs) x0 = map[m].xs-1;
-	if (y0 >= map[m].ys) y0 = map[m].ys-1;
+	if (x0 >= maps[m].xs) x0 = maps[m].xs-1;
+	if (y0 >= maps[m].ys) y0 = maps[m].ys-1;
 	if (x1 < 0) x1 = 0;
 	if (y1 < 0) y1 = 0;
-	if (x1 >= map[m].xs) x1 = map[m].xs-1;
-	if (y1 >= map[m].ys) y1 = map[m].ys-1;
+	if (x1 >= maps[m].xs) x1 = maps[m].xs-1;
+	if (y1 >= maps[m].ys) y1 = maps[m].ys-1;
 
 	///////////////////////////////
 	// find maximum runindex, 
@@ -890,13 +890,13 @@ int CMap::foreachinpath(const CMapProcessor& elem, unsigned short m,int x0,int y
 			// and process the data of the formerly stored block, if any
 			if( save_cnt!=0 )
 			{
-				c1  = map[m].block_count[bx+by*map[m].bxs];		// number of elements in the block
-				c2  = map[m].block_mob_count[bx+by*map[m].bxs];	// number of mobs in the mob block
+				c1  = maps[m].block_count[bx+by*maps[m].bxs];		// number of elements in the block
+				c2  = maps[m].block_mob_count[bx+by*maps[m].bxs];	// number of mobs in the mob block
 				if( (c1!=0) || (c2!=0) )						// skip if nothing in the block
 				{
 
 					if(type==0 || type!=BL_MOB) {
-						bl = map[m].block[bx+by*map[m].bxs];		// a block with the elements
+						bl = maps[m].block[bx+by*maps[m].bxs];		// a block with the elements
 						for(i=0;i<c1 && bl;i++,bl=bl->next){		// go through all elements
 							if( bl && ( !type || bl->type==type ) && bl_list_count<BL_LIST_MAX )
 							{	// check if block xy is on the line
@@ -913,7 +913,7 @@ int CMap::foreachinpath(const CMapProcessor& elem, unsigned short m,int x0,int y
 					}
 
 					if(type==0 || type==BL_MOB) {
-						bl = map[m].block_mob[bx+by*map[m].bxs];	// and the mob block
+						bl = maps[m].block_mob[bx+by*maps[m].bxs];	// and the mob block
 						for(i=0;i<c2 && bl;i++,bl=bl->next){
 							if(bl && bl_list_count<BL_LIST_MAX) {
 								// check if mob xy is on the line
@@ -976,8 +976,8 @@ int CMap::foreachincell(const CMapProcessor& elem, unsigned short m,int x,int y,
 
 	if(type==0 || type!=BL_MOB)
 	{
-		bl = map[m].block[bx+by*map[m].bxs];
-		c = map[m].block_count[bx+by*map[m].bxs];
+		bl = maps[m].block[bx+by*maps[m].bxs];
+		c = maps[m].block_count[bx+by*maps[m].bxs];
 		for(i=0;i<c && bl;i++,bl=bl->next)
 		{
 			if(type && bl && bl->type!=type)
@@ -989,8 +989,8 @@ int CMap::foreachincell(const CMapProcessor& elem, unsigned short m,int x,int y,
 
 	if(type==0 || type==BL_MOB)
 	{
-		bl = map[m].block_mob[bx+by*map[m].bxs];
-		c = map[m].block_mob_count[bx+by*map[m].bxs];
+		bl = maps[m].block_mob[bx+by*maps[m].bxs];
+		c = maps[m].block_mob_count[bx+by*maps[m].bxs];
 		for(i=0;i<c && bl;i++,bl=bl->next)
 		{
 			if(bl && bl->x==x && bl->y==y && bl_list_count<BL_LIST_MAX)
@@ -1041,20 +1041,20 @@ int CMap::foreachinmovearea(const CMapProcessor& elem, unsigned short m,int x0,i
 		}
 		if(x0<0) x0=0;
 		if(y0<0) y0=0;
-		if(x1>=map[m].xs) x1=map[m].xs-1;
-		if(y1>=map[m].ys) y1=map[m].ys-1;
+		if(x1>=maps[m].xs) x1=maps[m].xs-1;
+		if(y1>=maps[m].ys) y1=maps[m].ys-1;
 		for(by=y0/BLOCK_SIZE;by<=y1/BLOCK_SIZE;by++){
 			for(bx=x0/BLOCK_SIZE;bx<=x1/BLOCK_SIZE;bx++){
-				bl = map[m].block[bx+by*map[m].bxs];
-				c = map[m].block_count[bx+by*map[m].bxs];
+				bl = maps[m].block[bx+by*maps[m].bxs];
+				c = maps[m].block_count[bx+by*maps[m].bxs];
 				for(i=0;i<c && bl;i++,bl=bl->next){
 					if(bl && type && bl->type!=type)
 						continue;
 					if(bl && bl->x>=x0 && bl->x<=x1 && bl->y>=y0 && bl->y<=y1 && bl_list_count<BL_LIST_MAX)
 						bl_list[bl_list_count++]=bl;
 				}
-				bl = map[m].block_mob[bx+by*map[m].bxs];
-				c = map[m].block_mob_count[bx+by*map[m].bxs];
+				bl = maps[m].block_mob[bx+by*maps[m].bxs];
+				c = maps[m].block_mob_count[bx+by*maps[m].bxs];
 				for(i=0;i<c && bl;i++,bl=bl->next){
 					if(bl && type && bl->type!=type)
 						continue;
@@ -1068,12 +1068,12 @@ int CMap::foreachinmovearea(const CMapProcessor& elem, unsigned short m,int x0,i
 
 		if(x0<0) x0=0;
 		if(y0<0) y0=0;
-		if(x1>=map[m].xs) x1=map[m].xs-1;
-		if(y1>=map[m].ys) y1=map[m].ys-1;
+		if(x1>=maps[m].xs) x1=maps[m].xs-1;
+		if(y1>=maps[m].ys) y1=maps[m].ys-1;
 		for(by=y0/BLOCK_SIZE;by<=y1/BLOCK_SIZE;by++){
 			for(bx=x0/BLOCK_SIZE;bx<=x1/BLOCK_SIZE;bx++){
-				bl = map[m].block[bx+by*map[m].bxs];
-				c = map[m].block_count[bx+by*map[m].bxs];
+				bl = maps[m].block[bx+by*maps[m].bxs];
+				c = maps[m].block_count[bx+by*maps[m].bxs];
 				for(i=0;i<c && bl;i++,bl=bl->next){
 					if(bl && type && bl->type!=type)
 						continue;
@@ -1084,8 +1084,8 @@ int CMap::foreachinmovearea(const CMapProcessor& elem, unsigned short m,int x0,i
 						bl_list_count<BL_LIST_MAX)
 							bl_list[bl_list_count++]=bl;
 				}
-				bl = map[m].block_mob[bx+by*map[m].bxs];
-				c = map[m].block_mob_count[bx+by*map[m].bxs];
+				bl = maps[m].block_mob[bx+by*maps[m].bxs];
+				c = maps[m].block_mob_count[bx+by*maps[m].bxs];
 				for(i=0;i<c && bl;i++,bl=bl->next){
 					if(bl && type && bl->type!=type)
 						continue;
@@ -1129,7 +1129,7 @@ int CMap::foreachinarea(const CMapProcessor& elem, unsigned short m, int x0,int 
 	struct block_list *bl=NULL;
 	int blockcount=bl_list_count,i,c;
 
-	if(m >= map_num || !map[m].block || !map[m].block_count)
+	if(m >= map_num || !maps[m].block || !maps[m].block_count)
 		return 0;
 	
 	if(x0>x1) swap(x0,x1);
@@ -1137,14 +1137,14 @@ int CMap::foreachinarea(const CMapProcessor& elem, unsigned short m, int x0,int 
 
 	if (x0 < 0) x0 = 0;
 	if (y0 < 0) y0 = 0;
-	if (x1 >= map[m].xs) x1 = map[m].xs-1;
-	if (y1 >= map[m].ys) y1 = map[m].ys-1;
+	if (x1 >= maps[m].xs) x1 = maps[m].xs-1;
+	if (y1 >= maps[m].ys) y1 = maps[m].ys-1;
 	if (type == 0 || type != BL_MOB)
 		for(by = y0/BLOCK_SIZE; by <= y1/BLOCK_SIZE; by++)
 		for(bx = x0/BLOCK_SIZE; bx <= x1/BLOCK_SIZE; bx++)
 		{
-			bl = map[m].block[bx+by*map[m].bxs];
-			c = map[m].block_count[bx+by*map[m].bxs];
+			bl = maps[m].block[bx+by*maps[m].bxs];
+			c = maps[m].block_count[bx+by*maps[m].bxs];
 			for(i=0;i<c && bl;i++,bl=bl->next)
 			{
 				if(bl && type && bl->type!=type)
@@ -1157,8 +1157,8 @@ int CMap::foreachinarea(const CMapProcessor& elem, unsigned short m, int x0,int 
 		for(by = y0/BLOCK_SIZE; by <= y1/BLOCK_SIZE; by++)
 		for(bx = x0/BLOCK_SIZE; bx <= x1/BLOCK_SIZE; bx++)
 		{
-			bl = map[m].block_mob[bx+by*map[m].bxs];
-			c = map[m].block_mob_count[bx+by*map[m].bxs];
+			bl = maps[m].block_mob[bx+by*maps[m].bxs];
+			c = maps[m].block_mob_count[bx+by*maps[m].bxs];
 			for(i=0;i<c && bl;i++,bl=bl->next)
 			{
 				if(bl && bl->x>=x0 && bl->x<=x1 && bl->y>=y0 && bl->y<=y1 && bl_list_count<BL_LIST_MAX)
@@ -1335,14 +1335,14 @@ int map_foreachinarea(int (*func)(struct block_list&,va_list &),unsigned short m
 
 	if (x0 < 0) x0 = 0;
 	if (y0 < 0) y0 = 0;
-	if (x1 >= map[m].xs) x1 = map[m].xs-1;
-	if (y1 >= map[m].ys) y1 = map[m].ys-1;
+	if (x1 >= maps[m].xs) x1 = maps[m].xs-1;
+	if (y1 >= maps[m].ys) y1 = maps[m].ys-1;
 	if (type == 0 || type != BL_MOB)
 		for(by = y0/BLOCK_SIZE; by <= y1/BLOCK_SIZE; by++)
 		for(bx = x0/BLOCK_SIZE; bx <= x1/BLOCK_SIZE; bx++)
 		{
-			bl = map[m].block[bx+by*map[m].bxs];
-			c = map[m].block_count[bx+by*map[m].bxs];
+			bl = maps[m].block[bx+by*maps[m].bxs];
+			c = maps[m].block_count[bx+by*maps[m].bxs];
 			for(i=0;i<c && bl;i++,bl=bl->next)
 			{
 				if(bl && type && bl->type!=type)
@@ -1355,8 +1355,8 @@ int map_foreachinarea(int (*func)(struct block_list&,va_list &),unsigned short m
 		for(by = y0/BLOCK_SIZE; by <= y1/BLOCK_SIZE; by++)
 		for(bx = x0/BLOCK_SIZE; bx <= x1/BLOCK_SIZE; bx++)
 		{
-			bl = map[m].block_mob[bx+by*map[m].bxs];
-			c = map[m].block_mob_count[bx+by*map[m].bxs];
+			bl = maps[m].block_mob[bx+by*maps[m].bxs];
+			c = maps[m].block_mob_count[bx+by*maps[m].bxs];
 			for(i=0;i<c && bl;i++,bl=bl->next)
 			{
 				if(bl && bl->x>=x0 && bl->x<=x1 && bl->y>=y0 && bl->y<=y1 && bl_list_count<BL_LIST_MAX)
@@ -1419,20 +1419,20 @@ int map_foreachinmovearea(int (*func)(struct block_list&,va_list &),unsigned sho
 		}
 		if(x0<0) x0=0;
 		if(y0<0) y0=0;
-		if(x1>=map[m].xs) x1=map[m].xs-1;
-		if(y1>=map[m].ys) y1=map[m].ys-1;
+		if(x1>=maps[m].xs) x1=maps[m].xs-1;
+		if(y1>=maps[m].ys) y1=maps[m].ys-1;
 		for(by=y0/BLOCK_SIZE;by<=y1/BLOCK_SIZE;by++){
 			for(bx=x0/BLOCK_SIZE;bx<=x1/BLOCK_SIZE;bx++){
-				bl = map[m].block[bx+by*map[m].bxs];
-				c = map[m].block_count[bx+by*map[m].bxs];
+				bl = maps[m].block[bx+by*maps[m].bxs];
+				c = maps[m].block_count[bx+by*maps[m].bxs];
 				for(i=0;i<c && bl;i++,bl=bl->next){
 					if(bl && type && bl->type!=type)
 						continue;
 					if(bl && bl->x>=x0 && bl->x<=x1 && bl->y>=y0 && bl->y<=y1 && bl_list_count<BL_LIST_MAX)
 						bl_list[bl_list_count++]=bl;
 				}
-				bl = map[m].block_mob[bx+by*map[m].bxs];
-				c = map[m].block_mob_count[bx+by*map[m].bxs];
+				bl = maps[m].block_mob[bx+by*maps[m].bxs];
+				c = maps[m].block_mob_count[bx+by*maps[m].bxs];
 				for(i=0;i<c && bl;i++,bl=bl->next){
 					if(bl && type && bl->type!=type)
 						continue;
@@ -1446,12 +1446,12 @@ int map_foreachinmovearea(int (*func)(struct block_list&,va_list &),unsigned sho
 
 		if(x0<0) x0=0;
 		if(y0<0) y0=0;
-		if(x1>=map[m].xs) x1=map[m].xs-1;
-		if(y1>=map[m].ys) y1=map[m].ys-1;
+		if(x1>=maps[m].xs) x1=maps[m].xs-1;
+		if(y1>=maps[m].ys) y1=maps[m].ys-1;
 		for(by=y0/BLOCK_SIZE;by<=y1/BLOCK_SIZE;by++){
 			for(bx=x0/BLOCK_SIZE;bx<=x1/BLOCK_SIZE;bx++){
-				bl = map[m].block[bx+by*map[m].bxs];
-				c = map[m].block_count[bx+by*map[m].bxs];
+				bl = maps[m].block[bx+by*maps[m].bxs];
+				c = maps[m].block_count[bx+by*maps[m].bxs];
 				for(i=0;i<c && bl;i++,bl=bl->next){
 					if(bl && type && bl->type!=type)
 						continue;
@@ -1462,8 +1462,8 @@ int map_foreachinmovearea(int (*func)(struct block_list&,va_list &),unsigned sho
 						bl_list_count<BL_LIST_MAX)
 							bl_list[bl_list_count++]=bl;
 				}
-				bl = map[m].block_mob[bx+by*map[m].bxs];
-				c = map[m].block_mob_count[bx+by*map[m].bxs];
+				bl = maps[m].block_mob[bx+by*maps[m].bxs];
+				c = maps[m].block_mob_count[bx+by*maps[m].bxs];
 				for(i=0;i<c && bl;i++,bl=bl->next){
 					if(bl && type && bl->type!=type)
 						continue;
@@ -1520,8 +1520,8 @@ int map_foreachincell(int (*func)(struct block_list&,va_list &),unsigned short m
 
 	if(type==0 || type!=BL_MOB)
 	{
-		bl = map[m].block[bx+by*map[m].bxs];
-		c = map[m].block_count[bx+by*map[m].bxs];
+		bl = maps[m].block[bx+by*maps[m].bxs];
+		c = maps[m].block_count[bx+by*maps[m].bxs];
 		for(i=0;i<c && bl;i++,bl=bl->next)
 		{
 			if(type && bl && bl->type!=type)
@@ -1533,8 +1533,8 @@ int map_foreachincell(int (*func)(struct block_list&,va_list &),unsigned short m
 
 	if(type==0 || type==BL_MOB)
 	{
-		bl = map[m].block_mob[bx+by*map[m].bxs];
-		c = map[m].block_mob_count[bx+by*map[m].bxs];
+		bl = maps[m].block_mob[bx+by*maps[m].bxs];
+		c = maps[m].block_mob_count[bx+by*maps[m].bxs];
 		for(i=0;i<c && bl;i++,bl=bl->next)
 		{
 			if(bl && bl->x==x && bl->y==y && bl_list_count<BL_LIST_MAX)
@@ -1631,8 +1631,8 @@ int map_foreachinpath(int (*func)(struct block_list&,va_list &),unsigned short m
 	// xy out of range
 	if (x0 < 0) x0 = 0;
 	if (y0 < 0) y0 = 0;
-	if (x1 >= map[m].xs) x1 = map[m].xs-1;
-	if (y1 >= map[m].ys) y1 = map[m].ys-1;
+	if (x1 >= maps[m].xs) x1 = maps[m].xs-1;
+	if (y1 >= maps[m].ys) y1 = maps[m].ys-1;
 
 	///////////////////////////////
 	// stuff for a linear equation in xy coord to calculate 
@@ -1679,16 +1679,16 @@ int map_foreachinpath(int (*func)(struct block_list&,va_list &),unsigned short m
 	i = (range/BLOCK_SIZE+1);//temp value
 	if(bx0>i)				bx0 -=i; else bx0=0;
 	if(by0>i)				by0 -=i; else by0=0;
-	if(bx1+i<map[m].bxs)	bx1 +=i; else bx1=map[m].bxs-1;
-	if(by1+i<map[m].bys)	by1 +=i; else by1=map[m].bys-1;
+	if(bx1+i<maps[m].bxs)	bx1 +=i; else bx1=maps[m].bxs-1;
+	if(by1+i<maps[m].bys)	by1 +=i; else by1=maps[m].bys-1;
 
 
 //ShowMessage("run for (%i,%i)(%i,%i)\n",bx0,by0,bx1,by1);
 	for(bx=bx0; bx<=bx1; bx++)
 	for(by=by0; by<=by1; by++)
 	{	// block xy
-		c1  = map[m].block_count[bx+by*map[m].bxs];		// number of elements in the block
-		c2  = map[m].block_mob_count[bx+by*map[m].bxs];	// number of mobs in the mob block
+		c1  = maps[m].block_count[bx+by*maps[m].bxs];		// number of elements in the block
+		c2  = maps[m].block_mob_count[bx+by*maps[m].bxs];	// number of mobs in the mob block
 		if( (c1==0) && (c2==0) ) continue;				// skip if nothing in the blocks
 
 //ShowMessage("block(%i,%i) %i %i\n",bx,by,c1,c2);fflush(stdout);
@@ -1703,7 +1703,7 @@ int map_foreachinpath(int (*func)(struct block_list&,va_list &),unsigned short m
 		// it seems that the block is at least partially covered by the shooting range
 		// so we go into it
 		if(type==0 || type!=BL_MOB) {
-  			bl = map[m].block[bx+by*map[m].bxs];		// a block with the elements
+  			bl = maps[m].block[bx+by*maps[m].bxs];		// a block with the elements
 			for(i=0;i<c1 && bl;i++,bl=bl->next){		// go through all elements
 				if( bl && ( !type || bl->type==type ) && bl_list_count<BL_LIST_MAX )
 				{
@@ -1724,7 +1724,7 @@ int map_foreachinpath(int (*func)(struct block_list&,va_list &),unsigned short m
 		}
 
 		if(type==0 || type==BL_MOB) {
-			bl = map[m].block_mob[bx+by*map[m].bxs];	// and the mob block
+			bl = maps[m].block_mob[bx+by*maps[m].bxs];	// and the mob block
 			for(i=0;i<c2 && bl;i++,bl=bl->next){
 				if(bl && bl_list_count<BL_LIST_MAX) {
 					// calculate the perpendicular from block xy to the straight line
@@ -1812,8 +1812,8 @@ int map_foreachinpath(int (*func)(struct block_list&,va_list &),unsigned short m
 	// xy out of range
 	if (x0 < 0) x0 = 0;
 	if (y0 < 0) y0 = 0;
-	if (x1 >= map[m].xs) x1 = map[m].xs-1;
-	if (y1 >= map[m].ys) y1 = map[m].ys-1;
+	if (x1 >= maps[m].xs) x1 = maps[m].xs-1;
+	if (y1 >= maps[m].ys) y1 = maps[m].ys-1;
 
 	///////////////////////////////
 	// find maximum runindex
@@ -1841,12 +1841,12 @@ int map_foreachinpath(int (*func)(struct block_list&,va_list &),unsigned short m
 			by = y/BLOCK_SIZE;
 
 			// and process the data
-			c1  = map[m].block_count[bx+by*map[m].bxs];		// number of elements in the block
-			c2  = map[m].block_mob_count[bx+by*map[m].bxs];	// number of mobs in the mob block
+			c1  = maps[m].block_count[bx+by*maps[m].bxs];		// number of elements in the block
+			c2  = maps[m].block_mob_count[bx+by*maps[m].bxs];	// number of mobs in the mob block
 			if( (c1==0) && (c2==0) ) continue;				// skip if nothing in the block
 
 			if(type==0 || type!=BL_MOB) {
-				bl = map[m].block[bx+by*map[m].bxs];		// a block with the elements
+				bl = maps[m].block[bx+by*maps[m].bxs];		// a block with the elements
 				for(i=0;i<c1 && bl;i++,bl=bl->next){		// go through all elements
 					if( bl && ( !type || bl->type==type ) && bl_list_count<BL_LIST_MAX )
 					{	
@@ -1862,7 +1862,7 @@ int map_foreachinpath(int (*func)(struct block_list&,va_list &),unsigned short m
 			}
 
 			if(type==0 || type==BL_MOB) {
-				bl = map[m].block_mob[bx+by*map[m].bxs];	// and the mob block
+				bl = maps[m].block_mob[bx+by*maps[m].bxs];	// and the mob block
 				for(i=0;i<c2 && bl;i++,bl=bl->next){
 					if(bl && bl_list_count<BL_LIST_MAX) {
 						// check if mob xy is on the line
@@ -1939,8 +1939,8 @@ int map_foreachinpath(int (*func)(struct block_list&,va_list &),unsigned short m
 	// xy out of range
 	if (x0 < 0) x0 = 0;
 	if (y0 < 0) y0 = 0;
-	if (x1 >= map[m].xs) x1 = map[m].xs-1;
-	if (y1 >= map[m].ys) y1 = map[m].ys-1;
+	if (x1 >= maps[m].xs) x1 = maps[m].xs-1;
+	if (y1 >= maps[m].ys) y1 = maps[m].ys-1;
 
 	///////////////////////////////
 	// find maximum runindex, 
@@ -1969,13 +1969,13 @@ int map_foreachinpath(int (*func)(struct block_list&,va_list &),unsigned short m
 			// and process the data of the formerly stored block, if any
 			if( save_cnt!=0 )
 			{
-				c1  = map[m].block_count[bx+by*map[m].bxs];		// number of elements in the block
-				c2  = map[m].block_mob_count[bx+by*map[m].bxs];	// number of mobs in the mob block
+				c1  = maps[m].block_count[bx+by*maps[m].bxs];		// number of elements in the block
+				c2  = maps[m].block_mob_count[bx+by*maps[m].bxs];	// number of mobs in the mob block
 				if( (c1!=0) || (c2!=0) )						// skip if nothing in the block
 				{
 
 					if(type==0 || type!=BL_MOB) {
-						bl = map[m].block[bx+by*map[m].bxs];		// a block with the elements
+						bl = maps[m].block[bx+by*maps[m].bxs];		// a block with the elements
 						for(i=0;i<c1 && bl;i++,bl=bl->next){		// go through all elements
 							if( bl && ( !type || bl->type==type ) && bl_list_count<BL_LIST_MAX )
 							{	// check if block xy is on the line
@@ -1992,7 +1992,7 @@ int map_foreachinpath(int (*func)(struct block_list&,va_list &),unsigned short m
 					}
 
 					if(type==0 || type==BL_MOB) {
-						bl = map[m].block_mob[bx+by*map[m].bxs];	// and the mob block
+						bl = maps[m].block_mob[bx+by*maps[m].bxs];	// and the mob block
 						for(i=0;i<c2 && bl;i++,bl=bl->next){
 							if(bl && bl_list_count<BL_LIST_MAX) {
 								// check if mob xy is on the line
@@ -2206,10 +2206,10 @@ int map_searchrandfreecell(unsigned short m, unsigned short x, unsigned short y,
 	CREATE_BUFFER(free_cells, int, (2*range+1)*(2*range+1));
 
 	for(free_cell=0,i=-range;i<=range;i++){
-		if(i+y<0 || i+y>=map[m].ys)
+		if(i+y<0 || i+y>=maps[m].ys)
 			continue;
 		for(j=-range;j<=range;j++){
-			if(j+x<0 || j+x>=map[m].xs)
+			if(j+x<0 || j+x>=maps[m].xs)
 				continue;
 			if(map_getcell(m,j+x,i+y,CELL_CHKNOPASS))
 				continue;
@@ -2218,12 +2218,7 @@ int map_searchrandfreecell(unsigned short m, unsigned short x, unsigned short y,
 			free_cells[free_cell++] = j+x+((i+y)<<16);
 		}
 	}
-	if(free_cell==0)
-	{
-		DELETE_BUFFER(free_cells);
-		return -1;
-	}
-	free_cell=free_cells[rand()%free_cell];
+	free_cell = (free_cell==0)?-1:free_cells[rand()%free_cell];
 	DELETE_BUFFER(free_cells);
 	return free_cell;
 /*
@@ -2232,10 +2227,10 @@ int map_searchrandfreecell(unsigned short m, unsigned short x, unsigned short y,
 	if(m<map_num)
 	{
 		for(free_cell=0,i=-range;i<=range;i++){
-			if(i+y<0 || i+y>=map[m].ys)
+			if(i+y<0 || i+y>=maps[m].ys)
 				continue;
 			for(j=-range;j<=range;j++){
-				if(j+x<0 || j+x>=map[m].xs)
+				if(j+x<0 || j+x>=maps[m].xs)
 					continue;
 				if(map_getcell(m,j+x,i+y,CELL_CHKNOPASS))
 					continue;
@@ -2246,10 +2241,10 @@ int map_searchrandfreecell(unsigned short m, unsigned short x, unsigned short y,
 			return -1;
 		free_cell=rand()%free_cell;
 		for(i=-range;i<=range;i++){
-			if(i+y<0 || i+y>=map[m].ys)
+			if(i+y<0 || i+y>=maps[m].ys)
 				continue;
 			for(j=-range;j<=range;j++){
-				if(j+x<0 || j+x>=map[m].xs)
+				if(j+x<0 || j+x>=maps[m].xs)
 					continue;
 				if(map_getcell(m,j+x,i+y,CELL_CHKNOPASS))
 					continue;
@@ -2280,7 +2275,7 @@ int map_addflooritem(struct item &item_data,unsigned short amount,unsigned short
 	unsigned long tick;
 	struct flooritem_data *fitem=NULL;
 
-	if((xy=map_searchrandfreecell(m,x,y,1))<0)
+	if((xy=map_searchrandfreecell(m,x,y,2))<0)
 		return 0;
 	r=rand();
 
@@ -2673,21 +2668,21 @@ int map_addnpc(unsigned short m, struct npc_data *nd)
 	size_t i;
 	if(m>=map_num)
 		return -1;
-	for(i=0;i<map[m].npc_num && i<MAX_NPC_PER_MAP;i++)
-		if(map[m].npc[i]==NULL)
+	for(i=0;i<maps[m].npc_num && i<MAX_NPC_PER_MAP;i++)
+		if(maps[m].npc[i]==NULL)
 			break;
 	if(i==MAX_NPC_PER_MAP){
 		if(battle_config.error_log)
-			ShowMessage("too many NPCs in one map %s\n",map[m].mapname);
+			ShowMessage("too many NPCs in one map %s\n",maps[m].mapname);
 		return -1;
 	}
-	if(i==map[m].npc_num){
-		map[m].npc_num++;
+	if(i==maps[m].npc_num){
+		maps[m].npc_num++;
 	}
 
 	nullpo_retr(0, nd);
 
-	map[m].npc[i]=nd;
+	maps[m].npc[i]=nd;
 	nd->n = i;
 	numdb_insert(id_db,nd->bl.id,nd);
 
@@ -2705,10 +2700,10 @@ struct mob_list* map_addmobtolist(unsigned short m)
 	size_t i;
     for(i=0; i<MAX_MOB_LIST_PER_MAP; i++)
 	{
-		if(map[m].moblist[i]==NULL)
+		if(maps[m].moblist[i]==NULL)
 		{
-			map[m].moblist[i] = (struct mob_list *) aMalloc (1 * sizeof(struct mob_list));
-			return map[m].moblist[i];
+			maps[m].moblist[i] = (struct mob_list *) aMalloc (1 * sizeof(struct mob_list));
+			return maps[m].moblist[i];
 		}
 	}
 	return NULL;
@@ -2720,10 +2715,10 @@ void clear_moblist(unsigned short m)
 	if(m<MAX_MAP_PER_SERVER)
 	for (i = 0; i < MAX_MOB_LIST_PER_MAP; i++)
 	{
-		if(map[m].moblist[i]!=NULL)
+		if(maps[m].moblist[i]!=NULL)
 		{
-			aFree(map[m].moblist[i]);
-			map[m].moblist[i] = NULL;
+			aFree(maps[m].moblist[i]);
+			maps[m].moblist[i] = NULL;
 		}
 	}
 }
@@ -2735,22 +2730,22 @@ void map_spawnmobs(unsigned short m)
 	if(m>=map_num)
 		return;
 
-	if (map[m].mob_delete_timer != -1)
+	if (maps[m].mob_delete_timer != -1)
 	{	//Mobs have not been removed yet [Skotlex]
-		delete_timer(map[m].mob_delete_timer, map_removemobs_timer);
-		map[m].mob_delete_timer = -1;
+		delete_timer(maps[m].mob_delete_timer, map_removemobs_timer);
+		maps[m].mob_delete_timer = -1;
 		return;
 	}
 	for(i=0; i<MAX_MOB_LIST_PER_MAP; i++)	
 	{
-		if(map[m].moblist[i]!=NULL)
+		if(maps[m].moblist[i]!=NULL)
 		{
-			k+=map[m].moblist[i]->num;
-			npc_parse_mob2(*map[m].moblist[i]);
+			k+=maps[m].moblist[i]->num;
+			npc_parse_mob2(*maps[m].moblist[i]);
 		}
 	}
 	if (battle_config.etc_log && k > 0)
-		ShowStatus("Map %s: Spawned '"CL_WHITE"%d"CL_RESET"' mobs.\n",map[m].mapname, k);
+		ShowStatus("Map %s: Spawned '"CL_WHITE"%d"CL_RESET"' mobs.\n",maps[m].mapname, k);
 }
 /*
 int mob_cache_cleanup_sub(struct block_list &bl, va_list &ap)
@@ -2823,32 +2818,32 @@ int map_removemobs_timer(int tid, unsigned long tick, int id, intptr data)
 			ShowError("map_removemobs_timer error: timer %d points to invalid map %d\n",tid, m);
 		return 0;
 	}
-	if (map[m].mob_delete_timer != tid)
+	if (maps[m].mob_delete_timer != tid)
 	{	//Incorrect timer call!
 		if (battle_config.error_log)
-			ShowError("map_removemobs_timer mismatch: %d != %d (map %s)\n",map[m].mob_delete_timer, tid, map[m].mapname);
+			ShowError("map_removemobs_timer mismatch: %d != %d (map %s)\n",maps[m].mob_delete_timer, tid, maps[m].mapname);
 		return 0;
 	}
-	map[m].mob_delete_timer = -1;
-	if (map[m].users > 0) //Map not empty!
+	maps[m].mob_delete_timer = -1;
+	if (maps[m].users > 0) //Map not empty!
 		return 1;
 
 	k = CMap::foreachinarea( CMapMobCacheCleanup(),
-		m, 0, 0, map[m].xs-1, map[m].ys-1, BL_MOB);		
+		m, 0, 0, maps[m].xs-1, maps[m].ys-1, BL_MOB);		
 //	k = map_foreachinarea(mob_cache_cleanup_sub, 
-//		m, 0, 0, map[m].xs-1, map[m].ys-1, BL_MOB);
+//		m, 0, 0, maps[m].xs-1, maps[m].ys-1, BL_MOB);
 
 	if (battle_config.etc_log && k > 0)
-		ShowStatus("Map %s: Removed '"CL_WHITE"%d"CL_RESET"' mobs.\n",map[m].mapname, k);
+		ShowStatus("Map %s: Removed '"CL_WHITE"%d"CL_RESET"' mobs.\n",maps[m].mapname, k);
 	return 1;
 }
 
 void map_removemobs(unsigned short m)
 {
-	if (map[m].mob_delete_timer != -1)
+	if (maps[m].mob_delete_timer != -1)
 		return; //Mobs are already scheduled for removal
 
-	map[m].mob_delete_timer = add_timer(gettick()+battle_config.mob_remove_delay, map_removemobs_timer, m, 0);
+	maps[m].mob_delete_timer = add_timer(gettick()+battle_config.mob_remove_delay, map_removemobs_timer, m, 0);
 }
 
 /*==========================================
@@ -3003,7 +2998,7 @@ int map_random_dir(struct block_list &bl, unsigned short &x, unsigned short &y)
 
 int map_getcell(unsigned short m, unsigned short x, unsigned short y, cell_t cellchk)
 {
-	return (m>=map_num) ? (cellchk==CELL_CHKNOPASS) : map_getcellp(map[m],x,y,cellchk);
+	return (m>=map_num) ? (cellchk==CELL_CHKNOPASS) : map_getcellp(maps[m],x,y,cellchk);
 }
 
 int map_getcellp(struct map_data& m, unsigned short x, unsigned short y, cell_t cellchk)
@@ -3054,10 +3049,10 @@ int map_getcellp(struct map_data& m, unsigned short x, unsigned short y, cell_t 
 void map_setcell(unsigned short m,unsigned short x, unsigned short y, int cellck)
 {
 	struct mapgat *mg;
-	if(m >= MAX_MAP_PER_SERVER || x>=map[m].xs || y>=map[m].ys)
+	if(m >= MAX_MAP_PER_SERVER || x>=maps[m].xs || y>=maps[m].ys)
 		return;
 
-	mg = map[m].gat+x+y*map[m].xs;
+	mg = maps[m].gat+x+y*maps[m].xs;
 
 	switch(cellck)
 	{
@@ -3094,7 +3089,7 @@ void map_setcell(unsigned short m,unsigned short x, unsigned short y, int cellck
 		// check the numbers from the gat and warn on an unknown type
 		if( (cellck != GAT_NONE) && (cellck != GAT_WALL) && (cellck != GAT_WATER) && 
 			(cellck != GAT_GROUND) && (cellck != GAT_HOLE) )
-			ShowWarning("Setting mapcell with improper value %i on %s (%i,%i)\n", cellck,map[m].mapname,x,y);
+			ShowWarning("Setting mapcell with improper value %i on %s (%i,%i)\n", cellck,maps[m].mapname,x,y);
 		else
 			mg->type = cellck & CELL_MASK;
 			break;
@@ -3891,43 +3886,43 @@ int map_readallmap(void)
 	// 先に全部のャbプの存在を確認
 	for(i=0;i<map_num;i++)
 	{
-		map[i].wh=waterlist.map_waterheight(map[i].mapname);
-		map[i].m=i;
+		maps[i].wh=waterlist.map_waterheight(maps[i].mapname);
+		maps[i].m=i;
 
 		/////////////////////////////////////////////////////////////////
-		if( (ch=map_cache_read(map[i])) ||
-			map_readafm(map[i]) ||
-			map_readaf2(map[i]) ||
-			map_readgrf(map[i]) )
+		if( (ch=map_cache_read(maps[i])) ||
+			map_readafm(maps[i]) ||
+			map_readaf2(maps[i]) ||
+			map_readgrf(maps[i]) )
 		{	
-			ShowMessage("\rLoading Maps [%d/%d]: %s, size (%d %d)(%i)"CL_CLL, i,map_num, map[i].mapname, map[i].xs,map[i].ys, map[i].wh);
+			ShowMessage("\rLoading Maps [%d/%d]: %s, size (%d %d)(%i)"CL_CLL, i,map_num, maps[i].mapname, maps[i].xs,maps[i].ys, maps[i].wh);
 	
 			// initialize
-			memset(map[i].moblist, 0, sizeof(map[i].moblist));	
-			map[i].mob_delete_timer = -1;	//Initialize timer [Skotlex]
+			memset(maps[i].moblist, 0, sizeof(maps[i].moblist));	
+			maps[i].mob_delete_timer = -1;	//Initialize timer [Skotlex]
 
-			memset(&map[i].flag,0,sizeof(map[i].flag));
+			memset(&maps[i].flag,0,sizeof(maps[i].flag));
 			if(battle_config.pk_mode)
-				map[i].flag.pvp = 1; // make all maps pvp for pk_mode [Valaris]
+				maps[i].flag.pvp = 1; // make all maps pvp for pk_mode [Valaris]
 
-			map[i].npc_num=0;
-			map[i].users=0;
-			map[i].bxs= ((map[i].xs+BLOCK_SIZE-1)/BLOCK_SIZE);
-			map[i].bys= ((map[i].ys+BLOCK_SIZE-1)/BLOCK_SIZE);
-			map[i].block = (struct block_list **)aCalloc(map[i].bxs*map[i].bys, sizeof(struct block_list*));
-			map[i].block_mob = (struct block_list **)aCalloc(map[i].bxs*map[i].bys, sizeof(struct block_list*));
-			map[i].block_count = (int *)aCalloc(map[i].bxs*map[i].bys, sizeof(int));
-			map[i].block_mob_count=(int *)aCalloc(map[i].bxs*map[i].bys, sizeof(int));
+			maps[i].npc_num=0;
+			maps[i].users=0;
+			maps[i].bxs= ((maps[i].xs+BLOCK_SIZE-1)/BLOCK_SIZE);
+			maps[i].bys= ((maps[i].ys+BLOCK_SIZE-1)/BLOCK_SIZE);
+			maps[i].block = (struct block_list **)aCalloc(maps[i].bxs*maps[i].bys, sizeof(struct block_list*));
+			maps[i].block_mob = (struct block_list **)aCalloc(maps[i].bxs*maps[i].bys, sizeof(struct block_list*));
+			maps[i].block_count = (int *)aCalloc(maps[i].bxs*maps[i].bys, sizeof(int));
+			maps[i].block_mob_count=(int *)aCalloc(maps[i].bxs*maps[i].bys, sizeof(int));
 
-			strdb_insert(map_db,map[i].mapname,&map[i]);
+			strdb_insert(map_db,maps[i].mapname,&maps[i]);
 
 			// cache it
-			if(!ch) map_cache_write(map[i]);
+			if(!ch) map_cache_write(maps[i]);
 		}
 		else
 		{
-			ShowMessage("\rRemoving Map [%d/%d]: %s"CL_CLL, i,map_num, map[i].mapname);
-			map_delmap(map[i].mapname);
+			ShowMessage("\rRemoving Map [%d/%d]: %s"CL_CLL, i,map_num, maps[i].mapname);
+			map_delmap(maps[i].mapname);
 			maps_removed++;
 			i--;
 		}
@@ -3959,8 +3954,8 @@ int map_addmap(const char *mapname)
 		ShowError("Could not add map '"CL_WHITE"%s"CL_RESET"', the limit of maps has been reached.\n",mapname);
 		return 1;
 	}
-	safestrcpy(map[map_num].mapname, mapname, sizeof(map[map_num].mapname));
-	char *ip = strchr(map[map_num].mapname, '.');
+	safestrcpy(maps[map_num].mapname, mapname, sizeof(maps[map_num].mapname));
+	char *ip = strchr(maps[map_num].mapname, '.');
 	if(ip) *ip=0;
 
 	map_num++;
@@ -3987,9 +3982,9 @@ int map_delmap(const char *mapname)
 		
 		for(i=0; i<map_num; i++)
 		{
-			if (strcmp(map[i].mapname, buffer) == 0) {
+			if (strcmp(maps[i].mapname, buffer) == 0) {
 				ShowMessage("Removing map [ %s ] from maplist\n", buffer);
-				memmove(map+i, map+i+1, sizeof(map[0])*(map_num-i-1));
+				memmove(maps+i, maps+i+1, sizeof(maps[0])*(map_num-i-1));
 				map_num--;
 			}
 		}
@@ -4455,14 +4450,14 @@ void map_checknpcsleft(void)
 	size_t i, m,n=0;
 
 	for(m=0;m<map_num;m++) {
-		for(i=0;i<map[m].npc_num && i<MAX_NPC_PER_MAP;i++) {
-			if(map[m].npc[i]!=NULL) {
-				clif_clearchar_area(map[m].npc[i]->bl,2);
-				map_delblock(map[m].npc[i]->bl);
-				numdb_erase(id_db,map[m].npc[i]->bl.id);
+		for(i=0;i<maps[m].npc_num && i<MAX_NPC_PER_MAP;i++) {
+			if(maps[m].npc[i]!=NULL) {
+				clif_clearchar_area(maps[m].npc[i]->bl,2);
+				map_delblock(maps[m].npc[i]->bl);
+				numdb_erase(id_db,maps[m].npc[i]->bl.id);
 				// just unlink npc from maps
 				// npc will be deleted with do_final_npc
-				map[m].npc[i] = NULL;
+				maps[m].npc[i] = NULL;
 				n++;
 			}
 		}
@@ -4492,9 +4487,9 @@ void do_final(void)
 	// additional removing
 	for (i = 0; i < map_num; i++)
 	{
-		if (map[i].m >= 0)
-			CMap::foreachinarea( CMapCleanup(), i, 0, 0, map[i].xs-1, map[i].ys-1, 0);
-//			map_foreachinarea(cleanup_sub, i, 0, 0, map[i].xs-1, map[i].ys-1, 0);
+		if (maps[i].m >= 0)
+			CMap::foreachinarea( CMapCleanup(), i, 0, 0, maps[i].xs-1, maps[i].ys-1, 0);
+//			map_foreachinarea(cleanup_sub, i, 0, 0, maps[i].xs-1, maps[i].ys-1, 0);
 	}
 	// and a check
 	map_checknpcsleft();
@@ -4512,17 +4507,17 @@ void do_final(void)
 
 	for (i=0; i<map_num; i++)
 	{
-		if(map[i].gat)
+		if(maps[i].gat)
 		{
-			aFree(map[i].gat);
-			map[i].gat=NULL;
+			aFree(maps[i].gat);
+			maps[i].gat=NULL;
 		}
 		clear_moblist(i);
 
-		if(map[i].block)			{ aFree(map[i].block); map[i].block=NULL; }
-		if(map[i].block_mob)		{ aFree(map[i].block_mob); map[i].block_mob=NULL; }
-		if(map[i].block_count)		{ aFree(map[i].block_count); map[i].block_count=NULL; }
-		if(map[i].block_mob_count)	{ aFree(map[i].block_mob_count); map[i].block_mob_count=NULL; }
+		if(maps[i].block)			{ aFree(maps[i].block); maps[i].block=NULL; }
+		if(maps[i].block_mob)		{ aFree(maps[i].block_mob); maps[i].block_mob=NULL; }
+		if(maps[i].block_count)		{ aFree(maps[i].block_count); maps[i].block_count=NULL; }
+		if(maps[i].block_mob_count)	{ aFree(maps[i].block_mob_count); maps[i].block_mob_count=NULL; }
 	}
 	if(id_db)
 	{
@@ -4623,7 +4618,7 @@ int do_init(int argc, char *argv[])
 
 
 	// just clear all maps
-	memset(map, 0, MAX_MAP_PER_SERVER*sizeof(struct map_data));
+	memset(maps, 0, MAX_MAP_PER_SERVER*sizeof(struct map_data));
 
 	for (i = 1; i < argc ; i++) {
 		if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "--h") == 0 || strcmp(argv[i], "--?") == 0 || strcmp(argv[i], "/?") == 0)
@@ -4698,8 +4693,8 @@ int do_init(int argc, char *argv[])
 	do_init_skill();
 	do_init_pet();
 	do_init_npc();
-	do_init_chrif();
 	do_init_clif();
+	do_init_chrif();
 
 #ifndef TXT_ONLY
 	if (log_config.sql_logs && (log_config.branch || log_config.drop || log_config.mvpdrop ||

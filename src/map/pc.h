@@ -168,7 +168,6 @@ struct map_session_data *pc_get_father(struct map_session_data &sd);
 struct map_session_data *pc_get_mother(struct map_session_data &sd);
 struct map_session_data *pc_get_child(struct map_session_data &sd);
 
-int pc_set_gm_level(uint32 account_id, uint32 level);
 void pc_setstand(struct map_session_data &sd);
 bool pc_break_equip(struct map_session_data &sd, unsigned short where);
 
@@ -196,7 +195,6 @@ extern struct skill_tree_entry skill_tree[MAX_PC_CLASS][MAX_SKILL_TREE];
 int	skill_tree_get_max( int id, int b_class );	// Celest
 
 
-int pc_read_gm_account(int fd);
 int pc_setinvincibletimer(struct map_session_data &sd,int);
 int pc_delinvincibletimer(struct map_session_data &sd);
 int pc_addspiritball(struct map_session_data &sd,int,int);

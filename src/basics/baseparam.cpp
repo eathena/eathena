@@ -276,18 +276,18 @@ void CParamStorage::loadFile(const char* name)
 
 
 
-
-
+#if defined(DEBUG)
 bool doublecallback(const char*name, const double&newval, double&oldval)
 {
 	printf( "%s is changing from %lf to %lf\n", name, oldval, newval);
 	return true;
 }
+#endif//DEBUG
 
 
 void test_parameter()
 {
-
+#if defined(DEBUG)
 	try {
 		double a, xx(141.30);
 		MiniString b="";
@@ -352,6 +352,7 @@ void test_parameter()
 	CParamStorage::listall();
 
 	printf("\n");
+#endif//DEBUG
 }
 
 

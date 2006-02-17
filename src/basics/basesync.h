@@ -164,7 +164,7 @@ public:
 
 class rwlockex: protected Mutex
 {
-
+public:
 	rwlockex()						{}
 	~rwlockex()						{}
 	void rdlock()					{}

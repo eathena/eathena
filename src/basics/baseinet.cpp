@@ -5,12 +5,14 @@
 #include "basealgo.h"
 #include "basetime.h"
 #include "basestring.h"
+#include "baseregex.h"
 #include "baseexceptions.h"
 
 #ifndef SINGLETHREAD
 #  include "basethreads.h"   // for mutex
 #endif
 #include "baseinet.h"
+#include "basesocket.h"
 
 
 
@@ -111,9 +113,16 @@ ipaddress phostbyname(const char* name)
         char buf[GETHOSTBY_BUF_SIZE];
         if ((hp = ::gethostbyname_r(name, &result, buf, sizeof(buf), &herrno)) != NULL)
 #endif
-        {
-            if (hp->h_addrtype == AF_INET)
-                memcpy(ip.bdata, hp->h_addr, sizeof(ip.bdata));
+		{
+			if (hp->h_addrtype == AF_INET)
+			{
+				//memcpy(ip.bdata, hp->h_addr, sizeof(ip.bdata));
+				uchar*a = (uchar*)hp->h_addr;
+				ip =  (a[0]<<0x18)
+					| (a[1]<<0x10)
+					| (a[2]<<0x08)
+					| (a[3]);
+			}
 #ifdef USE_GETIPNODEBY
             freehostent(hp);
 #endif
@@ -288,7 +297,12 @@ ipaddress::_ipset_helper::_ipset_helper()
 	closesocket(fdes);
 #endif//not W32	
 }
-
+ipaddress::_ipset_helper::~_ipset_helper()
+{
+#ifdef WIN32
+	WSACleanup();
+#endif
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -675,21 +689,46 @@ const char *ipset::tostring(char *buffer) const
 	return buf;
 }
 
+//////////////////////////////////////////////////////////////////////////
+// instantiate some fixed ip's
+// the local assignment will also automatically turn on the network layer
+// just by including this object file
+ipaddress localip = ipaddress::GetSystemIP(0);
 
 
 
 
 
 
+void test_inet()
+{
+#ifdef DEBUG
+
+//	test_regex();
+//	CRegExp re("aaa(?i-m-ss:AAA)b");
+	CRegExp re("(a)*(.*)(a*)(abc)");
+
+	re.Dump();
+	re.Print();
+
+	re.match("aaabd123aaabc");
+
+
+	printf("----\n%s\n", (const char*)re[0]);
+	uint i,k;
+	for(i=1; i<=re.sub_count(); i++)	// finds count from 1
+	{
+		printf("%2i: ", i);
+		for(k=0; k<re.sub_count(i); k++)	// inside finds count from 0
+			printf("%s, ", (const char*)re(i,k));
+
+		printf("\n");
+	}
+
+	printf("----\n");
 
 
 
 
-
-
-
-
-
-
-
-
+#endif//DEBUG
+}

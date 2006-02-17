@@ -19,9 +19,9 @@
 /////////////////////////////////////////////////////////////////////////////
 class MiniString : public global
 {
-	TPtrAutoRef< TArrayDST<char> > cStrPtr;
-	//TPtrAutoRef< basevector<char> > cStrPtr;
-	//TObjPtr< basevector<char> > cStrPtr;
+	//TPtrAutoRef< TArrayDST<char> > cStrPtr;
+	//TPtrAutoRef< vector<char> > cStrPtr;
+	TObjPtr< vector<char> > cStrPtr;
 
 	void copy(const char *c, size_t len=~0)
 	{	

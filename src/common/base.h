@@ -9,12 +9,15 @@
 #include "basecharset.h"
 #include "basebuffer.h"
 #include "basestring.h"
+#include "basestrsearch.h"
+#include "baseregex.h"
 #include "basearray.h"
 #include "basesync.h"
 #include "basetime.h"
 #include "basefile.h"
 #include "basepool.h"
 #include "baseinet.h"
+#include "basesocket.h"
 #include "baseministring.h"
 
 

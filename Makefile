@@ -1,5 +1,4 @@
 CCC = g++ -pipe
-PACKETDEF = -DPACKETVER=6 -DNEW_006b
 OPT = -g -O3 -ffast-math -D_REENTRANT
 LIBS =  -lpthread -lz
 
@@ -66,46 +65,68 @@ MKDEF = CCC="$(CCC)" CPPFLAGS="$(CPPFLAGS) -DTXT_ONLY" LIBS="$(LIBS) $(GCLIB)" R
 endif
 
 
-
-all: conf txt
+all: txt sql
 
 conf:
 	cp -r conf-tmpl conf
 	rm -rf conf/.svn conf/*/.svn
 
-.PHONY : basics
-basics: basics/GNUmakefile
-	cd src ; cd basics ; $(MAKE) $(MKDEF) all ; cd .. ; cd ..
+txt : conf basics common login char map ladmin scriptchk
 
-txt : basics src/common/GNUmakefile src/login/GNUmakefile src/char/GNUmakefile src/map/GNUmakefile src/ladmin/GNUmakefile src/scriptchk/GNUmakefile conf 
-	cd src ; cd common ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
-	cd src ; cd login ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
-	cd src ; cd char ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
-	cd src ; cd map ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
-	cd src ; cd ladmin ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
-	cd src ; cd scriptchk ; $(MAKE) $(MKDEF) all ; cd .. ; cd ..
+.PHONY : basics
+basics: src/basics/GNUmakefile
+	cd $(BASE_PATH) ; $(MAKE) $(MKDEF) all ; cd $(RETURN_PATH)
+
+.PHONY : common
+common: basics src/common/GNUmakefile
+	cd $(COMMON_PATH) ; $(MAKE) $(MKDEF) txt ; cd $(RETURN_PATH)
+
+login: basics common src/login/GNUmakefile
+	cd src/login ; $(MAKE) $(MKDEF) txt ; cd $(RETURN_PATH)
+
+char: basics common src/char/GNUmakefile
+	cd src/char ; $(MAKE) $(MKDEF) txt ; cd $(RETURN_PATH)
+
+map: basics common src/map/GNUmakefile 
+	cd src/map ; $(MAKE) $(MKDEF) txt ; cd $(RETURN_PATH)
+
+ladmin: basics common src/ladmin/GNUmakefile
+	cd src/ladmin ; $(MAKE) $(MKDEF) all ; cd $(RETURN_PATH)
+
+scriptchk: basics src/scriptchk/GNUmakefile
+	cd src/scriptchk ; $(MAKE) $(MKDEF) all ; cd $(RETURN_PATH)
 
 ifdef SQLFLAG
-sql: basics src/common/GNUmakefile src/login/GNUmakefile src/char/GNUmakefile src/map/GNUmakefile src/ladmin/GNUmakefile src/scriptchk/GNUmakefile conf
-	cd src ; cd common ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
-	cd src ; cd login ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
-	cd src ; cd char ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
-	cd src ; cd map ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
-	cd src ; cd ladmin ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
-	cd src ; cd scriptchk ; $(MAKE) $(MKDEF) all ; cd .. ; cd ..
+sql : conf basics common_sql login_sql char_sql map_sql scriptchk
+
+.PHONY : common_sql
+common_sql: basics src/common/GNUmakefile
+	cd $(COMMON_PATH) ; $(MAKE) $(MKDEF) sql ; cd $(RETURN_PATH)
+
+login_sql: basics common_sql src/login/GNUmakefile
+	cd src/login ; $(MAKE) $(MKDEF) sql ; cd $(RETURN_PATH)
+
+char_sql: basics common_sql src/char/GNUmakefile
+	cd src/char ; $(MAKE) $(MKDEF) sql ; cd $(RETURN_PATH)
+
+map_sql: basics common_sql src/map/GNUmakefile
+	cd src/map ; $(MAKE) $(MKDEF) sql ; cd $(RETURN_PATH)
+
 else
-sql:
-	$(MAKE) CCC="$(CCC)" OPT="$(OPT)" SQLFLAG=1 $@
+
+sql common_sql login_sql char_sql map_sql:
+	$(MAKE) SQLFLAG=1 $@
 endif
 
 clean: src/basics/GNUmakefile src/common/GNUmakefile src/login/GNUmakefile src/char/GNUmakefile src/map/GNUmakefile src/ladmin/GNUmakefile src/scriptchk/GNUmakefile
-	cd src ; cd basics ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
-	cd src ; cd common ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
-	cd src ; cd login ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
-	cd src ; cd char ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
-	cd src ; cd map ; $(MAKE) $(MKLIB) $@ ; cd .. ; cd ..
-	cd src ; cd ladmin ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
-	cd src ; cd scriptchk ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
+	cd src/basics ; $(MAKE) $(MKDEF) $@ ; cd $(RETURN_PATH)
+	cd src/common ; $(MAKE) $(MKDEF) $@ ; cd $(RETURN_PATH)
+	cd src/login ; $(MAKE) $(MKDEF) $@ ; cd $(RETURN_PATH)
+	cd src/char ; $(MAKE) $(MKDEF) $@ ; cd $(RETURN_PATH)
+	cd src/map ; $(MAKE) $(MKDEF) $@ ; cd $(RETURN_PATH)
+	cd src/ladmin ; $(MAKE) $(MKDEF) $@ ; cd $(RETURN_PATH)
+	cd src/scriptchk ; $(MAKE) $(MKDEF) $@ ; cd $(RETURN_PATH)
+
 
 src/basics/GNUmakefile: src/basics/Makefile
 	sed -e 's/$$>/$$^/' src/basics/Makefile > src/basics/GNUmakefile

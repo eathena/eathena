@@ -423,7 +423,7 @@ int party_optionchanged(uint32 party_id,uint32 account_id,unsigned short expshar
 }
 
 // パーティメンバの移動通知
-int party_recv_movemap(uint32 party_id,uint32 account_id,const char *map,int online,unsigned short lv)
+int party_recv_movemap(uint32 party_id,uint32 account_id,const char *mapname,int online,unsigned short lv)
 {
 	struct party *p;
 	int i;
@@ -434,7 +434,7 @@ int party_recv_movemap(uint32 party_id,uint32 account_id,const char *map,int onl
 		struct party_member *m=&p->member[i];
 
 		if(m->account_id==account_id){
-			memcpy(m->mapname,map,24);
+			memcpy(m->mapname,mapname,24);
 			m->mapname[23]=0;
 			m->online=online;
 			m->lv=lv;

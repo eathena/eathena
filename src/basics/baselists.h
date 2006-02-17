@@ -8,7 +8,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 // test function
-void test_lists();
+void test_lists(void);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -30,7 +30,7 @@ public:
 	{ }
 	~CSList()	
 	{
-		TLink<T> *x;
+		CSLinkNode *x;
 		while(cRoot)
 		{
 			x = this->cRoot;
@@ -84,7 +84,7 @@ public:
 template<class T> inline 
 T *CSList<T>::insert(const T& in)
 {
-	TLink<T> *x = new TLink<T>(in, cRoot); 
+	CSLinkNode *x = new CSLinkNode(in, cRoot); 
 	if(x)
 	{	cRoot=x;
 		return &(x->cInfo);
@@ -96,7 +96,7 @@ T *CSList<T>::insert(const T& in)
 template<class T> inline 
 T* CSList<T>::find(const T& in)
 {
-	TLink<T> *x = cRoot;
+	CSLinkNode *x = cRoot;
 	while(NULL != x)
 	{
 		if( x->cInfo == in )

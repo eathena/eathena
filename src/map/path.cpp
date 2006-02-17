@@ -206,7 +206,7 @@ int can_move(struct map_data &m,int x0,int y0,int x1,int y1,int flag)
  */
 int path_blownpos(unsigned short m,int x0,int y0,int dx,int dy,int count)
 {
-	if(m >= map_num || !map[m].gat)
+	if(m >= map_num || !maps[m].gat)
 		return -1;
 
 	if(count>15){	// 最大10マスに制限
@@ -222,9 +222,9 @@ int path_blownpos(unsigned short m,int x0,int y0,int dx,int dy,int count)
 	}
 	
 	while( (count--)>0 && (dx!=0 || dy!=0) ){
-		if( !can_move(map[m],x0,y0,x0+dx,y0+dy,0) ){
-			int fx=(dx!=0 && can_move(map[m],x0,y0,x0+dx,y0,0));
-			int fy=(dy!=0 && can_move(map[m],x0,y0,x0,y0+dy,0));
+		if( !can_move(maps[m],x0,y0,x0+dx,y0+dy,0) ){
+			int fx=(dx!=0 && can_move(maps[m],x0,y0,x0+dx,y0,0));
+			int fy=(dy!=0 && can_move(maps[m],x0,y0,x0,y0+dy,0));
 			if( fx && fy ){
 				if(rand()&1) dx=0;
 				else		 dy=0;
@@ -249,7 +249,7 @@ bool path_search_long(unsigned short m,unsigned short x0,unsigned short y0,unsig
 	int wx = 0, wy = 0;
 	int weight;
 
-	if(m >= map_num || !map[m].gat)
+	if(m >= map_num || !maps[m].gat)
 		return false;
 
 	dx = ((int)x1 - (int)x0);
@@ -261,7 +261,7 @@ bool path_search_long(unsigned short m,unsigned short x0,unsigned short y0,unsig
 	dy = ((int)y1 - (int)y0);
 
 
-	if (map_getcellp(map[m],x1,y1,CELL_CHKWALL))
+	if (map_getcellp(maps[m],x1,y1,CELL_CHKWALL))
 		return false;
 
 	if (dx > abs(dy)) {
@@ -271,7 +271,7 @@ bool path_search_long(unsigned short m,unsigned short x0,unsigned short y0,unsig
 	}
 
 	while (x0 != x1 || y0 != y1) {
-		if (map_getcellp(map[m],x0,y0,CELL_CHKWALL))
+		if (map_getcellp(maps[m],x0,y0,CELL_CHKWALL))
 			return false;
 		wx += dx;
 		wy += dy;
@@ -297,7 +297,7 @@ bool path_search_long2(unsigned short m,unsigned short x0,unsigned short y0,unsi
 	int dx, dy,x,y;
 	int w = 0;
 
-	if(m >=map_num || !map[m].gat)
+	if(m >=map_num || !maps[m].gat)
 		return false;
 
 	dx = ((int)x1 - (int)x0);
@@ -315,7 +315,7 @@ bool path_search_long2(unsigned short m,unsigned short x0,unsigned short y0,unsi
 
 		for(x=x0,y=y0; x<=x1; x++)
 		{
-			if (map_getcellp(map[m],x,y,CELL_CHKWALL))
+			if (map_getcellp(maps[m],x,y,CELL_CHKWALL))
 				return false;
 
 			// next point on smaller axis
@@ -344,7 +344,7 @@ bool path_search_long2(unsigned short m,unsigned short x0,unsigned short y0,unsi
 
 		for(x=x0,y=y0; y<=y1; y++)
 		{
-			if (map_getcellp(map[m],x,y,CELL_CHKWALL))
+			if (map_getcellp(maps[m],x,y,CELL_CHKWALL))
 				return false;
 
 			// next point on smaller axis
@@ -371,7 +371,7 @@ bool path_search_long3(unsigned short m,unsigned short x0,unsigned short y0,unsi
 	int dx, dy,x,y;
 	int w = 0;
 
-	if(m >= map_num || !map[m].gat)
+	if(m >= map_num || !maps[m].gat)
 		return false;
 
 	dx = ((int)x1 - (int)x0);
@@ -391,7 +391,7 @@ bool path_search_long3(unsigned short m,unsigned short x0,unsigned short y0,unsi
 		{
 			for(x=x0,y=y0; x<=x1; x++)
 			{
-				if (map_getcellp(map[m],x,y,CELL_CHKWALL))
+				if (map_getcellp(maps[m],x,y,CELL_CHKWALL))
 					return false;
 				// next point on smaller axis
 				w += dy;
@@ -406,7 +406,7 @@ bool path_search_long3(unsigned short m,unsigned short x0,unsigned short y0,unsi
 		{
 			for(x=x0,y=y0; x<=x1; x++)
 			{
-				if (map_getcellp(map[m],x,y,CELL_CHKWALL))
+				if (map_getcellp(maps[m],x,y,CELL_CHKWALL))
 					return false;
 				// next point on smaller axis
 				w += dy;
@@ -432,7 +432,7 @@ bool path_search_long3(unsigned short m,unsigned short x0,unsigned short y0,unsi
 		{
 			for(x=x0,y=y0; y<=y1; y++)
 			{
-				if (map_getcellp(map[m],x,y,CELL_CHKWALL))
+				if (map_getcellp(maps[m],x,y,CELL_CHKWALL))
 					return false;
 
 				// next point on smaller axis
@@ -448,7 +448,7 @@ bool path_search_long3(unsigned short m,unsigned short x0,unsigned short y0,unsi
 		{
 			for(x=x0,y=y0; y<=y1; y++)
 			{
-				if (map_getcellp(map[m],x,y,CELL_CHKWALL))
+				if (map_getcellp(maps[m],x,y,CELL_CHKWALL))
 					return false;
 
 				// next point on smaller axis
@@ -477,11 +477,11 @@ int path_search(struct walkpath_data &wpd,unsigned short m,int x0,int y0,int x1,
 	int rp,x,y;
 	int dx,dy;
 
-	if(m > MAX_MAP_PER_SERVER || !map[m].gat)
+	if(m > MAX_MAP_PER_SERVER || !maps[m].gat)
 		return -1;
 
 
-	if(x1<0 || x1>=map[m].xs || y1<0 || y1>=map[m].ys || map_getcellp(map[m],x1,y1,CELL_CHKNOPASS))
+	if(x1<0 || x1>=maps[m].xs || y1<0 || y1>=maps[m].ys || map_getcellp(maps[m],x1,y1,CELL_CHKNOPASS))
 		return -1;
 
 	// easy
@@ -492,18 +492,18 @@ int path_search(struct walkpath_data &wpd,unsigned short m,int x0,int y0,int x1,
 		if(i>=sizeof(wpd.path))
 			return -1;
 		if(x!=x1 && y!=y1){
-			if(!can_move(map[m],x,y,x+dx,y+dy,flag))
+			if(!can_move(maps[m],x,y,x+dx,y+dy,flag))
 				break;
 			x+=dx;
 			y+=dy;
 			wpd.path[i++]=(dx<0) ? ((dy>0)? 1 : 3) : ((dy<0)? 5 : 7);
 		} else if(x!=x1){
-			if(!can_move(map[m],x,y,x+dx,y   ,flag))
+			if(!can_move(maps[m],x,y,x+dx,y   ,flag))
 				break;
 			x+=dx;
 			wpd.path[i++]=(dx<0) ? 2 : 6;
 		} else { // y!=y1
-			if(!can_move(map[m],x,y,x   ,y+dy,flag))
+			if(!can_move(maps[m],x,y,x   ,y+dy,flag))
 				break;
 			y+=dy;
 			wpd.path[i++]=(dy>0) ? 0 : 4;
@@ -554,21 +554,21 @@ int path_search(struct walkpath_data &wpd,unsigned short m,int x0,int y0,int x1,
 			return 0;
 		}
 		fromdir=tp[rp].dir;
-		if(can_move(map[m],x,y,x+1,y-1,flag))
+		if(can_move(maps[m],x,y,x+1,y-1,flag))
 			e+=add_path(heap,tp,x+1,y-1,tp[rp].dist+14,5,rp,x1,y1);
-		if(can_move(map[m],x,y,x+1,y  ,flag))
+		if(can_move(maps[m],x,y,x+1,y  ,flag))
 			e+=add_path(heap,tp,x+1,y  ,tp[rp].dist+10,6,rp,x1,y1);
-		if(can_move(map[m],x,y,x+1,y+1,flag))
+		if(can_move(maps[m],x,y,x+1,y+1,flag))
 			e+=add_path(heap,tp,x+1,y+1,tp[rp].dist+14,7,rp,x1,y1);
-		if(can_move(map[m],x,y,x  ,y+1,flag))
+		if(can_move(maps[m],x,y,x  ,y+1,flag))
 			e+=add_path(heap,tp,x  ,y+1,tp[rp].dist+10,0,rp,x1,y1);
-		if(can_move(map[m],x,y,x-1,y+1,flag))
+		if(can_move(maps[m],x,y,x-1,y+1,flag))
 			e+=add_path(heap,tp,x-1,y+1,tp[rp].dist+14,1,rp,x1,y1);
-		if(can_move(map[m],x,y,x-1,y  ,flag))
+		if(can_move(maps[m],x,y,x-1,y  ,flag))
 			e+=add_path(heap,tp,x-1,y  ,tp[rp].dist+10,2,rp,x1,y1);
-		if(can_move(map[m],x,y,x-1,y-1,flag))
+		if(can_move(maps[m],x,y,x-1,y-1,flag))
 			e+=add_path(heap,tp,x-1,y-1,tp[rp].dist+14,3,rp,x1,y1);
-		if(can_move(map[m],x,y,x  ,y-1,flag))
+		if(can_move(maps[m],x,y,x  ,y-1,flag))
 			e+=add_path(heap,tp,x  ,y-1,tp[rp].dist+10,4,rp,x1,y1);
 		tp[rp].flag=1;
 		if(e || heap[0]>=MAX_HEAP-5)
@@ -586,7 +586,7 @@ char gat[64][64]={
 	{0,0,0,0,0,0,0,0,0,0},
 	{0,0,0,0,1,0,0,0,0,0},
 };
-struct map_data map[1];
+struct map_data maps[1];
 
 /*==========================================
  * 経路探索ルーチン単体テスト用main関数
@@ -596,9 +596,9 @@ void main(int argc,char *argv[])
 {
 	struct walkpath_data wpd;
 
-	map[0].gat=gat;
-	map[0].xs=64;
-	map[0].ys=64;
+	maps[0].gat=gat;
+	maps[0].xs=64;
+	maps[0].ys=64;
 
 	path_search(wpd,0,3,4,5,4);
 	path_search(wpd,0,5,4,3,4);

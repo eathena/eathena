@@ -22,7 +22,7 @@
 #include "npc.h"
 #include "log.h"
 #include "script.h"
-
+#include "datasq.h"
 
 
 #define MIN_MOBTHINKTIME 100
@@ -164,8 +164,8 @@ int mob_once_spawn (struct map_session_data *sd, const char *mapname,
 	{
 		i = j = 0;
 		do {
-			x = rand() % (map[m].xs - 2) + 1;
-			y = rand() % (map[m].ys - 2) + 1;
+			x = rand() % (maps[m].xs - 2) + 1;
+			y = rand() % (maps[m].ys - 2) + 1;
 		} while ((i = map_getcell(m, x, y, CELL_CHKNOPASS_NPC)) && j++ < 64);
 		if (i) {
 			ShowMessage("mob_once_spawn: ?? %i %i %p (%s,%s)\n", x,y,sd,mapname,event);
@@ -211,7 +211,7 @@ int mob_once_spawn (struct map_session_data *sd, const char *mapname,
 
 		if(class_ == MOBID_EMPERIUM)
 		{	// emperium hp based on defense level [Valaris]
-			struct guild_castle *gc = guild_mapname2gc(map[md->bl.m].mapname);
+			struct guild_castle *gc = guild_mapname2gc(maps[md->bl.m].mapname);
 			if(gc)
 			{
 				md->max_hp += 2000 * gc->defense;
@@ -314,7 +314,7 @@ int mob_spawn_guardian(struct map_session_data *sd,const char *mapname,
 		safestrcpy(md->npc_event,event, sizeof(md->npc_event));
 		mob_spawn(md->bl.id);
 
-		gc=guild_mapname2gc(map[m].mapname);
+		gc=guild_mapname2gc(maps[m].mapname);
 		if(gc && guardian>=0 && guardian<MAX_GUARDIAN)
 		{
 			md->max_hp += 2000 * gc->defense;
@@ -973,7 +973,7 @@ int mob_spawn(uint32 id)
 
 	md->guild_id = 0;
 	if (md->class_ >= 1285 && md->class_ <= 1288) {
-		struct guild_castle *gc=guild_mapname2gc(map[md->bl.m].mapname);
+		struct guild_castle *gc=guild_mapname2gc(maps[md->bl.m].mapname);
 		if(gc)
 			md->guild_id = gc->guild_id;
 	}
@@ -1025,8 +1025,8 @@ int mob_spawn(uint32 id)
 		{
 			if( md->cache->x0==0 && md->cache->y0==0 )
 			{	// no spawning limit on the map
-				x = rand()%(map[md->bl.m].xs-2)+1;
-				y = rand()%(map[md->bl.m].ys-2)+1;
+				x = rand()%(maps[md->bl.m].xs-2)+1;
+				y = rand()%(maps[md->bl.m].ys-2)+1;
 			}
 			else
 			{	// spawning rectangle
@@ -1139,7 +1139,7 @@ int mob_can_reach(struct mob_data &md,struct block_list &bl,int range)
 	/*if(md->class_ >= 1285 && md->class_ <= 1287){
 		struct map_session_data *sd;
 		struct guild *g=NULL;
-		struct guild_castle *gc=guild_mapname2gc(map[bl->m].name);
+		struct guild_castle *gc=guild_mapname2gc(maps[bl->m].name);
 
 		if(gc && agit_flag==0)	// Guardians will not attack during non-woe time [Valaris]
 			return 0;  // end addition [Valaris]
@@ -2580,7 +2580,7 @@ int mob_ai_sub_lazy(void *key,void *data, va_list &ap)
 	if( DIFF_TICK(md->next_walktime,tick)<0 &&
 		(mob_db[md->class_].mode&1) && mob_can_move(*md) )
 	{
-		if( map[md->bl.m].users>0 )
+		if( maps[md->bl.m].users>0 )
 		{	// Since PC is in the same map, somewhat better negligent processing is carried out.
 			// It sometimes moves.
 			if(rand()%1000<MOB_LAZYMOVEPERC)
@@ -2648,7 +2648,7 @@ public:
 		if( DIFF_TICK(md->next_walktime,tick)<0 &&
 			(mob_db[md->class_].mode&1) && mob_can_move(*md) )
 		{
-			if( map[md->bl.m].users>0 )
+			if( maps[md->bl.m].users>0 )
 			{	// Since PC is in the same map, somewhat better negligent processing is carried out.
 				// It sometimes moves.
 				if(rand()%1000<MOB_LAZYMOVEPERC)
@@ -2925,9 +2925,9 @@ int mob_deleteslave(struct mob_data &md)
 	if( md.state.is_master )
 	{
 		CMap::foreachinarea( CMobDeleteSlave(md.bl.id),
-			md.bl.m, 0,0,map[md.bl.m].xs-1,map[md.bl.m].ys-1, BL_MOB);
+			md.bl.m, 0,0,maps[md.bl.m].xs-1,maps[md.bl.m].ys-1, BL_MOB);
 //		map_foreachinarea(mob_deleteslave_sub, 
-//			md.bl.m, 0,0,map[md.bl.m].xs-1,map[md.bl.m].ys-1, BL_MOB, 
+//			md.bl.m, 0,0,maps[md.bl.m].xs-1,maps[md.bl.m].ys-1, BL_MOB, 
 //			md.bl.id);
 	}
 	return 0;
@@ -2952,7 +2952,6 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 	int mvp_damage,max_hp;
 	unsigned long tick = gettick();
 	struct map_session_data *mvp_sd = NULL, *second_sd = NULL,*third_sd = NULL;
-	struct block_list *master = NULL;
 	double tdmg,temp;
 	struct item item;
 	int ret;
@@ -3093,7 +3092,7 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 	if(md.class_ >= 1285 && md.class_ <=1287)
 	{	// guardian hp update [Valaris]
 		size_t k;
-		struct guild_castle *gc=guild_mapname2gc(map[md.bl.m].mapname);
+		struct guild_castle *gc=guild_mapname2gc(maps[md.bl.m].mapname);
 		if(gc)
 		{
 			for(k=0; k<MAX_GUARDIAN; k++)
@@ -3228,7 +3227,7 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 
 
 	// [MouseJstr]
-	if((map[md.bl.m].flag.pvp == 0) || (battle_config.pvp_exp == 1)) {
+	if((maps[md.bl.m].flag.pvp == 0) || (battle_config.pvp_exp == 1)) {
 
 	// 経験値の分配
 	for(i=0;i<DAMAGELOG_SIZE;i++)
@@ -3293,13 +3292,10 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 			base_exp*=2;
 			job_exp*=2;
 		}
-		if(md.master_id) {
-			if(((master = map_id2bl(md.master_id)) && status_get_mode(master)&0x20) ||	// check if its master is a boss (MVP's and minibosses)
-				(md.state.special_mob_ai >= 1 && battle_config.alchemist_summon_reward != 1))
-			{	// for summoned creatures [Valaris]
-				base_exp = 0;
-				job_exp = 0;
-			}
+		if(md.master_id && md.state.special_mob_ai) //New rule: Only player-summoned mobs do not give exp. [Skotlex]
+		{	
+			base_exp = 0;
+			job_exp = 0;
 		}
 		else
 		{
@@ -3319,9 +3315,9 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 			}
 		}
 		//mapflags: noexp check [Lorky]
-		if( map[md.bl.m].flag.nobaseexp )
+		if( maps[md.bl.m].flag.nobaseexp )
 			base_exp=0; 
-		if( map[md.bl.m].flag.nojobexp )
+		if( maps[md.bl.m].flag.nojobexp )
 			job_exp=0; 
 		//end added Lorky 
 		if((pid=tmpsd[i]->status.party_id)>0)
@@ -3375,8 +3371,8 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 			struct delay_item_drop *ditem;
 			int drop_rate;
 			
-			if( map[md.bl.m].flag.nomobloot ||
-				(master && status_get_mode(master) & 0x20) ||	// check if its master is a boss (MVP's and minibosses)
+			if( (maps[md.bl.m].flag.nomobloot) ||
+				(md.master_id && md.state.special_mob_ai) ||
 				(md.state.special_mob_ai >= 1 && battle_config.alchemist_summon_reward != 1) )	// Added [Valaris]
 				
 				break;	// End
@@ -3396,7 +3392,7 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 				drop_rate += drop_rate/4; // pk_mode increase drops if 20 level difference [Valaris]
 
 			//mapflag: noloot check [Lorky]
-			if (map[md.bl.m].flag.nomobloot == 1)	drop_rate=0; 
+			if (maps[md.bl.m].flag.nomobloot == 1)	drop_rate=0; 
 			//end added [Lorky]
 
 			if (drop_rate < rand() % 10000 + 1) { //fixed 0.01% impossible drops bug [Lupus]
@@ -3433,7 +3429,7 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 		}
 
 		// Ore Discovery [Celest]
-		if(sd && sd == mvp_sd && map[md.bl.m].flag.nomobloot==0 && pc_checkskill(*sd,BS_FINDINGORE)>0 && battle_config.finding_ore_rate/100 >= (uint32)(rand()%1000))
+		if(sd && sd == mvp_sd && maps[md.bl.m].flag.nomobloot==0 && pc_checkskill(*sd,BS_FINDINGORE)>0 && battle_config.finding_ore_rate/100 >= (uint32)(rand()%1000))
 		{
 			struct delay_item_drop *ditem;
 			ditem=(struct delay_item_drop *)aCalloc(1,sizeof(struct delay_item_drop));
@@ -3514,7 +3510,7 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 		mexp = (temp > double(INT_MAX))? INT_MAX:(int)temp;
 
 		//mapflag: noexp check [Lorky]
-		if (map[md.bl.m].flag.nobaseexp == 1 || map[md.bl.m].flag.nojobexp == 1)	mexp=1; 
+		if (maps[md.bl.m].flag.nobaseexp == 1 || maps[md.bl.m].flag.nojobexp == 1)	mexp=1; 
 		//end added [Lorky] 
 
 		if(mexp < 1) mexp = 1;
@@ -3530,7 +3526,7 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 			drop_rate = mob_db[md.class_].mvpitem[i].p;
 			if(drop_rate <= 0 && !battle_config.drop_rate0item)
 				drop_rate = 1;
-			else if( map[md.bl.m].flag.nomvploot )
+			else if( maps[md.bl.m].flag.nomvploot )
 			{
 				drop_rate=0; 
 				break;
@@ -3721,7 +3717,7 @@ int mob_heal(struct mob_data &md,int heal)
 	if(md.class_ >= 1285 && md.class_ <=1287)
 	{	// guardian hp update [Valaris]
 		size_t k;
-		struct guild_castle *gc=guild_mapname2gc(map[md.bl.m].mapname);
+		struct guild_castle *gc=guild_mapname2gc(maps[md.bl.m].mapname);
 		if(gc)
 		{
 			for(k=0; k<MAX_GUARDIAN; k++)
@@ -3809,7 +3805,7 @@ int mob_warp(struct mob_data &md,int m,int x,int y,int type)
 	if( m<0 || (size_t)m>=map_num ) m=md.bl.m;
 
 	if(type >= 0) {
-		if(map[md.bl.m].flag.monster_noteleport)
+		if(maps[md.bl.m].flag.monster_noteleport)
 			return 0;
 		clif_clearchar_area(md.bl,type);
 	}
@@ -3825,8 +3821,8 @@ int mob_warp(struct mob_data &md,int m,int x,int y,int type)
 			x=bx+rand()%xs-xs/2;
 			y=by+rand()%ys-ys/2;
 		}else{			// 完全ランダム探索
-			x=rand()%(map[m].xs-2)+1;
-			y=rand()%(map[m].ys-2)+1;
+			x=rand()%(maps[m].xs-2)+1;
+			y=rand()%(maps[m].ys-2)+1;
 		}
 	}
 	md.dir=0;
@@ -3902,10 +3898,10 @@ public:
 unsigned int mob_countslave(struct mob_data &md)
 {
 	return CMap::foreachinarea( CMobCountSlave(md.bl.id),
-		md.bl.m, 0,0,map[md.bl.m].xs-1,map[md.bl.m].ys-1, BL_MOB);
+		md.bl.m, 0,0,maps[md.bl.m].xs-1,maps[md.bl.m].ys-1, BL_MOB);
 //	unsigned int c=0;
 //	map_foreachinarea(mob_countslave_sub, 
-//		md.bl.m, 0,0,map[md.bl.m].xs-1,map[md.bl.m].ys-1, BL_MOB,
+//		md.bl.m, 0,0,maps[md.bl.m].xs-1,maps[md.bl.m].ys-1, BL_MOB,
 //		md.bl.id,&c);
 //	return c;
 }
@@ -4207,7 +4203,7 @@ int mobskill_use_id(struct mob_data &md,struct block_list *target,unsigned short
 		skill_id != AM_POTIONPITCHER && skill_id != AL_HEAL)
 		return 0;
 
-	if(map[md.bl.m].flag.gvg && skill_db[skill_id].nocast & 4)
+	if(maps[md.bl.m].flag.gvg && skill_db[skill_id].nocast & 4)
 		return 0;
 	if(skill_get_inf2(skill_id)&INF2_NO_TARGET_SELF && md.bl.id == target->id)
 		return 0;
@@ -4321,7 +4317,7 @@ int mobskill_use_pos( struct mob_data *md, int skill_x, int skill_y, unsigned sh
 	if(md->option&2)
 		return 0;
 
-	if(map[md->bl.m].flag.gvg && (skill_id == SM_ENDURE || skill_id == AL_TELEPORT || skill_id == AL_WARP ||
+	if(maps[md->bl.m].flag.gvg && (skill_id == SM_ENDURE || skill_id == AL_TELEPORT || skill_id == AL_WARP ||
 		skill_id == WZ_ICEWALL || skill_id == TF_BACKSLIDING))
 		return 0;
 
@@ -4673,7 +4669,7 @@ int mobskill_use(struct mob_data &md,unsigned long tick,int event)
 						bx = x + rand() % (r*2+3) - r;
 						by = y + rand() % (r*2+3) - r;
 					} while ((
-						//bx <= 0 || by <= 0 || bx >= map[m].xs || by >= map[m].ys ||	// checked in getcell
+						//bx <= 0 || by <= 0 || bx >= maps[m].xs || by >= maps[m].ys ||	// checked in getcell
 						map_getcell(m, bx, by, CELL_CHKNOPASS)) && (i++) < 1000);
 					if (i < 1000){
 						x = bx; y = by;
@@ -4686,7 +4682,7 @@ int mobskill_use(struct mob_data &md,unsigned long tick,int event)
 						bx = x + rand() % (r*2+1) - r;
 						by = y + rand() % (r*2+1) - r;
 					} while ((
-						//bx <= 0 || by <= 0 || bx >= map[m].xs || by >= map[m].ys ||	// checked in getcell
+						//bx <= 0 || by <= 0 || bx >= maps[m].xs || by >= maps[m].ys ||	// checked in getcell
 						map_getcell(m, bx, by, CELL_CHKNOPASS)) && (i++) < 1000);
 					if (i < 1000){
 						x = bx; y = by;
@@ -4754,12 +4750,12 @@ int mob_gvmobcheck(struct map_session_data &sd, struct block_list *bl)
 	if(bl->type==BL_MOB && (md=(struct mob_data *)bl) &&
 		(md->class_ == MOBID_EMPERIUM || md->class_ == 1287 || md->class_ == 1286 || md->class_ == 1285))
 	{
-		struct guild_castle *gc=guild_mapname2gc(map[sd.bl.m].mapname);
+		struct guild_castle *gc=guild_mapname2gc(maps[sd.bl.m].mapname);
 		struct guild *g=guild_search(sd.status.guild_id);
 
 		if(g == NULL && md->class_ == MOBID_EMPERIUM)
 			return 0;//ギルド未加入ならダメージ無し
-		else if(gc != NULL && !map[sd.bl.m].flag.gvg)
+		else if(gc != NULL && !maps[sd.bl.m].flag.gvg)
 			return 0;//砦内でGvじゃないときはダメージなし
 		else if(g) {
 			if (gc != NULL && g->guild_id == gc->guild_id)

@@ -45,7 +45,7 @@ class CParseInput;
 class CParseConfig;
 
 
-class CSymbol
+class CSymbol : public defaultcmp
 {
 public:
 	short		idx;
@@ -56,8 +56,6 @@ public:
 	{}
 	~CSymbol()
 	{}
-	bool operator==(const CSymbol& a) const { return this==&a; }
-
 	CSymbol(const CSymbol& s) : idx(s.idx),Type(s.Type),Name(s.Name)
 	{}
 	const CSymbol& operator=(const CSymbol& s)
@@ -75,37 +73,36 @@ public:
 	}
 };
 
-class CRule
+class CRule : public defaultcmp
 {
 public:
 	short				NonTerminal;
-	TArrayDST<short>	cSymbol;
+	//TArrayDST<short>	cSymbol;
+	vector<short>		cSymbol;
 
 	CRule() : NonTerminal(0)	{}
 	~CRule()					{}
-	bool operator==(const CRule& a) const { return this==&a; }
 };
-class CEdge
+class CEdge : public defaultcmp
 {
 public:
 	short	CharSetIndex;
 	short	TargetIndex;
 	CEdge() : CharSetIndex(0),TargetIndex(0) {}
 	~CEdge()	{}
-	bool operator==(const CEdge& e) const { return this==&e; }
 };
-class CDFAState
+class CDFAState : public defaultcmp
 {
 public:
 	char				Accept;
 	short				AcceptIndex;
-	TArrayDST<CEdge>	cEdge;
+	//TArrayDST<CEdge>	cEdge;
+	vector<CEdge>		cEdge;
 
 	CDFAState() : Accept(0),AcceptIndex(0)	{}
 	~CDFAState()	{}
-	bool operator==(const CDFAState& a) const { return this==&a; }
 };
-class CAction
+class CAction : public defaultcmp
 {
 public:
 	short SymbolIndex;
@@ -114,21 +111,21 @@ public:
 	CAction() : SymbolIndex(0),Action(0),Target(0)	{}
 	~CAction()	{}
 
-	bool operator==(const CAction& a) const { return this==&a; }
 };
-class CLALRState
+class CLALRState : public defaultcmp
 {
 public:
-	TArrayDST<CAction>	cAction;
+	//TArrayDST<CAction>	cAction;
+	vector<CAction>	cAction;
 	CLALRState()	{}
 	~CLALRState()	{}
-	bool operator==(const CLALRState& a) const { return this==&a; }
+
 };
-class CToken
+class CToken : public defaultcmp
 {
 public:
-	short		id;
-	string<>	cLexeme;
+	short			id;
+	string<>		cLexeme;
 	unsigned short	line;
 	unsigned short	column;
 
@@ -143,7 +140,6 @@ public:
 		id=0;
 		cLexeme.clear();
 	}
-	bool operator==(const CToken& a) const { return this==&a; }
 
 	CToken(const CToken& t)
 		: id(t.id), cLexeme(t.cLexeme),line(t.line),column(t.column)
@@ -159,7 +155,7 @@ public:
 
 };
 
-class CStackElement
+class CStackElement : public defaultcmp
 {
 public:
 	CSymbol		symbol;
@@ -190,7 +186,6 @@ public:
 		cChildNum = se.cChildNum;
 		return *this;
 	}
-	bool operator==(const CStackElement& a) const { return this==&a; }
 
 	void clear()
 	{
@@ -422,11 +417,17 @@ public:
 	short			start_symbol;
 	bool			case_sensitive;
 	///////////////////////////////////////////////////////////////////////////
-	TArrayDCT< string<> >	charset;
-	TArrayDCT<CDFAState>	dfa_state;
-	TArrayDCT<CSymbol>		sym;
-	TArrayDCT<CRule>		rule;
-	TArrayDCT<CLALRState>	lalr_state;
+	//TArrayDCT< string<> >	charset;
+	//TArrayDCT<CDFAState>	dfa_state;
+	//TArrayDCT<CSymbol>		sym;
+	//TArrayDCT<CRule>		rule;
+	//TArrayDCT<CLALRState>	lalr_state;
+
+	vector< string<> >	charset;
+	vector<CDFAState>		dfa_state;
+	vector<CSymbol>		sym;
+	vector<CRule>			rule;
+	vector<CLALRState>	lalr_state;
 
 public:
 	///////////////////////////////////////////////////////////////////////////

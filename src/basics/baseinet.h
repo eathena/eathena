@@ -9,121 +9,25 @@
 #include "basetime.h"
 #include "basestring.h"
 
+///////////////////////////////////////////////////////////////////////////////
+// test function
+void test_inet();
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+// library includes
+#ifdef _MSC_VER
+#pragma comment(lib, "wsock32.lib")
+#pragma comment(lib, "ws2_32.lib")
+#endif
+
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // error functions
 int sockerrno();
 const char* sockerrmsg(int code);
-
-
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-//!! move to basesocket when added
-
-// maximum accept time of a socket in microseconds
-// it defines the maximum time after an incoming socket is accepted
-// and ready to read from (it does not affect read/write, only accept)
-// half a second is a good praktical value
-#define SOCKETACCEPTTIME	500000
-
-
-// define to use non-blocking sockets instead of blocking sockets
-// nonblocking might be nicer but need periferal tests to
-// assure complete read/write operations
-//#define NONBLOCKINGSOCKETS
-
-
-// variation of FD_SETSIZE is not that portable as described
-// if possible do not reduce it
-// if the number of aquired sockets exceed FD_SETSIZE,
-// on unix you cannot use the sockets because they 
-// don't fit into the fd_set structre
-// on windows machines this does not matter since sockets 
-// and FD_SETSIZE are not related as on unix
-// on unix it is usually >1024 or windows standard is 64
-// 64bit systems define FD_SETSIZE usually as 65536
-// #define FD_SETSIZE set a number if necessary
-
-// a worker thread is opened for each number of FD_WORKERSIZE sockets
-// to get a more responsive socket behaviour with a huge number of sockets
-// FD_WORKERSIZE can be defined smaller than FD_SETSIZE on unix
-// so the possible FD_SETSIZE sockets are devided to 
-// max (FD_SETSIZE/FD_WORKERSIZE) independend worker threads.
-// on windows it is possible to just reduce the FD_SETSIZE 
-// and have FD_WORKERSIZE = FD_SETSIZE for the same effect 
-// at reduced memory usage because FD_SETSIZE only limits the
-// size if the fd_set structure and not the number of usable sockets
-#define FD_WORKERSIZE FD_SETSIZE
-
-
-
-//////////////////////////////////////////////////////////////////////////
-// BSD-compatible socket error codes for Win32
-//////////////////////////////////////////////////////////////////////////
-// since there is no way to access this structure in a portable way
-// we need to headbang at a wall until one breaks			
-//typedef	unsigned long	fd_mask;
-#ifndef NBBY
-#define	NBBY 8
-#endif
-#ifndef howmany
-#define	howmany(x, y)	(((x) + ((y) - 1)) / (y))
-#endif  
-#ifndef NFDBITS
-#define	NFDBITS	(sizeof (unsigned long) * NBBY)	// bits per mask
-#endif
-
-
-//////////////////////////////////////////////////////////////////////////
-// socketlen type definition
-//////////////////////////////////////////////////////////////////////////
-#ifndef __socklen_t_defined
-  #ifdef WIN32
-    typedef int socklen_t;
-  #elif CYGWIN
-    // stupid cygwin is not standard conform
-    #ifdef socklen_t
-      #undef socklen_t
-    #endif
-    typedef int socklen_t;
-  #else// normal unix with undefined socklen_t
-    typedef unsigned int socklen_t;
-  #endif
-  #define __socklen_t_defined
-#endif//__socklen_t_defined
-typedef char* sockval_t;
-
-//////////////////////////////////////////////////////////////////////////
-#ifndef WIN32
-// windows specific interface for non-windows systems
-typedef int		SOCKET;
-// function definitions
-extern inline int closesocket(SOCKET fd)		
-{
-	return close(fd); 
-}
-extern inline int ioctlsocket(SOCKET fd, long cmd, unsigned long *arg)		
-{
-	return ioctl(fd,cmd,arg); 
-}
-
-#else
-// unix specific interface for windows
-extern inline int read(SOCKET fd, char*buf, int sz)		
-{
-	return recv(fd,buf,sz,0); 
-}
-extern inline int write(SOCKET fd, char*buf, int sz)	
-{
-	return send(fd,buf,sz,0); 
-}
-
-#endif
-//!!
-//////////////////////////////////////////////////////////////////////////
-
-
-
 
 //////////////////////////////////////////////////////////////////////////
 // BSD-compatible socket error codes for Win32
@@ -178,31 +82,16 @@ extern inline int write(SOCKET fd, char*buf, int sz)
 #endif
 
 // shutdown() constants
-
 #if defined(SD_RECEIVE) && !defined(SHUT_RD)
 #  define SHUT_RD       SD_RECEIVE
 #  define SHUT_WR       SD_SEND
 #  define SHUT_RDWR     SD_BOTH
 #endif
 
-
 // max backlog value for listen()
-
 #ifndef SOMAXCONN
 #define SOMAXCONN -1
 #endif
-
-
-
-
-
-
-#if defined(__DARWIN__) || defined(WIN32)
-typedef int psocklen;
-#else
-typedef socklen_t psocklen;
-#endif
-
 
 
 
@@ -230,6 +119,7 @@ private:
 		uint	cCnt;		// # of valid ip addresses
 	public:
 		_ipset_helper();
+		~_ipset_helper();
 
 		///////////////////////////////////////////////////////////////////////
 		// number of found system ip's (w/o localhost)
@@ -277,7 +167,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// copy/assign (actually not really necessary)
     ipaddress(const ipaddress& a) : cAddr(a.cAddr)	{}
-    ipaddress& operator= (const ipaddress& a)	{ this->cAddr = a.cAddr; return *this; }
+    const ipaddress& operator= (const ipaddress& a)	{ this->cAddr = a.cAddr; return *this; }
 
 	///////////////////////////////////////////////////////////////////////////
 	// construction set (needs explicite casts when initializing with 0)
@@ -292,8 +182,8 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	// assignment set (needs explicite casts when assigning 0)
-    ipaddress& operator= (uint32 a)			{ cAddr = a; return *this; }
-	ipaddress& operator= (const char* str)	{ cAddr = str2ip(str); return *this; }
+    const ipaddress& operator= (uint32 a)			{ cAddr = a; return *this; }
+	const ipaddress& operator= (const char* str)	{ cAddr = str2ip(str); return *this; }
 
 	bool init(const char *str)
 	{
@@ -362,7 +252,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// copy/assign (actually not really necessary)
     netaddress(const netaddress& a):ipaddress(a.cAddr),cPort(a.cPort){}
-    netaddress& operator= (const netaddress& a)	{ this->cAddr = a.cAddr; this->cPort=a.cPort; return *this; }
+    const netaddress& operator= (const netaddress& a)	{ this->cAddr = a.cAddr; this->cPort=a.cPort; return *this; }
 
 	///////////////////////////////////////////////////////////////////////////
 	// construction set
@@ -372,9 +262,9 @@ public:
 	netaddress(const char* str)	{ init(str); }
 	///////////////////////////////////////////////////////////////////////////
 	// assignment set
-    netaddress& operator= (uint32 a)		{ this->cAddr = a; return *this; }
-	netaddress& operator= (ushort p)		{ this->cPort = p; return *this; }
-	netaddress& operator= (const char* str)	{ init(str); return *this; }
+    const netaddress& operator= (uint32 a)			{ this->cAddr = a; return *this; }
+	const netaddress& operator= (ushort p)			{ this->cPort = p; return *this; }
+	const netaddress& operator= (const char* str)	{ init(str); return *this; }
 	bool init(const char *str)
 	{	
 		ipaddress mask; // dummy
@@ -420,7 +310,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// copy/assign (actually not really necessary)
     subnetaddress(const subnetaddress& a):netaddress(a),cMask(a.cMask) {}
-    subnetaddress& operator= (const subnetaddress& a)	{ this->cAddr = a.cAddr; this->cPort=a.cPort; this->cMask=a.cMask; return *this; }
+    const subnetaddress& operator= (const subnetaddress& a)	{ this->cAddr = a.cAddr; this->cPort=a.cPort; this->cMask=a.cMask; return *this; }
 
 	///////////////////////////////////////////////////////////////////////////
 	// construction set
@@ -429,7 +319,7 @@ public:
 	subnetaddress(const char* str)	{ init(str); }
 	///////////////////////////////////////////////////////////////////////////
 	// assignment set
-	subnetaddress& operator= (const char* str)	{ init(str); return *this; }
+	const subnetaddress& operator= (const char* str)	{ init(str); return *this; }
 	bool init(const char *str)
 	{	// format: <ip>/<mask>:<port>
 		return ipaddress::str2ip(str, *this, this->cMask, this->cPort);
@@ -572,6 +462,19 @@ inline string<> tostring(const ipaddress& ip)		{ return ip.tostring(); }
 inline string<> tostring(const netaddress& ip)		{ return ip.tostring(); }
 inline string<> tostring(const subnetaddress& ip)	{ return ip.tostring(); }
 inline string<> tostring(const ipset& ip)			{ return ip.tostring(); }
+
+
+///////////////////////////////////////////////////////////////////////////////
+// some variables
+extern ipaddress	iplocal;	// stores local ip on startup, does not refresh automatically
+const ipaddress		ipany((uint32)INADDR_ANY);
+const ipaddress		iploopback(INADDR_LOOPBACK);
+const ipaddress		ipnone(INADDR_NONE);
+
+
+ipaddress phostbyname(const char* name);
+string<> phostbyaddr(ipaddress ip);
+string<> phostcname(const char* name);
 
 
 #endif//__INET__

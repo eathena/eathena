@@ -24,7 +24,7 @@ int party_member_leaved(uint32 party_id,uint32 account_id, const char *name);
 int party_reply_invite(struct map_session_data &sd,uint32 account_id,int flag);
 int party_recv_noinfo(uint32 party_id);
 int party_recv_info(struct party &sp);
-int party_recv_movemap(uint32 party_id,uint32 account_id,const char *map,int online,unsigned short lv);
+int party_recv_movemap(uint32 party_id,uint32 account_id,const char *mapname,int online,unsigned short lv);
 int party_broken(uint32 party_id);
 int party_optionchanged(uint32 party_id,uint32 account_id,unsigned short expshare,unsigned short itemshare,unsigned char flag);
 int party_changeoption(struct map_session_data &sd,unsigned short expshare,unsigned short itemshare);

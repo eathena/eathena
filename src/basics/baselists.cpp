@@ -1,6 +1,8 @@
 #include "basetypes.h"
 #include "baselists.h"
 
+#if defined(DEBUG)
+
 class linkdata : public CDLinkNode
 {
 public:
@@ -13,9 +15,12 @@ public:
 
 };
 
+#endif//DEBUG
 
-void test_lists()
+
+void test_lists(void)
 {
+#if defined(DEBUG)
 	//double linked list test with scope creation/destruction
 	CDLinkNode head, tail, root;
 
@@ -64,4 +69,5 @@ void test_lists()
 
 
 	}
+#endif//DEBUG
 }

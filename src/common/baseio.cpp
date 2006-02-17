@@ -588,7 +588,7 @@ private:
 		// get last modify time/date
 		creation_time_GM_account_file = (0==stat(GM_account_filename, &file_stat))? 0 : file_stat.st_mtime;
 
-		fp = safefopen(GM_account_filename, "r");
+		fp = safefopen(GM_account_filename, "rb");
 		if( fp )
 		{
 			char line[1024];
@@ -638,7 +638,7 @@ private:
 		}
 		else
 		{
-			ShowError("read_gm_account: GM accounts file [%s] not found.\n", GM_account_filename);
+			ShowWarning("External GM accounts file [%s] not found.\n", GM_account_filename);
 			return false;
 		}
 
@@ -659,7 +659,7 @@ private:
 			size_t pos;
 			CLoginAccount data;
 			unsigned long account_id;
-			int logincount, state, n, i, j, v;
+			int logincount, state, n, i, j, v, gm;
 			char line[2048], *p, userid[2048], pass[2048], lastlogin[2048], sex, email[2048], error_message[2048], last_ip[2048], memo[2048];
 			unsigned long ban_until_time;
 			unsigned long connect_until_time;
@@ -678,22 +678,39 @@ private:
 				*userid=0;
 				*pass=0;
 				*lastlogin=0;
+				gm=0;
+				
 
-				// database version reading (v2)
-				if( 13 == (i=sscanf(line, "%ld\t%[^\t]\t%[^\t]\t%[^\t]\t%c\t%d\t%d\t%[^\t]\t%[^\t]\t%ld\t%[^\t]\t%[^\t]\t%ld%n",
-								&account_id, userid, pass, lastlogin, &sex, &logincount, &state, email, error_message, &connect_until_time, last_ip, memo, &ban_until_time, &n)) && (line[n] == '\t') )
-				{	// with ban_time
+				if( 11 == (i=sscanf(line, 
+								"%ld\t"
+								"%[^\t]\t%[^\t]\t"
+								"%d\t%c\t%[^\t]\t"
+								"%d\t%[^\t]\t%[^\t]\t"
+								"%ld\t%ld%n",
+								&account_id, 
+								userid, pass, 
+								&gm, &sex, email, 
+								&logincount, lastlogin, last_ip, 
+								&connect_until_time, &ban_until_time, &n)) && (line[n] == '\t') )
+				{	// added gm_level, remove useless stuff and reordered the rest
 					;
+				}
+				else if( 13 == (i=sscanf(line, "%ld\t%[^\t]\t%[^\t]\t%[^\t]\t%c\t%d\t%d\t%[^\t]\t%[^\t]\t%ld\t%[^\t]\t%[^\t]\t%ld%n",
+								&account_id, userid, pass, lastlogin, &sex, &logincount, &state, email, error_message, &connect_until_time, last_ip, memo, &ban_until_time, &n)) && (line[n] == '\t') )
+				{	// added ban_time
+					gm=0;
 				}
 				else if( 12 == (i=sscanf(line, "%ld\t%[^\t]\t%[^\t]\t%[^\t]\t%c\t%d\t%d\t%[^\t]\t%[^\t]\t%ld\t%[^\t]\t%[^\t]%n",
 								&account_id, userid, pass, lastlogin, &sex, &logincount, &state, email, error_message, &connect_until_time, last_ip, memo, &n)) && (line[n] == '\t') )
 				{	// without ban_time
 					ban_until_time=0;
+					gm=0;
 				}
 				// Old athena database version reading (v1)
 				else if( 5 <= (i=sscanf(line, "%ld\t%[^\t]\t%[^\t]\t%[^\t]\t%c\t%d\t%d\t%n",
 								&account_id, userid, pass, lastlogin, &sex, &logincount, &state, &n)) )
 				{
+					gm=0;
 					*email=0;
 					*last_ip=0;
 					ban_until_time=0;
@@ -760,12 +777,15 @@ private:
 						safestrcpy(temp.email, email, sizeof(temp.email));
 
 					if( gmlist.find( CMapGM(account_id),0,pos) )
-					{
+					{	// gm list value overwrites stored values from db
 						temp.gm_level = gmlist[pos].gm_level;
 						GM_count++;
 					}
 					else
-						temp.gm_level=0;
+					{	// otherwise take the value from db
+						temp.gm_level=gm;
+						if(gm) GM_count++;
+					}
 
 					temp.login_count = (logincount>0)?logincount:0;
 
@@ -776,25 +796,9 @@ private:
 						remove_control_chars(lastlogin);
 					safestrcpy(temp.last_login, lastlogin, sizeof(temp.last_login));
 
-					if(error_message[0]=='-' && error_message[1]==0)
-						error_message[0] = 0;// remove defaults
-					else
-						remove_control_chars(error_message);
-					safestrcpy(temp.error_message, error_message, sizeof(temp.error_message));
-
-					if(memo[0]=='-' && memo[1]==0)
-						memo[0] = 0;// remove defaults
-					else
-						remove_control_chars(memo);
-					safestrcpy(temp.memo, memo, sizeof(temp.memo));
-
-					temp.state = state;
-
-					temp.ban_until = (i==13) ? ban_until_time : 0;
-					temp.valid_until = connect_until_time;
-
 					last_ip[15] = '\0';
 					remove_control_chars(last_ip);
+
 					if(*last_ip && *last_ip!='-')
 					{
 						ipaddress ip(last_ip);
@@ -806,8 +810,9 @@ private:
 						temp.client_ip  = INADDR_ANY;
 						temp.last_ip[0] = 0;
 					}
-					
 
+					temp.ban_until = ban_until_time;
+					temp.valid_until = connect_until_time;
 
 					p = line;
 					for(j = 0; j < ACCOUNT_REG2_NUM; j++)
@@ -903,19 +908,38 @@ private:
 			return false;
 		}
 		fprintf(fp, "// Accounts file: here are saved all information about the accounts.\n");
-		fprintf(fp, "// Structure: ID, account name, password, last login time, sex, # of logins, state, email, error message for state 7, validity time, last (accepted) login ip, memo field, ban timestamp, repeated(register text, register value)\n");
+		fprintf(fp, "// Structure: account_id, name, password, gm_level, sex, email, # of logins, last login time, last login ip, validity time, ban timestamp, repeated(variable text, variable value)\n");
 		fprintf(fp, "// Some explanations:\n");
 		fprintf(fp, "//   account name    : between 4 to 23 char for a normal account (standard client can't send less than 4 char).\n");
 		fprintf(fp, "//   account password: between 4 to 23 char\n");
 		fprintf(fp, "//   sex             : M or F for normal accounts, S for server accounts\n");
-		fprintf(fp, "//   state           : 0: account is ok, 1 to 256: error code of packet 0x006a + 1\n");
 		fprintf(fp, "//   email           : between 3 to 39 char (a@a.com is like no email)\n");
-		fprintf(fp, "//   error message   : text for the state 7: 'Your are Prohibited to login until <text>'. Max 19 char\n");
 		fprintf(fp, "//   valitidy time   : 0: unlimited account, <other value>: date calculated by addition of 1/1/1970 + value (number of seconds since the 1/1/1970)\n");
-		fprintf(fp, "//   memo field      : max 254 char\n");
 		fprintf(fp, "//   ban time        : 0: no ban, <other value>: banned until the date: date calculated by addition of 1/1/1970 + value (number of seconds since the 1/1/1970)\n");
+
 		for(i = 0; i < cList.size(); i++)
 		{
+			fprintf(fp, "%ld\t"
+						"%s\t%s\t"
+						"%d\t"
+						"%c\t"
+						"%s\t"
+						"%ld\t"
+						"%s\t"
+						"%s\t"
+						"%ld\t"
+						"%ld\t",
+						(unsigned long)cList[i].account_id,
+						cList[i].userid, cList[i].passwd,
+						(int)cList[i].gm_level, 
+						(cList[i].sex == 2) ? 'S' : (cList[i].sex ? 'M' : 'F'),
+						(*cList[i].email)?cList[i].email:"a@a.com",
+						(unsigned long)cList[i].login_count,
+						(*cList[i].last_login)?cList[i].last_login:"-",
+						(cList[i].last_ip[0])?cList[i].last_ip:"-",
+						(unsigned long)cList[i].valid_until,
+						(unsigned long)cList[i].ban_until );
+/*			
 			fprintf(fp, "%ld\t"
 						"%s\t"
 						"%s\t"
@@ -942,6 +966,8 @@ private:
 						(cList[i].last_ip[0])?cList[i].last_ip:"-",
 						(*cList[i].memo)?cList[i].memo:"-",
 						(unsigned long)cList[i].ban_until);
+*/
+
 			for(k = 0; k< cList[i].account_reg2_num; k++)
 				if(cList[i].account_reg2[k].str[0])
 					fprintf(fp, "%s,%ld ", cList[i].account_reg2[k].str, (long)cList[i].account_reg2[k].value);

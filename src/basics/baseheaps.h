@@ -14,7 +14,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 // test function
-void test_heaps(int scale);
+void test_heaps(int scale=1);
 
 
 
@@ -25,6 +25,7 @@ void test_heaps(int scale);
 // about 20% slower than method in the second implementation
 template <class T> class BinaryHeapDH : private TArrayDCT<T>
 {
+	friend void test_heaps(int scale);
 public:
 	BinaryHeapDH()	{}
 	BinaryHeapDH(const TArray<T>& arr)
@@ -62,19 +63,19 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// push/pop access
-	virtual bool push(const T& elem)				{ return this->BinaryHeapDH::insert(elem); }
+	virtual bool push(const T& elem)				{ return this->BinaryHeapDH<T>::insert(elem); }
 	virtual bool push(const TArray<T>& arr)
 	{
 		size_t i;
 		for(i=0; i<arr.size(); i++)
-			this->BinaryHeapDH::insert(arr[i]);
+			this->BinaryHeapDH<T>::insert(arr[i]);
 		return true;
 	}
 	virtual bool push(const T* elem, size_t cnt)
 	{
 		size_t i;
 		for(i=0; i<cnt; i++)
-			this->BinaryHeapDH::insert(elem[i]);
+			this->BinaryHeapDH<T>::insert(elem[i]);
 		return true;
 	}
 	///////////////////////////////////////////////////////////////////////////
@@ -150,14 +151,25 @@ public:
 		this->cField[hole] = x;
 		return true;
 	}
+	bool checkHeap()
+	{
+		size_t i;
+		for(i=0; i<this->cCnt/2; i++)
+		{
+			if(  this->cField[i] > this->cField[2*i+1] ||
+				(this->cField[i] > this->cField[2*i+2] && (2*i+2)<this->cCnt) )
+				return false;
+		}
+		return true;
+	}
 
 	///////////////////////////////////////////////////////////////////////////
 	// Establish heap order property from an arbitrary
 	// arrangement of items. Runs in linear time.
 	void restoreHeap( )
 	{
-		size_t i=this->cCnt;
-		while(i>1)
+		size_t i=this->cCnt/2;
+		while(i>0)
 		{
 			--i;
 			this->percolateDown(i);
@@ -193,7 +205,7 @@ private:
 //    then replaces the hole with the last element and upheaps it
 template <class T> class BinaryHeap : public TArrayDCT<T>
 {
-	friend void test_algo(int scale);
+	friend void test_heaps(int scale);
 public:
 	BinaryHeap()	
 	{
@@ -232,19 +244,19 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// push/pop access
-	virtual bool push(const T& elem)				{ return this->BinaryHeap::insert(elem); }
+	virtual bool push(const T& elem)				{ return this->BinaryHeap<T>::insert(elem); }
 	virtual bool push(const TArray<T>& arr)
 	{
 		size_t i;
 		for(i=0; i<arr.size(); i++)
-			this->BinaryHeap::insert(arr[i]);
+			this->BinaryHeap<T>::insert(arr[i]);
 		return true;
 	}
 	virtual bool push(const T* elem, size_t cnt)
 	{
 		size_t i;
 		for(i=0; i<cnt; i++)
-			this->BinaryHeap::insert(elem[i]);
+			this->BinaryHeap<T>::insert(elem[i]);
 		return true;
 	}
 	///////////////////////////////////////////////////////////////////////////
@@ -258,7 +270,7 @@ public:
 #endif
 #endif
 		T tmp;
-		this->BinaryHeap::pop( tmp );
+		this->BinaryHeap<T>::pop( tmp );
 		return tmp;
 	}
 	///////////////////////////////////////////////////////////////////////////
@@ -377,48 +389,44 @@ public:
 		this->cField[h]=x;
 		return true;
 	}
+	bool checkHeap()
+	{
+		size_t i;
+		for(i=0; i<this->cCnt/2; i++)
+		{
+			if(  this->cField[i] > this->cField[2*i+1] ||
+				(this->cField[i] > this->cField[2*i+2] && (2*i+2)<this->cCnt) )
+				return false;
+		}
+		return true;
+	}
 
 	///////////////////////////////////////////////////////////////////////////
 	// Establish heap order property from an arbitrary
 	// arrangement of items. Runs in linear time.
 	void restoreHeap( )
 	{
-		T x;
-		ssize_t i,j,k;
-		// Build the heap using shiftup.
-		// same routine as in the bottomup Heapsorts but with reversed compares
-		// and includeing k=0 to build the heap completely
-		for(i=k=this->cCnt/2-1; k>=0; i=--k)
+		T tmp;
+		ssize_t i;
+		size_t h,k;
+		for(i=this->cCnt/2-1; i>=0; --i)
 		{
-			x = this->cField[i];
-			j = 2*i+2;
-			while( (size_t)j<this->cCnt )
+			tmp = this->cField[i];
+			for( h=i,k=h*2+2 ; k<this->cCnt; h=k, k=2*k+2 )
 			{
-				if( this->cField[j]>this->cField[j-1] )
-					--j;
-				this->cField[i] = this->cField[j];
-				i = j; 
-				j = 2*i+2;
-			}
-			if((size_t)j==this->cCnt)
-			{
-				this->cField[i] = this->cField[this->cCnt-1];
-				i = this->cCnt-1; 
-			}
-			j = (i+1)/2-1;
-			while(j>=k)
-			{
-				if( this->cField[j]>x )
-				{
-					this->cField[i] = this->cField[j];
-					i = j;
-					j = (i+1)/2-1;
-				}
+				if( this->cField[k-1] < this->cField[k] )
+					k--;
+				if( this->cField[k] < tmp )
+					this->cField[h] = this->cField[k];
 				else
 					break;
 			}
-			///////////////
-			this->cField[i] = x;
+			if(k==this->cCnt && this->cField[k-1] < tmp )
+			{
+				this->cField[h] = this->cField[k-1];
+				h = k-1;
+			}
+			this->cField[h] = tmp;
 		}
 	}
 };

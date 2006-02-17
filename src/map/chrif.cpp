@@ -46,7 +46,7 @@ static const int packet_len_table[] = {
 	10,	// 2b12: Incomming, chrif_divorce -> 'divorce a wedding of charid X and partner id X'
 	 6,	// 2b13: Incomming, chrif_accountdeletion -> 'Delete acc XX, if the player is on, kick ....'
 	11,	// 2b14: Incomming, chrif_accountban -> 'not sure: kick the player with message XY'
-	-1,	// 2b15: Incomming, chrif_recvgmaccounts -> 'recive gm accs from charserver (seems to be incomplete !)'
+-1,	// 2b15: Incomming, 
 	 0,	// 2b16: Outgoing, chrif_ragsrvinfo -> 'sends motd / rates ....'
 	 0,	// 2b17: Outgoing, chrif_char_offline -> 'tell the charserver that the char is now offline'
 	-1,	// 2b18: Outgoing, chrif_char_reset_offline -> 'set all players OFF!'
@@ -389,7 +389,7 @@ int chrif_sendmap(int fd)
 	
 	WFIFOW(fd,0) = 0x2afa;
 	for(i = 0; i < map_num; i++)
-		memcpy(WFIFOP(fd,4+i*16), map[i].mapname, 16);
+		memcpy(WFIFOP(fd,4+i*16), maps[i].mapname, 16);
 	WFIFOW(fd,2) = 4 + i * 16;
 	WFIFOSET(fd,WFIFOW(fd,2));
 	
@@ -1210,15 +1210,6 @@ int chrif_reloadGMdb(void)
 	return 0;
 }
 
-/*==========================================
- * Receiving GM accounts and their levels from char-server by [Yor]
- *------------------------------------------
- */
-int chrif_recvgmaccounts(int fd)
-{
-	ShowInfo("From login-server: receiving information of '"CL_WHITE"%d"CL_RESET"' GM accounts.\n", pc_read_gm_account(fd));
-	return 0;
-}
 
 /*==========================================
  * Request/Receive top 10 Fame character list
@@ -1731,7 +1722,7 @@ int chrif_parse(int fd)
 		case 0x2b12: chrif_divorce(RFIFOL(fd,2), RFIFOL(fd,6)); break;
 		case 0x2b13: chrif_accountdeletion(fd); break;
 		case 0x2b14: chrif_accountban(fd); break;
-		case 0x2b15: chrif_recvgmaccounts(fd); break;
+case 0x2b15: break;
 		case 0x2b1b: chrif_recvfamelist(fd); break;
 		case 0x2b1f: chrif_disconnectplayer(fd); break;
 		case 0x2b20: chrif_removemap(fd); break; //Remove maps of a server [Sirius]
@@ -1807,9 +1798,7 @@ int check_connect_char_server(int tid, unsigned long tick, int id, intptr data)
 			realloc_fifo(char_fd, FIFOSIZE_SERVERLINK, FIFOSIZE_SERVERLINK);
 
 			chrif_connect(char_fd);
-#ifndef TXT_ONLY
 			chrif_ragsrvinfo(battle_config.base_exp_rate, battle_config.job_exp_rate, battle_config.item_rate_common);
-#endif /* not TXT_ONLY */
 		}
 	}
 	return 0;

@@ -6,9 +6,23 @@
 #include "basetime.h"
 #include "basememory.h"
 #include "basestring.h"
+#include "basestrsearch.h"
 #include "baseexceptions.h"
 #include "basearray.h"
 
+
+
+
+
+
+void vector_error(const char*errmsg)
+{
+#ifdef CHECK_EXCEPTIONS
+	throw exception_bound(errmsg);
+#else
+	printf("%s\n", errmsg);
+#endif
+}
 
 
 ///////////////////////////////////////////////////////////////////////////
@@ -17,10 +31,87 @@ void vectorbase<T,E,A>::debug_print()
 {
 	string<> str;
 	typename A::iterator iter(*this);
-	while(iter <= this->end())
+	while(iter)
 		str << *iter++ << ' ';
 	printf( (const char*)str );
 	printf("\n");
+}
+
+
+
+
+
+
+
+
+
+class publisher;
+class subscriber;
+
+class subscriber
+{
+	friend class publisher;
+	publisher* pub;
+public:
+	subscriber() : pub(NULL)	{}
+	virtual ~subscriber();
+
+
+};
+
+
+class publisher
+{
+	ptrslist<subscriber> subs;
+public:
+	publisher()	{}
+	~publisher()
+	{
+		this->clear();
+	}
+
+	void clear()
+	{
+		size_t i;
+		for(i=0; i<this->subs.size(); i++)
+		{
+			if( this->subs[i] )
+			{
+				this->subs[i]->pub=NULL;
+				this->subs[i]=NULL;
+			}
+		}
+	}
+
+	void connect(subscriber& sub)
+	{
+		if( sub.pub != this )
+		{
+			if( sub.pub )
+			{
+				sub.pub->disconnect(sub);
+			}
+			sub.pub = this;
+			this->subs.append(&sub);
+		}
+	}
+	void disconnect(subscriber& sub)
+	{
+		if( sub.pub == this )
+		{
+			size_t pos;
+			if( this->subs.find(&sub, 0, pos) )
+				subs.removeindex(pos);
+			sub.pub = NULL;
+		}
+	}
+
+};
+
+subscriber::~subscriber()
+{
+	if( this->pub )
+		this->pub->disconnect(*this);
 }
 
 
@@ -38,13 +129,175 @@ void vectorbase<T,E,A>::debug_print()
 
 
 
-int test_array(void)
+
+
+
+
+
+
+void test_array(void)
 {
-	//!! TODO copy testcases from caldon
+	{
+		map<int, int> a;
+		printf("sz of map: %i\n", sizeof(a) );
+		//map<size_t, size_t> imap;
 
-
+		//imap[1] = 5;
+	
+	}
 	{
 
+		string<> printtest = dprintf("%i %lf", 3, 3.3);
+
+		printtest << 3.3;
+
+
+
+		match_wildcard("*.[-d-z]a*", "hallo.xabmas");
+
+
+		conststring<> ccc("hallo");
+
+
+		ccc = "abcd";
+
+
+		string<> test = "asd;jkl:asd;lkj";
+
+//		ccc = test;
+
+
+		vector< string<> > ret1 = split(test,';');
+		vector< string<> > ret2 = split(test,";:");
+
+		size_t i;
+		for(i=0; i<ret1.size(); i++)
+			printf("%s\n", (const char*)ret1[i]);
+		for(i=0; i<ret2.size(); i++)
+			printf("%s\n", (const char*)ret2[i]);
+
+
+		test << format<char,ulong>("%ul", 3);
+
+		test = bytestostring(12345678l);
+		printf("%s\n", (const char*)test );
+
+		char buf[100];
+		conststring<> cs("hallo");
+		staticstring<> ss(buf,100);
+		basestring<> bs="hallo";
+
+
+		bool rr;
+
+		rr = (ss == ss);
+		rr = (ss == bs);
+		rr = (bs == ss);
+		rr = (ss == cs);
+		rr = (cs == ss);
+
+
+		rr = (bs == bs);
+		rr = (test == test);
+
+		rr = (test == bs);
+		rr = (bs == test);
+
+		rr = (cs == test);
+		rr = (test == cs);
+
+		rr = (ss == test);
+		rr = (test == ss);
+
+		rr = (cs == "ab");
+		rr = ("ab" == cs);
+		rr = ("ab" == test);
+		rr = (test == "ab");
+
+	}
+
+
+
+
+	publisher p;
+
+	subscriber s1;
+	p.connect(s1);
+
+	{
+		subscriber s2;
+		p.connect(s2);
+	}
+
+	p.clear();
+
+
+
+
+
+
+
+
+
+	ptrvector<char> ptrvec, ptrvec2;
+
+	ptrvec.push("hallo");
+	ptrvec.resize(6);
+	ptrvec.move(2, 3, 2);
+	ptrvec.removeindex(1);
+	ptrvec.removeindex(2, 2);
+	ptrvec.strip(1);
+	ptrvec.clear();
+	
+	char *arr[] = {"hallo", "ballo", "test"};
+
+	ptrvec.assign(arr, 3);
+	ptrvec.assign("noo");
+	ptrvec.assign("xxx", 2);
+	ptrvec2.assign(ptrvec);
+	ptrvec.append(arr, 3);
+	ptrvec.append("qee");
+	ptrvec.append("vis", 2);
+	ptrvec.append(ptrvec2);
+
+	ptrvec.insert(arr, 2, 1);
+	ptrvec.insert("ggg", 1, 3);
+
+	ptrvec.insert(ptrvec2, 3);
+
+	ptrvec.copy(arr, 3, 1);
+	ptrvec.copy(ptrvec2, 2);
+
+	ptrvec.replace(arr, 3, 1, 5);
+
+	ptrvec.replace(ptrvec2, 1, 2);
+
+	char* 
+	ret = ptrvec(1);
+	ret = ptrvec[2];
+
+
+	ptrvec.push( "zzz" );
+	ptrvec.push( arr, 2);
+	ptrvec.push(ptrvec2);
+	
+	ret = ptrvec.pop();
+	ptrvec.pop(ret);
+	ret = ptrvec.top();
+	ptrvec.top(ret);
+
+
+
+
+
+
+
+
+#if defined(DEBUG)
+	//!! TODO copy testcases from caldon
+	{
+		printf("TArray vs. vector\n");
+		size_t runs=1000, elems=1000;
 		size_t i,k;
 		ulong tick;
 		TArrayDST<char> arr;
@@ -52,31 +305,27 @@ int test_array(void)
 
 		tick = clock();
 
-		for(k=0; k<1000;k++, arr.resize(1), arr.realloc(1000))
-		for(i=0; i<1000; i++)
+		for(k=0; k<runs;k++, arr.resize(1), arr.realloc(1000))
+		for(i=0; i<elems; i++)
 		{
 			arr.append( (char)i );
 		}
-		printf("%lu\n", clock()-tick);
+		printf("tarray %lu  (%lu,%lu)\n", clock()-tick, (ulong)runs, (ulong)elems);
 
 
 		tick = clock();
-		for(k=0; k<1000;k++, vec.resize(1), vec.realloc(1000))
-		for(i=0; i<1000; i++)
+		for(k=0; k<runs;k++, vec.resize(1), vec.realloc(1000))
+		for(i=0; i<elems; i++)
 		{			
 			vec.append( (char)i );
 		}
-		printf("%lu\n", clock()-tick);
+		printf("vector: %lu (%lu,%lu)\n", clock()-tick, (ulong)runs, (ulong)elems);
 
 	}
 
 
-
-
-
-
-
 	{
+		printf("vector free tests\n");
 		vector<char> ca, cb("hallo", 5);
 //		vector< char, elaborator_st<char>, allocator_rw_st< char, elaborator_st<char> > > cc;
 		vector< char > cc;
@@ -267,7 +516,7 @@ int test_array(void)
 			printf("vector replace carray shrink failed, size %lu should be %lu\n", (ulong)cb.size(), 9lu );
 
 
-		printf("stack order\n");
+		printf("vector push order\n");
 		cb.assign('a');
 		cb.push('b');
 		cb.debug_print();
@@ -280,7 +529,7 @@ int test_array(void)
 		cb.pop();
 		cb.debug_print();
 
-		printf("fifo order\n");
+		printf("fifo push order\n");
 		fifo<char> ff('a');
 		ff.debug_print();
 		ff.push('b');
@@ -295,7 +544,7 @@ int test_array(void)
 		ff.debug_print();
 
 
-		printf("slist\n");
+		printf("slist push \n");
 		slist<char> ss;
 		ss.push('a'); ss.debug_print();
 		ss.push(ff); ss.debug_print();
@@ -303,15 +552,53 @@ int test_array(void)
 
 		ss.append('g'); ss.debug_print();
 
+		printf("slist element access (with out-of-bounds)\n");
 		int a = ss[3];
-
+		try
+		{
+			a = ss[455];
+		}
+		catch(exception e)
+		{
+			printf("catched: %s", e.what());
+		}
 		ss[3] = 'z'; 
-		ss.debug_print();
+
+		try
+		{
+			ss(300) = '.'; 
+		}
+		catch(exception e)
+		{
+			printf("catched: %s", e.what());
+		}
+		ss.debug_print(); 
+		printf("slist order destroyed\n");
+		ss.sort();
+		ss.debug_print(); 
+		printf("slist order restored\n");
+
+		size_t pos;
+		if( ss.find('m', 0, pos) )
+			printf("'m' found at pos %lu\n", (ulong)pos);
+		else
+			printf("'m' not found (pos %lu)\n", (ulong)pos);
+		if( ss.find('k', 0, pos) )
+			printf("'k' found at pos %lu\n", (ulong)pos);
+		else
+			printf("'k' not found (pos %lu)\n", (ulong)pos);
+
+	}
 
 
 
-/////////////////////////////////////////
-		fifo<char> f1;
+
+	/////////////////////////////////////////////////////
+	{
+		int err=0;
+		int a;
+		printf("vector test sequence\n");
+		vector<char> f1;
 		f1.clear();
 		if( f1.size()!=0 ) printf("err 1\n");
 		f1.realloc(10);
@@ -320,54 +607,180 @@ int test_array(void)
 		if( f1.size()!=12 ) printf("err 3\n");
 		f1.clear();
 		f1.assign("abcdefgh", 8);
-		if( f1.size()!=8 || 0!=memcmp(f1.begin(), "abcdefgh", 0) ) printf("err 4\n");
+		if( f1.size()!=8 || 0!=memcmp(f1.begin(), "abcdefgh", 0) ) err++,printf("err 4\n");
 		f1.move(2, 5, 2);
-		if( 0!=memcmp(f1.begin(), "abfgcdeh", f1.size()) ) printf("err 5\n");
+		if( 0!=memcmp(f1.begin(), "abfgcdeh", f1.size()) ) err++,printf("err 5\n");
 		f1.removeindex(2);
-		if( 0!=memcmp(f1.begin(), "abgcdeh", f1.size()) ) printf("err 6\n");
+		if( 0!=memcmp(f1.begin(), "abgcdeh", f1.size()) ) err++,printf("err 6\n");
 		f1.removeindex(2, 2);
-		if( 0!=memcmp(f1.begin(), "abdeh", f1.size()) ) printf("err 7\n");
+		if( 0!=memcmp(f1.begin(), "abdeh", f1.size()) ) err++,printf("err 7\n");
 		f1.strip(3);
-		if( 0!=memcmp(f1.begin(), "ab", f1.size()) ) printf("err 8\n");
+		if( 0!=memcmp(f1.begin(), "ab", f1.size()) ) err++,printf("err 8\n");
 		f1.assign('a');
-		if( 0!=memcmp(f1.begin(), "a", f1.size()) ) printf("err 9\n");
+		if( 0!=memcmp(f1.begin(), "a", f1.size()) ) err++,printf("err 9\n");
 		f1.assign('b', 3);
-		if( 0!=memcmp(f1.begin(), "bbb", f1.size()) ) printf("err 10\n");
+		if( 0!=memcmp(f1.begin(), "bbb", f1.size()) ) err++,printf("err 10\n");
 		f1.append("aa", 2);
-		if( 0!=memcmp(f1.begin(), "bbbaa", f1.size()) ) printf("err 11\n");
+		if( 0!=memcmp(f1.begin(), "bbbaa", f1.size()) ) err++,printf("err 11\n");
 		f1.append('b');
-		if( 0!=memcmp(f1.begin(), "bbbaab", f1.size()) ) printf("err 12\n");
+		if( 0!=memcmp(f1.begin(), "bbbaab", f1.size()) ) err++,printf("err 12\n");
 		f1.append('c', 3);
-		if( 0!=memcmp(f1.begin(), "bbbaabccc", f1.size()) ) printf("err 13\n");
+		if( 0!=memcmp(f1.begin(), "bbbaabccc", f1.size()) ) err++,printf("err 13\n");
 		f1.insert("abc", 3, 2);
-		if( 0!=memcmp(f1.begin(), "bbabcbaabccc", f1.size()) ) printf("err 14\n");
+		if( 0!=memcmp(f1.begin(), "bbabcbaabccc", f1.size()) ) err++,printf("err 14\n");
 		f1.insert('v', 4, 1);
-		if( 0!=memcmp(f1.begin(), "bvvvvbabcbaabccc", f1.size()) ) printf("err 15\n");
+		if( 0!=memcmp(f1.begin(), "bvvvvbabcbaabccc", f1.size()) ) err++,printf("err 15\n");
 		f1.copy("_copy_", 6, 5);
-		if( 0!=memcmp(f1.begin(), "bvvvv_copy_abccc", f1.size()) ) printf("err 16\n");
+		if( 0!=memcmp(f1.begin(), "bvvvv_copy_abccc", f1.size()) ) err++,printf("err 16\n");
 		f1.replace("_rep_", 5, 3, 2);
-		if( 0!=memcmp(f1.begin(), "bvv_rep__copy_abccc", f1.size()) ) printf("err 17\n");
+		if( 0!=memcmp(f1.begin(), "bvv_rep__copy_abccc", f1.size()) ) err++,printf("err 17\n");
 		a = f1.first();
-		if( a != 'b' ) printf("err 18\n");
+		if( a != 'b' ) err++,printf("err 18\n");
 		a = f1.last();
-		if( a != 'c' ) printf("err 19\n");
+		if( a != 'c' ) err++,printf("err 19\n");
 		f1.push('z');
-		if( 0!=memcmp(f1.begin(), "bvv_rep__copy_abcccz", f1.size()) ) printf("err 20\n");
+		if( 0!=memcmp(f1.begin(), "bvv_rep__copy_abcccz", f1.size()) ) err++,printf("err 20\n");
 		f1.push("xy", 2);
-		if( 0!=memcmp(f1.begin(), "bvv_rep__copy_abccczxy", f1.size()) ) printf("err 21\n");
+		if( 0!=memcmp(f1.begin(), "bvv_rep__copy_abccczxy", f1.size()) ) err++,printf("err 21\n");
 		a = f1.pop();
-		if( 0!=memcmp(f1.begin(), "vv_rep__copy_abccczxy", f1.size()) ) printf("err 22\n");
-		if( a != 'b' ) printf("err 23\n");
+		if( 0!=memcmp(f1.begin(), "vv_rep__copy_abccczxy", f1.size()) ) err++,printf("err 22\n");
+		if( a != 'b' ) err++,printf("err 23\n");
 		char el;
 		f1.pop(el);
-		if( 0!=memcmp(f1.begin(), "v_rep__copy_abccczxy", f1.size()) ) printf("err 24\n");
-		if( el != 'v' ) printf("err 25\n");
+		if( 0!=memcmp(f1.begin(), "v_rep__copy_abccczxy", f1.size()) ) err++,printf("err 24\n");
+		if( el != 'v' ) err++,printf("err 25\n");
 		a = f1.top();
-		if( a != 'v' ) printf("err 26\n");
+		if( a != 'v' ) err++,printf("err 26\n");
 		f1.top(el);
-		if( el != 'v' ) printf("err 27\n");
-/////////////////////////////////////////////////////
-
+		if( el != 'v' ) err++,printf("err 27\n");
+		printf("vector test sequence finished, errors: %i\n", err);
 	}
-	return 0;
+	/////////////////////////////////////////////////////
+	{
+		int err=0;
+		int a;
+		printf("stack test sequence\n");
+		stack<char> f1;
+		f1.clear();
+		if( f1.size()!=0 ) printf("err 1\n");
+		f1.realloc(10);
+		if( f1.size()!=0 ) printf("err 2\n");
+		f1.resize(12);
+		if( f1.size()!=12 ) printf("err 3\n");
+		f1.clear();
+		f1.assign("abcdefgh", 8);
+		if( f1.size()!=8 || 0!=memcmp(f1.begin(), "abcdefgh", 0) ) err++,printf("err 4\n");
+		f1.move(2, 5, 2);
+		if( 0!=memcmp(f1.begin(), "abfgcdeh", f1.size()) ) err++,printf("err 5\n");
+		f1.removeindex(2);
+		if( 0!=memcmp(f1.begin(), "abgcdeh", f1.size()) ) err++,printf("err 6\n");
+		f1.removeindex(2, 2);
+		if( 0!=memcmp(f1.begin(), "abdeh", f1.size()) ) err++,printf("err 7\n");
+		f1.strip(3);
+		if( 0!=memcmp(f1.begin(), "ab", f1.size()) ) err++,printf("err 8\n");
+		f1.assign('a');
+		if( 0!=memcmp(f1.begin(), "a", f1.size()) ) err++,printf("err 9\n");
+		f1.assign('b', 3);
+		if( 0!=memcmp(f1.begin(), "bbb", f1.size()) ) err++,printf("err 10\n");
+		f1.append("aa", 2);
+		if( 0!=memcmp(f1.begin(), "bbbaa", f1.size()) ) err++,printf("err 11\n");
+		f1.append('b');
+		if( 0!=memcmp(f1.begin(), "bbbaab", f1.size()) ) err++,printf("err 12\n");
+		f1.append('c', 3);
+		if( 0!=memcmp(f1.begin(), "bbbaabccc", f1.size()) ) err++,printf("err 13\n");
+		f1.insert("abc", 3, 2);
+		if( 0!=memcmp(f1.begin(), "bbabcbaabccc", f1.size()) ) err++,printf("err 14\n");
+		f1.insert('v', 4, 1);
+		if( 0!=memcmp(f1.begin(), "bvvvvbabcbaabccc", f1.size()) ) err++,printf("err 15\n");
+		f1.copy("_copy_", 6, 5);
+		if( 0!=memcmp(f1.begin(), "bvvvv_copy_abccc", f1.size()) ) err++,printf("err 16\n");
+		f1.replace("_rep_", 5, 3, 2);
+		if( 0!=memcmp(f1.begin(), "bvv_rep__copy_abccc", f1.size()) ) err++,printf("err 17\n");
+		a = f1.first();
+		if( a != 'b' ) err++,printf("err 18\n");
+		a = f1.last();
+		if( a != 'c' ) err++,printf("err 19\n");
+		f1.push('z');
+		if( 0!=memcmp(f1.begin(), "bvv_rep__copy_abcccz", f1.size()) ) err++,printf("err 20\n");
+		f1.push("xy", 2);
+		if( 0!=memcmp(f1.begin(), "bvv_rep__copy_abccczxy", f1.size()) ) err++,printf("err 21\n");
+		a = f1.pop();
+		if( 0!=memcmp(f1.begin(), "bvv_rep__copy_abccczx", f1.size()) ) err++,printf("err 22\n");
+		if( a != 'y' ) err++,printf("err 23\n");
+		char el;
+		f1.pop(el);
+		if( 0!=memcmp(f1.begin(), "bvv_rep__copy_abcccz", f1.size()) ) err++,printf("err 24\n");
+		if( el != 'x' ) err++,printf("err 25\n");
+		a = f1.top();
+		if( a != 'z' ) err++,printf("err 26\n");
+		f1.top(el);
+		if( el != 'z' ) err++,printf("err 27\n");
+		printf("stack test sequence finished, errors: %i\n", err);
+	}
+	/////////////////////////////////////////////////////
+	{
+		int err=0;
+		int a;
+		printf("fifo test sequence\n");
+		fifo<char> f1;
+		f1.clear();
+		if( f1.size()!=0 ) err++,printf("err 1\n");
+		f1.realloc(10);
+		if( f1.size()!=0 ) err++,printf("err 2\n");
+		f1.resize(12);
+		if( f1.size()!=12 ) err++,printf("err 3\n");
+		f1.clear();
+		f1.assign("abcdefgh", 8);
+		if( f1.size()!=8 || 0!=memcmp(f1.begin(), "abcdefgh", 0) ) err++,printf("err 4\n");
+		f1.move(2, 5, 2);
+		if( 0!=memcmp(f1.begin(), "abfgcdeh", f1.size()) ) err++,printf("err 5\n");
+		f1.removeindex(2);
+		if( 0!=memcmp(f1.begin(), "abgcdeh", f1.size()) ) err++,printf("err 6\n");
+		f1.removeindex(2, 2);
+		if( 0!=memcmp(f1.begin(), "abdeh", f1.size()) ) err++,printf("err 7\n");
+		f1.strip(3);
+		if( 0!=memcmp(f1.begin(), "ab", f1.size()) ) err++,printf("err 8\n");
+		f1.assign('a');
+		if( 0!=memcmp(f1.begin(), "a", f1.size()) ) err++,printf("err 9\n");
+		f1.assign('b', 3);
+		if( 0!=memcmp(f1.begin(), "bbb", f1.size()) ) err++,printf("err 10\n");
+		f1.append("aa", 2);
+		if( 0!=memcmp(f1.begin(), "bbbaa", f1.size()) ) err++,printf("err 11\n");
+		f1.append('b');
+		if( 0!=memcmp(f1.begin(), "bbbaab", f1.size()) ) err++,printf("err 12\n");
+		f1.append('c', 3);
+		if( 0!=memcmp(f1.begin(), "bbbaabccc", f1.size()) ) err++,printf("err 13\n");
+		f1.insert("abc", 3, 2);
+		if( 0!=memcmp(f1.begin(), "bbabcbaabccc", f1.size()) ) err++,printf("err 14\n");
+		f1.insert('v', 4, 1);
+		if( 0!=memcmp(f1.begin(), "bvvvvbabcbaabccc", f1.size()) ) err++,printf("err 15\n");
+		f1.copy("_copy_", 6, 5);
+		if( 0!=memcmp(f1.begin(), "bvvvv_copy_abccc", f1.size()) ) err++,printf("err 16\n");
+		f1.replace("_rep_", 5, 3, 2);
+		if( 0!=memcmp(f1.begin(), "bvv_rep__copy_abccc", f1.size()) ) err++,printf("err 17\n");
+		a = f1.first();
+		if( a != 'b' ) err++,printf("err 18\n");
+		a = f1.last();
+		if( a != 'c' ) err++,printf("err 19\n");
+		f1.push('z');
+		if( 0!=memcmp(f1.begin(), "bvv_rep__copy_abcccz", f1.size()) ) err++,printf("err 20\n");
+		f1.push("xy", 2);
+		if( 0!=memcmp(f1.begin(), "bvv_rep__copy_abccczxy", f1.size()) ) err++,printf("err 21\n");
+		a = f1.pop();
+		if( 0!=memcmp(f1.begin(), "vv_rep__copy_abccczxy", f1.size()) ) err++,printf("err 22\n");
+		if( a != 'b' ) err++,printf("err 23\n");
+		char el;
+		f1.pop(el);
+		if( 0!=memcmp(f1.begin(), "v_rep__copy_abccczxy", f1.size()) ) err++,printf("err 24\n");
+		if( el != 'v' ) err++,printf("err 25\n");
+		a = f1.top();
+		if( a != 'v' ) err++,printf("err 26\n");
+		f1.top(el);
+		if( el != 'v' ) err++,printf("err 27\n");
+		printf("fifo test sequence finished, errors %i\n", err);
+	}
+	/////////////////////////////////////////////////////
+
+
+#endif//DEBUG
 }

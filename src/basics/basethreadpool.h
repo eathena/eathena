@@ -2,13 +2,9 @@
 #define __BASETHREADPOOL_H__
 
 #include "basetypes.h"
-
-#ifndef SINGLETHREAD
-
 #include "basearray.h"
 #include "basethreads.h"
 #include "basetime.h"
-
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -16,6 +12,7 @@
 void test_threadpool(void);
 
 
+#ifndef SINGLETHREAD
 
 ///////////////////////////////////////////////////////////////////////////////
 //!! TODO: re-implement the heap/dl-list task objects with the new environment

@@ -18,6 +18,16 @@ template class string<char>;
 template class string<wchar_t>;
 */
 
+void string_error(const char*errmsg)
+{
+#ifdef CHECK_EXCEPTIONS
+	throw exception_bound(errmsg);
+#else
+	printf("%s\n", errmsg);
+#endif
+
+}
+
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -238,45 +248,95 @@ template const wchar_t* _itobase(sint64 value, wchar_t* buf, size_t base, size_t
 // function for number2string conversion
 // prepares buffers and proper padding
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> void _itobase2(string<T>& result, sint64 value, size_t base, bool _signed, size_t width=0, T padchar=0)
+template <class T> void _itostring(stringinterface<T>& result, sint64 value, size_t base, bool _signed, size_t width, T padchar)
 {
-	if(base < 2 || base > 64)
+	if(base >= 2 && base <= 64)
 	{
-		clear(result);
-		return;
-	}
-	T buf[128];   // the longest possible string is 64 elems+eos when base=2
-	size_t reslen;
-	const T* p = _itobase<T>(value, buf, base, reslen, _signed);
-	if (width > reslen)
-	{
-		if (padchar == 0)
-		{	// default pad char
-			if (base == 10)
-				padchar = ' ';
-			else if (base > 36)
-				padchar = '.';
-			else
-				padchar = '0';
+		T buf[128];   // the longest possible string is 64 elems+eos when base=2
+		size_t reslen;
+		const T* p = _itobase<T>(value, buf, base, reslen, _signed);
+		if (width > reslen)
+		{
+			if (padchar == 0)
+			{	// default pad char
+				if (base == 10)
+					padchar = ' ';
+				else if (base > 36)
+					padchar = '.';
+				else
+					padchar = '0';
+			}
+			bool neg = *p == '-';
+			width -= reslen;
+			if( neg && padchar!=' ' )
+			{	// no space padding, need to strip the sign
+				result.append('-',1);	// add the sign in front
+				p++;					// buffer now starts after the sign
+				reslen--;				// and is one element shorter
+			}
+			result.append(padchar, width);	// padding
+			result.append(p, reslen);	// buffer
 		}
-		bool neg = *p == '-';
-		result.clear();
-		width -= reslen;
-		if( neg && padchar!=' ' )
-		{	// no space padding, need to strip the sign
-			result.append('-');		// add the sign in front
-			p++;					// buffer now starts after the sign
-			reslen--;				// and is one element shorter
-		}
-		result.append(padchar, width);	// padding
-		result.append(p, reslen);	// buffer
+		else
+			result.assign(p, reslen);
 	}
-	else
-		result.assign(p, reslen);
 }
 // explicit instantiation
-template void _itobase2<char   >(string<char   >& result, sint64 value, size_t base, bool _signed, size_t width, char    padchar);
-template void _itobase2<wchar_t>(string<wchar_t>& result, sint64 value, size_t base, bool _signed, size_t width, wchar_t padchar);
+template void _itostring<char   >(stringinterface<char   >& result, sint64 value, size_t base, bool _signed, size_t width, char    padchar);
+template void _itostring<wchar_t>(stringinterface<wchar_t>& result, sint64 value, size_t base, bool _signed, size_t width, wchar_t padchar);
+
+
+template <class T> void _ftostring(stringinterface<T>& result, double value, int prec, size_t width, T padchar)
+{
+	int exp  = 0;
+	bool neg = (value<0);
+	if(neg) value = fabs(value);
+	double nums = log10(value); // equals number of base10 digits
+
+	if(prec>14) 
+		prec=14;
+	else if(prec<1)
+		prec = 4;
+
+	if( nums>prec ||  2*nums<-prec )
+	{	// always print as 0.(number)e(exp)
+		int x = (int)((nums>prec) ? floor(nums) : ceil(nums));
+		nums -= x;
+		exp  += x;
+		value = pow(10., nums);
+	}
+	T buf[128];
+	double integ, fract = modf( value, &integ );
+
+	if(neg) result.append('-',1);
+	// print and append the integer part
+	size_t reslen;
+	const T* p = _itobase<T>((uint64)integ, buf, 10, reslen, false);
+	result.append(p,reslen);
+	prec -= reslen;
+	if(prec<1) prec = 1;
+
+	// use default precision of 5
+	uint64 tmpnum = (uint64)(0.5+fract*pow(10,prec));
+	p = _itobase<T>(tmpnum, buf, 10, reslen, false);
+	// but cut of trailing zeros
+	while( reslen>0 && p[reslen-1]=='0') reslen--;
+	if(reslen)
+	{
+		result.append('.',1);
+		result.append(p,reslen);
+	}
+	if(exp)
+	{
+		result.append('e',1);
+		p = _itobase<T>(exp, buf, 10, reslen, true);
+		result.append(p,reslen);
+	}
+}
+// explicit instantiation
+template void _ftostring<char   >(stringinterface<char   >& result, double value, int prec, size_t width, char    padchar);
+template void _ftostring<wchar_t>(stringinterface<wchar_t>& result, double value, int prec, size_t width, wchar_t padchar);
+
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -399,27 +459,47 @@ template sint64 stringtoi<wchar_t>(const wchar_t* p);
 string<> itostring(sint64 value, size_t base, size_t width, char padchar)
 {
 	string<> result;
-	_itobase2(result, value, base, true, width, padchar);
+	_itostring(result, value, base, true, width, padchar);
 	return result;
 }
 string<> itostring(uint64 value, size_t base, size_t width, char padchar)
 {
 	string<> result;
-	_itobase2(result, value, base, false, width, padchar);
+	_itostring(result, value, base, false, width, padchar);
+	return result;
+}
+string<> itostring(long value, size_t base, size_t width, char padchar)
+{
+	string<> result;
+	_itostring(result, sint64(value), base, true, width, padchar);
+	return result;
+}
+string<> itostring(ulong value, size_t base, size_t width, char padchar)
+{
+	string<> result;
+	_itostring(result, uint64(value), base, false, width, padchar);
 	return result;
 }
 string<> itostring(int value, size_t base, size_t width, char padchar)
 {
 	string<> result;
-	_itobase2(result, sint64(value), base, true, width, padchar);
+	_itostring(result, sint64(value), base, true, width, padchar);
 	return result;
 }
 string<> itostring(uint value, size_t base, size_t width, char padchar)
 {
 	string<> result;
-	_itobase2(result, uint64(value), base, false, width, padchar);
+	_itostring(result, uint64(value), base, false, width, padchar);
 	return result;
 }
+
+string<> ftostring(double v, int prec, size_t width, char padchar)
+{
+	string<> tmp;
+	_ftostring(tmp, v, prec, width, padchar);
+	return tmp;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // time to pod strings
@@ -478,9 +558,75 @@ template string<char>    dttostring<char>   (datetime dt, const char*    fmt);
 template string<wchar_t> dttostring<wchar_t>(datetime dt, const wchar_t* fmt);
 
 
+string<> longtimestring(ulong seconds)
+{
+	unsigned minutes = seconds / 60;
+	seconds %= 60;
+	unsigned hours = minutes / 60;
+	minutes %= 60;
+	unsigned days = hours / 24;
+	hours %= 24;
+	unsigned weeks = days / 7;
+	days %= 7;
+	string<> result;
+	if( weeks > 0 )
+	{
+		result << itostring(weeks, 10, 0, ' ') << "w ";
+	}
+	if( !result.is_empty() || days > 0 )
+	{
+		result << itostring(days, 10, 0, ' ') << "d ";
+	}
+	if( !result.is_empty() || hours > 0 )
+	{
+		result << itostring(hours, 10, 0, ' ') << ':';
+	}
+	if( !result.is_empty() || minutes > 0)
+	{
+		if( !result.is_empty() )
+			result << itostring(minutes, 10, 2, '0');
+		else
+			result << itostring(minutes, 10, 0, ' ');
+		result << ":";
+	}
+	if( !result.is_empty() )
+		result << itostring(seconds, 10, 2, '0');
+	else
+	{
+		result << itostring(seconds, 10, 0, ' ') << 's';
+	}
+	return result;
+}
 
-
-
+string<> bytestostring(long bytes)
+{
+	string<> result;
+	if( bytes < 0 )
+	{
+		result = '-';
+		bytes = -bytes;
+	}
+	static const long kB = 1024l;
+	static const long MB = kB * kB;
+	static const long GB = MB * kB;
+	if (bytes < kB)
+		result << format("%luB", bytes);
+	else if (bytes < (10l * kB))
+		result << format("%.2lfkB", ((double)bytes / (double)kB));
+	else if (bytes < (100l * kB))
+		result << format("%.1lfkB", ((double)bytes / (double)kB));
+	else if (bytes < MB)
+		result << format("%.0lfkB", ((double)bytes / (double)kB));
+	else if (bytes < (10l * MB))
+		result << format("%.2lfMB", ((double)bytes / (double)MB));
+	else if (bytes < (100l * MB))
+		result << format("%.1lfMB", ((double)bytes / (double)MB));
+	else if (bytes < GB)
+		result << format("%.0lfMB", ((double)bytes / (double)MB));
+	else
+		result << format("%.2lfGB", ((double)bytes / (double)GB));
+	return result;
+}
 
 
 
@@ -496,24 +642,22 @@ template string<wchar_t> dttostring<wchar_t>(datetime dt, const wchar_t* fmt);
 ///////////////////////////////////////////////////////////////////////////
 // internal StringConstant aquire
 ///////////////////////////////////////////////////////////////////////////
-template <class T> inline const T* stringinterface<T>::getStringConstant(size_t i) const
+const char   * stringinterface<char   >::getStringConstant(size_t i) const
 {
-	return StringConstant(i, (T)0 );
+	return StringConstant(i, (char   )0 );
 }
+const wchar_t* stringinterface<wchar_t>::getStringConstant(size_t i) const
+{
+	return StringConstant(i, (wchar_t)0 );
+}
+
+//template <class T> const T* stringinterface<T>::getStringConstant(size_t i) const
+//{
+//	return StringConstant(i, (T)0 );
+//}
 // explicit instantiation
 //template const char*    stringinterface<char   >::getStringConstant(size_t i) const;
 //template const wchar_t* stringinterface<wchar_t>::getStringConstant(size_t i) const;
-
-///////////////////////////////////////////////////////////////////////////
-// provide an exception interface without including it in the h file (circle reference)
-///////////////////////////////////////////////////////////////////////////
-template <class T> void stringinterface<T>::throw_bound(void) const
-{	// just use a fixed ansi string here
-	throw exception_bound("String out of bound");
-}
-// explicit instantiation
-//template void stringinterface<char   >::throw_bound(void) const;
-//template void stringinterface<wchar_t>::throw_bound(void) const;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -569,17 +713,17 @@ template <class T> bool stringinterface<T>::findnext(const stringinterface<T>& p
 	return true;
 }
 // explicit instantiation
-//template bool stringinterface<char   >::findnext(const stringinterface<char   >& pattern, size_t &startpos, bool ignorecase) const;
-//template bool stringinterface<wchar_t>::findnext(const stringinterface<wchar_t>& pattern, size_t &startpos, bool ignorecase) const;
+template bool stringinterface<char   >::findnext(const stringinterface<char   >& pattern, size_t &startpos, bool ignorecase) const;
+template bool stringinterface<wchar_t>::findnext(const stringinterface<wchar_t>& pattern, size_t &startpos, bool ignorecase) const;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Search function
 ///////////////////////////////////////////////////////////////////////////////
-template <class T> TArrayDST<size_t> stringinterface<T>::findall(const stringinterface<T>& pattern, bool ignorecase) const
+template <class T> vector<size_t> stringinterface<T>::findall(const stringinterface<T>& pattern, bool ignorecase) const
 {	// modified boyer-moore search
 
 	// store results in this list
-	TArrayDST<size_t> poslist;
+	vector<size_t> poslist;
 
 	// this table size is bound to 8bit values
 	// so just treat other values like single steps
@@ -631,15 +775,15 @@ template <class T> TArrayDST<size_t> stringinterface<T>::findall(const stringint
 	return poslist;
 }
 // explicit instantiation
-//template TArrayDST<size_t> stringinterface<char   >::findall(const stringinterface<char   >& pattern, bool ignorecase) const;
-//template TArrayDST<size_t> stringinterface<wchar_t>::findall(const stringinterface<wchar_t>& pattern, bool ignorecase) const;
+template vector<size_t> stringinterface<char   >::findall(const stringinterface<char   >& pattern, bool ignorecase) const;
+template vector<size_t> stringinterface<wchar_t>::findall(const stringinterface<wchar_t>& pattern, bool ignorecase) const;
 
 
-
+/*
 
 ///////////////////////////////////////////////////////////////////////////////
 // stupid microsoft does weird things on explicit member function instantiation
-// some functions are istantiated others not, and which are not istantiated 
+// some functions are instantiated others not, and which are not instantiated 
 // changes from small modifications on the code, even if not related to the 
 // questioned section
 //
@@ -657,7 +801,7 @@ template <class T> TArrayDST<size_t> stringinterface<T>::findall(const stringint
 template class stringinterface<char>;
 template class stringinterface<wchar_t>;
 
-
+*/
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -674,9 +818,367 @@ string<> nullstring("");
 
 
 
+#include <limits.h>
+#include <float.h>
+#include <ctype.h>
+
+/*------------------------------------------------------------------------------
+
+  Author:    Andy Rushton
+  Copyright: (c) Andy Rushton, 2004
+  License:   BSD License, see ../docs/license.html
+
+
+  I have chosen to partially re-invent the wheel here. This is because the obvious
+  solution to the problem of in-memory formatted output is to use sprintf(), but
+  this is a potentially dangerous operation since it will quite happily charge off
+  the end of the string it is printing to and thereby corrupt memory. Building in
+  potential bear-traps by using arbitrary-sized internal buffers is not part of
+  any quality-orientated design philosophy. Simply buggering around with huge
+  buffers is not a solution to this problem, it just pushes the problem into a
+  different shape.
+
+  However, sprintf() is acceptable if used in strictly controlled conditions that
+  make overflow impossible. This is what I do here. I break the format string up
+  to get the individual formatting codes for each argument and use sprintf() to
+  format just the numeric substitutions. String substitutions are handled
+  directly.
+
+  Notes:
+
+  serious problems apparently with unsigned short - getting the argument value doesn't work
+  at least on SunOS4. Therefore I will pass this value as an unsigned int and see if that fixes it.
+
+--------------------------------------------------------------------------------*/
 
 
 
+
+
+static const int max_int_length = 20;  // allow for up to 64 bits;
+static const int max_mantissa_length = (DBL_MAX_EXP*4/10);
+
+
+static ssize_t my_sprintf(char   *buf, size_t sz, const char   * fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	ssize_t result = vsnprintf(buf, sz, fmt, args);
+	va_end(args);
+	return result;
+}
+static ssize_t my_sprintf(wchar_t*buf, size_t sz, const wchar_t* fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+#ifdef WIN32
+	// windows has other names again
+	ssize_t result = _vsnwprintf(buf, sz, fmt, args);
+#else
+	ssize_t result = vswprintf(buf, sz, fmt, args);
+#endif
+	va_end(args);
+	return result;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+template<typename T> ssize_t dvsprintf(string<T>& formatted, const T* fmt, va_list args)
+{
+	ssize_t start_length = formatted.size();
+	if(fmt)
+	{	
+		T buffer[128];
+		size_t len;
+		while (*fmt)
+		{
+			switch (*fmt)
+			{
+			case '\\':
+			{
+				fmt++;
+				switch (*fmt)
+				{
+				case 'b' : formatted << '\b'; fmt++; break;
+				case 'f' : formatted << '\f'; fmt++; break;
+				case 'n' : formatted << '\n'; fmt++; break;
+				case 'r' : formatted << '\r'; fmt++; break;
+				case 't' : formatted << '\t'; fmt++; break;
+				case 'v' : formatted << '\v'; fmt++; break;
+				case '\\': formatted << '\\'; fmt++; break;
+				case '\?': formatted << '\?'; fmt++; break;
+				case '\'': formatted << '\''; fmt++; break;
+				case '\"': formatted << '\"'; fmt++; break;
+				default: break;
+				}
+				break;
+			}
+			case '%':
+			{
+				string<T> element_format(*fmt++);
+				bool left_justified = false;
+				for(bool found = true; found && *fmt; )
+				{
+					switch (*fmt)
+					{
+					case '-': 
+						left_justified = true;
+					case '+':
+					case ' ':
+					case '0':
+					case '#':
+						element_format << *fmt++;
+						break;
+					default: 
+						found = false;
+						break;
+					}
+				}
+				int field = 0;
+				if (*fmt == '*')
+				{
+					fmt++;
+					field = (int)va_arg(args, size_t);
+					_itobase<T>(field, buffer, 10, len, true);
+					element_format << buffer;
+					if (field < 0)
+					{
+						left_justified = true;
+						field = -field;
+					}
+				}
+				else
+				{
+					while (isdigit(*fmt))
+					{
+						field *= 10;
+						field +=(*fmt - '0');
+						element_format += *fmt++;
+					}
+				}
+				int precision = -1;
+				if (*fmt == '.')
+				{
+					element_format += *fmt++;
+					if (*fmt == '*')
+					{
+						fmt++;
+						precision = (int)va_arg(args, size_t);
+						_itobase<T>(precision, buffer, 10, len, true);
+						element_format << buffer;
+						if (precision < 0)
+						{
+							left_justified = true;
+							precision = -precision;
+						}
+					}
+					else
+					{
+						precision = 0;
+						while (isdigit(*fmt))
+						{
+							precision *= 10;
+							precision +=(*fmt - '0');
+							element_format += *fmt++;
+						}
+					}
+				}
+				T modifier = '\0';
+				switch (*fmt)
+				{
+				case 'h': 
+				case 'l': case 'L':
+					modifier = *fmt++;
+					element_format += modifier;
+					break;
+				default:
+					break;
+				}
+				T conversion = *fmt;
+				if (conversion)
+					element_format += *fmt++;
+				switch (conversion)
+				{
+				case 'd': 
+				case 'i':
+				{
+					int length = max_int_length;
+					if (precision > length) length = precision;
+					if (field > length) length = field;
+					length += 2; // for possible prefix sign/0x etc;
+					T* element_result = new T[length+1];
+					switch (modifier)
+					{
+					case 'h':
+					{
+						short value =(short)va_arg(args, size_t);
+						my_sprintf(element_result,length,element_format.c_str(), value);
+					}
+					break;
+					case 'l':
+					{
+						long value = (long)va_arg(args, size_t);
+						my_sprintf(element_result,length,element_format.c_str(), value);
+					}
+					break;
+					default:
+					{
+						int value = (int)va_arg(args, size_t);
+						my_sprintf(element_result,length,element_format.c_str(), value);
+					}
+					break;
+					}
+					formatted += element_result;
+					delete[] element_result;
+					break;
+				}
+				case 'u':
+				case 'o':
+				case 'X': case 'x':
+				{
+					int length = max_int_length;
+					if (precision > length) length = precision;
+					if (field > length) length = field;
+					length += 2; // for possible prefix sign/0x etc;
+					T* element_result = new T[length+1];
+					switch (modifier)
+					{
+					case 'h':
+					{
+						size_t value = va_arg(args, size_t);
+						my_sprintf(element_result,length,element_format.c_str(), value);
+					}
+					break;
+					case 'l':
+					{
+						unsigned long value = (unsigned long)va_arg(args, size_t);
+						my_sprintf(element_result,length,element_format.c_str(), value);
+					}
+					break;
+					default:
+					{
+						unsigned int value = (unsigned int)va_arg(args, size_t);
+						my_sprintf(element_result,length,element_format.c_str(), value);
+					}
+					break;
+					}
+					formatted += element_result;
+					delete[] element_result;
+					break;
+				}
+				case 'p':
+				{
+					int length = max_int_length;
+					if (precision > length) length = precision;
+					if (field > length) length = field;
+					length += 2; // for possible prefix sign/0x etc;
+					T* element_result = new T[length+1];
+					void* value = va_arg(args, void*);
+					my_sprintf(element_result,length,element_format.c_str(), value);
+					formatted += element_result;
+					delete[] element_result;
+					break;
+				}
+				case 'f':
+				case 'E': case 'e':
+				case 'G': case 'g':
+				{
+					if (precision == -1) precision = 6;
+					int length = max_mantissa_length + precision;
+					if (field > length) length = field;
+					length += 2; // for punctuation;
+					T* element_result = new T[length+1];
+					if (modifier == 'L')
+					{
+						long double value = va_arg(args, long double);
+						my_sprintf(element_result,length,element_format.c_str(), value);
+					}
+					else
+					{
+						double value = va_arg(args, double);
+						my_sprintf(element_result,length,element_format.c_str(), value);
+					}
+					formatted += element_result;
+					delete[] element_result;
+					break;
+				}
+				case 'c':
+				{
+					T value =(T)va_arg(args, size_t);
+					if (!left_justified) for(int i = 1; i < field; i++) formatted += ' ';
+					formatted += value;
+					if (left_justified) for(int i = 1; i < field; i++) formatted += ' ';
+					break;
+				}
+				case 's':
+				{
+					T* value = va_arg(args, T*);
+					size_t length = hstrlen(value);
+					if (precision > 0 && length > (size_t)precision) length = precision;
+					if (!left_justified) for(int i = length; i < field; i++) formatted += ' ';
+					for(size_t i = 0; i < length; i++)
+						formatted += value[i];
+					if (left_justified) for(int i = length; i < field; i++) formatted += ' ';
+					break;
+				}
+				case 'n':
+				{
+					int* result = va_arg(args, int*);
+					*result = formatted.size() - start_length;
+					break;
+				}
+				case '%':
+				default:
+					formatted += conversion;
+					break;
+			}
+			break;
+			}
+			default:
+				formatted += *fmt++;
+				break;
+			}
+		}
+	}
+	return formatted.size() - start_length;
+}
+template ssize_t dvsprintf<char   >(string<char   >& formatted, const char   * fmt, va_list args);
+template ssize_t dvsprintf<wchar_t>(string<wchar_t>& formatted, const wchar_t* fmt, va_list args);
+
+
+template<typename T> ssize_t dsprintf(string<T>& formatted, const T* fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	ssize_t result = dvsprintf(formatted, fmt, args);
+	va_end(args);
+	return result;
+}
+template ssize_t dsprintf<char   >(string<char   >& formatted, const char   * fmt, ...);
+template ssize_t dsprintf<wchar_t>(string<wchar_t>& formatted, const wchar_t* fmt, ...);
+
+
+template<typename T> string<T> dvprintf(const T* fmt, va_list args)
+{
+	string<T> formatted;
+	dvsprintf(formatted, fmt, args);
+	return formatted;
+}
+template string<char   > dvprintf<char   >(const char   * fmt, va_list args);
+template string<wchar_t> dvprintf<wchar_t>(const wchar_t* fmt, va_list args);
+
+
+template<typename T> string<T> dprintf(const T* fmt, ...)
+{
+	string<T> formatted;
+	va_list args;
+	va_start(args, fmt);
+	dvsprintf(formatted, fmt, args);
+	va_end(args);
+	return formatted;
+}
+template string<char   > dprintf<char   >(const char   * fmt, ...);
+template string<wchar_t> dprintf<wchar_t>(const wchar_t* fmt, ...);
 
 
 
@@ -690,9 +1192,7 @@ string<> nullstring("");
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
+#if defined(DEBUG)
 
 // checking usage of operator[]
 class yyytest
@@ -722,7 +1222,7 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////
 
-int test_stringbuffer()
+void test_stringbuffer(void)
 {
 
 	{
@@ -746,8 +1246,8 @@ int test_stringbuffer()
 		b.ltrim();
 		b.rtrim();
 
-		staticstring<> xx("hallo");
-		xx[2]='b';
+		conststring<> xx("hallo");
+		//xx[2]='b';
 	
 	}
 
@@ -789,7 +1289,7 @@ int test_stringbuffer()
 
 		size_t pos=0;
 		pat.findnext(a, pos);
-		TArrayDST<size_t> list = pat.findall(a);
+		vector<size_t> list = pat.findall(a);
 
 		char buffer[1024];
 
@@ -912,7 +1412,6 @@ size_t sz=0;
 	}
 	printf("string %li\n", clock()-tick);
 
-	return 0;
 }
 
 
@@ -1968,7 +2467,7 @@ void test_resize()
 } // test_resize
 
 
-int test_strings()
+void test_strings(void)
 {
 	test_constructors();
 	test_char_cast();
@@ -1980,6 +2479,14 @@ int test_strings()
 	test_insert();
 	test_substring();
 	test_resize();
-	return 0;
+
 }
 
+#else
+
+void test_stringbuffer(void)
+{}
+void test_strings(void)
+{}
+
+#endif//DEBUG

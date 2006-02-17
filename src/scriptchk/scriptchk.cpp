@@ -998,14 +998,14 @@ int main(int argc, char *argv[])
 
 	for(i=1; i<argc; i++)
 	{
-		if( isFile(argv[i]) )
+		if( is_file(argv[i]) )
 		{
 			if(!enginefile)
 				enginefile = argv[i];
 			else 
 				inputfile = argv[i];
 		}
-		else if( isDirectory(argv[i]) )
+		else if( is_folder(argv[i]) )
 		{
 			inputfile = argv[i];
 		}
@@ -1072,7 +1072,7 @@ int main(int argc, char *argv[])
 
 	PParser pp(compiler, parser, option);
 
-	if( isDirectory( inputfile ) )
+	if( is_folder( inputfile ) )
 	{
 		ok=findFiles(inputfile, ".txt", pp);
 	}

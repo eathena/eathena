@@ -1,4 +1,4 @@
-all eascript: eascriptchk
+all scriptchk: eascriptchk
 
 ##########################################################
 # stupid make does not know .cpp suffix by default

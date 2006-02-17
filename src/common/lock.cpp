@@ -1,5 +1,10 @@
 
 
+#include "base.h"
+#include "lock.h"
+#include "utils.h"
+#include "showmsg.h"
+
 #ifndef WIN32
 
 #include <unistd.h>
@@ -20,11 +25,6 @@
 
 #endif
 
-
-#include "base.h"
-#include "lock.h"
-#include "utils.h"
-#include "showmsg.h"
 
 
 

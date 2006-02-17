@@ -712,55 +712,7 @@ int parse_fromchar(int fd)
 			RFIFOSKIP(fd, 86);
 			break;
 		}
-		///////////////////////////////////////////////////////////////////////
-		// Receiving of map-server via char-server a status change resquest (by Yor)
-// obsolete, use sending the account data with 2750 instead, use ban_until for for baning
-		case 0x2724:
-		{
-			if (RFIFOREST(fd) < 10)
-				return 0;
-			
-			uint32 accid = RFIFOL(fd,2);
-			uint32 status= RFIFOL(fd,6);
-			CLoginAccount account;
 
-			if( account_db.searchAccount(accid, account) )
-			{
-				if(account.state != status)
-				{
-					login_log("Char-server '%s': Status change (account: %d, new status %d, ip: %s)." RETCODE,
-						server[id].name, accid, status, ip_str);
-					if( status != 0)
-					{
-						unsigned char buf[16];
-						WBUFW(buf,0) = 0x2731;
-						WBUFL(buf,2) = accid;
-						WBUFB(buf,6) = 0; // 0: change of statut, 1: ban
-						WBUFL(buf,7) = status; // status or final date of a banishment
-						charif_sendallwos(-1, buf, 11);
-
-						account.login_id1++; // to avoid reconnection error when come back from map-server (char-server will ask again the authentification)
-					}
-					
-					account.state = status;
-					// Save
-					account_db.saveAccount(account);
-				}
-				else
-				{
-					login_log("Char-server '%s':  Error of Status change - actual status is already set (account: %d, status %d, ip: %s)." RETCODE,
-						server[id].name, accid, status, ip_str);
-				}
-			}
-			else
-			{
-				login_log("Char-server '%s': Error of Status change (account: %d not found, suggested status %d, ip: %s)." RETCODE,
-					server[id].name, accid, status, ip_str);
-			}
-
-			RFIFOSKIP(fd,10);
-			break;
-		}
 		///////////////////////////////////////////////////////////////////////
 		// Receiving a ban request from map-server via char-server (by Yor)
 // obsolete, use sending the account data with 2750 instead
@@ -1126,10 +1078,10 @@ int parse_admin(int fd)
 					memcpy(WFIFOP(fd,len+5), account_db().userid, 24);
 					WFIFOB(fd,len+29) = account_db().sex;
 					WFIFOL(fd,len+30) = account_db().login_count;
-					if(account_db().state == 0 && account_db().ban_until != 0) // if no state and banished
+					if(account_db().ban_until != 0)
 						WFIFOL(fd,len+34) = 7; // 6 = Your are Prohibited to log in until %s
 					else
-						WFIFOL(fd,len+34) = account_db().state;
+						WFIFOL(fd,len+34) = 0;
 					len += 38;
 				}
 				// next account
@@ -1331,37 +1283,31 @@ int parse_admin(int fd)
 					memcpy(WFIFOP(fd,6), account.userid, 24);
 					WFIFOL(fd,2) = account.account_id;
 
-					if( account.state == status && 0==strcmp(account.error_message, error_message) )
+					if (status == 7)
 					{
-						login_log("'ladmin': Modification of a state, but the state of the account is already the good state (account: %s, received state: %d, ip: %s)" RETCODE,
-							userid, status, ip_str);
+						login_log("'ladmin': Modification of a state (account: %s, new state: %d - prohibited to login until '%s', ip: %s)" RETCODE,
+							account.userid, status, error_message, ip_str);
 					}
 					else
 					{
-						if (status == 7)
-						{
-							login_log("'ladmin': Modification of a state (account: %s, new state: %d - prohibited to login until '%s', ip: %s)" RETCODE,
-								account.userid, status, error_message, ip_str);
-						}
-						else
-						{
-							login_log("'ladmin': Modification of a state (account: %s, new state: %d, ip: %s)" RETCODE,
-								account.userid, status, ip_str);
-						}
-						if( account.state == 0)
-						{
-							unsigned char buf[16];
-							WBUFW(buf,0) = 0x2731;
-							WBUFL(buf,2) = account.account_id;
-							WBUFB(buf,6) = 0; // 0: change of statut, 1: ban
-							WBUFL(buf,7) = status; // status or final date of a banishment
-							charif_sendallwos(-1, buf, 11);
-							account.login_id1++; // to avoid reconnection error when come back from map-server (char-server will ask again the authentification)
-						}
-						account.state = status;
-						safestrcpy(account.error_message, error_message, sizeof(account.error_message));
-						account_db.saveAccount(account);
+						login_log("'ladmin': Modification of a state (account: %s, new state: %d, ip: %s)" RETCODE,
+							account.userid, status, ip_str);
 					}
+					/*
+					if( account.state == 0)
+					{
+						unsigned char buf[16];
+						WBUFW(buf,0) = 0x2731;
+						WBUFL(buf,2) = account.account_id;
+						WBUFB(buf,6) = 0; // 0: change of statut, 1: ban
+						WBUFL(buf,7) = status; // status or final date of a banishment
+						charif_sendallwos(-1, buf, 11);
+						account.login_id1++; // to avoid reconnection error when come back from map-server (char-server will ask again the authentification)
+					}
+					account.state = status;
+					safestrcpy(account.error_message, error_message, sizeof(account.error_message));
+					account_db.saveAccount(account);
+					*/
 				}
 				else
 				{
@@ -1627,20 +1573,20 @@ int parse_admin(int fd)
 			{
 				if(RFIFOW(fd,26) == 0)
 				{
-					strcpy(account.memo, "-");
+//					strcpy(account.memo, "-");
 				}
 				else
 				{
 					char *buf = (char*)RFIFOP(fd,28);
 					remove_control_chars(buf);
-					safestrcpy(account.memo, buf, sizeof(account.memo));
+//					safestrcpy(account.memo, buf, sizeof(account.memo));
 				}
-				account_db.saveAccount(account);
+//				account_db.saveAccount(account);
 				
 				WFIFOL(fd,2) = account.account_id;
 				memcpy(WFIFOP(fd,6), account.userid, 24);
-				login_log("'ladmin': Modification of a memo field (account: %s, new memo: %s, ip: %s)" RETCODE,
-				          account.userid, account.memo, ip_str);
+//				login_log("'ladmin': Modification of a memo field (account: %s, new memo: %s, ip: %s)" RETCODE,
+//				          account.userid, account.memo, ip_str);
 			}
 			else
 			{
@@ -2040,21 +1986,22 @@ int parse_admin(int fd)
 				memcpy(WFIFOP(fd,7), account.userid, 24);
 				WFIFOB(fd,31) = account.sex;
 				WFIFOL(fd,32) = account.login_count;
-				WFIFOL(fd,36) = account.state;
-				memcpy(WFIFOP(fd,40), account.error_message, 20);
+				WFIFOL(fd,36) = 0;//account.state;
+				WFIFOB(fd,40) = 0;//memcpy(WFIFOP(fd,40), account.error_message, 20);
 				memcpy(WFIFOP(fd,60), account.last_login, 24);
 				memcpy(WFIFOP(fd,84), account.last_ip, 16);
 				memcpy(WFIFOP(fd,100), account.email, 40);
 				WFIFOL(fd,140) = (uint32)account.valid_until;
 				WFIFOL(fd,144) = (uint32)account.ban_until;
-				WFIFOW(fd,148) = strlen(account.memo);
-				if(account.memo[0])
-				{
-					memcpy(WFIFOP(fd,150), account.memo, strlen(account.memo));
-				}
+				WFIFOW(fd,148) = 0;//strlen(account.memo);
+				//if(account.memo[0])
+				//{
+				//	memcpy(WFIFOP(fd,150), account.memo, strlen(account.memo));
+				//}
 				login_log("'ladmin': Sending information of an account (request by the name; account: %s, id: %d, ip: %s)" RETCODE,
 					account.userid, account.account_id, ip_str);
-				WFIFOSET(fd,150+strlen(account.memo));
+				//WFIFOSET(fd,150+strlen(account.memo));
+				WFIFOSET(fd,150);
 			}
 			else
 			{
@@ -2088,19 +2035,20 @@ int parse_admin(int fd)
 				memcpy(WFIFOP(fd,7), account.userid, 24);
 				WFIFOB(fd,31) = account.sex;
 				WFIFOL(fd,32) = account.login_count;
-				WFIFOL(fd,36) = account.state;
-				memcpy(WFIFOP(fd,40), account.error_message, 20);
+				WFIFOL(fd,36) = 0;//account.state;
+				WFIFOB(fd,40) = 0;//memcpy(WFIFOP(fd,40), account.error_message, 20);
 				memcpy(WFIFOP(fd,60), account.last_login, 24);
 				memcpy(WFIFOP(fd,84), account.last_ip, 16);
 				memcpy(WFIFOP(fd,100), account.email, 40);
 				WFIFOL(fd,140) = (uint32)account.valid_until;
 				WFIFOL(fd,144) = (uint32)account.ban_until;
-				WFIFOW(fd,148) = strlen(account.memo);
-				if(account.memo[0])
-				{
-					memcpy(WFIFOP(fd,150), account.memo, strlen(account.memo));
-				}
-				WFIFOSET(fd,150+strlen(account.memo));
+				WFIFOW(fd,148) = 0;//strlen(account.memo);
+				//if(account.memo[0])
+				//{
+				//	memcpy(WFIFOP(fd,150), account.memo, strlen(account.memo));
+				//}
+				//WFIFOSET(fd,150+strlen(account.memo));
+				WFIFOSET(fd,150);
 			}
 			else
 			{
@@ -2323,7 +2271,7 @@ int parse_login(int fd)
 						timestamp2string(account.last_login, sizeof(account.last_login));
 						session[fd]->client_ip.tostring(account.last_ip, sizeof(account.last_ip));
 						account.login_count++;
-						account.state = 0;
+						//account.state = 0;
 
 						// save
 						account_db.saveAccount(account);

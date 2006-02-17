@@ -983,7 +983,7 @@ int skill_frostjoke_scream(struct block_list &bl,va_list &ap)
 		if (sd && sd->status.option & OPTION_HIDE && pc_isGM(*sd) > 0)
 			return 0;
 	}
-	if (map[src->m].flag.gvg || map[src->m].flag.pvp)
+	if (maps[src->m].flag.gvg || maps[src->m].flag.pvp)
 		skill_additional_effect(src,&bl,skillid,skilllv,BF_MISC,tick);
 	// we freeze everybody except of ourselfes on pvp/gvg [veider]
 	else {
@@ -1021,7 +1021,7 @@ public:
 				return 0;
 		}
 		//It has been reported that Scream/Joke works the same regardless of woe-setting. [Skotlex]
-//		if (map[src.m].flag.gvg || map[src.m].flag.pvp)
+//		if (maps[src.m].flag.gvg || maps[src.m].flag.pvp)
 //		{	// we freeze everybody except of ourselfes on pvp/gvg [veider]
 //			skill_additional_effect(&src,&bl,skillid,skilllv,BF_MISC,tick);
 //		}
@@ -1957,15 +1957,15 @@ int skillnotok(int skillid, struct map_session_data &sd)
 		return 0;  // gm's can do anything damn thing they want
 
 	// Check skill restrictions [Celest]
-	if(!map[sd.bl.m].flag.pvp && !map[sd.bl.m].flag.gvg && skill_get_nocast (skillid) & 1)
+	if(!maps[sd.bl.m].flag.pvp && !maps[sd.bl.m].flag.gvg && skill_get_nocast (skillid) & 1)
 		return 1;
-	if(map[sd.bl.m].flag.pvp && skill_get_nocast (skillid) & 2)
+	if(maps[sd.bl.m].flag.pvp && skill_get_nocast (skillid) & 2)
 		return 1;
-	if(map[sd.bl.m].flag.gvg && skill_get_nocast (skillid) & 4)
+	if(maps[sd.bl.m].flag.gvg && skill_get_nocast (skillid) & 4)
 		return 1;
 	if (agit_flag && skill_get_nocast (skillid) & 8)
 		return 1;
-	if (battle_config.pk_mode && !map[sd.bl.m].flag.nopvp && skill_get_nocast (skillid) & 16)
+	if (battle_config.pk_mode && !maps[sd.bl.m].flag.nopvp && skill_get_nocast (skillid) & 16)
 		return 1;
 
 	if(skillid == LK_BERSERK && DIFF_TICK(gettick(),sd.canregen_tick)<0)
@@ -1978,7 +1978,7 @@ int skillnotok(int skillid, struct map_session_data &sd)
 		case MC_IDENTIFY:
 			return 0; // always allowed
 		default:
-			return (map[sd.bl.m].flag.noskill);
+			return (maps[sd.bl.m].flag.noskill);
 	}
 }
 
@@ -2154,7 +2154,7 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl,unsign
 		break;
 	}
 	case HT_FREEZINGTRAP:	/* フリ?ジングトラップ */
-		if(dstmd || (dstsd && (map[bl->m].flag.pvp || map[bl->m].flag.gvg)) ) {
+		if(dstmd || (dstsd && (maps[bl->m].flag.pvp || maps[bl->m].flag.gvg)) ) {
 			rate = skilllv*3 + 35;
 			if(rand()%100 < rate*sc_def_mdef/100)
 				status_change_start(bl,SC_FREEZE,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
@@ -2163,7 +2163,7 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl,unsign
 
 	 case HT_FLASHER:  /* Flasher */
 		if (!(status_get_mode(bl) & 0x20) && !(status_get_mode(bl)&0x40) &&
-				((dstsd && md) || (dstmd && !md) || (dstsd && (map[bl->m].flag.pvp || map[bl->m].flag.gvg))) &&
+				((dstsd && md) || (dstmd && !md) || (dstsd && (maps[bl->m].flag.pvp || maps[bl->m].flag.gvg))) &&
 				rand()%100 < (10*skilllv+30)*sc_def_int/100)
 			status_change_start(bl,SC_BLIND,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
 		break;
@@ -2192,19 +2192,19 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl,unsign
 		break;
 
 	case HT_LANDMINE:		/* ランドマイン */
-		if( bl->type == BL_MOB || (bl->type == BL_PC && (map[bl->m].flag.pvp || map[bl->m].flag.gvg)) )
+		if( bl->type == BL_MOB || (bl->type == BL_PC && (maps[bl->m].flag.pvp || maps[bl->m].flag.gvg)) )
 			if( rand()%100 < (5*skilllv+30)*sc_def_vit/100 )
 				status_change_start(bl,SC_STAN,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
 		break;
 
 	case HT_SHOCKWAVE:				//it can't affect mobs, because they have no SP...
-		if( dstsd && (map[bl->m].flag.pvp || map[bl->m].flag.gvg) ){
+		if( dstsd && (maps[bl->m].flag.pvp || maps[bl->m].flag.gvg) ){
 			dstsd->status.sp -= dstsd->status.sp*(5+15*skilllv)/100;
 			status_calc_pc(*dstsd,0);
 		}
 		break;
 	case HT_SANDMAN:		/* サンドマン */
-		if( bl->type == BL_MOB || (bl->type == BL_PC && (map[bl->m].flag.pvp || map[bl->m].flag.gvg)) )
+		if( bl->type == BL_MOB || (bl->type == BL_PC && (maps[bl->m].flag.pvp || maps[bl->m].flag.gvg)) )
 			if( rand()%100 < (5*skilllv+30)*sc_def_int/100 )
 				status_change_start(bl,SC_SLEEP,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
 		break;
@@ -2402,7 +2402,7 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl,unsign
 	case PF_SPIDERWEB:		/* スパイダ?ウェッブ */
 		{
 			int sec = skill_get_time2(skillid,skilllv);
-			if(map[src->m].flag.pvp) //PvPでは拘束時間半減？
+			if(maps[src->m].flag.pvp) //PvPでは拘束時間半減？
 				sec = sec/2;
 			battle_stopwalking(bl,1);
 			status_change_start(bl,SC_SPIDERWEB,skilllv,0,0,0,sec,0);
@@ -3012,7 +3012,7 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 		else
 			battle_damage(src,bl,damage,0);
 	}
-	if(skillid == RG_INTIMIDATE && damage > 0 && !(status_get_mode(bl)&0x20) && !map[src->m].flag.gvg ) {
+	if(skillid == RG_INTIMIDATE && damage > 0 && !(status_get_mode(bl)&0x20) && !maps[src->m].flag.gvg ) {
 		int s_lv = status_get_lv(src),t_lv = status_get_lv(bl);
 		int rate = 50 + skilllv * 5;
 		rate = rate + (s_lv - t_lv);
@@ -3027,7 +3027,7 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 			skill_additional_effect(src,bl,skillid,skilllv,attack_type,tick);
 
 		/* 吹き飛ばし処理とそのパケット */
-		if (dmg.blewcount > 0 && bl->type!=BL_SKILL && !map[src->m].flag.gvg) {
+		if (dmg.blewcount > 0 && bl->type!=BL_SKILL && !maps[src->m].flag.gvg) {
 			skill_blown(dsrc,bl,dmg.blewcount);
 			if(bl->type == BL_MOB)
 				clif_fixmobpos(*((struct mob_data *)bl));
@@ -3463,7 +3463,7 @@ int skill_count_water(struct block_list &src,int range)
 		x = src.x+xi;
 		y = src.y+yi;
 		if(  map_getcell(src.m, x, y, CELL_CHKWATER) ||
-			(map[src.m].flag.rain==1 && battle_config.rainy_waterball && rand()%2) ) // half as strong on rain
+			(maps[src.m].flag.rain==1 && battle_config.rainy_waterball && rand()%2) ) // half as strong on rain
 		{
 			cnt++;
 		}
@@ -3546,7 +3546,7 @@ int skill_timerskill(int tid, unsigned long tick, int id, intptr data)
 				clif_skill_nodamage(*src,*src,skl->skill_id,skl->skill_lv,1);
 				break;
 			case RG_INTIMIDATE:
-				if(sd && !map[src->m].flag.noteleport) {
+				if(sd && !maps[src->m].flag.noteleport) {
 					int i,j;
 					int x=0,y=0;
 					pc_randomwarp(*sd,3);
@@ -3563,12 +3563,12 @@ int skill_timerskill(int tid, unsigned long tick, int id, intptr data)
 					}
 					if(target->prev != NULL) {
 						if(target->type == BL_PC && !pc_isdead(*((struct map_session_data *)target)))
-							pc_setpos(*((struct map_session_data *)target),map[sd->bl.m].mapname,x,y,3);
+							pc_setpos(*((struct map_session_data *)target),maps[sd->bl.m].mapname,x,y,3);
 						else if(target->type == BL_MOB)
 							mob_warp(*((struct mob_data *)target),-1,x,y,3);
 					}
 				}
-				else if(md && !map[src->m].flag.monster_noteleport) {
+				else if(md && !maps[src->m].flag.monster_noteleport) {
 					int i,j;
 					int x=0,y=0;
 					mob_warp(*md,-1,-1,-1,3);
@@ -3585,7 +3585,7 @@ int skill_timerskill(int tid, unsigned long tick, int id, intptr data)
 					}
 					if(target->prev != NULL) {
 						if(target->type == BL_PC && !pc_isdead(*((struct map_session_data *)target)))
-							pc_setpos(*((struct map_session_data *)target),map[md->bl.m].mapname,x,y,3);
+							pc_setpos(*((struct map_session_data *)target),maps[md->bl.m].mapname,x,y,3);
 						else if(target->type == BL_MOB)
 							mob_warp(*((struct mob_data *)target),-1,x,y,3);
 					}
@@ -4055,7 +4055,7 @@ int skill_castend_damage_id( struct block_list* src, struct block_list *bl, unsi
 		break;
 
 	case CH_TIGERFIST:		/* 伏虎拳 */
-		if (tsd && !(map[bl->m].flag.gvg || map[bl->m].flag.pvp)) {
+		if (tsd && !(maps[bl->m].flag.gvg || maps[bl->m].flag.pvp)) {
 			map_freeblock_unlock();
 			return 1;
 		}
@@ -4175,7 +4175,7 @@ int skill_castend_damage_id( struct block_list* src, struct block_list *bl, unsi
 			if (!skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0))
 				break;
 			c = skill_get_blewcount(skillid,skilllv);
-			if(map[bl->m].flag.gvg) c = 0;
+			if(maps[bl->m].flag.gvg) c = 0;
 			for(i=0;i<c;i++)
 			{
 				skill_blown(src,bl,1);
@@ -4212,7 +4212,7 @@ int skill_castend_damage_id( struct block_list* src, struct block_list *bl, unsi
 			if(bl->id==skill_area_temp[1])
 				break;
 			if( skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0x0500) &&
-				!(map[bl->m].flag.gvg || status_get_mexp(bl)) )
+				!(maps[bl->m].flag.gvg || status_get_mexp(bl)) )
 				skill_blown(src,bl,skill_area_temp[2]);
 		} else {
 			int x=bl->x,y=bl->y,i,dir;
@@ -4221,7 +4221,7 @@ int skill_castend_damage_id( struct block_list* src, struct block_list *bl, unsi
 			skill_area_temp[1] = bl->id;
 			skill_area_temp[2] = skill_get_blewcount(skillid,skilllv)|dir<<20;
 			if( skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0) &&
-				!(map[bl->m].flag.gvg || status_get_mexp(bl)) )
+				!(maps[bl->m].flag.gvg || status_get_mexp(bl)) )
 				skill_blown(src,bl,skill_area_temp[2]);
 			for (i=0;i<4;i++)
 			{
@@ -4421,7 +4421,7 @@ int skill_castend_damage_id( struct block_list* src, struct block_list *bl, unsi
 			clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
 			if (skilllv == 5)
 				skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,0 );
-			if (tsd && (map[src->m].flag.pvp || map[src->m].flag.gvg)) {
+			if (tsd && (maps[src->m].flag.pvp || maps[src->m].flag.gvg)) {
 				tsd->status.sp = 0;
 				clif_updatestatus(*tsd,SP_SP);
 			}
@@ -4609,7 +4609,7 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 	case ALL_RESURRECTION:		/* リザレクション */
 		if(dstsd) {
 			int per = 0;
-			if (map[bl->m].flag.pvp && dstsd->pvp_point < 0)
+			if (maps[bl->m].flag.pvp && dstsd->pvp_point < 0)
 				break;			/* PVPで復活不可能?態 */
 
 			if (pc_isdead(*dstsd)) {	/* 死亡判定 */
@@ -4758,7 +4758,7 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 		break;
 	case SA_SUMMONMONSTER:
 		clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
-		if(sd) mob_once_spawn(sd,map[src->m].mapname,src->x,src->y,"--ja--",-1,1,"");
+		if(sd) mob_once_spawn(sd,maps[src->m].mapname,src->x,src->y,"--ja--",-1,1,"");
 		break;
 	case SA_LEVELUP:
 		clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
@@ -5053,7 +5053,7 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 
 			if(dstmd && dstmd->skilltimer!=-1 && dstmd->state.skillcastcancel)	// 詠唱妨害
 				skill_castcancel(bl,0);
-			if(dstsd && dstsd->skilltimer!=-1 && (!dstsd->state.no_castcancel || map[bl->m].flag.gvg)
+			if(dstsd && dstsd->skilltimer!=-1 && (!dstsd->state.no_castcancel || maps[bl->m].flag.gvg)
 				&& dstsd->state.skillcastcancel	&& !dstsd->state.no_castcancel2)
 				skill_castcancel(bl,0);
 
@@ -5132,7 +5132,7 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 	case MO_ABSORBSPIRITS:	// ?奪
 		i = 0;
 		if (dstsd && dstsd->spiritball > 0 &&
-			((sd && sd == dstsd) || map[src->m].flag.pvp || map[src->m].flag.gvg))
+			((sd && sd == dstsd) || maps[src->m].flag.pvp || maps[src->m].flag.gvg))
 		{
 			i = dstsd->spiritball * 7;
 			pc_delspiritball(*dstsd,dstsd->spiritball,0);
@@ -5598,7 +5598,7 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 
 	case AL_TELEPORT:			/* テレポ?ト */
 		if(sd) {
-			if (map[sd->bl.m].flag.noteleport) {	/* テレポ禁止 */
+			if (maps[sd->bl.m].flag.noteleport) {	/* テレポ禁止 */
 				clif_skill_teleportmessage(*sd,0);
 				break;
 			}
@@ -5905,7 +5905,7 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 							hp = status_get_max_hp(bl)/50; //Recover 2% HP [Skotlex]
 						bl_skillid = dstmd->skillid;
 						bl_skilllv = dstmd->skilllv;
-						if (map[bl->m].flag.pvp || map[bl->m].flag.gvg)
+						if (maps[bl->m].flag.pvp || maps[bl->m].flag.gvg)
 							hp = status_get_max_hp(bl)/50; //Recover 2% HP [Skotlex]
 					}
 				}
@@ -6248,7 +6248,7 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 				map_freeblock_unlock();
 				return 0;
 			}
-			if(map[sd->bl.m].flag.nomemo || map[sd->bl.m].flag.nowarpto || map[dstsd->bl.m].flag.nowarp){
+			if(maps[sd->bl.m].flag.nomemo || maps[sd->bl.m].flag.nowarpto || maps[dstsd->bl.m].flag.nowarp){
 				clif_skill_teleportmessage(*sd,1);
 				map_freeblock_unlock();
 				return 0;
@@ -6284,22 +6284,22 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 				map_freeblock_unlock();
 				return 0;
 			}
-			if(map[sd->bl.m].flag.nomemo || map[sd->bl.m].flag.nowarpto){
+			if(maps[sd->bl.m].flag.nomemo || maps[sd->bl.m].flag.nowarpto){
 				clif_skill_teleportmessage(*sd,1);
 				map_freeblock_unlock();
 				return 0;
 			}
-			if( (!f_sd && m_sd && map[m_sd->bl.m].flag.nowarp) ||
-				(!m_sd && f_sd && map[f_sd->bl.m].flag.nowarp) ||
-				(f_sd && map[f_sd->bl.m].flag.nowarp && m_sd && map[m_sd->bl.m].flag.nowarp) )
+			if( (!f_sd && m_sd && maps[m_sd->bl.m].flag.nowarp) ||
+				(!m_sd && f_sd && maps[f_sd->bl.m].flag.nowarp) ||
+				(f_sd && maps[f_sd->bl.m].flag.nowarp && m_sd && maps[m_sd->bl.m].flag.nowarp) )
 			{	//Case where neither one can be warped.
 				clif_skill_teleportmessage(*sd,1);
 				map_freeblock_unlock();
 				return 0;
 			}
 			//Warp those that can be warped.
-			if(f_sd && !map[f_sd->bl.m].flag.nowarp) pc_setpos(*f_sd,map[sd->bl.m].mapname,sd->bl.x,sd->bl.y,3);
-			if(m_sd && !map[m_sd->bl.m].flag.nowarp) pc_setpos(*m_sd,map[sd->bl.m].mapname,sd->bl.x,sd->bl.y,3);
+			if(f_sd && !maps[f_sd->bl.m].flag.nowarp) pc_setpos(*f_sd,maps[sd->bl.m].mapname,sd->bl.x,sd->bl.y,3);
+			if(m_sd && !maps[m_sd->bl.m].flag.nowarp) pc_setpos(*m_sd,maps[sd->bl.m].mapname,sd->bl.x,sd->bl.y,3);
 		}
 		break;
 
@@ -6310,12 +6310,12 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 				map_freeblock_unlock();
 				return 0;
 			}
-			if(map[sd->bl.m].flag.nomemo || map[sd->bl.m].flag.nowarpto || map[dstsd->bl.m].flag.nowarp){
+			if(maps[sd->bl.m].flag.nomemo || maps[sd->bl.m].flag.nowarpto || maps[dstsd->bl.m].flag.nowarp){
 				clif_skill_teleportmessage(*sd,1);
 				map_freeblock_unlock();
 				return 0;
 			}
-			pc_setpos(*dstsd,map[sd->bl.m].mapname,sd->bl.x,sd->bl.y,3);
+			pc_setpos(*dstsd,maps[sd->bl.m].mapname,sd->bl.x,sd->bl.y,3);
 		}
 		break;
 
@@ -6343,7 +6343,7 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 			int flag;
 			if((bl->type==BL_SKILL) &&
 			   (su=(struct skill_unit *)bl) &&
-			   (su->group->src_id == src->id || map[bl->m].flag.pvp || map[bl->m].flag.gvg) &&
+			   (su->group->src_id == src->id || maps[bl->m].flag.pvp || maps[bl->m].flag.gvg) &&
 			   (su->group->unit_id >= 0x8f && su->group->unit_id <= 0x99) &&
 			   (su->group->unit_id != UNT_VENOMDUST)){ //?を取り返す
 				if(sd){
@@ -6446,7 +6446,7 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 
 			if(dstmd && dstmd->skilltimer!=-1 && dstmd->state.skillcastcancel)	// 詠唱妨害
 				skill_castcancel(bl,0);
-			if(dstsd && dstsd->skilltimer!=-1 && (!dstsd->state.no_castcancel || map[bl->m].flag.gvg)
+			if(dstsd && dstsd->skilltimer!=-1 && (!dstsd->state.no_castcancel || maps[bl->m].flag.gvg)
 				&& dstsd->state.skillcastcancel	&& !dstsd->state.no_castcancel2)
 				skill_castcancel(bl,0);
 
@@ -6601,8 +6601,8 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 				case 5:	// 2000HP heal, random teleported
 					if (sd) pc_heal(*sd,2000,0);
 					if (bl->prev != NULL) {
-						if(sd && !map[src->m].flag.noteleport) pc_setpos(*sd,sd->mapname,0xFFFF,0xFFFF, 3);
-						else if(md && !map[src->m].flag.monster_noteleport) mob_warp(*md,-1,-1,-1,3);
+						if(sd && !maps[src->m].flag.noteleport) pc_setpos(*sd,sd->mapname,0xFFFF,0xFFFF, 3);
+						else if(md && !maps[src->m].flag.monster_noteleport) mob_warp(*md,-1,-1,-1,3);
 					}
 					break;
 				case 6:	// random 2 other effects
@@ -6747,7 +6747,7 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 			struct guild *g = NULL;
 			// Only usable during WoE
 			if (!agit_flag ||
-				(sd && map[sd->bl.m].flag.nowarpto &&	// if not allowed to warp to the map
+				(sd && maps[sd->bl.m].flag.nowarpto &&	// if not allowed to warp to the map
 				guild_mapname2gc(sd->mapname) == NULL)) {	// and it's not a castle...
 				clif_skill_fail(*sd,skillid,0,0);
 				map_freeblock_unlock();
@@ -6759,7 +6759,7 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 				for(i = 0; i < g->max_member; i++, j++) {
 					if (j>8) j=0;
 					if ((dstsd = g->member[i].sd) != NULL && sd != dstsd) {
-						 if (map[dstsd->bl.m].flag.nowarp &&
+						 if (maps[dstsd->bl.m].flag.nowarp &&
 							 guild_mapname2gc(sd->mapname) == NULL)
 							 continue;
 						clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
@@ -6870,7 +6870,7 @@ int skill_castend_id(int tid, unsigned long tick, int id, intptr data)
 	{
 		if( (inf2 & INF2_PARTY_ONLY && battle_check_target(&sd->bl,bl, BCT_PARTY) > 0) ||
 			(inf2 & INF2_GUILD_ONLY && battle_check_target(&sd->bl,bl, BCT_GUILD) > 0) ||
-			(sd->skillid == PF_SOULCHANGE && (map[sd->bl.m].flag.gvg || map[sd->bl.m].flag.pvp)) )//Soul Change overrides this restriction during pvp/gvg [Skotlex]
+			(sd->skillid == PF_SOULCHANGE && (maps[sd->bl.m].flag.gvg || maps[sd->bl.m].flag.pvp)) )//Soul Change overrides this restriction during pvp/gvg [Skotlex]
 		{	// nothing
 		}
 		else
@@ -7182,12 +7182,12 @@ int skill_castend_pos2(struct block_list *src, int x,int y,unsigned short skilli
 					tmpy = y + (rand()%7 - 3);
 					if(tmpx < 0)
 						tmpx = 0;
-					else if(tmpx >= map[src->m].xs)
-						tmpx = map[src->m].xs - 1;
+					else if(tmpx >= maps[src->m].xs)
+						tmpx = maps[src->m].xs - 1;
 					if(tmpy < 0)
 						tmpy = 0;
-					else if(tmpy >= map[src->m].ys)
-						tmpy = map[src->m].ys - 1;
+					else if(tmpy >= maps[src->m].ys)
+						tmpy = maps[src->m].ys - 1;
 					j++;
 				} while((map_getcell(src->m,tmpx,tmpy,CELL_CHKNOPASS)) && j<100);
 				if(j >= 100)
@@ -7207,7 +7207,7 @@ int skill_castend_pos2(struct block_list *src, int x,int y,unsigned short skilli
 
 	case AL_WARP:				/* ワ?プポ?タル */
 		if(sd) {
-			if(map[sd->bl.m].flag.nowarp)	/* テレポ禁止 */
+			if(maps[sd->bl.m].flag.nowarp)	/* テレポ禁止 */
 				break;
 			clif_skill_warppoint(*sd,sd->skillid,sd->status.save_point.mapname,
 				(sd->skilllv>1)?sd->status.memo_point[0].mapname:"",
@@ -7352,7 +7352,7 @@ int skill_castend_pos2(struct block_list *src, int x,int y,unsigned short skilli
  * スキル使用（詠唱完了、map指定）
  *------------------------------------------
  */
-int skill_castend_map( struct map_session_data *sd,int skill_num, const char *map)
+int skill_castend_map( struct map_session_data *sd,int skill_num, const char *mapname)
 {
 	int x=0,y=0;
 
@@ -7386,15 +7386,15 @@ int skill_castend_map( struct map_session_data *sd,int skill_num, const char *ma
 	pc_stopattack(*sd);
 
 	if(battle_config.pc_skill_log)
-		ShowMessage("PC %d skill castend skill =%d map=%s\n",sd->bl.id,skill_num,map);
+		ShowMessage("PC %d skill castend skill =%d map=%s\n",sd->bl.id,skill_num,mapname);
 	pc_stop_walking(*sd,0);
 
-	if(strcmp(map,"cancel")==0)
+	if(strcmp(mapname,"cancel")==0)
 		return 0;
 
 	switch(skill_num){
 	case AL_TELEPORT:		/* テレポ?ト */
-		if(strcmp(map,"Random")==0)
+		if(strcmp(mapname,"Random")==0)
 			pc_randomwarp(*sd,3);
 		else
 			pc_setpos(*sd,sd->status.save_point.mapname,
@@ -7430,7 +7430,7 @@ int skill_castend_map( struct map_session_data *sd,int skill_num, const char *ma
 
 			if(sd->skilllv <= 0) return 0;
 			for(i=0;i<sd->skilllv;i++){
-				if(strcmp(map,p[i]->mapname)==0){
+				if(strcmp(mapname,p[i]->mapname)==0){
 					x=p[i]->x;
 					y=p[i]->y;
 					break;
@@ -7452,7 +7452,7 @@ int skill_castend_map( struct map_session_data *sd,int skill_num, const char *ma
 			if((group=skill_unitsetting(&sd->bl,sd->skillid,sd->skilllv,sd->skillx,sd->skilly,0))==NULL)
 				return 0;
 			group->valstr=(char *)aMalloc(24*sizeof(char));
-			memcpy(group->valstr,map,24);
+			memcpy(group->valstr,mapname,24);
 			group->valstr[24-1]=0;
 			group->val2=(x<<16)|y;
 		}
@@ -7536,14 +7536,14 @@ struct skill_unit_group *skill_unitsetting(struct block_list *src, unsigned shor
 	case HT_FLASHER:			/* フラッシャ? */
 	case HT_FREEZINGTRAP:		/* フリ?ジングトラップ */
 	case HT_BLASTMINE:			/* ブラストマイン */
-		if (map[src->m].flag.gvg)
+		if (maps[src->m].flag.gvg)
 		{
 			limit *= 4;			// longer trap times in WOE [celest]
 			//target = BCT_ALL;	//Hits everyone in WOE [Skotlex]
 		}
 		break;
 	case HT_SHOCKWAVE:			/* ショックウェ?ブトラップ */
-		if (map[src->m].flag.gvg) limit *= 4;
+		if (maps[src->m].flag.gvg) limit *= 4;
 		val1=skilllv*15+10;
 		break;
 
@@ -7742,7 +7742,7 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned lon
 				src->bl.x == sd->to_x && src->bl.y == sd->to_y) {
 				if( battle_config.chat_warpportal || !sd->chatID ){
 					pc_setpos(*sd,sg->valstr,sg->val2>>16,sg->val2&0xffff,3);
-					if(sg->src_id == bl->id || (strcmp(map[src->bl.m].mapname,sg->valstr) == 0	&&
+					if(sg->src_id == bl->id || (strcmp(maps[src->bl.m].mapname,sg->valstr) == 0	&&
 						src->bl.x == (sg->val2>>16) && src->bl.y == (sg->val2&0xffff) ))
 						skill_delunitgroup(sg);
 					if (--sg->val1<=0)
@@ -7973,7 +7973,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 	case UNT_SKIDTRAP:	/* スキッドトラップ */
 		{
 			int i,c = skill_get_blewcount(sg->skill_id,sg->skill_lv);
-			if(map[bl->m].flag.gvg) c = 0;
+			if(maps[bl->m].flag.gvg) c = 0;
 			for(i=0;i<c;i++)
 				skill_blown(&src->bl,bl,1|0x30000);
 			sg->unit_id = UNT_USEDTRAP;
@@ -8283,7 +8283,7 @@ int skill_unit_onlimit(struct skill_unit *src,unsigned long tick)
 			if((p_sd = pc_get_partner(*sd)) == NULL)
 				return 0;
 
-			pc_setpos(*p_sd,map[src->bl.m].mapname,src->bl.x,src->bl.y,3);
+			pc_setpos(*p_sd,maps[src->bl.m].mapname,src->bl.x,src->bl.y,3);
 		}
 		break;
 	}
@@ -8461,7 +8461,7 @@ int skill_check_condition(struct map_session_data *sd,int type)
 			delitem_flag = 0;
 		// fall through
 	case AL_TELEPORT:
-		if(map[sd->bl.m].flag.noteleport) {
+		if(maps[sd->bl.m].flag.noteleport) {
 			clif_skill_teleportmessage(*sd,0);
 			return 0;
 		}
@@ -8575,9 +8575,9 @@ int skill_check_condition(struct map_session_data *sd,int type)
 			if(battle_config.pc_land_skill_limit && maxcount>0)
 			{
 				c = CMap::foreachinarea( CSkillCheckConditionMobmaster(sd->bl.id, mob_class),
-					sd->bl.m, 0, 0, map[sd->bl.m].xs-1, map[sd->bl.m].ys-1, BL_MOB);
+					sd->bl.m, 0, 0, maps[sd->bl.m].xs-1, maps[sd->bl.m].ys-1, BL_MOB);
 //				map_foreachinarea(skill_check_condition_mob_master_sub,
-//					sd->bl.m, 0, 0, map[sd->bl.m].xs-1, map[sd->bl.m].ys-1, BL_MOB, 
+//					sd->bl.m, 0, 0, maps[sd->bl.m].xs-1, maps[sd->bl.m].ys-1, BL_MOB, 
 //					sd->bl.id, mob_class, &c );
 				if(c >= maxcount){
 					clif_skill_fail(*sd,skill,0,0);
@@ -8767,7 +8767,7 @@ int skill_check_condition(struct map_session_data *sd,int type)
 		}
 		break;
 	case ST_WATER:
-		if( map[sd->bl.m].flag.rain==1 && battle_config.rainy_waterball==1)
+		if( maps[sd->bl.m].flag.rain==1 && battle_config.rainy_waterball==1)
 			break;
 		if((!map_getcell(sd->bl.m,sd->bl.x,sd->bl.y,CELL_CHKWATER))&& (sd->sc_data[SC_DELUGE].timer==-1)){	//水場判定
 			clif_skill_fail(*sd,skill,0,0);
@@ -9355,7 +9355,7 @@ int skill_use_pos( struct map_session_data *sd, int skill_x, int skill_y, unsign
 		return 0;
 	if (skillnotok(skill_num, *sd)) // [MoueJstr]
 		return 0;
-	if (skill_num == WZ_ICEWALL && map[sd->bl.m].flag.noicewall && !map[sd->bl.m].flag.pvp)  { // noicewall flag [Valaris]
+	if (skill_num == WZ_ICEWALL && maps[sd->bl.m].flag.noicewall && !maps[sd->bl.m].flag.pvp)  { // noicewall flag [Valaris]
 		clif_skill_fail(*sd,sd->skillid,0,0);
 		return 0;
 	}

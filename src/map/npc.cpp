@@ -953,55 +953,55 @@ int npc_touch_areanpc(struct map_session_data &sd, unsigned short m, int x,int y
 	if( sd.ScriptEngine.isRunning() || m>=map_num )
 		return 1;
 
-	for(i=0;i<map[m].npc_num;i++) {
+	for(i=0;i<maps[m].npc_num;i++) {
 
-		if (map[m].npc[i]->flag&1) {	// –³Œø‰»‚³‚ê‚Ä‚¢‚é
+		if (maps[m].npc[i]->flag&1) {	// –³Œø‰»‚³‚ê‚Ä‚¢‚é
 			f=0;
 			continue;
 		}
 
-		switch(map[m].npc[i]->bl.subtype) {
+		switch(maps[m].npc[i]->bl.subtype) {
 		case WARP:
-			xs=map[m].npc[i]->u.warp.xs;
-			ys=map[m].npc[i]->u.warp.ys;
+			xs=maps[m].npc[i]->u.warp.xs;
+			ys=maps[m].npc[i]->u.warp.ys;
 			break;
 		case SCRIPT:
-			xs=map[m].npc[i]->u.scr.xs;
-			ys=map[m].npc[i]->u.scr.ys;
+			xs=maps[m].npc[i]->u.scr.xs;
+			ys=maps[m].npc[i]->u.scr.ys;
 			break;
 		default:
 			continue;
 		}
-		if ( (x >= (map[m].npc[i]->bl.x-xs/2)) && (x < (map[m].npc[i]->bl.x-xs/2+xs)) &&
-			 (y >= (map[m].npc[i]->bl.y-ys/2)) && (y < (map[m].npc[i]->bl.y-ys/2+ys)) )
+		if ( (x >= (maps[m].npc[i]->bl.x-xs/2)) && (x < (maps[m].npc[i]->bl.x-xs/2+xs)) &&
+			 (y >= (maps[m].npc[i]->bl.y-ys/2)) && (y < (maps[m].npc[i]->bl.y-ys/2+ys)) )
 			break;
 	}
-	if (i==map[m].npc_num) {
+	if (i==maps[m].npc_num) {
 		if (f) {
 			if (battle_config.error_log)
 				ShowMessage("npc_touch_areanpc : some bug \n");
 		}
 		return 1;
 	}
-	switch(map[m].npc[i]->bl.subtype) {
+	switch(maps[m].npc[i]->bl.subtype) {
 		case WARP:
 			if (sd.status.option&6)	// hidden chars cannot use warps -- is it the same for scripts too?
 				break;
 			skill_stop_dancing(&sd.bl,0);
-			pc_setpos(sd,map[m].npc[i]->u.warp.name,map[m].npc[i]->u.warp.x,map[m].npc[i]->u.warp.y,0);
+			pc_setpos(sd,maps[m].npc[i]->u.warp.name,maps[m].npc[i]->u.warp.x,maps[m].npc[i]->u.warp.y,0);
 			break;
 		case SCRIPT:
 		{
 			char name[64]; // npc->name is 24 max + 9 for a possible ::OnTouch attachment
 
-			if(sd.areanpc_id == map[m].npc[i]->bl.id)
+			if(sd.areanpc_id == maps[m].npc[i]->bl.id)
 				return 1;
-			sd.areanpc_id = map[m].npc[i]->bl.id;
+			sd.areanpc_id = maps[m].npc[i]->bl.id;
 
-			snprintf(name,sizeof(name),"%s::OnTouch", map[m].npc[i]->name);
+			snprintf(name,sizeof(name),"%s::OnTouch", maps[m].npc[i]->name);
 
 			if( npc_event(sd,name,0)>0 )
-				npc_click(sd,map[m].npc[i]->bl.id);
+				npc_click(sd,maps[m].npc[i]->bl.id);
 			break;
 		}
 	}
@@ -2412,7 +2412,7 @@ int npc_parse_mob(const char *w1, const char *w2, const char *w3, const char *w4
 	struct mob_list *dynmob = map_addmobtolist(m);
 	if( !dynmob )
 	{
-		ShowError("no place for mob cache on map: %s\n", map[m].mapname);
+		ShowError("no place for mob cache on map: %s\n", maps[m].mapname);
 		return 1;
 	}
 	
@@ -2478,50 +2478,50 @@ int npc_parse_mapflag(const char *w1,const char *w2,const char *w3,const char *w
 		char savemap[16];
 		int savex, savey;
 		if (strcmp(w4, "SavePoint") == 0) {
-			safestrcpy(map[m].save.mapname, "SavePoint", sizeof(map[m].save.mapname));
-			map[m].save.x = -1;
-			map[m].save.y = -1;
+			safestrcpy(maps[m].save.mapname, "SavePoint", sizeof(maps[m].save.mapname));
+			maps[m].save.x = -1;
+			maps[m].save.y = -1;
 		} else if (sscanf(w4, "%[^,],%d,%d", savemap, &savex, &savey) == 3) {
 			char*ip = strchr(savemap, '.');
 			if(ip) *ip=0;
-			safestrcpy(map[m].save.mapname, savemap, sizeof(map[m].save.mapname));			
-			map[m].save.x = savex;
-			map[m].save.y = savey;
+			safestrcpy(maps[m].save.mapname, savemap, sizeof(maps[m].save.mapname));			
+			maps[m].save.x = savex;
+			maps[m].save.y = savey;
 		}
-		map[m].flag.nosave = 1;
+		maps[m].flag.nosave = 1;
 	}
 	else if (strcasecmp(w3,"nomemo")==0) {
-		map[m].flag.nomemo=1;
+		maps[m].flag.nomemo=1;
 	}
 	else if (strcasecmp(w3,"noteleport")==0) {
-		map[m].flag.noteleport=1;
+		maps[m].flag.noteleport=1;
 	}
 	else if (strcasecmp(w3,"nowarp")==0) {
-		map[m].flag.nowarp=1;
+		maps[m].flag.nowarp=1;
 	}
 	else if (strcasecmp(w3,"nowarpto")==0) {
-		map[m].flag.nowarpto=1;
+		maps[m].flag.nowarpto=1;
 	}
 	else if (strcasecmp(w3,"noreturn")==0) {
-		map[m].flag.noreturn=1;
+		maps[m].flag.noreturn=1;
 	}
 	else if (strcasecmp(w3,"monster_noteleport")==0) {
-		map[m].flag.monster_noteleport=1;
+		maps[m].flag.monster_noteleport=1;
 	}
 	else if (strcasecmp(w3,"nobranch")==0) {
-		map[m].flag.nobranch=1;
+		maps[m].flag.nobranch=1;
 	}
 	else if (strcasecmp(w3,"nopenalty")==0) {
-		map[m].flag.nopenalty=1;
+		maps[m].flag.nopenalty=1;
 	}
 	else if (strcasecmp(w3,"pvp")==0) {
-		map[m].flag.pvp=1;
+		maps[m].flag.pvp=1;
 	}
 	else if (strcasecmp(w3,"pvp_noparty")==0) {
-		map[m].flag.pvp_noparty=1;
+		maps[m].flag.pvp_noparty=1;
 	}
 	else if (strcasecmp(w3,"pvp_noguild")==0) {
-		map[m].flag.pvp_noguild=1;
+		maps[m].flag.pvp_noguild=1;
 	}
 	else if (strcasecmp(w3,"pvp_nightmaredrop")==0) {
 		char drop_arg1[16], drop_arg2[16];
@@ -2541,94 +2541,94 @@ int npc_parse_mapflag(const char *w1,const char *w2,const char *w3,const char *w
 
 			if (drop_id != 0){
 				for (i = 0; i < MAX_DROP_PER_MAP; i++) {
-					if (map[m].drop_list[i].drop_id == 0){
-						map[m].drop_list[i].drop_id = drop_id;
-						map[m].drop_list[i].drop_type = drop_type;
-						map[m].drop_list[i].drop_per = drop_per;
+					if (maps[m].drop_list[i].drop_id == 0){
+						maps[m].drop_list[i].drop_id = drop_id;
+						maps[m].drop_list[i].drop_type = drop_type;
+						maps[m].drop_list[i].drop_per = drop_per;
 						break;
 					}
 				}
-				map[m].flag.pvp_nightmaredrop = 1;
+				maps[m].flag.pvp_nightmaredrop = 1;
 			}
 		}
 	}
 	else if (strcasecmp(w3,"pvp_nocalcrank")==0) {
-		map[m].flag.pvp_nocalcrank=1;
+		maps[m].flag.pvp_nocalcrank=1;
 	}
 	else if (strcasecmp(w3,"gvg")==0) {
-		map[m].flag.gvg=1;
+		maps[m].flag.gvg=1;
 	}
 	else if (strcasecmp(w3,"gvg_noparty")==0) {
-		map[m].flag.gvg_noparty=1;
+		maps[m].flag.gvg_noparty=1;
 	}
 	else if (strcasecmp(w3,"gvg_dungeon")==0) {
-		map[m].flag.gvg_dungeon=1;
+		maps[m].flag.gvg_dungeon=1;
 	}
 	else if (strcasecmp(w3,"nozenypenalty")==0) {
-		map[m].flag.nozenypenalty=1;
+		maps[m].flag.nozenypenalty=1;
 	}
 	else if (strcasecmp(w3,"notrade")==0) {
-		map[m].flag.notrade=1;
+		maps[m].flag.notrade=1;
 	}
 	else if (strcasecmp(w3,"noskill")==0) {
-		map[m].flag.noskill=1;
+		maps[m].flag.noskill=1;
 	}
 	else if (battle_config.pk_mode && strcasecmp(w3,"nopvp")==0) { // nopvp for pk mode [Valaris]
-		map[m].flag.nopvp=1;
-		map[m].flag.pvp=0;
+		maps[m].flag.nopvp=1;
+		maps[m].flag.pvp=0;
 	}
 	else if (strcasecmp(w3,"noicewall")==0) { // noicewall [Valaris]
-		map[m].flag.noicewall=1;
+		maps[m].flag.noicewall=1;
 	}
 	else if (strcasecmp(w3,"snow")==0) { // snow [Valaris]
-		map[m].flag.snow=1;
+		maps[m].flag.snow=1;
 	}
 	else if (strcasecmp(w3,"clouds")==0) {
-		map[m].flag.clouds=1;
+		maps[m].flag.clouds=1;
 	}
 	else if (strcasecmp(w3,"clouds2")==0) {
-		map[m].flag.clouds2=1;
+		maps[m].flag.clouds2=1;
 	}
 	else if (strcasecmp(w3,"fog")==0) { // fog [Valaris]
-		map[m].flag.fog=1;
+		maps[m].flag.fog=1;
 	}
 	else if (strcasecmp(w3,"fireworks")==0) {
-		map[m].flag.fireworks=1;
+		maps[m].flag.fireworks=1;
 	}
 	else if (strcasecmp(w3,"sakura")==0) { // sakura [Valaris]
-		map[m].flag.sakura=1;
+		maps[m].flag.sakura=1;
 	}
 	else if (strcasecmp(w3,"leaves")==0) { // leaves [Valaris]
-		map[m].flag.leaves=1;
+		maps[m].flag.leaves=1;
 	}
 	else if (strcasecmp(w3,"rain")==0) { // rain [Valaris]
-		map[m].flag.rain=1;
+		maps[m].flag.rain=1;
 	}
 	else if (strcasecmp(w3,"indoors")==0) { // celest
-		map[m].flag.indoors=1;
+		maps[m].flag.indoors=1;
 	}
 	else if (strcasecmp(w3,"nogo")==0) { // celest
-		map[m].flag.nogo=1;
+		maps[m].flag.nogo=1;
 	}
 	else if (strcasecmp(w3,"noexp")==0) { // Lorky
-		map[m].flag.nobaseexp=1;
-		map[m].flag.nojobexp=1;
+		maps[m].flag.nobaseexp=1;
+		maps[m].flag.nojobexp=1;
 	}
 	else if (strcasecmp(w3,"nobaseexp")==0) { // Lorky
-		map[m].flag.nobaseexp=1;
+		maps[m].flag.nobaseexp=1;
 	}
 	else if (strcasecmp(w3,"nojobexp")==0) { // Lorky
-		map[m].flag.nojobexp=1;
+		maps[m].flag.nojobexp=1;
 	}
 	else if (strcasecmp(w3,"noloot")==0) { // Lorky
-		map[m].flag.nomobloot=1;
-		map[m].flag.nomvploot=1;
+		maps[m].flag.nomobloot=1;
+		maps[m].flag.nomvploot=1;
 	}
 	else if (strcasecmp(w3,"nomobloot")==0) { // Lorky
-		map[m].flag.nomobloot=1;
+		maps[m].flag.nomobloot=1;
 	}
 	else if (strcasecmp(w3,"nomvploot")==0) { // Lorky
-		map[m].flag.nomvploot=1;
+		maps[m].flag.nomvploot=1;
 	}
 
 	return 0;
@@ -2876,7 +2876,7 @@ int npc_read_indoors (void)
 			char* ip = strchr(mapname, '.');
 			if(ip) *ip=0;
 			if ((m = map_mapname2mapid(mapname)) >= 0)
-				map[m].flag.indoors = 1;
+				maps[m].flag.indoors = 1;
 		}
 			p=strchr(p, '\n');
 		if (!p) break;
@@ -2947,10 +2947,10 @@ int npc_reload (void)
 
 	for (m = 0; m < map_num; m++)
 	{
-		CMap::foreachinarea( CNpcCleanup(), m, 0, 0, map[m].xs-1, map[m].ys-1, 0);
-//		map_foreachinarea(npc_cleanup_sub, m, 0, 0, map[m].xs-1, map[m].ys-1, 0);
+		CMap::foreachinarea( CNpcCleanup(), m, 0, 0, maps[m].xs-1, maps[m].ys-1, 0);
+//		map_foreachinarea(npc_cleanup_sub, m, 0, 0, maps[m].xs-1, maps[m].ys-1, 0);
 		clear_moblist(m);
-		map[m].npc_num = 0;
+		maps[m].npc_num = 0;
 	}
 	if(ev_db)
 		strdb_final(ev_db,ev_db_final);
@@ -3077,17 +3077,17 @@ int npc_unload(struct npc_data *nd, bool erase_strdb)//erase_strdb is default tr
 
 	// unlink from map, if exist there
 	if( nd->bl.m<map_num && nd->n >=0 && nd->n< MAX_NPC_PER_MAP &&
-		map[nd->bl.m].npc[nd->n]==nd )
+		maps[nd->bl.m].npc[nd->n]==nd )
 	{
-		map[nd->bl.m].npc_num--;
-		if(map[nd->bl.m].npc_num>0)
+		maps[nd->bl.m].npc_num--;
+		if(maps[nd->bl.m].npc_num>0)
 		{
-			map[nd->bl.m].npc[nd->n] = map[nd->bl.m].npc[map[nd->bl.m].npc_num];
-			if( map[nd->bl.m].npc[nd->n] )
-				map[nd->bl.m].npc[nd->n]->n = nd->n;
+			maps[nd->bl.m].npc[nd->n] = maps[nd->bl.m].npc[maps[nd->bl.m].npc_num];
+			if( maps[nd->bl.m].npc[nd->n] )
+				maps[nd->bl.m].npc[nd->n]->n = nd->n;
 		}
 		else
-			map[nd->bl.m].npc[nd->n]=NULL;
+			maps[nd->bl.m].npc[nd->n]=NULL;
 	}
 	map_freeblock(nd); 
 	return 0;

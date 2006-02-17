@@ -1,8 +1,10 @@
 #include "basethreadpool.h"
 
 
-#ifndef SINGLETHREAD
 
+
+#if defined(DEBUG)
+#ifndef SINGLETHREAD
 class testtask : public task
 {
 public:
@@ -26,9 +28,15 @@ public:
 	}
 	virtual ulong reenter()	{ return (rand()%2)?0:10000; }
 };
+#endif//SINGLETHREAD
+#endif//DEBUG
+
+
 
 void test_threadpool(void)
 {
+#if defined(DEBUG)
+#ifndef SINGLETHREAD
 	//!! TODO copy testcases from caldon
 	threadpool	tp(2,false);
 
@@ -58,8 +66,9 @@ void test_threadpool(void)
 
 
 	sleep(20000);
-
-
+#endif//!SINGLETHREAD
+#endif//DEBUG
 }
 
-#endif//!SINGLETHREAD
+
+

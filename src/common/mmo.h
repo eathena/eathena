@@ -1302,10 +1302,8 @@ struct guild {
 	struct guild_alliance alliance[MAX_GUILDALLIANCE];
 	struct guild_explusion explusion[MAX_GUILDEXPLUSION];
 	struct guild_skill skill[MAX_GUILDSKILL];
-//#ifndef TXT_ONLY
 	uchar save_flag;
 	int save_timer;
-//#endif
 };
 extern inline void _guild_tobuffer(const struct guild &p, uchar *&buf)
 {

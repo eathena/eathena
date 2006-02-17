@@ -250,7 +250,7 @@ int mapif_party_message(uint32 party_id, uint32 account_id, const char *mes, siz
 
 
 // パーティ
-int mapif_parse_CreateParty(int fd, uint32 account_id, const char *name, const char *nick, const char *map, unsigned short lv)
+int mapif_parse_CreateParty(int fd, uint32 account_id, const char *name, const char *nick, const char *mapname, unsigned short lv)
 {
 	CParty p;
 	const char *ip;
@@ -275,7 +275,7 @@ int mapif_parse_CreateParty(int fd, uint32 account_id, const char *name, const c
 		return 0;
 	}
 
-	if( cPartyDB.insertParty(account_id, nick, map, lv, name, p) )
+	if( cPartyDB.insertParty(account_id, nick, mapname, lv, name, p) )
 	{
 		mapif_party_created(fd, account_id, p);
 		mapif_party_info(fd, p);
@@ -322,7 +322,7 @@ int mapif_parse_PartyChangeOption(int fd, uint32 party_id, uint32 account_id, un
 }
 
 // パーティ追加要求
-int mapif_parse_PartyAddMember(int fd, uint32 party_id, uint32 account_id, const char *nick, const char *map, ushort lv)
+int mapif_parse_PartyAddMember(int fd, uint32 party_id, uint32 account_id, const char *nick, const char *mapname, ushort lv)
 {
 	CParty p;
 	size_t i;
@@ -335,8 +335,8 @@ int mapif_parse_PartyAddMember(int fd, uint32 party_id, uint32 account_id, const
 			if( p.member[i].account_id == 0)
 			{
 				p.member[i].account_id = account_id;
-				memcpy(p.member[i].name, nick, 24);
-				memcpy(p.member[i].mapname, map, 24);
+				safestrcpy(p.member[i].name, nick, 24);
+				safestrcpy(p.member[i].mapname, mapname, 24);
 				char* ip=strchr(p.member[i].mapname,'.');
 				if(ip) *ip=0;
 
@@ -426,7 +426,7 @@ int mapif_parse_PartyLeave(int fd, uint32 party_id, uint32 account_id)
 }
 
 // パーティマップ更新要求
-int mapif_parse_PartyChangeMap(int fd, uint32 party_id, uint32 account_id, const char *map, int online, int lv)
+int mapif_parse_PartyChangeMap(int fd, uint32 party_id, uint32 account_id, const char *mapname, int online, int lv)
 {
 	CParty p;
 	size_t i;
@@ -436,7 +436,7 @@ int mapif_parse_PartyChangeMap(int fd, uint32 party_id, uint32 account_id, const
 		{
 			if (p.member[i].account_id == account_id)
 			{
-				memcpy(p.member[i].mapname, map, 24);
+				safestrcpy(p.member[i].mapname, mapname, 24);
 				char* ip=strchr(p.member[i].mapname,'.');
 				if(ip) *ip=0;
 

@@ -1214,7 +1214,7 @@ int parse_tologin(int fd)
 			WBUFW(buf,0) = 0x2b14;
 			WBUFL(buf,2) = RFIFOL(fd,2);
 			WBUFB(buf,6) = RFIFOB(fd,6); // 0: change of statut, 1: ban
-			WBUFL(buf,7) = RFIFOL(fd,7); // status or final date of a banishment
+			WBUFL(buf,7) = RFIFOL(fd,7); // final date of a banishment
 			mapif_sendall(buf, 11);
 
 			RFIFOSKIP(fd,11);
@@ -2256,19 +2256,19 @@ int parse_frommap(int fd)
 	return 0;
 }
 ///////////////////////////////////////////////////////////////////////////////
-int search_mapserver(const char *map)
+int search_mapserver(const char *mapname)
 {
 	size_t i, j;
 	char temp_map[16];
 	size_t temp_map_len;
 
-	if( !map )
+	if( !mapname )
 		return -1;
 
 //	ShowMessage("Searching the map-server for map '%s'... ", map);
-	temp_map_len = 1+strlen(map);
+	temp_map_len = 1+strlen(mapname);
 	if( temp_map_len>sizeof(temp_map) ) temp_map_len = sizeof(temp_map);
-	memcpy(temp_map, map, temp_map_len);
+	memcpy(temp_map, mapname, temp_map_len);
 	temp_map[sizeof(temp_map)-1] = '\0';
 	if (strchr(temp_map, '.') != NULL)
 		temp_map[strchr(temp_map, '.') - temp_map + 1] = '\0'; // suppress the '.gat', but conserve the '.' to be sure of the name of the map
@@ -3061,6 +3061,25 @@ int do_init(int argc, char **argv)
 	for(i = 0; i < MAX_MAP_SERVERS; i++) {
 		memset(&server[i], 0, sizeof(struct mmo_map_server));
 		server[i].fd = -1;
+	}
+
+	ipaddress wanip;
+	if( detect_WAN(wanip) && 
+		charaddress.WANIP() != wanip && 
+		charaddress.LANIP() != wanip )
+	{
+		ShowStatus("Setting WAN IP %s (overwriting config).\n", (const char*)tostring(wanip));
+		charaddress.SetWANIP(wanip);
+		if( charaddress.LANMask() == ipany )
+		{
+			charaddress.LANMask() = ipaddress(0xFFFFFF00ul);
+			ShowStatus("Setting LAN Mask to %s (overwriting config).\n", (const char*)tostring(charaddress.LANMask()));
+		}
+		if( charaddress.WANPort() == 0 )
+		{
+			ShowStatus("Setting default WAN Port to %d.\n", 6121);
+			charaddress.WANPort() = 6121;
+		}
 	}
 
 	update_online = time(NULL);

@@ -22,12 +22,24 @@
 
 #include <zlib.h>
 
-
 //////////////////////////////////////////////////////////////////////////
 // tells the code to dynamically load an external library via library name
 // otherwise link zlib functions statically
 //#define BASE_ZLIB_DYNAMIC
 
+//////////////////////////////////////////////////////////////////////////
+// convinience addition to select preferend link library
+// searchpath to the lib has to be added manually
+#ifndef BASE_ZLIB_DYNAMIC
+#ifdef _MSC_VER
+
+#pragma comment(lib, "zlib1.lib")			// library stub for zlib1.dll
+//#pragma comment(lib, "zlib-asm-mt.lib")	// multithread lib
+//#pragma comment(lib, "zlib-asm-md.lib")	// multithread-dll lib
+//#pragma comment(lib, "zlib-asm-ml.lib")	// singlethread lib
+
+#endif
+#endif
 
 
 //////////////////////////////////////////////////////////////////////////

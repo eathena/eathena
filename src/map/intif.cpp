@@ -266,7 +266,7 @@ int intif_create_party(struct map_session_data &sd,const char *name,int item,int
 	WFIFOL(char_fd,2) = sd.status.account_id;
 	memcpy(WFIFOP(char_fd, 6),name,24);
 	memcpy(WFIFOP(char_fd,30),sd.status.name,24);
-	memcpy(WFIFOP(char_fd,54),map[sd.bl.m].mapname,16);
+	memcpy(WFIFOP(char_fd,54),maps[sd.bl.m].mapname,16);
 	WFIFOW(char_fd,70)= sd.status.base_level;
 	WFIFOB(char_fd,72)= item;
 	WFIFOB(char_fd,73)= item2;
@@ -301,7 +301,7 @@ int intif_party_addmember(uint32 party_id,uint32 account_id)
 		WFIFOL(char_fd,2)=party_id;
 		WFIFOL(char_fd,6)=account_id;
 		memcpy(WFIFOP(char_fd,10),sd->status.name,24);
-		memcpy(WFIFOP(char_fd,34),map[sd->bl.m].mapname,16);
+		memcpy(WFIFOP(char_fd,34),maps[sd->bl.m].mapname,16);
 		WFIFOW(char_fd,50)=sd->status.base_level;
 		WFIFOSET(char_fd,52);
 	}
@@ -342,7 +342,7 @@ int intif_party_changemap(struct map_session_data *sd,int online)
 	    WFIFOW(char_fd,0)=0x3025;
 	    WFIFOL(char_fd,2)=sd->status.party_id;
 	    WFIFOL(char_fd,6)=sd->status.account_id;
-	    memcpy(WFIFOP(char_fd,10),map[sd->bl.m].mapname,16);
+	    memcpy(WFIFOP(char_fd,10),maps[sd->bl.m].mapname,16);
 	    WFIFOB(char_fd,26)=online;
 	    WFIFOW(char_fd,27)=sd->status.base_level;
 	    WFIFOSET(char_fd,29);

@@ -103,7 +103,7 @@
 #define D_NOTHROW	throw()
 #define D_THROW(a)	throw(a)
 #else
-#define THROW
+#define NOTHROW
 #define THROW(a)
 #define D_NOTHROW
 #define D_THROW(a)
@@ -173,8 +173,9 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <fcntl.h>
-#include <math.h>
 #include <limits.h>
+#include <math.h>
+#include <float.h>
 #include <signal.h>
 #include <assert.h>
 
@@ -246,6 +247,7 @@ extern long altzone;
 #ifdef WIN32
 //////////////////////////////
 #include <winsock2.h>
+#include <ws2tcpip.h>
 // do not include <io.h> globally
 //////////////////////////////
 #else
@@ -257,7 +259,21 @@ extern long altzone;
 #include <netinet/tcp.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
+//////////////////////////////
+// SunOS/Solaris has an incompatibility by defining "struct map *if_memmap"
+// as last element of "struct ifnet" and thus blocking the
+// use of the name "map" in all other code
+// so we temporarily move the name here but leave the struct intact
+#if defined(__sun__) || defined(solaris)
+#define map _map
+#endif
+//////////////////////////////
 #include <net/if.h>		// needs but does not include <sys/socket.h>
+//////////////////////////////
+#if defined(__sun__) || defined(solaris)
+#undef map
+#endif
+//////////////////////////////
 #include <sys/time.h>
 #include <sys/un.h>
 #include <unistd.h>
@@ -309,17 +325,56 @@ extern long altzone;
 #pragma warning(disable : 4244) // converting type on return will shorten
 #pragma warning(disable : 4250) // dominant derive, is only informational
 //#pragma warning(disable : 4251)	// disable "class '...' needs to have dll-interface to be used by clients of class '...'", since the compiler may sometimes give this warning incorrectly.
-//#pragma warning(disable : 4290)	// ... C++-specification of exception ignored
+#pragma warning(disable : 4267)	// disable "argument conversion possible loss of data"
+#pragma warning(disable : 4275)	// disable VC6 "exported class was derived from a class that was not exported"
+#pragma warning(disable : 4786)	// disable VC6 "identifier string exceeded maximum allowable length and was truncated" (only affects debugger)
+#pragma warning(disable : 4290)	// ... C++-specification of exception ignored
+//   4305 - VC6, identifier type was converted to a smaller type
+//   4309 - VC6, type conversion operation caused a constant to exceeded the space allocated for it
 #pragma warning(disable : 4310)	// converting constant will shorten
 #pragma warning(disable : 4355)	// "'this' : used in base member initializer list"
+//   4503 - VC6, decorated name was longer than the maximum the compiler allows (only affects debugger)
 #pragma warning(disable : 4511)	// no copy constructor
 #pragma warning(disable : 4512)	// no assign operator
 #pragma warning(disable : 4514)	// unreferenced inline function
+//   4675 - VC7.1, "change" in function overload resolution _might_ have altered program
 #pragma warning(disable : 4702) // disable "unreachable code" warning for throw (known compiler bug)
 #pragma warning(disable : 4706) // assignment within conditional
 #pragma warning(disable : 4710)	// is no inline function
+#pragma warning(disable : 4711)	// '..' choosen for inline extension
 #pragma warning(disable : 4786)	// shortened identifier to 255 chars in browse information
+#pragma warning(disable : 4800)	// disable VC6 "forcing value to bool 'true' or 'false'" (performance warning)
 #pragma warning(disable : 4996)	// disable deprecated warnings
+
+#endif
+
+
+#if defined(__BORLANDC__)
+// Borland
+// Shut up the following irritating warnings
+#pragma warn -8022
+//   8022 - A virtual function in a base class is usually overridden by a
+//          declaration in a derived class.
+//          In this case, a declaration with the same name but different
+//          argument types makes the virtual functions inaccessible to further
+//          derived classes
+#pragma warn -8008
+//   8008 - Condition is always true.
+//          Whenever the compiler encounters a constant comparison that (due to
+//          the nature of the value being compared) is always true or false, it
+//          issues this warning and evaluates the condition at compile time.
+#pragma warn -8060
+//   8060 - Possibly incorrect assignment.
+//          This warning is generated when the compiler encounters an assignment
+//          operator as the main operator of a conditional expression (part of
+//          an if, while, or do-while statement). This is usually a
+//          typographical error for the equality operator.
+#pragma warn -8066
+//   8066 - Unreachable code.
+//          A break, continue, goto, or return statement was not followed by a
+//          label or the end of a loop or function. The compiler checks while,
+//          do, and for loops with a constant test condition, and attempts to
+//          recognize loops that can't fall through.
 #endif
 
 
@@ -339,9 +394,14 @@ typedef int bool;
 //////////////////////////////////////////////////////////////////////////
 // useful defines
 //////////////////////////////////////////////////////////////////////////
+#if defined(_MSC_VER)
 // Windows compilers before VC7 don't have __FUNCTION__.
-#if defined(_MSC_VER) && _MSC_VER < 1300
-# define __FUNCTION__ "<unknown>"
+# if _MSC_VER < 1300
+#  define __FUNCTION__ "<unknown>"
+# endif
+# define __func__ __FUNCTION__
+#elif defined(__BORLANDC__)
+# define __FUNCTION__ __FUNC__
 # define __func__ __FUNCTION__
 #elif defined(__sgi) && !defined(__GNUC__) && defined(__c99)
 # define __FUNCTION__ __func__
@@ -357,17 +417,79 @@ typedef int bool;
 # endif
 #endif
 
+
+
 // disable attributed stuff on non-GNU
 #ifndef __GNUC__
 #  define  __attribute__(x)
 #endif
 
 
+
+////////////////////////////////////////////////////////////////////////////////
+// Problems with the typename keyword
+////////////////////////////////////////////////////////////////////////////////
+// There are problems with using the 'typename' keyword. Technically, if you
+// use a typedef member of a template class, you need to tell the compiler
+// that it is a type name. This is because the compiler cannot work out
+// whether a member is a type, a method or a data field at compile time.
+// However, support for the typename keyword has traditionally been incomplete
+// in both gcc and Visual Studio. I have used macros to try to resolve this
+// issue. The macros add the keyword for compiler versions that require it and
+// omit it for compiler versions that do not support it
+// Typedefs:
+// GCC pre-version 3 didn't handle typename in typedefs
+//     after version 3, typename is required for a typedef in a template function
+// Visual Studio
+//     these cases are handled by the definition of the TYPEDEF_TYPENAME macro
+// Function Parameters:
+// Visual Studio version 7.1 requires a typename in a parameter specification in similarly obscure situations
+//     this appears to be specific to VC7.1 (.NET 2003) and after and is not compatible with any gcc version
+//     this case is handled by the definition of the PARAMETER_TYPENAME macro
+// Template Instantiation Parameters:
+// Visual studio cannot hack typename within a template instantiation parameter list
+//     this is required by gcc v3.4 and optional before that
+//     this case is handled by the definition of the TEMPLATE_TYPENAME macro
+
+#if defined(__GNUC__)
+// gcc compiler variants
+#if __GNUC__ >= 3
+// gcc v3.0 onwards
+#define TYPEDEF_TYPENAME typename
+#define PARAMETER_TYPENAME typename
+#define TEMPLATE_TYPENAME typename
+#else
+// gcc prior to v3
+#define TYPEDEF_TYPENAME
+#define PARAMETER_TYPENAME
+#define TEMPLATE_TYPENAME
+#endif
+#else
+#if defined(_MSC_VER)
+// Microsoft Visual Studio variants
+#define TYPEDEF_TYPENAME
+#if _MSC_VER >= 1300
+// Visual Studio .NET
+#define PARAMETER_TYPENAME typename
+#else
+// Visual Studio version 6
+#define PARAMETER_TYPENAME
+#endif
+#define TEMPLATE_TYPENAME
+#endif
+#endif
+
+
+////////////////////////////////////////////////////////////////////////////////
+// friend template brackets
+////////////////////////////////////////////////////////////////////////////////
 #if defined(__GNUG__) || defined(__MWERKS__) || (defined(__BORLANDC__) && (__BORLANDC__ >= 0x540))
 #define FRIEND_TEMPLATE <>
 #else
 #define FRIEND_TEMPLATE
 #endif
+
+
 
 #ifndef PI
 #define PI 3.1415926535897932384626433832795029L
@@ -494,11 +616,13 @@ typedef __int64				int64;
 typedef signed __int64		sint64;
 typedef unsigned __int64	uint64;
 #define LLCONST(a)			(a##i64)
+#define ULLCONST(a)			(a##ui64)
 #else //elif HAVE_LONG_LONG
 typedef long long			int64;
 typedef signed long long	sint64;
 typedef unsigned long long	uint64;
 #define LLCONST(a)			(a##ll)
+#define ULLCONST(a)			(a##ull)
 #endif
 
 #ifndef INT64_MIN
@@ -508,7 +632,7 @@ typedef unsigned long long	uint64;
 #define INT64_MAX  (LLCONST(9223372036854775807))
 #endif
 #ifndef UINT64_MAX
-#define UINT64_MAX (LLCONST(18446744073709551615u))
+#define UINT64_MAX (ULLCONST(18446744073709551615u))
 #endif
 
 
@@ -537,6 +661,17 @@ typedef unsigned long long	uint64;
 //////////////////////////////////////////////////////////////////////////
 // min max and swap template
 //////////////////////////////////////////////////////////////////////////
+// The Windoze headers define macros called max/min which conflict with the templates std::max and std::min.
+// So, to avoid conflicts, MS removed the std::max/min rather than fixing the problem!
+// From Visual Studio .NET (SV7, compiler version 13.00) the STL templates have been added correctly.
+// This fix switches off the macros and reinstates the STL templates for earlier versions (SV6).
+// Note that this could break MFC applications that rely on the macros (try it and see).
+
+// For MFC compatibility, only undef min and max in non-MFC programs - some bits of MFC
+// use macro min/max in headers. For VC7 both the macros and template functions exist
+// so there is no real need for the undefs but do it anyway for consistency. So, if
+// using VC6 and MFC then template functions will not exist
+
 #ifdef min // windef has macros for that, kill'em
 #undef min
 #endif
@@ -921,7 +1056,7 @@ inline unsigned long log2(unsigned long v)
 //	if (v & b[0]) { v >>= S[0]; c |= S[0]; }
 	// put values in for more speed...
 #if defined(_LP64) || defined(_ILP64) || defined(__LP64__) || defined(__ppc64__)
-	if (v & LLCONST(0xFFFFFFFF00000000)) { v >>= 0x18; c |= 0x18; } 
+	if (v & ULLCONST(0xFFFFFFFF00000000)) { v >>= 0x18; c |= 0x18; } 
 #endif
 	if (v & 0xFFFF0000) { v >>= 0x10; c |= 0x10; } 
 	if (v & 0x0000FF00) { v >>= 0x08; c |= 0x08; }
@@ -955,13 +1090,13 @@ inline unsigned long log2_(unsigned long v)
 	// unroll for speed...
 	// put values in for more speed...
 #if defined(_LP64) || defined(_ILP64) || defined(__LP64__) || defined(__ppc64__)
-	register ulong c = ((v & LLCONST(0xAAAAAAAAAAAAAAAA)) != 0);
-	c |= ((v & LLCONST(0xFFFFFFFF00000000)) != 0) << 5;
-	c |= ((v & LLCONST(0xFFFF0000FFFF0000)) != 0) << 4;
-	c |= ((v & LLCONST(0xFF00FF00FF00FF00)) != 0) << 3;
-	c |= ((v & LLCONST(0xF0F0F0F0F0F0F0F0)) != 0) << 2;
-	c |= ((v & LLCONST(0xCCCCCCCCCCCCCCCC)) != 0) << 1;
-	c |= ((v & LLCONST(0xAAAAAAAAAAAAAAAA)) != 0) << 0;
+	register ulong c = ((v & ULLCONST(0xAAAAAAAAAAAAAAAA)) != 0);
+	c |= ((v & ULLCONST(0xFFFFFFFF00000000)) != 0) << 5;
+	c |= ((v & ULLCONST(0xFFFF0000FFFF0000)) != 0) << 4;
+	c |= ((v & ULLCONST(0xFF00FF00FF00FF00)) != 0) << 3;
+	c |= ((v & ULLCONST(0xF0F0F0F0F0F0F0F0)) != 0) << 2;
+	c |= ((v & ULLCONST(0xCCCCCCCCCCCCCCCC)) != 0) << 1;
+	c |= ((v & ULLCONST(0xAAAAAAAAAAAAAAAA)) != 0) << 0;
 #else
 	register ulong c = ((v & 0xAAAAAAAA) != 0);
 	c |= ((v & 0xFFFF0000) != 0) << 4;
@@ -976,7 +1111,7 @@ inline unsigned long log2_(unsigned long v)
 // Find the log base 2 of an integer with a lookup table
 // The lookup table method takes only about 7 operations 
 // to find the log of a 32-bit value. 
-// If extended for 64-bit quantities, it would take roughly 9 operations.
+// extended for 64-bit quantities, it would take roughly 9 operations.
 //////////////////////////////////////////////////////////////////////////
 extern inline unsigned long log2t(unsigned long v)
 {
@@ -1037,6 +1172,9 @@ extern inline unsigned long log2t(unsigned long v)
 	return c;
 }
 
+
+
+
 //////////////////////////////////////////////////////////////////////////
 // Counting bits set, in parallel
 //////////////////////////////////////////////////////////////////////////
@@ -1053,12 +1191,12 @@ inline unsigned long bit_count(unsigned long v)
 //	c = ((c >> S[4]) & B[4]) + (c & B[4]);
 	// put values in
 #if defined(_LP64) || defined(_ILP64) || defined(__LP64__) || defined(__ppc64__)
-	c = ((c >> 0x01) & LLCONST(0x5555555555555555)) + (c & LLCONST(0x5555555555555555));
-	c = ((c >> 0x02) & LLCONST(0x3333333333333333)) + (c & LLCONST(0x3333333333333333));
-	c = ((c >> 0x04) & LLCONST(0x0F0F0F0F0F0F0F0F)) + (c & LLCONST(0x0F0F0F0F0F0F0F0F));
-	c = ((c >> 0x08) & LLCONST(0x00FF00FF00FF00FF)) + (c & LLCONST(0x00FF00FF00FF00FF));
-	c = ((c >> 0x10) & LLCONST(0x0000FFFF0000FFFF)) + (c & LLCONST(0x0000FFFF0000FFFF));
-	c = ((c >> 0x10) & LLCONST(0x00000000FFFFFFFF)) + (c & LLCONST(0x00000000FFFFFFFF));
+	c = ((c >> 0x01) & ULLCONST(0x5555555555555555)) + (c & ULLCONST(0x5555555555555555));
+	c = ((c >> 0x02) & ULLCONST(0x3333333333333333)) + (c & ULLCONST(0x3333333333333333));
+	c = ((c >> 0x04) & ULLCONST(0x0F0F0F0F0F0F0F0F)) + (c & ULLCONST(0x0F0F0F0F0F0F0F0F));
+	c = ((c >> 0x08) & ULLCONST(0x00FF00FF00FF00FF)) + (c & ULLCONST(0x00FF00FF00FF00FF));
+	c = ((c >> 0x10) & ULLCONST(0x0000FFFF0000FFFF)) + (c & ULLCONST(0x0000FFFF0000FFFF));
+	c = ((c >> 0x10) & ULLCONST(0x00000000FFFFFFFF)) + (c & ULLCONST(0x00000000FFFFFFFF));
 #else
 	c = ((c >> 0x01) & 0x55555555) + (c & 0x55555555);
 	c = ((c >> 0x02) & 0x33333333) + (c & 0x33333333);
@@ -1068,6 +1206,144 @@ inline unsigned long bit_count(unsigned long v)
 #endif
 	return c;
 }
+
+inline unsigned long bit_count_t(unsigned long v)
+{
+	// Counting bits set by lookup table 
+	static const unsigned char BitsSetTable256[] = 
+	{
+		0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4, 
+		1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 
+		1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 
+		2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 
+		1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 
+		2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 
+		2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 
+		3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 
+		1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 
+		2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 
+		2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 
+		3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 
+		2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 
+		3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 
+		3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 
+		4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8
+	};
+	unsigned int c=0; // c is the total bits set in v
+	while(v)
+	{
+		c += BitsSetTable256[v&0xff];
+		v >>= NBBY;
+	}
+	return c;
+}
+
+inline unsigned long bit_count_k(unsigned long v)
+{
+	// Counting bits set, Brian Kernighan's way 
+	unsigned int c; // c accumulates the total bits set in v
+	for (c = 0; v; c++)
+	{	// clear the least significant bit set
+		v &= v - 1; 
+	}
+	return c;
+}
+
+inline unsigned long bit_count_12_i64(unsigned long v)
+{
+	// Counting bits set in 12, 24, or 32-bit words using 64-bit instructions 
+	unsigned long c; // c accumulates the total bits set in v
+	// option 1, for at most 12-bit values in v:
+	c = (v * ULLCONST(0x1001001001001) & ULLCONST(0x84210842108421)) % 0x1f;
+	return c;
+}
+inline unsigned long bit_count_24_i64(unsigned long v)
+{	// option 2, for at most 24-bit values in v:
+	unsigned long c; // c accumulates the total bits set in v
+	c =  (v & 0xfff) * ULLCONST(0x1001001001001) & ULLCONST(0x84210842108421);
+	c += ((v & 0xfff000) >> 12) * ULLCONST(0x1001001001001) & ULLCONST(0x84210842108421);
+	c %= 0x1f;
+	return c;
+}
+inline unsigned long bit_count_32_i64(unsigned long v)
+{	// option 3, for at most 32-bit values in v:
+	unsigned long c; // c accumulates the total bits set in v
+	c = (((v & 0xfff) * ULLCONST(0x1001001001001) & ULLCONST(0x84210842108421)) +
+		((v & 0xfff000) >> 12) * ULLCONST(0x1001001001001) & ULLCONST(0x84210842108421)) % 0x1f; 
+	c += ((v >> 24) * ULLCONST(0x1001001001001) & ULLCONST(0x84210842108421)) % 0x1f; 
+	// This method requires a 64-bit CPU with fast modulus division to be efficient. 
+	// The first option takes only 6 operations; the second option takes 13; 
+	// and the third option takes 17. 
+}
+
+//////////////////////////////////////////////////////////////////////////
+// calculate parity
+//////////////////////////////////////////////////////////////////////////
+inline bool parity(unsigned long v)
+{	// in parallel
+	// The method above takes around 9 operations for 32-bit words. 
+#if defined(_LP64) || defined(_ILP64) || defined(__LP64__) || defined(__ppc64__)
+	v ^= v >> 32;
+#endif
+	v ^= v >> 16;
+	v ^= v >> 8;
+	v ^= v >> 4;
+	v &= 0xf;
+	return (0x6996 >> v) & 1;
+}
+
+inline bool parity_k(unsigned long v)
+{	// using Brian Kernigan's bit counting
+	// The time it takes is proportional to the number of bits set. 
+	bool parity = false;  // parity will be the parity of b
+	while (v)
+	{
+		parity = !parity;
+		v = v & (v - 1);
+	}
+	return parity;
+}
+
+inline bool parity_b(unsigned char v)
+{	// Compute parity of a byte using 64-bit multiply and modulus division 
+	// The method above takes around 7 operations, but only works on bytes. 
+	return (((v * ULLCONST(0x0101010101010101)) & ULLCONST(0x8040201008040201)) % 0x1FF) & 1;
+}
+
+inline bool parity_t(unsigned long v)
+{
+	//Thanks to Mathew Hendry for pointing out the shift-lookup idea at 
+	// the end on Dec. 15, 2002. That optimization shaves two operations off 
+	// using only shifting and XORing to find the parity.
+	// Compute parity by lookup table 
+	static const bool ParityTable[] = 
+	{
+		0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 
+		1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 
+		1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 
+		0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 
+		1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 
+		0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 
+		0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 
+		1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 
+		1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 
+		0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 
+		0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 
+		1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 
+		0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 
+		1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 
+		1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 
+		0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0
+	};
+	bool parity=false;
+	while(v)
+	{
+		parity ^= ParityTable[(v & 0xff)];
+		v >>= NBBY;
+	}
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 // Reverse the bits in a byte with 7 operations
 //////////////////////////////////////////////////////////////////////////
@@ -1075,6 +1351,23 @@ inline uchar bit_reverse(uchar b)
 {
 	return (uchar)(((b * 0x0802LU & 0x22110LU) | (b * 0x8020LU & 0x88440LU)) * 0x10101LU >> 16);
 }
+
+inline uchar bit_reverse_i64(uchar b)
+{	// The multiply operation creates five separate copies of the 8-bit byte 
+	// pattern to fan-out into a 64-bit value. The and operation selects the bits that 
+	// are in the correct (reversed) positions, relative to each 10-bit groups of bits. 
+	// The multiply and the and operations copy the bits from the original byte 
+	// so they each appear in only one of the 10-bit sets. 
+	// The reversed positions of the bits from the original byte coincide with 
+	// their relative positions within any 10-bit set. 
+	// The last step, which involves modulus division by 2^10 - 1, 
+	// has the effect of merging together each set of 10 bits 
+	// (from positions 0-9, 10-19, 20-29, ...) in the 64-bit value. 
+	// They do not overlap, so the addition steps underlying the modulus division 
+	// behave like or operations. 
+	return (b * ULLCONST(0x0202020202) & ULLCONST(0x010884422010)) % 1023;
+}
+
 //////////////////////////////////////////////////////////////////////////
 // Reverse an N-bit quantity in parallel in 5 * lg(N) operations:
 // This method is best suited to situations where N is large.
@@ -1096,12 +1389,12 @@ inline unsigned long bit_reverse(unsigned long v)
 //	v = ((v >> S[4]) & B[4]) | ((v << S[4]) & ~B[4]);
 	// better set it by hand
 #if defined(_LP64) || defined(_ILP64) || defined(__LP64__) || defined(__ppc64__)
-	v = ((v >> 0x01) & LLCONST(0x5555555555555555)) | ((v << 0x01) & ~LLCONST(0x5555555555555555));
-	v = ((v >> 0x02) & LLCONST(0x3333333333333333)) | ((v << 0x02) & ~LLCONST(0x3333333333333333));
-	v = ((v >> 0x04) & LLCONST(0x0F0F0F0F0F0F0F0F)) | ((v << 0x04) & ~LLCONST(0x0F0F0F0F0F0F0F0F));
-	v = ((v >> 0x08) & LLCONST(0x00FF00FF00FF00FF)) | ((v << 0x08) & ~LLCONST(0x00FF00FF00FF00FF));
-	v = ((v >> 0x10) & LLCONST(0x0000FFFF0000FFFF)) | ((v << 0x10) & ~LLCONST(0x0000FFFF0000FFFF));
-	v = ((v >> 0x10) & LLCONST(0x00000000FFFFFFFF)) | ((v << 0x10) & ~LLCONST(0x00000000FFFFFFFF));
+	v = ((v >> 0x01) & ULLCONST(0x5555555555555555)) | ((v << 0x01) & ~ULLCONST(0x5555555555555555));
+	v = ((v >> 0x02) & ULLCONST(0x3333333333333333)) | ((v << 0x02) & ~ULLCONST(0x3333333333333333));
+	v = ((v >> 0x04) & ULLCONST(0x0F0F0F0F0F0F0F0F)) | ((v << 0x04) & ~ULLCONST(0x0F0F0F0F0F0F0F0F));
+	v = ((v >> 0x08) & ULLCONST(0x00FF00FF00FF00FF)) | ((v << 0x08) & ~ULLCONST(0x00FF00FF00FF00FF));
+	v = ((v >> 0x10) & ULLCONST(0x0000FFFF0000FFFF)) | ((v << 0x10) & ~ULLCONST(0x0000FFFF0000FFFF));
+	v = ((v >> 0x10) & ULLCONST(0x00000000FFFFFFFF)) | ((v << 0x10) & ~ULLCONST(0x00000000FFFFFFFF));
 #else
 	v = ((v >> 0x01) & 0x55555555) | ((v << 0x01) & ~0x55555555);
 	v = ((v >> 0x02) & 0x33333333) | ((v << 0x02) & ~0x33333333);
@@ -1118,7 +1411,12 @@ inline unsigned long bit_reverse(unsigned long v)
 //////////////////////////////////////////////////////////////////////////
 extern inline bool isPowerOf2(unsigned long i)
 {
-	return (i > 0) && (0==(i & (i - 1)));
+	//return (i & (i - 1)) == 0; 
+	// with drawback that 0 is incorrectly considered a power of 2
+	// therefore:
+	//return (i > 0) && (0==(i & (i - 1)));
+	// or more short:
+	return i && !(i & (i - 1));
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1139,6 +1437,32 @@ extern inline unsigned long RoundPowerOf2(unsigned long v)
 	return v;
 }
 
+extern inline unsigned long moduloPowerOf2(unsigned long v, unsigned long s)
+{	// Compute modulus division by 1 << s without a division operator
+	// Most programmers learn this trick early, but it was included for the 
+	// sake of completeness. 
+	return v & ( (1<<s) - 1); // v % 2^s
+}
+
+extern inline unsigned long moduloPowerOf2_1(unsigned long v, unsigned long s)
+{	// Compute modulus division by (1 << s) - 1 without a division operator 
+	// This method of modulus division by an integer that is one less than 
+	// a power of 2 takes at most 5 + (4 + 5 * ceil(N / s)) * ceil(lg(N / s)) operations, 
+	// where N is the number of bits in the numerator. 
+	// In other words, it takes at most O(N * lg(N)) time. 
+	const unsigned long d = (1 << s) - 1; // so d is either 1, 3, 7, 15, 31, ...).
+	unsigned long m;                      // n % d goes here.
+	for (m=v; v>d; v=m)
+	for (m=0; v; v >>= s)
+	{
+		m += v & d;
+	}
+	// Now m is a value from 0 to d, but since with modulus division
+	// we want m to be 0 when it is d.
+	m = (m==d) ? 0 : m; // or: ((m + 1) & d) - 1;
+	return m;
+}
+
 //////////////////////////////////////////////////////////////////////////
 // calculate pow n on base 2
 //////////////////////////////////////////////////////////////////////////
@@ -1151,6 +1475,116 @@ extern inline unsigned long pow2(unsigned long v)
 		return 1<<v;
 	return 0;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+// Determine if a word has a zero byte 
+//////////////////////////////////////////////////////////////////////////
+// Fewer operations:
+inline bool has_zeros(unsigned long v)
+{	// check if any 8-bit byte in it is 0
+#if defined(_LP64) || defined(_ILP64) || defined(__LP64__) || defined(__ppc64__)
+	return (bool)(~((((v & ULLCONST(0x7F7F7F7F7F7F7F7F)) + ULLCONST(0x7F7F7F7F7F7F7F7F)) | v) | ULLCONST(0x7F7F7F7F7F7F7F7F)));
+#else
+	return (bool)(~((((v & 0x7F7F7F7F) + 0x7F7F7F7F) | v) | 0x7F7F7F7F));
+#endif
+	// The code works by first zeroing the high bits of the 4 bytes in the word. 
+	// Next, it adds a number that will result in an overflow to the high bit of 
+	// a byte if any of the low bits were initialy set. 
+	// Next the high bits of the original word are ORed with these values; 
+	// thus, the high bit of a byte is set if any bit in the byte was set. 
+	// Finally, we determine if any of these high bits are zero 
+	// by ORing with ones everywhere except the high bits and inverting the result. 
+
+	// The code above may be useful when doing a fast string copy 
+	// in which a word is copied at a time; 
+	// it uses at most 6 operations (and at least 5). 
+	// On the other hand, testing for a null byte in the obvious ways 
+	// have at least 7 operations (when counted in the most sparing way), 
+	// and at most 12:
+	// bool hasNoZeroByte = ((v & 0xff) && (v & 0xff00) && (v & 0xff0000) && (v & 0xff000000))
+	// or:
+	// unsigned char * p = (unsigned char *) &v;  
+	// bool hasNoZeroByte = *p && *(p + 1) && *(p + 2) && *(p + 3);
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Interleaved bits (aka Morton numbers) 
+// are useful for linearizing 2D integer coordinates, 
+// so x and y are combined into a single number that can be compared 
+// easily and has the property that a number is usually close to another 
+// if their x and y values are close. 
+//////////////////////////////////////////////////////////////////////////
+
+inline unsigned long interleave(unsigned short x, unsigned short y)
+{	// Interleave bits by Binary Magic Numbers 
+	const unsigned int B[] = {0x55555555, 0x33333333, 0x0F0F0F0F, 0x00FF00FF};
+	const unsigned int S[] = {1, 2, 4, 8};
+	x = (x | (x << S[3])) & B[3];
+	x = (x | (x << S[2])) & B[2];
+	x = (x | (x << S[1])) & B[1];
+	x = (x | (x << S[0])) & B[0];
+	y = (y | (y << S[3])) & B[3];
+	y = (y | (y << S[2])) & B[2];
+	y = (y | (y << S[1])) & B[1];
+	y = (y | (y << S[0])) & B[0];
+	return x | (y << 1);
+}
+
+inline unsigned long interleave_trivial(unsigned short x, unsigned short y)
+{	// Interleave bits the obvious way 
+	// bits of x are in the even positions and y in the odd;
+	unsigned int z = 0; // z gets the resulting 32-bit Morton Number.
+	for(int i = 0; i < sizeof(x) * NBBY; i++)// unroll for more speed...
+	{
+		z |= (x & 1 << i) << i | (y & 1 << i) << (i + 1);
+	}
+	return z;
+}
+
+inline unsigned long interleave_t(unsigned short x, unsigned short y)
+{
+	static const unsigned short MortonTable256[] = 
+	{
+		0x0000, 0x0001, 0x0004, 0x0005, 0x0010, 0x0011, 0x0014, 0x0015, 
+		0x0040, 0x0041, 0x0044, 0x0045, 0x0050, 0x0051, 0x0054, 0x0055, 
+		0x0100, 0x0101, 0x0104, 0x0105, 0x0110, 0x0111, 0x0114, 0x0115, 
+		0x0140, 0x0141, 0x0144, 0x0145, 0x0150, 0x0151, 0x0154, 0x0155, 
+		0x0400, 0x0401, 0x0404, 0x0405, 0x0410, 0x0411, 0x0414, 0x0415, 
+		0x0440, 0x0441, 0x0444, 0x0445, 0x0450, 0x0451, 0x0454, 0x0455, 
+		0x0500, 0x0501, 0x0504, 0x0505, 0x0510, 0x0511, 0x0514, 0x0515, 
+		0x0540, 0x0541, 0x0544, 0x0545, 0x0550, 0x0551, 0x0554, 0x0555, 
+		0x1000, 0x1001, 0x1004, 0x1005, 0x1010, 0x1011, 0x1014, 0x1015, 
+		0x1040, 0x1041, 0x1044, 0x1045, 0x1050, 0x1051, 0x1054, 0x1055, 
+		0x1100, 0x1101, 0x1104, 0x1105, 0x1110, 0x1111, 0x1114, 0x1115, 
+		0x1140, 0x1141, 0x1144, 0x1145, 0x1150, 0x1151, 0x1154, 0x1155, 
+		0x1400, 0x1401, 0x1404, 0x1405, 0x1410, 0x1411, 0x1414, 0x1415, 
+		0x1440, 0x1441, 0x1444, 0x1445, 0x1450, 0x1451, 0x1454, 0x1455, 
+		0x1500, 0x1501, 0x1504, 0x1505, 0x1510, 0x1511, 0x1514, 0x1515, 
+		0x1540, 0x1541, 0x1544, 0x1545, 0x1550, 0x1551, 0x1554, 0x1555, 
+		0x4000, 0x4001, 0x4004, 0x4005, 0x4010, 0x4011, 0x4014, 0x4015, 
+		0x4040, 0x4041, 0x4044, 0x4045, 0x4050, 0x4051, 0x4054, 0x4055, 
+		0x4100, 0x4101, 0x4104, 0x4105, 0x4110, 0x4111, 0x4114, 0x4115, 
+		0x4140, 0x4141, 0x4144, 0x4145, 0x4150, 0x4151, 0x4154, 0x4155, 
+		0x4400, 0x4401, 0x4404, 0x4405, 0x4410, 0x4411, 0x4414, 0x4415, 
+		0x4440, 0x4441, 0x4444, 0x4445, 0x4450, 0x4451, 0x4454, 0x4455, 
+		0x4500, 0x4501, 0x4504, 0x4505, 0x4510, 0x4511, 0x4514, 0x4515, 
+		0x4540, 0x4541, 0x4544, 0x4545, 0x4550, 0x4551, 0x4554, 0x4555, 
+		0x5000, 0x5001, 0x5004, 0x5005, 0x5010, 0x5011, 0x5014, 0x5015, 
+		0x5040, 0x5041, 0x5044, 0x5045, 0x5050, 0x5051, 0x5054, 0x5055, 
+		0x5100, 0x5101, 0x5104, 0x5105, 0x5110, 0x5111, 0x5114, 0x5115, 
+		0x5140, 0x5141, 0x5144, 0x5145, 0x5150, 0x5151, 0x5154, 0x5155, 
+		0x5400, 0x5401, 0x5404, 0x5405, 0x5410, 0x5411, 0x5414, 0x5415, 
+		0x5440, 0x5441, 0x5444, 0x5445, 0x5450, 0x5451, 0x5454, 0x5455, 
+		0x5500, 0x5501, 0x5504, 0x5505, 0x5510, 0x5511, 0x5514, 0x5515, 
+		0x5540, 0x5541, 0x5544, 0x5545, 0x5550, 0x5551, 0x5554, 0x5555
+	};
+	unsigned long z;   // z gets the resulting 32-bit Morton Number.
+	z = (MortonTable256[y & 0xFF] << 1) | MortonTable256[x & 0xFF] |
+		(MortonTable256[y >> 8] << 1 | MortonTable256[x >> 8]) << 16;
+}
+
+
 
 // square root with newton approximation
 // starting condition calculated with two approximations
@@ -1166,7 +1600,7 @@ extern inline unsigned long pow2(unsigned long v)
 #ifdef isqrt
 #undef isqrt
 #endif
-template<class T> static inline T isqrt(T n)
+template<class T> static inline T isqrt(const T& n)
 {
 	if(n>0)
 	{
@@ -1182,5 +1616,65 @@ template<class T> static inline T isqrt(T n)
 	// should set matherr or throw something when negative
 	return 0;
 }
+
+template<class T> inline T sign(const T& v)
+{	// The expression evaluates to sign = v >> 31 for 32-bit integers. 
+	// This is one operation faster than the obvious way, 
+	// sign = -(v > 0). This trick works because when integers are shifted right, 
+	// the value of the far left bit is copied to the other bits. 
+	// The far left bit is 1 when the value is negative and 0 otherwise; 
+	// all 1 bits is -1. 
+	T sign;   // the result goes here 
+
+	// if v < 0 then -1, else 0
+	//sign = v >> (sizeof(T) * NBBY - 1); 
+
+	// if v < 0 then -1, else +1
+	//sign = +1 | (v >> (sizeof(int) * 8 - 1));
+	
+	// Alternatively, for -1, 0, or +1
+	sign = (v != 0) | (v >> (sizeof(int) * 8 - 1));  // -1, 0, or +1
+	return sign;
+	// Caveat: On March 7, 2003, Angus Duggan pointed out that the 1989 ANSI C 
+	// specification leaves the result of signed right-shift implementation-defined, 
+	// so on some systems this hack might not work. 
+}
+
+template<class T> inline T iabs(const T& v)
+{	// Compute the integer absolute value (abs) without branching
+	return (+1 | (v >> (sizeof(T) * NBBY - 1))) * v;
+	// Some CPUs don't have an integer absolute value instruction 
+	// (or the compiler fails to use them). On machines where branching 
+	// is expensive, the above expression can be faster than the obvious 
+	// approach, r = (v < 0) ? -v : v, even though the number of operations 
+	// is the same. 
+}
+
+template<class T> inline T imin(const T& x, const T& y)
+{	// Compute the minimum (min) of two integers without branching 
+	return y + ((x - y) & ((x - y) >> (sizeof(T) * NBBY - 1))); // min(x, y)
+	// On machines where branching is expensive, the above expression can be faster 
+	// than the obvious approach, r = (x < y) ? x : y, 
+	// even though it involves one more instruction. 
+	// (Notice that (x - y) only needs to be evaluated once.) It works because 
+	// if x < y, then (x - y) >> 31 will be all ones (on a 32-bit integer machine), 
+	// so r = y + (x - y) & ~0 = y + x - y = x. 
+	// Otherwise, if x >= y, then (x - y) >> 31 will be all zeros, 
+	// so r = y + (x - y) & 0 = y. 
+}
+template<class T> inline T imax(const T& x, const T& y)
+{	// Compute the maximum (max) of two integers without branching 
+	return  x - ((x - y) & ((x - y) >> (sizeof(int) * NBBY - 1))); // max(x, y)
+	// On machines where branching is expensive, 
+	// the above expression can be faster than the obvious approach, 
+	// r = (x < y) ? x : y, even though it involves one more instruction. 
+	// (Notice that (x - y) only needs to be evaluated once.) It works because 
+	// if x < y, then (x - y) >> 31 will be all ones (on a 32-bit integer machine), 
+	// so r = y + (x - y) & ~0 = y + x - y = x. 
+	// Otherwise, if x >= y, then (x - y) >> 31 will be all zeros, 
+	// so r = y + (x - y) & 0 = y. 
+}
+
+
 
 #endif//__BASETYPES_H__

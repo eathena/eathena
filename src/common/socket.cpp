@@ -2149,3 +2149,27 @@ void socket_final(void)
 
 
 
+
+bool detect_WAN(ipaddress& wanip)
+{	// detect WAN
+	minisocket ms;
+	ms.connect("http://checkip.dyndns.org");
+	const char query[] = "GET / HTTP/1.1\r\nHost: checkip.dyndns.org\r\n\r\n";
+	ms.write((const unsigned char*)query, strlen(query));
+	if( ms.waitfor(1000) )
+	{
+		unsigned char buffer[1024];
+		ms.read(buffer, sizeof(buffer));
+		buffer[1023]=0;
+
+		CRegExp regex("Current IP Address:\\s+([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+)");
+		regex.match((const char*)buffer);
+		wanip = (const char*)regex[1];
+		if(wanip != ipaddress::GetSystemIP() )
+		{
+			ShowStatus("WANIP dectected as: %s\n", (const char*)tostring(wanip));
+			return true;
+		}
+	}
+	return false;
+}

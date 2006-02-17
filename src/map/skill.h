@@ -180,7 +180,7 @@ const char*	skill_get_name( unsigned short id );
 int skill_use_id( struct map_session_data *sd, uint32 target_id,unsigned short skill_num, unsigned short skill_lv);
 int skill_use_pos( struct map_session_data *sd,int skill_x, int skill_y, unsigned short skill_num, unsigned short skill_lv);
 
-int skill_castend_map( struct map_session_data *sd,int skill_num, const char *map);
+int skill_castend_map( struct map_session_data *sd,int skill_num, const char *manname);
 
 int skill_cleartimerskill(struct block_list *src);
 int skill_addtimerskill(struct block_list *src,unsigned long tick,int target,int x,int y,unsigned short skill_id,unsigned short skill_lv,int type,int flag);

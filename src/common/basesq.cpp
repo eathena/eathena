@@ -308,9 +308,6 @@ bool CAccountDB_sql::searchAccount(uint32 accid, CLoginAccount& account)
 				account.ban_until	= (time_t)(this->row[13]?atol(this->row[13]):0);
 
 				// clear unused fields until they got removed from all implementations
-				account.state = 0;
-				account.error_message[0]=0;
-				account.memo[0]=0;
 				account.last_ip[0]=0;
 
 				this->FreeResults();

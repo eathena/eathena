@@ -64,16 +64,6 @@ CCMD_FUNC(skpoint);
 CCMD_FUNC(changesex);
 
 
-#ifdef TXT_ONLY
-/* TXT_ONLY */
-
-/* TXT_ONLY */
-#else
-/* SQL-only */
-
-/* SQL Only */
-#endif
-
 /*==========================================
  *CharCommandInfo charcommand_info[]\‘¢‘Ì‚Ì’è‹`
  *------------------------------------------
@@ -119,17 +109,6 @@ static CharCommandInfo charcommand_info[] = {
 	{ CharCommandSTPoint,				"#stpoint",					60, charcommand_stpoint },
 	{ CharCommandChangeSex,				"#changesex",				60, charcommand_changesex },
 
-	
-
-#ifdef TXT_ONLY
-/* TXT_ONLY */
-
-/* TXT_ONLY */
-#else
-/* SQL-only */
-
-/* SQL Only */
-#endif
 
 // add new commands before this line
 	{ CharCommand_Unknown,             NULL,                1, NULL }
@@ -697,7 +676,7 @@ bool charcommand_save(int fd, struct map_session_data &sd,const char *command, c
 				clif_displaymessage(fd, msg_txt(1)); // Map not found.
 				return false;
 			} else {
-				if (m >= 0 && map[m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
+				if (m >= 0 && maps[m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
 					clif_displaymessage(fd, "You are not authorised to set this map as a save map.");
 					return false;
 				}
@@ -1160,11 +1139,11 @@ bool charcommand_warp(int fd, struct map_session_data &sd,const char *command, c
 		if (pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can rura+ only lower or same GM level
 			if (x > 0 && x < 400 && y > 0 && y < 400) {
 				m = map_mapname2mapid(mapname);
-				if (m >= 0 && map[m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
+				if (m >= 0 && maps[m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
 					clif_displaymessage(fd, "You are not authorised to warp someone to this map.");
 					return false;
 				}
-				if(pl_sd->bl.m <map_num && map[pl_sd->bl.m].flag.nowarp && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
+				if(pl_sd->bl.m <map_num && maps[pl_sd->bl.m].flag.nowarp && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
 					clif_displaymessage(fd, "You are not authorised to warp this player from its actual map.");
 					return false;
 				}
