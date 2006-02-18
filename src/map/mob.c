@@ -783,7 +783,7 @@ int mob_changestate(struct mob_data *md,int state,int type)
 	case MS_WALK:
 		if((i=calc_next_walk_step(md))>0){
 			i = i>>2;
-			md->timer=add_timer(gettick()+i,mob_timer,md->bl.id,0);
+			md->timer=add_timer(gettick()+i,mob_timer,md->bl.id, md->walkpath.path_pos);
 		}
 		else
 			md->state.state=MS_IDLE;
