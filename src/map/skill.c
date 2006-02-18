@@ -1606,19 +1606,6 @@ int skill_blown( struct block_list *src, struct block_list *target,int count)
 		map_foreachinmovearea(clif_moboutsight,target->m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,dx,dy,BL_PC,md);
 	else if(pd)
 		map_foreachinmovearea(clif_petoutsight,target->m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,dx,dy,BL_PC,pd);
-	
-	if (sc_data) {
-		if (sc_data[SC_DANCING].timer != -1) {	//Move the song/dance [Skotlex]
-			if (sc_data[SC_DANCING].val1 == CG_MOONLIT) //Cancel Moonlight Petals if moved from casting position. [Skotlex]
-				skill_stop_dancing(target);
-			else
-				skill_unit_move_unit_group((struct skill_unit_group *)sc_data[SC_DANCING].val2, target->m, dx, dy);
-		}
-		if (sc_data[SC_CLOSECONFINE].timer != -1)
-			status_change_end(target, SC_CLOSECONFINE, -1);
-		if (sc_data[SC_CLOSECONFINE2].timer != -1)
-			status_change_end(target, SC_CLOSECONFINE2, -1);
-	}
 		
 	if(su){
 		skill_unit_move_unit_group(su->group,target->m,dx,dy);
@@ -2067,7 +2054,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		sc_data[SC_DOUBLECAST].timer != -1 &&
 		rand() % 100 < 40+10*sc_data[SC_DOUBLECAST].val1)
 	{
-		skill_castend_delay (src, bl, skillid, skilllv, tick + dmg.div_*dmg.amotion, flag|1);
+		skill_addtimerskill(src, tick + dmg.div_*dmg.amotion, bl->id, 0, 0, skillid, skilllv, BF_MAGIC, flag|1);
 	}
 
 	map_freeblock_unlock();
@@ -2324,18 +2311,17 @@ static int skill_timerskill(int tid, unsigned int tick, int id,int data )
 	nullpo_retr(0, src);
 
 	if(src->type == BL_PC) {
-		nullpo_retr(0, sd = (struct map_session_data *)src);
+		sd = (struct map_session_data *)src;
 		skl = &sd->skilltimerskill[data];
 	}
 	else if(src->type == BL_MOB) {
-		nullpo_retr(0, md = (struct mob_data *)src);
+		md = (struct mob_data *)src;
 		skl = &md->skilltimerskill[data];
 	}
 	else if(src->type == BL_PET) { // [Valaris]
-		nullpo_retr(0, pd = (struct pet_data *)src);
+		pd = (struct pet_data *)src;
 		skl = &pd->skilltimerskill[data];
 	}
-
 	else
 		return 0;
 
@@ -2369,9 +2355,9 @@ static int skill_timerskill(int tid, unsigned int tick, int id,int data )
 			return 0;
 		if(src->m != target->m)
 			return 0;
-		if(sd && pc_isdead(sd))
+		if(status_isdead(src))
 			return 0;
-		if(target->type == BL_PC && pc_isdead((struct map_session_data *)target) && skl->skill_id != RG_INTIMIDATE)
+		if(status_isdead(target) && skl->skill_id != RG_INTIMIDATE)
 			return 0;
 
 		switch(skl->skill_id) {
@@ -2557,44 +2543,6 @@ int skill_cleartimerskill(struct block_list *src)
 	}
 	return 0;
 }
-
-struct castend_delay {
-	struct block_list *src;
-	int target;
-	int id;
-	int lv;
-	int flag;
-};
-int skill_castend_delay_sub (int tid, unsigned int tick, int id, int data)
-{
-	struct castend_delay *dat = (struct castend_delay *)data;
-	struct block_list *target = map_id2bl(dat->target);
-	
-	if (target && dat && map_id2bl(id) == dat->src && target->prev != NULL)
-		skill_castend_damage_id(dat->src, target, dat->id, dat->lv, tick, dat->flag);
-	aFree(dat);
-	return 0;
-}
-int skill_castend_delay (struct block_list* src, struct block_list *bl,int skillid,int skilllv,unsigned int tick,int flag)
-{
-	struct castend_delay *dat;
-	nullpo_retr(0, src);
-	nullpo_retr(0, bl);
-
-	dat = (struct castend_delay *)aCalloc(1, sizeof(struct castend_delay));
-	dat->src = src;
-	dat->target = bl->id;
-	dat->id = skillid;
-	dat->lv = skilllv;
-	dat->flag = flag;
-	add_timer (tick, skill_castend_delay_sub, src->id, (int)dat);
-
-	return 0;
-}
-
-/* ”Í?ƒXƒLƒ‹Žg—p?—??¬•ª‚¯‚±‚±‚Ü‚Å
- * -------------------------------------------------------------------------
- */
 
 /*==========================================
  * ƒXƒLƒ‹Žg—p?i‰r?¥Š®—¹?AIDŽw’è?U?Œn?j
@@ -3310,9 +3258,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		return 1;
 
 	if (src->type == BL_PC) {
-		nullpo_retr (1, sd = (struct map_session_data *)src);
+		sd = (struct map_session_data *)src;
 	} else if (src->type == BL_MOB) {
-		nullpo_retr (1, md = (struct mob_data *)src);
+		md = (struct mob_data *)src;
 	}
 
 	sc_def_vit = status_get_sc_def_vit (bl);
@@ -3326,9 +3274,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 	if(bl->prev == NULL)
 		return 1;
-	if(sd && pc_isdead(sd))
+	if(status_isdead(src) && skillid != NPC_REBIRTH)
 		return 1;
-	if(dstsd && pc_isdead(dstsd) && skillid != ALL_RESURRECTION && skillid != PR_REDEMPTIO)
+	if(status_isdead(bl) && skillid != NPC_REBIRTH && skillid != ALL_RESURRECTION && skillid != PR_REDEMPTIO)
 		return 1;
 //Shouldn't be needed, skillnotok's return value is highly unlikely to have changed after you started casting. [Skotlex]
 //	if (sd && skillnotok(skillid, sd)) // [MouseJstr]
@@ -12294,7 +12242,6 @@ int do_init_skill(void)
 	add_timer_func_list(skill_castend_id,"skill_castend_id");
 	add_timer_func_list(skill_castend_pos,"skill_castend_pos");
 	add_timer_func_list(skill_timerskill,"skill_timerskill");
-	add_timer_func_list(skill_castend_delay_sub,"skill_castend_delay_sub");
 	
 	add_timer_interval(gettick()+SKILLUNITTIMER_INVERVAL,skill_unit_timer,0,0,SKILLUNITTIMER_INVERVAL);
 

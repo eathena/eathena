@@ -540,8 +540,24 @@ int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick) {
 #ifdef CELL_NOSTACK
 	else map_addblcell(bl);
 #endif
-	if (bl->type&BL_CHAR)
+	if (bl->type&BL_CHAR) {
+		struct status_change *sc_data = status_get_sc_data(bl);
 		skill_unit_move(bl,tick,3);
+		if (sc_data) {
+			if (sc_data[SC_CLOAKING].timer != -1)
+				skill_check_cloaking(bl);
+			if (sc_data[SC_DANCING].timer != -1) {
+				if (sc_data[SC_DANCING].val1 == CG_MOONLIT) //Cancel Moonlight Petals if moved from casting position. [Skotlex]
+					skill_stop_dancing(bl);
+				else
+					skill_unit_move_unit_group((struct skill_unit_group *)sc_data[SC_DANCING].val2, bl->m, x1-x0, y1-y0);
+			}
+			if (sc_data[SC_CLOSECONFINE].timer != -1)
+				status_change_end(bl, SC_CLOSECONFINE, -1);
+			if (sc_data[SC_CLOSECONFINE2].timer != -1)
+				status_change_end(bl, SC_CLOSECONFINE2, -1);
+		}
+	}
 	return 0;
 }
 	
@@ -639,18 +655,18 @@ struct skill_unit *map_find_skill_unit_oncell(struct block_list *target,int x,in
 }
 
 /*==========================================
- * Adapted from foreachinarea to use real ranges around a character area. [Skotlex]
+ * Adapted from foreachinarea for an easier invocation. [Skotlex]
  *------------------------------------------
  */
 
-int map_foreachinrange(int (*func)(struct block_list*,va_list),int m,struct block_list *center, int range,int type,...) {
+int map_foreachinrange(int (*func)(struct block_list*,va_list),struct block_list *center, int range,int type,...) {
 	va_list ap;
-	int bx,by;
+	int bx,by,m;
 	int returnCount =0;	//total sum of returned values of func() [Skotlex]
 	struct block_list *bl=NULL;
 	int blockcount=bl_list_count,i,c;
 	int x0,x1,y0,y1;
-	
+	m = center->m;
 	if (m < 0)
 		return 0;
 	va_start(ap,type);
@@ -672,7 +688,9 @@ int map_foreachinrange(int (*func)(struct block_list*,va_list),int m,struct bloc
 				for(i=0;i<c && bl;i++,bl=bl->next){
 					if(bl && bl->type&type
 						&& bl->x>=x0 && bl->x<=x1 && bl->y>=y0 && bl->y<=y1
-						&& check_distance_bl(center, bl, range)
+						//For speed purposes, it does not checks actual range by default.
+						//Feel free to uncomment if you want a more "exact" approach.
+//						&& check_distance_bl(center, bl, range)
 					  	&& bl_list_count<BL_LIST_MAX)
 						bl_list[bl_list_count++]=bl;
 				}

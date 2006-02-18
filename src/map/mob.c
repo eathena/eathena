@@ -506,7 +506,6 @@ static int mob_walktoxy_sub(struct mob_data *md);
  */
 static int mob_walk(struct mob_data *md,unsigned int tick,int data)
 {
-	int moveblock;
 	int i;
 	static int dirx[8]={0,-1,-1,-1,0,1,1,1};
 	static int diry[8]={1,1,0,-1,-1,-1,0,1};
@@ -541,18 +540,11 @@ static int mob_walk(struct mob_data *md,unsigned int tick,int data)
 		md->dir=md->walkpath.path[md->walkpath.path_pos];
 		dx = dirx[md->dir];
 		dy = diry[md->dir];
-/*
-		if (map_getcell(md->bl.m,x+dx,y+dy,CELL_CHKBASILICA) && !(status_get_mode(&md->bl)&MD_BOSS)) {
-			mob_stop_walking(md,1);
-			return 0;
-		}
-*/
+
 		if (map_getcell(md->bl.m,x+dx,y+dy,CELL_CHKNOPASS)) {
 			mob_walktoxy_sub(md);
 			return 0;
 		}
-
-		moveblock = ( x/BLOCK_SIZE != (x+dx)/BLOCK_SIZE || y/BLOCK_SIZE != (y+dy)/BLOCK_SIZE);
 
 		md->state.state=MS_WALK;
 		map_foreachinmovearea(clif_moboutsight,md->bl.m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,dx,dy,BL_PC,md);
@@ -567,8 +559,6 @@ static int mob_walk(struct mob_data *md,unsigned int tick,int data)
 		map_foreachinmovearea(clif_mobinsight,md->bl.m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,-dx,-dy,BL_PC,md);
 		md->state.state=MS_IDLE;
 
-		if(md->option&4)
-			skill_check_cloaking(&md->bl);
 	}
 	if((i=calc_next_walk_step(md))>0){
 		i = i>>1;
@@ -611,7 +601,11 @@ int mob_can_reach(struct mob_data *md,struct block_list *bl,int range, int state
 			easy = 1;
 			break;
 	}
-
+#ifdef CELL_NOSTACK
+	//In no stack mode, do these path searches ignoring other players as it's just
+	//for reachability judging, not the actual path used. [Skotlex]
+	easy |= 0x30000;
+#endif
 	if( md->bl.m != bl->m)	// ˆá‚¤ƒƒbƒv
 		return 0;
 
@@ -892,26 +886,14 @@ static int mob_timer(int tid,unsigned int tick,int id,int data)
 static int mob_walktoxy_sub(struct mob_data *md)
 {
 	struct walkpath_data wpd;
-	int x,y;
-	static int dirx[8]={0,-1,-1,-1,0,1,1,1};
-	static int diry[8]={1,1,0,-1,-1,-1,0,1};
-
 	nullpo_retr(0, md);
-
 	memset(&wpd, 0, sizeof(wpd));
 
 	if(path_search(&wpd,md->bl.m,md->bl.x,md->bl.y,md->to_x,md->to_y,md->state.walk_easy))
 		return 1;
 	if (wpd.path[0] >= 8)
 		return 1;	
-	x = md->bl.x+dirx[wpd.path[0]];
-	y = md->bl.y+diry[wpd.path[0]];
-/*
-	if (map_getcell(md->bl.m,x,y,CELL_CHKBASILICA) && !(status_get_mode(&md->bl)&MD_BOSS)) {
-		md->state.change_walk_target=0;
-		return 1;
-	}
-*/
+
 	memcpy(&md->walkpath,&wpd,sizeof(wpd));
 
 	md->state.change_walk_target=0;
@@ -1022,7 +1004,7 @@ static int mob_count_sub(struct block_list *bl,va_list ap)
 int mob_spawn (int id)
 {
 	int x, y, i = 0;
-	unsigned int c, tick = gettick();
+	unsigned int c =0, tick = gettick();
 	struct mob_data *md;
 	struct block_list *bl;
 
@@ -1042,7 +1024,8 @@ int mob_spawn (int id)
 		}
 	}
 	md->bl.m = md->m;
-	do {
+
+	while (i < 50) {
 		if (md->x0 == 0 && md->y0 == 0) {
 			x = rand()%(map[md->bl.m].xs-2)+1;
 			y = rand()%(map[md->bl.m].ys-2)+1;
@@ -1051,14 +1034,18 @@ int mob_spawn (int id)
 			y = md->y0+rand()%(md->ys+1)-md->ys/2;
 		}
 		i++;
-		if (battle_config.no_spawn_on_player && i <= battle_config.no_spawn_on_player)
-		{	//Avoid spawning on the view-range of players. [Skotlex]
-			if (map_foreachinarea(mob_count_sub, md->bl.m,
-				x-AREA_SIZE, y-AREA_SIZE, x+AREA_SIZE, y+AREA_SIZE,
-				BL_PC) > 0)
-				continue;
-		}
-	} while(map_getcell(md->bl.m,x,y,CELL_CHKNOPASS) && i < 50);
+		if (map_getcell(md->bl.m,x,y,CELL_CHKNOPASS))
+			continue;
+
+		//Avoid spawning on the view-range of players. [Skotlex]
+		if (battle_config.no_spawn_on_player &&
+			c++ < battle_config.no_spawn_on_player &&
+			map_foreachinrange(mob_count_sub, &md->bl, AREA_SIZE, BL_PC)
+		)
+			continue;
+		//Found a spot.
+		break;
+	}
 
 	if (i >= 50) {
 		if (md->spawndelay1 != -1 || md->spawndelay2 == -1)
@@ -1763,6 +1750,28 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 				else if (dx > 0) dx--;
 				if (dy < 0) dy++;
 				else if (dy > 0) dy--;
+#ifdef CELL_NOSTACK
+				while (mob_walktoxy(md, md->bl.x + dx, md->bl.y + dy, 0))
+				{	//Attempt to chase to nearby blocks
+					do {
+						if (i < 5) {
+							dx = tbl->x - md->bl.x + rand()%3 - 1;
+							dy = tbl->y - md->bl.y + rand()%3 - 1;
+						} else { //Try some more...
+							dx = tbl->x - md->bl.x + rand()%5 - 2;
+							dy = tbl->y - md->bl.y + rand()%5 - 2;
+						}
+						i++;
+					} while (i < 15 && map_getcell(md->bl.m,  md->bl.x+dx, md->bl.y+dy, CELL_CHKSTACK));
+					if (i >= 15) {
+						//On stacked mode, it is much more likely that you just can't reach the target. So unlock it
+						mob_unlocktarget(md, tick);
+						//Make it give up for 1 second to avoid unnecessary server load in case the target is already mobbed to death.
+						mob_changestate(md,MS_DELAY,1000);
+						return 0;
+					}
+				}
+#else
 				while (i < 5 && mob_walktoxy(md, md->bl.x + dx, md->bl.y + dy, 0))
 				{	//Attempt to chase to nearby blocks
 					dx = tbl->x - md->bl.x + rand()%3 - 1;
@@ -1776,6 +1785,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 					if (dy < 0) dy = 2;
 					else if (dy > 0) dy = -2;
 				}
+#endif
 				md->next_walktime = tick + 500;
 				mob_walktoxy (md, md->bl.x+dx, md->bl.y+dy, 0);
 				return 0;

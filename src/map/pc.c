@@ -3269,7 +3269,11 @@ int pc_setpos(struct map_session_data *sd,unsigned short mapindex,int x,int y,in
 	if(x <0 || x >= map[m].xs || y <0 || y >= map[m].ys)
 		x=y=0;
 	if((x==0 && y==0) ||
+#ifndef CELL_NOSTACK
 		(map_getcell(m,x,y,CELL_CHKNOPASS) && !map_getcell(m, x, y, CELL_CHKICEWALL))
+#else
+		(map_getcell(m,x,y,CELL_CHKNOPASS) && !map_getcell(m, x, y, CELL_CHKICEWALL) && !map_getcell(m, x, y, CELL_CHKSTACK))
+#endif
 	){ //We allow placing players on top of an ICEWALL tile to prevent force-warping players when an ice wall is placed 
 		//at spawn points from warps and the like. [Skotlex]
 		if(x||y) {
@@ -3597,13 +3601,6 @@ static int pc_walk(int tid,unsigned int tick,int id,int data)
 			-dx, -dy, BL_ALL, sd);
 		sd->walktimer = -1;	// set back so not to disturb future pc_stop_walking calls
 
-		if (pc_iscloaking(sd))	// クロ?キングの消滅?査
-			skill_check_cloaking(&sd->bl);
-		/* 被ディボ?ション?査 */
-		if (sd->sc_count) {
-			if (sd->sc_data[SC_DANCING].timer != -1)
-				skill_unit_move_unit_group((struct skill_unit_group *)sd->sc_data[SC_DANCING].val2, sd->bl.m, dx, dy);
-		}
 		if (map_getcell(sd->bl.m,x,y,CELL_CHKNPC))
 			npc_touch_areanpc(sd,sd->bl.m,x,y);
 		else
