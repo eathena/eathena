@@ -27,6 +27,9 @@
 
 =========================
 
+02/18
+	* Violy Card fix [Komurka]
+
 02/13
 	* Fixed exp.txt for Baby Dancer, thanks to Gepard [Komurka]
 
