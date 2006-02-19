@@ -8263,6 +8263,7 @@ int skill_check_condition(struct map_session_data *sd,int type)
 			clif_skill_fail(sd,skill,0,0);
 			return 0;
 		}
+		break;
 	case SG_SUN_WARM:
 		if(sd->bl.m == sd->feel_map[0].m)
 			break;

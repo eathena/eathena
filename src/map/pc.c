@@ -712,6 +712,7 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 	sd->canmove_tick = tick;
 	sd->canregen_tick = tick;
 	sd->attackabletime = tick;
+	sd->canuseitem_tick = tick;
 
 	for(i = 0; i < MAX_SKILL_LEVEL; i++)
 		sd->spirit_timer[i] = -1;
