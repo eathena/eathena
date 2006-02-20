@@ -1657,7 +1657,10 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 	if(src->prev == NULL || dsrc->prev == NULL || bl->prev == NULL)
 		return 0;
 	//When caster is not the src of attack, this is a ground skill, and as such, do the relevant target checking. [Skotlex]
-	if (src != dsrc && !status_check_skilluse(NULL, bl, skillid, 1))
+	if (
+		(src != dsrc || battle_config.skill_caster_check) &&
+		!status_check_skilluse(battle_config.skill_caster_check?src:NULL, bl, skillid, 1)
+	)
 		return 0;
 	
 	//Note that splash attacks often only check versus the targetted mob, those around the splash area normally don't get checked for being hidden/cloaked/etc. [Skotlex]
@@ -7037,12 +7040,16 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 	switch (sg->unit_id) {
 	case UNT_FIREWALL:
 		{
-			int flag=0, t_ele = status_get_elem_type(bl);
-			if (t_ele == 3 || battle_check_undead(status_get_race(bl), t_ele))
-				flag = src->val2>battle_config.firewall_hits_on_undead?battle_config.firewall_hits_on_undead:src->val2; 
-			
-			skill_attack(BF_MAGIC,ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,flag);
-			src->val2-=flag?flag:1;
+			int count=0, t_ele = status_get_elem_type(bl);
+			if (t_ele == 3 || battle_check_undead(status_get_race(bl), t_ele)) {
+				//This is the best Aegis approximation we can do without 
+				//changing the minimum skill unit interval. [Skotlex]
+				while (count++ < battle_config.firewall_hits_on_undead && src->val2-- && !status_isdead(bl))
+					skill_attack(BF_MAGIC,ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick+count*10,1);
+			} else {
+				skill_attack(BF_MAGIC,ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,0);
+				src->val2--;
+			}
 			if (src->val2<=0)
 				skill_delunit(src);
 		break;

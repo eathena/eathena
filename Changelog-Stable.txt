@@ -6,6 +6,15 @@ GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY VALARIS AND WIZPUTER. -- VALAR
 
 
 2006/02/19
+	* Added atcommand @exp [Skotlex]
+	* Added error reporting when add_timer_interval receives a negative/0
+	  interval value. [Skotlex]
+	* Modified the way firewall_hits_on_undead works, to loop and invoke
+	  multiple skill_attacks based on the value. This is as close to the Aegis
+	  implementation as eA can get... [Skotlex]
+	* Merged the battle config switches skill_caster_check & status_cast_cancel
+	  (check battle/skill.conf) [Skotlex]
+	* Changed the default of skill_delay_attack_enable to no. [Skotlex]
 	* Added initializing the item can use tick (which was blocking item usage
 	  in some situations) [Skotlex]
 	* Added the missing break in AM_TWILIGHT2/3 which was making the skill

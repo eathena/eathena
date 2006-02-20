@@ -4608,7 +4608,7 @@ int pc_checkbaselevelup(struct map_session_data *sd)
 		}
 
 		return 1;
-		}
+	}
 
 	return 0;
 }

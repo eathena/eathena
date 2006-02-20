@@ -2436,8 +2436,7 @@ struct Damage battle_calc_magic_attack(
 	switch(skill_num)
 	{
 		case MG_FIREWALL:
-			if(mflag) { //mflag has a value when it was checked it works against an undead in skill.c [Skotlex]
-				ad.div_ = mflag; //mflag contains the number of hits against undead.
+			if(mflag) { //mflag has a value when it was checked against an undead in skill.c [Skotlex]
 				ad.blewcount = 0; //No knockback
 				ad.dmotion = 0; //No flinch animation.
 			} else
@@ -3801,6 +3800,8 @@ static const struct battle_data_short {
 	
 	{ "skip_teleport_lv1_menu",				&battle_config.skip_teleport_lv1_menu}, // [LuzZza]
 	{ "allow_skill_without_day",				&battle_config.allow_skill_without_day}, // [Komurka]
+	{ "skill_caster_check",					&battle_config.skill_caster_check },
+	{ "status_cast_cancel",					&battle_config.sc_castcancel },
 };
 
 static const struct battle_data_int {
@@ -4187,6 +4188,9 @@ void battle_set_defaults() {
 	
 	battle_config.skip_teleport_lv1_menu = 0;
 	battle_config.allow_skill_without_day = 0;
+
+	battle_config.skill_caster_check = 1;
+	battle_config.sc_castcancel = 0;
 }
 
 void battle_validate_conf() {
