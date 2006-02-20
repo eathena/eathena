@@ -4300,6 +4300,10 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 				val2 = tick / 1000;		/* éù?éûä‘ */
 				tick = 1000;
 			}
+			if (sc_data && sc_data[SC_CLOSECONFINE].timer!=-1)
+				status_change_end(bl, SC_CLOSECONFINE, -1);
+			if (sc_data && sc_data[SC_CLOSECONFINE2].timer!=-1)
+				status_change_end(bl, SC_CLOSECONFINE2, -1);
 			break;
 		case SC_CHASEWALK:
 		case SC_CLOAKING:		/* ÉNÉç?ÉLÉìÉO */
