@@ -27,6 +27,17 @@
 
 =========================
 
+02/21
+	* Updates from trunk: [Komurka]
+	- updated item_bluebox.txt, item_giftbox.txt, item_violetbox.txt, item_db.txt, mob_db.txt,
+	  added item_cookie_bag.txt
+	- new databases from Aegis 10.2
+	- implemented Cookie Bag item
+	- added missing mobs
+	- fixed Assaulter slaves thanks to Poki#3
+	- new mob skill database (mobs 1001-1691)
+	- fixed some names in mob_db.txt ('Name', not 'JName')
+
 02/18
 	* Violy Card fix [Komurka]
 
