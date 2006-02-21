@@ -28,6 +28,9 @@ Nexon
 Date		Added
 ======
 
+02/21
+	* Fixed wrong indication of Repairsman, thanks to NeoSaro [Lupus]
+	- Moved Kafra Storage Password option from Trunk 
 02/16
 	* Fixed Jawai bug and a typo, thanks to theultramage [Lupus]
 02/14
