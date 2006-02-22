@@ -28,6 +28,7 @@
 =========================
 
 02/22
+	* Fixed G_GOBLINE_XMAS mode (aggresive ~~) [Komurka
 	* Made G_DARK_ILLUSION more ... aggressive [Komurka]
 02/21
 	* Updates from trunk: [Komurka]
