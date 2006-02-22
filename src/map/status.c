@@ -711,8 +711,8 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 		if ((*option)&OPTION_HIDE && skill_num != TF_HIDING && skill_num != AS_GRIMTOOTH
 			&& skill_num != RG_BACKSTAP && skill_num != RG_RAID)
 			return 0;
-		if ((*option)&OPTION_CLOAK && skill_num == TF_HIDING)
-			return 0;
+//		if ((*option)&OPTION_CLOAK && skill_num == TF_HIDING)
+//			return 0; //Latest reports indicate Hiding is usable while Cloaking. [Skotlex]
 		if ((*option)&OPTION_CHASEWALK && skill_num != ST_CHASEWALK)
 			return 0;
 	}
