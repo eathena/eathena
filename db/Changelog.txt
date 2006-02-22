@@ -27,6 +27,8 @@
 
 =========================
 
+02/22
+	* Made G_DARK_ILLUSION more ... aggressive [Komurka]
 02/21
 	* Updates from trunk: [Komurka]
 	- updated item_bluebox.txt, item_giftbox.txt, item_violetbox.txt, item_db.txt, mob_db.txt,
