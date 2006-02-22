@@ -324,22 +324,26 @@ int parse_login(int fd) {
 
 	sprintf(ip, "%d.%d.%d.%d", p[0], p[1], p[2], p[3]);
 
+
+
 	if (ipban > 0) {
 		sql_query(
-			"SELECT count(*) "
-			"FROM `ipbanlist` "
-			"WHERE `list` LIKE '%d.%d.%d.%'"
-			"OR `list` LIKE '%d.%d.%d.%d'",
+			"SELECT count(*) FROM `ibf_banfilters` "
+			"WHERE `ban_type` = 'ip' "
+			"AND ban_content  IN ('%d.%d.%d.%d', '%d.%d.%d.*', '%d.%d.*.*', '%d.*.*.*')",
+			p[0], p[1], p[2], p[3],
 			p[0], p[1], p[2],
-			p[0], p[1], p[2], p[3]);
+			p[0], p[1],
+			p[0]
+			);
 
 		if ((sql_res = mysql_store_result(&mysql_handle))){
 			sql_row = mysql_fetch_row(sql_res);
 			if (atoi(sql_row[0]) >0) {
 				sql_query(
 					"REPLACE INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) "
-					"VALUES (NOW(), '%d.%d.%d.%d', 'unknown','-3', 'ip banned')",
-					loginlog_db, p[0], p[1], p[2], p[3]);
+					"VALUES (NOW(), '%s', 'unknown','-3', 'ip banned')",
+					loginlog_db, ip);
 				WFIFOW(fd,0)=0x6a;
 				WFIFOB(fd,2)=5;
 				WFIFOSET(fd,23);
