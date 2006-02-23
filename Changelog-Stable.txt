@@ -5,6 +5,11 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY VALARIS AND WIZPUTER. -- VALARIS
 
 2006/02/22
+	* Updated the char-SQL server to trunk. This means new
+	  party/char/pet/guild ids are  handled by the SQL server rather than by the
+	  char server. [Skotlex]
+	- Apply the upgrade_svn5376.sql file if your guild/party tables do not have
+	  their id set as an auto-incremental column.
 	* pc_setpos will now cancel vending. [Skotlex]
 	* Fixed kamib/kamic atcommands not checking for case. [Skotlex]
 	* Enabled hiding while cloaking. [Skotlex]

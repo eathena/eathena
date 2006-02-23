@@ -27,6 +27,7 @@ typedef long in_addr_t;
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <limits.h>
 
 #include "char.h"
 #include "../common/utils.h"
@@ -126,7 +127,6 @@ int auth_fifo_pos = 0;
 
 int check_ip_flag = 1; // It's to check IP of a player between char-server and other servers (part of anti-hacking system)
 
-int char_id_count = START_CHAR_NUM;
 struct mmo_charstatus *char_dat;
 int char_num,char_max;
 int max_connect_user = 0;
@@ -348,7 +348,7 @@ static void* create_charstatus(DBKey key, va_list args) {
 }
 
 int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
-	int i=0,j,party_exist,guild_exist;
+	int i=0,j;
 	int count = 0;
 	int diff = 0;
 	char *tmp_ptr; //Building a single query should be more efficient than running
@@ -430,40 +430,8 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 		(p->head_mid != cp->head_mid) || (p->head_bottom != cp->head_bottom)
 	)
 	{	//Save status
-		//Check for party
-		party_exist=1;
-		sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `party_id` = '%d'",party_db, p->party_id); // TBR
-		if (mysql_query(&mysql_handle, tmp_sql)) {
-			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
-			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-		} else { //In case of failure, don't touch the data. [Skotlex
-			sql_res = mysql_store_result(&mysql_handle);
-			sql_row = sql_res?mysql_fetch_row(sql_res):NULL;
-			if (sql_row)
-				party_exist = atoi(sql_row[0]);
-			mysql_free_result(sql_res);
-		}
-
-		//check guild_exist
-		guild_exist=1;
-		sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `guild_id` = '%d'",guild_db, p->guild_id); // TBR
-		if (mysql_query(&mysql_handle, tmp_sql)) {
-			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
-			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-		} else { //If we fail to confirm, don't touch the data.
-			sql_res = mysql_store_result(&mysql_handle);
-			sql_row = sql_res?mysql_fetch_row(sql_res):NULL;
-			if (sql_row)
-				guild_exist = atoi(sql_row[0]);
-			mysql_free_result(sql_res);
-		}
-		
-		if (guild_exist==0) p->guild_id=0;
-		if (party_exist==0) p->party_id=0;
-
-		//query
 		sprintf(tmp_sql ,"UPDATE `%s` SET `base_level`='%d', `job_level`='%d',"
-			"`base_exp`='%d', `job_exp`='%d', `zeny`='%d',"
+			"`base_exp`='%u', `job_exp`='%u', `zeny`='%d',"
 			"`max_hp`='%d',`hp`='%d',`max_sp`='%d',`sp`='%d',`status_point`='%d',`skill_point`='%d',"
 			"`str`='%d',`agi`='%d',`vit`='%d',`int`='%d',`dex`='%d',`luk`='%d',"
 			"`option`='%d',`party_id`='%d',`guild_id`='%d',`pet_id`='%d',"
@@ -862,6 +830,7 @@ int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tab
 //=====================================================================================================
 int mmo_char_fromsql(int char_id, struct mmo_charstatus *p){
 	int i,j, n;
+	double exp;
 	char t_msg[128];
 	char *str_p = tmp_sql;
 	struct mmo_charstatus *cp;
@@ -905,8 +874,10 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p){
 		p->class_ = atoi(sql_row[4]);
 		p->base_level = atoi(sql_row[5]);
 		p->job_level = atoi(sql_row[6]);
-		p->base_exp = atoi(sql_row[7]);
-		p->job_exp = atoi(sql_row[8]);
+		exp = atof(sql_row[7]);
+		p->base_exp = exp<0?0:(exp>UINT_MAX?UINT_MAX:(unsigned int)exp);
+		exp = atof(sql_row[8]);
+		p->job_exp = exp<0?0:(exp>UINT_MAX?UINT_MAX:(unsigned int)exp);
 		p->zeny = atoi(sql_row[9]);
 		p->str = atoi(sql_row[10]);
 		p->agi = atoi(sql_row[11]);
@@ -950,19 +921,13 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p){
 		p->partner_id = atoi(sql_row[20]); p->father = atoi(sql_row[21]); p->mother = atoi(sql_row[22]); p->child = atoi(sql_row[23]);
 		p->fame = atoi(sql_row[24]);
 
-		//free mysql result.
-		mysql_free_result(sql_res);
 		strcat (t_msg, " status2");
 	} else
 		ShowError("Char load failed (%d - table %s)\n", char_id, char_db);	//Error?! ERRRRRR WHAT THAT SAY!?
+	//free mysql result.
+	if (sql_res)
+		mysql_free_result(sql_res);
 
-/* We should not need this. [Skotlex]
-	if (p->last_point.x == 0 || p->last_point.y == 0 || p->last_point.map == 0)
-		memcpy(&p->last_point, &start_point, sizeof(start_point));
-
-	if (p->save_point.x == 0 || p->save_point.y == 0 || p->save_point.map == 0)
-		memcpy(&p->save_point, &start_point, sizeof(start_point));
-*/
 	//read memo data
 	//`memo` (`memo_id`,`char_id`,`map`,`x`,`y`)
 	sprintf(tmp_sql, "SELECT `map`,`x`,`y` FROM `%s` WHERE `char_id`='%d' ORDER by `memo_id`",memo_db, char_id); // TBR
@@ -1030,7 +995,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p){
 	sql_res = mysql_store_result(&mysql_handle);
 	if (sql_res) {
 		for(i=0;(sql_row = mysql_fetch_row(sql_res));i++){
-		        p->cart[i].id = atoi(sql_row[0]);
+			p->cart[i].id = atoi(sql_row[0]);
 			p->cart[i].nameid = atoi(sql_row[1]);
 			p->cart[i].amount = atoi(sql_row[2]);
 			p->cart[i].equip = atoi(sql_row[3]);
@@ -1119,7 +1084,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p){
 // 
 int mmo_char_fromsql_short(int char_id, struct mmo_charstatus *p){
 	char t_msg[128];
-
+	double exp;
 	memset(p, 0, sizeof(struct mmo_charstatus));
 	t_msg[0]= '\0';
 	
@@ -1148,6 +1113,7 @@ int mmo_char_fromsql_short(int char_id, struct mmo_charstatus *p){
 		if (!sql_row)
 		{	//Just how does this happens? [Skotlex]
 			ShowError("Requested non-existant character id: %d!\n", char_id);
+		   mysql_free_result(sql_res); 
 			return 0;	
 		}
 		p->char_id = char_id;
@@ -1157,8 +1123,10 @@ int mmo_char_fromsql_short(int char_id, struct mmo_charstatus *p){
 		p->class_ = atoi(sql_row[4]);
 		p->base_level = atoi(sql_row[5]);
 		p->job_level = atoi(sql_row[6]);
-		p->base_exp = atoi(sql_row[7]);
-		p->job_exp = atoi(sql_row[8]);
+		exp = atof(sql_row[7]);
+		p->base_exp = exp<0?0:(exp>UINT_MAX?UINT_MAX:(unsigned int)exp);
+		exp = atof(sql_row[8]);
+		p->job_exp = exp<0?0:(exp>UINT_MAX?UINT_MAX:(unsigned int)exp);
 		p->zeny = atoi(sql_row[9]);
 		p->str = atoi(sql_row[10]);
 		p->agi = atoi(sql_row[11]);
@@ -1195,22 +1163,19 @@ int mmo_char_fromsql_short(int char_id, struct mmo_charstatus *p){
 		p->weapon = atoi(sql_row[6]);	p->shield = atoi(sql_row[7]);
 		p->head_top = atoi(sql_row[8]);	p->head_mid = atoi(sql_row[9]);	p->head_bottom = atoi(sql_row[10]);
 
-		//free mysql result.
-		mysql_free_result(sql_res);
 		strcat (t_msg, " status2");
 	} else
 		ShowError("Char load failed (%d - table %s)\n", char_id, char_db);	//Error?! ERRRRRR WHAT THAT SAY!?
-
-	if (save_log)
-		ShowInfo("Quick Loaded char (%d - %s): %s\n", char_id, p->name, t_msg);	//ok. all data load successfuly!
+	//free mysql result.
+	if (sql_res)
+		mysql_free_result(sql_res);
+//	if (save_log) //Too much spam :/
+//		ShowInfo("Quick Loaded char (%d - %s): %s\n", char_id, p->name, t_msg);	//ok. all data load successfuly!
 
 	return 1;
 }
 //==========================================================================================================
 int mmo_char_sql_init(void) {
-	int charcount;
-
-
 	ShowInfo("Begin Initializing.......\n");
 	char_db_= db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA, sizeof(int));
 	// memory initialize
@@ -1220,44 +1185,11 @@ int mmo_char_sql_init(void) {
 	CREATE(char_dat, struct mmo_charstatus, 2);
 
 	memset(char_dat, 0, sizeof(struct mmo_charstatus)*2);
-
-	//Check for max id (in case new chars would get their IDs set below 150K) [Skotlex]
-	sprintf(tmp_sql , "SELECT max(`char_id`) FROM `%s`", char_db);
-	if (mysql_query(&mysql_handle, tmp_sql)) {
-		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
-		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-	} else {
-		sql_res = mysql_store_result(&mysql_handle);
-		if (sql_res)
-		{
-			if (mysql_num_rows(sql_res) > 0 &&
-				(sql_row = mysql_fetch_row(sql_res)) != NULL &&
-				sql_row[0] != NULL && atoi(sql_row[0]) >= char_id_count)
-				char_id_count = 0;	//No need for setting the char id.
-			mysql_free_result(sql_res);
-		}
-	}
-
-	sprintf(tmp_sql, "SELECT `char_id` FROM `%s`", char_db);
-	if(mysql_query(&mysql_handle, tmp_sql)){
-		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
-		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-	}else{
-		sql_res = mysql_store_result(&mysql_handle);
-		if(sql_res){
-			charcount = (int)mysql_num_rows(sql_res);
-			ShowStatus("total char data -> '%d'.......\n", charcount);
-			mysql_free_result(sql_res);
-		}else{
-			ShowStatus("total char data -> '0'.......\n");
-		}
-	}
-
 	if(char_per_account == 0){
 	  ShowStatus("Chars per Account: 'Unlimited'.......\n");
-        }else{
-          ShowStatus("Chars per Account: '%d'.......\n", char_per_account);
-        }
+	}else{
+		ShowStatus("Chars per Account: '%d'.......\n", char_per_account);
+	}
 
 	//the 'set offline' part is now in check_login_conn ...
 	//if the server connects to loginserver
@@ -1435,15 +1367,7 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 
 	//New Querys [Sirius]
 	//Insert the char to the 'chardb' ^^
-	if (char_id_count) //Force initial char id. [Skotlex]
-		sprintf(tmp_sql, "INSERT INTO `%s` (`char_id`,`account_id`, `char_num`, `name`, `zeny`, `str`, `agi`, `vit`, `int`, `dex`, `luk`, `max_hp`, `hp`,"
-			"`max_sp`, `sp`, `hair`, `hair_color`, `last_map`, `last_x`, `last_y`, `save_map`, `save_x`, `save_y`) VALUES ("
-			"'%d', '%d', '%d', '%s', '%d',  '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d','%d', '%d','%d', '%d', '%s', '%d', '%d', '%s', '%d', '%d')",
-			char_db, char_id_count, sd->account_id , dat[30] , t_name, start_zeny, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29],
-			(40 * (100 + dat[26])/100) , (40 * (100 + dat[26])/100 ),  (11 * (100 + dat[27])/100), (11 * (100 + dat[27])/100), dat[33], dat[31],
-			mapindex_id2name(start_point.map), start_point.x, start_point.y, mapindex_id2name(start_point.map), start_point.x, start_point.y);
-	else
-		sprintf(tmp_sql, "INSERT INTO `%s` (`account_id`, `char_num`, `name`, `zeny`, `str`, `agi`, `vit`, `int`, `dex`, `luk`, `max_hp`, `hp`,"
+	sprintf(tmp_sql, "INSERT INTO `%s` (`account_id`, `char_num`, `name`, `zeny`, `str`, `agi`, `vit`, `int`, `dex`, `luk`, `max_hp`, `hp`,"
 			"`max_sp`, `sp`, `hair`, `hair_color`, `last_map`, `last_x`, `last_y`, `save_map`, `save_x`, `save_y`) VALUES ("
 			"'%d', '%d', '%s', '%d',  '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d','%d', '%d','%d', '%d', '%s', '%d', '%d', '%s', '%d', '%d')",
 			char_db, sd->account_id , dat[30] , t_name, start_zeny, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29],
@@ -1454,51 +1378,19 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		return -2; //No, stop the procedure!
 	}
-
-	if (char_id_count) //Clear this out for future inserts.
-		char_id_count = 0;
-
 	//Now we need the charid from sql!
-	sprintf(tmp_sql, "SELECT `char_id` FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id , dat[30] , t_name);
-	if(mysql_query(&mysql_handle, tmp_sql)){
-		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
-		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-		//delete the char ..(no trash in DB!)
+	if(mysql_field_count(&mysql_handle) == 0 &&
+		mysql_insert_id(&mysql_handle) > 0)
+		char_id = mysql_insert_id(&mysql_handle);
+	else {
+		//delete the char ..(no trash in DB!) but how is this possible?
 		sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
 		if(mysql_query(&mysql_handle, tmp_sql)){
 			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		}
 		return -2; //XD end of the (World? :P) .. charcreate (denied)
-	} else {
-		//query ok -> get the data!
-		sql_res = mysql_store_result(&mysql_handle);
-		if(sql_res){
-			sql_row = mysql_fetch_row(sql_res);
-			char_id = sql_row?atoi(sql_row[0]):0; //char id :)
-			mysql_free_result(sql_res);
-			if(char_id <= 0){
-				ShowError("failed (get char id..) CHARID (%d) wrong!\n", char_id);
-				sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
-				if(mysql_query(&mysql_handle, tmp_sql)){
-					ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
-					ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-				}
-				return -2; //charcreate denied ..
-			}
-		}else{
-			//prevent to crash (if its false, and we want to free -> segfault :)
-			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
-			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
-			if(mysql_query(&mysql_handle, tmp_sql)){
-				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
-				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-			}
-			return -2; //end ...... -> charcreate failed :)
-		}
 	}
-
 	//Give the char the default items
 	//`inventory` (`id`,`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`)
 	if (start_weapon > 0) { //add Start Weapon (Knife?)
@@ -1506,12 +1398,6 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 		if (mysql_query(&mysql_handle, tmp_sql)){
 			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
-			if(mysql_query(&mysql_handle, tmp_sql)){
-				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
-				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-			}
-			return -2;//end XD
 		}
 	}
 	if (start_armor > 0) { //Add default armor (cotton shirt?)
@@ -1519,17 +1405,6 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 		if (mysql_query(&mysql_handle, tmp_sql)){
 			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
-			if(mysql_query(&mysql_handle, tmp_sql)){
-				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
-				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-			}
-			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `char_id` = '%d'", inventory_db, char_id);
-			if(mysql_query(&mysql_handle, tmp_sql)){
-				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
-				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-			}
-			return -2; //end....
 		}
 	}
 
@@ -1563,6 +1438,8 @@ int delete_char_sql(int char_id, int partner_id)
 	if (sql_res == NULL || sql_row == NULL)
 	{
 		ShowError("delete_char_sql: Unable to fetch character data, deletion aborted.\n");
+		if (sql_res)
+			mysql_free_result(sql_res);
 		return -1;
 	}
 	strncpy(char_name, sql_row[0], NAME_LENGTH);
@@ -1787,7 +1664,7 @@ int mmo_char_send006b(int fd, struct char_session_data *sd) {
 	WFIFOW(fd, 2) = offset + found_num * 106;
 
 	if (save_log)
-		ShowInfo("Request Char Data ("CL_BOLD"%d"CL_RESET"):\n",sd->account_id);
+		ShowInfo("Loading Char Data ("CL_BOLD"%d"CL_RESET")\n",sd->account_id);
 
 	for(i = 0; i < found_num; i++) {
 		mmo_char_fromsql_short(sd->found_char[i], char_dat);
@@ -1797,9 +1674,9 @@ int mmo_char_send006b(int fd, struct char_session_data *sd) {
 		j = offset + (i * 106); // increase speed of code
 
 		WFIFOL(fd,j) = p->char_id;
-		WFIFOL(fd,j+4) = p->base_exp;
+		WFIFOL(fd,j+4) = p->base_exp>LONG_MAX?LONG_MAX:p->base_exp;
 		WFIFOL(fd,j+8) = p->zeny;
-		WFIFOL(fd,j+12) = p->job_exp;
+		WFIFOL(fd,j+12) = p->job_exp>LONG_MAX?LONG_MAX:p->job_exp;
 		WFIFOL(fd,j+16) = p->job_level;
 
 		WFIFOL(fd,j+20) = 0;
@@ -2016,7 +1893,7 @@ int parse_tologin(int fd) {
 		  {
 			int acc, sex;
 			unsigned char buf[16];
-
+			MYSQL_RES* sql_res2;
 			acc = RFIFOL(fd,2);
 			sex = RFIFOB(fd,6);
 			RFIFOSKIP(fd, 7);
@@ -2026,9 +1903,9 @@ int parse_tologin(int fd) {
 					ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 					ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 				}
-				sql_res = mysql_store_result(&mysql_handle);
+				sql_res2 = mysql_store_result(&mysql_handle);
 
-				while(sql_res && (sql_row = mysql_fetch_row(sql_res))) {
+				while(sql_res2 && (sql_row = mysql_fetch_row(sql_res2))) {
 						int char_id, guild_id, jobclass, skill_point, class_;
 						char_id = atoi(sql_row[0]);
 						jobclass = atoi(sql_row[1]);
@@ -2057,6 +1934,7 @@ int parse_tologin(int fd) {
 								while(( sql_row = mysql_fetch_row(sql_res))) {
 									skill_point += atoi(sql_row[0]);
 								}
+								mysql_free_result(sql_res);
 							}
 							sprintf(tmp_sql, "DELETE FROM `%s` WHERE `char_id` = '%d' AND `id` >= '315' AND `id` <= '330'",skill_db, char_id);
 							if (mysql_query(&mysql_handle, tmp_sql)) {
@@ -2079,6 +1957,8 @@ int parse_tologin(int fd) {
 						if (guild_id)	//If there is a guild, update the guild_member data [Skotlex]
 							inter_guild_sex_changed(guild_id, acc, char_id, sex);
 					}
+					if (sql_res2)
+						mysql_free_result(sql_res2);
 				}
 				// disconnect player if online on char-server
 				for(i = 0; i < fd_max; i++) {
@@ -2437,6 +2317,7 @@ int parse_frommap(int fd) {
 					memcpy(WFIFOP(fd, 14+count*sizeof(struct status_change_data)), &data, sizeof(struct status_change_data));
 					count++;
 				}
+				mysql_free_result(sql_res);
 				if (count > 0)
 				{
 					WFIFOW(fd, 2) = 14 + count*sizeof(struct status_change_data);
@@ -2770,6 +2651,7 @@ int parse_frommap(int fd) {
 				if (acc != -1) {
 					WFIFOSET(fd, 34);
 				}
+				mysql_free_result(sql_res);
 			}
 		  }
 			RFIFOSKIP(fd, 44);
@@ -2844,8 +2726,8 @@ int parse_frommap(int fd) {
 					if (++num == 10)
 						break;
 				}
+   			mysql_free_result(sql_res);
 			}
-   		mysql_free_result(sql_res);
 			WBUFW(buf, 6) = len; //Blacksmith block size
 
 			num = 0;
@@ -2865,8 +2747,8 @@ int parse_frommap(int fd) {
 					if (++num == 10)
 						break;
 				}
+				mysql_free_result(sql_res);
 			}
-			mysql_free_result(sql_res);
 			WBUFW(buf, 4) = len; //Alchemist block size
 
 			num = 0;
@@ -2886,8 +2768,8 @@ int parse_frommap(int fd) {
 					if (++num == 10)
 						break;
 				}
+				mysql_free_result(sql_res);
 			}
-			mysql_free_result(sql_res);
 			WBUFW(buf, 2) = len; //Total packet length
 
 			mapif_sendall(buf, len);
@@ -2902,22 +2784,23 @@ int parse_frommap(int fd) {
 #ifdef ENABLE_SC_SAVING
 			int count, aid, cid, i;
 			struct status_change_data data;
+			char *p = tmp_sql;
 			
 			aid = RFIFOL(fd, 4);
 			cid = RFIFOL(fd, 8);
 			count = RFIFOW(fd, 12);
 			
-			sprintf(tmp_sql, "INSERT INTO `%s` (`account_id`, `char_id`, `type`, `tick`, `val1`, `val2`, `val3`, `val4`) VALUES ", scdata_db);
+			p+= sprintf(p, "INSERT INTO `%s` (`account_id`, `char_id`, `type`, `tick`, `val1`, `val2`, `val3`, `val4`) VALUES ", scdata_db);
 			
 			for (i = 0; i < count; i++)
 			{
 				memcpy (&data, RFIFOP(fd, 14+i*sizeof(struct status_change_data)), sizeof(struct status_change_data));
-				sprintf (tmp_sql, "%s ('%d','%d','%hu','%d','%d','%d','%d','%d'),", tmp_sql, aid, cid,
+				p += sprintf (p, " ('%d','%d','%hu','%d','%d','%d','%d','%d'),", aid, cid,
 					data.type, data.tick, data.val1, data.val2, data.val3, data.val4);
 			}
 			if (count > 0)
 			{
-				tmp_sql[strlen(tmp_sql)-1] = '\0'; //Remove final comma.
+				*--p = '\0'; //Remove final comma.
 				if (mysql_query(&mysql_handle, tmp_sql)) {
 					ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 					ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
@@ -3163,7 +3046,9 @@ int parse_char(int fd) {
 			
 			if (sql_row)
 			{
-				mmo_char_fromsql(atoi(sql_row[0]), char_dat);
+				int char_id = atoi(sql_row[0]);
+				mysql_free_result(sql_res); //Free'd as soon as possible
+				mmo_char_fromsql(char_id, char_dat);
 				char_dat[0].sex = sd->sex;
 			} else {
 				mysql_free_result(sql_res);
@@ -3324,9 +3209,9 @@ int parse_char(int fd) {
 			//mmo_char_fromsql(i, char_dat);
 			i = 0;
 			WFIFOL(fd, 2) = char_dat[i].char_id;
-			WFIFOL(fd,2+4) = char_dat[i].base_exp;
+			WFIFOL(fd,2+4) = char_dat[i].base_exp>LONG_MAX?LONG_MAX:char_dat[i].base_exp;
 			WFIFOL(fd,2+8) = char_dat[i].zeny;
-			WFIFOL(fd,2+12) = char_dat[i].job_exp;
+			WFIFOL(fd,2+12) = char_dat[i].job_exp>LONG_MAX?LONG_MAX:char_dat[i].job_exp;
 			WFIFOL(fd,2+16) = char_dat[i].job_level;
 
 			WFIFOL(fd,2+28) = char_dat[i].karma;
@@ -3467,7 +3352,7 @@ int parse_char(int fd) {
 				WFIFOB(fd,2) = 3;
 				WFIFOSET(fd, 3);
 			} else {
-//				int len;
+				int len;
 				WFIFOB(fd,2) = 0;
 				WFIFOSET(fd, 3);
 				session[fd]->func_parse = parse_frommap;
@@ -3479,7 +3364,6 @@ int parse_char(int fd) {
 				realloc_fifo(fd, FIFOSIZE_SERVERLINK, FIFOSIZE_SERVERLINK);
 				char_mapif_init(fd);
 				// send gm acccounts level to map-servers
-/* removed by CLOWNISIUS due to isGM
 				len = 4;
 				WFIFOW(fd,0) = 0x2b15;
 				for(i = 0; i < GM_num; i++) {
@@ -3488,7 +3372,7 @@ int parse_char(int fd) {
 					len += 5;
 				}
 				WFIFOW(fd,2) = len;
-				WFIFOSET(fd,len);*/
+				WFIFOSET(fd,len);
 			}
 			RFIFOSKIP(fd,60);
 			break;
@@ -3674,10 +3558,8 @@ int check_connect_login_server(int tid, unsigned int tick, int id, int data) {
 		session[login_fd]->func_parse = parse_tologin;
 		realloc_fifo(login_fd, FIFOSIZE_SERVERLINK, FIFOSIZE_SERVERLINK);
 		WFIFOW(login_fd,0) = 0x2710;
-		memset(WFIFOP(login_fd,2), 0, 24);
-		memcpy(WFIFOP(login_fd,2), userid, strlen(userid) < 24 ? strlen(userid) : 24);
-		memset(WFIFOP(login_fd,26), 0, 24);
-		memcpy(WFIFOP(login_fd,26), passwd, strlen(passwd) < 24 ? strlen(passwd) : 24);
+		memcpy(WFIFOP(login_fd,2), userid, 24);
+		memcpy(WFIFOP(login_fd,26), passwd, 24);
 		WFIFOL(login_fd,50) = 0;
 		WFIFOL(login_fd,54) = char_ip;
 		WFIFOL(login_fd,58) = char_port;
@@ -3989,9 +3871,9 @@ int char_config_read(const char *cfgName) {
 			ShowInfo("Console Silent Setting: %d\n", atoi(w2));
 			msg_silent = atoi(w2);
 		} else if (strcmpi(w1, "userid") == 0) {
-			memcpy(userid, w2, 24);
+			strncpy(userid, w2, 24);
 		} else if (strcmpi(w1, "passwd") == 0) {
-			memcpy(passwd, w2, 24);
+			strncpy(passwd, w2, 24);
 		} else if (strcmpi(w1, "server_name") == 0) {
 			memcpy(server_name, w2, sizeof(server_name));
 			server_name[sizeof(server_name) - 1] = '\0';
@@ -4149,7 +4031,7 @@ int do_init(int argc, char **argv){
 		ShowNotice("Please edit your 'login' table to create a proper inter-server user/password (gender 'S')\n");
 		ShowNotice("And then change the user/password to use in conf/char_athena.conf (or conf/import/char_conf.txt)\n");
 	}
-
+	
 	ShowInfo("Finished reading the char-server configuration.\n");
 
 	inter_init((argc > 2) ? argv[2] : inter_cfgName); // inter server √ ±‚»≠
