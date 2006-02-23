@@ -745,14 +745,12 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 			struct map_session_data *sd = (struct map_session_data*) target;
 			if (pc_isinvisible(sd))
 				return 0;
-			if (((*option)&hide_flag || sd->state.gangsterparadise)
+			if ((*option)&hide_flag
 				&& (sd->state.perfect_hiding || !(race == 4 || race == 6 || mode&MD_DETECTOR))
 				&& !(mode&MD_BOSS))
 				return 0;
 		}
 		break;
-	case BL_PET:
-		return 0;
 	case BL_ITEM:	//Allow targetting of items to pick'em up (or in the case of mobs, to loot them).
 		//TODO: Would be nice if this could be used to judge whether the player can or not pick up the item it targets. [Skotlex]
 		if (mode&MD_LOOTER)
@@ -905,8 +903,8 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	// these are not zeroed. [zzo]
 
 	sd->speed = DEFAULT_WALK_SPEED;
-	sd->hprate=battle_config.hp_rate;
-	sd->sprate=battle_config.sp_rate;
+	sd->hprate=100;
+	sd->sprate=100;
 	sd->castrate=100;
 	sd->delayrate=100;
 	sd->dsprate=100;
@@ -1304,12 +1302,25 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		else if(sd->sc_data[SC_MARIONETTE2].timer!=-1){
 			struct map_session_data *psd = map_id2sd(sd->sc_data[SC_MARIONETTE2].val3);
 			if (psd) {	// if partner is found
-				sd->paramb[0] += sd->status.str+psd->status.str/2 > 99 ? 99-sd->status.str : psd->status.str/2;
-				sd->paramb[1] += sd->status.agi+psd->status.agi/2 > 99 ? 99-sd->status.agi : psd->status.agi/2;
-				sd->paramb[2] += sd->status.vit+psd->status.vit/2 > 99 ? 99-sd->status.vit : psd->status.vit/2;
-				sd->paramb[3] += sd->status.int_+psd->status.int_/2 > 99 ? 99-sd->status.int_ : psd->status.int_/2;
-				sd->paramb[4] += sd->status.dex+psd->status.dex/2 > 99 ? 99-sd->status.dex : psd->status.dex/2;
-				sd->paramb[5] += sd->status.luk+psd->status.luk/2 > 99 ? 99-sd->status.luk : psd->status.luk/2;
+				bl = pc_maxparameter(sd); //Cap to max parameter. [Skotlex]
+				if (sd->status.str < bl)
+					sd->paramb[0] += sd->status.str+psd->status.str/2 > bl ?
+						bl-sd->status.str : psd->status.str/2;
+				if (sd->status.agi < bl)
+					sd->paramb[1] += sd->status.agi+psd->status.agi/2 > bl ?
+						bl-sd->status.agi : psd->status.agi/2;
+				if (sd->status.vit < bl)
+					sd->paramb[2] += sd->status.vit+psd->status.vit/2 > bl ?
+						bl-sd->status.vit : psd->status.vit/2;
+				if (sd->status.int_ < bl)
+					sd->paramb[3] += sd->status.int_+psd->status.int_/2 > bl ?
+						bl-sd->status.int_ : psd->status.int_/2;
+				if (sd->status.dex < bl)
+					sd->paramb[4] += sd->status.dex+psd->status.dex/2 > bl ?
+						bl-sd->status.dex : psd->status.dex/2;
+				if (sd->status.luk < bl)
+					sd->paramb[5] += sd->status.luk+psd->status.luk/2 > bl ?
+						bl-sd->status.luk : psd->status.luk/2;
 			}
 		}
 	}
@@ -1668,12 +1679,15 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	// Apply relative modifiers from equipment
 	if(sd->hprate!=100)
 		sd->status.max_hp = sd->status.max_hp * sd->hprate/100;
+	if(battle_config.hp_rate != 100)
+		sd->status.max_hp = sd->status.max_hp * battle_config.hp_rate/100;
 
 	if(sd->status.max_hp > battle_config.max_hp)
 		sd->status.max_hp = battle_config.max_hp;
+	else if(sd->status.max_hp <= 0)
+		sd->status.max_hp = 1;
 	if(sd->status.hp>sd->status.max_hp)
 		sd->status.hp=sd->status.max_hp;
-	if(sd->status.max_hp <= 0) sd->status.max_hp = 1;
 
 	// Basic natural HP regeneration value
 	sd->nhealhp = 1 + (sd->paramc[2]/5) + (sd->status.max_hp/200);
@@ -1725,12 +1739,15 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	// Apply relative modifiers from equipment
 	if(sd->sprate!=100)
 		sd->status.max_sp = sd->status.max_sp * sd->sprate/100;
-
+	if(battle_config.sp_rate != 100)
+		sd->status.max_sp = sd->status.max_sp * battle_config.sp_rate/100;
+	
 	if(sd->status.max_sp > battle_config.max_sp)
 		sd->status.max_sp = battle_config.max_sp;
+	else if(sd->status.max_sp <= 0)
+	  	sd->status.max_sp = 1;
 	if(sd->status.sp>sd->status.max_sp)
 		sd->status.sp=sd->status.max_sp;
-	if(sd->status.max_sp <= 0) sd->status.max_sp = 1;
 
 	if(sd->sc_data[SC_DANCING].timer==-1){
 		// Basic natural SP regeneration value

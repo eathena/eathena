@@ -1284,6 +1284,9 @@ static int mob_ai_sub_hard_activesearch(struct block_list *bl,va_list ap)
 	switch (bl->type)
 	{
 	case BL_PC:
+		if (((struct map_session_data*)bl)->state.gangsterparadise &&
+			!(status_get_mode(&md->bl)&MD_BOSS))
+			return 0; //Gangster paradise protection.
 	case BL_MOB:
 		if((dist=distance_bl(&md->bl, bl)) < md->db->range2
 			&& (md->db->range > 6 || mob_can_reach(md,bl,dist+1, MSS_FOLLOW))
@@ -1465,8 +1468,11 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 					struct block_list *tbl = NULL;
 					if(msd->attacktarget)
 						tbl = map_id2bl(msd->attacktarget);
-					else if (msd->skilltarget)
+					else if (msd->skilltarget) {
 						tbl = map_id2bl(msd->skilltarget);
+						if (tbl && battle_check_target(&md->bl, tbl, BCT_ENEMY) <= 0)
+							tbl = NULL; //Required check as skilltarget is not always an enemy. [Skotlex]
+					}
 					if(tbl && status_check_skilluse(&md->bl, tbl, 0, 0)) {
 						md->target_id=tbl->id;
 						md->state.targettype = ATTACKABLE;
@@ -1597,8 +1603,10 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 	if (md->target_id)
 	{	//Check validity of current target. [Skotlex]
 		tbl = map_id2bl(md->target_id);
-		if (!tbl || tbl->m != md->bl.m || !status_check_skilluse(&md->bl, tbl, 0, 0))
-		{	//Unlock current target.
+		if (!tbl || tbl->m != md->bl.m || !status_check_skilluse(&md->bl, tbl, 0, 0) || (
+				tbl->type == BL_PC && !(mode&MD_BOSS) &&
+				((struct map_session_data*)tbl)->state.gangsterparadise
+		)) {	//Unlock current target.
 			if (md->state.state == MS_WALK && (battle_config.mob_ai&8 || !tbl)) //Inmediately stop chasing.
 				mob_stop_walking(md, 2);
 			mob_unlocktarget(md, tick-(battle_config.mob_ai&8?3000:0)); //Imediately do random walk.
@@ -1615,8 +1623,12 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 				(dist = distance_bl(&md->bl, abl)) >= 32 ||
 				battle_check_target(bl, abl, BCT_ENEMY) <= 0 ||
 				(battle_config.mob_ai&2 && !status_check_skilluse(bl, abl, 0, 0)) ||
-				!mob_can_reach(md, abl, dist+2, MSS_RUSH)) //Some more cells of grace...
-			{	//Can't attack back
+				!mob_can_reach(md, abl, dist+2, MSS_RUSH ||
+				(	//Gangster Paradise check
+					abl->type == BL_PC && !(mode&MD_BOSS) &&
+					((struct map_session_data*)abl)->state.gangsterparadise
+				)
+			))	{	//Can't attack back
 				if (md->attacked_count++ > 3) {
 					if (mobskill_use(md, tick, MSC_RUDEATTACKED) == 0 &&
 						mode&MD_CANMOVE && mob_can_move(md))
@@ -3134,7 +3146,7 @@ int mob_countslave(struct block_list *bl)
 int mob_summonslave(struct mob_data *md2,int *value,int amount,int skill_id)
 {
 	struct mob_data *md;
-	int bx,by,m,count = 0,class_,k;
+	int bx,by,m,count = 0,class_,k=0;
 
 	nullpo_retr(0, md2);
 	nullpo_retr(0, value);
@@ -3148,8 +3160,11 @@ int mob_summonslave(struct mob_data *md2,int *value,int amount,int skill_id)
 
 	while(count < 5 && mobdb_checkid(value[count])) count++;
 	if(count < 1) return 0;
-
-	for(k=0;k<amount;k++) {
+	if (amount > 0 && amount < count) { //Do not start on 0, pick some random sub subset [Skotlex]
+		k = rand()%count;
+		amount+=k; //Increase final value by same amount to preserve total number to summon.
+	}
+	for(;k<amount;k++) {
 		int x=0,y=0,i=0;
 		class_ = value[k%count]; //Summon slaves in round-robin fashion. [Skotlex]
 

@@ -37,14 +37,13 @@ static struct eri *delay_damage_ers; //For battle delay damage structures.
  */
 static int battle_counttargeted_sub(struct block_list *bl, va_list ap)
 {
-	int id, *c, target_lv;
+	int id, target_lv;
 	struct block_list *src;
 
 	nullpo_retr(0, bl);
 	nullpo_retr(0, ap);
 
 	id = va_arg(ap,int);
-	nullpo_retr(0, c = va_arg(ap, int *));
 	src = va_arg(ap,struct block_list *);
 	target_lv = va_arg(ap,int);
 
@@ -53,18 +52,18 @@ static int battle_counttargeted_sub(struct block_list *bl, va_list ap)
 	if (bl->type == BL_PC) {
 		struct map_session_data *sd = (struct map_session_data *)bl;
 		if (sd && sd->attacktarget == id && sd->attacktimer != -1 && sd->attacktarget_lv >= target_lv)
-			(*c)++;
+			return 1;
 	}
 	else if (bl->type == BL_MOB) {
 		struct mob_data *md = (struct mob_data *)bl;
 		if (md && md->target_id == id && md->timer != -1 && md->state.state == MS_ATTACK && md->target_lv >= target_lv)		
-			(*c)++;
+			return 1;
 		//printf("md->target_lv:%d, target_lv:%d\n", md->target_lv, target_lv);
 	}
 	else if (bl->type == BL_PET) {
 		struct pet_data *pd = (struct pet_data *)bl;
 		if (pd && pd->target_id == id && pd->timer != -1 && pd->state.state == MS_ATTACK && pd->target_lv >= target_lv)
-			(*c)++;
+			return 1;
 	}
 
 	return 0;
@@ -76,15 +75,9 @@ static int battle_counttargeted_sub(struct block_list *bl, va_list ap)
  */
 int battle_counttargeted(struct block_list *bl,struct block_list *src,int target_lv)
 {
-	int c = 0;
 	nullpo_retr(0, bl);
-
-	map_foreachinarea(battle_counttargeted_sub, bl->m,
-		bl->x-AREA_SIZE, bl->y-AREA_SIZE,
-		bl->x+AREA_SIZE, bl->y+AREA_SIZE, BL_CHAR,
-		bl->id, &c, src, target_lv);
-
-	return c;
+	return (map_foreachinrange(battle_counttargeted_sub, bl, AREA_SIZE, BL_CHAR,
+		bl->id, src, target_lv));
 }
 
 /*==========================================
@@ -124,7 +117,7 @@ static int battle_gettargeted_sub(struct block_list *bl, va_list ap)
 	}
 
 	bl_list[(*c)++] = bl;
-	return 0;
+	return 1;
 }
 
 int battle_getcurrentskill(struct block_list *bl)
