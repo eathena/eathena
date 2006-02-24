@@ -27,6 +27,11 @@
 
 =========================
 
+02/24
+	* Copied latest mob_skill_db from Trunk to Stable  [Komurka]
+	- fixed onspawn's by Poki#3
+	- fixed Lady Tana typo by Skotlex
+	- fixed Alchemist Marine Sphere by Skotlex
 02/22
 	* Fixed G_GOBLINE_XMAS mode (aggresive ~~) [Komurka
 	* Made G_DARK_ILLUSION more ... aggressive [Komurka]
