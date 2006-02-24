@@ -481,7 +481,7 @@ int pc_setinventorydata(struct map_session_data *sd)
 
 	for(i=0;i<MAX_INVENTORY;i++) {
 		id = sd->status.inventory[i].nameid;
-		sd->inventory_data[i] = itemdb_search(id);
+		sd->inventory_data[i] = id?itemdb_search(id):NULL;
 	}
 	return 0;
 }
@@ -3513,7 +3513,7 @@ int pc_can_reach(struct map_session_data *sd,int x,int y)
 	wpd.path_len=0;
 	wpd.path_pos=0;
 	wpd.path_half=0;
-	return (path_search(&wpd,sd->bl.m,sd->bl.x,sd->bl.y,x,y,0)!=-1)?1:0;
+	return (path_search_real(&wpd,sd->bl.m,sd->bl.x,sd->bl.y,x,y,0,CELL_CHKNOREACH)!=-1)?1:0;
 }
 
 //
@@ -5242,6 +5242,33 @@ static int pc_respawn(int tid,unsigned int tick,int id,int data)
 	}
 	return 0;
 }
+
+/*==========================================
+ * Damages a player's SP, returns remaining SP. [Skotlex]
+ * damage is absolute damage, rate is % damage (100 = 100%)
+ * Returns remaining SP, or -1 if the player did not have enough SP to substract from.
+ *------------------------------------------
+ */
+int pc_damage_sp(struct map_session_data *sd, int damage, int rate)
+{
+	if (!sd->status.sp)
+		return 0;
+	
+	if (rate)
+		damage += (rate*(sd->status.sp-damage)/sd->status.max_sp)/100;
+	
+	if (sd->status.sp >= damage){
+		sd->status.sp -= damage;
+		clif_updatestatus(sd,SP_SP);
+		return sd->status.sp;
+	}
+	if (sd->status.sp) {
+		sd->status.sp = 0;
+		clif_updatestatus(sd,SP_SP);
+		return -1;
+	}
+	return 0;
+}
 /*==========================================
  * pcにダメ?ジを?える
  *------------------------------------------
@@ -5889,31 +5916,31 @@ int pc_heal(struct map_session_data *sd,int hp,int sp)
 
 	nullpo_retr(0, sd);
 
-	if(pc_checkoverhp(sd)) {
-		if(hp > 0)
-			hp = 0;
-	}
-	if(pc_checkoversp(sd)) {
-		if(sp > 0)
-			sp = 0;
-	}
+	if(hp > 0 && pc_checkoverhp(sd))
+		hp = 0;
+
+	if(sp > 0 && pc_checkoversp(sd))
+		sp = 0;
 
 	if(sd->sc_count && sd->sc_data[SC_BERSERK].timer!=-1) //バ?サ?ク中は回復させないらしい
 		return 0;
 
-	if(hp+sd->status.hp>sd->status.max_hp)
-		hp=sd->status.max_hp-sd->status.hp;
-	if(sp+sd->status.sp>sd->status.max_sp)
-		sp=sd->status.max_sp-sd->status.sp;
+	if(hp > sd->status.max_hp - sd->status.hp)
+		hp = sd->status.max_hp - sd->status.hp;
 	sd->status.hp+=hp;
+		
+	if(sp > sd->status.max_sp - sd->status.sp)
+		sp = sd->status.max_sp - sd->status.sp;
+	sd->status.sp+=sp;
+
 	if(sd->status.hp <= 0) {
 		sd->status.hp = 0;
 		pc_damage(NULL,sd,1);
 		hp = 0;
 	}
-	sd->status.sp+=sp;
 	if(sd->status.sp <= 0)
 		sd->status.sp = 0;
+
 	if(hp)
 		clif_updatestatus(sd,SP_HP);
 	if(sp)
@@ -5938,17 +5965,11 @@ int pc_itemheal(struct map_session_data *sd,int hp,int sp)
 
 	nullpo_retr(0, sd);
 
-	if(sd->sc_count && sd->sc_data[SC_GOSPEL].timer!=-1) //バ?サ?ク中は回復させないらしい
-		return 0;
+	if(hp > 0 && pc_checkoverhp(sd))
+		hp = 0;
 
-	if(pc_checkoverhp(sd)) {
-		if(hp > 0)
-			hp = 0;
-	}
-	if(pc_checkoversp(sd)) {
-		if(sp > 0)
-			sp = 0;
-	}
+	if(sp > 0 && pc_checkoversp(sd))
+		sp = 0;
 
 	if(hp > 0) {
 		bonus = (sd->paramc[2]<<1) + 100 + pc_checkskill(sd,SM_RECOVERY)*10
@@ -5967,19 +5988,24 @@ int pc_itemheal(struct map_session_data *sd,int hp,int sp)
 		if(bonus != 100)
 			sp = sp * bonus / 100;
 	}
-	if(hp+sd->status.hp>sd->status.max_hp)
-		hp=sd->status.max_hp-sd->status.hp;
-	if(sp+sd->status.sp>sd->status.max_sp)
-		sp=sd->status.max_sp-sd->status.sp;
-	sd->status.hp+=hp;
+	if(hp > sd->status.max_hp - sd->status.hp)
+		sd->status.hp = sd->status.max_hp;
+	else
+		sd->status.hp+=hp;
+		
+	if(sp > sd->status.max_sp - sd->status.sp)
+		sd->status.sp = sd->status.max_sp;
+	else
+		sd->status.sp += sp;
+
 	if(sd->status.hp <= 0) {
 		sd->status.hp = 0;
 		pc_damage(NULL,sd,1);
 		hp = 0;
 	}
-	sd->status.sp+=sp;
 	if(sd->status.sp <= 0)
 		sd->status.sp = 0;
+	
 	if(hp)
 		clif_updatestatus(sd,SP_HP);
 	if(sp)
@@ -7406,7 +7432,7 @@ struct map_session_data *pc_get_child (struct map_session_data *sd)
  * SP回復量計算
  *------------------------------------------
  */
-static int natural_heal_tick,natural_heal_prev_tick,natural_heal_diff_tick;
+static unsigned int natural_heal_prev_tick,natural_heal_diff_tick;
 static int pc_spheal(struct map_session_data *sd)
 {
 	int a = natural_heal_diff_tick;
@@ -7801,8 +7827,7 @@ static int pc_natural_heal_sub(struct map_session_data *sd,va_list ap) {
  */
 int pc_natural_heal(int tid,unsigned int tick,int id,int data)
 {
-	natural_heal_tick = tick;
-	natural_heal_diff_tick = DIFF_TICK(natural_heal_tick,natural_heal_prev_tick);
+	natural_heal_diff_tick = DIFF_TICK(tick,natural_heal_prev_tick);
 	clif_foreachclient(pc_natural_heal_sub, tick);
 
 	natural_heal_prev_tick = tick;
@@ -8313,8 +8338,9 @@ int do_init_pc(void) {
 	add_timer_func_list(pc_autosave, "pc_autosave");
 	add_timer_func_list(pc_spiritball_timer, "pc_spiritball_timer");
 	add_timer_func_list(pc_blockskill_end, "pc_blockskill_end");
-	add_timer_func_list(pc_follow_timer, "pc_follow_timer");	
-	add_timer_interval((natural_heal_prev_tick = gettick() + NATURAL_HEAL_INTERVAL), pc_natural_heal, 0, 0, NATURAL_HEAL_INTERVAL);
+	add_timer_func_list(pc_follow_timer, "pc_follow_timer");
+	natural_heal_prev_tick = gettick();
+	add_timer_interval(natural_heal_prev_tick + NATURAL_HEAL_INTERVAL, pc_natural_heal, 0, 0, NATURAL_HEAL_INTERVAL);
 	add_timer(gettick() + autosave_interval, pc_autosave, 0, 0);
 #ifndef TXT_ONLY
 	pc_read_gm_account(0);

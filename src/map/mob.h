@@ -29,9 +29,9 @@ struct mob_skill {
 
 struct mob_db {
 	char name[NAME_LENGTH],jname[NAME_LENGTH];
-	short lv;
+	unsigned short lv;
 	int max_hp,max_sp;
-	int base_exp,job_exp;
+	unsigned int base_exp,job_exp;
 	int atk1,atk2;
 	int def,mdef;
 	int str,agi,vit,int_,dex,luk;
@@ -67,7 +67,9 @@ enum {
 
 	MSC_ALWAYS			=	0x0000,
 	MSC_MYHPLTMAXRATE,
+	MSC_MYHPINRATE,
 	MSC_FRIENDHPLTMAXRATE,
+	MSC_FRIENDHPINRATE,
 	MSC_MYSTATUSON,
 	MSC_MYSTATUSOFF,
 	MSC_FRIENDSTATUSON,

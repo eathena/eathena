@@ -650,12 +650,23 @@ struct skill_unit_group_tickset *skill_unitgrouptickset_search(struct block_list
 static int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int tick);
 static int skill_unit_onleft(int skill_id, struct block_list *bl,unsigned int tick);
 int skill_unit_effect(struct block_list *bl,va_list ap);
-int skill_castend_delay (struct block_list* src, struct block_list *bl,int skillid,int skilllv,unsigned int tick,int flag);
 static void skill_moonlit(struct block_list* src, struct block_list* partner, int skilllv);
 static int skill_check_pc_partner(struct map_session_data *sd, int skill_id, int* skill_lv, int range, int cast_flag);
 
 int enchant_eff[5] = { 10, 14, 17, 19, 20 };
 int deluge_eff[5] = { 5, 9, 12, 14, 15 };
+
+int skill_get_casttype(int id)
+{
+	int inf = skill_get_inf(id);
+	if (inf&(INF_GROUND_SKILL))
+		return CAST_GROUND;
+	if (inf&(INF_SELF_SKILL|INF_SUPPORT_SKILL))
+		return CAST_NODAMAGE;
+	if (skill_get_nk(id)&NK_NO_DAMAGE)
+		return CAST_NODAMAGE;
+	return CAST_DAMAGE;
+};
 
 //Returns actual skill range taking into account attack range and AC_OWL [Skotlex]
 int skill_get_range2(struct block_list *bl, int id, int lv) {
@@ -716,7 +727,7 @@ int skillnotok(int skillid, struct map_session_data *sd)
 			return 1;
 	}
 
-	if (pc_isGM(sd) >= 20)
+	if (pc_isGM(sd) >= 20 && battle_config.gm_skilluncond)
 		return 0;  // gm's can do anything damn thing they want
 
 	// Check skill restrictions [Celest]
@@ -737,6 +748,12 @@ int skillnotok(int skillid, struct map_session_data *sd)
 		case MC_VENDING:
 		case MC_IDENTIFY:
 			return 0; // always allowed
+		case WZ_ICEWALL:
+			// noicewall flag [Valaris]
+			if (map[sd->bl.m].flag.noicewall) {
+				clif_skill_fail(sd,sd->skillid,0,0);
+				return 1;
+			}
 		default:
 			return (map[sd->bl.m].flag.noskill);
 	}
@@ -1683,9 +1700,6 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 	if (bl->type == BL_PC)
 		tsd = (struct map_session_data *)bl;
 
-//Shouldn't be needed, skillnotok's return value is highly unlikely to have changed after you started casting. [Skotlex]
-//	if(dsrc->type == BL_PC && skillnotok(skillid, (struct map_session_data *)dsrc))
-//		return 0; // [MouseJstr]
 // Is this check really needed? FrostNova won't hurt you if you step right where the caster is?
 	if(skillid == WZ_FROSTNOVA && dsrc->x == bl->x && dsrc->y == bl->y) //Žg—pƒXƒLƒ‹‚ªƒtƒ?ƒXƒgƒmƒ”ƒ@‚Å?Adsrc‚Æbl‚ª“¯‚¶?ê?Š‚È‚ç‰½‚à‚µ‚È‚¢
 		return 0;
@@ -3281,9 +3295,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		return 1;
 	if(status_isdead(bl) && skillid != NPC_REBIRTH && skillid != ALL_RESURRECTION && skillid != PR_REDEMPTIO)
 		return 1;
-//Shouldn't be needed, skillnotok's return value is highly unlikely to have changed after you started casting. [Skotlex]
-//	if (sd && skillnotok(skillid, sd)) // [MouseJstr]
-//		return 0;
 	
 	//Check for undead skills that convert a no-damage skill into a damage one. [Skotlex]
 	switch (skillid) {
@@ -6433,10 +6444,6 @@ int skill_castend_map( struct map_session_data *sd,int skill_num, const char *ma
 	if( sd->bl.prev == NULL || pc_isdead(sd) )
 		return 0;
 
-//Shouldn't be needed, skillnotok's return value is highly unlikely to have changed after you started casting. [Skotlex]
-//	if(skillnotok(skill_num, sd))
-//		return 0;
-
 	if( sd->opt1>0 || sd->status.option&2 ) {
 		skill_failed(sd);
 		return 0;
@@ -6640,8 +6647,10 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 			val3 = BD_INTOABYSS;	//Store into abyss state, to know it shouldn't give traps back. [Skotlex]
 		if (map_flag_gvg(src->m))
 			limit *= 4; // longer trap times in WOE [celest]
-		if (battle_config.vs_traps_bctall && map_flag_vs(src->m))
-			target = BCT_ALL; //Change target to all [Skotlex]
+		if (battle_config.vs_traps_bctall && map_flag_vs(src->m)
+			&& src->type != BL_MOB) 
+			//Change target to all with the exception of mob traps [Skotlex]
+			target = BCT_ALL;
 		break;
 
 	case SA_LANDPROTECTOR:	/* ƒOƒ‰ƒ“ƒhƒNƒ?ƒX */
@@ -6810,7 +6819,7 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 		if (alive && battle_config.skill_wall_check) {
 			//Check if there's a path between cell and center of casting.
 			struct walkpath_data wpd;
-			if (path_search(&wpd,src->m,ux,uy,x,y,0x30001)==-1)
+			if (path_search2(&wpd,src->m,ux,uy,x,y,0x30001)==-1)
 				alive = 0;
 		}
 					
@@ -7719,12 +7728,7 @@ static int skill_check_pc_partner(struct map_session_data *sd, int skill_id, int
 				for (i = 0; i < c; i++)
 				{
 					if ((tsd = map_id2sd(p_sd[i])) != NULL)
-					{
-						tsd->status.sp -= 10;
-						if (tsd->status.sp < 0)
-							tsd->status.sp = 0;
-						clif_updatestatus(tsd,SP_SP);
-					}
+						pc_damage_sp(tsd, 10, 0);
 				}
 				return c;
 			case CG_MOONLIT:
@@ -7784,16 +7788,11 @@ static int skill_check_condition_mob_master_sub(struct block_list *bl,va_list ap
 
 static int skill_check_condition_hermod_sub(struct block_list *bl,va_list ap)
 {
-	int *c;
 	struct npc_data *nd;
-
-	nullpo_retr(0, bl);
-	nullpo_retr(0, ap);
-	nullpo_retr(0, nd=(struct npc_data*)bl);
-	nullpo_retr(0, c=va_arg(ap,int *));
+	nd=(struct npc_data*)bl;
 
 	if (nd->bl.subtype == WARP)
-		(*c)++;
+		return 1;
 	return 0;
 }
 
@@ -8229,14 +8228,10 @@ int skill_check_condition(struct map_session_data *sd,int type)
 		break;
 	}
 	case CG_HERMODE:
+		if (map_foreachinrange (skill_check_condition_hermod_sub, &sd->bl, 3, BL_NPC) < 1)
 		{
-			int c = 0;
-			map_foreachinarea (skill_check_condition_hermod_sub, sd->bl.m,
-				sd->bl.x-3, sd->bl.y-3, sd->bl.x+3, sd->bl.y+3, BL_NPC, &c);
-			if (c < 1) {
-				clif_skill_fail(sd,skill,0,0);
-				return 0;
-			}
+			clif_skill_fail(sd,skill,0,0);
+			return 0;
 		}
 		break;
 	case CG_MOONLIT: //Check there's no wall in the range+1 area around the caster. [Skotlex]
@@ -8935,18 +8930,12 @@ int skill_use_pos (struct map_session_data *sd, int skill_x, int skill_y, int sk
 
 	nullpo_retr(0, sd);
 
-	if (pc_isdead(sd))
-		return 0;
 	if (skill_lv <= 0)
 		return 0;
 	if (sd->skilltimer != -1) //Normally not needed since clif.c checks for it, but at/char/script commands don't! [Skotlex]
 		return 0;
 	if (skillnotok(skill_num, sd)) // [MouseJstr]
 		return 0;
-	if (skill_num == WZ_ICEWALL && map[sd->bl.m].flag.noicewall && !map[sd->bl.m].flag.pvp && !map[sd->bl.m].flag.gvg)  { // noicewall flag [Valaris]
-		clif_skill_fail(sd,sd->skillid,0,0);
-		return 0;
-	}
 	if (map_getcell(sd->bl.m, skill_x, skill_y, CELL_CHKNOPASS))
 	{	//prevent casting ground targeted spells on non-walkable areas. [Skotlex] 
 		

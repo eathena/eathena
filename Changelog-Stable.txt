@@ -5,6 +5,14 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY VALARIS AND WIZPUTER. -- VALARIS
 
 2006/02/23
+	* Merged the path updates from jA that should reduce cpu load on
+	  complicated path seeks (such as around corners or with walls in the
+	  middle) [Skotlex]
+	* Merged mob skill conditions myhpinrate/friendhpinrate [Skotlex]
+	* Merged not deleting lure when used on a non-mob. [Skotlex]
+	* Merged mob-placed traps not changing target to all in pvp [Skotlex]
+	* Moved the battle config options of gtb and ghostring to item.conf
+	  [Skotlex]
 	* Some merges from trunk: [Skotlex]
 	- Fix that prevents slaves from targetting a non-enemy.
 	- Marionette bonus being capped to the battle-config max parameter instead

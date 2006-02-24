@@ -601,11 +601,7 @@ int mob_can_reach(struct mob_data *md,struct block_list *bl,int range, int state
 			easy = 1;
 			break;
 	}
-#ifdef CELL_NOSTACK
-	//In no stack mode, do these path searches ignoring other players as it's just
-	//for reachability judging, not the actual path used. [Skotlex]
-	easy |= 0x30000;
-#endif
+
 	if( md->bl.m != bl->m)	// ˆá‚¤ƒƒbƒv
 		return 0;
 
@@ -619,7 +615,7 @@ int mob_can_reach(struct mob_data *md,struct block_list *bl,int range, int state
 	wpd.path_len=0;
 	wpd.path_pos=0;
 	wpd.path_half=0;
-	if(path_search(&wpd,md->bl.m,md->bl.x,md->bl.y,bl->x,bl->y,easy)!=-1)
+	if(path_search_real(&wpd,md->bl.m,md->bl.x,md->bl.y,bl->x,bl->y,easy,CELL_CHKNOREACH)!=-1)
 		return 1;
 
 	// It judges whether it can adjoin or not.
@@ -627,10 +623,10 @@ int mob_can_reach(struct mob_data *md,struct block_list *bl,int range, int state
 	dy=abs(bl->y - md->bl.y);
 	dx=(dx>0)?1:((dx<0)?-1:0);
 	dy=(dy>0)?1:((dy<0)?-1:0);
-	if(path_search(&wpd,md->bl.m,md->bl.x,md->bl.y,bl->x-dx,bl->y-dy,easy)!=-1)
+	if(path_search_real(&wpd,md->bl.m,md->bl.x,md->bl.y,bl->x-dx,bl->y-dy,easy,CELL_CHKNOREACH)!=-1)
 		return 1;
 	for(i=0;i<9;i++){
-		if(path_search(&wpd,md->bl.m,md->bl.x,md->bl.y,bl->x-1+i/3,bl->y-1+i%3,easy)!=-1)
+		if(path_search_real(&wpd,md->bl.m,md->bl.x,md->bl.y,bl->x-1+i/3,bl->y-1+i%3,easy, CELL_CHKNOREACH)!=-1)
 			return 1;
 	}
 	return 0;
@@ -3601,19 +3597,18 @@ int mobskill_use_pos( struct mob_data *md,
  * Friendly Mob whose HP is decreasing by a nearby MOB is looked for.
  *------------------------------------------
  */
-int mob_getfriendhpltmaxrate_sub(struct block_list *bl,va_list ap)
+int mob_getfriendhprate_sub(struct block_list *bl,va_list ap)
 {
-	int rate;
+	int min_rate, max_rate,rate;
 	struct block_list **fr;
 	struct mob_data *md;
 
-	nullpo_retr(0, bl);
-	nullpo_retr(0, ap);
-	nullpo_retr(0, md=va_arg(ap,struct mob_data *));
-	rate=va_arg(ap,int);
+	md = va_arg(ap,struct mob_data *);
+	min_rate=va_arg(ap,int);
+	max_rate=va_arg(ap,int);
 	fr=va_arg(ap,struct block_list **);
 
-	if( md->bl.id == bl->id )
+	if( md->bl.id == bl->id && !(battle_config.mob_ai&16))
 		return 0;
 
 	if ((*fr) != NULL) //A friend was already found.
@@ -3622,14 +3617,15 @@ int mob_getfriendhpltmaxrate_sub(struct block_list *bl,va_list ap)
 	if (battle_check_target(&md->bl,bl,BCT_ENEMY)>0)
 		return 0;
 	
-	if (status_get_hp(bl) < status_get_max_hp(bl) * rate / 100)
+	rate = 100*status_get_hp(bl)/status_get_max_hp(bl);
+	
+	if (rate >= min_rate && rate <= max_rate)
 		(*fr) = bl;
-	return 0;
+	return 1;
 }
-struct block_list *mob_getfriendhpltmaxrate(struct mob_data *md,int rate)
+static struct block_list *mob_getfriendhprate(struct mob_data *md,int min_rate,int max_rate)
 {
 	struct block_list *fr=NULL;
-	const int r=8;
 	int type = BL_MOB;
 	
 	nullpo_retr(NULL, md);
@@ -3637,9 +3633,7 @@ struct block_list *mob_getfriendhpltmaxrate(struct mob_data *md,int rate)
 	if (md->special_state.ai) //Summoned creatures. [Skotlex]
 		type = BL_PC;
 	
-	map_foreachinarea(mob_getfriendhpltmaxrate_sub, md->bl.m,
-		md->bl.x-r ,md->bl.y-r, md->bl.x+r, md->bl.y+r,
-		type,md,rate,&fr);
+	map_foreachinrange(mob_getfriendhprate_sub, &md->bl, 8, type,md,min_rate,max_rate,&fr);
 	return fr;
 }
 /*==========================================
@@ -3671,7 +3665,7 @@ int mob_getfriendstatus_sub(struct block_list *bl,va_list ap)
 	nullpo_retr(0, md=(struct mob_data *)bl);
 	nullpo_retr(0, mmd=va_arg(ap,struct mob_data *));
 
-	if( mmd->bl.id == bl->id )
+	if( mmd->bl.id == bl->id && !(battle_config.mob_ai&16) )
 		return 0;
 	if (battle_check_target(&mmd->bl,bl,BCT_ENEMY)>0)
 		return 0;
@@ -3694,12 +3688,10 @@ int mob_getfriendstatus_sub(struct block_list *bl,va_list ap)
 struct mob_data *mob_getfriendstatus(struct mob_data *md,int cond1,int cond2)
 {
 	struct mob_data *fr=NULL;
-	const int r=8;
 
 	nullpo_retr(0, md);
 
-	map_foreachinarea(mob_getfriendstatus_sub, md->bl.m,
-		md->bl.x-r ,md->bl.y-r, md->bl.x+r, md->bl.y+r,
+	map_foreachinrange(mob_getfriendstatus_sub, &md->bl, 8,
 		BL_MOB,md,cond1,cond2,&fr);
 	return fr;
 }
@@ -3745,10 +3737,13 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 				case MSC_ALWAYS:
 					flag = 1; break;
 				case MSC_MYHPLTMAXRATE:		// HP< maxhp%
-					{
-						int max_hp = status_get_max_hp(&md->bl);
-						flag = (md->hp < max_hp * c2 / 100); break;
-					}
+					flag = 100*md->hp/status_get_max_hp(&md->bl);
+					flag = (flag <= c2);
+				  	break;
+				case MSC_MYHPINRATE:
+					flag = 100*md->hp/status_get_max_hp(&md->bl);
+					flag = (flag >= c2 && flag <= ms[i].val[0]);
+					break;
 				case MSC_MYSTATUSON:		// status[num] on
 				case MSC_MYSTATUSOFF:		// status[num] off
 					if (!md->sc_data) {
@@ -3763,7 +3758,9 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 					}
 					flag ^= (ms[i].cond1 == MSC_MYSTATUSOFF); break;
 				case MSC_FRIENDHPLTMAXRATE:	// friend HP < maxhp%
-					flag = ((fbl = mob_getfriendhpltmaxrate(md, ms[i].cond2)) != NULL); break;
+					flag = ((fbl = mob_getfriendhprate(md, 0, ms[i].cond2)) != NULL); break;
+				case MSC_FRIENDHPINRATE	:
+					flag = ((fbl = mob_getfriendhprate(md, ms[i].cond2, ms[i].val[0])) != NULL); break;
 				case MSC_FRIENDSTATUSON:	// friend status[num] on
 				case MSC_FRIENDSTATUSOFF:	// friend status[num] off
 					flag = ((fmd = mob_getfriendstatus(md, ms[i].cond1, ms[i].cond2)) != NULL); break;					
@@ -4565,7 +4562,9 @@ static int mob_readskilldb(void)
 	} cond1[] = {
 		{	"always",			MSC_ALWAYS				},
 		{	"myhpltmaxrate",	MSC_MYHPLTMAXRATE		},
+		{  "myhpinrate",		MSC_MYHPINRATE 		},
 		{	"friendhpltmaxrate",MSC_FRIENDHPLTMAXRATE	},
+		{	"friendhpinrate",	MSC_FRIENDHPINRATE	},
 		{	"mystatuson",		MSC_MYSTATUSON			},
 		{	"mystatusoff",		MSC_MYSTATUSOFF			},
 		{	"friendstatuson",	MSC_FRIENDSTATUSON		},
