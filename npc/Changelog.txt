@@ -28,6 +28,8 @@ Nexon
 Date		Added
 ======
 
+02/27
+	* Fixed a flag direction in front of Yesnelph, thanks to Playtester [DracoRPG]
 02/21
 	* Fixed wrong indication of Repairsman, thanks to NeoSaro [Lupus]
 	- Moved Kafra Storage Password option from Trunk 
