@@ -3467,8 +3467,9 @@ int config_switch(const char *str) {
 int login_lan_config_read(const char *lancfgName) {
 
 	FILE *fp;
+	int line_num = 0;
 	char line[1024], w1[64], w2[64], w3[64], w4[64], w5[64];
-
+	
 	if((fp = fopen(lancfgName, "r")) == NULL) {
 		ShowWarning("LAN Support configuration file is not found: %s\n", lancfgName);
 		return 1;
@@ -3478,13 +3479,14 @@ int login_lan_config_read(const char *lancfgName) {
 
 	while(fgets(line, sizeof(line)-1, fp)) {
 
-		if (line[0] == '/' && line[1] == '/')
+		line_num++;		
+		if ((line[0] == '/' && line[1] == '/') || line[0] == '\n' || line[1] == '\n')
 			continue;
 
 		line[sizeof(line)-1] = '\0';
 		if(sscanf(line,"%[^:]: %[^/]/%[^:]:%[^:]:%[^\r\n]", w1, w2, w3, w4, w5) != 5) {
 	
-			ShowWarning("Error syntax of configuration file %s. Line skipped.\n", lancfgName);	
+			ShowWarning("Error syntax of configuration file %s in line %d.\n", lancfgName, line_num);	
 			continue;
 		}
 
