@@ -2984,17 +2984,16 @@ int parse_admin(int fd) {
 int lan_subnetcheck(unsigned char *p) {
 
 	int i;
-	char *sbn, *msk;
+	unsigned char *sbn, *msk;
 	
 	for(i=0; i<subnet_count; i++) {
 	
-		printf("%ld - %ld - %ld", subnet[i].subnet, subnet[i].mask, (long)p);
 		if((subnet[i].subnet & subnet[i].mask) == ((long)p & subnet[i].mask)) {
 			
 			sbn = (char *)&subnet[i].subnet;
 			msk = (char *)&subnet[i].mask;
 			
-			ShowMessage("Subnet check result: "CL_CYAN"%d.%d.%d.%d/%d.%d.%d.%d"CL_RESET"\n",
+			ShowMessage("Subnet check result: "CL_CYAN"%u.%u.%u.%u/%u.%u.%u.%u"CL_RESET"\n",
 				sbn[0], sbn[1], sbn[2], sbn[3], msk[0], msk[1], msk[2], msk[3]);
 			
 			return subnet[i].char_ip;
