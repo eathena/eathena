@@ -2900,6 +2900,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 				skill_castend_damage_id);
 			status_change_start (src,SC_WATK_ELEMENT,3,20,0,0,10000,0); //Initiate 10% of your damage becomes fire element.
 			clif_skill_nodamage (src,src,skillid,skilllv,1);
+			if (sd) pc_blockskill_start (sd, skillid, skill_get_time(skillid, skilllv));
 		}
 		break;
 
