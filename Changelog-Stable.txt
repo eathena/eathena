@@ -5,8 +5,12 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY VALARIS AND WIZPUTER. -- VALARIS
 
 
+2006/03/02
+	* Gravitation now only blocks caster from using skills, should have fixed
+	  it from not doing any damage when skill_caster_check is set as well.
+	  [Skotlex]
 2006/03/01
-	- Added the 2 sec skill delay before recasting Magnum Break [Skotlex]
+	* Added the 2 sec skill delay before recasting Magnum Break [Skotlex]
 2006/02/28
 	* Updated from trunk:
 	- Rewrote LAN support code. Changed configuration file name

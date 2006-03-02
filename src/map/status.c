@@ -668,7 +668,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 			(sc_data[SC_TRICKDEAD].timer != -1 && skill_num != NV_TRICKDEAD)
 			|| (sc_data[SC_AUTOCOUNTER].timer != -1 && skill_num != KN_AUTOCOUNTER)
 			|| (sc_data[SC_GOSPEL].timer != -1 && sc_data[SC_GOSPEL].val4 == BCT_SELF && skill_num != PA_GOSPEL)
-			|| sc_data[SC_GRAVITATION].timer != -1
+			|| (sc_data[SC_GRAVITATION].timer != -1 && sc_data[SC_GRAVITATION].val4 == BCT_SELF && !flag)
 		)
 			return 0;
 
