@@ -27,8 +27,13 @@
 
 =========================
 
+03/02
+	* Fixed some skill warnings. [Poki#3]
+	* Added back mob "Mime Monkey". [Poki#3]
+
 03/01
 	* Added temp Green Iguana skills [Lupus]
+
 02/27
 	* Temp plug: 2620,Rogue's_Treasure steal rate -> 1 (have to fix formula) [Lupus]
 	- Fixed all Vesper Acessories (removed doubled DEF bonus), thanks to Irmin
@@ -36,14 +41,17 @@
 	- Removed DOUBLED combo bonus from some items. Also fixed missing brackets
 		Chnaged:	2115,Valkyrie's_Shield, 2114,Stone_Buckler, 2353,Odin's_Blessing,
 					5122,Magni's_Cap, 5123,Ulle's_Cap, 5124,Fricca's_Circlet
+
 02/24
 	* Copied latest mob_skill_db from Trunk to Stable  [Komurka]
 	- fixed onspawn's by Poki#3
 	- fixed Lady Tana typo by Skotlex
 	- fixed Alchemist Marine Sphere by Skotlex
+
 02/22
 	* Fixed G_GOBLINE_XMAS mode (aggresive ~~) [Komurka
 	* Made G_DARK_ILLUSION more ... aggressive [Komurka]
+
 02/21
 	* Updates from trunk: [Komurka]
 	- updated item_bluebox.txt, item_giftbox.txt, item_violetbox.txt, item_db.txt, mob_db.txt,
