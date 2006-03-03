@@ -4350,31 +4350,39 @@ int buildin_getguildmasterid(struct script_state *st)
 int buildin_strcharinfo(struct script_state *st)
 {
 	struct map_session_data *sd;
+	char *buf;
 	int num;
 
 	sd=script_rid2sd(st);
+	if (!sd) { //Avoid crashing....
+		push_str(st->stack,C_CONSTSTR,(unsigned char *) "");
+		return 0;
+	}
 	num=conv_num(st,& (st->stack->stack_data[st->start+2]));
-	if(num==0){
-		char *buf;
-		buf=(char *)aCallocA(NAME_LENGTH,sizeof(char));
-		memcpy(buf, sd->status.name, NAME_LENGTH-1);
-		push_str(st->stack,C_STR,(unsigned char *) buf);
-	}
-	if(num==1){
-		char *buf;
-		buf=buildin_getpartyname_sub(sd->status.party_id);
-		if(buf!=0)
+	switch(num){
+		case 0:
+			buf=(char *)aCallocA(NAME_LENGTH,sizeof(char));
+			memcpy(buf, sd->status.name, NAME_LENGTH-1);
 			push_str(st->stack,C_STR,(unsigned char *) buf);
-		else
+			break;
+		case 1:
+			buf=buildin_getpartyname_sub(sd->status.party_id);
+			if(buf!=0)
+				push_str(st->stack,C_STR,(unsigned char *) buf);
+			else
+				push_str(st->stack,C_CONSTSTR,(unsigned char *) "");
+			break;
+		case 2:
+			buf=buildin_getguildname_sub(sd->status.guild_id);
+			if(buf != NULL)
+				push_str(st->stack,C_STR,(unsigned char *) buf);
+			else
+				push_str(st->stack,C_CONSTSTR,(unsigned char *) "");
+			break;
+		default:
+			ShowWarning("buildin_strcharinfo: unknown parameter.");
 			push_str(st->stack,C_CONSTSTR,(unsigned char *) "");
-	}
-	if(num==2){
-		char *buf;
-		buf=buildin_getguildname_sub(sd->status.guild_id);
-		if(buf != NULL)
-			push_str(st->stack,C_STR,(unsigned char *) buf);
-		else
-			push_str(st->stack,C_CONSTSTR,(unsigned char *) "");
+			break;
 	}
 
 	return 0;

@@ -5,6 +5,9 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY VALARIS AND WIZPUTER. -- VALARIS
 
 
+2006/03/03
+	* Trickdead is now cancelled on logout. [Skotlex]
+	* strcharinfo won't crash now if a player is not attached. [Skotlex]
 2006/03/02
 	* Gravitation now only blocks caster from using skills, should have fixed
 	  it from not doing any damage when skill_caster_check is set as well.
