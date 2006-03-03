@@ -6,6 +6,7 @@ GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY VALARIS AND WIZPUTER. -- VALAR
 
 
 2006/03/03
+	* Fixed npc whispering crashing when message's length is 1. [Skotlex]
 	* Fixed character deletion working on SQL without an email address (Thanks to Valaris) [Zephiris]
 	* Trickdead is now cancelled on logout. [Skotlex]
 	* strcharinfo won't crash now if a player is not attached. [Skotlex]
