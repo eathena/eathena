@@ -6,6 +6,9 @@ GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY VALARIS AND WIZPUTER. -- VALAR
 
 
 2006/03/03
+	* Added upgrade_svn5456.sql, it converts the manner and karma columns to
+	  signed. Apply this if your tables have the field as unsigned (which would
+	  explain mute always disappearing after relogging) [Skotlex]
 	* Fixed npc whispering crashing when message's length is 1. [Skotlex]
 	* Fixed character deletion working on SQL without an email address (Thanks to Valaris) [Zephiris]
 	* Trickdead is now cancelled on logout. [Skotlex]

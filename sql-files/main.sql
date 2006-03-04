@@ -52,7 +52,7 @@ CREATE TABLE `char` (
   `status_point` smallint(11) unsigned NOT NULL default '0',
   `skill_point` smallint(11) unsigned NOT NULL default '0',
   `option` int(11) NOT NULL default '0',
-  `karma` tinyint(11) unsigned NOT NULL default '0',
+  `karma` tinyint(11) NOT NULL default '0',
   `manner` tinyint(11) NOT NULL default '0',
   `party_id` smallint(11) unsigned NOT NULL default '0',
   `guild_id` smallint(11) unsigned NOT NULL default '0',
