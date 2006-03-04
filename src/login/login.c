@@ -2981,26 +2981,26 @@ int parse_admin(int fd) {
 // Test to know if an IP come from LAN or WAN.
 // Rewrote: Adnvanced subnet check [LuzZza]
 //--------------------------------------------
-int lan_subnetcheck(unsigned char *p) {
+int lan_subnetcheck(long *p) {
 
 	int i;
-	unsigned char *sbn, *msk;
+	unsigned char *sbn, *msk, *src = (unsigned char *)p;
 	
 	for(i=0; i<subnet_count; i++) {
 	
-		if((subnet[i].subnet & subnet[i].mask) == ((long)p & subnet[i].mask)) {
+		if((subnet[i].subnet & subnet[i].mask) == (*p & subnet[i].mask)) {
 			
 			sbn = (char *)&subnet[i].subnet;
 			msk = (char *)&subnet[i].mask;
 			
-			ShowMessage("Subnet check result: "CL_CYAN"%u.%u.%u.%u/%u.%u.%u.%u"CL_RESET"\n",
-				sbn[0], sbn[1], sbn[2], sbn[3], msk[0], msk[1], msk[2], msk[3]);
+			ShowInfo("Subnet check [%u.%u.%u.%u]: Matches "CL_CYAN"%u.%u.%u.%u/%u.%u.%u.%u"CL_RESET"\n",
+				src[0], src[1], src[2], src[3], sbn[0], sbn[1], sbn[2], sbn[3], msk[0], msk[1], msk[2], msk[3]);
 			
 			return subnet[i].char_ip;
 		}
 	}
 	
-	ShowMessage("Subnet check result: "CL_CYAN"no matches."CL_RESET"\n");
+	ShowInfo("Subnet check [%u.%u.%u.%u]: "CL_CYAN"WAN"CL_RESET"\n", src[0], src[1], src[2], src[3]);
 	return 0;
 }
 
@@ -3008,7 +3008,7 @@ int lan_subnetcheck(unsigned char *p) {
 // Default packet parsing (normal players or administation/char-server connexion requests)
 //----------------------------------------------------------------------------------------
 int parse_login(int fd) {
-
+	
 	struct mmo_account account;
 	int result, j;
 	unsigned int i;
@@ -3105,12 +3105,12 @@ int parse_login(int fd) {
 					else
 						ShowInfo("Connection of the account '%s' accepted.\n", account.userid);
 					server_num = 0;
-                                        WFIFOHEAD(fd, 47+32*MAX_SERVERS);
+					WFIFOHEAD(fd, 47+32*MAX_SERVERS);
 					for(i = 0; i < MAX_SERVERS; i++) {
 						if (server_fd[i] >= 0) {
 						
 						    // Andvanced subnet check [LuzZza]
-							if((subnet_char_ip = lan_subnetcheck(p)))
+							if((subnet_char_ip = lan_subnetcheck((long*)p)))
 								WFIFOL(fd,47+server_num*32) = subnet_char_ip;
 							else
 								WFIFOL(fd,47+server_num*32) = server[i].ip;

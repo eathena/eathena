@@ -27,6 +27,8 @@
 
 =========================
 
+03/04
+	* Fixed baby dancer's job exp not being present in exp2.txt
 03/02
 	* Fixed some skill warnings. [Poki#3]
 	* Added back mob "Mime Monkey". [Poki#3]

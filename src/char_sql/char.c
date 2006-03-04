@@ -1389,7 +1389,7 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 	//Now we need the charid from sql!
 	if(mysql_field_count(&mysql_handle) == 0 &&
 		mysql_insert_id(&mysql_handle) > 0)
-		char_id = mysql_insert_id(&mysql_handle);
+		char_id = (int)mysql_insert_id(&mysql_handle);
 	else {
 		//delete the char ..(no trash in DB!) but how is this possible?
 		sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
@@ -2868,7 +2868,7 @@ int char_mapif_init(int fd) {
 int lan_subnetcheck(long *p) {
 
 	int i;
-	unsigned char *sbn, *msk;
+	unsigned char *sbn, *msk, *src = (unsigned char *)p;
 	
 	for(i=0; i<subnet_count; i++) {
 	
@@ -2877,14 +2877,14 @@ int lan_subnetcheck(long *p) {
 			sbn = (unsigned char *)&subnet[i].subnet;
 			msk = (unsigned char *)&subnet[i].mask;
 			
-			ShowStatus("Subnet check result: "CL_CYAN"%u.%u.%u.%u/%u.%u.%u.%u"CL_RESET"\n",
-				sbn[0], sbn[1], sbn[2], sbn[3], msk[0], msk[1], msk[2], msk[3]);
+			ShowInfo("Subnet check [%u.%u.%u.%u]: Matches "CL_CYAN"%u.%u.%u.%u/%u.%u.%u.%u"CL_RESET"\n",
+				src[0], src[1], src[2], src[3], sbn[0], sbn[1], sbn[2], sbn[3], msk[0], msk[1], msk[2], msk[3]);
 			
 			return subnet[i].map_ip;
 		}
 	}
 	
-	ShowStatus("Subnet check result: "CL_CYAN"no matches."CL_RESET"\n");
+	ShowInfo("Subnet check [%u.%u.%u.%u]: "CL_CYAN"WAN"CL_RESET"\n", src[0], src[1], src[2], src[3]);
 	return 0;
 }
 

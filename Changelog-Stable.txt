@@ -5,6 +5,9 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY VALARIS AND WIZPUTER. -- VALARIS
 
 
+2006/03/04
+	* Synced login/char servers to trunk (except fame-list configs and
+	  gm-reading configs) [Skotlex]
 2006/03/03
 	* Added upgrade_svn5456.sql, it converts the manner and karma columns to
 	  signed. Apply this if your tables have the field as unsigned (which would

@@ -64,7 +64,6 @@ void Gettimeofday(struct timeval *timenow)
 //-----------------------------------------------------
 // global variable
 //-----------------------------------------------------
-int account_id_count = START_ACCOUNT_NUM;
 int server_num;
 int new_account_flag = 0; //Set from config too XD [Sirius]
 int bind_ip_set_ = 0;
@@ -377,29 +376,6 @@ int mmo_auth_sqldb_init(void) {
 			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		}
 	}
-	if (new_account_flag)
-	{	//Check if the next new account will need to have it's ID set (to avoid bad DBs which would otherwise insert
-		//new accounts with account_ids of less than 2M [Skotlex]
-		sprintf(tmp_sql, "SELECT max(`%s`) from `%s`", login_db_account_id, login_db);
-		if(mysql_query(&mysql_handle, tmp_sql)){
-			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
-			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-		} else {
-			MYSQL_RES* 	sql_res;
-			MYSQL_ROW	sql_row;
-			
-			sql_res = mysql_store_result(&mysql_handle) ;
-			if (sql_res)
-			{
-				if (mysql_num_rows(sql_res) > 0 &&
-					(sql_row = mysql_fetch_row(sql_res)) != NULL &&
-					sql_row[0] != NULL && atoi(sql_row[0]) >= account_id_count)
-				//Ok, chars already exist, no need to use this.
-					account_id_count = 0;
-				mysql_free_result(sql_res);
-			}
-		}
-	}
 	return 0;
 }
 
@@ -498,10 +474,7 @@ int mmo_auth_new(struct mmo_account* account, char sex)
 
 	ShowInfo("New account: user: %s with passwd: %s sex: %c\n", account->userid, user_password, sex);
 
-	if (account_id_count) //Force new Account ID
-		sprintf(tmp_sql, "INSERT INTO `%s` (`%s`, `%s`, `%s`, `sex`, `email`) VALUES ('%d', '%s', '%s', '%c', '%s')", login_db, login_db_account_id, login_db_userid, login_db_user_pass, account_id_count, account->userid, user_password, sex, "a@a.com");
-	else
-		sprintf(tmp_sql, "INSERT INTO `%s` (`%s`, `%s`, `sex`, `email`) VALUES ('%s', '%s', '%c', '%s')", login_db, login_db_userid, login_db_user_pass, account->userid, user_password, sex, "a@a.com");
+	sprintf(tmp_sql, "INSERT INTO `%s` (`%s`, `%s`, `sex`, `email`) VALUES ('%s', '%s', '%c', '%s')", login_db, login_db_userid, login_db_user_pass, account->userid, user_password, sex, "a@a.com");
 		
 	if(mysql_query(&mysql_handle, tmp_sql)){
 		//Failed to insert new acc :/
@@ -510,9 +483,25 @@ int mmo_auth_new(struct mmo_account* account, char sex)
 		return 1;
 	}
 
-	if (account_id_count) //Clear it or all new accounts will try to use the same id :P
-		account_id_count = 0;
-
+	if(mysql_field_count(&mysql_handle) == 0 &&
+		mysql_insert_id(&mysql_handle) < START_ACCOUNT_NUM) {
+		//Invalid Account ID! Must update it.
+		int id = (int)mysql_insert_id(&mysql_handle);
+		sprintf(tmp_sql, "UPDATE `%s` SET `%s`='%d' WHERE `%s`='%d'", login_db, login_db_account_id, START_ACCOUNT_NUM, login_db_account_id, id);
+		if(mysql_query(&mysql_handle, tmp_sql)){
+			ShowError("New account %s has an invalid account ID [%d] which could not be updated (account_id must be %d or higher).", account->userid, id, START_ACCOUNT_NUM);
+			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+			//Just delete it and fail.
+			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `%s`='%d'", login_db, login_db_account_id, id);
+			if(mysql_query(&mysql_handle, tmp_sql)){
+				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+			}
+			return 1;
+		}
+		ShowNotice("Updated New account %s's ID %d->%d (account_id must be %d or higher).", account->userid, id, START_ACCOUNT_NUM, START_ACCOUNT_NUM);
+	}
 	if(tick > new_reg_tick)
 	{	//Update the registration check.
 		num_regs=0;
@@ -569,7 +558,7 @@ int mmo_auth( struct mmo_account* account , int fd){
 
 
 	sprintf(ip, "%d.%d.%d.%d", sin_addr[0], sin_addr[1], sin_addr[2], sin_addr[3]);
-	ShowInfo("auth start for %s...\n", ip);
+	//ShowInfo("auth start for %s...\n", ip);
 	
 	//accountreg with _M/_F .. [Sirius]
 	len = strlen(account->userid) -2;
@@ -663,11 +652,11 @@ int mmo_auth( struct mmo_account* account , int fd){
 		} else {
 			jstrescapecpy(user_password, account->passwd);
 		}
-		ShowInfo("account id ok encval:%d\n",account->passwdenc);
+		//ShowInfo("account id ok encval:%d\n",account->passwdenc);
 #ifdef PASSWORDENC
 		if (account->passwdenc > 0) {
 			int j = account->passwdenc;
-			ShowInfo("start md5calc..\n");
+			//ShowInfo("start md5calc..\n");
 			if (j > 2)
 				j = 1;
 			do {
@@ -677,13 +666,13 @@ int mmo_auth( struct mmo_account* account , int fd){
 					sprintf(md5str, "%s%s", sql_row[2], md5key);
 				} else
 					md5str[0] = 0;
-				ShowDebug("j:%d mdstr:%s\n", j, md5str);
+				//ShowDebug("j:%d mdstr:%s\n", j, md5str);
 				MD5_String2binary(md5str, md5bin);
 				encpasswdok = (memcmp(user_password, md5bin, 16) == 0);
 			} while (j < 2 && !encpasswdok && (j++) != account->passwdenc);
 			//printf("key[%s] md5 [%s] ", md5key, md5);
-			ShowInfo("client [%s] accountpass [%s]\n", user_password, sql_row[2]);
-			ShowInfo("end md5calc..\n");
+			//ShowInfo("client [%s] accountpass [%s]\n", user_password, sql_row[2]);
+			//ShowInfo("end md5calc..\n");
 		}
 #endif
 		if ((strcmp(user_password, sql_row[2]) && !encpasswdok)) {
@@ -708,7 +697,7 @@ int mmo_auth( struct mmo_account* account , int fd){
 			}
 			return 1;
 		}
-		ShowInfo("auth ok %s %s" RETCODE, tmpstr, account->userid);
+		//ShowInfo("auth ok %s %s" RETCODE, tmpstr, account->userid);
 	}
 
 /*
@@ -825,8 +814,8 @@ int mmo_auth( struct mmo_account* account , int fd){
 	account->sex = sql_row[5][0] == 'S' ? 2 : sql_row[5][0]=='M';
 	account->level = atoi(sql_row[10]) > 99 ? 99 : atoi(sql_row[10]); // as was in isGM() [zzo]
 
-	if (account->sex != 2 && account->account_id < 700000)
-		ShowWarning("Account %s has account id %d! Account IDs must be over 700000 to work properly!\n", account->userid, account->account_id);
+	if (account->sex != 2 && account->account_id < START_ACCOUNT_NUM)
+		ShowWarning("Account %s has account id %d! Account IDs must be over %d to work properly!\n", account->userid, account->account_id, START_ACCOUNT_NUM);
 	sprintf(tmpsql, "UPDATE `%s` SET `lastlogin` = NOW(), `logincount`=`logincount` +1, `last_ip`='%s'  WHERE %s  `%s` = '%s'",
 	        login_db, ip, case_sensitive ? "BINARY" : "", login_db_userid, sql_row[1]);
 	mysql_free_result(sql_res) ; //resource free
@@ -1364,26 +1353,26 @@ int parse_fromchar(int fd){
 // Test to know if an IP come from LAN or WAN.
 // Rewrote: Adnvanced subnet check [LuzZza]
 //--------------------------------------------
-int lan_subnetcheck(unsigned char *p) {
+int lan_subnetcheck(long *p) {
 
 	int i;
-	unsigned char *sbn, *msk;
+	unsigned char *sbn, *msk, *src = (unsigned char *)p;
 	
 	for(i=0; i<subnet_count; i++) {
 	
-		if((subnet[i].subnet & subnet[i].mask) == ((long)p & subnet[i].mask)) {
+		if((subnet[i].subnet & subnet[i].mask) == (*p & subnet[i].mask)) {
 			
-			sbn = (char *)&subnet[i].subnet;
-			msk = (char *)&subnet[i].mask;
+			sbn = (unsigned char *)&subnet[i].subnet;
+			msk = (unsigned char *)&subnet[i].mask;
 			
-			ShowMessage("Subnet check result: "CL_CYAN"%u.%u.%u.%u/%u.%u.%u.%u"CL_RESET"\n",
-				sbn[0], sbn[1], sbn[2], sbn[3], msk[0], msk[1], msk[2], msk[3]);
+			ShowInfo("Subnet check [%u.%u.%u.%u]: Matches "CL_CYAN"%u.%u.%u.%u/%u.%u.%u.%u"CL_RESET"\n",
+				src[0], src[1], src[2], src[3], sbn[0], sbn[1], sbn[2], sbn[3], msk[0], msk[1], msk[2], msk[3]);
 			
 			return subnet[i].char_ip;
 		}
 	}
 	
-	ShowMessage("Subnet check result: "CL_CYAN"no matches."CL_RESET"\n");
+	ShowInfo("Subnet check [%u.%u.%u.%u]: "CL_CYAN"WAN"CL_RESET"\n", src[0], src[1], src[2], src[3]);
 	return 0;
 }
 
@@ -1520,7 +1509,7 @@ int parse_login(int fd) {
 					if (server_fd[i] >= 0) {
 					
 						    // Andvanced subnet check [LuzZza]
-							if((subnet_char_ip = lan_subnetcheck(p)))
+							if((subnet_char_ip = lan_subnetcheck((long *)p)))
 								WFIFOL(fd,47+server_num*32) = subnet_char_ip;
 							else
 								WFIFOL(fd,47+server_num*32) = server[i].ip;
