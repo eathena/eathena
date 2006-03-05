@@ -5,6 +5,9 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY VALARIS AND WIZPUTER. -- VALARIS
 
 2006/03/05
+	* Fixed animation of Redemptio [Skotlex]
+	* Fixed pc_stopwalking making your sprite appear standing if invoked while
+	  sitting. [Skotlex]
 	* Reverted back LAN support update commit. [LuzZza]
 	* Fixed easter.txt [Lance]
 2006/03/04

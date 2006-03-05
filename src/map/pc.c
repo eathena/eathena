@@ -3723,7 +3723,7 @@ int pc_stop_walking (struct map_session_data *sd, int type)
 	sd->walkpath.path_len = 0;
 	sd->to_x = sd->bl.x;
 	sd->to_y = sd->bl.y;
-	if (type & 0x01)
+	if (type & 0x01 && !pc_issit(sd)) //Trying to fixpos while sitting makes you seem standing. [Skotlex]
 		clif_fixpos(&sd->bl);
 	if (sd->sc_data[SC_RUN].timer != -1)
 		status_change_end(&sd->bl, SC_RUN, -1);
