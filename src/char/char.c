@@ -23,7 +23,6 @@ typedef long in_addr_t;
 #include <fcntl.h>
 #include <string.h>
 #include <stdarg.h>
-#include <limits.h>
 
 #include "../common/strlib.h"
 #include "../common/core.h"
@@ -75,17 +74,10 @@ char backup_txt_flag = 0; // The backup_txt file was created because char deleti
 char unknown_char_name[1024] = "Unknown";
 char char_log_filename[1024] = "log/char.log";
 char db_path[1024]="db";
-
-// Advanced subnet check [LuzZza]
-struct _subnet {
-	long subnet;
-	long mask;
-	long char_ip;
-	long map_ip;
-} subnet[16];
-
-int subnet_count = 0;
-
+//Added for lan support
+char lan_map_ip[128];
+int subneti[4];
+int subnetmaski[4];
 int name_ignoring_case = 0; // Allow or not identical name for characters but with a different case by [Yor]
 int char_name_option = 0; // Option to know which letters/symbols are authorised in the name of a character (0: all, 1: only those in char_name_letters, 2: all EXCEPT those in char_name_letters) by [Yor]
 //The following are characters that are trimmed regardless because they cause confusion and problems on the servers. [Skotlex]
@@ -367,8 +359,8 @@ int mmo_char_tostr(char *str, struct mmo_charstatus *p, struct global_reg *reg, 
 		p->last_point.x = 273;
 		p->last_point.y = 354;
 	}
-	*/
-	str_p += sprintf(str_p, "%d\t%d,%d\t%s\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
+*/
+	str_p += sprintf(str_p, "%d\t%d,%d\t%s\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
 		"\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
 		"\t%s,%d,%d\t%s,%d,%d,%d,%d,%d,%d,%d\t",
 		p->char_id, p->account_id, p->char_num, p->name, //
@@ -433,19 +425,18 @@ int mmo_char_tostr(char *str, struct mmo_charstatus *p, struct global_reg *reg, 
 int mmo_char_fromstr(char *str, struct mmo_charstatus *p, struct global_reg *reg, int *reg_num) {
 	char tmp_str[3][128]; //To avoid deleting chars with too long names.
 	int tmp_int[256];
-	unsigned int tmp_uint[2]; //To read exp....
 	int set, next, len, i, j;
 
 	// initilialise character
 	memset(p, '\0', sizeof(struct mmo_charstatus));
 	
 	// If it's not char structure of version 1488 and after
-	if ((set = sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
+	if ((set = sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
 		"\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
 		"\t%127[^,],%d,%d\t%127[^,],%d,%d,%d,%d,%d,%d,%d%n",
 		&tmp_int[0], &tmp_int[1], &tmp_int[2], tmp_str[0],
 		&tmp_int[3], &tmp_int[4], &tmp_int[5],
-		&tmp_uint[0], &tmp_uint[1], &tmp_int[8],
+		&tmp_int[6], &tmp_int[7], &tmp_int[8],
 		&tmp_int[9], &tmp_int[10], &tmp_int[11], &tmp_int[12],
 		&tmp_int[13], &tmp_int[14], &tmp_int[15], &tmp_int[16], &tmp_int[17], &tmp_int[18],
 		&tmp_int[19], &tmp_int[20],
@@ -459,12 +450,12 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p, struct global_reg *reg
 	{
 		tmp_int[43] = 0;	
 		// If it's not char structure of version 1363 and after
-		if ((set = sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
+		if ((set = sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
 			"\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
 			"\t%127[^,],%d,%d\t%127[^,],%d,%d,%d,%d,%d,%d%n",
 			&tmp_int[0], &tmp_int[1], &tmp_int[2], tmp_str[0], //
 			&tmp_int[3], &tmp_int[4], &tmp_int[5],
-			&tmp_uint[0], &tmp_uint[1], &tmp_int[8],
+			&tmp_int[6], &tmp_int[7], &tmp_int[8],
 			&tmp_int[9], &tmp_int[10], &tmp_int[11], &tmp_int[12],
 			&tmp_int[13], &tmp_int[14], &tmp_int[15], &tmp_int[16], &tmp_int[17], &tmp_int[18],
 			&tmp_int[19], &tmp_int[20],
@@ -480,12 +471,12 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p, struct global_reg *reg
 			tmp_int[41] = 0; // mother
 			tmp_int[42] = 0; // child
 			// If it's not char structure of version 1008 and before 1363
-			if ((set = sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
+			if ((set = sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
 				"\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
 				"\t%127[^,],%d,%d\t%127[^,],%d,%d,%d%n",
 				&tmp_int[0], &tmp_int[1], &tmp_int[2], tmp_str[0], //
 				&tmp_int[3], &tmp_int[4], &tmp_int[5],
-				&tmp_uint[0], &tmp_uint[1], &tmp_int[8],
+				&tmp_int[6], &tmp_int[7], &tmp_int[8],
 				&tmp_int[9], &tmp_int[10], &tmp_int[11], &tmp_int[12],
 				&tmp_int[13], &tmp_int[14], &tmp_int[15], &tmp_int[16], &tmp_int[17], &tmp_int[18],
 				&tmp_int[19], &tmp_int[20],
@@ -498,12 +489,12 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p, struct global_reg *reg
 			{
 				tmp_int[39] = 0; // partner id
 				// If not char structure from version 384 to 1007
-				if ((set = sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
+				if ((set = sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
 					"\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
 					"\t%127[^,],%d,%d\t%127[^,],%d,%d%n",
 					&tmp_int[0], &tmp_int[1], &tmp_int[2], tmp_str[0], //
 					&tmp_int[3], &tmp_int[4], &tmp_int[5],
-					&tmp_uint[0], &tmp_uint[1], &tmp_int[8],
+					&tmp_int[6], &tmp_int[7], &tmp_int[8],
 					&tmp_int[9], &tmp_int[10], &tmp_int[11], &tmp_int[12],
 					&tmp_int[13], &tmp_int[14], &tmp_int[15], &tmp_int[16], &tmp_int[17], &tmp_int[18],
 					&tmp_int[19], &tmp_int[20],
@@ -516,12 +507,12 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p, struct global_reg *reg
 				{
 					// It's char structure of a version before 384
 					tmp_int[26] = 0; // pet id
-					set = sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
+					set = sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
 					"\t%d,%d,%d\t%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
 					"\t%127[^,],%d,%d\t%127[^,],%d,%d%n",
 					&tmp_int[0], &tmp_int[1], &tmp_int[2], tmp_str[0], //
 					&tmp_int[3], &tmp_int[4], &tmp_int[5],
-					&tmp_uint[0], &tmp_uint[1], &tmp_int[8],
+					&tmp_int[6], &tmp_int[7], &tmp_int[8],
 					&tmp_int[9], &tmp_int[10], &tmp_int[11], &tmp_int[12],
 					&tmp_int[13], &tmp_int[14], &tmp_int[15], &tmp_int[16], &tmp_int[17], &tmp_int[18],
 					&tmp_int[19], &tmp_int[20],
@@ -562,8 +553,8 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p, struct global_reg *reg
 	p->class_ = tmp_int[3];
 	p->base_level = tmp_int[4];
 	p->job_level = tmp_int[5];
-	p->base_exp = tmp_uint[0];
-	p->job_exp = tmp_uint[1];
+	p->base_exp = tmp_int[6];
+	p->job_exp = tmp_int[7];
 	p->zeny = tmp_int[8];
 	p->hp = tmp_int[9];
 	p->max_hp = tmp_int[10];
@@ -1620,9 +1611,9 @@ int mmo_char_send006b(int fd, struct char_session_data *sd) {
 		j = offset + (i * 106); // increase speed of code
 
 		WFIFOL(fd,j) = p->char_id;
-		WFIFOL(fd,j+4) = p->base_exp>LONG_MAX?LONG_MAX:p->base_exp;
+		WFIFOL(fd,j+4) = p->base_exp;
 		WFIFOL(fd,j+8) = p->zeny;
-		WFIFOL(fd,j+12) = p->job_exp>LONG_MAX?LONG_MAX:p->job_exp;
+		WFIFOL(fd,j+12) = p->job_exp;
 		WFIFOL(fd,j+16) = p->job_level;
 
 		WFIFOL(fd,j+20) = 0;
@@ -3010,43 +3001,34 @@ static int char_mapif_init(int fd) {
 	return inter_mapif_init(fd);
 }
 
-//--------------------------------------------
-// Test to know if an IP come from LAN or WAN.
-// Rewrote: Adnvanced subnet check [LuzZza]
-//--------------------------------------------
-int lan_subnetcheck(long *p) {
-
+//-----------------------------------------------------
+// Test to know if an IP come from LAN or WAN. by [Yor]
+//-----------------------------------------------------
+int lan_ip_check(unsigned char *p){
 	int i;
-	unsigned char *sbn, *msk, *src = (unsigned char *)p;
-	
-	for(i=0; i<subnet_count; i++) {
-	
-		if((subnet[i].subnet & subnet[i].mask) == (*p & subnet[i].mask)) {
-			
-			sbn = (unsigned char *)&subnet[i].subnet;
-			msk = (unsigned char *)&subnet[i].mask;
-			
-			ShowInfo("Subnet check [%u.%u.%u.%u]: Matches "CL_CYAN"%u.%u.%u.%u/%u.%u.%u.%u"CL_RESET"\n",
-				src[0], src[1], src[2], src[3], sbn[0], sbn[1], sbn[2], sbn[3], msk[0], msk[1], msk[2], msk[3]);
-			
-			return subnet[i].map_ip;
+	int lancheck = 1;
+
+//	printf("lan_ip_check: to compare: %d.%d.%d.%d, network: %d.%d.%d.%d/%d.%d.%d.%d\n",
+//	       p[0], p[1], p[2], p[3],
+//	       subneti[0], subneti[1], subneti[2], subneti[3],
+//	       subnetmaski[0], subnetmaski[1], subnetmaski[2], subnetmaski[3]);
+	for(i = 0; i < 4; i++) {
+		if ((subneti[i] & subnetmaski[i]) != (p[i] & subnetmaski[i])) {
+			lancheck = 0;
+			break;
 		}
 	}
-	
-	ShowInfo("Subnet check [%u.%u.%u.%u]: "CL_CYAN"WAN"CL_RESET"\n", src[0], src[1], src[2], src[3]);
-	return 0;
+	ShowInfo("LAN test (result): %s source"CL_RESET".\n", (lancheck) ? CL_CYAN"LAN" : CL_GREEN"WAN");
+	return lancheck;
 }
 
 int parse_char(int fd) {
-
 	int i, ch;
 	unsigned short cmd;
 	char email[40];
 	int map_fd;
 	struct char_session_data *sd;
 	unsigned char *p = (unsigned char *) &session[fd]->client_addr.sin_addr;
-	long subnet_map_ip;
-	
 	RFIFOHEAD(fd);
 
 	sd = (struct char_session_data*)session[fd]->session_data;
@@ -3287,13 +3269,10 @@ int parse_char(int fd) {
 			WFIFOL(fd,2) = cd->char_id;
 			memcpy(WFIFOP(fd,6), mapindex_id2name(cd->last_point.map), MAP_NAME_LENGTH);
 			ShowInfo("Character selection '%s' (account: %d, slot: %d).\n", cd->name, sd->account_id, ch);
-
-			// Andvanced subnet check [LuzZza]
-			if((subnet_map_ip = lan_subnetcheck((long *)p)))
-				WFIFOL(fd,22) = subnet_map_ip;
+			if (lan_ip_check(p))
+				WFIFOL(fd, 22) = inet_addr(lan_map_ip);
 			else
-				WFIFOL(fd,22) = server[i].ip;
-
+				WFIFOL(fd, 22) = server[i].ip;
 			WFIFOW(fd,26) = server[i].port;
 			WFIFOSET(fd,28);
 			if (auth_fifo_pos >= AUTH_FIFO_SIZE)
@@ -3376,9 +3355,9 @@ int parse_char(int fd) {
 			memset(WFIFOP(fd,2), 0, 106);
 
 			WFIFOL(fd,2) = char_dat[i].status.char_id;
-			WFIFOL(fd,2+4) = char_dat[i].status.base_exp>LONG_MAX?LONG_MAX:char_dat[i].status.base_exp;
+			WFIFOL(fd,2+4) = char_dat[i].status.base_exp;
 			WFIFOL(fd,2+8) = char_dat[i].status.zeny;
-			WFIFOL(fd,2+12) = char_dat[i].status.job_exp>LONG_MAX?LONG_MAX:char_dat[i].status.job_exp;
+			WFIFOL(fd,2+12) = char_dat[i].status.job_exp;
 			WFIFOL(fd,2+16) = char_dat[i].status.job_level;
 
 			WFIFOL(fd,2+28) = char_dat[i].status.karma;
@@ -3735,8 +3714,10 @@ int check_connect_login_server(int tid, unsigned int tick, int id, int data) {
 		realloc_fifo(login_fd, FIFOSIZE_SERVERLINK, FIFOSIZE_SERVERLINK);
                 WFIFOHEAD(login_fd, 86);
 		WFIFOW(login_fd,0) = 0x2710;
-		memcpy(WFIFOP(login_fd,2), userid, 24);
-		memcpy(WFIFOP(login_fd,26), passwd, 24);
+		memset(WFIFOP(login_fd,2), 0, 24);
+		memcpy(WFIFOP(login_fd,2), userid, strlen(userid) < 24 ? strlen(userid) : 24);
+		memset(WFIFOP(login_fd,26), 0, 24);
+		memcpy(WFIFOP(login_fd,26), passwd, strlen(passwd) < 24 ? strlen(passwd) : 24);
 		WFIFOL(login_fd,50) = 0;
 		WFIFOL(login_fd,54) = char_ip;
 		WFIFOL(login_fd,58) = char_port;
@@ -3779,56 +3760,92 @@ int config_switch(const char *str) {
 	return atoi(str);
 }
 
-//----------------------------------
-// Reading Lan Support configuration
-// Rewrote: Anvanced subnet check [LuzZza]
-//----------------------------------
-int char_lan_config_read(const char *lancfgName) {
-
+//-------------------------------------------
+// Reading Lan Support configuration by [Yor]
+//-------------------------------------------
+int lan_config_read(const char *lancfgName) {
+	int j;
+	struct hostent * h = NULL;
+	char line[1024], w1[1024], w2[1024];
 	FILE *fp;
-	int line_num = 0;
-	char line[1024], w1[64], w2[64], w3[64], w4[64], w5[64];
-	
-	if((fp = fopen(lancfgName, "r")) == NULL) {
-		ShowWarning("LAN Support configuration file is not found: %s\n", lancfgName);
+
+	// set default configuration
+	strncpy(lan_map_ip, "127.0.0.1", sizeof(lan_map_ip));
+	subneti[0] = 127;
+	subneti[1] = 0;
+	subneti[2] = 0;
+	subneti[3] = 1;
+	for(j = 0; j < 4; j++)
+		subnetmaski[j] = 255;
+
+	fp = fopen(lancfgName, "r");
+
+	if (fp == NULL) {
+		ShowError("LAN support configuration file not found: %s\n", lancfgName);
 		return 1;
 	}
 
-	ShowInfo("Reading the configuration file %s...\n", lancfgName);
+	ShowInfo("reading configuration file %s...\n", lancfgName);
 
 	while(fgets(line, sizeof(line)-1, fp)) {
-
-		line_num++;		
-		if ((line[0] == '/' && line[1] == '/') || line[0] == '\n' || line[1] == '\n')
+		if (line[0] == '/' && line[1] == '/')
 			continue;
 
 		line[sizeof(line)-1] = '\0';
-		if(sscanf(line,"%[^:]: %[^/]/%[^:]:%[^:]:%[^\r\n]", w1, w2, w3, w4, w5) != 5) {
-	
-			ShowWarning("Error syntax of configuration file %s in line %d.\n", lancfgName, line_num);	
+		if (sscanf(line, "%[^:]: %[^\r\n]", w1, w2) != 2)
 			continue;
-		}
 
 		remove_control_chars((unsigned char *)w1);
 		remove_control_chars((unsigned char *)w2);
-		remove_control_chars((unsigned char *)w3);
-		remove_control_chars((unsigned char *)w4);
-		remove_control_chars((unsigned char *)w5);
-
-		if(strcmpi(w1, "subnet") == 0) {
-	
-			subnet[subnet_count].subnet = inet_addr(w2);
-			subnet[subnet_count].mask = inet_addr(w3);
-			subnet[subnet_count].char_ip = inet_addr(w4);
-			subnet[subnet_count].map_ip = inet_addr(w5);
-				
-			subnet_count++;
+		if (strcmpi(w1, "lan_map_ip") == 0) { // Read map-server Lan IP Address
+			h = gethostbyname(w2);
+			if (h != NULL) {
+				sprintf(lan_map_ip, "%d.%d.%d.%d", (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
+			} else {
+				strncpy(lan_map_ip, w2, sizeof(lan_map_ip));
+				lan_map_ip[sizeof(lan_map_ip)-1] = 0;
+			}
+			ShowStatus("LAN IP of map-server: %s.\n", lan_map_ip);
+		} else if (strcmpi(w1, "subnet") == 0) { // Read Subnetwork
+			for(j = 0; j < 4; j++)
+				subneti[j] = 0;
+			h = gethostbyname(w2);
+			if (h != NULL) {
+				for(j = 0; j < 4; j++)
+					subneti[j] = (unsigned char)h->h_addr[j];
+			} else {
+				sscanf(w2, "%d.%d.%d.%d", &subneti[0], &subneti[1], &subneti[2], &subneti[3]);
+			}
+			ShowStatus("Sub-network of the map-server: %d.%d.%d.%d.\n", subneti[0], subneti[1], subneti[2], subneti[3]);
+		} else if (strcmpi(w1, "subnetmask") == 0){ // Read Subnetwork Mask
+			for(j = 0; j < 4; j++)
+				subnetmaski[j] = 255;
+			h = gethostbyname(w2);
+			if (h != NULL) {
+				for(j = 0; j < 4; j++)
+					subnetmaski[j] = (unsigned char)h->h_addr[j];
+			} else {
+				sscanf(w2, "%d.%d.%d.%d", &subnetmaski[0], &subnetmaski[1], &subnetmaski[2], &subnetmaski[3]);
+			}
+			ShowStatus("Sub-network mask of the map-server: %d.%d.%d.%d.\n", subnetmaski[0], subnetmaski[1], subnetmaski[2], subnetmaski[3]);
 		}
+	}
+	fclose(fp);
 
-		ShowStatus("Information about %d subnetworks readen.\n", subnet_count);
+	// sub-network check of the map-server
+	{
+		unsigned int a0, a1, a2, a3;
+		unsigned char p[4];
+		sscanf(lan_map_ip, "%d.%d.%d.%d", &a0, &a1, &a2, &a3);
+		p[0] = a0; p[1] = a1; p[2] = a2; p[3] = a3;
+		ShowInfo("LAN test of LAN IP of the map-server...\n");
+		if (lan_ip_check(p) == 0) {
+			ShowError(CL_RED" LAN IP of the map-server doesn't belong to the specified Sub-network."CL_RESET"\n");
+		}
 	}
 
-	fclose(fp);
+	ShowInfo("done reading %s.\n", lancfgName);
+
 	return 0;
 }
 
@@ -3860,9 +3877,9 @@ int char_config_read(const char *cfgName) {
 			ShowInfo("Console Silent Setting: %d\n", atoi(w2));
 			msg_silent = atoi(w2);
 		} else if (strcmpi(w1, "userid") == 0) {
-			strncpy(userid, w2, 24);
+			memcpy(userid, w2, 24);
 		} else if (strcmpi(w1, "passwd") == 0) {
-			strncpy(passwd, w2, 24);
+			memcpy(passwd, w2, 24);
 		} else if (strcmpi(w1, "server_name") == 0) {
 			memcpy(server_name, w2, sizeof(server_name));
 			server_name[sizeof(server_name) - 1] = '\0';
@@ -4066,7 +4083,7 @@ int do_init(int argc, char **argv) {
 	mapindex_init(); //Needed here for the start-point reading.
 	start_point.map = mapindex_name2id("new_1-1.gat");
 	char_config_read((argc < 2) ? CHAR_CONF_NAME : argv[1]);
-	char_lan_config_read((argc > 1) ? argv[1] : LOGIN_LAN_CONF_NAME);
+	lan_config_read((argc > 1) ? argv[1] : LOGIN_LAN_CONF_NAME);
 
 	if (strcmp(userid, "s1")==0 && strcmp(passwd, "p1")==0) {
 		ShowError("Using the default user/password s1/p1 is NOT RECOMMENDED.\n");

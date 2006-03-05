@@ -5,8 +5,8 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY VALARIS AND WIZPUTER. -- VALARIS
 
 2006/03/05
+	* Reverted back LAN support update commit. [LuzZza]
 	* Fixed easter.txt [Lance]
-
 2006/03/04
 	* Synced login/char servers to trunk (except fame-list configs and
 	  gm-reading configs) [Skotlex]
@@ -25,9 +25,6 @@ GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY VALARIS AND WIZPUTER. -- VALAR
 2006/03/01
 	* Added the 2 sec skill delay before recasting Magnum Break [Skotlex]
 2006/02/28
-	* Updated from trunk:
-	- Rewrote LAN support code. Changed configuration file name
-	  lan_support.conf to subnet_athena.conf, changed it syntax. [LuzZza]
 	* Updates from trunk: [LuzZza]
 	- Fixed message codes in duel functions.
 	- Small fix in log_refine, incorrect compare expression.
