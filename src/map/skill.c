@@ -7575,16 +7575,16 @@ int skill_check_condition(struct map_session_data *sd,int type)
 	sp = skill_get_sp(skill, lv);	/* ?Á”ïSP */
 	if((sd->skillid_old == BD_ENCORE) && skill == sd->skillid_dance)
 		sp=sp/2;	//ƒAƒ“ƒR?ƒ‹‚ÍSP?Á”ï‚ª”¼•ª
-	hp_rate = (lv <= 0)? 0:skill_db[skill].hp_rate[lv-1];
-	sp_rate = (lv <= 0)? 0:skill_db[skill].sp_rate[lv-1];
+	hp_rate = skill_get_hp_rate(skill, lv);
+	sp_rate = skill_get_sp_rate(skill, lv);
 	zeny = skill_get_zeny(skill,lv);
-	weapon = skill_db[skill].weapon;
-	state = skill_db[skill].state;
-	spiritball = (lv <= 0)? 0:skill_db[skill].spiritball[lv-1];
+	weapon = skill_get_weapontype(skill);
+	state = skill_get_state(skill);
+	spiritball = skill_get_spiritball(skill,lv);
 	mhp = skill_get_mhp(skill, lv);	/* ?Á”ïHP */
 	for(i = 0; i < 10; i++) {
-		itemid[i] = skill_db[skill].itemid[i];
-		amount[i] = skill_db[skill].amount[i];
+		itemid[i] = skill_get_itemid(skill, i);
+		amount[i] = skill_get_itemqty(skill, i);
 	}
 	if(mhp > 0)
 		hp += (sd->status.max_hp * mhp)/100;

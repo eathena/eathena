@@ -3453,7 +3453,6 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 	{
 		case BL_PC:
 			sd=(struct map_session_data *)bl;
-				return 0;
 			break;
 		case BL_MOB:
 			if (((struct mob_data*)bl)->class_ == MOBID_EMPERIUM && type != SC_SAFETYWALL)
