@@ -467,8 +467,8 @@ int charsave_load_scdata(int account_id, int char_id)
 				continue;
 			}
 
-			status_change_start(&sd->bl, atoi(sql_row[0]), atoi(sql_row[2]), atoi(sql_row[3]),
-				atoi(sql_row[4]), atoi(sql_row[5]), atoi(sql_row[1]), 7);
+			status_change_start(&sd->bl, atoi(sql_row[0]), 10000, atoi(sql_row[2]), atoi(sql_row[3]),
+				atoi(sql_row[4]), atoi(sql_row[5]), atoi(sql_row[1]), 15);
 		}
 	}
 
@@ -486,25 +486,26 @@ void charsave_save_scdata(int account_id, int char_id, struct status_change* sc_
 	int i,count =0;
 	struct TimerData *timer;
 	unsigned int tick = gettick();
+	char *p = tmp_sql;
 
-	sprintf(tmp_sql, "INSERT INTO `sc_data` (`account_id`, `char_id`, `type`, `tick`, `val1`, `val2`, `val3`, `val4`) VALUES ");
+	p += sprintf(p, "INSERT INTO `sc_data` (`account_id`, `char_id`, `type`, `tick`, `val1`, `val2`, `val3`, `val4`) VALUES ");
 			
 	for(i = 0; i < max_sc; i++)
 	{
-		if (sc_data[i].timer == -1)
+		if (sc_data->data[i].timer == -1)
 			continue;
-		timer = get_timer(sc_data[i].timer);
+		timer = get_timer(sc_data->data[i].timer);
 		if (timer == NULL || timer->func != status_change_timer || DIFF_TICK(timer->tick,tick) < 0)
 			continue;
 		
-		sprintf (tmp_sql, "%s ('%d','%d','%hu','%d','%d','%d','%d','%d'),", tmp_sql, account_id, char_id,
-			i, DIFF_TICK(timer->tick,tick), sc_data[i].val1, sc_data[i].val2, sc_data[i].val3, sc_data[i].val4);
+		p += sprintf(p, " ('%d','%d','%hu','%d','%d','%d','%d','%d'),", account_id, char_id,
+			i, DIFF_TICK(timer->tick,tick), sc_data->data[i].val1, sc_data->data[i].val2, sc_data->data[i].val3, sc_data->data[i].val4);
 		
 		count++;
 	}
 	if (count > 0)
 	{
-		tmp_sql[strlen(tmp_sql)-1] = '\0'; //Remove the trailing comma.
+		*--p = '\0'; //Remove the trailing comma.
 		if(mysql_query(&charsql_handle, tmp_sql)){
 			ShowSQL("DB error - %s\n",mysql_error(&charsql_handle));
 			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);

@@ -470,6 +470,7 @@ int party_recv_movemap(int party_id,int account_id,int char_id, unsigned short m
 // パーティメンバの移動
 int party_send_movemap(struct map_session_data *sd)
 {
+	int i;
 	struct party *p;
 
 	nullpo_retr(0, sd);
@@ -478,6 +479,19 @@ int party_send_movemap(struct map_session_data *sd)
 		return 0;
 	intif_party_changemap(sd,1);
 
+	
+	p=party_search(sd->status.party_id);
+	if (p && sd->fd) {
+		//Send dots of other party members to this char. [Skotlex]
+		for(i=0; i < MAX_PARTY; i++) {
+			if (!p->member[i].sd	|| p->member[i].sd == sd ||
+				p->member[i].sd->bl.m != sd->bl.m)
+				continue;
+			clif_party_xy_single(sd->fd, p->member[i].sd);
+		}
+		
+	}
+	
 	if( sd->state.party_sent )	// もうパーティデータは送信済み
 		return 0;
 
@@ -485,7 +499,7 @@ int party_send_movemap(struct map_session_data *sd)
 	party_check_conflict(sd);
 	
 	// あるならパーティ情報送信
-	if( (p=party_search(sd->status.party_id))!=NULL ){
+	if(p){
 		party_check_member(p);	// 所属を確認する
 		if(sd->status.party_id==p->party_id){
 			clif_party_main_info(p,sd->fd);
@@ -568,7 +582,7 @@ int party_skill_check(struct map_session_data *sd, int party_id, int skillid, in
 					&& sd->bl.m == p_sd->bl.m
 					&& pc_checkskill(p_sd,MO_TRIPLEATTACK)) {
 					int rate = 50 +50*skilllv; //+100/150/200% success rate
-					status_change_start(&p_sd->bl,SC_SKILLRATE_UP,MO_TRIPLEATTACK,rate,0,0,skill_get_time(SG_FRIEND, 1),0);
+					sc_start4(&p_sd->bl,SC_SKILLRATE_UP,100,MO_TRIPLEATTACK,rate,0,0,skill_get_time(SG_FRIEND, 1));
 				}
 				break;
 			case MO_TRIPLEATTACK: //Increase Counter rate of Star Gladiators
@@ -576,7 +590,7 @@ int party_skill_check(struct map_session_data *sd, int party_id, int skillid, in
 					&& sd->bl.m == p_sd->bl.m
 					&& pc_checkskill(p_sd,TK_COUNTER)) {
 					int rate = 50 +50*pc_checkskill(p_sd,TK_COUNTER); //+100/150/200% success rate
-					status_change_start(&p_sd->bl,SC_SKILLRATE_UP,TK_COUNTER,rate,0,0,skill_get_time(SG_FRIEND, 1),0);
+					sc_start4(&p_sd->bl,SC_SKILLRATE_UP,100,TK_COUNTER,rate,0,0,skill_get_time(SG_FRIEND, 1));
 				}
 				break;
 			case AM_TWILIGHT2: //Twilight Pharmacy, requires Super Novice
@@ -682,11 +696,74 @@ int party_exp_share(struct party *p,int map,unsigned int base_exp,unsigned int j
 	return 0;
 }
 
+int party_share_loot(struct party *p, TBL_PC *sd, struct item *item_data)
+{
+	TBL_PC *target=NULL;
+	int i;
+	if (p && p->item&2) {
+		//item distribution to party members.
+		if (battle_config.party_share_type) { //Round Robin
+			TBL_PC *psd;
+			i = p->itemc;
+			do {
+				i++;
+				if (i >= MAX_PARTY)
+					i = 0;	// reset counter to 1st person in party so it'll stop when it reaches "itemc"
+				if ((psd=p->member[i].sd)==NULL || sd->bl.m != psd->bl.m)
+					continue;
+				
+				if (pc_additem(psd,item_data,item_data->amount))
+					continue; //Chosen char can't pick up loot.
+				//Successful pick.
+				p->itemc = i;
+				target = psd;
+				break;
+			} while (i != p->itemc);
+		} else { //Random pick
+			TBL_PC *psd[MAX_PARTY];
+			int count=0;
+			//Collect pick candidates
+			for (i = 0; i < MAX_PARTY; i++) {
+				if ((psd[count]=p->member[i].sd) && psd[count]->bl.m == sd->bl.m)
+					count++;
+			}
+			if (count > 0) { //Pick a random member.
+				do {
+					i = rand()%count;
+					if (pc_additem(psd[i],item_data,item_data->amount))
+					{	//Discard this receiver.
+						psd[i] = psd[count-1];
+						count--;
+					} else { //Successful pick.
+						target = psd[i];
+						break;
+					}
+				} while (count > 0);
+			}
+		}
+	}
+	if (!target) { //Give it to the owner.
+		target = sd;
+		if (!(i=pc_additem(sd,item_data,item_data->amount)))
+			return i;
+	}
+
+	if(log_config.pick) //Logs items, taken by (P)layers [Lupus]
+		log_pick(target, "P", 0, item_data->nameid, item_data->amount, item_data);
+	//Logs
+	if(battle_config.party_show_share_picker && target != sd){
+		char output[80];
+		sprintf(output, "%s acquired the item.",target->status.name);
+		clif_disp_onlyself(sd,output,strlen(output));
+	}
+	return 0;
+}
+
 int party_send_dot_remove(struct map_session_data *sd)
 {
-	if (sd->status.party_id)
-		clif_party_xy_remove(sd);
-	return 0;
+if (sd->status.party_id)
+	clif_party_xy_remove(sd);
+return 0;
 }
 
 // To use for Taekwon's "Fighting Chant"
@@ -694,16 +771,13 @@ int party_send_dot_remove(struct map_session_data *sd)
 // party_foreachsamemap(party_sub_count, sd, 0, &c);
 int party_sub_count(struct block_list *bl, va_list ap)
 {
-	int *c = va_arg(ap, int*);
-
-	(*c)++;
 	return 1;
 }
 
 // 同じマップのパーティメンバー全体に処理をかける
 // type==0 同じマップ
 //     !=0 画面内
-void party_foreachsamemap(int (*func)(struct block_list*,va_list),struct map_session_data *sd,int type,...)
+int party_foreachsamemap(int (*func)(struct block_list*,va_list),struct map_session_data *sd,int range,...)
 {
 	struct party *p;
 	va_list ap;
@@ -711,25 +785,26 @@ void party_foreachsamemap(int (*func)(struct block_list*,va_list),struct map_ses
 	int x0,y0,x1,y1;
 	struct block_list *list[MAX_PARTY];
 	int blockcount=0;
+	int total = 0; //Return value.
 	
-	nullpo_retv(sd);
+	nullpo_retr(0,sd);
 	
 	if((p=party_search(sd->status.party_id))==NULL)
-		return;
+		return 0;
 
-	x0=sd->bl.x-AREA_SIZE;
-	y0=sd->bl.y-AREA_SIZE;
-	x1=sd->bl.x+AREA_SIZE;
-	y1=sd->bl.y+AREA_SIZE;
+	x0=sd->bl.x-range;
+	y0=sd->bl.y-range;
+	x1=sd->bl.x+range;
+	y1=sd->bl.y+range;
 
-	va_start(ap,type);
+	va_start(ap,range);
 	
 	for(i=0;i<MAX_PARTY;i++){
 		struct party_member *m=&p->member[i];
 		if(m->sd!=NULL){
 			if(sd->bl.m!=m->sd->bl.m)
 				continue;
-			if(type!=0 &&
+			if(range &&
 				(m->sd->bl.x<x0 || m->sd->bl.y<y0 ||
 				 m->sd->bl.x>x1 || m->sd->bl.y>y1 ) )
 				continue;
@@ -741,9 +816,10 @@ void party_foreachsamemap(int (*func)(struct block_list*,va_list),struct map_ses
 	
 	for(i=0;i<blockcount;i++)
 		if(list[i]->prev)	// 有効かどうかチェック
-			func(list[i],ap);
+			total += func(list[i],ap);
 
 	map_freeblock_unlock();	// 解放を許可する
 
 	va_end(ap);
+	return total;
 }

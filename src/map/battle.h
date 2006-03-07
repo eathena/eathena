@@ -52,6 +52,7 @@ int battle_heal(struct block_list *bl,struct block_list *target,int hp,int sp,in
 int battle_stopattack(struct block_list *bl);
 int battle_iswalking(struct block_list *bl);
 int battle_stopwalking(struct block_list *bl,int type);
+int battle_set_walkdelay(struct block_list *bl, unsigned int tick, int delay, int type);
 
 // í èÌçUåÇèàóùÇ‹Ç∆Çﬂ
 int battle_weapon_attack( struct block_list *bl,struct block_list *target,
@@ -112,6 +113,7 @@ extern struct Battle_Config {
 	unsigned short pc_damage_delay_rate;
 	unsigned short defnotenemy;
 	unsigned short vs_traps_bctall;	
+	unsigned short clear_unit_ondeath; //[Skotlex]
 	unsigned short random_monster_checklv;
 	unsigned short attr_recover;
 	unsigned short flooritem_lifetime;
@@ -301,6 +303,8 @@ extern struct Battle_Config {
 	unsigned short multi_level_up;
 	unsigned short max_exp_gain_rate; //Max amount of exp bar % you can get in one go.
 	unsigned short pk_mode;
+	unsigned short pk_level_range;
+
 	unsigned short manner_system;
 	unsigned short show_mob_hp;  // end additions [Valaris]
 
@@ -413,10 +417,18 @@ extern struct Battle_Config {
 	unsigned short skip_teleport_lv1_menu; // possibility to disable (skip) Teleport Lv1 menu, that have only two lines `Random` and `Cancel` [LuzZza]
 
 	unsigned short allow_skill_without_day; // [Komurka]
+	unsigned short allow_es_magic_pc; // [Skotlex]
 	unsigned short skill_wall_check; // [Skotlex]
 	unsigned short cell_stack_limit; // [Skotlex]
 	unsigned short skill_caster_check; // [Skotlex]
 	unsigned short sc_castcancel; // [Skotlex]
+	unsigned short pc_sc_def_rate; // [Skotlex]
+	unsigned short mob_sc_def_rate;
+	unsigned short pc_max_sc_def;
+	unsigned short mob_max_sc_def;
+
+	unsigned short autospell_stacking; //Enables autospell cards to stack. [Skotlex]
+
 } battle_config;
 
 void do_init_battle(void);

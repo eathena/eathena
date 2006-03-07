@@ -518,6 +518,7 @@ int map_delblock_sub (struct block_list *bl, int flag)
  */
 int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick) {
 	int x0 = bl->x, y0 = bl->y;
+	struct status_change *sc = NULL;
 	int moveblock = ( x0/BLOCK_SIZE != x1/BLOCK_SIZE || y0/BLOCK_SIZE != y1/BLOCK_SIZE);
 
 	if (!bl->prev) {
@@ -527,9 +528,16 @@ int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick) {
 		return 0;	
 	}
 	//TODO: Perhaps some outs of bounds checking should be placed here?
-	if (bl->type&BL_CHAR)
+	if (bl->type&BL_CHAR) {
 		skill_unit_move(bl,tick,2);
-
+		sc = status_get_sc(bl);
+		if (sc && sc->count) {
+			if (sc->data[SC_CLOSECONFINE].timer != -1)
+				status_change_end(bl, SC_CLOSECONFINE, -1);
+			if (sc->data[SC_CLOSECONFINE2].timer != -1)
+				status_change_end(bl, SC_CLOSECONFINE2, -1);
+		}
+	}
 	if (moveblock) map_delblock_sub(bl,0);
 #ifdef CELL_NOSTACK
 	else map_delblcell(bl);
@@ -541,21 +549,19 @@ int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick) {
 	else map_addblcell(bl);
 #endif
 	if (bl->type&BL_CHAR) {
-		struct status_change *sc_data = status_get_sc_data(bl);
 		skill_unit_move(bl,tick,3);
-		if (sc_data) {
-			if (sc_data[SC_CLOAKING].timer != -1)
+		if (sc) {
+			if (sc->option&OPTION_CLOAK)
 				skill_check_cloaking(bl);
-			if (sc_data[SC_DANCING].timer != -1) {
-				if (sc_data[SC_DANCING].val1 == CG_MOONLIT) //Cancel Moonlight Petals if moved from casting position. [Skotlex]
-					skill_stop_dancing(bl);
-				else
-					skill_unit_move_unit_group((struct skill_unit_group *)sc_data[SC_DANCING].val2, bl->m, x1-x0, y1-y0);
+			if (sc->count) {
+				if (sc->data[SC_DANCING].timer != -1) {
+					//Cancel Moonlight Petals if moved from casting position. [Skotlex]
+					if (sc->data[SC_DANCING].val1 == CG_MOONLIT)
+						skill_stop_dancing(bl);
+					else
+						skill_unit_move_unit_group((struct skill_unit_group *)sc->data[SC_DANCING].val2, bl->m, x1-x0, y1-y0);
+				}
 			}
-			if (sc_data[SC_CLOSECONFINE].timer != -1)
-				status_change_end(bl, SC_CLOSECONFINE, -1);
-			if (sc_data[SC_CLOSECONFINE2].timer != -1)
-				status_change_end(bl, SC_CLOSECONFINE2, -1);
 		}
 	}
 	return 0;
@@ -1589,18 +1595,18 @@ int map_quit(struct map_session_data *sd) {
 		skill_stop_dancing(&sd->bl);// ダンス/演奏中?
 
 		//Status that are not saved...
-		if(sd->sc_count) {
-			if(sd->sc_data[SC_HIDING].timer!=-1)
+		if(sd->sc.count) {
+			if(sd->sc.data[SC_HIDING].timer!=-1)
 				status_change_end(&sd->bl,SC_HIDING,-1);
-			if(sd->sc_data[SC_CLOAKING].timer!=-1)
+			if(sd->sc.data[SC_CLOAKING].timer!=-1)
 				status_change_end(&sd->bl,SC_CLOAKING,-1);
-			if(sd->sc_data[SC_RUN].timer!=-1)
+			if(sd->sc.data[SC_RUN].timer!=-1)
 				status_change_end(&sd->bl,SC_RUN,-1);
-			if(sd->sc_data[SC_SPURT].timer!=-1)
+			if(sd->sc.data[SC_SPURT].timer!=-1)
 				status_change_end(&sd->bl,SC_SPURT,-1);
-			if(sd->sc_data[SC_BERSERK].timer!=-1)
+			if(sd->sc.data[SC_BERSERK].timer!=-1)
 				status_change_end(&sd->bl,SC_BERSERK,-1);
-			if(sd->sc_data[SC_TRICKDEAD].timer!=-1)
+			if(sd->sc.data[SC_TRICKDEAD].timer!=-1)
 				status_change_end(&sd->bl,SC_TRICKDEAD,-1);
 		}
 		skill_clear_unitgroup(&sd->bl);	// スキルユニットグル?プの削除
@@ -1621,7 +1627,7 @@ int map_quit(struct map_session_data *sd) {
 			status_calc_pc(sd,4);
 	//	skill_clear_unitgroup(&sd->bl);	// [Sara-chan]
 
-		if (!(sd->status.option & OPTION_INVISIBLE))
+		if (!(sd->sc.option & OPTION_INVISIBLE))
 			clif_clearchar_area(&sd->bl,2);
 
 		chrif_save_scdata(sd); //Save status changes, then clear'em out from memory. [Skotlex]
@@ -1657,7 +1663,7 @@ int map_quit(struct map_session_data *sd) {
 	} else { //Try to free some data, without saving anything (this could be invoked on map server change. [Skotlex]
 		if (sd->bl.prev != NULL)
 		{	//Remove from map...
-			if (!(sd->status.option & OPTION_INVISIBLE))
+			if (!(sd->sc.option & OPTION_INVISIBLE))
 				clif_clearchar_area(&sd->bl,2);
 			map_delblock(&sd->bl);
 		}
@@ -2183,11 +2189,13 @@ int map_getcellp(struct map_data* m,int x,int y,cell_t cellchk)
 #ifdef CELL_NOSTACK
 			if (type3 >= battle_config.cell_stack_limit) return 0;
 #endif
+		case CELL_CHKREACH:
 			return (type!=1 && type!=5 && !(type2&(CELL_MOONLIT|CELL_ICEWALL)));
 		case CELL_CHKNOPASS:
 #ifdef CELL_NOSTACK
 			if (type3 >= battle_config.cell_stack_limit) return 1;
 #endif
+		case CELL_CHKNOREACH:
 			return (type==1 || type==5 || type2&(CELL_MOONLIT|CELL_ICEWALL));
 		case CELL_CHKSTACK:
 #ifdef CELL_NOSTACK
@@ -3562,25 +3570,6 @@ int map_sql_init(void){
 		ShowStatus ("connect success! (Login Server Connection)\n");
 	 }
 
-#ifdef MAPREGSQL
-	// [zBuffer] SQL Mapreg connection start
-	ShowInfo("Connect Mapreg DB Server....\n");
-    	if(!mysql_real_connect(&mapregsql_handle, map_server_ip, map_server_id, map_server_pw,
-		map_server_db ,map_server_port, (char *)NULL, 0)) {
-	        //pointer check
-			ShowSQL("DB error - %s\n",mysql_error(&mapregsql_handle));
-			exit(1);
-	} else {
-		ShowStatus ("Connect success! (Mapreg DB Connection)\n");
-		if( strlen(default_codepage) > 0 ) {
-			sprintf( tmp_sql, "SET NAMES %s", default_codepage );
-			if (mysql_query(&mapregsql_handle, tmp_sql)) {
-				ShowSQL("DB error - %s\n",mysql_error(&mapregsql_handle));
-				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-			}
-		}
-	}
-#endif
 	if(mail_server_enable) { // mail system [Valaris]
 		mysql_init(&mail_handle);
 	        ShowInfo("Connecting to the Mail DB Server....\n");
@@ -3617,12 +3606,6 @@ int map_sql_close(void){
 
 	mysql_close(&lmysql_handle);
 	ShowStatus("Close Login DB Connection....\n");
-
-#ifdef MAPREGSQL
-	// [zBuffer] SQL Mapreg connection stop
-	mysql_close(&mapregsql_handle);
-	ShowStatus("Close Mapreg DB Connection....\n");
-#endif
 
 	if (log_config.sql_logs)
 //Updating this if each time there's a log_config addition is too much of a hassle.	[Skotlex]

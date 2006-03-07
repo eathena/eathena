@@ -14,8 +14,7 @@
 
 //Constants to identify the skill's inf value:
 #define INF_ATTACK_SKILL 1
-//For the time being, all trap-targetted skills ARE ground based:
-#define INF_GROUND_SKILL (2|32)
+#define INF_GROUND_SKILL 2
 // Skills casted on self where target is automatically chosen:
 #define INF_SELF_SKILL 4
 #define INF_SUPPORT_SKILL 16
@@ -23,9 +22,9 @@
 
 //Constants to identify a skill's nk value.
 //The NK value applies only to non INF_GROUND_SKILL skills.
-#define NK_NO_DAMAGE 1
-#define NK_SPLASH_DAMAGE 2
-
+#define NK_NO_DAMAGE 0x1
+#define NK_SPLASH 0x2
+//A skill with 3 would be no damage + splash: area of effect.
 //Constants to identify a skill's inf2 value.
 #define INF2_QUEST_SKILL 1
 //NPC skills are those that players can't have in their skill tree.
@@ -46,9 +45,9 @@
 struct skill_db {
 	char *name;
 	char *desc;
-	int range[MAX_SKILL_LEVEL],hit,inf,pl,nk,max;
+	int range[MAX_SKILL_LEVEL],hit,inf,pl,nk,splash[MAX_SKILL_LEVEL],max;
 	int num[MAX_SKILL_LEVEL];
-	int cast[MAX_SKILL_LEVEL],delay[MAX_SKILL_LEVEL];
+	int cast[MAX_SKILL_LEVEL],walkdelay[MAX_SKILL_LEVEL],delay[MAX_SKILL_LEVEL];
 	int upkeep_time[MAX_SKILL_LEVEL],upkeep_time2[MAX_SKILL_LEVEL];
 	int castcancel,cast_def_rate;
 	int inf2,maxcount,skill_type;
@@ -58,7 +57,6 @@ struct skill_db {
 	int itemid[10],amount[10];
 	int castnodex[MAX_SKILL_LEVEL];
 	int delaynodex[MAX_SKILL_LEVEL];
-	int delaynowalk[MAX_SKILL_LEVEL];
 	int nocast;
 	int unit_id[2];
 	int unit_layout_type[MAX_SKILL_LEVEL];
@@ -140,8 +138,9 @@ int	skill_get_inf( int id );
 int	skill_get_pl( int id );
 int	skill_get_nk( int id );
 int	skill_get_max( int id );
-int skill_get_range( int id , int lv );
-int skill_get_range2(struct block_list *bl, int id, int lv);
+int	skill_get_range( int id , int lv );
+int	skill_get_range2(struct block_list *bl, int id, int lv);
+int	skill_get_splash( int id , int lv );
 int	skill_get_hp( int id ,int lv );
 int	skill_get_mhp( int id ,int lv );
 int	skill_get_sp( int id ,int lv );
@@ -149,6 +148,7 @@ int	skill_get_zeny( int id ,int lv );
 int	skill_get_num( int id ,int lv );
 int	skill_get_cast( int id ,int lv );
 int	skill_get_delay( int id ,int lv );
+int	skill_get_walkdelay( int id ,int lv );
 int	skill_get_time( int id ,int lv );
 int	skill_get_time2( int id ,int lv );
 int	skill_get_castdef( int id );
@@ -177,6 +177,7 @@ int skill_addtimerskill(struct block_list *src,unsigned int tick,int target,int 
 int skill_additional_effect( struct block_list* src, struct block_list *bl,int skillid,int skilllv,int attack_type,unsigned int tick);
 int skill_counter_additional_effect( struct block_list* src, struct block_list *bl,int skillid,int skilllv,int attack_type,unsigned int tick);
 int skill_blown( struct block_list *src, struct block_list *target,int count);
+int skill_break_equip(struct block_list *bl, unsigned short where, int rate, int flag);
 // ユニットスキル
 struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,int skilllv,int x,int y,int flag);
 struct skill_unit *skill_initunit(struct skill_unit_group *group,int idx,int x,int y);
@@ -185,6 +186,7 @@ struct skill_unit_group *skill_initunitgroup(struct block_list *src,
 	int count,int skillid,int skilllv,int unit_id);
 int skill_delunitgroup(struct skill_unit_group *group);
 int skill_clear_unitgroup(struct block_list *src);
+int skill_clear_element_field(struct block_list *bl);
 
 int skill_unit_ondamaged(struct skill_unit *src,struct block_list *bl,
 	int damage,unsigned int tick);

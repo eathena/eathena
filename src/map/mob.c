@@ -465,19 +465,20 @@ int mob_can_move(struct mob_data *md)
 {
 	nullpo_retr(0, md);
 
-	if(DIFF_TICK(md->canmove_tick, gettick()) > 0 || md->skilltimer != -1 || (md->opt1 > 0 && md->opt1 != OPT1_STONEWAIT) || md->option&OPTION_HIDE)
+	if(DIFF_TICK(md->canmove_tick, gettick()) > 0 || md->skilltimer != -1 || (md->sc.opt1 > 0 && md->sc.opt1 != OPT1_STONEWAIT) || md->sc.option&OPTION_HIDE)
 		return 0;
 	// アンクル中で動けないとか
-	if( md->sc_data[SC_ANKLE].timer != -1 || //アンクルスネア
-		md->sc_data[SC_AUTOCOUNTER].timer != -1 || //オートカウンター
-		md->sc_data[SC_BLADESTOP].timer != -1 || //白刃取り
-		md->sc_data[SC_SPIDERWEB].timer != -1 || //スパイダーウェッブ
-		(md->sc_data[SC_DANCING].timer !=-1 && md->sc_data[SC_DANCING].val1 == CG_HERMODE) || //cannot move while Hermod is active.
-		(md->sc_data[SC_GOSPEL].timer !=-1 && md->sc_data[SC_GOSPEL].val4 == BCT_SELF) ||	// cannot move while gospel is in effect
-		md->sc_data[SC_STOP].timer != -1 ||
-		md->sc_data[SC_CLOSECONFINE].timer != -1 ||
-		md->sc_data[SC_CLOSECONFINE2].timer != -1
-		)
+	if(md->sc.count && (
+		md->sc.data[SC_ANKLE].timer != -1 || //アンクルスネア
+		md->sc.data[SC_AUTOCOUNTER].timer != -1 || //オートカウンター
+		md->sc.data[SC_BLADESTOP].timer != -1 || //白刃取り
+		md->sc.data[SC_SPIDERWEB].timer != -1 || //スパイダーウェッブ
+		(md->sc.data[SC_DANCING].timer !=-1 && md->sc.data[SC_DANCING].val1 == CG_HERMODE) || //cannot move while Hermod is active.
+		(md->sc.data[SC_GOSPEL].timer !=-1 && md->sc.data[SC_GOSPEL].val4 == BCT_SELF) ||	// cannot move while gospel is in effect
+		md->sc.data[SC_STOP].timer != -1 ||
+		md->sc.data[SC_CLOSECONFINE].timer != -1 ||
+		md->sc.data[SC_CLOSECONFINE2].timer != -1
+	))
 		return 0;
 
 	return 1;
@@ -619,16 +620,22 @@ int mob_can_reach(struct mob_data *md,struct block_list *bl,int range, int state
 		return 1;
 
 	// It judges whether it can adjoin or not.
-	dx=abs(bl->x - md->bl.x);
-	dy=abs(bl->y - md->bl.y);
+	dx=bl->x - md->bl.x;
+	dy=bl->y - md->bl.y;
 	dx=(dx>0)?1:((dx<0)?-1:0);
 	dy=(dy>0)?1:((dy<0)?-1:0);
+	if (map_getcell(md->bl.m,bl->x+dx,bl->y+dy,CELL_CHKNOREACH))
+	{	//Look for a suitable cell to place in.
+		for(i=0;i<9 && map_getcell(md->bl.m,bl->x-1+i/3,bl->y-1+i%3,CELL_CHKNOREACH);i++);
+		if (i<9) {
+			dx = 1-i/3;
+			dy = 1-i%3;
+		}
+	}
+	
 	if(path_search_real(&wpd,md->bl.m,md->bl.x,md->bl.y,bl->x-dx,bl->y-dy,easy,CELL_CHKNOREACH)!=-1)
 		return 1;
-	for(i=0;i<9;i++){
-		if(path_search_real(&wpd,md->bl.m,md->bl.x,md->bl.y,bl->x-1+i/3,bl->y-1+i%3,easy, CELL_CHKNOREACH)!=-1)
-			return 1;
-	}
+		
 	return 0;
 }
 
@@ -712,9 +719,7 @@ static int mob_attack(struct mob_data *md,unsigned int tick,int data)
 	if (status_get_mode(&md->bl)&MD_ASSIST && DIFF_TICK(md->last_linktime, tick) < MIN_MOBLINKTIME)
 	{	// Link monsters nearby [Skotlex]
 		md->last_linktime = tick;
-		map_foreachinarea(mob_linksearch, md->bl.m,
-			md->bl.x-md->db->range2, md->bl.y-md->db->range2,
-			md->bl.x+md->db->range2, md->bl.y+md->db->range2,
+		map_foreachinrange(mob_linksearch, &md->bl, md->db->range2,
 			BL_MOB, md->class_, tbl, tick);
 	}
 
@@ -722,12 +727,12 @@ static int mob_attack(struct mob_data *md,unsigned int tick,int data)
 	if( mobskill_use(md,tick,-1) )	// スキル使用
 		return 0;
 
-	if(md->sc_data && md->sc_data[SC_WINKCHARM].timer != -1)
+	if(md->sc.count && md->sc.data[SC_WINKCHARM].timer != -1)
 		clif_emotion(&md->bl, 3);
 	else
 		md->target_lv = battle_weapon_attack(&md->bl,tbl,tick,0);
 
-	if(!(battle_config.monster_cloak_check_type&2) && md->sc_data[SC_CLOAKING].timer != -1)
+	if(!(battle_config.monster_cloak_check_type&2) && md->sc.data[SC_CLOAKING].timer != -1)
 		status_change_end(&md->bl,SC_CLOAKING,-1);
 
 	//Mobs can't move if they can't attack neither.
@@ -810,7 +815,8 @@ int mob_changestate(struct mob_data *md,int state,int type)
 		clif_foreachclient(mob_stopattacked,md->bl.id);
 		skill_unit_move(&md->bl,gettick(),4);
 		status_change_clear(&md->bl,2);	// ステータス異常を解除する
-		skill_clear_unitgroup(&md->bl);	// 全てのスキルユニットグループを削除する
+		if (battle_config.clear_unit_ondeath)
+			skill_clear_unitgroup(&md->bl);
 		skill_cleartimerskill(&md->bl);
 		if(md->deletetimer!=-1)
 			delete_timer(md->deletetimer,mob_timer_delete);
@@ -919,7 +925,7 @@ int mob_walktoxy(struct mob_data *md,int x,int y,int easy)
 	md->to_x=x;
 	md->to_y=y;
 	
-	if (md->sc_data[SC_CONFUSION].timer != -1) //Randomize target direction.
+	if (md->sc.data[SC_CONFUSION].timer != -1) //Randomize target direction.
 		map_random_dir(&md->bl, &md->to_x, &md->to_y);
 	
 	if(md->state.state == MS_WALK)
@@ -1109,27 +1115,27 @@ int mob_spawn (int id)
 		md->skilltimerskill[i].timer = -1;
 
 	for (i = 0; i < MAX_STATUSCHANGE; i++) {
-		md->sc_data[i].timer = -1;
-		md->sc_data[i].val1 = md->sc_data[i].val2 = md->sc_data[i].val3 = md->sc_data[i].val4 = 0;
+		md->sc.data[i].timer = -1;
+		md->sc.data[i].val1 = md->sc.data[i].val2 = md->sc.data[i].val3 = md->sc.data[i].val4 = 0;
 	}
-	md->sc_count = 0;
-	md->opt1 = md->opt2 = md->opt3 = md->option = 0;
+	md->sc.count = 0;
+	md->sc.opt1 = md->sc.opt2 = md->sc.opt3 = md->sc.option = 0;
 
 	if(md->db->option){ // Added for carts, falcons and pecos for cloned monsters. [Valaris]
 		if(md->db->option & 0x0008)
-			md->option |= 0x0008;
+			md->sc.option |= 0x0008;
 		if(md->db->option & 0x0080)
-			md->option |= 0x0080;
+			md->sc.option |= 0x0080;
 		if(md->db->option & 0x0100)
-			md->option |= 0x0100;
+			md->sc.option |= 0x0100;
 		if(md->db->option & 0x0200)
-			md->option |= 0x0200;
+			md->sc.option |= 0x0200;
 		if(md->db->option & 0x0400)
-			md->option |= 0x0400;
+			md->sc.option |= 0x0400;
 		if(md->db->option & OPTION_FALCON)
-			md->option |= OPTION_FALCON;
+			md->sc.option |= OPTION_FALCON;
 		if(md->db->option & OPTION_RIDING)
-			md->option |= OPTION_RIDING;
+			md->sc.option |= OPTION_RIDING;
 	}
 
 	memset(md->skillunit, 0, sizeof(md->skillunit));
@@ -1562,7 +1568,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 	struct mob_data *md;
 	struct block_list *tbl = NULL, *abl = NULL;
 	unsigned int tick;
-	int i, dx, dy, dist;
+	int i, j, dx, dy, dist;
 	int attack_type = 0;
 	int mode;
 	int search_size = AREA_SIZE*2;
@@ -1588,10 +1594,10 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 	}
 
 	// Abnormalities
-	if((md->opt1 > 0 && md->opt1 != OPT1_STONEWAIT) || md->state.state == MS_DELAY || md->sc_data[SC_BLADESTOP].timer != -1)
+	if((md->sc.opt1 > 0 && md->sc.opt1 != OPT1_STONEWAIT) || md->state.state == MS_DELAY || md->sc.data[SC_BLADESTOP].timer != -1)
 		return 0;
 
-	if (md->sc_data && md->sc_data[SC_BLIND].timer != -1)
+	if (md->sc.count && md->sc.data[SC_BLIND].timer != -1)
 		blind_flag = 1;
 
 	mode = status_get_mode(&md->bl);
@@ -1619,12 +1625,12 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 				(dist = distance_bl(&md->bl, abl)) >= 32 ||
 				battle_check_target(bl, abl, BCT_ENEMY) <= 0 ||
 				(battle_config.mob_ai&2 && !status_check_skilluse(bl, abl, 0, 0)) ||
-				!mob_can_reach(md, abl, dist+2, MSS_RUSH ||
+				!mob_can_reach(md, abl, md->db->range2, MSS_RUSH) ||
 				(	//Gangster Paradise check
 					abl->type == BL_PC && !(mode&MD_BOSS) &&
 					((struct map_session_data*)abl)->state.gangsterparadise
 				)
-			))	{	//Can't attack back
+			)	{	//Can't attack back
 				if (md->attacked_count++ > 3) {
 					if (mobskill_use(md, tick, MSC_RUDEATTACKED) == 0 &&
 						mode&MD_CANMOVE && mob_can_move(md))
@@ -1682,18 +1688,12 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 		(mode&MD_ANGRY && md->state.skillstate == MSS_FOLLOW)
 	) {
 		search_size = (blind_flag) ? 3 : md->db->range2;
-		map_foreachinarea (mob_ai_sub_hard_activesearch, md->bl.m,
-					md->bl.x-search_size,md->bl.y-search_size,
-					md->bl.x+search_size,md->bl.y+search_size,
-					md->special_state.ai?BL_CHAR:BL_PC,
-					md, &tbl);
+		map_foreachinrange (mob_ai_sub_hard_activesearch, &md->bl,
+			search_size, md->special_state.ai?BL_CHAR:BL_PC, md, &tbl);
 	} else if (mode&MD_CHANGECHASE && (md->state.skillstate == MSS_RUSH || md->state.skillstate == MSS_FOLLOW)) {
 		search_size = (blind_flag && md->db->range>3) ? 3 : md->db->range;
-		map_foreachinarea (mob_ai_sub_hard_changechase, md->bl.m,
-					md->bl.x-search_size,md->bl.y-search_size,
-					md->bl.x+search_size,md->bl.y+search_size,
-					md->special_state.ai?BL_CHAR:BL_PC,
-					md, &tbl);
+		map_foreachinrange (mob_ai_sub_hard_changechase, &md->bl,
+				search_size, md->special_state.ai?BL_CHAR:BL_PC, md, &tbl);
 	}
 
 	// Scan area for items to loot, avoid trying to loot of the mob is full and can't consume the items.
@@ -1702,10 +1702,8 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 	{
 		i = 0;
 		search_size = (blind_flag) ? 3 : md->db->range2;
-		map_foreachinarea (mob_ai_sub_hard_lootsearch, md->bl.m,
-					md->bl.x-search_size, md->bl.y-search_size,
-					md->bl.x+search_size, md->bl.y+search_size,
-					BL_ITEM, md, &i);
+		map_foreachinrange (mob_ai_sub_hard_lootsearch, &md->bl,
+			search_size, BL_ITEM, md, &i);
 	}
 
 	if (tbl)
@@ -1727,8 +1725,11 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 			}
 			if (!battle_check_range (&md->bl, tbl, md->db->range))
 			{	//Out of range...
-				if (!(mode & MD_CANMOVE))
-				{	//Can't chase.
+				if (!(mode&MD_CANMOVE))
+				{	//Can't chase. Attempt to use a ranged skill at least?
+					if (mobskill_use(md, tick, MSC_LONGRANGEATTACKED) == 0)
+						md->attacked_count++; //Increase rude-attacked count as it can't attack back.
+					
 					mob_unlocktarget(md,tick);
 					return 0;
 				}
@@ -1751,51 +1752,58 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 					return 0;
 				}
 				//Target reachable. Locate suitable spot to move to.
-				i = 0;
+				i = j = 0;
 				dx = tbl->x - md->bl.x;
 				dy = tbl->y - md->bl.y;
-				if (dx < 0) dx++;
-				else if (dx > 0) dx--;
-				if (dy < 0) dy++;
-				else if (dy > 0) dy--;
+				if (dx < 0) dx=-1;
+				else if (dx > 0) dx=1;
+				if (dy < 0) dy=-1;
+				else if (dy > 0) dy=1;
+				if(mob_walktoxy(md, tbl->x -dx, tbl->y -dy, 0)) {
+					j = (dy+1) + 3*(dx+1);
+					for (i = j+1; i%9 != j; i++) {
+						dx = -1+(i%9)/3;
+						dy = -1+(i%3);
 #ifdef CELL_NOSTACK
-				while (mob_walktoxy(md, md->bl.x + dx, md->bl.y + dy, 0))
-				{	//Attempt to chase to nearby blocks
-					do {
-						if (i < 5) {
-							dx = tbl->x - md->bl.x + rand()%3 - 1;
-							dy = tbl->y - md->bl.y + rand()%3 - 1;
-						} else { //Try some more...
-							dx = tbl->x - md->bl.x + rand()%5 - 2;
-							dy = tbl->y - md->bl.y + rand()%5 - 2;
+						if (map_getcell(md->bl.m,  tbl->x-dx, tbl->y-dy, CELL_CHKSTACK))
+							continue;
+#endif
+						if (!mob_walktoxy(md, tbl->x-dx, tbl->y-dy, 0))
+							break;
+					}
+#ifdef CELL_NOSTACK
+					if (i%9 == j) 
+					{ //All adjacent cells are taken. Try roaming around on 5x5
+						for (i = j+1; i%9 != j; i++) {
+							dx = 2*(-1+(i%9)/3);
+							dy = 2*(-1+(i%3));
+							if (map_getcell(md->bl.m,  tbl->x-dx, tbl->y-dy, CELL_CHKSTACK))
+								continue;
+							if (!mob_walktoxy(md, tbl->x-dx, tbl->y-dy, 0)) {
+								md->next_walktime = tick + 1000;
+								break;
+							}
 						}
-						i++;
-					} while (i < 15 && map_getcell(md->bl.m,  md->bl.x+dx, md->bl.y+dy, CELL_CHKSTACK));
-					if (i >= 15) {
+					}
+					if (i%9 == j)
+				  	{
 						//On stacked mode, it is much more likely that you just can't reach the target. So unlock it
 						mob_unlocktarget(md, tick);
-						//Make it give up for 1 second to avoid unnecessary server load in case the target is already mobbed to death.
-						mob_changestate(md,MS_DELAY,1000);
+						md->next_walktime = tick + 1000;
 						return 0;
 					}
-				}
 #else
-				while (i < 5 && mob_walktoxy(md, md->bl.x + dx, md->bl.y + dy, 0))
-				{	//Attempt to chase to nearby blocks
-					dx = tbl->x - md->bl.x + rand()%3 - 1;
-					dy = tbl->y - md->bl.y + rand()%3 - 1;
-					i++;
-				}
-				if (i==5)
-				{	//Failed? Try going away from the target before retrying.
-					if (dx < 0) dx = 2;
-					else if (dx > 0) dx = -2;
-					if (dy < 0) dy = 2;
-					else if (dy > 0) dy = -2;
-				}
+					if (i%9 == j)
+					{	//Failed? Try going away from the target before retrying.
+						if (dx < 0) dx = 2;
+						else if (dx > 0) dx = -2;
+						if (dy < 0) dy = 2;
+						else if (dy > 0) dy = -2;
+						mob_walktoxy (md, tbl->x+dx, tbl->y+dy, 0);
+						md->next_walktime = tick + 500;
+					}
 #endif
-				md->next_walktime = tick + 500;
-				mob_walktoxy (md, md->bl.x+dx, md->bl.y+dy, 0);
+				}
 				return 0;
 			}
 			//Target within range, engage
@@ -1901,10 +1909,7 @@ static int mob_ai_sub_foreachclient(struct map_session_data *sd,va_list ap)
 	nullpo_retr(0, ap);
 
 	tick=va_arg(ap,unsigned int);
-	map_foreachinarea(mob_ai_sub_hard,sd->bl.m,
-					  sd->bl.x-AREA_SIZE*2,sd->bl.y-AREA_SIZE*2,
-					  sd->bl.x+AREA_SIZE*2,sd->bl.y+AREA_SIZE*2,
-					  BL_MOB,tick);
+	map_foreachinrange(mob_ai_sub_hard,&sd->bl, AREA_SIZE*2, BL_MOB,tick);
 
 	return 0;
 }
@@ -2084,13 +2089,18 @@ static void mob_item_drop(struct mob_data *md, unsigned int tick, struct delay_i
 	if (ditem->first_sd && ditem->first_sd->state.autoloot &&
 		(drop_rate <= ditem->first_sd->state.autoloot ||
 		ditem->first_sd->state.autoloot >= 10000) //Fetch 100% drops
-		&& pc_additem(ditem->first_sd,&ditem->item_data,ditem->item_data.amount) == 0)
-	{	//Autolooted.
-		if(log_config.pick > 0)
-			log_pick(ditem->first_sd, "P", 0, ditem->item_data.nameid, ditem->item_data.amount, &ditem->item_data);
-		aFree(ditem);
-	} else
-		add_timer(tick, mob_delay_item_drop, (int)ditem, 0);
+	) {	//Autoloot.
+		if (party_share_loot(
+			ditem->first_sd->status.party_id?
+				party_search(ditem->first_sd->status.party_id):
+				NULL,
+			ditem->first_sd,&ditem->item_data) == 0
+		) {
+			aFree(ditem);
+			return;
+		}
+	}
+	add_timer(tick, mob_delay_item_drop, (int)ditem, 0);
 }
 
 /*==========================================
@@ -2256,9 +2266,13 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 		return 0;
 	}
 
-	if(md->sc_count) {
-		if(md->sc_data[SC_CONFUSION].timer != -1)
+	if(md->sc.count) {
+		if(md->sc.data[SC_CONFUSION].timer != -1)
 			status_change_end(&md->bl, SC_CONFUSION, -1);
+		if(md->sc.data[SC_HIDING].timer != -1)
+			status_change_end(&md->bl, SC_HIDING, -1);
+		if(md->sc.data[SC_CLOAKING].timer != -1)
+			status_change_end(&md->bl, SC_CLOAKING, -1);
 	}
 
 	if(damage > max_hp>>2)
@@ -2343,11 +2357,6 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 		}
 	}	// end addition
 
-	if(md->option&OPTION_HIDE)
-		status_change_end(&md->bl, SC_HIDING, -1);
-	if(md->option&OPTION_CLOAK)
-		status_change_end(&md->bl, SC_CLOAKING, -1);
-
 	if(md->special_state.ai == 2 &&	//スフィアーマイン
 		src && md->master_id == src->id)
 	{
@@ -2368,14 +2377,14 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 
 	//changestate will clear all status effects, so we need to know if RICHMANKIM is in effect before then. [Skotlex]
 	//I just recycled ret because it isn't used until much later and I didn't want to add a new variable for it.
-	ret = (md->sc_data[SC_RICHMANKIM].timer != -1)?(25 + 11*md->sc_data[SC_RICHMANKIM].val1):0;
+	ret = (md->sc.data[SC_RICHMANKIM].timer != -1)?(25 + 11*md->sc.data[SC_RICHMANKIM].val1):0;
 
 	md->state.skillstate = MSS_DEAD;	
 	mobskill_use(md,tick,-1);	//On Dead skill.
 
-	if (md->sc_data[SC_KAIZEL].timer != -1) {
+	if (md->sc.data[SC_KAIZEL].timer != -1) {
 		//Revive in a bit.
-		max_hp = 10*md->sc_data[SC_KAIZEL].val1; //% of life to rebirth with
+		max_hp = 10*md->sc.data[SC_KAIZEL].val1; //% of life to rebirth with
 		mob_changestate(md,MS_DEAD,0);
 		clif_clearchar_area(&md->bl,1);
 		map_delblock(&md->bl);
@@ -3040,22 +3049,22 @@ int mob_warp(struct mob_data *md,int m,int x,int y,int type)
 	if(type >= 0) {
 		if(map[md->bl.m].flag.monster_noteleport)
 			return 0;
-		if(md->sc_count) { //Clear a few status changes (taken directly from pc_setpos). [Skotlex]
-			if(md->sc_data[SC_TRICKDEAD].timer != -1)
+		if(md->sc.count) { //Clear a few status changes (taken directly from pc_setpos). [Skotlex]
+			if(md->sc.data[SC_TRICKDEAD].timer != -1)
 				status_change_end(&md->bl, SC_TRICKDEAD, -1);
-			if(md->sc_data[SC_BLADESTOP].timer!=-1)
+			if(md->sc.data[SC_BLADESTOP].timer!=-1)
 				status_change_end(&md->bl,SC_BLADESTOP,-1);
-			if(md->sc_data && md->sc_data[SC_RUN].timer!=-1)
+			if(md->sc.data[SC_RUN].timer!=-1)
 				status_change_end(&md->bl,SC_RUN,-1);
-			if(md->sc_data[SC_DANCING].timer!=-1)
+			if(md->sc.data[SC_DANCING].timer!=-1)
 				skill_stop_dancing(&md->bl);
-			if (md->sc_data[SC_DEVOTION].timer!=-1)
+			if (md->sc.data[SC_DEVOTION].timer!=-1)
 				status_change_end(&md->bl,SC_DEVOTION,-1);
-			if (md->sc_data[SC_CLOSECONFINE].timer!=-1)
+			if (md->sc.data[SC_CLOSECONFINE].timer!=-1)
 				status_change_end(&md->bl,SC_CLOSECONFINE,-1);
-			if (md->sc_data[SC_CLOSECONFINE2].timer!=-1)
+			if (md->sc.data[SC_CLOSECONFINE2].timer!=-1)
 				status_change_end(&md->bl,SC_CLOSECONFINE2,-1);
-			if (md->sc_data[SC_RUN].timer!=-1)
+			if (md->sc.data[SC_RUN].timer!=-1)
 				status_change_end(&md->bl,SC_RUN,-1);
 		}
 		clif_clearchar_area(&md->bl,type);
@@ -3190,7 +3199,8 @@ int mob_summonslave(struct mob_data *md2,int *value,int amount,int skill_id)
 		md->y0=y;
 		md->xs=0;
 		md->ys=0;
-		if (battle_config.slaves_inherit_speed && (skill_id != NPC_METAMORPHOSIS && skill_id != NPC_TRANSFORMATION))
+		if (battle_config.slaves_inherit_speed && md2->db->mode&MD_CANMOVE 
+			&& (skill_id != NPC_METAMORPHOSIS && skill_id != NPC_TRANSFORMATION))
 			md->speed=md2->speed;
 		md->special_state.cached= battle_config.dynamic_mobs;	//[Skotlex]
 		md->spawndelay1=-1;	// 一度のみフラグ
@@ -3284,7 +3294,7 @@ int mobskill_castend_id( int tid, unsigned int tick, int id,int data )
 
 	inf = skill_get_inf(md->skillid);
 	if((inf&INF_ATTACK_SKILL ||
-		(inf&INF_SELF_SKILL && md->bl.id != bl->id && skill_get_nk(md->skillid) != NK_NO_DAMAGE))
+		(inf&INF_SELF_SKILL && md->bl.id != bl->id && !(skill_get_nk(md->skillid)&NK_NO_DAMAGE)))
 		&& battle_check_target(&md->bl,bl, BCT_ENEMY)<=0 ) {
 		skill_failed(md);
 		return 0;
@@ -3307,19 +3317,13 @@ int mobskill_castend_id( int tid, unsigned int tick, int id,int data )
 		ShowInfo("MOB skill castend skill=%d, class = %d\n",md->skillid,md->class_);
 //	mob_stop_wShowInfo(md,0);
 
-	switch( skill_get_nk(md->skillid) )
-	{
-	case NK_NO_DAMAGE:// 支援系
-		skill_castend_nodamage_id(&md->bl,bl,md->skillid,md->skilllv,tick,0);
-		break;
-	// 攻撃系/吹き飛ばし系
-	case NK_SPLASH_DAMAGE:
-	default:
-		skill_castend_damage_id(&md->bl,bl,md->skillid,md->skilllv,tick,0);
-		break;
-	}
 
-	if (md->sc_count && md->sc_data[SC_MAGICPOWER].timer != -1 && md->skillid != HW_MAGICPOWER)
+	if (skill_get_casttype(md->skillid) == CAST_NODAMAGE) 
+		skill_castend_nodamage_id(&md->bl,bl,md->skillid,md->skilllv,tick,0);
+	else
+		skill_castend_damage_id(&md->bl,bl,md->skillid,md->skilllv,tick,0);
+
+	if (md->sc.count && md->sc.data[SC_MAGICPOWER].timer != -1 && md->skillid != HW_MAGICPOWER)
 		status_change_end(&md->bl, SC_MAGICPOWER, -1);
 		
 	if (md->db->skill[md->skillidx].emotion >= 0)
@@ -3448,7 +3452,7 @@ int mobskill_use_id(struct mob_data *md,struct block_list *target,int skill_idx)
 	if(!status_check_skilluse(&md->bl, target, skill_id, 0))
 		return 0;
 
-	if(md->sc_data && md->sc_data[SC_WINKCHARM].timer != -1 && target->type == BL_PC) {
+	if(md->sc.count && md->sc.data[SC_WINKCHARM].timer != -1 && target->type == BL_PC) {
 		clif_emotion(&md->bl, 3);
 		return 0;
 	}
@@ -3507,7 +3511,7 @@ int mobskill_use_id(struct mob_data *md,struct block_list *target,int skill_idx)
 	md->skilllv		= skill_lv;
 	md->skillidx	= skill_idx;
 
-	if(!(battle_config.monster_cloak_check_type&2) && md->sc_data[SC_CLOAKING].timer != -1 && md->skillid != AS_CLOAKING)
+	if(!(battle_config.monster_cloak_check_type&2) && md->sc.data[SC_CLOAKING].timer != -1 && md->skillid != AS_CLOAKING)
 		status_change_end(&md->bl,SC_CLOAKING,-1);
 
 	if( casttime>0 ){
@@ -3579,7 +3583,7 @@ int mobskill_use_pos( struct mob_data *md,
 	md->skillid		= skill_id;
 	md->skilllv		= skill_lv;
 	md->skillidx	= skill_idx;
-	if(!(battle_config.monster_cloak_check_type&2) && md->sc_data[SC_CLOAKING].timer != -1)
+	if(!(battle_config.monster_cloak_check_type&2) && md->sc.data[SC_CLOAKING].timer != -1)
 		status_change_end(&md->bl,SC_CLOAKING,-1);
 	if( casttime>0 ){
 		md->skilltimer =
@@ -3675,11 +3679,11 @@ int mob_getfriendstatus_sub(struct block_list *bl,va_list ap)
 	if( cond2==-1 ){
 		int j;
 		for(j=SC_COMMON_MIN;j<=SC_COMMON_MAX && !flag;j++){
-			if ((flag=(md->sc_data[j].timer!=-1))) //Once an effect was found, break out. [Skotlex]
+			if ((flag=(md->sc.data[j].timer!=-1))) //Once an effect was found, break out. [Skotlex]
 				break;
 		}
 	}else
-		flag=( md->sc_data[cond2].timer!=-1 );
+		flag=( md->sc.data[cond2].timer!=-1 );
 	if( flag^( cond1==MSC_FRIENDSTATUSOFF ) )
 		(*fr)=md;
 
@@ -3746,15 +3750,15 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 					break;
 				case MSC_MYSTATUSON:		// status[num] on
 				case MSC_MYSTATUSOFF:		// status[num] off
-					if (!md->sc_data) {
+					if (!md->sc.count) {
 						flag = 0;
 					} else if (ms[i].cond2 == -1) {
 						int j;
 						for (j = SC_COMMON_MIN; j <= SC_COMMON_MAX; j++)
-							if ((flag = (md->sc_data[j].timer != -1)) != 0)
+							if ((flag = (md->sc.data[j].timer != -1)) != 0)
 								break;
 					} else {
-						flag = (md->sc_data[ms[i].cond2].timer != -1);
+						flag = (md->sc.data[ms[i].cond2].timer != -1);
 					}
 					flag ^= (ms[i].cond1 == MSC_MYSTATUSOFF); break;
 				case MSC_FRIENDHPLTMAXRATE:	// friend HP < maxhp%
@@ -3794,7 +3798,8 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 			continue; //Skill requisite failed to be fulfilled.
 
 		//Execute skill	
-		if (skill_get_inf(ms[i].skill_id) & INF_GROUND_SKILL) {
+		if (skill_get_casttype(ms[i].skill_id) == CAST_GROUND)
+		{
 			// 場所指定
 			struct block_list *bl = NULL;
 			int x = 0, y = 0;
@@ -3838,7 +3843,7 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 				do {
 					bx = x + rand() % (r*2+1) - r;
 					by = y + rand() % (r*2+1) - r;
-				} while (map_getcell(m, bx, by, CELL_CHKNOPASS) && (i++) < 1000);
+				} while (map_getcell(m, bx, by, CELL_CHKNOREACH) && (i++) < 1000);
 				if (i < 1000){
 					x = bx; y = by;
 				}
@@ -3849,7 +3854,7 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 				do {
 					bx = x + rand() % (r*2+1) - r;
 					by = y + rand() % (r*2+1) - r;
-				} while (map_getcell(m, bx, by, CELL_CHKNOPASS) && (i++) < 1000);
+				} while (map_getcell(m, bx, by, CELL_CHKNOREACH) && (i++) < 1000);
 				if (i < 1000){
 					x = bx; y = by;
 				}
@@ -3884,6 +3889,11 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 				}
 				if (bl && !mobskill_use_id(md, bl, i))
 					return 0;
+			} else {
+				if (battle_config.error_log)
+					ShowWarning("Wrong mob skill target 'around' for non-ground skill %d (%s). Mob %d - %s\n",
+						ms[i].skill_id, skill_get_name(ms[i].skill_id), md->class_, md->db->jname);
+				continue;
 			}
 		}
 		return 1;
@@ -3895,18 +3905,31 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
  * Skill use event processing
  *------------------------------------------
  */
-int mobskill_event(struct mob_data *md, int flag)
+int mobskill_event(struct mob_data *md, struct block_list *src, unsigned int tick, int flag)
 {
-	int tick = gettick();
-	nullpo_retr(0, md);
+	int target_id, res = 0;
 
-	if (flag == -1 && mobskill_use(md, tick, MSC_CASTTARGETED))
-		return 1;
-	if ((flag & BF_SHORT) && mobskill_use(md, tick, MSC_CLOSEDATTACKED))
-		return 1;
-	if ((flag & BF_LONG) && mobskill_use(md, tick, MSC_LONGRANGEATTACKED))
-		return 1;
-	return 0;
+	target_id = md->target_id;
+	if (!target_id || battle_config.mob_changetarget_byskill)
+		md->target_id = src->id;
+			
+	if (flag == -1)
+		res = mobskill_use(md, tick, MSC_CASTTARGETED);
+	else if ((flag&0xffff) == MSC_SKILLUSED)
+		res = mobskill_use(md,tick,flag);
+	else if (flag&BF_SHORT)
+		res = mobskill_use(md, tick, MSC_CLOSEDATTACKED);
+	else if (flag&BF_LONG)
+		res = mobskill_use(md, tick, MSC_LONGRANGEATTACKED);
+	
+	if (!res)
+	//Restore previous target only if skill condition failed to trigger. [Skotlex]
+		md->target_id = target_id;
+	//Otherwise check if the target is an enemy, and unlock if needed.
+	else if (battle_check_target(&md->bl, src, BCT_ENEMY) <= 0)
+		md->target_id = target_id;
+	
+	return res;
 }
 
 /*==========================================
@@ -4012,7 +4035,7 @@ int mob_clone_spawn(struct map_session_data *sd, char *map, int x, int y, const 
 	mob_db_data[class_]->head_top=sd->status.head_top;
 	mob_db_data[class_]->head_mid=sd->status.head_mid;
 	mob_db_data[class_]->head_buttom=sd->status.head_bottom;
-	mob_db_data[class_]->option=sd->status.option;
+	mob_db_data[class_]->option=sd->sc.option;
 	mob_db_data[class_]->clothes_color=sd->status.clothes_color;
 
 	//Skill copy [Skotlex]
@@ -4062,7 +4085,7 @@ int mob_clone_spawn(struct map_session_data *sd, char *map, int x, int y, const 
 				ms[i].cond2 = 95;
 			}
 		} else if (inf&INF_SELF_SKILL) {
-			if (skill_get_nk(skill_id) != NK_NO_DAMAGE) { //Offensive skill
+			if (!(skill_get_nk(skill_id)&NK_NO_DAMAGE)) { //Offensive skill
 				ms[i].target = MST_TARGET;
 				ms[i].state = MSS_BERSERK;
 			} else //Self skill
@@ -4554,7 +4577,7 @@ static int mob_readskilldb(void)
 {
 	FILE *fp;
 	char line[1024];
-	int i,tmp;
+	int i,tmp, count;
 
 	const struct {
 		char str[32];
@@ -4587,7 +4610,7 @@ static int mob_readskilldb(void)
 		{	"anybad",		-1				},
 		{	"stone",		SC_STONE		},
 		{	"freeze",		SC_FREEZE		},
-		{	"stan",			SC_STAN			},
+		{	"stan",			SC_STUN			},
 		{	"sleep",		SC_SLEEP		},
 		{	"poison",		SC_POISON		},
 		{	"curse",		SC_CURSE		},
@@ -4630,6 +4653,7 @@ static int mob_readskilldb(void)
 		return 0;
 	}
 	for(x=0;x<2;x++){
+		count = 0;
 		sprintf(line, "%s/%s", db_path, filename[x]); 
 		fp=fopen(line,"r");
 		if(fp==NULL){
@@ -4643,6 +4667,7 @@ static int mob_readskilldb(void)
 			struct mob_skill *ms, gms;
 			int j=0;
 
+			count++;
 			if(line[0] == '/' && line[1] == '/')
 				continue;
 
@@ -4652,10 +4677,15 @@ static int mob_readskilldb(void)
 				if((p=strchr(p,','))!=NULL)
 					*p++=0;
 			}
-			if(i == 0 || (mob_id=atoi(sp[0]))== 0 || (mob_id > 0 && mob_db(mob_id) == mob_dummy))
+			if(i == 0 || (mob_id=atoi(sp[0]))== 0)
 				continue;
 			if(i < 18) {
-				ShowError("Insufficient number of fields for Mob Skill (Mob ID[%s], Name[%s], Skill:[%s/Lv%s])\n", sp[0], i>1?sp[1]:"?", i>3?sp[3]:"?", i>4?sp[4]:"?");
+				ShowError("mob_skill: Insufficient number of fields for skill at %s, line %d\n", filename[x], count);
+				continue;
+			}
+			if (mob_id > 0 && mob_db(mob_id) == mob_dummy)
+			{
+				ShowError("mob_skill: Invalid mob id %d at %s, line %d\n", mob_id, filename[x], count);
 				continue;
 			}
 			if( strcmp(sp[1],"clear")==0 ){
@@ -4682,10 +4712,12 @@ static int mob_readskilldb(void)
 			}
 
 			ms->state=atoi(sp[2]);
-			for(j=0;j<sizeof(state)/sizeof(state[0]);j++){
-				if( strcmp(sp[2],state[j].str)==0)
-					ms->state=state[j].id;
-			}
+			tmp = sizeof(state)/sizeof(state[0]);
+			for(j=0;j<tmp && strcmp(sp[2],state[j].str);j++);
+			if (j < tmp)
+				ms->state=state[j].id;
+			else
+				ShowError("mob_skill: Unrecognized state %s at %s, line %d\n", sp[2], filename[x], count);
 
 			//Skill ID
 			j=atoi(sp[3]);
@@ -4724,15 +4756,19 @@ static int mob_readskilldb(void)
 					ms->target=target[j].id;
 			}
 			ms->cond1=-1;
-			for(j=0;j<sizeof(cond1)/sizeof(cond1[0]);j++){
-				if( strcmp(sp[10],cond1[j].str)==0)
-					ms->cond1=cond1[j].id;
-			}
+			tmp = sizeof(cond1)/sizeof(cond1[0]);
+			for(j=0;j<tmp && strcmp(sp[10],cond1[j].str);j++);
+			if (j < tmp)
+				ms->cond1=cond1[j].id;
+			else
+				ShowError("mob_skill: Unrecognized condition 1 %s at %s, line %d\n", sp[10], filename[x], count);
+
 			ms->cond2=atoi(sp[11]);
-			for(j=0;j<sizeof(cond2)/sizeof(cond2[0]);j++){
-				if( strcmp(sp[11],cond2[j].str)==0)
-					ms->cond2=cond2[j].id;
-			}
+			tmp = sizeof(cond2)/sizeof(cond2[0]);
+			for(j=0;j<tmp && strcmp(sp[11],cond2[j].str);j++);
+			if (j < tmp)
+				ms->cond2=cond2[j].id;
+			
 			ms->val[0]=atoi(sp[12]);
 			ms->val[1]=atoi(sp[13]);
 			ms->val[2]=atoi(sp[14]);

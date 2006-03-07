@@ -18,13 +18,13 @@
 #define pc_issit(sd) ((sd)->state.dead_sit == 2)
 #define pc_setdir(sd,b,h) ((sd)->dir = (b) ,(sd)->head_dir = (h) )
 #define pc_setchatid(sd,n) ((sd)->chatID = n)
-#define pc_ishiding(sd) ((sd)->status.option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK))
-#define pc_iscloaking(sd) (!((sd)->status.option&OPTION_CHASEWALK) && ((sd)->status.option&OPTION_CLOAK))
-#define pc_ischasewalk(sd) ((sd)->status.option&OPTION_CHASEWALK)
-#define pc_iscarton(sd) ((sd)->status.option&CART_MASK)
-#define pc_isfalcon(sd) ((sd)->status.option&OPTION_FALCON)
-#define pc_isriding(sd) ((sd)->status.option&OPTION_RIDING)
-#define pc_isinvisible(sd) ((sd)->status.option&OPTION_INVISIBLE)
+#define pc_ishiding(sd) ((sd)->sc.option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK))
+#define pc_iscloaking(sd) (!((sd)->sc.option&OPTION_CHASEWALK) && ((sd)->sc.option&OPTION_CLOAK))
+#define pc_ischasewalk(sd) ((sd)->sc.option&OPTION_CHASEWALK)
+#define pc_iscarton(sd) ((sd)->sc.option&CART_MASK)
+#define pc_isfalcon(sd) ((sd)->sc.option&OPTION_FALCON)
+#define pc_isriding(sd) ((sd)->sc.option&OPTION_RIDING)
+#define pc_isinvisible(sd) ((sd)->sc.option&OPTION_INVISIBLE)
 #define pc_is50overweight(sd) (sd->weight*2 >= sd->max_weight) 
 #define pc_is90overweight(sd) (sd->weight*10 >= sd->max_weight*9)
 #define pc_maxparameter(sd) ((sd->class_&JOBL_BABY) ? battle_config.max_baby_parameter : battle_config.max_parameter)
@@ -46,12 +46,6 @@ int pc_reg_received(struct map_session_data *sd);
 
 int pc_isequip(struct map_session_data *sd,int n);
 int pc_equippoint(struct map_session_data *sd,int n);
-
-int pc_break_equip(struct map_session_data *, unsigned short);
-#define pc_breakweapon(sd)	(pc_break_equip(sd, EQP_WEAPON))
-#define pc_breakarmor(sd)	(pc_break_equip(sd, EQP_ARMOR))
-#define pc_breakshield(sd)	(pc_break_equip(sd, EQP_SHIELD))
-#define pc_breakhelm(sd)	(pc_break_equip(sd, EQP_HELM))
 
 int pc_checkskill(struct map_session_data *sd,int skill_id);
 int pc_checkallowskill(struct map_session_data *sd);
@@ -194,7 +188,6 @@ struct map_session_data *pc_get_child(struct map_session_data *sd);
 
 int pc_set_gm_level(int account_id, int level);
 void pc_setstand(struct map_session_data *sd);
-int pc_break_equip(struct map_session_data *sd, unsigned short where);
 int pc_candrop(struct map_session_data *sd,int item_id);
 
 struct pc_base_job{
@@ -232,9 +225,9 @@ int pc_eventtimer(int tid,unsigned int tick,int id,int data); // for npc_dequeue
 
 int pc_run(struct map_session_data *sd, int skilllv, int dir);
 
-extern struct fame_list smith_fame_list[10];
-extern struct fame_list chemist_fame_list[10];
-extern struct fame_list taekwon_fame_list[10];
+extern struct fame_list smith_fame_list[MAX_FAME_LIST];
+extern struct fame_list chemist_fame_list[MAX_FAME_LIST];
+extern struct fame_list taekwon_fame_list[MAX_FAME_LIST];
 
 int pc_readdb(void);
 int do_init_pc(void);

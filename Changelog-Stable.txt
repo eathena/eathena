@@ -5,6 +5,38 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY VALARIS AND WIZPUTER. -- VALARIS
 
 2006/03/06
+	* Huge merge from trunk. Most of the stuff that has been in trunk for a
+	  while now and hasn't produced any reports has been merged: [Skotlex]
+	- Status change structure and functions update
+	- Skill-splash update. skill_db has a new column to specify splash range
+	  for skills (eg: Hammerfall).
+	- Merged Venom Splasher's behaviour and damage.
+	- New function to handle skill breaking, which causes the strip effect on
+	  mobs instead.
+	- Range-based defense cards work on spells now
+	- Mob ai updates
+	- Party/guild mini-dot update when entering a map.
+	- Party loot distribution now works with autoloot as well
+	- Use of event &8 for special_ai spawned mobs.
+	- Improved auto-spell system that takes into account card id to avoid spell
+	  stacking.
+	- skill_cast_db has now a column to specify afterskill walk_delay
+	- Gm_skill_unconditional is now a no/min-gm level setting.
+	- Correct implementation of the Warm skills.
+	- Update on the way walk-delays stack. Damage-induced walk delays are not
+	  overridden, but skill walk delays can increase your current one.
+	- Menu based skills use their own variables to allow "precasting"
+	- Lots of code cleanup around various functions.
+	- New battle_config options:
+	- pk_level_range: Specify valid level ranges to engage in pk (pk-mode
+	  servers) (misc.conf)
+	- allow_es_magic_player: Enables use of ES magic on players. (skill.conf)
+	- pc_status_def_rate, mob_status_def_rate: Adjusts stats required before
+	  hitting inmunity. (battle.conf)
+	- pc_max_status_def, mob_max_status_def: Adjust max sc defense that you can
+	  acquire via stats. (battle.conf)
+	- clear_skills_on_death: removes all ground-based skills when the caster
+	  dies. (skill.conf)
 	* Fixed npc_event doing a map-check when the npc is not on any map.
 	  [Skotlex]
 2006/03/05

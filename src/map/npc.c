@@ -104,11 +104,11 @@ int npc_enable(const char *name,int flag)
 		clif_spawnnpc(nd);
 	}else if (flag&2){
 		nd->flag&=~1;
-		nd->option = 0x0000;
+		nd->sc.option = 0x0000;
 		clif_changeoption(&nd->bl);
 	}else if (flag&4){
 		nd->flag|=1;
-		nd->option = 0x0002;
+		nd->sc.option = 0x0002;
 		clif_changeoption(&nd->bl);
 	}else{		// –³Œø‰»
 		nd->flag|=1;
@@ -206,7 +206,7 @@ int npc_timer_event(const unsigned char *eventname)	// Added by RoVeRT
 //	int xs,ys;
 
 	if((ev==NULL || (nd=ev->nd)==NULL)){
-		ShowWarning("npc_event: event not found [%s]\n",eventname);
+		ShowWarning("npc_timer_event: event not found [%s]\n",eventname);
 		return 0;
 	}
 
@@ -675,7 +675,7 @@ int npc_event (struct map_session_data *sd, const unsigned char *eventname, int 
 			ev = strdb_get(ev_db, mobevent);
 			if (ev == NULL || (nd = ev->nd) == NULL) {
 				if (strnicmp(eventname, "GM_MONSTER",10) != 0)
-					ShowError("npc_event: event not found [%s]\n", mobevent);
+					ShowError("npc_event: (mob_kill) event not found [%s]\n", mobevent);
 				return 0;
 			}
 		} else {
@@ -794,7 +794,7 @@ int npc_touch_areanpc(struct map_session_data *sd,int m,int x,int y)
 	switch(map[m].npc[i]->bl.subtype) {
 		case WARP:
 			// hidden chars cannot use warps -- is it the same for scripts too?
-			if (sd->status.option&6 ||
+			if (sd->sc.option&6 ||
 				(!battle_config.duel_allow_teleport && sd->duel_group)) // duel rstrct [LuzZza]
 				break;
 			skill_stop_dancing(&sd->bl);
@@ -1950,10 +1950,10 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 	nd->u.scr.src_id = src_id;
 /* Cleaned up above with memset...
 	nd->chat_id = 0;
-	nd->option = 0;
-	nd->opt1 = 0;
-	nd->opt2 = 0;
-	nd->opt3 = 0;
+	nd->sc.option = 0;
+	nd->sc.opt1 = 0;
+	nd->sc.opt2 = 0;
+	nd->sc.opt3 = 0;
 */
 	nd->walktimer = -1;
 
@@ -2180,12 +2180,14 @@ int npc_parse_mob2 (struct mob_list *mob, int cached)
 
 		if (strlen(mob->eventname) >= 4) {
 			memcpy(md->npc_event, mob->eventname, NAME_LENGTH-1);
-		} else if (strlen(mob->eventname) == 1) { //Portable monster big/small implementation. [Skotlex]
+		} else if (strlen(mob->eventname) <= 2) { //Portable monster big/small implementation. [Skotlex]
 			int size = atoi(mob->eventname);
 			if (size & 2)
 				md->special_state.size=1;
 			else if (size & 4)
 				md->special_state.size=2;
+			if (size & 8)
+				md->special_state.ai=1;
 		}
 
 		md->bl.type = BL_MOB;

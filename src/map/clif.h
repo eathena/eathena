@@ -177,11 +177,11 @@ int clif_skill_nodamage(struct block_list *src,struct block_list *dst,
 int clif_skill_poseffect(struct block_list *src,int skill_id,
 	int val,int x,int y,int tick);
 int clif_skill_estimation(struct map_session_data *sd,struct block_list *dst);
-int clif_skill_warppoint(struct map_session_data *sd,int skill_num,
+int clif_skill_warppoint(struct map_session_data *sd,int skill_num, int skill_lv,
 	const char *map1,const char *map2,const char *map3,const char *map4);
 int clif_skill_memo(struct map_session_data *sd,int flag);
 int clif_skill_teleportmessage(struct map_session_data *sd,int flag);
-int clif_skill_produce_mix_list(struct map_session_data *sd,int trigger);
+int clif_skill_produce_mix_list(struct map_session_data *sd, int trigger);
 
 int clif_produceeffect(struct map_session_data *sd,int flag,int nameid);
 
@@ -254,6 +254,7 @@ int clif_party_leaved(struct party *p,struct map_session_data *sd,int account_id
 int clif_party_message(struct party *p,int account_id,char *mes,int len);
 int clif_party_move(struct party *p,struct map_session_data *sd,int online);
 int clif_party_xy(struct map_session_data *sd);
+int clif_party_xy_single(int fd, struct map_session_data *sd);
 int clif_party_hp(struct map_session_data *sd);
 int clif_hpmeter(struct map_session_data *sd);
 
@@ -282,6 +283,7 @@ int clif_guild_delalliance(struct map_session_data *sd,int guild_id,int flag);
 int clif_guild_oppositionack(struct map_session_data *sd,int flag);
 int clif_guild_broken(struct map_session_data *sd,int flag);
 int clif_guild_xy(struct map_session_data *sd);
+int clif_guild_xy_single(int fd, struct map_session_data *sd);
 int clif_guild_xy_remove(struct map_session_data *sd);
 
 
@@ -334,7 +336,7 @@ int do_init_clif(void);
 
 
 int clif_party_xy_remove(struct map_session_data *sd); //Fix for minimap [Kevin]
-void clif_parse_ReqFeel(int fd, struct map_session_data *sd); 
+void clif_parse_ReqFeel(int fd, struct map_session_data *sd, int skilllv); 
 void clif_feel_info(struct map_session_data *sd, int feel_level);
 void clif_hate_mob(struct map_session_data *sd, int skilllv,int mob_id);
 void clif_mission_mob(struct map_session_data *sd, unsigned short mob_id, unsigned short progress);

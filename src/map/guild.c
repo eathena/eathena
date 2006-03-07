@@ -63,20 +63,6 @@ int guild_gvg_eliminate_timer(int tid,unsigned int tick,int id,int data);
 int guild_save_sub(int tid,unsigned int tick,int id,int data);
 static int guild_send_xy_timer(int tid,unsigned int tick,int id,int data);
 
-// ギルドスキルdbのアクセサ（今は直打ちで代用）
-// Modified for new skills [Sara]
-int guild_skill_get_inf(int id)
-{
-	switch(id) {
-		case GD_BATTLEORDER:
-		case GD_REGENERATION:
-		case GD_RESTORE:
-		case GD_EMERGENCYCALL:
-			return 4;
-	}
-	return 0;
-}
-
  // Modified [Komurka]
 int guild_skill_get_max (int id)
 {
@@ -880,7 +866,8 @@ int guild_member_leaved(int guild_id,int account_id,int char_id,int flag,
 int guild_send_memberinfoshort(struct map_session_data *sd,int online)
 {
 	struct guild *g;
-
+	int  i;
+	
 	nullpo_retr(0, sd);
 
 	if(sd->status.guild_id<=0)
@@ -893,10 +880,18 @@ int guild_send_memberinfoshort(struct map_session_data *sd,int online)
 		sd->status.account_id,sd->status.char_id,online,sd->status.base_level,sd->status.class_);
 
 	if( !online ){	// ログアウトするならsdをクリアして終了
-		int i=guild_getindex(g,sd->status.account_id,sd->status.char_id);
+		i=guild_getindex(g,sd->status.account_id,sd->status.char_id);
 		if(i>=0)
 			g->member[i].sd=NULL;
 		return 0;
+	} else if (sd->fd) {
+		//Send XY dot updates. [Skotlex]
+		for(i=0; i < MAX_GUILD; i++) {
+			if (!g->member[i].sd || g->member[i].sd == sd ||
+				g->member[i].sd->bl.m != sd->bl.m)
+				continue;
+			clif_guild_xy_single(sd->fd, g->member[i].sd);
+		}
 	}
 
 	if( sd->state.guild_sent!=0 )	// ギルド初期送信データは送信済み
@@ -906,14 +901,12 @@ int guild_send_memberinfoshort(struct map_session_data *sd,int online)
 	guild_check_conflict(sd);
 
 	// あるならギルド初期送信データ送信
-	if( (g=guild_search(sd->status.guild_id))!=NULL ){
-		guild_check_member(g);	// 所属を確認する
-		if(sd->status.guild_id==g->guild_id){
-			clif_guild_belonginfo(sd,g);
-			clif_guild_notice(sd,g);
-			sd->state.guild_sent=1;
-			sd->guild_emblem_id=g->emblem_id;
-		}
+	guild_check_member(g);	// 所属を確認する
+	if(sd->status.guild_id==g->guild_id){
+		clif_guild_belonginfo(sd,g);
+		clif_guild_notice(sd,g);
+		sd->state.guild_sent=1;
+		sd->guild_emblem_id=g->emblem_id;
 	}
 	return 0;
 }

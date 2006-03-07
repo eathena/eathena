@@ -4962,7 +4962,7 @@ int buildin_checkoption(struct script_state *st)
 	type=conv_num(st,& (st->stack->stack_data[st->start+2]));
 	sd=script_rid2sd(st);
 
-	if(sd->status.option & type){
+	if(sd->sc.option & type){
 		push_val(st->stack,C_INT,1);
 	} else {
 		push_val(st->stack,C_INT,0);
@@ -4982,7 +4982,7 @@ int buildin_checkoption1(struct script_state *st)
 	type=conv_num(st,& (st->stack->stack_data[st->start+2]));
 	sd=script_rid2sd(st);
 
-	if(sd->opt1 & type){
+	if(sd->sc.opt1 & type){
 		push_val(st->stack,C_INT,1);
 	} else {
 		push_val(st->stack,C_INT,0);
@@ -5002,7 +5002,7 @@ int buildin_checkoption2(struct script_state *st)
 	type=conv_num(st,& (st->stack->stack_data[st->start+2]));
 	sd=script_rid2sd(st);
 
-	if(sd->opt2 & type){
+	if(sd->sc.opt2 & type){
 		push_val(st->stack,C_INT,1);
 	} else {
 		push_val(st->stack,C_INT,0);
@@ -5302,9 +5302,8 @@ int buildin_produce(struct script_state *st)
 	int trigger;
 	struct map_session_data *sd=script_rid2sd(st);
 
-	if(	sd->state.produce_flag == 1) return 0;
 	trigger=conv_num(st,& (st->stack->stack_data[st->start+2]));
-	clif_skill_produce_mix_list(sd,trigger);
+	clif_skill_produce_mix_list(sd, trigger);
 	return 0;
 }
 /*==========================================
@@ -6057,7 +6056,7 @@ int buildin_sc_start(struct script_state *st)
 		val4 = 1; //Mark that this was a thrown sc_effect
 	}
 	if (bl)
-		status_change_start(bl,type,val1,0,0,val4,tick,0);
+		sc_start4(bl,type,100,val1,0,0,val4,tick);
 	return 0;
 }
 
@@ -6084,8 +6083,8 @@ int buildin_sc_start2(struct script_state *st)
 		val4 = 1;
 	}
 
-	if(bl && rand()%10000 < per)
-		status_change_start(bl,type,val1,0,0,val4,tick,0);
+	if(bl)
+		status_change_start(bl,type,per,val1,0,0,val4,tick,0);
 	return 0;
 }
 
@@ -6115,7 +6114,7 @@ int buildin_sc_start4(struct script_state *st)
 		tick/=2;
 	}
 	if (bl)
-		status_change_start(bl,type,val1,val2,val3,val4,tick,0);
+		sc_start4(bl,type,100,val1,val2,val3,val4,tick);
 	return 0;
 }
 
@@ -6144,7 +6143,7 @@ int buildin_sc_end(struct script_state *st)
 int buildin_getscrate(struct script_state *st)
 {
 	struct block_list *bl;
-	int sc_def,type,rate;
+	int sc_def=0,type,rate;
 
 	type=conv_num(st,& (st->stack->stack_data[st->start+2]));
 	rate=conv_num(st,& (st->stack->stack_data[st->start+3]));
@@ -6153,10 +6152,11 @@ int buildin_getscrate(struct script_state *st)
 	else
 		bl = map_id2bl(st->rid);
 
-	sc_def = status_get_sc_def(bl,type);
+	if (bl)
+		sc_def = status_get_sc_def(bl,type);
 
-	rate = rate * sc_def / 100;
-	push_val(st->stack,C_INT,rate);
+	rate = rate*(10000-sc_def)/10000;
+	push_val(st->stack,C_INT,rate<0?0:rate);
 
 	return 0;
 
@@ -7391,7 +7391,7 @@ int buildin_mapwarp(struct script_state *st)	// Added by RoVeRT
 		return 0;
 
 	map_foreachinarea(buildin_areawarp_sub,
-		m,x0,y0,x1,y1,BL_PC,	str,x,y );
+		m,x0,y0,x1,y1,BL_PC, map_mapname2mapid(str),x,y );
 	return 0;
 }
 
@@ -9369,7 +9369,7 @@ int buildin_unequip(struct script_state *st)
 //-------------------------------------------------------
 int buildin_getstrlen(struct script_state *st) {
 
-	char *str = str=conv_str(st,& (st->stack->stack_data[st->start+2]));
+	char *str = conv_str(st,& (st->stack->stack_data[st->start+2]));
 	int len = (str) ? (int)strlen(str) : 0;
 
 	push_val(st->stack,C_INT,len);
@@ -10442,34 +10442,34 @@ static int script_load_mapreg(void)
 	int perfomance = gettick_nocache();
 	sprintf(tmp_sql,"SELECT * FROM `%s`",mapregsql_db);
 	ShowInfo("Querying script_load_mapreg ...\n");
-	if(mysql_query(&mapregsql_handle, tmp_sql) ) {
-		ShowSQL("DB error - %s\n",mysql_error(&mapregsql_handle));
+	if(mysql_query(&mmysql_handle, tmp_sql) ) {
+		ShowSQL("DB error - %s\n",mysql_error(&mmysql_handle));
 		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		return -1;
 	}
 	ShowInfo("Success! Returning results ...\n");
-	mapregsql_res = mysql_store_result(&mapregsql_handle);
-	if (mapregsql_res) {
-        while ((mapregsql_row = mysql_fetch_row(mapregsql_res))) {
+	sql_res = mysql_store_result(&mmysql_handle);
+	if (sql_res) {
+        while ((sql_row = mysql_fetch_row(sql_res))) {
 			char buf1[33], *p = NULL;
 			int i,v,s;
-			strcpy(buf1,mapregsql_row[0]);
+			strcpy(buf1,sql_row[0]);
 			if( buf1[strlen(buf1)-1]=='$' ){
-				i = atoi(mapregsql_row[1]);
-				p=(char *)aCallocA(strlen(mapregsql_row[2]) + 1,sizeof(char));
-				strcpy(p,mapregsql_row[2]);
+				i = atoi(sql_row[1]);
+				p=(char *)aCallocA(strlen(sql_row[2]) + 1,sizeof(char));
+				strcpy(p,sql_row[2]);
 				s= add_str((unsigned char *) buf1);
 				idb_put(mapregstr_db,(i<<24)|s,p);
 			}else{
 				s= add_str((unsigned char *) buf1);
-				v= atoi(mapregsql_row[2]);
-				i = atoi(mapregsql_row[1]);
+				v= atoi(sql_row[2]);
+				i = atoi(sql_row[1]);
 				idb_put(mapreg_db,(i<<24)|s,(void *)v);
 			}
 	    }        
 	}
 	ShowInfo("Freeing results...\n");
-	mysql_free_result(mapregsql_res);
+	mysql_free_result(sql_res);
 	mapreg_dirty=0;
 	perfomance = (gettick_nocache() - perfomance) / 1000;
 	ShowInfo("SQL Mapreg Loading Completed Under %d Seconds.\n",perfomance);
@@ -10498,8 +10498,8 @@ static int script_save_mapreg_intsub(DBKey key,void *data,va_list ap)
 	char *name=str_buf+str_data[num].str;
 	if ( name[1] != '@') {
 		sprintf(tmp_sql,"UPDATE `%s` SET `%s`='%d' WHERE `%s`='%s' AND `%s`='%d'",mapregsql_db,mapregsql_db_value,(int)data,mapregsql_db_varname,name,mapregsql_db_index,i);
-		if(mysql_query(&mapregsql_handle, tmp_sql) ) {
-			ShowSQL("DB error - %s\n",mysql_error(&mapregsql_handle));
+		if(mysql_query(&mmysql_handle, tmp_sql) ) {
+			ShowSQL("DB error - %s\n",mysql_error(&mmysql_handle));
 			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		}
 	}
@@ -10525,8 +10525,8 @@ static int script_save_mapreg_strsub(DBKey key,void *data,va_list ap)
 	char *name=str_buf+str_data[num].str;
 	if ( name[1] != '@') {
 		sprintf(tmp_sql,"UPDATE `%s` SET `%s`='%s' WHERE `%s`='%s' AND `%s`='%d'",mapregsql_db,mapregsql_db_value,jstrescapecpy(tmp_str2,(char *)data),mapregsql_db_varname,name,mapregsql_db_index,i);
-		if(mysql_query(&mapregsql_handle, tmp_sql) ) {
-			ShowSQL("DB error - %s\n",mysql_error(&mapregsql_handle));
+		if(mysql_query(&mmysql_handle, tmp_sql) ) {
+			ShowSQL("DB error - %s\n",mysql_error(&mmysql_handle));
 			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		}
 	}

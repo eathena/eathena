@@ -750,7 +750,7 @@ is_atcommand(const int fd, struct map_session_data* sd, const char* message, int
 	nullpo_retr(AtCommand_None, sd);
 
 	if (!battle_config.allow_atcommand_when_mute &&
-		sd->sc_count && sd->sc_data[SC_NOCHAT].timer != -1) {
+		sd->sc.count && sd->sc.data[SC_NOCHAT].timer != -1) {
 		return AtCommand_Unknown;
 	}
 
@@ -1409,7 +1409,7 @@ int atcommand_who3(
 	for (i = 0; i < users; i++) {
 		if ((pl_sd = pl_allsd[i])) {
 			pl_GM_level = pc_isGM(pl_sd);
-			if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_INVISIBLE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
+			if (!((battle_config.hide_GM_session || (pl_sd->sc.option & OPTION_INVISIBLE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
 				memcpy(player_name, pl_sd->status.name, NAME_LENGTH);
 				for (j = 0; player_name[j]; j++)
 					player_name[j] = tolower(player_name[j]);
@@ -1484,7 +1484,7 @@ int atcommand_who2(
 	for (i = 0; i < users; i++) {
 		if ((pl_sd = pl_allsd[i])) {
 			pl_GM_level = pc_isGM(pl_sd);
-			if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_INVISIBLE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
+			if (!((battle_config.hide_GM_session || (pl_sd->sc.option & OPTION_INVISIBLE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
 				memcpy(player_name, pl_sd->status.name, NAME_LENGTH);
 				for (j = 0; player_name[j]; j++)
 					player_name[j] = tolower(player_name[j]);
@@ -1557,7 +1557,7 @@ int atcommand_who(
 	for (i = 0; i < users; i++) {
 		if ((pl_sd = pl_allsd[i])) {
 			pl_GM_level = pc_isGM(pl_sd);
-			if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_INVISIBLE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
+			if (!((battle_config.hide_GM_session || (pl_sd->sc.option & OPTION_INVISIBLE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
 				memcpy(player_name, pl_sd->status.name, NAME_LENGTH);
 				for (j = 0; player_name[j]; j++)
 					player_name[j] = tolower(player_name[j]);
@@ -1637,7 +1637,7 @@ int atcommand_whomap3(
 	for (i = 0; i < users; i++) {
 		if ((pl_sd = pl_allsd[i])) {
 			pl_GM_level = pc_isGM(pl_sd);
-			if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_INVISIBLE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
+			if (!((battle_config.hide_GM_session || (pl_sd->sc.option & OPTION_INVISIBLE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
 				if (pl_sd->bl.m == map_id) {
 					if (pl_GM_level > 0)
 						sprintf(atcmd_output, "Name: %s (GM:%d) | Location: %s %d %d", pl_sd->status.name, pl_GM_level, mapindex_id2name(pl_sd->mapindex), pl_sd->bl.x, pl_sd->bl.y);
@@ -1697,7 +1697,7 @@ int atcommand_whomap2(
 	for (i = 0; i < users; i++) {
 		if ((pl_sd = pl_allsd[i])) {
 			pl_GM_level = pc_isGM(pl_sd);
-			if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_INVISIBLE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
+			if (!((battle_config.hide_GM_session || (pl_sd->sc.option & OPTION_INVISIBLE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
 				if (pl_sd->bl.m == map_id) {
 					if (pl_GM_level > 0)
 						sprintf(atcmd_output, "Name: %s (GM:%d) | BLvl: %d | Job: %s (Lvl: %d)", pl_sd->status.name, pl_GM_level, pl_sd->status.base_level, job_name(pl_sd->status.class_), pl_sd->status.job_level);
@@ -1764,7 +1764,7 @@ int atcommand_whomap(
 	for (i = 0; i < users; i++) {
 		if ((pl_sd = pl_allsd[i])) {
 			pl_GM_level = pc_isGM(pl_sd);
-			if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_INVISIBLE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
+			if (!((battle_config.hide_GM_session || (pl_sd->sc.option & OPTION_INVISIBLE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
 				if (pl_sd->bl.m == map_id) {
 					g = guild_search(pl_sd->status.guild_id);
 					if (g == NULL)
@@ -1837,7 +1837,7 @@ int atcommand_whogm(
 		if ((pl_sd = pl_allsd[i])) {
 			pl_GM_level = pc_isGM(pl_sd);
 			if (pl_GM_level > 0) {
-				if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_INVISIBLE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
+				if (!((battle_config.hide_GM_session || (pl_sd->sc.option & OPTION_INVISIBLE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
 					memcpy(player_name, pl_sd->status.name, NAME_LENGTH);
 					for (j = 0; player_name[j]; j++)
 						player_name[j] = tolower(player_name[j]);
@@ -2136,9 +2136,9 @@ int atcommand_option(
 		return -1;
 	}
 
-	sd->opt1 = param1;
-	sd->opt2 = param2;
-	if (!(sd->status.option & CART_MASK) && param3 & CART_MASK) {
+	sd->sc.opt1 = param1;
+	sd->sc.opt2 = param2;
+	if (!(sd->sc.option & CART_MASK) && param3 & CART_MASK) {
 		if (sd->status.class_ == JOB_BABY_MERCHANT)
 			clif_cart_itemlist(sd);
 		clif_cart_equiplist(sd);
@@ -2160,11 +2160,11 @@ int atcommand_hide(
 	const char* command, const char* message)
 {
 	nullpo_retr(-1, sd);
-	if (sd->status.option & OPTION_INVISIBLE) {
-		sd->status.option &= ~OPTION_INVISIBLE;
+	if (sd->sc.option & OPTION_INVISIBLE) {
+		sd->sc.option &= ~OPTION_INVISIBLE;
 		clif_displaymessage(fd, msg_table[10]); // Invisible: Off
 	} else {
-		sd->status.option |= OPTION_INVISIBLE;
+		sd->sc.option |= OPTION_INVISIBLE;
 		clif_displaymessage(fd, msg_table[11]); // Invisible: On
 	}
 	clif_changeoption(&sd->bl);
@@ -5283,6 +5283,8 @@ int atcommand_guildrecall(
 		for (i = 0; i < users; i++) {
 			if ((pl_sd = pl_allsd[i]) && sd->status.account_id != pl_sd->status.account_id &&
 			    pl_sd->status.guild_id == g->guild_id) {
+				if (pc_isGM(pl_sd) > pc_isGM(sd))
+					continue; //Skip GMs greater than you.
 				if (pl_sd->bl.m >= 0 && map[pl_sd->bl.m].flag.nowarp && battle_config.any_warp_GM_min_level > pc_isGM(sd))
 					count++;
 				else
@@ -5339,6 +5341,8 @@ int atcommand_partyrecall(
 		for (i = 0; i < users; i++) {
 			if ((pl_sd = pl_allsd[i]) && sd->status.account_id != pl_sd->status.account_id &&
 			    pl_sd->status.party_id == p->party_id) {
+				if (pc_isGM(pl_sd) > pc_isGM(sd))
+					continue; //Skip GMs greater than you.
 				if (pl_sd->bl.m >= 0 && map[pl_sd->bl.m].flag.nowarp && battle_config.any_warp_GM_min_level > pc_isGM(sd))
 					count++;
 				else
@@ -5756,14 +5760,14 @@ int atcommand_mount_peco(
 
 	if (!pc_isriding(sd)) { // if actually no peco
 		if (pc_checkskill(sd, KN_RIDING)) {
-			pc_setoption(sd, sd->status.option | 0x0020);
+			pc_setoption(sd, sd->sc.option | 0x0020);
 			clif_displaymessage(fd, msg_table[102]); // Mounted Peco.
 		} else {
 			clif_displaymessage(fd, msg_table[213]); // You can not mount a peco with your job.
 			return -1;
 		}
 	} else {	//Dismount
-		pc_setoption(sd, sd->status.option & ~0x0020);
+		pc_setoption(sd, sd->sc.option & ~0x0020);
 		clif_displaymessage(fd, msg_table[214]); // Unmounted Peco.
 	}
 
@@ -5792,14 +5796,14 @@ int atcommand_char_mount_peco(
 
 		if (!pc_isriding(pl_sd)) { // if actually no peco
 			if (pc_checkskill(pl_sd, KN_RIDING)) {
-				pc_setoption(pl_sd, pl_sd->status.option | 0x0020);
+				pc_setoption(pl_sd, pl_sd->sc.option | 0x0020);
 				clif_displaymessage(fd, msg_table[216]); // Mounted Peco.
 			} else {
 				clif_displaymessage(fd, msg_table[217]); // You can not mount a peco with your job.
 				return -1;
 			}
 		} else {	//Dismount
-			pc_setoption(pl_sd, pl_sd->status.option & ~0x0020);
+			pc_setoption(pl_sd, pl_sd->sc.option & ~0x0020);
 			clif_displaymessage(fd, msg_table[218]); // Unmounted Peco.
 		}
 	} else {
@@ -8284,7 +8288,7 @@ int atcommand_unmute(
         	return -1;
 
 	if((pl_sd=map_nick2sd((char *) message)) != NULL) {
-		if(pl_sd->sc_data[SC_NOCHAT].timer!=-1) {
+		if(pl_sd->sc.data[SC_NOCHAT].timer!=-1) {
 			pl_sd->status.manner = 0; // have to set to 0 first [celest]
 			status_change_end(&pl_sd->bl,SC_NOCHAT,-1);
 			clif_displaymessage(sd->fd,"Player unmuted");
@@ -8362,10 +8366,14 @@ int atcommand_mute(
 	}
 
 	if ((pl_sd = map_nick2sd(atcmd_player_name)) != NULL) {
+		if (pc_isGM(pl_sd) > pc_isGM(sd)) {
+			clif_displaymessage(fd, msg_table[81]); // Your GM level don't authorise you to do this action on this player.
+			return -1;
+		}
 		clif_GM_silence(sd, pl_sd, 0);
 		pl_sd->status.manner -= manner;
 		if(pl_sd->status.manner < 0)
-			status_change_start(&pl_sd->bl,SC_NOCHAT,0,0,0,0,0,0);
+			sc_start(&pl_sd->bl,SC_NOCHAT,100,0,0);
 	}
 	else {
 		clif_displaymessage(fd, msg_table[3]); // Character not found.
@@ -9460,7 +9468,7 @@ static int atcommand_mutearea_sub(struct block_list *bl,va_list ap)
 	if (id != bl->id && !pc_isGM(pl_sd)) {
 		pl_sd->status.manner -= time;
 		if (pl_sd->status.manner < 0)
-			status_change_start(&pl_sd->bl,SC_NOCHAT,0,0,0,0,0,0);
+			sc_start(&pl_sd->bl,SC_NOCHAT,100,0,0);
 	}
 	return 0;
 }
@@ -10021,7 +10029,7 @@ int atcommand_main(
 				sd->state.mainchat = 1;
 				clif_displaymessage(fd, msg_txt(380)); // Main chat has been activated.
 			}
-			if (sd->sc_data[SC_NOCHAT].timer != -1) {
+			if (sd->sc.data[SC_NOCHAT].timer != -1) {
 				clif_displaymessage(fd, msg_txt(387));
 				return -1;
 			}

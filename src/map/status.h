@@ -11,7 +11,7 @@ enum {
 	//First we enumerate common status ailments which are often used around.
 	SC_STONE = 0,
 	SC_FREEZE,
-	SC_STAN,
+	SC_STUN,
 	SC_SLEEP,
 	SC_POISON,
 	SC_CURSE,
@@ -232,7 +232,8 @@ enum {
 	//
 	SC_MAX, //Automatically updated max, used in for's and at startup to check we are within bounds. [Skotlex]
 };
-extern int SkillStatusChangeTable[];
+extern int SkillStatusChangeTable[MAX_SKILL];
+extern int StatusSkillChangeTable[SC_MAX];
 
 //Numerates the Number for the status changes (client-dependent), imported from jA
 enum {
@@ -363,6 +364,7 @@ enum {
 extern int StatusIconChangeTable[];
 
 extern int current_equip_item_index;
+extern int current_equip_card_id;
 
 //Mode definitions to clear up code reading. [Skotlex]
 #define MD_CANMOVE 0x001
@@ -460,12 +462,7 @@ int status_get_mode(struct block_list *bl);
 int status_get_mexp(struct block_list *bl);
 int status_get_race2(struct block_list *bl);
 
-struct status_change *status_get_sc_data(struct block_list *bl);
-short *status_get_sc_count(struct block_list *bl);
-short *status_get_opt1(struct block_list *bl);
-short *status_get_opt2(struct block_list *bl);
-short *status_get_opt3(struct block_list *bl);
-short *status_get_option(struct block_list *bl);
+struct status_change *status_get_sc(struct block_list *bl);
 
 int status_get_matk1(struct block_list *bl);
 int status_get_matk2(struct block_list *bl);
@@ -483,8 +480,11 @@ int status_get_sc_def(struct block_list *bl, int type);
 #define status_get_sc_def_int(bl)	(status_get_sc_def(bl, SP_MDEF2))
 #define status_get_sc_def_luk(bl)	(status_get_sc_def(bl, SP_LUK))
 
-// ó‘ÔˆÙíŠÖ˜A skill.c ‚æ‚èˆÚ“®
-int status_change_start(struct block_list *bl,int type,int val1,int val2,int val3,int val4,int tick,int flag);
+//Short version, receives rate in 1->100 range, and does not uses a flag setting.
+#define sc_start(bl, type, rate, val1, tick) status_change_start(bl,type,100*(rate),val1,0,0,0,tick,0)
+#define sc_start4(bl, type, rate, val1, val2, val3, val4, tick) status_change_start(bl,type,100*(rate),val1,val2,val3,val4,tick,0)
+
+int status_change_start(struct block_list *bl,int type,int rate,int val1,int val2,int val3,int val4,int tick,int flag);
 int status_change_end( struct block_list* bl , int type,int tid );
 int status_change_timer(int tid, unsigned int tick, int id, int data);
 int status_change_timer_sub(struct block_list *bl, va_list ap );

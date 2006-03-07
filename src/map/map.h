@@ -305,10 +305,19 @@ struct script_regstr {
 	int index;
 	char data[256];
 };
-struct status_change {
+
+struct status_change_entry {
 	int timer;
 	int val1,val2,val3,val4;
 };
+
+struct status_change {
+	struct status_change_entry data[MAX_STATUSCHANGE];
+	short count;
+	short opt1,opt2,opt3;
+	short option;
+};
+
 struct vending {
 	short index;
 	unsigned short amount;
@@ -413,7 +422,6 @@ struct map_session_data {
 		unsigned skill_flag : 1;
 		unsigned gangsterparadise : 1;
 		unsigned rest : 1;
-		unsigned produce_flag : 1;
 		unsigned storage_flag : 2; //0: closed, 1: Normal Storage open, 2: guild storage open [Skotlex]
 		unsigned snovice_flag : 4;
 		// originally by Qamera, adapted by celest
@@ -468,7 +476,6 @@ struct map_session_data {
 	unsigned short mapindex;
 	short to_x,to_y;
 	short speed,prev_speed;
-	short opt1,opt2,opt3;
 	unsigned char dir,head_dir;
 	unsigned int client_tick,server_tick;
 	struct walkpath_data walkpath;
@@ -515,7 +522,7 @@ struct map_session_data {
 	//unsigned int skillstatictimer[MAX_SKILL];
 	unsigned short timerskill_count; // [celest]
 	int cloneskill_id;
-	int repair_target;
+	int menuskill_id, menuskill_lv;
 
 	int invincible_timer;
 	unsigned int canact_tick;
@@ -568,8 +575,8 @@ struct map_session_data {
   	short unequip_losesp[11];
  	// zeroed arrays end here.
 	// zeroed structures start here
-	struct {
-		short id, lv, rate;
+	struct s_autospell{
+		short id, lv, rate, card_id;
 	} autospell[MAX_PC_BONUS], autospell2[MAX_PC_BONUS];
 	struct { //skillatk raises bonus dmg% of skills, skillblown increases bonus blewcount for some skills.
 		short id, val;
@@ -663,8 +670,7 @@ struct map_session_data {
 	int regstr_num;
 	struct script_regstr *regstr;
 
-	struct status_change sc_data[MAX_STATUSCHANGE];
-	short sc_count;
+	struct status_change sc;
 	short mission_mobid; //Stores the target mob_id for TK_MISSION
 	short mission_count; //Stores the bounty kill count for TK_MISSION
 	int devotion[5]; //Stores the char IDs of chars devoted to.
@@ -700,7 +706,6 @@ struct map_session_data {
 		int  m; //-1 - none, other: map index corresponding to map name.
 		unsigned short index; //map index
 	}feel_map[3];// 0 - Sun; 1 - Moon; 2 - Stars
-	int feel_level;
 	short hate_mob[3];
 
 	unsigned int pvp_timer;
@@ -753,13 +758,13 @@ struct npc_data {
 	unsigned char name[NAME_LENGTH];
 	unsigned char exname[NAME_LENGTH];
 	int chat_id;
-	short opt1,opt2,opt3,option;
 	short flag;
 	int walktimer; // [Valaris]
 	short to_x,to_y; // [Valaris]
 	struct walkpath_data walkpath;
 	unsigned int next_walktime;
 	unsigned int canmove_tick;
+	struct status_change sc; //They can't have status changes, but.. they want the visual opt values.
 
 	struct { // [Valaris]
 		unsigned state : 8;
@@ -828,7 +833,7 @@ struct mob_data {
 		unsigned alchemist: 1;
 		int provoke_flag; // Celest
 	} state;
-	struct status_change sc_data[MAX_STATUSCHANGE];
+	struct status_change sc;
 	struct walkpath_data walkpath;
 	struct guardian_data* guardian_data; 
 	struct item *lootitem;
@@ -854,8 +859,6 @@ struct mob_data {
 	unsigned int last_deadtime,last_spawntime,last_thinktime,last_linktime;
 	short move_fail_count;
 	short lootitem_count;
-	short sc_count;
-	short opt1,opt2,opt3,option;
 	short min_chase;
 	
 	int deletetimer;
@@ -944,6 +947,9 @@ struct pet_data {
 	struct skill_unit_group skillunit[MAX_MOBSKILLUNITGROUP]; // [Valaris]
 	struct skill_unit_group_tickset skillunittick[MAX_SKILLUNITGROUPTICKSET]; // [Valaris]
 	struct map_session_data *msd;
+
+	int skilltarget;
+	short skillx,skilly,skillid,skilllv;
 };
 
 enum { MS_IDLE,MS_WALK,MS_ATTACK,MS_DEAD,MS_DELAY };
