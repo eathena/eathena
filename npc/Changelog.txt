@@ -28,6 +28,9 @@ Nexon
 Date		Added
 ======
 
+03/07
+	* Fixed some reference to old locations of the Blacksmith NPC's, Thanks to Neouni. [Poki#3]
+
 03/02
 	* Added Skotlex's updated marriage script [Vicious]
 	* merged trunk's scripts... Why don't we share npc/db again? =d [Vicious]
