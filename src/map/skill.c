@@ -11393,8 +11393,7 @@ int skill_readdb(void)
 			i = GD_SKILLRANGEMIN + i - GD_SKILLBASE;
 		if(i<=0 || i>MAX_SKILL_DB)
 			continue;
-		skill_db[i].nocast=atoi(split[1]);
-		k++;
+
 		skill_split_atoi(split[1],skill_db[i].castnodex);
 		if (!split[2])
 			continue;
@@ -11402,6 +11401,33 @@ int skill_readdb(void)
 	}
 	fclose(fp);
 	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n",path);
+
+	sprintf(path, "%s/skill_nocast_db.txt", db_path);
+	fp=fopen(path,"r");
+	if(fp==NULL){
+		ShowError("can't read %s\n", path);
+		return 1;
+	}
+	k=0;
+	while(fgets(line,1020,fp)){
+		char *split[16];
+		if(line[0]=='/' && line[1]=='/')
+			continue;
+		memset(split,0,sizeof(split));
+		j = skill_split_str(line,split,2);
+		if(split[0]==0) //fixed by Lupus
+			continue;
+		i=atoi(split[0]);
+		if (i >= GD_SKILLBASE)
+			i = GD_SKILLRANGEMIN + i - GD_SKILLBASE;
+		if(i<=0 || i>MAX_SKILL_DB)
+			continue;
+		skill_db[i].nocast=atoi(split[1]);
+		k++;
+	}
+	fclose(fp);
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n",path);
+
 
 	return 0;
 }
