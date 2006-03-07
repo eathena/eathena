@@ -23,6 +23,7 @@ typedef long in_addr_t;
 #include <fcntl.h>
 #include <string.h>
 #include <stdarg.h>
+#include <limits.h>
 
 #include "../common/strlib.h"
 #include "../common/core.h"
@@ -119,6 +120,11 @@ int save_log = 1;
 int start_zeny = 500;
 int start_weapon = 1201;
 int start_armor = 2301;
+
+//Custom limits for the fame lists. [Skotlex]
+int fame_list_size_chemist = MAX_FAME_LIST;
+int fame_list_size_smith = MAX_FAME_LIST;
+int fame_list_size_taekwon = MAX_FAME_LIST;
 
 // Initial position (it's possible to set it in conf file)
 struct point start_point = { 0, 53, 111};
@@ -352,15 +358,15 @@ int mmo_char_tostr(char *str, struct mmo_charstatus *p, struct global_reg *reg, 
 	int i,j;
 	char *str_p = str;
 
-/* We should not need this. [Skotlex]
+	/* We shouldn't need this anymore... [Skotlex]
 	// on multi-map server, sometimes it's posssible that last_point become void. (reason???) We check that to not lost character at restart.
 	if (!p->last_point.map) {
 		p->last_point.map = mapindex_name2id(MAP_PRONTERA);
 		p->last_point.x = 273;
 		p->last_point.y = 354;
 	}
-*/
-	str_p += sprintf(str_p, "%d\t%d,%d\t%s\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
+	*/
+	str_p += sprintf(str_p, "%d\t%d,%d\t%s\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
 		"\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
 		"\t%s,%d,%d\t%s,%d,%d,%d,%d,%d,%d,%d\t",
 		p->char_id, p->account_id, p->char_num, p->name, //
@@ -425,18 +431,19 @@ int mmo_char_tostr(char *str, struct mmo_charstatus *p, struct global_reg *reg, 
 int mmo_char_fromstr(char *str, struct mmo_charstatus *p, struct global_reg *reg, int *reg_num) {
 	char tmp_str[3][128]; //To avoid deleting chars with too long names.
 	int tmp_int[256];
+	unsigned int tmp_uint[2]; //To read exp....
 	int set, next, len, i, j;
 
 	// initilialise character
 	memset(p, '\0', sizeof(struct mmo_charstatus));
 	
 	// If it's not char structure of version 1488 and after
-	if ((set = sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
+	if ((set = sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
 		"\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
 		"\t%127[^,],%d,%d\t%127[^,],%d,%d,%d,%d,%d,%d,%d%n",
 		&tmp_int[0], &tmp_int[1], &tmp_int[2], tmp_str[0],
 		&tmp_int[3], &tmp_int[4], &tmp_int[5],
-		&tmp_int[6], &tmp_int[7], &tmp_int[8],
+		&tmp_uint[0], &tmp_uint[1], &tmp_int[8],
 		&tmp_int[9], &tmp_int[10], &tmp_int[11], &tmp_int[12],
 		&tmp_int[13], &tmp_int[14], &tmp_int[15], &tmp_int[16], &tmp_int[17], &tmp_int[18],
 		&tmp_int[19], &tmp_int[20],
@@ -450,12 +457,12 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p, struct global_reg *reg
 	{
 		tmp_int[43] = 0;	
 		// If it's not char structure of version 1363 and after
-		if ((set = sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
+		if ((set = sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
 			"\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
 			"\t%127[^,],%d,%d\t%127[^,],%d,%d,%d,%d,%d,%d%n",
 			&tmp_int[0], &tmp_int[1], &tmp_int[2], tmp_str[0], //
 			&tmp_int[3], &tmp_int[4], &tmp_int[5],
-			&tmp_int[6], &tmp_int[7], &tmp_int[8],
+			&tmp_uint[0], &tmp_uint[1], &tmp_int[8],
 			&tmp_int[9], &tmp_int[10], &tmp_int[11], &tmp_int[12],
 			&tmp_int[13], &tmp_int[14], &tmp_int[15], &tmp_int[16], &tmp_int[17], &tmp_int[18],
 			&tmp_int[19], &tmp_int[20],
@@ -471,12 +478,12 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p, struct global_reg *reg
 			tmp_int[41] = 0; // mother
 			tmp_int[42] = 0; // child
 			// If it's not char structure of version 1008 and before 1363
-			if ((set = sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
+			if ((set = sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
 				"\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
 				"\t%127[^,],%d,%d\t%127[^,],%d,%d,%d%n",
 				&tmp_int[0], &tmp_int[1], &tmp_int[2], tmp_str[0], //
 				&tmp_int[3], &tmp_int[4], &tmp_int[5],
-				&tmp_int[6], &tmp_int[7], &tmp_int[8],
+				&tmp_uint[0], &tmp_uint[1], &tmp_int[8],
 				&tmp_int[9], &tmp_int[10], &tmp_int[11], &tmp_int[12],
 				&tmp_int[13], &tmp_int[14], &tmp_int[15], &tmp_int[16], &tmp_int[17], &tmp_int[18],
 				&tmp_int[19], &tmp_int[20],
@@ -489,12 +496,12 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p, struct global_reg *reg
 			{
 				tmp_int[39] = 0; // partner id
 				// If not char structure from version 384 to 1007
-				if ((set = sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
+				if ((set = sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
 					"\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
 					"\t%127[^,],%d,%d\t%127[^,],%d,%d%n",
 					&tmp_int[0], &tmp_int[1], &tmp_int[2], tmp_str[0], //
 					&tmp_int[3], &tmp_int[4], &tmp_int[5],
-					&tmp_int[6], &tmp_int[7], &tmp_int[8],
+					&tmp_uint[0], &tmp_uint[1], &tmp_int[8],
 					&tmp_int[9], &tmp_int[10], &tmp_int[11], &tmp_int[12],
 					&tmp_int[13], &tmp_int[14], &tmp_int[15], &tmp_int[16], &tmp_int[17], &tmp_int[18],
 					&tmp_int[19], &tmp_int[20],
@@ -507,12 +514,12 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p, struct global_reg *reg
 				{
 					// It's char structure of a version before 384
 					tmp_int[26] = 0; // pet id
-					set = sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
+					set = sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
 					"\t%d,%d,%d\t%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
 					"\t%127[^,],%d,%d\t%127[^,],%d,%d%n",
 					&tmp_int[0], &tmp_int[1], &tmp_int[2], tmp_str[0], //
 					&tmp_int[3], &tmp_int[4], &tmp_int[5],
-					&tmp_int[6], &tmp_int[7], &tmp_int[8],
+					&tmp_uint[0], &tmp_uint[1], &tmp_int[8],
 					&tmp_int[9], &tmp_int[10], &tmp_int[11], &tmp_int[12],
 					&tmp_int[13], &tmp_int[14], &tmp_int[15], &tmp_int[16], &tmp_int[17], &tmp_int[18],
 					&tmp_int[19], &tmp_int[20],
@@ -553,8 +560,8 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p, struct global_reg *reg
 	p->class_ = tmp_int[3];
 	p->base_level = tmp_int[4];
 	p->job_level = tmp_int[5];
-	p->base_exp = tmp_int[6];
-	p->job_exp = tmp_int[7];
+	p->base_exp = tmp_uint[0];
+	p->job_exp = tmp_uint[1];
 	p->zeny = tmp_int[8];
 	p->hp = tmp_int[9];
 	p->max_hp = tmp_int[10];
@@ -1611,9 +1618,9 @@ int mmo_char_send006b(int fd, struct char_session_data *sd) {
 		j = offset + (i * 106); // increase speed of code
 
 		WFIFOL(fd,j) = p->char_id;
-		WFIFOL(fd,j+4) = p->base_exp;
+		WFIFOL(fd,j+4) = p->base_exp>LONG_MAX?LONG_MAX:p->base_exp;
 		WFIFOL(fd,j+8) = p->zeny;
-		WFIFOL(fd,j+12) = p->job_exp;
+		WFIFOL(fd,j+12) = p->job_exp>LONG_MAX?LONG_MAX:p->job_exp;
 		WFIFOL(fd,j+16) = p->job_level;
 
 		WFIFOL(fd,j+20) = 0;
@@ -2879,7 +2886,7 @@ int parse_frommap(int fd) {
 			// starting to send to map
 			WBUFW(buf,0) = 0x2b1b;
 			// add list for blacksmiths
-			for (i = 0, j = 0; i < char_num && j < 10; i++) {
+			for (i = 0, j = 0; i < char_num && j < fame_list_size_smith; i++) {
 				if (char_dat[id[i]].status.fame && (char_dat[id[i]].status.class_ == 10 ||
 					char_dat[id[i]].status.class_ == 4011 ||
 					char_dat[id[i]].status.class_ == 4033))
@@ -2897,7 +2904,7 @@ int parse_frommap(int fd) {
 			WBUFW(buf, 6) = len;
 			
 			// add list for alchemists
-			for (i = 0, j = 0; i < char_num && j < 10; i++) {
+			for (i = 0, j = 0; i < char_num && j < fame_list_size_chemist; i++) {
 				if (char_dat[id[i]].status.fame && (char_dat[id[i]].status.class_ == 18 ||
 					char_dat[id[i]].status.class_ == 4019 ||
 					char_dat[id[i]].status.class_ == 4041))
@@ -2915,7 +2922,7 @@ int parse_frommap(int fd) {
 			WBUFW(buf, 4) = len;
 
 			// adding list for taekwons
-			for (i = 0, j = 0; i < char_num && j < 10; i++) {
+			for (i = 0, j = 0; i < char_num && j < fame_list_size_taekwon; i++) {
 				if (char_dat[id[i]].status.fame && char_dat[id[i]].status.class_ == 4046)
 				{
 					fame_item.id = char_dat[id[i]].status.char_id;
@@ -3355,9 +3362,9 @@ int parse_char(int fd) {
 			memset(WFIFOP(fd,2), 0, 106);
 
 			WFIFOL(fd,2) = char_dat[i].status.char_id;
-			WFIFOL(fd,2+4) = char_dat[i].status.base_exp;
+			WFIFOL(fd,2+4) = char_dat[i].status.base_exp>LONG_MAX?LONG_MAX:char_dat[i].status.base_exp;
 			WFIFOL(fd,2+8) = char_dat[i].status.zeny;
-			WFIFOL(fd,2+12) = char_dat[i].status.job_exp;
+			WFIFOL(fd,2+12) = char_dat[i].status.job_exp>LONG_MAX?LONG_MAX:char_dat[i].status.job_exp;
 			WFIFOL(fd,2+16) = char_dat[i].status.job_level;
 
 			WFIFOL(fd,2+28) = char_dat[i].status.karma;
@@ -3714,10 +3721,8 @@ int check_connect_login_server(int tid, unsigned int tick, int id, int data) {
 		realloc_fifo(login_fd, FIFOSIZE_SERVERLINK, FIFOSIZE_SERVERLINK);
                 WFIFOHEAD(login_fd, 86);
 		WFIFOW(login_fd,0) = 0x2710;
-		memset(WFIFOP(login_fd,2), 0, 24);
-		memcpy(WFIFOP(login_fd,2), userid, strlen(userid) < 24 ? strlen(userid) : 24);
-		memset(WFIFOP(login_fd,26), 0, 24);
-		memcpy(WFIFOP(login_fd,26), passwd, strlen(passwd) < 24 ? strlen(passwd) : 24);
+		memcpy(WFIFOP(login_fd,2), userid, 24);
+		memcpy(WFIFOP(login_fd,26), passwd, 24);
 		WFIFOL(login_fd,50) = 0;
 		WFIFOL(login_fd,54) = char_ip;
 		WFIFOL(login_fd,58) = char_port;
@@ -3877,9 +3882,9 @@ int char_config_read(const char *cfgName) {
 			ShowInfo("Console Silent Setting: %d\n", atoi(w2));
 			msg_silent = atoi(w2);
 		} else if (strcmpi(w1, "userid") == 0) {
-			memcpy(userid, w2, 24);
+			strncpy(userid, w2, 24);
 		} else if (strcmpi(w1, "passwd") == 0) {
-			memcpy(passwd, w2, 24);
+			strncpy(passwd, w2, 24);
 		} else if (strcmpi(w1, "server_name") == 0) {
 			memcpy(server_name, w2, sizeof(server_name));
 			server_name[sizeof(server_name) - 1] = '\0';
@@ -4014,6 +4019,24 @@ int char_config_read(const char *cfgName) {
 		} else if (strcmpi(w1, "console") == 0) {
 			if(strcmpi(w2,"on") == 0 || strcmpi(w2,"yes") == 0 )
 				console = 1;
+		} else if (strcmpi(w1, "fame_list_alchemist") == 0) {
+			fame_list_size_chemist = atoi(w2);
+			if (fame_list_size_chemist > MAX_FAME_LIST) {
+				ShowWarning("Max fame list size is %d (fame_list_alchemist)\n", MAX_FAME_LIST);
+				fame_list_size_chemist = MAX_FAME_LIST;
+			}
+		} else if (strcmpi(w1, "fame_list_blacksmith") == 0) {
+			fame_list_size_smith = atoi(w2);
+			if (fame_list_size_smith > MAX_FAME_LIST) {
+				ShowWarning("Max fame list size is %d (fame_list_blacksmith)\n", MAX_FAME_LIST);
+				fame_list_size_smith = MAX_FAME_LIST;
+			}
+		} else if (strcmpi(w1, "fame_list_taekwon") == 0) {
+			fame_list_size_taekwon = atoi(w2);
+			if (fame_list_size_taekwon > MAX_FAME_LIST) {
+				ShowWarning("Max fame list size is %d (fame_list_taekwon)\n", MAX_FAME_LIST);
+				fame_list_size_taekwon = MAX_FAME_LIST;
+			}
 		} else if (strcmpi(w1, "import") == 0) {
 			char_config_read(w2);
 		}

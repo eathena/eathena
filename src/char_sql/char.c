@@ -137,6 +137,11 @@ int start_zeny = 500;
 int start_weapon = 1201;
 int start_armor = 2301;
 
+//Custom limits for the fame lists. [Skotlex]
+int fame_list_size_chemist = MAX_FAME_LIST;
+int fame_list_size_smith = MAX_FAME_LIST;
+int fame_list_size_taekwon = MAX_FAME_LIST;
+
 // check for exit signal
 // 0 is saving complete
 // other is char_id
@@ -1381,7 +1386,7 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 	//Now we need the charid from sql!
 	if(mysql_field_count(&mysql_handle) == 0 &&
 		mysql_insert_id(&mysql_handle) > 0)
-		char_id = mysql_insert_id(&mysql_handle);
+		char_id = (int)mysql_insert_id(&mysql_handle);
 	else {
 		//delete the char ..(no trash in DB!) but how is this possible?
 		sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
@@ -1819,6 +1824,7 @@ int parse_tologin(int fd) {
 			for(i = 0; i < fd_max; i++) {
 				if (session[i] && (sd = (struct char_session_data*)session[i]->session_data)) {
 					if (sd->account_id == RFIFOL(fd,2)) {
+					memcpy(sd->email, RFIFOP(fd, 6), 40);
 					sd->connect_until_time = (time_t)RFIFOL(fd,46);
 					break;
 					}
@@ -2709,7 +2715,7 @@ int parse_frommap(int fd) {
 			struct fame_list fame_item;
 
 			WBUFW(buf,0) = 0x2b1b;
-			sprintf(tmp_sql, "SELECT `char_id`,`fame`, `name` FROM `%s` WHERE `fame`>0 AND (`class`='10' OR `class`='4011'OR `class`='4033') ORDER BY `fame` DESC LIMIT 0,10", char_db);
+			sprintf(tmp_sql, "SELECT `char_id`,`fame`, `name` FROM `%s` WHERE `fame`>0 AND (`class`='10' OR `class`='4011'OR `class`='4033') ORDER BY `fame` DESC LIMIT 0,%d", char_db, fame_list_size_smith);
 			if (mysql_query(&mysql_handle, tmp_sql)) {
 				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
@@ -2723,7 +2729,7 @@ int parse_frommap(int fd) {
 
 					memcpy(WBUFP(buf,len), &fame_item, sizeof(struct fame_list));
 					len += sizeof(struct fame_list);
-					if (++num == 10)
+					if (++num == fame_list_size_smith)
 						break;
 				}
    			mysql_free_result(sql_res);
@@ -2731,7 +2737,7 @@ int parse_frommap(int fd) {
 			WBUFW(buf, 6) = len; //Blacksmith block size
 
 			num = 0;
-			sprintf(tmp_sql, "SELECT `char_id`,`fame`,`name` FROM `%s` WHERE `fame`>0 AND (`class`='18' OR `class`='4019' OR `class`='4041') ORDER BY `fame` DESC LIMIT 0,10", char_db);
+			sprintf(tmp_sql, "SELECT `char_id`,`fame`,`name` FROM `%s` WHERE `fame`>0 AND (`class`='18' OR `class`='4019' OR `class`='4041') ORDER BY `fame` DESC LIMIT 0,%d", char_db, fame_list_size_chemist);
 			if (mysql_query(&mysql_handle, tmp_sql)) {
 				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
@@ -2744,7 +2750,7 @@ int parse_frommap(int fd) {
 					strncpy(fame_item.name, sql_row[2], NAME_LENGTH);
 					memcpy(WBUFP(buf,len), &fame_item, sizeof(struct fame_list));
 					len += sizeof(struct fame_list);
-					if (++num == 10)
+					if (++num == fame_list_size_chemist)
 						break;
 				}
 				mysql_free_result(sql_res);
@@ -2752,7 +2758,7 @@ int parse_frommap(int fd) {
 			WBUFW(buf, 4) = len; //Alchemist block size
 
 			num = 0;
-			sprintf(tmp_sql, "SELECT `char_id`,`fame`,`name` FROM `%s` WHERE `fame`>0 AND `class`='4046' ORDER BY `fame` DESC LIMIT 0,10", char_db);
+			sprintf(tmp_sql, "SELECT `char_id`,`fame`,`name` FROM `%s` WHERE `fame`>0 AND `class`='4046' ORDER BY `fame` DESC LIMIT 0,%d", char_db, fame_list_size_taekwon);
 			if (mysql_query(&mysql_handle, tmp_sql)) {
 				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
@@ -2765,7 +2771,7 @@ int parse_frommap(int fd) {
 					strncpy(fame_item.name, sql_row[2], NAME_LENGTH);
 					memcpy(WBUFP(buf,len), &fame_item, sizeof(struct fame_list));
 					len += sizeof(struct fame_list);
-					if (++num == 10)
+					if (++num == fame_list_size_taekwon)
 						break;
 				}
 				mysql_free_result(sql_res);
@@ -3977,6 +3983,24 @@ int char_config_read(const char *cfgName) {
 		} else if (strcmpi(w1, "console") == 0) {
 			if(strcmpi(w2,"on") == 0 || strcmpi(w2,"yes") == 0 )
 				console = 1;
+		} else if (strcmpi(w1, "fame_list_alchemist") == 0) {
+			fame_list_size_chemist = atoi(w2);
+			if (fame_list_size_chemist > MAX_FAME_LIST) {
+				ShowWarning("Max fame list size is %d (fame_list_alchemist)\n", MAX_FAME_LIST);
+				fame_list_size_chemist = MAX_FAME_LIST;
+			}
+		} else if (strcmpi(w1, "fame_list_blacksmith") == 0) {
+			fame_list_size_smith = atoi(w2);
+			if (fame_list_size_smith > MAX_FAME_LIST) {
+				ShowWarning("Max fame list size is %d (fame_list_blacksmith)\n", MAX_FAME_LIST);
+				fame_list_size_smith = MAX_FAME_LIST;
+			}
+		} else if (strcmpi(w1, "fame_list_taekwon") == 0) {
+			fame_list_size_taekwon = atoi(w2);
+			if (fame_list_size_taekwon > MAX_FAME_LIST) {
+				ShowWarning("Max fame list size is %d (fame_list_taekwon)\n", MAX_FAME_LIST);
+				fame_list_size_taekwon = MAX_FAME_LIST;
+			}
 		} else if (strcmpi(w1, "import") == 0) {
 			char_config_read(w2);
 		}

@@ -5,6 +5,9 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY VALARIS AND WIZPUTER. -- VALARIS
 
 2006/03/07
+	* Merged some char server updates: [Skotlex]
+	- Correctly Storing/reading of exp as unsigned longs (TXT)
+	- Use of the fame-list size configs (char_athena.conf)
 	* Fixed a mysterious "return 0" that somehow leaked into
 	 status_change_start, blocking all player status changes. [Skotlex]
 2006/03/06
