@@ -3,7 +3,6 @@
 #include "lock.h"
 #include "timer.h"
 #include "utils.h"
-#include "strlib.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 // basic mysql access
@@ -577,13 +576,13 @@ private:
 	};
 	///////////////////////////////////////////////////////////////////////////
 	// read gm levels to a list
-	bool readGMAccount(TslistDST<CMapGM> &gmlist)
+	bool readGMAccount(slist<CMapGM> &gmlist)
 	{
 		struct stat file_stat;
 		FILE *fp;
 
 		// clear all gm_levels
-		gmlist.resize(0);
+		gmlist.clear();
 
 		// get last modify time/date
 		creation_time_GM_account_file = (0==stat(GM_account_filename, &file_stat))? 0 : file_stat.st_mtime;
@@ -668,7 +667,7 @@ private:
 			int server_count = 0;
 
 			///////////////////////////////////
-			TslistDST<CMapGM> gmlist;
+			slist<CMapGM> gmlist;
 			readGMAccount(gmlist);
 
 			while( fgets(line, sizeof(line), fp) )
@@ -838,7 +837,8 @@ private:
 					if (next_account_id <= account_id)
 						next_account_id = account_id + 1;
 
-					insert(temp);
+					this->insert(temp);
+
 				}
 			}
 			fclose(fp);
@@ -939,34 +939,6 @@ private:
 						(cList[i].last_ip[0])?cList[i].last_ip:"-",
 						(unsigned long)cList[i].valid_until,
 						(unsigned long)cList[i].ban_until );
-/*			
-			fprintf(fp, "%ld\t"
-						"%s\t"
-						"%s\t"
-						"%s\t"
-						"%c\t"
-						"%ld\t"
-						"%ld\t"
-						"%s\t"
-						"%s\t"
-						"%ld\t"
-						"%s\t"
-						"%s\t"
-						"%ld\t",
-						(unsigned long)cList[i].account_id,
-						cList[i].userid,
-						cList[i].passwd,
-						(*cList[i].last_login)?cList[i].last_login:"-",
-						(cList[i].sex == 2) ? 'S' : (cList[i].sex ? 'M' : 'F'),
-						(unsigned long)cList[i].login_count,
-						(unsigned long)cList[i].state,
-						(*cList[i].email)?cList[i].email:"a@a.com",
-						(*cList[i].error_message)?cList[i].error_message:"-",
-						(unsigned long)cList[i].valid_until,
-						(cList[i].last_ip[0])?cList[i].last_ip:"-",
-						(*cList[i].memo)?cList[i].memo:"-",
-						(unsigned long)cList[i].ban_until);
-*/
 
 			for(k = 0; k< cList[i].account_reg2_num; k++)
 				if(cList[i].account_reg2[k].str[0])
@@ -2046,7 +2018,7 @@ CREATE TABLE IF NOT EXISTS `char_skill` (
 			return false;
 		}
 
-		checktrim(tempchar.name);
+		itrim(tempchar.name);
 
 		// check lenght of character name
 		if( strlen(tempchar.name) < 4 )
@@ -5037,3 +5009,27 @@ public:
 		return true;
 	}
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

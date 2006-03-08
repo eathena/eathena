@@ -1669,6 +1669,7 @@ template <class T> inline void QuickSort(TArray<T>& a, size_t count)
 
 
 
+
 ///////////////////////////////////////////////////////////////////////////////
 // Binary Search for both orders
 // checks borders for out-of-bounds first
@@ -2021,7 +2022,10 @@ template<class X, class L, class Y> bool BinarySearchC(const X& elem, const L& l
 
 
 
-
+///////////////////////////////////////////////////////////////////////////////
+// quicksort and binarysearch used in pointer vectors
+void QuickSortClassic(const void* a[], ssize_t l, ssize_t r, int (*cmp)(void*a, void*b, bool asc), bool asc);
+bool BinarySearch(const void* elem, const void* list[], size_t sz, size_t startpos, size_t& findpos, int (*cmp)(const void*a, const void*b, bool asc), bool asc=true);
 
 
 

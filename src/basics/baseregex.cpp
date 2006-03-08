@@ -2113,18 +2113,6 @@ bool CRegExp::CRegProgram::MatchMain(const char* base, const char* str, vector< 
 			case REGEX_L_BRRGMIN:
 			case REGEX_L_BRRGMAX:
 			{
-				size_t ofs = 3;
-				if( this->command(scan) == REGEX_N_BRRGMIN ||
-					this->command(scan) == REGEX_N_BRRGMAX ||
-					this->command(scan) == REGEX_L_BRRGMIN ||
-					this->command(scan) == REGEX_L_BRRGMAX  )
-					ofs = 5;
-				else if( this->command(scan) == REGEX_N_BRRANGE ||
-						 this->command(scan) == REGEX_L_BRRANGE  )
-					ofs = 7;
-
-
-
 				if( this->command(next) != REGEX_N_BRANCH &&
 					this->command(next) != REGEX_L_BRANCH &&
 					this->command(next) != REGEX_N_BRRANGE &&
@@ -2135,31 +2123,21 @@ bool CRegExp::CRegProgram::MatchMain(const char* base, const char* str, vector< 
 					this->command(next) != REGEX_L_BRRGMAX
 				  )
 				{	// Avoid recursion.
+
+					size_t ofs = 3;
+					if( this->command(scan) == REGEX_N_BRRGMIN ||
+						this->command(scan) == REGEX_N_BRRGMAX ||
+						this->command(scan) == REGEX_L_BRRGMIN ||
+						this->command(scan) == REGEX_L_BRRGMAX  )
+						ofs = 5;
+					else if( this->command(scan) == REGEX_N_BRRANGE ||
+							 this->command(scan) == REGEX_L_BRRANGE  )
+						ofs = 7;
+					
 					next = scan+ofs;							
 				}
 				else
 				{
-					size_t min = 0;
-					size_t max = 0;
-					if( this->command(scan) == REGEX_N_BRRANGE ||
-						this->command(scan) == REGEX_L_BRRANGE )
-					{
-						const uchar*ptr = (const uchar*)this->operand(scan);
-						min= (((ushort)ptr[0])) | (((ushort)ptr[1])<<8);
-						max= (((ushort)ptr[2])) | (((ushort)ptr[3])<<8);
-					}
-					else if( this->command(scan) == REGEX_N_BRRGMIN ||
-							 this->command(scan) == REGEX_L_BRRGMIN )
-					{
-						const uchar*ptr = (const uchar*)this->operand(scan);
-						min= (((ushort)ptr[0])) | (((ushort)ptr[1])<<8);
-					}
-					else if( this->command(scan) == REGEX_N_BRRGMAX || 
-							 this->command(scan) == REGEX_L_BRRGMAX )
-					{
-						const uchar*ptr = (const uchar*)this->operand(scan);
-						max= (((ushort)ptr[0])) | (((ushort)ptr[1])<<8);
-					}
 
 					while( this->command(scan) == REGEX_N_BRANCH ||
 						   this->command(scan) == REGEX_L_BRANCH ||
@@ -2171,10 +2149,39 @@ bool CRegExp::CRegProgram::MatchMain(const char* base, const char* str, vector< 
 						   this->command(scan) == REGEX_L_BRRGMAX
 						)
 					{
-						if( imap.exists(scan) )
-							imap[scan]++;
-						else
-							imap[scan]=1;
+
+						size_t min = 0;
+						size_t max = 0;
+						size_t ofs = 3;
+
+						if( this->command(scan) == REGEX_N_BRRGMIN ||
+							this->command(scan) == REGEX_N_BRRGMAX ||
+							this->command(scan) == REGEX_L_BRRGMIN ||
+							this->command(scan) == REGEX_L_BRRGMAX  )
+							ofs = 5;
+						else if( this->command(scan) == REGEX_N_BRRANGE ||
+								 this->command(scan) == REGEX_L_BRRANGE  )
+							ofs = 7;
+
+						if( this->command(scan) == REGEX_N_BRRANGE ||
+							this->command(scan) == REGEX_L_BRRANGE )
+						{
+							const uchar*ptr = (const uchar*)this->operand(scan);
+							min= (((ushort)ptr[0])) | (((ushort)ptr[1])<<8);
+							max= (((ushort)ptr[2])) | (((ushort)ptr[3])<<8);
+						}
+						else if( this->command(scan) == REGEX_N_BRRGMIN ||
+								 this->command(scan) == REGEX_L_BRRGMIN )
+						{
+							const uchar*ptr = (const uchar*)this->operand(scan);
+							min= (((ushort)ptr[0])) | (((ushort)ptr[1])<<8);
+						}
+						else if( this->command(scan) == REGEX_N_BRRGMAX || 
+								 this->command(scan) == REGEX_L_BRRGMAX )
+						{
+							const uchar*ptr = (const uchar*)this->operand(scan);
+							max= (((ushort)ptr[0])) | (((ushort)ptr[1])<<8);
+						}
 
 						if( this->command(scan) == REGEX_N_BRANCH )
 						{	// normal branch or
@@ -2190,8 +2197,6 @@ bool CRegExp::CRegProgram::MatchMain(const char* base, const char* str, vector< 
 
 							// restore the last valid pointer
 							reginput = save;
-
-							imap[scan]--;
 
 							scan = this->nextcommand(scan);
 
@@ -2224,7 +2229,6 @@ bool CRegExp::CRegProgram::MatchMain(const char* base, const char* str, vector< 
 							else
 							{
 								reginput = save;
-								imap[scan]--;
 								return false;
 							}
 							// always return here
@@ -2239,6 +2243,13 @@ bool CRegExp::CRegProgram::MatchMain(const char* base, const char* str, vector< 
 
 							// safe the pointer in case of an error
 							const char* save = reginput;
+
+							// count the runs
+							if( imap.exists(scan) )
+								imap[scan]++;
+							else
+								imap.insert(scan, 1);
+
 
 							if( !max || imap[scan] <= max )
 							{
@@ -2273,6 +2284,12 @@ bool CRegExp::CRegProgram::MatchMain(const char* base, const char* str, vector< 
 
 							// safe the pointer in case of an error
 							const char* save = reginput;
+							// count the runs
+							if( imap.exists(scan) )
+								imap[scan]++;
+							else
+								imap.insert(scan, 1);
+
 
 							if( imap[scan] <= min )
 							{
@@ -3012,7 +3029,7 @@ unsigned int CRegExp::sub_count() const
 	clearerror();
 	return ( cProg.get() && cFinds.size()>0 ) ? cFinds.size()-1 : 0;
 }
-unsigned int CRegExp::sub_count(unsigned int i) const
+unsigned int CRegExp::sub_count(size_t i) const
 {
 	clearerror();
 	if( cProg.get() && i<cFinds.size() )
@@ -3022,7 +3039,7 @@ unsigned int CRegExp::sub_count(unsigned int i) const
 
 ///////////////////////////////////////////////////////////////////////////////
 // start and length of the substring according to the matchstring
-unsigned int CRegExp::sub_start(unsigned int i, unsigned int k) const
+unsigned int CRegExp::sub_start(size_t i, size_t k) const
 {
 	clearerror();
 	unsigned int ret = 0;
@@ -3035,7 +3052,7 @@ unsigned int CRegExp::sub_start(unsigned int i, unsigned int k) const
 }
 ///////////////////////////////////////////////////////////////////////////////
 //
-unsigned int CRegExp::sub_length(unsigned int i, unsigned int k) const
+unsigned int CRegExp::sub_length(size_t i, size_t k) const
 {
 	clearerror();
 	int ret = -1;
@@ -3048,7 +3065,7 @@ unsigned int CRegExp::sub_length(unsigned int i, unsigned int k) const
 }
 ///////////////////////////////////////////////////////////////////////////////
 // last find at position i (PCRE conform)
-const string<> CRegExp::operator[]( unsigned int i ) const
+const string<> CRegExp::operator[]( size_t i ) const
 {
 	string<> str;
 	clearerror();
@@ -3059,7 +3076,7 @@ const string<> CRegExp::operator[]( unsigned int i ) const
 
 ///////////////////////////////////////////////////////////////////////////////
 // access to all finds (default to the last == PCRE conform)
-const string<> CRegExp::operator()(unsigned int i, unsigned int k) const
+const string<> CRegExp::operator()(size_t i, size_t k) const
 {
 	string<> str;
 	clearerror();
@@ -3073,7 +3090,7 @@ const string<> CRegExp::operator()(unsigned int i, unsigned int k) const
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-bool CRegExp::isOK() const
+bool CRegExp::is_valid() const
 {
 	return cProg.get() ? cProg->Status() : false;
 }
@@ -3282,229 +3299,256 @@ void CRegExp::clearerror() const
 void test_regex(void)
 {
 #if defined(DEBUG)
-	const char *a;
-	string<> ret;
-	CRegExp exp("(.*ab)([^a]*)a");
-	CRegExp xx = exp;
-
-	CRegExp yy("(?:([^,]*),)*([^,]*)");
-	yy.Dump();
-	yy.Print();
-	yy.match("ab1ba, ab2ba, ab3ba, ab4ba, ab5ba, ab6ab");
 	{
-		uint i;
-		for(i=0; i<=yy.sub_count(); i++)
-			printf("%2i: %s\n", i, (const char*)yy[i]);
+//		CRegExp re("aaa(?i-m-ss:AAA)b");
+		CRegExp re("(...)*(a+)(abc)");
+
+		re.Dump();
+		re.Print();
+
+		re.match("123123123aaabc");
+
+
+		printf("----\n%s\n", (const char*)re[0]);
+		uint i,k;
+		for(i=1; i<=re.sub_count(); i++)	// finds count from 1
+		{
+			printf("%2i: ", i);
+			for(k=0; k<re.sub_count(i); k++)	// inside finds count from 0
+				printf("%s, ", (const char*)re(i,k));
+
+			printf("\n");
+		}
+
+		printf("----\n");
 	}
 
-	yy = "([abc])*d";
-	yy.match("abbbcd");
 	{
-		uint i;
-		for(i=0; i<=yy.sub_count(); i++)
-			printf("%2i: %s\n", i, (const char*)yy[i]);
+		const char *a;
+		string<> ret;
+		CRegExp exp("(.*ab)([^a]*)a");
+		CRegExp xx = exp;
+
+		CRegExp yy("(?:([^,]*),)*([^,]*)");
+		yy.Dump();
+		yy.Print();
+		yy.match("ab1ba, ab2ba, ab3ba, ab4ba, ab5ba, ab6ab");
+		{
+			uint i;
+			for(i=0; i<=yy.sub_count(); i++)
+				printf("%2i: %s\n", i, (const char*)yy[i]);
+		}
+
+		yy = "([abc])*d";
+		yy.match("abbbcd");
+		{
+			uint i;
+			for(i=0; i<=yy.sub_count(); i++)
+				printf("%2i: %s\n", i, (const char*)yy[i]);
+		}
+
+
+		exp = "(blue|white|red)";
+		exp.Dump();
+		exp.Print();
+
+		a = "aaababb1bbbbaaaaaabbb ff white bbbaaabb2bbbbaaaaaaaa	aaaaaab3bbbbaxx";
+		exp.match(a);
+		a = ret = exp[0];
+		a = ret = exp[1];
+		a = ret = exp[2];
+
+		a = "aaababb1bbbbaaaaaabbb ff white bbbaaabb2bbbbaaaaaaaa	aaaaaab3bbbbaxx";
+		xx.match(a);
+		a = ret = xx[0];
+		a = ret = xx[1];
+		a = ret = xx[2];
+
+
+		CRegExp x2("([^,]*),");
+		a = "ab1ba, ab2ba, ab3ba, ab4ba, ab5ba, ab6ab";
+
+		x2.match(a);
+		a = ret = x2[0];
+		a = ret = x2[1];
+		a = ret = x2[2];
+		a = ret = x2[3];
+		a = ret = x2[4];
+		a = ret = x2[5];
 	}
 
-
-	exp = "(blue|white|red)";
-	exp.Dump();
-	exp.Print();
-
-	a = "aaababb1bbbbaaaaaabbb ff white bbbaaabb2bbbbaaaaaaaa	aaaaaab3bbbbaxx";
-	exp.match(a);
-	a = ret = exp[0];
-	a = ret = exp[1];
-	a = ret = exp[2];
-
-	a = "aaababb1bbbbaaaaaabbb ff white bbbaaabb2bbbbaaaaaaaa	aaaaaab3bbbbaxx";
-	xx.match(a);
-	a = ret = xx[0];
-	a = ret = xx[1];
-	a = ret = xx[2];
-
-
-	CRegExp x2("([^,]*),");
-	a = "ab1ba, ab2ba, ab3ba, ab4ba, ab5ba, ab6ab";
-
-	x2.match(a);
-	a = ret = x2[0];
-	a = ret = x2[1];
-	a = ret = x2[2];
-	a = ret = x2[3];
-	a = ret = x2[4];
-	a = ret = x2[5];
-
-
-	const char *fields[][5] = 
 	{
-	  {"abc","abc","y","&","abc"},
-	  {"abc","xbc","n","-","-"},
-	  {"abc","axc","n","-","-"},
-	  {"abc","abx","n","-","-"},
-	  {"abc","xabcy","y","&","abc"},
-	  {"abc","ababc","y","&","abc"},
-	  {"ab*c","abc","y","&","abc"},
-	  {"ab*bc","abc","y","&","abc"},
-	  {"ab*bc","abbc","y","&","abbc"},
-	  {"ab*bc","abbbbc","y","&","abbbbc"},
-	  {"ab+bc","abbc","y","&","abbc"},
-	  {"ab+bc","abc","n","-","-"},
-	  {"ab+bc","abq","n","-","-"},
-	  {"ab+bc","abbbbc","y","&","abbbbc"},
-	  {"ab?bc","abbc","y","&","abbc"},
-	  {"ab?bc","abc","y","&","abc"},
-	  {"ab?bc","abbbbc","n","-","-"},
-	  {"ab?c","abc","y","&","abc"},
-	  {"^abc$","abc","y","&","abc"},
-	  {"^abc$","abcc","n","-","-"},
-	  {"^abc","abcc","y","&","abc"},
-	  {"^abc$","aabc","n","-","-"},
-	  {"abc$","aabc","y","&","abc"},
-	  {"^","abc","y","&",""},
-	  {"$","abc","y","&",""},
-	  {"a.c","abc","y","&","abc"},
-	  {"a.c","axc","y","&","axc"},
-	  {"a.*c","axyzc","y","&","axyzc"},
-	  {"a.*c","axyzd","n","-","-"},
-	  {"a[bc]d","abc","n","-","-"},
-	  {"a[bc]d","abd","y","&","abd"},
-	  {"a[b-d]e","abd","n","-","-"},
-	  {"a[b-d]e","ace","y","&","ace"},
-	  {"a[b-d]","aac","y","&","ac"},
-	  {"a[-b]","a-","y","&","a-"},
-	  {"a[b-]","a-","y","&","a-"},
-	  {"[k]","ab","n","-","-"},
-	  {"a[b-a]","-","c","-","-"},
-	  {"a[]b","-","c","-","-"},
-	  {"a[","-","c","-","-"},
-	  {"a]","a]","y","&","a]"},
-	  {"a[]]b","a]b","y","&","a]b"},
-	  {"a[^bc]d","aed","y","&","aed"},
-	  {"a[^bc]d","abd","n","-","-"},
-	  {"a[^-b]c","adc","y","&","adc"},
-	  {"a[^-b]c","a-c","n","-","-"},
-	  {"a[^]b]c","a]c","n","-","-"},
-	  {"a[^]b]c","adc","y","&","adc"},
-	  {"ab|cd","abc","y","&","ab"},
-	  {"ab|cd","abcd","y","&","ab"},
-	  {"()ef","def","y","&-\\1","ef-"},
-	  {"()*","-","c","-","-"},
-	  {"*a","-","c","-","-"},
-	  {"^*","-","c","-","-"},
-	  {"$*","-","c","-","-"},
-	  {"(*)b","-","c","-","-"},
-	  {"$b","b","n","-","-"},
-	  {"a\\","-","c","-","-"},
-	  {"a\\(b","a(b","y","&-\\1","a(b-"},
-	  {"a\\(*b","ab","y","&","ab"},
-	  {"a\\(*b","a((b","y","&","a((b"},
-	  {"a\\\\b","a\\b","y","&","a\\b"},
-	  {"abc)","-","c","-","-"},
-	  {"(abc","-","c","-","-"},
-	  {"((a))","abc","y","&-\\1-\\2","a-a-a"},
-	  {"(a)b(c)","abc","y","&-\\1-\\2","abc-a-c"},
-	  {"a+b+c","aabbabc","y","&","abc"},
-	  {"a**","-","c","-","-"},
-	  {"a*?","-","c","-","-"},
-	  {"(a*)*","-","c","-","-"},
-	  {"(a*)+","-","c","-","-"},
-	  {"(a|)*","-","c","-","-"},
-	  {"(a*|b)*","-","c","-","-"},
-	  {"(a+|b)*","ab","y","&-\\1","ab-b"},
-	  {"(a+|b)+","ab","y","&-\\1","ab-b"},
-	  {"(a+|b)?","ab","y","&-\\1","a-a"},
-	  {"[^ab]*","cde","y","&","cde"},
-	  {"(^)*","-","c","-","-"},
-	  {"(ab|)*","-","c","-","-"},
-	  {")(","-","c","-","-"},
-	  {"","abc","y","&",""},
-	  {"abc","","n","-","-"},
-	  {"a*","","y","&",""},
-	  {"abcd","abcd","y","&-\\&-\\\\&","abcd-&-\\abcd"},
-	  {"a(bc)d","abcd","y","\\1-\\\\1-\\\\\\1","bc-\\1-\\bc"},
-	  {"([abc])*d","abbbcd","y","&-\\1","abbbcd-c"},
-	  {"([abc])*bcd","abcd","y","&-\\1","abcd-a"},
-	  {"a|b|c|d|e","e","y","&","e"},
-	  {"(a|b|c|d|e)f","ef","y","&-\\1","ef-e"},
-	  {"((a*|b))*","-","c","-","-"},
-	  {"abcd*efg","abcdefg","y","&","abcdefg"},
-	  {"ab*","xabyabbbz","y","&","ab"},
-	  {"ab*","xayabbbz","y","&","a"},
-	  {"(ab|cd)e","abcde","y","&-\\1","cde-cd"},
-	  {"[abhgefdc]ij","hij","y","&","hij"},
-	  {"^(ab|cd)e","abcde","n","x\\1y","xy"},
-	  {"(abc|)ef","abcdef","y","&-\\1","ef-"},
-	  {"(a|b)c*d","abcd","y","&-\\1","bcd-b"},
-	  {"(ab|ab*)bc","abc","y","&-\\1","abc-a"},
-	  {"a([bc]*)c*","abc","y","&-\\1","abc-bc"},
-	  {"a([bc]*)(c*d)","abcd","y","&-\\1-\\2","abcd-bc-d"},
-	  {"a([bc]+)(c*d)","abcd","y","&-\\1-\\2","abcd-bc-d"},
-	  {"a([bc]*)(c+d)","abcd","y","&-\\1-\\2","abcd-b-cd"},
-	  {"a[bcd]*dcdcde","adcdcde","y","&","adcdcde"},
-	  {"a[bcd]+dcdcde","adcdcde","n","-","-"},
-	  {"(ab|a)b*c","abc","y","&-\\1","abc-ab"},
-	  {"((a)(b)c)(d)","abcd","y","\\1-\\2-\\3-\\4","abc-a-b-d"},
-	  {"[ -~]*","abc","y","&","abc"},
-	  {"[ -~ -~]*","abc","y","&","abc"},
-	  {"[ -~ -~ -~]*","abc","y","&","abc"},
-	  {"[ -~ -~ -~ -~]*","abc","y","&","abc"},
-	  {"[ -~ -~ -~ -~ -~]*","abc","y","&","abc"},
-	  {"[ -~ -~ -~ -~ -~ -~]*","abc","y","&","abc"},
-	  {"[ -~ -~ -~ -~ -~ -~ -~]*","abc","y","&","abc"},
-	  {"[a-zA-Z_][a-zA-Z0-9_]*","alpha","y","&","alpha"},
-	  {"^a(bc+|b[eh])g|.h$","abh","y","&-\\1","bh-"},
-	  {"(bc+d$|ef*g.|h?i(j|k))","effgz","y","&-\\1-\\2","effgz-effgz-"},
-	  {"(bc+d$|ef*g.|h?i(j|k))","ij","y","&-\\1-\\2","ij-ij-j"},
-	  {"(bc+d$|ef*g.|h?i(j|k))","effg","n","-","-"},
-	  {"(bc+d$|ef*g.|h?i(j|k))","bcdd","n","-","-"},
-	  {"(bc+d$|ef*g.|h?i(j|k))","reffgz","y","&-\\1-\\2","effgz-effgz-"},
-	  {"(((((((((a)))))))))","a","y","&","a"},
-	  {"multiple words of text","uh-uh","n","-","-"},
-	  {"multiple words","multiple words, yeah","y","&","multiple words"},
-	  {"(.*)c(.*)","abcde","y","&-\\1-\\2","abcde-ab-de"},
-	  {"\\((.*), (.*)\\)","(a, b)","y","(\\2, \\1)","(b, a)"},
-	  {"\\<abc\\>","d abc f","y","&","abc"},
-	  {"\\<abc\\>","dabc f","n","-","-"},
-	  {"\\<abc\\>","d abcf","n","-","-"},
-	  {"\\<abc\\>","d abc_f","n","-","-"},
-	};
+		const char *fields[][5] = 
+		{
+			{"abc","abc","y","&","abc"},
+			{"abc","xbc","n","-","-"},
+			{"abc","axc","n","-","-"},
+			{"abc","abx","n","-","-"},
+			{"abc","xabcy","y","&","abc"},
+			{"abc","ababc","y","&","abc"},
+			{"ab*c","abc","y","&","abc"},
+			{"ab*bc","abc","y","&","abc"},
+			{"ab*bc","abbc","y","&","abbc"},
+			{"ab*bc","abbbbc","y","&","abbbbc"},
+			{"ab+bc","abbc","y","&","abbc"},
+			{"ab+bc","abc","n","-","-"},
+			{"ab+bc","abq","n","-","-"},
+			{"ab+bc","abbbbc","y","&","abbbbc"},
+			{"ab?bc","abbc","y","&","abbc"},
+			{"ab?bc","abc","y","&","abc"},
+			{"ab?bc","abbbbc","n","-","-"},
+			{"ab?c","abc","y","&","abc"},
+			{"^abc$","abc","y","&","abc"},
+			{"^abc$","abcc","n","-","-"},
+			{"^abc","abcc","y","&","abc"},
+			{"^abc$","aabc","n","-","-"},
+			{"abc$","aabc","y","&","abc"},
+			{"^","abc","y","&",""},
+			{"$","abc","y","&",""},
+			{"a.c","abc","y","&","abc"},
+			{"a.c","axc","y","&","axc"},
+			{"a.*c","axyzc","y","&","axyzc"},
+			{"a.*c","axyzd","n","-","-"},
+			{"a[bc]d","abc","n","-","-"},
+			{"a[bc]d","abd","y","&","abd"},
+			{"a[b-d]e","abd","n","-","-"},
+			{"a[b-d]e","ace","y","&","ace"},
+			{"a[b-d]","aac","y","&","ac"},
+			{"a[-b]","a-","y","&","a-"},
+			{"a[b-]","a-","y","&","a-"},
+			{"[k]","ab","n","-","-"},
+//			{"a[b-a]","-","c","-","-"},		// can do this -> range swapping
+			{"a[]b","-","c","-","-"},
+			{"a[","-","c","-","-"},
+			{"a]","a]","y","&","a]"},
+			{"a[]]b","a]b","y","&","a]b"},
+			{"a[^bc]d","aed","y","&","aed"},
+			{"a[^bc]d","abd","n","-","-"},
+			{"a[^-b]c","adc","y","&","adc"},
+			{"a[^-b]c","a-c","n","-","-"},
+			{"a[^]b]c","a]c","n","-","-"},
+			{"a[^]b]c","adc","y","&","adc"},
+			{"ab|cd","abc","y","&","ab"},
+			{"ab|cd","abcd","y","&","ab"},
+			{"()ef","def","y","&-\\1","ef-"},
+			{"()*","-","c","-","-"},
+			{"*a","-","c","-","-"},
+			{"^*","-","c","-","-"},
+			{"$*","-","c","-","-"},
+			{"(*)b","-","c","-","-"},
+			{"$b","b","n","-","-"},
+			{"a\\","-","c","-","-"},
+			{"a\\(b","a(b","y","&-\\1","a(b-"},
+			{"a\\(*b","ab","y","&","ab"},
+			{"a\\(*b","a((b","y","&","a((b"},
+			{"a\\\\b","a\\b","y","&","a\\b"},
+			{"abc)","-","c","-","-"},
+			{"(abc","-","c","-","-"},
+			{"((a))","abc","y","&-\\1-\\2","a-a-a"},
+			{"(a)b(c)","abc","y","&-\\1-\\2","abc-a-c"},
+			{"a+b+c","aabbabc","y","&","abc"},
+			{"a**","-","c","-","-"},
+//			{"a*?","-","c","-","-"},	// can do this -> lazy operators
+			{"(a*)*","-","c","-","-"},
+			{"(a*)+","-","c","-","-"},
+			{"(a|)*","-","c","-","-"},
+			{"(a*|b)*","-","c","-","-"},
+			{"(a+|b)*","ab","y","&-\\1","ab-b"},
+			{"(a+|b)+","ab","y","&-\\1","ab-b"},
+			{"(a+|b)?","ab","y","&-\\1","a-a"},
+			{"[^ab]*","cde","y","&","cde"},
+			{"(^)*","-","c","-","-"},
+			{"(ab|)*","-","c","-","-"},
+			{")(","-","c","-","-"},
+			{"","abc","y","&",""},
+			{"abc","","n","-","-"},
+			{"a*","","y","&",""},
+			{"abcd","abcd","y","&-\\&-\\\\&","abcd-&-\\abcd"},
+			{"a(bc)d","abcd","y","\\1-\\\\1-\\\\\\1","bc-\\1-\\bc"},
+			{"([abc])*d","abbbcd","y","&-\\1","abbbcd-c"},
+			{"([abc])*bcd","abcd","y","&-\\1","abcd-a"},
+			{"a|b|c|d|e","e","y","&","e"},
+			{"(a|b|c|d|e)f","ef","y","&-\\1","ef-e"},
+			{"((a*|b))*","-","c","-","-"},
+			{"abcd*efg","abcdefg","y","&","abcdefg"},
+			{"ab*","xabyabbbz","y","&","ab"},
+			{"ab*","xayabbbz","y","&","a"},
+			{"(ab|cd)e","abcde","y","&-\\1","cde-cd"},
+			{"[abhgefdc]ij","hij","y","&","hij"},
+			{"^(ab|cd)e","abcde","n","x\\1y","xy"},
+			{"(abc|)ef","abcdef","y","&-\\1","ef-"},
+			{"(a|b)c*d","abcd","y","&-\\1","bcd-b"},
+			{"(ab|ab*)bc","abc","y","&-\\1","abc-a"},
+			{"a([bc]*)c*","abc","y","&-\\1","abc-bc"},
+			{"a([bc]*)(c*d)","abcd","y","&-\\1-\\2","abcd-bc-d"},
+			{"a([bc]+)(c*d)","abcd","y","&-\\1-\\2","abcd-bc-d"},
+			{"a([bc]*)(c+d)","abcd","y","&-\\1-\\2","abcd-b-cd"},
+			{"a[bcd]*dcdcde","adcdcde","y","&","adcdcde"},
+			{"a[bcd]+dcdcde","adcdcde","n","-","-"},
+			{"(ab|a)b*c","abc","y","&-\\1","abc-ab"},
+			{"((a)(b)c)(d)","abcd","y","\\1-\\2-\\3-\\4","abc-a-b-d"},
+			{"[ -~]*","abc","y","&","abc"},
+			{"[ -~ -~]*","abc","y","&","abc"},
+			{"[ -~ -~ -~]*","abc","y","&","abc"},
+			{"[ -~ -~ -~ -~]*","abc","y","&","abc"},
+			{"[ -~ -~ -~ -~ -~]*","abc","y","&","abc"},
+			{"[ -~ -~ -~ -~ -~ -~]*","abc","y","&","abc"},
+			{"[ -~ -~ -~ -~ -~ -~ -~]*","abc","y","&","abc"},
+			{"[a-zA-Z_][a-zA-Z0-9_]*","alpha","y","&","alpha"},
+			{"^a(bc+|b[eh])g|.h$","abh","y","&-\\1","bh-"},
+			{"(bc+d$|ef*g.|h?i(j|k))","effgz","y","&-\\1-\\2","effgz-effgz-"},
+			{"(bc+d$|ef*g.|h?i(j|k))","ij","y","&-\\1-\\2","ij-ij-j"},
+			{"(bc+d$|ef*g.|h?i(j|k))","effg","n","-","-"},
+			{"(bc+d$|ef*g.|h?i(j|k))","bcdd","n","-","-"},
+			{"(bc+d$|ef*g.|h?i(j|k))","reffgz","y","&-\\1-\\2","effgz-effgz-"},
+			{"(((((((((a)))))))))","a","y","&","a"},
+			{"multiple words of text","uh-uh","n","-","-"},
+			{"multiple words","multiple words, yeah","y","&","multiple words"},
+			{"(.*)c(.*)","abcde","y","&-\\1-\\2","abcde-ab-de"},
+			{"\\((.*), (.*)\\)","(a, b)","y","(\\2, \\1)","(b, a)"},
+			{"\\<abc\\>","d abc f","y","&","abc"},
+			{"\\<abc\\>","dabc f","n","-","-"},
+			{"\\<abc\\>","d abcf","n","-","-"},
+			{"\\<abc\\>","d abc_f","n","-","-"},
+		};
 
-	size_t i;
-	printf("\n");
-	for(i=0; i<sizeof(fields)/sizeof(fields[0]); i++)
-	{
-		CRegExp r(fields[i][0]);
-		if( !r.isOK() )
+		size_t i;
+		printf("\n");
+		for(i=0; i<sizeof(fields)/sizeof(fields[0]); i++)
 		{
-			if( *fields[i][2] != 'c' )
-				printf("%i: unexpected comp failure in '%s' (%s)\n", i, fields[i][0], r.errmsg());
-			continue;
-		}
-		else if( *fields[i][2] == 'c')
-		{
-			printf("%i: unexpected comp success in '%s'\n", i, fields[i][0]);
-			continue;
-		}
+			CRegExp r(fields[i][0]);
+			if( !r.is_valid() )
+			{
+				if( *fields[i][2] != 'c' )
+					printf("%i: unexpected comp failure in '%s' (%s)\n", i, fields[i][0], r.errmsg());
+				continue;
+			}
+			else if( *fields[i][2] == 'c')
+			{
+				printf("%i: unexpected comp success in '%s'\n", i, fields[i][0]);
+				continue;
+			}
 
-		if( !r.match(fields[i][1]))
-		{
-			if( *fields[i][2] != 'n' )
-				printf("%i: unexpected match failure in '%s' / '%s' (%s)\n", i, fields[i][0],fields[i][1], r.errmsg());
-			continue;
+			if( !r.match(fields[i][1]))
+			{
+				if( *fields[i][2] != 'n' )
+					printf("%i: unexpected match failure in '%s' / '%s' (%s)\n", i, fields[i][0],fields[i][1], r.errmsg());
+				continue;
+			}
+			if( *fields[i][2] == 'n' )
+			{
+				printf("%i: unexpected match success in '%s' / '%s'\n", i, fields[i][0],fields[i][1]);
+				continue;
+			}
+			string<> repl = r.replacestring( fields[i][3] );
+			if( r.errmsg() )
+			{
+				printf("%i: GetReplaceString complaint in '%s'\n", i, fields[i][0], r.errmsg());
+				continue;
+			}
+			if ( repl != fields[i][4] )
+				printf("%i: regsub result in '%s' wrong (is: '%s' != should: '%s')\n", i, fields[i][0], (const char*)repl, fields[i][4]);
 		}
-		if( *fields[i][2] == 'n' )
-		{
-			printf("%i: unexpected match success in '%s' / '%s'\n", i, fields[i][0],fields[i][1]);
-			continue;
-		}
-		string<> repl = r.replacestring( fields[i][3] );
-		if( r.errmsg() )
-		{
-			printf("%i: GetReplaceString complaint in '%s'\n", i, fields[i][0], r.errmsg());
-			continue;
-		}
-		if ( repl != fields[i][4] )
-			printf("%i: regsub result in '%s' wrong (is: '%s' != should: '%s')\n", i, fields[i][0], (const char*)repl, fields[i][4]);
 	}
 
 
@@ -3513,7 +3557,7 @@ void test_regex(void)
 		CRegExp r;
 	
 		r = CRegExp(NULL);
-		if( r.isOK() || !r.errmsg() )
+		if( r.is_valid() || !r.errmsg() )
 			printf("regcomp(NULL) doesn't complain\n");
 
 		r = CRegExp();		// clean it out
@@ -3521,7 +3565,7 @@ void test_regex(void)
 			printf("regexec(NULL, ...) doesn't complain\n");
 
 		r = CRegExp("foo");
-		if( !r.isOK() )
+		if( !r.is_valid() )
 			printf("regcomp(\"foo\") fails");
 
 		if ( r.match(NULL) || !r.errmsg() )
@@ -3547,7 +3591,7 @@ void test_regex(void)
 
 		CRegExp reg1( "[abc]+" );
 
-		if ( !reg1.isOK() )
+		if ( !reg1.is_valid() )
 			printf("regcomp(\"[abc]+\") fails\n");
 
 		if ( !reg1.match( "test string 1 - aaa") || reg1.errmsg() )

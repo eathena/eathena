@@ -2385,7 +2385,7 @@ int set_var(const char *name, void *v)
 		{
 			if( postfix=='$' )
 			{
-				mapreg_setregstr(num,(char*)v);
+				mapreg_setregstr(num,(const char*)v);
 			}
 			else
 			{
@@ -9803,18 +9803,20 @@ int mapreg_setregnum(int num,int val)
  */
 int mapreg_setregstr(int num, const char *str)
 {
-	char *p;
-	if( (p=(char *) numdb_search(mapregstr_db,num))!=NULL )
+	char *p = (char *) numdb_search(mapregstr_db, num);
+	if( p!=NULL )
 		aFree(p);
 
-	if( str==NULL || *str==0 ){
+	if( str==NULL || *str==0 )
+	{
 		numdb_erase(mapregstr_db,num);
-		mapreg_dirty=1;
-		return 0;
 	}
-	p=(char *)aMalloc( (strlen(str)+1)*sizeof(char));
-	memcpy(p,str,(strlen(str)+1)*sizeof(char));
-	numdb_insert(mapregstr_db,num,p);
+	else
+	{
+		p=(char *)aMalloc( (strlen(str)+1)*sizeof(char));
+		memcpy(p,str,(strlen(str)+1)*sizeof(char));
+		numdb_insert(mapregstr_db,num,p);
+	}
 	mapreg_dirty=1;
 	return 0;
 }

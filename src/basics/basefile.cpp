@@ -194,7 +194,7 @@ bool findFiles(const char *p, const char *pat, const CFileProcessor& fp)
 				continue;
 
 			// give name to processor
-			if(FindFileData.cFileName && strstr(FindFileData.cFileName, pattern))
+			if(FindFileData.cFileName && match_wildcard<char>(pattern, FindFileData.cFileName))
 				ok = fp.process( tmppath );
 			// and descend to subdirs
 			if( FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
@@ -240,7 +240,7 @@ bool findFiles(const char *p, const char *pat, const CFileProcessor& fp)
 			continue;
 
 		// check if the pattern matchs.
-		if( entry->d_name && strstr(entry->d_name, pattern) )
+		if( entry->d_name && match_wildcard<char>(pattern, entry->d_name) )
 			ok = fp.process( tmppath );
 
 		// check if it is a directory.
@@ -318,7 +318,7 @@ bool findFiles(const char *p, const char *pat, void (func)(const char*) )
 
 			snprintf(tmppath, sizeof(tmppath), "%s%c%s",path,PATHSEP,FindFileData.cFileName);
 
-			if(FindFileData.cFileName && strstr(FindFileData.cFileName, pattern)) {
+			if(FindFileData.cFileName && match_wildcard<char>(pattern, FindFileData.cFileName)) {
 				func( tmppath );
 			}
 
@@ -360,7 +360,7 @@ bool findFiles(const char *p, const char *pat, void (func)(const char*) )
 		snprintf(tmppath, sizeof(tmppath), "%s%c%s",path, PATHSEP, entry->d_name);
 
 		// check if the pattern matchs.
-		if(entry->d_name && strstr(entry->d_name, pattern)) {
+		if(entry->d_name && match_wildcard<char>(pattern, entry->d_name)) {
 			func( tmppath );
 		}
 		// check if it is a directory.

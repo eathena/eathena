@@ -12720,7 +12720,8 @@ int do_init_clif(void)
 	ipaddress wanip;
 	if( detect_WAN(wanip) && 
 		mapaddress.WANIP() != wanip &&
-		mapaddress.LANIP() != wanip )
+		mapaddress.LANIP() != wanip  &&
+		!mapaddress.SetLANIP(wanip) )
 	{
 		ShowStatus("Setting WAN IP %s (overwriting config).\n", (const char*)tostring(wanip));
 		mapaddress.SetWANIP(wanip);

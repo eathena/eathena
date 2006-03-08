@@ -1,6 +1,4 @@
 
-
-
 #include "basetypes.h"
 
 
@@ -10,6 +8,101 @@
 
 #include "basealgo.h"
 #include "basearray.h"
+
+
+///////////////////////////////////////////////////////////////////////////////
+// quicksort used in pointer vectors
+void QuickSortClassic(const void* a[], ssize_t l, ssize_t r, int (*cmp)(const void*a, const void*b, bool asc), bool asc)
+{
+	if(r > l)
+	{
+		const void** ip = a+l-1;
+		const void** jp = a+r;
+		const void** rp = jp;
+		// always take middle pivot
+		// this makes perfect match for sorted lists
+		if(l+3<r) swap(a[(l+r)/2], *rp);
+		for(;;)
+		{
+			while( ( cmp( *(++ip), *rp, asc)<0) );	// move upwards as long as smaller
+			while( ( cmp( *(--jp), *rp, asc)>0) );	// move down as long as larger
+			if( ( cmp( *ip, *jp, asc)>=0) ) break;	// finish when pointers crossed
+			swap(*ip, *jp);							// swap larger and smaller
+		}
+		swap(*ip, *rp);								// swap pivot in place
+		QuickSortClassic(a, l, (ip-a)-1, cmp, asc);	// partition before a[i]
+		QuickSortClassic(a, (ip-a)+1, r, cmp, asc);	// partition after a[i]
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Binary Search used in pointer vectors
+bool BinarySearch(const void* elem, const void* list[], size_t sz, size_t startpos, size_t& findpos, int (*cmp)(const void* a, const void* b, bool asc), bool asc)
+{	// do a binary search
+	// make some initial stuff
+	bool ret = false;
+	size_t a= (startpos>=sz) ? 0 : startpos;
+	size_t b= sz-1;
+	size_t c;
+
+	if( sz < 1)
+	{
+		findpos = 0;
+		ret = false;
+	}
+	else
+	{	
+		if( 0>=(*cmp)(elem, list[a], asc) )
+		{	
+			if( 0 == (*cmp)(elem, list[a], asc) ) 
+			{
+				findpos=a;
+				ret = true;
+			}
+			else
+			{
+				findpos = a;
+				ret = false;
+			}
+		}
+		else if( 0 <= (*cmp)(elem, list[b], asc) )
+		{	
+			if( 0 == (*cmp)(elem, list[b], asc) )
+			{
+				findpos = b;
+				ret = true;
+			}
+			else
+			{
+				findpos = b+1;
+				ret = false;
+			}
+		}
+		else
+		{	// binary search
+			do
+			{
+				c=(a+b)/2;
+				if( 0 == (*cmp)(elem, list[c], asc) )
+				{
+					b=c;
+					ret = true;
+					break;
+				}
+				else if( 0 > (*cmp)(elem, list[c], asc) )
+					b=c;
+				else
+					a=c;
+			} while( (a+1) < b );
+			findpos = b;
+		}
+	}
+	return ret;
+}
+
+
+
+
 
 
 #if defined(DEBUG)

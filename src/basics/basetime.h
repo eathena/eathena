@@ -59,7 +59,7 @@ bool decodetime(datetime, int& hour, int& min, int& sec, int& msec);
 bool decodetime(datetime, int& hour, int& min, int& sec);
 
 
-
+datetime encodedate(int year, int month, int day, int hour, int min, int sec, int msec = 0);
 
 ///////////////////////////////////////////////////////////////////////////////
 #ifdef WIN32

@@ -55,6 +55,7 @@ public:
 		const iterator& operator=(const CSList& list)
 		{
 			ptr = list.cRoot;
+			return *this;
 		}
 		bool isvalid() const	{ return this->ptr!=NULL; }
 		operator bool() const	{ return this->isvalid(); }

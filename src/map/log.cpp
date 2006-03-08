@@ -1,6 +1,5 @@
 // Logging functions by Azndragon & Codemaster
 #include "base.h"
-#include "strlib.h"
 #include "nullpo.h"
 #include "itemdb.h"
 #include "map.h"
@@ -12,6 +11,20 @@
 struct LogConfig log_config;
 
 
+#ifndef TXT_ONLY
+inline const char* escape_string(char *target, const char* source)
+{
+	if(source && target)
+	{	// no overflow check
+		mysql_real_escape_string(&logmysql_handle, target, source, hstrlen(source));
+		return target;
+	}
+	else
+	{
+		return "";
+	}
+}
+#endif
 //FILTER OPTIONS
 //0 = Don't log
 //1 = Log any item
@@ -62,7 +75,7 @@ int log_branch(struct map_session_data &sd)
 	if(log_config.sql_logs > 0)
 	{
 		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`branch_date`, `account_id`, `char_id`, `char_name`, `map`) VALUES (NOW(), '%ld', '%ld', '%s', '%s')",
-			log_config.log_branch_db, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, jstrescapecpy(t_name, sd.status.name), sd.mapname);
+			log_config.log_branch_db, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, escape_string(t_name, sd.status.name), sd.mapname);
 		if(mysql_SendQuery(&logmysql_handle, tmp_sql))
 			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
@@ -162,7 +175,7 @@ int log_present(struct map_session_data &sd, int source_type, unsigned short nam
 	if(log_config.sql_logs > 0)
 	{
 		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`present_date`, `src_id`, `account_id`, `char_id`, `char_name`, `nameid`, `map`) VALUES (NOW(), '%d', '%ld', '%ld', '%s', '%d', '%s') ",
-			log_config.log_present_db, source_type, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, jstrescapecpy(t_name, sd.status.name), nameid, sd.mapname);
+			log_config.log_present_db, source_type, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, escape_string(t_name, sd.status.name), nameid, sd.mapname);
 		if(mysql_SendQuery(&logmysql_handle, tmp_sql))
 			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
@@ -197,7 +210,7 @@ int log_produce(struct map_session_data &sd, unsigned short nameid, int slot1, i
 	if(log_config.sql_logs > 0)
 	{
 		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`produce_date`, `account_id`, `char_id`, `char_name`, `nameid`, `slot1`, `slot2`, `slot3`, `map`, `success`) VALUES (NOW(), '%ld', '%ld', '%s', '%d', '%d', '%d', '%d', '%s', '%d') ",
-			log_config.log_produce_db, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, jstrescapecpy(t_name, sd.status.name), nameid, slot1, slot2, slot3, sd.mapname, success);
+			log_config.log_produce_db, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, escape_string(t_name, sd.status.name), nameid, slot1, slot2, slot3, sd.mapname, success);
 		if(mysql_SendQuery(&logmysql_handle, tmp_sql))
 			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
@@ -242,7 +255,7 @@ int log_refine(struct map_session_data &sd, int n, int success)
 	if(log_config.sql_logs > 0)
 	{
 		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`refine_date`, `account_id`, `char_id`, `char_name`, `nameid`, `refine`, `card0`, `card1`, `card2`, `card3`, `map`, `success`, `item_level`) VALUES (NOW(), '%ld', '%ld', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%s', '%d', '%d')",
-			log_config.log_refine_db, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, jstrescapecpy(t_name, sd.status.name), sd.status.inventory[n].nameid, sd.status.inventory[n].refine, log_card[0], log_card[1], log_card[2], log_card[3], sd.mapname, success, item_level);
+			log_config.log_refine_db, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, escape_string(t_name, sd.status.name), sd.status.inventory[n].nameid, sd.status.inventory[n].refine, log_card[0], log_card[1], log_card[2], log_card[3], sd.mapname, success, item_level);
 		if(mysql_SendQuery(&logmysql_handle, tmp_sql))
 			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
@@ -357,7 +370,7 @@ int log_trade(struct map_session_data &sd, struct map_session_data &target_sd, i
 	if(log_config.sql_logs > 0)
 	{
 		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`trade_date`, `src_account_id`, `src_char_id`, `src_char_name`, `des_account_id`, `des_char_id`, `des_char_name`, `nameid`, `amount`, `refine`, `card0`, `card1`, `card2`, `card3`, `map`) VALUES (NOW(), '%ld', '%ld', '%s', '%ld', '%ld', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%s')",
-			log_config.log_trade_db, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, jstrescapecpy(t_name, sd.status.name), (unsigned long)target_sd.status.account_id, (unsigned long)target_sd.status.char_id, jstrescapecpy(t_name2, target_sd.status.name), log_nameid, log_amount, log_refine, log_card[0], log_card[1], log_card[2], log_card[3], sd.mapname);
+			log_config.log_trade_db, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, escape_string(t_name, sd.status.name), (unsigned long)target_sd.status.account_id, (unsigned long)target_sd.status.char_id, escape_string(t_name2, target_sd.status.name), log_nameid, log_amount, log_refine, log_card[0], log_card[1], log_card[2], log_card[3], sd.mapname);
 		if(mysql_SendQuery(&logmysql_handle, tmp_sql))
 			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
@@ -404,7 +417,7 @@ int log_vend(struct map_session_data &sd,struct map_session_data &vsd,int n,int 
 	if(log_config.sql_logs > 0)
 	{
 			snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`vend_date`, `vend_account_id`, `vend_char_id`, `vend_char_name`, `buy_account_id`, `buy_char_id`, `buy_char_name`, `nameid`, `amount`, `refine`, `card0`, `card1`, `card2`, `card3`, `map`, `zeny`) VALUES (NOW(), '%ld', '%ld', '%s', '%ld', '%ld', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%s', '%d')",
-				log_config.log_vend_db, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, jstrescapecpy(t_name, sd.status.name), (unsigned long)vsd.status.account_id, (unsigned long)vsd.status.char_id, jstrescapecpy(t_name2, vsd.status.name), log_nameid, log_amount, log_refine, log_card[0], log_card[1], log_card[2], log_card[3], sd.mapname, zeny);
+				log_config.log_vend_db, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, escape_string(t_name, sd.status.name), (unsigned long)vsd.status.account_id, (unsigned long)vsd.status.char_id, escape_string(t_name2, vsd.status.name), log_nameid, log_amount, log_refine, log_card[0], log_card[1], log_card[2], log_card[3], sd.mapname, zeny);
 			if(mysql_SendQuery(&logmysql_handle, tmp_sql))
 				ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
@@ -438,7 +451,7 @@ int log_zeny(struct map_session_data &sd, struct map_session_data &target_sd,int
 	if(log_config.sql_logs > 0)
 	{
 		snprintf(tmp_sql, sizeof(tmp_sql),"INSERT DELAYED INTO `%s` (`trade_date`, `src_account_id`, `src_char_id`, `src_char_name`, `des_account_id`, `des_char_id`, `des_char_name`, `map`, `zeny`) VALUES (NOW(), '%ld', '%ld', '%s', '%ld', '%ld', '%s', '%s', '%ld')",
-			log_config.log_trade_db, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, jstrescapecpy(t_name, sd.status.name), (unsigned long)target_sd.status.account_id, (unsigned long)target_sd.status.char_id, jstrescapecpy(t_name2, target_sd.status.name), sd.mapname, (unsigned long)sd.deal_zeny);
+			log_config.log_trade_db, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, escape_string(t_name, sd.status.name), (unsigned long)target_sd.status.account_id, (unsigned long)target_sd.status.char_id, escape_string(t_name2, target_sd.status.name), sd.mapname, (unsigned long)sd.deal_zeny);
 		if(mysql_SendQuery(&logmysql_handle, tmp_sql))
 			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
@@ -473,7 +486,7 @@ int log_atcommand(struct map_session_data &sd, const char *message)
 	if(log_config.sql_logs > 0)
 	{
 		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`atcommand_date`, `account_id`, `char_id`, `char_name`, `map`, `command`) VALUES(NOW(), '%ld', '%ld', '%s', '%s', '%s') ",
-			log_config.log_gm_db, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, jstrescapecpy(t_name, sd.status.name), sd.mapname, jstrescapecpy(t_msg, (char *)message));
+			log_config.log_gm_db, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, escape_string(t_name, sd.status.name), sd.mapname, escape_string(t_msg, (char *)message));
 		if(mysql_SendQuery(&logmysql_handle, tmp_sql))
 			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
@@ -507,7 +520,7 @@ int log_npc(struct map_session_data &sd, const char *message)
 	if(log_config.sql_logs > 0)
 	{
 		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`npc_date`, `account_id`, `char_id`, `char_name`, `map`, `mes`) VALUES(NOW(), '%ld', '%ld', '%s', '%s', '%s') ",
-			log_config.log_npc_db, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, jstrescapecpy(t_name, sd.status.name), sd.mapname, message);
+			log_config.log_npc_db, (unsigned long)sd.status.account_id, (unsigned long)sd.status.char_id, escape_string(t_name, sd.status.name), sd.mapname, message);
 		if(mysql_SendQuery(&logmysql_handle, tmp_sql))
 			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
@@ -560,7 +573,7 @@ int log_chat(const char *type, int type_id, int src_charid, int src_accid, const
 #ifndef TXT_ONLY
 	if(log_config.sql_logs > 0){
 		snprintf(tmp_sql, sizeof(tmp_sql), "INSERT DELAYED INTO `%s` (`time`, `type`, `type_id`, `src_charid`, `src_accountid`, `src_map`, `src_map_x`, `src_map_y`, `dst_charname`, `message`) VALUES (NOW(), '%s', '%d', '%d', '%d', '%s', '%d', '%d', '%s', '%s')", 
-		 	log_config.log_chat_db, type, type_id, src_charid, src_accid, mapname, x, y, dst_charname, jstrescapecpy(t_msg, message));
+		 	log_config.log_chat_db, type, type_id, src_charid, src_accid, mapname, x, y, dst_charname, escape_string(t_msg, message));
 	
 		if(mysql_SendQuery(&logmysql_handle, tmp_sql)){
 			ShowError("log_chat() -> SQL ERROR / FAIL: %s\n", mysql_error(&logmysql_handle));

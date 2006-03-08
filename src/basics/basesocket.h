@@ -3,6 +3,7 @@
 
 #include "basetypes.h"
 #include "baseobjects.h"
+#include "baseinet.h"
 #include "baseregex.h"
 
 
@@ -82,7 +83,6 @@
 typedef char* sockval_t;
 
 
-
 //////////////////////////////////////////////////////////////////////////
 #ifdef WIN32
 // unix specific interface for windows
@@ -113,6 +113,237 @@ extern inline int ioctlsocket(SOCKET fd, long cmd, unsigned long *arg)
 }
 
 #endif
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+#ifndef WIN32
+///////////////////////////////////////////////////////////////////////////////
+// dynamic size, unix system independend fd_set replacement
+class CFDSET
+{
+	///////////////////////////////////////////////////////////////////////////
+	// class data
+	unsigned long*	cArray;		// array pointer
+	unsigned long	cSZ;		// alloced size
+
+	///////////////////////////////////////////////////////////////////////////
+	// resize the array; only grow, no shrink
+	void checksize(size_t pos);
+	void copy(const CFDSET& cfd);
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// Construct/Destruct
+	CFDSET() : cArray(new unsigned long[FD_SETSIZE/NBBY/sizeof(unsigned long)]),cSZ(FD_SETSIZE/NBBY/sizeof(unsigned long))	{}
+	~CFDSET()	{ if(cArray) delete [] cArray; }
+
+	///////////////////////////////////////////////////////////////////////////
+	// Copy/Assign
+	CFDSET(const CFDSET& cfd) : cArray(NULL),cSZ(0)
+	{
+		copy(cfd);
+	}
+	const CFDSET& operator =(const CFDSET& cfd)
+	{
+		copy(cfd);
+		return *this;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// clear everything
+	void clear()
+	{
+		memset (cArray,0, cSZ*sizeof(unsigned long));
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// set a bit
+	void set_bit(int fd)
+	{
+		if(fd>0)
+		{
+			// always working method
+//			const size_t pos = fd/(NBBY*sizeof(cArray[0]));
+//			const size_t bit = fd%(NBBY*sizeof(cArray[0]));
+			// bit more optimized but still generous
+//			const ldiv_t d = ldiv( fd, (NBBY*sizeof(cArray[0])) );
+//			const size_t pos = d.quot;
+//			const size_t bit = d.rem;
+			// sizeof ulong is quite fixed despite the size change on 64bit
+#ifdef __64BIT__
+			const size_t pos = fd>>6;	// equals /64
+			const size_t bit = fd&0x3F;	// equals %64
+#else // 32bit system
+			const size_t pos = fd>>5;	// equals /32
+			const size_t bit = fd&0x1F;	// equals %32
+#endif
+			checksize(pos);
+			cArray[pos] |= (1<<bit);
+		}
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// Clear a bit
+	void clear_bit(int fd)
+	{
+		if(fd>0)
+		{
+			// always working method
+//			const size_t pos = fd/(NBBY*sizeof(cArray[0]));
+//			const size_t bit = fd%(NBBY*sizeof(cArray[0]));
+			// bit more optimized but still generous
+//			const ldiv_t d = ldiv( fd, (NBBY*sizeof(cArray[0])) );
+//			const size_t pos = d.quot;
+//			const size_t bit = d.rem;
+			// sizeof ulong is quite fixed despite the size change on 64bit
+#ifdef __64BIT__
+			const size_t pos = fd>>6;	// equals /64
+			const size_t bit = fd&0x3F;	// equals %64
+#else // 32bit system
+			const size_t pos = fd>>5;	// equals /32
+			const size_t bit = fd&0x1F;	// equals %32
+#endif
+			checksize(pos);
+			cArray[pos] &= ~(1<<bit);
+		}
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// Clear a bit
+	bool is_set(int fd) const
+	{
+		if(fd>0)
+		{
+			// always working method
+//			const size_t pos = fd/(NBBY*sizeof(cArray[0]));
+//			const size_t bit = fd%(NBBY*sizeof(cArray[0]));
+			// bit more optimized but still generous
+//			const ldiv_t d = ldiv( fd, (NBBY*sizeof(cArray[0])) );
+//			const size_t pos = d.quot;
+//			const size_t bit = d.rem;
+			// sizeof ulong is quite fixed despite the size change on 64bit
+#ifdef __64BIT__
+			const size_t pos = fd>>6;	// equals /64
+			const size_t bit = fd&0x3F;	// equals %64
+#else // 32bit system
+			const size_t pos = fd>>5;	// equals /32
+			const size_t bit = fd&0x1F;	// equals %32
+#endif
+			return (pos<cSZ) && (0!=(cArray[pos] & (1<<bit)));
+		}
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// Call a function with each set bit
+	// version 1 (using log2)
+	size_t foreach1( void(*func)(size_t), size_t max) const;
+
+	///////////////////////////////////////////////////////////////////////////
+	// Call a function with each set bit
+	// version 2 (using shifts)
+	size_t foreach2( void(*func)(size_t), size_t max ) const;
+
+	///////////////////////////////////////////////////////////////////////////
+	// pretending to be an unix fd_set structure
+	operator fd_set*() const
+	{
+		return (fd_set*)cArray; 
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// size
+	int size() const
+	{ 
+		return cSZ * NFDBITS;
+	}
+};
+
+#else 
+
+///////////////////////////////////////////////////////////////////////////////
+// dynamic size, windows system independend fd_set replacement
+class CFDSET
+{
+	///////////////////////////////////////////////////////////////////////////
+	// class data
+	// windows
+	struct winfdset
+	{
+		u_int fd_count;				// how many are SET?
+		SOCKET  fd_array[1];		// an array of SOCKETs 
+									// only one in the struct the others will be alloced outside
+	};
+	unsigned long	cSZ;			// alloced elements
+	struct winfdset *cSet;			// the set struct
+
+	///////////////////////////////////////////////////////////////////////////
+	// resize the array; only grow, no shrink
+	void checksize();
+	void copy(const CFDSET& cfd);
+	bool find(SOCKET sock, size_t &pos) const;
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// Construct/Destruct
+	CFDSET() : cSet((struct winfdset *) new char[sizeof(struct winfdset)+128*sizeof(SOCKET)]),cSZ(128)	{ cSet->fd_count=0; }
+	~CFDSET()	{ if(cSet) delete [] ((char*)cSet); }
+
+	///////////////////////////////////////////////////////////////////////////
+	// Copy/Assign
+	CFDSET(const CFDSET& cfd) : cSet(NULL),cSZ(0)
+	{
+		copy(cfd);
+	}
+	const CFDSET& operator =(const CFDSET& cfd)
+	{
+		copy(cfd);
+		return *this;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// clear everything
+	void clear()
+	{
+		cSet->fd_count = 0;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// set a bit
+	void set_bit(int fd);
+	///////////////////////////////////////////////////////////////////////////
+	// Clear a bit
+	void clear_bit(int fd);
+
+	///////////////////////////////////////////////////////////////////////////
+	// Clear a bit
+	bool is_set(int fd) const;
+
+	///////////////////////////////////////////////////////////////////////////
+	// Call a function with each set bit
+	size_t foreach1( void(*func)(size_t), size_t max) const;
+
+	///////////////////////////////////////////////////////////////////////////
+	// Call a function with each set bit
+	size_t foreach2( void(*func)(size_t), size_t max ) const
+	{	// no different approaches on windows
+		return foreach1( func, max );
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// pretending to be an fd_set structure
+	operator fd_set*() const	
+	{
+		return (fd_set*)cSet; 
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// size
+	int size() const
+	{ 
+		return cSZ;
+	}
+};
+#endif
+
+
+
+
+
+
+
 
 
 
@@ -151,7 +382,7 @@ public:
 		CRegExp regex("(?:([^/:]+)://)?([^:]+)(?::(\\d+))?");
 		if( regex.match(address) )
 		{
-			ipaddress ip = ::phostbyname(regex[2]);
+			ipaddress ip = ::hostbyname(regex[2]);
 			ushort port = 80;
 			if(regex[1]=="http")
 				port = 80;

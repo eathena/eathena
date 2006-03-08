@@ -76,6 +76,11 @@ datetime encodedate(int year, int month, int day)
 		- 1, 0);						// ... minus one (guess why :)
 }
 
+datetime encodedate(int year, int month, int day, int hour, int min, int sec, int msec)
+{
+	return encodedate(year, month, day) + encodetime(hour, min, sec, msec);
+}
+
 
 bool decodedate(datetime date, int& year, int& month, int& day)
 {

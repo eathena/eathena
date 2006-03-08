@@ -244,6 +244,7 @@ public:
 		const iterator& operator=(const T* p)
 		{
 			this->ptr=(p && base && p>=base->begin() && p<=base->end())?const_cast<T*>(p):NULL;
+			return *this;
 		}
 		const iterator& operator=(const allocator& a)
 		{

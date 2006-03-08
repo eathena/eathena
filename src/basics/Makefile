@@ -1,4 +1,4 @@
-all basics: basealgo.o basearray.o basebuffer.o basecharset.o basefile.o baseheaps.o baseinet.o baselists.o basememory.o baseobjects.o baseparam.o baseparser.o baseregex.o basestring.o basestrsearch.o basesync.o basethreadpool.o basethreads.o basetime.o basetypes.o basezlib.o
+all basics: basealgo.o basearray.o basebuffer.o basecharset.o basefile.o baseheaps.o baseinet.o baselists.o basememory.o baseobjects.o baseparam.o baseparser.o baseregex.o basesocket.o basestrformat.o basestring.o basestrsearch.o basesync.o basethreadpool.o basethreads.o basetime.o basetypes.o basezlib.o
 
 
 ##########################################################
@@ -16,10 +16,8 @@ CPPFLAGS    ?= -g -O3 -ffast-math -D_REENTRANT -Wall
 ##########################################################
 BP = $(RETURN_PATH)/$(BASE_PATH)
 ##########################################################
-BASE_OBJ = $(BP)/basealgo.o $(BP)/basearray.o $(BP)/basebuffer.o $(BP)/basecharset.o $(BP)/basefile.o $(BP)/baseheaps.o $(BP)/baseinet.o $(BP)/baselists.o $(BP)/basememory.o $(BP)/baseobjects.o $(BP)/baseparam.o $(BP)/baseparser.o $(BP)/baseregex.o $(BP)/basesocket.o $(BP)/basestring.o $(BP)/basestrsearch.o $(BP)/basesync.o $(BP)/basethreadpool.o $(BP)/basethreads.o $(BP)/basetime.o $(BP)/basetypes.o $(BP)/basezlib.o
-##########################################################
-BASE_H = $(BP)/basealgo.h $(BP)/basearray.h $(BP)/basebuffer.h $(BP)/basecharset.h $(BP)/baseexceptions.h $(BP)/basefile.h $(BP)/baseheaps.h $(BP)/baseinet.h $(BP)/baselib.h $(BP)/baselists.h $(BP)/basememory.h $(BP)/baseministring.h $(BP)/baseobjects.h $(BP)/baseparam.h $(BP)/baseparser.h $(BP)/basepool.h $(BP)/baseregex.h $(BP)/basesocket.h $(BP)/basesafeptr.h $(BP)/basestring.h $(BP)/basestrsearch.h $(BP)/basesync.h $(BP)/basethreadpool.h $(BP)/basethreads.h $(BP)/basetime.h $(BP)/basetypes.h $(BP)/basezlib.h
-##########################################################
+
+include $(BP)/Makefile.dep
 
 
 basealgo.o: basealgo.cpp basetypes.h basealgo.h basearray.h baseobjects.h basesafeptr.h basememory.h
@@ -34,9 +32,9 @@ basememory.o: basememory.cpp basetypes.h baseobjects.h basememory.h basealgo.h b
 baseobjects.o: baseobjects.cpp basetypes.h baseobjects.h basesync.h baseexceptions.h basememory.h basealgo.h basetime.h basestring.h basearray.h basesafeptr.h
 baseparam.o: baseparam.cpp basetypes.h baseobjects.h baseministring.h basesafeptr.h basememory.h basealgo.h basetime.h basestring.h basearray.h baseexceptions.h basesync.h basefile.h baseparam.h
 baseparser.o: baseparser.cpp basetypes.h baseobjects.h basesafeptr.h basememory.h basealgo.h basetime.h basestring.h basearray.h baseexceptions.h baseparser.h
-baserand.o: baserand.cpp baserand.h
 baseregex.o: baseregex.cpp basetypes.h baseregex.h basestring.h baseobjects.h basememory.h basealgo.h basetime.h basearray.h basesafeptr.h
 basesocket.o: basesocket.cpp basearray.h basetypes.h baseobjects.h basesafeptr.h basememory.h basealgo.h baseinet.h basetime.h basestring.h basesync.h baseexceptions.h basethreads.h basesocket.h baseregex.h
+basestrformat.o: basestrsearch.cpp basestrsearch.h basestring.h basetypes.h baseobjects.h basememory.h basealgo.h basetime.h basearray.h basesafeptr.h
 basestring.o: basestring.cpp basetypes.h baseobjects.h basesafeptr.h basememory.h basealgo.h basetime.h basestring.h basearray.h baseexceptions.h basestrsearch.h baseministring.h
 basestrsearch.o: basestrsearch.cpp basestrsearch.h basestring.h basetypes.h baseobjects.h basememory.h basealgo.h basetime.h basearray.h basesafeptr.h
 basesync.o: basesync.cpp basetypes.h baseobjects.h basememory.h basealgo.h basetime.h basestring.h basearray.h basesafeptr.h basesync.h baseexceptions.h

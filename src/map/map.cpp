@@ -4124,7 +4124,7 @@ else if (strcasecmp(w1, "map_port") == 0) {
 			} else if (strcasecmp(w1, "path") == 0) {
 				////////////////////////////////////////
 				// add all .txt files recursive from ./npc folder to npc source tree
-				findFiles(w2, ".txt", npc_addsrcfile );
+				findFiles(w2, "*.txt", npc_addsrcfile );
 				////////////////////////////////////////
 			} else if (strcasecmp(w1, "delnpc") == 0) {
 				npc_delsrcfile(w2);

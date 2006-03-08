@@ -44,381 +44,6 @@
 # define __FDS_BITS(set) ((set)->fds_bits)
 #endif
 
-
-///////////////////////////////////////////////////////////////////////////////
-// dynamic size, unix system independend fd_set replacement
-class CFDSET
-{
-	///////////////////////////////////////////////////////////////////////////
-	// class data
-	unsigned long*	cArray;		// array pointer
-	unsigned long	cSZ;		// alloced size
-
-	///////////////////////////////////////////////////////////////////////////
-	// resize the array; only grow, no shrink
-	void checksize(size_t pos)
-	{	// pos gives the dword position in the array
-		if( pos >= cSZ )
-		{	// need to reallocate
-			size_t sz = (cSZ)?cSZ:2;
-			while(sz >= pos) sz *= 2;
-
-			unsigned long* temp= new unsigned long[sz];
-
-			// copy over the old array
-			if(cArray)
-			{
-				memcpy(temp, cArray, cSZ*sizeof(unsigned long));
-				delete[] cArray;
-			}
-			// and clear the rest
-			memset(temp+cSZ,0,(sz-cSZ)*sizeof(unsigned long));
-
-			// take it over
-			cArray = temp;
-			cSZ = sz;
-		}
-	}
-
-	void copy(const CFDSET& cfd)
-	{
-		if(this != &cfd)
-		{
-			if( cfd.cSZ > this->cSZ )
-			{	// not enough space, need to realloc
-				if(cArray) delete [] cArray;
-				cSZ = cfd.cSZ;
-				cArray = new unsigned long[cSZ];
-			}
-			else
-			{	// current array is larger, just clear the uncopied range
-				memset(cArray+cfd.cSZ,0, (cSZ-cfd.cSZ)*sizeof(unsigned long));
-			}
-			// and copy the given array if it exists
-			if(cfd.cArray)
-				memcpy(cArray, cfd.cArray, cfd.cSZ*sizeof(unsigned long));
-		}
-	}
-public:
-	///////////////////////////////////////////////////////////////////////////
-	// Construct/Destruct
-	CFDSET() : cArray(new unsigned long[FD_SETSIZE/NBBY/sizeof(unsigned long)]),cSZ(FD_SETSIZE/NBBY/sizeof(unsigned long))	{}
-	~CFDSET()	{ if(cArray) delete [] cArray; }
-
-	///////////////////////////////////////////////////////////////////////////
-	// Copy/Assign
-	CFDSET(const CFDSET& cfd) : cArray(NULL),cSZ(0)
-	{
-		copy(cfd);
-	}
-	const CFDSET& operator =(const CFDSET& cfd)
-	{
-		copy(cfd);
-		return *this;
-	}
-	///////////////////////////////////////////////////////////////////////////
-	// clear everything
-	void clear()
-	{
-		memset (cArray,0, cSZ*sizeof(unsigned long));
-	}
-	///////////////////////////////////////////////////////////////////////////
-	// set a bit
-	void set_bit(int fd)
-	{
-		if(fd>0)
-		{
-			size_t pos = fd/(NBBY*sizeof(cArray[0]));
-			size_t bit = fd%(NBBY*sizeof(cArray[0]));
-
-			checksize(pos);
-			cArray[pos] |= (1<<bit);
-		}
-	}
-	///////////////////////////////////////////////////////////////////////////
-	// Clear a bit
-	void clear_bit(int fd)
-	{
-		if(fd>0)
-		{
-			size_t pos = fd/(NBBY*sizeof(cArray[0]));
-			size_t bit = fd%(NBBY*sizeof(cArray[0]));
-
-			checksize(pos);
-			cArray[pos] &= ~(1<<bit);
-		}
-	}
-	///////////////////////////////////////////////////////////////////////////
-	// Clear a bit
-	bool isSet(int fd) const
-	{
-		if(fd>0)
-		{
-			size_t pos = fd/(NBBY*sizeof(cArray[0]));
-			size_t bit = fd%(NBBY*sizeof(cArray[0]));
-			return (pos<cSZ) && (0!=(cArray[pos] & (1<<bit)));
-		}
-	}
-	///////////////////////////////////////////////////////////////////////////
-	// Call a function with each set bit
-	// version 1 (using log2)
-	size_t foreach1( void(*func)(size_t), size_t max) const
-	{
-		size_t c = 0;
-		if(func)
-		{
-			size_t fd;
-			SOCKET sock;
-			unsigned long	val;
-			unsigned long	bits;
-			unsigned long	nfd=0;
-			max = howmany(max, NFDBITS);
-			if(max>cSZ) max=cSZ;
-
-			while( nfd < max )
-			{	// while something is set in the ulong at position nfd
-				bits = cArray[nfd];
-				while( bits )
-				{	// method 1
-					// calc the highest bit with log2 and clear it from the field
-					// this method is especially fast 
-					// when only a few bits are set in the field
-					// which usually happens on read events
-					val = log2( bits );
-					bits ^= (1<<val);	
-					// build the socket number
-					sock = nfd*NFDBITS + val;
-
-					///////////////////////////////////////////////////
-					// call the user function
-					func(fd);
-					c++;
-				}
-				// go to next field position
-				nfd++;
-			}
-		}
-		return c;
-	}
-	///////////////////////////////////////////////////////////////////////////
-	// Call a function with each set bit
-	// version 2 (using shifts)
-	size_t foreach2( void(*func)(size_t), size_t max ) const
-	{
-		size_t c=0;
-		if(func)
-		{
-			size_t fd;
-			SOCKET sock;
-			unsigned long	val;
-			unsigned long	bits;
-			unsigned long	nfd=0;
-			max = howmany(fd_max, NFDBITS);
-			if(max>cSZ) max=cSZ;
-
-			while( nfd <  max )
-			{	// while something is set in the ulong at position nfd
-				bits = cArray[nfd];
-				val = 0;
-				while( bits )
-				{	// method 2
-					// calc the next set bit with shift/add
-					// therefore copy the value from fds_bits 
-					// array to an unsigned type (fd_bits is an field of long)
-					// otherwise it would not shift the MSB
-					// the shift add method is faster if many bits are set in the field
-					// which is usually valid for write operations on large fields
-					while( !(bits & 1) )
-					{
-						bits >>= 1;
-						val ++;
-					}
-					//calculate the socket number
-					sock = nfd*NFDBITS + val;
-					// shift one more for the next loop entrance
-					bits >>= 1;
-					val ++;
-
-					///////////////////////////////////////////////////
-					// call the user function
-					func(fd);
-					c++;
-				}
-				// go to next field position
-				nfd++;
-			}
-		}
-		return c; // number of processed sockets
-	}
-	///////////////////////////////////////////////////////////////////////////
-	// pretending to be an unix fd_set structure
-	operator fd_set*() const
-	{
-		return (fd_set*)cArray; 
-	}
-	///////////////////////////////////////////////////////////////////////////
-	// size
-	int size() const
-	{ 
-		return cSZ * NFDBITS; 
-	}
-};
-
-#else 
-
-///////////////////////////////////////////////////////////////////////////////
-// dynamic size, windows system independend fd_set replacement
-class CFDSET
-{
-	///////////////////////////////////////////////////////////////////////////
-	// class data
-	// windows
-	struct winfdset
-	{
-		u_int fd_count;				// how many are SET?
-		SOCKET  fd_array[1];		// an array of SOCKETs 
-									// only one in the struct the others will be alloced outside
-	};
-	unsigned long	cSZ;			// alloced elements
-	struct winfdset *cSet;			// the set struct
-
-	///////////////////////////////////////////////////////////////////////////
-	// resize the array; only grow, no shrink
-	void checksize()
-	{	// no pos parameter here
-		if( cSet->fd_count >= cSZ )
-		{	// need to reallocate
-			size_t sz = (cSZ)?cSZ:2;
-			while(sz >= cSet->fd_count) sz *= 2;
-
-			struct winfdset *temp= (struct winfdset *)new char[sizeof(struct winfdset)+sz*sizeof(SOCKET)];
-
-			// copy over the old array
-			if(cSet)
-			{
-				memcpy(temp, cSet, sizeof(struct winfdset)+cSZ*sizeof(SOCKET));
-				delete[] ((char*)cSet);
-			}
-			// clearing the rest is not necessary
-
-			// take it over
-			cSet = temp;
-			cSZ = sz;
-		}
-	}
-	void copy(const CFDSET& cfd)
-	{
-		if(this != &cfd)
-		{
-			if( cfd.cSet->fd_count > this->cSZ )
-			{	// not enough space, need to realloc
-				if(cSet) delete [] ((char*)cSet);
-				
-				cSZ = cfd.cSZ;
-				cSet = (struct winfdset *) new char[sizeof(struct winfdset)+cSZ*sizeof(SOCKET)];
-			}
-			//else
-			// current array is larger, nothing to do in this case
-
-			// and copy the given array if it exists
-			if(cfd.cSet)
-				memcpy(cSet, cfd.cSet, sizeof(struct winfdset)+cSZ*sizeof(SOCKET));
-		}
-	}
-public:
-	///////////////////////////////////////////////////////////////////////////
-	// Construct/Destruct
-	CFDSET() : cSet((struct winfdset *) new char[sizeof(struct winfdset)+128*sizeof(SOCKET)]),cSZ(128)	{ cSet->fd_count=0; }
-	~CFDSET()	{ if(cSet) delete [] ((char*)cSet); }
-
-	///////////////////////////////////////////////////////////////////////////
-	// Copy/Assign
-	CFDSET(const CFDSET& cfd) : cSet(NULL),cSZ(0)
-	{
-		copy(cfd);
-	}
-	const CFDSET& operator =(const CFDSET& cfd)
-	{
-		copy(cfd);
-		return *this;
-	}
-	///////////////////////////////////////////////////////////////////////////
-	// clear everything
-	void clear()
-	{
-		cSet->fd_count = 0;
-	}
-	///////////////////////////////////////////////////////////////////////////
-	// set a bit
-	void set_bit(int fd)
-	{
-		if(fd>0)
-		{
-			checksize();
-			cSet->fd_array[cSet->fd_count++] = fd;
-		}		
-	}
-	///////////////////////////////////////////////////////////////////////////
-	// Clear a bit
-	void clear_bit(int fd)
-	{
-		if(fd>0)
-		{	// only have a unsorted list for the moment, maybe sort it later
-			u_int i;
-			for(i=0; i<cSet->fd_count; i++)
-				if( (SOCKET)fd == cSet->fd_array[i] )
-					break;
-			if(i<cSet->fd_count)
-			{
-				memmove(cSet->fd_array+i, cSet->fd_array+i+1, (cSet->fd_count-i-1)*sizeof(cSet->fd_array[0]));
-				cSet->fd_count--;
-			}
-		}
-	}
-	///////////////////////////////////////////////////////////////////////////
-	// Clear a bit
-	bool isSet(int fd) const
-	{
-		if(fd>0)
-		{	// only have a unsorted list for the moment, maybe sort it later
-			size_t i;
-			for(i=0; i<cSet->fd_count; i++)
-				if( (SOCKET)fd == cSet->fd_array[i] )
-					return true;
-			return false;
-		}
-	}
-	///////////////////////////////////////////////////////////////////////////
-	// Call a function with each set bit
-	size_t foreach1( void(*func)(size_t), size_t max) const
-	{
-		if(func)
-		{	
-			size_t i;
-			for(i=0; i<cSet->fd_count; i++)
-				func( cSet->fd_array[i] );
-		}
-		return cSet->fd_count;
-	}
-	///////////////////////////////////////////////////////////////////////////
-	// Call a function with each set bit
-	size_t foreach2( void(*func)(size_t), size_t max ) const
-	{	// no different approaches on windows
-		return foreach1( func, max );
-	}
-	///////////////////////////////////////////////////////////////////////////
-	// pretending to be an fd_set structure
-	operator fd_set*() const	
-	{
-		return (fd_set*)cSet; 
-	}
-	///////////////////////////////////////////////////////////////////////////
-	// size
-	int size() const
-	{ 
-		return cSZ;
-	}
-};
 #endif
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -2023,8 +1648,9 @@ int do_sendrecv(int next)
 
 	fd_max = cnt+1;
 
-	timeout.tv_sec  = next/1000;
-	timeout.tv_usec = next%1000*1000;
+	div_t d = div(next,1000);
+	timeout.tv_sec  = d.quot;
+	timeout.tv_usec = d.rem*1000;
 
 	// wait until timeout or some events on the line
 	ret = select(fd_max,&rfd,&wfd,NULL,&timeout);
@@ -2149,20 +1775,34 @@ void socket_final(void)
 
 
 
-
+//#define WHATISMYIP // for using whatismyip.com
+// default using checkip.dyndns.org
 bool detect_WAN(ipaddress& wanip)
 {	// detect WAN
 	minisocket ms;
-	ms.connect("http://checkip.dyndns.org");
-	const char query[] = "GET / HTTP/1.1\r\nHost: checkip.dyndns.org\r\n\r\n";
+
+#ifdef WHATISMYIP
+	static const char* query = "GET / HTTP/1.1\r\nHost: whatismyip.com\r\n\r\n";
+	if( !ms.connect("http://whatismyip.com") )
+#else
+	static const char* query = "GET / HTTP/1.1\r\nHost: checkip.dyndns.org\r\n\r\n";
+	if( !ms.connect("http://checkip.dyndns.org") )
+#endif
+		return false;
+	
 	ms.write((const unsigned char*)query, strlen(query));
 	if( ms.waitfor(1000) )
 	{
 		unsigned char buffer[1024];
-		ms.read(buffer, sizeof(buffer));
-		buffer[1023]=0;
+		//size_t len=
+			ms.read(buffer, sizeof(buffer));
+		buffer[sizeof(buffer)-1]=0;
 
-		CRegExp regex("Current IP Address:\\s+([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+)");
+#ifdef WHATISMYIP
+		static const CRegExp regex("WhatIsMyIP.com -\\s+([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+)");
+#else
+		static const CRegExp regex("Current IP Address:\\s+([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+)");
+#endif
 		regex.match((const char*)buffer);
 		wanip = (const char*)regex[1];
 		if(wanip != ipaddress::GetSystemIP() )
@@ -2173,3 +1813,4 @@ bool detect_WAN(ipaddress& wanip)
 	}
 	return false;
 }
+

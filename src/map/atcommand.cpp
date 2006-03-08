@@ -8121,17 +8121,24 @@ bool atcommand_mute(int fd, struct map_session_data &sd, const char* command, co
 		return false;
 	}
 
-	if((pl_sd = map_nick2sd(player_name)) != NULL) {
+
+	if( (pl_sd = map_nick2sd(player_name)) == NULL)
+	{
+		clif_displaymessage(fd, msg_table[3]); // Character not found.
+		return false;
+	}
+	else if (pc_isGM(*pl_sd) > pc_isGM(sd))
+	{
+		clif_displaymessage(fd, msg_table[81]); // Your GM level don't authorise you to do this action on this player.
+		return false;
+	}
+	else
+	{
 		clif_GM_silence(sd, *pl_sd, 0);
 		pl_sd->status.manner -= manner;
 		if(pl_sd->status.manner < 0)
 			status_change_start(&pl_sd->bl,SC_NOCHAT,0,0,0,0,0,0);
 	}
-	else {
-		clif_displaymessage(fd, msg_table[3]); // Character not found.
-		return false;
-	}
-
 	return true;
 }
 

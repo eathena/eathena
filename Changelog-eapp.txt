@@ -1,4 +1,13 @@
 Date	Added
+03/07
+	* more cleaning in common; removing strlib, moving code from socket
+	* restructuring makefile dependencies
+	* adding switch for using whatsmyip.com for wan-lookup (although not recommended)
+	* prevent setting wanip when using multiple network interfaces
+	* findFiles no longer works on substrings but on matches 
+	* threadpool is also usable in singlethread mode
+	* more vector/map/string functionality
+	* added some experimental printf-like and direct formatings
 02/17
 	* adding some more base environment stuff
 	* wrapped test code into debug defines, but existing test cases

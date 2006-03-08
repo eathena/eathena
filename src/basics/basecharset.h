@@ -48,24 +48,24 @@ protected:
 public:
 	charset()									{ clear(); }
 	charset(const charset& s)					{ assign(s); }
-	charset(const char* setinit)				{ assign(setinit); }
+	explicit charset(const char* setinit)		{ assign(setinit); }
 
 	void assign(const charset& s)				{ memcpy(bytedata, s.bytedata, _csetbytes); }
 	void assign(const char* setinit);
 	void clear()								{ memset(bytedata, 0, _csetbytes); }
 	void fill()									{ memset(bytedata, -1, _csetbytes); }
-	void include(char b)						{ bytedata[uchar(b) / 8] |= uchar(1 << (uchar(b) % 8)); }
+	void include(char b)						{ bytedata[uchar(b)>>3] |= uchar(1 << (uchar(b)&0x07 )); }
 	void include(const char *c)					{ if(c) while(*c) this->include(*c++); }
 	void include(char min, char max);
-	void exclude(char b)						{ bytedata[uchar(b) / 8] &= uchar(~(1 << (uchar(b) % 8))); }
+	void exclude(char b)						{ bytedata[uchar(b)>>3] &= uchar(~(1 << (uchar(b)&0x07))); }
 	void exclude(char min, char max);
 	void exclude(const char *c)					{ if(c) while(*c) this->exclude(*c++); }
 	void unite(const charset& s);
 	void subtract(const charset& s);
 	void intersect(const charset& s);
 	void invert();
-	bool contains(char b) const					{ return (bytedata[uchar(b) / 8] & (1 << (uchar(b) % 8))) != 0; }
-	bool contains(const char* c) const			{ if(c) while(*c) if(this->contains(*c++)) return true; return false; }
+	bool contains(char b) const					{ return (bytedata[uchar(b)>>3] & (1 << (uchar(b)&0x07))) != 0; }
+	bool contains(const char* c) const			{ if(c) while(*c) if( this->contains(*c++)) return true; return false; }
 	bool containsall(const char* c) const		{ if(c) while(*c) if(!this->contains(*c++)) return false; return true; }
 	bool eq(const charset& s) const				{ return memcmp(bytedata, s.bytedata, _csetbytes) == 0; }
 	bool le(const charset& s) const;
@@ -87,12 +87,16 @@ public:
 	charset& operator*= (const charset& s)		{ intersect(s); return *this; }
 	charset operator* (const charset& s) const	{ charset t = *this; return t*=s; }
 	charset operator! () const					{ charset t = *this; t.invert(); return t; }
+
 	bool operator== (const charset& s) const	{ return eq(s); }
 	bool operator!= (const charset& s) const	{ return !eq(s); }
 	bool operator<= (const charset& s) const	{ return le(s); }
 	bool operator<  (const charset& s) const	{ return !s.le(*this); }
 	bool operator>= (const charset& s) const	{ return s.le(*this); }
 	bool operator>  (const charset& s) const	{ return !le(s); }
+
+	bool operator== (const char* s) const		{ return  containsall(s); }
+	bool operator!= (const char* s) const		{ return !containsall(s); }
 
 	friend charset operator+ (char b, const charset& s)			{ return s + b; }
 	friend charset operator+ (const char* c, const charset& s)	{ return s + c; }

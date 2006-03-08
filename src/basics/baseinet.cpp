@@ -17,7 +17,7 @@
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// reentrant gehostby*() mess
+// reentrant gethostby*() mess
 #if defined(SINGLETHREAD)
 #  define USE_GETHOSTBY
 #else
@@ -82,15 +82,15 @@ const char* sockerrmsg(int code)
 static mutex hplock;
 #endif
 
-ipaddress phostbyname(const char* name)
+ipaddress hostbyname(const char* name)
 {
     ipaddress ip;
     hostent* hp;
 
-    if ((ip = ::inet_addr(name)) != ipaddress(INADDR_NONE))
+    if ((ip = ntohl(::inet_addr(name))) != ipaddress(INADDR_NONE))
     {
         if (ip[3] == 0) // network address?
-            return INADDR_NONE;
+            return ipaddress(INADDR_NONE);
     }
     else
     {
@@ -116,12 +116,11 @@ ipaddress phostbyname(const char* name)
 		{
 			if (hp->h_addrtype == AF_INET)
 			{
-				//memcpy(ip.bdata, hp->h_addr, sizeof(ip.bdata));
 				uchar*a = (uchar*)hp->h_addr;
-				ip =  (a[0]<<0x18)
-					| (a[1]<<0x10)
-					| (a[2]<<0x08)
-					| (a[3]);
+				ip = (  (((ulong)a[0])<<0x18)
+					  | (((ulong)a[1])<<0x10)
+					  | (((ulong)a[2])<<0x08)
+					  | (((ulong)a[3])      ) );
 			}
 #ifdef USE_GETIPNODEBY
             freehostent(hp);
@@ -136,29 +135,29 @@ ipaddress phostbyname(const char* name)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-string<> phostbyaddr(ipaddress ip)
+string<> hostbyaddr(ipaddress ip)
 {
     hostent* hp;
     string<> r;
 
 #if defined(USE_GETHOSTBY)
-    if ((hp = ::gethostbyaddr(cchar(ip.bdata), sizeof(ip.bdata), AF_INET)) != NULL)
+    if ((hp = ::gethostbyaddr(pcchar(ip.bdata), sizeof(ip.bdata), AF_INET)) != NULL)
 #elif defined(USE_LOCKED_GETHOSTBY)
     hplock.enter();
-    if ((hp = ::gethostbyaddr(cchar(ip.bdata), sizeof(ip.bdata), AF_INET)) != NULL)
+    if ((hp = ::gethostbyaddr(pcchar(ip.bdata), sizeof(ip.bdata), AF_INET)) != NULL)
 #elif defined(USE_GETIPNODEBY)
     int herrno;
-    if ((hp = ::getipnodebyaddr(cchar(ip.bdata), sizeof(ip.bdata), AF_INET, &herrno)) != NULL)
+    if ((hp = ::getipnodebyaddr(pcchar(ip.bdata), sizeof(ip.bdata), AF_INET, &herrno)) != NULL)
 #elif defined(USE_GETHOSTBY_R6)
     int herrno;
     hostent result;
     char buf[GETHOSTBY_BUF_SIZE];
-    if ((::gethostbyaddr_r(cchar(ip.bdata), sizeof(ip.bdata), AF_INET, &result, buf, sizeof(buf), &hp, &herrno) == 0) && hp)
+    if ((::gethostbyaddr_r(pcchar(ip.bdata), sizeof(ip.bdata), AF_INET, &result, buf, sizeof(buf), &hp, &herrno) == 0) && hp)
 #elif defined(USE_GETHOSTBY_R5)
     int herrno;
     hostent result;
     char buf[GETHOSTBY_BUF_SIZE];
-    if ((hp = ::gethostbyaddr_r(cchar(ip.bdata), sizeof(ip.bdata), AF_INET, &result, buf, sizeof(buf), &herrno)) != NULL)
+    if ((hp = ::gethostbyaddr_r(pcchar(ip.bdata), sizeof(ip.bdata), AF_INET, &result, buf, sizeof(buf), &herrno)) != NULL)
 #endif
     {
         r = hp->h_name;
@@ -174,7 +173,7 @@ string<> phostbyaddr(ipaddress ip)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-string<> phostcname(const char* name)
+string<> hostname(const char* name)
 {
     hostent* hp;
     string<> r;
@@ -217,9 +216,9 @@ string<> phostcname(const char* name)
 ///////////////////////////////////////////////////////////////////////////////
 // constructor for static _ipset_helper
 // automatically initializes winsockets on the first access to an ipaddress
-ipaddress::_ipset_helper::_ipset_helper()
- : cCnt(0)
+void ipaddress::_ipset_helper::init(void)
 {
+	cCnt = 0;
 #ifdef WIN32
 	char fullhost[255];
 	// Start up windows networking
@@ -310,7 +309,7 @@ ipaddress::_ipset_helper::~_ipset_helper()
 bool ipaddress::isBindable(ipaddress ip)
 {	// check if an given IP is part of the system IP that can be bound to
 	if( gethelper().GetSystemIPCount() > 0 )
-	{
+	{	// looping here is ok since the list is not large
 		for(uint i=0; i<GetSystemIPCount(); i++)
 			if( ip==GetSystemIP(i) )
 				return true;
@@ -385,7 +384,17 @@ const char *ipaddress::tostring(char *buffer) const
 		(cAddr>>0x18)&0xFF,(cAddr>>0x10)&0xFF,(cAddr>>0x8)&0xFF,(cAddr)&0xFF);
 	return buf;
 }
-
+template<class T> string<T>& operator <<(string<T>& str, const ipaddress& ip)
+{
+	str << ((ip.cAddr>>0x18)&0xFF) << '.' <<
+		   ((ip.cAddr>>0x10)&0xFF) << '.' <<
+		   ((ip.cAddr>>0x08)&0xFF) << '.' <<
+		   ((ip.cAddr      )&0xFF);
+	return str;
+}
+// explicit instantiation
+template string<char   >& operator<< (string<char   >& str, const ipaddress& ip);
+template string<wchar_t>& operator<< (string<wchar_t>& str, const ipaddress& ip);
 
 ///////////////////////////////////////////////////////////////////////////////
 // converts a string to an ip (host byte order)
@@ -393,15 +402,10 @@ ipaddress ipaddress::str2ip(const char *str)
 {	// format: <ip>
 	if(str)
 	{
-		struct hostent*h;
 		while( stringcheck::isspace(*str) ) str++;
 		// look up the name
 		// this can take long time (i.e. until timeout looking up non-existing addresses)
-		h = gethostbyname(str);
-		if (h != NULL)
-			return ipaddress( MakeDWord((unsigned char)h->h_addr[3], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[0]) );
-		else
-			return ipaddress( ntohl(inet_addr(str)) );
+		return ::hostbyname(str);
 	}
 	return GetSystemIP();
 }
@@ -497,6 +501,18 @@ const char *netaddress::tostring(char *buffer) const
 		cPort);
 	return buf;
 }
+template<class T> string<T>& operator <<(string<T>& str, const netaddress& ip)
+{
+	str << ((ip.cAddr>>0x18)&0xFF) << '.' <<
+		   ((ip.cAddr>>0x10)&0xFF) << '.' <<
+		   ((ip.cAddr>>0x08)&0xFF) << '.' <<
+		   ((ip.cAddr      )&0xFF) << '.' <<
+		   (ip.cPort);
+	return str;
+}
+// explicit instantiation
+template string<char   >& operator<< (string<char   >& str, const netaddress& ip);
+template string<wchar_t>& operator<< (string<wchar_t>& str, const netaddress& ip);
 
 ///////////////////////////////////////////////////////////////////////////////
 // subnetworkaddr2string
@@ -542,6 +558,33 @@ const char *subnetaddress::tostring(char *buffer) const
 			this->cPort);
 	return buf;
 }
+template<class T> string<T>& operator <<(string<T>& str, const subnetaddress& ip)
+{
+	if(ip.cMask.cAddr==INADDR_ANY)
+	{
+		str << ((ip.cAddr>>0x18)&0xFF) << '.' <<
+			   ((ip.cAddr>>0x10)&0xFF) << '.' <<
+			   ((ip.cAddr>>0x08)&0xFF) << '.' <<
+			   ((ip.cAddr      )&0xFF) << ':' <<
+			   (ip.cPort);
+	}
+	else
+	{
+		str << ((ip.cAddr>>0x18)&0xFF) << '.' <<
+			   ((ip.cAddr>>0x10)&0xFF) << '.' <<
+			   ((ip.cAddr>>0x08)&0xFF) << '.' <<
+			   ((ip.cAddr      )&0xFF) << '/' <<
+			   ((ip.cMask>>0x18)&0xFF) << '.' <<
+			   ((ip.cMask>>0x10)&0xFF) << '.' <<
+			   ((ip.cMask>>0x08)&0xFF) << '.' <<
+			   ((ip.cMask      )&0xFF) << ':' <<
+			   (ip.cPort);
+	}
+	return str;
+}
+// explicit instantiation
+template string<char   >& operator<< (string<char   >& str, const subnetaddress& ip);
+template string<wchar_t>& operator<< (string<wchar_t>& str, const subnetaddress& ip);
 
 ///////////////////////////////////////////////////////////////////////////////
 // ipset functions
@@ -688,6 +731,47 @@ const char *ipset::tostring(char *buffer) const
 	}
 	return buf;
 }
+template<class T> string<T>& operator <<(string<T>& str, const ipset& ip)
+{
+	if(ip.cMask.cAddr==INADDR_ANY)
+	{
+		str << ((ip.cAddr>>0x18)&0xFF) << '.' <<
+			   ((ip.cAddr>>0x10)&0xFF) << '.' <<
+			   ((ip.cAddr>>0x08)&0xFF) << '.' <<
+			   ((ip.cAddr      )&0xFF) << ':' <<
+			   (ip.cPort);
+	}
+	else
+	{	// have a full set
+		str << ((ip.cAddr>>0x18)&0xFF) << '.' <<
+			   ((ip.cAddr>>0x10)&0xFF) << '.' <<
+			   ((ip.cAddr>>0x08)&0xFF) << '.' <<
+			   ((ip.cAddr      )&0xFF) << '/' <<
+			   ((ip.cMask>>0x18)&0xFF) << '.' <<
+			   ((ip.cMask>>0x10)&0xFF) << '.' <<
+			   ((ip.cMask>>0x08)&0xFF) << '.' <<
+			   ((ip.cMask      )&0xFF) << ':' <<
+			   (ip.cPort)                   << ',' << ' ' <<
+			   ((ip.wanaddr.cAddr>>0x18)&0xFF) << '.' <<
+			   ((ip.wanaddr.cAddr>>0x10)&0xFF) << '.' <<
+			   ((ip.wanaddr.cAddr>>0x08)&0xFF) << '.' <<
+			   ((ip.wanaddr.cAddr      )&0xFF) << ':' <<
+			   (ip.wanaddr.cPort);
+	}
+	return str;
+}
+// explicit instantiation
+template string<char   >& operator<< (string<char   >& str, const ipset& ip);
+template string<wchar_t>& operator<< (string<wchar_t>& str, const ipset& ip);
+/*
+template<class T> void operator <<(string<T>& str, const ipset& ip)
+{
+
+}
+// explicit instantiation
+template void operator<< (string<char   >& str, const ipset& ip);
+template void operator<< (string<wchar_t>& str, const ipset& ip);
+*/
 
 //////////////////////////////////////////////////////////////////////////
 // instantiate some fixed ip's
@@ -699,36 +783,11 @@ ipaddress localip = ipaddress::GetSystemIP(0);
 
 
 
-
 void test_inet()
 {
 #ifdef DEBUG
 
-//	test_regex();
-//	CRegExp re("aaa(?i-m-ss:AAA)b");
-	CRegExp re("(a)*(.*)(a*)(abc)");
-
-	re.Dump();
-	re.Print();
-
-	re.match("aaabd123aaabc");
-
-
-	printf("----\n%s\n", (const char*)re[0]);
-	uint i,k;
-	for(i=1; i<=re.sub_count(); i++)	// finds count from 1
-	{
-		printf("%2i: ", i);
-		for(k=0; k<re.sub_count(i); k++)	// inside finds count from 0
-			printf("%s, ", (const char*)re(i,k));
-
-		printf("\n");
-	}
-
-	printf("----\n");
-
-
-
 
 #endif//DEBUG
 }
+

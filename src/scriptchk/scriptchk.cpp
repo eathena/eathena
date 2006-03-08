@@ -1074,7 +1074,7 @@ int main(int argc, char *argv[])
 
 	if( is_folder( inputfile ) )
 	{
-		ok=findFiles(inputfile, ".txt", pp);
+		ok=findFiles(inputfile, "*.txt", pp);
 	}
 	else
 	{	// single file

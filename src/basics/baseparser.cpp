@@ -730,7 +730,7 @@ short CParser::parse(short reduce_sym)
 ///////////////////////////////////////////////////////////////////////////////
 const unsigned char* getws(const unsigned char* b, char* s)
 {
-	while(*s++ = *b++) b++;
+	while( (*s++ = *b++) ) b++;
 	b++; return b;
 }
 const unsigned char* getsh(const unsigned char* b, short* s)

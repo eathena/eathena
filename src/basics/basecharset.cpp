@@ -72,12 +72,12 @@ static const uchar rbitmask[8] = {0x01, 0x03, 0x07, 0x0f, 0x1f, 0x3f, 0x7f, 0xff
 
 void charset::include(char min, char max)
 {
-	if (uchar(min) > uchar(max))
-		return;
-	int lidx = uchar(min) / 8;
-	int ridx = uchar(max) / 8;
-	uchar lbits = lbitmask[uchar(min) % 8];
-	uchar rbits = rbitmask[uchar(max) % 8];
+	if( uchar(min) > uchar(max) )
+		swap(min, max);
+	int lidx = uchar(min) >>3;	// /8
+	int ridx = uchar(max) >>3;
+	uchar lbits = lbitmask[ min&0x07 ];	// %8
+	uchar rbits = rbitmask[ max&0x07 ];
 
 	if (lidx == ridx) 
 	{
@@ -93,12 +93,12 @@ void charset::include(char min, char max)
 }
 void charset::exclude(char min, char max)
 {
-	if (uchar(min) > uchar(max))
-		return;
-	int lidx = uchar(min) / 8;
-	int ridx = uchar(max) / 8;
-	uchar lbits = lbitmask[uchar(min) % 8];
-	uchar rbits = rbitmask[uchar(max) % 8];
+	if( uchar(min) > uchar(max) )
+		swap(min, max);
+	int lidx = uchar(min) >>3;	// /8
+	int ridx = uchar(max) >>3;	// /8
+	uchar lbits = lbitmask[ min%0x07 ];
+	uchar rbits = rbitmask[ max%0x07 ];
 
 	if (lidx == ridx) 
 	{
@@ -205,8 +205,6 @@ template<class T> static size_t showmember(uchar c, T *buffer)
         return 3;
     }
 }
-
-
 
 template<class T> string<T>& tostring(string<T>& str, const charset& s)
 {

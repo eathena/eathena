@@ -102,8 +102,6 @@ void aFree_ (void *p, const char *file, int line, const char *func)
 	#else
 		mwFree(p, file, line);
 	#endif
-
-	p = NULL;
 }
 
 #ifdef GCOLLECT

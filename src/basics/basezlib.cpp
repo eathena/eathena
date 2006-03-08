@@ -2990,7 +2990,7 @@ int unzRepair(const char* file,
 					else if (dataSize > 0)
 					{
 						unsigned char* data = (unsigned char* )malloc(dataSize);
-						if (data = NULL)
+						if(data == NULL)
 						{
 							err = Z_MEM_ERROR;
 							break;

@@ -154,10 +154,10 @@ private:
 		// copy/assignment
 		CRegProgram(const CRegProgram& a) :
 			cProgramm(a.cProgramm),
-			cStartChar(a.cStartChar),
-			cAnchor(a.cAnchor),
 			cMust(a.cMust),
 			cMustLen(a.cMustLen),
+			cStartChar(a.cStartChar),
+			cAnchor(a.cAnchor),
 			cConfig(a.cConfig)
 
 	#ifdef DEBUG
@@ -356,14 +356,14 @@ public:
 	// substring access
 	// number of finds
 	unsigned int sub_count() const;
-	unsigned int sub_count(unsigned int i) const;
+	unsigned int sub_count(size_t i) const;
 	// last find at position i (PCRE conform)
-	const string<> operator[]( unsigned int i ) const;
+	const string<> operator[]( size_t i ) const;
 	// access to all finds (default to the last == PCRE conform)
-	const string<> operator()(unsigned int i=0, unsigned int k=~0) const;
+	const string<> operator()(size_t i=0, size_t k=~0) const;
 	// start and length of the substring according to the matchstring
-	unsigned int sub_start(unsigned int i=0, unsigned int k=~0) const;
-	unsigned int sub_length(unsigned int i=0, unsigned int k=~0) const;
+	unsigned int sub_start(size_t i=0, size_t k=~0) const;
+	unsigned int sub_length(size_t i=0, size_t k=~0) const;
 
 	///////////////////////////////////////////////////////////////////////////
 	// replacements
@@ -374,7 +374,7 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// correctly compiled 
-	bool isOK() const;
+	bool is_valid() const;
 
 	///////////////////////////////////////////////////////////////////////////
 	// run options
@@ -384,7 +384,6 @@ public:
 	bool isMultiLine() const;
 	void setPCREconform(bool v);
 	bool isPCREconform() const;
-
 
 	///////////////////////////////////////////////////////////////////////////
 	// last run error message, NULL when none

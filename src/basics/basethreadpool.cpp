@@ -4,7 +4,7 @@
 
 
 #if defined(DEBUG)
-#ifndef SINGLETHREAD
+//#ifndef SINGLETHREAD
 class testtask : public task
 {
 public:
@@ -28,7 +28,7 @@ public:
 	}
 	virtual ulong reenter()	{ return (rand()%2)?0:10000; }
 };
-#endif//SINGLETHREAD
+//#endif//SINGLETHREAD
 #endif//DEBUG
 
 
@@ -36,7 +36,7 @@ public:
 void test_threadpool(void)
 {
 #if defined(DEBUG)
-#ifndef SINGLETHREAD
+//#ifndef SINGLETHREAD
 	//!! TODO copy testcases from caldon
 	threadpool	tp(2,false);
 
@@ -54,19 +54,33 @@ void test_threadpool(void)
 	fflush(stdout);
 	tp.start();
 
-	sleep(1000);
+	//sleep(1000);
+	ulong tick=GetTickCount()+1000;
+	while( GetTickCount() < tick )
+		tp.process( tick-GetTickCount() );
+
 	printf("switch to 10 threads %ld\n", GetTickCount() );
 	fflush(stdout);
 	tp.MaxThreads() = 10;
-	sleep(20000);
+
+	//sleep(20000);
+	tick=GetTickCount()+20000;
+	while( GetTickCount() < tick )
+		tp.process( tick-GetTickCount() );
+
+	
 
 	printf("switch to 1 thread %ld\n", GetTickCount() );
 	fflush(stdout);
 	tp.MaxThreads() = 2;
 
+	//sleep(20000);
+	tick=GetTickCount()+20000;
+	while( GetTickCount() < tick )
+		tp.process( tick-GetTickCount() );
 
-	sleep(20000);
-#endif//!SINGLETHREAD
+
+//#endif//!SINGLETHREAD
 #endif//DEBUG
 }
 

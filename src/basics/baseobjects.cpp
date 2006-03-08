@@ -8,7 +8,7 @@ int global::sGlobalCount=0;
 global::_globalcount global::gc;
 global::_globalcount::_globalcount()
 {
-	printf("init countint of global objects\n");
+	printf("init counting of global objects\n");
 }
 global::_globalcount::~_globalcount()
 {

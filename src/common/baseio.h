@@ -8,7 +8,6 @@
 #include "socket.h"		// buffer iterator
 #include "timer.h"		// timed config reload
 #include "db.h"
-#include "strlib.h"
 #include "mmo.h"
 
 
@@ -19,47 +18,45 @@
 // for storing accounts stuff in login
 ///////////////////////////////////////////////////////////////////////////////
 
-/*
-	currently there is a bunch of more or less usefull data stored
-	which also differs between current versions
-	_useful_ data is
-	///////////////////////////////////////////////////////////////////////////
-*	Authentification Data used to authentify that clients are going from
-	login through char to map.
 
-	uint32 login_id1;	// just a random id given by login
-	uint32 login_id2;	// just a random id given by login
-	uint32 client_ip;	// the current ip of the client
+///////////////////////////////////////////////////////////////////////////////
+// Authentification Data used to authentify that clients are going from
+// login through char to map.
+// 
+// uint32 login_id1;	// just a random id given by login
+// uint32 login_id2;	// just a random id given by login
+// uint32 client_ip;	// the current ip of the client
+// 
+// a client has to show these three values to get autentified
+// (gets it in login process)
+// 
+///////////////////////////////////////////////////////////////////////////////
+// Account Data which holds the necessary data for an account
+// 
+// uint32 account_id;			// id to identify an account
+// char userid[24];				// user name
+// char passwd[34];				// user password
+// unsigned char sex;			// gender
+// unsigned char gm_level;		// gm_level
+// unsigned char online;		// true when online (actually only usefull when adding datamining onto the storing data and not onto the server)
+// char email[40];				// email address for confiming char deletion
+// uint32 login_count;			// number of logins
+// char last_login[24];			// timestamp of last login
+// char last_ip[16];			// last ip as string
+// time_t ban_until;			// set to time(NULL)+delta for temporary ban
+// time_t valid_until;			// set to time(NULL)+delta for temporary valid account or time(NULL) for complete disable
+// 
+// the values last_ip, state, error_message, memo are quite useless,
+// state might be usefull for debugging login of accounts
+// but it is easier to read the output then to dig in the db for that
+// 
+///////////////////////////////////////////////////////////////////////////////
+// Account Reg for account wide variables:
+// 
+// unsigned short account_reg2_num;
+// struct global_reg account_reg2[ACCOUNT_REG2_NUM];
+///////////////////////////////////////////////////////////////////////////////
 
-	a client has to show these three values to get autentified
-	(gets it in login process)
-
-	///////////////////////////////////////////////////////////////////////////
-*	Account Data which holds the necessary data for an account
-
-	uint32 account_id;			// id to identify an account
-	char userid[24];			// user name
-	char passwd[34];			// user password
-	unsigned char sex;			// gender
-	unsigned char gm_level;		// gm_level
-	unsigned char online;		// true when online (actually only usefull when adding datamining onto the storing data and not onto the server)
-	char email[40];				// email address for confiming char deletion
-	uint32 login_count;			// number of logins
-	char last_login[24];		// timestamp of last login
-	time_t ban_until;			// set to time(NULL)+delta for temporary ban
-	time_t valid_until;			// set to time(NULL)+delta for temporary valid account or time(NULL) for complete disable
-
-	the values last_ip, state, error_message, memo are quite useless,
-	state might be usefull for debugging login of accounts
-	but it is easier to read the output then to dig in the db for that
-
-	///////////////////////////////////////////////////////////////////////////
-*	Account Reg for account wide variables:
-
-	unsigned short account_reg2_num;
-	struct global_reg account_reg2[ACCOUNT_REG2_NUM];
-	///////////////////////////////////////////////////////////////////////////
-*/
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -396,6 +393,9 @@ public:
 	~CMapCharacter()		{}
 
 };
+
+
+
 
 
 

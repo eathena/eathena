@@ -3,7 +3,6 @@
 
 #include "base.h"
 #include "baseio.h"
-#include "strlib.h"
 #include "core.h"
 #include "socket.h"
 #include "timer.h"
@@ -865,6 +864,7 @@ int parse_tologin(int fd)
 				ShowMessage("The server communication passwords (default s1/p1) is probably invalid.\n");
 				ShowMessage("Also, please make sure your accounts file (default: accounts.txt) has those values present.\n");
 				ShowMessage("If you changed the communication passwords, change them back at map_athena.conf and char_athena.conf\n");
+				core_stoprunning();
 			}
 			RFIFOSKIP(fd, 3);
 			break;
@@ -3066,7 +3066,8 @@ int do_init(int argc, char **argv)
 	ipaddress wanip;
 	if( detect_WAN(wanip) && 
 		charaddress.WANIP() != wanip && 
-		charaddress.LANIP() != wanip )
+		charaddress.LANIP() != wanip &&
+		!charaddress.SetLANIP(wanip) )
 	{
 		ShowStatus("Setting WAN IP %s (overwriting config).\n", (const char*)tostring(wanip));
 		charaddress.SetWANIP(wanip);

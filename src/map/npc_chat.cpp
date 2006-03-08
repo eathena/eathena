@@ -367,119 +367,13 @@ void npc_chat_finalize(struct npc_data *nd)
 
     while(npcParse->inactive_)
       delete_pcreset(nd, npcParse->inactive_->setid_);
+	aFree(nd->chatdb);
+	nd->chatdb=NULL;
 }
 
 /**
  * Handler called whenever a global message is spoken in a NPC's area
  */
-/*
-int npc_chat_sub(struct block_list &bl, va_list &ap)
-{
-    struct npc_data &nd = (struct npc_data &)bl;
-    struct npc_parse *npcParse = (struct npc_parse *) nd->chatdb;
-    unsigned char *msg;
-    int len, pos, i;
-    struct map_session_data *sd;
-    struct npc_label_list *lst;
-    struct pcrematch_set *pcreset;
-
-    // Not interested in anything you might have to say...
-    if (npcParse == NULL || npcParse->active_ == NULL)
-        return 0;
-
-    msg = va_arg(ap,unsigned char*);
-    len = va_arg(ap,int);
-    sd = va_arg(ap,struct map_session_data*);
-
-    // grab the active list
-    pcreset = npcParse->active_;
-
-    // interate across all active sets
-	if(sd)
-    while (pcreset != NULL) {
-        struct pcrematch_entry *e = pcreset->head_;
-        // interate across all patterns in that set
-        while (e != NULL) {
-            int offsets[20];
-            char buf[255];
-            // perform pattern match
-            int r = pcre_exec(e->pcre_, e->pcre_extra_, msg, len, 0, 
-				0, offsets, sizeof(offsets) / sizeof(offsets[0]));
-            if (r >= 0) {
-                // save out the matched strings
-                switch (r) {
-                case 10:
-                    memcpy(buf, &msg[offsets[18]], offsets[19]);
-                    buf[offsets[19]] = '\0';
-                    set_var("$p9$", buf);
-                case 9:
-                    memcpy(buf, &msg[offsets[16]], offsets[17]);
-                    buf[offsets[17]] = '\0';
-                    set_var("$p8$", buf);
-                case 8:
-                    memcpy(buf, &msg[offsets[14]], offsets[15]);
-                    buf[offsets[15]] = '\0';
-                    set_var("$p7$", buf);
-                case 7:
-                    memcpy(buf, &msg[offsets[12]], offsets[13]);
-                    buf[offsets[13]] = '\0';
-                    set_var("$p6$", buf);
-                case 6:
-                    memcpy(buf, &msg[offsets[10]], offsets[11]);
-                    buf[offsets[11]] = '\0';
-                    set_var("$p5$", buf);
-                case 5:
-                    memcpy(buf, &msg[offsets[8]], offsets[9]);
-                    buf[offsets[9]] = '\0';
-                    set_var("$p4$", buf);
-                case 4:
-                    memcpy(buf, &msg[offsets[6]], offsets[7]);
-                    buf[offsets[7]] = '\0';
-                    set_var("$p3$", buf);
-                case 3:
-                    memcpy(buf, &msg[offsets[4]], offsets[5]);
-                    buf[offsets[5]] = '\0';
-                    set_var("$p2$", buf);
-                case 2:
-                    memcpy(buf, &msg[offsets[2]], offsets[3]);
-                    buf[offsets[3]] = '\0';
-                    set_var("$p1$", buf);
-                case 1:
-                    memcpy(buf, &msg[offsets[0]], offsets[1]);
-                    buf[offsets[1]] = '\0';
-                    set_var("$p0$", buf);
-                }
-
-                // find the target label.. this sucks..
-				if( nd->u.scr.ref )
-				{
-					pos = -1;
-					lst=nd.u.scr.ref->label_list;           
-					for (i = 0; i < nd.u.scr.ref->label_list_num; i++) {
-						if( strcmp(lst[i].labelname, e->label_ ) == 0) {
-							pos = lst[i].pos;
-							break;
-						}
-					}
-					if (pos == -1) {
-						// unable to find label... do something..
-						ShowMessage("Unable to find label: %s", e->label_);
-						
-					}
-					else
-					{	// run the npc script
-						CScriptEngine::run(nd.u.scr.ref->script,pos,sd->bl.id,nd.bl.id);
-					}
-				}
-                return 0;
-            }
-            e = e->next_;
-        }
-        pcreset = pcreset->next_;
-    }
-    return 0;
-}
-*/
 int CNpcChat::process(block_list &bl) const
 {
     struct npc_data &nd = (struct npc_data &)bl;
@@ -496,85 +390,130 @@ int CNpcChat::process(block_list &bl) const
     pcreset = npcParse->active_;
 
     // interate across all active sets
-    while (pcreset != NULL) {
+    while (pcreset != NULL)
+	{
         struct pcrematch_entry *e = pcreset->head_;
         // interate across all patterns in that set
-        while (e != NULL) {
-            int offsets[20];
-            char buf[255];
-            // perform pattern match
-            int r = pcre_exec(e->pcre_, e->pcre_extra_, msg, len, 0, 
-				0, offsets, sizeof(offsets) / sizeof(offsets[0]));
-            if (r >= 0) {
-                // save out the matched strings
-                switch (r) {
-                case 10:
-                    memcpy(buf, &msg[offsets[18]], offsets[19]);
-                    buf[offsets[19]] = '\0';
-                    set_var("$p9$", buf);
-                case 9:
-                    memcpy(buf, &msg[offsets[16]], offsets[17]);
-                    buf[offsets[17]] = '\0';
-                    set_var("$p8$", buf);
-                case 8:
-                    memcpy(buf, &msg[offsets[14]], offsets[15]);
-                    buf[offsets[15]] = '\0';
-                    set_var("$p7$", buf);
-                case 7:
-                    memcpy(buf, &msg[offsets[12]], offsets[13]);
-                    buf[offsets[13]] = '\0';
-                    set_var("$p6$", buf);
-                case 6:
-                    memcpy(buf, &msg[offsets[10]], offsets[11]);
-                    buf[offsets[11]] = '\0';
-                    set_var("$p5$", buf);
-                case 5:
-                    memcpy(buf, &msg[offsets[8]], offsets[9]);
-                    buf[offsets[9]] = '\0';
-                    set_var("$p4$", buf);
-                case 4:
-                    memcpy(buf, &msg[offsets[6]], offsets[7]);
-                    buf[offsets[7]] = '\0';
-                    set_var("$p3$", buf);
-                case 3:
-                    memcpy(buf, &msg[offsets[4]], offsets[5]);
-                    buf[offsets[5]] = '\0';
-                    set_var("$p2$", buf);
-                case 2:
-                    memcpy(buf, &msg[offsets[2]], offsets[3]);
-                    buf[offsets[3]] = '\0';
-                    set_var("$p1$", buf);
-                case 1:
-                    memcpy(buf, &msg[offsets[0]], offsets[1]);
-                    buf[offsets[1]] = '\0';
-                    set_var("$p0$", buf);
-                }
+        while (e != NULL)
+		{
 
-                // find the target label.. this sucks..
-				if( nd.u.scr.ref )
+           // find the target label.. this sucks..
+			if( nd.u.scr.ref )
+			{
+				pos = -1;
+				lst=nd.u.scr.ref->label_list;           
+				for (i = 0; (size_t)i < nd.u.scr.ref->label_list_num; i++)
 				{
-					pos = -1;
-					lst=nd.u.scr.ref->label_list;           
-					for (i = 0; (size_t)i < nd.u.scr.ref->label_list_num; i++) {
-						if( strcmp(lst[i].labelname, e->label_ ) == 0) {
-							pos = lst[i].pos;
-							break;
-						}
-					}
-					if (pos == -1) {
-						// unable to find label... do something..
-						ShowMessage("Unable to find label: %s", e->label_);
-						
-					}
-					else
-					{	// run the npc script
-						CScriptEngine::run(nd.u.scr.ref->script,pos,sd.bl.id,nd.bl.id);
+					if( strcmp(lst[i].labelname, e->label_ ) == 0) {
+						pos = lst[i].pos;
+						break;
 					}
 				}
-                return 0;
-            }
+				if (pos == -1)
+				{
+					// unable to find label... do something..
+					ShowMessage("Unable to find label: %s", e->label_);
+				}
+				else
+				{
+					int offsets[30];
+					char buf[255];
+
+					// perform pattern match
+					int r = pcre_exec(e->pcre_, e->pcre_extra_, msg, len, 0, 
+						0, offsets, sizeof(offsets) / sizeof(offsets[0]));
+
+					// PCRE Documentation:
+					// Captured substrings are returned to the caller via a vector of integer offsets 
+					// whose address is passed in ovector. The number of elements in the vector is passed 
+					// in ovecsize, which must be a non-negative number. 
+					// Note: this argument is NOT the size of ovector in bytes.
+					// The first two-thirds of the vector is used to pass back captured substrings, 
+					// each substring using a pair of integers. The remaining third of the vector is used as 
+					// workspace by pcre_exec() while matching capturing subpatterns, and is not available 
+					// for passing back information. The length passed in ovecsize should always be a multiple of three. 
+					// If it is not, it is rounded down.
+					// When a match is successful, information about captured substrings is returned in pairs of integers, 
+					// starting at the beginning of ovector, and continuing up to two-thirds of its length at the most. 
+					// The first element of a pair is set to the offset of the first character in a substring, 
+					// and the second is set to the offset of the first character after the end of a substring. 
+					// The first pair, ovector[0] and ovector[1], identify the portion of the subject string matched by 
+					// the entire pattern. The next pair is used for the first capturing subpattern, and so on. 
+					// The value returned by pcre_exec() is the number of pairs that have been set. 
+					// If there are no capturing subpatterns, the return value from a successful match is 1, 
+					// indicating that just the first pair of offsets has been set.
+					if (r >= 0)
+					{
+						size_t cnt;
+						// save out the matched strings
+						switch (r)
+						{
+						case 10:
+							cnt = (offsets[19]>offsets[18])?( (offsets[19]<offsets[18]+(int)sizeof(buf))?(offsets[19]-offsets[18]):sizeof(buf)):0;
+							memcpy(buf, msg+offsets[18], cnt);
+							buf[cnt] = '\0';
+							set_var("$p9$", buf);
+						case 9:
+							cnt = (offsets[17]>offsets[16])?( (offsets[17]<offsets[16]+(int)sizeof(buf))?(offsets[17]-offsets[16]):sizeof(buf)):0;
+							memcpy(buf, msg+offsets[16], cnt);
+							buf[cnt] = '\0';
+							set_var("$p8$", buf);
+						case 8:
+							cnt = (offsets[15]>offsets[14])?( (offsets[15]<offsets[14]+(int)sizeof(buf))?(offsets[15]-offsets[14]):sizeof(buf)):0;
+							memcpy(buf, msg+offsets[14], cnt);
+							buf[cnt] = '\0';
+							set_var("$p7$", buf);
+						case 7:
+							cnt = (offsets[13]>offsets[12])?( (offsets[13]<offsets[12]+(int)sizeof(buf))?(offsets[13]-offsets[12]):sizeof(buf)):0;
+							memcpy(buf, msg+offsets[12], cnt);
+							buf[cnt] = '\0';
+							set_var("$p6$", buf);
+						case 6:
+							cnt = (offsets[11]>offsets[10])?( (offsets[11]<offsets[10]+(int)sizeof(buf))?(offsets[11]-offsets[10]):sizeof(buf)):0;
+							memcpy(buf, msg+offsets[10], cnt);
+							buf[cnt] = '\0';
+							set_var("$p5$", buf);
+						case 5:
+							cnt = (offsets[ 9]>offsets[ 8])?( (offsets[ 9]<offsets[ 8]+(int)sizeof(buf))?(offsets[ 9]-offsets[ 8]):sizeof(buf)):0;
+							memcpy(buf, msg+offsets[ 8], cnt);
+							buf[cnt] = '\0';
+							set_var("$p4$", buf);
+						case 4:
+							cnt = (offsets[ 7]>offsets[ 6])?( (offsets[ 7]<offsets[ 6]+(int)sizeof(buf))?(offsets[ 7]-offsets[ 6]):sizeof(buf)):0;
+							memcpy(buf, msg+offsets[ 6], cnt);
+							buf[cnt] = '\0';
+							set_var("$p3$", buf);
+						case 3:
+							cnt = (offsets[ 5]>offsets[ 4])?( (offsets[ 5]<offsets[ 4]+(int)sizeof(buf))?(offsets[ 5]-offsets[ 4]):sizeof(buf)):0;
+							memcpy(buf, msg+offsets[ 4], cnt);
+							buf[cnt] = '\0';
+
+							set_var("$p2$", buf);
+						case 2:
+							cnt = (offsets[ 3]>offsets[ 2])?( (offsets[ 3]<offsets[ 2]+(int)sizeof(buf))?(offsets[ 3]-offsets[ 2]):sizeof(buf)):0;
+							memcpy(buf, msg+offsets[ 2], cnt);
+							buf[cnt] = '\0';
+
+							set_var("$p1$", buf);
+						case 1:
+							cnt = (offsets[ 1]>offsets[ 0])?( (offsets[ 1]<offsets[ 0]+(int)sizeof(buf))?(offsets[ 1]-offsets[ 0]):sizeof(buf)):0;
+							memcpy(buf, msg+offsets[ 0], cnt);
+							buf[cnt] = '\0';
+							set_var("$p0$", buf);
+						}
+
+						// run the npc script
+						CScriptEngine::run(nd.u.scr.ref->script,pos,sd.bl.id,nd.bl.id);
+						// and return
+						return 0;
+					}
+					// otherwise no match
+				}
+			}
+			// next pattern in set
             e = e->next_;
         }
+		// next set
         pcreset = pcreset->next_;
     }
     return 0;

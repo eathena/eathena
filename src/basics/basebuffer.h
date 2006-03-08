@@ -1051,7 +1051,7 @@ public:
 	}
 	bool step_rptr(int i)
 	{	// can go backwards with negative offset
-		if(this->cRpp+i <= this->cWpp && this->cRpp+i >= this->start)
+		if(this->cRpp+i <= this->cWpp && this->cRpp+i >= this->cBuf)
 		{
 			this->cRpp+=i;
 			return true;
@@ -1201,10 +1201,10 @@ class _bufferaccess : public noncopyable, public nonallocable
 	_buffer* cBuffer;
 public:
 	_bufferaccess() : cBuffer(NULL)	{}
-	_bufferaccess(_buffer& b, size_t sz=0, bool init=true) : cBuffer(NULL)	{ this->aquite(b, sz, init); }
+	_bufferaccess(_buffer& b, size_t sz=0, bool init=true) : cBuffer(NULL)	{ this->aquire(b, sz, init); }
 	~_bufferaccess()	{ this->release(0); }
 
-	bool aquite(_buffer& b, size_t sz=0, bool init=true)
+	bool aquire(_buffer& b, size_t sz=0, bool init=true)
 	{
 		b.Mutex::enter();
 		if( !b.cAccess )

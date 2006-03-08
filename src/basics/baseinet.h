@@ -22,7 +22,12 @@ void test_inet();
 #pragma comment(lib, "ws2_32.lib")
 #endif
 
-
+///////////////////////////////////////////////////////////////////////////////
+// error functions
+#if defined(WIN32)
+typedef ushort sa_family_t;
+typedef ushort in_port_t;
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 // error functions
@@ -103,6 +108,14 @@ const char* sockerrmsg(int code);
 #endif
 
 
+
+
+
+
+
+
+
+
 ///////////////////////////////////////////////////////////////////////////////
 // class for ip numbers and helpers
 // currently limited to IP4
@@ -118,8 +131,12 @@ private:
 		uint32	cAddr[16];	// ip addresses of local host (host byte order)
 		uint	cCnt;		// # of valid ip addresses
 	public:
-		_ipset_helper();
+		_ipset_helper()		{ init(); }
 		~_ipset_helper();
+
+		///////////////////////////////////////////////////////////////////////
+		// initialize
+		void init();
 
 		///////////////////////////////////////////////////////////////////////
 		// number of found system ip's (w/o localhost)
@@ -146,6 +163,7 @@ private:
 		return iphelp;
 	}
 public:
+	static void InitSystemIP()				{        gethelper().init(); }
 	static ipaddress GetSystemIP(uint i=0)	{ return gethelper().GetSystemIP(i); }
 	static uint GetSystemIPCount()			{ return gethelper().GetSystemIPCount(); }
 	static bool isBindable(ipaddress ip);
@@ -226,6 +244,8 @@ public:
 	virtual const char *tostring(char *buffer) const;
 	operator const char*()	{ return this->tostring(NULL); }
 
+	template<class T> friend string<T>& operator <<(string<T>& str, const ipaddress& ip);
+
 	///////////////////////////////////////////////////////////////////////////
 	// converts a string to an ip (host byte order)
 	static ipaddress str2ip(const char *str);
@@ -281,6 +301,8 @@ public:
 	// not threadsafe
 	virtual const char *tostring(char *buffer) const;
 
+	template<class T> friend string<T>& operator <<(string<T>& str, const netaddress& ip);
+	template<class T> friend string<T>& operator <<(string<T>& str, const ipset& ip);
 
 	///////////////////////////////////////////////////////////////////////////
 	// boolean operators
@@ -334,6 +356,8 @@ public:
 	virtual ssize_t tostring(char *buffer, size_t sz) const;
 	// not threadsafe
 	virtual const char *tostring(char *buffer) const;
+
+	template<class T> friend string<T>& operator <<(string<T>& str, const subnetaddress& ip);
 
 	///////////////////////////////////////////////////////////////////////////
 	// boolean operators
@@ -449,6 +473,8 @@ public:
 	// not threadsafe
 	virtual const char *tostring(char *buffer) const;
 
+	template<class T> friend string<T>& operator <<(string<T>& str, const ipset& ip);
+
 	///////////////////////////////////////////////////////////////////////////
 	// boolean operators
 	bool operator == (const ipset s) const { return this->cAddr==s.cAddr && this->cMask==s.cMask && this->cPort==s.cPort && wanaddr==s.wanaddr; }
@@ -464,6 +490,12 @@ inline string<> tostring(const subnetaddress& ip)	{ return ip.tostring(); }
 inline string<> tostring(const ipset& ip)			{ return ip.tostring(); }
 
 
+template<class T> string<T>& operator <<(string<T>& str, const ipaddress& ip);
+template<class T> string<T>& operator <<(string<T>& str, const netaddress& ip);
+template<class T> string<T>& operator <<(string<T>& str, const subnetaddress& ip);
+template<class T> string<T>& operator <<(string<T>& str, const ipset& ip);
+
+
 ///////////////////////////////////////////////////////////////////////////////
 // some variables
 extern ipaddress	iplocal;	// stores local ip on startup, does not refresh automatically
@@ -472,9 +504,9 @@ const ipaddress		iploopback(INADDR_LOOPBACK);
 const ipaddress		ipnone(INADDR_NONE);
 
 
-ipaddress phostbyname(const char* name);
-string<> phostbyaddr(ipaddress ip);
-string<> phostcname(const char* name);
+ipaddress hostbyname(const char* name);
+string<> hostbyaddr(ipaddress ip);
+string<> hostname(const char* name);
 
 
 #endif//__INET__

@@ -186,7 +186,7 @@ protected:
 		TPoolObj<CMySQL::DBConnection> dbobj(this->cDBPool);
 
 		//do a query:
-		if( !db.ResultQuery("select * from `somewhere`") )
+		if( !dbobj->ResultQuery("select * from `somewhere`") )
 			printf("some error");
 
 		if( dbobj->PureQuery("DROP TABLE IF EXISTS `something`") )

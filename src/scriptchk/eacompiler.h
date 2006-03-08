@@ -1000,8 +1000,8 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// replacing temporary jump targets
-	bool replaceJumps(size_t start, size_t end, unsigned char cmd, int val)
-	{	// convert a specifiv temporary jump command into goto commands
+	bool replaceJumps(size_t start, size_t end, uchar cmd, int val)
+	{	// convert a specific temporary jump command into goto commands
 		CCommand ccmd;
 		size_t pos, tmp;
 		while( start<end && start<cProgramm.size() )

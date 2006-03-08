@@ -531,6 +531,7 @@ protected:
 		const CCounter& operator=(const CCounter& c)
 		{
 			this->ptr = c.ptr;
+			return *this;
 		}
 		~CCounter()	{ }
 

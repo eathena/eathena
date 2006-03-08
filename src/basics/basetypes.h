@@ -56,7 +56,7 @@
 #endif
 
 // 64bit OS
-#if defined(_M_IA64) || defined(_M_X64) || defined(_WIN64) || defined(_LP64) || defined(_ILP64) || defined(__LP64__) || defined(__ppc64__)
+#if (defined(_M_IA64) || defined(_M_X64) || defined(_WIN64) || defined(_LP64) || defined(_ILP64) || defined(__LP64__) || defined(__ppc64__)) && !defined(__64BIT__)
 #define __64BIT__
 #endif
 
@@ -117,11 +117,6 @@
 #endif
 
 
-//////////////////////////////////////////////////////////////////////////
-// template behaviour on microsoft visual c++ is weird
-#if defined(_MSC_VER) && _MSC_VER <= 1200
-#define HAS_BAD_TEMPLATES
-#endif
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -153,7 +148,7 @@
 
 //////////////////////////////
 #undef FD_SETSIZE
-#define FD_SETSIZE 4096
+#define FD_SETSIZE 64//4096
 //////////////////////////////
 
 
@@ -491,25 +486,35 @@ typedef int bool;
 
 
 
+//////////////////////////////////////////////////////////////////////////
+// template behaviour on microsoft visual c++ is weird
+#if defined(_MSC_VER) && _MSC_VER <= 1200
+#define HAS_BAD_TEMPLATES
+#endif
+
+
 #ifndef PI
-#define PI 3.1415926535897932384626433832795029L
+#define PI 3.14159265358979323846264338327950288L
 #endif
 
 
 //////////////////////////////////////////////////////////////////////////
 // useful typedefs
 //////////////////////////////////////////////////////////////////////////
-typedef   signed int	sint;	// don't use (only for ie. scanf)
+#if !defined(__GLIBC__) || !defined(__USE_MISC)// glibc again
 typedef unsigned int	uint;	// don't use
-typedef   signed long	slong;	// don't use (only for ie. file-io)
 typedef unsigned long	ulong;	// don't use
-typedef   signed short	sshort;
 typedef unsigned short	ushort;
+#endif
 typedef unsigned char	uchar;
+
+typedef   signed int	sint;	// don't use (only for ie. scanf/file-io)
+typedef   signed long	slong;	// don't use
+typedef   signed short	sshort;
 typedef   signed char	schar;
 
 typedef char*           pchar;
-typedef const char*     cchar;
+typedef const char*     pcchar;
 typedef unsigned char*	puchar;
 typedef void*			ptr;
 typedef int*			pint;
@@ -632,7 +637,7 @@ typedef unsigned long long	uint64;
 #define INT64_MAX  (LLCONST(9223372036854775807))
 #endif
 #ifndef UINT64_MAX
-#define UINT64_MAX (ULLCONST(18446744073709551615u))
+#define UINT64_MAX (ULLCONST(18446744073709551615))
 #endif
 
 
@@ -644,6 +649,7 @@ typedef unsigned long long	uint64;
 #define strncasecmp			strnicmp
 #define snprintf			_snprintf
 #define vsnprintf			_vsnprintf
+#define vswprintf			_vsnwprintf
 #endif
 
 
@@ -1056,7 +1062,7 @@ inline unsigned long log2(unsigned long v)
 //	if (v & b[0]) { v >>= S[0]; c |= S[0]; }
 	// put values in for more speed...
 #if defined(_LP64) || defined(_ILP64) || defined(__LP64__) || defined(__ppc64__)
-	if (v & ULLCONST(0xFFFFFFFF00000000)) { v >>= 0x18; c |= 0x18; } 
+	if (v & ULLCONST(0xFFFFFFFF00000000)) { v >>= 0x20; c |= 0x20; } 
 #endif
 	if (v & 0xFFFF0000) { v >>= 0x10; c |= 0x10; } 
 	if (v & 0x0000FF00) { v >>= 0x08; c |= 0x08; }
@@ -1182,29 +1188,27 @@ inline unsigned long bit_count(unsigned long v)
 {
 //	static const ulong S[] = {1, 2, 4, 8, 16}; // Magic Binary Numbers
 //	static const ulong B[] = {0x55555555, 0x33333333, 0x0F0F0F0F, 0x00FF00FF, 0x0000FFFF};
-	// store the total here
-	uint32 c = v; 
-//	c = ((c >> S[0]) & B[0]) + (c & B[0]);
-//	c = ((c >> S[1]) & B[1]) + (c & B[1]);
-//	c = ((c >> S[2]) & B[2]) + (c & B[2]);
-//	c = ((c >> S[3]) & B[3]) + (c & B[3]);
-//	c = ((c >> S[4]) & B[4]) + (c & B[4]);
+//	v = ((v >> S[0]) & B[0]) + (v & B[0]);
+//	v = ((v >> S[1]) & B[1]) + (v & B[1]);
+//	v = ((v >> S[2]) & B[2]) + (v & B[2]);
+//	v = ((v >> S[3]) & B[3]) + (v & B[3]);
+//	v = ((v >> S[4]) & B[4]) + (v & B[4]);
 	// put values in
 #if defined(_LP64) || defined(_ILP64) || defined(__LP64__) || defined(__ppc64__)
-	c = ((c >> 0x01) & ULLCONST(0x5555555555555555)) + (c & ULLCONST(0x5555555555555555));
-	c = ((c >> 0x02) & ULLCONST(0x3333333333333333)) + (c & ULLCONST(0x3333333333333333));
-	c = ((c >> 0x04) & ULLCONST(0x0F0F0F0F0F0F0F0F)) + (c & ULLCONST(0x0F0F0F0F0F0F0F0F));
-	c = ((c >> 0x08) & ULLCONST(0x00FF00FF00FF00FF)) + (c & ULLCONST(0x00FF00FF00FF00FF));
-	c = ((c >> 0x10) & ULLCONST(0x0000FFFF0000FFFF)) + (c & ULLCONST(0x0000FFFF0000FFFF));
-	c = ((c >> 0x10) & ULLCONST(0x00000000FFFFFFFF)) + (c & ULLCONST(0x00000000FFFFFFFF));
+	v = ((v >> 0x01) & ULLCONST(0x5555555555555555)) + (v & ULLCONST(0x5555555555555555));
+	v = ((v >> 0x02) & ULLCONST(0x3333333333333333)) + (v & ULLCONST(0x3333333333333333));
+	v = ((v >> 0x04) & ULLCONST(0x0F0F0F0F0F0F0F0F)) + (v & ULLCONST(0x0F0F0F0F0F0F0F0F));
+	v = ((v >> 0x08) & ULLCONST(0x00FF00FF00FF00FF)) + (v & ULLCONST(0x00FF00FF00FF00FF));
+	v = ((v >> 0x10) & ULLCONST(0x0000FFFF0000FFFF)) + (v & ULLCONST(0x0000FFFF0000FFFF));
+	v = ((v >> 0x20) & ULLCONST(0x00000000FFFFFFFF)) + (v & ULLCONST(0x00000000FFFFFFFF));
 #else
-	c = ((c >> 0x01) & 0x55555555) + (c & 0x55555555);
-	c = ((c >> 0x02) & 0x33333333) + (c & 0x33333333);
-	c = ((c >> 0x04) & 0x0F0F0F0F) + (c & 0x0F0F0F0F);
-	c = ((c >> 0x08) & 0x00FF00FF) + (c & 0x00FF00FF);
-	c = ((c >> 0x10) & 0x0000FFFF) + (c & 0x0000FFFF);
+	v = ((v >> 0x01) & 0x55555555) + (v & 0x55555555);
+	v = ((v >> 0x02) & 0x33333333) + (v & 0x33333333);
+	v = ((v >> 0x04) & 0x0F0F0F0F) + (v & 0x0F0F0F0F);
+	v = ((v >> 0x08) & 0x00FF00FF) + (v & 0x00FF00FF);
+	v = ((v >> 0x10) & 0x0000FFFF) + (v & 0x0000FFFF);
 #endif
-	return c;
+	return v;
 }
 
 inline unsigned long bit_count_t(unsigned long v)
@@ -1229,7 +1233,7 @@ inline unsigned long bit_count_t(unsigned long v)
 		3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 
 		4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8
 	};
-	unsigned int c=0; // c is the total bits set in v
+	unsigned long c=0; // c is the total bits set in v
 	while(v)
 	{
 		c += BitsSetTable256[v&0xff];
@@ -1241,7 +1245,7 @@ inline unsigned long bit_count_t(unsigned long v)
 inline unsigned long bit_count_k(unsigned long v)
 {
 	// Counting bits set, Brian Kernighan's way 
-	unsigned int c; // c accumulates the total bits set in v
+	unsigned long c; // c accumulates the total bits set in v
 	for (c = 0; v; c++)
 	{	// clear the least significant bit set
 		v &= v - 1; 
@@ -1274,6 +1278,7 @@ inline unsigned long bit_count_32_i64(unsigned long v)
 	// This method requires a 64-bit CPU with fast modulus division to be efficient. 
 	// The first option takes only 6 operations; the second option takes 13; 
 	// and the third option takes 17. 
+	return c;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1341,6 +1346,7 @@ inline bool parity_t(unsigned long v)
 		parity ^= ParityTable[(v & 0xff)];
 		v >>= NBBY;
 	}
+	return parity;
 }
 
 
@@ -1394,7 +1400,7 @@ inline unsigned long bit_reverse(unsigned long v)
 	v = ((v >> 0x04) & ULLCONST(0x0F0F0F0F0F0F0F0F)) | ((v << 0x04) & ~ULLCONST(0x0F0F0F0F0F0F0F0F));
 	v = ((v >> 0x08) & ULLCONST(0x00FF00FF00FF00FF)) | ((v << 0x08) & ~ULLCONST(0x00FF00FF00FF00FF));
 	v = ((v >> 0x10) & ULLCONST(0x0000FFFF0000FFFF)) | ((v << 0x10) & ~ULLCONST(0x0000FFFF0000FFFF));
-	v = ((v >> 0x10) & ULLCONST(0x00000000FFFFFFFF)) | ((v << 0x10) & ~ULLCONST(0x00000000FFFFFFFF));
+	v = ((v >> 0x20) & ULLCONST(0x00000000FFFFFFFF)) | ((v << 0x20) & ~ULLCONST(0x00000000FFFFFFFF));
 #else
 	v = ((v >> 0x01) & 0x55555555) | ((v << 0x01) & ~0x55555555);
 	v = ((v >> 0x02) & 0x33333333) | ((v << 0x02) & ~0x33333333);
@@ -1535,7 +1541,8 @@ inline unsigned long interleave_trivial(unsigned short x, unsigned short y)
 {	// Interleave bits the obvious way 
 	// bits of x are in the even positions and y in the odd;
 	unsigned int z = 0; // z gets the resulting 32-bit Morton Number.
-	for(int i = 0; i < sizeof(x) * NBBY; i++)// unroll for more speed...
+	size_t i;
+	for(i=0; i<sizeof(x)*NBBY; i++)// unroll for more speed...
 	{
 		z |= (x & 1 << i) << i | (y & 1 << i) << (i + 1);
 	}
@@ -1579,9 +1586,14 @@ inline unsigned long interleave_t(unsigned short x, unsigned short y)
 		0x5500, 0x5501, 0x5504, 0x5505, 0x5510, 0x5511, 0x5514, 0x5515, 
 		0x5540, 0x5541, 0x5544, 0x5545, 0x5550, 0x5551, 0x5554, 0x5555
 	};
-	unsigned long z;   // z gets the resulting 32-bit Morton Number.
+	unsigned long z;   // gets the resulting 32-bit Morton Number.
 	z = (MortonTable256[y & 0xFF] << 1) | MortonTable256[x & 0xFF] |
 		(MortonTable256[y >> 8] << 1 | MortonTable256[x >> 8]) << 16;
+
+
+	z = (MortonTable256[y & 0xFF] << 1) | MortonTable256[x & 0xFF] |
+		(MortonTable256[y >> 8] << 1 | MortonTable256[x >> 8]) << 16;
+	return z;
 }
 
 
@@ -1675,6 +1687,36 @@ template<class T> inline T imax(const T& x, const T& y)
 	// so r = y + (x - y) & 0 = y. 
 }
 
+#ifdef pow10
+#undef pow10
+#endif
+inline uint64 pow10(uint exp)
+{
+	static const uint64 table[] = { ULLCONST(100000000), ULLCONST(10), ULLCONST(100), ULLCONST(1000), 
+									ULLCONST(10000), ULLCONST(100000) , ULLCONST(1000000), ULLCONST(10000000)};
+	if(!exp)
+		return 1;
+	else if(exp<8)
+		return table[exp&0x7];
+	else if(exp>19)
+		return UINT64_MAX;
 
+	uint64 res=table[0];
+	exp -= 8;
+	while(exp)
+	{
+		if(exp<8)
+		{
+			res *= table[exp&0x7];
+			break;
+		}
+		else
+		{
+			res*=table[0];
+			exp -= 8;
+		}
+	}
+	return res;
+}
 
 #endif//__BASETYPES_H__

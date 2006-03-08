@@ -10,6 +10,514 @@
 #include "baseheaps.h"
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+// BinaryHeap class
+// Insert appends the element at the end and upheaps it
+// Delete swaps the last element in front and downheaps it until a leaf is reached
+// about 20% slower than method in the second implementation
+template <class T> class _BinaryHeapDH : private allocator_w_dy<T, elaborator_ct<T> >
+{
+	friend void test_heaps(int scale);
+	bool append(const T&e)
+	{
+		if( this->cWpp<this->cEnd || this->checkwrite(1) )
+		{
+			*this->cWpp++ = e;
+			return true;
+		}
+		return false;
+	}
+public:
+	_BinaryHeapDH()							{}
+	_BinaryHeapDH(const allocator<T>& a)	{ this->insert(a); }
+	virtual ~_BinaryHeapDH()				{}
+
+	///////////////////////////////////////////////////////////////////////////
+	// returns number of elements
+	virtual size_t size() const		{ return this->cWpp-this->cBuf; }
+	virtual size_t length() const	{ return this->cWpp-this->cBuf; }
+
+	///////////////////////////////////////////////////////////////////////////
+	// check if empty
+	bool is_empty( ) const			{ return this->cWpp==this->cBuf; }
+
+	///////////////////////////////////////////////////////////////////////////
+	// 
+	bool realloc(size_t sz)
+	{
+		if( sz>this->size() )
+			return this->checkwrite( sz-this->size() );
+		return true;
+	}
+
+
+	///////////////////////////////////////////////////////////////////////////
+	// remove all elements
+	virtual bool clear()			{ return this->cWpp=this->cBuf; }
+
+	///////////////////////////////////////////////////////////////////////////
+	// access to element[inx]
+	virtual const T& operator[](size_t inx) const 	
+	{
+		if( inx>this->size() )
+		{
+			vector_error("heap: out of bound");
+		}
+		return this->cBuf[inx]; 
+	}
+	// not define write access to the heap elements
+	const T& first()								
+	{ 
+		return this->operator[](0);
+	}
+	const T& last()									
+	{
+		return this->operator[](this->size()-1);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// push/pop access
+	virtual bool push(const T& e)				{ return this->insert(e); }
+	virtual bool push(const allocator<T>& a)	{ return this->insert(a); }
+	virtual bool push(const T* elem, size_t cnt){ return this->insert(elem, cnt); }
+
+	///////////////////////////////////////////////////////////////////////////
+	// return the first element and remove it from list
+	// throw underflow when empty
+	virtual T pop()
+	{
+#ifdef CHECK_BOUNDS
+#ifdef CHECK_EXCEPTIONS
+		if( this->cBuf == this->cWpp )
+			throw exception_bound("BinaryHeap: underflow");
+#endif
+#endif
+		// take out the first element
+		T& minItem = *this->cBuf;
+		// put the last element to the top
+		*this->cBuf = *(--this->cWpp);
+		// and percolate it down the heap
+		this->percolateDown(0);
+		return minItem;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// as above but with check if element exist
+	virtual bool pop(T& elem)
+	{
+		if( this->cBuf < this->cWpp )
+		{	// take out the first element
+			elem = *this->cBuf;
+			// put the last element to the top
+			*this->cBuf = *(--this->cWpp);
+			// and percolate it down the heap
+			this->percolateDown(0);
+			return true;
+		}
+		return false;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// return the first element and do not remove it from list
+	// throw underflow when empty
+	virtual T& top() const
+	{
+#ifdef CHECK_BOUNDS
+#ifdef CHECK_EXCEPTIONS
+		if( this->cBuf == this->cWpp )
+			throw exception_bound("BinaryHeap: underflow");
+#endif
+#endif
+		return *this->cBuf;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// as above but with check if element exist
+	virtual bool top(T& elem) const
+	{
+		if( this->cBuf < this->cWpp )
+		{
+			elem = *this->cBuf;
+			return true;
+		}
+		return false;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// Insert item x into the priority queue, maintaining heap order.
+	// Duplicates are allowed.
+	virtual bool insert(const allocator<T>& a)
+	{
+		typename allocator<T>::iterator iter(a);
+		if( this->cWpp+a.size()<=this->cEnd || this->checkwrite(a.size()) )
+		{
+			while(iter)
+				this->insert( *iter++ );
+			return true;
+		}
+		return false;
+	}
+	virtual bool insert( const T* elem, size_t cnt )
+	{
+		const T* end = elem+cnt;
+		if( this->cWpp+cnt<=this->cEnd || this->checkwrite(cnt) )
+		{
+			while(elem < end )
+				this->insert( *elem++ );
+			return true;
+		}
+		return false;
+	}
+	virtual bool insert( const T& e )
+	{	// Percolate up
+		if( this->cWpp<this->cEnd || this->checkwrite(1) )
+		{
+			size_t hole = (this->cWpp-this->cBuf);
+			this->cWpp++;
+			for( ; hole>0 && e<this->cBuf[(hole-1)/2]; hole = (hole-1)/2 )
+				this->cBuf[hole] = this->cBuf[(hole-1)/2];
+			this->cBuf[hole] = e;
+			return true;
+		}
+		return false;
+	}
+	bool checkHeap()
+	{
+		size_t i;
+		for(i=0; i<this->size()/2; i++)
+		{
+			if(  this->cBuf[i] > this->cBuf[2*i+1] ||
+				(this->cBuf[i] > this->cBuf[2*i+2] && (2*i+2)<this->size()) )
+				return false;
+		}
+		return true;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// Establish heap order property from an arbitrary
+	// arrangement of items. Runs in linear time.
+	void restoreHeap( )
+	{
+		size_t i=this->size()/2;
+		while(i>0)
+		{
+			--i;
+			this->percolateDown(i);
+		}
+	}
+private:
+	// Internal method to percolate down in the heap.
+	// hole is the index at which the percolate begins.
+	void percolateDown( size_t hole )
+	{
+		size_t child, sz=this->size();
+		if(sz>0)
+		{
+			T tmp = this->cBuf[hole];
+			for( ; hole*2+1 < sz; hole = child )
+			{
+				child = 2*hole+1;
+				if( child+1 < sz && this->cBuf[child+1] < this->cBuf[child] )
+					child++;
+				if( this->cBuf[child] < tmp )
+					this->cBuf[hole] = this->cBuf[child];
+				else
+					break;
+			}
+			this->cBuf[hole] = tmp;
+		}
+	}
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// Insert appends the element at the end and upheaps it
+// Delete downheaps the hole until a leaf is reached, 
+//    then replaces the hole with the last element and upheaps it
+template <class T> class _BinaryHeap : private allocator_w_dy<T, elaborator_ct<T> >
+{
+	friend void test_heaps(int scale);
+
+	bool append(const T&e)
+	{
+		if( this->cWpp<this->cEnd || this->checkwrite(1) )
+		{
+			*this->cWpp++ = e;
+			return true;
+		}
+		return false;
+	}
+
+public:
+	_BinaryHeap()						{}
+	_BinaryHeap(const allocator<T>& a)	{ this->insert(a); }
+	virtual ~_BinaryHeap()				{}
+
+	///////////////////////////////////////////////////////////////////////////
+	// returns number of elements
+	virtual size_t size() const		{ return this->cWpp-this->cBuf; }
+	virtual size_t length() const	{ return this->cWpp-this->cBuf; }
+
+	///////////////////////////////////////////////////////////////////////////
+	// check if empty
+	bool is_empty( ) const			{ return this->cWpp==this->cBuf; }
+
+	///////////////////////////////////////////////////////////////////////////
+	// 
+	bool realloc(size_t sz)
+	{
+		if( sz>this->size() )
+			return this->checkwrite( sz-this->size() );
+		return true;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// remove all elements
+	virtual bool clear()			{ return this->cWpp=this->cBuf; }
+
+	///////////////////////////////////////////////////////////////////////////
+	// access to element[inx]
+	virtual const T& operator[](size_t inx) const 	
+	{
+		if( inx>this->size() )
+		{
+			vector_error("heap: out of bound");
+		}
+		return this->cBuf[inx]; 
+	}
+	// not define write access to the heap elements
+	const T& first()								
+	{ 
+		return this->operator[](0);
+	}
+	const T& last()									
+	{
+		return this->operator[](this->size()-1);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// push/pop access
+	virtual bool push(const T& e)				{ return this->insert(e); }
+	virtual bool push(const allocator<T>& a)	{ return this->insert(a); }
+	virtual bool push(const T* elem, size_t cnt){ return this->insert(elem, cnt); }
+
+
+	///////////////////////////////////////////////////////////////////////////
+	// return the first element and remove it from list
+	virtual T pop()
+	{
+#ifdef CHECK_BOUNDS
+#ifdef CHECK_EXCEPTIONS
+		if( this->cBuf==this->cWpp )
+			throw exception_bound("BinaryHeap: underflow");
+#endif
+#endif
+		T tmp;
+		this->pop( tmp );
+		return tmp;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// as above but with check if element exist
+	virtual bool pop(T& elem)
+	{
+		if( this->cBuf==this->cWpp )
+			return false;
+
+		size_t i,h,k;
+		elem = this->cBuf[0];
+		--this->cWpp;
+		size_t sz = this->size();
+		// downheap 
+		for(h=0, k=2; k<=sz; h=k, k=k*2+2)
+		{
+			if( this->cBuf[k] > this->cBuf[k-1] )
+				--k;
+			this->cBuf[h]=this->cBuf[k];
+		}
+		if(h < sz)
+		{
+			// insert the last element at the hole
+			// and upheap it beginning from h
+			for( i = (h-1)/2;
+				(h > 0) && this->cBuf[sz]<this->cBuf[i];
+				h=i, i=(h-1)/2)
+			{
+				this->cBuf[h] = this->cBuf[i];
+			}
+			this->cBuf[h]=this->cBuf[sz];
+		}
+		return true;
+	}
+	/*
+	// worse performance
+	virtual bool pop( T & minItem )
+	{
+		if( this->cBuf==this->cWpp )
+			return false;
+
+		minItem = *this->cBuf;
+		// we now have a hole at position 0 which needs to be filled
+		--this->cWpp;
+
+		size_t h=0, i=1; // i=2*h+1, for the general case
+		size_t sz = this->size();
+		while(i<=sz)
+		{
+			// check if there are two children and the second is the larger one
+////////////// this check can be avoided, see implementation above
+			if( i<sz && this->cBuf[i]>this->cBuf[i+1] ) i++;	// select the second
+			// move the children up
+			this->cBuf[h] = this->cBuf[i];
+			// and continue with the downmoved hole
+			h=i;
+			i = 2*h+1;
+		}
+		if(h<sz)
+		{	// single leaf but not at the end
+			// fill with last node from the field
+			// and move the node up if necessary
+			while (h>0)
+			{
+				i=(h-1)/2;    // predecessor
+				if( this->cBuf[sz]>=this->cBuf[i] ) 
+					break;
+				// otherwise swap nodes
+				this->cBuf[h] = this->cBuf[i];
+				h=i;
+			}
+			this->cBuf[h] = this->cBuf[sz];
+		}
+		return true;
+	}
+	*/
+	///////////////////////////////////////////////////////////////////////////
+	// return the first element and do not remove it from list
+	// throw Underflow if empty.
+	virtual T& top() const
+	{
+#ifdef CHECK_BOUNDS
+#ifdef CHECK_EXCEPTIONS
+		if(this->cBuf == this->cWpp )
+			throw exception_bound("BinaryHeap: underflow");
+#endif
+#endif
+		return *this->cBuf;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// as above but with check if element exist
+	virtual bool top(T& elem) const
+	{
+		if(this->cBuf == this->cWpp )
+		{
+			elem = *this->cBuf;
+			return true;
+		}
+		return false;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// Insert item x into the priority queue, maintaining heap order.
+	// Duplicates are allowed.
+	virtual bool insert(const allocator<T>& a)
+	{
+		typename allocator<T>::iterator iter(a);
+		if( this->cWpp+a.size()<=this->cEnd || this->checkwrite(a.size()) )
+		{
+			while(iter)
+				this->insert( *iter++ );
+			return true;
+		}
+		return false;
+	}
+	virtual bool insert( const T* elem, size_t cnt )
+	{
+		const T* end = elem+cnt;
+		if( this->cWpp+cnt<=this->cEnd || this->checkwrite(cnt) )
+		{
+			while(elem < end )
+				this->insert( *elem++ );
+			return true;
+		}
+		return false;
+	}
+	bool insert( const T& e )
+	{
+		// Percolate up
+		if( this->cWpp<this->cEnd || this->checkwrite(1) )
+		{
+			size_t hole = (this->cWpp-this->cBuf);
+			this->cWpp++;
+			for( ; hole>0 && e<this->cBuf[(hole-1)/2]; hole = (hole-1)/2 )
+				this->cBuf[hole] = this->cBuf[(hole-1)/2];
+			this->cBuf[hole] = e;
+			return true;
+		}
+		return false;
+	}
+	bool checkHeap()
+	{
+		size_t i;
+		for(i=0; i<this->size()/2; i++)
+		{
+			if(  this->cBuf[i] > this->cBuf[2*i+1] ||
+				(this->cBuf[i] > this->cBuf[2*i+2] && (2*i+2)<this->size()) )
+				return false;
+		}
+		return true;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// Establish heap order property from an arbitrary
+	// arrangement of items. Runs in linear time.
+	void restoreHeap( )
+	{
+		T tmp;
+		ssize_t i;
+		size_t h,k, sz=this->size();
+		for(i=sz/2-1; i>=0; --i)
+		{
+			tmp = this->cBuf[i];
+			for( h=i,k=h*2+2 ; k<sz; h=k, k=2*k+2 )
+			{
+				if( this->cBuf[k-1] < this->cBuf[k] )
+					k--;
+				if( this->cBuf[k] < tmp )
+					this->cBuf[h] = this->cBuf[k];
+				else
+					break;
+			}
+			if(k==sz && this->cBuf[k-1] < tmp )
+			{
+				this->cBuf[h] = this->cBuf[k-1];
+				h = k-1;
+			}
+			this->cBuf[h] = tmp;
+		}
+	}
+};
+
+
+
+
+
+
+
+
+
+
+
+#define DEBUG
+
 void test_heaps(int scale)
 {
 #if defined(DEBUG)
@@ -17,6 +525,7 @@ void test_heaps(int scale)
 	if( scale<1 ) scale=1;
 
 	uint k;
+//	const uint CFIELDSIZE = 5000000/scale;
 	const uint CFIELDSIZE = 5000000/scale;
 	uint elems=0;
 
@@ -34,6 +543,133 @@ void test_heaps(int scale)
 	//	k;							// sorted
 	//	CFIELDSIZE-k;				// reverse sorted
 
+
+
+{
+	_BinaryHeapDH<int> bhtest1;
+
+	elems = CFIELDSIZE;
+
+	bhtest1.clear();
+	bhtest1.realloc(elems);
+	for(k=0; k<elems; k++)
+		bhtest1.append(array[0][k]);
+
+	tick = clock();
+	bhtest1.restoreHeap();
+	printf("restoreHeapDH %lu (%i elems)\n", clock()-tick, elems);
+	if( !bhtest1.checkHeap() )
+		printf("restoreHeapDH failed\n");
+
+	_BinaryHeap<int> bhtest2;
+
+	elems = CFIELDSIZE;
+
+	bhtest2.clear();
+	bhtest2.realloc(elems);
+	for(k=0; k<elems; k++)
+		bhtest2.append(array[0][k]);
+
+	tick = clock();
+	bhtest2.restoreHeap();
+	printf("restoreHeap %lu (%i elems)\n", clock()-tick, elems);
+	if( !bhtest2.checkHeap() )
+		printf("restoreHeap failed\n");
+
+
+	_BinaryHeapDH<int> bh1;
+	_BinaryHeap<int> bh2;
+	size_t i;
+	int val=0, val2=0;
+
+	///////////////////////////////////////////////////////////////////////////
+	bh1.append(5);
+	bh1.append(4);
+	bh1.append(8);
+	bh1.append(3);
+	bh1.append(6);
+	bh1.append(2);
+	bh1.append(1);
+	bh1.restoreHeap();
+
+
+	bh1.pop(val); if( val!=1 ) printf("bheap 1 pop failed (%i!=1)\n", val);
+	bh1.pop(val); if( val!=2 ) printf("bheap 1 pop failed (%i!=2)\n", val);
+	bh1.pop(val); if( val!=3 ) printf("bheap 1 pop failed (%i!=3)\n", val);
+	bh1.pop(val); if( val!=4 ) printf("bheap 1 pop failed (%i!=4)\n", val);
+	bh1.pop(val); if( val!=5 ) printf("bheap 1 pop failed (%i!=5)\n", val);
+
+	bh2.append(5);
+	bh2.append(4);
+	bh2.append(8);
+	bh2.append(3);
+	bh2.append(6);
+	bh2.append(2);
+	bh2.append(1);
+	bh2.restoreHeap();
+
+	bh2.pop(val); if( val!=1 ) printf("bheap 2 pop failed (%i!=1)\n", val);
+	bh2.pop(val); if( val!=2 ) printf("bheap 2 pop failed (%i!=2)\n", val);
+	bh2.pop(val); if( val!=3 ) printf("bheap 2 pop failed (%i!=3)\n", val);
+	bh2.pop(val); if( val!=4 ) printf("bheap 2 pop failed (%i!=4)\n", val);
+	bh2.pop(val); if( val!=5 ) printf("bheap 2 pop failed (%i!=5)\n", val);
+
+
+	bh1.clear();
+	bh2.clear();
+	bh1.realloc(elems);
+	bh2.realloc(elems);
+
+	///////////////////////////////////////////////////////////////////////////
+
+	elems = CFIELDSIZE;
+	tick = clock();
+	for(i=0; i<elems; i++)
+	{
+		bh1.insert( array[0][i] );
+	}
+	printf("binary heap (downmove) insert %lu (%i elems)\n", clock()-tick, elems);
+
+	val2=-1;
+	tick = clock();
+	for(i=0; i<CFIELDSIZE; i++)
+	{
+		bh1.pop( val );
+		if( val<val2 )
+		{
+			printf("error3\n");
+			break;
+		}
+		val2=val;
+	}
+	printf("binary heap (downmove) delete (+1 compare&assign) %lu (%i elems)\n", clock()-tick, elems);
+	
+	
+	elems = CFIELDSIZE;
+	tick = clock();
+	for(i=0; i<elems; i++)
+	{
+		bh2.insert( array[0][i] );
+	}
+	printf("binary heap (updown) insert %lu (%i elems)\n", clock()-tick, elems);
+
+	val2=-1;
+	tick = clock();
+	for(i=0; i<CFIELDSIZE; i++)
+	{
+		bh2.pop( val );
+		if( val<val2 )
+		{
+			printf("error1\n");
+			break;
+		}
+		val2=val;
+	}
+	printf("binary heap (updown) delete (+1 compare&assign) %lu (%i elems)\n", clock()-tick, elems);
+
+
+
+}
 
 	///////////////////////////////////////////////////////////////////////////
 	// Binary Heap Test
@@ -66,6 +702,16 @@ void test_heaps(int scale)
 	printf("restoreHeap %lu (%i elems)\n", clock()-tick, elems);
 	if( !bhtest2.checkHeap() )
 		printf("restoreHeap failed\n");
+
+
+
+
+
+
+
+
+
+
 
 
 	BinaryHeapDH<int> bh1;

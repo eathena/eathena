@@ -12,7 +12,6 @@
 void test_threadpool(void);
 
 
-#ifndef SINGLETHREAD
 
 ///////////////////////////////////////////////////////////////////////////////
 //!! TODO: re-implement the heap/dl-list task objects with the new environment
@@ -109,7 +108,7 @@ class intervaltask : public task
 {
 	ulong	interval;
 public:
-	intervaltask(ulong i) : interval(i) {}
+	intervaltask(ulong i) : interval((i)?i:1) {}
 	virtual ~intervaltask()			 {}
 
 	// re-insert this task into the execution list
@@ -130,8 +129,7 @@ class pooltask : public global
 		this->pLink = t.pLink;
 	}
 	pooltask(task&t, ulong time)
-	{	
-		// set time
+	{	// set time
 		t.pLink->stamp = GetTickCount()+time;
 		// link to the object
 		this->pLink = t.pLink;
@@ -189,11 +187,13 @@ public:
 
 class threadpool: public global, public noncopyable
 {
-
 	/////////////////////////////////////////////////////////////
 	// predefine
 	/////////////////////////////////////////////////////////////
+#ifndef SINGLETHREAD
 	class worker;
+#endif//!SINGLETHREAD
+
 	/////////////////////////////////////////////////////////////
 	// handle for shared data between the worker threads
 	/////////////////////////////////////////////////////////////
@@ -215,17 +215,76 @@ class threadpool: public global, public noncopyable
 	public:
 		WorkerHandle():cMaxThreadCount(0),cThreadCount(0),cWorkCount(0),cSignal(0)
 		{}
-
+#ifndef SINGLETHREAD
 		friend class worker;
+#endif//!SINGLETHREAD
 		friend class threadpool;
-	};
 
+		/////////////////////////////////////////////////////////
+		// the data procesing core function
+		void process(long maxwaittime=500)
+		{
+			pooltask	localtask;
+			long		waittime=500;
+			if(maxwaittime<=0) maxwaittime=1;
+
+			// get the time of the next timed event if exist
+			this->mTimeTask.lock();
+			if( this->fTimeTask.top( localtask ) )
+			{
+				waittime = localtask.schedule();
+
+				// normalize waittime
+				if( waittime<50 )			// task is scheduled within the next 50ms or is already overtimed
+				{							// process it immediately
+					this->fTimeTask.pop();	// grab it from the list
+					waittime=0;
+				}
+				else if( waittime>maxwaittime )	// otherwise we set a maximum  
+					waittime=maxwaittime;		// to wait
+			}
+			this->mTimeTask.unlock();
+
+			if( waittime )
+			{	// check the untimed tasks
+				if( this->fSema.wait(waittime) )
+				{	// there is some untimed task to do
+					this->mTask.lock();
+					this->fTask.pop(localtask);		// pop it from the fifo
+					this->mTask.unlock();
+					waittime = 0;
+				}
+			}
+			if(!waittime)
+			{
+				atomicincrement(&this->cWorkCount);// we start working
+				try
+				{	
+					// call the task function
+					localtask.function();
+					// call the epilog function
+					ulong interval = localtask.reenter();
+					if(interval)
+					{	// reenter the task
+						this->mTimeTask.lock();
+						this->fTimeTask.insert( pooltask(localtask,interval) );
+						this->mTimeTask.unlock();
+					}
+				}
+				catch(...)
+				{	// ignore the exceptions for now
+					//!! TODO: add some usefull stuff here
+				}
+				atomicdecrement(&this->cWorkCount);// and finished working
+			}
+		}
+	};
+#ifndef SINGLETHREAD
 	class worker: public thread
 	{
 		virtual void execute()
 		{
 			pooltask		localtask;
-			long			waittime;
 			WorkerHandle&	whandle = *pWorkerHandle;
 
 			
@@ -237,65 +296,12 @@ class threadpool: public global, public noncopyable
 			while( !whandle.cSignal )
 			{
 				// default wait 500ms before rescheduling
-				waittime = 500;
+				whandle.process(500);
 
-				// get the time of the next timed event if exist
-				whandle.mTimeTask.lock();
-				if( whandle.fTimeTask.top( localtask ) )
-				{
-					waittime = localtask.schedule();
-
-					// normalize waittime
-					if( waittime<50 )			// task is scheduled within the next 50ms or is already overtimed
-					{							// process it immediately
-						whandle.fTimeTask.pop();// grab it from the list
-						waittime=0;
-					}
-					else if( waittime>500 )		// otherwise we set a maximum of 500ms 
-						waittime=500;			// before the next maintainance loop
-				}
-				whandle.mTimeTask.unlock();
-
-				if( waittime )
-				{	// check the untimed tasks
-					if( whandle.fSema.wait(waittime) )
-					{	// there is some untimed task to do
-						whandle.mTask.lock();
-						whandle.fTask.pop(localtask);		// pop it from the fifo
-						whandle.mTask.unlock();
-						waittime = 0;
-					}
-				}
-				if(!waittime)
-				{
-					atomicincrement(&whandle.cWorkCount);// we start working
-					try
-					{	
-						// call the task function
-						localtask.function();
-						// call the epilog function
-						ulong interval = localtask.reenter();
-
-						if(interval)
-						{	// reenter the task
-							whandle.mTimeTask.lock();
-							whandle.fTimeTask.insert( pooltask(localtask,interval) );
-							whandle.mTimeTask.unlock();
-						}
-
-					}
-					catch(...)
-					{	// ignore the exceptions for now
-						//!! TODO: add some usefull stuff here
-					}
-					atomicdecrement(&whandle.cWorkCount);// and finished working
-				}
 				// check for start/stop rungate
 				whandle.cRunGate.wait();
 
 				// maintainance section
-				
-
 				whandle.mSystem.lock();
 
 //printf("thread %p of %lu (max %lu), working %lu (task %lu)(timed %lu)\r", this, 
@@ -317,39 +323,38 @@ class threadpool: public global, public noncopyable
 					// so we finish but not if we are the last one
 					// always keep one thread here
 					if( whandle.cThreadCount > 1 )
-					{
-						whandle.mSystem.unlock();
 						break;
-					}
 				}
 				whandle.mSystem.unlock();
-			}//end while			
+			}//end while
+
 			// we have to remove ourself from the worker count
 			atomicdecrement(&whandle.cThreadCount);
-			
+
+			whandle.mSystem.unlock();
 			// go out of scope and die silently
 		}
 		TPtrAutoCount<WorkerHandle> pWorkerHandle;
 	public:
 		worker(TPtrAutoCount<WorkerHandle> &wh):thread(true),pWorkerHandle(wh)
 		{	// autostart the thread
-			start();
+			this->start();
 		}
 		virtual ~worker()	{}
 	};
+#endif//!SINGLETHREAD
+
 	TPtrAutoCount<WorkerHandle> pWorkerHandle;
 
 public:
 	threadpool(size_t threadcount=1, bool autostart = true)
 	{
 		pWorkerHandle->cMaxThreadCount = (threadcount)?threadcount:1;
-		if(autostart) start();
+		if(autostart) this->start();
 	}
 	~threadpool()
 	{	// signal the threads to finish immediatly
 		// another method than in SocketBase::receiver
-		//atomicexchange(&pWorkerHandle->cSignal,1);
-
 		atomicincrement(&pWorkerHandle->cSignal);
 
 		// wait for threads to close
@@ -366,9 +371,11 @@ public:
 	}
 	void start()
 	{
+#ifndef SINGLETHREAD
 		if( pWorkerHandle->cThreadCount < 1 )
 		{	new worker(pWorkerHandle);
 		}
+#endif//!SINGLETHREAD
 		pWorkerHandle->cRunGate.open();
 	}
 	void stop()
@@ -376,8 +383,15 @@ public:
 		pWorkerHandle->cRunGate.close();
 	}
 
-	unsigned int&	MaxThreads()	{ return pWorkerHandle->cMaxThreadCount; }
+	void process(long maxwaittime)
+	{
+		pWorkerHandle->process(maxwaittime);
+	}
 
+	unsigned int&	MaxThreads()	
+	{
+		return pWorkerHandle->cMaxThreadCount; 
+	}
 	bool insert(task &t)
 	{
 		pWorkerHandle->mTask.lock();
@@ -398,7 +412,7 @@ public:
 
 };
 
-#endif//!SINGLETHREAD
+
 
 
 #endif//__BASETHREADPOOL_H__

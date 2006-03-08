@@ -140,15 +140,15 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// Insert item x into the priority queue, maintaining heap order.
 	// Duplicates are allowed.
-	virtual bool insert( const T& x )
+	virtual bool insert( const T& e )
 	{
 		// Percolate up
 		size_t hole = this->cCnt++;
 		this->TArrayDST<T>::realloc(this->cCnt);
 
-		for( ; hole>0 && x<this->cField[(hole-1)/2]; hole = (hole-1)/2 )
+		for( ; hole>0 && e<this->cField[(hole-1)/2]; hole = (hole-1)/2 )
 			this->cField[hole] = this->cField[(hole-1)/2];
-		this->cField[hole] = x;
+		this->cField[hole] = e;
 		return true;
 	}
 	bool checkHeap()
@@ -285,11 +285,17 @@ public:
 	
 		this->cCnt--;
 		// downheap 
-		for(h=0, k=2; k<=this->cCnt; h=k, k=k*2+2)
+		for(h=0, k=2; k<this->cCnt; h=k, k=k*2+2)
 		{
 			if( this->cField[k] > this->cField[k-1] )
 				k--;
 			this->cField[h]=this->cField[k];
+		}
+		if( k==this->cCnt )
+		{
+			--k;
+			this->cField[h]=this->cField[k];
+			h = k;
 		}
 		if(h < this->cCnt)
 		{
@@ -374,19 +380,15 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// Insert item x into the priority queue, maintaining heap order.
 	// Duplicates are allowed.
-	bool insert( const T& x )
+	virtual bool insert( const T& e )
 	{
 		// Percolate up
-		size_t i, h = this->cCnt++;
-		TArrayDST<T>::realloc(this->cCnt);
-		// upheap starting from last element
-		for( i = (h-1)/2;
-			(h > 0) && x<this->cField[i];
-			h = i, i = (h-1)/2)
-		{
-			this->cField[h] = this->cField[i];
-		}
-		this->cField[h]=x;
+		size_t hole = this->cCnt++;
+		this->TArrayDST<T>::realloc(this->cCnt);
+
+		for( ; hole>0 && e<this->cField[(hole-1)/2]; hole = (hole-1)/2 )
+			this->cField[hole] = this->cField[(hole-1)/2];
+		this->cField[hole] = e;
 		return true;
 	}
 	bool checkHeap()
