@@ -5,6 +5,8 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY VALARIS AND WIZPUTER. -- VALARIS
 
 2006/03/09
+	* Fixed a bug in the pc_skillreset function which allowed TK rankers to
+	  accumulate skill points. [Skotlex]
 	* Fixed pc_damage_sp not properly substracting SP. [Skotlex]
 	* Added bleeding/deadly poison to effects whose rate is reduced by vit.
 	  [Skotlex]
