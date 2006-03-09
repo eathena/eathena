@@ -4857,7 +4857,7 @@ int pc_skillup(struct map_session_data *sd,int skill_num)
 {
 	nullpo_retr(0, sd);
 
-	if( skill_num>=10000 ){
+	if( skill_num>=GD_SKILLBASE){
 		guild_skillup(sd,skill_num,0);
 		return 0;
 	}
@@ -5144,6 +5144,7 @@ static int pc_respawn(int tid,unsigned int tick,int id,int data)
 /*==========================================
  * Damages a player's SP, returns remaining SP. [Skotlex]
  * damage is absolute damage, rate is % damage (100 = 100%)
+ * if rate is positive, it is % of current sp, if negative, it is % of max 
  * Returns remaining SP, or -1 if the player did not have enough SP to substract from.
  *------------------------------------------
  */
@@ -5152,20 +5153,20 @@ int pc_damage_sp(struct map_session_data *sd, int damage, int rate)
 	if (!sd->status.sp)
 		return 0;
 	
-	if (rate)
-		damage += (rate*(sd->status.sp-damage)/sd->status.max_sp)/100;
+	if (rate > 0)
+		damage += (rate*sd->status.sp)/100;
+	else if (rate < 0)
+		damage -= (rate*sd->status.max_sp)/100;
+
 	
 	if (sd->status.sp >= damage){
 		sd->status.sp -= damage;
 		clif_updatestatus(sd,SP_SP);
 		return sd->status.sp;
 	}
-	if (sd->status.sp) {
-		sd->status.sp = 0;
-		clif_updatestatus(sd,SP_SP);
-		return -1;
-	}
-	return 0;
+	sd->status.sp = 0;
+	clif_updatestatus(sd,SP_SP);
+	return -1;
 }
 /*==========================================
  * pc‚Éƒ_ƒ?ƒW‚ğ?‚¦‚é
