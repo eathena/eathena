@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <memory.h>
 #include <string.h>
+#include <limits.h>
 
 #include "pc.h"
 #include "map.h"
@@ -1577,9 +1578,8 @@ int status_calc_pc(struct map_session_data* sd,int first)
 			clif_changelook(&sd->bl,LOOK_CLOTHES_COLOR,sd->status.clothes_color);
 	}
 
-	if( memcmp(b_skill,sd->status.skill,sizeof(sd->status.skill)) || b_attackrange != sd->attackrange)
+	if(memcmp(b_skill,sd->status.skill,sizeof(sd->status.skill)))
 		clif_skillinfoblock(sd);
-
 	if(b_speed != sd->speed)
 		clif_updatestatus(sd,SP_SPEED);
 	if(b_weight != sd->weight)
@@ -3298,7 +3298,9 @@ int status_get_sc_def(struct block_list *bl, int type)
 //		break;
 	case SC_STUN:
 	case SC_POISON:
+	case SC_DPOISON:
 	case SC_SILENCE:
+	case SC_BLEEDING:
 	case SC_STOP:
 		sc_def = 300 +100*status_get_vit(bl) +33*status_get_luk(bl);
 		break;
@@ -3363,8 +3365,8 @@ int status_get_sc_tick(struct block_list *bl, int type, int tick)
 		case SC_FREEZE:				/* 凍結 */
 			rate = 100*status_get_mdef(bl);
 		break;
-		case SC_STUN:				/* スタン（val2にミリ秒セット） */
-			rate = status_get_sc_def_vit(bl);
+		case SC_STUN:	//Reduction in duration is the same as reduction in rate.
+			rate = status_get_sc_def(bl, type);
 		break;
 		case SC_DPOISON:			/* 猛毒 */
 		case SC_POISON:				/* 毒 */
@@ -5619,7 +5621,8 @@ int status_change_clear_debuffs (struct block_list *bl)
 
 static int status_calc_sigma(void)
 {
-	int i,j,k;
+	int i,j;
+	unsigned int k;
 
 	for(i=0;i<MAX_PC_CLASS;i++) {
 		memset(hp_sigma_val[i],0,sizeof(hp_sigma_val[i]));
@@ -5627,7 +5630,11 @@ static int status_calc_sigma(void)
 			k += hp_coefficient[i]*j + 50;
 			k -= k%100;
 			hp_sigma_val[i][j-1] = k;
+			if (k >= INT_MAX)
+				break; //Overflow protection. [Skotlex]
 		}
+		for(;j<=MAX_LEVEL;j++)
+			hp_sigma_val[i][j-1] = INT_MAX;
 	}
 	return 0;
 }
