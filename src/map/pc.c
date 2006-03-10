@@ -971,7 +971,6 @@ int pc_calc_skilltree(struct map_session_data *sd)
 			sd->status.skill[i].lv=(sd->status.skill[i].flag==1)?0:sd->status.skill[i].flag-2;
 			sd->status.skill[i].flag=0;
 		}
-		else
 		if(sd->sc.count && sd->sc.data[SC_SPIRIT].timer != -1 && sd->sc.data[SC_SPIRIT].val2 == SL_BARDDANCER && i >= DC_HUMMING && i<= DC_SERVICEFORYOU)
 		{ //Enable Bard/Dancer spirit linked skills.
 			if (sd->status.sex) { //Link dancer skills to bard.
