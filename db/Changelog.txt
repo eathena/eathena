@@ -1,3 +1,5 @@
+03/10
+	* Made G_Giant_Hornet Agressive, thanks to Blackgatomon [Lupus]
 03/06
 	* Merged Trunk's item_db [Poki#3]
 	- Changed a bunch of item names according to the upcoming iRO Lighthalzen Patch. [Poki#3]
