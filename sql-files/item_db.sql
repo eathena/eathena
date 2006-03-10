@@ -5,8 +5,8 @@
 DROP TABLE IF EXISTS `item_db`;
 CREATE TABLE `item_db` (
   `id` smallint(5) unsigned NOT NULL default '0',
-  `name_english` varchar(30) NOT NULL default '',
-  `name_japanese` varchar(30) NOT NULL default '',
+  `name_english` varchar(50) NOT NULL default '',
+  `name_japanese` varchar(50) NOT NULL default '',
   `type` tinyint(2) unsigned NOT NULL default '0',
   `price_buy` mediumint(10) unsigned default NULL,
   `price_sell` mediumint(10) unsigned default NULL,
@@ -879,7 +879,7 @@ REPLACE INTO `item_db` VALUES (2111,'Sacred_Mission','Sacred Mission','5',NULL,'
 REPLACE INTO `item_db` VALUES (2112,'Novice_Guard','Novice Guard','5',NULL,'10','1',NULL,'3',NULL,'0','8388609','7','2','32',NULL,'0','0','1',NULL);
 REPLACE INTO `item_db` VALUES (2113,'Novice_Shield','Novice Shield','5','5000',NULL,'1000',NULL,'3',NULL,'1','8388609','7','2','32',NULL,'40','1','3','bonus2 bSubEle,Ele_Water,20; bonus2 bSubEle,Ele_Earth,20; bonus2 bSubEle,Ele_Fire,20; bonus2 bSubEle,Ele_Wind,20; bonus2 bSubEle,Ele_Poison,20; bonus2 bSubEle,Ele_Ghost,20; bonus2 bSubEle,Ele_Undead,20;');
 REPLACE INTO `item_db` VALUES (2114,'Stone_Buckler','Stone Buckler','5',NULL,'10','1500',NULL,'4',NULL,'1','119529470','7','2','32',NULL,'65','1','2','bonus2 bSubEle,Ele_Neutral,5; if (isequipped(2353,5122)==0) end; bonus bStr,2; bonus bDef,1; bonus bMdef,5; if(BaseClass == Job_Swordman) bonus bDef,5;');
-REPLACE INTO `item_db` VALUES (2115,'Valkyrie\'s_Shield','Valkyrie\'s Shield','5',NULL,'10','500',NULL,'3',NULL,'1','119529470','7','2','32',NULL,'65','1','3','bonus2 bSubEle,Ele_Water,20; bonus2 bSubEle,Ele_Fire,20; bonus2 bSubEle,Ele_Dark,20; bonus2 bSubEle,Ele_Undead,20; if(isequipped(2353,5124)==0) { bonus bMdef 5; end; } bonus bDef 2; bonus bMdef 25;');
+REPLACE INTO `item_db` VALUES (2115,'Valkyrie\'s_Shield','Valkyrie\'s Shield','5',NULL,'10','500',NULL,'3',NULL,'1','119529470','7','2','32',NULL,'65','1','3','bonus2 bSubEle,Ele_Water,20; bonus2 bSubEle,Ele_Fire,20; bonus2 bSubEle,Ele_Dark,20; bonus2 bSubEle,Ele_Undead,20; if(isequipped(2353,5124)==0) { bonus bMdef,5; end; } bonus bDef,2; bonus bMdef,25;');
 REPLACE INTO `item_db` VALUES (2116,'Angelic_Guard','Angelic Guard','5',NULL,'10','500',NULL,'3',NULL,'1','8388609','7','2','32',NULL,'20','1','3','bonus2 bSubRace,RC_Fish,5;');
 REPLACE INTO `item_db` VALUES (2199,'Ahura_Mazdah','Ahura Mazdah','5',NULL,'10','100',NULL,'0',NULL,'0','127918079','7','2','32',NULL,'1','1','0','bonus bShortWeaponDamageReturn,100; bonus2 bSubRace,RC_DemiHuman,95;');
 -- 
