@@ -4860,10 +4860,12 @@ int pc_skillup(struct map_session_data *sd,int skill_num)
 		guild_skillup(sd,skill_num,0);
 		return 0;
 	}
-
-	if( sd->status.skill_point>0 &&
-		sd->status.skill[skill_num].id!=0 &&
-		//sd->status.skill[skill_num].lv < skill_get_max(skill_num) ) - celest
+	if (skill_num < 0 || skill_num >= MAX_SKILL)
+		return 0;
+	
+	if(sd->status.skill_point>0 &&
+		sd->status.skill[skill_num].id &&
+		sd->status.skill[skill_num].flag==0 && //Don't allow raising while you have granted skills. [Skotlex]
 		sd->status.skill[skill_num].lv < skill_tree_get_max(skill_num, sd->status.class_) )
 	{
 		sd->status.skill[skill_num].lv++;
@@ -8000,7 +8002,7 @@ int pc_readdb(void)
 		int jobs[MAX_PC_CLASS], job_count, job;
 		int type;
 		unsigned int max;
-		char *split[3];
+		char *split[4];
 		if(line[0]=='/' && line[1]=='/')
 			continue;
 		if (pc_split_str(line,split,4) < 4)

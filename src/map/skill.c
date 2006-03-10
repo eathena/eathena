@@ -874,18 +874,21 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 					clif_skill_fail(sd,skillid,0,0);
 			}
 			// Chance to trigger Taekwon kicks [Dralnu]
-			if(sd->sc.count) {
-				if(sd->sc.data[SC_READYSTORM].timer != -1)
+			if(sd->sc.count && sd->sc.data[SC_COMBO].timer == -1) {
+				if(sd->sc.data[SC_READYSTORM].timer != -1 &&
 					sc_start4(src,SC_COMBO, 15, TK_STORMKICK,0,0,0,
-						(2000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src)));
-				else if(sd->sc.data[SC_READYDOWN].timer != -1)
+						(2000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src))))
+					; //Stance triggered
+				else if(sd->sc.data[SC_READYDOWN].timer != -1 &&
 					sc_start4(src,SC_COMBO, 15, TK_DOWNKICK,0,0,0,
-						(2000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src)));
-				else if(sd->sc.data[SC_READYTURN].timer != -1 && sd->sc.data[SC_COMBO].timer == -1)
+						(2000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src))))
+					; //Stance triggered
+				else if(sd->sc.data[SC_READYTURN].timer != -1 && 
 					sc_start4(src,SC_COMBO, 15, TK_TURNKICK,0,0,0,
-						(2000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src)));
-				else if(sd->sc.data[SC_READYCOUNTER].timer != -1 && sd->sc.data[SC_COMBO].timer == -1) //additional chance from SG_FRIEND [Komurka]
-				{	
+						(2000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src))))
+					; //Stance triggered
+				else if(sd->sc.data[SC_READYCOUNTER].timer != -1)
+				{	//additional chance from SG_FRIEND [Komurka]
 					rate = 20;
 					if (sd->sc.data[SC_SKILLRATE_UP].timer != -1 && sd->sc.data[SC_SKILLRATE_UP].val1 == TK_COUNTER) {
 						rate += rate*sd->sc.data[SC_SKILLRATE_UP].val2/100;
@@ -1464,6 +1467,7 @@ int skill_break_equip(struct block_list *bl, unsigned short where, int rate, int
  If count&0xf00000, the direction is send in the 6th byte.
  If count&0x10000, the direction is to the back of the target, otherwise is away from the src.
  If count&0x20000, position update packets must not be sent.
+ IF count&0X40000, direction is random.
 -------------------------------------------------------------------------*/
 int skill_blown( struct block_list *src, struct block_list *target,int count)
 {
@@ -1480,7 +1484,9 @@ int skill_blown( struct block_list *src, struct block_list *target,int count)
 
 	if (src != target && map_flag_gvg(target->m) && target->type != BL_SKILL)
 		return 0; //No knocking back in WoE, except for skills... because traps CAN be knocked back.
-
+	if (!count&0xffff)
+		return 0; //Actual knockback distance is 0.
+	
 	switch (target->type) {
 		case BL_PC:
 			sd=(struct map_session_data *)target;
@@ -1502,6 +1508,8 @@ int skill_blown( struct block_list *src, struct block_list *target,int count)
 		dir = (count>>20)&0xf;
 	else if (count&0x10000 || (target->x==src->x && target->y==src->y))
 		dir = status_get_dir(target);
+	else if (count&0x40000) //Flag for random pushing.
+		dir = rand()%8;
 	else
 		dir = map_calc_dir(target,src->x,src->y);
 	if (dir>=0 && dir<8){
@@ -1518,6 +1526,9 @@ int skill_blown( struct block_list *src, struct block_list *target,int count)
 	dx = nx - x;
 	dy = ny - y;
 
+	if (!dx && !dy) //Could not knockback.
+		return 0;
+	
 	if(sd)	/* ?–ÊŠO‚É?o‚½‚Ì‚Å?Á‹Ž */
 		map_foreachinmovearea(clif_pcoutsight,target->m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,dx,dy,BL_ALL,sd);
 	else if(md)
@@ -7571,21 +7582,30 @@ int skill_check_condition(struct map_session_data *sd,int type)
 	lv = sd->skilllv;
 	if (lv <= 0) return 0;
 	// for the guild skills [celest]
-	hp = skill_get_hp(skill, lv);	/* ?Á”ïHP */
-	sp = skill_get_sp(skill, lv);	/* ?Á”ïSP */
+	if (skill >= GD_SKILLBASE)
+		skill = GD_SKILLRANGEMIN + skill - GD_SKILLBASE;
+	if (skill < 0 || skill >= MAX_SKILL_DB)
+  		return 0;
+	//Code speedup, rather than using skill_get_* over and over again.
+	if (lv < 1 || lv > MAX_SKILL_LEVEL)
+		return 0;
+	hp = skill_db[skill].hp[lv-1];	/* ?Á”ïHP */
+	sp = skill_db[skill].sp[lv-1];	/* ?Á”ïSP */
 	if((sd->skillid_old == BD_ENCORE) && skill == sd->skillid_dance)
 		sp=sp/2;	//ƒAƒ“ƒR?ƒ‹Žž‚ÍSP?Á”ï‚ª”¼•ª
-	hp_rate = skill_get_hp_rate(skill, lv);
-	sp_rate = skill_get_sp_rate(skill, lv);
-	zeny = skill_get_zeny(skill,lv);
-	weapon = skill_get_weapontype(skill);
-	state = skill_get_state(skill);
-	spiritball = skill_get_spiritball(skill,lv);
-	mhp = skill_get_mhp(skill, lv);	/* ?Á”ïHP */
+	hp_rate = skill_db[skill].hp_rate[lv-1];
+	sp_rate = skill_db[skill].sp_rate[lv-1];
+	zeny = skill_db[skill].zeny[lv-1];
+	weapon = skill_db[skill].weapon;
+	state = skill_db[skill].state;
+	spiritball = skill_db[skill].spiritball[lv-1];
+	mhp = skill_db[skill].mhp[lv-1];	/* ?Á”ïHP */
 	for(i = 0; i < 10; i++) {
-		itemid[i] = skill_get_itemid(skill, i);
-		amount[i] = skill_get_itemqty(skill, i);
+		itemid[i] = skill_db[skill].itemid[i];
+		amount[i] = skill_db[skill].amount[i];
 	}
+	if (skill != sd->skillid)
+		skill = sd->skillid; //Restore skillid for guild skills.
 	if(mhp > 0)
 		hp += (sd->status.max_hp * mhp)/100;
 	if(hp_rate > 0)

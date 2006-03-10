@@ -39,6 +39,8 @@
 #define MOB_LAZYWARPPERC 20	// Warp probability in the negligent mode MOB (rate of 1000 minute)
 
 #define MOB_SLAVEDISTANCE 2	//Distance that slaves should keep from their master.
+
+#define MAX_MINCHASE 30	//Max minimum chase value to use for mobs.
 //Dynamic mob database, allows saving of memory when there's big gaps in the mob_db [Skotlex]
 struct mob_db *mob_db_data[MAX_MOB_DB+1];
 struct mob_db *mob_dummy = NULL;	//Dummy mob to be returned when a non-existant one is requested.
@@ -739,7 +741,7 @@ static int mob_attack(struct mob_data *md,unsigned int tick,int data)
 	//Use the attack delay for next can attack try
 	//But use the attack motion to know when it can start moving. [Skotlex]
 	md->attackabletime = tick + status_get_adelay(&md->bl);
-	md->canmove_tick = tick + status_get_amotion(&md->bl);
+	battle_set_walkdelay(&md->bl, tick, status_get_amotion(&md->bl), 1);
 
 	md->timer=add_timer(md->attackabletime,mob_timer,md->bl.id,0);
 	md->state.state=MS_ATTACK;
@@ -1042,7 +1044,8 @@ int mob_spawn (int id)
 		//Avoid spawning on the view-range of players. [Skotlex]
 		if (battle_config.no_spawn_on_player &&
 			c++ < battle_config.no_spawn_on_player &&
-			map_foreachinrange(mob_count_sub, &md->bl, AREA_SIZE, BL_PC)
+			map_foreachinarea(mob_count_sub, md->m,
+				x-AREA_SIZE, y-AREA_SIZE, x+AREA_SIZE, y+AREA_SIZE, BL_PC)
 		)
 			continue;
 		//Found a spot.
@@ -1259,8 +1262,8 @@ int mob_target(struct mob_data *md,struct block_list *bl,int dist)
 	if (md->state.provoke_flag)
 		md->state.provoke_flag = 0;
 	md->min_chase=dist+md->db->range2;
-	if(md->min_chase>26)
-		md->min_chase=26;
+	if(md->min_chase>MAX_MINCHASE)
+		md->min_chase=MAX_MINCHASE;
 	return 0;
 }
 
@@ -1461,6 +1464,8 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 						md->state.targettype = ATTACKABLE;
 						md->state.aggressive = (status_get_mode(&md->bl)&MD_ANGRY)?1:0;
 						md->min_chase=md->db->range2+distance_bl(&md->bl, tbl);
+						if(md->min_chase>MAX_MINCHASE)
+							md->min_chase=MAX_MINCHASE;
 					}
 				}
 			break;
@@ -1480,6 +1485,8 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 						md->state.targettype = ATTACKABLE;
 						md->state.aggressive = (status_get_mode(&md->bl)&MD_ANGRY)?1:0;
 						md->min_chase=md->db->range2+distance_bl(&md->bl, tbl);
+						if(md->min_chase>MAX_MINCHASE)
+							md->min_chase=MAX_MINCHASE;
 					}
 				}
 			break;
@@ -1625,7 +1632,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 				(dist = distance_bl(&md->bl, abl)) >= 32 ||
 				battle_check_target(bl, abl, BCT_ENEMY) <= 0 ||
 				(battle_config.mob_ai&2 && !status_check_skilluse(bl, abl, 0, 0)) ||
-				!mob_can_reach(md, abl, md->db->range2, MSS_RUSH) ||
+				!mob_can_reach(md, abl, dist+2, MSS_RUSH) ||
 				(	//Gangster Paradise check
 					abl->type == BL_PC && !(mode&MD_BOSS) &&
 					((struct map_session_data*)abl)->state.gangsterparadise
@@ -1665,9 +1672,9 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 					md->state.aggressive = 0; //Retaliating.
 					attack_type = 1;
 					md->attacked_count = 0;
-					md->min_chase = dist + md->db->range2;
-					if (md->min_chase > 26)
-						md->min_chase = 26;
+					md->min_chase = dist+md->db->range2;
+					if(md->min_chase>MAX_MINCHASE)
+						md->min_chase=MAX_MINCHASE;
 					tbl = abl; //Set the new target
 				}
 			}
@@ -1745,7 +1752,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 				) {
 					return 0; //No need to follow, already doing it?
 				}
-				search_size = (blind_flag) ? 3 : ((md->min_chase > md->db->range2) ? md->min_chase : md->db->range2);
+				search_size = blind_flag?3: md->min_chase;
 				if (!mob_can_reach(md, tbl, search_size, MSS_RUSH))
 				{	//Can't reach
 					mob_unlocktarget(md,tick);
@@ -4494,12 +4501,12 @@ static int mob_readdb_mobavail(void)
 		k=atoi(str[1]);
 		if(k < 0)
 			continue;
-		if (j > 3 && k > 23 && k < 69)
+		if (j >= 12 && k > 23 && k < 69)
 			k += 3977;	// advanced job/baby class
 		mob_db_data[class_]->view_class=k;
 
 		//Player sprites
-		if(pcdb_checkid(k)) {
+		if(pcdb_checkid(k) && j>=12) {
 			mob_db_data[class_]->sex=atoi(str[2]);
 			mob_db_data[class_]->hair=atoi(str[3]);
 			mob_db_data[class_]->hair_color=atoi(str[4]);
@@ -4511,7 +4518,7 @@ static int mob_readdb_mobavail(void)
 			mob_db_data[class_]->option=atoi(str[10])&~0x46;
 			mob_db_data[class_]->clothes_color=atoi(str[11]); // Monster player dye option - Valaris
 		}
-		else if(atoi(str[2]) > 0) mob_db_data[class_]->equip=atoi(str[2]); // mob equipment [Valaris]
+		else if(str[2] && atoi(str[2]) > 0) mob_db_data[class_]->equip=atoi(str[2]); // mob equipment [Valaris]
 
 		ln++;
 	}
