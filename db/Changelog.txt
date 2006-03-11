@@ -1,3 +1,5 @@
+03/11
+	* Adjusted bonus items drop rates at Mimic Card and Myst Case Card [Lupus]
 03/10
 	* Made G_Giant_Hornet Agressive, thanks to Blackgatomon [Lupus]
 	* Doppel's drops fix Lance 1411 -> Lance 1410 [Lupus]
