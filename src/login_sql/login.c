@@ -64,14 +64,21 @@ void Gettimeofday(struct timeval *timenow)
 //-----------------------------------------------------
 // global variable
 //-----------------------------------------------------
-int account_id_count = START_ACCOUNT_NUM;
 int server_num;
 int new_account_flag = 0; //Set from config too XD [Sirius]
 int bind_ip_set_ = 0;
 char bind_ip_str[128];
 int login_port = 6900;
-char lan_char_ip[128]; // Lan char ip added by kashy
-int subnetmaski[4]; // Subnetmask added by kashy
+
+// Advanced subnet check [LuzZza]
+struct _subnet {
+	long subnet;
+	long mask;
+	long char_ip;
+	long map_ip;
+} subnet[16];
+
+int subnet_count = 0;
 
 struct mmo_char_server server[MAX_SERVERS];
 int server_fd[MAX_SERVERS];
@@ -369,29 +376,6 @@ int mmo_auth_sqldb_init(void) {
 			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		}
 	}
-	if (new_account_flag)
-	{	//Check if the next new account will need to have it's ID set (to avoid bad DBs which would otherwise insert
-		//new accounts with account_ids of less than 2M [Skotlex]
-		sprintf(tmp_sql, "SELECT max(`%s`) from `%s`", login_db_account_id, login_db);
-		if(mysql_query(&mysql_handle, tmp_sql)){
-			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
-			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-		} else {
-			MYSQL_RES* 	sql_res;
-			MYSQL_ROW	sql_row;
-			
-			sql_res = mysql_store_result(&mysql_handle) ;
-			if (sql_res)
-			{
-				if (mysql_num_rows(sql_res) > 0 &&
-					(sql_row = mysql_fetch_row(sql_res)) != NULL &&
-					sql_row[0] != NULL && atoi(sql_row[0]) >= account_id_count)
-				//Ok, chars already exist, no need to use this.
-					account_id_count = 0;
-				mysql_free_result(sql_res);
-			}
-		}
-	}
 	return 0;
 }
 
@@ -490,10 +474,7 @@ int mmo_auth_new(struct mmo_account* account, char sex)
 
 	ShowInfo("New account: user: %s with passwd: %s sex: %c\n", account->userid, user_password, sex);
 
-	if (account_id_count) //Force new Account ID
-		sprintf(tmp_sql, "INSERT INTO `%s` (`%s`, `%s`, `%s`, `sex`, `email`) VALUES ('%d', '%s', '%s', '%c', '%s')", login_db, login_db_account_id, login_db_userid, login_db_user_pass, account_id_count, account->userid, user_password, sex, "a@a.com");
-	else
-		sprintf(tmp_sql, "INSERT INTO `%s` (`%s`, `%s`, `sex`, `email`) VALUES ('%s', '%s', '%c', '%s')", login_db, login_db_userid, login_db_user_pass, account->userid, user_password, sex, "a@a.com");
+	sprintf(tmp_sql, "INSERT INTO `%s` (`%s`, `%s`, `sex`, `email`) VALUES ('%s', '%s', '%c', '%s')", login_db, login_db_userid, login_db_user_pass, account->userid, user_password, sex, "a@a.com");
 		
 	if(mysql_query(&mysql_handle, tmp_sql)){
 		//Failed to insert new acc :/
@@ -502,9 +483,25 @@ int mmo_auth_new(struct mmo_account* account, char sex)
 		return 1;
 	}
 
-	if (account_id_count) //Clear it or all new accounts will try to use the same id :P
-		account_id_count = 0;
-
+	if(mysql_field_count(&mysql_handle) == 0 &&
+		mysql_insert_id(&mysql_handle) < START_ACCOUNT_NUM) {
+		//Invalid Account ID! Must update it.
+		int id = (int)mysql_insert_id(&mysql_handle);
+		sprintf(tmp_sql, "UPDATE `%s` SET `%s`='%d' WHERE `%s`='%d'", login_db, login_db_account_id, START_ACCOUNT_NUM, login_db_account_id, id);
+		if(mysql_query(&mysql_handle, tmp_sql)){
+			ShowError("New account %s has an invalid account ID [%d] which could not be updated (account_id must be %d or higher).", account->userid, id, START_ACCOUNT_NUM);
+			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+			//Just delete it and fail.
+			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `%s`='%d'", login_db, login_db_account_id, id);
+			if(mysql_query(&mysql_handle, tmp_sql)){
+				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+			}
+			return 1;
+		}
+		ShowNotice("Updated New account %s's ID %d->%d (account_id must be %d or higher).", account->userid, id, START_ACCOUNT_NUM, START_ACCOUNT_NUM);
+	}
 	if(tick > new_reg_tick)
 	{	//Update the registration check.
 		num_regs=0;
@@ -561,7 +558,7 @@ int mmo_auth( struct mmo_account* account , int fd){
 
 
 	sprintf(ip, "%d.%d.%d.%d", sin_addr[0], sin_addr[1], sin_addr[2], sin_addr[3]);
-	ShowInfo("auth start for %s...\n", ip);
+	//ShowInfo("auth start for %s...\n", ip);
 	
 	//accountreg with _M/_F .. [Sirius]
 	len = strlen(account->userid) -2;
@@ -655,11 +652,11 @@ int mmo_auth( struct mmo_account* account , int fd){
 		} else {
 			jstrescapecpy(user_password, account->passwd);
 		}
-		ShowInfo("account id ok encval:%d\n",account->passwdenc);
+		//ShowInfo("account id ok encval:%d\n",account->passwdenc);
 #ifdef PASSWORDENC
 		if (account->passwdenc > 0) {
 			int j = account->passwdenc;
-			ShowInfo("start md5calc..\n");
+			//ShowInfo("start md5calc..\n");
 			if (j > 2)
 				j = 1;
 			do {
@@ -669,13 +666,13 @@ int mmo_auth( struct mmo_account* account , int fd){
 					sprintf(md5str, "%s%s", sql_row[2], md5key);
 				} else
 					md5str[0] = 0;
-				ShowDebug("j:%d mdstr:%s\n", j, md5str);
+				//ShowDebug("j:%d mdstr:%s\n", j, md5str);
 				MD5_String2binary(md5str, md5bin);
 				encpasswdok = (memcmp(user_password, md5bin, 16) == 0);
 			} while (j < 2 && !encpasswdok && (j++) != account->passwdenc);
 			//printf("key[%s] md5 [%s] ", md5key, md5);
-			ShowInfo("client [%s] accountpass [%s]\n", user_password, sql_row[2]);
-			ShowInfo("end md5calc..\n");
+			//ShowInfo("client [%s] accountpass [%s]\n", user_password, sql_row[2]);
+			//ShowInfo("end md5calc..\n");
 		}
 #endif
 		if ((strcmp(user_password, sql_row[2]) && !encpasswdok)) {
@@ -700,7 +697,7 @@ int mmo_auth( struct mmo_account* account , int fd){
 			}
 			return 1;
 		}
-		ShowInfo("auth ok %s %s" RETCODE, tmpstr, account->userid);
+		//ShowInfo("auth ok %s %s" RETCODE, tmpstr, account->userid);
 	}
 
 /*
@@ -817,8 +814,8 @@ int mmo_auth( struct mmo_account* account , int fd){
 	account->sex = sql_row[5][0] == 'S' ? 2 : sql_row[5][0]=='M';
 	account->level = atoi(sql_row[10]) > 99 ? 99 : atoi(sql_row[10]); // as was in isGM() [zzo]
 
-	if (account->sex != 2 && account->account_id < 700000)
-		ShowWarning("Account %s has account id %d! Account IDs must be over 700000 to work properly!\n", account->userid, account->account_id);
+	if (account->sex != 2 && account->account_id < START_ACCOUNT_NUM)
+		ShowWarning("Account %s has account id %d! Account IDs must be over %d to work properly!\n", account->userid, account->account_id, START_ACCOUNT_NUM);
 	sprintf(tmpsql, "UPDATE `%s` SET `lastlogin` = NOW(), `logincount`=`logincount` +1, `last_ip`='%s'  WHERE %s  `%s` = '%s'",
 	        login_db, ip, case_sensitive ? "BINARY" : "", login_db_userid, sql_row[1]);
 	mysql_free_result(sql_res) ; //resource free
@@ -1352,23 +1349,31 @@ int parse_fromchar(int fd){
 	return 0;
 }
 
-//Lan ip check added by Kashy
-int lan_ip_check(unsigned char *p) {
-	int y;
-	int lancheck = 1;
-	int lancharip[4];
+//--------------------------------------------
+// Test to know if an IP come from LAN or WAN.
+// Rewrote: Adnvanced subnet check [LuzZza]
+//--------------------------------------------
+int lan_subnetcheck(long *p) {
 
-	unsigned int k0, k1, k2, k3;
-	sscanf(lan_char_ip, "%d.%d.%d.%d", &k0, &k1, &k2, &k3);
-	lancharip[0] = k0; lancharip[1] = k1; lancharip[2] = k2; lancharip[3] = k3;
-
-	for(y = 0; y < 4; y++) {
-		if ((lancharip[y] & subnetmaski[y])!= (p[y]))
-		lancheck = 0;
-		break; }
-
-	ShowInfo("LAN check: "CL_CYAN"%s"CL_RESET".\n", (lancheck) ? "LAN" : "WAN");
-	return lancheck;
+	int i;
+	unsigned char *sbn, *msk, *src = (unsigned char *)p;
+	
+	for(i=0; i<subnet_count; i++) {
+	
+		if((subnet[i].subnet & subnet[i].mask) == (*p & subnet[i].mask)) {
+			
+			sbn = (unsigned char *)&subnet[i].subnet;
+			msk = (unsigned char *)&subnet[i].mask;
+			
+			ShowInfo("Subnet check [%u.%u.%u.%u]: Matches "CL_CYAN"%u.%u.%u.%u/%u.%u.%u.%u"CL_RESET"\n",
+				src[0], src[1], src[2], src[3], sbn[0], sbn[1], sbn[2], sbn[3], msk[0], msk[1], msk[2], msk[3]);
+			
+			return subnet[i].char_ip;
+		}
+	}
+	
+	ShowInfo("Subnet check [%u.%u.%u.%u]: "CL_CYAN"WAN"CL_RESET"\n", src[0], src[1], src[2], src[3]);
+	return 0;
 }
 
 //----------------------------------------------------------------------------------------
@@ -1383,6 +1388,7 @@ int parse_login(int fd) {
 	char t_uid[100];
 	//int sql_fields, sql_cnt;
 	struct mmo_account account;
+	long subnet_char_ip;
 
 	int result, i;
 	unsigned char *p = (unsigned char *) &session[fd]->client_addr.sin_addr;
@@ -1501,11 +1507,13 @@ int parse_login(int fd) {
                     server_num=0;
 				for(i = 0; i < MAX_SERVERS; i++) {
 					if (server_fd[i] >= 0) {
-						//Lan check added by Kashy
-						if (lan_ip_check(p))
-							WFIFOL(fd,47+server_num*32) = inet_addr(lan_char_ip);
-						else
-                            WFIFOL(fd,47+server_num*32) = server[i].ip;
+			
+						    // Andvanced subnet check [LuzZza]
+							if((subnet_char_ip = lan_subnetcheck((long *)p)))
+								WFIFOL(fd,47+server_num*32) = subnet_char_ip;
+							else
+								WFIFOL(fd,47+server_num*32) = server[i].ip;
+
                             WFIFOW(fd,47+server_num*32+4) = server[i].port;
                             memcpy(WFIFOP(fd,47+server_num*32+6), server[i].name, 20);
                             WFIFOW(fd,47+server_num*32+26) = server[i].users;
@@ -1878,59 +1886,59 @@ int config_switch(const char *str) {
 }
 
 
-//Lan Support conf reading added by Kashy
-int login_lan_config_read(const char *lancfgName){
-	int i;
-	char subnetmask[128];
-	char line[1024], w1[1024], w2[1024];
+//----------------------------------
+// Reading Lan Support configuration
+// Rewrote: Anvanced subnet check [LuzZza]
+//----------------------------------
+int login_lan_config_read(const char *lancfgName) {
+
 	FILE *fp;
-
-	fp=fopen(lancfgName, "r");
-
-	if (fp == NULL) {
-		ShowError("file not found: %s\n", lancfgName);
+	int line_num = 0;
+	char line[1024], w1[64], w2[64], w3[64], w4[64], w5[64];
+	
+	if((fp = fopen(lancfgName, "r")) == NULL) {
+		ShowWarning("LAN Support configuration file is not found: %s\n", lancfgName);
 		return 1;
 	}
-	ShowInfo("reading configuration file %s...\n", lancfgName);
-	while(fgets(line, sizeof(line)-1, fp)){
-		if (line[0] == '/' && line[1] == '/')
+
+	ShowInfo("Reading the configuration file %s...\n", lancfgName);
+
+	while(fgets(line, sizeof(line)-1, fp)) {
+
+		line_num++;		
+		if ((line[0] == '/' && line[1] == '/') || line[0] == '\n' || line[1] == '\n')
 			continue;
 
-		i = sscanf(line,"%[^:]: %[^\r\n]",w1,w2);
-		if(i!=2)
+		line[sizeof(line)-1] = '\0';
+		if(sscanf(line,"%[^:]: %[^/]/%[^:]:%[^:]:%[^\r\n]", w1, w2, w3, w4, w5) != 5) {
+	
+			ShowWarning("Error syntax of configuration file %s in line %d.\n", lancfgName, line_num);	
 			continue;
-
-		else if(strcmpi(w1,"lan_char_ip")==0){
-			strcpy(lan_char_ip, w2);
-			ShowStatus("set Lan_Char_IP : %s\n",w2);
-			}
-
-		else if(strcmpi(w1,"subnetmask")==0){
-			unsigned int k0, k1, k2, k3;
-
-			strcpy(subnetmask, w2);
-			sscanf(subnetmask, "%d.%d.%d.%d", &k0, &k1, &k2, &k3);
-			subnetmaski[0] = k0; subnetmaski[1] = k1; subnetmaski[2] = k2; subnetmaski[3] = k3;
-			ShowStatus("set subnetmask : %s\n",w2);
-			}
 		}
-	fclose(fp);
 
-	{
-		unsigned int a0, a1, a2, a3;
-		unsigned char p[4];
-		sscanf(lan_char_ip, "%d.%d.%d.%d", &a0, &a1, &a2, &a3);
-		p[0] = a0; p[1] = a1; p[2] = a2; p[3] = a3;
-		ShowInfo("LAN test of LAN IP of the char-server:\n");
-		if (lan_ip_check(p) == 0) {
-			ShowError(CL_RED" LAN IP of the char-server doesn't belong to the specified Sub-network"CL_RESET"\n");
+		remove_control_chars((unsigned char *)w1);
+		remove_control_chars((unsigned char *)w2);
+		remove_control_chars((unsigned char *)w3);
+		remove_control_chars((unsigned char *)w4);
+		remove_control_chars((unsigned char *)w5);
+
+		if(strcmpi(w1, "subnet") == 0) {
+	
+			subnet[subnet_count].subnet = inet_addr(w2);
+			subnet[subnet_count].mask = inet_addr(w3);
+			subnet[subnet_count].char_ip = inet_addr(w4);
+			subnet[subnet_count].map_ip = inet_addr(w5);
+				
+			subnet_count++;
 		}
+
+		ShowStatus("Information about %d subnetworks readen.\n", subnet_count);
 	}
 
-	ShowInfo("Finished reading %s.\n",lancfgName);
-
+	fclose(fp);
 	return 0;
 }
+
 
 //-----------------------------------------------------
 //BANNED IP CHECK.

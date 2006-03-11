@@ -5,6 +5,11 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY VALARIS AND WIZPUTER. -- VALARIS
 
 2006/03/10
+	* Readded LAN support update. I think it's stable now. [LuzZza]
+	- Format of subnet_athena.conf file line:
+	  subnet: SUBNET_IP/SUBNET_MASK:CHAR_IP:MAP_IP
+	- Example:
+	  subnet: 10.6.1.0/255.255.255.0:10.6.1.103:10.6.1.103
 	* Fixed a memory overwrite crash on pc_readdb, thanks to foobar for the
 	  fix. [Skotlex]
 	* Fixed only the first TK stance triggering when you have multiple of them
