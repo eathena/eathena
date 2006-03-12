@@ -1,3 +1,5 @@
+03/12
+	* Update the buy/sell prices of four daggers(1247-1249 & 13000) [MasterOfMuppets]
 03/11
 	* Adjusted bonus items drop rates at Mimic Card and Myst Case Card [Lupus]
 03/10
