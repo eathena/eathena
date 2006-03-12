@@ -1043,6 +1043,7 @@ int mob_spawn (int id)
 
 		//Avoid spawning on the view-range of players. [Skotlex]
 		if (battle_config.no_spawn_on_player &&
+			!(md->spawndelay1 == -1 && md->spawndelay2 == -1) &&
 			c++ < battle_config.no_spawn_on_player &&
 			map_foreachinarea(mob_count_sub, md->m,
 				x-AREA_SIZE, y-AREA_SIZE, x+AREA_SIZE, y+AREA_SIZE, BL_PC)
