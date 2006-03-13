@@ -894,7 +894,7 @@ int pc_authok(uint32 id, uint32 login_id2, time_t connect_until_time, unsigned c
 	if (script_config.event_script_type == 0)
 	{
 		struct npc_data *npc= npc_name2id(script_config.login_event_name);
-		if(npc && npc->u.scr.ref)
+		if(npc && npc->u.scr.ref && (npc->bl.m==0xFFFF || npc->bl.m==sd->bl.m) )
 		{
 			CScriptEngine::run(npc->u.scr.ref->script,0,sd->bl.id,npc->bl.id); // PCLoginNPC
 			ShowStatus("Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.login_event_name);
@@ -4985,7 +4985,7 @@ int pc_damage(struct map_session_data &sd, long damage, struct block_list *src)
 				if (script_config.event_script_type == 0)
 				{
 					struct npc_data *npc = npc_name2id(script_config.kill_event_name);
-					if( npc && npc->u.scr.ref )
+					if( npc && npc->u.scr.ref && (npc->bl.m==0xFFFF || npc->bl.m==sd.bl.m) )
 					{
 						CScriptEngine::run(npc->u.scr.ref->script,0,sd.bl.id,npc->bl.id); // PCKillNPC
 						ShowStatus( "Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.kill_event_name);
@@ -5045,7 +5045,7 @@ int pc_damage(struct map_session_data &sd, long damage, struct block_list *src)
 		if (script_config.event_script_type == 0)
 		{
 			struct npc_data *npc = npc_name2id(script_config.die_event_name);
-			if( npc && npc->u.scr.ref )
+			if( npc && npc->u.scr.ref && (npc->bl.m==0xFFFF || npc->bl.m==sd.bl.m) )
 			{
 				CScriptEngine::run(npc->u.scr.ref->script,0,sd.bl.id,npc->bl.id); // PCDeathNPC
 				ShowStatus( "Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.die_event_name);
@@ -6015,7 +6015,6 @@ int pc_setregstr(struct map_session_data &sd,int reg,const char *str)
 int pc_readglobalreg(struct map_session_data &sd,const char *reg)
 {
 	size_t i;
-
 	for(i=0;i<sd.status.global_reg_num;i++){
 		if(strcmp(sd.status.global_reg[i].str,reg)==0)
 			return sd.status.global_reg[i].value;
@@ -6030,45 +6029,58 @@ int pc_readglobalreg(struct map_session_data &sd,const char *reg)
 int pc_setglobalreg(struct map_session_data &sd,const char *reg,int val)
 {
 	size_t i;
-
 	//PC_DIE_COUNTERがスクリプトなどで?更された暫ﾌ?理
-	if(strcmp(reg,"PC_DIE_COUNTER") == 0 && sd.die_counter != val){
+	if(strcmp(reg,"PC_DIE_COUNTER") == 0 && sd.die_counter != val)
+	{
 		sd.die_counter = val;
 		status_calc_pc(sd,0);
-	} else if(strcmp(reg,script_config.die_event_name) == 0){
-		sd.state.event_death = val;
-	} else if(strcmp(reg,script_config.kill_event_name) == 0){
-		sd.state.event_kill = val;
-	} else if(strcmp(reg,script_config.logout_event_name) == 0){
-		sd.state.event_disconnect = val;
+	}
+	else if(strcmp(reg,script_config.die_event_name) == 0)
+	{
+		sd.state.event_death = val!=0;
+	}
+	else if(strcmp(reg,script_config.kill_event_name) == 0)
+	{
+		sd.state.event_kill = val!=0;
+	}
+	else if(strcmp(reg,script_config.logout_event_name) == 0)
+	{
+		sd.state.event_disconnect = val!=0;
 	}
 
-	if(val==0){
-		for(i=0;i<sd.status.global_reg_num;i++){
-			if(strcmp(sd.status.global_reg[i].str,reg)==0){
-				sd.status.global_reg[i] = sd.status.global_reg[sd.status.global_reg_num-1];
-				sd.status.global_reg_num--;
-				break;
-			}
-		}
-		return 0;
+	// find name
+	for(i=0;i<sd.status.global_reg_num;i++)
+	{
+		if( 0==strcmp(sd.status.global_reg[i].str,reg) )
+			break;
 	}
-	for(i=0;i<sd.status.global_reg_num;i++){
-		if(strcmp(sd.status.global_reg[i].str,reg)==0){
+	if( i<sd.status.global_reg_num )
+	{	// name found
+		if( val==0 )
+		{	// clear variable
+			sd.status.global_reg[i] = sd.status.global_reg[sd.status.global_reg_num-1];
+			sd.status.global_reg_num--;
+		}
+		else
+		{	// change value
 			sd.status.global_reg[i].value=val;
-			return 0;
 		}
 	}
-	if(sd.status.global_reg_num<GLOBAL_REG_NUM){
+	else if( val==0 )
+	{	// just nothing
+	}
+	else if(sd.status.global_reg_num<GLOBAL_REG_NUM)
+	{	// append new value
 		safestrcpy(sd.status.global_reg[i].str,reg, sizeof(sd.status.global_reg[i].str));
 		sd.status.global_reg[i].value=val;
 		sd.status.global_reg_num++;
-		return 0;
 	}
-	if(battle_config.error_log)
+	else if(battle_config.error_log)
+	{	// error
 		ShowMessage("pc_setglobalreg : couldn't set %s (GLOBAL_REG_NUM = %d)\n", reg, GLOBAL_REG_NUM);
-
-	return 1;
+		return 1;
+	}
+	return 0;
 }
 
 /*==========================================

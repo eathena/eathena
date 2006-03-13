@@ -418,7 +418,12 @@ struct item
 		};
 	}
 */
+
+	friend bool operator==(const struct item& a, const struct item& b);
 };
+
+bool operator==(const struct item& a, const struct item& b);
+inline bool operator!=(const struct item& a, const struct item& b)		{ return !(a==b); }
 
 extern inline void _item_tobuffer(const struct item &p, uchar *&buf)
 {

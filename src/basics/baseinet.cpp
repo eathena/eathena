@@ -89,7 +89,7 @@ ipaddress hostbyname(const char* name)
 
     if ((ip = ntohl(::inet_addr(name))) != ipaddress(INADDR_NONE))
     {
-        if (ip[3] == 0) // network address?
+        if (ip[0] == 0) // network address?
             return ipaddress(INADDR_NONE);
     }
     else

@@ -2422,7 +2422,7 @@ int map_quit(struct map_session_data &sd)
 		if( script_config.event_script_type == 0 )
 		{
 			struct npc_data *npc = npc_name2id(script_config.logout_event_name);
-			if( npc && npc->u.scr.ref )
+			if( npc && npc->u.scr.ref && (npc->bl.m==0xFFFF || npc->bl.m==sd.bl.m) )
 			{
 				CScriptEngine::run(npc->u.scr.ref->script,0,sd.bl.id,npc->bl.id); // PCLogoutNPC
 				ShowStatus ("Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.logout_event_name);
@@ -4718,20 +4718,4 @@ int do_init(int argc, char *argv[])
 
 	return 0;
 }
-
-bool compare_item(const struct item &a, const struct item &b)
-{
-	return ( (a.id == b.id) &&
-			 (a.nameid == b.nameid) &&
-			 (a.amount == b.amount) &&
-			 (a.equip == b.equip) &&
-			 (a.identify == b.identify) &&
-			 (a.refine == b.refine) &&
-			 (a.attribute == b.attribute) &&
-			 (a.card[0] == b.card[0]) &&
-			 (a.card[1] == b.card[1]) &&
-			 (a.card[2] == b.card[2]) &&
-			 (a.card[3] == b.card[3]) );
-}
-
 

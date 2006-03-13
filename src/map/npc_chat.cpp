@@ -11,29 +11,10 @@
 #include "script.h"
 #include "battle.h"
 
-#define PCRE_SUPPORT
-
-
-#define pcre void
-#define pcre_extra void
-#define PCRE_CASELESS 0
-void *pcre_compile(const char *pattern, int type, const char **err, int *erroff, void*)
-{
-	return NULL;
-}
-void *pcre_study(pcre* pcre_, int, const char **err)
-{
-	return NULL;
-}
-int pcre_exec(pcre* pcre_,pcre_extra *pcre_extra_, const char *msg, size_t len, int i, int k, int* offsets, size_t sz)
-{
-	return 0;
-}
-
 
 #ifdef PCRE_SUPPORT
 
-//#include <pcre.h>
+#include <pcre.h>
 
 /**
  *  Written by MouseJstr in a vision... (2/21/2005)

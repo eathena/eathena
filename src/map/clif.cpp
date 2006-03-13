@@ -8532,7 +8532,7 @@ int clif_parse_LoadEndAck(int fd, struct map_session_data &sd)
 	if( script_config.event_script_type == 0 )
 	{
 		struct npc_data *npc= npc_name2id(script_config.mapload_event_name);
-		if(npc && npc->bl.m==sd.bl.m && npc->u.scr.ref)
+		if(npc && npc->u.scr.ref && (npc->bl.m==0xFFFF || npc->bl.m==sd.bl.m) )
 		{
 			CScriptEngine::run(npc->u.scr.ref->script, 0, sd.bl.id, npc->bl.id);
 			ShowStatus("Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.mapload_event_name);

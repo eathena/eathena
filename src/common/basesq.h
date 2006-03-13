@@ -447,6 +447,8 @@ class CCharDB_sql : public CMySQL, private CConfig, public CCharDBInterface
 	// config stuff
 	// uint32 next_char_id;
 
+	string<> account_db;
+	string<> account_reg_db;
 	string<> char_db;
 	string<> friend_db;
 	string<> memo_db;
@@ -475,12 +477,6 @@ class CCharDB_sql : public CMySQL, private CConfig, public CCharDBInterface
 public:
 	CCharDB_sql(const char *dbcfgfile);
 	virtual ~CCharDB_sql();
-
-private:
-
-	bool compare_item(const struct item &a, const struct item &b);
-	bool read_friends(){return true;}
-
 
 public:
 	///////////////////////////////////////////////////////////////////////////

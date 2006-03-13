@@ -1,4 +1,8 @@
 Date	Added
+03/13
+	* some cleaning on basesql (making it compileable, simplifying query building, 
+	  explaining questioned functions, etc)
+	* reenabled npc_chat
 03/07
 	* more cleaning in common; removing strlib, moving code from socket
 	* restructuring makefile dependencies

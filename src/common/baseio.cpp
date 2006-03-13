@@ -4772,7 +4772,7 @@ variables
   scope (server,accout,char,guild,party)
   owner (charid, accountid, guildid, partyid)
   name (string, possibly a dbstring since many names will be equal)
-  value (stored/stransfered as string always, is converted in script engine)
+  value (stored/transfered as string always, is converted in script engine)
 */
 ///////////////////////////////////////////////////////////////////////////////
 
