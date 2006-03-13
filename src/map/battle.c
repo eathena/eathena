@@ -2411,9 +2411,13 @@ struct Damage battle_calc_magic_attack(
 			} else
 				ad.blewcount |= 0x10000;
 			break;
+		case WZ_STORMGUST: //Should knockback randomly.
+			ad.blewcount|=0x40000;
+			break;
 		case PR_SANCTUARY:
 			ad.blewcount|=0x10000;
 		case AL_HEAL:
+		case PR_BENEDICTIO:
 		case WZ_FIREPILLAR:
 			flag.imdef = 1;
 			break;

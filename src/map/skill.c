@@ -1224,7 +1224,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 
 			skill = (sd->autospell[i].id > 0) ? sd->autospell[i].id : -sd->autospell[i].id;
 			//Prevents skill from retriggering themselves. [Skotlex]
-			if (skill == skillid)
+			if (skill == skillid || skillnotok(skill, sd))
 				continue;
 
 			//skill2 reused to store skilllv.
@@ -1352,6 +1352,8 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 			rate = ((sd && !sd->state.arrow_atk) || (status_get_range(src)<=2)) ?
 				dstsd->autospell2[i].rate : dstsd->autospell2[i].rate / 2;
 			
+			if (skillnotok(skillid, dstsd))
+				continue;
 			if (rand()%1000 > rate)
 				continue;
 			if (dstsd->autospell2[i].id < 0)
@@ -3973,7 +3975,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			skill_get_splash(skillid, skilllv), BL_CHAR,
 			src, skillid, skilllv, tick, flag|BCT_ENEMY,
 			skill_castend_damage_id);
-		battle_damage(src, src, skill_area_temp[2], 0);
+		battle_damage(src, src, status_get_max_hp(src), 0);
 		break;
 
 	/* パ?ティスキル */

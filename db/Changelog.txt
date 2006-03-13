@@ -1,3 +1,8 @@
+03/13
+	* Fixed TK and Soul Linker's position of their job entry in exp2.txt,
+	  thanks to Coltaro. [Skotlex]
+	* Fixed NPC_GRANDDARKNESS targetting the enemy instead of yourself in
+	  mob_skill_db. [Skotlex]
 03/12
 	* Update the buy/sell prices of four daggers(1247-1249 & 13000) [MasterOfMuppets]
 03/11
