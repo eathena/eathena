@@ -61,6 +61,7 @@ int itemdb_searchjname_sub(int key,void *data,va_list ap)
 		*dst=item;
 	return 0;
 }
+
 /*==========================================
  * 名前で検索
  *------------------------------------------
@@ -72,6 +73,30 @@ struct item_data* itemdb_searchname(const char *str)
 	return item;
 }
 
+static int itemdb_searchname_array_sub(DBKey key,void * data,va_list ap)
+{
+	struct item_data *item=(struct item_data *)data;
+	char *str;
+	str=va_arg(ap,char *);
+	if (item == dummy_item)
+		return 1; //Invalid item.
+	if(strstr(item->jname,str))
+		return 0;
+	if(strstr(item->name,str))
+		return 0;
+	return strcmpi(item->jname,str);
+}
+
+/*==========================================
+ * Founds up to N matches. Returns number of matches [Skotlex]
+ *------------------------------------------
+ */
+int itemdb_searchname_array(struct item_data** data, int size, const char *str)
+{
+	return item_db->getall(item_db,(void**)data,size,itemdb_searchname_array_sub,str);
+}
+
+
 /*==========================================
  * 箱系アイテム検索
  *------------------------------------------
@@ -81,21 +106,35 @@ int itemdb_searchrandomid(int flags)
 	int nameid=0,i,index,count;
 	struct random_item_data *list=NULL;
 
-	struct {
+	static struct {
 		int nameid,count;
 		struct random_item_data *list;
 	} data[8];
 
-	// for BCC32 compile error
-	data[0].nameid = 0;						data[0].count = 0; 					data[0].list = NULL;
-	data[1].nameid = blue_box_default;		data[1].count = blue_box_count;		data[1].list = blue_box;
-	data[2].nameid = violet_box_default;	data[2].count = violet_box_count;	data[2].list = violet_box;
-	data[3].nameid = card_album_default;	data[3].count = card_album_count;	data[3].list = card_album;
-	data[4].nameid = gift_box_default;		data[4].count = gift_box_count;		data[4].list = gift_box;
-	data[5].nameid = scroll_default;		data[5].count = scroll_count;		data[5].list = scroll;
-	data[6].nameid = finding_ore_default;	data[6].count = finding_ore_count;	data[6].list = finding_ore;
-	data[7].nameid = cookie_bag_default;	data[7].count = cookie_bag_count;	data[7].list = cookie_bag;
-
+	if (flags == 0) { //Initialize.
+		memset(data, 0, sizeof(data));
+		data[1].nameid = blue_box_default;
+	  	data[1].count = blue_box_count;
+	  	data[1].list = blue_box;
+		data[2].nameid = violet_box_default;
+	  	data[2].count = violet_box_count;
+	  	data[2].list = violet_box;
+		data[3].nameid = card_album_default;
+	  	data[3].count = card_album_count;
+	  	data[3].list = card_album;
+		data[4].nameid = gift_box_default;
+	  	data[4].count = gift_box_count;
+	  	data[4].list = gift_box;
+		data[5].nameid = scroll_default;
+	  	data[5].count = scroll_count;
+		data[5].list = scroll;
+		data[6].nameid = finding_ore_default;
+		data[6].count = finding_ore_count;
+		data[6].list = finding_ore;
+		data[7].nameid = cookie_bag_default;
+		data[7].count = cookie_bag_count;
+		data[7].list = cookie_bag;
+	}
 	if(flags>=1 && flags<=7){
 		nameid=data[flags].nameid;
 		count=data[flags].count;
@@ -104,7 +143,7 @@ int itemdb_searchrandomid(int flags)
 		if(count > 0) {
 			for(i=0;i<1000;i++) {
 				index = rand()%count;
-				if(	rand()%1000000 < list[index].per) {
+				if(rand()%1000000 < list[index].per) {
 					nameid = list[index].nameid;
 					break;
 				}
@@ -209,8 +248,8 @@ static void create_dummy_data(void) {
 	dummy_item->nameid=500;
 	dummy_item->weight=1;
 	dummy_item->type=3; //Etc item
-	strncpy(dummy_item->name,"UNKNOWN_ITEM",ITEM_NAME_LENGTH);
-	strncpy(dummy_item->jname,"UNKNOWN_ITEM",ITEM_NAME_LENGTH);
+	strncpy(dummy_item->name,"UNKNOWN_ITEM",ITEM_NAME_LENGTH-1);
+	strncpy(dummy_item->jname,"UNKNOWN_ITEM",ITEM_NAME_LENGTH-1);
 	dummy_item->view_id = 512; //Use apple sprite.
 }
 
@@ -340,7 +379,6 @@ static int itemdb_read_randomitem(void)
 {
 	FILE *fp;
 	char line[1024];
-	int ln=0;
 	int nameid,i,j;
 	char *str[10],*p;
 
@@ -363,7 +401,6 @@ static int itemdb_read_randomitem(void)
 		int *pc=data[i].pcount;
 		int *pdefault=data[i].pdefault;
 		char *fn=(char *) data[i].filename;
-		ln=0;
 
 		*pdefault = 0;
 		sprintf(line, "%s/%s", db_path, fn);
@@ -399,9 +436,12 @@ static int itemdb_read_randomitem(void)
 				pd[(*pc)++].per = atoi(str[2]);
 			}
 
-			if(ln >= MAX_RANDITEM)
+			if(*pc >= MAX_RANDITEM)
+			{
+				if (battle_config.error_log)
+					ShowWarning("Reached limit of random items [%d] in file [%s]\n", MAX_RANDITEM, data[i].filename);
 				break;
-			ln++;
+			}
 		}
 		fclose(fp);
 		if (*pc > 0) {
@@ -409,6 +449,7 @@ static int itemdb_read_randomitem(void)
 		}
 	}
 
+	itemdb_searchrandomid(0); //Initialize values.
 	return 0;
 }
 
@@ -546,7 +587,7 @@ static int itemdb_read_itemnametable(void)
 			}
 #endif
 
-			memcpy(itemdb_search(nameid)->jname,buf2,ITEM_NAME_LENGTH-1);
+			strncpy(itemdb_search(nameid)->jname,buf2,ITEM_NAME_LENGTH-1);
 		}
 
 		p=strchr(p,10);
@@ -819,8 +860,8 @@ static int itemdb_read_sqldb(void)
 					// ----------
 					id = itemdb_load(nameid);
 					
-					memcpy(id->name, sql_row[1], ITEM_NAME_LENGTH);
-					memcpy(id->jname, sql_row[2], ITEM_NAME_LENGTH);
+					strncpy(id->name, sql_row[1], ITEM_NAME_LENGTH-1);
+					strncpy(id->jname, sql_row[2], ITEM_NAME_LENGTH-1);
 
 					id->type = atoi(sql_row[3]);
 					if (id->type == 11)
@@ -962,8 +1003,8 @@ static int itemdb_readdb(void)
 
 			//ID,Name,Jname,Type,Price,Sell,Weight,ATK,DEF,Range,Slot,Job,Job Upper,Gender,Loc,wLV,eLV,refineable,View
 			id=itemdb_load(nameid);
-			memcpy(id->name, str[1], ITEM_NAME_LENGTH);
-			memcpy(id->jname, str[2], ITEM_NAME_LENGTH);
+			strncpy(id->name, str[1], ITEM_NAME_LENGTH-1);
+			strncpy(id->jname, str[2], ITEM_NAME_LENGTH-1);
 			id->type=atoi(str[3]);
 			if (id->type == 11)
 			{	//Items that are consumed upon target confirmation
