@@ -3030,10 +3030,11 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 			if (tsd && tsd->long_weapon_damage_return)
 				rdamage += damage * tsd->long_weapon_damage_return / 100;
 		}
-		if (rdamage > 0)
+		if (rdamage > 0) {
 			clif_damage(src, src, tick, wd.amotion, wd.dmotion, rdamage, 1, 4, 0);
-		//Use Reflect Shield to signal this kind of skill trigger. [Skotlex]
-		skill_additional_effect(target,src,CR_REFLECTSHIELD, 1,BF_WEAPON,tick);
+			//Use Reflect Shield to signal this kind of skill trigger. [Skotlex]
+			skill_additional_effect(target,src,CR_REFLECTSHIELD, 1,BF_WEAPON,tick);
+		}
 	}
 
 	clif_damage(src, target, tick, wd.amotion, wd.dmotion, wd.damage, wd.div_ , wd.type, wd.damage2);

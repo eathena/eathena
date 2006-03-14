@@ -153,13 +153,11 @@ const struct skill_name_db skill_names[] = {
  { CH_TIGERFIST, "CH_TIGERFIST", "Glacier_Fist" } ,
  { CR_ACIDDEMONSTRATION, "CR_ACIDDEMONSTRATION", "Acid_Demonstration" } ,
  { CR_ALCHEMY, "CR_ALCHEMY", "Alchemy" } ,
- { CR_CULTIVATION, "CR_CULTIVATION", "Plant_Cultivation" } ,
- { CR_SLIMPITCHER, "CR_SLIMPITCHER", "Slim_Pitcher" } ,
- { CR_FULLPROTECTION, "CR_FULLPROTECTION", "Full_Protection" } ,
- { CR_SYNTHESISPOTION, "CR_SYNTHESISPOTION", "Potion_Synthesis" } ,
  { CR_AUTOGUARD, "CR_AUTOGUARD", "Guard" } ,
+ { CR_CULTIVATION, "CR_CULTIVATION", "Plant_Cultivation" } ,
  { CR_DEFENDER, "CR_DEFENDER", "Defending_Aura" } ,
  { CR_DEVOTION, "CR_DEVOTION", "Sacrifice" } ,
+ { CR_FULLPROTECTION, "CR_FULLPROTECTION", "Full_Protection" } ,
  { CR_GRANDCROSS, "CR_GRANDCROSS", "Grand_Cross" } ,
  { CR_HOLYCROSS, "CR_HOLYCROSS", "Holy_Cross" } ,
  { CR_PROVIDENCE, "CR_PROVIDENCE", "Resistant_Souls" } ,
@@ -167,7 +165,9 @@ const struct skill_name_db skill_names[] = {
  { CR_SHIELDBOOMERANG, "CR_SHIELDBOOMERANG", "Shield_Boomerang" } ,
  { CR_SHIELDCHARGE, "CR_SHIELDCHARGE", "Smite" } ,
  { CR_SHRINK, "CR_SHRINK", "Shrink" } ,
+ { CR_SLIMPITCHER, "CR_SLIMPITCHER", "Slim_Pitcher" } ,
  { CR_SPEARQUICKEN, "CR_SPEARQUICKEN", "Spear_Quicken" } ,
+ { CR_SYNTHESISPOTION, "CR_SYNTHESISPOTION", "Potion_Synthesis" } ,
  { CR_TRUST, "CR_TRUST", "Faith" } ,
  { DC_DANCINGLESSON, "DC_DANCINGLESSON", "Dance_Lessons" } ,
  { DC_DONTFORGETME, "DC_DONTFORGETME", "Slow_Grace" } ,
@@ -186,9 +186,9 @@ const struct skill_name_db skill_names[] = {
  { GD_GLORYGUILD, "GD_GLORYGUILD", "Glory_of_Guild" } ,
  { GD_GLORYWOUNDS, "GD_GLORYWOUNDS", "Glorious_Wounds" } ,
  { GD_GUARDUP, "GD_GUARDUP", "Strengthen_Guardian" } ,
- { GD_LEADERSHIP, "GD_LEADERSHIP", "Great_Leadership" } ,
  { GD_HAWKEYES, "GD_HAWKEYES", "Sharp_Gaze" } ,
  { GD_KAFRACONTRACT, "GD_KAFRACONTRACT", "Contract_with_Kafra" } ,
+ { GD_LEADERSHIP, "GD_LEADERSHIP", "Great_Leadership" } ,
  { GD_REGENERATION, "GD_REGENERATION", "Regeneration" } ,
  { GD_RESTORE, "GD_RESTORE", "Restoration" } ,
  { GD_SOULCOLD, "GD_SOULCOLD", "Cold_Heart" } ,
@@ -409,8 +409,8 @@ const struct skill_name_db skill_names[] = {
  { SA_AUTOSPELL, "SA_AUTOSPELL", "Hindsight" } ,
  { SA_CASTCANCEL, "SA_CASTCANCEL", "Cast_Cancel" } ,
  { SA_CLASSCHANGE, "SA_CLASSCHANGE", "Class_Change" } ,
- { SA_CREATECON, "SA_CREATECON", "Create_Elemental_Converter" } ,
  { SA_COMA, "SA_COMA", "Coma" } ,
+ { SA_CREATECON, "SA_CREATECON", "Create_Elemental_Converter" } ,
  { SA_DEATH, "SA_DEATH", "Grim_Reaper" } ,
  { SA_DELUGE, "SA_DELUGE", "Deluge" } ,
  { SA_DISPELL, "SA_DISPELL", "Dispell" } ,
@@ -499,9 +499,9 @@ const struct skill_name_db skill_names[] = {
  { SN_SIGHT, "SN_SIGHT", "Falcon_Eyes" } ,
  { SN_WINDWALK, "SN_WINDWALK", "Wind_Walker" } ,
  { ST_CHASEWALK, "ST_CHASEWALK", "Stealth" } ,
- { ST_REJECTSWORD, "ST_REJECTSWORD", "Counter_Instinct" } ,
- { ST_PRESERVE, "ST_PRESERVE", "Preserve" } ,
  { ST_FULLSTRIP, "ST_FULLSTRIP", "Full_Divestment" } ,
+ { ST_PRESERVE, "ST_PRESERVE", "Preserve" } ,
+ { ST_REJECTSWORD, "ST_REJECTSWORD", "Counter_Instinct" } ,
  { TF_BACKSLIDING, "TF_BACKSLIDING", "Back_Slide" } ,
  { TF_DETOXIFY, "TF_DETOXIFY", "Detoxify" } ,
  { TF_DOUBLE, "TF_DOUBLE", "Double_Attack" } ,
@@ -953,7 +953,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 
 	case AS_GRIMTOOTH:
 		{
-			int type = sd?SC_SLOWDOWN:SC_STOP;
+			int type = dstsd?SC_SLOWDOWN:SC_STOP;
 			if (tsc->data[type].timer == -1)
 				sc_start(bl,type,100,skilllv,skill_get_time2(skillid, skilllv));
 			break;
@@ -1361,7 +1361,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 			else
 				tbl = src;
 			
-			if (tbl != src && !battle_check_range(src, tbl, skill_get_range2(src, skillid, skilllv)))
+			if (tbl != bl && !battle_check_range(bl, tbl, skill_get_range2(bl, skillid, skilllv)))
 				continue; //Autoskills DO check for target-src range. [Skotlex]
 			
 			switch (skill_get_casttype(skillid)) {
@@ -2027,13 +2027,9 @@ int skill_area_sub( struct block_list *bl,va_list ap )
 static int skill_check_unit_range_sub( struct block_list *bl,va_list ap )
 {
 	struct skill_unit *unit;
-	int *c;
 	int skillid,g_skillid;
 
-	nullpo_retr(0, bl);
-	nullpo_retr(0, ap);
-	nullpo_retr(0, unit = (struct skill_unit *)bl);
-	nullpo_retr(0, c = va_arg(ap,int *));
+	unit = (struct skill_unit *)bl;
 
 	if(bl->prev == NULL || bl->type != BL_SKILL)
 		return 0;
@@ -2073,14 +2069,11 @@ static int skill_check_unit_range_sub( struct block_list *bl,va_list ap )
 			break;
 	}
 
-	(*c)++;
-
 	return 1;
 }
 
 int skill_check_unit_range(int m,int x,int y,int skillid,int skilllv)
 {
-	int c = 0;
 	int range = skill_get_unit_range(skillid);
 	int layout_type = skill_get_unit_layout_type(skillid,skilllv);
 	if (layout_type==-1 || layout_type>MAX_SQUARE_LAYOUT) {
@@ -2090,10 +2083,8 @@ int skill_check_unit_range(int m,int x,int y,int skillid,int skilllv)
 
 	// ‚Æ‚è‚ ‚¦‚¸?³•ûŒ`‚Ìƒ†ƒjƒbƒgƒŒƒCƒAƒEƒg‚Ì‚İ‘Î‰
 	range += layout_type;
-	map_foreachinarea(skill_check_unit_range_sub,m,
-			x-range,y-range,x+range,y+range,BL_SKILL,&c,skillid);
-
-	return c;
+	return map_foreachinarea(skill_check_unit_range_sub,m,
+			x-range,y-range,x+range,y+range,BL_SKILL,skillid);
 }
 
 static int skill_check_unit_range2_sub( struct block_list *bl,va_list ap )
@@ -2760,15 +2751,12 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 			}
 		} else {
 			skill_area_temp[1]=bl->id;
-			skill_area_temp[2]=bl->x;
-			skill_area_temp[3]=bl->y;
-			/* ‚Ü‚¸ƒ^?ƒQƒbƒg‚É?U?‚ğ‰Á‚¦‚é */
-			skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0);
-			/* ‚»‚ÌŒãƒ^?ƒQƒbƒgˆÈŠO‚Ì”Í??‚Ì“G‘S?‚É?—?‚ğ?s‚¤ */
 			map_foreachinrange(skill_area_sub, bl,
 				skill_get_splash(skillid, skilllv), BL_CHAR,
 				src,skillid,skilllv,tick, flag|BCT_ENEMY|1,
 				skill_castend_damage_id);
+			//Skill-attack at the end in case it has knockback. [Skotlex]
+			skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0);
 		}
 		break;
 
@@ -3880,9 +3868,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			clif_skill_nodamage(src,bl,skillid,skilllv,0);
 			break;
 		}
-		if(map_getcell(bl->m,bl->x,bl->y,CELL_CHKLANDPROTECTOR))
-			break; //Land Protector blocks Hammer Fall [Skotlex]
-		
 		clif_skill_nodamage(src,bl,skillid,skilllv,
 			sc_start(bl,SC_STUN,(20 + 10 * skilllv),skilllv,skill_get_time2(skillid,skilllv)));
 		break;
@@ -4587,8 +4572,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				if(i==SC_HALLUCINATION || i==SC_WEIGHT50 || i==SC_WEIGHT90
 					|| i==SC_STRIPWEAPON || i==SC_STRIPSHIELD || i==SC_STRIPARMOR || i==SC_STRIPHELM
 					|| i==SC_CP_WEAPON || i==SC_CP_SHIELD || i==SC_CP_ARMOR || i==SC_CP_HELM
-					|| i==SC_COMBO || i==SC_DANCING || i==SC_GUILDAURA || i==SC_STEELBODY || i==SC_EDP
-					|| i==SC_CARTBOOST || i==SC_MELTDOWN || i==SC_MOONLIT
+					|| i==SC_COMBO || i==SC_DANCING || i==SC_GUILDAURA || i==SC_EDP
+					|| i==SC_AUTOBERSERK  || i==SC_CARTBOOST || i==SC_MELTDOWN || i==SC_MOONLIT
 					)
 					continue;
 				if(i==SC_BERSERK) tsc->data[i].val4=1; //Mark a dispelled berserk to avoid setting hp to 100.
@@ -10053,7 +10038,8 @@ int skill_unit_timer_sub_onplace( struct block_list *bl, va_list ap )
 
 	nullpo_retr(0, group=unit->group);
 
-	if (map_getcell(bl->m, bl->x, bl->y, CELL_CHKLANDPROTECTOR))
+	if (skill_get_type(group->skill_id)==BF_MAGIC
+		&& map_getcell(bl->m, bl->x, bl->y, CELL_CHKLANDPROTECTOR))
 		return 0; //AoE skills are ineffective. [Skotlex]
 
 	if (battle_check_target(&unit->bl,bl,group->target_flag)<=0)

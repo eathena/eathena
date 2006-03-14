@@ -6,6 +6,11 @@ GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY VALARIS AND WIZPUTER. -- VALAR
 
 
 2006/03/14
+	* Fixed incorrect range check in autospell when hit triggers. [Skotlex]
+	* Fixed skill_additional_effect triggering every time you were being hit
+	  even if no damage was returned. [Skotlex]
+	* Merged in updated list of what dispel clears. [Skotlex]
+	* Merged Land Protector dispelling only Magical skills. [Skotlex]
 	* Merged the item_db.c file from trunk to see if that fixes random item
 	  givers [Skotlex]
 2006/03/13
