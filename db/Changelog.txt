@@ -1,3 +1,6 @@
+03/15
+	- Fixed Moonlit's inf2 not being set to ensemble skill. Thanks to Haplo.
+	  [Skotlex]
 03/13
 	* Added missing mob skills to G_HYDRA, G_PARASITE [Lupus]
 	* Fixed TK and Soul Linker's position of their job entry in exp2.txt,
