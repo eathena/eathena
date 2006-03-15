@@ -6,6 +6,8 @@ GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY VALARIS AND WIZPUTER. -- VALAR
 
 
 2006/03/14
+	* Fixed a possible crash in Venom Splasher if the countdown is too high.
+	  [Skotlex]
 	* Fixed incorrect range check in autospell when hit triggers. [Skotlex]
 	* Fixed skill_additional_effect triggering every time you were being hit
 	  even if no damage was returned. [Skotlex]
