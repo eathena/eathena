@@ -27,6 +27,8 @@ Nexon
 
 Date		Added
 ======
+03/13
+	* Merged Thanatos warps from Trunk [Lupus]
 03/12
 	* Amatsu Field. Replaced Hydras with official G_HYDRA (w/o drops) [Lupus]
 03/11
