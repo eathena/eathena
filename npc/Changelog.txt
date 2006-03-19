@@ -27,6 +27,8 @@ Nexon
 
 Date		Added
 ======
+03/19
+	* Fixed FTB in novice ground, thanks to happylight. [Vicious]
 03/13
 	* Merged Thanatos warps from Trunk [Lupus]
 03/12
