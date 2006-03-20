@@ -240,6 +240,7 @@ int skill_arrow_create( struct map_session_data *sd,int nameid);
 int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,int skillid,int skilllv,unsigned int tick,int flag );
 int skill_castend_damage_id( struct block_list* src, struct block_list *bl,int skillid,int skilllv,unsigned int tick,int flag );
 int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skilllv,unsigned int tick,int flag);
+int skill_blockpc_start (struct map_session_data*,int,int);	// [celest]
 
 // ƒXƒLƒ‹U?ˆêŠ‡?—
 int skill_attack( int attack_type, struct block_list* src, struct block_list *dsrc,

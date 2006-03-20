@@ -1,3 +1,5 @@
+03/20
+	* Fixed splash area of Ganbantein [Skotlex]
 03/18
 	* Fixed tons of wrong weight, wep lvlm req level items. Big thanks to KarLaeda and Haplo [Lupus]
 03/15
