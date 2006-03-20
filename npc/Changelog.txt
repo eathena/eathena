@@ -27,6 +27,8 @@ Nexon
 
 Date		Added
 ======
+03/20
+	* Removed Berserk Potions from all shops, but Comodo [Lupus]
 03/19
 	* Fixed FTB in novice ground, thanks to happylight. [Vicious]
 03/13
