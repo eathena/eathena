@@ -344,19 +344,20 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 
 	mode = src?status_get_mode(src):MD_CANATTACK;
 
+	if (src && status_isdead(src))
+		return 0;
+	
 	if (!skill_num) { //Normal attack checks.
 		if (!(mode&MD_CANATTACK))
 			return 0; //This mode is only needed for melee attacking.
 		//Dead state is not checked for skills as some skills can be used 
-		//by/on dead characters, said checks are left to skill.c [Skotlex]
-		if (src && status_isdead(src))
-			return 0;
+		//on dead characters, said checks are left to skill.c [Skotlex]
 		if (target && status_isdead(target))
 			return 0;
 	}
 
 	if (skill_num == PA_PRESSURE && flag) {
-	//Gloria Avoids pretty much everythng....
+	//Gloria Avoids pretty much everything....
 		tsc = target?status_get_sc(target):NULL;
 		if(tsc) {
 			if (tsc->option&OPTION_HIDE)
@@ -3890,6 +3891,7 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 		case SC_WEDDING:	//結婚用(結婚衣裳になって?くのが?いとか)
 		if (sd)
 		{	//Change look.
+			pc_stopattack(sd);
 			if(type==SC_WEDDING)
 				sd->view_class = JOB_WEDDING;
 			else if(type==SC_XMAS)
@@ -4450,6 +4452,7 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			break;
 		case SC_MAXOVERTHRUST:
 		case SC_OVERTHRUST:			/* オ?バ?スラスト */
+		case SC_SWOO:	//Why does it shares the same opt as Overthrust? Perhaps we'll never know...
 			sc->opt3 |= 2;
 			opt_flag = 0;
 			break;
@@ -4493,9 +4496,6 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			sc->opt3 |= 4096;
 			opt_flag = 0;
 			break;
-//		case SC_SWOO: // [marquis007]
-//			sc->opt3 |= 8192; //We haven't figured out this value yet...
-//			break;
 			
 		//OPTION
 		case SC_HIDING:
@@ -5005,6 +5005,8 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			sc->opt3 &= ~1;
 			break;
 		case SC_OVERTHRUST:			/* オ?バ?スラスト */
+		case SC_MAXOVERTHRUST:
+		case SC_SWOO:
 			sc->opt3 &= ~2;
 			break;
 		case SC_ENERGYCOAT:			/* エナジ?コ?ト */
