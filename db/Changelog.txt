@@ -1,3 +1,5 @@
+03/21
+	* Myst Case Card will drop GB even if the card combo's on [Lupus]
 03/20
 	* Fixed splash area of Ganbantein [Skotlex]
 03/18
