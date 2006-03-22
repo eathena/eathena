@@ -5,6 +5,7 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY VALARIS AND WIZPUTER. -- VALARIS
 
 2006/03/22
+	* jRO's Acid Demonstration formula by Redozzen [Vicious]
 	* Overflow fix in the login-txt server. [Skotlex]
 2006/03/21
 	* Updated @rura/@warp. Now you can use both "@warp mapname x y" and
@@ -24,6 +25,7 @@ GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY VALARIS AND WIZPUTER. -- VALAR
 	* Fixed Slim Pitcher crashing server ocassionally. [Skotlex]
 	* Added sc_start(SC_ENDURE) on infinite endure bonus. [Skotlex]
 	* Fixed Berserk Pitcher consuming required items twice. [Skotlex]
+>>>>>>> .r5703
 2006/03/18
 	* Added 'GetMonsterInfo(MobID,Idx)' script function. [Lupus]
 	  You can get monsters name,level,race, etc by its Id. Check npc\sample\getmonsterinfo.txt
