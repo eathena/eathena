@@ -1,3 +1,5 @@
+03/22
+	* Updated Elemental Converter ingredients. Thanks2 Haplo [Lupus]
 03/21
 	* Fixed the inf2 for BA_DISSONANCE to be a dance skill. [Skotlex]
 	* Myst Case Card will drop GB even if the card combo's on [Lupus]
