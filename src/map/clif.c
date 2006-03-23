@@ -3406,7 +3406,7 @@ int clif_arrowequip(struct map_session_data *sd,int val)
 		sd->attacktarget = 0;
 
 	fd=sd->fd;
-        WFIFOHEAD(fd, packet_len_table[0x013c]);
+	WFIFOHEAD(fd, packet_len_table[0x013c]);
 	WFIFOW(fd,0)=0x013c;
 	WFIFOW(fd,2)=val+2;//矢のアイテムID
 
@@ -4607,7 +4607,7 @@ int clif_getareachar_skillunit(struct map_session_data *sd,struct skill_unit *un
 	WFIFOW(fd,12)=unit->bl.y;
 	WFIFOB(fd,14)=unit->group->unit_id;
 	WFIFOB(fd,15)=1;
-	if(unit->group->unit_id==0xb0)	{ // Graffiti [Valaris]
+	if(unit->group->unit_id==UNT_GRAFFITI)	{ // Graffiti [Valaris]
 		WFIFOB(fd,16)=1;
 		memcpy(WFIFOP(fd,17),unit->group->valstr,MESSAGE_SIZE);
 	} else {
@@ -9419,53 +9419,53 @@ void clif_parse_Wis(int fd, struct map_session_data *sd) { // S 0096 <len>.w <ni
 		log_chat("W", 0, sd->status.char_id, sd->status.account_id, (char*)mapindex_id2name(sd->mapindex), sd->bl.x, sd->bl.y, (char*)RFIFOP(fd, 4), (char*)RFIFOP(fd, 28));
 
 
-//-------------------------------------------------------//
-//   Lordalfa - Paperboy - To whisper NPC commands       //
-//-------------------------------------------------------//
-if ((strncasecmp((const char*)RFIFOP(fd,4),"NPC:",4) == 0) && (strlen((const char*)RFIFOP(fd,4)) >4))   {
-	whisper_tmp = (char*) RFIFOP(fd,4) + 4;
-    if ((npc = npc_name2id(whisper_tmp)))	
-	{
-		whisper_tmp=(char *)aCallocA(strlen((char *)(RFIFOP(fd,28)))+1,sizeof(char));
-		whisper_tmp[0]=0;
-	   
-		sprintf(whisper_tmp, "%s", (const char*)RFIFOP(fd,28));  
-		for( j=0;whisper_tmp[j]!='\0';j++)
+	//-------------------------------------------------------//
+	//   Lordalfa - Paperboy - To whisper NPC commands       //
+	//-------------------------------------------------------//
+	if ((strncasecmp((const char*)RFIFOP(fd,4),"NPC:",4) == 0) && (strlen((const char*)RFIFOP(fd,4)) >4))   {
+		whisper_tmp = (char*) RFIFOP(fd,4) + 4;
+		if ((npc = npc_name2id(whisper_tmp)))	
 		{
-			if(whisper_tmp[j]!='#')
+			whisper_tmp=(char *)aCallocA(strlen((char *)(RFIFOP(fd,28)))+1,sizeof(char));
+			whisper_tmp[0]=0;
+		   
+			sprintf(whisper_tmp, "%s", (const char*)RFIFOP(fd,28));  
+			for( j=0;whisper_tmp[j]!='\0';j++)
 			{
-				split_data[i][j-k]=whisper_tmp[j];
-			}
-			else
+				if(whisper_tmp[j]!='#')
+				{
+					split_data[i][j-k]=whisper_tmp[j];
+				}
+				else
+				{
+					split_data[i][j-k]='\0';
+					k=j+1;
+					i++;
+				}
+			} // Splits the message using '#' as separators
+			split_data[i][j-k]='\0';
+			
+			aFree(whisper_tmp);
+			whisper_tmp=(char *)aCallocA(15,sizeof(char));
+			whisper_tmp[0]=0;
+			
+			for (j=0;j<=10;j++)
 			{
-				split_data[i][j-k]='\0';
-				k=j+1;
-				i++;
-			}
-		} // Splits the message using '#' as separators
-		split_data[i][j-k]='\0';
-		
-		aFree(whisper_tmp);
-		whisper_tmp=(char *)aCallocA(15,sizeof(char));
-		whisper_tmp[0]=0;
-		
-		for (j=0;j<=10;j++)
-		{
-			sprintf(whisper_tmp, "@whispervar%d$", j);
-			set_var(sd,whisper_tmp,(char *) split_data[j]);        
-		}//You don't need to zero them, just reset them [Kevin]
-		
-		aFree(whisper_tmp);
-		whisper_tmp=(char *)aCallocA(strlen(npc->name)+18,sizeof(char));
-		whisper_tmp[0]=0;
-		
-		sprintf(whisper_tmp, "%s::OnWhisperGlobal", npc->name);
-		npc_event(sd,whisper_tmp,0); // Calls the NPC label 
+				sprintf(whisper_tmp, "@whispervar%d$", j);
+				set_var(sd,whisper_tmp,(char *) split_data[j]);        
+			}//You don't need to zero them, just reset them [Kevin]
+			
+			aFree(whisper_tmp);
+			whisper_tmp=(char *)aCallocA(strlen(npc->name)+18,sizeof(char));
+			whisper_tmp[0]=0;
+			
+			sprintf(whisper_tmp, "%s::OnWhisperGlobal", npc->name);
+			npc_event(sd,whisper_tmp,0); // Calls the NPC label 
 
-		aFree(whisper_tmp); //I rewrote it a little to use memory allocation, a bit more stable =P  [Kevin]
-		return;     
-	} //should have just removed the one below that was a my bad =P
-}		
+			aFree(whisper_tmp); //I rewrote it a little to use memory allocation, a bit more stable =P  [Kevin]
+			return;     
+		} //should have just removed the one below that was a my bad =P
+	}		
 	
 	// Main chat [LuzZza]
 	if(strcmpi((const char*)RFIFOP(fd,4), main_chat_nick) == 0) {
@@ -9612,7 +9612,10 @@ void clif_parse_DropItem(int fd, struct map_session_data *sd) {
 
 	item_index = RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0])-2;
 	item_amount = RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[1]);
-	pc_dropitem(sd, item_index, item_amount);
+	if (!pc_dropitem(sd, item_index, item_amount))
+	//Because the client does not likes being ignored.
+		clif_delitem(sd, item_index,0);
+
 }
 
 /*==========================================
@@ -10126,7 +10129,7 @@ void clif_parse_UseSkillToPosSub(int fd, struct map_session_data *sd, int skilll
 
 	if (sd->skilltimer != -1)
 		return;
-	else if (DIFF_TICK(tick, sd->canact_tick) < 0)
+	if (DIFF_TICK(tick, sd->canact_tick) < 0)
 	{
 		clif_skill_fail(sd, skillnum, 4, 0);
 		return;
@@ -11785,8 +11788,8 @@ int clif_parse(int fd) {
 	// 管理用パケット処理
 	if (cmd >= 30000) {
 		switch(cmd) {
-		case 0x7530: { // Athena情報所得
-                        WFIFOHEAD(fd, 10);
+		case 0x7530: { //Why are we letting people know which version we are running?
+			WFIFOHEAD(fd, 10);
 			WFIFOW(fd,0) = 0x7531;
 			WFIFOB(fd,2) = ATHENA_MAJOR_VERSION;
 			WFIFOB(fd,3) = ATHENA_MINOR_VERSION;
@@ -11798,13 +11801,16 @@ int clif_parse(int fd) {
 			WFIFOSET(fd,10);
 			RFIFOSKIP(fd,2);
 			break;
-                }
+		}
 		case 0x7532: // 接続の切断
 			ShowWarning("clif_parse: session #%d disconnected for sending packet 0x04%x\n", fd, cmd);
 			session[fd]->eof=1;
 			break;
+		default:
+			ShowWarning("Unknown incoming packet (command: 0x%04x, session: %d), disconnecting.\n", cmd, fd);
+			session[fd]->eof=1;
+			break;
 		}
-		ShowWarning("Ignoring incoming packet (command: 0x%04x, session: %d)\n", cmd, fd);
 		return 0;
 	}
 
@@ -12187,6 +12193,7 @@ static int packetdb_readdb(void)
 //		if(packet_db[clif_config.packet_db_ver][cmd].len > 2 /* && packet_db[cmd].pos[0] == 0 */)
 //			printf("packet_db ver %d: %d 0x%x %d %s %p\n",packet_ver,ln,cmd,packet_db[packet_ver][cmd].len,str[2],packet_db[packet_ver][cmd].func);
 	}
+	fclose(fp);
 	if (!clif_config.connect_cmd[clif_config.packet_db_ver])
 	{	//Locate the nearest version that we still support. [Skotlex]
 		for(j = clif_config.packet_db_ver; j >= 0 && !clif_config.connect_cmd[j]; j--);

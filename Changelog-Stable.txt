@@ -5,6 +5,12 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY VALARIS AND WIZPUTER. -- VALARIS
 
 2006/03/22
+	* Merged mapflags nocommand, nodrop, notrade [Skotlex]
+	* @me output now uses msg_athena 270 for format. [Skotlex]
+	* Clone commands now use msg_Athena entries for displaying output. [Skotlex]
+	* Merged cleanup of pc_dropitem [Skotlex]
+	* Merged disconnecting unknown packets when the command is above 30000
+	  [Skotlex]
 	* jRO's Acid Demonstration formula by Redozzen [Vicious]
 	* Overflow fix in the login-txt server. [Skotlex]
 2006/03/21

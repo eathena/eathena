@@ -2417,6 +2417,9 @@ static int npc_parse_mapflag (char *w1, char *w2, char *w3, char *w4)
 	else if (strcmpi(w3,"notrade")==0) {
 		map[m].flag.notrade=1;
 	}
+	else if (strcmpi(w3,"nodrop")==0) {
+		map[m].flag.nodrop=1;
+	}
 	else if (strcmpi(w3,"noskill")==0) {
 		map[m].flag.noskill=1;
 	}
@@ -2479,6 +2482,9 @@ static int npc_parse_mapflag (char *w1, char *w2, char *w3, char *w4)
 	}
 	else if (strcmpi(w3,"nomvploot")==0) { // Lorky
 		map[m].flag.nomvploot=1;
+	}
+	else if (strcmpi(w3,"nocommand")==0) { // Skotlex
+		map[m].flag.nocommand=1;
 	}
 
 	return 0;

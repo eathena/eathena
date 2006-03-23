@@ -1029,6 +1029,8 @@ struct map_data {
 		unsigned nomobloot	: 1; // [Lorky]
 		unsigned nomvploot	: 1; // [Lorky]
 		unsigned nightenabled :1; //For night display. [Skotlex]
+		unsigned nocommand : 1; //Blocks @/# commands for non-gms. [Skotlex]
+		unsigned nodrop : 1;
 	} flag;
 	struct point save;
 	struct npc_data *npc[MAX_NPC_PER_MAP];

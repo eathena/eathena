@@ -1,4 +1,5 @@
 03/22
+	* Preserve cost updated to 30sp. [Skotlex]
 	* Updated Elemental Converter ingredients. Thanks2 Haplo [Lupus]
 03/21
 	* Fixed the inf2 for BA_DISSONANCE to be a dance skill. [Skotlex]
