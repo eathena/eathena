@@ -248,7 +248,7 @@
 227,0,0,0,0,0,0,10,0,no,0,0,0,none,0	//AM_LEARNINGPOTION#Potion Research#
 228,0,6,4,0,1,0,10,0,no,0,0,0,none,0	//AM_PHARMACY#Prepare Potion#
 229,9,6,2,3,1,0,5,1,yes,0,0,0,weapon,0	//AM_DEMONSTRATION#Bomb#
-230,9,6,1,0,0,0,5,0,yes,0,0,0,weapon,0	//AM_ACIDTERROR#Acid Terror#
+230,9,6,1,0,0,0,5,1,yes,0,0,0,weapon,0	//AM_ACIDTERROR#Acid Terror#
 231,9,6,16,0,1,0,5,1,yes,0,3072,0,none,0	//AM_POTIONPITCHER#Aid Potion#
 232,4,6,2,0,1,0,5,1,no,0,0,5,none,0	//AM_CANNIBALIZE#Summon Flora#
 233,1,6,2,0,1,0,5,1,no,0,0,3,none,0	//AM_SPHEREMINE#Summon Marine Sphere#
@@ -273,7 +273,7 @@
 252,0,6,4,0,0,0,10,1,no,0,0,0,weapon,0	//CR_REFLECTSHIELD#Shield Reflect#
 253,-2,8,1,6,0,0,10,2,no,0,0,0,weapon,0	//CR_HOLYCROSS#Holy Cross#
 254,0,6,4,6,0,0,10,1,no,33,256,0,magic,0	//CR_GRANDCROSS#Grand Cross#
-255,7:8:9:10:11,6,16,0,1,0,5,1,yes,0,3584,0,none,0	//CR_DEVOTION#Sacrifice#
+255,7:8:9:10:11,6,16,0,1,0,5,1,yes,0,1536,0,none,0	//CR_DEVOTION#Sacrifice#
 256,9,6,16,0,1,0,5,1,yes,0,512,0,none,0	//CR_PROVIDENCE#Resistant Souls#
 257,0,6,4,0,1,0,5,1,no,0,0,0,weapon,0	//CR_DEFENDER#Defending Aura#
 258,0,6,4,0,1,0,10,1,no,0,0,0,weapon,0	//CR_SPEARQUICKEN#Spear Quicken#
@@ -354,9 +354,9 @@
 333,0,6,4,0,1,0,1,0,no,0,2,0,none,0	//NPC_REVENGE
 334,9,6,4,0,1,0,1,1,yes,0,4,0,none,0	//WE_MALE#I Will Protect You#
 335,9,6,4,0,1,0,1,1,yes,0,4,0,none,0	//WE_FEMALE#I Look up to You#
-336,9,6,4,0,1,0,1,1,yes,0,4,1,none,0	//WE_CALLPARTNER#I miss You#
+336,9,6,4,0,1,3,1,1,yes,0,4,1,none,0	//WE_CALLPARTNER#I miss You#
 337,9,6,1,-1,0,0,1,1,no,0,0,0,weapon,0	//ITM_TOMAHAWK#Throw Tomahawk#
-338,-1,8,1,7,0,0,0,0,no,0,2,0,weapon,0	//NPC_DARKCROSS#Cross of Darkness#
+338,-1,8,1,7,0,0,0,2,no,0,2,0,weapon,0	//NPC_DARKCROSS#Cross of Darkness#
 339,0,6,4,7,0,0,10,1,no,33,258,0,magic,0		//NPC_GRANDDARKNESS#Grand cross of Darkness#
 340,9,8,1,7,0,0,10,1:1:2:2:3:3:4:4:5:5,yes,0,2,0,magic,0	//NPC_DARKSTRIKE#Soul Strike of Darkness#
 341,9,8,1,7,0,0,10,3:4:5:6:7:8:9:10:11:12,yes,0,2,0,magic,2:3:3:4:4:5:5:6:6:7	//NPC_DARKTHUNDER#Darkness Jupiter#
@@ -372,7 +372,7 @@
 351,0,0,0,0,1,0,0,0,no,0,2,0,none,0	//NPC_SIEGEMODE
 352,2,0,4,0,1,0,1,0,no,0,2,0,none,0	//NPC_CALLSLAVE
 353,0,0,0,0,1,0,0,0,no,0,2,0,none,0	//NPC_INVISIBLE
-354,2,6,4,0,1,0,20,0,no,0,2,0,magic,0	//NPC_RUN
+354,2,6,4,0,1,0,20,0,no,0,2,0,misc,0	//NPC_RUN
 355,0,6,4,0,1,0,5,1,no,0,0,0,weapon,0	//LK_AURABLADE#Aura Blade#
 356,0,6,4,0,1,0,10,1,no,0,0,0,weapon,0	//LK_PARRYING#Parrying#
 357,0,6,4,0,1,0,5,1,no,0,0,0,weapon,0	//LK_CONCENTRATION#Concentration#
@@ -383,7 +383,7 @@
 362,4,6,4,0,1,0,5,1,yes,0,0,0,magic,2	//HP_BASILICA#Basilica#
 363,0,0,0,0,0,0,10,0,no,0,0,0,magic,0	//HP_MEDITATIO#Meditatio#
 364,0,0,0,0,0,0,10,1,no,0,0,0,magic,0	//HW_SOULDRAIN#Soul Drain#
-365,9,8,1,-1,0,0,1,1,yes,0,0,0,magic,0	//HW_MAGICCRASHER#Stave Crasher#
+365,9,8,1,-1,0,0,1,1,yes,0,0,0,weapon,0	//HW_MAGICCRASHER#Stave Crasher#
 366,0,6,4,0,1,0,10,1,no,0,0,0,magic,0	//HW_MAGICPOWER#Mystical Amplification#
 367,9,8,1,0,0,0,5,1,no,0,0,0,misc,0	//PA_PRESSURE#Gloria Domini#
 368,0,6,4,0,1,0,5,1,yes,0,0,0,weapon,0	//PA_SACRIFICE# Martyr's Reckoning#
@@ -427,8 +427,8 @@
 406,0,6,4,-1,2,2,10,1,no,33,0,0,weapon,0	//ASC_METEORASSAULT#Meteor Assault#
 407,0,6,4,0,1,0,1,0,no,0,0,0,none,0	//ASC_CDP#Create Deadly Poison#
 408,9,6,4,0,1,0,1,1,yes,0,4,0,none,0	//WE_BABY#Baby#
-409,9,6,4,0,1,0,1,1,yes,0,4,0,none,0	//WE_CALLPARENT#Call Parent#
-410,9,6,4,0,1,0,1,1,yes,0,4,0,none,0	//WE_CALLBABY#Call Baby#
+409,9,6,4,0,1,3,1,1,yes,0,4,1,none,0	//WE_CALLPARENT#Call Parent#
+410,9,6,4,0,1,3,1,1,yes,0,4,1,none,0	//WE_CALLBABY#Call Baby#
 411,0,6,4,0,1,0,10,1,yes,0,0,0,misc,0	//TK_RUN#Running#
 412,0,6,4,0,1,0,1,1,no,0,0,0,weapon,0	//TK_READYSTORM#Prepare Whirlwind#
 413,0,6,4,-1,2,2,7,1,no,0,0,0,weapon,0	//TK_STORMKICK#Whirlwind Kick#
@@ -502,7 +502,7 @@
 481,0,0,0,0,0,0,5,0,no,0,0,0,none,0	//HP_MANARECHARGE#Mana Recharge#
 482,0,6,4,0,1,0,5,1,no,0,0,0,magic,0	//PF_DOUBLECASTING#Double Casting#
 483,9,6,2,0,1,1,1,1,no,0,0,0,none,0	//HW_GANBANTEIN#Ganbantein#
-484,9,6,2,0,1,0,5,1,yes,0,0,0,magic,0	//HW_GRAVITATION#Gravity Field#
+484,9,6,2,2,1,0,5,1,yes,0,0,0,magic,0	//HW_GRAVITATION#Gravity Field#
 485,-2,6,1,-1,0,0,10,1,no,0,0,0,weapon,0	//WS_CARTTERMINATION#Cart Termination#
 486,0,6,4,0,1,0,5,1,no,0,0,0,weapon,0	//WS_OVERTHRUSTMAX#Maximum Power Thrust#
 487,0,6,4,0,1,0,5,1,no,0,0,0,none,0	//CG_LONGINGFREEDOM#Longing for Freedom#
