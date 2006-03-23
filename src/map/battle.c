@@ -2633,7 +2633,8 @@ struct Damage battle_calc_magic_attack(
 			short cardfix=100;
 
 			cardfix=cardfix*(100+sd->magic_addrace[t_race])/100;
-			cardfix=cardfix*(100+sd->magic_addele[t_ele])/100;
+			if (flag.elefix)
+				cardfix=cardfix*(100+sd->magic_addele[t_ele])/100;
 			cardfix=cardfix*(100+sd->magic_addsize[t_size])/100;
 			cardfix=cardfix*(100+sd->magic_addrace[is_boss(target)?10:11])/100;
 			for(i=0;i<sd->add_mdmg_count;i++) {
@@ -2652,7 +2653,8 @@ struct Damage battle_calc_magic_attack(
 			short s_class= status_get_class(src);
 			short cardfix=100;
 
-			cardfix=cardfix*(100-tsd->subele[s_ele])/100;
+			if (flag.elefix)
+				cardfix=cardfix*(100-tsd->subele[s_ele])/100;
 			cardfix=cardfix*(100-tsd->subsize[s_size])/100;
 			cardfix=cardfix*(100-tsd->subrace2[s_race2])/100;
 			cardfix=cardfix*(100-tsd->subrace[s_race])/100;
@@ -2826,13 +2828,13 @@ struct Damage  battle_calc_misc_attack(
 		aflag = (aflag&~BF_RANGEMASK)|BF_LONG;
 		break;
 	case CR_ACIDDEMONSTRATION:
-		//This equation is not official, but it's the closest to the official one 
-		//that Viccious Pucca and the other folks at the forums could come up with. [Skotlex]
-		// updated the formula based on a Japanese formula found to be exact [Reddozen]
-		damage = (0.7 * status_get_vit(target) * (int_ * int_)) / (status_get_vit(target) + int_);
-		if (tsd) damage/=2;
-		aflag = (aflag&~BF_RANGEMASK)|BF_LONG;
-		break;
+		{	// updated the formula based on a Japanese formula found to be exact [Reddozen]
+			int vit = status_get_vit(target);
+			damage = 7*(vit*int_*int_) / (10*(vit+int_));
+			if (tsd) damage/=2;
+			aflag = (aflag&~BF_RANGEMASK)|BF_LONG;
+			break;
+		}
 	}
 
 	if(damagefix){

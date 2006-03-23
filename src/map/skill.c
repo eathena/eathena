@@ -4485,6 +4485,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					hp = hp * (100 + pc_checkskill(dstsd,SM_RECOVERY)*10) / 100;
 			}
 			tbl.id = 0;
+			tbl.type = BL_NUL;
 			tbl.m = src->m;
 			tbl.x = src->x;
 			tbl.y = src->y;
