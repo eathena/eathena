@@ -5,6 +5,10 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY VALARIS AND WIZPUTER. -- VALARIS
 
 2006/03/22
+	* Fixed Devotion not properly being cleared on death in some  cases.
+	  [Skotlex]
+	* Fixed Shield-Reflect not being correctly ended when devotion does.
+	  [Skotlex]
 	* Merged some differences in skill_db.txt from Trunk. Most noticeable
 	  changes are: Devotion not working on guild-mates, Magic Crasher being
 	  considered a weapon-type attack, Gravitation being 'earth elemental' so

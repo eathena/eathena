@@ -5355,6 +5355,7 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 		if (sd->devotion[i]){
 			struct map_session_data *devsd = map_id2sd(sd->devotion[i]);
 			if (devsd) status_change_end(&devsd->bl,SC_DEVOTION,-1);
+			sd->devotion[i] = 0;
 		}
 
 	pc_setdead(sd);
