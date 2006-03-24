@@ -8,10 +8,13 @@
 #include <time.h>
 #include <limits.h>
 
-#include "socket.h" // [Valaris]
-#include "timer.h"
+#include "../common/socket.h" // [Valaris]
+#include "../common/timer.h"
+#include "../common/nullpo.h"
+#include "../common/showmsg.h"
+#include "../common/malloc.h"
+#include "../common/core.h"
 
-#include "malloc.h"
 #include "map.h"
 #include "chrif.h"
 #include "clif.h"
@@ -31,11 +34,8 @@
 #include "trade.h"
 #include "storage.h"
 #include "vending.h"
-#include "nullpo.h"
 #include "atcommand.h"
 #include "log.h"
-#include "showmsg.h"
-#include "core.h"
 
 #ifndef TXT_ONLY // mail system [Valaris]
 #include "mail.h"
@@ -657,8 +657,14 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 	}
 
 	//Set the map-server used job id. [Skotlex]
-	sd->class_ =  pc_jobid2mapid((unsigned short) sd->status.class_);
-
+	i = pc_jobid2mapid(sd->status.class_);
+	if (i == -1) { //Invalid class?
+		if (battle_config.error_log)
+			ShowError("pc_authok: Invalid class %d for player %s (%d:%d). Class was changed to novice.\n", sd->status.class_, sd->status.name, sd->status.account_id, sd->status.char_id);
+		sd->status.class_ = JOB_NOVICE;
+		sd->class_ = MAPID_NOVICE;
+	} else
+		sd->class_ = i; 
 	//Initializations to null/0 unneeded since map_session_data was filled with 0 upon allocation.
 	// äÓñ{ìIÇ»èâä˙âª
 	sd->state.connect_new = 1;
@@ -3849,7 +3855,7 @@ int pc_calc_base_job2 (int b_class)
  * to the map server's 'makes sense' system. [Skotlex]
  *------------------------------------------
  */
-unsigned short pc_jobid2mapid(unsigned short b_class)
+int pc_jobid2mapid(unsigned short b_class)
 {
 	int class_ = 0;
 	if (b_class >= JOB_BABY && b_class <= JOB_SUPER_BABY)
@@ -3924,18 +3930,24 @@ unsigned short pc_jobid2mapid(unsigned short b_class)
 		case JOB_SUPER_NOVICE: //Super Novices are considered 2-1 novices. [Skotlex]
 			class_ |= JOBL_2_1;
 			break;
+		case JOB_GUNSLINGER:
+			class_ |= MAPID_GUNSLINGER;
+			break;
+		case JOB_NINJA:
+			class_ |= MAPID_NINJA;
+			break;
 		case JOB_XMAS:
 			class_ = MAPID_XMAS;
 			break;
 		default:
 			ShowError("pc_jobid2mapid: Unrecognized job %d!\n", b_class);
-			return 0;
+			return -1;
 	}
 	return class_;
 }
 
 //Reverts the map-style class id to the client-style one.
-unsigned short pc_mapid2jobid(unsigned short class_, int sex) {
+int pc_mapid2jobid(unsigned short class_, int sex) {
 	switch(class_) {
 		case MAPID_NOVICE:
 			return JOB_NOVICE;
@@ -3955,6 +3967,10 @@ unsigned short pc_mapid2jobid(unsigned short class_, int sex) {
 			return JOB_TAEKWON;
 		case MAPID_WEDDING:
 			return JOB_WEDDING;
+		case MAPID_GUNSLINGER:
+			return JOB_GUNSLINGER;
+		case MAPID_NINJA:
+			return JOB_NINJA;
 		case MAPID_XMAS: // [Valaris]
 			return JOB_XMAS;
 	//2_1 classes
@@ -4075,7 +4091,7 @@ unsigned short pc_mapid2jobid(unsigned short class_, int sex) {
 			return JOB_BABY_ROGUE;
 		default:
 			ShowError("pc_mapid2jobid: Unrecognized job %d!\n", class_);
-			return 0;
+			return -1;
 	}
 }
 
@@ -4119,8 +4135,7 @@ char * job_name(int class_) {
 		
 	case JOB_WEDDING:
 	case JOB_SUPER_NOVICE:
-	case JOB_GUNSLINGER:
-	case JOB_NINJA:
+
 	case JOB_XMAS:
 		return msg_txt(570 - JOB_WEDDING+class_);
 		
@@ -4198,6 +4213,11 @@ char * job_name(int class_) {
 		return msg_txt(617);
 	case JOB_SOUL_LINKER:
 		return msg_txt(618);
+		
+	case JOB_GUNSLINGER:
+		return msg_txt(619);
+	case JOB_NINJA:
+		return msg_txt(620);
 	
 	default:
 		return msg_txt(650);
@@ -5962,58 +5982,47 @@ int pc_percentheal(struct map_session_data *sd,int hp,int sp)
  */
 int pc_jobchange(struct map_session_data *sd,int job, int upper)
 {
-	int i;
-	int b_class = 0;
-	//?ê∂Ç‚ó{éqÇÃèÍçáÇÃå≥ÇÃêEã∆ÇéZèoÇ∑ÇÈ
-	struct pc_base_job s_class = pc_calc_base_job(sd->status.class_);
+	int i, fame_flag=0;
+	int b_class;
 
 	nullpo_retr(0, sd);
 
 	if (job < 0)
 		return 1;
-	if (upper < 0 || upper > 2) //åªç›?ê∂Ç©Ç«Ç§Ç©Çîª?Ç∑ÇÈ
-		upper = s_class.upper;
 
-	b_class = job;	//í èÌêEÇ»ÇÁjobÇªÇÃÇ‹ÇÒÇ‹
-	if (job < JOB_SUPER_NOVICE) {
-		if (upper == 1)
-			b_class += JOB_NOVICE_HIGH;
-		else if (upper == 2)	//ó{éqÇ…åãç•ÇÕÇ»Ç¢ÇØÇ«Ç«Ç§ÇπéüÇ≈èRÇÁÇÍÇÈÇ©ÇÁÇ¢Ç¢Ç‚
-			b_class += JOB_BABY;
-	} else if (job == JOB_SUPER_NOVICE) {
-		if (upper == 1)	//?ê∂Ç…ÉXÉpÉmÉrÇÕë∂ç›ÇµÇ»Ç¢ÇÃÇ≈Ç®?ÇË
-			return 1;
-		else if (upper == 2)
-			b_class = JOB_SUPER_BABY;
-	} else if (job < JOB_SUPER_BABY-JOB_NOVICE_HIGH+JOB_SUPER_NOVICE+2) {
-	// Min is SuperNovice +1 -> Becomes Novice High [Skotlex]
-	// Max is SuperBaby-NoviceHigh+1 -> Becomes Super Baby
-		b_class += JOB_NOVICE_HIGH - JOB_SUPER_NOVICE -1;
-	} else if (job >= JOB_TAEKWON && job <= JOB_SOUL_LINKER) {
-		if (upper > 0)
-			return 1;
-	} else if (job < JOB_NOVICE_HIGH || job > JOB_SOUL_LINKER) //Invalid value
+	//Normalize job.
+	b_class = pc_jobid2mapid(job);
+	if (b_class == -1)
 		return 1;
-
-	job = pc_calc_base_job2 (b_class); // check base class [celest]
-
-	if((sd->status.sex == 0 && job == JOB_BARD) || (sd->status.sex == 1 && job == JOB_DANCER))
-		return 1;
-
-	// check if we are changing from 1st to 2nd job
-	if ((job >= JOB_KNIGHT && job <= JOB_CRUSADER2) || (job >= JOB_STAR_GLADIATOR && job <= JOB_SOUL_LINKER)) {
-		if ((s_class.job > JOB_NOVICE && s_class.job < JOB_KNIGHT) || s_class.job == JOB_TAEKWON)
-			sd->change_level = sd->status.job_level;
-		else
-			sd->change_level = 40;
+	switch (upper) {
+		case 1:
+			b_class|= JOBL_UPPER; 
+			break;
+		case 2:
+			b_class|= JOBL_BABY;
+			break;
 	}
- 	else
- 		sd->change_level = 0;
+	//This will automatically adjust bard/dancer classes to the correct gender
+	//That is, if you try to jobchange into dancer, it will turn you to bard.	
+	job = pc_mapid2jobid(b_class, sd->status.sex);
+	if (job == -1)
+		return 1;
+	
+	if ((unsigned short)b_class == sd->class_)
+		return 1; //Nothing to change.
+	// check if we are changing from 1st to 2nd job
+	if (b_class&JOBL_2) {
+	  if (!(sd->class_&JOBL_2))
+			sd->change_level = sd->status.job_level;
+	  else if (!sd->change_level)
+			sd->change_level = 40; //Assume 40?
+	}
 
 	pc_setglobalreg (sd, "jobchange_level", sd->change_level);
 
-	sd->status.class_ = sd->view_class = b_class;
-	sd->class_ = pc_jobid2mapid(sd->status.class_);
+	sd->status.class_ = sd->view_class = job;
+	fame_flag = pc_istop10fame(sd->status.char_id,sd->class_&MAPID_UPPERMASK);
+	sd->class_ = (unsigned short)b_class;
 	sd->status.job_level=1;
 	sd->status.job_exp=0;
 	clif_updatestatus(sd,SP_JOBLEVEL);
@@ -6030,25 +6039,38 @@ int pc_jobchange(struct map_session_data *sd,int job, int upper)
 
 	if(battle_config.save_clothcolor &&
 		sd->status.clothes_color > 0 &&
-		((sd->view_class != JOB_WEDDING && sd->view_class !=JOB_XMAS) || (sd->view_class==JOB_WEDDING && !battle_config.wedding_ignorepalette) ||
-			 (sd->view_class==JOB_XMAS && !battle_config.xmas_ignorepalette)))
+		((sd->view_class != JOB_WEDDING && sd->view_class !=JOB_XMAS) ||
+		(sd->view_class==JOB_WEDDING && !battle_config.wedding_ignorepalette) ||
+		(sd->view_class==JOB_XMAS && !battle_config.xmas_ignorepalette)))
 		clif_changelook(&sd->bl,LOOK_CLOTHES_COLOR,sd->status.clothes_color);
-	if(battle_config.muting_players && sd->status.manner < 0  && battle_config.manner_system)
+	
+	if(battle_config.muting_players && sd->status.manner < 0 && battle_config.manner_system)
 		clif_changestatus(&sd->bl,SP_MANNER,sd->status.manner);
 
-	if(pc_isriding(sd)) {	// remove peco status if changing into invalid class [Valaris]
-		if(!(pc_checkskill(sd,KN_RIDING)))
-			pc_setoption(sd,sd->sc.option&~OPTION_RIDING);
-		else
-			pc_setriding(sd);
-	}
+	
+	if(pc_isriding(sd)) //Remove Peco Status to prevent display <> class problems.
+		pc_setoption(sd,sd->sc.option&~OPTION_RIDING);
 
 	status_calc_pc(sd,0);
 	pc_checkallowskill(sd);
 	pc_equiplookall(sd);
 	clif_equiplist(sd);
-	chrif_save(sd,0); //Why are we saving it?
-	chrif_reqfamelist();
+
+	//if you were previously famous, not anymore.
+	if (fame_flag) {
+		chrif_save(sd,0);
+		chrif_reqfamelist();
+	} else if (sd->status.fame > 0) {
+		//It may be that now they are famous?
+ 		switch (sd->class_&MAPID_UPPERMASK) {
+			case MAPID_BLACKSMITH:
+			case MAPID_ALCHEMIST:
+			case MAPID_TAEKWON:
+				chrif_save(sd,0);
+				chrif_reqfamelist();
+			break;
+		}
+	}
 
 	return 0;
 }

@@ -27,6 +27,9 @@ Nexon
 
 Date		Added
 ======
+03/24
+	* Merged the job-master from trunk. Since Ninja/Gunslinger aren't done at
+	  all in stable, they are commented by default. [Skotlex]
 03/20
 	* Fixed endless warping loops, thanks to Manipulator [Lupus]
 	* Fixed possible Castle Economy investment overflow with Emsolute Develop learnt [Lupus]
