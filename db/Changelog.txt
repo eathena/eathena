@@ -1,3 +1,5 @@
+03/24
+	* Fixed 5123,Ulle's_Cap bug [Lupus]
 03/22
 	* Preserve cost updated to 30sp. [Skotlex]
 	* Updated Elemental Converter ingredients. Thanks2 Haplo [Lupus]
