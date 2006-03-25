@@ -5753,6 +5753,7 @@ int clif_send0199(int map,int type)
 	struct block_list bl;
 	unsigned char buf[16];
 
+	bl.type = BL_NUL;
 	bl.m = map;
 	WBUFW(buf,0)=0x199;
 	WBUFW(buf,2)=type;
@@ -7198,6 +7199,7 @@ int clif_changemapcell(int m,int x,int y,int cell_type,int type)
 	struct block_list bl;
 	unsigned char buf[32];
 
+	bl.type = BL_NUL;
 	bl.m = m;
 	bl.x = x;
 	bl.y = y;
