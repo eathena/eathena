@@ -27,6 +27,8 @@ Nexon
 
 Date		Added
 ======
+03/26
+	* Fixed rebirth scripts. Even more constant usage [Vicious]
 03/25
 	* Valkyrie script from trunk, using constants [Vicious]
 03/24
