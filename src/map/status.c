@@ -396,6 +396,12 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 		)
 			return 0;
 
+		if (sc->data[SC_WINKCHARM].timer != -1 && target && target->type == BL_PC && !flag)
+		{	//Prevents skill usage against players?
+			clif_emotion(src, 3);
+			return 0;
+		}
+			
 		if (sc->data[SC_BLADESTOP].timer != -1) {
 			switch (sc->data[SC_BLADESTOP].val1)
 			{
@@ -407,8 +413,9 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 				default: return 0;
 			}
 		}
-		if (skill_num)
-		{	//Skills blocked through status changes...
+		if (skill_num && //Do not block item-casted skills.
+			(src->type != BL_PC || ((TBL_PC*)src)->skillitem != skill_num)
+		) {	//Skills blocked through status changes...
 			if (!flag && ( //Blocked only from using the skill (stuff like autospell may still go through
 				(sc->data[SC_MARIONETTE].timer != -1 && skill_num != CG_MARIONETTE) ||
 				(sc->data[SC_MARIONETTE2].timer != -1 && skill_num == CG_MARIONETTE) ||
@@ -427,7 +434,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 			)
 				return 0;
 
-			if (sc->data[SC_DANCING].timer != -1)
+			if (flag!=2 && sc->data[SC_DANCING].timer != -1)
 			{
 				if (skill_num != BD_ADAPTATION && skill_num != CG_LONGINGFREEDOM
 					&& skill_num != BA_MUSICALSTRIKE && skill_num != DC_THROWARROW)
@@ -2093,6 +2100,8 @@ int status_calc_speed(struct block_list *bl, int speed)
 			speed += 450;
 		if(sc->data[SC_SWOO].timer != -1) // [marquis007]
 			speed += 450; //Let's use Curse's slow down momentarily (exact value unknown)
+		if(sc->data[SC_WEDDING].timer!=-1)
+			speed += speed;
 		if(sc->data[SC_SPEEDUP1].timer!=-1)
 			speed -= speed*50/100;
 		else if(sc->data[SC_SPEEDUP0].timer!=-1)
@@ -2105,8 +2114,6 @@ int status_calc_speed(struct block_list *bl, int speed)
 			speed -= speed * 20/100;
 		else if(sc->data[SC_WINDWALK].timer!=-1)
 			speed -= speed * 4*sc->data[SC_WINDWALK].val2/100;
-		if(sc->data[SC_WEDDING].timer!=-1)
-			speed += speed * 50/100;
 		if(sc->data[SC_SLOWDOWN].timer!=-1)
 			speed += speed * 50/100;
 		if(sc->data[SC_DECREASEAGI].timer!=-1)
@@ -4864,7 +4871,9 @@ int status_change_end( struct block_list* bl , int type,int tid )
 				break;
 			case SC_CLOSECONFINE:
 				if (sc->data[type].val2 > 0) { //Caster has been unlocked... nearby chars need to be unlocked.
-					int range = 2*skill_get_range2(bl, StatusSkillChangeTable[type], sc->data[type].val1);
+					int range = 1
+					  	+skill_get_range2(bl, StatusSkillChangeTable[type], sc->data[type].val1)
+						+skill_get_range2(bl, TF_BACKSLIDING, 1); //Since most people use this to escape the hold....
 					map_foreachinarea(status_change_timer_sub, 
 						bl->m, bl->x-range, bl->y-range, bl->x+range,bl->y+range,BL_CHAR,bl,sc,type,gettick());
 				}
@@ -5078,7 +5087,7 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 
 	if(sc->data[type].timer != tid) {
 		if(battle_config.error_log)
-			ShowError("status_change_timer %d != %d\n",tid,sc->data[type].timer);
+			ShowError("status_change_timer: Mismatch for type %d: %d != %d\n",type,tid,sc->data[type].timer);
 		return 0;
 	}
 
