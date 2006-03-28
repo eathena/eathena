@@ -1,3 +1,5 @@
+03/28
+	* Commented Odin/Kiel mob out of mob_branch, as they can be abused. [Vicious]
 03/27
 	* Fixed wedding rings being trade-able. [Skotlex]
 	* Removed EVENT bonuses from event items: [Lupus]
