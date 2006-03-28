@@ -1494,6 +1494,8 @@ int skill_blown( struct block_list *src, struct block_list *target,int count)
 			break;
 		case BL_MOB:
 			md=(struct mob_data *)target;
+			if (md->class_ == MOBID_EMPERIUM)
+				return 0;
 			break;
 		case BL_PET:
 			pd=(struct pet_data *)target;
@@ -7181,10 +7183,10 @@ int skill_unit_onlimit(struct skill_unit *src,unsigned int tick)
 	case UNT_CALLFAMILY:	/* ‚ ‚È‚½‚É?‚¢‚½‚¢ */
 		{
 			struct map_session_data *sd = NULL;
-			if(src->val1 && (sd = map_charid2sd(src->val1))
+			if(sg->val1 && (sd = map_charid2sd(sg->val1))
 				&& !map[sd->bl.m].flag.nowarp)
 				pc_setpos(sd,map[src->bl.m].index,src->bl.x,src->bl.y,3);
-			if(src->val2 && (sd = map_charid2sd(src->val2))
+			if(sg->val2 && (sd = map_charid2sd(sg->val2))
 				&& !map[sd->bl.m].flag.nowarp)
 				pc_setpos(sd,map[src->bl.m].index,src->bl.x,src->bl.y,3);
 		}
