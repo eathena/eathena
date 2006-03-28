@@ -60,7 +60,7 @@ struct skill_db {
 	int nocast;
 	int unit_id[2];
 	int unit_layout_type[MAX_SKILL_LEVEL];
-	int unit_range;
+	int unit_range[MAX_SKILL_LEVEL];
 	int unit_interval;
 	int unit_target;
 	int unit_flag;
@@ -155,6 +155,7 @@ int	skill_get_castdef( int id );
 int	skill_get_weapontype( int id );
 int	skill_get_unit_id(int id,int flag);
 int	skill_get_inf2( int id );
+int	skill_get_castcancel( int id );
 int	skill_get_maxcount( int id );
 int	skill_get_blewcount( int id ,int lv );
 int	skill_get_unit_flag( int id );
@@ -183,7 +184,7 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 struct skill_unit *skill_initunit(struct skill_unit_group *group,int idx,int x,int y);
 int skill_delunit(struct skill_unit *unit);
 struct skill_unit_group *skill_initunitgroup(struct block_list *src,
-	int count,int skillid,int skilllv,int unit_id);
+	int count,int skillid,int skilllv,int unit_id, int limit, int interval);
 int skill_delunitgroup(struct skill_unit_group *group);
 int skill_clear_unitgroup(struct block_list *src);
 int skill_clear_element_field(struct block_list *bl);
@@ -831,7 +832,7 @@ enum {
 	UNT_SANCTUARY = 0x83,
 	UNT_MAGNUS,
 	UNT_PNEUMA,
-	UNT_MAGIC_SKILLS,
+	UNT_ATTACK_SKILLS, //These show no effect on the client, therefore can be used for attack skills.
 	UNT_FIREPILLAR_WAITING,
 	UNT_FIREPILLAR_ACTIVE,
 
@@ -873,7 +874,7 @@ enum {
 	UNT_SERVICEFORYOU,
 	UNT_GRAFFITI,
 	UNT_DEMONSTRATION,
-	UNT_CALLPARTNER,
+	UNT_CALLFAMILY,
 	UNT_GOSPEL,
 	UNT_BASILICA,
 

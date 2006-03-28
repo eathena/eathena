@@ -4,6 +4,16 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES GO 
 IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EVERYTHING ELSE
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY VALARIS AND WIZPUTER. -- VALARIS
 
+2006/03/27
+	* Merges from trunk: [Skotlex]
+	- Dual wielding shows both damages on the status window.
+	- Corrected implementation of the recall wedding skills.
+	- skill_unit_db now specifies per-level ranges.
+	- function battle_calc_return_damage for return damage calculations.
+	- Ganbantein removes traps
+	- Corrected implementation of arrow shower and how it knocks back.
+	- Waterball working correctly with Magic Power.
+	- Skill animation packets for Magnum, Grandcross
 2006/03/26
 	* Merged item-skills not being blocked by status changes. [Skotlex]
 2006/03/25

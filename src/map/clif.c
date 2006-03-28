@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <limits.h>
 #ifdef __WIN32
 #define __USE_W32_SOCKETS
 #include <windows.h>
@@ -2146,7 +2147,8 @@ static int clif_delayquit(int tid, unsigned int tick, int id, int data) {
  */
 void clif_quitsave(int fd,struct map_session_data *sd)
 {
-	if (chrif_isconnect() && (!battle_config.prevent_logout || DIFF_TICK(gettick(), sd->canlog_tick) > battle_config.prevent_logout))
+	if (chrif_isconnect() && (sd->state.waitingdisconnect || //Was already waiting to be disconnected.
+		!battle_config.prevent_logout || DIFF_TICK(gettick(), sd->canlog_tick) > battle_config.prevent_logout))
 		map_quit(sd);
 	else if (sd->fd)
 	{	//Disassociate session from player (session is deleted after this function was called)
@@ -3094,7 +3096,7 @@ int clif_updatestatus(struct map_session_data *sd,int type)
 		WFIFOL(fd,4)=sd->aspd;
 		break;
 	case SP_ATK1:
-		WFIFOL(fd,4)=sd->base_atk+sd->right_weapon.watk;
+		WFIFOL(fd,4)=sd->base_atk+sd->right_weapon.watk+sd->left_weapon.watk;
 		break;
 	case SP_DEF1:
 		WFIFOL(fd,4)=sd->def;
@@ -3103,7 +3105,7 @@ int clif_updatestatus(struct map_session_data *sd,int type)
 		WFIFOL(fd,4)=sd->mdef;
 		break;
 	case SP_ATK2:
-		WFIFOL(fd,4)=sd->right_weapon.watk2;
+		WFIFOL(fd,4)=sd->right_weapon.watk2 + sd->left_weapon.watk2;
 		break;
 	case SP_DEF2:
 		WFIFOL(fd,4)=sd->def2;
@@ -3348,22 +3350,22 @@ int clif_initialstatus(struct map_session_data *sd)
 	buf=WFIFOP(fd,0);
 
 	WBUFW(buf,0)=0xbd;
-	WBUFW(buf,2)=sd->status.status_point;
-	WBUFB(buf,4)=(sd->status.str > 255)? 255:sd->status.str;
+	WBUFW(buf,2)=(sd->status.status_point > SHRT_MAX)? SHRT_MAX:sd->status.status_point;
+	WBUFB(buf,4)=(sd->status.str > UCHAR_MAX)? UCHAR_MAX:sd->status.str;
 	WBUFB(buf,5)=pc_need_status_point(sd,SP_STR);
-	WBUFB(buf,6)=(sd->status.agi > 255)? 255:sd->status.agi;
+	WBUFB(buf,6)=(sd->status.agi > UCHAR_MAX)? UCHAR_MAX:sd->status.agi;
 	WBUFB(buf,7)=pc_need_status_point(sd,SP_AGI);
-	WBUFB(buf,8)=(sd->status.vit > 255)? 255:sd->status.vit;
+	WBUFB(buf,8)=(sd->status.vit > UCHAR_MAX)? UCHAR_MAX:sd->status.vit;
 	WBUFB(buf,9)=pc_need_status_point(sd,SP_VIT);
-	WBUFB(buf,10)=(sd->status.int_ > 255)? 255:sd->status.int_;
+	WBUFB(buf,10)=(sd->status.int_ > UCHAR_MAX)? UCHAR_MAX:sd->status.int_;
 	WBUFB(buf,11)=pc_need_status_point(sd,SP_INT);
-	WBUFB(buf,12)=(sd->status.dex > 255)? 255:sd->status.dex;
+	WBUFB(buf,12)=(sd->status.dex > UCHAR_MAX)? UCHAR_MAX:sd->status.dex;
 	WBUFB(buf,13)=pc_need_status_point(sd,SP_DEX);
-	WBUFB(buf,14)=(sd->status.luk > 255)? 255:sd->status.luk;
+	WBUFB(buf,14)=(sd->status.luk > UCHAR_MAX)? UCHAR_MAX:sd->status.luk;
 	WBUFB(buf,15)=pc_need_status_point(sd,SP_LUK);
 
-	WBUFW(buf,16) = sd->base_atk + sd->right_weapon.watk;
-	WBUFW(buf,18) = sd->right_weapon.watk2; //atk bonus
+	WBUFW(buf,16) = sd->base_atk + sd->right_weapon.watk + sd->left_weapon.watk;
+	WBUFW(buf,18) = sd->right_weapon.watk2 + sd->left_weapon.watk2; //atk bonus
 	WBUFW(buf,20) = sd->matk1;
 	WBUFW(buf,22) = sd->matk2;
 	WBUFW(buf,24) = sd->def; // def

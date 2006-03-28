@@ -2926,6 +2926,47 @@ struct Damage battle_calc_attack(	int attack_type,
 	}
 	return d;
 }
+
+int battle_calc_return_damage(struct block_list *bl, int *damage, int flag) {
+	struct map_session_data *sd=NULL;
+	struct status_change *sc;
+	int rdamage = 0;
+	
+	if (bl->type == BL_PC) sd = (struct map_session_data*)bl;
+	sc = status_get_sc(bl);
+
+	if(flag&BF_WEAPON) {
+		//Bounces back part of the damage.
+		if (flag & BF_SHORT) {
+			if (sd && sd->short_weapon_damage_return)
+			{
+				rdamage += *damage * sd->short_weapon_damage_return / 100;
+				if(rdamage < 1) rdamage = 1;
+			}
+			if (sc && sc->data[SC_REFLECTSHIELD].timer != -1)
+		  	{
+				rdamage += *damage * sc->data[SC_REFLECTSHIELD].val2 / 100;
+				if (rdamage < 1) rdamage = 1;
+			}
+		} else if (flag & BF_LONG) {
+			if (sd && sd->long_weapon_damage_return)
+			{
+				rdamage += *damage * sd->long_weapon_damage_return / 100;
+				if (rdamage < 1) rdamage = 1;
+			}
+		}
+	} else
+	// magic_damage_return by [AppleGirl] and [Valaris]
+	if(flag&BF_MAGIC)
+	{
+		if(sd && sd->magic_damage_return && rand()%100 < sd->magic_damage_return)
+		{	//Bounces back full damage, you take none.
+			rdamage = *damage;
+		 	*damage = 0;
+		}
+	}
+	return rdamage;
+}
 /*==========================================
  * ’Ê?í?UŒ‚?ˆ—?‚Ü‚Æ‚ß
  *------------------------------------------
@@ -3019,20 +3060,10 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 		return skill_attack(BF_WEAPON,src,src,target,PA_SACRIFICE,sc->data[SC_SACRIFICE].val1,tick,0);
 			
 	wd = battle_calc_weapon_attack(src,target, 0, 0,0);
-	
-	if ((damage = wd.damage + wd.damage2) > 0 && src != target) {
-		rdamage = 0;
-		if (wd.flag & BF_SHORT) {
-			if (tsd && tsd->short_weapon_damage_return)
-				rdamage += damage * tsd->short_weapon_damage_return / 100;
-			if (tsc && tsc->data[SC_REFLECTSHIELD].timer != -1) {
-				rdamage += damage * tsc->data[SC_REFLECTSHIELD].val2 / 100;
-				if (rdamage < 1) rdamage = 1;
-			}
-		} else if (wd.flag & BF_LONG) {
-			if (tsd && tsd->long_weapon_damage_return)
-				rdamage += damage * tsd->long_weapon_damage_return / 100;
-		}
+
+	damage = wd.damage + wd.damage2;
+	if (damage > 0 && src != target) {
+		rdamage = battle_calc_return_damage(target, &damage, wd.flag);
 		if (rdamage > 0) {
 			clif_damage(src, src, tick, wd.amotion, wd.dmotion, rdamage, 1, 4, 0);
 			//Use Reflect Shield to signal this kind of skill trigger. [Skotlex]
