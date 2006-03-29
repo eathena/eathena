@@ -20,11 +20,11 @@
 #include "battle.h"
 #include "chrif.h"
 #include "status.h"
-
-#include "timer.h"
-#include "nullpo.h"
 #include "script.h"
-#include "showmsg.h"
+
+#include "../common/timer.h"
+#include "../common/nullpo.h"
+#include "../common/showmsg.h"
 
 int SkillStatusChangeTable[MAX_SKILL]; //Stores the status that should be associated to this skill.
 int StatusIconChangeTable[SC_MAX]; //Stores the icon that should be associated to this status change.
@@ -331,7 +331,7 @@ int status_getrefinebonus(int lv,int type)
  * flag:
  * 	0 - Trying to use skill on target.
  * 	1 - Cast bar is done.
- * 	2- Skill already pulled off, check is due to ground-based skills or splash-damage ones.
+ * 	2 - Skill already pulled off, check is due to ground-based skills or splash-damage ones.
  * src MAY be null to indicate we shouldn't check it, this is a ground-based skill attack.
  * target MAY Be null, in which case the checks are only to see 
  * whether the source can cast or not the skill on the ground.
@@ -600,9 +600,9 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	b_hit = sd->hit;
 	b_flee = sd->flee;
 	b_aspd = sd->aspd;
-	b_watk = sd->right_weapon.watk;
+	b_watk = sd->right_weapon.watk + sd->left_weapon.watk;
 	b_def = sd->def;
-	b_watk2 = sd->right_weapon.watk2;
+	b_watk2 = sd->right_weapon.watk2 + sd->left_weapon.watk2;
 	b_def2 = sd->def2;
 	b_flee2 = sd->flee2;
 	b_critical = sd->critical;
@@ -1608,11 +1608,11 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		clif_updatestatus(sd,SP_FLEE1);
 	if(b_aspd != sd->aspd)
 		clif_updatestatus(sd,SP_ASPD);
-	if(b_watk != sd->right_weapon.watk || b_base_atk != sd->base_atk)
+	if(b_watk != sd->right_weapon.watk + sd->left_weapon.watk || b_base_atk != sd->base_atk)
 		clif_updatestatus(sd,SP_ATK1);
 	if(b_def != sd->def)
 		clif_updatestatus(sd,SP_DEF1);
-	if(b_watk2 != sd->right_weapon.watk2)
+	if(b_watk2 != sd->right_weapon.watk2 + sd->left_weapon.watk2)
 		clif_updatestatus(sd,SP_ATK2);
 	if(b_def2 != sd->def2)
 		clif_updatestatus(sd,SP_DEF2);
@@ -1690,7 +1690,7 @@ int status_calc_agi(struct block_list *bl, int agi)
 			agi += sc->data[SC_INCAGI].val1;
 		if(sc->data[SC_AGIFOOD].timer!=-1)
 			agi += sc->data[SC_AGIFOOD].val1;
-  		if(sc->data[SC_TRUESIGHT].timer!=-1)
+		if(sc->data[SC_TRUESIGHT].timer!=-1)
 			agi += 5;
 		if(sc->data[SC_INCREASEAGI].timer!=-1)
 			agi += 2 + sc->data[SC_INCREASEAGI].val1;
@@ -1823,7 +1823,7 @@ int status_calc_batk(struct block_list *bl, int batk)
 		if(sc->data[SC_SKE].timer!=-1)
 			batk += batk * 3;
 		if(sc->data[SC_JOINTBEAT].timer!=-1 && sc->data[SC_JOINTBEAT].val2==4)
-  			batk -= batk * 25/100;
+			batk -= batk * 25/100;
 		if(sc->data[SC_CURSE].timer!=-1)
   			batk -= batk * 25/100;
 		if(sc->data[SC_BLEEDING].timer != -1)
@@ -3434,7 +3434,7 @@ int status_get_sc_tick(struct block_list *bl, int type, int tick)
 		if (rate >0)
 			tick -= tick*rate/10000;
 		else
-			tick -= rate;
+			tick += rate;
 	}
 	return tick<min?min:tick;
 }
