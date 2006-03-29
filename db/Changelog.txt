@@ -1,3 +1,6 @@
+03/29
+	* Updated changed weight of some items according to Haplo's note [Lupus]
+	* Updated some SP cost of some skills. Added SP COST info for Homunculi skills. Thanks to Haplo [Lupus]
 03/28
 	* Commented Odin/Kiel mob out of mob_branch, as they can be abused. [Vicious]
 03/27

@@ -1115,7 +1115,7 @@
 2644,The_Sign,The Sign,5,,10,0,,0,,0,127918079,7,2,136,,0,0,0,{ bonus bMatkRate,5; bonus bAtkRate,5; }
 2645,Moonlight_Ring,Moonlight Ring,5,,10,200,,0,,0,135232,7,2,136,,60,0,0,{}
 2646,Bunch_of_Carnations,Bunch of Carnations,5,,10,100,,0,,0,127918079,7,2,136,,0,0,0,{}
-2647,Nile_Rose,Nile Rose,5,,10,100,,0,,0,127918079,7,2,136,,0,0,0,{ bonus bMaxHP,10;; }
+2647,Nile_Rose,Nile Rose,5,,10,100,,0,,0,127918079,7,2,136,,0,0,0,{ bonus bMaxHP,10; }
 2648,Morpheus's_Ring,Morpheus's Ring,5,,10,100,,0,,0,119529470,7,2,136,,33,0,0,{ bonus bInt,1; bonus bMaxSPrate,5; }
 2649,Morpheus's_Bracelet,Morpheus's Bracelet,5,,10,100,,0,,0,119529470,7,2,136,,33,0,0,{ bonus bInt,1; bonus bMaxSPrate,5; }
 2650,Morrigane's_Belt,Morrigane's Belt,5,,10,200,,0,,0,119529470,7,2,136,,61,0,0,{ bonus bAtk,5; bonus bCritical,3; }
@@ -1958,17 +1958,17 @@
 7338,One-way_Ticket,One-way Ticket,3,,10,10,,,,,,,,,,,,,{}
 7339,Commemorative_Travel_Card,Commemorative Travel Card,3,,10,10,,,,,,,,,,,,,{}
 7340,Will_of_the_Darkness,Will of the Darkness,3,,367,50,,,,,,,,,,,,,{}
-7341,Old_Pendant,Old Pendant,3,,10,10,,,,,,,,,,,,,{}
-7342,File_Folder,File Folder,3,,10,10,,,,,,,,,,,,,{}
-7343,Sealed_File_Folder,Sealed File Folder,3,,10,10,,,,,,,,,,,,,{}
-7344,Cinocas_Case_File,Cinocas Case File,3,,10,10,,,,,,,,,,,,,{}
+7341,Old_Pendant,Old Pendant,3,,10,0,,,,,,,,,,,,,{}
+7342,File_Folder,File Folder,3,,10,0,,,,,,,,,,,,,{}
+7343,Sealed_File_Folder,Sealed File Folder,3,,10,0,,,,,,,,,,,,,{}
+7344,Cinocas_Case_File,Cinocas Case File,3,,10,0,,,,,,,,,,,,,{}
 7345,Handcuffs,Handcuffs,3,,362,10,,,,,,,,,,,,,{}
-7346,Ymir's_Heart_Piece,Ymir's Heart Piece,3,,10,10,,,,,,,,,,,,,{}
+7346,Ymir's_Heart_Piece,Ymir's Heart Piece,3,,10,0,,,,,,,,,,,,,{}
 7347,Research_Chart,Research Chart,3,,10,10,,,,,,,,,,,,,{}
 7348,Membership_Card,Membership Card,3,,10,10,,,,,,,,,,,,,{}
-7349,Archive_Permit,Archive Permit,3,,10,10,,,,,,,,,,,,,{}
+7349,Archive_Permit,Archive Permit,3,,10,0,,,,,,,,,,,,,{}
 7350,Pass,Pass,3,,10,10,,,,,,,,,,,,,{}
-7351,Friend's_Diary,Friend's Diary,3,,10,10,,,,,,,,,,,,,{}
+7351,Friend's_Diary,Friend's Diary,3,,10,0,,,,,,,,,,,,,{}
 7352,Transparent_Plate,Transparent Plate,3,,10,10,,,,,,,,,,,,,{}
 7353,Transparent_Plate_,Transparent Plate,3,,10,10,,,,,,,,,,,,,{}
 7354,Transparent_Plate__,Transparent Plate,3,,10,10,,,,,,,,,,,,,{}
