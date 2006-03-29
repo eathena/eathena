@@ -92,6 +92,7 @@ enum {
 
 //Mob skill states.
 enum {
+	MSS_ANY = -1,
 	MSS_IDLE,
 	MSS_WALK,
 	MSS_LOOT,
@@ -104,6 +105,7 @@ enum {
 
 struct mob_db* mob_db(int class_);
 int mobdb_searchname(const char *str);
+int mobdb_searchname_array(struct mob_db** data, int size, const char *str);
 int mobdb_checkid(const int id);
 int mob_once_spawn(struct map_session_data *sd,char *mapname,
 	int x,int y,const char *mobname,int class_,int amount,const char *event);

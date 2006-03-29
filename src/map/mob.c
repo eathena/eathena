@@ -8,11 +8,12 @@
 #include <math.h>
 #include <limits.h>
 
-#include "timer.h"
-#include "socket.h"
-#include "db.h"
-#include "nullpo.h"
-#include "malloc.h"
+#include "../common/timer.h"
+#include "../common/db.h"
+#include "../common/nullpo.h"
+#include "../common/malloc.h"
+#include "../common/showmsg.h"
+
 #include "map.h"
 #include "clif.h"
 #include "intif.h"
@@ -26,7 +27,6 @@
 #include "party.h"
 #include "npc.h"
 #include "log.h"
-#include "showmsg.h"
 #include "script.h"
 #include "atcommand.h"
 #include "date.h"
@@ -79,6 +79,37 @@ int mobdb_searchname(const char *str)
 	}
 
 	return 0;
+}
+static int mobdb_searchname_array_sub(struct mob_db* mob, const char *str)
+{
+	if (mob == mob_dummy)
+		return 1; //Invalid item.
+	if(strstr(mob->jname,str))
+		return 0;
+	if(strstr(mob->name,str))
+		return 0;
+	return strcmpi(mob->jname,str);
+}
+
+/*==========================================
+ * Founds up to N matches. Returns number of matches [Skotlex]
+ *------------------------------------------
+ */
+int mobdb_searchname_array(struct mob_db** data, int size, const char *str)
+{
+	int count = 0, i;
+	struct mob_db* mob;
+	for(i=0;i<=MAX_MOB_DB;i++){
+		mob = mob_db(i);
+		if (mob == mob_dummy)
+			continue;
+		if (!mobdb_searchname_array_sub(mob, str)) {
+			if (count < size)
+				data[count] = mob;
+			count++;	
+		}
+	}
+	return count;
 }
 
 /*==========================================
@@ -1262,7 +1293,7 @@ int mob_target(struct mob_data *md,struct block_list *bl,int dist)
 		md->state.targettype = NONE_ATTACKABLE;
 	if (md->state.provoke_flag)
 		md->state.provoke_flag = 0;
-	md->min_chase=dist+md->db->range2;
+	md->min_chase=dist+md->db->range3;
 	if(md->min_chase>MAX_MINCHASE)
 		md->min_chase=MAX_MINCHASE;
 	return 0;
@@ -1302,7 +1333,9 @@ static int mob_ai_sub_hard_activesearch(struct block_list *bl,va_list ap)
 			md->target_id=bl->id;
 			md->state.targettype = ATTACKABLE;
 			md->state.aggressive = (status_get_mode(&md->bl)&MD_ANGRY)?1:0;
-			md->min_chase= md->db->range3;
+			md->min_chase= dist + md->db->range3;
+			if(md->min_chase>MAX_MINCHASE)
+				md->min_chase=MAX_MINCHASE;
 			return 1;
 		}
 		break;
@@ -1579,11 +1612,8 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 	int i, j, dx, dy, dist;
 	int attack_type = 0;
 	int mode;
-	int search_size = AREA_SIZE*2;
-	int blind_flag = 0;
-
-	nullpo_retr(0, bl);
-	nullpo_retr(0, ap);
+	int search_size;
+	int view_range, can_move;
 
 	md = (struct mob_data*)bl;
 	tick = va_arg(ap, unsigned int);
@@ -1595,20 +1625,20 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 		return 0;
 	md->last_thinktime = tick;
 
-	if (md->skilltimer != -1){	// Casting skill, or has died
-		if (DIFF_TICK (tick, md->next_walktime) > MIN_MOBTHINKTIME)
-			md->next_walktime = tick;
+	if (md->skilltimer != -1)
 		return 0;
-	}
+
 
 	// Abnormalities
 	if((md->sc.opt1 > 0 && md->sc.opt1 != OPT1_STONEWAIT) || md->state.state == MS_DELAY || md->sc.data[SC_BLADESTOP].timer != -1)
 		return 0;
 
 	if (md->sc.count && md->sc.data[SC_BLIND].timer != -1)
-		blind_flag = 1;
-
+		view_range = 3;
+	else
+		view_range = md->db->range2;
 	mode = status_get_mode(&md->bl);
+	can_move = (mode&MD_CANMOVE) && mob_can_move(md);
 
 	if (md->target_id)
 	{	//Check validity of current target. [Skotlex]
@@ -1625,10 +1655,17 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 	}
 			
 	// Check for target change.
-	if (md->attacked_id && mode&MD_CANATTACK && md->attacked_id != md->target_id)
+	if (md->attacked_id && mode&MD_CANATTACK)
 	{
-		abl = map_id2bl(md->attacked_id);
-		if (abl && (!tbl || mob_can_changetarget(md, abl, mode))) {
+		if (md->attacked_id == md->target_id)
+		{
+			if (!can_move && !battle_check_range (&md->bl, tbl, md->db->range))
+			{	//Rude-attacked.
+				if (md->attacked_count++ > 3)
+					mobskill_use(md, tick, MSC_RUDEATTACKED);
+			}
+		} else
+		if ((abl= map_id2bl(md->attacked_id)) && (!tbl || mob_can_changetarget(md, abl, mode))) {
 			if (md->bl.m != abl->m || abl->prev == NULL ||
 				(dist = distance_bl(&md->bl, abl)) >= 32 ||
 				battle_check_target(bl, abl, BCT_ENEMY) <= 0 ||
@@ -1636,12 +1673,11 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 				!mob_can_reach(md, abl, dist+2, MSS_RUSH) ||
 				(	//Gangster Paradise check
 					abl->type == BL_PC && !(mode&MD_BOSS) &&
-					((struct map_session_data*)abl)->state.gangsterparadise
+					((TBL_PC*)abl)->state.gangsterparadise
 				)
 			)	{	//Can't attack back
 				if (md->attacked_count++ > 3) {
-					if (mobskill_use(md, tick, MSC_RUDEATTACKED) == 0 &&
-						mode&MD_CANMOVE && mob_can_move(md))
+					if (mobskill_use(md, tick, MSC_RUDEATTACKED) == 0 && can_move)
 					{
 						int dist = rand() % 10 + 1;//後退する距離
 						int dir = map_calc_dir(abl, bl->x, bl->y);
@@ -1650,18 +1686,16 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 						md->next_walktime = tick + 500;
 					}
 				}
-			} else if (!(battle_config.mob_ai&2) && !status_check_skilluse(bl, abl, 0, 0)) {
-				//Can't attack back, but didn't invoke a rude attacked skill...
+			} else if (!(battle_config.mob_ai&2) && !status_check_skilluse(bl, abl, 0, 0))
+			{	//Can't attack back, but didn't invoke a rude attacked skill...
 				md->attacked_id = 0; //Simply unlock, shouldn't attempt to run away when in dumb_ai mode.
-			} else if (blind_flag && dist > 2 && DIFF_TICK(tick,md->next_walktime) < 0) { //Blinded, but can reach 
-				if (!md->target_id)
-				{	//Attempt to follow new target
-					if (mode&MD_CANMOVE && mob_can_move(md)) {	// why is it moving to the target when the mob can't see the player? o.o
-						dx = abl->x - md->bl.x;
-						dy = abl->y - md->bl.y;
-						md->next_walktime = tick + 1000;
-						mob_walktoxy(md, md->bl.x+dx, md->bl.y+dy, 0);
-					}
+			} else if (dist > view_range && DIFF_TICK(tick,md->next_walktime) < 0)
+			{ //Out oof range, Attempt to follow new target
+				if (!md->target_id && can_move) {	// why is it moving to the target when the mob can't see the player? o.o
+					dx = abl->x - md->bl.x -1;
+					dy = abl->y - md->bl.y -1;
+					mob_walktoxy(md, md->bl.x+dx, md->bl.y+dy, 0);
+					md->next_walktime = tick + 1000;
 				}
 			} else { //Attackable
 				if (!tbl || dist < md->db->range || !check_distance_bl(&md->bl, tbl, dist)
@@ -1680,12 +1714,14 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 				}
 			}
 		}
-	}
-	if (md->attacked_id) {
-		if (md->state.aggressive && md->attacked_id == md->target_id)
+		if (md->state.aggressive && abl == tbl)
 			md->state.aggressive = 0; //No longer aggressive, change to retaliate AI.
-		md->attacked_id = 0;	//Clear it since it's been checked for already.
+		//Clear it since it's been checked for already.
+		md->attacked_id = 0;
 	}
+	
+	if (md->timer != -1 && md->state.state == MS_ATTACK && tbl && md->target_id== tbl->id)
+		return 0; //Already attacking the current target.
 
 	// Processing of slave monster, is it needed when there's a target to deal with?
 	if (md->master_id > 0 && !tbl)
@@ -1695,23 +1731,18 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 	if ((mode&MD_AGGRESSIVE && battle_config.monster_active_enable && !tbl) ||
 		(mode&MD_ANGRY && md->state.skillstate == MSS_FOLLOW)
 	) {
-		search_size = (blind_flag) ? 3 : md->db->range2;
 		map_foreachinrange (mob_ai_sub_hard_activesearch, &md->bl,
-			search_size, md->special_state.ai?BL_CHAR:BL_PC, md, &tbl);
+			view_range, md->special_state.ai?BL_CHAR:BL_PC, md, &tbl);
 	} else if (mode&MD_CHANGECHASE && (md->state.skillstate == MSS_RUSH || md->state.skillstate == MSS_FOLLOW)) {
-		search_size = (blind_flag && md->db->range>3) ? 3 : md->db->range;
+		search_size = view_range<md->db->range ? view_range:md->db->range;
 		map_foreachinrange (mob_ai_sub_hard_changechase, &md->bl,
-				search_size, md->special_state.ai?BL_CHAR:BL_PC, md, &tbl);
-	}
-
-	// Scan area for items to loot, avoid trying to loot of the mob is full and can't consume the items.
-	if (!md->target_id && mode&MD_LOOTER && md->lootitem && 
+				search_size, (md->special_state.ai?BL_CHAR:BL_PC), md, &tbl);
+	} else if (!tbl && mode&MD_LOOTER && md->lootitem && 
 		(md->lootitem_count < LOOTITEM_SIZE || battle_config.monster_loot_type != 1))
-	{
+	{	// Scan area for items to loot, avoid trying to loot of the mob is full and can't consume the items.
 		i = 0;
-		search_size = (blind_flag) ? 3 : md->db->range2;
 		map_foreachinrange (mob_ai_sub_hard_lootsearch, &md->bl,
-			search_size, BL_ITEM, md, &i);
+			view_range, BL_ITEM, md, &i);
 	}
 
 	if (tbl)
@@ -1719,45 +1750,43 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 		if (tbl->type != BL_ITEM)
 		{	//Attempt to attack.
 			//At this point we know the target is attackable, we just gotta check if the range matches.
-			if (blind_flag && DIFF_TICK(tick,md->next_walktime) < 0 && !check_distance_bl(&md->bl, tbl, 1))
-			{	//Run towards the enemy when out of range?
-				md->target_id = 0;
-				md->state.targettype = NONE_ATTACKABLE;
-				if (!(mode & MD_CANMOVE) || !mob_can_move(md))
-					return 0;
-				dx = tbl->x - md->bl.x;
-				dy = tbl->y - md->bl.y;
-				md->next_walktime = tick + 1000;
-				mob_walktoxy(md, md->bl.x+dx, md->bl.y+dy, 0);
-				return 0;
-			}
+
 			if (!battle_check_range (&md->bl, tbl, md->db->range))
 			{	//Out of range...
 				if (!(mode&MD_CANMOVE))
 				{	//Can't chase. Attempt to use a ranged skill at least?
-					if (mobskill_use(md, tick, MSC_LONGRANGEATTACKED) == 0)
-						md->attacked_count++; //Increase rude-attacked count as it can't attack back.
-					
+					mobskill_use(md, tick, MSC_LONGRANGEATTACKED);
 					mob_unlocktarget(md,tick);
 					return 0;
 				}
-				if (!mob_can_move(md)) //Wait until you can move?
-					return 0;
 				//Follow up
+				if (!mob_can_reach(md, tbl, md->min_chase, MSS_RUSH))
+				{	//Give up.
+					mob_unlocktarget(md,tick);
+					return 0;
+				}
+				if (!check_distance_bl(&md->bl, tbl, view_range))
+				{	//Run towards the enemy when out of range?
+					if (!can_move)
+					{	//Give it up.
+						mob_unlocktarget(md,tick);
+						return 0;
+					}
+					dx = tbl->x - md->bl.x -1;
+					dy = tbl->y - md->bl.y -1;
+					mob_walktoxy(md, md->bl.x+dx, md->bl.y+dy, 0);
+					return 0;
+				}
 				md->state.skillstate = md->state.aggressive?MSS_FOLLOW:MSS_RUSH;
 				mobskill_use (md, tick, -1);
+				if (!can_move) //Wait until you can move?
+					return 0;
 				if (md->timer != -1 && md->state.state != MS_ATTACK &&
 					(DIFF_TICK (md->next_walktime, tick) < 0 ||
-					!(battle_config.mob_ai&1) ||
+					!battle_config.mob_ai&1 ||
 					check_distance_blxy(tbl, md->to_x, md->to_y, md->db->range)) //Current target tile is still within attack range.
 				) {
 					return 0; //No need to follow, already doing it?
-				}
-				search_size = blind_flag?3: md->min_chase;
-				if (!mob_can_reach(md, tbl, search_size, MSS_RUSH))
-				{	//Can't reach
-					mob_unlocktarget(md,tick);
-					return 0;
 				}
 				//Target reachable. Locate suitable spot to move to.
 				i = j = 0;
@@ -1825,21 +1854,21 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 		} else {	//Target is BL_ITEM, attempt loot.
 			struct flooritem_data *fitem;
 			
-			if ((dist = distance_bl(&md->bl, tbl)) >= md->min_chase || (blind_flag && dist >= 4) || md->lootitem == NULL)
+			if (md->lootitem == NULL)
 			{	//Can't loot...
 				mob_unlocktarget (md, tick);
 				if (md->state.state == MS_WALK)
 					mob_stop_walking(md,0);
 				return 0;
 			}
-			if (dist)
+			if (!check_distance_bl(&md->bl, tbl, 1))
 			{	//Still not within loot range.
-				if (!(mode & MD_CANMOVE))
+				if (!(mode&MD_CANMOVE))
 				{	//A looter that can't move? Real smart.
 					mob_unlocktarget(md,tick);
 					return 0;
 				}
-				if (!mob_can_move(md))	// 動けない状態にある
+				if (!can_move)	// 動けない状態にある
 					return 0;
 				md->state.skillstate = MSS_LOOT;	// ルート時スキル使用
 				mobskill_use(md, tick, -1);
@@ -1885,12 +1914,13 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 	}
 
 	// When there's no target, it is idling.
+	md->state.skillstate = MSS_IDLE;
 	if (mobskill_use(md, tick, -1))
 		return 0;
 
 	// Nothing else to do... except random walking.
 	// Slaves do not random walk! [Skotlex]
-	if (mode&MD_CANMOVE && mob_can_move(md) && !md->master_id)
+	if (can_move && !md->master_id)
 	{
 		if (DIFF_TICK(md->next_walktime, tick) > 7000 &&
 			(md->walkpath.path_len == 0 || md->walkpath.path_pos >= md->walkpath.path_len))
@@ -1900,9 +1930,6 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 			return 0;
 	}
 
-	// Since he has finished walking, it stands by.
-	if (md->walkpath.path_len == 0 || md->walkpath.path_pos >= md->walkpath.path_len)
-		md->state.skillstate = MSS_IDLE;
 	return 0;
 }
 
@@ -1913,9 +1940,6 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 static int mob_ai_sub_foreachclient(struct map_session_data *sd,va_list ap)
 {
 	unsigned int tick;
-	nullpo_retr(0, sd);
-	nullpo_retr(0, ap);
-
 	tick=va_arg(ap,unsigned int);
 	map_foreachinrange(mob_ai_sub_hard,&sd->bl, AREA_SIZE*2, BL_MOB,tick);
 
