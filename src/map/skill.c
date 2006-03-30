@@ -3105,7 +3105,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				if (battle_check_target(src, bl, BCT_ENEMY) < 1) {
 				  	//Offensive heal does not works on non-enemies. [Skotlex]
 					if (sd) clif_skill_fail(sd,skillid,0,0);
-					return 0;
+					return 1;
 				}
 				if(!sd) {
 					//Prevent non-players from casting offensive heal. [Skotlex]
@@ -3122,6 +3122,20 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		case WE_CALLBABY: 
 		{	//Find a random spot to place the skill. [Skotlex]
 			short x,y;
+			//But do the land-limit check...
+			if(sd && battle_config.pc_land_skill_limit) {
+				int maxcount = skill_get_maxcount(skillid);
+				if(maxcount > 0) {
+					for(i=0;i<MAX_SKILLUNITGROUP && maxcount;i++) {
+						if(sd->skillunit[i].alive_count > 0 && sd->skillunit[i].skill_id == sd->skillid)
+							maxcount--;
+					}
+					if(!maxcount) {
+						clif_skill_fail(sd,skillid,0,0);
+						return 0;
+					}
+				}
+			}
 			i = skill_get_splash(skillid, skilllv);
 			x = src->x + i;
 			y = src->y + i;
