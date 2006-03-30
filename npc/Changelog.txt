@@ -27,6 +27,8 @@ Nexon
 
 Date		Added
 ======
+03/29
+	* Removes possible exploits in training ground [Vicious]
 03/26
 	* Fixed rebirth scripts. Even more constant usage [Vicious]
 03/25
