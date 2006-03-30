@@ -5,6 +5,8 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY VALARIS AND WIZPUTER. -- VALARIS
 
 2006/03/30
+	* Merged the battle_calc_gvg_damage function which takes care of
+	  gvg-related damage reductions. [Skotlex]
 	* the auth function in login.c won't jstrescapecpy passwords that were
 	  encrypted. [Skotlex]
 	* Set the minimum pet hungry delay to 10 [Skotlex]
