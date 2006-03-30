@@ -4316,6 +4316,9 @@ void battle_validate_conf() {
 	if(battle_config.pet_support_min_friendly > 950) //Capped to 950/1000 [Skotlex]
 		battle_config.pet_support_min_friendly = 950;
 	
+	if(battle_config.pet_hungry_delay_rate < 10)
+		battle_config.pet_hungry_delay_rate=10;
+	
 	if(battle_config.pet_max_atk1 > battle_config.pet_max_atk2)	//Skotlex
 		battle_config.pet_max_atk1 = battle_config.pet_max_atk2;
 	

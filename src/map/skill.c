@@ -3896,8 +3896,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			/* ”Í?‡C */
 			if(skilllv == 10){
 				for(c=1;c<4;c++){
-					map_foreachinarea(skill_area_sub,
-						bl->m,tc.val1[c],tc.val2[c],tc.val1[c],tc.val2[c],BL_CHAR,
+					map_foreachincell(skill_area_sub,
+						bl->m,tc.val1[c],tc.val2[c],BL_CHAR,
 						src,skillid,skilllv,tick, flag|BCT_ENEMY|n,
 						skill_castend_damage_id);
 				}
@@ -3913,8 +3913,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 			if(skilllv > 3){
 				for(c=0;c<5;c++){
-					map_foreachinarea(skill_area_sub,
-						bl->m,tc.val1[c],tc.val2[c],tc.val1[c],tc.val2[c],BL_CHAR,
+					map_foreachincell(skill_area_sub,
+						bl->m,tc.val1[c],tc.val2[c],BL_CHAR,
 						src,skillid,skilllv,tick, flag|BCT_ENEMY|n,
 						skill_castend_damage_id);
 					if(skilllv > 6 && n==3 && c==4){
@@ -3926,8 +3926,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			/* ”Í?‡@ */
 			for(c=0;c<10;c++){
 				if(c==0||c==5) skill_brandishspear_dir(&tc,dir,-1);
-				map_foreachinarea(skill_area_sub,
-					bl->m,tc.val1[c%5],tc.val2[c%5],tc.val1[c%5],tc.val2[c%5],BL_CHAR,
+				map_foreachincell(skill_area_sub,
+					bl->m,tc.val1[c%5],tc.val2[c%5],BL_CHAR,
 					src,skillid,skilllv,tick, flag|BCT_ENEMY|1,
 					skill_castend_damage_id);
 			}

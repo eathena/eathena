@@ -127,7 +127,7 @@ void initChangeTables(void) {
 	set_sc(AS_VENOMDUST,            SC_POISON,              SI_BLANK);
 	set_sc(AS_SPLASHER,             SC_SPLASHER,            SI_BLANK);
 	set_sc(NV_TRICKDEAD,            SC_TRICKDEAD,           SI_TRICKDEAD);
-	set_sc(SM_AUTOBERSERK,          SC_AUTOBERSERK,         SI_BLANK);
+	set_sc(SM_AUTOBERSERK,          SC_AUTOBERSERK,         SI_STEELBODY);
 	set_sc(TF_SPRINKLESAND,         SC_BLIND,               SI_BLANK);
 	set_sc(TF_THROWSTONE,           SC_STUN,                SI_BLANK);
 	set_sc(MC_LOUD,                 SC_LOUD,                SI_LOUD);
@@ -390,7 +390,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 	{
 		if (
 			(sc->data[SC_TRICKDEAD].timer != -1 && skill_num != NV_TRICKDEAD)
-			|| (sc->data[SC_AUTOCOUNTER].timer != -1 && skill_num != KN_AUTOCOUNTER)
+			|| sc->data[SC_AUTOCOUNTER].timer != -1
 			|| (sc->data[SC_GOSPEL].timer != -1 && sc->data[SC_GOSPEL].val4 == BCT_SELF && skill_num != PA_GOSPEL)
 			|| (sc->data[SC_GRAVITATION].timer != -1 && sc->data[SC_GRAVITATION].val3 == BCT_SELF && skill_num != HW_GRAVITATION)
 		)
