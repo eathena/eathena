@@ -1,4 +1,6 @@
 03/29
+	* Updated FULL BUSTER aftercast delays, thanks to Haplo [Lupus]
+	- Fixed Rose Nile bonus
 	* Updated changed weight of some items according to Haplo's note [Lupus]
 	* Updated some SP cost of some skills. Added SP COST info for Homunculi skills. Thanks to Haplo [Lupus]
 03/28
