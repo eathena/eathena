@@ -1147,6 +1147,8 @@ L_prewarp:
 		getitem 2112,1;
 		getitem 601,10;
 		getitem 602,2;
+		getitem 7059,5;
+		getitem 7060,5;
 	}
 	set NEW_MES_FLAG0,0;
 	set NEW_MES_FLAG1,0;
@@ -2875,7 +2877,7 @@ L_cancel:
 	switch ( select("Yes.","No") ) {
 	case 1:	set NOV_3_SWORDMAN,NOV_3_SWORDMAN+1;break;
 	case 2:	set NOV_3_THIEF,NOV_3_THIEF+1;
-		set NOV_3_MERCHAN,NOV_3_MERCHAN+1;
+		set NOV_3_MERCHANT,NOV_3_MERCHANT+1;
 	}
 	mes "[Hanson]";
 	mes "You are often upset to see someone";

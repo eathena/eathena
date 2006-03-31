@@ -27,6 +27,9 @@ Nexon
 
 Date		Added
 ======
+03/30
+	* Fixed refiner full price display, thanks to S4Sly [Vicious]
+	* Training ground giving 5 kafra storage/teleport pass [Vicious]
 03/29
 	* Removes possible exploits in training ground [Vicious]
 03/26
