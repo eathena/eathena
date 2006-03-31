@@ -1,3 +1,5 @@
+03/30
+	* Merged Poki#3's update [Vicious]
 03/29
 	* Updated FULL BUSTER aftercast delays, thanks to Haplo [Lupus]
 	- Fixed Rose Nile bonus
