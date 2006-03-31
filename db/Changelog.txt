@@ -1,3 +1,5 @@
+03/31
+	* Adjusted the range of Wall of Fog to 9 and Spider Web to 7 [Skotlex]
 03/30
 	* Merged Poki#3's update [Vicious]
 03/29
