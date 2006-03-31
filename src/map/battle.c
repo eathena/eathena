@@ -4236,7 +4236,6 @@ void battle_set_defaults() {
 	battle_config.ignore_items_gender = 1;
 	battle_config.copyskill_restrict = 2;
 	battle_config.berserk_cancels_buffs = 1;
-	battle_config.debuff_on_logout = 1;
 	battle_config.use_statpoint_table = 1;
 	battle_config.mob_ai = 0;
 	battle_config.dynamic_mobs = 1; // use Dynamic Mobs [Wizputer]
