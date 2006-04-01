@@ -1,4 +1,5 @@
 03/31
+	* more of item drop update [Vicious]
 	* Adjusted the range of Wall of Fog to 9 and Spider Web to 7 [Skotlex]
 03/30
 	* Merged Poki#3's update [Vicious]
