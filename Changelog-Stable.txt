@@ -4,6 +4,11 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES GO 
 IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EVERYTHING ELSE
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
+2006/04/01
+	* Merged the fixes to the mob_ai routines. Prevents casting rude-attacked
+	  skills in situations that shouldn't be considered as so. Fixed mobs failing
+	  to chase after enemies when range-attacked out of their view_range. [Skotlex]
+	* Merged the ers usage for mob drops. [Skotlex]
 2006/03/30
 	* Merged the battle_calc_gvg_damage function which takes care of
 	  gvg-related damage reductions. [Skotlex]

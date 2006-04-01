@@ -13,6 +13,7 @@
 #include "../common/nullpo.h"
 #include "../common/malloc.h"
 #include "../common/showmsg.h"
+#include "../common/ers.h"
 
 #include "map.h"
 #include "clif.h"
@@ -47,6 +48,7 @@ struct mob_db *mob_dummy = NULL;	//Dummy mob to be returned when a non-existant 
 
 struct mob_db *mob_db(int index) { if (index < 0 || index > MAX_MOB_DB || mob_db_data[index] == NULL) return mob_dummy; return mob_db_data[index]; }
 
+static struct eri *delay_drop_ers; //For loot drops delay structures.
 #define CLASSCHANGE_BOSS_NUM 21
 
 /*==========================================
@@ -1613,7 +1615,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 	int attack_type = 0;
 	int mode;
 	int search_size;
-	int view_range, can_move;
+	int view_range, can_move, can_walk;
 
 	md = (struct mob_data*)bl;
 	tick = va_arg(ap, unsigned int);
@@ -1638,7 +1640,11 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 	else
 		view_range = md->db->range2;
 	mode = status_get_mode(&md->bl);
+
 	can_move = (mode&MD_CANMOVE) && mob_can_move(md);
+	//Since can_move is false when you are casting or the damage-delay kicks in, some special considerations
+	//must be taken to avoid unlocking the target or triggering rude-attacked skills in said cases. [Skotlex]
+	can_walk = DIFF_TICK(tick, md->canmove_tick) > 0;
 
 	if (md->target_id)
 	{	//Check validity of current target. [Skotlex]
@@ -1655,7 +1661,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 	}
 			
 	// Check for target change.
-	if (md->attacked_id && mode&MD_CANATTACK)
+	if (md->attacked_id && mode&MD_CANATTACK && can_walk)
 	{
 		if (md->attacked_id == md->target_id)
 		{
@@ -1667,7 +1673,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 		} else
 		if ((abl= map_id2bl(md->attacked_id)) && (!tbl || mob_can_changetarget(md, abl, mode))) {
 			if (md->bl.m != abl->m || abl->prev == NULL ||
-				(dist = distance_bl(&md->bl, abl)) >= 32 ||
+				(dist = distance_bl(&md->bl, abl)) >= MAX_MINCHASE ||
 				battle_check_target(bl, abl, BCT_ENEMY) <= 0 ||
 				(battle_config.mob_ai&2 && !status_check_skilluse(bl, abl, 0, 0)) ||
 				!mob_can_reach(md, abl, dist+2, MSS_RUSH) ||
@@ -1689,14 +1695,16 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 			} else if (!(battle_config.mob_ai&2) && !status_check_skilluse(bl, abl, 0, 0))
 			{	//Can't attack back, but didn't invoke a rude attacked skill...
 				md->attacked_id = 0; //Simply unlock, shouldn't attempt to run away when in dumb_ai mode.
+/* Unneeded. Mobs use the min_chase parameter to chase back enemies once hit.
 			} else if (dist > view_range && DIFF_TICK(tick,md->next_walktime) < 0)
-			{ //Out oof range, Attempt to follow new target
+			{ //Out of range, Attempt to follow new target
 				if (!md->target_id && can_move) {	// why is it moving to the target when the mob can't see the player? o.o
 					dx = abl->x - md->bl.x -1;
 					dy = abl->y - md->bl.y -1;
 					mob_walktoxy(md, md->bl.x+dx, md->bl.y+dy, 0);
 					md->next_walktime = tick + 1000;
 				}
+*/
 			} else { //Attackable
 				if (!tbl || dist < md->db->range || !check_distance_bl(&md->bl, tbl, dist)
 					|| battle_gettarget(tbl) != md->bl.id)
@@ -1714,7 +1722,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 				}
 			}
 		}
-		if (md->state.aggressive && abl == tbl)
+		if (md->state.aggressive && md->attacked_id == md->target_id)
 			md->state.aggressive = 0; //No longer aggressive, change to retaliate AI.
 		//Clear it since it's been checked for already.
 		md->attacked_id = 0;
@@ -1769,12 +1777,13 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 				{	//Run towards the enemy when out of range?
 					if (!can_move)
 					{	//Give it up.
-						mob_unlocktarget(md,tick);
+						if (can_walk)
+							mob_unlocktarget(md,tick);
 						return 0;
 					}
-					dx = tbl->x - md->bl.x -1;
-					dy = tbl->y - md->bl.y -1;
-					mob_walktoxy(md, md->bl.x+dx, md->bl.y+dy, 0);
+					dx = tbl->x+(tbl->x > md->bl.x?-1:+1);
+					dy = tbl->y+(tbl->y > md->bl.y?-1:+1);
+					mob_walktoxy(md, dx, dy, 0);
 					return 0;
 				}
 				md->state.skillstate = md->state.aggressive?MSS_FOLLOW:MSS_RUSH;
@@ -1831,7 +1840,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 					}
 #else
 					if (i%9 == j)
-					{	//Failed? Try going away from the target before retrying.
+					{	//Failed? Try going to the other side of the target before retrying.
 						if (dx < 0) dx = 2;
 						else if (dx > 0) dx = -2;
 						if (dy < 0) dy = 2;
@@ -2056,7 +2065,7 @@ struct delay_item_drop {
 static struct delay_item_drop* mob_setdropitem(int nameid, int qty, int m, int x, int y, 
 	struct map_session_data* first_sd, struct map_session_data* second_sd, struct map_session_data* third_sd)
 {
-	struct delay_item_drop *drop = aCalloc(1, sizeof (struct delay_item_drop));
+	struct delay_item_drop *drop = ers_alloc(delay_drop_ers, struct delay_item_drop);
 	drop->item_data.nameid = nameid;
 	drop->item_data.amount = qty;
 	drop->item_data.identify = !itemdb_isequip3(nameid);
@@ -2076,7 +2085,7 @@ static struct delay_item_drop* mob_setdropitem(int nameid, int qty, int m, int x
 static struct delay_item_drop* mob_setlootitem(struct item* item, int m, int x, int y,
 	struct map_session_data* first_sd, struct map_session_data* second_sd, struct map_session_data* third_sd)
 {
-	struct delay_item_drop *drop = aCalloc(1, sizeof (struct delay_item_drop));
+	struct delay_item_drop *drop = ers_alloc(delay_drop_ers, struct delay_item_drop);
 	memcpy(&drop->item_data, item, sizeof(struct item));
 	drop->m = m;
 	drop->x = x;
@@ -2097,7 +2106,7 @@ static int mob_delay_item_drop(int tid,unsigned int tick,int id,int data)
 	ditem=(struct delay_item_drop *)id;
 
 	map_addflooritem(&ditem->item_data,1,ditem->m,ditem->x,ditem->y,ditem->first_sd,ditem->second_sd,ditem->third_sd,0);
-	aFree(ditem);
+	ers_free(delay_drop_ers, ditem);
 	return 0;
 }
 
@@ -2128,7 +2137,7 @@ static void mob_item_drop(struct mob_data *md, unsigned int tick, struct delay_i
 				NULL,
 			ditem->first_sd,&ditem->item_data) == 0
 		) {
-			aFree(ditem);
+			ers_free(delay_drop_ers, ditem);
 			return;
 		}
 	}
@@ -5123,6 +5132,7 @@ int do_init_mob(void)
 	memset(mob_db_data,0,sizeof(mob_db_data)); //Clear the array
 	mob_db_data[0] = aCalloc(1, sizeof (struct mob_data));	//This mob is used for random spawns
 	mob_makedummymobdb(0); //The first time this is invoked, it creates the dummy mob
+	delay_drop_ers = ers_new((uint32)sizeof(struct delay_item_drop));
 
 #ifndef TXT_ONLY
     if(db_use_sqldbs)
@@ -5172,6 +5182,6 @@ int do_final_mob(void)
 			mob_db_data[i] = NULL;
 		}
 	}
-
+	ers_destroy(delay_drop_ers);
 	return 0;
 }
