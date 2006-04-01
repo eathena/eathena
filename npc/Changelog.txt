@@ -27,6 +27,8 @@ Nexon
 
 Date		Added
 ======
+04/41
+	* Fixed more of wrong female thief bug spawn [Vicious]
 03/30
 	* Merged Poki#3's spawn update [Vicious]
 	* Fixed refiner full price display, thanks to S4Sly [Vicious]
