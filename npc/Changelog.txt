@@ -27,7 +27,10 @@ Nexon
 
 Date		Added
 ======
-04/41
+04/02
+	* Umbala Bungee Jump - Warps you to Niff with 1HP no watter what [Lance]
+	* Fixed sage script? [Vicious]
+04/01
 	* Fixed more of wrong female thief bug spawn [Vicious]
 03/30
 	* Merged Poki#3's spawn update [Vicious]
