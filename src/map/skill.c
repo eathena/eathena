@@ -6771,14 +6771,17 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 
 	case UNT_SPIDERWEB:
 	case UNT_ANKLESNARE:
-		if(sg->val2==0 && (!tsc || tsc->data[type].timer==-1 )){
+		if(sg->val2==0 && tsc && tsc->data[type].timer==-1){
 		 	int sec = skill_get_time2(sg->skill_id,sg->skill_lv);
 			if (sc_start(bl,type,100,sg->skill_lv,sec))
 			{
+				struct TimerData* td = get_timer(tsc->data[type].timer); 
+				if (td) sec = DIFF_TICK(td->tick, tick);
 				map_moveblock(bl, src->bl.x, src->bl.y, tick);
  				clif_fixpos(bl);
 				sg->val2=bl->id;
-			}
+			} else
+				sec = 3000; //Couldn't trap it?
 			//clif_01ac(&src->bl); //Removed? Check the openkore description of this packet: [Skotlex]
 			// 01AC: long ID
 			// Indicates that an object is trapped, but ID is not a

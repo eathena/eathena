@@ -4,6 +4,12 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES GO 
 IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EVERYTHING ELSE
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
+2006/04/02
+	* Merged the fix of ankle-snare's lasting time. [Skotlex]
+	* Merged the npc_reload implementation which doesn't causes crashes for
+	  @reloadscript [Skotlex]
+	* Merged breaking exp-even share when a party-member leaves the party.
+	  [Skotlex]
 2006/04/01
 	* Merged the fixes to the mob_ai routines. Prevents casting rude-attacked
 	  skills in situations that shouldn't be considered as so. Fixed mobs failing
