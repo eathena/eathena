@@ -5,6 +5,9 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 2006/04/02
+	* Added a missing memset on ers_alloc'ing mob loot which was making data
+	  from looted items fill in normal drop info (in other words, you could get
+	  normal loots that were named after players, for example) [Skotlex]
 	* Merged the fix of ankle-snare's lasting time. [Skotlex]
 	* Merged the npc_reload implementation which doesn't causes crashes for
 	  @reloadscript [Skotlex]
