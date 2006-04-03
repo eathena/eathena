@@ -6,6 +6,7 @@ GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 
 2006/04/03
+	* Fixed (?) Auto-Counter. [Skotlex]
 	* Cleaned up (fixed?) a possible overflow in pc_isUseitem, thanks to
 	  foobar. [Skotlex]
 2006/04/02
