@@ -4190,7 +4190,7 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			{
 				struct block_list *src = val2?map_id2bl(val2):NULL;
 				struct status_change *sc2 = src?status_get_sc(src):NULL;
-				if (src && sc2 && sc2->count) {
+				if (src && sc2) {
 					if (sc2->data[SC_CLOSECONFINE].timer == -1) //Start lock on caster.
 						sc_start4(src,SC_CLOSECONFINE,100,sc->data[type].val1,1,0,0,tick+1000);
 					else { //Increase count of locked enemies and refresh time.
@@ -4198,7 +4198,8 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 						delete_timer(sc2->data[SC_CLOSECONFINE].timer, status_change_timer);
 						sc2->data[SC_CLOSECONFINE].timer = add_timer(gettick()+tick+1000, status_change_timer, src->id, SC_CLOSECONFINE);
 					}
-				}
+				} else //Status failed.
+					return 0;
 			}
 			break;
 		case SC_KAITE:

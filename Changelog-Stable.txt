@@ -6,6 +6,8 @@ GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 
 2006/04/05
+	* Some changes to close-confine, status start will fail when the source is
+	  not found or it doesn't has sc-data. [Skotlex]
 	* Added support for the 2006/04/04a Sakexe packet version. [Zephiris]
 2006/04/03
 	* Fixed script command mapwarp. [Skotlex]
