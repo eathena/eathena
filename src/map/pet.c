@@ -101,55 +101,51 @@ static int pet_can_reach(struct pet_data *pd,int x,int y)
 static int pet_calc_pos(struct pet_data *pd,int tx,int ty,int dir)
 {
 	int x,y,dx,dy;
-	int i,j=0,k;
+	int i,k;
 
 	nullpo_retr(0, pd);
-
-	Assert((pd->msd == 0) || (pd->msd->pd == pd));
 
 	pd->to_x = tx;
 	pd->to_y = ty;
 
-	if(dir >= 0 && dir < 8) {
-		dx = -dirx[dir]*2;
-		dy = -diry[dir]*2;
-		x = tx + dx;
-		y = ty + dy;
-		if(!(j=pet_can_reach(pd,x,y))) {
-			if(dx > 0) x--;
-			else if(dx < 0) x++;
-			if(dy > 0) y--;
-			else if(dy < 0) y++;
-			if(!(j=pet_can_reach(pd,x,y))) {
-				for(i=0;i<12;i++) {
-					k = rand()%8;
-					dx = -dirx[k]*2;
-					dy = -diry[k]*2;
-					x = tx + dx;
-					y = ty + dy;
-					if((j=pet_can_reach(pd,x,y)))
+	if(dir < 0 || dir >= 8)
+	 return 1;
+	
+	dx = -dirx[dir]*2;
+	dy = -diry[dir]*2;
+	x = tx + dx;
+	y = ty + dy;
+	if(!pet_can_reach(pd,x,y)) {
+		if(dx > 0) x--;
+		else if(dx < 0) x++;
+		if(dy > 0) y--;
+		else if(dy < 0) y++;
+		if(!pet_can_reach(pd,x,y)) {
+			for(i=0;i<12;i++) {
+				k = rand()%8;
+				dx = -dirx[k]*2;
+				dy = -diry[k]*2;
+				x = tx + dx;
+				y = ty + dy;
+				if(pet_can_reach(pd,x,y))
+					break;
+				else {
+					if(dx > 0) x--;
+					else if(dx < 0) x++;
+					if(dy > 0) y--;
+					else if(dy < 0) y++;
+					if(pet_can_reach(pd,x,y))
 						break;
-					else {
-						if(dx > 0) x--;
-						else if(dx < 0) x++;
-						if(dy > 0) y--;
-						else if(dy < 0) y++;
-						if((j=pet_can_reach(pd,x,y)))
-							break;
-					}
 				}
-				if(!j) {
-					x = tx;
-					y = ty;
-					if(!pet_can_reach(pd,x,y))
-						return 1;
-				}
+			}
+			if(i>=12) {
+				x = tx;
+				y = ty;
+				if(!pet_can_reach(pd,x,y))
+					return 1;
 			}
 		}
 	}
-	else
-		return 1;
-
 	pd->to_x = x;
 	pd->to_y = y;
 	return 0;
@@ -671,6 +667,9 @@ static int pet_hungry(int tid,unsigned int tick,int id,int data)
 	if(!sd->status.pet_id || !sd->pd || !sd->petDB)
 		return 1;
 
+	if (sd->pet.intimate <= 0)
+		return 1; //You lost the pet already, the rest is irrelevant.
+	
 	sd->pet.hungry--;
 	t = sd->pet.intimate;
 	if(sd->pet.hungry < 0) {
@@ -680,6 +679,7 @@ static int pet_hungry(int tid,unsigned int tick,int id,int data)
 		sd->pet.intimate -= battle_config.pet_hungry_friendly_decrease;
 		if(sd->pet.intimate <= 0) {
 			sd->pet.intimate = 0;
+			sd->pd->speed = sd->pd->db->speed;
 			if(battle_config.pet_status_support && t > 0) {
 				if(sd->bl.prev != NULL)
 					status_calc_pc(sd,0);
@@ -910,7 +910,18 @@ int pet_data_init(struct map_session_data *sd)
 		sd->status.pet_id = 0;
 		return 1;
 	}
-
+	if (sd->status.pet_id != sd->pet.pet_id) {
+		if (sd->status.pet_id) {
+			//Wrong pet?? Set incuvate to no and send it back for saving.
+			sd->pet.incuvate = 1;
+			intif_save_petdata(sd->status.account_id,&sd->pet);
+			sd->status.pet_id = 0;
+			return 1;
+		}
+		//The pet_id value was lost? odd... restore it.
+		sd->status.pet_id = sd->pet.pet_id;
+	}
+	
 	i = search_petDB_index(sd->pet.class_,PET_CLASS);
 	if(i < 0) {
 		sd->status.pet_id = 0;
@@ -1015,9 +1026,25 @@ int pet_recv_petdata(int account_id,struct s_pet *p,int flag)
 		return 1;
 	}
 	memcpy(&sd->pet,p,sizeof(struct s_pet));
-	if(sd->pet.incuvate == 1)
-		pet_birth_process(sd);
-	else {
+	if(sd->pet.incuvate == 1) {
+		int i;
+		//Delete egg from inventory. [Skotlex]
+		for (i = 0; i < MAX_INVENTORY; i++) {
+			if(sd->status.inventory[i].card[0] == (short)0xff00 &&
+				p->pet_id == MakeDWord(sd->status.inventory[i].card[1], sd->status.inventory[i].card[2]))
+				break;
+		}
+		if(i >= MAX_INVENTORY) {
+		  	if (battle_config.error_log)
+				ShowError("pet_recv_petdata: Hatching pet (%d:%s) aborted, couldn't find egg in inventory for removal!\n",p->pet_id, p->name);
+			sd->status.pet_id = 0;
+			memset(&sd->pet,0,sizeof(struct s_pet));
+			sd->pet.incuvate = 1;
+			return 1;
+		}
+		if (!pet_birth_process(sd)) //Pet hatched. Delete egg.
+			pc_delitem(sd,i,1,0);
+	} else {
 		pet_data_init(sd);
 		if(sd->pd && sd->bl.prev != NULL) {
 			map_addblock(&sd->pd->bl);
@@ -1051,8 +1078,6 @@ int pet_select_egg(struct map_session_data *sd,short egg_index)
 		if(battle_config.error_log)
 			ShowError("wrong egg item inventory %d\n",egg_index);
 	}
-	pc_delitem(sd,egg_index,1,0);
-
 	return 0;
 }
 
@@ -1175,6 +1200,10 @@ int pet_menu(struct map_session_data *sd,int menunum)
 {
 	nullpo_retr(0, sd);
 	if (sd->pd == NULL)
+		return 1;
+	
+	//You lost the pet already.
+	if(sd->pet.intimate <= 0)
 		return 1;
 	
 	switch(menunum) {
@@ -1307,7 +1336,7 @@ int pet_unequipitem(struct map_session_data *sd)
 
 int pet_food(struct map_session_data *sd)
 {
-	int i,k,t;
+	int i,k;
 
 	nullpo_retr(1, sd);
 
@@ -1321,29 +1350,28 @@ int pet_food(struct map_session_data *sd)
 		return 1;
 	}
 	pc_delitem(sd,i,1,0);
-	t = sd->pet.intimate;
+
 	if(sd->pet.hungry > 90)
 		sd->pet.intimate -= sd->petDB->r_full;
-	else if(sd->pet.hungry > 75) {
-		if(battle_config.pet_friendly_rate != 100)
-			k = (sd->petDB->r_hungry * battle_config.pet_friendly_rate)/100;
-		else
-			k = sd->petDB->r_hungry;
-		k = k >> 1;
-		if(k <= 0)
-			k = 1;
-		sd->pet.intimate += k;
-	}
 	else {
 		if(battle_config.pet_friendly_rate != 100)
 			k = (sd->petDB->r_hungry * battle_config.pet_friendly_rate)/100;
 		else
 			k = sd->petDB->r_hungry;
+		if(sd->pet.hungry > 75) {
+			k = k >> 1;
+			if(k <= 0)
+				k = 1;
+		}
 		sd->pet.intimate += k;
 	}
 	if(sd->pet.intimate <= 0) {
 		sd->pet.intimate = 0;
-		if(battle_config.pet_status_support && t > 0) {
+		if(sd->pd->target_id > 0)
+			pet_stopattack(sd->pd);
+		sd->pd->speed = sd->pd->db->speed;
+	
+		if(battle_config.pet_status_support) {
 			if(sd->bl.prev != NULL)
 				status_calc_pc(sd,0);
 			else
@@ -1413,9 +1441,8 @@ static int pet_randomwalk(struct pet_data *pd,int tick)
 static int pet_ai_sub_hard(struct pet_data *pd,unsigned int tick)
 {
 	struct map_session_data *sd = pd->msd;
-	struct block_list *bl = NULL;
-	int dist,i=0,dx,dy,ret;
-	int mode,race;
+	struct block_list *target=NULL;
+	int i=0,dx,dy;
 
 	nullpo_retr(0, pd);
 
@@ -1431,141 +1458,134 @@ static int pet_ai_sub_hard(struct pet_data *pd,unsigned int tick)
 	pd->last_thinktime=tick;
 
 	if(pd->state.state == MS_DELAY || pd->bl.m != sd->bl.m)
+	if(sd->pet.intimate <= 0) {
+		//Pet should just... well, random walk.
+		pet_randomwalk(pd,tick);
 		return 0;
+	}
+	
+	if (!check_distance_bl(&sd->bl, &pd->bl, pd->db->range2)) {
+		//Master too far, chase.
+		if(pd->target_id)
+			pet_unlocktarget(pd);
+		if(pd->timer != -1 && pd->state.state == MS_WALK && check_distance_blxy(&sd->bl, pd->to_x,pd->to_y, 3))
+			return 0; //Already walking to him
+		
+		pd->speed = (sd->speed>>1);
+		if(pd->speed <= 0)
+			pd->speed = 1;
+		pet_calc_pos(pd,sd->bl.x,sd->bl.y,sd->dir);
+		if(!pet_walktoxy(pd,pd->to_x,pd->to_y))
+			pet_randomwalk(pd,tick);
+		return 0;
+	}
+
+	//Return speed to normal.
+	if (pd->speed != sd->petDB->speed)
+		pd->speed = sd->petDB->speed;
+	
+	if (pd->target_id) {
+		target= map_id2bl(pd->target_id);
+		if (!target || pd->bl.m != target->m || target->prev == NULL ||
+			!check_distance_bl(&pd->bl, target, pd->db->range3))
+			pet_unlocktarget(pd);
+	}
+	
 	// ペットによるルート
 	if(!pd->target_id && pd->loot && pd->loot->count < pd->loot->max && DIFF_TICK(gettick(),pd->loot->timer)>0)
 		//Use half the pet's range of sight.
 		map_foreachinrange(pet_ai_sub_hard_lootsearch,&pd->bl,
 			pd->db->range2/2, BL_ITEM,pd,&i);
 
-	if(sd->pet.intimate > 0) {
-		dist = distance_bl(&sd->bl, &pd->bl);
-		if(dist > 12) {
-			if(pd->target_id > 0)
+	if (!target) {
+	//Just walk around.
+		if (check_distance_bl(&sd->bl, &pd->bl, 3))
+			return 0; //Already next to master.
+
+		if(pd->timer != -1 && pd->state.state == MS_WALK && check_distance_blxy(&sd->bl, pd->to_x,pd->to_y, 3))
+			return 0; //Already walking to him
+
+		pet_calc_pos(pd,sd->bl.x,sd->bl.y,sd->dir);
+		if(!pet_walktoxy(pd,pd->to_x,pd->to_y))
+			pet_randomwalk(pd,tick);
+
+		return 0;
+	}
+	
+	if (target->type != BL_ITEM) 
+	{ //enemy targetted
+		if(!battle_check_range(&pd->bl,target,pd->db->range))
+		{	//Chase
+			if(pd->timer != -1 && pd->state.state == MS_WALK && check_distance_blxy(target, pd->to_x,pd->to_y, pd->db->range))
+				return 0;
+			
+			if(!pet_can_reach(pd, target->x, target->y))
+			{	//Unreachable target.
 				pet_unlocktarget(pd);
 			if(pd->timer != -1 && pd->state.state == MS_WALK && check_distance_blxy(&sd->bl, pd->to_x, pd->to_y, 3))
 				return 0;
-			pd->speed = (sd->speed>>1);
-			if(pd->speed <= 0)
-				pd->speed = 1;
-			pet_calc_pos(pd,sd->bl.x,sd->bl.y,sd->dir);
-			if(pet_walktoxy(pd,pd->to_x,pd->to_y))
-				pet_randomwalk(pd,tick);
-		}
-		else if(pd->target_id - MAX_FLOORITEM > 0) {	//Mob targeted
-			mode=pd->db->mode;
-			race=pd->db->race;
-			bl= map_id2bl(pd->target_id);
-			if(bl == NULL || pd->bl.m != bl->m || bl->prev == NULL ||
-				!check_distance_bl(&pd->bl, bl, pd->db->range3))
+			}
+			i=0;
+			do {
+				if(i==0) {	// 最初はAEGISと同じ方法で検索
+					dx=target->x - pd->bl.x;
+					dy=target->y - pd->bl.y;
+					if(dx<0) dx++;
+					else if(dx>0) dx--;
+					if(dy<0) dy++;
+					else if(dy>0) dy--;
+				}
+				else {	// だめならAthena式(ランダム)
+					dx=target->x - pd->bl.x + rand()%3 - 1;
+					dy=target->y - pd->bl.y + rand()%3 - 1;
+				}
+			} while(!pet_walktoxy(pd,pd->bl.x+dx,pd->bl.y+dy) && ++i<5);
+
+			if(i>=5) {
+				if(dx<0) dx=2;
+				else if(dx>0) dx=-2;
+				if(dy<0) dy=2;
+				else if(dy>0) dy=-2;
+				pet_walktoxy(pd,pd->bl.x+dx,pd->bl.y+dy);
+			}
+			return 0;
+		}	//End Chase
+		if (pd->state.state == MS_WALK)
+			pet_stop_walking(pd,1);
+		if (pd->state.state == MS_ATTACK)
+			return 0;
+		//Continuous attack.
+		pet_changestate(pd,MS_ATTACK,0);
+	} else {	//Item Targeted, attempt loot
+		if (!check_distance_bl(&pd->bl, target, 1))
+		{	//Out of range
+			if(pd->timer != -1 && pd->state.state == MS_WALK && check_distance_blxy(target, pd->to_x, pd->to_y, 0))
+				return 0; // 既に移動中
+
+			if(!pet_can_reach(pd, target->x, target->y))
+			{	//Unreachable target.
 				pet_unlocktarget(pd);
-			else if(!battle_check_range(&pd->bl,bl,pd->db->range) && !pd->state.casting_flag){ //Skotlex Don't interrupt a casting spell when targed moved
-				if(pd->timer != -1 && pd->state.state == MS_WALK && check_distance_blxy(bl, pd->to_x, pd->to_y, 2))
-					return 0;
-				if(!pet_can_reach(pd, bl->x, bl->y))
-					pet_unlocktarget(pd);
-				else {
-					i=0;
-					pd->speed = status_get_speed(&pd->bl);
-					do {
-						if(i==0) {	// 最初はAEGISと同じ方法で検索
-							dx=bl->x - pd->bl.x;
-							dy=bl->y - pd->bl.y;
-							if(dx<0) dx++;
-							else if(dx>0) dx--;
-							if(dy<0) dy++;
-							else if(dy>0) dy--;
-						}
-						else {	// だめならAthena式(ランダム)
-							dx=bl->x - pd->bl.x + rand()%3 - 1;
-							dy=bl->y - pd->bl.y + rand()%3 - 1;
-						}
-						ret=pet_walktoxy(pd,pd->bl.x+dx,pd->bl.y+dy);
-						i++;
-					} while(ret && i<5);
-
-					if(ret) { // 移動不可能な所からの攻撃なら2歩下る
-						if(dx<0) dx=2;
-						else if(dx>0) dx=-2;
-						if(dy<0) dy=2;
-						else if(dy>0) dy=-2;
-						pet_walktoxy(pd,pd->bl.x+dx,pd->bl.y+dy);
-					}
-				}
-			}
-			else {
-				if(pd->state.state==MS_WALK)
-					pet_stop_walking(pd,1);
-				if(pd->state.state==MS_ATTACK)
-					return 0;
-				pet_changestate(pd,MS_ATTACK,0);
-			}
-		}
-		else if(pd->target_id > 0 && pd->loot){	//Item Targeted, attempt loot
-			struct block_list *bl_item;
-			struct flooritem_data *fitem;
-
-			bl_item = map_id2bl(pd->target_id);
-			if(bl_item == NULL || bl_item->type != BL_ITEM ||bl_item->m != pd->bl.m ||
-				 (dist=distance_bl(&pd->bl, bl_item))>=5){
-				 // 遠すぎるかアイテムがなくなった
- 				pet_unlocktarget(pd);
-			}
-			else if(dist){
-				if(pd->timer != -1 && pd->state.state!=MS_ATTACK && (DIFF_TICK(pd->next_walktime,tick)<0 || !check_distance_blxy(bl_item, pd->to_x, pd->to_y, 0)))
-					return 0; // 既に移動中
-
-				pd->next_walktime=tick+500;
-				dx=bl_item->x - pd->bl.x;
-				dy=bl_item->y - pd->bl.y;
-
-				ret=pet_walktoxy(pd,pd->bl.x+dx,pd->bl.y+dy);
-			}
-			else{	// アイテムまでたどり着いた
-				fitem = (struct flooritem_data *)bl_item;
-				if(pd->state.state==MS_ATTACK)
-					return 0; // 攻撃中
-				if(pd->state.state==MS_WALK){	// 歩行中なら停止
-					pet_stop_walking(pd,1);
-				}
-				if(pd->loot->count < pd->loot->max){
-					memcpy(&pd->loot->item[pd->loot->count++],&fitem->item_data,sizeof(pd->loot->item[0]));
-					pd->loot->weight += itemdb_search(fitem->item_data.nameid)->weight*fitem->item_data.amount;
-					map_clearflooritem(bl_item->id);
-					pet_unlocktarget(pd);
-				}
-				else { //Maxed out on carried items
-					pet_unlocktarget(pd);
-					return 0;
-				}
-			}
-		}
-		else {
-			if(dist <= 3 || pd->state.casting_flag || (pd->timer != -1 && pd->state.state == MS_WALK && check_distance_blxy(&sd->bl, pd->to_x,pd->to_y, 3)))
 				return 0;
-			pd->speed = status_get_speed(&pd->bl);
-			pet_calc_pos(pd,sd->bl.x,sd->bl.y,sd->dir);
-			if(pet_walktoxy(pd,pd->to_x,pd->to_y))
-				pet_randomwalk(pd,tick);
+			}
+			pet_walktoxy(pd, target->x, target->y);
+		} else{	// アイテムまでたどり着いた
+			struct flooritem_data *fitem = (struct flooritem_data *)target;
+			pet_stop_walking(pd,1);
+			if(pd->loot->count < pd->loot->max){
+				memcpy(&pd->loot->item[pd->loot->count++],&fitem->item_data,sizeof(pd->loot->item[0]));
+				pd->loot->weight += itemdb_search(fitem->item_data.nameid)->weight*fitem->item_data.amount;
+				map_clearflooritem(target->id);
+			} 
+			//Target is unlocked regardless of whether it was picked or not.
+			pet_unlocktarget(pd);
 		}
 	}
-	else {
-		pd->speed = status_get_speed(&pd->bl);
-		if(pd->state.state == MS_ATTACK)
-			pet_stopattack(pd);
-		pet_randomwalk(pd,tick);
-	}
-
 	return 0;
 }
 
 static int pet_ai_sub_foreachclient(struct map_session_data *sd,va_list ap)
 {
 	unsigned int tick;
-
-	nullpo_retr(0, sd);
-	nullpo_retr(0, ap);
-
 	tick=va_arg(ap,unsigned int);
 	if(sd->status.pet_id && sd->pd && sd->petDB)
 		pet_ai_sub_hard(sd->pd,tick);
@@ -1583,68 +1603,59 @@ static int pet_ai_hard(int tid,unsigned int tick,int id,int data)
 int pet_ai_sub_hard_lootsearch(struct block_list *bl,va_list ap)
 {
 	struct pet_data* pd;
+	struct flooritem_data *fitem = (struct flooritem_data *)bl;
+	int sd_id =0;
 	int *itc;
 
-	nullpo_retr(0, bl);
-	nullpo_retr(0, ap);
-	nullpo_retr(0, pd=va_arg(ap,struct pet_data *));
-	nullpo_retr(0, itc=va_arg(ap,int *));
+	pd=va_arg(ap,struct pet_data *);
+	itc=va_arg(ap,int *);
 
-	if(!pd->target_id){
-		struct flooritem_data *fitem = (struct flooritem_data *)bl;
-		struct map_session_data *sd = NULL;
-		// ルート権無し
-		if(fitem && fitem->first_get_id>0)
-			sd = map_id2sd(fitem->first_get_id);
-		// Removed [Valaris]
-		//if((pd->lootitem_weight + (itemdb_search(fitem->item_data.))->weight * fitem->item_data.amount) > battle_config.pet_weight)
-		//	return 0;
+	sd_id = fitem->first_get_id;
+	// Removed [Valaris]
+	//if((pd->lootitem_weight + (itemdb_search(fitem->item_data.))->weight * fitem->item_data.amount) > battle_config.pet_weight)
+	//	return 0;
 
-		if(pd->loot == NULL || pd->loot->item == NULL || (pd->loot->count >= pd->loot->max) || (sd && sd->pd != pd))
-			return 0;
-		if(bl->m == pd->bl.m && check_distance_bl(&pd->bl, bl, 5)){
-			if( pet_can_reach(pd,bl->x,bl->y)		// 到達可能性判定
-				 && rand()%1000<1000/(++(*itc)) ){	// 範囲内PCで等確率にする
-				pd->target_id=bl->id;
-			}
-		}
-	}
+	if(pd->loot == NULL || pd->loot->item == NULL || (pd->loot->count >= pd->loot->max) ||
+	 	(sd_id && pd->msd && pd->msd->bl.id != sd_id))
+		return 0;
+	if(bl->m == pd->bl.m && check_distance_bl(&pd->bl, bl, pd->db->range2) &&
+		pet_can_reach(pd,bl->x,bl->y) && rand()%1000<1000/(++(*itc)))
+		pd->target_id=bl->id;
 	return 0;
 }
+
 int pet_lootitem_drop(struct pet_data *pd,struct map_session_data *sd)
 {
 	int i,flag=0;
-
-	if(pd){
-		if(pd->loot) {
-			for(i=0;i<pd->loot->count;i++) {
-				struct delay_item_drop2 *ditem;
-
-				ditem=(struct delay_item_drop2 *)aCalloc(1,sizeof(struct delay_item_drop2));
-				memcpy(&ditem->item_data,&pd->loot->item[i],sizeof(pd->loot->item[0]));
-				ditem->m = pd->bl.m;
-				ditem->x = pd->bl.x;
-				ditem->y = pd->bl.y;
-				ditem->first_sd = 0;
-				ditem->second_sd = 0;
-				ditem->third_sd = 0;
-				// 落とさないで直接PCのItem欄へ
-				if(sd){
-					if((flag = pc_additem(sd,&ditem->item_data,ditem->item_data.amount))){
-						clif_additem(sd,0,0,flag);
-						map_addflooritem(&ditem->item_data,ditem->item_data.amount,ditem->m,ditem->x,ditem->y,ditem->first_sd,ditem->second_sd,ditem->third_sd,0);
-					}
-					aFree(ditem);
+	struct delay_item_drop2 *ditem_floor, ditem;
+	if(pd && pd->loot && pd->loot->count) {
+		memset(&ditem, 0, sizeof(struct delay_item_drop2));
+		ditem.m = pd->bl.m;
+		ditem.x = pd->bl.x;
+		ditem.y = pd->bl.y;
+		ditem.first_sd = 0;
+		ditem.second_sd = 0;
+		ditem.third_sd = 0;
+		for(i=0;i<pd->loot->count;i++) {
+			memcpy(&ditem.item_data,&pd->loot->item[i],sizeof(pd->loot->item[0]));
+			// 落とさないで直接PCのItem欄へ
+			if(sd){
+				if((flag = pc_additem(sd,&ditem.item_data,ditem.item_data.amount))){
+					clif_additem(sd,0,0,flag);
+					map_addflooritem(&ditem.item_data,ditem.item_data.amount,ditem.m,ditem.x,ditem.y,ditem.first_sd,ditem.second_sd,ditem.third_sd,0);
 				}
-				else
-					add_timer(gettick()+540+i,pet_delay_item_drop2,(int)ditem,0);
 			}
-			//The smart thing to do is use pd->loot->max (thanks for pointing it out, Shinomori)
-			memset(pd->loot->item,0,pd->loot->max * sizeof(struct item));
-			pd->loot->count = 0;
-			pd->loot->weight = 0;
-			pd->loot->timer = gettick()+10000;	//	10*1000msの間拾わない
+			else {
+				ditem_floor=(struct delay_item_drop2 *)aCalloc(1,sizeof(struct delay_item_drop2));
+				memcpy(ditem_floor, &ditem, sizeof(struct delay_item_drop2));
+				add_timer(gettick()+540+i,pet_delay_item_drop2,(int)ditem_floor,0);
+			}
 		}
+		//The smart thing to do is use pd->loot->max (thanks for pointing it out, Shinomori)
+		memset(pd->loot->item,0,pd->loot->max * sizeof(struct item));
+		pd->loot->count = 0;
+		pd->loot->weight = 0;
+		pd->loot->timer = gettick()+10000;	//	10*1000msの間拾わない
 	}
 	return 1;
 }
@@ -1713,7 +1724,7 @@ int pet_skill_bonus_timer(int tid,unsigned int tick,int id,int data)
  */ 
 int pet_recovery_timer(int tid,unsigned int tick,int id,int data)
 {
-	struct map_session_data *sd=(struct map_session_data*)map_id2bl(id);
+	struct map_session_data *sd=map_id2sd(id);
 	struct pet_data *pd;
 	
 	if(sd==NULL || sd->pd == NULL || sd->pd->recovery == NULL)
@@ -1721,14 +1732,9 @@ int pet_recovery_timer(int tid,unsigned int tick,int id,int data)
 	
 	pd=sd->pd;
 
-	if(pd->recovery == NULL || pd->recovery->timer != tid) {
+	if(pd->recovery->timer != tid) {
 		if(battle_config.error_log)
-		{
-			if (pd->recovery)
-				ShowError("pet_recovery_timer %d != %d\n",pd->recovery->timer,tid);
-			else
-				ShowError("pet_recovery_timer called with no recovery skill defined (tid=%d)\n",tid);
-		}
+			ShowError("pet_recovery_timer %d != %d\n",pd->recovery->timer,tid);
 		return 0;
 	}
 
@@ -1747,23 +1753,18 @@ int pet_recovery_timer(int tid,unsigned int tick,int id,int data)
 
 int pet_heal_timer(int tid,unsigned int tick,int id,int data)
 {
-	struct map_session_data *sd=(struct map_session_data*)map_id2bl(id);
+	struct map_session_data *sd=map_id2sd(id);
 	struct pet_data *pd;
 	short rate = 100;
 	
-	if(sd==NULL || sd->bl.type!=BL_PC || sd->pd == NULL)
+	if(sd==NULL || sd->pd == NULL || sd->pd->s_skill == NULL)
 		return 1;
 	
 	pd=sd->pd;
 
-	if(pd->s_skill == NULL || pd->s_skill->timer != tid) {
+	if(pd->s_skill->timer != tid) {
 		if(battle_config.error_log)
-		{
-			if (pd->s_skill)
-				ShowError("pet_heal_timer %d != %d\n",pd->s_skill->timer,tid);
-			else
-				ShowError("pet_heal_timer called with no support skill defined (tid=%d)\n",tid);
-		}
+			ShowError("pet_heal_timer %d != %d\n",pd->s_skill->timer,tid);
 		return 0;
 	}
 	
@@ -1793,22 +1794,17 @@ int pet_heal_timer(int tid,unsigned int tick,int id,int data)
  */ 
 int pet_skill_support_timer(int tid,unsigned int tick,int id,int data)
 {
-	struct map_session_data *sd=(struct map_session_data*)map_id2bl(id);
+	struct map_session_data *sd=map_id2sd(id);
 	struct pet_data *pd;
 	short rate = 100;	
-	if(sd==NULL || sd->bl.type!=BL_PC || sd->pd == NULL)
+	if(sd==NULL || sd->pd == NULL || sd->pd->s_skill == NULL)
 		return 1;
 	
 	pd=sd->pd;
 	
-	if(pd->s_skill == NULL || pd->s_skill->timer != tid) {
+	if(pd->s_skill->timer != tid) {
 		if(battle_config.error_log)
-		{
-			if (pd->s_skill)
-				ShowError("pet_skill_support_timer %d != %d\n",pd->s_skill->timer,tid);
-			else
-				ShowError("pet_skill_support_timer called with no support skill defined (tid=%d)\n",tid);
-		}
+			ShowError("pet_skill_support_timer %d != %d\n",pd->s_skill->timer,tid);
 		return 0;
 	}
 	
