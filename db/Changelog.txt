@@ -1,3 +1,6 @@
+04/05
+	Updated item givers with ACTUAL items ~10 Ep [Lupus]
+		item_cookie_bag.txt,item_cardalbum.txt,item_violetbox.txt,item_giftbox.txt,item_bluebox.txt
 03/31
 	* more of item drop update [Vicious]
 	* Adjusted the range of Wall of Fog to 9 and Spider Web to 7 [Skotlex]
