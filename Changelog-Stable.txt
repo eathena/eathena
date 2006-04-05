@@ -5,6 +5,8 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 
+2006/04/05
+	* Added support for the 2006/04/04a Sakexe packet version. [Zephiris]
 2006/04/03
 	* Fixed script command mapwarp. [Skotlex]
 	* Fixed (?) Auto-Counter. [Skotlex]
