@@ -1,3 +1,5 @@
+04/06
+	* Fixed HP/SP requirements for WE_MALE/WE_FEMALE
 04/05
 	Updated item givers with ACTUAL items ~10 Ep [Lupus]
 		item_cookie_bag.txt,item_cardalbum.txt,item_violetbox.txt,item_giftbox.txt,item_bluebox.txt

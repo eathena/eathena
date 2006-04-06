@@ -2172,6 +2172,8 @@ int status_calc_aspd_rate(struct block_list *bl, int aspd_rate)
 			aspd_rate -= 30;
 		if(sc->data[i=SC_ASPDPOTION3].timer!=-1 || sc->data[i=SC_ASPDPOTION2].timer!=-1 || sc->data[i=SC_ASPDPOTION1].timer!=-1 || sc->data[i=SC_ASPDPOTION0].timer!=-1)
 			aspd_rate -= sc->data[i].val2;
+		if(sc->data[SC_STAR_COMFORT].timer!=-1)
+			aspd_rate -= (status_get_lv(bl) + status_get_dex(bl) + status_get_luk(bl))/10;
 		if(sc->data[SC_DONTFORGETME].timer!=-1)
 			aspd_rate += sc->data[SC_DONTFORGETME].val2;
 		if(sc->data[SC_STEELBODY].timer!=-1)
@@ -2192,8 +2194,6 @@ int status_calc_aspd_rate(struct block_list *bl, int aspd_rate)
 			else if (sc->data[SC_JOINTBEAT].val2 == 2)
 				aspd_rate += 10;
 		}
-		if(sc->data[SC_STAR_COMFORT].timer!=-1)
-			aspd_rate -= (status_get_lv(bl) + status_get_dex(bl) + status_get_luk(bl))/10;
 	}
 
 	return aspd_rate;
