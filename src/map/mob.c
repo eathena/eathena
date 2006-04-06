@@ -2018,7 +2018,7 @@ static int mob_ai_sub_lazy(DBKey key,void * data,va_list app)
 			// MOB which is not not the summons MOB but BOSS, either sometimes reboils.
 			else if( rand()%1000<MOB_LAZYWARPPERC && md->x0<=0 && md->master_id!=0 &&
 				!(mode&MD_BOSS))
-				mob_spawn(md->bl.id);
+				mob_warp(md,-1,-1,-1,-1);
 			else if(rand()%1000<MOB_LAZYSKILLPERC) //Chance to do a mob's idle skill.
 				mobskill_use(md, tick, -1);
 		}else{

@@ -5,6 +5,10 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 
+2006/04/06
+	* Changed the random warping of mobs with no players from mob_spawn to
+	  mob_warp, which prevents MSC_SPAWN from being retriggered for already
+	  spawned mobs. [Skotlex]
 2006/04/05
 	* Merged most of pet.c from trunk (Mob ai rewrites, several functions
 	  cleaned up) [Skotlex]
