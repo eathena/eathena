@@ -10,6 +10,8 @@ GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 	  mob_warp, which prevents MSC_SPAWN from being retriggered for already
 	  spawned mobs. [Skotlex]
 2006/04/05
+	* Addded missing aldeg_cas01 to NOWARP mapflags, thanks to Justin84 [Lupus]
+		- And we set lhz_dun03 nowarpto mapflag by default till check it on eRO/kRO
 	* Merged most of pet.c from trunk (Mob ai rewrites, several functions
 	  cleaned up) [Skotlex]
 	- UNTESTED yet. Update with caution.
