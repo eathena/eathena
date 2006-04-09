@@ -6,6 +6,10 @@ GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 
 2006/04/09
+	* Fixed @npcmove not sending the correct packets to make the moving refresh
+	  client-side. [Skotlex]
+	* Fixed mobs with aggressive + looter mode never looting. [Skotlex]
+	* Changed default delay for weapon-based skills to adelay. [Skotlex]
 	* Mob_ai update. The attacked checks will trigger even if the mob can't
 	  move. Being attacked while the mob can't move no longer will trigger
 	  rude-attacked skills. [Skotlex]

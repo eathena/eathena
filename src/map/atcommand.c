@@ -7037,13 +7037,13 @@ atcommand_npcmove(const int fd, struct map_session_data* sd,
 	if ((m=nd->bl.m) < 0 || nd->bl.prev == NULL)
 		return -1;	//Not on a map.
 	
-	npc_enable(atcmd_player_name, 0);
 	if (x < 0) x = 0;
 	else if (x >= map[m].xs) x = map[m].xs-1;
 	if (y < 0) y = 0;
 	else if (y >= map[m].ys) y = map[m].ys-1;
+	map_foreachinrange(clif_npcoutsight, &nd->bl, AREA_SIZE, BL_PC, nd);
 	map_moveblock(&nd->bl, x, y, gettick());
-	npc_enable(atcmd_player_name, 1);
+	map_foreachinrange(clif_npcinsight, &nd->bl, AREA_SIZE, BL_PC, nd);
 
 	return 0;
 }
