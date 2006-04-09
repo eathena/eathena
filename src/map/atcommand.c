@@ -6,6 +6,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
+#include <limits.h>
 
 #include "../common/socket.h"
 #include "../common/timer.h"
@@ -266,6 +267,7 @@ ACMD_FUNC(shuffle); // by MouseJstr
 ACMD_FUNC(rates); // by MouseJstr
 
 ACMD_FUNC(iteminfo); // Lupus
+ACMD_FUNC(whodrops); //Skotlex 
 ACMD_FUNC(mapflag); // Lupus
 ACMD_FUNC(me); //added by massdriller, code by lordalfa
 ACMD_FUNC(monsterignore); // [Valaris]
@@ -578,6 +580,7 @@ static AtCommandInfo atcommand_info[] = {
 
 	{ AtCommand_ItemInfo,			"@iteminfo",		 1, atcommand_iteminfo }, // [Lupus]
 	{ AtCommand_ItemInfo,			"@ii",			 1, atcommand_iteminfo }, // [Lupus]
+	{ AtCommand_WhoDrops,			"@whodrops",	 1, atcommand_whodrops }, // [Skotlex]
 	{ AtCommand_MapFlag,			"@mapflag",			99, atcommand_mapflag }, // [Lupus]
 
 	{ AtCommand_Me,					"@me",			20, atcommand_me }, //added by massdriller, code by lordalfa
@@ -602,7 +605,7 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_Clone,				"@clone",			50, atcommand_clone },
 	{ AtCommand_Clone,				"@slaveclone",		50, atcommand_clone },
 	{ AtCommand_Clone,				"@evilclone",		50, atcommand_clone }, // [Valaris]
-	{ AtCommand_ToNPC,				"@tonpc",			40, atcommand_tonpc }, // LuzZza	
+	{ AtCommand_ToNPC,				"@tonpc",			40, atcommand_tonpc }, // LuzZza
 
 // add new commands before this line
 	{ AtCommand_Unknown,			NULL,				 1, NULL }
@@ -1281,8 +1284,9 @@ int atcommand_where(
 	const char* command, const char* message)
 {
 	struct map_session_data *pl_sd = NULL;
-	
 	int GM_level, pl_GM_level;
+
+	nullpo_retr(-1, sd);
 	memset(atcmd_player_name, '\0', sizeof atcmd_player_name);
 
 	if (!message || !*message || sscanf(message, "%23[^\n]", atcmd_player_name) < 1) {
@@ -1290,27 +1294,26 @@ int atcommand_where(
 		return -1;
 	}
 	pl_sd = map_nick2sd(atcmd_player_name);
-	nullpo_retr(-1, sd);
 
 	if (pl_sd == NULL) 
 		return -1;
 
-	if(strncmp(sd->status.name,atcmd_player_name,NAME_LENGTH)!=0)
+	if(strncmp(pl_sd->status.name,atcmd_player_name,NAME_LENGTH)!=0)
 		return -1;
 		
 	GM_level = pc_isGM(sd);//also hide gms depending on settings in battle_athena.conf, show if they are aid [Kevin]
 	pl_GM_level = pc_isGM(pl_sd);
 	
 	if (battle_config.hide_GM_session) {
-		if(!(GM_level >= pl_GM_level)) {
-			if (!(battle_config.who_display_aid > 0 && pc_isGM(sd) >= battle_config.who_display_aid)) {
+		if(GM_level < pl_GM_level) {
+			if (!(battle_config.who_display_aid && GM_level >= battle_config.who_display_aid)) {
 				return -1;
 			}
 		}
 	}
 
 	snprintf(atcmd_output, sizeof atcmd_output, "%s %s %d %d",
-		atcmd_player_name, mapindex_id2name(pl_sd->mapindex), pl_sd->bl.x, pl_sd->bl.y);
+		pl_sd->status.name, mapindex_id2name(pl_sd->mapindex), pl_sd->bl.x, pl_sd->bl.y);
 	clif_displaymessage(fd, atcmd_output);
 
 	return 0;
@@ -7010,7 +7013,7 @@ int
 atcommand_npcmove(const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	int x = 0, y = 0;
+	int x = 0, y = 0, m;
 	struct npc_data *nd = 0;
 	nullpo_retr(-1, sd);
 
@@ -7031,9 +7034,15 @@ atcommand_npcmove(const int fd, struct map_session_data* sd,
 	if ((nd = npc_name2id(atcmd_player_name)) == NULL)
 		return -1;
 
+	if ((m=nd->bl.m) < 0 || nd->bl.prev == NULL)
+		return -1;	//Not on a map.
+	
 	npc_enable(atcmd_player_name, 0);
-	nd->bl.x = x;
-	nd->bl.y = y;
+	if (x < 0) x = 0;
+	else if (x >= map[m].xs) x = map[m].xs-1;
+	if (y < 0) y = 0;
+	else if (y >= map[m].ys) y = map[m].ys-1;
+	map_moveblock(&nd->bl, x, y, gettick());
 	npc_enable(atcmd_player_name, 1);
 
 	return 0;
@@ -9431,6 +9440,57 @@ int atcommand_iteminfo(
 
 	clif_displaymessage(fd, "Item not found.");
 	return -1;
+}
+
+/*==========================================
+ * Show who drops the item.
+ *------------------------------------------
+ */
+int atcommand_whodrops(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+	struct item_data *item_data, *item_array[MAX_SEARCH];
+	int i,j, count = 1;
+
+	if (!message || !*message) {
+		clif_displaymessage(fd, "Please, enter Item name or its ID (usage: @whodrops <item_name_or_ID>).");
+		return -1;
+	}
+	if ((item_array[0] = itemdb_exists(atoi(message))) == NULL)
+		count = itemdb_searchname_array(item_array, MAX_SEARCH, message);
+
+	if (!count) {
+		clif_displaymessage(fd, "Item not found.");
+		return -1;
+	}
+
+	if (count > MAX_SEARCH) {
+		sprintf(atcmd_output, msg_table[269], MAX_SEARCH, count);
+		clif_displaymessage(fd, atcmd_output);
+		count = MAX_SEARCH;
+	}
+	for (i = 0; i < count; i++) {
+		item_data = item_array[i];
+		sprintf(atcmd_output, "Item: '%s'[%d]",
+			item_data->jname,item_data->slot);
+		clif_displaymessage(fd, atcmd_output);
+
+		if (item_data->mob[0].chance == 0) {
+			strcpy(atcmd_output, " - Item is not dropped by mobs.");
+			clif_displaymessage(fd, atcmd_output);
+		} else {
+			sprintf(atcmd_output, "- Common mobs with highest drop chance (only max %d are listed):", MAX_SEARCH);
+			clif_displaymessage(fd, atcmd_output);
+		
+			for (j=0; j < MAX_SEARCH && item_data->mob[j].chance > 0; j++)
+			{
+				sprintf(atcmd_output, "- %s (%02.02f%%)", mob_db(item_data->mob[j].id)->jname, item_data->mob[j].chance/100.);
+				clif_displaymessage(fd, atcmd_output);
+			}
+		}
+	}
+	return 0;
 }
 
 /*==========================================

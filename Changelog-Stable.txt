@@ -4,6 +4,17 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES GO 
 IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EVERYTHING ELSE
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
+
+2006/04/09
+	* Mob_ai update. The attacked checks will trigger even if the mob can't
+	  move. Being attacked while the mob can't move no longer will trigger
+	  rude-attacked skills. [Skotlex]
+	* Merged monster_ai&32 setting. [Skotlex]
+	* Moved status ending when hit from pc_damage/mob_damage to battle_damage.
+	  [Skotlex]
+	* Merged atcommand @whodrops [Skotlex]
+	* Merged the fix to command @movenpc [Skotlex]
+	* Merged devotion ending when you are at 25% or less life. [Skotlex]
 2006/04/06
 	* Corrected the Soul Drain formula, thanks to Haplo for pointing it out.
 	  [Skotlex]

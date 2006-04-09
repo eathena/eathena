@@ -303,7 +303,7 @@ int mob_once_spawn (struct map_session_data *sd, char *mapname,
 			}
 		}	// end addition [Valaris]
 	}
-	return (amount > 0) ? md->bl.id : 0;
+	return (md)?md->bl.id : 0;
 }
 /*==========================================
  * The MOB appearance for one time (& area specification for scripts)
@@ -324,7 +324,7 @@ int mob_once_spawn_area(struct map_session_data *sd,char *mapname,
 	max=(y1-y0+1)*(x1-x0+1)*3;
 	if(max>1000)max=1000;
 
-	if (m < 0 || amount <= 0 || (class_ >= 0 && class_ <= 1000) || class_ > MAX_MOB_DB + 2*MAX_MOB_DB)	// ílÇ™àŸèÌÇ»ÇÁè¢ä´Çé~ÇﬂÇÈ
+	if (m < 0 || amount <= 0)	// ílÇ™àŸèÌÇ»ÇÁè¢ä´Çé~ÇﬂÇÈ
 		return 0;
 
 	for(i=0;i<amount;i++){
@@ -1251,6 +1251,11 @@ int mob_stop_walking(struct mob_data *md,int type)
  */
 static int mob_can_changetarget(struct mob_data* md, struct block_list* target, int mode)
 {
+	// if the monster was provoked ignore the above rule [celest]
+	if(md->state.provoke_flag && md->state.provoke_flag != target->id &&
+		!battle_config.mob_ai&4)
+		return 0;
+	
 	switch (md->state.skillstate) {
 		case MSS_BERSERK: //Only Assist, Angry or Aggressive+CastSensor mobs can change target while attacking.
 			if (mode&(MD_ASSIST|MD_ANGRY) || (mode&(MD_AGGRESSIVE|MD_CASTSENSOR)) == (MD_AGGRESSIVE|MD_CASTSENSOR))
@@ -1661,15 +1666,17 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 	}
 			
 	// Check for target change.
-	if (md->attacked_id && mode&MD_CANATTACK && can_walk)
+	if (md->attacked_id && mode&MD_CANATTACK)
 	{
 		if (md->attacked_id == md->target_id)
 		{
+			/* Currently being unable to move shouldn't trigger rude-attacked conditions.
 			if (!can_move && !battle_check_range (&md->bl, tbl, md->db->range))
 			{	//Rude-attacked.
 				if (md->attacked_count++ > 3)
 					mobskill_use(md, tick, MSC_RUDEATTACKED);
 			}
+			*/
 		} else
 		if ((abl= map_id2bl(md->attacked_id)) && (!tbl || mob_can_changetarget(md, abl, mode))) {
 			if (md->bl.m != abl->m || abl->prev == NULL ||
@@ -1692,19 +1699,9 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 						md->next_walktime = tick + 500;
 					}
 				}
-			} else if (!(battle_config.mob_ai&2) && !status_check_skilluse(bl, abl, 0, 0))
-			{	//Can't attack back, but didn't invoke a rude attacked skill...
+			} else if (!(battle_config.mob_ai&2) && !status_check_skilluse(bl, abl, 0, 0)) {
+				//Can't attack back, but didn't invoke a rude attacked skill...
 				md->attacked_id = 0; //Simply unlock, shouldn't attempt to run away when in dumb_ai mode.
-/* Unneeded. Mobs use the min_chase parameter to chase back enemies once hit.
-			} else if (dist > view_range && DIFF_TICK(tick,md->next_walktime) < 0)
-			{ //Out of range, Attempt to follow new target
-				if (!md->target_id && can_move) {	// why is it moving to the target when the mob can't see the player? o.o
-					dx = abl->x - md->bl.x -1;
-					dy = abl->y - md->bl.y -1;
-					mob_walktoxy(md, md->bl.x+dx, md->bl.y+dy, 0);
-					md->next_walktime = tick + 1000;
-				}
-*/
 			} else { //Attackable
 				if (!tbl || dist < md->db->range || !check_distance_bl(&md->bl, tbl, dist)
 					|| battle_gettarget(tbl) != md->bl.id)
@@ -1956,17 +1953,6 @@ static int mob_ai_sub_foreachclient(struct map_session_data *sd,va_list ap)
 }
 
 /*==========================================
- * Serious processing for mob in PC field of view   (interval timer function)
- *------------------------------------------
- */
-static int mob_ai_hard(int tid,unsigned int tick,int id,int data)
-{
-	clif_foreachclient(mob_ai_sub_foreachclient,tick);
-
-	return 0;
-}
-
-/*==========================================
  * Negligent mode MOB AI (PC is not in near)
  *------------------------------------------
  */
@@ -1984,6 +1970,10 @@ static int mob_ai_sub_lazy(DBKey key,void * data,va_list app)
 		return 0;
 
 	ap = va_arg(app, va_list);
+
+	if (battle_config.mob_ai&32 && map[md->bl.m].users>0)
+		return mob_ai_sub_hard(&md->bl, ap);
+
 	tick=va_arg(ap,unsigned int);
 
 	if(DIFF_TICK(tick,md->last_thinktime)<MIN_MOBTHINKTIME*10)
@@ -2042,6 +2032,21 @@ static int mob_ai_sub_lazy(DBKey key,void * data,va_list app)
 static int mob_ai_lazy(int tid,unsigned int tick,int id,int data)
 {
 	map_foreachiddb(mob_ai_sub_lazy,tick);
+
+	return 0;
+}
+
+/*==========================================
+ * Serious processing for mob in PC field of view   (interval timer function)
+ *------------------------------------------
+ */
+static int mob_ai_hard(int tid,unsigned int tick,int id,int data)
+{
+
+	if (battle_config.mob_ai&32)
+		map_foreachiddb(mob_ai_sub_lazy,tick);
+	else
+		clif_foreachclient(mob_ai_sub_foreachclient,tick);
 
 	return 0;
 }
@@ -2306,15 +2311,6 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 			mob_setdelayspawn(md->bl.id);
 		}
 		return 0;
-	}
-
-	if(md->sc.count) {
-		if(md->sc.data[SC_CONFUSION].timer != -1)
-			status_change_end(&md->bl, SC_CONFUSION, -1);
-		if(md->sc.data[SC_HIDING].timer != -1)
-			status_change_end(&md->bl, SC_HIDING, -1);
-		if(md->sc.data[SC_CLOAKING].timer != -1)
-			status_change_end(&md->bl, SC_CLOAKING, -1);
 	}
 
 	if(damage > max_hp>>2)
@@ -3767,7 +3763,7 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 			continue;
 
 		// èÛë‘îªíË
-		if (ms[i].state >= 0 && ms[i].state != md->state.skillstate)
+		if (ms[i].state != MSS_ANY && ms[i].state != md->state.skillstate)
 			continue;
 
 		if (rand() % 10000 > ms[i].permillage) //Lupus (max value = 10000)
@@ -3995,10 +3991,11 @@ int mobskill_deltimer(struct mob_data *md )
 // Player cloned mobs. [Valaris]
 int mob_is_clone(int class_)
 {
-	if(class_ >= MOB_CLONE_START && class_ <= MOB_CLONE_END)
-		return 1;
-
-	return 0;
+	if(class_ < MOB_CLONE_START || class_ > MOB_CLONE_END)
+		return 0;
+	if (mob_db(class_) == mob_dummy)
+		return 0;
+	return class_;
 }
 
 //Flag values:
@@ -4214,13 +4211,11 @@ int mob_clone_spawn(struct map_session_data *sd, char *map, int x, int y, const 
 
 int mob_clone_delete(int class_)
 {
-	int i;
-	for(i=MOB_CLONE_START; i<MOB_CLONE_END; i++){
-		if(i==class_ && mob_db_data[i]!=NULL){
-			aFree(mob_db_data[i]);
-			mob_db_data[i]=NULL;
-			break;
-		}
+	if (class_ >= MOB_CLONE_START && class_ < MOB_CLONE_END
+		&& mob_db_data[class_]!=NULL) {
+		aFree(mob_db_data[class_]);
+		mob_db_data[class_]=NULL;
+		return 1;
 	}
 	return 0;
 }
@@ -4297,7 +4292,7 @@ static int mob_readdb(void)
 	FILE *fp;
 	char line[1024];
 	char *filename[]={ "mob_db.txt","mob_db2.txt" };
-	int class_, i, fi;
+	int class_, i, fi, k;
 
 	for(fi=0;fi<2;fi++){
 		sprintf(line, "%s/%s", db_path, filename[fi]);
@@ -4434,12 +4429,22 @@ static int mob_readdb(void)
 				mob_db_data[class_]->dropitem[i].p = mob_drop_adjust(rate, rate_adjust, ratemin, ratemax);
 
 				//calculate and store Max available drop chance of the item
-				id = itemdb_search(mob_db_data[class_]->dropitem[i].nameid);
 				if (mob_db_data[class_]->dropitem[i].p) {
+					id = itemdb_search(mob_db_data[class_]->dropitem[i].nameid);
 					if (id->maxchance==10000 || (id->maxchance < mob_db_data[class_]->dropitem[i].p) ) {
 					//item has bigger drop chance or sold in shops
 						id->maxchance = mob_db_data[class_]->dropitem[i].p;
-					}			
+					}
+					for (k = 0; k< MAX_SEARCH; k++) {
+						if (id->mob[k].chance < mob_db_data[class_]->dropitem[i].p && id->mob[k].id != class_)
+							break;
+					}
+					if (k == MAX_SEARCH)
+						continue;
+				
+					memmove(&id->mob[k+1], &id->mob[k], (MAX_SEARCH-k-1)*sizeof(id->mob[0]));
+					id->mob[k].chance = mob_db_data[class_]->dropitem[i].p;
+					id->mob[k].id = class_;
 				}
 			}
 			// MVP EXP Bonus, Chance: MEXP,ExpPer
@@ -4471,8 +4476,8 @@ static int mob_readdb(void)
 					battle_config.item_drop_mvp_min, battle_config.item_drop_mvp_max);
 
 				//calculate and store Max available drop chance of the MVP item
-				id = itemdb_search(mob_db_data[class_]->mvpitem[i].nameid);
 				if (mob_db_data[class_]->mvpitem[i].p) {
+					id = itemdb_search(mob_db_data[class_]->mvpitem[i].nameid);
 					if (id->maxchance==10000 || (id->maxchance < mob_db_data[class_]->mvpitem[i].p/10+1) ) {
 					//item has bigger drop chance or sold in shops
 						id->maxchance = mob_db_data[class_]->mvpitem[i].p/10+1; //reduce MVP drop info to not spoil common drop rate
@@ -4662,7 +4667,7 @@ static int mob_readskilldb(void)
 		{	"hiding",		SC_HIDING		},
 		{	"sight",		SC_SIGHT		},
 	}, state[] = {
-		{	"any",		-1			},
+		{	"any",		MSS_ANY	},
 		{	"idle",		MSS_IDLE	},
 		{	"walk",		MSS_WALK	},
 		{	"loot",		MSS_LOOT	},
@@ -4695,6 +4700,7 @@ static int mob_readskilldb(void)
 		return 0;
 	}
 	for(x=0;x<2;x++){
+		int last_mob_id = 0;
 		count = 0;
 		sprintf(line, "%s/%s", db_path, filename[x]); 
 		fp=fopen(line,"r");
@@ -4727,7 +4733,10 @@ static int mob_readskilldb(void)
 			}
 			if (mob_id > 0 && mob_db(mob_id) == mob_dummy)
 			{
-				ShowError("mob_skill: Invalid mob id %d at %s, line %d\n", mob_id, filename[x], count);
+				if (mob_id != last_mob_id) {
+					ShowWarning("mob_skill: Non existant Mob id %d at %s, line %d\n", mob_id, filename[x], count);
+					last_mob_id = mob_id;
+				}
 				continue;
 			}
 			if( strcmp(sp[1],"clear")==0 ){
@@ -4747,8 +4756,11 @@ static int mob_readskilldb(void)
 					if( (ms=&mob_db_data[mob_id]->skill[i])->skill_id == 0)
 						break;
 				if(i==MAX_MOBSKILL){
-					ShowWarning("mob_skill: readdb: too many skill ! [%s] in %d[%s]\n",
-						sp[1],mob_id,mob_db_data[mob_id]->jname);
+					if (mob_id != last_mob_id) {
+						ShowWarning("mob_skill: readdb: too many skill! Line %d in %d[%s]\n",
+							count,mob_id,mob_db_data[mob_id]->jname);
+						last_mob_id = mob_id;
+					}
 					continue;
 				}
 			}
@@ -4911,7 +4923,7 @@ static int mob_readdb_race(void)
 static int mob_read_sqldb(void)
 {
 	const char unknown_str[NAME_LENGTH] ="unknown";
-	int i, fi, class_;
+	int i, fi, class_, k;
 	double exp, maxhp;
 	long unsigned int ln = 0;
 	char *mob_db_name[] = { mob_db_db, mob_db2_db };
@@ -5040,12 +5052,22 @@ static int mob_read_sqldb(void)
 					mob_db_data[class_]->dropitem[i].p = mob_drop_adjust(rate, rate_adjust, ratemin, ratemax);
 
 					//calculate and store Max available drop chance of the item
-					id = itemdb_search(mob_db_data[class_]->dropitem[i].nameid);
 					if (mob_db_data[class_]->dropitem[i].p) {
+						id = itemdb_search(mob_db_data[class_]->dropitem[i].nameid);
 						if (id->maxchance==10000 || (id->maxchance < mob_db_data[class_]->dropitem[i].p) ) {
 						//item has bigger drop chance or sold in shops
 							id->maxchance = mob_db_data[class_]->dropitem[i].p;
 						}			
+						for (k = 0; k< MAX_SEARCH; k++) {
+							if (id->mob[k].chance < mob_db_data[class_]->dropitem[i].p && id->mob[k].id != class_)
+								break;
+						}
+						if (k == MAX_SEARCH)
+							continue;
+					
+						memmove(&id->mob[k+1], &id->mob[k], (MAX_SEARCH-k-1)*sizeof(id->mob[0]));
+						id->mob[k].chance = mob_db_data[class_]->dropitem[i].p;
+						id->mob[k].id = class_;
 					}
 				}
 				// MVP EXP Bonus, Chance: MEXP,ExpPer

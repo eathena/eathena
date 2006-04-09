@@ -225,30 +225,26 @@ int battle_delay_damage (unsigned int tick, struct block_list *src, struct block
 }
 
 // ŽÀ?Û‚ÉHP‚ð‘€?ì
-int battle_damage(struct block_list *bl,struct block_list *target,int damage, int flag)
+int battle_damage(struct block_list *src,struct block_list *target,int damage, int flag)
 {
 	struct map_session_data *sd = NULL;
 	struct status_change *sc;
 
-	nullpo_retr(0, target); //bl‚ÍNULL‚ÅŒÄ‚Î‚ê‚é‚±‚Æ‚ª‚ ‚é‚Ì‚Å‘¼‚Åƒ`ƒFƒbƒN
+	nullpo_retr(0, target); //src‚ÍNULL‚ÅŒÄ‚Î‚ê‚é‚±‚Æ‚ª‚ ‚é‚Ì‚Å‘¼‚Åƒ`ƒFƒbƒN
+	
+	if (damage == 0 || status_isdead(target))
+		return 0;
 	
 	sc = status_get_sc(target);
 
-	if (damage == 0 ||
-		target->prev == NULL ||
-		target->type == BL_PET)
-		return 0;
-
-	if (bl) {
-		if (bl->prev == NULL)
-			return 0;
-		if (bl->type == BL_PC) {
-			nullpo_retr(0, sd = (struct map_session_data *)bl);
-		}
-	}
-
 	if (damage < 0)
-		return battle_heal(bl,target,-damage,0,flag);
+		return battle_heal(src,target,-damage,0,flag);
+	
+	if (src) {
+		if (src->prev == NULL)
+			return 0;
+		BL_CAST(BL_PC, src, sd);
+	}
 
 	if (!flag && sc && sc->count) {
 		// “€Œ‹?A?Î‰»?A?‡–°‚ð?Á‹Ž
@@ -260,38 +256,62 @@ int battle_damage(struct block_list *bl,struct block_list *target,int damage, in
 			status_change_end(target,SC_SLEEP,-1);
 		if (sc->data[SC_WINKCHARM].timer != -1)
 			status_change_end(target,SC_WINKCHARM,-1);
-	}
-
-	if (target->type == BL_MOB) {	// MOB
-		struct mob_data *md = (struct mob_data *)target;
-		if (md && md->skilltimer != -1 && md->state.skillcastcancel)	// ‰r?¥–WŠQ
-			skill_castcancel(target,0);
-		return mob_damage(bl,md,damage,0);
-	} else if (target->type == BL_PC) {	// PC
-		struct map_session_data *tsd = (struct map_session_data *)target;
-		if (!tsd)
-			return 0;
-		if (sc->count && sc->data[SC_DEVOTION].val1 && bl && battle_getcurrentskill(bl) != PA_PRESSURE)
-		{	//Devotion only works on attacks from a source (prevent it from absorbing coma) [Skotlex]
-			struct map_session_data *sd2 = map_id2sd(tsd->sc.data[SC_DEVOTION].val1);
+		if (sc->data[SC_CONFUSION].timer != -1)
+			status_change_end(target, SC_CONFUSION, -1);
+		if (sc->data[SC_TRICKDEAD].timer != -1)
+			status_change_end(target, SC_TRICKDEAD, -1);
+		if (sc->data[SC_HIDING].timer != -1)
+			status_change_end(target, SC_HIDING, -1);
+		if (sc->data[SC_CLOAKING].timer != -1)
+			status_change_end(target, SC_CLOAKING, -1);
+		if (sc->data[SC_CHASEWALK].timer != -1)
+			status_change_end(target, SC_CHASEWALK, -1);
+		if (sc->data[SC_ENDURE].timer != -1 && sc->data[SC_ENDURE].val1 <= 10) {
+			//Endure count is only reduced by non-players on non-gvg maps.
+			//if val1 is greater than 10, this is infinite endure. [Skotlex]
+			if (src && src->type != BL_PC && !map_flag_gvg(target->m)
+				&& --(sc->data[SC_ENDURE].val2) < 0)
+				status_change_end(target, SC_ENDURE, -1);
+		}
+		if (sc->data[SC_GRAVITATION].timer != -1 &&
+			sc->data[SC_GRAVITATION].val3 == BCT_SELF) {
+			struct skill_unit_group *sg = (struct skill_unit_group *)sc->data[SC_GRAVITATION].val4;
+			if (sg) {
+				skill_delunitgroup(sg);
+				sc->data[SC_GRAVITATION].val4 = 0;
+				status_change_end(target, SC_GRAVITATION, -1);
+			}
+		}
+		if (sc->data[SC_DEVOTION].val1 && src && battle_getcurrentskill(src) != PA_PRESSURE)
+		{
+			struct map_session_data *sd2 = map_id2sd(sc->data[SC_DEVOTION].val1);
 			if (sd2 && sd2->devotion[sc->data[SC_DEVOTION].val2] == target->id)
 			{
-				clif_damage(bl, &sd2->bl, gettick(), 0, 0, damage, 0, 0, 0);
+				clif_damage(src, &sd2->bl, gettick(), 0, 0, damage, 0, 0, 0);
 				pc_damage(&sd2->bl, sd2, damage);
 				return 0;
 			} else
 				status_change_end(target, SC_DEVOTION, -1);
 		}
 
+	}
+
+	if (target->type == BL_MOB) {	// MOB
+		struct mob_data *md = (struct mob_data *)target;
+		if (md && md->skilltimer != -1 && md->state.skillcastcancel)	// ‰r?¥–WŠQ
+			skill_castcancel(target,0);
+		return mob_damage(src,md,damage,0);
+	} else if (target->type == BL_PC) {	// PC
+		struct map_session_data *tsd = (struct map_session_data *)target;
 		if (tsd->skilltimer != -1) {	// ‰r?¥–WŠQ
 			// ƒtƒFƒ“ƒJ?[ƒh‚â–WŠQ‚³‚ê‚È‚¢ƒXƒLƒ‹‚©‚ÌŒŸ?¸
 			if ((!tsd->special_state.no_castcancel || map_flag_gvg(target->m)) && tsd->state.skillcastcancel &&
 				!tsd->special_state.no_castcancel2)
 				skill_castcancel(target,0);
 		}
-		return pc_damage(bl,tsd,damage);
+		return pc_damage(src,tsd,damage);
 	} else if (target->type == BL_SKILL)
-		return skill_unit_ondamaged((struct skill_unit *)target, bl, damage, gettick());
+		return skill_unit_ondamaged((struct skill_unit *)target, src, damage, gettick());
 	return 0;
 }
 

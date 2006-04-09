@@ -5191,32 +5191,7 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 	if(pc_issit(sd)) {
 		pc_setstand(sd);
 		skill_gangsterparadise(sd,0);
-	}
-
-	// ? いていたら足を止める
-	if (sd->sc.count) {
-		if (sd->sc.data[SC_ENDURE].timer != -1 && (src != NULL && src->type == BL_MOB) && !map_flag_gvg(sd->bl.m)) {
-			if (!sd->special_state.infinite_endure && (--sd->sc.data[SC_ENDURE].val2) < 0) 
-				status_change_end(&sd->bl, SC_ENDURE, -1);
-		}
-		if (sd->sc.data[SC_GRAVITATION].timer != -1 &&
-			sd->sc.data[SC_GRAVITATION].val3 == BCT_SELF) {
-			struct skill_unit_group *sg = (struct skill_unit_group *)sd->sc.data[SC_GRAVITATION].val4;
-			if (sg) {
-				skill_delunitgroup(sg);
-				status_change_end(&sd->bl, SC_GRAVITATION, -1);
-			}
-		}
-		if (sd->sc.data[SC_CONFUSION].timer != -1)
-			status_change_end(&sd->bl, SC_CONFUSION, -1);
-		if (sd->sc.data[SC_TRICKDEAD].timer != -1)
-			status_change_end(&sd->bl, SC_TRICKDEAD, -1);
-		if (sd->sc.data[SC_HIDING].timer != -1)
-			status_change_end(&sd->bl, SC_HIDING, -1);
-		if (sd->sc.data[SC_CLOAKING].timer != -1)
-			status_change_end(&sd->bl, SC_CLOAKING, -1);
-		if (sd->sc.data[SC_CHASEWALK].timer != -1)
-			status_change_end(&sd->bl, SC_CHASEWALK, -1);
+		skill_rest(sd,0);
 	}
 
 	// 演奏/ダンスの中?
@@ -5233,14 +5208,22 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 
 	clif_updatestatus(sd,SP_HP);
 
-	if(sd->status.hp>0){
-		if(sd->status.hp<sd->status.max_hp>>2 && sd->sc.data[SC_AUTOBERSERK].timer != -1 &&
+ 
+	if (sd->status.hp<sd->status.max_hp>>2) { //25% HP left effects.
+		if(sd->status.hp>0 && sd->sc.data[SC_AUTOBERSERK].timer != -1 &&
 			(sd->sc.data[SC_PROVOKE].timer==-1 || sd->sc.data[SC_PROVOKE].val2==0 ))
-			// オ?トバ?サ?ク?動
 			sc_start4(&sd->bl,SC_PROVOKE,100,10,1,0,0,0);
 
-		sd->canlog_tick = gettick();
+		for(i = 0; i < 5; i++)
+			if (sd->devotion[i]){
+				struct map_session_data *devsd = map_id2sd(sd->devotion[i]);
+				if (devsd) status_change_end(&devsd->bl,SC_DEVOTION,-1);
+				sd->devotion[i] = 0;
+			}
+	}
 
+	if(sd->status.hp>0){
+		sd->canlog_tick = gettick();
 		return damage;
 	}
 
@@ -5377,13 +5360,6 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 			sd->state.snovice_flag = 4;
 	}
 	
-	for(i = 0; i < 5; i++)
-		if (sd->devotion[i]){
-			struct map_session_data *devsd = map_id2sd(sd->devotion[i]);
-			if (devsd) status_change_end(&devsd->bl,SC_DEVOTION,-1);
-			sd->devotion[i] = 0;
-		}
-
 	pc_setdead(sd);
 	skill_unit_move(&sd->bl,gettick(),4);
 	if (battle_config.clear_unit_ondeath)
