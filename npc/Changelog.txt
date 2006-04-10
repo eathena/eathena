@@ -27,6 +27,8 @@ Nexon
 
 Date		Added
 ======
+04/10
+	* Updated refiner, thx2 Coltaro [Lupus]
 04/08
 	* Fixed Blank Scroll (7433) price in Yuno Shops. [shadow]
 
