@@ -5,6 +5,9 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 
+2006/04/11
+	* Fixed looted items always dropping with qty one. [Skotlex]
+	* Changed default of skill_wall_check to yes. [Skotlex]
 2006/04/09
 	* Fixed @npcmove not sending the correct packets to make the moving refresh
 	  client-side. [Skotlex]

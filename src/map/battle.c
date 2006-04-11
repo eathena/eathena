@@ -4176,7 +4176,7 @@ void battle_set_defaults() {
 	battle_config.gm_cant_drop_min_lv = 1;
 	battle_config.gm_cant_drop_max_lv = 0;
 	battle_config.disp_hpmeter = 60;
-	battle_config.skill_wall_check = 0;
+	battle_config.skill_wall_check = 1;
 	battle_config.cell_stack_limit = 1;
 	battle_config.bone_drop = 0;
 	battle_config.buyer_name = 1;
