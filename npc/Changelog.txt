@@ -27,6 +27,9 @@ Nexon
 
 Date		Added
 ======
+04/11
+	* Fixed a wrong warp in hugel church, thanks erKurita [ shadow ]
+
 04/10
 	* Updated refiner, thx2 Coltaro [Lupus]
 04/08

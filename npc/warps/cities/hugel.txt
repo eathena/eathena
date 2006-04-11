@@ -69,7 +69,7 @@ hu_in01.gat,265,42,0	warp	hugel34	1,1,hu_in01.gat,265,123
 //House
 hugel.gat,52,90,0	warp	hugel35	1,1,hu_in01.gat,33,90
 hu_in01.gat,37,90,0	warp	hugel36	1,1,hugel.gat,54,96
-hu_in01.gat,15,70,0	warp	hugel37	1,1,hu_in01.gat,15,28
+hu_in01.gat,15,70,0	warp	hugel37	1,1,hu_in01.gat,15,27
 hu_in01.gat,15,29,0	warp	hugel38	1,1,hu_in01.gat,16,74
 hu_in01.gat,15,108,0	warp	hugel39	1,1,hu_in01.gat,15,155
 hu_in01.gat,15,151,0	warp	hugel40	1,1,hu_in01.gat,16,104
