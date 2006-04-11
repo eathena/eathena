@@ -1,21 +1,19 @@
 //===== Athena Script ========================================
 //= Umbala Dungeon (Yggdrasil Cave) Warp Script
 //===== By: ==================================================
-//= eAthena Team
+//= Darkchild (1.0vA); Athena (1.0vB)
 //===== Current Version: =====================================
-//= 1.2
+//= 1.1 (Akaru)
 //===== Compatible With: =====================================
 //= Any Athena Version; RO Episode 6+
 //===== Description: =========================================
 //= Warp Points for Umbala Dungeon (Yggdrasil Cave)
 //===== Additional Comments: =================================
-//= 1.2 Spearated quest-less direct warp to Umb.Dun [Lupus]
+//= No comment!
 //============================================================
 
-//You may disable the entrance, if you use a jRO dungeon quest
-//= Entrance =================================================
-umbala.gat,106,286,0	warp	umba0011	1,1,um_dun01.gat,42,31
 //= Dungeon Level 1 ==========================================
+umbala.gat,106,286,0	warp	umba0011	1,1,um_dun01.gat,42,31
 um_dun01.gat,150,198,0	warp	umba0013	1,1,um_dun02.gat,48,30
 um_dun01.gat,42,26,0	warp	umba0012	1,1,umbala.gat,111,283
 
