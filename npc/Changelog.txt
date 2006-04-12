@@ -27,6 +27,12 @@ Nexon
 
 Date		Added
 ======
+04/12
+	* Some typo fixes by IVBela [MasterOfMuppets]
+	* Fixed Bio Lab spawns to official jRO [Playtester]
+	* Added some Kiel building warps thanks to Celestria [Playtester]
+	* Fixed a few warps warping you back (they've been there for long =X). [erKURITA]
+	* Corrected some errors in cities/hugel.txt and guides/guides_hu.txt [Foruken]
 04/11
 	* Updated mapflags (missing hugel, job quest map, etc)
 	* Fixed the npcs mentioned here: [Skotlex]

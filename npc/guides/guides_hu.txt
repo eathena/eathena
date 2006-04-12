@@ -93,6 +93,7 @@ M_Menu:
 			mes "The 'Hunter Guild' is located at the northeast of Hugel. Sharpen your eyes!";
 			viewpoint 1,208,225,7,0xFF8000;
 			goto sL_Wipe; 
+
 		M_1_9:
 			mes "[Old Lady]";
 			mes "The '^000066Poring Track Nº1^000000' is new and exciting entertaintment, make sure to check it!";
@@ -105,7 +106,7 @@ M_Menu:
 			goto sL_Wipe;
 		M_1_11:
 			mes "[Old Lady]";
-			mes "The 'Bingo House' is located at the northwest of Hugel. Lay your bet ladies and gentlemen!";
+			mes "The 'Bingo House' is located at the northwest of Hugel. Lay your bet ladies and gentlements!";
 			viewpoint 1,57,207,7,0xFF8000;
 		M_1_8:
 			set @COMPASS_CHECK, 2;
