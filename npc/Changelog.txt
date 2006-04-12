@@ -28,6 +28,8 @@ Nexon
 Date		Added
 ======
 04/11
+	* Fixed the npcs mentioned here: [Skotlex]
+	  http://www.eathena.ws/board/index.php?showtopic=89193
 	* Fixed a wrong warp in hugel church, thanks erKurita [ shadow ]
 
 04/10
