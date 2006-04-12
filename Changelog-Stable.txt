@@ -6,6 +6,9 @@ GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 
 2006/04/11
+	* Removed the piece of code that "guesses" that job classes between 24 and
+	  68 are advanced classes from mob_avail reading since they conflict with
+	  NJ/GS. Use the correct class numbers from now on! [Skotlex]
 	* Modified battle_check_range to do a path-check on distances less than 2
 	  (rather than 3) to avoid being able to hit through walls. [Skotlex]
 	* Fixed looted items always dropping with qty one. [Skotlex]

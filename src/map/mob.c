@@ -4542,8 +4542,6 @@ static int mob_readdb_mobavail(void)
 		k=atoi(str[1]);
 		if(k < 0)
 			continue;
-		if (j >= 12 && k > 23 && k < 69)
-			k += 3977;	// advanced job/baby class
 		mob_db_data[class_]->view_class=k;
 
 		//Player sprites
