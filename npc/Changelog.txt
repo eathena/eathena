@@ -27,7 +27,9 @@ Nexon
 
 Date		Added
 ======
-
+04/13
+	* Fixed SOME bugs in Hugel.txt, hu_guide.txt. thanks to joshuaali [Lupus]
+		Guys, do always check the scripts before committing V_V'
 04/12
 	* Fitted the many lines into 1 or 2, and corrected some typos on most of 
 	  the npc\guides. Visual update to the guards, for short. [erKURITA]
