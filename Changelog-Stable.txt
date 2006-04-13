@@ -5,6 +5,12 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 
+2006/04/13
+	* Added an Info message when pinging the SQL servers, Merged the ping sql
+	  server settings (see inter_athena.conf) [Skotlex]
+	* Merged upgrade of atcommand/charcommand script commands to be able to run
+	  with no player attached. [Skotlex]
+	* Some other minor cleanups. [Skotlex]
 2006/04/11
 	* Removed the piece of code that "guesses" that job classes between 24 and
 	  68 are advanced classes from mob_avail reading since they conflict with

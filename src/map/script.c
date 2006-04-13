@@ -22,6 +22,7 @@
 #include "../common/malloc.h"
 #include "../common/lock.h"
 #include "../common/nullpo.h"
+#include "../common/showmsg.h"
 
 #include "map.h"
 #include "clif.h"
@@ -43,7 +44,6 @@
 #include "atcommand.h"
 #include "charcommand.h"
 #include "log.h"
-#include "showmsg.h"
 #if !defined(TXT_ONLY) && defined(MAPREGSQL)
 #include "strlib.h"
 #endif
@@ -6619,6 +6619,9 @@ int buildin_setmapflag(struct script_state *st)
 			case MF_NOTRADE:
 				map[m].flag.notrade=1;
 				break;
+			case MF_NODROP:
+				map[m].flag.nodrop=1;
+				break;
 			case MF_NOSKILL:
 				map[m].flag.noskill=1;
 				break;
@@ -6742,6 +6745,9 @@ int buildin_removemapflag(struct script_state *st)
 				break;
 			case MF_NOTRADE:
 				map[m].flag.notrade=0;
+				break;
+			case MF_NODROP:
+				map[m].flag.nodrop=0;
 				break;
 			case MF_NOSKILL:
 				map[m].flag.noskill=0;
@@ -8332,28 +8338,53 @@ int buildin_nude(struct script_state *st)
 
 int buildin_atcommand(struct script_state *st)
 {
-	struct map_session_data *sd;
+	struct map_session_data *sd=NULL;
 	char *cmd;
 
-	sd = script_rid2sd(st);
-	if (!sd)
-		return 0;
 	cmd = conv_str(st,& (st->stack->stack_data[st->start+2]));
-	is_atcommand(sd->fd, sd, cmd, 99);
+	if (st->rid)
+		sd = script_rid2sd(st);
+
+	if (sd) is_atcommand(sd->fd, sd, cmd, 99);
+	else { //Use a dummy character.
+		struct map_session_data dummy_sd;
+		struct block_list *bl = NULL;
+		memset(&dummy_sd, 0, sizeof(struct map_session_data));
+		if (st->oid) bl = map_id2bl(st->oid);
+		if (bl) {
+			memcpy(&dummy_sd.bl, bl, sizeof(struct block_list));
+			if (bl->type == BL_NPC)
+				strncpy(dummy_sd.status.name, ((TBL_NPC*)bl)->name, NAME_LENGTH);
+		}
+		is_atcommand(0, &dummy_sd, cmd, 99);
+	}
 
 	return 0;
 }
 
 int buildin_charcommand(struct script_state *st)
 {
-	struct map_session_data *sd;
+	struct map_session_data *sd=NULL;
 	char *cmd;
-
-	sd = script_rid2sd(st);
-	if (!sd)
-		return 0;
+	
 	cmd = conv_str(st,& (st->stack->stack_data[st->start+2]));
-	is_charcommand(sd->fd, sd, cmd, 99);
+
+	if (st->rid)
+		sd = script_rid2sd(st);
+	
+	if (sd) is_charcommand(sd->fd, sd, cmd, 99);
+	else { //Use a dummy character.
+		struct map_session_data dummy_sd;
+		struct block_list *bl = NULL;
+		memset(&dummy_sd, 0, sizeof(struct map_session_data));
+		if (st->oid) bl = map_id2bl(st->oid);
+		if (bl) {
+			memcpy(&dummy_sd.bl, bl, sizeof(struct block_list));
+			if (bl->type == BL_NPC)
+				strncpy(dummy_sd.status.name, ((TBL_NPC*)bl)->name, NAME_LENGTH);
+		}
+		is_charcommand(0, &dummy_sd, cmd, 99);
+	}
 
 	return 0;
 }

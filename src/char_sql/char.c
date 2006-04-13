@@ -63,6 +63,7 @@ char party_db[256] = "party";
 char pet_db[256] = "pet";
 char friend_db[256] = "friends";
 int db_use_sqldbs;
+int connection_ping_interval = 0;
 
 char login_db_account_id[32] = "account_id";
 char login_db_level[32] = "level";
@@ -1726,12 +1727,12 @@ int mmo_char_send006b(int fd, struct char_session_data *sd) {
 
 		memcpy(WFIFOP(fd,j+74), p->name, NAME_LENGTH);
 
-		WFIFOB(fd,j+98) = (p->str > 255) ? 255 : p->str;
-		WFIFOB(fd,j+99) = (p->agi > 255) ? 255 : p->agi;
-		WFIFOB(fd,j+100) = (p->vit > 255) ? 255 : p->vit;
-		WFIFOB(fd,j+101) = (p->int_ > 255) ? 255 : p->int_;
-		WFIFOB(fd,j+102) = (p->dex > 255) ? 255 : p->dex;
-		WFIFOB(fd,j+103) = (p->luk > 255) ? 255 : p->luk;
+		WFIFOB(fd,j+98) = (p->str > UCHAR_MAX) ? UCHAR_MAX : p->str;
+		WFIFOB(fd,j+99) = (p->agi > UCHAR_MAX) ? UCHAR_MAX : p->agi;
+		WFIFOB(fd,j+100) = (p->vit > UCHAR_MAX) ? UCHAR_MAX : p->vit;
+		WFIFOB(fd,j+101) = (p->int_ > UCHAR_MAX) ? UCHAR_MAX : p->int_;
+		WFIFOB(fd,j+102) = (p->dex > UCHAR_MAX) ? UCHAR_MAX : p->dex;
+		WFIFOB(fd,j+103) = (p->luk > UCHAR_MAX) ? UCHAR_MAX : p->luk;
 		WFIFOB(fd,j+104) = p->char_num;
 	}
 
@@ -3238,16 +3239,16 @@ int parse_char(int fd) {
 			WFIFOL(fd,2+32) = char_dat[i].manner;
 
 			WFIFOW(fd,2+40) = 0x30;
-			WFIFOW(fd,2+42) = (char_dat[i].hp > 0x7fff) ? 0x7fff : char_dat[i].hp;
-			WFIFOW(fd,2+44) = (char_dat[i].max_hp > 0x7fff) ? 0x7fff : char_dat[i].max_hp;
-			WFIFOW(fd,2+46) = (char_dat[i].sp > 0x7fff) ? 0x7fff : char_dat[i].sp;
-			WFIFOW(fd,2+48) = (char_dat[i].max_sp > 0x7fff) ? 0x7fff : char_dat[i].max_sp;
+			WFIFOW(fd,2+42) = (char_dat[i].hp > SHRT_MAX) ? SHRT_MAX : char_dat[i].hp;
+			WFIFOW(fd,2+44) = (char_dat[i].max_hp > SHRT_MAX) ? SHRT_MAX : char_dat[i].max_hp;
+			WFIFOW(fd,2+46) = (char_dat[i].sp > SHRT_MAX) ? SHRT_MAX : char_dat[i].sp;
+			WFIFOW(fd,2+48) = (char_dat[i].max_sp > SHRT_MAX) ? SHRT_MAX : char_dat[i].max_sp;
 			WFIFOW(fd,2+50) = DEFAULT_WALK_SPEED; // char_dat[i].speed;
 			WFIFOW(fd,2+52) = char_dat[i].class_;
 			WFIFOW(fd,2+54) = char_dat[i].hair;
 
 			WFIFOW(fd,2+58) = char_dat[i].base_level;
-			WFIFOW(fd,2+60) = char_dat[i].skill_point;
+			WFIFOW(fd,2+60) = (char_dat[i].skill_point > SHRT_MAX) ? SHRT_MAX : char_dat[i].skill_point;
 
 			WFIFOW(fd,2+64) = char_dat[i].shield;
 			WFIFOW(fd,2+66) = char_dat[i].head_top;
@@ -3256,12 +3257,12 @@ int parse_char(int fd) {
 
 			memcpy(WFIFOP(fd,2+74), char_dat[i].name, NAME_LENGTH);
 
-			WFIFOB(fd,2+98) = char_dat[i].str>255?255:char_dat[i].str;
-			WFIFOB(fd,2+99) = char_dat[i].agi>255?255:char_dat[i].agi;
-			WFIFOB(fd,2+100) = char_dat[i].vit>255?255:char_dat[i].vit;
-			WFIFOB(fd,2+101) = char_dat[i].int_>255?255:char_dat[i].int_;
-			WFIFOB(fd,2+102) = char_dat[i].dex>255?255:char_dat[i].dex;
-			WFIFOB(fd,2+103) = char_dat[i].luk>255?255:char_dat[i].luk;
+			WFIFOB(fd,2+98) = char_dat[i].str>UCHAR_MAX?UCHAR_MAX:char_dat[i].str;
+			WFIFOB(fd,2+99) = char_dat[i].agi>UCHAR_MAX?UCHAR_MAX:char_dat[i].agi;
+			WFIFOB(fd,2+100) = char_dat[i].vit>UCHAR_MAX?UCHAR_MAX:char_dat[i].vit;
+			WFIFOB(fd,2+101) = char_dat[i].int_>UCHAR_MAX?UCHAR_MAX:char_dat[i].int_;
+			WFIFOB(fd,2+102) = char_dat[i].dex>UCHAR_MAX?UCHAR_MAX:char_dat[i].dex;
+			WFIFOB(fd,2+103) = char_dat[i].luk>UCHAR_MAX?UCHAR_MAX:char_dat[i].luk;
 			WFIFOB(fd,2+104) = char_dat[i].char_num;
 
 			WFIFOSET(fd, 108);
@@ -3735,7 +3736,7 @@ int char_lan_config_read(const char *lancfgName) {
 			subnet_count++;
 		}
 
-		ShowStatus("Information about %d subnetworks readen.\n", subnet_count);
+		ShowStatus("Read information about %d subnetworks.\n", subnet_count);
 	}
 
 	fclose(fp);
@@ -3852,6 +3853,8 @@ void sql_config_read(const char *cfgName){ /* Kalaspuff, to get login_db */
 		}else if(strcmpi(w1,"use_sql_db")==0){ // added for sql item_db read for char server [Valaris]
 			db_use_sqldbs = config_switch(w2);
 			ShowStatus("Using SQL dbs: %s\n",w2);
+		} else if(strcmpi(w1,"connection_ping_interval")==0) {
+			connection_ping_interval = config_switch(w2);
 		//custom columns for login database
 		}else if(strcmpi(w1,"login_db_level")==0){
 			strcpy(login_db_level,w2);

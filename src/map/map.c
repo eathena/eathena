@@ -60,10 +60,6 @@ MYSQL_RES* 	sql_res ;
 MYSQL_ROW	sql_row ;
 char tmp_sql[65535]="";
 
-MYSQL lmysql_handle;
-MYSQL_RES* lsql_res ;
-MYSQL_ROW  lsql_row ;
-
 MYSQL logmysql_handle; //For the log database - fix by [Maeki]
 MYSQL_RES* logsql_res ;
 MYSQL_ROW  logsql_row ;
@@ -79,6 +75,7 @@ char map_server_pw[32] = "ragnarok";
 char map_server_db[32] = "ragnarok";
 char default_codepage[32] = ""; //Feature by irmin.
 int db_use_sqldbs = 0;
+int connection_ping_interval = 0;
 
 int login_server_port = 3306;
 char login_server_ip[16] = "127.0.0.1";
@@ -155,13 +152,6 @@ char charsql_db[40] = "ragnarok";
 MYSQL charsql_handle;
 MYSQL_RES* charsql_res;
 MYSQL_ROW charsql_row;
-
-#ifdef MAPREGSQL
-// [zBuffer] SQL Mapreg
-MYSQL mapregsql_handle;
-MYSQL_RES* mapregsql_res ;
-MYSQL_ROW mapregsql_row;
-#endif
 
 #endif /* not TXT_ONLY */
 
@@ -1398,6 +1388,73 @@ int map_searchrandfreecell(int m,int *x,int *y,int stack) {
 	return 1;
 }
 
+
+static int map_count_sub(struct block_list *bl,va_list ap)
+{
+	return 1;
+}
+
+/*==========================================
+ * Locates a random spare cell around the object given, using range as max 
+ * distance from that spot. Used for warping functions. Use range < 0 for 
+ * whole map range.
+ * Returns 1 on success. when it fails and src is available, x/y are set to src's
+ * src can be null as long as flag&1
+ * when ~flag&1, m is not needed.
+ * Flag values:
+ * &1 = random cell must be around given m,x,y, not around src
+ * &2 = the target should be able to walk to the target tile. (still not in stable)
+ * &4 = there shouldn't be any players around the target tile (use the no_spawn_on_player setting)
+ *------------------------------------------
+ */
+int map_search_freecell(struct block_list *src, int m, short *x,short *y, int rx, int ry, int flag) {
+	int tries, spawn=0;
+	int bx, by;
+	int rx2 = 2*rx+1;
+	int ry2 = 2*ry+1;
+
+	if (!src && (!(flag&1) || flag&2))
+	{
+		ShowDebug("map_search_freecell: Incorrect usage! When src is NULL, flag has to be &1 and can't have &2\n");
+		return 0;
+	}
+
+	if (flag&1) {
+		bx = *x;
+		by = *y;
+	} else {
+		bx = src->x;
+		by = src->y;
+		m = src->m;
+	}
+	if (rx >= 0 && ry >= 0) {
+		tries = rx2*ry2;
+		if (tries > 50) tries = 50;
+	} else
+		tries = 100;
+	
+	while(tries--) {
+		*x = (rx >= 0)?(rand()%rx2-rx+bx):(rand()%(map[m].xs-2)+1);
+		*y = (ry >= 0)?(rand()%rx2-ry+by):(rand()%(map[m].ys-2)+1);
+		
+		if (map_getcell(m,*x,*y,CELL_CHKREACH))
+		{
+//			if(flag&2 && !unit_can_reach_pos(src, *x, *y, 1))
+//				continue;
+			if(flag&4 && spawn++ < battle_config.no_spawn_on_player &&
+				map_foreachinarea(map_count_sub, m,
+					*x-AREA_SIZE, *y-AREA_SIZE, *x+AREA_SIZE, *y+AREA_SIZE, BL_PC)
+			)
+				continue;
+
+			return 1;
+		}
+	}
+	*x = bx;
+	*y = by;
+	return 0;
+}
+
 /*==========================================
  * (m,x,y)を中心に3x3以?に床アイテム設置
  *
@@ -1675,8 +1732,6 @@ int map_quit(struct map_session_data *sd) {
 		script_free_stack(sd->stack);
 		sd->stack= NULL;
 	}
-	
-//	chrif_char_offline(sd); //chrif_save handles this now.
 
 	//Do we really need to remove the name?
 	idb_remove(charid_db,sd->status.char_id);
@@ -2129,6 +2184,7 @@ int map_calc_dir( struct block_list *src,int x,int y) {
  *------------------------------------------
  */
 int map_random_dir(struct block_list *bl, short *x, short *y) {
+	struct walkpath_data wpd;
 	short xi = *x-bl->x;
 	short yi = *y-bl->y;
 	short i=0, j;
@@ -2144,7 +2200,11 @@ int map_random_dir(struct block_list *bl, short *x, short *y) {
 		xi = bl->x + segment*dirx[j];
 		segment = (short)sqrt(dist2 - segment*segment); //The complement of the previously picked segment
 		yi = bl->y + segment*diry[j];
-	} while (map_getcell(bl->m,xi,yi,CELL_CHKNOPASS) && (++i)<100);
+	} while ((
+		map_getcell(bl->m,xi,yi,CELL_CHKNOPASS)  ||
+		path_search_real(&wpd,bl->m,bl->x,bl->y,xi,yi,1,CELL_CHKNOREACH) == -1)
+		&& (++i)<100);
+	
 	if (i < 100) {
 		*x = xi;
 		*y = yi;
@@ -3469,6 +3529,8 @@ int inter_config_read(char *cfgName)
 		} else if(strcmpi(w1,"use_sql_db")==0){
 			db_use_sqldbs = battle_config_switch(w2);
 			ShowStatus ("Using SQL dbs: %s\n",w2);
+		} else if(strcmpi(w1,"connection_ping_interval")==0) {
+			connection_ping_interval = battle_config_switch(w2);
 		} else if(strcmpi(w1,"use_new_sql_db")==0){
 			db_use_newsqldbs = battle_config_switch(w2);
 			ShowStatus ("Using New SQL dbs: %s\n",w2);
@@ -3556,20 +3618,6 @@ int map_sql_init(void){
 		ShowStatus("connect success! (Map Server Connection)\n");
 	}
 
-    mysql_init(&lmysql_handle);
-
-    //DB connection start
-    ShowInfo("Connecting to the Login DB Server....\n");
-    if(!mysql_real_connect(&lmysql_handle, login_server_ip, login_server_id, login_server_pw,
-        login_server_db ,login_server_port, (char *)NULL, 0)) {
-	        //pointer check
-			ShowSQL("DB error - %s\n",mysql_error(&lmysql_handle));
-			exit(1);
-	}
-	 else {
-		ShowStatus ("connect success! (Login Server Connection)\n");
-	 }
-
 	if(mail_server_enable) { // mail system [Valaris]
 		mysql_init(&mail_handle);
 	        ShowInfo("Connecting to the Mail DB Server....\n");
@@ -3592,10 +3640,6 @@ int map_sql_init(void){
 			ShowSQL("DB error - %s\n",mysql_error(&mmysql_handle));
 			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		}
-		if (mysql_query(&lmysql_handle, tmp_sql)) {
-			ShowSQL("DB error - %s\n",mysql_error(&lmysql_handle));
-			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-		}
 	}
 	return 0;
 }
@@ -3603,9 +3647,6 @@ int map_sql_init(void){
 int map_sql_close(void){
 	mysql_close(&mmysql_handle);
 	ShowStatus("Close Map DB Connection....\n");
-
-	mysql_close(&lmysql_handle);
-	ShowStatus("Close Login DB Connection....\n");
 
 	if (log_config.sql_logs)
 //Updating this if each time there's a log_config addition is too much of a hassle.	[Skotlex]
@@ -3673,8 +3714,7 @@ int cleanup_sub(struct block_list *bl, va_list ap) {
 			mob_unload((struct mob_data *)bl);
 			break;
 		case BL_PET:
-			//There is no need for this, the pet is removed together with the player. [Skotlex]
-//			pet_remove_map(((struct pet_data *)bl)->msd);
+		//There is no need for this, the pet is removed together with the player. [Skotlex]
 			break;
 		case BL_ITEM:
 			map_clearflooritem(bl->id);
@@ -3806,6 +3846,24 @@ void map_versionscreen(int flag) {
 	if (flag) exit(1);
 }
 
+
+#ifndef TXT_ONLY
+/*======================================================
+ * Does a mysql_ping to all connection handles. [Skotlex]
+ *------------------------------------------------------
+ */
+int map_sql_ping(int tid, unsigned int tick, int id, int data) 
+{
+	ShowInfo("Pinging SQL server to keep connection alive...\n");
+	mysql_ping(&mmysql_handle);
+	if (log_config.sql_logs)
+		mysql_ping(&logmysql_handle);
+	if(mail_server_enable)
+		mysql_ping(&mail_handle);
+	return 0;
+}
+#endif
+
 /*======================================================
  * Map-Server Init and Command-line Arguments [Valaris]
  *------------------------------------------------------
@@ -3888,7 +3946,7 @@ int do_init(int argc, char *argv[]) {
 		if (char_ip_set_ == 0)
 				chrif_setip(buf);
 		if (ptr[0] == 192 && ptr[1] == 168)
-			ShowError("\nFirewall detected.. \n    edit subnet_athena.conf and map_athena.conf\n\n");
+			ShowNotice("\nFirewall detected.. \n    edit subnet_athena.conf and map_athena.conf\n\n");
 	}
 
 	if (SHOW_DEBUG_MSG)
@@ -3946,6 +4004,12 @@ int do_init(int argc, char *argv[]) {
 	if (log_config.sql_logs)
 	{
 		log_sql_init();
+	}
+	
+	if (connection_ping_interval) {
+		add_timer_func_list(map_sql_ping, "map_sql_ping");
+		add_timer_interval(gettick()+connection_ping_interval*60*1000,
+				map_sql_ping, 0, 0, connection_ping_interval*60*1000);
 	}
 #endif /* not TXT_ONLY */
 

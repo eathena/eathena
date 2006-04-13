@@ -2827,7 +2827,7 @@ int do_init_npc(void)
 	return 0;
 }
 // [Lance]
-	int npc_changename(const char *name, const char *newname, short look){
+int npc_changename(const char *name, const char *newname, short look){
 	struct npc_data *nd= (struct npc_data *) strdb_remove(npcname_db,(unsigned char*)name);
 	if (nd==NULL)
 		return 0;

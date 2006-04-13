@@ -14,10 +14,14 @@
 #endif
 #include <sys/types.h>
 #include <time.h>
+#include <limits.h>
 
 #include "../common/malloc.h"
-#include "socket.h"
-#include "timer.h"
+#include "../common/socket.h"
+#include "../common/timer.h"
+#include "../common/nullpo.h"
+#include "../common/showmsg.h"
+
 #include "map.h"
 #include "battle.h"
 #include "chrif.h"
@@ -26,8 +30,6 @@
 #include "npc.h"
 #include "pc.h"
 #include "status.h"
-#include "nullpo.h"
-#include "showmsg.h"
 #ifndef TXT_ONLY
 #include "charsave.h"
 #endif
