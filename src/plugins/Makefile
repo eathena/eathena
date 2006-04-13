@@ -19,7 +19,7 @@ txt sql all: $(PLUGINS)
 httpd.$(PLUGINEXT): httpd.c
 	$(CC) $(CFLAGS) -shared -o ../../plugins/$@ $< \
 	../common/obj/minimalloc.o ../common/obj/db.o ../common/obj/showmsg.o \
-	../common/obj/utils.o
+	../common/obj/utils.o ../common/obj/ers.o
 	@touch $@
 
 gui.$(PLUGINEXT): ../../plugins/gui.conf
@@ -42,5 +42,9 @@ clean:
 
 sample.$(PLUGINEXT): sample.c $(COMMON_H)
 sig.$(PLUGINEXT): sig.c $(COMMON_H)
+	$(CC) $(CFLAGS) -shared -o ../../plugins/$@ $< \
+	../common/obj/showmsg.o
+	@touch $@
+
 pid.$(PLUGINEXT): pid.c $(COMMON_H)
 gui.$(PLUGINEXT): gui.c $(COMMON_H)
