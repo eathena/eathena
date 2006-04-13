@@ -6,6 +6,7 @@ GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 
 2006/04/13
+	* Fixed the compiling error introduced on the last update... [Skotlex]
 	* Added an Info message when pinging the SQL servers, Merged the ping sql
 	  server settings (see inter_athena.conf) [Skotlex]
 	* Merged upgrade of atcommand/charcommand script commands to be able to run

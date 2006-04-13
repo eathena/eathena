@@ -311,8 +311,7 @@ int inter_sql_ping(int tid, unsigned int tick, int id, int data)
 {
 	ShowInfo("Pinging SQL server to keep connection alive...\n");
 	mysql_ping(&mysql_handle);
-	if(char_gm_read)
-		mysql_ping(&lmysql_handle);
+	mysql_ping(&lmysql_handle);
 	return 0;
 }
 
