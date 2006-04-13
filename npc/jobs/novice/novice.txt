@@ -254,7 +254,6 @@ L_loop:
 	case 1:	mes "[Training Grounds Receptionist]";
 		mes "Thank you for applying for Novice training. For detailed information of each training course, please inquire the Guides for assistance.";
 		next;
-		set Zeny,Zeny+50;
 		mes "[Training Grounds Receptionist]";
 		mes "To get you started, we will supply you with a provision of 50 Zeny. When you have questions about the training course process, please feel free to ask any of the Instructors.";
 		next;
@@ -262,6 +261,7 @@ L_loop:
 		mes "You will now be transferred";
 		mes "to the Training Grounds.";
 		next;
+		set Zeny,Zeny+50;
 		warp "new_1-2.gat",100,70;
 		end;
 	case 2:	mes "[Training Grounds Receptionist]";

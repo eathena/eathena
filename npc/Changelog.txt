@@ -27,7 +27,10 @@ Nexon
 
 Date		Added
 ======
+
 04/12
+	* Fitted the many lines into 1 or 2, and corrected some typos on most of 
+	  the npc\guides. Visual update to the guards, for short. [erKURITA]
 	* Some typo fixes by IVBela [MasterOfMuppets]
 	* Fixed Bio Lab spawns to official jRO [Playtester]
 	* Added some Kiel building warps thanks to Celestria [Playtester]
