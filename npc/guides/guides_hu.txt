@@ -49,7 +49,7 @@ M_Menu:
 			"Hunter Guild",M_1_8a,
 			"^000066Poring Track 1^000000",M_1_9,
 			"^000066Poring Track 2^000000",M_1_10,
-			"Bingo House",M_1_11,
+			"^000066Bingo House^000000",M_1_11,
 			"Wipe all indications from mini-map",M_1_8,
 			"Cancel", M_End;
 
@@ -94,7 +94,6 @@ M_Menu:
 			mes "The 'Hunter Guild' is located at the northeast of Hugel. Sharpen your eyes!";
 			viewpoint 1,208,225,7,0xFF8000;
 			goto sL_Wipe; 
-
 		M_1_9:
 			mes "[Old Lady]";
 			mes "The '^000066Poring Track Nº1^000000' is new and exciting entertaintment, make sure to check it!";
