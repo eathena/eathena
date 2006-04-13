@@ -6,6 +6,9 @@ GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 
 2006/04/13
+	* Fixed SQL compilation. [Skotlex]
+	- Note that GM reading is now performed by the Login-Server (as it should
+	  be, at the account level)
 	* Fixed the compiling error introduced on the last update... [Skotlex]
 	* Added an Info message when pinging the SQL servers, Merged the ping sql
 	  server settings (see inter_athena.conf) [Skotlex]
