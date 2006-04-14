@@ -6,6 +6,10 @@ GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 
 2006/04/13
+	* Merged the equip_jobs update from trunk. [Skotlex]
+	- Sql users can either rewrite their current item_db with the updated
+	  sql-files/item_db.sql file, or apply upgrade_svn6055.sql to update their
+	  existing tables.
 	* Fixed SQL compilation. [Skotlex]
 	- Note that GM reading is now performed by the Login-Server (as it should
 	  be, at the account level)
