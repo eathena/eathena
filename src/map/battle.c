@@ -3308,6 +3308,7 @@ int battle_check_undead(int race,int element)
 int battle_check_target( struct block_list *src, struct block_list *target,int flag)
 {
 	int m,state = 0; //Initial state none
+	int is_duel = 0; //Duel flag
 	int strip_enemy = 1; //Flag which marks whether to remove the BCT_ENEMY status if it's also friend/ally.
 	struct block_list *s_bl= src, *t_bl= target;
 
@@ -3429,6 +3430,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 				{
 					state |= BCT_ENEMY;
 					strip_enemy = 0;
+					is_duel = 1;
 				} else if (t_bl != s_bl) {
 					// You can't target anything out of your duel
 					return 0;
@@ -3518,7 +3520,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 				state |= BCT_ENEMY;
 		}
 		if (state&BCT_ENEMY && battle_config.pk_mode && !map_flag_gvg(m) &&
-			s_bl->type == BL_PC && t_bl->type == BL_PC)
+			s_bl->type == BL_PC && t_bl->type == BL_PC && !is_duel)
 		{	//Prevent novice engagement on pk_mode (feature by Valaris)
 			struct map_session_data* sd = (struct map_session_data*)s_bl,
 			  	*sd2 = (struct map_session_data*)t_bl;
@@ -3538,13 +3540,13 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 	} else { //Non pvp/gvg, check party/guild settings.
 		if (flag&BCT_PARTY || state&BCT_ENEMY) {
 			int s_party = status_get_party_id(s_bl);
-			if (s_party && s_party ==status_get_party_id(t_bl))
+			if (!is_duel && s_party && s_party ==status_get_party_id(t_bl))
 				state |= BCT_PARTY;
 		}
 		if (flag&BCT_GUILD || state&BCT_ENEMY) {
 			int s_guild = status_get_guild_id(s_bl);
 			int t_guild = status_get_guild_id(t_bl);
-			if (s_guild && t_guild && (s_guild == t_guild || guild_idisallied(s_guild, t_guild)))
+			if (!is_duel && s_guild && t_guild && (s_guild == t_guild || guild_idisallied(s_guild, t_guild)))
 				state |= BCT_GUILD;
 		}
 	}
