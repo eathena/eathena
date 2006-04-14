@@ -5,6 +5,11 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 
+2006/04/14
+	* Fixed being able to do all the stuff you shouldn't be able to during the
+	  petrifying state. [Skotlex]
+	* Merged the update that makes looters give preference to the nearest item.
+	  [Skotlex]
 2006/04/13
 	* Merged the equip_jobs update from trunk. [Skotlex]
 	- Sql users can either rewrite their current item_db with the updated

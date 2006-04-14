@@ -158,7 +158,7 @@ enum {
 
 //Removed sd->npc_shopid because there is no packet sent from the client when you cancel a buy!
 //Quick check to know if the player shouldn't be "busy" with something else to deny action requests. [Skotlex]
-#define clif_cant_act(sd) (sd->npc_id || sd->vender_id || sd->chatID || (sd->sc.opt1 && sd->sc.opt1 != OPT1_STONEWAIT) || sd->trade_partner || sd->state.storage_flag)
+#define clif_cant_act(sd) (sd->npc_id || sd->vender_id || sd->chatID || sd->sc.opt1 || sd->trade_partner || sd->state.storage_flag)
 
 // Checks if SD is in a trade/shop (where messing with the inventory can cause problems/exploits)
 #define clif_trading(sd) (sd->npc_id || sd->vender_id || sd->trade_partner)
@@ -574,7 +574,7 @@ int clif_authok(struct map_session_data *sd) {
 		return 0;
 	fd = sd->fd;
 
-        WFIFOHEAD(fd, packet_len_table[0x73]);
+	WFIFOHEAD(fd, packet_len_table[0x73]);
 	WFIFOW(fd, 0) = 0x73;
 	WFIFOL(fd, 2) = gettick();
 	WFIFOPOS(fd, 6, sd->bl.x, sd->bl.y);
@@ -593,7 +593,7 @@ int clif_authfail_fd(int fd, int type) {
 	if (!fd || !session[fd] || session[fd]->func_parse != clif_parse) //clif_authfail should only be invoked on players!
 		return 0;
 
-        WFIFOHEAD(fd, packet_len_table[0x81]);
+	WFIFOHEAD(fd, packet_len_table[0x81]);
 	WFIFOW(fd,0) = 0x81;
 	WFIFOB(fd,2) = type;
 	WFIFOSET(fd,packet_len_table[0x81]);
@@ -626,7 +626,7 @@ int clif_charselectok(int id) {
 		return 1;
 
 	fd = sd->fd;
-        WFIFOHEAD(fd, packet_len_table[0xb3]);
+	WFIFOHEAD(fd, packet_len_table[0xb3]);
 	WFIFOW(fd,0) = 0xb3;
 	WFIFOB(fd,2) = 1;
 	WFIFOSET(fd,packet_len_table[0xb3]);
@@ -692,7 +692,7 @@ int clif_clearflooritem(struct flooritem_data *fitem, int fd) {
 	if (fd == 0) {
 		clif_send(buf, packet_len_table[0xa1], &fitem->bl, AREA);
 	} else {
-                WFIFOHEAD(fd,packet_len_table[0xa1]);
+		WFIFOHEAD(fd,packet_len_table[0xa1]);
 		memcpy(WFIFOP(fd,0), buf, 6);
 		WFIFOSET(fd,packet_len_table[0xa1]);
 	}
@@ -8877,7 +8877,7 @@ void clif_parse_WalkToXY(int fd, struct map_session_data *sd) {
 	if (pc_issit(sd)) //No walking when you are sit!
 		return;
 	
-	if (clif_cant_act(sd))
+	if (clif_cant_act(sd) && sd->sc.opt1 != OPT1_STONEWAIT)
 		return;
 
 	if (sd->skilltimer != -1 && pc_checkskill(sd, SA_FREECAST) <= 0) // フリーキャスト
