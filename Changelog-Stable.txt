@@ -6,6 +6,7 @@ GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 
 2006/04/14
+	* Updated sql-files/mob_db.sql to current. [Skotlex]
 	* Fixed being able to do all the stuff you shouldn't be able to during the
 	  petrifying state. [Skotlex]
 	* Merged the update that makes looters give preference to the nearest item.
