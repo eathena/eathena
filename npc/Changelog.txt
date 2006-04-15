@@ -28,6 +28,7 @@ Nexon
 Date		Added
 ======
 04/15
+	* Implemented Musashiden's Lighthalzen npcs - Part 2 [Shadow]
 	* Implemented Musashiden's Lighthalzen npcs [MasterOfMuppets]
 	* Modified the Cloth Dyer so that he refuses to dye your clothes [Playtester]
 	* Added weight checks to merchants/refine.txt thanks to Neouni [Playtester]
