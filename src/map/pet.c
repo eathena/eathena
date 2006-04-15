@@ -1475,7 +1475,7 @@ static int pet_ai_sub_hard(struct pet_data *pd,unsigned int tick)
 		if(pd->speed <= 0)
 			pd->speed = 1;
 		pet_calc_pos(pd,sd->bl.x,sd->bl.y,sd->dir);
-		if(!pet_walktoxy(pd,pd->to_x,pd->to_y))
+		if(pet_walktoxy(pd,pd->to_x,pd->to_y))
 			pet_randomwalk(pd,tick);
 		return 0;
 	}
@@ -1509,7 +1509,7 @@ static int pet_ai_sub_hard(struct pet_data *pd,unsigned int tick)
 			return 0; //Already walking to him
 
 		pet_calc_pos(pd,sd->bl.x,sd->bl.y,sd->dir);
-		if(!pet_walktoxy(pd,pd->to_x,pd->to_y))
+		if(pet_walktoxy(pd,pd->to_x,pd->to_y))
 			pet_randomwalk(pd,tick);
 
 		return 0;
@@ -1542,7 +1542,7 @@ static int pet_ai_sub_hard(struct pet_data *pd,unsigned int tick)
 					dx=target->x - pd->bl.x + rand()%3 - 1;
 					dy=target->y - pd->bl.y + rand()%3 - 1;
 				}
-			} while(!pet_walktoxy(pd,pd->bl.x+dx,pd->bl.y+dy) && ++i<5);
+			} while(pet_walktoxy(pd,pd->bl.x+dx,pd->bl.y+dy) && ++i<5);
 
 			if(i>=5) {
 				if(dx<0) dx=2;
