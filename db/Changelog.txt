@@ -1,3 +1,5 @@
+04/16
+	* Fixed wrong effect 4175,Poisonous_Toad_Card [Lupus]
 04/15
 	* Fixed movement and attack speed of Lighthalzen Mobs thanks to Tharis [Playtester]
 	* Fixed names of Lighthalzen Mobs, using iRO names now [Playtester]
@@ -6,7 +8,6 @@
 	* Updated 1675,VENATU (some columns were shifted) [Lupus]
 	* Updated items weight, names. Thanks 2 Haplo [Lupus]
 	- 12142,Book_of_Magic effect updated +20 Agi for 30 min (d0n't list it in the items desc)
-		Stopped updating Stable Item Db till the merge ^_-
 04/12
 	* Added cast time to pick stone of 3 secs and 500ms delay. [Skotlex]
 	- fixed pick stone ID [Lupus]
