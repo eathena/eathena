@@ -45,7 +45,7 @@ Date		Added
 	* Some more crap NPCs implemented in Lighthalzen, thanks to Kargha [MasterOfMuppets]
 	  for scripting them.
 	* Implemented some crap NPCs in Lighthalzen [MasterOfMuppets]
-	* Fixed Archer Village Guide bugs, thanks to NeatElves 4 pointing the bug [Lupus]
+	* Fixed Einbroch & Archer Village Guide bugs, thanks to NeatElves 4 pointing the bug [Lupus]
 04/13
 	* Fixed SOME bugs in Hugel.txt, hu_guide.txt. thanks to joshuaali [Lupus]
 		Guys, do always check the scripts before committing V_V'
