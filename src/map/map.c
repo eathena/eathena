@@ -2424,27 +2424,19 @@ int map_eraseipport(unsigned short mapindex,unsigned long ip,int port)
 	return 0;
 }
 
-// 初期化周り
-/*==========================================
- * 水場高さ設定
- *------------------------------------------
- */
-static struct waterlist_ {
-	char mapname[MAP_NAME_LENGTH];
-	int waterheight;
-} *waterlist=NULL;
-
 #define NO_WATER 1000000
 
-static int map_setwaterheight_sub(int m, int wh) {
+static int map_setwaterheight_sub(int m) {
 	char fn[256];
 	char *gat;
 	int x,y;
+	int wh;
 	struct gat_1cell {float high[4]; int type;} *p = NULL;
 	
 	if (m < 0)
 		return 0;
-	
+	wh = map[m].water_height;
+		
 	sprintf(fn,"data\\%s",mapindex_id2name(map[m].index));
 
 	// read & convert fn
@@ -2467,60 +2459,57 @@ static int map_setwaterheight_sub(int m, int wh) {
 	return 1;
 }
 int map_setwaterheight(int m, char *mapname, int height) {
-	int i=0;
 	if (height < 0)
 		height = NO_WATER;
-	if(waterlist){
-		for(i=0;waterlist[i].mapname[0] && i < MAX_MAP_PER_SERVER;i++)
-			if(strcmp(waterlist[i].mapname,mapname)==0) {
-				waterlist[i].waterheight = height;
-			}
-	}
-	if (i < MAX_MAP_PER_SERVER) {
-		memcpy(waterlist[i].mapname,mapname, MAP_NAME_LENGTH-1);
-		waterlist[i].waterheight = height;
-	}
-	return map_setwaterheight_sub(m, height);
+	map[m].water_height = height;
+	return map_setwaterheight_sub(m);
 }
 
+/* map_readwaterheight
+ * Reads from the .rsw for each map
+ * Returns water height (or NO_WATER if file doesn't exist)
+ * or other error is encountered.
+ * This receives a map-name, and changes the extension to rsw if it isn't set already.
+ * Assumed path for file is data/mapname.rsw
+ * Credits to LittleWolf
+ */
 int map_waterheight(char *mapname) {
-	if(waterlist){
-		int i;
-		for(i=0;waterlist[i].mapname[0] && i < MAX_MAP_PER_SERVER;i++)
-			if(strcmp(waterlist[i].mapname,mapname)==0)
-				return waterlist[i].waterheight;
+	char fn[256];
+ 	char *rsw, *found;
+	float whtemp;
+	int wh;
+
+	//Look up for the rsw
+	if(!strstr(mapname,"data\\"))
+		sprintf(fn,"data\\%s", mapname);
+	else
+		strcpy(fn, mapname);
+
+	found = grfio_find_file(fn);
+	if (!found)
+		; //Stick to the current fn
+	else if(!strstr(found,"data\\"))
+		sprintf(fn,"data\\%s", found);
+	else
+		strcpy(fn, found);
+	
+	rsw = strstr(fn, ".");
+	if (rsw && strstr(fn, ".rsw") == NULL)
+		sprintf(rsw,".rsw");
+	// read & convert fn
+	// again, might not need to be unsigned char
+	rsw = (char *) grfio_read (fn);
+	if (rsw)
+	{	//Load water height from file
+		whtemp = *(float*)(rsw+166);
+		wh = (int) whtemp;
+		aFree(rsw);
+		return wh;
 	}
+	ShowWarning("Failed to find water level for (%s)\n", mapname, fn);
 	return NO_WATER;
 }
 
-static void map_readwater(char *watertxt) {
-	char line[1024],w1[1024];
-	FILE *fp=NULL;
-	int n=0;
-
-	fp=fopen(watertxt,"r");
-	if(fp==NULL){
-		ShowError("file not found: %s\n",watertxt);
-		return;
-	}
-	if(waterlist==NULL)
-		waterlist = (struct waterlist_*)aCallocA(MAX_MAP_PER_SERVER,sizeof(*waterlist));
-	while(fgets(line,1020,fp) && n < MAX_MAP_PER_SERVER){
-		int wh,count;
-		if(line[0] == '/' && line[1] == '/')
-			continue;
-		if((count=sscanf(line,"%s%d",w1,&wh)) < 1){
-			continue;
-		}
-		memcpy(waterlist[n].mapname,w1, MAP_NAME_LENGTH-1);
-		if(count >= 2)
-			waterlist[n].waterheight = wh;
-		else
-			waterlist[n].waterheight = 3;
-		n++;
-	}
-	fclose(fp);
-}
 /*==========================================
 * マップキャッシュに追加する
 *===========================================*/
@@ -2617,14 +2606,12 @@ int map_cache_read(struct map_data *m)
 	if(!map_cache.fp) { return 0; }
 	for(i = 0;i < map_cache.head.nmaps ; i++) {
 		if(!strcmp(m->name,map_cache.map[i].fn)) {
-			if(map_cache.map[i].water_height != map_waterheight(m->name)) {
-				// 水場の高さが違うので読み直し
-				return 0;
-			} else if(map_cache.map[i].compressed == 0) {
+			if(map_cache.map[i].compressed == 0) {
 				// 非圧縮ファイル
 				int size = map_cache.map[i].xs * map_cache.map[i].ys;
 				m->xs = map_cache.map[i].xs;
 				m->ys = map_cache.map[i].ys;
+				m->water_height = map_cache.map[i].water_height;
 				m->gat = (unsigned char *)aCalloc(m->xs * m->ys,sizeof(unsigned char));
 				fseek(map_cache.fp,map_cache.map[i].pos,SEEK_SET);
 				if(fread(m->gat,1,size,map_cache.fp) == size) {
@@ -2642,6 +2629,7 @@ int map_cache_read(struct map_data *m)
 				int size_compress = map_cache.map[i].compressed_len;
 				m->xs = map_cache.map[i].xs;
 				m->ys = map_cache.map[i].ys;
+				m->water_height = map_cache.map[i].water_height;
 				m->gat = (unsigned char *)aMalloc(m->xs * m->ys * sizeof(unsigned char));
 				buf = (unsigned char*)aMalloc(size_compress);
 				fseek(map_cache.fp,map_cache.map[i].pos,SEEK_SET);
@@ -2712,7 +2700,7 @@ static int map_cache_write(struct map_data *m)
 			}
 			map_cache.map[i].xs  = m->xs;
 			map_cache.map[i].ys  = m->ys;
-			map_cache.map[i].water_height = map_waterheight(m->name);
+			map_cache.map[i].water_height = m->water_height;
 			map_cache.dirty = 1;
 			if(map_read_flag == 2) {
 				aFree(write_buf);
@@ -2742,7 +2730,7 @@ static int map_cache_write(struct map_data *m)
 			map_cache.map[i].pos = map_cache.head.filesize;
 			map_cache.map[i].xs  = m->xs;
 			map_cache.map[i].ys  = m->ys;
-			map_cache.map[i].water_height = map_waterheight(m->name);
+			map_cache.map[i].water_height = m->water_height;
 			map_cache.head.filesize += len_new;
 			map_cache.dirty = 1;
 			if(map_read_flag == 2) {
@@ -2882,6 +2870,7 @@ static int map_loadafm (struct map_data *m, char *fn)
 
 		xs = m->xs = afm_size[0];
 		ys = m->ys = afm_size[1];
+		m->water_height = map_waterheight(m->name);
 		// check this, unsigned where it might not need to be
 		m->gat = (unsigned char*)aCallocA(xs * ys, 1);
 
@@ -3006,7 +2995,7 @@ int map_readgat (struct map_data *m)
 	ys = m->ys = *(int*)(gat+10);
 	m->gat = (unsigned char *)aCallocA(m->xs * m->ys, sizeof(unsigned char));
 
-	wh = map_waterheight(m->name);
+	m->water_height = wh = map_waterheight(m->name);
 	for (y = 0; y < ys; y++) {
 		p = (struct gat_1cell*)(gat+y*xs*20+14);
 		for (x = 0; x < xs; x++) {
@@ -3243,7 +3232,6 @@ int map_readallmaps (void)
 	}
 
 	// finished map loading
-	aFree(waterlist);
 	printf("\r");
 	ShowInfo("Successfully loaded '"CL_WHITE"%d"CL_RESET"' maps.%30s\n",map_num,"");
 
@@ -3403,8 +3391,6 @@ int map_config_read(char *cfgName) {
 			} else if (strcmpi(w1, "map_port") == 0) {
 				clif_setport(atoi(w2));
 				map_port = (atoi(w2));
-			} else if (strcmpi(w1, "water_height") == 0) {
-				map_readwater(w2);
 			} else if (strcmpi(w1, "map") == 0) {
 				map_addmap(w2);
 			} else if (strcmpi(w1, "delmap") == 0) {
@@ -3724,7 +3710,11 @@ int cleanup_sub(struct block_list *bl, va_list ap) {
 			break;
 	}
 
-	return 0;
+	return 1;
+}
+
+static int cleanup_db_sub(DBKey key,void *data,va_list va) {
+	return cleanup_sub((struct block_list*)data, NULL);
 }
 
 /*==========================================
@@ -3750,6 +3740,7 @@ void do_final(void) {
 	for (i = 0; i < j; i++)
 		map_quit(pl_allsd[i]);
 		
+//	id_db->foreach(id_db,cleanup_db_sub); //FIXME: No good, there are npc already free'd errors when invoking this!
 	chrif_char_reset_offline();
 	chrif_flush_fifo();
 
@@ -4008,8 +3999,8 @@ int do_init(int argc, char *argv[]) {
 	
 	if (connection_ping_interval) {
 		add_timer_func_list(map_sql_ping, "map_sql_ping");
-		add_timer_interval(gettick()+connection_ping_interval*60*1000,
-				map_sql_ping, 0, 0, connection_ping_interval*60*1000);
+		add_timer_interval(gettick()+connection_ping_interval*60*60*1000,
+				map_sql_ping, 0, 0, connection_ping_interval*60*60*1000);
 	}
 #endif /* not TXT_ONLY */
 

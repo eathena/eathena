@@ -5,6 +5,10 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 
+2006/04/16
+	* Merged the grfio module from trunk. [Skotlex]
+	* Merged water-level reading from trunk. [Skotlex]
+	* Fixed ping interval being in minutes rather than hours. [Skotlex]
 2006/04/14
 	* Fixed a wrong assumption on the pet-ai logic, making their mob-chase
 	  behaviour be completely broken. [Skotlex]
