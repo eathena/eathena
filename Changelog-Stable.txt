@@ -6,6 +6,8 @@ GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 
 2006/04/16
+	* Removed the piece of code that made each Magnus tile disapear after it
+	  has hit once. [Skotlex]
 	* Merged the grfio module from trunk. [Skotlex]
 	* Merged water-level reading from trunk. [Skotlex]
 	* Fixed ping interval being in minutes rather than hours. [Skotlex]
