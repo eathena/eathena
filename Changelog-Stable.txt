@@ -4,7 +4,8 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES GO 
 IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EVERYTHING ELSE
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
-
+2006/04/18
+	* Converted the format of the battle conf files to windows format [Playtester]
 2006/04/16
 	* Removed the piece of code that made each Magnus tile disapear after it
 	  has hit once. [Skotlex]
