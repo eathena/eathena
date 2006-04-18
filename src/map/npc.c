@@ -1894,9 +1894,7 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 
 	nd = (struct npc_data *)aCalloc(1, sizeof(struct npc_data));
 
-	if (m == -1){
-		// スクリプトコピー用のダミーNPC
-	} else if (sscanf(w4, "%d,%d,%d", &class_, &xs, &ys) == 3) {
+	if (sscanf(w4, "%d,%d,%d", &class_, &xs, &ys) == 3) {
 		// 接触型NPC
 		int i, j;
 
