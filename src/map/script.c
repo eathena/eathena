@@ -1145,7 +1145,7 @@ unsigned char* parse_subexpr(unsigned char *p,int limit)
 	}
 	tmpp=(char *) p;
 	if((op=C_NEG,*p=='-') || (op=C_LNOT,*p=='!') || (op=C_NOT,*p=='~')){
-		p=parse_subexpr(p+1,100);
+		p=parse_subexpr(p+1,8);
 		add_scriptc(op);
 	} else
 		p=parse_simpleexpr(p);
@@ -1155,7 +1155,7 @@ unsigned char* parse_subexpr(unsigned char *p,int limit)
 		   (op=C_MUL,opl=7,len=1,*p=='*') ||
 		   (op=C_DIV,opl=7,len=1,*p=='/') ||
 		   (op=C_MOD,opl=7,len=1,*p=='%') ||
-		   (op=C_FUNC,opl=8,len=1,*p=='(') ||
+		   (op=C_FUNC,opl=9,len=1,*p=='(') ||
 		   (op=C_LAND,opl=1,len=2,*p=='&' && p[1]=='&') ||
 		   (op=C_AND,opl=5,len=1,*p=='&') ||
 		   (op=C_LOR,opl=0,len=2,*p=='|' && p[1]=='|') ||
@@ -5218,6 +5218,9 @@ int buildin_gettime(struct script_state *st)	/* Asgard Version */
 	case 7://Year(20xx)
 		push_val(st->stack,C_INT,t->tm_year+1900);
 		break;
+	case 8://Year Day(01~366)
+		push_val(st->stack,C_INT,t->tm_yday+1);
+		break;
 	default://(format error)
 		push_val(st->stack,C_INT,-1);
 		break;
@@ -6688,6 +6691,9 @@ int buildin_setmapflag(struct script_state *st)
 			case MF_NIGHTMAREDROP:
 				map[m].flag.pvp_nightmaredrop=1;
 				break;
+			case MF_NOCOMMAND:
+				map[m].flag.nocommand=1;
+				break;
 		}
 	}
 
@@ -6814,6 +6820,9 @@ int buildin_removemapflag(struct script_state *st)
 				break;
 			case MF_NIGHTMAREDROP:
 				map[m].flag.pvp_nightmaredrop=0;
+				break;
+			case MF_NOCOMMAND:
+				map[m].flag.nocommand=0;
 				break;
 		}
 	}
