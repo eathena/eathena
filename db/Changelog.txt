@@ -1,3 +1,6 @@
+04/19
+	* Reverted the delay for Arrow Shower and Double Strafe to 100ms [Skotlex]
+	* Reverted the cast time for pick stone to 500ms, no delay. [Skotlex]
 04/16
 	* Fixed wrong effect 4175,Poisonous_Toad_Card [Lupus]
 04/15
