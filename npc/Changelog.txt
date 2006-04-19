@@ -27,6 +27,9 @@ Nexon
 
 Date		Added
 ======
+04/19
+	* Whoops, eAAC members made a mistake with scripts and I didn't notice => Quest Warper.txt [erKURITA]
+	* Added quest_warper.txt and banker.txt to npc\customs\eAAC_Scripts. [erKURITA]
 04/16
 	* Updated lhz_fild03 according to info from kRO thanks to RockmanEXE [Playtester]
 	* Whoops, forgot to remove clone_arena from the scripts_eaac.conf. [erKURITA]
