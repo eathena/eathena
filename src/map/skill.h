@@ -53,7 +53,7 @@ struct skill_db {
 	int inf2,maxcount,skill_type;
 	int blewcount[MAX_SKILL_LEVEL];
 	int hp[MAX_SKILL_LEVEL],sp[MAX_SKILL_LEVEL],mhp[MAX_SKILL_LEVEL],hp_rate[MAX_SKILL_LEVEL],sp_rate[MAX_SKILL_LEVEL],zeny[MAX_SKILL_LEVEL];
-	int weapon,state,spiritball[MAX_SKILL_LEVEL];
+	int weapon,ammo,ammo_qty[MAX_SKILL_LEVEL],state,spiritball[MAX_SKILL_LEVEL];
 	int itemid[10],amount[10];
 	int castnodex[MAX_SKILL_LEVEL];
 	int delaynodex[MAX_SKILL_LEVEL];
@@ -127,7 +127,7 @@ struct skill_unit;
 struct skill_unit_group;
 
 int do_init_skill(void);
-
+int do_final_skill(void);
 
 //Returns the cast type of the skill: ground cast, castend damage, castend no damage
 enum { CAST_GROUND, CAST_DAMAGE, CAST_NODAMAGE };
@@ -153,6 +153,8 @@ int	skill_get_time( int id ,int lv );
 int	skill_get_time2( int id ,int lv );
 int	skill_get_castdef( int id );
 int	skill_get_weapontype( int id );
+int	skill_get_ammotype( int id );
+int	skill_get_ammo_qty( int id, int lv );
 int	skill_get_unit_id(int id,int flag);
 int	skill_get_inf2( int id );
 int	skill_get_castcancel( int id );
@@ -163,7 +165,7 @@ int	skill_get_unit_target( int id );
 int	skill_tree_get_max( int id, int b_class );	// Celest
 const char*	skill_get_name( int id ); 	// [Skotlex]
 
-// スキルの使用
+int skill_isammotype(TBL_PC *sd, int skill);
 int skill_use_id( struct map_session_data *sd, int target_id,
 	int skill_num,int skill_lv);
 int skill_use_pos( struct map_session_data *sd,
@@ -192,8 +194,11 @@ int skill_clear_element_field(struct block_list *bl);
 int skill_unit_ondamaged(struct skill_unit *src,struct block_list *bl,
 	int damage,unsigned int tick);
 
-int skill_castfix( struct block_list *bl, int skill_id, int skill_lv, int time);
-int skill_delayfix( struct block_list *bl, int skill_id, int skill_lv, int time);
+int skill_castfix( struct block_list *bl, int skill_id, int skill_lv);
+int skill_castfix_sc( struct block_list *bl, int time);
+int skill_delayfix( struct block_list *bl, int skill_id, int skill_lv);
+int skill_check_condition( struct map_session_data *sd,int skill, int lv, int type);
+int skill_check_pc_partner(struct map_session_data *sd, int skill_id, int* skill_lv, int range, int cast_flag);
 int skill_check_unit_range(int m,int x,int y,int skillid, int skilllv);
 int skill_check_unit_range2(struct block_list *bl,int m,int x,int y,int skillid, int skilllv);
 // -- moonsoul	(added skill_check_unit_cell)

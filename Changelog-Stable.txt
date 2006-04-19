@@ -4,6 +4,18 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES GO 
 IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EVERYTHING ELSE
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
+2006/04/19
+	* Merges from trunk... [Skotlex]
+	- skill_castfix/skill_castfix_sc and skill_castdelay function updates
+	- battle configs item_drop_add_min/item_drop_add_max/item_drop_adddrop
+	- Read of ammo-type support in skill_require_db as well as
+	  skill_check_condition update
+	- Assumptio not having an area of effect anymore.
+	- Avoid memorizing the same map for more than one location.
+	- vs_traps_bct_all being a type 4 switch rather than yes/no
+	- Wedding recall skills failing on nomemo maps.
+	- Prevent TK Rankers from using the same skill in sucession.
+	- Usage of a single linked list ers for mob drops.
 2006/04/18
 	* Changed the memory manager fatal errors when allocating memory to print
 	  out the size request as well as the file and line where they originated.

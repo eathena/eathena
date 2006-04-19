@@ -1,4 +1,6 @@
 04/19
+	* Synced skill_require_db from trunk as ammo-type skill requirements have
+	  been merged in [Skotlex]
 	* Fixed a zeny exploit by lowering the price of firecracker [Playtester]
 	* Reverted the delay for Arrow Shower and Double Strafe to 100ms [Skotlex]
 	* Reverted the cast time for pick stone to 500ms, no delay. [Skotlex]

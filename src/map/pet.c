@@ -253,7 +253,7 @@ int petskill_use(struct pet_data *pd, struct block_list *target, short skill_id,
 	clif_fixpetpos(pd);
 
 	//Casting time
-	casttime=skill_castfix(&pd->bl, skill_id, skill_lv, 0);
+	casttime=skill_castfix(&pd->bl, skill_id, skill_lv);
 		
 	pet_stop_walking(pd,1);
 	pd->attackabletime = tick;
@@ -328,7 +328,7 @@ static int petskill_castend2(struct pet_data *pd, struct block_list *target, uns
 		return 0;
 
 	pd->skillid = pd->skilllv = 0;
-	delaytime = skill_delayfix(&pd->bl,skill_id, skill_lv, 0);
+	delaytime = skill_delayfix(&pd->bl,skill_id, skill_lv);
 	if (delaytime < MIN_PETTHINKTIME)
 		delaytime = status_get_adelay(&pd->bl);
 	pd->attackabletime = tick + delaytime;

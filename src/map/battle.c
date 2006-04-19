@@ -3807,6 +3807,8 @@ static const struct battle_data_short {
 	{ "item_drop_heal_max",                &battle_config.item_drop_heal_max },
 	{ "item_drop_use_min",                 &battle_config.item_drop_use_min },
 	{ "item_drop_use_max",                 &battle_config.item_drop_use_max },
+	{ "item_drop_add_min",                 &battle_config.item_drop_adddrop_min },
+	{ "item_drop_add_max",                 &battle_config.item_drop_adddrop_max },
 	{ "item_drop_treasure_min",            &battle_config.item_drop_treasure_min },
 	{ "item_drop_treasure_max",            &battle_config.item_drop_treasure_max },
 	{ "prevent_logout",                    &battle_config.prevent_logout		},	// Added by RoVeRT
@@ -3931,6 +3933,7 @@ static const struct battle_data_int {
 	{ "item_rate_card",                    &battle_config.item_rate_card	},	// End Addition
 	{ "item_rate_heal",                    &battle_config.item_rate_heal	},	// Added by Valaris
 	{ "item_rate_use",                     &battle_config.item_rate_use	},	// End
+	{ "item_rate_adddrop",                 &battle_config.item_rate_adddrop	},	// End
 	{ "item_rate_treasure",                &battle_config.item_rate_treasure }, // End
 	{ "day_duration",                      &battle_config.day_duration	}, // added by [Yor]
 	{ "night_duration",                    &battle_config.night_duration	}, // added by [Yor]
@@ -4041,7 +4044,7 @@ void battle_set_defaults() {
  	battle_config.summons_inherit_effects=1; 
 	battle_config.pc_walk_delay_rate=20;
 	battle_config.walk_delay_rate=100;
-	battle_config.multihit_delay=230;
+	battle_config.multihit_delay=80;
 	battle_config.quest_skill_learn=0;
 	battle_config.quest_skill_reset=1;
 	battle_config.basic_skill_check=1;
@@ -4054,7 +4057,7 @@ void battle_set_defaults() {
 	battle_config.pet_friendly_rate=100;
 	battle_config.pet_hungry_delay_rate=100;
 	battle_config.pet_hungry_friendly_decrease=5;
-	battle_config.pet_str=1;
+	battle_config.pet_str=0;
 	battle_config.pet_status_support=0;
 	battle_config.pet_attack_support=0;
 	battle_config.pet_damage_support=0;
@@ -4111,7 +4114,7 @@ void battle_set_defaults() {
 	battle_config.pc_auto_counter_type = 1;
 	battle_config.monster_auto_counter_type = 1;
 	battle_config.min_hitrate = 5;
-	battle_config.max_hitrate = 95;
+	battle_config.max_hitrate = 100;
 	battle_config.agi_penalty_type = 1;
 	battle_config.agi_penalty_count = 3;
 	battle_config.agi_penalty_num = 10;
@@ -4190,6 +4193,7 @@ void battle_set_defaults() {
 	battle_config.item_rate_card = 100;
 	battle_config.item_rate_heal = 100;		// Added by Valaris
 	battle_config.item_rate_use = 100;		// End
+	battle_config.item_rate_adddrop = 100;
 	battle_config.item_rate_treasure = 100;
 	battle_config.logarithmic_drops = 0;
 	battle_config.item_drop_common_min=1;	// Added by TyrNemesis^
@@ -4204,6 +4208,8 @@ void battle_set_defaults() {
 	battle_config.item_drop_heal_max=10000;
 	battle_config.item_drop_use_min=1;
 	battle_config.item_drop_use_max=10000;	// End
+	battle_config.item_drop_adddrop_min=1;
+	battle_config.item_drop_adddrop_max=10000;
 	battle_config.item_drop_treasure_min=1;
 	battle_config.item_drop_treasure_max=10000;
 	battle_config.prevent_logout = 10000;	// Added by RoVeRT
