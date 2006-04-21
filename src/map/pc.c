@@ -502,25 +502,25 @@ int pc_calcweapontype(struct map_session_data *sd)
 {
 	nullpo_retr(0, sd);
 
-	if(sd->weapontype1 != 0 &&	sd->weapontype2 == 0)
+	if(sd->weapontype1 != W_FIST &&	sd->weapontype2 == W_FIST)
 		sd->status.weapon = sd->weapontype1;
-	if(sd->weapontype1 == 0 &&	sd->weapontype2 != 0)// ¶Žè•Ší Only
+	else if(sd->weapontype1 == W_FIST &&	sd->weapontype2 != W_FIST)// ¶Žè•Ší Only
 		sd->status.weapon = sd->weapontype2;
-	else if(sd->weapontype1 == 1 && sd->weapontype2 == 1)// ?’Z?
-		sd->status.weapon = 0x11;
-	else if(sd->weapontype1 == 2 && sd->weapontype2 == 2)// ??Žè?
-		sd->status.weapon = 0x12;
-	else if(sd->weapontype1 == 6 && sd->weapontype2 == 6)// ??Žè•€
-		sd->status.weapon = 0x13;
-	else if( (sd->weapontype1 == 1 && sd->weapontype2 == 2) ||
-		(sd->weapontype1 == 2 && sd->weapontype2 == 1) ) // ’Z? - ?Žè?
-		sd->status.weapon = 0x14;
-	else if( (sd->weapontype1 == 1 && sd->weapontype2 == 6) ||
-		(sd->weapontype1 == 6 && sd->weapontype2 == 1) ) // ’Z? - •€
-		sd->status.weapon = 0x15;
-	else if( (sd->weapontype1 == 2 && sd->weapontype2 == 6) ||
-		(sd->weapontype1 == 6 && sd->weapontype2 == 2) ) // ?Žè? - •€
-		sd->status.weapon = 0x16;
+	else if(sd->weapontype1 == W_DAGGER && sd->weapontype2 == W_DAGGER)// ?’Z?
+		sd->status.weapon = MAX_WEAPON_TYPE+1;
+	else if(sd->weapontype1 == W_1HSWORD && sd->weapontype2 == W_1HSWORD)// ??Žè?
+		sd->status.weapon = MAX_WEAPON_TYPE+2;
+	else if(sd->weapontype1 == W_1HAXE && sd->weapontype2 == W_1HAXE)// ??Žè•€
+		sd->status.weapon = MAX_WEAPON_TYPE+3;
+	else if( (sd->weapontype1 == W_DAGGER && sd->weapontype2 == W_1HSWORD) ||
+		(sd->weapontype1 == W_1HSWORD && sd->weapontype2 == W_DAGGER) ) // ’Z? - ?Žè?
+		sd->status.weapon = MAX_WEAPON_TYPE+4;
+	else if( (sd->weapontype1 == W_DAGGER && sd->weapontype2 == W_1HAXE) ||
+		(sd->weapontype1 == W_1HAXE && sd->weapontype2 == W_DAGGER) ) // ’Z? - •€
+		sd->status.weapon = MAX_WEAPON_TYPE+5;
+	else if( (sd->weapontype1 == W_1HSWORD && sd->weapontype2 == W_1HAXE) ||
+		(sd->weapontype1 == W_1HAXE && sd->weapontype2 == W_1HSWORD) ) // ?Žè? - •€
+		sd->status.weapon = MAX_WEAPON_TYPE+6;
 	else
 		sd->status.weapon = sd->weapontype1;
 

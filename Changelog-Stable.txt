@@ -4,6 +4,13 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES GO 
 IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EVERYTHING ELSE
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
+2006/04/21
+	* Merged reading of the extended job_db1.txt and size_fix.txt files which
+	  account for the new weapon types. [Skotlex]
+	* Multiple fixes of places that use 16 instead of MAX_WEAPON_TYPE  [Skotlex]
+	* Advanced book only improves Book-weapon damage now. [Skotlex]
+	* Merged calc-weapon-type from trunk (fixes dual-wield checks conflicting
+	  with gun types) [Skotlex]
 2006/04/20
 	* Raised the buffer size in clif_MainChatMessage to 200 to prevent @main
 	  chat from causing problems. [Skotlex]

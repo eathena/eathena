@@ -1342,7 +1342,7 @@ static struct Damage battle_calc_weapon_attack(
 				flag.rh=0;
 				flag.lh=1;
 			}
-		if(sd->status.weapon > 16)
+		if(sd->status.weapon > MAX_WEAPON_TYPE)
 			flag.rh = flag.lh = 1;
 	}
 
@@ -1357,7 +1357,7 @@ static struct Damage battle_calc_weapon_attack(
 			cri+= sd->critaddrace[t_race];
 			if(flag.arrow)
 				cri += sd->arrow_cri;
-			if(sd->status.weapon == 16)
+			if(sd->status.weapon == W_KATAR)
 				cri <<=1;
 		}
 		//The official equation is *2, but that only applies when sd's do critical.
@@ -2246,7 +2246,7 @@ static struct Damage battle_calc_weapon_attack(
 			wd.damage2 = 0;
 			flag.rh=1;
 			flag.lh=0;
-		} else if(sd->status.weapon > 16)
+		} else if(sd->status.weapon > MAX_WEAPON_TYPE)
 		{	//Dual-wield
 			if (wd.damage > 0)
 			{
@@ -2260,7 +2260,7 @@ static struct Damage battle_calc_weapon_attack(
 				wd.damage2 = wd.damage2 * (30 + (skill * 10))/100;
 				if(wd.damage2 < 1) wd.damage2 = 1;
 			}
-		} else if(sd->status.weapon == 16)
+		} else if(sd->status.weapon == W_KATAR)
 		{ //Katars
 			skill = pc_checkskill(sd,TF_DOUBLE);
 			wd.damage2 = wd.damage * (1 + (skill * 2))/100;
@@ -3112,7 +3112,7 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 
 	}
 	//Recycled the damage variable rather than use a new one... [Skotlex]
-	if(sd && (damage = pc_checkskill(sd,MO_TRIPLEATTACK)) > 0 && sd->status.weapon <= 16) // triple blow works with bows ^^ [celest]
+	if(sd && (damage = pc_checkskill(sd,MO_TRIPLEATTACK)) > 0) // triple blow works with bows ^^ [celest]
 	{
 		int triple_rate= 30 - damage; //Base Rate
 		if (sc && sc->data[SC_SKILLRATE_UP].timer!=-1 && sc->data[SC_SKILLRATE_UP].val1 == MO_TRIPLEATTACK)
@@ -3139,7 +3139,7 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 
 	clif_damage(src, target, tick, wd.amotion, wd.dmotion, wd.damage, wd.div_ , wd.type, wd.damage2);
 	//“ñ“?—¬?¶Žè‚ÆƒJƒ^?[ƒ‹’ÇŒ‚‚Ìƒ~ƒX•\Ž¦(–³—?‚â‚è?`)
-	if(sd && sd->status.weapon >= 16 && wd.damage2 == 0)
+	if(sd && sd->status.weapon > MAX_WEAPON_TYPE && wd.damage2 == 0)
 		clif_damage(src, target, tick+10, wd.amotion, wd.dmotion,0, 1, 0, 0);
 
 	if (sd && sd->splash_range > 0 && damage > 0)
