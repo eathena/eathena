@@ -580,8 +580,8 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p, struct global_reg *reg
 	p->int_ = tmp_int[16];
 	p->dex = tmp_int[17];
 	p->luk = tmp_int[18];
-	p->status_point = tmp_int[19];
-	p->skill_point = tmp_int[20];
+	p->status_point = tmp_int[19] > USHRT_MAX ? USHRT_MAX : tmp_int[19];
+	p->skill_point = tmp_int[20] > USHRT_MAX ? USHRT_MAX : tmp_int[20];
 	p->option = tmp_int[21];
 	p->karma = tmp_int[22];
 	p->manner = tmp_int[23];
@@ -1637,24 +1637,17 @@ int mmo_char_send006b(int fd, struct char_session_data *sd) {
 		WFIFOL(fd,j+32) = p->karma;
 		WFIFOL(fd,j+36) = p->manner;
 
-		WFIFOW(fd,j+40) = p->status_point;
-		WFIFOW(fd,j+42) = (p->hp > 0x7fff) ? 0x7fff : p->hp;
-		WFIFOW(fd,j+44) = (p->max_hp > 0x7fff) ? 0x7fff : p->max_hp;
-		WFIFOW(fd,j+46) = (p->sp > 0x7fff) ? 0x7fff : p->sp;
-		WFIFOW(fd,j+48) = (p->max_sp > 0x7fff) ? 0x7fff : p->max_sp;
+		WFIFOW(fd,j+40) = (p->status_point>SHRT_MAX) ? SHRT_MAX : p->status_point;
+		WFIFOW(fd,j+42) = (p->hp > SHRT_MAX) ? SHRT_MAX : p->hp;
+		WFIFOW(fd,j+44) = (p->max_hp > SHRT_MAX) ? SHRT_MAX : p->max_hp;
+		WFIFOW(fd,j+46) = (p->sp > SHRT_MAX) ? SHRT_MAX : p->sp;
+		WFIFOW(fd,j+48) = (p->max_sp > SHRT_MAX) ? SHRT_MAX : p->max_sp;
 		WFIFOW(fd,j+50) = DEFAULT_WALK_SPEED; // p->speed;
 		WFIFOW(fd,j+52) = p->class_;
 		WFIFOW(fd,j+54) = p->hair;
-
-		// pecopeco knights/crusaders crash fix
-		if (p->class_ == 13 || p->class_ == 21 ||
-			p->class_ == 4014 || p->class_ == 4022 ||
-				p->class_ == 4036 || p->class_ == 4044)
-			WFIFOW(fd,j+56) = 0;
-		else WFIFOW(fd,j+56) = p->weapon;
-
+		WFIFOW(fd,j+56) = p->option&0x20?0:p->weapon; //When the weapon is sent and your option is riding, the client crashes on login!?
 		WFIFOW(fd,j+58) = p->base_level;
-		WFIFOW(fd,j+60) = p->skill_point;
+		WFIFOW(fd,j+60) = (p->skill_point>SHRT_MAX)? SHRT_MAX : p->skill_point;
 		WFIFOW(fd,j+62) = p->head_bottom;
 		WFIFOW(fd,j+64) = p->shield;
 		WFIFOW(fd,j+66) = p->head_top;
@@ -1858,7 +1851,7 @@ int parse_tologin(int fd) {
 			for(i = 0; i < fd_max; i++) {
 				if (session[i] && (sd = (struct char_session_data*)session[i]->session_data) && sd->account_id == RFIFOL(fd,2)) {
 					if (RFIFOB(fd,6) != 0) {
-                                                WFIFOHEAD(i, 3);
+						WFIFOHEAD(i, 3);
 						WFIFOW(i,0) = 0x6c;
 						WFIFOB(i,2) = 0x42;
 						WFIFOSET(i,3);
@@ -2429,7 +2422,7 @@ int parse_frommap(int fd) {
 		// request from map-server to reload GM accounts. Transmission to login-server (by Yor)
 		case 0x2af7:
 			if (login_fd > 0) { // don't send request if no login-server
-                                WFIFOHEAD(login_fd, 2);
+				WFIFOHEAD(login_fd, 2);
 				WFIFOW(login_fd,0) = 0x2709;
 				WFIFOSET(login_fd, 2);
 //				printf("char : request from map-server to reload GM accounts -> login-server.\n");
@@ -3026,7 +3019,7 @@ int lan_subnetcheck(long *p) {
 	
 	for(i=0; i<subnet_count; i++) {
 	
-		if((subnet[i].subnet & subnet[i].mask) == (*p & subnet[i].mask)) {
+		if(subnet[i].subnet == (*p & subnet[i].mask)) {
 			
 			sbn = (unsigned char *)&subnet[i].subnet;
 			msk = (unsigned char *)&subnet[i].mask;
@@ -3112,13 +3105,18 @@ int parse_char(int fd) {
 //				memset(sd, 0, sizeof(struct char_session_data)); aCalloc does this [Skotlex]
 				strncpy(sd->email, "no mail", 40); // put here a mail without '@' to refuse deletion if we don't receive the e-mail
 				sd->connect_until_time = 0; // unknow or illimited (not displaying on map-server)
+			} else {
+				//Received again auth packet for already authentified account?? Discard it.
+				//TODO: Perhaps log this as a hack attempt?
+				RFIFOSKIP(fd,17);
+				break;
 			}
 			sd->account_id = RFIFOL(fd,2);
 			sd->login_id1 = RFIFOL(fd,6);
 			sd->login_id2 = RFIFOL(fd,10);
 			sd->sex = RFIFOB(fd,16);
 			// send back account_id
-                        WFIFOHEAD(fd, 4);
+			WFIFOHEAD(fd, 4);
 			WFIFOL(fd,0) = RFIFOL(fd,2);
 			WFIFOSET(fd,4);
 			// search authentification
@@ -3292,8 +3290,8 @@ int parse_char(int fd) {
 			WFIFOL(fd,2) = cd->char_id;
 			memcpy(WFIFOP(fd,6), mapindex_id2name(cd->last_point.map), MAP_NAME_LENGTH);
 			ShowInfo("Character selection '%s' (account: %d, slot: %d).\n", cd->name, sd->account_id, ch);
-
-			// Andvanced subnet check [LuzZza]
+			
+			// Advanced subnet check [LuzZza]
 			if((subnet_map_ip = lan_subnetcheck((long *)p)))
 				WFIFOL(fd,22) = subnet_map_ip;
 			else
@@ -3390,16 +3388,16 @@ int parse_char(int fd) {
 			WFIFOL(fd,2+32) = char_dat[i].status.manner;
 
 			WFIFOW(fd,2+40) = 0x30;
-			WFIFOW(fd,2+42) = (char_dat[i].status.hp > 0x7fff) ? 0x7fff : char_dat[i].status.hp;
-			WFIFOW(fd,2+44) = (char_dat[i].status.max_hp > 0x7fff) ? 0x7fff : char_dat[i].status.max_hp;
-			WFIFOW(fd,2+46) = (char_dat[i].status.sp > 0x7fff) ? 0x7fff : char_dat[i].status.sp;
-			WFIFOW(fd,2+48) = (char_dat[i].status.max_sp > 0x7fff) ? 0x7fff : char_dat[i].status.max_sp;
+			WFIFOW(fd,2+42) = (char_dat[i].status.hp > SHRT_MAX) ? SHRT_MAX : char_dat[i].status.hp;
+			WFIFOW(fd,2+44) = (char_dat[i].status.max_hp > SHRT_MAX) ? SHRT_MAX : char_dat[i].status.max_hp;
+			WFIFOW(fd,2+46) = (char_dat[i].status.sp > SHRT_MAX) ? SHRT_MAX : char_dat[i].status.sp;
+			WFIFOW(fd,2+48) = (char_dat[i].status.max_sp > SHRT_MAX) ? SHRT_MAX : char_dat[i].status.max_sp;
 			WFIFOW(fd,2+50) = DEFAULT_WALK_SPEED; // char_dat[i].status.speed;
 			WFIFOW(fd,2+52) = char_dat[i].status.class_;
 			WFIFOW(fd,2+54) = char_dat[i].status.hair;
 
 			WFIFOW(fd,2+58) = char_dat[i].status.base_level;
-			WFIFOW(fd,2+60) = char_dat[i].status.skill_point;
+			WFIFOW(fd,2+60) = (char_dat[i].status.skill_point > SHRT_MAX) ? SHRT_MAX : char_dat[i].status.skill_point;
 
 			WFIFOW(fd,2+64) = char_dat[i].status.shield;
 			WFIFOW(fd,2+66) = char_dat[i].status.head_top;
@@ -3408,12 +3406,12 @@ int parse_char(int fd) {
 
 			memcpy(WFIFOP(fd,2+74), char_dat[i].status.name, NAME_LENGTH);
 
-			WFIFOB(fd,2+98) = (char_dat[i].status.str > 255) ? 255 : char_dat[i].status.str;
-			WFIFOB(fd,2+99) = (char_dat[i].status.agi > 255) ? 255 : char_dat[i].status.agi;
-			WFIFOB(fd,2+100) = (char_dat[i].status.vit > 255) ? 255 : char_dat[i].status.vit;
-			WFIFOB(fd,2+101) = (char_dat[i].status.int_ > 255) ? 255 : char_dat[i].status.int_;
-			WFIFOB(fd,2+102) = (char_dat[i].status.dex > 255) ? 255 : char_dat[i].status.dex;
-			WFIFOB(fd,2+103) = (char_dat[i].status.luk > 255) ? 255 : char_dat[i].status.luk;
+			WFIFOB(fd,2+98) = (char_dat[i].status.str > UCHAR_MAX) ? UCHAR_MAX : char_dat[i].status.str;
+			WFIFOB(fd,2+99) = (char_dat[i].status.agi > UCHAR_MAX) ? UCHAR_MAX : char_dat[i].status.agi;
+			WFIFOB(fd,2+100) = (char_dat[i].status.vit > UCHAR_MAX) ? UCHAR_MAX : char_dat[i].status.vit;
+			WFIFOB(fd,2+101) = (char_dat[i].status.int_ > UCHAR_MAX) ? UCHAR_MAX : char_dat[i].status.int_;
+			WFIFOB(fd,2+102) = (char_dat[i].status.dex > UCHAR_MAX) ? UCHAR_MAX : char_dat[i].status.dex;
+			WFIFOB(fd,2+103) = (char_dat[i].status.luk > UCHAR_MAX) ? UCHAR_MAX : char_dat[i].status.luk;
 			WFIFOB(fd,2+104) = char_dat[i].status.char_num;
 
 			WFIFOSET(fd,108);
@@ -3792,7 +3790,7 @@ int char_lan_config_read(const char *lancfgName) {
 
 	FILE *fp;
 	int line_num = 0;
-	char line[1024], w1[64], w2[64], w3[64], w4[64], w5[64];
+	char line[1024], w1[64], w2[64], w3[64], w4[64];
 	
 	if((fp = fopen(lancfgName, "r")) == NULL) {
 		ShowWarning("LAN Support configuration file is not found: %s\n", lancfgName);
@@ -3808,7 +3806,7 @@ int char_lan_config_read(const char *lancfgName) {
 			continue;
 
 		line[sizeof(line)-1] = '\0';
-		if(sscanf(line,"%[^:]: %[^/]/%[^:]:%[^:]:%[^\r\n]", w1, w2, w3, w4, w5) != 5) {
+		if(sscanf(line,"%[^:]: %[^:]:%[^:]:%[^\r\n]", w1, w2, w3, w4) != 4) {
 	
 			ShowWarning("Error syntax of configuration file %s in line %d.\n", lancfgName, line_num);	
 			continue;
@@ -3818,19 +3816,22 @@ int char_lan_config_read(const char *lancfgName) {
 		remove_control_chars((unsigned char *)w2);
 		remove_control_chars((unsigned char *)w3);
 		remove_control_chars((unsigned char *)w4);
-		remove_control_chars((unsigned char *)w5);
 
 		if(strcmpi(w1, "subnet") == 0) {
 	
-			subnet[subnet_count].subnet = inet_addr(w2);
-			subnet[subnet_count].mask = inet_addr(w3);
-			subnet[subnet_count].char_ip = inet_addr(w4);
-			subnet[subnet_count].map_ip = inet_addr(w5);
+			subnet[subnet_count].mask = inet_addr(w2);
+			subnet[subnet_count].char_ip = inet_addr(w3);
+			subnet[subnet_count].map_ip = inet_addr(w4);
+			subnet[subnet_count].subnet = subnet[subnet_count].char_ip&subnet[subnet_count].mask;
+			if (subnet[subnet_count].subnet != (subnet[subnet_count].map_ip&subnet[subnet_count].mask)) {
+				ShowError("%s: Configuration Error: The char server (%s) and map server (%s) belong to different subnetworks!\n", lancfgName, w3, w4);
+				continue;
+			}
 				
 			subnet_count++;
 		}
 
-		ShowStatus("Information about %d subnetworks readen.\n", subnet_count);
+		ShowStatus("Read information about %d subnetworks.\n", subnet_count);
 	}
 
 	fclose(fp);

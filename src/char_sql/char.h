@@ -59,6 +59,7 @@ int char_child(int parent_id, int child_id);
 int request_accreg2(int account_id, int char_id);
 int save_accreg2(unsigned char* buf, int len);
 
+extern bool char_gm_read;
 extern int autosave_interval;
 extern int save_log;
 extern int charsave_method;

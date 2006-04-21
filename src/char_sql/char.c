@@ -61,6 +61,7 @@ char guild_skill_db[256] = "guild_skill";
 char guild_storage_db[256] = "guild_storage";
 char party_db[256] = "party";
 char pet_db[256] = "pet";
+char gm_db[256] = "gm_accounts";
 char friend_db[256] = "friends";
 int db_use_sqldbs;
 int connection_ping_interval = 0;
@@ -159,6 +160,7 @@ unsigned int save_flag = 0;
 // start point (you can reset point on conf file)
 struct point start_point = { 0, 53, 111};
 
+bool char_gm_read = false;
 struct gm_account *gm_account = NULL;
 int GM_num = 0;
 
@@ -336,6 +338,32 @@ int isGM(int account_id) {
 	return 0;
 }
 
+void read_gm_account(void) {
+	if(!char_gm_read)
+		return;
+	
+	if (gm_account != NULL)
+		aFree(gm_account);
+	GM_num = 0;
+
+	sprintf(tmp_sql, "SELECT `%s`,`%s` FROM `%s` WHERE `%s`>='%d'",login_db_account_id,login_db_level,gm_db,login_db_level,lowest_gm_level);
+	if (mysql_query(&lmysql_handle, tmp_sql)) {
+		ShowSQL("DB error - %s\n",mysql_error(&lmysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+	}
+	lsql_res = mysql_store_result(&lmysql_handle);
+	if (lsql_res) {
+		gm_account = (struct gm_account*)aCalloc(sizeof(struct gm_account) * (size_t)mysql_num_rows(lsql_res), 1);
+		while ((lsql_row = mysql_fetch_row(lsql_res))) {
+			gm_account[GM_num].account_id = atoi(lsql_row[0]);
+			gm_account[GM_num].level = atoi(lsql_row[1]);
+			GM_num++;
+		}
+	}
+
+	mysql_free_result(lsql_res);
+	mapif_send_gmaccounts();
+}
 
 int compare_item(struct item *a, struct item *b) {
 
@@ -903,8 +931,8 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p){
 		p->hp = atoi(sql_row[17]);
 		p->max_sp = atoi(sql_row[18]);
 		p->sp = atoi(sql_row[19]);
-		p->status_point = atoi(sql_row[20]);
-		p->skill_point = atoi(sql_row[21]);
+		p->status_point = atoi(sql_row[20]) > USHRT_MAX ? USHRT_MAX : atoi(sql_row[20]);
+		p->skill_point = atoi(sql_row[21]) > USHRT_MAX ? USHRT_MAX : atoi(sql_row[21]);
 		//free mysql result.
 		mysql_free_result(sql_res);
 		strcat (t_msg, " status");
@@ -1152,8 +1180,8 @@ int mmo_char_fromsql_short(int char_id, struct mmo_charstatus *p){
 		p->hp = atoi(sql_row[17]);
 		p->max_sp = atoi(sql_row[18]);
 		p->sp = atoi(sql_row[19]);
-		p->status_point = atoi(sql_row[20]);
-		p->skill_point = atoi(sql_row[21]);
+		p->status_point = atoi(sql_row[20]) > USHRT_MAX ? USHRT_MAX : atoi(sql_row[20]);
+		p->skill_point = atoi(sql_row[21]) > USHRT_MAX ? USHRT_MAX : atoi(sql_row[21]);
 		//free mysql result.
 		mysql_free_result(sql_res);
 		strcat (t_msg, " status");
@@ -1700,24 +1728,17 @@ int mmo_char_send006b(int fd, struct char_session_data *sd) {
 		WFIFOL(fd,j+32) = p->karma;
 		WFIFOL(fd,j+36) = p->manner;
 
-		WFIFOW(fd,j+40) = p->status_point;
-		WFIFOW(fd,j+42) = (p->hp > 0x7fff) ? 0x7fff : p->hp;
-		WFIFOW(fd,j+44) = (p->max_hp > 0x7fff) ? 0x7fff : p->max_hp;
-		WFIFOW(fd,j+46) = (p->sp > 0x7fff) ? 0x7fff : p->sp;
-		WFIFOW(fd,j+48) = (p->max_sp > 0x7fff) ? 0x7fff : p->max_sp;
+		WFIFOW(fd,j+40) = (p->status_point > SHRT_MAX) ? SHRT_MAX : p->status_point;
+		WFIFOW(fd,j+42) = (p->hp > SHRT_MAX) ? SHRT_MAX : p->hp;
+		WFIFOW(fd,j+44) = (p->max_hp > SHRT_MAX) ? SHRT_MAX : p->max_hp;
+		WFIFOW(fd,j+46) = (p->sp > SHRT_MAX) ? SHRT_MAX : p->sp;
+		WFIFOW(fd,j+48) = (p->max_sp > SHRT_MAX) ? SHRT_MAX : p->max_sp;
 		WFIFOW(fd,j+50) = DEFAULT_WALK_SPEED; // p->speed;
 		WFIFOW(fd,j+52) = p->class_;
 		WFIFOW(fd,j+54) = p->hair;
-
-		// pecopeco knights/crusaders crash fix
-		if (p->class_ == 13 || p->class_ == 21 ||
-			p->class_ == 4014 || p->class_ == 4022 ||
-				p->class_ == 4036 || p->class_ == 4044)
-			WFIFOW(fd,j+56) = 0;
-		else WFIFOW(fd,j+56) = p->weapon;
-
+		WFIFOW(fd,j+56) = p->option&0x20?0:p->weapon; //When the weapon is sent and your option is riding, the client crashes on login!?
 		WFIFOW(fd,j+58) = p->base_level;
-		WFIFOW(fd,j+60) = p->skill_point;
+		WFIFOW(fd,j+60) = (p->skill_point > SHRT_MAX) ? SHRT_MAX : p->skill_point;
 		WFIFOW(fd,j+62) = p->head_bottom;
 		WFIFOW(fd,j+64) = p->shield;
 		WFIFOW(fd,j+66) = p->head_top;
@@ -2035,24 +2056,24 @@ int parse_tologin(int fd) {
 		case 0x2732:
 			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < RFIFOW(fd,2))
 				return 0;
-		  {
-			unsigned char buf[32000];
-			if (gm_account != NULL)
-				aFree(gm_account);
-			gm_account = (struct gm_account*)aCalloc(sizeof(struct gm_account) * ((RFIFOW(fd,2) - 4) / 5), 1);
-			GM_num = 0;
-			for (i = 4; i < RFIFOW(fd,2); i = i + 5) {
-				gm_account[GM_num].account_id = RFIFOL(fd,i);
-				gm_account[GM_num].level = (int)RFIFOB(fd,i+4);
-				//printf("GM account: %d -> level %d\n", gm_account[GM_num].account_id, gm_account[GM_num].level);
-				GM_num++;
+			if(!char_gm_read) {
+				unsigned char buf[32000];
+				if (gm_account != NULL)
+					aFree(gm_account);
+				gm_account = (struct gm_account*)aCalloc(sizeof(struct gm_account) * ((RFIFOW(fd,2) - 4) / 5), 1);
+				GM_num = 0;
+				for (i = 4; i < RFIFOW(fd,2); i = i + 5) {
+					gm_account[GM_num].account_id = RFIFOL(fd,i);
+					gm_account[GM_num].level = (int)RFIFOB(fd,i+4);
+					//printf("GM account: %d -> level %d\n", gm_account[GM_num].account_id, gm_account[GM_num].level);
+					GM_num++;
+				}
+				ShowStatus("From login-server: receiving information of %d GM accounts.\n", GM_num);
+				// send new gm acccounts level to map-servers
+				memcpy(buf, RFIFOP(fd,0), RFIFOW(fd,2));
+				WBUFW(buf,0) = 0x2b15;
+				mapif_sendall(buf, RFIFOW(fd,2));
 			}
-			ShowStatus("From login-server: receiving information of %d GM accounts.\n", GM_num);
-			// send new gm acccounts level to map-servers
-			memcpy(buf, RFIFOP(fd,0), RFIFOW(fd,2));
-			WBUFW(buf,0) = 0x2b15;
-			mapif_sendall(buf, RFIFOW(fd,2));
-		  }
 			RFIFOSKIP(fd,RFIFOW(fd,2));
 			break;
 
@@ -2224,14 +2245,15 @@ int parse_frommap(int fd) {
 
 		// map-server alive packet
 		case 0x2718:
-			if (RFIFOREST(fd) < 2)
-				return 0;
 			RFIFOSKIP(fd,2);
 			break;
 
 		case 0x2af7:
 			RFIFOSKIP(fd,2);
-			if (login_fd > 0) { // don't send request if no login-server
+			if(char_gm_read) //Re-read gm accounts.
+				read_gm_account();
+			//Send to login request to reload gm accounts.
+			else if (login_fd > 0) { // don't send request if no login-server
 				WFIFOW(login_fd,0) = 0x2709;
 				WFIFOSET(login_fd, 2);
 			}
@@ -2956,7 +2978,13 @@ int parse_char(int fd) {
 				CREATE(session[fd]->session_data, struct char_session_data, 1);
 				sd = (struct char_session_data*)session[fd]->session_data;
 				sd->connect_until_time = 0; // unknow or illimited (not displaying on map-server)
+			} else {
+				//Received again auth packet for already authentified account?? Discard it.
+				//TODO: Perhaps log this as a hack attempt?
+				RFIFOSKIP(fd,17);
+				break;
 			}
+
 			sd->account_id = RFIFOL(fd, 2);
 			sd->login_id1 = RFIFOL(fd, 6);
 			sd->login_id2 = RFIFOL(fd, 10);
@@ -3698,7 +3726,7 @@ int char_lan_config_read(const char *lancfgName) {
 
 	FILE *fp;
 	int line_num = 0;
-	char line[1024], w1[64], w2[64], w3[64], w4[64], w5[64];
+	char line[1024], w1[64], w2[64], w3[64], w4[64];
 	
 	if((fp = fopen(lancfgName, "r")) == NULL) {
 		ShowWarning("LAN Support configuration file is not found: %s\n", lancfgName);
@@ -3714,7 +3742,7 @@ int char_lan_config_read(const char *lancfgName) {
 			continue;
 
 		line[sizeof(line)-1] = '\0';
-		if(sscanf(line,"%[^:]: %[^/]/%[^:]:%[^:]:%[^\r\n]", w1, w2, w3, w4, w5) != 5) {
+		if(sscanf(line,"%[^:]: %[^:]:%[^:]:%[^\r\n]", w1, w2, w3, w4) != 4) {
 	
 			ShowWarning("Error syntax of configuration file %s in line %d.\n", lancfgName, line_num);	
 			continue;
@@ -3724,14 +3752,17 @@ int char_lan_config_read(const char *lancfgName) {
 		remove_control_chars((unsigned char *)w2);
 		remove_control_chars((unsigned char *)w3);
 		remove_control_chars((unsigned char *)w4);
-		remove_control_chars((unsigned char *)w5);
 
 		if(strcmpi(w1, "subnet") == 0) {
 	
-			subnet[subnet_count].subnet = inet_addr(w2);
-			subnet[subnet_count].mask = inet_addr(w3);
-			subnet[subnet_count].char_ip = inet_addr(w4);
-			subnet[subnet_count].map_ip = inet_addr(w5);
+			subnet[subnet_count].mask = inet_addr(w2);
+			subnet[subnet_count].char_ip = inet_addr(w3);
+			subnet[subnet_count].map_ip = inet_addr(w4);
+			subnet[subnet_count].subnet = subnet[subnet_count].char_ip&subnet[subnet_count].mask;
+			if (subnet[subnet_count].subnet != (subnet[subnet_count].map_ip&subnet[subnet_count].mask)) {
+				ShowError("%s: Configuration Error: The char server (%s) and map server (%s) belong to different subnetworks!\n", lancfgName, w3, w4);
+				continue;
+			}
 				
 			subnet_count++;
 		}
@@ -3782,7 +3813,8 @@ void do_final(void) {
 	online_char_db->destroy(online_char_db, NULL);
 
 	mysql_close(&mysql_handle);
-	mysql_close(&lmysql_handle);
+	if(char_gm_read)
+		mysql_close(&lmysql_handle);
 
 	ShowInfo("ok! all done...\n");
 }
@@ -3805,7 +3837,14 @@ void sql_config_read(const char *cfgName){ /* Kalaspuff, to get login_db */
 		if (sscanf(line, "%[^:]: %[^\r\n]", w1, w2) != 2)
 			continue;
 
-		if(strcmpi(w1,"char_db")==0){
+		if(strcmpi(w1, "gm_read_method") == 0) {
+			if(atoi(w2) != 0)
+				char_gm_read = true;
+			else
+				char_gm_read = false;
+		} else if(strcmpi(w1, "gm_db") == 0) {
+			strcpy(gm_db, w2);
+		} else if(strcmpi(w1,"char_db")==0){
 			strcpy(char_db,w2);
 		}else if(strcmpi(w1,"scdata_db")==0){
 			strcpy(scdata_db,w2);
@@ -4142,6 +4181,10 @@ int do_init(int argc, char **argv){
 	add_timer_interval(gettick() + 10, send_users_tologin, 0, 0, 5 * 1000);
 	add_timer_interval(gettick() + 3600*1000, send_accounts_tologin, 0, 0, 3600 * 1000); //Sync online accounts every hour.
 	
+	if(char_gm_read)
+		read_gm_account();
+
+
 	if ( console ) {
 	    set_defaultconsoleparse(parse_console);
 	   	start_console();

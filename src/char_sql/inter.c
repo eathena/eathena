@@ -311,7 +311,8 @@ int inter_sql_ping(int tid, unsigned int tick, int id, int data)
 {
 	ShowInfo("Pinging SQL server to keep connection alive...\n");
 	mysql_ping(&mysql_handle);
-	mysql_ping(&lmysql_handle);
+	if(char_gm_read)
+		mysql_ping(&lmysql_handle);
 	return 0;
 }
 
@@ -336,15 +337,17 @@ int inter_init(const char *file)
 		ShowStatus("Connect Success! (Character Server)\n");
 	}
 
-	mysql_init(&lmysql_handle);
-	ShowInfo("Connect Character DB server.... (login server)\n");
-	if(!mysql_real_connect(&lmysql_handle, login_server_ip, login_server_id, login_server_pw,
-		login_server_db ,login_server_port, (char *)NULL, 0)) {
-			//pointer check
-			ShowFatalError("%s\n",mysql_error(&lmysql_handle));
-			exit(1);
-	}else {
-		ShowStatus ("Connect Success! (Login Server)\n");
+	if(char_gm_read) {
+		mysql_init(&lmysql_handle);
+		ShowInfo("Connect Character DB server.... (login server)\n");
+		if(!mysql_real_connect(&lmysql_handle, login_server_ip, login_server_id, login_server_pw,
+			login_server_db ,login_server_port, (char *)NULL, 0)) {
+				//pointer check
+				ShowFatalError("%s\n",mysql_error(&lmysql_handle));
+				exit(1);
+		}else {
+			ShowStatus ("Connect Success! (Login Server)\n");
+		}
 	}
 	if(strlen(default_codepage) > 0 ) {
 		sprintf( tmp_sql, "SET NAMES %s", default_codepage );
@@ -352,10 +355,11 @@ int inter_init(const char *file)
 			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		}
-		if (mysql_query(&lmysql_handle, tmp_sql)) {
-			ShowSQL("DB error - %s\n",mysql_error(&lmysql_handle));
-			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-		}
+		if(char_gm_read)
+			if (mysql_query(&lmysql_handle, tmp_sql)) {
+				ShowSQL("DB error - %s\n",mysql_error(&lmysql_handle));
+				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+			}
 	}
 	wis_db = db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA,sizeof(int));
 	inter_guild_sql_init();

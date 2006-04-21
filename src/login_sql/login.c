@@ -120,6 +120,7 @@ int use_md5_passwds = 0;
 char login_db[256] = "login";
 int log_login=1; //Whether to log the logins or not. [Skotlex]
 char loginlog_db[256] = "loginlog";
+bool login_gm_read = true;
 int connection_ping_interval = 0;
 
 // added to help out custom login tables, without having to recompile
@@ -129,9 +130,10 @@ char login_db_userid[256] = "userid";
 char login_db_user_pass[256] = "user_pass";
 char login_db_level[256] = "level";
 
+char gm_db[256] = "gm_accounts";
+
 char reg_db[256] = "global_reg_value";
 
-int lowest_gm_level;
 struct gm_account *gm_account_db;
 int GM_num;
 char tmpsql[65535], tmp_sql[65535];
@@ -212,15 +214,22 @@ void read_gm_account(void) {
 	MYSQL_RES* sql_res ;
 	MYSQL_ROW sql_row;
 
-	if (gm_account_db != NULL)
-		aFree(gm_account_db);
-	GM_num = 0;
-
-	sprintf(tmp_sql, "SELECT `%s`,`%s` FROM `%s` WHERE `%s`>='%d'",login_db_account_id,login_db_level,login_db,login_db_level,lowest_gm_level);
+	if(!login_gm_read)
+		return;
+	sprintf(tmp_sql, "SELECT `%s`,`%s` FROM `%s` WHERE `%s`> '0'",login_db_account_id,login_db_level,login_db,login_db_level);
 	if (mysql_query(&mysql_handle, tmp_sql)) {
 		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
 		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+		return; //Failed to read GM list!
 	}
+
+	if (gm_account_db != NULL)
+	{
+		aFree(gm_account_db);
+		gm_account_db = NULL;
+	}
+	GM_num = 0;
+
 	sql_res = mysql_store_result(&mysql_handle);
 	if (sql_res) {
 		gm_account_db = (struct gm_account*)aCalloc((size_t)mysql_num_rows(sql_res), sizeof(struct gm_account));
@@ -229,9 +238,8 @@ void read_gm_account(void) {
 			gm_account_db[GM_num].level = atoi(sql_row[1]);
 			GM_num++;
 		}
+		mysql_free_result(sql_res);
 	}
-
-	mysql_free_result(sql_res);
 }
 
 int charif_sendallwos(int sfd, unsigned char *buf, unsigned int len);
@@ -244,6 +252,8 @@ void send_GM_accounts(int fd) {
 	unsigned char buf[32767];
 	int len;
 
+	if(!login_gm_read)
+		return;
 	len = 4;
 	WBUFW(buf,0) = 0x2732;
 	for(i = 0; i < GM_num; i++)
@@ -252,7 +262,11 @@ void send_GM_accounts(int fd) {
 			WBUFL(buf,len) = gm_account_db[i].account_id;
 			WBUFB(buf,len+4) = (unsigned char)gm_account_db[i].level;
 			len += 5;
+			if (len >= 32000) {
+			ShowWarning("send_GM_accounts: Too many accounts! Only %d out of %d were sent.\n", i, GM_num);
+			break;
 		}
+	}
 	WBUFW(buf,2) = len;
 	if (fd == -1)
 		charif_sendallwos(-1, buf, len);
@@ -1383,7 +1397,7 @@ int lan_subnetcheck(long *p) {
 	
 	for(i=0; i<subnet_count; i++) {
 	
-		if((subnet[i].subnet & subnet[i].mask) == (*p & subnet[i].mask)) {
+		if(subnet[i].subnet == (*p & subnet[i].mask)) {
 			
 			sbn = (unsigned char *)&subnet[i].subnet;
 			msk = (unsigned char *)&subnet[i].mask;
@@ -1917,7 +1931,7 @@ int login_lan_config_read(const char *lancfgName) {
 
 	FILE *fp;
 	int line_num = 0;
-	char line[1024], w1[64], w2[64], w3[64], w4[64], w5[64];
+	char line[1024], w1[64], w2[64], w3[64], w4[64];
 	
 	if((fp = fopen(lancfgName, "r")) == NULL) {
 		ShowWarning("LAN Support configuration file is not found: %s\n", lancfgName);
@@ -1933,7 +1947,7 @@ int login_lan_config_read(const char *lancfgName) {
 			continue;
 
 		line[sizeof(line)-1] = '\0';
-		if(sscanf(line,"%[^:]: %[^/]/%[^:]:%[^:]:%[^\r\n]", w1, w2, w3, w4, w5) != 5) {
+		if(sscanf(line,"%[^:]: %[^:]:%[^:]:%[^\r\n]", w1, w2, w3, w4) != 4) {
 	
 			ShowWarning("Error syntax of configuration file %s in line %d.\n", lancfgName, line_num);	
 			continue;
@@ -1943,14 +1957,17 @@ int login_lan_config_read(const char *lancfgName) {
 		remove_control_chars((unsigned char *)w2);
 		remove_control_chars((unsigned char *)w3);
 		remove_control_chars((unsigned char *)w4);
-		remove_control_chars((unsigned char *)w5);
 
 		if(strcmpi(w1, "subnet") == 0) {
 	
-			subnet[subnet_count].subnet = inet_addr(w2);
-			subnet[subnet_count].mask = inet_addr(w3);
-			subnet[subnet_count].char_ip = inet_addr(w4);
-			subnet[subnet_count].map_ip = inet_addr(w5);
+			subnet[subnet_count].mask = inet_addr(w2);
+			subnet[subnet_count].char_ip = inet_addr(w3);
+			subnet[subnet_count].map_ip = inet_addr(w4);
+			subnet[subnet_count].subnet = subnet[subnet_count].char_ip&subnet[subnet_count].mask;
+			if (subnet[subnet_count].subnet != (subnet[subnet_count].map_ip&subnet[subnet_count].mask)) {
+				ShowError("%s: Configuration Error: The char server (%s) and map server (%s) belong to different subnetworks!\n", lancfgName, w3, w4);
+				continue;
+			}
 				
 			subnet_count++;
 		}
@@ -1961,7 +1978,6 @@ int login_lan_config_read(const char *lancfgName) {
 	fclose(fp);
 	return 0;
 }
-
 
 //-----------------------------------------------------
 //BANNED IP CHECK.
@@ -2144,7 +2160,14 @@ void sql_config_read(const char *cfgName){ /* Kalaspuff, to get login_db */
 		i=sscanf(line,"%[^:]: %[^\r\n]",w1,w2);
 		if(i!=2)
 			continue;
-		if (strcmpi(w1, "login_db") == 0) {
+		if(strcmpi(w1, "gm_read_method") == 0) {
+			if(atoi(w2) == 0)
+				login_gm_read = true;
+			else
+				login_gm_read = false;
+		} else if(strcmpi(w1, "gm_db") == 0) {
+			strcpy(gm_db, w2);
+		} else if (strcmpi(w1, "login_db") == 0) {
 			strcpy(login_db, w2);
 		}
 		//add for DB connection
@@ -2190,9 +2213,6 @@ void sql_config_read(const char *cfgName){ /* Kalaspuff, to get login_db */
 		}
 		else if (strcmpi(w1, "loginlog_db") == 0) {
 			strcpy(loginlog_db, w2);
-		}
-		else if (strcmpi(w1, "lowest_gm_level") == 0) {
-			lowest_gm_level = atoi(w2);
 		}
 		else if (strcmpi(w1, "reg_db") == 0) {
 			strcpy(reg_db, w2);
@@ -2265,8 +2285,9 @@ int do_init(int argc,char **argv){
 	mmo_auth_sqldb_init();
 	ShowInfo("finished mmo_auth_sqldb_init()\n");
 	
-	//Read account information.
-	read_gm_account();
+	if(login_gm_read)
+		//Read account information.
+		read_gm_account();
 
 	//set default parser as parse_login function
 	set_defaultparse(parse_login);
