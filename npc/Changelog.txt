@@ -27,6 +27,8 @@ Nexon
 
 Date		Added
 ======
+04/21
+	* Fixed Chung E / Green Maiden spawn in Louyang [Playtester]
 04/20
 	* Fixed Aldebaran guild castle 4 warps [Playtester]
 	* Fixed Taekwon job quest [Playtester]
