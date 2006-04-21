@@ -1,3 +1,9 @@
+04/21
+	* Merged Trunks mob_db over to Stable. [Poki#3]
+	* Fixed some mob skills that where missing an [Enter]... (Windows format... AGAIN!) [Poki#3]
+	  ...why co we have uncommented Attack skills under an iddle state? Oo
+	* Added a lot of G_Mobs and changed some slave spawns to them. Please use the newest exe release. [Poki#3]
+	* Fixed mob names in DB, Branches and the like. [Poki#3]
 04/19
 	* Synced skill_require_db from trunk as ammo-type skill requirements have
 	  been merged in [Skotlex]
