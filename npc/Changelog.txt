@@ -28,6 +28,7 @@ Nexon
 Date		Added
 ======
 04/20
+	* Fixed Aldebaran guild castle 4 warps [Playtester]
 	* Fixed Taekwon job quest [Playtester]
 	* Updated Job Quests of Taekwon, SG, SL (all thanks to Celestria) [Lupus]
 		They have oficial sprites, actions. But some dialogs are made up. ^_-
