@@ -4736,6 +4736,8 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			case SC_SKE:
 			case SC_SWOO: // [marquis007]
 			case SC_SKA: // [marquis007]
+			case SC_KEEPING:
+			case SC_BARRIER:
 				calc_flag = 1;
 				break;
 
