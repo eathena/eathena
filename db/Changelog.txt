@@ -1,3 +1,10 @@
+04/22
+	* Updated Kiel/Odin mob stat to kRO official guidebook [Vicious]
+	* Major fix to the Einbroch mobs [Playtester]
+	- stats and drops should now be to 99% official
+	* Fixed stats of Chung E / Green Maiden [Playtester]
+	* Fixed some drops of the Bio Lab 1&2 mobs [Playtester]
+	* Fixed more elements of Bio Lab mobs [Playtester]
 04/21
 	* Merged Trunks mob_db over to Stable. [Poki#3]
 	* Fixed some mob skills that where missing an [Enter]... (Windows format... AGAIN!) [Poki#3]
