@@ -7230,7 +7230,7 @@ int pc_adoption(struct map_session_data *sd,struct map_session_data *dstsd, stru
 		if(jasd->status.inventory[j].nameid>0 && jasd->status.inventory[j].equip!=0)
 			pc_unequipitem(jasd, j, 3);
 	}
-	if (pc_jobchange(jasd, 4023, 0) == 0)
+	if (pc_jobchange(jasd, JOB_BABY, 0) == 0)
 	{	//Success, and give Junior the Baby skills. [Skotlex]
 		pc_skill(jasd,WE_BABY,1,0);
 		pc_skill(jasd,WE_CALLPARENT,1,0);
