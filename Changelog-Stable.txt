@@ -5,6 +5,8 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 2006/04/24
+	* Corrected mob_spawn_delay/boss_spawn_delay/plant_spawn_delay settings
+	  (they were named rate rather than delay in monster.conf) [Skotlex]
 	* Fixed skill_delayfix not altering delay at all after you reached 150.
 	  [Skotlex]
 2006/04/21

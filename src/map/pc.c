@@ -502,9 +502,9 @@ int pc_calcweapontype(struct map_session_data *sd)
 {
 	nullpo_retr(0, sd);
 
-	if(sd->weapontype1 != W_FIST &&	sd->weapontype2 == W_FIST)
+	if(sd->weapontype1 != W_FIST && sd->weapontype2 == W_FIST)
 		sd->status.weapon = sd->weapontype1;
-	else if(sd->weapontype1 == W_FIST &&	sd->weapontype2 != W_FIST)// ¶Žè•Ší Only
+	else if(sd->weapontype1 == W_FIST && sd->weapontype2 != W_FIST)// ¶Žè•Ší Only
 		sd->status.weapon = sd->weapontype2;
 	else if(sd->weapontype1 == W_DAGGER && sd->weapontype2 == W_DAGGER)// ?’Z?
 		sd->status.weapon = MAX_WEAPON_TYPE+1;
