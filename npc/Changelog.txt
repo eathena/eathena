@@ -28,6 +28,7 @@ Nexon
 Date		Added
 ======
 04/22
+	* Rearranged Ingredient Sellers. Removed doubled seller from Morocc [Lupus]
 	* Fixed some typos in the Mage Quest thanks to decayed.cell [Playtester]
 04/21
 	* Fixed Chung E / Green Maiden spawn in Louyang [Playtester]
