@@ -1,3 +1,6 @@
+04/24
+	* Updated OBB, OCA, Cookie Bag, Giftbox, OVB drops to X.2(X.3?)
+	  ItemSummonList provided by Peter [Vicious]
 04/22
 	* Updated Kiel/Odin mob stat to kRO official guidebook [Vicious]
 	* Major fix to the Einbroch mobs [Playtester]
