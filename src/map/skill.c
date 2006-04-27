@@ -7820,7 +7820,13 @@ int skill_check_condition(struct map_session_data *sd,int skill, int lv, int typ
 			return 0;
 		}
 		break;
+	}
 
+	if(!(type&2)){
+		if( hp>0 && sd->status.hp < hp) {				/* HPチェック */
+			clif_skill_fail(sd,skill,2,0);		/* HP不足?F失敗通知 */
+			return 0;
+		}
 		if( sp>0 && sd->status.sp < sp) {				/* SPチェック */
 			clif_skill_fail(sd,skill,1,0);		/* SP不足?F失敗通知 */
 			return 0;
