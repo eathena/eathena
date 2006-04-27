@@ -1406,14 +1406,11 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		sd->status.max_hp = sd->status.max_hp * sd->hprate/100;
 	if(battle_config.hp_rate != 100)
 		sd->status.max_hp = sd->status.max_hp * battle_config.hp_rate/100;
-	
-	if (sd->status.max_hp < 0) //HP overflow??
+
+	if(sd->status.max_hp > battle_config.max_hp)
 		sd->status.max_hp = battle_config.max_hp;
-	else if(sd->status.max_hp > battle_config.max_hp)
-		sd->status.max_hp = battle_config.max_hp;
-	else if(sd->status.max_hp == 0)
+	else if(sd->status.max_hp <= 0)
 		sd->status.max_hp = 1;
-	
 	if(sd->status.hp>sd->status.max_hp)
 		sd->status.hp=sd->status.max_hp;
 
