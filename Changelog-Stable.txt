@@ -5,6 +5,7 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 2006/04/27
+	* Removed clif_guild_send_onlineinfo(sd) call in LoadEndAck [Skotlex]
 	* Fixed skill_check_condition (the merge went wrong and the checking to see
 	  if you had enough Hp/Sp/Spiritballs/etc was totally skipped!) [Skotlex]
 	* Merged the fixes to changebase from trunk. [Skotlex]
