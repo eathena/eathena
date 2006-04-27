@@ -268,6 +268,9 @@
 				RelativePath="..\src\map\trade.c">
 			</File>
 			<File
+				RelativePath="..\src\map\unit.c">
+			</File>
+			<File
 				RelativePath="..\src\zlib\unzip.c">
 			</File>
 			<File

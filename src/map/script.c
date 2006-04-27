@@ -6275,8 +6275,14 @@ int buildin_changebase(struct script_state *st)
 		return 0;
 	}
 
-	if(!sd->disguise && vclass != sd->vd.class_)
+	if(!sd->disguise && vclass != sd->vd.class_) {
 		status_set_viewdata(&sd->bl, vclass);
+		//Updated client view. Base, Weapon and Cloth Colors.
+		clif_changelook(&sd->bl,LOOK_BASE,sd->vd.class_);
+		clif_changelook(&sd->bl,LOOK_WEAPON,sd->status.weapon);
+		if (sd->vd.cloth_color)
+			clif_changelook(&sd->bl,LOOK_CLOTHES_COLOR,sd->vd.cloth_color);
+	}
 
 	return 0;
 }

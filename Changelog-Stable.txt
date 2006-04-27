@@ -5,6 +5,8 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 2006/04/27
+	* Merged the fixes to changebase from trunk. [Skotlex]
+	* Updated the vc project files, thanks to Joshuaali [Skotlex]
 	* Baselevelup will now do a stat reset and then lower stats when lowering
 	  levels (and you don't have enough stats to get the deduction from)
 	  [Skotlex]
