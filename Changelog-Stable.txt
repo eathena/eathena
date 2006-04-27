@@ -5,9 +5,11 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 2006/04/26
+	* Forgot to merge the mob_skill_db.txt and const.txt files from trunk.
+	  [Skotlex]
 	* Mass merge from trunk. Everything that has been on trunk since a long
 	  time ago and most of the recent stuff that is known to already work has
-	  been merged.
+	  been merged. [Skotlex]
 	- SQL users: Update the item_db (sql-files/item_db.sql was updated, too) to
 	  latest, apply upgrade_svn6299.sql to correct character classes.
 	- All users: Update the db/* files, notice that some battle flags changed

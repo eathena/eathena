@@ -264,6 +264,8 @@ bSPDrainValue	1080
 bWeaponAtk	1081
 bWeaponAtkRate	1082
 bDelayrate	1083
+bHPDrainRateRace	1084
+bSPDrainRateRace	1085
 
 bRestartFullRecover	2000
 bNoCastCancel	2001
@@ -292,9 +294,9 @@ bHPLossRate	2023
 bAddRace2	2024
 bHPGainValue	2025
 bSubSize	2026
-bDamageWhenUnequip	2027
+bHPDrainValueRace	2027
 bAddItemHealRate	2028
-bLoseSPWhenUnequip	2029
+bSPDrainValueRace	2029
 bExpAddRace	2030
 bSPGainRace	2031
 bSPSubRace2	2032
@@ -344,6 +346,42 @@ RC_Angel	8
 RC_Dragon	9
 RC_Boss	10
 RC_NonBoss	11
+
+IG_BlueBox	1
+IG_VioletBox	2
+IG_CardAlbum	3
+IG_GiftBox	4
+IG_ScrollBox	5
+IG_FingingOre	6
+IG_CookieBag	7
+IG_Potion	8
+IG_Herb	9
+IG_Fruit	10
+IG_Meat	11
+IG_Candy	12
+IG_Juice	13
+IG_Fish	14
+IG_Box	15
+IG_Gemstone	16
+IG_Jellopy	17
+IG_Ore	18
+IG_Food	19
+IG_Recovery	20
+IG_Mineral	21
+IG_Taming	22
+IG_Scroll	23
+IG_Quiver	24
+IG_Mask	25
+IG_Accesory	26
+IG_Jewel	27
+IG_GiftBox_1	28
+IG_GiftBox_2	29
+IG_GiftBox_3	30
+IG_GiftBox_4	31
+IG_EggBoy	32
+IG_EggGirl	33
+IG_GiftBoxChina	34
+
 
 SC_STONE	0
 SC_FREEZE	1
@@ -651,3 +689,27 @@ MOB_SIZE	18
 MOB_RACE	19
 MOB_ELEMENT	20
 MOB_MODE	21
+
+ALL_CLIENT	0
+ALL_SAMEMAP	1
+AREA	2
+AREA_WOS	3
+AREA_WOC	4
+AREA_WOSC	5
+AREA_CHAT_WOC	6
+CHAT	7
+CHAT_WOS	8
+CHAT_MAINCHAT	9
+PARTY	10
+PARTY_WOS	11
+PARTY_SAMEMAP	12
+PARTY_SAMEMAP_WOS	13
+PARTY_AREA	14
+PARTY_AREA_WOS	15
+GUILD	16
+GUILD_WOS	17
+GUILD_SAMEMAP	18
+GUILD_SAMEMAP_WOS	19
+GUILD_AREA	20
+GUILD_AREA_WOS	21
+SELF	22
