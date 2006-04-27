@@ -133,7 +133,6 @@ void chrif_setpasswd(char *pwd)
  */
 void chrif_checkdefaultlogin(void)
 {
-
 	if (strcmp(userid, "s1")==0 && strcmp(passwd, "p1")==0) {
 		ShowError("Using the default user/password s1/p1 is NOT RECOMMENDED.\n");
 #ifdef TXT_ONLY
@@ -863,7 +862,10 @@ int chrif_changedsex(int fd)
 				// remove specifical skills of Bard classes 
 				for(i = 315; i <= 322; i++) {
 					if (sd->status.skill[i].id > 0 && !sd->status.skill[i].flag) {
-						sd->status.skill_point += sd->status.skill[i].lv;
+						if (sd->status.skill_point > USHRT_MAX - sd->status.skill[i].lv)
+							sd->status.skill_point = USHRT_MAX;
+						else
+							sd->status.skill_point += sd->status.skill[i].lv;
 						sd->status.skill[i].id = 0;
 						sd->status.skill[i].lv = 0;
 					}
@@ -871,7 +873,10 @@ int chrif_changedsex(int fd)
 				// remove specifical skills of Dancer classes 
 				for(i = 323; i <= 330; i++) {
 					if (sd->status.skill[i].id > 0 && !sd->status.skill[i].flag) {
-						sd->status.skill_point += sd->status.skill[i].lv;
+						if (sd->status.skill_point > USHRT_MAX - sd->status.skill[i].lv)
+							sd->status.skill_point = USHRT_MAX;
+						else
+							sd->status.skill_point += sd->status.skill[i].lv;
 						sd->status.skill[i].id = 0;
 						sd->status.skill[i].lv = 0;
 					}
@@ -1488,13 +1493,9 @@ int send_users_tochar(int tid, unsigned int tick, int id, int data) {
 	WFIFOHEAD(char_fd, 6+8*users);
 	WFIFOW(char_fd,0) = 0x2aff;
 	for (i = 0; i < count; i++) {
-		if (all_sd[i] && 
-			!((battle_config.hide_GM_session || (all_sd[i]->sc.option & OPTION_INVISIBLE)) && pc_isGM(all_sd[i])))
-		{
-			WFIFOL(char_fd,6+8*users) = all_sd[i]->status.account_id;
-			WFIFOL(char_fd,6+8*users+4) = all_sd[i]->status.char_id;
-			users++;
-		}
+		WFIFOL(char_fd,6+8*users) = all_sd[i]->status.account_id;
+		WFIFOL(char_fd,6+8*users+4) = all_sd[i]->status.char_id;
+		users++;
 	}
 	WFIFOW(char_fd,2) = 6 + 8 * users;
 	WFIFOW(char_fd,4) = users;

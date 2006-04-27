@@ -23,6 +23,7 @@
 #include "../common/lock.h"
 #include "../common/nullpo.h"
 #include "../common/showmsg.h"
+#include "../common/strlib.h"
 
 #include "map.h"
 #include "clif.h"
@@ -44,9 +45,7 @@
 #include "atcommand.h"
 #include "charcommand.h"
 #include "log.h"
-#if !defined(TXT_ONLY) && defined(MAPREGSQL)
-#include "strlib.h"
-#endif
+#include "unit.h"
 
 #define SCRIPT_BLOCK_SIZE 256
 
@@ -131,6 +130,7 @@ char tmp_sql[65535];
 unsigned char* parse_subexpr(unsigned char *,int);
 #ifndef TXT_ONLY
 int buildin_query_sql(struct script_state *st);
+int buildin_escape_sql(struct script_state *st);
 #endif
 int buildin_atoi(struct script_state *st);
 int buildin_axtoi(struct script_state *st);
@@ -425,6 +425,7 @@ struct {
 	{buildin_axtoi,"axtoi","s"},
 #ifndef TXT_ONLY
 	{buildin_query_sql, "query_sql", "s*"},
+	{buildin_escape_sql, "escape_sql", "s"},
 #endif
 	{buildin_atoi,"atoi","s"},
 	{buildin_mes,"mes","s"},
@@ -474,7 +475,7 @@ struct {
 	{buildin_readparam,"readparam","i*"},
 	{buildin_getcharid,"getcharid","i*"},
 	{buildin_getpartyname,"getpartyname","i"},
-	{buildin_getpartymember,"getpartymember","i"},
+	{buildin_getpartymember,"getpartymember","i*"},
 	{buildin_getguildname,"getguildname","i"},
 	{buildin_getguildmaster,"getguildmaster","i"},
 	{buildin_getguildmasterid,"getguildmasterid","i"},
@@ -616,7 +617,7 @@ struct {
 	{buildin_classchange,"classchange","ii"},
 	{buildin_misceffect,"misceffect","i"},
 	{buildin_soundeffect,"soundeffect","si"},
-	{buildin_soundeffectall,"soundeffectall","si"},	// SoundEffectAll [Codemaster]
+	{buildin_soundeffectall,"soundeffectall","*"},	// SoundEffectAll [Codemaster]
 	{buildin_strmobinfo,"strmobinfo","ii"},	// display mob data [Valaris]
 	{buildin_guardian,"guardian","siisii*i"},	// summon guardians
 	{buildin_guardianinfo,"guardianinfo","i"},	// display guardian data [Valaris]
@@ -3884,7 +3885,7 @@ int buildin_grouprandomitem(struct script_state *st)
 	int group;
 
 	group = conv_num(st,& (st->stack->stack_data[st->start+2]));
-	push_val(st->stack, C_INT, itemdb_searchrandomgroup(group));
+	push_val(st->stack, C_INT, itemdb_searchrandomid(group));
 	return 0;
 }
 
@@ -4244,16 +4245,27 @@ int buildin_getpartyname(struct script_state *st)
 int buildin_getpartymember(struct script_state *st)
 {
 	struct party *p;
-	int i,j=0;
+	int i,j=0,type=0;
 
 	p=NULL;
 	p=party_search(conv_num(st,& (st->stack->stack_data[st->start+2])));
 
+	if( st->end>st->start+3 )
+ 		type=conv_num(st,& (st->stack->stack_data[st->start+3]));
+	
 	if(p!=NULL){
 		for(i=0;i<MAX_PARTY;i++){
 			if(p->member[i].account_id){
-//				printf("name:%s %d\n",p->member[i].name,i);
-				mapreg_setregstr(add_str((unsigned char *) "$@partymembername$")+(i<<24),p->member[i].name);
+				switch (type) {
+				case 2:
+					mapreg_setreg(add_str((unsigned char *) "$@partymemberaid")+(j<<24),p->member[i].account_id);
+					break;
+				case 1:
+					mapreg_setreg(add_str((unsigned char *) "$@partymembercid")+(j<<24),p->member[i].char_id);
+					break;
+				default:
+					mapreg_setregstr(add_str((unsigned char *) "$@partymembername$")+(j<<24),p->member[i].name);
+				}
 				j++;
 			}
 		}
@@ -5284,7 +5296,7 @@ int buildin_itemskill(struct script_state *st)
 	str=conv_str(st,& (st->stack->stack_data[st->start+4]));
 
 	// 詠唱中にスキルアイテムは使用できない
-	if(sd->skilltimer != -1)
+	if(sd->ud.skilltimer != -1)
 		return 0;
 
 	sd->skillitem=id;
@@ -5448,16 +5460,17 @@ int buildin_areamonster(struct script_state *st)
  */
 int buildin_killmonster_sub(struct block_list *bl,va_list ap)
 {
+	TBL_MOB* md = (TBL_MOB*)bl;
 	char *event=va_arg(ap,char *);
 	int allflag=va_arg(ap,int);
 
 	if(!allflag){
-		if(strcmp(event,((struct mob_data *)bl)->npc_event)==0)
-			mob_delete((struct mob_data *)bl);
+		if(strcmp(event,md->npc_event)==0)
+			unit_remove_map(bl,1);
 		return 0;
-	}else if(allflag){
-		if(((struct mob_data *)bl)->spawndelay1==-1 && ((struct mob_data *)bl)->spawndelay2==-1)
-			mob_delete((struct mob_data *)bl);
+	}else{
+		if(!md->spawn)
+			unit_remove_map(bl,1);
 		return 0;
 	}
 	return 0;
@@ -5479,7 +5492,7 @@ int buildin_killmonster(struct script_state *st)
 
 int buildin_killmonsterall_sub(struct block_list *bl,va_list ap)
 {
-	mob_delete((struct mob_data *)bl);
+	unit_remove_map(bl,1);
 	return 0;
 }
 int buildin_killmonsterall(struct script_state *st)
@@ -6262,11 +6275,8 @@ int buildin_changebase(struct script_state *st)
 		return 0;
 	}
 
-//	if(vclass==22) {
-//		pc_unequipitem(sd,sd->equip_index[9],0);	// 装備外
-//	}
-
-	sd->view_class = vclass;
+	if(!sd->disguise && vclass != sd->vd.class_)
+		status_set_viewdata(&sd->bl, vclass);
 
 	return 0;
 }
@@ -6545,7 +6555,7 @@ int buildin_isloggedin(struct script_state *st)
  */
 enum {  MF_NOMEMO,MF_NOTELEPORT,MF_NOSAVE,MF_NOBRANCH,MF_NOPENALTY,MF_NOZENYPENALTY,
 	MF_PVP,MF_PVP_NOPARTY,MF_PVP_NOGUILD,MF_GVG,MF_GVG_NOPARTY,MF_NOTRADE,MF_NOSKILL,
-	MF_NOWARP,MF_NOPVP,MF_NOICEWALL,MF_SNOW,MF_FOG,MF_SAKURA,MF_LEAVES,MF_RAIN,
+	MF_NOWARP,MF_FREE,MF_NOICEWALL,MF_SNOW,MF_FOG,MF_SAKURA,MF_LEAVES,MF_RAIN,
 	MF_INDOORS,MF_NOGO,MF_CLOUDS,MF_CLOUDS2,MF_FIREWORKS,MF_GVG_CASTLE,MF_GVG_DUNGEON,MF_NIGHTENABLED,
 	MF_NOBASEEXP, MF_NOJOBEXP, MF_NOMOBLOOT, MF_NOMVPLOOT, MF_NORETURN, MF_NOWARPTO, MF_NIGHTMAREDROP,
 	MF_RESTRICTED, MF_NOCOMMAND, MF_NODROP };
@@ -6631,9 +6641,6 @@ int buildin_setmapflag(struct script_state *st)
 			case MF_NOWARP:
 				map[m].flag.nowarp=1;
 				break;
-			case MF_NOPVP:
-				map[m].flag.nopvp=1;
-				break;
 			case MF_NOICEWALL: // [Valaris]
 				map[m].flag.noicewall=1;
 				break;
@@ -6690,6 +6697,9 @@ int buildin_setmapflag(struct script_state *st)
 				break;
 			case MF_NIGHTMAREDROP:
 				map[m].flag.pvp_nightmaredrop=1;
+				break;
+			case MF_RESTRICTED:
+				map[m].flag.restricted=1;
 				break;
 			case MF_NOCOMMAND:
 				map[m].flag.nocommand=1;
@@ -6761,9 +6771,6 @@ int buildin_removemapflag(struct script_state *st)
 			case MF_NOWARP:
 				map[m].flag.nowarp=0;
 				break;
-			case MF_NOPVP:
-				map[m].flag.nopvp=0;
-				break;
 			case MF_NOICEWALL: // [Valaris]
 				map[m].flag.noicewall=0;
 				break;
@@ -6821,6 +6828,9 @@ int buildin_removemapflag(struct script_state *st)
 			case MF_NIGHTMAREDROP:
 				map[m].flag.pvp_nightmaredrop=0;
 				break;
+			case MF_RESTRICTED:
+				map[m].flag.restricted=0;
+				break;
 			case MF_NOCOMMAND:
 				map[m].flag.nocommand=0;
 				break;
@@ -6838,7 +6848,7 @@ int buildin_pvpon(struct script_state *st)
 
 	str=conv_str(st,& (st->stack->stack_data[st->start+2]));
 	m = map_mapname2mapid(str);
-	if(m >= 0 && !map[m].flag.pvp && !map[m].flag.nopvp) {
+	if(m >= 0 && !map[m].flag.pvp) {
 		map[m].flag.pvp = 1;
 		clif_send0199(m,1);
 
@@ -6871,7 +6881,7 @@ int buildin_pvpoff(struct script_state *st)
 
 	str=conv_str(st,& (st->stack->stack_data[st->start+2]));
 	m = map_mapname2mapid(str);
-	if(m >= 0 && map[m].flag.pvp && !map[m].flag.nopvp) { //fixed Lupus
+	if(m >= 0 && map[m].flag.pvp) { //fixed Lupus
 		map[m].flag.pvp = 0;
 		clif_send0199(m,0);
 
@@ -6973,7 +6983,7 @@ int buildin_maprespawnguildid_sub(struct block_list *bl,va_list ap)
 	}
 	if(md && flag&4){
 		if(!md->guardian_data && md->class_ != MOBID_EMPERIUM)
-			mob_delete(md);
+			unit_remove_map(bl,1);
 	}
 	return 0;
 }
@@ -7887,7 +7897,6 @@ int buildin_petloot(struct script_state *st)
 	pd->loot->max=max;
 	pd->loot->count = 0;
 	pd->loot->weight = 0;
-	pd->loot->timer = gettick();
 
 	return 0;
 }
@@ -7975,13 +7984,7 @@ int buildin_disguise(struct script_state *st)
 		return 0;
 	}
 
-	pc_stop_walking(sd,0);
-	clif_clearchar(&sd->bl, 0);
-	sd->disguise = id;
-	sd->state.disguised = 1; // set to override items with disguise script [Valaris]
-	clif_changeoption(&sd->bl);
-	clif_spawnpc(sd);
-
+	pc_disguise(sd, id);
 	push_val(st->stack,C_INT,id);
 	return 0;
 }
@@ -7995,11 +7998,7 @@ int buildin_undisguise(struct script_state *st)
 	struct map_session_data *sd=script_rid2sd(st);
 
 	if (sd->disguise) {
-		pc_stop_walking(sd,0);
-		clif_clearchar(&sd->bl, 0);
-		sd->disguise = 0;
-		clif_changeoption(&sd->bl);
-		clif_spawnpc(sd);
+		pc_disguise(sd, 0);
 		push_val(st->stack,C_INT,0);
 	} else {
 		push_val(st->stack,C_INT,1);
@@ -8060,7 +8059,7 @@ int buildin_soundeffect(struct script_state *st)
 	name=conv_str(st,& (st->stack->stack_data[st->start+2]));
 	type=conv_num(st,& (st->stack->stack_data[st->start+3]));
 	if(sd){
-		if(st->oid)
+		if(!st->rid)
 			clif_soundeffect(sd,map_id2bl(st->oid),name,type);
 		else{
 			clif_soundeffect(sd,&sd->bl,name,type);
@@ -8069,23 +8068,54 @@ int buildin_soundeffect(struct script_state *st)
 	return 0;
 }
 
+int soundeffect_sub(struct block_list* bl,va_list ap)
+{
+	char *name;
+	int type;
+
+	nullpo_retr(0, bl);
+	nullpo_retr(0, ap);
+
+	name = va_arg(ap,char *);
+	type = va_arg(ap,int);
+
+	clif_soundeffect((struct map_session_data *)bl, bl, name, type);
+
+    return 0;	
+}
+
 int buildin_soundeffectall(struct script_state *st)
 {
 	// [Lance] - Improved.
-	struct map_session_data *sd=NULL;
-	char *name;
-	int type=0;
+	char *name, *map = NULL;
+	struct block_list *bl;
+	int type, coverage, x0, y0, x1, y1;
 
 	name=conv_str(st,& (st->stack->stack_data[st->start+2]));
 	type=conv_num(st,& (st->stack->stack_data[st->start+3]));
-	//if(sd)
-	//{
-		if(st->oid)
-			clif_soundeffectall(map_id2bl(st->oid),name,type);
-		else
-			if((sd=script_rid2sd(st)))
-				clif_soundeffectall(&sd->bl,name,type);
-	//}
+	coverage=conv_num(st,& (st->stack->stack_data[st->start+4]));
+
+	if(!st->rid)
+		bl = map_id2bl(st->oid);
+	else
+		bl = &(script_rid2sd(st)->bl);
+
+	if(bl){
+		if(coverage < 23){
+			clif_soundeffectall(bl,name,type,coverage);
+		}else {
+			if(st->end > st->start+9){
+				map=conv_str(st,& (st->stack->stack_data[st->start+5]));
+				x0 = conv_num(st,& (st->stack->stack_data[st->start+6]));
+				y0 = conv_num(st,& (st->stack->stack_data[st->start+7]));
+				x1 = conv_num(st,& (st->stack->stack_data[st->start+8]));
+				y1 = conv_num(st,& (st->stack->stack_data[st->start+9]));
+				map_foreachinarea(soundeffect_sub,map_mapname2mapid(map),x0,y0,x1,y1,BL_PC,name,type);
+			} else {
+				ShowError("buildin_soundeffectall: insufficient arguments for specific area broadcast.\n");
+			}
+		}
+	}
 	return 0;
 }
 /*==========================================
@@ -8734,7 +8764,7 @@ int buildin_npcwalkto(struct script_state *st)
 	y=conv_num(st,& (st->stack->stack_data[st->start+3]));
 
 	if(nd) {
-		npc_walktoxy(nd,x,y,0);
+		unit_walktoxy(&nd->bl,x,y,0);
 	}
 
 	return 0;
@@ -8745,8 +8775,7 @@ int buildin_npcstop(struct script_state *st)
 	struct npc_data *nd=(struct npc_data *)map_id2bl(st->oid);
 
 	if(nd) {
-		if(nd->state.state==MS_WALK)
-			npc_stop_walking(nd,1);
+		unit_stop_walking(&nd->bl,1);
 	}
 
 	return 0;
@@ -8997,7 +9026,8 @@ int buildin_skilluseid (struct script_state *st)
    skid=conv_num(st,& (st->stack->stack_data[st->start+2]));
    sklv=conv_num(st,& (st->stack->stack_data[st->start+3]));
    sd=script_rid2sd(st);
-   skill_use_id(sd,sd->status.account_id,skid,sklv);
+	if (sd)
+	   unit_skilluse_id(&sd->bl,sd->bl.id,skid,sklv);
 
    return 0;
 }
@@ -9017,7 +9047,8 @@ int buildin_skillusepos(struct script_state *st)
    y=conv_num(st,& (st->stack->stack_data[st->start+5]));
 
    sd=script_rid2sd(st);
-   skill_use_pos(sd,x,y,skid,sklv);
+	if (sd)
+	   unit_skilluse_pos(&sd->bl,x,y,skid,sklv);
 
    return 0;
 }
@@ -9036,7 +9067,7 @@ int buildin_logmes(struct script_state *st)
 
 int buildin_summon(struct script_state *st)
 {
-	int _class, id;
+	int _class, id, timeout=0;
 	char *str,*event="";
 	struct map_session_data *sd;
 	struct mob_data *md;
@@ -9047,14 +9078,16 @@ int buildin_summon(struct script_state *st)
 		str	=conv_str(st,& (st->stack->stack_data[st->start+2]));
 		_class=conv_num(st,& (st->stack->stack_data[st->start+3]));
 		if( st->end>st->start+4 )
-			event=conv_str(st,& (st->stack->stack_data[st->start+4]));
+			timeout=conv_num(st,& (st->stack->stack_data[st->start+4]));
+		if( st->end>st->start+5 )
+			event=conv_str(st,& (st->stack->stack_data[st->start+5]));
 
 		id=mob_once_spawn(sd, "this", 0, 0, str,_class,1,event);
 		if((md=(struct mob_data *)map_id2bl(id))){
 			md->master_id=sd->bl.id;
 			md->special_state.ai=1;
 			md->mode=mob_db(md->class_)->mode|0x04;
-			md->deletetimer=add_timer(tick+60000,mob_timer_delete,id,0);
+			md->deletetimer=add_timer(tick+(timeout>0?timeout*1000:60000),mob_timer_delete,id,0);
 			clif_misceffect2(&md->bl,344);
 		}
 		clif_skill_poseffect(&sd->bl,AM_CALLHOMUN,1,sd->bl.x,sd->bl.y,tick);
@@ -9568,6 +9601,17 @@ int buildin_query_sql(struct script_state *st) {
 		}
 	}
 
+	return 0;
+}
+
+//Allows escaping of a given string.
+int buildin_escape_sql(struct script_state *st) {
+	char *t_query, *query;
+	query = conv_str(st,& (st->stack->stack_data[st->start+2]));
+	
+	t_query = aCallocA(strlen(query)*2+1,sizeof(char));
+	jstrescapecpy(t_query,query);
+	push_str(st->stack,C_STR,(unsigned char *)t_query);
 	return 0;
 }
 #endif

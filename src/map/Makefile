@@ -24,7 +24,8 @@ OBJECTS = obj/map.o obj/chrif.o obj/clif.o obj/pc.o obj/status.o obj/npc.o \
 	obj/npc_chat.o obj/chat.o obj/path.o obj/itemdb.o obj/mob.o obj/script.o \
 	obj/storage.o obj/skill.o obj/atcommand.o obj/charcommand.o obj/battle.o \
 	obj/intif.o obj/trade.o obj/party.o obj/vending.o obj/guild.o obj/pet.o \
-	obj/log.o obj/mail.o obj/charsave.o obj/date.o $(COMMON_OBJ)
+	obj/log.o obj/mail.o obj/charsave.o obj/date.o obj/unit.o \
+	$(COMMON_OBJ)
 
 map-server: $(OBJECTS:obj/%=txtobj/%)
 	$(CC) -o ../../$@ $> $(LIBS) $(LIB_S)
@@ -68,7 +69,7 @@ txtobj/pet.o: pet.c pet.h map.h clif.h chrif.h intif.h pc.h itemdb.h battle.h mo
 txtobj/log.o: log.c log.h map.h $(COMMON_H)
 txtobj/charcommand.o: charcommand.c charcommand.h itemdb.h pc.h map.h skill.h clif.h mob.h intif.h battle.h storage.h guild.h pet.h log.h $(COMMON_H)
 txtobj/date.o: date.c date.h $(COMMON_H)
-
+txtobj/unit.o: unit.c unit.h $(COMMON_H)
 
 sqlobj/map.o: map.c map.h chrif.h clif.h npc.h pc.h mob.h chat.h skill.h itemdb.h storage.h party.h pet.h atcommand.h log.h $(COMMON_H)
 sqlobj/chrif.o: chrif.c map.h battle.h chrif.h clif.h intif.h pc.h npc.h $(COMMON_H)
@@ -80,7 +81,7 @@ sqlobj/npc_chat.o: npc_chat.c map.h npc.h clif.h pc.h script.h mob.h itemdb.h ba
 sqlobj/chat.o: chat.c map.h clif.h pc.h chat.h $(COMMON_H)
 sqlobj/path.o: path.c map.h battle.h $(COMMON_H)
 sqlobj/itemdb.o: itemdb.c map.h battle.h itemdb.h $(COMMON_H)
-sqlobj/mob.o: mob.c map.h clif.h intif.h pc.h mob.h skill.h battle.h npc.h itemdb.h  log.h date.h $(COMMON_H)
+sqlobj/mob.o: mob.c map.h clif.h intif.h pc.h mob.h skill.h battle.h npc.h itemdb.h log.h date.h $(COMMON_H)
 sqlobj/script.o: script.c itemdb.h map.h pc.h mob.h clif.h intif.h npc.h script.h storage.h skill.h pet.h battle.h log.h $(COMMON_H)
 sqlobj/storage.o: storage.c itemdb.h pc.h clif.h intif.h storage.h guild.h $(COMMON_H)
 sqlobj/skill.o: skill.c skill.h map.h clif.h pc.h mob.h battle.h itemdb.h script.h log.h date.h $(COMMON_H)
@@ -97,3 +98,4 @@ sqlobj/log.o: log.c log.h map.h $(COMMON_H)
 sqlobj/charcommand.o: charcommand.c charcommand.h itemdb.h pc.h map.h skill.h clif.h mob.h intif.h battle.h storage.h guild.h pet.h log.h $(COMMON_H)
 sqlobj/charsave.o: charsave.c charsave.h $(COMMON_H)
 sqlobj/date.o: date.c date.h $(COMMON_H)
+sqlobj/unit.o: unit.c unit.h $(COMMON_H)

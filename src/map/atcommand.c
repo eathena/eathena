@@ -33,6 +33,7 @@
 #include "script.h"
 #include "npc.h"
 #include "trade.h"
+#include "unit.h"
 
 #ifndef TXT_ONLY
 #include "mail.h"
@@ -1235,11 +1236,6 @@ int atcommand_rura(
 			return -1;
 	}
 
-	if (x <= 0)
-		x = rand() % 399 + 1;
-	if (y <= 0)
-		y = rand() % 399 + 1;
-
 	if (strstr(map_name, ".gat") == NULL && strstr(map_name, ".afm") == NULL && strlen(map_name) < MAP_NAME_LENGTH-4) // 16 - 4 (.gat)
 		strcat(map_name, ".gat");
 
@@ -1251,24 +1247,23 @@ int atcommand_rura(
 		clif_displaymessage(fd, msg_table[1]); // Map not found.
 		return -1;
 	}
-	
-	if (x > 0 && x < 400 && y > 0 && y < 400) {
-		if (map[m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
-			clif_displaymessage(fd, msg_table[247]);
-			return -1;
-		}
-		if (sd->bl.m >= 0 && map[sd->bl.m].flag.nowarp && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
-			clif_displaymessage(fd, msg_table[248]);
-			return -1;
-		}
-		if (pc_setpos(sd, mapindex, x, y, 3) == 0)
-			clif_displaymessage(fd, msg_table[0]); // Warped.
-		else {
-			clif_displaymessage(fd, msg_table[1]); // Map not found.
-			return -1;
-		}
-	} else {
-		clif_displaymessage(fd, msg_table[2]); // Coordinates out of range.
+
+	if ((x || y) && map_getcell(m, x, y, CELL_CHKNOPASS)) {
+		clif_displaymessage(fd, msg_table[2]);
+		x = y = 0; //Invalid cell, use random spot.
+	}
+	if (map[m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
+		clif_displaymessage(fd, msg_table[247]);
+		return -1;
+	}
+	if (sd->bl.m >= 0 && map[sd->bl.m].flag.nowarp && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
+		clif_displaymessage(fd, msg_table[248]);
+		return -1;
+	}
+	if (pc_setpos(sd, mapindex, x, y, 3) == 0)
+		clif_displaymessage(fd, msg_table[0]); // Warped.
+	else {
+		clif_displaymessage(fd, msg_table[1]); // Map not found.
 		return -1;
 	}
 
@@ -2177,9 +2172,14 @@ int atcommand_hide(
 	nullpo_retr(-1, sd);
 	if (sd->sc.option & OPTION_INVISIBLE) {
 		sd->sc.option &= ~OPTION_INVISIBLE;
+		if (sd->disguise)
+			status_set_viewdata(&sd->bl, sd->disguise);
+		else
+			status_set_viewdata(&sd->bl, sd->status.class_);
 		clif_displaymessage(fd, msg_table[10]); // Invisible: Off
 	} else {
 		sd->sc.option |= OPTION_INVISIBLE;
+		sd->vd.class_ = INVISIBLE_CLASS;
 		clif_displaymessage(fd, msg_table[11]); // Invisible: On
 	}
 	clif_changeoption(&sd->bl);
@@ -2686,7 +2686,7 @@ int atcommand_baselevelup(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	int level=0, i=0;
+	int level=0, i=0, status_point=0;
 	nullpo_retr(-1, sd);
 	level = atoi(message);
 
@@ -2703,7 +2703,12 @@ int atcommand_baselevelup(
 		if ((unsigned int)level > pc_maxbaselv(sd) || (unsigned int)level > pc_maxbaselv(sd) - sd->status.base_level) // fix positiv overflow
 			level = pc_maxbaselv(sd) - sd->status.base_level;
 		for (i = 1; i <= level; i++)
-			sd->status.status_point += (sd->status.base_level + i + 14) / 5;
+			status_point += (sd->status.base_level + i + 14) / 5;
+
+		if (sd->status.status_point > USHRT_MAX - status_point)
+			sd->status.status_point = USHRT_MAX;
+		else
+			sd->status.status_point += status_point;
 		sd->status.base_level += (unsigned int)level;
 		clif_updatestatus(sd, SP_BASELEVEL);
 		clif_updatestatus(sd, SP_NEXTBASEEXP);
@@ -2722,9 +2727,11 @@ int atcommand_baselevelup(
 			level = sd->status.base_level-1;
 		if (sd->status.status_point > 0) {
 			for (i = 0; i > -level; i--)
-				sd->status.status_point -= (sd->status.base_level + i + 14) / 5;
-			if (sd->status.status_point < 0)
+				status_point -= (sd->status.base_level + i + 14) / 5;
+			if (sd->status.status_point < status_point)
 				sd->status.status_point = 0;
+			else
+				sd->status.status_point -= status_point;
 			clif_updatestatus(sd, SP_STATUSPOINT);
 		} /* to add: remove status points from stats */
 		sd->status.base_level -= (unsigned int)level;
@@ -2764,7 +2771,10 @@ int atcommand_joblevelup(
 		sd->status.job_level += (unsigned int)level;
 		clif_updatestatus(sd, SP_JOBLEVEL);
 		clif_updatestatus(sd, SP_NEXTJOBEXP);
-		sd->status.skill_point += level;
+		if (sd->status.skill_point > USHRT_MAX - level)
+			sd->status.skill_point = USHRT_MAX;
+		else
+			sd->status.skill_point += level;
 		clif_updatestatus(sd, SP_SKILLPOINT);
 		status_calc_pc(sd, 0);
 		clif_misceffect(&sd->bl, 1);
@@ -2782,9 +2792,10 @@ int atcommand_joblevelup(
 		clif_updatestatus(sd, SP_NEXTJOBEXP);
 		if (sd->status.skill_point < level)
 			pc_resetskill(sd,0);	//Reset skills since we need to substract more points.
-		sd->status.skill_point -= level;
-		if (sd->status.skill_point < 0)
+		if (sd->status.skill_point < level)
 			sd->status.skill_point = 0;
+		else
+			sd->status.skill_point -= level;
 		clif_updatestatus(sd, SP_SKILLPOINT);
 		status_calc_pc(sd, 0);
 		clif_displaymessage(fd, msg_table[25]); // Job level lowered.
@@ -2960,7 +2971,7 @@ int atcommand_pvpon(
 		return -1;
 	}
 
-	if (!map[sd->bl.m].flag.pvp && !map[sd->bl.m].flag.nopvp) {
+	if (!map[sd->bl.m].flag.pvp) {
 		map[sd->bl.m].flag.pvp = 1;
 		clif_send0199(sd->bl.m, 1);
 		pl_allsd = map_getallusers(&users);
@@ -3375,10 +3386,9 @@ int atcommand_monster(
 	char monster[NAME_LENGTH];
 	int mob_id;
 	int number = 0;
-	int x = 0, y = 0;
 	int count;
-	int i, j, k;
-	int mx, my, range;
+	int i, k, range;
+	short mx, my;
 	nullpo_retr(-1, sd);
 
 	memset(name, '\0', sizeof(name));
@@ -3389,14 +3399,14 @@ int atcommand_monster(
 			clif_displaymessage(fd, msg_table[80]); // Give a display name and monster name/id please.
 			return -1;
 	}
-	if (sscanf(message, "\"%23[^\"]\" %23s %d %d %d", name, monster, &number, &x, &y) > 1 ||
-		sscanf(message, "%23s \"%23[^\"]\" %d %d %d", monster, name, &number, &x, &y) > 1) {
+	if (sscanf(message, "\"%23[^\"]\" %23s %d", name, monster, &number) > 1 ||
+		sscanf(message, "%23s \"%23[^\"]\" %d", monster, name, &number) > 1) {
 		//All data can be left as it is.
-	} else if ((count=sscanf(message, "%23s %d %23s %d %d", monster, &number, name, &x, &y)) > 1) {
+	} else if ((count=sscanf(message, "%23s %d %23s", monster, &number, name)) > 1) {
 		//Here, it is possible name was not given and we are using monster for it.
 		if (count < 3) //Blank mob's name.
 			name[0] = '\0';
-	} else if (sscanf(message, "%23s %23s %d %d %d", name, monster, &number, &x, &y) > 1) {
+	} else if (sscanf(message, "%23s %23s %d", name, monster, &number) > 1) {
 		//All data can be left as it is.
 	} else if (sscanf(message, "%23s", monster) > 0) {
 		//As before, name may be already filled.
@@ -3426,29 +3436,17 @@ int atcommand_monster(
 		strcpy(name, "--ja--");
 
 	// If value of atcommand_spawn_quantity_limit directive is greater than or equal to 1 and quantity of monsters is greater than value of the directive
-	if (battle_config.atc_spawn_quantity_limit >= 1 && number > battle_config.atc_spawn_quantity_limit)
+	if (battle_config.atc_spawn_quantity_limit && number > battle_config.atc_spawn_quantity_limit)
 		number = battle_config.atc_spawn_quantity_limit;
 
 	if (battle_config.etc_log)
-		ShowInfo("%s monster='%s' name='%s' id=%d count=%d (%d,%d)\n", command, monster, name, mob_id, number, x, y);
+		ShowInfo("%s monster='%s' name='%s' id=%d count=%d (%d,%d)\n", command, monster, name, mob_id, number, sd->bl.x, sd->bl.y);
 
 	count = 0;
-	range = (int)sqrt(number) / 2;
-	range = range * 2 + 5; // calculation of an odd number (+ 4 area around)
+	range = (int)sqrt(number) +2; // calculation of an odd number (+ 4 area around)
 	for (i = 0; i < number; i++) {
-		j = 0;
-		k = 0;
-		while(j++ < 8 && k == 0) { // try 8 times to spawn the monster (needed for close area)
-			if (x <= 0)
-				mx = sd->bl.x + (rand() % range - (range / 2));
-			else
-				mx = x;
-			if (y <= 0)
-				my = sd->bl.y + (rand() % range - (range / 2));
-			else
-				my = y;
-			k = mob_once_spawn((struct map_session_data*)sd, "this", mx, my, name, mob_id, 1, "");
-		}
+		map_search_freecell(&sd->bl, 0, &mx,  &my, range, range, 0);
+		k = mob_once_spawn(sd, "this", mx, my, name, mob_id, 1, "");
 		count += (k != 0) ? 1 : 0;
 	}
 
@@ -3534,7 +3532,7 @@ int atcommand_monstersmall(
 			my = sd->bl.y + (rand() % 11 - 5);
 		else
 			my = y;
-		count += (mob_once_spawn((struct map_session_data*)sd, "this", mx, my, name, mob_id+MAX_MOB_DB, 1, "") != 0) ? 1 : 0;
+		count += (mob_once_spawn((struct map_session_data*)sd, "this", mx, my, name, mob_id, 1, "2") != 0) ? 1 : 0;
 	}
 
 	if (count != 0)
@@ -3611,7 +3609,7 @@ int atcommand_monsterbig(
 			my = sd->bl.y + (rand() % 11 - 5);
 		else
 			my = y;
-		count += (mob_once_spawn((struct map_session_data*)sd, "this", mx, my, name, mob_id+2*MAX_MOB_DB, 1, "") != 0) ? 1 : 0;
+		count += (mob_once_spawn((struct map_session_data*)sd, "this", mx, my, name, mob_id, 1, "4") != 0) ? 1 : 0;
 	}
 
 	if (count != 0)
@@ -3640,9 +3638,9 @@ static int atkillmonster_sub(struct block_list *bl, va_list ap) {
 	if (flag)
 		mob_damage(NULL, md, md->hp, 2);
 	else
-		mob_delete(md);
+		unit_remove_map(&md->bl,1);
 	
-	return 0;
+	return 1;
 }
 void atcommand_killmonster_sub(
 	const int fd, struct map_session_data* sd, const char* message,
@@ -4020,14 +4018,15 @@ int atcommand_statuspoint(
 		return -1;
 	}
 
-	new_status_point = (int)sd->status.status_point + point;
-	if (point > 0 && (point > 0x7FFF || new_status_point > 0x7FFF)) // fix positiv overflow
-		new_status_point = 0x7FFF;
-	else if (point < 0 && (point < -0x7FFF || new_status_point < 0)) // fix negativ overflow
+	if (point > 0 && sd->status.status_point > USHRT_MAX - point)
+		new_status_point = USHRT_MAX;
+	else
+	if (point < 0 && sd->status.status_point < -point)
 		new_status_point = 0;
-
+	else
+		new_status_point = sd->status.status_point + point;
 	if (new_status_point != (int)sd->status.status_point) {
-		sd->status.status_point = (short)new_status_point;
+		sd->status.status_point = (unsigned short)new_status_point;
 		clif_updatestatus(sd, SP_STATUSPOINT);
 		clif_displaymessage(fd, msg_table[174]); // Number of status points changed!
 	} else {
@@ -4057,14 +4056,15 @@ int atcommand_skillpoint(
 		return -1;
 	}
 
-	new_skill_point = (int)sd->status.skill_point + point;
-	if (point > 0 && (point > 0x7FFF || new_skill_point > 0x7FFF)) // fix positiv overflow
-		new_skill_point = 0x7FFF;
-	else if (point < 0 && (point < -0x7FFF || new_skill_point < 0)) // fix negativ overflow
+	if (point > 0 && sd->status.skill_point > USHRT_MAX - point)
+		new_skill_point = USHRT_MAX;
+	else if (point < 0 && sd->status.skill_point < -point)
 		new_skill_point = 0;
-
+	else
+		new_skill_point = sd->status.skill_point + point;
+	
 	if (new_skill_point != (int)sd->status.skill_point) {
-		sd->status.skill_point = (short)new_skill_point;
+		sd->status.skill_point = (unsigned short)new_skill_point;
 		clif_updatestatus(sd, SP_SKILLPOINT);
 		clif_displaymessage(fd, msg_table[175]); // Number of skill points changed!
 	} else {
@@ -4123,13 +4123,18 @@ int atcommand_param(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	int i, index, value = 0, new_value;
+	int index, value = 0, new_value, max;
 	const char* param[] = { "@str", "@agi", "@vit", "@int", "@dex", "@luk", NULL };
-	short* status[] = {
-		&sd->status.str,  &sd->status.agi, &sd->status.vit,
-		&sd->status.int_, &sd->status.dex, &sd->status.luk
-	};
+	short* status[6];
+ 	//we don't use direct initialization because it isn't part of the c standard.
 	nullpo_retr(-1, sd);
+	
+	status[0] = &sd->status.str;
+	status[1] = &sd->status.agi;
+	status[2] = &sd->status.vit;
+	status[3] = &sd->status.int_;
+	status[4] = &sd->status.dex;
+	status[5] = &sd->status.luk;
 
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
 
@@ -4140,24 +4145,25 @@ int atcommand_param(
 	}
 
 	index = -1;
-	for (i = 0; param[i] != NULL; i++) {
-		if (strcmpi(command, param[i]) == 0) {
-			index = i;
+	for (index = 0; index < sizeof(param)/sizeof(param[0]); index++) {
+		if (strcmpi(command, param[index]) == 0)
 			break;
-		}
 	}
-	if (index < 0 || index > MAX_STATUS_TYPE) { // normaly impossible...
+	if (index == sizeof(param)/sizeof(param[0]) || index > MAX_STATUS_TYPE) {
+		// normaly impossible...
 		sprintf(atcmd_output, "Please, enter a valid value (usage: @str,@agi,@vit,@int,@dex,@luk <+/-adjustement>).");
 		clif_displaymessage(fd, atcmd_output);
 		return -1;
 	}
 
-	new_value = (int)*status[index] + value;
-	if (value > 0 && (value > pc_maxparameter(sd) || new_value > pc_maxparameter(sd))) // fix positiv overflow
-		new_value = pc_maxparameter(sd); 
-	else if (value < 0 && (value < -(int)pc_maxparameter(sd) || new_value < 1)) // fix negativ overflow
+	max = pc_maxparameter(sd);
+	if (value > 0 && *status[index] > max - value)
+		new_value = max;
+	else if (value < 0 && *status[index] <= -value)
 		new_value = 1;
-
+	else
+		new_value = *status[index] + value;
+	
 	if (new_value != (int)*status[index]) {
 		*status[index] = new_value;
 		clif_updatestatus(sd, SP_STR + index);
@@ -4184,25 +4190,32 @@ int atcommand_stat_all(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	int index, count, value = 0, new_value;
-	short* status[] = {
-		&sd->status.str,  &sd->status.agi, &sd->status.vit,
-		&sd->status.int_, &sd->status.dex, &sd->status.luk
-	};
+	int index, count, value = 0, max, new_value;
+	short* status[6];
+ 	//we don't use direct initialization because it isn't part of the c standard.
 	nullpo_retr(-1, sd);
+	
+	status[0] = &sd->status.str;
+	status[1] = &sd->status.agi;
+	status[2] = &sd->status.vit;
+	status[3] = &sd->status.int_;
+	status[4] = &sd->status.dex;
+	status[5] = &sd->status.luk;
 
 	if (!message || !*message || sscanf(message, "%d", &value) < 1 || value == 0)
 		value = pc_maxparameter(sd);
 
 	count = 0;
+	max = pc_maxparameter(sd);
 	for (index = 0; index < (int)(sizeof(status) / sizeof(status[0])); index++) {
 
-		new_value = (int)*status[index] + value;
-		if (value > 0 && (value > pc_maxparameter(sd) || new_value > pc_maxparameter(sd))) // fix positiv overflow
-			new_value = pc_maxparameter(sd);
-		else if (value < 0 && (value < -(int)pc_maxparameter(sd) || new_value < 1)) // fix negative overflow
+		if (value > 0 && *status[index] > max - value)
+			new_value = max;
+		else if (value < 0 && *status[index] <= -value)
 			new_value = 1;
-
+		else
+			new_value = *status[index] +value;
+		
 		if (new_value != (int)*status[index]) {
 			*status[index] = new_value;
 			clif_updatestatus(sd, SP_STR + index);
@@ -4612,7 +4625,7 @@ int atcommand_char_ban(
 			if (modif_p[0] == 's') {
 				second = value;
 				modif_p++;
-			} else if (modif_p[0] == 'm' && modif_p[1] == 'n') {
+			} else if (modif_p[0] == 'n' || (modif_p[0] == 'm' && modif_p[1] == 'n')) {
 				minute = value;
 				modif_p = modif_p + 2;
 			} else if (modif_p[0] == 'h') {
@@ -5197,7 +5210,7 @@ int atcommand_idsearch(
 {
 	char item_name[100];
 	unsigned int i, match;
-	struct item_data *item;
+	struct item_data *item_array[MAX_SEARCH];
 	nullpo_retr(-1, sd);
 
 	memset(item_name, '\0', sizeof(item_name));
@@ -5210,13 +5223,15 @@ int atcommand_idsearch(
 
 	sprintf(atcmd_output, msg_table[77], item_name); // The reference result of '%s' (name: id):
 	clif_displaymessage(fd, atcmd_output);
-	match = 0;
-	for(i = 0; i < 20000; i++) {
-		if ((item = itemdb_exists(i)) != NULL && strstr(item->jname, item_name) != NULL) {
-			match++;
-			sprintf(atcmd_output, msg_table[78], item->jname, item->nameid); // %s: %d
-			clif_displaymessage(fd, atcmd_output);
-		}
+	match = itemdb_searchname_array(item_array, MAX_SEARCH, item_name);
+	if (match > MAX_SEARCH) {
+		sprintf(atcmd_output, msg_table[269], MAX_SEARCH, match);
+		clif_displaymessage(fd, atcmd_output);
+		match = MAX_SEARCH;
+	}	
+	for(i = 0; i < match; i++) {
+		sprintf(atcmd_output, msg_table[78], item_array[i]->jname, item_array[i]->nameid); // %s: %d
+		clif_displaymessage(fd, atcmd_output);
 	}
 	sprintf(atcmd_output, msg_table[79], match); // It is %d affair above.
 	clif_displaymessage(fd, atcmd_output);
@@ -5611,8 +5626,6 @@ int atcommand_mapinfo(
 	strcpy(atcmd_output,"PvP Flags: ");
 	if (map[m_id].flag.pvp)
 		strcat(atcmd_output, "Pvp ON | ");
-	if (map[m_id].flag.nopvp)
-		strcat(atcmd_output, "NoPvp | ");
 	if (map[m_id].flag.pvp_noguild)
 		strcat(atcmd_output, "NoGuild | ");
 	if (map[m_id].flag.pvp_noparty)
@@ -5732,7 +5745,7 @@ int atcommand_mapinfo(
 		clif_displaymessage(fd, "----- NPCs in Map -----");
 		for (i = 0; i < map[m_id].npc_num;) {
 			nd = map[m_id].npc[i];
-			switch(nd->dir) {
+			switch(nd->ud.dir) {
 			case 0:  strcpy(direction, "North"); break;
 			case 1:  strcpy(direction, "North West"); break;
 			case 2:  strcpy(direction, "West"); break;
@@ -5977,7 +5990,7 @@ int atcommand_nuke(
 
 	if ((pl_sd = map_nick2sd(atcmd_player_name)) != NULL) {
 		if (pc_isGM(sd) >= pc_isGM(pl_sd)) { // you can kill only lower or same GM level
-			skill_castend_damage_id(&pl_sd->bl, &pl_sd->bl, NPC_SELFDESTRUCTION, 99, gettick(), 0);
+			skill_castend_nodamage_id(&pl_sd->bl, &pl_sd->bl, NPC_SELFDESTRUCTION, 99, gettick(), 0);
 			clif_displaymessage(fd, msg_table[109]); // Player has been nuked!
 		} else {
 			clif_displaymessage(fd, msg_table[81]); // Your GM level don't authorise you to do this action on this player.
@@ -6457,21 +6470,7 @@ int atcommand_disguise(
 		return -1;
 	}
 
-	/* The previous way.... 
-	if ((mob_id = mobdb_searchname(message)) == 0) // check name first (to avoid possible name begining by a number)
-		mob_id = atoi(message);
-
-	if ((mob_id >=  46 && mob_id <= 125) || (mob_id >= 700 && mob_id <= 718) || // NPC
-	    (mob_id >= 721 && mob_id <= 755) || (mob_id >= 757 && mob_id <= 811) || // NPC
-	    (mob_id >= 813 && mob_id <= 858) || // NPC
-	    (mob_id > 1000 && mob_id < 1582)) { // monsters
-	*/
-	pc_stop_walking(sd,0);
-	clif_clearchar(&sd->bl, 0);
-	sd->disguise = id;
-	sd->state.disguised = 1; // set to override items with disguise script [Valaris]
-	clif_changeoption(&sd->bl);
-	clif_spawnpc(sd);
+	pc_disguise(sd, id);
 	clif_displaymessage(fd, msg_table[122]); // Disguise applied.
 
 	return 0;
@@ -6501,14 +6500,8 @@ int atcommand_disguiseall(
 	if (mobdb_checkid(mob_id) || npcdb_checkid(mob_id)) { //if mob or npc...
 		pl_allsd = map_getallusers(&users);
 		for(i=0; i < users; i++) {
-			if((pl_sd = pl_allsd[i])) {
-				pc_stop_walking(pl_sd,0);
-				clif_clearchar(&pl_sd->bl, 0);
-				pl_sd->disguise = mob_id;
-				pl_sd->state.disguised = 1; // set to override items with disguise script [Valaris]
-				clif_changeoption(&pl_sd->bl);
-				clif_spawnpc(pl_sd);
-			}
+			if((pl_sd = pl_allsd[i]))
+				pc_disguise(pl_sd, mob_id);
 		}
 		clif_displaymessage(fd, msg_table[122]); // Disguise applied.
 	} else {
@@ -6528,11 +6521,7 @@ int atcommand_undisguise(
 {
 	nullpo_retr(-1, sd);
 	if (sd->disguise) {
-		pc_stop_walking(sd,0);
-		clif_clearchar(&sd->bl, 0);
-		sd->disguise = 0;
-		clif_changeoption(&sd->bl);
-		clif_spawnpc(sd);
+		pc_disguise(sd, 0);
 		clif_displaymessage(fd, msg_table[124]); // Undisguise applied.
 	} else {
 		clif_displaymessage(fd, msg_table[125]); // You're not disguised.
@@ -6557,13 +6546,8 @@ int atcommand_undisguiseall(
 	pl_allsd = map_getallusers(&users);
 	
 	for(i=0; i < users; i++) {
-		if((pl_sd = pl_allsd[i]) && pl_sd->disguise) {
-				pc_stop_walking(pl_sd,0);
-				clif_clearchar(&pl_sd->bl, 0);
-				pl_sd->disguise = 0;
-				clif_changeoption(&pl_sd->bl);
-				clif_spawnpc(pl_sd);
-		}
+		if((pl_sd = pl_allsd[i]) && pl_sd->disguise)
+			pc_disguise(pl_sd, 0);
 	}
 	clif_displaymessage(fd, msg_table[124]); // Undisguise applied.
 
@@ -6685,12 +6669,7 @@ int atcommand_chardisguise(
 
 	if ((pl_sd = map_nick2sd(atcmd_player_name)) != NULL) {
 		if (pc_isGM(sd) >= pc_isGM(pl_sd)) { // you can disguise only lower or same level
-			pc_stop_walking(pl_sd,0);
-			clif_clearchar(&pl_sd->bl, 0);
-			pl_sd->disguise = mob_id;
-			pl_sd->state.disguised = 1; // set to override items with disguise script [Valaris]
-			clif_changeoption(&pl_sd->bl);
-			clif_spawnpc(pl_sd);
+			pc_disguise(pl_sd, mob_id);
 			clif_displaymessage(fd, msg_table[140]); // Character's disguise applied.
 		} else {
 			clif_displaymessage(fd, msg_table[81]); // Your GM level don't authorise you to do this action on this player.
@@ -6724,14 +6703,9 @@ int atcommand_charundisguise(
 
 	if ((pl_sd = map_nick2sd(atcmd_player_name)) != NULL) {
 		if (pc_isGM(sd) >= pc_isGM(pl_sd)) { // you can undisguise only lower or same level
-			if (pl_sd->disguise) {
-				pc_stop_walking(pl_sd,0);
-				clif_clearchar(&pl_sd->bl, 0);
-				pl_sd->disguise = 0;
-				clif_changeoption(&pl_sd->bl);
-				clif_spawnpc(pl_sd);
-				clif_displaymessage(fd, msg_table[141]); // Character's undisguise applied.
-			} else {
+			if (pl_sd->disguise)
+				pc_disguise(pl_sd, 0);
+			else {
 				clif_displaymessage(fd, msg_table[142]); // Character is not disguised.
 				return -1;
 			}
@@ -7041,9 +7015,9 @@ atcommand_npcmove(const int fd, struct map_session_data* sd,
 	else if (x >= map[m].xs) x = map[m].xs-1;
 	if (y < 0) y = 0;
 	else if (y >= map[m].ys) y = map[m].ys-1;
-	map_foreachinrange(clif_npcoutsight, &nd->bl, AREA_SIZE, BL_PC, nd);
+	map_foreachinrange(clif_outsight, &nd->bl, AREA_SIZE, BL_PC, &nd->bl);
 	map_moveblock(&nd->bl, x, y, gettick());
-	map_foreachinrange(clif_npcinsight, &nd->bl, AREA_SIZE, BL_PC, nd);
+	map_foreachinrange(clif_insight, &nd->bl, AREA_SIZE, BL_PC, &nd->bl);
 
 	return 0;
 }
@@ -7293,10 +7267,10 @@ atcommand_useskill(const int fd, struct map_session_data* sd,
 		return -1;
 	}
 
-	if (skill_get_inf(skillnum) & INF_GROUND_SKILL)
-		skill_use_pos(sd, pl_sd->bl.x, pl_sd->bl.y, skillnum, skilllv);
+	if (skill_get_inf(skillnum)&INF_GROUND_SKILL)
+		unit_skilluse_pos(&sd->bl, pl_sd->bl.x, pl_sd->bl.y, skillnum, skilllv);
 	else
-		skill_use_id(sd, pl_sd->bl.id, skillnum, skilllv);
+		unit_skilluse_id(&sd->bl, pl_sd->bl.id, skillnum, skilllv);
 
 	return 0;
 }
@@ -7536,9 +7510,9 @@ atcommand_grind(const int fd, struct map_session_data* sd,
 		inf = skill_get_inf(skillnum);
 
 		if (inf & INF_GROUND_SKILL)
-			skill_use_pos(sd, pl_sd->bl.x+5, pl_sd->bl.y+5, skillnum, 1);
+			unit_skilluse_pos(&sd->bl, pl_sd->bl.x, pl_sd->bl.y, skillnum, 1);
 		else if (!(inf & INF_SUPPORT_SKILL))
-			skill_use_id(sd, pl_sd->bl.id, skillnum, 1);
+			unit_skilluse_id(&sd->bl, pl_sd->bl.id, skillnum, 1);
 	}
 
 	return 0;
@@ -7552,12 +7526,14 @@ int
 atcommand_grind2(const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	int i, x, y, id;
+	int i;
+	short x, y;
 
-	for (i =  1000; i <2000; i++) {
-		x = sd->bl.x + (rand() % 10 - 5);
-		y = sd->bl.y + (rand() % 10 - 5);
-		id = mob_once_spawn(sd, "this", x, y, "--ja--", i, 1, "");
+	for (i = 1000; i < MAX_MOB_DB; i++) {
+		if (!mobdb_checkid(i))
+			continue;
+		map_search_freecell(&sd->bl, 0, &x,  &y, 5, 5, 0);
+		mob_once_spawn(sd, "this", x, y, "--ja--", i, 1, "");
 	}
 
 	return 0;
@@ -7737,8 +7713,7 @@ atcommand_autoloot(
 		drate = atof(message);
 		rate = (int)(drate*100);
 	}
-	if (rate > 10000) rate = 10000;
-	else if (rate < 0) rate = 0;
+	if (rate < 0) rate = 0;
 	
 	sd->state.autoloot = rate;
 	if (sd->state.autoloot) { 
@@ -7976,7 +7951,7 @@ atcommand_sound(
 	if(strstr(sound_file, ".wav") == NULL)
 		strcat(sound_file, ".wav");
 
-	clif_soundeffectall(&sd->bl, sound_file,0);
+	clif_soundeffectall(&sd->bl, sound_file,0,2);
 
 	return 0;
 }
@@ -9301,9 +9276,9 @@ int atcommand_mobinfo(
 	unsigned char melement[11][8] = {"None", "Neutral", "Water", "Earth", "Fire", "Wind", "Poison", "Holy", "Dark", "Ghost", "Undead"};
 	char atcmd_output2[200];
 	struct item_data *item_data;
-	struct mob_db *mob;
-	int mob_id;
-	int i, j;
+	struct mob_db *mob, *mob_array[MAX_SEARCH];
+	int mob_id, count;
+	int i, j, k;
 
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
 	memset(atcmd_output2, '\0', sizeof(atcmd_output2));
@@ -9314,80 +9289,90 @@ int atcommand_mobinfo(
 	}
 
 	// If monster identifier/name argument is a name
-	if ((mob_id = mobdb_searchname(message)) == 0) // check name first (to avoid possible name begining by a number)
-		mob_id = mobdb_checkid(atoi(message));
+	if ((mob_id = mobdb_checkid(atoi(message))))
+	{
+		mob_array[0] = mob_db(mob_id);
+		count = 1;
+	} else
+		count = mobdb_searchname_array(mob_array, MAX_SEARCH, message);
 
-	if (mob_id == 0) {
+	if (!count) {
 		clif_displaymessage(fd, msg_table[40]); // Invalid monster ID or name.
 		return -1;
 	}
 
-	mob = mob_db(mob_id);
+	if (count > MAX_SEARCH) {
+		sprintf(atcmd_output, msg_table[269], MAX_SEARCH, count);
+		clif_displaymessage(fd, atcmd_output);
+		count = MAX_SEARCH;
+	}
+	for (k = 0; k < count; k++) {
+		mob = mob_array[k];
 
-	// stats
-	if (mob->mexp)
-		sprintf(atcmd_output, "MVP Monster: '%s'/'%s' (%d)", mob->name, mob->jname, mob_id);
-	else
-		sprintf(atcmd_output, "Monster: '%s'/'%s' (%d)", mob->name, mob->jname, mob_id);
-	clif_displaymessage(fd, atcmd_output);
-	sprintf(atcmd_output, " Level:%d  HP:%d  SP:%d  Base EXP:%d  Job EXP:%d", mob->lv, mob->max_hp, mob->max_sp, mob->base_exp, mob->job_exp);
-	clif_displaymessage(fd, atcmd_output);
-	sprintf(atcmd_output, " DEF:%d  MDEF:%d  STR:%d  AGI:%d  VIT:%d  INT:%d  DEX:%d  LUK:%d", mob->def, mob->mdef, mob->str, mob->agi, mob->vit, mob->int_, mob->dex, mob->luk);
-	clif_displaymessage(fd, atcmd_output);
-	if (mob->element < 20) {
-		//Element - None, Level 0
-		i = 0;
-		j = 0;
-	} else {
-		i = mob->element % 20 + 1;
-		j = mob->element / 20;
-	}
-	sprintf(atcmd_output, " ATK:%d~%d  Range:%d~%d~%d  Size:%s  Race: %s  Element: %s (Lv:%d)", mob->atk1, mob->atk2, mob->range, mob->range2 , mob->range3, msize[mob->size], mrace[mob->race], melement[i], j);
-	clif_displaymessage(fd, atcmd_output);
-	// drops
-	clif_displaymessage(fd, " Drops:");
-	strcpy(atcmd_output, " ");
-	j = 0;
-	for (i = 0; i < 10; i++) {
-		if (mob->dropitem[i].nameid <= 0 || (item_data = itemdb_search(mob->dropitem[i].nameid)) == NULL)
-			continue;
-		if (mob->dropitem[i].p > 0) {
-			sprintf(atcmd_output2, " - %s  %02.02f%%", item_data->name, (float)mob->dropitem[i].p / 100);
-			strcat(atcmd_output, atcmd_output2);
-			if (++j % 3 == 0) {
-				clif_displaymessage(fd, atcmd_output);
-				strcpy(atcmd_output, " ");
-			}
+		// stats
+		if (mob->mexp)
+			sprintf(atcmd_output, "MVP Monster: '%s'/'%s' (%d)", mob->name, mob->jname, mob_id);
+		else
+			sprintf(atcmd_output, "Monster: '%s'/'%s' (%d)", mob->name, mob->jname, mob_id);
+		clif_displaymessage(fd, atcmd_output);
+		sprintf(atcmd_output, " Level:%d  HP:%d  SP:%d  Base EXP:%d  Job EXP:%d", mob->lv, mob->max_hp, mob->max_sp, mob->base_exp, mob->job_exp);
+		clif_displaymessage(fd, atcmd_output);
+		sprintf(atcmd_output, " DEF:%d  MDEF:%d  STR:%d  AGI:%d  VIT:%d  INT:%d  DEX:%d  LUK:%d", mob->def, mob->mdef, mob->str, mob->agi, mob->vit, mob->int_, mob->dex, mob->luk);
+		clif_displaymessage(fd, atcmd_output);
+		if (mob->element < 20) {
+			//Element - None, Level 0
+			i = 0;
+			j = 0;
+		} else {
+			i = mob->element % 20 + 1;
+			j = mob->element / 20;
 		}
-	}
-	if (j == 0)
-		clif_displaymessage(fd, "This monster has no drops.");
-	else if (j % 3 != 0)
+		sprintf(atcmd_output, " ATK:%d~%d  Range:%d~%d~%d  Size:%s  Race: %s  Element: %s (Lv:%d)", mob->atk1, mob->atk2, mob->range, mob->range2 , mob->range3, msize[mob->size], mrace[mob->race], melement[i], j);
 		clif_displaymessage(fd, atcmd_output);
-	// mvp
-	if (mob->mexp) {
-		sprintf(atcmd_output, " MVP Bonus EXP:%d  %02.02f%%", mob->mexp, (float)mob->mexpper / 100);
-		clif_displaymessage(fd, atcmd_output);
-		strcpy(atcmd_output, " MVP Items:");
+		// drops
+		clif_displaymessage(fd, " Drops:");
+		strcpy(atcmd_output, " ");
 		j = 0;
-		for (i = 0; i < 3; i++) {
-			if (mob->mvpitem[i].nameid <= 0 || (item_data = itemdb_search(mob->mvpitem[i].nameid)) == NULL)
+		for (i = 0; i < 10; i++) {
+			if (mob->dropitem[i].nameid <= 0 || (item_data = itemdb_search(mob->dropitem[i].nameid)) == NULL)
 				continue;
-			if (mob->mvpitem[i].p > 0) {
-				j++;
-				if (j == 1)
-					sprintf(atcmd_output2, " %s  %02.02f%%", item_data->name, (float)mob->mvpitem[i].p / 100);
-				else
-					sprintf(atcmd_output2, " - %s  %02.02f%%", item_data->name, (float)mob->mvpitem[i].p / 100);
+			if (mob->dropitem[i].p > 0) {
+				sprintf(atcmd_output2, " - %s  %02.02f%%", item_data->name, (float)mob->dropitem[i].p / 100);
 				strcat(atcmd_output, atcmd_output2);
+				if (++j % 3 == 0) {
+					clif_displaymessage(fd, atcmd_output);
+					strcpy(atcmd_output, " ");
+				}
 			}
 		}
 		if (j == 0)
-			clif_displaymessage(fd, "This monster has no MVP prizes.");
-		else
+			clif_displaymessage(fd, "This monster has no drops.");
+		else if (j % 3 != 0)
 			clif_displaymessage(fd, atcmd_output);
+		// mvp
+		if (mob->mexp) {
+			sprintf(atcmd_output, " MVP Bonus EXP:%d  %02.02f%%", mob->mexp, (float)mob->mexpper / 100);
+			clif_displaymessage(fd, atcmd_output);
+			strcpy(atcmd_output, " MVP Items:");
+			j = 0;
+			for (i = 0; i < 3; i++) {
+				if (mob->mvpitem[i].nameid <= 0 || (item_data = itemdb_search(mob->mvpitem[i].nameid)) == NULL)
+					continue;
+				if (mob->mvpitem[i].p > 0) {
+					j++;
+					if (j == 1)
+						sprintf(atcmd_output2, " %s  %02.02f%%", item_data->name, (float)mob->mvpitem[i].p / 100);
+					else
+						sprintf(atcmd_output2, " - %s  %02.02f%%", item_data->name, (float)mob->mvpitem[i].p / 100);
+					strcat(atcmd_output, atcmd_output2);
+				}
+			}
+			if (j == 0)
+				clif_displaymessage(fd, "This monster has no MVP prizes.");
+			else
+				clif_displaymessage(fd, atcmd_output);
+		}
 	}
-
 	return 0;
 }
 
@@ -9403,20 +9388,28 @@ int atcommand_iteminfo(
 	char *itype[12] = {"Potion/Food", "BUG!", "Usable", "Etc", "Weapon", "Protection", "Card", "Egg", "Pet Acessory", "BUG!", "Arrow"};
 	//, "Lure/Scroll"}; No need, type 11 items are converted to type 2 upon loading [Skotlex]
 
-	struct item_data *item_data;
-	int item_id=0;
+	struct item_data *item_data, *item_array[MAX_SEARCH];
+	int i, item_id=0, count = 1;
 
 	if (!message || !*message) {
 		clif_displaymessage(fd, "Please, enter Item name or its ID (usage: @iteminfo <item_name_or_ID>).");
 		return -1;
 	}
+	if ((item_array[0] = itemdb_exists(atoi(message))) == NULL)
+		count = itemdb_searchname_array(item_array, MAX_SEARCH, message);
 
-	if ((item_data = itemdb_searchname(message)) != NULL ||
-	    (item_data = itemdb_exists(atoi(message))) != NULL)
-		item_id = item_data->nameid;
+	if (!count) {
+		clif_displaymessage(fd, "Item not found.");
+		return -1;
+	}
 
-	if (item_id >= 500) {
-
+	if (count > MAX_SEARCH) {
+		sprintf(atcmd_output, msg_table[269], MAX_SEARCH, count);
+		clif_displaymessage(fd, atcmd_output);
+		count = MAX_SEARCH;
+	}
+	for (i = 0; i < count; i++) {
+		item_data = item_array[i];
 		sprintf(atcmd_output, "Item: '%s'/'%s'[%d] (%d) Type: %s | Extra Effect: %s",
 			item_data->name,item_data->jname,item_data->slot,item_id,
 			item_data->type < 12 ? itype[item_data->type] : "BUG!", 
@@ -9435,11 +9428,8 @@ int atcommand_iteminfo(
 			strcpy(atcmd_output, " - Monsters don't drop this item");
 		clif_displaymessage(fd, atcmd_output);
 
-		return 0;
 	}
-
-	clif_displaymessage(fd, "Item not found.");
-	return -1;
+	return 0;
 }
 
 /*==========================================
@@ -10121,9 +10111,6 @@ int atcommand_main(
 	const char* command, const char* message)
 {
 	if(strlen(message) > 0) {
-
-		if(strlen(message) > 128)
-			return -1;
 
 		if(strcmpi(message, "on") == 0) {
 			if(!sd->state.mainchat) {

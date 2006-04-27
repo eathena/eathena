@@ -55,7 +55,7 @@ enum {
 	SC_BROKENARMOR, //50 - NOTE: These two aren't used anywhere, and they have an icon...
 	SC_BROKENWEAPON,
 	SC_HALLUCINATION,
-	SC_WEIGHT50 ,
+	SC_WEIGHT50,
 	SC_WEIGHT90,
 	SC_ASPDPOTION0,
 	SC_ASPDPOTION1,
@@ -229,7 +229,8 @@ enum {
 	SC_SWOO, // [marquis007]
 	SC_SKA, // [marquis007]
 	SC_TKDORI, // [marquis007]
-	//
+	SC_MIRACLE, //SG 'hidden' skill [Komurka]
+	SC_KNOWLEDGE,
 	SC_MAX, //Automatically updated max, used in for's and at startup to check we are within bounds. [Skotlex]
 };
 extern int SkillStatusChangeTable[MAX_SKILL];
@@ -351,7 +352,7 @@ enum {
 	SI_STAR_COMFORT		= 171,	
 	SI_PRESERVE		= 181,
 	SI_BATTLEORDERS		= 182,
-// 184 = WTF?? creates the black shape of 4_m_02 NPC, with NPC talk cursor
+	SI_INTRAVISION	= 184, //WTF?? creates the black shape of 4_m_02 NPC, with NPC talk cursor. Supposedly intravision shows this.
 	SI_DOUBLECAST		= 186,
 	SI_MAXOVERTHRUST	= 188,
 	SI_TAROT		= 191, // the icon allows no doubt... but what is it really used for ?? [DracoRPG]
@@ -423,7 +424,6 @@ enum {
 
 // ÉpÉâÉÅÅ[É^èäìæån battle.c ÇÊÇËà⁄ìÆ
 int status_get_class(struct block_list *bl);
-int status_get_dir(struct block_list *bl);
 int status_get_lv(struct block_list *bl);
 int status_get_range(struct block_list *bl);
 int status_get_hp(struct block_list *bl);
@@ -462,6 +462,9 @@ int status_get_mode(struct block_list *bl);
 int status_get_mexp(struct block_list *bl);
 int status_get_race2(struct block_list *bl);
 
+struct view_data *status_get_viewdata(struct block_list *bl);
+void status_set_viewdata(struct block_list *bl, int class_);
+void status_change_init(struct block_list *bl);
 struct status_change *status_get_sc(struct block_list *bl);
 
 int status_get_matk1(struct block_list *bl);
@@ -489,8 +492,7 @@ int status_change_end( struct block_list* bl , int type,int tid );
 int status_change_timer(int tid, unsigned int tick, int id, int data);
 int status_change_timer_sub(struct block_list *bl, va_list ap );
 int status_change_clear(struct block_list *bl,int type);
-int status_change_clear_buffs(struct block_list *bl);
-int status_change_clear_debuffs(struct block_list *bl);
+int status_change_clear_buffs(struct block_list *bl, int type);
 
 int status_calc_pet(struct map_session_data* sd, int first); // [Skotlex]
 int status_calc_pc(struct map_session_data* sd,int first);

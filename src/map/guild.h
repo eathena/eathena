@@ -11,7 +11,6 @@ struct guild_member;
 struct guild_position;
 struct guild_castle;
 
-int guild_skill_get_inf(int id);
 int guild_skill_get_max(int id);
 
 int guild_checkskill(struct guild *g,int id);
@@ -31,7 +30,7 @@ struct guild_castle *guild_mapindex2gc(short mapname);
 struct map_session_data *guild_getavailablesd(struct guild *g);
 int guild_getindex(struct guild *g,int account_id,int char_id);
 int guild_getposition(struct map_session_data *sd,struct guild *g);
-int guild_payexp(struct map_session_data *sd,int exp);
+unsigned int guild_payexp(struct map_session_data *sd,unsigned int exp);
 int guild_getexp(struct map_session_data *sd,int exp); // [Celest]
 
 int guild_create(struct map_session_data *sd,char *name);

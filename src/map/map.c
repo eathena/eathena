@@ -36,6 +36,7 @@
 #include "skill.h"
 #include "trade.h"
 #include "party.h"
+#include "unit.h"
 #include "battle.h"
 #include "script.h"
 #include "guild.h"
@@ -1304,7 +1305,7 @@ void map_foreachobject(int (*func)(struct block_list*,va_list),int type,...) {
 
 	for(i=2;i<=last_object_id;i++){
 		if(objects[i]){
-			if(!(objects[i]->type&type))
+			if(!(objects[i]->type==type)) // Fixed [Lance]
 				continue;
 			if(bl_list_count>=BL_LIST_MAX) {
 				if(battle_config.error_log)
@@ -1403,7 +1404,7 @@ static int map_count_sub(struct block_list *bl,va_list ap)
  * when ~flag&1, m is not needed.
  * Flag values:
  * &1 = random cell must be around given m,x,y, not around src
- * &2 = the target should be able to walk to the target tile. (still not in stable)
+ * &2 = the target should be able to walk to the target tile.
  * &4 = there shouldn't be any players around the target tile (use the no_spawn_on_player setting)
  *------------------------------------------
  */
@@ -1439,8 +1440,8 @@ int map_search_freecell(struct block_list *src, int m, short *x,short *y, int rx
 		
 		if (map_getcell(m,*x,*y,CELL_CHKREACH))
 		{
-//			if(flag&2 && !unit_can_reach_pos(src, *x, *y, 1))
-//				continue;
+			if(flag&2 && !unit_can_reach_pos(src, *x, *y, 1))
+				continue;
 			if(flag&4 && spawn++ < battle_config.no_spawn_on_player &&
 				map_foreachinarea(map_count_sub, m,
 					*x-AREA_SIZE, *y-AREA_SIZE, *x+AREA_SIZE, *y+AREA_SIZE, BL_PC)
@@ -1598,7 +1599,6 @@ int map_quit(struct map_session_data *sd) {
 	//nullpo_retr(0, sd); //Utterly innecessary, all invokations to this function already have an SD non-null check.
 	//Learn to use proper coding and stop relying on nullpo_'s for safety :P [Skotlex]
 
-
 	if(!sd->state.waitingdisconnect) {
 		if (sd->state.event_disconnect) {
 			if (script_config.event_script_type == 0) {
@@ -1612,122 +1612,21 @@ int map_quit(struct map_session_data *sd) {
 					npc_event_doall_id(script_config.logout_event_name, sd->bl.id), script_config.logout_event_name);
 			}
 		}
-
-		if(sd->chatID)	// チャットから出る
-			chat_leavechat(sd);
-
-		if(sd->trade_partner)	// 取引を中?する
-			trade_tradecancel(sd);
-
-		if(sd->party_invite>0)	// パ?ティ?誘を拒否する
-			party_reply_invite(sd,sd->party_invite_account,0);
-
-		if(sd->guild_invite>0)	// ギルド?誘を拒否する
-			guild_reply_invite(sd,sd->guild_invite,0);
-		if(sd->guild_alliance>0)	// ギルド同盟?誘を拒否する
-			guild_reply_reqalliance(sd,sd->guild_alliance_account,0);
-	    
-		// Force exiting from duel and rejecting
-   	 // all duel invitations when player quit [LuzZza]
-		if(sd->duel_group > 0)
-			duel_leave(sd->duel_group, sd);
-	   
-		if(sd->duel_invite > 0)
-			duel_reject(sd->duel_invite, sd);
-
-		party_send_logout(sd);	// パ?ティのログアウトメッセ?ジ送信
-
-		party_send_dot_remove(sd);//minimap dot fix [Kevin]
-
-		guild_send_memberinfoshort(sd,0);	// ギルドのログアウトメッセ?ジ送信
-
-		guild_send_dot_remove(sd);
-		 
-		pc_cleareventtimer(sd);	// イベントタイマを破棄する
-
-		// check if we've been authenticated [celest]
-		if (sd->state.auth)
-			skill_castcancel(&sd->bl,0);	// 詠唱を中?する
-
-		skill_stop_dancing(&sd->bl);// ダンス/演奏中?
-
-		//Status that are not saved...
-		if(sd->sc.count) {
-			if(sd->sc.data[SC_HIDING].timer!=-1)
-				status_change_end(&sd->bl,SC_HIDING,-1);
-			if(sd->sc.data[SC_CLOAKING].timer!=-1)
-				status_change_end(&sd->bl,SC_CLOAKING,-1);
-			if(sd->sc.data[SC_RUN].timer!=-1)
-				status_change_end(&sd->bl,SC_RUN,-1);
-			if(sd->sc.data[SC_SPURT].timer!=-1)
-				status_change_end(&sd->bl,SC_SPURT,-1);
-			if(sd->sc.data[SC_BERSERK].timer!=-1)
-				status_change_end(&sd->bl,SC_BERSERK,-1);
-			if(sd->sc.data[SC_TRICKDEAD].timer!=-1)
-				status_change_end(&sd->bl,SC_TRICKDEAD,-1);
-		}
-		skill_clear_unitgroup(&sd->bl);	// スキルユニットグル?プの削除
-
-		// check if we've been authenticated [celest]
-		if (sd->state.auth) {
-			skill_cleartimerskill(&sd->bl);
-			pc_stop_walking(sd,0);
-			pc_stopattack(sd);
-			pc_stop_following(sd);
-			pc_delinvincibletimer(sd);
-		}
-		pc_delspiritball(sd,sd->spiritball,1);
-		skill_gangsterparadise(sd,0);
-		skill_unit_move(&sd->bl,gettick(),4);
-
-		if (sd->state.auth)
-			status_calc_pc(sd,4);
-	//	skill_clear_unitgroup(&sd->bl);	// [Sara-chan]
-
-		if (!(sd->sc.option & OPTION_INVISIBLE))
-			clif_clearchar_area(&sd->bl,2);
-
-		chrif_save_scdata(sd); //Save status changes, then clear'em out from memory. [Skotlex]
-		status_change_clear(&sd->bl,1);
-		
-		if(sd->status.pet_id && sd->pd) {
-			pet_lootitem_drop(sd->pd,sd);
-			pet_remove_map(sd);
-			if(sd->pet.intimate <= 0) {
-				intif_delete_petdata(sd->status.pet_id);
-				sd->status.pet_id = 0;
-				sd->pd = NULL;
-				sd->petDB = NULL;
-			}
-			else
-				intif_save_petdata(sd->status.account_id,&sd->pet);
-		}
-
-		if(pc_isdead(sd))
-			pc_setrestartvalue(sd,2);
-
+		if (sd->pd) unit_free(&sd->pd->bl);
+		unit_free(&sd->bl);
 		pc_clean_skilltree(sd);
-
-		//The storage closing routines will save the char if needed. [Skotlex]
-		if (!sd->state.storage_flag)
-			chrif_save(sd,1);
-		else if (sd->state.storage_flag == 1)
-			storage_storage_quit(sd,1);
-		else if (sd->state.storage_flag == 2)
-			storage_guild_storage_quit(sd,1);
-
-		map_delblock(&sd->bl);
+		status_calc_pc(sd,4);
+		if(sd->pet.intimate > 0)
+			intif_save_petdata(sd->status.account_id,&sd->pet);
+		chrif_save(sd,1);
 	} else { //Try to free some data, without saving anything (this could be invoked on map server change. [Skotlex]
 		if (sd->bl.prev != NULL)
 		{	//Remove from map...
-			if (!(sd->sc.option & OPTION_INVISIBLE))
-				clif_clearchar_area(&sd->bl,2);
-			map_delblock(&sd->bl);
+			unit_remove_map(&sd->bl, 0);
+			if (sd->pd && sd->pd->bl.prev != NULL)
+				unit_remove_map(&sd->pd->bl, 0);
 		}
-		if (sd->pd)
-			pet_remove_map(sd);
 	}
-
 	if (sd->stack) {
 		script_free_stack(sd->stack);
 		sd->stack= NULL;
@@ -1738,16 +1637,12 @@ int map_quit(struct map_session_data *sd) {
 	idb_remove(id_db,sd->bl.id);
 	idb_remove(pc_db,sd->bl.id);
 
-	// Notify friends that this char logged out. [Skotlex]
-	clif_foreachclient(clif_friendslist_toggle_sub, sd->status.account_id, sd->status.char_id, 0);
-	
 	if(sd->reg)
 	{	//Double logout already freed pointer fix... [Skotlex]
 		aFree(sd->reg);
 		sd->reg = NULL;
 		sd->reg_num = 0;
 	}
-
 	if(sd->regstr)
 	{
 		aFree(sd->regstr);
@@ -1968,16 +1863,16 @@ void map_removenpc(void) {
 // allocates a struct when it there is place free in the cache,
 // and returns NULL otherwise
 // -- i'll just leave the old code in case it's needed ^^;
-struct mob_list* map_addmobtolist(unsigned short m)
+int map_addmobtolist(unsigned short m, struct spawn_data *spawn)
 {
 	size_t i;
 	for (i = 0; i < MAX_MOB_LIST_PER_MAP; i++) {
 		if (map[m].moblist[i] == NULL) {
-			map[m].moblist[i] = (struct mob_list *) aMalloc (sizeof(struct mob_list));
-			return map[m].moblist[i];
+			map[m].moblist[i] = spawn;
+			return i;
 		}
 	}
-	return NULL;
+	return -1;
 }
 
 void map_spawnmobs(int m)
@@ -1993,7 +1888,7 @@ void map_spawnmobs(int m)
 		if(map[m].moblist[i]!=NULL)
 		{
 			k+=map[m].moblist[i]->num;
-			npc_parse_mob2(map[m].moblist[i],1);
+			npc_parse_mob2(map[m].moblist[i],i);
 		}
 
 	if (battle_config.etc_log && k > 0)
@@ -2014,10 +1909,7 @@ int mob_cache_cleanup_sub(struct block_list *bl, va_list ap) {
 		md->hp < md->db->max_hp) //don't use status_get_maxhp for speed (by the time you have to remove a mob, their status changes should have expired anyway)
 		return 0; //Do not remove damaged mobs.
 	
-	mob_remove_map(md, 0);
-	map_deliddb(&md->bl);
-	aFree(md);
-	md = NULL;
+	unit_free(&md->bl);
 
 	return 1;
 }
@@ -3673,10 +3565,9 @@ int log_sql_init(void){
 
 int map_db_final(DBKey k,void *d,va_list ap)
 {
-	// Not needed actually, these are already freed. [Lance]
-	//struct map_data_other_server *mdos = (struct map_data_other_server*)d;
-	//if(mdos->gat == NULL)
-	//	aFree(mdos);
+	struct map_data_other_server *mdos = (struct map_data_other_server*)d;
+	if(mdos && mdos->gat == NULL)
+		aFree(mdos);
 	return 0;
 }
 int nick_db_final(void *k,void *d,va_list ap)
@@ -3697,7 +3588,7 @@ int cleanup_sub(struct block_list *bl, va_list ap) {
 			npc_unload((struct npc_data *)bl);
 			break;
 		case BL_MOB:
-			mob_unload((struct mob_data *)bl);
+			unit_free(bl);
 			break;
 		case BL_PET:
 		//There is no need for this, the pet is removed together with the player. [Skotlex]
@@ -3740,7 +3631,7 @@ void do_final(void) {
 	for (i = 0; i < j; i++)
 		map_quit(pl_allsd[i]);
 		
-//	id_db->foreach(id_db,cleanup_db_sub); //FIXME: No good, there are npc already free'd errors when invoking this!
+	i = id_db->foreach(id_db,cleanup_db_sub);
 	chrif_char_reset_offline();
 	chrif_flush_fifo();
 
@@ -3759,6 +3650,7 @@ void do_final(void) {
 	do_final_mob();
 	do_final_msg();
 	do_final_skill();
+	do_final_unit();
 
 	map_getallusers(NULL); //Clear the memory allocated for this array.
 	
@@ -3988,7 +3880,7 @@ int do_init(int argc, char *argv[]) {
 	do_init_skill();
 	do_init_pet();
 	do_init_npc();
-
+	do_init_unit();
 #ifndef TXT_ONLY /* mail system [Valaris] */
 	if(mail_server_enable)
 		do_init_mail();

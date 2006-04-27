@@ -5,6 +5,7 @@
 #define _PC_H_
 
 #include "map.h"
+#include "unit.h"
 
 #define OPTION_MASK 0xd7b8
 #define CART_MASK 0x788
@@ -39,11 +40,11 @@ enum {
 	MAX_WEAPON_TYPE
 } weapon_type;
 
-#define pc_setdead(sd) ((sd)->state.dead_sit = 1)
-#define pc_setsit(sd) ((sd)->state.dead_sit = 2)
+#define pc_setdead(sd) ((sd)->state.dead_sit = (sd)->vd.dead_sit = 1)
+#define pc_setsit(sd) ((sd)->state.dead_sit = (sd)->vd.dead_sit = 2)
 #define pc_isdead(sd) ((sd)->state.dead_sit == 1)
-#define pc_issit(sd) ((sd)->state.dead_sit == 2)
-#define pc_setdir(sd,b,h) ((sd)->dir = (b) ,(sd)->head_dir = (h) )
+#define pc_issit(sd) ((sd)->vd.dead_sit == 2)
+#define pc_setdir(sd,b,h) ((sd)->ud.dir = (b) ,(sd)->head_dir = (h) )
 #define pc_setchatid(sd,n) ((sd)->chatID = n)
 #define pc_ishiding(sd) ((sd)->sc.option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK))
 #define pc_iscloaking(sd) (!((sd)->sc.option&OPTION_CHASEWALK) && ((sd)->sc.option&OPTION_CLOAK))
@@ -55,13 +56,16 @@ enum {
 #define pc_is50overweight(sd) (sd->weight*2 >= sd->max_weight) 
 #define pc_is90overweight(sd) (sd->weight*10 >= sd->max_weight*9)
 #define pc_maxparameter(sd) ((sd->class_&JOBL_BABY) ? battle_config.max_baby_parameter : battle_config.max_parameter)
+
+#define pc_stop_attack(sd) { if (sd->ud.attacktimer!=-1) { unit_stop_attack(&sd->bl); sd->ud.target = 0; } }
+#define pc_stop_walking(sd, type) { if (sd->ud.walktimer!=-1) unit_stop_walking(&sd->bl, type); }
+
 //Checks if the given class value corresponds to a player class. [Skotlex]
 #define pcdb_checkid(class_) ((class_ >= JOB_NOVICE && class_ <= JOB_XMAS) || (class_ >= JOB_NOVICE_HIGH && class_ <= JOB_SOUL_LINKER))
 
 int pc_isGM(struct map_session_data *sd);
 int pc_iskiller(struct map_session_data *src, struct map_session_data *target); // [MouseJstr]
 int pc_getrefinebonus(int lv,int type);
-int pc_can_move(struct map_session_data *sd); //[Skotlex]
 int pc_can_give_items(int level); //[Lupus]
 
 int pc_setrestartvalue(struct map_session_data *sd,int type);
@@ -85,10 +89,6 @@ int pc_clean_skilltree(struct map_session_data *sd);
 int pc_checkoverhp(struct map_session_data*);
 int pc_checkoversp(struct map_session_data*);
 
-int pc_can_reach(struct map_session_data*,int,int);
-int pc_walktoxy(struct map_session_data*,int,int);
-int pc_stop_walking(struct map_session_data*,int);
-int pc_movepos(struct map_session_data*,int,int,int);
 int pc_setpos(struct map_session_data*,unsigned short,int,int,int);
 int pc_setsavepoint(struct map_session_data*,short,int,int);
 int pc_randomwarp(struct map_session_data *sd,int type);
@@ -128,9 +128,6 @@ int pc_steal_coin(struct map_session_data *sd,struct block_list *bl);
 
 int pc_modifybuyvalue(struct map_session_data*,int);
 int pc_modifysellvalue(struct map_session_data*,int);
-
-int pc_attack(struct map_session_data*,int,int);
-int pc_stopattack(struct map_session_data*);
 
 int pc_follow(struct map_session_data*, int); // [MouseJstr]
 int pc_stop_following(struct map_session_data*);
@@ -215,14 +212,6 @@ int pc_set_gm_level(int account_id, int level);
 void pc_setstand(struct map_session_data *sd);
 int pc_candrop(struct map_session_data *sd,int item_id);
 
-struct pc_base_job{
-	int job; //E‹ÆA‚½‚¾‚µ“]¶E‚â—{ŽqE‚Ìê‡‚ÍŒ³‚ÌE‹Æ‚ð•Ô‚·(”pƒvƒŠ¨ƒvƒŠ)
-	int type; //ƒmƒr 0, ˆêŽŸE 1, “ñŽŸE 2, ƒXƒpƒmƒr 3
-	int upper; //’Êí 0, “]¶ 1, —{Žq 2
-};
-
-struct pc_base_job pc_calc_base_job(int b_class);//“]¶‚â—{ŽqE‚ÌŒ³‚ÌE‹Æ‚ð•Ô‚·
-int pc_calc_base_job2(int b_class);	// Celest
 int pc_jobid2mapid(unsigned short b_class);	// Skotlex
 int pc_mapid2jobid(unsigned short class_, int sex);	// Skotlex
 
@@ -248,8 +237,6 @@ void pc_addfame(struct map_session_data *sd,int count);
 int pc_istop10fame(int char_id, int job);
 int pc_eventtimer(int tid,unsigned int tick,int id,int data); // for npc_dequeue
 
-int pc_run(struct map_session_data *sd, int skilllv, int dir);
-
 extern struct fame_list smith_fame_list[MAX_FAME_LIST];
 extern struct fame_list chemist_fame_list[MAX_FAME_LIST];
 extern struct fame_list taekwon_fame_list[MAX_FAME_LIST];
@@ -267,5 +254,5 @@ int map_day_timer(int,unsigned int,int,int); // by [yor]
 int map_night_timer(int,unsigned int,int,int); // by [yor]
 
 int pc_read_motd(void); // [Valaris]
-
+int pc_disguise(struct map_session_data *sd, int class_);
 #endif

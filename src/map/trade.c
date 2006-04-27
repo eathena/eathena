@@ -45,7 +45,7 @@ void trade_traderequest(struct map_session_data *sd, int target_id) {
 		if ( pc_can_give_items(level) || pc_can_give_items(pc_isGM(target_sd)) ) //check if both GMs are allowed to trade
 		{
 			clif_displaymessage(sd->fd, msg_txt(246));
-			trade_tradecancel(sd); // GM is not allowed to trade		
+			trade_tradecancel(sd); // GM is not allowed to trade
 		} else if ((target_sd->trade_partner != 0) || (sd->trade_partner != 0)) {
 			trade_tradecancel(sd); // person is in another trade
 		} else {
@@ -83,8 +83,9 @@ void trade_tradeack(struct map_session_data *sd, int type) {
 			target_sd->trade_partner = 0;
 		}
 
-
 		if (type == 3) { //Initiate trade
+			sd->state.trading = 1;
+			target_sd->state.trading = 1;
 			memset(&sd->deal, 0, sizeof(sd->deal));
 			memset(&target_sd->deal, 0, sizeof(target_sd->deal));
 		}
@@ -204,11 +205,8 @@ int trade_check(struct map_session_data *sd) {
 						if (inventory2[i].nameid == inventory[n].nameid &&
 							inventory2[i].card[0] == inventory[n].card[0] && inventory2[i].card[1] == inventory[n].card[1] &&
 							inventory2[i].card[2] == inventory[n].card[2] && inventory2[i].card[3] == inventory[n].card[3]) {
-							if (inventory2[i].amount + amount > MAX_AMOUNT) {
-								clif_displaymessage(sd->fd, msg_txt(592)); // Trade can not be done, because one of your doesn't have enough free slots in its inventory.
-								clif_displaymessage(target_sd->fd, msg_txt(592)); // Trade can not be done, because one of your doesn't have enough free slots in its inventory.
+							if (inventory2[i].amount + amount > MAX_AMOUNT)
 								return 0;
-							}
 							inventory2[i].amount += amount;
 							inventory[n].amount -= amount;
 							if (inventory[n].amount <= 0)
@@ -228,11 +226,8 @@ int trade_check(struct map_session_data *sd) {
 							break;
 						}
 					}
-					if (i == MAX_INVENTORY) {
-						clif_displaymessage(sd->fd, msg_txt(592)); // Trade can not be done, because one of your doesn't have enough free slots in its inventory.
-						clif_displaymessage(target_sd->fd, msg_txt(592)); // Trade can not be done, because one of your doesn't have enough free slots in its inventory.
+					if (i == MAX_INVENTORY)
 						return 0;
-					}
 				}
 			}
 		}
@@ -251,11 +246,8 @@ int trade_check(struct map_session_data *sd) {
 						if (inventory[i].nameid == inventory2[n].nameid &&
 							inventory[i].card[0] == inventory2[n].card[0] && inventory[i].card[1] == inventory2[n].card[1] &&
 							inventory[i].card[2] == inventory2[n].card[2] && inventory[i].card[3] == inventory2[n].card[3]) {
-							if (inventory[i].amount + amount > MAX_AMOUNT) {
-								clif_displaymessage(sd->fd, msg_txt(592)); // Trade can not be done, because one of your doesn't have enough free slots in its inventory.
-								clif_displaymessage(target_sd->fd, msg_txt(592)); // Trade can not be done, because one of your doesn't have enough free slots in its inventory.
+							if (inventory[i].amount + amount > MAX_AMOUNT)
 								return 0;
-							}
 							inventory[i].amount += amount;
 							inventory2[n].amount -= amount;
 							if (inventory2[n].amount <= 0)
@@ -274,11 +266,8 @@ int trade_check(struct map_session_data *sd) {
 							break;
 						}
 					}
-					if (i == MAX_INVENTORY) {
-						clif_displaymessage(sd->fd, msg_txt(592)); // Trade can not be done, because one of your doesn't have enough free slots in its inventory.
-						clif_displaymessage(target_sd->fd, msg_txt(592)); // Trade can not be done, because one of your doesn't have enough free slots in its inventory.
+					if (i == MAX_INVENTORY)
 						return 0;
-					}
 				}
 			}
 		}
@@ -296,7 +285,7 @@ void trade_tradeadditem(struct map_session_data *sd, int index, int amount) {
 	int trade_i, trade_weight, nameid;
 
 	nullpo_retv(sd);
-	if ((target_sd = map_id2sd(sd->trade_partner)) == NULL || sd->state.deal_locked > 0)
+	if (!sd->state.trading || (target_sd = map_id2sd(sd->trade_partner)) == NULL || sd->state.deal_locked > 0)
 		return; //Can't add stuff.
 
 	if (index == 0)
@@ -440,8 +429,10 @@ void trade_tradecancel(struct map_session_data *sd) {
 		}
 		sd->state.deal_locked = 0;
 		sd->trade_partner = 0;
+		sd->state.trading = 0;
 		target_sd->state.deal_locked = 0;
 		target_sd->trade_partner = 0;
+		target_sd->state.trading = 0;
 		clif_tradecancelled(sd);
 		clif_tradecancelled(target_sd);
 	}
@@ -458,7 +449,7 @@ void trade_tradecommit(struct map_session_data *sd) {
 
 	nullpo_retv(sd);
 
-	if ((target_sd = map_id2sd(sd->trade_partner)) != NULL) {
+	if (sd->state.trading && (target_sd = map_id2sd(sd->trade_partner)) != NULL) {
 		if ((sd->state.deal_locked >= 1) && (target_sd->state.deal_locked >= 1)) { // both have pressed 'ok'
 			if (sd->state.deal_locked < 2) { // set locked to 2
 				sd->state.deal_locked = 2;
@@ -557,8 +548,10 @@ void trade_tradecommit(struct map_session_data *sd) {
 					}
 					sd->state.deal_locked = 0;
 					sd->trade_partner = 0;
+					sd->state.trading = 0;
 					target_sd->state.deal_locked = 0;
 					target_sd->trade_partner = 0;
+					target_sd->state.trading = 0;
 					clif_tradecompleted(sd, 0);
 					clif_tradecompleted(target_sd, 0);
 					// save both player to avoid crash: they always have no advantage/disadvantage between the 2 players

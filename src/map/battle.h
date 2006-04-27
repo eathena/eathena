@@ -26,11 +26,14 @@ struct block_list;
 struct Damage battle_calc_attack(int attack_type,struct block_list *bl,struct block_list *target,int skill_num,int skill_lv,int flag);
 
 int battle_calc_return_damage(struct block_list *bl, int *damage, int flag);
+void battle_drain(struct map_session_data *sd, struct map_session_data *tsd, int rdamage, int ldamage, int race, int boss);
 
 int battle_attr_fix(struct block_list *src, struct block_list *target, int damage,int atk_elem,int def_elem);
 
 // ダメージ最終計算
 int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,int div_,int skill_num,int skill_lv,int flag);
+int battle_calc_gvg_damage(struct block_list *src,struct block_list *bl,int damage,int div_,int skill_num,int skill_lv,int flag);
+
 enum {	// 最終計算のフラグ
 	BF_WEAPON	= 0x0001,
 	BF_MAGIC	= 0x0002,
@@ -44,24 +47,16 @@ enum {	// 最終計算のフラグ
 	BF_SKILLMASK= 0x0f00,
 };
 
-// 実際にHPを増減
-int battle_walkdelay(struct block_list *bl, unsigned int tick, int adelay, int delay, int div_); //Calcs walk delay based on attack type. [Skotlex]
-int battle_delay_damage (unsigned int tick, struct block_list *src, struct block_list *target, int attack_type, int skill_id, int skill_lv, int damage, int dmg_lv, int flag);
-int battle_damage(struct block_list *bl,struct block_list *target,int damage,int flag);
+int battle_delay_damage (unsigned int tick, struct block_list *src, struct block_list *target, int attack_type, int skill_id, int skill_lv, int damage, int dmg_lv, int ddelay, int flag);
+int battle_damage(struct block_list *bl,struct block_list *target,int damage,int walkdelay,int flag);
 int battle_heal(struct block_list *bl,struct block_list *target,int hp,int sp,int flag);
 
-// 攻撃や移動を止める
-int battle_stopattack(struct block_list *bl);
-int battle_iswalking(struct block_list *bl);
-int battle_stopwalking(struct block_list *bl,int type);
-int battle_set_walkdelay(struct block_list *bl, unsigned int tick, int delay, int type);
 
 // 通常攻撃処理まとめ
 int battle_weapon_attack( struct block_list *bl,struct block_list *target,
 	 unsigned int tick,int flag);
 
 // 各種パラメータを得る
-int battle_counttargeted(struct block_list *bl,struct block_list *src,int target_lv);
 struct block_list* battle_gettargeted(struct block_list *target);
 int battle_gettarget(struct block_list *bl);
 int battle_getcurrentskill(struct block_list *bl);
@@ -107,14 +102,14 @@ extern struct Battle_Config {
 	unsigned short cast_rate,delay_rate,delay_dependon_dex;
 	unsigned short sdelay_attack_enable;
 	unsigned short left_cardfix_to_right;
-	unsigned short pc_skill_add_range;
+	unsigned short skill_add_range;
 	unsigned short skill_out_range_consume;
-	unsigned short mob_skill_add_range;
 	unsigned short skillrange_by_distance; //[Skotlex]
 	unsigned short use_weapon_skill_range; //[Skotlex]
 	unsigned short pc_damage_delay_rate;
 	unsigned short defnotenemy;
 	unsigned short vs_traps_bctall;	
+	unsigned short traps_setting;	
 	unsigned short clear_unit_ondeath; //[Skotlex]
 	unsigned short random_monster_checklv;
 	unsigned short attr_recover;
@@ -160,6 +155,7 @@ extern struct Battle_Config {
 	unsigned short mob_count_rate;
 	unsigned short no_spawn_on_player; //[Skotlex]
 	unsigned short mob_spawn_delay, plant_spawn_delay, boss_spawn_delay;	// [Skotlex]
+	unsigned short slaves_inherit_mode;
 	unsigned short slaves_inherit_speed;
 	unsigned short summons_inherit_effects;
 	unsigned short pc_walk_delay_rate; //Adjusts can't walk delay after being hit for players. [Skotlex]
@@ -220,16 +216,14 @@ extern struct Battle_Config {
 	unsigned short max_lv, aura_lv;
 	unsigned short max_parameter, max_baby_parameter;
 	int max_cart_weight;
-	unsigned short pc_skill_log;
-	unsigned short mob_skill_log;
+	unsigned short skill_log;
 	unsigned short battle_log;
 	unsigned short save_log;
 	unsigned short error_log;
 	unsigned short etc_log;
 	unsigned short save_clothcolor;
 	unsigned short undead_detect_type;
-	unsigned short pc_auto_counter_type;
-	unsigned short monster_auto_counter_type;
+	unsigned short auto_counter_type;
 	unsigned short min_hitrate;	//[Skotlex]
 	unsigned short max_hitrate;	//[Skotlex]
 	unsigned short agi_penalty_type;
@@ -242,10 +236,8 @@ extern struct Battle_Config {
 	unsigned short monster_defense_type;
 	unsigned short pet_defense_type;
 	unsigned short magic_defense_type;
-	unsigned short pc_skill_reiteration;
-	unsigned short monster_skill_reiteration;
-	unsigned short pc_skill_nofootset;
-	unsigned short monster_skill_nofootset;
+	unsigned short skill_reiteration;
+	unsigned short skill_nofootset;
 	unsigned short pc_cloak_check_type;
 	unsigned short monster_cloak_check_type;
 	unsigned short estimation_type;
@@ -257,10 +249,8 @@ extern struct Battle_Config {
 	unsigned short gvg_flee_penalty;
 	int gvg_eliminate_time;
 	unsigned short mob_changetarget_byskill;
-	unsigned short pc_attack_direction_change;
-	unsigned short monster_attack_direction_change;
-	unsigned short pc_land_skill_limit;
-	unsigned short monster_land_skill_limit;
+	unsigned short attack_direction_change;
+	unsigned short land_skill_limit;
 	unsigned short party_skill_penalty;
 	unsigned short monster_class_change_full_recover;
 	unsigned short produce_item_name_input;
@@ -383,7 +373,7 @@ extern struct Battle_Config {
 
 	unsigned short copyskill_restrict; // [Aru]
 	unsigned short berserk_cancels_buffs; // [Aru]
-
+	unsigned short debuff_on_logout; // Removes a few "official" negative Scs on logout. [Skotlex]
 	unsigned short mob_ai; //Configures various mob_ai settings to make them smarter or dumber(official). [Skotlex]
 	unsigned short dynamic_mobs; // Dynamic Mobs [Wizputer] - battle_athena flag implemented by [random]
 	unsigned short mob_remove_damaged; // Dynamic Mobs - Remove mobs even if damaged [Wizputer]
@@ -430,6 +420,8 @@ extern struct Battle_Config {
 	unsigned short pc_max_sc_def;
 	unsigned short mob_max_sc_def;
 
+	unsigned short sg_miracle_skill_ratio;
+	int sg_miracle_skill_duration;
 	unsigned short autospell_stacking; //Enables autospell cards to stack. [Skotlex]
 
 } battle_config;

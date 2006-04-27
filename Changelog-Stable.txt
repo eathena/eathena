@@ -4,6 +4,76 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES GO 
 IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EVERYTHING ELSE
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
+2006/04/26
+	* Mass merge from trunk. Everything that has been on trunk since a long
+	  time ago and most of the recent stuff that is known to already work has
+	  been merged.
+	- SQL users: Update the item_db (sql-files/item_db.sql was updated, too) to
+	  latest, apply upgrade_svn6299.sql to correct character classes.
+	- All users: Update the db/* files, notice that some battle flags changed
+	  names and others were added (read the list below).
+	- List of updates:
+	- Merged the unit_data (involves improved rewritten mob/pet ai), view_data
+	  (involves improved gm-hide and disguise implementations) and mob spawn data
+	  (memory consumption optimization) related changes
+	- Merged combo-skill support (skills with inf2 set to NO_TARGET_SELF and
+	  inf INF_SELF_SKILL are automatically considered combo skills, like Monk's
+	  Chain Combo).
+	- Merged the new random item group implementation.
+	- Added SG_MIRACLE implementation
+	- Moved SG_FUSION penalty to skill_calc_weapon_attack
+	- positive div skills multiples damage, negative div values do not.
+	- Counter_additional_effect now triggers together with additional_effect
+	- Battle_damage now receives the walk delay as well
+	- Item name length increased to 50
+	- skill_point/status_point/option changed to unsigned short. Several range
+	  checks related to these were applied as well.
+	- Added sql logging of deleted chars
+	- Can't change into mounted-classes (it's just view data)
+	- @warp #warp will no longer cause 'warp to non-walkable' warnings.
+	- Removed coordinates support for @monster (was unused)
+	- Support for disabling mapflags by using "off", removed mapflag nopvp.
+	- Added mapflag restricted and zone support.
+	- Item-search related @ commands can return multiple results.
+	- #itemlist will correctly display forged items and pet eggs.
+	- Equip/Unequip script columns added to item_db.
+	- Use of ers for guild exp cache, pet loot, ground skills, timer skills.
+	- Can't invite/leave guilds inside castles.
+	- escape_sql script command.
+	- getpartymember can return char names, char id or account id.
+	- Soundeffect being able to receive a flag to determine area of effect
+	- Added battle_drain function to handle all draining logic. Merged updated
+	  drain system with support per race.
+	- Moved consumption of ammo from skill_checkcondition to
+	  battle_consume_ammo (invoked from battle_calc_weapon_attack)
+	- Various battle flags unified to type 4 (defined per BL_*):
+	  skillrange_by_distance, auto_counter_type, skill_log, skill_reiteration,
+	  skill_nofootset, attack_direction_change, land_skill_limit
+	- Added battle flags: traps_setting, slaves_inherit_mode,
+	  sg_miracle_skill_ratio, debuff_on_logout, sg_miracle_skill_duration
+	- Being hit while in counter no longer causes criticals on you.
+	- Cleaned up implementation of traps.
+	- Armor defense is not reduced by the number of targets as vit is.
+	- NPC_INVISIBLE causes infinite cloaking.
+	- Moved mapflag checks from skill_checkcondition to skillnotok so they may
+	  block autospells
+	- Auto-spells increase your can't act delay.
+	- Cleaned up implementation of timer skills.
+	- Cleaned up implementation of Asura, Abracadabra, Running, Cast Breaker,
+	  Barrier, Keeping, Meteor
+	- gm_skill_unconditional now overrides skill_partner_check requirements
+	- Correction of Dance/Songs so that the effect won't wear off while inside
+	  the dance if you walk out and in again.
+	- Corrected Angelus equation
+	- Use of sd->state.trading to determine when a trade is ongoing (after it
+	  has been accepted and before it's completed). Restores walking before a trade
+	  is accepted.
+	- Mob skill condition any won't trigger on dead, added condition
+	  anytarget.
+	- Clif_night_timer which fixes "glowing" if you first logon during
+	  nighttime.
+	- Flag 2 for skill_castnodex to prevent status changes from reducing
+	  cast/delay.
 2006/04/24
 	* Corrected mob_spawn_delay/boss_spawn_delay/plant_spawn_delay settings
 	  (they were named rate rather than delay in monster.conf) [Skotlex]

@@ -565,6 +565,31 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p, struct global_reg *reg
 	p->account_id = tmp_int[1];
 	p->char_num = tmp_int[2];
 	p->class_ = tmp_int[3];
+	//Temporal fix until all chars are reverted from peco-flying-class to 
+	//normal classes. [Skotlex]
+	switch (p->class_) {
+		case 13: //Job_Knight2
+			p->class_ = 7;
+			break;
+		case 21: //Job_Crusader2
+			p->class_ = 14;
+			break;
+		case 4014: //Job_Lord_Knight2
+			p->class_	= 4008;
+			break;
+		case 4022: //Job_Paladin2
+			p->class_ = 4015;
+			break;
+		case 4036: //Job_Baby_Knight2
+			p->class_ = 4030;
+			break;
+		case 4044: //Job_Baby_Crusader2
+			p->class_ = 4037;
+			break;
+		case 4048: //Job_Star_Gladiator2
+			p->class_ = 4047;
+			break;
+	}
 	p->base_level = tmp_int[4];
 	p->job_level = tmp_int[5];
 	p->base_exp = tmp_uint[0];
@@ -1982,7 +2007,10 @@ int parse_tologin(int fd) {
 							// remove specifical skills of classes 19, 4020 and 4042
 							for(j = 315; j <= 322; j++) {
 								if (char_dat[i].status.skill[j].id > 0 && !char_dat[i].status.skill[j].flag) {
-									char_dat[i].status.skill_point += char_dat[i].status.skill[j].lv;
+									if (char_dat[i].status.skill_point > USHRT_MAX - char_dat[i].status.skill[j].lv)
+										char_dat[i].status.skill_point = USHRT_MAX;
+									else
+										char_dat[i].status.skill_point += char_dat[i].status.skill[j].lv;
 									char_dat[i].status.skill[j].id = 0;
 									char_dat[i].status.skill[j].lv = 0;
 								}
@@ -1990,7 +2018,11 @@ int parse_tologin(int fd) {
 							// remove specifical skills of classes 20, 4021 and 4043
 							for(j = 323; j <= 330; j++) {
 								if (char_dat[i].status.skill[j].id > 0 && !char_dat[i].status.skill[j].flag) {
-									char_dat[i].status.skill_point += char_dat[i].status.skill[j].lv;
+									if (char_dat[i].status.skill_point > USHRT_MAX - char_dat[i].status.skill[j].lv)
+										char_dat[i].status.skill_point = USHRT_MAX;
+									else
+										char_dat[i].status.skill_point += char_dat[i].status.skill[j].lv;
+
 									char_dat[i].status.skill[j].id = 0;
 									char_dat[i].status.skill[j].lv = 0;
 								}
@@ -3036,7 +3068,6 @@ int lan_subnetcheck(long *p) {
 }
 
 int parse_char(int fd) {
-
 	int i, ch;
 	unsigned short cmd;
 	char email[40];

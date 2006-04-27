@@ -4,12 +4,18 @@
 #ifndef _MOB_H_
 #define _MOB_H_
 
+#include "unit.h"
+#include "map.h"
+
 #define MAX_RANDOMMONSTER 3
 #define MAX_MOB_RACE_DB 6
 #define MAX_MOB_DB 10000
 	/* Change this to increase the table size in your mob_db to accomodate
 		a larger mob database. Be sure to note that IDs 4001 to 4048 are reserved for advanced/baby/expanded classes.
 	*/
+
+//Min time before mobs do a check to call nearby friends for help (or for slaves to support their master)
+#define MIN_MOBLINKTIME 1000
 
 // These define the range of available IDs for clones. [Valaris]
 #define MOB_CLONE_START 9001
@@ -42,9 +48,8 @@ struct mob_db {
 	int mexp,mexpper;
 	struct { int nameid,p; } dropitem[10]; //8 -> 10 Lupus
 	struct { int nameid,p; } mvpitem[3];
-	int view_class,sex;
-	short hair,hair_color,weapon,shield,head_top,head_mid,head_buttom,option,clothes_color; // [Valaris]
-	int equip; // [Valaris]
+	struct view_data vd;
+	short option;
 	int summonper[MAX_RANDOMMONSTER];
 	int maxskill;
 	struct mob_skill skill[MAX_MOBSKILL];
@@ -101,14 +106,34 @@ enum {
 	MSS_ANGRY,   //Mob retaliating from being attacked.
 	MSS_RUSH,    //Mob following a player after being attacked.
 	MSS_FOLLOW,  //Mob following a player without being attacked.
+	MSS_ANYTARGET,
+};
+
+
+/*==========================================
+ * The structure object for item drop with delay
+ * Since it is only two being able to pass [ int ] a timer function
+ * Data is put in and passed to this structure object.
+ *------------------------------------------
+ */
+struct item_drop {
+	struct item item_data;
+	struct item_drop *next;
+};
+
+struct item_drop_list {
+	int m,x,y;
+	struct map_session_data *first_sd,*second_sd,*third_sd;
+	struct item_drop *item;
 };
 
 struct mob_db* mob_db(int class_);
 int mobdb_searchname(const char *str);
 int mobdb_searchname_array(struct mob_db** data, int size, const char *str);
 int mobdb_checkid(const int id);
+struct view_data* mob_get_viewdata(int class_);
 int mob_once_spawn(struct map_session_data *sd,char *mapname,
-	int x,int y,const char *mobname,int class_,int amount,const char *event);
+	short x,short y,const char *mobname,int class_,int amount,const char *event);
 int mob_once_spawn_area(struct map_session_data *sd,char *mapname,
 	int x0,int y0,int x1,int y1,
 	const char *mobname,int class_,int amount,const char *event);
@@ -117,49 +142,31 @@ int mob_spawn_guardian(struct map_session_data *sd,char *mapname,	// Spawning Gu
 	int x,int y,const char *mobname,int class_,int amount,const char *event,int guardian);	// Spawning Guardians [Valaris]
 int mob_guardian_guildchange(struct block_list *bl,va_list ap); //Change Guardian's ownership. [Skotlex]
 
-int mob_walktoxy(struct mob_data *md,int x,int y,int easy);
 int mob_randomwalk(struct mob_data *md,int tick);
-int mob_can_move(struct mob_data *md);
 
 int mob_target(struct mob_data *md,struct block_list *bl,int dist);
 int mob_unlocktarget(struct mob_data *md,int tick);
-int mob_stop_walking(struct mob_data *md,int type);
-int mob_stopattack(struct mob_data *);
-int mob_spawn(int);
-int mob_setdelayspawn(int);
+struct mob_data* mob_spawn_dataset(struct spawn_data *data);
+int mob_spawn(struct mob_data *md);
+int mob_setdelayspawn(struct mob_data *md);
+int mob_parse_dataset(struct spawn_data *data);
 int mob_damage(struct block_list *,struct mob_data*,int,int);
-int mob_changestate(struct mob_data *md,int state,int type);
 int mob_heal(struct mob_data*,int);
 
-//Defines to speed up search.
-#define mob_get_viewclass(class_) mob_db(class_)->view_class
-#define mob_get_sex(class_) mob_db(class_)->sex
-#define mob_get_hair(class_) mob_db(class_)->hair
-#define mob_get_hair_color(class_) mob_db(class_)->hair_color
-#define mob_get_weapon(class_) mob_db(class_)->weapon
-#define mob_get_shield(class_) mob_db(class_)->shield
-#define mob_get_head_top(class_) mob_db(class_)->head_top
-#define mob_get_head_mid(class_) mob_db(class_)->head_mid
-#define mob_get_head_buttom(class_) mob_db(class_)->head_buttom
-#define mob_get_clothes_color(class_) mob_db(class_)->clothes_color
-#define mob_get_equip(class_) mob_db(class_)->equip
+#define mob_stop_walking(md, type) { if (md->ud.walktimer != -1) unit_stop_walking(&md->bl, type); }
+#define mob_stop_attack(md) { if (md->ud.attacktimer != -1) unit_stop_attack(&md->bl); }
 
 int do_init_mob(void);
 int do_final_mob(void);
 
-void mob_unload(struct mob_data *md);
-int mob_remove_map(struct mob_data *md, int type);
-int mob_delete(struct mob_data *md);
 int mob_timer_delete(int tid, unsigned int tick, int id, int data);
-
 int mob_deleteslave(struct mob_data *md);
-
 
 int mob_random_class (int *value, size_t count);
 int mob_get_random_id(int type, int flag, int lv);
 int mob_class_change(struct mob_data *md,int class_);
-int mob_warp(struct mob_data *md,int m,int x,int y,int type);
 int mob_warpslave(struct block_list *bl, int range);
+int mob_linksearch(struct block_list *bl,va_list ap);
 
 int mobskill_use(struct mob_data *md,unsigned int tick,int event);
 int mobskill_event(struct mob_data *md,struct block_list *src,unsigned int tick, int flag);

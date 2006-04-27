@@ -4,14 +4,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
+
+#include "../common/timer.h"
+#include "../common/nullpo.h"
+#include "../common/malloc.h"
+#include "../common/showmsg.h"
+#include "../common/ers.h"
 
 #include "map.h"
 #include "guild.h"
 #include "storage.h"
-#include "timer.h"
-#include "socket.h"
-#include "nullpo.h"
-#include "malloc.h"
 #include "battle.h"
 #include "npc.h"
 #include "pc.h"
@@ -20,7 +23,6 @@
 #include "intif.h"
 #include "clif.h"
 #include "skill.h"
-#include "showmsg.h"
 #include "log.h"
 
 static struct guild* guild_cache; //For fast retrieval of the same guild over and over. [Skotlex]
@@ -42,8 +44,10 @@ struct eventlist {
 
 // ギルドのEXPキャッシュ
 struct guild_expcache {
-	int guild_id, account_id, char_id, exp;
+	int guild_id, account_id, char_id;
+	unsigned int exp;
 };
+static struct eri *expcache_ers; //For handling of guild exp payment.
 
 struct{
 	int id;
@@ -200,8 +204,9 @@ void do_init_guild(void)
 {
 	guild_db=db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA,sizeof(int));
 	castle_db=db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA,sizeof(int));
-	guild_expcache_db=db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA,sizeof(int));
+	guild_expcache_db=db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_BASE,sizeof(int));
 	guild_infoevent_db=db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_BASE,sizeof(int));
+	expcache_ers = ers_new((uint32)sizeof(struct guild_expcache)); 
 	guild_castleinfoevent_db=db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_BASE,sizeof(int));
 
 	guild_read_castledb();
@@ -348,43 +353,36 @@ int guild_check_conflict(struct map_session_data *sd)
 // ギルドのEXPキャッシュをinter鯖にフラッシュする
 int guild_payexp_timer_sub(DBKey dataid, void *data, va_list ap)
 {
-	int i, *dellist, *delp;
+	int i;
 	struct guild_expcache *c;
 	struct guild *g;
-	double exp2;
 
 	c = (struct guild_expcache *)data;
-	dellist = va_arg(ap,int *);
-	delp = va_arg(ap,int *);
-
-	if (*delp >= GUILD_PAYEXP_LIST ||
-		(g = guild_search(c->guild_id)) == NULL ||
-		(i = guild_getindex(g, c->account_id, c->char_id)) < 0)
-		return 0;
-
-	// It is *already* fixed... this would be more appropriate ^^; [celest]
-	exp2 = g->member[i].exp + c->exp;
-	g->member[i].exp = (exp2 > 0x7FFFFFFF) ? 0x7FFFFFFF : (int)exp2;
-
-	//fixed a bug in exp overflow [Kevin]
-	//g->member[i].exp += c->exp;
-	//if(g->member[i].exp < 0)
-		//g->member[i].exp = 0x7FFFFFFF;
 	
+	if (
+		(g = guild_search(c->guild_id)) == NULL ||
+		(i = guild_getindex(g, c->account_id, c->char_id)) < 0
+	) {
+		ers_free(expcache_ers, data);
+		return 0;
+	}
+
+	if ((unsigned int)g->member[i].exp > INT_MAX - c->exp)
+		g->member[i].exp = INT_MAX;
+	else
+		g->member[i].exp+= c->exp;
+
 	intif_guild_change_memberinfo(g->guild_id,c->account_id,c->char_id,
 		GMI_EXP,&g->member[i].exp,sizeof(g->member[i].exp));
 	c->exp=0;
 
-	dellist[(*delp)++]=dataid.i;
+	ers_free(expcache_ers, data);
 	return 0;
 }
 
 int guild_payexp_timer(int tid, unsigned int tick, int id, int data)
 {
-	int dellist[GUILD_PAYEXP_LIST], delp = 0, i;
-	guild_expcache_db->foreach(guild_expcache_db, guild_payexp_timer_sub, dellist, &delp);
-	for (i = 0; i < delp; i++)
-		idb_remove(guild_expcache_db, dellist[i]);
+	guild_expcache_db->clear(guild_expcache_db,guild_payexp_timer_sub);
 	return 0;
 }
 
@@ -644,11 +642,14 @@ int guild_invite(struct map_session_data *sd,int account_id)
 			return 0;
 		}
 	}
-	if( tsd->status.guild_id>0 || tsd->guild_invite>0 ){	// 相手の所属確認
+	if(tsd->status.guild_id>0 ||
+		tsd->guild_invite>0 ||
+		map[tsd->bl.m].flag.gvg_castle)
+	{	//Can't invite people inside castles. [Skotlex]
 		clif_guild_inviteack(sd,0);
 		return 0;
 	}
-
+	
 	// 定員確認
 	for(i=0;i<g->max_member;i++)
 		if(g->member[i].account_id==0)
@@ -777,7 +778,8 @@ int guild_leave(struct map_session_data *sd,int guild_id,
 		return 0;
 
 	if(	sd->status.account_id!=account_id ||
-		sd->status.char_id!=char_id || sd->status.guild_id!=guild_id)
+		sd->status.char_id!=char_id || sd->status.guild_id!=guild_id ||
+		map[sd->bl.m].flag.gvg_castle) //Can't leave inside guild castles.
 		return 0;
 
 	for(i=0;i<g->max_member;i++){	// 所属しているか
@@ -803,7 +805,7 @@ int guild_explusion(struct map_session_data *sd,int guild_id,
 	if(g==NULL)
 		return 0;
 
-	if(	sd->status.guild_id!=guild_id)
+	if(sd->status.guild_id!=guild_id || map[sd->bl.m].flag.gvg_castle) //Can't leave inside guild castles.
 		return 0;
 
 	if( (ps=guild_getposition(sd,g))<0 || !(g->position[ps].mode&0x0010) )
@@ -866,59 +868,51 @@ int guild_member_leaved(int guild_id,int account_id,int char_id,int flag,
 }
 
 int guild_send_memberinfoshort(struct map_session_data *sd,int online)
-{
+{ // cleaned up [LuzZza]
+	
 	struct guild *g;
-	int  i;
 	
 	nullpo_retr(0, sd);
-
-	if(sd->status.guild_id<=0)
+		
+	if(!(g = guild_search(sd->status.guild_id)))
 		return 0;
-	g=guild_search(sd->status.guild_id);
-	if(g==NULL)
+
+	//Moved to place before intif_guild_memberinfoshort because
+	//If it's not a member, needn't send it's info to intif. [LuzZza]
+	guild_check_member(g);
+	
+	if(sd->status.guild_id <= 0)
 		return 0;
 
 	intif_guild_memberinfoshort(g->guild_id,
 		sd->status.account_id,sd->status.char_id,online,sd->status.base_level,sd->status.class_);
 
-	if( !online ){	// ログアウトするならsdをクリアして終了
-		i=guild_getindex(g,sd->status.account_id,sd->status.char_id);
-		if(i>=0)
-			g->member[i].sd=NULL;
-		return 0;
-	} else if (sd->fd) {
-		//Send XY dot updates. [Skotlex]
-		for(i=0; i < MAX_GUILD; i++) {
-			if (!g->member[i].sd || g->member[i].sd == sd ||
-				g->member[i].sd->bl.m != sd->bl.m)
-				continue;
-			clif_guild_xy_single(sd->fd, g->member[i].sd);
-		}
-	}
-
-	if( sd->state.guild_sent!=0 )	// ギルド初期送信データは送信済み
+	if(sd->state.guild_sent)
 		return 0;
 
-	// 競合確認
-	guild_check_conflict(sd);
-
-	// あるならギルド初期送信データ送信
-	guild_check_member(g);	// 所属を確認する
-	if(sd->status.guild_id==g->guild_id){
+	guild_check_conflict(sd); // mystery check
+		
+	if(sd->status.guild_id == g->guild_id){
+	
 		clif_guild_belonginfo(sd,g);
 		clif_guild_notice(sd,g);
-		sd->state.guild_sent=1;
-		sd->guild_emblem_id=g->emblem_id;
+		
+		sd->state.guild_sent = 1;
+		sd->guild_emblem_id = g->emblem_id;
 	}
+	
 	return 0;
 }
-// ギルドメンバのオンライン状態/Lv更新通知
+
 int guild_recv_memberinfoshort(int guild_id,int account_id,int char_id,int online,int lv,int class_)
-{
+{ // cleaned up [LuzZza]
+	
 	int i,alv,c,idx=-1,om=0,oldonline=-1;
-	struct guild *g=guild_search(guild_id);
-	if(g==NULL)
+	struct guild *g = guild_search(guild_id);
+	
+	if(g == NULL)
 		return 0;
+	
 	for(i=0,alv=0,c=0,om=0;i<g->max_member;i++){
 		struct guild_member *m=&g->member[i];
 		if(m->account_id==account_id && m->char_id==char_id ){
@@ -935,6 +929,7 @@ int guild_recv_memberinfoshort(int guild_id,int account_id,int char_id,int onlin
 		if(m->online)
 			om++;
 	}
+	
 	if(idx == -1 || c == 0) {
 		// ギルドのメンバー外なので追放扱いする
 		struct map_session_data *sd = map_id2sd(account_id);
@@ -947,22 +942,33 @@ int guild_recv_memberinfoshort(int guild_id,int account_id,int char_id,int onlin
 			ShowWarning("guild: not found member %d,%d on %d[%s]\n",	account_id,char_id,guild_id,g->name);
 		return 0;
 	}
+	
 	g->average_lv=alv/c;
 	g->connect_member=om;
 
-	if(oldonline!=online)	// オンライン状態が変わったので通知
-		clif_guild_memberlogin_notice(g,idx,online);
-
-	for(i=0;i<g->max_member;i++){	// sd再設定
+	for(i=0;i<g->max_member;i++) {
 		struct map_session_data *sd= map_id2sd(g->member[i].account_id);
-		if (sd && sd->status.char_id == g->member[i].char_id &&
-			sd->status.guild_id == g->guild_id &&
-			!sd->state.waitingdisconnect)
-			g->member[i].sd = sd;
-		else sd = NULL;
+		g->member[i].sd = (sd && sd->status.char_id == g->member[i].char_id &&
+			sd->status.guild_id == g->guild_id && !sd->state.waitingdisconnect) ? sd : NULL;
 	}
+	
+	if(oldonline!=online) 
+		clif_guild_memberlogin_notice(g, idx, online);
+	
 
-	// ここにクライアントに送信処理が必要
+	if(!g->member[idx].sd)
+		return 0;
+
+	//Send XY dot updates. [Skotlex]
+	//Moved from guild_send_memberinfoshort [LuzZza]
+	for(i=0; i < MAX_GUILD; i++) {
+		
+		if(!g->member[i].sd || i == idx ||
+			g->member[i].sd->bl.m != g->member[idx].sd->bl.m)
+			continue;
+
+		clif_guild_xy_single(g->member[idx].sd->fd, g->member[i].sd);
+	}			
 
 	return 0;
 }
@@ -1112,18 +1118,22 @@ int guild_emblem_changed(int len,int guild_id,int emblem_id,const char *data)
 static void* create_expcache(DBKey key, va_list args) {
 	struct guild_expcache *c;
 	struct map_session_data *sd = va_arg(args, struct map_session_data*);
-	c = (struct guild_expcache *)aCallocA(1, sizeof(struct guild_expcache));
+
+	c = ers_alloc(expcache_ers, struct guild_expcache);
 	c->guild_id = sd->status.guild_id;
 	c->account_id = sd->status.account_id;
 	c->char_id = sd->status.char_id;
+	c->exp = 0;
 	return c;
 }
+
 // ギルドのEXP上納
-int guild_payexp(struct map_session_data *sd,int exp)
+unsigned int guild_payexp(struct map_session_data *sd,unsigned int exp)
 {
 	struct guild *g;
 	struct guild_expcache *c;
-	int per, exp2;
+	int per;
+	unsigned int exp2;
 	double tmp;
 	
 	nullpo_retr(0, sd);
@@ -1132,19 +1142,27 @@ int guild_payexp(struct map_session_data *sd,int exp)
 		(g = guild_search(sd->status.guild_id)) == NULL ||
 		(per = g->position[guild_getposition(sd,g)].exp_mode) <= 0)
 		return 0;
+	
 
 	if (per > 100) per = 100;
+	else
+	if (per < 1) return 0;
 
-	if ((exp2 = exp * per / 100) <= 0)
+	if ((tmp = exp * per / 100) <= 0)
 		return 0;
+	
+	exp2 = (unsigned int)tmp;
+	
+	if (battle_config.guild_exp_rate != 100)
+		tmp = tmp*battle_config.guild_exp_rate/100;
 
 	c = guild_expcache_db->ensure(guild_expcache_db, i2key(sd->status.char_id), create_expcache, sd);
-	tmp = c->exp;
-	if (battle_config.guild_exp_rate != 100)
-		tmp += battle_config.guild_exp_rate*exp2/100;
+
+	if (c->exp > UINT_MAX - (unsigned int)tmp)
+		c->exp = UINT_MAX;
 	else
-		tmp += exp2;
-	c->exp = (tmp > 0x7fffffff) ? 0x7fffffff : (int)tmp;
+		c->exp += (unsigned int)tmp;
+	
 	return exp2;
 }
 
@@ -1153,15 +1171,16 @@ int guild_getexp(struct map_session_data *sd,int exp)
 {
 	struct guild *g;
 	struct guild_expcache *c;
-	double tmp;
 	nullpo_retr(0, sd);
 
 	if (sd->status.guild_id == 0 || (g = guild_search(sd->status.guild_id)) == NULL)
 		return 0;
 
 	c = guild_expcache_db->ensure(guild_expcache_db, i2key(sd->status.char_id), create_expcache, sd);
-	tmp = c->exp + exp;
-	c->exp = (tmp > 0x7fffffff) ? 0x7fffffff : (int)tmp;
+	if (c->exp > UINT_MAX - exp)
+		c->exp = UINT_MAX;
+	else
+		c->exp += exp;
 	return exp;
 }
 
@@ -1971,11 +1990,19 @@ static int guild_infoevent_db_final(DBKey key,void *data,va_list ap)
 	aFree(data);
 	return 0;
 }
+
+static int guild_expcache_db_final(DBKey key,void *data,va_list ap)
+{
+	ers_free(expcache_ers, data);
+	return 0;
+}
+
 void do_final_guild(void)
 {
 	guild_db->destroy(guild_db,NULL);
 	castle_db->destroy(castle_db,NULL);
-	guild_expcache_db->destroy(guild_expcache_db,NULL);
+	guild_expcache_db->destroy(guild_expcache_db,guild_expcache_db_final);
 	guild_infoevent_db->destroy(guild_infoevent_db,guild_infoevent_db_final);
 	guild_castleinfoevent_db->destroy(guild_castleinfoevent_db,guild_infoevent_db_final);
+	ers_destroy(expcache_ers);
 }

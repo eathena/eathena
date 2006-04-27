@@ -41,6 +41,9 @@
 #define INF2_PARTY_ONLY 1024
 #define INF2_GUILD_ONLY 2048
 
+//Walk intervals at which chase-skills are attempted to be triggered.
+#define WALK_SKILL_INTERVAL 5
+
 // スキルデ?タベ?ス
 struct skill_db {
 	char *name;
@@ -166,11 +169,8 @@ int	skill_tree_get_max( int id, int b_class );	// Celest
 const char*	skill_get_name( int id ); 	// [Skotlex]
 
 int skill_isammotype(TBL_PC *sd, int skill);
-int skill_use_id( struct map_session_data *sd, int target_id,
-	int skill_num,int skill_lv);
-int skill_use_pos( struct map_session_data *sd,
-	int skill_x, int skill_y, int skill_num, int skill_lv);
-
+int skill_castend_id( int tid, unsigned int tick, int id,int data );
+int skill_castend_pos( int tid, unsigned int tick, int id,int data );
 int skill_castend_map( struct map_session_data *sd,int skill_num, const char *map);
 
 int skill_cleartimerskill(struct block_list *src);
@@ -187,9 +187,9 @@ struct skill_unit *skill_initunit(struct skill_unit_group *group,int idx,int x,i
 int skill_delunit(struct skill_unit *unit);
 struct skill_unit_group *skill_initunitgroup(struct block_list *src,
 	int count,int skillid,int skilllv,int unit_id, int limit, int interval);
-int skill_delunitgroup(struct skill_unit_group *group);
+int skill_delunitgroup(struct block_list *src, struct skill_unit_group *group);
 int skill_clear_unitgroup(struct block_list *src);
-int skill_clear_element_field(struct block_list *bl);
+int skill_clear_group(struct block_list *bl, int flag);
 
 int skill_unit_ondamaged(struct skill_unit *src,struct block_list *bl,
 	int damage,unsigned int tick);
@@ -789,6 +789,51 @@ enum {
 	AM_TWILIGHT2,
 	AM_TWILIGHT3,
 	HT_POWER,
+	GS_GLITTERING,
+	GS_FLING,
+	GS_TRIPLEACTION,
+	GS_BULLSEYE,
+	GS_MADNESSCANCEL,
+	GS_ADJUSTMENT,
+	GS_INCREASING,
+	GS_MAGICALBULLET,
+	GS_CRACKER,
+	GS_SINGLEACTION,
+	GS_SNAKEEYE,
+	GS_CHAINACTION,
+	GS_TRACKING,
+	GS_DISARM,
+	GS_PIERCINGSHOT,
+	GS_RAPIDSHOWER,
+	GS_DESPERADO,
+	GS_GATLINGFEVER,
+	GS_DUST,
+	GS_FULLBUSTER,
+	GS_SPREADATTACK,
+	GS_GROUNDDRIFT,
+	NJ_TOBIDOUGU,
+	NJ_SYURIKEN,
+	NJ_KUNAI,
+	NJ_HUUMA,
+	NJ_ZENYNAGE,
+	NJ_TATAMIGAESHI,
+	NJ_KASUMIKIRI,
+	NJ_SHADOWJUMP,
+	NJ_KIRIKAGE,
+	NJ_UTSUSEMI,
+	NJ_BUNSINJYUTSU,
+	NJ_NINPOU,
+	NJ_KOUENKA,
+	NJ_KAENSIN,
+	NJ_BAKUENRYU,
+	NJ_HYOUSENSOU,
+	NJ_SUITON,
+	NJ_HYOUSYOURAKU,
+	NJ_HUUJIN,
+	NJ_RAIGEKISAI,
+	NJ_KAMAITACHI,
+	NJ_NEN,
+	NJ_ISSEN,
 
 	KN_CHARGEATK = 1001,
 	CR_SHRINK,
@@ -833,7 +878,6 @@ enum {
 	UNT_FIREWALL,
 	UNT_WARP_WAITING,
 	UNT_WARP_ACTIVE,
-
 	UNT_SANCTUARY = 0x83,
 	UNT_MAGNUS,
 	UNT_PNEUMA,
@@ -887,6 +931,10 @@ enum {
 	UNT_SPIDERWEB,
 	UNT_GRAVITATION,
 	UNT_HERMODE,
+
+	UNT_KAENSIN,
+	UNT_SUITON,
+	
 };
 
 #endif
