@@ -27,6 +27,8 @@ Nexon
 
 Date		Added
 ======
+04/27
+	* Fixed another Aldebaran Castle 4 warp [Playtester]
 04/26
 	* Commented out temp Gunslinger shops. [Lupus]
 	* Fixed Food Seller in Alberta thanks to Sousuke [Playtester]
