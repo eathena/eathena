@@ -5,6 +5,8 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 2006/04/28
+	* Merged the skill attack changes from trunk that should help with mob
+	  position lag with ranged spells. [Skotlex]
 	* Merged the case insensitive version of strstr. Item and mob searching
 	  should now be case insensitive. [Skotlex]
 2006/04/27

@@ -1369,9 +1369,6 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 	int rate;
 	struct map_session_data *sd=NULL;
 	struct map_session_data *dstsd=NULL;
-	struct mob_data *md=NULL;
-	struct mob_data *dstmd=NULL;
-//	struct pet_data *pd=NULL; Pet's can't be inflicted!
 
 	nullpo_retr(0, src);
 	nullpo_retr(0, bl);
@@ -1384,30 +1381,8 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 	}
 	if(skillid > 0 && skilllv <= 0) return 0;	// don't forget auto attacks! - celest
 
-	switch (src->type) {
-		case BL_PC:
-			sd = (struct map_session_data *)src;
-			break;
-		case BL_MOB:
-			md = (struct mob_data *)src;
-			break;
-		case BL_PET:	//Only mobs/players can be affected. [Skotlex]
-//			pd = (struct pet_data *)src;
-//			break;
-		default:
-			return 0;
-	}
-	
-	switch (bl->type) {
-		case BL_PC:
-			dstsd=(struct map_session_data *)bl;
-			break;
-		case BL_MOB:
-			dstmd=(struct mob_data *)bl;
-			break;
-		default:
-			return 0;
-	}
+	BL_CAST(BL_PC, src, sd);
+	BL_CAST(BL_PC, bl, dstsd);
 
 	switch(skillid){
 	case 0: //Normal Attack - Nothing here yet.
@@ -1909,14 +1884,13 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 	case ASC_BREAKER:	// [celest]
 		if (attack_type&BF_WEAPON) { // the 1st attack won't really deal any damage
 			tmpdmg = damage;	// store the temporary weapon damage
-		} else {	// only display damage for the 2nd attack
-			if (tmpdmg == 0 || damage == 0)	// if one or both attack(s) missed, display a 'miss'
-				clif_skill_damage(dsrc, bl, tick, dmg.amotion, dmg.dmotion, 0, dmg.div_, skillid, skilllv, type);
-			damage += tmpdmg;	// add weapon and magic damage
-			tmpdmg = 0;	// clear the temporary weapon damage
-			if (damage > 0)	// if both attacks missed, do not display a 2nd 'miss'
-				dmg.dmotion = clif_skill_damage(dsrc, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skillid, skilllv, type);
-		}
+			return 0; //Wait for the second iteration to do all the work below.
+		} 
+		if (tmpdmg == 0 || damage == 0)	// if one or both attack(s) missed, display a 'miss'
+			clif_skill_damage(dsrc, bl, tick, dmg.amotion, dmg.dmotion, 0, dmg.div_, skillid, skilllv, type);
+		damage += tmpdmg;	// add weapon and magic damage
+		tmpdmg = 0;	// clear the temporary weapon damage
+		dmg.dmotion = clif_skill_damage(dsrc, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skillid, skilllv, type);
 		break;
 	case NPC_SELFDESTRUCTION:
 		if(src->type==BL_PC)
@@ -1969,7 +1943,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		if (su->group && skill_get_inf2(su->group->skill_id)&INF2_TRAP)
 			damage = 0; //Only Heaven's drive may damage traps. [Skotlex]
 	}
-	if ((skillid || flag) && !(attack_type&BF_WEAPON)) {  // do not really deal damage for ASC_BREAKER's 1st attack
+	if (!dmg.amotion) {
 		battle_damage(src,bl,damage,dmg.dmotion,0); //Deal damage before knockback to allow stuff like firewall+storm gust combo.
 		if (dmg.dmg_lv == ATK_DEF || damage > 0) {
 			if (!status_isdead(bl))
@@ -1984,7 +1958,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		skill_blown(dsrc,bl,dmg.blewcount);
 	
 	//Delayed damage must be dealt after the knockback (it needs to know actual position of target)
-	if ((skillid || flag) && attack_type&BF_WEAPON && skillid != ASC_BREAKER) {  // do not really deal damage for ASC_BREAKER's 1st attack
+	if (dmg.amotion) { 
 		battle_delay_damage(tick+dmg.amotion,src,bl,attack_type,skillid,skilllv,damage,dmg.dmg_lv,dmg.dmotion,0);
 	}
 
@@ -2004,7 +1978,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 	}
 
 	if (rdamage>0) {
-		if (attack_type&BF_WEAPON)
+		if (dmg.amotion)
 			battle_delay_damage(tick+dmg.amotion,bl,src,0,0,0,rdamage,ATK_DEF,0,0);
 		else
 			battle_damage(bl,src,rdamage,0,0);
