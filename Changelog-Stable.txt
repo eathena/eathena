@@ -5,6 +5,9 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 2006/04/27
+	* skill_castend_id and skill_castend_pos will trigger unit_stop_walking
+	  with flag 1 (fix pos) rather than none. Should fix some skills making you
+	  appear moving while doing them. [Skotlex]
 	* Added unlocking ud.target on mob_unlocktarget, fixes mobs chasing you
 	  around while cloaked. [Skotlex]
 	* Applied some changes in unit.c to make mobs pick chase paths as they
