@@ -1,3 +1,5 @@
+04/28
+	* Range of Flying Sidekick 10->8 cells [Lupus]
 04/24
 	* Updated OBB, OCA, Cookie Bag, Giftbox, OVB drops to X.2(X.3?)
 	  ItemSummonList provided by Peter [Vicious]
