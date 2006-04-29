@@ -1,3 +1,5 @@
+04/30
+	* Added new hats ViewID, thanks to Lost_Kakashi [Lupus]
 04/28
 	* Storm Kick's range increased to 2. [Skotlex]
 	* Range of Flying Sidekick 10->8 cells [Lupus]
