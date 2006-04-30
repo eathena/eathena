@@ -5,6 +5,8 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 2006/04/30
+	* Fixed a logic error that was likely the cause of pet loot drops not
+	  working. [Skotlex]
 	* Merged Arrow Shower's Arrow consumption fix. [Skotlex]
 	* Fixed and enabled STEAL skill [Lupus]
 2006/04/29
