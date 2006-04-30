@@ -28,6 +28,7 @@ Nexon
 Date		Added
 ======
 04/30
+	* Added Gywall's Pickpocket Quest [Playtester]
 	* Fixed the mjolnir_12 --> prt_maze01 warp [Playtester]
 04/28
 	* Added the missing Kafra in Prontera [Playtester]
