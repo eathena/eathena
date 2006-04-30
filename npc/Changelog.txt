@@ -28,7 +28,7 @@ Nexon
 Date		Added
 ======
 04/30
-	* Merged Geffen Tower 1 spawns from Trunk [Playtester]
+	* Merged Geffen Tower spawns from Trunk [Playtester]
 	* Merged Job Quests and Alberta NPCs from Trunk [Playtester]
 	* Added Gywall's Pickpocket Quest [Playtester]
 	* Fixed the mjolnir_12 --> prt_maze01 warp [Playtester]
