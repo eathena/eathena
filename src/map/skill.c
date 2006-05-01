@@ -5543,7 +5543,9 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 			ud->canact_tick = tick;
 		else
 			ud->canact_tick = tick + skill_delayfix(src, ud->skillid, ud->skilllv);
-		unit_set_walkdelay(src, tick, skill_get_walkdelay(ud->skillid, ud->skilllv), 1);
+	
+		if (skill_get_state(ud->skillid) != ST_MOVE_ENABLE)
+			unit_set_walkdelay(src, tick, battle_config.default_skill_delay+skill_get_walkdelay(ud->skillid, ud->skilllv), 1);
 		
 		if(battle_config.skill_log && battle_config.skill_log&src->type)
 			ShowInfo("Type %d, ID %d skill castend id [id =%d, lv=%d, target ID %d)\n",
@@ -5652,7 +5654,7 @@ int skill_castend_pos( int tid, unsigned int tick, int id,int data )
 				src->type, src->id, ud->skillid, ud->skilllv, ud->skillx, ud->skilly);
 		unit_stop_walking(src,1);
 		ud->canact_tick = tick + skill_delayfix(src, ud->skillid, ud->skilllv);
-		unit_set_walkdelay(src, tick, skill_get_walkdelay(ud->skillid, ud->skilllv), 1);
+		unit_set_walkdelay(src, tick, battle_config.default_skill_delay+skill_get_walkdelay(ud->skillid, ud->skilllv), 1);
 		skill_castend_pos2(src,ud->skillx,ud->skilly,ud->skillid,ud->skilllv,tick,0);
 
 		if (ud->skilltimer == -1) {
@@ -8063,7 +8065,7 @@ int skill_delayfix(struct block_list *bl, int skill_id, int skill_lv)
 		if (skill_get_type(skill_id) == BF_WEAPON && !(skill_get_nk(skill_id)&NK_NO_DAMAGE))
 			time = status_get_adelay(bl); //Use attack delay as default delay.
 		else
-			time = 300;	// default delay, according to official servers
+			time = battle_config.default_skill_delay;
 	} else if (time < 0)
 		time = -time + status_get_adelay(bl);	// if set to <0, the attack delay is added.
 
@@ -9123,7 +9125,8 @@ struct skill_unit_group *skill_initunitgroup(struct block_list *src,
 		skill_unit_group_newid = MAX_SKILL_DB;
 	group->unit=(struct skill_unit *)aCalloc(count,sizeof(struct skill_unit));
 	group->unit_count=count;
-	group->val1=group->val2=0;
+	group->alive_count=0;
+	group->val1=group->val2=group->val3=0;
 	group->skill_id=skillid;
 	group->skill_lv=skilllv;
 	group->unit_id=unit_id;
@@ -9202,7 +9205,6 @@ int skill_delunitgroup(struct block_list *src, struct skill_unit_group *group)
 				skill_delunit(&group->unit[i]);
 	}
 	if(group->valstr!=NULL){
-		//Supposedly Free remembers the size of the original Calloc/Malloc, so this should be safe [Skotlex]
 		aFree(group->valstr);
 		group->valstr=NULL;
 	}
