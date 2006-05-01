@@ -27,6 +27,8 @@ Nexon
 
 Date		Added
 ======
+05/01
+	* Fixed an NPC in Morroc who still said the Dragon Fly is North [Playtester]
 04/30
 	* Merged Geffen Tower spawns from Trunk [Playtester]
 	* Merged Job Quests and Alberta NPCs from Trunk [Playtester]
