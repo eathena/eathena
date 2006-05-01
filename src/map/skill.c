@@ -5816,9 +5816,9 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 	case AL_WARP:				/* ƒ??ƒvƒ|?ƒ^ƒ‹ */
 		if(sd) {
 			clif_skill_warppoint(sd,skillid,skilllv,mapindex_id2name(sd->status.save_point.map),
-				(skilllv>1)?mapindex_id2name(sd->status.memo_point[0].map):"",
-				(skilllv>2)?mapindex_id2name(sd->status.memo_point[1].map):"",
-				(skilllv>3)?mapindex_id2name(sd->status.memo_point[2].map):"");
+				(skilllv>1 && sd->status.memo_point[0].map)?mapindex_id2name(sd->status.memo_point[0].map):"",
+				(skilllv>2 && sd->status.memo_point[1].map)?mapindex_id2name(sd->status.memo_point[1].map):"",
+				(skilllv>3 && sd->status.memo_point[2].map)?mapindex_id2name(sd->status.memo_point[2].map):"");
 		}
 		break;
 
