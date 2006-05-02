@@ -7572,6 +7572,10 @@ int skill_check_condition(struct map_session_data *sd,int skill, int lv, int typ
 	case MO_EXTREMITYFIST:					// ˆ¢?C—…”e–PŒ?
 //		if(sd->sc.data[SC_EXTREMITYFIST].timer != -1) //To disable Asura during the 5 min skill block uncomment this...
 //			return 0;
+		if(sd->sc.data[SC_EXPLOSIONSPIRITS].timer == -1) {
+			clif_skill_fail(sd,skill,0,0);
+			return 0;
+		}
 		if(sd->sc.data[SC_BLADESTOP].timer!=-1)
 			spiritball--;
 		else if (sd->sc.data[SC_COMBO].timer != -1) {
