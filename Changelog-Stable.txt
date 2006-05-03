@@ -4,6 +4,15 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES GO 
 IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EVERYTHING ELSE
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
+2006/05/03
+	* Merged the action request code cleanup (enables you to sit/stand while on
+	  chats, shops, etc) [Skotlex]
+	* Merged checking for state.trading rather than trader_id on some functions
+	  such as shop buying/selling (makes such requests not fail before accepting
+	  a trade request) [Skotlex]
+	* Merged checking for identify/!identify rather than 0/1. [Skotlex]
+	* Merged the cleanup of whispering parsing which prevents crashes when
+	  logging them. [Skotlex]
 2006/05/02
 	* Changed extremity fist's state to move_enabled, the explosion spirits
 	  check is now hardcoded. Should fix EF [Skotlex]
