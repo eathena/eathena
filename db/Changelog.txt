@@ -1,3 +1,5 @@
+05/03
+	* Updated Charge Attack's state from none to move_enable. [Skotlex]
 04/30
 	* Added new hats ViewID, thanks to Lost_Kakashi [Lupus]
 04/28
