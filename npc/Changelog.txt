@@ -27,6 +27,8 @@ Nexon
 
 Date		Added
 ======
+05/04
+	* Merged Kargha's Izlude fix [Playtester]
 05/01
 	* Fixed an NPC in Morroc who still said the Dragon Fly is North [Playtester]
 04/30
