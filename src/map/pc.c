@@ -979,11 +979,15 @@ int pc_calc_skilltree(struct map_session_data *sd)
 					f=0; // Do not unlock normal skills when Basic Skills is not maxed out (can happen because of skill reset)
 			}
 			if(sd->status.skill[id].id==0 ){
-				if(sd->sc.count && sd->sc.data[SC_SPIRIT].timer != -1 && skill_get_inf2(id)&INF2_SPIRIT_SKILL) { //Enable Spirit Skills. [Skotlex]
-					sd->status.skill[id].id=id;
-					sd->status.skill[id].lv=1;
-					sd->status.skill[id].flag=1; //So it is not saved, and tagged as a "bonus" skill.
-					flag=1;
+				if(skill_get_inf2(id)&INF2_SPIRIT_SKILL)
+				{	//Spirit skills cannot be learned, they will only show up on your tree when you get buffed.
+					if (sd->sc.count && sd->sc.data[SC_SPIRIT].timer != -1)
+					{	//Enable Spirit Skills. [Skotlex]
+						sd->status.skill[id].id=id;
+						sd->status.skill[id].lv=1;
+						sd->status.skill[id].flag=1; //So it is not saved, and tagged as a "bonus" skill.
+						flag=1;
+					}
 				} else if (f){
 					sd->status.skill[id].id=id;
 					flag=1;
@@ -2912,8 +2916,8 @@ int pc_steal_item(struct map_session_data *sd,struct block_list *bl)
 
 	if(!sd || !bl || bl->type != BL_MOB)
 		return 0;
-	
-	md=(struct mob_data *)bl;
+
+	md = (TBL_MOB *)bl;
 
 	if(md->state.steal_flag>battle_config.skill_steal_max_tries || status_get_mode(bl)&MD_BOSS || md->master_id ||
 		(md->class_>=1324 && md->class_<1364) || // prevent stealing from treasure boxes [Valaris]
@@ -2926,6 +2930,8 @@ int pc_steal_item(struct map_session_data *sd,struct block_list *bl)
 		? (sd->paramc[4] - md->db->dex)/2 + pc_checkskill(sd,TF_STEAL)*6 + 10
 		: sd->paramc[4] - md->db->dex + pc_checkskill(sd,TF_STEAL)*3 + 10;
 
+	skill+= sd->add_steal_rate; //Better make the steal_Rate addition affect % rather than an absolute on top of the total drop rate. [Skotlex]
+		
 	if (skill < 1)
 		return 0;
 
@@ -2937,12 +2943,12 @@ int pc_steal_item(struct map_session_data *sd,struct block_list *bl)
 		itemid = md->db->dropitem[i].nameid;
 		if(itemid <= 0 || (itemid>4000 && itemid<5000 && pc_checkskill(sd,TF_STEAL) <= 5))
 			continue;
-		if(rand() % 10000 <= ((md->db->dropitem[i].p * skill) / 100 + sd->add_steal_rate))
+		if(rand() % 10000 < md->db->dropitem[i].p*skill/100)
 			break;
 	}
 	if (i == MAX_MOB_DROP)
 		return 0;
-
+	
 	md->state.steal_flag = 255; //you can't steal from this mob any more
 	
 	memset(&tmp_item,0,sizeof(tmp_item));
@@ -3763,12 +3769,18 @@ int pc_checkbaselevelup(struct map_session_data *sd)
 		pc_heal(sd,sd->status.max_hp,sd->status.max_sp);
 
 		//スパノビはキリエ、イムポ、マニピ、グロ、サフラLv1がかかる
-		if((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE || (sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON){
+		if((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE)
+		{
 			sc_start(&sd->bl,SkillStatusChangeTable[PR_KYRIE],100,1,skill_get_time(PR_KYRIE,1));
 			sc_start(&sd->bl,SkillStatusChangeTable[PR_IMPOSITIO],100,1,skill_get_time(PR_IMPOSITIO,1));
 			sc_start(&sd->bl,SkillStatusChangeTable[PR_MAGNIFICAT],100,1,skill_get_time(PR_MAGNIFICAT,1));
 			sc_start(&sd->bl,SkillStatusChangeTable[PR_GLORIA],100,1,skill_get_time(PR_GLORIA,1));
 			sc_start(&sd->bl,SkillStatusChangeTable[PR_SUFFRAGIUM],100,1,skill_get_time(PR_SUFFRAGIUM,1));
+		} else
+		if((sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON)
+		{
+			sc_start(&sd->bl,SkillStatusChangeTable[AL_INCAGI],100,10,skill_get_time(AL_INCAGI,10));
+			sc_start(&sd->bl,SkillStatusChangeTable[AL_BLESSING],100,10,skill_get_time(AL_BLESSING,10));
 		}
 
 		clif_misceffect(&sd->bl,0);
@@ -5491,16 +5503,6 @@ int pc_setoption(struct map_session_data *sd,int type)
 		clif_status_load(&sd->bl,SI_FALCON,1);
 	else if (!(type&OPTION_FALCON) && sd->sc.option&OPTION_FALCON) //Falcon OFF
 		clif_status_load(&sd->bl,SI_FALCON,0);
-
-	//SG flying [Komurka]
-	if (type&OPTION_FLYING && !(sd->sc.option&OPTION_FLYING)) //Flying ON
-	{
-		if (sd->status.class_==JOB_STAR_GLADIATOR)
-			clif_changelook(&sd->bl,LOOK_BASE,JOB_STAR_GLADIATOR2);
-	}
-	else if (!(type&OPTION_FLYING) && sd->sc.option&OPTION_FLYING) //Flying OFF
-		if (sd->vd.class_ != sd->status.class_)
-			clif_changelook(&sd->bl,LOOK_BASE,sd->status.class_);
 
 	sd->sc.option=type;
 	clif_changeoption(&sd->bl);
