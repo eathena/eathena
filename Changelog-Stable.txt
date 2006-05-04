@@ -5,6 +5,9 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 2006/05/04
+	* Added one grace range in the mob_loot search function which should fix
+	  mob looting sometimes not working when the loot is within the mob's view
+	  range. [Skotlex]
 	* Merged the TK level up bonus (Agi Up and Bless lv10) [Skotlex]
 	* Merged the cleanup of the pc_steal_item function (impossible to steal 0.01
 	  drops unless your steal rate is above 100%) [Skotlex]
