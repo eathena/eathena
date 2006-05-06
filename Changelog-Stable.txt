@@ -5,6 +5,8 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 2006/05/05
+	* Fixed a bug in @commands, most likely the reason some people were still
+	  getting crashes. [Skotlex]
 	* Merged the skill_db from trunk. Most noticable are TK kicks doing 3 hits
 	  now. [Skotlex]
 	* Changed the default item use interval to 100ms [Skotlex]
