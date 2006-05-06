@@ -1077,6 +1077,32 @@ static int clif_set007b(struct block_list *bl, struct view_data *vd, struct unit
 #endif
 	}
 	//Non-player sprites only require a few fields.
+#if PACKETVER > 6
+	memset(buf,0,packet_len_table[0x22c]);
+
+	WBUFW(buf,0)=0x22c;
+	WBUFL(buf,2)=bl->id;
+	WBUFW(buf,6)=status_get_speed(bl);
+	if (sc) {
+		WBUFW(buf,8)=sc->opt1;
+		WBUFW(buf,10)=sc->opt2;
+		WBUFL(buf,12)=sc->option;
+		WBUFL(buf,48)=sc->opt3;
+	}
+	WBUFW(buf,16)=vd->class_;
+	WBUFW(buf,18)=vd->hair_style; //For pets
+	WBUFW(buf,20)=vd->head_bottom;	//Pet armor
+	WBUFL(buf,26)=gettick();
+	WBUFW(buf,38)=unit_getdir(bl);
+	WBUFL(buf,40)=guild_id;
+	WBUFL(buf,44)=emblem_id;
+	WBUFPOS2(buf,54,bl->x,bl->y,ud->to_x,ud->to_y);
+	WBUFB(buf,59)=0x88; // Deals with acceleration in directions. [Valaris]
+	WBUFB(buf,60)=0;
+	WBUFB(buf,61)=0;
+	WBUFW(buf,62)=clif_setlevel(lv);
+	return packet_len_table[0x22c];
+#else
 	memset(buf,0,packet_len_table[0x7b]);
 
 	WBUFW(buf,0)=0x7b;
@@ -1100,8 +1126,8 @@ static int clif_set007b(struct block_list *bl, struct view_data *vd, struct unit
 	WBUFB(buf,56)=5;
 	WBUFB(buf,57)=5;
 	WBUFW(buf,58)=clif_setlevel(lv);
-
 	return packet_len_table[0x7b];
+#endif
 }
 
 //Modifies the buffer for disguise characters and sends it to self.
@@ -1110,9 +1136,18 @@ static int clif_set007b(struct block_list *bl, struct view_data *vd, struct unit
 //Luckily, the offsets that need to be changed are the same in packets 0x78, 0x7b, 0x1d8 and 0x1da
 static void clif_setdisguise(struct map_session_data *sd, unsigned char *buf,int len, int flag) {
 	if (flag) {
-		WBUFL(buf,2)=sd->bl.id;
-		WBUFW(buf,12)=OPTION_INVISIBLE;
-		WBUFW(buf,14)=sd->status.class_;
+#if PACKETVER > 6
+		if (WBUFW(buf,0)==0x22c) {
+			WBUFL(buf,12)=OPTION_INVISIBLE;
+			WBUFW(buf,16)=sd->status.class_;
+		} else {
+#endif
+			WBUFL(buf,2)=sd->bl.id;
+			WBUFW(buf,12)=OPTION_INVISIBLE;
+			WBUFW(buf,14)=sd->status.class_;
+#if PACKETVER > 6
+		}
+#endif
 	} else {
 		WBUFL(buf,2)=-sd->bl.id;
 	}
@@ -1280,13 +1315,19 @@ int clif_spawn(struct block_list *bl)
 
 	} else {	//Mob spawn packet.
 		struct status_change *sc = status_get_sc(bl);
+		memset(buf,0,sizeof(buf));
 		WBUFW(buf,0)=0x7c;
 		WBUFL(buf,2)=bl->id;
 		WBUFW(buf,6)=status_get_speed(bl);
-		WBUFW(buf,8)=sc?sc->opt1:0;
-		WBUFW(buf,10)=sc?sc->opt2:0;
-		WBUFW(buf,12)=sc?sc->option:0;
+		if (sc) {
+			WBUFW(buf,8)=sc->opt1;
+			WBUFW(buf,10)=sc->opt2;
+			WBUFW(buf,12)=sc->option;
+		}
 		WBUFW(buf,20)=vd->class_;
+		WBUFW(buf,22)=vd->hair_style;  //Required for pets.
+		WBUFW(buf,24)=vd->head_bottom;	//Pet armor
+
 		WBUFPOS(buf,36,bl->x,bl->y);
 		clif_send(buf,packet_len_table[0x7c],bl,AREA_WOS);
 		if (disguised(bl)) {
@@ -2999,7 +3040,24 @@ int clif_changeoption(struct block_list* bl)
 	nullpo_retr(0, bl);
 	sc = status_get_sc(bl);
 	if (!sc) return 0; //How can an option change if there's no sc?
-
+	
+#if PACKETVER > 6
+	WBUFW(buf,0) = 0x229;
+	WBUFL(buf,2) = bl->id;
+	WBUFW(buf,6) = sc->opt1;
+	WBUFW(buf,8) = sc->opt2;
+	WBUFL(buf,10) = sc->option;
+	WBUFB(buf,14) = 0;	// ??
+	if(disguised(bl)) {
+		clif_send(buf,packet_len_table[0x229],bl,AREA_WOS);
+		WBUFL(buf,2) = -bl->id;
+		clif_send(buf,packet_len_table[0x229],bl,SELF);
+		WBUFL(buf,2) = bl->id;
+		WBUFL(buf,10) = OPTION_INVISIBLE;
+		clif_send(buf,packet_len_table[0x229],bl,SELF);
+	} else
+		clif_send(buf,packet_len_table[0x229],bl,AREA);
+#else
 	WBUFW(buf,0) = 0x119;
 	WBUFL(buf,2) = bl->id;
 	WBUFW(buf,6) = sc->opt1;
@@ -3015,6 +3073,7 @@ int clif_changeoption(struct block_list* bl)
 		clif_send(buf,packet_len_table[0x119],bl,SELF);
 	} else
 		clif_send(buf,packet_len_table[0x119],bl,AREA);
+#endif
 
 	return 0;
 }
@@ -3722,10 +3781,7 @@ static int clif_calc_walkdelay(struct block_list *bl,int delay, int type, int da
 	if (div_ > 1) //Multi-hit skills mean higher delays.
 		delay += battle_config.multihit_delay*(div_-1);
 
-	if (delay <= 0)
-		return 0;
-
-	return delay>0?delay:0;
+	return delay>0?delay:1; //Return 1 to specify there should be no noticeable delay, but you should stop walking.
 }
 
 /*==========================================
@@ -3759,10 +3815,15 @@ int clif_damage(struct block_list *src,struct block_list *dst,unsigned int tick,
 	WBUFL(buf,10)=tick;
 	WBUFL(buf,14)=sdelay;
 	WBUFL(buf,18)=ddelay;
-	WBUFW(buf,22)=(damage > SHRT_MAX)?SHRT_MAX:damage;
+	if (battle_config.hide_woe_damage && map_flag_gvg(src->m)) {
+		WBUFW(buf,22)=-1;
+		WBUFW(buf,27)=-1;
+	} else {
+		WBUFW(buf,22)=(damage > SHRT_MAX)?SHRT_MAX:damage;
+		WBUFW(buf,27)=damage2;
+	}
 	WBUFW(buf,24)=div;
 	WBUFB(buf,26)=type;
-	WBUFW(buf,27)=damage2;
 	clif_send(buf,packet_len_table[0x8a],src,AREA);
 
 	if(disguised(src)) {
@@ -4218,8 +4279,11 @@ int clif_skill_fail(struct map_session_data *sd,int skill_id,int type,int btype)
 {
 	int fd;
 
-	nullpo_retr(0, sd);
-
+	if (!sd) {	//Since this is the most common nullpo.... 
+		ShowDebug("clif_skill_fail: Error, received NULL sd for skill %d\n", skill_id);
+		return 0;
+	}
+	
 	fd=sd->fd;
 
 	// reset all variables [celest]
@@ -4271,7 +4335,11 @@ int clif_skill_damage(struct block_list *src,struct block_list *dst,
 	WBUFL(buf,12)=tick;
 	WBUFL(buf,16)=sdelay;
 	WBUFL(buf,20)=ddelay;
-	WBUFW(buf,24)=damage;
+	if (battle_config.hide_woe_damage && map_flag_gvg(src->m)) {
+		WBUFW(buf,24)=-1;
+	} else {
+		WBUFW(buf,24)=damage;
+	}
 	WBUFW(buf,26)=skill_lv;
 	WBUFW(buf,28)=div;
 	WBUFB(buf,30)=type;
@@ -4298,7 +4366,11 @@ int clif_skill_damage(struct block_list *src,struct block_list *dst,
 	WBUFL(buf,12)=tick;
 	WBUFL(buf,16)=sdelay;
 	WBUFL(buf,20)=ddelay;
-	WBUFL(buf,24)=damage;
+	if (battle_config.hide_woe_damage && map_flag_gvg(src->m)) {
+		WBUFL(buf,24)=-1;
+	} else {
+		WBUFL(buf,24)=damage;
+	}
 	WBUFW(buf,28)=skill_lv;
 	WBUFW(buf,30)=div;
 	WBUFB(buf,32)=type;
@@ -4354,7 +4426,11 @@ int clif_skill_damage2(struct block_list *src,struct block_list *dst,
 	WBUFL(buf,20)=ddelay;
 	WBUFW(buf,24)=dst->x;
 	WBUFW(buf,26)=dst->y;
-	WBUFW(buf,28)=damage;
+	if (battle_config.hide_woe_damage && map_flag_gvg(src->m)) {
+		WBUFW(buf,28)=-1;
+	} else {
+		WBUFW(buf,28)=damage;
+	}
 	WBUFW(buf,30)=skill_lv;
 	WBUFW(buf,32)=div;
 	WBUFB(buf,34)=type;

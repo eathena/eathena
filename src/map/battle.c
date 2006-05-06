@@ -3747,6 +3747,7 @@ static const struct battle_data_short {
 	{ "idle_no_share",                     &battle_config.idle_no_share}, // [celest], for a feature by [MouseJstr]
 	{ "party_even_share_bonus",            &battle_config.party_even_share_bonus}, 
 	{ "delay_battle_damage",               &battle_config.delay_battle_damage}, // [celest]
+	{ "hide_woe_damage",                   &battle_config.hide_woe_damage}, // [Skotlex]
 	{ "display_version",	                  &battle_config.display_version}, // [Ancyker], for a feature by...?
 	{ "who_display_aid",	                  &battle_config.who_display_aid}, // [Ancyker], for a feature by...?
 	{ "display_hallucination",             &battle_config.display_hallucination}, // [Skotlex]
@@ -3972,7 +3973,7 @@ void battle_set_defaults() {
 	battle_config.shop_exp=0;
 	battle_config.combo_delay_rate=100;
 	battle_config.item_check=1;
-	battle_config.item_use_interval=500;
+	battle_config.item_use_interval=100; //Use some very low value that won't bother players, but should cap bots.
 	battle_config.wedding_modifydisplay=0;
 	battle_config.wedding_ignorepalette=0;
 	battle_config.xmas_ignorepalette=0; // [Valaris]
@@ -4149,6 +4150,7 @@ void battle_set_defaults() {
 	battle_config.idle_no_share = 0;
 	battle_config.party_even_share_bonus = 0;
 	battle_config.delay_battle_damage = 1;
+	battle_config.hide_woe_damage = 0;
 	battle_config.display_version = 1;
 	battle_config.who_display_aid = 0;
 	battle_config.display_hallucination = 1;
