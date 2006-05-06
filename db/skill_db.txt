@@ -198,7 +198,7 @@
 176,-1,6,1,-1,0,0,10,1,no,0,2,0,weapon,0	//NPC_POISON#Poison Attack#
 177,7,6,1,-1,0,0,10,1,no,0,2,0,weapon,0	//NPC_BLINDATTACK#Darkness Attack#
 178,-1,6,1,-1,0,0,10,1,no,0,2,0,weapon,0	//NPC_SILENCEATTACK#Silence Attack#
-179,-1,6,1,-1,0,0,10,1,no,0,2,0,weapon,0	//NPC_STUNATTACK#Stun Attack#
+179,-1,6,1,-1,0,0,5,1,no,0,2,0,weapon,0	//NPC_STUNATTACK#Stun Attack#
 180,7,6,1,-1,0,0,10,1,no,0,2,0,weapon,0	//NPC_PETRIFYATTACK#Petrify Attack#
 181,7,6,1,7,0,0,10,1,no,0,2,0,weapon,0	//NPC_CURSEATTACK#Cursing Attack #
 182,-1,6,1,-1,0,0,10,1,no,0,2,0,weapon,0	//NPC_SLEEPATTACK#Sleep attack#
@@ -221,7 +221,7 @@
 199,-1,6,1,-1,0,0,10,1,no,0,2,0,weapon,0	//NPC_BLOODDRAIN#Sucking Blood#
 200,9,6,1,7,0,0,10,1,no,0,2,0,magic,0	//NPC_ENERGYDRAIN#Energy Drain#
 201,0,0,4,0,1,0,10,1,no,0,2,0,weapon,0	//NPC_KEEPING#Keeping#
-202,2,6,1,7,0,0,10,1,no,0,2,0,misc,0	//NPC_DARKBREATH#Dark Breath#
+202,2,6,1,7,0,0,5,1,no,0,2,0,misc,0	//NPC_DARKBREATH#Dark Breath#
 203,1,6,1,7,1,0,10,1,no,0,2,0,magic,0	//NPC_DARKBLESSING#Dark Blessing#
 204,0,0,4,0,1,0,10,1,no,0,2,0,magic,0	//NPC_BARRIER#Barrier#
 205,0,0,4,0,1,0,10,1,no,0,2,0,weapon,0	//NPC_DEFENDER#Defender#
@@ -356,7 +356,7 @@
 334,9,6,4,0,1,0,1,1,yes,0,4,0,none,0	//WE_MALE#I Will Protect You#
 335,9,6,4,0,1,0,1,1,yes,0,4,0,none,0	//WE_FEMALE#I Look up to You#
 336,9,6,4,0,1,3,1,1,yes,0,4,1,none,0	//WE_CALLPARTNER#I miss You#
-337,9,6,1,-1,0,0,1,1,no,0,0,0,weapon,0	//ITM_TOMAHAWK#Throw Tomahawk#
+337,9,6,1,-1,0,0,1,1,no,0,2,0,weapon,0	//ITM_TOMAHAWK#Throw Tomahawk#
 338,-1,8,1,7,0,0,0,-2,no,0,2,0,weapon,0	//NPC_DARKCROSS#Cross of Darkness#
 339,0,6,4,7,0,0,10,1,no,33,258,0,magic,0		//NPC_GRANDDARKNESS#Grand cross of Darkness#
 340,9,8,1,7,0,0,10,1:1:2:2:3:3:4:4:5:5,yes,0,2,0,magic,0	//NPC_DARKSTRIKE#Soul Strike of Darkness#
@@ -430,17 +430,17 @@
 408,9,6,4,0,1,0,1,1,yes,0,4,0,none,0	//WE_BABY#Baby#
 409,9,6,4,0,1,3,1,1,yes,0,4,1,none,0	//WE_CALLPARENT#Call Parent#
 410,9,6,4,0,1,3,1,1,yes,0,4,1,none,0	//WE_CALLBABY#Call Baby#
-411,0,6,4,0,1,0,10,1,yes,0,0,0,misc,0	//TK_RUN#Running#
+411,0,6,4,0,1,0,10,1,yes,0,0,0,misc,4	//TK_RUN#Running#
 412,0,6,4,0,1,0,1,1,no,0,0,0,weapon,0	//TK_READYSTORM#Prepare Whirlwind#
-413,-2,8,4,-1,2,2,7,-2,no,0,512,0,weapon,0	//TK_STORMKICK#Whirlwind Kick#
+413,-2,8,4,-1,2,2,7,-3,no,0,512,0,weapon,0	//TK_STORMKICK#Whirlwind Kick#
 414,0,6,4,0,1,0,1,1,no,0,0,0,weapon,0	//TK_READYDOWN#Prepare Axe Kick#
-415,-2,8,4,-1,0,0,7,-2,no,0,512,0,weapon,0	//TK_DOWNKICK#Axe Kick#
+415,-2,8,4,-1,0,0,7,-3,no,0,512,0,weapon,0	//TK_DOWNKICK#Axe Kick#
 416,0,6,4,0,1,0,1,1,no,0,0,0,weapon,0	//TK_READYTURN#Prepare Round Kick#
 417,-2,8,4,-1,2,1,7,-3,no,0,512,0,weapon,2	//TK_TURNKICK#Round Kick#
 418,0,6,4,0,1,0,1,1,no,0,0,0,weapon,0	//TK_READYCOUNTER#Prepare Counter Kick#
 419,-2,8,4,-1,0,0,7,-3,no,0,512,0,weapon,0	//TK_COUNTER#Counter Kick#
 420,0,6,4,0,1,0,1,1,no,0,0,0,weapon,0	//TK_DODGE#Break Fall#
-421,8,6,4,-1,0,0,7,1,no,0,512,0,weapon,0	//TK_JUMPKICK#Flying Side Kick#
+421,9,8,4,-1,0,0,7,-3,no,0,512,0,weapon,0	//TK_JUMPKICK#Flying Side Kick#
 422,0,0,0,0,0,1,10,0,no,0,0,0,none,0	//TK_HPTIME#Peaceful Rest#
 423,0,0,0,0,0,1,10,0,no,0,0,0,none,0	//TK_SPTIME#Enjoyable Rest#
 424,0,0,0,0,0,0,5,0,no,0,0,0,weapon,0	//TK_POWER#Fighting Chant#
@@ -481,11 +481,11 @@
 459,0,6,4,0,3,-1,1,1,no,0,8,0,weapon,0 //BS_ADRENALINE2#Full Adrenaline Rush#
 460,9,6,16,0,1,0,5,1,yes,0,0,0,magic,0	//SL_HUNTER#Spirit of the Hunter#
 461,9,6,16,0,1,0,5,1,yes,0,512,0,magic,0	//SL_SOULLINKER#Spirit of the Soul Linker#
-462,9,6,16,0,1,0,7,1,no,0,0,0,magic,0 //SL_KAIZEL#Kaizel#
-463,9,6,16,0,1,0,7,1,no,0,0,0,magic,0 //SL_KAAHI#Kahai#
-464,9,6,16,0,1,0,3,1,no,0,0,0,magic,0 //SL_KAUPE#Kauf#
-465,9,6,16,0,1,0,7,1,no,0,0,0,magic,0 //SL_KAITE#Kaite#
-466,0,0,0,0,0,0,7,0,no,0,0,0,magic,0 //SL_KAINA#Kaina#
+462,9,6,16,0,1,0,7,1,yes,0,0,0,magic,0 //SL_KAIZEL#Kaizel#
+463,9,6,16,0,1,0,7,1,yes,0,0,0,magic,0 //SL_KAAHI#Kahai#
+464,9,6,16,0,1,0,3,1,yes,0,0,0,magic,0 //SL_KAUPE#Kauf#
+465,9,6,16,0,1,0,7,1,yes,0,0,0,magic,0 //SL_KAITE#Kaite#
+466,0,0,0,0,0,0,7,0,yes,0,0,0,magic,0 //SL_KAINA#Kaina#
 467,9,6,1,-2,0,0,7,1,no,0,0,0,magic,2	//SL_STIN#Estin#
 468,9,6,1,-2,0,0,7,1,no,0,0,0,magic,0	//SL_STUN#Estern#
 469,9,8,1,-2,0,0,10,1:2:3:4:5:6:7:8:9:10,yes,0,0,0,magic,0	//SL_SMA#Esma#
@@ -536,7 +536,7 @@
 513,-3,6,1,0,0,0,5,1,no,0,0,0,weapon,0	//GS_DISARM#Disarm#
 514,3,6,1,0,0,0,5,1,no,0,0,0,weapon,0	//GS_PIERCINGSHOT#Piercing Shot#
 515,3,8,1,0,0,0,10,5,no,0,0,0,weapon,0	//GS_RAPIDSHOWER#Rapid Shower#
-516,-5,8,4,0,2,2,10,-10,no,0,0,0,weapon,0	//GS_DESPERADO#Desperado#
+516,-5,8,4,0,2,2,10,1,no,0,0,0,weapon,0	//GS_DESPERADO#Desperado#
 517,0,6,4,0,1,0,10,1,no,0,0,0,weapon,0	//GS_GATLINGFEVER#Gatling Fever#
 518,-3,6,1,0,0,0,10,1,no,0,0,0,weapon,0	//GS_DUST#Dust#
 519,3,6,1,0,0,0,10,1,no,0,0,0,weapon,0	//GS_FULLBUSTER#Full Buster#
@@ -549,7 +549,7 @@
 526,9,6,1,0,0,0,10,1,no,0,0,0,misc,0	//NJ_ZENYNAGE#NJ_ZENYNAGE#
 527,0,6,4,3,0,0,5,1,no,0,0,0,weapon,0	//NJ_TATAMIGAESHI#NJ_TATAMIGAESHI#
 528,1,6,1,-1,0,0,10,1,no,0,0,0,weapon,0	//NJ_KASUMIKIRI#NJ_KASUMIKIRI#
-529,1,6,4,0,1,0,5,1,no,0,0,0,none,0	//NJ_SHADOWJUMP#NJ_SHADOWJUMP#
+529,5:6:7:8:9,6,2,0,1,0,5,1,no,0,0,0,none,0	//NJ_SHADOWJUMP#NJ_SHADOWJUMP#
 530,-1,6,1,-1,0,0,5,1,no,0,0,0,weapon,0	//NJ_KIRIKAGE#NJ_KIRIKAGE#
 531,0,6,4,0,1,0,5,1,no,0,0,0,none,0	//NJ_UTSUSEMI#NJ_UTSUSEMI#
 532,0,6,4,0,1,0,10,1,no,0,0,0,none,0	//NJ_BUNSINJYUTSU#NJ_BUNSINJYUTSU#
