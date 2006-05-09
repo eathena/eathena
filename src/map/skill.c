@@ -2609,14 +2609,9 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 				if (sc->data[SC_COMBO].timer != -1) //This is one is here to make combo end even if skill failed. 
 					status_change_end(src,SC_COMBO,-1);
 			}
-			if(!check_distance_bl(src, bl, 1)) { //Need to move to target.
-				struct unit_data *ud;
+			if(!check_distance_bl(src, bl, 2)) { //Need to move to target.
 				int dx,dy;
 
-				if (!unit_can_move(src)) { //You need to be able to move to attack/reach target.
-					if (sd) clif_skill_fail(sd,skillid,0,0);
-					break;
-				}
 				dx = bl->x - src->x;
 				dy = bl->y - src->y;
 				if(dx > 0) dx++;
@@ -2636,18 +2631,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 					skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
 				else if (sd)
 					clif_skill_fail(sd,skillid,0,0);
-				
-				ud = unit_bl2ud(src);
-				if (ud) {
-					if(dx < 0) dx = -dx;
-					if(dy < 0) dy = -dy;
-					if(dy > dx) dx = dy;
-					dy = status_get_speed(src);
-					ud->attackabletime = tick + 100 + dy*dx;
-					unit_set_walkdelay(src, tick, 100 + dy*dx, 1);
-					if(DIFF_TICK(ud->canact_tick,ud->canmove_tick)<0)
-						ud->canact_tick = ud->canmove_tick;
-				}
 			}
 			else //Assume minimum distance of 1 for Charge.
 				skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,skillid == KN_CHARGEATK?1:flag);

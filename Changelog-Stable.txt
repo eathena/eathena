@@ -5,6 +5,7 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 2006/05/08
+	* Merged implementation of Extremity Fist. [Skotlex]
 	* Trunk merges: [Skotlex]
 	- Merged structure of group units to store whether a ground-skill should
 	  consume ammo, consumed no gems (into the abyss) or was magic-power
