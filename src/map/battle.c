@@ -1806,11 +1806,10 @@ static struct Damage battle_calc_weapon_attack(
 				target_count = unit_counttargeted(target,battle_config.vit_penalty_count_lv);
 				if(target_count >= battle_config.vit_penalty_count) {
 					if(battle_config.vit_penalty_type == 1) {
-// armor defense shouldn't be reduced from what people are saying. [Skotlex]						
-//						def1 = (def1 * (100 - (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num))/100;
+						def1 = (def1 * (100 - (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num))/100;
 						def2 = (def2 * (100 - (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num))/100;
 					} else { //Assume type 2
-//						def1 -= (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num;
+						def1 -= (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num;
 						def2 -= (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num;
 					}
 				}
@@ -3041,6 +3040,9 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 			
 	wd = battle_calc_weapon_attack(src,target, 0, 0,0);
 
+	if (sd && sd->state.arrow_atk) //Consume arrow.
+		battle_consume_ammo(sd, 0, 0);
+	
 	damage = wd.damage + wd.damage2;
 	if (damage > 0 && src != target) {
 		rdamage = battle_calc_return_damage(target, &damage, wd.flag);
