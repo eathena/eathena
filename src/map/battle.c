@@ -935,12 +935,6 @@ void battle_consume_ammo(TBL_PC*sd, int skill, int lv)
 	if (!battle_config.arrow_decrement)
 		return;
 	
-	if (skill == AC_SHOWER) {
-		//Can't consume arrows this way as it triggers per target, gotta wait for the direct invocation with lv -1
-		if (lv > 0)
-			return;
-		lv *= -1;
-	}
 	if (skill)
 	{
 		qty = skill_get_ammo_qty(skill, lv);
@@ -1051,7 +1045,6 @@ static struct Damage battle_calc_weapon_attack(
 	}
 
 	if(sd) {
-		sd->state.attack_type = BF_WEAPON;
 		if (sd->skillblown[0].id != 0)
 		{	//Apply the bonus blewcount. [Skotlex]
 			for (i = 0; i < 5 && sd->skillblown[i].id != 0 && sd->skillblown[i].id != skill_num; i++);
@@ -1060,27 +1053,10 @@ static struct Damage battle_calc_weapon_attack(
 		}
 	}
 	//Set miscellaneous data that needs be filled regardless of hit/miss
-	if(sd) {
-		if (!skill_num) //Ammo condition for weapons is lower below.
-		switch (sd->status.weapon) {
-			case W_BOW:
-			case W_REVOLVER:
-			case W_RIFLE:
-			case W_SHOTGUN:
-			case W_GATLING:
-			case W_GRENADE:
-				wd.flag=(wd.flag&~BF_RANGEMASK)|BF_LONG;
-				flag.arrow = 1;
-				break;
-		}
-	} else if (status_get_range(src) > 3)
-		wd.flag=(wd.flag&~BF_RANGEMASK)|BF_LONG;
-
-	if(skill_num && 
-		(skill_get_ammotype(skill_num) ||
-		(sd && skill_isammotype(sd, skill_num)))
-	){
-		//Skills that require a consumable are also long-ranged arrow-types
+	if(
+		(sd && sd->state.arrow_atk) ||
+		(!sd && ((skill_num && skill_get_ammotype(skill_num)) || status_get_range(src)>3))
+	) {	
 		wd.flag=(wd.flag&~BF_RANGEMASK)|BF_LONG;
 		flag.arrow = 1;
 	}
@@ -1153,11 +1129,6 @@ static struct Damage battle_calc_weapon_attack(
 	if(is_boss(target)) //Bosses can't be knocked-back
 		wd.blewcount = 0;
 
-	if (sd)
-	{	//Arrow consumption
-		sd->state.arrow_atk = flag.arrow;
-	}
-
 /* Apparently counter attack no longer causes you to be critical'ed by mobs. [Skotlex]
 	//Check for counter 
 	if(!skill_num)
@@ -1175,8 +1146,6 @@ static struct Damage battle_calc_weapon_attack(
 			wd.type=0x0b;
 			wd.dmg_lv=ATK_LUCKY;
 			if (wd.div_ < 0) wd.div_*=-1;
-			if (sd && flag.arrow)
-				battle_consume_ammo(sd, skill_num, skill_lv);
 			return wd;
 		}
 	}
@@ -1366,8 +1335,6 @@ static struct Damage battle_calc_weapon_attack(
 
 	if(tsd && tsd->special_state.no_weapon_damage) {
 		if (wd.div_ < 0) wd.div_*=-1;
-		if (sd && flag.arrow)
-			battle_consume_ammo(sd, skill_num, skill_lv);
 		return wd;
 	}
 
@@ -2085,11 +2052,8 @@ static struct Damage battle_calc_weapon_attack(
 		if (flag.lh && (flag.hit || wd.damage2>0))
 			wd.damage2 = 1;
 		if (!(battle_config.skill_min_damage&1)) 
-		{	//Do not return if you are supposed to deal greater damage to plants than 1. [Skotlex]
-			if (sd && flag.arrow)
-				battle_consume_ammo(sd, skill_num, skill_lv);
+			//Do not return if you are supposed to deal greater damage to plants than 1. [Skotlex]
 			return wd;
-		}
 	}
 	
 	if(sd && !skill_num && !flag.cri)
@@ -2142,8 +2106,6 @@ static struct Damage battle_calc_weapon_attack(
 			if(wd.damage > 0 && wd.damage2 < 1) wd.damage2 = 1;
 			flag.lh = 1;
 		}
-		if (flag.arrow) //Consume the arrow.
-			battle_consume_ammo(sd, skill_num, skill_lv);
 	}
 	
 	if(wd.damage > 0 || wd.damage2 > 0)
@@ -2169,7 +2131,8 @@ static struct Damage battle_calc_weapon_attack(
 		}
 	}
 
-	if(sd && sd->classchange && tmd && !(t_mode&MD_BOSS) && !tmd->guardian_data && (tmd->class_ < 1324 || tmd->class_ > 1363) && (rand()%10000 < sd->classchange))
+	if(sd && sd->classchange && tmd && !(t_mode&MD_BOSS) && !tmd->guardian_data && (tmd->class_ < 1324 || tmd->class_ > 1363) 
+		&& !mob_is_clone(tmd->class_) && (rand()%10000 < sd->classchange))
 	{	//Classchange:
 		struct mob_db *mob;
 		int k, class_;
@@ -2327,7 +2290,6 @@ struct Damage battle_calc_magic_attack(
 
 	//Set miscellaneous data that needs be filled
 	if(sd) {
-		sd->state.attack_type = BF_MAGIC;
 		sd->state.arrow_atk = 0;
 		if (sd->skillblown[0].id != 0)
 		{	//Apply the bonus blewcount. [Skotlex]
@@ -2681,7 +2643,6 @@ struct Damage  battle_calc_misc_attack(
 	md.dmg_lv=ATK_DEF;
 
 	if( bl->type == BL_PC && (sd=(struct map_session_data *)bl) ) {
-		sd->state.attack_type = BF_MISC;
 		sd->state.arrow_atk = 0;
 		if (sd->skillblown[0].id != 0)
 		{	//Apply the bonus blewcount. [Skotlex]
@@ -3020,11 +2981,13 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 	race = status_get_race(target);
 	ele = status_get_elem_type(target);
 
-	if (sd && (sd->status.weapon == W_BOW || (sd->status.weapon >= W_REVOLVER && sd->status.weapon <= W_GRENADE))
-		&& sd->equip_index[10] < 0)
-  	{
-		clif_arrow_fail(sd,0);
-		return 0;
+	if (sd)
+	{
+		sd->state.arrow_atk = (sd->status.weapon == W_BOW || (sd->status.weapon >= W_REVOLVER && sd->status.weapon <= W_GRENADE));
+		if (sd->state.arrow_atk && sd->equip_index[10]<0) {
+			clif_arrow_fail(sd,0);
+			return 0;
+		}
 	}
 
 	if (sc && sc->data[SC_CLOAKING].timer != -1 && !sc->data[SC_CLOAKING].val4)
@@ -3848,22 +3811,19 @@ int battle_set_value(char *w1, char *w2) {
 			*battle_data_int[i].val = battle_config_switch(w2);
 			return 1;
 		}
-/*			
-                  int val =  battle_config_switch(w2);
-                  switch(battle_data[i].size) {
-                  case 1:
-                    *((unsigned char *) battle_data[i].val) = val;
-                    break;
-                  case 2:
-                    *((unsigned short *) battle_data[i].val) = val;
-                    break;
-                  case 4:
-                    *((unsigned int *) battle_data[i].val) = val;
-                    break;
-                  }
-                  return 1;
+	return 0;
+}
+
+int battle_get_value(char *w1) {
+	int i;
+	for(i = 0; i < sizeof(battle_data_short) / (sizeof(battle_data_short[0])); i++)
+		if (strcmpi(w1, battle_data_short[i].str) == 0) {
+			return * battle_data_short[i].val;
 		}
-*/
+	for(i = 0; i < sizeof(battle_data_int) / (sizeof(battle_data_int[0])); i++)
+		if (strcmpi(w1, battle_data_int[i].str) == 0) {
+			return *battle_data_int[i].val;
+		}
 	return 0;
 }
 

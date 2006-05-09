@@ -358,6 +358,11 @@ struct skill_unit_group {
 	int group_id;
 	int unit_count,alive_count;
 	struct skill_unit *unit;
+	struct {
+		unsigned ammo_consume : 1;
+		unsigned magic_power : 1;
+		unsigned into_abyss : 1;
+	} state;
 };
 struct skill_unit_group_tickset {
 	unsigned int tick;
@@ -486,7 +491,6 @@ struct map_session_data {
 		unsigned lr_flag : 2;
 		unsigned connect_new : 1;
 		unsigned arrow_atk : 1;
-		unsigned attack_type : 3;
 		unsigned skill_flag : 1;
 		unsigned gangsterparadise : 1;
 		unsigned rest : 1;

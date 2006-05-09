@@ -867,7 +867,7 @@ static int clif_set0078(struct block_list *bl, struct view_data *vd, unsigned ch
 		WBUFW(buf,30)=vd->cloth_color;
 		WBUFW(buf,32)=sd?sd->head_dir:dir;
 		WBUFL(buf,34)=guild_id;
-		WBUFL(buf,38)=emblem_id;
+		WBUFW(buf,38)=emblem_id;
 		if (sd) {
 			WBUFW(buf,40)=sd->status.manner;
 			WBUFB(buf,44)=sd->status.karma;
@@ -890,6 +890,7 @@ static int clif_set0078(struct block_list *bl, struct view_data *vd, unsigned ch
 			WBUFW(buf,8)=sc->opt1;
 			WBUFW(buf,10)=sc->opt2;
 			WBUFW(buf,12)=sc->option;
+			WBUFW(buf,42)=sc->opt3;
 		}
 		WBUFW(buf,14)=vd->class_;
 		WBUFW(buf,16)=vd->hair_style;
@@ -903,10 +904,8 @@ static int clif_set0078(struct block_list *bl, struct view_data *vd, unsigned ch
 		WBUFW(buf,32)=sd?sd->head_dir:dir;
 		WBUFL(buf,34)=guild_id;
 		WBUFL(buf,38)=emblem_id;
-		if (sd) {
-			WBUFW(buf,42)=sd->status.manner;
+		if (sd)
 			WBUFB(buf,44)=sd->status.karma;
-		}
 		WBUFB(buf,45)=vd->sex;
 		WBUFPOS(buf,46,bl->x,bl->y);
 		WBUFB(buf,48)|=dir&0x0f;
@@ -927,6 +926,7 @@ static int clif_set0078(struct block_list *bl, struct view_data *vd, unsigned ch
 		WBUFW(buf,8)=sc->opt1;
 		WBUFW(buf,10)=sc->opt2;
 		WBUFW(buf,12)=sc->option;
+		WBUFW(buf,42)=sc->opt3;
 	}
 	WBUFW(buf,14)=vd->class_;
 	WBUFW(buf,16)=vd->hair_style;  //Required for pets.
@@ -1134,7 +1134,9 @@ static int clif_set007b(struct block_list *bl, struct view_data *vd, struct unit
 //Flag = 0: change id to negative, buf will have disguise data.
 //Flag = 1: change id to positive, class and option to make your own char invisible.
 //Luckily, the offsets that need to be changed are the same in packets 0x78, 0x7b, 0x1d8 and 0x1da
+//But no longer holds true for packet 0x22c
 static void clif_setdisguise(struct map_session_data *sd, unsigned char *buf,int len, int flag) {
+
 	if (flag) {
 #if PACKETVER > 6
 		if (WBUFW(buf,0)==0x22c) {
@@ -3816,8 +3818,8 @@ int clif_damage(struct block_list *src,struct block_list *dst,unsigned int tick,
 	WBUFL(buf,14)=sdelay;
 	WBUFL(buf,18)=ddelay;
 	if (battle_config.hide_woe_damage && map_flag_gvg(src->m)) {
-		WBUFW(buf,22)=-1;
-		WBUFW(buf,27)=-1;
+		WBUFW(buf,22)=1;
+		WBUFW(buf,27)=1;
 	} else {
 		WBUFW(buf,22)=(damage > SHRT_MAX)?SHRT_MAX:damage;
 		WBUFW(buf,27)=damage2;
@@ -4336,7 +4338,7 @@ int clif_skill_damage(struct block_list *src,struct block_list *dst,
 	WBUFL(buf,16)=sdelay;
 	WBUFL(buf,20)=ddelay;
 	if (battle_config.hide_woe_damage && map_flag_gvg(src->m)) {
-		WBUFW(buf,24)=-1;
+		WBUFW(buf,24)=1;
 	} else {
 		WBUFW(buf,24)=damage;
 	}
@@ -4367,7 +4369,7 @@ int clif_skill_damage(struct block_list *src,struct block_list *dst,
 	WBUFL(buf,16)=sdelay;
 	WBUFL(buf,20)=ddelay;
 	if (battle_config.hide_woe_damage && map_flag_gvg(src->m)) {
-		WBUFL(buf,24)=-1;
+		WBUFL(buf,24)=1;
 	} else {
 		WBUFL(buf,24)=damage;
 	}
@@ -4427,7 +4429,7 @@ int clif_skill_damage2(struct block_list *src,struct block_list *dst,
 	WBUFW(buf,24)=dst->x;
 	WBUFW(buf,26)=dst->y;
 	if (battle_config.hide_woe_damage && map_flag_gvg(src->m)) {
-		WBUFW(buf,28)=-1;
+		WBUFW(buf,28)=1;
 	} else {
 		WBUFW(buf,28)=damage;
 	}
@@ -5982,8 +5984,8 @@ int clif_party_hp(struct map_session_data *sd)
 
 	WBUFW(buf,0)=0x106;
 	WBUFL(buf,2)=sd->status.account_id;
-	WBUFW(buf,6)=(sd->status.hp > 0x7fff)? 0x7fff:sd->status.hp;
-	WBUFW(buf,8)=(sd->status.max_hp > 0x7fff)? 0x7fff:sd->status.max_hp;
+	WBUFW(buf,6)=(sd->status.hp > SHRT_MAX)?SHRT_MAX:sd->status.hp;
+	WBUFW(buf,8)=(sd->status.max_hp > SHRT_MAX)?SHRT_MAX:sd->status.max_hp;
 	clif_send(buf,packet_len_table[0x106],&sd->bl,PARTY_AREA_WOS);
 	return 0;
 }
@@ -8126,6 +8128,14 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		if (sd->sc.option&OPTION_RIDING)
 			clif_status_load(&sd->bl, SI_RIDING, 1);
 
+		//Auron reported that This skill only triggers when you logon on the map o.O [Skotlex]
+		if ((i = pc_checkskill(sd,SG_KNOWLEDGE)) > 0) {
+			if(sd->bl.m == sd->feel_map[0].m
+				|| sd->bl.m == sd->feel_map[1].m
+				|| sd->bl.m == sd->feel_map[2].m)
+				sc_start(&sd->bl, SC_KNOWLEDGE, 100, i, skill_get_time(SG_KNOWLEDGE, i));
+		}
+
 		if(sd->status.pet_id > 0 && sd->pd && sd->pet.intimate > 900)
 			clif_pet_emotion(sd->pd,(sd->pd->class_ - 100)*100 + 50 + pet_hungry_val(sd));
 		//[LuzZza]
@@ -8170,18 +8180,6 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
 			npc_event_doall_id(script_config.loadmap_event_name, sd->bl.id), script_config.loadmap_event_name);
 	}
-	if ((i = pc_checkskill(sd,SG_KNOWLEDGE)) > 0) {
-		if(sd->bl.m == sd->feel_map[0].m
-			|| sd->bl.m == sd->feel_map[1].m
-			|| sd->bl.m == sd->feel_map[2].m)
-			sc_start(&sd->bl, SC_KNOWLEDGE, 100, i, skill_get_time(SG_KNOWLEDGE, i));
-	}
-
-	if (
-	    pc_checkskill(sd,SG_SUN_COMFORT)  ||
-	    pc_checkskill(sd,SG_MOON_COMFORT) ||
-	    pc_checkskill(sd,SG_STAR_COMFORT))
-		status_calc_pc(sd,0);
 	
 	if (pc_checkskill(sd, SG_DEVIL) && !pc_nextjobexp(sd))
 		clif_status_load(&sd->bl, SI_DEVIL, 1);  //blindness [Komurka]
@@ -8208,6 +8206,24 @@ void clif_parse_TickSend(int fd, struct map_session_data *sd) {
 	clif_servertick(sd);
 }
 
+static int clif_walktoxy_timer(int tid, unsigned int tick, int id, int data)
+{
+	struct map_session_data *sd;
+	short x,y;
+
+	if (!session[id] || (sd = session[id]->session_data) == NULL)
+		return 0;
+	
+	if (!unit_can_move(&sd->bl))
+		return 0;
+
+	x = data>>16;
+	y = data&0xffff;
+
+	unit_walktoxy(&sd->bl, x, y, 0);
+	return 1;
+}
+
 /*==========================================
  *
  *------------------------------------------
@@ -8215,6 +8231,7 @@ void clif_parse_TickSend(int fd, struct map_session_data *sd) {
 void clif_parse_WalkToXY(int fd, struct map_session_data *sd) {
 	int x, y;
 	int cmd;
+	unsigned int tick;
 	RFIFOHEAD(fd);
 
 	if (pc_isdead(sd)) {
@@ -8229,8 +8246,6 @@ void clif_parse_WalkToXY(int fd, struct map_session_data *sd) {
 		return;
 
 	pc_stop_attack(sd);
-	if (!unit_can_move(&sd->bl))
-		return;
 
 	if (sd->invincible_timer != -1)
 		pc_delinvincibletimer(sd);
@@ -8242,9 +8257,17 @@ void clif_parse_WalkToXY(int fd, struct map_session_data *sd) {
 		(RFIFOB(fd,packet_db[sd->packet_ver][cmd].pos[0] + 2) >> 4);
 	//Set last idle time... [Skotlex]
 	sd->idletime = last_tick;
-
+	
+	tick = gettick();
+	if (DIFF_TICK(sd->ud.canmove_tick, tick) > 0 &&
+		DIFF_TICK(sd->ud.canmove_tick, tick) < 2000)
+  	{	// Delay walking command. [Skotlex]
+		add_timer(sd->ud.canmove_tick+1, clif_walktoxy_timer, fd, (x<<16)|y);
+		return;
+	}
+	if (!unit_can_move(&sd->bl))
+		return;
 	unit_walktoxy(&sd->bl, x, y, 0);
-
 }
 
 /*==========================================
@@ -8625,8 +8648,6 @@ void clif_parse_ActionRequest(int fd, struct map_session_data *sd) {
 
 	target_id = RFIFOL(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]);
 	action_type = RFIFOB(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[1]);
-	//Regardless of what they have to do, they have just requested an action, no longer idle. [Skotlex]
-	sd->idletime = last_tick;
 
 	if(target_id<0) // for disguises [Valaris]
 		target_id-=(target_id*2);
@@ -8649,6 +8670,8 @@ void clif_parse_ActionRequest(int fd, struct map_session_data *sd) {
 		}
 		if (sd->invincible_timer != -1)
 			pc_delinvincibletimer(sd);
+
+		sd->idletime = last_tick;
 		unit_attack(&sd->bl, target_id, action_type != 0);
 		break;
 	case 0x02: // sitdown
@@ -10293,7 +10316,6 @@ void clif_parse_GMKick(int fd, struct map_session_data *sd) {
 					clif_GM_kickack(sd, 0);
 			} else if (target->type == BL_MOB) {
 				struct mob_data *md = (struct mob_data *)target;
-				sd->state.attack_type = 0;
 				mob_damage(&sd->bl, md, md->hp, 2);
 			} else
 				clif_GM_kickack(sd, 0);
@@ -11062,10 +11084,7 @@ void clif_parse_FeelSaveOk(int fd,struct map_session_data *sd)
 	WFIFOW(fd,30)=i;
 	WFIFOSET(fd, packet_len_table[0x20e]);
 	
-	if (sd->bl.m == sd->feel_map[i].m && 
-		(i = pc_checkskill(sd,SG_KNOWLEDGE)) > 0)
-		sc_start(&sd->bl, SC_KNOWLEDGE, 100, i, skill_get_time(SG_KNOWLEDGE, i));
-
+	clif_skill_nodamage(&sd->bl,&sd->bl,sd->menuskill_id,sd->menuskill_lv,1);
 	sd->menuskill_lv = sd->menuskill_id = 0;
 }
 
@@ -11615,7 +11634,7 @@ int do_init_clif(void) {
 	add_timer_func_list(clif_clearchar_delay_sub, "clif_clearchar_delay_sub");
 	add_timer_func_list(clif_delayquit, "clif_delayquit");
 	add_timer_func_list(clif_nighttimer, "clif_nighttimer");
-
+	add_timer_func_list(clif_walktoxy_timer, "clif_walktoxy_timer");
 	return 0;
 }
 
