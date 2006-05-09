@@ -2173,9 +2173,10 @@ int pc_skill(struct map_session_data *sd,int id,int level,int flag)
 		clif_skillinfoblock(sd);
 	}
 	else if(sd->status.skill[id].lv < level){	// ?‚¦‚ç‚ê‚é‚ªlv‚ª¬‚³‚¢‚È‚ç
-		if(sd->status.skill[id].id==id)
-			sd->status.skill[id].flag=sd->status.skill[id].lv+2;	// lv‚ğ‹L‰¯
-		else {
+		if(sd->status.skill[id].id==id) {
+			if(!sd->status.skill[id].flag) //Only store lv if skill is learned.
+				sd->status.skill[id].flag=sd->status.skill[id].lv+2;
+		} else {
 			sd->status.skill[id].id=id;
 			sd->status.skill[id].flag=1;	// cardƒXƒLƒ‹‚Æ‚·‚é
 		}

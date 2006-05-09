@@ -5,6 +5,9 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 2006/05/09
+	* Added missing icon for Joint Beat [Skotlex]
+	* Added a fix on pc_skill which fixes overlapping when you get the same
+	  granted skill more than once from script skill bonuses. [Skotlex]
 	* Merged being mobbed reducing armor defense again. [Skotlex]
 	* Merged two lines of code which were missing from yesterday's merge
 	(reason why normal attacks were not consuming arrows). [Skotlex]
