@@ -4,6 +4,11 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES GO 
 IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EVERYTHING ELSE
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
+2006/05/11
+	* Absorb spirits now absorbs 10 SP per sphere as per the description.
+	  [Skotlex]
+	* Merged the implementation of Asura in hopes it'll fix the skill not
+	  working when used on Blade-Stop/Combo. [Skotlex]
 2006/05/09
 	* Added missing icon for Joint Beat [Skotlex]
 	* Added a fix on pc_skill which fixes overlapping when you get the same
