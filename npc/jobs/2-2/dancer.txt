@@ -687,6 +687,7 @@ job_duncer.gat,32,152,6	script	Guide::dancew	69,{
 OnWarp:
 	warpwaitingpc "job_duncer.gat",70,112,1;
 	disablewaitingroomevent;
+	attachnpctimer;
 	initnpctimer "jobDq";
 	end;
 OnInit:
