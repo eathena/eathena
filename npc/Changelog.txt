@@ -27,6 +27,9 @@ Nexon
 
 Date		Added
 ======
+
+05/12
+	* Merged typo fixes in the job dancer quest npc. [Skotlex]
 05/10
 	* Fixed Inn dialogues [Playtester]
 05/09
