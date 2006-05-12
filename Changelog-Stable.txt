@@ -4,6 +4,44 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES GO 
 IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EVERYTHING ELSE
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
+2006/05/12
+	* Large merge from trunk: [Skotlex]
+	- Updated item_db/item_db.sql with the ones from trunk.
+	- Merged the format of mob_db/mob_db.sql from trunk (UPDATE THIS OR YOUR
+	  MOB DROPS WILL BREAK)
+	- Merged the infinite endure implementation that uses val4 as flag and does
+	  not gives mdef.
+	- Merged the TK/SG/SL skill updates as reported by AuronX (check his thread
+	  on development).
+	- Merged the cleanups and corrections to Fog of Wall.
+	- Merged the cleaned up implementation of BladeStop.
+	- Merged battle config settings view_range_rate, chase_range_rate,
+	  override_mob_names, the MVP normal drops config rates (monster.conf and
+	  drops.conf)
+	- Merged NPC_* effect skills having a chance of 50+10lv% chance of
+	  inflicting.
+	- Merged the Kaahi rewrite which uses timers for a proper behaviour.
+	- Merged SC_COMBO status being ended in skill_check_condition, all combo
+	  skills delaying your attackabletime by adelay.
+	- Merged implementation of NPC_POWERUP and NPC_AGIUP giving increased
+	  hit/flee.
+	- Merged function map_foreachinshootrange for the correct behaviour of
+	  skill_wall_check.
+	- Removed the obsoleted drop log and "new sql skill db".
+	- Merged execution of the onequip scripts on logon.
+	- Merged cleaned up implementation of Blessing so that it won't deduct
+	  stats on undead players.
+	- Merged Defender's speed penalty change of 35-5*lv%.
+	- Removed bonuses bDisguise and bInfiniteEndure.
+	- Merged fix on unequip item not ending the elemental enchant unless the
+	  item to be removed is a weapon.
+	- Merged all fields in view_data changed to unsigned.
+	- Merged the check changes in regards to wedding/xmas suit restrictions.
+	- Merged mob name searches not matching mobs with no exp. 
+	- Merged cleaned up mob_randomwalk function.
+	- Moved option defines from map.h to status.h
+	- Merged additional option to setoption, added script commands
+	  setbattleflag, getbattleflag.
 2006/05/11
 	* Absorb spirits now absorbs 10 SP per sphere as per the description.
 	  [Skotlex]

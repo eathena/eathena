@@ -7,6 +7,7 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
+#include <limits.h>
 
 #include "../common/timer.h"
 #include "../common/nullpo.h"
@@ -699,8 +700,10 @@ int npc_event (struct map_session_data *sd, const unsigned char *eventname, int 
 	int xs,ys;
 	unsigned char mobevent[100];
 
-	if (sd == NULL)
+	if (sd == NULL) {
 		nullpo_info(NLP_MARK);
+		return 0;
+	}
 
 	if (ev == NULL && eventname && strcmp(((eventname)+strlen(eventname)-9),"::OnTouch") == 0)
 		return 1;
@@ -813,7 +816,6 @@ int npc_touch_areanpc(struct map_session_data *sd,int m,int x,int y)
 			if (sd->sc.option&6 ||
 				(!battle_config.duel_allow_teleport && sd->duel_group)) // duel rstrct [LuzZza]
 				break;
-			skill_stop_dancing(&sd->bl);
 			pc_setpos(sd,map[m].npc[i]->u.warp.mapindex,map[m].npc[i]->u.warp.x,map[m].npc[i]->u.warp.y,0);
 			break;
 		case SCRIPT:
@@ -1707,7 +1709,7 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 		if (xs >= 0) xs = xs * 2 + 1;
 		if (ys >= 0) ys = ys * 2 + 1;
 
-		if (class_ >= -1) { // -1 NPCs use OnTouch [Lance]
+		if (m >= 0) {
 			for (i = 0; i < ys; i++) {
 				for (j = 0; j < xs; j++) {
 					if (map_getcell(m, x - xs/2 + j, y - ys/2 + i, CELL_CHKNOPASS))
@@ -2031,6 +2033,12 @@ int npc_parse_mob (char *w1, char *w2, char *w3, char *w4)
 		return 1;
 	}
 
+	//Use db names instead of the spawn file ones.
+	if(battle_config.override_mob_names==1)
+		strcpy(mob.name,"--en--");
+	else if (battle_config.override_mob_names==2)
+		strcpy(mob.name,"--ja--");
+	else
 		strncpy(mob.name, mobname, NAME_LENGTH-1);
 
 	if (!mob_parse_dataset(&mob)) //Verify dataset.
@@ -2258,6 +2266,16 @@ static int npc_parse_mapflag (char *w1, char *w2, char *w3, char *w4)
 	}
 	else if (strcmpi(w3,"nocommand")==0) { // Skotlex
 		map[m].flag.nocommand=state;
+	}
+	else if (strcmpi(w3,"restricted")==0) { // Komurka
+		if (state) {
+			map[m].flag.restricted=1;
+			sscanf(w4, "%d", &state);
+			map[m].zone |= 1<<(state+1);
+		} else {
+			map[m].flag.restricted=0;
+			map[m].zone = 0;
+		}
 	}
 	return 0;
 }

@@ -1,3 +1,6 @@
+05/12
+	* Merged mob_db/item_db/skill_db/skill_cast_db from trunk. [Skotlex]
+	- Most notable fix is all stun times reduced to 3 seconds.
 05/03
 	* Updated Charge Attack's state from none to move_enable. [Skotlex]
 04/30

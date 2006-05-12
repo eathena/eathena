@@ -238,27 +238,6 @@ enum {
 
 #define DEFAULT_AUTOSAVE_INTERVAL 60*1000
 
-#define OPTION_SIGHT 0x0001
-#define OPTION_HIDE 0x0002
-#define OPTION_CLOAK 0x0004
-#define OPTION_CART1 0x0008
-#define OPTION_FALCON 0x0010
-#define OPTION_RIDING 0x0020
-#define OPTION_INVISIBLE 0x0040
-#define OPTION_CART2 0x0080
-#define OPTION_CART3 0x0100
-#define OPTION_CART4 0x0200
-#define OPTION_CART5 0x0400
-#define OPTION_ORCISH 0x0800
-#define OPTION_WEDDING 0x1000
-#define OPTION_RUWACH 0x2000
-#define OPTION_CHASEWALK 0x4000
-#define OPTION_XMAS	0x8000
-
-#define OPTION_FLYING 0x10000
-//TODO: Get these Missing options...
-#define OPTION_SIGHTTRASHER 0x0001
-
 //Specifies maps where players may hit each other
 #define map_flag_vs(m) (map[m].flag.pvp || map[m].flag.gvg_dungeon || map[m].flag.gvg || (agit_flag && map[m].flag.gvg_castle))
 //Specifies maps that have special GvG/WoE restrictions
@@ -459,15 +438,16 @@ struct weapon_data {
 };
 
 struct view_data {
-	short class_;
-	short weapon;
-	short shield; //Or left-hand weapon.
-	short head_top;
-	short head_mid;
-	short head_bottom;
-	short hair_style;
-	short hair_color;
-	short cloth_color;
+	unsigned short
+	  	class_,
+		weapon,
+		shield, //Or left-hand weapon.
+		head_top,
+		head_mid,
+		head_bottom,
+		hair_style,
+		hair_color,
+		cloth_color;
 	char sex;
 	unsigned dead_sit : 2;
 };
@@ -530,7 +510,6 @@ struct map_session_data {
 		unsigned no_magic_damage : 1;
 		unsigned no_weapon_damage : 1;
 		unsigned no_gemstone : 1;
-		unsigned infinite_endure : 1;
 		unsigned intravision : 1; // Maya Purple Card effect allowing to see Hiding/Cloaking people [DracoRPG]
 	} special_state;
 	int char_id, login_id1, login_id2, sex;
@@ -897,7 +876,7 @@ struct mob_data {
 	short speed;
 	short attacked_count;
 	unsigned short level;
-	unsigned short attacked_players;
+	unsigned char attacked_players;
 	unsigned int tdmg; //Stores total damage given to the mob, for exp calculations. [Skotlex]
 	int hp, max_hp;
 	int target_id,attacked_id;
@@ -1117,13 +1096,13 @@ enum {
 	SP_SHORT_WEAPON_DAMAGE_RETURN,SP_LONG_WEAPON_DAMAGE_RETURN,SP_WEAPON_COMA_ELE,SP_WEAPON_COMA_RACE, // 1063-1066
 	SP_ADDEFF2,SP_BREAK_WEAPON_RATE,SP_BREAK_ARMOR_RATE,SP_ADD_STEAL_RATE, // 1067-1070
 	SP_MAGIC_DAMAGE_RETURN,SP_RANDOM_ATTACK_INCREASE,SP_ALL_STATS,SP_AGI_VIT,SP_AGI_DEX_STR,SP_PERFECT_HIDE, // 1071-1076
-	SP_DISGUISE,SP_CLASSCHANGE, // 1077-1078
+	SP_FREE,SP_CLASSCHANGE, // 1077-1078
 	SP_HP_DRAIN_VALUE,SP_SP_DRAIN_VALUE, // 1079-1080
 	SP_WEAPON_ATK,SP_WEAPON_ATK_RATE, // 1081-1082
 	SP_DELAYRATE,SP_HP_DRAIN_RATE_RACE,SP_SP_DRAIN_RATE_RACE, // 1083-1085
 	
 	SP_RESTART_FULL_RECOVER=2000,SP_NO_CASTCANCEL,SP_NO_SIZEFIX,SP_NO_MAGIC_DAMAGE,SP_NO_WEAPON_DAMAGE,SP_NO_GEMSTONE, // 2000-2005
-	SP_NO_CASTCANCEL2,SP_INFINITE_ENDURE,SP_UNBREAKABLE_WEAPON,SP_UNBREAKABLE_ARMOR, SP_UNBREAKABLE_HELM, // 2006-2010
+	SP_NO_CASTCANCEL2,SP_FREE1,SP_UNBREAKABLE_WEAPON,SP_UNBREAKABLE_ARMOR, SP_UNBREAKABLE_HELM, // 2006-2010
 	SP_UNBREAKABLE_SHIELD, SP_LONG_ATK_RATE, // 2011-2012
 
 	SP_CRIT_ATK_RATE, SP_CRITICAL_ADDRACE, SP_NO_REGEN, SP_ADDEFF_WHENHIT, SP_AUTOSPELL_WHENHIT, // 2013-2017
@@ -1134,6 +1113,8 @@ enum {
 	SP_UNSTRIPABLE_WEAPON,SP_UNSTRIPABLE_ARMOR,SP_UNSTRIPABLE_HELM,SP_UNSTRIPABLE_SHIELD,  // 2034-2037
 	SP_INTRAVISION, SP_ADD_MONSTER_DROP_ITEMGROUP, SP_SP_LOSS_RATE, // 2038-2040
 	SP_ADD_SKILL_BLOW, SP_SP_VANISH_RATE //2041
+	//Before adding another, note that 1077 (SP_FREE, previously disguise) and
+	//2007 (SP_FREE, previously Infinite Endure) are available!
 };
 
 enum {
@@ -1249,6 +1230,7 @@ int map_delblock_sub(struct block_list *, int);
 #define map_delblock(bl) map_delblock_sub(bl,1)
 int map_moveblock(struct block_list *, int, int, unsigned int);
 int map_foreachinrange(int (*)(struct block_list*,va_list),struct block_list *,int,int,...);
+int map_foreachinshootrange(int (*)(struct block_list*,va_list),struct block_list *,int,int,...);
 int map_foreachinarea(int (*)(struct block_list*,va_list),int,int,int,int,int,int,...);
 // -- moonsoul (added map_foreachincell)
 int map_foreachincell(int (*)(struct block_list*,va_list),int,int,int,int,...);
@@ -1389,35 +1371,6 @@ extern char item_db2_db[32];
 extern char mob_db_db[32];
 extern char mob_db2_db[32];
 extern char login_db[32];
-
-// SQL for databases not supported yet. [Valaris]
-extern int db_use_newsqldbs;
-
-extern char abra_sqldb[32];
-extern char attr_fix_sqldb[32];
-extern char cast_sqldb[32];
-extern char castle_sqldb[32];
-extern char create_arrow_sqldb[32];
-extern char exp_sqldb[32];
-extern char exp_guild_sqldb[32];
-extern char item_bluebox_sqldb[32];
-extern char item_cardalbum_sqldb[32];
-extern char item_giftbox_sqldb[32];
-extern char item_scroll_sqldb[32];
-extern char item_violetbox_sqldb[32];
-extern char job_sqldb1[32];
-extern char mob_boss_sqldb[32];
-extern char mob_branch_sqldb[32];
-extern char mob_poring_sqldb[32];
-extern char mob_skill_sqldb[32];
-extern char pet_sqldb[32];
-extern char produce_sqldb[32];
-extern char refine_sqldb[32];
-extern char size_fix_sqldb[32];
-extern char skill_sqldb[32];
-extern char skill_require_sqldb[32];
-extern char skill_tree_sqldb[32];
-// End [Valaris]
 
 extern char login_db_level[32];
 extern char login_db_account_id[32];

@@ -228,9 +228,10 @@ enum {
 	SC_KAITE,
 	SC_SWOO, // [marquis007]
 	SC_SKA, // [marquis007]
-	SC_TKDORI, // [marquis007]
+	SC_TKREST, // [marquis007]
 	SC_MIRACLE, //SG 'hidden' skill [Komurka]
 	SC_KNOWLEDGE,
+	SC_SMA,	//Not combined with SC_COMBO because SMA has it's own visual effect. [Skotlex].
 	SC_MAX, //Automatically updated max, used in for's and at startup to check we are within bounds. [Skotlex]
 };
 extern int SkillStatusChangeTable[MAX_SKILL];
@@ -330,6 +331,7 @@ enum {
 	SI_READYTURN		= 139,
 	SI_READYCOUNTER		= 141,
 	SI_DODGE		= 143,
+	SI_RUN		= 144,
 	SI_SPURT			= 145,
 	SI_SHADOWWEAPON		= 146,
 	SI_ADRENALINE2		= 147,
@@ -341,7 +343,7 @@ enum {
 	SI_KAIZEL		= 156,
 	SI_KAAHI		= 157,
 	SI_KAUPE		= 158,
-// 159 = blue sparks and item-heal sound effect. Looks like item-use effect.
+	SI_SMA		= 159,
 // 160
 	SI_ONEHAND		= 161,
 	SI_WARM			= 165,	
@@ -361,6 +363,7 @@ enum {
 	SI_WINKCHARM		= 199,
 	SI_CLOSECONFINE		= 200,
 	SI_CLOSECONFINE2	= 201,
+	SI_TKREST = 205, // 205 = Gloria again (but TK- Happy State looks like it)
 };
 extern int StatusIconChangeTable[];
 
@@ -399,7 +402,6 @@ enum {
 #define OPT2_POISON 0x001
 #define OPT2_CURSE 0x002
 #define OPT2_SILENCE 0x004
-//0x008 Odd howl sound, Signum crucis?
 #define OPT2_SIGNUMCRUCIS 0x008
 #define OPT2_BLIND 0x010
 //0x020 - nothing
@@ -421,6 +423,25 @@ enum {
 #define OPT3_PINKAURA 0x400 //Marionette
 #define OPT3_AURASHIELD 0x800 //Assumptio
 #define OPT3_HEAT 0x1000 //Warmth Skills
+
+#define OPTION_SIGHT 0x0001
+#define OPTION_HIDE 0x0002
+#define OPTION_CLOAK 0x0004
+#define OPTION_CART1 0x0008
+#define OPTION_FALCON 0x0010
+#define OPTION_RIDING 0x0020
+#define OPTION_INVISIBLE 0x0040
+#define OPTION_CART2 0x0080
+#define OPTION_CART3 0x0100
+#define OPTION_CART4 0x0200
+#define OPTION_CART5 0x0400
+#define OPTION_ORCISH 0x0800
+#define OPTION_WEDDING 0x1000
+#define OPTION_RUWACH 0x2000
+#define OPTION_CHASEWALK 0x4000
+#define OPTION_FLYING 0x8000
+//TODO: Get these Missing options...
+#define OPTION_SIGHTTRASHER 0x0001
 
 // ÉpÉâÉÅÅ[É^èäìæån battle.c ÇÊÇËà⁄ìÆ
 int status_get_class(struct block_list *bl);
@@ -489,6 +510,7 @@ int status_get_sc_def(struct block_list *bl, int type);
 
 int status_change_start(struct block_list *bl,int type,int rate,int val1,int val2,int val3,int val4,int tick,int flag);
 int status_change_end( struct block_list* bl , int type,int tid );
+int kaahi_heal_timer(int tid, unsigned int tick, int id, int data);
 int status_change_timer(int tid, unsigned int tick, int id, int data);
 int status_change_timer_sub(struct block_list *bl, va_list ap );
 int status_change_clear(struct block_list *bl,int type);

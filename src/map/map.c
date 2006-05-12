@@ -89,35 +89,6 @@ char item_db2_db[32] = "item_db2";
 char mob_db_db[32] = "mob_db";
 char mob_db2_db[32] = "mob_db2";
 
-// SQL for databases not supported yet. [Valaris]
-int db_use_newsqldbs = 0;
-
-char abra_sqldb[32]="abra_db";
-char attr_fix_sqldb[32]="attr_fix";
-char cast_sqldb[32]="cast_db";
-char castle_sqldb[32]="castle_db";
-char create_arrow_sqldb[32]="create_arrow_db";
-char exp_sqldb[32]="exp";
-char exp_guild_sqldb[32]="exp_guild";
-char item_bluebox_sqldb[32]="item_bluebox";
-char item_cardalbum_sqldb[32]="item_cardalbum";
-char item_giftbox_sqldb[32]="item_giftbox";
-char item_scroll_sqldb[32]="item_scroll";
-char item_violetbox_sqldb[32]="item_violetbox";
-char job_sqldb1[32]="job_db1";
-char mob_boss_sqldb[32]="mob_boss";
-char mob_branch_sqldb[32]="mob_branch";
-char mob_poring_sqldb[32]="mob_poring";
-char mob_skill_sqldb[32]="mob_skill_db";
-char pet_sqldb[32]="pet_db";
-char produce_sqldb[32]="produce_db";
-char refine_sqldb[32]="refine_db";
-char size_fix_sqldb[32]="size_fix";
-char skill_sqldb[32]="skill_db";
-char skill_require_sqldb[32]="skill_require_db";
-char skill_tree_sqldb[32]="skill_tree";
-// End [Valaris]
-
 char login_db[32] = "login";
 char login_db_level[32] = "level";
 char login_db_account_id[32] = "account_id";
@@ -552,6 +523,8 @@ int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick) {
 					else
 						skill_unit_move_unit_group((struct skill_unit_group *)sc->data[SC_DANCING].val2, bl->m, x1-x0, y1-y0);
 				}
+				if (sc->data[SC_WARM].timer != -1)
+					skill_unit_move_unit_group((struct skill_unit_group *)sc->data[SC_WARM].val4, bl->m, x1-x0, y1-y0);
 			}
 		}
 	}
@@ -701,7 +674,79 @@ int map_foreachinrange(int (*func)(struct block_list*,va_list),struct block_list
 				for(i=0;i<c && bl;i++,bl=bl->next){
 					if(bl
 						&& bl->x>=x0 && bl->x<=x1 && bl->y>=y0 && bl->y<=y1
-						&& check_distance_bl(center, bl, range)
+//						&& check_distance_bl(center, bl, range)
+						&& bl_list_count<BL_LIST_MAX)
+						bl_list[bl_list_count++]=bl;
+				}
+			}
+		}
+
+	if(bl_list_count>=BL_LIST_MAX) {
+		if(battle_config.error_log)
+			ShowWarning("map_foreachinrange: block count too many!\n");
+	}
+
+	map_freeblock_lock();	// メモリからの解放を禁止する
+
+	for(i=blockcount;i<bl_list_count;i++)
+		if(bl_list[i]->prev)	// 有?かどうかチェック
+			returnCount += func(bl_list[i],ap);
+
+	map_freeblock_unlock();	// 解放を許可する
+
+	va_end(ap);
+	bl_list_count = blockcount;
+	return returnCount;	//[Skotlex]
+}
+
+/*==========================================
+ * Same as foreachinrange, but there must be a shoot-able range between center and target to be counted in. [Skotlex]
+ *------------------------------------------
+ */
+int map_foreachinshootrange(int (*func)(struct block_list*,va_list),struct block_list *center, int range,int type,...) {
+	va_list ap;
+	int bx,by,m;
+	int returnCount =0;	//total sum of returned values of func() [Skotlex]
+	struct block_list *bl=NULL;
+	int blockcount=bl_list_count,i,c;
+	int x0,x1,y0,y1;
+	m = center->m;
+	if (m < 0)
+		return 0;
+	va_start(ap,type);
+	x0 = center->x-range;
+	x1 = center->x+range;
+	y0 = center->y-range;
+	y1 = center->y+range;
+	
+	if (x0 < 0) x0 = 0;
+	if (y0 < 0) y0 = 0;
+	if (x1 >= map[m].xs) x1 = map[m].xs-1;
+	if (y1 >= map[m].ys) y1 = map[m].ys-1;
+	
+	if (type&~BL_MOB)
+		for (by = y0 / BLOCK_SIZE; by <= y1 / BLOCK_SIZE; by++) {
+			for(bx=x0/BLOCK_SIZE;bx<=x1/BLOCK_SIZE;bx++){
+				bl = map[m].block[bx+by*map[m].bxs];
+				c = map[m].block_count[bx+by*map[m].bxs];
+				for(i=0;i<c && bl;i++,bl=bl->next){
+					if(bl && bl->type&type
+						&& bl->x>=x0 && bl->x<=x1 && bl->y>=y0 && bl->y<=y1
+						&& path_search_long(NULL,center->m,center->x,center->y,bl->x,bl->y)
+					  	&& bl_list_count<BL_LIST_MAX)
+						bl_list[bl_list_count++]=bl;
+				}
+			}
+		}
+	if(type&BL_MOB)
+		for(by=y0/BLOCK_SIZE;by<=y1/BLOCK_SIZE;by++){
+			for(bx=x0/BLOCK_SIZE;bx<=x1/BLOCK_SIZE;bx++){
+				bl = map[m].block_mob[bx+by*map[m].bxs];
+				c = map[m].block_mob_count[bx+by*map[m].bxs];
+				for(i=0;i<c && bl;i++,bl=bl->next){
+					if(bl
+						&& bl->x>=x0 && bl->x<=x1 && bl->y>=y0 && bl->y<=y1
+						&& path_search_long(NULL,center->m,center->x,center->y,bl->x,bl->y)
 						&& bl_list_count<BL_LIST_MAX)
 						bl_list[bl_list_count++]=bl;
 				}
@@ -1432,7 +1477,7 @@ int map_search_freecell(struct block_list *src, int m, short *x,short *y, int rx
 		tries = rx2*ry2;
 		if (tries > 100) tries = 100;
 	} else
-		tries = 100;
+		tries = 1000; //Must retry a lot for maps with many non-walkable tiles.
 	
 	while(tries--) {
 		*x = (rx >= 0)?(rand()%rx2-rx+bx):(rand()%(map[m].xs-2)+1);
@@ -3156,15 +3201,10 @@ int parse_console(char *buf) {
 	sd->fd = 0;
 	strcpy( sd->status.name , "console");
 
-	type = (char *)aMallocA(64);
-	command = (char *)aMallocA(64);
-	map = (char *)aMallocA(64);
-	buf2 = (char *)aMallocA(72);
-
-	memset(type,0,64);
-	memset(command,0,64);
-	memset(map,0,64);
-	memset(buf2,0,72);
+	type = (char *)aCallocA(64,1);
+	command = (char *)aCallocA(64,1);
+	map = (char *)aCallocA(64,1);
+	buf2 = (char *)aCallocA(72,1);
 
 	if ( ( n = sscanf(buf, "%[^:]:%[^:]:%99s %d %d[^\n]", type , command , map , &x , &y )) < 5 )
 		if ( ( n = sscanf(buf, "%[^:]:%[^\n]", type , command )) < 2 )
@@ -3409,9 +3449,6 @@ int inter_config_read(char *cfgName)
 			ShowStatus ("Using SQL dbs: %s\n",w2);
 		} else if(strcmpi(w1,"connection_ping_interval")==0) {
 			connection_ping_interval = battle_config_switch(w2);
-		} else if(strcmpi(w1,"use_new_sql_db")==0){
-			db_use_newsqldbs = battle_config_switch(w2);
-			ShowStatus ("Using New SQL dbs: %s\n",w2);
 		//Login Server SQL DB
 		} else if(strcmpi(w1,"login_server_ip")==0){
 			strcpy(login_server_ip, w2);
@@ -3527,9 +3564,6 @@ int map_sql_close(void){
 	ShowStatus("Close Map DB Connection....\n");
 
 	if (log_config.sql_logs)
-//Updating this if each time there's a log_config addition is too much of a hassle.	[Skotlex]
-		/*&& (log_config.branch || log_config.drop || log_config.mvpdrop ||
-		log_config.present || log_config.produce || log_config.refine || log_config.trade))*/
 	{
 		mysql_close(&logmysql_handle);
 		ShowStatus("Close Log DB Connection....\n");
@@ -3618,9 +3652,11 @@ void do_final(void) {
 
 	ShowStatus("Terminating...\n");
 
-	// we probably don't need the cache open at all times 'yet', so this is closed by mapsource_final [celest]
+	//we probably don't need the cache open at all times 'yet', so this is closed by mapsource_final [celest]
 	//map_cache_close();
-	grfio_final();
+
+	// We probably don't need the grfio after server bootup 'yet' too. So this is closed near the end of do_init [Lance]
+	//grfio_final();
 
 	for (i = 0; i < map_num; i++)
 		if (map[i].m >= 0)
@@ -3906,6 +3942,8 @@ int do_init(int argc, char *argv[]) {
 
 	if (battle_config.pk_mode == 1)
 		ShowNotice("Server is running on '"CL_WHITE"PK Mode"CL_RESET"'.\n");
+
+	grfio_final(); // Unused after reading all maps.
 
 	ShowStatus("Server is '"CL_GREEN"ready"CL_RESET"' and listening on port '"CL_WHITE"%d"CL_RESET"'.\n\n", map_port);
 

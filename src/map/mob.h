@@ -35,7 +35,7 @@ struct mob_skill {
 };
 
 struct mob_db {
-	char name[NAME_LENGTH],jname[NAME_LENGTH];
+	char sprite[NAME_LENGTH],name[NAME_LENGTH],jname[NAME_LENGTH];
 	unsigned short lv;
 	int max_hp,max_sp;
 	unsigned int base_exp,job_exp;
@@ -47,7 +47,7 @@ struct mob_db {
 	short race2;	// celest
 	int speed,adelay,amotion,dmotion;
 	int mexp,mexpper;
-	struct { int nameid,p; } dropitem[10]; //8 -> 10 Lupus
+	struct { int nameid,p; } dropitem[MAX_MOB_DROP];
 	struct { int nameid,p; } mvpitem[3];
 	struct view_data vd;
 	short option;

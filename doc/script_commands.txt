@@ -33,6 +33,10 @@
 //= 2.7a - delitem2, countitems2 commands [Lupus]
 //= 2.7b - clone command [Skotlex]
 //= 2.7c - disguise / undisguise, query_sql commands [Lupus]
+
+//= 2.8 - Deleted a copy of the nude command. Added axtoi command (needing a clearer
+//=	  explanation of atoi.Gave a better explanation of OnLabels and modified
+//=	  monster explanation due that L_Label isn't working with monster.
 //===== Compatible With ===================================
 //= LOL, can be used by anyone hopefully
 //===== Description =======================================
@@ -164,13 +168,14 @@ explanation, see 'setmapflag'.
 
 ** Create a permanent monster spawn:
 
-<map name>,<x1>,<y1>,<x2>,<y2>%TAB%monster%TAB%<monster name>%TAB%<mob id>,<amount>,<delay1>,<delay2>,<event>
+<map name>,<x>,<y>,<xs>,<ys>%TAB%monster%TAB%<monster name>%TAB%<mob id>,<amount>,<delay1>,<delay2>,<event>
 
-Map name is the name of the map the monsters will spawn on. x1/y1-y1/y2 is a 
-square of map coordinates which will limit where they will initially spawn. 
-Putting zeros instead of these coordinates will spawn the monsters randomly. 
-It's not certain whether monsters will later be able to venture out of this 
-square when randomly moving or not. (Can anyone confirm?)
+Map name is the name of the map the monsters will spawn on. x,y are the
+coordinates where the mob should spawn. If xs and ys are non-zero, they
+specify the diameters of a spawn-rectangle area who's center is x,y.
+Putting zeros instead of these coordinates will spawn the monsters randomly.
+Note this is only the initial spawn zone, as mobs random-walk, they are free
+to move away from their specified spawn region.
 
 Monster name is the name the monsters will have on screen, and has no relation 
 whatsoever to their names anywhere else. It's the mob id that counts, which 
@@ -180,12 +185,14 @@ used, (which, in eAthena, actually contains an english name) if it's "--en--",
 it's the 'english name' from the monster database (which contains an uppercase 
 name used to summon the monster with a GM command).
 
-If you add 4000 to the monster ID, the monster will be spawned in a 'big 
-version', (monster size class will increase) and if you add 2000, the 'tiny 
-version' of the monster will be created. This will not, however, make the 
-monster spawn with a bigger or smaller sprite, like with 
-@monstersmall/@monsterbig GM commands. Monster size class relates only to the 
-damage calculation.
+If you add 20000 to the monster ID, the monster will be spawned in a 'big 
+version', (monster size class will increase) and if you add 10000, the 'tiny 
+version' of the monster will be created. However, this method is deprecated
+and not recommended, as the values to add can change at a later time (20000
+and 10000 actually stand for 2*MAX_MOB_DB and MAX_MOB_DB respectively, which
+is defined on mob.h, and can change in the future as more mobs are created).
+The recommended way to change a mob's size is to use the event-field (see
+below).
 
 Amount is the amount of monsters that will be spawned when this command is 
 executed, it is affected by spawn rates in 'battle_athena.conf'.
@@ -195,12 +202,24 @@ since a monster defined in this spawn was last respawned and the second one
 counts the time since the monster of this spawn was last killed. Whichever turns 
 out to be higher will be used. If the resulting number is smaller than a random 
 value between 5 and 10 seconds, this value will be used instead. (Which is 
-normally the case if both delay values are zero.) If both delay values are -1, 
-the monster will never respawn upon death until the server restarts. The times 
-are given in 1/1000ths of a second.
+normally the case if both delay values are zero.) The times are given in
+1/1000ths of a second.
 
-Level overrides the monster's level from the monster id database, if it is 0, 
-the level from the database is used. 
+You can specify a custom level to use for the mob different from the one of
+the database by adjoining the level after the name with a comma. eg:
+"Poring,50" for a name will spawn a monster with name Poring and level 50.
+
+Event is a script event to be executed when the mob is killed. The event must
+be in the form "NPCName::OnEventName" to execute, and the event name label
+should start with "On". As with all events, if the NPC is an on-touch npc, the
+player who triggers the script must be within 'trigger' range for the event to
+work.
+
+The Event field can be used alternatively to specify other mob properties. Use
+2 to specify that the mob should be small, 4 for big monsters, and 8 for
+special ai mobs (which by default attack other monsters instead of players).
+You can add these, so using 10 will spawn small monsters that attack other
+mobs (if you specify both 2 and 4, the small version takes priority).
 
 ** Define a warp point
 
@@ -670,6 +689,28 @@ when those will get triggered. For more information, see
 Only the special labels which are not associated with any script command are 
 listed here. There are other kinds of labels which may be triggered in a similar 
 manner, but they are described with their associated commands.
+
+On<label name>:
+
+These special labels are used with Mob scripts mostly, and script commands
+that requires you to point/link a command to a mob or another npc, giving a label
+name to start from. The label name can be any of your liking, but must be
+
+Example:
+
+monster "prontera.gat",123,42,"Poringz0rd",2341,23,"Master::OnThisMobDeath";
+
+amatsu.gat,13,152,4	script	Master	767,{
+
+mes "Hi there";
+close;
+
+OnThisMobDeath:
+	announce "Hey, "+strcharinfo(0)+" just killed a Poringz0rd!",bc_blue|bc_all;
+	end;
+}
+
+Each time you kill one, that announce will appear in blue to everyone.
 
 Scripting commands and functions
 --------------------------------
@@ -1962,19 +2003,30 @@ Lets say the ID of a party was saved as a global variable:
 
 ---------------------------------------
 
-*getpartymember <party id>;
+*getpartymember <party id>,[<type>];
 
 Thank you to HappyDenn for all this information.
 
 This command will finds all members of a specified party and returns their names 
-into an array of temporary global variables. There's actually quite a few 
-commands like this which will fill a special variable with data upon execution 
-and not do anything else.
+(or character id or account id depending on the value of "type") into an array
+of temporary global variables. There's actually quite a few commands like this
+which will fill a special variable with data upon execution and not do anything
+else.
 
 Upon executing this,
 
 $@partymembername$[] is a global temporary stringarray which contains all the 
-                     names of these party members.
+                     names of these party members
+                     (only set when type is 0 or not specified)
+
+$@partymembercid[]   is a global temporary number array which contains the 
+                     character id of these party members.
+                     (only set when type is 1)
+
+$@partymemberaid[]   is a global temporary number array which contains the 
+                     account id of these party members.
+                     (only set when type is 2)
+
 $@partymembercount   is the number of party members that were found.
 
 The party members will (apparently) be found regardless of whether they are 
@@ -1988,7 +2040,7 @@ server will not clear the array for you, overwriting the values instead. So in
 addition to returning the 5 member names, the 6th and 7th elements from the last 
 call remain, and you will get 5+2 members, of which the last 2 don't belong to 
 the new guy's party. $@partymembercount will always contain the correct number, 
-(5) unlike 'getarraysise()' which will return 7 in this case.
+(5) unlike 'getarraysize()' which will return 7 in this case.
 
 Example:
 
@@ -2593,12 +2645,16 @@ Without the use if 'end' it would travel through the labels until the end of the
 script. If you were lvl 10 or less, you would see all the speech lines, the use 
 of 'end' stops this, and ends the script.
 
+Note: Break won't work anymore, it has been commented out in src/map/script.c:
+
+//	{buildin_end,"break",""}, this might confuse advanced scripting support [Eoe]
+
 ---------------------------------------
 
 *checkoption(<option number>)
 *checkoption1(<option number>)
 *checkoption2(<option number>)
-*setoption <option number>;
+*setoption <option number>{,type};
 
 The 'setoption' series of functions check for a so-called option that is set on 
 the invoking character. 'Options' are used to store status conditions and a lot 
@@ -2613,19 +2669,15 @@ Option numbers valid for the first version of this command are:
 2  - Frozen.
 3  - Stunned.
 4  - Sleeping.
-32 - Riding a Peco.
-
-'setoption' will set options on the invoking character. There are no second and 
-third versions of this command, so you can only change the 
-petrified/frozen/stunned/sleeping/riding status in this manner.
+6	- Petrifying (the state where you can still walk)
 
 Option numbers valid for the second version of this command are:
 
 1 - Poisoned.
 2 - Cursed.
 4 - Silenced.
-8 - Blinded (Notice that unless you specfy variable night darkness in the 
-    configuration, all characters will be 'blinded' during the night)
+8 - Signum Crucis (plays a howl-like sound effect, but otherwise no visible effects are displayed)
+16 - Blinded.
 
 Option numbers valid for the third version of this command are:
 
@@ -2641,9 +2693,14 @@ Option numbers valid for the third version of this command are:
 2048 - Orc head present.
 4096 - The character is wearing a wedding sprite.
 8192 - Ruwach is in effect.
+16384 - Chasewalk in effect.
 
 Option numbers are bitmasks - add up option numbers to check for all of them 
 being present at the same time in one go.
+
+'setoption' will set options on the invoking character. There are no second and 
+third versions of this command, so you can only change the values in the last
+list (cloak, cart, ruwach, etc). if flag is 1 (default when omitted), the option will be added to what the character currently has; if 0, the option is removed. 
 
 This is definitely not a complete list of available option flag numbers. Ask a 
 core developer for the full list.
@@ -2731,8 +2788,9 @@ This function will return specified information about the current system time.
 3 - Hour (of a day)
 4 - Week day (0 for Sunday, 6 is Saturday)
 5 - Day of the month.
-6 - Number of the month
-7 - Year
+6 - Number of the month.
+7 - Year.
+8 - Day of the year.
 
 It will only return numbers.
 
@@ -2850,7 +2908,7 @@ and upon the monster being killed, it will execute the script inside of the
 specified NPC object starting from the label given. The RID of the player 
 attached at this execution will be the RID of the killing character.
 
-    monster "place.gat",60,100,"Poring",1002,1,"NPCNAME::Label";
+    monster "place.gat",60,100,"Poring",1002,1,"NPCNAME::OnLabel";
 
 If you do not specify any event label, a label in the NPC object that ran this 
 command, called 'OnMyMobDead:' will execute anyway, if present.
@@ -2872,7 +2930,7 @@ Simple monster killing script:
         mes "Come back later";
         close;
     L_Yes:
-        monster "prontera.gat",0,0,"Quest Poring",1002,10,"NPCNAME::L_PoringKilled";
+        monster "prontera.gat",0,0,"Quest Poring",1002,10,"NPCNAME::OnPoringKilled";
         // By using 0,0 it will spawn them in a random place.
         mes "[Summon Man]";
         mes "Now go and kill all the Poring I summoned";
@@ -3319,6 +3377,8 @@ unfortunately, not detectable by Ruwach or Sight.
 As they are now, these commands are pointless, it is suggested to use 
 'disablenpc'/'enablenpc', because these two commands actually unload the NPC 
 sprite location and other accompanying data from memory when it is not used.
+However, you can use these for some quest ideas (such as cloaking npcs talking 
+while hidden then revealing.... you can wonder around =P
 
 ---------------------------------------
 
@@ -3496,7 +3556,7 @@ the job number of the wedding sprites.
 
 It would be entered in the equip bonus section of an item
 
-2338,Wedding_Dress,Wedding Dress,5,43000,0,500,,0,,0,2088958,0,16,,0,0,{(This is for use bonus)},{ bonus bMdef,15; changebase 22; },
+2338,Wedding_Dress,Wedding Dress,5,43000,,500,,0,,0,119529470,7,0,16,,0,1,0,{ bonus bMdef,15; changebase 22; }
 
 This command only works when inside item scripts.
 
@@ -3723,7 +3783,7 @@ even though WoE itself may or may not actually be in effect.
 
 ---------------------------------------
 
-*emotion <emotion number> <, target>;
+*emotion <emotion number>{, target};
 
 This command makes an object display an emoticon sprite above their own as 
 if they were doing that emotion. For a full list of emotion numbers, 
@@ -4949,8 +5009,6 @@ PET_INTIMATE
 Example:
 set @i, petstat(PET_CLASS);
 
-Whew.
-What's about all of them.
 
 ---------------------------------------
 
@@ -4981,12 +5039,33 @@ undisquise; //Yay!!!! You're a human again!!
 
 ---------------------------------------
 
-*nude; 
+*axtoi(<hexadecimal_value>);
 
-This command will unequip anything equipped on the invoking character.
+This command will convert an hexadecimal value into integers (numbers).
+The inputted value must not have neither # or 0x in it, just 6 numbers and/or letters.
+The variable registering this value, if so, must be a string (letter) variable, due that
+it contains letters in some cases.
 
-It is not required to do this when changing jobs since 'jobchange' will unequip 
-everything not equippable by the new job class anyway.
+This is mostly used for the new announce command, which uses hexadecimal values for announce
+colors, using the Ragnarok coloring system.
+
+Example:
+
+amatsu.gat,171,166,4	script	Testing npc	767,{
+
+mes "Input hex color";
+input @trying$;
+next;
+set @try2$,axtoi(@trying$);
+announce "zOMG TEH PWNZ0RDZ",bc_all,@try2$;
+close;
+}
+
+If you want a list of hexadecimal colors, check these two links:
+
+http://webmonkey.wired.com/webmonkey/reference/color_codes/
+
+http://www.december.com/html/spec/color.html
 
 ---------------------------------------
 
@@ -4997,3 +5076,99 @@ Good for PCKillEvent where you can convert 'killedrid' to the name of the player
 
 Note: rid2name may not produce correct character names since rid = account id.
       It will return the current online character of the account only.
+
+---------------------------------------
+
+*function <function name>;
+*<function name>;
+*function <function name> {
+<code>
+}
+
+(Skotlex stop being so selfish and give us all the commands T~T! J/k lol :P)
+
+This works like callfunc, but doesn't support arguments like callfunc. It's used for cleaner
+and fast script that doesn't require arguments for it to work. Also they must be inside a script. 
+They're not separated scripts and they work more like labels.
+
+Note it looks like the normal declaration
+
+Usage:
+
+You first Declare the function with function <function name>;.
+
+Put the rest of your code. You can use then <function name>; to call the function. If it returns a value is unsure,
+test it if you want and give us some comments ;3
+
+And at least, but inside the script itself, put the function <function name> {<code>}.
+
+Example:
+
+prontera.gat,154,189,4	script	Item seller	767,{
+
+function SF_Selling;
+
+mes "I'll open this now if you have more than 50z and you are level 50 or bigger";
+next;
+
+if (Zeny > 50) && (BaseLevel > 50) {
+	mes "Welcome";
+	next;
+	SF_Selling;
+	close;
+} else
+
+set @needed,50-BaseLevel;
+mes "You either are Level "+BaseLevel+", thus you need "+@needed+" more levels to be able to use this npc; or you don't have enough zeny, so get some please";
+close;
+
+function SF_Selling {
+
+	mes "Would you like to buy a phracon for 50z?";
+	switch(select("Yes","No, thanks")) {
+
+	case 1:
+		mes "Ok, how many?";
+		input @quantity;
+		set @check,Zeny/50;
+		if (@quantity > @check) {
+			mes "Sorry but you can only have "+@check+" Phracons with "+Zeny;
+			close;
+		} else
+		next;
+		mes "here you have";
+		set Zeny,Zeny-@quantity*50;
+		getitem 1010,@quantity;
+		close;
+	case 2:
+		mes "Good bye then";
+		close;
+		}
+	}
+	return;
+}
+
+
+---------------------------------------
+
+*getequipcardid (<equipment slot>,<card slot>);
+
+Returns value from equipped item slot in the indicated slot:
+
+getequipcardid(num,slot)
+
+where:
+	num = eqip position slot
+	slot = 0,1,2,3 (Card Slot N)
+
+This func returns CARD ID, 255,254,-255 (for card 0, if the item is produced) it's useful 
+when you want to check item cards or if it's signed. Useful for such quests as 
+"Sign this refined item with players name" etc;
+	Hat[0] +4 -> Player's Hat[0] +4
+
+By Lupus
+
+---------------------------------------
+
+Whew.
+What's about all of them.

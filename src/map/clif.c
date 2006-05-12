@@ -759,12 +759,13 @@ int clif_clearchar_id(int id, int type, int fd) {
 	return 0;
 }
 
-void clif_get_weapon_view(TBL_PC* sd, short *rhand, short *lhand)
+void clif_get_weapon_view(TBL_PC* sd, unsigned short *rhand, unsigned short *lhand)
 {
 #if PACKETVER > 3
 	struct item_data *id;
 #endif
-	if (sd->vd.class_ == JOB_XMAS || sd->vd.class_ == JOB_WEDDING)
+
+	if(sd->sc.option&OPTION_WEDDING || sd->vd.class_ == JOB_XMAS)
 	{
 		*rhand = *lhand = 0;
 		return;
@@ -2914,7 +2915,7 @@ int clif_arrow_create_list(struct map_session_data *sd)
 	for (i = 0, c = 0; i < MAX_SKILL_ARROW_DB; i++) {
 		if (skill_arrow_db[i].nameid > 0 &&
 			(j = pc_search_inventory(sd, skill_arrow_db[i].nameid)) >= 0 &&
-			!sd->status.inventory[j].equip)
+			!sd->status.inventory[j].equip && sd->status.inventory[j].identify)
 		{
 			if ((j = itemdb_viewid(skill_arrow_db[i].nameid)) > 0)
 				WFIFOW(fd,c*2+4) = j;
@@ -5764,6 +5765,25 @@ int clif_party_main_info(struct party *p, int fd)
 	clif_send(buf,packet_len_table[0x1e9],&sd->bl,PARTY);
 	return 1;
 }
+
+int clif_party_join_info(struct party *p, struct map_session_data *sd)
+{
+	unsigned char buf[96];
+	WBUFW(buf,0)=0x1e9;
+	WBUFL(buf,2)= sd->status.account_id;
+	WBUFL(buf,6)= 0; //Apparently setting this to 1 makes you adoptable.
+	WBUFW(buf,10)=sd->bl.x;
+	WBUFW(buf,12)=sd->bl.y;
+	WBUFB(buf,14)=0; //Unconfirmed byte.
+	memcpy(WBUFP(buf,15), p->name, NAME_LENGTH);
+	memcpy(WBUFP(buf,39), sd->status.name, NAME_LENGTH);
+	memcpy(WBUFP(buf,63), mapindex_id2name(sd->mapindex), MAP_NAME_LENGTH);
+	WBUFB(buf,79) = (p->item&1)?1:0;
+	WBUFB(buf,80) = (p->item&2)?1:0;
+	clif_send(buf,packet_len_table[0x1e9],&sd->bl,PARTY_WOS);
+	return 1;
+}
+
 
 /*==========================================
  * パーティ情報送信
@@ -8659,7 +8679,7 @@ void clif_parse_ActionRequest(int fd, struct map_session_data *sd) {
 		if (clif_cant_act(sd) || sd->sc.option&OPTION_HIDE)
 			return;
 
-		if(sd->sc.option&(OPTION_WEDDING|OPTION_XMAS))
+		if(sd->sc.option&OPTION_WEDDING || sd->vd.class_ == JOB_XMAS)
 			return;
 
 		if (!battle_config.sdelay_attack_enable && pc_checkskill(sd, SA_FREECAST) <= 0) {
@@ -9172,7 +9192,7 @@ void clif_parse_NpcSellListSend(int fd,struct map_session_data *sd)
 	n = (RFIFOW(fd,2)-4) /4;
 	item_list = (unsigned short*)RFIFOP(fd,4);
 
-	if (sd->state.trading|| !sd->npc_shopid)
+	if (sd->state.trading || !sd->npc_shopid)
 		fail = 1;
 	else
 		fail = npc_selllist(sd,n,item_list);
@@ -9426,7 +9446,7 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd) {
 		return;
 	}
 
-	if(sd->sc.option&(OPTION_WEDDING|OPTION_XMAS))
+	if(sd->sc.option&OPTION_WEDDING || sd->vd.class_ == JOB_XMAS)
 		return;
 	
 	if (sd->invincible_timer != -1)
@@ -9516,7 +9536,7 @@ void clif_parse_UseSkillToPosSub(int fd, struct map_session_data *sd, int skilll
 		return;
 	}
 
-	if(sd->sc.option&(OPTION_WEDDING|OPTION_XMAS))
+	if(sd->sc.option&OPTION_WEDDING || sd->vd.class_ == JOB_XMAS)
 		return;
 	
 	if (sd->invincible_timer != -1)
@@ -9580,7 +9600,7 @@ void clif_parse_UseSkillMap(int fd,struct map_session_data *sd)
 	if (clif_cant_act(sd))
 		return;
 
-	if(sd->sc.option&(OPTION_WEDDING|OPTION_XMAS))
+	if(sd->sc.option&OPTION_WEDDING || sd->vd.class_ == JOB_XMAS)
 		return;
 	
 	if(sd->invincible_timer != -1)
@@ -10654,8 +10674,11 @@ void clif_parse_PMIgnoreList(int fd,struct map_session_data *sd)
  */
 void clif_parse_NoviceDoriDori(int fd, struct map_session_data *sd) {
 	int level;
-	sd->doridori_counter = 1;
-	if ((sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON
+	
+	if ((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE)
+		sd->doridori_counter++;
+	
+	if ((sd->class_&MAPID_BASEMASK) == MAPID_TAEKWON
 		&& sd->state.rest && (level = pc_checkskill(sd,TK_SPTIME)))
 		sc_start(&sd->bl,SkillStatusChangeTable[TK_SPTIME],100,level,skill_get_time(TK_SPTIME, level));
 	return;

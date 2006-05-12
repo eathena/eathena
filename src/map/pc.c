@@ -1473,13 +1473,6 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 		if(sd->state.lr_flag != 2)
 			sd->special_state.no_gemstone = 1;
 		break;
-	case SP_INFINITE_ENDURE:
-		if(sd->state.lr_flag != 2) {
-			sd->special_state.infinite_endure = 1;
-			if (sd->sc.data[SC_ENDURE].timer == -1)
-				sc_start(&sd->bl,SC_ENDURE,100,11,600000);
-		}
-		break;
 	case SP_INTRAVISION: // Maya Purple Card effect allowing to see Hiding/Cloaking people [DracoRPG]
 		if(sd->state.lr_flag != 2)
 			sd->special_state.intravision = 1;
@@ -1531,10 +1524,6 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 		if(sd->state.lr_flag!=2) {
 			sd->state.perfect_hiding=1;
 		}
-		break;
-	case SP_DISGUISE: // Disguise script for items [Valaris]
-		if(sd->state.lr_flag!=2)
-			pc_disguise(sd, val);
 		break;
 	case SP_UNBREAKABLE:
 		if(sd->state.lr_flag!=2) {
@@ -2174,7 +2163,7 @@ int pc_skill(struct map_session_data *sd,int id,int level,int flag)
 	}
 	else if(sd->status.skill[id].lv < level){	// ?‚¦‚ç‚ê‚é‚ªlv‚ª¬‚³‚¢‚È‚ç
 		if(sd->status.skill[id].id==id) {
-			if(!sd->status.skill[id].flag) //Only store lv if skill is learned.
+			if (!sd->status.skill[id].flag) //Non-granted skill, store it's level.
 				sd->status.skill[id].flag=sd->status.skill[id].lv+2;
 		} else {
 			sd->status.skill[id].id=id;
@@ -2970,13 +2959,6 @@ int pc_steal_item(struct map_session_data *sd,struct block_list *bl)
 			log_pick(sd, "P", 0, itemid, 1, NULL);
 		}
 		
-		if(log_config.steal) {	//this drop log contains ALL stolen items [Lupus]
-			int log_item[10]; //for stolen items logging Lupus
-			memset(&log_item,0,sizeof(log_item));
-			log_item[i] = itemid; //i == monster's drop slot
-			log_drop(sd, md->class_, log_item);
-		}
-
 		//A Rare Steal Global Announce by Lupus
 		if(md->db->dropitem[i].p<=battle_config.rare_drop_announce) {
 			struct item_data *i_data;
@@ -6243,13 +6225,17 @@ int pc_unequipitem(struct map_session_data *sd,int n,int flag)
 		clif_changelook(&sd->bl,LOOK_SHOES,0);
 
 	clif_unequipitemack(sd,n,sd->status.inventory[n].equip,1);
+
+	if((sd->status.inventory[n].equip&0x0022) && 
+		sd->weapontype1 == 0 && sd->weapontype2 == 0)
+		skill_enchant_elemental_end(&sd->bl,-1);
+	
 	sd->status.inventory[n].equip=0;
-	if(flag&1)
+
+	if(flag&1) {
 		pc_checkallowskill(sd);
-	if(sd->weapontype1 == 0 && sd->weapontype2 == 0)
-		skill_enchant_elemental_end(&sd->bl,-1);  //•ŠíŽ‚¿¾‚¦‚Í–³?Œ‚Å?«•t?‰ðœ
-	if(flag&1)
 		status_calc_pc(sd,0);
+	}
 
 	if(sd->sc.count && sd->sc.data[SC_SIGNUMCRUCIS].timer != -1 && !battle_check_undead(RC_DEMIHUMAN,sd->def_ele))
 		status_change_end(&sd->bl,SC_SIGNUMCRUCIS,-1);
@@ -6808,7 +6794,7 @@ static int pc_natural_heal_sp(struct map_session_data *sd)
 
 	if(sd->nshealsp > 0) {
 		if(sd->inchealsptick >= battle_config.natural_heal_skill_interval && sd->status.sp < sd->status.max_sp) {
-			if(sd->doridori_counter && (sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE) {
+			if(sd->doridori_counter) {
 				bonus = sd->nshealsp*2;
 				sd->doridori_counter = 0;
 			} else
@@ -6849,12 +6835,6 @@ static int pc_spirit_heal_hp(struct map_session_data *sd)
 
 	if(sd->inchealspirithptick >= interval) {
 		bonus_hp = sd->nsshealhp;
-		if(sd->doridori_counter && pc_checkskill(sd,TK_HPTIME) > 0) {
-		  	//TK_HPTIME doridori provided bonus [Dralnu]
-			bonus_hp += sd->nsshealhp;
-			if (!sd->nsshealsp) //If there's sp regen, this gets clear in the next function. [Skotlex]
-				sd->doridori_counter = 0;
-		}
 		while(sd->inchealspirithptick >= interval) {
 			if(pc_issit(sd)) {
 				sd->inchealspirithptick -= interval;
@@ -6895,11 +6875,6 @@ static int pc_spirit_heal_sp(struct map_session_data *sd)
 
 	if(sd->inchealspiritsptick >= interval) {
 		bonus_sp = sd->nsshealsp;
-		if(sd->doridori_counter && pc_checkskill(sd,TK_SPTIME) > 0) {
-			//TK_SPTIME doridori provided bonus [Dralnu]
-			bonus_sp += sd->nsshealsp;
-			sd->doridori_counter = 0;
-		}
 		while(sd->inchealspiritsptick >= interval) {
 			if(pc_issit(sd)) {
 				sd->inchealspiritsptick -= interval;
@@ -7091,8 +7066,8 @@ int pc_read_gm_account(int fd)
 	if (gm_account != NULL)
 		aFree(gm_account);
 	GM_num = 0;
-	gm_account = (struct gm_account *) aCallocA(((RFIFOW(fd,2) - 4) / 5), sizeof(struct gm_account));
-	for (i = 4; i < RFIFOW(fd,2); i = i + 5) {
+	gm_account = (struct gm_account *) aMallocA(((RFIFOW(fd,2) - 4) / 5)*sizeof(struct gm_account));
+	for (i = 4; i < RFIFOW(fd,2); i += 5) {
 		gm_account[GM_num].account_id = RFIFOL(fd,i);
 		gm_account[GM_num].level = (int)RFIFOB(fd,i+4);
 		//printf("GM account: %d -> level %d\n", gm_account[GM_num].account_id, gm_account[GM_num].level);

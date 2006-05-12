@@ -400,6 +400,8 @@ int buildin_setd(struct script_state *st);
 // <--- [zBuffer] List of dynamic var commands
 int buildin_petstat(struct script_state *st); // [Lance] Pet Stat Rq: Dubby
 int buildin_callshop(struct script_state *st); // [Skotlex]
+int buildin_setbattleflag(struct script_state *st);
+int buildin_getbattleflag(struct script_state *st);
 void push_val(struct script_stack *stack,int type,int val);
 int run_func(struct script_state *st);
 
@@ -509,7 +511,7 @@ struct {
 	{buildin_end,"end",""},
 //	{buildin_end,"break",""}, this might confuse advanced scripting support [Eoe]
 	{buildin_checkoption,"checkoption","i"},
-	{buildin_setoption,"setoption","i"},
+	{buildin_setoption,"setoption","i*"},
 	{buildin_setcart,"setcart",""},
 	{buildin_checkcart,"checkcart","*"},		//fixed by Lupus (added '*')
 	{buildin_setfalcon,"setfalcon",""},
@@ -581,7 +583,7 @@ struct {
 	{buildin_detachrid,"detachrid",""},
 	{buildin_isloggedin,"isloggedin","i"},
 	{buildin_setmapflagnosave,"setmapflagnosave","ssii"},
-	{buildin_setmapflag,"setmapflag","si"},
+	{buildin_setmapflag,"setmapflag","si*"},
 	{buildin_removemapflag,"removemapflag","si"},
 	{buildin_pvpon,"pvpon","s"},
 	{buildin_pvpoff,"pvpoff","s"},
@@ -704,6 +706,8 @@ struct {
 	// <--- [zBuffer] List of dynamic var commands
 	{buildin_petstat,"petstat","i"},
 	{buildin_callshop,"callshop","si"}, // [Skotlex]
+	{buildin_setbattleflag,"setbattleflag","ss"},
+	{buildin_getbattleflag,"getbattleflag","s"},
 	{buildin_setitemscript,"setitemscript","is"}, //Set NEW item bonus script. Lupus
 	{buildin_disguise,"disguise","i"}, //disguise player. Lupus
 	{buildin_undisguise,"undisguise","i"}, //undisguise player. Lupus
@@ -3679,9 +3683,6 @@ int buildin_getitem(struct script_state *st)
 	if((nameidsrc = nameid)<0) { // Save real ID of the source Box [Lupus]
 		nameid=itemdb_searchrandomid(-nameid);
 
-		if(log_config.present > 0)
-			log_present(sd, -nameidsrc, nameid); //fixed missing ID by Lupus
-
 		flag = 1;
 	}
 
@@ -4219,8 +4220,9 @@ char *buildin_getpartyname_sub(int party_id)
 
 	if(p!=NULL){
 		char *buf;
-		buf=(char *)aCallocA(NAME_LENGTH,sizeof(char));
+		buf=(char *)aMallocA(NAME_LENGTH*sizeof(char));
 		memcpy(buf, p->name, NAME_LENGTH-1);
+		buf[NAME_LENGTH-1] = '\0';
 		return buf;
 	}
 
@@ -4287,8 +4289,9 @@ char *buildin_getguildname_sub(int guild_id)
 
 	if(g!=NULL){
 		char *buf;
-		buf=(char *)aCallocA(NAME_LENGTH,sizeof(char));
+		buf=(char *)aMallocA(NAME_LENGTH*sizeof(char));
 		memcpy(buf, g->name, NAME_LENGTH-1);
+		buf[NAME_LENGTH-1] = '\0';
 		return buf;
 	}
 	return NULL;
@@ -4316,8 +4319,9 @@ char *buildin_getguildmaster_sub(int guild_id)
 
 	if(g!=NULL){
 		char *buf;
-		buf=(char *)aCallocA(NAME_LENGTH,sizeof(char));
+		buf=(char *)aMallocA(NAME_LENGTH*sizeof(char));
 		memcpy(buf, g->master, NAME_LENGTH-1);
+		buf[NAME_LENGTH-1] = '\0';
 		return buf;
 	}
 
@@ -4659,9 +4663,6 @@ int buildin_successrefitem(struct script_state *st)
 	if(i >= 0) {
 		ep=sd->status.inventory[i].equip;
 
-		if(log_config.refine > 0)
-			log_refine(sd, i, 1);
-
 		//Logs items, got from (N)PC scripts [Lupus]
 		if(log_config.pick > 0 ) {
 			log_pick(sd, "N", 0, sd->status.inventory[i].nameid, -1, &sd->status.inventory[i]);
@@ -4714,9 +4715,6 @@ int buildin_failedrefitem(struct script_state *st)
 	sd=script_rid2sd(st);
 	i=pc_checkequip(sd,equip[num-1]);
 	if(i >= 0) {
-		if(log_config.refine > 0)
-			log_refine(sd, i, 0);
-
 		//Logs items, got from (N)PC scripts [Lupus]
 		if(log_config.pick > 0 ) {
 			log_pick(sd, "N", 0, sd->status.inventory[i].nameid, -1, &sd->status.inventory[i]);
@@ -5029,11 +5027,21 @@ int buildin_setoption(struct script_state *st)
 {
 	int type;
 	struct map_session_data *sd;
-
+	int flag=1;
+	
 	type=conv_num(st,& (st->stack->stack_data[st->start+2]));
+	if(st->end>st->start+3 )
+		flag=conv_num(st,&(st->stack->stack_data[st->start+3]) );
+	
 	sd=script_rid2sd(st);
-	pc_setoption(sd,type);
+	if (!sd) return 0;
 
+	if (flag) {//Add option
+		if (type&OPTION_WEDDING && !battle_config.wedding_modifydisplay)
+			type&=~OPTION_WEDDING; //Do not show the wedding sprites
+		pc_setoption(sd,sd->sc.option|type);
+	} else//Remove option
+		pc_setoption(sd,sd->sc.option&~type);
 	return 0;
 }
 
@@ -6070,7 +6078,7 @@ int buildin_sc_start(struct script_state *st)
 		val4 = 1; //Mark that this was a thrown sc_effect
 	}
 	if (bl)
-		sc_start4(bl,type,100,val1,0,0,val4,tick);
+		status_change_start(bl,type,10000,val1,0,0,val4,tick,11);
 	return 0;
 }
 
@@ -6098,7 +6106,7 @@ int buildin_sc_start2(struct script_state *st)
 	}
 
 	if(bl)
-		status_change_start(bl,type,per,val1,0,0,val4,tick,0);
+		status_change_start(bl,type,per,val1,0,0,val4,tick,11);
 	return 0;
 }
 
@@ -6128,7 +6136,7 @@ int buildin_sc_start4(struct script_state *st)
 		tick/=2;
 	}
 	if (bl)
-		sc_start4(bl,type,100,val1,val2,val3,val4,tick);
+		status_change_start(bl,type,10000,val1,val2,val3,val4,tick,11);
 	return 0;
 }
 
@@ -6283,8 +6291,8 @@ int buildin_changebase(struct script_state *st)
 	vclass = conv_num(st,& (st->stack->stack_data[st->start+2]));
 	if(vclass == JOB_WEDDING)
 	{
-		if (!battle_config.wedding_modifydisplay ||	//Do not show the wedding sprites
-			sd->class_&JOBL_BABY //Baby classes screw up when showing wedding sprites. [Skotlex]
+		if (!battle_config.wedding_modifydisplay || //Do not show the wedding sprites
+			sd->class_&JOBL_BABY //Baby classes screw up when showing wedding sprites. [Skotlex] They don't seem to anymore.
 			) 
 		return 0;
 	}
@@ -6578,7 +6586,7 @@ enum {  MF_NOMEMO,MF_NOTELEPORT,MF_NOSAVE,MF_NOBRANCH,MF_NOPENALTY,MF_NOZENYPENA
 	MF_NOWARP,MF_FREE,MF_NOICEWALL,MF_SNOW,MF_FOG,MF_SAKURA,MF_LEAVES,MF_RAIN,
 	MF_INDOORS,MF_NOGO,MF_CLOUDS,MF_CLOUDS2,MF_FIREWORKS,MF_GVG_CASTLE,MF_GVG_DUNGEON,MF_NIGHTENABLED,
 	MF_NOBASEEXP, MF_NOJOBEXP, MF_NOMOBLOOT, MF_NOMVPLOOT, MF_NORETURN, MF_NOWARPTO, MF_NIGHTMAREDROP,
-	MF_RESTRICTED, MF_NOCOMMAND, MF_NODROP };
+	MF_RESTRICTED, MF_NOCOMMAND, MF_NODROP, MF_JEXP, MF_BEXP };
 
 int buildin_setmapflagnosave(struct script_state *st)
 {
@@ -6607,9 +6615,13 @@ int buildin_setmapflag(struct script_state *st)
 {
 	int m,i;
 	char *str;
+	char *val=NULL;
 
 	str=conv_str(st,& (st->stack->stack_data[st->start+2]));
 	i=conv_num(st,& (st->stack->stack_data[st->start+3]));
+	if(st->end>st->start+4){
+		val=conv_str(st,& (st->stack->stack_data[st->start+4]));
+	}
 	m = map_mapname2mapid(str);
 	if(m >= 0) {
 		switch(i) {
@@ -7912,7 +7924,6 @@ int buildin_petloot(struct script_state *st)
 		pd->loot = (struct pet_loot *)aCalloc(1, sizeof(struct pet_loot));
 
 	pd->loot->item = (struct item *)aCalloc(max,sizeof(struct item));
-	memset(pd->loot->item,0,max * sizeof(struct item));
 	
 	pd->loot->max=max;
 	pd->loot->count = 0;
@@ -9450,6 +9461,27 @@ int buildin_unequip(struct script_state *st)
 		pc_unequipitem(sd,i,2);
 		return 0;
 	}
+	return 0;
+}
+
+int buildin_setbattleflag(struct script_state *st){
+	char *flag, *value;
+
+	flag = conv_str(st,& (st->stack->stack_data[st->start+2]));
+	value = conv_str(st,& (st->stack->stack_data[st->start+3]));
+	
+	if (battle_set_value(flag, value) == 0)
+		ShowWarning("buildin_setbattleflag: unknown battle_config flag '%s'",flag);
+	else
+		ShowInfo("buildin_setbattleflag: battle_config flag '%s' is now set to '%s'.",flag,value);
+
+	return 0;
+}
+
+int buildin_getbattleflag(struct script_state *st){
+	char *flag;
+	flag = conv_str(st,& (st->stack->stack_data[st->start+2]));
+	push_val(st->stack,C_INT,battle_get_value(flag));
 	return 0;
 }
 

@@ -135,6 +135,8 @@ extern struct Battle_Config {
 	unsigned short mvp_hp_rate;
 	unsigned short monster_hp_rate;
 	unsigned short monster_max_aspd;
+	unsigned short view_range_rate;
+	unsigned short chase_range_rate;
 	unsigned short atc_gmonly;
 	unsigned short atc_spawn_quantity_limit;
 	unsigned short atc_slave_clone_limit;
@@ -272,8 +274,9 @@ extern struct Battle_Config {
 	unsigned short mob_attack_attr_none;
 	unsigned short mob_ghostring_fix;
 	unsigned short pc_attack_attr_none;
-	int item_rate_mvp, item_rate_common,item_rate_card,item_rate_equip,
-		item_rate_heal, item_rate_use, item_rate_treasure,	// Added by RoVeRT, Additional Heal and Usable item rate by Val
+	int item_rate_mvp, item_rate_common, item_rate_common_boss, item_rate_card, item_rate_card_boss,	// added support for MVP drops [Reddozen]
+		item_rate_equip, item_rate_equip_boss, item_rate_heal, item_rate_heal_boss, item_rate_use,
+		item_rate_use_boss, item_rate_treasure,	// Added by RoVeRT, Additional Heal and Usable item rate by Val
 		item_rate_adddrop;
 	
 	unsigned short logarithmic_drops;
@@ -427,6 +430,7 @@ extern struct Battle_Config {
 	unsigned short sg_miracle_skill_ratio;
 	int sg_miracle_skill_duration;
 	unsigned short autospell_stacking; //Enables autospell cards to stack. [Skotlex]
+	unsigned short override_mob_names; //Enables overriding spawn mob names with the mob_db names. [Skotlex]
 
 } battle_config;
 

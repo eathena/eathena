@@ -78,6 +78,8 @@ Job_Star_Gladiator	4047
 Job_Star_Gladiator2	4048
 Job_Soul_Linker	4049
 
+Option_Wedding	0x1000
+
 bc_all	0
 bc_map	1
 bc_area	2
@@ -260,7 +262,7 @@ bAllStats		1073
 bAgiVit			1074
 bAgiDexStr		1075
 bPerfectHide		1076
-bDisguise		1077
+
 bClassChange	1078
 bHPDrainValue	1079
 bSPDrainValue	1080
@@ -277,7 +279,7 @@ bNoMagicDamage	2003
 bNoWeaponDamage	2004
 bNoGemStone	2005
 bNoCastCancel2	2006
-bInfiniteEndure	2007
+
 bUnbreakableWeapon	2008
 bUnbreakableArmor	2009
 bUnbreakableHelm	2010
@@ -317,6 +319,7 @@ bSPVanishRate	2042
 Eff_Stone	0
 Eff_Freeze	1
 Eff_Stan	2
+Eff_Stun	2
 Eff_Sleep	3
 Eff_Poison	4
 Eff_Curse	5
@@ -389,6 +392,7 @@ IG_GiftBoxChina	34
 SC_STONE	0
 SC_FREEZE	1
 SC_STAN	2
+SC_STUN	2
 SC_SLEEP	3
 SC_POISON	4
 SC_CURSE	5
