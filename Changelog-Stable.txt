@@ -5,6 +5,7 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 2006/05/12
+	* Updated mob_db.sql/item_db.sql to latest. [Skotlex]
 	* Added upgrade_svn6568.sql which upgrades mob_db2 to the new format.
 	  Thanks to Ancyker for the file. [Skotlex]
 	* Large merge from trunk: [Skotlex]
