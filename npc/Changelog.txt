@@ -29,6 +29,7 @@ Date		Added
 ======
 
 05/12
+	* Added DTS (Dungeon Teleport System) NPCs. [Evera]
 	* Merged typo fixes in the job dancer quest npc. [Skotlex]
 05/10
 	* Fixed Inn dialogues [Playtester]
