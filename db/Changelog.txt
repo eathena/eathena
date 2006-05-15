@@ -1,3 +1,5 @@
+05/15
+	* Fixed the 10 geminis showing up in lhz1 rather than 2. [Skotlex]
 05/12
 	* Merged skill_castnodex from trunk. [Skotlex]
 	* Merged mob_db/item_db/skill_db/skill_cast_db from trunk. [Skotlex]
