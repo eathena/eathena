@@ -27,6 +27,8 @@ Nexon
 
 Date		Added
 ======
+05/15
+	* Fixed several questions in the Wizard Job Quest [Playtester]
 05/13
 	* Fixed the new shops [Playtester]
 	* Added missing shops at Beacon Island [Playtester]
