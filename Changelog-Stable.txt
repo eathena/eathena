@@ -5,6 +5,8 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 2006/05/15
+	* Added the missing case SC_BLADESTOP on the main switch of
+	  status_change_start. May fix it. [Skotlex]
 	* Some npc.c merges: npc_click will not work on npcs with negative classes
 	  (not on a map), area npcs will make you stop walking on the spot when
 	  they trigger. Merged the cleaned up implementation of npc_selllist [Skotlex]
