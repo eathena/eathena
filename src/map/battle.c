@@ -1260,6 +1260,7 @@ static struct Damage battle_calc_weapon_attack(
 				case SG_SUN_WARM:
 				case SG_MOON_WARM:
 				case SG_STAR_WARM:
+				case NPC_BLOODDRAIN:
 					flag.hit = 1;
 					break;
 				case CR_SHIELDBOOMERANG:
@@ -2468,7 +2469,10 @@ struct Damage battle_calc_magic_attack(
 						skillratio += (100+skill_lv*10)*2/3-100;
 						break;
 					case WZ_FIREPILLAR:
-						skillratio -= 80;
+						if (skill_lv > 10)
+							skillratio += 100;
+						else
+							skillratio -= 80;
 						break;
 					case WZ_SIGHTRASHER:
 						skillratio += 20*skill_lv;

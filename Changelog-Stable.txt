@@ -5,6 +5,17 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 2006/05/16
+	* Blood Drain now always hits. [Skotlex]
+	* Firepillar's damage above level 10 is 200%Matk [Skotlex]
+	* Merged the pvp check settings (so that no cast 2 will not trigger in
+	  pk-mode servers) [Skotlex]
+	* Fixed Soul Drain not displaying gained SP [Skotlex]
+	* Merged not being able to knockback traps in GVG [Skotlex]
+	* KA skills will now work on other soul linkers [Skotlex]
+	* SKE skills only stun caster when used on players. [Skotlex]
+	* Fixed Mob skill delay time for ground-based skills [Skotlex]
+	* Merged immobile mobs using their attack skill rather than a
+	  longrange-attacked one when unlocking a distant target. [Skotlex]
 	* Merged the skill_unit_db from trunk (Warmth skill data was missing from
 	  it) [Skotlex]
 2006/05/15

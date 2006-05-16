@@ -809,13 +809,15 @@ int skillnotok(int skillid, struct map_session_data *sd)
 	// Check skill restrictions [Celest]
 	if(!map_flag_vs(sd->bl.m) && skill_get_nocast (skillid) & 1)
 		return 1;
-	if(map[sd->bl.m].flag.pvp && skill_get_nocast (skillid) & 2)
-		return 1;
+	if(map[sd->bl.m].flag.pvp) {
+		if(!battle_config.pk_mode && skill_get_nocast (skillid) & 2)
+			return 1;
+		if(battle_config.pk_mode && skill_get_nocast (skillid) & 16)
+			return 1;
+	}
 	if(map_flag_gvg(sd->bl.m) && skill_get_nocast (skillid) & 4)
 		return 1;
-	if (agit_flag && skill_get_nocast (skillid) & 8)
-		return 1;
-	if (battle_config.pk_mode && map[sd->bl.m].flag.pvp && skill_get_nocast (skillid) & 16)
+	if(agit_flag && skill_get_nocast (skillid) & 8)
 		return 1;
 	if(map[sd->bl.m].flag.restricted && map[sd->bl.m].zone && skill_get_nocast (skillid) & (8*map[sd->bl.m].zone))
 		return 1;
@@ -1417,12 +1419,11 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 		if (pc_issit(sd)) pc_setstand(sd); //Character stuck in attacking animation while 'sitting' fix. [Skotlex]
 		clif_skill_nodamage(src,bl,HW_SOULDRAIN,rate,1);
 		sp = (status_get_lv(bl))*(95+15*rate)/100;
-		if (sp > 0) {
-			if(sd->status.sp + sp > sd->status.max_sp)
-				sp = sd->status.max_sp - sd->status.sp;
+		if(sp > sd->status.max_sp - sd->status.sp)
+			sp = sd->status.max_sp - sd->status.sp;
+		if (sp) {
 			sd->status.sp += sp;
-			if (sp > 0 && battle_config.show_hp_sp_gain)
-				clif_heal(sd->fd,SP_SP,sp);
+			clif_heal(sd->fd,SP_SP,sp);
 		}
 	}
 
@@ -1579,8 +1580,8 @@ int skill_blown( struct block_list *src, struct block_list *target,int count)
 
 	nullpo_retr(0, src);
 
-	if (src != target && map_flag_gvg(target->m) && target->type != BL_SKILL)
-		return 0; //No knocking back in WoE, except for skills... because traps CAN be knocked back.
+	if (src != target && map_flag_gvg(target->m))
+		return 0; //No knocking back in WoE
 	if (!count&0xffff)
 		return 0; //Actual knockback distance is 0.
 	
@@ -3903,6 +3904,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		if (sd) {
 			if (!dstsd || !(
 				(sd->sc.data[SC_SPIRIT].timer != -1 && sd->sc.data[SC_SPIRIT].val2 == SL_SOULLINKER) ||
+				(dstsd->class_&MAPID_BASEMASK) == MAPID_SOUL_LINKER ||
 				dstsd->char_id == sd->char_id ||
 				dstsd->char_id == sd->status.partner_id ||
 				dstsd->char_id == sd->status.child
@@ -4020,7 +4022,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			if (strlen(md->name) + strlen(skill_db[skillid].desc) > 120)
 				break; //Message won't fit on buffer. [Skotlex]
 			sprintf(temp,"%s : %s !!",md->name,skill_db[skillid].desc);
-			clif_GlobalMessage(&md->bl,temp);
+			clif_message(&md->bl,temp);
 		}
 		break;
 
@@ -5209,17 +5211,16 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		}
 	case SL_SKA: // [marquis007]
 	case SL_SKE:
-		if (sd && !battle_config.allow_es_magic_pc && bl->type != BL_MOB)
+		if (sd && !battle_config.allow_es_magic_pc && bl->type != BL_MOB) {
 			clif_skill_fail(sd,skillid,0,0);
-		else
+			status_change_start(src,SC_STUN,10000,skilllv,0,0,0,500,10);
+		} else
 			clif_skill_nodamage(src,bl,skillid,skilllv,
 				sc_start(bl,type,100,skilllv,skill_get_time(skillid,skilllv)));
 		
 		if (skillid == SL_SKE)
 			sc_start(src,SC_SMA,100,skilllv,skill_get_time(SL_SMA,skilllv));
 
-		//Regardless of who you target, caster gets stunned for 0.5 [Skotlex]
-		status_change_start(src,SC_STUN,10000,skilllv,0,0,0,500,10);
 		break;
 		
 	// New guild skills [Celest]
@@ -5611,6 +5612,15 @@ int skill_castend_pos( int tid, unsigned int tick, int id,int data )
 			
 		if(sd && !skill_check_condition(sd,ud->skillid, ud->skilllv, 1))	/* 使用条件チェック */
 			break;
+
+		if(md) {
+			md->last_thinktime=tick + (tid==-1?status_get_adelay(src):status_get_amotion(src));
+			if(md->skillidx >= 0) {
+				md->skilldelay[md->skillidx]=tick;
+				if (md->db->skill[md->skillidx].emotion >= 0)
+					clif_emotion(src, md->db->skill[md->skillidx].emotion);
+			}
+		}
 
 		if(battle_config.skill_log && battle_config.skill_log&src->type)
 			ShowInfo("Type %d, ID %d skill castend pos [id =%d, lv=%d, (%d,%d)]\n",
