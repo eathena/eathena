@@ -22,12 +22,16 @@ MasterOfMuppets
 	* Updating Items / Scripts
 Nexon
 	* Adding in the new Abyss/Thanatos/Lighthalzen NPC's and optimizing them.
+Evera
+	* Everything.
+	* iRO information gathering.
 
 == Changelog ==
 
 Date		Added
 ======
 05/15
+	* Fixed DTS warper, optimized Kafra and changed pay cave and orc village kafra [Evera]
 	* Fixed Amon Ra's spawning location [Playtester]
 	* Fixed several questions in the Wizard Job Quest [Playtester]
 05/13
