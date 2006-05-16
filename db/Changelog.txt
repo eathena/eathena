@@ -1,3 +1,5 @@
+05/16
+	* Merged skill_db.txt from trunk [Playtester]
 05/15
 	* Fixed the 10 geminis showing up in lhz1 rather than 2. [Skotlex]
 05/12
