@@ -30,7 +30,7 @@
  70,0x83,    , -1, 1,1000,all,   0x008	//PR_SANCTUARY#サンクチュアリ
  79,0x84,    , -1, 1,3000,enemy, 0x008	//PR_MAGNUS#マグヌスエクソシズム
  80,0x87,0x88,  0, 1,2000,enemy, 0x002	//WZ_FIREPILLAR#ファイアーピラー
- 83,0x86,    ,  0,3:3:3:3:3:3:3:3:3:3:10,1000,enemy, 0x000	//WZ_METEOR#メテオストーム
+ 83,0x86,    ,  0, 3,1000,enemy, 0x000	//WZ_METEOR#メテオストーム
  85,0x86,    ,  0,6:6:6:6:6:6:6:6:6:6:25,1250,enemy, 0x008	//WZ_VERMILION#ロードオブヴァーミリオン
  87,0x8d,    , -1, 0,  -1,all,   0x000	//WZ_ICEWALL#アイスウォール
  88,0x86,    ,  0, 2,1000,enemy, 0x000	//WZ_FROSTNOVA#フロストノヴァ
@@ -81,9 +81,12 @@
 405,0xb7,    ,  0, 1,1000,enemy, 0x000	//PF_SPIDERWEB#スパイダーウェッブ
 409,0xb2,    ,  0,-1,  -1,noone, 0x000	//WE_CALLBABY
 410,0xb2,    ,  0,-1,  -1,noone, 0x000	//WE_CALLPARENT
+428,0x86,    ,  0, 1, 500,enemy, 0x000	//SG_SUN_WARM
+429,0x86,    ,  0, 1, 500,enemy, 0x000	//SG_MOON_WARM
+430,0x86,    ,  0, 1, 500,enemy, 0x000	//SG_STAR_WARM
 484,0xb8,    ,  2, 0,1000,enemy, 0x808	//HW_GRAVITATION
 488,0xb9,    ,  3, 0,  -1,all,   0x100	//CG_HERMODE
-516,0xbc,    ,  0, 3,1000,enemy,0x000,GS_DESPERADO#デスペラード
+516,0xba,    ,  0, 3, 100,enemy,0x000,GS_DESPERADO#デスペラード
 521,0xbd,    ,  0, 1,1000,enemy,0x006,GS_GROUNDDRIFT#グラウンドドリフト
 535,0x86,    ,  0, 2,2000,enemy,0x008,NJ_KAENSIN#火炎陣#
 536,0x86,    ,  0, 2, 300,enemy,0x008,NJ_BAKUENRYU#爆炎龍#
