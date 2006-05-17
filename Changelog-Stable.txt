@@ -5,6 +5,8 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 2006/05/16
+	* Removed calles for AtCommand_Monster and replaced them with AtCommand_Spawn
+	  for Skots	[Reddozen]
 	* Blood Drain now always hits. [Skotlex]
 	* Firepillar's damage above level 10 is 200%Matk [Skotlex]
 	* Merged the pvp check settings (so that no cast 2 will not trigger in
