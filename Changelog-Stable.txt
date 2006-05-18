@@ -5,6 +5,7 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 2006/05/18
+	* Fixed mob_max_skilllvl being capped to 11! [Skotlex]
 	* Merged the cleaning up of trade.c, trading code/logic should be
 	  cleaner/faster now. [Skotlex]
 2006/05/16
