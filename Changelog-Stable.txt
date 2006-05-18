@@ -5,6 +5,11 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 2006/05/18
+	* Merged Body Relocation's fix pos packet using the caster's position
+	  rather than target tile. [Skotlex]
+	* Merged SC_Combo end clearing out last skill used when it's the same as
+	  the combo. Fixes TK ranking combo oddities. [Skotlex]
+	* Merged NPC_AGIUP increasing movement speed by 50% [Skotlex]
 	* Merged split of script event kill into kill_mob_event_name and
 	  kill_pc_event_name. [Skotlex]
 	* Merged the npc-script-event cache for quick execution of common
