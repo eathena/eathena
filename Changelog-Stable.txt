@@ -5,6 +5,22 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 2006/05/18
+	* Merged split of script event kill into kill_mob_event_name and
+	  kill_pc_event_name. [Skotlex]
+	* Merged the npc-script-event cache for quick execution of common
+	  npc-events (login, logout, kill, level up, etc). [Skotlex]
+	- When they are executed nothing will be printed to console now, to see
+	  summary of loaded npcs/events, turn the etc_log on. Draw back of the cache
+	  is: Npcs loaded after startup are not cached, and if you unload an npc with
+	  a related event (eg: the logout event npc) the server will crash! However,
+	  @reloadscriptdb will properly reload all cached events.
+	* Merged map_searchfreecell not picking the center tile as target. Fixes
+	  slaves walking directly on top of the master, as well as skill conditions
+	  "around" picking the tile underneath the target. [Skotlex]
+	* Merged hide_woe_damage using div rather than 1 as damage passed. Fixes
+	  multi-hitting skills displaying MISS. [Skotlex]
+	* Merged fix that makes provoked mobs leave their current target for the
+	  new one. [Skotlex]
 	* Fixed mob_max_skilllvl being capped to 11! [Skotlex]
 	* Merged the cleaning up of trade.c, trading code/logic should be
 	  cleaner/faster now. [Skotlex]

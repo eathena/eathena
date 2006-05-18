@@ -723,9 +723,13 @@ int mob_spawn (struct mob_data *md)
 static int mob_can_changetarget(struct mob_data* md, struct block_list* target, int mode)
 {
 	// if the monster was provoked ignore the above rule [celest]
-	if(md->state.provoke_flag && md->state.provoke_flag != target->id &&
-		!battle_config.mob_ai&4)
-		return 0;
+	if(md->state.provoke_flag)
+	{	
+		if (md->state.provoke_flag == target->id)
+			return 1;
+		else if (!battle_config.mob_ai&4)
+			return 0;
+	}
 	
 	switch (md->state.skillstate) {
 		case MSS_BERSERK: //Only Assist, Angry or Aggressive+CastSensor mobs can change target while attacking.
@@ -2078,19 +2082,10 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 		else if(mvp_sd)
 			npc_event(mvp_sd,md->npc_event,0);
 
-	} else if (mvp_sd) {
-//lordalfa
+	} else if (mvp_sd) {	//lordalfa
 		pc_setglobalreg(mvp_sd,"killedrid",(md->class_));
-		if (script_config.event_script_type == 0) {
-			struct npc_data *npc;
-			if ((npc = npc_name2id("NPCKillEvent"))) {
-				run_script(npc->u.scr.script,0,mvp_sd->bl.id,npc->bl.id); // NPCKillNPC
-				ShowStatus("Event '"CL_WHITE"NPCKillEvent"CL_RESET"' executed.\n");
-			}
-		} else {
-			ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",	
-				npc_event_doall_id("NPCKillEvent", mvp_sd->bl.id), "NPCKillEvent");
-		}
+		if(mvp_sd->state.event_kill_mob)
+			npc_script_event(mvp_sd, NPCE_KILLNPC); // PCKillNPC [Lance]
 	}
 	if(md->level) md->level=0;
 	map_freeblock_unlock();

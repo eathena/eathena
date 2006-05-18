@@ -19,6 +19,18 @@
 void npc_chat_finalize(struct npc_data *nd);
 #endif
 
+//Script NPC events.
+enum {
+	NPCE_LOGIN,
+	NPCE_LOGOUT,
+	NPCE_LOADMAP,
+	NPCE_BASELVUP,
+	NPCE_JOBLVUP,
+	NPCE_DIE,
+	NPCE_KILLPC,
+	NPCE_KILLNPC,
+	NPCE_MAX
+};
 struct view_data* npc_get_viewdata(int class_);
 int npc_chat_sub(struct block_list *bl, va_list ap);
 int npc_event_dequeue(struct map_session_data *sd);
@@ -63,6 +75,7 @@ int npc_settimerevent_tick(struct npc_data *nd,int newtimer);
 int npc_remove_map(struct npc_data *nd);
 int npc_unload(struct npc_data *nd);
 int npc_reload(void);
+int npc_script_event(TBL_PC* sd, int type);
 
 extern char *current_file;
 

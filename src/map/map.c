@@ -1473,6 +1473,13 @@ int map_search_freecell(struct block_list *src, int m, short *x,short *y, int rx
 		by = src->y;
 		m = src->m;
 	}
+	if (!rx && !ry) {
+		//No range? Return the target cell then....
+		*x = bx;
+		*y = by;
+		return map_getcell(m,*x,*y,CELL_CHKREACH);
+	}
+	
 	if (rx >= 0 && ry >= 0) {
 		tries = rx2*ry2;
 		if (tries > 100) tries = 100;
@@ -1482,6 +1489,9 @@ int map_search_freecell(struct block_list *src, int m, short *x,short *y, int rx
 	while(tries--) {
 		*x = (rx >= 0)?(rand()%rx2-rx+bx):(rand()%(map[m].xs-2)+1);
 		*y = (ry >= 0)?(rand()%ry2-ry+by):(rand()%(map[m].ys-2)+1);
+		
+		if (*x == bx && *y == by)
+			continue; //Avoid picking the same target tile.
 		
 		if (map_getcell(m,*x,*y,CELL_CHKREACH))
 		{
@@ -1645,18 +1655,8 @@ int map_quit(struct map_session_data *sd) {
 	//Learn to use proper coding and stop relying on nullpo_'s for safety :P [Skotlex]
 
 	if(!sd->state.waitingdisconnect) {
-		if (sd->state.event_disconnect) {
-			if (script_config.event_script_type == 0) {
-				struct npc_data *npc;
-				if ((npc = npc_name2id(script_config.logout_event_name))) {
-					run_script(npc->u.scr.script,0,sd->bl.id,npc->bl.id); // PCLogoutNPC
-					ShowStatus("Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.logout_event_name);
-				}
-			} else {
-				ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
-					npc_event_doall_id(script_config.logout_event_name, sd->bl.id), script_config.logout_event_name);
-			}
-		}
+		if (sd->state.event_disconnect)
+			npc_script_event(sd, NPCE_LOGOUT);
 		if (sd->pd) unit_free(&sd->pd->bl);
 		unit_free(&sd->bl);
 		pc_clean_skilltree(sd);

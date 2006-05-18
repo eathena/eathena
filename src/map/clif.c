@@ -747,13 +747,11 @@ int clif_clearchar_delay(unsigned int tick, struct block_list *bl, int type) {
  *------------------------------------------
  */
 int clif_clearchar_id(int id, int type, int fd) {
-	unsigned char buf[16];
 
-	WBUFW(buf,0) = 0x80;
-	WBUFL(buf,2) = id;
-	WBUFB(buf,6) = type;
 	WFIFOHEAD(fd, packet_len_table[0x80]);
-	memcpy(WFIFOP(fd,0), buf, 7);
+	WFIFOW(fd,0)	= 0x80;
+	WFIFOL(fd,2)	= id;
+	WFIFOB(fd,6)	= (char)type; // Why use int for a char in the first place?
 	WFIFOSET(fd, packet_len_table[0x80]);
 
 	return 0;
@@ -3819,8 +3817,8 @@ int clif_damage(struct block_list *src,struct block_list *dst,unsigned int tick,
 	WBUFL(buf,14)=sdelay;
 	WBUFL(buf,18)=ddelay;
 	if (battle_config.hide_woe_damage && map_flag_gvg(src->m)) {
-		WBUFW(buf,22)=1;
-		WBUFW(buf,27)=1;
+		WBUFW(buf,22)=div;
+		WBUFW(buf,27)=damage2?div:0;
 	} else {
 		WBUFW(buf,22)=(damage > SHRT_MAX)?SHRT_MAX:damage;
 		WBUFW(buf,27)=damage2;
@@ -4339,7 +4337,7 @@ int clif_skill_damage(struct block_list *src,struct block_list *dst,
 	WBUFL(buf,16)=sdelay;
 	WBUFL(buf,20)=ddelay;
 	if (battle_config.hide_woe_damage && map_flag_gvg(src->m)) {
-		WBUFW(buf,24)=1;
+		WBUFW(buf,24)=div;
 	} else {
 		WBUFW(buf,24)=damage;
 	}
@@ -4370,7 +4368,7 @@ int clif_skill_damage(struct block_list *src,struct block_list *dst,
 	WBUFL(buf,16)=sdelay;
 	WBUFL(buf,20)=ddelay;
 	if (battle_config.hide_woe_damage && map_flag_gvg(src->m)) {
-		WBUFL(buf,24)=1;
+		WBUFL(buf,24)=div;
 	} else {
 		WBUFL(buf,24)=damage;
 	}
@@ -4430,7 +4428,7 @@ int clif_skill_damage2(struct block_list *src,struct block_list *dst,
 	WBUFW(buf,24)=dst->x;
 	WBUFW(buf,26)=dst->y;
 	if (battle_config.hide_woe_damage && map_flag_gvg(src->m)) {
-		WBUFW(buf,28)=1;
+		WBUFW(buf,28)=div;
 	} else {
 		WBUFW(buf,28)=damage;
 	}
@@ -8190,17 +8188,8 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		sc_start(&sd->bl,SC_NOCHAT,100,0,0);
 
 // Lance
-	if (script_config.event_script_type == 0) {
-		struct npc_data *npc;
-		if ((npc = npc_name2id(script_config.loadmap_event_name))) {  
-			run_script(npc->u.scr.script,0,sd->bl.id,npc->bl.id);
-			ShowStatus("Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.loadmap_event_name);
-		}
-	} else {
-		ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
-			npc_event_doall_id(script_config.loadmap_event_name, sd->bl.id), script_config.loadmap_event_name);
-	}
-	
+	npc_script_event(sd, NPCE_LOADMAP);
+
 	if (pc_checkskill(sd, SG_DEVIL) && !pc_nextjobexp(sd))
 		clif_status_load(&sd->bl, SI_DEVIL, 1);  //blindness [Komurka]
 

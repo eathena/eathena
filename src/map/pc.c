@@ -745,8 +745,9 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 	sd->die_counter=-1;
 	//Until the reg values arrive, set them to not require trigger...
 	sd->state.event_death = 1;
-	sd->state.event_kill = 1;
+	sd->state.event_kill_pc = 1;
 	sd->state.event_disconnect = 1;
+	sd->state.event_kill_mob = 1;
 
 	// ステ?タス初期計算など
 	status_calc_pc(sd,1);
@@ -862,26 +863,18 @@ int pc_reg_received(struct map_session_data *sd)
 	// Automated script events
 	if (script_config.event_requires_trigger) {
 		sd->state.event_death = pc_readglobalreg(sd, script_config.die_event_name);
-		sd->state.event_kill = pc_readglobalreg(sd, script_config.kill_event_name);
+		sd->state.event_kill_pc = pc_readglobalreg(sd, script_config.kill_pc_event_name);
+		sd->state.event_kill_mob = pc_readglobalreg(sd, script_config.kill_mob_event_name);
 		sd->state.event_disconnect = pc_readglobalreg(sd, script_config.logout_event_name);
 	// if script triggers are not required
 	} else {
 		sd->state.event_death = 1;
-		sd->state.event_kill = 1;
+		sd->state.event_kill_pc = 1;
 		sd->state.event_disconnect = 1;
+		sd->state.event_kill_mob = 1;
 	}
 
-	if (script_config.event_script_type == 0) {
-		struct npc_data *npc;
-		if ((npc = npc_name2id(script_config.login_event_name))) {
-			run_script(npc->u.scr.script,0,sd->bl.id,npc->bl.id); // PCLoginNPC
-			ShowStatus("Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.login_event_name);
-		}
-	} else {
-		ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
-			npc_event_doall_id(script_config.login_event_name, sd->bl.id), script_config.login_event_name);
-	}
-
+	npc_script_event(sd, NPCE_LOGIN);
 	return 0;
 }
 
@@ -1089,6 +1082,12 @@ int pc_disguise(struct map_session_data *sd, int class_) {
 	if (class_ && (sd->disguise == class_ || pc_isriding(sd)))
 		return 0;
 
+	if(sd->sc.option&OPTION_INVISIBLE)
+  	{	//Character is invisible. Stealth class-change. [Skotlex]
+		sd->disguise = class_; //viewdata is set on uncloaking.
+		return 2;
+	}
+	
 	pc_stop_walking(sd, 0);
 	clif_clearchar(&sd->bl, 0);
 
@@ -3768,17 +3767,7 @@ int pc_checkbaselevelup(struct map_session_data *sd)
 
 		clif_misceffect(&sd->bl,0);
 		//LORDALFA - LVLUPEVENT
-		if (script_config.event_script_type == 0) {
-			struct npc_data *npc;
-			if ((npc = npc_name2id(script_config.baselvup_event_name))) {
-				run_script(npc->u.scr.script,0,sd->bl.id,npc->bl.id); // PCLvlUPNPC
-				ShowStatus("Event '"CL_WHITE"%s"CL_RESET"' executed.\n",script_config.baselvup_event_name);
-			}
-		} else {
-				ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
-				npc_event_doall_id(script_config.baselvup_event_name, sd->bl.id), script_config.baselvup_event_name);
-		}
-
+		npc_script_event(sd, NPCE_BASELVUP);
 		return 1;
 		}
 
@@ -3809,17 +3798,7 @@ int pc_checkjoblevelup(struct map_session_data *sd)
 		if (pc_checkskill(sd, SG_DEVIL) && !pc_nextjobexp(sd))
 			clif_status_change(&sd->bl,SI_DEVIL, 1); //Permanent blind effect from SG_DEVIL.
 
-		if (script_config.event_script_type == 0) {
-			struct npc_data *npc;
-			if ((npc = npc_name2id(script_config.joblvup_event_name))) {
-				run_script(npc->u.scr.script,0,sd->bl.id,npc->bl.id); // PCLvlUPNPC
-				ShowStatus("Event '"CL_WHITE"%s"CL_RESET"' executed.\n",script_config.joblvup_event_name);
-			}
-		} else {
-				ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
-				npc_event_doall_id(script_config.joblvup_event_name, sd->bl.id), script_config.joblvup_event_name);
-		}
-
+		npc_script_event(sd, NPCE_JOBLVUP);
 		return 1;
 	}
 
@@ -4549,17 +4528,9 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 		if (ssd) {
 			if (sd->state.event_death)
 				pc_setglobalreg(sd,"killerrid",(ssd->status.account_id));
-			if (ssd->state.event_kill) {
-				if (script_config.event_script_type == 0) {
-					struct npc_data *npc;
-					if ((npc = npc_name2id(script_config.kill_event_name))) {
-						run_script(npc->u.scr.script,0,sd->bl.id,npc->bl.id); // PCKillNPC
-						ShowStatus("Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.kill_event_name);
-					}
-				} else {
-					ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
-						npc_event_doall_id(script_config.kill_event_name, sd->bl.id), script_config.kill_event_name);
-				}
+			if (ssd->state.event_kill_pc) {
+				pc_setglobalreg(ssd, "killedrid", sd->bl.id);
+				npc_script_event(ssd, NPCE_KILLPC);
 			}
 			if (battle_config.pk_mode && ssd->status.manner >= 0 && battle_config.manner_system) {
 				ssd->status.manner -= 5;
@@ -4587,18 +4558,8 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 		}
 	}
 
-	if (sd->state.event_death) {
-		if (script_config.event_script_type == 0) {
-			struct npc_data *npc;
-			if ((npc = npc_name2id(script_config.die_event_name))) {
-				run_script(npc->u.scr.script,0,sd->bl.id,npc->bl.id); // PCDeathNPC
-				ShowStatus("Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.die_event_name);
-			}
-		} else {
-			ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
-				npc_event_doall_id(script_config.die_event_name, sd->bl.id), script_config.die_event_name);
-		}
-	}
+	if (sd->state.event_death)
+		npc_script_event(sd,NPCE_DIE);
 
 // PK/Karma system code (not enabled yet) [celest]
 	/*if(sd->status.karma > 0) {
@@ -5735,8 +5696,10 @@ int pc_setregistry(struct map_session_data *sd,char *reg,int val,int type) {
 	//		status_calc_pc(sd,0); //I doubt this is needed....
 		} else if(strcmp(reg,script_config.die_event_name) == 0){
 			sd->state.event_death = val;
-		} else if(strcmp(reg,script_config.kill_event_name) == 0){
-			sd->state.event_kill = val;
+		} else if(strcmp(reg,script_config.kill_pc_event_name) == 0){
+			sd->state.event_kill_pc = val;
+		} else if(strcmp(reg,script_config.kill_mob_event_name) == 0){
+			sd->state.event_kill_mob = val;
 		} else if(strcmp(reg,script_config.logout_event_name) == 0){
 			sd->state.event_disconnect = val;
 		}
