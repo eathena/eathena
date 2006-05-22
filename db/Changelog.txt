@@ -1,3 +1,6 @@
+05/22
+	* Merged skill_db, mob_skill_db, skill_unit_db from trunk. Fine-tunes some
+	  mvp-version skills, and updates idle-state skills for mobs. [Skotlex]
 05/16
 	* Merged skill_db.txt from trunk [Playtester]
 05/15

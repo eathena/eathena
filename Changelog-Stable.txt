@@ -4,6 +4,12 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES GO 
 IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EVERYTHING ELSE
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
+2006/05/22
+	* Merged mobs using idle skills when they can't move. [Skotlex]
+	* Merged mob skill usage picking up a random skill from the list instead of
+	  always checking from first to last. [Skotlex]
+	* Merged a small fix in pet.c which was making them always invoke the pet
+	  random walk routine. [Skotlex]
 2006/05/20
 	* jA1983 script.c buildin_menu fix. Thanks to End_of_exam. [Vicious]
 	* SC_SPEARSQUICKEN -> SC_SPEARQUICKEN normalized enum name [Lupus]

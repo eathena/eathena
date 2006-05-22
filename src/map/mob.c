@@ -1181,14 +1181,19 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 			{	//Out of range...
 				if (!(mode&MD_CANMOVE))
 				{	//Can't chase. Attempt to use a ranged skill at least?
-					md->state.skillstate = md->state.aggressive?MSS_ANGRY:MSS_BERSERK;
-					mobskill_use(md, tick, -1);
-					mob_unlocktarget(md,tick);
+					md->state.skillstate = MSS_IDLE;
+					if (!mobskill_use(md, tick, -1))
+						mob_unlocktarget(md,tick);
 					return 0;
 				}
 
-				if (!can_move) //Stuck. Wait before walking.
+				if (!can_move)
+			  	{	//Stuck. Use an idle skill. o.O'
+					md->state.skillstate = MSS_IDLE;
+					if (!(++md->ud.walk_count%IDLE_SKILL_INTERVAL))
+						mobskill_use(md, tick, -1);
 					return 0;
+				}
 
 				md->state.skillstate = md->state.aggressive?MSS_FOLLOW:MSS_RUSH;
 				if (md->ud.walktimer != -1 && md->ud.target == tbl->id &&
@@ -2524,24 +2529,30 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 	struct mob_skill *ms;
 	struct block_list *fbl = NULL; //Friend bl, which can either be a BL_PC or BL_MOB depending on the situation. [Skotlex]
 	struct mob_data *fmd = NULL;
-	int i;
+	int i,n;
 
 	nullpo_retr (0, md);
 	nullpo_retr (0, ms = md->db->skill);
 
-	if (battle_config.mob_skill_rate == 0 || md->ud.skilltimer != -1)
+	if (!battle_config.mob_skill_rate || md->ud.skilltimer != -1 || !md->db->maxskill)
 		return 0;
 
 	if (event < 0 && DIFF_TICK(md->ud.canact_tick, tick) > 0)
 		return 0; //Skill act delay only affects non-event skills.
-	
-	for (i = 0; i < md->db->maxskill; i++) {
-		int c2 = ms[i].cond2, flag = 0;		
 
-		// ƒfƒBƒŒƒC’†
+	//Pick a random starting position and loop from that.
+	i = rand()%md->db->maxskill;
+	for (n = 0; n < md->db->maxskill; i++, n++) {
+		int c2, flag = 0;		
+
+		if (i == md->db->maxskill)
+			i = 0;
+
 		if (DIFF_TICK(tick, md->skilldelay[i]) < ms[i].delay)
 			continue;
 
+		c2 = ms[i].cond2;
+		
 		if (ms[i].state != md->state.skillstate && md->state.skillstate != MSS_DEAD) {
 			if (ms[i].state == MSS_ANY || (ms[i].state == MSS_ANYTARGET && md->target_id))
 				; //ANYTARGET works with any state as long as there's a target. [Skotlex]
