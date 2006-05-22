@@ -1,4 +1,8 @@
 05/22
+	* Merged more db files [Playtester]
+	- correct implementation of Amon Ra
+	- more drop updates to X.2
+	- job bonus for Novice removed
 	* Merged skill_db, mob_skill_db, skill_unit_db from trunk. Fine-tunes some
 	  mvp-version skills, and updates idle-state skills for mobs. [Skotlex]
 05/16
