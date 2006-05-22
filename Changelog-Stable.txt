@@ -6,6 +6,7 @@ GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 2006/05/20
 	* jA1983 script.c buildin_menu fix. Thanks to End_of_exam. [Vicious]
+	* SC_SPEARSQUICKEN -> SC_SPEARQUICKEN normalized enum name [Lupus]
 2006/05/18
 	* Merged Body Relocation's fix pos packet using the caster's position
 	  rather than target tile. [Skotlex]
