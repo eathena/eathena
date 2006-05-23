@@ -30,6 +30,8 @@ Evera
 
 Date		Added
 ======
+05/23
+	* Changed the questions of the Wizard Quiz to official ones [Playtester]
 05/19
 	* Commented a warp that stands in the middle of nowhere [Playtester]
 05/17
