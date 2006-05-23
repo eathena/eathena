@@ -1,3 +1,5 @@
+05/23
+	* Amon Ra now uses Meteor Storm on self until we find out how it really works [Playtester]
 05/22
 	* Merged more db files [Playtester]
 	- correct implementation of Amon Ra
