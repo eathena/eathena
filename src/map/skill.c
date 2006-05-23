@@ -1771,6 +1771,22 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 	if(sd) {
 		//Sorry for removing the Japanese comments, but they were actually distracting 
 		//from the actual code and I couldn't understand a thing anyway >.< [Skotlex]
+		if (sd->sc.data[SC_COMBO].timer!=-1)
+		{	//End combo state after skill is invoked. [Skotlex]
+			switch (skillid) {
+			case TK_TURNKICK:
+			case TK_STORMKICK:
+			case TK_DOWNKICK:
+			case TK_COUNTER:
+				//set this skill as previous one.
+				sd->skillid_old = skillid;
+				sd->skilllv_old = skilllv;
+				if (pc_istop10fame(sd->char_id,MAPID_TAEKWON))
+					break; //Do not end combo state.
+			default:
+				status_change_end(src,SC_COMBO,-1);
+			}
+		}
 		switch(skillid)
 		{
 			case MO_TRIPLEATTACK:
@@ -2086,7 +2102,8 @@ static int skill_check_unit_range_sub( struct block_list *bl,va_list ap )
 
 static int skill_check_unit_range(struct block_list *bl,int x,int y,int skillid,int skilllv)
 {
-	int range = skill_get_unit_range(skillid, skilllv);
+	//Non players do not check for the skill's splash-trigger area.
+	int range = bl->type==BL_PC?skill_get_unit_range(skillid, skilllv):0;
 	int layout_type = skill_get_unit_layout_type(skillid,skilllv);
 	if (layout_type==-1 || layout_type>MAX_SQUARE_LAYOUT) {
 		ShowError("skill_check_unit_range: unsupported layout type %d for skill %d\n",layout_type,skillid);
@@ -2759,14 +2776,20 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 		skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag);
 		if (skilllv>1) {
 			int range = skilllv/2;
-			//Rain doesn't affect WATERBALL (Rain has been removed at kRO) [Lupus]
-			//int cnt = (!map[src->m].flag.rain) ? skill_count_water(src,range) - 1 : skill_get_num(skillid,skilllv) - 1;
-			int cnt = (src->type==BL_PC)?skill_count_water(src,range):++range*range;
+			int cnt;
+		  	if (sd)
+				cnt = skill_count_water(src,range);
+			else {
+				range = 2*range+1;
+				cnt = range*range;
+			}
 			cnt--;
 			if (cnt > 0)
 				skill_addtimerskill(src,tick+150,bl->id,0,0,
 					skillid,skilllv,cnt,flag);
-		}
+		} else if (sd) //Eat up deluge tiles.
+			skill_count_water(src,0);
+
 		break;
 
 	case PR_BENEDICTIO:			/* ?ｹ??~福 */
@@ -7969,22 +7992,6 @@ int skill_check_condition(struct map_session_data *sd,int skill, int lv, int typ
 	if(spiritball > 0)				// 氣球?ﾁ費
 		pc_delspiritball(sd,spiritball,0);
 
-	if (sd->sc.data[SC_COMBO].timer!=-1)
-	{	//End combo state after skill is invoked. [Skotlex]
-		switch (skill) {
-		case TK_TURNKICK:
-		case TK_STORMKICK:
-		case TK_DOWNKICK:
-		case TK_COUNTER:
-			//set this skill as previous one.
-			sd->skillid_old = skill;
-			sd->skilllv_old = lv;
-			if (pc_istop10fame(sd->char_id,MAPID_TAEKWON))
-				break; //Do not end combo state.
-		default:
-			status_change_end(&sd->bl,SC_COMBO,-1);
-		}
-	}
 	return 1;
 }
 
@@ -8057,6 +8064,9 @@ int skill_delayfix(struct block_list *bl, int skill_id, int skill_lv)
 	
 	nullpo_retr(0, bl);
 
+	if (bl->type == BL_MOB)
+		return 0; //Mobs have no delay other than the skill-specific delay in their skill db. [Skotlex]
+	
 	// instant cast attack skills depend on aspd as delay [celest]
 	if (time == 0) {
 		if (skill_get_type(skill_id) == BF_WEAPON && !(skill_get_nk(skill_id)&NK_NO_DAMAGE))
@@ -8388,7 +8398,9 @@ int skill_autospell(struct map_session_data *sd,int skillid)
 	nullpo_retr(0, sd);
 
 	skilllv = sd->menuskill_lv;
-	if(skilllv <= 0) return 0;
+	lv=pc_checkskill(sd,skillid);
+
+	if(skilllv <= 0 || !lv) return 0; // Player must learn the skill before doing auto-spell [Lance]
 
 	if(skillid==MG_NAPALMBEAT)	maxlv=3;
 	else if(skillid==MG_COLDBOLT || skillid==MG_FIREBOLT || skillid==MG_LIGHTNINGBOLT){
@@ -8410,7 +8422,7 @@ int skill_autospell(struct map_session_data *sd,int skillid)
 	else if(skillid==MG_FROSTDIVER) maxlv=1;
 	else return 0;
 
-	if(maxlv > (lv=pc_checkskill(sd,skillid)))
+	if(maxlv > lv)
 		maxlv = lv;
 
 	sc_start4(&sd->bl,SC_AUTOSPELL,100,skilllv,skillid,maxlv,0,	// val1:スキルID val2:使用?ﾅ大Lv
