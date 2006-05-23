@@ -2653,11 +2653,11 @@ int clif_changelook(struct block_list *bl,int type,int val)
 			vd->class_ = val;
 			if (vd->class_ == JOB_WEDDING || vd->class_ == JOB_XMAS)
 				vd->weapon = vd->shield = 0;
-			if (
+			if (vd->cloth_color && (
 				(vd->class_ == JOB_WEDDING && battle_config.wedding_ignorepalette) ||
 				(vd->class_ == JOB_XMAS && battle_config.xmas_ignorepalette)
-			)
-				vd->cloth_color = 0;
+			))
+				clif_changelook(bl,LOOK_CLOTHES_COLOR,0);
 		break;
 		case LOOK_HAIR:
 			vd->hair_style = val;

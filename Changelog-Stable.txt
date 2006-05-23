@@ -5,6 +5,7 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 2006/05/22
+	* Fixed config "wedding_modifydisplay: yes". [Skotlex]
 	* Merged mobs using idle skills when they can't move. [Skotlex]
 	* Merged mob skill usage picking up a random skill from the list instead of
 	  always checking from first to last. [Skotlex]
