@@ -5,6 +5,10 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 2006/05/24
+	* Merged Move Enable checking for unit_can_move only when begin casting.
+	  [Skotlex]
+	* Merged Soul Drain fix working on non-magic attacks. [Skotlex]
+	* Corrected SL KA* spells not working on other Soul Linkers. [Skotlex]
 	* Merged the disguise negative id cleanups in clif.c  [Skotlex]
 2006/05/23
 	* Corrected Waterball's hit-count when used by mobs and lv1 not consuming
