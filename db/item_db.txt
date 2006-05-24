@@ -93,7 +93,7 @@
 601,Fly_Wing,Fly Wing,2,60,,50,,,,,0xFFFFFFFF,7,2,,,,,,{ warp "Random",0,0; },{},{}
 602,Butterfly_Wing,Butterfly Wing,2,300,,50,,,,,0xFFFFFFFF,7,2,,,,,,{ warp "SavePoint",0,0; },{},{}
 603,Old_Blue_Box,Old Blue Box,2,10000,,200,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem groupranditem(IG_BlueBox),1; },{},{}
-604,Dead_Branch,Dead Branch,2,50,,50,,,,,0xFFFFFFFF,7,2,,,,,,{ monster "this",0,0,"--ja--",-1,1,""; },{},{}
+604,Dead_Branch,Dead Branch,2,50,,50,,,,,0xFFFFFFFF,7,2,,,,,,{ monster "this",-1,-1,"--ja--",-1,1,""; },{},{}
 605,Anodyne,Anodyne,11,2000,,100,,,,,0xFFFFFFFF,7,2,,,,,,{ itemskill 8,1,"Endure"; },{},{}
 606,Aloevera,Aloevera,11,1500,,100,,,,,0xFFFFFFFF,7,2,,,,,,{ itemskill 6,1,"Provoke"; },{},{}
 607,Yggdrasil_Berry,Yggdrasil Berry,0,2,,300,,,,,0xFFFFFFFF,7,2,,,,,,{ percentheal 100,100; },{},{}

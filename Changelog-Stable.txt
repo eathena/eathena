@@ -5,6 +5,11 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 2006/05/24
+	* Merged Aggressive bit only being reset when there are no targets in the
+	  mob's range of view. [Skotlex]
+	* Merged mob_spawn_once using 0,0 for a random spot on the whole map, and
+	  -1,-1 for a random spot around the player who invoked the script. [Skotlex]
+	* Updated item_db to use -1,-1 for the relevant summoning items. [Skotlex]
 	* Merged Move Enable checking for unit_can_move only when begin casting.
 	  [Skotlex]
 	* Merged Soul Drain fix working on non-magic attacks. [Skotlex]

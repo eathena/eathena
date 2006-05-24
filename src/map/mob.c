@@ -262,7 +262,8 @@ int mob_once_spawn (struct map_session_data *sd, char *mapname,
 {
 	struct mob_data *md = NULL;
 	struct spawn_data data;
-	int m, count, lv = 255;
+	int m, count, lv = 255, rand_flag=0;
+	
 	
 	if(sd) lv = sd->status.base_level;
 
@@ -286,20 +287,26 @@ int mob_once_spawn (struct map_session_data *sd, char *mapname,
 	}
 	strncpy(data.eventname, event, 50);
 	
-	if (x <= 0 || y <= 0) {
-		if (sd)
-			map_search_freecell(&sd->bl, m, &x, &y, 1, 1, 0);
-		else
-		if (!map_search_freecell(NULL, m, &x, &y, -1, -1, 1))
-			return 0;	//Not solved?
-	}
-	data.x = x;
-	data.y = y;
+	if (sd && (x < 0 || y < 0)) //Locate spot around player.
+		map_search_freecell(&sd->bl, m, &x, &y, 1, 1, 0);
 
+	if (x <= 0 || y <= 0 || map_getcell(m,x,y,CELL_CHKNOREACH))
+		rand_flag = 1; //Randomize spot on map for each mob.
+	else {
+		data.x = x;
+		data.y = y;
+	}
 	if (!mob_parse_dataset(&data))
 		return 0;
 	
 	for (count = 0; count < amount; count++) {
+		if (rand_flag) { //Get a random cell for this mob.
+			map_search_freecell(NULL, m, &x, &y, -1, -1, 1);
+			// This should ALWAYS be done. [blackhole89]
+			data.x = x;
+			data.y = y;
+		}
+
 		md =mob_spawn_dataset (&data);
 
 		if (class_ < 0 && battle_config.dead_branch_active)
@@ -559,7 +566,6 @@ int mob_linksearch(struct block_list *bl,va_list ap)
 		md->last_linktime = tick;
 		if( mob_can_reach(md,target,md->db->range2, MSS_FOLLOW) ){	// Reachability judging
 			md->target_id = target->id;
-			md->state.aggressive = (status_get_mode(&md->bl)&MD_ANGRY)?1:0;
 			md->min_chase=md->db->range3;
 			return 1;
 		}
@@ -675,6 +681,7 @@ int mob_spawn (struct mob_data *md)
 	md->master_id = 0;
 	md->master_dist = 0;
 
+	md->state.aggressive = md->db->mode&MD_ANGRY?1:0;
 	md->state.skillstate = MSS_IDLE;
 	md->next_walktime = tick+rand()%5000+1000;
 	md->last_linktime = tick;
@@ -807,7 +814,6 @@ static int mob_ai_sub_hard_activesearch(struct block_list *bl,va_list ap)
 		) {
 			(*target) = bl;
 			md->target_id=bl->id;
-			md->state.aggressive = (status_get_mode(&md->bl)&MD_ANGRY)?1:0;
 			md->min_chase= dist + md->db->range3;
 			if(md->min_chase>MAX_MINCHASE)
 				md->min_chase=MAX_MINCHASE;
@@ -845,7 +851,6 @@ static int mob_ai_sub_hard_changechase(struct block_list *bl,va_list ap)
 		) {
 			(*target) = bl;
 			md->target_id=bl->id;
-			md->state.aggressive = (status_get_mode(&md->bl)&MD_ANGRY)?1:0;
 			md->min_chase= md->db->range3;
 			return 1;
 		}
@@ -955,7 +960,6 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 			}
 			if (tbl && status_check_skilluse(&md->bl, tbl, 0, 0)) {
 				md->target_id=tbl->id;
-				md->state.aggressive = (status_get_mode(&md->bl)&MD_ANGRY)?1:0;
 				md->min_chase=md->db->range3+distance_bl(&md->bl, tbl);
 				if(md->min_chase>MAX_MINCHASE)
 					md->min_chase=MAX_MINCHASE;
@@ -1157,6 +1161,8 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 	) {
 		map_foreachinrange (mob_ai_sub_hard_activesearch, &md->bl,
 			view_range, md->special_state.ai?BL_CHAR:BL_PC, md, &tbl);
+		if(!tbl && mode&MD_ANGRY && !md->state.aggressive)
+			md->state.aggressive = 1; //Restore angry state when no targets are visible.
 	} else if (mode&MD_CHANGECHASE && (md->state.skillstate == MSS_RUSH || md->state.skillstate == MSS_FOLLOW)) {
 		search_size = view_range<md->db->range ? view_range:md->db->range;
 		map_foreachinrange (mob_ai_sub_hard_changechase, &md->bl,
