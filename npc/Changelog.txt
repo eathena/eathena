@@ -31,6 +31,7 @@ Evera
 Date		Added
 ======
 05/24
+	* Removed Blue Potions from Yuno Shops [Playtester]
 	* Merged temporary Thanatos Warp fix [Playtester]
 	* Added the Novice Exchange Quest provided by Dr.Evil [Playtester]
 	- exchange novice loot for red potions
