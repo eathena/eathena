@@ -30,6 +30,9 @@ Evera
 
 Date		Added
 ======
+05/24
+	* Added the Novice Exchange Quest provided by Dr.Evil [Playtester]
+	- exchange novice loot for red potions
 05/23
 	* Changed the questions of the Wizard Quiz to official ones [Playtester]
 05/19
