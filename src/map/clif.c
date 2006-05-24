@@ -7643,7 +7643,9 @@ int clif_charnameack (int fd, struct block_list *bl)
 			struct party *p = NULL;
 			struct guild *g = NULL;
 			
-			nullpo_retr(0, ssd);
+			//Requesting your own "shadow" name. [Skotlex]
+			if (ssd->fd == fd && ssd->disguise)
+				WBUFL(buf,2) = -bl->id; 
 
 			if (strlen(ssd->fakename)>1) {
 				memcpy(WBUFP(buf,6), ssd->fakename, NAME_LENGTH);
@@ -8402,9 +8404,9 @@ void clif_parse_GetCharNameRequest(int fd, struct map_session_data *sd) {
 	RFIFOHEAD(fd);
 	
 	account_id = RFIFOL(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]);
-	if(account_id<0) // for disguises [Valaris]
-		account_id-=account_id*2;
 
+	if(account_id<0 && -account_id == sd->bl.id) // for disguises [Valaris]
+		account_id= sd->bl.id;
 	//Is this possible? Lagged clients could request names of already gone mobs/players. [Skotlex]
 	if ((bl = map_id2bl(account_id)) != NULL)	
 		clif_charnameack(fd, bl);
@@ -8658,8 +8660,8 @@ void clif_parse_ActionRequest(int fd, struct map_session_data *sd) {
 	target_id = RFIFOL(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]);
 	action_type = RFIFOB(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[1]);
 
-	if(target_id<0) // for disguises [Valaris]
-		target_id-=(target_id*2);
+	if(target_id<0 && -target_id == sd->bl.id) // for disguises [Valaris]
+		target_id = sd->bl.id;
 		
 	switch(action_type) {
 	case 0x00: // once attack
@@ -9441,8 +9443,8 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd) {
 	if (sd->invincible_timer != -1)
 		pc_delinvincibletimer(sd);
 	
-	if(target_id<0) // for disguises [Valaris]
-		target_id*=-1;
+	if(target_id<0 && -target_id == sd->bl.id) // for disguises [Valaris]
+		target_id = sd->bl.id;
 		
 	if (sd->skillitem >= 0 && sd->skillitem == skillnum) {
 		if (skilllv != sd->skillitemlv)
@@ -9863,7 +9865,7 @@ void clif_parse_MoveToKafra(int fd, struct map_session_data *sd) {
 	
 	item_index = RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0])-2;
 	item_amount = RFIFOL(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[1]);
-	if (item_index < 0 || item_index >= MAX_INVENTORY)
+	if (item_index < 0 || item_index >= MAX_INVENTORY || item_amount < 1)
 		return;
 
 	if (sd->state.storage_flag == 1)
