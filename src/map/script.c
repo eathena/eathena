@@ -6665,9 +6665,6 @@ int buildin_setmapflag(struct script_state *st)
 			case MF_NOTRADE:
 				map[m].flag.notrade=1;
 				break;
-			case MF_NOVENDING:
-				map[m].flag.novending=1;
-				break;
 			case MF_NODROP:
 				map[m].flag.nodrop=1;
 				break;
@@ -6740,6 +6737,9 @@ int buildin_setmapflag(struct script_state *st)
 			case MF_NOCOMMAND:
 				map[m].flag.nocommand=1;
 				break;
+			case MF_NOVENDING:
+				map[m].flag.novending=1;
+				break;
 		}
 	}
 
@@ -6797,9 +6797,6 @@ int buildin_removemapflag(struct script_state *st)
 				break;
 			case MF_NOTRADE:
 				map[m].flag.notrade=0;
-				break;
-			case MF_NOVENDING:
-				map[m].flag.novending=0;
 				break;
 			case MF_NODROP:
 				map[m].flag.nodrop=0;
@@ -6872,6 +6869,9 @@ int buildin_removemapflag(struct script_state *st)
 				break;
 			case MF_NOCOMMAND:
 				map[m].flag.nocommand=0;
+				break;
+			case MF_NOVENDING:
+				map[m].flag.novending=0;
 				break;
 		}
 	}
