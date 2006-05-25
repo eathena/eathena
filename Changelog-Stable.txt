@@ -5,6 +5,7 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 2006/05/24
+	* Fix to the slave AI problem. [erKURITA], by [Skotlex], reported by Niktout.
 	* Merged the fix to Snap desyncing the char's position on the client.
 	  [Skotlex]
 	* Merged the fix which enabled summoned monsters from using a summon skill
