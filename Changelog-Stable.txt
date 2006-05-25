@@ -5,6 +5,9 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 2006/05/25
+	* Merged the cleanup of storage.c [Skotlex]
+	* Merged enabling moving items from cart/storage to inventory during
+	  trades. [Skotlex]
 	* Added NoVending mapflag. You may disable vending in the streets [Lupus]
 	* Increased capacity for Account Variables to 64 [Skotlex]
 	* Corrected Login Server taking it's first argument as both login config

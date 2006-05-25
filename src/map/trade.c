@@ -109,11 +109,14 @@ void trade_tradeack(struct map_session_data *sd, int type) {
 	if (target_sd->npc_id)
 		npc_event_dequeue(target_sd);
 
+	/* Why? It should be allowed to bring items from storage to inventory for trading, but not the other way around
+	 * (this is blocked on clif.c) [Skotlex]
 	//close STORAGE window if it's open. It protects from spooffing packets [Lupus]
 	if (sd->state.storage_flag == 1)
 		storage_storageclose(sd);
 	else if (sd->state.storage_flag == 2)
 		storage_guild_storageclose(sd);
+	*/
 }
 
 /*==========================================
