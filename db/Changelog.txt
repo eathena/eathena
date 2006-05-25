@@ -1,3 +1,10 @@
+05/25
+	* Merged mob_db from trunk [Playtester]
+	- Aegis X.2 drops
+	- Additional cooking drops
+	- Fixed several mob modes
+	- Fixed MVP Exp
+	- Changed Exp according to the last kRO Patch
 05/23
 	* Amon Ra now uses Meteor Storm on self until we find out how it really works [Playtester]
 05/22
