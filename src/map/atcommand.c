@@ -5743,18 +5743,20 @@ int atcommand_mapinfo(
 		strcat(atcmd_output, "NoBranch | ");
 	if (map[m_id].flag.notrade)
 		strcat(atcmd_output, "NoTrade | ");
+	if (map[m_id].flag.novending)
+		strcat(atcmd_output, "NoVending | ");
 	if (map[m_id].flag.nodrop)
 		strcat(atcmd_output, "NoDrop | ");
 	if (map[m_id].flag.noskill)
 		strcat(atcmd_output, "NoSkill | ");
 	if (map[m_id].flag.noicewall)
 		strcat(atcmd_output, "NoIcewall | ");
-	if (map[m_id].flag.nocommand)
-		strcat(atcmd_output, "NoCommand | ");
 		
 	clif_displaymessage(fd, atcmd_output);
 
 	strcpy(atcmd_output,"Other Flags: ");
+	if (map[m_id].flag.nocommand)
+		strcat(atcmd_output, "NoCommand | ");
 	if (map[m_id].flag.nobaseexp)
 		strcat(atcmd_output, "NoBaseEXP | ");
 	if (map[m_id].flag.nojobexp)
