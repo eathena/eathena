@@ -1,4 +1,5 @@
 05/26
+	* Merged Kiel & Odin drop update [Playtester]
 	* Fixed 12106,Jeweled_Box. Now giving an accessory [Lupus]
 	* Merged Sidewinder Card effect from TRUNK
 05/25
