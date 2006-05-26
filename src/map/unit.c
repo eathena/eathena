@@ -390,7 +390,7 @@ int unit_movepos(struct block_list *bl,int dst_x,int dst_y, int easy, int checkp
 	unit_stop_walking(bl,1);
 	unit_stop_attack(bl);
 
-	if(checkpath && (map_getcell(bl->m,bl->x,bl->y, CELL_CHKNOPASS) || path_search_real(&wpd,bl->m,bl->x,bl->y,dst_x,dst_y,easy, CELL_CHKNOREACH)))
+	if(checkpath && (map_getcell(bl->m,dst_x,dst_y, CELL_CHKNOPASS) || path_search_real(&wpd,bl->m,bl->x,bl->y,dst_x,dst_y,easy, CELL_CHKNOREACH)))
 		return 0;
 
 	dir = map_calc_dir(bl, dst_x,dst_y);
@@ -634,6 +634,7 @@ int unit_can_move(struct block_list *bl)
 			sc->data[SC_AUTOCOUNTER].timer !=-1 ||
 			sc->data[SC_TRICKDEAD].timer !=-1 ||
 			sc->data[SC_BLADESTOP].timer !=-1 ||
+			sc->data[SC_BLADESTOP_WAIT].timer !=-1 ||
 			sc->data[SC_SPIDERWEB].timer !=-1 ||
 			(sc->data[SC_DANCING].timer !=-1 && (
 				(sc->data[SC_DANCING].val4 && sc->data[SC_LONGING].timer == -1) ||
@@ -670,17 +671,17 @@ int unit_set_walkdelay(struct block_list *bl, unsigned int tick, int delay, int 
 	ud->canmove_tick = tick + delay;
 	if (ud->walktimer != -1)
 	{	//Stop walking, if chasing, readjust timers.
-		unit_stop_walking(bl,3);
-		if(ud->target)
-			add_timer(ud->canmove_tick+1, unit_walktobl_sub, bl->id, ud->target);
+		if (delay == 1)
+		{	//Minimal delay (walk-delay) disabled. Just stop walking.
+			unit_stop_walking(bl,0);
+		} else {
+			unit_stop_walking(bl,2);
+			if(ud->target)
+				add_timer(ud->canmove_tick+1, unit_walktobl_sub, bl->id, ud->target);
+		}
 	}
 	return 1;
 }
-
-/*==========================================
- * Applies walk delay based on attack type. [Skotlex]
- *------------------------------------------
- */
 
 int unit_skilluse_id2(struct block_list *src, int target_id, int skill_num, int skill_lv, int casttime, int castcancel) {
 	struct unit_data *ud;
@@ -991,12 +992,11 @@ int unit_skilluse_pos2( struct block_list *src, int skill_x, int skill_y, int sk
 	}
 
 	if( casttime>0 ) {
-		/* ‰r¥‚ª•K—v */
-		unit_stop_walking( src, 1);		// •às’âŽ~
+		unit_stop_walking( src, 1);
 		clif_skillcasting(src, src->id, 0, skill_x,skill_y, skill_num,casttime);
 	}
 
-	if( casttime<=0 )	/* ‰r¥‚Ì–³‚¢‚à‚Ì‚ÍƒLƒƒƒ“ƒZƒ‹‚³‚ê‚È‚¢ */
+	if( casttime<=0 )
 		ud->state.skillcastcancel=0;
 
 	ud->canact_tick  = tick + casttime + 100;
@@ -1026,7 +1026,6 @@ int unit_skilluse_pos2( struct block_list *src, int skill_x, int skill_y, int sk
 
 static int unit_attack_timer(int tid,unsigned int tick,int id,int data);
 
-// UŒ‚’âŽ~
 int unit_stop_attack(struct block_list *bl)
 {
 	struct unit_data *ud = unit_bl2ud(bl);
@@ -1037,6 +1036,7 @@ int unit_stop_attack(struct block_list *bl)
 
 	delete_timer( ud->attacktimer, unit_attack_timer );
 	ud->attacktimer = -1;
+	ud->target = 0;
 	return 0;
 }
 
@@ -1408,18 +1408,6 @@ int unit_counttargeted(struct block_list *bl,int target_lv)
 }
 
 /*==========================================
- * id‚ðUŒ‚‚µ‚Ä‚¢‚éPC‚ÌUŒ‚‚ð’âŽ~
- * clif_foreachclient‚ÌcallbackŠÖ”
- *------------------------------------------
- */
-int unit_mobstopattacked(struct map_session_data *sd,va_list ap)
-{
-	int id=va_arg(ap,int);
-	if(sd->ud.target==id)
-		unit_stop_attack(&sd->bl);
-	return 0;
-}
-/*==========================================
  * Œ©‚½–Ú‚ÌƒTƒCƒY‚ð•ÏX‚·‚é
  *------------------------------------------
  */
@@ -1553,8 +1541,6 @@ int unit_remove_map(struct block_list *bl, int clrtype) {
 		if (md->master_id) md->master_dist = 0;
 		if (clrtype == 1) { //Death.
 			md->last_deadtime=gettick();
-//			Isn't this too much? Why not let the attack-timer fail when the mob is dead? [Skotlex]
-//			clif_foreachclient(unit_mobstopattacked,md->bl.id);
 			if(md->deletetimer!=-1)
 				delete_timer(md->deletetimer,mob_timer_delete);
 			md->deletetimer=-1;
