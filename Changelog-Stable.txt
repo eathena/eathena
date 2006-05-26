@@ -5,6 +5,8 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 2006/05/26
+	* Fixed KAIZEL not ending on mobs when they die (letting them revive
+	  "infinite" times) [Skotlex]
 	* Merged not sending a fixpos packet when you are hit while walking
 	  (this is how Aegis handles it) [Skotlex]
 2006/05/25

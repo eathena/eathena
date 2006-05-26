@@ -1699,6 +1699,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 	if (md->sc.data[SC_KAIZEL].timer != -1) {
 		//Revive in a bit.
 		max_hp = 10*md->sc.data[SC_KAIZEL].val1; //% of life to rebirth with
+		status_change_end(&md->bl, SC_KAIZEL, -1);
 		clif_clearchar_area(&md->bl,1);
 		mob_unlocktarget(md,tick);
 		mob_stop_walking(md, 0);
