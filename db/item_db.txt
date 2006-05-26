@@ -1251,7 +1251,7 @@
 4114,Argiope_Card,Argiope Card,6,,10,10,,,,,,,,16,,,,,{ bonus bDefEle,Ele_Poison; bonus bDef,1; },{},{}
 4115,Hunter_Fly_Card,Hunter Fly Card,6,,10,10,,,,,,,,2,,,,,{ bonus2 bHpDrainRate,30,15; },{},{}
 4116,Isis_Card,Isis Card,6,,10,10,,,,,,,,4,,,,,{ bonus2 bSubEle,Ele_Dark,30; bonus bFlee,5; },{},{}
-4117,Sidewinder_Card,Sidewinder Card,6,,10,10,,,,,,,,2,,,,,{ bonus bDoubleRate,5; },{},{}
+4117,Sidewinder_Card,Sidewinder Card,6,,10,10,,,,,,,,2,,,,,{ bonus bDoubleRate,5+45*(getskilllv(48)==10); },{},{}
 4118,Earth_Petite_Card,Earth Petite Card,6,,10,10,,,,,,,,2,,,,,{ bonus2 bAddRace,RC_Dragon,20; },{},{}
 4119,Bathory_Card,Bathory Card,6,,10,10,,,,,,,,16,,,,,{ bonus bDefEle,Ele_Dark; },{},{}
 4120,Sky_Petite_Card,Sky Petite Card,6,,10,10,,,,,,,,32,,,,,{ bonus2 bSubRace,RC_Dragon,30; },{},{}
@@ -2334,7 +2334,7 @@
 12103,Bloody_Branch,Bloody Branch,2,,5000,200,,,,,0xFFFFFFFF,7,2,,,,,,{ monster "this",-1,-1,"--ja--",-3,1,""; },{},{}
 12104,Random_Quiver,Random Quiver,2,,5000,200,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem groupranditem(IG_Quiver),1; },{},{}
 12105,Taming_Item_Giftset,Taming Item Giftset,2,,5000,200,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem groupranditem(IG_Taming),3; },{},{}
-12106,Jewel_Box,Jewel Case,2,,5000,200,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem groupranditem(IG_Jewel),1; },{},{}
+12106,Jeweled_Box,Jeweled Box,2,,5000,200,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem groupranditem(IG_Accesory),1; },{},{}
 12107,Wrapped_Mask,Wrapped Mask,2,,5000,200,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem groupranditem(IG_Mask),1; },{},{}
 12108,Bundle_of_Spells,Bundle of Spells,2,,5000,200,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem groupranditem(IG_Scroll),5; },{},{}
 12109,Poring_Box,Poring Box,2,,5000,200,,,,,0xFFFFFFFF,7,2,,,,,,{ monster "this",-1,-1,"--ja--",-2,1,""; },{},{}

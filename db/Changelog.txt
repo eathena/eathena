@@ -1,3 +1,6 @@
+05/26
+	* Fixed 12106,Jeweled_Box. Now giving an accessory [Lupus]
+	* Merged Sidewinder Card effect from TRUNK
 05/25
 	* Merged mob_db from trunk [Playtester]
 	- Aegis X.2 drops
