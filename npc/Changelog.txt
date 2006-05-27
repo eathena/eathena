@@ -31,6 +31,7 @@ Evera
 Date		Added
 ======
 05/26
+	* Merged Kiel Lab and Odin Temple spawns [Playtester]
 	* Merged Abyss Lake and Thanatos Tower spawns [Playtester]
 05/25
 	* Added a custom Market Place to clear Prontera streets from annoying shops. [Lupus]
