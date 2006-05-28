@@ -30,6 +30,8 @@ Evera
 
 Date		Added
 ======
+05/27
+	* Updated DTS Warper; Now uses 3 global vars, 2 are vote #, 1 is etc in binary values. [Evera]
 05/26
 	* Merged Kiel Lab and Odin Temple spawns [Playtester]
 	* Merged Abyss Lake and Thanatos Tower spawns [Playtester]
