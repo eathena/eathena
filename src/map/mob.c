@@ -1694,7 +1694,9 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 	ret = (md->sc.data[SC_RICHMANKIM].timer != -1)?(25 + 11*md->sc.data[SC_RICHMANKIM].val1):0;
 
 	md->state.skillstate = MSS_DEAD;	
+	md->hp = 1; //Otherwise skill will be blocked due to being dead! [Skotlex]
 	mobskill_use(md,tick,-1);	//On Dead skill.
+	md->hp = 0;
 
 	if (md->sc.data[SC_KAIZEL].timer != -1) {
 		//Revive in a bit.
@@ -2563,9 +2565,11 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 
 		c2 = ms[i].cond2;
 		
-		if (ms[i].state != md->state.skillstate && md->state.skillstate != MSS_DEAD) {
-			if (ms[i].state == MSS_ANY || (ms[i].state == MSS_ANYTARGET && md->target_id))
-				; //ANYTARGET works with any state as long as there's a target. [Skotlex]
+		if (ms[i].state != md->state.skillstate) {
+			if (md->state.skillstate != MSS_DEAD && (
+				ms[i].state == MSS_ANY || (ms[i].state == MSS_ANYTARGET && md->target_id)
+			)) //ANYTARGET works with any state as long as there's a target. [Skotlex]
+				;
 			else
 				continue;
 		}

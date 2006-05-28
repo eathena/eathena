@@ -5,6 +5,8 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 2006/05/28
+	* Merged the correction to MSS_DEAD state skills (dead-state mob skills
+	  work now). [Skotlex]
 	* Changed undeads to always sustain all damage when walking through firewalls [MasterOfMuppets]
 	* Fixed unable to store n items into storage unless n was the total amount
 	  of items you had. [Skotlex]
