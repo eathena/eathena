@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <limits.h>
 
 #include "battle.h"
 #include "../common/timer.h"
@@ -114,7 +115,6 @@ struct delay_damage {
 	unsigned short skill_lv;
 	unsigned short skill_id;
 	unsigned short dmg_lv;
-	unsigned short flag;
 	unsigned char attack_type;
 };
 
@@ -125,7 +125,7 @@ int battle_delay_damage_sub (int tid, unsigned int tick, int id, int data)
 	if (target && dat && map_id2bl(id) == dat->src && target->prev != NULL && !status_isdead(target) &&
 		target->m == dat->src->m && check_distance_bl(dat->src, target, dat->distance)) //Check to see if you haven't teleported. [Skotlex]
 	{
-		battle_damage(dat->src, target, dat->damage, dat->delay, dat->flag);
+		battle_damage(dat->src, target, dat->damage, dat->delay, 0);
 		if ((dat->dmg_lv == ATK_DEF || dat->damage > 0) && dat->attack_type)
 		{
 			if (!status_isdead(target))
@@ -138,14 +138,14 @@ int battle_delay_damage_sub (int tid, unsigned int tick, int id, int data)
 	return 0;
 }
 
-int battle_delay_damage (unsigned int tick, struct block_list *src, struct block_list *target, int attack_type, int skill_id, int skill_lv, int damage, int dmg_lv, int ddelay, int flag)
+int battle_delay_damage (unsigned int tick, struct block_list *src, struct block_list *target, int attack_type, int skill_id, int skill_lv, int damage, int dmg_lv, int ddelay)
 {
 	struct delay_damage *dat;
 	nullpo_retr(0, src);
 	nullpo_retr(0, target);
 
 	if (!battle_config.delay_battle_damage) {
-		battle_damage(src, target, damage, ddelay, flag);
+		battle_damage(src, target, damage, ddelay, 0);
 		if ((damage > 0 || dmg_lv == ATK_DEF) && attack_type)
 		{
 			if (!status_isdead(target))
@@ -163,7 +163,6 @@ int battle_delay_damage (unsigned int tick, struct block_list *src, struct block
 	dat->damage = damage;
 	dat->dmg_lv = dmg_lv;
 	dat->delay = ddelay;
-	dat->flag = flag;
 	dat->distance = distance_bl(src, target)+10; //Attack should connect regardless unless you teleported.
 	add_timer(tick, battle_delay_damage_sub, src->id, (int)dat);
 	
@@ -558,17 +557,21 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 		}
 	}
 	
-	if (battle_config.pk_mode && bl->type == BL_PC && damage > 0) {
-		if (flag & BF_WEAPON) {
+	if (battle_config.pk_mode && sd && damage > 0)
+  	{
+		if (flag & BF_SKILL) { //Skills get a different reduction than non-skills. [Skotlex]
+			if (flag&BF_WEAPON)
+				damage = damage * battle_config.pk_weapon_damage_rate/100;
+			if (flag&BF_MAGIC)
+				damage = damage * battle_config.pk_magic_damage_rate/100;
+			if (flag&BF_MISC)
+				damage = damage * battle_config.pk_misc_damage_rate/100;
+		} else { //Normal attacks get reductions based on range.
 			if (flag & BF_SHORT)
-				damage = damage * 80/100;
+				damage = damage * battle_config.pk_short_damage_rate/100;
 			if (flag & BF_LONG)
-				damage = damage * 70/100;
+				damage = damage * battle_config.pk_long_damage_rate/100;
 		}
-		if (flag & BF_MAGIC)
-			damage = damage * 60/100;
-		if(flag & BF_MISC)
-			damage = damage * 60/100;
 		if(damage < 1) damage  = 1;
 	}
 
@@ -987,6 +990,8 @@ static struct Damage battle_calc_weapon_attack(
 		unsigned cri : 1;		//Critical hit
 		unsigned idef : 1;	//Ignore defense
 		unsigned idef2 : 1;	//Ignore defense (left weapon)
+		unsigned pdef : 2;	//Pierces defense (Investigate/Ice Pick)
+		unsigned pdef2 : 2;	//1: Use def+def2/50, 2: Use def+def2/100	
 		unsigned infdef : 1;	//Infinite defense (plants)
 		unsigned arrow : 1;	//Attack is arrow-based
 		unsigned rh : 1;		//Attack considers right hand (wd.damage)
@@ -1268,12 +1273,7 @@ static struct Damage battle_calc_weapon_attack(
 						flag.hit = 1;
 					break;
 			}
-		if ((tsc && !flag.hit) &&
-			(tsc->data[SC_SLEEP].timer!=-1 ||
-			tsc->data[SC_STUN].timer!=-1 ||
-			tsc->data[SC_FREEZE].timer!=-1 ||
-			(tsc->data[SC_STONE].timer!=-1 && tsc->data[SC_STONE].val2==0))
-			)
+		if (tsc && !flag.hit && tsc->opt1 && tsc->opt1 != OPT1_STONEWAIT)
 			flag.hit = 1;
 	}
 
@@ -1595,8 +1595,7 @@ static struct Damage battle_calc_weapon_attack(
 					break;
 				case MO_INVESTIGATE:
 					skillratio += 75*skill_lv;
-					ATK_RATE(2*(def1 + def2));
-					flag.idef= flag.idef2= 1;
+					flag.pdef = flag.pdef2 = 2;
 					break;
 				case MO_EXTREMITYFIST:
 					if (sd)
@@ -1764,25 +1763,21 @@ static struct Damage battle_calc_weapon_attack(
 				&& skill_num != CR_GRANDCROSS && skill_num != NPC_GRANDDARKNESS
 			  	&& !flag.cri)
 			{	//Elemental/Racial adjustments
-				char raceele_flag=0, raceele_flag_=0;
 				if(sd->right_weapon.def_ratio_atk_ele & (1<<t_ele) ||
 					sd->right_weapon.def_ratio_atk_race & (1<<t_race) ||
 					sd->right_weapon.def_ratio_atk_race & (is_boss(target)?1<<10:1<<11)
 				)
-					raceele_flag = flag.idef = 1;
+					flag.pdef = 1;
 
 				if(sd->left_weapon.def_ratio_atk_ele & (1<<t_ele) ||
 					sd->left_weapon.def_ratio_atk_race & (1<<t_race) ||
 					sd->left_weapon.def_ratio_atk_race & (is_boss(target)?1<<10:1<<11)
 				) {	//Pass effect onto right hand if configured so. [Skotlex]
 					if (battle_config.left_cardfix_to_right && flag.rh)
-						raceele_flag = flag.idef = 1;
+						flag.pdef = 1;
 					else
-						raceele_flag_ = flag.idef2 = 1;
+						flag.pdef2 = 1;
 				}
-
-				if (raceele_flag || raceele_flag_)
-					ATK_RATE2(raceele_flag?(def1 + def2):100, raceele_flag_?(def1 + def2):100);
 			}
 
 			if (skill_num != CR_GRANDCROSS && skill_num != NPC_GRANDDARKNESS)
@@ -1843,15 +1838,23 @@ static struct Damage battle_calc_weapon_attack(
 				vit_def = def2 + (vit_def>0?rand()%vit_def:0);
 			}
 			
-			if (sd && battle_config.player_defense_type)
-				vit_def += def1*battle_config.player_defense_type;
-			else if (md && battle_config.monster_defense_type)
-				vit_def += def1*battle_config.monster_defense_type;
-			else if(pd && battle_config.pet_defense_type)
-				vit_def += def1*battle_config.pet_defense_type;
-			else
-				ATK_RATE2(flag.idef?100:100-def1, flag.idef2?100:100-def1);
-			ATK_ADD2(flag.idef?0:-vit_def, flag.idef2?0:-vit_def);
+			if (battle_config.weapon_defense_type) {
+				vit_def += def1*battle_config.weapon_defense_type;
+				def1 = 0;
+			}
+			if (def1 > 100) def1 = 100;
+			ATK_RATE2(
+				flag.idef ?100:
+				(flag.pdef ?flag.pdef *(def1 + vit_def):
+				100-def1),
+			  	flag.idef2?100:
+				(flag.pdef2?flag.pdef2*(def1 + vit_def):
+				100-def1)
+			);
+			ATK_ADD2(
+				flag.idef ||flag.pdef ?0:-vit_def,
+				flag.idef2||flag.pdef2?0:-vit_def
+			);
 		}
 
 		//Post skill/vit reduction damage increases
@@ -3079,7 +3082,7 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 
 	map_freeblock_lock();
 
-	battle_delay_damage(tick+wd.amotion, src, target, BF_WEAPON, 0, 0, damage, wd.dmg_lv, wd.dmotion, 0);
+	battle_delay_damage(tick+wd.amotion, src, target, BF_WEAPON, 0, 0, damage, wd.dmg_lv, wd.dmotion);
 
 	if (!status_isdead(target) && damage > 0) {
 		if (sd) {
@@ -3132,7 +3135,7 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 		}
 	}
 	if (rdamage > 0) //By sending attack type "none" skill_additional_effect won't be invoked. [Skotlex]
-		battle_delay_damage(tick+wd.amotion, target, src, 0, 0, 0, rdamage, ATK_DEF, rdelay, 0);
+		battle_delay_damage(tick+wd.amotion, target, src, 0, 0, 0, rdamage, ATK_DEF, rdelay);
 
 	if (tsc) {
 		if (tsc->data[SC_POISONREACT].timer != -1 && 
@@ -3608,9 +3611,7 @@ static const struct battle_data_short {
 	{ "vit_penalty_count",                 &battle_config.vit_penalty_count			},
 	{ "vit_penalty_num",                   &battle_config.vit_penalty_num			},
 	{ "vit_penalty_count_lv",              &battle_config.vit_penalty_count_lv		},
-	{ "player_defense_type",               &battle_config.player_defense_type		},
-	{ "monster_defense_type",              &battle_config.monster_defense_type		},
-	{ "pet_defense_type",                  &battle_config.pet_defense_type			},
+	{ "weapon_defense_type",               &battle_config.weapon_defense_type		},
 	{ "magic_defense_type",                &battle_config.magic_defense_type		},
 	{ "skill_reiteration",                 &battle_config.skill_reiteration		},
 	{ "skill_nofootset",                   &battle_config.skill_nofootset		},
@@ -3623,6 +3624,11 @@ static const struct battle_data_short {
 	{ "gvg_magic_attack_damage_rate",      &battle_config.gvg_magic_damage_rate	},
 	{ "gvg_misc_attack_damage_rate",       &battle_config.gvg_misc_damage_rate		},
 	{ "gvg_flee_penalty",                  &battle_config.gvg_flee_penalty			},
+	{ "pk_short_attack_damage_rate",      &battle_config.pk_short_damage_rate	},
+	{ "pk_long_attack_damage_rate",       &battle_config.pk_long_damage_rate		},
+	{ "pk_weapon_attack_damage_rate",     &battle_config.pk_weapon_damage_rate	},
+	{ "pk_magic_attack_damage_rate",      &battle_config.pk_magic_damage_rate	},
+	{ "pk_misc_attack_damage_rate",       &battle_config.pk_misc_damage_rate		},
 	{ "mob_changetarget_byskill",          &battle_config.mob_changetarget_byskill},
 	{ "attack_direction_change",           &battle_config.attack_direction_change },
 	{ "land_skill_limit",                  &battle_config.land_skill_limit		},
@@ -4005,9 +4011,7 @@ void battle_set_defaults() {
 	battle_config.vit_penalty_count = 3;
 	battle_config.vit_penalty_num = 5;
 	battle_config.vit_penalty_count_lv = ATK_DEF;
-	battle_config.player_defense_type = 0;
-	battle_config.monster_defense_type = 0;
-	battle_config.pet_defense_type = 0;
+	battle_config.weapon_defense_type = 0;
 	battle_config.magic_defense_type = 0;
 	battle_config.skill_reiteration = 0;
 	battle_config.skill_nofootset = BL_PC;
@@ -4021,6 +4025,13 @@ void battle_set_defaults() {
 	battle_config.gvg_misc_damage_rate = 60;
 	battle_config.gvg_flee_penalty = 20;
 	battle_config.gvg_eliminate_time = 7000;
+
+	battle_config.pk_short_damage_rate = 80;
+	battle_config.pk_long_damage_rate = 70;
+	battle_config.pk_weapon_damage_rate = 60;
+	battle_config.pk_magic_damage_rate = 60;
+	battle_config.pk_misc_damage_rate = 60;
+
 	battle_config.mob_changetarget_byskill = 0;
 	battle_config.attack_direction_change = BL_ALL;
 	battle_config.land_skill_limit = BL_ALL;
@@ -4261,7 +4272,7 @@ void battle_validate_conf() {
 		battle_config.max_cart_weight = 100;
 	battle_config.max_cart_weight *= 10;
 	
-	if(battle_config.max_def > 100 && !battle_config.player_defense_type)	 // added by [Skotlex]
+	if(battle_config.max_def > 100 && !battle_config.weapon_defense_type)	 // added by [Skotlex]
 		battle_config.max_def = 100;
 	if(battle_config.over_def_bonus > 1000)
 		battle_config.over_def_bonus = 1000;

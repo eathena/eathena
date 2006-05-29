@@ -1288,7 +1288,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 
 	if(sd->def < 0) sd->def = 0;
 
-	else if (!battle_config.player_defense_type && sd->def > battle_config.max_def)
+	else if (!battle_config.weapon_defense_type && sd->def > battle_config.max_def)
 	{
 		sd->def2 += battle_config.over_def_bonus*(sd->def -battle_config.max_def);
 		sd->def = battle_config.max_def;
@@ -1323,7 +1323,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 
 	if(sd->mdef < 0) sd->mdef = 0;
 
-	else if (!battle_config.player_defense_type && sd->mdef > battle_config.max_def)
+	else if (!battle_config.magic_defense_type && sd->mdef > battle_config.max_def)
 	{
 		sd->mdef2 += battle_config.over_def_bonus*(sd->mdef -battle_config.max_def);
 		sd->mdef = battle_config.max_def;

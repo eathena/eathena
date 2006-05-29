@@ -47,7 +47,7 @@ enum {	// 最終計算のフラグ
 	BF_SKILLMASK= 0x0f00,
 };
 
-int battle_delay_damage (unsigned int tick, struct block_list *src, struct block_list *target, int attack_type, int skill_id, int skill_lv, int damage, int dmg_lv, int ddelay, int flag);
+int battle_delay_damage (unsigned int tick, struct block_list *src, struct block_list *target, int attack_type, int skill_id, int skill_lv, int damage, int dmg_lv, int ddelay);
 int battle_damage(struct block_list *bl,struct block_list *target,int damage,int walkdelay,int flag);
 int battle_heal(struct block_list *bl,struct block_list *target,int hp,int sp,int flag);
 
@@ -235,9 +235,7 @@ extern struct Battle_Config {
 	unsigned short vit_penalty_type;
 	unsigned short vit_penalty_count;
 	unsigned short vit_penalty_num;
-	unsigned short player_defense_type;
-	unsigned short monster_defense_type;
-	unsigned short pet_defense_type;
+	unsigned short weapon_defense_type;
 	unsigned short magic_defense_type;
 	unsigned short skill_reiteration;
 	unsigned short skill_nofootset;
@@ -251,6 +249,11 @@ extern struct Battle_Config {
 	unsigned short gvg_misc_damage_rate;
 	unsigned short gvg_flee_penalty;
 	int gvg_eliminate_time;
+	unsigned short pk_short_damage_rate;
+	unsigned short pk_long_damage_rate;
+	unsigned short pk_weapon_damage_rate;
+	unsigned short pk_magic_damage_rate;
+	unsigned short pk_misc_damage_rate;
 	unsigned short mob_changetarget_byskill;
 	unsigned short attack_direction_change;
 	unsigned short land_skill_limit;
