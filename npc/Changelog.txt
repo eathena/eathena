@@ -24,12 +24,15 @@ Nexon
 	* Adding in the new Abyss/Thanatos/Lighthalzen NPC's and optimizing them.
 Evera
 	* Everything.
+	* Dungeon Teleport System NPCs
 	* iRO information gathering.
 
 == Changelog ==
 
 Date		Added
 ======
+05/29
+	* DTS warper now uses 1 variable to count vote #. [Evera]
 05/27
 	* Updated DTS Warper; Now uses 3 global vars, 2 are vote #, 1 is etc in binary values. [Evera]
 05/26
