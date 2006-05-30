@@ -31,6 +31,8 @@ Evera
 
 Date		Added
 ======
+05/30
+	* Fixed the Umbala Skeleton Gate thanks to LightFighter and Naf- [Playtester]
 05/29
 	* DTS warper now uses 1 variable to count vote #. [Evera]
 05/27
