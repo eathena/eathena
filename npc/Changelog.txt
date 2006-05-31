@@ -32,6 +32,7 @@ Evera
 Date		Added
 ======
 05/31
+	* Reduced Chung E spawn in Louyang to 1 [Playtester]
 	* Implemented the friendship quest. [MasterOfMuppets]
 	- Added a few missing warps and a tool shop to Lighthalzen.
 	- Implemented the second entrance to biolabs.
