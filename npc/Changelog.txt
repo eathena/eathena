@@ -31,6 +31,11 @@ Evera
 
 Date		Added
 ======
+05/31
+	* Implemented the friendship quest. [MasterOfMuppets]
+	- Added a few missing warps and a tool shop to Lighthalzen.
+	- Implemented the second entrance to biolabs.
+	- Implemented Lighthalzen Guides.
 05/30
 	* Fixed Jawaii Classic Suite NPC warping directly ontop of a warp [Evera]
 	* Fixed the Umbala Skeleton Gate thanks to LightFighter and Naf- [Playtester]
