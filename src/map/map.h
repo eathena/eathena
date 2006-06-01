@@ -280,6 +280,20 @@ enum {
 	RC_MAX
 };
 
+enum {
+	ELE_NEUTRAL=0,
+	ELE_WATER,
+	ELE_EARTH,
+	ELE_FIRE,
+	ELE_WIND,
+	ELE_POISON,
+	ELE_HOLY,
+	ELE_DARK,
+	ELE_GHOST,
+	ELE_UNDEAD,
+	ELE_MAX
+};
+
 struct block_list {
 	struct block_list *next,*prev;
 	int id;
@@ -419,7 +433,7 @@ struct weapon_data {
 	int ignore_def_race;
 	int def_ratio_atk_ele;
 	int def_ratio_atk_race;
-	int addele[10];
+	int addele[ELE_MAX];
 	int addrace[RC_MAX];
 	int addrace2[RC_MAX];
 	int addsize[3];
@@ -562,6 +576,7 @@ struct map_session_data {
 	unsigned int canlog_tick;
 	unsigned int canregen_tick;
 	unsigned int canuseitem_tick;	// [Skotlex]
+	unsigned int cantalk_tick;
 	int hp_sub,sp_sub;
 	int inchealhptick,inchealsptick,inchealspirithptick,inchealspiritsptick;
 

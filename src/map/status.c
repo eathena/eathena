@@ -27,6 +27,7 @@
 #include "../common/timer.h"
 #include "../common/nullpo.h"
 #include "../common/showmsg.h"
+#include "../common/malloc.h"
 
 int SkillStatusChangeTable[MAX_SKILL]; //Stores the status that should be associated to this skill.
 int StatusIconChangeTable[SC_MAX]; //Stores the icon that should be associated to this status change.
@@ -48,6 +49,9 @@ int current_equip_item_index; //Contains inventory index of an equipped item. To
 int current_equip_card_id; //To prevent card-stacking (from jA) [Skotlex]
 //we need it for new cards 15 Feb 2005, to check if the combo cards are insrerted into the CURRENT weapon only
 //to avoid cards exploits
+
+//Caps values to min/max
+#define cap_value(a, min, max) (a>max?max:a<min?min:a)
 
 //Initializes the StatusIconChangeTable variable. May seem somewhat slower than directly defining the array,
 //but it is much less prone to errors. [Skotlex]
@@ -414,11 +418,10 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 		if (sc->data[SC_BLADESTOP].timer != -1) {
 			switch (sc->data[SC_BLADESTOP].val1)
 			{
-				case 1: return 0;
-				case 2: if (skill_num != MO_FINGEROFFENSIVE) return 0; break;
-				case 3: if (skill_num != MO_FINGEROFFENSIVE && skill_num != MO_INVESTIGATE) return 0; break;
-				case 4: if (skill_num != MO_FINGEROFFENSIVE && skill_num != MO_INVESTIGATE && skill_num != MO_CHAINCOMBO) return 0; break;
-				case 5: if (skill_num != MO_FINGEROFFENSIVE && skill_num != MO_INVESTIGATE && skill_num != MO_CHAINCOMBO && skill_num!=MO_EXTREMITYFIST) return 0; break;
+				case 5: if (skill_num == MO_EXTREMITYFIST) break;
+				case 4: if (skill_num == MO_CHAINCOMBO) break;
+				case 3: if (skill_num == MO_INVESTIGATE) break;
+				case 2: if (skill_num == MO_FINGEROFFENSIVE) break;
 				default: return 0;
 			}
 		}
@@ -474,7 +477,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 			return 0;
 		if(skill_num == WZ_STORMGUST && tsc->data[SC_FREEZE].timer != -1)
 			return 0;
-		if(skill_num == PR_LEXAETERNA && (tsc->data[SC_FREEZE].timer != -1 || (tsc->data[SC_STONE].timer != -1 && tsc->data[SC_STONE].val2 == 0)))
+		if(skill_num == PR_LEXAETERNA && (tsc->data[SC_FREEZE].timer != -1 || (tsc->data[SC_STONE].timer != -1 && tsc->opt1 == OPT1_STONE)))
 			return 0;
 	}
 
@@ -2022,6 +2025,10 @@ int status_calc_def(struct block_list *bl, int def)
 			def += sc->data[SC_DRUMBATTLE].val3;
 		if(sc->data[SC_INCDEFRATE].timer!=-1)
 			def += def * sc->data[SC_INCDEFRATE].val1/100;
+		if(sc->data[SC_FREEZE].timer!=-1)
+			def >>=1;
+		if(sc->data[SC_STONE].timer!=-1 && sc->opt1 == OPT1_STONE)
+			def >>=1;
 		if(sc->data[SC_SIGNUMCRUCIS].timer!=-1)
 			def -= def * sc->data[SC_SIGNUMCRUCIS].val2/100;
 		if(sc->data[SC_CONCENTRATION].timer!=-1)
@@ -2086,6 +2093,10 @@ int status_calc_mdef(struct block_list *bl, int mdef)
 			return 90;
 		if(sc->data[SC_SKA].timer != -1) // [marquis007]
 			return 90; // should it up mdef too?
+		if(sc->data[SC_FREEZE].timer!=-1)
+			mdef += 25*mdef/100;
+		if(sc->data[SC_STONE].timer!=-1 && sc->opt1 == OPT1_STONE)
+			mdef += 25*mdef/100;
 		if(sc->data[SC_ENDURE].timer!=-1 && sc->data[SC_ENDURE].val4 == 0)
 			mdef += sc->data[SC_ENDURE].val1;
 	}

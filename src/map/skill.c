@@ -1911,7 +1911,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 	case NPC_SELFDESTRUCTION:
 		if(src->type==BL_PC)
 			dmg.blewcount = 10;
-		break;
+		dmg.amotion = 0; //Disable delay or attack will do no damage since source is dead by the time it takes effect. [Skotlex]
 	case KN_AUTOCOUNTER: //Skills that need be passed as a normal attack for the client to display correctly.
 	case TF_DOUBLE:
 	case SN_SHARPSHOOTING:
@@ -4719,8 +4719,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			mob_summonslave(md,md->db->skill[md->skillidx].val,skilllv,skillid);
 		break;
 
-	case NPC_CALLSLAVE:		//Žæ‚èŠª‚«ŒÄ‚Ñ–ß‚µ
-		mob_warpslave(src,AREA_SIZE/2);
+	case NPC_CALLSLAVE:
+		mob_warpslave(src,2);
 		break;
 
 	case NPC_RANDOMMOVE:

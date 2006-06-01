@@ -84,24 +84,6 @@ int pc_isGM(struct map_session_data *sd) {
 
 }
 
-int pc_iskiller(struct map_session_data *src, struct map_session_data *target) {
-	nullpo_retr(0, src);
-
-	if(src->bl.type!=BL_PC )
-		return 0;
-	if (src->special_state.killer)
-		return 1;
-
-	if(target->bl.type!=BL_PC )
-		return 0;
-	
-	if (target->special_state.killable)
-		return 1;
-
-	return 0;
-}
-
-
 int pc_set_gm_level(int account_id, int level) {
     int i;
     for (i = 0; i < GM_num; i++) {
@@ -649,7 +631,8 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 	
 	sd->canregen_tick = tick;
 	sd->canuseitem_tick = tick;
-	
+	sd->cantalk_tick = tick;
+
 	for(i = 0; i < MAX_SKILL_LEVEL; i++)
 		sd->spirit_timer[i] = -1;
 
@@ -2381,53 +2364,52 @@ int pc_additem(struct map_session_data *sd,struct item *item_data,int amount)
 {
 	struct item_data *data;
 	int i;
-	long w;
+	unsigned int w;
 
 	nullpo_retr(1, sd);
 	nullpo_retr(1, item_data);
 
 	if(item_data->nameid <= 0 || amount <= 0)
 		return 1;
+	if(amount > MAX_AMOUNT)
+		return 5;
+	
 	data = itemdb_search(item_data->nameid);
 	w = data->weight*amount;
-	if(w + (long)sd->weight > (long)sd->max_weight || w + (long)sd->weight < 0) //Weight overflow check?
+	if(w > sd->max_weight - sd->weight)
 		return 2;
 
 	i = MAX_INVENTORY;
 
-	if (!itemdb_isequip2(data)){
-		// 装 備品ではないので、既所有品なら個数のみ変化させる
+	if (!itemdb_isequip2(data))
+	{ //Stackable
 		for (i = 0; i < MAX_INVENTORY; i++)
+		{
 			if(sd->status.inventory[i].nameid == item_data->nameid &&
-				sd->status.inventory[i].card[0] == item_data->card[0] &&
-				sd->status.inventory[i].card[1] == item_data->card[1] &&
-				sd->status.inventory[i].card[2] == item_data->card[2] &&
-				sd->status.inventory[i].card[3] == item_data->card[3])
+				memcmp(&sd->status.inventory[i].card,&item_data->card,
+					sizeof(item_data->card))==0)
 			{
-				if (amount < 0 || amount > MAX_AMOUNT || sd->status.inventory[i].amount + amount > MAX_AMOUNT)
+				if (amount > MAX_AMOUNT - sd->status.inventory[i].amount)
 					return 5;
 				sd->status.inventory[i].amount += amount;
 				clif_additem(sd,i,amount,0);
 				break;
 			}
+		}
 	}
 	if (i >= MAX_INVENTORY){
-		// 装 備品か未所有品だったので空き欄へ追加
 		i = pc_search_inventory(sd,0);
-		if(i >= 0) {
-			// clear equips field first, just in case
-			if (item_data->equip != 0)
-				item_data->equip = 0;
-			memcpy(&sd->status.inventory[i], item_data, sizeof(sd->status.inventory[0]));
-			sd->status.inventory[i].amount = amount;
-			sd->inventory_data[i] = data;
-			clif_additem(sd,i,amount,0);
-		}
-		else return 4;
+		if(i<0) return 4;
+		// clear equips field first, just in case
+		if (item_data->equip)
+			item_data->equip = 0;
+		memcpy(&sd->status.inventory[i], item_data, sizeof(sd->status.inventory[0]));
+		sd->status.inventory[i].amount = amount;
+		sd->inventory_data[i] = data;
+		clif_additem(sd,i,amount,0);
 	}
-	sd->weight += (int)w;
+	sd->weight += w;
 	clif_updatestatus(sd,SP_WEIGHT);
-
 	return 0;
 }
 
@@ -7338,13 +7320,13 @@ int pc_readdb(void)
 		lv=atoi(split[0]);
 		n=atoi(split[1]);
 
-		for(i=0;i<n;){
+		for(i=0;i<n && i<ELE_MAX;){
 			if( !fgets(line, sizeof(line)-1, fp) )
 				break;
 			if(line[0]=='/' && line[1]=='/')
 				continue;
 
-			for(j=0,p=line;j<n && p;j++){
+			for(j=0,p=line;j<n && j<ELE_MAX && p;j++){
 				while(*p==32 && *p>0)
 					p++;
 				attr_fix_table[lv-1][i][j]=atoi(p);

@@ -4,6 +4,13 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES GO 
 IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EVERYTHING ELSE
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
+2006/06/01
+	* Merged cleanup of pc_additem [Skotlex]
+	* Merged config setting min_chat_delay (client.conf) [Skotlex]
+	* Merged being able to (un)equip stuff while storage is open. [Skotlex]
+	* Merged Freeze/Petrify giving you -50% def and +25% mdef [Skotlex]
+	* Merged NPC_CALLSLAVE recalling them in a 5x5 area around the master.
+	  [Skotlex]
 2006/05/31
 	* Merged the corrected save/load friendlist code for char-txt [Skotlex]
 2006/05/29

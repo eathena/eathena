@@ -8466,6 +8466,13 @@ void clif_parse_GlobalMessage(int fd, struct map_session_data *sd) { // S 008c <
 		(sd->sc.data[SC_BERSERK].timer != -1 || sd->sc.data[SC_NOCHAT].timer != -1 ))
 		return;
 
+	if (battle_config.min_chat_delay)
+	{	//[Skotlex]
+		if (DIFF_TICK(sd->cantalk_tick, gettick()) > 0)
+			return;
+		sd->cantalk_tick = gettick() + battle_config.min_chat_delay;
+	}
+	
 	if (RFIFOW(fd,2)+4 < 128)
 		buf = buf2; //Use a static buffer.
 	else
@@ -8803,6 +8810,13 @@ void clif_parse_Wis(int fd, struct map_session_data *sd) { // S 0096 <len>.w <ni
 		(sd->sc.data[SC_BERSERK].timer!=-1 || sd->sc.data[SC_NOCHAT].timer != -1))
 		return;
 
+	if (battle_config.min_chat_delay)
+	{	//[Skotlex]
+		if (DIFF_TICK(sd->cantalk_tick, gettick()) > 0)
+			return;
+		sd->cantalk_tick = gettick() + battle_config.min_chat_delay;
+	}
+
 	memcpy(&target,RFIFOP(fd, 4),NAME_LENGTH);
 	target[NAME_LENGTH]='\0';
 	
@@ -9075,7 +9089,9 @@ void clif_parse_EquipItem(int fd,struct map_session_data *sd)
 	if(sd->npc_id) {
 		if (sd->npc_id != sd->npc_item_flag)
 			return;
-	} else if (clif_cant_act(sd))
+	} else if (sd->state.storage_flag)
+		; //You can equip/unequip stuff while storage is open.
+	else if (clif_cant_act(sd))
 		return;
 		
 	if(sd->sc.data[SC_BLADESTOP].timer!=-1 || sd->sc.data[SC_BERSERK].timer!=-1 )
@@ -9110,7 +9126,9 @@ void clif_parse_UnequipItem(int fd,struct map_session_data *sd)
 		return;
 	}
 
-	if (clif_cant_act(sd))
+	if (sd->state.storage_flag)
+		; //You can equip/unequip stuff while storage is open.
+	else if (clif_cant_act(sd))
 		return;
 
 	index = RFIFOW(fd,2)-2;
@@ -10025,6 +10043,13 @@ void clif_parse_PartyMessage(int fd, struct map_session_data *sd) {
 		))
 		return;
 
+	if (battle_config.min_chat_delay)
+	{	//[Skotlex]
+		if (DIFF_TICK(sd->cantalk_tick, gettick()) > 0)
+			return;
+		sd->cantalk_tick = gettick() + battle_config.min_chat_delay;
+	}
+
 	party_send_message(sd, (char*)RFIFOP(fd,4), RFIFOW(fd,2)-4);
 }
 
@@ -10225,6 +10250,13 @@ void clif_parse_GuildMessage(int fd,struct map_session_data *sd) {
 		sd->sc.data[SC_NOCHAT].timer!=-1		//ƒ`ƒƒƒbƒg‹ÖŽ~
 	))
 		return;
+
+	if (battle_config.min_chat_delay)
+	{	//[Skotlex]
+		if (DIFF_TICK(sd->cantalk_tick, gettick()) > 0)
+			return;
+		sd->cantalk_tick = gettick() + battle_config.min_chat_delay;
+	}
 
 	guild_send_message(sd, (char*)RFIFOP(fd,4), RFIFOW(fd,2)-4);
 }
