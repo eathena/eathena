@@ -1,3 +1,5 @@
+05/31
+	* Merged mob_db.txt and create_arrow_db.txt from trunk [Playtester]
 05/26
 	* Merged Kiel & Odin drop update [Playtester]
 	* Fixed 12106,Jeweled_Box. Now giving an accessory [Lupus]
