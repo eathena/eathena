@@ -5,6 +5,7 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 2006/06/02
+	* Changed the interval between waterballs from 150 to 250 milliseconds [MasterOfMuppets]
 	* Removed the walk delay from firewall and changed its knockback [MasterOfMuppets]
 	  to 1 tile to make it act more like in the official servers.
 2006/06/01
