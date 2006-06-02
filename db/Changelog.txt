@@ -1,3 +1,5 @@
+06/02
+	* Once again merged mob_db.txt [Playtester]
 05/31
 	* Merged mob_db.txt and create_arrow_db.txt from trunk [Playtester]
 05/26
