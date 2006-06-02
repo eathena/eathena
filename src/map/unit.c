@@ -640,6 +640,7 @@ int unit_can_move(struct block_list *bl)
 				(sc->data[SC_DANCING].val4 && sc->data[SC_LONGING].timer == -1) ||
 				sc->data[SC_DANCING].val1 == CG_HERMODE	//cannot move while Hermod is active.
 			)) ||
+			sc->data[SC_MOONLIT].timer != -1 ||
 			(sc->data[SC_GOSPEL].timer !=-1 && sc->data[SC_GOSPEL].val4 == BCT_SELF) ||	// cannot move while gospel is in effect
 			sc->data[SC_STOP].timer != -1 ||
 			sc->data[SC_CLOSECONFINE].timer != -1 ||
@@ -984,7 +985,6 @@ int unit_skilluse_pos2( struct block_list *src, int skill_x, int skill_y, int sk
 	unit_stop_attack(src);
 	ud->state.skillcastcancel = castcancel;
 
-	//ƒ?ƒ‚ƒ‰ƒCƒY?‘Ô‚È‚çƒLƒƒƒXƒgƒ^ƒCƒ€‚ª1/3
 	if (sc && sc->data[SC_MEMORIZE].timer != -1 && casttime > 0){
 		casttime = casttime/3;
 		if ((--sc->data[SC_MEMORIZE].val2)<=0)
@@ -1155,7 +1155,7 @@ int unit_can_reach_bl(struct block_list *bl,struct block_list *tbl, int range, i
 	dx=(dx>0)?1:((dx<0)?-1:0);
 	dy=(dy>0)?1:((dy<0)?-1:0);
 	
-	if (map_getcell(tbl->m,tbl->x+dx,tbl->y+dy,CELL_CHKNOREACH))
+	if (map_getcell(tbl->m,tbl->x-dx,tbl->y-dy,CELL_CHKNOREACH))
 	{	//Look for a suitable cell to place in.
 		for(i=0;i<9 && map_getcell(tbl->m,tbl->x-dirx[i],tbl->y-diry[i],CELL_CHKNOREACH);i++);
 		if (i==9) return 0; //No valid cells.
