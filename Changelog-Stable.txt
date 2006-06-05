@@ -6,6 +6,9 @@ GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 
 2006/06/05
+	* Merged fix for Brandish Spear lv 11+ [Skotlex]
+	* Merged 2HQ giving +2*(lv-10)% aspd bonus when a level greater than 10 is
+	  used [Skotlex]
 	* Added $ (guild chat) to forbidden command_symbol list.
 	* Merged auto-closing the guild storage when said member leaves the guild.
 	  [Skotlex]

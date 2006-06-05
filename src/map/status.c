@@ -308,8 +308,8 @@ void initChangeTables(void) {
 	SkillStatusChangeTable[SL_SOULLINKER] =  MAPID_SOUL_LINKER,
 
 	//Status that don't have a skill associated.
-	StatusIconChangeTable[SC_WEIGHT50 ] =   SI_WEIGHT50;
-	StatusIconChangeTable[SC_WEIGHT90] =    SI_WEIGHT90;
+	StatusIconChangeTable[SC_WEIGHT50] = SI_WEIGHT50;
+	StatusIconChangeTable[SC_WEIGHT90] = SI_WEIGHT90;
 	StatusIconChangeTable[SC_ASPDPOTION0] = SI_ASPDPOTION;
 	StatusIconChangeTable[SC_ASPDPOTION1] = SI_ASPDPOTION;
 	StatusIconChangeTable[SC_ASPDPOTION2] = SI_ASPDPOTION;
@@ -2186,7 +2186,7 @@ int status_calc_aspd_rate(struct block_list *bl, int aspd_rate)
 		int i;
 		if(sc->data[SC_QUAGMIRE].timer==-1 && sc->data[SC_DONTFORGETME].timer==-1){
 			if(sc->data[SC_TWOHANDQUICKEN].timer!=-1)
-				aspd_rate -= 30;
+				aspd_rate -= sc->data[SC_TWOHANDQUICKEN].val2;
 			else if(sc->data[SC_ONEHAND].timer!=-1)
 				aspd_rate -= 30;
 			else if(sc->data[SC_ADRENALINE2].timer!=-1)
@@ -4438,6 +4438,12 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 				val2 = 0; //0 -> Half stat.
 			calc_flag = 1;
 			break;
+		case SC_TWOHANDQUICKEN:
+			val2 = 30;
+			if (val1 > 10) //For MVP use, additional 2% per level.
+				val2 += 2*(val1-10);
+			calc_flag = 1;
+			break;
 		case SC_TRICKDEAD:			/* éÄÇÒÇæÇ”ÇË */
 		{
 			struct view_data *vd = status_get_viewdata(bl);
@@ -4510,7 +4516,6 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 		case SC_SWOO: // [marquis007]
 		case SC_STEELBODY:			// ã‡çÑ
 		case SC_SKA:
-		case SC_TWOHANDQUICKEN:		/* 2HQ */
 		case SC_MIRACLE:
 		case SC_INCREASEAGI:		/* ë¨ìxè„è∏ */
 		case SC_DECREASEAGI:		/* ë¨ìxå∏è≠ */

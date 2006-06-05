@@ -759,6 +759,8 @@ int skill_get_range2(struct block_list *bl, int id, int lv) {
 		break;
 	}
 
+	if(!range && bl->type != BL_PC)
+		return 9; // Enable non players to use self skills on others. [Skotlex]
 	return range;
 }
 
@@ -3785,15 +3787,14 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 	case KN_BRANDISHSPEAR:	/*ƒuƒ‰ƒ“ƒfƒBƒbƒVƒ…ƒXƒsƒA*/
 		{
-			int c,n=4,ar;
+			int c,n=4;
 			int dir = map_calc_dir(src,bl->x,bl->y);
 			struct square tc;
 			int x=bl->x,y=bl->y;
-			ar=skilllv/3;
 			skill_brandishspear_first(&tc,dir,x,y);
 			skill_brandishspear_dir(&tc,dir,4);
 			/* ”Í?‡C */
-			if(skilllv == 10){
+			if(skilllv > 9){
 				for(c=1;c<4;c++){
 					map_foreachincell(skill_area_sub,
 						bl->m,tc.val1[c],tc.val2[c],BL_CHAR,
@@ -5901,7 +5902,7 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 			i = skill_get_splash(skillid, skilllv);
 			map_foreachinarea (skill_ganbatein, src->m, x-i, y-i, x+i, y+i, BL_SKILL);
 		} else {
-			clif_skill_fail(sd,skillid,0,0);
+			if (sd) clif_skill_fail(sd,skillid,0,0);
 			return 1;
 		}
 		break;
@@ -6467,8 +6468,7 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 	case UNT_SERVICEFORYOU:
 		if (sg->src_id==bl->id && (!sc || sc->data[SC_SPIRIT].timer == -1 || sc->data[SC_SPIRIT].val2 != SL_BARDDANCER))
 			return 0;
-		if (!sc)
-			break;
+		if (!sc) return 0;
 		if (sc->data[type].timer==-1)
 			sc_start4(bl,type,100,sg->skill_lv,sg->val1,sg->val2,0,sg->limit);
 		else if (sc->data[type].val4 == 1) {
@@ -7504,18 +7504,18 @@ int skill_check_condition(struct map_session_data *sd,int skill, int lv, int typ
 			return 0;
 		}
 		break;
-	case BS_MAXIMIZE:		/* ƒ}ƒLƒVƒ}ƒCƒYƒpƒ?? */
-	case NV_TRICKDEAD:		/* Ž€‚ñ‚¾‚Ó‚è */
-	case TF_HIDING:			/* ƒnƒCƒfƒBƒ“ƒO */
-	case AS_CLOAKING:		/* ƒNƒ??ƒLƒ“ƒO */
-	case CR_AUTOGUARD:				/* ƒI?ƒgƒK?ƒh */
-	case CR_DEFENDER:				/* ƒfƒBƒtƒFƒ“ƒ_? */
+	case BS_MAXIMIZE:
+	case NV_TRICKDEAD:
+	case TF_HIDING:
+	case AS_CLOAKING:
+	case CR_AUTOGUARD:
+	case CR_DEFENDER:
 	case ST_CHASEWALK:
 	case PA_GOSPEL:
 	case CR_SHRINK:
 	case TK_RUN:
-		if(sd->sc.data[SkillStatusChangeTable[skill]].timer!=-1)
-			return 1;			/* ‰ð?œ‚·‚é?ê?‡‚ÍSP?Á”ï‚µ‚È‚¢ */
+		if(sd->sc.count && sd->sc.data[SkillStatusChangeTable[skill]].timer!=-1)
+			return 1; //Allow turning off.
 		break;
 
 	case AL_WARP:
@@ -10376,7 +10376,7 @@ int skill_readdb(void)
 			i = GD_SKILLRANGEMIN + i - GD_SKILLBASE;
 		if(i<=0 || i>MAX_SKILL_DB)
 			continue;
-
+		
 		skill_split_atoi(split[1],skill_db[i].range);
 		skill_db[i].hit=atoi(split[2]);
 		skill_db[i].inf=atoi(split[3]);

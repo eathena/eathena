@@ -1,4 +1,5 @@
 06/05
+	* Merged mobskill_db.txt updates. [Skotlex]
 	* A typo fix, thanks to DracoRPG. [MasterOfMuppets]
 06/02
 	* Once again merged mob_db.txt [Playtester]
