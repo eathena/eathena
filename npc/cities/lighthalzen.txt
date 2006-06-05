@@ -3,23 +3,20 @@
 //===== By: ================================================== 
 //=  erKURITA
 //===== Current Version: ===================================== 
-//= 0.6
+//= 0.5
 //===== Compatible With: ===================================== 
 //= eAthena 1.0
 //===== Description: ========================================= 
 //= Lighthalzen NPCs (Temporal names for now) [erKURITA]
-//===== Additional Comments: ================================= 
+//===== Additional Comments: ==================================
 //= 0.1 Placed temporal names, why there weren't on the SVN before? [erKURITA]
 //= 0.2 Implemented some crap NPCs [MasterOfMuppets]
 //= 0.3 Another load of NPCs. Scripted by Kargha [MasterOfMuppets]
 //= 0.4 More Town NPCs. [Musashiden]
 //= 0.5 Added a BIG load of Lighthalzen NPCs. [musashiden]
-//= 0.6 Implemented the second entrance to biolabs [MasterOfMuppets]
-//============================================================
-
-lighthalzen.gat,154,100,5	script	Lighthalzen Guard#1	852,{end;}
-lighthalzen.gat,207,310,5	script	Lighthalzen Guard#2	852,{end;}
-
+//= 0.6 Fixed some typos+Coordinates. [Musashiden]
+//= 0.7 Implemented some more crap NPCs and the second entrance to biolabs [MasterOfMuppets]
+//=============================================================
 
 lighthalzen.gat,198,285,5	script	Jiwon	862,{
 
@@ -140,7 +137,7 @@ lighthalzen.gat,233,121,4	script	Kariya	72,{
 }
 
 
-lighthalzen.gat,233,82,5	script	Sung	716,{
+lighthalzen.gat,233,82,4	script	Sung	716,{
 
 	mes "[Sung]";
 	mes "When i grow up, I want";
@@ -167,7 +164,7 @@ lighthalzen.gat,233,82,5	script	Sung	716,{
 }
 
 
-lighthalzen.gat,89,73,5	script	Sameer	854,{
+lighthalzen.gat,89,73,4	script	Sameer	854,{
 
 	mes "[Sameer]";
 	mes "There are too many";
@@ -217,7 +214,7 @@ lighthalzen.gat,45,59,8	script	Janice	863,{
 }
 
 
-lighthalzen.gat,66,94,4	script	Elmer Keays	866,{
+lighthalzen.gat,66,94,5	script	Elmer Keays	866,{
 
 	mes "[Elmer Keays]";
 	mes "Walking side by side";
@@ -427,7 +424,7 @@ lighthalzen.gat,115,159,5	script	Collins	866,{
 
 lighthalzen.gat,77,157,5	script	Villagomez	866,{
 
-	mes "[Mauro]";
+	mes "[Villagomez]";
 	mes "I just step out to get";
 	mes "a haircut and now i'm";
 	mes "lost. Boy oh boy, I hope";
@@ -457,7 +454,7 @@ lighthalzen.gat,125,68,5	script	Kemp	97,{
 }
 
 
-lighthalzen.gat,138,50,5	script	Mauro	847,{
+lighthalzen.gat,138,50,8	script	Mauro	847,{
 
 	mes "[Mauro]";
 	mes "The youth in this city";
@@ -1754,7 +1751,7 @@ lhz_in03.gat,183,82,6	script	Drunken Man#Drunken_Man2	870,{
 
 // ---------------------------------------------------------------------------
 
-lhz_dun03.gat,180,83,6	script	Citizen	86,{
+lhz_in03.gat,180,83,6	script	Citizen	86,{
 
 	mes "[Mitchell]";
 	mes "You know, everyone";
@@ -1821,7 +1818,6 @@ lhz_in03.gat,184,38,2	script	Loudmouth	55,{
 	close;
 
 }
-
 // ---------------------------------------------------------------------------
 
 lhz_in01.gat,114,181,3	script	Representative::LhzRep	71,{
