@@ -5,6 +5,9 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.  EV
 GOES INTO TRUNK AND WILL BE MERGED INTO STABLE BY <Insert Name Here>
 
 2006/06/03
+	* Fixed @mi/@mobinfo not showing the name collumns correcly [shadow]
+
+2006/06/03
 	* Solved the bug that made firewalls only castable a few times until [MasterOfMuppets]
 	  relogging. Thanks to Euph for the fix.
 	* Updated Tunnel Drive to decrease walking speed as it should, [MasterOfMuppets]

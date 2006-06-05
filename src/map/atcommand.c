@@ -9354,9 +9354,9 @@ int atcommand_mobinfo(
 
 		// stats
 		if (mob->mexp)
-			sprintf(atcmd_output, "MVP Monster: '%s'/'%s' (%d)", mob->name, mob->jname, mob_id);
+			sprintf(atcmd_output, "MVP Monster: '%s'/'%s'/'%s' (%d)", mob->name, mob->jname, mob->sprite, mob_id);
 		else
-			sprintf(atcmd_output, "Monster: '%s'/'%s' (%d)", mob->name, mob->jname, mob_id);
+			sprintf(atcmd_output, "Monster: '%s'/'%s'/'%s' (%d)", mob->name, mob->jname, mob->sprite, mob_id);
 		clif_displaymessage(fd, atcmd_output);
 		sprintf(atcmd_output, " Level:%d  HP:%d  SP:%d  Base EXP:%d  Job EXP:%d", mob->lv, mob->max_hp, mob->max_sp, mob->base_exp, mob->job_exp);
 		clif_displaymessage(fd, atcmd_output);
